@@ -37,6 +37,7 @@
 								</option>
 								<option id="gnu.c.compiler.option.include.paths.394865013" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/opt/local/include"/>
+									<listOptionValue builtIn="false" value="/opt/local/include/glib-2.0"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.889241931" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>

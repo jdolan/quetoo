@@ -5,6 +5,7 @@ SUBDIRS = \
 	server \
 	main \
 	game \
+	tests \
 	tools \
 	master
 
@@ -16,11 +17,9 @@ noinst_HEADERS = \
 	console.h \
 	cvar.h \
 	filesystem.h \
-	hash.h \
 	images.h \
 	mem.h \
 	net.h \
-	pak.h \
 	pmove.h \
 	quake2world.h \
 	shared.h \
@@ -33,7 +32,6 @@ noinst_LTLIBRARIES = \
 	libcommon.la \
 	libconsole.la \
 	libfilesystem.la \
-	libhash.la \
 	libimages.la \
 	libmem.la \
 	libnet.la \
@@ -47,7 +45,8 @@ noinst_LTLIBRARIES = \
 libcmodel_la_SOURCES = \
 	cmodel.c
 libcmodel_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 libcmodel_la_LIBADD = \
 	libfilesystem.la
 
@@ -55,32 +54,34 @@ libcommon_la_SOURCES = \
 	common.c
 libcommon_la_CFLAGS = \
 	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
+libcommon_la_LIBADD = \
+	libshared.la
 	
 libconsole_la_SOURCES = \
+	cmd.c \
 	console.c \
-	console-curses.c
+	console-curses.c \
+	cvar.c
 libconsole_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@CURSES_CFLAGS@
+	@CURSES_CFLAGS@ \
+	@GLIB_CFLAGS@
 libconsole_la_LIBADD = \
-	libfilesystem.la
+	libfilesystem.la \
+	@CURSES_LIBS@
 	
 libfilesystem_la_SOURCES = \
-	cmd.c \
-	cvar.c \
-	filesystem.c \
-	pak.c
+	filesystem.c
 libfilesystem_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 libfilesystem_la_LIBADD = \
-	libcommon.la \
-	libhash.la \
 	libmem.la \
-	libshared.la \
 	libswap.la \
 	libsys.la \
-	libwin32.la
+	@PHYSFS_LIBS@
 
 if BUILD_CLIENT
 
@@ -88,6 +89,7 @@ libimages_la_SOURCES = \
 	images.c
 libimages_la_CFLAGS = \
 	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 libimages_la_LIBADD = \
 	libfilesystem.la
@@ -101,49 +103,64 @@ libimages_la_CFLAGS = \
 
 endif
 
-libhash_la_SOURCES = \
-	hash.c
-libhash_la_CFLAGS = \
-	@BASE_CFLAGS@
-
 libmem_la_SOURCES = \
 	mem.c
 libmem_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
+libmem_la_LIBADD = \
+	libcommon.la \
+	@SDL_LIBS@
 
 libnet_la_SOURCES = \
 	net_chan.c \
 	net_udp.c
 libnet_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 libnet_la_LIBADD = \
-	libfilesystem.la
+	libconsole.la
 
 libpmove_la_SOURCES = \
 	pmove.c
 libpmove_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
+libpmove_la_LIBADD = \
+	libshared.la
 
 libshared_la_SOURCES = \
 	shared.c
 libshared_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
+libshared_la_LIBADD = \
+	@BASE_LIBS@ \
+	@GLIB_LIBS@
 	
 libswap_la_SOURCES = \
 	swap.c
 libswap_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 
 libsys_la_SOURCES = \
 	sys.c
 libsys_la_CFLAGS = \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
+libsys_la_LIBADD = \
+	libcommon.la \
+	libwin32.la
 
 libthreads_la_SOURCES = \
 	threads.c
 libthreads_la_CFLAGS = \
 	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
+libthreads_la_LIBADD = \
+	libcommon.la
 
 if WINDOWS
 

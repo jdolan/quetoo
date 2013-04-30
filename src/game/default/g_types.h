@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_TYPES_H__
-#define __G_TYPES_H__
+#ifndef __GAME_TYPES_H__ // don't collide with glib.h
+#define __GAME_TYPES_H__
 
 #include "game/game.h"
 
@@ -90,7 +90,7 @@ typedef struct {
 
 #define STAT_TOGGLE_BIT		0x8000 // used to force a stats field update
 
-#if defined(__G_LOCAL_H__) || defined(__ECLIPSE__)
+#if defined(__GAME_LOCAL_H__)
 
 // edict->spawnflags
 #define SF_ITEM_TRIGGER			0x00000001
@@ -113,10 +113,6 @@ typedef struct {
 #define FL_GOD_MODE				0x00000004
 #define FL_TEAM_SLAVE			0x00000008  // not the first on the team
 #define FL_RESPAWN				0x80000000  // used for item respawning
-
-// memory tags to allow dynamic memory to be cleaned up
-#define TAG_GAME 700 // clear when unloading the dll
-#define TAG_GAME_LEVEL 701 // clear when loading a new level
 
 // ammo types
 typedef enum {
@@ -163,34 +159,29 @@ typedef enum {
 }g_item_type_t;
 
 typedef struct g_item_s {
-	char *class_name; // spawning name
-	bool (*pickup)(struct g_edict_s *ent, struct g_edict_s *other);
-	void (*use)(struct g_edict_s *ent, struct g_item_s *item);
-	void (*drop)(struct g_edict_s *ent, struct g_item_s *item);
-	void (*weapon_think)(struct g_edict_s *ent);
-	char *pickup_sound;
-	char *model;
+	const char *class_name; // spawning name
+
+	bool (*Pickup)(struct g_edict_s *ent, struct g_edict_s *other);
+	void (*Use)(struct g_edict_s *ent, const struct g_item_s *item);
+	void (*Drop)(struct g_edict_s *ent, const struct g_item_s *item);
+	void (*Think)(struct g_edict_s *ent);
+
+	const char *pickup_sound;
+	const char *model;
 	uint32_t effects;
 
 	// client side info
-	char *icon;
-	char *pickup_name; // for printing on pickup
+	const char *icon;
+	const char *name; // for printing on pickup
 
 	uint16_t quantity; // for ammo how much, for weapons how much is used per shot
-	char *ammo; // for weapons
+	const char *ammo; // for weapons
+
 	g_item_type_t type; // g_item_type_t, see above
 	uint16_t tag; // type-specific flags
 
-	char *precaches; // string of all models, sounds, and images this item will use
+	const char *precaches; // string of all models, sounds, and images this item will use
 }g_item_t;
-
-// override quake2 items for legacy maps
-typedef struct {
-	char *old;
-	char *new;
-}g_override_t;
-
-extern g_override_t g_overrides[];
 
 // spawn_temp_t is only used to hold entity field values that
 // can be set from the editor, but aren't actually present
@@ -262,12 +253,22 @@ typedef struct {
 	g_client_t *clients; // [sv_max_clients]
 
 	g_spawn_temp_t spawn;
-
-	uint16_t num_items;
-	uint16_t num_overrides;
 }g_game_t;
 
 extern g_game_t g_game;
+
+// this structure holds references to frequently accessed media
+typedef struct {
+	uint16_t grenade_model;
+	uint16_t grenade_hit_sound;
+
+	uint16_t rocket_model;
+	uint16_t rocket_fly_sound;
+
+	uint16_t lightning_fly_sound;
+
+	uint16_t quad_damage;
+} g_media_t;
 
 // this structure is cleared as each map is entered
 typedef struct {
@@ -308,6 +309,8 @@ typedef struct {
 	char vote_cmd[64]; // current vote in question
 	uint32_t votes[3]; // current vote tallies
 	uint32_t vote_time; // time vote started
+
+	g_media_t media;
 
 	g_edict_t *current_entity; // entity running from G_RunFrame
 }g_level_t;
@@ -404,8 +407,8 @@ typedef struct {
 	int16_t max_slugs;
 	int16_t max_nukes;
 
-	g_item_t *weapon;
-	g_item_t *last_weapon;
+	const g_item_t *weapon;
+	const g_item_t *last_weapon;
 
 	bool spectator; // client is a spectator
 	bool ready; // ready
@@ -440,7 +443,7 @@ struct g_client_s {
 
 	uint32_t weapon_think_time; // time when the weapon think was called
 	uint32_t weapon_fire_time; // can fire when time > this
-	g_item_t *new_weapon;
+	const g_item_t *new_weapon;
 
 	int16_t damage_armor; // damage absorbed by armor
 	int16_t damage_health; // damage taken out of health
@@ -474,7 +477,7 @@ struct g_client_s {
 	g_edict_t *chase_target; // player we are chasing
 	g_edict_t *old_chase_target; // player we were chasing
 
-	g_item_t *last_dropped; // last dropped item, used for variable expansion
+	const g_item_t *last_dropped; // last dropped item, used for variable expansion
 };
 
 struct g_edict_s {
@@ -504,8 +507,8 @@ struct g_edict_s {
 	uint32_t spawn_flags;
 	uint32_t flags; // FL_GOD_MODE, etc..
 
-	char *class_name;
-	char *model;
+	const char *class_name;
+	const char *model;
 
 	g_move_type_t move_type;
 	g_move_info_t move_info;
@@ -580,7 +583,7 @@ struct g_edict_s {
 
 	int32_t area_portal; // the area portal to toggle
 
-	g_item_t *item; // for bonus items
+	const g_item_t *item; // for bonus items
 
 	c_bsp_plane_t plane; // last touched
 	c_bsp_surface_t *surf;
@@ -590,4 +593,4 @@ struct g_edict_s {
 
 #endif
 
-#endif /* __G_TYPES_H__ */
+#endif /* __GAME_TYPES_H__ */

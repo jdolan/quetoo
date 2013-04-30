@@ -41,6 +41,7 @@ quake2world_t quake2world;
 
 cvar_t *debug;
 cvar_t *dedicated;
+cvar_t *game;
 cvar_t *show_trace;
 cvar_t *time_demo;
 cvar_t *time_scale;
@@ -70,29 +71,30 @@ static void Debug(const char *msg) {
  */
 static void Error(err_t err, const char *msg) {
 
+	Com_Print("^1%s\n", msg);
+
 	switch (err) {
-	case ERR_NONE:
-	case ERR_DROP:
-		Print(va("^1%s\n", msg));
-		Sv_Shutdown(msg);
+		case ERR_NONE:
+		case ERR_DROP:
+			Sv_Shutdown(msg);
 
 #ifdef BUILD_CLIENT
-		Cl_Disconnect();
-		if (err == ERR_NONE) {
-			cls.key_state.dest = KEY_UI;
-		} else {
-			cls.key_state.dest = KEY_CONSOLE;
-		}
+			Cl_Disconnect();
+			if (err == ERR_NONE) {
+				cls.key_state.dest = KEY_UI;
+			} else {
+				cls.key_state.dest = KEY_CONSOLE;
+			}
 #endif
 
-		longjmp(environment, 0);
-		break;
+			longjmp(environment, 0);
+			break;
 
-	case ERR_FATAL:
-	default:
-		Shutdown((const char *) msg);
-		Sys_Error("%s", msg);
-		break;
+		case ERR_FATAL:
+		default:
+			Shutdown(msg);
+			exit(err);
+			break;
 	}
 }
 
@@ -129,69 +131,40 @@ static void Warn(const char *msg) {
  * @brief
  */
 static void Quit_f(void) {
-
-	Shutdown("Server quit.\n");
-
-	Sys_Quit();
+	Com_Shutdown("Server quit\n");
 }
 
 /*
  * @brief
  */
-static void Init(int32_t argc, char **argv) {
-	char *s;
-
-	memset(&quake2world, 0, sizeof(quake2world));
-
-	if (setjmp(environment))
-		Sys_Error("Error during initialization.");
-
-	quake2world.Debug = Debug;
-	quake2world.Error = Error;
-	quake2world.Print = Print;
-	quake2world.Verbose = Verbose;
-	quake2world.Warn = Warn;
+static void Init(void) {
 
 	Z_Init();
 
-	Com_InitArgv(argc, argv);
-
-	Cbuf_Init();
+	Fs_Init();
 
 	Cmd_Init();
 
 	Cvar_Init();
 
-	/*
-	 * We need to add the early commands twice, because a base directory needs
-	 * to be set before executing configuration files, and we also want
-	 * command line parameters to override configuration files.
-	 */
-	Cbuf_AddEarlyCommands(false);
-
-	Fs_Init();
-
-	Cbuf_AddEarlyCommands(true);
-
-	Thread_Init();
-
-#ifndef BUILD_CLIENT
-	dedicated = Cvar_Get("dedicated", "1", CVAR_NO_SET, NULL);
-#else
-	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, NULL);
-#endif
-
 	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
+#ifdef BUILD_CLIENT
+	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, NULL);
+#else
+	dedicated = Cvar_Get("dedicated", "1", CVAR_NO_SET, NULL);
+#endif
+	game = Cvar_Get("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
 	show_trace = Cvar_Get("show_trace", "0", 0, "Print trace counts per frame");
 	time_demo = Cvar_Get("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
 	time_scale = Cvar_Get("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
 	verbose = Cvar_Get("verbose", "0", 0, "Print verbose debugging information");
+	const char *s = va("Quake2World %s %s %s", VERSION, __DATE__, BUILD_HOST);
+	Cvar_Get("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
 	Con_Init();
 	quake2world.time = Sys_Milliseconds();
 
-	s = va("Quake2World %s %s %s", VERSION, __DATE__, BUILD_HOST);
-	Cvar_Get("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	Thread_Init();
 
 	Cmd_AddCommand("quit", Quit_f, 0, "Quit Quake2World");
 
@@ -204,14 +177,14 @@ static void Init(int32_t argc, char **argv) {
 	Cl_Init();
 #endif
 
-	Com_Print("Quake2World initialized.\n");
+	Com_Print("Quake2World initialized\n");
 
-	// add + commands from command line
-	Cbuf_AddLateCommands();
+	// execute any +commands specified on the command line
+	Cbuf_InsertFromDefer();
 
-	// dedicated server, nothing specified, use fractures.bsp
+	// dedicated server, nothing specified, use Edge
 	if (dedicated->value && !Com_WasInit(Q2W_SERVER)) {
-		Cbuf_AddText("map torn\n");
+		Cbuf_AddText("map edge\n");
 		Cbuf_Execute();
 	}
 }
@@ -220,6 +193,8 @@ static void Init(int32_t argc, char **argv) {
  * @brief Cleans up all game engine subsystems.
  */
 static void Shutdown(const char *msg) {
+
+	Com_Print("%s", msg);
 
 	Sv_Shutdown(msg);
 
@@ -230,6 +205,13 @@ static void Shutdown(const char *msg) {
 	Thread_Shutdown();
 
 	Con_Shutdown();
+	quake2world.time = 0; // short-circuit Print
+
+	Cvar_Shutdown();
+
+	Cmd_Shutdown();
+
+	Fs_Shutdown();
 
 	Z_Shutdown();
 }
@@ -282,6 +264,22 @@ int32_t main(int32_t argc, char **argv) {
 	setvbuf(stdout, NULL, _IONBF, 0);
 #endif
 
+	printf("Quake2World %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+
+	memset(&quake2world, 0, sizeof(quake2world));
+
+	if (setjmp(environment))
+		Com_Error(ERR_FATAL, "Error during initialization.");
+
+	quake2world.Debug = Debug;
+	quake2world.Error = Error;
+	quake2world.Print = Print;
+	quake2world.Verbose = Verbose;
+	quake2world.Warn = Warn;
+
+	quake2world.Init = Init;
+	quake2world.Shutdown = Shutdown;
+
 	signal(SIGHUP, Sys_Signal);
 	signal(SIGINT, Sys_Signal);
 	signal(SIGQUIT, Sys_Signal);
@@ -291,11 +289,7 @@ int32_t main(int32_t argc, char **argv) {
 	signal(SIGSEGV, Sys_Signal);
 	signal(SIGTERM, Sys_Signal);
 
-	printf("Quake2World %s\n", VERSION);
-
-	Init(argc, argv);
-
-	quake2world.time = Sys_Milliseconds();
+	Com_Init(argc, argv); // let's get it started in here
 
 	while (true) { // this is our main loop
 

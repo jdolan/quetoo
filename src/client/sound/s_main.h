@@ -23,8 +23,8 @@
 #define __S_MAIN_H__
 
 void S_Frame(void);
-void S_Init(void);
 void S_LoadMedia(void);
+void S_Init(void);
 void S_Shutdown(void);
 
 #ifdef __S_LOCAL_H__

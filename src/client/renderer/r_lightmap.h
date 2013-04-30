@@ -25,24 +25,9 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-typedef struct r_lightmaps_s {
-	GLuint lightmap_texnum;
-	GLuint deluxemap_texnum;
-
-	r_pixel_t block_size;  // lightmap block size (NxN)
-	r_pixel_t *allocated;  // block availability
-
-	byte *sample_buffer;  // RGB buffers for uploading
-	byte *direction_buffer;
-
-	float fbuffer[MAX_BSP_LIGHTMAP * 3];  // RGB buffer for bsp loading
-} r_lightmaps_t;
-
-extern r_lightmaps_t r_lightmaps;
-
-void R_BeginBuildingLightmaps(void);
-void R_CreateSurfaceLightmap(r_bsp_surface_t *surf);
-void R_EndBuildingLightmaps(void);
+void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp);
+void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const byte *data);
+void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_LIGHTMAP_H__ */

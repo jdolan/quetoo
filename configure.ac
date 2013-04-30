@@ -1,6 +1,6 @@
 AC_PREREQ(2.56)
 
-AC_INIT(quake2world, 0.1.0, quake2@jdolan.dyndns.org)
+AC_INIT(quake2world, 0.1.0, jay@jaydolan.com)
 
 AC_CONFIG_AUX_DIR(.)
 AC_CONFIG_MACRO_DIR(m4)
@@ -34,6 +34,7 @@ dnl Check host type
 dnl ---------------
 
 HOST_NAME=""
+HOST_CPPFLAGS=""
 HOST_CXXFLAGS=""
 HOST_CFLAGS=""
 HOST_LDFLAGS=""
@@ -49,12 +50,13 @@ AC_MSG_CHECKING([host type])
 case "$host" in
 	*-apple-*)
 		HOST_NAME="APPLE"
+		HOST_CPPFLAGS="-I/opt/local/include"
+		HOST_CXXFLAGS="-I/opt/local/include"
 		HOST_CFLAGS="-I/opt/local/include"
 		HOST_LDFLAGS="-L/opt/local/lib -headerpad_max_install_names"
 		HOST_LIBS="-ldl"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
-		DEFAULT_PREFIX="/opt/local"
 		AC_MSG_RESULT(apple)
 		;;
 	*bsd*)
@@ -64,7 +66,7 @@ case "$host" in
 		;;
 	*-*-mingw*)
 		HOST_NAME="WINDOWS"
-		HOST_LIBS="-lmingw32 -lSDLmain -lws2_32 -lole32"
+		HOST_LIBS="-lws2_32 -lole32 -lstdc++"
 		DEFAULT_PREFIX=""
 		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
 		if test "x$WINDRES" = "x"; then
@@ -75,7 +77,7 @@ case "$host" in
 		;;
 	*)
 		HOST_NAME="LINUX"
-		HOST_LIBS="-ldl"
+		HOST_LIBS="-ldl -lm -lstdc++"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
 		AC_MSG_RESULT(linux)
@@ -83,6 +85,7 @@ case "$host" in
 esac
 
 AC_SUBST(HOST_NAME)
+AC_SUBST(HOST_CPPFLAGS)
 AC_SUBST(HOST_CXXFLAGS)
 AC_SUBST(HOST_CFLAGS)
 AC_SUBST(HOST_LIBS)
@@ -90,6 +93,9 @@ AC_SUBST(HOST_DEBUG_CFLAGS)
 AC_SUBST(HOST_DEBUG_LIBS)
 AC_SUBST(HOST_PROFILE_CFLAGS)
 AC_SUBST(HOST_PROFILE_LIBS)
+
+CPPFLAGS="$CPPFLAGS $HOST_CPPFLAGS"
+AC_SUBST(CPPFLAGS)
 
 CXXFLAGS="-pipe $CXXFLAGS $HOST_CXXFLAGS"
 AC_SUBST(CXXFLAGS)
@@ -107,6 +113,21 @@ AM_CONDITIONAL([APPLE], [test "x$HOST_NAME" = "xAPPLE"])
 AM_CONDITIONAL([BSD], [test "x$HOST_NAME" = "xBSD"])
 AM_CONDITIONAL([WINDOWS], [test "x$HOST_NAME" = "xWINDOWS"])
 AM_CONDITIONAL([LINUX], [test "x$HOST_NAME" = "xLINUX"])
+
+dnl --------------
+dnl Check for GLib
+dnl --------------
+PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.0.0])
+
+dnl ----------------
+dnl Check for PHYSFS
+dnl ----------------
+
+AC_CHECK_HEADER(physfs.h,
+	PHYSFS_LIBS="-lphysfs",
+	[AC_MSG_ERROR([Could not find physfs.h, please install PhysFS])]
+)
+AC_SUBST(PHYSFS_LIBS)
 
 dnl -------------
 dnl Check for SDL
@@ -196,6 +217,7 @@ else
 	dnl ----------------------------------------
 	dnl Sort out AntTweakBar flags and libraries
 	dnl ----------------------------------------
+	
 	HOST_ANTTWEAKBAR_CXXFLAGS=""
 	HOST_ANTTWEAKBAR_CFLAGS=""
 	HOST_ANTTWEAKBAR_LIBS=""
@@ -261,11 +283,11 @@ else
 
 	AC_MSG_CHECKING(which tools to build)
 
-	TOOLS="pak q2wmap"
+	TOOLS="q2wmap"
 	TOOL_DIRS="$TOOLS"
 	
 	AC_ARG_WITH(tools,
-		AS_HELP_STRING([--with-tools='pak q2wmap ...'],
+		AS_HELP_STRING([--with-tools='q2wmap ...'],
 			[build specified tools]
 		)
 	)
@@ -280,20 +302,14 @@ else
 	
 	AC_MSG_RESULT($TOOLS)
 	AC_SUBST(TOOL_DIRS)
+	
 fi
 
 AM_CONDITIONAL([BUILD_CLIENT], [test "x$BUILD_CLIENT" = "xyes"])
+AM_CONDITIONAL([BUILD_TOOLS], [test "x$TOOL_DIRS" != "x"])
 
 AC_SUBST(SDL_CFLAGS)
 AC_SUBST(SDL_LIBS)
-
-dnl --------------
-dnl Check for Zlib
-dnl --------------
-
-AC_CHECK_HEADER(zlib.h,,
-	[AC_MSG_ERROR([Could not find zlib.h, please install zlib])]
-)
 
 dnl -------------------------------
 dnl Check for stdint.h
@@ -463,6 +479,28 @@ if test "x${with_master}" = xyes; then
 fi
 AC_MSG_RESULT($BUILD_MASTER)
 
+dnl ---------------------------------
+dnl Check whether to build unit tests
+dnl ---------------------------------
+
+BUILD_TESTS=no
+
+AC_ARG_WITH(tests,
+	AS_HELP_STRING([--with-tests],
+		[build unit tests]
+	)
+)
+
+AC_MSG_CHECKING(whether to build unit tests)
+
+if test "x${with_tests}" = xyes; then
+	BUILD_TESTS=yes
+	AC_MSG_RESULT($BUILD_TESTS)
+	PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
+fi
+
+AM_CONDITIONAL(BUILD_TESTS, test "x$BUILD_TESTS" = xyes)
+
 dnl -----------------
 dnl Compiler warnings
 dnl -----------------
@@ -491,11 +529,15 @@ OPT_CFLAGS=""
 
 AC_ARG_ENABLE(optimizations,
 	AS_HELP_STRING(
-		[--enable-optimizations], [enable compiler optimizations]
+		[--enable-optimizations=none|default|expensive], [enable compiler optimizations]
 	),
-	AC_MSG_RESULT(yes)
-	OPT_CFLAGS="-O3 $OPT_CFLAGS",
-	AC_MSG_RESULT(no)
+	AC_MSG_RESULT($enable_optimizations)
+	if test "x${enable_optimizations}" = xnone; then
+		OPT_CFLAGS="-O0 $OPT_CFLAGS"
+	elif test "x${enable_optimizations}" = xexpensive; then
+		OPT_CFLAGS="-O3 $OPT_CFLAGS"
+	fi,
+	AC_MSG_RESULT(default)
 )
 AC_SUBST(OPT_CFLAGS)
 
@@ -545,11 +587,13 @@ dnl ----------------------------------------
 dnl Consolidate our core flags and libraries
 dnl ----------------------------------------
 
+BASE_CPPFLAGS=$(echo $CPPFLAGS)
 BASE_CXXFLAGS=$(echo $CXXFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS)
 BASE_CFLAGS=$(echo $CFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS)
 BASE_LIBS=$(echo $HOST_LIBS $DEBUG_LIBS $PROFILE_LIBS $WARN_LIBS)
 BASE_LDFLAGS=$(echo $LDFLAGS)
 
+AC_SUBST(BASE_CPPFLAGS)
 AC_SUBST(BASE_CXXFLAGS)
 AC_SUBST(BASE_CFLAGS)
 AC_SUBST(BASE_LIBS)
@@ -594,6 +638,7 @@ AC_CONFIG_FILES([
 	deps/AntTweakBar/Makefile
 	deps/AntTweakBar/include/Makefile
 	deps/AntTweakBar/src/Makefile
+	deps/minizip/Makefile
 	doc/Makefile
 	src/Makefile
 	src/cgame/Makefile
@@ -607,8 +652,8 @@ AC_CONFIG_FILES([
 	src/main/Makefile
 	src/master/Makefile
 	src/server/Makefile
+	src/tests/Makefile
 	src/tools/Makefile
-	src/tools/pak/Makefile
 	src/tools/q2wmap/Makefile
 ])
 
@@ -619,23 +664,22 @@ Quake2World $VERSION: Automatic configuration OK.
 
   Configuration summary:
     Platform: .......... $host
-    Compiler: .......... $CC
-    C++ Flags: ......... $BASE_CXXFLAGS
-    C Flags: ........... $BASE_CFLAGS
+    Compilers: ......... $CC, $CXX
+    Preprocessor flags.. $BASE_CPPFLAGS
+    C++ flags: ......... $BASE_CXXFLAGS
+    C flags: ........... $BASE_CFLAGS
     Libraries: ......... $BASE_LIBS
     Linking: ........... $BASE_LDFLAGS
 
-    Build client: ...... $BUILD_CLIENT
+    Client: ............ $BUILD_CLIENT
+    Game modules: ...... $GAME_MODULES
+    Tools: ............. ${TOOLS:-None}
+    Master server: ..... $BUILD_MASTER
+    Unit tests: ........ $BUILD_TESTS
 
     Options:
       curses: .......... $HAVE_CURSES
       MySQL: ........... $HAVE_MYSQL
-
-    Game modules: ...... $GAME_MODULES
-
-    Tools: ............. ${TOOLS:-None}
-
-    Build master: ...... $BUILD_MASTER
 
   Installation directories:
 

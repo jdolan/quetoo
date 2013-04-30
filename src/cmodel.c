@@ -120,15 +120,15 @@ static void Cm_LoadSubmodels(const d_bsp_lump_t *l) {
 
 	in = (const void *) (c_bsp.base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Cm_LoadSubmodels: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 	count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Cm_LoadSubmodels: Map with no models.\n");
+		Com_Error(ERR_DROP, "Map with no models\n");
 	}
 	if (count > MAX_BSP_MODELS) {
-		Com_Error(ERR_DROP, "Cm_LoadSubmodels: Map has too many models.\n");
+		Com_Error(ERR_DROP, "Map has too many models\n");
 	}
 
 	c_bsp.num_models = count;
@@ -155,21 +155,21 @@ static void Cm_LoadSurfaces(const d_bsp_lump_t *l) {
 
 	in = (const void *) (c_bsp.base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Cm_LoadSurfaces: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 		return;
 	}
 	count = l->file_len / sizeof(*in);
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Cm_LoadSurfaces: Map with no surfaces.\n");
+		Com_Error(ERR_DROP, "Map with no surfaces\n");
 	}
 	if (count > MAX_BSP_TEXINFO) {
-		Com_Error(ERR_DROP, "Cm_LoadSurfaces: Map has too many surfaces.\n");
+		Com_Error(ERR_DROP, "Map has too many surfaces\n");
 	}
 	c_bsp.num_surfaces = count;
 	out = c_bsp.surfaces;
 
 	for (i = 0; i < count; i++, in++, out++) {
-		strncpy(out->name, in->texture, sizeof(out->name) - 1);
+		g_strlcpy(out->name, in->texture, sizeof(out->name));
 		out->flags = LittleLong(in->flags);
 		out->value = LittleLong(in->value);
 	}
@@ -186,15 +186,15 @@ static void Cm_LoadNodes(const d_bsp_lump_t *l) {
 
 	in = (const void *) (c_bsp.base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Cm_LoadNodes: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 	count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Cm_LoadNodes: Map has no nodes.\n");
+		Com_Error(ERR_DROP, "Map has no nodes\n");
 	}
 	if (count > MAX_BSP_NODES) {
-		Com_Error(ERR_DROP, "Cm_LoadNodes: Map has too many nodes.\n");
+		Com_Error(ERR_DROP, "Map has too many nodes\n");
 	}
 
 	out = c_bsp.nodes;
@@ -220,12 +220,12 @@ static void Cm_LoadBrushes(const d_bsp_lump_t *l) {
 
 	in = (const void *) (c_bsp.base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Cm_LoadBrushes: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 	count = l->file_len / sizeof(*in);
 
 	if (count > MAX_BSP_BRUSHES) {
-		Com_Error(ERR_DROP, "Cm_LoadBrushes: Map has too many brushes.\n");
+		Com_Error(ERR_DROP, "Map has too many brushes\n");
 	}
 
 	out = c_bsp.brushes;
@@ -250,16 +250,16 @@ static void Cm_LoadLeafs(const d_bsp_lump_t *l) {
 
 	in = (const void *) (c_bsp.base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Cm_LoadLeafs: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 	count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Cm_LoadLeafs: Map with no leafs.\n");
+		Com_Error(ERR_DROP, "Map with no leafs\n");
 	}
 	// need to save space for box planes
 	if (count > MAX_BSP_PLANES) {
-		Com_Error(ERR_DROP, "Cm_LoadLeafs: Map has too many planes.\n");
+		Com_Error(ERR_DROP, "Map has too many planes\n");
 	}
 
 	out = c_bsp.leafs;
@@ -274,7 +274,7 @@ static void Cm_LoadLeafs(const d_bsp_lump_t *l) {
 	}
 
 	if (c_bsp.leafs[0].contents != CONTENTS_SOLID) {
-		Com_Error(ERR_DROP, "Cm_LoadLeafs: Map leaf 0 is not CONTENTS_SOLID.\n");
+		Com_Error(ERR_DROP, "Map leaf 0 is not CONTENTS_SOLID\n");
 	}
 	c_bsp.solid_leaf = 0;
 	c_bsp.empty_leaf = -1;
@@ -285,7 +285,7 @@ static void Cm_LoadLeafs(const d_bsp_lump_t *l) {
 		}
 	}
 	if (c_bsp.empty_leaf == -1)
-		Com_Error(ERR_DROP, "Cm_LoadLeafs: Map does not have an empty leaf.\n");
+		Com_Error(ERR_DROP, "Map does not have an empty leaf\n");
 }
 
 /*
@@ -299,16 +299,16 @@ static void Cm_LoadPlanes(const d_bsp_lump_t *l) {
 
 	in = (const void *) (c_bsp.base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Cm_LoadPlanes: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 	count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Cm_LoadPlanes: Map with no planes.\n");
+		Com_Error(ERR_DROP, "Map with no planes\n");
 	}
 	// need to save space for box planes
 	if (count > MAX_BSP_PLANES) {
-		Com_Error(ERR_DROP, "Cm_LoadPlanes: Map has too many planes.\n");
+		Com_Error(ERR_DROP, "Map has too many planes\n");
 	}
 
 	out = c_bsp.planes;
@@ -337,16 +337,16 @@ static void Cm_LoadLeafBrushes(const d_bsp_lump_t *l) {
 
 	in = (const void *) (c_bsp.base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Cm_LoadLeafBrushes: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 	count = l->file_len / sizeof(*in);
 
 	if (count < 1) {
-		Com_Error(ERR_DROP, "Cm_LoadLeafBrushes: Map with no planes.\n");
+		Com_Error(ERR_DROP, "Map with no planes\n");
 	}
 	// need to save space for box planes
 	if (count > MAX_BSP_LEAF_BRUSHES) {
-		Com_Error(ERR_DROP, "Cm_LoadLeafBrushes: Map has too many leafbrushes.\n");
+		Com_Error(ERR_DROP, "Map has too many leaf brushes\n");
 	}
 
 	out = c_bsp.leaf_brushes;
@@ -368,13 +368,13 @@ static void Cm_LoadBrushSides(const d_bsp_lump_t *l) {
 
 	in = (const void *) (c_bsp.base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Cm_LoadBrushSides: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 	count = l->file_len / sizeof(*in);
 
 	// need to save space for box planes
 	if (count > MAX_BSP_BRUSH_SIDES) {
-		Com_Error(ERR_DROP, "Cm_LoadBrushSides: Map has too many planes.\n");
+		Com_Error(ERR_DROP, "Map has too many planes\n");
 	}
 
 	out = c_bsp.brush_sides;
@@ -385,7 +385,7 @@ static void Cm_LoadBrushSides(const d_bsp_lump_t *l) {
 		out->plane = &c_bsp.planes[num];
 		num = LittleShort(in->surf_num);
 		if (num >= c_bsp.num_surfaces) {
-			Com_Error(ERR_DROP, "Cm_LoadBrushSides: Bad brush_side surf_num.\n");
+			Com_Error(ERR_DROP, "Bad brush side surface index\n");
 		}
 		out->surface = &c_bsp.surfaces[num];
 	}
@@ -402,12 +402,12 @@ static void Cm_LoadAreas(const d_bsp_lump_t *l) {
 
 	in = (const void *) (c_bsp.base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "MOD_LoadAreas: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 	count = l->file_len / sizeof(*in);
 
 	if (count > MAX_BSP_AREAS) {
-		Com_Error(ERR_DROP, "Cm_LoadAreas: Map has too many areas.\n");
+		Com_Error(ERR_DROP, "Map has too many areas\n");
 	}
 
 	out = c_bsp.areas;
@@ -432,12 +432,12 @@ static void Cm_LoadAreaPortals(const d_bsp_lump_t *l) {
 
 	in = (const void *) (c_bsp.base + l->file_ofs);
 	if (l->file_len % sizeof(*in)) {
-		Com_Error(ERR_DROP, "Cm_LoadAreaPortals: Funny lump size.\n");
+		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 	count = l->file_len / sizeof(*in);
 
 	if (count > MAX_BSP_AREAS) {
-		Com_Error(ERR_DROP, "Cm_LoadAreaPortals: Map has too many areas.\n");
+		Com_Error(ERR_DROP, "Map has too many areas\n");
 	}
 
 	out = c_bsp.area_portals;
@@ -457,7 +457,7 @@ static void Cm_LoadVisibility(const d_bsp_lump_t *l) {
 
 	c_bsp.num_visibility = l->file_len;
 	if (l->file_len > MAX_BSP_VISIBILITY) {
-		Com_Error(ERR_DROP, "Cm_LoadVisibility: Map has too large visibility lump.\n");
+		Com_Error(ERR_DROP, "Map has too large visibility lump\n");
 	}
 
 	memcpy(c_bsp.visibility, c_bsp.base + l->file_ofs, l->file_len);
@@ -478,7 +478,7 @@ static void Cm_LoadEntityString(const d_bsp_lump_t *l) {
 	c_bsp.entity_string_len = l->file_len;
 
 	if (l->file_len > MAX_BSP_ENT_STRING) {
-		Com_Error(ERR_DROP, "Cm_LoadEntityString: Map has too large entity lump.\n");
+		Com_Error(ERR_DROP, "Map has too large entity lump\n");
 	}
 
 	memcpy(c_bsp.entity_string, c_bsp.base + l->file_ofs, l->file_len);
@@ -505,21 +505,21 @@ c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 	}
 
 	// load the file
-	*size = Fs_LoadFile(name, &buf);
+	*size = Fs_Load(name, &buf);
 
 	if (!buf)
-		Com_Error(ERR_DROP, "Cm_LoadMap: Couldn't load %s.\n", name);
+		Com_Error(ERR_DROP, "Couldn't load %s\n", name);
 
 	header = *(d_bsp_header_t *) buf;
 	for (i = 0; i < sizeof(d_bsp_header_t) / 4; i++)
 		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 
-	if (header.version != BSP_VERSION && header.version != BSP_VERSION_) {
-		Fs_FreeFile(buf);
-		Com_Error(ERR_DROP, "Cm_LoadMap: %s has unsupported version: %d.\n", name, header.version);
+	if (header.version != BSP_VERSION && header.version != BSP_VERSION_Q2W) {
+		Fs_Free(buf);
+		Com_Error(ERR_DROP, "%s has unsupported version: %d\n", name, header.version);
 	}
 
-	strncpy(c_bsp.name, name, sizeof(c_bsp.name));
+	g_strlcpy(c_bsp.name, name, sizeof(c_bsp.name));
 
 	c_bsp.base = (byte *) buf;
 
@@ -537,7 +537,7 @@ c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 	Cm_LoadVisibility(&header.lumps[LUMP_VISIBILITY]);
 	Cm_LoadEntityString(&header.lumps[LUMP_ENTITIES]);
 
-	Fs_FreeFile(buf);
+	Fs_Free(buf);
 
 	Cm_InitBoxHull();
 
@@ -553,13 +553,13 @@ c_model_t *Cm_Model(const char *name) {
 	int32_t num;
 
 	if (!name || name[0] != '*') {
-		Com_Error(ERR_DROP, "Cm_Model: Bad name.\n");
+		Com_Error(ERR_DROP, "Bad name\n");
 	}
 
 	num = atoi(name + 1);
 
 	if (num < 1 || num >= c_bsp.num_models) {
-		Com_Error(ERR_DROP, "Cm_Model: Bad number: %d\n.", num);
+		Com_Error(ERR_DROP, "Bad number: %d\n", num);
 	}
 
 	return &c_bsp.models[num];
@@ -592,7 +592,7 @@ char *Cm_EntityString(void) {
 int32_t Cm_LeafContents(const int32_t leaf_num) {
 
 	if (leaf_num < 0 || leaf_num >= c_bsp.num_leafs) {
-		Com_Error(ERR_DROP, "Cm_LeafContents: Bad number.\n");
+		Com_Error(ERR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
 	return c_bsp.leafs[leaf_num].contents;
@@ -604,7 +604,7 @@ int32_t Cm_LeafContents(const int32_t leaf_num) {
 int32_t Cm_LeafCluster(const int32_t leaf_num) {
 
 	if (leaf_num < 0 || leaf_num >= c_bsp.num_leafs) {
-		Com_Error(ERR_DROP, "Cm_LeafCluster: Bad number.\n");
+		Com_Error(ERR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
 	return c_bsp.leafs[leaf_num].cluster;
@@ -616,7 +616,7 @@ int32_t Cm_LeafCluster(const int32_t leaf_num) {
 int32_t Cm_LeafArea(const int32_t leaf_num) {
 
 	if (leaf_num < 0 || leaf_num >= c_bsp.num_leafs) {
-		Com_Error(ERR_DROP, "Cm_LeafArea: Bad number.\n");
+		Com_Error(ERR_DROP, "Bad number: %d\n", leaf_num);
 	}
 
 	return c_bsp.leafs[leaf_num].area;
@@ -642,10 +642,9 @@ static void Cm_InitBoxHull(void) {
 	cm_box.head_node = c_bsp.num_nodes;
 	cm_box.planes = &c_bsp.planes[c_bsp.num_planes];
 	if (c_bsp.num_nodes + 6 > MAX_BSP_NODES || c_bsp.num_brushes + 1 > MAX_BSP_BRUSHES
-			|| c_bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES
-			|| c_bsp.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES
-			|| c_bsp.num_planes + 12 > MAX_BSP_PLANES) {
-		Com_Error(ERR_DROP, "Cm_InitBoxHull: Not enough room for box tree.\n");
+			|| c_bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES || c_bsp.num_brush_sides + 6
+			> MAX_BSP_BRUSH_SIDES || c_bsp.num_planes + 12 > MAX_BSP_PLANES) {
+		Com_Error(ERR_DROP, "Not enough room for box tree\n");
 	}
 
 	cm_box.brush = &c_bsp.brushes[c_bsp.num_brushes];
@@ -1137,9 +1136,9 @@ static void Cm_RecursiveHullCheck(int32_t num, float p1f, float p2f, const vec3_
 		if (data->is_point)
 			offset = 0;
 		else
-			offset = fabsf(data->extents[0] * plane->normal[0])
-					+ fabsf(data->extents[1] * plane->normal[1])
-					+ fabsf(data->extents[2] * plane->normal[2]);
+			offset = fabsf(data->extents[0] * plane->normal[0]) + fabsf(
+					data->extents[1] * plane->normal[1]) + fabsf(
+					data->extents[2] * plane->normal[2]);
 	}
 
 	// see which sides we need to consider
@@ -1363,7 +1362,7 @@ static void Cm_DecompressVis(const byte *in, byte *out) {
 		in += 2;
 		if ((out_p - out) + c > row) {
 			c = row - (out_p - out);
-			Com_Warn("Cm_DecompressVis: Overrun.\n");
+			Com_Warn("Overrun\n");
 		}
 		while (c) {
 			*out_p++ = 0;
@@ -1416,7 +1415,7 @@ static void Cm_FloodArea(c_bsp_area_t *area, int32_t flood_num) {
 	if (area->flood_valid == c_bsp.flood_valid) {
 		if (area->flood_num == flood_num)
 			return;
-		Com_Error(ERR_DROP, "Cm_FloodArea: Reflooded.\n");
+		Com_Error(ERR_DROP, "Reflooded\n");
 	}
 
 	area->flood_num = flood_num;
@@ -1460,7 +1459,7 @@ static void Cm_FloodAreaConnections(void) {
  */
 void Cm_SetAreaPortalState(const int32_t portal_num, const bool open) {
 	if (portal_num > c_bsp.num_area_portals) {
-		Com_Error(ERR_DROP, "Cm_SetAreaPortalState: portal_num > num_area_portals");
+		Com_Error(ERR_DROP, "Portal %d > num_area_portals", portal_num);
 	}
 
 	c_bsp.portal_open[portal_num] = open;
@@ -1475,7 +1474,7 @@ void Cm_SetAreaPortalState(const int32_t portal_num, const bool open) {
 		return true;
 
 	if (area1 > c_bsp.num_areas || area2 > c_bsp.num_areas) {
-		Com_Error(ERR_DROP, "Cm_AreasConnected: area > cm.num_areas.\n");
+		Com_Error(ERR_DROP, "Area %d > cm.num_areas\n", area1 > area2 ? area1 : area2);
 	}
 
 	if (c_bsp.areas[area1].flood_num == c_bsp.areas[area2].flood_num)

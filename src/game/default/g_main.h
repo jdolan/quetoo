@@ -19,12 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_MAIN_H__
-#define __G_MAIN_H__
+#ifndef __GAME_MAIN_H__
+#define __GAME_MAIN_H__
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#ifdef __GAME_LOCAL_H__
 
 // maplist structs
 typedef struct g_map_list_elt_s {
@@ -63,21 +63,14 @@ extern g_level_t g_level;
 extern g_import_t gi;
 extern g_export_t ge;
 
-extern uint16_t grenade_index, grenade_hit_index;
-extern uint16_t rocket_index, rocket_fly_index;
-extern uint16_t lightning_fly_index;
-extern uint16_t quad_damage_index;
-
 extern uint32_t means_of_death;
 
 extern cvar_t *g_ammo_respawn_time;
 extern cvar_t *g_auto_join;
 extern cvar_t *g_capture_limit;
-extern cvar_t *g_chat_log;
 extern cvar_t *g_cheats;
 extern cvar_t *g_ctf;
 extern cvar_t *g_frag_limit;
-extern cvar_t *g_frag_log;
 extern cvar_t *g_friendly_fire;
 extern cvar_t *g_gameplay;
 extern cvar_t *g_gravity;
@@ -110,8 +103,11 @@ extern cvar_t *dedicated;
 
 extern g_team_t g_team_good, g_team_evil;
 
-// text file logging
-extern FILE *frag_log, *chat_log;
+#ifdef HAVE_MYSQL
+#include <mysql.h>
+extern MYSQL *mysql;
+extern char sql[512];
+#endif
 
 void G_Init(void);
 void G_Shutdown(void);
@@ -120,6 +116,6 @@ void G_ResetVote(void);
 g_export_t *G_LoadGame(g_import_t *import);
 const char *G_SelectNextmap(void);
 
-#endif /* __G_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */
 
-#endif /* __G_MAIN_H__ */
+#endif /* __GAME_MAIN_H__ */

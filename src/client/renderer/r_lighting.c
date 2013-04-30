@@ -46,11 +46,11 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 
 	memset(lighting->bsp_light_refs, 0, sizeof(lighting->bsp_light_refs));
 
-	l = r_world_model->bsp_lights;
+	l = r_model_state.world->bsp->bsp_lights;
 	j = 0;
 
 	// resolve all of the light sources that could contribute to this lighting
-	for (i = 0; i < r_world_model->num_bsp_lights; i++, l++) {
+	for (i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, l++) {
 		vec3_t dir;
 		float intensity;
 
@@ -88,7 +88,7 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 		r->intensity = intensity;
 
 		if (j == LIGHTING_MAX_BSP_LIGHT_REFS) {
-			Com_Debug("R_UpdateBspLightReferences: LIGHTING_MAX_BSP_LIGHT_REFS\n");
+			Com_Debug("LIGHTING_MAX_BSP_LIGHT_REFS reached\n");
 			break;
 		}
 	}
@@ -118,7 +118,7 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 	VectorCopy(lighting->origin, start);
 	VectorCopy(lighting->origin, end);
 
-	VectorCopy(r_locals.ambient_light, lighting->color);
+	VectorCopy(r_bsp_light_state.ambient_light, lighting->color);
 
 	// resolve the static light sources
 	i = R_UpdateBspLightReferences(lighting);
@@ -185,7 +185,7 @@ void R_ApplyLighting(const r_lighting_t *lighting) {
 		VectorAdd(lighting->origin, up, position);
 		glLightfv(GL_LIGHT0 + count, GL_POSITION, position);
 
-		VectorScale(r_locals.ambient_light, r_lighting->value, diffuse);
+		VectorScale(r_bsp_light_state.ambient_light, r_lighting->value, diffuse);
 		glLightfv(GL_LIGHT0 + count, GL_DIFFUSE, diffuse);
 
 		glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, LIGHTING_AMBIENT_ATTENUATION);

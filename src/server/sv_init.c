@@ -32,7 +32,7 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, boo
 	if (!name || !name[0])
 		return 0;
 
-	for (i = 1; i < max && sv.config_strings[start + i][0]; i++)
+	for (i = 0; i < max && sv.config_strings[start + i][0]; i++)
 		if (!strcmp(sv.config_strings[start + i], name))
 			return i;
 
@@ -40,11 +40,11 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, boo
 		return 0;
 
 	if (i == max) {
-		Com_Warn("Sv_FindIndex: max index reached.");
+		Com_Warn("Max index for %s reached\n", name);
 		return 0;
 	}
 
-	strncpy(sv.config_strings[start + i], name, sizeof(sv.config_strings[i]));
+	g_strlcpy(sv.config_strings[start + i], name, sizeof(sv.config_strings[i]));
 
 	if (sv.state != SV_LOADING) { // send the update to everyone
 		Sb_Clear(&sv.multicast);
@@ -135,7 +135,7 @@ static void Sv_ClearState() {
 	if (svs.initialized) { // if we were intialized, cleanup
 
 		if (sv.demo_file) {
-			Fs_CloseFile(sv.demo_file);
+			Fs_Close(sv.demo_file);
 		}
 	}
 
@@ -169,8 +169,8 @@ static void Sv_ShutdownClients(void) {
 
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
-		if (cl->download) {
-			Fs_FreeFile(cl->download);
+		if (cl->download.buffer) {
+			Fs_Free(cl->download.buffer);
 		}
 	}
 
@@ -198,11 +198,12 @@ static void Sv_InitClients(void) {
 		Sv_UpdateLatchedVars();
 
 		// initialize the clients array
-		svs.clients = Z_Malloc(sizeof(sv_client_t) * (int) sv_max_clients->integer);
+		svs.clients = Z_TagMalloc(sizeof(sv_client_t) * sv_max_clients->integer, Z_TAG_SERVER);
 
 		// and the entity states array
 		svs.num_entity_states = sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
-		svs.entity_states = Z_Malloc(sizeof(entity_state_t) * svs.num_entity_states);
+		svs.entity_states = Z_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states,
+				Z_TAG_SERVER);
 
 		svs.frame_rate = sv_hz->integer;
 
@@ -238,37 +239,34 @@ static void Sv_InitClients(void) {
  * load the rest.
  */
 static void Sv_LoadMedia(const char *server, sv_state_t state) {
-	extern char *fs_last_pak;
-	char demo[MAX_QPATH];
-	int32_t i, mapsize;
+	int32_t i, map_size;
 
 	strcpy(sv.name, server);
 	strcpy(sv.config_strings[CS_NAME], server);
 
 	if (state == SV_ACTIVE_DEMO) { // loading a demo
-		snprintf(demo, sizeof(demo), "demos/%s.dem", sv.name);
+		sv.models[0] = Cm_LoadBsp(NULL, &map_size);
 
-		sv.models[1] = Cm_LoadBsp(NULL, &mapsize);
-
-		Fs_OpenFile(demo, &sv.demo_file, FILE_READ);
+		sv.demo_file = Fs_OpenRead(va("demos/%s.dem", sv.name));
 		svs.spawn_count = 0;
 
 		Com_Print("  Loaded demo %s.\n", sv.name);
 	} else { // loading a map
-		snprintf(sv.config_strings[CS_MODELS + 1], MAX_QPATH, "maps/%s.bsp", sv.name);
+		g_snprintf(sv.config_strings[CS_MODELS], MAX_QPATH, "maps/%s.bsp", sv.name);
 
-		sv.models[1] = Cm_LoadBsp(sv.config_strings[CS_MODELS + 1], &mapsize);
+		sv.models[0] = Cm_LoadBsp(sv.config_strings[CS_MODELS], &map_size);
 
-		if (fs_last_pak) {
-			strncpy(sv.config_strings[CS_PAK], fs_last_pak, MAX_QPATH);
+		const char *dir = Fs_RealDir(sv.config_strings[CS_MODELS]);
+		if (g_str_has_suffix(dir, ".zip")) {
+			g_strlcpy(sv.config_strings[CS_ZIP], Basename(dir), MAX_QPATH);
 		}
 
 		for (i = 1; i < Cm_NumModels(); i++) {
 
-			char *s = sv.config_strings[CS_MODELS + 1 + i];
-			snprintf(s, MAX_QPATH, "*%d", i);
+			char *s = sv.config_strings[CS_MODELS + i];
+			g_snprintf(s, MAX_QPATH, "*%d", i);
 
-			sv.models[i + 1] = Cm_Model(s);
+			sv.models[i] = Cm_Model(s);
 		}
 
 		sv.state = SV_LOADING;
@@ -281,7 +279,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
 		Com_Print("  Loaded map %s, %d entities.\n", sv.name, svs.game->num_edicts);
 	}
-	snprintf(sv.config_strings[CS_BSP_SIZE], MAX_QPATH, "%i", mapsize);
+	g_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_QPATH, "%i", map_size);
 
 	Cvar_FullSet("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NO_SET);
 }
@@ -297,7 +295,6 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 	extern void Cl_Disconnect(void);
 #endif
 	char path[MAX_QPATH];
-	FILE *file;
 
 	Com_Debug("Sv_InitServer: %s (%d)\n", server, state);
 
@@ -305,18 +302,14 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
 	// ensure that the requested map or demo exists
 	if (state == SV_ACTIVE_DEMO)
-		snprintf(path, sizeof(path), "demos/%s.dem", server);
+		g_snprintf(path, sizeof(path), "demos/%s.dem", server);
 	else
-		snprintf(path, sizeof(path), "maps/%s.bsp", server);
+		g_snprintf(path, sizeof(path), "maps/%s.bsp", server);
 
-	Fs_OpenFile(path, &file, FILE_READ);
-
-	if (!file) {
+	if (!Fs_Exists(path)) {
 		Com_Print("Couldn't open %s\n", path);
 		return;
 	}
-
-	Fs_CloseFile(file);
 
 	// inform any connected clients to reconnect to us
 	Sv_ShutdownMessage("Server restarting...\n", true);
@@ -340,7 +333,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
 	Sb_Init(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
 
-	Com_Print("Server initialized.\n");
+	Com_Print("Server initialized\n");
 	Com_InitSubsystem(Q2W_SERVER);
 
 	svs.initialized = true;
@@ -363,7 +356,7 @@ void Sv_ShutdownServer(const char *msg) {
 
 	Sv_ClearState();
 
-	Com_Print("Server down.\n");
+	Com_Print("Server down\n");
 
 	svs.initialized = false;
 }

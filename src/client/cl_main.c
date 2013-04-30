@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <unistd.h>
-
 #include "cl_local.h"
 
 cvar_t *cl_async;
@@ -33,6 +31,7 @@ cvar_t *cl_max_pps;
 cvar_t *cl_predict;
 cvar_t *cl_show_net_messages;
 cvar_t *cl_show_renderer_stats;
+cvar_t *cl_show_sound_stats;
 cvar_t *cl_team_chat_sound;
 cvar_t *cl_timeout;
 cvar_t *cl_view_size;
@@ -77,7 +76,7 @@ static void Cl_SendConnect(void) {
 	Netchan_OutOfBandPrint(NS_CLIENT, addr, "connect %i %i %i \"%s\"\n", PROTOCOL, qport,
 			cls.challenge, Cvar_UserInfo());
 
-	user_info_modified = false;
+	cvar_user_info_modified = false;
 }
 
 /*
@@ -93,7 +92,7 @@ static void Cl_CheckForResend(void) {
 			Cl_Disconnect();
 		}
 
-		strncpy(cls.server_name, "localhost", sizeof(cls.server_name) - 1);
+		g_strlcpy(cls.server_name, "localhost", sizeof(cls.server_name));
 
 		cls.state = CL_CONNECTING;
 		cls.connect_time = 0;
@@ -103,7 +102,8 @@ static void Cl_CheckForResend(void) {
 	if (cls.state != CL_CONNECTING)
 		return;
 
-	if (cls.real_time - cls.connect_time < 3000)
+	// don't flood connection packets
+	if (cls.connect_time && (cls.real_time - cls.connect_time < 3000))
 		return;
 
 	if (!Net_StringToNetaddr(cls.server_name, &addr)) {
@@ -133,12 +133,13 @@ static void Cl_Connect_f(void) {
 	}
 
 	if (Com_WasInit(Q2W_SERVER)) { // if running a local server, kill it
-		Sv_ShutdownServer("Server quit.\n");
+		Sv_ShutdownServer("Server quit\n");
 	}
 
 	Cl_Disconnect();
 
-	strncpy(cls.server_name, Cmd_Argv(1), sizeof(cls.server_name) - 1);
+	strncpy(cls.server_name, Cmd_Argv(1), sizeof(cls.server_name));
+	cls.server_name[sizeof(cls.server_name) - 1] = '\0';
 
 	cls.state = CL_CONNECTING;
 	cls.connect_time = 0; // fire immediately
@@ -153,7 +154,7 @@ static void Cl_Rcon_f(void) {
 	net_addr_t to;
 
 	if (!rcon_password->string) {
-		Com_Print("No rcon_password set.\n");
+		Com_Print("No rcon_password set\n");
 		return;
 	}
 
@@ -178,7 +179,7 @@ static void Cl_Rcon_f(void) {
 		to = cls.netchan.remote_address;
 	else {
 		if (*rcon_address->string == '\0') {
-			Com_Print("Not connected and no rcon_address set.\n");
+			Com_Print("Not connected and no rcon_address set\n");
 			return;
 		}
 		Net_StringToNetaddr(rcon_address->string, &to);
@@ -197,12 +198,12 @@ static void Cl_Rcon_f(void) {
 static void Cl_ForwardCmdToServer(void) {
 
 	if (cls.state <= CL_DISCONNECTED) {
-		Com_Print("Not connected.\n");
+		Com_Print("%s: Not connected\n", Cmd_Argv(0));
 		return;
 	}
 
 	const char *cmd = Cmd_Argv(0);
-	char *args = Cmd_Args();
+	const char *args = Cmd_Args();
 
 	Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 	Sb_Print(&cls.netchan.message, va("%s %s", cmd, args));
@@ -287,10 +288,10 @@ void Cl_Disconnect(void) {
 	if (cls.download.file) {
 
 		if (cls.download.http) // clean up http downloads
-			Cl_HttpDownloadCleanup();
+			Cl_HttpDownload_Complete();
 		else
 			// or just stop legacy ones
-			Fs_CloseFile(cls.download.file);
+			Fs_Close(cls.download.file);
 
 		cls.download.file = NULL;
 	}
@@ -306,7 +307,7 @@ void Cl_Disconnect(void) {
 static void Cl_Disconnect_f(void) {
 
 	if (Com_WasInit(Q2W_SERVER)) { // if running a local server, kill it
-		Sv_ShutdownServer("Disconnected.\n");
+		Sv_ShutdownServer("Disconnected\n");
 	}
 
 	Cl_Disconnect();
@@ -325,11 +326,11 @@ void Cl_Reconnect_f(void) {
 		if (cls.state >= CL_CONNECTING) {
 			char server_name[MAX_OSPATH];
 
-			strncpy(server_name, cls.server_name, sizeof(server_name) - 1);
+			g_strlcpy(server_name, cls.server_name, sizeof(server_name));
 
 			Cl_Disconnect();
 
-			strncpy(cls.server_name, server_name, sizeof(cls.server_name) - 1);
+			g_strlcpy(cls.server_name, server_name, sizeof(cls.server_name));
 		}
 
 		cls.connect_time = 0; // fire immediately
@@ -343,18 +344,15 @@ void Cl_Reconnect_f(void) {
  * @brief Responses to broadcasts, etc
  */
 static void Cl_ConnectionlessPacket(void) {
-	char *s;
-	char *c;
-	byte qport;
 
 	Msg_BeginReading(&net_message);
 	Msg_ReadLong(&net_message); // skip the -1
 
-	s = Msg_ReadStringLine(&net_message);
+	const char *s = Msg_ReadStringLine(&net_message);
 
 	Cmd_TokenizeString(s);
 
-	c = Cmd_Argv(0);
+	const char *c = Cmd_Argv(0);
 
 	Com_Debug("%s: %s\n", Net_NetaddrToString(net_from), c);
 
@@ -362,19 +360,20 @@ static void Cl_ConnectionlessPacket(void) {
 	if (!strcmp(c, "client_connect")) {
 
 		if (cls.state == CL_CONNECTED) {
-			Com_Print("Dup connect received. Ignored.\n");
+			Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(net_from));
 			return;
 		}
 
-		qport = (byte) Cvar_GetValue("net_qport");
+		const byte qport = (byte) Cvar_GetValue("net_qport");
 		Netchan_Setup(NS_CLIENT, &cls.netchan, net_from, qport);
 		Msg_WriteChar(&cls.netchan.message, CL_CMD_STRING);
 		Msg_WriteString(&cls.netchan.message, "new");
 		cls.state = CL_CONNECTED;
 
 		memset(cls.download_url, 0, sizeof(cls.download_url));
-		if (Cmd_Argc() == 2) // http download url
-			strncpy(cls.download_url, Cmd_Argv(1), sizeof(cls.download_url) - 1);
+		if (Cmd_Argc() == 2) { // http download url
+			g_strlcpy(cls.download_url, Cmd_Argv(1), sizeof(cls.download_url));
+		}
 		return;
 	}
 
@@ -384,7 +383,7 @@ static void Cl_ConnectionlessPacket(void) {
 		return;
 	}
 
-	// print32_t command from somewhere
+	// print command from somewhere
 	if (!strcmp(c, "print")) {
 		s = Msg_ReadString(&net_message);
 		Com_Print("%s", s);
@@ -406,7 +405,7 @@ static void Cl_ConnectionlessPacket(void) {
 	// challenge from the server we are connecting to
 	if (!strcmp(c, "challenge")) {
 		if (cls.state != CL_CONNECTING) {
-			Com_Print("Duplicate challenge received. Ignored.\n");
+			Com_Print("Ignoring duplicate challenge from %s\n", Net_NetaddrToString(net_from));
 			return;
 		}
 		cls.challenge = atoi(Cmd_Argv(1));
@@ -414,7 +413,7 @@ static void Cl_ConnectionlessPacket(void) {
 		return;
 	}
 
-	Com_Warn("Cl_ConnectionlessPacket: Unknown command: %s.\n", c);
+	Com_Warn("Unknown command: %s\n", c);
 }
 
 /*
@@ -436,13 +435,13 @@ static void Cl_ReadPackets(void) {
 			continue; // dump it if not connected
 
 		if (net_message.size < 8) {
-			Com_Debug("%s: Runt packet.\n", Net_NetaddrToString(net_from));
+			Com_Debug("%s: Runt packet\n", Net_NetaddrToString(net_from));
 			continue;
 		}
 
 		// packet from server
 		if (!Net_CompareNetaddr(net_from, cls.netchan.remote_address)) {
-			Com_Debug("%s: Sequenced packet without connection.\n", Net_NetaddrToString(net_from));
+			Com_Debug("%s: Sequenced packet without connection\n", Net_NetaddrToString(net_from));
 			continue;
 		}
 
@@ -453,8 +452,8 @@ static void Cl_ReadPackets(void) {
 	}
 
 	// check timeout
-	if (cls.state >= CL_CONNECTED
-			&& cls.real_time - cls.netchan.last_received > cl_timeout->value * 1000) {
+	if (cls.state >= CL_CONNECTED && cls.real_time - cls.netchan.last_received > cl_timeout->value
+			* 1000) {
 		Com_Print("%s: Timed out.\n", Net_NetaddrToString(net_from));
 		Cl_Disconnect();
 	}
@@ -463,125 +462,8 @@ static void Cl_ReadPackets(void) {
 /*
  * @brief
  */
-void Cl_LoadProgress(uint16_t percent) {
-
-	cls.loading = percent;
-
-	Cl_HandleEvents();
-
-	Cl_UpdateScreen();
-}
-
-/*
- * @brief Reload stale media references on subsystem restarts.
- */
-static void Cl_UpdateMedia(void) {
-
-	if ((r_view.update || s_env.update) && (cls.state == CL_ACTIVE && !cls.loading)) {
-
-		Com_Debug("Cl_UpdateMedia: %s %s\n", r_view.update ? "view" : "",
-				s_env.update ? "sound" : "");
-
-		cls.loading = 1;
-
-		Cl_UpdateEntities();
-
-		cls.cgame->UpdateMedia();
-
-		cls.loading = 0;
-	}
-}
-
-/*
- * @brief Load all game media through the relevant subsystems. This is called when
- * spawning into a server. For incremental reloads on subsystem restarts,
- * see Cl_UpdateMedia.
- */
-static void Cl_LoadMedia(void) {
-
-	cls.loading = 1;
-
-	R_LoadMedia();
-
-	S_LoadMedia();
-
-	Cl_UpdateEntities();
-
-	cls.cgame->UpdateMedia();
-
-	Cl_ClearNotify();
-
-	cls.key_state.dest = KEY_GAME;
-
-	cls.loading = 0;
-}
-
-static int32_t precache_check; // for auto-download of precache items
-
-/*
- * @brief Entry point for file downloads, or "precache" from server. Attempt to
- * download .pak and .bsp from server. Pak is preferred. Once all precache
- * checks are completed, we load media and ask the server to begin sending
- * us frames.
- */
-void Cl_RequestNextDownload(void) {
-
-	if (cls.state < CL_CONNECTED)
-		return;
-
-	// check pak
-	if (precache_check == CS_PAK) {
-
-		precache_check = CS_MODELS;
-
-		if (*cl.config_strings[CS_PAK] != '\0') {
-
-			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_PAK]))
-				return; // started a download
-		}
-	}
-
-	// check .bsp via models
-	if (precache_check == CS_MODELS) { // the map is the only model we care about
-
-		precache_check++;
-
-		if (*cl.config_strings[CS_MODELS + 1] != '\0') {
-
-			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS + 1]))
-				return; // started a download
-		}
-	}
-
-	// we're good to go, lock and load (literally)
-
-	Com_InitSubsystem(Q2W_CLIENT);
-	Cvar_ResetLocalVars();
-
-	Cl_LoadMedia();
-
-	Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
-	Msg_WriteString(&cls.netchan.message, va("begin %i\n", cls.spawn_count));
-}
-
-/*
- * @brief The server sends this command just after server_data. Hang onto the spawn
- * count and check for the media we'll need to enter the game.
- */
-static void Cl_Precache_f(void) {
-
-	cls.spawn_count = strtoul(Cmd_Argv(1), NULL, 0);
-
-	precache_check = CS_PAK;
-
-	Cl_RequestNextDownload();
-}
-
-/*
- * @brief
- */
-static const char *Cl_GetUserName(void) {
-	const char *username = Sys_GetCurrentUser();
+static const char *Cl_UserName(void) {
+	const char *username = Sys_Username();
 
 	if (username[0] == '\0')
 		username = "newbie";
@@ -605,6 +487,7 @@ static void Cl_InitLocal(void) {
 	cl_predict = Cvar_Get("cl_predict", "1", 0, NULL);
 	cl_show_net_messages = Cvar_Get("cl_show_net_messages", "0", CVAR_LO_ONLY, NULL);
 	cl_show_renderer_stats = Cvar_Get("cl_show_renderer_stats", "0", CVAR_LO_ONLY, NULL);
+	cl_show_sound_stats = Cvar_Get("cl_show_sound_stats", "0", CVAR_LO_ONLY, NULL);
 	cl_team_chat_sound = Cvar_Get("cl_team_chat_sound", "misc/teamchat", 0, NULL);
 	cl_timeout = Cvar_Get("cl_timeout", "15.0", 0, NULL);
 	cl_view_size = Cvar_Get("cl_view_size", "100.0", CVAR_ARCHIVE, NULL);
@@ -614,9 +497,9 @@ static void Cl_InitLocal(void) {
 
 	// user info
 	active = Cvar_Get("active", "1", CVAR_USER_INFO | CVAR_NO_SET, NULL);
-	color = Cvar_Get("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	color = Cvar_Get("color", "", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	message_level = Cvar_Get("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	name = Cvar_Get("name", Cl_GetUserName(), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	name = Cvar_Get("name", Cl_UserName(), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);
 	rate = Cvar_Get("rate", va("%d", CLIENT_RATE), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	skin = Cvar_Get("skin", "qforcer/enforcer", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
@@ -640,28 +523,26 @@ static void Cl_InitLocal(void) {
 	Cmd_ForwardToServer = Cl_ForwardCmdToServer;
 }
 
+
+
 /*
  * @brief Writes key bindings and archived cvars to quake2world.cfg.
  */
 static void Cl_WriteConfiguration(void) {
-	FILE *f;
-	char path[MAX_OSPATH];
+	file_t *f;
 
 	if (cls.state == CL_UNINITIALIZED)
 		return;
 
-	snprintf(path, sizeof(path), "%s/quake2world.cfg", Fs_Gamedir());
-	f = fopen(path, "w");
-	if (!f) {
-		Com_Warn("Couldn't write %s.\n", path);
+	if (!(f = Fs_OpenWrite("quake2world.cfg"))) {
+		Com_Warn("Couldn't write quake2world.cfg\n");
 		return;
 	}
 
-	fprintf(f, "// generated by Quake2World, do not modify\n");
+	Fs_Print(f, "// generated by Quake2World, do not modify\n");
 	Cl_WriteBindings(f);
-	Fs_CloseFile(f);
-
-	Cvar_WriteVars(path);
+	Cvar_WriteVariables(f);
+	Fs_Close(f);
 }
 
 /*
@@ -732,7 +613,7 @@ void Cl_Frame(uint32_t msec) {
 		packet_frame = false; // don't flood the server while downloading
 
 	if (cls.state <= CL_DISCONNECTED && !Com_WasInit(Q2W_SERVER)) {
-		usleep(1000); // idle at console
+		usleep(16000); // idle at console
 	}
 
 	if (render_frame) {
@@ -760,7 +641,7 @@ void Cl_Frame(uint32_t msec) {
 		cls.render_delta = 0;
 	}
 
-	if (packet_frame || user_info_modified) {
+	if (packet_frame || cvar_user_info_modified) {
 		// send command to the server
 		Cl_SendCmd();
 
@@ -768,13 +649,11 @@ void Cl_Frame(uint32_t msec) {
 		Cl_CheckForResend();
 
 		// run http downloads
-		Cl_HttpDownloadThink();
+		Cl_HttpThink();
 
 		cls.packet_delta = 0;
 	}
 }
-
-#include "cl_binds.h"
 
 /*
  * @brief
@@ -792,36 +671,30 @@ void Cl_Init(void) {
 	// initialize SDL
 	if (SDL_WasInit(SDL_INIT_AUDIO | SDL_INIT_VIDEO) == 0) {
 		if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO) < 0) {
-			Com_Error(ERR_FATAL, "Cl_Init: %s.\n", SDL_GetError());
+			Com_Error(ERR_FATAL, "%s\n", SDL_GetError());
 		}
 	}
 
+	Cl_InitConsole();
+
+	Cl_InitLocal();
+
 	Cl_InitKeys();
 
-	Cbuf_AddText(DEFAULT_BINDS);
-	Cbuf_AddText("exec quake2world.cfg\n");
-	Cbuf_Execute();
-
 	Net_Config(NS_CLIENT, true);
+
+	net_message.data = net_message_buffer;
+	net_message.max_size = sizeof(net_message_buffer);
 
 	S_Init();
 
 	R_Init();
 
-	net_message.data = net_message_buffer;
-	net_message.max_size = sizeof(net_message_buffer);
-
-	Cl_InitLocal();
-
-	Cl_InitConsole();
-
 	Cl_InitView();
 
 	Cl_InitInput();
 
-	Cl_InitHttpDownload();
-
-	Fs_ExecAutoexec();
+	Cl_InitHttp();
 
 	Cl_ClearState();
 
@@ -844,7 +717,7 @@ void Cl_Shutdown(void) {
 
 	Cl_ShutdownCgame();
 
-	Cl_ShutdownHttpDownload();
+	Cl_ShutdownHttp();
 
 	Cl_WriteConfiguration();
 
@@ -857,4 +730,8 @@ void Cl_Shutdown(void) {
 	S_Shutdown();
 
 	R_Shutdown();
+
+	Cl_ShutdownConsole();
+
+	Z_FreeTag(Z_TAG_CLIENT);
 }

@@ -24,15 +24,13 @@
 /*
  * @brief
  */
-static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t count) {
-	cg_particle_t *p;
+static void Cg_EnergyFlash(const entity_state_t *ent, byte color) {
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 	c_trace_t tr;
 	float dist;
-	int32_t i, j;
 
-	// project the particles just in front of the entity
+	// project the flash just in front of the entity
 	AngleVectors(ent->angles, forward, right, NULL );
 	VectorMA(ent->origin, 30.0, forward, org);
 	VectorMA(org, 6.0, right, org);
@@ -52,7 +50,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t cou
 
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
-	VectorSet(s.light.color, 0.7, 0.9, 0.9);
+	cgi.ColorFromPalette(color, s.light.color);
 	s.sustain = 0.3;
 
 	cgi.AddSustainedLight(&s);
@@ -60,25 +58,6 @@ static void Cg_EnergyFlash(const entity_state_t *ent, int32_t color, int32_t cou
 	if (cgi.PointContents(ent->origin) & MASK_WATER) {
 		VectorMA(ent->origin, 40.0, forward, org2);
 		Cg_BubbleTrail(org, org2, 10.0);
-		return;
-	}
-
-	for (i = 0; i < count; i++) {
-
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
-			break;
-
-		p->part.color = color + (Random() & 15);
-
-		p->alpha_vel = -2.0;
-		p->scale_vel = 4.0;
-
-		for (j = 0; j < 3; j++) {
-			p->part.org[j] = org[j] + 8.0 * Randomc();
-			p->vel[j] = 128.0 * Randomc();
-		}
-
-		p->accel[2] = -PARTICLE_GRAVITY;
 	}
 }
 
@@ -124,7 +103,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_smoke)))
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke)))
 		return;
 
 	p->part.blend = GL_ONE;
@@ -164,7 +143,7 @@ void Cg_ParseMuzzleFlash(void) {
 	const uint16_t ent_num = cgi.ReadShort();
 
 	if (ent_num < 1 || ent_num >= MAX_EDICTS) {
-		cgi.Warn("Cg_ParseMuzzleFlash: Bad entity %u.\n", ent_num);
+		cgi.Warn("Bad entity %u\n", ent_num);
 		cgi.ReadByte(); // attempt to ignore cleanly
 		return;
 	}
@@ -176,7 +155,7 @@ void Cg_ParseMuzzleFlash(void) {
 	case MZ_BLASTER:
 		c = cgi.ReadByte();
 		cgi.PlaySample(NULL, ent_num, cg_sample_blaster_fire, ATTN_NORM);
-		Cg_EnergyFlash(&cent->current, c, 4);
+		Cg_EnergyFlash(&cent->current, c ? c : EFFECT_COLOR_ORANGE);
 		break;
 	case MZ_SHOTGUN:
 		cgi.PlaySample(NULL, ent_num, cg_sample_shotgun_fire, ATTN_NORM);
@@ -201,7 +180,7 @@ void Cg_ParseMuzzleFlash(void) {
 		break;
 	case MZ_HYPERBLASTER:
 		cgi.PlaySample(NULL, ent_num, cg_sample_hyperblaster_fire, ATTN_NORM);
-		Cg_EnergyFlash(&cent->current, 105, 8);
+		Cg_EnergyFlash(&cent->current, 105);
 		break;
 	case MZ_LIGHTNING:
 		cgi.PlaySample(NULL, ent_num, cg_sample_lightning_fire, ATTN_NORM);
@@ -211,7 +190,7 @@ void Cg_ParseMuzzleFlash(void) {
 		break;
 	case MZ_BFG:
 		cgi.PlaySample(NULL, ent_num, cg_sample_bfg_fire, ATTN_NORM);
-		Cg_EnergyFlash(&cent->current, 200, 64);
+		Cg_EnergyFlash(&cent->current, 200);
 		break;
 	case MZ_LOGOUT:
 		cgi.PlaySample(NULL, ent_num, cg_sample_teleport, ATTN_NONE);

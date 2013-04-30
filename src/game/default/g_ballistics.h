@@ -19,12 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_BALLISTICS_H__
-#define __G_BALLISTICS_H__
+#ifndef __GAME_BALLISTICS_H__
+#define __GAME_BALLISTICS_H__
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#ifdef __GAME_LOCAL_H__
 void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
 		int32_t speed, int32_t damage, int32_t knockback);
 void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
@@ -43,6 +43,6 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t dir,
 		int32_t damage, int32_t knockback);
 void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir,
 		int32_t speed, int32_t damage, int32_t knockback, float damage_radius);
-#endif /* __G_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */
 
-#endif /* __G_BALLISTICS_H__ */
+#endif /* __GAME_BALLISTICS_H__ */

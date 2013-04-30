@@ -18,88 +18,57 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
 #include <signal.h>
 #include <errno.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <unistd.h>
 
 #include "filesystem.h"
-#include "net.h"
 
 quake2world_t quake2world;
 
-typedef struct server_s {
-	struct server_s *prev;
-	struct server_s *next;
+typedef struct ms_server_s {
 	struct sockaddr_in ip;
 	uint16_t port;
 	uint32_t queued_pings;
 	uint32_t heartbeats;
-	uint32_t last_heartbeat;
-	uint32_t last_ping;
-	bool_ validated;
-} server_t;
+	time_t last_heartbeat;
+	time_t last_ping;
+	bool validated;
+} ms_server_t;
 
-static server_t servers;
-int32_t sock;
+static GList *ms_servers;
+static int32_t ms_sock;
 
 /*
- * @brief
+ * @brief GCompareFunc for Ms_GetServer.
  */
-static void Ms_Shutdown(void) {
-	server_t *server = &servers;
-	server_t *old = NULL;
+int32_t Ms_GetServer_compare(gconstpointer server, gconstpointer addr) {
+	ms_server_t *s = (ms_server_t *) server;
+	struct sockaddr_in *a = (struct sockaddr_in *) addr;
 
-	Com_Print("Master server shutting down.\n");
-
-	while (server->next) {
-		if (old)
-			free(old);
-		server = server->next;
-		old = server;
+	if (!memcmp(&a->sin_addr, &s->ip.sin_addr, 4) && a->sin_port == s->port) {
+		return 0;
 	}
 
-	if (old)
-		free(old);
+	return 1;
 }
 
 /*
- * @brief
+ * @brief Returns the server for the specified address, or NULL.
  */
-static server_t *Ms_GetServer(struct sockaddr_in *from) {
-	server_t *server = &servers;
-
-	while (server->next) {
-
-		server = server->next;
-
-		if (*(int32_t *) &from->sin_addr == *(int32_t *) &server->ip.sin_addr && from->sin_port
-				== server->port) {
-			return server;
-		}
-	}
-
-	return NULL;
+static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
+	return (ms_server_t *) g_list_find_custom(ms_servers, from, Ms_GetServer_compare);
 }
 
 /*
- * @brief
+ * @brief Removes the specified server.
  */
-static void Ms_DropServer(server_t *server) {
-
-	if (server->next)
-		server->next->prev = server->prev;
-
-	if (server->prev)
-		server->prev->next = server->next;
-
-	free(server);
+static void Ms_DropServer(ms_server_t *server) {
+	ms_servers = g_list_remove(ms_servers, server);
+	Z_Free(server);
 }
 
 /*
@@ -110,12 +79,13 @@ static void Ms_DropServer(server_t *server) {
  * 66.182.58.*
  *
  * Ensure that the file is new-line terminated for all rules to be evaluated.
+ * TODO This is entirely untested
  */
 static bool Ms_BlacklistServer(struct sockaddr_in *from) {
 	void *buf;
 	int32_t len;
 
-	if ((len = Fs_LoadFile("servers-blacklist", &buf)) == -1) {
+	if ((len = Fs_Load("servers-blacklist", &buf)) == -1) {
 		return false;
 	}
 
@@ -140,12 +110,10 @@ static bool Ms_BlacklistServer(struct sockaddr_in *from) {
 }
 
 /*
- * @brief
+ * @brief Adds the specified server to the master.
  */
 static void Ms_AddServer(struct sockaddr_in *from) {
 	struct sockaddr_in addr;
-	server_t *server = &servers;
-	int32_t preserved_heartbeats = 0;
 
 	if (Ms_GetServer(from)) {
 		Com_Print("Duplicate ping from %s\n", inet_ntoa(from->sin_addr));
@@ -157,36 +125,27 @@ static void Ms_AddServer(struct sockaddr_in *from) {
 		return;
 	}
 
-	while (server->next) // append to tail
-		server = server->next;
+	ms_server_t *server = Z_Malloc(sizeof(*server));
 
-	server->next = (server_t *) malloc(sizeof(server_t));
-
-	server->next->prev = server;
-	server = server->next;
-
-	server->heartbeats = preserved_heartbeats;
 	server->ip = *from;
 	server->last_heartbeat = time(0);
-	server->next = NULL;
 	server->port = from->sin_port;
-	server->queued_pings = server->last_ping = 0;
-	server->validated = false;
 
+	ms_servers = g_list_prepend(ms_servers, server);
 	Com_Print("Server %s registered\n", inet_ntoa(from->sin_addr));
 
-	// send an ack
+	// send an acknowledgment
 	addr.sin_addr = server->ip.sin_addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = server->port;
 	memset(&addr.sin_zero, 0, sizeof(addr.sin_zero));
-	sendto(sock, "\xFF\xFF\xFF\xFF" "ack", 7, 0, (struct sockaddr*) &addr, sizeof(addr));
+	sendto(ms_sock, "\xFF\xFF\xFF\xFF" "ack", 7, 0, (struct sockaddr*) &addr, sizeof(addr));
 }
 
 /*
- * @brief
+ * @brief Removes the specified server.
  */
-static void Ms_RemoveServer(struct sockaddr_in *from, server_t *server) {
+static void Ms_RemoveServer(struct sockaddr_in *from, ms_server_t *server) {
 
 	if (!server) // resolve from address
 		server = Ms_GetServer(from);
@@ -204,36 +163,40 @@ static void Ms_RemoveServer(struct sockaddr_in *from, server_t *server) {
  * @brief
  */
 static void Ms_RunFrame(void) {
-	server_t *server = &servers;
-	uint32_t curtime = time(0);
+	time_t curtime = time(0);
 
-	while (server->next) {
-		server = server->next;
+	GList *s = ms_servers;
+	while (s) {
+		ms_server_t *server = (ms_server_t *) s->data;
 		if (curtime - server->last_heartbeat > 30) {
-			server_t *old = server;
 
-			server = old->prev;
+			if (server->queued_pings > 6) {
+				Com_Print("Server %s timed out.\n", inet_ntoa(server->ip.sin_addr));
 
-			if (old->queued_pings > 6) {
-				Com_Print("Server %s timed out.\n", inet_ntoa(old->ip.sin_addr));
-				Ms_DropServer(old);
+				s = s->next;
+				Ms_DropServer(server);
 				continue;
 			}
 
-			server = old;
 			if (curtime - server->last_ping >= 10) {
 				struct sockaddr_in addr;
+				memset(&addr, 0, sizeof(addr));
+
 				addr.sin_addr = server->ip.sin_addr;
 				addr.sin_family = AF_INET;
 				addr.sin_port = server->port;
-				memset(&addr.sin_zero, 0, sizeof(addr.sin_zero));
+
 				server->queued_pings++;
 				server->last_ping = curtime;
+
 				Com_Print("Pinging %s\n", inet_ntoa(server->ip.sin_addr));
-				sendto(sock, "\xFF\xFF\xFF\xFF" "ping", 8, 0, (struct sockaddr *) &addr,
-						sizeof(addr));
+
+				const char *msg = "\xFF\xFF\xFF\xFF" "ping";
+				sendto(ms_sock, msg, strlen(msg), 0, (struct sockaddr *) &addr, sizeof(addr));
 			}
 		}
+
+		s = s->next;
 	}
 }
 
@@ -243,7 +206,6 @@ static void Ms_RunFrame(void) {
 static void Ms_SendServersList(struct sockaddr_in *from) {
 	int32_t buflen;
 	char buff[0xffff];
-	server_t *server = &servers;
 
 	buflen = 0;
 	memset(buff, 0, sizeof(buff));
@@ -251,18 +213,20 @@ static void Ms_SendServersList(struct sockaddr_in *from) {
 	memcpy(buff, "\xFF\xFF\xFF\xFF""servers ", 12);
 	buflen += 12;
 
-	while (server->next) {
-		server = server->next;
+	GList *s = ms_servers;
+	while (s) {
+		const ms_server_t *server = (ms_server_t *) s->data;
 		if (server->validated) {
 			memcpy(buff + buflen, &server->ip.sin_addr, 4);
 			buflen += 4;
 			memcpy(buff + buflen, &server->port, 2);
 			buflen += 2;
 		}
+		s = s->next;
 	}
 
-	if ((sendto(sock, buff, buflen, 0, (struct sockaddr *) from, sizeof(*from))) == -1)
-		Com_Print("Socket error on send: %s.\n", strerror(errno));
+	if ((sendto(ms_sock, buff, buflen, 0, (struct sockaddr *) from, sizeof(*from))) == -1)
+		Com_Warn("Socket error on send: %s.\n", strerror(errno));
 	else
 		Com_Print("Sent server list to %s\n", inet_ntoa(from->sin_addr));
 }
@@ -271,7 +235,7 @@ static void Ms_SendServersList(struct sockaddr_in *from) {
  * @brief
  */
 static void Ms_Ack(struct sockaddr_in *from) {
-	server_t *server;
+	ms_server_t *server;
 
 	if (!(server = Ms_GetServer(from)))
 		return;
@@ -288,7 +252,7 @@ static void Ms_Ack(struct sockaddr_in *from) {
  * @brief
  */
 static void Ms_Heartbeat(struct sockaddr_in *from) {
-	server_t *server;
+	ms_server_t *server;
 	struct sockaddr_in addr;
 
 	if ((server = Ms_GetServer(from))) { // update their timestamp
@@ -302,7 +266,7 @@ static void Ms_Heartbeat(struct sockaddr_in *from) {
 
 		Com_Print("Heartbeat from %s.\n", inet_ntoa(server->ip.sin_addr));
 
-		sendto(sock, "\xFF\xFF\xFF\xFF" "ack", 7, 0, (struct sockaddr*) &addr, sizeof(addr));
+		sendto(ms_sock, "\xFF\xFF\xFF\xFF" "ack", 7, 0, (struct sockaddr*) &addr, sizeof(addr));
 		return;
 	}
 
@@ -338,42 +302,58 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 }
 
 /*
- * @brief
+ * @brief Initializes the master server.
  */
-static void Ms_HandleSignal(int32_t sig) {
+static void Init(void) {
 
-	Com_Print("Received signal %d, exiting...\n", sig);
+	Z_Init();
 
-	Ms_Shutdown();
+	Fs_Init();
+}
 
-	exit(0);
+/*
+ * @brief Shuts down the master server.
+ */
+static void Shutdown(const char *msg) {
+
+	Com_Print("%s", msg);
+
+	g_list_free_full(ms_servers, Z_Free);
+
+	Fs_Shutdown();
+
+	Z_Shutdown();
 }
 
 /*
  * @brief
  */
-int32_t main(int32_t argc __attribute__((unused)), char **argv __attribute__((unused))) {
+int32_t main(int32_t argc, char **argv) {
 	struct sockaddr_in address, from;
 	struct timeval delay;
-	socklen_t fromlen;
+	socklen_t from_len;
 	fd_set set;
 	char buffer[16384];
-	int32_t len;
+
+	printf("Quake2World Master Server %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 
 	memset(&quake2world, 0, sizeof(quake2world));
 
-	Com_Print("Quake2World Master Server %s\n", VERSION);
+	quake2world.Init = Init;
+	quake2world.Shutdown = Shutdown;
 
-	// init core facilities
-	Z_Init();
+	signal(SIGHUP, Sys_Signal);
+	signal(SIGINT, Sys_Signal);
+	signal(SIGQUIT, Sys_Signal);
+	signal(SIGILL, Sys_Signal);
+	signal(SIGTRAP, Sys_Signal);
+	signal(SIGFPE, Sys_Signal);
+	signal(SIGSEGV, Sys_Signal);
+	signal(SIGTERM, Sys_Signal);
 
-	Cvar_Init();
+	Com_Init(argc, argv);
 
-	Cmd_Init();
-
-	Fs_Init();
-
-	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	ms_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	memset(&address, 0, sizeof(address));
 
@@ -381,41 +361,29 @@ int32_t main(int32_t argc __attribute__((unused)), char **argv __attribute__((un
 	address.sin_port = htons(PORT_MASTER);
 	address.sin_addr.s_addr = INADDR_ANY;
 
-	if ((bind(sock, (struct sockaddr *) &address, sizeof(address))) == -1) {
+	if ((bind(ms_sock, (struct sockaddr *) &address, sizeof(address))) == -1) {
 		Com_Print("Failed to bind port %i\n", PORT_MASTER);
 		return 1;
 	}
 
-	memset(&servers, 0, sizeof(servers));
-
 	Com_Print("Listening on %i\n", PORT_MASTER);
-
-	signal(SIGHUP, Ms_HandleSignal);
-	signal(SIGINT, Ms_HandleSignal);
-	signal(SIGQUIT, Ms_HandleSignal);
-	signal(SIGILL, Ms_HandleSignal);
-	signal(SIGTRAP, Ms_HandleSignal);
-	signal(SIGFPE, Ms_HandleSignal);
-	signal(SIGSEGV, Ms_HandleSignal);
-	signal(SIGTERM, Ms_HandleSignal);
 
 	while (true) {
 		FD_ZERO(&set);
-		FD_SET(sock, &set);
+		FD_SET(ms_sock, &set);
 
 		memset(&delay, 0, sizeof(struct timeval));
 		delay.tv_sec = 1;
 		delay.tv_usec = 0;
 
-		if (select(sock + 1, &set, NULL, NULL, &delay) > 0) {
-			if (FD_ISSET(sock, &set)) {
+		if (select(ms_sock + 1, &set, NULL, NULL, &delay) > 0) {
+			if (FD_ISSET(ms_sock, &set)) {
 
-				fromlen = sizeof(from);
+				from_len = sizeof(from);
 				memset(buffer, 0, sizeof(buffer));
 
-				len
-						= recvfrom(sock, buffer, sizeof(buffer), 0, (struct sockaddr *) &from,
-								&fromlen);
+				const ssize_t len = recvfrom(ms_sock, buffer, sizeof(buffer), 0,
+						(struct sockaddr *) &from, &from_len);
 
 				if (len > 0) {
 					if (len > 4)

@@ -24,96 +24,31 @@
 
 #include "filesystem.h"
 
-/*
-
- Any number of commands can be added in a frame, from several different sources.
- Most commands come from either keybindings or console line input, but remote
- servers can also send across commands and entire text files can be execed.
-
- The + command line options are also added to the command buffer.
- */
-
-void Cbuf_Init(void);
-// allocates an initial text buffer that will grow as needed
-
+// command buffer functions
 void Cbuf_AddText(const char *text);
-// as new commands are generated from the console or keybindings,
-// the text is added to the end of the command buffer.
-
 void Cbuf_InsertText(const char *text);
-// when a command wants to issue other commands immediately, the text is
-// inserted at the beginning of the buffer, before any remaining unexecuted
-// commands.
-
-void Cbuf_AddEarlyCommands(bool clear);
-// adds all the +set commands from the command line
-
-void Cbuf_AddLateCommands(void);
-// adds all the remaining + commands from the command line
-
 void Cbuf_Execute(void);
-// Pulls off \n terminated lines of text from the command buffer and sends
-// them through Cmd_ExecuteString. Stops when the buffer is empty.
-// Normally called once per frame, but may be explicitly invoked.
-// Do not call inside a command function!
-
 void Cbuf_CopyToDefer(void);
 void Cbuf_InsertFromDefer(void);
-// These two functions are used to defer any pending commands while a map
-// is being loaded
 
-
-/*
-
- Command execution takes a null terminated string, breaks it into tokens,
- then searches for a command or variable that matches the first token.
-
- */
-
-typedef void (*cmd_function_t)(void);
-
-typedef struct cmd_function_s {
-	const char *name;
-	cmd_function_t function;
-	uint32_t flags;
-	const char *description;
-	struct cmd_function_s *next;
-} cmd_t;
-
-void Cmd_Init(void);
-
-cmd_t *Cmd_Get(const char *name);
-
-void Cmd_AddCommand(const char *name, cmd_function_t function, uint32_t flags,
-		const char *description);
-// called by the init functions of other parts of the program to
-// register commands and functions to call for them.
-// The name is referenced later, so it should not be in temp memory
-// if function is NULL, the command will be forwarded to the server
-// as a clc_string_cmd instead of executed locally
-void Cmd_RemoveCommand(const char *name);
-
-int32_t Cmd_CompleteCommand(const char *partial, const char *matches[]);
-// attempts to match a partial command for automatic command line completion
-
+// command parsing functions
 int32_t Cmd_Argc(void);
-char *Cmd_Argv(int32_t arg);
-char *Cmd_Args(void);
-// The functions that execute commands get their parameters with these
-// functions. Cmd_Argv() will return an empty string, not a NULL
-// if arg > argc, so string operations are always safe.
-
+const char *Cmd_Argv(int32_t arg);
+const char *Cmd_Args(void);
 void Cmd_TokenizeString(const char *text);
-// Takes a null terminated string. Does not need to be /n terminated.
-// breaks the string up into arg tokens.
-
 void Cmd_ExecuteString(const char *text);
-// Parses a single line of text into arguments and tries to execute it
-// as if it was typed at the console
+
+typedef void (*cmd_enumerate_func)(cmd_t *cmd, void *data);
+
+// general command management
+cmd_t *Cmd_Get(const char *name);
+void Cmd_Enumerate(cmd_enumerate_func func, void *data);
+void Cmd_AddCommand(const char *name, cmd_function_t func, uint32_t flags, const char *description);
+void Cmd_RemoveCommand(const char *name);
+void Cmd_CompleteCommand(const char *pattern, GList **matches);
+void Cmd_Init(void);
+void Cmd_Shutdown(void);
 
 extern void (*Cmd_ForwardToServer)(void);
-// adds the current command line as a clc_string_cmd to the client message.
-// things like godmode, no_clip, etc, are commands directed to the server,
-// so when they are typed in at the console, they will need to be forwarded.
 
 #endif /* __CMD_H__ */

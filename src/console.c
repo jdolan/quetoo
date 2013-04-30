@@ -19,23 +19,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-/*
- * console.c
- * Common structures and functions for the client console and
- * the server curses console.
- */
-
 #include "console.h"
 
 static console_data_t console_data;
 
 #ifdef BUILD_CLIENT
-extern console_t cl_con;
+extern console_t cl_console;
 extern void Cl_UpdateNotify(int32_t last_line);
 extern void Cl_ClearNotify(void);
 #endif
 
-static cvar_t *ansi;
+static cvar_t *con_ansi;
 
 /*
  * @brief Update a console index struct, start parsing at pos
@@ -148,7 +142,7 @@ void Con_Resize(console_t *con, uint16_t width, uint16_t height) {
 #ifdef BUILD_CLIENT
 	if (dedicated && !dedicated->value) {
 		// clear client notification timings
-		if (con == &cl_con)
+		if (con == &cl_console)
 			Cl_ClearNotify();
 	}
 #endif
@@ -164,8 +158,8 @@ static void Con_Clear_f(void) {
 #ifdef BUILD_CLIENT
 	if (dedicated && !dedicated->value) {
 		// update the index for the client console
-		cl_con.last_line = 0;
-		Con_Update(&cl_con, console_data.insert);
+		cl_console.last_line = 0;
+		Con_Update(&cl_console, console_data.insert);
 	}
 #endif
 #ifdef HAVE_CURSES
@@ -181,8 +175,7 @@ static void Con_Clear_f(void) {
  * @brief Save the console contents to a file
  */
 static void Con_Dump_f(void) {
-	FILE *f;
-	char name[MAX_OSPATH];
+	file_t *file;
 	char *pos;
 
 	if (Cmd_Argc() != 2) {
@@ -190,24 +183,23 @@ static void Con_Dump_f(void) {
 		return;
 	}
 
-	snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), Cmd_Argv(1));
-
-	Fs_CreatePath(name);
-	f = fopen(name, "w");
-	if (!f) {
-		Com_Warn("Couldn't open %s.\n", name);
+	if (!(file = Fs_OpenWrite(Cmd_Argv(1)))) {
+		Com_Warn("Couldn't open %s\n", Cmd_Argv(1));
 	} else {
 		pos = console_data.text;
 		while (pos < console_data.insert) {
-			if (IS_COLOR(pos))
+			if (IS_COLOR(pos)) {
 				pos++;
-			else if (!IS_LEGACY_COLOR(pos))
-				if (fwrite(pos, 1, 1, f) <= 0)
+			} else if (!IS_LEGACY_COLOR(pos)) {
+				if (Fs_Write(file, pos, 1, 1) != 1) {
 					Com_Warn("Failed to write console dump\n");
+					break;
+				}
+			}
 			pos++;
 		}
-		fclose(f);
-		Com_Print("Dumped console text to %s.\n", name);
+		Fs_Close(file);
+		Com_Print("Dumped console text to %s.\n", Cmd_Argv(1));
 	}
 }
 
@@ -221,7 +213,7 @@ static void Con_PrintStdOut(const char *text) {
 
 	// start the string with foreground color
 	memset(buf, 0, sizeof(buf));
-	if (ansi && ansi->value) {
+	if (con_ansi && con_ansi->value) {
 		strcpy(buf, "\033[0;39m");
 		i = 7;
 	} else {
@@ -231,7 +223,7 @@ static void Con_PrintStdOut(const char *text) {
 	while (*text && i < sizeof(buf) - 8) {
 
 		if (IS_LEGACY_COLOR(text)) {
-			if (ansi && ansi->value) {
+			if (con_ansi && con_ansi->value) {
 				strcpy(&buf[i], "\033[0;32m");
 				i += 7;
 			}
@@ -240,7 +232,7 @@ static void Con_PrintStdOut(const char *text) {
 		}
 
 		if (IS_COLOR(text)) {
-			if (ansi && ansi->value) {
+			if (con_ansi && con_ansi->value) {
 				bold = 0;
 				color = 39;
 				switch (*(text + 1)) {
@@ -272,14 +264,14 @@ static void Con_PrintStdOut(const char *text) {
 				default:
 					break;
 				}
-				snprintf(&buf[i], 8, "\033[%d;%dm", bold, color);
+				g_snprintf(&buf[i], 8, "\033[%d;%dm", bold, color);
 				i += 7;
 			}
 			text += 2;
 			continue;
 		}
 
-		if (*text == '\n' && ansi && ansi->value) {
+		if (*text == '\n' && con_ansi && con_ansi->value) {
 			strcat(buf, "\033[0;39m");
 			i += 7;
 		}
@@ -288,7 +280,7 @@ static void Con_PrintStdOut(const char *text) {
 		text++;
 	}
 
-	if (ansi && ansi->value) // restore foreground color
+	if (con_ansi && con_ansi->value) // restore foreground color
 		strcat(buf, "\033[0;39m");
 
 	// print to stdout
@@ -317,8 +309,8 @@ void Con_Print(const char *text) {
 #ifdef BUILD_CLIENT
 		if (dedicated && !dedicated->value) {
 			// update the index for the client console
-			cl_con.last_line = 0;
-			Con_Update(&cl_con, console_data.text);
+			cl_console.last_line = 0;
+			Con_Update(&cl_console, console_data.text);
 		}
 #endif
 #ifdef HAVE_CURSES
@@ -333,10 +325,10 @@ void Con_Print(const char *text) {
 
 #ifdef BUILD_CLIENT
 	if (dedicated && !dedicated->value) {
-		last_line = cl_con.last_line;
+		last_line = cl_console.last_line;
 
 		// update the index for the client console
-		Con_Update(&cl_con, console_data.insert);
+		Con_Update(&cl_console, console_data.insert);
 
 		// update client message notification times
 		Cl_UpdateNotify(last_line);
@@ -364,72 +356,60 @@ void Con_Print(const char *text) {
 #endif
 }
 
-#define MAX_COMPLETE_MATCHES 1024
-static const char *complete[MAX_COMPLETE_MATCHES];
-
 /*
- *  Tab completion. Query the command and cvar subsystems for potential
- *  matches, and append an appropriate string to the input buffer. If no
- *  matches are found, do nothing. If only one match is found, simply
- *  append it. If multiple matches are found, append the longest possible
- *  common prefix they all share.
+ * @brief Tab completion. Query various subsystems for potential
+ * matches, and append an appropriate string to the input buffer. If no
+ * matches are found, do nothing. If only one match is found, simply
+ * append it. If multiple matches are found, append the longest possible
+ * common prefix they all share.
  */
-int32_t Con_CompleteCommand(char *input_text, uint16_t *input_position) {
-	const char *match, *partial;
-	const char *cmd = 0, *dir = 0, *ext = 0;
-	int32_t matches;
+bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len) {
+	const char *pattern, *match;
+	GList *matches = NULL;
 
-	partial = input_text;
+	char *partial = input;
 	if (*partial == '\\' || *partial == '/')
 		partial++;
 
 	if (!*partial)
 		return false; // lets start with at least something
 
-	memset(complete, 0, sizeof(complete));
-
-	if (strstr(partial, "map ") == partial) {
-		cmd = "map ";
-		dir = "maps/";
-		ext = ".bsp";
-	} else if (strstr(partial, "demo ") == partial) {
-		cmd = "demo ";
-		dir = "demos/";
-		ext = ".dem";
-	} else if (strstr(partial, "exec ") == partial) {
-		cmd = "exec ";
-		dir = "";
-		ext = ".cfg";
+	// handle special cases for commands which accept filenames
+	if (g_str_has_prefix(partial, "demo ")) {
+		partial += strlen("demo ");
+		pattern = va("demos/%s*.dem", partial);
+		Fs_CompleteFile(pattern, &matches);
+	} else if (g_str_has_prefix(partial, "exec ")) {
+		partial += strlen("exec ");
+		pattern = va("%s*.cfg", partial);
+		Fs_CompleteFile(pattern, &matches);
+	} else if (g_str_has_prefix(partial, "map ")) {
+		partial += strlen("map ");
+		pattern = va("maps/%s*.bsp", partial);
+		Fs_CompleteFile(pattern, &matches);
+	} else if (g_str_has_prefix(partial, "set ")) {
+		partial += strlen("set ");
+		pattern = va("%s*", partial);
+		Cvar_CompleteVar(pattern, &matches);
+	} else { // handle general case for commands and variables
+		pattern = va("%s*", partial);
+		Cmd_CompleteCommand(pattern, &matches);
+		Cvar_CompleteVar(pattern, &matches);
 	}
 
-	if (cmd) { // auto-complete parameters for a command
-		partial += strlen(cmd);
-		matches = Fs_CompleteFile(dir, partial, ext, &complete[0]);
-	} else { // auto-complete a command or variable
-		cmd = "";
-		matches = Cmd_CompleteCommand(partial, &complete[0]);
-		matches += Cvar_CompleteVar(partial, &complete[matches]);
-	}
-
-	if (matches == 1)
-		match = complete[0];
-	else
-		match = CommonPrefix(complete, matches);
-
-	if (!match || *match == '\0')
+	if (g_list_length(matches) == 0)
 		return false;
 
-	sprintf(input_text, "/%s%s", cmd, match);
-	if (ext && strstr(input_text, ext) != NULL)
-		*strstr(input_text, ext) = 0; // lop off file extenion
-	(*input_position) = strlen(input_text);
+	if (g_list_length(matches) == 1)
+		match = va("%s ", (char *) g_list_nth_data(matches, 0));
+	else
+		match = CommonPrefix(matches);
 
-	if (matches == 1 && *cmd == 0) { // append a trailing space for single matches
-		input_text[*input_position] = ' ';
-		(*input_position)++;
-	}
+	g_snprintf(partial, len - (partial - input), "%s", match);
+	(*pos) = strlen(input);
 
-	input_text[*input_position] = 0;
+	g_list_free_full(matches, Z_Free);
+
 	return true;
 }
 
@@ -439,27 +419,28 @@ int32_t Con_CompleteCommand(char *input_text, uint16_t *input_position) {
 void Con_Init(void) {
 
 #ifdef _WIN32
-	ansi = Cvar_Get("ansi", "0", CVAR_ARCHIVE, NULL);
+	con_ansi = Cvar_Get("con_ansi", "0", CVAR_ARCHIVE, NULL);
 #else
-	ansi = Cvar_Get("ansi", "1", CVAR_ARCHIVE, NULL);
+	con_ansi = Cvar_Get("con_ansi", "1", CVAR_ARCHIVE, NULL);
 #endif
 
 #ifdef HAVE_CURSES
 	Curses_Init();
 #endif
 
-	Cmd_AddCommand("clear_console", Con_Clear_f, 0, NULL);
-	Cmd_AddCommand("dump_console", Con_Dump_f, 0, NULL);
+	Cmd_AddCommand("clear", Con_Clear_f, 0, NULL);
+	Cmd_AddCommand("dump", Con_Dump_f, 0, NULL);
 }
 
 /*
  * @brief Shutdown the console subsystem
  */
 void Con_Shutdown(void) {
+
 #ifdef HAVE_CURSES
 	Curses_Shutdown();
 #endif
 
-	Cmd_RemoveCommand("clear_console");
-	Cmd_RemoveCommand("dump_console");
+	Cmd_RemoveCommand("clear");
+	Cmd_RemoveCommand("dump");
 }

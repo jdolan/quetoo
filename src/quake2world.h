@@ -30,6 +30,7 @@
 #endif
 
 #include <ctype.h>
+#include <glib.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -48,17 +49,10 @@
 #endif
 
 #include <time.h>
+#include <unistd.h>
 
 #ifdef _WIN32
 #include "win32.h"
-#endif
-
-#if defined _WIN64
-# define Q2W_SIZE_T "%I64u"
-#elif defined _WIN32
-# define Q2W_SIZE_T "%u"
-#else
-# define Q2W_SIZE_T "%zu"
 #endif
 
 #ifndef byte
@@ -84,7 +78,7 @@ typedef unsigned char byte;
 #define MAX_IMAGES			256 // that the server knows about
 #define MAX_ITEMS			64 // pickup items
 #define MAX_GENERAL			256 // general config strings
-// print32_t levels
+// print levels
 #define PRINT_LOW			0 // pickup messages
 #define PRINT_MEDIUM		1 // death messages
 #define PRINT_HIGH			2 // critical messages
@@ -93,38 +87,56 @@ typedef unsigned char byte;
 // console commands
 #define CMD_SYSTEM			0x1 // always execute, even if not connected
 // console variables
-#define CVAR_ARCHIVE		0x1 // saved to quake2world.cfg
-#define CVAR_USER_INFO		0x2 // added to user_info when changed
-#define CVAR_SERVER_INFO	0x4 // added to server_info when changed
-#define CVAR_LO_ONLY		0x8 // don't allow change when connected
-#define CVAR_NO_SET			0x10 // don't allow change from console at all
-#define CVAR_LATCH			0x20 // save changes until server restart
-#define CVAR_R_CONTEXT		0x40 // effects OpenGL context
-#define CVAR_R_IMAGES		0x80 // effects image filtering
-#define CVAR_S_DEVICE		0x100 // effects sound device parameters
-#define CVAR_S_SAMPLES		0x200 // effects sound samples
-#define CVAR_R_MASK			(CVAR_R_CONTEXT | CVAR_R_IMAGES)
-#define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_SAMPLES)
+#define CVAR_CLI			0x1 // will retain value through initialization
+#define CVAR_ARCHIVE		0x2 // saved to quake2world.cfg
+#define CVAR_USER_INFO		0x4 // added to user_info when changed
+#define CVAR_SERVER_INFO	0x8 // added to server_info when changed
+#define CVAR_LO_ONLY		0x10 // don't allow change when connected
+#define CVAR_NO_SET			0x20 // don't allow change from console at all
+#define CVAR_LATCH			0x40 // save changes until server restart
+#define CVAR_R_CONTEXT		0x80 // effects OpenGL context
+#define CVAR_R_MEDIA		0x100 // effects renderer media filtering
+#define CVAR_S_DEVICE		0x200 // effects sound device parameters
+#define CVAR_S_MEDIA		0x400 // effects sound media
+#define CVAR_R_MASK			(CVAR_R_CONTEXT | CVAR_R_MEDIA)
+#define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_MEDIA)
+
+// managed memory tags
+typedef enum {
+	Z_TAG_DEFAULT,
+	Z_TAG_SERVER,
+	Z_TAG_GAME,
+	Z_TAG_GAME_LEVEL,
+	Z_TAG_CLIENT,
+	Z_TAG_RENDERER,
+	Z_TAG_SOUND,
+	Z_TAG_UI,
+	Z_TAG_CGAME,
+	Z_TAG_CGAME_LEVEL,
+	Z_TAG_ALL = -1
+} z_tag_t;
 
 typedef struct cvar_s {
 	const char *name;
 	const char *description;
-	char *default_value;
+	const char *default_value;
 	char *string;
 	char *latched_string; // for CVAR_LATCH vars
 	uint32_t flags;
 	bool modified; // set each time the cvar is changed
 	float value;
 	int32_t integer;
-	struct cvar_s *next;
 } cvar_t;
 
-// file opening modes
-typedef enum {
-	FILE_READ,
-	FILE_WRITE,
-	FILE_APPEND
-} file_mode_t;
+typedef void (*cmd_function_t)(void);
+
+typedef struct cmd_s {
+	const char *name;
+	const char *description;
+	cmd_function_t function;
+	const char *commands; // for alias commands
+	uint32_t flags;
+} cmd_t;
 
 // server multicast scope for entities and events
 typedef enum {
@@ -453,7 +465,7 @@ typedef enum {
 #define CS_NAME				0 // the name (message) of the current level
 #define CS_SKY				1 // the sky box
 #define CS_WEATHER			2 // the weather string
-#define CS_PAK				3 // pak name for current level
+#define CS_ZIP				3 // zip name for current level
 #define CS_BSP_SIZE			4 // for catching incompatible maps
 #define CS_MODELS			5 // bsp, bsp sub-models, and mesh models
 #define CS_SOUNDS			(CS_MODELS + MAX_MODELS)
@@ -589,7 +601,7 @@ typedef struct player_state_s {
 
 #define CON_COLOR_INFO		CON_COLOR_ALT
 #define CON_COLOR_CHAT		CON_COLOR_ALT
-#define CON_COLOR_TEAMCHAT	CON_COLOR_YELLOW
+#define CON_TEAM_COLORCHAT	CON_COLOR_YELLOW
 
 #define IS_COLOR(c)( \
 	*c == COLOR_ESC && ( \

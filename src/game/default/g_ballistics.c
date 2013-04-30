@@ -217,7 +217,7 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed
 	if (ent->client) {
 		blast->s.client = ent->client->persistent.color;
 	} else {
-		blast->s.client = DEFAULT_WEAPON_EFFECT_COLOR;
+		blast->s.client = 0;
 	}
 
 	G_PlayerProjectile(blast, scale);
@@ -348,7 +348,7 @@ static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_p
 	if (!other->take_damage) { // bounce
 		if (g_level.time - self->touch_time > 200) {
 			VectorScale(self->velocity, 1.25, self->velocity);
-			gi.Sound(self, grenade_hit_index, ATTN_NORM);
+			gi.Sound(self, g_level.media.grenade_hit_sound, ATTN_NORM);
 			self->touch_time = g_level.time;
 		}
 		return;
@@ -398,7 +398,7 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t sp
 	grenade->s.effects = EF_GRENADE;
 	VectorCopy(mins, grenade->mins);
 	VectorCopy(maxs, grenade->maxs);
-	grenade->s.model1 = grenade_index;
+	grenade->s.model1 = g_level.media.grenade_model;
 	grenade->owner = ent;
 	grenade->touch = G_GrenadeProjectile_Touch;
 	grenade->touch_time = g_level.time;
@@ -479,7 +479,7 @@ void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed,
 	rocket->clip_mask = MASK_SHOT;
 	rocket->solid = SOLID_MISSILE;
 	rocket->s.effects = EF_ROCKET;
-	rocket->s.model1 = rocket_index;
+	rocket->s.model1 = g_level.media.rocket_model;
 	rocket->owner = ent;
 	rocket->touch = G_RocketProjectile_Touch;
 	rocket->next_think = g_level.time + 8000;
@@ -487,7 +487,7 @@ void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed,
 	rocket->dmg = damage;
 	rocket->dmg_radius = damage_radius;
 	rocket->knockback = knockback;
-	rocket->s.sound = rocket_fly_index;
+	rocket->s.sound = g_level.media.rocket_fly_sound;
 	rocket->class_name = "rocket";
 
 	G_PlayerProjectile(rocket, scale);
@@ -721,7 +721,7 @@ void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t dam
 		light->knockback = knockback;
 		light->s.client = ent - g_game.edicts; // player number, for client prediction fix
 		light->s.effects = EF_BEAM | EF_LIGHTNING;
-		light->s.sound = lightning_fly_index;
+		light->s.sound = g_level.media.lightning_fly_sound;
 		light->class_name = "lightning";
 
 		gi.LinkEntity(light);
@@ -797,9 +797,9 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t da
 	// use team colors, or client's color
 	if (g_level.teams || g_level.ctf) {
 		if (ent->client->persistent.team == &g_team_good)
-			color = ColorByName("blue", 0);
+			color = EFFECT_COLOR_BLUE;
 		else
-			color = ColorByName("red", 0);
+			color = EFFECT_COLOR_RED;
 	} else
 		color = ent->client->persistent.color;
 

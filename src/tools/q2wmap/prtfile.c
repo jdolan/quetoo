@@ -30,20 +30,20 @@
 
 #define	PORTALFILE	"PRT1"
 
-static FILE *pf;
+static file_t *prtfile;
 int32_t num_visclusters; /* clusters the player can be in */
 int32_t num_visportals;
 
 /*
  * @brief
  */
-static void WriteFloat(FILE *f, vec_t v) {
+static void WriteFloat(file_t *f, vec_t v) {
 	const float r = floor(v + 0.5);
 
 	if (fabs(v - r) < 0.001)
-		fprintf(f, "%i ", (int) r);
+		Fs_Print(f, "%i ", (int) r);
 	else
-		fprintf(f, "%f ", v);
+		Fs_Print(f, "%f ", v);
 }
 
 /*
@@ -80,19 +80,19 @@ static void WritePortalFile_r(node_t *node) {
 			// FIXME: is this still relevent?
 			WindingPlane(w, normal, &dist);
 			if (DotProduct(p->plane.normal, normal) < 0.99) { // backwards...
-				fprintf(pf, "%i %i %i ", w->numpoints, p->nodes[1]->cluster,
+				Fs_Print(prtfile, "%i %i %i ", w->numpoints, p->nodes[1]->cluster,
 						p->nodes[0]->cluster);
 			} else
-				fprintf(pf, "%i %i %i ", w->numpoints, p->nodes[0]->cluster,
+				Fs_Print(prtfile, "%i %i %i ", w->numpoints, p->nodes[0]->cluster,
 						p->nodes[1]->cluster);
 			for (i = 0; i < w->numpoints; i++) {
-				fprintf(pf, "(");
-				WriteFloat(pf, w->p[i][0]);
-				WriteFloat(pf, w->p[i][1]);
-				WriteFloat(pf, w->p[i][2]);
-				fprintf(pf, ") ");
+				Fs_Print(prtfile, "(");
+				WriteFloat(prtfile, w->p[i][0]);
+				WriteFloat(prtfile, w->p[i][1]);
+				WriteFloat(prtfile, w->p[i][2]);
+				Fs_Print(prtfile, ") ");
 			}
-			fprintf(pf, "\n");
+			Fs_Print(prtfile, "\n");
 		}
 	}
 
@@ -179,7 +179,7 @@ static void SaveClusters_r(node_t * node) {
  * @brief
  */
 void WritePortalFile(tree_t *tree) {
-	char file_name[MAX_OSPATH];
+	char filename[MAX_OSPATH];
 	node_t *head_node;
 
 	Com_Verbose("--- WritePortalFile ---\n");
@@ -198,25 +198,27 @@ void WritePortalFile(tree_t *tree) {
 	NumberLeafs_r(head_node);
 
 	// write the file
-	StripExtension(map_name, file_name);
-	strcat(file_name, ".prt");
+	StripExtension(map_name, filename);
+	strcat(filename, ".prt");
 
-	if (Fs_OpenFile(file_name, &pf, FILE_WRITE) == -1)
-		Com_Error(ERR_FATAL, "Error opening %s\n", file_name);
+	if (!(prtfile = Fs_OpenWrite(filename)))
+		Com_Error(ERR_FATAL, "Error opening %s\n", filename);
 
-	fprintf(pf, "%s\n", PORTALFILE);
-	fprintf(pf, "%i\n", num_visclusters);
-	fprintf(pf, "%i\n", num_visportals);
+	Fs_Print(prtfile, "%s\n", PORTALFILE);
+	Fs_Print(prtfile, "%i\n", num_visclusters);
+	Fs_Print(prtfile, "%i\n", num_visportals);
 
 	Com_Verbose("%5i visclusters\n", num_visclusters);
 	Com_Verbose("%5i visportals\n", num_visportals);
 
 	WritePortalFile_r(head_node);
 
-	Fs_CloseFile(pf);
+	Fs_Close(prtfile);
 
 	// we need to store the clusters out now because ordering
 	// issues made us do this after writebsp...
 	clusterleaf = 1;
 	SaveClusters_r(head_node);
+
+	Com_Verbose("--- WritePortalFile complete ---\n");
 }

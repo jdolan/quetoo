@@ -88,9 +88,6 @@ typedef struct r_draw_s {
 	r_char_arrays_t char_arrays[MAX_FONTS];
 	r_fill_arrays_t fill_arrays;
 	r_line_arrays_t line_arrays;
-
-	// hash pics for fast lookup
-	hash_table_t hash_table;
 } r_draw_t;
 
 r_draw_t r_draw;
@@ -98,26 +95,7 @@ r_draw_t r_draw;
 /*
  * @brief
  */
-r_image_t *R_LoadPic(const char *name) {
-	r_image_t *image;
-
-	if ((image = Hash_Get(&r_draw.hash_table, name)))
-		return image;
-
-	if (*name == '#')
-		image = R_LoadImage(name + 1, it_pic);
-	else
-		image = R_LoadImage(va("pics/%s", name), it_pic);
-
-	Hash_Put(&r_draw.hash_table, name, image);
-
-	return image;
-}
-
-/*
- * @brief
- */
-static void R_DrawImage(r_pixel_t x, r_pixel_t y, float scale, r_image_t *image) {
+void R_DrawImage(r_pixel_t x, r_pixel_t y, float scale, const r_image_t *image) {
 
 	R_BindTexture(image->texnum);
 
@@ -136,22 +114,6 @@ static void R_DrawImage(r_pixel_t x, r_pixel_t y, float scale, r_image_t *image)
 	r_state.vertex_array_2d[7] = y + image->height * scale;
 
 	glDrawArrays(GL_QUADS, 0, 4);
-}
-
-/*
- * @brief
- */
-void R_DrawPic(r_pixel_t x, r_pixel_t y, float scale, const char *name) {
-	r_image_t *pic;
-
-	pic = R_LoadPic(name);
-
-	if (!pic) {
-		Com_Warn("R_DrawScaledPic: Can't find %s.\n", name);
-		return;
-	}
-
-	R_DrawImage(x, y, scale, pic);
 }
 
 /*
@@ -183,7 +145,7 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 		}
 
 		if (i == r_draw.num_fonts) {
-			Com_Warn("R_BindFont: Unknown font: %s\n", name);
+			Com_Warn("Unknown font: %s\n", name);
 		}
 	}
 
@@ -317,7 +279,7 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 /*
  * @brief
  */
-void R_DrawChars(void) {
+static void R_DrawChars(void) {
 	uint16_t i;
 
 	for (i = 0; i < r_draw.num_fonts; i++) {
@@ -361,7 +323,7 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, f
 	byte color[4];
 
 	if (a > 1.0) {
-		Com_Warn("R_DrawFill: Bad alpha %f.\n", a);
+		Com_Warn("Bad alpha %f\n", a);
 		return;
 	}
 
@@ -399,7 +361,7 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, f
 /*
  * @brief
  */
-void R_DrawFills(void) {
+static void R_DrawFills(void) {
 
 	if (!r_draw.fill_arrays.vert_index)
 		return;
@@ -432,7 +394,7 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 	byte color[4];
 
 	if (a > 1.0) {
-		Com_Warn("R_DrawLine: Bad alpha %f.\n", a);
+		Com_Warn("Bad alpha %f\n", a);
 		return;
 	}
 
@@ -462,7 +424,7 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 /*
  * @brief
  */
-void R_DrawLines(void) {
+static void R_DrawLines(void) {
 
 	if (!r_draw.line_arrays.vert_index)
 		return;
@@ -489,11 +451,15 @@ void R_DrawLines(void) {
 }
 
 /*
- * @brief
+ * @brief Draw all 2D geometry accumulated for the current frame.
  */
-void R_FreePics(void) {
-	Hash_Free(&r_draw.hash_table);
-	Hash_Init(&r_draw.hash_table);
+void R_Draw2D(void) {
+
+	R_DrawFills();
+
+	R_DrawLines();
+
+	R_DrawChars();
 }
 
 /*
@@ -511,20 +477,20 @@ void R_FreePics(void) {
 static void R_InitFont(char *name) {
 
 	if (r_draw.num_fonts == MAX_FONTS) {
-		Com_Error(ERR_DROP, "R_InitFont: MAX_FONTS reached.\n");
+		Com_Error(ERR_DROP, "MAX_FONTS reached\n");
 		return;
 	}
 
 	r_font_t *font = &r_draw.fonts[r_draw.num_fonts++];
 
-	strncpy(font->name, name, sizeof(font->name) - 1);
+	g_strlcpy(font->name, name, sizeof(font->name));
 
-	font->image = R_LoadImage(va("fonts/%s", name), it_font);
+	font->image = R_LoadImage(va("fonts/%s", name), IT_FONT);
 
 	font->char_width = font->image->width / 16;
 	font->char_height = font->image->height / 8;
 
-	Com_Debug("R_InitFont: %s (%dx%d)\n", font->name, font->char_width, font->char_height);
+	Com_Debug("%s (%dx%d)\n", font->name, font->char_width, font->char_height);
 }
 
 /*
@@ -540,7 +506,7 @@ void R_InitDraw(void) {
 
 	R_BindFont(NULL, NULL, NULL);
 
-	r_draw.cursor = R_LoadImage("fonts/cursor", it_font);
+	r_draw.cursor = R_LoadImage("fonts/cursor", IT_FONT);
 
 	// set ABGR color values
 	r_draw.colors[CON_COLOR_BLACK] = 0xff000000;
@@ -551,6 +517,4 @@ void R_InitDraw(void) {
 	r_draw.colors[CON_COLOR_CYAN] = 0xffffff00;
 	r_draw.colors[CON_COLOR_MAGENTA] = 0xffff00ff;
 	r_draw.colors[CON_COLOR_WHITE] = 0xffffffff;
-
-	Hash_Init(&r_draw.hash_table);
 }

@@ -55,14 +55,14 @@ void G_target_speaker(g_edict_t *ent) {
 	char buffer[MAX_QPATH];
 
 	if (!g_game.spawn.noise) {
-		gi.Debug("target_speaker with no noise set at %s\n", vtos(ent->s.origin));
+		gi.Debug("No noise at %s\n", vtos(ent->s.origin));
 		return;
 	}
 
 	if (!strstr(g_game.spawn.noise, ""))
-		snprintf(buffer, sizeof(buffer), "%s", g_game.spawn.noise);
+		g_snprintf(buffer, sizeof(buffer), "%s", g_game.spawn.noise);
 	else
-		strncpy(buffer, g_game.spawn.noise, sizeof(buffer));
+		g_strlcpy(buffer, g_game.spawn.noise, sizeof(buffer));
 
 	ent->noise_index = gi.SoundIndex(buffer);
 

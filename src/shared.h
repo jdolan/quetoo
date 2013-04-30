@@ -67,7 +67,19 @@ void UnpackAngles(const int16_t *in, vec3_t out);
 void ClampAngles(vec3_t angles);
 
 // color functions
-#define DEFAULT_WEAPON_EFFECT_COLOR 243
+#define EFFECT_COLOR_RED 232
+#define EFFECT_COLOR_GREEN 201
+#define EFFECT_COLOR_BLUE 119
+#define EFFECT_COLOR_YELLOW 219
+#define EFFECT_COLOR_ORANGE 225
+#define EFFECT_COLOR_WHITE 216
+#define EFFECT_COLOR_PINK 247
+#define EFFECT_COLOR_PURPLE 187
+#define EFFECT_COLOR_DEFAULT 0
+
+#define TEAM_COLOR_RED 242
+#define TEAM_COLOR_BLUE 243
+
 vec_t ColorNormalize(const vec3_t in, vec3_t out);
 void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation, float contrast);
 int32_t ColorByName(const char *s, int32_t def);
@@ -75,8 +87,8 @@ int32_t ColorByName(const char *s, int32_t def);
 // string functions
 bool GlobMatch(const char *pattern, const char *text);
 bool MixedCase(const char *s);
-char *CommonPrefix(const char *words[], uint32_t nwords);
-char *Lowercase(char *s);
+char *CommonPrefix(GList *words);
+void Lowercase(const char *in, char *out);
 char *Trim(char *s);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);

@@ -19,33 +19,32 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_ITEM_H__
-#define __G_ITEM_H__
+#ifndef __GAME_ITEM_H__
+#define __GAME_ITEM_H__
 
-#ifdef __G_LOCAL_H__
+#ifdef __GAME_LOCAL_H__
 
 #include "g_types.h"
 
-extern g_item_t g_items[];
+extern const g_item_t g_items[];
+extern const uint16_t g_num_items;
 
 #define ITEM_INDEX(x) ((x) - g_items)
 
-bool G_AddAmmo(g_edict_t *ent, g_item_t *item, int16_t count);
-g_edict_t *G_DropItem(g_edict_t *ent, g_item_t *item);
-g_item_t *G_FindItem(const char *pickup_name);
-g_item_t *G_FindItemByClassname(const char *class_name);
-void G_InitItems(void);
-g_item_t *G_ItemByIndex(uint16_t index);
-void G_PrecacheItem(g_item_t *it);
+bool G_AddAmmo(g_edict_t *ent, const g_item_t *item, int16_t count);
+g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item);
+const g_item_t *G_FindItem(const char *name);
+const g_item_t *G_FindItemByClassname(const char *class_name);
+const g_item_t *G_ItemByIndex(uint16_t index);
+void G_PrecacheItem(const g_item_t *it);
 void G_ResetFlag(g_edict_t *ent);
-void G_SetItemNames(void);
 void G_SetItemRespawn(g_edict_t *ent, uint32_t delay);
-void G_SpawnItem(g_edict_t *ent, g_item_t *item);
-bool G_SetAmmo(g_edict_t *ent, g_item_t *item, int16_t count);
+void G_SpawnItem(g_edict_t *ent, const g_item_t *item);
+bool G_SetAmmo(g_edict_t *ent, const g_item_t *item, int16_t count);
 void G_TossFlag(g_edict_t *self);
 void G_TossQuadDamage(g_edict_t *self);
 void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
 
-#endif /* __G_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */
 
-#endif /* __G_ITEM_H__ */
+#endif /* __GAME_ITEM_H__ */

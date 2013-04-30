@@ -68,13 +68,15 @@ typedef struct cl_client_info_s {
 	char skin[MAX_QPATH]; // the skin name, e.g. blue
 
 	r_model_t *head;
-	r_image_t *head_skins[MD3_MAX_MESHES];
+	r_material_t *head_skins[MD3_MAX_MESHES];
 
 	r_model_t *upper;
-	r_image_t *upper_skins[MD3_MAX_MESHES];
+	r_material_t *upper_skins[MD3_MAX_MESHES];
 
 	r_model_t *lower;
-	r_image_t *lower_skins[MD3_MAX_MESHES];
+	r_material_t *lower_skins[MD3_MAX_MESHES];
+
+	r_image_t *icon; // for the scoreboard
 } cl_client_info_t;
 
 #define CMD_BACKUP 512 // allow a lot of command backups for very fast systems
@@ -137,12 +139,15 @@ typedef struct cl_client_s {
 	bool third_person; // we're using a 3rd person camera
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
+	uint16_t precache_check;
 
 	// locally derived information from server state
-	r_model_t *model_draw[MAX_MODELS];
+	r_model_t *model_precache[MAX_MODELS];
 	c_model_t *model_clip[MAX_MODELS];
 
 	s_sample_t *sound_precache[MAX_SOUNDS];
+	s_music_t *music_precache[MAX_MUSICS];
+
 	r_image_t *image_precache[MAX_IMAGES];
 
 	cl_client_info_t client_info[MAX_CLIENTS];
@@ -152,7 +157,8 @@ typedef struct cl_client_s {
 // number of server connections
 
 typedef enum {
-	CL_UNINITIALIZED, CL_DISCONNECTED, // not talking to a server
+	CL_UNINITIALIZED, // not initialized
+	CL_DISCONNECTED, // not talking to a server
 	CL_CONNECTING, // sending request packets to the server
 	CL_CONNECTED, // netchan_t established, waiting for svc_server_data
 	CL_ACTIVE
@@ -208,7 +214,7 @@ typedef struct cl_chat_state_s {
 
 typedef struct cl_download_s {
 	bool http;
-	FILE *file;
+	file_t *file;
 	char tempname[MAX_OSPATH];
 	char name[MAX_OSPATH];
 } cl_download_t;
@@ -260,8 +266,8 @@ typedef struct cl_static_s {
 	char download_url[MAX_OSPATH]; // for http downloads
 	cl_download_t download; // current download (udp or http)
 
-	char demo_path[MAX_OSPATH];
-	FILE *demo_file;
+	char demo_filename[MAX_OSPATH];
+	file_t *demo_file;
 
 	cl_server_info_t *servers; // list of servers from all sources
 	char *servers_text; // tabular data for servers menu

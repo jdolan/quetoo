@@ -26,19 +26,8 @@
 
 #define PARTICLE_GRAVITY 150.0
 
-typedef struct cg_particle_s {
-	r_particle_t part; // the r_particle_t to add to the view
-	vec3_t vel;
-	vec3_t accel;
-	float alpha_vel;
-	float scale_vel;
-	float end_z; // weather particles are freed at this Z
-	uint32_t time; // client time when allocated
-	struct cg_particle_s *prev; // previous particle in the chain
-	struct cg_particle_s *next; // next particle in chain
-} cg_particle_t;
-
-cg_particle_t *Cg_AllocParticle(const uint16_t type, const r_image_t *image);
+cg_particle_t *Cg_AllocParticle(const uint16_t type, cg_particles_t *particles);
+cg_particles_t *Cg_AllocParticles(const r_image_t *image);
 void Cg_FreeParticles(void);
 void Cg_AddParticles(void);
 #endif /* __CG_LOCAL_H__ */

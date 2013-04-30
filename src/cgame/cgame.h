@@ -26,26 +26,23 @@
 
 #define CGAME_API_VERSION 1
 
-#define TAG_CGAME 800
-#define TAG_CGAME_MEDIA 801
-
 // exposed to the client game by the engine
 typedef struct cg_import_s {
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*Debug)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*Warn)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
+	void (*Debug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*Warn_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
-	void *(*Malloc)(size_t size, int16_t tag);
+	void *(*Malloc)(size_t size, z_tag_t tag);
 	void (*Free)(void *p);
-	void (*FreeTag)(int16_t tag);
+	void (*FreeTag)(z_tag_t tag);
 
 	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *description);
 	void (*AddCommand)(const char *name, cmd_function_t function, uint32_t flags, const char *description);
 	void (*RemoveCommand)(const char *name);
 
-	int32_t (*LoadFile)(const char *path, void **buffer);
+	int64_t (*LoadFile)(const char *path, void **buffer);
 	void (*FreeFile)(void *buffer);
 
 	char *(*ConfigString)(uint16_t index);
@@ -75,7 +72,7 @@ typedef struct cg_import_s {
 	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, int32_t mask);
 
 	// PVS and PHS
-	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_model_t *model);
+	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_bsp_model_t *model);
 	bool (*LeafInPhs)(const r_bsp_leaf_t *leaf);
 	bool (*LeafInPvs)(const r_bsp_leaf_t *leaf);
 
@@ -99,19 +96,21 @@ typedef struct cg_import_s {
 
 	// images and models
 	r_image_t *(*LoadImage)(const char *name, r_image_type_t type);
+	r_material_t *(*LoadMaterial)(const char *diffuse);
 	r_model_t *(*LoadModel)(const char *name);
+	r_model_t *(*WorldModel)(void);
 
 	// scene building facilities
 	void (*AddCorona)(const r_corona_t *c);
 	const r_entity_t *(*AddEntity)(const r_entity_t *ent);
-	const r_entity_t *(*AddLinkedEntity)(const r_entity_t *parent, r_model_t *model,
+	const r_entity_t *(*AddLinkedEntity)(const r_entity_t *parent, const r_model_t *model,
 			const char *tag_name);
 	void (*AddLight)(const r_light_t *l);
 	void (*AddParticle)(const r_particle_t *p);
 	void (*AddSustainedLight)(const r_sustained_light_t *s);
 
 	// 2D drawing facilities
-	void (*DrawPic)(r_pixel_t x, r_pixel_t y, float scale, const char *name);
+	void (*DrawImage)(r_pixel_t x, r_pixel_t y, float scale, const r_image_t *image);
 	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, float a);
 
 	void (*BindFont)(const char *name, r_pixel_t *cw, r_pixel_t *ch);

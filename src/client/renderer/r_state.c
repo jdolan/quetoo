@@ -70,7 +70,7 @@ void R_GetError_(const char *function, const char *msg) {
 
 		Sys_Backtrace();
 
-		Com_Warn("R_GetError: %s: %s: %s.\n", s, function, msg);
+		Com_Warn("%s: %s: %s.\n", s, function, msg);
 	}
 }
 
@@ -423,7 +423,7 @@ void R_EnableWarp(r_program_t *program, bool enable) {
 	R_SelectTexture(&texunit_lightmap);
 
 	if (enable) {
-		R_BindTexture(r_warp_image->texnum);
+		R_BindTexture(r_image_state.warp->texnum);
 
 		R_UseProgram(program);
 	} else {
@@ -502,15 +502,15 @@ void R_EnableFog(bool enable) {
  * @brief Setup the GLSL shaders for the specified surface and primary material. If no
  * shader is bound, this function simply returns.
  */
-void R_UseMaterial(const r_bsp_surface_t *surf, const r_image_t *image) {
+void R_UseMaterial(const r_bsp_surface_t *surf, const r_material_t *material) {
 
 	if (!r_state.active_program)
 		return;
 
 	if (r_state.active_program->UseMaterial)
-		r_state.active_program->UseMaterial(surf, image);
+		r_state.active_program->UseMaterial(surf, material);
 
-	R_GetError(image ? image->name : r_state.active_program->name);
+	R_GetError(material ? material->diffuse->media.name : r_state.active_program->name);
 }
 
 #define NEAR_Z 4
@@ -619,6 +619,7 @@ void R_InitState(void) {
 	glDisableClientState(GL_NORMAL_ARRAY);
 
 	// setup texture units
+	const size_t len = MAX_GL_ARRAY_LENGTH * sizeof(vec2_t);
 	for (i = 0; i < MAX_GL_TEXUNITS; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
@@ -626,8 +627,7 @@ void R_InitState(void) {
 			texunit->texture = GL_TEXTURE0_ARB + i;
 
 			if (i < r_config.max_texunits) {
-				texunit->texcoord_array = (float *) Z_Malloc(
-						MAX_GL_ARRAY_LENGTH * 2 * sizeof(float));
+				texunit->texcoord_array = Z_TagMalloc(len, Z_TAG_RENDERER);
 
 				R_EnableTexture(texunit, true);
 

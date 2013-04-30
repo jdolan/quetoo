@@ -48,7 +48,7 @@ typedef struct link_s {
 typedef struct g_client_s g_client_t; // typedef'ed here, defined below
 typedef struct g_edict_s g_edict_t; // OR in game module
 
-#ifndef __G_LOCAL_H__
+#ifndef __GAME_LOCAL_H__
 
 /*
  * This is the server's definition of the client and edict structures. The
@@ -88,7 +88,7 @@ struct g_edict_s {
 // this point in the structure
 };
 
-#endif  /* !__G_LOCAL_H__ */
+#endif  /* !__GAME_LOCAL_H__ */
 
 // functions provided by the main engine
 typedef struct g_import_s {
@@ -98,11 +98,12 @@ typedef struct g_import_s {
 	float frame_seconds; // seconds per frame
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	void (*Debug)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+	void (*Debug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*Warn_)(const char *func, const char *fmr, ...) __attribute__((format(printf, 2, 3)));
+	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+
 	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 	void (*ClientPrint)(const g_edict_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-
-	void (*Error)(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
 	// config_strings are used to transmit arbitrary tokens such
 	// as model names, skin names, team names, and weather effects
@@ -150,23 +151,21 @@ typedef struct g_import_s {
 	void (*WriteAngle)(const float f);
 
 	// managed memory allocation
-	void *(*Malloc)(size_t size, int16_t tag);
+	void *(*Malloc)(size_t size, z_tag_t tag);
 	void (*Free)(void *ptr);
-	void (*FreeTag)(int16_t tag);
+	void (*FreeTag)(z_tag_t tag);
 
 	// filesystem interaction
-	const char *(*Gamedir)(void);
-	int32_t (*OpenFile)(const char *file_name, FILE **file, file_mode_t mode);
-	void (*CloseFile)(FILE *file);
-	int32_t (*LoadFile)(const char *file_name, void **buffer);
+	int64_t (*LoadFile)(const char *file_name, void **buffer);
+	void (*FreeFile)(void *buffer);
 
 	// console variable interaction
 	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
 
 	// command function parameter access
 	int32_t (*Argc)(void);
-	char *(*Argv)(int32_t n);
-	char *(*Args)(void); // concatenation of all argv >= 1
+	const char *(*Argv)(int32_t n);
+	const char *(*Args)(void); // concatenation of all argv >= 1
 
 	// add commands to the server console as if they were typed in
 	// for map changing, etc

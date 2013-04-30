@@ -201,6 +201,7 @@ void SplitBrush(bsp_brush_t * brush, int32_t plane_num,
 
 tree_t *AllocTree(void);
 node_t *AllocNode(void);
+void FreeNode(node_t *node);
 bsp_brush_t *AllocBrush(int32_t num_sides);
 int32_t CountBrushList(bsp_brush_t * brushes);
 void FreeBrush(bsp_brush_t * brushes);

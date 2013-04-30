@@ -40,7 +40,7 @@ static r_entity_t **R_EntityList(const r_entity_t *e) {
 	if (!e->model)
 		return &r_entities.null;
 
-	if (e->model->type == mod_bsp_submodel)
+	if (IS_BSP_INLINE_MODEL(e->model))
 		return &r_entities.bsp;
 
 	// mesh models
@@ -63,7 +63,7 @@ const r_entity_t *R_AddEntity(const r_entity_t *ent) {
 	r_entity_t *e, *in, **ents;
 
 	if (r_view.num_entities == MAX_ENTITIES) {
-		Com_Warn("R_AddEntity: MAX_ENTITIES reached.\n");
+		Com_Warn("MAX_ENTITIES reached\n");
 		return NULL;
 	}
 
@@ -98,11 +98,11 @@ const r_entity_t *R_AddEntity(const r_entity_t *ent) {
 /*
  * @brief Binds a linked model to its parent, and copies it into the view structure.
  */
-const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, r_model_t *model,
+const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
 		const char *tag_name) {
 
 	if (!parent) {
-		Com_Warn("R_AddLinkedEntity: NULL parent\n");
+		Com_Warn("NULL parent\n");
 		return NULL;
 	}
 
@@ -164,7 +164,7 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 		vec3_t tmp;
 
 		if (!IS_MESH_MODEL(e->model)) {
-			Com_Warn("R_SetMatrixForEntity: Invalid model for linked entity\n");
+			Com_Warn("Invalid model for linked entity\n");
 			return;
 		}
 
@@ -193,12 +193,14 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 
 /*
  * @brief Dispatches the appropriate sub-routine for frustum-culling the entity.
+ *
+ * @return True if the entity is culled (fails frustum test), false otherwise.
  */
 static bool R_CullEntity(r_entity_t *e) {
 
 	if (!e->model) {
 		e->culled = false;
-	} else if (e->model->type == mod_bsp_submodel) {
+	} else if (IS_BSP_INLINE_MODEL(e->model)) {
 		e->culled = R_CullBspModel(e);
 	} else { // mesh model
 		e->culled = R_CullMeshModel(e);
@@ -223,7 +225,7 @@ void R_CullEntities(void *data __attribute__((unused))) {
 		if (!R_CullEntity(e)) { // cull it
 
 			if (IS_MESH_MODEL(e->model)) {
-				R_UpdateMeshLighting(e);
+				R_UpdateMeshModelLighting(e);
 			}
 		}
 	}
@@ -239,7 +241,7 @@ static void R_DrawBspEntities() {
 
 	while (e) {
 		if (!e->culled)
-			R_DrawBspModel(e);
+			R_DrawBspInlineModel(e);
 		e = e->next;
 	}
 }
@@ -358,7 +360,6 @@ static void R_DrawNullEntities(void) {
 void R_DrawEntities(void) {
 
 	if (r_draw_wireframe->value) {
-		R_BindTexture(r_null_image->texnum);
 		R_EnableTexture(&texunit_diffuse, false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}

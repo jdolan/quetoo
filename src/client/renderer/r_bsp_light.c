@@ -43,6 +43,8 @@
 #define BSP_LIGHT_POINT_RADIUS_SCALE 1.0
 #define BSP_LIGHT_COLOR_COMPONENT_MAX 0.9
 
+r_bsp_light_state_t r_bsp_light_state;
+
 /*
  * @brief Resolves ambient light, brightness, and contrast levels from Worldspawn.
  */
@@ -51,121 +53,112 @@ static void R_ResolveBspLightParameters(void) {
 
 	// resolve ambient light
 	if ((c = R_WorldspawnValue("ambient_light"))) {
-		sscanf(c, "%f %f %f", &r_locals.ambient_light[0],
-				&r_locals.ambient_light[1], &r_locals.ambient_light[2]);
+		float *f = r_bsp_light_state.ambient_light;
+		sscanf(c, "%f %f %f", &f[0], &f[1], &f[2]);
 
-		VectorScale(r_locals.ambient_light, r_modulate->value, r_locals.ambient_light);
+		VectorScale(f, r_modulate->value, f);
 
-		Com_Debug("Resolved ambient_light: %1.2f %1.2f %1.2f\n",
-				r_locals.ambient_light[0], r_locals.ambient_light[1],
-				r_locals.ambient_light[2]);
+		Com_Debug("Resolved ambient_light: %1.2f %1.2f %1.2f\n", f[0], f[1], f[2]);
 	} else { // ensure sane default
-		VectorSet(r_locals.ambient_light, 0.15, 0.15, 0.15);
+		VectorSet(r_bsp_light_state.ambient_light, 0.15, 0.15, 0.15);
 	}
 
 	// resolve sun light
 	if ((c = R_WorldspawnValue("sun_light"))) {
-		r_locals.sun_light = atof(c) / 255.0;
+		r_bsp_light_state.sun_light = atof(c) / 255.0;
 
-		if (r_locals.sun_light > 1.0) // should never happen
-			r_locals.sun_light = 1.0;
+		if (r_bsp_light_state.sun_light > 1.0) // should never happen
+			r_bsp_light_state.sun_light = 1.0;
 
-		Com_Debug("Resolved sun_light: %1.2f\n", r_locals.sun_light);
+		Com_Debug("Resolved sun_light: %1.2f\n", r_bsp_light_state.sun_light);
 	} else {
-		r_locals.sun_light = 0.0;
+		r_bsp_light_state.sun_light = 0.0;
 	}
 
 	// resolve sun color
 	if ((c = R_WorldspawnValue("sun_color"))) {
-		sscanf(c, "%f %f %f", &r_locals.sun_color[0], &r_locals.sun_color[1],
-				&r_locals.sun_color[2]);
+		float *f = r_bsp_light_state.sun_color;
+		sscanf(c, "%f %f %f", &f[0], &f[1], &f[2]);
 
-		Com_Debug("Resolved sun_color: %1.2f %1.2f %1.2f\n",
-				r_locals.sun_color[0], r_locals.sun_color[1],
-				r_locals.sun_color[2]);
+		Com_Debug("Resolved sun_color: %1.2f %1.2f %1.2f\n", f[0], f[1], f[2]);
 	} else { // ensure sane default
-		VectorSet(r_locals.sun_color, 1.0, 1.0, 1.0);
+		VectorSet(r_bsp_light_state.sun_color, 1.0, 1.0, 1.0);
 	}
 
 	// resolve brightness
 	if ((c = R_WorldspawnValue("brightness"))) {
-		r_locals.brightness = atof(c);
+		r_bsp_light_state.brightness = atof(c);
 	} else { // ensure sane default
-		r_locals.brightness = 1.0;
+		r_bsp_light_state.brightness = 1.0;
 	}
 
 	// resolve saturation
 	if ((c = R_WorldspawnValue("saturation"))) {
-		r_locals.saturation = atof(c);
+		r_bsp_light_state.saturation = atof(c);
 	} else { // ensure sane default
-		r_locals.saturation = 1.0;
+		r_bsp_light_state.saturation = 1.0;
 	}
 
 	// resolve contrast
 	if ((c = R_WorldspawnValue("contrast"))) {
-		r_locals.contrast = atof(c);
+		r_bsp_light_state.contrast = atof(c);
 	} else { // ensure sane default
-		r_locals.contrast = 1.0;
+		r_bsp_light_state.contrast = 1.0;
 	}
 
-	Com_Debug("Resolved brightness: %1.2f\n", r_locals.brightness);
-	Com_Debug("Resolved saturation: %1.2f\n", r_locals.saturation);
-	Com_Debug("Resolved contrast: %1.2f\n", r_locals.contrast);
+	Com_Debug("Resolved brightness: %1.2f\n", r_bsp_light_state.brightness);
+	Com_Debug("Resolved saturation: %1.2f\n", r_bsp_light_state.saturation);
+	Com_Debug("Resolved contrast: %1.2f\n", r_bsp_light_state.contrast);
 
-#if 0
-	//apply brightness, saturation and contrast to the colors
-	ColorFilter(r_locals.ambient_light, r_locals.ambient_light,
-			r_locals.brightness, r_locals.saturation, r_locals.contrast);
+	// apply brightness, saturation and contrast to the colors
+	float *f = r_bsp_light_state.ambient_light;
+	ColorFilter(f, f, r_bsp_light_state.brightness, r_bsp_light_state.saturation,
+			r_bsp_light_state.contrast);
 
-	Com_Debug("Scaled ambient_light: %1.2f %1.2f %1.2f\n",
-			r_locals.ambient_light[0], r_locals.ambient_light[1], r_locals.ambient_light[2]);
+	Com_Debug("Scaled ambient_light: %1.2f %1.2f %1.2f\n", f[0], f[1], f[2]);
 
-	ColorFilter(r_locals.sun_color, r_locals.sun_color,
-			r_locals.brightness, r_locals.saturation, r_locals.contrast);
+	f = r_bsp_light_state.sun_color;
+	ColorFilter(f, f, r_bsp_light_state.brightness, r_bsp_light_state.saturation,
+			r_bsp_light_state.contrast);
 
-	Com_Debug("Scaled sun_color: %1.2f %1.2f %1.2f\n",
-			r_locals.sun_color[0], r_locals.sun_color[1], r_locals.sun_color[2]);
-#endif
+	Com_Debug("Scaled sun_color: %1.2f %1.2f %1.2f\n", f[0], f[1], f[2]);
 }
 
 /*
- * @brief Adds the specified static light source to the world model, after first
- * ensuring that it can not be merged with any known sources.
+ * @brief Adds the specified static light source after first ensuring that it
+ * can not be merged with any known sources.
  */
-static void R_AddBspLight(vec3_t org, float radius, vec3_t color) {
-	r_bsp_light_t *l;
-	vec3_t delta;
-	int32_t i;
+static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, float radius, vec3_t color) {
 
 	if (radius <= 0.0) {
-		Com_Debug("R_AddBspLight: Bad radius: %f\n", radius);
+		Com_Debug("Bad radius: %f\n", radius);
 		return;
 	}
 
-	l = r_load_model->bsp_lights;
-	for (i = 0; i < r_load_model->num_bsp_lights; i++, l++) {
+	r_bsp_light_t *l = NULL;
+	GList *e = r_bsp_light_state.lights;
+	while (e) {
+		vec3_t delta;
 
+		l = (r_bsp_light_t *) e->data;
 		VectorSubtract(org, l->origin, delta);
 
 		if (VectorLength(delta) <= 32.0) // merge them
 			break;
+
+		l = NULL;
+		e = e->next;
 	}
 
-	if (i == r_load_model->num_bsp_lights) { // or allocate a new one
-
-		l = (r_bsp_light_t *) R_HunkAlloc(sizeof(*l));
-
-		if (!r_load_model->bsp_lights) // first source
-			r_load_model->bsp_lights = l;
+	if (!l) { // or allocate a new one
+		l = Z_LinkMalloc(sizeof(*l), bsp);
+		r_bsp_light_state.lights = g_list_prepend(r_bsp_light_state.lights, l);
 
 		VectorCopy(org, l->origin);
-		l->leaf = R_LeafForPoint(l->origin, r_load_model);
-
-		r_load_model->num_bsp_lights++;
+		l->leaf = R_LeafForPoint(l->origin, bsp);
 	}
 
 	l->count++;
-
 	l->radius = ((l->radius * (l->count - 1)) + radius) / l->count;
 
 	VectorMix(l->color, color, 1.0 / l->count, l->color);
@@ -176,57 +169,55 @@ static void R_AddBspLight(vec3_t org, float radius, vec3_t color) {
  * are very close to each other are merged. Their colors are blended according
  * to their light value (intensity).
  */
-void R_LoadBspLights(void) {
-	const char *ents;
-	char class_name[128];
-	vec3_t org, tmp, color;
+void R_LoadBspLights(r_bsp_model_t *bsp) {
+	vec3_t org, color;
 	float radius;
-	bool entity, light;
-	r_bsp_surface_t *surf;
-	r_bsp_light_t *l;
 	int32_t i;
+
+	memset(&r_bsp_light_state, 0, sizeof(r_bsp_light_state));
 
 	R_ResolveBspLightParameters();
 
 	// iterate the world surfaces for surface lights
-	surf = r_load_model->surfaces;
+	const r_bsp_surface_t *surf = bsp->surfaces;
 
-	for (i = 0; i < r_load_model->num_surfaces; i++, surf++) {
+	for (i = 0; i < bsp->num_surfaces; i++, surf++) {
 		vec3_t color = { 0.0, 0.0, 0.0 };
 		float scale = 1.0;
 
 		// light-emitting surfaces are of course lights
 		if ((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value) {
-			VectorCopy(surf->color, color);
+			VectorCopy(surf->texinfo->material->diffuse->color, color);
 			scale = BSP_LIGHT_SURFACE_RADIUS_SCALE;
 		}
 
 		// and so are sky surfaces, if sun light was specified
-		else if ((surf->texinfo->flags & SURF_SKY) && r_locals.sun_light) {
-			VectorCopy(r_locals.sun_color, color);
+		else if ((surf->texinfo->flags & SURF_SKY) && r_bsp_light_state.sun_light) {
+			VectorCopy(r_bsp_light_state.sun_color, color);
 			scale = BSP_LIGHT_SURFACE_SKY_RADIUS_SCALE;
 		}
 
 		if (!VectorCompare(color, vec3_origin)) {
+			vec3_t tmp;
 			VectorMA(surf->center, 1.0, surf->normal, org);
 
 			VectorSubtract(surf->maxs, surf->mins, tmp);
 			radius = VectorLength(tmp) * scale;
 
-			R_AddBspLight(org, radius, color);
+			R_AddBspLight(bsp, org, radius, color);
 		}
 	}
 
 	// parse the entity string for point lights
-	ents = Cm_EntityString();
+	const char *ents = Cm_EntityString();
 
 	VectorClear(org);
 
 	radius = 300.0;
 	VectorSet(color, 1.0, 1.0, 1.0);
 
-	memset(class_name, 0, sizeof(class_name));
-	entity = light = false;
+	char class_name[128];
+	bool entity = false, light = false;
 
 	while (true) {
 
@@ -248,7 +239,7 @@ void R_LoadBspLights(void) {
 
 				radius *= BSP_LIGHT_POINT_RADIUS_SCALE;
 
-				R_AddBspLight(org, radius, color);
+				R_AddBspLight(bsp, org, radius, color);
 
 				radius = 300.0;
 				VectorSet(color, 1.0, 1.0, 1.0);
@@ -260,7 +251,7 @@ void R_LoadBspLights(void) {
 		if (!strcmp(c, "classname")) {
 
 			c = ParseToken(&ents);
-			strncpy(class_name, c, sizeof(class_name) - 1);
+			g_strlcpy(class_name, c, sizeof(class_name));
 
 			if (!strncmp(c, "light", 5)) // light, light_spot, etc..
 				light = true;
@@ -279,14 +270,21 @@ void R_LoadBspLights(void) {
 		}
 
 		if (!strcmp(c, "_color")) {
-			sscanf(ParseToken(&ents), "%f %f %f", &color[0], &color[1],
-					&color[2]);
+			sscanf(ParseToken(&ents), "%f %f %f", &color[0], &color[1], &color[2]);
 			continue;
 		}
 	}
 
-	l = r_load_model->bsp_lights;
-	for (i = 0; i < r_load_model->num_bsp_lights; i++, l++) {
+	// allocate the lights array
+	bsp->num_bsp_lights = g_list_length(r_bsp_light_state.lights);
+	bsp->bsp_lights = Z_LinkMalloc(sizeof(r_bsp_light_t) * bsp->num_bsp_lights, bsp);
+
+	i = 0;
+	GList *e = r_bsp_light_state.lights;
+	while (e) {
+		r_bsp_light_t *l = (r_bsp_light_t *) e->data;
+
+		// normalize the color, scaling back from full brights
 		float max = 0.0;
 		int32_t j;
 
@@ -298,7 +296,15 @@ void R_LoadBspLights(void) {
 		if (max > BSP_LIGHT_COLOR_COMPONENT_MAX) {
 			VectorScale(l->color, BSP_LIGHT_COLOR_COMPONENT_MAX / max, l->color);
 		}
+
+		// and lastly copy the light into the BSP model
+		bsp->bsp_lights[i++] = *l;
+		e = e->next;
 	}
 
-	Com_Debug("Loaded %d bsp lights\n", r_load_model->num_bsp_lights);
+	// reset state
+	g_list_free_full(r_bsp_light_state.lights, Z_Free);
+	r_bsp_light_state.lights = NULL;
+
+	Com_Debug("Loaded %d bsp lights\n", bsp->num_bsp_lights);
 }

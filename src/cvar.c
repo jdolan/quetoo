@@ -19,16 +19,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "cvar.h"
+#include "console.h"
 #include "filesystem.h"
 
-cvar_t *cvar_vars;
-bool user_info_modified;
+typedef struct {
+	GHashTable *vars;
+	GList *keys;
+} cvar_state_t;
+
+static cvar_state_t cvar_state;
+
+bool cvar_user_info_modified;
 
 /*
- * @brief
+ * @return True if the specified string appears to be a valid "info" string.
  */
 static bool Cvar_InfoValidate(const char *s) {
+	if (!s)
+		return false;
 	if (strstr(s, "\\"))
 		return false;
 	if (strstr(s, "\""))
@@ -39,21 +47,19 @@ static bool Cvar_InfoValidate(const char *s) {
 }
 
 /*
- * @brief
+ * @return The variable by the specified name, or NULL.
  */
 static cvar_t *Cvar_Get_(const char *name) {
-	cvar_t *var;
 
-	// TODO: hash table
-	for (var = cvar_vars; var; var = var->next)
-		if (!strcmp(name, var->name))
-			return var;
+	if (cvar_state.vars) {
+		return (cvar_t *) g_hash_table_lookup(cvar_state.vars, name);
+	}
 
 	return NULL;
 }
 
 /*
- * @brief
+ * @return The numeric value for the specified variable, or 0.
  */
 float Cvar_GetValue(const char *name) {
 	cvar_t *var;
@@ -67,7 +73,7 @@ float Cvar_GetValue(const char *name) {
 }
 
 /*
- * @brief
+ * @return The string for the specified variable, or the empty string.
  */
 char *Cvar_GetString(const char *name) {
 	cvar_t *var;
@@ -81,39 +87,55 @@ char *Cvar_GetString(const char *name) {
 }
 
 /*
- * @brief
+ * @brief Enumerates all known variables with the given function.
  */
-int32_t Cvar_CompleteVar(const char *partial, const char *matches[]) {
-	cvar_t *cvar;
-	int32_t len;
-	int32_t m;
+void Cvar_Enumerate(cvar_enumerate_func func, void *data) {
 
-	len = strlen(partial);
-	m = 0;
-
-	// check for partial matches
-	for (cvar = cvar_vars; cvar; cvar = cvar->next) {
-		if (!strncmp(partial, cvar->name, len)) {
-			Com_Print("^2%s^7 is \"%s\"\n", cvar->name, cvar->string);
-			if (cvar->description)
-				Com_Print("\t%s\n", cvar->description);
-			matches[m] = cvar->name;
-			m++;
+	GList *key = cvar_state.keys;
+	while (key) {
+		cvar_t *var = g_hash_table_lookup(cvar_state.vars, key->data);
+		if (var) {
+			func(var, data);
+		} else {
+			Com_Error(ERR_FATAL, "Missing variable: %s\n", (char *) key->data);
 		}
+		key = key->next;
 	}
+}
 
-	return m;
+static const char *cvar_complete_pattern;
+
+/*
+ * @brief Enumeration helper for Cvar_CompleteVar.
+ */
+static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
+	GList **matches = (GList **) data;
+
+	if (GlobMatch(cvar_complete_pattern, var->name)) {
+		Com_Print("^2%s^7 is \"%s\"\n", var->name, var->string);
+
+		if (var->description)
+			Com_Print("\t%s\n", var->description);
+
+		*matches = g_list_prepend(*matches, Z_CopyString(var->name));
+	}
 }
 
 /*
- * @brief If the variable already exists, the value will not be set. The flags,
- * however, are always OR'ed into the variable.
+ * @brief Console completion for console variables.
+ */
+void Cvar_CompleteVar(const char *pattern, GList **matches) {
+	cvar_complete_pattern = pattern;
+	Cvar_Enumerate(Cvar_CompleteVar_enumerate, (void *) matches);
+}
+
+/*
+ * @brief If the variable already exists, the value will not be modified. The
+ * default value, flags, and description will, however, be updated. This way,
+ * variables set at the command line can receive their meta data through the
+ * various subsystem initialization routines.
  */
 cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char *description) {
-	cvar_t *v, *var;
-
-	if (!value)
-		return NULL;
 
 	if (flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
 		if (!Cvar_InfoValidate(name)) {
@@ -126,42 +148,40 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 		}
 	}
 
-	var = Cvar_Get_(name);
+	// update existing variables with meta data from owning subsystem
+	cvar_t *var = Cvar_Get_(name);
 	if (var) {
+		if (value)
+			var->default_value = Z_Link(Z_CopyString(value), var);
 		var->flags |= flags;
 		if (description)
-			var->description = description;
+			var->description = Z_Link(Z_CopyString(description), var);
 		return var;
 	}
 
+	if (!value) // don't create variables if a value isn't provided
+		return NULL;
+
+	// create a new variable
 	var = Z_Malloc(sizeof(*var));
-	var->name = Z_CopyString(name);
-	var->default_value = Z_CopyString(value);
-	var->string = Z_CopyString(value);
+
+	var->name = Z_Link(Z_CopyString(name), var);
+	var->default_value = Z_Link(Z_CopyString(value), var);
+	var->string = Z_Link(Z_CopyString(value), var);
 	var->modified = true;
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
 	var->flags = flags;
-	if (description)
-		var->description = Z_CopyString(description);
 
-	// link the variable in
-	if (!cvar_vars) {
-		cvar_vars = var;
-		return var;
+	if (description) {
+		var->description = Z_Link(Z_CopyString(description), var);
 	}
 
-	v = cvar_vars;
-	while (v->next) {
-		if (strcmp(var->name, v->next->name) < 0) { // insert it
-			var->next = v->next;
-			v->next = var;
-			return var;
-		}
-		v = v->next;
-	}
+	gpointer key = (gpointer) var->name;
 
-	v->next = var;
+	g_hash_table_insert(cvar_state.vars, key, var);
+	cvar_state.keys = g_list_insert_sorted(cvar_state.keys, key, (GCompareFunc) strcmp);
+
 	return var;
 }
 
@@ -183,34 +203,50 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, bool force) {
 		}
 	}
 
+	// if not forced, honor flags-based logic
 	if (!force) {
+
+		// command line variables retain their value through initialization
+		if (var->flags & CVAR_CLI) {
+			if (!Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER)) {
+				Com_Debug("%s: retaining value \"%s\" from command line\n", name, var->string);
+			}
+			return var;
+		}
+
+		// local-only variables can not be modified when in multiplayer mode
 		if (var->flags & CVAR_LO_ONLY) {
-			if ((Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER)) || Cvar_GetValue(
-					"sv_max_clients") > 1.0) {
+			const int32_t clients = Cvar_GetValue("sv_max_clients");
+			if (clients > 1 || (Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER))) {
 				Com_Print("%s is only available offline.\n", name);
 				return var;
 			}
 		}
+
+		// write-protected variables can never be modified
 		if (var->flags & CVAR_NO_SET) {
 			Com_Print("%s is write protected.\n", name);
 			return var;
 		}
 
+		// while latched variables can only be changed on map load
 		if (var->flags & CVAR_LATCH) {
 			if (var->latched_string) {
-				if (strcmp(value, var->latched_string) == 0)
+				if (!strcmp(value, var->latched_string))
 					return var;
 				Z_Free(var->latched_string);
 			} else {
-				if (strcmp(value, var->string) == 0)
+				if (!strcmp(value, var->string))
 					return var;
 			}
 
 			if (Com_WasInit(Q2W_SERVER)) {
 				Com_Print("%s will be changed for next game.\n", name);
-				var->latched_string = Z_CopyString(value);
+				var->latched_string = Z_Link(Z_CopyString(value), var);
 			} else {
-				var->string = Z_CopyString(value);
+				if (var->string)
+					Z_Free(var->string);
+				var->string = Z_Link(Z_CopyString(value), var);
 				var->value = atof(var->string);
 				var->integer = atoi(var->string);
 			}
@@ -223,25 +259,25 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, bool force) {
 		}
 	}
 
+	if (!strcmp(value, var->string))
+		return var; // not changed
+
 	if (var->flags & CVAR_R_MASK)
 		Com_Print("%s will be changed on ^3r_restart^7.\n", name);
 
 	if (var->flags & CVAR_S_MASK)
 		Com_Print("%s will be changed on ^3s_restart^7.\n", name);
 
-	if (!strcmp(value, var->string))
-		return var; // not changed
-
-	var->modified = true;
-
 	if (var->flags & CVAR_USER_INFO)
-		user_info_modified = true; // transmit at next opportunity
+		cvar_user_info_modified = true; // transmit at next opportunity
 
-	Z_Free(var->string); // free the old value string
+	Z_Free(var->string);
 
-	var->string = Z_CopyString(value);
+	var->string = Z_Link(Z_CopyString(value), var);
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
+
+	var->modified = true;
 
 	return var;
 }
@@ -271,17 +307,17 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 		return Cvar_Get(name, value, flags, NULL);
 	}
 
-	var->modified = true;
-
 	if (var->flags & CVAR_USER_INFO)
-		user_info_modified = true; // transmit at next opportunity
+		cvar_user_info_modified = true; // transmit at next opportunity
 
-	Z_Free(var->string); // free the old value string
+	Z_Free(var->string);
 
-	var->string = Z_CopyString(value);
+	var->string = Z_Link(Z_CopyString(value), var);
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
 	var->flags = flags;
+
+	var->modified = true;
 
 	return var;
 }
@@ -293,9 +329,9 @@ void Cvar_SetValue(const char *name, float value) {
 	char val[32];
 
 	if (value == (int) value)
-		snprintf(val, sizeof(val), "%i",(int)value);
+		g_snprintf(val, sizeof(val), "%i", (int) value);
 	else
-		snprintf(val, sizeof(val), "%f", value);
+		g_snprintf(val, sizeof(val), "%f", value);
 
 	Cvar_Set(name, val);
 }
@@ -320,107 +356,138 @@ void Cvar_Toggle(const char *name) {
 }
 
 /*
+ * @brief Enumeration helper for Cvar_ResetLocalVars.
+ */
+void Cvar_ResetLocalVars_enumerate(cvar_t *var, void *data __attribute__((unused))) {
+
+	if (var->flags & CVAR_LO_ONLY) {
+		if (var->default_value) {
+			Cvar_FullSet(var->name, var->default_value, var->flags);
+		}
+	}
+}
+
+/*
  * @brief Reset CVAR_LO_ONLY to their default values.
  */
 void Cvar_ResetLocalVars(void) {
-	cvar_t *var;
 
-	if ((Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER)) || Cvar_GetValue("sv_max_clients")
-			> 1.0) {
+	const int32_t clients = Cvar_GetValue("sv_max_clients");
 
-		for (var = cvar_vars; var; var = var->next) {
-			if (var->flags & CVAR_LO_ONLY) {
-				if (var->default_value) {
-					Cvar_FullSet(var->name, var->default_value, var->flags);
-				}
+	if (clients > 1 || (Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER))) {
+		Cvar_Enumerate(Cvar_ResetLocalVars_enumerate, NULL);
+	}
+}
+
+/*
+ * @brief Enumeration helper for Cvar_PendingLatchedVars.
+ */
+static void Cvar_PendingLatchedVars_enumerate(cvar_t *var, void *data) {
+
+	if (var->latched_string) {
+		*((bool *) data) = true;
+	}
+}
+
+/*
+ * @brief Returns true if there are any CVAR_LATCH variables pending.
+ */bool Cvar_PendingLatchedVars(void) {
+	bool pending = false;
+
+	Cvar_Enumerate(Cvar_PendingLatchedVars_enumerate, (void *) &pending);
+
+	return pending;
+}
+
+/*
+ * @brief Enumeration helper for Cvar_UpdateLatchedVars.
+ */
+void Cvar_UpdateLatchedVars_enumerate(cvar_t *var, void *data __attribute__((unused))) {
+
+	if (var->latched_string) {
+		Z_Free(var->string);
+
+		var->string = var->latched_string;
+		var->latched_string = NULL;
+		var->value = atof(var->string);
+		var->integer = atoi(var->string);
+
+		if (!strcmp(var->name, "game")) {
+			Fs_SetGame(var->string);
+
+			if (Fs_Exists("autoexec.cfg")) {
+				Cbuf_AddText("exec autoexec.cfg\n");
+				Cbuf_Execute();
 			}
 		}
 	}
 }
 
 /*
- * @brief Returns true if there are any CVAR_LATCH variables pending.
- */
-bool Cvar_PendingLatchedVars(void) {
-	cvar_t *var;
-
-	for (var = cvar_vars; var; var = var->next) {
-		if (var->latched_string)
-			return true;
-	}
-
-	return false;
-}
-
-/*
  * @brief Apply any pending latched changes.
  */
 void Cvar_UpdateLatchedVars(void) {
-	cvar_t *var;
-
-	for (var = cvar_vars; var; var = var->next) {
-
-		if (!var->latched_string)
-			continue;
-
-		Z_Free(var->string);
-		var->string = var->latched_string;
-		var->latched_string = NULL;
-		var->value = atof(var->string);
-		var->integer = atoi(var->string);
-
-		// a little hack here to add new game modules to the search path
-		if (!strcmp(var->name, "game")) {
-			Fs_SetGame(var->string);
-			Fs_ExecAutoexec();
-		}
-	}
+	Cvar_Enumerate(Cvar_UpdateLatchedVars_enumerate, NULL);
 }
 
+static bool cvar_pending_vars;
+
 /*
- * @brief
+ * @brief Enumeration helper for Cvar_PendingVars.
  */
-bool Cvar_PendingVars(uint32_t flags) {
-	cvar_t *var;
+static void Cvar_PendingVars_enumerate(cvar_t *var, void *data) {
+	uint32_t flags = *((uint32_t *) data);
 
-	for (var = cvar_vars; var; var = var->next) {
-		if ((var->flags & flags) && var->modified)
-			return true;
+	if ((var->flags & flags) && var->modified) {
+		cvar_pending_vars = true;
 	}
-
-	return false;
 }
 
 /*
- * @brief
+ * @brief Returns true if any variables whose flags match the specified mask are pending.
+ */bool Cvar_PendingVars(uint32_t flags) {
+	cvar_pending_vars = false;
+
+	Cvar_Enumerate(Cvar_PendingVars_enumerate, (void *) &flags);
+
+	return cvar_pending_vars;
+}
+
+/*
+ * @brief Enumeration helper for Cvar_ClearVars.
+ */
+static void Cvar_ClearVars_enumerate(cvar_t *var, void *data) {
+	uint32_t flags = *((uint32_t *) data);
+
+	if ((var->flags & flags) && var->modified) {
+		var->modified = false;
+	}
+}
+
+/*
+ * @brief Clears the modified flag on all variables matching the specified mask.
  */
 void Cvar_ClearVars(uint32_t flags) {
-	cvar_t *var;
-
-	for (var = cvar_vars; var; var = var->next) {
-		if ((var->flags & flags) && var->modified)
-			var->modified = false;
-	}
+	Cvar_Enumerate(Cvar_ClearVars_enumerate, (void *) &flags);
 }
 
 /*
  * @brief Handles variable inspection and changing from the console
- */
-bool Cvar_Command(void) {
-	cvar_t *v;
+ */bool Cvar_Command(void) {
+	cvar_t *var;
 
 	// check variables
-	v = Cvar_Get_(Cmd_Argv(0));
-	if (!v)
+	var = Cvar_Get_(Cmd_Argv(0));
+	if (!var)
 		return false;
 
-	// perform a variable print32_t or set
+	// perform a variable print or set
 	if (Cmd_Argc() == 1) {
-		Com_Print("\"%s\" is \"%s\"\n", v->name, v->string);
+		Com_Print("\"%s\" is \"%s\"\n", var->name, var->string);
 		return true;
 	}
 
-	Cvar_Set(v->name, Cmd_Argv(1));
+	Cvar_Set(var->name, Cmd_Argv(1));
 	return true;
 }
 
@@ -428,26 +495,21 @@ bool Cvar_Command(void) {
  * @brief Allows setting and defining of arbitrary cvars from console
  */
 static void Cvar_Set_f(void) {
-	uint32_t flags;
-	const int32_t c = Cmd_Argc();
 
-	if (c != 3 && c != 4) {
-		Com_Print("Usage: %s <variable> <value> [u | s]\n", Cmd_Argv(0));
+	if (Cmd_Argc() != 3) {
+		Com_Print("Usage: %s <variable> <value>\n", Cmd_Argv(0));
 		return;
 	}
 
-	if (c == 4) {
-		if (!strcmp(Cmd_Argv(3), "u"))
-			flags = CVAR_USER_INFO;
-		else if (!strcmp(Cmd_Argv(3), "s"))
-			flags = CVAR_SERVER_INFO;
-		else {
-			Com_Print("Invalid flags\n");
-			return;
-		}
-		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), flags);
-	} else
+	if (!strcmp("seta", Cmd_Argv(0))) {
+		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), CVAR_ARCHIVE);
+	} else if (!strcmp("sets", Cmd_Argv(0))) {
+		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), CVAR_SERVER_INFO);
+	} else if (!strcmp("setu", Cmd_Argv(0))) {
+		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), CVAR_USER_INFO);
+	} else {
 		Cvar_Set(Cmd_Argv(1), Cmd_Argv(2));
+	}
 }
 
 /*
@@ -462,91 +524,155 @@ static void Cvar_Toggle_f(void) {
 }
 
 /*
- * @brief Appends lines containing "set variable value" for all variables
- * with the archive flag set to true.
+ * @brief Enumeration helper for Cvar_List_f.
  */
-void Cvar_WriteVars(const char *path) {
-	cvar_t *var;
-	char buffer[1024];
-	FILE *f;
+static void Cvar_List_f_enumerate(cvar_t *var, void *data __attribute__((unused))) {
 
-	f = fopen(path, "a");
-	for (var = cvar_vars; var; var = var->next) {
-		if (var->flags & CVAR_ARCHIVE) {
-			snprintf(buffer, sizeof(buffer), "set %s \"%s\"\n", var->name, var->string);
-			fprintf(f, "%s", buffer);
-		}
-	}
-	Fs_CloseFile(f);
+	if (var->flags & CVAR_ARCHIVE)
+		Com_Print("*");
+	else
+		Com_Print(" ");
+
+	if (var->flags & CVAR_USER_INFO)
+		Com_Print("U");
+	else
+		Com_Print(" ");
+
+	if (var->flags & CVAR_SERVER_INFO)
+		Com_Print("S");
+	else
+		Com_Print(" ");
+
+	if (var->flags & CVAR_NO_SET)
+		Com_Print("-");
+	else if (var->flags & CVAR_LATCH)
+		Com_Print("L");
+	else
+		Com_Print(" ");
+
+	Com_Print(" %s \"%s\"\n", var->name, var->string);
+
+	if (var->description)
+		Com_Print("   ^2%s\n", var->description);
 }
 
 /*
- * @brief
+ * @brief Lists all known console variables.
  */
 static void Cvar_List_f(void) {
-	const cvar_t *var;
-	int32_t i;
-
-	i = 0;
-	for (var = cvar_vars; var; var = var->next, i++) {
-		if (var->flags & CVAR_ARCHIVE)
-			Com_Print("*");
-		else
-			Com_Print(" ");
-		if (var->flags & CVAR_USER_INFO)
-			Com_Print("U");
-		else
-			Com_Print(" ");
-		if (var->flags & CVAR_SERVER_INFO)
-			Com_Print("S");
-		else
-			Com_Print(" ");
-		if (var->flags & CVAR_NO_SET)
-			Com_Print("-");
-		else if (var->flags & CVAR_LATCH)
-			Com_Print("L");
-		else
-			Com_Print(" ");
-		Com_Print(" %s \"%s\"\n", var->name, var->string);
-		if (var->description)
-			Com_Print("   ^2%s\n", var->description);
-	}
-	Com_Print("%i cvars\n", i);
+	Cvar_Enumerate(Cvar_List_f_enumerate, NULL);
 }
 
 /*
- * @brief
+ * @brief Enumeration helper for Cvar_Userinfo.
  */
-static char *Cvar_BitInfo(int32_t bit) {
-	static char info[MAX_USER_INFO_STRING];
-	const cvar_t *var;
+static void Cvar_UserInfo_enumerate(cvar_t *var, void *data) {
 
-	info[0] = 0;
-
-	for (var = cvar_vars; var; var = var->next) {
-		if (var->flags & bit)
-			SetUserInfo(info, var->name, var->string);
+	if (var->flags & CVAR_USER_INFO) {
+		SetUserInfo((char *) data, var->name, var->string);
 	}
+}
+
+/*
+ * @brief Returns an info string containing all the CVAR_USER_INFO cvars.
+ */
+char *Cvar_UserInfo(void) {
+	static char info[MAX_USER_INFO_STRING];
+
+	Cvar_Enumerate(Cvar_UserInfo_enumerate, (void *) info);
 
 	return info;
 }
 
-// returns an info string containing all the CVAR_USER_INFO cvars
-char *Cvar_UserInfo(void) {
-	return Cvar_BitInfo(CVAR_USER_INFO);
+/*
+ * @brief Enumeration helper for Cvar_ServerInfo.
+ */
+static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
+
+	if (var->flags & CVAR_SERVER_INFO) {
+		SetUserInfo((char *) data, var->name, var->string);
+	}
 }
 
-// returns an info string containing all the CVAR_SERVER_INFO cvars
+/*
+ * @return An info string containing all the CVAR_SERVER_INFO cvars.
+ */
 char *Cvar_ServerInfo(void) {
-	return Cvar_BitInfo(CVAR_SERVER_INFO);
+	static char info[MAX_USER_INFO_STRING];
+
+	Cvar_Enumerate(Cvar_ServerInfo_enumerate, (void *) info);
+
+	return info;
+}
+
+/*
+ * @brief Enumeration helper for Cl_WriteVariables.
+ */
+static void Cvar_WriteVariables_enumerate(cvar_t *var, void *data) {
+
+	if (var->flags & CVAR_ARCHIVE) {
+		Fs_Print((file_t *) data, "set %s \"%s\"\n", var->name, var->string);
+	}
+}
+
+/*
+ * @brief Writes all variables to the specified file.
+ */
+void Cvar_WriteVariables(file_t *f) {
+	Cvar_Enumerate(Cvar_WriteVariables_enumerate, (void *) f);
 }
 
 /**
- * Cvar_Init
+ * @brief Initializes the console variable subsystem. Parses the command line
+ * arguments looking for "+set" directives. Any variables initialized at the
+ * command line will be flagged as "sticky" and retain their values through
+ * initialization.
  */
 void Cvar_Init(void) {
 
-	Cmd_AddCommand("set", Cvar_Set_f, 0, NULL);
+	memset(&cvar_state, 0, sizeof(cvar_state));
+
+	cvar_state.vars = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
+
+	Cmd_AddCommand("set", Cvar_Set_f, 0, "Create or modify a console variable");
+	Cmd_AddCommand("seta", Cvar_Set_f, 0, "Create an archived console variable");
+	Cmd_AddCommand("sets", Cvar_Set_f, 0, "Create a server-info console variable");
+	Cmd_AddCommand("setu", Cvar_Set_f, 0, "Create a user-info console variable");
+
 	Cmd_AddCommand("toggle", Cvar_Toggle_f, 0, NULL);
 	Cmd_AddCommand("cvar_list", Cvar_List_f, 0, NULL);
+
+	int32_t i;
+	for (i = 1; i < Com_Argc(); i++) {
+		const char *s = Com_Argv(i);
+
+		if (!strncmp(s, "+set", 4)) {
+			Cmd_ExecuteString(va("%s %s %s\n", Com_Argv(i) + 1, Com_Argv(i + 1), Com_Argv(i + 2)));
+
+			cvar_t *var = Cvar_Get_(Com_Argv(i + 1));
+			if (var) {
+				var->flags |= CVAR_CLI;
+			} else {
+				Com_Warn("Failed to set \"%s\"\n", Com_Argv(i + 1));
+			}
+
+			i += 2;
+		}
+	}
+}
+
+/*
+ * @brief Shuts down the console variable subsystem.
+ */
+void Cvar_Shutdown(void) {
+
+	g_hash_table_destroy(cvar_state.vars);
+	g_list_free(cvar_state.keys);
+
+	Cmd_RemoveCommand("set");
+	Cmd_RemoveCommand("seta");
+	Cmd_RemoveCommand("sets");
+	Cmd_RemoveCommand("setu");
+	Cmd_RemoveCommand("toggle");
+	Cmd_RemoveCommand("cvar_list");
 }

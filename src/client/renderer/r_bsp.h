@@ -24,7 +24,7 @@
 
 int32_t R_PointContents(const vec3_t point);
 c_trace_t R_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, int32_t mask);
-const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_model_t *model);
+const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp);
 bool R_LeafInPvs(const r_bsp_leaf_t *leaf);
 bool R_LeafInPhs(const r_bsp_leaf_t *leaf);
 
@@ -32,12 +32,12 @@ bool R_LeafInPhs(const r_bsp_leaf_t *leaf);
 const char *R_WorldspawnValue(const char *key);
 bool R_CullBox(const vec3_t mins, const vec3_t maxs);
 bool R_CullBspModel(const r_entity_t *e);
-void R_DrawBspModel(const r_entity_t *e);
+void R_DrawBspInlineModel(const r_entity_t *e);
 void R_DrawBspLeafs(void);
 void R_DrawBspLights(void);
 void R_DrawBspNormals(void);
-void R_MarkSurfaces(void);
-void R_MarkLeafs(void);
+void R_MarkBspSurfaces(void);
+void R_UpdateVis(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_BSP_H__ */

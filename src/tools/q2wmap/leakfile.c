@@ -27,7 +27,7 @@
  */
 void LeakFile(tree_t *tree) {
 	vec3_t mid;
-	FILE *leakfile;
+	file_t *leakfile;
 	char file_name[MAX_OSPATH];
 	node_t *node;
 	int32_t count;
@@ -41,7 +41,7 @@ void LeakFile(tree_t *tree) {
 	StripExtension(map_name, file_name);
 	strcat(file_name, ".lin");
 
-	if (Fs_OpenFile(file_name, &leakfile, FILE_WRITE) == -1)
+	if (!(leakfile = Fs_OpenWrite(file_name)))
 		Com_Error(ERR_FATAL, "Couldn't open %s\n", file_name);
 
 	count = 0;
@@ -64,14 +64,14 @@ void LeakFile(tree_t *tree) {
 		}
 		node = nextnode;
 		WindingCenter(nextportal->winding, mid);
-		fprintf(leakfile, "%f %f %f\n", mid[0], mid[1], mid[2]);
+		Fs_Print(leakfile, "%f %f %f\n", mid[0], mid[1], mid[2]);
 		count++;
 	}
 	// add the occupant center
 	GetVectorForKey(node->occupant, "origin", mid);
 
-	fprintf(leakfile, "%f %f %f\n", mid[0], mid[1], mid[2]);
+	Fs_Print(leakfile, "%f %f %f\n", mid[0], mid[1], mid[2]);
 	Com_Debug("%5i point leakfile\n", count + 1);
 
-	Fs_CloseFile(leakfile);
+	Fs_Close(leakfile);
 }

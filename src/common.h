@@ -24,16 +24,18 @@
 
 #include "shared.h"
 #include "threads.h"
+#include "mem.h"
 
-#define DEFAULT_GAME	"default"
+// the default game module / game directory
+#define DEFAULT_GAME "default"
 
-#define MAX_PRINT_MSG	4096
-#define MAX_NUM_ARGVS	64
+// the maximum print message length
+#define MAX_PRINT_MSG 2048
 
 // sizebuf and net message facilities
 typedef struct size_buf_s {
-	bool allow_overflow;  // error if false and overflow occurs
-	bool overflowed;  // set to true when a write exceeds max_size
+	bool allow_overflow; // error if false and overflow occurs
+	bool overflowed; // set to true when a write exceeds max_size
 	byte *data;
 	size_t max_size;
 	size_t size;
@@ -84,15 +86,15 @@ PROTOCOL
 */
 
 
-#define PROTOCOL 14  // change this when netcode changes
+#define PROTOCOL 1001 // change this when netcode changes
 
-#define IP_MASTER "67.228.69.114"  // tastyspleen.net
+#define IP_MASTER "67.228.69.114" // tastyspleen.net
 
-#define PORT_MASTER	1996  // some good years
+#define PORT_MASTER	1996 // some good years
 #define PORT_CLIENT	1997
 #define PORT_SERVER	1998
 
-#define UPDATE_BACKUP 1024  // copies of entity_state_t to keep buffered
+#define UPDATE_BACKUP 1024 // copies of entity_state_t to keep buffered
 #define UPDATE_MASK (UPDATE_BACKUP - 1)
 
 // maximum number of entities we would ever reference in a single message
@@ -102,6 +104,9 @@ PROTOCOL
 #define CLIENT_RATE_MIN 8192
 #define CLIENT_RATE_MAX 32768
 #define CLIENT_RATE 16384
+
+// disallow dangerous file downloads from both sides
+#define IS_INVALID_DOWNLOAD(f) (!*f || *f == '/' || strstr(f, "..") || strchr(f, ' '))
 
 // player_state_t communication
 
@@ -126,11 +131,10 @@ PROTOCOL
 #define CMD_UP		(1<<5)
 #define CMD_BUTTONS	(1<<6)
 
-
 // a sound without an entity or position will be a local only sound
-#define S_ATTEN		(1<<0)  // a byte
-#define S_ORIGIN	(1<<1)  // three coordinates
-#define S_ENTNUM	(1<<2)  // entity number
+#define S_ATTEN		(1<<0) // a byte
+#define S_ORIGIN	(1<<1) // three coordinates
+#define S_ENTNUM	(1<<2) // entity number
 
 
 // entity_state_t communication
@@ -139,16 +143,16 @@ PROTOCOL
 // It describes which fields must be read to successfully parse the delta-
 // compression.
 #define U_ORIGIN		(1<<0)
-#define U_OLD_ORIGIN	(1<<1)  // used by lightning
+#define U_OLD_ORIGIN	(1<<1) // used by lightning
 #define U_ANGLES		(1<<2)
-#define U_ANIMATIONS	(1<<3)  // animation frames
-#define U_EVENT			(1<<4)  // client side events
-#define U_EFFECTS		(1<<5)  // client side effects
-#define U_MODELS		(1<<6)  // models (primary and linked)
-#define U_CLIENT		(1<<7)  // offset into client skins array
-#define U_SOUND			(1<<8)  // looped sounds
+#define U_ANIMATIONS	(1<<3) // animation frames
+#define U_EVENT			(1<<4) // client side events
+#define U_EFFECTS		(1<<5) // client side effects
+#define U_MODELS		(1<<6) // models (primary and linked)
+#define U_CLIENT		(1<<7) // offset into client skins array
+#define U_SOUND			(1<<8) // looped sounds
 #define U_SOLID			(1<<9)
-#define U_REMOVE		(1<<10)  // remove this entity, don't add it
+#define U_REMOVE		(1<<10) // remove this entity, don't add it
 
 #define NUM_APPROXIMATE_NORMALS 162
 extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
@@ -160,19 +164,27 @@ typedef enum {
 } err_t;
 
 int32_t Com_Argc(void);
-char *Com_Argv(int32_t arg);  // range and null checked
-void Com_ClearArgv(int32_t arg);
+char *Com_Argv(int32_t arg); // range and null checked
 void Com_InitArgv(int32_t argc, char **argv);
 
 void Com_PrintInfo(const char *s);
 
-void Com_BeginRedirect(int32_t target, char *buffer, int32_t buffersize, void (*flush)(int, char*));
+typedef void (*RedirectFlush)(int32_t target, char *buffer);
+void Com_BeginRedirect(int32_t target, char *buffer, size_t size, RedirectFlush flush);
 void Com_EndRedirect(void);
-void Com_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Error(err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+
+void Com_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void Com_Error_(const char *func, err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void Com_Warn_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+#define Com_Debug(...) Com_Debug_(__func__, __VA_ARGS__)
+#define Com_Error(...) Com_Error_(__func__, __VA_ARGS__)
+#define Com_Warn(...) Com_Warn_(__func__, __VA_ARGS__)
+
+void Com_Init(int32_t argc, char **argv);
+void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn));
 
 // subsystems
 #define Q2W_SERVER		0x1
@@ -183,9 +195,8 @@ void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 // global engine struct
 typedef struct quake2world_s {
-
 	int32_t argc;
-	char *argv[MAX_NUM_ARGVS + 1];
+	char **argv;
 
 	uint32_t time;
 	uint32_t subsystems;
@@ -196,6 +207,8 @@ typedef struct quake2world_s {
 	void (*Verbose)(const char *msg);
 	void (*Warn)(const char *msg);
 
+	void (*Init)(void);
+	void (*Shutdown)(const char *msg);
 } quake2world_t;
 
 extern quake2world_t quake2world;
@@ -205,6 +218,7 @@ void Com_InitSubsystem(uint32_t s);
 void Com_QuitSubsystem(uint32_t s);
 
 extern cvar_t *dedicated;
+extern cvar_t *game;
 extern cvar_t *time_demo;
 extern cvar_t *time_scale;
 

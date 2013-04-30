@@ -22,43 +22,19 @@
 #ifndef __SYS_H__
 #define __SYS_H__
 
-#include "filesystem.h"
-
-#include <dirent.h>
-
-#ifndef _WIN32
-#include <dlfcn.h>
-#include <pwd.h>
-#endif
-
-#include <errno.h>
-#include <signal.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <unistd.h>
-
-#ifdef HAVE_EXECINFO
-#include <execinfo.h>
-#define MAX_BACKTRACE_SYMBOLS 50
-#endif
+#include "quake2world.h"
 
 uint32_t Sys_Milliseconds(void);
 
-const char *Sys_GetCurrentUser(void);
-
-void Sys_Mkdir(const char *path);
-const char *Sys_FindFirst(const char *path);
-const char *Sys_FindNext(void);
-void Sys_FindClose(void);
+const char *Sys_ExecutablePath(void);
+const char *Sys_Username(void);
+const char *Sys_UserDir(void);
 
 void Sys_OpenLibrary(const char *name, void **handle);
 void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, void *params);
 void Sys_CloseLibrary(void **handle);
 
-void Sys_Quit(void);
 void Sys_Backtrace(void);
-void Sys_Error(const char *error, ...) __attribute__((noreturn, format(printf, 1, 2)));
-void Sys_Signal(int32_t s);
+void Sys_Signal(int32_t s) __attribute__((noreturn));
 
 #endif /* __SYS_H__ */

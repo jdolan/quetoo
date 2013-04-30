@@ -19,10 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_UTILS_H__
-#define __G_UTILS_H__
+#ifndef __GAME_UTILS_H__
+#define __GAME_UTILS_H__
 
-#ifdef __G_LOCAL_H__
+#ifdef __GAME_LOCAL_H__
 
 #include "g_types.h"
 
@@ -35,8 +35,8 @@ g_edict_t *G_PickTarget(char *target_name);
 void G_UseTargets(g_edict_t *ent, g_edict_t *activator);
 void G_SetMoveDir(vec3_t angles, vec3_t movedir);
 char *G_GameplayName(int32_t g);
-int32_t G_GameplayByName(char *c);
-g_team_t *G_TeamByName(char *c);
+int32_t G_GameplayByName(const char *c);
+g_team_t *G_TeamByName(const char *c);
 g_team_t *G_OtherTeam(g_team_t *t);
 g_team_t *G_TeamForFlag(g_edict_t *ent);
 g_edict_t *G_FlagForTeam(g_team_t *t);
@@ -54,6 +54,6 @@ void G_TouchSolids(g_edict_t *ent);
 c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push);
 char *G_CopyString(char *in);
 
-#endif /* __G_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */
 
-#endif /* __G_UTILS_H__ */
+#endif /* __GAME_UTILS_H__ */

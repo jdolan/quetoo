@@ -26,9 +26,9 @@ q2wmap_SOURCES = \
 	prtfile.c \
 	qbsp.c \
 	qmat.c \
-	qpak.c \
 	qlight.c \
 	qvis.c \
+	qzip.c \
 	scriplib.c \
 	textures.c \
 	threads.c \
@@ -38,15 +38,16 @@ q2wmap_SOURCES = \
 q2wmap_CFLAGS = \
 	-I../.. \
 	@BASE_CFLAGS@ \
+	@CURSES_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 
 q2wmap_LDADD = \
+	../../../deps/minizip/libminizip.la \
 	../../libcmodel.la \
+	../../libconsole.la \
 	../../libimages.la \
 	../../libthreads.la \
-	@BASE_LIBS@ \
 	@CURSES_LIBS@ \
-	@JPEG_LIBS@ \
 	@SDL_LIBS@ \
-	-lm -lz
-
+	@JPEG_LIBS@

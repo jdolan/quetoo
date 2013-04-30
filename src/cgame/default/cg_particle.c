@@ -21,8 +21,8 @@
 
 #include "cg_local.h"
 
-static cg_particle_t *cg_free_particles;
-static cg_particle_t *cg_active_particles[MAX_GL_TEXTURES];
+static cg_particle_t *cg_free_particles; // list of free particles
+static cg_particles_t *cg_active_particles; // list of active particles, by image
 
 static cg_particle_t cg_particles[MAX_PARTICLES];
 
@@ -65,24 +65,26 @@ static void Cg_PopParticle(cg_particle_t *p, cg_particle_t **list) {
 /*
  * @brief Allocates a free particle with the specified type and image.
  */
-cg_particle_t *Cg_AllocParticle(const uint16_t type, const r_image_t *image) {
+cg_particle_t *Cg_AllocParticle(const uint16_t type, cg_particles_t *particles) {
 
 	if (!cg_add_particles->integer)
-		return NULL ;
+		return NULL;
 
 	if (!cg_free_particles) {
-		cgi.Debug("Cg_AllocParticle: No free particles\n");
-		return NULL ;
+		cgi.Debug("No free particles\n");
+		return NULL;
 	}
 
 	cg_particle_t *p = cg_free_particles;
 
 	Cg_PopParticle(p, &cg_free_particles);
 
-	p->part.type = type;
-	p->part.image = image ? image : cg_particle_normal;
+	particles = particles ? particles : cg_particles_normal;
 
-	Cg_PushParticle(p, &cg_active_particles[p->part.image->texnum]);
+	p->part.type = type;
+	p->part.image = particles->image;
+
+	Cg_PushParticle(p, &particles->particles);
 
 	p->time = cgi.client->time;
 
@@ -112,18 +114,33 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
 }
 
 /*
+ * @brief Allocates a particles chain for the specified image.
+ */
+cg_particles_t *Cg_AllocParticles(const r_image_t *image) {
+	cg_particles_t *particles;
+
+	particles = cgi.Malloc(sizeof(*particles), Z_TAG_CGAME);
+	particles->image = image;
+
+	particles->next = cg_active_particles;
+	cg_active_particles = particles;
+
+	return particles;
+}
+
+/*
  * @brief Frees all particles, returning them to the eligible list.
  */
 void Cg_FreeParticles(void) {
-	int32_t i;
+	uint32_t i;
 
 	cg_free_particles = NULL;
-	memset(cg_active_particles, 0, sizeof(cg_active_particles));
+	cg_active_particles = NULL;
 
 	memset(cg_particles, 0, sizeof(cg_particles));
 
-	for (i = 0; i < MAX_PARTICLES; i++) {
-		Cg_FreeParticle(&cg_particles[i], NULL );
+	for (i = 0; i < lengthof(cg_particles); i++) {
+		Cg_FreeParticle(&cg_particles[i], NULL);
 	}
 }
 
@@ -146,33 +163,33 @@ void Cg_AddParticles(void) {
 
 	last_particle_time = cgi.client->time;
 
-	for (i = 0; i < MAX_GL_TEXTURES; i++) {
-		cg_particle_t *p = cg_active_particles[i];
+	cg_particles_t *ps = cg_active_particles;
+	while (ps) {
 
+		cg_particle_t *p = ps->particles;
 		while (p) {
 			// update any particles allocated in previous frames
 			if (p->time != cgi.client->time) {
-				int32_t j;
 
 				p->part.alpha += delta * p->alpha_vel;
 				p->part.scale += delta * p->scale_vel;
 
 				// free up particles that have disappeared
 				if (p->part.alpha <= 0.0 || p->part.scale <= 0.0) {
-					p = Cg_FreeParticle(p, &cg_active_particles[i]);
+					p = Cg_FreeParticle(p, &ps->particles);
 					continue;
 				}
 
-				for (j = 0; j < 3; j++) { // update origin, end, and acceleration
-					p->part.org[j] += p->vel[j] * delta + p->accel[j] * delta_squared;
-					p->part.end[j] += p->vel[j] * delta + p->accel[j] * delta_squared;
+				for (i = 0; i < 3; i++) { // update origin, end, and acceleration
+					p->part.org[i] += p->vel[i] * delta + p->accel[i] * delta_squared;
+					p->part.end[i] += p->vel[i] * delta + p->accel[i] * delta_squared;
 
-					p->vel[j] += p->accel[j] * delta;
+					p->vel[i] += p->accel[i] * delta;
 				}
 
 				// free up weather particles that have hit the ground
 				if (p->part.type == PARTICLE_WEATHER && (p->part.org[2] <= p->end_z)) {
-					p = Cg_FreeParticle(p, &cg_active_particles[i]);
+					p = Cg_FreeParticle(p, &ps->particles);
 					continue;
 				}
 			}
@@ -180,5 +197,7 @@ void Cg_AddParticles(void) {
 			cgi.AddParticle(&p->part);
 			p = p->next;
 		}
+
+		ps = ps->next;
 	}
 }

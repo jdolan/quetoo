@@ -31,7 +31,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 
 	for (i = 0; i < 16; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_spark)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_spark)))
 			break;
 
 		p->part.color = color + (Random() & 7);
@@ -72,7 +72,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particle_beam)))
+	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam)))
 		return;
 
 	p->part.color = 14;
@@ -102,9 +102,9 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	vec3_t v;
 	int32_t j;
 
-	const r_image_t *image = cg_particle_bullet[Random() % 3];
+	cg_particles_t *ps = cg_particles_bullet[Random() % 3];
 
-	if ((p = Cg_AllocParticle(PARTICLE_DECAL, image))) {
+	if ((p = Cg_AllocParticle(PARTICLE_DECAL, ps))) {
 
 		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 		p->part.color = 0 + (Random() & 1);
@@ -121,7 +121,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		VectorAdd(org, dir, p->part.org);
 	}
 
-	if ((p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_spark))) {
+	if ((p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_spark))) {
 
 		p->part.color = 221 + (Random() & 7);
 
@@ -168,7 +168,7 @@ static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
 	cg_particle_t *p;
 	vec3_t v;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_DECAL, cg_particle_burn)))
+	if (!(p = Cg_AllocParticle(PARTICLE_DECAL, cg_particles_burn)))
 		return;
 
 	p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
@@ -195,7 +195,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	for (i = 0; i < count; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_blood)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood)))
 			break;
 
 		p->part.color = 232 + (Random() & 7);
@@ -254,7 +254,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 		for (j = 1; j < GIB_STREAM_COUNT; j++) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_blood)))
+			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood)))
 				return;
 
 			p->part.color = 232 + (Random() & 7);
@@ -288,7 +288,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	for (i = 0; i < count; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_spark)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_spark)))
 			break;
 
 		p->part.color = 0xd7 + (i % 14);
@@ -329,7 +329,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	cg_particle_t *p;
 	r_sustained_light_t s;
 
-	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_explosion))) {
+	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
 
 		p->part.color = 224;
 
@@ -346,7 +346,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	if (!(cgi.PointContents(org) & MASK_WATER)) {
 
-		if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_smoke))) {
+		if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
 
 			p->part.blend = GL_ONE;
 			p->part.color = Random() & 7;
@@ -413,7 +413,7 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 
 	for (i = 0; i < 2; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_explosion)))
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion)))
 			break;
 
 		p->part.color = 113 + Random() % 3;
@@ -477,6 +477,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 	r_sustained_light_t s;
 	int32_t i;
 
+	color = color ? color : EFFECT_COLOR_BLUE;
+
 	VectorCopy(start, s.light.origin);
 	s.light.radius = 100.0;
 	cgi.ColorFromPalette(color, s.light.color);
@@ -486,11 +488,23 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 
 	// draw the core with a beam
 
-	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particle_beam)))
+	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam)))
 		return;
 
 	// white cores for some colors, shifted for others
-	p->part.color = (color > 239 || color == 187 ? 216 : color + 6);
+	switch (color) {
+		case EFFECT_COLOR_RED:
+			p->part.color = 229;
+			break;
+		case EFFECT_COLOR_BLUE:
+		case EFFECT_COLOR_GREEN:
+		case EFFECT_COLOR_PURPLE:
+			p->part.color = 216;
+			break;
+		default:
+			p->part.color = color + 6;
+			break;
+	}
 
 	p->part.alpha = 0.75;
 	p->alpha_vel = -1.0;
@@ -546,7 +560,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 	if (flags & SURF_SKY)
 		return;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_explosion)))
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_explosion)))
 		return;
 
 	p->part.color = color;
@@ -576,7 +590,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	for (i = 0; i < 4; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_explosion)))
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion)))
 			break;
 
 		p->part.color = 200 + Random() % 3;
@@ -714,7 +728,7 @@ void Cg_ParseTempEntity(void) {
 		break;
 
 	default:
-		cgi.Warn("Cg_ParseTempEntity: Unknown type: %d\n.", type);
+		cgi.Warn("Unknown type: %d\n", type);
 		return;
 	}
 }

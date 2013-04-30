@@ -19,35 +19,37 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "tests.h"
+
 quake2world_t quake2world;
 
+/**
+ * @brief Runs the specified suite, returning the number of tests that failed.
+ */
+int32_t Test_Run(Suite *suite) {
+
+	SRunner *runner = srunner_create(suite);
+
+	srunner_run_all(runner, CK_NORMAL);
+	int32_t failed = srunner_ntests_failed(runner);
+
+	srunner_free(runner);
+	return failed;
+}
+
 /*
- * @brief Bootstraps core subsystems for testing.
+ * @brief Initializes testing facilities.
  */
 void Test_Init(int32_t argc, char **argv) {
 
 	memset(&quake2world, 0, sizeof(quake2world));
 
-	signal(SIGHUP, Sys_Signal);
-	signal(SIGINT, Sys_Signal);
-	signal(SIGQUIT, Sys_Signal);
-	signal(SIGILL, Sys_Signal);
-	signal(SIGABRT, Sys_Signal);
-	signal(SIGFPE, Sys_Signal);
-	signal(SIGSEGV, Sys_Signal);
-	signal(SIGTERM, Sys_Signal);
-
-	Z_Init();
-
-	Swap_Init();
-
-	Cvar_Init();
+	Com_Init(argc, argv);
 }
 
 /*
- * @brief Releases any testing resources.
+ * @brief Shuts down testing facilities.
  */
-void Test_Shutdown() {
+void Test_Shutdown(void) {
 
-	Z_Shutdown();
 }

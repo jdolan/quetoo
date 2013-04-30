@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <dirent.h>
-
 #include "g_local.h"
 
 g_import_t gi;
@@ -34,11 +32,9 @@ uint32_t means_of_death;
 cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
 cvar_t *g_capture_limit;
-cvar_t *g_chat_log;
 cvar_t *g_cheats;
 cvar_t *g_ctf;
 cvar_t *g_frag_limit;
-cvar_t *g_frag_log;
 cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
 cvar_t *g_gravity;
@@ -77,8 +73,6 @@ g_map_list_t g_map_list;
 MYSQL *mysql;
 char sql[512];
 #endif
-
-FILE *frag_log, *chat_log, *f;
 
 /*
  * @brief
@@ -578,7 +572,7 @@ static char *G_FormatTime(uint32_t time) {
 	else
 		c = "^7";
 
-	snprintf(formatted_time, sizeof(formatted_time), "%s%2u:%02u", c, m, s);
+	g_snprintf(formatted_time, sizeof(formatted_time), "%s%2u:%02u", c, m, s);
 
 	last_time = time;
 
@@ -941,22 +935,22 @@ static void G_ParseMapList(const char *file_name) {
 		elt = &g_map_list.maps[i];
 
 		if (!strcmp(c, "name")) {
-			strncpy(elt->name, ParseToken(&buffer), sizeof(elt->name) - 1);
+			g_strlcpy(elt->name, ParseToken(&buffer), sizeof(elt->name));
 			continue;
 		}
 
 		if (!strcmp(c, "title")) {
-			strncpy(elt->title, ParseToken(&buffer), sizeof(elt->title) - 1);
+			g_strlcpy(elt->title, ParseToken(&buffer), sizeof(elt->title));
 			continue;
 		}
 
 		if (!strcmp(c, "sky")) {
-			strncpy(elt->sky, ParseToken(&buffer), sizeof(elt->sky) - 1);
+			g_strlcpy(elt->sky, ParseToken(&buffer), sizeof(elt->sky));
 			continue;
 		}
 
 		if (!strcmp(c, "weather")) {
-			strncpy(elt->weather, ParseToken(&buffer), sizeof(elt->weather) - 1);
+			g_strlcpy(elt->weather, ParseToken(&buffer), sizeof(elt->weather));
 			continue;
 		}
 
@@ -1011,12 +1005,12 @@ static void G_ParseMapList(const char *file_name) {
 		}
 
 		if (!strcmp(c, "give")) {
-			strncpy(elt->give, ParseToken(&buffer), sizeof(elt->give) - 1);
+			g_strlcpy(elt->give, ParseToken(&buffer), sizeof(elt->give));
 			continue;
 		}
 
 		if (!strcmp(c, "music")) {
-			strncpy(elt->music, ParseToken(&buffer), sizeof(elt->music) - 1);
+			g_strlcpy(elt->music, ParseToken(&buffer), sizeof(elt->music));
 			continue;
 		}
 
@@ -1061,7 +1055,7 @@ static void G_ParseMapList(const char *file_name) {
 	g_map_list.count = i;
 	g_map_list.index = 0;
 
-	gi.Free(buf);
+	gi.FreeFile(buf);
 
 	// thou shalt not divide by zero
 	if (!g_map_list.total_weight)
@@ -1091,12 +1085,12 @@ const char *G_SelectNextmap(void) {
 			while (true) {
 				g_map_list.index = (g_map_list.index + 1) % g_map_list.count;
 				if (!g_map_list.maps[g_map_list.index].weight)
-					 continue;
+					continue;
 				if (g_map_list.index == i) // wrapped around, all weights were 0
 					break;
 				break;
-				}
 			}
+		}
 		return g_map_list.maps[g_map_list.index].name;
 	}
 	return g_level.name;
@@ -1112,8 +1106,7 @@ const char *G_GameName(void) {
 
 	if (g_level.ctf) {
 		strcat(name, " / CTF");
-	}
-	else if (g_level.teams) {
+	} else if (g_level.teams) {
 		strcat(name, " / TDM");
 	}
 
@@ -1132,49 +1125,54 @@ void G_Init(void) {
 	gi.Cvar("game_name", GAME_NAME, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 	gi.Cvar("game_date", __DATE__, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
-	g_ammo_respawn_time = gi.Cvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds");
-	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO, "Automatically assigns players to teams");
-	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level");
-	g_chat_log = gi.Cvar("g_chat_log", "0", 0, NULL);
+	g_ammo_respawn_time = gi.Cvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO,
+			"Ammo respawn interval in seconds");
+	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO,
+			"Automatically assigns players to teams");
+	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO,
+			"The capture limit per level");
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
 	g_frag_limit = gi.Cvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level");
-	g_frag_log = gi.Cvar("g_frag_log", "0", 0, NULL);
 	g_friendly_fire = gi.Cvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Enables friendly fire");
-	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVER_INFO, "Selects deathmatch, arena, or instagib combat");
+	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVER_INFO,
+			"Selects deathmatch, arena, or instagib combat");
 	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
-	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
+	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO,
+			"Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
-	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");
+	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO,
+			"Message of the day, shown to clients on initial connect");
 	g_mysql = gi.Cvar("g_mysql", "0", 0, NULL);
 	g_mysql_db = gi.Cvar("g_mysql_db", "quake2world", 0, NULL);
 	g_mysql_host = gi.Cvar("g_mysql_host", "localhost", 0, NULL);
 	g_mysql_password = gi.Cvar("g_mysql_password", "", 0, NULL);
 	g_mysql_user = gi.Cvar("g_mysql_user", "quake2world", 0, NULL);
-	g_player_projectile = gi.Cvar("g_player_projectile", "1.0", CVAR_SERVER_INFO, "Scales player velocity to projectiles");
+	g_player_projectile = gi.Cvar("g_player_projectile", "1.0", CVAR_SERVER_INFO,
+			"Scales player velocity to projectiles");
 	g_random_map = gi.Cvar("g_random_map", "0", 0, "Enables map shuffling");
-	g_respawn_protection = gi.Cvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds");
-	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level");
-	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins");
+	g_respawn_protection = gi.Cvar("g_respawn_protection", "0.0", 0,
+			"Respawn protection in seconds");
+	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO,
+			"The number of rounds to run per level");
+	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO,
+			"Enables rounds-based play, where last player standing wins");
 	g_show_attacker_stats = gi.Cvar("g_show_attacker_stats", "1", CVAR_SERVER_INFO, NULL);
 	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "1", CVAR_SERVER_INFO, NULL);
-	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators");
+	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO,
+			"If enabled, spectators can only talk to other spectators");
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
-	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes");
+	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO,
+			"The time limit per level in minutes");
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
-	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
+	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO,
+			"Weapon respawn interval in seconds");
 
 	password = gi.Cvar("password", "", CVAR_USER_INFO, "The server password");
 
 	sv_max_clients = gi.Cvar("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	sv_hostname = gi.Cvar("sv_hostname", "Quake2World", CVAR_SERVER_INFO, NULL);
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
-
-	if (g_frag_log->value)
-		gi.OpenFile("frag_log.log", &frag_log, FILE_APPEND);
-
-	if (g_chat_log->value)
-		gi.OpenFile("chat_log.log", &chat_log, FILE_APPEND);
 
 #ifdef HAVE_MYSQL
 	if(g_mysql->value) { //init database
@@ -1194,11 +1192,9 @@ void G_Init(void) {
 
 	G_ParseMapList("maps.lst");
 
-	G_InitItems();
-
 	// initialize entities and clients for this game
-	g_game.edicts = gi.Malloc(g_max_entities->integer * sizeof(g_edict_t), TAG_GAME);
-	g_game.clients = gi.Malloc(sv_max_clients->integer * sizeof(g_client_t), TAG_GAME);
+	g_game.edicts = gi.Malloc(g_max_entities->integer * sizeof(g_edict_t), Z_TAG_GAME);
+	g_game.clients = gi.Malloc(sv_max_clients->integer * sizeof(g_client_t), Z_TAG_GAME);
 
 	ge.edicts = g_game.edicts;
 	ge.max_edicts = g_max_entities->integer;
@@ -1210,30 +1206,24 @@ void G_Init(void) {
 					= g_round_limit->modified = g_capture_limit->modified = g_time_limit->modified
 							= false;
 
-	gi.Print("  Game initialized.\n");
+	gi.Print("  Game initialized\n");
 }
 
 /*
- * @brief Frees tags and closes frag_log. This is called when the game is unloaded
+ * @brief Shuts down the game module. This is called when the game is unloaded
  * (complements G_Init).
  */
 void G_Shutdown(void) {
 
 	gi.Print("  Game shutdown...\n");
 
-	if (frag_log != NULL)
-		gi.CloseFile(frag_log); // close frag_log
-
-	if (chat_log != NULL)
-		gi.CloseFile(chat_log); // and chat_log
-
 #ifdef HAVE_MYSQL
 	if(mysql != NULL)
 	mysql_close(mysql); // and db
 #endif
 
-	gi.FreeTag(TAG_GAME_LEVEL);
-	gi.FreeTag(TAG_GAME);
+	gi.FreeTag(Z_TAG_GAME_LEVEL);
+	gi.FreeTag(Z_TAG_GAME);
 }
 
 /*

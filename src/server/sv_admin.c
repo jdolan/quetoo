@@ -37,7 +37,7 @@ static void Sv_SetMaster_f(void) {
 
 	// only dedicated servers send heartbeats
 	if (!dedicated->value) {
-		Com_Print("Only dedicated servers use masters.\n");
+		Com_Print("Only dedicated servers use masters\n");
 		return;
 	}
 
@@ -87,17 +87,15 @@ static void Sv_Heartbeat_f(void) {
 static bool Sv_SetPlayer(void) {
 	sv_client_t *cl;
 	int32_t i;
-	int32_t idnum;
-	char *s;
 
 	if (Cmd_Argc() < 2)
 		return false;
 
-	s = Cmd_Argv(1);
+	const char *s = Cmd_Argv(1);
 
 	// numeric values are just slot numbers
 	if (s[0] >= '0' && s[0] <= '9') {
-		idnum = atoi(Cmd_Argv(1));
+		const int32_t idnum = atoi(Cmd_Argv(1));
 		if (idnum < 0 || idnum >= sv_max_clients->integer) {
 			Com_Print("Bad client slot: %i\n", idnum);
 			return false;
@@ -163,7 +161,7 @@ static void Sv_Map_f(void) {
 static void Sv_Kick_f(void) {
 
 	if (!svs.initialized) {
-		Com_Print("No server running.\n");
+		Com_Print("No server running\n");
 		return;
 	}
 
@@ -188,7 +186,7 @@ static void Sv_Status_f(void) {
 	uint32_t ping;
 
 	if (!svs.initialized) {
-		Com_Print("No server running.\n");
+		Com_Print("No server running\n");
 		return;
 	}
 
@@ -232,41 +230,37 @@ static void Sv_Status_f(void) {
  * @brief
  */
 static void Sv_Say_f(void) {
-	sv_client_t *client;
 	int32_t j;
-	char *p;
-	char text[1024];
+	char text[MAX_STRING_CHARS];
 
 	if (Cmd_Argc() < 2)
 		return;
 
-	strcpy(text, "console^1:^7 ");
-	p = Cmd_Args();
-
+	const char *p = Cmd_Args() + strlen(Cmd_Argv(1)) + 1;
 	if (*p == '"') {
-		p++;
-		p[strlen(p) - 1] = 0;
+		g_strlcpy(text, p + 1, sizeof(text));
+		text[strlen(text) - 1] = '\0';
+	} else {
+		g_strlcpy(text, p, sizeof(text));
 	}
 
-	strcat(text, p);
-
-	for (j = 0, client = svs.clients; j < sv_max_clients->integer; j++, client++) {
+	const sv_client_t *client = svs.clients;
+	for (j = 0; j < sv_max_clients->integer; j++, client++) {
 
 		if (client->state != SV_CLIENT_ACTIVE)
 			continue;
 
-		Sv_ClientPrint(client->edict, PRINT_CHAT, "%s\n", text);
+		Sv_ClientPrint(client->edict, PRINT_CHAT, "console^1:^7 %s\n", text);
 	}
 
-	Com_Print("%s\n", text);
+	Com_Print("console^1:^7 %s\n", text);
 }
 
 /*
  * @brief
  */
 static void Sv_Tell_f(void) {
-	char text[1024];
-	char *p;
+	char text[MAX_STRING_CHARS];
 
 	if (Cmd_Argc() < 3)
 		return;
@@ -274,22 +268,19 @@ static void Sv_Tell_f(void) {
 	if (!Sv_SetPlayer())
 		return;
 
-	strcpy(text, "console^1:^7 ");
-	p = Cmd_Args();
-	p += strlen(Cmd_Argv(1)) + 1;
+	const char *p = Cmd_Args() + strlen(Cmd_Argv(1)) + 1;
 	if (*p == '"') {
-		p++;
-		p[strlen(p) - 1] = 0;
+		g_strlcpy(text, p + 1, sizeof(text));
+		text[strlen(text) - 1] = '\0';
+	} else {
+		g_strlcpy(text, p, sizeof(text));
 	}
-
-	strcat(text, p);
 
 	if (sv_client->state != SV_CLIENT_ACTIVE)
 		return;
 
-	Sv_ClientPrint(sv_client->edict, PRINT_CHAT, "%s\n", text);
-
-	Com_Print("%s\n", text);
+	Sv_ClientPrint(sv_client->edict, PRINT_CHAT, "console^1:^7 %s\n", text);
+	Com_Print("console^1:^7 %s\n", text);
 }
 
 /*
@@ -298,7 +289,7 @@ static void Sv_Tell_f(void) {
 static void Sv_ServerInfo_f(void) {
 
 	if (!svs.initialized) {
-		Com_Print("No server running.\n");
+		Com_Print("No server running\n");
 		return;
 	}
 
@@ -312,7 +303,7 @@ static void Sv_ServerInfo_f(void) {
 static void Sv_UserInfo_f(void) {
 
 	if (!svs.initialized) {
-		Com_Print("No server running.\n");
+		Com_Print("No server running\n");
 		return;
 	}
 
@@ -328,30 +319,30 @@ static void Sv_UserInfo_f(void) {
 }
 
 /*
- *  Force a client-side command. Only available for dedicated servers
+ * @brief Force a client-side command. Only available for dedicated servers.
  *  Ex: /stuff <clientid/name> command args
  */
 static void Sv_Stuff_f(void) {
-        char text[1024];
+	char text[MAX_STRING_CHARS];
+	int32_t i;
 
-        if (Cmd_Argc() < 3)
-                return;
+	if (Cmd_Argc() < 3)
+		return;
 
-        if (!Sv_SetPlayer())
-                return;
+	if (!Sv_SetPlayer())
+		return;
 
-        if (sv_client->state != SV_CLIENT_ACTIVE)
-                return;
+	if (sv_client->state != SV_CLIENT_ACTIVE)
+		return;
 
-        strcpy(text, Cmd_Argv(2));
-        for (int i=3; i<=Cmd_Argc(); i++)
-        {
-                strcat(text, " ");
-                strcat(text, Cmd_Argv(i));
-        }
+	strcpy(text, Cmd_Argv(2));
+	for (i = 3; i <= Cmd_Argc(); i++) {
+		g_strlcat(text, " ", sizeof(text));
+		g_strlcat(text, Cmd_Argv(i), sizeof(text));
+	}
 
-        Msg_WriteByte(&sv_client->netchan.message, SV_CMD_CBUF_TEXT);
-        Msg_WriteString(&sv_client->netchan.message, va("%s\n", text));
+	Msg_WriteByte(&sv_client->netchan.message, SV_CMD_CBUF_TEXT);
+	Msg_WriteString(&sv_client->netchan.message, va("%s\n", text));
 }
 
 /*
@@ -373,7 +364,7 @@ void Sv_InitCommands(void) {
 	if (dedicated->value) {
 		Cmd_AddCommand("say", Sv_Say_f, 0, "Send a global chat message");
 		Cmd_AddCommand("tell", Sv_Tell_f, 0, "Send a private chat message");
-		Cmd_AddCommand("stuff", Sv_Stuff_f, 0, "Force a client to perform a command");
+		Cmd_AddCommand("stuff", Sv_Stuff_f, 0, "Force a client to execute a command");
 	}
 }
 

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "mem.h"
+#include "cvar.h"
 #include "threads.h"
 
 typedef struct thread_pool_s {
@@ -42,9 +42,9 @@ static int32_t Thread_Run(void *data) {
 	while (thread_pool.mutex) {
 		SDL_mutexP(t->mutex);
 		if (t->status == THREAD_RUNNING) {
-			t->function(t->data);
+			t->run(t->data);
 
-			t->function = NULL;
+			t->run = NULL;
 			t->data = NULL;
 
 			t->status = THREAD_WAIT;
@@ -110,7 +110,7 @@ static void Thread_Shutdown_(void) {
  * @brief Creates a new thread to run the specified function. Callers must use
  * Thread_Wait on the returned handle to release the thread when finished.
  */
-thread_t *Thread_Create_(const char *name, void( function)(void *data), void *data) {
+thread_t *Thread_Create_(const char *name, thread_function_t run, void *data) {
 
 	// update the thread pool if needed
 	if (threads->modified) {
@@ -130,9 +130,9 @@ thread_t *Thread_Create_(const char *name, void( function)(void *data), void *da
 		for (i = 0; i < thread_pool.num_threads; i++, t++) {
 			if (t->status == THREAD_IDLE) {
 				SDL_mutexP(t->mutex);
-				strncpy(t->name, name, sizeof(t->name));
+				g_strlcpy(t->name, name, sizeof(t->name));
 
-				t->function = function;
+				t->run = run;
 				t->data = data;
 
 				t->status = THREAD_RUNNING;
@@ -150,7 +150,7 @@ thread_t *Thread_Create_(const char *name, void( function)(void *data), void *da
 		if (thread_pool.num_threads) {
 			Com_Debug("Thread_Create_: No threads available for %s\n", name);
 		}
-		function(data);
+		run(data);
 	}
 
 	return t;
@@ -172,7 +172,7 @@ void Thread_Wait(thread_t **t) {
 }
 
 /*
- * @brief
+ * @brief Initializes the thread pool.
  */
 void Thread_Init(void) {
 
@@ -187,7 +187,7 @@ void Thread_Init(void) {
 }
 
 /*
- * @brief
+ * @brief Shuts down the thread pool.
  */
 void Thread_Shutdown(void) {
 

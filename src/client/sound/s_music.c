@@ -22,202 +22,171 @@
 #include "s_local.h"
 #include "client.h"
 
-cvar_t *s_music_volume;
+typedef struct s_music_state_s {
+	s_music_t *default_music;
+	s_music_t *current_music;
+	GList *playlist;
+} s_music_state_t;
 
-static s_music_t default_music;
-
-static const char *MUSIC_TYPES[] = { ".ogg", NULL };
-
-extern cl_client_t cl;
-extern cl_static_t cls;
+static s_music_state_t s_music_state;
 
 /*
- * @brief
+ * @brief Retain event listener for s_music_t.
  */
-static s_music_t *S_LoadMusic(const char *name) {
-	void *buf;
-	int32_t i, len;
-	SDL_RWops *rw;
-	static s_music_t music;
+static bool S_RetainMusic(s_media_t *self) {
+	s_music_t *music = (s_music_t *) self;
 
-	memset(&music, 0, sizeof(music));
-
-	buf = NULL;
-	rw = NULL;
-
-	snprintf(music.name, sizeof(music.name), "music/%s", name);
-
-	i = 0;
-	while (MUSIC_TYPES[i]) {
-
-		StripExtension(music.name, music.name);
-		strcat(music.name, MUSIC_TYPES[i++]);
-
-		if ((len = Fs_LoadFile(music.name, &buf)) == -1)
-			continue;
-
-		if (!(rw = SDL_RWFromMem(buf, len))) {
-			Fs_FreeFile(buf);
-			continue;
-		}
-
-		if (!(music.music = Mix_LoadMUS_RW(rw))) {
-			Com_Warn("S_LoadMusic: %s.\n", Mix_GetError());
-
-			SDL_FreeRW(rw);
-
-			Fs_FreeFile(buf);
-			continue;
-		}
-
-		music.buffer = buf;
-
-		return &music;
-	}
-
-	// warn of failures to load non-default tracks
-	if (strncmp(name, "track", 5)) {
-		Com_Warn("S_LoadMusic: Failed to load %s.\n", name);
-	}
-
-	return NULL;
+	return GlobMatch("track*", music->media.name);
 }
 
 /*
- * @brief
+ * @brief Free event listener for s_music_t.
  */
-static void S_FreeMusic(s_music_t *music) {
+static void S_FreeMusic(s_media_t *self) {
+	s_music_t *music = (s_music_t *) self;
 
-	if (!music)
-		return;
-
-	if (music->music)
+	if (music->music) {
 		Mix_FreeMusic(music->music);
-
-	if (music->buffer)
-		Fs_FreeFile(music->buffer);
+	}
+	if (music->rw) {
+		SDL_FreeRW(music->rw);
+	}
+	if (music->buffer) {
+		Fs_Free(music->buffer);
+	}
 }
 
 /*
- * @brief
+ * @brief Handles the actual loading of .ogg music files.
  */
-static void S_FreeMusics(void) {
-	int32_t i;
+static bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mix_Music **music) {
+	char path[MAX_QPATH];
 
-	for (i = 0; i < MAX_MUSICS; i++)
-		S_FreeMusic(&s_env.musics[i]);
+	*music = NULL;
 
-	memset(s_env.musics, 0, sizeof(s_env.musics));
-	s_env.num_musics = 0;
+	StripExtension(name, path);
+	g_snprintf(path, sizeof(path), "music/%s.ogg", name);
 
-	s_env.active_music = NULL;
-}
+	int32_t len;
+	if ((len = Fs_Load(path, buffer)) != -1) {
 
-/*
- * @brief
- */
-void S_LoadMusics(void) {
-	char temp[MAX_QPATH];
-	s_music_t *music;
-	int32_t i;
+		if ((*rw = SDL_RWFromMem(*buffer, len))) {
 
-	S_FreeMusics();
-
-	// if no music is provided, use the default tracks
-	if (!cl.config_strings[CS_MUSICS + 1][0]) {
-		// fill in the list of music with valid values
-		for(i = 1; i < MAX_MUSICS + 1; i++) {
-			char *s = cl.config_strings[CS_MUSICS + i];
-			sprintf(s, "track%d", i);
+			if ((*music = Mix_LoadMUS_RW(*rw))) {
+				Com_Debug("Loaded %s\n", name);
+			} else {
+				Com_Warn("Failed to load %s: %s\n", name, Mix_GetError());
+				SDL_FreeRW(*rw);
+			}
+		} else {
+			Com_Warn("Failed to create SDL_RWops for %s\n", name);
+			Fs_Free(*buffer);
 		}
-
-		// shuffle the order of the default tracks to keep it fresh
-		for (i  = 1; i < MAX_MUSICS + 1; i++) {
-			const int32_t j = Random() % MAX_MUSICS + 1;
-			strncpy(temp, cl.config_strings[CS_MUSICS + i], MAX_QPATH);
-			strncpy(cl.config_strings[CS_MUSICS + i], cl.config_strings[CS_MUSICS + j], MAX_QPATH);
-			strncpy(cl.config_strings[CS_MUSICS + j], temp, MAX_QPATH);
-
-		}
-
+	} else {
+		Com_Debug("Failed to load %s\n", name);
 	}
 
-	for (i = 1; i < MAX_MUSICS + 1; i++) {
-
-		if (!cl.config_strings[CS_MUSICS + i][0])
-			break;
-
-		if (!(music = S_LoadMusic(cl.config_strings[CS_MUSICS + i])))
-			continue;
-
-		memcpy(&s_env.musics[s_env.num_musics++], music, sizeof(s_music_t));
-
-		Com_Debug("Loaded music %s\n", music->name);
-	}
-
-	Com_Print("Loaded %d tracks\n", s_env.num_musics);
+	return *music != NULL;
 }
 
 /*
- * @brief
+ * @brief Clears the musics playlist so that it may be rebuilt.
  */
-static void S_StopMusic(void) {
+void S_FlushPlaylist(void) {
 
-	Mix_HaltMusic();
+	g_list_free(s_music_state.playlist);
 
-	s_env.active_music = NULL;
+	s_music_state.playlist = NULL;
 }
 
 /*
- * @brief
+ * @brief Loads the music by the specified name.
  */
-static void S_PlayMusic(s_music_t *music) {
-
-	Mix_PlayMusic(music->music, 1);
-
-	s_env.active_music = music;
-}
-
-/*
- * @brief
- */
-static s_music_t *S_NextMusic(void) {
+s_music_t *S_LoadMusic(const char *name) {
+	char key[MAX_QPATH];
 	s_music_t *music;
 
-	music = &default_music;
+	StripExtension(name, key);
 
-	if (s_env.num_musics) { // select a new track
-		int32_t i;
+	if (!(music = (s_music_t *) S_FindMedia(key))) {
 
-		for (i = 0; i < MAX_MUSICS; i++) {
-			if (s_env.active_music == &s_env.musics[i])
-				break;
+		void *buffer;
+		SDL_RWops *rw;
+		Mix_Music *mus;
+		if (S_LoadMusicFile(key, &buffer, &rw, &mus)) {
+
+			music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t));
+
+			music->media.Retain = S_RetainMusic;
+			music->media.Free = S_FreeMusic;
+
+			music->buffer = buffer;
+			music->rw = rw;
+			music->music = mus;
+
+			s_music_state.playlist = g_list_append(s_music_state.playlist, music);
+
+			S_RegisterMedia((s_media_t *) music);
+		} else {
+			Com_Debug("S_LoadMusic: Couldn't load %s\n", key);
+			music = NULL;
 		}
-
-		if (i < MAX_MUSICS)
-			i++;
-		else
-			i = 0;
-
-		music = &s_env.musics[i % s_env.num_musics];
 	}
 
 	return music;
 }
 
 /*
- * @brief
+ * @brief Stops music playback.
+ */
+static void S_StopMusic(void) {
+
+	Mix_HaltMusic();
+
+	s_music_state.current_music = NULL;
+}
+
+/*
+ * @brief Begins playback of the specified s_music_t.
+ */
+static void S_PlayMusic(s_music_t *music) {
+
+	Mix_PlayMusic(music->music, 1);
+
+	s_music_state.current_music = music;
+}
+
+/*
+ * @brief Returns the next track in the configured playlist.
+ */
+static s_music_t *S_NextMusic(void) {
+	GList *elt;
+
+	if (g_list_length(s_music_state.playlist)) {
+
+		if ((elt = g_list_find(s_music_state.playlist, s_music_state.current_music))) {
+
+			if (elt->next) {
+				return (s_music_t *) elt->next->data;
+			}
+		}
+
+		return g_list_nth_data(s_music_state.playlist, 0);
+	}
+
+	return s_music_state.default_music;
+}
+
+/*
+ * @brief Ensures music playback continues by selecting a new track when one
+ * completes.
  */
 void S_FrameMusic(void) {
-	s_music_t *music;
+	extern cl_static_t cls;
+	static cl_state_t s = CL_UNINITIALIZED;
 
 	if (s_music_volume->modified) {
-
-		if (s_music_volume->value > 1.0)
-			s_music_volume->value = 1.0;
-
-		if (s_music_volume->value < 0.0)
-			s_music_volume->value = 0.0;
+		s_music_volume->value = Clamp(s_music_volume->value, 0.0, 1.0);
 
 		if (s_music_volume->value)
 			Mix_VolumeMusic(s_music_volume->value * 255);
@@ -228,62 +197,45 @@ void S_FrameMusic(void) {
 	if (!s_music_volume->value)
 		return;
 
-	music = &default_music;
-
-	if (cls.state == CL_ACTIVE) { // try level-specific music
-
-		if (!Mix_PlayingMusic() || (s_env.active_music == &default_music)) {
-
-			if ((music = S_NextMusic()) != s_env.active_music)
-				S_StopMusic();
-		}
-	} else { // select the default music
-
-		if (s_env.active_music != &default_music)
-			S_StopMusic();
+	// revert to the default music when the client disconnects
+	if (s == CL_ACTIVE && cls.state != CL_ACTIVE) {
+		S_FlushPlaylist();
+		S_StopMusic();
 	}
 
-	if (!Mix_PlayingMusic()) // play it
-		S_PlayMusic(music);
+	s = cls.state;
+
+	if (!Mix_PlayingMusic())
+		S_NextTrack_f();
 }
 
 /*
- * @brief
+ * @brief Plays the next track in the configured playlist.
  */
-static void S_NextTrack_f(void) {
+void S_NextTrack_f(void) {
+	s_music_t *music = S_NextMusic();
 
-	S_PlayMusic(S_NextMusic());
+	if (music) {
+		S_PlayMusic(music);
+	} else {
+		Com_Debug("No music available\n");
+	}
 }
 
 /*
- * @brief
+ * @brief Initializes the music state, loading the default track.
  */
 void S_InitMusic(void) {
-	s_music_t *music;
 
-	s_music_volume = Cvar_Get("s_music_volume", "0.25", CVAR_ARCHIVE,
-			"Music volume level.");
+	memset(&s_music_state, 0, sizeof(s_music_state));
 
-	Cmd_AddCommand("s_next_track", S_NextTrack_f, 0, "Play the next music track.");
-
-	S_FreeMusics();
-
-	memset(&default_music, 0, sizeof(default_music));
-
-	music = S_LoadMusic("default");
-
-	if (music)
-		memcpy(&default_music, music, sizeof(default_music));
+	s_music_state.default_music = S_LoadMusic("track3");
 }
 
 /*
- * @brief
+ * @brief Shuts down music playback.
  */
 void S_ShutdownMusic(void) {
 
 	S_StopMusic();
-
-	S_FreeMusics();
-
-	S_FreeMusic(&default_music);
 }

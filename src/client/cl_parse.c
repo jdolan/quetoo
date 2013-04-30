@@ -38,42 +38,32 @@ static char *sv_cmd_names[256] = {
  * @brief Returns true if the file exists, otherwise it attempts to start a download
  * from the server.
  */
-bool Cl_CheckOrDownloadFile(const char *file_name) {
-	FILE *fp;
-	char name[MAX_OSPATH];
+bool Cl_CheckOrDownloadFile(const char *filename) {
 	char cmd[MAX_STRING_CHARS];
 
 	if (cls.state == CL_DISCONNECTED) {
-		Com_Print("Not connected.\n");
+		Com_Print("Not connected\n");
 		return true;
 	}
 
-	if (file_name[0] == '/') {
-		Com_Warn("Refusing to download a path starting with /.\n");
-		return true;
-	}
-	if (strstr(file_name, "..")) {
-		Com_Warn("Refusing to download a path with .. .\n");
-		return true;
-	}
-	if (strchr(file_name, ' ')) {
-		Com_Warn("Refusing to download a path with whitespace.\n");
+	if (IS_INVALID_DOWNLOAD(filename)) {
+		Com_Warn("Refusing to download \"%s\"\n", filename);
 		return true;
 	}
 
-	Com_Debug("Checking for %s\n", file_name);
+	Com_Debug("Checking for %s\n", filename);
 
-	if (Fs_LoadFile(file_name, NULL) != -1) { // it exists, no need to download
+	if (Fs_Exists(filename)) { // it exists, no need to download
 		return true;
 	}
 
-	Com_Debug("Attempting to download %s\n", file_name);
+	Com_Debug("Attempting to download %s\n", filename);
 
-	strcpy(cls.download.name, file_name);
+	strncpy(cls.download.name, filename, sizeof(cls.download.name));
 
 	// udp downloads to a temp name, and only renames when done
 	StripExtension(cls.download.name, cls.download.tempname);
-	strcat(cls.download.tempname, ".tmp");
+	g_strlcat(cls.download.tempname, ".tmp", sizeof(cls.download.tempname));
 
 	// attempt an http download if available
 	if (cls.download_url[0] && Cl_HttpDownload())
@@ -81,30 +71,31 @@ bool Cl_CheckOrDownloadFile(const char *file_name) {
 
 	// check to see if we already have a tmp for this file, if so, try to resume
 	// open the file if not opened yet
-	snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), cls.download.tempname);
 
-	fp = fopen(name, "r+b");
-	if (fp) { // a temp file exists, resume download
-		int32_t len;
-		fseek(fp, 0, SEEK_END);
-		len = ftell(fp);
+	if (Fs_Exists(cls.download.tempname)) { // a temp file exists, resume download
+		int64_t len = Fs_Load(cls.download.tempname, NULL);
 
-		cls.download.file = fp;
+		if((cls.download.file = Fs_OpenAppend(cls.download.tempname))) {
 
-		// give the server the offset to start the download
-		Com_Debug("Resuming %s...\n", cls.download.name);
+			if (Fs_Seek(cls.download.file, len - 1)) {
+				// give the server the offset to start the download
+				Com_Debug("Resuming %s...\n", cls.download.name);
 
-		snprintf(cmd, sizeof(cmd), "download %s %i", cls.download.name, len);
-		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
-		Msg_WriteString(&cls.netchan.message, cmd);
-	} else {
-		// or start if from the beginning
-		Com_Debug("Downloading %s...\n", cls.download.name);
+				g_snprintf(cmd, sizeof(cmd), "download %s %u", cls.download.name, (uint32_t) len);
+				Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
+				Msg_WriteString(&cls.netchan.message, cmd);
 
-		snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
-		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
-		Msg_WriteString(&cls.netchan.message, cmd);
+				return false;
+			}
+		}
 	}
+
+	// or start if from the beginning
+	Com_Debug("Downloading %s...\n", cls.download.name);
+
+	g_snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
+	Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
+	Msg_WriteString(&cls.netchan.message, cmd);
 
 	return false;
 }
@@ -120,6 +111,24 @@ void Cl_Download_f(void) {
 	}
 
 	Cl_CheckOrDownloadFile(Cmd_Argv(1));
+}
+
+/*
+ * @brief The server sends this command just after server_data. Hang onto the spawn
+ * count and check for the media we'll need to enter the game.
+ */
+void Cl_Precache_f(void) {
+
+	if (Cmd_Argc() != 2) {
+		Com_Print("Usage: %s <spawn_count>\n", Cmd_Argv(0));
+		return;
+	}
+
+	cls.spawn_count = strtoul(Cmd_Argv(1), NULL, 0);
+
+	cl.precache_check = CS_ZIP;
+
+	Cl_RequestNextDownload();
 }
 
 /*
@@ -145,15 +154,15 @@ void Cl_ParseConfigString(void) {
 	const uint16_t i = (uint16_t) Msg_ReadShort(&net_message);
 
 	if (i >= MAX_CONFIG_STRINGS) {
-		Com_Error(ERR_DROP, "Cl_ParseConfigString: Invalid index %i.\n", i);
+		Com_Error(ERR_DROP, "Invalid index %i\n", i);
 	}
 
 	strcpy(cl.config_strings[i], Msg_ReadString(&net_message));
 	const char *s = cl.config_strings[i];
 
-	if (i >= CS_MODELS && i < CS_MODELS + MAX_MODELS) {
+	if (i > CS_MODELS && i < CS_MODELS + MAX_MODELS) {
 		if (cls.state == CL_ACTIVE) {
-			cl.model_draw[i - CS_MODELS] = R_LoadModel(s);
+			cl.model_precache[i - CS_MODELS] = R_LoadModel(s);
 			if (cl.config_strings[i][0] == '*') {
 				cl.model_clip[i - CS_MODELS] = Cm_Model(s);
 			} else {
@@ -166,7 +175,7 @@ void Cl_ParseConfigString(void) {
 		}
 	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
 		if (cls.state == CL_ACTIVE) {
-			cl.image_precache[i - CS_IMAGES] = R_LoadPic(s);
+			cl.image_precache[i - CS_IMAGES] = R_LoadImage(s, IT_PIC);
 		}
 	}
 
@@ -178,16 +187,15 @@ void Cl_ParseConfigString(void) {
  */
 static void Cl_ParseDownload(void) {
 	int32_t size, percent;
-	char name[MAX_OSPATH];
 
 	// read the data
 	size = Msg_ReadShort(&net_message);
 	percent = Msg_ReadByte(&net_message);
 	if (size < 0) {
-		Com_Debug("Server does not have this file.\n");
+		Com_Debug("Server does not have this file\n");
 		if (cls.download.file) {
 			// if here, we tried to resume a file but the server said no
-			Fs_CloseFile(cls.download.file);
+			Fs_Close(cls.download.file);
 			cls.download.file = NULL;
 		}
 		Cl_RequestNextDownload();
@@ -196,19 +204,16 @@ static void Cl_ParseDownload(void) {
 
 	// open the file if not opened yet
 	if (!cls.download.file) {
-		snprintf(name, sizeof(name), "%s/%s", Fs_Gamedir(), cls.download.tempname);
 
-		Fs_CreatePath(name);
-
-		if (!(cls.download.file = fopen(name, "wb"))) {
+		if (!(cls.download.file = Fs_OpenWrite(cls.download.tempname))) {
 			net_message.read += size;
-			Com_Warn("Failed to open %s.\n", name);
+			Com_Warn("Failed to open %s\n", cls.download.tempname);
 			Cl_RequestNextDownload();
 			return;
 		}
 	}
 
-	Fs_Write(net_message.data + net_message.read, 1, size, cls.download.file);
+	Fs_Write(cls.download.file, net_message.data + net_message.read, 1, size);
 
 	net_message.read += size;
 
@@ -216,22 +221,17 @@ static void Cl_ParseDownload(void) {
 		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 		Sb_Print(&cls.netchan.message, "nextdl");
 	} else {
-		char oldn[MAX_OSPATH];
-		char newn[MAX_OSPATH];
-
-		Fs_CloseFile(cls.download.file);
-
-		// rename the temp file to it's final name
-		snprintf(oldn, sizeof(oldn), "%s/%s", Fs_Gamedir(), cls.download.tempname);
-		snprintf(newn, sizeof(newn), "%s/%s", Fs_Gamedir(), cls.download.name);
-
-		if (rename(oldn, newn))
-			Com_Warn("Failed to rename %s to %s.\n", oldn, newn);
-
+		Fs_Close(cls.download.file);
 		cls.download.file = NULL;
 
-		if (strstr(newn, ".pak")) // append paks to searchpaths
-			Fs_AddPakfile(newn);
+		// add new archives to the search path
+		if (Fs_Rename(cls.download.tempname, cls.download.name)) {
+			if (strstr(cls.download.name, ".zip")) {
+				Fs_AddToSearchPath(cls.download.name);
+			}
+		} else {
+			Com_Error(ERR_DROP, "Failed to rename %s\n", cls.download.name);
+		}
 
 		// get another file if needed
 		Cl_RequestNextDownload();
@@ -256,7 +256,7 @@ static void Cl_ParseServerData(void) {
 
 	// ensure protocol matches
 	if (i != PROTOCOL) {
-		Com_Error(ERR_DROP, "Cl_ParseServerData: Server is using unknown protocol %d.\n", i);
+		Com_Error(ERR_DROP, "Server is using unknown protocol %d\n", i);
 	}
 
 	// retrieve spawn count and packet rate
@@ -299,7 +299,7 @@ static void Cl_ParseSound(void) {
 	flags = Msg_ReadByte(&net_message);
 
 	if ((index = Msg_ReadByte(&net_message)) > MAX_SOUNDS)
-		Com_Error(ERR_DROP, "Cl_ParseSound: %d > MAX_SOUNDS.\n", index);
+		Com_Error(ERR_DROP, "Bad index (%d)\n", index);
 
 	if (flags & S_ATTEN)
 		atten = Msg_ReadByte(&net_message);
@@ -310,7 +310,7 @@ static void Cl_ParseSound(void) {
 		ent_num = Msg_ReadShort(&net_message);
 
 		if (ent_num > MAX_EDICTS)
-			Com_Error(ERR_DROP, "Cl_ParseSound: ent_num = %d.\n", ent_num);
+			Com_Error(ERR_DROP, "Bad entity number (%d)\n", ent_num);
 	} else {
 		ent_num = 0;
 	}
@@ -364,7 +364,7 @@ void Cl_ParseServerMessage(void) {
 	int32_t i;
 
 	if (cl_show_net_messages->integer == 1)
-		Com_Print(Q2W_SIZE_T" ", net_message.size);
+		Com_Print("%zu ", net_message.size);
 	else if (cl_show_net_messages->integer >= 2)
 		Com_Print("------------------\n");
 
@@ -374,7 +374,7 @@ void Cl_ParseServerMessage(void) {
 	// parse the message
 	while (true) {
 		if (net_message.read > net_message.size) {
-			Com_Error(ERR_DROP, "Cl_ParseServerMessage: Bad server message.\n");
+			Com_Error(ERR_DROP, "Bad server message\n");
 		}
 
 		old_cmd = cmd;
@@ -404,7 +404,7 @@ void Cl_ParseServerMessage(void) {
 			break;
 
 		case SV_CMD_DISCONNECT:
-			Com_Error(ERR_DROP, "Server disconnected.\n");
+			Com_Error(ERR_DROP, "Server disconnected\n");
 			break;
 
 		case SV_CMD_DOWNLOAD:
@@ -437,10 +437,11 @@ void Cl_ParseServerMessage(void) {
 			// stop download
 			if (cls.download.file) {
 				if (cls.download.http) // clean up http downloads
-					Cl_HttpDownloadCleanup();
+					Cl_HttpDownload_Complete();
 				else
 					// or just stop legacy ones
-					Fs_CloseFile(cls.download.file);
+					Fs_Close(cls.download.file);
+				cls.download.name[0] = '\0';
 				cls.download.file = NULL;
 			}
 			cls.state = CL_CONNECTING;
@@ -458,8 +459,8 @@ void Cl_ParseServerMessage(void) {
 		default:
 			// delegate to the client game module before failing
 			if (!cls.cgame->ParseMessage(cmd)) {
-				Com_Error(ERR_DROP, "Cl_ParseServerMessage: Illegible server message:\n"
-					"  %d: last command was %s\n", cmd, sv_cmd_names[old_cmd]);
+				Com_Error(ERR_DROP, "Illegible server message:\n"
+					" %d: last command was %s\n", cmd, sv_cmd_names[old_cmd]);
 			}
 			break;
 		}

@@ -28,9 +28,6 @@
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
 extern cvar_t *r_bumpmap;
-extern cvar_t *r_capture;
-extern cvar_t *r_capture_fps;
-extern cvar_t *r_capture_quality;
 extern cvar_t *r_contrast;
 extern cvar_t *r_coronas;
 extern cvar_t *r_draw_buffer;
@@ -40,7 +37,6 @@ extern cvar_t *r_fullscreen;
 extern cvar_t *r_gamma;
 extern cvar_t *r_hardness;
 extern cvar_t *r_height;
-extern cvar_t *r_hunk_mb;
 extern cvar_t *r_invert;
 extern cvar_t *r_lightmap_block_size;
 extern cvar_t *r_lighting;
@@ -55,10 +51,8 @@ extern cvar_t *r_parallax;
 extern cvar_t *r_programs;
 extern cvar_t *r_render_mode;
 extern cvar_t *r_saturation;
-extern cvar_t *r_screenshot_type;
 extern cvar_t *r_screenshot_quality;
 extern cvar_t *r_shadows;
-extern cvar_t *r_soften;
 extern cvar_t *r_specular;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_texture_mode;
@@ -72,10 +66,10 @@ extern r_view_t r_view;
 
 void R_Init(void);
 void R_Shutdown(void);
+void R_LoadMedia(void);
 void R_BeginFrame(void);
 void R_DrawView(void);
 void R_EndFrame(void);
-void R_LoadMedia(void);
 
 #if defined(__R_LOCAL_H__) || defined(__ECLIPSE__)
 
@@ -86,9 +80,6 @@ typedef struct r_config_s {
 	const char *version_string;
 	const char *extensions_string;
 
-	bool vbo;
-	bool shaders;
-
 	int32_t max_texunits;
 	int32_t max_teximage_units;
 }r_config_t;
@@ -97,15 +88,6 @@ extern r_config_t r_config;
 
 // private renderer structure
 typedef struct r_locals_s {
-
-	vec3_t ambient_light; // from worldspawn entity
-
-	float sun_light;
-	vec3_t sun_color;
-
-	float brightness;
-	float saturation;
-	float contrast;
 
 	int16_t cluster; // visibility cluster at origin
 	int16_t old_cluster;
@@ -140,14 +122,15 @@ extern cvar_t *r_draw_wireframe;
 
 void R_SortElements(r_element_t *elements, size_t len);
 void R_UpdateFrustum(void);
+void R_InitView(void);
 
 // render mode function pointers
-extern void (*R_DrawOpaqueSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawOpaqueWarpSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawAlphaTestSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBlendSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBlendWarpSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBackSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawOpaqueBspSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawOpaqueWarpBspSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawAlphaTestBspSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawBlendBspSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawBlendWarpBspSurfaces)(const r_bsp_surfaces_t *surfs);
+extern void (*R_DrawBackBspSurfaces)(const r_bsp_surfaces_t *surfs);
 extern void (*R_DrawMeshModel)(const r_entity_t *e);
 
 #endif /* __R_LOCAL_H__ */

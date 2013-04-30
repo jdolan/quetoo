@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_SYSTEM_H__
-#define __UI_SYSTEM_H__
+#ifndef __UI_CREDITS_H__
+#define __UI_CREDITS_H__
 
 #include "ui_types.h"
 
@@ -28,4 +28,4 @@
 TwBar *Ui_Credits(void);
 #endif /* __UI_LOCAL_H__ */
 
-#endif /* __UI_SYSTEM_H__ */
+#endif /* __UI_CREDITS_H__ */

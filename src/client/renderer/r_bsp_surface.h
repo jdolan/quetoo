@@ -19,17 +19,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_SURFACE_PRO_H__
-#define __R_SURFACE_PRO_H__
+#ifndef __R_BSP_SURFACE_H__
+#define __R_BSP_SURFACE_H__
 
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_DrawOpaqueSurfaces_pro(const r_bsp_surfaces_t *surfs);
-void R_DrawAlphaTestSurfaces_pro(const r_bsp_surfaces_t *surfs);
-void R_DrawBlendSurfaces_pro(const r_bsp_surfaces_t *surfs);
-void R_DrawBackSurfaces_pro(const r_bsp_surfaces_t *surfs);
+void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawOpaqueWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs);
+void R_DrawBackBspSurfaces_default(const r_bsp_surfaces_t *surfs);
 #endif /* __R_LOCAL_H__ */
 
-#endif /* __R_SURFACE_PRO_H__ */
+#endif /* __R_BSP_SURFACE_H__ */
 

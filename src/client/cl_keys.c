@@ -25,7 +25,7 @@
 
 static cl_key_state_t *ks = &cls.key_state;
 
-static char *cl_key_names[SDLK_MLAST];
+static char **cl_key_names;
 
 /*
  * @brief Execute any system-level binds, regardless of key state. This enables e.g.
@@ -124,7 +124,7 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 	if (key == SDLK_TAB) { // command completion
 		// ignore the leading bracket in the input string
 		ks->pos--;
-		Con_CompleteCommand(ks->lines[ks->edit_line] + 1, &ks->pos);
+		Con_CompleteCommand(ks->lines[ks->edit_line] + 1, &ks->pos, KEY_LINE_SIZE - 1);
 		ks->pos++;
 		return;
 	}
@@ -212,17 +212,17 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 		return;
 	}
 
-	if (key == SDLK_PAGEUP || key == SDLK_MOUSE4) {
-		cl_con.scroll += CON_SCROLL;
-		if (cl_con.scroll > cl_con.last_line)
-			cl_con.scroll = cl_con.last_line;
+	if (key == SDLK_PAGEUP || key == (SDLKey) SDLK_MOUSE4) {
+		cl_console.scroll += CON_SCROLL;
+		if (cl_console.scroll > cl_console.last_line)
+			cl_console.scroll = cl_console.last_line;
 		return;
 	}
 
-	if (key == SDLK_PAGEDOWN || key == SDLK_MOUSE5) {
-		cl_con.scroll -= CON_SCROLL;
-		if (cl_con.scroll < 0)
-			cl_con.scroll = 0;
+	if (key == SDLK_PAGEDOWN || key == (SDLKey) SDLK_MOUSE5) {
+		cl_console.scroll -= CON_SCROLL;
+		if (cl_console.scroll < 0)
+			cl_console.scroll = 0;
 		return;
 	}
 
@@ -234,7 +234,7 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 
 	if (key == SDLK_HOME) { // go to the start of line
 		if (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL]) // go to the start of the console
-			cl_con.scroll = cl_con.last_line;
+			cl_console.scroll = cl_console.last_line;
 		else
 			ks->pos = 1;
 		return;
@@ -248,7 +248,7 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 
 	if (key == SDLK_END) { // go to the end of line
 		if (ks->down[SDLK_LCTRL] || ks->down[SDLK_RCTRL]) // go to the end of the console
-			cl_con.scroll = 0;
+			cl_console.scroll = 0;
 		else
 			ks->pos = strlen(ks->lines[ks->edit_line]);
 		return;
@@ -283,22 +283,21 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
  */
 static void Cl_KeyGame(SDLKey key, uint16_t unicode __attribute__((unused)), bool down, uint32_t time) {
 	char cmd[MAX_STRING_CHARS];
-	char *kb;
 
-	if (!ks->binds[key])
+	const char *kb = ks->binds[key];
+	if (!kb)
 		return;
 
-	memset(cmd, 0, sizeof(cmd));
-	kb = ks->binds[key];
+	cmd[0] = '\0';
 
 	if (kb[0] == '+') { // button commands add key and time as a param
 		if (down)
-			snprintf(cmd, sizeof(cmd), "%s %i %i\n", kb, key, time);
+			g_snprintf(cmd, sizeof(cmd), "%s %i %i\n", kb, key, time);
 		else
-			snprintf(cmd, sizeof(cmd), "-%s %i %i\n", kb + 1, key, time);
+			g_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", kb + 1, key, time);
 	} else {
 		if (down) {
-			snprintf(cmd, sizeof(cmd), "%s\n", kb);
+			g_snprintf(cmd, sizeof(cmd), "%s\n", kb);
 		}
 	}
 
@@ -354,7 +353,7 @@ static void Cl_KeyMessage(SDLKey key, uint16_t unicode, bool down, uint32_t time
  */
 const char *Cl_KeyName(SDLKey key) {
 
-	if (key == SDLK_UNKNOWN || key >= SDLK_MLAST) {
+	if (key == SDLK_UNKNOWN || key >= (SDLKey) SDLK_MLAST) {
 		return va("<unknown %d>", key);
 	}
 
@@ -368,9 +367,9 @@ SDLKey Cl_Key(const char *name) {
 	SDLKey i;
 
 	if (!name || !name[0])
-		return SDLK_MLAST;
+		return (SDLKey) SDLK_MLAST;
 
-	for (i = SDLK_FIRST; i < SDLK_MLAST; i++) {
+	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++) {
 		if (!strcasecmp(name, cl_key_names[i]))
 			return i;
 	}
@@ -383,7 +382,7 @@ SDLKey Cl_Key(const char *name) {
  */
 void Cl_Bind(SDLKey key, const char *binding) {
 
-	if (key == SDLK_UNKNOWN || key >= SDLK_MLAST)
+	if (key == SDLK_UNKNOWN || key >= (SDLKey) SDLK_MLAST)
 		return;
 
 	// free the old binding
@@ -393,7 +392,7 @@ void Cl_Bind(SDLKey key, const char *binding) {
 	}
 
 	// allocate for new binding and copy it in
-	ks->binds[key] = Z_Malloc(strlen(binding) + 1);
+	ks->binds[key] = Z_TagMalloc(strlen(binding) + 1, Z_TAG_CLIENT);
 	strcpy(ks->binds[key], binding);
 }
 
@@ -423,7 +422,7 @@ static void Cl_Unbind_f(void) {
 static void Cl_UnbindAll_f(void) {
 	SDLKey i;
 
-	for (i = SDLK_FIRST; i < SDLK_MLAST; i++)
+	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++)
 		if (ks->binds[i])
 			Cl_Bind(i, "");
 }
@@ -442,7 +441,7 @@ static void Cl_Bind_f(void) {
 
 	const SDLKey k = Cl_Key(Cmd_Argv(1));
 
-	if (k == SDLK_MLAST) {
+	if (k == (SDLKey) SDLK_MLAST) {
 		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
 		return;
 	}
@@ -475,12 +474,13 @@ static void Cl_Bind_f(void) {
 /*
  * @brief Writes lines containing "bind key value"
  */
-void Cl_WriteBindings(FILE *f) {
+void Cl_WriteBindings(file_t *f) {
 	SDLKey i;
 
-	for (i = SDLK_FIRST; i < SDLK_MLAST; i++)
+	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++) {
 		if (ks->binds[i] && ks->binds[i][0])
-			fprintf(f, "bind \"%s\" \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
+			Fs_Print(f, "bind \"%s\" \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
+	}
 }
 
 /*
@@ -489,7 +489,7 @@ void Cl_WriteBindings(FILE *f) {
 static void Cl_BindList_f(void) {
 	SDLKey i;
 
-	for (i = SDLK_FIRST; i < SDLK_MLAST; i++)
+	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++)
 		if (ks->binds[i] && ks->binds[i][0])
 			Com_Print("\"%s\" \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
 }
@@ -498,52 +498,45 @@ static void Cl_BindList_f(void) {
  * @brief
  */
 static void Cl_WriteHistory(void) {
-	FILE *f;
-	char path[MAX_OSPATH];
+	file_t *f;
 	uint32_t i;
 
-	snprintf(path, sizeof(path), "%s/history", Fs_Gamedir());
-	f = fopen(path, "w");
-	if (!f) {
-		Com_Warn("Couldn't write %s.\n", path);
+	if (!(f = Fs_OpenWrite("history"))) {
+		Com_Warn("Couldn't write history\n");
 		return;
 	}
 
 	for (i = (ks->edit_line + 1) % KEY_HISTORY_SIZE; i != ks->edit_line; i = (i + 1)
 			% KEY_HISTORY_SIZE) {
 		if (ks->lines[i][1]) {
-			fprintf(f, "%s\n", ks->lines[i] + 1);
+			Fs_Print(f, "%s\n", ks->lines[i] + 1);
 		}
 	}
 
-	Fs_CloseFile(f);
+	Fs_Close(f);
 }
 
 /*
  * @brief
  */
 static void Cl_ReadHistory(void) {
-	char path[MAX_OSPATH];
-	FILE *f;
 	char line[KEY_LINE_SIZE];
 
-	snprintf(path, sizeof(path), "%s/history", Fs_Gamedir());
-
-	f = fopen(path, "r");
-	if (!f)
+	file_t *f;
+	if (!(f = Fs_OpenRead("history")))
 		return;
 
-	while (fgets(line, KEY_LINE_SIZE - 2, f)) {
-		if (line[strlen(line) - 1] == '\n')
-			line[strlen(line) - 1] = 0;
-		strncpy(&ks->lines[ks->edit_line][1], line, KEY_LINE_SIZE - 2);
+	while (Fs_ReadLine(f, line, sizeof(line))) {
+		g_strlcpy(&ks->lines[ks->edit_line][1], line, KEY_LINE_SIZE - 1);
 		ks->edit_line = (ks->edit_line + 1) % KEY_HISTORY_SIZE;
 		ks->history_line = ks->edit_line;
-		ks->lines[ks->edit_line][1] = 0;
+		ks->lines[ks->edit_line][1] = '\0';
 	}
 
-	Fs_CloseFile(f);
+	Fs_Close(f);
 }
+
+#include "cl_binds.h"
 
 /*
  * @brief
@@ -552,11 +545,13 @@ void Cl_InitKeys(void) {
 	uint16_t i;
 	SDLKey k;
 
+	cl_key_names = Z_TagMalloc(SDLK_MLAST * sizeof(char *), Z_TAG_CLIENT);
+
 	for (k = SDLK_FIRST; k < SDLK_LAST; k++) {
-		cl_key_names[k] = Z_CopyString(SDL_GetKeyName(k));
+		cl_key_names[k] = Z_Link(Z_CopyString(SDL_GetKeyName(k)), cl_key_names);
 	}
-	for (k = SDLK_MOUSE1; k < SDLK_MLAST; k++) {
-		cl_key_names[k] = Z_CopyString(va("mouse %d", k - SDLK_MOUSE1 + 1));
+	for (k = SDLK_MOUSE1; k < (SDLKey) SDLK_MLAST; k++) {
+		cl_key_names[k] = Z_Link(Z_CopyString(va("mouse %d", k - SDLK_MOUSE1 + 1)), cl_key_names);
 	}
 
 	memset(ks, 0, sizeof(cl_key_state_t));
@@ -578,6 +573,9 @@ void Cl_InitKeys(void) {
 	Cmd_AddCommand("unbind", Cl_Unbind_f, 0, NULL);
 	Cmd_AddCommand("unbind_all", Cl_UnbindAll_f, 0, NULL);
 	Cmd_AddCommand("bind_list", Cl_BindList_f, 0, NULL);
+
+	Cbuf_AddText(DEFAULT_BINDS);
+	Cbuf_Execute();
 }
 
 /*
@@ -586,6 +584,8 @@ void Cl_InitKeys(void) {
 void Cl_ShutdownKeys(void) {
 
 	Cl_WriteHistory();
+
+	Z_Free(cl_key_names);
 
 	Cmd_RemoveCommand("bind");
 	Cmd_RemoveCommand("unbind");
@@ -606,22 +606,22 @@ void Cl_KeyEvent(SDLKey key, uint16_t unicode, bool down, uint32_t time) {
 	ks->down[key] = down;
 
 	switch (ks->dest) {
-	case KEY_GAME:
-		Cl_KeyGame(key, unicode, down, time);
-		break;
-	case KEY_UI:
-		// handled by Ui_Event, called from Cl_HandleEvent
-		break;
-	case KEY_CHAT:
-		Cl_KeyMessage(key, unicode, down, time);
-		break;
-	case KEY_CONSOLE:
-		Cl_KeyConsole(key, unicode, down, time);
-		break;
+		case KEY_GAME:
+			Cl_KeyGame(key, unicode, down, time);
+			break;
+		case KEY_UI:
+			// handled by Ui_Event, called from Cl_HandleEvent
+			break;
+		case KEY_CHAT:
+			Cl_KeyMessage(key, unicode, down, time);
+			break;
+		case KEY_CONSOLE:
+			Cl_KeyConsole(key, unicode, down, time);
+			break;
 
-	default:
-		Com_Debug("Cl_KeyEvent: Bad cl_key_dest: %d.\n", ks->dest);
-		break;
+		default:
+			Com_Debug("Bad cl_key_dest: %d\n", ks->dest);
+			break;
 	}
 
 	if (ks->dest == KEY_GAME && !(active->integer)) {

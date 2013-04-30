@@ -19,14 +19,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __TEST_H__
-#define __TEST_H__
+#ifndef __R_MEDIA_H__
+#define __R_MEDIA_H__
 
-#include "common.h"
+#include "r_types.h"
 
-extern quake2world_t quake2world;
+#ifdef __R_LOCAL_H__
 
-void TestInit(void);
-void TestShutdown(void);
+void R_ListMedia_f(void);
+void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency);
+void R_RegisterMedia(r_media_t *media);
+r_media_t *R_FindMedia(const char *name);
+r_media_t *R_AllocMedia(const char *name, size_t size);
+void R_FreeMedia(void);
+void R_BeginLoading(void);
+void R_InitMedia(void);
+void R_ShutdownMedia(void);
 
-#endif /* __TEST_H__ */
+#endif /* __R_LOCAL_H__ */
+
+#endif /* __R_MEDIA_H__ */

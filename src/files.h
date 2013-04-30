@@ -130,7 +130,7 @@ typedef struct {
 // little-endian "IBSP"
 
 #define BSP_VERSION	38
-#define BSP_VERSION_ 69  // haha, 69..
+#define BSP_VERSION_Q2W 69  // haha, 69..
 
 // upper design bounds
 // leaf faces, leaf brushes, planes, and vertexes are still bounded by

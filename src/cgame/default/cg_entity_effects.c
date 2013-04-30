@@ -31,6 +31,8 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 	vec3_t color;
 	int32_t i;
 
+	const byte col = ent->current.client ? ent->current.client : EFFECT_COLOR_ORANGE;
+
 	if (ent->time < cgi.client->time) {
 		cg_particle_t *p;
 		vec3_t delta;
@@ -50,17 +52,17 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 
 		while (d < dist) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL ))) {
+			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
 				break;
 			}
 
-			p->part.color = ent->current.client + (Random() & 7);
+			p->part.color = col + (Random() & 5);
 
-			p->part.alpha = 1.0;
-			p->alpha_vel = -4.0 + Randomc();
+			p->part.alpha = 0.8;
+			p->alpha_vel = -4.0 + Randomc() * 0.5;
 
 			p->part.scale = 1.0;
-			p->scale_vel = 0.0;
+			p->scale_vel = 1.0 + Randomc() * 0.5;
 
 			VectorMA(start, d, delta, p->part.org);
 			VectorScale(delta, 400.0, p->vel);
@@ -73,10 +75,10 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 			d += step;
 		}
 
-		ent->time = cgi.client->time + 32;
+		ent->time = cgi.client->time + 16;
 	}
 
-	cgi.ColorFromPalette(ent->current.client, color);
+	cgi.ColorFromPalette(col, color);
 
 	VectorScale(color, 3.0, color);
 
@@ -93,7 +95,7 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 	cgi.AddCorona(&c);
 
 	VectorCopy(end, l.origin);
-	l.radius = 60.0;
+	l.radius = 75.0;
 	VectorCopy(color, l.color);
 
 	cgi.AddLight(&l);
@@ -118,7 +120,7 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
 
 	for (i = 0; i < 4; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particle_teleporter)))
+		if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter)))
 			return;
 
 		p->part.color = 216;
@@ -142,9 +144,6 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	cg_particle_t *p;
 	int32_t j;
 
-	if (cgi.view->render_mode == render_mode_pro)
-		return;
-
 	if (ent) { // trails should be framerate independent
 
 		if (ent->time > cgi.client->time)
@@ -158,7 +157,7 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_smoke)))
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke)))
 		return;
 
 	p->part.blend = GL_ONE;
@@ -192,7 +191,7 @@ void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 		if (ent->time > cgi.client->time)
 			return;
 
-		ent->time = cgi.client->time + 8;
+		ent->time = cgi.client->time + 16;
 	}
 
 	if (cgi.PointContents(end) & MASK_WATER) {
@@ -200,7 +199,7 @@ void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_flame)))
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_flame)))
 		return;
 
 	p->part.color = 220 + (Random() & 7);
@@ -241,7 +240,7 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 		if (ent->time > cgi.client->time)
 			return;
 
-		ent->time = cgi.client->time + 8;
+		ent->time = cgi.client->time + 16;
 	}
 
 	if (cgi.PointContents(org) & MASK_WATER) {
@@ -249,7 +248,7 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_steam)))
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam)))
 		return;
 
 	p->part.color = 6 + (Random() & 7);
@@ -293,7 +292,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 		if (!(cgi.PointContents(move) & MASK_WATER))
 			continue;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particle_bubble)))
+		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble)))
 			return;
 
 		p->part.color = 6 + (Random() & 3);
@@ -336,8 +335,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 	ltime = (float) cgi.client->time / 300.0;
 
 	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i += 2) {
-
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
 			return;
 
 		angle = ltime * angles[i][0];
@@ -357,8 +355,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 		p->part.alpha = 1.0;
 		p->alpha_vel = -100.0;
 
-		p->part.scale = 0.15 * radius;
-		p->scale_vel = 800.0;
+		p->part.scale = 0.5 + (0.05 * radius);
 
 		for (c = 0; c < 3; c++) {
 			// project the origin outward, adding in angular velocity
@@ -376,7 +373,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int
 	if (ent->time > cgi.client->time)
 		return;
 
-	ent->time = cgi.client->time + 8;
+	ent->time = cgi.client->time + 16;
 
 	if (cgi.PointContents(org) & MASK_WATER)
 		Cg_BubbleTrail(ent->prev.origin, ent->current.origin, radius / 4.0);
@@ -415,7 +412,7 @@ static void Cg_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *en
 
 		while (d < dist) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
 				break;
 
 			p->part.color = 0xe0 + (Random() & 7);
@@ -502,7 +499,7 @@ static void Cg_LightningTrail(const vec3_t start, const vec3_t end, cl_entity_t 
 	i = 0;
 	while (dist > 0.0) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particle_lightning)))
+		if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_lightning)))
 			return;
 
 		p->part.color = 12 + (Random() & 3);
@@ -572,7 +569,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 void Cg_InactiveTrail(const vec3_t start) {
 	cg_particle_t *p;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_inactive)))
 		return;
 
 	p->part.color = 11;

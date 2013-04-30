@@ -19,19 +19,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_SURFACE_H__
-#define __R_SURFACE_H__
+#ifndef __CL_MEDIA_H__
+#define __CL_MEDIA_H__
 
-#include "r_types.h"
+#include "cl_types.h"
 
-#ifdef __R_LOCAL_H__
-void R_DrawOpaqueSurfaces_default(const r_bsp_surfaces_t *surfs);
-void R_DrawOpaqueWarpSurfaces_default(const r_bsp_surfaces_t *surfs);
-void R_DrawAlphaTestSurfaces_default(const r_bsp_surfaces_t *surfs);
-void R_DrawBlendSurfaces_default(const r_bsp_surfaces_t *surfs);
-void R_DrawBlendWarpSurfaces_default(const r_bsp_surfaces_t *surfs);
-void R_DrawBackSurfaces_default(const r_bsp_surfaces_t *surfs);
-#endif /* __R_LOCAL_H__ */
+void Cl_LoadProgress(uint16_t percent);
 
-#endif /* __R_SURFACE_H__ */
+#ifdef __CL_LOCAL_H__
+
+void Cl_RequestNextDownload(void);
+void Cl_LoadMedia(void);
+void Cl_UpdateMedia(void);
+
+#endif /* __CL_LOCAL_H__ */
+
+#endif /* __CL_MEDIA_H__ */
 

@@ -24,27 +24,19 @@
 
 #include "r_types.h"
 
-extern r_model_t *r_world_model;
-extern r_model_t *r_load_model;
-
 r_model_t *R_LoadModel(const char *name);
+r_model_t *R_WorldModel(void);
 
 #ifdef __R_LOCAL_H__
 
-#define MAX_MOD_KNOWN 512
+typedef struct {
+	r_model_t *world;
+} r_model_state_t;
 
-extern r_model_t r_models[MAX_MOD_KNOWN];
-extern r_model_t r_inline_models[MAX_BSP_MODELS];
+extern r_model_state_t r_model_state;
 
-#define IS_MESH_MODEL(m) (m && (m->type == mod_md3 || m->type == mod_obj))
-
-void *R_HunkAlloc(size_t size);
 void R_AllocVertexArrays(r_model_t *mod);
 void R_InitModels(void);
-void R_ShutdownModels(void);
-void R_BeginLoading(const char *map, int32_t mapsize);
-void R_ListModels_f(void);
-void R_HunkStats_f(void);
 
 #endif /* __R_LOCAL_H__ */
 

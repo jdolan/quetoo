@@ -61,7 +61,7 @@ static winding_t *AllocStackWinding(pstack_t * stack) {
 		}
 	}
 
-	Com_Error(ERR_FATAL, "AllocStackWinding: failed\n");
+	Com_Error(ERR_FATAL, "Failed\n");
 
 	return NULL;
 }
@@ -73,7 +73,7 @@ static void FreeStackWinding(const winding_t * w, pstack_t * stack) {
 		return; // not from local
 
 	if (stack->freewindings[i])
-		Com_Error(ERR_FATAL, "FreeStackWinding: already free\n");
+		Com_Error(ERR_FATAL, "Already free\n");
 	stack->freewindings[i] = 1;
 }
 
@@ -517,7 +517,7 @@ void BaseVis(int32_t portal_num) {
 
 	for (j = 0, tp = map_vis.portals; j < map_vis.num_portals * 2; j++, tp++) {
 
-		if (j == portal_num)
+		if (j == (uint32_t) portal_num)
 			continue;
 
 		w = tp->winding;

@@ -8,12 +8,10 @@ q2wmaster_SOURCES = \
 
 q2wmaster_CFLAGS = \
 	-I.. \
-	@BASE_CFLAGS@
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
 
 q2wmaster_LDADD = \
-	../libfilesystem.la \
-	@BASE_LIBS@ \
-	@SDL_LIBS@ \
-	-lz
+	../libfilesystem.la
 
 endif

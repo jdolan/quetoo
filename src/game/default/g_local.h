@@ -19,19 +19,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_LOCAL_H__
-#define __G_LOCAL_H__
+#ifndef __GAME_LOCAL_H__
+#define __GAME_LOCAL_H__
 
 #include "game/game.h"
 
-#ifdef HAVE_MYSQL
-#include <mysql.h>
-extern MYSQL *mysql;
-extern char sql[512];
-#endif
-
 // this is the game name that we advertise to clients
 #define GAME_NAME "default"
+
+#define Debug(...) Debug_(__func__, __VA_ARGS__)
+#define Warn(...) Warn_(__func__, __VA_ARGS__)
+#define Error(...) Error_(__func__, __VA_ARGS__)
 
 #include "g_ballistics.h"
 #include "g_client_chase.h"
@@ -53,4 +51,4 @@ extern char sql[512];
 #include "g_utils.h"
 #include "g_weapon.h"
 
-#endif /* __G_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */

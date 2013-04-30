@@ -79,11 +79,11 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
 	}
 
 	if (cl.time > cl.frame.server_time) {
-		Com_Debug("Cl_UpdateLerp: High clamp: %dms\n", cl.time - cl.frame.server_time);
+		Com_Debug("High clamp: %dms\n", cl.time - cl.frame.server_time);
 		cl.time = cl.frame.server_time;
 		cl.lerp = 1.0;
 	} else if (cl.time < from->server_time) {
-		Com_Debug("Cl_UpdateLerp: Low clamp: %dms\n", from->server_time - cl.time);
+		Com_Debug("Low clamp: %dms\n", from->server_time - cl.time);
 		cl.time = from->server_time;
 		cl.lerp = 0.0;
 	} else {
@@ -91,7 +91,7 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
 		const float interval = cl.frame.server_time - from->server_time;
 
 		if (interval <= 0.0) {
-			Com_Debug("Cl_UpdateLerp: Bad clamp\n");
+			Com_Debug("Bad clamp\n");
 			cl.lerp = 1.0;
 			return;
 		}
@@ -247,7 +247,7 @@ void Cl_UpdateView(void) {
 	r_view.area_bits = cl.frame.area_bits;
 
 	// create the thread which populates the view
-	r_view.thread = Thread_Create(cls.cgame->PopulateView, &cl.frame);
+	r_view.thread = Thread_Create((thread_function_t) cls.cgame->PopulateView, &cl.frame);
 }
 
 /*

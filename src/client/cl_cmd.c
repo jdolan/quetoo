@@ -93,11 +93,11 @@ void Cl_SendCmd(void) {
 	}
 
 	// send a user_info update if needed
-	if (user_info_modified) {
+	if (cvar_user_info_modified) {
 		Msg_WriteByte(&cls.netchan.message, CL_CMD_USER_INFO);
 		Msg_WriteString(&cls.netchan.message, Cvar_UserInfo());
 
-		user_info_modified = false;
+		cvar_user_info_modified = false;
 	}
 
 	// finalize the current command
@@ -108,7 +108,7 @@ void Cl_SendCmd(void) {
 
 	// let the server know what the last frame we got was, so the next
 	// message can be delta compressed
-	if (!cl.frame.valid || (cls.demo_file && !ftell(cls.demo_file)))
+	if (!cl.frame.valid || (cls.demo_file && Fs_Tell(cls.demo_file) == 0))
 		Msg_WriteLong(&buf, -1); // no compression
 	else
 		Msg_WriteLong(&buf, cl.frame.server_frame);

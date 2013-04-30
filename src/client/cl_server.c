@@ -27,7 +27,7 @@
 static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 	cl_server_info_t *s;
 
-	s = (cl_server_info_t *) Z_Malloc(sizeof(*s));
+	s = (cl_server_info_t *) Z_TagMalloc(sizeof(*s), Z_TAG_CLIENT);
 
 	s->next = cls.servers;
 	cls.servers = s;
@@ -92,11 +92,9 @@ void Cl_ParseStatusMessage(void) {
 	}
 
 	// try to parse the info string
-	strncpy(info, Msg_ReadString(&net_message), sizeof(info) - 1);
-	info[sizeof(info) - 1] = '\0';
-	if (sscanf(info, "%63c\\%31c\\%31c\\%hu\\%hu", server->hostname,
-			server->name, server->gameplay, &server->clients,
-			&server->max_clients) != 5) {
+	g_strlcpy(info, Msg_ReadString(&net_message), sizeof(info));
+	if (sscanf(info, "%63c\\%31c\\%31c\\%hu\\%hu", server->hostname, server->name,
+			server->gameplay, &server->clients, &server->max_clients) != 5) {
 
 		strcpy(server->hostname, Net_NetaddrToString(server->addr));
 		server->name[0] = '\0';
@@ -190,7 +188,7 @@ void Cl_Servers_f(void) {
 		return;
 	}
 
-	Com_Print("Refreshing servers.\n");
+	Com_Print("Refreshing servers\n");
 
 	addr.type = NA_IP;
 	addr.port = (uint16_t) BigShort(PORT_MASTER);
@@ -225,10 +223,10 @@ void Cl_ParseServersList(void) {
 		port = (*buffptr++) << 8; // and the port
 		port += *buffptr++;
 
-		snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
+		g_snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
 
 		if (!Net_StringToNetaddr(s, &addr)) { // make sure it's valid
-			Com_Warn("Cl_ParseServersList: Invalid address: %s.\n", s);
+			Com_Warn("Invalid address: %s\n", s);
 			break;
 		}
 
@@ -270,10 +268,11 @@ void Cl_Servers_List_f(void) {
 
 	server = cls.servers;
 
-	while(server) {
-		snprintf(server_info, sizeof(server_info) - 1, "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
-			server->hostname, Net_NetaddrToString(server->addr), server->name, server->gameplay, server->clients,
-			server->max_clients, server->ping);
+	while (server) {
+		g_snprintf(server_info, sizeof(server_info),
+				"%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms", server->hostname,
+				Net_NetaddrToString(server->addr), server->name, server->gameplay, server->clients,
+				server->max_clients, server->ping);
 		server_info[127] = '\0';
 		Com_Print("%s\n", server_info);
 		server = server->next;

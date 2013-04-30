@@ -21,11 +21,16 @@
 
 #include "cg_local.h"
 
-#define COLOR_HUD_STAT			CON_COLOR_DEFAULT
-#define COLOR_HUD_STAT_MED		CON_COLOR_YELLOW
-#define COLOR_HUD_STAT_LOW		CON_COLOR_RED
-#define COLOR_HUD_STAT_STRING	CON_COLOR_DEFAULT
+#define HUD_COLOR_STAT			CON_COLOR_DEFAULT
+#define HUD_COLOR_STAT_MED		CON_COLOR_YELLOW
+#define HUD_COLOR_STAT_LOW		CON_COLOR_RED
+#define HUD_COLOR_STAT_STRING	CON_COLOR_DEFAULT
 #define COLOR_SCORES_HEADER		CON_COLOR_ALT
+
+#define CROSSHAIR_COLOR_RED		242
+#define CROSSHAIR_COLOR_GREEN	209
+#define CROSSHAIR_COLOR_YELLOW	219
+#define CROSSHAIR_COLOR_DEFAULT	15
 
 #define HUD_PIC_HEIGHT			64
 
@@ -58,12 +63,12 @@ static cg_center_print_t center_print;
 static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
 		const uint16_t icon) {
 
-	if (icon >= MAX_IMAGES) {
-		cgi.Warn("Cg_DrawIcon: Invalid icon: %d\n", icon);
+	if (icon >= MAX_IMAGES || !cgi.client->image_precache[icon]) {
+		cgi.Warn("Invalid icon: %d\n", icon);
 		return;
 	}
 
-	cgi.DrawPic(x, y, scale, cgi.ConfigString(CS_IMAGES + icon));
+	cgi.DrawImage(x, y, scale, cgi.client->image_precache[icon]);
 }
 
 /*
@@ -74,15 +79,15 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 	r_pixel_t y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT + 4;
 
 	vec4_t pulse = { 1.0, 1.0, 1.0, 1.0 };
-	int32_t color = COLOR_HUD_STAT;
+	int32_t color = HUD_COLOR_STAT;
 
 	if (value < low) {
 		if (cg_draw_vitals_pulse->integer) {
 			pulse[3] = sin(cgi.client->time / 250.0) + 0.75;
 		}
-		color = COLOR_HUD_STAT_LOW;
+		color = HUD_COLOR_STAT_LOW;
 	} else if (value < med) {
-		color = COLOR_HUD_STAT_MED;
+		color = HUD_COLOR_STAT_MED;
 	}
 
 	const char *string = va("%3d", value);
@@ -167,7 +172,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 		x += HUD_PIC_HEIGHT;
 		y += ch / 2;
 
-		cgi.DrawString(x, y, string, COLOR_HUD_STAT);
+		cgi.DrawString(x, y, string, HUD_COLOR_STAT);
 	}
 }
 
@@ -196,7 +201,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 
 	x = cgi.view->x + cgi.view->width - 3 * cw;
 
-	cgi.DrawString(x, y, va("%3d", frags), COLOR_HUD_STAT);
+	cgi.DrawString(x, y, va("%3d", frags), HUD_COLOR_STAT);
 
 	cgi.BindFont(NULL, NULL, NULL);
 }
@@ -229,7 +234,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 
 	x = cgi.view->x + cgi.view->width - 3 * cw;
 
-	cgi.DrawString(x, y, va("%3d", captures), COLOR_HUD_STAT);
+	cgi.DrawString(x, y, va("%3d", captures), HUD_COLOR_STAT);
 
 	cgi.BindFont(NULL, NULL, NULL);
 }
@@ -264,13 +269,13 @@ static void Cg_DrawChase(const player_state_t *ps) {
 	const int32_t c = ps->stats[STAT_CHASE];
 
 	if (c - CS_CLIENTS >= MAX_CLIENTS) {
-		cgi.Warn("Cg_DrawChase: Invalid client info index: %d\n", c);
+		cgi.Warn("Invalid client info index: %d\n", c);
 		return;
 	}
 
 	cgi.BindFont("small", NULL, &ch);
 
-	snprintf(string, sizeof(string) - 1, "Chasing ^7%s", cgi.ConfigString(c));
+	g_snprintf(string, sizeof(string), "Chasing ^7%s", cgi.ConfigString(c));
 
 	if ((s = strchr(string, '\\')))
 		*s = '\0';
@@ -298,7 +303,7 @@ static void Cg_DrawVote(const player_state_t *ps) {
 
 	cgi.BindFont("small", NULL, &ch);
 
-	snprintf(string, sizeof(string) - 1, "Vote: ^7%s", cgi.ConfigString(ps->stats[STAT_VOTE]));
+	g_snprintf(string, sizeof(string), "Vote: ^7%s", cgi.ConfigString(ps->stats[STAT_VOTE]));
 
 	x = cgi.view->x;
 	y = cgi.view->y + cgi.view->height - HUD_PIC_HEIGHT - ch;
@@ -372,7 +377,7 @@ static void Cg_DrawTeam(const player_state_t *ps) {
 	else if (team == CS_TEAM_EVIL)
 		color = 242;
 	else {
-		cgi.Warn("Cg_DrawTeamBanner: unknown team: %d.\n", team);
+		cgi.Warn("Unknown team: %d\n", team);
 		return;
 	}
 
@@ -410,24 +415,34 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		if (cg_draw_crosshair->value > 100)
 			cg_draw_crosshair->value = 100;
 
-		snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", cg_draw_crosshair->integer);
+		g_snprintf(crosshair.name, sizeof(crosshair.name), "ch%d", cg_draw_crosshair->integer);
 
-		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_draw_crosshair->integer), it_pic);
+		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_draw_crosshair->integer), IT_PIC);
 
-		if (crosshair.image->type == it_null) {
+		if (crosshair.image->type == IT_NULL) {
 			cgi.Print("Couldn't load pics/ch%d.\n", cg_draw_crosshair->integer);
 			return;
 		}
 	}
 
-	if (crosshair.image->type == it_null) { // not found
+	if (crosshair.image->type == IT_NULL) { // not found
 		return;
 	}
 
 	if (cg_draw_crosshair_color->modified) { // crosshair color
 		cg_draw_crosshair_color->modified = false;
 
-		color = ColorByName(cg_draw_crosshair_color->string, 14);
+		const char *c = cg_draw_crosshair_color->string;
+		if (!strcasecmp(c, "red")) {
+			color = CROSSHAIR_COLOR_RED;
+		} else if (!strcasecmp(c, "green")) {
+			color = CROSSHAIR_COLOR_GREEN;
+		} else if (!strcasecmp(c, "yellow")) {
+			color = CROSSHAIR_COLOR_YELLOW;
+		} else {
+			color = CROSSHAIR_COLOR_DEFAULT;
+		}
+
 		cgi.ColorFromPalette(color, crosshair.color);
 	}
 
@@ -462,7 +477,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	x = (cgi.context->width - crosshair.image->width * scale) / 2.0;
 	y = (cgi.context->height - crosshair.image->height * scale) / 2.0;
 
-	cgi.DrawPic(x, y, scale, crosshair.name);
+	cgi.DrawImage(x, y, scale, crosshair.image);
 
 	cgi.Color(NULL);
 }

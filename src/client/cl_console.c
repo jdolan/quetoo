@@ -26,7 +26,7 @@
 
 #include "cl_local.h"
 
-console_t cl_con;
+console_t cl_console;
 
 static cvar_t *con_notify_time;
 static cvar_t *con_alpha;
@@ -61,8 +61,8 @@ void Cl_ToggleConsole_f(void) {
 void Cl_UpdateNotify(int32_t last_line) {
 	int32_t i;
 
-	for (i = last_line; i < cl_con.last_line; i++)
-		cl_con.notify_times[i % CON_NUM_NOTIFY] = cls.real_time;
+	for (i = last_line; i < cl_console.last_line; i++)
+		cl_console.notify_times[i % CON_NUM_NOTIFY] = cls.real_time;
 }
 
 /*
@@ -72,7 +72,7 @@ void Cl_ClearNotify(void) {
 	int32_t i;
 
 	for (i = 0; i < CON_NUM_NOTIFY; i++)
-		cl_con.notify_times[i] = 0;
+		cl_console.notify_times[i] = 0;
 }
 
 /*
@@ -100,14 +100,14 @@ static void Cl_MessageMode2_f(void) {
 }
 
 /*
- * @brief
+ * @brief Initializes the client console.
  */
 void Cl_InitConsole(void) {
 
-	memset(&cl_con, 0, sizeof(console_t));
+	memset(&cl_console, 0, sizeof(console_t));
 
 	// the last line of the console is reserved for input
-	Con_Resize(&cl_con, r_context.width >> 4, (r_context.height >> 5) - 1);
+	Con_Resize(&cl_console, r_context.width >> 4, (r_context.height >> 5) - 1);
 
 	Cl_ClearNotify();
 
@@ -120,7 +120,17 @@ void Cl_InitConsole(void) {
 	Cmd_AddCommand("message_mode", Cl_MessageMode_f, 0, "Activate chat");
 	Cmd_AddCommand("message_mode_2", Cl_MessageMode2_f, 0, "Activate team chat");
 
-	Com_Print("Console initialized.\n");
+	Com_Print("Console initialized\n");
+}
+
+/*
+ * @brief Shuts down the client console.
+ */
+void Cl_ShutdownConsole(void) {
+
+	Cmd_RemoveCommand("toggle_console");
+	Cmd_RemoveCommand("message_mode");
+	Cmd_RemoveCommand("message_mode_2");
 }
 
 /*
@@ -148,11 +158,11 @@ static void Cl_DrawInput(void) {
 		text[i] = ' ';
 
 	// prestep if horizontally scrolling
-	if (cls.key_state.pos >= cl_con.width)
-		text += 1 + cls.key_state.pos - cl_con.width;
+	if (cls.key_state.pos >= cl_console.width)
+		text += 1 + cls.key_state.pos - cl_console.width;
 
 	// draw it
-	R_DrawBytes(0, cl_con.height * ch, text, cl_con.width, CON_COLOR_DEFAULT);
+	R_DrawBytes(0, cl_console.height * ch, text, cl_console.width, CON_COLOR_DEFAULT);
 }
 
 /*
@@ -169,12 +179,14 @@ void Cl_DrawNotify(void) {
 
 	y = 0;
 
-	for (i = cl_con.last_line - CON_NUM_NOTIFY; i < cl_con.last_line; i++) {
+	for (i = cl_console.last_line - CON_NUM_NOTIFY; i < cl_console.last_line; i++) {
 		if (i < 0)
 			continue;
-		if (cl_con.notify_times[i % CON_NUM_NOTIFY] + con_notify_time->value * 1000 > cls.real_time) {
-			R_DrawBytes(0, y, cl_con.line_start[i],
-					cl_con.line_start[i + 1] - cl_con.line_start[i], cl_con.line_color[i]);
+		if (cl_console.notify_times[i % CON_NUM_NOTIFY] + con_notify_time->value * 1000
+				> cls.real_time) {
+			R_DrawBytes(0, y, cl_console.line_start[i],
+					cl_console.line_start[i + 1] - cl_console.line_start[i],
+					cl_console.line_color[i]);
 			y += ch;
 		}
 	}
@@ -185,7 +197,7 @@ void Cl_DrawNotify(void) {
 		char *s;
 
 		if (cls.chat_state.team) {
-			color = CON_COLOR_TEAMCHAT;
+			color = CON_TEAM_COLORCHAT;
 			R_DrawString(0, y, "say_team", CON_COLOR_DEFAULT);
 			skip = 10;
 		} else {
@@ -221,7 +233,7 @@ void Cl_DrawConsole(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	Con_Resize(&cl_con, r_context.width / cw, (r_context.height / ch) - 1);
+	Con_Resize(&cl_console, r_context.width / cw, (r_context.height / ch) - 1);
 
 	// draw a background
 	if (cls.state == CL_ACTIVE)
@@ -230,13 +242,15 @@ void Cl_DrawConsole(void) {
 		R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
 
 	// draw the text
-	lines = cl_con.height;
+	lines = cl_console.height;
 	y = 0;
-	for (line = cl_con.last_line - cl_con.scroll - lines; line < cl_con.last_line - cl_con.scroll; line++) {
+	for (line = cl_console.last_line - cl_console.scroll - lines; line < cl_console.last_line
+			- cl_console.scroll; line++) {
 
-		if (line >= 0 && cl_con.line_start[line][0] != '\0') {
-			R_DrawBytes(0, y, cl_con.line_start[line],
-					cl_con.line_start[line + 1] - cl_con.line_start[line], cl_con.line_color[line]);
+		if (line >= 0 && cl_console.line_start[line][0] != '\0') {
+			R_DrawBytes(0, y, cl_console.line_start[line],
+					cl_console.line_start[line + 1] - cl_console.line_start[line],
+					cl_console.line_color[line]);
 		}
 		y += ch;
 	}
@@ -244,17 +258,17 @@ void Cl_DrawConsole(void) {
 	// draw the loading string or the input prompt
 
 	if (cls.state >= CL_CONNECTED && cls.loading) { // draw loading progress
-		snprintf(dl, sizeof(dl), "Loading... %2d%%", cls.loading);
+		g_snprintf(dl, sizeof(dl), "Loading... %2d%%", cls.loading);
 
-		R_DrawString(0, cl_con.height * ch, dl, CON_COLOR_INFO);
+		R_DrawString(0, cl_console.height * ch, dl, CON_COLOR_INFO);
 	} else if (cls.download.file) { // draw download progress
 
-		kb = (int) ftell(cls.download.file) / 1024;
+		kb = (int) Fs_Tell(cls.download.file) / 1024;
 
-		snprintf(dl, sizeof(dl), "%s [%s] %dKB ", cls.download.name,
+		g_snprintf(dl, sizeof(dl), "%s [%s] %dKB ", cls.download.name,
 				(cls.download.http ? "HTTP" : "UDP"), kb);
 
-		R_DrawString(0, cl_con.height * ch, dl, CON_COLOR_INFO);
+		R_DrawString(0, cl_console.height * ch, dl, CON_COLOR_INFO);
 	} else { // draw the input prompt, user text, and cursor if desired
 		Cl_DrawInput();
 	}

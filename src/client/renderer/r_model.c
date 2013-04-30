@@ -21,119 +21,81 @@
 
 #include "r_local.h"
 
-r_model_t r_models[MAX_MOD_KNOWN];
-uint16_t r_num_models;
+r_model_state_t r_model_state;
 
-r_model_t r_inline_models[MAX_BSP_MODELS];
+typedef struct {
+	const char *extension;
+	r_model_type_t type;
+	void (*Load)(r_model_t *mod, void *buffer);
+} r_model_format_t;
 
-r_model_t *r_world_model;
-r_model_t *r_load_model;
-
-typedef struct r_hunk_s {
-	byte *base;
-	size_t size;
-	ptrdiff_t offset;
-} r_hunk_t;
-
-static r_hunk_t r_hunk;
+static const r_model_format_t r_model_formats[] = {
+	{ ".obj", MOD_OBJ, R_LoadObjModel },
+	{ ".md3", MOD_MD3, R_LoadMd3Model },
+	{ ".bsp", MOD_BSP, R_LoadBspModel }
+};
 
 /*
- * @brief
- */
-static void *R_HunkBegin() {
-	return r_hunk.base + r_hunk.offset;
-}
-
-/*
- * @brief
- */
-static size_t R_HunkEnd(void *buf) {
-	return r_hunk.base + r_hunk.offset - (byte *) buf;
-}
-
-/*
- * @brief
- */
-void *R_HunkAlloc(size_t size) {
-	byte *b;
-
-	if (r_hunk.offset + size > r_hunk.size) {
-		Com_Error(ERR_DROP, "R_HunkAlloc: Overflow.\n");
-	}
-
-	b = r_hunk.base + r_hunk.offset;
-	r_hunk.offset += size;
-
-	return b;
-}
-
-/*
- * @brief
+ * @brief Allocates client-side vertex arrays for the specified r_model_t.
  */
 void R_AllocVertexArrays(r_model_t *mod) {
-	int32_t i, j;
-	int32_t v, st, t, c;
+	uint16_t i, j;
 
 	mod->num_verts = 0;
 
 	// first resolve the vertex count
-	if (mod->type == mod_bsp) {
-		r_bsp_surface_t *surf;
+	if (mod->type == MOD_BSP) {
+		const r_bsp_leaf_t *leaf = mod->bsp->leafs;
+		for (i = 0; i < mod->bsp->num_leafs; i++, leaf++) {
 
-		for (i = 0, surf = mod->surfaces; i < mod->num_surfaces; i++, surf++) {
-			for (j = 0; j < surf->num_edges; j++)
-				mod->num_verts++;
+			r_bsp_surface_t **s = leaf->first_leaf_surface;
+			for (j = 0; j < leaf->num_leaf_surfaces; j++, s++) {
+				mod->num_verts += (*s)->num_edges;
+			}
 		}
-	} else if (mod->type == mod_md3) {
-		const r_md3_t *md3 = (r_md3_t *) mod->extra_data;
+	} else if (mod->type == MOD_MD3) {
+		const r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
 		const r_md3_mesh_t *mesh = md3->meshes;
 
-		for (i = 0; i < md3->num_meshes; i++, mesh++)
+		for (i = 0; i < md3->num_meshes; i++, mesh++) {
 			mod->num_verts += mesh->num_tris * 3;
-	} else if (mod->type == mod_obj) {
-		const r_obj_t *obj = (r_obj_t *) mod->extra_data;
+		}
+	} else if (mod->type == MOD_OBJ) {
+		const r_obj_t *obj = (r_obj_t *) mod->mesh->data;
 		mod->num_verts = obj->num_tris * 3;
 	}
 
-	v = mod->num_verts * 3 * sizeof(GLfloat);
-	st = mod->num_verts * 2 * sizeof(GLfloat);
-	t = mod->num_verts * 4 * sizeof(GLfloat);
-	c = mod->num_verts * 4 * sizeof(GLfloat);
-
 	// allocate the arrays, static models get verts, normals and tangents
-	if (mod->num_frames < 2) {
-		mod->verts = (GLfloat *) R_HunkAlloc(v);
-		mod->normals = (GLfloat *) R_HunkAlloc(v);
-		mod->tangents = (GLfloat *) R_HunkAlloc(t);
+	if (mod->bsp || mod->mesh->num_frames == 1) {
+		mod->verts = Z_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
+		mod->normals = Z_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
+		mod->tangents = Z_LinkMalloc(mod->num_verts * sizeof(vec4_t), mod);
 	}
 
-	// all models get texcoords and tangents
-	mod->texcoords = (GLfloat *) R_HunkAlloc(st);
+	// all models get texcoords
+	mod->texcoords = Z_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
 
-	if (mod->type != mod_bsp)
+	if (mod->type != MOD_BSP)
 		return;
 
-	// and bsp models get lightmap texcoords and colors
-	mod->lmtexcoords = (GLfloat *) R_HunkAlloc(st);
-	mod->colors = (GLfloat *) R_HunkAlloc(c);
+	// and BSP models get lightmap texcoords
+	mod->lightmap_texcoords = Z_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
 }
 
 /*
- * @brief
+ * @brief Allocates and populates static VBO's for the specified r_model_t.
  */
 static void R_LoadVertexBuffers(r_model_t *mod) {
-	int32_t v, st, t, c;
 
 	if (!qglGenBuffers)
 		return;
 
-	if (mod->num_frames > 1) // animated models don't use VBO
+	if (IS_MESH_MODEL(mod) && mod->mesh->num_frames > 1) // animated models don't use VBO
 		return;
 
-	v = mod->num_verts * 3 * sizeof(GLfloat);
-	st = mod->num_verts * 2 * sizeof(GLfloat);
-	t = mod->num_verts * 4 * sizeof(GLfloat);
-	c = mod->num_verts * 4 * sizeof(GLfloat);
+	const GLsizei v = mod->num_verts * 3 * sizeof(GLfloat);
+	const GLsizei st = mod->num_verts * 2 * sizeof(GLfloat);
+	const GLsizei t = mod->num_verts * 4 * sizeof(GLfloat);
 
 	// load the vertex buffer objects
 	qglGenBuffers(1, &mod->vertex_buffer);
@@ -152,237 +114,149 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 	qglBindBuffer(GL_ARRAY_BUFFER, mod->tangent_buffer);
 	qglBufferData(GL_ARRAY_BUFFER, t, mod->tangents, GL_STATIC_DRAW);
 
-	qglBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	if (mod->type != mod_bsp)
-		return;
-
-	// including lightmap coords, tangents, and colors for bsp
-	qglGenBuffers(1, &mod->lmtexcoord_buffer);
-	qglBindBuffer(GL_ARRAY_BUFFER, mod->lmtexcoord_buffer);
-	qglBufferData(GL_ARRAY_BUFFER, st, mod->lmtexcoords, GL_STATIC_DRAW);
-
-	qglGenBuffers(1, &mod->color_buffer);
-	qglBindBuffer(GL_ARRAY_BUFFER, mod->color_buffer);
-	qglBufferData(GL_ARRAY_BUFFER, c, mod->colors, GL_STATIC_DRAW);
+	if (mod->type == MOD_BSP) { // including lightmap texcords for bsp
+		qglGenBuffers(1, &mod->lightmap_texcoord_buffer);
+		qglBindBuffer(GL_ARRAY_BUFFER, mod->lightmap_texcoord_buffer);
+		qglBufferData(GL_ARRAY_BUFFER, st, mod->lightmap_texcoords, GL_STATIC_DRAW);
+	}
 
 	qglBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	R_GetError(mod->media.name);
 }
 
-typedef struct r_model_format_s {
-	r_model_type_t type;
-	const char *name;
-	void (*load)(r_model_t *mod, void *buffer);
-} r_model_format_t;
+/*
+ * @brief Register event listener for models.
+ */
+static void R_RegisterModel(r_media_t *self) {
+	r_model_t *mod = (r_model_t *) self;
 
-static r_model_format_t r_model_formats[] = {
-		{ mod_obj, ".obj", R_LoadObjModel },
-		{ mod_md3, ".md3", R_LoadMd3Model },
-		{ mod_bsp, ".bsp", R_LoadBspModel } };
+	if (mod->type == MOD_BSP) {
+		const r_bsp_surface_t *s = mod->bsp->surfaces;
+		uint16_t i;
 
-#define NUM_MODEL_FORMATS (sizeof(r_model_formats) / sizeof(r_model_format_t))
+		for (i = 0; i < mod->bsp->num_surfaces; i++, s++) {
+			R_RegisterDependency(self, (r_media_t *) s->texinfo->material);
+
+			R_RegisterDependency(self, (r_media_t *) s->lightmap);
+			R_RegisterDependency(self, (r_media_t *) s->deluxemap);
+		}
+
+		// keep a reference to the world model
+		r_model_state.world = mod;
+
+	} else if (IS_MESH_MODEL(mod)) {
+		R_RegisterDependency(self, (r_media_t *) mod->mesh->material);
+	}
+}
 
 /*
- * @brief
+ * @brief Free event listener for models.
+ */
+static void R_FreeModel(r_media_t *self) {
+	r_model_t *mod = (r_model_t *) self;
+
+	if (mod->vertex_buffer)
+		qglDeleteBuffers(1, &mod->vertex_buffer);
+
+	if (mod->texcoord_buffer)
+		qglDeleteBuffers(1, &mod->texcoord_buffer);
+
+	if (mod->lightmap_texcoord_buffer)
+		qglDeleteBuffers(1, &mod->lightmap_texcoord_buffer);
+
+	if (mod->normal_buffer)
+		qglDeleteBuffers(1, &mod->normal_buffer);
+
+	if (mod->tangent_buffer)
+		qglDeleteBuffers(1, &mod->tangent_buffer);
+
+	R_GetError(mod->media.name);
+}
+
+/*
+ * @brief Loads the model by the specified name.
  */
 r_model_t *R_LoadModel(const char *name) {
-	r_model_format_t *format;
 	r_model_t *mod;
-	char n[MAX_QPATH];
-	void *buf;
-	vec3_t tmp;
-	uint16_t i;
+	char key[MAX_QPATH];
+	size_t i;
 
 	if (!name || !name[0]) {
-		Com_Error(ERR_DROP, "R_LoadModel: NULL name.\n");
+		Com_Error(ERR_DROP, "R_LoadModel: NULL name\n");
 	}
 
-	// inline models are fetched from a separate array
-	if (name[0] == '*') {
-		i = atoi(name + 1);
-		if (i < 1 || !r_world_model || i >= r_world_model->num_submodels) {
-			Com_Error(ERR_DROP, "R_LoadModel: Bad inline model number.\n");
+	if (*name == '*') {
+		g_snprintf(key, sizeof(key), "%s#%s", r_model_state.world->media.name, name + 1);
+	} else {
+		StripExtension(name, key);
+	}
+
+	if (!(mod = (r_model_t *) R_FindMedia(key))) {
+
+		void *buf;
+		const r_model_format_t *format = r_model_formats;
+		for (i = 0; i < lengthof(r_model_formats); i++, format++) {
+
+			StripExtension(name, key);
+			strcat(key, format->extension);
+
+			if (Fs_Load(key, &buf) != -1)
+				break;
 		}
-		return &r_inline_models[i];
-	}
 
-	StripExtension(name, n);
-
-	// search the currently loaded models
-	for (i = 0, mod = r_models; i < r_num_models; i++, mod++) {
-		if (!strcmp(n, mod->name))
-			return mod;
-	}
-
-	// find a free model slot spot
-	for (i = 0, mod = r_models; i < r_num_models; i++, mod++) {
-		if (!mod->name[0])
-			break; // free spot
-	}
-
-	if (i == r_num_models) {
-		if (r_num_models == MAX_MOD_KNOWN) {
-			Com_Error(ERR_DROP, "R_LoadModel: MAX_MOD_KNOWN reached.\n");
+		if (i == lengthof(r_model_formats)) { // not found
+			if (strstr(name, "players/")) {
+				Com_Debug("Failed to load player %s\n", name);
+			} else {
+				Com_Warn("Failed to load %s\n", name);
+			}
+			return NULL;
 		}
-		r_num_models++;
+
+		StripExtension(name, key);
+
+		mod = (r_model_t *) R_AllocMedia(key, sizeof(r_model_t));
+
+		mod->media.Register = R_RegisterModel;
+		mod->media.Free = R_FreeModel;
+
+		mod->type = format->type;
+
+		// load the materials first, so that we can resolve surfaces lists
+		R_LoadMaterials(mod);
+
+		// load it
+		format->Load(mod, buf);
+
+		// free the file
+		Fs_Free(buf);
+
+		// assemble vertex buffer objects from static arrays
+		R_LoadVertexBuffers(mod);
+
+		// calculate an approximate radius from the bounding box
+		vec3_t tmp;
+
+		VectorSubtract(mod->maxs, mod->mins, tmp);
+		mod->radius = VectorLength(tmp) / 2.0;
+
+		R_RegisterMedia((r_media_t *) mod);
 	}
-
-	// load the file
-	format = r_model_formats;
-	for (i = 0; i < NUM_MODEL_FORMATS; i++, format++) {
-
-		StripExtension(name, n);
-		strcat(n, format->name);
-
-		if (Fs_LoadFile(n, &buf) != -1)
-			break;
-	}
-
-	if (i == NUM_MODEL_FORMATS) { // not found
-		if (strstr(name, "players/")) {
-			Com_Debug("R_LoadModel: Failed to load player %s.\n", name);
-		} else {
-			Com_Warn("R_LoadModel: Failed to load %s.\n", name);
-		}
-		return NULL;
-	}
-
-	StripExtension(n, mod->name);
-	mod->type = format->type;
-
-	// load the materials first, so that we can resolve surfaces lists
-	R_LoadMaterials(mod);
-
-	r_load_model = mod;
-
-	r_load_model->extra_data = R_HunkBegin();
-
-	format->load(mod, buf);
-
-	r_load_model->extra_data_size = R_HunkEnd(r_load_model->extra_data);
-
-	Fs_FreeFile(buf);
-
-	// assemble vertex buffer objects from static arrays
-	R_LoadVertexBuffers(mod);
-
-	// calculate an approximate radius from the bounding box
-	VectorSubtract(mod->maxs, mod->mins, tmp);
-	mod->radius = VectorLength(tmp) / 2.0;
 
 	return mod;
 }
 
 /*
- * @brief
+ * @brief Returns the currently loaded world model (BSP).
  */
-void R_ListModels_f(void) {
-	r_model_t *mod;
-	int32_t i, total;
-
-	total = 0;
-	Com_Print("Loaded models:\n");
-
-	for (i = 0, mod = r_models; i < r_num_models; i++, mod++) {
-
-		if (!mod->name[0])
-			continue;
-
-		Com_Print("%6i: %s\n", mod->num_verts, mod->name);
-
-		total += mod->extra_data_size;
-	}
-
-	Com_Print("Total resident: %i\n", total);
+r_model_t *R_WorldModel(void) {
+	return r_model_state.world;
 }
 
 /*
- * @brief
- */
-void R_HunkStats_f(void) {
-	Com_Print("Hunk usage: %.2f / %.2f MB\n", r_hunk.offset / 1024.0 / 1024.0, r_hunk_mb->value);
-}
-
-/*
- * @brief
- */
-static void R_FreeModels(void) {
-	int32_t i;
-
-	R_FreeMaterials(); // first free materials
-
-	for (i = 0; i < r_num_models; i++) {
-		r_model_t *mod = &r_models[i];
-
-		if (mod->vertex_buffer)
-			qglDeleteBuffers(1, &mod->vertex_buffer);
-		if (mod->texcoord_buffer)
-			qglDeleteBuffers(1, &mod->texcoord_buffer);
-		if (mod->lmtexcoord_buffer)
-			qglDeleteBuffers(1, &mod->lmtexcoord_buffer);
-		if (mod->normal_buffer)
-			qglDeleteBuffers(1, &mod->normal_buffer);
-	}
-
-	r_world_model = NULL;
-
-	// reset the models array
-	memset(r_models, 0, sizeof(r_models));
-	r_num_models = 0;
-
-	// reset inline models
-	memset(r_inline_models, 0, sizeof(r_inline_models));
-
-	// reset the hunk
-	memset(r_hunk.base, 0, r_hunk.size);
-	r_hunk.offset = 0;
-}
-
-/*
- * @brief Loads the specified level after resetting all model data.
- */
-void R_BeginLoading(const char *bsp_name, int32_t bsp_size) {
-
-	R_FreeModels(); // free all models
-
-	// load bsp for collision detection (prediction)
-	if (!Com_WasInit(Q2W_SERVER) || !Cm_NumModels()) {
-		int32_t bs;
-
-		Cm_LoadBsp(bsp_name, &bs);
-
-		if (bs != bsp_size) {
-			Com_Error(ERR_DROP, "Local map version differs from server: "
-				"%i != %i.\n", bs, bsp_size);
-		}
-	}
-
-	// and then load the bsp for rendering (surface arrays)
-	r_world_model = R_LoadModel(bsp_name);
-}
-
-/*
- * @brief
+ * @brief Initializes the model facilities.
  */
 void R_InitModels(void) {
-
-	// allocate the hunk
-	r_hunk.size = (size_t) r_hunk_mb->value * 1024 * 1024;
-
-	if (!(r_hunk.base = Z_Malloc(r_hunk.size))) { // malloc the new one
-		Com_Error(ERR_FATAL, "R_HunkInit: Unable to allocate hunk.\n");
-	}
-
-	r_hunk.offset = 0;
-}
-
-/*
- * @brief
- */
-void R_ShutdownModels(void) {
-
-	R_FreeModels();
-
-	if (r_hunk.base) // free the hunk
-		Z_Free(r_hunk.base);
+	memset(&r_model_state, 0, sizeof(r_model_state));
 }

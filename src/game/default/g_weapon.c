@@ -24,22 +24,21 @@
 /*
  * @brief
  */bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
-	int32_t index, ammoindex, delta;
-	g_item_t *ammo;
+	int32_t delta;
 
-	index = ITEM_INDEX(ent->item);
-	ammo = G_FindItem(ent->item->ammo);
-	ammoindex = ITEM_INDEX(ammo);
+	const uint16_t index = ITEM_INDEX(ent->item);
+	const g_item_t *ammo = G_FindItem(ent->item->ammo);
+	const uint16_t ammo_index = ITEM_INDEX(ammo);
 
-	delta = ent->health - other->client->persistent.inventory[ammoindex];
+	delta = ent->health - other->client->persistent.inventory[ammo_index];
 	if (delta <= 0)
 		G_AddAmmo(other, ammo, ent->health / 2);
 	else
-		G_SetAmmo(other, ammo, ent->health + other->client->persistent.inventory[ammoindex] / 2);
+		G_SetAmmo(other, ammo, ent->health + other->client->persistent.inventory[ammo_index] / 2);
 
 	// setup respawn if it's not a dropped item
 	if (!(ent->spawn_flags & SF_ITEM_DROPPED)) {
-		if (!strcmp(ent->item->pickup_name, "BFG10K"))
+		if (!strcmp(ent->item->name, "BFG10K"))
 			G_SetItemRespawn(ent, g_weapon_respawn_time->value * 3 * 1000);
 		else
 			G_SetItemRespawn(ent, g_weapon_respawn_time->value * 1000);
@@ -149,17 +148,17 @@ void G_UseBestWeapon(g_client_t *client) {
 /*
  * @brief
  */
-void G_UseWeapon(g_edict_t *ent, g_item_t *item) {
+void G_UseWeapon(g_edict_t *ent, const g_item_t *item) {
 
 	// see if we're already using it
 	if (item == ent->client->persistent.weapon)
 		return;
 
 	if (item->ammo) { // ensure we have ammo
-		int32_t index = ITEM_INDEX(G_FindItem(item->ammo));
+		uint16_t index = ITEM_INDEX(G_FindItem(item->ammo));
 
 		if (!ent->client->persistent.inventory[index]) {
-			gi.ClientPrint(ent, PRINT_HIGH, "Not enough ammo for %s\n", item->pickup_name);
+			gi.ClientPrint(ent, PRINT_HIGH, "Not enough ammo for %s\n", item->name);
 			return;
 		}
 	}
@@ -171,12 +170,9 @@ void G_UseWeapon(g_edict_t *ent, g_item_t *item) {
 /*
  * @brief
  */
-void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
-	int32_t index, ammo_index;
-	g_edict_t *dropped;
-	g_item_t *ammo;
+void G_DropWeapon(g_edict_t *ent, const g_item_t *item) {
 
-	index = ITEM_INDEX(item);
+	const uint16_t index = ITEM_INDEX(item);
 
 	// see if we're already using it and we only have one
 	if ((item == ent->client->persistent.weapon || item == ent->client->new_weapon)
@@ -185,19 +181,20 @@ void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
 		return;
 	}
 
-	ammo = G_FindItem(item->ammo);
-	ammo_index = ITEM_INDEX(ammo);
+	const g_item_t *ammo = G_FindItem(item->ammo);
+	const uint16_t ammo_index = ITEM_INDEX(ammo);
 	if (ent->client->persistent.inventory[ammo_index] <= 0) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop a weapon without ammo\n");
 		return;
 	}
 
-	dropped = G_DropItem(ent, item);
+	g_edict_t *dropped = G_DropItem(ent, item);
 	ent->client->persistent.inventory[index]--;
 
-	//now adjust dropped ammo quantity to reflect what we actually had avalible
+	//now adjust dropped ammo quantity to reflect what we actually had available
 	if (ent->client->persistent.inventory[ammo_index] < ammo->quantity)
 		dropped->health = ent->client->persistent.inventory[ammo_index];
+
 	G_AddAmmo(ent, ammo, -1 * ammo->quantity);
 
 }
@@ -206,22 +203,18 @@ void G_DropWeapon(g_edict_t *ent, g_item_t *item) {
  * @brief
  */
 void G_TossWeapon(g_edict_t *ent) {
-	g_edict_t *dropped;
-	g_item_t *item;
-	int16_t ammo;
 
 	// don't drop weapon when falling into void
 	if (means_of_death == MOD_TRIGGER_HURT)
 		return;
 
-	item = ent->client->persistent.weapon;
-
-	ammo = ent->client->persistent.inventory[ent->client->ammo_index];
+	const int16_t ammo = ent->client->persistent.inventory[ent->client->ammo_index];
 
 	if (!ammo)
 		return; // don't drop when out of ammo
 
-	dropped = G_DropItem(ent, item);
+	g_edict_t *dropped = G_DropItem(ent, ent->client->persistent.weapon);
+
 	if (dropped->health > ammo)
 		dropped->health = ammo;
 }
@@ -268,7 +261,7 @@ static void G_FireWeapon(g_edict_t *ent, uint32_t interval, void(*fire)(g_edict_
 	// they've pressed their fire button, and have ammo, so fire
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
-	if (ent->client->persistent.inventory[quad_damage_index]) { // quad sound
+	if (ent->client->persistent.inventory[g_level.media.quad_damage]) { // quad sound
 
 		if (ent->client->quad_attack_time < g_level.time) {
 			gi.Sound(ent, gi.SoundIndex("quad/attack"), ATTN_NORM);
@@ -286,7 +279,7 @@ static void G_FireWeapon(g_edict_t *ent, uint32_t interval, void(*fire)(g_edict_
 /*
  * @brief
  */
-void G_WeaponThink(g_edict_t *ent) {
+void G_ClientWeaponThink(g_edict_t *ent) {
 
 	if (ent->health < 1)
 		return;
@@ -304,9 +297,9 @@ void G_WeaponThink(g_edict_t *ent) {
 			G_SetAnimation(ent, ANIM_TORSO_RAISE, false);
 	}
 
-	// call active weapon think routine
-	if (ent->client->persistent.weapon && ent->client->persistent.weapon->weapon_think)
-		ent->client->persistent.weapon->weapon_think(ent);
+	// call active weapon fire routine
+	if (ent->client->persistent.weapon && ent->client->persistent.weapon->Think)
+		ent->client->persistent.weapon->Think(ent);
 }
 
 /*
@@ -319,11 +312,7 @@ static void G_MuzzleFlash(g_edict_t *ent, muzzle_flash_t flash) {
 	gi.WriteByte(flash);
 
 	if (flash == MZ_BLASTER) {
-		int32_t color = DEFAULT_WEAPON_EFFECT_COLOR;
-		if (ent->client) {
-			color = ent->client->persistent.color;
-		}
-		gi.WriteByte(color);
+		gi.WriteByte(ent->client ? ent->client->persistent.color : 0);
 	}
 
 	gi.Multicast(ent->s.origin, MULTICAST_PHS);

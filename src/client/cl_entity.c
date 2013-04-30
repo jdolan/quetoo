@@ -89,10 +89,10 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 		const uint16_t bits = Msg_ReadShort(&net_message);
 
 		if (number >= MAX_EDICTS)
-			Com_Error(ERR_DROP, "Cl_ParseEntities: bad number: %i.\n", number);
+			Com_Error(ERR_DROP, "Bad number: %i\n", number);
 
 		if (net_message.read > net_message.size)
-			Com_Error(ERR_DROP, "Cl_ParseEntities: end of message.\n");
+			Com_Error(ERR_DROP, "End of message\n");
 
 		if (!number)
 			break;
@@ -121,7 +121,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 				Com_Print("   remove: %i\n", number);
 
 			if (old_number != number)
-				Com_Warn("Cl_ParseEntities: U_REMOVE: %u != %u.\n", old_number, number);
+				Com_Warn("U_REMOVE: %u != %u\n", old_number, number);
 
 			old_index++;
 
@@ -292,13 +292,13 @@ void Cl_ParseFrame(void) {
 		old_frame = &cl.frames[cl.frame.delta_frame & UPDATE_MASK];
 
 		if (!old_frame->valid)
-			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta from invalid frame.\n");
+			Com_Error(ERR_DROP, "Delta from invalid frame\n");
 
 		if (old_frame->server_frame != (uint32_t) cl.frame.delta_frame)
-			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta frame too old.\n");
+			Com_Error(ERR_DROP, "Delta frame too old\n");
 
 		else if (cl.entity_state - old_frame->entity_state > ENTITY_STATE_BACKUP - UPDATE_BACKUP)
-			Com_Error(ERR_DROP, "Cl_ParseFrame: Delta parse_entities too old.\n");
+			Com_Error(ERR_DROP, "Delta parse_entities too old\n");
 
 		cl.frame.valid = true;
 	}
@@ -330,12 +330,12 @@ void Cl_ParseFrame(void) {
  * @brief Invalidate lighting caches on media load.
  */
 void Cl_UpdateEntities(void) {
-	uint32_t i;
 
-	if (!r_view.update)
-		return;
+	if (r_view.update) {
+		uint16_t i;
 
-	for (i = 0; i < MAX_EDICTS; i++) {
-		cl.entities[i].lighting.state = LIGHTING_INIT;
+		for (i = 0; i < MAX_EDICTS; i++) {
+			cl.entities[i].lighting.state = LIGHTING_INIT;
+		}
 	}
 }

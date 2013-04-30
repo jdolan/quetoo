@@ -51,7 +51,7 @@ void R_InitContext(void) {
 
 	if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
 		if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
-			Com_Error(ERR_FATAL, "R_InitContext: %s.\n", SDL_GetError());
+			Com_Error(ERR_FATAL, "%s\n", SDL_GetError());
 		}
 	}
 
@@ -105,10 +105,10 @@ void R_InitContext(void) {
 
 	if ((surface = SDL_SetVideoMode(w, h, 0, flags)) == NULL) {
 		if (r_context.width && r_context.height) {
-			Com_Warn("R_InitContext: Failed to set video mode: %s\n", SDL_GetError());
+			Com_Warn("Failed to set video mode: %s\n", SDL_GetError());
 			return;
 		}
-		Com_Error(ERR_FATAL, "R_InitContext: Failed to set video mode: %s\n", SDL_GetError());
+		Com_Error(ERR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
 	r_context.width = surface->w;

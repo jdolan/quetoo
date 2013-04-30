@@ -25,19 +25,17 @@
  * @brief Resolves the skin for the specified model. By default, we simply load
  * "skin.tga" in the model's directory.
  */
-static void R_LoadMeshSkin(r_model_t *mod) {
+static void R_LoadMeshMaterial(r_model_t *mod) {
 	char skin[MAX_QPATH];
 
-	Dirname(mod->name, skin);
+	Dirname(mod->media.name, skin);
 	strcat(skin, "skin");
 
-	mod->skin = R_LoadImage(skin, it_diffuse);
+	mod->mesh->material = R_LoadMaterial(skin);
 }
 
 /*
- * R_LoadMd3Animations
- *
- * Parses animation.cfg, loading the frame specifications for the given model.
+ * @brief Parses animation.cfg, loading the frame specifications for the given model.
  */
 static void R_LoadMd3Animations(r_model_t *mod) {
 	r_md3_t *md3;
@@ -46,18 +44,17 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 	void *buf;
 	uint16_t skip;
 
-	md3 = (r_md3_t *) mod->extra_data;
+	md3 = (r_md3_t *) mod->mesh->data;
 
-	Dirname(mod->name, path);
+	Dirname(mod->media.name, path);
 	strcat(path, "animation.cfg");
 
-	if (Fs_LoadFile(path, &buf) == -1) {
-		Com_Warn("R_LoadMd3Animation: No animation.cfg for %s\n", mod->name);
+	if (Fs_Load(path, &buf) == -1) {
+		Com_Warn("No animation.cfg for %s\n", mod->media.name);
 		return;
 	}
 
-	md3->animations = (r_md3_animation_t *) R_HunkAlloc(
-			sizeof(r_md3_animation_t) * MD3_MAX_ANIMATIONS);
+	md3->animations = Z_LinkMalloc(sizeof(r_md3_animation_t) * MD3_MAX_ANIMATIONS, mod->mesh);
 
 	buffer = (char *) buf;
 	skip = 0;
@@ -87,35 +84,36 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 				a->first_frame -= skip;
 
 			if (!a->num_frames)
-				Com_Warn("R_LoadMd3Animations: %s: No frames for %d\n", mod->name,
-						md3->num_animations);
+				Com_Warn("%s: No frames for %d\n", mod->media.name, md3->num_animations);
 
 			if (!a->hz)
-				Com_Warn("R_LoadMd3Animations: %s: No hz for %d\n", mod->name, md3->num_animations);
+				Com_Warn("%s: No hz for %d\n", mod->media.name, md3->num_animations);
 
-			Com_Debug("R_LoadMd3Animations: Parsed %d: %d %d %d %d\n", md3->num_animations,
+			Com_Debug("Parsed %d: %d %d %d %d\n", md3->num_animations,
 					a->first_frame, a->num_frames, a->looped_frames, a->hz);
 
 			md3->num_animations++;
 		}
 
 		if (md3->num_animations == MD3_MAX_ANIMATIONS) {
-			Com_Warn("R_LoadMd3Animations: MD3_MAX_ANIMATIONS reached: %s\n", mod->name);
+			Com_Warn("MD3_MAX_ANIMATIONS reached: %s\n", mod->media.name);
 			break;
 		}
 	}
 
-	Com_Debug("R_LoadMd3Animations: Loaded %d animations: %s\n", md3->num_animations, mod->name);
+	Fs_Free(buf);
+
+	Com_Debug("Loaded %d animations: %s\n", md3->num_animations, mod->media.name);
 }
 
 /*
- * @brief
+ * @brief Loads the specified r_mesh_config_t from the file at path.
  */
 static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 	const char *buffer, *c;
 	void *buf;
 
-	if (Fs_LoadFile(path, &buf) == -1)
+	if (Fs_Load(path, &buf) == -1)
 		return;
 
 	buffer = (char *) buf;
@@ -149,37 +147,39 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 		}
 	}
 
-	Fs_FreeFile(buf);
+	Fs_Free(buf);
 }
 
 /*
- * @brief
+ * @brief Loads all r_mesh_config_t for the specified r_model_t. These allow
+ * models to be positioned and scaled relative to their own origins, which is
+ * useful because artists contribute models in almost arbitrary dimensions at
+ * times.
  */
 static void R_LoadMeshConfigs(r_model_t *mod) {
 	char path[MAX_QPATH];
 
-	mod->world_config = (r_mesh_config_t *) R_HunkAlloc(sizeof(r_mesh_config_t));
-	mod->view_config = (r_mesh_config_t *) R_HunkAlloc(sizeof(r_mesh_config_t));
-	mod->link_config = (r_mesh_config_t *) R_HunkAlloc(sizeof(r_mesh_config_t));
+	mod->mesh->world_config = Z_LinkMalloc(sizeof(r_mesh_config_t), mod->mesh);
+	mod->mesh->view_config = Z_LinkMalloc(sizeof(r_mesh_config_t), mod->mesh);
+	mod->mesh->link_config = Z_LinkMalloc(sizeof(r_mesh_config_t), mod->mesh);
 
-	mod->world_config->scale = 1.0;
+	mod->mesh->world_config->scale = 1.0;
 
-	Dirname(mod->name, path);
+	Dirname(mod->media.name, path);
 
-	R_LoadMeshConfig(mod->world_config, va("%sworld.cfg", path));
+	R_LoadMeshConfig(mod->mesh->world_config, va("%sworld.cfg", path));
 
 	// by default, additional configs inherit from world
-	memcpy(mod->view_config, mod->world_config, sizeof(r_mesh_config_t));
-	memcpy(mod->link_config, mod->world_config, sizeof(r_mesh_config_t));
+	memcpy(mod->mesh->view_config, mod->mesh->world_config, sizeof(r_mesh_config_t));
+	memcpy(mod->mesh->link_config, mod->mesh->world_config, sizeof(r_mesh_config_t));
 
-	R_LoadMeshConfig(mod->view_config, va("%sview.cfg", path));
-	R_LoadMeshConfig(mod->link_config, va("%slink.cfg", path));
+	R_LoadMeshConfig(mod->mesh->view_config, va("%sview.cfg", path));
+	R_LoadMeshConfig(mod->mesh->link_config, va("%slink.cfg", path));
 }
 
 /*
- * R_LoadMd3Tangents
- *
- * http://www.terathon.com/code/tangent.html
+ * @brief Calculates tangent vectors for each MD3 vertex for per-pixel
+ * lighting. See http://www.terathon.com/code/tangent.html.
  */
 static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 	vec3_t *tan1, *tan2;
@@ -263,7 +263,7 @@ static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 }
 
 /*
- * R_LoadMd3VertexArrays
+ * @brief Loads and populates vertex array data for the specified MD3 model.
  */
 static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	r_md3_t *md3;
@@ -276,7 +276,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 	R_AllocVertexArrays(mod); // allocate the arrays
 
-	md3 = (r_md3_t *) mod->extra_data;
+	md3 = (r_md3_t *) mod->mesh->data;
 
 	frame = md3->frames;
 
@@ -286,11 +286,11 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 		v = mesh->verts;
 
-		if (mod->num_frames == 1) { // for static models, build the verts and normals
+		if (mod->mesh->num_frames == 1) { // for static models, build the verts and normals
 			for (j = 0; j < mesh->num_verts; j++, v++) {
-				VectorAdd(frame->translate, v->point, r_mesh_verts[j]);
-				VectorCopy(v->normal, r_mesh_norms[j]);
-				Vector4Copy(v->tangent, r_mesh_tangents[j]);
+				VectorAdd(frame->translate, v->point, r_mesh_state.vertexes[j]);
+				VectorCopy(v->normal, r_mesh_state.normals[j]);
+				Vector4Copy(v->tangent, r_mesh_state.tangents[j]);
 			}
 		}
 
@@ -299,18 +299,18 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 		for (j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the arrays
 
-			if (mod->num_frames == 1) {
-				VectorCopy(r_mesh_verts[tri[0]], (&mod->verts[vert_index + 0]));
-				VectorCopy(r_mesh_verts[tri[1]], (&mod->verts[vert_index + 3]));
-				VectorCopy(r_mesh_verts[tri[2]], (&mod->verts[vert_index + 6]));
+			if (mod->mesh->num_frames == 1) {
+				VectorCopy(r_mesh_state.vertexes[tri[0]], (&mod->verts[vert_index + 0]));
+				VectorCopy(r_mesh_state.vertexes[tri[1]], (&mod->verts[vert_index + 3]));
+				VectorCopy(r_mesh_state.vertexes[tri[2]], (&mod->verts[vert_index + 6]));
 
-				VectorCopy(r_mesh_norms[tri[0]], (&mod->normals[vert_index + 0]));
-				VectorCopy(r_mesh_norms[tri[1]], (&mod->normals[vert_index + 3]));
-				VectorCopy(r_mesh_norms[tri[2]], (&mod->normals[vert_index + 6]));
+				VectorCopy(r_mesh_state.normals[tri[0]], (&mod->normals[vert_index + 0]));
+				VectorCopy(r_mesh_state.normals[tri[1]], (&mod->normals[vert_index + 3]));
+				VectorCopy(r_mesh_state.normals[tri[2]], (&mod->normals[vert_index + 6]));
 
-				Vector4Copy(r_mesh_tangents[tri[0]], (&mod->tangents[vert_index + 0]));
-				Vector4Copy(r_mesh_tangents[tri[1]], (&mod->tangents[vert_index + 4]));
-				Vector4Copy(r_mesh_tangents[tri[2]], (&mod->tangents[vert_index + 8]));
+				Vector4Copy(r_mesh_state.tangents[tri[0]], (&mod->tangents[vert_index + 0]));
+				Vector4Copy(r_mesh_state.tangents[tri[1]], (&mod->tangents[vert_index + 4]));
+				Vector4Copy(r_mesh_state.tangents[tri[2]], (&mod->tangents[vert_index + 8]));
 			}
 
 			memcpy(&mod->texcoords[texcoord_index + 0], &texcoords[tri[0]], sizeof(vec2_t));
@@ -325,206 +325,200 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 }
 
 /*
- * R_LoadMd3Model
+ * @brief Loads the d_md3_t contents of buffer to the specified model.
  */
 void R_LoadMd3Model(r_model_t *mod, void *buffer) {
-	int32_t version, i, j, l;
-	d_md3_t *inmodel;
-	r_md3_t *outmodel;
-	d_md3_frame_t *inframe, *outframe;
-	d_md3_tag_t *intag;
-	r_md3_tag_t *outtag;
+	int32_t i, j, l;
+	d_md3_t *in_md3;
+	r_md3_t *out_md3;
+	d_md3_frame_t *in_frame, *out_frame;
+	d_md3_tag_t *in_tag;
+	r_md3_tag_t *out_tag;
 	d_md3_orientation_t orient;
-	d_md3_mesh_t *inmesh;
-	r_md3_mesh_t *outmesh;
-	d_md3_texcoord_t *incoord, *outcoord;
-	d_md3_vertex_t *invert;
-	r_md3_vertex_t *outvert;
-	uint32_t *inindex, *outindex;
+	d_md3_mesh_t *in_mesh;
+	r_md3_mesh_t *out_mesh;
+	d_md3_texcoord_t *in_coord, *out_coord;
+	d_md3_vertex_t *in_vert;
+	r_md3_vertex_t *out_vert;
+	uint32_t *inindex, *out_index;
 	float lat, lng;
+	size_t size;
 
-	inmodel = (d_md3_t *) buffer;
+	in_md3 = (d_md3_t *) buffer;
 
-	version = LittleLong(inmodel->version);
+	const int32_t version = LittleLong(in_md3->version);
 	if (version != MD3_VERSION) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has wrong version number "
-			"(%i should be %i)\n", mod->name, version, MD3_VERSION);
+		Com_Error(ERR_DROP, "%s has wrong version number "
+			"(%i should be %i)\n", mod->media.name, version, MD3_VERSION);
 	}
 
-	mod->type = mod_md3;
-	mod->version = version;
-
-	outmodel = (r_md3_t *) R_HunkAlloc(sizeof(r_md3_t));
+	mod->mesh = Z_LinkMalloc(sizeof(r_mesh_model_t), mod);
+	mod->mesh->data = out_md3 = Z_LinkMalloc(sizeof(r_md3_t), mod->mesh);
 
 	// byte swap the header fields and sanity check
-	inmodel->ofs_frames = LittleLong(inmodel->ofs_frames);
-	inmodel->ofs_tags = LittleLong(inmodel->ofs_tags);
-	inmodel->ofs_meshes = LittleLong(inmodel->ofs_meshes);
+	in_md3->ofs_frames = LittleLong(in_md3->ofs_frames);
+	in_md3->ofs_tags = LittleLong(in_md3->ofs_tags);
+	in_md3->ofs_meshes = LittleLong(in_md3->ofs_meshes);
 
-	mod->num_frames = outmodel->num_frames = LittleLong(inmodel->num_frames);
-	outmodel->num_tags = LittleLong(inmodel->num_tags);
-	outmodel->num_meshes = LittleLong(inmodel->num_meshes);
+	mod->mesh->num_frames = out_md3->num_frames = LittleLong(in_md3->num_frames);
+	out_md3->num_tags = LittleLong(in_md3->num_tags);
+	out_md3->num_meshes = LittleLong(in_md3->num_meshes);
 
-	if (outmodel->num_frames < 1) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has no frames.\n", mod->name);
+	if (out_md3->num_frames < 1) {
+		Com_Error(ERR_DROP, "%s has no frames\n", mod->media.name);
 	}
 
-	if (outmodel->num_frames > MD3_MAX_FRAMES) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many frames.\n", mod->name);
+	if (out_md3->num_frames > MD3_MAX_FRAMES) {
+		Com_Error(ERR_DROP, "%s has too many frames\n", mod->media.name);
 	}
 
-	if (outmodel->num_tags > MD3_MAX_TAGS) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many tags.\n", mod->name);
+	if (out_md3->num_tags > MD3_MAX_TAGS) {
+		Com_Error(ERR_DROP, "%s has too many tags\n", mod->media.name);
 	}
 
-	if (outmodel->num_meshes > MD3_MAX_MESHES) {
-		Com_Error(ERR_DROP, "R_LoadMd3Model: %s has too many meshes.\n", mod->name);
+	if (out_md3->num_meshes > MD3_MAX_MESHES) {
+		Com_Error(ERR_DROP, "%s has too many meshes\n", mod->media.name);
 	}
 
 	// load the frames
-	inframe = (d_md3_frame_t *) ((byte *) inmodel + inmodel->ofs_frames);
-	outmodel->frames = outframe = (d_md3_frame_t *) R_HunkAlloc(
-			outmodel->num_frames * sizeof(d_md3_frame_t));
+	in_frame = (d_md3_frame_t *) ((byte *) in_md3 + in_md3->ofs_frames);
+	size = out_md3->num_frames * sizeof(d_md3_frame_t);
+	out_md3->frames = out_frame = Z_LinkMalloc(size, mod->mesh);
 
 	ClearBounds(mod->mins, mod->maxs);
 
-	for (i = 0; i < outmodel->num_frames; i++, inframe++, outframe++) {
+	for (i = 0; i < out_md3->num_frames; i++, in_frame++, out_frame++) {
 		for (j = 0; j < 3; j++) {
-			outframe->mins[j] = LittleFloat(inframe->mins[j]);
-			outframe->maxs[j] = LittleFloat(inframe->maxs[j]);
-			outframe->translate[j] = LittleFloat(inframe->translate[j]);
+			out_frame->mins[j] = LittleFloat(in_frame->mins[j]);
+			out_frame->maxs[j] = LittleFloat(in_frame->maxs[j]);
+			out_frame->translate[j] = LittleFloat(in_frame->translate[j]);
 		}
 
-		AddPointToBounds(outframe->mins, mod->mins, mod->maxs);
-		AddPointToBounds(outframe->maxs, mod->mins, mod->maxs);
+		AddPointToBounds(out_frame->mins, mod->mins, mod->maxs);
+		AddPointToBounds(out_frame->maxs, mod->mins, mod->maxs);
 	}
 
 	// load the tags
-	if (outmodel->num_tags) {
+	if (out_md3->num_tags) {
 
-		intag = (d_md3_tag_t *) ((byte *) inmodel + inmodel->ofs_tags);
-		outmodel->tags = outtag = (r_md3_tag_t *) R_HunkAlloc(
-				outmodel->num_tags * outmodel->num_frames * sizeof(r_md3_tag_t));
+		in_tag = (d_md3_tag_t *) ((byte *) in_md3 + in_md3->ofs_tags);
+		size = out_md3->num_tags * out_md3->num_frames * sizeof(r_md3_tag_t);
+		out_md3->tags = out_tag = Z_LinkMalloc(size, mod->mesh);
 
-		for (i = 0; i < outmodel->num_frames; i++) {
-			for (l = 0; l < outmodel->num_tags; l++, intag++, outtag++) {
-				memcpy(outtag->name, intag->name, MD3_MAX_PATH);
+		for (i = 0; i < out_md3->num_frames; i++) {
+			for (l = 0; l < out_md3->num_tags; l++, in_tag++, out_tag++) {
+				memcpy(out_tag->name, in_tag->name, MD3_MAX_PATH);
 
 				for (j = 0; j < 3; j++) {
-					orient.origin[j] = LittleFloat(intag->orient.origin[j]);
-					orient.axis[0][j] = LittleFloat(intag->orient.axis[0][j]);
-					orient.axis[1][j] = LittleFloat(intag->orient.axis[1][j]);
-					orient.axis[2][j] = LittleFloat(intag->orient.axis[2][j]);
+					orient.origin[j] = LittleFloat(in_tag->orient.origin[j]);
+					orient.axis[0][j] = LittleFloat(in_tag->orient.axis[0][j]);
+					orient.axis[1][j] = LittleFloat(in_tag->orient.axis[1][j]);
+					orient.axis[2][j] = LittleFloat(in_tag->orient.axis[2][j]);
 				}
 
-				Matrix4x4_FromVectors(&outtag->matrix, orient.axis[0], orient.axis[1],
+				Matrix4x4_FromVectors(&out_tag->matrix, orient.axis[0], orient.axis[1],
 						orient.axis[2], orient.origin);
 			}
 		}
 	}
 
 	// load the meshes
-	inmesh = (d_md3_mesh_t *) ((byte *) inmodel + inmodel->ofs_meshes);
-	outmodel->meshes = outmesh = (r_md3_mesh_t *) R_HunkAlloc(
-			outmodel->num_meshes * sizeof(r_md3_mesh_t));
+	in_mesh = (d_md3_mesh_t *) ((byte *) in_md3 + in_md3->ofs_meshes);
+	size = out_md3->num_meshes * sizeof(r_md3_mesh_t);
+	out_md3->meshes = out_mesh = Z_LinkMalloc(size, mod->mesh);
 
-	for (i = 0; i < outmodel->num_meshes; i++, outmesh++) {
-		memcpy(outmesh->name, inmesh->name, MD3_MAX_PATH);
+	for (i = 0; i < out_md3->num_meshes; i++, out_mesh++) {
+		memcpy(out_mesh->name, in_mesh->name, MD3_MAX_PATH);
 
-		inmesh->ofs_tris = LittleLong(inmesh->ofs_tris);
-		inmesh->ofs_skins = LittleLong(inmesh->ofs_skins);
-		inmesh->ofs_tcs = LittleLong(inmesh->ofs_tcs);
-		inmesh->ofs_verts = LittleLong(inmesh->ofs_verts);
-		inmesh->size = LittleLong(inmesh->size);
+		in_mesh->ofs_tris = LittleLong(in_mesh->ofs_tris);
+		in_mesh->ofs_skins = LittleLong(in_mesh->ofs_skins);
+		in_mesh->ofs_tcs = LittleLong(in_mesh->ofs_tcs);
+		in_mesh->ofs_verts = LittleLong(in_mesh->ofs_verts);
+		in_mesh->size = LittleLong(in_mesh->size);
 
-		outmesh->flags = LittleLong(inmesh->flags);
-		outmesh->num_skins = LittleLong(inmesh->num_skins);
-		outmesh->num_tris = LittleLong(inmesh->num_tris);
-		outmesh->num_verts = LittleLong(inmesh->num_verts);
+		out_mesh->flags = LittleLong(in_mesh->flags);
+		out_mesh->num_skins = LittleLong(in_mesh->num_skins);
+		out_mesh->num_tris = LittleLong(in_mesh->num_tris);
+		out_mesh->num_verts = LittleLong(in_mesh->num_verts);
 
-		if (outmesh->num_skins > MD3_MAX_SHADERS) {
-			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many skins.\n", mod->name,
-					outmesh->name);
+		if (out_mesh->num_skins > MD3_MAX_SHADERS) {
+			Com_Error(ERR_DROP, "%s: %s has too many skins\n", mod->media.name, out_mesh->name);
 		}
 
-		if (outmesh->num_tris > MD3_MAX_TRIANGLES) {
-			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many triangles.\n", mod->name,
-					outmesh->name);
+		if (out_mesh->num_tris > MD3_MAX_TRIANGLES) {
+			Com_Error(ERR_DROP, "%s: %s has too many triangles\n", mod->media.name, out_mesh->name);
 		}
 
-		if (outmesh->num_verts > MD3_MAX_VERTS) {
-			Com_Error(ERR_DROP, "R_LoadMd3Model: %s: %s has too many vertexes.\n", mod->name,
-					outmesh->name);
+		if (out_mesh->num_verts > MD3_MAX_VERTS) {
+			Com_Error(ERR_DROP, "%s: %s has too many vertexes\n", mod->media.name, out_mesh->name);
 		}
 
 		// load the triangle indexes
-		inindex = (uint32_t *) ((byte *) inmesh + inmesh->ofs_tris);
-		outmesh->tris = outindex = (uint32_t *) R_HunkAlloc(
-				outmesh->num_tris * sizeof(uint32_t) * 3);
+		inindex = (uint32_t *) ((byte *) in_mesh + in_mesh->ofs_tris);
+		size = out_mesh->num_tris * sizeof(uint32_t) * 3;
+		out_mesh->tris = out_index = Z_LinkMalloc(size, mod->mesh);
 
-		for (j = 0; j < outmesh->num_tris; j++, inindex += 3, outindex += 3) {
-			outindex[0] = (uint32_t) LittleLong(inindex[0]);
-			outindex[1] = (uint32_t) LittleLong(inindex[1]);
-			outindex[2] = (uint32_t) LittleLong(inindex[2]);
+		for (j = 0; j < out_mesh->num_tris; j++, inindex += 3, out_index += 3) {
+			out_index[0] = (uint32_t) LittleLong(inindex[0]);
+			out_index[1] = (uint32_t) LittleLong(inindex[1]);
+			out_index[2] = (uint32_t) LittleLong(inindex[2]);
 		}
 
 		// load the texcoords
-		incoord = (d_md3_texcoord_t *) ((byte *) inmesh + inmesh->ofs_tcs);
-		outmesh->coords = outcoord = (d_md3_texcoord_t *) R_HunkAlloc(
-				outmesh->num_verts * sizeof(d_md3_texcoord_t));
+		in_coord = (d_md3_texcoord_t *) ((byte *) in_mesh + in_mesh->ofs_tcs);
+		size = out_mesh->num_verts * sizeof(d_md3_texcoord_t);
+		out_mesh->coords = out_coord = Z_LinkMalloc(size, mod->mesh);
 
-		for (j = 0; j < outmesh->num_verts; j++, incoord++, outcoord++) {
-			outcoord->st[0] = LittleFloat(incoord->st[0]);
-			outcoord->st[1] = LittleFloat(incoord->st[1]);
+		for (j = 0; j < out_mesh->num_verts; j++, in_coord++, out_coord++) {
+			out_coord->st[0] = LittleFloat(in_coord->st[0]);
+			out_coord->st[1] = LittleFloat(in_coord->st[1]);
 		}
 
 		// load the verts and norms
-		invert = (d_md3_vertex_t *) ((byte *) inmesh + inmesh->ofs_verts);
-		outmesh->verts = outvert = (r_md3_vertex_t *) R_HunkAlloc(
-				outmodel->num_frames * outmesh->num_verts * sizeof(r_md3_vertex_t));
+		in_vert = (d_md3_vertex_t *) ((byte *) in_mesh + in_mesh->ofs_verts);
+		size = out_md3->num_frames * out_mesh->num_verts * sizeof(r_md3_vertex_t);
+		out_mesh->verts = out_vert = Z_LinkMalloc(size, mod->mesh);
 
-		for (l = 0; l < outmodel->num_frames; l++) {
-			for (j = 0; j < outmesh->num_verts; j++, invert++, outvert++) {
-				outvert->point[0] = LittleShort(invert->point[0]) * MD3_XYZ_SCALE;
-				outvert->point[1] = LittleShort(invert->point[1]) * MD3_XYZ_SCALE;
-				outvert->point[2] = LittleShort(invert->point[2]) * MD3_XYZ_SCALE;
+		for (l = 0; l < out_md3->num_frames; l++) {
+			for (j = 0; j < out_mesh->num_verts; j++, in_vert++, out_vert++) {
+				out_vert->point[0] = LittleShort(in_vert->point[0]) * MD3_XYZ_SCALE;
+				out_vert->point[1] = LittleShort(in_vert->point[1]) * MD3_XYZ_SCALE;
+				out_vert->point[2] = LittleShort(in_vert->point[2]) * MD3_XYZ_SCALE;
 
-				lat = (invert->norm >> 8) & 0xff;
-				lng = (invert->norm & 0xff);
+				lat = (in_vert->norm >> 8) & 0xff;
+				lng = (in_vert->norm & 0xff);
 
 				lat *= M_PI / 128.0;
 				lng *= M_PI / 128.0;
 
-				outvert->normal[0] = cos(lat) * sin(lng);
-				outvert->normal[1] = sin(lat) * sin(lng);
-				outvert->normal[2] = cos(lng);
+				out_vert->normal[0] = cos(lat) * sin(lng);
+				out_vert->normal[1] = sin(lat) * sin(lng);
+				out_vert->normal[2] = cos(lng);
 			}
 		}
 
-		R_LoadMd3Tangents(outmesh);
+		R_LoadMd3Tangents(out_mesh);
 
-		Com_Debug("R_LoadMd3Model: %s: %s: %d triangles\n", mod->name, outmesh->name,
-				outmesh->num_tris);
+		Com_Debug("%s: %s: %d triangles\n", mod->media.name, out_mesh->name, out_mesh->num_tris);
 
-		inmesh = (d_md3_mesh_t *) ((byte *) inmesh + inmesh->size);
+		in_mesh = (d_md3_mesh_t *) ((byte *) in_mesh + in_mesh->size);
 	}
 
 	// load the skin for objects, and the animations for players
-	if (!strstr(mod->name, "players/"))
-		R_LoadMeshSkin(mod);
+	if (!strstr(mod->media.name, "players/"))
+		R_LoadMeshMaterial(mod);
 
-	else if (strstr(mod->name, "/upper"))
+	else if (strstr(mod->media.name, "/upper"))
 		R_LoadMd3Animations(mod);
 
 	// and the configs
 	R_LoadMeshConfigs(mod);
 
-	// and finally the arrays
+	// and finally load the arrays
 	R_LoadMd3VertexArrays(mod);
 
-	Com_Debug("R_LoadMd3Model: %s\n"
-		"  %d meshes\n  %d frames\n  %d tags\n  %d vertexes\n", mod->name, outmodel->num_meshes,
-			outmodel->num_frames, outmodel->num_tags, mod->num_verts);
+	Com_Debug("%s\n  %d meshes\n  %d frames\n  %d tags\n  %d vertexes\n", mod->media.name,
+			out_md3->num_meshes, out_md3->num_frames, out_md3->num_tags, mod->num_verts);
 }
 
 /*
@@ -632,7 +626,7 @@ static void R_LoadObjModelVertexArrays(r_model_t *mod) {
 
 	R_AllocVertexArrays(mod);
 
-	obj = (r_obj_t *) mod->extra_data;
+	obj = (r_obj_t *) mod->mesh->data;
 
 	vert_index = tangent_index = texcoord_index = 0;
 
@@ -720,7 +714,7 @@ static int32_t R_LoadObjModelFace(const r_model_t *mod, r_obj_t *obj, const char
 			break;
 
 		if (i == MAX_OBJ_FACE_VERTS) {
-			Com_Error(ERR_DROP, "R_LoadObjModelFace: too many vertexes: %s.\n", mod->name);
+			Com_Error(ERR_DROP, "%s has too many vertexes\n", mod->media.name);
 		}
 
 		if (!obj->tris) { // simply count verts
@@ -772,7 +766,7 @@ static int32_t R_LoadObjModelFace(const r_model_t *mod, r_obj_t *obj, const char
 	tris = i - 2; // number of triangles from parsed verts
 
 	if (tris < 1)
-		Com_Error(ERR_DROP, "R_LoadObjModelFace: too few vertexes: %s.\n", mod->name);
+		Com_Error(ERR_DROP, "%s has too few vertexes\n", mod->media.name);
 
 	R_LoadObjModelTris(obj, verts, tris); // break verts up into tris
 
@@ -794,8 +788,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 			float *f = obj->verts + obj->num_verts_parsed * 3;
 
 			if (sscanf(line + 2, "%f %f %f", &f[0], &f[2], &f[1]) != 3)
-				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed vertex for %s: %s.\n", mod->name,
-						line);
+				Com_Error(ERR_DROP, "Malformed vertex for %s: %s\n", mod->media.name, line);
 
 			obj->num_verts_parsed++;
 		} else
@@ -807,8 +800,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 			float *f = obj->normals + obj->num_normals_parsed * 3;
 
 			if (sscanf(line + 3, "%f %f %f", &f[0], &f[1], &f[2]) != 3)
-				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed normal for %s: %s\n.", mod->name,
-						line);
+				Com_Error(ERR_DROP, "Malformed normal for %s: %s\n", mod->media.name, line);
 
 			obj->num_normals_parsed++;
 		} else
@@ -821,8 +813,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 			float *f = obj->texcoords + obj->num_texcoords_parsed * 2;
 
 			if (sscanf(line + 3, "%f %f", &f[0], &f[1]) != 2)
-				Com_Error(ERR_DROP, "R_LoadObjModelLine: Malformed texcoord for %s: %s.\n",
-						mod->name, line);
+				Com_Error(ERR_DROP, "Malformed texcoord for %s: %s\n", mod->media.name, line);
 
 			f[1] = -f[1];
 			obj->num_texcoords_parsed++;
@@ -891,26 +882,25 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	const float *v;
 	int32_t i;
 
-	mod->type = mod_obj;
-
-	mod->num_frames = 1;
-
-	obj = (r_obj_t *) R_HunkAlloc(sizeof(r_obj_t));
+	mod->mesh = Z_LinkMalloc(sizeof(r_mesh_model_t), mod);
+	mod->mesh->data = obj = Z_LinkMalloc(sizeof(r_obj_t), mod->mesh);
 
 	R_LoadObjModel_(mod, obj, buffer); // resolve counts
 
 	if (!obj->num_verts) {
-		Com_Error(ERR_DROP, "R_LoadObjModel: Failed to resolve vertex data: %s\n", mod->name);
+		Com_Error(ERR_DROP, "Failed to resolve vertex data: %s\n", mod->media.name);
 	}
 
+	mod->mesh->num_frames = 1;
+
 	// allocate the arrays
-	obj->verts = (float *) R_HunkAlloc(obj->num_verts * sizeof(float) * 3);
-	obj->normals = (float *) R_HunkAlloc(obj->num_normals * sizeof(float) * 3);
-	obj->texcoords = (float *) R_HunkAlloc(obj->num_texcoords * sizeof(float) * 2);
-	obj->tris = (r_obj_tri_t *) R_HunkAlloc(obj->num_tris * sizeof(r_obj_tri_t));
+	obj->verts = Z_LinkMalloc(obj->num_verts * sizeof(float) * 3, mod->mesh);
+	obj->normals = Z_LinkMalloc(obj->num_normals * sizeof(float) * 3, mod->mesh);
+	obj->texcoords = Z_LinkMalloc(obj->num_texcoords * sizeof(float) * 2, mod->mesh);
+	obj->tris = Z_LinkMalloc(obj->num_tris * sizeof(r_obj_tri_t), mod->mesh);
 
 	// including the tangents
-	obj->tangents = (float *) R_HunkAlloc(obj->num_verts * sizeof(float) * 4);
+	obj->tangents = Z_LinkMalloc(obj->num_verts * sizeof(float) * 4, mod->mesh);
 
 	R_LoadObjModel_(mod, obj, buffer); // load it
 
@@ -923,8 +913,8 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 		AddPointToBounds(v, mod->mins, mod->maxs);
 	}
 
-	// load the skin
-	R_LoadMeshSkin(mod);
+	// load the material
+	R_LoadMeshMaterial(mod);
 
 	// and configs
 	R_LoadMeshConfigs(mod);

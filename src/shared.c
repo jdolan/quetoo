@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <unistd.h>
-
 #include "shared.h"
 #include "files.h"
 
@@ -206,8 +204,8 @@ void PerpendicularVector(vec3_t dst, const vec3_t src) {
 			minelem = fabsf(src[i]);
 		}
 	}
-	tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
-	tempvec[pos] = 1.0F;
+	tempvec[0] = tempvec[1] = tempvec[2] = 0.0;
+	tempvec[pos] = 1.0;
 
 	// project the point onto the plane defined by src
 	ProjectPointOnPlane(dst, tempvec, src);
@@ -575,29 +573,33 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation
 	float d;
 	int32_t i;
 
-	// apply global scale factor
-	VectorScale(in, brightness, out);
+	ColorNormalize(in, out);
 
-	ColorNormalize(out, out);
+	if (brightness != 1.0) { // apply brightness
+		VectorScale(out, brightness, out);
 
-	for (i = 0; i < 3; i++) { // apply contrast
-
-		out[i] -= 0.5; // normalize to -0.5 through 0.5
-
-		out[i] *= contrast; // scale
-
-		out[i] += 0.5;
+		ColorNormalize(out, out);
 	}
 
-	ColorNormalize(out, out);
+	if (contrast != 1.0) { // apply contrast
 
-	// apply saturation
-	d = DotProduct(out, luminosity);
+		for (i = 0; i < 3; i++) {
+			out[i] -= 0.5; // normalize to -0.5 through 0.5
+			out[i] *= contrast; // scale
+			out[i] += 0.5;
+		}
 
-	VectorSet(intensity, d, d, d);
-	VectorMix(intensity, out, saturation, out);
+		ColorNormalize(out, out);
+	}
 
-	ColorNormalize(out, out);
+	if (saturation != 1.0) { // apply saturation
+		d = DotProduct(out, luminosity);
+
+		VectorSet(intensity, d, d, d);
+		VectorMix(intensity, out, saturation, out);
+
+		ColorNormalize(out, out);
+	}
 }
 
 /*
@@ -616,13 +618,11 @@ bool MixedCase(const char *s) {
 /*
  * @brief Lowercases the specified string.
  */
-char *Lowercase(char *s) {
-	char *c = s;
-	while (*c) {
-		*c = tolower(*c);
-		c++;
+void Lowercase(const char *in, char *out) {
+	while (*in) {
+		*out++ = tolower(*in++);
 	}
-	return s;
+	*out = '\0';
 }
 
 /*
@@ -639,7 +639,7 @@ char *Trim(char *s) {
 	right = left + strlen(left) - 1;
 
 	while (isspace(*right))
-		*right-- = 0;
+		*right-- = '\0';
 
 	return left;
 }
@@ -647,33 +647,25 @@ char *Trim(char *s) {
 /*
  * @brief Returns the longest common prefix the specified words share.
  */
-char *CommonPrefix(const char *words[], uint32_t nwords) {
+char *CommonPrefix(GList *words) {
 	static char common_prefix[MAX_TOKEN_CHARS];
-	const char *w;
-	char c;
-	uint32_t i, j;
+	size_t i;
 
 	memset(common_prefix, 0, sizeof(common_prefix));
 
-	if (!words || !words[0])
+	if (!words)
 		return common_prefix;
 
-	for (i = 0; i < sizeof(common_prefix); i++) {
-		j = c = 0;
-		while (j < nwords) {
+	for (i = 0; i < sizeof(common_prefix) - 1; i++) {
+		GList *e = words;
+		const char c = ((char *) e->data)[i];
+		while (e) {
+			const char *w = (char *) e->data;
 
-			w = words[j];
-
-			if (!w[i]) // we've exhausted our shortest match
+			if (!c || w[i] != c) // prefix no longer common
 				return common_prefix;
 
-			if (!c) // first word this iteration
-				c = w[i];
-
-			if (w[i] != c) // prefix no longer common
-				return common_prefix;
-
-			j++;
+			e = e->next;
 		}
 		common_prefix[i] = c;
 	}
@@ -727,7 +719,8 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
  *
  * To suppress the special syntactic significance of any of `[]*?!-\',
  * and match the character exactly, precede it with a `\'.
- */bool GlobMatch(const char *pattern, const char *text) {
+ */
+bool GlobMatch(const char *pattern, const char *text) {
 	const char *p = pattern, *t = text;
 	register char c;
 
@@ -753,7 +746,7 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
 			int32_t invert;
 
 			if (!c1)
-				return (0);
+				return 0;
 
 			invert = ((*p == '!') || (*p == '^'));
 			if (invert)
@@ -839,17 +832,23 @@ void Dirname(const char *in, char *out) {
 		return;
 	}
 
-	strncpy(out, in, (c - in) + 1);
-	out[(c - in) + 1] = 0;
+	while (in <= c) {
+		*out++ = *in++;
+	}
+
+	*out = '\0';
 }
 
 /*
  * @brief Removes any file extension(s) from the specified input string.
  */
 void StripExtension(const char *in, char *out) {
-	while (*in && *in != '.')
+
+	while (*in && *in != '.') {
 		*out++ = *in++;
-	*out = 0;
+	}
+
+	*out = '\0';
 }
 
 /*
@@ -871,7 +870,7 @@ void StripColor(const char *in, char *out) {
 
 		*out++ = *in++;
 	}
-	*out = 0;
+	*out = '\0';
 }
 
 /*
@@ -887,16 +886,20 @@ int32_t StrColorCmp(const char *s1, const char *s2) {
 }
 
 /*
- * @brief A shorthand sprintf into a statically allocated buffer.
+ * @brief A shorthand g_snprintf into a statically allocated buffer. Several
+ * buffers are maintained internally so that nested va()'s are safe within
+ * reasonable limits. This function is not thread safe.
  */
 char *va(const char *format, ...) {
-	va_list args;
-	static char string[MAX_STRING_CHARS];
+	static char strings[8][MAX_STRING_CHARS];
+	static uint16_t index;
 
-	memset(string, 0, sizeof(string));
+	char *string = strings[index++ % 8];
+
+	va_list args;
 
 	va_start(args, format);
-	vsnprintf(string, sizeof(string), format, args);
+	vsnprintf(string, MAX_STRING_CHARS, format, args);
 	va_end(args);
 
 	return string;
@@ -913,7 +916,7 @@ char *vtos(const vec3_t v) {
 	// use an array so that multiple vtos won't collide
 	s = str[index++ % 8];
 
-	snprintf(s, 32, "(%3.2f %3.2f %3.2f)", v[0], v[1], v[2]);
+	g_snprintf(s, 32, "(%3.2f %3.2f %3.2f)", v[0], v[1], v[2]);
 
 	return s;
 }
@@ -930,7 +933,7 @@ char *ParseToken(const char **data_p) {
 
 	data = *data_p;
 	len = 0;
-	token[0] = 0;
+	token[0] = '\0';
 
 	if (!data) {
 		*data_p = NULL;
@@ -939,7 +942,7 @@ char *ParseToken(const char **data_p) {
 
 	// skip whitespace
 	skipwhite: while ((c = *data) <= ' ') {
-		if (c == 0) {
+		if (c == '\0') {
 			*data_p = NULL;
 			return "";
 		}
@@ -959,7 +962,7 @@ char *ParseToken(const char **data_p) {
 		while (true) {
 			c = *data++;
 			if (c == '\"' || !c) {
-				token[len] = 0;
+				token[len] = '\0';
 				*data_p = data;
 				return token;
 			}
@@ -983,7 +986,7 @@ char *ParseToken(const char **data_p) {
 	if (len == MAX_TOKEN_CHARS) {
 		len = 0;
 	}
-	token[len] = 0;
+	token[len] = '\0';
 
 	*data_p = data;
 	return token;
@@ -1010,7 +1013,7 @@ char *GetUserInfo(const char *s, const char *key) {
 				return "";
 			*o++ = *s++;
 		}
-		*o = 0;
+		*o = '\0';
 		s++;
 
 		o = value[value_index];
@@ -1020,7 +1023,7 @@ char *GetUserInfo(const char *s, const char *key) {
 				return "";
 			*o++ = *s++;
 		}
-		*o = 0;
+		*o = '\0';
 
 		if (!strcmp(key, pkey))
 			return value[value_index];
@@ -1056,7 +1059,7 @@ void DeleteUserInfo(char *s, const char *key) {
 				return;
 			*o++ = *s++;
 		}
-		*o = 0;
+		*o = '\0';
 		s++;
 
 		o = value;
@@ -1065,7 +1068,7 @@ void DeleteUserInfo(char *s, const char *key) {
 				return;
 			*o++ = *s++;
 		}
-		*o = 0;
+		*o = '\0';
 
 		if (!strcmp(key, pkey)) {
 			strcpy(start, s); // remove this part
@@ -1080,7 +1083,8 @@ void DeleteUserInfo(char *s, const char *key) {
 /*
  * @brief Returns true if the specified user-info string appears valid, false
  * otherwise.
- */bool ValidateUserInfo(const char *s) {
+ */
+bool ValidateUserInfo(const char *s) {
 	if (strstr(s, "\""))
 		return false;
 	if (strstr(s, ";"))
@@ -1112,14 +1116,14 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 	}
 
 	if (strlen(key) > MAX_USER_INFO_KEY - 1 || strlen(value) > MAX_USER_INFO_VALUE - 1) {
-		//Com_Print("Keys and values must be < 64 characters.\n");
+		//Com_Print("Keys and values must be < 64 characters\n");
 		return;
 	}
 	DeleteUserInfo(s, key);
 	if (!value || *value == '\0')
 		return;
 
-	snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
+	g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
 
 	if (strlen(newi) + strlen(s) > max_size) {
 		//Com_Print("Info string length exceeded\n");
@@ -1135,7 +1139,7 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 		if (c >= 32 && c < 127)
 			*s++ = c;
 	}
-	*s = 0;
+	*s = '\0';
 }
 
 /*
@@ -1152,20 +1156,21 @@ int32_t ColorByName(const char *s, int32_t def) {
 		return i;
 
 	if (!strcasecmp(s, "red"))
-		return 242;
+		return EFFECT_COLOR_RED;
 	if (!strcasecmp(s, "green"))
-		return 209;
+		return EFFECT_COLOR_GREEN;
 	if (!strcasecmp(s, "blue"))
-		return 243;
+		return EFFECT_COLOR_BLUE;
 	if (!strcasecmp(s, "yellow"))
-		return 219;
+		return EFFECT_COLOR_YELLOW;
 	if (!strcasecmp(s, "orange"))
-		return 225;
+		return EFFECT_COLOR_ORANGE;
 	if (!strcasecmp(s, "white"))
-		return 216;
+		return EFFECT_COLOR_WHITE;
 	if (!strcasecmp(s, "pink"))
-		return 247;
+		return EFFECT_COLOR_PINK;
 	if (!strcasecmp(s, "purple"))
-		return 187;
+		return EFFECT_COLOR_PURPLE;
+
 	return def;
 }

@@ -52,7 +52,7 @@ void R_ProgramVariable(r_variable_t *variable, GLenum type, const char *name) {
 	variable->location = -1;
 
 	if (!r_state.active_program) {
-		Com_Warn("R_ProgramVariable: No program currently bound\n");
+		Com_Warn("No program currently bound\n");
 		return;
 	}
 
@@ -66,13 +66,13 @@ void R_ProgramVariable(r_variable_t *variable, GLenum type, const char *name) {
 	}
 
 	if (variable->location == -1) {
-		Com_Warn("R_ProgramVariable: Failed to resolve variable %s in program %s\n", name,
+		Com_Warn("Failed to resolve variable %s in program %s\n", name,
 				r_state.active_program->name);
 		return;
 	}
 
 	variable->type = type;
-	strncpy(variable->name, name, sizeof(variable->name));
+	g_strlcpy(variable->name, name, sizeof(variable->name));
 	memset(&variable->value, 0xff, sizeof(variable->value));
 }
 
@@ -82,7 +82,7 @@ void R_ProgramVariable(r_variable_t *variable, GLenum type, const char *name) {
 void R_ProgramParameter1i(r_uniform1i_t *variable, GLint value) {
 
 	if (!variable || variable->location == -1) {
-		Com_Warn("R_ProgramParameter1i: NULL or invalid variable\n");
+		Com_Warn("NULL or invalid variable\n");
 		return;
 	}
 
@@ -101,7 +101,7 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, GLint value) {
 void R_ProgramParameter1f(r_uniform1f_t *variable, GLfloat value) {
 
 	if (!variable || variable->location == -1) {
-		Com_Warn("R_ProgramParameter1f: NULL or invalid variable\n");
+		Com_Warn("NULL or invalid variable\n");
 		return;
 	}
 
@@ -120,7 +120,7 @@ void R_ProgramParameter1f(r_uniform1f_t *variable, GLfloat value) {
 void R_ProgramParameter3fv(r_uniform3fv_t *variable, GLfloat *value) {
 
 	if (!variable || variable->location == -1) {
-		Com_Warn("R_ProgramParameter3fv: NULL or invalid variable\n");
+		Com_Warn("NULL or invalid variable\n");
 		return;
 	}
 
@@ -152,7 +152,7 @@ void R_AttributePointer(const char *name, GLuint size, GLvoid *array) {
 void R_EnableAttribute(r_attribute_t *attribute) {
 
 	if (!attribute || attribute->location == -1) {
-		Com_Warn("R_EnableAttribute: NULL or invalid attribute\n");
+		Com_Warn("NULL or invalid attribute\n");
 		return;
 	}
 
@@ -170,7 +170,7 @@ void R_EnableAttribute(r_attribute_t *attribute) {
 void R_DisableAttribute(r_attribute_t *attribute) {
 
 	if (!attribute || attribute->location == -1) {
-		Com_Warn("R_DisableAttribute: NULL or invalid attribute\n");
+		Com_Warn("NULL or invalid attribute\n");
 		return;
 	}
 
@@ -238,10 +238,10 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	void *buf;
 	int32_t i, len;
 
-	snprintf(path, sizeof(path), "shaders/%s", name);
+	g_snprintf(path, sizeof(path), "shaders/%s", name);
 
-	if ((len = Fs_LoadFile(path, &buf)) == -1) {
-		Com_Debug("R_LoadShader: Failed to load %s.\n", name);
+	if ((len = Fs_Load(path, &buf)) == -1) {
+		Com_Warn("Failed to load %s\n", name);
 		return NULL;
 	}
 
@@ -256,18 +256,18 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	}
 
 	if (i == MAX_SHADERS) {
-		Com_Warn("R_LoadShader: MAX_SHADERS reached.\n");
-		Fs_FreeFile(buf);
+		Com_Warn("MAX_SHADERS reached\n");
+		Fs_Free(buf);
 		return NULL;
 	}
 
-	strncpy(sh->name, name, sizeof(sh->name));
+	g_strlcpy(sh->name, name, sizeof(sh->name));
 
 	sh->type = type;
 
 	sh->id = qglCreateShader(sh->type);
 	if (!sh->id) {
-		Fs_FreeFile(buf);
+		Fs_Free(buf);
 		return NULL;
 	}
 
@@ -280,16 +280,16 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	qglGetShaderiv(sh->id, GL_COMPILE_STATUS, &e);
 	if (!e) {
 		qglGetShaderInfoLog(sh->id, sizeof(log) - 1, NULL, log);
-		Com_Warn("R_LoadShader: %s: %s\n", sh->name, log);
+		Com_Warn("%s: %s\n", sh->name, log);
 
 		qglDeleteShader(sh->id);
 		memset(sh, 0, sizeof(*sh));
 
-		Fs_FreeFile(buf);
+		Fs_Free(buf);
 		return NULL;
 	}
 
-	Fs_FreeFile(buf);
+	Fs_Free(buf);
 	return sh;
 }
 
@@ -310,11 +310,11 @@ static r_program_t *R_LoadProgram(const char *name, void(*Init)(void)) {
 	}
 
 	if (i == MAX_PROGRAMS) {
-		Com_Warn("R_LoadProgram: MAX_PROGRAMS reached.\n");
+		Com_Warn("MAX_PROGRAMS reached\n");
 		return NULL;
 	}
 
-	strncpy(prog->name, name, sizeof(prog->name));
+	g_strlcpy(prog->name, name, sizeof(prog->name));
 
 	prog->id = qglCreateProgram();
 
@@ -331,7 +331,7 @@ static r_program_t *R_LoadProgram(const char *name, void(*Init)(void)) {
 	qglGetProgramiv(prog->id, GL_LINK_STATUS, &e);
 	if (!e) {
 		qglGetProgramInfoLog(prog->id, sizeof(log) - 1, NULL, log);
-		Com_Warn("R_LoadProgram: %s: %s\n", prog->name, log);
+		Com_Warn("%s: %s\n", prog->name, log);
 
 		R_ShutdownProgram(prog);
 		return NULL;
@@ -376,10 +376,6 @@ void R_InitPrograms(void) {
 	if ((r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp))) {
 		r_state.warp_program->Use = R_UseProgram_warp;
 		r_state.warp_program->arrays_mask = R_ARRAY_VERTEX | R_ARRAY_TEX_DIFFUSE;
-	}
-
-	if ((r_state.pro_program = R_LoadProgram("pro", NULL))) {
-		r_state.pro_program->arrays_mask = R_ARRAY_VERTEX | R_ARRAY_COLOR | R_ARRAY_NORMAL;
 	}
 }
 

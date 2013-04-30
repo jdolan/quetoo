@@ -22,6 +22,10 @@
 #ifndef __CG_LOCAL_H__
 #define __CG_LOCAL_H__
 
+#define Debug(...) Debug_(__func__, __VA_ARGS__)
+#define Warn(...) Warn_(__func__, __VA_ARGS__)
+#define Error(...) Error_(__func__, __VA_ARGS__)
+
 #include "cg_client.h"
 #include "cg_effect.h"
 #include "cg_emit.h"

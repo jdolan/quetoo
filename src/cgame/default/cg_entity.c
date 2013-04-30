@@ -53,7 +53,7 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 	r_entity_t head, upper, lower;
 
 	if (!ci->head || !ci->upper || !ci->lower) {
-		cgi.Debug("Cg_AddClientEntity: Invalid client info: %d\n", s->client);
+		cgi.Debug("Invalid client info: %d\n", s->client);
 		return;
 	}
 
@@ -98,17 +98,17 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 	cgi.AddEntity(&head);
 
 	if (s->model2) {
-		r_model_t *model = cgi.client->model_draw[s->model2];
+		r_model_t *model = cgi.client->model_precache[s->model2];
 		cgi.AddLinkedEntity(head.parent, model, "tag_weapon");
 	}
 
 	if (s->model3) {
-		r_model_t *model = cgi.client->model_draw[s->model3];
+		r_model_t *model = cgi.client->model_precache[s->model3];
 		cgi.AddLinkedEntity(head.parent, model, "tag_head");
 	}
 
 	if (s->model4)
-		cgi.Warn("Cg_AddClientEntity: Unsupported model_index4\n");
+		cgi.Warn("Unsupported model_index4\n");
 }
 
 /*
@@ -180,7 +180,7 @@ static void Cg_AddWeapon(cl_entity_t *e, r_entity_t *self) {
 
 	VectorCopy(self->shell, ent.shell);
 
-	ent.model = cgi.client->model_draw[ps->stats[STAT_WEAPON]];
+	ent.model = cgi.client->model_precache[ps->stats[STAT_WEAPON]];
 
 	ent.lerp = ent.scale = 1.0;
 
@@ -226,7 +226,7 @@ static void Cg_AddEntity(cl_entity_t *e) {
 	}
 
 	// assign the model
-	ent.model = cgi.client->model_draw[e->current.model1];
+	ent.model = cgi.client->model_precache[e->current.model1];
 
 	// add to view list
 	cgi.AddEntity(&ent);

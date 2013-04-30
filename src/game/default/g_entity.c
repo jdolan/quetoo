@@ -29,6 +29,7 @@ typedef struct {
 static void G_worldspawn(g_edict_t *ent);
 
 static spawn_t g_spawns[] = {
+// entity class names -> spawn functions
 		{ "info_player_start", G_info_player_start },
 		{ "info_player_deathmatch", G_info_player_deathmatch },
 		{ "info_player_team1", G_info_player_team1 },
@@ -75,29 +76,16 @@ static spawn_t g_spawns[] = {
  */
 static void G_SpawnEntity(g_edict_t *ent) {
 	spawn_t *s;
-	g_item_t *item;
-	g_override_t *over;
 	int32_t i;
 
 	if (!ent->class_name) {
-		gi.Debug("G_SpawnEntity: NULL classname\n");
+		gi.Debug("NULL classname\n");
 		return;
 	}
 
-	// check overrides
-	for (i = 0; i < g_game.num_overrides; i++) {
-
-		over = &g_overrides[i];
-
-		if (!strcmp(ent->class_name, over->old)) { // found it
-			item = G_FindItemByClassname(over->new);
-			G_SpawnItem(ent, item);
-			return;
-		}
-	}
-
 	// check item spawn functions
-	for (i = 0, item = g_items; i < g_game.num_items; i++, item++) {
+	const g_item_t *item = g_items;
+	for (i = 0; i < g_num_items; i++, item++) {
 
 		if (!item->class_name)
 			continue;
@@ -128,7 +116,7 @@ static char *G_NewString(const char *string) {
 
 	l = strlen(string) + 1;
 
-	newb = gi.Malloc(l, TAG_GAME_LEVEL);
+	newb = gi.Malloc(l, Z_TAG_GAME_LEVEL);
 
 	new_p = newb;
 
@@ -151,7 +139,10 @@ static char *G_NewString(const char *string) {
 #define FFL_NO_SPAWN		2
 
 typedef enum g_field_type_s {
-	F_SHORT, F_INT, F_FLOAT, F_STRING, // string on disk, pointer in memory, TAG_LEVEL
+	F_SHORT,
+	F_INT,
+	F_FLOAT,
+	F_STRING, // string on disk, pointer in memory, TAG_LEVEL
 	F_VECTOR,
 	F_ANGLE
 } g_field_type_t;
@@ -165,7 +156,7 @@ typedef struct g_field_s {
 
 static const g_field_t fields[] = {
 
-		// normal fields, notice the hack for area portals, which used to be
+// normal fields, notice the hack for area portals, which used to be
 		// the overloaded "style" field in legacy levels
 		{ "classname", FOFS(class_name), F_STRING, 0 },
 		{ "model", FOFS(model), F_STRING, 0 },
@@ -239,32 +230,32 @@ static void G_ParseField(const char *key, const char *value, g_edict_t *ent) {
 				b = (byte *) ent;
 
 			switch (f->type) {
-			case F_SHORT:
-				*(int16_t *) (b + f->ofs) = (int16_t) atoi(value);
-				break;
-			case F_INT:
-				*(int32_t *) (b + f->ofs) = atoi(value);
-				break;
-			case F_FLOAT:
-				*(float *) (b + f->ofs) = atof(value);
-				break;
-			case F_STRING:
-				*(char **) (b + f->ofs) = G_NewString(value);
-				break;
-			case F_VECTOR:
-				sscanf(value, "%f %f %f", &vec[0], &vec[1], &vec[2]);
-				((float *) (b + f->ofs))[0] = vec[0];
-				((float *) (b + f->ofs))[1] = vec[1];
-				((float *) (b + f->ofs))[2] = vec[2];
-				break;
-			case F_ANGLE:
-				v = atof(value);
-				((float *) (b + f->ofs))[0] = 0;
-				((float *) (b + f->ofs))[1] = v;
-				((float *) (b + f->ofs))[2] = 0;
-				break;
-			default:
-				break;
+				case F_SHORT:
+					*(int16_t *) (b + f->ofs) = (int16_t) atoi(value);
+					break;
+				case F_INT:
+					*(int32_t *) (b + f->ofs) = atoi(value);
+					break;
+				case F_FLOAT:
+					*(float *) (b + f->ofs) = atof(value);
+					break;
+				case F_STRING:
+					*(char **) (b + f->ofs) = G_NewString(value);
+					break;
+				case F_VECTOR:
+					sscanf(value, "%f %f %f", &vec[0], &vec[1], &vec[2]);
+					((float *) (b + f->ofs))[0] = vec[0];
+					((float *) (b + f->ofs))[1] = vec[1];
+					((float *) (b + f->ofs))[2] = vec[2];
+					break;
+				case F_ANGLE:
+					v = atof(value);
+					((float *) (b + f->ofs))[0] = 0;
+					((float *) (b + f->ofs))[1] = v;
+					((float *) (b + f->ofs))[2] = 0;
+					break;
+				default:
+					break;
 			}
 			return;
 		}
@@ -294,17 +285,17 @@ static const char *G_ParseEntity(const char *data, g_edict_t *ent) {
 			break;
 
 		if (!data)
-			gi.Error("G_ParseEntity: EOF without closing brace.");
+			gi.Error("EOF without closing brace\n");
 
-		strncpy(key, tok, sizeof(key) - 1);
+		g_strlcpy(key, tok, sizeof(key));
 
 		// parse value
 		tok = ParseToken(&data);
 		if (!data)
-			gi.Error("G_ParseEntity: EOF in edict definition.");
+			gi.Error("EOF in edict definition\n");
 
 		if (tok[0] == '}')
-			gi.Error("G_ParseEntity: No edict definition.");
+			gi.Error("No edict definition\n");
 
 		init = true;
 
@@ -376,6 +367,22 @@ static void G_InitEntityTeams(void) {
 }
 
 /*
+ * @brief Resolves references to frequently accessed media.
+ */
+static void G_InitMedia(void) {
+
+	g_level.media.grenade_model = gi.ModelIndex("models/objects/grenade/tris.md3");
+	g_level.media.grenade_hit_sound = gi.SoundIndex("objects/grenade/hit");
+
+	g_level.media.rocket_model = gi.ModelIndex("models/objects/rocket/tris.md3");
+	g_level.media.rocket_fly_sound = gi.SoundIndex("objects/rocket/fly");
+
+	g_level.media.lightning_fly_sound = gi.SoundIndex("weapons/lightning/fly");
+
+	g_level.media.quad_damage = ITEM_INDEX(G_FindItemByClassname("item_quad"));
+}
+
+/*
  * @brief Creates a server's entity / program execution context by
  * parsing textual entity definitions out of an ent file.
  */
@@ -385,16 +392,18 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	char *com_token;
 	int32_t i;
 
-	gi.FreeTag(TAG_GAME_LEVEL);
+	gi.FreeTag(Z_TAG_GAME_LEVEL);
 
 	memset(&g_level, 0, sizeof(g_level));
 	memset(g_game.edicts, 0, g_max_entities->value * sizeof(g_game.edicts[0]));
 
-	strncpy(g_level.name, name, sizeof(g_level.name) - 1);
+	g_strlcpy(g_level.name, name, sizeof(g_level.name));
 
 	// set client fields on player ents
-	for (i = 0; i < sv_max_clients->integer; i++)
+	for (i = 0; i < sv_max_clients->integer; i++) {
 		g_game.edicts[i + 1].client = g_game.clients + i;
+	}
+	ge.num_edicts = sv_max_clients->integer + 1;
 
 	ent = NULL;
 	inhibit = 0;
@@ -408,7 +417,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			break;
 
 		if (com_token[0] != '{')
-			gi.Error("SpawnEntities: Found %s when expecting {.", com_token);
+			gi.Error("Found \"%s\" when expecting \"{\"", com_token);
 
 		if (!ent)
 			ent = g_game.edicts;
@@ -428,24 +437,22 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			}
 
 			// emits and models are client sided
-			if (!strcmp(ent->class_name, "misc_emit") || !strcmp(
-					ent->class_name, "misc_model")) {
+			if (!strcmp(ent->class_name, "misc_emit") || !strcmp(ent->class_name, "misc_model")) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
 			// lights aren't even used
-			if (!strcmp(ent->class_name, "light") || !strcmp(ent->class_name,
-					"light_spot")) {
+			if (!strcmp(ent->class_name, "light") || !strcmp(ent->class_name, "light_spot")) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
 			// strip away unsupported flags
-			ent->spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD
-					| SF_NOT_COOP | SF_NOT_DEATHMATCH);
+			ent->spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD | SF_NOT_COOP
+					| SF_NOT_DEATHMATCH);
 		}
 
 		// retain the map-specified origin for respawns
@@ -464,6 +471,8 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	G_InitEntityTeams();
 
+	G_InitMedia();
+
 	// reset teams and votes
 	G_ResetTeams();
 
@@ -477,12 +486,16 @@ static void G_WorldspawnMusic(void) {
 	char *t, buf[MAX_STRING_CHARS];
 	int32_t i;
 
-	if (*g_level.music == '\0')
+	if (*g_level.music == '\0') {
+		for (i = 0; i < MAX_MUSICS; i++) {
+			gi.ConfigString(CS_MUSICS + i, va("track%d", i + 1));
+		}
 		return;
+	}
 
-	strncpy(buf, g_level.music, sizeof(buf));
+	g_strlcpy(buf, g_level.music, sizeof(buf));
 
-	i = 1;
+	i = 0;
 	t = strtok(buf, ",");
 
 	while (true) {
@@ -503,20 +516,20 @@ static void G_WorldspawnMusic(void) {
 /*QUAKED worldspawn(0 0 0) ?
 
  Only used for the world.
- "message"		"Stress Fractures by Jester"
- "sky"			unit1_
- "weather"		none, rain, snow, fog 0.5 0.8 0.7
- "gravity"		800
- "gameplay"		deathmatch, instagib, rocket arena
+ "message"			"Stress Fractures by Jester"
+ "sky"				unit1_
+ "weather"			none, rain, snow, fog 0.5 0.8 0.7
+ "gravity"			800
+ "gameplay"			deathmatch, instagib, rocket arena
  "teams"			0 off, 1 on, 2 balanced
- "ctf"			0 off, 1 on, 2 balanced
+ "ctf"				0 off, 1 on, 2 balanced
  "match"			0 off, 1 on
  "round"			0 off, 1 on
- "frag_limit" 	20 frags
- "round_limit" 	20 rounds
+ "frag_limit" 		20 frags
+ "round_limit" 		20 rounds
  "capture_limit" 	8 captures
  "time_limit"		20 minutes
- "give"			comma-delimited items list
+ "give"				comma-delimited items list
  "music"			comma-delimited track list
  */
 static void G_worldspawn(g_edict_t *ent) {
@@ -526,10 +539,7 @@ static void G_worldspawn(g_edict_t *ent) {
 	ent->move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	ent->in_use = true; // since the world doesn't use G_Spawn()
-	ent->s.model1 = 1; // world model is always index 1
-
-	// set config_strings for items
-	G_SetItemNames();
+	ent->s.model1 = 0; // world model is always index 1
 
 	map = NULL; // resolve the maps.lst entry for this level
 	for (i = 0; i < g_map_list.count; i++) {
@@ -540,10 +550,10 @@ static void G_worldspawn(g_edict_t *ent) {
 	}
 
 	if (ent->message && *ent->message)
-		strncpy(g_level.title, ent->message, sizeof(g_level.title));
+		g_strlcpy(g_level.title, ent->message, sizeof(g_level.title));
 	else
 		// or just the level name
-		strncpy(g_level.title, g_level.name, sizeof(g_level.title));
+		g_strlcpy(g_level.title, g_level.name, sizeof(g_level.title));
 	gi.ConfigString(CS_NAME, g_level.title);
 
 	if (map && *map->sky) // prefer maps.lst sky
@@ -576,9 +586,9 @@ static void G_worldspawn(g_edict_t *ent) {
 			g_level.gravity = 800;
 	}
 
-	if(strcmp(g_gameplay->string, "default")) { // perfer g_gameplay
+	if (strcmp(g_gameplay->string, "default")) { // perfer g_gameplay
 		g_level.gameplay = G_GameplayByName(g_gameplay->string);
-	} else if(map && map->gameplay > -1) { // then maps.lst gameplay
+	} else if (map && map->gameplay > -1) { // then maps.lst gameplay
 		g_level.gameplay = map->gameplay;
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.gameplay && *g_game.spawn.gameplay)
@@ -587,7 +597,7 @@ static void G_worldspawn(g_edict_t *ent) {
 			// or default to deathmatch
 			g_level.gameplay = DEATHMATCH;
 	}
-	if(g_level.gameplay == DEFAULT)
+	if (g_level.gameplay == DEFAULT)
 		g_level.gameplay = DEATHMATCH;
 	gi.ConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
@@ -686,22 +696,22 @@ static void G_worldspawn(g_edict_t *ent) {
 	g_level.time_limit = time_limit * 60 * 1000;
 
 	if (map && *map->give) // prefer maps.lst give
-		strncpy(g_level.give, map->give, sizeof(g_level.give));
+		g_strlcpy(g_level.give, map->give, sizeof(g_level.give));
 	else { // or fall back on worldspawn
 		if (g_game.spawn.give && *g_game.spawn.give)
-			strncpy(g_level.give, g_game.spawn.give, sizeof(g_level.give));
+			g_strlcpy(g_level.give, g_game.spawn.give, sizeof(g_level.give));
 		else
 			// or clean it
-			g_level.give[0] = 0;
+			g_level.give[0] = '\0';
 	}
 
 	if (map && *map->music) // prefer maps.lst music
-		strncpy(g_level.music, map->music, sizeof(g_level.music));
+		g_strlcpy(g_level.music, map->music, sizeof(g_level.music));
 	else { // or fall back on worldspawn
 		if (g_game.spawn.music && *g_game.spawn.music)
-			strncpy(g_level.music, g_game.spawn.music, sizeof(g_level.music));
+			g_strlcpy(g_level.music, g_game.spawn.music, sizeof(g_level.music));
 		else
-			g_level.music[0] = 0;
+			g_level.music[0] = '\0';
 	}
 
 	G_WorldspawnMusic();

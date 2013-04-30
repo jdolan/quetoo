@@ -130,7 +130,7 @@ void Sv_InitWorld(void) {
 
 	memset(&sv_world, 0, sizeof(sv_world));
 
-	Sv_CreateAreaNode(0, sv.models[1]->mins, sv.models[1]->maxs);
+	Sv_CreateAreaNode(0, sv.models[0]->mins, sv.models[0]->maxs);
 }
 
 /*
@@ -342,7 +342,7 @@ static void Sv_AreaEdicts_r(sv_area_node_t *node) {
 			continue; // not touching
 
 		if (sv_world.num_area_edicts == sv_world.max_area_edicts) {
-			Com_Warn("Sv_AreaEdicts: max_area_edicts reached\n");
+			Com_Warn("sv_world.max_area_edicts reached\n");
 			return;
 		}
 
@@ -398,7 +398,7 @@ static int32_t Sv_HullForEntity(const g_edict_t *ent) {
 		model = sv.models[ent->s.model1];
 
 		if (!model)
-			Com_Error(ERR_FATAL, "Sv_HullForEntity: SOLID_BSP with no model.\n");
+			Com_Error(ERR_FATAL, "SOLID_BSP with no model\n");
 
 		return model->head_node;
 	}
@@ -416,7 +416,7 @@ int32_t Sv_PointContents(const vec3_t point) {
 	int32_t i, contents, num;
 
 	// get base contents from world
-	contents = Cm_PointContents(point, sv.models[1]->head_node);
+	contents = Cm_PointContents(point, sv.models[0]->head_node);
 
 	// as well as contents from all intersected entities
 	num = Sv_AreaEdicts(point, point, touched, MAX_EDICTS, AREA_SOLID);

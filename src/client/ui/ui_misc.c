@@ -28,7 +28,7 @@ void TW_CALL Ui_ShowBar(void *data) {
 	const char *name = (const char *) data;
 	int32_t hidden = 0, visible = 1;
 
-	Com_Debug("Ui_ShowBar: %s\n", name);
+	Com_Debug("%s\n", name);
 
 	if (ui.top) {
 		TwSetParam(ui.top, NULL, "visible", TW_PARAM_INT32, 1, &hidden);
@@ -65,7 +65,7 @@ void TW_CALL Ui_CenterBar(void *data) {
 		position[0] = (r_pixel_t)position[0];
 		position[1] = (r_pixel_t)position[1];
 
-		Com_Debug("Ui_CenterBar: %s: %4f, %4f\n", name, position[0], position[1]);
+		Com_Debug("%s: %4f, %4f\n", name, position[0], position[1]);
 
 		TwSetParam(bar, NULL, "position", TW_PARAM_DOUBLE, 2, position);
 	}

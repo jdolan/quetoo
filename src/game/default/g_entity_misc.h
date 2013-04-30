@@ -19,14 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __G_ENTITY_MISC_H__
-#define __G_ENTITY_MISC_H__
+#ifndef __GAME_ENTITY_MISC_H__
+#define __GAME_ENTITY_MISC_H__
 
 #include "g_types.h"
 
-#ifdef __G_LOCAL_H__
+#ifdef __GAME_LOCAL_H__
 void G_misc_teleporter(g_edict_t *self);
 void G_misc_teleporter_dest(g_edict_t *self);
-#endif /* __G_LOCAL_H__ */
+#endif /* __GAME_LOCAL_H__ */
 
-#endif /* __G_ENTITY_MISC_H__ */
+#endif /* __GAME_ENTITY_MISC_H__ */

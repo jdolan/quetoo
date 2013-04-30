@@ -57,9 +57,8 @@ void Sv_DropClient(sv_client_t *cl) {
 		Netchan_Transmit(&cl->netchan, cl->netchan.message.size, cl->netchan.message.data);
 	}
 
-	if (cl->download) {
-		Fs_FreeFile(cl->download);
-		cl->download = NULL;
+	if (cl->download.buffer) {
+		Fs_Free(cl->download.buffer);
 	}
 
 	ent = cl->edict;
@@ -77,7 +76,7 @@ static const char *Sv_StatusString(void) {
 	static char status[MAX_MSG_SIZE - 16];
 	int32_t i;
 
-	snprintf(status, sizeof(status), "%s\n", Cvar_ServerInfo());
+	g_snprintf(status, sizeof(status), "%s\n", Cvar_ServerInfo());
 	size_t status_len = strlen(status);
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
@@ -87,7 +86,7 @@ static const char *Sv_StatusString(void) {
 		if (cl->state == SV_CLIENT_CONNECTED || cl->state == SV_CLIENT_ACTIVE) {
 			char player[MAX_TOKEN_CHARS];
 
-			snprintf(player, sizeof(player), "%d %u \"%s\"\n", i, cl->ping, cl->name);
+			g_snprintf(player, sizeof(player), "%d %u \"%s\"\n", i, cl->ping, cl->name);
 			const size_t player_len = strlen(player);
 
 			if (status_len + player_len + 1 >= sizeof(status))
@@ -129,7 +128,7 @@ static void Svc_Info(void) {
 	prot = atoi(Cmd_Argv(1));
 
 	if (prot != PROTOCOL)
-		snprintf(string, sizeof(string), "%s: wrong protocol version\n", sv_hostname->string);
+		g_snprintf(string, sizeof(string), "%s: wrong protocol version\n", sv_hostname->string);
 	else {
 		count = 0;
 
@@ -138,7 +137,7 @@ static void Svc_Info(void) {
 				count++;
 		}
 
-		snprintf(string, sizeof(string), "%-63s\\%-31s\\%-31s\\%d\\%d", sv_hostname->string,
+		g_snprintf(string, sizeof(string), "%-63s\\%-31s\\%-31s\\%d\\%d", sv_hostname->string,
 				sv.name, svs.game->GameName(), count, sv_max_clients->integer);
 	}
 
@@ -219,30 +218,29 @@ static void Svc_Connect(void) {
 	challenge = strtoul(Cmd_Argv(3), NULL, 0);
 
 	//copy user_info, leave room for ip stuffing
-	strncpy(user_info, Cmd_Argv(4), sizeof(user_info) - 1 - 25);
-	user_info[sizeof(user_info) - 1] = 0;
+	g_strlcpy(user_info, Cmd_Argv(4), sizeof(user_info) - 25);
 
 	if (*user_info == '\0') { // catch empty user_info
 		Com_Print("Empty user_info from %s\n", Net_NetaddrToString(addr));
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
 		return;
 	}
 
 	if (strchr(user_info, '\xFF')) { // catch end of message in string exploit
 		Com_Print("Illegal user_info contained xFF from %s\n", Net_NetaddrToString(addr));
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
 		return;
 	}
 
 	if (strlen(GetUserInfo(user_info, "ip"))) { // catch spoofed ips
 		Com_Print("Illegal user_info contained ip from %s\n", Net_NetaddrToString(addr));
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
 		return;
 	}
 
 	if (!ValidateUserInfo(user_info)) { // catch otherwise invalid user_info
 		Com_Print("Invalid user_info from %s\n", Net_NetaddrToString(addr));
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
 		return;
 	}
 
@@ -256,12 +254,12 @@ static void Svc_Connect(void) {
 				svs.challenges[i].challenge = 0;
 				break; // good
 			}
-			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nBad challenge.\n");
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nBad challenge\n");
 			return;
 		}
 	}
 	if (i == MAX_CHALLENGES) {
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nNo challenge for address.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nNo challenge for address\n");
 		return;
 	}
 
@@ -296,8 +294,8 @@ static void Svc_Connect(void) {
 
 	// no soup for you, next!!
 	if (!client) {
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nServer is full.\n");
-		Com_Debug("Rejected a connection.\n");
+		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nServer is full\n");
+		Com_Debug("Rejected a connection\n");
 		return;
 	}
 
@@ -305,18 +303,18 @@ static void Svc_Connect(void) {
 	if (!(svs.game->ClientConnect(client->edict, user_info))) {
 
 		if (*GetUserInfo(user_info, "rejmsg")) {
-			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\n%s\nConnection refused.\n",
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\n%s\nConnection refused\n",
 					GetUserInfo(user_info, "rejmsg"));
 		} else {
-			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused.\n");
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
 		}
 
-		Com_Debug("Game rejected a connection.\n");
+		Com_Debug("Game rejected a connection\n");
 		return;
 	}
 
 	// parse some info from the info strings
-	strncpy(client->user_info, user_info, sizeof(client->user_info) - 1);
+	g_strlcpy(client->user_info, user_info, sizeof(client->user_info));
 	Sv_UserInfoChanged(client);
 
 	// send the connect packet to the client
@@ -355,7 +353,7 @@ static bool Sv_RconAuthenticate(void) {
 static void Svc_RemoteCommand(void) {
 	const bool auth = Sv_RconAuthenticate();
 
-	// first print32_t to the server console
+	// first print to the server console
 	if (auth)
 		Com_Print("Rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
 	else
@@ -377,7 +375,7 @@ static void Svc_RemoteCommand(void) {
 
 		Cmd_ExecuteString(remaining);
 	} else {
-		Com_Print("Bad rcon_password.\n");
+		Com_Print("Bad rcon_password\n");
 	}
 
 	Com_EndRedirect();
@@ -389,17 +387,15 @@ static void Svc_RemoteCommand(void) {
  * will be handled here.
  */
 static void Sv_ConnectionlessPacket(void) {
-	char *s;
-	char *c;
 
 	Msg_BeginReading(&net_message);
 	Msg_ReadLong(&net_message); // skip the -1 marker
 
-	s = Msg_ReadStringLine(&net_message);
+	const char *s = Msg_ReadStringLine(&net_message);
 
 	Cmd_TokenizeString(s);
 
-	c = Cmd_Argv(0);
+	const char *c = Cmd_Argv(0);
 	Com_Debug("Packet from %s: %s\n", Net_NetaddrToString(net_from), c);
 
 	if (!strcmp(c, "ping"))
@@ -425,7 +421,7 @@ static void Sv_ConnectionlessPacket(void) {
  */
 static void Sv_UpdatePings(void) {
 	int32_t i, j;
-	sv_client_t *cl;
+	sv_client_t * cl;
 	int32_t total, count;
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
@@ -490,8 +486,7 @@ static void Sv_CheckCommandTimes(void) {
 				Com_Debug("%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmd_msec);
 
 				if (cl->cmd_msec_errors >= sv_enforce_time->value) {
-					Com_Warn("Sv_CheckCommandTimes: Too many errors from %s\n",
-							Sv_NetaddrToString(cl));
+					Com_Warn("Too many errors from %s\n", Sv_NetaddrToString(cl));
 					Sv_KickClient(cl, "Irregular movement");
 					continue;
 				}
@@ -512,7 +507,7 @@ static void Sv_CheckCommandTimes(void) {
  */
 static void Sv_ReadPackets(void) {
 	int32_t i;
-	sv_client_t *cl;
+	sv_client_t * cl;
 	byte qport;
 
 	while (Net_GetPacket(NS_SERVER, &net_from, &net_message)) {
@@ -545,7 +540,7 @@ static void Sv_ReadPackets(void) {
 				continue;
 
 			if (cl->netchan.remote_address.port != net_from.port) {
-				Com_Warn("Sv_ReadPackets: Fixing up a translated port.\n");
+				Com_Warn("Fixing up a translated port\n");
 				cl->netchan.remote_address.port = net_from.port;
 			}
 
@@ -565,7 +560,7 @@ static void Sv_ReadPackets(void) {
  * @brief
  */
 static void Sv_CheckTimeouts(void) {
-	sv_client_t *cl;
+	sv_client_t * cl;
 	int32_t i;
 
 	const uint32_t timeout = svs.real_time - 1000 * sv_timeout->value;
@@ -697,7 +692,7 @@ static void Sv_ShutdownMasters(void) {
  * @brief
  */
 void Sv_KickClient(sv_client_t *cl, const char *msg) {
-	char buf[1024], name[32];
+	char buf[MAX_STRING_CHARS], name[32];
 
 	if (!cl)
 		return;
@@ -706,14 +701,14 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
 		return;
 
 	if (*cl->name == '\0') // force a name to kick
-		strncpy(name, "player", sizeof(name) - 1);
+		strcpy(name, "player");
 	else
-		strncpy(name, cl->name, sizeof(name) - 1);
+		g_strlcpy(name, cl->name, sizeof(name));
 
 	memset(buf, 0, sizeof(buf));
 
 	if (msg && *msg != '\0')
-		snprintf(buf, sizeof(buf), ": %s", msg);
+		g_snprintf(buf, sizeof(buf), ": %s", msg);
 
 	Sv_ClientPrint(cl->edict, PRINT_HIGH, "You were kicked%s\n", buf);
 
@@ -765,7 +760,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 	svs.game->ClientUserInfoChanged(cl->edict, cl->user_info);
 
 	// name for C code, mask off high bit
-	strncpy(cl->name, GetUserInfo(cl->user_info, "name"), sizeof(cl->name) - 1);
+	g_strlcpy(cl->name, GetUserInfo(cl->user_info, "name"), sizeof(cl->name));
 	for (i = 0; i < sizeof(cl->name); i++) {
 		cl->name[i] &= 127;
 	}
@@ -781,7 +776,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 			cl->rate = CLIENT_RATE_MIN;
 	}
 
-	// limit the print32_t messages the client receives
+	// limit the print messages the client receives
 	val = GetUserInfo(cl->user_info, "message_level");
 	if (*val != '\0') {
 		cl->message_level = atoi(val);
@@ -895,4 +890,6 @@ void Sv_Shutdown(const char *msg) {
 	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
 
 	memset(&svs, 0, sizeof(svs));
+
+	Z_FreeTag(Z_TAG_SERVER);
 }

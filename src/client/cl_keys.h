@@ -31,7 +31,7 @@ void Cl_Bind(SDLKey key, const char *binding);
 
 void Cl_KeyEvent(SDLKey key, uint16_t unicode, bool down, unsigned time);
 char *Cl_EditLine(void);
-void Cl_WriteBindings(FILE *f);
+void Cl_WriteBindings(file_t *f);
 void Cl_InitKeys(void);
 void Cl_ShutdownKeys(void);
 void Cl_ClearTyping(void);

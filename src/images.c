@@ -115,15 +115,15 @@ bool Img_LoadImage(const char *name, SDL_Surface **surf) {
  */
 static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	void *buf;
-	miptex_t *mt;
-	int32_t i, size;
-	uint32_t *p;
+	uint32_t i;
 	byte *b;
 
-	if (Fs_LoadFile(path, &buf) == -1)
+	*surf = NULL;
+
+	if (Fs_Load(path, &buf) == -1)
 		return false;
 
-	mt = (miptex_t *) buf;
+	miptex_t *mt = (miptex_t *) buf;
 
 	mt->width = LittleLong(mt->width);
 	mt->height = LittleLong(mt->height);
@@ -133,8 +133,8 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	if (!palette_initialized) // lazy-load palette if necessary
 		Img_InitPalette();
 
-	size = mt->width * mt->height;
-	p = (uint32_t *) malloc(size * sizeof(uint32_t));
+	size_t size = mt->width * mt->height;
+	uint32_t *p = (uint32_t *) malloc(size * sizeof(uint32_t));
 
 	b = (byte *) mt + mt->offsets[0];
 
@@ -145,19 +145,17 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 			p[i] = palette[b[i]];
 	}
 
-	// create the RGBA surface
-	if (!(*surf = SDL_CreateRGBSurfaceFrom((void *) p, mt->width, mt->height, 32, 0, RMASK, GMASK,
-			BMASK, AMASK))) {
+	Fs_Free(buf);
 
-		Fs_FreeFile(mt);
-		return false;
+	// create the RGBA surface
+	if ((*surf = SDL_CreateRGBSurfaceFrom(p, mt->width, mt->height, 32, 0, RMASK, GMASK, BMASK,
+			AMASK))) {
+
+		// trick SDL into freeing the pixel data with the surface
+		(*surf)->flags &= ~SDL_PREALLOC;
 	}
 
-	// trick SDL into freeing the pixel data with the surface
-	(*surf)->flags &= ~SDL_PREALLOC;
-
-	Fs_FreeFile(mt);
-	return true;
+	return *surf != NULL;
 }
 
 /*
@@ -167,44 +165,37 @@ static bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
 	char path[MAX_QPATH];
 	void *buf;
-	int32_t len;
-	SDL_RWops *rw;
-	SDL_Surface *s;
+	int64_t len;
 
-	snprintf(path, sizeof(path), "%s.%s", name, type);
+	g_snprintf(path, sizeof(path), "%s.%s", name, type);
 
-	if (!strcmp(type, "wal")) // special case for .wal files
+	if (!strcmp(type, "wal")) { // special case for .wal files
 		return Img_LoadWal(path, surf);
-
-	if ((len = Fs_LoadFile(path, &buf)) == -1)
-		return false;
-
-	if (!(rw = SDL_RWFromMem(buf, len))) {
-		Fs_FreeFile(buf);
-		return false;
 	}
 
-	if (!(*surf = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
-		SDL_FreeRW(rw);
-		Fs_FreeFile(buf);
-		return false;
+	*surf = NULL;
+
+	if ((len = Fs_Load(path, &buf)) != -1) {
+
+		SDL_RWops *rw;
+		if ((rw = SDL_RWFromMem(buf, len))) {
+
+			SDL_Surface *s;
+			if ((s = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
+
+				if (!g_str_has_prefix(path, PALETTE)) {
+					*surf = SDL_ConvertSurface(s, &format, 0);
+					SDL_FreeSurface(s);
+				} else {
+					*surf = s;
+				}
+			}
+			SDL_FreeRW(rw);
+		}
+		Fs_Free(buf);
 	}
 
-	SDL_FreeRW(rw);
-	Fs_FreeFile(buf);
-
-	if (strstr(path, PALETTE)) // dont convert the palette
-		return true;
-
-	if (!(s = SDL_ConvertSurface(*surf, &format, 0))) {
-		SDL_FreeSurface(*surf);
-		return false;
-	}
-
-	SDL_FreeSurface(*surf);
-	*surf = s;
-
-	return true;
+	return *surf != NULL;
 }
 
 /*
@@ -252,39 +243,29 @@ void Img_ColorFromPalette(byte c, float *res) {
 }
 
 /*
- * @brief Wraps fwrite, reading the return value to silence gcc.
- */
-static inline void Img_fwrite(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-
-	if (fwrite(ptr, size, nmemb, stream) <= 0)
-		Com_Print("Failed to write\n");
-}
-
-/*
  * @brief Write pixel data to a JPEG file.
  */
-void Img_WriteJPEG(const char *path, byte *data, int32_t width, int32_t height, int32_t quality) {
+bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality) {
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
-	FILE *outfile; /* target file */
 	JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
-	int32_t row_stride; /* physical row width in image buffer */
+	FILE *f;
 
-	if (!(outfile = fopen(path, "wb"))) { // failed to open
+	if (!(f = fopen(va("%s/%s", Fs_WriteDir(), path), "wb"))) {
 		Com_Print("Failed to open to %s\n", path);
-		return;
+		return false;
 	}
 
 	cinfo.err = jpeg_std_error(&jerr);
 
 	jpeg_create_compress(&cinfo);
 
-	jpeg_stdio_dest(&cinfo, outfile);
+	jpeg_stdio_dest(&cinfo, f);
 
-	cinfo.image_width = width; /* image width and height, in pixels */
+	cinfo.image_width = width;
 	cinfo.image_height = height;
-	cinfo.input_components = 3; /* # of color components per pixel */
-	cinfo.in_color_space = JCS_RGB; /* colorspace of input image */
+	cinfo.input_components = 3;
+	cinfo.in_color_space = JCS_RGB;
 
 	jpeg_set_defaults(&cinfo);
 
@@ -292,10 +273,10 @@ void Img_WriteJPEG(const char *path, byte *data, int32_t width, int32_t height, 
 
 	jpeg_start_compress(&cinfo, TRUE);
 
-	row_stride = width * 3; /* JSAMPLEs per row in img_data */
+	const uint32_t stride = width * 3; // bytes per scanline
 
 	while (cinfo.next_scanline < cinfo.image_height) {
-		row_pointer[0] = &data[(cinfo.image_height - cinfo.next_scanline - 1) * row_stride];
+		row_pointer[0] = &data[(cinfo.image_height - cinfo.next_scanline - 1) * stride];
 		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
 	}
 
@@ -303,147 +284,8 @@ void Img_WriteJPEG(const char *path, byte *data, int32_t width, int32_t height, 
 
 	jpeg_destroy_compress(&cinfo);
 
-	fclose(outfile);
-}
-
-#define TGA_CHANNELS 3
-
-/*
- * @brief Write pixel data to a Type 10 (RLE compressed RGB) Targa file.
- */
-void Img_WriteTGARLE(const char *path, byte *data, int32_t width, int32_t height, int32_t quality __attribute__((unused))) {
-	FILE *tga_file;
-	const uint32_t channels = TGA_CHANNELS; // 24-bit RGB
-	byte header[18];
-	// write image data
-	// TGA has the R and B channels switched
-	byte pixel_data[TGA_CHANNELS];
-	byte block_data[TGA_CHANNELS * 128];
-	byte rle_packet;
-	int32_t compress = 0;
-	size_t block_length = 0;
-	char footer[26];
-	int32_t x, y;
-
-	if (!(tga_file = fopen(path, "wb"))) { // failed to open
-		Com_Print("Failed to open to %s\n", path);
-		return;
-	}
-
-	// write TGA header
-	memset(header, 0, sizeof(header));
-
-	// byte 0       - image ID field length         = 0 (no image ID field present)
-	// byte 1       - color map type                = 0 (no palette present)
-	// byte 2       - image type                    = 10 (truecolor RLE encoded)
-	header[2] = 10;
-	// byte 3-11    - palette data (not used)
-	// byte 12+13   - image width
-	header[12] = (width & 0xff);
-	header[13] = ((width >> 8) & 0xff);
-	// byte 14+15   - image height
-	header[14] = (height & 0xff);
-	header[15] = ((height >> 8) & 0xff);
-	// byte 16      - image color depth             = 24 (RGB) or 32 (RGBA)
-	header[16] = channels * 8;
-	// byte 17      - image descriptor byte		= 0x20 (origin at bottom left)
-	header[17] = 0x20;
-
-	// write header
-	Img_fwrite((char *) header, 1, sizeof(header), tga_file);
-
-	for (y = height - 1; y >= 0; y--) {
-		for (x = 0; x < width; x++) {
-			size_t index = y * width * channels + x * channels;
-			// TGA has it channels in a different order
-			pixel_data[0] = data[index + 2];
-			pixel_data[1] = data[index + 1];
-			pixel_data[2] = data[index];
-
-			if (block_length == 0) {
-				memcpy(block_data, pixel_data, channels);
-				block_length++;
-				compress = 0;
-			} else {
-				if (!compress) {
-					// uncompressed block and pixel_data differs from the last pixel
-					if (memcmp(&block_data[(block_length - 1) * channels], pixel_data, channels)
-							!= 0) {
-						// append pixel
-						memcpy(&block_data[block_length * channels], pixel_data, channels);
-
-						block_length++;
-					} else {
-						// uncompressed block and pixel data is identical
-						if (block_length > 1) {
-							// write the uncompressed block
-							rle_packet = block_length - 2;
-							Img_fwrite(&rle_packet, 1, 1, tga_file);
-							Img_fwrite(block_data, 1, (block_length - 1) * channels, tga_file);
-							block_length = 1;
-						}
-						memcpy(block_data, pixel_data, channels);
-						block_length++;
-						compress = 1;
-					}
-				} else {
-					// compressed block and pixel data is identical
-					if (memcmp(block_data, pixel_data, channels) == 0) {
-						block_length++;
-					} else {
-						// compressed block and pixel data differs
-						if (block_length > 1) {
-							// write the compressed block
-							rle_packet = block_length + 127;
-							Img_fwrite(&rle_packet, 1, 1, tga_file);
-							Img_fwrite(block_data, 1, channels, tga_file);
-							block_length = 0;
-						}
-						memcpy(&block_data[block_length * channels], pixel_data, channels);
-						block_length++;
-						compress = 0;
-					}
-				}
-			}
-
-			if (block_length == 128) {
-				rle_packet = block_length - 1;
-				if (!compress) {
-					Img_fwrite(&rle_packet, 1, 1, tga_file);
-					Img_fwrite(block_data, 1, 128 * channels, tga_file);
-				} else {
-					rle_packet += 128;
-					Img_fwrite(&rle_packet, 1, 1, tga_file);
-					Img_fwrite(block_data, 1, channels, tga_file);
-				}
-
-				block_length = 0;
-				compress = 0;
-			}
-		}
-	}
-
-	// write remaining bytes
-	if (block_length) {
-		rle_packet = block_length - 1;
-		if (!compress) {
-			Img_fwrite(&rle_packet, 1, 1, tga_file);
-			Img_fwrite(block_data, 1, block_length * channels, tga_file);
-		} else {
-			rle_packet += 128;
-			Img_fwrite(&rle_packet, 1, 1, tga_file);
-			Img_fwrite(block_data, 1, channels, tga_file);
-		}
-	}
-
-	// write footer (optional, but the specification recommends it)
-	memset(footer, 0, sizeof(footer));
-	strncpy(&footer[8] , "TRUEVISION-XFILE", 16);
-	footer[24] = '.';
-	footer[25] = 0;
-	Img_fwrite(footer, 1, sizeof(footer), tga_file);
-
-	fclose(tga_file);
+	fclose(f);
+	return true;
 }
 
 #endif /* BUILD_CLIENT */

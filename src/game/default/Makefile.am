@@ -49,6 +49,7 @@ game_la_CFLAGS = \
 	-I../.. \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@ \
 	@MYSQL_CFLAGS@
 
 game_la_LIBADD = \

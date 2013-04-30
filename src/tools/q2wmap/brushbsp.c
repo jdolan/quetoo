@@ -21,8 +21,6 @@
 
 #include "qbsp.h"
 
-int32_t c_nodes;
-int32_t c_nonvis;
 int32_t c_active_brushes;
 
 /*
@@ -158,7 +156,6 @@ tree_t *AllocTree(void) {
 	tree_t *tree;
 
 	tree = Z_Malloc(sizeof(*tree));
-	memset(tree, 0, sizeof(*tree));
 	ClearBounds(tree->mins, tree->maxs);
 
 	return tree;
@@ -168,41 +165,51 @@ tree_t *AllocTree(void) {
  * @brief
  */
 node_t *AllocNode(void) {
-	node_t *node;
 
-	node = Z_Malloc(sizeof(*node));
-	memset(node, 0, sizeof(*node));
+	if (debug)
+		SDL_SemPost(semaphores.active_nodes);
 
-	return node;
+	return Z_Malloc(sizeof(node_t));
+}
+
+/*
+ * @brief
+ */
+void FreeNode(node_t *node) {
+
+	if (debug)
+		SDL_SemWait(semaphores.active_nodes);
+
+	Z_Free(node);
 }
 
 /*
  * @brief
  */
 bsp_brush_t *AllocBrush(int32_t num_sides) {
-	bsp_brush_t *bb;
-	size_t c;
 
-	c = (size_t) &(((bsp_brush_t *) 0)->sides[num_sides]);
-	bb = Z_Malloc(c);
-	memset(bb, 0, c);
-	if (!threads->integer)
-		c_active_brushes++;
-	return bb;
+	const size_t size = (size_t) &(((bsp_brush_t *) 0)->sides[num_sides]);
+
+	if (debug)
+		SDL_SemPost(semaphores.active_brushes);
+
+	return Z_Malloc(size);
 }
 
 /*
  * @brief
  */
-void FreeBrush(bsp_brush_t * brushes) {
+void FreeBrush(bsp_brush_t * brush) {
 	int32_t i;
 
-	for (i = 0; i < brushes->num_sides; i++)
-		if (brushes->sides[i].winding)
-			FreeWinding(brushes->sides[i].winding);
-	Z_Free(brushes);
-	if (!threads->integer)
-		c_active_brushes--;
+	for (i = 0; i < brush->num_sides; i++)
+		if (brush->sides[i].winding)
+			FreeWinding(brush->sides[i].winding);
+
+	if (debug)
+		SDL_SemWait(semaphores.active_brushes);
+
+	Z_Free(brush);
 }
 
 /*
@@ -283,8 +290,8 @@ static int32_t Map_BoxOnPlaneSide(vec3_t mins, vec3_t maxs, map_plane_t * plane)
 /*
  * @brief
  */
-static int32_t TestBrushToPlanenum(bsp_brush_t * brush, int32_t plane_num,
-		int32_t *numsplits, bool * hintsplit, int32_t *epsilonbrush) {
+static int32_t TestBrushToPlanenum(bsp_brush_t * brush, int32_t plane_num, int32_t *numsplits,
+		bool * hintsplit, int32_t *epsilonbrush) {
 	int32_t i, j, num;
 	map_plane_t *plane;
 	int32_t s;
@@ -300,7 +307,7 @@ static int32_t TestBrushToPlanenum(bsp_brush_t * brush, int32_t plane_num,
 	for (i = 0; i < brush->num_sides; i++) {
 		num = brush->sides[i].plane_num;
 		if (num >= 0x10000)
-			Com_Error(ERR_FATAL, "bad plane_num\n");
+			Com_Error(ERR_FATAL, "Bad plane_num\n");
 		if (num == plane_num)
 			return SIDE_BACK | SIDE_FACING;
 		if (num == (plane_num ^ 1))
@@ -510,8 +517,7 @@ static side_t *SelectSplitSide(bsp_brush_t * brushes, node_t * node) {
 				hintsplit = false;
 
 				for (test = brushes; test; test = test->next) {
-					s = TestBrushToPlanenum(test, pnum, &bsplits, &hintsplit,
-							&epsilonbrush);
+					s = TestBrushToPlanenum(test, pnum, &bsplits, &hintsplit, &epsilonbrush);
 
 					splits += bsplits;
 					if (bsplits && (s & SIDE_FACING))
@@ -542,7 +548,7 @@ static side_t *SelectSplitSide(bsp_brush_t * brushes, node_t * node) {
 					value += 5; // axial is better
 				value -= epsilonbrush * 1000; // avoid!
 
-				// never split a hint32_t side except with another hint
+				// never split a hint side except with another hint
 				if (hintsplit && !(side->surf & SURF_HINT))
 					value = -9999999;
 
@@ -559,12 +565,11 @@ static side_t *SelectSplitSide(bsp_brush_t * brushes, node_t * node) {
 			}
 		}
 
-		// if we found a good plane, don't bother trying any
-		// other passes
+		// if we found a good plane, don't bother trying any other passes
 		if (bestside) {
 			if (pass > 1) {
-				if (!threads->integer)
-					c_nonvis++;
+				if (debug)
+					SDL_SemPost(semaphores.nonvis_nodes);
 			}
 			if (pass > 0)
 				node->detail_seperator = true; // not needed for vis
@@ -614,8 +619,7 @@ static int32_t BrushMostlyOnSide(bsp_brush_t * brush, map_plane_t * plane) {
 /*
  * @brief Generates two new brushes, leaving the original unchanged
  */
-void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front,
-		bsp_brush_t ** back) {
+void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front, bsp_brush_t ** back) {
 	bsp_brush_t *b[2];
 	int32_t i, j;
 	winding_t *w, *cw[2], *midwinding;
@@ -670,7 +674,7 @@ void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front,
 	}
 
 	if (WindingIsHuge(w)) {
-		Com_Warn("Large winding.\n");
+		Com_Warn("Large winding\n");
 	}
 
 	midwinding = w;
@@ -689,8 +693,7 @@ void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front,
 		w = s->winding;
 		if (!w)
 			continue;
-		ClipWindingEpsilon(w, plane->normal, plane->dist,
-				0 /*PLANESIDE_EPSILON */, &cw[0], &cw[1]);
+		ClipWindingEpsilon(w, plane->normal, plane->dist, 0 /*PLANESIDE_EPSILON */, &cw[0], &cw[1]);
 		for (j = 0; j < 2; j++) {
 			if (!cw[j])
 				continue;
@@ -708,8 +711,7 @@ void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front,
 	for (i = 0; i < 2; i++) {
 		BoundBrush(b[i]);
 		for (j = 0; j < 3; j++) {
-			if (b[i]->mins[j] < -MAX_WORLD_WIDTH || b[i]->maxs[j]
-					> MAX_WORLD_WIDTH) {
+			if (b[i]->mins[j] < -MAX_WORLD_WIDTH || b[i]->maxs[j] > MAX_WORLD_WIDTH) {
 				Com_Debug("bogus brush after clip\n");
 				break;
 			}
@@ -772,8 +774,8 @@ void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front,
 /*
  * @brief
  */
-static void SplitBrushList(bsp_brush_t * brushes, node_t * node,
-		bsp_brush_t ** front, bsp_brush_t ** back) {
+static void SplitBrushList(bsp_brush_t * brushes, node_t * node, bsp_brush_t ** front,
+		bsp_brush_t ** back) {
 	bsp_brush_t *brush, *newbrush, *newbrush2;
 	side_t *side;
 	int32_t sides;
@@ -834,8 +836,8 @@ static node_t *BuildTree_r(node_t * node, bsp_brush_t * brushes) {
 	int32_t i;
 	bsp_brush_t *children[2];
 
-	if (!threads->integer)
-		c_nodes++;
+	if (debug)
+		SDL_SemPost(semaphores.vis_nodes);
 
 	// find the best plane to use as a splitter
 	bestside = SelectSplitSide(brushes, node);
@@ -901,7 +903,7 @@ tree_t *BrushBSP(bsp_brush_t * brushlist, vec3_t mins, vec3_t maxs) {
 
 		volume = BrushVolume(b);
 		if (volume < microvolume) {
-			Com_Warn("entity %i, brush %i: microbrush\n",
+			Com_Warn("Entity %i, brush %i: microbrush\n",
 					b->original->entity_num, b->original->brush_num);
 		}
 
@@ -926,8 +928,12 @@ tree_t *BrushBSP(bsp_brush_t * brushlist, vec3_t mins, vec3_t maxs) {
 	Com_Debug("%5i visible faces\n", c_faces);
 	Com_Debug("%5i nonvisible faces\n", c_nonvisfaces);
 
-	c_nodes = 0;
-	c_nonvis = 0;
+	SDL_DestroySemaphore(semaphores.vis_nodes);
+	semaphores.vis_nodes = SDL_CreateSemaphore(0);
+
+	SDL_DestroySemaphore(semaphores.nonvis_nodes);
+	semaphores.nonvis_nodes = SDL_CreateSemaphore(0);
+
 	node = AllocNode();
 
 	node->volume = BrushFromBounds(mins, maxs);
@@ -936,9 +942,12 @@ tree_t *BrushBSP(bsp_brush_t * brushlist, vec3_t mins, vec3_t maxs) {
 
 	node = BuildTree_r(node, brushlist);
 
-	Com_Debug("%5i visible nodes\n", c_nodes / 2 - c_nonvis);
-	Com_Debug("%5i nonvis nodes\n", c_nonvis);
-	Com_Debug("%5i leafs\n", (c_nodes + 1) / 2);
+	const uint32_t vis_nodes = SDL_SemValue(semaphores.vis_nodes);
+	const uint32_t nonvis_nodes = SDL_SemValue(semaphores.nonvis_nodes);
+
+	Com_Debug("%5i visible nodes\n", vis_nodes / 2 - nonvis_nodes);
+	Com_Debug("%5i nonvis nodes\n", nonvis_nodes);
+	Com_Debug("%5i leafs\n", (vis_nodes + 1) / 2);
 
 	return tree;
 }

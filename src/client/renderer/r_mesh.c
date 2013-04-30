@@ -21,9 +21,7 @@
 
 #include "r_local.h"
 
-vec3_t r_mesh_verts[MD3_MAX_TRIANGLES * 3]; // vertexes are interpolated here temporarily
-vec3_t r_mesh_norms[MD3_MAX_TRIANGLES * 3]; // same for normal vectors
-vec4_t r_mesh_tangents[MD3_MAX_TRIANGLES * 3]; // and tangents
+r_mesh_state_t r_mesh_state;
 
 /*
  * @brief Applies any client-side transformations specified by the model's world or
@@ -40,7 +38,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 		// apply weapon bob on all 3 axis
 		float b = r_view.bob * 0.4;
 
-		c = e->model->view_config;
+		c = e->model->mesh->view_config;
 
 		VectorMA(e->origin, c->translate[0] + b, r_view.forward, e->origin);
 		VectorMA(e->origin, 6.0, r_view.right, e->origin);
@@ -52,9 +50,9 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 	} else { // versus world and linked entities
 
 		if (e->parent)
-			c = e->model->link_config;
+			c = e->model->mesh->link_config;
 		else
-			c = e->model->world_config;
+			c = e->model->mesh->world_config;
 
 		// normalize the config's translation to the entity scale
 		for (i = 0; i < 3; i++)
@@ -74,14 +72,14 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 /*
  * @brief Returns the desired tag structure, or NULL.
  */
-static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int32_t frame, const char *name) {
+static const r_md3_tag_t *R_GetMeshModelTag(const r_model_t *mod, int32_t frame, const char *name) {
 
-	if (frame > mod->num_frames) {
-		Com_Warn("R_GetMeshModelTag: %s: Invalid frame: %d\n", mod->name, frame);
+	if (frame > mod->mesh->num_frames) {
+		Com_Warn("%s: Invalid frame: %d\n", mod->media.name, frame);
 		return NULL;
 	}
 
-	const r_md3_t *md3 = (r_md3_t *) mod->extra_data;
+	const r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
 	const r_md3_tag_t *tag = &md3->tags[frame * md3->num_tags];
 	int32_t i;
 
@@ -91,7 +89,7 @@ static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int32_t frame, const
 		}
 	}
 
-	Com_Warn("R_GetMeshModelTag: %s: Tag not found: %s\n", mod->name, name);
+	Com_Warn("%s: Tag not found: %s\n", mod->media.name, name);
 	return NULL;
 }
 
@@ -100,13 +98,13 @@ static const r_md3_tag_t *R_GetMeshModelTag(r_model_t *mod, int32_t frame, const
  */
 void R_ApplyMeshModelTag(r_entity_t *e) {
 
-	if (!e->parent || !e->parent->model || e->parent->model->type != mod_md3) {
-		Com_Warn("R_ApplyMeshModelTag: Invalid parent entity\n");
+	if (!e->parent || !e->parent->model || e->parent->model->type != MOD_MD3) {
+		Com_Warn("Invalid parent entity\n");
 		return;
 	}
 
 	if (!e->tag_name) {
-		Com_Warn("R_ApplyMeshModelTag: NULL tag_name\n");
+		Com_Warn("NULL tag_name\n");
 		return;
 	}
 
@@ -152,7 +150,7 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 /*
  * @brief Updates static lighting information for the specified mesh entity.
  */
-void R_UpdateMeshLighting(const r_entity_t *e) {
+void R_UpdateMeshModelLighting(const r_entity_t *e) {
 
 	if (e->lighting->state == LIGHTING_READY)
 		return;
@@ -168,7 +166,7 @@ void R_UpdateMeshLighting(const r_entity_t *e) {
 	VectorMA(e->lighting->origin, e->scale, e->model->mins, e->lighting->mins);
 	VectorMA(e->lighting->origin, e->scale, e->model->maxs, e->lighting->maxs);
 
-	//Com_Debug("Updating lighting for %s\n", e->model->name);
+	//Com_Debug("%s\n", e->model->media.name);
 	R_UpdateLighting(e->lighting);
 }
 
@@ -205,15 +203,12 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 	R_Color(color);
 }
 
-// maintain a pointer to the active material
-static r_image_t *r_mesh_material;
-
 /*
- * @brief
+ * @brief Sets GL state to draw the specified entity.
  */
 static void R_SetMeshState_default(const r_entity_t *e) {
 
-	if (e->model->num_frames == 1) { // bind static arrays
+	if (e->model->mesh->num_frames == 1) { // bind static arrays
 		R_SetArrayState(e->model);
 	} else { // or use the default arrays
 		R_ResetArrayState();
@@ -224,16 +219,16 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	if (!r_draw_wireframe->value) {
 
 		if (!(e->effects & EF_NO_DRAW)) { // setup state for diffuse render
-			r_mesh_material = e->skins[0] ? e->skins[0] : e->model->skin;
+			r_mesh_state.material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
 
-			R_BindTexture(r_mesh_material->texnum);
+			R_BindTexture(r_mesh_state.material->diffuse->texnum);
 
 			R_SetMeshColor_default(e);
 
 			// hardware lighting
 			if (r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)) {
 
-				R_UseMaterial(NULL, r_mesh_material);
+				R_UseMaterial(NULL, r_mesh_state.material);
 
 				R_EnableLightsByRadius(e->origin);
 
@@ -280,7 +275,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
  */
 static void R_ResetMeshState_default(const r_entity_t *e) {
 
-	if (e->model->num_frames > 1)
+	if (e->model->mesh->num_frames > 1)
 		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
 
 	if (e->effects & EF_WEAPON)
@@ -347,7 +342,7 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
 
 	R_Color(color);
 
-	R_BindTexture(r_envmap_images[2]->texnum);
+	R_BindTexture(r_image_state.shell->texnum);
 
 	R_EnableShell(true);
 
@@ -432,7 +427,7 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 	int32_t vert_index;
 	int32_t i, j;
 
-	md3 = (r_md3_t *) e->model->extra_data;
+	md3 = (r_md3_t *) e->model->mesh->data;
 
 	frame = &md3->frames[e->frame];
 	old_frame = &md3->frames[e->old_frame];
@@ -450,13 +445,13 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 		const uint32_t *tri = mesh->tris;
 
 		for (j = 0; j < mesh->num_verts; j++, v++, ov++) { // interpolate the vertexes
-			VectorSet(r_mesh_verts[j],
+			VectorSet(r_mesh_state.vertexes[j],
 					trans[0] + ov->point[0] * e->back_lerp + v->point[0] * e->lerp,
 					trans[1] + ov->point[1] * e->back_lerp + v->point[1] * e->lerp,
 					trans[2] + ov->point[2] * e->back_lerp + v->point[2] * e->lerp);
 
 			if (r_state.lighting_enabled) { // and the normals
-				VectorSet(r_mesh_norms[j],
+				VectorSet(r_mesh_state.normals[j],
 						v->normal[0] + (ov->normal[0] - v->normal[0]) * e->back_lerp,
 						v->normal[1] + (ov->normal[1] - v->normal[1]) * e->back_lerp,
 						v->normal[2] + (ov->normal[2] - v->normal[2]) * e->back_lerp);
@@ -465,14 +460,14 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
 
 		for (j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the triangles
 
-			VectorCopy(r_mesh_verts[tri[0]], (&r_state.vertex_array_3d[vert_index + 0]));
-			VectorCopy(r_mesh_verts[tri[1]], (&r_state.vertex_array_3d[vert_index + 3]));
-			VectorCopy(r_mesh_verts[tri[2]], (&r_state.vertex_array_3d[vert_index + 6]));
+			VectorCopy(r_mesh_state.vertexes[tri[0]], (&r_state.vertex_array_3d[vert_index + 0]));
+			VectorCopy(r_mesh_state.vertexes[tri[1]], (&r_state.vertex_array_3d[vert_index + 3]));
+			VectorCopy(r_mesh_state.vertexes[tri[2]], (&r_state.vertex_array_3d[vert_index + 6]));
 
 			if (r_state.lighting_enabled) { // normal vectors for lighting
-				VectorCopy(r_mesh_norms[tri[0]], (&r_state.normal_array[vert_index + 0]));
-				VectorCopy(r_mesh_norms[tri[1]], (&r_state.normal_array[vert_index + 3]));
-				VectorCopy(r_mesh_norms[tri[2]], (&r_state.normal_array[vert_index + 6]));
+				VectorCopy(r_mesh_state.normals[tri[0]], (&r_state.normal_array[vert_index + 0]));
+				VectorCopy(r_mesh_state.normals[tri[1]], (&r_state.normal_array[vert_index + 3]));
+				VectorCopy(r_mesh_state.normals[tri[2]], (&r_state.normal_array[vert_index + 6]));
 			}
 
 			vert_index += 9;
@@ -490,16 +485,16 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (i > 0) { // update the diffuse state for the current mesh
-			r_mesh_material = e->skins[i] ? e->skins[i] : e->model->skin;
+			r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
 
-			R_BindTexture(r_mesh_material->texnum);
+			R_BindTexture(r_mesh_state.material->diffuse->texnum);
 
-			R_UseMaterial(NULL, r_mesh_material);
+			R_UseMaterial(NULL, r_mesh_state.material);
 		}
 
 		glDrawArrays(GL_TRIANGLES, offset, mesh->num_tris * 3);
 
-		R_DrawMeshMaterial(&r_mesh_material->material, offset, mesh->num_tris * 3);
+		R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_tris * 3);
 
 		offset += mesh->num_tris * 3;
 	}
@@ -510,30 +505,30 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
  */
 void R_DrawMeshModel_default(const r_entity_t *e) {
 
-	if (e->frame >= e->model->num_frames) {
-		Com_Warn("R_DrawMeshModel %s: no such frame %d\n", e->model->name, e->frame);
+	if (e->frame >= e->model->mesh->num_frames) {
+		Com_Warn("%s: no such frame %d\n", e->model->media.name, e->frame);
 		return;
 	}
 
-	if (e->old_frame >= e->model->num_frames) {
-		Com_Warn("R_DrawMeshModel %s: no such old_frame %d\n", e->model->name, e->old_frame);
+	if (e->old_frame >= e->model->mesh->num_frames) {
+		Com_Warn("%s: no such old_frame %d\n", e->model->media.name, e->old_frame);
 		return;
 	}
 
 	R_SetMeshState_default(e);
 
-	if (e->model->num_frames > 1) { // interpolate frames
+	if (e->model->mesh->num_frames > 1) { // interpolate frames
 		R_InterpolateMeshModel_default(e);
 	}
 
 	if (!(e->effects & EF_NO_DRAW)) { // draw the model
 
-		if (e->model->type == mod_md3 && !r_draw_wireframe->value) {
-			R_DrawMeshParts_default(e, (const r_md3_t *) e->model->extra_data);
+		if (e->model->type == MOD_MD3 && !r_draw_wireframe->value) {
+			R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->data);
 		} else {
 			glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
-			R_DrawMeshMaterial(&r_mesh_material->material, 0, e->model->num_verts);
+			R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_verts);
 		}
 
 		R_DrawMeshShell_default(e); // draw any shell effects

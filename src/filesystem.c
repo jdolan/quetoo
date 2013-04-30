@@ -19,665 +19,543 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
-#ifdef _WIN32
-#include <windows.h>
-
-#define CSIDL_APPDATA  0x001a
-#define CSIDL_PERSONAL 0x0005
-
-#endif /* ifdef _WIN32 */
-
-#include <sys/stat.h>
-#include <unistd.h>
-#include <zlib.h>
-
 #include "filesystem.h"
 
-static char fs_gamedir[MAX_OSPATH];
+#define FS_FILE_BUFFER (1024 * 1024 * 2)
 
-static cvar_t *fs_base;
-cvar_t *fs_game;
+//#define FS_LOAD_DEBUG // track Fs_Load / Fs_Free
 
-typedef struct search_path_s {
-	char path[MAX_OSPATH];
-	struct search_path_s *next;
-} search_path_t;
+typedef struct fs_state_s {
+	char **base_search_paths;
 
-static search_path_t *fs_search_paths;
-static search_path_t *fs_base_search_paths; // without gamedirs
+#ifdef FS_LOAD_DEBUG
+	GHashTable *loaded_files;
+#endif
+} fs_state_t;
 
-static hash_table_t fs_hash_table; // pakfiles are pushed into a hash
-
+static fs_state_t fs_state;
 
 /*
- * @brief
+ * @brief Closes the file.
+ *
+ * @return True on successful flush and close, false otherwise.
  */
-size_t Fs_Write(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-	size_t len;
-
-	if (size * nmemb == 0)
-		return 0;
-
-	len = fwrite(ptr, size, nmemb, stream);
-
-	if (len <= 0)
-		Com_Warn("Fs_Write: Failed to write\n");
-
-	return len;
+bool Fs_Close(file_t *file) {
+	return PHYSFS_close(file) ? true : false;
 }
 
 /*
- * @brief
+ * @return True if the end of the file has been reached, false otherwise.
  */
-size_t Fs_Read(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-	size_t len;
-
-	if (size * nmemb == 0)
-		return 0;
-
-	len = fread(ptr, size, nmemb, stream);
-
-	if (len <= 0) // read failed, exit
-		Com_Warn("Fs_Read: Failed to read file.");
-
-	return len;
+bool Fs_Eof(file_t *file) {
+	return PHYSFS_eof(file) ? true : false;
 }
 
 /*
- * @brief
+ * @return True if the specified filename exists on the search path.
  */
-void Fs_CloseFile(FILE *f) {
-	fclose(f);
+bool Fs_Exists(const char *filename) {
+	return PHYSFS_exists(filename) ? true : false;
 }
 
 /*
- * @brief
+ * @return True if the file flushed successfully, false otherwise.
  */
-static int32_t Fs_FileLength(FILE *f) {
-	int32_t pos;
-	int32_t end;
-
-	pos = ftell(f);
-	fseek(f, 0, SEEK_END);
-	end = ftell(f);
-	fseek(f, pos, SEEK_SET);
-
-	return end;
+bool Fs_Flush(file_t *file) {
+	return PHYSFS_flush(file) ? true : false;
 }
 
 /*
- * @brief Creates any directories needed to store the given path.
+ * @return The last error message resulting from filesystem operations.
  */
-void Fs_CreatePath(const char *path) {
-	char pathCopy[MAX_OSPATH];
-	char *ofs;
+const char *Fs_LastError(void) {
+	return PHYSFS_getLastError();
+}
 
-	strncpy(pathCopy, path, sizeof(pathCopy) - 1);
+/*
+ * @brief Creates the specified directory (and any ancestors) in Fs_WriteDir.
+ */
+bool Fs_Mkdir(const char *dir) {
+	return PHYSFS_mkdir(dir) ? true : false;
+}
 
-	for (ofs = pathCopy + 1; *ofs; ofs++) {
-		if (*ofs == '/') { // create the directory
-			*ofs = 0;
-			Sys_Mkdir(pathCopy);
-			*ofs = '/';
+/*
+ * @brief Opens the specified file for appending.
+ */
+file_t *Fs_OpenAppend(const char *filename) {
+	char dir[MAX_QPATH];
+	file_t *file;
+
+	Dirname(filename, dir);
+	Fs_Mkdir(dir);
+
+	if ((file = PHYSFS_openAppend(filename))) {
+		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
+			Com_Warn("%s: %s\n", filename, Fs_LastError());
 		}
 	}
+
+	return file;
 }
 
-char *fs_last_pak = NULL; // the server uses this to determine CS_PAK
+/*
+ * @brief Opens the specified file for reading.
+ */
+file_t *Fs_OpenRead(const char *filename) {
+	file_t *file;
+
+	if ((file = PHYSFS_openRead(filename))) {
+		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
+			Com_Warn("%s: %s\n", filename, Fs_LastError());
+		}
+	}
+
+	return file;
+}
 
 /*
- * @brief Attempts to open the specified file on the search path. Returns filesize
- * and an open FILE pointer. This generalizes opening files from paks vs
- * opening filesystem resources directly.
+ * @brief Opens the specified file for writing.
  */
-int32_t Fs_OpenFile(const char *file_name, FILE **file, file_mode_t mode) {
-	search_path_t *search;
-	char path[MAX_OSPATH];
-	struct stat sbuf;
-	pak_t *pak;
-	pak_entry_t *e;
+file_t *Fs_OpenWrite(const char *filename) {
+	char dir[MAX_QPATH];
+	file_t *file;
 
-	fs_last_pak = NULL;
+	Dirname(filename, dir);
+	Fs_Mkdir(dir);
 
-	if (!file_name || *file_name == '\0') {
-		Com_Warn("Fs_OpenFile: Missing file name\n");
-		return -1;
+	if ((file = PHYSFS_openWrite(filename))) {
+		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
+			Com_Warn("%s: %s\n", filename, Fs_LastError());
+		}
 	}
 
-	// open for write or append in game dir and return
-	if (mode == FILE_WRITE || mode == FILE_APPEND) {
+	return file;
+}
 
-		snprintf(path, sizeof(path), "%s/%s", Fs_Gamedir(), file_name);
-		Fs_CreatePath(path);
+/*
+ * @brief Prints the specified formatted string to the given file.
+ *
+ * @return The number of characters written, or -1 on failure.
+ */
+int64_t Fs_Print(file_t *file, const char *fmt, ...) {
+	va_list args;
+	static char string[MAX_PRINT_MSG];
 
-		*file = fopen(path, (mode == FILE_WRITE ? "wb" : "ab"));
-		return *file ? 0 : -1;
+	va_start(args, fmt);
+	vsnprintf(string, sizeof(string), fmt, args);
+	va_end(args);
+
+	return Fs_Write(file, string, 1, strlen(string));
+}
+
+/*
+ * @brief Reads from the specified file.
+ *
+ * @return The number of objects read, or -1 on failure.
+ */
+int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
+	return PHYSFS_read(file, buffer, size, count);
+}
+
+/*
+ * @brief Reads a line from the specified file. The newline character is
+ * omitted from the returned, NULL-terminated string.
+ *
+ * @return True on success, false on failures.
+ */
+bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
+	size_t i;
+	char *c;
+
+	for (i = 0, c = buffer; i < len - 1; i++, c++) {
+
+		if (Fs_Read(file, c, 1, 1) != 1) {
+			break;
+		}
+
+		if (*c == '\n') {
+			i++;
+			break;
+		}
 	}
 
-	// try the search paths
-	for (search = fs_search_paths; search; search = search->next) {
+	*c = '\0';
+	return i ? true : false;
+}
 
-		snprintf(path, sizeof(path), "%s/%s", search->path, file_name);
+/*
+ * @brief Seeks to the specified offset.
+ */
+bool Fs_Seek(file_t *file, size_t offset) {
+	return PHYSFS_seek(file, offset) ? true : false;
+}
 
-		if (stat(path, &sbuf) == -1 || !S_ISREG(sbuf.st_mode))
-			continue;
+/*
+ * @return The current file offset.
+ */
+int64_t Fs_Tell(file_t *file) {
+	return PHYSFS_tell(file);
+}
 
-		if ((*file = fopen(path, "rb")) == NULL)
-			continue;
+/*
+ * @brief Writes to the specified file.
+ *
+ * @return The number of objects read, or -1 on failure.
+ */
+int64_t Fs_Write(file_t *file, void *buffer, size_t size, size_t count) {
+	return PHYSFS_write(file, buffer, size, count);
+}
 
-		return Fs_FileLength(*file);
-	}
+/*
+ * @brief Loads the specified file into the given buffer, which is automatically
+ * allocated if non-NULL. Returns the file length, or -1 if it is unable to be
+ * read. Be sure to free the buffer when finished with Fs_Free.
+ *
+ * @return The file length, or -1 on error.
+ */
+int64_t Fs_Load(const char *filename, void **buffer) {
+	int64_t len;
 
-	// fall back on the pak files
-	if ((pak = (pak_t *) Hash_Get(&fs_hash_table, file_name))) {
+	typedef struct {
+		byte *data;
+		int64_t len;
+	} fs_block_t;
 
-		// find the entry within the pak file
-		if ((e = (pak_entry_t *) Hash_Get(&pak->hash_table, file_name))) {
+	file_t *file;
+	if ((file = Fs_OpenRead(filename))) {
+		GList *list = NULL;
+		len = 0;
 
-			*file = fopen(pak->file_name, "rb");
+		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
+			Com_Warn("%s: %s\n", filename, Fs_LastError());
+		}
 
-			if (!*file) {
-				Com_Warn("Fs_OpenFile: couldn't reopen %s.\n", pak->file_name);
-				return -1;
+		while (!Fs_Eof(file)) {
+			fs_block_t *b = Z_Malloc(sizeof(fs_block_t));
+
+			b->data = Z_LinkMalloc(FS_FILE_BUFFER, b);
+			b->len = Fs_Read(file, b->data, 1, FS_FILE_BUFFER);
+
+			if (b->len == -1) {
+				Com_Error(ERR_DROP, "%s: %s\n", filename, Fs_LastError());
 			}
 
-			fseek(*file, e->file_ofs, SEEK_SET);
+			list = g_list_append(list, b);
+			len += b->len;
+		}
 
-			fs_last_pak = strrchr(pak->file_name, '/') + 1;
-			return e->file_len;
+		if (buffer) {
+			if (len > 0) {
+				byte *buf = *buffer = Z_Malloc(len + 1);
+
+				GList *e = list;
+				while (e) {
+					fs_block_t *b = (fs_block_t *) e->data;
+
+					memcpy(buf, b->data, b->len);
+					buf += (ptrdiff_t) b->len;
+
+					e = e->next;
+				}
+
+#ifdef FS_LOAD_DEBUG
+				g_hash_table_insert(fs_state.loaded_files, *buffer, (gpointer) Z_CopyString(filename));
+#endif
+			} else {
+				*buffer = NULL;
+			}
+		}
+
+		g_list_free_full(list, Z_Free);
+		Fs_Close(file);
+	} else {
+		len = -1;
+
+		if (buffer) {
+			*buffer = NULL;
 		}
 	}
-
-	if (MixedCase(file_name)) { // try lowercase version
-		char lower[MAX_QPATH];
-		strncpy(lower, file_name, sizeof(lower) - 1);
-		return Fs_OpenFile(Lowercase(lower), file, mode);
-	}
-
-	//Com_Debug("Fs_OpenFile: can't find %s.\n", file_name);
-
-	*file = NULL;
-	return -1;
-}
-
-/*
- * @brief Properly handles partial reads.
- */
-void Fs_ReadFile(void *buffer, int32_t len, FILE *f) {
-	int32_t read;
-
-	read = Fs_Read(buffer, 1, len, f);
-
-	if (read != len) { // read failed, exit
-		Com_Error(ERR_DROP, "Fs_ReadFile: %d bytes read.\n", read);
-	}
-}
-
-/*
- * @brief Filename are relative to the quake search path. A NULL buffer will just
- * return the file length without loading.
- */
-int32_t Fs_LoadFile(const char *path, void **buffer) {
-	FILE *h;
-	byte *buf;
-	int32_t len;
-
-	buf = NULL; // quiet compiler warning
-
-	// look for it in the filesystem or pak files
-	len = Fs_OpenFile(path, &h, FILE_READ);
-	if (!h) {
-		if (buffer)
-			*buffer = NULL;
-		return -1;
-	}
-
-	if (!buffer) {
-		Fs_CloseFile(h);
-		return len;
-	}
-
-	// allocate, and string-terminate it in case it's text
-	buf = Z_Malloc(len + 1);
-	buf[len] = 0;
-
-	*buffer = buf;
-
-	Fs_ReadFile(buf, len, h);
-
-	Fs_CloseFile(h);
 
 	return len;
 }
 
 /*
- * @brief
+ * @brief Frees the specified buffer allocated by Fs_LoadFile.
  */
-void Fs_FreeFile(void *buffer) {
-	Z_Free(buffer);
-}
+void Fs_Free(void *buffer) {
 
-/*
- * @brief
- */
-void Fs_AddPakfile(const char *pakfile) {
-	pak_t *pak;
-	int32_t i;
-
-	if (!(pak = Pak_ReadPakfile(pakfile)))
-		return;
-
-	for (i = 0; i < pak->num_entries; i++) // hash the entries to the pak
-		Hash_Put(&fs_hash_table, pak->entries[i].name, pak);
-
-	Com_Print("Added %s: %i files.\n", pakfile, pak->num_entries);
-}
-
-/*
- * @brief Adds the directory to the head of the path, and loads all paks within it.
- */
-static void Fs_AddSearchPath(const char *dir) {
-	search_path_t *search;
-	const char *p;
-
-	// don't add the same search path twice
-	search = fs_search_paths;
-	while (search) {
-		if (!strcmp(search->path, dir))
-			return;
-		search = search->next;
+	if (buffer) {
+#ifdef FS_LOAD_DEBUG
+		if (!g_hash_table_remove(fs_state.loaded_files, buffer)) {
+			Com_Warn("Invalid buffer\n");
+		}
+#endif
+		Z_Free(buffer);
 	}
+}
+
+/*
+ * @brief Renames the specified source to the given destination.
+ */
+bool Fs_Rename(const char *source, const char *dest) {
+	const char *dir = Fs_WriteDir();
+
+	return rename(va("%s/%s", dir, source), va("%s/%s", dir, dest)) == 0;
+}
+
+/*
+ * @brief Unlinks (deletes) the specified file.
+ */
+bool Fs_Unlink(const char *filename) {
+
+	if (!strcmp(Fs_WriteDir(), Fs_RealDir(filename))) {
+		return unlink(filename) == 0;
+	}
+
+	return false;
+}
+
+typedef struct {
+	char pattern[MAX_QPATH];
+	fs_enumerate_func function;
+	char dir[MAX_QPATH];
+} fs_enumerate_t;
+
+static fs_enumerate_t fs_enumerate;
+
+/*
+ * @brief Enumeration helper for Fs_Enumerate.
+ */
+static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
+	char path[MAX_QPATH];
+
+	g_snprintf(path, sizeof(path), "%s%s", dir, filename);
+
+	if (GlobMatch(fs_enumerate.pattern, path)) {
+		fs_enumerate.function(path, data);
+	}
+}
+
+/*
+ * @brief Enumerates files in the specified directory, calling the given function.
+ */
+void Fs_Enumerate(const char *pattern, fs_enumerate_func func, void *data) {
+
+	g_strlcpy(fs_enumerate.pattern, pattern, sizeof(fs_enumerate.pattern));
+
+	fs_enumerate.function = func;
+
+	if (strchr(pattern, '/')) {
+		Dirname(pattern, fs_enumerate.dir);
+	} else {
+		g_strlcpy(fs_enumerate.dir, "/", sizeof(fs_enumerate.dir));
+	}
+
+	PHYSFS_enumerateFilesCallback(fs_enumerate.dir, Fs_Enumerate_, data);
+}
+
+/*
+ * @brief GHFunc for Fs_CompleteFile.
+ */
+static void Fs_CompleteFile_enumerate(const char *path, void *data) {
+	GList **matches = (GList **) data;
+	char match[MAX_OSPATH];
+
+	StripExtension(Basename(path), match);
+
+	if (!g_list_find_custom(*matches, match, (GCompareFunc) strcmp)) {
+		*matches = g_list_insert_sorted(*matches, Z_CopyString(match), (GCompareFunc) strcasecmp);
+	}
+}
+
+/*
+ * @brief Console completion for file names.
+ */
+void Fs_CompleteFile(const char *pattern, GList **matches) {
+
+	Fs_Enumerate(pattern, Fs_CompleteFile_enumerate, (void *) matches);
+
+	GList *m = *matches;
+	while (m) {
+		Com_Print("%s\n", (char *) m->data);
+		m = m->next;
+	}
+}
+
+static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
+
+/*
+ * @brief Adds the directory to the search path, loading all archives within it.
+ */
+void Fs_AddToSearchPath(const char *dir) {
 
 	Com_Print("Adding path %s..\n", dir);
 
-	// add the base directory to the search path
-	search = Z_Malloc(sizeof(search_path_t));
-	strncpy(search->path, dir, sizeof(search->path) - 1);
-	search->path[sizeof(search->path) - 1] = 0;
-
-	search->next = fs_search_paths;
-	fs_search_paths = search;
-
-	p = Sys_FindFirst(va("%s/*.pak", dir));
-	while (p) {
-		Fs_AddPakfile(p);
-		p = Sys_FindNext();
+	if (PHYSFS_mount(dir, NULL, 1) == 0) {
+		Com_Warn("%s: %s\n", dir, PHYSFS_getLastError());
+		return;
 	}
 
-	Sys_FindClose();
+	//Fs_Enumerate("*.pak", Fs_AddToSearchPath_enumerate, (void *) dir);
+	Fs_Enumerate("*.zip", Fs_AddToSearchPath_enumerate, (void *) dir);
 }
 
 /*
- * @brief
+ * @brief Enumeration helper for Fs_AddToSearchPath. Adds all archive files for
+ * the newly added filesystem mount point.
  */
-static char *Fs_Homedir(void) {
-	static char homedir[MAX_OSPATH];
-#ifdef _WIN32
-	void *handle;
-	FARPROC GetFolderPath;
+static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
+	const char *dir = (const char *) data;
 
-	memset(homedir, 0, sizeof(homedir));
-
-	if((handle = dlopen("shfolder.dll", 0))) {
-		if((GetFolderPath = dlsym(handle, "SHGetFolderPathA")))
-		GetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, homedir);
-		dlclose(handle);
+	if (!strcmp(Fs_RealDir(path), dir)) {
+		Fs_AddToSearchPath(va("%s%s", dir, path));
 	}
-
-	if(*homedir != '\0') // append our directory name
-	strcat(homedir, "/My Games/Quake2World");
-	else // or simply use ./
-	strcat(homedir, PKGDATADIR);
-#else
-	memset(homedir, 0, sizeof(homedir));
-
-	strncpy(homedir, getenv("HOME"), sizeof(homedir));
-	strcat(homedir, "/.quake2world");
-#endif
-	return homedir;
 }
 
 /*
- * @brief Adds the user-specific search path, setting fs_gamedir in the process. This
- * is where all files produced by the game are written to.
+ * @brief Adds the user-specific search path, setting the write dir in the
+ * process. This is where all files produced by the game are written to.
  */
 static void Fs_AddUserSearchPath(const char *dir) {
 	char gdir[MAX_OSPATH];
 
-	snprintf(gdir, sizeof(gdir), "%s/%s", Fs_Homedir(), dir);
+	g_snprintf(gdir, sizeof(gdir), "%s/%s", Sys_UserDir(), dir);
 
 	Com_Print("Using %s for writing.\n", gdir);
 
-	Fs_CreatePath(va("%s/", gdir));
+	Fs_Mkdir(gdir);
 
-	strncpy(fs_gamedir, gdir, sizeof(fs_gamedir) - 1);
-	fs_gamedir[sizeof(fs_gamedir) - 1] = 0;
-
-	Fs_AddSearchPath(gdir);
-}
-
-/*
- * @brief Called to find where to write a file (demos, screenshots, etc)
- */
-const char *Fs_Gamedir(void) {
-	return fs_gamedir;
-}
-
-/*
- * @brief
- */
-const char *Fs_FindFirst(const char *path, bool absolute) {
-	const char *n;
-	char name[MAX_OSPATH];
-	const search_path_t *s;
-
-	// search through all the paths for path
-	for (s = fs_search_paths; s != NULL; s = s->next) {
-
-		snprintf(name, sizeof(name), "%s/%s", s->path, path);
-		if ((n = Sys_FindFirst(name))) {
-			Sys_FindClose();
-			return absolute ? n : n + strlen(s->path) + 1;
-		}
-
-		Sys_FindClose();
-	}
-
-	return NULL;
-}
-
-/*
- * @brief Execs the local autoexec.cfg for the current gamedir. This is
- * a function call rather than simply stuffing "exec autoexec.cfg"
- * because we do not wish to use default/autoexec.cfg for all mods.
- */
-void Fs_ExecAutoexec(void) {
-	char name[MAX_QPATH];
-	search_path_t *s, *end;
-
-	// don't look in default if gamedir is set
-	if (fs_search_paths == fs_base_search_paths)
-		end = NULL;
-	else
-		end = fs_base_search_paths;
-
-	// search through all the paths for an autoexec.cfg file
-	for (s = fs_search_paths; s != end; s = s->next) {
-
-		snprintf(name, sizeof(name), "%s/autoexec.cfg", s->path);
-
-		if (Sys_FindFirst(name)) {
-			Cbuf_AddText("exec autoexec.cfg\n");
-			Sys_FindClose();
-			break;
-		}
-
-		Sys_FindClose();
-	}
-
-	Cbuf_Execute(); // execute it
+	Fs_AddToSearchPath(gdir);
+	PHYSFS_setWriteDir(gdir);
 }
 
 /*
  * @brief Sets the game path to a relative directory.
  */
 void Fs_SetGame(const char *dir) {
-	search_path_t *s;
-	hash_entry_t *e;
-	pak_t *pak;
-	int32_t i;
 
 	if (!dir || !*dir) {
-		dir = DEFAULT_GAME;
+		Com_Warn("Missing game name\n");
+		return;
 	}
 
 	if (strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\") || strstr(dir, ":")) {
-		Com_Warn("Fs_SetGame: Game should be a directory name, not a path.\n");
+		Com_Warn("Game should be a directory name, not a path (%s)\n", dir);
 		return;
 	}
 
-	// free up any current game dir info
-	while (fs_search_paths != fs_base_search_paths) {
-
-		// free paks not living in base search paths
-		for (i = 0; i < HASH_BINS; i++) {
-			e = fs_hash_table.bins[i];
-			while (e) {
-				pak = (pak_t*) e->value;
-
-				if (!strstr(pak->file_name, fs_search_paths->path))
-					continue;
-
-				Hash_RemoveEntry(&fs_hash_table, e);
-				Pak_FreePakfile(pak);
+	// iterate the current search path, removing those which are not base paths
+	char **paths = PHYSFS_getSearchPath();
+	char **path = paths;
+	while (*path != NULL) {
+		char **p = fs_state.base_search_paths;
+		while (*p != NULL) {
+			if (!strcmp(*path, *p)) {
+				break;
 			}
+			p++;
 		}
-		s = fs_search_paths->next;
-		Z_Free(fs_search_paths);
-		fs_search_paths = s;
+		if (!*p) {
+			Com_Debug("Removing %s\n", *path);
+			PHYSFS_removeFromSearchPath(*path);
+		}
+		path++;
 	}
 
-	// now add new entries for
-	if (!strcmp(dir, DEFAULT_GAME)) {
-		Cvar_FullSet("game", "", CVAR_LATCH | CVAR_SERVER_INFO);
-	} else {
-		Fs_AddSearchPath(va(PKGLIBDIR"/%s", dir));
-		Fs_AddSearchPath(va(PKGDATADIR"/%s", dir));
-		Fs_AddUserSearchPath(dir);
-	}
+	PHYSFS_freeList(paths);
+
+	// now add new entries for the new game
+	Fs_AddToSearchPath(va(PKGLIBDIR"/%s", dir));
+	Fs_AddToSearchPath(va(PKGDATADIR"/%s", dir));
+	Fs_AddUserSearchPath(dir);
 }
 
-#define GZIP_BUFFER (64 * 1024)
-
 /*
- * @brief Inflates the specified file in place, removing the .gz suffix from the path.
- * The original archive file is removed upon successful decompression.
+ * @brief Called to find where to write a file (demos, screenshots, etc)
  */
-void Fs_GunzipFile(const char *path) {
-	gzFile gz;
-	FILE *f;
-	char *c;
-	byte *buffer;
-	int32_t r, w;
-	char p[MAX_OSPATH];
-
-	if (!path || *path == '\0')
-		return;
-
-	strncpy(p, path, sizeof(p));
-
-	if (!(c = strstr(p, ".gz"))) {
-		Com_Warn("Fs_GunzipFile: %s lacks .gz suffix.\n", p);
-		return;
-	}
-
-	if (!(gz = gzopen(p, "rb"))) {
-		Com_Warn("Fs_GunzipFile: Failed to open %s.\n", p);
-		return;
-	}
-
-	*c = 0; // mute .gz extension
-
-	if (!(f = fopen(p, "wb"))) {
-		Com_Warn("Fs_GunzipFile: Failed to open %s.\n", p);
-		gzclose(gz);
-		return;
-	}
-
-	*c = 0;
-	buffer = (byte *) Z_Malloc(GZIP_BUFFER);
-
-	while (true) {
-		r = gzread(gz, buffer, GZIP_BUFFER);
-
-		if (r == 0) // end of file
-			break;
-
-		if (r == -1) { // error in gzip stream
-			Com_Warn("Fs_GunzipFile: Error in gzip stream %s.\n", path);
-			break;
-		}
-
-		w = Fs_Write(buffer, 1, r, f);
-
-		if (r != w) { // bad write
-			Com_Warn("Fs_GunzipFile: Incomplete write %s.\n", path);
-			break;
-		}
-	}
-
-	gzclose(gz);
-	Fs_CloseFile(f);
-
-	Z_Free(buffer);
-
-	unlink(path);
+const char *Fs_WriteDir(void) {
+	return PHYSFS_getWriteDir();
 }
 
 /*
- * @brief
+ * @brief Returns the real directory name of the specified file.
+ */
+const char *Fs_RealDir(const char *filename) {
+	return PHYSFS_getRealDir(filename);
+}
+
+/*
+ * @brief Initializes the file subsystem.
  */
 void Fs_Init(void) {
-	char dir[MAX_OSPATH];
 
-	fs_search_paths = NULL;
+	memset(&fs_state, 0, sizeof(fs_state_t));
 
-	Hash_Init(&fs_hash_table);
-
-	// allow the game to run from outside the data tree
-	fs_base = Cvar_Get("fs_base", "", CVAR_NO_SET, NULL);
-
-	if (strlen(fs_base->string)) { // something was specified
-		snprintf(dir, sizeof(dir), "%s/%s", fs_base->string, DEFAULT_GAME);
-		Fs_AddSearchPath(dir);
+	if (PHYSFS_init(Com_Argv(0)) == 0) {
+		Com_Error(ERR_FATAL, "%s\n", PHYSFS_getLastError());
 	}
 
+#if (__APPLE__ || __LINUX__)
+	const char *path = Sys_ExecutablePath();
+	if (path) {
+		char *c;
+
+		Com_Debug("Resolved executable path: %s\n", path);
 #ifdef __APPLE__
-	// add Contents/MacOS and Contents/Resources to the search path
-	char path[MAX_OSPATH], *c;
-	uint32_t i = sizeof(path);
-
-	if (_NSGetExecutablePath(path, &i) > -1) {
-
 		if ((c = strstr(path, "Quake2World.app"))) {
 			strcpy(c + strlen("Quake2World.app/Contents/"), "MacOS/"DEFAULT_GAME);
-			Fs_AddSearchPath(path);
+			Fs_AddToSearchPath(path);
 
 			strcpy(c + strlen("Quake2World.app/Contents/"), "Resources/"DEFAULT_GAME);
-			Fs_AddSearchPath(path);
+			Fs_AddToSearchPath(path);
 		}
-	}
-	else {
-		Com_Warn("Fs_Init: Failed to resolve executable path\n");
-	}
 #elif __LINUX__
-	// add ./lib/default and ./share/default to the search path
-	char path[MAX_OSPATH], *c;
-
-	memset(path, 0, sizeof(path));
-
-	if (readlink(va("/proc/%d/exe", getpid()), path, sizeof(path)) > -1) {
-
-		Com_Debug("Fs_Init: Resolved executable path %s\n", path);
-
 		if ((c = strstr(path, "quake2world/bin"))) {
 			strcpy(c + strlen("quake2world/"), "lib/"DEFAULT_GAME);
-			Fs_AddSearchPath(path);
+			Fs_AddToSearchPath(path);
 
 			strcpy(c + strlen("quake2world/"), "share/"DEFAULT_GAME);
-			Fs_AddSearchPath(path);
+			Fs_AddToSearchPath(path);
 		}
-	}
-	else {
-		Com_Warn("Fs_Init: Failed to read /proc/%d/exe\n", getpid());
+#endif
 	}
 #endif
 
 	// add default to search path
-	Fs_AddSearchPath(PKGLIBDIR"/"DEFAULT_GAME);
-	Fs_AddSearchPath(PKGDATADIR"/"DEFAULT_GAME);
+	Fs_AddToSearchPath(PKGLIBDIR"/"DEFAULT_GAME);
+	Fs_AddToSearchPath(PKGDATADIR"/"DEFAULT_GAME);
 
 	// then add a '.quake2world/default' directory in home directory
 	Fs_AddUserSearchPath(DEFAULT_GAME);
 
-	// any set game paths will be freed up to here
-	fs_base_search_paths = fs_search_paths;
+	// these paths will be retained across all game modules
+	fs_state.base_search_paths = PHYSFS_getSearchPath();
 
-	// check for game override
-	fs_game = Cvar_Get("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, NULL);
-
-	if (strcmp(fs_game->string, DEFAULT_GAME))
-		Fs_SetGame(fs_game->string);
+#ifdef FS_LOAD_DEBUG
+	fs_state.loaded_files = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, Z_Free);
+#endif
 }
 
+#ifdef FS_LOAD_DEBUG
 /*
- * @brief Wraps strcmp so it can be used to sort strings in qsort.
+ * @brief Prints the names of loaded (i.e. yet-to-be-freed) files.
  */
-static int32_t strcmp_(const void *a, const void *b) {
-	return strcmp(*(char **) a, *(char **) b);
+static void Fs_LoadedFiles_(gpointer key, gpointer value, gpointer data __attribute__((unused))) {
+	Com_Print("Fs_PrintLoadedFiles: %s @ %p\n", (char *)value, key);
 }
+#endif
 
 /*
- * @brief
+ * @brief Shuts down the filesystem.
  */
-int32_t Fs_CompleteFile(const char *dir, const char *prefix, const char *suffix, const char *matches[]) {
-	static char file_list[MAX_QPATH * 256];
-	char *fl = file_list;
-	const char *n;
-	char name[MAX_OSPATH];
-	const search_path_t *s;
-	const hash_entry_t *h;
-	int32_t i = 0;
-	int32_t m = 0;
+void Fs_Shutdown(void) {
 
-	// search through paths for matches
-	for (s = fs_search_paths; s != NULL; s = s->next) {
-		snprintf(name, sizeof(name), "%s/%s%s*%s", s->path, dir, prefix, suffix);
+#ifdef FS_LOAD_DEBUG
+	g_hash_table_foreach(fs_state.loaded_files, Fs_LoadedFiles_, NULL);
+	g_hash_table_destroy(fs_state.loaded_files);
+#endif
 
-		if ((n = Sys_FindFirst(name)) == NULL) {
-			Sys_FindClose();
-			continue;
-		}
-		do {
-			// copy file_name to local buffer
-			strcpy(fl, n + strlen(s->path) + 1 + strlen(dir));
-			matches[m] = fl;
-			m++;
-			fl = fl + strlen(fl) + 1;
-		} while ((n = Sys_FindNext()) != NULL);
+	PHYSFS_freeList(fs_state.base_search_paths);
 
-		Sys_FindClose();
-	}
-
-	// search through paks for matches
-	snprintf(name, sizeof(name), "%s%s*%s", dir, prefix, suffix);
-	for (i = 0; i < HASH_BINS; i++) {
-		h = fs_hash_table.bins[i];
-		while (h != NULL) {
-			if (GlobMatch(name, h->key) && !(dir == NULL && strchr(h->key, '/'))) {
-				// omit configs not in the root gamedir
-				matches[m] = h->key + strlen(dir);
-				m++;
-			}
-			h = h->next;
-		}
-	}
-
-	// sort in alphabetical order
-	qsort(matches, m, sizeof(matches[0]), strcmp_);
-
-	// print32_t out list of matches (minus duplicates)
-	for (i = 0; i < m; i++) {
-		if (i == 0 || strcmp(matches[i], matches[i - 1])) {
-			strcpy(name, matches[i]);
-			if (strstr(name, suffix) != NULL)
-				*strstr(name, suffix) = 0; // lop off file extension
-			Com_Print("%s\n", name);
-		}
-	}
-
-	return m;
+	PHYSFS_deinit();
 }

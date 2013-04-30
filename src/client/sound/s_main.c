@@ -25,6 +25,7 @@
 // the sound environment
 s_env_t s_env;
 
+cvar_t *s_music_volume;
 cvar_t *s_reverse;
 cvar_t *s_rate;
 cvar_t *s_volume;
@@ -43,7 +44,8 @@ static void S_Stop(void) {
 }
 
 /*
- * @brief
+ * @brief Adds a single frame of audio. Also, if a loading cycle has completed,
+ * media is freed here.
  */
 void S_Frame(void) {
 	s_channel_t *ch;
@@ -60,6 +62,13 @@ void S_Frame(void) {
 		return;
 	}
 
+	if (!cls.loading) {
+		if (s_env.update) {
+			s_env.update = false;
+			S_FreeMedia();
+		}
+	}
+
 	if (s_reverse->modified) { // update reverse stereo
 		Mix_SetReverseStereo(MIX_CHANNEL_POST, s_reverse->integer);
 		s_reverse->modified = false;
@@ -73,10 +82,14 @@ void S_Frame(void) {
 		if (!ch->sample)
 			continue;
 
+		if (S_SpatializeChannel(ch)) {
+			Mix_SetPosition(i, ch->angle, ch->dist);
+		} else {
+			Mix_FadeOutChannel(i, 250);
+		}
+
 		// reset channel's count for loop samples
 		ch->count = 0;
-
-		S_SpatializeChannel(ch);
 	}
 
 	// add new dynamic sounds
@@ -97,25 +110,57 @@ void S_Frame(void) {
 			S_PlaySample(NULL, ent->number, cl.sound_precache[ent->sound], ATTN_NORM);
 	}
 
-	if (r_view.contents & MASK_WATER) // add under water sample
+	if (r_view.contents & MASK_WATER) { // add under water sample
 		S_LoopSample(r_view.origin, S_LoadSample("world/under_water"));
+	}
 
-	// reset the update flag
-	s_env.update = false;
+	// update active channel count
+
+	ch = s_env.channels;
+	s_env.num_active_channels = 0;
+
+	for (i = 0; i < MAX_CHANNELS; i++, ch++) {
+		if (ch->sample)
+			s_env.num_active_channels++;
+	}
 }
 
 /*
- * @brief
+ * @brief Loads all media for the sound subsystem.
  */
 void S_LoadMedia(void) {
+	extern cl_client_t cl;
+	uint32_t i;
+
+	if (!cl.config_strings[CS_MODELS][0]) {
+		return; // no map specified
+	}
+
+	S_FlushPlaylist();
+
+	S_BeginLoading();
 
 	Cl_LoadProgress(80);
 
-	S_LoadSamples();
+	for (i = 0; i < MAX_SOUNDS; i++) {
+
+		if (!cl.config_strings[CS_SOUNDS + i][0])
+			break;
+
+		cl.sound_precache[i] = S_LoadSample(cl.config_strings[CS_SOUNDS + i]);
+	}
+
+	for (i = 0; i < MAX_MUSICS; i++) {
+
+		if (!cl.config_strings[CS_MUSICS + i][0])
+			break;
+
+		cl.music_precache[i] = S_LoadMusic(cl.config_strings[CS_MUSICS + i]);
+	}
+
+	S_NextTrack_f();
 
 	Cl_LoadProgress(85);
-
-	S_LoadMusics();
 
 	s_env.update = true;
 }
@@ -143,24 +188,10 @@ static void S_Stop_f(void) {
 /*
  * @brief
  */
-static void S_List_f(void) {
-	s_sample_t *sample;
-	int32_t i;
-
-	sample = s_env.samples;
-	for (i = 0; i < s_env.num_samples; i++, sample++) {
-
-		if (!sample->name[0])
-			continue;
-
-		Com_Print("  %s\n", sample->name);
-	}
-}
-
-/*
- * @brief
- */
 static void S_Restart_f(void) {
+
+	if (cls.loading)
+		return;
 
 	S_Shutdown();
 
@@ -174,7 +205,24 @@ static void S_Restart_f(void) {
 }
 
 /*
- * @brief
+ * @brief Initializes variables and commands for the sound subsystem.
+ */
+static void S_InitLocal(void) {
+
+	s_music_volume = Cvar_Get("s_music_volume", "0.25", CVAR_ARCHIVE, "Music volume level.");
+	s_rate = Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
+	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
+	s_volume = Cvar_Get("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
+
+	Cmd_AddCommand("s_list_media", S_ListMedia_f, 0, "List all currently loaded media");
+	Cmd_AddCommand("s_next_track", S_NextTrack_f, 0, "Play the next music track.");
+	Cmd_AddCommand("s_play", S_Play_f, 0, NULL);
+	Cmd_AddCommand("s_restart", S_Restart_f, 0, "Restart the sound subsystem");
+	Cmd_AddCommand("s_stop", S_Stop_f, 0, NULL);
+}
+
+/*
+ * @brief Initializes the sound subsystem.
  */
 void S_Init(void) {
 	int32_t freq, channels;
@@ -183,49 +231,43 @@ void S_Init(void) {
 	memset(&s_env, 0, sizeof(s_env));
 
 	if (Cvar_GetValue("s_disable")) {
-		Com_Warn("Sound disabled.\n");
+		Com_Warn("Sound disabled\n");
 		return;
 	}
 
 	Com_Print("Sound initialization...\n");
 
-	s_rate = Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE,
-			"Sound sampling rate in Hz.");
-	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
-	s_volume = Cvar_Get("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
-
-	Cmd_AddCommand("s_restart", S_Restart_f, 0, "Restart the sound subsystem");
-	Cmd_AddCommand("s_play", S_Play_f, 0, NULL);
-	Cmd_AddCommand("s_stop", S_Stop_f, 0, NULL);
-	Cmd_AddCommand("s_list", S_List_f, 0, NULL);
+	S_InitLocal();
 
 	if (SDL_WasInit(SDL_INIT_AUDIO) == 0) {
 		if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
-			Com_Warn("S_Init: %s.\n", SDL_GetError());
+			Com_Warn("%s\n", SDL_GetError());
 			return;
 		}
 	}
 
 	if (Mix_OpenAudio(s_rate->integer, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
-		Com_Warn("S_Init: %s\n", Mix_GetError());
+		Com_Warn("%s\n", Mix_GetError());
 		return;
 	}
 
 	if (Mix_QuerySpec(&freq, &format, &channels) == 0) {
-		Com_Warn("S_Init: %s\n", Mix_GetError());
+		Com_Warn("%s\n", Mix_GetError());
 		return;
 	}
 
 	if (Mix_AllocateChannels(MAX_CHANNELS) != MAX_CHANNELS) {
-		Com_Warn("S_Init: %s\n", Mix_GetError());
+		Com_Warn("%s\n", Mix_GetError());
 		return;
 	}
 
 	Mix_ChannelFinished(S_FreeChannel);
 
-	Com_Print("Sound initialized %dKHz %d channels.\n", freq, channels);
+	Com_Print("Sound initialized %dKHz %d channels\n", freq, channels);
 
 	s_env.initialized = true;
+
+	S_InitMedia();
 
 	S_InitMusic();
 }
@@ -235,13 +277,13 @@ void S_Init(void) {
  */
 void S_Shutdown(void) {
 
-	S_ShutdownMusic();
-
 	S_Stop();
 
 	Mix_AllocateChannels(0);
 
-	S_FreeSamples();
+	S_ShutdownMusic();
+
+	S_ShutdownMedia();
 
 	Mix_CloseAudio();
 
@@ -256,4 +298,6 @@ void S_Shutdown(void) {
 	Cmd_RemoveCommand("s_restart");
 
 	s_env.initialized = false;
+
+	Z_FreeTag(Z_TAG_SOUND);
 }

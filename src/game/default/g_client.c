@@ -36,18 +36,10 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 
 	killer = attacker->client ? attacker->client : self->client;
 
-	if (!g_level.warmup && frag_log != NULL) { // write frag_log
-
-		fprintf(frag_log, "\\%s\\%s\\\n", killer->persistent.net_name,
-				self->client->persistent.net_name);
-
-		fflush(frag_log);
-	}
-
 #ifdef HAVE_MYSQL
 	if(!g_level.warmup && mysql != NULL) { // insert to db
 
-		snprintf(sql, sizeof(sql), "insert into frag values(null, now(), '%s', '%s', '%s', %d)",
+		g_snprintf(sql, sizeof(sql), "insert into frag values(null, now(), '%s', '%s', '%s', %d)",
 				g_level.name, killer->persistent.sql_name, self->client->persistent.sql_name, mod
 		);
 
@@ -57,46 +49,46 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 #endif
 
 	switch (mod) {
-	case MOD_SUICIDE:
-		message = "gave up";
-		break;
-	case MOD_FALLING:
-		message = "challenged gravity";
-		break;
-	case MOD_CRUSH:
-		message = "was squished";
-		break;
-	case MOD_WATER:
-		message = "sank like a rock";
-		break;
-	case MOD_SLIME:
-		message = "melted";
-		break;
-	case MOD_LAVA:
-		message = "did a back flip into the lava";
-		break;
-	case MOD_TRIGGER_HURT:
-		message = "was in the wrong place";
-		break;
+		case MOD_SUICIDE:
+			message = "gave up";
+			break;
+		case MOD_FALLING:
+			message = "challenged gravity";
+			break;
+		case MOD_CRUSH:
+			message = "was squished";
+			break;
+		case MOD_WATER:
+			message = "sank like a rock";
+			break;
+		case MOD_SLIME:
+			message = "melted";
+			break;
+		case MOD_LAVA:
+			message = "did a back flip into the lava";
+			break;
+		case MOD_TRIGGER_HURT:
+			message = "was in the wrong place";
+			break;
 	}
 
 	if (attacker == self) {
 		switch (mod) {
-		case MOD_GRENADE_SPLASH:
-			message = "went pop";
-			break;
-		case MOD_ROCKET_SPLASH:
-			message = "needs glasses";
-			break;
-		case MOD_LIGHTNING_DISCHARGE:
-			message = "took a toaster bath";
-			break;
-		case MOD_BFG_BLAST:
-			message = "should have used a smaller gun";
-			break;
-		default:
-			message = "sucks at life";
-			break;
+			case MOD_GRENADE_SPLASH:
+				message = "went pop";
+				break;
+			case MOD_ROCKET_SPLASH:
+				message = "needs glasses";
+				break;
+			case MOD_LIGHTNING_DISCHARGE:
+				message = "took a toaster bath";
+				break;
+			case MOD_BFG_BLAST:
+				message = "should have used a smaller gun";
+				break;
+			default:
+				message = "sucks at life";
+				break;
 		}
 	}
 
@@ -116,65 +108,65 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 
 	if (attacker && attacker->client) {
 		switch (mod) {
-		case MOD_BLASTER:
-			message = "was humilated by";
-			message2 = "'s blaster";
-			break;
-		case MOD_SHOTGUN:
-			message = "was gunned down by";
-			message2 = "'s shotgun";
-			break;
-		case MOD_SUPER_SHOTGUN:
-			message = "was blown away by";
-			message2 = "'s super shotgun";
-			break;
-		case MOD_MACHINEGUN:
-			message = "was perforated by";
-			message2 = "'s machinegun";
-			break;
-		case MOD_GRENADE:
-			message = "was popped by";
-			message2 = "'s grenade";
-			break;
-		case MOD_GRENADE_SPLASH:
-			message = "was shredded by";
-			message2 = "'s shrapnel";
-			break;
-		case MOD_ROCKET:
-			message = "ate";
-			message2 = "'s rocket";
-			break;
-		case MOD_ROCKET_SPLASH:
-			message = "almost dodged";
-			message2 = "'s rocket";
-			break;
-		case MOD_HYPERBLASTER:
-			message = "was melted by";
-			message2 = "'s hyperblaster";
-			break;
-		case MOD_LIGHTNING:
-			message = "was tased by";
-			message2 = "'s lightning";
-			break;
-		case MOD_LIGHTNING_DISCHARGE:
-			message = "was electrocuted by";
-			message2 = "'s discharge";
-			break;
-		case MOD_RAILGUN:
-			message = "was railed by";
-			break;
-		case MOD_BFG_LASER:
-			message = "saw the pretty lights from";
-			message2 = "'s BFG";
-			break;
-		case MOD_BFG_BLAST:
-			message = "was disintegrated by";
-			message2 = "'s BFG blast";
-			break;
-		case MOD_TELEFRAG:
-			message = "tried to invade";
-			message2 = "'s personal space";
-			break;
+			case MOD_BLASTER:
+				message = "was humilated by";
+				message2 = "'s blaster";
+				break;
+			case MOD_SHOTGUN:
+				message = "was gunned down by";
+				message2 = "'s shotgun";
+				break;
+			case MOD_SUPER_SHOTGUN:
+				message = "was blown away by";
+				message2 = "'s super shotgun";
+				break;
+			case MOD_MACHINEGUN:
+				message = "was perforated by";
+				message2 = "'s machinegun";
+				break;
+			case MOD_GRENADE:
+				message = "was popped by";
+				message2 = "'s grenade";
+				break;
+			case MOD_GRENADE_SPLASH:
+				message = "was shredded by";
+				message2 = "'s shrapnel";
+				break;
+			case MOD_ROCKET:
+				message = "ate";
+				message2 = "'s rocket";
+				break;
+			case MOD_ROCKET_SPLASH:
+				message = "almost dodged";
+				message2 = "'s rocket";
+				break;
+			case MOD_HYPERBLASTER:
+				message = "was melted by";
+				message2 = "'s hyperblaster";
+				break;
+			case MOD_LIGHTNING:
+				message = "was tased by";
+				message2 = "'s lightning";
+				break;
+			case MOD_LIGHTNING_DISCHARGE:
+				message = "was electrocuted by";
+				message2 = "'s discharge";
+				break;
+			case MOD_RAILGUN:
+				message = "was railed by";
+				break;
+			case MOD_BFG_LASER:
+				message = "saw the pretty lights from";
+				message2 = "'s BFG";
+				break;
+			case MOD_BFG_BLAST:
+				message = "was disintegrated by";
+				message2 = "'s BFG blast";
+				break;
+			case MOD_TELEFRAG:
+				message = "tried to invade";
+				message2 = "'s personal space";
+				break;
 		}
 
 		if (message) {
@@ -329,8 +321,6 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
  * the specified quantity.
  */
 static void G_Give(g_client_t *client, char *it, int16_t quantity) {
-	g_item_t *item;
-	int32_t index;
 
 	if (!strcasecmp(it, "Health")) {
 		client->persistent.health = quantity;
@@ -342,24 +332,24 @@ static void G_Give(g_client_t *client, char *it, int16_t quantity) {
 		return;
 	}
 
-	item = G_FindItem(it);
+	const g_item_t *item = G_FindItem(it);
 
 	if (!item)
 		return;
 
-	index = ITEM_INDEX(item);
+	const uint16_t index = ITEM_INDEX(item);
 
 	if (item->type == ITEM_WEAPON) { // weapons receive quantity as ammo
 		client->persistent.inventory[index] = 1;
 
 		if (item->ammo) {
-			item = G_FindItem(item->ammo);
-			index = ITEM_INDEX(item);
+			const g_item_t *ammo = G_FindItem(item->ammo);
+			const uint16_t ammo_index = ITEM_INDEX(ammo);
 
 			if (quantity > -1)
-				client->persistent.inventory[index] = quantity;
+				client->persistent.inventory[ammo_index] = quantity;
 			else
-				client->persistent.inventory[index] = item->quantity;
+				client->persistent.inventory[ammo_index] = ammo->quantity;
 		}
 	} else { // while other items receive quantity directly
 		if (quantity > -1)
@@ -379,7 +369,7 @@ static bool G_GiveLevelLocals(g_client_t *client) {
 	if (*g_level.give == '\0')
 		return false;
 
-	strncpy(buf, g_level.give, sizeof(buf));
+	g_strlcpy(buf, g_level.give, sizeof(buf));
 
 	it = strtok(buf, ",");
 
@@ -396,7 +386,7 @@ static bool G_GiveLevelLocals(g_client_t *client) {
 				quantity = atoi(q + 1);
 
 				if (quantity > -1) // valid quantity
-					*q = 0;
+					*q = '\0';
 			} else
 				quantity = -1;
 
@@ -413,7 +403,7 @@ static bool G_GiveLevelLocals(g_client_t *client) {
  * @brief
  */
 static void G_InitClientPersistent(g_client_t *client) {
-	g_item_t *item;
+	const g_item_t *item;
 	int32_t i;
 
 	// clear inventory
@@ -618,7 +608,7 @@ static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles) {
 
 		if (!spot) { // last resort, find any
 			if ((spot = G_Find(spot, FOFS(class_name), "info_player_start")) == NULL)
-				gi.Error("P_SelectSpawnPoint: Couldn't find spawn point.");
+				gi.Error("Couldn't find spawn point\n");
 		}
 	}
 
@@ -817,11 +807,11 @@ void G_ClientBegin(g_edict_t *ent) {
 	} else {
 		memset(welcome, 0, sizeof(welcome));
 
-		snprintf(welcome, sizeof(welcome) - 1, "^2Welcome to ^7%s", sv_hostname->string);
+		g_snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
 
 		if (*g_motd->string) {
 			char motd[MAX_QPATH];
-			snprintf(motd, sizeof(motd) - 1, "\n%s^7", g_motd->string);
+			g_snprintf(motd, sizeof(motd), "\n%s^7", g_motd->string);
 
 			strncat(welcome, motd, sizeof(welcome) - strlen(welcome) - 1);
 		}
@@ -868,8 +858,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	// set name, use a temp buffer to compute length and crutch up bad names
 	s = GetUserInfo(user_info, "name");
 
-	strncpy(name, s, sizeof(name) - 1);
-	name[sizeof(name) - 1] = 0;
+	g_strlcpy(name, s, sizeof(name));
 
 	color = false;
 	c = name;
@@ -890,7 +879,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 		c++;
 		i++;
 	}
-	name[c - name] = 0;
+	name[c - name] = '\0';
 
 	if (!i) // name had nothing printable
 		strcpy(name, "newbie");
@@ -904,8 +893,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 			gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->persistent.net_name,
 					name);
 
-		strncpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name) - 1);
-		cl->persistent.net_name[sizeof(cl->persistent.net_name) - 1] = 0;
+		g_strlcpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name));
 	}
 
 #ifdef HAVE_MYSQL
@@ -925,15 +913,14 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 		s = GetUserInfo(user_info, "skin");
 
 	if (*s != '\0') // something valid-ish was provided
-		strncpy(cl->persistent.skin, s, sizeof(cl->persistent.skin) - 1);
+		g_strlcpy(cl->persistent.skin, s, sizeof(cl->persistent.skin));
 	else {
-		strcpy(cl->persistent.skin, "qforcer/enforcer");
-		cl->persistent.skin[sizeof(cl->persistent.skin) - 1] = 0;
+		g_strlcpy(cl->persistent.skin, "qforcer/enforcer", sizeof(cl->persistent.skin));
 	}
 
 	// set color
 	s = GetUserInfo(user_info, "color");
-	cl->persistent.color = ColorByName(s, DEFAULT_WEAPON_EFFECT_COLOR);
+	cl->persistent.color = ColorByName(s, EFFECT_COLOR_DEFAULT);
 
 	player_num = ent - g_game.edicts - 1;
 
@@ -942,7 +929,8 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 			va("%s\\%s", cl->persistent.net_name, cl->persistent.skin));
 
 	// save off the user_info in case we want to check something later
-	strncpy(ent->client->persistent.user_info, user_info, sizeof(ent->client->persistent.user_info) - 1);
+	g_strlcpy(ent->client->persistent.user_info, user_info,
+			sizeof(ent->client->persistent.user_info));
 
 	s = GetUserInfo(user_info, "active");
 	if (strcmp(s, "0") == 0)
@@ -1220,12 +1208,12 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
  */
 static void G_ClientInventoryThink(g_edict_t *ent) {
 
-	if (ent->client->persistent.inventory[quad_damage_index]) { // if they have quad
+	if (ent->client->persistent.inventory[g_level.media.quad_damage]) { // if they have quad
 
 		if (ent->client->quad_damage_time < g_level.time) { // expire it
 
 			ent->client->quad_damage_time = 0.0;
-			ent->client->persistent.inventory[quad_damage_index] = 0;
+			ent->client->persistent.inventory[g_level.media.quad_damage] = 0;
 
 			gi.Sound(ent, gi.SoundIndex("quad/expire"), ATTN_NORM);
 
@@ -1294,7 +1282,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 				G_ClientChaseTarget(ent);
 			}
 		} else if (client->weapon_think_time < g_level.time) {
-			G_WeaponThink(ent);
+			G_ClientWeaponThink(ent);
 		}
 	}
 
@@ -1328,7 +1316,7 @@ void G_ClientBeginFrame(g_edict_t *ent) {
 
 	// run weapon think if it hasn't been done by a command
 	if (client->weapon_think_time < g_level.time && !client->persistent.spectator)
-		G_WeaponThink(ent);
+		G_ClientWeaponThink(ent);
 
 	if (ent->dead) { // check for respawn conditions
 

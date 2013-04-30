@@ -198,7 +198,7 @@ static int32_t Pm_StepSlideMove_(void) {
  * @brief
  */
 static void Pm_StepSlideMove(void) {
-	vec3_t org, vel, clipped_org, clipped_vel;
+	vec3_t org, vel, clipped_org;
 	vec3_t up, down;
 	c_trace_t trace;
 
@@ -241,7 +241,6 @@ static void Pm_StepSlideMove(void) {
 
 	// save the clipped results in case stepping fails
 	VectorCopy(pml.origin, clipped_org);
-	VectorCopy(pml.velocity, clipped_vel);
 
 	// see if the upward position is available
 	VectorCopy(org, up);
@@ -1039,7 +1038,7 @@ static void Pm_SnapPosition(void) {
 	}
 
 	// go back to the last position
-	Com_Debug("Pm_SnapPosition: Failed to snap to good position.\n");
+	Com_Debug("Pm_SnapPosition: Failed to snap to good position: %s.\n", vtos(pml.origin));
 	VectorCopy(pml.previous_origin, pm->s.origin);
 }
 

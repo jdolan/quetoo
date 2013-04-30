@@ -22,10 +22,9 @@
 #ifndef __THREADS_H__
 #define __THREADS_H__
 
-#include <unistd.h>
 #include <SDL/SDL_thread.h>
 
-#include "cvar.h"
+#include "mem.h"
 
 typedef enum thread_status_e {
 	THREAD_IDLE,
@@ -33,19 +32,21 @@ typedef enum thread_status_e {
 	THREAD_WAIT
 } thread_status_t;
 
+typedef void (*thread_function_t)(void *data);
+
 typedef struct thread_s {
 	SDL_Thread *thread;
 	SDL_cond *cond;
 	SDL_mutex *mutex;
 	char name[64];
 	thread_status_t status;
-	void (*function)(void *data);
+	thread_function_t run;
 	void *data;
 } thread_t;
 
 extern cvar_t *threads;
 
-thread_t *Thread_Create_(const char *name, void (function)(void *data), void *data);
+thread_t *Thread_Create_(const char *name, thread_function_t run, void *data);
 #define Thread_Create(f, d) Thread_Create_(#f, f, d)
 void Thread_Wait(thread_t **t);
 void Thread_Init(void);

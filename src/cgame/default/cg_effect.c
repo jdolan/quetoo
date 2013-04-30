@@ -30,30 +30,73 @@ typedef struct cg_weather_emit_s {
 	struct cg_weather_emit_s *next;
 } cg_weather_emit_t;
 
-static cg_weather_emit_t *cg_weather_emits;
-static uint32_t cg_weather_time;
+typedef struct {
+	cg_weather_emit_t *emits;
+	uint32_t time;
+} cg_weather_state_t;
+
+static cg_weather_state_t cg_weather_state;
+
+/*
+ * @brief Parses CS_WEATHER for weather and fog parameters, e.g. "rain fog 0.8 0.75 0.65".
+ */
+void Cg_ResolveWeather(const char *weather) {
+	char *c;
+	int32_t err;
+
+	cgi.Debug("%s\n", weather);
+
+	cgi.view->weather = WEATHER_NONE;
+	cgi.view->fog_color[3] = 1.0;
+
+	VectorSet(cgi.view->fog_color, 0.75, 0.75, 0.75);
+
+	if (!weather || *weather == '\0')
+		return;
+
+	if (strstr(weather, "rain"))
+		cgi.view->weather |= WEATHER_RAIN;
+
+	if (strstr(weather, "snow"))
+		cgi.view->weather |= WEATHER_SNOW;
+
+	if ((c = strstr(weather, "fog"))) {
+
+		cgi.view->weather |= WEATHER_FOG;
+		err = -1;
+
+		if (strlen(c) > 3) { // try to parse fog color
+			float *f = cgi.view->fog_color;
+			err = sscanf(c + 4, "%f %f %f", f, f + 1, f + 2);
+		}
+
+		if (err != 3) { // default to gray
+			VectorSet(cgi.view->fog_color, 0.75, 0.75, 0.75);
+		}
+	}
+}
 
 /*
  * @brief Creates an emitter for the given surface. The number of origins for the
  * emitter depends on the area of the surface.
  */
-static void Cg_LoadWeather_(const r_model_t *world, const r_bsp_surface_t *s) {
+static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) {
 	vec3_t delta;
 	uint16_t i;
 
-	cg_weather_emit_t *e = cgi.Malloc(sizeof(cg_weather_emit_t), TAG_CGAME_MEDIA);
+	cg_weather_emit_t *e = cgi.Malloc(sizeof(cg_weather_emit_t), Z_TAG_CGAME_LEVEL);
 
 	// resolve the leaf for the point just in front of the surface
 	VectorMA(s->center, 1.0, s->normal, delta);
-	e->leaf = cgi.LeafForPoint(delta, world);
+	e->leaf = cgi.LeafForPoint(delta, bsp);
 
 	// resolve the number of origins based on surface area
 	VectorSubtract(s->maxs, s->mins, delta);
 	e->num_origins = VectorLength(delta) / 64.0;
 	e->num_origins = Clamp(e->num_origins, 1, 128);
 
-	e->origins = cgi.Malloc(sizeof(vec3_t) * e->num_origins, TAG_CGAME_MEDIA);
-	e->end_z = cgi.Malloc(sizeof(vec_t) * e->num_origins, TAG_CGAME_MEDIA);
+	e->origins = cgi.Malloc(sizeof(vec3_t) * e->num_origins, Z_TAG_CGAME_LEVEL);
+	e->end_z = cgi.Malloc(sizeof(vec_t) * e->num_origins, Z_TAG_CGAME_LEVEL);
 
 	// resolve the origins and end_z
 	for (i = 0; i < e->num_origins; i++) {
@@ -75,10 +118,10 @@ static void Cg_LoadWeather_(const r_model_t *world, const r_bsp_surface_t *s) {
 	}
 
 	// push on to the linked list
-	e->next = cg_weather_emits;
-	cg_weather_emits = e;
+	e->next = cg_weather_state.emits;
+	cg_weather_state.emits = e;
 
-	cgi.Debug("Cg_LoadWeather: %s: %d origins\n", vtos(s->center), e->num_origins);
+	cgi.Debug("%s: %d origins\n", vtos(s->center), e->num_origins);
 }
 
 /*
@@ -88,23 +131,28 @@ static void Cg_LoadWeather_(const r_model_t *world, const r_bsp_surface_t *s) {
 void Cg_LoadWeather(void) {
 	uint16_t i, j;
 
-	cg_weather_emits = NULL;
-	cg_weather_time = 0;
+	cg_weather_state.emits = NULL;
+	cg_weather_state.time = 0;
 
-	const r_model_t *world = cgi.LoadModel(cgi.ConfigString(CS_MODELS + 1));
-	const r_bsp_surface_t *s = world->surfaces;
+	Cg_ResolveWeather(cgi.ConfigString(CS_WEATHER));
+
+	if (!(cgi.view->weather & WEATHER_PRECIP_MASK))
+		return;
+
+	const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
+	const r_bsp_surface_t *s = bsp->surfaces;
 
 	// iterate the world surfaces, testing sky surfaces
-	for (i = j = 0; i < world->num_surfaces; i++, s++) {
+	for (i = j = 0; i < bsp->num_surfaces; i++, s++) {
 
 		// for downward facing sky brushes, create an emitter
 		if ((s->texinfo->flags & SURF_SKY) && s->normal[2] < -0.1) {
-			Cg_LoadWeather_(world, s);
+			Cg_LoadWeather_(bsp, s);
 			j++;
 		}
 	}
 
-	cgi.Debug("Cg_LoadWeather: %d emits\n", j);
+	cgi.Debug("%d emits\n", j);
 }
 
 /*
@@ -122,13 +170,13 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 	int32_t i;
 
 	for (i = 0; i < e->num_origins; i++) {
-		const r_image_t *image;
+		cg_particles_t *ps;
 		cg_particle_t *p;
 		int32_t j;
 
-		image = cgi.view->weather & WEATHER_RAIN ? cg_particle_rain : cg_particle_snow;
+		ps = cgi.view->weather & WEATHER_RAIN ? cg_particles_rain : cg_particles_snow;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER, image)))
+		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER, ps)))
 			break;
 
 		const float *org = &e->origins[i * 3];
@@ -183,20 +231,6 @@ static void Cg_AddWeather(void) {
 	if (!(cgi.view->weather & (WEATHER_RAIN | WEATHER_SNOW)))
 		return;
 
-	if (cgi.client->time - cg_weather_time < 100)
-		return;
-
-	cg_weather_time = cgi.client->time;
-
-	const cg_weather_emit_t *e = cg_weather_emits;
-
-	while (e) {
-		if (cgi.LeafInPhs(e->leaf)) {
-			Cg_AddWeather_(e);
-		}
-		e = e->next;
-	}
-
 	s_sample_t *s; // add an appropriate looping sound
 
 	if (cgi.view->weather & WEATHER_RAIN) {
@@ -206,6 +240,20 @@ static void Cg_AddWeather(void) {
 	}
 
 	cgi.LoopSample(cgi.view->origin, s);
+
+	if (cgi.client->time - cg_weather_state.time < 100)
+		return;
+
+	cg_weather_state.time = cgi.client->time;
+
+	const cg_weather_emit_t *e = cg_weather_state.emits;
+
+	while (e) {
+		if (cgi.LeafInPhs(e->leaf)) {
+			Cg_AddWeather_(e);
+		}
+		e = e->next;
+	}
 }
 
 /**

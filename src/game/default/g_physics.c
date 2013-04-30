@@ -89,7 +89,7 @@ static bool G_RunThink(g_edict_t *ent) {
 	ent->next_think = 0;
 
 	if (!ent->think)
-		gi.Error("G_RunThink: No think function for ent.");
+		gi.Error("%s has no think function\n", ent->class_name);
 
 	ent->think(ent);
 
@@ -405,7 +405,7 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 	}
 
 	if (g_pushed_p > &g_pushed[MAX_EDICTS])
-		gi.Error("G_Physics_Pusher: MAX_EDICTS exceeded.");
+		gi.Error("MAX_EDICTS exceeded\n");
 
 	if (part) {
 		// the move failed, bump all next_think times and back out moves
@@ -579,7 +579,7 @@ void G_RunEntity(g_edict_t *ent) {
 		G_Physics_Toss(ent);
 		break;
 	default:
-		gi.Error("G_RunEntity: Bad move type %i.", (int) ent->move_type);
+		gi.Error("Bad move type %i\n", ent->move_type);
 		break;
 	}
 }

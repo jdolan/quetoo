@@ -25,8 +25,28 @@
 #include "cgame/cgame.h"
 #include "game/default/g_types.h"
 
-#define TAG_CGAME 800
-#define TAG_CGAME_MEDIA 801
+#ifdef __CG_LOCAL_H__
+
+typedef struct cg_particle_s {
+	r_particle_t part; // the r_particle_t to add to the view
+	vec3_t vel;
+	vec3_t accel;
+	float alpha_vel;
+	float scale_vel;
+	float end_z; // weather particles are freed at this Z
+	uint32_t time; // client time when allocated
+	struct cg_particle_s *prev; // previous particle in the chain
+	struct cg_particle_s *next; // next particle in chain
+} cg_particle_t;
+
+// particles are chained by image
+typedef struct cg_particles_s {
+	const r_image_t *image;
+	cg_particle_t *particles;
+	struct cg_particles_s *next;
+} cg_particles_t;
+
+#endif /* __CG_LOCAL_H__ */
 
 #endif /* __CG_TYPES_H__ */
 

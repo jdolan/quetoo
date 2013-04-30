@@ -195,7 +195,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 		attacker = &g_game.edicts[0];
 
 	// quad damage affects both damage and knockback
-	if (attacker->client && attacker->client->persistent.inventory[quad_damage_index]) {
+	if (attacker->client && attacker->client->persistent.inventory[g_level.media.quad_damage]) {
 		damage = (int) (damage * QUAD_DAMAGE_FACTOR);
 		knockback = (int) (knockback * QUAD_KNOCKBACK_FACTOR);
 	}
@@ -286,7 +286,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 			if (targ->die) {
 				targ->die(targ, inflictor, attacker, take, point);
 			} else {
-				gi.Debug("G_Damage: No die function for %s\n", targ->class_name);
+				gi.Debug("No die function for %s\n", targ->class_name);
 			}
 			return;
 		}

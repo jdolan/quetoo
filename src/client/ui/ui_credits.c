@@ -28,40 +28,38 @@ TwBar *Ui_Credits(void) {
 
 	TwBar *bar = TwNewBar("Credits");
 
+	TwAddButton(bar, "lead", NULL, NULL, "group='Project Lead' label=\"Jay 'jdolan' Dolan\"");
 
-	TwAddButton(bar, "lead", NULL, NULL, " group='Project Lead' label='Jay \"jdolan\" Dolan'");
+	TwAddButton(bar, "infra", NULL, NULL, "group='Infrastructure' label=\"Marcel 'maci' Wysocki\"");
 
-	TwAddButton(bar, "infra", NULL, NULL, " group='Infrastructure' label='Marcel \"maci\" Wysocki'");
+	TwAddButton(bar, "dev0", NULL, NULL, "group='Programming' label=\"Jay 'jdolan' Dolan\"");
+	TwAddButton(bar, "dev2", NULL, NULL, "group='Programming' label=\"Michael 'WickedShell' du Breuil\"");
+	TwAddButton(bar, "dev1", NULL, NULL, "group='Programming' label=\"Stijn 'Ingar' Buys\"");
 
+	TwAddButton(bar, "map0", NULL, NULL, "group='Level Design' label=\"Dan 'CardO' Shannon\"");
+	TwAddButton(bar, "map1", NULL, NULL, "group='Level Design' label=\"DJ 'Panjoo' Bloot\"");
+	TwAddButton(bar, "map2", NULL, NULL, "group='Level Design' label=\"Georges 'TRaK' Grondin\"");
+	TwAddButton(bar, "map3", NULL, NULL, "group='Level Design' label=\"Steve 'Jester' Veihl\"");
+	TwAddButton(bar, "map4", NULL, NULL, "group='Level Design' label=\"Tim 'spirit' Schafer\"");
+	//TwAddButton(bar, "map5", NULL, NULL, "group='Level Design' label=\"Pawel 'ShadoW' Chrapka\"");
 
-	TwAddButton(bar, "dev0", NULL, NULL, " group='Developer' label='Jay \"jdolan\" Dolan'");
-	TwAddButton(bar, "dev1", NULL, NULL, " group='Developer' label='Stijn \"Ingar\" Buys'");
-	TwAddButton(bar, "dev2", NULL, NULL, " group='Developer' label='Michael \"WickedShell\" du Breuil'");
-	TwAddButton(bar, "dev3", NULL, NULL, " group='Developer' label='Stephan \"stereo84\" Reiter'");
-	TwAddButton(bar, "dev4", NULL, NULL, " group='Developer' label='Stanley \"gotnone\" Pinchak'");
-	TwAddButton(bar, "dev5", NULL, NULL, " group='Developer' label='Dale \"supa_user\" Blount'");
+	TwAddButton(bar, "mod0", NULL, NULL, "group='Model Design' label=\"Antti 'Karvajalka' Lahti\"");
+	TwAddButton(bar, "mod1", NULL, NULL, "group='Model Design' label=\"Georges 'TRaK' Grondin\"");
+	TwAddButton(bar, "mod2", NULL, NULL, "group='Model Design' label=\"Noel 'Nilium' Cower\"");
 
-	TwAddButton(bar, "model0", NULL, NULL, " group='Modeling' label='Antti \"Karvajalka\" Lahti'");
-	TwAddButton(bar, "model1", NULL, NULL, " group='Modeling' label='Juha \"jhaa\" Merila'");
+	TwAddButton(bar, "snd0", NULL, NULL, "group='Sound Design' label=\"Roland Shaw\"");
 
-	TwAddButton(bar, "tex0", NULL, NULL, " group='Texture Artist' label='Georges \"TRaK\" Grondin'");
-	TwAddButton(bar, "tex1", NULL, NULL, " group='Texture Artist' label='Michael \"Thorn\" Rodenhurst'");
-	TwAddButton(bar, "tex2", NULL, NULL, " group='Texture Artist' label='Tom \"keres\" Havlik'");
+	TwAddButton(bar, "tex0", NULL, NULL, "group='Textures' label=\"Georges 'TRaK' Grondin\"");
+	TwAddButton(bar, "tex1", NULL, NULL, "group='Textures' label=\"Michael 'Thorn' Rodenhurst\"");
+	TwAddButton(bar, "tex2", NULL, NULL, "group='Textures' label=\"Noel 'Nilium' Cower\"");
 
-	TwAddButton(bar, "map0", NULL, NULL, " group='Level Design' label='Tim \"spirit\" Schafer'");
-	TwAddButton(bar, "map1", NULL, NULL, " group='Level Design' label='Georges \"TRaK\" Grondin'");
-	TwAddButton(bar, "map2", NULL, NULL, " group='Level Design' label='Steve \"Jester\" Veihl'");
-	TwAddButton(bar, "map3", NULL, NULL, " group='Level Design' label='Tom \"keres\" Havlik'");
-	TwAddButton(bar, "map4", NULL, NULL, " group='Level Design' label='Pawel \"ShadoW\" Chrapka'");
+	TwAddButton(bar, "thx0", NULL, NULL, "group='Special Thanks' label=\"Chris 'TheBunny' Dillman\"");
+	TwAddButton(bar, "thx1", NULL, NULL, "group='Special Thanks' label=\"Forest 'LordHavoc' Hale\"");
+	TwAddButton(bar, "thx2", NULL, NULL, "group='Special Thanks' label=\"Mads 'Madsy' Elvheim\"");
+	TwAddButton(bar, "thx3", NULL, NULL, "group='Special Thanks' label=\"Martin 'mattn' Gerhardy\"");
+	TwAddButton(bar, "thx4", NULL, NULL, "group='Special Thanks' label=\"Stephan 'stereo84' Reiter\"");
 
-	TwAddButton(bar, "sound0", NULL, NULL, " group='Sound Design' label='Roland Shaw'");
-
-	TwAddButton(bar, "thanks0", NULL, NULL, " group='Special Thanks' label='Forest \"LordHavoc\" Hale'");
-	TwAddButton(bar, "thanks1", NULL, NULL, " group='Special Thanks' label='Martin \"mattn\" Gerhardy'");
-	TwAddButton(bar, "thanks2", NULL, NULL, " group='Special Thanks' label='Chris \"TheBunny\" Dillman'");
-	TwAddButton(bar, "thanks3", NULL, NULL, " group='Special Thanks' label='Mads \"Madsy\" Elvheim'");
-
-	TwDefine("Credits size='400 300' alpha=200 iconifiable=false valueswidth=100 visible=false");
+	TwDefine("Credits size='350 500' alpha=200 iconifiable=false valueswidth=100 visible=false");
 
 	return bar;
 }

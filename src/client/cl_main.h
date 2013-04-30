@@ -46,7 +46,6 @@ extern cvar_t *password;
 extern cvar_t *rate;
 extern cvar_t *skin;
 
-void Cl_LoadProgress(uint16_t percent);
 void Cl_Disconnect(void);
 void Cl_Frame(uint32_t msec);
 void Cl_Init(void);
@@ -56,6 +55,7 @@ void Cl_Shutdown(void);
 
 extern cvar_t *cl_show_net_messages;
 extern cvar_t *cl_show_renderer_stats;
+extern cvar_t *cl_show_sound_stats;
 
 extern cvar_t *rcon_password;
 extern cvar_t *rcon_address;
@@ -67,7 +67,6 @@ extern cl_static_t cls;
 
 void Cl_SendDisconnect(void);
 void Cl_Reconnect_f(void);
-void Cl_RequestNextDownload(void);
 
 #endif /* __CL_LOCAL_H__ */
 

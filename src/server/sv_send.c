@@ -55,19 +55,19 @@ void Sv_ClientPrint(const g_edict_t *ent, const int32_t level, const char *fmt, 
 
 	n = NUM_FOR_EDICT(ent);
 	if (n < 1 || n > sv_max_clients->integer) {
-		Com_Warn("Sv_ClientPrint: Issued to non-client %d.\n", n);
+		Com_Warn("Issued to non-client %d\n", n);
 		return;
 	}
 
 	cl = &svs.clients[n - 1];
 
 	if (cl->state != SV_CLIENT_ACTIVE) {
-		Com_Debug("Sv_ClientPrint: Issued to unspawned client.\n");
+		Com_Debug("Issued to unspawned client\n");
 		return;
 	}
 
 	if (level < cl->message_level) {
-		Com_Debug("Sv_ClientPrint: Filtered by message level.\n");
+		Com_Debug("Filtered by message level\n");
 		return;
 	}
 
@@ -212,7 +212,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 		break;
 
 	default:
-		Com_Warn("Sv_Multicast: bad multicast: %i.\n", to);
+		Com_Warn("Bad multicast: %i\n", to);
 		return;
 	}
 
@@ -252,10 +252,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 }
 
 /*
- * @brief FIXME: if entity isn't in PHS, they must be forced to be sent or
- * have the origin explicitly sent.
- *
- * An attenuation of 0 will play full volume everywhere in the level.
+ * @brief An attenuation of 0 will play full volume everywhere in the level.
  * Larger attenuation will drop off (max 4 attenuation).
  *
  * If origin is NULL, the origin is determined from the entity origin
@@ -272,7 +269,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint
 
 	at = atten;
 	if (at > ATTN_STATIC) {
-		Com_Warn("Sv_PositionedSound: attenuation %d.\n", at);
+		Com_Warn("Bad attenuation %d\n", at);
 		at = DEFAULT_SOUND_ATTENUATION;
 	}
 
@@ -345,13 +342,13 @@ static bool Sv_SendClientDatagram(sv_client_t *client) {
 	// it is necessary for this to be after the WriteEntities
 	// so that entity references will be current
 	if (client->datagram.overflowed)
-		Com_Warn("Datagram overflowed for %s.\n", client->name);
+		Com_Warn("Datagram overflowed for %s\n", client->name);
 	else
 		Sb_Write(&msg, client->datagram.data, client->datagram.size);
 	Sb_Clear(&client->datagram);
 
 	if (msg.overflowed) { // must have room left for the packet header
-		Com_Warn("Message overflowed for %s.\n", client->name);
+		Com_Warn("Message overflowed for %s\n", client->name);
 		Sv_DropClient(client);
 		return false;
 	}
@@ -368,7 +365,7 @@ static bool Sv_SendClientDatagram(sv_client_t *client) {
  * @brief
  */
 static void Sv_DemoCompleted(void) {
-	Sv_ShutdownServer("Demo complete.\n");
+	Sv_ShutdownServer("Demo complete\n");
 }
 
 /*
@@ -406,10 +403,10 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
 	int32_t size;
 	size_t r;
 
-	r = Fs_Read(&size, 4, 1, sv.demo_file);
+	r = Fs_Read(sv.demo_file, &size, sizeof(size), 1);
 
 	if (r != 1) { // improperly terminated demo file
-		Com_Warn("Sv_GetDemoMessage: Failed to read demo file.\n");
+		Com_Warn("Failed to read demo file\n");
 		Sv_DemoCompleted();
 		return 0;
 	}
@@ -422,15 +419,15 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
 	}
 
 	if (size > MAX_MSG_SIZE) { // corrupt demo file
-		Com_Warn("Sv_GetDemoMessage: %d > MAX_MSG_SIZE.\n", size);
+		Com_Warn("%d > MAX_MSG_SIZE\n", size);
 		Sv_DemoCompleted();
 		return 0;
 	}
 
-	r = Fs_Read(buffer, size, 1, sv.demo_file);
+	r = Fs_Read(sv.demo_file, buffer, size, 1);
 
 	if (r != 1) {
-		Com_Warn("Sv_GetDemoMessage: Incomplete or corrupt demo file.\n");
+		Com_Warn("Incomplete or corrupt demo file\n");
 		Sv_DemoCompleted();
 		return 0;
 	}

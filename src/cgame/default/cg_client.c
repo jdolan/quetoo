@@ -27,19 +27,19 @@
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
  * our skin paths start with players/, not models/players/.
  */
-static void Cg_LoadClientSkin(r_image_t **skins, const r_md3_t *md3, char *line) {
+static void Cg_LoadClientSkin(r_material_t **skins, const r_md3_t *md3, char *line) {
 	int32_t i;
 
 	if (strstr(line, "tag_"))
 		return;
 
-	char *image_name, *mesh_name = line;
+	char *skin_name, *mesh_name = line;
 
-	if ((image_name = strchr(mesh_name, ','))) {
-		*image_name++ = '\0';
+	if ((skin_name = strchr(mesh_name, ','))) {
+		*skin_name++ = '\0';
 
-		while (isspace(*image_name)) {
-			image_name++;
+		while (isspace(*skin_name)) {
+			skin_name++;
 		}
 	} else {
 		return;
@@ -49,33 +49,33 @@ static void Cg_LoadClientSkin(r_image_t **skins, const r_md3_t *md3, char *line)
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (!strcasecmp(mesh_name, mesh->name)) {
-			skins[i] = cgi.LoadImage(image_name, it_diffuse);
+			skins[i] = cgi.LoadMaterial(skin_name);
 			break;
 		}
 	}
 }
 
 /*
- * @brief Parses the appropriate .skin file, resolving skins for each mesh within the
- * model. If a skin can not be resolved for any mesh, the entire skins array is
- * invalidated so that the default will be loaded.
+ * @brief Parses the appropriate .skin file, resolving skins for each mesh
+ * within the model. If a skin can not be resolved for any mesh, the entire
+ * skins array is invalidated so that the default will be loaded.
  */
-static void Cg_LoadClientSkins(const r_model_t *mod, r_image_t **skins, const char *skin) {
+static void Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const char *skin) {
 	char path[MAX_QPATH], line[MAX_STRING_CHARS];
 	char *buffer;
 	int32_t i, j, len;
 
 	// load the skin definition file
-	snprintf(path, sizeof(path) - 1, "%s_%s.skin", mod->name, skin);
+	g_snprintf(path, sizeof(path), "%s_%s.skin", mod->media.name, skin);
 
 	if ((len = cgi.LoadFile(path, (void *) &buffer)) == -1) {
-		cgi.Debug("Cg_LoadClientSkins: %s not found\n", path);
+		cgi.Debug("%s not found\n", path);
 
 		skins[0] = NULL;
 		return;
 	}
 
-	const r_md3_t *md3 = (r_md3_t *) mod->extra_data;
+	const r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
 
 	i = j = 0;
 	memset(line, 0, sizeof(line));
@@ -99,13 +99,15 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_image_t **skins, const ch
 	const r_md3_mesh_t *mesh = md3->meshes;
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
-		if (skins[i]->type == it_null) {
-			cgi.Debug("Cg_LoadClientSkins: %s: %s has no skin\n", path, mesh->name);
+		if (!skins[i]) {
+			cgi.Debug("%s: %s has no skin\n", path, mesh->name);
 
 			skins[0] = NULL;
 			break;
 		}
 	}
+
+	cgi.FreeFile(buffer);
 }
 
 /*
@@ -132,11 +134,10 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	char *u, *v;
 	int32_t i;
 
-	cgi.Debug("Cg_LoadClient: %s\n", s);
+	cgi.Debug("%s\n", s);
 
 	// copy the entire string
-	strncpy(ci->info, s, sizeof(ci->info));
-	ci->info[sizeof(ci->info) - 1] = '\0';
+	g_strlcpy(ci->info, s, sizeof(ci->info));
 
 	i = 0;
 	t = s;
@@ -154,8 +155,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	}
 
 	// isolate the player's name
-	strncpy(ci->name, s, sizeof(ci->name));
-	ci->name[sizeof(ci->name) - 1] = '\0';
+	g_strlcpy(ci->name, s, sizeof(ci->name));
 
 	if ((v = strchr(ci->name, '\\'))) { // check for name\model/skin
 
@@ -168,27 +168,30 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	}
 
 	if (v && u) { // load the models
-		snprintf(path, sizeof(path), "players/%s/head.md3", ci->model);
+		g_snprintf(path, sizeof(path), "players/%s/head.md3", ci->model);
 		if ((ci->head = cgi.LoadModel(path))) {
 			Cg_LoadClientSkins(ci->head, ci->head_skins, ci->skin);
 		}
 
-		snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
+		g_snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
 		if ((ci->upper = cgi.LoadModel(path))) {
 			Cg_LoadClientSkins(ci->upper, ci->upper_skins, ci->skin);
 		}
 
-		snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
+		g_snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
 		if ((ci->lower = cgi.LoadModel(path))) {
 			Cg_LoadClientSkins(ci->lower, ci->lower_skins, ci->skin);
 		}
+
+		g_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
+		ci->icon = cgi.LoadImage(path, IT_PIC);
 	}
 
 	// ensure we were able to load everything
 	if (!Cg_ValidateClient(ci)) {
 
 		if (!strcmp(s, DEFAULT_CLIENT_INFO)) {
-			cgi.Error("Cg_LoadClient: Failed to load default client info\n");
+			cgi.Error("Failed to load default client info\n");
 		}
 
 		// and if we weren't, use the default
@@ -254,16 +257,14 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 	e->back_lerp = 0.0;
 
 	if (a->animation > md3->num_animations) {
-		cgi.Warn("Cg_AnimateClientEntity: Invalid animation: %s: %d\n", e->model->name,
-				a->animation);
+		cgi.Warn("Invalid animation: %s: %d\n", e->model->media.name, a->animation);
 		return;
 	}
 
 	const r_md3_animation_t *anim = &md3->animations[a->animation];
 
 	if (!anim->num_frames || !anim->hz) {
-		cgi.Warn("Cg_AnimateClientEntity_: Bad animation sequence: %s: %d\n", e->model->name,
-				a->animation);
+		cgi.Warn("Bad animation sequence: %s: %d\n", e->model->media.name, a->animation);
 		return;
 	}
 
@@ -315,11 +316,11 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
  * indexes and interpolation fractions for the specified renderer entities.
  */
 void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower) {
-	const r_md3_t *md3 = (r_md3_t *) upper->model->extra_data;
+	const r_md3_t *md3 = (r_md3_t *) upper->model->mesh->data;
 
 	// do the torso animation
 	if (e->current.animation1 != e->prev.animation1 || !e->animation1.time) {
-		//cgi.Debug("torso: %d -> %d\n", e->current.animation1, e->prev.animation1);
+		//cgi.Debug("Torso: %d -> %d\n", e->current.animation1, e->prev.animation1);
 		e->animation1.animation = e->current.animation1 & ~ANIM_TOGGLE_BIT;
 		e->animation1.time = cgi.client->time;
 	}
@@ -328,7 +329,7 @@ void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower
 
 	// and then the legs
 	if (e->current.animation2 != e->prev.animation2 || !e->animation2.time) {
-		//cgi.Debug("legs: %d -> %d\n", e->current.animation2, e->prev.animation2);
+		//cgi.Debug("Legs: %d -> %d\n", e->current.animation2, e->prev.animation2);
 		e->animation2.animation = e->current.animation2 & ~ANIM_TOGGLE_BIT;
 		e->animation2.time = cgi.client->time;
 	}

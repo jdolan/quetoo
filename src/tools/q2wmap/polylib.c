@@ -22,12 +22,7 @@
 #include "bspfile.h"
 #include "polylib.h"
 
-// counters are only bumped when running single threaded,
-// because they are an awefull coherence problem
-int32_t c_active_windings;
-int32_t c_peak_windings;
-int32_t c_winding_allocs;
-int32_t c_winding_points;
+uint32_t c_peak_windings;
 
 #define	BOGUS_RANGE	8192
 
@@ -35,40 +30,33 @@ int32_t c_winding_points;
  * @brief
  */
 winding_t *AllocWinding(int32_t points) {
-	winding_t *w;
-	int32_t s;
 
-	if (!threads->integer) {
-		c_winding_allocs++;
-		c_winding_points += points;
-		c_active_windings++;
-		if (c_active_windings > c_peak_windings)
-			c_peak_windings = c_active_windings;
+	if (debug) {
+		SDL_SemPost(semaphores.active_windings);
+		uint32_t active_windings = SDL_SemValue(semaphores.active_windings);
+
+		if (active_windings > c_peak_windings) {
+			c_peak_windings = active_windings;
+		}
 	}
-	s = sizeof(vec_t) * 3 * points + sizeof(int);
-	w = Z_Malloc(s);
-	memset(w, 0, s);
-	return w;
+
+	return Z_Malloc(sizeof(int32_t) + sizeof(vec3_t) * points);
 }
 
 /*
  * @brief
  */
 void FreeWinding(winding_t *w) {
-	if (*(uint32_t *) w == 0xdeaddead)
-		Com_Error(ERR_FATAL, "FreeWinding: freed a freed winding\n");
-	*(uint32_t *) w = 0xdeaddead;
 
-	if (!threads->integer)
-		c_active_windings--;
+	if (debug)
+		SDL_SemWait(semaphores.active_windings);
+
 	Z_Free(w);
 }
 
 /*
  * @brief
  */
-int32_t c_removed;
-
 void RemoveColinearPoints(winding_t *w) {
 	int32_t i;
 	vec3_t v1, v2;
@@ -92,8 +80,12 @@ void RemoveColinearPoints(winding_t *w) {
 	if (nump == w->numpoints)
 		return;
 
-	if (!threads->integer)
-		c_removed += w->numpoints - nump;
+	if (debug) {
+		const int32_t j = w->numpoints - nump;
+		for (i = 0; i < j; i++) {
+			SDL_SemPost(semaphores.removed_points);
+		}
+	}
 
 	w->numpoints = nump;
 	memcpy(w->p, p, nump * sizeof(p[0]));
@@ -185,17 +177,17 @@ winding_t *BaseWindingForPlane(const vec3_t normal, const vec_t dist) {
 		}
 	}
 	if (x == -1)
-		Com_Error(ERR_FATAL, "BaseWindingForPlane: no axis found\n");
+		Com_Error(ERR_FATAL, "No axis found\n");
 
 	VectorCopy(vec3_origin, vup);
 	switch (x) {
-	case 0:
-	case 1:
-		vup[2] = 1;
-		break;
-	case 2:
-		vup[0] = 1;
-		break;
+		case 0:
+		case 1:
+			vup[2] = 1;
+			break;
+		case 2:
+			vup[0] = 1;
+			break;
 	}
 
 	v = DotProduct(vup, normal);
@@ -260,8 +252,8 @@ winding_t *ReverseWinding(winding_t *w) {
 /*
  * @brief
  */
-void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
-		vec_t epsilon, winding_t **front, winding_t **back) {
+void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t epsilon,
+		winding_t **front, winding_t **back) {
 	vec_t dists[MAX_POINTS_ON_WINDING + 4];
 	int32_t sides[MAX_POINTS_ON_WINDING + 4];
 	int32_t counts[SIDE_BOTH + 1];
@@ -350,17 +342,16 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist,
 	}
 
 	if (f->numpoints > maxpts || b->numpoints > maxpts)
-		Com_Error(ERR_FATAL, "ClipWinding: points exceeded estimate\n");
-	if (f->numpoints > MAX_POINTS_ON_WINDING || b->numpoints
-			> MAX_POINTS_ON_WINDING)
-		Com_Error(ERR_FATAL, "ClipWinding: MAX_POINTS_ON_WINDING\n");
+		Com_Error(ERR_FATAL, "Points exceeded estimate\n");
+	if (f->numpoints > MAX_POINTS_ON_WINDING || b->numpoints > MAX_POINTS_ON_WINDING)
+		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n");
 }
 
 /*
  * @brief
  */
-void ChopWindingInPlace(winding_t **inout, const vec3_t normal,
-		const vec_t dist, const vec_t epsilon) {
+void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist,
+		const vec_t epsilon) {
 	winding_t *in;
 	vec_t dists[MAX_POINTS_ON_WINDING + 4];
 	int32_t sides[MAX_POINTS_ON_WINDING + 4];
@@ -440,9 +431,9 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal,
 	}
 
 	if (f->numpoints > maxpts)
-		Com_Error(ERR_FATAL, "ClipWinding: points exceeded estimate\n");
+		Com_Error(ERR_FATAL, "Points exceeded estimate\n");
 	if (f->numpoints > MAX_POINTS_ON_WINDING)
-		Com_Error(ERR_FATAL, "ClipWinding: MAX_POINTS_ON_WINDING\n");
+		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n");
 
 	FreeWinding(in);
 	*inout = f;

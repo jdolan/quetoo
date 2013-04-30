@@ -27,7 +27,8 @@ libserver_la_SOURCES = \
 libserver_la_CFLAGS = \
 	-I.. \
 	@BASE_CFLAGS@ \
-	@CURSES_CFLAGS@
+	@CURSES_CFLAGS@ \
+	@GLIB_CFLAGS@
 
 libserver_la_LIBADD = \
 	../libcmodel.la \

@@ -25,7 +25,22 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_LoadBspLights(void);
+typedef struct {
+	vec3_t ambient_light;
+
+	vec3_t sun_color;
+	float sun_light;
+
+	float brightness;
+	float saturation;
+	float contrast;
+
+	GList *lights;
+} r_bsp_light_state_t;
+
+extern r_bsp_light_state_t r_bsp_light_state;
+
+void R_LoadBspLights(r_bsp_model_t *mod);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_BSP_LIGHT_H__ */

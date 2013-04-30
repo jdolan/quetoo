@@ -30,7 +30,7 @@ void R_AddLight(const r_light_t *l) {
 		return;
 
 	if (r_view.num_lights == MAX_LIGHTS) {
-		Com_Debug("R_AddLight: MAX_LIGHTS reached\n");
+		Com_Debug("MAX_LIGHTS reached\n");
 		return;
 	}
 
@@ -51,7 +51,7 @@ void R_AddSustainedLight(const r_sustained_light_t *s) {
 			break;
 
 	if (i == MAX_LIGHTS) {
-		Com_Debug("R_AddSustainedLight: MAX_LIGHTS reached\n");
+		Com_Debug("MAX_LIGHTS reached\n");
 		return;
 	}
 
@@ -98,7 +98,8 @@ void R_ResetLights(void) {
 /*
  * @brief Recursively populates light source bit masks for world surfaces.
  */
-static void R_MarkLights_(r_light_t *light, vec3_t trans, int32_t bit, r_bsp_node_t *node) {
+static void R_MarkLights_(const r_light_t *light, const vec3_t trans, const int32_t bit,
+		const r_bsp_node_t *node) {
 	r_bsp_surface_t *surf;
 	vec3_t origin;
 	float dist;
@@ -126,10 +127,10 @@ static void R_MarkLights_(r_light_t *light, vec3_t trans, int32_t bit, r_bsp_nod
 	}
 
 	if (node->model) // mark bsp submodel
-		node->model->lights |= bit;
+		node->model->bsp_inline->lights |= bit;
 
 	// mark all surfaces in this node
-	surf = r_world_model->surfaces + node->first_surface;
+	surf = r_model_state.world->bsp->surfaces + node->first_surface;
 
 	for (i = 0; i < node->num_surfaces; i++, surf++) {
 
@@ -156,7 +157,7 @@ void R_MarkLights(void) {
 
 	r_locals.light_frame++;
 
-	if (r_locals.light_frame == 0x7fff) // avoid overflows
+	if (r_locals.light_frame == INT16_MAX) // avoid overflows
 		r_locals.light_frame = 0;
 
 	R_AddSustainedLights();
@@ -167,17 +168,17 @@ void R_MarkLights(void) {
 		r_light_t *light = &r_view.lights[i];
 
 		// world surfaces
-		R_MarkLights_(light, vec3_origin, 1 << i, r_world_model->nodes);
+		R_MarkLights_(light, vec3_origin, 1 << i, r_model_state.world->bsp->nodes);
 
 		// and bsp entity surfaces
-		for (j = 0; j < r_view.num_entities; j++) {
+		const r_entity_t *ent = r_view.entities;
+		for (j = 0; j < r_view.num_entities; j++, ent++) {
 
-			r_entity_t *ent = &r_view.entities[j];
-			r_model_t *mod = ent->model;
+			const r_model_t *mod = ent->model;
 
-			if (mod && mod->type == mod_bsp_submodel && mod->nodes) {
-				mod->lights = 0;
-				R_MarkLights_(light, ent->origin, 1 << i, mod->nodes);
+			if (IS_BSP_INLINE_MODEL(mod) && mod->bsp_inline->head_node) {
+				const r_bsp_node_t *node = r_model_state.world->bsp->nodes + mod->bsp_inline->head_node;
+				R_MarkLights_(light, ent->origin, 1 << i, node);
 			}
 		}
 	}

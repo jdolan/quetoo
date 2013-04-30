@@ -24,8 +24,7 @@
 
 /*
  * @brief Returns true if client side prediction should be used.
- */
-bool Cl_UsePrediction(void) {
+ */bool Cl_UsePrediction(void) {
 
 	if (!cl_predict->value)
 		return false;
@@ -69,7 +68,7 @@ void Cl_CheckPredictionError(void) {
 		VectorClear(cl.prediction_error);
 	} else { // save the prediction error for interpolation
 		if (error > 4.0) {
-			Com_Debug("Cl_CheckPredictionError: %s\n", vtos(delta));
+			Com_Debug("%s\n", vtos(delta));
 		}
 
 		VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame]);
@@ -156,7 +155,7 @@ static int32_t Cl_PredictMovement_PointContents(const vec3_t point) {
 	c_model_t *model;
 	int32_t contents;
 
-	contents = Cm_PointContents(point, r_world_model->first_node);
+	contents = Cm_PointContents(point, 0);
 
 	for (i = 0; i < cl.frame.num_entities; i++) {
 		const int32_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
@@ -190,7 +189,7 @@ void Cl_PredictMovement(void) {
 
 	// if we are too far out of date, just freeze
 	if (current - ack >= CMD_BACKUP) {
-		Com_Debug("Cl_PredictMovement: Exceeded CMD_BACKUP.\n");
+		Com_Debug("Exceeded CMD_BACKUP\n");
 		return;
 	}
 
@@ -233,4 +232,36 @@ void Cl_PredictMovement(void) {
 	UnpackAngles(pm.cmd.angles, cl.predicted_angles);
 
 	cl.predicted_ground_entity = pm.ground_entity;
+}
+
+/*
+ * @brief Ensures client-side prediction has the current collision model at its
+ * disposal.
+ */
+void Cl_UpdatePrediction(void) {
+	int32_t i;
+
+	// ensure the world model is loaded
+	if (!Com_WasInit(Q2W_SERVER) || !Cm_NumModels()) {
+		int32_t bs;
+
+		const char *bsp_name = cl.config_strings[CS_MODELS];
+		const int bsp_size = atoi(cl.config_strings[CS_BSP_SIZE]);
+
+		Cm_LoadBsp(bsp_name, &bs);
+
+		if (bs != bsp_size) {
+			Com_Error(ERR_DROP, "Local map version differs from server: %i != %i\n", bs, bsp_size);
+		}
+	}
+
+	// load the inline models for prediction as well
+	for (i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
+
+		const char *s = cl.config_strings[CS_MODELS + i];
+		if (*s == '*')
+			cl.model_clip[i] = Cm_Model(cl.config_strings[CS_MODELS + i]);
+		else
+			cl.model_clip[i] = NULL;
+	}
 }

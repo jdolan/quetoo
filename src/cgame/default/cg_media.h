@@ -51,22 +51,22 @@ extern s_sample_t *cg_sample_rain;
 extern s_sample_t *cg_sample_snow;
 extern s_sample_t *cg_sample_hit;
 
-extern r_image_t *cg_particle_normal;
-extern r_image_t *cg_particle_explosion;
-extern r_image_t *cg_particle_teleporter;
-extern r_image_t *cg_particle_smoke;
-extern r_image_t *cg_particle_steam;
-extern r_image_t *cg_particle_bubble;
-extern r_image_t *cg_particle_rain;
-extern r_image_t *cg_particle_snow;
-extern r_image_t *cg_particle_beam;
-extern r_image_t *cg_particle_burn;
-extern r_image_t *cg_particle_blood;
-extern r_image_t *cg_particle_lightning;
-extern r_image_t *cg_particle_flame;
-extern r_image_t *cg_particle_spark;
-extern r_image_t *cg_particle_inactive;
-extern r_image_t *cg_particle_bullet[3];
+extern cg_particles_t *cg_particles_normal;
+extern cg_particles_t *cg_particles_explosion;
+extern cg_particles_t *cg_particles_teleporter;
+extern cg_particles_t *cg_particles_smoke;
+extern cg_particles_t *cg_particles_steam;
+extern cg_particles_t *cg_particles_bubble;
+extern cg_particles_t *cg_particles_rain;
+extern cg_particles_t *cg_particles_snow;
+extern cg_particles_t *cg_particles_beam;
+extern cg_particles_t *cg_particles_burn;
+extern cg_particles_t *cg_particles_blood;
+extern cg_particles_t *cg_particles_lightning;
+extern cg_particles_t *cg_particles_flame;
+extern cg_particles_t *cg_particles_spark;
+extern cg_particles_t *cg_particles_inactive;
+extern cg_particles_t *cg_particles_bullet[3];
 
 void Cg_UpdateMedia(void);
 #endif /* __CG_LOCAL_H__ */

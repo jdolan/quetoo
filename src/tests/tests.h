@@ -19,32 +19,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __HASH_H__
-#define __HASH_H__
+#ifndef __TESTS_H__
+#define __TESTS_H__
 
-#include "mem.h"
+#include <check.h>
 
-// hash table implementation
-#define HASH_BINS 512
+#include "common.h"
 
-typedef struct hash_entry_s {
-	const char *key;
-	void *value;
-	struct hash_entry_s *prev, *next;
-} hash_entry_t;
+int Test_Run(Suite *suite);
+void Test_Init(int32_t argc, char **argv);
+void Test_Shutdown(void);
 
-typedef struct hash_table_s {
-	hash_entry_t *bins[HASH_BINS];
-} hash_table_t;
-
-void Hash_Init(hash_table_t *table);
-int32_t Hash_Hashcode(const char *key);
-int32_t Hash_Put(hash_table_t *table, const char *key, void *value);
-hash_entry_t *Hash_GetEntry(hash_table_t *table, const char *key);
-void *Hash_Get(hash_table_t *table, const char *key);
-void *Hash_RemoveEntry(hash_table_t *table, hash_entry_t *entry);
-void *Hash_Remove(hash_table_t *table, const char *key);
-void Hash_Clear(hash_table_t *table, const char *key);
-void Hash_Free(hash_table_t *table);
-
-#endif /*__HASH_H__*/
+#endif /* __TESTS_H__ */

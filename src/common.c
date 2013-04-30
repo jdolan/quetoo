@@ -22,49 +22,68 @@
 #include "common.h"
 #include "common-anorms.h"
 
-static int32_t rd_target;
-static char *rd_buffer;
-static uint32_t rd_buffersize;
-static void (*rd_flush)(int32_t target, char *buffer);
+
+// console redirection (e.g. rcon)
+typedef struct redirect_s {
+	int32_t target;
+
+	char *buffer;
+	size_t size;
+
+	RedirectFlush Flush;
+} redirect_t;
+
+static redirect_t redirect;
 
 /*
  * @brief
  */
-void Com_BeginRedirect(int32_t target, char *buffer, int32_t buffersize,
-		void(*flush)(int, char*)) {
+void Com_BeginRedirect(int32_t target, char *buffer, size_t size, RedirectFlush Flush) {
 
-	if (!target || !buffer || !buffersize || !flush)
-		return;
+	if (!target || !buffer || !size || !Flush) {
+		Com_Error(ERR_FATAL, "Invalid redirect\n");
+	}
 
-	rd_target = target;
-	rd_buffer = buffer;
-	rd_buffersize = buffersize;
-	rd_flush = flush;
+	redirect.target = target;
+	redirect.buffer = buffer;
+	redirect.size = size;
+	redirect.Flush = Flush;
 
-	*rd_buffer = 0;
+	*redirect.buffer = '\0';
 }
 
 /*
  * @brief
  */
 void Com_EndRedirect(void) {
-	rd_flush(rd_target, rd_buffer);
 
-	rd_target = 0;
-	rd_buffer = NULL;
-	rd_buffersize = 0;
-	rd_flush = NULL;
+	if (!redirect.target || !redirect.buffer || !redirect.size || !redirect.Flush) {
+		Com_Error(ERR_FATAL, "Invalid redirect\n");
+	}
+
+	redirect.Flush(redirect.target, redirect.buffer);
+
+	memset(&redirect, 0, sizeof(redirect));
 }
 
 /*
- * @brief
+ * @brief Print a debug statement. If the format begins with '!', the function
+ * name is omitted.
  */
-void Com_Debug(const char *fmt, ...) {
-	va_list args;
+void Com_Debug_(const char *func, const char *fmt, ...) {
 	char msg[MAX_PRINT_MSG];
 
+	if (fmt[0] != '!') {
+		g_snprintf(msg, sizeof(msg), "%s: ", func);
+	} else {
+		msg[0] = '\0';
+	}
+
+	const size_t len = strlen(msg);
+	va_list args;
+
 	va_start(args, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, args);
+	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
 	if (quake2world.Debug)
@@ -76,19 +95,27 @@ void Com_Debug(const char *fmt, ...) {
 /*
  * @brief An error condition has occurred. This function does not return.
  */
-void Com_Error(err_t err, const char *fmt, ...) {
-	va_list args;
+void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	char msg[MAX_PRINT_MSG];
 
+	if (fmt[0] != '!') {
+		g_snprintf(msg, sizeof(msg), "%s: ", func);
+	} else {
+		msg[0] = '\0';
+	}
+
+	const size_t len = strlen(msg);
+	va_list args;
+
 	va_start(args, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, args);
+	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
-	if (quake2world.Error)
+	if (quake2world.Error) {
 		quake2world.Error(err, (const char *) msg);
-	else {
+	} else {
 		fprintf(stderr, "%s", msg);
-		exit(1);
+		exit(err);
 	}
 }
 
@@ -103,12 +130,12 @@ void Com_Print(const char *fmt, ...) {
 	vsnprintf(msg, sizeof(msg), fmt, args);
 	va_end(args);
 
-	if (rd_target) { // handle redirection (rcon)
-		if ((strlen(msg) + strlen(rd_buffer)) > (rd_buffersize - 1)) {
-			rd_flush(rd_target, rd_buffer);
-			*rd_buffer = 0;
+	if (redirect.target) { // handle redirection (rcon)
+		if ((strlen(msg) + strlen(redirect.buffer)) > (redirect.size - 1)) {
+			redirect.Flush(redirect.target, redirect.buffer);
+			*redirect.buffer = '\0';
 		}
-		strcat(rd_buffer, msg);
+		g_strlcat(redirect.buffer, msg, redirect.size);
 		return;
 	}
 
@@ -119,20 +146,28 @@ void Com_Print(const char *fmt, ...) {
 }
 
 /*
- * @brief
+ * @brief Prints a warning message.
  */
-void Com_Warn(const char *fmt, ...) {
-	va_list args;
+void Com_Warn_(const char *func, const char *fmt, ...) {
 	static char msg[MAX_PRINT_MSG];
 
+	if (fmt[0] != '!') {
+		g_snprintf(msg, sizeof(msg), "%s: ", func);
+	} else {
+		msg[0] = '\0';
+	}
+
+	const size_t len = strlen(msg);
+	va_list args;
+
 	va_start(args, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, args);
+	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
 	if (quake2world.Warn)
 		quake2world.Warn((const char *) msg);
 	else
-		fprintf(stderr, "%s", msg);
+		fprintf(stderr, "WARNING: %s", msg);
 }
 
 /*
@@ -150,6 +185,47 @@ void Com_Verbose(const char *fmt, ...) {
 		quake2world.Verbose((const char *) msg);
 	else
 		printf("%s", msg);
+}
+
+/*
+ * @brief Initializes the global arguments list and dispatches to an underlying
+ * implementation, if provided. Should be called shortly after program
+ * execution begins.
+ */
+void Com_Init(int32_t argc, char **argv) {
+
+	quake2world.argc = argc;
+	quake2world.argv = argv;
+
+	//putenv("G_SLICE=always-malloc");
+
+	if (quake2world.Init) {
+		quake2world.Init();
+	}
+}
+
+/*
+ * @brief Program exit point under normal circumstances. Dispatches to a
+ * specialized implementation, if provided, or simply prints the message and
+ * exits. This function does not return.
+ */
+void Com_Shutdown(const char *fmt, ...) {
+	va_list args;
+	char msg[MAX_PRINT_MSG];
+
+	fmt = fmt ? fmt : ""; // normal shutdown will actually pass NULL
+
+	va_start(args, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, args);
+	va_end(args);
+
+	if (quake2world.Shutdown) {
+		quake2world.Shutdown(msg);
+	} else {
+		Com_Print("%s", msg);
+	}
+
+	exit(0);
 }
 
 /*
@@ -351,7 +427,7 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
 	b = Msg_ReadByte(sb);
 
 	if (b >= NUM_APPROXIMATE_NORMALS) {
-		Com_Error(ERR_DROP, "Msg_ReadDir: out of range.\n");
+		Com_Error(ERR_DROP, "%d out of range\n", b);
 	}
 
 	VectorCopy(approximate_normals[b], dir);
@@ -361,18 +437,17 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
  * @brief Writes part of a packetentities message.
  * Can delta from either a baseline or a previous packet_entity
  */
-void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
-		size_buf_t *msg, bool force, bool is_new) {
+void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, bool force,
+		bool is_new) {
 
 	uint16_t bits = 0;
 
 	if (to->number <= 0) {
-		Com_Error(ERR_FATAL, "Msg_WriteDeltaEntity: Unset entity number.\n");
+		Com_Error(ERR_FATAL, "Unset entity number\n");
 	}
 
 	if (to->number >= MAX_EDICTS) {
-		Com_Error(ERR_FATAL,
-				"Msg_WriteDeltaEntity: Entity number >= MAX_EDICTS.\n");
+		Com_Error(ERR_FATAL, "Entity number >= MAX_EDICTS\n");
 	}
 
 	if (!VectorCompare(to->origin, from->origin))
@@ -384,8 +459,7 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
 	if (!VectorCompare(to->angles, from->angles))
 		bits |= U_ANGLES;
 
-	if (to->animation1 != from->animation1 || to->animation2
-			!= from->animation2)
+	if (to->animation1 != from->animation1 || to->animation2 != from->animation2)
 		bits |= U_ANIMATIONS;
 
 	if (to->event) // event is not delta compressed, just 0 compressed
@@ -394,8 +468,8 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
 	if (to->effects != from->effects)
 		bits |= U_EFFECTS;
 
-	if (to->model1 != from->model1 || to->model2 != from->model2 || to->model3
-			!= from->model3 || to->model4 != from->model4)
+	if (to->model1 != from->model1 || to->model2 != from->model2 || to->model3 != from->model3
+			|| to->model4 != from->model4)
 		bits |= U_MODELS;
 
 	if (to->client != from->client)
@@ -455,8 +529,8 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to,
 /*
  * @brief
  */
-void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to,
-		size_buf_t *msg, uint16_t number, uint16_t bits) {
+void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg,
+		uint16_t number, uint16_t bits) {
 
 	// set everything to the state we are delta'ing from
 	*to = *from;
@@ -578,9 +652,8 @@ int32_t Msg_ReadLong(size_buf_t *sb) {
 	if (sb->read + 4 > sb->size)
 		c = -1;
 	else
-		c = sb->data[sb->read] + (sb->data[sb->read + 1] << 8)
-				+ (sb->data[sb->read + 2] << 16) + (sb->data[sb->read + 3]
-				<< 24);
+		c = sb->data[sb->read] + (sb->data[sb->read + 1] << 8) + (sb->data[sb->read + 2] << 16)
+				+ (sb->data[sb->read + 3] << 24);
 
 	sb->read += 4;
 
@@ -594,7 +667,7 @@ char *Msg_ReadString(size_buf_t *sb) {
 	static char string[MAX_STRING_CHARS];
 	int32_t c;
 	uint32_t l;
-	
+
 	l = 0;
 	do {
 		c = Msg_ReadChar(sb);
@@ -722,16 +795,14 @@ void *Sb_Alloc(size_buf_t *buf, size_t length) {
 
 	if (buf->size + length > buf->max_size) {
 		if (!buf->allow_overflow) {
-			Com_Error(ERR_FATAL,
-					"Sb_GetSpace: Overflow without allow_overflow set.\n");
+			Com_Error(ERR_FATAL, "Overflow without allow_overflow set\n");
 		}
 
 		if (length > buf->max_size) {
-			Com_Error(ERR_FATAL,
-					"Sb_GetSpace: "Q2W_SIZE_T" is > full buffer size.\n", length);
+			Com_Error(ERR_FATAL, "%zu is > full buffer size %zu\n", length, buf->max_size);
 		}
 
-		Com_Warn("Sb_GetSpace: overflow.\n");
+		Com_Warn("Overflow\n");
 		Sb_Clear(buf);
 		buf->overflowed = true;
 	}
@@ -767,47 +838,19 @@ void Sb_Print(size_buf_t *buf, const char *data) {
 }
 
 /*
- * @brief
+ * @brief Returns the command line argument count.
  */
 int32_t Com_Argc(void) {
 	return quake2world.argc;
 }
 
 /*
- * @brief
+ * @brief Returns the command line argument at the specified index.
  */
 char *Com_Argv(int32_t arg) {
-	if (arg < 0 || arg >= Com_Argc() || !quake2world.argv[arg])
+	if (arg < 0 || arg >= Com_Argc())
 		return "";
 	return quake2world.argv[arg];
-}
-
-/*
- * @brief
- */
-void Com_ClearArgv(int32_t arg) {
-	if (arg < 0 || arg >= quake2world.argc || !quake2world.argv[arg])
-		return;
-	quake2world.argv[arg] = "";
-}
-
-/*
- * @brief
- */
-void Com_InitArgv(int32_t argc, char **argv) {
-	int32_t i;
-
-	if (argc > MAX_NUM_ARGVS)
-		Com_Warn("Com_InitArgv: argc > MAX_NUM_ARGVS.");
-
-	quake2world.argc = argc;
-
-	for (i = 0; i < argc && i < MAX_NUM_ARGVS; i++) {
-		if (!argv[i] || strlen(argv[i]) >= MAX_TOKEN_CHARS)
-			quake2world.argv[i] = "";
-		else
-			quake2world.argv[i] = argv[i];
-	}
 }
 
 /*

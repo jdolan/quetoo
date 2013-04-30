@@ -34,6 +34,7 @@ cvar_t *m_pitch;
 cvar_t *m_sensitivity_zoom;
 cvar_t *m_sensitivity;
 cvar_t *m_yaw;
+cvar_t *debug_m_capture;
 
 // key strokes queued per frame, power of 2
 #define MAX_KEY_QUEUE 64
@@ -51,9 +52,9 @@ static int32_t cl_key_queue_tail = 0;
 
 #define EVENT_ENQUEUE(keyNum, keyUnicode, keyDown) \
 	if(keyNum > 0){ \
-		cl_key_queue[cl_key_queue_head].key = (keyNum); \
-		cl_key_queue[cl_key_queue_head].unicode = (keyUnicode); \
-		cl_key_queue[cl_key_queue_head].down = (keyDown); \
+		cl_key_queue[cl_key_queue_head].key = (SDLKey) (keyNum); \
+		cl_key_queue[cl_key_queue_head].unicode = (uint16_t) (keyUnicode); \
+		cl_key_queue[cl_key_queue_head].down = (bool) (keyDown); \
 		cl_key_queue_head = (cl_key_queue_head + 1) & (MAX_KEY_QUEUE - 1); \
 	}
 
@@ -100,9 +101,8 @@ static cl_button_t cl_buttons[12];
  */
 static void Cl_KeyDown(cl_button_t *b) {
 	SDLKey k;
-	char *c;
 
-	c = Cmd_Argv(1);
+	const char *c = Cmd_Argv(1);
 	if (c[0])
 		k = atoi(c);
 	else
@@ -116,7 +116,7 @@ static void Cl_KeyDown(cl_button_t *b) {
 	else if (!b->down[1])
 		b->down[1] = k;
 	else {
-		Com_Debug("Cl_KeyDown: 3 keys down for button\n");
+		Com_Debug("3 keys down for button\n");
 		return;
 	}
 
@@ -124,10 +124,10 @@ static void Cl_KeyDown(cl_button_t *b) {
 		return; // still down
 
 	// save timestamp
-	c = Cmd_Argv(2);
-	b->down_time = atoi(c);
+	const char *t = Cmd_Argv(2);
+	b->down_time = atoi(t);
 	if (!b->down_time)
-		b->down_time = cls.real_time - 100;
+		b->down_time = cls.real_time;
 
 	b->state |= 1;
 }
@@ -137,12 +137,11 @@ static void Cl_KeyDown(cl_button_t *b) {
  */
 static void Cl_KeyUp(cl_button_t *b) {
 	SDLKey k;
-	char *c;
 
-	c = Cmd_Argv(1);
+	const char *c = Cmd_Argv(1);
 	if (c[0])
 		k = atoi(c);
-	else { // typed manually at the console, assume for unsticking, so clear all
+	else { // typed manually at the console, assume for un-sticking, so clear all
 		b->down[0] = b->down[1] = 0;
 		return;
 	}
@@ -161,8 +160,8 @@ static void Cl_KeyUp(cl_button_t *b) {
 		return; // still up (this should not happen)
 
 	// save timestamp
-	c = Cmd_Argv(2);
-	const uint32_t uptime = atoi(c);
+	const char *t = Cmd_Argv(2);
+	const uint32_t uptime = atoi(t);
 	if (uptime)
 		b->msec += uptime - b->down_time;
 	else
@@ -345,7 +344,7 @@ static void Cl_MouseMove(int32_t mx, int32_t my) {
 		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
 	}
 
-	if (cls.key_state.dest != KEY_UI && cls.mouse_state.grabbed) {
+	if (cls.key_state.dest != KEY_UI && cls.mouse_state.grabbed && debug_m_capture->integer != 0) {
 		// warp the cursor back to the center of the screen
 		SDL_WarpMouse(r_context.width / 2, r_context.height / 2);
 	}
@@ -382,7 +381,7 @@ void Cl_HandleEvents(void) {
 
 		SDLKey i;
 
-		for (i = SDLK_FIRST; i < SDLK_MLAST; i++) {
+		for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++) {
 			if (cls.key_state.down[i]) {
 				if (cls.key_state.binds[i] && cls.key_state.binds[i][0] == '+') {
 					Cl_KeyEvent(i, i, false, cls.real_time);
@@ -413,7 +412,7 @@ void Cl_HandleEvents(void) {
 		cls.mouse_state.grabbed = false;
 	}
 
-	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI) {
+	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI || debug_m_capture->integer == 0) {
 		if (!r_context.fullscreen) {
 			// allow cursor to move outside window on console or menu
 			SDL_WM_GrabInput(SDL_GRAB_OFF);
@@ -577,6 +576,7 @@ void Cl_InitInput(void) {
 	m_sensitivity = Cvar_Get("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
 	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0, NULL);
+	debug_m_capture = Cvar_Get("debug_m_capture", "1", 0, NULL);
 
 	Cl_ClearInput();
 
