@@ -170,13 +170,13 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 	int32_t i;
 
 	for (i = 0; i < e->num_origins; i++) {
-		const r_image_t *image;
+		cg_particles_t *ps;
 		cg_particle_t *p;
 		int32_t j;
 
-		image = cgi.view->weather & WEATHER_RAIN ? cg_particle_rain : cg_particle_snow;
+		ps = cgi.view->weather & WEATHER_RAIN ? cg_particles_rain : cg_particles_snow;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER, image)))
+		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER, ps)))
 			break;
 
 		const float *org = &e->origins[i * 3];

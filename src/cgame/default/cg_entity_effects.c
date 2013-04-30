@@ -120,7 +120,7 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
 
 	for (i = 0; i < 4; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particle_teleporter)))
+		if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter)))
 			return;
 
 		p->part.color = 216;
@@ -157,7 +157,7 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_smoke)))
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke)))
 		return;
 
 	p->part.blend = GL_ONE;
@@ -199,7 +199,7 @@ void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particle_flame)))
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_flame)))
 		return;
 
 	p->part.color = 220 + (Random() & 7);
@@ -248,7 +248,7 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_steam)))
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam)))
 		return;
 
 	p->part.color = 6 + (Random() & 7);
@@ -292,7 +292,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 		if (!(cgi.PointContents(move) & MASK_WATER))
 			continue;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particle_bubble)))
+		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble)))
 			return;
 
 		p->part.color = 6 + (Random() & 3);
@@ -499,7 +499,7 @@ static void Cg_LightningTrail(const vec3_t start, const vec3_t end, cl_entity_t 
 	i = 0;
 	while (dist > 0.0) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particle_lightning)))
+		if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_lightning)))
 			return;
 
 		p->part.color = 12 + (Random() & 3);
@@ -569,11 +569,10 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 void Cg_InactiveTrail(const vec3_t start) {
 	cg_particle_t *p;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_inactive)))
 		return;
 
 	p->part.color = 11;
-	p->part.image = cg_particle_inactive;
 
 	p->part.alpha = 1.0;
 	p->alpha_vel = -99999999.0;

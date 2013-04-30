@@ -43,7 +43,6 @@ static int32_t S_AllocChannel(void) {
  * @brief
  */
 void S_FreeChannel(int32_t c) {
-
 	memset(&s_env.channels[c], 0, sizeof(s_env.channels[0]));
 }
 

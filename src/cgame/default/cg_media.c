@@ -47,22 +47,22 @@ s_sample_t *cg_sample_rain;
 s_sample_t *cg_sample_snow;
 s_sample_t *cg_sample_hit;
 
-r_image_t *cg_particle_normal;
-r_image_t *cg_particle_explosion;
-r_image_t *cg_particle_teleporter;
-r_image_t *cg_particle_smoke;
-r_image_t *cg_particle_steam;
-r_image_t *cg_particle_bubble;
-r_image_t *cg_particle_rain;
-r_image_t *cg_particle_snow;
-r_image_t *cg_particle_beam;
-r_image_t *cg_particle_burn;
-r_image_t *cg_particle_blood;
-r_image_t *cg_particle_lightning;
-r_image_t *cg_particle_flame;
-r_image_t *cg_particle_spark;
-r_image_t *cg_particle_inactive;
-r_image_t *cg_particle_bullet[3];
+cg_particles_t *cg_particles_normal;
+cg_particles_t *cg_particles_explosion;
+cg_particles_t *cg_particles_teleporter;
+cg_particles_t *cg_particles_smoke;
+cg_particles_t *cg_particles_steam;
+cg_particles_t *cg_particles_bubble;
+cg_particles_t *cg_particles_rain;
+cg_particles_t *cg_particles_snow;
+cg_particles_t *cg_particles_beam;
+cg_particles_t *cg_particles_burn;
+cg_particles_t *cg_particles_blood;
+cg_particles_t *cg_particles_lightning;
+cg_particles_t *cg_particles_flame;
+cg_particles_t *cg_particles_spark;
+cg_particles_t *cg_particles_inactive;
+cg_particles_t *cg_particles_bullet[3];
 
 /*
  * @brief Updates all media references for the client game.
@@ -70,6 +70,8 @@ r_image_t *cg_particle_bullet[3];
 void Cg_UpdateMedia(void) {
 	int32_t i;
 	char name[MAX_QPATH];
+
+	Cg_FreeParticles();
 
 	cgi.FreeTag(Z_TAG_CGAME);
 	cgi.FreeTag(Z_TAG_CGAME_LEVEL);
@@ -112,25 +114,25 @@ void Cg_UpdateMedia(void) {
 		cg_sample_footsteps[i] = cgi.LoadSample(name);
 	}
 
-	cg_particle_normal = cgi.LoadImage("particles/particle.tga", IT_EFFECT);
-	cg_particle_explosion = cgi.LoadImage("particles/explosion.tga", IT_EFFECT);
-	cg_particle_teleporter = cgi.LoadImage("particles/teleport.tga", IT_EFFECT);
-	cg_particle_smoke = cgi.LoadImage("particles/smoke.tga", IT_EFFECT);
-	cg_particle_steam = cgi.LoadImage("particles/steam.tga", IT_EFFECT);
-	cg_particle_bubble = cgi.LoadImage("particles/bubble.tga", IT_EFFECT);
-	cg_particle_rain = cgi.LoadImage("particles/rain.tga", IT_EFFECT);
-	cg_particle_snow = cgi.LoadImage("particles/snow.tga", IT_EFFECT);
-	cg_particle_beam = cgi.LoadImage("particles/beam.tga", IT_EFFECT);
-	cg_particle_burn = cgi.LoadImage("particles/burn.tga", IT_EFFECT);
-	cg_particle_blood = cgi.LoadImage("particles/blood.tga", IT_EFFECT);
-	cg_particle_lightning = cgi.LoadImage("particles/lightning.tga", IT_EFFECT);
-	cg_particle_flame = cgi.LoadImage("particles/flame.tga", IT_EFFECT);
-	cg_particle_spark = cgi.LoadImage("particles/spark.tga", IT_EFFECT);
-	cg_particle_inactive = cgi.LoadImage("particles/inactive.tga", IT_EFFECT);
+	cg_particles_normal = Cg_AllocParticles(cgi.LoadImage("particles/particle.tga", IT_EFFECT));
+	cg_particles_explosion = Cg_AllocParticles(cgi.LoadImage("particles/explosion.tga", IT_EFFECT));
+	cg_particles_teleporter = Cg_AllocParticles(cgi.LoadImage("particles/teleport.tga", IT_EFFECT));
+	cg_particles_smoke = Cg_AllocParticles(cgi.LoadImage("particles/smoke.tga", IT_EFFECT));
+	cg_particles_steam = Cg_AllocParticles(cgi.LoadImage("particles/steam.tga", IT_EFFECT));
+	cg_particles_bubble = Cg_AllocParticles(cgi.LoadImage("particles/bubble.tga", IT_EFFECT));
+	cg_particles_rain = Cg_AllocParticles(cgi.LoadImage("particles/rain.tga", IT_EFFECT));
+	cg_particles_snow = Cg_AllocParticles(cgi.LoadImage("particles/snow.tga", IT_EFFECT));
+	cg_particles_beam = Cg_AllocParticles(cgi.LoadImage("particles/beam.tga", IT_EFFECT));
+	cg_particles_burn = Cg_AllocParticles(cgi.LoadImage("particles/burn.tga", IT_EFFECT));
+	cg_particles_blood = Cg_AllocParticles(cgi.LoadImage("particles/blood.tga", IT_EFFECT));
+	cg_particles_lightning = Cg_AllocParticles(cgi.LoadImage("particles/lightning.tga", IT_EFFECT));
+	cg_particles_flame = Cg_AllocParticles(cgi.LoadImage("particles/flame.tga", IT_EFFECT));
+	cg_particles_spark = Cg_AllocParticles(cgi.LoadImage("particles/spark.tga", IT_EFFECT));
+	cg_particles_inactive = Cg_AllocParticles(cgi.LoadImage("particles/inactive.tga", IT_EFFECT));
 
 	for (i = 0; i < 3; i++) {
 		g_snprintf(name, sizeof(name), "particles/bullet_%i", i);
-		cg_particle_bullet[i] = cgi.LoadImage(name, IT_EFFECT);
+		cg_particles_bullet[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT));
 	}
 
 	cg_draw_crosshair->modified = true;
@@ -141,8 +143,6 @@ void Cg_UpdateMedia(void) {
 	Cg_LoadEffects();
 
 	Cg_LoadClients();
-
-	Cg_FreeParticles();
 
 	cgi.Debug("Complete\n");
 }

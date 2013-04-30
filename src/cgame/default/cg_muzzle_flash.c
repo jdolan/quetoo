@@ -103,7 +103,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particle_smoke)))
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke)))
 		return;
 
 	p->part.blend = GL_ONE;
