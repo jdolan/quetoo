@@ -61,42 +61,35 @@ static z_block_t *Z_CheckMagic(void *p) {
 }
 
 /*
- * @brief Performs the actual grunt work of freeing managed memory.
+ * @brief Recursively frees linked managed memory.
  */
-static void Z_Free_(gpointer data) {
-	z_block_t *z = (z_block_t *) data;
+static void Z_Free_(z_block_t *z) {
 
-	// first, remove this element from its parent
-	if (z->parent) {
-		z->parent->children = g_list_remove(z->parent->children, data);
-	}
-
-	// next, free any dependencies (children)
+	// recurse down the tree, freeing children
 	if (z->children) {
-		GList *next, *c = z->children;
-		while (c) {
-			next = c->next;
-			Z_Free_(c->data);
-			c = next;
-		}
-		g_list_free(z->children);
+		g_list_free_full(z->children, (GDestroyNotify) Z_Free_);
 	}
 
-	// finally, adjust the pool size and free the memory
+	// decrement the pool size and free the memory
 	z_state.size -= z->size;
 
 	free(z);
 }
 
 /*
- * @brief Free an allocation of managed memory.
+ * @brief Free an allocation of managed memory. Any child objects are
+ * automatically freed as well.
  */
 void Z_Free(void *p) {
 	z_block_t *z = Z_CheckMagic(p);
 
 	SDL_mutexP(z_state.lock);
 
-	g_hash_table_remove(z_state.blocks, (gconstpointer) z);
+	if (z->parent) {
+		z->parent->children = g_list_remove(z->parent->children, z);
+	} else {
+		g_hash_table_remove(z_state.blocks, (gconstpointer) z);
+	}
 
 	Z_Free_(z);
 

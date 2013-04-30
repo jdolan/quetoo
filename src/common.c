@@ -197,6 +197,8 @@ void Com_Init(int32_t argc, char **argv) {
 	quake2world.argc = argc;
 	quake2world.argv = argv;
 
+	//putenv("G_SLICE=always-malloc");
+
 	if (quake2world.Init) {
 		quake2world.Init();
 	}
