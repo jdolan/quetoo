@@ -24,7 +24,7 @@
 typedef struct {
 	GHashTable *media;
 	GList *keys;
-	uint32_t seed; // for tracking stale assets
+	int32_t seed; // for freeing stale assets
 } s_media_state_t;
 
 static s_media_state_t s_media_state;
@@ -73,7 +73,8 @@ void S_RegisterMedia(s_media_t *media) {
 		} else {
 			Com_Debug("Inserting %s\n", media->name);
 			g_hash_table_insert(s_media_state.media, media->name, media);
-			s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media->name, S_RegisterMedia_Compare);
+			s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media->name,
+					S_RegisterMedia_Compare);
 		}
 
 		// re-seed the media to retain it
@@ -152,7 +153,12 @@ void S_FreeMedia(void) {
  * @brief Prepares the media subsystem for loading.
  */
 void S_BeginLoading(void) {
-	s_media_state.seed = time(NULL);
+	int32_t s;
+	do {
+		s = Random();
+	} while (s == s_media_state.seed);
+
+	s_media_state.seed = s;
 }
 
 /*

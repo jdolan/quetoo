@@ -30,9 +30,9 @@
 // media handles
 typedef struct s_media_s {
 	char name[MAX_QPATH];
-	uint32_t seed;
 	bool (*Retain)(struct s_media_s *self);
 	void (*Free)(struct s_media_s *self);
+	int32_t seed;
 } s_media_t;
 
 typedef struct s_sample_s {

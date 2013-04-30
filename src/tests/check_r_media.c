@@ -65,11 +65,19 @@ START_TEST(check_R_RegisterMedia)
 		ck_assert_msg(R_FindMedia("child1") == child1, "Erroneously freed child1");
 		ck_assert_msg(R_FindMedia("grandchild1") == grandchild1, "Erroneously freed grandchild1");
 
+		uint32_t old_seed = parent1->seed;
+
 		R_BeginLoading();
 
 		ck_assert(R_FindMedia("parent1") == parent1);
+		ck_assert_msg(old_seed != parent1->seed, "Seed for parent1 has not changed");
 		ck_assert_msg(child1->seed == parent1->seed, "Dependency child1 not retained");
 		ck_assert_msg(grandchild1->seed == parent1->seed, "Dependency grandchild1 not retained");
+
+		R_BeginLoading();
+		R_FreeMedia();
+
+		ck_assert_msg(Z_Size() == 0, "Not all memory freed: %zu", Z_Size());
 
 	}END_TEST
 

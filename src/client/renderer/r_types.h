@@ -35,7 +35,7 @@ typedef struct r_media_s {
 	void (*Register)(struct r_media_s *self);
 	bool (*Retain)(struct r_media_s *self);
 	void (*Free)(struct r_media_s *self);
-	uint32_t seed;
+	int32_t seed;
 } r_media_t;
 
 typedef int16_t r_pixel_t;

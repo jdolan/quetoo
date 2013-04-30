@@ -24,7 +24,7 @@
 typedef struct {
 	GHashTable *media;
 	GList *keys;
-	uint32_t seed; // for tracking stale assets
+	int32_t seed; // for tracking stale assets
 } r_media_state_t;
 
 static r_media_state_t r_media_state;
@@ -190,7 +190,12 @@ void R_FreeMedia(void) {
  * @brief Prepares the media subsystem for loading.
  */
 void R_BeginLoading(void) {
-	r_media_state.seed = time(NULL);
+	int32_t s;
+	do {
+		s = Random();
+	} while (s == r_media_state.seed);
+
+	r_media_state.seed = s;
 }
 
 /*
