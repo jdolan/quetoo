@@ -57,7 +57,6 @@ case "$host" in
 		HOST_LIBS="-ldl"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
-		DEFAULT_PREFIX="/opt/local"
 		AC_MSG_RESULT(apple)
 		;;
 	*bsd*)
