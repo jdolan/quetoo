@@ -106,7 +106,7 @@ s_sample_t *S_LoadSample(const char *name) {
 	StripExtension(name, key);
 
 	if (!(sample = (s_sample_t *) S_FindMedia(key))) {
-		sample = (s_sample_t *) S_MallocMedia(key, sizeof(s_sample_t));
+		sample = (s_sample_t *) S_AllocMedia(key, sizeof(s_sample_t));
 
 		sample->media.Free = S_FreeSample;
 
@@ -123,7 +123,7 @@ s_sample_t *S_LoadSample(const char *name) {
  */
 static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
 
-	s_sample_t *s = (s_sample_t *) S_MallocMedia(alias, sizeof(s_sample_t));
+	s_sample_t *s = (s_sample_t *) S_AllocMedia(alias, sizeof(s_sample_t));
 
 	s->chunk = sample->chunk;
 	s->alias = true;

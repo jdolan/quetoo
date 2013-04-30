@@ -216,7 +216,7 @@ r_model_t *R_LoadModel(const char *name) {
 
 		StripExtension(name, key);
 
-		mod = (r_model_t *) R_MallocMedia(key, sizeof(r_model_t));
+		mod = (r_model_t *) R_AllocMedia(key, sizeof(r_model_t));
 
 		mod->media.Register = R_RegisterModel;
 		mod->media.Free = R_FreeModel;

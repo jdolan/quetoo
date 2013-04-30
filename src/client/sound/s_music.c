@@ -115,7 +115,7 @@ s_music_t *S_LoadMusic(const char *name) {
 		Mix_Music *mus;
 		if (S_LoadMusicFile(key, &buffer, &rw, &mus)) {
 
-			music = (s_music_t *) S_MallocMedia(key, sizeof(s_music_t));
+			music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t));
 
 			music->media.Retain = S_RetainMusic;
 			music->media.Free = S_FreeMusic;

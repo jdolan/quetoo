@@ -139,7 +139,7 @@ r_media_t *R_FindMedia(const char *name) {
  *
  * @return The newly initialized media.
  */
-r_media_t *R_MallocMedia(const char *name, size_t size) {
+r_media_t *R_AllocMedia(const char *name, size_t size) {
 
 	if (!name || !*name) {
 		Com_Error(ERR_DROP, "NULL name\n");
@@ -190,7 +190,7 @@ void R_FreeMedia(void) {
  * @brief Prepares the media subsystem for loading.
  */
 void R_BeginLoading(void) {
-	r_media_state.seed = Random();
+	r_media_state.seed = time(NULL);
 }
 
 /*

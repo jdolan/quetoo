@@ -46,17 +46,17 @@ START_TEST(check_R_RegisterMedia)
 	{
 		R_BeginLoading();
 
-		r_media_t *parent1 = R_MallocMedia("parent1", sizeof(r_media_t));
+		r_media_t *parent1 = R_AllocMedia("parent1", sizeof(r_media_t));
 		R_RegisterMedia(parent1);
 
 		ck_assert_msg(R_FindMedia("parent1") == parent1, "Failed to find parent1");
 
-		r_media_t *child1 = R_MallocMedia("child1", sizeof(r_media_t));
+		r_media_t *child1 = R_AllocMedia("child1", sizeof(r_media_t));
 		R_RegisterDependency(parent1, child1);
 
 		ck_assert_msg(R_FindMedia("child1") == child1, "Failed to find child1");
 
-		r_media_t *grandchild1 = R_MallocMedia("grandchild1", sizeof(r_media_t));
+		r_media_t *grandchild1 = R_AllocMedia("grandchild1", sizeof(r_media_t));
 		R_RegisterDependency(child1, grandchild1);
 
 		R_FreeMedia();
