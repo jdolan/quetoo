@@ -46,6 +46,8 @@ typedef struct s_channel_s {
 	int32_t ent_num; // for entities and dynamic sounds
 	int32_t count; // for looped sounds
 	int32_t atten;
+	int16_t angle;
+	uint8_t dist;
 	s_sample_t *sample;
 } s_channel_t;
 
@@ -61,8 +63,11 @@ typedef struct s_music_s {
 // the sound environment
 typedef struct s_env_s {
 	s_channel_t channels[MAX_CHANNELS];
+
 	bool initialized; // is the sound subsystem initialized
 	bool update; // inform the client of state changes
+
+	uint16_t num_active_channels;
 } s_env_t;
 
 #endif /* __S_TYPES_H__ */

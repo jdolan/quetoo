@@ -117,14 +117,14 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
  * @brief Frees all particles, returning them to the eligible list.
  */
 void Cg_FreeParticles(void) {
-	int32_t i;
+	uint32_t i;
 
 	cg_free_particles = NULL;
 	memset(cg_active_particles, 0, sizeof(cg_active_particles));
 
 	memset(cg_particles, 0, sizeof(cg_particles));
 
-	for (i = 0; i < MAX_PARTICLES; i++) {
+	for (i = 0; i < lengthof(cg_particles); i++) {
 		Cg_FreeParticle(&cg_particles[i], NULL );
 	}
 }

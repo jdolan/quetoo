@@ -231,6 +231,16 @@ static void Cg_AddWeather(void) {
 	if (!(cgi.view->weather & (WEATHER_RAIN | WEATHER_SNOW)))
 		return;
 
+	s_sample_t *s; // add an appropriate looping sound
+
+	if (cgi.view->weather & WEATHER_RAIN) {
+		s = cg_sample_rain;
+	} else {
+		s = cg_sample_snow;
+	}
+
+	cgi.LoopSample(cgi.view->origin, s);
+
 	if (cgi.client->time - cg_weather_state.time < 100)
 		return;
 
@@ -244,16 +254,6 @@ static void Cg_AddWeather(void) {
 		}
 		e = e->next;
 	}
-
-	s_sample_t *s; // add an appropriate looping sound
-
-	if (cgi.view->weather & WEATHER_RAIN) {
-		s = cg_sample_rain;
-	} else {
-		s = cg_sample_snow;
-	}
-
-	cgi.LoopSample(cgi.view->origin, s);
 }
 
 /**

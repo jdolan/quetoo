@@ -109,7 +109,7 @@ static void Cl_DrawNetGraph(void) {
 }
 
 /*
- * @brief
+ * @brief Draws counters and performance information about the renderer.
  */
 static void Cl_DrawRendererStats(void) {
 	r_pixel_t ch, y = 64;
@@ -126,7 +126,7 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	const uint32_t num_bind_diffuse = r_view.num_bind_texture - r_view.num_bind_lightmap
-				- r_view.num_bind_deluxemap - r_view.num_bind_normalmap - r_view.num_bind_glossmap;
+			- r_view.num_bind_deluxemap - r_view.num_bind_normalmap - r_view.num_bind_glossmap;
 
 	R_DrawString(0, y, va("%d diffuse", num_bind_diffuse), CON_COLOR_GREEN);
 	y += ch;
@@ -178,7 +178,29 @@ static void Cl_DrawRendererStats(void) {
 
 	R_DrawString(0, y, va("%d particles", r_view.num_particles), CON_COLOR_WHITE);
 
-	R_BindFont(NULL, NULL, NULL );
+	R_BindFont(NULL, NULL, NULL);
+}
+
+/*
+ * @brief Draws counters and performance information about the sound subsystem.
+ */
+static void Cl_DrawSoundStats(void) {
+	r_pixel_t ch, y = cl_show_renderer_stats->value ? 400 : 64;
+
+	if (!cl_show_sound_stats->value)
+		return;
+
+	if (cls.state != CL_ACTIVE)
+		return;
+
+	R_BindFont("small", NULL, &ch);
+
+	R_DrawString(0, y, "Sound:", CON_COLOR_MAGENTA);
+	y += ch;
+
+	R_DrawString(0, y, va("%d channels", s_env.num_active_channels), CON_COLOR_MAGENTA);
+
+	R_BindFont(NULL, NULL, NULL);
 }
 
 /*
@@ -228,7 +250,7 @@ static void Cl_DrawCounters(void) {
 
 	R_DrawString(x, y, bps, CON_COLOR_DEFAULT);
 
-	R_BindFont(NULL, NULL, NULL );
+	R_BindFont(NULL, NULL, NULL);
 }
 
 /*
@@ -272,6 +294,8 @@ void Cl_UpdateScreen(void) {
 			Cl_DrawNotify();
 
 			Cl_DrawRendererStats();
+
+			Cl_DrawSoundStats();
 
 			cls.cgame->DrawFrame(&cl.frame);
 		}

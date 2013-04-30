@@ -47,34 +47,36 @@ void S_FreeChannel(int32_t c) {
 	memset(&s_env.channels[c], 0, sizeof(s_env.channels[0]));
 }
 
-#define SOUND_DISTANCE_SCALE 0.15
+#define SOUND_DISTANCE_SCALE 0.16
 
 /*
  * @brief Set distance and stereo panning for the specified channel.
  */
-void S_SpatializeChannel(s_channel_t *ch) {
-	entity_state_t *ent;
+bool S_SpatializeChannel(s_channel_t *ch) {
 	vec3_t delta;
-	int32_t c;
-	float dist, dot, angle;
-
-	c = (int) ((ptrdiff_t) (ch - s_env.channels));
 
 	if (ch->ent_num != -1) { // update the channel origin
-		ent = &cl.entities[ch->ent_num].current;
+		const entity_state_t *ent = &cl.entities[ch->ent_num].current;
 		VectorCopy(ent->origin, ch->org);
 	}
 
 	VectorSubtract(ch->org, r_view.origin, delta);
-	dist = VectorNormalize(delta) * SOUND_DISTANCE_SCALE * ch->atten;
+	float dist = VectorNormalize(delta) * SOUND_DISTANCE_SCALE * ch->atten;
 
-	dist = Clamp(dist, 0.0, 255.0); // clamp to max
+	if (dist < 255.0) { // check if there's a clear line of sight to the origin
+		R_Trace(r_view.origin, ch->org, vec3_origin, vec3_origin, MASK_SHOT);
+		if (r_view.trace.fraction < 1.0) {
+			dist *= 2.0;
+		}
+	}
 
-	dot = DotProduct(r_view.right, delta);
-	angle = acos(dot) * 180.0 / M_PI - 90.0;
-	angle = (int16_t) (360.0 - angle) % 360;
+	ch->dist = (uint8_t) Clamp(dist, 0.0, 255.0);
 
-	Mix_SetPosition(c, (int16_t) angle, (uint8_t) dist);
+	const float dot = DotProduct(r_view.right, delta);
+	const float angle = acos(dot) * 180.0 / M_PI - 90.0;
+	ch->angle = (int16_t) (360.0 - angle) % 360;
+
+	return dist < 255.0;
 }
 
 /*
@@ -108,9 +110,12 @@ void S_PlaySample(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_
 	ch->atten = atten;
 	ch->sample = sample;
 
-	S_SpatializeChannel(ch);
-
-	Mix_PlayChannel(i, ch->sample->chunk, 0);
+	if (S_SpatializeChannel(ch)) {
+		Mix_SetPosition(i, ch->angle, ch->dist);
+		Mix_PlayChannel(i, ch->sample->chunk, 0);
+	} else {
+		S_FreeChannel(i);
+	}
 }
 
 /*
@@ -144,7 +149,6 @@ void S_LoopSample(const vec3_t org, s_sample_t *sample) {
 
 	if (ch) { // update existing loop sample
 		ch->count++;
-
 		VectorMix(ch->org, org, 1.0 / ch->count, ch->org);
 	} else { // or allocate a new one
 
@@ -159,10 +163,13 @@ void S_LoopSample(const vec3_t org, s_sample_t *sample) {
 		ch->atten = ATTN_IDLE;
 		ch->sample = sample;
 
-		Mix_PlayChannel(i, ch->sample->chunk, 0);
+		if (S_SpatializeChannel(ch)) {
+			Mix_SetPosition(i, ch->angle, ch->dist);
+			Mix_PlayChannel(i, ch->sample->chunk, 0);
+		} else {
+			S_FreeChannel(i);
+		}
 	}
-
-	S_SpatializeChannel(ch);
 }
 
 /*

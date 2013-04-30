@@ -33,6 +33,7 @@ cvar_t *cl_max_pps;
 cvar_t *cl_predict;
 cvar_t *cl_show_net_messages;
 cvar_t *cl_show_renderer_stats;
+cvar_t *cl_show_sound_stats;
 cvar_t *cl_team_chat_sound;
 cvar_t *cl_timeout;
 cvar_t *cl_view_size;
@@ -488,6 +489,7 @@ static void Cl_InitLocal(void) {
 	cl_predict = Cvar_Get("cl_predict", "1", 0, NULL);
 	cl_show_net_messages = Cvar_Get("cl_show_net_messages", "0", CVAR_LO_ONLY, NULL);
 	cl_show_renderer_stats = Cvar_Get("cl_show_renderer_stats", "0", CVAR_LO_ONLY, NULL);
+	cl_show_sound_stats = Cvar_Get("cl_show_sound_stats", "0", CVAR_LO_ONLY, NULL);
 	cl_team_chat_sound = Cvar_Get("cl_team_chat_sound", "misc/teamchat", 0, NULL);
 	cl_timeout = Cvar_Get("cl_timeout", "15.0", 0, NULL);
 	cl_view_size = Cvar_Get("cl_view_size", "100.0", CVAR_ARCHIVE, NULL);

@@ -82,10 +82,14 @@ void S_Frame(void) {
 		if (!ch->sample)
 			continue;
 
+		if (S_SpatializeChannel(ch)) {
+			Mix_SetPosition(i, ch->angle, ch->dist);
+		} else {
+			Mix_FadeOutChannel(i, 250);
+		}
+
 		// reset channel's count for loop samples
 		ch->count = 0;
-
-		S_SpatializeChannel(ch);
 	}
 
 	// add new dynamic sounds
@@ -108,6 +112,16 @@ void S_Frame(void) {
 
 	if (r_view.contents & MASK_WATER) { // add under water sample
 		S_LoopSample(r_view.origin, S_LoadSample("world/under_water"));
+	}
+
+	// update active channel count
+
+	ch = s_env.channels;
+	s_env.num_active_channels = 0;
+
+	for (i = 0; i < MAX_CHANNELS; i++, ch++) {
+		if (ch->sample)
+			s_env.num_active_channels++;
 	}
 }
 

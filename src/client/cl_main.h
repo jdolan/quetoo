@@ -55,6 +55,7 @@ void Cl_Shutdown(void);
 
 extern cvar_t *cl_show_net_messages;
 extern cvar_t *cl_show_renderer_stats;
+extern cvar_t *cl_show_sound_stats;
 
 extern cvar_t *rcon_password;
 extern cvar_t *rcon_address;
