@@ -41,31 +41,45 @@ typedef struct {
 static r_lightmap_state_t r_lightmap_state;
 
 /*
+ * @brief The source of my misery for about 3 weeks.
+ */
+static void R_FreeLightmap(r_media_t *media) {
+	glDeleteTextures(1, &((r_image_t *) media)->texnum);
+}
+
+/*
+ * @brief Allocates a new lightmap (or deluxemap) image handle.
+ */
+static r_image_t *R_AllocLightmap_(r_image_type_t type) {
+	static uint32_t count;
+	char name[MAX_QPATH];
+
+	const char *base = (type == IT_LIGHTMAP ? "lightmap" : "deluxemap");
+	g_snprintf(name, sizeof(name), "%s %u", base, count++);
+
+	r_image_t *image = (r_image_t *) R_AllocMedia(name, sizeof(r_image_t));
+
+	image->media.Free = R_FreeLightmap;
+
+	image->type = type;
+	image->width = image->height = r_lightmap_state.block_size;
+
+	return image;
+}
+
+#define R_AllocLightmap() R_AllocLightmap_(IT_LIGHTMAP)
+#define R_AllocDeluxemap() R_AllocLightmap_(IT_DELUXEMAP)
+
+/*
  * @brief
  */
 static void R_UploadLightmapBlock(r_bsp_model_t *bsp) {
-	static uint32_t count;
 
-	r_image_t *lm = r_lightmap_state.lightmap;
-
-	g_snprintf(lm->media.name, sizeof(lm->media.name), "lightmap %d", count);
-	lm->type = IT_LIGHTMAP;
-	lm->width = lm->height = r_lightmap_state.block_size;
-
-	R_UploadImage(lm, GL_RGB, r_lightmap_state.sample_buffer);
+	R_UploadImage(r_lightmap_state.lightmap, GL_RGB, r_lightmap_state.sample_buffer);
 
 	if (bsp->version == BSP_VERSION_Q2W) { // upload deluxe block as well
-
-		r_image_t *dm = r_lightmap_state.deluxemap;
-
-		g_snprintf(dm->media.name, sizeof(dm->media.name), "deluxemap %d", count);
-		dm->type = IT_DELUXEMAP;
-		dm->width = dm->height = r_lightmap_state.block_size;
-
-		R_UploadImage(dm, GL_RGB, r_lightmap_state.direction_buffer);
+		R_UploadImage(r_lightmap_state.deluxemap, GL_RGB, r_lightmap_state.direction_buffer);
 	}
-
-	count++;
 
 	// clear the allocation block and buffers
 	memset(r_lightmap_state.allocated, 0, r_lightmap_state.block_size * sizeof(r_pixel_t));
@@ -252,10 +266,10 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 
 		R_UploadLightmapBlock(bsp); // upload the last block
 
-		r_lightmap_state.lightmap = Z_TagMalloc(sizeof(r_image_t), Z_TAG_RENDERER);
+		r_lightmap_state.lightmap = R_AllocLightmap();
 
 		if (bsp->version == BSP_VERSION_Q2W) {
-			r_lightmap_state.deluxemap = Z_TagMalloc(sizeof(r_image_t), Z_TAG_RENDERER);
+			r_lightmap_state.deluxemap = R_AllocDeluxemap();
 		}
 
 		if (!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)) {
@@ -304,11 +318,11 @@ void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 	r_lightmap_state.direction_buffer = Z_TagMalloc(bs * bs * sizeof(uint32_t), Z_TAG_RENDERER);
 
 	// generate the initial texture for lightmap data
-	r_lightmap_state.lightmap = Z_TagMalloc(sizeof(r_image_t), Z_TAG_RENDERER);
+	r_lightmap_state.lightmap = R_AllocLightmap();
 
 	// and, if applicable, deluxemaps too
 	if (bsp->version == BSP_VERSION_Q2W) {
-		r_lightmap_state.deluxemap = Z_TagMalloc(sizeof(r_image_t), Z_TAG_RENDERER);
+		r_lightmap_state.deluxemap = R_AllocDeluxemap();
 	}
 }
 
