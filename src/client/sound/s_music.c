@@ -213,7 +213,13 @@ void S_FrameMusic(void) {
  * @brief Plays the next track in the configured playlist.
  */
 void S_NextTrack_f(void) {
-	S_PlayMusic(S_NextMusic());
+	s_music_t *music = S_NextMusic();
+
+	if (music) {
+		S_PlayMusic(music);
+	} else {
+		Com_Debug("No music available\n");
+	}
 }
 
 /*
