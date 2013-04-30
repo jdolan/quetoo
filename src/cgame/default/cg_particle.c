@@ -27,21 +27,6 @@ static cg_particles_t *cg_active_particles; // list of active particles, by imag
 static cg_particle_t cg_particles[MAX_PARTICLES];
 
 /*
- * @brief Allocates a particles chain for the specified image.
- */
-cg_particles_t *Cg_AllocParticles(const r_image_t *image) {
-	cg_particles_t *particles;
-
-	particles = cgi.Malloc(sizeof(*particles), Z_TAG_CGAME);
-	particles->image = image;
-
-	particles->next = cg_active_particles;
-	cg_active_particles = particles;
-
-	return particles;
-}
-
-/*
  * @brief Pushes the particle onto the head of specified list.
  */
 static void Cg_PushParticle(cg_particle_t *p, cg_particle_t **list) {
@@ -126,6 +111,21 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
 	Cg_PushParticle(p, &cg_free_particles);
 
 	return next;
+}
+
+/*
+ * @brief Allocates a particles chain for the specified image.
+ */
+cg_particles_t *Cg_AllocParticles(const r_image_t *image) {
+	cg_particles_t *particles;
+
+	particles = cgi.Malloc(sizeof(*particles), Z_TAG_CGAME);
+	particles->image = image;
+
+	particles->next = cg_active_particles;
+	cg_active_particles = particles;
+
+	return particles;
 }
 
 /*

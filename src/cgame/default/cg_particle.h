@@ -26,8 +26,8 @@
 
 #define PARTICLE_GRAVITY 150.0
 
-cg_particles_t *Cg_AllocParticles(const r_image_t *image);
 cg_particle_t *Cg_AllocParticle(const uint16_t type, cg_particles_t *particles);
+cg_particles_t *Cg_AllocParticles(const r_image_t *image);
 void Cg_FreeParticles(void);
 void Cg_AddParticles(void);
 #endif /* __CG_LOCAL_H__ */
