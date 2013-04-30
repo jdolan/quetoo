@@ -163,8 +163,6 @@ void S_InitMedia(void) {
 	memset(&s_media_state, 0, sizeof(s_media_state));
 
 	s_media_state.media = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
-
-	s_media_state.seed = Sys_Milliseconds();
 }
 
 /*
