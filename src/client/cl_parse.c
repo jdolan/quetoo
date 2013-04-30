@@ -81,7 +81,7 @@ bool Cl_CheckOrDownloadFile(const char *filename) {
 				// give the server the offset to start the download
 				Com_Debug("Resuming %s...\n", cls.download.name);
 
-				g_snprintf(cmd, sizeof(cmd), "download %s %lld", cls.download.name, len);
+				g_snprintf(cmd, sizeof(cmd), "download %s %u", cls.download.name, (uint32_t) len);
 				Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
 				Msg_WriteString(&cls.netchan.message, cmd);
 

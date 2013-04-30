@@ -49,6 +49,7 @@
 #endif
 
 #include <time.h>
+#include <unistd.h>
 
 #ifdef _WIN32
 #include "win32.h"

@@ -11,6 +11,7 @@ config.sub
 configure
 depcomp
 .deps/
+gmon.out
 install-sh
 *.la
 .libs/

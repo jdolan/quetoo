@@ -226,15 +226,19 @@ static void Sv_NextDownload_f(void) {
  */
 static void Sv_Download_f(void) {
 	static const char *allowed_patterns[] = {
-		"*.zip", "maps/*", "models/*", "sounds/*", "env/*", "textures/*", NULL
-	};
+			"*.zip",
+			"maps/*",
+			"models/*",
+			"sounds/*",
+			"env/*",
+			"textures/*",
+			NULL };
 
 	const char *filename = Cmd_Argv(1);
 
 	// catch illegal offset or file_names
 	if (IS_INVALID_DOWNLOAD(filename)) {
-		Com_Warn("Malicious download (%s) from %s\n", filename,
-				Sv_NetaddrToString(sv_client));
+		Com_Warn("Malicious download (%s) from %s\n", filename, Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -247,8 +251,7 @@ static void Sv_Download_f(void) {
 	}
 
 	if (!pattern) { // it wasn't
-		Com_Warn("Illegal download (%s) from %s\n", filename,
-				Sv_NetaddrToString(sv_client));
+		Com_Warn("Illegal download (%s) from %s\n", filename, Sv_NetaddrToString(sv_client));
 		Sv_KickClient(sv_client, NULL);
 		return;
 	}
@@ -272,8 +275,7 @@ static void Sv_Download_f(void) {
 	download->size = (int32_t) Fs_Load(filename, (void *) &download->buffer);
 
 	if (download->size == -1) {
-		Com_Warn("Couldn't download %s to %s\n", filename,
-				Sv_NetaddrToString(sv_client));
+		Com_Warn("Couldn't download %s to %s\n", filename, Sv_NetaddrToString(sv_client));
 		Msg_WriteByte(&sv_client->netchan.message, SV_CMD_DOWNLOAD);
 		Msg_WriteShort(&sv_client->netchan.message, -1);
 		Msg_WriteByte(&sv_client->netchan.message, 0);
@@ -283,8 +285,7 @@ static void Sv_Download_f(void) {
 	if (Cmd_Argc() > 2) {
 		download->count = strtol(Cmd_Argv(2), NULL, 0);
 		if (download->count < 0 || download->count > download->size) {
-			Com_Warn("Invalid offset (%d) from %s\n", download->count,
-					Sv_NetaddrToString(sv_client));
+			Com_Warn("Invalid offset (%d) from %s\n", download->count, Sv_NetaddrToString(sv_client));
 			download->count = download->size;
 		}
 	}
@@ -330,16 +331,16 @@ typedef struct sv_user_string_cmd_s {
 } sv_user_string_cmd_t;
 
 sv_user_string_cmd_t sv_user_string_cmds[] = {
-	{ "new", Sv_New_f },
-	{ "config_strings", Sv_ConfigStrings_f },
-	{ "baselines", Sv_Baselines_f },
-	{ "begin", Sv_Begin_f },
-	{ "disconnect", Sv_Disconnect_f },
-	{ "info", Sv_Info_f },
-	{ "download", Sv_Download_f },
-	{ "nextdl", Sv_NextDownload_f },
-	{ NULL, NULL }
-};
+// mapping command names to their functions
+		{ "new", Sv_New_f },
+		{ "config_strings", Sv_ConfigStrings_f },
+		{ "baselines", Sv_Baselines_f },
+		{ "begin", Sv_Begin_f },
+		{ "disconnect", Sv_Disconnect_f },
+		{ "info", Sv_Info_f },
+		{ "download", Sv_Download_f },
+		{ "nextdl", Sv_NextDownload_f },
+		{ NULL, NULL } };
 
 /*
  * @brief Invoke the specified user string command. If we don't have a function for

@@ -212,14 +212,14 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 		return;
 	}
 
-	if (key == SDLK_PAGEUP || key == SDLK_MOUSE4) {
+	if (key == SDLK_PAGEUP || key == (SDLKey) SDLK_MOUSE4) {
 		cl_console.scroll += CON_SCROLL;
 		if (cl_console.scroll > cl_console.last_line)
 			cl_console.scroll = cl_console.last_line;
 		return;
 	}
 
-	if (key == SDLK_PAGEDOWN || key == SDLK_MOUSE5) {
+	if (key == SDLK_PAGEDOWN || key == (SDLKey) SDLK_MOUSE5) {
 		cl_console.scroll -= CON_SCROLL;
 		if (cl_console.scroll < 0)
 			cl_console.scroll = 0;
@@ -353,7 +353,7 @@ static void Cl_KeyMessage(SDLKey key, uint16_t unicode, bool down, uint32_t time
  */
 const char *Cl_KeyName(SDLKey key) {
 
-	if (key == SDLK_UNKNOWN || key >= SDLK_MLAST) {
+	if (key == SDLK_UNKNOWN || key >= (SDLKey) SDLK_MLAST) {
 		return va("<unknown %d>", key);
 	}
 
@@ -367,9 +367,9 @@ SDLKey Cl_Key(const char *name) {
 	SDLKey i;
 
 	if (!name || !name[0])
-		return SDLK_MLAST;
+		return (SDLKey) SDLK_MLAST;
 
-	for (i = SDLK_FIRST; i < SDLK_MLAST; i++) {
+	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++) {
 		if (!strcasecmp(name, cl_key_names[i]))
 			return i;
 	}
@@ -382,7 +382,7 @@ SDLKey Cl_Key(const char *name) {
  */
 void Cl_Bind(SDLKey key, const char *binding) {
 
-	if (key == SDLK_UNKNOWN || key >= SDLK_MLAST)
+	if (key == SDLK_UNKNOWN || key >= (SDLKey) SDLK_MLAST)
 		return;
 
 	// free the old binding
@@ -422,7 +422,7 @@ static void Cl_Unbind_f(void) {
 static void Cl_UnbindAll_f(void) {
 	SDLKey i;
 
-	for (i = SDLK_FIRST; i < SDLK_MLAST; i++)
+	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++)
 		if (ks->binds[i])
 			Cl_Bind(i, "");
 }
@@ -441,7 +441,7 @@ static void Cl_Bind_f(void) {
 
 	const SDLKey k = Cl_Key(Cmd_Argv(1));
 
-	if (k == SDLK_MLAST) {
+	if (k == (SDLKey) SDLK_MLAST) {
 		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
 		return;
 	}
@@ -477,7 +477,7 @@ static void Cl_Bind_f(void) {
 void Cl_WriteBindings(file_t *f) {
 	SDLKey i;
 
-	for (i = SDLK_FIRST; i < SDLK_MLAST; i++) {
+	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++) {
 		if (ks->binds[i] && ks->binds[i][0])
 			Fs_Print(f, "bind \"%s\" \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
 	}
@@ -489,7 +489,7 @@ void Cl_WriteBindings(file_t *f) {
 static void Cl_BindList_f(void) {
 	SDLKey i;
 
-	for (i = SDLK_FIRST; i < SDLK_MLAST; i++)
+	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++)
 		if (ks->binds[i] && ks->binds[i][0])
 			Com_Print("\"%s\" \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
 }
@@ -550,7 +550,7 @@ void Cl_InitKeys(void) {
 	for (k = SDLK_FIRST; k < SDLK_LAST; k++) {
 		cl_key_names[k] = Z_Link(Z_CopyString(SDL_GetKeyName(k)), cl_key_names);
 	}
-	for (k = SDLK_MOUSE1; k < SDLK_MLAST; k++) {
+	for (k = SDLK_MOUSE1; k < (SDLKey) SDLK_MLAST; k++) {
 		cl_key_names[k] = Z_Link(Z_CopyString(va("mouse %d", k - SDLK_MOUSE1 + 1)), cl_key_names);
 	}
 

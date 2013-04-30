@@ -253,7 +253,6 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
 	uint32_t sequence, sequence_ack;
 	uint32_t reliable_ack, reliable_message;
-	byte qport;
 
 	// get sequence numbers
 	Msg_BeginReading(msg);
@@ -263,7 +262,7 @@ bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
 
 	// read the qport if we are a server
 	if (chan->source == NS_SERVER)
-		qport = Msg_ReadByte(msg);
+		Msg_ReadByte(msg);
 
 	reliable_message = sequence >> 31;
 	reliable_ack = sequence_ack >> 31;

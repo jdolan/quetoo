@@ -32,7 +32,7 @@ const char *R_WorldspawnValue(const char *key) {
 	c = strstr(Cm_EntityString(), va("\"%s\"", key));
 
 	if (c) {
-		v = ParseToken(&c); // parse the key itself
+		ParseToken(&c); // parse the key itself
 		v = ParseToken(&c); // parse the value
 	} else {
 		v = NULL;

@@ -22,7 +22,6 @@
 #ifndef __THREADS_H__
 #define __THREADS_H__
 
-#include <unistd.h>
 #include <SDL/SDL_thread.h>
 
 #include "mem.h"
