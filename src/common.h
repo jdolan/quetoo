@@ -26,14 +26,16 @@
 #include "threads.h"
 #include "mem.h"
 
-#define DEFAULT_GAME	"default"
+// the default game module / game directory
+#define DEFAULT_GAME "default"
 
-#define MAX_PRINT_MSG	4096
+// the maximum print message length
+#define MAX_PRINT_MSG 2048
 
 // sizebuf and net message facilities
 typedef struct size_buf_s {
-	bool allow_overflow;  // error if false and overflow occurs
-	bool overflowed;  // set to true when a write exceeds max_size
+	bool allow_overflow; // error if false and overflow occurs
+	bool overflowed; // set to true when a write exceeds max_size
 	byte *data;
 	size_t max_size;
 	size_t size;
@@ -84,15 +86,15 @@ PROTOCOL
 */
 
 
-#define PROTOCOL 14  // change this when netcode changes
+#define PROTOCOL 1001 // change this when netcode changes
 
-#define IP_MASTER "67.228.69.114"  // tastyspleen.net
+#define IP_MASTER "67.228.69.114" // tastyspleen.net
 
-#define PORT_MASTER	1996  // some good years
+#define PORT_MASTER	1996 // some good years
 #define PORT_CLIENT	1997
 #define PORT_SERVER	1998
 
-#define UPDATE_BACKUP 1024  // copies of entity_state_t to keep buffered
+#define UPDATE_BACKUP 1024 // copies of entity_state_t to keep buffered
 #define UPDATE_MASK (UPDATE_BACKUP - 1)
 
 // maximum number of entities we would ever reference in a single message
@@ -129,11 +131,10 @@ PROTOCOL
 #define CMD_UP		(1<<5)
 #define CMD_BUTTONS	(1<<6)
 
-
 // a sound without an entity or position will be a local only sound
-#define S_ATTEN		(1<<0)  // a byte
-#define S_ORIGIN	(1<<1)  // three coordinates
-#define S_ENTNUM	(1<<2)  // entity number
+#define S_ATTEN		(1<<0) // a byte
+#define S_ORIGIN	(1<<1) // three coordinates
+#define S_ENTNUM	(1<<2) // entity number
 
 
 // entity_state_t communication
@@ -142,16 +143,16 @@ PROTOCOL
 // It describes which fields must be read to successfully parse the delta-
 // compression.
 #define U_ORIGIN		(1<<0)
-#define U_OLD_ORIGIN	(1<<1)  // used by lightning
+#define U_OLD_ORIGIN	(1<<1) // used by lightning
 #define U_ANGLES		(1<<2)
-#define U_ANIMATIONS	(1<<3)  // animation frames
-#define U_EVENT			(1<<4)  // client side events
-#define U_EFFECTS		(1<<5)  // client side effects
-#define U_MODELS		(1<<6)  // models (primary and linked)
-#define U_CLIENT		(1<<7)  // offset into client skins array
-#define U_SOUND			(1<<8)  // looped sounds
+#define U_ANIMATIONS	(1<<3) // animation frames
+#define U_EVENT			(1<<4) // client side events
+#define U_EFFECTS		(1<<5) // client side effects
+#define U_MODELS		(1<<6) // models (primary and linked)
+#define U_CLIENT		(1<<7) // offset into client skins array
+#define U_SOUND			(1<<8) // looped sounds
 #define U_SOLID			(1<<9)
-#define U_REMOVE		(1<<10)  // remove this entity, don't add it
+#define U_REMOVE		(1<<10) // remove this entity, don't add it
 
 #define NUM_APPROXIMATE_NORMALS 162
 extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
@@ -163,7 +164,7 @@ typedef enum {
 } err_t;
 
 int32_t Com_Argc(void);
-char *Com_Argv(int32_t arg);  // range and null checked
+char *Com_Argv(int32_t arg); // range and null checked
 void Com_InitArgv(int32_t argc, char **argv);
 
 void Com_PrintInfo(const char *s);

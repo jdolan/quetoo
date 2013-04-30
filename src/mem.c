@@ -143,12 +143,9 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
 	// allocate the block plus the desired size
 	const size_t s = size + sizeof(z_block_t);
 
-	if (!(z = malloc(s))) {
+	if (!(z = calloc(s, 1))) {
 		Com_Error(ERR_FATAL, "Failed to allocate %zu bytes\n", s);
 	}
-
-	// clear it to 0x0
-	memset(z, 0, s);
 
 	z->magic = Z_MAGIC;
 	z->tag = tag;
