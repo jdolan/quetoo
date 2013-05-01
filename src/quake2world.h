@@ -161,11 +161,11 @@ typedef enum {
 	SV_CMD_RECONNECT,
 	SV_CMD_SERVER_DATA, // [long] protocol ...
 	SV_CMD_SOUND,
+	SV_CMD_CGAME,
 } sv_cmd_t;
 
 // additional command types can be defined and written by the game module
 // and handled directly by the client game
-#define SV_CMD_CGAME (SV_CMD_SOUND + 1)
 
 // client to server
 typedef enum {
