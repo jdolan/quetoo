@@ -1,7 +1,7 @@
 # Makefile for Quake2World Linux distributable
 
 ARCH := $(shell gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1)
-DATA = ../../../quake2world-data
+DATA = ../../quake2world-data
 TARGET = target
 QUAKE2WORLD = $(TARGET)/quake2world
 LIBRARIES = $(QUAKE2WORLD)/lib
@@ -15,8 +15,8 @@ all: install
 
 pre-install:
 	install -d $(TARGET)
-#	svn export --force quake2world $(QUAKE2WORLD)
-	mkdir -p $(QUAKE2WORLD) $(BINARIES) $(LIBRARIES)/default $(RESOURCES)
+	cp -r quake2world $(TARGET)
+	find $(TARGET) -name .turd -delete
 
 install: pre-install
 	install ../src/tools/q2wmap/q2wmap $(BINARIES)/q2wmap
@@ -24,16 +24,16 @@ install: pre-install
 	install ../src/cgame/default/.libs/cgame.so $(LIBRARIES)/default/cgame.so
 	install ../src/game/default/.libs/game.so $(LIBRARIES)/default/game.so
 
-install-data:
-#	svn export --force $(DATA)/target $(RESOURCES)
+install-data: pre-install
+	cp -r $(DATA)/target/* $(RESOURCES)
 
-release: install
-	scp -r $(BINARIES) $(LIBRARIES) $(RSYNC_REPOSITORY)
+release:
+	rsync -rzhP --delete -e ssh $(BINARIES) $(LIBRARIES) $(RSYNC_REPOSITORY)
 
-image: install
+image:
 	tar -czvf $(TGZ) -C $(TARGET) quake2world
 
-release-image: image
+release-image:
 	scp $(TGZ) $(HTTP_REPOSITORY)
 
 clean:

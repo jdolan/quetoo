@@ -1,6 +1,6 @@
 # Makefile for Quake2World.app, requires http://macdylibbundler.sourceforge.net/
 
-DATA = ../../../quake2world-data
+DATA = ../../quake2world-data
 TARGET = target
 QUAKE2WORLD = $(TARGET)/Quake2World/Quake2World.app
 UPDATE = $(TARGET)/Quake2World/Update.app
@@ -26,7 +26,7 @@ install: pre-install
 	install ../src/cgame/default/.libs/cgame.so $(BINARIES)/default/cgame.so
 	install ../src/game/default/.libs/game.so $(BINARIES)/default/game.so
 
-install-data:
+install-data: pre-install
 	cp -r $(DATA)/target/* $(RESOURCES)
 
 bundle: install
