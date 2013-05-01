@@ -91,19 +91,17 @@ static void R_AddSustainedLights(void) {
  */
 void R_ResetLights(void) {
 
-	r_locals.active_light_mask = 0xffffffff;
+	r_locals.active_light_mask = 0xffffffffffffffff;
 	r_locals.active_light_count = 0;
 }
 
 /*
  * @brief Recursively populates light source bit masks for world surfaces.
  */
-static void R_MarkLights_(const r_light_t *light, const vec3_t trans, const int32_t bit,
+static void R_MarkLights_(const r_light_t *light, const vec3_t trans, const uint64_t bit,
 		const r_bsp_node_t *node) {
-	r_bsp_surface_t *surf;
 	vec3_t origin;
-	float dist;
-	int32_t i;
+	uint16_t i;
 
 	if (node->contents != CONTENTS_NODE) // leaf
 		return;
@@ -114,7 +112,7 @@ static void R_MarkLights_(const r_light_t *light, const vec3_t trans, const int3
 
 	VectorSubtract(light->origin, trans, origin);
 
-	dist = DotProduct(origin, node->plane->normal) - node->plane->dist;
+	const float dist = DotProduct(origin, node->plane->normal) - node->plane->dist;
 
 	if (dist > light->radius) { // front only
 		R_MarkLights_(light, trans, bit, node->children[0]);
@@ -130,7 +128,7 @@ static void R_MarkLights_(const r_light_t *light, const vec3_t trans, const int3
 		node->model->bsp_inline->lights |= bit;
 
 	// mark all surfaces in this node
-	surf = r_model_state.world->bsp->surfaces + node->first_surface;
+	r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
 
 	for (i = 0; i < node->num_surfaces; i++, surf++) {
 
@@ -153,7 +151,7 @@ static void R_MarkLights_(const r_light_t *light, const vec3_t trans, const int3
  * should receive.
  */
 void R_MarkLights(void) {
-	int32_t i, j;
+	uint16_t i, j;
 
 	r_locals.light_frame++;
 
@@ -166,9 +164,10 @@ void R_MarkLights(void) {
 	for (i = 0; i < r_view.num_lights; i++) {
 
 		r_light_t *light = &r_view.lights[i];
+		const uint64_t bit = ((uint64_t) (1 << i));
 
 		// world surfaces
-		R_MarkLights_(light, vec3_origin, 1 << i, r_model_state.world->bsp->nodes);
+		R_MarkLights_(light, vec3_origin, bit, r_model_state.world->bsp->nodes);
 
 		// and bsp entity surfaces
 		const r_entity_t *ent = r_view.entities;
@@ -178,7 +177,7 @@ void R_MarkLights(void) {
 
 			if (IS_BSP_INLINE_MODEL(mod) && mod->bsp_inline->head_node) {
 				const r_bsp_node_t *node = r_model_state.world->bsp->nodes + mod->bsp_inline->head_node;
-				R_MarkLights_(light, ent->origin, 1 << i, node);
+				R_MarkLights_(light, ent->origin, bit, node);
 			}
 		}
 	}
@@ -197,8 +196,8 @@ void R_ShiftLights(const vec3_t offset) {
  * @brief Enables the light sources indicated by the specified bit mask. Care is
  * taken to avoid GL state changes whenever possible.
  */
-void R_EnableLights(uint32_t mask) {
-	int32_t count;
+void R_EnableLights(uint64_t mask) {
+	uint16_t count;
 
 	if (mask == r_locals.active_light_mask) // no change
 		return;
@@ -210,7 +209,7 @@ void R_EnableLights(uint32_t mask) {
 		const r_light_t *l;
 		vec4_t position;
 		vec4_t diffuse;
-		int32_t i;
+		uint16_t i;
 
 		position[3] = diffuse[3] = 1.0;
 
@@ -219,7 +218,8 @@ void R_EnableLights(uint32_t mask) {
 			if (count == MAX_ACTIVE_LIGHTS)
 				break;
 
-			if (mask & (1 << i)) {
+			const uint64_t bit = ((uint64_t) (1 << i));
+			if (mask & bit) {
 
 				VectorSubtract(l->origin, lights_offset, position);
 				glLightfv(GL_LIGHT0 + count, GL_POSITION, position);
@@ -246,17 +246,17 @@ void R_EnableLights(uint32_t mask) {
  */
 void R_EnableLightsByRadius(const vec3_t p) {
 	const r_light_t *l;
-	vec3_t delta;
-	uint32_t i, mask;
+	uint16_t i;
 
-	mask = 0;
+	uint64_t mask = 0;
 
 	for (i = 0, l = r_view.lights; i < r_view.num_lights; i++, l++) {
+		vec3_t delta;
 
 		VectorSubtract(l->origin, p, delta);
 
 		if (VectorLength(delta) < l->radius)
-			mask |= (1 << i);
+			mask |= ((uint64_t) (1 << i));
 	}
 
 	R_EnableLights(mask);

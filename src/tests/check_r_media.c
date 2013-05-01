@@ -65,7 +65,7 @@ START_TEST(check_R_RegisterMedia)
 		ck_assert_msg(R_FindMedia("child1") == child1, "Erroneously freed child1");
 		ck_assert_msg(R_FindMedia("grandchild1") == grandchild1, "Erroneously freed grandchild1");
 
-		uint32_t old_seed = parent1->seed;
+		int32_t old_seed = parent1->seed;
 
 		R_BeginLoading();
 

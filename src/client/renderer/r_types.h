@@ -227,7 +227,7 @@ typedef struct {
 	r_image_t *lightmap;
 	r_image_t *deluxemap;
 
-	uint32_t lights; // bit mask of enabled light sources
+	uint64_t lights; // bit mask of enabled light sources
 } r_bsp_surface_t;
 
 /*
@@ -547,7 +547,7 @@ typedef struct r_light_s {
 	vec3_t color;
 } r_light_t;
 
-#define MAX_LIGHTS			32
+#define MAX_LIGHTS			64
 #define MAX_ACTIVE_LIGHTS	8
 
 /*
