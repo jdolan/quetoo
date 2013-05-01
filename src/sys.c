@@ -155,7 +155,7 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 #endif
 
 	if (Fs_Exists(so_name)) {
-		char path[MAX_QPATH];
+		char path[MAX_OSPATH];
 
 		g_snprintf(path, sizeof(path), "%s/%s", Fs_RealDir(so_name), so_name);
 		Com_Print("Trying %s...\n", path);

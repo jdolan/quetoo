@@ -1,7 +1,7 @@
 # Makefile for Quake2World Linux distributable
 
 ARCH := $(shell gcc -v 2>&1|grep Target|cut -d\  -f2|cut -d\- -f1)
-DATA = ../../../quake2world-data/trunk
+DATA = ../../../quake2world-data
 TARGET = target
 QUAKE2WORLD = $(TARGET)/quake2world
 LIBRARIES = $(QUAKE2WORLD)/lib
@@ -19,7 +19,6 @@ pre-install:
 	mkdir -p $(QUAKE2WORLD) $(BINARIES) $(LIBRARIES)/default $(RESOURCES)
 
 install: pre-install
-	install ../src/tools/pak/pak $(BINARIES)/pak
 	install ../src/tools/q2wmap/q2wmap $(BINARIES)/q2wmap
 	install ../src/main/quake2world $(BINARIES)/quake2world
 	install ../src/cgame/default/.libs/cgame.so $(LIBRARIES)/default/cgame.so

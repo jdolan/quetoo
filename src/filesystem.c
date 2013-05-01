@@ -500,13 +500,13 @@ void Fs_Init(void) {
 	if (path) {
 		char *c;
 
-		Com_Debug("Resolved executable path: %s\n", path);
+		// Com_Debug("Resolved executable path: %s\n", path);
 #ifdef __APPLE__
 		if ((c = strstr(path, "Quake2World.app"))) {
-			strcpy(c + strlen("Quake2World.app/Contents/"), "MacOS/"DEFAULT_GAME);
+			strcpy(c + strlen("Quake2World.app"), "/Contents/MacOS/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 
-			strcpy(c + strlen("Quake2World.app/Contents/"), "Resources/"DEFAULT_GAME);
+			strcpy(c + strlen("Quake2World.app"), "/Contents/Resources/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 		}
 #elif __LINUX__

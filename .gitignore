@@ -11,6 +11,7 @@ config.sub
 configure
 depcomp
 .deps/
+.DS_Store
 gmon.out
 install-sh
 *.la
@@ -33,4 +34,5 @@ src/tests/check_mem
 src/tests/check_r_media
 src/tools/q2wmap/q2wmap
 stamp-h1
+target
 test-driver
