@@ -307,7 +307,7 @@ static void AddDocumentation(void) {
 }
 
 /*
- * @brief Returns a suitable .zip filename name for the current bsp name
+ * @brief Returns a suitable .pk3 filename name for the current bsp name
  */
 static char *GetZipFilename(void) {
 	char base[MAX_OSPATH];
@@ -315,7 +315,7 @@ static char *GetZipFilename(void) {
 
 	StripExtension(Basename(bsp_name), base);
 
-	g_snprintf(zipfile, sizeof(zipfile), "map-%s-%d.zip", base, getpid());
+	g_snprintf(zipfile, sizeof(zipfile), "map-%s-%d.pk3", base, getpid());
 
 	return zipfile;
 }
@@ -323,7 +323,7 @@ static char *GetZipFilename(void) {
 #define ZIP_BUFFER_SIZE 1024 * 1024 * 2
 
 /*
- * @brief Adds the specified resource to the .zip archive.
+ * @brief Adds the specified resource to the .pk3 archive.
  */
 static bool DeflateAsset(zipFile zip_file, const char *filename) {
 	static zip_fileinfo zip_info;
