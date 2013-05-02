@@ -94,7 +94,7 @@ static bsp_brush_t *SubtractBrush(bsp_brush_t * a, bsp_brush_t * b) { // a - b =
  * There will be false negatives for some non-axial combinations.
  * ===============
  */
-static bool BrushesDisjoint(const bsp_brush_t * a, const bsp_brush_t * b) {
+static _Bool BrushesDisjoint(const bsp_brush_t * a, const bsp_brush_t * b) {
 	int32_t i, j;
 
 	// check bounding boxes
@@ -294,7 +294,7 @@ static bsp_brush_t *CullList(bsp_brush_t * list, const bsp_brush_t * skip1) {
 /*
  * @brief Returns true if b1 is allowed to bite b2
  */
-static inline bool BrushGE(const bsp_brush_t * b1, const bsp_brush_t * b2) {
+static inline _Bool BrushGE(const bsp_brush_t * b1, const bsp_brush_t * b2) {
 	// detail brushes never bite structural brushes
 	if ((b1->original->contents & CONTENTS_DETAIL) && !(b2->original->contents
 			& CONTENTS_DETAIL))

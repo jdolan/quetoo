@@ -26,7 +26,7 @@
 
 #ifdef __GAME_LOCAL_H__
 void G_ChangeWeapon(g_edict_t *ent);
-bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other);
+_Bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other);
 void G_UseBestWeapon(g_client_t *client);
 void G_UseWeapon(g_edict_t *ent, const g_item_t *item);
 void G_DropWeapon(g_edict_t *ent, const g_item_t *item);

@@ -28,37 +28,37 @@ char map_name[MAX_OSPATH];
 char bsp_name[MAX_OSPATH];
 char outbase[MAX_OSPATH];
 
-bool verbose;
-bool debug;
-bool legacy;
+_Bool verbose;
+_Bool debug;
+_Bool legacy;
 
 /* BSP */
-extern bool noprune;
-extern bool nodetail;
-extern bool fulldetail;
-extern bool onlyents;
-extern bool nomerge;
-extern bool nowater;
-extern bool nofill;
-extern bool nocsg;
-extern bool noweld;
-extern bool noshare;
-extern bool nosubdivide;
-extern bool notjunc;
-extern bool noopt;
-extern bool leaktest;
-extern bool verboseentities;
+extern _Bool noprune;
+extern _Bool nodetail;
+extern _Bool fulldetail;
+extern _Bool onlyents;
+extern _Bool nomerge;
+extern _Bool nowater;
+extern _Bool nofill;
+extern _Bool nocsg;
+extern _Bool noweld;
+extern _Bool noshare;
+extern _Bool nosubdivide;
+extern _Bool notjunc;
+extern _Bool noopt;
+extern _Bool leaktest;
+extern _Bool verboseentities;
 
 extern int32_t block_xl, block_xh, block_yl, block_yh;
 extern vec_t microvolume;
 extern int32_t subdivide_size;
 
 /* VIS */
-extern bool fastvis;
-extern bool nosort;
+extern _Bool fastvis;
+extern _Bool nosort;
 
 /* LIGHT */
-extern bool extra_samples;
+extern _Bool extra_samples;
 extern float brightness;
 extern float saturation;
 extern float contrast;
@@ -351,11 +351,11 @@ static void PrintHelpMessage(void) {
  */
 int32_t main(int32_t argc, char **argv) {
 	int32_t i;
-	bool do_bsp = false;
-	bool do_vis = false;
-	bool do_light = false;
-	bool do_mat = false;
-	bool do_zip = false;
+	_Bool do_bsp = false;
+	_Bool do_vis = false;
+	_Bool do_light = false;
+	_Bool do_mat = false;
+	_Bool do_zip = false;
 
 	printf("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 

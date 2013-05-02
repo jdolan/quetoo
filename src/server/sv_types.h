@@ -142,7 +142,7 @@ typedef struct sv_challenge_s {
 #define MAX_CHALLENGES 1024
 
 typedef struct sv_static_s {
-	bool initialized; // sv_init has completed
+	_Bool initialized; // sv_init has completed
 	uint32_t real_time; // always increasing, no clamping, etc
 
 	uint32_t spawn_count; // incremented each level start, used to check late spawns

@@ -33,7 +33,7 @@ typedef struct r_media_s {
 	char name[MAX_QPATH];
 	GList *dependencies;
 	void (*Register)(struct r_media_s *self);
-	bool (*Retain)(struct r_media_s *self);
+	_Bool (*Retain)(struct r_media_s *self);
 	void (*Free)(struct r_media_s *self);
 	int32_t seed;
 } r_media_t;
@@ -602,7 +602,7 @@ typedef struct r_entity_s {
 	vec3_t angles;
 
 	matrix4x4_t matrix;
-	bool culled;
+	_Bool culled;
 
 	const struct r_model_s *model;
 
@@ -757,7 +757,7 @@ typedef struct r_view_s {
 	uint32_t num_mesh_models;
 	uint32_t num_mesh_tris;
 
-	bool update; // inform the client of state changes
+	_Bool update; // inform the client of state changes
 } r_view_t;
 
 /*
@@ -766,7 +766,7 @@ typedef struct r_view_s {
 typedef struct r_context_s {
 	r_pixel_t width, height;
 
-	bool fullscreen;
+	_Bool fullscreen;
 
 	int32_t red_bits, green_bits, blue_bits, alpha_bits;
 	int32_t stencil_bits, depth_bits, double_buffer;

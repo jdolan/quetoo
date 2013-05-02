@@ -75,7 +75,7 @@ static void G_ClampVelocity(g_edict_t *ent) {
 /*
  * @brief Runs thinking code for this frame if necessary
  */
-static bool G_RunThink(g_edict_t *ent) {
+static _Bool G_RunThink(g_edict_t *ent) {
 	float think_time;
 
 	think_time = ent->next_think;
@@ -234,7 +234,7 @@ g_edict_t *obstacle;
  * @brief Objects need to be moved back on a failed push,
  * otherwise riders would continue to slide.
  */
-static bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
+static _Bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 	int32_t i, e;
 	g_edict_t *check, *block;
 	vec3_t mins, maxs;
@@ -456,8 +456,8 @@ static void G_Physics_Toss(g_edict_t *ent) {
 	c_trace_t trace;
 	vec3_t org, move;
 	g_edict_t *slave;
-	bool was_in_water;
-	bool is_in_water;
+	_Bool was_in_water;
+	_Bool is_in_water;
 
 	// regular thinking
 	G_RunThink(ent);

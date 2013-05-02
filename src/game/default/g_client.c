@@ -362,7 +362,7 @@ static void G_Give(g_client_t *client, char *it, int16_t quantity) {
 /**
  * G_GiveLevelLocals
  */
-static bool G_GiveLevelLocals(g_client_t *client) {
+static _Bool G_GiveLevelLocals(g_client_t *client) {
 	char buf[512], *it, *q;
 	int32_t quantity;
 
@@ -746,7 +746,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
  * @brief In this case, voluntary means that the client has explicitly requested
  * a respawn by changing their spectator status.
  */
-void G_ClientRespawn(g_edict_t *ent, bool voluntary) {
+void G_ClientRespawn(g_edict_t *ent, _Bool voluntary) {
 
 	G_ClientRespawn_(ent);
 
@@ -845,7 +845,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	char *c;
 	char name[MAX_NET_NAME];
 	int32_t player_num, i;
-	bool color;
+	_Bool color;
 	g_client_t *cl;
 
 	// check for malformed or illegal info strings
@@ -945,7 +945,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
  * If the client is allowed, the connection process will continue
  * and eventually get to G_Begin()
  * Changing levels will NOT cause this to be called again.
- */bool G_ClientConnect(g_edict_t *ent, char *user_info) {
+ */_Bool G_ClientConnect(g_edict_t *ent, char *user_info) {
 
 	// check password
 	const char *value = GetUserInfo(user_info, "password");

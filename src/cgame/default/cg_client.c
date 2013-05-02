@@ -113,7 +113,7 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const
 /*
  * @brief Ensures that models and skins were resolved for the specified client info.
  */
-static bool Cg_ValidateClient(cl_client_info_t *ci) {
+static _Bool Cg_ValidateClient(cl_client_info_t *ci) {
 
 	if (!ci->head || !ci->upper || !ci->lower)
 		return false;

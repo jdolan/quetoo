@@ -25,7 +25,7 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
-bool Cl_UsePrediction(void);
+_Bool Cl_UsePrediction(void);
 void Cl_PredictMovement(void);
 void Cl_CheckPredictionError(void);
 void Cl_UpdatePrediction(void);

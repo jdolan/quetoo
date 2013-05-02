@@ -281,7 +281,7 @@ void R_BlendFunc(GLenum src, GLenum dest) {
 /*
  * @brief
  */
-void R_EnableBlend(bool enable) {
+void R_EnableBlend(_Bool enable) {
 
 	if (r_state.blend_enabled == enable)
 		return;
@@ -300,7 +300,7 @@ void R_EnableBlend(bool enable) {
 /*
  * @brief
  */
-void R_EnableAlphaTest(bool enable) {
+void R_EnableAlphaTest(_Bool enable) {
 
 	if (r_state.alpha_test_enabled == enable)
 		return;
@@ -316,7 +316,7 @@ void R_EnableAlphaTest(bool enable) {
 /*
  * @brief Enables the stencil test for e.g. rendering shadow volumes.
  */
-void R_EnableStencilTest(bool enable) {
+void R_EnableStencilTest(_Bool enable) {
 
 	if (r_state.stencil_test_enabled == enable)
 		return;
@@ -333,7 +333,7 @@ void R_EnableStencilTest(bool enable) {
  * @brief Enable the specified texture unit for multi-texture operations. This is not
  * necessary for texture units only accessed by GLSL shaders.
  */
-void R_EnableTexture(r_texunit_t *texunit, bool enable) {
+void R_EnableTexture(r_texunit_t *texunit, _Bool enable) {
 
 	if (enable == texunit->enabled)
 		return;
@@ -358,7 +358,7 @@ void R_EnableTexture(r_texunit_t *texunit, bool enable) {
 /*
  * @brief
  */
-void R_EnableColorArray(bool enable) {
+void R_EnableColorArray(_Bool enable) {
 
 	if (r_state.color_array_enabled == enable)
 		return;
@@ -376,7 +376,7 @@ void R_EnableColorArray(bool enable) {
  * should be called after any texture units which will be active for lighting
  * have been enabled.
  */
-void R_EnableLighting(r_program_t *program, bool enable) {
+void R_EnableLighting(r_program_t *program, _Bool enable) {
 
 	if (!r_programs->value)
 		return;
@@ -407,7 +407,7 @@ void R_EnableLighting(r_program_t *program, bool enable) {
 /*
  * @brief Enables the warp shader for drawing liquids and other effects.
  */
-void R_EnableWarp(r_program_t *program, bool enable) {
+void R_EnableWarp(r_program_t *program, _Bool enable) {
 
 	if (!r_programs->value)
 		return;
@@ -438,7 +438,7 @@ void R_EnableWarp(r_program_t *program, bool enable) {
 /*
  * @brief
  */
-void R_EnableShell(bool enable) {
+void R_EnableShell(_Bool enable) {
 	r_uniform1f_t offset;
 
 	if (enable == r_state.shell_enabled)
@@ -475,7 +475,7 @@ void R_EnableShell(bool enable) {
 /*
  * @brief
  */
-void R_EnableFog(bool enable) {
+void R_EnableFog(_Bool enable) {
 
 	if (!r_fog->value || r_state.fog_enabled == enable)
 		return;

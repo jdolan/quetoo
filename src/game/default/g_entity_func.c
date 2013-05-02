@@ -709,7 +709,7 @@ void G_func_button(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_func_door_use_areaportals(g_edict_t *self, bool open) {
+static void G_func_door_use_areaportals(g_edict_t *self, _Bool open) {
 	g_edict_t *t = NULL;
 
 	if (!self->target)
@@ -1282,7 +1282,7 @@ static void G_func_train_wait(g_edict_t *self) {
 static void G_func_train_next(g_edict_t *self) {
 	g_edict_t *ent;
 	vec3_t dest;
-	bool first;
+	_Bool first;
 
 	first = true;
 	again: if (!self->target)

@@ -37,7 +37,7 @@ typedef struct ms_server_s {
 	uint32_t heartbeats;
 	time_t last_heartbeat;
 	time_t last_ping;
-	bool validated;
+	_Bool validated;
 } ms_server_t;
 
 static GList *ms_servers;
@@ -82,7 +82,7 @@ static void Ms_DropServer(ms_server_t *server) {
  * Ensure that the file is new-line terminated for all rules to be evaluated.
  * TODO This is entirely untested
  */
-static bool Ms_BlacklistServer(struct sockaddr_in *from) {
+static _Bool Ms_BlacklistServer(struct sockaddr_in *from) {
 	void *buf;
 	int32_t len;
 

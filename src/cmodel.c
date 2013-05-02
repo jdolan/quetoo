@@ -97,7 +97,7 @@ typedef struct c_bsp_s {
 
 	int32_t flood_valid;
 
-	bool portal_open[MAX_BSP_AREA_PORTALS];
+	_Bool portal_open[MAX_BSP_AREA_PORTALS];
 } c_bsp_t;
 
 static c_bsp_t c_bsp;
@@ -884,7 +884,7 @@ typedef struct {
 
 	c_trace_t trace;
 	int32_t contents;
-	bool is_point; // optimized case
+	_Bool is_point; // optimized case
 
 	int32_t mailbox[16]; // used to avoid multiple intersection tests with brushes
 } c_trace_data_t;
@@ -892,9 +892,9 @@ typedef struct {
 /*
  * @brief
  */
-static bool Cm_BrushAlreadyTested(int32_t brush_num, c_trace_data_t *data) {
+static _Bool Cm_BrushAlreadyTested(int32_t brush_num, c_trace_data_t *data) {
 	int32_t hash = brush_num & 15;
-	bool skip = (data->mailbox[hash] == brush_num);
+	_Bool skip = (data->mailbox[hash] == brush_num);
 	data->mailbox[hash] = brush_num;
 	return skip;
 }
@@ -904,7 +904,7 @@ static bool Cm_BrushAlreadyTested(int32_t brush_num, c_trace_data_t *data) {
  * true if the box was clipped, false otherwise.
  */
 static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_trace_t *trace,
-		c_bsp_leaf_t *leaf, c_bsp_brush_t *brush, bool is_point) {
+		c_bsp_leaf_t *leaf, c_bsp_brush_t *brush, _Bool is_point) {
 	int32_t i, j;
 
 	if (!brush->num_sides)
@@ -917,7 +917,7 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 
 	const c_bsp_plane_t *clip_plane = NULL;
 
-	bool end_outside = false, start_outside = false;
+	_Bool end_outside = false, start_outside = false;
 	const c_bsp_brush_side_t *lead_side = NULL;
 
 	for (i = 0; i < brush->num_sides; i++) {
@@ -1280,7 +1280,7 @@ c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec
 	vec3_t a;
 	vec3_t forward, right, up;
 	vec3_t temp;
-	bool rotated;
+	_Bool rotated;
 
 	// subtract origin offset
 	VectorSubtract(start, origin, start_l);
@@ -1457,7 +1457,7 @@ static void Cm_FloodAreaConnections(void) {
  * connections, updating their flood counts such that Cm_WriteAreaBits
  * will return the correct information.
  */
-void Cm_SetAreaPortalState(const int32_t portal_num, const bool open) {
+void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open) {
 	if (portal_num > c_bsp.num_area_portals) {
 		Com_Error(ERR_DROP, "Portal %d > num_area_portals", portal_num);
 	}
@@ -1468,7 +1468,7 @@ void Cm_SetAreaPortalState(const int32_t portal_num, const bool open) {
 
 /*
  * @brief Returns true if the specified areas are connected.
- */bool Cm_AreasConnected(int32_t area1, int32_t area2) {
+ */_Bool Cm_AreasConnected(int32_t area1, int32_t area2) {
 
 	if (c_no_areas->value)
 		return true;
@@ -1512,7 +1512,7 @@ int32_t Cm_WriteAreaBits(byte *buffer, const int32_t area) {
 /*
  * @brief Returns true if any leaf under head_node has a cluster that
  * is potentially visible.
- */bool Cm_HeadnodeVisible(const int32_t node_num, const byte *vis) {
+ */_Bool Cm_HeadnodeVisible(const int32_t node_num, const byte *vis) {
 	const c_bsp_node_t *node;
 
 	if (node_num < 0) { // at a leaf, check it

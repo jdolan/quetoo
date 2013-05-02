@@ -51,7 +51,7 @@ void S_FreeChannel(int32_t c) {
 /*
  * @brief Set distance and stereo panning for the specified channel.
  */
-bool S_SpatializeChannel(s_channel_t *ch) {
+_Bool S_SpatializeChannel(s_channel_t *ch) {
 	vec3_t delta;
 
 	if (ch->ent_num != -1) { // update the channel origin

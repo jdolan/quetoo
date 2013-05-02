@@ -189,14 +189,14 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack,
  * ==============
  */
 static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
-		winding_t * target, bool flipclip, pstack_t * stack) {
+		winding_t * target, _Bool flipclip, pstack_t * stack) {
 	int32_t i, j, k, l;
 	plane_t plane;
 	vec3_t v1, v2;
 	float d;
 	vec_t length;
 	int32_t counts[3];
-	bool fliptest;
+	_Bool fliptest;
 
 	// check all combinations
 	for (i = 0; i < source->num_points; i++) {

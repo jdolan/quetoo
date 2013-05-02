@@ -86,7 +86,7 @@ void DecompressVis(byte *in, byte *decompressed) {
 /*
  * @brief Byte swaps all data in a bsp file.
  */
-static void SwapBSPFile(bool todisk) {
+static void SwapBSPFile(_Bool todisk) {
 	int32_t i, j;
 
 	// models
@@ -540,7 +540,7 @@ epair_t *ParseEpair(void) {
 /*
  * @brief
  */
-static bool ParseEntity(void) {
+static _Bool ParseEntity(void) {
 	epair_t *e;
 	entity_t *mapent;
 

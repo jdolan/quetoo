@@ -90,7 +90,7 @@ static void R_UploadLightmapBlock(r_bsp_model_t *bsp) {
 /*
  * @brief
  */
-static bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixel_t *y) {
+static _Bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixel_t *y) {
 	r_pixel_t i, j;
 	r_pixel_t best;
 

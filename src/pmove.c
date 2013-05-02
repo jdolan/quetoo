@@ -563,7 +563,7 @@ static void Pm_CheckDuck(void) {
 /*
  * @brief
  */
-static bool Pm_CheckJump(void) {
+static _Bool Pm_CheckJump(void) {
 	float jump;
 
 	// can't jump yet
@@ -619,7 +619,7 @@ static bool Pm_CheckJump(void) {
 /*
  * @brief
  */
-static bool Pm_CheckPush(void) {
+static _Bool Pm_CheckPush(void) {
 
 	if (!(pm->s.pm_flags & PMF_PUSHED))
 		return false;
@@ -634,7 +634,7 @@ static bool Pm_CheckPush(void) {
 /*
  * @brief Check for ladder interaction.
  */
-static bool Pm_CheckLadder(void) {
+static _Bool Pm_CheckLadder(void) {
 	vec3_t forward, spot;
 	c_trace_t trace;
 
@@ -664,7 +664,7 @@ static bool Pm_CheckLadder(void) {
  * @brief Checks for the water jump condition, where we can see a usable step out of
  * the water.
  */
-static bool Pm_CheckWaterJump(void) {
+static _Bool Pm_CheckWaterJump(void) {
 	vec3_t point;
 	c_trace_t trace;
 
@@ -975,7 +975,7 @@ static void Pm_WalkMove(void) {
 /*
  * @brief
  */
-static bool Pm_GoodPosition(void) {
+static _Bool Pm_GoodPosition(void) {
 	c_trace_t trace;
 	vec3_t pos;
 

@@ -28,8 +28,8 @@
 static player_score_t cg_scores[MAX_CLIENTS];
 static size_t cg_num_scores;
 
-static bool cg_scores_teams;
-static bool cg_scores_ctf;
+static _Bool cg_scores_teams;
+static _Bool cg_scores_ctf;
 
 /*
  * @brief A comparator for sorting player_score_t.
@@ -145,7 +145,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 /*
  * @brief
  */
-static bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
+static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const player_score_t *s) {
 	r_pixel_t cw, ch;
 
 	const cl_client_info_t *info = &cgi.client->client_info[s->player_num];

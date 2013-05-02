@@ -24,7 +24,7 @@
 /*
  * @brief Returns true if ent1 and ent2 are on the same qmass mod team.
  */
-bool G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2) {
+_Bool G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2) {
 
 	if (!ent1->client || !ent2->client)
 		return false;
@@ -45,7 +45,7 @@ bool G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2) {
  * @brief Returns true if the inflictor can directly damage the target. Used for
  * explosions and melee attacks.
  */
-bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
+_Bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
 	vec3_t dest;
 	c_trace_t trace;
 

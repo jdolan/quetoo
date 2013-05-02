@@ -154,7 +154,7 @@ static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
 static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
 	const float *norm;
 	float *v;
-	bool front, back;
+	_Bool front, back;
 	float d, e;
 	float dists[MAX_CLIP_VERTS];
 	int32_t sides[MAX_CLIP_VERTS];

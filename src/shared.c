@@ -37,7 +37,7 @@ vec3_t PM_MAXS = { 16.0, 16.0, 40.0 };
 int32_t Random(void) {
 
 	static uint32_t state = 0;
-	static bool uninitalized = true;
+	static _Bool uninitalized = true;
 
 	if (uninitalized) {
 		state = (uint32_t) time(NULL);
@@ -399,7 +399,7 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
 /*
  * @brief Returns true if the specified vectors are equal, false otherwise.
  */
-bool VectorCompare(const vec3_t v1, const vec3_t v2) {
+_Bool VectorCompare(const vec3_t v1, const vec3_t v2) {
 
 	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
 		return false;
@@ -411,7 +411,7 @@ bool VectorCompare(const vec3_t v1, const vec3_t v2) {
  * @brief Returns true if the first vector is closer to the point of interest, false
  * otherwise.
  */
-bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
+_Bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
 	vec3_t d1, d2;
 
 	VectorSubtract(point, v1, d1);
@@ -605,7 +605,7 @@ void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation
 /*
  * @brief Returns true if the specified string has some upper case characters.
  */
-bool MixedCase(const char *s) {
+_Bool MixedCase(const char *s) {
 	const char *c = s;
 	while (*c) {
 		if (isupper(*c))
@@ -676,7 +676,7 @@ char *CommonPrefix(GList *words) {
 /*
  * @brief Handles wildcard suffixes for GlobMatch.
  */
-static bool GlobMatchStar(const char *pattern, const char *text) {
+static _Bool GlobMatchStar(const char *pattern, const char *text) {
 	const char *p = pattern, *t = text;
 	register char c, c1;
 
@@ -720,7 +720,7 @@ static bool GlobMatchStar(const char *pattern, const char *text) {
  * To suppress the special syntactic significance of any of `[]*?!-\',
  * and match the character exactly, precede it with a `\'.
  */
-bool GlobMatch(const char *pattern, const char *text) {
+_Bool GlobMatch(const char *pattern, const char *text) {
 	const char *p = pattern, *t = text;
 	register char c;
 
@@ -1084,7 +1084,7 @@ void DeleteUserInfo(char *s, const char *key) {
  * @brief Returns true if the specified user-info string appears valid, false
  * otherwise.
  */
-bool ValidateUserInfo(const char *s) {
+_Bool ValidateUserInfo(const char *s) {
 	if (strstr(s, "\""))
 		return false;
 	if (strstr(s, ";"))

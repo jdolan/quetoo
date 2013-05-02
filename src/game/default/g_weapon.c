@@ -23,7 +23,7 @@
 
 /*
  * @brief
- */bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
+ */_Bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 	int32_t delta;
 
 	const uint16_t index = ITEM_INDEX(ent->item);
@@ -473,7 +473,7 @@ void G_FireHyperblaster(g_edict_t *ent) {
 static void G_FireLightning_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
-	const bool muzzle_flash = !ent->lightning;
+	const _Bool muzzle_flash = !ent->lightning;
 
 	G_InitProjectile(ent, forward, right, up, org);
 

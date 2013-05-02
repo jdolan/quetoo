@@ -585,7 +585,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
  * surface normal to reduce false-positive traces. Test the PVS at the new
  * position, returning true if the new point is valid, false otherwise.
  */
-static bool NudgeSamplePosition(const vec3_t in, const vec3_t normal,
+static _Bool NudgeSamplePosition(const vec3_t in, const vec3_t normal,
 		const vec3_t center, vec3_t out, byte *pvs) {
 
 	vec3_t dir;

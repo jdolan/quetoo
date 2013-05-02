@@ -29,7 +29,7 @@ void S_StartLocalSample(const char *name);
 #ifdef __S_LOCAL_H__
 
 void S_FreeChannel(int32_t c);
-bool S_SpatializeChannel(s_channel_t *channel);
+_Bool S_SpatializeChannel(s_channel_t *channel);
 
 #endif /* __S_LOCAL_H__ */
 

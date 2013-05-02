@@ -30,11 +30,11 @@
 // 8 bit palette for .wal images and particles
 extern uint32_t palette[256];
 
-bool Img_LoadImage(const char *name, SDL_Surface **surf);
-bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf);
+_Bool Img_LoadImage(const char *name, SDL_Surface **surf);
+_Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf);
 void Img_InitPalette(void);
 void Img_ColorFromPalette(byte c, float *res);
-bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality);
+_Bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality);
 
 #endif /* BUILD_CLIENT */
 #endif /*__IMAGES_H__*/

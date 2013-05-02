@@ -161,7 +161,7 @@ typedef enum {
 typedef struct g_item_s {
 	const char *class_name; // spawning name
 
-	bool (*Pickup)(struct g_edict_s *ent, struct g_edict_s *other);
+	_Bool (*Pickup)(struct g_edict_s *ent, struct g_edict_s *other);
 	void (*Use)(struct g_edict_s *ent, const struct g_item_s *item);
 	void (*Drop)(struct g_edict_s *ent, const struct g_item_s *item);
 	void (*Think)(struct g_edict_s *ent);
@@ -296,13 +296,13 @@ typedef struct {
 	vec3_t intermission_angle;
 	const char *changemap;
 
-	bool warmup; // shared by match and round
+	_Bool warmup; // shared by match and round
 
-	bool start_match;
+	_Bool start_match;
 	uint32_t match_time; // time match started
 	uint32_t match_num;
 
-	bool start_round;
+	_Bool start_round;
 	uint32_t round_time; // time round started
 	uint32_t round_num;
 
@@ -410,8 +410,8 @@ typedef struct {
 	const g_item_t *weapon;
 	const g_item_t *last_weapon;
 
-	bool spectator; // client is a spectator
-	bool ready; // ready
+	_Bool spectator; // client is a spectator
+	_Bool ready; // ready
 
 	g_team_t *team; // current team (good/evil)
 	g_vote_t vote; // current vote (yes/no)
@@ -432,7 +432,7 @@ struct g_client_s {
 
 	g_client_persistent_t persistent;
 
-	bool show_scores; // sets layout bit mask in player state
+	_Bool show_scores; // sets layout bit mask in player state
 	uint32_t scores_time; // eligible for scores when time > this
 
 	uint16_t ammo_index;
@@ -469,7 +469,7 @@ struct g_client_s {
 	uint32_t pickup_msg_time; // display message until time > this
 
 	uint32_t chat_time; // can chat when time > this
-	bool muted;
+	_Bool muted;
 
 	uint32_t quad_damage_time; // has quad when time < this
 	uint32_t quad_attack_time; // play attack sound when time > this
@@ -484,7 +484,7 @@ struct g_edict_s {
 	entity_state_t s;
 	struct g_client_s *client; // NULL if not a player
 
-	bool in_use;
+	_Bool in_use;
 	int32_t link_count;
 
 	link_t area; // linked to a division node or leaf
@@ -551,9 +551,9 @@ struct g_edict_s {
 
 	int16_t health;
 	int16_t max_health;
-	bool dead;
+	_Bool dead;
 
-	bool take_damage;
+	_Bool take_damage;
 	int16_t dmg;
 	int16_t knockback;
 	float dmg_radius;

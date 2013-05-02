@@ -333,7 +333,7 @@ static void Svc_Connect(void) {
 /*
  * @brief
  */
-static bool Sv_RconAuthenticate(void) {
+static _Bool Sv_RconAuthenticate(void) {
 
 	// a password must be set for rcon to be available
 	if (*sv_rcon_password->string == '\0')
@@ -351,7 +351,7 @@ static bool Sv_RconAuthenticate(void) {
  * redirect all output to the invoking client.
  */
 static void Svc_RemoteCommand(void) {
-	const bool auth = Sv_RconAuthenticate();
+	const _Bool auth = Sv_RconAuthenticate();
 
 	// first print to the server console
 	if (auth)

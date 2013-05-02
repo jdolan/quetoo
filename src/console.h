@@ -39,7 +39,7 @@ typedef struct {
 } console_data_t;
 
 typedef struct {
-	bool initialized;
+	_Bool initialized;
 	// console dimensions
 	uint16_t width; // console printable width in characters
 	uint16_t height; // console printable height in characters
@@ -60,7 +60,7 @@ void Con_Init(void);
 void Con_Shutdown(void);
 void Con_Print(const char *text);
 void Con_Resize(console_t *con, uint16_t width, uint16_t height);
-bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len);
+_Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len);
 
 #ifdef HAVE_CURSES
 

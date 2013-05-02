@@ -115,7 +115,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 			return;
 	}
 
-	const bool ducked = ps->pm_state.pm_flags & PMF_DUCKED;
+	const _Bool ducked = ps->pm_state.pm_flags & PMF_DUCKED;
 
 	UnpackPosition(ps->pm_state.velocity, velocity);
 	velocity[2] = 0.0;

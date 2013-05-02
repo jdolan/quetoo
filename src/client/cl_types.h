@@ -27,7 +27,7 @@
 #include "ui/ui_types.h"
 
 typedef struct cl_frame_s {
-	bool valid; // cleared if delta parsing was invalid
+	_Bool valid; // cleared if delta parsing was invalid
 	uint32_t server_frame;
 	uint32_t server_time; // server time the message is valid for (in milliseconds)
 	int32_t delta_frame; // negatives indicate no delta
@@ -135,8 +135,8 @@ typedef struct cl_client_s {
 	uint32_t server_count; // server identification for precache
 	uint16_t server_hz; // server frame rate (packets per second)
 
-	bool demo_server; // we're viewing a demo
-	bool third_person; // we're using a 3rd person camera
+	_Bool demo_server; // we're viewing a demo
+	_Bool third_person; // we're using a 3rd person camera
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 	uint16_t precache_check;
@@ -190,30 +190,30 @@ typedef struct cl_key_state_s {
 	char lines[KEY_HISTORY_SIZE][KEY_LINE_SIZE];
 	uint16_t pos;
 
-	bool insert;
-	bool repeat;
+	_Bool insert;
+	_Bool repeat;
 
 	uint32_t edit_line;
 	uint32_t history_line;
 
 	char *binds[SDLK_MLAST];
-	bool down[SDLK_MLAST];
+	_Bool down[SDLK_MLAST];
 } cl_key_state_t;
 
 typedef struct cl_mouse_state_s {
 	float x, y;
 	float old_x, old_y;
-	bool grabbed;
+	_Bool grabbed;
 } cl_mouse_state_t;
 
 typedef struct cl_chat_state_s {
 	char buffer[KEY_LINE_SIZE];
 	size_t len;
-	bool team;
+	_Bool team;
 } cl_chat_state_t;
 
 typedef struct cl_download_s {
-	bool http;
+	_Bool http;
 	file_t *file;
 	char tempname[MAX_OSPATH];
 	char name[MAX_OSPATH];

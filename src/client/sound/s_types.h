@@ -30,7 +30,7 @@
 // media handles
 typedef struct s_media_s {
 	char name[MAX_QPATH];
-	bool (*Retain)(struct s_media_s *self);
+	_Bool (*Retain)(struct s_media_s *self);
 	void (*Free)(struct s_media_s *self);
 	int32_t seed;
 } s_media_t;
@@ -38,7 +38,7 @@ typedef struct s_media_s {
 typedef struct s_sample_s {
 	s_media_t media;
 	Mix_Chunk *chunk;
-	bool alias;
+	_Bool alias;
 } s_sample_t;
 
 typedef struct s_channel_s {
@@ -64,8 +64,8 @@ typedef struct s_music_s {
 typedef struct s_env_s {
 	s_channel_t channels[MAX_CHANNELS];
 
-	bool initialized; // is the sound subsystem initialized
-	bool update; // inform the client of state changes
+	_Bool initialized; // is the sound subsystem initialized
+	_Bool update; // inform the client of state changes
 
 	uint16_t num_active_channels;
 } s_env_t;

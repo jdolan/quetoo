@@ -217,7 +217,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	VectorSet(color, 1.0, 1.0, 1.0);
 
 	char class_name[128];
-	bool entity = false, light = false;
+	_Bool entity = false, light = false;
 
 	while (true) {
 

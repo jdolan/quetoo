@@ -437,8 +437,8 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
  * @brief Writes part of a packetentities message.
  * Can delta from either a baseline or a previous packet_entity
  */
-void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, bool force,
-		bool is_new) {
+void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force,
+		_Bool is_new) {
 
 	uint16_t bits = 0;
 

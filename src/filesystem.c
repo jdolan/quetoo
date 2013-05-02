@@ -40,28 +40,28 @@ static fs_state_t fs_state;
  *
  * @return True on successful flush and close, false otherwise.
  */
-bool Fs_Close(file_t *file) {
+_Bool Fs_Close(file_t *file) {
 	return PHYSFS_close(file) ? true : false;
 }
 
 /*
  * @return True if the end of the file has been reached, false otherwise.
  */
-bool Fs_Eof(file_t *file) {
+_Bool Fs_Eof(file_t *file) {
 	return PHYSFS_eof(file) ? true : false;
 }
 
 /*
  * @return True if the specified filename exists on the search path.
  */
-bool Fs_Exists(const char *filename) {
+_Bool Fs_Exists(const char *filename) {
 	return PHYSFS_exists(filename) ? true : false;
 }
 
 /*
  * @return True if the file flushed successfully, false otherwise.
  */
-bool Fs_Flush(file_t *file) {
+_Bool Fs_Flush(file_t *file) {
 	return PHYSFS_flush(file) ? true : false;
 }
 
@@ -75,7 +75,7 @@ const char *Fs_LastError(void) {
 /*
  * @brief Creates the specified directory (and any ancestors) in Fs_WriteDir.
  */
-bool Fs_Mkdir(const char *dir) {
+_Bool Fs_Mkdir(const char *dir) {
 	return PHYSFS_mkdir(dir) ? true : false;
 }
 
@@ -163,7 +163,7 @@ int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
  *
  * @return True on success, false on failures.
  */
-bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
+_Bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
 	size_t i;
 	char *c;
 
@@ -186,7 +186,7 @@ bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
 /*
  * @brief Seeks to the specified offset.
  */
-bool Fs_Seek(file_t *file, size_t offset) {
+_Bool Fs_Seek(file_t *file, size_t offset) {
 	return PHYSFS_seek(file, offset) ? true : false;
 }
 
@@ -297,7 +297,7 @@ void Fs_Free(void *buffer) {
 /*
  * @brief Renames the specified source to the given destination.
  */
-bool Fs_Rename(const char *source, const char *dest) {
+_Bool Fs_Rename(const char *source, const char *dest) {
 	const char *dir = Fs_WriteDir();
 
 	return rename(va("%s/%s", dir, source), va("%s/%s", dir, dest)) == 0;
@@ -306,7 +306,7 @@ bool Fs_Rename(const char *source, const char *dest) {
 /*
  * @brief Unlinks (deletes) the specified file.
  */
-bool Fs_Unlink(const char *filename) {
+_Bool Fs_Unlink(const char *filename) {
 
 	if (!strcmp(Fs_WriteDir(), Fs_RealDir(filename))) {
 		return unlink(filename) == 0;

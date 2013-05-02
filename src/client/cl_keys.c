@@ -31,7 +31,7 @@ static char **cl_key_names;
  * @brief Execute any system-level binds, regardless of key state. This enables e.g.
  * toggling of the console, toggling fullscreen, etc.
  */
-static bool Cl_KeySystem(SDLKey key, uint16_t unicode __attribute__((unused)), bool down, uint32_t time __attribute__((unused))) {
+static _Bool Cl_KeySystem(SDLKey key, uint16_t unicode __attribute__((unused)), _Bool down, uint32_t time __attribute__((unused))) {
 
 	if (!down) { // don't care
 		return false;
@@ -90,7 +90,7 @@ static bool Cl_KeySystem(SDLKey key, uint16_t unicode __attribute__((unused)), b
 /*
  * @brief Interactive line editing and console scrollback.
  */
-static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time __attribute__((unused))) {
+static void Cl_KeyConsole(SDLKey key, uint16_t unicode, _Bool down, uint32_t time __attribute__((unused))) {
 	size_t i;
 
 	if (!down) // don't care
@@ -281,7 +281,7 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, bool down, uint32_t time
 /*
  * @brief
  */
-static void Cl_KeyGame(SDLKey key, uint16_t unicode __attribute__((unused)), bool down, uint32_t time) {
+static void Cl_KeyGame(SDLKey key, uint16_t unicode __attribute__((unused)), _Bool down, uint32_t time) {
 	char cmd[MAX_STRING_CHARS];
 
 	const char *kb = ks->binds[key];
@@ -309,7 +309,7 @@ static void Cl_KeyGame(SDLKey key, uint16_t unicode __attribute__((unused)), boo
 /*
  * @brief
  */
-static void Cl_KeyMessage(SDLKey key, uint16_t unicode, bool down, uint32_t time __attribute__((unused))) {
+static void Cl_KeyMessage(SDLKey key, uint16_t unicode, _Bool down, uint32_t time __attribute__((unused))) {
 
 	if (!down) // don't care
 		return;
@@ -596,7 +596,7 @@ void Cl_ShutdownKeys(void) {
 /*
  * @brief
  */
-void Cl_KeyEvent(SDLKey key, uint16_t unicode, bool down, uint32_t time) {
+void Cl_KeyEvent(SDLKey key, uint16_t unicode, _Bool down, uint32_t time) {
 
 	// check for system commands first, swallowing such events
 	if (Cl_KeySystem(key, unicode, down, time)) {

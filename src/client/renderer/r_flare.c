@@ -122,7 +122,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 				f->alpha = 0;
 
 			R_Trace(r_view.origin, f->origin, vec3_origin, vec3_origin, MASK_SHOT);
-			const bool visible = r_view.trace.fraction == 1.0;
+			const _Bool visible = r_view.trace.fraction == 1.0;
 
 			f->alpha += (visible ? 0.03 : -0.15); // ramp
 			f->alpha = Clamp(f->alpha, 0.0, 1.0); // clamp

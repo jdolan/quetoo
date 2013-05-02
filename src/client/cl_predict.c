@@ -24,7 +24,7 @@
 
 /*
  * @brief Returns true if client side prediction should be used.
- */bool Cl_UsePrediction(void) {
+ */_Bool Cl_UsePrediction(void) {
 
 	if (!cl_predict->value)
 		return false;

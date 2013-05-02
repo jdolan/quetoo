@@ -33,7 +33,7 @@ static s_music_state_t s_music_state;
 /*
  * @brief Retain event listener for s_music_t.
  */
-static bool S_RetainMusic(s_media_t *self) {
+static _Bool S_RetainMusic(s_media_t *self) {
 	s_music_t *music = (s_music_t *) self;
 
 	return GlobMatch("track*", music->media.name);
@@ -59,7 +59,7 @@ static void S_FreeMusic(s_media_t *self) {
 /*
  * @brief Handles the actual loading of .ogg music files.
  */
-static bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mix_Music **music) {
+static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mix_Music **music) {
 	char path[MAX_QPATH];
 
 	*music = NULL;

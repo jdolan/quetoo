@@ -140,7 +140,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 /*
  * @brief Sends the contents of the mutlicast buffer to a single client
  */
-void Sv_Unicast(const g_edict_t *ent, const bool reliable) {
+void Sv_Unicast(const g_edict_t *ent, const _Bool reliable) {
 	int32_t n;
 	sv_client_t *cl;
 
@@ -174,7 +174,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 	byte *mask;
 	int32_t leaf_num, cluster;
 	int32_t j;
-	bool reliable;
+	_Bool reliable;
 	int32_t area1, area2;
 
 	reliable = false;
@@ -324,7 +324,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint
 /*
  * @brief
  */
-static bool Sv_SendClientDatagram(sv_client_t *client) {
+static _Bool Sv_SendClientDatagram(sv_client_t *client) {
 	byte msg_buf[MAX_MSG_SIZE];
 	size_buf_t msg;
 
@@ -372,7 +372,7 @@ static void Sv_DemoCompleted(void) {
  * @brief Returns true if the client is over its current
  * bandwidth estimation and should not be sent another packet
  */
-static bool Sv_RateDrop(sv_client_t *c) {
+static _Bool Sv_RateDrop(sv_client_t *c) {
 	uint32_t total;
 	uint16_t i;
 

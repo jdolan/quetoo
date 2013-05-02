@@ -133,7 +133,7 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 
 /*
  * @brief
- */bool R_CullMeshModel(const r_entity_t *e) {
+ */_Bool R_CullMeshModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 
 	if (e->effects & EF_WEAPON) // never cull the weapon
@@ -358,8 +358,8 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
  * information, or with a lighting point above our view, are not drawn.
  */
 static void R_DrawMeshShadow_default(const r_entity_t *e) {
-	const bool blend = r_state.blend_enabled;
-	const bool lighting = r_state.lighting_enabled;
+	const _Bool blend = r_state.blend_enabled;
+	const _Bool lighting = r_state.lighting_enabled;
 
 	const vec4_t color = { 0.0, 0.0, 0.0, r_shadows->value * MESH_SHADOW_ALPHA };
 

@@ -32,8 +32,8 @@ typedef struct {
 
 	long status;
 
-	bool ready;
-	bool success;
+	_Bool ready;
+	_Bool success;
 
 	char error_buffer[MAX_STRING_CHARS];
 } cl_http_state_t;
@@ -103,7 +103,7 @@ void Cl_HttpDownload_Complete() {
  * the current game. We use cURL's multi interface, even tho we only ever
  * perform one download at a time, because it is non-blocking.
  */
-bool Cl_HttpDownload(void) {
+_Bool Cl_HttpDownload(void) {
 
 	if (!cl_http_state.ready)
 		return false;

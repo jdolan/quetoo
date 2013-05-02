@@ -42,7 +42,7 @@ cvar_t *debug_m_capture;
 typedef struct {
 	SDLKey key;
 	uint16_t unicode;
-	bool down;
+	_Bool down;
 } cl_key_queue_t;
 
 static cl_key_queue_t cl_key_queue[MAX_KEY_QUEUE];
@@ -54,7 +54,7 @@ static int32_t cl_key_queue_tail = 0;
 	if(keyNum > 0){ \
 		cl_key_queue[cl_key_queue_head].key = (SDLKey) (keyNum); \
 		cl_key_queue[cl_key_queue_head].unicode = (uint16_t) (keyUnicode); \
-		cl_key_queue[cl_key_queue_head].down = (bool) (keyDown); \
+		cl_key_queue[cl_key_queue_head].down = (_Bool) (keyDown); \
 		cl_key_queue_head = (cl_key_queue_head + 1) & (MAX_KEY_QUEUE - 1); \
 	}
 
@@ -405,7 +405,7 @@ void Cl_HandleEvents(void) {
 
 	// ignore mouse position after SDL re-grabs mouse
 	// http://bugzilla.libsdl.org/show_bug.cgi?id=341
-	bool invalid_mouse_state = false;
+	_Bool invalid_mouse_state = false;
 
 	// force a mouse grab when changing video modes
 	if (r_view.update) {

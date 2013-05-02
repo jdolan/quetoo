@@ -24,7 +24,7 @@
 
 #include "filesystem.h"
 
-extern bool cvar_user_info_modified;
+extern _Bool cvar_user_info_modified;
 
 typedef void (*cvar_enumerate_func)(cvar_t *var, void *data);
 
@@ -39,11 +39,11 @@ char *Cvar_GetString(const char *name);
 void Cvar_Enumerate(cvar_enumerate_func func, void *data);
 void Cvar_CompleteVar(const char *pattern, GList **matches);
 void Cvar_ResetLocalVars(void);
-bool Cvar_PendingLatchedVars(void);
+_Bool Cvar_PendingLatchedVars(void);
 void Cvar_UpdateLatchedVars(void);
-bool Cvar_PendingVars(uint32_t flags);
+_Bool Cvar_PendingVars(uint32_t flags);
 void Cvar_ClearVars(uint32_t flags);
-bool Cvar_Command(void);
+_Bool Cvar_Command(void);
 char *Cvar_UserInfo(void);
 char *Cvar_ServerInfo(void);
 void Cvar_WriteVariables(file_t *f);

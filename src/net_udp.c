@@ -98,7 +98,7 @@ static void Net_SockaddrToNetaddr(const struct sockaddr_in *s, net_addr_t *a) {
 /*
  * @brief
  */
-bool Net_CompareNetaddr(net_addr_t a, net_addr_t b) {
+_Bool Net_CompareNetaddr(net_addr_t a, net_addr_t b) {
 
 	if (a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1] && a.ip[2] == b.ip[2] && a.ip[3] == b.ip[3]
 			&& a.port == b.port)
@@ -110,7 +110,7 @@ bool Net_CompareNetaddr(net_addr_t a, net_addr_t b) {
 /*
  * @brief Similar to Net_CompareNetaddr, but omits port checks.
  */
- bool Net_CompareClientNetaddr(net_addr_t a, net_addr_t b) {
+ _Bool Net_CompareClientNetaddr(net_addr_t a, net_addr_t b) {
 
 	if (a.type != b.type)
 		return false;
@@ -142,7 +142,7 @@ char *Net_NetaddrToString(net_addr_t a) {
  * 192.246.40.70
  * 192.246.40.70:28000
  */
-static bool Net_StringToSockaddr(const char *s, struct sockaddr *saddr) {
+static _Bool Net_StringToSockaddr(const char *s, struct sockaddr *saddr) {
 	struct hostent *h;
 	char *colon;
 	char copy[128];
@@ -179,7 +179,7 @@ static bool Net_StringToSockaddr(const char *s, struct sockaddr *saddr) {
  * 192.246.40.70
  * 192.246.40.70:28000
  */
-bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
+_Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 	struct sockaddr_in saddr;
 
 	if (!strcmp(s, "localhost")) {
@@ -199,14 +199,14 @@ bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 /*
  * @brief
  */
-bool Net_IsLocalNetaddr(net_addr_t addr) {
+_Bool Net_IsLocalNetaddr(net_addr_t addr) {
 	return Net_CompareNetaddr(addr, net_local_addr);
 }
 
 /*
  * @brief
  */
-static bool Net_GetLocalPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
+static _Bool Net_GetLocalPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
 	uint32_t i;
 	loopback_t *loop;
 
@@ -246,7 +246,7 @@ static void Net_SendLocalPacket(net_src_t source, size_t length, void *data) {
 /*
  * @brief
  */
-bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
+_Bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
 	ssize_t ret;
 	int32_t err;
 	struct sockaddr_in from_addr;
@@ -382,7 +382,7 @@ static int32_t Net_Socket(const char *net_interface, uint16_t port) {
 /*
  * @brief
  */
-void Net_Config(net_src_t source, bool up) {
+void Net_Config(net_src_t source, _Bool up) {
 	uint16_t p = 0;
 
 	if (source == NS_SERVER) {
