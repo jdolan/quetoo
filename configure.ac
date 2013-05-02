@@ -67,7 +67,7 @@ case "$host" in
 	*-*-mingw*)
 		HOST_NAME="WINDOWS"
 		HOST_LIBS="-lws2_32 -lole32 -lstdc++"
-		DEFAULT_PREFIX=""
+		DEFAULT_PREFIX="/tmp/quake2world-$target_os"
 		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
 		if test "x$WINDRES" = "x"; then
 			AC_MSG_ERROR([Could not find windres, please install windres])
@@ -615,15 +615,15 @@ dnl ----------------------
 test "$prefix" = "NONE" && prefix=$DEFAULT_PREFIX
 test "$exec_prefix" = "NONE" && exec_prefix=$prefix
 
-if test "x${HOST_NAME}" = "xWINDOWS"; then
-	BINDIR=.
-	PKGLIBDIR=.
-	PKGDATADIR=.
-else
+#if test "x${HOST_NAME}" = "xWINDOWS"; then
+#	BINDIR=.
+#	PKGLIBDIR=.
+#	PKGDATADIR=.
+#else
 	eval BINDIR="$bindir"
 	eval PKGLIBDIR="$prefix/lib/$PACKAGE"
 	eval PKGDATADIR="$prefix/share/$PACKAGE"
-fi
+#fi
 
 AC_DEFINE_UNQUOTED(PKGLIBDIR, "$PKGLIBDIR",
 	[Define to path containing the shared modules.]
