@@ -19,7 +19,7 @@ install-sh
 libtool
 *.lo
 ltmain.sh
-m4/
+m4/*
 Makefile
 Makefile.in
 missing
