@@ -51,5 +51,6 @@ cgame_la_LIBADD = \
 cgame_la_LDFLAGS = \
 	-module \
 	-avoid-version \
+	-no-undefined \
 	-rpath $(cgamelibdir)
 
