@@ -495,12 +495,11 @@ void Fs_Init(void) {
 		Com_Error(ERR_FATAL, "%s\n", PHYSFS_getLastError());
 	}
 
-#if (__APPLE__ || __LINUX__)
 	const char *path = Sys_ExecutablePath();
 	if (path) {
 		char *c;
 
-		// Com_Debug("Resolved executable path: %s\n", path);
+		 Com_Debug("Resolved executable path: %s\n", path);
 #ifdef __APPLE__
 		if ((c = strstr(path, "Quake2World.app"))) {
 			strcpy(c + strlen("Quake2World.app"), "/Contents/MacOS/"DEFAULT_GAME);
@@ -517,9 +516,16 @@ void Fs_Init(void) {
 			strcpy(c + strlen("quake2world/"), "share/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 		}
+#elif __WIN32__
+		if ((c = strstr(path, "bin\\quake2world.exe"))) {
+			strcpy(c , "lib\\quake2world\\"DEFAULT_GAME);
+			Fs_AddToSearchPath(path);
+
+			strcpy(c , "share\\quake2world\\"DEFAULT_GAME);
+			Fs_AddToSearchPath(path);
+		}
 #endif
 	}
-#endif
 
 	// add default to search path
 	Fs_AddToSearchPath(PKGLIBDIR"/"DEFAULT_GAME);

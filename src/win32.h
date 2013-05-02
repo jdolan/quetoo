@@ -40,11 +40,11 @@
 #define RTLD_NOW 0
 #define RTLD_LAZY 0
 
-#undef PKGLIBDIR
+/*#undef PKGLIBDIR
 #undef PKGDATADIR
 #define PKGLIBDIR "."
 #define PKGDATADIR "."
-
+*/
 // WTF oO
 #ifndef _INT32_T
 #define _INT32_T
