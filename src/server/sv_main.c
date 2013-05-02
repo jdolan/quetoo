@@ -512,8 +512,8 @@ static void Sv_ReadPackets(void) {
 
 	while (Net_GetPacket(NS_SERVER, &net_from, &net_message)) {
 
-		// check for connectionless packet(0xffffffff) first
-		if (*(int32_t *) net_message.data == 0xffffffff) {
+		// check for connectionless packet (0xffffffff) first
+		if (*(uint32_t *) net_message.data == 0xffffffff) {
 			Sv_ConnectionlessPacket();
 			continue;
 		}
