@@ -518,10 +518,10 @@ void Fs_Init(void) {
 		}
 #elif __WIN32__
 		if ((c = strstr(path, "bin\\quake2world.exe"))) {
-			strcpy(c , "lib\\quake2world\\"DEFAULT_GAME);
+			strcpy(c , "lib\\"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 
-			strcpy(c , "share\\quake2world\\"DEFAULT_GAME);
+			strcpy(c , "share\\"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 		}
 #endif

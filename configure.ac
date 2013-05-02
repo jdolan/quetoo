@@ -615,15 +615,15 @@ dnl ----------------------
 test "$prefix" = "NONE" && prefix=$DEFAULT_PREFIX
 test "$exec_prefix" = "NONE" && exec_prefix=$prefix
 
-#if test "x${HOST_NAME}" = "xWINDOWS"; then
-#	BINDIR=.
-#	PKGLIBDIR=.
-#	PKGDATADIR=.
-#else
+if test "x${HOST_NAME}" = "xWINDOWS"; then
+	eval BINDIR="$bindir"
+	eval PKGLIBDIR="$prefix/lib"
+	eval PKGDATADIR="$prefix/share"
+else
 	eval BINDIR="$bindir"
 	eval PKGLIBDIR="$prefix/lib/$PACKAGE"
 	eval PKGDATADIR="$prefix/share/$PACKAGE"
-#fi
+fi
 
 AC_DEFINE_UNQUOTED(PKGLIBDIR, "$PKGLIBDIR",
 	[Define to path containing the shared modules.]

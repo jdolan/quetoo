@@ -1,4 +1,10 @@
+if WINDOWS
+cgamelibdir=$(libdir)/default
+else
 cgamelibdir=$(libdir)/@PACKAGE@/default
+endif
+
+
 
 noinst_HEADERS = \
 	cg_client.h \

@@ -1,4 +1,10 @@
+if WINDOWS
+gamelibdir=$(libdir)/default
+else
 gamelibdir=$(libdir)/@PACKAGE@/default
+endif
+
+
 
 noinst_HEADERS = \
 	g_ballistics.h \
