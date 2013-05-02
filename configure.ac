@@ -399,13 +399,13 @@ if test "x${with_curses}" != xno; then
 		)
 	fi
 		
-	dnl -----------------------------------------
-	dnl For dedicated servers, curses is required
-	dnl -----------------------------------------
+	dnl --------------------------------------------
+	dnl For dedicated servers, curses is recommended
+	dnl --------------------------------------------
 	
 	if test "${HAVE_CURSES}" = no -a "${with_client}" = no; then
-		AC_MSG_ERROR([Could not find curses, recommended for dedicated servers.
-		You should install ncurses, or ./configure --without-curses at your own peril.
+		AC_MSG_ERROR([Could not find curses, which is strongly recommended for dedicated servers.
+		You should install curses, or ./configure --without-curses to ignore this error.
 		])
 	fi
 
