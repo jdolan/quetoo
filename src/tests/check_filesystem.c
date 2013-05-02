@@ -66,9 +66,9 @@ START_TEST(check_Fs_OpenWrite)
 		ck_assert_msg(f != NULL, "Failed to open %s", __func__);
 
 		const char *testing = "testing";
-		int64_t len = Fs_Write(f, (void *) testing, strlen(testing), 1);
+		int64_t len = Fs_Write(f, (void *) testing, 1, strlen(testing));
 
-		ck_assert_msg(len = strlen(testing), "Failed to write %s", __func__);
+		ck_assert_msg((size_t) len == strlen(testing), "Failed to write %s", __func__);
 		ck_assert_msg(Fs_Close(f), "Failed to close %s", __func__);
 
 	}END_TEST
