@@ -70,7 +70,7 @@ case "$host" in
 		DEFAULT_PREFIX=""
 		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
 		if test "x$WINDRES" = "x"; then
-			AC_MSG_ERROR([windres could not be found, please install windres])
+			AC_MSG_ERROR([Could not find windres, please install windres])
 		fi
 		AC_SUBST(WINDRES)
 		AC_MSG_RESULT(windows)
@@ -397,6 +397,16 @@ if test "x${with_curses}" != xno; then
 			CURSES_LIBS="$CURSES_LIBS -lcurses",
 			HAVE_CURSES=no
 		)
+	fi
+		
+	dnl -----------------------------------------
+	dnl For dedicated servers, curses is required
+	dnl -----------------------------------------
+	
+	if test "${HAVE_CURSES}" = no -a "${with_client}" = no; then
+		AC_MSG_ERROR([Could not find curses, recommended for dedicated servers.
+		You should install ncurses, or ./configure --without-curses at your own peril.
+		])
 	fi
 
 	CPPFLAGS="$save_CPPFLAGS"
