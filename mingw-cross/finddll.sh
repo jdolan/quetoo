@@ -23,4 +23,4 @@ cp `analyze quake2world.exe|sort|uniq|grep "\n"` /tmp/quake2world-${MINGW_ARCH}/
 cp `analyze q2wmap.exe|sort|uniq|grep "\n"` /tmp/quake2world-${MINGW_ARCH}/bin
 
 cd /tmp/quake2world-${MINGW_ARCH}
-rsync -avzP bin lib maci@quake2world.net:/opt/rsync/quake2world-win32/${TARGET}
+#rsync -avzP bin lib maci@quake2world.net:/opt/rsync/quake2world-win32/${TARGET}
