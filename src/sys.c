@@ -79,10 +79,10 @@ const char *Sys_ExecutablePath(void) {
 
 #elif __WIN32__
 
-/* returns 0 on failure, wtf MS */
-	if(GetModuleFileName(0, path, MAX_OSPATH+1) != 0) {
+	if (GetModuleFileName(0, path, sizeof(path))) {
 		return path;
-    }
+	}
+
 #endif
 
 	Com_Warn("Failed to resolve executable path\n");
