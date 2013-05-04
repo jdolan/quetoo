@@ -6,7 +6,7 @@ then
 	TARGET="x86_64"
 fi
 
-function analyze( ){
+function finddll( ){
 	if [ "$1" != "" ]; then
 		for i in `/usr/bin/${TARGET}-w64-mingw32-objdump -p $1 |grep "DLL Name:" |cut -d\: -f2|cut -d\  -f2|sort |uniq`; do
 			file=`find /usr/${TARGET}-w64-mingw32 2>/dev/null |grep  $i |grep -v .dll.a`
@@ -16,11 +16,13 @@ function analyze( ){
 	fi
 }
 
-cd /tmp/quake2world-${MINGW_ARCH}/bin
+cp `finddll /tmp/quake2world-${MINGW_ARCH}/bin/quake2world.exe|sort|uniq|grep "\n"` /tmp/quake2world-${MINGW_ARCH}/bin
+cp `finddll /tmp/quake2world-${MINGW_ARCH}/bin/q2wmap.exe|sort|uniq|grep "\n"` /tmp/quake2world-${MINGW_ARCH}/bin
 
 
-cp `analyze quake2world.exe|sort|uniq|grep "\n"` /tmp/quake2world-${MINGW_ARCH}/bin
-cp `analyze q2wmap.exe|sort|uniq|grep "\n"` /tmp/quake2world-${MINGW_ARCH}/bin
+find /tmp/quake2world-${MINGW_ARCH} -name "*.la" -delete
+find /tmp/quake2world-${MINGW_ARCH} -name "*.dll.a" -delete
 
-cd /tmp/quake2world-${MINGW_ARCH}
+cp -r bin /tmp/quake2world-${MINGW_ARCH}
+
 #rsync -avzP bin lib maci@quake2world.net:/opt/rsync/quake2world-win32/${TARGET}
