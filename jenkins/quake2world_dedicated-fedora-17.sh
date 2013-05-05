@@ -18,9 +18,7 @@ make
 make check
 make install
 " 
-rm -Rf ${WORKSPACE}/jenkins-quake2world*
-/usr/bin/mock -r ${ENV} --copyout "/tmp/quake2world-${ENV}" "${WORKSPACE}/${BUILD_TAG}"
-cd ${WORKSPACE}
-tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
+
+archive_workspace
 
 destroy_fedora17

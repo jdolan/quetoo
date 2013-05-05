@@ -16,8 +16,6 @@ make install
 
 "
 
-rm -Rf ${WORKSPACE}/jenkins-quake2world*
-/usr/bin/mock -r ${MINGW_ENV} --copyout "/tmp/quake2world-${MINGW_ARCH}"  "${WORKSPACE}/${BUILD_TAG}"
-/usr/bin/mock -r ${MINGW_ENV} --clean
-cd ${WORKSPACE}
-tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
+archive_workspace
+
+destroy_mingw

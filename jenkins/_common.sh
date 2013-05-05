@@ -41,3 +41,10 @@ function destroy_mingw() {
 /usr/bin/mock -r ${MINGW_ENV} --clean
 	
 }
+
+function archive_workspace() {
+rm -Rf ${WORKSPACE}/jenkins-quake2world*
+/usr/bin/mock -r ${ENV} --copyout "/tmp/quake2world-${ENV}" "${WORKSPACE}/${BUILD_TAG}"
+cd ${WORKSPACE}
+tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
+}
