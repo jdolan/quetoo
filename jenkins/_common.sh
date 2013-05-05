@@ -32,7 +32,7 @@ MINGW_DEPS="${ENV}-SDL ${ENV}-SDL_image ${ENV}-SDL_mixer ${ENV}-curl ${ENV}-phys
 
 /usr/bin/mock -r ${MINGW_ENV} --clean
 /usr/bin/mock -r ${MINGW_ENV} --init
-/usr/bin/mock -r ${MINGW_ENV} --install ${MINGW_DEPS} http://maci.satgnu.net/rpmbuild/RPMS/noarch/${MINGW_ARCH}-physfs-2.0.3-1.fc18.noarch.rpm
+/usr/bin/mock -r ${MINGW_ENV} --install ${MINGW_DEPS} http://maci.satgnu.net/rpmbuild/RPMS/noarch/${ENV}-physfs-2.0.3-1.fc18.noarch.rpm
 /usr/bin/mock -r ${MINGW_ENV} --copyin ${WORKSPACE} "/tmp/quake2world"
 }
 
