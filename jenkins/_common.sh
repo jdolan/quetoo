@@ -37,7 +37,7 @@ MINGW_DEPS="${ENV}-SDL ${ENV}-SDL_image ${ENV}-SDL_mixer ${ENV}-curl ${ENV}-phys
 }
 
 function destroy_mingw() {
-	
+MINGW_ENV="fedora-18-x86_64"
 /usr/bin/mock -r ${MINGW_ENV} --clean
 	
 }
