@@ -494,7 +494,7 @@ struct g_edict_s {
 	int32_t head_node; // unused if num_clusters != -1
 	int32_t area_num, area_num2;
 
-	unsigned sv_flags;
+	uint32_t sv_flags;
 	vec3_t mins, maxs;
 	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;

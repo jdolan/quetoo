@@ -59,7 +59,7 @@ typedef struct g_edict_s g_edict_t; // OR in game module
 
 struct g_client_s {
 	player_state_t ps; // communicated by server to clients
-	int32_t ping;
+	uint32_t ping;
 };
 
 struct g_edict_s {
