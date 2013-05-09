@@ -29,7 +29,7 @@ _Bool G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2) {
 	if (!ent1->client || !ent2->client)
 		return false;
 
-	if (ent1->client->persistent.spectator && ent2->client->persistent.spectator)
+	if (ent1->client->locals.persistent.spectator && ent2->client->locals.persistent.spectator)
 		return true;
 
 	if (!g_level.teams && !g_level.ctf)
@@ -38,7 +38,7 @@ _Bool G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2) {
 	if (!ent1->client || !ent2->client)
 		return false;
 
-	return ent1->client->persistent.team == ent2->client->persistent.team;
+	return ent1->client->locals.persistent.team == ent2->client->locals.persistent.team;
 }
 
 /*
@@ -50,7 +50,7 @@ _Bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
 	c_trace_t trace;
 
 	// bmodels need special checking because their origin is 0,0,0
-	if (targ->move_type == MOVE_TYPE_PUSH) {
+	if (targ->locals.move_type == MOVE_TYPE_PUSH) {
 		VectorAdd(targ->abs_mins, targ->abs_maxs, dest);
 		VectorScale(dest, 0.5, dest);
 		trace
@@ -138,12 +138,12 @@ static int32_t G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int32_t
 	if (dflags & DAMAGE_NO_ARMOR)
 		return 0;
 
-	if (damage > ent->client->persistent.armor)
-		saved = ent->client->persistent.armor;
+	if (damage > ent->client->locals.persistent.armor)
+		saved = ent->client->locals.persistent.armor;
 	else
 		saved = damage;
 
-	ent->client->persistent.armor -= saved;
+	ent->client->locals.persistent.armor -= saved;
 
 	G_SpawnDamage(TE_BLOOD, point, normal, saved);
 
@@ -182,10 +182,10 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	int32_t te_sparks;
 	float scale;
 
-	if (!targ->take_damage)
+	if (!targ->locals.take_damage)
 		return;
 
-	if (targ != attacker && targ->client->respawn_protection_time > g_level.time)
+	if (targ != attacker && targ->client->locals.respawn_protection_time > g_level.time)
 		return;
 
 	if (!inflictor) // use world
@@ -195,7 +195,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 		attacker = &g_game.edicts[0];
 
 	// quad damage affects both damage and knockback
-	if (attacker->client && attacker->client->persistent.inventory[g_level.media.quad_damage]) {
+	if (attacker->client && attacker->client->locals.persistent.inventory[g_level.media.quad_damage]) {
 		damage = (int) (damage * QUAD_DAMAGE_FACTOR);
 		knockback = (int) (knockback * QUAD_KNOCKBACK_FACTOR);
 	}
@@ -226,14 +226,14 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	VectorNormalize(dir);
 
 	// calculate velocity change due to knockback
-	if (knockback && (targ->move_type == MOVE_TYPE_WALK)) {
+	if (knockback && (targ->locals.move_type == MOVE_TYPE_WALK)) {
 		vec3_t kvel;
 		float mass;
 
-		if (targ->mass < 50.0)
+		if (targ->locals.mass < 50.0)
 			mass = 50.0;
 		else
-			mass = targ->mass;
+			mass = targ->locals.mass;
 
 		scale = 1000.0; // default knockback scale
 
@@ -247,14 +247,14 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 		}
 
 		VectorScale(dir, scale * (float)knockback / mass, kvel);
-		VectorAdd(targ->velocity, kvel, targ->velocity);
+		VectorAdd(targ->locals.velocity, kvel, targ->locals.velocity);
 	}
 
 	take = damage;
 	save = 0;
 
 	// check for god mode
-	if ((targ->flags & FL_GOD_MODE) && !(dflags & DAMAGE_NO_PROTECTION)) {
+	if ((targ->locals.flags & FL_GOD_MODE) && !(dflags & DAMAGE_NO_PROTECTION)) {
 		take = 0;
 		save = damage;
 		G_SpawnDamage(TE_BLOOD, point, normal, save);
@@ -280,26 +280,26 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 			G_SpawnDamage(te_sparks, point, normal, take);
 		}
 
-		targ->health = targ->health - take;
+		targ->locals.health = targ->locals.health - take;
 
-		if (targ->health <= 0) {
-			if (targ->die) {
-				targ->die(targ, inflictor, attacker, take, point);
+		if (targ->locals.health <= 0) {
+			if (targ->locals.die) {
+				targ->locals.die(targ, inflictor, attacker, take, point);
 			} else {
-				gi.Debug("No die function for %s\n", targ->class_name);
+				gi.Debug("No die function for %s\n", targ->locals.class_name);
 			}
 			return;
 		}
 	}
 
 	// invoke the pain callback
-	if ((take || knockback) && targ->pain)
-		targ->pain(targ, attacker, take, knockback);
+	if ((take || knockback) && targ->locals.pain)
+		targ->locals.pain(targ, attacker, take, knockback);
 
 	// add to the damage inflicted on a player this frame
 	if (client) {
-		client->damage_armor += asave;
-		client->damage_health += take;
+		client->locals.damage_armor += asave;
+		client->locals.damage_health += take;
 
 		float kick = (asave + take) / 30.0;
 
@@ -310,7 +310,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 		G_ClientDamageKick(targ, dir, kick);
 
 		if (attacker->client && attacker->client != client) {
-			attacker->client->damage_inflicted += take;
+			attacker->client->locals.damage_inflicted += take;
 		}
 	}
 }
@@ -331,7 +331,7 @@ void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore
 		if (ent == ignore)
 			continue;
 
-		if (!ent->take_damage)
+		if (!ent->locals.take_damage)
 			continue;
 
 		VectorSubtract(ent->s.origin, inflictor->s.origin, dir);

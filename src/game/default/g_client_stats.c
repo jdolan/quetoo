@@ -44,16 +44,16 @@ void G_ClientToIntermission(g_edict_t *ent) {
 	ent->s.effects = 0;
 	ent->s.sound = 0;
 	ent->solid = SOLID_NOT;
-	ent->dead = true;
+	ent->locals.dead = true;
 
 	// show scores
-	ent->client->show_scores = true;
+	ent->client->locals.show_scores = true;
 
 	// hide the hud
-	ent->client->persistent.weapon = NULL;
-	ent->client->ammo_index = 0;
-	ent->client->persistent.armor = 0;
-	ent->client->pickup_msg_time = 0;
+	ent->client->locals.persistent.weapon = NULL;
+	ent->client->locals.ammo_index = 0;
+	ent->client->locals.persistent.armor = 0;
+	ent->client->locals.pickup_msg_time = 0;
 }
 
 /*
@@ -67,20 +67,20 @@ static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
 	s.player_num = ent - g_game.edicts - 1;
 	s.ping = ent->client->ping < 999 ? ent->client->ping : 999;
 
-	if (ent->client->persistent.spectator) {
+	if (ent->client->locals.persistent.spectator) {
 		s.team = 0xff;
 		s.color = 0;
 	} else {
 		if (g_level.match) {
-			if (!ent->client->persistent.ready)
+			if (!ent->client->locals.persistent.ready)
 				s.flags |= SCORES_NOT_READY;
 		}
 		if (g_level.ctf) {
 			if (ent->s.effects & (EF_CTF_BLUE | EF_CTF_RED))
 				s.flags |= SCORES_FLAG;
 		}
-		if (ent->client->persistent.team) {
-			if (ent->client->persistent.team == &g_team_good) {
+		if (ent->client->locals.persistent.team) {
+			if (ent->client->locals.persistent.team == &g_team_good) {
 				s.team = 1;
 				s.color = TEAM_COLOR_BLUE;
 			} else {
@@ -89,12 +89,12 @@ static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
 			}
 		} else {
 			s.team = 0;
-			s.color = ent->client->persistent.color;
+			s.color = ent->client->locals.persistent.color;
 		}
 	}
 
-	s.score = ent->client->persistent.score;
-	s.captures = ent->client->persistent.captures;
+	s.score = ent->client->locals.persistent.score;
+	s.captures = ent->client->locals.persistent.captures;
 
 	memcpy(*buf, &s, sizeof(s));
 	*buf += sizeof(s);
@@ -155,7 +155,7 @@ static uint32_t G_UpdateScores(void) {
 void G_ClientScores(g_edict_t *ent) {
 	uint16_t length;
 
-	if (!ent->client->show_scores || (ent->client->scores_time > g_level.time))
+	if (!ent->client->locals.show_scores || (ent->client->locals.scores_time > g_level.time))
 		return;
 
 	length = G_UpdateScores();
@@ -165,7 +165,7 @@ void G_ClientScores(g_edict_t *ent) {
 	gi.WriteData(scores_buffer, length);
 	gi.Unicast(ent, false);
 
-	ent->client->scores_time = g_level.time + 500;
+	ent->client->locals.scores_time = g_level.time + 500;
 }
 
 /*
@@ -175,16 +175,16 @@ void G_ClientScores(g_edict_t *ent) {
 void G_ClientStats(g_edict_t *ent) {
 
 	g_client_t *client = ent->client;
-	const g_client_persistent_t *persistent = &client->persistent;
+	const g_client_persistent_t *persistent = &client->locals.persistent;
 
 	// ammo
-	if (!client->ammo_index) {
+	if (!client->locals.ammo_index) {
 		client->ps.stats[STAT_AMMO_ICON] = 0;
 		client->ps.stats[STAT_AMMO] = 0;
 	} else {
-		const g_item_t *item = &g_items[client->ammo_index];
+		const g_item_t *item = &g_items[client->locals.ammo_index];
 		client->ps.stats[STAT_AMMO_ICON] = gi.ImageIndex(item->icon);
-		client->ps.stats[STAT_AMMO] = persistent->inventory[client->ammo_index];
+		client->ps.stats[STAT_AMMO] = persistent->inventory[client->locals.ammo_index];
 		client->ps.stats[STAT_AMMO_LOW] = item->quantity;
 	}
 
@@ -205,24 +205,24 @@ void G_ClientStats(g_edict_t *ent) {
 	client->ps.stats[STAT_CAPTURES] = persistent->captures;
 
 	// damage received and inflicted
-	client->ps.stats[STAT_DAMAGE_ARMOR] = client->damage_armor;
-	client->ps.stats[STAT_DAMAGE_HEALTH] = client->damage_health;
-	client->ps.stats[STAT_DAMAGE_INFLICT] = client->damage_inflicted;
+	client->ps.stats[STAT_DAMAGE_ARMOR] = client->locals.damage_armor;
+	client->ps.stats[STAT_DAMAGE_HEALTH] = client->locals.damage_health;
+	client->ps.stats[STAT_DAMAGE_INFLICT] = client->locals.damage_inflicted;
 
 	// frags
 	client->ps.stats[STAT_FRAGS] = persistent->score;
 
 	// health
-	if (persistent->spectator || ent->dead) {
+	if (persistent->spectator || ent->locals.dead) {
 		client->ps.stats[STAT_HEALTH_ICON] = 0;
 		client->ps.stats[STAT_HEALTH] = 0;
 	} else {
 		client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("pics/i_health");
-		client->ps.stats[STAT_HEALTH] = ent->health;
+		client->ps.stats[STAT_HEALTH] = ent->locals.health;
 	}
 
 	// pickup message
-	if (g_level.time > client->pickup_msg_time) {
+	if (g_level.time > client->locals.pickup_msg_time) {
 		client->ps.stats[STAT_PICKUP_ICON] = 0;
 		client->ps.stats[STAT_PICKUP_STRING] = 0;
 	}
@@ -238,7 +238,7 @@ void G_ClientStats(g_edict_t *ent) {
 
 	// scores
 	client->ps.stats[STAT_SCORES] = 0;
-	if (g_level.intermission_time || client->show_scores)
+	if (g_level.intermission_time || client->locals.show_scores)
 		client->ps.stats[STAT_SCORES] |= 1;
 
 	if ((g_level.teams || g_level.ctf) && persistent->team) { // send team_name
@@ -281,11 +281,11 @@ void G_ClientSpectatorStats(g_edict_t *ent) {
 	client->ps.stats[STAT_SPECTATOR] = 1;
 
 	// chase camera inherits stats from their chase target
-	if (client->chase_target && client->chase_target->in_use) {
-		client->ps.stats[STAT_CHASE] = CS_CLIENTS + (client->chase_target - g_game.edicts) - 1;
+	if (client->locals.chase_target && client->locals.chase_target->in_use) {
+		client->ps.stats[STAT_CHASE] = CS_CLIENTS + (client->locals.chase_target - g_game.edicts) - 1;
 
 		// scores are independent of chase camera target
-		if (g_level.intermission_time || client->show_scores)
+		if (g_level.intermission_time || client->locals.show_scores)
 			client->ps.stats[STAT_SCORES] = 1;
 		else {
 			client->ps.stats[STAT_SCORES] = 0;

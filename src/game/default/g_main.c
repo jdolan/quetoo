@@ -82,14 +82,14 @@ void G_ResetTeams(void) {
 	memset(&g_team_good, 0, sizeof(g_team_good));
 	memset(&g_team_evil, 0, sizeof(g_team_evil));
 
-	strcpy(g_team_good.name, "Good");
+	g_strlcpy(g_team_good.name, "Good", sizeof(g_team_good.name));
 	gi.ConfigString(CS_TEAM_GOOD, g_team_good.name);
 
-	strcpy(g_team_evil.name, "Evil");
+	g_strlcpy(g_team_evil.name, "Evil", sizeof(g_team_evil.name));
 	gi.ConfigString(CS_TEAM_EVIL, g_team_evil.name);
 
-	strcpy(g_team_good.skin, "qforcer/blue");
-	strcpy(g_team_evil.skin, "qforcer/red");
+	g_strlcpy(g_team_good.skin, "qforcer/blue", sizeof(g_team_good.skin));
+	g_strlcpy(g_team_evil.skin, "qforcer/red", sizeof(g_team_evil.skin));
 }
 
 /*
@@ -99,9 +99,11 @@ void G_ResetVote(void) {
 	int32_t i;
 
 	for (i = 0; i < sv_max_clients->integer; i++) { //reset vote flags
+
 		if (!g_game.edicts[i + 1].in_use)
 			continue;
-		g_game.edicts[i + 1].client->persistent.vote = VOTE_NO_OP;
+
+		g_game.edicts[i + 1].client->locals.persistent.vote = VOTE_NO_OP;
 	}
 
 	gi.ConfigString(CS_VOTE, NULL);
@@ -126,35 +128,35 @@ static void G_ResetItems(void) {
 		if (!ent->in_use)
 			continue;
 
-		if (!ent->item)
+		if (!ent->locals.item)
 			continue;
 
-		if (ent->spawn_flags & SF_ITEM_DROPPED) { // free dropped ones
+		if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // free dropped ones
 			G_FreeEdict(ent);
 			continue;
 		}
 
-		if (ent->item->type == ITEM_FLAG) { // flags only appear for ctf
+		if (ent->locals.item->type == ITEM_FLAG) { // flags only appear for ctf
 
 			if (g_level.ctf) {
 				ent->sv_flags &= ~SVF_NO_CLIENT;
 				ent->solid = SOLID_TRIGGER;
-				ent->next_think = g_level.time + 200;
+				ent->locals.next_think = g_level.time + 200;
 			} else {
 				ent->sv_flags |= SVF_NO_CLIENT;
 				ent->solid = SOLID_NOT;
-				ent->next_think = 0;
+				ent->locals.next_think = 0;
 			}
 		} else { // everything else honors gameplay
 
 			if (g_level.gameplay > 1) { // hide items
 				ent->sv_flags |= SVF_NO_CLIENT;
 				ent->solid = SOLID_NOT;
-				ent->next_think = 0;
+				ent->locals.next_think = 0;
 			} else { // or unhide them
 				ent->sv_flags &= ~SVF_NO_CLIENT;
 				ent->solid = SOLID_TRIGGER;
-				ent->next_think = g_level.time + 2000 * gi.frame_millis;
+				ent->locals.next_think = g_level.time + 2000 * gi.frame_millis;
 			}
 		}
 	}
@@ -184,36 +186,36 @@ static void G_RestartGame(_Bool teamz) {
 		ent = &g_game.edicts[i + 1];
 		cl = ent->client;
 
-		cl->persistent.ready = false; // back to warmup
-		cl->persistent.score = 0;
-		cl->persistent.captures = 0;
+		cl->locals.persistent.ready = false; // back to warmup
+		cl->locals.persistent.score = 0;
+		cl->locals.persistent.captures = 0;
 
 		if (teamz) // reset teams
-			cl->persistent.team = NULL;
+			cl->locals.persistent.team = NULL;
 
 		// determine spectator or team affiliations
 
 		if (g_level.match) {
-			if (cl->persistent.match_num == g_level.match_num)
-				cl->persistent.spectator = false;
+			if (cl->locals.persistent.match_num == g_level.match_num)
+				cl->locals.persistent.spectator = false;
 			else
-				cl->persistent.spectator = true;
+				cl->locals.persistent.spectator = true;
 		}
 
 		else if (g_level.rounds) {
-			if (cl->persistent.round_num == g_level.round_num)
-				cl->persistent.spectator = false;
+			if (cl->locals.persistent.round_num == g_level.round_num)
+				cl->locals.persistent.spectator = false;
 			else
-				cl->persistent.spectator = true;
+				cl->locals.persistent.spectator = true;
 		}
 
 		if (g_level.teams || g_level.ctf) {
 
-			if (!cl->persistent.team) {
+			if (!cl->locals.persistent.team) {
 				if (g_auto_join->value)
 					G_AddClientToTeam(ent, G_SmallestTeam()->name);
 				else
-					cl->persistent.spectator = true;
+					cl->locals.persistent.spectator = true;
 			}
 		}
 
@@ -239,7 +241,7 @@ static void G_MuteClient(char *name, _Bool mute) {
 	if (!(cl = G_ClientByName(name)))
 		return;
 
-	cl->muted = mute;
+	cl->locals.muted = mute;
 }
 
 /*
@@ -262,16 +264,16 @@ static void G_BeginIntermission(const char *map) {
 		if (!client->in_use)
 			continue;
 
-		if (client->health <= 0)
+		if (client->locals.health <= 0)
 			G_ClientRespawn(client, false);
 	}
 
 	// find an intermission spot
-	ent = G_Find(NULL, FOFS(class_name), "info_player_intermission");
+	ent = G_Find(NULL, LOFS(class_name), "info_player_intermission");
 	if (!ent) { // map does not have an intermission point
-		ent = G_Find(NULL, FOFS(class_name), "info_player_start");
+		ent = G_Find(NULL, LOFS(class_name), "info_player_start");
 		if (!ent)
-			ent = G_Find(NULL, FOFS(class_name), "info_player_deathmatch");
+			ent = G_Find(NULL, LOFS(class_name), "info_player_deathmatch");
 	}
 
 	VectorCopy(ent->s.origin, g_level.intermission_origin);
@@ -370,13 +372,13 @@ static void G_CheckRoundStart(void) {
 
 		cl = g_game.edicts[i + 1].client;
 
-		if (cl->persistent.spectator)
+		if (cl->locals.persistent.spectator)
 			continue;
 
 		clients++;
 
 		if (g_level.teams)
-			cl->persistent.team == &g_team_good ? g++ : e++;
+			cl->locals.persistent.team == &g_team_good ? g++ : e++;
 	}
 
 	if (clients < 2) // need at least 2 clients to trigger countdown
@@ -419,17 +421,17 @@ static void G_CheckRoundLimit() {
 		ent = &g_game.edicts[i + 1];
 		cl = ent->client;
 
-		if (cl->persistent.round_num != g_level.round_num)
+		if (cl->locals.persistent.round_num != g_level.round_num)
 			continue; // they were intentionally spectating, skip them
 
 		if (g_level.teams || g_level.ctf) { // rejoin a team
-			if (cl->persistent.team)
-				G_AddClientToTeam(ent, cl->persistent.team->name);
+			if (cl->locals.persistent.team)
+				G_AddClientToTeam(ent, cl->locals.persistent.team->name);
 			else
 				G_AddClientToTeam(ent, G_SmallestTeam()->name);
 		} else
 			// just rejoin the game
-			cl->persistent.spectator = false;
+			cl->locals.persistent.spectator = false;
 
 		G_ClientRespawn(ent, false);
 	}
@@ -458,13 +460,13 @@ static void G_CheckRoundEnd(void) {
 
 		cl = g_game.edicts[j + 1].client;
 
-		if (cl->persistent.spectator) // true spectator, or dead
+		if (cl->locals.persistent.spectator) // true spectator, or dead
 			continue;
 
 		winner = &g_game.edicts[j + 1];
 
 		if (g_level.teams)
-			cl->persistent.team == &g_team_good ? g++ : e++;
+			cl->locals.persistent.team == &g_team_good ? g++ : e++;
 
 		clients++;
 	}
@@ -494,7 +496,7 @@ static void G_CheckRoundEnd(void) {
 			continue;
 
 		if (g_level.teams || g_level.ctf) {
-			if (cl->persistent.team != winner->client->persistent.team)
+			if (cl->locals.persistent.team != winner->client->locals.persistent.team)
 				return;
 		} else {
 			if (g_game.edicts[i + 1].owner != winner)
@@ -506,8 +508,8 @@ static void G_CheckRoundEnd(void) {
 	gi.BroadcastPrint(
 			PRINT_HIGH,
 			"%s wins!\n",
-			(g_level.teams || g_level.ctf ? winner->client->persistent.team->name
-					: winner->client->persistent.net_name));
+			(g_level.teams || g_level.ctf ? winner->client->locals.persistent.team->name
+					: winner->client->locals.persistent.net_name));
 
 	g_level.round_time = 0;
 
@@ -534,11 +536,11 @@ static void G_CheckMatchEnd(void) {
 
 		cl = g_game.edicts[i + 1].client;
 
-		if (cl->persistent.spectator)
+		if (cl->locals.persistent.spectator)
 			continue;
 
 		if (g_level.teams || g_level.ctf)
-			cl->persistent.team == &g_team_good ? g++ : e++;
+			cl->locals.persistent.team == &g_team_good ? g++ : e++;
 
 		clients++;
 	}
@@ -675,7 +677,7 @@ static void G_CheckRules(void) {
 				if (!g_game.edicts[i + 1].in_use)
 					continue;
 
-				if (cl->persistent.score >= g_level.frag_limit) {
+				if (cl->locals.persistent.score >= g_level.frag_limit) {
 					gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
 					G_EndLevel();
 					return;
@@ -846,11 +848,11 @@ static void G_Frame(void) {
 		if (!(ent->s.effects & EF_LIGHTNING))
 			VectorCopy(ent->s.origin, ent->s.old_origin);
 
-		if (ent->ground_entity) {
+		if (ent->locals.ground_entity) {
 
 			// check for ground entities going away
-			if (ent->ground_entity->link_count != ent->ground_entity_link_count)
-				ent->ground_entity = NULL;
+			if (ent->locals.ground_entity->link_count != ent->locals.ground_entity_link_count)
+				ent->locals.ground_entity = NULL;
 		}
 
 		if (i > 0 && i <= sv_max_clients->integer)

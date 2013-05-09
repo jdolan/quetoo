@@ -22,8 +22,6 @@
 #ifndef __GAME_LOCAL_H__
 #define __GAME_LOCAL_H__
 
-#include "game/game.h"
-
 // this is the game name that we advertise to clients
 #define GAME_NAME "default"
 

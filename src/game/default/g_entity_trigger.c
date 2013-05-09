@@ -27,11 +27,11 @@
 static void G_Trigger_Init(g_edict_t *self) {
 
 	if (!VectorCompare(self->s.angles, vec3_origin))
-		G_SetMoveDir(self->s.angles, self->move_dir);
+		G_SetMoveDir(self->s.angles, self->locals.move_dir);
 
 	self->solid = SOLID_TRIGGER;
-	self->move_type = MOVE_TYPE_NONE;
-	gi.SetModel(self, self->model);
+	self->locals.move_type = MOVE_TYPE_NONE;
+	gi.SetModel(self, self->locals.model);
 	self->sv_flags = SVF_NO_CLIENT;
 }
 
@@ -39,7 +39,7 @@ static void G_Trigger_Init(g_edict_t *self) {
  * @brief The wait time has passed, so set back up for another activation
  */
 static void G_trigger_multiple_wait(g_edict_t *ent) {
-	ent->next_think = 0;
+	ent->locals.next_think = 0;
 }
 
 /*
@@ -47,19 +47,19 @@ static void G_trigger_multiple_wait(g_edict_t *ent) {
  */
 static void G_trigger_multiple_think(g_edict_t *ent) {
 
-	if (ent->next_think)
+	if (ent->locals.next_think)
 		return; // already been triggered
 
-	G_UseTargets(ent, ent->activator);
+	G_UseTargets(ent, ent->locals.activator);
 
-	if (ent->wait > 0) {
-		ent->think = G_trigger_multiple_wait;
-		ent->next_think = g_level.time + ent->wait * 1000;
+	if (ent->locals.wait > 0) {
+		ent->locals.think = G_trigger_multiple_wait;
+		ent->locals.next_think = g_level.time + ent->locals.wait * 1000;
 	} else { // we can't just remove (self) here, because this is a touch function
 		// called while looping through area links...
-		ent->touch = NULL;
-		ent->next_think = g_level.time + gi.frame_millis;
-		ent->think = G_FreeEdict;
+		ent->locals.touch = NULL;
+		ent->locals.next_think = g_level.time + gi.frame_millis;
+		ent->locals.think = G_FreeEdict;
 	}
 }
 
@@ -68,7 +68,7 @@ static void G_trigger_multiple_think(g_edict_t *ent) {
  */
 static void G_trigger_multiple_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 
-	ent->activator = activator;
+	ent->locals.activator = activator;
 
 	G_trigger_multiple_think(ent);
 }
@@ -82,16 +82,16 @@ static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
 	if (!other->client)
 		return;
 
-	if (self->spawn_flags & 2)
+	if (self->locals.spawn_flags & 2)
 		return;
 
-	if (!VectorCompare(self->move_dir, vec3_origin)) {
+	if (!VectorCompare(self->locals.move_dir, vec3_origin)) {
 
-		if (DotProduct(other->client->forward, self->move_dir) < 0.0)
+		if (DotProduct(other->client->locals.forward, self->locals.move_dir) < 0.0)
 			return;
 	}
 
-	self->activator = other;
+	self->locals.activator = other;
 	G_trigger_multiple_think(self);
 }
 
@@ -100,7 +100,7 @@ static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
  */
 static void G_trigger_multiple_enable(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	self->solid = SOLID_TRIGGER;
-	self->use = G_trigger_multiple_use;
+	self->locals.use = G_trigger_multiple_use;
 	gi.LinkEntity(self);
 }
 
@@ -112,26 +112,26 @@ static void G_trigger_multiple_enable(g_edict_t *self, g_edict_t *other __attrib
  */
 void G_trigger_multiple(g_edict_t *ent) {
 
-	ent->noise_index = gi.SoundIndex("misc/chat");
+	ent->locals.noise_index = gi.SoundIndex("misc/chat");
 
-	if (!ent->wait)
-		ent->wait = 0.2;
-	ent->touch = G_trigger_multiple_touch;
-	ent->move_type = MOVE_TYPE_NONE;
+	if (!ent->locals.wait)
+		ent->locals.wait = 0.2;
+	ent->locals.touch = G_trigger_multiple_touch;
+	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->sv_flags |= SVF_NO_CLIENT;
 
-	if (ent->spawn_flags & 4) {
+	if (ent->locals.spawn_flags & 4) {
 		ent->solid = SOLID_NOT;
-		ent->use = G_trigger_multiple_enable;
+		ent->locals.use = G_trigger_multiple_enable;
 	} else {
 		ent->solid = SOLID_TRIGGER;
-		ent->use = G_trigger_multiple_use;
+		ent->locals.use = G_trigger_multiple_use;
 	}
 
 	if (!VectorCompare(ent->s.angles, vec3_origin))
-		G_SetMoveDir(ent->s.angles, ent->move_dir);
+		G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
 
-	gi.SetModel(ent, ent->model);
+	gi.SetModel(ent, ent->locals.model);
 	gi.LinkEntity(ent);
 }
 
@@ -144,7 +144,7 @@ void G_trigger_multiple(g_edict_t *ent) {
  "message"	string to be displayed when triggered
  */
 void G_trigger_once(g_edict_t *ent) {
-	ent->wait = -1;
+	ent->locals.wait = -1;
 	G_trigger_multiple(ent);
 }
 
@@ -159,7 +159,7 @@ static void G_trigger_relay_use(g_edict_t *self, g_edict_t *other __attribute__(
  This fixed size trigger cannot be touched, it can only be fired by other events.
  */
 void G_trigger_relay(g_edict_t *self) {
-	self->use = G_trigger_relay_use;
+	self->locals.use = G_trigger_relay_use;
 }
 
 /*QUAKED trigger_always(.5 .5 .5)(-8 -8 -8)(8 8 8)
@@ -167,8 +167,8 @@ void G_trigger_relay(g_edict_t *self) {
  */
 void G_trigger_always(g_edict_t *ent) {
 	// we must have some delay to make sure our use targets are present
-	if (ent->delay < 0.2)
-		ent->delay = 0.2;
+	if (ent->locals.delay < 0.2)
+		ent->locals.delay = 0.2;
 
 	G_UseTargets(ent, ent);
 }
@@ -182,21 +182,21 @@ void G_trigger_always(g_edict_t *ent) {
 static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
 
-	if (other->health > 0) {
+	if (other->locals.health > 0) {
 
-		VectorScale(self->move_dir, self->speed * 10.0, other->velocity);
+		VectorScale(self->locals.move_dir, self->locals.speed * 10.0, other->locals.velocity);
 
 		if (other->client) { // don't take falling damage immediately from this
 			other->client->ps.pm_state.pm_flags |= PMF_PUSHED;
 		}
 
-		if (other->push_time < g_level.time) {
-			other->push_time = g_level.time + 1500;
+		if (other->locals.push_time < g_level.time) {
+			other->locals.push_time = g_level.time + 1500;
 			gi.Sound(other, gi.SoundIndex("world/jumppad"), ATTN_NORM);
 		}
 	}
 
-	if (self->spawn_flags & PUSH_ONCE)
+	if (self->locals.spawn_flags & PUSH_ONCE)
 		G_FreeEdict(self);
 }
 
@@ -209,20 +209,20 @@ void G_trigger_push(g_edict_t *self) {
 
 	G_Trigger_Init(self);
 
-	self->touch = G_trigger_push_touch;
+	self->locals.touch = G_trigger_push_touch;
 
-	if (!self->speed)
-		self->speed = 100;
+	if (!self->locals.speed)
+		self->locals.speed = 100;
 
 	gi.LinkEntity(self);
 
-	if (!(self->spawn_flags & PUSH_EFFECT))
+	if (!(self->locals.spawn_flags & PUSH_EFFECT))
 		return;
 
 	// add a teleporter trail
 	ent = G_Spawn();
 	ent->solid = SOLID_TRIGGER;
-	ent->move_type = MOVE_TYPE_NONE;
+	ent->locals.move_type = MOVE_TYPE_NONE;
 
 	// uber hack to resolve origin
 	VectorAdd(self->mins, self->maxs, ent->s.origin);
@@ -243,8 +243,8 @@ static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other __attribute__((
 		self->solid = SOLID_NOT;
 	gi.LinkEntity(self);
 
-	if (!(self->spawn_flags & 2))
-		self->use = NULL;
+	if (!(self->locals.spawn_flags & 2))
+		self->locals.use = NULL;
 }
 
 /*
@@ -254,33 +254,33 @@ static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 		c_bsp_surface_t *surf __attribute__((unused))) {
 	int32_t dflags;
 
-	if (!other->take_damage) { // deal with items that land on us
+	if (!other->locals.take_damage) { // deal with items that land on us
 
-		if (other->item) {
-			if (other->item->type == ITEM_FLAG)
+		if (other->locals.item) {
+			if (other->locals.item->type == ITEM_FLAG)
 				G_ResetFlag(other);
 			else
 				G_FreeEdict(other);
 		}
 
-		gi.Debug("%s\n", other->class_name);
+		gi.Debug("%s\n", other->locals.class_name);
 		return;
 	}
 
-	if (self->timestamp > g_level.time)
+	if (self->locals.timestamp > g_level.time)
 		return;
 
-	if (self->spawn_flags & 16)
-		self->timestamp = g_level.time + 1000;
+	if (self->locals.spawn_flags & 16)
+		self->locals.timestamp = g_level.time + 1000;
 	else
-		self->timestamp = g_level.time + 100;
+		self->locals.timestamp = g_level.time + 100;
 
-	if (self->spawn_flags & 8)
+	if (self->locals.spawn_flags & 8)
 		dflags = DAMAGE_NO_PROTECTION;
 	else
 		dflags = DAMAGE_NO_ARMOR;
 
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, self->dmg,
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.dmg, self->locals.dmg,
 			dflags, MOD_TRIGGER_HURT);
 }
 
@@ -299,18 +299,18 @@ void G_trigger_hurt(g_edict_t *self) {
 
 	G_Trigger_Init(self);
 
-	self->touch = G_trigger_hurt_touch;
+	self->locals.touch = G_trigger_hurt_touch;
 
-	if (!self->dmg)
-		self->dmg = 5;
+	if (!self->locals.dmg)
+		self->locals.dmg = 5;
 
-	if (self->spawn_flags & 1)
+	if (self->locals.spawn_flags & 1)
 		self->solid = SOLID_NOT;
 	else
 		self->solid = SOLID_TRIGGER;
 
-	if (self->spawn_flags & 2)
-		self->use = G_trigger_hurt_use;
+	if (self->locals.spawn_flags & 2)
+		self->locals.use = G_trigger_hurt_use;
 
 	gi.LinkEntity(self);
 }
@@ -321,16 +321,16 @@ void G_trigger_hurt(g_edict_t *self) {
 static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other __attribute__((unused)), c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
 
-	if (self->timestamp > g_level.time)
+	if (self->locals.timestamp > g_level.time)
 		return;
 
-	self->timestamp = g_level.time + self->delay * 1000;
+	self->locals.timestamp = g_level.time + self->locals.delay * 1000;
 
-	if (self->command)
-		gi.AddCommandString(va("%s\n", self->command));
+	if (self->locals.command)
+		gi.AddCommandString(va("%s\n", self->locals.command));
 
-	else if (self->script)
-		gi.AddCommandString(va("exec %s\n", self->script));
+	else if (self->locals.script)
+		gi.AddCommandString(va("exec %s\n", self->locals.script));
 }
 
 /*
@@ -338,7 +338,7 @@ static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other __attribute__
  */
 void G_trigger_exec(g_edict_t *self) {
 
-	if (!self->command && !self->script) {
+	if (!self->locals.command && !self->locals.script) {
 		gi.Debug("No command or script at %s", vtos(self->abs_mins));
 		G_FreeEdict(self);
 		return;
@@ -346,7 +346,7 @@ void G_trigger_exec(g_edict_t *self) {
 
 	G_Trigger_Init(self);
 
-	self->touch = G_trigger_exec_touch;
+	self->locals.touch = G_trigger_exec_touch;
 
 	gi.LinkEntity(self);
 }

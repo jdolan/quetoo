@@ -53,9 +53,9 @@ static void G_Give_f(g_edict_t *ent) {
 
 	if (give_all || strcasecmp(gi.Argv(1), "health") == 0) {
 		if (gi.Argc() == 3)
-			ent->health = quantity;
+			ent->locals.health = quantity;
 		else
-			ent->health = ent->max_health;
+			ent->locals.health = ent->locals.max_health;
 		if (!give_all)
 			return;
 	}
@@ -67,7 +67,7 @@ static void G_Give_f(g_edict_t *ent) {
 				continue;
 			if (it->type != ITEM_WEAPON)
 				continue;
-			ent->client->persistent.inventory[i] += 1;
+			ent->client->locals.persistent.inventory[i] += 1;
 		}
 		if (!give_all)
 			return;
@@ -88,9 +88,9 @@ static void G_Give_f(g_edict_t *ent) {
 
 	if (give_all || strcasecmp(name, "armor") == 0) {
 		if (gi.Argc() == 3)
-			ent->client->persistent.armor = quantity;
+			ent->client->locals.persistent.armor = quantity;
 		else
-			ent->client->persistent.armor = ent->client->persistent.max_armor;
+			ent->client->locals.persistent.armor = ent->client->locals.persistent.max_armor;
 
 		if (!give_all)
 			return;
@@ -118,12 +118,12 @@ static void G_Give_f(g_edict_t *ent) {
 		index = ITEM_INDEX(it);
 
 		if (gi.Argc() == 3)
-			ent->client->persistent.inventory[index] = quantity;
+			ent->client->locals.persistent.inventory[index] = quantity;
 		else
-			ent->client->persistent.inventory[index] += it->quantity;
+			ent->client->locals.persistent.inventory[index] += it->quantity;
 	} else { // or spawn and touch whatever they asked for
 		it_ent = G_Spawn();
-		it_ent->class_name = it->class_name;
+		it_ent->locals.class_name = it->class_name;
 
 		G_SpawnItem(it_ent, it);
 		G_TouchItem(it_ent, ent, NULL, NULL);
@@ -144,8 +144,8 @@ static void G_God_f(g_edict_t *ent) {
 		return;
 	}
 
-	ent->flags ^= FL_GOD_MODE;
-	if (!(ent->flags & FL_GOD_MODE))
+	ent->locals.flags ^= FL_GOD_MODE;
+	if (!(ent->locals.flags & FL_GOD_MODE))
 		msg = "god OFF\n";
 	else
 		msg = "god ON\n";
@@ -171,11 +171,11 @@ static void G_NoClip_f(g_edict_t *ent) {
 		return;
 	}
 
-	if (ent->move_type == MOVE_TYPE_NO_CLIP) {
-		ent->move_type = MOVE_TYPE_WALK;
+	if (ent->locals.move_type == MOVE_TYPE_NO_CLIP) {
+		ent->locals.move_type = MOVE_TYPE_WALK;
 		msg = "no_clip OFF\n";
 	} else {
-		ent->move_type = MOVE_TYPE_NO_CLIP;
+		ent->locals.move_type = MOVE_TYPE_NO_CLIP;
 		msg = "no_clip ON\n";
 	}
 
@@ -198,7 +198,7 @@ static void G_Wave_f(g_edict_t *ent) {
  */
 static void G_Use_f(g_edict_t *ent) {
 
-	if (ent->dead)
+	if (ent->locals.dead)
 		return;
 
 	const char *s = gi.Args();
@@ -213,7 +213,7 @@ static void G_Use_f(g_edict_t *ent) {
 	}
 
 	const uint16_t index = ITEM_INDEX(it);
-	if (!ent->client->persistent.inventory[index]) {
+	if (!ent->client->locals.persistent.inventory[index]) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
 	}
@@ -232,7 +232,7 @@ static void G_Drop_f(g_edict_t *ent) {
 	if (g_level.gameplay > 1)
 		return;
 
-	if (ent->dead)
+	if (ent->locals.dead)
 		return;
 
 	const char *s = gi.Args();
@@ -240,9 +240,9 @@ static void G_Drop_f(g_edict_t *ent) {
 
 	if (!strcmp(s, "flag")) { // find the correct flag
 
-		f = G_FlagForTeam(G_OtherTeam(ent->client->persistent.team));
+		f = G_FlagForTeam(G_OtherTeam(ent->client->locals.persistent.team));
 		if (f)
-			it = f->item;
+			it = f->locals.item;
 	} else
 		// or just look up the item
 		it = G_FindItem(s);
@@ -259,12 +259,12 @@ static void G_Drop_f(g_edict_t *ent) {
 
 	const uint16_t index = ITEM_INDEX(it);
 
-	if (!ent->client->persistent.inventory[index]) {
+	if (!ent->client->locals.persistent.inventory[index]) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
 	}
 
-	ent->client->last_dropped = it;
+	ent->client->locals.last_dropped = it;
 	it->Drop(ent, it);
 }
 
@@ -276,24 +276,24 @@ static void G_WeaponPrevious_f(g_edict_t *ent) {
 
 	g_client_t *cl = ent->client;
 
-	if (cl->persistent.spectator) {
+	if (cl->locals.persistent.spectator) {
 
-		if (cl->chase_target) // chase the previous player
+		if (cl->locals.chase_target) // chase the previous player
 			G_ClientChasePrevious(ent);
 
 		return;
 	}
 
-	if (!cl->persistent.weapon)
+	if (!cl->locals.persistent.weapon)
 		return;
 
-	const uint16_t selected_weapon = ITEM_INDEX(cl->persistent.weapon);
+	const uint16_t selected_weapon = ITEM_INDEX(cl->locals.persistent.weapon);
 
 	// scan for the next valid one
 	for (i = 1; i <= MAX_ITEMS; i++) {
 		const uint16_t index = (selected_weapon + i) % MAX_ITEMS;
 
-		if (!cl->persistent.inventory[index])
+		if (!cl->locals.persistent.inventory[index])
 			continue;
 
 		const g_item_t *it = &g_items[index];
@@ -306,7 +306,7 @@ static void G_WeaponPrevious_f(g_edict_t *ent) {
 
 		it->Use(ent, it);
 
-		if (cl->persistent.weapon == it)
+		if (cl->locals.persistent.weapon == it)
 			return; // successful
 	}
 }
@@ -319,24 +319,24 @@ static void G_WeaponNext_f(g_edict_t *ent) {
 
 	g_client_t *cl = ent->client;
 
-	if (cl->persistent.spectator) {
+	if (cl->locals.persistent.spectator) {
 
-		if (cl->chase_target) // chase the next player
+		if (cl->locals.chase_target) // chase the next player
 			G_ClientChaseNext(ent);
 
 		return;
 	}
 
-	if (!cl->persistent.weapon)
+	if (!cl->locals.persistent.weapon)
 		return;
 
-	const uint16_t selected_weapon = ITEM_INDEX(cl->persistent.weapon);
+	const uint16_t selected_weapon = ITEM_INDEX(cl->locals.persistent.weapon);
 
 	// scan  for the next valid one
 	for (i = 1; i <= MAX_ITEMS; i++) {
 		const uint16_t index = (selected_weapon + MAX_ITEMS - i) % MAX_ITEMS;
 
-		if (!cl->persistent.inventory[index])
+		if (!cl->locals.persistent.inventory[index])
 			continue;
 
 		const g_item_t *it = &g_items[index];
@@ -349,7 +349,7 @@ static void G_WeaponNext_f(g_edict_t *ent) {
 
 		it->Use(ent, it);
 
-		if (cl->persistent.weapon == it)
+		if (cl->locals.persistent.weapon == it)
 			return; // successful
 	}
 }
@@ -361,12 +361,12 @@ static void G_WeaponLast_f(g_edict_t *ent) {
 
 	g_client_t *cl = ent->client;
 
-	if (!cl->persistent.weapon || !cl->persistent.last_weapon)
+	if (!cl->locals.persistent.weapon || !cl->locals.persistent.last_weapon)
 		return;
 
-	const uint16_t index = ITEM_INDEX(cl->persistent.last_weapon);
+	const uint16_t index = ITEM_INDEX(cl->locals.persistent.last_weapon);
 
-	if (!cl->persistent.inventory[index])
+	if (!cl->locals.persistent.inventory[index])
 		return;
 
 	const g_item_t *it = &g_items[index];
@@ -385,21 +385,21 @@ static void G_WeaponLast_f(g_edict_t *ent) {
  */
 static void G_Kill_f(g_edict_t *ent) {
 
-	if ((g_level.time - ent->client->respawn_time) < 1000)
+	if ((g_level.time - ent->client->locals.respawn_time) < 1000)
 		return;
 
-	if (ent->client->persistent.spectator)
+	if (ent->client->locals.persistent.spectator)
 		return;
 
-	if (ent->dead)
+	if (ent->locals.dead)
 		return;
 
-	ent->flags &= ~FL_GOD_MODE;
-	ent->health = 0;
+	ent->locals.flags &= ~FL_GOD_MODE;
+	ent->locals.health = 0;
 
 	means_of_death = MOD_SUICIDE;
 
-	ent->die(ent, ent, ent, 100000, vec3_origin);
+	ent->locals.die(ent, ent, ent, 100000, vec3_origin);
 }
 
 /*
@@ -411,8 +411,8 @@ static const char *G_ExpandVariable(g_edict_t *ent, char v) {
 	switch (v) {
 
 		case 'd': // last dropped item
-			if (ent->client->last_dropped)
-				return ent->client->last_dropped->name;
+			if (ent->client->locals.last_dropped)
+				return ent->client->locals.last_dropped->name;
 			return "";
 
 		case 'h': // health
@@ -466,7 +466,7 @@ static void G_Say_f(g_edict_t *ent) {
 	g_edict_t *other;
 	g_client_t *cl;
 
-	if (ent->client->muted) {
+	if (ent->client->locals.muted) {
 		gi.ClientPrint(ent, PRINT_HIGH, "You have been muted\n");
 		return;
 	}
@@ -487,14 +487,15 @@ static void G_Say_f(g_edict_t *ent) {
 		arg0 = false;
 	}
 
-	if (ent->client->persistent.spectator && !g_spectator_chat->integer)
+	if (ent->client->locals.persistent.spectator && !g_spectator_chat->integer)
 		team = true;
 
 	if (team)
-		g_snprintf(text, sizeof(text), "%s^%d: ", ent->client->persistent.net_name,
+		g_snprintf(text, sizeof(text), "%s^%d: ", ent->client->locals.persistent.net_name,
 				CON_TEAM_COLORCHAT);
 	else
-		g_snprintf(text, sizeof(text), "%s^%d: ", ent->client->persistent.net_name, CON_COLOR_CHAT);
+		g_snprintf(text, sizeof(text), "%s^%d: ", ent->client->locals.persistent.net_name,
+				CON_COLOR_CHAT);
 	len = strlen(text);
 
 	i = sizeof(text) - strlen(text) - 2;
@@ -525,16 +526,17 @@ static void G_Say_f(g_edict_t *ent) {
 			arg0 = false;
 		c++;
 	}
+
 	if (arg0)
 		return;
 
 	if (!team) { // chat flood protection, does not pertain to teams
 		cl = ent->client;
 
-		if (g_level.time < cl->chat_time)
+		if (g_level.time < cl->locals.chat_time)
 			return;
 
-		cl->chat_time = g_level.time + 1000;
+		cl->locals.chat_time = g_level.time + 1000;
 	}
 
 	for (i = 1; i <= sv_max_clients->integer; i++) { // print to clients
@@ -577,11 +579,11 @@ static void G_PlayerList_f(g_edict_t *ent) {
 		if (!e2->in_use)
 			continue;
 
-		seconds = (g_level.frame_num - e2->client->persistent.first_frame) / gi.frame_rate;
+		seconds = (g_level.frame_num - e2->client->locals.persistent.first_frame) / gi.frame_rate;
 
 		g_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n", (seconds / 60), (seconds % 60),
-				e2->client->ping, e2->client->persistent.score, e2->client->persistent.net_name,
-				e2->client->persistent.skin);
+				e2->client->ping, e2->client->locals.persistent.score,
+				e2->client->locals.persistent.net_name, e2->client->locals.persistent.skin);
 
 		if (strlen(text) + strlen(st) > sizeof(text) - 200) {
 			sprintf(text + strlen(text), "And more...\n");
@@ -594,9 +596,24 @@ static void G_PlayerList_f(g_edict_t *ent) {
 	gi.ClientPrint(ent, PRINT_HIGH, "%s", text);
 }
 
-static const char *vote_cmds[] = { "g_capture_limit", "g_ctf", "g_frag_limit", "g_friendly_fire",
-		"g_gameplay", "g_match", "g_round_limit", "g_rounds", "g_spawn_farthest", "g_teams",
-		"g_time_limit", "kick", "map", "mute", "restart", "unmute", NULL };
+static const char *vote_cmds[] = {
+		"g_capture_limit",
+		"g_ctf",
+		"g_frag_limit",
+		"g_friendly_fire",
+		"g_gameplay",
+		"g_match",
+		"g_round_limit",
+		"g_rounds",
+		"g_spawn_farthest",
+		"g_teams",
+		"g_time_limit",
+		"kick",
+		"map",
+		"mute",
+		"restart",
+		"unmute",
+		NULL };
 
 /*
  * @brief Inspects the vote command and issues help if applicable. Returns
@@ -712,21 +729,21 @@ static void G_Vote_f(g_edict_t *ent) {
 	}
 
 	if (g_level.vote_time) { // check for vote from client
-		if (ent->client->persistent.vote) {
+		if (ent->client->locals.persistent.vote) {
 			gi.ClientPrint(ent, PRINT_HIGH, "You've already voted\n");
 			return;
 		}
 		if (strcasecmp(vote, "yes") == 0)
-			ent->client->persistent.vote = VOTE_YES;
+			ent->client->locals.persistent.vote = VOTE_YES;
 		else if (strcasecmp(vote, "no") == 0)
-			ent->client->persistent.vote = VOTE_NO;
+			ent->client->locals.persistent.vote = VOTE_NO;
 		else { // only yes and no are valid during a vote
 			gi.ClientPrint(ent, PRINT_HIGH, "A vote \"%s\" is already in progress\n",
 					g_level.vote_cmd);
 			return;
 		}
 
-		g_level.votes[ent->client->persistent.vote]++;
+		g_level.votes[ent->client->locals.persistent.vote]++;
 		gi.BroadcastPrint(PRINT_HIGH, "Voting results \"%s\":\n  %d Yes     %d No\n",
 				g_level.vote_cmd, g_level.votes[VOTE_YES], g_level.votes[VOTE_NO]);
 		return;
@@ -750,14 +767,14 @@ static void G_Vote_f(g_edict_t *ent) {
 	g_strlcpy(g_level.vote_cmd, vote, sizeof(g_level.vote_cmd));
 	g_level.vote_time = g_level.time;
 
-	ent->client->persistent.vote = VOTE_YES; // client has implicity voted
+	ent->client->locals.persistent.vote = VOTE_YES; // client has implicity voted
 	g_level.votes[VOTE_YES] = 1;
 
 	gi.ConfigString(CS_VOTE, g_level.vote_cmd); // send to layout
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s has called a vote:\n"
 		"  %s\n"
-		"To vote, press F1 for yes or F2 for no\n", ent->client->persistent.net_name,
+		"To vote, press F1 for yes or F2 for no\n", ent->client->locals.persistent.net_name,
 			g_level.vote_cmd);
 }
 
@@ -777,19 +794,19 @@ _Bool G_AddClientToTeam(g_edict_t *ent, const char *team_name) {
 		return false;
 	}
 
-	if (ent->client->persistent.team == team)
+	if (ent->client->locals.persistent.team == team)
 		return false;
 
-	if (!ent->client->persistent.spectator) { // changing teams
+	if (!ent->client->locals.persistent.spectator) { // changing teams
 		G_TossQuadDamage(ent);
 		G_TossFlag(ent);
 	}
 
-	ent->client->persistent.team = team;
-	ent->client->persistent.spectator = false;
-	ent->client->persistent.ready = false;
+	ent->client->locals.persistent.team = team;
+	ent->client->locals.persistent.spectator = false;
+	ent->client->locals.persistent.ready = false;
 
-	G_ClientUserInfoChanged(ent, ent->client->persistent.user_info);
+	G_ClientUserInfoChanged(ent, ent->client->locals.persistent.user_info);
 	return true;
 }
 
@@ -804,19 +821,19 @@ static void G_AddClientToRound(g_edict_t *ent) {
 		return;
 	}
 
-	score = ent->client->persistent.score;
+	score = ent->client->locals.persistent.score;
 
 	if (g_level.teams) { // attempt to add client to team
 		if (!G_AddClientToTeam(ent, gi.Argv(1)))
 			return;
 	} else { // simply allow them to join
-		if (!ent->client->persistent.spectator)
+		if (!ent->client->locals.persistent.spectator)
 			return;
-		ent->client->persistent.spectator = false;
+		ent->client->locals.persistent.spectator = false;
 	}
 
 	G_ClientRespawn(ent, true);
-	ent->client->persistent.score = score; // lastly restore score
+	ent->client->locals.persistent.score = score; // lastly restore score
 }
 
 /*
@@ -858,12 +875,12 @@ static void G_Teamname_f(g_edict_t *ent) {
 		return;
 	}
 
-	if (!ent->client->persistent.team) {
+	if (!ent->client->locals.persistent.team) {
 		gi.ClientPrint(ent, PRINT_HIGH, "You're not on a team\n");
 		return;
 	}
 
-	t = ent->client->persistent.team;
+	t = ent->client->locals.persistent.team;
 
 	if (g_level.time - t->name_time < TEAM_CHANGE_TIME)
 		return; // prevent change spamming
@@ -880,8 +897,8 @@ static void G_Teamname_f(g_edict_t *ent) {
 	cs = t == &g_team_good ? CS_TEAM_GOOD : CS_TEAM_EVIL;
 	gi.ConfigString(cs, t->name);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_name to %s\n", ent->client->persistent.net_name,
-			t->name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_name to %s\n",
+			ent->client->locals.persistent.net_name, t->name);
 }
 
 /*
@@ -897,12 +914,12 @@ static void G_Teamskin_f(g_edict_t *ent) {
 		return;
 	}
 
-	if (!ent->client->persistent.team) {
+	if (!ent->client->locals.persistent.team) {
 		gi.ClientPrint(ent, PRINT_HIGH, "You're not on a team\n");
 		return;
 	}
 
-	t = ent->client->persistent.team;
+	t = ent->client->locals.persistent.team;
 
 	if (g_level.time - t->skin_time < TEAM_CHANGE_TIME)
 		return; // prevent change spamming
@@ -931,16 +948,17 @@ static void G_Teamskin_f(g_edict_t *ent) {
 	for (i = 0; i < sv_max_clients->integer; i++) { // update skins
 		cl = g_game.clients + i;
 
-		if (!cl->persistent.team || cl->persistent.team != t)
+		if (!cl->locals.persistent.team || cl->locals.persistent.team != t)
 			continue;
 
-		g_strlcpy(cl->persistent.skin, s, sizeof(cl->persistent.skin));
+		g_strlcpy(cl->locals.persistent.skin, s, sizeof(cl->locals.persistent.skin));
 
-		gi.ConfigString(CS_CLIENTS + i, va("%s\\%s", cl->persistent.net_name, cl->persistent.skin));
+		gi.ConfigString(CS_CLIENTS + i,
+				va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
 	}
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_skin to %s\n", ent->client->persistent.net_name,
-			t->skin);
+	gi.BroadcastPrint(PRINT_HIGH, "%s changed team_skin to %s\n",
+			ent->client->locals.persistent.net_name, t->skin);
 }
 
 /*
@@ -955,17 +973,17 @@ static void G_Ready_f(g_edict_t *ent) {
 		return;
 	}
 
-	if (ent->client->persistent.spectator) {
+	if (ent->client->locals.persistent.spectator) {
 		gi.ClientPrint(ent, PRINT_HIGH, "You're a spectator\n");
 		return;
 	}
 
-	if (ent->client->persistent.ready) {
+	if (ent->client->locals.persistent.ready) {
 		gi.ClientPrint(ent, PRINT_HIGH, "You're already ready\n");
 		return;
 	}
 
-	ent->client->persistent.ready = true;
+	ent->client->locals.persistent.ready = true;
 
 	clients = g = e = 0;
 
@@ -975,16 +993,16 @@ static void G_Ready_f(g_edict_t *ent) {
 		if (!g_game.edicts[i + 1].in_use)
 			continue;
 
-		if (cl->persistent.spectator)
+		if (cl->locals.persistent.spectator)
 			continue;
 
-		if (!cl->persistent.ready)
+		if (!cl->locals.persistent.ready)
 			break;
 
 		clients++;
 
 		if (g_level.teams || g_level.ctf)
-			cl->persistent.team == &g_team_good ? g++ : e++;
+			cl->locals.persistent.team == &g_team_good ? g++ : e++;
 	}
 
 	if (i != (int) sv_max_clients->integer) // someone isn't ready
@@ -1017,7 +1035,7 @@ static void G_Unready_f(g_edict_t *ent) {
 		return;
 	}
 
-	if (ent->client->persistent.spectator) {
+	if (ent->client->locals.persistent.spectator) {
 		gi.ClientPrint(ent, PRINT_HIGH, "You're a spectator\n");
 		return;
 	}
@@ -1027,12 +1045,12 @@ static void G_Unready_f(g_edict_t *ent) {
 		return;
 	}
 
-	if (!ent->client->persistent.ready) {
+	if (!ent->client->locals.persistent.ready) {
 		gi.ClientPrint(ent, PRINT_HIGH, "You are not ready\n");
 		return;
 	}
 
-	ent->client->persistent.ready = false;
+	ent->client->locals.persistent.ready = false;
 	g_level.start_match = false;
 }
 
@@ -1043,24 +1061,24 @@ static void G_Spectate_f(g_edict_t *ent) {
 	_Bool spectator;
 
 	// prevent spectator spamming
-	if (g_level.time - ent->client->respawn_time < 3000)
+	if (g_level.time - ent->client->locals.respawn_time < 3000)
 		return;
 
 	// prevent spectators from joining matches
-	if (g_level.match_time && ent->client->persistent.spectator) {
+	if (g_level.match_time && ent->client->locals.persistent.spectator) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Match has already started\n");
 		return;
 	}
 
 	// prevent spectators from joining rounds
-	if (g_level.round_time && ent->client->persistent.spectator) {
+	if (g_level.round_time && ent->client->locals.persistent.spectator) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Round has already started\n");
 		return;
 	}
 
-	spectator = ent->client->persistent.spectator;
+	spectator = ent->client->locals.persistent.spectator;
 
-	if (ent->client->persistent.spectator) { // they wish to join
+	if (ent->client->locals.persistent.spectator) { // they wish to join
 		if (g_level.teams || g_level.ctf) {
 			if (g_auto_join->value) // assign them to a team
 				G_AddClientToTeam(ent, G_SmallestTeam()->name);
@@ -1075,7 +1093,7 @@ static void G_Spectate_f(g_edict_t *ent) {
 		G_TossFlag(ent);
 	}
 
-	ent->client->persistent.spectator = !spectator;
+	ent->client->locals.persistent.spectator = !spectator;
 	G_ClientRespawn(ent, true);
 }
 
@@ -1083,7 +1101,7 @@ static void G_Spectate_f(g_edict_t *ent) {
  * @brief
  */
 void G_Score_f(g_edict_t *ent) {
-	ent->client->show_scores = !ent->client->show_scores;
+	ent->client->locals.show_scores = !ent->client->locals.show_scores;
 }
 
 /*

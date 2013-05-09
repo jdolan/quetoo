@@ -22,7 +22,7 @@
 #ifndef __GAME_TYPES_H__ // don't collide with glib.h
 #define __GAME_TYPES_H__
 
-#include "game/game.h"
+#include "shared.h"
 
 // server commands sent directly to the client game
 typedef enum {
@@ -60,7 +60,6 @@ typedef struct {
 #define CS_TIME				(CS_GENERAL + 7) // level or match timer
 #define CS_ROUND			(CS_GENERAL + 8) // round number
 #define CS_VOTE				(CS_GENERAL + 9) // vote string\yes count\no count
-
 // player_state->stats[] indexes
 #define STAT_AMMO			0
 #define STAT_AMMO_ICON		1
@@ -91,6 +90,9 @@ typedef struct {
 #define STAT_TOGGLE_BIT		0x8000 // used to force a stats field update
 
 #if defined(__GAME_LOCAL_H__)
+
+typedef struct g_client_s g_client_t;
+typedef struct g_edict_s g_edict_t;
 
 // edict->spawnflags
 #define SF_ITEM_TRIGGER			0x00000001
@@ -125,17 +127,25 @@ typedef enum {
 	AMMO_BOLTS,
 	AMMO_SLUGS,
 	AMMO_NUKES
-}g_ammo_t;
+} g_ammo_t;
 
 // armor types
 typedef enum {
-	ARMOR_NONE, ARMOR_JACKET, ARMOR_COMBAT, ARMOR_BODY, ARMOR_SHARD
-}g_armor_t;
+	ARMOR_NONE,
+	ARMOR_JACKET,
+	ARMOR_COMBAT,
+	ARMOR_BODY,
+	ARMOR_SHARD
+} g_armor_t;
 
 // health types
 typedef enum {
-	HEALTH_NONE, HEALTH_SMALL, HEALTH_MEDIUM, HEALTH_LARGE, HEALTH_MEGA
-}g_health_t;
+	HEALTH_NONE,
+	HEALTH_SMALL,
+	HEALTH_MEDIUM,
+	HEALTH_LARGE,
+	HEALTH_MEGA
+} g_health_t;
 
 // edict->move_type values
 typedef enum {
@@ -147,24 +157,29 @@ typedef enum {
 	MOVE_TYPE_WALK, // gravity
 	MOVE_TYPE_FLY,
 	MOVE_TYPE_TOSS,
-	// gravity
-}g_move_type_t;
+// gravity
+} g_move_type_t;
 
 // a synonym for readability
 #define MOVE_TYPE_THINK MOVE_TYPE_NONE
 
 // gitem_t->flags
 typedef enum {
-	ITEM_WEAPON, ITEM_AMMO, ITEM_ARMOR, ITEM_FLAG, ITEM_HEALTH, ITEM_POWERUP
-}g_item_type_t;
+	ITEM_WEAPON,
+	ITEM_AMMO,
+	ITEM_ARMOR,
+	ITEM_FLAG,
+	ITEM_HEALTH,
+	ITEM_POWERUP
+} g_item_type_t;
 
 typedef struct g_item_s {
 	const char *class_name; // spawning name
 
-	_Bool (*Pickup)(struct g_edict_s *ent, struct g_edict_s *other);
-	void (*Use)(struct g_edict_s *ent, const struct g_item_s *item);
-	void (*Drop)(struct g_edict_s *ent, const struct g_item_s *item);
-	void (*Think)(struct g_edict_s *ent);
+	_Bool (*Pickup)(g_edict_t *ent, g_edict_t *other);
+	void (*Use)(g_edict_t *ent, const struct g_item_s *item);
+	void (*Drop)(g_edict_t *ent, const struct g_item_s *item);
+	void (*Think)(g_edict_t *ent);
 
 	const char *pickup_sound;
 	const char *model;
@@ -181,7 +196,7 @@ typedef struct g_item_s {
 	uint16_t tag; // type-specific flags
 
 	const char *precaches; // string of all models, sounds, and images this item will use
-}g_item_t;
+} g_item_t;
 
 // spawn_temp_t is only used to hold entity field values that
 // can be set from the editor, but aren't actually present
@@ -209,14 +224,18 @@ typedef struct {
 	char *noise;
 	float pause_time;
 	char *item;
-}g_spawn_temp_t;
+} g_spawn_temp_t;
 
-#define FOFS(x) (ptrdiff_t)&(((g_edict_t *)0)->x)
-#define SOFS(x) (ptrdiff_t)&(((g_spawn_temp_t *)0)->x)
+#define EOFS(x) (ptrdiff_t)&(((g_edict_t *) 0)->x)
+#define LOFS(x) (ptrdiff_t)&(((g_edict_t *) 0)->locals.x)
+#define SOFS(x) (ptrdiff_t)&(((g_spawn_temp_t *) 0)->x)
 
 typedef enum {
-	STATE_TOP, STATE_BOTTOM, STATE_UP, STATE_DOWN
-}g_move_state_t;
+	STATE_TOP,
+	STATE_BOTTOM,
+	STATE_UP,
+	STATE_DOWN
+} g_move_state_t;
 
 typedef struct {
 	// fixed data
@@ -245,7 +264,7 @@ typedef struct {
 	float remaining_distance;
 	float decel_distance;
 	void (*done)(g_edict_t *);
-}g_move_info_t;
+} g_move_info_t;
 
 // this structure is left intact through an entire game
 typedef struct {
@@ -253,7 +272,7 @@ typedef struct {
 	g_client_t *clients; // [sv_max_clients]
 
 	g_spawn_temp_t spawn;
-}g_game_t;
+} g_game_t;
 
 extern g_game_t g_game;
 
@@ -307,13 +326,13 @@ typedef struct {
 	uint32_t round_num;
 
 	char vote_cmd[64]; // current vote in question
-	uint32_t votes[3]; // current vote tallies
+	uint32_t votes[3]; // current vote count (yes/no/undecided)
 	uint32_t vote_time; // time vote started
 
 	g_media_t media;
 
 	g_edict_t *current_entity; // entity running from G_RunFrame
-}g_level_t;
+} g_level_t;
 
 // means of death
 #define MOD_UNKNOWN					0
@@ -350,13 +369,18 @@ typedef struct {
 #define VOTE_MAJORITY 0.51
 
 typedef enum {
-	VOTE_NO_OP, VOTE_YES, VOTE_NO
-}g_vote_t;
+	VOTE_NO_OP,
+	VOTE_YES,
+	VOTE_NO
+} g_vote_t;
 
 // gameplay modes
 typedef enum {
-	DEFAULT, DEATHMATCH, INSTAGIB, ARENA
-}g_gameplay_t;
+	DEFAULT,
+	DEATHMATCH,
+	INSTAGIB,
+	ARENA
+} g_gameplay_t;
 
 #define TEAM_CHANGE_TIME 5.0
 
@@ -376,7 +400,7 @@ typedef struct {
 	int16_t captures;
 	uint32_t name_time; // prevent change spamming
 	uint32_t skin_time;
-}g_team_t;
+} g_team_t;
 
 // client data that persists through respawns
 typedef struct {
@@ -418,16 +442,11 @@ typedef struct {
 	uint32_t match_num; // most recent match
 	uint32_t round_num; // most recent arena round
 	int32_t color; // weapon effect colors
-}g_client_persistent_t;
+} g_client_persistent_t;
 
-// this structure is cleared on each respawn
-struct g_client_s {
-	// known to server
-	player_state_t ps; // communicated by server to clients
-	uint32_t ping;
-
-	// private to game
-
+// this structure is cleared on each spawn, with the persistent structure
+// explicitly copied over to preserve team membership, etc.
+typedef struct {
 	user_cmd_t cmd;
 
 	g_client_persistent_t persistent;
@@ -449,7 +468,7 @@ struct g_client_s {
 	int16_t damage_health; // damage taken out of health
 	int16_t damage_inflicted; // damage done to other clients
 
-	float speed; // x/y speed after moving
+	vec_t speed; // x/y speed after moving
 	vec3_t angles; // aiming direction
 	vec3_t forward, right, up; // aiming direction vectors
 	vec3_t cmd_angles; // angles sent over in the last command
@@ -478,32 +497,9 @@ struct g_client_s {
 	g_edict_t *old_chase_target; // player we were chasing
 
 	const g_item_t *last_dropped; // last dropped item, used for variable expansion
-};
+} g_client_locals_t;
 
-struct g_edict_s {
-	entity_state_t s;
-	struct g_client_s *client; // NULL if not a player
-
-	_Bool in_use;
-	int32_t link_count;
-
-	link_t area; // linked to a division node or leaf
-
-	int32_t num_clusters; // if -1, use head_node instead
-	int32_t cluster_nums[MAX_ENT_CLUSTERS];
-	int32_t head_node; // unused if num_clusters != -1
-	int32_t area_num, area_num2;
-
-	uint32_t sv_flags;
-	vec3_t mins, maxs;
-	vec3_t abs_mins, abs_maxs, size;
-	solid_t solid;
-	uint32_t clip_mask;
-	g_edict_t *owner;
-
-	// DO NOT MODIFY ANYTHING ABOVE THIS, THE SERVER
-	// EXPECTS THE FIELDS IN THAT ORDER!
-
+typedef struct {
 	uint32_t spawn_flags;
 	uint32_t flags; // FL_GOD_MODE, etc..
 
@@ -539,12 +535,11 @@ struct g_edict_s {
 	void (*pre_think)(g_edict_t *ent);
 	void (*think)(g_edict_t *self);
 	void (*blocked)(g_edict_t *self, g_edict_t *other); // move to move_info?
-	void (*touch)(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane,
-			c_bsp_surface_t *surf);
+	void (*touch)(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
 	void (*use)(g_edict_t *self, g_edict_t *other, g_edict_t *activator);
 	void (*pain)(g_edict_t *self, g_edict_t *other, int32_t damage, int32_t knockback);
-	void (*die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker,
-			int32_t damage, vec3_t point);
+	void (*die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int32_t damage,
+			vec3_t point);
 
 	uint32_t touch_time;
 	uint32_t push_time;
@@ -589,7 +584,9 @@ struct g_edict_s {
 	c_bsp_surface_t *surf;
 
 	vec3_t map_origin; // where the map says we spawn
-};
+} g_edict_locals_t;
+
+#include "game/game.h"
 
 #endif
 

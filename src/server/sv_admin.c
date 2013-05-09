@@ -85,7 +85,7 @@ static void Sv_Heartbeat_f(void) {
  * @brief Sets sv_client and sv_player to the player with idnum Cmd_Argv(1)
  */
 static _Bool Sv_SetPlayer(void) {
-	sv_client_t *cl;
+	sv_client_t * cl;
 	int32_t i;
 
 	if (Cmd_Argc() < 2)
@@ -181,7 +181,7 @@ static void Sv_Kick_f(void) {
  */
 static void Sv_Status_f(void) {
 	int32_t i, j, l;
-	sv_client_t *cl;
+	sv_client_t * cl;
 	char *s;
 	uint32_t ping;
 
@@ -195,7 +195,7 @@ static void Sv_Status_f(void) {
 	Com_Print("--- ---- --------------- ------- --------------------- ------\n");
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
-		if (!cl->state)
+		if (cl->state == SV_CLIENT_FREE)
 			continue;
 
 		Com_Print("%3i ", i);
@@ -203,7 +203,7 @@ static void Sv_Status_f(void) {
 		if (cl->state == SV_CLIENT_CONNECTED)
 			Com_Print("CNCT ");
 		else {
-			ping = cl->ping < 9999 ? cl->ping : 9999;
+			ping = cl->edict->client->ping < 9999 ? cl->edict->client->ping : 9999;
 			Com_Print("%4i ", ping);
 		}
 
@@ -358,7 +358,8 @@ void Sv_InitCommands(void) {
 	Cmd_AddCommand("demo", Sv_Demo_f, 0, "Start playback of the specified demo file");
 	Cmd_AddCommand("map", Sv_Map_f, 0, "Start a server for the specified map");
 
-	Cmd_AddCommand("set_master", Sv_SetMaster_f, 0, "Set the master server for the dedicated server");
+	Cmd_AddCommand("set_master", Sv_SetMaster_f, 0,
+			"Set the master server for the dedicated server");
 	Cmd_AddCommand("heartbeat", Sv_Heartbeat_f, 0, "Send a heartbeat to the master server");
 
 	if (dedicated->value) {

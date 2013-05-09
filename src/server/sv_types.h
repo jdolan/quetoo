@@ -96,8 +96,7 @@ typedef struct sv_client_s {
 	uint32_t cmd_msec; // for sv_enforce_time
 	uint16_t cmd_msec_errors; // maintain how many problems we've seen
 
-	uint32_t frame_latency[CLIENT_LATENCY_COUNTS];
-	uint32_t ping;
+	uint32_t frame_latency[CLIENT_LATENCY_COUNTS]; // used to calculate ping
 
 	uint32_t message_size[CLIENT_RATE_MESSAGES]; // used to rate drop packets
 	uint32_t rate;

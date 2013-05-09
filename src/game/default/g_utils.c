@@ -57,9 +57,9 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 	vec3_t view, end;
 
 	// use the client's view angles to project the origin flash
-	VectorCopy(ent->client->forward, forward);
-	VectorCopy(ent->client->right, right);
-	VectorCopy(ent->client->up, up);
+	VectorCopy(ent->client->locals.forward, forward);
+	VectorCopy(ent->client->locals.right, right);
+	VectorCopy(ent->client->locals.up, up);
 	VectorCopy(ent->s.origin, org);
 
 	const float u = ent->client->ps.pm_state.pm_flags & PMF_DUCKED ? 0.0 : 14.0;
@@ -88,13 +88,13 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 
 /*
  * @brief Searches all active entities for the next one that holds the matching string
- * at field offset (use the FOFS() macro) in the structure.
+ * at field offset (use the ELOFS() macro) in the structure.
  *
  * Searches beginning at the edict after from, or the beginning if NULL
  * NULL will be returned if the end of the list is reached.
  *
  * Example:
- *   G_Find(NULL, FOFS(class_name), "info_player_deathmatch");
+ *   G_Find(NULL, ELOFS(class_name), "info_player_deathmatch");
  *
  */
 g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match) {
@@ -154,7 +154,7 @@ g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, float rad) {
 
 /*
  * @brief Searches all active entities for the next one that holds
- * the matching string at fieldofs(use the FOFS() macro) in the structure.
+ * the matching string at fieldofs(use the ELOFS() macro) in the structure.
  *
  * Searches beginning at the edict after from, or the beginning if NULL
  * NULL will be returned if the end of the list is reached.
@@ -173,7 +173,7 @@ g_edict_t *G_PickTarget(char *target_name) {
 	}
 
 	while (true) {
-		ent = G_Find(ent, FOFS(target_name), target_name);
+		ent = G_Find(ent, LOFS(target_name), target_name);
 		if (!ent)
 			break;
 		choice[num_choices++] = ent;
@@ -193,7 +193,7 @@ g_edict_t *G_PickTarget(char *target_name) {
  * @brief
  */
 static void G_UseTargets_Delay(g_edict_t *ent) {
-	G_UseTargets(ent, ent->activator);
+	G_UseTargets(ent, ent->locals.activator);
 	G_FreeEdict(ent);
 }
 
@@ -206,37 +206,37 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 	g_edict_t *t;
 
 	// check for a delay
-	if (ent->delay) {
+	if (ent->locals.delay) {
 		// create a temp object to fire at a later time
 		t = G_Spawn();
-		t->class_name = "DelayedUse";
-		t->next_think = g_level.time + ent->delay * 1000;
-		t->think = G_UseTargets_Delay;
-		t->activator = activator;
+		t->locals.class_name = "DelayedUse";
+		t->locals.next_think = g_level.time + ent->locals.delay * 1000;
+		t->locals.think = G_UseTargets_Delay;
+		t->locals.activator = activator;
 		if (!activator)
 			gi.Debug("No activator\n");
-		t->message = ent->message;
-		t->target = ent->target;
-		t->kill_target = ent->kill_target;
+		t->locals.message = ent->locals.message;
+		t->locals.target = ent->locals.target;
+		t->locals.kill_target = ent->locals.kill_target;
 		return;
 	}
 
 	// print the message
-	if ((ent->message) && activator->client) {
+	if ((ent->locals.message) && activator->client) {
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
-		gi.WriteString(ent->message);
+		gi.WriteString(ent->locals.message);
 		gi.Unicast(activator, true);
 
-		if (ent->noise_index)
-			gi.Sound(activator, ent->noise_index, ATTN_NORM);
+		if (ent->locals.noise_index)
+			gi.Sound(activator, ent->locals.noise_index, ATTN_NORM);
 		else
 			gi.Sound(activator, gi.SoundIndex("misc/chat"), ATTN_NORM);
 	}
 
 	// kill kill_targets
-	if (ent->kill_target) {
+	if (ent->locals.kill_target) {
 		t = NULL;
-		while ((t = G_Find(t, FOFS(target_name), ent->kill_target))) {
+		while ((t = G_Find(t, LOFS(target_name), ent->locals.kill_target))) {
 			G_FreeEdict(t);
 			if (!ent->in_use) {
 				gi.Debug("Entity was removed while using kill_targets\n");
@@ -246,19 +246,21 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 	}
 
 	// fire targets
-	if (ent->target) {
+	if (ent->locals.target) {
 		t = NULL;
-		while ((t = G_Find(t, FOFS(target_name), ent->target))) {
+		while ((t = G_Find(t, LOFS(target_name), ent->locals.target))) {
 			// doors fire area portals in a specific way
-			if (!strcasecmp(t->class_name, "func_areaportal") && (!strcasecmp(ent->class_name,
-					"func_door") || !strcasecmp(ent->class_name, "func_door_rotating")))
+			if (!strcmp(t->locals.class_name, "func_areaportal") && (!strcmp(
+					ent->locals.class_name, "func_door") || !strcmp(ent->locals.class_name,
+					"func_door_rotating"))) {
 				continue;
+			}
 
 			if (t == ent) {
 				gi.Debug("Entity asked to use itself\n");
 			} else {
-				if (t->use)
-					t->use(t, ent, activator);
+				if (t->locals.use)
+					t->locals.use(t, ent, activator);
 			}
 			if (!ent->in_use) {
 				gi.Debug("Entity was removed while using targets\n");
@@ -304,8 +306,8 @@ char *G_CopyString(char *in) {
  */
 void G_InitEdict(g_edict_t *e) {
 	e->in_use = true;
-	e->class_name = "noclass";
-	e->timestamp = g_level.time;
+	e->locals.class_name = "noclass";
+	e->locals.timestamp = g_level.time;
 	e->s.number = e - g_game.edicts;
 }
 
@@ -346,7 +348,7 @@ void G_FreeEdict(g_edict_t *ed) {
 		return;
 
 	memset(ed, 0, sizeof(*ed));
-	ed->class_name = "freed";
+	ed->locals.class_name = "freed";
 	ed->in_use = false;
 }
 
@@ -368,10 +370,10 @@ void G_TouchTriggers(g_edict_t *ent) {
 		if (!hit->in_use)
 			continue;
 
-		if (!hit->touch)
+		if (!hit->locals.touch)
 			continue;
 
-		hit->touch(hit, ent, NULL, NULL);
+		hit->locals.touch(hit, ent, NULL, NULL);
 	}
 }
 
@@ -393,8 +395,8 @@ void G_TouchSolids(g_edict_t *ent) {
 		if (!hit->in_use)
 			continue;
 
-		if (ent->touch)
-			ent->touch(hit, ent, NULL, NULL);
+		if (ent->locals.touch)
+			ent->locals.touch(hit, ent, NULL, NULL);
 
 		if (!ent->in_use)
 			break;
@@ -430,14 +432,14 @@ _Bool G_KillBox(g_edict_t *ent) {
  */
 char *G_GameplayName(int32_t g) {
 	switch (g) {
-	case DEATHMATCH:
-		return "DEATHMATCH";
-	case INSTAGIB:
-		return "INSTAGIB";
-	case ARENA:
-		return "ARENA";
-	default:
-		return "DEATHMATCH";
+		case DEATHMATCH:
+			return "DEATHMATCH";
+		case INSTAGIB:
+			return "INSTAGIB";
+		case ARENA:
+			return "ARENA";
+		default:
+			return "DEATHMATCH";
 	}
 }
 
@@ -450,16 +452,16 @@ int32_t G_GameplayByName(const char *c) {
 		return DEATHMATCH;
 
 	switch (*c) { // hack for numeric matches, atoi wont cut it
-	case '0':
-		return DEFAULT;
-	case '1':
-		return DEATHMATCH;
-	case '2':
-		return INSTAGIB;
-	case '3':
-		return ARENA;
-	default:
-		break;
+		case '0':
+			return DEFAULT;
+		case '1':
+			return DEATHMATCH;
+		case '2':
+			return INSTAGIB;
+		case '3':
+			return ARENA;
+		default:
+			break;
 	}
 
 	char name[MAX_TOKEN_CHARS];
@@ -500,13 +502,13 @@ g_team_t *G_TeamForFlag(g_edict_t *ent) {
 	if (!g_level.ctf)
 		return NULL;
 
-	if (!ent->item || ent->item->type != ITEM_FLAG)
+	if (!ent->locals.item || ent->locals.item->type != ITEM_FLAG)
 		return NULL;
 
-	if (!strcmp(ent->class_name, "item_flag_team1"))
+	if (!strcmp(ent->locals.class_name, "item_flag_team1"))
 		return &g_team_good;
 
-	if (!strcmp(ent->class_name, "item_flag_team2"))
+	if (!strcmp(ent->locals.class_name, "item_flag_team2"))
 		return &g_team_evil;
 
 	return NULL;
@@ -517,31 +519,35 @@ g_team_t *G_TeamForFlag(g_edict_t *ent) {
  */
 g_edict_t *G_FlagForTeam(g_team_t *t) {
 	g_edict_t *ent;
-	char class[32];
+	char class_name[32];
 	uint32_t i;
 
 	if (!g_level.ctf)
 		return NULL;
 
-	if (t != &g_team_good && t != &g_team_evil)
+	if (t == &g_team_good) {
+		g_strlcpy(class_name, "item_flag_team1", sizeof(class_name));
+	} else if (t == &g_team_evil) {
+		g_strlcpy(class_name, "item_flag_team2", sizeof(class_name));
+	} else {
 		return NULL;
+	}
 
-	strcpy(class, (t == &g_team_good ? "item_flag_team1" : "item_flag_team2"));
-
+	// TODO Can't we use G_Find here?
 	i = sv_max_clients->integer + 1;
 	while (i < ge.num_edicts) {
 
 		ent = &ge.edicts[i++];
 
-		if (!ent->item || ent->item->type != ITEM_FLAG)
+		if (!ent->locals.item || ent->locals.item->type != ITEM_FLAG)
 			continue;
 
 		// when a carrier is killed, we spawn a new temporary flag
 		// where they died. we are generally not interested in these.
-		if (ent->spawn_flags & SF_ITEM_DROPPED)
+		if (ent->locals.spawn_flags & SF_ITEM_DROPPED)
 			continue;
 
-		if (!strcmp(ent->class_name, class))
+		if (!strcmp(ent->locals.class_name, class_name))
 			return ent;
 	}
 
@@ -591,9 +597,9 @@ g_team_t *G_SmallestTeam(void) {
 
 		cl = g_game.edicts[i + 1].client;
 
-		if (cl->persistent.team == &g_team_good)
+		if (cl->locals.persistent.team == &g_team_good)
 			g++;
-		else if (cl->persistent.team == &g_team_evil)
+		else if (cl->locals.persistent.team == &g_team_evil)
 			e++;
 	}
 
@@ -618,7 +624,7 @@ g_client_t *G_ClientByName(char *name) {
 			continue;
 
 		cl = g_game.edicts[i + 1].client;
-		if ((j = strcmp(name, cl->persistent.net_name)) < min) {
+		if ((j = strcmp(name, cl->locals.persistent.net_name)) < min) {
 			ret = cl;
 			min = j;
 		}
@@ -635,7 +641,7 @@ _Bool G_IsStationary(g_edict_t *ent) {
 	if (!ent)
 		return false;
 
-	return VectorCompare(vec3_origin, ent->velocity);
+	return VectorCompare(vec3_origin, ent->locals.velocity);
 }
 
 /*
@@ -670,14 +676,14 @@ void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, _Bool restart) {
 	// while most go to one or the other, and are throttled
 
 	if (anim < ANIM_LEGS_WALKCR) {
-		if (restart || ent->client->animation1_time <= g_level.time) {
+		if (restart || ent->client->locals.animation1_time <= g_level.time) {
 			G_SetAnimation_(&ent->s.animation1, anim, restart);
-			ent->client->animation1_time = g_level.time + 50;
+			ent->client->locals.animation1_time = g_level.time + 50;
 		}
 	} else {
-		if (restart || ent->client->animation2_time <= g_level.time) {
+		if (restart || ent->client->locals.animation2_time <= g_level.time) {
 			G_SetAnimation_(&ent->s.animation2, anim, restart);
-			ent->client->animation2_time = g_level.time + 50;
+			ent->client->locals.animation2_time = g_level.time + 50;
 		}
 	}
 }

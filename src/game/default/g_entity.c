@@ -78,7 +78,7 @@ static void G_SpawnEntity(g_edict_t *ent) {
 	spawn_t *s;
 	int32_t i;
 
-	if (!ent->class_name) {
+	if (!ent->locals.class_name) {
 		gi.Debug("NULL classname\n");
 		return;
 	}
@@ -90,7 +90,7 @@ static void G_SpawnEntity(g_edict_t *ent) {
 		if (!item->class_name)
 			continue;
 
-		if (!strcmp(item->class_name, ent->class_name)) { // found it
+		if (!strcmp(item->class_name, ent->locals.class_name)) { // found it
 			G_SpawnItem(ent, item);
 			return;
 		}
@@ -98,13 +98,13 @@ static void G_SpawnEntity(g_edict_t *ent) {
 
 	// check normal spawn functions
 	for (s = g_spawns; s->name; s++) {
-		if (!strcmp(s->name, ent->class_name)) { // found it
+		if (!strcmp(s->name, ent->locals.class_name)) { // found it
 			s->spawn(ent);
 			return;
 		}
 	}
 
-	gi.Debug("%s doesn't have a spawn function\n", ent->class_name);
+	gi.Debug("%s doesn't have a spawn function\n", ent->locals.class_name);
 }
 
 /*
@@ -158,34 +158,34 @@ static const g_field_t fields[] = {
 
 // normal fields, notice the hack for area portals, which used to be
 		// the overloaded "style" field in legacy levels
-		{ "classname", FOFS(class_name), F_STRING, 0 },
-		{ "model", FOFS(model), F_STRING, 0 },
-		{ "spawnflags", FOFS(spawn_flags), F_INT, 0 },
-		{ "speed", FOFS(speed), F_FLOAT, 0 },
-		{ "accel", FOFS(accel), F_FLOAT, 0 },
-		{ "decel", FOFS(decel), F_FLOAT, 0 },
-		{ "target", FOFS(target), F_STRING, 0 },
-		{ "targetname", FOFS(target_name), F_STRING, 0 },
-		{ "pathtarget", FOFS(path_target), F_STRING, 0 },
-		{ "killtarget", FOFS(kill_target), F_STRING, 0 },
-		{ "message", FOFS(message), F_STRING, 0 },
-		{ "team", FOFS(team), F_STRING, 0 },
-		{ "command", FOFS(command), F_STRING, 0 },
-		{ "script", FOFS(script), F_STRING, 0 },
-		{ "wait", FOFS(wait), F_FLOAT, 0 },
-		{ "delay", FOFS(delay), F_FLOAT, 0 },
-		{ "random", FOFS(random), F_FLOAT, 0 },
-		{ "style", FOFS(area_portal), F_INT, 0 },
-		{ "areaportal", FOFS(area_portal), F_INT, 0 },
-		{ "count", FOFS(count), F_INT, 0 },
-		{ "health", FOFS(health), F_SHORT, 0 },
-		{ "sounds", FOFS(sounds), F_SHORT, 0 },
-		{ "dmg", FOFS(dmg), F_SHORT, 0 },
-		{ "mass", FOFS(mass), F_FLOAT, 0 },
-		{ "attenuation", FOFS(attenuation), F_SHORT, 0 },
-		{ "origin", FOFS(s.origin), F_VECTOR, 0 },
-		{ "angles", FOFS(s.angles), F_VECTOR, 0 },
-		{ "angle", FOFS(s.angles), F_ANGLE, 0 },
+		{ "classname", LOFS(class_name), F_STRING, 0 },
+		{ "model", LOFS(model), F_STRING, 0 },
+		{ "spawnflags", LOFS(spawn_flags), F_INT, 0 },
+		{ "speed", LOFS(speed), F_FLOAT, 0 },
+		{ "accel", LOFS(accel), F_FLOAT, 0 },
+		{ "decel", LOFS(decel), F_FLOAT, 0 },
+		{ "target", LOFS(target), F_STRING, 0 },
+		{ "targetname", LOFS(target_name), F_STRING, 0 },
+		{ "pathtarget", LOFS(path_target), F_STRING, 0 },
+		{ "killtarget", LOFS(kill_target), F_STRING, 0 },
+		{ "message", LOFS(message), F_STRING, 0 },
+		{ "team", LOFS(team), F_STRING, 0 },
+		{ "command", LOFS(command), F_STRING, 0 },
+		{ "script", LOFS(script), F_STRING, 0 },
+		{ "wait", LOFS(wait), F_FLOAT, 0 },
+		{ "delay", LOFS(delay), F_FLOAT, 0 },
+		{ "random", LOFS(random), F_FLOAT, 0 },
+		{ "style", LOFS(area_portal), F_INT, 0 },
+		{ "areaportal", LOFS(area_portal), F_INT, 0 },
+		{ "count", LOFS(count), F_INT, 0 },
+		{ "health", LOFS(health), F_SHORT, 0 },
+		{ "sounds", LOFS(sounds), F_SHORT, 0 },
+		{ "dmg", LOFS(dmg), F_SHORT, 0 },
+		{ "mass", LOFS(mass), F_FLOAT, 0 },
+		{ "attenuation", LOFS(attenuation), F_SHORT, 0 },
+		{ "origin", EOFS(s.origin), F_VECTOR, 0 },
+		{ "angles", EOFS(s.angles), F_VECTOR, 0 },
+		{ "angle", EOFS(s.angles), F_ANGLE, 0 },
 
 		// temp spawn vars -- only valid when the spawn function is called
 		{ "lip", SOFS(lip), F_INT, FFL_SPAWN_TEMP },
@@ -331,14 +331,14 @@ static void G_InitEntityTeams(void) {
 		if (!e->in_use)
 			continue;
 
-		if (!e->team)
+		if (!e->locals.team)
 			continue;
 
-		if (e->flags & FL_TEAM_SLAVE)
+		if (e->locals.flags & FL_TEAM_SLAVE)
 			continue;
 
 		chain = e;
-		e->team_master = e;
+		e->locals.team_master = e;
 		c++;
 		c2++;
 
@@ -347,18 +347,18 @@ static void G_InitEntityTeams(void) {
 			if (!e2->in_use)
 				continue;
 
-			if (!e2->team)
+			if (!e2->locals.team)
 				continue;
 
-			if (e2->flags & FL_TEAM_SLAVE)
+			if (e2->locals.flags & FL_TEAM_SLAVE)
 				continue;
 
-			if (!strcmp(e->team, e2->team)) {
+			if (!strcmp(e->locals.team, e2->locals.team)) {
 				c2++;
-				chain->team_chain = e2;
-				e2->team_master = e;
+				chain->locals.team_chain = e2;
+				e2->locals.team_master = e;
 				chain = e2;
-				e2->flags |= FL_TEAM_SLAVE;
+				e2->locals.flags |= FL_TEAM_SLAVE;
 			}
 		}
 	}
@@ -430,40 +430,40 @@ void G_SpawnEntities(const char *name, const char *entities) {
 		if (ent != g_game.edicts) {
 
 			// legacy levels may require this
-			if (ent->spawn_flags & SF_NOT_DEATHMATCH) {
+			if (ent->locals.spawn_flags & SF_NOT_DEATHMATCH) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
 			// emits and models are client sided
-			if (!strcmp(ent->class_name, "misc_emit") || !strcmp(ent->class_name, "misc_model")) {
+			if (!strcmp(ent->locals.class_name, "misc_emit") || !strcmp(ent->locals.class_name, "misc_model")) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
 			// lights aren't even used
-			if (!strcmp(ent->class_name, "light") || !strcmp(ent->class_name, "light_spot")) {
+			if (!strcmp(ent->locals.class_name, "light") || !strcmp(ent->locals.class_name, "light_spot")) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
 			// strip away unsupported flags
-			ent->spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD | SF_NOT_COOP
+			ent->locals.spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD | SF_NOT_COOP
 					| SF_NOT_DEATHMATCH);
 		}
 
 		// retain the map-specified origin for respawns
-		VectorCopy(ent->s.origin, ent->map_origin);
+		VectorCopy(ent->s.origin, ent->locals.map_origin);
 
 		G_SpawnEntity(ent);
 
-		if (g_level.gameplay > 1 && ent->item) { // now that we've spawned them, hide them
+		if (g_level.gameplay > 1 && ent->locals.item) { // now that we've spawned them, hide them
 			ent->sv_flags |= SVF_NO_CLIENT;
 			ent->solid = SOLID_NOT;
-			ent->next_think = 0;
+			ent->locals.next_think = 0;
 		}
 	}
 
@@ -537,7 +537,7 @@ static void G_worldspawn(g_edict_t *ent) {
 	uint32_t i;
 	g_map_list_elt_t *map;
 
-	ent->move_type = MOVE_TYPE_PUSH;
+	ent->locals.move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	ent->in_use = true; // since the world doesn't use G_Spawn()
 	ent->s.model1 = 0; // world model is always index 1
@@ -550,8 +550,8 @@ static void G_worldspawn(g_edict_t *ent) {
 		}
 	}
 
-	if (ent->message && *ent->message)
-		g_strlcpy(g_level.title, ent->message, sizeof(g_level.title));
+	if (ent->locals.message && *ent->locals.message)
+		g_strlcpy(g_level.title, ent->locals.message, sizeof(g_level.title));
 	else
 		// or just the level name
 		g_strlcpy(g_level.title, g_level.name, sizeof(g_level.title));

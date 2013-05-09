@@ -573,7 +573,7 @@ void Cmd_Init(void) {
 	Cbuf_AddText("\n");
 	Cbuf_CopyToDefer();
 
-	Com_Debug("Deferred buffer: %s", cmd_state.buffers[1]);
+	// Com_Debug("Deferred buffer: %s", cmd_state.buffers[1]);
 }
 
 /*

@@ -46,7 +46,7 @@ const g_item_t *G_FindItemByClassname(const char *class_name) {
 		if (!it->class_name)
 			continue;
 
-		if (!strcasecmp(it->class_name, class_name))
+		if (!strcmp(it->class_name, class_name))
 			return it;
 	}
 
@@ -59,7 +59,7 @@ const g_item_t *G_FindItemByClassname(const char *class_name) {
 const g_item_t *G_FindItem(const char *name) {
 	int32_t i;
 
-	if(!name)
+	if (!name)
 		return NULL;
 
 	const g_item_t *it = g_items;
@@ -83,20 +83,20 @@ static void G_ItemRespawn(g_edict_t *ent) {
 	int32_t count, choice;
 	vec3_t origin;
 
-	if (ent->team) { // pick a random member from the team
+	if (ent->locals.team) { // pick a random member from the team
 
-		master = ent->team_master;
-		VectorCopy(master->map_origin, origin);
+		master = ent->locals.team_master;
+		VectorCopy(master->locals.map_origin, origin);
 
-		for (count = 0, ent = master; ent; ent = ent->chain, count++)
+		for (count = 0, ent = master; ent; ent = ent->locals.chain, count++)
 			;
 
 		choice = Random() % count;
 
-		for (count = 0, ent = master; count < choice; ent = ent->chain, count++)
+		for (count = 0, ent = master; count < choice; ent = ent->locals.chain, count++)
 			;
 	} else {
-		VectorCopy(ent->map_origin, origin);
+		VectorCopy(ent->locals.map_origin, origin);
 	}
 
 	VectorCopy(origin, ent->s.origin);
@@ -115,11 +115,11 @@ static void G_ItemRespawn(g_edict_t *ent) {
  */
 void G_SetItemRespawn(g_edict_t *ent, uint32_t delay) {
 
-	ent->flags |= FL_RESPAWN;
+	ent->locals.flags |= FL_RESPAWN;
 	ent->sv_flags |= SVF_NO_CLIENT;
 	ent->solid = SOLID_NOT;
-	ent->next_think = g_level.time + delay;
-	ent->think = G_ItemRespawn;
+	ent->locals.next_think = g_level.time + delay;
+	ent->locals.think = G_ItemRespawn;
 
 	gi.LinkEntity(ent);
 }
@@ -129,10 +129,10 @@ void G_SetItemRespawn(g_edict_t *ent, uint32_t delay) {
  */
 static _Bool G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
 
-	if (other->health < other->max_health)
-		other->health = other->max_health;
+	if (other->locals.health < other->locals.max_health)
+		other->locals.health = other->locals.max_health;
 
-	if (!(ent->spawn_flags & SF_ITEM_DROPPED))
+	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED))
 		G_SetItemRespawn(ent, 60000);
 
 	return true;
@@ -143,15 +143,15 @@ static _Bool G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
  */
 static _Bool G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 
-	if (other->client->persistent.inventory[g_level.media.quad_damage])
+	if (other->client->locals.persistent.inventory[g_level.media.quad_damage])
 		return false; // already have it
 
-	other->client->persistent.inventory[g_level.media.quad_damage] = 1;
+	other->client->locals.persistent.inventory[g_level.media.quad_damage] = 1;
 
-	if (ent->spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
-		other->client->quad_damage_time = ent->next_think;
+	if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
+		other->client->locals.quad_damage_time = ent->locals.next_think;
 	} else {
-		other->client->quad_damage_time = g_level.time + 20000;
+		other->client->locals.quad_damage_time = g_level.time + 20000;
 		G_SetItemRespawn(ent, 90000);
 	}
 
@@ -165,16 +165,16 @@ static _Bool G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 void G_TossQuadDamage(g_edict_t *ent) {
 	g_edict_t *quad;
 
-	if (!ent->client->persistent.inventory[g_level.media.quad_damage])
+	if (!ent->client->locals.persistent.inventory[g_level.media.quad_damage])
 		return;
 
 	quad = G_DropItem(ent, G_FindItemByClassname("item_quad"));
 
 	if (quad)
-		quad->timestamp = ent->client->quad_damage_time;
+		quad->locals.timestamp = ent->client->locals.quad_damage_time;
 
-	ent->client->quad_damage_time = 0.0;
-	ent->client->persistent.inventory[g_level.media.quad_damage] = 0;
+	ent->client->locals.quad_damage_time = 0.0;
+	ent->client->locals.persistent.inventory[g_level.media.quad_damage] = 0;
 }
 
 /*
@@ -185,32 +185,32 @@ _Bool G_AddAmmo(g_edict_t *ent, const g_item_t *item, int16_t count) {
 	int16_t max;
 
 	if (item->tag == AMMO_SHELLS)
-		max = ent->client->persistent.max_shells;
+		max = ent->client->locals.persistent.max_shells;
 	else if (item->tag == AMMO_BULLETS)
-		max = ent->client->persistent.max_bullets;
+		max = ent->client->locals.persistent.max_bullets;
 	else if (item->tag == AMMO_GRENADES)
-		max = ent->client->persistent.max_grenades;
+		max = ent->client->locals.persistent.max_grenades;
 	else if (item->tag == AMMO_ROCKETS)
-		max = ent->client->persistent.max_rockets;
+		max = ent->client->locals.persistent.max_rockets;
 	else if (item->tag == AMMO_CELLS)
-		max = ent->client->persistent.max_cells;
+		max = ent->client->locals.persistent.max_cells;
 	else if (item->tag == AMMO_BOLTS)
-		max = ent->client->persistent.max_bolts;
+		max = ent->client->locals.persistent.max_bolts;
 	else if (item->tag == AMMO_SLUGS)
-		max = ent->client->persistent.max_slugs;
+		max = ent->client->locals.persistent.max_slugs;
 	else if (item->tag == AMMO_NUKES)
-		max = ent->client->persistent.max_nukes;
+		max = ent->client->locals.persistent.max_nukes;
 	else
 		return false;
 
 	index = ITEM_INDEX(item);
 
-	ent->client->persistent.inventory[index] += count;
+	ent->client->locals.persistent.inventory[index] += count;
 
-	if (ent->client->persistent.inventory[index] > max)
-		ent->client->persistent.inventory[index] = max;
-	else if (ent->client->persistent.inventory[index] < 0)
-		ent->client->persistent.inventory[index] = 0;
+	if (ent->client->locals.persistent.inventory[index] > max)
+		ent->client->locals.persistent.inventory[index] = max;
+	else if (ent->client->locals.persistent.inventory[index] < 0)
+		ent->client->locals.persistent.inventory[index] = 0;
 
 	return true;
 }
@@ -223,32 +223,32 @@ _Bool G_SetAmmo(g_edict_t *ent, const g_item_t *item, int16_t count) {
 	int16_t max;
 
 	if (item->tag == AMMO_SHELLS)
-		max = ent->client->persistent.max_shells;
+		max = ent->client->locals.persistent.max_shells;
 	else if (item->tag == AMMO_BULLETS)
-		max = ent->client->persistent.max_bullets;
+		max = ent->client->locals.persistent.max_bullets;
 	else if (item->tag == AMMO_GRENADES)
-		max = ent->client->persistent.max_grenades;
+		max = ent->client->locals.persistent.max_grenades;
 	else if (item->tag == AMMO_ROCKETS)
-		max = ent->client->persistent.max_rockets;
+		max = ent->client->locals.persistent.max_rockets;
 	else if (item->tag == AMMO_CELLS)
-		max = ent->client->persistent.max_cells;
+		max = ent->client->locals.persistent.max_cells;
 	else if (item->tag == AMMO_BOLTS)
-		max = ent->client->persistent.max_bolts;
+		max = ent->client->locals.persistent.max_bolts;
 	else if (item->tag == AMMO_SLUGS)
-		max = ent->client->persistent.max_slugs;
+		max = ent->client->locals.persistent.max_slugs;
 	else if (item->tag == AMMO_NUKES)
-		max = ent->client->persistent.max_nukes;
+		max = ent->client->locals.persistent.max_nukes;
 	else
 		return false;
 
 	index = ITEM_INDEX(item);
 
-	ent->client->persistent.inventory[index] = count;
+	ent->client->locals.persistent.inventory[index] = count;
 
-	if (ent->client->persistent.inventory[index] > max)
-		ent->client->persistent.inventory[index] = max;
-	else if (ent->client->persistent.inventory[index] < 0)
-			ent->client->persistent.inventory[index] = 0;
+	if (ent->client->locals.persistent.inventory[index] > max)
+		ent->client->locals.persistent.inventory[index] = max;
+	else if (ent->client->locals.persistent.inventory[index] < 0)
+		ent->client->locals.persistent.inventory[index] = 0;
 
 	return true;
 }
@@ -259,15 +259,15 @@ _Bool G_SetAmmo(g_edict_t *ent, const g_item_t *item, int16_t count) {
 static _Bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
 	int32_t count;
 
-	if (ent->count)
-		count = ent->count;
+	if (ent->locals.count)
+		count = ent->locals.count;
 	else
-		count = ent->item->quantity;
+		count = ent->locals.item->quantity;
 
-	if (!G_AddAmmo(other, ent->item, count))
+	if (!G_AddAmmo(other, ent->locals.item, count))
 		return false;
 
-	if (!(ent->spawn_flags & SF_ITEM_DROPPED))
+	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED))
 		G_SetItemRespawn(ent, g_ammo_respawn_time->value * 1000);
 
 	return true;
@@ -279,17 +279,18 @@ static _Bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
 static _Bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 	int32_t h, max;
 
-	const _Bool always_add = ent->item->tag == HEALTH_SMALL;
-	const _Bool always_pickup = ent->item->tag == HEALTH_SMALL || ent->item->tag == HEALTH_MEGA;
+	const _Bool always_add = ent->locals.item->tag == HEALTH_SMALL;
+	const _Bool always_pickup = ent->locals.item->tag == HEALTH_SMALL || ent->locals.item->tag
+			== HEALTH_MEGA;
 
-	if (other->health < other->max_health || always_add || always_pickup) {
+	if (other->locals.health < other->locals.max_health || always_add || always_pickup) {
 
-		h = other->health + ent->item->quantity; // target health points
-		max = other->max_health;
+		h = other->locals.health + ent->locals.item->quantity; // target health points
+		max = other->locals.max_health;
 
 		if (always_pickup) { // resolve max
-			if (other->health > 200)
-				max = other->health;
+			if (other->locals.health > 200)
+				max = other->locals.health;
 			else
 				max = 200;
 		} else if (always_add)
@@ -298,11 +299,11 @@ static _Bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 		if (h > max) // and enforce it
 			h = max;
 
-		other->health = other->client->persistent.health = h;
+		other->locals.health = other->client->locals.persistent.health = h;
 
-		if (ent->count >= 75) // respawn the item
+		if (ent->locals.count >= 75) // respawn the item
 			G_SetItemRespawn(ent, 90000);
-		else if (ent->count >= 50)
+		else if (ent->locals.count >= 50)
 			G_SetItemRespawn(ent, 60000);
 		else
 			G_SetItemRespawn(ent, 20000);
@@ -319,20 +320,20 @@ static _Bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 static _Bool G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
 	_Bool taken = true;
 
-	if (ent->item->tag == ARMOR_SHARD) { // take it, ignoring cap
-		other->client->persistent.armor += ent->item->quantity;
-	} else if (other->client->persistent.armor < other->client->persistent.max_armor) {
+	if (ent->locals.item->tag == ARMOR_SHARD) { // take it, ignoring cap
+		other->client->locals.persistent.armor += ent->locals.item->quantity;
+	} else if (other->client->locals.persistent.armor < other->client->locals.persistent.max_armor) {
 
 		// take it, but enforce cap
-		other->client->persistent.armor += ent->item->quantity;
+		other->client->locals.persistent.armor += ent->locals.item->quantity;
 
-		if (other->client->persistent.armor > other->client->persistent.max_armor)
-			other->client->persistent.armor = other->client->persistent.max_armor;
+		if (other->client->locals.persistent.armor > other->client->locals.persistent.max_armor)
+			other->client->locals.persistent.armor = other->client->locals.persistent.max_armor;
 	} else { // don't take it
 		taken = false;
 	}
 
-	if (taken && !(ent->spawn_flags & SF_ITEM_DROPPED))
+	if (taken && !(ent->locals.spawn_flags & SF_ITEM_DROPPED))
 		G_SetItemRespawn(ent, 20000);
 
 	return taken;
@@ -370,7 +371,7 @@ static _Bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 	g_edict_t *f, *of;
 	int32_t index;
 
-	if (!other->client->persistent.team)
+	if (!other->client->locals.persistent.team)
 		return false;
 
 	if (!(t = G_TeamForFlag(ent)))
@@ -385,9 +386,9 @@ static _Bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 	if (!(of = G_FlagForTeam(ot)))
 		return false;
 
-	if (t == other->client->persistent.team) { // our flag
+	if (t == other->client->locals.persistent.team) { // our flag
 
-		if (ent->spawn_flags & SF_ITEM_DROPPED) { // return it if necessary
+		if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // return it if necessary
 
 			f->sv_flags &= ~SVF_NO_CLIENT; // and toggle the static one
 			f->s.event = EV_ITEM_RESPAWN;
@@ -395,15 +396,15 @@ static _Bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 			gi.Sound(other, gi.SoundIndex("ctf/return"), ATTN_NONE);
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag\n",
-					other->client->persistent.net_name, t->name);
+					other->client->locals.persistent.net_name, t->name);
 
 			return true;
 		}
 
-		index = ITEM_INDEX(of->item);
-		if (other->client->persistent.inventory[index]) { // capture
+		index = ITEM_INDEX(of->locals.item);
+		if (other->client->locals.persistent.inventory[index]) { // capture
 
-			other->client->persistent.inventory[index] = 0;
+			other->client->locals.persistent.inventory[index] = 0;
 			other->s.effects &= ~G_EffectForTeam(ot);
 			other->s.model3 = 0;
 
@@ -413,10 +414,10 @@ static _Bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 			gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTN_NONE);
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag\n",
-					other->client->persistent.net_name, ot->name);
+					other->client->locals.persistent.net_name, ot->name);
 
 			t->captures++;
-			other->client->persistent.captures++;
+			other->client->locals.persistent.captures++;
 
 			return false;
 		}
@@ -430,16 +431,16 @@ static _Bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 		return false;
 
 	// take it
-	index = ITEM_INDEX(f->item);
-	other->client->persistent.inventory[index] = 1;
+	index = ITEM_INDEX(f->locals.item);
+	other->client->locals.persistent.inventory[index] = 1;
 
 	// link the flag model to the player
-	other->s.model3 = gi.ModelIndex(f->item->model);
+	other->s.model3 = gi.ModelIndex(f->locals.item->model);
 
 	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTN_NONE);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n", other->client->persistent.net_name,
-			t->name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
+			other->client->locals.persistent.net_name, t->name);
 
 	other->s.effects |= G_EffectForTeam(t);
 	return true;
@@ -453,26 +454,26 @@ void G_TossFlag(g_edict_t *ent) {
 	g_edict_t *of;
 	int32_t index;
 
-	if (!(ot = G_OtherTeam(ent->client->persistent.team)))
+	if (!(ot = G_OtherTeam(ent->client->locals.persistent.team)))
 		return;
 
 	if (!(of = G_FlagForTeam(ot)))
 		return;
 
-	index = ITEM_INDEX(of->item);
+	index = ITEM_INDEX(of->locals.item);
 
-	if (!ent->client->persistent.inventory[index])
+	if (!ent->client->locals.persistent.inventory[index])
 		return;
 
-	ent->client->persistent.inventory[index] = 0;
+	ent->client->locals.persistent.inventory[index] = 0;
 
 	ent->s.model3 = 0;
 	ent->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n", ent->client->persistent.net_name,
-			ot->name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
+			ent->client->locals.persistent.net_name, ot->name);
 
-	G_DropItem(ent, of->item);
+	G_DropItem(ent, of->locals.item);
 }
 
 /*
@@ -491,48 +492,48 @@ void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attrib
 	if (!other->client)
 		return;
 
-	if (other->health < 1)
+	if (other->locals.health < 1)
 		return; // dead people can't pickup
 
-	if (!ent->item->Pickup)
+	if (!ent->locals.item->Pickup)
 		return; // item can't be picked up
 
 	if (g_level.warmup)
 		return; // warmup mode
 
-	if ((taken = ent->item->Pickup(ent, other))) {
+	if ((taken = ent->locals.item->Pickup(ent, other))) {
 		// show icon and name on status bar
-		uint16_t icon = gi.ImageIndex(ent->item->icon);
+		uint16_t icon = gi.ImageIndex(ent->locals.item->icon);
 
 		if (other->client->ps.stats[STAT_PICKUP_ICON] == icon)
 			icon |= STAT_TOGGLE_BIT;
 
 		other->client->ps.stats[STAT_PICKUP_ICON] = icon;
-		other->client->ps.stats[STAT_PICKUP_STRING] = CS_ITEMS + ITEM_INDEX(ent->item);
+		other->client->ps.stats[STAT_PICKUP_STRING] = CS_ITEMS + ITEM_INDEX(ent->locals.item);
 
-		other->client->pickup_msg_time = g_level.time + 3000;
+		other->client->locals.pickup_msg_time = g_level.time + 3000;
 
-		if (ent->item->pickup_sound) { // play pickup sound
-			gi.Sound(other, gi.SoundIndex(ent->item->pickup_sound), ATTN_NORM);
+		if (ent->locals.item->pickup_sound) { // play pickup sound
+			gi.Sound(other, gi.SoundIndex(ent->locals.item->pickup_sound), ATTN_NORM);
 		}
 
 		other->s.event = EV_ITEM_PICKUP;
 	}
 
-	if (!(ent->spawn_flags & SF_ITEM_TARGETS_USED)) {
+	if (!(ent->locals.spawn_flags & SF_ITEM_TARGETS_USED)) {
 		G_UseTargets(ent, other);
-		ent->spawn_flags |= SF_ITEM_TARGETS_USED;
+		ent->locals.spawn_flags |= SF_ITEM_TARGETS_USED;
 	}
 
 	if (!taken)
 		return;
 
-	if (ent->spawn_flags & SF_ITEM_DROPPED) {
-		if (ent->flags & FL_RESPAWN)
-			ent->flags &= ~FL_RESPAWN;
+	if (ent->locals.spawn_flags & SF_ITEM_DROPPED) {
+		if (ent->locals.flags & FL_RESPAWN)
+			ent->locals.flags &= ~FL_RESPAWN;
 		else
 			G_FreeEdict(ent);
-	} else if (ent->item->type == ITEM_FLAG) // if a flag has been taken, hide it
+	} else if (ent->locals.item->type == ITEM_FLAG) // if a flag has been taken, hide it
 		ent->sv_flags |= SVF_NO_CLIENT;
 }
 
@@ -555,8 +556,8 @@ static void G_DropItemThink(g_edict_t *ent) {
 	int32_t contents;
 	uint32_t i;
 
-	if (!ent->ground_entity) { // keep falling in valid space
-		ent->next_think = g_level.time + gi.frame_millis;
+	if (!ent->locals.ground_entity) { // keep falling in valid space
+		ent->locals.next_think = g_level.time + gi.frame_millis;
 		return;
 	}
 
@@ -567,21 +568,21 @@ static void G_DropItemThink(g_edict_t *ent) {
 		return;
 
 	// restore full entity effects (e.g. EF_BOB)
-	ent->s.effects = ent->item->effects;
+	ent->s.effects = ent->locals.item->effects;
 
 	// allow anyone to pick it up
-	ent->touch = G_TouchItem;
+	ent->locals.touch = G_TouchItem;
 
 	// setup the next think function and time
 
-	if (ent->item->type == ITEM_FLAG) // flags go back to base
-		ent->think = G_ResetFlag;
+	if (ent->locals.item->type == ITEM_FLAG) // flags go back to base
+		ent->locals.think = G_ResetFlag;
 	else
 		// everything else just gets freed
-		ent->think = G_FreeEdict;
+		ent->locals.think = G_FreeEdict;
 
-	if (ent->item->type == ITEM_POWERUP) // expire from last touch
-		i = ent->timestamp - g_level.time;
+	if (ent->locals.item->type == ITEM_POWERUP) // expire from last touch
+		i = ent->locals.timestamp - g_level.time;
 	else
 		// general case
 		i = 30000;
@@ -593,7 +594,7 @@ static void G_DropItemThink(g_edict_t *ent) {
 	if (contents & CONTENTS_SLIME) // and slime
 		i *= 500;
 
-	ent->next_think = g_level.time + i;
+	ent->locals.next_think = g_level.time + i;
 }
 
 /*
@@ -608,20 +609,20 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 
 	dropped = G_Spawn();
 
-	dropped->class_name = item->class_name;
-	dropped->item = item;
-	dropped->spawn_flags = SF_ITEM_DROPPED;
+	dropped->locals.class_name = item->class_name;
+	dropped->locals.item = item;
+	dropped->locals.spawn_flags = SF_ITEM_DROPPED;
 	dropped->s.effects = (item->effects & ~EF_BOB);
 	VectorSet(dropped->mins, -15, -15, -15);
 	VectorSet(dropped->maxs, 15, 15, 15);
-	gi.SetModel(dropped, dropped->item->model);
+	gi.SetModel(dropped, dropped->locals.item->model);
 	dropped->solid = SOLID_TRIGGER;
-	dropped->move_type = MOVE_TYPE_TOSS;
-	dropped->touch = G_DropItemUntouchable;
+	dropped->locals.move_type = MOVE_TYPE_TOSS;
+	dropped->locals.touch = G_DropItemUntouchable;
 	dropped->owner = ent;
 
-	if (ent->client && ent->health <= 0) { // randomize the direction we toss in
-		VectorSet(v, 0.0, ent->client->angles[1] + Randomc() * 45.0, 0.0);
+	if (ent->client && ent->locals.health <= 0) { // randomize the direction we toss in
+		VectorSet(v, 0.0, ent->client->locals.angles[1] + Randomc() * 45.0, 0.0);
 		AngleVectors(v, forward, NULL, NULL);
 
 		VectorMA(ent->s.origin, 24.0, forward, dropped->s.origin);
@@ -641,10 +642,10 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 
 	if (item->type == ITEM_WEAPON) {
 		const g_item_t *ammo = G_FindItem(item->ammo);
-		if(ammo)
-			dropped->health = ammo->quantity;
+		if (ammo)
+			dropped->locals.health = ammo->quantity;
 		else
-			dropped->health = 0;
+			dropped->locals.health = 0;
 	}
 
 	// we're in a bad spot, forget it
@@ -658,11 +659,11 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 		return NULL;
 	}
 
-	VectorScale(forward, 100.0, dropped->velocity);
-	dropped->velocity[2] = 200.0 + (Randomf() * 150.0);
+	VectorScale(forward, 100.0, dropped->locals.velocity);
+	dropped->locals.velocity[2] = 200.0 + (Randomf() * 150.0);
 
-	dropped->think = G_DropItemThink;
-	dropped->next_think = g_level.time + gi.frame_millis;
+	dropped->locals.think = G_DropItemThink;
+	dropped->locals.next_think = g_level.time + gi.frame_millis;
 
 	gi.LinkEntity(dropped);
 
@@ -674,14 +675,14 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
  */
 static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	ent->sv_flags &= ~SVF_NO_CLIENT;
-	ent->use = NULL;
+	ent->locals.use = NULL;
 
-	if (ent->spawn_flags & SF_ITEM_NO_TOUCH) {
+	if (ent->locals.spawn_flags & SF_ITEM_NO_TOUCH) {
 		ent->solid = SOLID_BOX;
-		ent->touch = NULL;
+		ent->locals.touch = NULL;
 	} else {
 		ent->solid = SOLID_TRIGGER;
-		ent->touch = G_TouchItem;
+		ent->locals.touch = G_TouchItem;
 	}
 
 	gi.LinkEntity(ent);
@@ -694,24 +695,24 @@ static void G_DropToFloor(g_edict_t *ent) {
 	c_trace_t tr;
 	vec3_t dest;
 
-	VectorClear(ent->velocity);
+	VectorClear(ent->locals.velocity);
 
-	if (ent->spawn_flags & SF_ITEM_HOVER) { // some items should not fall
-		ent->move_type = MOVE_TYPE_FLY;
-		ent->ground_entity = NULL;
+	if (ent->locals.spawn_flags & SF_ITEM_HOVER) { // some items should not fall
+		ent->locals.move_type = MOVE_TYPE_FLY;
+		ent->locals.ground_entity = NULL;
 	} else { // while most do, and will also be pushed by their ground
 		VectorCopy(ent->s.origin, dest);
 		dest[2] -= 8192;
 
 		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
 		if (tr.start_solid) {
-			gi.Debug("%s start_solid at %s\n", ent->class_name, vtos(ent->s.origin));
+			gi.Debug("%s start_solid at %s\n", ent->locals.class_name, vtos(ent->s.origin));
 			G_FreeEdict(ent);
 			return;
 		}
 
 		VectorCopy(tr.end, ent->s.origin);
-		ent->ground_entity = tr.ent;
+		ent->locals.ground_entity = tr.ent;
 	}
 
 	gi.LinkEntity(ent);
@@ -765,11 +766,12 @@ void G_PrecacheItem(const g_item_t *it) {
 			s++;
 
 		// determine type based on extension
-		if (!strcmp(data + len - 3, "md3") || !strcmp(data + len - 3, "obj"))
+		if (g_str_has_suffix(data, ".md3") || g_str_has_suffix(data, ".obj"))
 			gi.ModelIndex(data);
-		else if (!strcmp(data + len - 3, "wav"))
+		else if (g_str_has_suffix(data, ".wav") || g_str_has_suffix(data, ".ogg"))
 			gi.SoundIndex(data);
-		else if (!strcmp(data + len - 3, "tga") || !strcmp(data + len - 3, "png"))
+		else if (g_str_has_suffix(data, ".tga") || g_str_has_suffix(data, ".png")
+				|| g_str_has_suffix(data, ".jpg") || g_str_has_suffix(data, ".pcx"))
 			gi.ImageIndex(data);
 		else
 			gi.Error("%s has unknown data type\n", it->class_name);
@@ -786,73 +788,71 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 
 	G_PrecacheItem(item);
 
-	if (ent->spawn_flags) {
-		gi.Debug("%s at %s has spawnflags %d\n", ent->class_name, vtos(ent->s.origin),
-				ent->spawn_flags);
+	if (ent->locals.spawn_flags) {
+		gi.Debug("%s at %s has spawnflags %d\n", ent->locals.class_name, vtos(ent->s.origin),
+				ent->locals.spawn_flags);
 	}
 
 	VectorSet(ent->mins, -15, -15, -15);
 	VectorSet(ent->maxs, 15, 15, 15);
 
 	ent->solid = SOLID_TRIGGER;
-	ent->move_type = MOVE_TYPE_TOSS;
-	ent->touch = G_TouchItem;
-	ent->think = G_DropToFloor;
-	ent->next_think = g_level.time + 2000 * gi.frame_millis; // items start after other solids
+	ent->locals.move_type = MOVE_TYPE_TOSS;
+	ent->locals.touch = G_TouchItem;
+	ent->locals.think = G_DropToFloor;
+	ent->locals.next_think = g_level.time + 2000 * gi.frame_millis; // items start after other solids
 
-	ent->item = item;
+	ent->locals.item = item;
 	ent->s.effects = item->effects;
 
-	if (ent->model)
-		gi.SetModel(ent, ent->model);
+	if (ent->locals.model)
+		gi.SetModel(ent, ent->locals.model);
 	else
-		gi.SetModel(ent, ent->item->model);
+		gi.SetModel(ent, ent->locals.item->model);
 
-	if (ent->team) {
-		ent->flags &= ~FL_TEAM_SLAVE;
-		ent->chain = ent->team_chain;
-		ent->team_chain = NULL;
+	if (ent->locals.team) {
+		ent->locals.flags &= ~FL_TEAM_SLAVE;
+		ent->locals.chain = ent->locals.team_chain;
+		ent->locals.team_chain = NULL;
 
 		ent->sv_flags |= SVF_NO_CLIENT;
 		ent->solid = SOLID_NOT;
-		if (ent == ent->team_master) {
-			ent->next_think = g_level.time + gi.frame_millis;
-			ent->think = G_ItemRespawn;
+		if (ent == ent->locals.team_master) {
+			ent->locals.next_think = g_level.time + gi.frame_millis;
+			ent->locals.think = G_ItemRespawn;
 		}
 	}
 
-	if (ent->item->type == ITEM_WEAPON) {
-		const g_item_t *ammo = G_FindItem(ent->item->ammo);
-		if(ammo)
-			ent->health = ammo->quantity;
+	if (ent->locals.item->type == ITEM_WEAPON) {
+		const g_item_t *ammo = G_FindItem(ent->locals.item->ammo);
+		if (ammo)
+			ent->locals.health = ammo->quantity;
 		else
-			ent->health = 0;
+			ent->locals.health = 0;
 	}
 
 	// hide flags unless ctf is enabled
-	if (!g_level.ctf && (!strcmp(ent->class_name, "item_flag_team1") || !strcmp(ent->class_name,
-			"item_flag_team2"))) {
-
+	if (!g_level.ctf && g_str_has_prefix(ent->locals.class_name, "item_flag_team")) {
 		ent->sv_flags |= SVF_NO_CLIENT;
 		ent->solid = SOLID_NOT;
 	}
 
-	if (ent->spawn_flags & SF_ITEM_NO_TOUCH) {
+	if (ent->locals.spawn_flags & SF_ITEM_NO_TOUCH) {
 		ent->solid = SOLID_BOX;
-		ent->touch = NULL;
+		ent->locals.touch = NULL;
 	}
 
-	if (ent->spawn_flags & SF_ITEM_TRIGGER) {
+	if (ent->locals.spawn_flags & SF_ITEM_TRIGGER) {
 		ent->sv_flags |= SVF_NO_CLIENT;
 		ent->solid = SOLID_NOT;
-		ent->use = G_UseItem;
+		ent->locals.use = G_UseItem;
 	}
 }
 
 const g_item_t g_items[] = {
-	/*QUAKED item_armor_body(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED item_armor_body(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"item_armor_body",
 		G_PickupArmor,
 		NULL,
@@ -867,11 +867,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_BODY,
-		""},
+		"" },
 
-	/*QUAKED item_armor_combat(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED item_armor_combat(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"item_armor_combat",
 		G_PickupArmor,
 		NULL,
@@ -886,11 +886,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_COMBAT,
-		""},
+		"" },
 
-	/*QUAKED item_armor_jacket(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED item_armor_jacket(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"item_armor_jacket",
 		G_PickupArmor,
 		NULL,
@@ -905,11 +905,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_JACKET,
-		""},
+		"" },
 
-	/*QUAKED item_armor_shard(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED item_armor_shard(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"item_armor_shard",
 		G_PickupArmor,
 		NULL,
@@ -924,11 +924,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_SHARD,
-		""},
+		"" },
 
-	/*QUAKED weapon_blaster(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED weapon_blaster(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"weapon_blaster",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -943,11 +943,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_WEAPON,
 		0,
-		"weapons/blaster/fire.wav"},
+		"weapons/blaster/fire.wav" },
 
-	/*QUAKED weapon_shotgun(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED weapon_shotgun(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"weapon_shotgun",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -962,11 +962,11 @@ const g_item_t g_items[] = {
 		"Shells",
 		ITEM_WEAPON,
 		0,
-		"weapons/shotgun/fire.wav"},
+		"weapons/shotgun/fire.wav" },
 
-	/*QUAKED weapon_supershotgun(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED weapon_supershotgun(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"weapon_supershotgun",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -981,11 +981,11 @@ const g_item_t g_items[] = {
 		"Shells",
 		ITEM_WEAPON,
 		0,
-		"weapons/supershotgun/fire.wav"},
+		"weapons/supershotgun/fire.wav" },
 
-	/*QUAKED weapon_machinegun(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED weapon_machinegun(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"weapon_machinegun",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1001,11 +1001,11 @@ const g_item_t g_items[] = {
 		ITEM_WEAPON,
 		0,
 		"weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
-		"weapons/machinegun/fire_3.wav weapons/machinegun/fire_4.wav"},
+			"weapons/machinegun/fire_3.wav weapons/machinegun/fire_4.wav" },
 
-	/*QUAKED weapon_grenadelauncher(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED weapon_grenadelauncher(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"weapon_grenadelauncher",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1020,11 +1020,11 @@ const g_item_t g_items[] = {
 		"Grenades",
 		ITEM_WEAPON,
 		0,
-		"models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav"},
+		"models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav" },
 
-	/*QUAKED weapon_rocketlauncher(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED weapon_rocketlauncher(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"weapon_rocketlauncher",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1040,11 +1040,11 @@ const g_item_t g_items[] = {
 		ITEM_WEAPON,
 		0,
 		"models/objects/rocket/tris.md3 objects/rocket/fly.wav "
-		"weapons/rocketlauncher/fire.wav"},
+			"weapons/rocketlauncher/fire.wav" },
 
-	/*QUAKED weapon_hyperblaster(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED weapon_hyperblaster(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"weapon_hyperblaster",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1059,11 +1059,11 @@ const g_item_t g_items[] = {
 		"Cells",
 		ITEM_WEAPON,
 		0,
-		"weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav"},
+		"weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav" },
 
-	/*QUAKED weapon_lightning(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED weapon_lightning(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"weapon_lightning",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1079,11 +1079,11 @@ const g_item_t g_items[] = {
 		ITEM_WEAPON,
 		0,
 		"weapons/lightning/fire.wav weapons/lightning/fly.wav "
-		"weapons/lightning/discharge.wav"},
+			"weapons/lightning/discharge.wav" },
 
-	/*QUAKED weapon_railgun(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED weapon_railgun(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"weapon_railgun",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1098,11 +1098,11 @@ const g_item_t g_items[] = {
 		"Slugs",
 		ITEM_WEAPON,
 		0,
-		"weapons/railgun/fire.wav"},
+		"weapons/railgun/fire.wav" },
 
-	/*QUAKED weapon_bfg(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED weapon_bfg(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"weapon_bfg",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1117,11 +1117,11 @@ const g_item_t g_items[] = {
 		"Nukes",
 		ITEM_WEAPON,
 		0,
-		"weapons/bfg/fire.wav weapons/bfg/hit.wav"},
+		"weapons/bfg/fire.wav weapons/bfg/hit.wav" },
 
-	/*QUAKED ammo_shells(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED ammo_shells(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"ammo_shells",
 		G_PickupAmmo,
 		NULL,
@@ -1136,11 +1136,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_SHELLS,
-		""},
+		"" },
 
-	/*QUAKED ammo_bullets(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED ammo_bullets(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"ammo_bullets",
 		G_PickupAmmo,
 		NULL,
@@ -1155,11 +1155,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_BULLETS,
-		""},
+		"" },
 
-	/*QUAKED ammo_grenades(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED ammo_grenades(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"ammo_grenades",
 		G_PickupAmmo,
 		NULL,
@@ -1174,11 +1174,11 @@ const g_item_t g_items[] = {
 		"grenades",
 		ITEM_AMMO,
 		AMMO_GRENADES,
-		""},
+		"" },
 
-	/*QUAKED ammo_rockets(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED ammo_rockets(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"ammo_rockets",
 		G_PickupAmmo,
 		NULL,
@@ -1193,11 +1193,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_ROCKETS,
-		""},
+		"" },
 
-	/*QUAKED ammo_cells(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED ammo_cells(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"ammo_cells",
 		G_PickupAmmo,
 		NULL,
@@ -1212,11 +1212,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_CELLS,
-		""},
+		"" },
 
-	/*QUAKED ammo_bolts(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED ammo_bolts(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"ammo_bolts",
 		G_PickupAmmo,
 		NULL,
@@ -1231,11 +1231,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_BOLTS,
-		""},
+		"" },
 
-	/*QUAKED ammo_slugs(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED ammo_slugs(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"ammo_slugs",
 		G_PickupAmmo,
 		NULL,
@@ -1250,11 +1250,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_SLUGS,
-		""},
+		"" },
 
-	/*QUAKED ammo_nukes(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED ammo_nukes(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"ammo_nukes",
 		G_PickupAmmo,
 		NULL,
@@ -1269,12 +1269,12 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_NUKES,
-		""},
+		"" },
 
-	/*QUAKED item_adrenaline(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 gives +1 to maximum health
-	 */
-	{
+/*QUAKED item_adrenaline(.3 .3 1)(-16 -16 -16)(16 16 16)
+ gives +1 to maximum health
+ */
+{
 		"item_adrenaline",
 		G_PickupAdrenaline,
 		NULL,
@@ -1289,11 +1289,11 @@ const g_item_t g_items[] = {
 		NULL,
 		0,
 		0,
-		""},
+		"" },
 
-	/*QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
-	 */
-	{
+/*QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
+ */
+{
 		"item_health_small",
 		G_PickupHealth,
 		NULL,
@@ -1308,11 +1308,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_HEALTH,
 		HEALTH_SMALL,
-		""},
+		"" },
 
-	/*QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
-	 */
-	{
+/*QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
+ */
+{
 		"item_health",
 		G_PickupHealth,
 		NULL,
@@ -1327,11 +1327,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_HEALTH,
 		HEALTH_MEDIUM,
-		""},
+		"" },
 
-	/*QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16)
-	 */
-	{
+/*QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16)
+ */
+{
 		"item_health_large",
 		G_PickupHealth,
 		NULL,
@@ -1346,11 +1346,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_HEALTH,
 		HEALTH_LARGE,
-		""},
+		"" },
 
-	/*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
-	 */
-	{
+/*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
+ */
+{
 		"item_health_mega",
 		G_PickupHealth,
 		NULL,
@@ -1365,11 +1365,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_HEALTH,
 		HEALTH_MEGA,
-		""},
+		"" },
 
-	/*QUAKED item_flag_team1(1 0.2 0)(-16 -16 -24)(16 16 32)
-	 */
-	{
+/*QUAKED item_flag_team1(1 0.2 0)(-16 -16 -24)(16 16 32)
+ */
+{
 		"item_flag_team1",
 		G_PickupFlag,
 		NULL,
@@ -1384,11 +1384,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_FLAG,
 		0,
-		"ctf/capture.wav ctf/steal.wav ctf/return.wav"},
+		"ctf/capture.wav ctf/steal.wav ctf/return.wav" },
 
-	/*QUAKED item_flag_team2(1 0.2 0)(-16 -16 -24)(16 16 32)
-	 */
-	{
+/*QUAKED item_flag_team2(1 0.2 0)(-16 -16 -24)(16 16 32)
+ */
+{
 		"item_flag_team2",
 		G_PickupFlag,
 		NULL,
@@ -1403,11 +1403,11 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_FLAG,
 		0,
-		"ctf/capture.wav ctf/steal.wav ctf/return.wav"},
+		"ctf/capture.wav ctf/steal.wav ctf/return.wav" },
 
-	/*QUAKED item_quad(.3 .3 1)(-16 -16 -16)(16 16 16)
-	 */
-	{
+/*QUAKED item_quad(.3 .3 1)(-16 -16 -16)(16 16 16)
+ */
+{
 		"item_quad",
 		G_PickupQuadDamage,
 		NULL,
@@ -1422,7 +1422,6 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_POWERUP,
 		0,
-		"quad/attack.wav quad/expire.wav"},
-};
+		"quad/attack.wav quad/expire.wav" }, };
 
 const uint16_t g_num_items = lengthof(g_items);

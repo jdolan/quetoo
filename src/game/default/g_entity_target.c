@@ -26,15 +26,15 @@
  */
 static void G_target_speaker_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 
-	if (ent->spawn_flags & 3) { // looping sound toggles
+	if (ent->locals.spawn_flags & 3) { // looping sound toggles
 		if (ent->s.sound)
 			ent->s.sound = 0; // turn it off
 		else
-			ent->s.sound = ent->noise_index; // start it
+			ent->s.sound = ent->locals.noise_index; // start it
 	} else { // normal sound
 		// use a positioned_sound, because this entity won't normally be
 		// sent to any clients because it is invisible
-		gi.PositionedSound(ent->s.origin, ent, ent->noise_index, ent->attenuation);
+		gi.PositionedSound(ent->s.origin, ent, ent->locals.noise_index, ent->locals.attenuation);
 	}
 }
 
@@ -64,18 +64,18 @@ void G_target_speaker(g_edict_t *ent) {
 	else
 		g_strlcpy(buffer, g_game.spawn.noise, sizeof(buffer));
 
-	ent->noise_index = gi.SoundIndex(buffer);
+	ent->locals.noise_index = gi.SoundIndex(buffer);
 
-	if (!ent->attenuation)
-		ent->attenuation = ATTN_NORM;
-	else if (ent->attenuation == -1) // use -1 so 0 defaults to 1
-		ent->attenuation = ATTN_NONE;
+	if (!ent->locals.attenuation)
+		ent->locals.attenuation = ATTN_NORM;
+	else if (ent->locals.attenuation == -1) // use -1 so 0 defaults to 1
+		ent->locals.attenuation = ATTN_NONE;
 
 	// check for looping sound
-	if (ent->spawn_flags & 1)
-		ent->s.sound = ent->noise_index;
+	if (ent->locals.spawn_flags & 1)
+		ent->s.sound = ent->locals.noise_index;
 
-	ent->use = G_target_speaker_use;
+	ent->locals.use = G_target_speaker_use;
 
 	// must link the entity so we get areas and clusters so
 	// the server can determine who to send updates to
@@ -93,27 +93,27 @@ static void G_target_explosion_explode(g_edict_t *self) {
 	gi.WritePosition(self->s.origin);
 	gi.Multicast(self->s.origin, MULTICAST_PHS);
 
-	G_RadiusDamage(self, self->activator, NULL, self->dmg, self->dmg, self->dmg + 40, MOD_EXPLOSIVE);
+	G_RadiusDamage(self, self->locals.activator, NULL, self->locals.dmg, self->locals.dmg, self->locals.dmg + 40, MOD_EXPLOSIVE);
 
-	save = self->delay;
-	self->delay = 0;
-	G_UseTargets(self, self->activator);
-	self->delay = save;
+	save = self->locals.delay;
+	self->locals.delay = 0;
+	G_UseTargets(self, self->locals.activator);
+	self->locals.delay = save;
 }
 
 /*
  * @brief
  */
 static void G_target_explosion_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
-	self->activator = activator;
+	self->locals.activator = activator;
 
-	if (!self->delay) {
+	if (!self->locals.delay) {
 		G_target_explosion_explode(self);
 		return;
 	}
 
-	self->think = G_target_explosion_explode;
-	self->next_think = g_level.time + self->delay * 1000;
+	self->locals.think = G_target_explosion_explode;
+	self->locals.next_think = g_level.time + self->locals.delay * 1000;
 }
 
 /*QUAKED target_explosion (1 0 0) (-8 -8 -8) (8 8 8)
@@ -123,7 +123,7 @@ static void G_target_explosion_use(g_edict_t *self, g_edict_t *other __attribute
  "dmg"		how much radius damage should be done, defaults to 0
  */
 void G_target_explosion(g_edict_t *ent) {
-	ent->use = G_target_explosion_use;
+	ent->locals.use = G_target_explosion_use;
 	ent->sv_flags = SVF_NO_CLIENT;
 }
 
@@ -135,10 +135,10 @@ static void G_target_splash_think(g_edict_t *self) {
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_SPARKS);
 	gi.WritePosition(self->s.origin);
-	gi.WriteDir(self->move_dir);
+	gi.WriteDir(self->locals.move_dir);
 	gi.Multicast(self->s.origin, MULTICAST_PVS);
 
-	self->next_think = g_level.time + (Randomf() * 3000);
+	self->locals.next_think = g_level.time + (Randomf() * 3000);
 }
 
 /*QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8)
@@ -146,11 +146,11 @@ static void G_target_splash_think(g_edict_t *self) {
  */
 void G_target_splash(g_edict_t *self) {
 
-	G_SetMoveDir(self->s.angles, self->move_dir);
+	G_SetMoveDir(self->s.angles, self->locals.move_dir);
 
 	self->solid = SOLID_NOT;
-	self->think = G_target_splash_think;
-	self->next_think = g_level.time + (Randomf() * 3000);
+	self->locals.think = G_target_splash_think;
+	self->locals.next_think = g_level.time + (Randomf() * 3000);
 
 	gi.LinkEntity(self);
 }
@@ -159,8 +159,8 @@ void G_target_splash(g_edict_t *self) {
  */
 void G_target_string(g_edict_t *self) {
 
-	if (!self->message)
-		self->message = "";
+	if (!self->locals.message)
+		self->locals.message = "";
 
 	// the rest is handled by G_UseTargets
 }

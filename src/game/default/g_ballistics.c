@@ -33,10 +33,11 @@ static void G_PlayerProjectile(g_edict_t *ent, const vec3_t scale) {
 	if (!ent->owner)
 		return;
 
-	for (i = 0; i < 3; i++)
-		tmp[i] = ent->owner->velocity[i] * g_player_projectile->value * scale[i];
+	for (i = 0; i < 3; i++) {
+		tmp[i] = ent->owner->locals.velocity[i] * g_player_projectile->value * scale[i];
+	}
 
-	VectorAdd(tmp, ent->velocity, ent->velocity);
+	VectorAdd(tmp, ent->locals.velocity, ent->locals.velocity);
 }
 
 /*
@@ -55,7 +56,7 @@ static _Bool G_ImmediateWall(g_edict_t *ent, vec3_t end) {
  */
 static _Bool G_IsStructural(g_edict_t *ent, c_bsp_surface_t *surf) {
 
-	if (!ent || ent->client || ent->take_damage)
+	if (!ent || ent->client || ent->locals.take_damage)
 		return false; // we hit nothing, or something we damaged
 
 	if (!surf || (surf->flags & SURF_SKY))
@@ -164,9 +165,9 @@ static void G_BlasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_p
 	if (other == self->owner)
 		return;
 
-	if (other->take_damage) { // damage what we hit
-		G_Damage(other, self, self->owner, self->velocity, self->s.origin, plane->normal,
-				self->dmg, self->knockback, 0, MOD_BLASTER);
+	if (other->locals.take_damage) { // damage what we hit
+		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
+				self->locals.dmg, self->locals.knockback, 0, MOD_BLASTER);
 	} else {
 		if (G_IsStructural(other, surf)) {
 			vec3_t origin;
@@ -198,24 +199,24 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed
 	blast = G_Spawn();
 	VectorCopy(start, blast->s.origin);
 	VectorCopy(start, blast->s.old_origin);
-	VectorCopy(dir, blast->move_dir);
+	VectorCopy(dir, blast->locals.move_dir);
 	VectorAngles(dir, blast->s.angles);
-	VectorScale(dir, speed, blast->velocity);
-	blast->move_type = MOVE_TYPE_FLY;
+	VectorScale(dir, speed, blast->locals.velocity);
+	blast->locals.move_type = MOVE_TYPE_FLY;
 	blast->clip_mask = MASK_SHOT;
 	blast->solid = SOLID_MISSILE;
 	blast->s.effects = EF_BLASTER;
 	blast->owner = ent;
-	blast->touch = G_BlasterProjectile_Touch;
-	blast->next_think = g_level.time + 8000;
-	blast->think = G_FreeEdict;
-	blast->dmg = damage;
-	blast->knockback = knockback;
-	blast->class_name = "blaster";
+	blast->locals.touch = G_BlasterProjectile_Touch;
+	blast->locals.next_think = g_level.time + 8000;
+	blast->locals.think = G_FreeEdict;
+	blast->locals.dmg = damage;
+	blast->locals.knockback = knockback;
+	blast->locals.class_name = "blaster";
 
 	// set the color, overloading the client byte
 	if (ent->client) {
-		blast->s.client = ent->client->persistent.color;
+		blast->s.client = ent->client->locals.persistent.color;
 	} else {
 		blast->s.client = 0;
 	}
@@ -228,8 +229,8 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed
 /*
  * @brief
  */
-void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t damage, int32_t knockback,
-		int32_t hspread, int32_t vspread, int32_t mod) {
+void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t damage,
+		int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
 	c_trace_t tr;
 	vec3_t dir;
 	vec3_t forward, right, up;
@@ -254,7 +255,7 @@ void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t dam
 	// send trails and marks
 	if (tr.fraction < 1.0) {
 
-		if (tr.ent->take_damage) { // bleed and damage the enemy
+		if (tr.ent->locals.take_damage) { // bleed and damage the enemy
 			G_Damage(tr.ent, ent, ent, aimdir, tr.end, tr.plane.normal, damage, knockback,
 					DAMAGE_BULLET, mod);
 		} else { // leave an impact mark on the wall
@@ -273,8 +274,8 @@ void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t dam
 /*
  * @brief
  */
-void G_ShotgunProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t damage, int32_t knockback,
-		int32_t hspread, int32_t vspread, int32_t count, int32_t mod) {
+void G_ShotgunProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t damage,
+		int32_t knockback, int32_t hspread, int32_t vspread, int32_t count, int32_t mod) {
 	int32_t i;
 
 	for (i = 0; i < count; i++)
@@ -287,30 +288,30 @@ void G_ShotgunProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t dama
 static void G_GrenadeProjectile_Explode(g_edict_t *self) {
 	vec3_t origin;
 
-	if (self->enemy) { // direct hit
+	if (self->locals.enemy) { // direct hit
 		float d, k, dist;
 		vec3_t v, dir;
 
-		VectorAdd(self->enemy->mins, self->enemy->maxs, v);
-		VectorMA(self->enemy->s.origin, 0.5, v, v);
+		VectorAdd(self->locals.enemy->mins, self->locals.enemy->maxs, v);
+		VectorMA(self->locals.enemy->s.origin, 0.5, v, v);
 		VectorSubtract(self->s.origin, v, v);
 
 		dist = VectorLength(v);
-		d = self->dmg - 0.5 * dist;
-		k = self->knockback - 0.5 * dist;
+		d = self->locals.dmg - 0.5 * dist;
+		k = self->locals.knockback - 0.5 * dist;
 
-		VectorSubtract(self->enemy->s.origin, self->s.origin, dir);
+		VectorSubtract(self->locals.enemy->s.origin, self->s.origin, dir);
 
-		G_Damage(self->enemy, self, self->owner, dir, self->s.origin, vec3_origin, (int) d,
+		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_origin, (int) d,
 				(int) k, DAMAGE_RADIUS, MOD_GRENADE);
 	}
 
 	// hurt anything else nearby
-	G_RadiusDamage(self, self->owner, self->enemy, self->dmg, self->knockback, self->dmg_radius,
-			MOD_GRENADE_SPLASH);
+	G_RadiusDamage(self, self->owner, self->locals.enemy, self->locals.dmg, self->locals.knockback,
+			self->locals.dmg_radius, MOD_GRENADE_SPLASH);
 
-	if (G_IsStationary(self->ground_entity))
-		VectorMA(self->s.origin, 16.0, self->plane.normal, origin);
+	if (G_IsStationary(self->locals.ground_entity))
+		VectorMA(self->s.origin, 16.0, self->locals.plane.normal, origin);
 	else
 		VectorCopy(self->s.origin, origin);
 
@@ -319,8 +320,8 @@ static void G_GrenadeProjectile_Explode(g_edict_t *self) {
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PHS);
 
-	if (G_IsStationary(self->ground_entity)) {
-		G_BurnMark(self->s.origin, &self->plane, self->surf, 20);
+	if (G_IsStationary(self->locals.ground_entity)) {
+		G_BurnMark(self->s.origin, &self->locals.plane, self->locals.surf, 20);
 	}
 
 	G_FreeEdict(self);
@@ -341,28 +342,28 @@ static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_p
 	}
 
 	if (G_IsStructural(other, surf)) {
-		self->plane = *plane;
-		self->surf = surf;
+		self->locals.plane = *plane;
+		self->locals.surf = surf;
 	}
 
-	if (!other->take_damage) { // bounce
-		if (g_level.time - self->touch_time > 200) {
-			VectorScale(self->velocity, 1.25, self->velocity);
+	if (!other->locals.take_damage) { // bounce
+		if (g_level.time - self->locals.touch_time > 200) {
+			VectorScale(self->locals.velocity, 1.25, self->locals.velocity);
 			gi.Sound(self, g_level.media.grenade_hit_sound, ATTN_NORM);
-			self->touch_time = g_level.time;
+			self->locals.touch_time = g_level.time;
 		}
 		return;
 	}
 
-	self->enemy = other;
+	self->locals.enemy = other;
 	G_GrenadeProjectile_Explode(self);
 }
 
 /*
  * @brief
  */
-void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t speed, int32_t damage,
-		int32_t knockback, float damage_radius, uint32_t timer) {
+void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t speed,
+		int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
 	g_edict_t *grenade;
 	vec3_t dir;
 	vec3_t forward, right, up, start_bounds;
@@ -384,15 +385,15 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t sp
 	VectorCopy(dir, grenade->s.angles);
 	grenade->s.angles[PITCH] += 90.0;
 
-	VectorScale(aimdir, speed, grenade->velocity);
-	VectorMA(grenade->velocity, 200.0 + Randomc() * 10.0, up, grenade->velocity);
-	VectorMA(grenade->velocity, Randomc() * 30.0, right, grenade->velocity);
+	VectorScale(aimdir, speed, grenade->locals.velocity);
+	VectorMA(grenade->locals.velocity, 200.0 + Randomc() * 10.0, up, grenade->locals.velocity);
+	VectorMA(grenade->locals.velocity, Randomc() * 30.0, right, grenade->locals.velocity);
 
-	grenade->avelocity[0] = -300.0 + 10 * Randomc();
-	grenade->avelocity[1] = 50.0 * Randomc();
-	grenade->avelocity[2] = 25.0 * Randomc();
+	grenade->locals.avelocity[0] = -300.0 + 10 * Randomc();
+	grenade->locals.avelocity[1] = 50.0 * Randomc();
+	grenade->locals.avelocity[2] = 25.0 * Randomc();
 
-	grenade->move_type = MOVE_TYPE_TOSS;
+	grenade->locals.move_type = MOVE_TYPE_TOSS;
 	grenade->clip_mask = MASK_SHOT;
 	grenade->solid = SOLID_MISSILE;
 	grenade->s.effects = EF_GRENADE;
@@ -400,14 +401,14 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t sp
 	VectorCopy(maxs, grenade->maxs);
 	grenade->s.model1 = g_level.media.grenade_model;
 	grenade->owner = ent;
-	grenade->touch = G_GrenadeProjectile_Touch;
-	grenade->touch_time = g_level.time;
-	grenade->next_think = g_level.time + timer;
-	grenade->think = G_GrenadeProjectile_Explode;
-	grenade->dmg = damage;
-	grenade->knockback = knockback;
-	grenade->dmg_radius = damage_radius;
-	grenade->class_name = "grenade";
+	grenade->locals.touch = G_GrenadeProjectile_Touch;
+	grenade->locals.touch_time = g_level.time;
+	grenade->locals.next_think = g_level.time + timer;
+	grenade->locals.think = G_GrenadeProjectile_Explode;
+	grenade->locals.dmg = damage;
+	grenade->locals.knockback = knockback;
+	grenade->locals.dmg_radius = damage_radius;
+	grenade->locals.class_name = "grenade";
 
 	G_PlayerProjectile(grenade, scale);
 
@@ -440,14 +441,14 @@ static void G_RocketProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PHS);
 
-	if (other->take_damage) { // direct hit
-		G_Damage(other, self, self->owner, self->velocity, self->s.origin, plane->normal,
-				self->dmg, self->knockback, 0, MOD_ROCKET);
+	if (other->locals.take_damage) { // direct hit
+		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
+				self->locals.dmg, self->locals.knockback, 0, MOD_ROCKET);
 	}
 
 	// hurt anything else nearby
-	G_RadiusDamage(self, self->owner, other, self->dmg, self->knockback, self->dmg_radius,
-			MOD_ROCKET_SPLASH);
+	G_RadiusDamage(self, self->owner, other, self->locals.dmg, self->locals.knockback,
+			self->locals.dmg_radius, MOD_ROCKET_SPLASH);
 
 	if (G_IsStructural(other, surf)) { // leave a burn mark
 		VectorMA(self->s.origin, 2.0, plane->normal, origin);
@@ -471,24 +472,24 @@ void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed,
 	rocket = G_Spawn();
 	VectorCopy(start, rocket->s.origin);
 	VectorCopy(start, rocket->s.old_origin);
-	VectorCopy(dir, rocket->move_dir);
+	VectorCopy(dir, rocket->locals.move_dir);
 	VectorAngles(dir, rocket->s.angles);
-	VectorScale(dir, speed, rocket->velocity);
-	VectorSet(rocket->avelocity, 0.0, 0.0, 600.0);
-	rocket->move_type = MOVE_TYPE_FLY;
+	VectorScale(dir, speed, rocket->locals.velocity);
+	VectorSet(rocket->locals.avelocity, 0.0, 0.0, 600.0);
+	rocket->locals.move_type = MOVE_TYPE_FLY;
 	rocket->clip_mask = MASK_SHOT;
 	rocket->solid = SOLID_MISSILE;
 	rocket->s.effects = EF_ROCKET;
 	rocket->s.model1 = g_level.media.rocket_model;
 	rocket->owner = ent;
-	rocket->touch = G_RocketProjectile_Touch;
-	rocket->next_think = g_level.time + 8000;
-	rocket->think = G_FreeEdict;
-	rocket->dmg = damage;
-	rocket->dmg_radius = damage_radius;
-	rocket->knockback = knockback;
+	rocket->locals.touch = G_RocketProjectile_Touch;
+	rocket->locals.next_think = g_level.time + 8000;
+	rocket->locals.think = G_FreeEdict;
+	rocket->locals.dmg = damage;
+	rocket->locals.dmg_radius = damage_radius;
+	rocket->locals.knockback = knockback;
 	rocket->s.sound = g_level.media.rocket_fly_sound;
-	rocket->class_name = "rocket";
+	rocket->locals.class_name = "rocket";
 
 	G_PlayerProjectile(rocket, scale);
 
@@ -522,9 +523,9 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PHS);
 
-	if (other->take_damage) {
-		G_Damage(other, self, self->owner, self->velocity, self->s.origin, plane->normal,
-				self->dmg, self->knockback, DAMAGE_ENERGY, MOD_HYPERBLASTER);
+	if (other->locals.take_damage) {
+		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
+				self->locals.dmg, self->locals.knockback, DAMAGE_ENERGY, MOD_HYPERBLASTER);
 	} else {
 		if (G_IsStructural(other, surf)) { // leave a burn mark
 			VectorMA(self->s.origin, 2.0, plane->normal, origin);
@@ -534,9 +535,9 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_
 
 			if (VectorLength(v) < 32.0) { // hyperblaster climb
 				G_Damage(self->owner, self, self->owner, vec3_origin, self->s.origin,
-						plane->normal, self->dmg * 0.06, 0, DAMAGE_ENERGY, MOD_HYPERBLASTER);
+						plane->normal, self->locals.dmg * 0.06, 0, DAMAGE_ENERGY, MOD_HYPERBLASTER);
 
-				self->owner->velocity[2] += 80.0;
+				self->owner->locals.velocity[2] += 80.0;
 			}
 		}
 	}
@@ -547,8 +548,8 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_
 /*
  * @brief
  */
-void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, int32_t damage,
-		int32_t knockback) {
+void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed,
+		int32_t damage, int32_t knockback) {
 	g_edict_t *bolt;
 	const vec3_t scale = { 0.5, 0.5, 0.25 };
 
@@ -559,18 +560,18 @@ void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t 
 	VectorCopy(start, bolt->s.origin);
 	VectorCopy(start, bolt->s.old_origin);
 	VectorAngles(dir, bolt->s.angles);
-	VectorScale(dir, speed, bolt->velocity);
-	bolt->move_type = MOVE_TYPE_FLY;
+	VectorScale(dir, speed, bolt->locals.velocity);
+	bolt->locals.move_type = MOVE_TYPE_FLY;
 	bolt->clip_mask = MASK_SHOT;
 	bolt->solid = SOLID_MISSILE;
 	bolt->s.effects = EF_HYPERBLASTER;
 	bolt->owner = ent;
-	bolt->touch = G_HyperblasterProjectile_Touch;
-	bolt->next_think = g_level.time + 6000;
-	bolt->think = G_FreeEdict;
-	bolt->dmg = damage;
-	bolt->knockback = knockback;
-	bolt->class_name = "bolt";
+	bolt->locals.touch = G_HyperblasterProjectile_Touch;
+	bolt->locals.next_think = g_level.time + 6000;
+	bolt->locals.think = G_FreeEdict;
+	bolt->locals.dmg = damage;
+	bolt->locals.knockback = knockback;
+	bolt->locals.class_name = "bolt";
 
 	G_PlayerProjectile(bolt, scale);
 
@@ -592,16 +593,16 @@ static void G_LightningProjectile_Discharge(g_edict_t *self) {
 		if (!ent->in_use)
 			continue;
 
-		if (!ent->take_damage) // dead or spectator
+		if (!ent->locals.take_damage) // dead or spectator
 			continue;
 
 		if (gi.inPVS(self->s.origin, ent->s.origin)) {
 
-			if (ent->water_level) {
+			if (ent->locals.water_level) {
 
 				// we always kill ourselves, we inflict a lot of damage but
 				// we don't necessarily kill everyone else
-				d = ent == self ? 999 : 50 * ent->water_level;
+				d = ent == self ? 999 : 50 * ent->locals.water_level;
 
 				G_Damage(ent, self, self->owner, vec3_origin, ent->s.origin, vec3_origin, d, 100,
 						DAMAGE_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
@@ -620,10 +621,10 @@ static void G_LightningProjectile_Discharge(g_edict_t *self) {
  */
 static _Bool G_LightningProjectile_Expire(g_edict_t *self) {
 
-	if (self->timestamp < g_level.time - 101)
+	if (self->locals.timestamp < g_level.time - 101)
 		return true;
 
-	if (self->owner->dead)
+	if (self->owner->locals.dead)
 		return true;
 
 	return false;
@@ -639,7 +640,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 	c_trace_t tr;
 
 	if (G_LightningProjectile_Expire(self)) {
-		self->owner->lightning = NULL;
+		self->owner->locals.lightning = NULL;
 		G_FreeEdict(self);
 		return;
 	}
@@ -652,7 +653,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 
 	if (gi.PointContents(start) & MASK_WATER) { // discharge and return
 		G_LightningProjectile_Discharge(self);
-		self->owner->lightning = NULL;
+		self->owner->locals.lightning = NULL;
 		G_FreeEdict(self);
 		return;
 	}
@@ -666,31 +667,31 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 	if (tr.contents & MASK_WATER) { // entered water, play sound, leave trail
 		VectorCopy(tr.end, water_start);
 
-		if (!self->water_level) {
+		if (!self->locals.water_level) {
 			gi.PositionedSound(water_start, g_game.edicts, gi.SoundIndex("world/water_in"),
 					ATTN_NORM);
-			self->water_level = 1;
+			self->locals.water_level = 1;
 		}
 
 		tr = gi.Trace(water_start, NULL, NULL, end, self, MASK_SHOT);
 		G_BubbleTrail(water_start, &tr);
 	} else {
-		if (self->water_level) { // exited water, play sound, no trail
+		if (self->locals.water_level) { // exited water, play sound, no trail
 			gi.PositionedSound(water_start, g_game.edicts, gi.SoundIndex("world/water_out"),
 					ATTN_NORM);
-			self->water_level = 0;
+			self->locals.water_level = 0;
 		}
 	}
 
-	if (self->dmg) { // shoot, removing our damage until it is renewed
-		if (tr.ent->take_damage) { // try to damage what we hit
-			G_Damage(tr.ent, self, self->owner, forward, tr.end, tr.plane.normal, self->dmg,
-					self->knockback, DAMAGE_ENERGY, MOD_LIGHTNING);
+	if (self->locals.dmg) { // shoot, removing our damage until it is renewed
+		if (tr.ent->locals.take_damage) { // try to damage what we hit
+			G_Damage(tr.ent, self, self->owner, forward, tr.end, tr.plane.normal, self->locals.dmg,
+					self->locals.knockback, DAMAGE_ENERGY, MOD_LIGHTNING);
 		} else { // or leave a mark
 			if ((tr.contents & CONTENTS_SOLID) && G_IsStructural(tr.ent, tr.surface))
 				G_BurnMark(tr.end, &tr.plane, tr.surface, 8);
 		}
-		self->dmg = 0;
+		self->locals.dmg = 0;
 	}
 
 	VectorCopy(start, self->s.origin); // update endpoints
@@ -698,16 +699,17 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 
 	gi.LinkEntity(self);
 
-	self->next_think = g_level.time + gi.frame_millis;
+	self->locals.next_think = g_level.time + gi.frame_millis;
 }
 
 /*
  * @brief
  */
-void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t damage, int32_t knockback) {
+void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t damage,
+		int32_t knockback) {
 	g_edict_t *light;
 
-	light = ent->lightning;
+	light = ent->locals.lightning;
 
 	if (!light) { // ensure a valid lightning entity exists
 		light = G_Spawn();
@@ -715,28 +717,29 @@ void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t dam
 		VectorCopy(start, light->s.origin);
 		VectorMA(start, 800.0, dir, light->s.old_origin);
 		light->solid = SOLID_NOT;
-		light->move_type = MOVE_TYPE_THINK;
+		light->locals.move_type = MOVE_TYPE_THINK;
 		light->owner = ent;
-		light->think = G_LightningProjectile_Think;
-		light->knockback = knockback;
+		light->locals.think = G_LightningProjectile_Think;
+		light->locals.knockback = knockback;
 		light->s.client = ent - g_game.edicts; // player number, for client prediction fix
 		light->s.effects = EF_BEAM | EF_LIGHTNING;
 		light->s.sound = g_level.media.lightning_fly_sound;
-		light->class_name = "lightning";
+		light->locals.class_name = "lightning";
 
 		gi.LinkEntity(light);
-		ent->lightning = light;
+		ent->locals.lightning = light;
 	}
 
 	// set the damage and think time
-	light->dmg = damage;
-	light->timestamp = light->next_think = g_level.time;
+	light->locals.dmg = damage;
+	light->locals.timestamp = light->locals.next_think = g_level.time;
 }
 
 /*
  * @brief
  */
-void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t damage, int32_t knockback) {
+void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t damage,
+		int32_t knockback) {
 	vec3_t from;
 	vec3_t end;
 	c_trace_t tr;
@@ -784,7 +787,7 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t da
 		else
 			ignore = NULL;
 
-		if ((tr.ent != ent) && (tr.ent->take_damage)) {
+		if ((tr.ent != ent) && (tr.ent->locals.take_damage)) {
 			if (tr.ent->client && ((int) g_level.gameplay == INSTAGIB))
 				damage = 1000; // be sure to cause a kill
 			G_Damage(tr.ent, ent, ent, aimdir, tr.end, tr.plane.normal, damage, knockback, 0,
@@ -796,12 +799,12 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t da
 
 	// use team colors, or client's color
 	if (g_level.teams || g_level.ctf) {
-		if (ent->client->persistent.team == &g_team_good)
+		if (ent->client->locals.persistent.team == &g_team_good)
 			color = EFFECT_COLOR_BLUE;
 		else
 			color = EFFECT_COLOR_RED;
 	} else
-		color = ent->client->persistent.color;
+		color = ent->client->locals.persistent.color;
 
 	// send rail trail
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -857,13 +860,13 @@ static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PHS);
 
-	if (other->take_damage) // hurt what we hit
-		G_Damage(other, self, self->owner, self->velocity, self->s.origin, plane->normal,
-				self->dmg, self->knockback, DAMAGE_ENERGY, MOD_BFG_BLAST);
+	if (other->locals.take_damage) // hurt what we hit
+		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
+				self->locals.dmg, self->locals.knockback, DAMAGE_ENERGY, MOD_BFG_BLAST);
 
 	// and anything nearby too
-	G_RadiusDamage(self, self->owner, other, self->dmg, self->knockback, self->dmg_radius,
-			MOD_BFG_BLAST);
+	G_RadiusDamage(self, self->owner, other, self->locals.dmg, self->locals.knockback,
+			self->locals.dmg_radius, MOD_BFG_BLAST);
 
 	if (G_IsStructural(other, surf)) { // leave a burn mark
 		VectorMA(self->s.origin, 2.0, plane->normal, origin);
@@ -879,14 +882,14 @@ static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane
 static void G_BfgProjectile_Think(g_edict_t *self) {
 
 	// radius damage
-	G_RadiusDamage(self, self->owner, self->owner, self->dmg * 10 * gi.frame_seconds,
-			self->knockback * 10 * gi.frame_seconds, self->dmg_radius, MOD_BFG_LASER);
+	G_RadiusDamage(self, self->owner, self->owner, self->locals.dmg * 10 * gi.frame_seconds,
+			self->locals.knockback * 10 * gi.frame_seconds, self->locals.dmg_radius, MOD_BFG_LASER);
 
 	// linear, clamped acceleration
-	if (VectorLength(self->velocity) < 1000.0)
-		VectorScale(self->velocity, 1.0 + (0.5 * gi.frame_seconds), self->velocity);
+	if (VectorLength(self->locals.velocity) < 1000.0)
+		VectorScale(self->locals.velocity, 1.0 + (0.5 * gi.frame_seconds), self->locals.velocity);
 
-	self->next_think = g_level.time + gi.frame_millis;
+	self->locals.next_think = g_level.time + gi.frame_millis;
 }
 
 /*
@@ -913,33 +916,33 @@ void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, i
 		VectorCopy(start, bfg->s.origin);
 
 		// start with the forward direction
-		VectorCopy(dir, bfg->move_dir);
+		VectorCopy(dir, bfg->locals.move_dir);
 
 		// and scatter randomly along the up and right vectors
 		VectorScale(right, Randomc() * 0.35, r);
 		VectorScale(up, Randomc() * 0.01, u);
 
-		VectorAdd(bfg->move_dir, r, bfg->move_dir);
-		VectorAdd(bfg->move_dir, u, bfg->move_dir);
+		VectorAdd(bfg->locals.move_dir, r, bfg->locals.move_dir);
+		VectorAdd(bfg->locals.move_dir, u, bfg->locals.move_dir);
 
 		// finalize the direction and resolve angles, velocity, ..
-		VectorAngles(bfg->move_dir, bfg->s.angles);
+		VectorAngles(bfg->locals.move_dir, bfg->s.angles);
 
 		s = speed + (0.2 * speed * Randomc());
-		VectorScale(bfg->move_dir, s, bfg->velocity);
+		VectorScale(bfg->locals.move_dir, s, bfg->locals.velocity);
 
-		bfg->move_type = MOVE_TYPE_FLY;
+		bfg->locals.move_type = MOVE_TYPE_FLY;
 		bfg->clip_mask = MASK_SHOT;
 		bfg->solid = SOLID_MISSILE;
 		bfg->s.effects = EF_BFG;
 		bfg->owner = ent;
-		bfg->touch = G_BfgProjectile_Touch;
-		bfg->think = G_BfgProjectile_Think;
-		bfg->next_think = g_level.time + gi.frame_millis;
-		bfg->dmg = damage;
-		bfg->knockback = knockback;
-		bfg->dmg_radius = damage_radius;
-		bfg->class_name = "bfg projectile";
+		bfg->locals.touch = G_BfgProjectile_Touch;
+		bfg->locals.think = G_BfgProjectile_Think;
+		bfg->locals.next_think = g_level.time + gi.frame_millis;
+		bfg->locals.dmg = damage;
+		bfg->locals.knockback = knockback;
+		bfg->locals.dmg_radius = damage_radius;
+		bfg->locals.class_name = "bfg projectile";
 
 		G_PlayerProjectile(bfg, scale);
 

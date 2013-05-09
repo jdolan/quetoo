@@ -45,11 +45,6 @@ typedef struct link_s {
 
 #define MAX_ENT_CLUSTERS 16
 
-typedef struct g_client_s g_client_t; // typedef'ed here, defined below
-typedef struct g_edict_s g_edict_t; // OR in game module
-
-#ifndef __GAME_LOCAL_H__
-
 /*
  * This is the server's definition of the client and edict structures. The
  * game module is free to add additional members to these structures, provided
@@ -57,19 +52,35 @@ typedef struct g_edict_s g_edict_t; // OR in game module
  * structure.
  */
 
+#ifndef __GAME_LOCAL_H__
+
+typedef struct {
+	void *opaque;
+} g_client_locals_t;
+
+typedef struct {
+	void *opaque;
+} g_edict_locals_t;
+
+typedef struct g_client_s g_client_t;
+typedef struct g_edict_s g_edict_t;
+
+#endif /* __GAME_LOCAL_H__ */
+
 struct g_client_s {
 	player_state_t ps; // communicated by server to clients
 	uint32_t ping;
+
+	g_client_locals_t locals; // game-local data members
 };
 
 struct g_edict_s {
 	entity_state_t s;
-	struct g_client_s *client;
+	g_client_t *client;
 
 	_Bool in_use;
 	int32_t link_count;
 
-	// FIXME: move these fields to a server private sv_entity_t
 	link_t area; // linked to a division node or leaf
 
 	int32_t num_clusters; // if -1, use head_node instead
@@ -82,16 +93,13 @@ struct g_edict_s {
 	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
 	uint32_t clip_mask;
-	g_edict_t *owner;
+	struct g_edict_s *owner;
 
-// the game can add anything it wants after
-// this point in the structure
+	g_edict_locals_t locals; // game-local data members
 };
 
-#endif  /* !__GAME_LOCAL_H__ */
-
 // functions provided by the main engine
-typedef struct g_import_s {
+typedef struct {
 
 	uint32_t frame_rate; // server frames per second
 	uint32_t frame_millis;
@@ -173,7 +181,7 @@ typedef struct g_import_s {
 } g_import_t;
 
 // functions exported by the game subsystem
-typedef struct g_export_s {
+typedef struct {
 	int32_t api_version;
 
 	// the init function will only be called when a game starts,

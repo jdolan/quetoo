@@ -65,10 +65,10 @@ static void G_ClampVelocity(g_edict_t *ent) {
 
 	// bound velocity
 	for (i = 0; i < 3; i++) {
-		if (ent->velocity[i] > MAX_VELOCITY)
-			ent->velocity[i] = MAX_VELOCITY;
-		else if (ent->velocity[i] < -MAX_VELOCITY)
-			ent->velocity[i] = -MAX_VELOCITY;
+		if (ent->locals.velocity[i] > MAX_VELOCITY)
+			ent->locals.velocity[i] = MAX_VELOCITY;
+		else if (ent->locals.velocity[i] < -MAX_VELOCITY)
+			ent->locals.velocity[i] = -MAX_VELOCITY;
 	}
 }
 
@@ -78,7 +78,7 @@ static void G_ClampVelocity(g_edict_t *ent) {
 static _Bool G_RunThink(g_edict_t *ent) {
 	float think_time;
 
-	think_time = ent->next_think;
+	think_time = ent->locals.next_think;
 
 	if (think_time <= 0)
 		return true;
@@ -86,12 +86,12 @@ static _Bool G_RunThink(g_edict_t *ent) {
 	if (think_time > g_level.time + 1)
 		return true;
 
-	ent->next_think = 0;
+	ent->locals.next_think = 0;
 
-	if (!ent->think)
-		gi.Error("%s has no think function\n", ent->class_name);
+	if (!ent->locals.think)
+		gi.Error("%s has no think function\n", ent->locals.class_name);
 
-	ent->think(ent);
+	ent->locals.think(ent);
 
 	return false;
 }
@@ -104,11 +104,11 @@ static void G_Impact(g_edict_t *e1, c_trace_t *trace) {
 
 	e2 = trace->ent;
 
-	if (e1->touch && e1->solid != SOLID_NOT)
-		e1->touch(e1, e2, &trace->plane, trace->surface);
+	if (e1->locals.touch && e1->solid != SOLID_NOT)
+		e1->locals.touch(e1, e2, &trace->plane, trace->surface);
 
-	if (e2->touch && e2->solid != SOLID_NOT)
-		e2->touch(e2, e1, NULL, NULL);
+	if (e2->locals.touch && e2->solid != SOLID_NOT)
+		e2->locals.touch(e2, e1, NULL, NULL);
 }
 
 #define STOP_EPSILON	0.1
@@ -144,18 +144,17 @@ static int32_t G_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbo
  * @brief
  */
 static void G_AddGravity(g_edict_t *ent) {
-	if (ent->water_level) {
+	if (ent->locals.water_level) {
 		//clamp all lateral velocity slowly to 0
-		ent->velocity[0] -= 0.99 * ent->velocity[0] * gi.frame_seconds;
-		ent->velocity[1] -= 0.99 * ent->velocity[1] * gi.frame_seconds;
+		ent->locals.velocity[0] -= 0.99 * ent->locals.velocity[0] * gi.frame_seconds;
+		ent->locals.velocity[1] -= 0.99 * ent->locals.velocity[1] * gi.frame_seconds;
 		//clamp sink rate
-		if(ent->velocity[2] < -100.0)
-			ent->velocity[2] += 0.5 * g_level.gravity * gi.frame_seconds;
+		if (ent->locals.velocity[2] < -100.0)
+			ent->locals.velocity[2] += 0.5 * g_level.gravity * gi.frame_seconds;
 		else
-			ent->velocity[2] -= 0.5 * g_level.gravity * gi.frame_seconds;
-	}
-	else
-		ent->velocity[2] -= g_level.gravity * gi.frame_seconds;
+			ent->locals.velocity[2] -= 0.5 * g_level.gravity * gi.frame_seconds;
+	} else
+		ent->locals.velocity[2] -= g_level.gravity * gi.frame_seconds;
 }
 
 /*
@@ -169,8 +168,8 @@ static void G_AddFlying(g_edict_t *ent) {
 
 	AngleVectors(ent->s.angles, NULL, right, up);
 
-	VectorMA(ent->velocity, Randomc() * 5.0, right, ent->velocity);
-	VectorMA(ent->velocity, Randomc() * 5.0, up, ent->velocity);
+	VectorMA(ent->locals.velocity, Randomc() * 5.0, right, ent->locals.velocity);
+	VectorMA(ent->locals.velocity, Randomc() * 5.0, up, ent->locals.velocity);
 }
 
 /*
@@ -213,7 +212,7 @@ c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push) {
 		}
 	}
 
-	if (ent->in_use && ent->client && ent->health > 0)
+	if (ent->in_use && ent->client && ent->locals.health > 0)
 		G_TouchTriggers(ent);
 
 	return trace;
@@ -283,18 +282,19 @@ static _Bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 		if (!check->in_use)
 			continue;
 
-		if (check->move_type == MOVE_TYPE_PUSH || check->move_type == MOVE_TYPE_STOP
-				|| check->move_type == MOVE_TYPE_NONE || check->move_type == MOVE_TYPE_NO_CLIP)
+		if (check->locals.move_type == MOVE_TYPE_PUSH || check->locals.move_type == MOVE_TYPE_STOP
+				|| check->locals.move_type == MOVE_TYPE_NONE || check->locals.move_type
+				== MOVE_TYPE_NO_CLIP)
 			continue;
 
 		if (!check->area.prev)
 			continue; // not linked in anywhere
 
 		// if the entity is standing on the pusher, it will definitely be moved
-		if (check->ground_entity != pusher) {
+		if (check->locals.ground_entity != pusher) {
 
 			// do not push entities which are beside us
-			if (check->item)
+			if (check->locals.item)
 				continue;
 
 			// see if the ent needs to be tested
@@ -308,7 +308,7 @@ static _Bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 				continue;
 		}
 
-		if ((pusher->move_type == MOVE_TYPE_PUSH) || (check->ground_entity == pusher)) {
+		if ((pusher->locals.move_type == MOVE_TYPE_PUSH) || (check->locals.ground_entity == pusher)) {
 			// move this entity
 			g_pushed_p->ent = check;
 			VectorCopy(check->s.origin, g_pushed_p->origin);
@@ -330,8 +330,8 @@ static _Bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 			VectorAdd(check->s.origin, move2, check->s.origin);
 
 			// may have pushed them off an edge
-			if (check->ground_entity != pusher)
-				check->ground_entity = NULL;
+			if (check->locals.ground_entity != pusher)
+				check->locals.ground_entity = NULL;
 
 			block = G_TestEntityPosition(check);
 			if (!block) { // pushed okay
@@ -370,7 +370,7 @@ static _Bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 	// FIXME: is there a better way to handle this?
 	// see if anything we moved has touched a trigger
 	for (p = g_pushed_p - 1; p >= g_pushed; p--) {
-		if (p->ent->in_use && p->ent->client && p->ent->health > 0)
+		if (p->ent->in_use && p->ent->client && p->ent->locals.health > 0)
 			G_TouchTriggers(p->ent);
 	}
 
@@ -385,7 +385,7 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 	g_edict_t *part, *mv;
 
 	// if not a team captain, so movement will be handled elsewhere
-	if (ent->flags & FL_TEAM_SLAVE)
+	if (ent->locals.flags & FL_TEAM_SLAVE)
 		return;
 
 	// make sure all team slaves can move before committing
@@ -393,11 +393,12 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 	// if the move is blocked, all moved objects will be backed out
 	// retry:
 	g_pushed_p = g_pushed;
-	for (part = ent; part; part = part->team_chain) {
-		if (part->velocity[0] || part->velocity[1] || part->velocity[2] || part->avelocity[0]
-				|| part->avelocity[1] || part->avelocity[2]) { // object is moving
-			VectorScale(part->velocity, gi.frame_seconds, move);
-			VectorScale(part->avelocity, gi.frame_seconds, amove);
+	for (part = ent; part; part = part->locals.team_chain) {
+		if (!VectorCompare(part->locals.velocity, vec3_origin) || !VectorCompare(
+				part->locals.avelocity, vec3_origin)) { // object is moving
+
+			VectorScale(part->locals.velocity, gi.frame_seconds, move);
+			VectorScale(part->locals.avelocity, gi.frame_seconds, amove);
 
 			if (!G_Push(part, move, amove))
 				break; // move was blocked
@@ -409,19 +410,19 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 
 	if (part) {
 		// the move failed, bump all next_think times and back out moves
-		for (mv = ent; mv; mv = mv->team_chain) {
-			if (mv->next_think > 0)
-				mv->next_think += gi.frame_millis;
+		for (mv = ent; mv; mv = mv->locals.team_chain) {
+			if (mv->locals.next_think > 0)
+				mv->locals.next_think += gi.frame_millis;
 		}
 
 		// if the pusher has a "blocked" function, call it
 		// otherwise, just stay in place until the obstacle is gone
-		if (part->blocked)
-			part->blocked(part, obstacle);
+		if (part->locals.blocked)
+			part->locals.blocked(part, obstacle);
 
 	} else {
 		// the move succeeded, so call all think functions
-		for (part = ent; part; part = part->team_chain) {
+		for (part = ent; part; part = part->locals.team_chain) {
 			G_RunThink(part);
 		}
 	}
@@ -443,8 +444,8 @@ static void G_Physics_Noclip(g_edict_t *ent) {
 	if (!G_RunThink(ent))
 		return;
 
-	VectorMA(ent->s.angles, gi.frame_seconds, ent->avelocity, ent->s.angles);
-	VectorMA(ent->s.origin, gi.frame_seconds, ent->velocity, ent->s.origin);
+	VectorMA(ent->s.angles, gi.frame_seconds, ent->locals.avelocity, ent->s.angles);
+	VectorMA(ent->s.origin, gi.frame_seconds, ent->locals.velocity, ent->s.origin);
 
 	gi.LinkEntity(ent);
 }
@@ -463,32 +464,32 @@ static void G_Physics_Toss(g_edict_t *ent) {
 	G_RunThink(ent);
 
 	// if not a team captain, so movement will be handled elsewhere
-	if (ent->flags & FL_TEAM_SLAVE)
+	if (ent->locals.flags & FL_TEAM_SLAVE)
 		return;
 
 	// check for the ground entity going away
-	if (ent->ground_entity) {
-		if (!ent->ground_entity->in_use)
-			ent->ground_entity = NULL;
-		else if (ent->velocity[2] > ent->ground_entity->velocity[2] + 0.1)
-			ent->ground_entity = NULL;
+	if (ent->locals.ground_entity) {
+		if (!ent->locals.ground_entity->in_use)
+			ent->locals.ground_entity = NULL;
+		else if (ent->locals.velocity[2] > ent->locals.ground_entity->locals.velocity[2] + 0.1)
+			ent->locals.ground_entity = NULL;
 		else
 			return;
 	}
 
 	// if on ground, or intentionally floating, return without moving
-	if (ent->ground_entity || (ent->item && (ent->spawn_flags & 4)))
+	if (ent->locals.ground_entity || (ent->locals.item && (ent->locals.spawn_flags & 4)))
 		return;
 
 	// enforce max velocity values
 	G_ClampVelocity(ent);
 
 	// move angles
-	VectorMA(ent->s.angles, gi.frame_seconds, ent->avelocity, ent->s.angles);
+	VectorMA(ent->s.angles, gi.frame_seconds, ent->locals.avelocity, ent->s.angles);
 
 	// move origin
 	VectorCopy(ent->s.origin, org);
-	VectorScale(ent->velocity, gi.frame_seconds, move);
+	VectorScale(ent->locals.velocity, gi.frame_seconds, move);
 
 	// push through the world, interacting with triggers and other ents
 	trace = G_PushEntity(ent, move);
@@ -499,57 +500,58 @@ static void G_Physics_Toss(g_edict_t *ent) {
 	if (trace.fraction < 1.0) { // move was blocked
 
 		// if it was a floor, we might bounce or come to rest
-		if (G_ClipVelocity(ent->velocity, trace.plane.normal, ent->velocity, 1.3) == 1) {
+		if (G_ClipVelocity(ent->locals.velocity, trace.plane.normal, ent->locals.velocity, 1.3)
+				== 1) {
 
 			VectorSubtract(ent->s.origin, org, move);
 
 			// if we're approaching a stop, clear our velocity and set ground
 			if (VectorLength(move) < STOP_EPSILON) {
 
-				VectorClear(ent->velocity);
+				VectorClear(ent->locals.velocity);
 
-				ent->ground_entity = trace.ent;
-				ent->ground_entity_link_count = trace.ent->link_count;
+				ent->locals.ground_entity = trace.ent;
+				ent->locals.ground_entity_link_count = trace.ent->link_count;
 			} else {
 				// bounce and slide along the floor
-				float bounce, speed = VectorLength(ent->velocity);
+				float bounce, speed = VectorLength(ent->locals.velocity);
 				bounce = sqrt(speed);
 
-				if (ent->velocity[2] < bounce)
-					ent->velocity[2] = bounce;
+				if (ent->locals.velocity[2] < bounce)
+					ent->locals.velocity[2] = bounce;
 			}
 		}
 
 		// all impacts reduce velocity and angular velocity
-		VectorScale(ent->velocity, 0.9, ent->velocity);
-		VectorScale(ent->avelocity, 0.9, ent->avelocity);
+		VectorScale(ent->locals.velocity, 0.9, ent->locals.velocity);
+		VectorScale(ent->locals.avelocity, 0.9, ent->locals.avelocity);
 	}
 
 	// check for water transition
-	was_in_water = (ent->water_type & MASK_WATER);
-	ent->water_type = gi.PointContents(ent->s.origin);
-	is_in_water = ent->water_type & MASK_WATER;
+	was_in_water = (ent->locals.water_type & MASK_WATER);
+	ent->locals.water_type = gi.PointContents(ent->s.origin);
+	is_in_water = ent->locals.water_type & MASK_WATER;
 
 	if (is_in_water)
-		ent->water_level = 1;
+		ent->locals.water_level = 1;
 	else
-		ent->water_level = 0;
+		ent->locals.water_level = 0;
 
 	// add gravity
-	if (ent->move_type == MOVE_TYPE_FLY)
+	if (ent->locals.move_type == MOVE_TYPE_FLY)
 		G_AddFlying(ent);
 	else
 		G_AddGravity(ent);
 
 	if (!was_in_water && is_in_water) {
 		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_in"), ATTN_NORM);
-		VectorScale(ent->velocity, 0.66, ent->velocity);
+		VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
 	} else if (was_in_water && !is_in_water)
 		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_out"),
 				ATTN_NORM);
 
 	// move teamslaves
-	for (slave = ent->team_chain; slave; slave = slave->team_chain) {
+	for (slave = ent->locals.team_chain; slave; slave = slave->locals.team_chain) {
 		VectorCopy(ent->s.origin, slave->s.origin);
 		gi.LinkEntity(slave);
 	}
@@ -560,26 +562,26 @@ static void G_Physics_Toss(g_edict_t *ent) {
  */
 void G_RunEntity(g_edict_t *ent) {
 
-	if (ent->pre_think)
-		ent->pre_think(ent);
+	if (ent->locals.pre_think)
+		ent->locals.pre_think(ent);
 
-	switch ((int) ent->move_type) {
-	case MOVE_TYPE_PUSH:
-	case MOVE_TYPE_STOP:
-		G_Physics_Pusher(ent);
-		break;
-	case MOVE_TYPE_NONE:
-		G_Physics_None(ent);
-		break;
-	case MOVE_TYPE_NO_CLIP:
-		G_Physics_Noclip(ent);
-		break;
-	case MOVE_TYPE_FLY:
-	case MOVE_TYPE_TOSS:
-		G_Physics_Toss(ent);
-		break;
-	default:
-		gi.Error("Bad move type %i\n", ent->move_type);
-		break;
+	switch ((int) ent->locals.move_type) {
+		case MOVE_TYPE_PUSH:
+		case MOVE_TYPE_STOP:
+			G_Physics_Pusher(ent);
+			break;
+		case MOVE_TYPE_NONE:
+			G_Physics_None(ent);
+			break;
+		case MOVE_TYPE_NO_CLIP:
+			G_Physics_Noclip(ent);
+			break;
+		case MOVE_TYPE_FLY:
+		case MOVE_TYPE_TOSS:
+			G_Physics_Toss(ent);
+			break;
+		default:
+			gi.Error("Bad move type %i\n", ent->locals.move_type);
+			break;
 	}
 }

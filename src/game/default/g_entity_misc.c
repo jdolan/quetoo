@@ -32,7 +32,7 @@ static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other, c_bsp_pla
 	if (!other->client)
 		return;
 
-	dest = G_Find(NULL, FOFS(target_name), self->target);
+	dest = G_Find(NULL, LOFS(target_name), self->locals.target);
 
 	if (!dest) {
 		gi.Debug("Couldn't find destination\n");
@@ -57,15 +57,15 @@ static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other, c_bsp_pla
 	other->s.event = EV_CLIENT_TELEPORT;
 
 	// set delta angles
-	VectorSubtract(dest->s.angles, other->client->cmd_angles, delta_angles);
+	VectorSubtract(dest->s.angles, other->client->locals.cmd_angles, delta_angles);
 	PackAngles(delta_angles, other->client->ps.pm_state.delta_angles);
 
 	AngleVectors(dest->s.angles, forward, NULL, NULL);
-	VectorScale(forward, other->client->speed, other->velocity);
-	other->velocity[2] = 150.0;
+	VectorScale(forward, other->client->locals.speed, other->locals.velocity);
+	other->locals.velocity[2] = 150.0;
 
-	VectorClear(other->client->cmd_angles);
-	VectorClear(other->client->angles);
+	VectorClear(other->client->locals.cmd_angles);
+	VectorClear(other->client->locals.angles);
 	VectorClear(other->s.angles);
 
 	G_KillBox(other); // telefrag anyone in our spot
@@ -79,17 +79,17 @@ static void G_misc_teleporter_touch(g_edict_t *self, g_edict_t *other, c_bsp_pla
 void G_misc_teleporter(g_edict_t *ent) {
 	vec3_t v;
 
-	if (!ent->target) {
+	if (!ent->locals.target) {
 		gi.Debug("No target specified\n");
 		G_FreeEdict(ent);
 		return;
 	}
 
 	ent->solid = SOLID_TRIGGER;
-	ent->move_type = MOVE_TYPE_NONE;
+	ent->locals.move_type = MOVE_TYPE_NONE;
 
-	if (ent->model) { // model form, trigger_teleporter
-		gi.SetModel(ent, ent->model);
+	if (ent->locals.model) { // model form, trigger_teleporter
+		gi.SetModel(ent, ent->locals.model);
 		ent->sv_flags = SVF_NO_CLIENT;
 	} else { // or model-less form, misc_teleporter
 		VectorSet(ent->mins, -32.0, -32.0, -24.0);
@@ -99,13 +99,13 @@ void G_misc_teleporter(g_edict_t *ent) {
 		v[2] -= 16.0;
 
 		// add effect if ent is not burried and effect is not inhibited
-		if (!gi.PointContents(v) && !(ent->spawn_flags & 4)) {
+		if (!gi.PointContents(v) && !(ent->locals.spawn_flags & 4)) {
 			ent->s.effects = EF_TELEPORTER;
 			ent->s.sound = gi.SoundIndex("world/teleport_hum");
 		}
 	}
 
-	ent->touch = G_misc_teleporter_touch;
+	ent->locals.touch = G_misc_teleporter_touch;
 
 	gi.LinkEntity(ent);
 }

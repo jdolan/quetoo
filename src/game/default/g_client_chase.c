@@ -27,16 +27,16 @@
 void G_ClientChaseThink(g_edict_t *ent) {
 	int16_t delta[3];
 
-	g_edict_t *targ = ent->client->chase_target;
+	g_edict_t *targ = ent->client->locals.chase_target;
 
 	// calculate delta angles if switching targets
-	if (targ != ent->client->old_chase_target) {
+	if (targ != ent->client->locals.old_chase_target) {
 		vec3_t d;
 
-		VectorSubtract(ent->client->angles, targ->client->angles, d);
+		VectorSubtract(ent->client->locals.angles, targ->client->locals.angles, d);
 		PackAngles(d, delta);
 
-		ent->client->old_chase_target = targ;
+		ent->client->locals.old_chase_target = targ;
 	} else {
 		VectorClear(delta);
 	}
@@ -45,10 +45,10 @@ void G_ClientChaseThink(g_edict_t *ent) {
 	VectorCopy(targ->s.origin, ent->s.origin);
 
 	// velocity
-	VectorCopy(targ->velocity, ent->velocity);
+	VectorCopy(targ->locals.velocity, ent->locals.velocity);
 
 	// and angles
-	VectorCopy(targ->client->angles, ent->client->angles);
+	VectorCopy(targ->client->locals.angles, ent->client->locals.angles);
 
 	// and player state
 	memcpy(&ent->client->ps, &targ->client->ps, sizeof(player_state_t));
@@ -72,10 +72,10 @@ void G_ClientChaseNext(g_edict_t *ent) {
 	int32_t i;
 	g_edict_t *e;
 
-	if (!ent->client->chase_target)
+	if (!ent->client->locals.chase_target)
 		return;
 
-	i = ent->client->chase_target - g_game.edicts;
+	i = ent->client->locals.chase_target - g_game.edicts;
 	do {
 		i++;
 
@@ -87,12 +87,12 @@ void G_ClientChaseNext(g_edict_t *ent) {
 		if (!e->in_use)
 			continue;
 
-		if (!e->client->persistent.spectator)
+		if (!e->client->locals.persistent.spectator)
 			break;
 
-	} while (e != ent->client->chase_target);
+	} while (e != ent->client->locals.chase_target);
 
-	ent->client->chase_target = e;
+	ent->client->locals.chase_target = e;
 }
 
 /*
@@ -102,10 +102,10 @@ void G_ClientChasePrevious(g_edict_t *ent) {
 	int32_t i;
 	g_edict_t *e;
 
-	if (!ent->client->chase_target)
+	if (!ent->client->locals.chase_target)
 		return;
 
-	i = ent->client->chase_target - g_game.edicts;
+	i = ent->client->locals.chase_target - g_game.edicts;
 	do {
 		i--;
 
@@ -117,12 +117,12 @@ void G_ClientChasePrevious(g_edict_t *ent) {
 		if (!e->in_use)
 			continue;
 
-		if (!e->client->persistent.spectator)
+		if (!e->client->locals.persistent.spectator)
 			break;
 
-	} while (e != ent->client->chase_target);
+	} while (e != ent->client->locals.chase_target);
 
-	ent->client->chase_target = e;
+	ent->client->locals.chase_target = e;
 }
 
 /*
@@ -134,8 +134,8 @@ void G_ClientChaseTarget(g_edict_t *ent) {
 
 	for (i = 1; i <= sv_max_clients->integer; i++) {
 		other = g_game.edicts + i;
-		if (other->in_use && !other->client->persistent.spectator) {
-			ent->client->chase_target = other;
+		if (other->in_use && !other->client->locals.persistent.spectator) {
+			ent->client->locals.chase_target = other;
 			G_ClientChaseThink(ent);
 			return;
 		}
