@@ -528,7 +528,7 @@ typedef struct {
 
 	float mass;
 
-	float next_think;
+	uint32_t next_think;
 	void (*pre_think)(g_edict_t *ent);
 	void (*think)(g_edict_t *self);
 	void (*blocked)(g_edict_t *self, g_edict_t *other); // move to move_info?
