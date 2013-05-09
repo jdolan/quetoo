@@ -38,7 +38,7 @@ typedef struct sv_server_s {
 	uint32_t frame_num;
 
 	char name[MAX_QPATH]; // map name
-	struct c_model_s *models[MAX_MODELS];
+	struct c_model_s *models[MAX_BSP_MODELS];
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 	entity_state_t baselines[MAX_EDICTS];

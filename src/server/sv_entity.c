@@ -273,7 +273,7 @@ static byte *Sv_ClientPVS(const vec3_t org) {
 
 	count = Cm_BoxLeafnums(mins, maxs, leafs, 64, NULL);
 	if (count < 1) {
-		Com_Error(ERR_FATAL, "Bad leaf count\n");
+		Com_Error(ERR_DROP, "Bad leaf count\n");
 	}
 
 	longs = (Cm_NumClusters() + 31) >> 5;
