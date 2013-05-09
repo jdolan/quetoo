@@ -94,7 +94,7 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
  * NULL will be returned if the end of the list is reached.
  *
  * Example:
- *   G_Find(NULL, ELOFS(class_name), "info_player_deathmatch");
+ *   G_Find(NULL, EEOFS(class_name), "info_player_deathmatch");
  *
  */
 g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match) {
@@ -209,7 +209,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 	if (ent->locals.delay) {
 		// create a temp object to fire at a later time
 		t = G_Spawn();
-		t->locals.class_name = "DelayedUse";
+		t->class_name = "DelayedUse";
 		t->locals.next_think = g_level.time + ent->locals.delay * 1000;
 		t->locals.think = G_UseTargets_Delay;
 		t->locals.activator = activator;
@@ -250,8 +250,8 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 		t = NULL;
 		while ((t = G_Find(t, LOFS(target_name), ent->locals.target))) {
 			// doors fire area portals in a specific way
-			if (!strcmp(t->locals.class_name, "func_areaportal") && (!strcmp(
-					ent->locals.class_name, "func_door") || !strcmp(ent->locals.class_name,
+			if (!strcmp(t->class_name, "func_areaportal") && (!strcmp(
+					ent->class_name, "func_door") || !strcmp(ent->class_name,
 					"func_door_rotating"))) {
 				continue;
 			}
@@ -306,7 +306,7 @@ char *G_CopyString(char *in) {
  */
 void G_InitEdict(g_edict_t *e) {
 	e->in_use = true;
-	e->locals.class_name = "noclass";
+	e->class_name = "noclass";
 	e->locals.timestamp = g_level.time;
 	e->s.number = e - g_game.edicts;
 }
@@ -348,7 +348,7 @@ void G_FreeEdict(g_edict_t *ed) {
 		return;
 
 	memset(ed, 0, sizeof(*ed));
-	ed->locals.class_name = "freed";
+	ed->class_name = "freed";
 	ed->in_use = false;
 }
 
@@ -505,10 +505,10 @@ g_team_t *G_TeamForFlag(g_edict_t *ent) {
 	if (!ent->locals.item || ent->locals.item->type != ITEM_FLAG)
 		return NULL;
 
-	if (!strcmp(ent->locals.class_name, "item_flag_team1"))
+	if (!strcmp(ent->class_name, "item_flag_team1"))
 		return &g_team_good;
 
-	if (!strcmp(ent->locals.class_name, "item_flag_team2"))
+	if (!strcmp(ent->class_name, "item_flag_team2"))
 		return &g_team_evil;
 
 	return NULL;
@@ -533,7 +533,6 @@ g_edict_t *G_FlagForTeam(g_team_t *t) {
 		return NULL;
 	}
 
-	// TODO Can't we use G_Find here?
 	i = sv_max_clients->integer + 1;
 	while (i < ge.num_edicts) {
 
@@ -547,7 +546,7 @@ g_edict_t *G_FlagForTeam(g_team_t *t) {
 		if (ent->locals.spawn_flags & SF_ITEM_DROPPED)
 			continue;
 
-		if (!strcmp(ent->locals.class_name, class_name))
+		if (!strcmp(ent->class_name, class_name))
 			return ent;
 	}
 

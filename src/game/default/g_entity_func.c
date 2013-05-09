@@ -408,7 +408,7 @@ void G_func_plat(g_edict_t *ent) {
 	ent->solid = SOLID_BSP;
 	ent->locals.move_type = MOVE_TYPE_PUSH;
 
-	gi.SetModel(ent, ent->locals.model);
+	gi.SetModel(ent, ent->model);
 
 	ent->locals.blocked = G_func_plat_blocked;
 
@@ -556,7 +556,7 @@ void G_func_rotating(g_edict_t *ent) {
 	if (ent->locals.spawn_flags & 1)
 		ent->locals.use(ent, NULL, NULL);
 
-	gi.SetModel(ent, ent->locals.model);
+	gi.SetModel(ent, ent->model);
 	gi.LinkEntity(ent);
 }
 
@@ -660,7 +660,7 @@ void G_func_button(g_edict_t *ent) {
 	G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
 	ent->locals.move_type = MOVE_TYPE_STOP;
 	ent->solid = SOLID_BSP;
-	gi.SetModel(ent, ent->locals.model);
+	gi.SetModel(ent, ent->model);
 
 	if (ent->locals.sounds != 1)
 		ent->locals.move_info.sound_start = gi.SoundIndex("world/switch");
@@ -721,7 +721,7 @@ static void G_func_door_use_areaportals(g_edict_t *self, _Bool open) {
 		return;
 
 	while ((t = G_Find(t, LOFS(target_name), self->locals.target))) {
-		if (strcasecmp(t->locals.class_name, "func_areaportal") == 0) {
+		if (strcasecmp(t->class_name, "func_areaportal") == 0) {
 			gi.SetAreaPortalState(t->locals.area_portal, open);
 		}
 	}
@@ -1018,7 +1018,7 @@ void G_func_door(g_edict_t *ent) {
 	G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
 	ent->locals.move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
-	gi.SetModel(ent, ent->locals.model);
+	gi.SetModel(ent, ent->model);
 
 	ent->locals.blocked = G_func_door_blocked;
 	ent->locals.use = G_func_door_use;
@@ -1123,7 +1123,7 @@ static void G_func_wall_use(g_edict_t *self, g_edict_t *other __attribute__((unu
  */
 void G_func_wall(g_edict_t *self) {
 	self->locals.move_type = MOVE_TYPE_PUSH;
-	gi.SetModel(self, self->locals.model);
+	gi.SetModel(self, self->model);
 
 	// just a wall
 	if ((self->locals.spawn_flags & 7) == 0) {
@@ -1174,7 +1174,7 @@ void G_func_water(g_edict_t *self) {
 	G_SetMoveDir(self->s.angles, self->locals.move_dir);
 	self->locals.move_type = MOVE_TYPE_PUSH;
 	self->solid = SOLID_BSP;
-	gi.SetModel(self, self->locals.model);
+	gi.SetModel(self, self->model);
 
 	// calculate second position
 	VectorCopy(self->s.origin, self->locals.pos1);
@@ -1214,7 +1214,7 @@ void G_func_water(g_edict_t *self) {
 	if (self->locals.wait == -1)
 		self->locals.spawn_flags |= DOOR_TOGGLE;
 
-	self->locals.class_name = "func_door";
+	self->class_name = "func_door";
 
 	gi.LinkEntity(self);
 }
@@ -1307,7 +1307,7 @@ static void G_func_train_next(g_edict_t *self) {
 	// check for a teleport path_corner
 	if (ent->locals.spawn_flags & 1) {
 		if (!first) {
-			gi.Debug("Connected teleport path_corners, see %s at %s\n", ent->locals.class_name,
+			gi.Debug("Connected teleport path_corners, see %s at %s\n", ent->class_name,
 					vtos(ent->s.origin));
 			return;
 		}
@@ -1426,7 +1426,7 @@ void G_func_train(g_edict_t *self) {
 			self->locals.dmg = 100;
 	}
 	self->solid = SOLID_BSP;
-	gi.SetModel(self, self->locals.model);
+	gi.SetModel(self, self->model);
 
 	if (g_game.spawn.noise)
 		self->locals.move_info.sound_middle = gi.SoundIndex(g_game.spawn.noise);
@@ -1546,7 +1546,7 @@ void G_func_conveyor(g_edict_t *self) {
 
 	self->locals.use = G_func_conveyor_use;
 
-	gi.SetModel(self, self->locals.model);
+	gi.SetModel(self, self->model);
 	self->solid = SOLID_BSP;
 	gi.LinkEntity(self);
 }
@@ -1562,7 +1562,7 @@ static void G_func_killbox_use(g_edict_t *self, g_edict_t *other __attribute__((
  Kills everything inside when fired, regardless of protection.
  */
 void G_func_killbox(g_edict_t *ent) {
-	gi.SetModel(ent, ent->locals.model);
+	gi.SetModel(ent, ent->model);
 	ent->locals.use = G_func_killbox_use;
 	ent->sv_flags = SVF_NO_CLIENT;
 }

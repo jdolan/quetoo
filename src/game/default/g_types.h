@@ -503,9 +503,6 @@ typedef struct {
 	uint32_t spawn_flags;
 	uint32_t flags; // FL_GOD_MODE, etc..
 
-	const char *class_name;
-	const char *model;
-
 	g_move_type_t move_type;
 	g_move_info_t move_info;
 
@@ -559,7 +556,7 @@ typedef struct {
 	g_edict_t *enemy;
 	g_edict_t *activator;
 	g_edict_t *ground_entity;
-	int32_t ground_entity_link_count;
+	uint32_t ground_entity_link_count;
 	g_edict_t *team_chain;
 	g_edict_t *team_master;
 	g_edict_t *lightning;

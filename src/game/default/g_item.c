@@ -609,7 +609,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 
 	dropped = G_Spawn();
 
-	dropped->locals.class_name = item->class_name;
+	dropped->class_name = item->class_name;
 	dropped->locals.item = item;
 	dropped->locals.spawn_flags = SF_ITEM_DROPPED;
 	dropped->s.effects = (item->effects & ~EF_BOB);
@@ -706,7 +706,7 @@ static void G_DropToFloor(g_edict_t *ent) {
 
 		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
 		if (tr.start_solid) {
-			gi.Debug("%s start_solid at %s\n", ent->locals.class_name, vtos(ent->s.origin));
+			gi.Debug("%s start_solid at %s\n", ent->class_name, vtos(ent->s.origin));
 			G_FreeEdict(ent);
 			return;
 		}
@@ -789,7 +789,7 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 	G_PrecacheItem(item);
 
 	if (ent->locals.spawn_flags) {
-		gi.Debug("%s at %s has spawnflags %d\n", ent->locals.class_name, vtos(ent->s.origin),
+		gi.Debug("%s at %s has spawnflags %d\n", ent->class_name, vtos(ent->s.origin),
 				ent->locals.spawn_flags);
 	}
 
@@ -805,8 +805,8 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 	ent->locals.item = item;
 	ent->s.effects = item->effects;
 
-	if (ent->locals.model)
-		gi.SetModel(ent, ent->locals.model);
+	if (ent->model)
+		gi.SetModel(ent, ent->model);
 	else
 		gi.SetModel(ent, ent->locals.item->model);
 
@@ -832,7 +832,7 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 	}
 
 	// hide flags unless ctf is enabled
-	if (!g_level.ctf && g_str_has_prefix(ent->locals.class_name, "item_flag_team")) {
+	if (!g_level.ctf && g_str_has_prefix(ent->class_name, "item_flag_team")) {
 		ent->sv_flags |= SVF_NO_CLIENT;
 		ent->solid = SOLID_NOT;
 	}

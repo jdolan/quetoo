@@ -212,7 +212,7 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed
 	blast->locals.think = G_FreeEdict;
 	blast->locals.dmg = damage;
 	blast->locals.knockback = knockback;
-	blast->locals.class_name = "blaster";
+	blast->class_name = "blaster";
 
 	// set the color, overloading the client byte
 	if (ent->client) {
@@ -408,7 +408,7 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t sp
 	grenade->locals.dmg = damage;
 	grenade->locals.knockback = knockback;
 	grenade->locals.dmg_radius = damage_radius;
-	grenade->locals.class_name = "grenade";
+	grenade->class_name = "grenade";
 
 	G_PlayerProjectile(grenade, scale);
 
@@ -489,7 +489,7 @@ void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed,
 	rocket->locals.dmg_radius = damage_radius;
 	rocket->locals.knockback = knockback;
 	rocket->s.sound = g_level.media.rocket_fly_sound;
-	rocket->locals.class_name = "rocket";
+	rocket->class_name = "rocket";
 
 	G_PlayerProjectile(rocket, scale);
 
@@ -571,7 +571,7 @@ void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t 
 	bolt->locals.think = G_FreeEdict;
 	bolt->locals.dmg = damage;
 	bolt->locals.knockback = knockback;
-	bolt->locals.class_name = "bolt";
+	bolt->class_name = "bolt";
 
 	G_PlayerProjectile(bolt, scale);
 
@@ -724,7 +724,7 @@ void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t dam
 		light->s.client = ent - g_game.edicts; // player number, for client prediction fix
 		light->s.effects = EF_BEAM | EF_LIGHTNING;
 		light->s.sound = g_level.media.lightning_fly_sound;
-		light->locals.class_name = "lightning";
+		light->class_name = "lightning";
 
 		gi.LinkEntity(light);
 		ent->locals.lightning = light;
@@ -942,7 +942,7 @@ void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, i
 		bfg->locals.dmg = damage;
 		bfg->locals.knockback = knockback;
 		bfg->locals.dmg_radius = damage_radius;
-		bfg->locals.class_name = "bfg projectile";
+		bfg->class_name = "bfg projectile";
 
 		G_PlayerProjectile(bfg, scale);
 

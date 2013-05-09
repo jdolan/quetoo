@@ -88,8 +88,8 @@ void G_misc_teleporter(g_edict_t *ent) {
 	ent->solid = SOLID_TRIGGER;
 	ent->locals.move_type = MOVE_TYPE_NONE;
 
-	if (ent->locals.model) { // model form, trigger_teleporter
-		gi.SetModel(ent, ent->locals.model);
+	if (ent->model) { // model form, trigger_teleporter
+		gi.SetModel(ent, ent->model);
 		ent->sv_flags = SVF_NO_CLIENT;
 	} else { // or model-less form, misc_teleporter
 		VectorSet(ent->mins, -32.0, -32.0, -24.0);

@@ -89,7 +89,7 @@ static _Bool G_RunThink(g_edict_t *ent) {
 	ent->locals.next_think = 0;
 
 	if (!ent->locals.think)
-		gi.Error("%s has no think function\n", ent->locals.class_name);
+		gi.Error("%s has no think function\n", ent->class_name);
 
 	ent->locals.think(ent);
 

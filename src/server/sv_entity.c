@@ -378,7 +378,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 					continue;
 			} else { // check individual leafs
 				for (i = 0; i < ent->num_clusters; i++) {
-					const int32_t c = ent->cluster_nums[i];
+					const int32_t c = ent->clusters[i];
 					if (vis_data[c >> 3] & (1 << (c & 7)))
 						break;
 				}

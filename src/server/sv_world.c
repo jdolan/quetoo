@@ -279,12 +279,13 @@ void Sv_LinkEdict(g_edict_t *ent) {
 					break;
 				}
 
-				ent->cluster_nums[ent->num_clusters++] = clusters[i];
+				ent->clusters[ent->num_clusters++] = clusters[i];
 			}
 		}
 	}
 
 	// if first time, make sure old_origin is valid
+	// FIXME overflow = fail, handle old_origin on init
 	if (!ent->link_count) {
 		VectorCopy(ent->s.origin, ent->s.old_origin);
 	}

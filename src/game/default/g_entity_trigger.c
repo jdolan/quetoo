@@ -31,7 +31,7 @@ static void G_Trigger_Init(g_edict_t *self) {
 
 	self->solid = SOLID_TRIGGER;
 	self->locals.move_type = MOVE_TYPE_NONE;
-	gi.SetModel(self, self->locals.model);
+	gi.SetModel(self, self->model);
 	self->sv_flags = SVF_NO_CLIENT;
 }
 
@@ -131,7 +131,7 @@ void G_trigger_multiple(g_edict_t *ent) {
 	if (!VectorCompare(ent->s.angles, vec3_origin))
 		G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
 
-	gi.SetModel(ent, ent->locals.model);
+	gi.SetModel(ent, ent->model);
 	gi.LinkEntity(ent);
 }
 
@@ -263,7 +263,7 @@ static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 				G_FreeEdict(other);
 		}
 
-		gi.Debug("%s\n", other->locals.class_name);
+		gi.Debug("%s\n", other->class_name);
 		return;
 	}
 

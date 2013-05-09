@@ -225,7 +225,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 	const float f = Randomf();
 	g_edict_t *ent = G_Spawn();
 
-	ent->locals.class_name = "corpse";
+	ent->class_name = "corpse";
 	ent->locals.move_type = MOVE_TYPE_TOSS;
 	ent->solid = SOLID_NOT;
 
@@ -292,7 +292,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
 	self->sv_flags |= SVF_NO_CLIENT;
 
 	self->locals.dead = true;
-	self->locals.class_name = "dead";
+	self->class_name = "dead";
 
 	self->s.model1 = 0;
 	self->s.model2 = 0;
@@ -516,7 +516,7 @@ static g_edict_t *G_SelectRandomSpawnPoint(const char *class_name) {
 
 	spot = NULL;
 
-	while ((spot = G_Find(spot, LOFS(class_name), class_name)) != NULL)
+	while ((spot = G_Find(spot, EOFS(class_name), class_name)) != NULL)
 		count++;
 
 	if (!count)
@@ -525,7 +525,7 @@ static g_edict_t *G_SelectRandomSpawnPoint(const char *class_name) {
 	count = Random() % count;
 
 	while (count-- >= 0)
-		spot = G_Find(spot, LOFS(class_name), class_name);
+		spot = G_Find(spot, EOFS(class_name), class_name);
 
 	return spot;
 }
@@ -540,7 +540,7 @@ static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent, const char *class_n
 	spot = best_spot = NULL;
 	best_dist = 0.0;
 
-	while ((spot = G_Find(spot, LOFS(class_name), class_name)) != NULL) {
+	while ((spot = G_Find(spot, EOFS(class_name), class_name)) != NULL) {
 
 		dist = G_EnemyRangeFromSpot(ent, spot);
 
@@ -555,7 +555,7 @@ static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent, const char *class_n
 
 	// if there is an enemy just spawned on each and every start spot
 	// we have no choice to turn one into a telefrag meltdown
-	spot = G_Find(NULL, LOFS(class_name), class_name);
+	spot = G_Find(NULL, EOFS(class_name), class_name);
 
 	return spot;
 }
@@ -603,13 +603,13 @@ static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles) {
 
 	// and lastly fall back on single player start
 	if (!spot) {
-		while ((spot = G_Find(spot, LOFS(class_name), "info_player_start")) != NULL) {
+		while ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) != NULL) {
 			if (!spot->locals.target_name) // hopefully without a target
 				break;
 		}
 
 		if (!spot) { // last resort, find any
-			if ((spot = G_Find(spot, LOFS(class_name), "info_player_start")) == NULL)
+			if ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) == NULL)
 				gi.Error("Couldn't find spawn point\n");
 		}
 	}
@@ -650,7 +650,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	ent->locals.ground_entity = NULL;
 	ent->locals.take_damage = true;
 	ent->locals.move_type = MOVE_TYPE_WALK;
-	ent->locals.class_name = "player";
+	ent->class_name = "player";
 	ent->locals.mass = 200.0;
 	ent->solid = SOLID_BOX;
 	ent->locals.dead = false;
@@ -1002,7 +1002,7 @@ void G_ClientDisconnect(g_edict_t *ent) {
 
 	ent->client->locals.persistent.user_info[0] = 0;
 
-	ent->locals.class_name = "disconnected";
+	ent->class_name = "disconnected";
 	ent->in_use = false;
 	ent->solid = SOLID_NOT;
 	ent->sv_flags = SVF_NO_CLIENT;

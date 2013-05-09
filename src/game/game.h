@@ -75,25 +75,34 @@ struct g_client_s {
 };
 
 struct g_edict_s {
-	entity_state_t s;
-	g_client_t *client;
+	const char *class_name;
+	const char *model;
 
+	// the entity state is delta-compressed based on what each client last
+	// received for a given entity
+	entity_state_t s;
 	_Bool in_use;
-	int32_t link_count;
+
+	uint32_t sv_flags; // SVF_NO_CLIENT, etc
 
 	link_t area; // linked to a division node or leaf
+	uint32_t link_count;
 
+	// the following variables facilitate PVS and PHS culling
 	int32_t num_clusters; // if -1, use head_node instead
-	int32_t cluster_nums[MAX_ENT_CLUSTERS];
+	int32_t clusters[MAX_ENT_CLUSTERS];
 	int32_t head_node; // unused if num_clusters != -1
 	int32_t area_num, area_num2;
 
-	uint32_t sv_flags; // SVF_NO_CLIENT, etc
+	// the following variables facilitate tracing and basic physics interactions
 	vec3_t mins, maxs;
 	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
-	uint32_t clip_mask;
-	struct g_edict_s *owner;
+	uint32_t clip_mask; // e.g. MASK_SHOT, MASK_PLAYER_SOLID, ..
+	g_edict_t *owner; // projectiles are not clipped against their owner
+
+	// the client struct, as a pointer, because it is both optional and variable sized
+	g_client_t *client;
 
 	g_edict_locals_t locals; // game-local data members
 };

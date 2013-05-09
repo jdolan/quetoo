@@ -78,7 +78,7 @@ static void G_SpawnEntity(g_edict_t *ent) {
 	spawn_t *s;
 	int32_t i;
 
-	if (!ent->locals.class_name) {
+	if (!ent->class_name) {
 		gi.Debug("NULL classname\n");
 		return;
 	}
@@ -90,7 +90,7 @@ static void G_SpawnEntity(g_edict_t *ent) {
 		if (!item->class_name)
 			continue;
 
-		if (!strcmp(item->class_name, ent->locals.class_name)) { // found it
+		if (!strcmp(item->class_name, ent->class_name)) { // found it
 			G_SpawnItem(ent, item);
 			return;
 		}
@@ -98,13 +98,13 @@ static void G_SpawnEntity(g_edict_t *ent) {
 
 	// check normal spawn functions
 	for (s = g_spawns; s->name; s++) {
-		if (!strcmp(s->name, ent->locals.class_name)) { // found it
+		if (!strcmp(s->name, ent->class_name)) { // found it
 			s->spawn(ent);
 			return;
 		}
 	}
 
-	gi.Debug("%s doesn't have a spawn function\n", ent->locals.class_name);
+	gi.Debug("%s doesn't have a spawn function\n", ent->class_name);
 }
 
 /*
@@ -155,11 +155,9 @@ typedef struct g_field_s {
 } g_field_t;
 
 static const g_field_t fields[] = {
-
-// normal fields, notice the hack for area portals, which used to be
-		// the overloaded "style" field in legacy levels
-		{ "classname", LOFS(class_name), F_STRING, 0 },
-		{ "model", LOFS(model), F_STRING, 0 },
+// notice the hack for area portals, which used to be the overloaded "style" field in legacy levels
+		{ "classname", EOFS(class_name), F_STRING, 0 },
+		{ "model", EOFS(model), F_STRING, 0 },
 		{ "spawnflags", LOFS(spawn_flags), F_INT, 0 },
 		{ "speed", LOFS(speed), F_FLOAT, 0 },
 		{ "accel", LOFS(accel), F_FLOAT, 0 },
@@ -437,14 +435,14 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			}
 
 			// emits and models are client sided
-			if (!strcmp(ent->locals.class_name, "misc_emit") || !strcmp(ent->locals.class_name, "misc_model")) {
+			if (!strcmp(ent->class_name, "misc_emit") || !strcmp(ent->class_name, "misc_model")) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
 			// lights aren't even used
-			if (!strcmp(ent->locals.class_name, "light") || !strcmp(ent->locals.class_name, "light_spot")) {
+			if (!strcmp(ent->class_name, "light") || !strcmp(ent->class_name, "light_spot")) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;

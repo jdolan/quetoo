@@ -286,7 +286,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 			if (targ->locals.die) {
 				targ->locals.die(targ, inflictor, attacker, take, point);
 			} else {
-				gi.Debug("No die function for %s\n", targ->locals.class_name);
+				gi.Debug("No die function for %s\n", targ->class_name);
 			}
 			return;
 		}

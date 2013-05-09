@@ -269,11 +269,11 @@ static void G_BeginIntermission(const char *map) {
 	}
 
 	// find an intermission spot
-	ent = G_Find(NULL, LOFS(class_name), "info_player_intermission");
+	ent = G_Find(NULL, EOFS(class_name), "info_player_intermission");
 	if (!ent) { // map does not have an intermission point
-		ent = G_Find(NULL, LOFS(class_name), "info_player_start");
+		ent = G_Find(NULL, EOFS(class_name), "info_player_start");
 		if (!ent)
-			ent = G_Find(NULL, LOFS(class_name), "info_player_deathmatch");
+			ent = G_Find(NULL, EOFS(class_name), "info_player_deathmatch");
 	}
 
 	VectorCopy(ent->s.origin, g_level.intermission_origin);
