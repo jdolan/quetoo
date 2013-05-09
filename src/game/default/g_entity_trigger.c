@@ -53,13 +53,13 @@ static void G_trigger_multiple_think(g_edict_t *ent) {
 	G_UseTargets(ent, ent->locals.activator);
 
 	if (ent->locals.wait > 0) {
-		ent->locals.think = G_trigger_multiple_wait;
+		ent->locals.Think = G_trigger_multiple_wait;
 		ent->locals.next_think = g_level.time + ent->locals.wait * 1000;
 	} else { // we can't just remove (self) here, because this is a touch function
 		// called while looping through area links...
-		ent->locals.touch = NULL;
+		ent->locals.Touch = NULL;
 		ent->locals.next_think = g_level.time + gi.frame_millis;
-		ent->locals.think = G_FreeEdict;
+		ent->locals.Think = G_FreeEdict;
 	}
 }
 
@@ -100,7 +100,7 @@ static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
  */
 static void G_trigger_multiple_enable(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	self->solid = SOLID_TRIGGER;
-	self->locals.use = G_trigger_multiple_use;
+	self->locals.Use = G_trigger_multiple_use;
 	gi.LinkEntity(self);
 }
 
@@ -116,16 +116,16 @@ void G_trigger_multiple(g_edict_t *ent) {
 
 	if (!ent->locals.wait)
 		ent->locals.wait = 0.2;
-	ent->locals.touch = G_trigger_multiple_touch;
+	ent->locals.Touch = G_trigger_multiple_touch;
 	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->sv_flags |= SVF_NO_CLIENT;
 
 	if (ent->locals.spawn_flags & 4) {
 		ent->solid = SOLID_NOT;
-		ent->locals.use = G_trigger_multiple_enable;
+		ent->locals.Use = G_trigger_multiple_enable;
 	} else {
 		ent->solid = SOLID_TRIGGER;
-		ent->locals.use = G_trigger_multiple_use;
+		ent->locals.Use = G_trigger_multiple_use;
 	}
 
 	if (!VectorCompare(ent->s.angles, vec3_origin))
@@ -159,7 +159,7 @@ static void G_trigger_relay_use(g_edict_t *self, g_edict_t *other __attribute__(
  This fixed size trigger cannot be touched, it can only be fired by other events.
  */
 void G_trigger_relay(g_edict_t *self) {
-	self->locals.use = G_trigger_relay_use;
+	self->locals.Use = G_trigger_relay_use;
 }
 
 /*QUAKED trigger_always(.5 .5 .5)(-8 -8 -8)(8 8 8)
@@ -209,7 +209,7 @@ void G_trigger_push(g_edict_t *self) {
 
 	G_Trigger_Init(self);
 
-	self->locals.touch = G_trigger_push_touch;
+	self->locals.Touch = G_trigger_push_touch;
 
 	if (!self->locals.speed)
 		self->locals.speed = 100;
@@ -244,7 +244,7 @@ static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other __attribute__((
 	gi.LinkEntity(self);
 
 	if (!(self->locals.spawn_flags & 2))
-		self->locals.use = NULL;
+		self->locals.Use = NULL;
 }
 
 /*
@@ -299,7 +299,7 @@ void G_trigger_hurt(g_edict_t *self) {
 
 	G_Trigger_Init(self);
 
-	self->locals.touch = G_trigger_hurt_touch;
+	self->locals.Touch = G_trigger_hurt_touch;
 
 	if (!self->locals.dmg)
 		self->locals.dmg = 5;
@@ -310,7 +310,7 @@ void G_trigger_hurt(g_edict_t *self) {
 		self->solid = SOLID_TRIGGER;
 
 	if (self->locals.spawn_flags & 2)
-		self->locals.use = G_trigger_hurt_use;
+		self->locals.Use = G_trigger_hurt_use;
 
 	gi.LinkEntity(self);
 }
@@ -346,7 +346,7 @@ void G_trigger_exec(g_edict_t *self) {
 
 	G_Trigger_Init(self);
 
-	self->locals.touch = G_trigger_exec_touch;
+	self->locals.Touch = G_trigger_exec_touch;
 
 	gi.LinkEntity(self);
 }

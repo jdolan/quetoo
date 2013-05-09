@@ -399,7 +399,7 @@ static void G_Kill_f(g_edict_t *ent) {
 
 	means_of_death = MOD_SUICIDE;
 
-	ent->locals.die(ent, ent, ent, 100000, vec3_origin);
+	ent->locals.Die(ent, ent, ent, 100000, vec3_origin);
 }
 
 /*

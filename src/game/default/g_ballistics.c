@@ -207,9 +207,9 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed
 	blast->solid = SOLID_MISSILE;
 	blast->s.effects = EF_BLASTER;
 	blast->owner = ent;
-	blast->locals.touch = G_BlasterProjectile_Touch;
+	blast->locals.Touch = G_BlasterProjectile_Touch;
 	blast->locals.next_think = g_level.time + 8000;
-	blast->locals.think = G_FreeEdict;
+	blast->locals.Think = G_FreeEdict;
 	blast->locals.dmg = damage;
 	blast->locals.knockback = knockback;
 	blast->class_name = "blaster";
@@ -401,10 +401,10 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t sp
 	VectorCopy(maxs, grenade->maxs);
 	grenade->s.model1 = g_level.media.grenade_model;
 	grenade->owner = ent;
-	grenade->locals.touch = G_GrenadeProjectile_Touch;
+	grenade->locals.Touch = G_GrenadeProjectile_Touch;
 	grenade->locals.touch_time = g_level.time;
 	grenade->locals.next_think = g_level.time + timer;
-	grenade->locals.think = G_GrenadeProjectile_Explode;
+	grenade->locals.Think = G_GrenadeProjectile_Explode;
 	grenade->locals.dmg = damage;
 	grenade->locals.knockback = knockback;
 	grenade->locals.dmg_radius = damage_radius;
@@ -482,9 +482,9 @@ void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed,
 	rocket->s.effects = EF_ROCKET;
 	rocket->s.model1 = g_level.media.rocket_model;
 	rocket->owner = ent;
-	rocket->locals.touch = G_RocketProjectile_Touch;
+	rocket->locals.Touch = G_RocketProjectile_Touch;
 	rocket->locals.next_think = g_level.time + 8000;
-	rocket->locals.think = G_FreeEdict;
+	rocket->locals.Think = G_FreeEdict;
 	rocket->locals.dmg = damage;
 	rocket->locals.dmg_radius = damage_radius;
 	rocket->locals.knockback = knockback;
@@ -566,9 +566,9 @@ void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t 
 	bolt->solid = SOLID_MISSILE;
 	bolt->s.effects = EF_HYPERBLASTER;
 	bolt->owner = ent;
-	bolt->locals.touch = G_HyperblasterProjectile_Touch;
+	bolt->locals.Touch = G_HyperblasterProjectile_Touch;
 	bolt->locals.next_think = g_level.time + 6000;
-	bolt->locals.think = G_FreeEdict;
+	bolt->locals.Think = G_FreeEdict;
 	bolt->locals.dmg = damage;
 	bolt->locals.knockback = knockback;
 	bolt->class_name = "bolt";
@@ -719,7 +719,7 @@ void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t dam
 		light->solid = SOLID_NOT;
 		light->locals.move_type = MOVE_TYPE_THINK;
 		light->owner = ent;
-		light->locals.think = G_LightningProjectile_Think;
+		light->locals.Think = G_LightningProjectile_Think;
 		light->locals.knockback = knockback;
 		light->s.client = ent - g_game.edicts; // player number, for client prediction fix
 		light->s.effects = EF_BEAM | EF_LIGHTNING;
@@ -936,8 +936,8 @@ void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, i
 		bfg->solid = SOLID_MISSILE;
 		bfg->s.effects = EF_BFG;
 		bfg->owner = ent;
-		bfg->locals.touch = G_BfgProjectile_Touch;
-		bfg->locals.think = G_BfgProjectile_Think;
+		bfg->locals.Touch = G_BfgProjectile_Touch;
+		bfg->locals.Think = G_BfgProjectile_Think;
 		bfg->locals.next_think = g_level.time + gi.frame_millis;
 		bfg->locals.dmg = damage;
 		bfg->locals.knockback = knockback;

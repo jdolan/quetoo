@@ -211,7 +211,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 		t = G_Spawn();
 		t->class_name = "DelayedUse";
 		t->locals.next_think = g_level.time + ent->locals.delay * 1000;
-		t->locals.think = G_UseTargets_Delay;
+		t->locals.Think = G_UseTargets_Delay;
 		t->locals.activator = activator;
 		if (!activator)
 			gi.Debug("No activator\n");
@@ -259,8 +259,8 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 			if (t == ent) {
 				gi.Debug("Entity asked to use itself\n");
 			} else {
-				if (t->locals.use)
-					t->locals.use(t, ent, activator);
+				if (t->locals.Use)
+					t->locals.Use(t, ent, activator);
 			}
 			if (!ent->in_use) {
 				gi.Debug("Entity was removed while using targets\n");
@@ -370,10 +370,10 @@ void G_TouchTriggers(g_edict_t *ent) {
 		if (!hit->in_use)
 			continue;
 
-		if (!hit->locals.touch)
+		if (!hit->locals.Touch)
 			continue;
 
-		hit->locals.touch(hit, ent, NULL, NULL);
+		hit->locals.Touch(hit, ent, NULL, NULL);
 	}
 }
 
@@ -395,8 +395,8 @@ void G_TouchSolids(g_edict_t *ent) {
 		if (!hit->in_use)
 			continue;
 
-		if (ent->locals.touch)
-			ent->locals.touch(hit, ent, NULL, NULL);
+		if (ent->locals.Touch)
+			ent->locals.Touch(hit, ent, NULL, NULL);
 
 		if (!ent->in_use)
 			break;

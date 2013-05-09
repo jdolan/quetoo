@@ -75,7 +75,7 @@ void G_target_speaker(g_edict_t *ent) {
 	if (ent->locals.spawn_flags & 1)
 		ent->s.sound = ent->locals.noise_index;
 
-	ent->locals.use = G_target_speaker_use;
+	ent->locals.Use = G_target_speaker_use;
 
 	// must link the entity so we get areas and clusters so
 	// the server can determine who to send updates to
@@ -112,7 +112,7 @@ static void G_target_explosion_use(g_edict_t *self, g_edict_t *other __attribute
 		return;
 	}
 
-	self->locals.think = G_target_explosion_explode;
+	self->locals.Think = G_target_explosion_explode;
 	self->locals.next_think = g_level.time + self->locals.delay * 1000;
 }
 
@@ -123,7 +123,7 @@ static void G_target_explosion_use(g_edict_t *self, g_edict_t *other __attribute
  "dmg"		how much radius damage should be done, defaults to 0
  */
 void G_target_explosion(g_edict_t *ent) {
-	ent->locals.use = G_target_explosion_use;
+	ent->locals.Use = G_target_explosion_use;
 	ent->sv_flags = SVF_NO_CLIENT;
 }
 
@@ -149,7 +149,7 @@ void G_target_splash(g_edict_t *self) {
 	G_SetMoveDir(self->s.angles, self->locals.move_dir);
 
 	self->solid = SOLID_NOT;
-	self->locals.think = G_target_splash_think;
+	self->locals.Think = G_target_splash_think;
 	self->locals.next_think = g_level.time + (Randomf() * 3000);
 
 	gi.LinkEntity(self);

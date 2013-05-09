@@ -250,7 +250,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 	else
 		G_SetAnimation(ent, ANIM_BOTH_DEATH3, true);
 
-	ent->locals.think = G_ClientCorpse_think;
+	ent->locals.Think = G_ClientCorpse_think;
 	ent->locals.next_think = g_level.time + 1000;
 
 	gi.LinkEntity(ent);
@@ -655,7 +655,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	ent->solid = SOLID_BOX;
 	ent->locals.dead = false;
 	ent->clip_mask = MASK_PLAYER_SOLID;
-	ent->locals.die = G_ClientDie;
+	ent->locals.Die = G_ClientDie;
 	ent->locals.water_level = ent->locals.old_water_level = 0;
 	ent->locals.water_type = 0;
 	ent->sv_flags = 0;
@@ -1203,10 +1203,10 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 		if (j != i)
 			continue; // duplicated
 
-		if (!other->locals.touch)
+		if (!other->locals.Touch)
 			continue;
 
-		other->locals.touch(other, ent, NULL, NULL);
+		other->locals.Touch(other, ent, NULL, NULL);
 	}
 }
 

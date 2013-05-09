@@ -119,7 +119,7 @@ void G_SetItemRespawn(g_edict_t *ent, uint32_t delay) {
 	ent->sv_flags |= SVF_NO_CLIENT;
 	ent->solid = SOLID_NOT;
 	ent->locals.next_think = g_level.time + delay;
-	ent->locals.think = G_ItemRespawn;
+	ent->locals.Think = G_ItemRespawn;
 
 	gi.LinkEntity(ent);
 }
@@ -571,15 +571,15 @@ static void G_DropItemThink(g_edict_t *ent) {
 	ent->s.effects = ent->locals.item->effects;
 
 	// allow anyone to pick it up
-	ent->locals.touch = G_TouchItem;
+	ent->locals.Touch = G_TouchItem;
 
 	// setup the next think function and time
 
 	if (ent->locals.item->type == ITEM_FLAG) // flags go back to base
-		ent->locals.think = G_ResetFlag;
+		ent->locals.Think = G_ResetFlag;
 	else
 		// everything else just gets freed
-		ent->locals.think = G_FreeEdict;
+		ent->locals.Think = G_FreeEdict;
 
 	if (ent->locals.item->type == ITEM_POWERUP) // expire from last touch
 		i = ent->locals.timestamp - g_level.time;
@@ -618,7 +618,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 	gi.SetModel(dropped, dropped->locals.item->model);
 	dropped->solid = SOLID_TRIGGER;
 	dropped->locals.move_type = MOVE_TYPE_TOSS;
-	dropped->locals.touch = G_DropItemUntouchable;
+	dropped->locals.Touch = G_DropItemUntouchable;
 	dropped->owner = ent;
 
 	if (ent->client && ent->locals.health <= 0) { // randomize the direction we toss in
@@ -662,7 +662,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 	VectorScale(forward, 100.0, dropped->locals.velocity);
 	dropped->locals.velocity[2] = 200.0 + (Randomf() * 150.0);
 
-	dropped->locals.think = G_DropItemThink;
+	dropped->locals.Think = G_DropItemThink;
 	dropped->locals.next_think = g_level.time + gi.frame_millis;
 
 	gi.LinkEntity(dropped);
@@ -675,14 +675,14 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
  */
 static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	ent->sv_flags &= ~SVF_NO_CLIENT;
-	ent->locals.use = NULL;
+	ent->locals.Use = NULL;
 
 	if (ent->locals.spawn_flags & SF_ITEM_NO_TOUCH) {
 		ent->solid = SOLID_BOX;
-		ent->locals.touch = NULL;
+		ent->locals.Touch = NULL;
 	} else {
 		ent->solid = SOLID_TRIGGER;
-		ent->locals.touch = G_TouchItem;
+		ent->locals.Touch = G_TouchItem;
 	}
 
 	gi.LinkEntity(ent);
@@ -798,8 +798,8 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 
 	ent->solid = SOLID_TRIGGER;
 	ent->locals.move_type = MOVE_TYPE_TOSS;
-	ent->locals.touch = G_TouchItem;
-	ent->locals.think = G_DropToFloor;
+	ent->locals.Touch = G_TouchItem;
+	ent->locals.Think = G_DropToFloor;
 	ent->locals.next_think = g_level.time + 2000 * gi.frame_millis; // items start after other solids
 
 	ent->locals.item = item;
@@ -819,7 +819,7 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 		ent->solid = SOLID_NOT;
 		if (ent == ent->locals.team_master) {
 			ent->locals.next_think = g_level.time + gi.frame_millis;
-			ent->locals.think = G_ItemRespawn;
+			ent->locals.Think = G_ItemRespawn;
 		}
 	}
 
@@ -839,13 +839,13 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 
 	if (ent->locals.spawn_flags & SF_ITEM_NO_TOUCH) {
 		ent->solid = SOLID_BOX;
-		ent->locals.touch = NULL;
+		ent->locals.Touch = NULL;
 	}
 
 	if (ent->locals.spawn_flags & SF_ITEM_TRIGGER) {
 		ent->sv_flags |= SVF_NO_CLIENT;
 		ent->solid = SOLID_NOT;
-		ent->locals.use = G_UseItem;
+		ent->locals.Use = G_UseItem;
 	}
 }
 

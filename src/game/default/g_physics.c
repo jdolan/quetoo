@@ -88,10 +88,10 @@ static _Bool G_RunThink(g_edict_t *ent) {
 
 	ent->locals.next_think = 0;
 
-	if (!ent->locals.think)
+	if (!ent->locals.Think)
 		gi.Error("%s has no think function\n", ent->class_name);
 
-	ent->locals.think(ent);
+	ent->locals.Think(ent);
 
 	return false;
 }
@@ -104,11 +104,11 @@ static void G_Impact(g_edict_t *e1, c_trace_t *trace) {
 
 	e2 = trace->ent;
 
-	if (e1->locals.touch && e1->solid != SOLID_NOT)
-		e1->locals.touch(e1, e2, &trace->plane, trace->surface);
+	if (e1->locals.Touch && e1->solid != SOLID_NOT)
+		e1->locals.Touch(e1, e2, &trace->plane, trace->surface);
 
-	if (e2->locals.touch && e2->solid != SOLID_NOT)
-		e2->locals.touch(e2, e1, NULL, NULL);
+	if (e2->locals.Touch && e2->solid != SOLID_NOT)
+		e2->locals.Touch(e2, e1, NULL, NULL);
 }
 
 #define STOP_EPSILON	0.1
@@ -417,8 +417,8 @@ static void G_Physics_Pusher(g_edict_t *ent) {
 
 		// if the pusher has a "blocked" function, call it
 		// otherwise, just stay in place until the obstacle is gone
-		if (part->locals.blocked)
-			part->locals.blocked(part, obstacle);
+		if (part->locals.Blocked)
+			part->locals.Blocked(part, obstacle);
 
 	} else {
 		// the move succeeded, so call all think functions
@@ -561,9 +561,6 @@ static void G_Physics_Toss(g_edict_t *ent) {
  * @brief
  */
 void G_RunEntity(g_edict_t *ent) {
-
-	if (ent->locals.pre_think)
-		ent->locals.pre_think(ent);
 
 	switch ((int) ent->locals.move_type) {
 		case MOVE_TYPE_PUSH:

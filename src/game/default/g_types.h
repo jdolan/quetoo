@@ -529,13 +529,12 @@ typedef struct {
 	float mass;
 
 	uint32_t next_think;
-	void (*pre_think)(g_edict_t *ent);
-	void (*think)(g_edict_t *self);
-	void (*blocked)(g_edict_t *self, g_edict_t *other); // move to move_info?
-	void (*touch)(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
-	void (*use)(g_edict_t *self, g_edict_t *other, g_edict_t *activator);
-	void (*pain)(g_edict_t *self, g_edict_t *other, int32_t damage, int32_t knockback);
-	void (*die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int32_t damage,
+	void (*Think)(g_edict_t *self);
+	void (*Blocked)(g_edict_t *self, g_edict_t *other); // move to move_info?
+	void (*Touch)(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
+	void (*Use)(g_edict_t *self, g_edict_t *other, g_edict_t *activator);
+	void (*Pain)(g_edict_t *self, g_edict_t *other, int32_t damage, int32_t knockback);
+	void (*Die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int32_t damage,
 			vec3_t point);
 
 	uint32_t touch_time;

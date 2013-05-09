@@ -36,7 +36,7 @@ static void G_func_areaportal_use(g_edict_t *ent, g_edict_t *other __attribute__
  Usually enclosed in the middle of a door.
  */
 void G_func_areaportal(g_edict_t *ent) {
-	ent->locals.use = G_func_areaportal_use;
+	ent->locals.Use = G_func_areaportal_use;
 	ent->locals.count = 0; // always start closed;
 }
 
@@ -60,7 +60,7 @@ static void G_MoveInfo_End(g_edict_t *ent) {
 
 	VectorScale(ent->locals.move_info.dir, ent->locals.move_info.remaining_distance / gi.frame_seconds, ent->locals.velocity);
 
-	ent->locals.think = G_MoveInfo_Done;
+	ent->locals.Think = G_MoveInfo_Done;
 	ent->locals.next_think = g_level.time + gi.frame_millis;
 }
 
@@ -84,7 +84,7 @@ static void G_MoveInfo_Constant(g_edict_t *ent) {
 	ent->locals.move_info.remaining_distance -= frames * ent->locals.move_info.speed
 			* gi.frame_seconds;
 	ent->locals.next_think = g_level.time + (frames * gi.frame_millis);
-	ent->locals.think = G_MoveInfo_End;
+	ent->locals.Think = G_MoveInfo_End;
 }
 
 #define AccelerationDistance(target, rate) (target * ((target / rate) + 1) / 2)
@@ -207,7 +207,7 @@ static void G_MoveInfo_Accelerative(g_edict_t *ent) {
 
 	VectorScale(ent->locals.move_info.dir, ent->locals.move_info.current_speed * gi.frame_rate, ent->locals.velocity);
 	ent->locals.next_think = g_level.time + gi.frame_millis;
-	ent->locals.think = G_MoveInfo_Accelerative;
+	ent->locals.Think = G_MoveInfo_Accelerative;
 }
 
 /*
@@ -230,11 +230,11 @@ static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest, void(*done)(g_edict_t*)
 			G_MoveInfo_Constant(ent);
 		} else {
 			ent->locals.next_think = g_level.time + gi.frame_millis;
-			ent->locals.think = G_MoveInfo_Constant;
+			ent->locals.Think = G_MoveInfo_Constant;
 		}
 	} else { // accelerative
 		ent->locals.move_info.current_speed = 0;
-		ent->locals.think = G_MoveInfo_Accelerative;
+		ent->locals.Think = G_MoveInfo_Accelerative;
 		ent->locals.next_think = g_level.time + gi.frame_millis;
 	}
 }
@@ -254,7 +254,7 @@ static void G_func_plat_up(g_edict_t *ent) {
 	}
 	ent->locals.move_info.state = STATE_TOP;
 
-	ent->locals.think = G_func_plat_go_down;
+	ent->locals.Think = G_func_plat_go_down;
 	ent->locals.next_think = g_level.time + 3000;
 }
 
@@ -318,7 +318,7 @@ static void G_func_plat_blocked(g_edict_t *self, g_edict_t *other) {
  */
 static void G_func_plat_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 
-	if (ent->locals.think)
+	if (ent->locals.Think)
 		return; // already down
 
 	G_func_plat_go_down(ent);
@@ -353,7 +353,7 @@ static void G_func_plat_create_trigger(g_edict_t *ent) {
 
 	// middle trigger
 	trigger = G_Spawn();
-	trigger->locals.touch = G_func_plat_touch;
+	trigger->locals.Touch = G_func_plat_touch;
 	trigger->locals.move_type = MOVE_TYPE_NONE;
 	trigger->solid = SOLID_TRIGGER;
 	trigger->locals.enemy = ent;
@@ -410,7 +410,7 @@ void G_func_plat(g_edict_t *ent) {
 
 	gi.SetModel(ent, ent->model);
 
-	ent->locals.blocked = G_func_plat_blocked;
+	ent->locals.Blocked = G_func_plat_blocked;
 
 	if (!ent->locals.speed)
 		ent->locals.speed = 200;
@@ -446,7 +446,7 @@ void G_func_plat(g_edict_t *ent) {
 		// or derive it from the model height
 		ent->locals.pos2[2] -= (ent->maxs[2] - ent->mins[2]) - g_game.spawn.lip;
 
-	ent->locals.use = G_func_plat_use;
+	ent->locals.Use = G_func_plat_use;
 
 	G_func_plat_create_trigger(ent); // the "start moving" trigger
 
@@ -500,12 +500,12 @@ static void G_func_rotating_use(g_edict_t *self, g_edict_t *other __attribute__(
 	if (!VectorCompare(self->locals.avelocity, vec3_origin)) {
 		self->s.sound = 0;
 		VectorClear(self->locals.avelocity);
-		self->locals.touch = NULL;
+		self->locals.Touch = NULL;
 	} else {
 		self->s.sound = self->locals.move_info.sound_middle;
 		VectorScale(self->locals.move_dir, self->locals.speed, self->locals.avelocity);
 		if (self->locals.spawn_flags & 16)
-			self->locals.touch = G_func_rotating_touch;
+			self->locals.Touch = G_func_rotating_touch;
 	}
 }
 
@@ -549,12 +549,12 @@ void G_func_rotating(g_edict_t *ent) {
 	if (!ent->locals.dmg)
 		ent->locals.dmg = 2;
 
-	ent->locals.use = G_func_rotating_use;
+	ent->locals.Use = G_func_rotating_use;
 	if (ent->locals.dmg)
-		ent->locals.blocked = G_func_rotating_blocked;
+		ent->locals.Blocked = G_func_rotating_blocked;
 
 	if (ent->locals.spawn_flags & 1)
-		ent->locals.use(ent, NULL, NULL);
+		ent->locals.Use(ent, NULL, NULL);
 
 	gi.SetModel(ent, ent->model);
 	gi.LinkEntity(ent);
@@ -591,7 +591,7 @@ static void G_func_button_wait(g_edict_t *self) {
 
 	if (self->locals.move_info.wait >= 0) {
 		self->locals.next_think = g_level.time + self->locals.move_info.wait * 1000;
-		self->locals.think = G_func_button_reset;
+		self->locals.Think = G_func_button_reset;
 	}
 }
 
@@ -685,14 +685,14 @@ void G_func_button(g_edict_t *ent) {
 			* ent->size[2] - g_game.spawn.lip;
 	VectorMA(ent->locals.pos1, dist, ent->locals.move_dir, ent->locals.pos2);
 
-	ent->locals.use = G_func_button_use;
+	ent->locals.Use = G_func_button_use;
 
 	if (ent->locals.health) {
 		ent->locals.max_health = ent->locals.health;
-		ent->locals.die = G_func_button_die;
+		ent->locals.Die = G_func_button_die;
 		ent->locals.take_damage = true;
 	} else if (!ent->locals.target_name)
-		ent->locals.touch = G_func_button_touch;
+		ent->locals.Touch = G_func_button_touch;
 
 	ent->locals.move_info.state = STATE_BOTTOM;
 
@@ -744,7 +744,7 @@ static void G_func_door_up(g_edict_t *self) {
 		return;
 
 	if (self->locals.move_info.wait >= 0) {
-		self->locals.think = G_func_door_go_down;
+		self->locals.Think = G_func_door_go_down;
 		self->locals.next_think = g_level.time + self->locals.move_info.wait * 1000;
 	}
 }
@@ -819,7 +819,7 @@ static void G_func_door_use(g_edict_t *self, g_edict_t *other __attribute__((unu
 			// trigger all paired doors
 			for (ent = self; ent; ent = ent->locals.team_chain) {
 				ent->locals.message = NULL;
-				ent->locals.touch = NULL;
+				ent->locals.Touch = NULL;
 				G_func_door_go_down(ent);
 			}
 			return;
@@ -829,7 +829,7 @@ static void G_func_door_use(g_edict_t *self, g_edict_t *other __attribute__((unu
 	// trigger all paired doors
 	for (ent = self; ent; ent = ent->locals.team_chain) {
 		ent->locals.message = NULL;
-		ent->locals.touch = NULL;
+		ent->locals.Touch = NULL;
 		G_func_door_go_up(ent, activator);
 	}
 }
@@ -923,7 +923,7 @@ static void G_func_door_create_trigger(g_edict_t *ent) {
 	other->owner = ent;
 	other->solid = SOLID_TRIGGER;
 	other->locals.move_type = MOVE_TYPE_NONE;
-	other->locals.touch = G_func_door_touch_trigger;
+	other->locals.Touch = G_func_door_touch_trigger;
 	gi.LinkEntity(other);
 
 	if (ent->locals.spawn_flags & DOOR_START_OPEN)
@@ -1020,8 +1020,8 @@ void G_func_door(g_edict_t *ent) {
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
-	ent->locals.blocked = G_func_door_blocked;
-	ent->locals.use = G_func_door_use;
+	ent->locals.Blocked = G_func_door_blocked;
+	ent->locals.Use = G_func_door_use;
 
 	if (!ent->locals.speed)
 		ent->locals.speed = 100.0;
@@ -1061,11 +1061,11 @@ void G_func_door(g_edict_t *ent) {
 
 	if (ent->locals.health) {
 		ent->locals.take_damage = true;
-		ent->locals.die = G_func_door_die;
+		ent->locals.Die = G_func_door_die;
 		ent->locals.max_health = ent->locals.health;
 	} else if (ent->locals.target_name && ent->locals.message) {
 		gi.SoundIndex("misc/chat");
-		ent->locals.touch = G_func_door_touch;
+		ent->locals.Touch = G_func_door_touch;
 	}
 
 	ent->locals.move_info.speed = ent->locals.speed;
@@ -1085,9 +1085,9 @@ void G_func_door(g_edict_t *ent) {
 
 	ent->locals.next_think = g_level.time + gi.frame_millis;
 	if (ent->locals.health || ent->locals.target_name)
-		ent->locals.think = G_func_door_calc_move;
+		ent->locals.Think = G_func_door_calc_move;
 	else
-		ent->locals.think = G_func_door_create_trigger;
+		ent->locals.Think = G_func_door_create_trigger;
 }
 
 /*
@@ -1105,7 +1105,7 @@ static void G_func_wall_use(g_edict_t *self, g_edict_t *other __attribute__((unu
 	gi.LinkEntity(self);
 
 	if (!(self->locals.spawn_flags & 2))
-		self->locals.use = NULL;
+		self->locals.Use = NULL;
 }
 
 /*QUAKED func_wall (0 .5 .8) ? TRIGGER_SPAWN TOGGLE START_ON
@@ -1146,7 +1146,7 @@ void G_func_wall(g_edict_t *self) {
 		}
 	}
 
-	self->locals.use = G_func_wall_use;
+	self->locals.Use = G_func_wall_use;
 
 	if (self->locals.spawn_flags & 4) {
 		self->solid = SOLID_BSP;
@@ -1209,7 +1209,7 @@ void G_func_water(g_edict_t *self) {
 		self->locals.wait = -1;
 	self->locals.move_info.wait = self->locals.wait * 1000;
 
-	self->locals.use = G_func_door_use;
+	self->locals.Use = G_func_door_use;
 
 	if (self->locals.wait == -1)
 		self->locals.spawn_flags |= DOOR_TOGGLE;
@@ -1265,7 +1265,7 @@ static void G_func_train_wait(g_edict_t *self) {
 	if (self->locals.move_info.wait) {
 		if (self->locals.move_info.wait > 0) {
 			self->locals.next_think = g_level.time + self->locals.move_info.wait;
-			self->locals.think = G_func_train_next;
+			self->locals.Think = G_func_train_next;
 		} else if (self->locals.spawn_flags & TRAIN_TOGGLE) // && wait < 0
 		{
 			G_func_train_next(self);
@@ -1379,7 +1379,7 @@ static void G_func_train_find(g_edict_t *self) {
 
 	if (self->locals.spawn_flags & TRAIN_START_ON) {
 		self->locals.next_think = g_level.time + gi.frame_millis;
-		self->locals.think = G_func_train_next;
+		self->locals.Think = G_func_train_next;
 		self->locals.activator = self;
 	}
 }
@@ -1418,7 +1418,7 @@ void G_func_train(g_edict_t *self) {
 	self->locals.move_type = MOVE_TYPE_PUSH;
 
 	VectorClear(self->s.angles);
-	self->locals.blocked = G_func_train_blocked;
+	self->locals.Blocked = G_func_train_blocked;
 	if (self->locals.spawn_flags & TRAIN_BLOCK_STOPS)
 		self->locals.dmg = 0;
 	else {
@@ -1437,7 +1437,7 @@ void G_func_train(g_edict_t *self) {
 	self->locals.move_info.speed = self->locals.speed;
 	self->locals.move_info.accel = self->locals.move_info.decel = self->locals.move_info.speed;
 
-	self->locals.use = G_func_train_use;
+	self->locals.Use = G_func_train_use;
 
 	gi.LinkEntity(self);
 
@@ -1445,7 +1445,7 @@ void G_func_train(g_edict_t *self) {
 		// start trains on the second frame, to make sure their targets have had
 		// a chance to spawn
 		self->locals.next_think = g_level.time + gi.frame_millis;
-		self->locals.think = G_func_train_find;
+		self->locals.Think = G_func_train_find;
 	} else {
 		gi.Debug("No target: %s\n", vtos(self->abs_mins));
 	}
@@ -1496,8 +1496,8 @@ void G_func_timer(g_edict_t *self) {
 	if (!self->locals.wait)
 		self->locals.wait = 1.0;
 
-	self->locals.use = G_func_timer_use;
-	self->locals.think = G_func_timer_think;
+	self->locals.Use = G_func_timer_use;
+	self->locals.Think = G_func_timer_think;
 
 	if (self->locals.random >= self->locals.wait) {
 		self->locals.random = self->locals.wait - gi.frame_seconds;
@@ -1544,7 +1544,7 @@ void G_func_conveyor(g_edict_t *self) {
 		self->locals.speed = 0;
 	}
 
-	self->locals.use = G_func_conveyor_use;
+	self->locals.Use = G_func_conveyor_use;
 
 	gi.SetModel(self, self->model);
 	self->solid = SOLID_BSP;
@@ -1563,6 +1563,6 @@ static void G_func_killbox_use(g_edict_t *self, g_edict_t *other __attribute__((
  */
 void G_func_killbox(g_edict_t *ent) {
 	gi.SetModel(ent, ent->model);
-	ent->locals.use = G_func_killbox_use;
+	ent->locals.Use = G_func_killbox_use;
 	ent->sv_flags = SVF_NO_CLIENT;
 }

@@ -105,7 +105,7 @@ void G_misc_teleporter(g_edict_t *ent) {
 		}
 	}
 
-	ent->locals.touch = G_misc_teleporter_touch;
+	ent->locals.Touch = G_misc_teleporter_touch;
 
 	gi.LinkEntity(ent);
 }

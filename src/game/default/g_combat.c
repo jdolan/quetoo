@@ -283,8 +283,8 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 		targ->locals.health = targ->locals.health - take;
 
 		if (targ->locals.health <= 0) {
-			if (targ->locals.die) {
-				targ->locals.die(targ, inflictor, attacker, take, point);
+			if (targ->locals.Die) {
+				targ->locals.Die(targ, inflictor, attacker, take, point);
 			} else {
 				gi.Debug("No die function for %s\n", targ->class_name);
 			}
@@ -293,8 +293,8 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	}
 
 	// invoke the pain callback
-	if ((take || knockback) && targ->locals.pain)
-		targ->locals.pain(targ, attacker, take, knockback);
+	if ((take || knockback) && targ->locals.Pain)
+		targ->locals.Pain(targ, attacker, take, knockback);
 
 	// add to the damage inflicted on a player this frame
 	if (client) {
