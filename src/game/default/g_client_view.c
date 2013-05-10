@@ -84,7 +84,8 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 		gi.Sound(ent, gi.SoundIndex("world/water_out"), ATTN_NORM);
 
 	// head just coming out of water, play a gasp if we were down for a while
-	if (old_water_level == 3 && water_level != 3 && (client->locals.drown_time - g_level.time) < 8000) {
+	if (old_water_level == 3 && water_level != 3 && (client->locals.drown_time - g_level.time)
+			< 8000) {
 		vec3_t org;
 
 		VectorAdd(client->ps.pm_state.origin, client->ps.pm_state.view_offset, org);
@@ -180,7 +181,6 @@ void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const float kick) {
 	kick_angles[ROLL] = DotProduct(dir, ent->client->locals.right) * kick * KICK_SCALE;
 
 	//gi.Print("kicked %s from %s at %1.2f\n", vtos(kick_angles), vtos(dir), kick);
-
 	VectorAdd(old_kick_angles, kick_angles, kick_angles);
 	PackAngles(kick_angles, ent->client->ps.pm_state.kick_angles);
 }
@@ -209,20 +209,20 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 	// add in any event-based feedback
 
 	switch (ent->s.event) {
-	case EV_CLIENT_LAND:
-		kick[PITCH] += 2.5;
-		break;
-	case EV_CLIENT_JUMP:
-		kick[PITCH] -= 1.5;
-		break;
-	case EV_CLIENT_FALL:
-		kick[PITCH] += 5.0;
-		break;
-	case EV_CLIENT_FALL_FAR:
-		kick[PITCH] += 10.0;
-		break;
-	default:
-		break;
+		case EV_CLIENT_LAND:
+			kick[PITCH] += 2.5;
+			break;
+		case EV_CLIENT_JUMP:
+			kick[PITCH] -= 1.5;
+			break;
+		case EV_CLIENT_FALL:
+			kick[PITCH] += 5.0;
+			break;
+		case EV_CLIENT_FALL_FAR:
+			kick[PITCH] += 10.0;
+			break;
+		default:
+			break;
 	}
 
 	// and any velocity-based feedback
@@ -281,16 +281,18 @@ static void G_ClientAnimation(g_edict_t *ent) {
 
 	// check for falling
 
+	g_client_locals_t *cl = &ent->client->locals;
 	if (!ent->locals.ground_entity) { // not on the ground
 
-		if (g_level.time - ent->client->locals.jump_time > 400) {
-			if (ent->locals.water_level == 3 && ent->client->locals.speed > 10.0) { // swimming
+		if (g_level.time - cl->jump_time > 400) {
+			if (ent->locals.water_level == 3 && cl->speed > 10.0) { // swimming
 				G_SetAnimation(ent, ANIM_LEGS_SWIM, false);
 				return;
 			}
-			if (ent->client->ps.pm_state.pm_flags & PMF_DUCKED) //ducking
+			if (ent->client->ps.pm_state.pm_flags & PMF_DUCKED) { // ducking
 				G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
 				return;
+			}
 		}
 
 		_Bool jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
@@ -304,10 +306,10 @@ static void G_ClientAnimation(g_edict_t *ent) {
 
 	// duck, walk or run after landing
 
-	if (g_level.time - 400 > ent->client->locals.land_time && g_level.time - 50 > ent->client->locals.ground_time) {
+	if (g_level.time - 400 > cl->land_time && g_level.time - 50 > cl->ground_time) {
 
 		if (ent->client->ps.pm_state.pm_flags & PMF_DUCKED) { // ducked
-			if (ent->client->locals.speed < 1.0)
+			if (cl->speed < 1.0)
 				G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
 			else
 				G_SetAnimation(ent, ANIM_LEGS_WALKCR, false);
@@ -315,9 +317,7 @@ static void G_ClientAnimation(g_edict_t *ent) {
 			return;
 		}
 
-		user_cmd_t *cmd = &ent->client->locals.cmd;
-
-		if (ent->client->locals.speed < 1.0 && !cmd->forward && !cmd->right && !cmd->up) {
+		if (cl->speed < 1.0 && !cl->cmd.forward && !cl->cmd.right && !cl->cmd.up) {
 			G_SetAnimation(ent, ANIM_LEGS_IDLE, false);
 			return;
 		}
@@ -329,7 +329,7 @@ static void G_ClientAnimation(g_edict_t *ent) {
 
 		if (DotProduct(ent->locals.velocity, forward) < -0.1)
 			G_SetAnimation(ent, ANIM_LEGS_BACK, false);
-		else if (ent->client->locals.speed < 200.0)
+		else if (cl->speed < 200.0)
 			G_SetAnimation(ent, ANIM_LEGS_WALK, false);
 		else
 			G_SetAnimation(ent, ANIM_LEGS_RUN, false);
