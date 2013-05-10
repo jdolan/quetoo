@@ -22,9 +22,9 @@
 #include "g_local.h"
 
 /*
- * @brief Returns true if ent1 and ent2 are on the same qmass mod team.
+ * @brief Returns true if ent1 and ent2 are on the same team.
  */
-_Bool G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2) {
+_Bool G_OnSameTeam(const g_edict_t *ent1, const g_edict_t *ent2) {
 
 	if (!ent1->client || !ent2->client)
 		return false;
@@ -33,9 +33,6 @@ _Bool G_OnSameTeam(g_edict_t *ent1, g_edict_t *ent2) {
 		return true;
 
 	if (!g_level.teams && !g_level.ctf)
-		return false;
-
-	if (!ent1->client || !ent2->client)
 		return false;
 
 	return ent1->client->locals.persistent.team == ent2->client->locals.persistent.team;

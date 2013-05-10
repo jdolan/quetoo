@@ -459,79 +459,55 @@ static char *G_ExpandVariables(g_edict_t *ent, const char *text) {
  * @brief
  */
 static void G_Say_f(g_edict_t *ent) {
+	char text[MAX_STRING_CHARS];
+	char temp[MAX_STRING_CHARS];
 	int32_t i;
-	size_t len;
-	_Bool team, arg0;
-	char *c, text[256];
-	g_edict_t *other;
-	g_client_t *cl;
 
-	if (ent->client->locals.muted) {
+	g_client_t *cl = ent->client;
+	if (cl->locals.muted) {
 		gi.ClientPrint(ent, PRINT_HIGH, "You have been muted\n");
 		return;
 	}
 
-	memset(text, 0, sizeof(text));
+	text[0] = '\0';
 
-	team = false;
-	arg0 = true;
+	_Bool team = false;
+	_Bool arg0 = true;
 
-	if (!strncasecmp(gi.Argv(0), "say", 3)) {
+	if (g_str_has_prefix(gi.Argv(0), "say")) {
 
 		if (gi.Argc() == 1)
 			return;
 
-		if (!strcasecmp(gi.Argv(0), "say_team") && (g_level.teams || g_level.ctf))
+		if (!strcmp(gi.Argv(0), "say_team") && (g_level.teams || g_level.ctf))
 			team = true;
 
 		arg0 = false;
 	}
 
-	if (ent->client->locals.persistent.spectator && !g_spectator_chat->integer)
-		team = true;
+	if (cl->locals.persistent.spectator && !g_spectator_chat->integer)
+		team = true; // spectators can only talk to other spectators
 
-	if (team)
-		g_snprintf(text, sizeof(text), "%s^%d: ", ent->client->locals.persistent.net_name,
-				CON_TEAM_COLORCHAT);
-	else
-		g_snprintf(text, sizeof(text), "%s^%d: ", ent->client->locals.persistent.net_name,
-				CON_COLOR_CHAT);
-	len = strlen(text);
-
-	i = sizeof(text) - strlen(text) - 2;
-
-	c = G_ExpandVariables(ent, gi.Args());
-
+	char *s;
 	if (arg0) { // not say or say_team, just arbitrary chat from the console
-		strncat(text, gi.Argv(0), i);
-		strcat(text, " ");
-		strncat(text, c, i);
+		s = G_ExpandVariables(ent, va("%s %s", gi.Argv(0), gi.Args()));
 	} else { // say or say_team
-		if (c[0] == '"') { // strip quotes if necessary
-			strncat(text, c + 1, i);
-			text[strlen(text) - 1] = 0;
-		} else {
-			strncat(text, c, i);
-		}
+		s = G_ExpandVariables(ent, va("%s", gi.Args()));
 	}
-	strcat(text, "\n");
+
+	// strip quotes
+	if (s[0] == '"' && s[strlen(s) - 1] == '"') {
+		s[strlen(s) - 1] = '\0';
+		s++;
+	}
 
 	// suppress empty messages
-	arg0 = true;
-	c = text + len;
-	while (*c && arg0) {
-		if (IS_COLOR(c))
-			c++;
-		else if (!IS_LEGACY_COLOR(c) && *c != '\n' && *c != ' ')
-			arg0 = false;
-		c++;
+	StripColor(s, temp);
+	if (!strlen(temp)) {
+		return;
 	}
 
-	if (arg0)
-		return;
-
 	if (!team) { // chat flood protection, does not pertain to teams
-		cl = ent->client;
 
 		if (g_level.time < cl->locals.chat_time)
 			return;
@@ -539,8 +515,11 @@ static void G_Say_f(g_edict_t *ent) {
 		cl->locals.chat_time = g_level.time + 1000;
 	}
 
+	const int32_t color = team ? CON_COLOR_TEAMCHAT : CON_COLOR_CHAT;
+	g_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->locals.persistent.net_name, color, s);
+
 	for (i = 1; i <= sv_max_clients->integer; i++) { // print to clients
-		other = &g_game.edicts[i];
+		const g_edict_t *other = &g_game.edicts[i];
 
 		if (!other->in_use)
 			continue;
@@ -555,10 +534,7 @@ static void G_Say_f(g_edict_t *ent) {
 	}
 
 	if (dedicated->value) { // print to the console
-		if (team)
-			gi.Print("%s", text);
-		else
-			gi.Print("%s", text);
+		gi.Print("%s", text);
 	}
 }
 
@@ -1163,8 +1139,9 @@ void G_ClientCommand(g_edict_t *ent) {
 		G_Kill_f(ent);
 	else if (strcasecmp(cmd, "player_list") == 0)
 		G_PlayerList_f(ent);
-	else if (strcasecmp(cmd, "vote") == 0 || strcasecmp(cmd, "yes") == 0 || strcasecmp(cmd, "no")
-			== 0)
+	else if (strcasecmp(cmd, "vote") == 0)
+		G_Vote_f(ent);
+	else if (strcasecmp(cmd, "yes") == 0 || strcasecmp(cmd, "no") == 0)
 		G_Vote_f(ent);
 	else
 		// anything that doesn't match a command will be a chat

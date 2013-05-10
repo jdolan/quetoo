@@ -602,7 +602,7 @@ typedef struct player_state_s {
 
 #define CON_COLOR_INFO		CON_COLOR_ALT
 #define CON_COLOR_CHAT		CON_COLOR_ALT
-#define CON_TEAM_COLORCHAT	CON_COLOR_YELLOW
+#define CON_COLOR_TEAMCHAT	CON_COLOR_YELLOW
 
 #define IS_COLOR(c)( \
 	*c == COLOR_ESC && ( \
