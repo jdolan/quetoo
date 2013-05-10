@@ -203,7 +203,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 /*
  * @brief
  */
-static void G_ClientCorpse_think(g_edict_t *ent) {
+static void G_ClientCorpse_Think(g_edict_t *ent) {
 	const uint32_t age = g_level.time - ent->locals.timestamp;
 
 	if (age > 5000) {
@@ -250,7 +250,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 	else
 		G_SetAnimation(ent, ANIM_BOTH_DEATH3, true);
 
-	ent->locals.Think = G_ClientCorpse_think;
+	ent->locals.Think = G_ClientCorpse_Think;
 	ent->locals.next_think = g_level.time + 1000;
 
 	gi.LinkEntity(ent);

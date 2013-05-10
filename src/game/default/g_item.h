@@ -34,7 +34,7 @@ extern const uint16_t g_num_items;
 _Bool G_AddAmmo(g_edict_t *ent, const g_item_t *item, int16_t count);
 g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item);
 const g_item_t *G_FindItem(const char *name);
-const g_item_t *G_FindItemByClassname(const char *class_name);
+const g_item_t *G_FindItemByClassName(const char *class_name);
 const g_item_t *G_ItemByIndex(uint16_t index);
 void G_PrecacheItem(const g_item_t *it);
 void G_ResetFlag(g_edict_t *ent);

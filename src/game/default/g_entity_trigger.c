@@ -38,14 +38,14 @@ static void G_Trigger_Init(g_edict_t *self) {
 /*
  * @brief The wait time has passed, so set back up for another activation
  */
-static void G_trigger_multiple_wait(g_edict_t *ent) {
+static void G_trigger_multiple_Wait(g_edict_t *ent) {
 	ent->locals.next_think = 0;
 }
 
 /*
  * @brief
  */
-static void G_trigger_multiple_think(g_edict_t *ent) {
+static void G_trigger_multiple_Think(g_edict_t *ent) {
 
 	if (ent->locals.next_think)
 		return; // already been triggered
@@ -53,7 +53,7 @@ static void G_trigger_multiple_think(g_edict_t *ent) {
 	G_UseTargets(ent, ent->locals.activator);
 
 	if (ent->locals.wait > 0) {
-		ent->locals.Think = G_trigger_multiple_wait;
+		ent->locals.Think = G_trigger_multiple_Wait;
 		ent->locals.next_think = g_level.time + ent->locals.wait * 1000;
 	} else { // we can't just remove (self) here, because this is a touch function
 		// called while looping through area links...
@@ -66,17 +66,17 @@ static void G_trigger_multiple_think(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_trigger_multiple_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
+static void G_trigger_multiple_Use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 
 	ent->locals.activator = activator;
 
-	G_trigger_multiple_think(ent);
+	G_trigger_multiple_Think(ent);
 }
 
 /*
  * @brief
  */
-static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+static void G_trigger_multiple_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client)
@@ -92,15 +92,15 @@ static void G_trigger_multiple_touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
 	}
 
 	self->locals.activator = other;
-	G_trigger_multiple_think(self);
+	G_trigger_multiple_Think(self);
 }
 
 /*
  * @brief
  */
-static void G_trigger_multiple_enable(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
+static void G_trigger_multiple_Enable(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	self->solid = SOLID_TRIGGER;
-	self->locals.Use = G_trigger_multiple_use;
+	self->locals.Use = G_trigger_multiple_Use;
 	gi.LinkEntity(self);
 }
 
@@ -116,16 +116,16 @@ void G_trigger_multiple(g_edict_t *ent) {
 
 	if (!ent->locals.wait)
 		ent->locals.wait = 0.2;
-	ent->locals.Touch = G_trigger_multiple_touch;
+	ent->locals.Touch = G_trigger_multiple_Touch;
 	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->sv_flags |= SVF_NO_CLIENT;
 
 	if (ent->locals.spawn_flags & 4) {
 		ent->solid = SOLID_NOT;
-		ent->locals.Use = G_trigger_multiple_enable;
+		ent->locals.Use = G_trigger_multiple_Enable;
 	} else {
 		ent->solid = SOLID_TRIGGER;
-		ent->locals.Use = G_trigger_multiple_use;
+		ent->locals.Use = G_trigger_multiple_Use;
 	}
 
 	if (!VectorCompare(ent->s.angles, vec3_origin))
@@ -151,7 +151,7 @@ void G_trigger_once(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_trigger_relay_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
+static void G_trigger_relay_Use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	G_UseTargets(self, activator);
 }
 
@@ -159,7 +159,7 @@ static void G_trigger_relay_use(g_edict_t *self, g_edict_t *other __attribute__(
  This fixed size trigger cannot be touched, it can only be fired by other events.
  */
 void G_trigger_relay(g_edict_t *self) {
-	self->locals.Use = G_trigger_relay_use;
+	self->locals.Use = G_trigger_relay_Use;
 }
 
 /*QUAKED trigger_always(.5 .5 .5)(-8 -8 -8)(8 8 8)
@@ -179,7 +179,7 @@ void G_trigger_always(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_trigger_push_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (other->locals.health > 0) {
@@ -209,7 +209,7 @@ void G_trigger_push(g_edict_t *self) {
 
 	G_Trigger_Init(self);
 
-	self->locals.Touch = G_trigger_push_touch;
+	self->locals.Touch = G_trigger_push_Touch;
 
 	if (!self->locals.speed)
 		self->locals.speed = 100;
@@ -235,7 +235,7 @@ void G_trigger_push(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
+static void G_trigger_hurt_Use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 
 	if (self->solid == SOLID_NOT)
 		self->solid = SOLID_TRIGGER;
@@ -250,7 +250,7 @@ static void G_trigger_hurt_use(g_edict_t *self, g_edict_t *other __attribute__((
 /*
  * @brief
  */
-static void G_trigger_hurt_touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
 	int32_t dflags;
 
@@ -299,7 +299,7 @@ void G_trigger_hurt(g_edict_t *self) {
 
 	G_Trigger_Init(self);
 
-	self->locals.Touch = G_trigger_hurt_touch;
+	self->locals.Touch = G_trigger_hurt_Touch;
 
 	if (!self->locals.dmg)
 		self->locals.dmg = 5;
@@ -310,7 +310,7 @@ void G_trigger_hurt(g_edict_t *self) {
 		self->solid = SOLID_TRIGGER;
 
 	if (self->locals.spawn_flags & 2)
-		self->locals.Use = G_trigger_hurt_use;
+		self->locals.Use = G_trigger_hurt_Use;
 
 	gi.LinkEntity(self);
 }
@@ -318,7 +318,7 @@ void G_trigger_hurt(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_trigger_exec_touch(g_edict_t *self, g_edict_t *other __attribute__((unused)), c_bsp_plane_t *plane __attribute__((unused)),
+static void G_trigger_exec_Touch(g_edict_t *self, g_edict_t *other __attribute__((unused)), c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (self->locals.timestamp > g_level.time)
@@ -346,7 +346,7 @@ void G_trigger_exec(g_edict_t *self) {
 
 	G_Trigger_Init(self);
 
-	self->locals.Touch = G_trigger_exec_touch;
+	self->locals.Touch = G_trigger_exec_Touch;
 
 	gi.LinkEntity(self);
 }

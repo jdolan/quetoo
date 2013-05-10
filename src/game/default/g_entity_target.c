@@ -24,7 +24,7 @@
 /*
  * @brief
  */
-static void G_target_speaker_use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
+static void G_target_speaker_Use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 
 	if (ent->locals.spawn_flags & 3) { // looping sound toggles
 		if (ent->s.sound)
@@ -75,7 +75,7 @@ void G_target_speaker(g_edict_t *ent) {
 	if (ent->locals.spawn_flags & 1)
 		ent->s.sound = ent->locals.noise_index;
 
-	ent->locals.Use = G_target_speaker_use;
+	ent->locals.Use = G_target_speaker_Use;
 
 	// must link the entity so we get areas and clusters so
 	// the server can determine who to send updates to
@@ -85,7 +85,7 @@ void G_target_speaker(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_target_explosion_explode(g_edict_t *self) {
+static void G_target_explosion_Explode(g_edict_t *self) {
 	float save;
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -104,15 +104,15 @@ static void G_target_explosion_explode(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_target_explosion_use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
+static void G_target_explosion_Use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
 	self->locals.activator = activator;
 
 	if (!self->locals.delay) {
-		G_target_explosion_explode(self);
+		G_target_explosion_Explode(self);
 		return;
 	}
 
-	self->locals.Think = G_target_explosion_explode;
+	self->locals.Think = G_target_explosion_Explode;
 	self->locals.next_think = g_level.time + self->locals.delay * 1000;
 }
 
@@ -123,14 +123,14 @@ static void G_target_explosion_use(g_edict_t *self, g_edict_t *other __attribute
  "dmg"		how much radius damage should be done, defaults to 0
  */
 void G_target_explosion(g_edict_t *ent) {
-	ent->locals.Use = G_target_explosion_use;
+	ent->locals.Use = G_target_explosion_Use;
 	ent->sv_flags = SVF_NO_CLIENT;
 }
 
 /*
  * @brief
  */
-static void G_target_splash_think(g_edict_t *self) {
+static void G_target_splash_Think(g_edict_t *self) {
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_SPARKS);
@@ -149,7 +149,7 @@ void G_target_splash(g_edict_t *self) {
 	G_SetMoveDir(self->s.angles, self->locals.move_dir);
 
 	self->solid = SOLID_NOT;
-	self->locals.Think = G_target_splash_think;
+	self->locals.Think = G_target_splash_Think;
 	self->locals.next_think = g_level.time + (Randomf() * 3000);
 
 	gi.LinkEntity(self);

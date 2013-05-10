@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-static void G_DropToFloor(g_edict_t *ent);
+static void G_ItemDropToFloor(g_edict_t *ent);
 
 /*
  * @brief
@@ -37,7 +37,7 @@ const g_item_t *G_ItemByIndex(uint16_t index) {
 /*
  * @brief
  */
-const g_item_t *G_FindItemByClassname(const char *class_name) {
+const g_item_t *G_FindItemByClassName(const char *class_name) {
 	int32_t i;
 
 	const g_item_t *it = g_items;
@@ -100,7 +100,7 @@ static void G_ItemRespawn(g_edict_t *ent) {
 	}
 
 	VectorCopy(origin, ent->s.origin);
-	G_DropToFloor(ent);
+	G_ItemDropToFloor(ent);
 
 	ent->sv_flags &= ~SVF_NO_CLIENT;
 	ent->solid = SOLID_TRIGGER;
@@ -168,7 +168,7 @@ void G_TossQuadDamage(g_edict_t *ent) {
 	if (!ent->client->locals.persistent.inventory[g_level.media.quad_damage])
 		return;
 
-	quad = G_DropItem(ent, G_FindItemByClassname("item_quad"));
+	quad = G_DropItem(ent, G_FindItemByClassName("item_quad"));
 
 	if (quad)
 		quad->locals.timestamp = ent->client->locals.quad_damage_time;
@@ -552,7 +552,7 @@ static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other, c_bsp_plane_
 /*
  * @brief
  */
-static void G_DropItemThink(g_edict_t *ent) {
+static void G_DropItem_Think(g_edict_t *ent) {
 	int32_t contents;
 	uint32_t i;
 
@@ -662,7 +662,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 	VectorScale(forward, 100.0, dropped->locals.velocity);
 	dropped->locals.velocity[2] = 200.0 + (Randomf() * 150.0);
 
-	dropped->locals.Think = G_DropItemThink;
+	dropped->locals.Think = G_DropItem_Think;
 	dropped->locals.next_think = g_level.time + gi.frame_millis;
 
 	gi.LinkEntity(dropped);
@@ -691,7 +691,7 @@ static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)), 
 /*
  * @brief
  */
-static void G_DropToFloor(g_edict_t *ent) {
+static void G_ItemDropToFloor(g_edict_t *ent) {
 	c_trace_t tr;
 	vec3_t dest;
 
@@ -799,7 +799,7 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 	ent->solid = SOLID_TRIGGER;
 	ent->locals.move_type = MOVE_TYPE_TOSS;
 	ent->locals.Touch = G_TouchItem;
-	ent->locals.Think = G_DropToFloor;
+	ent->locals.Think = G_ItemDropToFloor;
 	ent->locals.next_think = g_level.time + 2000 * gi.frame_millis; // items start after other solids
 
 	ent->locals.item = item;
