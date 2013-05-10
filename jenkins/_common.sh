@@ -20,14 +20,6 @@ function destroy_fedora17() {
 }
 
 function setup_mingw(){
-TARGET="i686"
-if [ ${ENV} == "mingw64" ]
-then
-	TARGET="x86_64"
-fi
-
-MINGW_ENV="fedora-18-x86_64"
-
 MINGW_DEPS="${ENV}-SDL ${ENV}-SDL_image ${ENV}-SDL_mixer ${ENV}-curl ${ENV}-physfs ${ENV}-glib2 ${ENV}-libjpeg-turbo libtool ${ENV}-zlib ${ENV}-pkg-config ${ENV}-pdcurses"
 
 /usr/bin/mock -r ${MINGW_ENV} --clean
@@ -37,7 +29,6 @@ MINGW_DEPS="${ENV}-SDL ${ENV}-SDL_image ${ENV}-SDL_mixer ${ENV}-curl ${ENV}-phys
 }
 
 function destroy_mingw() {
-MINGW_ENV="fedora-18-x86_64"
 /usr/bin/mock -r ${MINGW_ENV} --clean
 	
 }
@@ -50,7 +41,6 @@ tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
 }
 
 function archive_workspace_mingw() {
-MINGW_ENV="fedora-18-x86_64"
 rm -Rf ${WORKSPACE}/jenkins-quake2world*
 /usr/bin/mock -r ${MINGW_ENV} --copyout "/tmp/quake2world-${ENV}" "${WORKSPACE}/${BUILD_TAG}"
 cd ${WORKSPACE}
