@@ -40,7 +40,7 @@ void CalcTextureReflectivity(void) {
 
 		// see if an earlier texinfo already got the value
 		for (j = 0; j < i; j++) {
-			if (!strcmp(d_bsp.texinfo[i].texture, d_bsp.texinfo[j].texture)) {
+			if (!g_strcmp0(d_bsp.texinfo[i].texture, d_bsp.texinfo[j].texture)) {
 				VectorCopy(texture_reflectivity[j], texture_reflectivity[i]);
 				break;
 			}
@@ -191,7 +191,7 @@ static entity_t *EntityForModel(int32_t num) {
 
 		const char *s = ValueForKey(&entities[i], "model");
 
-		if (!strcmp(s, name))
+		if (!g_strcmp0(s, name))
 			return &entities[i];
 	}
 

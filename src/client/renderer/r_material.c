@@ -535,19 +535,19 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
  */
 static inline GLenum R_ConstByName(const char *c) {
 
-	if (!strcmp(c, "GL_ONE"))
+	if (!g_strcmp0(c, "GL_ONE"))
 		return GL_ONE;
-	if (!strcmp(c, "GL_ZERO"))
+	if (!g_strcmp0(c, "GL_ZERO"))
 		return GL_ZERO;
-	if (!strcmp(c, "GL_SRC_ALPHA"))
+	if (!g_strcmp0(c, "GL_SRC_ALPHA"))
 		return GL_SRC_ALPHA;
-	if (!strcmp(c, "GL_ONE_MINUS_SRC_ALPHA"))
+	if (!g_strcmp0(c, "GL_ONE_MINUS_SRC_ALPHA"))
 		return GL_ONE_MINUS_SRC_ALPHA;
-	if (!strcmp(c, "GL_SRC_COLOR"))
+	if (!g_strcmp0(c, "GL_SRC_COLOR"))
 		return GL_SRC_COLOR;
-	if (!strcmp(c, "GL_DST_COLOR"))
+	if (!g_strcmp0(c, "GL_DST_COLOR"))
 		return GL_DST_COLOR;
-	if (!strcmp(c, "GL_ONE_MINUS_SRC_COLOR"))
+	if (!g_strcmp0(c, "GL_ONE_MINUS_SRC_COLOR"))
 		return GL_ONE_MINUS_SRC_COLOR;
 
 	// ...
@@ -612,7 +612,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (*c == '\0')
 			break;
 
-		if (!strcmp(c, "texture")) {
+		if (!g_strcmp0(c, "texture")) {
 
 			c = ParseToken(buffer);
 			if (*c == '#') {
@@ -630,7 +630,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "envmap")) {
+		if (!g_strcmp0(c, "envmap")) {
 
 			c = ParseToken(buffer);
 			i = atoi(c);
@@ -652,7 +652,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "blend")) {
+		if (!g_strcmp0(c, "blend")) {
 
 			c = ParseToken(buffer);
 			s->blend.src = R_ConstByName(c);
@@ -674,7 +674,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "color")) {
+		if (!g_strcmp0(c, "color")) {
 
 			for (i = 0; i < 3; i++) {
 
@@ -691,7 +691,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "pulse")) {
+		if (!g_strcmp0(c, "pulse")) {
 
 			c = ParseToken(buffer);
 			s->pulse.hz = atof(c);
@@ -705,7 +705,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "stretch")) {
+		if (!g_strcmp0(c, "stretch")) {
 
 			c = ParseToken(buffer);
 			s->stretch.amp = atof(c);
@@ -727,7 +727,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "rotate")) {
+		if (!g_strcmp0(c, "rotate")) {
 
 			c = ParseToken(buffer);
 			s->rotate.hz = atof(c);
@@ -741,7 +741,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "scroll.s")) {
+		if (!g_strcmp0(c, "scroll.s")) {
 
 			c = ParseToken(buffer);
 			s->scroll.s = atof(c);
@@ -750,7 +750,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "scroll.t")) {
+		if (!g_strcmp0(c, "scroll.t")) {
 
 			c = ParseToken(buffer);
 			s->scroll.t = atof(c);
@@ -759,7 +759,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "scale.s")) {
+		if (!g_strcmp0(c, "scale.s")) {
 
 			c = ParseToken(buffer);
 			s->scale.s = atof(c);
@@ -768,7 +768,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "scale.t")) {
+		if (!g_strcmp0(c, "scale.t")) {
 
 			c = ParseToken(buffer);
 			s->scale.t = atof(c);
@@ -777,7 +777,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "terrain")) {
+		if (!g_strcmp0(c, "terrain")) {
 
 			c = ParseToken(buffer);
 			s->terrain.floor = atof(c);
@@ -796,7 +796,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "dirtmap")) {
+		if (!g_strcmp0(c, "dirtmap")) {
 
 			c = ParseToken(buffer);
 			s->dirt.intensity = atof(c);
@@ -811,7 +811,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "anim")) {
+		if (!g_strcmp0(c, "anim")) {
 
 			c = ParseToken(buffer);
 			s->anim.num_frames = atoi(c);
@@ -837,12 +837,12 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			continue;
 		}
 
-		if (!strcmp(c, "lightmap")) {
+		if (!g_strcmp0(c, "lightmap")) {
 			s->flags |= STAGE_LIGHTMAP;
 			continue;
 		}
 
-		if (!strcmp(c, "flare")) {
+		if (!g_strcmp0(c, "flare")) {
 
 			c = ParseToken(buffer);
 			i = atoi(c);
@@ -950,7 +950,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			continue;
 		}
 
-		if (!strcmp(c, "material")) {
+		if (!g_strcmp0(c, "material")) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
 				m = R_LoadMaterial(++c);
@@ -969,7 +969,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 		if (!m)
 			continue;
 
-		if (!strcmp(c, "normalmap") && r_programs->value && r_bumpmap->value) {
+		if (!g_strcmp0(c, "normalmap") && r_programs->value && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
 				m->normalmap = R_LoadImage(++c, IT_NORMALMAP);
@@ -983,7 +983,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			}
 		}
 
-		if (!strcmp(c, "glossmap") && r_programs->value && r_bumpmap->value) {
+		if (!g_strcmp0(c, "glossmap") && r_programs->value && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
 				m->glossmap = R_LoadImage(++c, IT_GLOSSMAP);
@@ -997,7 +997,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			}
 		}
 
-		if (!strcmp(c, "bump")) {
+		if (!g_strcmp0(c, "bump")) {
 
 			m->bump = atof(ParseToken(&buffer));
 
@@ -1007,7 +1007,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			}
 		}
 
-		if (!strcmp(c, "parallax")) {
+		if (!g_strcmp0(c, "parallax")) {
 
 			m->parallax = atof(ParseToken(&buffer));
 
@@ -1017,7 +1017,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			}
 		}
 
-		if (!strcmp(c, "hardness")) {
+		if (!g_strcmp0(c, "hardness")) {
 
 			m->hardness = atof(ParseToken(&buffer));
 
@@ -1027,7 +1027,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			}
 		}
 
-		if (!strcmp(c, "specular")) {
+		if (!g_strcmp0(c, "specular")) {
 			m->specular = atof(ParseToken(&buffer));
 
 			if (m->specular < 0.0) {

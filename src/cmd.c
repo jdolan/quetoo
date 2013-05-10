@@ -244,7 +244,7 @@ void Cmd_TokenizeString(const char *text) {
 		}
 
 		// expand console variables
-		if (*c == '$' && strcmp(cmd_state.args.argv[0], "alias")) {
+		if (*c == '$' && g_strcmp0(cmd_state.args.argv[0], "alias")) {
 			c = Cvar_GetString(c + 1);
 		}
 

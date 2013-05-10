@@ -81,7 +81,7 @@ static void Sv_ConfigString(const uint16_t index, const char *val) {
 		val = "";
 
 	// make sure it's actually changed
-	if (!strcmp(sv.config_strings[index], val)) {
+	if (!g_strcmp0(sv.config_strings[index], val)) {
 		return;
 	}
 

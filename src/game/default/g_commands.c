@@ -46,12 +46,12 @@ static void G_Give_f(g_edict_t *ent) {
 	} else
 		quantity = 9999;
 
-	if (strcasecmp(name, "all") == 0)
+	if (g_strcmp0(name, "all") == 0)
 		give_all = true;
 	else
 		give_all = false;
 
-	if (give_all || strcasecmp(gi.Argv(1), "health") == 0) {
+	if (give_all || g_strcmp0(gi.Argv(1), "health") == 0) {
 		if (gi.Argc() == 3)
 			ent->locals.health = quantity;
 		else
@@ -60,7 +60,7 @@ static void G_Give_f(g_edict_t *ent) {
 			return;
 	}
 
-	if (give_all || strcasecmp(name, "weapons") == 0) {
+	if (give_all || g_strcmp0(name, "weapons") == 0) {
 		for (i = 0; i < g_num_items; i++) {
 			it = g_items + i;
 			if (!it->Pickup)
@@ -73,7 +73,7 @@ static void G_Give_f(g_edict_t *ent) {
 			return;
 	}
 
-	if (give_all || strcasecmp(name, "ammo") == 0) {
+	if (give_all || g_strcmp0(name, "ammo") == 0) {
 		for (i = 0; i < g_num_items; i++) {
 			it = g_items + i;
 			if (!it->Pickup)
@@ -86,7 +86,7 @@ static void G_Give_f(g_edict_t *ent) {
 			return;
 	}
 
-	if (give_all || strcasecmp(name, "armor") == 0) {
+	if (give_all || g_strcmp0(name, "armor") == 0) {
 		if (gi.Argc() == 3)
 			ent->client->locals.persistent.armor = quantity;
 		else
@@ -238,7 +238,7 @@ static void G_Drop_f(g_edict_t *ent) {
 	const char *s = gi.Args();
 	it = NULL;
 
-	if (!strcmp(s, "flag")) { // find the correct flag
+	if (!g_strcmp0(s, "flag")) { // find the correct flag
 
 		f = G_FlagForTeam(G_OtherTeam(ent->client->locals.persistent.team));
 		if (f)
@@ -471,22 +471,21 @@ static void G_Say_f(g_edict_t *ent) {
 
 	text[0] = '\0';
 
-	_Bool team = false;
-	_Bool arg0 = true;
+	_Bool team = false; // whether or not we're dealing with team chat
+	_Bool arg0 = true; // whether or not we need to print arg0
 
-	if (g_str_has_prefix(gi.Argv(0), "say")) {
-
-		if (gi.Argc() == 1)
-			return;
-
-		if (!strcmp(gi.Argv(0), "say_team") && (g_level.teams || g_level.ctf))
-			team = true;
-
+	if (!g_strcmp0(gi.Argv(0), "say") || !g_strcmp0(gi.Argv(0), "say_team")) {
 		arg0 = false;
+
+		if (!g_strcmp0(gi.Argv(0), "say_team") && (g_level.teams || g_level.ctf))
+			team = true;
 	}
 
-	if (cl->locals.persistent.spectator && !g_spectator_chat->integer)
-		team = true; // spectators can only talk to other spectators
+	// if g_spectator_chat is off, spectators can only chat to other spectators
+	// and so we force team-chat on them
+	if (cl->locals.persistent.spectator && !g_spectator_chat->integer) {
+		team = true;
+	}
 
 	char *s;
 	if (arg0) { // not say or say_team, just arbitrary chat from the console
@@ -601,11 +600,11 @@ static _Bool Vote_Help(g_edict_t *ent) {
 	char msg[1024];
 
 	if (!g_level.vote_time) { // check for yes/no
-		if (gi.Argc() == 1 && (!strcasecmp(gi.Argv(0), "yes") || !strcasecmp(gi.Argv(0), "no"))) {
+		if (gi.Argc() == 1 && (!g_strcmp0(gi.Argv(0), "yes") || !g_strcmp0(gi.Argv(0), "no"))) {
 			gi.ClientPrint(ent, PRINT_HIGH, "There is not a vote in progress\n"); // shorthand
 			return true;
 		}
-		if (gi.Argc() == 2 && (!strcasecmp(gi.Argv(1), "yes") || !strcasecmp(gi.Argv(1), "no"))) {
+		if (gi.Argc() == 2 && (!g_strcmp0(gi.Argv(1), "yes") || !g_strcmp0(gi.Argv(1), "no"))) {
 			gi.ClientPrint(ent, PRINT_HIGH, "There is not a vote in progress\n"); // explicit
 			return true;
 		}
@@ -629,7 +628,7 @@ static _Bool Vote_Help(g_edict_t *ent) {
 
 	i = 0;
 	while (vote_cmds[i]) { // verify that command is supported
-		if (!strcasecmp(gi.Argv(1), vote_cmds[i]))
+		if (!g_strcmp0(gi.Argv(1), vote_cmds[i]))
 			break;
 		i++;
 	}
@@ -639,11 +638,11 @@ static _Bool Vote_Help(g_edict_t *ent) {
 		return true;
 	}
 
-	if (!strcasecmp(gi.Argv(1), "restart"))
+	if (!g_strcmp0(gi.Argv(1), "restart"))
 		return false; // takes no args, this is okay
 
 	// command-specific help for some commands
-	if (gi.Argc() == 2 && !strcasecmp(gi.Argv(1), "map")) { // list available maps
+	if (gi.Argc() == 2 && !g_strcmp0(gi.Argv(1), "map")) { // list available maps
 
 		if (!g_map_list.count) { // no maps in maplist
 			gi.ClientPrint(ent, PRINT_HIGH, "Map voting is not available\n");
@@ -672,7 +671,7 @@ static _Bool Vote_Help(g_edict_t *ent) {
 		return true;
 	}
 
-	if (gi.Argc() == 2 && !strcasecmp(gi.Argv(1), "g_gameplay")) { // list gameplay modes
+	if (gi.Argc() == 2 && !g_strcmp0(gi.Argv(1), "g_gameplay")) { // list gameplay modes
 		gi.ClientPrint(ent, PRINT_HIGH, "\nAvailable gameplay modes:\n\n"
 			"  DEATHMATCH\n  INSTAGIB\n  ARENA\n");
 		return true;
@@ -698,7 +697,7 @@ static void G_Vote_f(g_edict_t *ent) {
 		return;
 	}
 
-	if (!strcasecmp(gi.Argv(0), "yes") || !strcasecmp(gi.Argv(0), "no")) // allow shorthand voting
+	if (!g_strcmp0(gi.Argv(0), "yes") || !g_strcmp0(gi.Argv(0), "no")) // allow shorthand voting
 		g_strlcpy(vote, gi.Argv(0), sizeof(vote));
 	else { // or the explicit syntax
 		g_strlcpy(vote, gi.Args(), sizeof(vote));
@@ -709,9 +708,9 @@ static void G_Vote_f(g_edict_t *ent) {
 			gi.ClientPrint(ent, PRINT_HIGH, "You've already voted\n");
 			return;
 		}
-		if (strcasecmp(vote, "yes") == 0)
+		if (g_strcmp0(vote, "yes") == 0)
 			ent->client->locals.persistent.vote = VOTE_YES;
-		else if (strcasecmp(vote, "no") == 0)
+		else if (g_strcmp0(vote, "no") == 0)
 			ent->client->locals.persistent.vote = VOTE_NO;
 		else { // only yes and no are valid during a vote
 			gi.ClientPrint(ent, PRINT_HIGH, "A vote \"%s\" is already in progress\n",
@@ -728,9 +727,9 @@ static void G_Vote_f(g_edict_t *ent) {
 	if (Vote_Help(ent)) // vote command got help, ignore it
 		return;
 
-	if (!strcasecmp(gi.Argv(1), "map")) { // ensure map is in maplist
+	if (!g_strcmp0(gi.Argv(1), "map")) { // ensure map is in maplist
 		for (i = 0; i < g_map_list.count; i++) {
-			if (!strcasecmp(gi.Argv(2), g_map_list.maps[i].name))
+			if (!g_strcmp0(gi.Argv(2), g_map_list.maps[i].name))
 				break; // found it
 		}
 
@@ -1090,11 +1089,11 @@ void G_ClientCommand(g_edict_t *ent) {
 
 	const char *cmd = gi.Argv(0);
 
-	if (strcasecmp(cmd, "say") == 0) {
+	if (g_strcmp0(cmd, "say") == 0) {
 		G_Say_f(ent);
 		return;
 	}
-	if (strcasecmp(cmd, "say_team") == 0) {
+	if (g_strcmp0(cmd, "say_team") == 0) {
 		G_Say_f(ent);
 		return;
 	}
@@ -1103,45 +1102,45 @@ void G_ClientCommand(g_edict_t *ent) {
 	if (g_level.intermission_time)
 		return;
 
-	if (strcasecmp(cmd, "score") == 0)
+	if (g_strcmp0(cmd, "score") == 0)
 		G_Score_f(ent);
-	else if (strcasecmp(cmd, "spectate") == 0)
+	else if (g_strcmp0(cmd, "spectate") == 0)
 		G_Spectate_f(ent);
-	else if (strcasecmp(cmd, "team") == 0 || strcasecmp(cmd, "join") == 0)
+	else if (g_strcmp0(cmd, "team") == 0 || g_strcmp0(cmd, "join") == 0)
 		G_Team_f(ent);
-	else if (strcasecmp(cmd, "team_name") == 0)
+	else if (g_strcmp0(cmd, "team_name") == 0)
 		G_Teamname_f(ent);
-	else if (strcasecmp(cmd, "team_skin") == 0)
+	else if (g_strcmp0(cmd, "team_skin") == 0)
 		G_Teamskin_f(ent);
-	else if (strcasecmp(cmd, "ready") == 0)
+	else if (g_strcmp0(cmd, "ready") == 0)
 		G_Ready_f(ent);
-	else if (strcasecmp(cmd, "unready") == 0)
+	else if (g_strcmp0(cmd, "unready") == 0)
 		G_Unready_f(ent);
-	else if (strcasecmp(cmd, "use") == 0)
+	else if (g_strcmp0(cmd, "use") == 0)
 		G_Use_f(ent);
-	else if (strcasecmp(cmd, "drop") == 0)
+	else if (g_strcmp0(cmd, "drop") == 0)
 		G_Drop_f(ent);
-	else if (strcasecmp(cmd, "give") == 0)
+	else if (g_strcmp0(cmd, "give") == 0)
 		G_Give_f(ent);
-	else if (strcasecmp(cmd, "god") == 0)
+	else if (g_strcmp0(cmd, "god") == 0)
 		G_God_f(ent);
-	else if (strcasecmp(cmd, "no_clip") == 0)
+	else if (g_strcmp0(cmd, "no_clip") == 0)
 		G_NoClip_f(ent);
-	else if (strcasecmp(cmd, "wave") == 0)
+	else if (g_strcmp0(cmd, "wave") == 0)
 		G_Wave_f(ent);
-	else if (strcasecmp(cmd, "weapon_previous") == 0)
+	else if (g_strcmp0(cmd, "weapon_previous") == 0)
 		G_WeaponPrevious_f(ent);
-	else if (strcasecmp(cmd, "weapon_next") == 0)
+	else if (g_strcmp0(cmd, "weapon_next") == 0)
 		G_WeaponNext_f(ent);
-	else if (strcasecmp(cmd, "weapon_last") == 0)
+	else if (g_strcmp0(cmd, "weapon_last") == 0)
 		G_WeaponLast_f(ent);
-	else if (strcasecmp(cmd, "kill") == 0)
+	else if (g_strcmp0(cmd, "kill") == 0)
 		G_Kill_f(ent);
-	else if (strcasecmp(cmd, "player_list") == 0)
+	else if (g_strcmp0(cmd, "player_list") == 0)
 		G_PlayerList_f(ent);
-	else if (strcasecmp(cmd, "vote") == 0)
+	else if (g_strcmp0(cmd, "vote") == 0)
 		G_Vote_f(ent);
-	else if (strcasecmp(cmd, "yes") == 0 || strcasecmp(cmd, "no") == 0)
+	else if (g_strcmp0(cmd, "yes") == 0 || g_strcmp0(cmd, "no") == 0)
 		G_Vote_f(ent);
 	else
 		// anything that doesn't match a command will be a chat

@@ -221,86 +221,86 @@ void Cg_LoadEmits(void) {
 			emit = false;
 		}
 
-		if (!strcmp(c, "classname")) {
+		if (!g_strcmp0(c, "classname")) {
 
 			c = ParseToken(&ents);
 			g_strlcpy(class_name, c, sizeof(class_name));
 
-			if (!strcmp(c, "misc_emit") || !strcmp(c, "misc_model"))
+			if (!g_strcmp0(c, "misc_emit") || !g_strcmp0(c, "misc_model"))
 				emit = true;
 		}
 
 		e = &cg_emits[cg_num_emits];
 
-		if (!strcmp(c, "flags") || !strcmp(c, "spawnflags")) {
+		if (!g_strcmp0(c, "flags") || !g_strcmp0(c, "spawnflags")) {
 			e->flags = atoi(ParseToken(&ents));
 			continue;
 		}
 
-		if (!strcmp(c, "origin")) {
+		if (!g_strcmp0(c, "origin")) {
 			sscanf(ParseToken(&ents), "%f %f %f", &e->org[0], &e->org[1], &e->org[2]);
 			continue;
 		}
 
-		if (!strcmp(c, "angles")) { // resolve angles and directional vector
+		if (!g_strcmp0(c, "angles")) { // resolve angles and directional vector
 			sscanf(ParseToken(&ents), "%f %f %f", &e->angles[0], &e->angles[1], &e->angles[2]);
 			AngleVectors(e->angles, e->dir, NULL, NULL);
 			continue;
 		}
 
-		if (!strcmp(c, "color")) { // resolve color as floats
+		if (!g_strcmp0(c, "color")) { // resolve color as floats
 			sscanf(ParseToken(&ents), "%f %f %f", &e->color[0], &e->color[1], &e->color[2]);
 			continue;
 		}
 
-		if (!strcmp(c, "hz")) {
+		if (!g_strcmp0(c, "hz")) {
 			e->hz = atof(ParseToken(&ents));
 			continue;
 		}
 
-		if (!strcmp(c, "drift")) {
+		if (!g_strcmp0(c, "drift")) {
 			e->drift = atof(ParseToken(&ents));
 			continue;
 		}
 
-		if (!strcmp(c, "radius")) {
+		if (!g_strcmp0(c, "radius")) {
 			e->radius = atof(ParseToken(&ents));
 			continue;
 		}
 
-		if (!strcmp(c, "flicker")) {
+		if (!g_strcmp0(c, "flicker")) {
 			e->flicker = atof(ParseToken(&ents));
 			continue;
 		}
 
-		if (!strcmp(c, "scale")) {
+		if (!g_strcmp0(c, "scale")) {
 			sscanf(ParseToken(&ents), "%f", &e->scale);
 			continue;
 		}
 
-		if (!strcmp(c, "count")) {
+		if (!g_strcmp0(c, "count")) {
 			e->count = atoi(ParseToken(&ents));
 			continue;
 		}
 
-		if (!strcmp(c, "sound")) {
+		if (!g_strcmp0(c, "sound")) {
 			g_snprintf(e->sound, sizeof(e->sound), "%s", ParseToken(&ents));
 			e->sample = cgi.LoadSample(e->sound);
 			continue;
 		}
 
-		if (!strcmp(c, "attenuation")) {
+		if (!g_strcmp0(c, "attenuation")) {
 			e->atten = atoi(ParseToken(&ents));
 			continue;
 		}
 
-		if (!strcmp(c, "model")) {
+		if (!g_strcmp0(c, "model")) {
 			g_strlcpy(e->model, ParseToken(&ents), sizeof(e->model));
 			e->mod = cgi.LoadModel(e->model);
 			continue;
 		}
 
-		if (!strcmp(c, "velocity")) {
+		if (!g_strcmp0(c, "velocity")) {
 			sscanf(ParseToken(&ents), "%f %f %f", &e->vel[0], &e->vel[1], &e->vel[2]);
 			continue;
 		}

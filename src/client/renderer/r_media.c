@@ -72,7 +72,7 @@ void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
  * @brief GCompareFunc for R_RegisterMedia. Sorts media by name.
  */
 static int32_t R_RegisterMedia_Compare(gconstpointer name1, gconstpointer name2) {
-	return strcmp((const char *) name1, (const char *) name2);
+	return g_strcmp0((const char *) name1, (const char *) name2);
 }
 
 static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data);

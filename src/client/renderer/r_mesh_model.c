@@ -125,23 +125,23 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 		if (*c == '\0')
 			break;
 
-		if (!strcmp(c, "translate")) {
+		if (!g_strcmp0(c, "translate")) {
 			sscanf(ParseToken(&buffer), "%f %f %f", &config->translate[0], &config->translate[1],
 					&config->translate[2]);
 			continue;
 		}
 
-		if (!strcmp(c, "scale")) {
+		if (!g_strcmp0(c, "scale")) {
 			sscanf(ParseToken(&buffer), "%f", &config->scale);
 			continue;
 		}
 
-		if (!strcmp(c, "alpha_test")) {
+		if (!g_strcmp0(c, "alpha_test")) {
 			config->flags |= EF_ALPHATEST;
 			continue;
 		}
 
-		if (!strcmp(c, "blend")) {
+		if (!g_strcmp0(c, "blend")) {
 			config->flags |= EF_BLEND;
 			continue;
 		}

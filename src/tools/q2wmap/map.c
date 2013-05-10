@@ -428,17 +428,17 @@ static _Bool MakeBrushWindings(map_brush_t * ob) {
  */
 static void SetImpliedFlags(side_t *side, const char *tex) {
 
-	if (!strcmp(tex, "common/caulk"))
+	if (!g_strcmp0(tex, "common/caulk"))
 		side->surf |= SURF_NO_DRAW;
-	else if (!strcmp(tex, "common/trigger"))
+	else if (!g_strcmp0(tex, "common/trigger"))
 		side->surf |= SURF_NO_DRAW;
-	else if (!strcmp(tex, "common/sky"))
+	else if (!g_strcmp0(tex, "common/sky"))
 		side->surf |= SURF_SKY;
-	else if (!strcmp(tex, "common/hint"))
+	else if (!g_strcmp0(tex, "common/hint"))
 		side->surf |= SURF_HINT;
-	else if (!strcmp(tex, "common/clip"))
+	else if (!g_strcmp0(tex, "common/clip"))
 		side->contents |= CONTENTS_PLAYER_CLIP;
-	else if (!strcmp(tex, "common/ladder"))
+	else if (!g_strcmp0(tex, "common/ladder"))
 		side->contents |= CONTENTS_LADDER;
 
 	if (strstr(tex, "lava")) {
@@ -479,7 +479,7 @@ static void ParseBrush(entity_t *mapent) {
 	do {
 		if (!GetToken(true))
 			break;
-		if (!strcmp(token, "}"))
+		if (!g_strcmp0(token, "}"))
 			break;
 
 		if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
@@ -490,7 +490,7 @@ static void ParseBrush(entity_t *mapent) {
 		for (i = 0; i < 3; i++) {
 			if (i != 0)
 				GetToken(true);
-			if (strcmp(token, "("))
+			if (g_strcmp0(token, "("))
 				Com_Error(ERR_FATAL, "Parsing brush\n");
 
 			for (j = 0; j < 3; j++) {
@@ -499,7 +499,7 @@ static void ParseBrush(entity_t *mapent) {
 			}
 
 			GetToken(false);
-			if (strcmp(token, ")"))
+			if (g_strcmp0(token, ")"))
 				Com_Error(ERR_FATAL, "Parsing brush\n");
 		}
 
@@ -708,7 +708,7 @@ static _Bool ParseMapEntity(void) {
 	if (!GetToken(true))
 		return false;
 
-	if (strcmp(token, "{"))
+	if (g_strcmp0(token, "{"))
 		Com_Error(ERR_FATAL, "\"{\" not found\n");
 
 	if (num_entities == MAX_BSP_ENTITIES)
@@ -723,9 +723,9 @@ static _Bool ParseMapEntity(void) {
 	do {
 		if (!GetToken(true))
 			Com_Error(ERR_FATAL, "EOF without closing brace\n");
-		if (!strcmp(token, "}"))
+		if (!g_strcmp0(token, "}"))
 			break;
-		if (!strcmp(token, "{"))
+		if (!g_strcmp0(token, "{"))
 			ParseBrush(mapent);
 		else {
 			e = ParseEpair();
@@ -758,14 +758,14 @@ static _Bool ParseMapEntity(void) {
 
 	// group entities are just for editor convenience
 	// toss all brushes into the world entity
-	if (!strcmp("func_group", ValueForKey(mapent, "classname"))) {
+	if (!g_strcmp0("func_group", ValueForKey(mapent, "classname"))) {
 		MoveBrushesToWorld(mapent);
 		mapent->num_brushes = 0;
 		return true;
 	}
 
 	// areaportal entities move their brushes, but don't eliminate the entity
-	if (!strcmp("func_areaportal", ValueForKey(mapent, "classname"))) {
+	if (!g_strcmp0("func_areaportal", ValueForKey(mapent, "classname"))) {
 		char str[128];
 
 		if (mapent->num_brushes != 1)

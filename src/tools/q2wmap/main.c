@@ -153,72 +153,72 @@ static void Check_BSP_Options(int32_t argc) {
 	int32_t i;
 
 	for (i = argc; i < Com_Argc(); i++) {
-		if (!strcmp(Com_Argv(i), "-noweld")) {
+		if (!g_strcmp0(Com_Argv(i), "-noweld")) {
 			Com_Verbose("noweld = true\n");
 			noweld = true;
-		} else if (!strcmp(Com_Argv(i), "-nocsg")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-nocsg")) {
 			Com_Verbose("nocsg = true\n");
 			nocsg = true;
-		} else if (!strcmp(Com_Argv(i), "-noshare")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-noshare")) {
 			Com_Verbose("noshare = true\n");
 			noshare = true;
-		} else if (!strcmp(Com_Argv(i), "-notjunc")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-notjunc")) {
 			Com_Verbose("notjunc = true\n");
 			notjunc = true;
-		} else if (!strcmp(Com_Argv(i), "-nowater")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-nowater")) {
 			Com_Verbose("nowater = true\n");
 			nowater = true;
-		} else if (!strcmp(Com_Argv(i), "-noopt")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-noopt")) {
 			Com_Verbose("noopt = true\n");
 			noopt = true;
-		} else if (!strcmp(Com_Argv(i), "-noprune")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-noprune")) {
 			Com_Verbose("noprune = true\n");
 			noprune = true;
-		} else if (!strcmp(Com_Argv(i), "-nofill")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-nofill")) {
 			Com_Verbose("nofill = true\n");
 			nofill = true;
-		} else if (!strcmp(Com_Argv(i), "-nomerge")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-nomerge")) {
 			Com_Verbose("nomerge = true\n");
 			nomerge = true;
-		} else if (!strcmp(Com_Argv(i), "-nosubdivide")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-nosubdivide")) {
 			Com_Verbose("nosubdivide = true\n");
 			nosubdivide = true;
-		} else if (!strcmp(Com_Argv(i), "-nodetail")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-nodetail")) {
 			Com_Verbose("nodetail = true\n");
 			nodetail = true;
-		} else if (!strcmp(Com_Argv(i), "-fulldetail")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-fulldetail")) {
 			Com_Verbose("fulldetail = true\n");
 			fulldetail = true;
-		} else if (!strcmp(Com_Argv(i), "-onlyents")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-onlyents")) {
 			Com_Verbose("onlyents = true\n");
 			onlyents = true;
-		} else if (!strcmp(Com_Argv(i), "-micro")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-micro")) {
 			microvolume = atof(Com_Argv(i + 1));
 			Com_Verbose("microvolume = %f\n", microvolume);
 			i++;
-		} else if (!strcmp(Com_Argv(i), "-leaktest")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-leaktest")) {
 			Com_Verbose("leaktest = true\n");
 			leaktest = true;
-		} else if (!strcmp(Com_Argv(i), "-verboseentities")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-verboseentities")) {
 			Com_Verbose("verboseentities = true\n");
 			verboseentities = true;
-		} else if (!strcmp(Com_Argv(i), "-subdivide")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-subdivide")) {
 			subdivide_size = atoi(Com_Argv(i + 1));
 			Com_Verbose("subdivide_size = %d\n", subdivide_size);
 			i++;
-		} else if (!strcmp(Com_Argv(i), "-block")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-block")) {
 			block_xl = block_xh = atoi(Com_Argv(i + 1));
 			block_yl = block_yh = atoi(Com_Argv(i + 2));
 			Com_Verbose("block: %i,%i\n", block_xl, block_yl);
 			i += 2;
-		} else if (!strcmp(Com_Argv(i), "-blocks")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-blocks")) {
 			block_xl = atoi(Com_Argv(i + 1));
 			block_yl = atoi(Com_Argv(i + 2));
 			block_xh = atoi(Com_Argv(i + 3));
 			block_yh = atoi(Com_Argv(i + 4));
 			Com_Verbose("blocks: %i,%i to %i,%i\n", block_xl, block_yl, block_xh, block_yh);
 			i += 4;
-		} else if (!strcmp(Com_Argv(i), "-tmpout")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-tmpout")) {
 			strcpy(outbase, "/tmp");
 		} else
 			break;
@@ -232,10 +232,10 @@ static void Check_VIS_Options(int32_t argc) {
 	int32_t i;
 
 	for (i = argc; i < Com_Argc(); i++) {
-		if (!strcmp(Com_Argv(i), "-fast")) {
+		if (!g_strcmp0(Com_Argv(i), "-fast")) {
 			Com_Verbose("fastvis = true\n");
 			fastvis = true;
-		} else if (!strcmp(Com_Argv(i), "-nosort")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-nosort")) {
 			Com_Verbose("nosort = true\n");
 			nosort = true;
 		} else
@@ -250,26 +250,26 @@ static void Check_LIGHT_Options(int32_t argc) {
 	int32_t i;
 
 	for (i = argc; i < Com_Argc(); i++) {
-		if (!strcmp(Com_Argv(i), "-extra")) {
+		if (!g_strcmp0(Com_Argv(i), "-extra")) {
 			extra_samples = true;
 			Com_Verbose("extra samples = true\n");
-		} else if (!strcmp(Com_Argv(i), "-brightness")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-brightness")) {
 			brightness = atof(Com_Argv(i + 1));
 			Com_Verbose("brightness at %f\n", brightness);
 			i++;
-		} else if (!strcmp(Com_Argv(i), "-saturation")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-saturation")) {
 			saturation = atof(Com_Argv(i + 1));
 			Com_Verbose("saturation at %f\n", saturation);
 			i++;
-		} else if (!strcmp(Com_Argv(i), "-contrast")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-contrast")) {
 			contrast = atof(Com_Argv(i + 1));
 			Com_Verbose("contrast at %f\n", contrast);
 			i++;
-		} else if (!strcmp(Com_Argv(i), "-surface")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-surface")) {
 			surface_scale *= atof(Com_Argv(i + 1));
 			Com_Verbose("surface light scale at %f\n", surface_scale);
 			i++;
-		} else if (!strcmp(Com_Argv(i), "-entity")) {
+		} else if (!g_strcmp0(Com_Argv(i), "-entity")) {
 			entity_scale *= atof(Com_Argv(i + 1));
 			Com_Verbose("entity light scale at %f\n", entity_scale);
 			i++;
@@ -382,17 +382,17 @@ int32_t main(int32_t argc, char **argv) {
 
 	// general options
 	for (i = 1; i < Com_Argc(); i++) {
-		if (!strcmp(Com_Argv(i), "-v") || !strcmp(Com_Argv(i), "-verbose")) {
+		if (!g_strcmp0(Com_Argv(i), "-v") || !g_strcmp0(Com_Argv(i), "-verbose")) {
 			verbose = true;
 			continue;
 		}
 
-		if (!strcmp(Com_Argv(i), "-d") || !strcmp(Com_Argv(i), "-debug")) {
+		if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "-debug")) {
 			debug = true;
 			continue;
 		}
 
-		if (!strcmp(Com_Argv(i), "-t") || !strcmp(Com_Argv(i), "-threads")) {
+		if (!g_strcmp0(Com_Argv(i), "-t") || !g_strcmp0(Com_Argv(i), "-threads")) {
 			Cvar_Set("threads", Com_Argv(i + 1));
 			if (threads->modified) {
 				Thread_Shutdown();
@@ -401,7 +401,7 @@ int32_t main(int32_t argc, char **argv) {
 			continue;
 		}
 
-		if (!strcmp(Com_Argv(i), "-l") || !strcmp(Com_Argv(i), "-legacy")) {
+		if (!g_strcmp0(Com_Argv(i), "-l") || !g_strcmp0(Com_Argv(i), "-legacy")) {
 			legacy = true;
 			continue;
 		}
@@ -409,32 +409,32 @@ int32_t main(int32_t argc, char **argv) {
 
 	// read compiling options
 	for (i = 1; i < Com_Argc(); i++) {
-		if (!strcmp(Com_Argv(i), "-h") || !strcmp(Com_Argv(i), "-help")) {
+		if (!g_strcmp0(Com_Argv(i), "-h") || !g_strcmp0(Com_Argv(i), "-help")) {
 			PrintHelpMessage();
 			Com_Shutdown(NULL);
 		}
 
-		if (!strcmp(Com_Argv(i), "-bsp")) {
+		if (!g_strcmp0(Com_Argv(i), "-bsp")) {
 			do_bsp = true;
 			Check_BSP_Options(i + 1);
 		}
 
-		if (!strcmp(Com_Argv(i), "-vis")) {
+		if (!g_strcmp0(Com_Argv(i), "-vis")) {
 			do_vis = true;
 			Check_VIS_Options(i + 1);
 		}
 
-		if (!strcmp(Com_Argv(i), "-light")) {
+		if (!g_strcmp0(Com_Argv(i), "-light")) {
 			do_light = true;
 			Check_LIGHT_Options(i + 1);
 		}
 
-		if (!strcmp(Com_Argv(i), "-mat")) {
+		if (!g_strcmp0(Com_Argv(i), "-mat")) {
 			do_mat = true;
 			Check_MAT_Options(i + 1);
 		}
 
-		if (!strcmp(Com_Argv(i), "-zip")) {
+		if (!g_strcmp0(Com_Argv(i), "-zip")) {
 			do_zip = true;
 			Check_ZIP_Options(i + 1);
 		}

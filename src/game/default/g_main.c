@@ -328,7 +328,7 @@ static void G_CheckVote(void) {
 
 		if (!strncmp(g_level.vote_cmd, "map ", 4)) { // special case for map
 			G_BeginIntermission(g_level.vote_cmd + 4);
-		} else if (!strcmp(g_level.vote_cmd, "restart")) { // and restart
+		} else if (!g_strcmp0(g_level.vote_cmd, "restart")) { // and restart
 			G_RestartGame(false);
 		} else if (!strncmp(g_level.vote_cmd, "mute ", 5)) { // and mute
 			G_MuteClient(g_level.vote_cmd + 5, true);
@@ -936,87 +936,87 @@ static void G_ParseMapList(const char *file_name) {
 
 		elt = &g_map_list.maps[i];
 
-		if (!strcmp(c, "name")) {
+		if (!g_strcmp0(c, "name")) {
 			g_strlcpy(elt->name, ParseToken(&buffer), sizeof(elt->name));
 			continue;
 		}
 
-		if (!strcmp(c, "title")) {
+		if (!g_strcmp0(c, "title")) {
 			g_strlcpy(elt->title, ParseToken(&buffer), sizeof(elt->title));
 			continue;
 		}
 
-		if (!strcmp(c, "sky")) {
+		if (!g_strcmp0(c, "sky")) {
 			g_strlcpy(elt->sky, ParseToken(&buffer), sizeof(elt->sky));
 			continue;
 		}
 
-		if (!strcmp(c, "weather")) {
+		if (!g_strcmp0(c, "weather")) {
 			g_strlcpy(elt->weather, ParseToken(&buffer), sizeof(elt->weather));
 			continue;
 		}
 
-		if (!strcmp(c, "gravity")) {
+		if (!g_strcmp0(c, "gravity")) {
 			elt->gravity = atoi(ParseToken(&buffer));
 			continue;
 		}
 
-		if (!strcmp(c, "gameplay")) {
+		if (!g_strcmp0(c, "gameplay")) {
 			elt->gameplay = G_GameplayByName(ParseToken(&buffer));
 			continue;
 		}
 
-		if (!strcmp(c, "teams")) {
+		if (!g_strcmp0(c, "teams")) {
 			elt->teams = strtoul(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
-		if (!strcmp(c, "ctf")) {
+		if (!g_strcmp0(c, "ctf")) {
 			elt->ctf = strtoul(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
-		if (!strcmp(c, "match")) {
+		if (!g_strcmp0(c, "match")) {
 			elt->match = strtoul(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
-		if (!strcmp(c, "rounds")) {
+		if (!g_strcmp0(c, "rounds")) {
 			elt->rounds = strtoul(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
-		if (!strcmp(c, "frag_limit")) {
+		if (!g_strcmp0(c, "frag_limit")) {
 			elt->frag_limit = strtoul(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
-		if (!strcmp(c, "round_limit")) {
+		if (!g_strcmp0(c, "round_limit")) {
 			elt->round_limit = strtoul(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
-		if (!strcmp(c, "capture_limit")) {
+		if (!g_strcmp0(c, "capture_limit")) {
 			elt->capture_limit = strtoul(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
-		if (!strcmp(c, "time_limit")) {
+		if (!g_strcmp0(c, "time_limit")) {
 			elt->time_limit = atof(ParseToken(&buffer));
 			continue;
 		}
 
-		if (!strcmp(c, "give")) {
+		if (!g_strcmp0(c, "give")) {
 			g_strlcpy(elt->give, ParseToken(&buffer), sizeof(elt->give));
 			continue;
 		}
 
-		if (!strcmp(c, "music")) {
+		if (!g_strcmp0(c, "music")) {
 			g_strlcpy(elt->music, ParseToken(&buffer), sizeof(elt->music));
 			continue;
 		}
 
-		if (!strcmp(c, "weight")) {
+		if (!g_strcmp0(c, "weight")) {
 			elt->weight = atof(ParseToken(&buffer));
 			continue;
 		}

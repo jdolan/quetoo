@@ -1025,7 +1025,7 @@ char *GetUserInfo(const char *s, const char *key) {
 		}
 		*o = '\0';
 
-		if (!strcmp(key, pkey))
+		if (!g_strcmp0(key, pkey))
 			return value[value_index];
 
 		if (!*s)
@@ -1070,7 +1070,7 @@ void DeleteUserInfo(char *s, const char *key) {
 		}
 		*o = '\0';
 
-		if (!strcmp(key, pkey)) {
+		if (!g_strcmp0(key, pkey)) {
 			strcpy(start, s); // remove this part
 			return;
 		}

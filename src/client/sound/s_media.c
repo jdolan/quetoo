@@ -50,7 +50,7 @@ void S_ListMedia_f(void) {
  * @brief GCompareFunc for S_RegisterMedia. Sorts media by name.
  */
 static int32_t S_RegisterMedia_Compare(gconstpointer name1, gconstpointer name2) {
-	return strcmp((const char *) name1, (const char *) name2);
+	return g_strcmp0((const char *) name1, (const char *) name2);
 }
 
 static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data);

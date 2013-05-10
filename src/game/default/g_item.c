@@ -46,7 +46,7 @@ const g_item_t *G_FindItemByClassName(const char *class_name) {
 		if (!it->class_name)
 			continue;
 
-		if (!strcmp(it->class_name, class_name))
+		if (!g_strcmp0(it->class_name, class_name))
 			return it;
 	}
 

@@ -341,7 +341,7 @@ static _Bool Sv_RconAuthenticate(void) {
 		return false;
 
 	// and of course the passwords must match
-	if (strcmp(Cmd_Argv(1), sv_rcon_password->string))
+	if (g_strcmp0(Cmd_Argv(1), sv_rcon_password->string))
 		return false;
 
 	return true;
@@ -399,19 +399,19 @@ static void Sv_ConnectionlessPacket(void) {
 	const char *c = Cmd_Argv(0);
 	Com_Debug("Packet from %s: %s\n", Net_NetaddrToString(net_from), c);
 
-	if (!strcmp(c, "ping"))
+	if (!g_strcmp0(c, "ping"))
 		Svc_Ping();
-	else if (!strcmp(c, "ack"))
+	else if (!g_strcmp0(c, "ack"))
 		Svc_Ack();
-	else if (!strcmp(c, "status"))
+	else if (!g_strcmp0(c, "status"))
 		Svc_Status();
-	else if (!strcmp(c, "info"))
+	else if (!g_strcmp0(c, "info"))
 		Svc_Info();
-	else if (!strcmp(c, "get_challenge"))
+	else if (!g_strcmp0(c, "get_challenge"))
 		Svc_GetChallenge();
-	else if (!strcmp(c, "connect"))
+	else if (!g_strcmp0(c, "connect"))
 		Svc_Connect();
-	else if (!strcmp(c, "rcon"))
+	else if (!g_strcmp0(c, "rcon"))
 		Svc_RemoteCommand();
 	else
 		Com_Print("Bad connectionless packet from %s:\n%s\n", Net_NetaddrToString(net_from), s);

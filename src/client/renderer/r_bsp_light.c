@@ -248,7 +248,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 			}
 		}
 
-		if (!strcmp(c, "classname")) {
+		if (!g_strcmp0(c, "classname")) {
 
 			c = ParseToken(&ents);
 			g_strlcpy(class_name, c, sizeof(class_name));
@@ -259,17 +259,17 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 			continue;
 		}
 
-		if (!strcmp(c, "origin")) {
+		if (!g_strcmp0(c, "origin")) {
 			sscanf(ParseToken(&ents), "%f %f %f", &org[0], &org[1], &org[2]);
 			continue;
 		}
 
-		if (!strcmp(c, "light")) {
+		if (!g_strcmp0(c, "light")) {
 			radius = atof(ParseToken(&ents));
 			continue;
 		}
 
-		if (!strcmp(c, "_color")) {
+		if (!g_strcmp0(c, "_color")) {
 			sscanf(ParseToken(&ents), "%f %f %f", &color[0], &color[1], &color[2]);
 			continue;
 		}

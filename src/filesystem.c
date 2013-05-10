@@ -308,7 +308,7 @@ _Bool Fs_Rename(const char *source, const char *dest) {
  */
 _Bool Fs_Unlink(const char *filename) {
 
-	if (!strcmp(Fs_WriteDir(), Fs_RealDir(filename))) {
+	if (!g_strcmp0(Fs_WriteDir(), Fs_RealDir(filename))) {
 		return unlink(filename) == 0;
 	}
 
@@ -407,7 +407,7 @@ void Fs_AddToSearchPath(const char *dir) {
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
 	const char *dir = (const char *) data;
 
-	if (!strcmp(Fs_RealDir(path), dir)) {
+	if (!g_strcmp0(Fs_RealDir(path), dir)) {
 		Fs_AddToSearchPath(va("%s%s", dir, path));
 	}
 }
@@ -450,7 +450,7 @@ void Fs_SetGame(const char *dir) {
 	while (*path != NULL) {
 		char **p = fs_state.base_search_paths;
 		while (*p != NULL) {
-			if (!strcmp(*path, *p)) {
+			if (!g_strcmp0(*path, *p)) {
 				break;
 			}
 			p++;

@@ -99,7 +99,7 @@ static _Bool EndOfScript(_Bool crossline) {
 	if (!crossline)
 		Com_Error(ERR_FATAL, "Line %i is incomplete\n", scriptline);
 
-	if (!strcmp(script->file_name, "memory buffer")) {
+	if (!g_strcmp0(script->file_name, "memory buffer")) {
 		endofscript = true;
 		return false;
 	}
@@ -187,7 +187,7 @@ static _Bool EndOfScript(_Bool crossline) {
 
 	*token_p = 0;
 
-	if (!strcmp(token, "$include")) {
+	if (!g_strcmp0(token, "$include")) {
 		GetToken(false);
 		AddScriptToStack(token);
 		return GetToken(crossline);

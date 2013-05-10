@@ -90,7 +90,7 @@ static void G_SpawnEntity(g_edict_t *ent) {
 		if (!item->class_name)
 			continue;
 
-		if (!strcmp(item->class_name, ent->class_name)) { // found it
+		if (!g_strcmp0(item->class_name, ent->class_name)) { // found it
 			G_SpawnItem(ent, item);
 			return;
 		}
@@ -98,7 +98,7 @@ static void G_SpawnEntity(g_edict_t *ent) {
 
 	// check normal spawn functions
 	for (s = g_spawns; s->name; s++) {
-		if (!strcmp(s->name, ent->class_name)) { // found it
+		if (!g_strcmp0(s->name, ent->class_name)) { // found it
 			s->spawn(ent);
 			return;
 		}
@@ -351,7 +351,7 @@ static void G_InitEntityTeams(void) {
 			if (e2->locals.flags & FL_TEAM_SLAVE)
 				continue;
 
-			if (!strcmp(e->locals.team, e2->locals.team)) {
+			if (!g_strcmp0(e->locals.team, e2->locals.team)) {
 				c2++;
 				chain->locals.team_chain = e2;
 				e2->locals.team_master = e;
@@ -435,14 +435,14 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			}
 
 			// emits and models are client sided
-			if (!strcmp(ent->class_name, "misc_emit") || !strcmp(ent->class_name, "misc_model")) {
+			if (!g_strcmp0(ent->class_name, "misc_emit") || !g_strcmp0(ent->class_name, "misc_model")) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
 			// lights aren't even used
-			if (!strcmp(ent->class_name, "light") || !strcmp(ent->class_name, "light_spot")) {
+			if (!g_strcmp0(ent->class_name, "light") || !g_strcmp0(ent->class_name, "light_spot")) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
@@ -542,7 +542,7 @@ static void G_worldspawn(g_edict_t *ent) {
 
 	map = NULL; // resolve the maps.lst entry for this level
 	for (i = 0; i < g_map_list.count; i++) {
-		if (!strcmp(g_level.name, g_map_list.maps[i].name)) {
+		if (!g_strcmp0(g_level.name, g_map_list.maps[i].name)) {
 			map = &g_map_list.maps[i];
 			break;
 		}
@@ -585,7 +585,7 @@ static void G_worldspawn(g_edict_t *ent) {
 			g_level.gravity = 800;
 	}
 
-	if (strcmp(g_gameplay->string, "default")) { // perfer g_gameplay
+	if (g_strcmp0(g_gameplay->string, "default")) { // perfer g_gameplay
 		g_level.gameplay = G_GameplayByName(g_gameplay->string);
 	} else if (map && map->gameplay > -1) { // then maps.lst gameplay
 		g_level.gameplay = map->gameplay;

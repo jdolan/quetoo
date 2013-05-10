@@ -250,8 +250,8 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 		t = NULL;
 		while ((t = G_Find(t, LOFS(target_name), ent->locals.target))) {
 			// doors fire area portals in a specific way
-			if (!strcmp(t->class_name, "func_areaportal") && (!strcmp(
-					ent->class_name, "func_door") || !strcmp(ent->class_name,
+			if (!g_strcmp0(t->class_name, "func_areaportal") && (!g_strcmp0(
+					ent->class_name, "func_door") || !g_strcmp0(ent->class_name,
 					"func_door_rotating"))) {
 				continue;
 			}
@@ -505,10 +505,10 @@ g_team_t *G_TeamForFlag(g_edict_t *ent) {
 	if (!ent->locals.item || ent->locals.item->type != ITEM_FLAG)
 		return NULL;
 
-	if (!strcmp(ent->class_name, "item_flag_team1"))
+	if (!g_strcmp0(ent->class_name, "item_flag_team1"))
 		return &g_team_good;
 
-	if (!strcmp(ent->class_name, "item_flag_team2"))
+	if (!g_strcmp0(ent->class_name, "item_flag_team2"))
 		return &g_team_evil;
 
 	return NULL;
@@ -546,7 +546,7 @@ g_edict_t *G_FlagForTeam(g_team_t *t) {
 		if (ent->locals.spawn_flags & SF_ITEM_DROPPED)
 			continue;
 
-		if (!strcmp(ent->class_name, class_name))
+		if (!g_strcmp0(ent->class_name, class_name))
 			return ent;
 	}
 
@@ -623,7 +623,7 @@ g_client_t *G_ClientByName(char *name) {
 			continue;
 
 		cl = g_game.edicts[i + 1].client;
-		if ((j = strcmp(name, cl->locals.persistent.net_name)) < min) {
+		if ((j = g_strcmp0(name, cl->locals.persistent.net_name)) < min) {
 			ret = cl;
 			min = j;
 		}

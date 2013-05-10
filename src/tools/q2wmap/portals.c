@@ -569,7 +569,7 @@ static _Bool PlaceOccupant(node_t * head_node, vec3_t origin, entity_t * occupan
 
 		// nudge playerstart around if needed so clipping hulls always
 		// have a valid point
-		if (!strcmp(cl, "info_player_start")) {
+		if (!g_strcmp0(cl, "info_player_start")) {
 			int32_t x, y;
 
 			for (x = -16; x <= 16; x += 16) {

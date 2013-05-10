@@ -138,7 +138,7 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 		uint16_t i;
 
 		for (i = 0; i < r_draw.num_fonts; i++) {
-			if (!strcmp(name, r_draw.fonts[i].name)) {
+			if (!g_strcmp0(name, r_draw.fonts[i].name)) {
 				r_draw.font = &r_draw.fonts[i];
 				break;
 			}

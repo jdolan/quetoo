@@ -164,7 +164,7 @@ static void AddMaterials(const char *path) {
 			break;
 
 		// texture references should all be added
-		if (!strcmp(c, "texture")) {
+		if (!g_strcmp0(c, "texture")) {
 			c = ParseToken(&buf);
 			if (*c == '#') {
 				g_strlcpy(texture, ++c, sizeof(texture));
@@ -176,7 +176,7 @@ static void AddMaterials(const char *path) {
 		}
 
 		// as should normalmaps
-		if (!strcmp(c, "normalmap")) {
+		if (!g_strcmp0(c, "normalmap")) {
 			c = ParseToken(&buf);
 			if (*c == '#') {
 				g_strlcpy(texture, ++c, sizeof(texture));
@@ -187,7 +187,7 @@ static void AddMaterials(const char *path) {
 			continue;
 		}
 
-		if (!strcmp(c, "glossmap")) {
+		if (!g_strcmp0(c, "glossmap")) {
 			c = ParseToken(&buf);
 			if (*c == '#') {
 				g_strlcpy(texture, ++c, sizeof(texture));
@@ -199,14 +199,14 @@ static void AddMaterials(const char *path) {
 		}
 
 		// and custom envmaps
-		if (!strcmp(c, "envmap")) {
+		if (!g_strcmp0(c, "envmap")) {
 
 			c = ParseToken(&buf);
 			i = atoi(c);
 
 			if (*c == '#') {
 				g_strlcpy(texture, ++c, sizeof(texture));
-			} else if (i == 0 && strcmp(c, "0")) {
+			} else if (i == 0 && g_strcmp0(c, "0")) {
 				g_snprintf(texture, sizeof(texture), "envmaps/%s", c);
 			}
 			AddImage(texture, true);
@@ -214,21 +214,21 @@ static void AddMaterials(const char *path) {
 		}
 
 		// and custom flares
-		if (!strcmp(c, "flare")) {
+		if (!g_strcmp0(c, "flare")) {
 
 			c = ParseToken(&buf);
 			i = atoi(c);
 
 			if (*c == '#') {
 				g_strlcpy(texture, ++c, sizeof(texture));
-			} else if (i == 0 && strcmp(c, "0")) {
+			} else if (i == 0 && g_strcmp0(c, "0")) {
 				g_snprintf(texture, sizeof(texture), "flares/%s", c);
 			}
 			AddImage(texture, true);
 			continue;
 		}
 
-		if (!strcmp(c, "anim")) {
+		if (!g_strcmp0(c, "anim")) {
 			num_frames = atoi(ParseToken(&buf));
 			ParseToken(&buf); // read fps
 			continue;

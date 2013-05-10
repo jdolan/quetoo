@@ -359,7 +359,7 @@ static void Sv_UserStringCommand(const char *s) {
 
 	for (c = sv_user_string_cmds; c->name; c++) {
 
-		if (!strcmp(Cmd_Argv(0), c->name)) {
+		if (!g_strcmp0(Cmd_Argv(0), c->name)) {
 			c->func();
 			break;
 		}

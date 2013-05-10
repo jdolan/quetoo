@@ -182,7 +182,7 @@ static _Bool Net_StringToSockaddr(const char *s, struct sockaddr *saddr) {
 _Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 	struct sockaddr_in saddr;
 
-	if (!strcmp(s, "localhost")) {
+	if (!g_strcmp0(s, "localhost")) {
 		memset(a, 0, sizeof(*a));
 		a->type = NA_LOCAL;
 		return true;

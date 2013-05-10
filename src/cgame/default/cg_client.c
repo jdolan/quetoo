@@ -190,7 +190,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	// ensure we were able to load everything
 	if (!Cg_ValidateClient(ci)) {
 
-		if (!strcmp(s, DEFAULT_CLIENT_INFO)) {
+		if (!g_strcmp0(s, DEFAULT_CLIENT_INFO)) {
 			cgi.Error("Failed to load default client info\n");
 		}
 

@@ -937,7 +937,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 			sizeof(ent->client->locals.persistent.user_info));
 
 	s = GetUserInfo(user_info, "active");
-	if (strcmp(s, "0") == 0)
+	if (g_strcmp0(s, "0") == 0)
 		ent->s.effects = ent->s.effects | EF_INACTIVE;
 	else
 		ent->s.effects &= ~(EF_INACTIVE);
@@ -953,7 +953,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 
 	// check password
 	const char *value = GetUserInfo(user_info, "password");
-	if (*password->string && strcmp(password->string, "none") && strcmp(password->string, value)) {
+	if (*password->string && g_strcmp0(password->string, "none") && g_strcmp0(password->string, value)) {
 		SetUserInfo(user_info, "rejmsg", "Password required or incorrect.");
 		return false;
 	}

@@ -169,7 +169,7 @@ _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf)
 
 	g_snprintf(path, sizeof(path), "%s.%s", name, type);
 
-	if (!strcmp(type, "wal")) { // special case for .wal files
+	if (!g_strcmp0(type, "wal")) { // special case for .wal files
 		return Img_LoadWal(path, surf);
 	}
 

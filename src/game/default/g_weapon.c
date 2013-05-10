@@ -39,7 +39,7 @@
 
 	// setup respawn if it's not a dropped item
 	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
-		if (!strcmp(ent->locals.item->name, "BFG10K"))
+		if (!g_strcmp0(ent->locals.item->name, "BFG10K"))
 			G_SetItemRespawn(ent, g_weapon_respawn_time->value * 3 * 1000);
 		else
 			G_SetItemRespawn(ent, g_weapon_respawn_time->value * 1000);

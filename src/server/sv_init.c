@@ -33,7 +33,7 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, _Bo
 		return 0;
 
 	for (i = 0; i < max && sv.config_strings[start + i][0]; i++)
-		if (!strcmp(sv.config_strings[start + i], name))
+		if (!g_strcmp0(sv.config_strings[start + i], name))
 			return i;
 
 	if (!create)

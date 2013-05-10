@@ -86,7 +86,7 @@ static void Cl_CheckForResend(void) {
 	net_addr_t addr;
 
 	// if the local server is running and we aren't then connect
-	if (Com_WasInit(Q2W_SERVER) && strcmp(cls.server_name, "localhost")) {
+	if (Com_WasInit(Q2W_SERVER) && g_strcmp0(cls.server_name, "localhost")) {
 
 		if (cls.state > CL_DISCONNECTED) {
 			Cl_Disconnect();
@@ -357,7 +357,7 @@ static void Cl_ConnectionlessPacket(void) {
 	Com_Debug("%s: %s\n", Net_NetaddrToString(net_from), c);
 
 	// server connection
-	if (!strcmp(c, "client_connect")) {
+	if (!g_strcmp0(c, "client_connect")) {
 
 		if (cls.state == CL_CONNECTED) {
 			Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(net_from));
@@ -378,32 +378,32 @@ static void Cl_ConnectionlessPacket(void) {
 	}
 
 	// server responding to a status broadcast
-	if (!strcmp(c, "info")) {
+	if (!g_strcmp0(c, "info")) {
 		Cl_ParseStatusMessage();
 		return;
 	}
 
 	// print command from somewhere
-	if (!strcmp(c, "print")) {
+	if (!g_strcmp0(c, "print")) {
 		s = Msg_ReadString(&net_message);
 		Com_Print("%s", s);
 		return;
 	}
 
 	// ping from somewhere
-	if (!strcmp(c, "ping")) {
+	if (!g_strcmp0(c, "ping")) {
 		Netchan_OutOfBandPrint(NS_CLIENT, net_from, "ack");
 		return;
 	}
 
 	// servers list from master
-	if (!strcmp(c, "servers")) {
+	if (!g_strcmp0(c, "servers")) {
 		Cl_ParseServersList();
 		return;
 	}
 
 	// challenge from the server we are connecting to
-	if (!strcmp(c, "challenge")) {
+	if (!g_strcmp0(c, "challenge")) {
 		if (cls.state != CL_CONNECTING) {
 			Com_Print("Ignoring duplicate challenge from %s\n", Net_NetaddrToString(net_from));
 			return;

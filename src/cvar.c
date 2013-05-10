@@ -232,11 +232,11 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 		// while latched variables can only be changed on map load
 		if (var->flags & CVAR_LATCH) {
 			if (var->latched_string) {
-				if (!strcmp(value, var->latched_string))
+				if (!g_strcmp0(value, var->latched_string))
 					return var;
 				Z_Free(var->latched_string);
 			} else {
-				if (!strcmp(value, var->string))
+				if (!g_strcmp0(value, var->string))
 					return var;
 			}
 
@@ -259,7 +259,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 		}
 	}
 
-	if (!strcmp(value, var->string))
+	if (!g_strcmp0(value, var->string))
 		return var; // not changed
 
 	if (var->flags & CVAR_R_MASK)
@@ -412,7 +412,7 @@ void Cvar_UpdateLatchedVars_enumerate(cvar_t *var, void *data __attribute__((unu
 		var->value = atof(var->string);
 		var->integer = atoi(var->string);
 
-		if (!strcmp(var->name, "game")) {
+		if (!g_strcmp0(var->name, "game")) {
 			Fs_SetGame(var->string);
 
 			if (Fs_Exists("autoexec.cfg")) {
@@ -501,11 +501,11 @@ static void Cvar_Set_f(void) {
 		return;
 	}
 
-	if (!strcmp("seta", Cmd_Argv(0))) {
+	if (!g_strcmp0("seta", Cmd_Argv(0))) {
 		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), CVAR_ARCHIVE);
-	} else if (!strcmp("sets", Cmd_Argv(0))) {
+	} else if (!g_strcmp0("sets", Cmd_Argv(0))) {
 		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), CVAR_SERVER_INFO);
-	} else if (!strcmp("setu", Cmd_Argv(0))) {
+	} else if (!g_strcmp0("setu", Cmd_Argv(0))) {
 		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), CVAR_USER_INFO);
 	} else {
 		Cvar_Set(Cmd_Argv(1), Cmd_Argv(2));

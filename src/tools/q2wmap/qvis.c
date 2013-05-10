@@ -245,7 +245,7 @@ static void LoadPortals(const char *filename) {
 		Com_Error(ERR_FATAL, "Failed to read header: %s\n", filename);
 	s += len;
 
-	if (strcmp(magic, PORTALFILE))
+	if (g_strcmp0(magic, PORTALFILE))
 		Com_Error(ERR_FATAL, "Not a portal file: %s\n", filename);
 
 	Com_Verbose("Loading %4u portals, %4u clusters from %s...\n", map_vis.num_portals,

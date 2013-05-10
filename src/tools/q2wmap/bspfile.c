@@ -547,7 +547,7 @@ static _Bool ParseEntity(void) {
 	if (!GetToken(true))
 		return false;
 
-	if (strcmp(token, "{"))
+	if (g_strcmp0(token, "{"))
 		Com_Error(ERR_FATAL, "\"{\" not found\n");
 
 	if (num_entities == MAX_BSP_ENTITIES)
@@ -559,7 +559,7 @@ static _Bool ParseEntity(void) {
 	do {
 		if (!GetToken(true))
 			Com_Error(ERR_FATAL, "EOF without closing brace\n");
-		if (!strcmp(token, "}"))
+		if (!g_strcmp0(token, "}"))
 			break;
 		e = ParseEpair();
 		e->next = mapent->epairs;
@@ -635,7 +635,7 @@ void SetKeyValue(entity_t *ent, const char *key, const char *value) {
 	epair_t *ep;
 
 	for (ep = ent->epairs; ep; ep = ep->next) {
-		if (!strcmp(ep->key, key)) {
+		if (!g_strcmp0(ep->key, key)) {
 			Z_Free(ep->value);
 			ep->value = Z_CopyString(value);
 			return;
@@ -653,7 +653,7 @@ const char *ValueForKey(const entity_t *ent, const char *key) {
 	const epair_t *ep;
 
 	for (ep = ent->epairs; ep; ep = ep->next)
-		if (!strcmp(ep->key, key))
+		if (!g_strcmp0(ep->key, key))
 			return ep->value;
 	return "";
 }

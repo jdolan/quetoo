@@ -268,7 +268,7 @@ static void Cl_ParseServerData(void) {
 
 	// game directory
 	str = Msg_ReadString(&net_message);
-	if (strcmp(Cvar_GetString("game"), str)) {
+	if (g_strcmp0(Cvar_GetString("game"), str)) {
 
 		Fs_SetGame(str);
 

@@ -366,7 +366,7 @@ void R_SetSky(const char *name) {
 		r_sky.images[i] = R_LoadImage(path, IT_SKY);
 
 		if (r_sky.images[i]->type == IT_NULL) { // try unit1_
-			if (strcmp(name, "unit1_")) {
+			if (g_strcmp0(name, "unit1_")) {
 				R_SetSky("unit1_");
 				return;
 			}

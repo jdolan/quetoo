@@ -116,7 +116,7 @@ static _Bool Sv_SetPlayer(void) {
 		if (!cl->state)
 			continue;
 
-		if (!strcmp(cl->name, s)) {
+		if (!g_strcmp0(cl->name, s)) {
 			sv_client = cl;
 			sv_player = sv_client->edict;
 			return true;

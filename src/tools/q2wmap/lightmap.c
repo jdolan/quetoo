@@ -278,7 +278,7 @@ static entity_t *FindTargetEntity(const char *target) {
 
 	for (i = 0; i < num_entities; i++) {
 		const char *n = ValueForKey(&entities[i], "targetname");
-		if (!strcmp(n, target))
+		if (!g_strcmp0(n, target))
 			return &entities[i];
 	}
 
@@ -370,7 +370,7 @@ void BuildLights(void) {
 		l->type = emit_point;
 
 		target = ValueForKey(e, "target");
-		if (!strcmp(name, "light_spot") || target[0]) {
+		if (!g_strcmp0(name, "light_spot") || target[0]) {
 
 			l->type = emit_spotlight;
 
