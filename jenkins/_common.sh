@@ -48,3 +48,11 @@ rm -Rf ${WORKSPACE}/jenkins-quake2world*
 cd ${WORKSPACE}
 tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
 }
+
+function archive_workspace_mingw() {
+MINGW_ENV="fedora-18-x86_64"
+rm -Rf ${WORKSPACE}/jenkins-quake2world*
+/usr/bin/mock -r ${MINGW_ENV} --copyout "/tmp/quake2world-${ENV}" "${WORKSPACE}/${BUILD_TAG}"
+cd ${WORKSPACE}
+tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
+}

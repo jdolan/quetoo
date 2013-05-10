@@ -16,6 +16,6 @@ make install
 
 "
 
-archive_workspace
+archive_workspace_mingw
 
 destroy_mingw
