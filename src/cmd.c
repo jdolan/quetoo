@@ -46,7 +46,7 @@ typedef struct cmd_state_s {
 
 static cmd_state_t cmd_state;
 
-#define MAX_ALIAS_LOOP_COUNT 4
+#define MAX_ALIAS_LOOP_COUNT 8
 
 /*
  * @brief Adds command text at the end of the buffer
@@ -336,7 +336,10 @@ static void Cmd_AddAlias(const char *name, const char *commands) {
 	cmd->name = Z_Link(Z_CopyString(name), cmd);
 	cmd->commands = Z_Link(Z_CopyString(commands), cmd);
 
-	g_hash_table_insert(cmd_state.commands, (gpointer *) name, cmd);
+	gpointer *key = (gpointer *) cmd->name;
+
+	g_hash_table_insert(cmd_state.commands, key, cmd);
+	cmd_state.keys = g_list_insert_sorted(cmd_state.keys, key, (GCompareFunc) strcmp);
 }
 
 /*

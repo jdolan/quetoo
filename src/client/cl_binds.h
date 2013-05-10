@@ -50,7 +50,6 @@ static const char *DEFAULT_BINDS =
 	"bind home center_view\n"
 	"bind \"left shift\" +speed\n"
 
-	"bind tab score\n"
 	"bind x score\n"
 	"bind t message_mode\n"
 	"bind y message_mode_2\n"
@@ -63,6 +62,12 @@ static const char *DEFAULT_BINDS =
 	// demo playback rate
 	"bind , slow_motion\n"
 	"bind . fast_forward\n"
+
+	// score alias
+	"alias +SCORE score\n"
+	"alias -SCORE score\n"
+
+	"bind tab +SCORE\n"
 
 	// zoom alias for nubs
 	"alias +ZOOM \""
