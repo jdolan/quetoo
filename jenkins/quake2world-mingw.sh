@@ -2,6 +2,14 @@
 set -e
 source ./_common.sh
 
+TARGET="i686"
+if [ ${ENV} == "mingw64" ]
+then
+	TARGET="x86_64"
+fi
+
+MINGW_ENV="fedora-18-x86_64"
+
 setup_mingw
 
 /usr/bin/mock -r ${MINGW_ENV} --shell "
@@ -16,6 +24,6 @@ make install
 
 "
 
-archive_workspace
+archive_workspace_mingw
 
 destroy_mingw
