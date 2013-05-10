@@ -112,7 +112,7 @@ typedef struct {
 
 	uint32_t frame_rate; // server frames per second
 	uint32_t frame_millis;
-	float frame_seconds; // seconds per frame
+	vec_t frame_seconds; // seconds per frame
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Debug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
@@ -165,7 +165,7 @@ typedef struct {
 	void (*WriteString)(const char *s);
 	void (*WritePosition)(const vec3_t pos); // some fractional bits
 	void (*WriteDir)(const vec3_t pos); // single byte encoded, very coarse
-	void (*WriteAngle)(const float f);
+	void (*WriteAngle)(const vec_t v);
 
 	// managed memory allocation
 	void *(*Malloc)(size_t size, z_tag_t tag);

@@ -28,7 +28,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, byte color) {
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 	c_trace_t tr;
-	float dist;
+	vec_t dist;
 
 	// project the flash just in front of the entity
 	AngleVectors(ent->angles, forward, right, NULL );
@@ -69,7 +69,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 	c_trace_t tr;
-	float dist;
+	vec_t dist;
 	int32_t j;
 
 	// project the puff just in front of the entity

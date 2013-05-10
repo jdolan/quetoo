@@ -32,7 +32,7 @@
 
 typedef struct {
 	vec3_t normal;
-	float dist;
+	vec_t dist;
 } plane_t;
 
 #define MAX_POINTS_ON_WINDING	64
@@ -56,7 +56,7 @@ typedef struct {
 	int32_t leaf;				// neighbor
 
 	vec3_t origin;			// for fast clip testing
-	float radius;
+	vec_t radius;
 
 	winding_t *winding;
 	status_t status;

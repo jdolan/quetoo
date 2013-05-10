@@ -26,8 +26,8 @@
 
 // math and trigonometry functions
 int32_t Random(void); // 0 to (2^32)-1
-float Randomf(void); // 0.0 to 1.0
-float Randomc(void); // -1.0 to 1.0
+vec_t Randomf(void); // 0.0 to 1.0
+vec_t Randomc(void); // -1.0 to 1.0
 
 void ClearBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
@@ -37,7 +37,7 @@ _Bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t comp);
 
 vec_t VectorNormalize(vec3_t v);  // returns vector length
 vec_t VectorLength(const vec3_t v);
-void VectorMix(const vec3_t v1, const vec3_t v2, const float mix, vec3_t out);
+void VectorMix(const vec3_t v1, const vec3_t v2, const vec_t mix, vec3_t out);
 void VectorMA(const vec3_t veca, const vec_t scale, const vec3_t vecb, vec3_t vecc);
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross);
 
@@ -55,7 +55,7 @@ int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const c_bsp_plane
 void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal);
 void PerpendicularVector(vec3_t dst, const vec3_t src);
 void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent, vec3_t bitangent);
-void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, float degrees);
+void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, vec_t degrees);
 
 void PackPosition(const vec3_t in, int16_t *out);
 void UnpackPosition(const int16_t *in, vec3_t out);
@@ -81,7 +81,7 @@ void ClampAngles(vec3_t angles);
 #define TEAM_COLOR_BLUE 243
 
 vec_t ColorNormalize(const vec3_t in, vec3_t out);
-void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation, float contrast);
+void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation, vec_t contrast);
 int32_t ColorByName(const char *s, int32_t def);
 
 // string functions

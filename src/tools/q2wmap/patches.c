@@ -75,7 +75,7 @@ void CalcTextureReflectivity(void) {
 		SDL_FreeSurface(surf);
 
 		for (j = 0; j < 3; j++) {
-			const float r = color[j] / texels / 255.0;
+			const vec_t r = color[j] / texels / 255.0;
 			texture_reflectivity[i][j] = r;
 		}
 	}

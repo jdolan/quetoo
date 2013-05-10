@@ -196,7 +196,7 @@ static void SetPortalSphere(portal_t * p) {
 	int32_t i;
 	vec3_t total, dist;
 	winding_t *w;
-	float r, bestr;
+	vec_t r, bestr;
 
 	w = p->winding;
 	VectorCopy(vec3_origin, total);
@@ -448,7 +448,7 @@ int32_t VIS_Main(void) {
 	WriteBSPFile(bsp_name);
 
 	end = time(NULL);
-	total_vis_time = (int) (end - start);
+	total_vis_time = (int32_t) (end - start);
 	Com_Print("\nVIS Time: ");
 	if (total_vis_time > 59)
 		Com_Print("%d Minutes ", total_vis_time / 60);

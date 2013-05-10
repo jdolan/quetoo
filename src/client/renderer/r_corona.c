@@ -61,7 +61,7 @@ void R_DrawCoronas(void) {
 
 	for (k = 0; k < r_view.num_coronas; k++) {
 		const r_corona_t *c = &r_view.coronas[k];
-		const float f = c->radius * c->flicker * sin(90.0 * r_view.time);
+		const vec_t f = c->radius * c->flicker * sin(90.0 * r_view.time);
 		int32_t num_verts, vert_index;
 
 		// use at least 12 verts, more for larger coronas
@@ -77,11 +77,11 @@ void R_DrawCoronas(void) {
 		vert_index = 3; // and the origin
 
 		for (i = num_verts; i >= 0; i--) { // now draw the corners
-			const float a = i / (float) num_verts * M_PI * 2;
+			const vec_t a = i / (vec_t) num_verts * M_PI * 2;
 
 			for (j = 0; j < 3; j++)
-				v[j] = c->origin[j] + r_view.right[j] * (float) cos(a)
-						* (c->radius + f) + r_view.up[j] * (float) sin(a)
+				v[j] = c->origin[j] + r_view.right[j] * (vec_t) cos(a)
+						* (c->radius + f) + r_view.up[j] * (vec_t) sin(a)
 						* (c->radius + f);
 
 			memcpy(&r_state.vertex_array_3d[vert_index], v, sizeof(vec3_t));

@@ -76,7 +76,7 @@ static void G_ClampVelocity(g_edict_t *ent) {
  * @brief Runs thinking code for this frame if necessary
  */
 static _Bool G_RunThink(g_edict_t *ent) {
-	float think_time;
+	vec_t think_time;
 
 	think_time = ent->locals.next_think;
 
@@ -117,9 +117,9 @@ static void G_Impact(g_edict_t *e1, c_trace_t *trace) {
  * @brief Slide off of the impacting object
  * returns the blocked flags (1 = floor, 2 = step / wall)
  */
-static int32_t G_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, float overbounce) {
-	float backoff;
-	float change;
+static int32_t G_ClipVelocity(vec3_t in, vec3_t normal, vec3_t out, vec_t overbounce) {
+	vec_t backoff;
+	vec_t change;
 	int32_t i, blocked;
 
 	blocked = 0;
@@ -243,7 +243,7 @@ static _Bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 	// clamp the move to 1/8 units, so the position will
 	// be accurate for client side prediction
 	for (i = 0; i < 3; i++) {
-		float temp;
+		vec_t temp;
 		temp = move[i] * 8.0;
 		if (temp > 0.0)
 			temp += 0.5;
@@ -514,7 +514,7 @@ static void G_Physics_Toss(g_edict_t *ent) {
 				ent->locals.ground_entity_link_count = trace.ent->link_count;
 			} else {
 				// bounce and slide along the floor
-				float bounce, speed = VectorLength(ent->locals.velocity);
+				vec_t bounce, speed = VectorLength(ent->locals.velocity);
 				bounce = sqrt(speed);
 
 				if (ent->locals.velocity[2] < bounce)
@@ -562,7 +562,7 @@ static void G_Physics_Toss(g_edict_t *ent) {
  */
 void G_RunEntity(g_edict_t *ent) {
 
-	switch ((int) ent->locals.move_type) {
+	switch ((int32_t) ent->locals.move_type) {
 		case MOVE_TYPE_PUSH:
 		case MOVE_TYPE_STOP:
 			G_Physics_Pusher(ent);

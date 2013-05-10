@@ -89,7 +89,7 @@ static int32_t GetThreadWork(void) {
 }
 
 // generic function pointer to actual work to be done
-static void (*WorkFunction)(int);
+static ThreadWorkFunc WorkFunction;
 
 /*
  * @brief Shared work entry point by all threads. Retrieve and perform
@@ -157,7 +157,7 @@ static void RunThreads(void) {
 /*
  * @brief Entry point for all thread work requests.
  */
-void RunThreadsOn(int32_t workcount, _Bool progress, void(*func)(int)) {
+void RunThreadsOn(int32_t workcount, _Bool progress, ThreadWorkFunc func) {
 	time_t start, end;
 
 	thread_work.index = 0;
@@ -174,6 +174,6 @@ void RunThreadsOn(int32_t workcount, _Bool progress, void(*func)(int)) {
 	end = time(NULL);
 
 	if (thread_work.progress)
-		Com_Print(" (%i seconds)\n", (int) (end - start));
+		Com_Print(" (%i seconds)\n", (int32_t) (end - start));
 }
 

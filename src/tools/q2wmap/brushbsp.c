@@ -375,7 +375,7 @@ _Bool WindingIsTiny(const winding_t * w) {
 	for (i = 0; i < w->numpoints; i++) {
 		j = i == w->numpoints - 1 ? 0 : i + 1;
 		VectorSubtract(w->p[j], w->p[i], delta);
-		len = (float) VectorLength(delta);
+		len = (vec_t) VectorLength(delta);
 		if (len > EDGE_LENGTH) {
 			if (++edges == 3)
 				return false;
@@ -625,7 +625,7 @@ void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front, bs
 	winding_t *w, *cw[2], *midwinding;
 	map_plane_t *plane, *plane2;
 	side_t *s, *cs;
-	float d, d_front, d_back;
+	vec_t d, d_front, d_back;
 
 	*front = *back = NULL;
 	plane = &map_planes[plane_num];

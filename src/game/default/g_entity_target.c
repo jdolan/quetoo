@@ -86,7 +86,7 @@ void G_target_speaker(g_edict_t *ent) {
  * @brief
  */
 static void G_target_explosion_Explode(g_edict_t *self) {
-	float save;
+	vec_t save;
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);

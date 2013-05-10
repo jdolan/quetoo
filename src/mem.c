@@ -239,7 +239,7 @@ size_t Z_Size(void) {
  * @brief Prints the current size (in MB) of the zone allocation pool.
  */
 void Z_Size_f(void) {
-	Com_Print("%.2fMB\n", (float) (Z_Size() / (1024.0 * 1024.0)));
+	Com_Print("%.2fMB\n", (vec_t) (Z_Size() / (1024.0 * 1024.0)));
 }
 
 /*

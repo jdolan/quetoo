@@ -448,50 +448,50 @@ void PrintBSPFileSizes(void) {
 		ParseEntities();
 
 	Com_Verbose("%5i models       %7i\n", d_bsp.num_models,
-			(int) (d_bsp.num_models * sizeof(d_bsp_model_t)));
+			(int32_t) (d_bsp.num_models * sizeof(d_bsp_model_t)));
 
 	Com_Verbose("%5i brushes      %7i\n", d_bsp.num_brushes,
-			(int) (d_bsp.num_brushes * sizeof(d_bsp_brush_t)));
+			(int32_t) (d_bsp.num_brushes * sizeof(d_bsp_brush_t)));
 
 	Com_Verbose("%5i brush_sides  %7i\n", d_bsp.num_brush_sides,
-			(int) (d_bsp.num_brush_sides * sizeof(d_bsp_brush_side_t)));
+			(int32_t) (d_bsp.num_brush_sides * sizeof(d_bsp_brush_side_t)));
 
 	Com_Verbose("%5i planes       %7i\n", d_bsp.num_planes,
-			(int) (d_bsp.num_planes * sizeof(d_bsp_plane_t)));
+			(int32_t) (d_bsp.num_planes * sizeof(d_bsp_plane_t)));
 
 	Com_Verbose("%5i texinfo      %7i\n", d_bsp.num_texinfo,
-			(int) (d_bsp.num_texinfo * sizeof(d_bsp_texinfo_t)));
+			(int32_t) (d_bsp.num_texinfo * sizeof(d_bsp_texinfo_t)));
 
 	Com_Verbose("%5i entdata      %7i\n", num_entities, d_bsp.entity_string_len);
 
 	Com_Verbose("\n");
 
 	Com_Verbose("%5i vertexes     %7i\n", d_bsp.num_vertexes,
-			(int) (d_bsp.num_vertexes * sizeof(d_bsp_vertex_t)));
+			(int32_t) (d_bsp.num_vertexes * sizeof(d_bsp_vertex_t)));
 
 	Com_Verbose("%5i normals      %7i\n", d_bsp.num_normals,
-			(int) (d_bsp.num_normals * sizeof(d_bsp_normal_t)));
+			(int32_t) (d_bsp.num_normals * sizeof(d_bsp_normal_t)));
 
 	Com_Verbose("%5i nodes        %7i\n", d_bsp.num_nodes,
-			(int) (d_bsp.num_nodes * sizeof(d_bsp_node_t)));
+			(int32_t) (d_bsp.num_nodes * sizeof(d_bsp_node_t)));
 
 	Com_Verbose("%5i faces        %7i\n", d_bsp.num_faces,
-			(int) (d_bsp.num_faces * sizeof(d_bsp_face_t)));
+			(int32_t) (d_bsp.num_faces * sizeof(d_bsp_face_t)));
 
 	Com_Verbose("%5i leafs        %7i\n", d_bsp.num_leafs,
-			(int) (d_bsp.num_leafs * sizeof(d_bsp_leaf_t)));
+			(int32_t) (d_bsp.num_leafs * sizeof(d_bsp_leaf_t)));
 
 	Com_Verbose("%5i leaf_faces   %7i\n", d_bsp.num_leaf_faces,
-			(int) (d_bsp.num_leaf_faces * sizeof(d_bsp.leaf_faces[0])));
+			(int32_t) (d_bsp.num_leaf_faces * sizeof(d_bsp.leaf_faces[0])));
 
 	Com_Verbose("%5i leaf_brushes %7i\n", d_bsp.num_leaf_brushes,
-			(int) (d_bsp.num_leaf_brushes * sizeof(d_bsp.leaf_brushes[0])));
+			(int32_t) (d_bsp.num_leaf_brushes * sizeof(d_bsp.leaf_brushes[0])));
 
 	Com_Verbose("%5i surf_edges   %7i\n", d_bsp.num_face_edges,
-			(int) (d_bsp.num_face_edges * sizeof(d_bsp.face_edges[0])));
+			(int32_t) (d_bsp.num_face_edges * sizeof(d_bsp.face_edges[0])));
 
 	Com_Verbose("%5i edges        %7i\n", d_bsp.num_edges,
-			(int) (d_bsp.num_edges * sizeof(d_bsp_edge_t)));
+			(int32_t) (d_bsp.num_edges * sizeof(d_bsp_edge_t)));
 
 	Com_Verbose("      lightmap     %7i\n", d_bsp.lightmap_data_size);
 

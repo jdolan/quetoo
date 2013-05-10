@@ -125,7 +125,7 @@ static void R_LoadBspNormals(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 /*
  * @brief Returns an approximate radius from the specified bounding box.
  */
-static float R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
+static vec_t R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
 	int32_t i;
 	vec3_t corner;
 
@@ -297,7 +297,7 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 		AddPointToBounds(v->position, surf->mins, surf->maxs); // calculate mins, maxs
 
 		for (j = 0; j < 2; j++) { // calculate st_mins, st_maxs
-			const float val = DotProduct(v->position, tex->vecs[j]) + tex->vecs[j][3];
+			const vec_t val = DotProduct(v->position, tex->vecs[j]) + tex->vecs[j][3];
 			if (val < st_mins[j])
 				st_mins[j] = val;
 			if (val > st_maxs[j])
@@ -591,17 +591,17 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		memcpy(&mod->verts[(*count) * 3], vert->position, sizeof(vec3_t));
 
 		// texture directional vectors and offsets
-		const float *sdir = surf->texinfo->vecs[0];
-		const float soff = surf->texinfo->vecs[0][3];
+		const vec_t *sdir = surf->texinfo->vecs[0];
+		const vec_t soff = surf->texinfo->vecs[0][3];
 
-		const float *tdir = surf->texinfo->vecs[1];
-		const float toff = surf->texinfo->vecs[1][3];
+		const vec_t *tdir = surf->texinfo->vecs[1];
+		const vec_t toff = surf->texinfo->vecs[1][3];
 
 		// texture coordinates
-		float s = DotProduct(vert->position, sdir) + soff;
+		vec_t s = DotProduct(vert->position, sdir) + soff;
 		s /= surf->texinfo->material->diffuse->width;
 
-		float t = DotProduct(vert->position, tdir) + toff;
+		vec_t t = DotProduct(vert->position, tdir) + toff;
 		t /= surf->texinfo->material->diffuse->height;
 
 		mod->texcoords[(*count) * 2 + 0] = s;
@@ -627,7 +627,7 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 
 		// normal vector, which is per-vertex for SURF_PHONG
 
-		const float *normal;
+		const vec_t *normal;
 		if ((surf->texinfo->flags & SURF_PHONG) && !VectorCompare(vert->normal, vec3_origin))
 			normal = vert->normal;
 		else

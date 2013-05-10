@@ -69,7 +69,7 @@ static void G_MoveInfo_End(g_edict_t *ent) {
  * has reached its destination.
  */
 static void G_MoveInfo_Constant(g_edict_t *ent) {
-	float frames;
+	vec_t frames;
 
 	if ((ent->locals.move_info.speed * gi.frame_seconds)
 			>= ent->locals.move_info.remaining_distance) {
@@ -94,8 +94,8 @@ static void G_MoveInfo_Constant(g_edict_t *ent) {
  * whether we should accelerate or decelerate based on the distance remaining.
  */
 static void G_MoveInfo_UpdateAcceleration(g_move_info_t *move_info) {
-	float accel_dist;
-	float decel_dist;
+	vec_t accel_dist;
+	vec_t decel_dist;
 
 	move_info->move_speed = move_info->speed;
 
@@ -108,11 +108,11 @@ static void G_MoveInfo_UpdateAcceleration(g_move_info_t *move_info) {
 	decel_dist = AccelerationDistance(move_info->speed, move_info->decel);
 
 	if ((move_info->remaining_distance - accel_dist - decel_dist) < 0) {
-		float f;
+		vec_t v;
 
-		f = (move_info->accel + move_info->decel) / (move_info->accel * move_info->decel);
-		move_info->move_speed = (-2 + sqrt(4 - 4 * f * (-2 * move_info->remaining_distance))) / (2
-				* f);
+		v = (move_info->accel + move_info->decel) / (move_info->accel * move_info->decel);
+		move_info->move_speed = (-2 + sqrt(4 - 4 * v * (-2 * move_info->remaining_distance))) / (2
+				* v);
 		decel_dist = AccelerationDistance(move_info->move_speed, move_info->decel);
 	}
 
@@ -140,9 +140,9 @@ static void G_MoveInfo_Accelerate(g_move_info_t *move_info) {
 	// are we at full speed and need to start decelerating during this move?
 	if (move_info->current_speed == move_info->move_speed)
 		if ((move_info->remaining_distance - move_info->current_speed) < move_info->decel_distance) {
-			float p1_distance;
-			float p2_distance;
-			float distance;
+			vec_t p1_distance;
+			vec_t p2_distance;
+			vec_t distance;
 
 			p1_distance = move_info->remaining_distance - move_info->decel_distance;
 			p2_distance = move_info->move_speed * (1.0 - (p1_distance / move_info->move_speed));
@@ -155,11 +155,11 @@ static void G_MoveInfo_Accelerate(g_move_info_t *move_info) {
 
 	// are we accelerating?
 	if (move_info->current_speed < move_info->speed) {
-		float old_speed;
-		float p1_distance;
-		float p1_speed;
-		float p2_distance;
-		float distance;
+		vec_t old_speed;
+		vec_t p1_distance;
+		vec_t p1_speed;
+		vec_t p2_distance;
+		vec_t distance;
 
 		old_speed = move_info->current_speed;
 
@@ -402,7 +402,6 @@ static void G_func_plat_CreateTrigger(g_edict_t *ent) {
  instead of being implicitly determined by the model's height.
  */
 void G_func_plat(g_edict_t *ent) {
-	float f;
 
 	VectorClear(ent->s.angles);
 	ent->solid = SOLID_BSP;
@@ -425,10 +424,10 @@ void G_func_plat(g_edict_t *ent) {
 	ent->locals.decel *= 0.1;
 
 	// normalize move_info based on server rate, stock q2 rate was 10hz
-	f = 100.0 / (gi.frame_rate * gi.frame_rate);
-	ent->locals.speed *= f;
-	ent->locals.accel *= f;
-	ent->locals.decel *= f;
+	const vec_t v = 100.0 / (gi.frame_rate * gi.frame_rate);
+	ent->locals.speed *= v;
+	ent->locals.accel *= v;
+	ent->locals.decel *= v;
 
 	if (!ent->locals.dmg)
 		ent->locals.dmg = 2;
@@ -655,7 +654,7 @@ static void G_func_button_Die(g_edict_t *self, g_edict_t *inflictor __attribute_
  */
 void G_func_button(g_edict_t *ent) {
 	vec3_t abs_move_dir;
-	float dist;
+	vec_t dist;
 
 	G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
 	ent->locals.move_type = MOVE_TYPE_STOP;
@@ -858,11 +857,11 @@ static void G_func_door_TouchTrigger(g_edict_t *self, g_edict_t *other, c_bsp_pl
  */
 static void G_func_door_CalculateMove(g_edict_t *self) {
 	g_edict_t *ent;
-	float min;
-	float time;
-	float new_speed;
-	float ratio;
-	float dist;
+	vec_t min;
+	vec_t time;
+	vec_t new_speed;
+	vec_t ratio;
+	vec_t dist;
 
 	if (self->locals.flags & FL_TEAM_SLAVE)
 		return; // only the team master does this

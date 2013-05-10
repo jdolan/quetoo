@@ -131,14 +131,14 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		}
 
 		VectorSubtract(f->origin, r_view.origin, view);
-		const float dist = VectorNormalize(view);
+		const vec_t dist = VectorNormalize(view);
 
 		// fade according to angle
-		const float cos = DotProduct(surf->normal, view);
+		const vec_t cos = DotProduct(surf->normal, view);
 		if (cos > 0.0)
 			continue;
 
-		float alpha = 0.1 + -cos * r_flares->value;
+		vec_t alpha = 0.1 + -cos * r_flares->value;
 
 		if (alpha > 1.0)
 			alpha = 1.0;
@@ -146,7 +146,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		alpha = f->alpha * alpha;
 
 		// scale according to distance
-		const float scale = f->radius + (f->radius * dist * .0005);
+		const vec_t scale = f->radius + (f->radius * dist * .0005);
 
 		VectorScale(r_view.right, scale, right);
 		VectorScale(r_view.up, scale, up);

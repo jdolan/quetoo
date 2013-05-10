@@ -25,8 +25,8 @@
 typedef struct cg_weather_emit_s {
 	const r_bsp_leaf_t *leaf;
 	uint16_t num_origins; // the number of origins
-	float *origins; // the origins for particle spawns
-	float *end_z; // the "floors" where particles are freed
+	vec_t *origins; // the origins for particle spawns
+	vec_t *end_z; // the "floors" where particles are freed
 	struct cg_weather_emit_s *next;
 } cg_weather_emit_t;
 
@@ -66,7 +66,7 @@ void Cg_ResolveWeather(const char *weather) {
 		err = -1;
 
 		if (strlen(c) > 3) { // try to parse fog color
-			float *f = cgi.view->fog_color;
+			vec_t *f = cgi.view->fog_color;
 			err = sscanf(c + 4, "%f %f %f", f, f + 1, f + 2);
 		}
 
@@ -100,7 +100,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 
 	// resolve the origins and end_z
 	for (i = 0; i < e->num_origins; i++) {
-		float *org = &e->origins[i * 3];
+		vec_t *org = &e->origins[i * 3];
 		uint16_t j;
 
 		// randomize the origin over the surface
@@ -179,7 +179,7 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER, ps)))
 			break;
 
-		const float *org = &e->origins[i * 3];
+		const vec_t *org = &e->origins[i * 3];
 
 		// setup the origin and end_z
 		for (j = 0; j < 3; j++) {

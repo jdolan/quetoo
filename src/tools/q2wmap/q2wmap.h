@@ -65,8 +65,10 @@ typedef struct thread_work_s {
 
 extern thread_work_t thread_work;
 
+typedef void (*ThreadWorkFunc)(int32_t);
+
 void ThreadLock(void);
 void ThreadUnlock(void);
-void RunThreadsOn(int32_t workcount, _Bool progress, void(*func)(int));
+void RunThreadsOn(int32_t workcount, _Bool progress, ThreadWorkFunc func);
 
 #endif /*__Q2WMAP_H__*/

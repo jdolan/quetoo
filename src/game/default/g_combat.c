@@ -177,7 +177,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	int16_t save;
 	int16_t asave;
 	int32_t te_sparks;
-	float scale;
+	vec_t scale;
 
 	if (!targ->locals.take_damage)
 		return;
@@ -193,8 +193,8 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 
 	// quad damage affects both damage and knockback
 	if (attacker->client && attacker->client->locals.persistent.inventory[g_level.media.quad_damage]) {
-		damage = (int) (damage * QUAD_DAMAGE_FACTOR);
-		knockback = (int) (knockback * QUAD_KNOCKBACK_FACTOR);
+		damage = (int32_t) (damage * QUAD_DAMAGE_FACTOR);
+		knockback = (int32_t) (knockback * QUAD_KNOCKBACK_FACTOR);
 	}
 
 	// friendly fire avoidance
@@ -225,7 +225,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	// calculate velocity change due to knockback
 	if (knockback && (targ->locals.move_type == MOVE_TYPE_WALK)) {
 		vec3_t kvel;
-		float mass;
+		vec_t mass;
 
 		if (targ->locals.mass < 50.0)
 			mass = 50.0;
@@ -243,7 +243,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 				scale = 1200.0;
 		}
 
-		VectorScale(dir, scale * (float)knockback / mass, kvel);
+		VectorScale(dir, scale * (vec_t)knockback / mass, kvel);
 		VectorAdd(targ->locals.velocity, kvel, targ->locals.velocity);
 	}
 
@@ -298,7 +298,7 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 		client->locals.damage_armor += asave;
 		client->locals.damage_health += take;
 
-		float kick = (asave + take) / 30.0;
+		vec_t kick = (asave + take) / 30.0;
 
 		if (kick > 1.0) {
 			kick = 1.0;
@@ -316,9 +316,9 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
  * @brief
  */
 void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore, int32_t damage,
-		int32_t knockback, float radius, int32_t mod) {
+		int32_t knockback, vec_t radius, int32_t mod) {
 	g_edict_t *ent;
-	float d, k, dist;
+	vec_t d, k, dist;
 	vec3_t dir;
 
 	ent = NULL;
@@ -350,7 +350,7 @@ void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore
 		if (!G_CanDamage(ent, inflictor))
 			continue;
 
-		G_Damage(ent, inflictor, attacker, dir, ent->s.origin, vec3_origin, (int) d, (int) k,
+		G_Damage(ent, inflictor, attacker, dir, ent->s.origin, vec3_origin, (int32_t) d, (int32_t) k,
 				DAMAGE_RADIUS, mod);
 	}
 }

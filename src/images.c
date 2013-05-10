@@ -229,7 +229,7 @@ void Img_InitPalette(void) {
 /*
  * @brief Returns RGB components of the specified color in the specified result array.
  */
-void Img_ColorFromPalette(byte c, float *res) {
+void Img_ColorFromPalette(byte c, vec_t *res) {
 	uint32_t color;
 
 	if (!palette_initialized) // lazy-load palette if necessary

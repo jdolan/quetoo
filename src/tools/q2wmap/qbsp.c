@@ -51,7 +51,7 @@ static node_t *block_nodes[10][10];
 static node_t *BlockTree(int32_t xl, int32_t yl, int32_t xh, int32_t yh) {
 	node_t *node;
 	vec3_t normal;
-	float dist;
+	vec_t dist;
 	int32_t mid;
 
 	if (xl == xh && yl == yh) {
@@ -329,7 +329,7 @@ int32_t BSP_Main(void) {
 	}
 
 	end = time(NULL);
-	total_bsp_time = (int) (end - start);
+	total_bsp_time = (int32_t) (end - start);
 	Com_Print("\nBSP Time: ");
 	if (total_bsp_time > 59)
 		Com_Print("%d Minutes ", total_bsp_time / 60);

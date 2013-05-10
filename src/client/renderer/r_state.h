@@ -34,7 +34,7 @@ void R_Setup2D(void);
 
 // vertex arrays are used for many things
 #define MAX_GL_ARRAY_LENGTH 65536
-extern const float default_texcoords[];
+extern const vec_t default_texcoords[];
 
 // texunits maintain multitexture state
 typedef struct r_texunit_s {

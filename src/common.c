@@ -320,24 +320,24 @@ void Msg_WriteString(size_buf_t *sb, const char *s) {
 /*
  * @brief
  */
-void Msg_WriteCoord(size_buf_t *sb, const float f) {
-	Msg_WriteShort(sb, (int) (f * 8.0));
+void Msg_WriteCoord(size_buf_t *sb, const vec_t v) {
+	Msg_WriteShort(sb, (int32_t) (v * 8.0));
 }
 
 /*
  * @brief
  */
 void Msg_WritePos(size_buf_t *sb, const vec3_t pos) {
-	Msg_WriteShort(sb, (int) (pos[0] * 8.0));
-	Msg_WriteShort(sb, (int) (pos[1] * 8.0));
-	Msg_WriteShort(sb, (int) (pos[2] * 8.0));
+	Msg_WriteShort(sb, (int32_t) (pos[0] * 8.0));
+	Msg_WriteShort(sb, (int32_t) (pos[1] * 8.0));
+	Msg_WriteShort(sb, (int32_t) (pos[2] * 8.0));
 }
 
 /*
  * @brief
  */
-void Msg_WriteAngle(size_buf_t *sb, const float f) {
-	Msg_WriteByte(sb, (int) (f * 255.0 / 360.0) & 255);
+void Msg_WriteAngle(size_buf_t *sb, const vec_t v) {
+	Msg_WriteByte(sb, (int32_t) (v * 255.0 / 360.0) & 255);
 }
 
 /*
@@ -399,7 +399,7 @@ void Msg_WriteDeltaUsercmd(size_buf_t *buf, user_cmd_t *from, user_cmd_t *cmd) {
  */
 void Msg_WriteDir(size_buf_t *sb, const vec3_t dir) {
 	int32_t i, best;
-	float d, bestd;
+	vec_t d, bestd;
 
 	if (!dir) {
 		Msg_WriteByte(sb, 0);
@@ -707,7 +707,7 @@ char *Msg_ReadStringLine(size_buf_t *sb) {
 /*
  * @brief
  */
-float Msg_ReadCoord(size_buf_t *sb) {
+vec_t Msg_ReadCoord(size_buf_t *sb) {
 	return Msg_ReadShort(sb) * (1.0 / 8.0);
 }
 
@@ -723,7 +723,7 @@ void Msg_ReadPos(size_buf_t *sb, vec3_t pos) {
 /*
  * @brief
  */
-float Msg_ReadAngle(size_buf_t *sb) {
+vec_t Msg_ReadAngle(size_buf_t *sb) {
 	return Msg_ReadChar(sb) * (360.0 / 255.0);
 }
 

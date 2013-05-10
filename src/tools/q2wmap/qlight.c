@@ -36,12 +36,12 @@ _Bool extra_samples;
 
 vec3_t ambient;
 
-float brightness = 1.0;
-float saturation = 1.0;
-float contrast = 1.0;
+vec_t brightness = 1.0;
+vec_t saturation = 1.0;
+vec_t contrast = 1.0;
 
-float surface_scale = 0.4;
-float entity_scale = 1.0;
+vec_t surface_scale = 0.4;
+vec_t entity_scale = 1.0;
 
 
 /*
@@ -101,7 +101,7 @@ static c_model_t *cmodels[MAX_BSP_MODELS];
  * @brief
  */
 void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask){
-	float frac;
+	vec_t frac;
 	int32_t i;
 
 	frac = 9999.0;
@@ -193,7 +193,7 @@ int32_t LIGHT_Main(void){
 	WriteBSPFile(bsp_name);
 
 	end = time(NULL);
-	total_light_time = (int)(end - start);
+	total_light_time = (int32_t)(end - start);
 	Com_Print("\nLIGHT Time: ");
 	if(total_light_time > 59)
 		Com_Print("%d Minutes ", total_light_time / 60);

@@ -78,7 +78,7 @@ static void R_AddSustainedLights(void) {
 
 		r_light_t l = s->light;
 
-		const float intensity = (s->sustain - r_view.time) / (s->sustain - s->time);
+		const vec_t intensity = (s->sustain - r_view.time) / (s->sustain - s->time);
 		VectorScale(s->light.color, intensity, l.color);
 
 		R_AddLight(&l);
@@ -112,7 +112,7 @@ static void R_MarkLights_(const r_light_t *light, const vec3_t trans, const uint
 
 	VectorSubtract(light->origin, trans, origin);
 
-	const float dist = DotProduct(origin, node->plane->normal) - node->plane->dist;
+	const vec_t dist = DotProduct(origin, node->plane->normal) - node->plane->dist;
 
 	if (dist > light->radius) { // front only
 		R_MarkLights_(light, trans, bit, node->children[0]);

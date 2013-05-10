@@ -29,11 +29,11 @@ typedef struct {
 	vec3_t ambient_light;
 
 	vec3_t sun_color;
-	float sun_light;
+	vec_t sun_light;
 
-	float brightness;
-	float saturation;
-	float contrast;
+	vec_t brightness;
+	vec_t saturation;
+	vec_t contrast;
 
 	GList *lights;
 } r_bsp_light_state_t;

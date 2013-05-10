@@ -63,6 +63,11 @@
 typedef unsigned char byte;
 #endif
 
+typedef float vec_t;
+typedef vec_t vec2_t[2];
+typedef vec_t vec3_t[3];
+typedef vec_t vec4_t[4];
+
 // angle indexes
 #define PITCH				0 // up / down
 #define YAW					1 // left / right
@@ -128,7 +133,7 @@ typedef struct cvar_s {
 	char *latched_string; // for CVAR_LATCH vars
 	uint32_t flags;
 	_Bool modified; // set each time the cvar is changed
-	float value;
+	vec_t value;
 	int32_t integer;
 } cvar_t;
 
@@ -177,11 +182,7 @@ typedef enum {
 // [[user_info string]
 } cl_cmd_t;
 
-typedef float vec_t;
-typedef vec_t vec2_t[2];
-typedef vec_t vec3_t[3];
-typedef vec_t vec4_t[4];
-
+// a singleton for (0.0, 0.0, 0.0)
 extern vec3_t vec3_origin;
 
 #define Clamp(x, y, z)			(x < y ? y : x > z ? z : x)
@@ -268,7 +269,7 @@ extern vec3_t vec3_origin;
 // plane_t structure
 typedef struct c_bsp_plane_s {
 	vec3_t normal;
-	float dist;
+	vec_t dist;
 	int32_t type; // for fast side tests
 	int32_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
 } c_bsp_plane_t;
@@ -289,7 +290,7 @@ typedef struct c_bsp_surface_s {
 typedef struct c_trace_s {
 	_Bool all_solid; // if true, plane is not valid
 	_Bool start_solid; // if true, the initial point was in a solid area
-	float fraction; // time completed, 1.0 = didn't hit anything
+	vec_t fraction; // time completed, 1.0 = didn't hit anything
 	vec3_t end; // final position
 	c_bsp_plane_t plane; // surface normal at impact
 	c_bsp_surface_t *surface; // surface hit

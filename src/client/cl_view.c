@@ -87,8 +87,8 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
 		cl.time = from->server_time;
 		cl.lerp = 0.0;
 	} else {
-		const float delta = cl.time - from->server_time;
-		const float interval = cl.frame.server_time - from->server_time;
+		const vec_t delta = cl.time - from->server_time;
+		const vec_t interval = cl.frame.server_time - from->server_time;
 
 		if (interval <= 0.0) {
 			Com_Debug("Bad clamp\n");
@@ -175,7 +175,7 @@ static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops) {
 	if (!VectorCompare(new_angles, new_angles)) {
 
 		VectorSubtract(old_angles, new_angles, angles);
-		float f = VectorLength(angles);
+		vec_t f = VectorLength(angles);
 
 		if (f < 15.0) {
 			AngleLerp(old_angles, new_angles, cl.lerp, angles);

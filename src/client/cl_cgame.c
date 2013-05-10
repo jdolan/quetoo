@@ -83,7 +83,7 @@ static void Cl_ReadDirection(vec3_t dir) {
 	Msg_ReadDir(&net_message, dir);
 }
 
-static float Cl_ReadAngle(void) {
+static vec_t Cl_ReadAngle(void) {
 	return Msg_ReadAngle(&net_message);
 }
 

@@ -387,7 +387,7 @@ static void G_CheckRoundStart(void) {
 	if (g_level.teams && (!g || !e)) // need at least 1 player per team
 		return;
 
-	if ((int) g_level.teams == 2 && (g != e)) { // balanced teams required
+	if ((int32_t) g_level.teams == 2 && (g != e)) { // balanced teams required
 		if (g_level.frame_num % 100 == 0)
 			gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for round to start\n");
 		return;

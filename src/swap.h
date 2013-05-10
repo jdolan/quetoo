@@ -28,7 +28,7 @@ extern int16_t BigShort(int16_t s);
 extern int16_t LittleShort(int16_t s);
 extern int32_t BigLong(int32_t l);
 extern int32_t LittleLong(int32_t l);
-extern float BigFloat(float f);
-extern float LittleFloat(float f);
+extern vec_t BigFloat(vec_t f);
+extern vec_t LittleFloat(vec_t f);
 
 #endif /* __SWAP_H__ */

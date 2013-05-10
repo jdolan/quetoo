@@ -61,7 +61,7 @@ static r_particle_state_t r_particle_state;
 static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 	vec3_t v, up, right, up_right, down_right;
 	vec3_t *verts;
-	float scale;
+	vec_t scale;
 
 	verts = (vec3_t *) out;
 
@@ -145,7 +145,7 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
  * @brief Generates texture coordinates for the specified particle.
  */
 static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
-	float s, t;
+	vec_t s, t;
 
 	if (!p->scroll_s && !p->scroll_t) {
 		memcpy(out, default_texcoords, sizeof(vec2_t) * 4);

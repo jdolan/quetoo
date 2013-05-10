@@ -41,10 +41,10 @@ typedef struct g_map_list_elt_s {
 	int32_t frag_limit;
 	int32_t round_limit;
 	int32_t capture_limit;
-	float time_limit;
+	vec_t time_limit;
 	char give[MAX_STRING_CHARS];
 	char music[MAX_STRING_CHARS];
-	float weight;
+	vec_t weight;
 } g_map_list_elt_t;
 
 typedef struct g_map_list_s {
@@ -53,7 +53,7 @@ typedef struct g_map_list_s {
 
 	// weighted random selection
 	uint32_t weighted_index[MAP_LIST_WEIGHT];
-	float total_weight;
+	vec_t total_weight;
 } g_map_list_t;
 
 extern g_map_list_t g_map_list;

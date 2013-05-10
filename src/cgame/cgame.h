@@ -56,7 +56,7 @@ typedef struct cg_import_s {
 	char *(*ReadString)(void);
 	void (*ReadPosition)(vec3_t pos);
 	void (*ReadDirection)(vec3_t dir);
-	float (*ReadAngle)(void);
+	vec_t (*ReadAngle)(void);
 
 	// incoming server data stream
 	size_buf_t *net_message;
@@ -89,7 +89,7 @@ typedef struct cg_import_s {
 
 	// 256 color palette for particle and effect colors
 	unsigned *palette;
-	void (*ColorFromPalette)(byte c, float *res);
+	void (*ColorFromPalette)(byte c, vec_t *res);
 
 	// RGB color management
 	void (*Color)(const vec4_t color);
@@ -110,8 +110,8 @@ typedef struct cg_import_s {
 	void (*AddSustainedLight)(const r_sustained_light_t *s);
 
 	// 2D drawing facilities
-	void (*DrawImage)(r_pixel_t x, r_pixel_t y, float scale, const r_image_t *image);
-	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, float a);
+	void (*DrawImage)(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image);
+	void (*DrawFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, vec_t a);
 
 	void (*BindFont)(const char *name, r_pixel_t *cw, r_pixel_t *ch);
 	r_pixel_t (*StringWidth)(const char *s);

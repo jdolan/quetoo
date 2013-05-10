@@ -95,7 +95,7 @@ r_draw_t r_draw;
 /*
  * @brief
  */
-void R_DrawImage(r_pixel_t x, r_pixel_t y, float scale, const r_image_t *image) {
+void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) {
 
 	R_BindTexture(image->texnum);
 
@@ -234,8 +234,8 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 	const uint32_t row = (uint32_t) c >> 4;
 	const uint32_t col = (uint32_t) c & 15;
 
-	const float frow = row * 0.1250;
-	const float fcol = col * 0.0625;
+	const vec_t frow = row * 0.1250;
+	const vec_t fcol = col * 0.0625;
 
 	// resolve ABGR color
 	const uint32_t *abgr = &r_draw.colors[color & (MAX_COLORS - 1)];
@@ -319,7 +319,7 @@ static void R_DrawChars(void) {
  * @brief The color can be specified as an index into the palette with positive alpha
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
-void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, float a) {
+void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, vec_t a) {
 	byte color[4];
 
 	if (a > 1.0) {
@@ -390,7 +390,7 @@ static void R_DrawFills(void) {
 /*
  * @brief
  */
-void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t c, float a) {
+void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t c, vec_t a) {
 	byte color[4];
 
 	if (a > 1.0) {

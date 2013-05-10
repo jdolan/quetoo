@@ -66,13 +66,13 @@ static void BuildFaceExtents(void) {
 		const d_bsp_face_t *s = &d_bsp.faces[k];
 		const d_bsp_texinfo_t *tex = &d_bsp.texinfo[s->texinfo];
 
-		float *mins = face_extents[s - d_bsp.faces].mins;
-		float *maxs = face_extents[s - d_bsp.faces].maxs;
+		vec_t *mins = face_extents[s - d_bsp.faces].mins;
+		vec_t *maxs = face_extents[s - d_bsp.faces].maxs;
 
-		float *center = face_extents[s - d_bsp.faces].center;
+		vec_t *center = face_extents[s - d_bsp.faces].center;
 
-		float *st_mins = face_extents[s - d_bsp.faces].st_mins;
-		float *st_maxs = face_extents[s - d_bsp.faces].st_maxs;
+		vec_t *st_mins = face_extents[s - d_bsp.faces].st_mins;
+		vec_t *st_maxs = face_extents[s - d_bsp.faces].st_maxs;
 
 		VectorSet(mins, 999999, 999999, 999999);
 		VectorSet(maxs, -999999, -999999, -999999);
@@ -95,7 +95,7 @@ static void BuildFaceExtents(void) {
 			}
 
 			for (j = 0; j < 2; j++) { // calculate st_mins, st_maxs
-				const float val = DotProduct(v->point, tex->vecs[j])
+				const vec_t val = DotProduct(v->point, tex->vecs[j])
 						+ tex->vecs[j][3];
 				if (val < st_mins[j])
 					st_mins[j] = val;
@@ -114,7 +114,7 @@ static void BuildFaceExtents(void) {
  */
 static void CalcLightinfoExtents(light_info_t *l) {
 	const d_bsp_face_t *s;
-	float *st_mins, *st_maxs;
+	vec_t *st_mins, *st_maxs;
 	vec2_t lm_mins, lm_maxs;
 	int32_t i;
 
@@ -151,7 +151,7 @@ static void CalcLightinfoVectors(light_info_t *l) {
 
 	tex = &d_bsp.texinfo[l->face->texinfo];
 
-	// convert from float to double
+	// convert from vec_t to double
 	for (i = 0; i < 2; i++)
 		VectorCopy(tex->vecs[i], l->world_to_tex[i]);
 
@@ -209,7 +209,7 @@ static void CalcLightinfoVectors(light_info_t *l) {
  * @brief For each texture aligned grid point, back project onto the plane
  * to get the world xyz value of the sample point
  */
-static void CalcPoints(light_info_t *l, float sofs, float tofs) {
+static void CalcPoints(light_info_t *l, vec_t sofs, vec_t tofs) {
 	int32_t s, t, j;
 	int32_t w, h, step;
 	vec_t starts, startt;
@@ -239,9 +239,9 @@ static void CalcPoints(light_info_t *l, float sofs, float tofs) {
 
 typedef struct { // buckets for sample accumulation
 	int32_t num_samples;
-	float *origins;
-	float *samples;
-	float *directions;
+	vec_t *origins;
+	vec_t *samples;
+	vec_t *directions;
 } face_light_t;
 
 static face_light_t face_lights[MAX_BSP_FACES];
@@ -250,11 +250,11 @@ typedef struct light_s { // a light source
 	struct light_s *next;
 	emittype_t type;
 
-	float intensity; // brightness
+	vec_t intensity; // brightness
 	vec3_t origin;
 	vec3_t color;
 	vec3_t normal; // spotlight direction
-	float stopdot; // spotlight cone
+	vec_t stopdot; // spotlight cone
 } light_t;
 
 static light_t *lights[MAX_BSP_LEAFS];
@@ -262,7 +262,7 @@ static int32_t num_lights;
 
 // sunlight, borrowed from ufo2map
 typedef struct sun_s {
-	float intensity;
+	vec_t intensity;
 	vec3_t color;
 	vec3_t angles; // entity-style angles
 	vec3_t normal; // normalized direction
@@ -300,7 +300,7 @@ void BuildLights(void) {
 	vec3_t dest;
 	const char *color;
 	const char *angles;
-	float f, intensity;
+	vec_t v, intensity;
 
 	// surfaces
 	for (i = 0; i < MAX_BSP_FACES; i++) {
@@ -385,15 +385,15 @@ void BuildLights(void) {
 				entity_t *e2 = FindTargetEntity(target);
 				if (!e2) {
 					Com_Warn("Light at (%i %i %i) has missing target\n",
-							(int) l->origin[0], (int) l->origin[1],
-							(int) l->origin[2]);
+							(int32_t) l->origin[0], (int32_t) l->origin[1],
+							(int32_t) l->origin[2]);
 				} else {
 					GetVectorForKey(e2, "origin", dest);
 					VectorSubtract(dest, l->origin, l->normal);
 					VectorNormalize(l->normal);
 				}
 			} else { // point down angle
-				const float angle = FloatForKey(e, "angle");
+				const vec_t angle = FloatForKey(e, "angle");
 				if (angle == ANGLE_UP) {
 					l->normal[0] = l->normal[1] = 0.0;
 					l->normal[2] = 1.0;
@@ -449,21 +449,21 @@ void BuildLights(void) {
 					ambient[0], ambient[1], ambient[2]);
 
 		// optionally pull brightness from worldspawn
-		f = FloatForKey(e, "brightness");
-		if (f > 0.0)
-			brightness = f;
+		v = FloatForKey(e, "brightness");
+		if (v > 0.0)
+			brightness = v;
 
 		// saturation as well
-		f = FloatForKey(e, "saturation");
-		if (f > 0.0)
-			saturation = f;
+		v = FloatForKey(e, "saturation");
+		if (v > 0.0)
+			saturation = v;
 
-		f = FloatForKey(e, "contrast");
-		if (f > 0.0)
-			contrast = f;
+		v = FloatForKey(e, "contrast");
+		if (v > 0.0)
+			contrast = v;
 
 		// lightmap resolution downscale (e.g. 8 = 1 / 8)
-		lightmap_scale = (int) FloatForKey(e, "lightmap_scale");
+		lightmap_scale = (int32_t) FloatForKey(e, "lightmap_scale");
 		if (!lightmap_scale)
 			lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
 	}
@@ -474,10 +474,10 @@ void BuildLights(void) {
  * sunlight when a sky surface is struck.
  */
 static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal,
-		float *sample, float *direction, float scale) {
+		vec_t *sample, vec_t *direction, vec_t scale) {
 
 	vec3_t delta;
-	float dot, light;
+	vec_t dot, light;
 	c_trace_t trace;
 
 	if (!sun.intensity)
@@ -510,12 +510,12 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal,
  * light and directional information to the specified pointers.
  */
 static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
-		float *sample, float *direction, float scale) {
+		vec_t *sample, vec_t *direction, vec_t scale) {
 
 	light_t *l;
 	vec3_t delta;
-	float dot, dot2;
-	float dist;
+	vec_t dot, dot2;
+	vec_t dist;
 	c_trace_t trace;
 	int32_t i;
 
@@ -527,7 +527,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 
 		for (l = lights[i]; l; l = l->next) {
 
-			float light = 0.0;
+			vec_t light = 0.0;
 
 			VectorSubtract(l->origin, pos, delta);
 			dist = VectorNormalize(delta);
@@ -643,7 +643,7 @@ void BuildVertexNormals(void) {
 	int32_t vert_faces[MAX_VERT_FACES];
 	int32_t num_vert_faces;
 	vec3_t norm, delta;
-	float scale;
+	vec_t scale;
 	int32_t i, j;
 
 	BuildFaceExtents();
@@ -684,7 +684,7 @@ void BuildVertexNormals(void) {
  * linear interpolation between the nearest and farthest vertexes.
  */
 static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal) {
-	float best_dist, *best_normal;
+	vec_t best_dist, *best_normal;
 	int32_t i;
 
 	best_dist = 0x7fffffff;
@@ -699,7 +699,7 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 		uint16_t v;
 
 		vec3_t delta;
-		float dist;
+		vec_t dist;
 
 		if (e >= 0)
 			v = d_bsp.edges[e].v[0];
@@ -720,7 +720,7 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 }
 
 #define MAX_SAMPLES 5
-static const float sampleofs[MAX_SAMPLES][2] = { { 0.0, 0.0 },
+static const vec_t sampleofs[MAX_SAMPLES][2] = { { 0.0, 0.0 },
 		{ -0.125, -0.125 }, { 0.125, -0.125 }, { 0.125, 0.125 }, { -0.125,
 				0.125 } };
 
@@ -731,8 +731,8 @@ void BuildFacelights(int32_t face_num) {
 	d_bsp_face_t *face;
 	d_bsp_plane_t *plane;
 	d_bsp_texinfo_t *tex;
-	float *center;
-	float *sdir, *tdir, scale;
+	vec_t *center;
+	vec_t *sdir, *tdir, scale;
 	vec3_t pos;
 	vec3_t normal, bitangent;
 	vec4_t tangent;
@@ -804,8 +804,8 @@ void BuildFacelights(int32_t face_num) {
 
 	for (i = 0; i < fl->num_samples; i++) { // calculate light for each sample
 
-		float *sample = fl->samples + i * 3; // accumulate lighting here
-		float *direction = fl->directions + i * 3; // accumulate direction here
+		vec_t *sample = fl->samples + i * 3; // accumulate lighting here
+		vec_t *direction = fl->directions + i * 3; // accumulate direction here
 
 		for (j = 0; j < num_samples; j++) { // with antialiasing
 			byte pvs[(MAX_BSP_LEAFS + 7) / 8];
@@ -847,7 +847,7 @@ void BuildFacelights(int32_t face_num) {
 
 		for (i = 0; i < l[0].num_sample_points; i++) { // pad them
 
-			float *direction = fl->directions + i * 3;
+			vec_t *direction = fl->directions + i * 3;
 
 			if (VectorCompare(direction, vec3_origin))
 				VectorSet(direction, 0.0, 0.0, 1.0);

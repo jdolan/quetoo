@@ -60,7 +60,7 @@ static cg_center_print_t center_print;
 /*
  * @brief Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
  */
-static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const float scale,
+static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const vec_t scale,
 		const uint16_t icon) {
 
 	if (icon >= MAX_IMAGES || !cgi.client->image_precache[icon]) {
@@ -446,7 +446,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		cgi.ColorFromPalette(color, crosshair.color);
 	}
 
-	float scale = cg_draw_crosshair_scale->value;
+	vec_t scale = cg_draw_crosshair_scale->value;
 	crosshair.color[3] = 1.0;
 
 	// pulse the crosshair size and alpha based on pickups
@@ -463,7 +463,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
 		pickup = p;
 
-		const float delta = 1.0 - ((cgi.client->time - last_pulse_time) / 500.0);
+		const vec_t delta = 1.0 - ((cgi.client->time - last_pulse_time) / 500.0);
 
 		if (delta > 0.0) {
 			scale += cg_draw_crosshair_pulse->value * 0.5 * delta;
@@ -544,7 +544,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	static int16_t pickup;
 	static uint32_t last_blend_time;
 	static int32_t color;
-	static float alpha;
+	static vec_t alpha;
 
 	if (!cg_draw_blend->value)
 		return;
@@ -572,8 +572,8 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	}
 
 	// determine the current blend color based on the above events
-	float t = (float) (cgi.client->time - last_blend_time) / 500.0;
-	float al = cg_draw_blend->value * (alpha - (t * alpha));
+	vec_t t = (vec_t) (cgi.client->time - last_blend_time) / 500.0;
+	vec_t al = cg_draw_blend->value * (alpha - (t * alpha));
 
 	if (al < 0.0 || al > 1.0)
 		al = 0.0;

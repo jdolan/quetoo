@@ -290,7 +290,7 @@ static void Cl_ParseServerData(void) {
  */
 static void Cl_ParseSound(void) {
 	vec3_t origin;
-	float *org;
+	vec_t *org;
 	uint16_t index;
 	uint16_t ent_num;
 	int32_t atten;

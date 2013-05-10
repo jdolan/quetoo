@@ -88,7 +88,7 @@ static inline _Bool PlaneEqual(const map_plane_t * p, const vec3_t normal, const
 static inline void AddPlaneToHash(map_plane_t * p) {
 	int32_t hash;
 
-	hash = (int) fabs(p->dist) / 8;
+	hash = (int32_t) fabs(p->dist) / 8;
 	hash &= (PLANE_HASHES - 1);
 
 	p->hash_chain = plane_hash[hash];
@@ -160,7 +160,7 @@ static void SnapVector(vec3_t normal) {
  * @brief
  */
 static inline void SnapPlane(vec3_t normal, vec_t *dist) {
-	const float f = floor(*dist + 0.5);
+	const vec_t f = floor(*dist + 0.5);
 
 	SnapVector(normal);
 
@@ -177,7 +177,7 @@ int32_t FindFloatPlane(vec3_t normal, vec_t dist) {
 	int32_t hash;
 
 	SnapPlane(normal, &dist);
-	hash = (int) fabs(dist) / 8;
+	hash = (int32_t) fabs(dist) / 8;
 	hash &= (PLANE_HASHES - 1);
 
 	// search the border bins as well
@@ -252,10 +252,10 @@ static void AddBrushBevels(map_brush_t * b) {
 	map_brush_texture_t tdtemp;
 	side_t *s, *s2;
 	vec3_t normal;
-	float dist;
+	vec_t dist;
 	winding_t *w, *w2;
 	vec3_t vec, vec2;
-	float d;
+	vec_t d;
 
 	// add the axial planes
 	order = 0;
@@ -334,7 +334,7 @@ static void AddBrushBevels(map_brush_t * b) {
 					// if all the points on all the sides are
 					// behind this plane, it is a proper edge bevel
 					for (k = 0; k < b->num_sides; k++) {
-						float minBack;
+						vec_t minBack;
 
 						// if this plane has already been used, skip it
 						if (PlaneEqual(&map_planes[b->original_sides[k].plane_num], normal, dist))
@@ -637,8 +637,8 @@ static void ParseBrush(entity_t *mapent) {
 		VectorAdd(b->mins, b->maxs, origin);
 		VectorScale(origin, 0.5, origin);
 
-		sprintf(string, "%i %i %i", (int)origin[0], (int)origin[1],
-				(int)origin[2]);
+		sprintf(string, "%i %i %i", (int32_t)origin[0], (int32_t)origin[1],
+				(int32_t)origin[2]);
 		SetKeyValue(&entities[b->entity_num], "origin", string);
 
 		VectorCopy(origin, entities[b->entity_num].origin);

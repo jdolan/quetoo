@@ -45,10 +45,10 @@ typedef struct cl_emit_s {
 	vec3_t dir; // for particle direction
 	vec3_t vel; // for particle velocity
 	vec3_t color;
-	float hz, drift; // how frequently and randomly we fire
-	float radius; // flame and corona radius
-	float flicker;
-	float scale; // mesh model scale
+	vec_t hz, drift; // how frequently and randomly we fire
+	vec_t radius; // flame and corona radius
+	vec_t flicker;
+	vec_t scale; // mesh model scale
 	int32_t count; // particle counts
 	char sound[MAX_QPATH]; // sound name
 	s_sample_t *sample; // sound sample
@@ -248,7 +248,7 @@ void Cg_LoadEmits(void) {
 			continue;
 		}
 
-		if (!g_strcmp0(c, "color")) { // resolve color as floats
+		if (!g_strcmp0(c, "color")) { // resolve color as vector
 			sscanf(ParseToken(&ents), "%f %f %f", &e->color[0], &e->color[1], &e->color[2]);
 			continue;
 		}
@@ -336,7 +336,7 @@ cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
 	}
 
 	if (em.flags && em.hz && em.time < cgi.client->time) { // update the time stamp
-		const float drift = e->drift * Randomf() * 1000.0;
+		const vec_t drift = e->drift * Randomf() * 1000.0;
 		e->time = cgi.client->time + (1000.0 / e->hz) + drift;
 	}
 

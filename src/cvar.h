@@ -32,9 +32,9 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 cvar_t *Cvar_Set(const char *name, const char *value);
 cvar_t *Cvar_ForceSet(const char *name, const char *value);
 cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags);
-void Cvar_SetValue(const char *name, float value);
+void Cvar_SetValue(const char *name, vec_t value);
 void Cvar_Toggle(const char *name);
-float Cvar_GetValue(const char *name);
+vec_t Cvar_GetValue(const char *name);
 char *Cvar_GetString(const char *name);
 void Cvar_Enumerate(cvar_enumerate_func func, void *data);
 void Cvar_CompleteVar(const char *pattern, GList **matches);

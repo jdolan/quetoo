@@ -152,7 +152,7 @@ static void G_ClientWorldAngles(g_edict_t *ent) {
 	ent->s.angles[YAW] = ent->client->locals.angles[YAW];
 
 	// set roll based on lateral velocity and ground entity
-	const float dot = DotProduct(ent->locals.velocity, ent->client->locals.right);
+	const vec_t dot = DotProduct(ent->locals.velocity, ent->client->locals.right);
 
 	ent->s.angles[ROLL] = ent->locals.ground_entity ? dot * 0.025 : dot * 0.005;
 
@@ -171,7 +171,7 @@ static void G_ClientWorldAngles(g_edict_t *ent) {
 /*
  * @brief Adds view kick in the specified direction to the specified client.
  */
-void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const float kick) {
+void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const vec_t kick) {
 	vec3_t old_kick_angles, kick_angles;
 
 	UnpackAngles(ent->client->ps.pm_state.kick_angles, old_kick_angles);
@@ -188,7 +188,7 @@ void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const float kick) {
 /*
  * @brief A convenience function for adding view kick from firing weapons.
  */
-void G_ClientWeaponKick(g_edict_t *ent, const float kick) {
+void G_ClientWeaponKick(g_edict_t *ent, const vec_t kick) {
 	vec3_t dir;
 
 	VectorScale(ent->client->locals.forward, -1.0, dir);
@@ -227,15 +227,15 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 
 	// and any velocity-based feedback
 
-	float forward = DotProduct(ent->locals.velocity, ent->client->locals.forward);
+	vec_t forward = DotProduct(ent->locals.velocity, ent->client->locals.forward);
 	kick[PITCH] += forward / 500.0;
 
-	float right = DotProduct(ent->locals.velocity, ent->client->locals.right);
+	vec_t right = DotProduct(ent->locals.velocity, ent->client->locals.right);
 	kick[ROLL] += right / 500.0;
 
 	// now interpolate the kick angles towards neutral over time
 
-	float delta = VectorLength(kick);
+	vec_t delta = VectorLength(kick);
 
 	if (!delta) // no kick, we're done
 		return;

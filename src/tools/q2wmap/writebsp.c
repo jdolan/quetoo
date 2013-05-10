@@ -333,7 +333,7 @@ static void EmitBrushes(void){
 			for(s = -1; s <= 1; s += 2){
 				// add the plane
 				VectorCopy(vec3_origin, normal);
-				normal[x] = (float)s;
+				normal[x] = (vec_t)s;
 
 				if(s == -1)
 					dist = -b->mins[x];

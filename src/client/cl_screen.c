@@ -27,7 +27,7 @@
 
 // net graph samples
 typedef struct {
-	float value;
+	vec_t value;
 	int32_t color;
 } net_graph_sample_t;
 
@@ -37,7 +37,7 @@ static int32_t num_net_graph_samples;
 /*
  * @brief Accumulates a net graph sample.
  */
-static void Cl_NetGraph(float value, int32_t color) {
+static void Cl_NetGraph(vec_t value, int32_t color) {
 
 	net_graph_samples[num_net_graph_samples].value = value;
 	net_graph_samples[num_net_graph_samples].color = color;

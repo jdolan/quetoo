@@ -53,7 +53,7 @@ static void R_ResolveBspLightParameters(void) {
 
 	// resolve ambient light
 	if ((c = R_WorldspawnValue("ambient_light"))) {
-		float *f = r_bsp_light_state.ambient_light;
+		vec_t *f = r_bsp_light_state.ambient_light;
 		sscanf(c, "%f %f %f", &f[0], &f[1], &f[2]);
 
 		VectorScale(f, r_modulate->value, f);
@@ -77,7 +77,7 @@ static void R_ResolveBspLightParameters(void) {
 
 	// resolve sun color
 	if ((c = R_WorldspawnValue("sun_color"))) {
-		float *f = r_bsp_light_state.sun_color;
+		vec_t *f = r_bsp_light_state.sun_color;
 		sscanf(c, "%f %f %f", &f[0], &f[1], &f[2]);
 
 		Com_Debug("Resolved sun_color: %1.2f %1.2f %1.2f\n", f[0], f[1], f[2]);
@@ -111,7 +111,7 @@ static void R_ResolveBspLightParameters(void) {
 	Com_Debug("Resolved contrast: %1.2f\n", r_bsp_light_state.contrast);
 
 	// apply brightness, saturation and contrast to the colors
-	float *f = r_bsp_light_state.ambient_light;
+	vec_t *f = r_bsp_light_state.ambient_light;
 	ColorFilter(f, f, r_bsp_light_state.brightness, r_bsp_light_state.saturation,
 			r_bsp_light_state.contrast);
 
@@ -128,7 +128,7 @@ static void R_ResolveBspLightParameters(void) {
  * @brief Adds the specified static light source after first ensuring that it
  * can not be merged with any known sources.
  */
-static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, float radius, vec3_t color) {
+static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, vec_t radius, vec3_t color) {
 
 	if (radius <= 0.0) {
 		Com_Debug("Bad radius: %f\n", radius);
@@ -171,7 +171,7 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, float radius, vec3_t c
  */
 void R_LoadBspLights(r_bsp_model_t *bsp) {
 	vec3_t org, color;
-	float radius;
+	vec_t radius;
 	int32_t i;
 
 	memset(&r_bsp_light_state, 0, sizeof(r_bsp_light_state));
@@ -183,7 +183,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 
 	for (i = 0; i < bsp->num_surfaces; i++, surf++) {
 		vec3_t color = { 0.0, 0.0, 0.0 };
-		float scale = 1.0;
+		vec_t scale = 1.0;
 
 		// light-emitting surfaces are of course lights
 		if ((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value) {
@@ -285,7 +285,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 		r_bsp_light_t *l = (r_bsp_light_t *) e->data;
 
 		// normalize the color, scaling back from full brights
-		float max = 0.0;
+		vec_t max = 0.0;
 		int32_t j;
 
 		for (j = 0; j < 3; j++) {

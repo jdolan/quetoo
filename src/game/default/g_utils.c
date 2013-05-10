@@ -28,7 +28,7 @@ void G_ProjectSpawn(g_edict_t *ent) {
 	vec3_t mins, maxs, delta, forward;
 
 	// up
-	const float up = ceilf(fabs(PM_SCALE * PM_MINS[2] - PM_MINS[2]));
+	const vec_t up = ceilf(fabs(PM_SCALE * PM_MINS[2] - PM_MINS[2]));
 	ent->s.origin[2] += up;
 
 	// forward, find the old x/y size
@@ -37,13 +37,13 @@ void G_ProjectSpawn(g_edict_t *ent) {
 	mins[2] = maxs[2] = 0.0;
 
 	VectorSubtract(maxs, mins, delta);
-	const float len0 = VectorLength(delta);
+	const vec_t len0 = VectorLength(delta);
 
 	// and the new x/y size
 	VectorScale(delta, PM_SCALE, delta);
-	const float len1 = VectorLength(delta);
+	const vec_t len1 = VectorLength(delta);
 
-	const float fwd = ceilf(len1 - len0);
+	const vec_t fwd = ceilf(len1 - len0);
 
 	AngleVectors(ent->s.angles, forward, NULL, NULL);
 	VectorMA(ent->s.origin, fwd, forward, ent->s.origin);
@@ -62,7 +62,7 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 	VectorCopy(ent->client->locals.up, up);
 	VectorCopy(ent->s.origin, org);
 
-	const float u = ent->client->ps.pm_state.pm_flags & PMF_DUCKED ? 0.0 : 14.0;
+	const vec_t u = ent->client->ps.pm_state.pm_flags & PMF_DUCKED ? 0.0 : 14.0;
 
 	VectorMA(org, u, up, org);
 	VectorMA(org, 8.0, right, org);
@@ -123,7 +123,7 @@ g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match) {
  *
  * G_FindRadius(origin, radius)
  */
-g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, float rad) {
+g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, vec_t rad) {
 	vec3_t eorg;
 	int32_t j;
 

@@ -25,7 +25,7 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density);
+void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density);
 void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent);
 void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent);
 void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent);

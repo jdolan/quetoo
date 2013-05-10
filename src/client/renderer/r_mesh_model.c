@@ -200,27 +200,27 @@ static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 		const uint32_t i2 = tri[1];
 		const uint32_t i3 = tri[2];
 
-		const float *v1 = mesh->verts[i1].point;
-		const float *v2 = mesh->verts[i2].point;
-		const float *v3 = mesh->verts[i3].point;
+		const vec_t *v1 = mesh->verts[i1].point;
+		const vec_t *v2 = mesh->verts[i2].point;
+		const vec_t *v3 = mesh->verts[i3].point;
 
-		const float *w1 = mesh->coords[i1].st;
-		const float *w2 = mesh->coords[i2].st;
-		const float *w3 = mesh->coords[i3].st;
+		const vec_t *w1 = mesh->coords[i1].st;
+		const vec_t *w2 = mesh->coords[i2].st;
+		const vec_t *w3 = mesh->coords[i3].st;
 
-		float x1 = v2[0] - v1[0];
-		float x2 = v3[0] - v1[0];
-		float y1 = v2[1] - v1[1];
-		float y2 = v3[1] - v1[1];
-		float z1 = v2[2] - v1[2];
-		float z2 = v3[2] - v1[2];
+		vec_t x1 = v2[0] - v1[0];
+		vec_t x2 = v3[0] - v1[0];
+		vec_t y1 = v2[1] - v1[1];
+		vec_t y2 = v3[1] - v1[1];
+		vec_t z1 = v2[2] - v1[2];
+		vec_t z2 = v3[2] - v1[2];
 
-		float s1 = w2[0] - w1[0];
-		float s2 = w3[0] - w1[0];
-		float t1 = w2[1] - w1[1];
-		float t2 = w3[1] - w1[1];
+		vec_t s1 = w2[0] - w1[0];
+		vec_t s2 = w3[0] - w1[0];
+		vec_t t1 = w2[1] - w1[1];
+		vec_t t2 = w3[1] - w1[1];
 
-		float r = 1.0 / (s1 * t2 - s2 * t1);
+		vec_t r = 1.0 / (s1 * t2 - s2 * t1);
 
 		VectorSet(sdir,
 				(t2 * x1 - t1 * x2),
@@ -252,8 +252,8 @@ static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 	for (i = 0; i < mesh->num_verts; i++) {
 		vec3_t bitangent;
 
-		const float *normal = mesh->verts[i].normal;
-		float *tangent = mesh->verts[i].tangent;
+		const vec_t *normal = mesh->verts[i].normal;
+		vec_t *tangent = mesh->verts[i].tangent;
 
 		TangentVectors(normal, tan1[i], tan2[i], tangent, bitangent);
 	}
@@ -341,7 +341,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	d_md3_vertex_t *in_vert;
 	r_md3_vertex_t *out_vert;
 	uint32_t *inindex, *out_index;
-	float lat, lng;
+	vec_t lat, lng;
 	size_t size;
 
 	in_md3 = (d_md3_t *) buffer;
@@ -543,31 +543,31 @@ static void R_LoadObjModelTangents(r_obj_t *obj) {
 		const int32_t i2 = tri->verts[1].vert - 1;
 		const int32_t i3 = tri->verts[2].vert - 1;
 
-		const float *v1 = &obj->verts[i1 * 3];
-		const float *v2 = &obj->verts[i2 * 3];
-		const float *v3 = &obj->verts[i3 * 3];
+		const vec_t *v1 = &obj->verts[i1 * 3];
+		const vec_t *v2 = &obj->verts[i2 * 3];
+		const vec_t *v3 = &obj->verts[i3 * 3];
 
 		const int32_t j1 = tri->verts[0].texcoord - 1;
 		const int32_t j2 = tri->verts[1].texcoord - 1;
 		const int32_t j3 = tri->verts[2].texcoord - 1;
 
-		const float *w1 = &obj->texcoords[j1 * 2];
-		const float *w2 = &obj->texcoords[j2 * 2];
-		const float *w3 = &obj->texcoords[j3 * 2];
+		const vec_t *w1 = &obj->texcoords[j1 * 2];
+		const vec_t *w2 = &obj->texcoords[j2 * 2];
+		const vec_t *w3 = &obj->texcoords[j3 * 2];
 
-		float x1 = v2[0] - v1[0];
-		float x2 = v3[0] - v1[0];
-		float y1 = v2[1] - v1[1];
-		float y2 = v3[1] - v1[1];
-		float z1 = v2[2] - v1[2];
-		float z2 = v3[2] - v1[2];
+		vec_t x1 = v2[0] - v1[0];
+		vec_t x2 = v3[0] - v1[0];
+		vec_t y1 = v2[1] - v1[1];
+		vec_t y2 = v3[1] - v1[1];
+		vec_t z1 = v2[2] - v1[2];
+		vec_t z2 = v3[2] - v1[2];
 
-		float s1 = w2[0] - w1[0];
-		float s2 = w3[0] - w1[0];
-		float t1 = w2[1] - w1[1];
-		float t2 = w3[1] - w1[1];
+		vec_t s1 = w2[0] - w1[0];
+		vec_t s2 = w3[0] - w1[0];
+		vec_t t1 = w2[1] - w1[1];
+		vec_t t2 = w3[1] - w1[1];
 
-		float r = 1.0 / (s1 * t2 - s2 * t1);
+		vec_t r = 1.0 / (s1 * t2 - s2 * t1);
 
 		VectorSet(sdir,
 				(t2 * x1 - t1 * x2),
@@ -605,8 +605,8 @@ static void R_LoadObjModelTangents(r_obj_t *obj) {
 		for (j = 0; j < 3; j++, v++) { // each vert
 			vec3_t bitangent;
 
-			const float *normal = &obj->normals[(v->normal - 1) * 3];
-			float *tangent = &obj->tangents[(v->vert - 1) * 4];
+			const vec_t *normal = &obj->normals[(v->normal - 1) * 3];
+			vec_t *tangent = &obj->tangents[(v->vert - 1) * 4];
 
 			TangentVectors(normal, tan1[v->vert - 1], tan2[v->vert - 1], tangent, bitangent);
 		}
@@ -785,7 +785,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 	if (!strncmp(line, "v ", 2)) { // vertex
 
 		if (obj->verts) { // parse it
-			float *f = obj->verts + obj->num_verts_parsed * 3;
+			vec_t *f = obj->verts + obj->num_verts_parsed * 3;
 
 			if (sscanf(line + 2, "%f %f %f", &f[0], &f[2], &f[1]) != 3)
 				Com_Error(ERR_DROP, "Malformed vertex for %s: %s\n", mod->media.name, line);
@@ -797,7 +797,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 	} else if (!strncmp(line, "vn ", 3)) { // normal
 
 		if (obj->normals) { // parse it
-			float *f = obj->normals + obj->num_normals_parsed * 3;
+			vec_t *f = obj->normals + obj->num_normals_parsed * 3;
 
 			if (sscanf(line + 3, "%f %f %f", &f[0], &f[1], &f[2]) != 3)
 				Com_Error(ERR_DROP, "Malformed normal for %s: %s\n", mod->media.name, line);
@@ -810,7 +810,7 @@ static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *l
 	} else if (!strncmp(line, "vt ", 3)) { // texcoord
 
 		if (obj->texcoords) { // parse it
-			float *f = obj->texcoords + obj->num_texcoords_parsed * 2;
+			vec_t *f = obj->texcoords + obj->num_texcoords_parsed * 2;
 
 			if (sscanf(line + 3, "%f %f", &f[0], &f[1]) != 2)
 				Com_Error(ERR_DROP, "Malformed texcoord for %s: %s\n", mod->media.name, line);
@@ -879,7 +879,7 @@ static void R_LoadObjModel_(r_model_t *mod, r_obj_t *obj, const void *buffer) {
  */
 void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	r_obj_t *obj;
-	const float *v;
+	const vec_t *v;
 	int32_t i;
 
 	mod->mesh = Z_LinkMalloc(sizeof(r_mesh_model_t), mod);
@@ -894,13 +894,13 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	mod->mesh->num_frames = 1;
 
 	// allocate the arrays
-	obj->verts = Z_LinkMalloc(obj->num_verts * sizeof(float) * 3, mod->mesh);
-	obj->normals = Z_LinkMalloc(obj->num_normals * sizeof(float) * 3, mod->mesh);
-	obj->texcoords = Z_LinkMalloc(obj->num_texcoords * sizeof(float) * 2, mod->mesh);
+	obj->verts = Z_LinkMalloc(obj->num_verts * sizeof(vec_t) * 3, mod->mesh);
+	obj->normals = Z_LinkMalloc(obj->num_normals * sizeof(vec_t) * 3, mod->mesh);
+	obj->texcoords = Z_LinkMalloc(obj->num_texcoords * sizeof(vec_t) * 2, mod->mesh);
 	obj->tris = Z_LinkMalloc(obj->num_tris * sizeof(r_obj_tri_t), mod->mesh);
 
 	// including the tangents
-	obj->tangents = Z_LinkMalloc(obj->num_verts * sizeof(float) * 4, mod->mesh);
+	obj->tangents = Z_LinkMalloc(obj->num_verts * sizeof(vec_t) * 4, mod->mesh);
 
 	R_LoadObjModel_(mod, obj, buffer); // load it
 

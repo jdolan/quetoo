@@ -170,17 +170,16 @@ void Cl_Record_f(void) {
 /*
  * @brief Adjusts time scale by delta, clamping to reasonable limits.
  */
-static void Cl_AdjustDemoPlayback(float delta) {
-	float f;
+static void Cl_AdjustDemoPlayback(vec_t delta) {
 
 	if (!cl.demo_server) {
 		return;
 	}
 
-	f = Clamp(time_scale->value + delta, DEMO_PLAYBACK_STEP, 4.0);
-	Cvar_Set("time_scale", va("%f", f));
+	const vec_t v = Clamp(time_scale->value + delta, DEMO_PLAYBACK_STEP, 4.0);
+	Cvar_Set("time_scale", va("%f", v));
 
-	Com_Print("Demo playback rate %d%%\n", (int) (time_scale->value * 100));
+	Com_Print("Demo playback rate %d%%\n", (int32_t) (time_scale->value * 100));
 }
 
 /*

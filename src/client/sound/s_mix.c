@@ -60,7 +60,7 @@ _Bool S_SpatializeChannel(s_channel_t *ch) {
 	}
 
 	VectorSubtract(ch->org, r_view.origin, delta);
-	float dist = VectorNormalize(delta) * SOUND_DISTANCE_SCALE * ch->atten;
+	vec_t dist = VectorNormalize(delta) * SOUND_DISTANCE_SCALE * ch->atten;
 
 	if (dist < 255.0) { // check if there's a clear line of sight to the origin
 		R_Trace(r_view.origin, ch->org, vec3_origin, vec3_origin, MASK_SHOT);
@@ -71,8 +71,8 @@ _Bool S_SpatializeChannel(s_channel_t *ch) {
 
 	ch->dist = (uint8_t) Clamp(dist, 0.0, 255.0);
 
-	const float dot = DotProduct(r_view.right, delta);
-	const float angle = acos(dot) * 180.0 / M_PI - 90.0;
+	const vec_t dot = DotProduct(r_view.right, delta);
+	const vec_t angle = acos(dot) * 180.0 / M_PI - 90.0;
 	ch->angle = (int16_t) (360.0 - angle) % 360;
 
 	return dist < 255.0;

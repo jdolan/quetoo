@@ -721,7 +721,7 @@ int32_t Cm_HeadnodeForBox(const vec3_t mins, const vec3_t maxs) {
 static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
 
 	while (num >= 0) {
-		float d;
+		vec_t d;
 		c_bsp_node_t *node = c_bsp.nodes + num;
 		c_bsp_plane_t *plane = node->plane;
 
@@ -759,7 +759,7 @@ int32_t Cm_PointLeafnum(const vec3_t p) {
 typedef struct c_bsp_leaf_data_s {
 	size_t len, max_len;
 	int32_t *list;
-	const float *mins, *maxs;
+	const vec_t *mins, *maxs;
 	int32_t top_node;
 } c_bsp_leaf_data_t;
 
@@ -912,8 +912,8 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 
 	c_bsp_brush_traces++;
 
-	float enter_fraction = -1.0;
-	float leave_fraction = 1.0;
+	vec_t enter_fraction = -1.0;
+	vec_t leave_fraction = 1.0;
 
 	const c_bsp_plane_t *clip_plane = NULL;
 
@@ -923,7 +923,7 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 	for (i = 0; i < brush->num_sides; i++) {
 		const c_bsp_brush_side_t *side = &c_bsp.brush_sides[brush->first_brush_side + i];
 		const c_bsp_plane_t *plane = side->plane;
-		float dist;
+		vec_t dist;
 
 		// FIXME: special case for axial
 
@@ -945,8 +945,8 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 			dist = plane->dist;
 		}
 
-		const float d1 = DotProduct(p1, plane->normal) - dist;
-		const float d2 = DotProduct(p2, plane->normal) - dist;
+		const vec_t d1 = DotProduct(p1, plane->normal) - dist;
+		const vec_t d2 = DotProduct(p2, plane->normal) - dist;
 
 		if (d2 > 0.0)
 			end_outside = true; // end point is not in solid
@@ -962,14 +962,14 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 
 		// crosses face
 		if (d1 > d2) { // enter
-			const float f = (d1 - DIST_EPSILON) / (d1 - d2);
+			const vec_t f = (d1 - DIST_EPSILON) / (d1 - d2);
 			if (f > enter_fraction) {
 				enter_fraction = f;
 				clip_plane = plane;
 				lead_side = side;
 			}
 		} else { // leave
-			const float f = (d1 + DIST_EPSILON) / (d1 - d2);
+			const vec_t f = (d1 + DIST_EPSILON) / (d1 - d2);
 			if (f < leave_fraction)
 				leave_fraction = f;
 		}
@@ -1023,9 +1023,9 @@ static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, c_trace_t *tr
 			else
 				offset[j] = mins[j];
 		}
-		const float dist = plane->dist - DotProduct(offset, plane->normal);
+		const vec_t dist = plane->dist - DotProduct(offset, plane->normal);
 
-		const float d1 = DotProduct(p1, plane->normal) - dist;
+		const vec_t d1 = DotProduct(p1, plane->normal) - dist;
 
 		// if completely in front of face, no intersection
 		if (d1 > 0.0)
@@ -1101,16 +1101,16 @@ static void Cm_TestInLeaf(int32_t leaf_num, c_trace_data_t *data) {
 /*
  * @brief
  */
-static void Cm_RecursiveHullCheck(int32_t num, float p1f, float p2f, const vec3_t p1,
+static void Cm_RecursiveHullCheck(int32_t num, vec_t p1f, vec_t p2f, const vec3_t p1,
 		const vec3_t p2, c_trace_data_t *data) {
 	const c_bsp_node_t *node;
 	const c_bsp_plane_t *plane;
-	float t1, t2, offset;
-	float frac, frac2;
+	vec_t t1, t2, offset;
+	vec_t frac, frac2;
 	int32_t i;
 	vec3_t mid;
 	int32_t side;
-	float midf;
+	vec_t midf;
 
 	if (data->trace.fraction <= p1f)
 		return; // already hit something nearer
@@ -1153,12 +1153,12 @@ static void Cm_RecursiveHullCheck(int32_t num, float p1f, float p2f, const vec3_
 
 	// put the crosspoint DIST_EPSILON pixels on the near side
 	if (t1 < t2) {
-		const float idist = 1.0 / (t1 - t2);
+		const vec_t idist = 1.0 / (t1 - t2);
 		side = 1;
 		frac2 = (t1 + offset + DIST_EPSILON) * idist;
 		frac = (t1 - offset + DIST_EPSILON) * idist;
 	} else if (t1 > t2) {
-		const float idist = 1.0 / (t1 - t2);
+		const vec_t idist = 1.0 / (t1 - t2);
 		side = 0;
 		frac2 = (t1 - offset - DIST_EPSILON) * idist;
 		frac = (t1 + offset + DIST_EPSILON) * idist;
@@ -1232,8 +1232,8 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
 			c2[i] += 1.0;
 		}
 
-		leafs = Cm_BoxLeafnums_head_node(c1, c2, point_leafs, sizeof(point_leafs) / sizeof(int),
-				head_node, &top_node); // NOTE: was * sizeof(int)
+		leafs = Cm_BoxLeafnums_head_node(c1, c2, point_leafs, sizeof(point_leafs) / sizeof(int32_t),
+				head_node, &top_node); // NOTE: was * sizeof(int32_t)
 
 		for (i = 0; i < leafs; i++) {
 			Cm_TestInLeaf(point_leafs[i], &data);

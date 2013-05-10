@@ -30,7 +30,7 @@ static int32_t R_UpdateBspLightReferences_Compare(const void *l1, const void *l2
 	const r_bsp_light_ref_t *_l1 = (r_bsp_light_ref_t *) l1;
 	const r_bsp_light_ref_t *_l2 = (r_bsp_light_ref_t *) l2;
 
-	return (int) (_l2->intensity - _l1->intensity);
+	return (int32_t) (_l2->intensity - _l1->intensity);
 }
 
 /*
@@ -52,7 +52,7 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 	// resolve all of the light sources that could contribute to this lighting
 	for (i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, l++) {
 		vec3_t dir;
-		float intensity;
+		vec_t intensity;
 
 		// is the light source within the PVS this frame
 		if (lighting->state == LIGHTING_DIRTY && l->leaf->vis_frame != r_locals.vis_frame)
@@ -129,7 +129,7 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 
 		// only consider light sources above us
 		if (r->bsp_light->origin[2] > lighting->origin[2]) {
-			const float scale = LIGHTING_MAX_SHADOW_DISTANCE * r->intensity;
+			const vec_t scale = LIGHTING_MAX_SHADOW_DISTANCE * r->intensity;
 			vec3_t dir;
 
 			// and only factor in the X and Y components

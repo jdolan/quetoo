@@ -28,12 +28,12 @@ static pm_move_t *pm;
 // any differences when running on client or server
 
 typedef struct {
-	vec3_t origin; // full float precision
-	vec3_t velocity; // full float precision
-	vec3_t view_offset; // full float precision
+	vec3_t origin; // full vec_t precision
+	vec3_t velocity; // full vec_t precision
+	vec3_t view_offset; // full vec_t precision
 
 	vec3_t forward, right, up;
-	float time; // in seconds
+	vec_t time; // in seconds
 
 	c_bsp_surface_t *ground_surface;
 	c_bsp_plane_t ground_plane;
@@ -86,7 +86,7 @@ static pm_locals_t pml;
  * @brief Slide off of the impacted plane.
  */
 static void Pm_ClipVelocity(vec3_t in, const vec3_t normal, vec3_t out, vec_t bounce) {
-	float backoff, change;
+	vec_t backoff, change;
 	int32_t i;
 
 	backoff = DotProduct(in, normal);
@@ -111,7 +111,7 @@ static void Pm_ClipVelocity(vec3_t in, const vec3_t normal, vec3_t out, vec_t bo
  */
 static void Pm_ClampVelocity(void) {
 	vec3_t tmp;
-	float speed, scale;
+	vec_t speed, scale;
 
 	if (pm->s.pm_flags & PMF_PUSHED) // don't clamp jump pad movement
 		return;
@@ -140,7 +140,7 @@ static int32_t Pm_StepSlideMove_(void) {
 	vec3_t vel, end;
 	c_trace_t trace;
 	int32_t k, num_planes;
-	float time;
+	vec_t time;
 
 	VectorCopy(pml.velocity, vel);
 
@@ -289,16 +289,16 @@ static void Pm_StepSlideMove(void) {
  * @brief Handles friction against user intentions, and based on contents.
  */
 static void Pm_Friction(void) {
-	float scale, friction;
+	vec_t scale, friction;
 
-	const float speed = VectorLength(pml.velocity);
+	const vec_t speed = VectorLength(pml.velocity);
 
 	if (speed < 2.0) {
 		VectorClear(pml.velocity);
 		return;
 	}
 
-	const float control = speed < PM_SPEED_STOP ? PM_SPEED_STOP : speed;
+	const vec_t control = speed < PM_SPEED_STOP ? PM_SPEED_STOP : speed;
 
 	friction = 0.0;
 
@@ -344,8 +344,8 @@ static void Pm_Friction(void) {
 /*
  * @brief Handles user intended acceleration.
  */
-static void Pm_Accelerate(vec3_t dir, float speed, float accel) {
-	float add_speed, accel_speed, current_speed;
+static void Pm_Accelerate(vec3_t dir, vec_t speed, vec_t accel) {
+	vec_t add_speed, accel_speed, current_speed;
 
 	current_speed = DotProduct(pml.velocity, dir);
 	add_speed = speed - current_speed;
@@ -366,7 +366,7 @@ static void Pm_Accelerate(vec3_t dir, float speed, float accel) {
  */
 static void Pm_AddCurrents(vec3_t vel) {
 	vec3_t v;
-	float s;
+	vec_t s;
 
 	// add water currents
 	if (pm->water_type & MASK_CURRENT) {
@@ -429,7 +429,7 @@ static void Pm_CategorizePosition(void) {
 		point[2] -= PM_STAIR_HEIGHT * 0.5;
 	} else { // otherwise, seek the ground beneath the next origin
 		VectorMA(pml.origin, pml.time, pml.velocity, point);
-		if (pm->ground_entity) { // try to stay on the ground rather than float away
+		if (pm->ground_entity) { // try to stay on the ground rather than vec_t away
 			point[2] -= PM_STAIR_HEIGHT * 0.25;
 		} else {
 			point[2] -= PM_STOP_EPSILON;
@@ -518,7 +518,7 @@ static void Pm_CategorizePosition(void) {
  * @brief
  */
 static void Pm_CheckDuck(void) {
-	float height;
+	vec_t height;
 	c_trace_t trace;
 
 	height = pm->maxs[2] - pm->mins[2];
@@ -534,7 +534,7 @@ static void Pm_CheckDuck(void) {
 	}
 
 	if (pm->s.pm_flags & PMF_DUCKED) { // ducked, reduce height
-		float target = pm->mins[2];
+		vec_t target = pm->mins[2];
 
 		if (pm->s.pm_type == PM_DEAD)
 			target += height * 0.15;
@@ -550,7 +550,7 @@ static void Pm_CheckDuck(void) {
 		// change the bounding box to reflect ducking and jumping
 		pm->maxs[2] = pm->maxs[2] + pm->mins[2] * 0.5;
 	} else {
-		const float target = pm->mins[2] + height * 0.75;
+		const vec_t target = pm->mins[2] + height * 0.75;
 
 		if (pml.view_offset[2] < target) // go up
 			pml.view_offset[2] += pml.time * PM_SPEED_DUCK_STAND;
@@ -564,7 +564,7 @@ static void Pm_CheckDuck(void) {
  * @brief
  */
 static _Bool Pm_CheckJump(void) {
-	float jump;
+	vec_t jump;
 
 	// can't jump yet
 	if (pm->s.pm_flags & PMF_TIME_LAND)
@@ -706,7 +706,7 @@ static _Bool Pm_CheckWaterJump(void) {
  */
 static void Pm_LadderMove(void) {
 	vec3_t vel, dir;
-	float speed;
+	vec_t speed;
 	int32_t i;
 
 	//Com_Debug("%d ladder move\n", quake2world.time);
@@ -735,7 +735,7 @@ static void Pm_LadderMove(void) {
 			vel[2] = 0.0;
 		}
 
-		const float s = PM_SPEED_LADDER * 0.125;
+		const vec_t s = PM_SPEED_LADDER * 0.125;
 
 		// limit horizontal speed when on a ladder
 		if (vel[0] < -s) {
@@ -801,7 +801,7 @@ static void Pm_WaterJumpMove(void) {
  */
 static void Pm_WaterMove(void) {
 	vec3_t vel, dir;
-	float speed;
+	vec_t speed;
 	int32_t i;
 
 	if (Pm_CheckWaterJump()) {
@@ -867,7 +867,7 @@ static void Pm_WaterMove(void) {
  */
 static void Pm_AirMove(void) {
 	vec3_t vel, dir;
-	float speed, accel;
+	vec_t speed, accel;
 	int32_t i;
 
 	//Com_Debug("%d air move\n", quake2world.time);
@@ -908,7 +908,7 @@ static void Pm_AirMove(void) {
  * @brief Called for movements where player is on ground, regardless of water level.
  */
 static void Pm_WalkMove(void) {
-	float speed, max_speed, accel;
+	vec_t speed, max_speed, accel;
 	vec3_t vel, dir;
 	int32_t i;
 
@@ -1081,7 +1081,7 @@ static void Pm_ClampAngles(void) {
  */
 static void Pm_SpectatorMove() {
 	vec3_t vel;
-	float speed;
+	vec_t speed;
 	int32_t i;
 
 	Pm_Friction();
@@ -1152,7 +1152,7 @@ static void Pm_InitLocal(void) {
 	// save previous origin in case move fails entirely
 	VectorCopy(pm->s.origin, pml.previous_origin);
 
-	// convert origin and velocity to float values
+	// convert origin and velocity to vec_t values
 	UnpackPosition(pm->s.origin, pml.origin);
 	UnpackPosition(pm->s.velocity, pml.velocity);
 	UnpackPosition(pm->s.view_offset, pml.view_offset);

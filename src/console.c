@@ -98,7 +98,7 @@ static void Con_Update(console_t *con, char *pos) {
 				wordstart = pos + 1;
 			}
 		} else if (IS_COLOR(pos)) {
-			curcolor = (int) *(pos + 1) - '0';
+			curcolor = (int32_t) *(pos + 1) - '0';
 			pos++;
 		} else if (IS_LEGACY_COLOR(pos)) {
 			curcolor = CON_COLOR_ALT;

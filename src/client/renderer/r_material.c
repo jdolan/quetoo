@@ -116,7 +116,7 @@ static void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *stage, c
  */
 static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *stage) {
 	static _Bool identity = true;
-	float s, t;
+	vec_t s, t;
 
 	if (!(stage->flags & STAGE_TEXTURE_MATRIX)) {
 
@@ -184,7 +184,7 @@ static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const
 }
 
 #define NUM_DIRTMAP_ENTRIES 16
-static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
+static const vec_t dirtmap[NUM_DIRTMAP_ENTRIES] = {
 		0.6,
 		0.5,
 		0.3,
@@ -207,7 +207,7 @@ static const float dirtmap[NUM_DIRTMAP_ENTRIES] = {
  */
 static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t color) {
 
-	float a;
+	vec_t a;
 
 	if (stage->flags & STAGE_TERRAIN) {
 
@@ -229,7 +229,7 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t c
 	} else if (stage->flags & STAGE_DIRTMAP) {
 
 		// resolve dirtmap based on vertex position
-		const int32_t index = (int) (v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
+		const int32_t index = (int32_t) (v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
 		if (stage->flags & STAGE_COLOR) // honor stage color
 			VectorCopy(stage->color, color);
 		else
@@ -304,8 +304,8 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 
 	for (i = 0; i < surf->num_edges; i++) {
 
-		const float *v = &r_model_state.world->verts[surf->index * 3 + i * 3];
-		const float *st = &r_model_state.world->texcoords[surf->index * 2 + i * 2];
+		const vec_t *v = &r_model_state.world->verts[surf->index * 3 + i * 3];
+		const vec_t *st = &r_model_state.world->texcoords[surf->index * 2 + i * 2];
 
 		R_StageVertex(surf, stage, v, &r_state.vertex_array_3d[i * 3]);
 
@@ -322,10 +322,10 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 
 		if (r_state.lighting_enabled) { // normals and tangents
 
-			const float *n = &r_model_state.world->normals[surf->index * 3 + i * 3];
+			const vec_t *n = &r_model_state.world->normals[surf->index * 3 + i * 3];
 			VectorCopy(n, (&r_state.normal_array[i * 3]));
 
-			const float *t = &r_model_state.world->tangents[surf->index * 4 + i * 4];
+			const vec_t *t = &r_model_state.world->tangents[surf->index * 4 + i * 4];
 			VectorCopy(t, (&r_state.tangent_array[i * 4]));
 		}
 	}
@@ -369,7 +369,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	glMatrixMode(GL_TEXTURE); // some stages will manipulate texcoords
 
 	for (i = 0; i < surfs->count; i++) {
-		float j = -1.0;
+		vec_t j = -1.0;
 
 		r_bsp_surface_t *surf = surfs->surfaces[i];
 
@@ -439,7 +439,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	glMatrixMode(GL_TEXTURE); // some stages will manipulate texcoords
 
 	const r_stage_t *s = m->stages;
-	float j;
+	vec_t j;
 
 	for (j = -1.0; s; s = s->next, j--) {
 

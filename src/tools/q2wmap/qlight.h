@@ -39,7 +39,7 @@ typedef struct patch_s {
 	vec3_t origin;
 	vec3_t normal;
 
-	float area;
+	vec_t area;
 	vec3_t light;  // emissive surface light
 
 	struct patch_s *next;  // next in face
@@ -48,12 +48,12 @@ typedef struct patch_s {
 extern patch_t *face_patches[MAX_BSP_FACES];
 extern vec3_t face_offset[MAX_BSP_FACES];  // for rotating bmodels
 
-extern float brightness;
-extern float saturation;
-extern float contrast;
+extern vec_t brightness;
+extern vec_t saturation;
+extern vec_t contrast;
 
-extern float surface_scale;
-extern float entity_scale;
+extern vec_t surface_scale;
+extern vec_t entity_scale;
 
 extern vec3_t ambient;
 

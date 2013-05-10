@@ -59,11 +59,11 @@ extern _Bool nosort;
 
 /* LIGHT */
 extern _Bool extra_samples;
-extern float brightness;
-extern float saturation;
-extern float contrast;
-extern float surface_scale;
-extern float entity_scale;
+extern vec_t brightness;
+extern vec_t saturation;
+extern vec_t contrast;
+extern vec_t surface_scale;
+extern vec_t entity_scale;
 
 /*
  * @brief

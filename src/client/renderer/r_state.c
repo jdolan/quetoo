@@ -25,7 +25,7 @@ static cvar_t *r_get_error;
 
 r_state_t r_state;
 
-const float default_texcoords[] = { // useful for particles, pics, etc..
+const vec_t default_texcoords[] = { // useful for particles, pics, etc..
 	0.0, 0.0,
 	1.0, 0.0,
 	1.0, 1.0,
@@ -521,8 +521,8 @@ void R_UseMaterial(const r_bsp_surface_t *surf, const r_material_t *material) {
  * and load our projection and model-view matrices.
  */
 void R_Setup3D(void) {
-	float xmin, xmax, ymin, ymax;
-	float aspect;
+	vec_t xmin, xmax, ymin, ymax;
+	vec_t aspect;
 
 	if (!r_view.width || !r_view.height)
 		return;
@@ -533,7 +533,7 @@ void R_Setup3D(void) {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	aspect = (float) r_view.width / (float) r_view.height;
+	aspect = (vec_t) r_view.width / (vec_t) r_view.height;
 
 	ymax = NEAR_Z * tan(r_view.fov[1] * M_PI / 360.0);
 	ymin = -ymax;

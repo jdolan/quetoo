@@ -45,8 +45,6 @@ static void R_SetIcon(void) {
 void R_InitContext(void) {
 	r_pixel_t w, h;
 	uint32_t flags;
-	int32_t i;
-	float f;
 	SDL_Surface *surface;
 
 	if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
@@ -64,30 +62,18 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	i = r_multisample->integer;
+	const int32_t s = Clamp(r_multisample->integer, 0, 8);
 
-	if (i < 0)
-		i = 0;
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
 
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, i ? 1 : 0);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, i);
-
-	i = r_swap_interval->integer;
-	if (i < 0)
-		i = 0;
-	if (i > 2)
-		i = 2;
+	const int32_t i = Clamp(r_swap_interval->integer, 0, 2);
 
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, i);
 
-	f = r_gamma->value;
+	const vec_t g = Clamp(r_gamma->value, 0.1, 3.0);
 
-	if (f < 0.1)
-		f = 0.1;
-	else if (f > 3.0)
-		f = 3.0;
-
-	SDL_SetGamma(f, f, f);
+	SDL_SetGamma(g, g, g);
 
 	flags = SDL_OPENGL;
 

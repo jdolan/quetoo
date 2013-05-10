@@ -222,7 +222,7 @@ typedef struct {
 	int32_t distance;
 	int32_t height;
 	char *noise;
-	float pause_time;
+	vec_t pause_time;
 	char *item;
 } g_spawn_temp_t;
 
@@ -248,21 +248,21 @@ typedef struct {
 	uint16_t sound_middle;
 	uint16_t sound_end;
 
-	float accel;
-	float speed;
-	float decel;
-	float distance;
+	vec_t accel;
+	vec_t speed;
+	vec_t decel;
+	vec_t distance;
 
-	float wait;
+	vec_t wait;
 
 	// state data
 	g_move_state_t state;
 	vec3_t dir;
-	float current_speed;
-	float move_speed;
-	float next_speed;
-	float remaining_distance;
-	float decel_distance;
+	vec_t current_speed;
+	vec_t move_speed;
+	vec_t next_speed;
+	vec_t remaining_distance;
+	vec_t decel_distance;
 	void (*done)(g_edict_t *);
 } g_move_info_t;
 
@@ -519,14 +519,14 @@ typedef struct {
 
 	g_edict_t *target_ent;
 
-	float speed, accel, decel;
+	vec_t speed, accel, decel;
 	vec3_t move_dir;
 	vec3_t pos1, pos2;
 
 	vec3_t velocity;
 	vec3_t avelocity;
 
-	float mass;
+	vec_t mass;
 
 	uint32_t next_think;
 	void (*Think)(g_edict_t *self);
@@ -547,7 +547,7 @@ typedef struct {
 	_Bool take_damage;
 	int16_t dmg;
 	int16_t knockback;
-	float dmg_radius;
+	vec_t dmg_radius;
 	int16_t sounds; // make this a spawntemp var?
 	int32_t count;
 
@@ -564,9 +564,9 @@ typedef struct {
 	int16_t attenuation;
 
 	// timing variables
-	float wait;
-	float delay; // before firing targets
-	float random;
+	vec_t wait;
+	vec_t delay; // before firing targets
+	vec_t random;
 
 	uint32_t water_type;
 	uint32_t old_water_level;

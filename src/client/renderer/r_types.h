@@ -77,42 +77,42 @@ typedef struct r_stage_blend_s {
 } r_stage_blend_t;
 
 typedef struct r_stage_pulse_s {
-	float hz, dhz;
+	vec_t hz, dhz;
 } r_stage_pulse_t;
 
 typedef struct r_stage_stretch_s {
-	float hz, dhz;
-	float amp, damp;
+	vec_t hz, dhz;
+	vec_t amp, damp;
 } r_stage_stretch_t;
 
 typedef struct r_stage_rotate_s {
-	float hz, deg;
+	vec_t hz, deg;
 } r_stage_rotate_t;
 
 typedef struct r_stage_scroll_s {
-	float s, t;
-	float ds, dt;
+	vec_t s, t;
+	vec_t ds, dt;
 } r_stage_scroll_t;
 
 typedef struct r_stage_scale_s {
-	float s, t;
+	vec_t s, t;
 } r_stage_scale_t;
 
 typedef struct r_stage_terrain_s {
-	float floor, ceil;
-	float height;
+	vec_t floor, ceil;
+	vec_t height;
 } r_stage_terrain_t;
 
 typedef struct r_stage_dirt_s {
-	float intensity;
+	vec_t intensity;
 } r_stage_dirt_t;
 
 // frame based material animation, lerp between consecutive images
 typedef struct r_stage_anim_s {
 	uint16_t num_frames;
 	r_image_t **frames;
-	float fps;
-	float dtime;
+	vec_t fps;
+	vec_t dtime;
 	uint16_t dframe;
 } r_stage_anim_t;
 
@@ -144,11 +144,11 @@ typedef struct r_material_s {
 	r_image_t *normalmap;
 	r_image_t *glossmap;
 	uint32_t flags;
-	float time;
-	float bump;
-	float parallax;
-	float hardness;
-	float specular;
+	vec_t time;
+	vec_t bump;
+	vec_t parallax;
+	vec_t hardness;
+	vec_t specular;
 	r_stage_t *stages;
 	uint16_t num_stages;
 } r_material_t;
@@ -164,7 +164,7 @@ typedef struct {
 typedef struct {
 	vec3_t mins, maxs;
 	vec3_t origin; // for sounds or lights
-	float radius;
+	vec_t radius;
 	int32_t head_node;
 	uint16_t first_surface, num_surfaces;
 	uint32_t lights; // bit mask of enabled light sources
@@ -176,7 +176,7 @@ typedef struct {
 
 typedef struct {
 	char name[32];
-	float vecs[2][4];
+	vec_t vecs[2][4];
 	uint32_t flags;
 	int32_t value;
 	r_material_t *material;
@@ -184,11 +184,11 @@ typedef struct {
 
 typedef struct {
 	vec3_t origin;
-	float radius;
+	vec_t radius;
 	const r_image_t *image;
 	vec3_t color;
-	float time;
-	float alpha;
+	vec_t time;
+	vec_t alpha;
 } r_bsp_flare_t;
 
 // r_bsp_surface_t flags
@@ -333,7 +333,7 @@ typedef struct {
  */
 typedef struct {
 	vec3_t origin;
-	float radius;
+	vec_t radius;
 	vec3_t color;
 	uint16_t count;
 	const r_bsp_leaf_t *leaf;
@@ -415,18 +415,18 @@ typedef struct {
 typedef struct {
 	uint16_t num_verts;
 	uint16_t num_verts_parsed;
-	float *verts;
+	vec_t *verts;
 
 	uint16_t num_normals;
 	uint16_t num_normals_parsed;
-	float *normals;
+	vec_t *normals;
 
 	uint16_t num_tangents;
-	float *tangents;
+	vec_t *tangents;
 
 	uint16_t num_texcoords;
 	uint16_t num_texcoords_parsed;
-	float *texcoords;
+	vec_t *texcoords;
 
 	uint16_t num_tris;
 	uint16_t num_tris_parsed;
@@ -488,7 +488,7 @@ typedef struct {
  */
 typedef struct {
 	vec3_t translate;
-	float scale;
+	vec_t scale;
 	uint32_t flags; // EF_ALPHA_TEST, etc..
 } r_mesh_config_t;
 
@@ -517,7 +517,7 @@ typedef struct r_model_s {
 	r_mesh_model_t *mesh;
 
 	vec3_t mins, maxs;
-	float radius;
+	vec_t radius;
 
 	GLsizei num_verts; // raw vertex primitive count, used to build arrays
 
@@ -543,7 +543,7 @@ typedef struct r_model_s {
  */
 typedef struct r_light_s {
 	vec3_t origin;
-	float radius;
+	vec_t radius;
 	vec3_t color;
 } r_light_t;
 
@@ -556,8 +556,8 @@ typedef struct r_light_s {
  */
 typedef struct r_sustained_light_s {
 	r_light_t light;
-	float time;
-	float sustain;
+	vec_t time;
+	vec_t sustain;
 } r_sustained_light_t;
 
 /*
@@ -566,7 +566,7 @@ typedef struct r_sustained_light_s {
 typedef struct r_bsp_light_ref_s {
 	r_bsp_light_t *bsp_light;
 	vec3_t dir;
-	float intensity;
+	vec_t intensity;
 } r_bsp_light_ref_t;
 
 typedef enum {
@@ -578,7 +578,7 @@ typedef enum {
  */
 typedef struct r_lighting_s {
 	vec3_t origin; // entity origin
-	float radius; // entity radius
+	vec_t radius; // entity radius
 	vec3_t mins, maxs; // entity bounding box in world space
 	vec3_t shadow_origin;
 	vec3_t shadow_normal;
@@ -607,9 +607,9 @@ typedef struct r_entity_s {
 	const struct r_model_s *model;
 
 	uint16_t frame, old_frame; // frame-based animations
-	float lerp, back_lerp;
+	vec_t lerp, back_lerp;
 
-	float scale; // for mesh models
+	vec_t scale; // for mesh models
 
 	r_material_t *skins[MD3_MAX_MESHES]; // NULL for default skin
 	uint16_t num_skins;
@@ -640,11 +640,11 @@ typedef struct r_particle_s {
 	const r_image_t *image;
 	GLenum blend;
 	byte color;
-	float alpha;
-	float scale;
-	float scroll_s;
-	float scroll_t;
-	float roll;
+	vec_t alpha;
+	vec_t scale;
+	vec_t scroll_s;
+	vec_t scroll_t;
+	vec_t roll;
 	vec3_t org;
 	vec3_t end;
 	vec3_t dir;
@@ -657,8 +657,8 @@ typedef struct r_particle_s {
  */
 typedef struct r_corona_s {
 	vec3_t origin;
-	float radius;
-	float flicker;
+	vec_t radius;
+	vec_t flicker;
 	vec3_t color;
 } r_corona_t;
 
@@ -712,9 +712,9 @@ typedef struct r_view_s {
 	vec3_t up;
 
 	uint32_t contents; // view origin contents mask
-	float bob;
+	vec_t bob;
 
-	float time;
+	vec_t time;
 
 	byte *area_bits; // if not NULL, only areas with set bits will be drawn
 

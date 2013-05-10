@@ -33,9 +33,9 @@ static void Cg_UpdateFov(void) {
 	if (cg_fov->value < 10.0 || cg_fov->value > 179.0)
 		cg_fov->value = 100.0;
 
-	const float x = cgi.context->width / tan(cg_fov->value / 360.0 * M_PI);
+	const vec_t x = cgi.context->width / tan(cg_fov->value / 360.0 * M_PI);
 
-	const float a = atan(cgi.context->height / x);
+	const vec_t a = atan(cgi.context->height / x);
 
 	cgi.view->fov[0] = cg_fov->value;
 
@@ -51,7 +51,7 @@ static void Cg_UpdateFov(void) {
 static void Cg_UpdateThirdperson(const player_state_t *ps) {
 	vec3_t angles, forward, dest;
 	vec3_t mins, maxs;
-	float dist;
+	vec_t dist;
 	c_trace_t tr;
 
 	if (!cg_third_person->value)
@@ -98,8 +98,8 @@ static void Cg_UpdateThirdperson(const player_state_t *ps) {
  * are on the ground, determine the bob frequency and amplitude.
  */
 static void Cg_UpdateBob(const player_state_t *ps) {
-	static float time, vtime;
-	float ftime, speed;
+	static vec_t time, vtime;
+	vec_t ftime, speed;
 	vec3_t velocity;
 
 	if (!cg_bob->value)

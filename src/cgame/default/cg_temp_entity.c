@@ -88,7 +88,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 	VectorSubtract(end, start, p->vel);
 	VectorScale(p->vel, 2.0, p->vel);
 
-	const float v = VectorNormalize(p->vel);
+	const vec_t v = VectorNormalize(p->vel);
 	VectorScale(p->vel, v < 1000.0 ? v : 1000.0, p->vel);
 }
 
@@ -191,7 +191,7 @@ static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
 static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	int32_t i, j;
 	cg_particle_t *p;
-	float d;
+	vec_t d;
 
 	for (i = 0; i < count; i++) {
 
@@ -227,7 +227,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 	cg_particle_t *p;
 	vec3_t o, v, tmp;
 	c_trace_t tr;
-	float dist;
+	vec_t dist;
 	int32_t i, j;
 
 	// if a player has died underwater, emit some bubbles
@@ -267,7 +267,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 			VectorCopy(o, p->part.org);
 
-			VectorScale(v, dist * ((float)j / GIB_STREAM_COUNT), p->vel);
+			VectorScale(v, dist * ((vec_t)j / GIB_STREAM_COUNT), p->vel);
 			p->vel[0] += Randomc() * 2.0;
 			p->vel[1] += Randomc() * 2.0;
 			p->vel[2] += 100.0;
@@ -472,7 +472,7 @@ static void Cg_LightningEffect(const vec3_t org) {
  */
 static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, int32_t color) {
 	vec3_t vec, right, up, point;
-	float len;
+	vec_t len;
 	cg_particle_t *p;
 	r_sustained_light_t s;
 	int32_t i;

@@ -44,16 +44,16 @@ static int32_t SwapLong(int32_t l) {
 	const byte b3 = (l >> 16) & 255;
 	const byte b4 = (l >> 24) & 255;
 
-	return ((int) b1 << 24) + ((int) b2 << 16) + ((int) b3 << 8) + b4;
+	return ((int32_t) b1 << 24) + ((int32_t) b2 << 16) + ((int32_t) b3 << 8) + b4;
 }
 
 /*
  * @brief
  */
-static float SwapFloat(float f) {
+static vec_t SwapFloat(vec_t f) {
 
 	union {
-		float f;
+		vec_t f;
 		byte b[4];
 	} dat1, dat2;
 
@@ -106,7 +106,7 @@ int32_t LittleLong(int32_t l) {
 /*
  * @brief
  */
-float BigFloat(float f) {
+vec_t BigFloat(vec_t f) {
 	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
 		return SwapFloat(f);
 	return f;
@@ -115,7 +115,7 @@ float BigFloat(float f) {
 /*
  * @brief
  */
-float LittleFloat(float f) {
+vec_t LittleFloat(vec_t f) {
 	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
 		return SwapFloat(f);
 	return f;

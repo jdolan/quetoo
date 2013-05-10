@@ -42,8 +42,8 @@ typedef struct cl_entity_animation_s {
 	uint32_t time;
 	uint16_t frame;
 	uint16_t old_frame;
-	float lerp;
-	float fraction;
+	vec_t lerp;
+	vec_t fraction;
 } cl_entity_animation_t;
 
 typedef struct cl_entity_s {
@@ -124,7 +124,7 @@ typedef struct cl_client_s {
 	uint32_t time; // this is the server time value that the client
 	// is rendering at. always <= cls.real_time due to latency
 
-	float lerp; // linear interpolation between frames
+	vec_t lerp; // linear interpolation between frames
 
 	// the client maintains its own idea of view angles, which are
 	// sent to the server each frame. It is cleared to 0 upon entering each level.
@@ -201,8 +201,8 @@ typedef struct cl_key_state_s {
 } cl_key_state_t;
 
 typedef struct cl_mouse_state_s {
-	float x, y;
-	float old_x, old_y;
+	vec_t x, y;
+	vec_t old_x, old_y;
 	_Bool grabbed;
 } cl_mouse_state_t;
 

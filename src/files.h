@@ -239,8 +239,8 @@ typedef struct {
 // planes (x & ~1) and (x & ~1) + 1 are always opposites
 
 typedef struct {
-	float normal[3];
-	float dist;
+	vec_t normal[3];
+	vec_t dist;
 	int32_t type;  // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
 } d_bsp_plane_t;
 
@@ -254,7 +254,7 @@ typedef struct {
 } d_bsp_node_t;
 
 typedef struct {
-	float vecs[2][4];  // [s/t][xyz offset]
+	vec_t vecs[2][4];  // [s/t][xyz offset]
 	int32_t flags;  // surface values
 	int32_t value;  // light emission, etc
 	char texture[32];  // texture name (textures/*.tga)

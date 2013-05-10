@@ -38,10 +38,10 @@ int32_t num_visportals;
  * @brief
  */
 static void WriteFloat(file_t *f, vec_t v) {
-	const float r = floor(v + 0.5);
+	const vec_t r = floor(v + 0.5);
 
 	if (fabs(v - r) < 0.001)
-		Fs_Print(f, "%i ", (int) r);
+		Fs_Print(f, "%i ", (int32_t) r);
 	else
 		Fs_Print(f, "%f ", v);
 }

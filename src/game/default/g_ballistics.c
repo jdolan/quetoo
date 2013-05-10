@@ -101,7 +101,7 @@ static void G_BubbleTrail(const vec3_t start, c_trace_t *tr) {
  */
 static void G_Tracer(vec3_t start, vec3_t end) {
 	vec3_t dir, mid;
-	float len;
+	vec_t len;
 
 	VectorSubtract(end, start, dir);
 	len = VectorNormalize(dir);
@@ -235,8 +235,8 @@ void G_BulletProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t dam
 	vec3_t dir;
 	vec3_t forward, right, up;
 	vec3_t end;
-	float r;
-	float u;
+	vec_t r;
+	vec_t u;
 
 	tr = gi.Trace(ent->s.origin, NULL, NULL, start, ent, MASK_SHOT);
 	if (tr.fraction == 1.0) {
@@ -289,7 +289,7 @@ static void G_GrenadeProjectile_Explode(g_edict_t *self) {
 	vec3_t origin;
 
 	if (self->locals.enemy) { // direct hit
-		float d, k, dist;
+		vec_t d, k, dist;
 		vec3_t v, dir;
 
 		VectorAdd(self->locals.enemy->mins, self->locals.enemy->maxs, v);
@@ -302,8 +302,8 @@ static void G_GrenadeProjectile_Explode(g_edict_t *self) {
 
 		VectorSubtract(self->locals.enemy->s.origin, self->s.origin, dir);
 
-		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_origin, (int) d,
-				(int) k, DAMAGE_RADIUS, MOD_GRENADE);
+		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_origin, (int32_t) d,
+				(int32_t) k, DAMAGE_RADIUS, MOD_GRENADE);
 	}
 
 	// hurt anything else nearby
@@ -363,7 +363,7 @@ static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_p
  * @brief
  */
 void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t speed,
-		int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
+		int32_t damage, int32_t knockback, vec_t damage_radius, uint32_t timer) {
 	g_edict_t *grenade;
 	vec3_t dir;
 	vec3_t forward, right, up, start_bounds;
@@ -462,7 +462,7 @@ static void G_RocketProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
  * @brief
  */
 void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, int32_t damage,
-		int32_t knockback, float damage_radius) {
+		int32_t knockback, vec_t damage_radius) {
 	const vec3_t scale = { 0.25, 0.25, 0.15 };
 	g_edict_t *rocket;
 
@@ -788,7 +788,7 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t da
 			ignore = NULL;
 
 		if ((tr.ent != ent) && (tr.ent->locals.take_damage)) {
-			if (tr.ent->client && ((int) g_level.gameplay == INSTAGIB))
+			if (tr.ent->client && ((int32_t) g_level.gameplay == INSTAGIB))
 				damage = 1000; // be sure to cause a kill
 			G_Damage(tr.ent, ent, ent, aimdir, tr.end, tr.plane.normal, damage, knockback, 0,
 					MOD_RAILGUN);
@@ -896,11 +896,11 @@ static void G_BfgProjectile_Think(g_edict_t *self) {
  * @brief
  */
 void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, int32_t damage,
-		int32_t knockback, float damage_radius) {
+		int32_t knockback, vec_t damage_radius) {
 	g_edict_t *bfg;
 	vec3_t angles, right, up, r, u;
 	int32_t i;
-	float s;
+	vec_t s;
 	const vec3_t scale = { 0.15, 0.15, 0.05 };
 
 	if (G_ImmediateWall(ent, start))

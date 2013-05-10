@@ -220,7 +220,7 @@ static void Sv_Status_f(void) {
 		for (j = 0; j < l; j++)
 			Com_Print(" ");
 
-		Com_Print("%5i", (int) cl->netchan.qport);
+		Com_Print("%5i", (int32_t) cl->netchan.qport);
 
 		Com_Print("\n");
 	}

@@ -111,7 +111,7 @@ void R_Screenshot_f(void) {
  * and monochrome. This is all munged into one function for performance.
  */
 void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
-	float brightness;
+	vec_t brightness;
 	uint32_t color[3];
 	uint16_t mask;
 	size_t i, j;
@@ -163,7 +163,7 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 
 	if (image->type == IT_DIFFUSE) { // average accumulated colors
 		for (i = 0; i < 3; i++)
-			color[i] /= (float) pixels;
+			color[i] /= (vec_t) pixels;
 
 		if (r_monochrome->integer & mask)
 			color[0] = color[1] = color[2] = (color[0] + color[1] + color[2]) / 3.0;

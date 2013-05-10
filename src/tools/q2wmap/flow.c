@@ -80,8 +80,7 @@ static void FreeStackWinding(const winding_t * w, pstack_t * stack) {
 /*
  * @brief
  */
-static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack,
-		plane_t *split) {
+static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack, plane_t *split) {
 	vec_t dists[128];
 	int32_t sides[128];
 	int32_t counts[SIDE_BOTH + 1];
@@ -188,12 +187,12 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack,
  * flipclip should be set.
  * ==============
  */
-static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
-		winding_t * target, _Bool flipclip, pstack_t * stack) {
+static winding_t *ClipToSeperators(winding_t * source, winding_t * pass, winding_t * target,
+		_Bool flipclip, pstack_t * stack) {
 	int32_t i, j, k, l;
 	plane_t plane;
 	vec3_t v1, v2;
-	float d;
+	vec_t d;
 	vec_t length;
 	int32_t counts[3];
 	_Bool fliptest;
@@ -215,8 +214,8 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
 
 			// if points don't make a valid plane, skip it
 
-			length = plane.normal[0] * plane.normal[0] + plane.normal[1]
-					* plane.normal[1] + plane.normal[2] * plane.normal[2];
+			length = plane.normal[0] * plane.normal[0] + plane.normal[1] * plane.normal[1]
+					+ plane.normal[2] * plane.normal[2];
 
 			if (length < ON_EPSILON)
 				continue;
@@ -320,8 +319,7 @@ static winding_t *ClipToSeperators(winding_t * source, winding_t * pass,
  * If src_portal is NULL, this is the originating leaf
  * ==================
  */
-static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread,
-		pstack_t * prevstack) {
+static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread, pstack_t * prevstack) {
 	pstack_t stack;
 	portal_t *p;
 	plane_t back_plane;
@@ -379,17 +377,14 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread,
 		stack.freewindings[2] = 1;
 
 		{
-			const float
-					d =
-							DotProduct(p->origin, thread->pstack_head.portalplane.normal)
-									- thread->pstack_head.portalplane.dist;
+			const vec_t d = DotProduct(p->origin, thread->pstack_head.portalplane.normal)
+					- thread->pstack_head.portalplane.dist;
 			if (d < -p->radius) {
 				continue;
 			} else if (d > p->radius) {
 				stack.pass = p->winding;
 			} else {
-				stack.pass = Vis_ChopWinding(p->winding, &stack,
-						&thread->pstack_head.portalplane);
+				stack.pass = Vis_ChopWinding(p->winding, &stack, &thread->pstack_head.portalplane);
 				if (!stack.pass)
 					continue;
 			}
@@ -398,8 +393,7 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread,
 		// the following block contains a fix from Geoffrey DeWan's qvis3 which
 		// fixes the dreaded Quake2 'Hall of Mirrors' effect (insufficient PVS)
 		{
-			const float d = DotProduct(thread->base->origin, p->plane.normal)
-					- p->plane.dist;
+			const vec_t d = DotProduct(thread->base->origin, p->plane.normal) - p->plane.dist;
 			if (d > thread->base->radius) {
 				//if(d > p->radius){
 				continue;
@@ -407,8 +401,7 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread,
 				//} else if(d < -p->radius){
 				stack.source = prevstack->source;
 			} else {
-				stack.source = Vis_ChopWinding(prevstack->source, &stack,
-						&back_plane);
+				stack.source = Vis_ChopWinding(prevstack->source, &stack, &back_plane);
 				if (!stack.source)
 					continue;
 			}
@@ -423,13 +416,11 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread,
 			continue;
 		}
 
-		stack.pass = ClipToSeperators(stack.source, prevstack->pass,
-				stack.pass, false, &stack);
+		stack.pass = ClipToSeperators(stack.source, prevstack->pass, stack.pass, false, &stack);
 		if (!stack.pass)
 			continue;
 
-		stack.pass = ClipToSeperators(prevstack->pass, stack.source,
-				stack.pass, true, &stack);
+		stack.pass = ClipToSeperators(prevstack->pass, stack.source, stack.pass, true, &stack);
 
 		if (!stack.pass)
 			continue;
@@ -471,7 +462,7 @@ void FinalVis(int32_t portal_num) {
 	c_can = CountBits(p->vis, map_vis.num_portals * 2);
 
 	Com_Debug("portal:%4i  mightsee:%4i  cansee:%4i (%i chains)\n",
-			(int) (p - map_vis.portals), (int)c_might, (int)c_can, data.c_chains);
+			(int32_t) (p - map_vis.portals), (int32_t)c_might, (int32_t)c_can, data.c_chains);
 }
 
 /*
@@ -506,7 +497,7 @@ static void SimpleFlood(portal_t *srcportal, int32_t leaf_num) {
 void BaseVis(int32_t portal_num) {
 	uint32_t j, k;
 	portal_t *tp, *p;
-	float d;
+	vec_t d;
 	const winding_t *w;
 
 	p = map_vis.portals + portal_num;

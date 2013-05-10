@@ -73,7 +73,7 @@ c_trace_t R_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const
 	r_view.trace = Cm_BoxTrace(start, end, mins, maxs, 0, mask);
 	r_view.trace_ent = NULL;
 
-	float frac = r_view.trace.fraction;
+	vec_t frac = r_view.trace.fraction;
 	uint16_t i;
 
 	// check bsp entities
@@ -167,7 +167,7 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 
 	for (i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
 		const c_bsp_plane_t *plane = surf->plane;
-		float dot;
+		vec_t dot;
 
 		// find which side of the surf we are on
 		if (AXIAL(plane))
@@ -383,7 +383,7 @@ void R_DrawBspLeafs(void) {
  */
 static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	int32_t i, side, side_bit;
-	float dot;
+	vec_t dot;
 
 	if (node->contents == CONTENTS_SOLID)
 		return; // solid

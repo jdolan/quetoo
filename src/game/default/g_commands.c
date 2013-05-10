@@ -980,7 +980,7 @@ static void G_Ready_f(g_edict_t *ent) {
 			cl->locals.persistent.team == &g_team_good ? g++ : e++;
 	}
 
-	if (i != (int) sv_max_clients->integer) // someone isn't ready
+	if (i != (int32_t) sv_max_clients->integer) // someone isn't ready
 		return;
 
 	if (clients < 2) // need at least 2 clients to trigger match
@@ -989,7 +989,7 @@ static void G_Ready_f(g_edict_t *ent) {
 	if ((g_level.teams || g_level.ctf) && (!g || !e)) // need at least 1 player per team
 		return;
 
-	if (((int) g_level.teams == 2 || (int) g_level.ctf == 2) && (g != e)) { // balanced teams required
+	if (((int32_t) g_level.teams == 2 || (int32_t) g_level.ctf == 2) && (g != e)) { // balanced teams required
 		gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for match to start\n");
 		return;
 	}

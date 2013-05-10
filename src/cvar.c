@@ -61,7 +61,7 @@ static cvar_t *Cvar_Get_(const char *name) {
 /*
  * @return The numeric value for the specified variable, or 0.
  */
-float Cvar_GetValue(const char *name) {
+vec_t Cvar_GetValue(const char *name) {
 	cvar_t *var;
 
 	var = Cvar_Get_(name);
@@ -325,11 +325,11 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 /*
  * @brief
  */
-void Cvar_SetValue(const char *name, float value) {
+void Cvar_SetValue(const char *name, vec_t value) {
 	char val[32];
 
-	if (value == (int) value)
-		g_snprintf(val, sizeof(val), "%i", (int) value);
+	if (value == (int32_t) value)
+		g_snprintf(val, sizeof(val), "%i", (int32_t) value);
 	else
 		g_snprintf(val, sizeof(val), "%f", value);
 

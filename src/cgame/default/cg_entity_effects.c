@@ -36,7 +36,7 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 	if (ent->time < cgi.client->time) {
 		cg_particle_t *p;
 		vec3_t delta;
-		float d, dist, step;
+		vec_t d, dist, step;
 
 		step = 0.5;
 
@@ -272,10 +272,10 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 /*
  * @brief
  */
-void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
+void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 	cg_particle_t *p;
 	vec3_t vec, move;
-	float i, len, delta;
+	vec_t i, len, delta;
 	int32_t j;
 
 	VectorCopy(start, move);
@@ -316,23 +316,23 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, float density) {
 /*
  * @brief
  */
-static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, float radius, int32_t color) {
+static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int32_t color) {
 	static vec3_t angles[NUM_APPROXIMATE_NORMALS];
 	int32_t i, c;
 	cg_particle_t *p;
-	float angle;
-	float sp, sy, cp, cy;
+	vec_t angle;
+	vec_t sp, sy, cp, cy;
 	vec3_t forward;
-	float dist;
+	vec_t dist;
 	vec3_t v;
-	float ltime;
+	vec_t ltime;
 
 	if (!angles[0][0]) { // initialize our angular velocities
 		for (i = 0; i < NUM_APPROXIMATE_NORMALS * 3; i++)
 			angles[0][i] = (Random() & 255) * 0.01;
 	}
 
-	ltime = (float) cgi.client->time / 300.0;
+	ltime = (vec_t) cgi.client->time / 300.0;
 
 	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i += 2) {
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
@@ -403,10 +403,10 @@ static void Cg_RocketTrail(const vec3_t start, const vec3_t end, cl_entity_t *en
 	if (old_time != ent->time) { // time to add new particles
 		cg_particle_t *p;
 		vec3_t delta;
-		float d;
+		vec_t d;
 
 		VectorSubtract(end, start, delta);
-		const float dist = VectorNormalize(delta);
+		const vec_t dist = VectorNormalize(delta);
 
 		d = 0.0;
 
@@ -474,7 +474,7 @@ static void Cg_LightningTrail(const vec3_t start, const vec3_t end, cl_entity_t 
 	cg_particle_t *p;
 	r_light_t l;
 	vec3_t dir, delta, pos, vel;
-	float dist, offset;
+	vec_t dist, offset;
 	int32_t i;
 
 	VectorCopy(start, l.origin);
@@ -591,7 +591,7 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 	vec3_t start, end;
 
 	const uint32_t time = cgi.client->time;
-	const float lerp = cgi.client->lerp;
+	const vec_t lerp = cgi.client->lerp;
 
 	const entity_state_t *s = &e->current;
 	ent->effects = s->effects;
@@ -617,7 +617,7 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 
 	// bob items, shift them to randomize the effect in crowded scenes
 	if (s->effects & EF_BOB) {
-		const float bob = sin((time * 0.005) + ent->origin[0] + ent->origin[1]);
+		const vec_t bob = sin((time * 0.005) + ent->origin[0] + ent->origin[1]);
 		ent->origin[2] += 4.0 * bob;
 	}
 

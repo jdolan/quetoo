@@ -158,8 +158,8 @@ void Cg_AddParticles(void) {
 	if (last_particle_time > cgi.client->time)
 		last_particle_time = 0;
 
-	const float delta = (cgi.client->time - last_particle_time) * 0.001;
-	const float delta_squared = delta * delta;
+	const vec_t delta = (cgi.client->time - last_particle_time) * 0.001;
+	const vec_t delta_squared = delta * delta;
 
 	last_particle_time = cgi.client->time;
 

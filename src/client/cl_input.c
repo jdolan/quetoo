@@ -249,9 +249,9 @@ static void Cl_CenterView_f(void) {
 /*
  * @brief Returns the fraction of the command interval for which the key was down.
  */
-static float Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
+static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 	uint32_t msec;
-	float v;
+	vec_t v;
 
 	msec = key->msec;
 	key->msec = 0;
@@ -453,7 +453,7 @@ static void Cl_ClampPitch(void) {
 	const pm_state_t *s = &cl.frame.ps.pm_state;
 
 	// ensure our pitch is valid
-	float pitch = UnpackAngle(s->delta_angles[PITCH] + s->kick_angles[PITCH]);
+	vec_t pitch = UnpackAngle(s->delta_angles[PITCH] + s->kick_angles[PITCH]);
 
 	if (pitch > 180.0)
 		pitch -= 360.0;

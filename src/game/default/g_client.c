@@ -222,7 +222,7 @@ static void G_ClientCorpse_Think(g_edict_t *ent) {
  * @brief
  */
 static void G_ClientCorpse(g_edict_t *self) {
-	const float f = Randomf();
+	const vec_t r = Randomf();
 	g_edict_t *ent = G_Spawn();
 
 	ent->class_name = "corpse";
@@ -243,9 +243,9 @@ static void G_ClientCorpse(g_edict_t *self) {
 	ent->s.model3 = 0;
 	ent->s.model4 = 0;
 
-	if (f < 0.33)
+	if (r < 0.33)
 		G_SetAnimation(ent, ANIM_BOTH_DEATH1, true);
-	else if (f < 0.66)
+	else if (r < 0.66)
 		G_SetAnimation(ent, ANIM_BOTH_DEATH2, true);
 	else
 		G_SetAnimation(ent, ANIM_BOTH_DEATH3, true);
@@ -469,9 +469,9 @@ static void G_InitClientPersistent(g_client_t *client) {
 /*
  * @brief Returns the distance to the nearest enemy from the given spot
  */
-static float G_EnemyRangeFromSpot(g_edict_t *ent, g_edict_t *spot) {
+static vec_t G_EnemyRangeFromSpot(g_edict_t *ent, g_edict_t *spot) {
 	g_edict_t *player;
-	float dist, best_dist;
+	vec_t dist, best_dist;
 	vec3_t v;
 	int32_t n;
 
@@ -535,7 +535,7 @@ static g_edict_t *G_SelectRandomSpawnPoint(const char *class_name) {
  */
 static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent, const char *class_name) {
 	g_edict_t *spot, *best_spot;
-	float dist, best_dist;
+	vec_t dist, best_dist;
 
 	spot = best_spot = NULL;
 	best_dist = 0.0;
@@ -1128,12 +1128,12 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	}
 	// check for landing
 	else if ((pm.s.pm_flags & PMF_TIME_LAND) && client->locals.land_time < g_level.time - 1000) {
-		const float fall = -old_velocity[2];
+		const vec_t fall = -old_velocity[2];
 
 		entity_event_t event = EV_CLIENT_LAND;
 
 		if (fall >= 600.0) { // player will take damage
-			int32_t damage = ((int) ((fall - 600.0) * 0.05)) >> ent->locals.water_level;
+			int32_t damage = ((int32_t) ((fall - 600.0) * 0.05)) >> ent->locals.water_level;
 
 			if (damage < 1)
 				damage = 1;

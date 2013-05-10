@@ -36,7 +36,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 	if (e->effects & EF_WEAPON) {
 
 		// apply weapon bob on all 3 axis
-		float b = r_view.bob * 0.4;
+		vec_t b = r_view.bob * 0.4;
 
 		c = e->model->mesh->view_config;
 
@@ -175,7 +175,7 @@ void R_UpdateMeshModelLighting(const r_entity_t *e) {
  */
 static void R_SetMeshColor_default(const r_entity_t *e) {
 	vec4_t color;
-	float f;
+	vec_t v;
 	int32_t i;
 
 	VectorCopy(e->lighting->color, color);
@@ -186,19 +186,19 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 		color[3] = 1.0;
 
 	if (e->effects & EF_PULSE) {
-		f = sin((r_view.time + e->model->num_verts) * 6.0) * 0.75;
-		VectorScale(color, 1.0 + f, color);
+		v = sin((r_view.time + e->model->num_verts) * 6.0) * 0.75;
+		VectorScale(color, 1.0 + v, color);
 	}
 
-	f = 0.0;
+	v = 0.0;
 	for (i = 0; i < 3; i++) { // find brightest component
 
-		if (color[i] > f) // keep it
-			f = color[i];
+		if (color[i] > v) // keep it
+			v = color[i];
 	}
 
-	if (f > 1.0) // scale it back to 1.0
-		VectorScale(color, 1.0 / f, color);
+	if (v > 1.0) // scale it back to 1.0
+		VectorScale(color, 1.0 / v, color);
 
 	R_Color(color);
 }
@@ -294,7 +294,7 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
  */
 static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 	vec3_t origin, offset;
-	float height, threshold, scale;
+	vec_t height, threshold, scale;
 
 	if (!e) {
 		glPopMatrix();

@@ -73,8 +73,8 @@ static int32_t hash_verts[HASH_SIZE * HASH_SIZE]; // a vertex number, or 0 for n
  * @brief
  */
 static int32_t HashVec(const vec3_t vec) {
-	const int32_t x = (4096 + (int) (vec[0] + 0.5)) >> 7;
-	const int32_t y = (4096 + (int) (vec[1] + 0.5)) >> 7;
+	const int32_t x = (4096 + (int32_t) (vec[0] + 0.5)) >> 7;
+	const int32_t y = (4096 + (int32_t) (vec[1] + 0.5)) >> 7;
 
 	if (x < 0 || x >= HASH_SIZE || y < 0 || y >= HASH_SIZE)
 		Com_Error(ERR_FATAL, "Point outside valid range\n");
@@ -85,20 +85,20 @@ static int32_t HashVec(const vec3_t vec) {
 /*
  * @brief Uses hashing
  */
-static int32_t GetVertexnum(const vec3_t in) {
+static int32_t GetVertexNum(const vec3_t in) {
 	int32_t h;
 	int32_t i;
-	float *p;
+	vec_t *p;
 	vec3_t vert;
 	int32_t vnum;
 
 	c_totalverts++;
 
 	for (i = 0; i < 3; i++) {
-		const float f = floor(in[i] + 0.5);
+		const vec_t v = floor(in[i] + 0.5);
 
-		if (fabs(in[i] - f) < INTEGRAL_EPSILON)
-			vert[i] = f;
+		if (fabs(in[i] - v) < INTEGRAL_EPSILON)
+			vert[i] = v;
 		else
 			vert[i] = in[i];
 	}
@@ -233,7 +233,7 @@ static void EmitFaceVertexes(node_t *node, face_t *f) {
 			c_uniqueverts++;
 			c_totalverts++;
 		} else
-			superverts[i] = GetVertexnum(w->p[i]);
+			superverts[i] = GetVertexNum(w->p[i]);
 	}
 	num_superverts = w->numpoints;
 
@@ -623,7 +623,7 @@ static void MergeNodeFaces(node_t * node) {
  * @brief Chop up faces that are larger than we want in the surface cache
  */
 static void SubdivideFace(node_t *node, face_t * f) {
-	float mins, maxs;
+	vec_t mins, maxs;
 	vec_t v;
 	int32_t axis, i;
 	const d_bsp_texinfo_t *tex;

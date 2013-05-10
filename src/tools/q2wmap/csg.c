@@ -177,7 +177,7 @@ bsp_brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clipm
 	int32_t num_sides;
 	int32_t vis;
 	vec3_t normal;
-	float dist;
+	vec_t dist;
 
 	for (i = 0; i < 2; i++) {
 		VectorClear(normal);

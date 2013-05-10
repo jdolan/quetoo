@@ -32,7 +32,7 @@
 
 typedef struct sv_area_node_s {
 	int32_t axis; // -1 = leaf node
-	float dist;
+	vec_t dist;
 	struct sv_area_node_s *children[2];
 	link_t trigger_edicts;
 	link_t solid_edicts;
@@ -47,7 +47,7 @@ typedef struct sv_world_s {
 	sv_area_node_t area_nodes[AREA_NODES];
 	int32_t num_area_nodes;
 
-	const float *area_mins, *area_maxs;
+	const vec_t *area_mins, *area_maxs;
 
 	g_edict_t **area_edicts;
 
@@ -203,7 +203,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 
 	// set the absolute bounding box
 	if (ent->solid == SOLID_BSP && (ent->s.angles[0] || ent->s.angles[1] || ent->s.angles[2])) { // expand for rotation
-		float max, v;
+		vec_t max, v;
 		int32_t i;
 
 		max = 0;
@@ -444,8 +444,8 @@ int32_t Sv_PointContents(const vec3_t point) {
 // an entity's movement, with allowed exceptions and other info
 typedef struct sv_trace_s {
 	vec3_t box_mins, box_maxs; // enclose the test object along entire move
-	const float *mins, *maxs; // size of the moving object
-	const float *start, *end;
+	const vec_t *mins, *maxs; // size of the moving object
+	const vec_t *start, *end;
 	c_trace_t trace;
 	const g_edict_t *skip;
 	int32_t mask;

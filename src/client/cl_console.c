@@ -263,7 +263,7 @@ void Cl_DrawConsole(void) {
 		R_DrawString(0, cl_console.height * ch, dl, CON_COLOR_INFO);
 	} else if (cls.download.file) { // draw download progress
 
-		kb = (int) Fs_Tell(cls.download.file) / 1024;
+		kb = (int32_t) Fs_Tell(cls.download.file) / 1024;
 
 		g_snprintf(dl, sizeof(dl), "%s [%s] %dKB ", cls.download.name,
 				(cls.download.http ? "HTTP" : "UDP"), kb);

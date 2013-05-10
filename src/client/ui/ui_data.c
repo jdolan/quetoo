@@ -88,7 +88,7 @@ void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType en, const cha
 static void TW_CALL Ui_CvarSetValue(const void *value, void *data) {
 	cvar_t *var = (cvar_t *) data;
 
-	Cvar_Set(var->name, va("%f", *(float *) value));
+	Cvar_Set(var->name, va("%f", *(vec_t *) value));
 }
 
 /*
@@ -96,7 +96,7 @@ static void TW_CALL Ui_CvarSetValue(const void *value, void *data) {
  */
 static void TW_CALL Ui_CvarGetValue(void *value, void *data) {
 	cvar_t *var = (cvar_t *) data;
-	*(float *) value = var->value;
+	*(vec_t *) value = var->value;
 }
 
 /*

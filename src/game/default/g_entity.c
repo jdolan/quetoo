@@ -215,7 +215,7 @@ static const g_field_t fields[] = {
 static void G_ParseField(const char *key, const char *value, g_edict_t *ent) {
 	const g_field_t *f;
 	byte *b;
-	float v;
+	vec_t v;
 	vec3_t vec;
 
 	for (f = fields; f->name; f++) {
@@ -235,22 +235,22 @@ static void G_ParseField(const char *key, const char *value, g_edict_t *ent) {
 					*(int32_t *) (b + f->ofs) = atoi(value);
 					break;
 				case F_FLOAT:
-					*(float *) (b + f->ofs) = atof(value);
+					*(vec_t *) (b + f->ofs) = atof(value);
 					break;
 				case F_STRING:
 					*(char **) (b + f->ofs) = G_NewString(value);
 					break;
 				case F_VECTOR:
 					sscanf(value, "%f %f %f", &vec[0], &vec[1], &vec[2]);
-					((float *) (b + f->ofs))[0] = vec[0];
-					((float *) (b + f->ofs))[1] = vec[1];
-					((float *) (b + f->ofs))[2] = vec[2];
+					((vec_t *) (b + f->ofs))[0] = vec[0];
+					((vec_t *) (b + f->ofs))[1] = vec[1];
+					((vec_t *) (b + f->ofs))[2] = vec[2];
 					break;
 				case F_ANGLE:
 					v = atof(value);
-					((float *) (b + f->ofs))[0] = 0;
-					((float *) (b + f->ofs))[1] = v;
-					((float *) (b + f->ofs))[2] = 0;
+					((vec_t *) (b + f->ofs))[0] = 0;
+					((vec_t *) (b + f->ofs))[1] = v;
+					((vec_t *) (b + f->ofs))[2] = 0;
 					break;
 				default:
 					break;
@@ -682,7 +682,7 @@ static void G_worldspawn(g_edict_t *ent) {
 			g_level.capture_limit = g_capture_limit->integer;
 	}
 
-	float time_limit;
+	vec_t time_limit;
 	if (map && map->time_limit > -1) // prefer maps.lst time_limit
 		time_limit = map->time_limit;
 	else { // or fall back on worldspawn

@@ -134,8 +134,8 @@ static void Sv_WriteDir(const vec3_t dir) {
 	Msg_WriteDir(&sv.multicast, dir);
 }
 
-static void Sv_WriteAngle(const float f) {
-	Msg_WriteAngle(&sv.multicast, f);
+static void Sv_WriteAngle(const vec_t v) {
+	Msg_WriteAngle(&sv.multicast, v);
 }
 
 /*

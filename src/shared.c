@@ -49,28 +49,28 @@ int32_t Random(void) {
 }
 
 /*
- * @brief Returns a pseudo-random float between 0.0 and 1.0.
+ * @brief Returns a pseudo-random vec_t between 0.0 and 1.0.
  */
-float Randomf(void) {
+vec_t Randomf(void) {
 	return (Random()) * (1.0 / 0x7fffffff);
 }
 
 /*
- * @brief Returns a pseudo-random float between -1.0 and 1.0.
+ * @brief Returns a pseudo-random vec_t between -1.0 and 1.0.
  */
-float Randomc(void) {
+vec_t Randomc(void) {
 	return (Random()) * (2.0 / 0x7fffffff) - 1.0;
 }
 
 /*
  * @brief
  */
-void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, float degrees) {
-	float m[3][3];
-	float im[3][3];
-	float zrot[3][3];
-	float tmpmat[3][3];
-	float rot[3][3];
+void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, vec_t degrees) {
+	vec_t m[3][3];
+	vec_t im[3][3];
+	vec_t zrot[3][3];
+	vec_t tmpmat[3][3];
+	vec_t rot[3][3];
 	int32_t i;
 	vec3_t vr, vu, vf;
 
@@ -122,9 +122,9 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, f
  * @brief Derives Euler angles for the specified directional vector.
  */
 void VectorAngles(const vec3_t vector, vec3_t angles) {
-	const float forward = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-	float pitch = atan2(vector[2], forward) * 180.0 / M_PI;
-	const float yaw = atan2(vector[1], vector[0]) * 180.0 / M_PI;
+	const vec_t forward = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
+	vec_t pitch = atan2(vector[2], forward) * 180.0 / M_PI;
+	const vec_t yaw = atan2(vector[1], vector[0]) * 180.0 / M_PI;
 
 	if (pitch < 0.0) {
 		pitch += 360.0;
@@ -137,8 +137,8 @@ void VectorAngles(const vec3_t vector, vec3_t angles) {
  * @brief Produces the forward, right and up directional vectors for the given angles.
  */
 void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) {
-	float angle;
-	float sr, sp, sy, cr, cp, cy;
+	vec_t angle;
+	vec_t sr, sp, sy, cr, cp, cy;
 
 	angle = angles[YAW] * (M_PI * 2.0 / 360.0);
 	sy = sin(angle);
@@ -171,9 +171,9 @@ void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) 
  * @brief
  */
 void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal) {
-	float d;
+	vec_t d;
 	vec3_t n;
-	float inv_denom;
+	vec_t inv_denom;
 
 	inv_denom = 1.0F / DotProduct(normal, normal);
 
@@ -194,7 +194,7 @@ void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal) {
 void PerpendicularVector(vec3_t dst, const vec3_t src) {
 	int32_t pos;
 	int32_t i;
-	float minelem = 1.0F;
+	vec_t minelem = 1.0F;
 	vec3_t tempvec;
 
 	// find the smallest magnitude axially aligned vector
@@ -314,7 +314,7 @@ byte SignBitsForPlane(const c_bsp_plane_t *plane) {
  * plane. If the box straddles the plane, this function returns PSIDE_BOTH.
  */
 int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct c_bsp_plane_s *p) {
-	float dist1, dist2;
+	vec_t dist1, dist2;
 	int32_t sides;
 
 	// axial planes
@@ -425,7 +425,7 @@ _Bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
  * vector's length.
  */
 vec_t VectorNormalize(vec3_t v) {
-	float length, ilength;
+	vec_t length, ilength;
 
 	length = sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 
@@ -442,7 +442,7 @@ vec_t VectorNormalize(vec3_t v) {
 /*
  * @brief Scales vecb and adds it to veca to produce vecc. Useful for projection.
  */
-void VectorMA(const vec3_t veca, const float scale, const vec3_t vecb, vec3_t vecc) {
+void VectorMA(const vec3_t veca, const vec_t scale, const vec3_t vecb, vec3_t vecc) {
 	vecc[0] = veca[0] + scale * vecb[0];
 	vecc[1] = veca[1] + scale * vecb[1];
 	vecc[2] = veca[2] + scale * vecb[2];
@@ -467,7 +467,7 @@ vec_t VectorLength(const vec3_t v) {
 /*
  * @brief Combines a fraction of the second vector with the first.
  */
-void VectorMix(const vec3_t v1, const vec3_t v2, float mix, vec3_t out) {
+void VectorMix(const vec3_t v1, const vec3_t v2, vec_t mix, vec3_t out) {
 	int32_t i;
 
 	for (i = 0; i < 3; i++)
@@ -567,10 +567,10 @@ vec_t ColorNormalize(const vec3_t in, vec3_t out) {
 /*
  * @brief Applies brightness, saturation and contrast to the specified input color.
  */
-void ColorFilter(const vec3_t in, vec3_t out, float brightness, float saturation, float contrast) {
+void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation, vec_t contrast) {
 	const vec3_t luminosity = { 0.2125, 0.7154, 0.0721 };
 	vec3_t intensity;
-	float d;
+	vec_t d;
 	int32_t i;
 
 	ColorNormalize(in, out);

@@ -62,7 +62,7 @@ void Cl_CheckPredictionError(void) {
 	VectorSubtract(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame], d);
 	UnpackPosition(d, delta); // convert back to floating point
 
-	const float error = VectorLength(delta);
+	const vec_t error = VectorLength(delta);
 
 	if (error > 256.0) { // assume a teleport or something
 		VectorClear(cl.prediction_error);
@@ -88,7 +88,7 @@ static void Cl_PredictMovement_Trace_Clip(const vec3_t start, const vec3_t mins,
 		const entity_state_t *ent = &cl.entity_states[num];
 
 		int32_t head_node;
-		const float *angles;
+		const vec_t *angles;
 
 		c_trace_t trace;
 
@@ -214,7 +214,7 @@ void Cl_PredictMovement(void) {
 		Pmove(&pm);
 
 		// for each movement, check for stair interaction and interpolate
-		const float step = pm.s.origin[2] * 0.125 - cl.predicted_origin[2];
+		const vec_t step = pm.s.origin[2] * 0.125 - cl.predicted_origin[2];
 
 		if ((pm.s.pm_flags & PMF_ON_STAIRS) && fabs(step) >= 8.0) {
 			cl.predicted_step_time = cls.real_time;

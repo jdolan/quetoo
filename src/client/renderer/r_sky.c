@@ -76,9 +76,9 @@ static r_sky_t r_sky;
 static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
 	int32_t i, j;
 	vec3_t v, av;
-	float s, t, dv;
+	vec_t s, t, dv;
 	int32_t axis;
-	float *vp;
+	vec_t *vp;
 
 	// decide which face it maps to
 	VectorClear(v);
@@ -152,11 +152,11 @@ static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
  * @brief
  */
 static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
-	const float *norm;
-	float *v;
+	const vec_t *norm;
+	vec_t *v;
 	_Bool front, back;
-	float d, e;
-	float dists[MAX_CLIP_VERTS];
+	vec_t d, e;
+	vec_t dists[MAX_CLIP_VERTS];
 	int32_t sides[MAX_CLIP_VERTS];
 	vec3_t newv[2][MAX_CLIP_VERTS];
 	int32_t newc[2];
@@ -247,7 +247,7 @@ static void R_AddSkySurface(const r_bsp_surface_t *surf) {
 
 	// calculate distance to surface verts
 	for (i = 0; i < surf->num_edges; i++) {
-		const float *v = &r_model_state.world->verts[index + i * 3];
+		const vec_t *v = &r_model_state.world->verts[index + i * 3];
 		VectorSubtract(v, r_view.origin, verts[i]);
 	}
 
@@ -269,7 +269,7 @@ void R_ClearSkyBox(void) {
 /*
  * @brief
  */
-static void R_MakeSkyVec(float s, float t, int32_t axis) {
+static void R_MakeSkyVec(vec_t s, vec_t t, int32_t axis) {
 	vec3_t v, b;
 	int32_t j;
 
@@ -374,8 +374,8 @@ void R_SetSky(const char *name) {
 	}
 
 	// assume all sky components are the same size
-	r_sky.st_min = 1.0 / (float) r_sky.images[0]->width;
-	r_sky.st_max = (r_sky.images[0]->width - 1.0) / (float) r_sky.images[0]->width;
+	r_sky.st_min = 1.0 / (vec_t) r_sky.images[0]->width;
+	r_sky.st_max = (r_sky.images[0]->width - 1.0) / (vec_t) r_sky.images[0]->width;
 }
 
 /*
