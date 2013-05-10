@@ -666,7 +666,6 @@ void Cl_Init(void) {
 		return; // nothing running on the client
 
 	cls.state = CL_DISCONNECTED;
-	cls.real_time = quake2world.time;
 
 	// initialize SDL
 	if (SDL_WasInit(SDL_INIT_AUDIO | SDL_INIT_VIDEO) == 0) {
