@@ -838,11 +838,9 @@ void Sv_Frame(uint32_t msec) {
 }
 
 /*
- * @brief Only called at Quake2World startup, not for each game.
+ * @brief
  */
-void Sv_Init(void) {
-
-	memset(&svs, 0, sizeof(svs));
+static void Sv_InitLocal(void) {
 
 	sv_rcon_password = Cvar_Get("rcon_password", "", 0, NULL);
 
@@ -852,7 +850,7 @@ void Sv_Init(void) {
 	sv_hostname = Cvar_Get("sv_hostname", "Quake2World", CVAR_SERVER_INFO | CVAR_ARCHIVE, NULL);
 	sv_hz = Cvar_Get("sv_hz", va("%d", SERVER_HZ), CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 
-	sv_public = Cvar_Get("sv_public", "0", 0, NULL);
+	sv_public = Cvar_Get("sv_public", "0", 0, "Set to 1 to to advertise to the master server\n");
 
 	if (dedicated->value)
 		sv_max_clients = Cvar_Get("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
@@ -864,6 +862,16 @@ void Sv_Init(void) {
 
 	// set this so clients and server browsers can see it
 	Cvar_Get("sv_protocol", va("%i", PROTOCOL), CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+}
+
+/*
+ * @brief Only called at Quake2World startup, not for each game.
+ */
+void Sv_Init(void) {
+
+	memset(&svs, 0, sizeof(svs));
+
+	Sv_InitLocal();
 
 	Sv_InitCommands();
 

@@ -22,13 +22,6 @@
 #include "sv_local.h"
 
 /*
- *
- * OPERATOR CONSOLE ONLY COMMANDS
- *
- * These commands can only be entered from stdin or by a remote operator datagram
- */
-
-/*
  * @brief
  */
 static void Sv_SetMaster_f(void) {
@@ -230,30 +223,35 @@ static void Sv_Status_f(void) {
  * @brief
  */
 static void Sv_Say_f(void) {
-	int32_t j;
 	char text[MAX_STRING_CHARS];
+	int32_t i;
 
 	if (Cmd_Argc() < 2)
 		return;
 
-	const char *p = Cmd_Args() + strlen(Cmd_Argv(1)) + 1;
-	if (*p == '"') {
-		g_strlcpy(text, p + 1, sizeof(text));
-		text[strlen(text) - 1] = '\0';
-	} else {
-		g_strlcpy(text, p, sizeof(text));
+	StripColor(Cmd_Args(), text);
+	if (!strlen(text)) {
+		return;
+	}
+
+	g_strlcpy(text, Cmd_Args(), sizeof(text));
+	char *s = text;
+
+	if (s[0] == '"' && s[strlen(s) - 1] == '"') {
+		s[strlen(s) - 1] = '\0';
+		s++;
 	}
 
 	const sv_client_t *client = svs.clients;
-	for (j = 0; j < sv_max_clients->integer; j++, client++) {
+	for (i = 0; i < sv_max_clients->integer; i++, client++) {
 
 		if (client->state != SV_CLIENT_ACTIVE)
 			continue;
 
-		Sv_ClientPrint(client->edict, PRINT_CHAT, "console^1:^7 %s\n", text);
+		Sv_ClientPrint(client->edict, PRINT_CHAT, "^1console^%d: %s\n", CON_COLOR_CHAT, s);
 	}
 
-	Com_Print("console^1:^7 %s\n", text);
+	Com_Print("^1console^%d: %s\n", CON_COLOR_CHAT, s);
 }
 
 /*
@@ -268,19 +266,25 @@ static void Sv_Tell_f(void) {
 	if (!Sv_SetPlayer())
 		return;
 
-	const char *p = Cmd_Args() + strlen(Cmd_Argv(1)) + 1;
-	if (*p == '"') {
-		g_strlcpy(text, p + 1, sizeof(text));
-		text[strlen(text) - 1] = '\0';
-	} else {
-		g_strlcpy(text, p, sizeof(text));
+	const char *msg = Cmd_Args() + strlen(Cmd_Argv(1)) + 1;
+	StripColor(msg, text);
+	if (!strlen(text)) {
+		return;
+	}
+
+	g_strlcpy(text, msg, sizeof(text));
+	char *s = text;
+
+	if (s[0] == '"' && s[strlen(s) - 1] == '"') {
+		s[strlen(s) - 1] = '\0';
+		s++;
 	}
 
 	if (sv_client->state != SV_CLIENT_ACTIVE)
 		return;
 
-	Sv_ClientPrint(sv_client->edict, PRINT_CHAT, "console^1:^7 %s\n", text);
-	Com_Print("console^1:^7 %s\n", text);
+	Sv_ClientPrint(sv_client->edict, PRINT_CHAT, "^1console^%d: %s\n", CON_COLOR_TEAMCHAT, s);
+	Com_Print("^1console^%d: %s\n", CON_COLOR_TEAMCHAT, s);
 }
 
 /*

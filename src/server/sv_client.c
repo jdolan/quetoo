@@ -366,7 +366,6 @@ static void Sv_UserStringCommand(const char *s) {
 	}
 
 	if (!c->name) { // unmatched command
-
 		if (sv.state == SV_ACTIVE_GAME) // maybe the game knows what to do with it
 			svs.game->ClientCommand(sv_player);
 	}
