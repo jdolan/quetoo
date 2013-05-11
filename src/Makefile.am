@@ -76,7 +76,8 @@ libfilesystem_la_SOURCES = \
 	filesystem.c
 libfilesystem_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@PHYSFS_CFLAGS@
 libfilesystem_la_LIBADD = \
 	libmem.la \
 	libswap.la \

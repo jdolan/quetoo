@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <physfs.h>
+
 #include "filesystem.h"
 
 #define FS_FILE_BUFFER (1024 * 1024 * 2)
@@ -41,14 +43,14 @@ static fs_state_t fs_state;
  * @return True on successful flush and close, false otherwise.
  */
 _Bool Fs_Close(file_t *file) {
-	return PHYSFS_close(file) ? true : false;
+	return PHYSFS_close((PHYSFS_File *) file) ? true : false;
 }
 
 /*
  * @return True if the end of the file has been reached, false otherwise.
  */
 _Bool Fs_Eof(file_t *file) {
-	return PHYSFS_eof(file) ? true : false;
+	return PHYSFS_eof((PHYSFS_File *) file) ? true : false;
 }
 
 /*
@@ -62,7 +64,7 @@ _Bool Fs_Exists(const char *filename) {
  * @return True if the file flushed successfully, false otherwise.
  */
 _Bool Fs_Flush(file_t *file) {
-	return PHYSFS_flush(file) ? true : false;
+	return PHYSFS_flush((PHYSFS_File *) file) ? true : false;
 }
 
 /*
@@ -84,7 +86,7 @@ _Bool Fs_Mkdir(const char *dir) {
  */
 file_t *Fs_OpenAppend(const char *filename) {
 	char dir[MAX_QPATH];
-	file_t *file;
+	PHYSFS_File *file;
 
 	Dirname(filename, dir);
 	Fs_Mkdir(dir);
@@ -95,14 +97,14 @@ file_t *Fs_OpenAppend(const char *filename) {
 		}
 	}
 
-	return file;
+	return (file_t *) file;
 }
 
 /*
  * @brief Opens the specified file for reading.
  */
 file_t *Fs_OpenRead(const char *filename) {
-	file_t *file;
+	PHYSFS_File *file;
 
 	if ((file = PHYSFS_openRead(filename))) {
 		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
@@ -110,7 +112,7 @@ file_t *Fs_OpenRead(const char *filename) {
 		}
 	}
 
-	return file;
+	return (file_t *) file;
 }
 
 /*
@@ -118,7 +120,7 @@ file_t *Fs_OpenRead(const char *filename) {
  */
 file_t *Fs_OpenWrite(const char *filename) {
 	char dir[MAX_QPATH];
-	file_t *file;
+	PHYSFS_File *file;
 
 	Dirname(filename, dir);
 	Fs_Mkdir(dir);
@@ -129,7 +131,7 @@ file_t *Fs_OpenWrite(const char *filename) {
 		}
 	}
 
-	return file;
+	return (file_t *) file;
 }
 
 /*
@@ -154,7 +156,7 @@ int64_t Fs_Print(file_t *file, const char *fmt, ...) {
  * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
-	return PHYSFS_read(file, buffer, size, count);
+	return PHYSFS_read((PHYSFS_File *) file, buffer, size, count);
 }
 
 /*
@@ -187,14 +189,14 @@ _Bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
  * @brief Seeks to the specified offset.
  */
 _Bool Fs_Seek(file_t *file, size_t offset) {
-	return PHYSFS_seek(file, offset) ? true : false;
+	return PHYSFS_seek((PHYSFS_File *) file, offset) ? true : false;
 }
 
 /*
  * @return The current file offset.
  */
 int64_t Fs_Tell(file_t *file) {
-	return PHYSFS_tell(file);
+	return PHYSFS_tell((PHYSFS_File *) file);
 }
 
 /*
@@ -203,7 +205,7 @@ int64_t Fs_Tell(file_t *file) {
  * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Write(file_t *file, void *buffer, size_t size, size_t count) {
-	return PHYSFS_write(file, buffer, size, count);
+	return PHYSFS_write((PHYSFS_File *) file, buffer, size, count);
 }
 
 /*
@@ -226,7 +228,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 		GList *list = NULL;
 		len = 0;
 
-		if (!PHYSFS_setBuffer(file, FS_FILE_BUFFER)) {
+		if (!PHYSFS_setBuffer((PHYSFS_File *) file, FS_FILE_BUFFER)) {
 			Com_Warn("%s: %s\n", filename, Fs_LastError());
 		}
 

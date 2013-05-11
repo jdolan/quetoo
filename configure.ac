@@ -123,11 +123,28 @@ dnl ----------------
 dnl Check for PHYSFS
 dnl ----------------
 
+AC_ARG_WITH(physfs,
+	AS_HELP_STRING([--with-physfs=DIR],
+		[use alternate location of PhysFS]
+	)
+)
+
+if test "x${with_physfs}" != x; then
+	PHYSFS_CFLAGS="$PHYSFS_CFLAGS -I${with_physfs}/include"
+	PHYSFS_LIBS="$PHYSFS_LDFLAGS -L${with_physfs}/lib"
+fi
+
+save_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $PHYSFS_CFLAGS"
+	
 AC_CHECK_HEADER(physfs.h,
-	PHYSFS_LIBS="-lphysfs",
+	PHYSFS_LIBS="$PHYSFS_LIBS -lphysfs",
 	[AC_MSG_ERROR([Could not find physfs.h, please install PhysFS])]
 )
+AC_SUBST(PHYSFS_CFLAGS)
 AC_SUBST(PHYSFS_LIBS)
+
+CPPFLAGS="$save_CPPFLAGS"
 
 dnl -------------
 dnl Check for SDL
@@ -458,7 +475,7 @@ AC_MSG_CHECKING(which game modules to build)
 
 GAME_MODULES="default"
 AC_ARG_WITH(games,
-    AS_HELP_STRING([--with-games='default'],
+    AS_HELP_STRING([--with-games='default ...'],
 		[build specified game modules]
 	)
 )

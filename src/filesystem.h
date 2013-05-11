@@ -22,13 +22,13 @@
 #ifndef __FILESYSTEM_H__
 #define __FILESYSTEM_H__
 
-#include <physfs.h>
-
 #include "common.h"
 #include "swap.h"
 #include "sys.h"
 
-typedef PHYSFS_File file_t;
+typedef struct {
+	void *opaque;
+} file_t;
 
 typedef void (*fs_enumerate_func)(const char *path, void *data);
 
