@@ -9,4 +9,5 @@ RSYNC_REPOSITORY = \
 	rsync://jdolan.dyndns.org/quake2world
 
 rsync-data:
-	rsync -rzhP --delete $(RSYNC_REPOSITORY) @PKGDATADIR@
+	mkdir -p $(DESTDIR)@PKGDATADIR@
+	rsync -rzhP --delete $(RSYNC_REPOSITORY) $(DESTDIR)@PKGDATADIR@
