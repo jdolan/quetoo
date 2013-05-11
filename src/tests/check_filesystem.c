@@ -29,7 +29,7 @@ void setup(void) {
 
 	Z_Init();
 
-	Fs_Init();
+	Fs_Init(true);
 }
 
 /*

@@ -30,7 +30,7 @@ void setup(void) {
 
 	Z_Init();
 
-	Fs_Init();
+	Fs_Init(false);
 
 	Cmd_Init();
 

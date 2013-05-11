@@ -57,7 +57,7 @@ void Fs_AddToSearchPath(const char *dir);
 void Fs_SetGame(const char *dir);
 const char *Fs_WriteDir(void);
 const char *Fs_RealDir(const char *filename);
-void Fs_Init(void);
+void Fs_Init(_Bool auto_load_archives);
 void Fs_Shutdown(void);
 
 #endif /* __FILESYSTEM_H__ */

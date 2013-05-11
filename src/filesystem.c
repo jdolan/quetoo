@@ -29,9 +29,10 @@
 
 typedef struct fs_state_s {
 	char **base_search_paths;
+	_Bool auto_load_archives;
 
 #ifdef FS_LOAD_DEBUG
-	GHashTable *loaded_files;
+GHashTable *loaded_files;
 #endif
 } fs_state_t;
 
@@ -387,7 +388,8 @@ void Fs_CompleteFile(const char *pattern, GList **matches) {
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
 
 /*
- * @brief Adds the directory to the search path, loading all archives within it.
+ * @brief Adds the directory to the search path, conditionally loading all
+ * archives within it.
  */
 void Fs_AddToSearchPath(const char *dir) {
 
@@ -398,8 +400,10 @@ void Fs_AddToSearchPath(const char *dir) {
 		return;
 	}
 
-	//Fs_Enumerate("*.pak", Fs_AddToSearchPath_enumerate, (void *) dir);
-	Fs_Enumerate("*.pk3", Fs_AddToSearchPath_enumerate, (void *) dir);
+	if (fs_state.auto_load_archives) {
+		Fs_Enumerate("*.pak", Fs_AddToSearchPath_enumerate, (void *) dir);
+		Fs_Enumerate("*.pk3", Fs_AddToSearchPath_enumerate, (void *) dir);
+	}
 }
 
 /*
@@ -489,7 +493,7 @@ const char *Fs_RealDir(const char *filename) {
 /*
  * @brief Initializes the file subsystem.
  */
-void Fs_Init(void) {
+void Fs_Init(_Bool auto_load_archives) {
 
 	memset(&fs_state, 0, sizeof(fs_state_t));
 
@@ -497,11 +501,13 @@ void Fs_Init(void) {
 		Com_Error(ERR_FATAL, "%s\n", PHYSFS_getLastError());
 	}
 
+	fs_state.auto_load_archives = auto_load_archives;
+
 	const char *path = Sys_ExecutablePath();
 	if (path) {
 		char *c;
 
-		 Com_Debug("Resolved executable path: %s\n", path);
+		Com_Debug("Resolved executable path: %s\n", path);
 #ifdef __APPLE__
 		if ((c = strstr(path, "Quake2World.app"))) {
 			strcpy(c + strlen("Quake2World.app"), "/Contents/MacOS/"DEFAULT_GAME);

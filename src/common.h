@@ -59,7 +59,8 @@ void Msg_WritePos(size_buf_t *sb, const vec3_t pos);
 void Msg_WriteAngle(size_buf_t *sb, const vec_t f);
 void Msg_WriteAngles(size_buf_t *sb, const vec3_t angles);
 void Msg_WriteDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
-void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force, _Bool newentity);
+void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force,
+		_Bool newentity);
 void Msg_WriteDir(size_buf_t *sb, const vec3_t dir);
 
 void Msg_BeginReading(size_buf_t *sb);
@@ -75,21 +76,18 @@ void Msg_ReadPos(size_buf_t *sb, vec3_t pos);
 vec_t Msg_ReadAngle(size_buf_t *sb);
 void Msg_ReadAngles(size_buf_t *sb, vec3_t angles);
 void Msg_ReadDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
-void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, uint16_t bits, uint16_t number);
+void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, uint16_t bits,
+		uint16_t number);
 void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
-
 
 /*
 
-PROTOCOL
+ PROTOCOL
 
-*/
-
+ */
 
 #define PROTOCOL 1001 // change this when netcode changes
-
 #define IP_MASTER "67.228.69.114" // tastyspleen.net
-
 #define PORT_MASTER	1996 // some good years
 #define PORT_CLIENT	1997
 #define PORT_SERVER	1998
@@ -136,7 +134,6 @@ PROTOCOL
 #define S_ORIGIN	(1<<1) // three coordinates
 #define S_ENTNUM	(1<<2) // entity number
 
-
 // entity_state_t communication
 
 // This bit mask is packed into a int16_t for each entity_state_t per frame.
@@ -153,7 +150,6 @@ PROTOCOL
 #define U_SOUND			(1<<8) // looped sounds
 #define U_SOLID			(1<<9)
 #define U_REMOVE		(1<<10) // remove this entity, don't add it
-
 #define NUM_APPROXIMATE_NORMALS 162
 extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
 
@@ -194,7 +190,7 @@ void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn));
 #define Q2W_Q2WMAP		0x10
 
 // global engine struct
-typedef struct quake2world_s {
+typedef struct {
 	int32_t argc;
 	char **argv;
 

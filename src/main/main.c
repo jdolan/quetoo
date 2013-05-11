@@ -141,7 +141,7 @@ static void Init(void) {
 
 	Z_Init();
 
-	Fs_Init();
+	Fs_Init(true);
 
 	Cmd_Init();
 
