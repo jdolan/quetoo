@@ -12,12 +12,12 @@ then
 	MINGW_ARCH="mingw32"
 fi
 
-CHROOT="fedora-18-x86_64"
+MINGW_CHROOT="fedora-18-x86_64"
 
 init_chroot
 install_deps
 
-/usr/bin/mock -r ${CHROOT} --shell "
+/usr/bin/mock -r ${MINGW_CHROOT} --shell "
 export PATH=/usr/${MINGW_TARGET}-w64-mingw32/sys-root/mingw/bin:${PATH}
 cd /tmp/quake2world
 autoreconf -i --force
