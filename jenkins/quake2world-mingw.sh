@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-source ./_common.sh
+CHROOT=`echo $JOB_NAME|cut -d\-  -f3-10`
 
 if [ "${CHROOT}" == "mingw64" ]
 then
@@ -13,6 +13,9 @@ then
 fi
 
 MINGW_CHROOT="fedora-18-x86_64"
+
+source ./_common.sh
+
 
 init_chroot
 install_deps
