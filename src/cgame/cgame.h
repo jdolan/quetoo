@@ -39,7 +39,7 @@ typedef struct cg_import_s {
 	void (*FreeTag)(z_tag_t tag);
 
 	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *description);
-	void (*Cmd)(const char *name, cmd_function_t function, uint32_t flags, const char *description);
+	void (*Cmd)(const char *name, CmdExecuteFunc Execute, uint32_t flags, const char *description);
 
 	int64_t (*LoadFile)(const char *path, void **buffer);
 	void (*FreeFile)(void *buffer);

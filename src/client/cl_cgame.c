@@ -50,7 +50,7 @@ static void Cl_CgameError(const char *func, const char *fmt, ...) {
 /*
  * @brief Wraps Cmd_Add, enforcing all commands include CMD_CGAME.
  */
-static void Cl_CgameCmd(const char *name, cmd_function_t function, uint32_t flags,
+static void Cl_CgameCmd(const char *name, CmdExecuteFunc function, uint32_t flags,
 		const char *description) {
 	return Cmd_Add(name, function, (flags | CMD_CGAME), description);
 }

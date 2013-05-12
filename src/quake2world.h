@@ -144,12 +144,12 @@ typedef struct cvar_s {
 	int32_t integer;
 } cvar_t;
 
-typedef void (*cmd_function_t)(void);
+typedef void (*CmdExecuteFunc)(void);
 
 typedef struct cmd_s {
 	const char *name;
 	const char *description;
-	cmd_function_t function;
+	CmdExecuteFunc Execute;
 	const char *commands; // for alias commands
 	uint32_t flags;
 } cmd_t;

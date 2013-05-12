@@ -38,12 +38,12 @@ const char *Cmd_Args(void);
 void Cmd_TokenizeString(const char *text);
 void Cmd_ExecuteString(const char *text);
 
-typedef void (*cmd_enumerate_func)(cmd_t *cmd, void *data);
+typedef void (*CmdEnumerateFunc)(cmd_t *cmd, void *data);
 
 // general command management
 cmd_t *Cmd_Get(const char *name);
-void Cmd_Enumerate(cmd_enumerate_func func, void *data);
-cmd_t *Cmd_Add(const char *name, cmd_function_t func, uint32_t flags, const char *description);
+void Cmd_Enumerate(CmdEnumerateFunc func, void *data);
+cmd_t *Cmd_Add(const char *name, CmdExecuteFunc func, uint32_t flags, const char *description);
 void Cmd_Remove(const char *name);
 void Cmd_RemoveAll(uint32_t flags);
 void Cmd_CompleteCommand(const char *pattern, GList **matches);

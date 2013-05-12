@@ -89,7 +89,7 @@ char *Cvar_GetString(const char *name) {
 /*
  * @brief Enumerates all known variables with the given function.
  */
-void Cvar_Enumerate(cvar_enumerate_func func, void *data) {
+void Cvar_Enumerate(CvarEnumerateFunc func, void *data) {
 
 	GList *key = cvar_state.keys;
 	while (key) {
