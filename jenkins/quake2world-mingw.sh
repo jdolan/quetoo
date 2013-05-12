@@ -2,11 +2,12 @@
 set -e
 source ./_common.sh
 
-if [ ${CHROOT} == "mingw64" ]
+if [ "${CHROOT}" == "mingw64" ]
 then
 	MINGW_TARGET="x86_64"
 	MINGW_ARCH="mingw64"
-elif [ ${CHROOT} == "mingw32" ]
+elif [ "${CHROOT}" == "mingw32" ]
+then
 	MINGW_TARGET="i686"
 	MINGW_ARCH="mingw32"
 fi
