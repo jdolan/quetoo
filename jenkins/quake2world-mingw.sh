@@ -2,28 +2,29 @@
 set -e
 source ./_common.sh
 
-TARGET="i686"
-if [ ${ENV} == "mingw64" ]
+if [ ${CHROOT} == "mingw64" ]
 then
-	TARGET="x86_64"
+	MINGW_TARGET="x86_64"
+	MINGW_ARCH="mingw64"
+else if [ ${CHROOT} == "mingw32" ]
+	MINGW_TARGET="i686"
+	MINGW_ARCH="mingw32"
 fi
 
-MINGW_ENV="fedora-18-x86_64"
+CHROOT="fedora-18-x86_64"
 
-setup_mingw
+init_chroot
+install_deps
 
-/usr/bin/mock -r ${MINGW_ENV} --shell "
-export PATH=/usr/${TARGET}-w64-mingw32/sys-root/mingw/bin:${PATH}
-cd /tmp/quake2world
+/usr/bin/mock -r ${CHROOT} --shell "
+export PATH=/usr/${MINGW_TARGET}-w64-mingw32/sys-root/mingw/bin:${PATH}
+cd ~/quake2world
 libtoolize --force
 autoreconf -i --force
-./configure --host=${TARGET}-w64-mingw32 --prefix=/tmp/quake2world-${MINGW_ARCH}
-
+./configure --host=${MINGW_TARGET}-w64-mingw32 --prefix=/tmp/quake2world-${MINGW_ARCH}
 make
 make install
-
 "
 
-archive_workspace_mingw
-
-destroy_mingw
+archive_workspace 
+destroy_chroot
