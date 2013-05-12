@@ -15,7 +15,7 @@ function init_chroot() {
 function install_deps() {
 	
 
-	if [ ${CHROOT} == "mingw64" || ${CHROOT} == "mingw32" ]
+	if ([ "${CHROOT}" == "mingw64" ] || [ "${CHROOT}" == "mingw32" ])
 	then
 		MINGW_TARGET=${CHROOT}
 		CHROOT="fedora-18-x86_64"
