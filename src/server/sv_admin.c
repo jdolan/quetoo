@@ -354,22 +354,22 @@ static void Sv_Stuff_f(void) {
  */
 void Sv_InitCommands(void) {
 
-	Cmd_AddCommand("kick", Sv_Kick_f, 0, "Kick a specific user");
-	Cmd_AddCommand("status", Sv_Status_f, 0, "Print server status information");
-	Cmd_AddCommand("server_info", Sv_ServerInfo_f, 0, "Print server info settings");
-	Cmd_AddCommand("user_info", Sv_UserInfo_f, 0, "Print information for a given user");
+	Cmd_Add("kick", Sv_Kick_f, CMD_SERVER, "Kick a specific user");
+	Cmd_Add("status", Sv_Status_f, CMD_SERVER, "Print server status information");
+	Cmd_Add("server_info", Sv_ServerInfo_f, CMD_SERVER, "Print server info settings");
+	Cmd_Add("user_info", Sv_UserInfo_f, CMD_SERVER, "Print information for a given user");
 
-	Cmd_AddCommand("demo", Sv_Demo_f, 0, "Start playback of the specified demo file");
-	Cmd_AddCommand("map", Sv_Map_f, 0, "Start a server for the specified map");
+	Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file");
+	Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map");
 
-	Cmd_AddCommand("set_master", Sv_SetMaster_f, 0,
-			"Set the master server for the dedicated server");
-	Cmd_AddCommand("heartbeat", Sv_Heartbeat_f, 0, "Send a heartbeat to the master server");
+	Cmd_Add("set_master", Sv_SetMaster_f, CMD_SERVER,
+			"Set the master server(s) for the dedicated server");
+	Cmd_Add("heartbeat", Sv_Heartbeat_f, CMD_SERVER, "Send a heartbeat to the master server");
 
 	if (dedicated->value) {
-		Cmd_AddCommand("say", Sv_Say_f, 0, "Send a global chat message");
-		Cmd_AddCommand("tell", Sv_Tell_f, 0, "Send a private chat message");
-		Cmd_AddCommand("stuff", Sv_Stuff_f, 0, "Force a client to execute a command");
+		Cmd_Add("say", Sv_Say_f, CMD_SERVER, "Send a global chat message");
+		Cmd_Add("tell", Sv_Tell_f, CMD_SERVER, "Send a private chat message");
+		Cmd_Add("stuff", Sv_Stuff_f, CMD_SERVER, "Force a client to execute a command");
 	}
 }
 

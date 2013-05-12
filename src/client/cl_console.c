@@ -28,8 +28,8 @@
 
 console_t cl_console;
 
-static cvar_t *con_notify_time;
-static cvar_t *con_alpha;
+static cvar_t *cl_notify_time;
+static cvar_t *cl_console_alpha;
 
 /*
  * @brief
@@ -111,26 +111,14 @@ void Cl_InitConsole(void) {
 
 	Cl_ClearNotify();
 
-	con_notify_time = Cvar_Get("con_notify_time", "3", CVAR_ARCHIVE,
-			"Seconds to draw the last messages on the game top");
-	con_alpha = Cvar_Get("con_alpha", "0.3", CVAR_ARCHIVE, "Console alpha background [0.0-1.0]");
+	cl_notify_time = Cvar_Get("cl_notify_time", "3", CVAR_ARCHIVE, NULL);
+	cl_console_alpha = Cvar_Get("cl_console_alpha", "0.3", CVAR_ARCHIVE, NULL);
 
-	Cmd_AddCommand("toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM, "Toggle the console");
-
-	Cmd_AddCommand("message_mode", Cl_MessageMode_f, 0, "Activate chat");
-	Cmd_AddCommand("message_mode_2", Cl_MessageMode2_f, 0, "Activate team chat");
+	Cmd_Add("toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
+	Cmd_Add("message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");
+	Cmd_Add("message_mode_2", Cl_MessageMode2_f, CMD_CLIENT, "Activate team chat");
 
 	Com_Print("Console initialized\n");
-}
-
-/*
- * @brief Shuts down the client console.
- */
-void Cl_ShutdownConsole(void) {
-
-	Cmd_RemoveCommand("toggle_console");
-	Cmd_RemoveCommand("message_mode");
-	Cmd_RemoveCommand("message_mode_2");
 }
 
 /*
@@ -182,7 +170,7 @@ void Cl_DrawNotify(void) {
 	for (i = cl_console.last_line - CON_NUM_NOTIFY; i < cl_console.last_line; i++) {
 		if (i < 0)
 			continue;
-		if (cl_console.notify_times[i % CON_NUM_NOTIFY] + con_notify_time->value * 1000
+		if (cl_console.notify_times[i % CON_NUM_NOTIFY] + cl_notify_time->value * 1000
 				> cls.real_time) {
 			R_DrawBytes(0, y, cl_console.line_start[i],
 					cl_console.line_start[i + 1] - cl_console.line_start[i],
@@ -237,7 +225,7 @@ void Cl_DrawConsole(void) {
 
 	// draw a background
 	if (cls.state == CL_ACTIVE)
-		R_DrawFill(0, 0, r_context.width, r_context.height, 5, con_alpha->value);
+		R_DrawFill(0, 0, r_context.width, r_context.height, 5, cl_console_alpha->value);
 	else
 		R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
 

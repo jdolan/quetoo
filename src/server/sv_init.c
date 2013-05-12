@@ -151,7 +151,7 @@ static void Sv_ClearState() {
  */
 static void Sv_UpdateLatchedVars(void) {
 
-	Cvar_UpdateLatchedVars();
+	Cvar_UpdateLatched();
 
 	sv_max_clients->integer = Clamp(sv_max_clients->integer, MIN_CLIENTS, MAX_CLIENTS);
 	sv_hz->integer = Clamp(sv_hz->integer, SERVER_HZ_MIN, SERVER_HZ_MAX);
@@ -189,7 +189,7 @@ static void Sv_ShutdownClients(void) {
 static void Sv_InitClients(void) {
 	int32_t i;
 
-	if (!svs.initialized || Cvar_PendingLatchedVars()) {
+	if (!svs.initialized || Cvar_PendingLatched()) {
 
 		Sv_ShutdownGame();
 

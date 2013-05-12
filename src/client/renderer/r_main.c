@@ -388,8 +388,6 @@ void R_Restart_f(void) {
 
 	R_LoadMedia();
 
-	Cvar_ClearVars(CVAR_R_MASK);
-
 	r_render_mode->modified = true;
 
 	r_view.update = true;
@@ -492,18 +490,14 @@ static void R_InitLocal(void) {
 	r_windowed_height = Cvar_Get("r_windowed_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_windowed_width = Cvar_Get("r_windowed_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
-	// prevent unnecessary reloading for initial values
-	Cvar_ClearVars(CVAR_R_MASK);
+	Cvar_ClearAll(CVAR_R_MASK);
 
-	Cmd_AddCommand("r_list_media", R_ListMedia_f, 0, "List all currently loaded media");
-
-	Cmd_AddCommand("r_screenshot", R_Screenshot_f, CMD_SYSTEM, "Take a screenshot");
-
-	Cmd_AddCommand("r_sky", R_Sky_f, 0, NULL);
-
-	Cmd_AddCommand("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM, "Toggle fullscreen");
-
-	Cmd_AddCommand("r_restart", R_Restart_f, 0, "Restart the rendering subsystem");
+	Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media");
+	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
+	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, NULL);
+	Cmd_Add("r_toggle_fullscreen", R_ToggleFullscreen_f, CMD_SYSTEM | CMD_RENDERER,
+			"Toggle fullscreen");
+	Cmd_Add("r_restart", R_Restart_f, CMD_RENDERER, "Restart the rendering subsystem");
 }
 
 /*
@@ -571,15 +565,7 @@ void R_Init(void) {
  */
 void R_Shutdown(void) {
 
-	Cmd_RemoveCommand("r_list_media");
-
-	Cmd_RemoveCommand("r_screenshot");
-
-	Cmd_RemoveCommand("r_sky");
-
-	Cmd_RemoveCommand("r_toggle_fullscreen");
-
-	Cmd_RemoveCommand("r_restart");
+	Cmd_RemoveAll(CMD_RENDERER);
 
 	R_ShutdownPrograms();
 

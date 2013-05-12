@@ -569,10 +569,10 @@ void Cl_InitKeys(void) {
 	Cl_ReadHistory();
 
 	// register our functions
-	Cmd_AddCommand("bind", Cl_Bind_f, 0, NULL);
-	Cmd_AddCommand("unbind", Cl_Unbind_f, 0, NULL);
-	Cmd_AddCommand("unbind_all", Cl_UnbindAll_f, 0, NULL);
-	Cmd_AddCommand("bind_list", Cl_BindList_f, 0, NULL);
+	Cmd_Add("bind", Cl_Bind_f, CMD_CLIENT, NULL);
+	Cmd_Add("unbind", Cl_Unbind_f, CMD_CLIENT, NULL);
+	Cmd_Add("unbind_all", Cl_UnbindAll_f, CMD_CLIENT, NULL);
+	Cmd_Add("bind_list", Cl_BindList_f, CMD_CLIENT, NULL);
 
 	Cbuf_AddText(DEFAULT_BINDS);
 	Cbuf_Execute();
@@ -586,11 +586,6 @@ void Cl_ShutdownKeys(void) {
 	Cl_WriteHistory();
 
 	Z_Free(cl_key_names);
-
-	Cmd_RemoveCommand("bind");
-	Cmd_RemoveCommand("unbind");
-	Cmd_RemoveCommand("unbind_all");
-	Cmd_RemoveCommand("bind_list");
 }
 
 /*

@@ -142,7 +142,7 @@ void Ui_Init(void) {
 
 	Ui_ShowBar("Quake2World");
 
-	Cmd_AddCommand("ui_restart", Ui_Restart_f, 0, "Restarts the menus subsystem");
+	Cmd_Add("ui_restart", Ui_Restart_f, CMD_UI, "Restarts the menus subsystem");
 }
 
 /*
@@ -152,5 +152,5 @@ void Ui_Shutdown(void) {
 
 	TwTerminate();
 
-	Cmd_RemoveCommand("ui_restart");
+	Cmd_RemoveAll(CMD_UI);
 }

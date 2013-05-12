@@ -166,7 +166,7 @@ static void Init(void) {
 
 	Thread_Init();
 
-	Cmd_AddCommand("quit", Quit_f, 0, "Quit Quake2World");
+	Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quake2World");
 
 	Net_Init();
 	Netchan_Init();

@@ -95,6 +95,13 @@ typedef vec_t vec4_t[4];
 #define PRINT_TEAMCHAT		4 // teamchat messages
 // console commands
 #define CMD_SYSTEM			0x1 // always execute, even if not connected
+#define CMD_SERVER			0x2 // added by server
+#define CMD_GAME			0x4 // added by game module
+#define CMD_CLIENT			0x8 // added by client
+#define CMD_RENDERER		0x10 // added by renderer
+#define CMD_SOUND			0x20 // added by sound
+#define CMD_UI				0x40 // added by user interface
+#define CMD_CGAME			0x80 // added by client game module
 // console variables
 #define CVAR_CLI			0x1 // will retain value through initialization
 #define CVAR_ARCHIVE		0x2 // saved to quake2world.cfg
@@ -103,10 +110,10 @@ typedef vec_t vec4_t[4];
 #define CVAR_LO_ONLY		0x10 // don't allow change when connected
 #define CVAR_NO_SET			0x20 // don't allow change from console at all
 #define CVAR_LATCH			0x40 // save changes until server restart
-#define CVAR_R_CONTEXT		0x80 // effects OpenGL context
-#define CVAR_R_MEDIA		0x100 // effects renderer media filtering
-#define CVAR_S_DEVICE		0x200 // effects sound device parameters
-#define CVAR_S_MEDIA		0x400 // effects sound media
+#define CVAR_R_CONTEXT		0x80 // affects OpenGL context
+#define CVAR_R_MEDIA		0x100 // affects renderer media filtering
+#define CVAR_S_DEVICE		0x200 // affects sound device parameters
+#define CVAR_S_MEDIA		0x400 // affects sound media
 #define CVAR_R_MASK			(CVAR_R_CONTEXT | CVAR_R_MEDIA)
 #define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_MEDIA)
 
@@ -170,7 +177,8 @@ typedef enum {
 	SV_CMD_RECONNECT,
 	SV_CMD_SERVER_DATA, // [long] protocol ...
 	SV_CMD_SOUND,
-	SV_CMD_CGAME, // this MUST be the last element here, as cgame extends from this point
+	SV_CMD_CGAME,
+// this MUST be the last element here, as cgame extends from this point
 } sv_cmd_t;
 
 // client to server

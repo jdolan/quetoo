@@ -25,8 +25,18 @@ libtests_la_SOURCES = \
 libtests_la_CFLAGS = \
 	$(TESTS_CFLAGS)
 
-TESTS = check_cvar check_filesystem check_mem check_r_media		
+TESTS = check_cmd check_cvar check_filesystem check_mem check_r_media		
 noinst_PROGRAMS = $(TESTS)
+
+check_cmd_SOURCES = \
+	check_cmd.c \
+	../cmd.c \
+	../cvar.c
+check_cmd_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_cmd_LDADD = \
+	$(TESTS_LIBS) \
+	../libfilesystem.la
 
 check_cvar_SOURCES = \
 	check_cvar.c \

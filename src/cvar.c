@@ -151,11 +151,19 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 	// update existing variables with meta data from owning subsystem
 	cvar_t *var = Cvar_Get_(name);
 	if (var) {
-		if (value)
+		if (value) {
+			if (var->default_value) {
+				Z_Free((void *) var->default_value);
+			}
 			var->default_value = Z_Link(Z_CopyString(value), var);
+		}
 		var->flags |= flags;
-		if (description)
+		if (description) {
+			if (var->description) {
+				Z_Free((void *) var->description);
+			}
 			var->description = Z_Link(Z_CopyString(description), var);
+		}
 		return var;
 	}
 
@@ -356,9 +364,9 @@ void Cvar_Toggle(const char *name) {
 }
 
 /*
- * @brief Enumeration helper for Cvar_ResetLocalVars.
+ * @brief Enumeration helper for Cvar_ResetLocal.
  */
-void Cvar_ResetLocalVars_enumerate(cvar_t *var, void *data __attribute__((unused))) {
+void Cvar_ResetLocal_enumerate(cvar_t *var, void *data __attribute__((unused))) {
 
 	if (var->flags & CVAR_LO_ONLY) {
 		if (var->default_value) {
@@ -370,19 +378,19 @@ void Cvar_ResetLocalVars_enumerate(cvar_t *var, void *data __attribute__((unused
 /*
  * @brief Reset CVAR_LO_ONLY to their default values.
  */
-void Cvar_ResetLocalVars(void) {
+void Cvar_ResetLocal(void) {
 
 	const int32_t clients = Cvar_GetValue("sv_max_clients");
 
 	if (clients > 1 || (Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER))) {
-		Cvar_Enumerate(Cvar_ResetLocalVars_enumerate, NULL);
+		Cvar_Enumerate(Cvar_ResetLocal_enumerate, NULL);
 	}
 }
 
 /*
- * @brief Enumeration helper for Cvar_PendingLatchedVars.
+ * @brief Enumeration helper for Cvar_PendingLatched.
  */
-static void Cvar_PendingLatchedVars_enumerate(cvar_t *var, void *data) {
+static void Cvar_PendingLatched_enumerate(cvar_t *var, void *data) {
 
 	if (var->latched_string) {
 		*((_Bool *) data) = true;
@@ -391,18 +399,19 @@ static void Cvar_PendingLatchedVars_enumerate(cvar_t *var, void *data) {
 
 /*
  * @brief Returns true if there are any CVAR_LATCH variables pending.
- */_Bool Cvar_PendingLatchedVars(void) {
+ */
+_Bool Cvar_PendingLatched(void) {
 	_Bool pending = false;
 
-	Cvar_Enumerate(Cvar_PendingLatchedVars_enumerate, (void *) &pending);
+	Cvar_Enumerate(Cvar_PendingLatched_enumerate, (void *) &pending);
 
 	return pending;
 }
 
 /*
- * @brief Enumeration helper for Cvar_UpdateLatchedVars.
+ * @brief Enumeration helper for Cvar_UpdateLatched.
  */
-void Cvar_UpdateLatchedVars_enumerate(cvar_t *var, void *data __attribute__((unused))) {
+void Cvar_UpdateLatched_enumerate(cvar_t *var, void *data __attribute__((unused))) {
 
 	if (var->latched_string) {
 		Z_Free(var->string);
@@ -426,37 +435,38 @@ void Cvar_UpdateLatchedVars_enumerate(cvar_t *var, void *data __attribute__((unu
 /*
  * @brief Apply any pending latched changes.
  */
-void Cvar_UpdateLatchedVars(void) {
-	Cvar_Enumerate(Cvar_UpdateLatchedVars_enumerate, NULL);
+void Cvar_UpdateLatched(void) {
+	Cvar_Enumerate(Cvar_UpdateLatched_enumerate, NULL);
 }
 
-static _Bool cvar_pending_vars;
+static _Bool cvar_pending;
 
 /*
- * @brief Enumeration helper for Cvar_PendingVars.
+ * @brief Enumeration helper for Cvar_Pending.
  */
-static void Cvar_PendingVars_enumerate(cvar_t *var, void *data) {
+static void Cvar_Pending_enumerate(cvar_t *var, void *data) {
 	uint32_t flags = *((uint32_t *) data);
 
 	if ((var->flags & flags) && var->modified) {
-		cvar_pending_vars = true;
+		cvar_pending = true;
 	}
 }
 
 /*
  * @brief Returns true if any variables whose flags match the specified mask are pending.
- */_Bool Cvar_PendingVars(uint32_t flags) {
-	cvar_pending_vars = false;
+ */
+_Bool Cvar_Pending(uint32_t flags) {
+	cvar_pending = false;
 
-	Cvar_Enumerate(Cvar_PendingVars_enumerate, (void *) &flags);
+	Cvar_Enumerate(Cvar_Pending_enumerate, (void *) &flags);
 
-	return cvar_pending_vars;
+	return cvar_pending;
 }
 
 /*
- * @brief Enumeration helper for Cvar_ClearVars.
+ * @brief Enumeration helper for Cvar_ClearAll.
  */
-static void Cvar_ClearVars_enumerate(cvar_t *var, void *data) {
+static void Cvar_ClearAll_enumerate(cvar_t *var, void *data) {
 	uint32_t flags = *((uint32_t *) data);
 
 	if ((var->flags & flags) && var->modified) {
@@ -467,13 +477,14 @@ static void Cvar_ClearVars_enumerate(cvar_t *var, void *data) {
 /*
  * @brief Clears the modified flag on all variables matching the specified mask.
  */
-void Cvar_ClearVars(uint32_t flags) {
-	Cvar_Enumerate(Cvar_ClearVars_enumerate, (void *) &flags);
+void Cvar_ClearAll(uint32_t flags) {
+	Cvar_Enumerate(Cvar_ClearAll_enumerate, (void *) &flags);
 }
 
 /*
  * @brief Handles variable inspection and changing from the console
- */_Bool Cvar_Command(void) {
+ */
+_Bool Cvar_Command(void) {
 	cvar_t *var;
 
 	// check variables
@@ -618,7 +629,7 @@ static void Cvar_WriteVariables_enumerate(cvar_t *var, void *data) {
 /*
  * @brief Writes all variables to the specified file.
  */
-void Cvar_WriteVariables(file_t *f) {
+void Cvar_WriteAll(file_t *f) {
 	Cvar_Enumerate(Cvar_WriteVariables_enumerate, (void *) f);
 }
 
@@ -634,13 +645,13 @@ void Cvar_Init(void) {
 
 	cvar_state.vars = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
 
-	Cmd_AddCommand("set", Cvar_Set_f, 0, "Create or modify a console variable");
-	Cmd_AddCommand("seta", Cvar_Set_f, 0, "Create an archived console variable");
-	Cmd_AddCommand("sets", Cvar_Set_f, 0, "Create a server-info console variable");
-	Cmd_AddCommand("setu", Cvar_Set_f, 0, "Create a user-info console variable");
+	Cmd_Add("set", Cvar_Set_f, 0, "Create or modify a console variable");
+	Cmd_Add("seta", Cvar_Set_f, 0, "Create an archived console variable");
+	Cmd_Add("sets", Cvar_Set_f, 0, "Create a server-info console variable");
+	Cmd_Add("setu", Cvar_Set_f, 0, "Create a user-info console variable");
 
-	Cmd_AddCommand("toggle", Cvar_Toggle_f, 0, NULL);
-	Cmd_AddCommand("cvar_list", Cvar_List_f, 0, NULL);
+	Cmd_Add("toggle", Cvar_Toggle_f, 0, NULL);
+	Cmd_Add("cvar_list", Cvar_List_f, 0, NULL);
 
 	int32_t i;
 	for (i = 1; i < Com_Argc(); i++) {
@@ -669,10 +680,10 @@ void Cvar_Shutdown(void) {
 	g_hash_table_destroy(cvar_state.vars);
 	g_list_free(cvar_state.keys);
 
-	Cmd_RemoveCommand("set");
-	Cmd_RemoveCommand("seta");
-	Cmd_RemoveCommand("sets");
-	Cmd_RemoveCommand("setu");
-	Cmd_RemoveCommand("toggle");
-	Cmd_RemoveCommand("cvar_list");
+	Cmd_Remove("set");
+	Cmd_Remove("seta");
+	Cmd_Remove("sets");
+	Cmd_Remove("setu");
+	Cmd_Remove("toggle");
+	Cmd_Remove("cvar_list");
 }

@@ -34,6 +34,7 @@ cvar_t *m_pitch;
 cvar_t *m_sensitivity_zoom;
 cvar_t *m_sensitivity;
 cvar_t *m_yaw;
+
 cvar_t *debug_m_capture;
 
 // key strokes queued per frame, power of 2
@@ -537,31 +538,31 @@ void Cl_ClearInput(void) {
  */
 void Cl_InitInput(void) {
 
-	Cmd_AddCommand("center_view", Cl_CenterView_f, 0, NULL);
-	Cmd_AddCommand("+move_up", Cl_Up_down_f, 0, NULL);
-	Cmd_AddCommand("-move_up", Cl_Up_up_f, 0, NULL);
-	Cmd_AddCommand("+move_down", Cl_Down_down_f, 0, NULL);
-	Cmd_AddCommand("-move_down", Cl_Down_up_f, 0, NULL);
-	Cmd_AddCommand("+left", Cl_Left_down_f, 0, NULL);
-	Cmd_AddCommand("-left", Cl_Left_up_f, 0, NULL);
-	Cmd_AddCommand("+right", Cl_Right_down_f, 0, NULL);
-	Cmd_AddCommand("-right", Cl_Right_up_f, 0, NULL);
-	Cmd_AddCommand("+forward", Cl_Forward_down_f, 0, NULL);
-	Cmd_AddCommand("-forward", Cl_Forward_up_f, 0, NULL);
-	Cmd_AddCommand("+back", Cl_Back_down_f, 0, NULL);
-	Cmd_AddCommand("-back", Cl_Back_up_f, 0, NULL);
-	Cmd_AddCommand("+look_up", Cl_LookUp_down_f, 0, NULL);
-	Cmd_AddCommand("-look_up", Cl_LookUp_up_f, 0, NULL);
-	Cmd_AddCommand("+look_down", Cl_LookDown_down_f, 0, NULL);
-	Cmd_AddCommand("-look_down", Cl_LookDown_up_f, 0, NULL);
-	Cmd_AddCommand("+move_left", Cl_MoveLeft_down_f, 0, NULL);
-	Cmd_AddCommand("-move_left", Cl_MoveLeft_up_f, 0, NULL);
-	Cmd_AddCommand("+move_right", Cl_MoveRight_down_f, 0, NULL);
-	Cmd_AddCommand("-move_right", Cl_MoveRight_up_f, 0, NULL);
-	Cmd_AddCommand("+speed", Cl_Speed_down_f, 0, NULL);
-	Cmd_AddCommand("-speed", Cl_Speed_up_f, 0, NULL);
-	Cmd_AddCommand("+attack", Cl_Attack_down_f, 0, NULL);
-	Cmd_AddCommand("-attack", Cl_Attack_up_f, 0, NULL);
+	Cmd_Add("center_view", Cl_CenterView_f, CMD_CLIENT, NULL);
+	Cmd_Add("+move_up", Cl_Up_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-move_up", Cl_Up_up_f, CMD_CLIENT, NULL);
+	Cmd_Add("+move_down", Cl_Down_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-move_down", Cl_Down_up_f, CMD_CLIENT, NULL);
+	Cmd_Add("+left", Cl_Left_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-left", Cl_Left_up_f, CMD_CLIENT, NULL);
+	Cmd_Add("+right", Cl_Right_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-right", Cl_Right_up_f, CMD_CLIENT, NULL);
+	Cmd_Add("+forward", Cl_Forward_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-forward", Cl_Forward_up_f, CMD_CLIENT, NULL);
+	Cmd_Add("+back", Cl_Back_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-back", Cl_Back_up_f, CMD_CLIENT, NULL);
+	Cmd_Add("+look_up", Cl_LookUp_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-look_up", Cl_LookUp_up_f, CMD_CLIENT, NULL);
+	Cmd_Add("+look_down", Cl_LookDown_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-look_down", Cl_LookDown_up_f, CMD_CLIENT, NULL);
+	Cmd_Add("+move_left", Cl_MoveLeft_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-move_left", Cl_MoveLeft_up_f, CMD_CLIENT, NULL);
+	Cmd_Add("+move_right", Cl_MoveRight_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-move_right", Cl_MoveRight_up_f, CMD_CLIENT, NULL);
+	Cmd_Add("+speed", Cl_Speed_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-speed", Cl_Speed_up_f, CMD_CLIENT, NULL);
+	Cmd_Add("+attack", Cl_Attack_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-attack", Cl_Attack_up_f, CMD_CLIENT, NULL);
 
 	cl_run = Cvar_Get("cl_run", "1", CVAR_ARCHIVE, NULL);
 	cl_forward_speed = Cvar_Get("cl_forward_speed", "100.0", 0, NULL);
@@ -576,6 +577,7 @@ void Cl_InitInput(void) {
 	m_sensitivity = Cvar_Get("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
 	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0, NULL);
+
 	debug_m_capture = Cvar_Get("debug_m_capture", "1", 0, NULL);
 
 	Cl_ClearInput();

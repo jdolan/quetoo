@@ -85,7 +85,7 @@ START_TEST(check_Cvar_Get)
 
 	}END_TEST
 
-START_TEST(check_Cvar_WriteVariables)
+START_TEST(check_Cvar_WriteAll)
 	{
 		cvar_t *vars[32];
 		file_t *file;
@@ -99,7 +99,7 @@ START_TEST(check_Cvar_WriteVariables)
 		if ((file = Fs_OpenWrite(__func__))) {
 
 			// flush them to a file
-			Cvar_WriteVariables(file);
+			Cvar_WriteAll(file);
 
 			Fs_Close(file);
 
@@ -137,7 +137,7 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
 	tcase_add_test(tcase, check_Cvar_Get);
-	tcase_add_test(tcase, check_Cvar_WriteVariables);
+	tcase_add_test(tcase, check_Cvar_WriteAll);
 
 	Suite *suite = suite_create("check_cvar");
 	suite_add_tcase(suite, tcase);

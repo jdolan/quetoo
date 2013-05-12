@@ -1468,7 +1468,8 @@ void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open) {
 
 /*
  * @brief Returns true if the specified areas are connected.
- */_Bool Cm_AreasConnected(int32_t area1, int32_t area2) {
+ */
+_Bool Cm_AreasConnected(int32_t area1, int32_t area2) {
 
 	if (c_no_areas->value)
 		return true;
@@ -1512,7 +1513,8 @@ int32_t Cm_WriteAreaBits(byte *buffer, const int32_t area) {
 /*
  * @brief Returns true if any leaf under head_node has a cluster that
  * is potentially visible.
- */_Bool Cm_HeadnodeVisible(const int32_t node_num, const byte *vis) {
+ */
+_Bool Cm_HeadnodeVisible(const int32_t node_num, const byte *vis) {
 	const c_bsp_node_t *node;
 
 	if (node_num < 0) { // at a leaf, check it

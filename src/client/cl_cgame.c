@@ -27,8 +27,8 @@ static void *cgame_handle;
  * @brief Abort the server with a game error. This wraps Com_Error, always
  * emitting ERR_DROP.
  */
-static void Cl_Error(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
-static void Cl_Error(const char *func, const char *fmt, ...) {
+static void Cl_CgameError(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+static void Cl_CgameError(const char *func, const char *fmt, ...) {
 	char msg[MAX_STRING_CHARS];
 
 	if (fmt[0] != '!') {
@@ -45,6 +45,14 @@ static void Cl_Error(const char *func, const char *fmt, ...) {
 	va_end(args);
 
 	Com_Error(ERR_DROP, "!Client game error: %s\n", msg);
+}
+
+/*
+ * @brief Wraps Cmd_Add, enforcing all commands include CMD_CGAME.
+ */
+static void Cl_CgameCmd(const char *name, cmd_function_t function, uint32_t flags,
+		const char *description) {
+	return Cmd_Add(name, function, (flags | CMD_CGAME), description);
 }
 
 /*
@@ -117,15 +125,14 @@ void Cl_InitCgame(void) {
 	import.Print = Com_Print;
 	import.Debug_ = Com_Debug_;
 	import.Warn_ = Com_Warn_;
-	import.Error_ = Cl_Error;
+	import.Error_ = Cl_CgameError;
 
 	import.Malloc = Z_TagMalloc;
 	import.Free = Z_Free;
 	import.FreeTag = Z_FreeTag;
 
 	import.Cvar = Cvar_Get;
-	import.AddCommand = Cmd_AddCommand;
-	import.RemoveCommand = Cmd_RemoveCommand;
+	import.Cmd = Cl_CgameCmd;
 
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;
@@ -214,7 +221,8 @@ void Cl_ShutdownCgame(void) {
 	cls.cgame->Shutdown();
 	cls.cgame = NULL;
 
-	// the cgame module should call this, but lets not assume
+	Cmd_RemoveAll(CMD_CGAME);
+
 	Z_FreeTag(Z_TAG_CGAME_LEVEL);
 	Z_FreeTag(Z_TAG_CGAME);
 

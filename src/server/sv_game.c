@@ -23,10 +23,10 @@
 #include "pmove.h"
 
 /*
- * @brief Abort the server with a game error
+ * @brief Abort the server with a game error, always emitting ERR_DROP.
  */
-static void Sv_Error(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
-static void Sv_Error(const char *func, const char *fmt, ...) {
+static void Sv_GameError(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+static void Sv_GameError(const char *func, const char *fmt, ...) {
 	char msg[MAX_STRING_CHARS];
 
 	if (fmt[0] != '!') {
@@ -204,30 +204,6 @@ static void Sv_Sound(const g_edict_t *ent, const uint16_t index, const uint16_t 
 static void *game_handle;
 
 /*
- * @brief Called when either the entire server is being killed, or it is changing to a
- * different game directory.
- */
-void Sv_ShutdownGame(void) {
-
-	if (!svs.game)
-		return;
-
-	Com_Print("Game shutdown...\n");
-
-	svs.game->Shutdown();
-	svs.game = NULL;
-
-	// the game module code should call this, but lets not assume
-	Z_FreeTag(Z_TAG_GAME_LEVEL);
-	Z_FreeTag(Z_TAG_GAME);
-
-	Com_Print("Game down\n");
-	Com_QuitSubsystem(Q2W_GAME);
-
-	Sys_CloseLibrary(&game_handle);
-}
-
-/*
  * @brief Initializes the game module by exposing a subset of server functionality
  * through function pointers. In return, the game module allocates memory for
  * entities and returns a few pointers of its own.
@@ -255,7 +231,7 @@ void Sv_InitGame(void) {
 	import.Print = Com_Print;
 	import.Debug_ = Com_Debug_;
 	import.Warn_ = Com_Warn_;
-	import.Error_ = Sv_Error;
+	import.Error_ = Sv_GameError;
 
 	import.BroadcastPrint = Sv_BroadcastPrint;
 	import.ClientPrint = Sv_ClientPrint;
@@ -324,4 +300,30 @@ void Sv_InitGame(void) {
 
 	Com_Print("Game initialized, starting...\n");
 	Com_InitSubsystem(Q2W_GAME);
+}
+
+/*
+ * @brief Called when either the entire server is being killed, or it is changing to a
+ * different game directory.
+ */
+void Sv_ShutdownGame(void) {
+
+	if (!svs.game)
+		return;
+
+	Com_Print("Game shutdown...\n");
+
+	svs.game->Shutdown();
+	svs.game = NULL;
+
+	Cmd_RemoveAll(CMD_GAME);
+
+	// the game module code should call this, but lets not assume
+	Z_FreeTag(Z_TAG_GAME_LEVEL);
+	Z_FreeTag(Z_TAG_GAME);
+
+	Com_Print("Game down\n");
+	Com_QuitSubsystem(Q2W_GAME);
+
+	Sys_CloseLibrary(&game_handle);
 }

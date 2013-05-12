@@ -43,8 +43,9 @@ typedef void (*cmd_enumerate_func)(cmd_t *cmd, void *data);
 // general command management
 cmd_t *Cmd_Get(const char *name);
 void Cmd_Enumerate(cmd_enumerate_func func, void *data);
-void Cmd_AddCommand(const char *name, cmd_function_t func, uint32_t flags, const char *description);
-void Cmd_RemoveCommand(const char *name);
+cmd_t *Cmd_Add(const char *name, cmd_function_t func, uint32_t flags, const char *description);
+void Cmd_Remove(const char *name);
+void Cmd_RemoveAll(uint32_t flags);
 void Cmd_CompleteCommand(const char *pattern, GList **matches);
 void Cmd_Init(void);
 void Cmd_Shutdown(void);

@@ -23,7 +23,8 @@
 
 /*
  * @brief
- */_Bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
+ */
+_Bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 	int32_t delta;
 
 	const uint16_t index = ITEM_INDEX(ent->locals.item);

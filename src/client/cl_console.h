@@ -33,7 +33,6 @@ void Cl_UpdateNotify(int32_t last_line);
 void Cl_ClearNotify(void);
 void Cl_ToggleConsole_f(void);
 void Cl_InitConsole(void);
-void Cl_ShutdownConsole(void);
 #endif /* __CL_LOCAL_H__ */
 
 #endif /* __CL_CONSOLE_H__ */

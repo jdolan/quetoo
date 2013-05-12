@@ -214,11 +214,13 @@ static void S_InitLocal(void) {
 	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");
 	s_volume = Cvar_Get("s_volume", "1.0", CVAR_ARCHIVE, "Global sound volume level.");
 
-	Cmd_AddCommand("s_list_media", S_ListMedia_f, 0, "List all currently loaded media");
-	Cmd_AddCommand("s_next_track", S_NextTrack_f, 0, "Play the next music track.");
-	Cmd_AddCommand("s_play", S_Play_f, 0, NULL);
-	Cmd_AddCommand("s_restart", S_Restart_f, 0, "Restart the sound subsystem");
-	Cmd_AddCommand("s_stop", S_Stop_f, 0, NULL);
+	Cvar_ClearAll(CVAR_S_MASK);
+
+	Cmd_Add("s_list_media", S_ListMedia_f, CMD_SOUND, "List all currently loaded media");
+	Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
+	Cmd_Add("s_play", S_Play_f, CMD_SOUND, NULL);
+	Cmd_Add("s_restart", S_Restart_f, CMD_SOUND, "Restart the sound subsystem");
+	Cmd_Add("s_stop", S_Stop_f, CMD_SOUND, NULL);
 }
 
 /*
@@ -292,10 +294,7 @@ void S_Shutdown(void) {
 	else
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
-	Cmd_RemoveCommand("s_play");
-	Cmd_RemoveCommand("s_stop");
-	Cmd_RemoveCommand("s_list");
-	Cmd_RemoveCommand("s_restart");
+	Cmd_RemoveAll(CMD_SOUND);
 
 	s_env.initialized = false;
 

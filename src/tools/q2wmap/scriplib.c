@@ -117,7 +117,8 @@ static _Bool EndOfScript(_Bool crossline) {
 
 /*
  * @brief
- */_Bool GetToken(_Bool crossline) {
+ */
+_Bool GetToken(_Bool crossline) {
 	char *token_p;
 
 	if (script->script_p >= script->end_p)
@@ -198,7 +199,8 @@ static _Bool EndOfScript(_Bool crossline) {
 
 /*
  * @brief
- */_Bool TokenAvailable(void) {
+ */
+_Bool TokenAvailable(void) {
 	char *search_p;
 
 	search_p = script->script_p;

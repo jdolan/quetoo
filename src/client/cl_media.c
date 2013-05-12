@@ -55,7 +55,7 @@ void Cl_RequestNextDownload(void) {
 	// we're good to go, lock and load (literally)
 
 	Com_InitSubsystem(Q2W_CLIENT);
-	Cvar_ResetLocalVars();
+	Cvar_ResetLocal();
 
 	Cl_LoadMedia();
 

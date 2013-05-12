@@ -897,5 +897,7 @@ void Sv_Shutdown(const char *msg) {
 
 	memset(&svs, 0, sizeof(svs));
 
+	Cmd_RemoveAll(CMD_SERVER);
+
 	Z_FreeTag(Z_TAG_SERVER);
 }

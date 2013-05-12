@@ -428,8 +428,8 @@ void Con_Init(void) {
 	Curses_Init();
 #endif
 
-	Cmd_AddCommand("clear", Con_Clear_f, 0, NULL);
-	Cmd_AddCommand("dump", Con_Dump_f, 0, NULL);
+	Cmd_Add("clear", Con_Clear_f, 0, NULL);
+	Cmd_Add("dump", Con_Dump_f, 0, NULL);
 }
 
 /*
@@ -441,6 +441,6 @@ void Con_Shutdown(void) {
 	Curses_Shutdown();
 #endif
 
-	Cmd_RemoveCommand("clear");
-	Cmd_RemoveCommand("dump");
+	Cmd_Remove("clear");
+	Cmd_Remove("dump");
 }

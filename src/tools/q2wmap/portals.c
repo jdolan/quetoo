@@ -103,7 +103,8 @@ static int32_t ClusterContents(const node_t * node) {
  * The nodes on either side of the portal may actually be clusters,
  * not leafs, so all contents should be ored together
  * =============
- */_Bool Portal_VisFlood(const portal_t * p) {
+ */
+_Bool Portal_VisFlood(const portal_t * p) {
 	int32_t c1, c2;
 
 	if (!p->onnode)
@@ -546,7 +547,8 @@ static _Bool PlaceOccupant(node_t * head_node, vec3_t origin, entity_t * occupan
 
 /*
  * @brief Marks all nodes that can be reached by entites
- */_Bool FloodEntities(tree_t *tree) {
+ */
+_Bool FloodEntities(tree_t *tree) {
 	int32_t i;
 	vec3_t origin;
 	const char *cl;

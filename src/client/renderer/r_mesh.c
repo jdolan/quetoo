@@ -133,7 +133,8 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 
 /*
  * @brief
- */_Bool R_CullMeshModel(const r_entity_t *e) {
+ */
+_Bool R_CullMeshModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 
 	if (e->effects & EF_WEAPON) // never cull the weapon

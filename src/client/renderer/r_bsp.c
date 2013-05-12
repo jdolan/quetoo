@@ -102,7 +102,8 @@ c_trace_t R_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const
 /*
  * @brief Returns true if the specified bounding box is completely culled by the
  * view frustum, false otherwise.
- */_Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
+ */
+_Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 	int32_t i;
 
 	if (!r_cull->value)
@@ -119,7 +120,8 @@ c_trace_t R_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const
 /*
  * @brief Returns true if the specified entity is completely culled by the view
  * frustum, false otherwise.
- */_Bool R_CullBspModel(const r_entity_t *e) {
+ */
+_Bool R_CullBspModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 	int32_t i;
 
@@ -630,12 +632,14 @@ void R_UpdateVis(void) {
 
 /*
  * @brief Returns true if the specified leaf is in the PVS for the current frame.
- */_Bool R_LeafInPvs(const r_bsp_leaf_t *leaf) {
+ */
+_Bool R_LeafInPvs(const r_bsp_leaf_t *leaf) {
 	return R_LeafInVis(leaf, r_locals.vis_data_pvs);
 }
 
 /*
  * @brief Returns true if the specified leaf is in the PHS for the current frame.
- */_Bool R_LeafInPhs(const r_bsp_leaf_t *leaf) {
+ */
+_Bool R_LeafInPhs(const r_bsp_leaf_t *leaf) {
 	return R_LeafInVis(leaf, r_locals.vis_data_phs);
 }

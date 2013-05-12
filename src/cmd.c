@@ -285,18 +285,18 @@ void Cmd_Enumerate(cmd_enumerate_func func, void *data) {
 /*
  * @brief Adds the specified command, bound to the given function.
  */
-void Cmd_AddCommand(const char *name, cmd_function_t function, uint32_t flags,
+cmd_t *Cmd_Add(const char *name, cmd_function_t function, uint32_t flags,
 		const char *description) {
 	cmd_t *cmd;
 
 	if (Cvar_Get(name, NULL, 0, NULL)) {
 		Com_Debug("%s already defined as a var\n", name);
-		return;
+		return NULL;
 	}
 
-	if (Cmd_Get(name)) {
+	if ((cmd = Cmd_Get(name))) {
 		Com_Debug("%s already defined\n", name);
-		return;
+		return cmd;
 	}
 
 	cmd = Z_Malloc(sizeof(*cmd));
@@ -313,22 +313,24 @@ void Cmd_AddCommand(const char *name, cmd_function_t function, uint32_t flags,
 
 	g_hash_table_insert(cmd_state.commands, key, cmd);
 	cmd_state.keys = g_list_insert_sorted(cmd_state.keys, key, (GCompareFunc) strcmp);
+
+	return cmd;
 }
 
 /*
  * @brief Adds the specified alias command, bound to the given commands string.
  */
-static void Cmd_AddAlias(const char *name, const char *commands) {
+static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 	cmd_t *cmd;
 
 	if (Cvar_Get(name, NULL, 0, NULL)) {
 		Com_Debug("%s already defined as a var\n", name);
-		return;
+		return NULL;
 	}
 
-	if (Cmd_Get(name)) {
+	if ((cmd = Cmd_Get(name))) {
 		Com_Debug("%s already defined\n", name);
-		return;
+		return cmd;
 	}
 
 	cmd = Z_Malloc(sizeof(*cmd));
@@ -340,13 +342,37 @@ static void Cmd_AddAlias(const char *name, const char *commands) {
 
 	g_hash_table_insert(cmd_state.commands, key, cmd);
 	cmd_state.keys = g_list_insert_sorted(cmd_state.keys, key, (GCompareFunc) strcmp);
+
+	return cmd;
 }
 
 /*
  * @brief Removes the specified command.
  */
-void Cmd_RemoveCommand(const char *name) {
+void Cmd_Remove(const char *name) {
 	g_hash_table_remove(cmd_state.commands, name);
+}
+
+/*
+ * @brief GHRFunc for Cmd_RemoveAll.
+ */
+static gboolean Cmd_RemoveAll_(gpointer key, gpointer value, gpointer data) {
+	cmd_t *cmd = (cmd_t *) value;
+	uint32_t flags = *((uint32_t *) data);
+
+	if (cmd->flags & flags) {
+		cmd_state.keys = g_list_remove(cmd_state.keys, key);
+		return true;
+	}
+
+	return false;
+}
+
+/*
+ * @brief Removes all commands which match the specified flags mask.
+ */
+void Cmd_RemoveAll(uint32_t flags) {
+	g_hash_table_foreach_remove(cmd_state.commands, Cmd_RemoveAll_, &flags);
 }
 
 static const char *cmd_complete_pattern;
@@ -463,7 +489,7 @@ static void Cmd_Alias_f(void) {
 	}
 	g_strlcat(cmd, "\n", sizeof(cmd));
 
-	Cmd_AddAlias(Cmd_Argv(1), cmd);
+	Cmd_Alias(Cmd_Argv(1), cmd);
 }
 
 /*
@@ -544,13 +570,13 @@ void Cmd_Init(void) {
 
 	Sb_Init(&cmd_state.buf, (byte *) cmd_state.buffers[0], sizeof(cmd_state.buffers[0]));
 
-	Cmd_AddCommand("cmd_list", Cmd_List_f, CMD_SYSTEM, NULL);
-	Cmd_AddCommand("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
-	Cmd_AddCommand("echo", Cmd_Echo_f, 0, NULL);
-	Cmd_AddCommand("alias", Cmd_Alias_f, CMD_SYSTEM, NULL);
-	Cmd_AddCommand("wait", Cmd_Wait_f, 0, NULL);
+	Cmd_Add("cmd_list", Cmd_List_f, CMD_SYSTEM, NULL);
+	Cmd_Add("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
+	Cmd_Add("echo", Cmd_Echo_f, 0, NULL);
+	Cmd_Add("alias", Cmd_Alias_f, CMD_SYSTEM, NULL);
+	Cmd_Add("wait", Cmd_Wait_f, 0, NULL);
 
-	Cmd_AddCommand("z_size", Z_Size_f, CMD_SYSTEM, "Print zone allocation pool size");
+	Cmd_Add("z_size", Z_Size_f, CMD_SYSTEM, "Print zone allocation pool size");
 
 	int32_t i;
 	for (i = 1; i < Com_Argc(); i++) {
