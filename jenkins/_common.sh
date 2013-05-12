@@ -34,7 +34,7 @@ function destroy_chroot() {
 
 function archive_workspace() {
 	rm -Rf ${WORKSPACE}/jenkins-quake2world*
-	/usr/bin/mock -r ${CHROOT} --copyout "/tmp/quake2world-*" "${WORKSPACE}/${BUILD_TAG}"
+	/usr/bin/mock -r ${CHROOT} --copyout "/tmp/quake2world-${CHROOT}" "${WORKSPACE}/${BUILD_TAG}"
 	cd ${WORKSPACE}
 	tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
 }
