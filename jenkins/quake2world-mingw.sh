@@ -6,7 +6,7 @@ if [ ${CHROOT} == "mingw64" ]
 then
 	MINGW_TARGET="x86_64"
 	MINGW_ARCH="mingw64"
-else if [ ${CHROOT} == "mingw32" ]
+elif [ ${CHROOT} == "mingw32" ]
 	MINGW_TARGET="i686"
 	MINGW_ARCH="mingw32"
 fi
