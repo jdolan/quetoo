@@ -18,7 +18,7 @@ install_deps
 
 /usr/bin/mock -r ${CHROOT} --shell "
 export PATH=/usr/${MINGW_TARGET}-w64-mingw32/sys-root/mingw/bin:${PATH}
-cd ~/quake2world
+cd /tmp/quake2world
 libtoolize --force
 autoreconf -i --force
 ./configure --host=${MINGW_TARGET}-w64-mingw32 --prefix=/tmp/quake2world-${MINGW_ARCH}

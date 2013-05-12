@@ -9,7 +9,7 @@ CHROOT=`echo $JOB_NAME|cut -d\-  -f3-10`
 function init_chroot() {
 	/usr/bin/mock -r ${CHROOT} --clean
 	/usr/bin/mock -r ${CHROOT} --init
-	/usr/bin/mock -r ${CHROOT} --copyin ${WORKSPACE} "~/quake2world"
+	/usr/bin/mock -r ${CHROOT} --copyin ${WORKSPACE} "/tmp/quake2world"
 }
 
 function install_deps() {
@@ -34,7 +34,7 @@ function destroy_chroot() {
 
 function archive_workspace() {
 	rm -Rf ${WORKSPACE}/jenkins-quake2world*
-	/usr/bin/mock -r ${CHROOT} --copyout "~/quake2world-*" "${WORKSPACE}/${BUILD_TAG}"
+	/usr/bin/mock -r ${CHROOT} --copyout "/tmp/quake2world-*" "${WORKSPACE}/${BUILD_TAG}"
 	cd ${WORKSPACE}
 	tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
 }
