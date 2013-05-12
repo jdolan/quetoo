@@ -1,48 +1,40 @@
 #!/bin/bash
 
 set -e
+set -x
 
-ENV=`echo $JOB_NAME|cut -d\-  -f3-10`
+CHROOT=`echo $JOB_NAME|cut -d\-  -f3-10`
 
-function setup_fedora17(){
-DEPS="SDL-devel SDL_image-devel SDL_mixer-devel curl-devel physfs-devel glib2-devel libjpeg-turbo-devel libtool zlib-devel ncurses-devel check check-devel"
 
-/usr/bin/mock -r ${ENV} --clean
-/usr/bin/mock -r ${ENV} --init
-/usr/bin/mock -r ${ENV} --install ${DEPS}
-/usr/bin/mock -r ${ENV} --copyin ${WORKSPACE} "/tmp/quake2world"
+function init_chroot() {
+	/usr/bin/mock -r ${CHROOT} --clean
+	/usr/bin/mock -r ${CHROOT} --init
+	/usr/bin/mock -r ${CHROOT} --copyin ${WORKSPACE} "/tmp/quake2world"
 }
 
-function destroy_fedora17() {
+function install_deps() {
 	
-/usr/bin/mock -r ${ENV} --clean
-	
+
+	if ([ "${CHROOT}" == "mingw64" ] || [ "${CHROOT}" == "mingw32" ])
+	then
+		MINGW_TARGET=${CHROOT}
+		CHROOT="fedora-18-x86_64"
+		MINGW_DEPS="${MINGW_ARCH}-SDL ${MINGW_ARCH}-SDL_image ${MINGW_ARCH}-SDL_mixer ${MINGW_ARCH}-curl ${MINGW_ARCH}-physfs ${MINGW_ARCH}-glib2 ${MINGW_ARCH}-libjpeg-turbo libtool ${MINGW_ARCH}-zlib ${MINGW_ARCH}-pkg-config ${MINGW_ARCH}-pdcurses ${MINGW_ARCH}-binutils"
+		/usr/bin/mock -r ${CHROOT} --install ${MINGW_DEPS}
+	else
+		DEPS="SDL-devel SDL_image-devel SDL_mixer-devel curl-devel physfs-devel glib2-devel libjpeg-turbo-devel libtool zlib-devel ncurses-devel check check-devel"
+		/usr/bin/mock -r ${CHROOT} --install ${DEPS}
+	fi
+
 }
 
-function setup_mingw(){
-MINGW_DEPS="${ENV}-SDL ${ENV}-SDL_image ${ENV}-SDL_mixer ${ENV}-curl ${ENV}-physfs ${ENV}-glib2 ${ENV}-libjpeg-turbo libtool ${ENV}-zlib ${ENV}-pkg-config ${ENV}-pdcurses"
-
-/usr/bin/mock -r ${MINGW_ENV} --clean
-/usr/bin/mock -r ${MINGW_ENV} --init
-/usr/bin/mock -r ${MINGW_ENV} --install ${MINGW_DEPS} http://maci.satgnu.net/rpmbuild/RPMS/noarch/${ENV}-physfs-2.0.3-1.fc18.noarch.rpm
-/usr/bin/mock -r ${MINGW_ENV} --copyin ${WORKSPACE} "/tmp/quake2world"
-}
-
-function destroy_mingw() {
-/usr/bin/mock -r ${MINGW_ENV} --clean
-	
+function destroy_chroot() {
+	/usr/bin/mock -r ${CHROOT} --clean
 }
 
 function archive_workspace() {
-rm -Rf ${WORKSPACE}/jenkins-quake2world*
-/usr/bin/mock -r ${ENV} --copyout "/tmp/quake2world-${ENV}" "${WORKSPACE}/${BUILD_TAG}"
-cd ${WORKSPACE}
-tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
-}
-
-function archive_workspace_mingw() {
-rm -Rf ${WORKSPACE}/jenkins-quake2world*
-/usr/bin/mock -r ${MINGW_ENV} --copyout "/tmp/quake2world-${ENV}" "${WORKSPACE}/${BUILD_TAG}"
-cd ${WORKSPACE}
-tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
+	rm -Rf ${WORKSPACE}/jenkins-quake2world*
+	/usr/bin/mock -r ${CHROOT} --copyout "/tmp/quake2world-${CHROOT}" "${WORKSPACE}/${BUILD_TAG}"
+	cd ${WORKSPACE}
+	tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
 }
