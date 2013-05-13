@@ -32,7 +32,7 @@ typedef enum thread_status_e {
 	THREAD_WAIT
 } thread_status_t;
 
-typedef void (*thread_function_t)(void *data);
+typedef void (*ThreadRunFunc)(void *data);
 
 typedef struct thread_s {
 	SDL_Thread *thread;
@@ -40,13 +40,13 @@ typedef struct thread_s {
 	SDL_mutex *mutex;
 	char name[64];
 	thread_status_t status;
-	thread_function_t run;
+	ThreadRunFunc Run;
 	void *data;
 } thread_t;
 
 extern cvar_t *threads;
 
-thread_t *Thread_Create_(const char *name, thread_function_t run, void *data);
+thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data);
 #define Thread_Create(f, d) Thread_Create_(#f, f, d)
 void Thread_Wait(thread_t **t);
 void Thread_Init(void);

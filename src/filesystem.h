@@ -30,7 +30,7 @@ typedef struct {
 	void *opaque;
 } file_t;
 
-typedef void (*fs_enumerate_func)(const char *path, void *data);
+typedef void (*FsEnumerateFunc)(const char *path, void *data);
 
 _Bool Fs_Close(file_t *file);
 _Bool Fs_Eof(file_t *file);
@@ -51,7 +51,7 @@ int64_t Fs_Load(const char *filename, void **buffer);
 void Fs_Free(void *buffer);
 _Bool Fs_Rename(const char *source, const char *dest);
 _Bool Fs_Unlink(const char *filename);
-void Fs_Enumerate(const char *pattern, fs_enumerate_func, void *data);
+void Fs_Enumerate(const char *pattern, FsEnumerateFunc, void *data);
 void Fs_CompleteFile(const char *pattern, GList **matches);
 void Fs_AddToSearchPath(const char *dir);
 void Fs_SetGame(const char *dir);

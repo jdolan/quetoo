@@ -42,9 +42,9 @@ static int32_t Thread_Run(void *data) {
 	while (thread_pool.mutex) {
 		SDL_mutexP(t->mutex);
 		if (t->status == THREAD_RUNNING) {
-			t->run(t->data);
+			t->Run(t->data);
 
-			t->run = NULL;
+			t->Run = NULL;
 			t->data = NULL;
 
 			t->status = THREAD_WAIT;
@@ -110,7 +110,7 @@ static void Thread_Shutdown_(void) {
  * @brief Creates a new thread to run the specified function. Callers must use
  * Thread_Wait on the returned handle to release the thread when finished.
  */
-thread_t *Thread_Create_(const char *name, thread_function_t run, void *data) {
+thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data) {
 
 	// update the thread pool if needed
 	if (threads->modified) {
@@ -132,7 +132,7 @@ thread_t *Thread_Create_(const char *name, thread_function_t run, void *data) {
 				SDL_mutexP(t->mutex);
 				g_strlcpy(t->name, name, sizeof(t->name));
 
-				t->run = run;
+				t->Run = run;
 				t->data = data;
 
 				t->status = THREAD_RUNNING;

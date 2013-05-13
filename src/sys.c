@@ -181,8 +181,8 @@ void Sys_OpenLibrary(const char *name, void **handle) {
  * return value returned by this function.
  */
 void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, void *params) {
-	typedef void *entry_point_t(void *);
-	entry_point_t *EntryPoint;
+	typedef void *EntryPointFunc(void *);
+	EntryPointFunc *EntryPoint;
 
 	if (*handle) {
 		Com_Warn("%s: handle already open\n", name);
@@ -191,7 +191,7 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
 
 	Sys_OpenLibrary(name, handle);
 
-	EntryPoint = (entry_point_t *) dlsym(*handle, entry_point);
+	EntryPoint = (EntryPointFunc *) dlsym(*handle, entry_point);
 
 	if (!EntryPoint) {
 		Sys_CloseLibrary(handle);

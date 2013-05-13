@@ -268,7 +268,7 @@ cmd_t *Cmd_Get(const char *name) {
 /*
  * @brief Enumerates all known commands with the given function.
  */
-void Cmd_Enumerate(cmd_enumerate_func func, void *data) {
+void Cmd_Enumerate(CmdEnumerateFunc func, void *data) {
 
 	GList *key = cmd_state.keys;
 	while (key) {
@@ -285,7 +285,7 @@ void Cmd_Enumerate(cmd_enumerate_func func, void *data) {
 /*
  * @brief Adds the specified command, bound to the given function.
  */
-cmd_t *Cmd_Add(const char *name, cmd_function_t function, uint32_t flags,
+cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 		const char *description) {
 	cmd_t *cmd;
 
@@ -302,7 +302,7 @@ cmd_t *Cmd_Add(const char *name, cmd_function_t function, uint32_t flags,
 	cmd = Z_Malloc(sizeof(*cmd));
 
 	cmd->name = Z_Link(Z_CopyString(name), cmd);
-	cmd->function = function;
+	cmd->Execute = function;
 	cmd->flags = flags;
 
 	if (description) {
@@ -385,7 +385,7 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
 
 	if (GlobMatch(cmd_complete_pattern, cmd->name)) {
 
-		if (cmd->function) {
+		if (cmd->Execute) {
 			Com_Print("^1%s^7\n", cmd->name);
 
 			if (cmd->description)
@@ -420,8 +420,8 @@ void Cmd_ExecuteString(const char *text) {
 
 	// execute the command line
 	if ((cmd = Cmd_Get(Cmd_Argv(0)))) {
-		if (cmd->function) {
-			cmd->function();
+		if (cmd->Execute) {
+			cmd->Execute();
 		} else if (cmd->commands) {
 			if (++cmd_state.alias_loop_count == MAX_ALIAS_LOOP_COUNT) {
 				Com_Warn("ALIAS_LOOP_COUNT reached\n");
@@ -497,7 +497,7 @@ static void Cmd_Alias_f(void) {
  */
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data __attribute__((unused))) {
 
-	if (cmd->function) {
+	if (cmd->Execute) {
 		Com_Print("%s\n", cmd->name);
 
 		if (cmd->description) {

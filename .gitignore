@@ -28,6 +28,7 @@ src/main/quake2world
 src/master/q2wmaster
 src/tests/*.log
 src/tests/*.trs
+src/tests/check_cmd
 src/tests/check_cvar
 src/tests/check_filesystem
 src/tests/check_mem
