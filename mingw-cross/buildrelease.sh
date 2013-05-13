@@ -1,28 +1,30 @@
-MINGW_ARCH=`find /tmp -name quake2world-mingw* 2>/dev/null|cut -d\- -f2`
+MINGW_TARGET=`find /tmp -name quake2world-mingw* 2>/dev/null|cut -d\- -f2`
 
-TARGET="i686"
-if [ ${MINGW_ARCH} == "mingw64" ]
+if [ "${MINGW_TARGET}" == "mingw64" ]
 then
-	TARGET="x86_64"
+	MINGW_ARCH="x86_64"
+elif [ "${MINGW_TARGET}" == "mingw32" ]
+then
+	MINGW_ARCH="i686"
 fi
+
 
 function finddll( ){
 	if [ "$1" != "" ]; then
-		for i in `/usr/bin/${TARGET}-w64-mingw32-objdump -p $1 |grep "DLL Name:" |cut -d\: -f2|cut -d\  -f2|sort |uniq`; do
-			file=`find /usr/${TARGET}-w64-mingw32 2>/dev/null |grep  $i |grep -v .dll.a`
+		for i in `/usr/bin/${MINGW_ARCH}-w64-mingw32-objdump -p $1 |grep "DLL Name:" |cut -d\: -f2|cut -d\  -f2|sort |uniq`; do
+			file=`find /usr/${MINGW_ARCH}-w64-mingw32 2>/dev/null |grep  $i |grep -v .dll.a`
 			echo $file
 			analyze $file
 		done
 	fi
 }
 
-cp `finddll /tmp/quake2world-${MINGW_ARCH}/bin/quake2world.exe|sort|uniq|grep "\n"` /tmp/quake2world-${MINGW_ARCH}/bin
-cp `finddll /tmp/quake2world-${MINGW_ARCH}/bin/q2wmap.exe|sort|uniq|grep "\n"` /tmp/quake2world-${MINGW_ARCH}/bin
+cp `finddll /tmp/quake2world-${MINGW_TARGET}/bin/quake2world.exe|sort|uniq|grep "\n"` /tmp/quake2world-${MINGW_TARGET}/bin
 
 
-find /tmp/quake2world-${MINGW_ARCH} -name "*.la" -delete
-find /tmp/quake2world-${MINGW_ARCH} -name "*.dll.a" -delete
+find /tmp/quake2world-${MINGW_TARGET} -name "*.la" -delete
+find /tmp/quake2world-${MINGW_TARGET} -name "*.dll.a" -delete
 
-cp -r bin /tmp/quake2world-${MINGW_ARCH}
+cp -r bin /tmp/quake2world-${MINGW_TARGET}
 
-#rsync -avzP bin lib maci@quake2world.net:/opt/rsync/quake2world-win32/${TARGET}
+rsync -avzP bin lib maci@quake2world.net:/opt/rsync/quake2world-win32/${MINGW_ARCH}
