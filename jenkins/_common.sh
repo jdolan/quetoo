@@ -9,7 +9,7 @@ if ([ "${CHROOT}" == "mingw64" ] || [ "${CHROOT}" == "mingw32" ])
 then
 	MINGW_TARGET=${CHROOT}
 	CHROOT="fedora-18-x86_64"
-	DEPS="${MINGW_ARCH}-SDL ${MINGW_ARCH}-SDL_image ${MINGW_ARCH}-SDL_mixer ${MINGW_ARCH}-curl ${MINGW_ARCH}-physfs ${MINGW_ARCH}-glib2 ${MINGW_ARCH}-libjpeg-turbo libtool ${MINGW_ARCH}-zlib ${MINGW_ARCH}-pkg-config ${MINGW_ARCH}-pdcurses"
+	DEPS="${MINGW_TARGET}-SDL ${MINGW_TARGET}-SDL_image ${MINGW_TARGET}-SDL_mixer ${MINGW_TARGET}-curl ${MINGW_TARGET}-physfs ${MINGW_TARGET}-glib2 ${MINGW_TARGET}-libjpeg-turbo libtool ${MINGW_TARGET}-zlib ${MINGW_TARGET}-pkg-config ${MINGW_TARGET}-pdcurses"
 else
 	DEPS="SDL-devel SDL_image-devel SDL_mixer-devel curl-devel physfs-devel glib2-devel libjpeg-turbo-devel libtool zlib-devel ncurses-devel check check-devel"
 fi
@@ -22,7 +22,6 @@ function init_chroot() {
 	/usr/bin/mock -r ${CHROOT} --copyin ${WORKSPACE} "/tmp/quake2world"
 
 }
-
 
 function destroy_chroot() {
 	/usr/bin/mock -r ${CHROOT} --clean
