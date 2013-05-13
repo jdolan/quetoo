@@ -1,5 +1,6 @@
-MINGW_TARGET=`find /tmp -name quake2world-mingw* 2>/dev/null|cut -d\- -f2`
-
+pushd /tmp/quake2world-mingw*
+MINGW_TARGET=`pwd | cut -d\- -f2`
+popd
 echo MINGW_TARGET $MINGW_TARGET
 
 if [ "${MINGW_TARGET}" == "mingw64" ]
