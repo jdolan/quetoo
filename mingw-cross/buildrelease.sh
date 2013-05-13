@@ -1,5 +1,7 @@
 MINGW_TARGET=`find /tmp -name quake2world-mingw* 2>/dev/null|cut -d\- -f2`
 
+echo MINGW_TARGET $MINGW_TARGET
+
 if [ "${MINGW_TARGET}" == "mingw64" ]
 then
 	MINGW_ARCH="x86_64"
@@ -7,6 +9,8 @@ elif [ "${MINGW_TARGET}" == "mingw32" ]
 then
 	MINGW_ARCH="i686"
 fi
+
+echo MINGW_ARCH $MINGW_ARCH
 
 
 function finddll( ){
