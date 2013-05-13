@@ -5,7 +5,6 @@ source ./_common.sh
 
 
 init_chroot
-install_deps
 
 MINGW_ARCH=`echo $JOB_NAME|cut -d\-  -f3-10`
 

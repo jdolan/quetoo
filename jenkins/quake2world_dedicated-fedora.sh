@@ -4,7 +4,6 @@ set -e
 source ./_common.sh
 
 init_chroot
-install_deps
 
 /usr/bin/mock -r ${CHROOT} --shell "
 
