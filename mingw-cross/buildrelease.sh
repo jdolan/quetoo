@@ -19,7 +19,7 @@ function finddll( ){
 		for i in `/usr/bin/${MINGW_ARCH}-w64-mingw32-objdump -p $1 |grep "DLL Name:" |cut -d\: -f2|cut -d\  -f2|sort |uniq`; do
 			file=`find /usr/${MINGW_ARCH}-w64-mingw32 2>/dev/null |grep  $i |grep -v .dll.a`
 			echo $file
-			analyze $file
+			finddll $file
 		done
 	fi
 }
