@@ -32,4 +32,5 @@ find /tmp/quake2world-${MINGW_TARGET} -name "*.dll.a" -delete
 
 cp -r bin /tmp/quake2world-${MINGW_TARGET}
 
+cd /tmp/quake2world-${MINGW_TARGET}
 rsync -avzP bin lib maci@quake2world.net:/opt/rsync/quake2world-win32/${MINGW_ARCH}
