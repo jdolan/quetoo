@@ -1,18 +1,5 @@
 #!/bin/bash
 set -e
-CHROOT=`echo $JOB_NAME|cut -d\-  -f3-10`
-
-if [ "${CHROOT}" == "mingw64" ]
-then
-	MINGW_TARGET="x86_64"
-	MINGW_ARCH="mingw64"
-elif [ "${CHROOT}" == "mingw32" ]
-then
-	MINGW_TARGET="i686"
-	MINGW_ARCH="mingw32"
-fi
-
-MINGW_CHROOT="fedora-18-x86_64"
 
 source ./_common.sh
 
@@ -20,7 +7,19 @@ source ./_common.sh
 init_chroot
 install_deps
 
-/usr/bin/mock -r ${MINGW_CHROOT} --shell "
+MINGW_ARCH=`echo $JOB_NAME|cut -d\-  -f3-10`
+
+if [ "${MINGW_ARCH}" == "mingw64" ]
+then
+	MINGW_TARGET="x86_64"
+elif [ "${MINGW_ARCH}" == "mingw32" ]
+then
+	MINGW_TARGET="i686"
+fi
+
+
+
+/usr/bin/mock -r ${CHROOT} --shell "
 export PATH=/usr/${MINGW_TARGET}-w64-mingw32/sys-root/mingw/bin:${PATH}
 cd /tmp/quake2world
 autoreconf -i --force
