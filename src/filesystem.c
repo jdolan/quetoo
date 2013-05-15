@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <sys/stat.h>
 #include <physfs.h>
 
 #include "filesystem.h"
@@ -392,17 +393,24 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
  * archives within it.
  */
 void Fs_AddToSearchPath(const char *dir) {
+	struct stat s;
 
-	Com_Print("Adding path %s..\n", dir);
+	if (stat(dir, &s) == 0) {
+		Com_Print("Adding path %s..\n", dir);
 
-	if (PHYSFS_mount(dir, NULL, 1) == 0) {
-		Com_Warn("%s: %s\n", dir, PHYSFS_getLastError());
-		return;
-	}
+		const _Bool is_dir = (s.st_mode & S_IFDIR) ? true : false;
 
-	if (fs_state.auto_load_archives) {
-		Fs_Enumerate("*.pak", Fs_AddToSearchPath_enumerate, (void *) dir);
-		Fs_Enumerate("*.pk3", Fs_AddToSearchPath_enumerate, (void *) dir);
+		if (PHYSFS_mount(dir, NULL, !is_dir) == 0) {
+			Com_Warn("%s: %s\n", dir, PHYSFS_getLastError());
+			return;
+		}
+
+		if (fs_state.auto_load_archives && is_dir) {
+			Fs_Enumerate("*.pak", Fs_AddToSearchPath_enumerate, (void *) dir);
+			Fs_Enumerate("*.pk3", Fs_AddToSearchPath_enumerate, (void *) dir);
+		}
+	} else {
+		Com_Debug("Failed to stat %s\n", dir);
 	}
 }
 
@@ -503,11 +511,13 @@ void Fs_Init(_Bool auto_load_archives) {
 
 	fs_state.auto_load_archives = auto_load_archives;
 
+	PHYSFS_permitSymbolicLinks(true);
+
 	const char *path = Sys_ExecutablePath();
 	if (path) {
 		char *c;
 
-		Com_Debug("Resolved executable path: %s\n", path);
+		// Com_Debug("Resolved executable path: %s\n", path);
 #ifdef __APPLE__
 		if ((c = strstr(path, "Quake2World.app"))) {
 			strcpy(c + strlen("Quake2World.app"), "/Contents/MacOS/"DEFAULT_GAME);
