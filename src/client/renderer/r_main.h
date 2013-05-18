@@ -116,6 +116,7 @@ extern cvar_t *r_cull;
 extern cvar_t *r_lock_vis;
 extern cvar_t *r_no_vis;
 extern cvar_t *r_draw_bsp_leafs;
+extern cvar_t *r_draw_bsp_lightmaps;
 extern cvar_t *r_draw_bsp_lights;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_wireframe;

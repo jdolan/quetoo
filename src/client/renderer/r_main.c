@@ -39,6 +39,7 @@ cvar_t *r_cull;
 cvar_t *r_lock_vis;
 cvar_t *r_no_vis;
 cvar_t *r_draw_bsp_leafs;
+cvar_t *r_draw_bsp_lightmaps;
 cvar_t *r_draw_bsp_lights;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_wireframe;
@@ -422,6 +423,8 @@ static void R_InitLocal(void) {
 			"Controls the rendering of BSP leafs (developer tool)");
 	r_draw_bsp_lights = Cvar_Get("r_draw_bsp_lights", "0", CVAR_LO_ONLY,
 			"Controls the rendering of static BSP light sources (developer tool)");
+	r_draw_bsp_lightmaps = Cvar_Get("r_draw_bsp_lightmaps", "0", CVAR_LO_ONLY,
+			"Controls the rendering of BSP lightmap textures (developer tool)");
 	r_draw_bsp_normals = Cvar_Get("r_draw_bsp_normals", "0", CVAR_LO_ONLY,
 			"Controls the rendering of BSP surface normals (developer tool)");
 	r_draw_wireframe = Cvar_Get("r_draw_wireframe", "0", CVAR_LO_ONLY,
