@@ -953,10 +953,11 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 _Bool G_ClientConnect(g_edict_t *ent, char *user_info) {
 
 	// check password
-	const char *value = GetUserInfo(user_info, "password");
-	if (*password->string && g_strcmp0(password->string, "none") && g_strcmp0(password->string, value)) {
-		SetUserInfo(user_info, "rejmsg", "Password required or incorrect.");
-		return false;
+	if (strlen(g_password->string) && !ent->ai) {
+		if (g_strcmp0(g_password->string, GetUserInfo(user_info, "password"))) {
+			SetUserInfo(user_info, "rejmsg", "Password required or incorrect.");
+			return false;
+		}
 	}
 
 	// they can connect

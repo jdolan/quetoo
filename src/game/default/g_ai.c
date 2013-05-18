@@ -48,7 +48,7 @@ static void G_AiAdd_f(void) {
 	}
 
 	if (i > sv_max_clients->integer) {
-		gi.Print("No client slots available");
+		gi.Print("No client slots available, increase sv_max_clients\n");
 		return;
 	}
 
@@ -56,6 +56,8 @@ static void G_AiAdd_f(void) {
 
 	G_ClientConnect(ent, "\\name\\newbie\\skin\\qforcer/enforcer");
 	G_ClientBegin(ent);
+
+	gi.Debug("Spawned %s at %s", ent->client->locals.persistent.net_name, vtos(ent->s.origin));
 
 	ent->locals.Think = G_AiThink;
 }
