@@ -82,6 +82,7 @@ struct g_edict_s {
 	// received for a given entity
 	entity_state_t s;
 	_Bool in_use;
+	_Bool ai;
 
 	uint32_t sv_flags; // SVF_NO_CLIENT, etc
 
@@ -176,8 +177,9 @@ typedef struct {
 	int64_t (*LoadFile)(const char *file_name, void **buffer);
 	void (*FreeFile)(void *buffer);
 
-	// console variable interaction
+	// console variable and command interaction
 	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
+	cmd_t *(*Cmd)(const char *name, CmdExecuteFunc Execute, uint32_t flags, const char *desc);
 
 	// command function parameter access
 	int32_t (*Argc)(void);
