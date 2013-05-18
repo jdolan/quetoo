@@ -278,6 +278,7 @@ void Sv_InitGame(void) {
 	import.FreeFile = Fs_Free;
 
 	import.Cvar = Cvar_Get;
+	import.Cmd = Cmd_Add;
 
 	import.Argc = Cmd_Argc;
 	import.Argv = Cmd_Argv;

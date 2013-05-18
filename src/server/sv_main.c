@@ -286,7 +286,7 @@ static void Svc_Connect(void) {
 	// otherwise, treat as a fresh connect to a new slot
 	if (!client) {
 		for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
-			if (cl->state == SV_CLIENT_FREE) { // we have a free one
+			if (cl->state == SV_CLIENT_FREE && !cl->edict->ai) { // we have a free one
 				client = cl;
 				break;
 			}

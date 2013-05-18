@@ -1085,6 +1085,8 @@ void DeleteUserInfo(char *s, const char *key) {
  * otherwise.
  */
 _Bool ValidateUserInfo(const char *s) {
+	if (!s || !*s)
+		return false;
 	if (strstr(s, "\""))
 		return false;
 	if (strstr(s, ";"))

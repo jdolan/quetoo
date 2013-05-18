@@ -144,7 +144,7 @@ void Sv_Unicast(const g_edict_t *ent, const _Bool reliable) {
 	int32_t n;
 	sv_client_t *cl;
 
-	if (!ent)
+	if (!ent || ent->ai)
 		return;
 
 	n = NUM_FOR_EDICT(ent);
@@ -223,6 +223,9 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 			continue;
 
 		if (client->state != SV_CLIENT_ACTIVE && !reliable)
+			continue;
+
+		if (client->edict->ai)
 			continue;
 
 		if (mask) {
