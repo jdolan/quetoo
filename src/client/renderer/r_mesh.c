@@ -182,7 +182,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 	VectorCopy(e->lighting->color, color);
 
 	if (e->effects & EF_BLEND)
-		color[3] = 0.25;
+		color[3] = Clamp(e->alpha, 0.1, 1.0);
 	else
 		color[3] = 1.0;
 
@@ -193,7 +193,6 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 
 	v = 0.0;
 	for (i = 0; i < 3; i++) { // find brightest component
-
 		if (color[i] > v) // keep it
 			v = color[i];
 	}
@@ -214,7 +213,10 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	} else { // or use the default arrays
 		R_ResetArrayState();
 
-		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
+		// but take advantage of static texture coordinate arrays
+		if (texunit_diffuse.enabled) {
+			R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
+		}
 	}
 
 	if (!r_draw_wireframe->value) {
@@ -276,8 +278,11 @@ static void R_SetMeshState_default(const r_entity_t *e) {
  */
 static void R_ResetMeshState_default(const r_entity_t *e) {
 
-	if (e->model->mesh->num_frames > 1)
-		R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+	if (e->model->mesh->num_frames > 1) {
+		if (texunit_diffuse.enabled) {
+			R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+		}
+	}
 
 	if (e->effects & EF_WEAPON)
 		glDepthRange(0.0, 1.0);
@@ -359,8 +364,8 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
  * information, or with a lighting point above our view, are not drawn.
  */
 static void R_DrawMeshShadow_default(const r_entity_t *e) {
-	const _Bool blend = r_state.blend_enabled;
 	const _Bool lighting = r_state.lighting_enabled;
+	const _Bool blend = r_state.blend_enabled;
 
 	const vec4_t color = { 0.0, 0.0, 0.0, r_shadows->value * MESH_SHADOW_ALPHA };
 
@@ -382,6 +387,9 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 	if (e->lighting->shadow_origin[2] > r_view.origin[2])
 		return;
 
+	if (lighting)
+		R_EnableLighting(NULL, false);
+
 	R_EnableTexture(&texunit_diffuse, false);
 
 	R_Color(color);
@@ -395,13 +403,7 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableStencilTest(true);
 
-	if (lighting)
-		R_EnableLighting(NULL, false);
-
 	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
-
-	if (lighting)
-		R_EnableLighting(r_state.default_program, true);
 
 	R_EnableStencilTest(false);
 
@@ -415,6 +417,9 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 	R_EnableTexture(&texunit_diffuse, true);
 
 	R_Color(NULL);
+
+	if (lighting)
+		R_EnableLighting(r_state.default_program, true);
 }
 
 /*
@@ -485,12 +490,14 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
-		if (i > 0) { // update the diffuse state for the current mesh
-			r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
+		if (!r_draw_wireframe->value) {
+			if (i > 0) { // update the diffuse state for the current mesh
+				r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
 
-			R_BindTexture(r_mesh_state.material->diffuse->texnum);
+				R_BindTexture(r_mesh_state.material->diffuse->texnum);
 
-			R_UseMaterial(NULL, r_mesh_state.material);
+				R_UseMaterial(NULL, r_mesh_state.material);
+			}
 		}
 
 		glDrawArrays(GL_TRIANGLES, offset, mesh->num_tris * 3);
@@ -524,7 +531,7 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 
 	if (!(e->effects & EF_NO_DRAW)) { // draw the model
 
-		if (e->model->type == MOD_MD3 && !r_draw_wireframe->value) {
+		if (e->model->type == MOD_MD3) {
 			R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->data);
 		} else {
 			glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);

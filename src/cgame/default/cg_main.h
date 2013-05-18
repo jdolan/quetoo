@@ -43,6 +43,7 @@ extern cvar_t *cg_draw_pickup;
 extern cvar_t *cg_draw_time;
 extern cvar_t *cg_draw_teambar;
 extern cvar_t *cg_draw_weapon;
+extern cvar_t *cg_draw_weapon_alpha;
 extern cvar_t *cg_draw_weapon_x;
 extern cvar_t *cg_draw_weapon_y;
 extern cvar_t *cg_draw_weapon_z;

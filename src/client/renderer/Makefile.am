@@ -1,3 +1,7 @@
+SUBDIRS = \
+	. \
+	shaders
+
 noinst_HEADERS = \
 	r_array.h \
 	r_bsp_light.h \

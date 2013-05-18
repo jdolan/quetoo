@@ -22,9 +22,10 @@
 #include "r_local.h"
 
 // these are the variables defined in the GLSL shader
-typedef struct r_default_program_s {
+typedef struct {
 	r_attribute_t tangent;
 
+	r_uniform1i_t diffuse;
 	r_uniform1i_t lightmap;
 	r_uniform1i_t deluxemap;
 	r_uniform1i_t normalmap;
@@ -46,6 +47,7 @@ typedef struct r_default_program_s {
 
 static r_default_program_t r_default_program;
 
+
 /*
  * @brief
  */
@@ -55,6 +57,7 @@ void R_InitProgram_default(void) {
 
 	R_ProgramVariable(&p->tangent, R_ATTRIBUTE, "TANGENT");
 
+	R_ProgramVariable(&p->diffuse, R_UNIFORM_INT, "DIFFUSE");
 	R_ProgramVariable(&p->lightmap, R_UNIFORM_INT, "LIGHTMAP");
 	R_ProgramVariable(&p->deluxemap, R_UNIFORM_INT, "DELUXEMAP");
 	R_ProgramVariable(&p->normalmap, R_UNIFORM_INT, "NORMALMAP");
@@ -99,6 +102,7 @@ void R_UseProgram_default(void) {
 
 	r_default_program_t *p = &r_default_program;
 
+	R_ProgramParameter1i(&p->diffuse, texunit_diffuse.enabled);
 	R_ProgramParameter1i(&p->lightmap, texunit_lightmap.enabled);
 	R_ProgramParameter1i(&p->deluxemap, texunit_lightmap.enabled);
 }

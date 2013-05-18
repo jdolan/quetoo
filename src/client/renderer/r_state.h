@@ -38,11 +38,11 @@ extern const vec_t default_texcoords[];
 
 // texunits maintain multitexture state
 typedef struct r_texunit_s {
-	_Bool enabled;  // GL_TEXTURE_2D on / off
+	_Bool enabled; // GL_TEXTURE_2D on / off
 	GLenum texture; // e.g. GL_TEXTURE0_ARB
 	GLuint texnum; // e.g 123
 	GLfloat *texcoord_array;
-}r_texunit_t;
+} r_texunit_t;
 
 #define MAX_GL_TEXUNITS		8
 

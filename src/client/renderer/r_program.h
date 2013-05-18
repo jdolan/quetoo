@@ -31,7 +31,7 @@ typedef struct r_shader_s {
 	GLenum type;
 	GLuint id;
 	char name[MAX_QPATH];
-}r_shader_t;
+} r_shader_t;
 
 #define MAX_SHADERS 16
 
@@ -46,14 +46,14 @@ typedef union r_variable_value_u {
 	GLint i;
 	GLfloat f;
 	vec3_t vec3;
-}r_variable_value_t;
+} r_variable_value_t;
 
 typedef struct r_variable_s {
 	GLenum type;
-	char name[64];
+	char name[MAX_QPATH];
 	GLint location;
 	r_variable_value_t value;
-}r_variable_t;
+} r_variable_t;
 
 typedef r_variable_t r_attribute_t;
 typedef r_variable_t r_uniform1i_t;
@@ -66,14 +66,14 @@ typedef r_variable_t r_sampler2d_t;
 // and glsl programs
 typedef struct r_program_s {
 	GLuint id;
-	char name[64];
+	char name[MAX_QPATH];
 	r_shader_t *v;
 	r_shader_t *f;
 	uint32_t arrays_mask;
 	void (*Init)(void);
 	void (*Use)(void);
 	void (*UseMaterial)(const r_bsp_surface_t *surf, const r_material_t *material);
-}r_program_t;
+} r_program_t;
 
 #define MAX_PROGRAMS 8
 

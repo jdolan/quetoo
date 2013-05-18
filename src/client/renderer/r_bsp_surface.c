@@ -115,8 +115,6 @@ static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(&texunit_diffuse, false);
 
-	R_EnableColorArray(true);
-
 	R_SetArrayState(r_model_state.world);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -130,8 +128,6 @@ static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 	}
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	R_EnableColorArray(false);
 
 	R_EnableTexture(&texunit_diffuse, true);
 }

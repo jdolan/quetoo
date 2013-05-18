@@ -48,14 +48,6 @@ static void Cl_CgameError(const char *func, const char *fmt, ...) {
 }
 
 /*
- * @brief Wraps Cmd_Add, enforcing all commands include CMD_CGAME.
- */
-static void Cl_CgameCmd(const char *name, CmdExecuteFunc function, uint32_t flags,
-		const char *description) {
-	return Cmd_Add(name, function, (flags | CMD_CGAME), description);
-}
-
-/*
  * Message parsing facilities.
  */
 
@@ -132,7 +124,7 @@ void Cl_InitCgame(void) {
 	import.FreeTag = Z_FreeTag;
 
 	import.Cvar = Cvar_Get;
-	import.Cmd = Cl_CgameCmd;
+	import.Cmd = Cmd_Add;
 
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;

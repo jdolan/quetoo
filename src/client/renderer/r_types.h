@@ -615,7 +615,9 @@ typedef struct r_entity_s {
 	uint16_t num_skins;
 
 	uint32_t effects; // e.g. EF_ROCKET, EF_WEAPON, ..
+
 	vec3_t shell; // shell color
+	vec_t alpha; // EF_ALPHA value
 
 	r_lighting_t *lighting; // static lighting information
 } r_entity_t;

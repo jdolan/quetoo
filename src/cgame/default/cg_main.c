@@ -38,6 +38,7 @@ cvar_t *cg_draw_pickup;
 cvar_t *cg_draw_time;
 cvar_t *cg_draw_teambar;
 cvar_t *cg_draw_weapon;
+cvar_t *cg_draw_weapon_alpha;
 cvar_t *cg_draw_weapon_x;
 cvar_t *cg_draw_weapon_y;
 cvar_t *cg_draw_weapon_z;
@@ -88,7 +89,8 @@ static void Cg_Init(void) {
 
 	cg_draw_weapon = cgi.Cvar("cg_draw_weapon", "1", CVAR_ARCHIVE,
 			"Toggle drawing of the weapon model.");
-
+	cg_draw_weapon_alpha = cgi.Cvar("cg_draw_weapon_alpha", "1.0", CVAR_ARCHIVE,
+			"The alpha transparency for drawing the weapon model");
 	cg_draw_weapon_x = cgi.Cvar("cg_draw_weapon_x", "0.0", CVAR_ARCHIVE,
 			"The x offset for drawing the weapon model.");
 	cg_draw_weapon_y = cgi.Cvar("cg_draw_weapon_y", "0.0", CVAR_ARCHIVE,
@@ -115,8 +117,10 @@ static void Cg_Init(void) {
  */
 static void Cg_Shutdown(void) {
 
-
 	cgi.Print("  Client game shutdown...\n");
+
+	cgi.FreeTag(Z_TAG_CGAME_LEVEL);
+	cgi.FreeTag(Z_TAG_CGAME);
 }
 
 /*
@@ -204,31 +208,31 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.DrawFrame = Cg_DrawFrame;
 
 	// forward to server commands
-	cgi.Cmd("wave", NULL, 0, NULL);
-	cgi.Cmd("kill", NULL, 0, NULL);
-	cgi.Cmd("use", NULL, 0, NULL);
-	cgi.Cmd("drop", NULL, 0, NULL);
-	cgi.Cmd("say", NULL, 0, NULL);
-	cgi.Cmd("say_team", NULL, 0, NULL);
-	cgi.Cmd("info", NULL, 0, NULL);
-	cgi.Cmd("give", NULL, 0, NULL);
-	cgi.Cmd("god", NULL, 0, NULL);
-	cgi.Cmd("no_clip", NULL, 0, NULL);
-	cgi.Cmd("weapon_next", NULL, 0, NULL);
-	cgi.Cmd("weapon_previous", NULL, 0, NULL);
-	cgi.Cmd("weapon_last", NULL, 0, NULL);
-	cgi.Cmd("vote", NULL, 0, NULL);
-	cgi.Cmd("team", NULL, 0, NULL);
-	cgi.Cmd("team_name", NULL, 0, NULL);
-	cgi.Cmd("team_skin", NULL, 0, NULL);
-	cgi.Cmd("spectate", NULL, 0, NULL);
-	cgi.Cmd("join", NULL, 0, NULL);
-	cgi.Cmd("score", NULL, 0, NULL);
-	cgi.Cmd("ready", NULL, 0, NULL);
-	cgi.Cmd("unready", NULL, 0, NULL);
-	cgi.Cmd("player_list", NULL, 0, NULL);
-	cgi.Cmd("config_strings", NULL, 0, NULL);
-	cgi.Cmd("baselines", NULL, 0, NULL);
+	cgi.Cmd("wave", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("kill", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("use", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("drop", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("say", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("say_team", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("info", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("give", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("god", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("no_clip", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("weapon_next", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("weapon_previous", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("weapon_last", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("vote", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("team", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("team_name", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("team_skin", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("spectate", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("join", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("score", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("ready", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("unready", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("player_list", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("config_strings", NULL, CMD_CGAME, NULL);
+	cgi.Cmd("baselines", NULL, CMD_CGAME, NULL);
 
 	return &cge;
 }

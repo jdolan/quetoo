@@ -672,6 +672,7 @@ AC_CONFIG_FILES([
 	src/cgame/default/Makefile
 	src/client/Makefile
 	src/client/renderer/Makefile
+	src/client/renderer/shaders/Makefile
 	src/client/sound/Makefile
 	src/client/ui/Makefile
 	src/game/Makefile

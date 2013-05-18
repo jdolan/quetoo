@@ -1,10 +1,8 @@
 if WINDOWS
-cgamelibdir=$(libdir)/default
+cgamelibdir = $(libdir)/default
 else
-cgamelibdir=$(libdir)/@PACKAGE@/default
+cgamelibdir = $(pkglibdir)/default
 endif
-
-
 
 noinst_HEADERS = \
 	cg_client.h \

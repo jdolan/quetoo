@@ -178,6 +178,11 @@ static void Cg_AddWeapon(cl_entity_t *e, r_entity_t *self) {
 
 	ent.effects = EF_WEAPON | EF_NO_SHADOW;
 
+	if (cg_draw_weapon_alpha->value < 1.0) {
+		ent.effects |= EF_BLEND;
+		ent.alpha = cg_draw_weapon_alpha->value;
+	}
+
 	VectorCopy(self->shell, ent.shell);
 
 	ent.model = cgi.client->model_precache[ps->stats[STAT_WEAPON]];
