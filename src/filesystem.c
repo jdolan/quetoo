@@ -25,15 +25,14 @@
 #include "filesystem.h"
 
 #define FS_FILE_BUFFER (1024 * 1024 * 2)
-
-//#define FS_LOAD_DEBUG // track Fs_Load / Fs_Free
+// #define FS_LOAD_DEBUG // track Fs_Load / Fs_Free
 
 typedef struct fs_state_s {
 	char **base_search_paths;
 	_Bool auto_load_archives;
 
 #ifdef FS_LOAD_DEBUG
-GHashTable *loaded_files;
+	GHashTable *loaded_files;
 #endif
 } fs_state_t;
 
@@ -398,7 +397,7 @@ void Fs_AddToSearchPath(const char *dir) {
 	if (stat(dir, &s) == 0) {
 		Com_Print("Adding path %s..\n", dir);
 
-		const _Bool is_dir = (s.st_mode & S_IFDIR) ? true : false;
+		const _Bool is_dir = S_ISDIR(s.st_mode);
 
 		if (PHYSFS_mount(dir, NULL, !is_dir) == 0) {
 			Com_Warn("%s: %s\n", dir, PHYSFS_getLastError());
