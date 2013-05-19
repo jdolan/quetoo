@@ -25,6 +25,7 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
+void G_ResetAi(void);
 void G_InitAi(void);
 #endif /* __GAME_LOCAL_H__ */
 

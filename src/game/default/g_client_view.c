@@ -212,9 +212,6 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 		case EV_CLIENT_LAND:
 			kick[PITCH] += 2.5;
 			break;
-		case EV_CLIENT_JUMP:
-			kick[PITCH] -= 1.5;
-			break;
 		case EV_CLIENT_FALL:
 			kick[PITCH] += 5.0;
 			break;
@@ -228,10 +225,10 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 	// and any velocity-based feedback
 
 	vec_t forward = DotProduct(ent->locals.velocity, ent->client->locals.forward);
-	kick[PITCH] += forward / 500.0;
+	kick[PITCH] += forward / 450.0;
 
 	vec_t right = DotProduct(ent->locals.velocity, ent->client->locals.right);
-	kick[ROLL] += right / 500.0;
+	kick[ROLL] += right / 350.0;
 
 	// now interpolate the kick angles towards neutral over time
 
@@ -240,7 +237,7 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 	if (!delta) // no kick, we're done
 		return;
 
-	// we recover from kick at a rate based to the kick itself
+	// we recover from kick at a rate based on the kick itself
 
 	delta = 0.5 + delta * delta * gi.frame_seconds;
 

@@ -28,10 +28,19 @@ static void G_AiThink(g_edict_t *self) {
 	user_cmd_t cmd;
 
 	memset(&cmd, 0, sizeof(cmd));
+	cmd.msec = gi.frame_millis;
 
 	G_ClientThink(self, &cmd);
 
 	self->locals.next_think = g_level.time + gi.frame_millis;
+}
+
+/*
+ * @brief
+ */
+void G_ResetAi(void) {
+
+	G_AiCreateNodes();
 }
 
 /*

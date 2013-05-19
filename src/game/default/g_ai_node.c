@@ -19,36 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_LOCAL_H__
-#define __GAME_LOCAL_H__
+#include "g_local.h"
 
-// this is the game name that we advertise to clients
-#define GAME_NAME "default"
+/*
+ * @brief
+ */
+void G_AiCreateNodes(void) {
 
-#define Debug(...) Debug_(__func__, __VA_ARGS__)
-#define Warn(...) Warn_(__func__, __VA_ARGS__)
-#define Error(...) Error_(__func__, __VA_ARGS__)
-
-#include "g_ai.h"
-#include "g_ai_node.h"
-#include "g_ballistics.h"
-#include "g_client_chase.h"
-#include "g_client_stats.h"
-#include "g_client_view.h"
-#include "g_client.h"
-#include "g_combat.h"
-#include "g_commands.h"
-#include "g_entity_func.h"
-#include "g_entity_info.h"
-#include "g_entity_misc.h"
-#include "g_entity_target.h"
-#include "g_entity_trigger.h"
-#include "g_entity.h"
-#include "g_item.h"
-#include "g_main.h"
-#include "g_physics.h"
-#include "g_types.h"
-#include "g_utils.h"
-#include "g_weapon.h"
-
-#endif /* __GAME_LOCAL_H__ */
+}

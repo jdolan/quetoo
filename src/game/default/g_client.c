@@ -1088,7 +1088,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	AngleVectors(client->locals.angles, client->locals.forward, client->locals.right,
 			client->locals.up);
 
-	// update the horizontal speed scalar basd on new velocity
+	// update the horizontal speed scalar based on new velocity
 	VectorCopy(ent->locals.velocity, velocity);
 	velocity[2] = 0.0;
 
