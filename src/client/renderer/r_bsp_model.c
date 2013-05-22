@@ -356,8 +356,8 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 			VectorCopy(out->plane->normal, out->normal);
 
 		// then texinfo
-		const int16_t ti = LittleShort(in->texinfo);
-		if (ti < 0 || ti >= bsp->num_texinfo) {
+		const uint16_t ti = LittleShort(in->texinfo);
+		if (ti >= bsp->num_texinfo) {
 			Com_Error(ERR_DROP, "Bad texinfo number: %d\n", ti);
 		}
 		out->texinfo = bsp->texinfo + ti;

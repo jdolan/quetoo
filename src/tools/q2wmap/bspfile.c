@@ -107,8 +107,7 @@ static void SwapBSPFile(_Bool todisk) {
 	// vertexes
 	for (i = 0; i < d_bsp.num_vertexes; i++) {
 		for (j = 0; j < 3; j++)
-			d_bsp.vertexes[i].point[j]
-					= LittleFloat(d_bsp.vertexes[i].point[j]);
+			d_bsp.vertexes[i].point[j] = LittleFloat(d_bsp.vertexes[i].point[j]);
 	}
 
 	// planes
@@ -122,12 +121,10 @@ static void SwapBSPFile(_Bool todisk) {
 	// texinfos
 	for (i = 0; i < d_bsp.num_texinfo; i++) {
 		for (j = 0; j < 8; j++)
-			d_bsp.texinfo[i].vecs[0][j] = LittleFloat(
-					d_bsp.texinfo[i].vecs[0][j]);
+			d_bsp.texinfo[i].vecs[0][j] = LittleFloat(d_bsp.texinfo[i].vecs[0][j]);
 		d_bsp.texinfo[i].flags = LittleLong(d_bsp.texinfo[i].flags);
 		d_bsp.texinfo[i].value = LittleLong(d_bsp.texinfo[i].value);
-		d_bsp.texinfo[i].next_texinfo = LittleLong(
-				d_bsp.texinfo[i].next_texinfo);
+		d_bsp.texinfo[i].next_texinfo = LittleLong(d_bsp.texinfo[i].next_texinfo);
 	}
 
 	// faces
@@ -163,14 +160,10 @@ static void SwapBSPFile(_Bool todisk) {
 			d_bsp.leafs[i].maxs[j] = LittleShort(d_bsp.leafs[i].maxs[j]);
 		}
 
-		d_bsp.leafs[i].first_leaf_face = LittleShort(
-				d_bsp.leafs[i].first_leaf_face);
-		d_bsp.leafs[i].num_leaf_faces = LittleShort(
-				d_bsp.leafs[i].num_leaf_faces);
-		d_bsp.leafs[i].first_leaf_brush = LittleShort(
-				d_bsp.leafs[i].first_leaf_brush);
-		d_bsp.leafs[i].num_leaf_brushes = LittleShort(
-				d_bsp.leafs[i].num_leaf_brushes);
+		d_bsp.leafs[i].first_leaf_face = LittleShort(d_bsp.leafs[i].first_leaf_face);
+		d_bsp.leafs[i].num_leaf_faces = LittleShort(d_bsp.leafs[i].num_leaf_faces);
+		d_bsp.leafs[i].first_leaf_brush = LittleShort(d_bsp.leafs[i].first_leaf_brush);
+		d_bsp.leafs[i].num_leaf_brushes = LittleShort(d_bsp.leafs[i].num_leaf_brushes);
 	}
 
 	// leaf faces
@@ -200,26 +193,20 @@ static void SwapBSPFile(_Bool todisk) {
 
 	// areas
 	for (i = 0; i < d_bsp.num_areas; i++) {
-		d_bsp.areas[i].num_area_portals = LittleLong(
-				d_bsp.areas[i].num_area_portals);
-		d_bsp.areas[i].first_area_portal = LittleLong(
-				d_bsp.areas[i].first_area_portal);
+		d_bsp.areas[i].num_area_portals = LittleLong(d_bsp.areas[i].num_area_portals);
+		d_bsp.areas[i].first_area_portal = LittleLong(d_bsp.areas[i].first_area_portal);
 	}
 
 	// area portals
 	for (i = 0; i < d_bsp.num_area_portals; i++) {
-		d_bsp.area_portals[i].portal_num = LittleLong(
-				d_bsp.area_portals[i].portal_num);
-		d_bsp.area_portals[i].other_area = LittleLong(
-				d_bsp.area_portals[i].other_area);
+		d_bsp.area_portals[i].portal_num = LittleLong(d_bsp.area_portals[i].portal_num);
+		d_bsp.area_portals[i].other_area = LittleLong(d_bsp.area_portals[i].other_area);
 	}
 
 	// brush sides
 	for (i = 0; i < d_bsp.num_brush_sides; i++) {
-		d_bsp.brush_sides[i].plane_num = LittleShort(
-				d_bsp.brush_sides[i].plane_num);
-		d_bsp.brush_sides[i].surf_num = LittleShort(
-				d_bsp.brush_sides[i].surf_num);
+		d_bsp.brush_sides[i].plane_num = LittleShort(d_bsp.brush_sides[i].plane_num);
+		d_bsp.brush_sides[i].surf_num = LittleShort(d_bsp.brush_sides[i].surf_num);
 	}
 
 	// visibility
@@ -271,33 +258,25 @@ void LoadBSPFile(char *file_name) {
 		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", file_name,
 				header->version);
 
-	d_bsp.num_models = CopyLump(LUMP_MODELS, d_bsp.models,
-			sizeof(d_bsp_model_t));
-	d_bsp.num_vertexes = CopyLump(LUMP_VERTEXES, d_bsp.vertexes,
-			sizeof(d_bsp_vertex_t));
+	d_bsp.num_models = CopyLump(LUMP_MODELS, d_bsp.models, sizeof(d_bsp_model_t));
+	d_bsp.num_vertexes = CopyLump(LUMP_VERTEXES, d_bsp.vertexes, sizeof(d_bsp_vertex_t));
 
 	d_bsp.num_normals = d_bsp.num_vertexes;
 
 	if (header->version == BSP_VERSION_Q2W) // enhanced format
-		d_bsp.num_normals = CopyLump(LUMP_NORMALS, d_bsp.normals,
-				sizeof(d_bsp_normal_t));
+		d_bsp.num_normals = CopyLump(LUMP_NORMALS, d_bsp.normals, sizeof(d_bsp_normal_t));
 
-	d_bsp.num_planes = CopyLump(LUMP_PLANES, d_bsp.planes,
-			sizeof(d_bsp_plane_t));
+	d_bsp.num_planes = CopyLump(LUMP_PLANES, d_bsp.planes, sizeof(d_bsp_plane_t));
 	d_bsp.num_leafs = CopyLump(LUMP_LEAFS, d_bsp.leafs, sizeof(d_bsp_leaf_t));
 	d_bsp.num_nodes = CopyLump(LUMP_NODES, d_bsp.nodes, sizeof(d_bsp_node_t));
-	d_bsp.num_texinfo = CopyLump(LUMP_TEXINFO, d_bsp.texinfo,
-			sizeof(d_bsp_texinfo_t));
+	d_bsp.num_texinfo = CopyLump(LUMP_TEXINFO, d_bsp.texinfo, sizeof(d_bsp_texinfo_t));
 	d_bsp.num_faces = CopyLump(LUMP_FACES, d_bsp.faces, sizeof(d_bsp_face_t));
-	d_bsp.num_leaf_faces = CopyLump(LUMP_LEAF_FACES, d_bsp.leaf_faces,
-			sizeof(d_bsp.leaf_faces[0]));
+	d_bsp.num_leaf_faces = CopyLump(LUMP_LEAF_FACES, d_bsp.leaf_faces, sizeof(d_bsp.leaf_faces[0]));
 	d_bsp.num_leaf_brushes = CopyLump(LUMP_LEAF_BRUSHES, d_bsp.leaf_brushes,
 			sizeof(d_bsp.leaf_brushes[0]));
-	d_bsp.num_face_edges = CopyLump(LUMP_FACE_EDGES, d_bsp.face_edges,
-			sizeof(d_bsp.face_edges[0]));
+	d_bsp.num_face_edges = CopyLump(LUMP_FACE_EDGES, d_bsp.face_edges, sizeof(d_bsp.face_edges[0]));
 	d_bsp.num_edges = CopyLump(LUMP_EDGES, d_bsp.edges, sizeof(d_bsp_edge_t));
-	d_bsp.num_brushes = CopyLump(LUMP_BRUSHES, d_bsp.brushes,
-			sizeof(d_bsp_brush_t));
+	d_bsp.num_brushes = CopyLump(LUMP_BRUSHES, d_bsp.brushes, sizeof(d_bsp_brush_t));
 	d_bsp.num_brush_sides = CopyLump(LUMP_BRUSH_SIDES, d_bsp.brush_sides,
 			sizeof(d_bsp_brush_side_t));
 	d_bsp.num_areas = CopyLump(LUMP_AREAS, d_bsp.areas, sizeof(d_bsp_area_t));
@@ -402,27 +381,20 @@ void WriteBSPFile(char *file_name) {
 
 	AddLump(LUMP_PLANES, d_bsp.planes, d_bsp.num_planes * sizeof(d_bsp_plane_t));
 	AddLump(LUMP_LEAFS, d_bsp.leafs, d_bsp.num_leafs * sizeof(d_bsp_leaf_t));
-	AddLump(LUMP_VERTEXES, d_bsp.vertexes,
-			d_bsp.num_vertexes * sizeof(d_bsp_vertex_t));
+	AddLump(LUMP_VERTEXES, d_bsp.vertexes, d_bsp.num_vertexes * sizeof(d_bsp_vertex_t));
 
 	if (!legacy) // write vertex normals
-		AddLump(LUMP_NORMALS, d_bsp.normals,
-				d_bsp.num_normals * sizeof(d_bsp_normal_t));
+		AddLump(LUMP_NORMALS, d_bsp.normals, d_bsp.num_normals * sizeof(d_bsp_normal_t));
 
 	AddLump(LUMP_NODES, d_bsp.nodes, d_bsp.num_nodes * sizeof(d_bsp_node_t));
-	AddLump(LUMP_TEXINFO, d_bsp.texinfo,
-			d_bsp.num_texinfo * sizeof(d_bsp_texinfo_t));
+	AddLump(LUMP_TEXINFO, d_bsp.texinfo, d_bsp.num_texinfo * sizeof(d_bsp_texinfo_t));
 	AddLump(LUMP_FACES, d_bsp.faces, d_bsp.num_faces * sizeof(d_bsp_face_t));
-	AddLump(LUMP_BRUSHES, d_bsp.brushes,
-			d_bsp.num_brushes * sizeof(d_bsp_brush_t));
-	AddLump(LUMP_BRUSH_SIDES, d_bsp.brush_sides,
-			d_bsp.num_brush_sides * sizeof(d_bsp_brush_side_t));
-	AddLump(LUMP_LEAF_FACES, d_bsp.leaf_faces,
-			d_bsp.num_leaf_faces * sizeof(d_bsp.leaf_faces[0]));
+	AddLump(LUMP_BRUSHES, d_bsp.brushes, d_bsp.num_brushes * sizeof(d_bsp_brush_t));
+	AddLump(LUMP_BRUSH_SIDES, d_bsp.brush_sides, d_bsp.num_brush_sides * sizeof(d_bsp_brush_side_t));
+	AddLump(LUMP_LEAF_FACES, d_bsp.leaf_faces, d_bsp.num_leaf_faces * sizeof(d_bsp.leaf_faces[0]));
 	AddLump(LUMP_LEAF_BRUSHES, d_bsp.leaf_brushes,
 			d_bsp.num_leaf_brushes * sizeof(d_bsp.leaf_brushes[0]));
-	AddLump(LUMP_FACE_EDGES, d_bsp.face_edges,
-			d_bsp.num_face_edges * sizeof(d_bsp.face_edges[0]));
+	AddLump(LUMP_FACE_EDGES, d_bsp.face_edges, d_bsp.num_face_edges * sizeof(d_bsp.face_edges[0]));
 	AddLump(LUMP_EDGES, d_bsp.edges, d_bsp.num_edges * sizeof(d_bsp_edge_t));
 	AddLump(LUMP_MODELS, d_bsp.models, d_bsp.num_models * sizeof(d_bsp_model_t));
 	AddLump(LUMP_AREAS, d_bsp.areas, d_bsp.num_areas * sizeof(d_bsp_area_t));
@@ -522,11 +494,11 @@ epair_t *ParseEpair(void) {
 
 	e = Z_Malloc(sizeof(*e));
 
-	if (strlen(token) >= MAX_KEY - 1)
+	if (strlen(token) >= MAX_BSP_ENTITY_KEY - 1)
 		Com_Error(ERR_FATAL, "Token too long\n");
 	e->key = Z_CopyString(token);
 	GetToken(false);
-	if (strlen(token) >= MAX_VALUE - 1)
+	if (strlen(token) >= MAX_BSP_ENTITY_VALUE - 1)
 		Com_Error(ERR_FATAL, "Token too long\n");
 	e->value = Z_CopyString(token);
 
