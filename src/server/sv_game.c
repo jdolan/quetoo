@@ -233,8 +233,21 @@ void Sv_InitGame(void) {
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Sv_GameError;
 
-	import.BroadcastPrint = Sv_BroadcastPrint;
-	import.ClientPrint = Sv_ClientPrint;
+	import.Malloc = Z_TagMalloc;
+	import.LinkMalloc = Z_LinkMalloc;
+	import.Free = Z_Free;
+	import.FreeTag = Z_FreeTag;
+
+	import.LoadFile = Fs_Load;
+	import.FreeFile = Fs_Free;
+
+	import.Cvar = Cvar_Get;
+	import.Cmd = Cmd_Add;
+	import.Argc = Cmd_Argc;
+	import.Argv = Cmd_Argv;
+	import.Args = Cmd_Args;
+
+	import.AddCommandString = Cbuf_AddText;
 
 	import.ConfigString = Sv_ConfigString;
 
@@ -270,21 +283,8 @@ void Sv_InitGame(void) {
 	import.WriteDir = Sv_WriteDir;
 	import.WriteAngle = Sv_WriteAngle;
 
-	import.Malloc = Z_TagMalloc;
-	import.Free = Z_Free;
-	import.FreeTag = Z_FreeTag;
-
-	import.LoadFile = Fs_Load;
-	import.FreeFile = Fs_Free;
-
-	import.Cvar = Cvar_Get;
-	import.Cmd = Cmd_Add;
-
-	import.Argc = Cmd_Argc;
-	import.Argv = Cmd_Argv;
-	import.Args = Cmd_Args;
-
-	import.AddCommandString = Cbuf_AddText;
+	import.BroadcastPrint = Sv_BroadcastPrint;
+	import.ClientPrint = Sv_ClientPrint;
 
 	svs.game = (g_export_t *) Sys_LoadLibrary("game", &game_handle, "G_LoadGame", &import);
 
