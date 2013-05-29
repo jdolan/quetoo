@@ -381,6 +381,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	R_EndBspSurfaceLightmaps(bsp);
 
+	// free the lightmap lump, we're done with it
 	if (bsp->lightmaps->size) {
 		Z_Free(bsp->lightmaps->data);
 		bsp->lightmaps->size = 0;
