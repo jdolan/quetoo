@@ -30,7 +30,7 @@ cp `finddll /tmp/quake2world-${MINGW_TARGET}/bin/quake2world.exe|sort|uniq|grep 
 find /tmp/quake2world-${MINGW_TARGET} -name "*.la" -delete
 find /tmp/quake2world-${MINGW_TARGET} -name "*.dll.a" -delete
 
-cp -r ${MINGW_ARCH}/bin /tmp/quake2world-${MINGW_TARGET}
+cp -r ${MINGW_ARCH}/bin ${MINGW_ARCH}/*.bat /tmp/quake2world-${MINGW_TARGET}
 
 cd /tmp/quake2world-${MINGW_TARGET}
 rsync -avzP *.bat bin lib maci@quake2world.net:/opt/rsync/quake2world-win32/${MINGW_ARCH}
