@@ -34,3 +34,7 @@ cp -r ${MINGW_ARCH}/bin /tmp/quake2world-${MINGW_TARGET}
 
 cd /tmp/quake2world-${MINGW_TARGET}
 rsync -avzP bin lib maci@quake2world.net:/opt/rsync/quake2world-win32/${MINGW_ARCH}
+
+mkdir quake2world
+mv bin lib quake2world
+zip -9 -r quake2world-BETA-${MINGW_ARCH}.zip quake2world
