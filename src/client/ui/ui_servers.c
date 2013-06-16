@@ -77,6 +77,9 @@ void Ui_NewServer(void) {
 
 	TwAddSeparator(bar, NULL, NULL);
 	TwAddButton(bar, "Refresh", Ui_Servers_Refresh, bar, NULL);
+
+	// force a refresh, so pings aren't 999 by default
+	Ui_Servers_Refresh(NULL);
 }
 
 /*
