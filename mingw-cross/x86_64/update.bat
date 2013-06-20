@@ -1,1 +1,1 @@
-bin\rsync.exe --delete -rkzhP --no-p --no-g --chmod=ugo=rwX rsync://jdolan.dyndns.org/quake2world-win32/x86_64/ .
+bin\rsync.exe --delete -rkzhP --perms --chmod=a=rwx,Da+x rsync://jdolan.dyndns.org/quake2world-win32/x86_64/ .
