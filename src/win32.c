@@ -24,7 +24,7 @@
 #include "win32.h"
 
 // wrap dlfcn calls
-void *dlopen(const char *file_name, int flag) {
+void *dlopen(const char *file_name, int mode __attribute__((unused))) {
 	return LoadLibrary(file_name);
 }
 
@@ -41,8 +41,8 @@ void dlclose(void *handle) {
 }
 
 // wrap ioctl for sockets
-int ioctl(int sockfd, uint flags, void *null) {
-	return ioctlsocket(sockfd, flags, null);
+int ioctl(int sockfd, int request, void *null) {
+	return ioctlsocket(sockfd, request, null);
 }
 
 #endif /* _WIN32 */
