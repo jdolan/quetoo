@@ -21,11 +21,10 @@
 
 #ifdef _WIN32
 
-#include <ctype.h>
 #include "win32.h"
 
 // wrap dlfcn calls
-void *dlopen(const char *file_name, int32_t flag) {
+void *dlopen(const char *file_name, int flag) {
 	return LoadLibrary(file_name);
 }
 
@@ -42,7 +41,7 @@ void dlclose(void *handle) {
 }
 
 // wrap ioctl for sockets
-int32_t ioctl(int32_t sockfd, uint32_t flags, void *null) {
+int ioctl(int sockfd, uint flags, void *null) {
 	return ioctlsocket(sockfd, flags, null);
 }
 
