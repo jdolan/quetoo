@@ -1200,7 +1200,7 @@ void G_Init(void) {
 	ge.max_edicts = g_max_entities->integer;
 	ge.num_edicts = sv_max_clients->integer + 1;
 
-	G_InitAi(); // initialize the AI
+	G_Ai_Init(); // initialize the AI
 
 	// set these to false to avoid spurious game restarts and alerts on init
 	g_gameplay->modified = g_teams->modified = g_match->modified = g_rounds->modified

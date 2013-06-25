@@ -22,7 +22,7 @@
 #ifndef __MEM_H__
 #define __MEM_H__
 
-#include "common.h"
+#include "quake2world.h"
 
 void Z_Free(void *p);
 void Z_FreeTag(z_tag_t tag);

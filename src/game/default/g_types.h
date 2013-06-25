@@ -165,12 +165,12 @@ typedef enum {
 
 // gitem_t->flags
 typedef enum {
-	ITEM_WEAPON,
 	ITEM_AMMO,
 	ITEM_ARMOR,
 	ITEM_FLAG,
 	ITEM_HEALTH,
-	ITEM_POWERUP
+	ITEM_POWERUP,
+	ITEM_WEAPON
 } g_item_type_t;
 
 typedef struct g_item_s {
@@ -194,6 +194,7 @@ typedef struct g_item_s {
 
 	g_item_type_t type; // g_item_type_t, see above
 	uint16_t tag; // type-specific flags
+	vec_t priority; // AI priority level
 
 	const char *precaches; // string of all models, sounds, and images this item will use
 } g_item_t;

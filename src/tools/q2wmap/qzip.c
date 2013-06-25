@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "qbsp.h"
+#include "bspfile.h"
 #include "deps/minizip/zip.h"
 
 #define MISSING "__missing__"
@@ -27,7 +27,6 @@
 // assets are accumulated in this structure
 typedef struct qzip_s {
 	GHashTable *assets;
-
 	char *missing;
 } qzip_t;
 
@@ -377,12 +376,6 @@ int32_t ZIP_Main(void) {
 	int32_t i;
 	epair_t *e;
 
-#ifdef _WIN32
-	char title[MAX_OSPATH];
-	sprintf(title, "Q2WMap [Compiling ZIP]");
-	SetConsoleTitle(title);
-#endif
-
 	Com_Print("\n----- ZIP -----\n\n");
 
 	const time_t start = time(NULL);
@@ -461,11 +454,11 @@ int32_t ZIP_Main(void) {
 	g_hash_table_destroy(qzip.assets);
 
 	const time_t end = time(NULL);
-	const int32_t total_zip_time = (int32_t) (end - start);
+	const time_t duration = end - start;
 	Com_Print("\nZIP Time: ");
-	if (total_zip_time > 59)
-		Com_Print("%d Minutes ", total_zip_time / 60);
-	Com_Print("%d Seconds\n", total_zip_time % 60);
+	if (duration > 59)
+		Com_Print("%ld Minutes ", duration / 60);
+	Com_Print("%ld Seconds\n", duration % 60);
 
 	return 0;
 }

@@ -162,7 +162,9 @@ typedef struct {
 	_Bool (*inPHS)(const vec3_t p1, const vec3_t p2);
 	void (*SetAreaPortalState)(int32_t portal_num, _Bool open);
 	_Bool (*AreasConnected)(int32_t area1, int32_t area2);
-	void (*Pmove)(pm_move_t *pm_state); // player movement code common with client prediction
+
+	// player movement code common with client prediction
+	void (*Pmove)(pm_move_t *pm_state);
 
 	// an entity will never be sent to a client or used for collision
 	// if it is not passed to LinkEntity. if the size, position, or

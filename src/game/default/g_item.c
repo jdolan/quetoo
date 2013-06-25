@@ -867,6 +867,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_BODY,
+		0.80,
 		"" },
 
 /*QUAKED item_armor_combat(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -886,6 +887,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_COMBAT,
+		0.66,
 		"" },
 
 /*QUAKED item_armor_jacket(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -905,6 +907,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_JACKET,
+		0.50,
 		"" },
 
 /*QUAKED item_armor_shard(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -924,6 +927,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_SHARD,
+		0.10,
 		"" },
 
 /*QUAKED weapon_blaster(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -943,6 +947,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_WEAPON,
 		0,
+		0.10,
 		"weapons/blaster/fire.wav" },
 
 /*QUAKED weapon_shotgun(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -962,6 +967,7 @@ const g_item_t g_items[] = {
 		"Shells",
 		ITEM_WEAPON,
 		0,
+		0.15,
 		"weapons/shotgun/fire.wav" },
 
 /*QUAKED weapon_supershotgun(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -981,6 +987,7 @@ const g_item_t g_items[] = {
 		"Shells",
 		ITEM_WEAPON,
 		0,
+		0.25,
 		"weapons/supershotgun/fire.wav" },
 
 /*QUAKED weapon_machinegun(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1000,6 +1007,7 @@ const g_item_t g_items[] = {
 		"Bullets",
 		ITEM_WEAPON,
 		0,
+		0.30,
 		"weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
 			"weapons/machinegun/fire_3.wav weapons/machinegun/fire_4.wav" },
 
@@ -1020,6 +1028,7 @@ const g_item_t g_items[] = {
 		"Grenades",
 		ITEM_WEAPON,
 		0,
+		0.40,
 		"models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav" },
 
 /*QUAKED weapon_rocketlauncher(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1039,6 +1048,7 @@ const g_item_t g_items[] = {
 		"Rockets",
 		ITEM_WEAPON,
 		0,
+		0.50,
 		"models/objects/rocket/tris.md3 objects/rocket/fly.wav "
 			"weapons/rocketlauncher/fire.wav" },
 
@@ -1059,6 +1069,7 @@ const g_item_t g_items[] = {
 		"Cells",
 		ITEM_WEAPON,
 		0,
+		0.50,
 		"weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav" },
 
 /*QUAKED weapon_lightning(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1078,6 +1089,7 @@ const g_item_t g_items[] = {
 		"Bolts",
 		ITEM_WEAPON,
 		0,
+		0.50,
 		"weapons/lightning/fire.wav weapons/lightning/fly.wav "
 			"weapons/lightning/discharge.wav" },
 
@@ -1098,6 +1110,7 @@ const g_item_t g_items[] = {
 		"Slugs",
 		ITEM_WEAPON,
 		0,
+		0.60,
 		"weapons/railgun/fire.wav" },
 
 /*QUAKED weapon_bfg(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1117,6 +1130,7 @@ const g_item_t g_items[] = {
 		"Nukes",
 		ITEM_WEAPON,
 		0,
+		0.66,
 		"weapons/bfg/fire.wav weapons/bfg/hit.wav" },
 
 /*QUAKED ammo_shells(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1136,6 +1150,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_SHELLS,
+		0.15,
 		"" },
 
 /*QUAKED ammo_bullets(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1155,6 +1170,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_BULLETS,
+		0.15,
 		"" },
 
 /*QUAKED ammo_grenades(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1174,6 +1190,7 @@ const g_item_t g_items[] = {
 		"grenades",
 		ITEM_AMMO,
 		AMMO_GRENADES,
+		0.15,
 		"" },
 
 /*QUAKED ammo_rockets(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1193,6 +1210,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_ROCKETS,
+		0.15,
 		"" },
 
 /*QUAKED ammo_cells(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1212,6 +1230,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_CELLS,
+		0.15,
 		"" },
 
 /*QUAKED ammo_bolts(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1231,6 +1250,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_BOLTS,
+		0.15,
 		"" },
 
 /*QUAKED ammo_slugs(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1250,6 +1270,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_SLUGS,
+		0.15,
 		"" },
 
 /*QUAKED ammo_nukes(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1269,6 +1290,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_AMMO,
 		AMMO_NUKES,
+		0.15,
 		"" },
 
 /*QUAKED item_adrenaline(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1289,6 +1311,7 @@ const g_item_t g_items[] = {
 		NULL,
 		0,
 		0,
+		0.45,
 		"" },
 
 /*QUAKED item_health_small (.3 .3 1) (-16 -16 -16) (16 16 16)
@@ -1308,6 +1331,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_HEALTH,
 		HEALTH_SMALL,
+		0.10,
 		"" },
 
 /*QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
@@ -1327,6 +1351,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_HEALTH,
 		HEALTH_MEDIUM,
+		0.25,
 		"" },
 
 /*QUAKED item_health_large (.3 .3 1) (-16 -16 -16) (16 16 16)
@@ -1346,6 +1371,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_HEALTH,
 		HEALTH_LARGE,
+		0.40,
 		"" },
 
 /*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16)
@@ -1365,6 +1391,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_HEALTH,
 		HEALTH_MEGA,
+		0.60,
 		"" },
 
 /*QUAKED item_flag_team1(1 0.2 0)(-16 -16 -24)(16 16 32)
@@ -1384,6 +1411,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_FLAG,
 		0,
+		0.75,
 		"ctf/capture.wav ctf/steal.wav ctf/return.wav" },
 
 /*QUAKED item_flag_team2(1 0.2 0)(-16 -16 -24)(16 16 32)
@@ -1403,6 +1431,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_FLAG,
 		0,
+		0.75,
 		"ctf/capture.wav ctf/steal.wav ctf/return.wav" },
 
 /*QUAKED item_quad(.3 .3 1)(-16 -16 -16)(16 16 16)
@@ -1422,6 +1451,7 @@ const g_item_t g_items[] = {
 		NULL,
 		ITEM_POWERUP,
 		0,
+		0.80,
 		"quad/attack.wav quad/expire.wav" }, };
 
 const uint16_t g_num_items = lengthof(g_items);

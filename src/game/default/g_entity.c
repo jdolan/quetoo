@@ -474,8 +474,6 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	G_ResetTeams();
 
 	G_ResetVote();
-
-	G_ResetAi();
 }
 
 /*

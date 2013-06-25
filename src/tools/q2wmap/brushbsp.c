@@ -52,7 +52,7 @@ static void CreateBrushWindings(bsp_brush_t * brush) {
 	for (i = 0; i < brush->num_sides; i++) {
 		side = &brush->sides[i];
 		plane = &map_planes[side->plane_num];
-		w = BaseWindingForPlane(plane->normal, plane->dist);
+		w = WindingForPlane(plane->normal, plane->dist);
 		for (j = 0; j < brush->num_sides && w; j++) {
 			if (i == j)
 				continue;
@@ -656,7 +656,7 @@ void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front, bs
 	}
 	// create a new winding from the split plane
 
-	w = BaseWindingForPlane(plane->normal, plane->dist);
+	w = WindingForPlane(plane->normal, plane->dist);
 	for (i = 0; i < brush->num_sides && w; i++) {
 		plane2 = &map_planes[brush->sides[i].plane_num ^ 1];
 		ChopWindingInPlace(&w, plane2->normal, plane2->dist, 0); // PLANESIDE_EPSILON);

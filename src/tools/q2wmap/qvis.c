@@ -414,18 +414,10 @@ static void CalcPHS(void) {
  */
 int32_t VIS_Main(void) {
 	char portal_file[MAX_OSPATH];
-	double start, end;
-	int32_t total_vis_time;
-
-#ifdef _WIN32
-	char title[MAX_OSPATH];
-	sprintf(title, "Q2WMap [Compiling VIS]");
-	SetConsoleTitle(title);
-#endif
 
 	Com_Print("\n----- VIS -----\n\n");
 
-	start = time(NULL);
+	const time_t start = time(NULL);
 
 	LoadBSPFile(bsp_name);
 
@@ -447,12 +439,12 @@ int32_t VIS_Main(void) {
 
 	WriteBSPFile(bsp_name);
 
-	end = time(NULL);
-	total_vis_time = (int32_t) (end - start);
+	const time_t end = time(NULL);
+	const time_t duration = end - start;
 	Com_Print("\nVIS Time: ");
-	if (total_vis_time > 59)
-		Com_Print("%d Minutes ", total_vis_time / 60);
-	Com_Print("%d Seconds\n", total_vis_time % 60);
+	if (duration > 59)
+		Com_Print("%ld Minutes ", duration / 60);
+	Com_Print("%ld Seconds\n", duration % 60);
 
 	return 0;
 }

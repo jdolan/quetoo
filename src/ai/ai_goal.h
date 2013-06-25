@@ -19,14 +19,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __AI_NODE_H__
-#define __AI_NODE_H__
+#ifndef __AI_GOAL_H__
+#define __AI_GOAL_H__
 
 #include "ai_types.h"
 
-#ifdef __GAME_LOCAL_H__
-void Ai_Init(void);
-void Ai_Shutdown(void);
+ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_edict_t *ent);
+void Ai_FreeGoals(void);
+
+#ifdef __AI_LOCAL_H__
+
 #endif /* __AI_LOCAL_H__ */
 
-#endif /* __AI_NODE_H__ */
+#endif /* __AI_GOAL_H__ */

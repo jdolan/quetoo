@@ -22,29 +22,32 @@
 #ifndef __AI_TYPES_H__
 #define __AI_TYPES_H__
 
-#include "files.h"
 #include "mem.h"
-
-typedef enum {
-	AI_NODE_NAV,
-	AI_NODE_ITEM,
-	AI_NODE_AI,
-	AI_NODE_CLIENT
-} ai_node_type_t;
+#include "game/game.h"
 
 typedef struct {
-	ai_node_type_t type;
-	int32_t leaf;
-	int32_t cluster;
-	vec3_t mins, maxs;
-	vec3_t center;
-	GHashTable *links;
-	vec_t priority;
+	GList *portals;
+} ai_path_t;
+
+typedef struct {
+	c_bsp_plane_t *plane;
+	vec3_t mins;
+	vec3_t maxs;
+	GHashTable *paths;
 } ai_node_t;
 
+typedef enum {
+	AI_GOAL_NAV,
+	AI_GOAL_ITEM,
+	AI_GOAL_ENEMY,
+	AI_GOAL_TEAMMATE
+} ai_goal_type_t;
+
 typedef struct {
-	ai_node_t *to;
-	vec_t dist;
-} ai_node_link_t;
+	ai_goal_type_t type;
+	g_edict_t *ent;
+	vec_t priority;
+	ai_node_t *node;
+} ai_goal_t;
 
 #endif /* __AI_TYPES_H__ */

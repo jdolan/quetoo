@@ -24,6 +24,7 @@ q2wmap_SOURCES = \
 	polylib.c \
 	portals.c \
 	prtfile.c \
+	qaas.c \
 	qbsp.c \
 	qmat.c \
 	qlight.c \

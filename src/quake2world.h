@@ -121,6 +121,7 @@ typedef vec_t vec4_t[4];
 typedef enum {
 	Z_TAG_DEFAULT,
 	Z_TAG_SERVER,
+	Z_TAG_AI,
 	Z_TAG_GAME,
 	Z_TAG_GAME_LEVEL,
 	Z_TAG_CLIENT,
@@ -184,10 +185,10 @@ typedef enum {
 // client to server
 typedef enum {
 	CL_CMD_BAD,
-	CL_CMD_MOVE, // [[usercmd_t]
+	CL_CMD_MOVE, // [user_cmd_t]
 	CL_CMD_STRING, // [string] message
 	CL_CMD_USER_INFO
-// [[user_info string]
+// [user_info_string]
 } cl_cmd_t;
 
 // a singleton for (0.0, 0.0, 0.0)
@@ -206,13 +207,13 @@ extern vec3_t vec3_origin;
 #define VectorSum(a)			(a[0] + a[1] + a[2])
 
 #ifndef M_PI
-#define M_PI 3.14159265358979323846  // matches value in gcc v2 math.h
+#define M_PI 3.14159265358979323846 // matches value in gcc v2 math.h
 #endif
 
 // lower bits are stronger, and will eat weaker brushes completely
-#define CONTENTS_SOLID			0x1  // an eye is never valid in a solid
-#define CONTENTS_WINDOW			0x2  // translucent, but not watery
-#define CONTENTS_AUX			0x4  // not used at the moment
+#define CONTENTS_SOLID			0x1 // an eye is never valid in a solid
+#define CONTENTS_WINDOW			0x2 // translucent, but not watery
+#define CONTENTS_AUX			0x4 // not used at the moment
 #define CONTENTS_LAVA			0x8
 #define CONTENTS_SLIME			0x10
 #define CONTENTS_WATER			0x20
@@ -233,12 +234,12 @@ extern vec3_t vec3_origin;
 #define CONTENTS_CURRENT_UP		0x400000
 #define CONTENTS_CURRENT_DOWN	0x800000
 
-#define CONTENTS_ORIGIN			0x1000000  // removed during bsp stage
-#define CONTENTS_MONSTER		0x2000000  // should never be on a brush, only in game
+#define CONTENTS_ORIGIN			0x1000000 // removed during bsp stage
+#define CONTENTS_MONSTER		0x2000000 // should never be on a brush, only in game
 #define CONTENTS_DEAD_MONSTER	0x4000000
 
-#define CONTENTS_DETAIL			0x8000000  // brushes to be added after vis leafs
-#define CONTENTS_TRANSLUCENT	0x10000000  // auto set if any surface has trans
+#define CONTENTS_DETAIL			0x8000000 // brushes to be added after vis leafs
+#define CONTENTS_TRANSLUCENT	0x10000000 // auto set if any surface has trans
 #define CONTENTS_LADDER			0x20000000
 
 // leafs will have some combination of the above, nodes will always be -1
@@ -274,7 +275,6 @@ extern vec3_t vec3_origin;
 #define AREA_SOLID				1
 #define AREA_TRIGGERS			2
 
-// plane_t structure
 typedef struct c_bsp_plane_s {
 	vec3_t normal;
 	vec_t dist;
@@ -282,17 +282,17 @@ typedef struct c_bsp_plane_s {
 	int32_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
 } c_bsp_plane_t;
 
-typedef struct c_model_s {
-	vec3_t mins, maxs;
-	vec3_t origin; // for sounds or lights
-	int32_t head_node;
-} c_model_t;
-
 typedef struct c_bsp_surface_s {
 	char name[32];
 	int32_t flags;
 	int32_t value;
 } c_bsp_surface_t;
+
+typedef struct c_model_s {
+	vec3_t mins, maxs;
+	vec3_t origin; // for sounds or lights
+	int32_t head_node;
+} c_model_t;
 
 // a trace is returned when a box is swept through the world
 typedef struct c_trace_s {
@@ -307,13 +307,17 @@ typedef struct c_trace_s {
 	struct g_edict_s *ent; // not set by Cm_*() functions
 } c_trace_t;
 
+typedef struct c_floor_s {
+	int32_t cluster;
+} c_floor_s;
+
 // player bbox and view_height scaling
 extern vec3_t PM_MINS;
 extern vec3_t PM_MAXS;
 
-#define PM_SCALE			1.2  // global player scale factor
-#define PM_STAIR_HEIGHT		16.0  // maximum stair height player can walk up
-#define PM_STAIR_NORMAL		0.7  // can't step up onto very steep slopes
+#define PM_SCALE			1.2 // global player scale factor
+#define PM_STAIR_HEIGHT		16.0 // maximum stair height player can walk up
+#define PM_STAIR_NORMAL		0.7 // can't step up onto very steep slopes
 // pmove_state_t is the information necessary for client side movement prediction
 typedef enum {
 	// can accelerate and turn
@@ -418,11 +422,11 @@ typedef struct {
 #define EF_NO_LIGHTING		(0)
 
 // the 16 high bits are never transmitted, they're for the renderer only
-#define EF_WEAPON			(1 << 27)  // view weapon
-#define EF_ALPHATEST		(1 << 28)  // alpha test
-#define EF_BLEND			(1 << 29)  // blend
-#define EF_NO_SHADOW		(1 << 30)  // no shadow
-#define EF_NO_DRAW			(1 << 31)  // no draw (but perhaps shadow)
+#define EF_WEAPON			(1 << 27) // view weapon
+#define EF_ALPHATEST		(1 << 28) // alpha test
+#define EF_BLEND			(1 << 29) // blend
+#define EF_NO_SHADOW		(1 << 30) // no shadow
+#define EF_NO_DRAW			(1 << 31) // no draw (but perhaps shadow)
 // muzzle flashes
 typedef enum {
 	MZ_BLASTER,
@@ -459,10 +463,10 @@ typedef enum {
 } temp_event_t;
 
 // sound attenuation values
-#define ATTN_NONE  			0  // full volume the entire level
+#define ATTN_NONE  			0 // full volume the entire level
 #define ATTN_NORM  			1
 #define ATTN_IDLE  			2
-#define ATTN_STATIC  		3  // diminish very rapidly with distance
+#define ATTN_STATIC  		3 // diminish very rapidly with distance
 #define DEFAULT_SOUND_ATTENUATION	ATTN_NORM
 
 // -4096 up to +4096
@@ -527,7 +531,7 @@ typedef enum {
 	ANIM_LEGS_TURN
 } entity_animation_t;
 
-#define ANIM_TOGGLE_BIT 0x80  // used to restart the same animation
+#define ANIM_TOGGLE_BIT 0x80 // used to restart the same animation
 /*
  * Entity events are instantaneous, transpiring at an entity's origin for
  * precisely one frame.

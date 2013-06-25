@@ -25,19 +25,7 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-
-typedef enum {
-	G_AI_NODE_ITEM,
-	G_AI_NODE_TELEPORTER,
-	G_AI_NODE_PLATFORM
-} g_ai_node_type_t;
-
-typedef struct {
-	g_ai_node_type_t type;
-	vec3_t pos;
-} g_ai_node_t;
-
-void G_AiCreateNodes(void);
+void G_Ai_AllocNodes(void);
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_AI_H__ */

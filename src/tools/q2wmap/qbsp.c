@@ -285,19 +285,11 @@ static void ProcessModels(void) {
  * @brief
  */
 int32_t BSP_Main(void) {
-	time_t start, end;
 	char base[MAX_OSPATH];
-	int32_t total_bsp_time;
-
-#ifdef _WIN32
-	char title[MAX_OSPATH];
-	sprintf(title, "Q2WMap [Compiling BSP]");
-	SetConsoleTitle(title);
-#endif
 
 	Com_Print("\n----- BSP -----\n\n");
 
-	start = time(NULL);
+	const time_t start = time(NULL);
 
 	StripExtension(map_name, base);
 
@@ -328,12 +320,12 @@ int32_t BSP_Main(void) {
 		ProcessModels();
 	}
 
-	end = time(NULL);
-	total_bsp_time = (int32_t) (end - start);
+	const time_t end = time(NULL);
+	const time_t duration = end - start;
 	Com_Print("\nBSP Time: ");
-	if (total_bsp_time > 59)
-		Com_Print("%d Minutes ", total_bsp_time / 60);
-	Com_Print("%d Seconds\n", total_bsp_time % 60);
+	if (duration > 59)
+		Com_Print("%ld Minutes ", duration / 60);
+	Com_Print("%ld Seconds\n", duration % 60);
 
 	return 0;
 }

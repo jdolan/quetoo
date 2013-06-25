@@ -6,7 +6,7 @@ endif
 
 noinst_HEADERS = \
 	g_ai.h \
-	g_ai_node.h \
+	g_ai_goal.h \
 	g_ballistics.h \
 	g_client_chase.h \
 	g_client_stats.h \
@@ -33,7 +33,7 @@ gamelib_LTLIBRARIES = \
 
 game_la_SOURCES = \
 	g_ai.c \
-	g_ai_node.c \
+	g_ai_goal.c \
 	g_ballistics.c \
 	g_client_chase.c \
 	g_client_stats.c \

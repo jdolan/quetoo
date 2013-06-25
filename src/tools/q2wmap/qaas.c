@@ -31,36 +31,6 @@ typedef struct {
 
 static d_aas_t d_aas;
 
-/*
- * @brief
- */
-static void CreateAASPortal() {
-
-}
-
-/*
- * @brief
- */
-static void CreateAASNode(const d_bsp_leaf_t *leaf, const d_bsp_face_t *face) {
-	vec3_t mins, maxs;
-
-	if (d_aas.num_nodes == MAX_BSP_FACES) {
-		Com_Error(ERR_FATAL, "MAX_BSP_FACES\n");
-	}
-
-	d_aas_node_t *node = &d_aas.nodes[d_aas.num_nodes++];
-
-	node->cluster = leaf->cluster;
-	node->leaf = (uint16_t) (leaf - d_bsp.leafs);
-
-	winding_t *winding = WindingForFace(face);
-
-	WindingBounds(winding, mins, maxs);
-	VectorCopy(mins, node->mins);
-	VectorCopy(maxs, node->maxs);
-
-	FreeWinding(winding);
-}
 
 /*
  * @brief Create the initial AAS nodes, which are just partial copies of the
@@ -69,11 +39,14 @@ static void CreateAASNode(const d_bsp_leaf_t *leaf, const d_bsp_face_t *face) {
 static void CreateAASNodes(void) {
 	uint16_t i;
 
-	const d_bsp_node_t *in = &d_bsp.nodes;
-	d_aas_node_t *out = &d_aas.nodes;
+	const d_bsp_node_t *in = d_bsp.nodes;
+	d_aas_node_t *out = d_aas.nodes;
 
 	for (i = 0; i < d_bsp.num_nodes; i++, in++, out++) {
-		memcpy(out, in, sizeof(*out));
+		memcpy(out, in, sizeof(*in));
+
+		out->first_path = 0;
+		out->num_paths = 0;
 	}
 }
 
@@ -83,7 +56,6 @@ static void CreateAASNodes(void) {
  */
 static _Bool PruneAASNodes_isNavigable(const d_bsp_leaf_t *leaf) {
 	uint16_t i;
-	uint32_t j;
 
 	if ((leaf->contents & MASK_PLAYER_SOLID) == 0) {
 		return false;
@@ -96,6 +68,7 @@ static _Bool PruneAASNodes_isNavigable(const d_bsp_leaf_t *leaf) {
 
 		if (brush->contents & MASK_PLAYER_SOLID) {
 			const d_bsp_brush_side_t *bs = &d_bsp.brush_sides[brush->first_side];
+			int32_t j;
 
 			for (j = 0; j < brush->num_sides; j++, bs++) {
 				const d_bsp_plane_t *plane = &d_bsp.planes[bs->plane_num];
@@ -113,7 +86,7 @@ static _Bool PruneAASNodes_isNavigable(const d_bsp_leaf_t *leaf) {
 /*
  * @brief Recurse the AAS node tree, pruning leafs which are not navigable.
  */
-static void PruneAASNodes(d_aas_node_t *node) {
+static void PruneAASNodes_(d_aas_node_t *node) {
 	int32_t c;
 
 	if (node->children[0] < 0) {
@@ -126,7 +99,7 @@ static void PruneAASNodes(d_aas_node_t *node) {
 		return;
 	}
 
-	PruneAASNodes(&d_aas.nodes[c]);
+	PruneAASNodes_(&d_aas.nodes[c]);
 
 	c = LittleLong(node->children[1]);
 	if (c < 0) {
@@ -139,21 +112,24 @@ static void PruneAASNodes(d_aas_node_t *node) {
 		return;
 	}
 
-	PruneAASNodes(&d_aas.nodes[c]);
+	PruneAASNodes_(&d_aas.nodes[c]);
 }
 
 /*
- * @brief
+ * @brief Entry point for recursive AAS node pruning.
+ */
+static void PruneAASNodes(void) {
+	PruneAASNodes_(d_aas.nodes);
+}
+
+/*
+ * @brief Byte-swap all fields of the AAS file to LE.
  */
 static void SwapAASFile(void) {
 	int32_t i, j;
 
 	d_aas_node_t *node = d_aas.nodes;
 	for (i = 0; i < d_aas.num_nodes; i++, node++) {
-
-		// first byte-swap each node
-		node->cluster = LittleShort(node->cluster);
-		node->leaf = LittleShort(node->leaf);
 
 		for (j = 0; j < 3; j++) {
 			node->mins[j] = LittleShort(node->mins[j]);
@@ -221,12 +197,8 @@ int32_t AAS_Main(void) {
 
 	LoadBSPFile(bsp_name);
 
-	if (d_bsp.num_leafs == 0) {
-		Com_Error(ERR_FATAL, "No leafs");
-	}
-
-	if (d_bsp.vis_data_size == 0) {
-		Com_Error(ERR_FATAL, "No VIS information");
+	if (d_bsp.num_nodes == 0) {
+		Com_Error(ERR_FATAL, "No nodes");
 	}
 
 	memset(&d_aas, 0, sizeof(d_aas));

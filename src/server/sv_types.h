@@ -169,8 +169,8 @@ typedef struct sv_static_s {
 } sv_static_t;
 
 // macros for resolving game entities on the server
-#define EDICT_FOR_NUM(n)( (g_edict_t *)((char *)svs.game->edicts + svs.game->edict_size * (n)) )
-#define NUM_FOR_EDICT(e)( ((char *)(e) - (char *)svs.game->edicts) / svs.game->edict_size )
+#define EDICT_FOR_NUM(n)( (g_edict_t *)((char *) svs.game->edicts + svs.game->edict_size * (n)) )
+#define NUM_FOR_EDICT(e)( ((char *)(e) - (char *) svs.game->edicts) / svs.game->edict_size )
 
 #endif /* __SV_LOCAL_H__ */
 

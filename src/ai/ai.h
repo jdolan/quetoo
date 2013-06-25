@@ -22,8 +22,8 @@
 #ifndef __AI_H__
 #define __AI_H__
 
+#include "ai_goal.h"
 #include "ai_main.h"
-#include "ai_node.h"
 #include "ai_types.h"
 
 #endif /* __AI_H__ */

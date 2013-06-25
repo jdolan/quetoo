@@ -65,10 +65,7 @@ static void G_ClampVelocity(g_edict_t *ent) {
 
 	// bound velocity
 	for (i = 0; i < 3; i++) {
-		if (ent->locals.velocity[i] > MAX_VELOCITY)
-			ent->locals.velocity[i] = MAX_VELOCITY;
-		else if (ent->locals.velocity[i] < -MAX_VELOCITY)
-			ent->locals.velocity[i] = -MAX_VELOCITY;
+		ent->locals.velocity[i] = Clamp(ent->locals.velocity[i], -MAX_VELOCITY, MAX_VELOCITY);
 	}
 }
 

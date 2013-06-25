@@ -122,10 +122,9 @@ typedef struct {
 
  */
 
-#define BSP_HEADER	(('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-
+#define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
 #define BSP_VERSION	38
-#define BSP_VERSION_Q2W 69  // haha, 69..
+#define BSP_VERSION_Q2W 69 // haha, 69..
 // upper design bounds
 // planes, leafs, leaf brushes, etc are still bounded by 16 bit limits (UINT16_MAX + 1)
 #define MAX_BSP_MODELS			0x400
@@ -159,32 +158,32 @@ typedef struct {
 	int32_t file_ofs, file_len;
 } d_bsp_lump_t;
 
-#define LUMP_ENTITIES		0
-#define LUMP_PLANES			1
-#define LUMP_VERTEXES		2
-#define LUMP_VISIBILITY		3
-#define LUMP_NODES			4
-#define LUMP_TEXINFO		5
-#define LUMP_FACES			6
-#define LUMP_LIGHMAPS		7
-#define LUMP_LEAFS			8
-#define LUMP_LEAF_FACES		9
-#define LUMP_LEAF_BRUSHES	10
-#define LUMP_EDGES			11
-#define LUMP_FACE_EDGES		12
-#define LUMP_MODELS			13
-#define LUMP_BRUSHES		14
-#define LUMP_BRUSH_SIDES	15
-#define LUMP_POP			16
-#define LUMP_AREAS			17
-#define LUMP_AREA_PORTALS	18
-#define LUMP_NORMALS		19  // new for q2w
-#define HEADER_LUMPS		20
+#define BSP_LUMP_ENTITIES		0
+#define BSP_LUMP_PLANES			1
+#define BSP_LUMP_VERTEXES		2
+#define BSP_LUMP_VISIBILITY		3
+#define BSP_LUMP_NODES			4
+#define BSP_LUMP_TEXINFO		5
+#define BSP_LUMP_FACES			6
+#define BSP_LUMP_LIGHMAPS		7
+#define BSP_LUMP_LEAFS			8
+#define BSP_LUMP_LEAF_FACES		9
+#define BSP_LUMP_LEAF_BRUSHES	10
+#define BSP_LUMP_EDGES			11
+#define BSP_LUMP_FACE_EDGES		12
+#define BSP_LUMP_MODELS			13
+#define BSP_LUMP_BRUSHES		14
+#define BSP_LUMP_BRUSH_SIDES	15
+#define BSP_LUMP_POP			16
+#define BSP_LUMP_AREAS			17
+#define BSP_LUMP_AREA_PORTALS	18
+#define BSP_LUMP_NORMALS		19 // new for q2w
+#define BSP_LUMPS				20
 
 typedef struct {
 	int32_t ident;
 	int32_t version;
-	d_bsp_lump_t lumps[HEADER_LUMPS];
+	d_bsp_lump_t lumps[BSP_LUMPS];
 } d_bsp_header_t;
 
 typedef struct {
@@ -192,7 +191,7 @@ typedef struct {
 	vec3_t origin; // for sounds or lights
 	int32_t head_node;
 	int32_t first_face, num_faces; // submodels just draw faces
-// without walking the bsp tree
+	// without walking the bsp tree
 } d_bsp_model_t;
 
 typedef struct {
@@ -320,5 +319,57 @@ typedef struct {
 	int32_t num_area_portals;
 	int32_t first_area_portal;
 } d_bsp_area_t;
+
+/*
+
+ .AAS Format
+
+ */
+
+#define AAS_IDENT (('S' << 24) + ('A' << 16) + ('A' << 8) + 'Q') // "QAAS"
+#define AAS_VERSION	1
+
+#define AAS_LUMP_NODES 0
+#define AAS_LUMP_PORTALS 1
+#define AAS_LUMP_PATHS 2
+#define AAS_LUMPS (AAS_LUMP_PATHS + 1)
+
+
+typedef struct {
+	uint32_t ident;
+	uint32_t version;
+	d_bsp_lump_t lumps[AAS_LUMPS];
+} d_aas_header_t;
+
+#define AAS_PORTAL_WALK		0x1
+#define AAS_PORTAL_CROUCH	0x2
+#define AAS_PORTAL_STAIR 	0x4
+#define AAS_PORTAL_JUMP		0x8
+#define AAS_PORTAL_FALL		0x10
+#define AAS_PORTAL_IMPASS	0x10000
+
+// portals are polygons that split two nodes
+typedef struct {
+	uint16_t plane_num; // the plane this portal lives on
+	uint16_t nodes[2]; // the nodes this portal connects (front and back)
+	uint32_t flags[2]; // the travel flags to cross this portal from either side
+} d_aas_portal_t;
+
+#define AAS_INVALID_LEAF INT32_MIN
+
+typedef struct {
+	uint16_t plane_num;
+	int32_t children[2]; // negative children are leafs, just like BSP
+	int16_t mins[3];
+	int16_t maxs[3];
+	uint16_t first_path;
+	uint16_t num_paths;
+} d_aas_node_t;
+
+typedef struct {
+	uint16_t plane_num;
+	int16_t mins[3];
+	int16_t maxs[3];
+} d_aas_leaf_t;
 
 #endif /*__FILES_H__*/

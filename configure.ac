@@ -668,6 +668,7 @@ AC_CONFIG_FILES([
 	deps/minizip/Makefile
 	doc/Makefile
 	src/Makefile
+	src/ai/Makefile
 	src/cgame/Makefile
 	src/cgame/default/Makefile
 	src/client/Makefile

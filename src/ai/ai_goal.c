@@ -22,86 +22,41 @@
 #include "ai_local.h"
 
 typedef struct {
-	GList *nodes;
-} ai_node_state_t;
+	GList *goals;
+} ai_goal_state_t;
 
-static ai_node_state_t ai_node_state;
+static ai_goal_state_t ai_goal_state;
 
 /*
- * @brief Utility function for instantiating ai_node_link_t.
+ * @brief Utility function for instantiating ai_goal_t.
  */
-static ai_node_link_t *Ai_CreateNodeLink(ai_node_t *from, ai_node_t *to) {
-	ai_node_link_t *link = Z_LinkMalloc(sizeof(*link), from);
+ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_edict_t *ent) {
+	ai_goal_t *goal = Z_TagMalloc(sizeof(*goal), Z_TAG_AI);
 
-	link->to = to;
+	goal->type = type;
+	goal->ent = ent;
 
-	// append the link to the list
+	// append the goal to the list
+	ai_goal_state.goals = g_list_prepend(ai_goal_state.goals, goal);
 
-	from->links = g_list_prepend(from->links, to);
-
-	return link;
+	return goal;
 }
 
 /*
- * @brief Utility function for instantiating ai_node_t.
+ * @brief GDestroyNotify for ai_goal_t.
  */
-static ai_node_t *Ai_CreateNode(const ai_node_type_t type, const vec3_t origin) {
-	ai_node_t *node = Z_TagMalloc(sizeof(*node), Z_TAG_AI);
+static void Ai_FreeGoal(gpointer data) {
+	ai_goal_t *goal = (ai_goal_t *) data;
 
-	node->type = type;
-	VectorCopy(origin, node->origin);
-
-	// create the hash table for this node's links
-	node->links = g_hash_table_new(g_direct_hash, g_direct_equal);
-
-	// append the node to the list
-	ai_node_state.nodes = g_list_prepend(ai_node_state.nodes, node);
-
-	return node;
+	Z_Free(goal);
 }
 
 /*
- * @brief Creates paths for neighboring nodes.
+ * @brief Frees all ai_goal_t.
  */
-static void Ai_CreateNodes_CreatePaths(gpointer data, gpointer user_data __attribute__((unused))) {
-	ai_node_t *node = (ai_node_t *) data;
+void Ai_FreeGoals(void) {
 
-	GList *e = ai_node_state.nodes;
-	while (e) {
-		ai_node_t *n = (ai_node_t *) e->data;
+	g_list_free_full(ai_goal_state.goals, Ai_FreeGoal);
 
-		if (node != n) {
-			if (gi.inPVS(node->origin, n->origin)) {
-				ai_node_link_t *l = Ai_CreateNodeLink(node, n);
-			}
-		}
-
-		e = e->next;
-	}
-}
-
-/*
- * @brief GDestroyNotify for ai_node_t.
- */
-static void Ai_FreeNode(gpointer *data) {
-	ai_node_t *node = (ai_node_t *) data;
-
-	g_hash_table_destroy(node->links);
-
-	Z_Free(node);
-}
-
-/*
- * @brief Creates nodes and
- *
- */
-void Ai_CreateNodes(const char *bsp_name) {
-
-	int32_t i;
-
-	g_list_free_full(ai_node_state.nodes, Ai_FreeNode);
-
-	memset(&ai_node_state, 0, sizeof(ai_node_state));
-
-	g_list_foreach(ai_node_state.nodes, Ai_CreateNodes_CreatePaths, NULL);
+	memset(&ai_goal_state, 0, sizeof(ai_goal_state));
 }
