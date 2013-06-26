@@ -259,7 +259,7 @@ typedef struct {
  * time, the map is divided into convex volumes that fall along brushes
  * (walls). These volumes become nodes. The planes these divisions create
  * provide a basis for testing all other nodes in the world for sidedness
- * using the dot-product check: DOT(node.center - plane.center, plane.normal).
+ * using the dot-product check: DOT(point, plane.normal) - plane.dist.
  * Starting from the origin, this information is gathered into a tree structure
  * with which a simple recursion can quickly determine:
  *

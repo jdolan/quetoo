@@ -356,8 +356,8 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 			VectorCopy(out->plane->normal, out->normal);
 
 		// then texinfo
-		const int16_t ti = LittleShort(in->texinfo);
-		if (ti < 0 || ti >= bsp->num_texinfo) {
+		const uint16_t ti = LittleShort(in->texinfo);
+		if (ti >= bsp->num_texinfo) {
 			Com_Error(ERR_DROP, "Bad texinfo number: %d\n", ti);
 		}
 		out->texinfo = bsp->texinfo + ti;
@@ -815,43 +815,43 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	mod_base = (byte *) buffer;
 
 	// load into heap
-	R_LoadBspVertexes(mod->bsp, &header.lumps[LUMP_VERTEXES]);
+	R_LoadBspVertexes(mod->bsp, &header.lumps[BSP_LUMP_VERTEXES]);
 	Cl_LoadProgress(4);
 
 	if (header.version == BSP_VERSION_Q2W) // enhanced format
-		R_LoadBspNormals(mod->bsp, &header.lumps[LUMP_NORMALS]);
+		R_LoadBspNormals(mod->bsp, &header.lumps[BSP_LUMP_NORMALS]);
 
-	R_LoadBspEdges(mod->bsp, &header.lumps[LUMP_EDGES]);
+	R_LoadBspEdges(mod->bsp, &header.lumps[BSP_LUMP_EDGES]);
 	Cl_LoadProgress(8);
 
-	R_LoadBspSurfaceEdges(mod->bsp, &header.lumps[LUMP_FACE_EDGES]);
+	R_LoadBspSurfaceEdges(mod->bsp, &header.lumps[BSP_LUMP_FACE_EDGES]);
 	Cl_LoadProgress(12);
 
-	R_LoadBspLightmaps(mod->bsp, &header.lumps[LUMP_LIGHMAPS]);
+	R_LoadBspLightmaps(mod->bsp, &header.lumps[BSP_LUMP_LIGHMAPS]);
 	Cl_LoadProgress(16);
 
-	R_LoadBspPlanes(mod->bsp, &header.lumps[LUMP_PLANES]);
+	R_LoadBspPlanes(mod->bsp, &header.lumps[BSP_LUMP_PLANES]);
 	Cl_LoadProgress(20);
 
-	R_LoadBspTexinfo(mod->bsp, &header.lumps[LUMP_TEXINFO]);
+	R_LoadBspTexinfo(mod->bsp, &header.lumps[BSP_LUMP_TEXINFO]);
 	Cl_LoadProgress(24);
 
-	R_LoadBspSurfaces(mod->bsp, &header.lumps[LUMP_FACES]);
+	R_LoadBspSurfaces(mod->bsp, &header.lumps[BSP_LUMP_FACES]);
 	Cl_LoadProgress(28);
 
-	R_LoadBspLeafSurfaces(mod->bsp, &header.lumps[LUMP_LEAF_FACES]);
+	R_LoadBspLeafSurfaces(mod->bsp, &header.lumps[BSP_LUMP_LEAF_FACES]);
 	Cl_LoadProgress(32);
 
-	R_LoadBspLeafs(mod->bsp, &header.lumps[LUMP_LEAFS]);
+	R_LoadBspLeafs(mod->bsp, &header.lumps[BSP_LUMP_LEAFS]);
 	Cl_LoadProgress(36);
 
-	R_LoadBspNodes(mod->bsp, &header.lumps[LUMP_NODES]);
+	R_LoadBspNodes(mod->bsp, &header.lumps[BSP_LUMP_NODES]);
 	Cl_LoadProgress(40);
 
-	R_LoadBspClusters(mod->bsp, &header.lumps[LUMP_VISIBILITY]);
+	R_LoadBspClusters(mod->bsp, &header.lumps[BSP_LUMP_VISIBILITY]);
 	Cl_LoadProgress(44);
 
-	R_LoadBspInlineModels(mod->bsp, &header.lumps[LUMP_MODELS]);
+	R_LoadBspInlineModels(mod->bsp, &header.lumps[BSP_LUMP_MODELS]);
 	Cl_LoadProgress(48);
 
 	R_LoadBspLights(mod->bsp);

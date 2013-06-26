@@ -46,6 +46,7 @@ cvar_t *g_mysql_db;
 cvar_t *g_mysql_host;
 cvar_t *g_mysql_password;
 cvar_t *g_mysql_user;
+cvar_t *g_password;
 cvar_t *g_player_projectile;
 cvar_t *g_random_map;
 cvar_t *g_respawn_protection;
@@ -58,8 +59,6 @@ cvar_t *g_teams;
 cvar_t *g_time_limit;
 cvar_t *g_voting;
 cvar_t *g_weapon_respawn_time;
-
-cvar_t *password;
 
 cvar_t *sv_max_clients;
 cvar_t *sv_hostname;
@@ -1150,6 +1149,7 @@ void G_Init(void) {
 	g_mysql_host = gi.Cvar("g_mysql_host", "localhost", 0, NULL);
 	g_mysql_password = gi.Cvar("g_mysql_password", "", 0, NULL);
 	g_mysql_user = gi.Cvar("g_mysql_user", "quake2world", 0, NULL);
+	g_password = gi.Cvar("g_password", "", CVAR_USER_INFO, "The server password");
 	g_player_projectile = gi.Cvar("g_player_projectile", "1.0", CVAR_SERVER_INFO,
 			"Scales player velocity to projectiles");
 	g_random_map = gi.Cvar("g_random_map", "0", 0, "Enables map shuffling");
@@ -1169,8 +1169,6 @@ void G_Init(void) {
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
 	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO,
 			"Weapon respawn interval in seconds");
-
-	password = gi.Cvar("password", "", CVAR_USER_INFO, "The server password");
 
 	sv_max_clients = gi.Cvar("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	sv_hostname = gi.Cvar("sv_hostname", "Quake2World", CVAR_SERVER_INFO, NULL);
@@ -1201,6 +1199,8 @@ void G_Init(void) {
 	ge.edicts = g_game.edicts;
 	ge.max_edicts = g_max_entities->integer;
 	ge.num_edicts = sv_max_clients->integer + 1;
+
+	G_Ai_Init(); // initialize the AI
 
 	// set these to false to avoid spurious game restarts and alerts on init
 	g_gameplay->modified = g_teams->modified = g_match->modified = g_rounds->modified

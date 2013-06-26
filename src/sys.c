@@ -93,22 +93,7 @@ const char *Sys_ExecutablePath(void) {
  * @return The current user's name.
  */
 const char *Sys_Username(void) {
-	static char user[64];
-#ifdef _WIN32
-	size_t size = sizeof(user);
-
-	if (!GetUserName(user, &size))
-	user[0] = '\0';
-#else
-	struct passwd *p;
-
-	if ((p = getpwuid(getuid())) == NULL)
-		user[0] = '\0';
-	else {
-		g_strlcpy(user, p->pw_name, sizeof(user));
-	}
-#endif
-	return user;
+	return g_get_user_name();
 }
 
 /*
@@ -116,25 +101,12 @@ const char *Sys_Username(void) {
  */
 const char *Sys_UserDir(void) {
 	static char user_dir[MAX_OSPATH];
+	const char *home = g_get_home_dir();
+
 #ifdef _WIN32
-	void *handle;
-	FARPROC GetFolderPath;
-
-	memset(user_dir, 0, sizeof(user_dir));
-
-	if ((handle = dlopen("shfolder.dll", 0))) {
-		if ((GetFolderPath = dlsym(handle, "SHGetFolderPathA"))) {
-			GetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, user_dir);
-		}
-		dlclose(handle);
-	}
-
-	if (*user_dir != '\0') // append our directory name
-	strcat(user_dir, "/My Games/Quake2World");
-	else // or simply use ./
-	strcat(user_dir, PKGDATADIR);
+	g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quake2World", home);
 #else
-	g_snprintf(user_dir, sizeof(user_dir), "%s/.quake2world", getenv("HOME"));
+	g_snprintf(user_dir, sizeof(user_dir), "%s/.quake2world", home);
 #endif
 	return user_dir;
 }

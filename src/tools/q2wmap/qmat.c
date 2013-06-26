@@ -45,12 +45,6 @@ int32_t MAT_Main(void) {
 	file_t *f;
 	int32_t i;
 
-#ifdef _WIN32
-	char title[MAX_OSPATH];
-	sprintf(title, "Q2WMap [Generating MAT]");
-	SetConsoleTitle(title);
-#endif
-
 	Com_Print("\n----- MAT -----\n\n");
 
 	const time_t start = time(NULL);
@@ -65,7 +59,7 @@ int32_t MAT_Main(void) {
 		LoadBSPFileTexinfo(bsp_name);
 
 		if (!(f = Fs_OpenWrite(path)))
-			Com_Error(ERR_FATAL, "Couldn't open %s for writing.\n", path);
+			Com_Error(ERR_FATAL, "Couldn't open %s for writing\n", path);
 
 		for (i = 0; i < d_bsp.num_texinfo; i++) // resolve the materials
 			AddMaterial(d_bsp.texinfo[i].texture);
@@ -92,12 +86,11 @@ int32_t MAT_Main(void) {
 	}
 
 	const time_t end = time(NULL);
-	const int32_t total_mat_time = (int32_t) (end - start);
-
+	const time_t duration = end - start;
 	Com_Print("\nMaterials time: ");
-	if (total_mat_time > 59)
-		Com_Print("%d Minutes ", total_mat_time / 60);
-	Com_Print("%d Seconds\n", total_mat_time % 60);
+	if (duration > 59)
+		Com_Print("%ld Minutes ", duration / 60);
+	Com_Print("%ld Seconds\n", duration % 60);
 
 	return 0;
 }

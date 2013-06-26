@@ -14,7 +14,6 @@ else
 	DEPS="openssh-clients rsync SDL-devel SDL_image-devel SDL_mixer-devel curl-devel physfs-devel glib2-devel libjpeg-turbo-devel libtool zlib-devel ncurses-devel check check-devel"
 fi
 
-
 function init_chroot() {
 	/usr/bin/mock -r ${CHROOT} --clean
 	/usr/bin/mock -r ${CHROOT} --init

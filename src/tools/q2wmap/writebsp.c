@@ -24,18 +24,17 @@
 int32_t c_nofaces;
 int32_t c_facenodes;
 
-
 /*
  * @brief There is no opportunity to discard planes, because all of the original
  * brushes will be saved in the map.
  */
-static void EmitPlanes(void){
+static void EmitPlanes(void) {
 	int32_t i;
 	d_bsp_plane_t *dp;
 	map_plane_t *mp;
 
 	mp = map_planes;
-	for(i = 0; i < num_map_planes; i++, mp++){
+	for (i = 0; i < num_map_planes; i++, mp++) {
 		dp = &d_bsp.planes[d_bsp.num_planes];
 		VectorCopy(mp->normal, dp->normal);
 		dp->dist = mp->dist;
@@ -44,36 +43,35 @@ static void EmitPlanes(void){
 	}
 }
 
-
 /*
  * @brief
  */
-static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f){
+static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f) {
 	int32_t i;
 	int32_t face_num;
 
-	while(f->merged)
+	while (f->merged)
 		f = f->merged;
 
-	if(f->split[0]){
+	if (f->split[0]) {
 		EmitLeafFace(leaf_p, f->split[0]);
 		EmitLeafFace(leaf_p, f->split[1]);
 		return;
 	}
 
 	face_num = f->output_number;
-	if(face_num == -1)
-		return;  // degenerate face
+	if (face_num == -1)
+		return; // degenerate face
 
-	if(face_num < 0 || face_num >= d_bsp.num_faces)
+	if (face_num < 0 || face_num >= d_bsp.num_faces)
 		Com_Error(ERR_FATAL, "Bad leaf face\n");
 
-	for(i = leaf_p->first_leaf_face; i < d_bsp.num_leaf_faces; i++)
-		if(d_bsp.leaf_faces[i] == face_num)
-			break;  // merged out face
+	for (i = leaf_p->first_leaf_face; i < d_bsp.num_leaf_faces; i++)
+		if (d_bsp.leaf_faces[i] == face_num)
+			break; // merged out face
 
-	if(i == d_bsp.num_leaf_faces){
-		if(d_bsp.num_leaf_faces >= MAX_BSP_LEAF_FACES)
+	if (i == d_bsp.num_leaf_faces) {
+		if (d_bsp.num_leaf_faces >= MAX_BSP_LEAF_FACES)
 			Com_Error(ERR_FATAL, "MAX_BSP_LEAF_FACES\n");
 
 		d_bsp.leaf_faces[d_bsp.num_leaf_faces] = face_num;
@@ -81,11 +79,10 @@ static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f){
 	}
 }
 
-
 /*
  * @brief
  */
-static void EmitLeaf(node_t *node){
+static void EmitLeaf(node_t *node) {
 	d_bsp_leaf_t *leaf_p;
 	portal_t *p;
 	int32_t s;
@@ -95,7 +92,7 @@ static void EmitLeaf(node_t *node){
 	int32_t brush_num;
 
 	// emit a leaf
-	if(d_bsp.num_leafs >= MAX_BSP_LEAFS)
+	if (d_bsp.num_leafs >= MAX_BSP_LEAFS)
 		Com_Error(ERR_FATAL, "MAX_BSP_LEAFS\n");
 
 	leaf_p = &d_bsp.leafs[d_bsp.num_leafs];
@@ -111,19 +108,19 @@ static void EmitLeaf(node_t *node){
 
 	// write the leaf_brushes
 	leaf_p->first_leaf_brush = d_bsp.num_leaf_brushes;
-	for(b = node->brushes; b; b = b->next){
+	for (b = node->brushes; b; b = b->next) {
 
-		if(d_bsp.num_leaf_brushes >= MAX_BSP_LEAF_BRUSHES)
+		if (d_bsp.num_leaf_brushes >= MAX_BSP_LEAF_BRUSHES)
 			Com_Error(ERR_FATAL, "MAX_BSP_LEAF_BRUSHES\n");
 
 		brush_num = b->original - map_brushes;
 
-		for(i = leaf_p->first_leaf_brush; i < d_bsp.num_leaf_brushes; i++){
-			if(d_bsp.leaf_brushes[i] == brush_num)
+		for (i = leaf_p->first_leaf_brush; i < d_bsp.num_leaf_brushes; i++) {
+			if (d_bsp.leaf_brushes[i] == brush_num)
 				break;
 		}
 
-		if(i == d_bsp.num_leaf_brushes){
+		if (i == d_bsp.num_leaf_brushes) {
 			d_bsp.leaf_brushes[d_bsp.num_leaf_brushes] = brush_num;
 			d_bsp.num_leaf_brushes++;
 		}
@@ -131,18 +128,18 @@ static void EmitLeaf(node_t *node){
 	leaf_p->num_leaf_brushes = d_bsp.num_leaf_brushes - leaf_p->first_leaf_brush;
 
 	// write the leaf_faces
-	if(leaf_p->contents & CONTENTS_SOLID)
-		return;  // no leaf_faces in solids
+	if (leaf_p->contents & CONTENTS_SOLID)
+		return; // no leaf_faces in solids
 
 	leaf_p->first_leaf_face = d_bsp.num_leaf_faces;
 
-	for(p = node->portals; p; p = p->next[s]){
+	for (p = node->portals; p; p = p->next[s]) {
 
 		s = (p->nodes[1] == node);
 		f = p->face[s];
 
-		if(!f)
-			continue;  // not a visible portal
+		if (!f)
+			continue; // not a visible portal
 
 		EmitLeafFace(leaf_p, f);
 	}
@@ -150,27 +147,26 @@ static void EmitLeaf(node_t *node){
 	leaf_p->num_leaf_faces = d_bsp.num_leaf_faces - leaf_p->first_leaf_face;
 }
 
-
 /*
  * @brief
  */
-static void EmitFace(face_t *f){
+static void EmitFace(face_t *f) {
 	d_bsp_face_t *df;
 	int32_t i;
 	int32_t e;
 
 	f->output_number = -1;
 
-	if(f->num_points < 3){
-		return;  // degenerated
+	if (f->num_points < 3) {
+		return; // degenerated
 	}
-	if(f->merged || f->split[0] || f->split[1]){
-		return;  // not a final face
+	if (f->merged || f->split[0] || f->split[1]) {
+		return; // not a final face
 	}
 	// save output number so leaffaces can use
 	f->output_number = d_bsp.num_faces;
 
-	if(d_bsp.num_faces >= MAX_BSP_FACES)
+	if (d_bsp.num_faces >= MAX_BSP_FACES)
 		Com_Error(ERR_FATAL, "MAX_BSP_FACES\n");
 
 	df = &d_bsp.faces[d_bsp.num_faces];
@@ -184,11 +180,11 @@ static void EmitFace(face_t *f){
 	df->num_edges = f->num_points;
 	df->texinfo = f->texinfo;
 
-	for(i = 0; i < f->num_points; i++){
+	for (i = 0; i < f->num_points; i++) {
 
 		e = GetEdge2(f->vertexnums[i], f->vertexnums[(i + 1) % f->num_points], f);
 
-		if(d_bsp.num_face_edges >= MAX_BSP_FACE_EDGES)
+		if (d_bsp.num_face_edges >= MAX_BSP_FACE_EDGES)
 			Com_Error(ERR_FATAL, "MAX_BSP_FACE_EDGES\n");
 
 		d_bsp.face_edges[d_bsp.num_face_edges] = e;
@@ -197,21 +193,20 @@ static void EmitFace(face_t *f){
 	df->light_ofs = -1;
 }
 
-
 /*
  * @brief
  */
-static int32_t EmitDrawNode_r(node_t * node){
+static int32_t EmitDrawNode_r(node_t * node) {
 	d_bsp_node_t *n;
 	face_t *f;
 	int32_t i;
 
-	if(node->plane_num == PLANENUM_LEAF){
+	if (node->plane_num == PLANENUM_LEAF) {
 		EmitLeaf(node);
 		return -d_bsp.num_leafs;
 	}
 	// emit a node
-	if(d_bsp.num_nodes == MAX_BSP_NODES)
+	if (d_bsp.num_nodes == MAX_BSP_NODES)
 		Com_Error(ERR_FATAL, "MAX_BSP_NODES\n");
 
 	n = &d_bsp.nodes[d_bsp.num_nodes];
@@ -220,25 +215,25 @@ static int32_t EmitDrawNode_r(node_t * node){
 	VectorCopy(node->mins, n->mins);
 	VectorCopy(node->maxs, n->maxs);
 
-	if(node->plane_num & 1)
+	if (node->plane_num & 1)
 		Com_Error(ERR_FATAL, "Odd plane number\n");
 
 	n->plane_num = node->plane_num;
 	n->first_face = d_bsp.num_faces;
 
-	if(!node->faces)
+	if (!node->faces)
 		c_nofaces++;
 	else
 		c_facenodes++;
 
-	for(f = node->faces; f; f = f->next)
+	for (f = node->faces; f; f = f->next)
 		EmitFace(f);
 
 	n->num_faces = d_bsp.num_faces - n->first_face;
 
 	// recursively output the other nodes
-	for(i = 0; i < 2; i++){
-		if(node->children[i]->plane_num == PLANENUM_LEAF){
+	for (i = 0; i < 2; i++) {
+		if (node->children[i]->plane_num == PLANENUM_LEAF) {
 			n->children[i] = -(d_bsp.num_leafs + 1);
 			EmitLeaf(node->children[i]);
 		} else {
@@ -250,11 +245,10 @@ static int32_t EmitDrawNode_r(node_t * node){
 	return n - d_bsp.nodes;
 }
 
-
 /*
  * @brief
  */
-void WriteBSP(node_t *head_node){
+void WriteBSP(node_t *head_node) {
 	int32_t old_faces;
 
 	c_nofaces = 0;
@@ -272,19 +266,18 @@ void WriteBSP(node_t *head_node){
 	Com_Verbose("%5i faces\n", d_bsp.num_faces - old_faces);
 }
 
-
 /*
  * @brief
  */
-void SetModelNumbers(void){
+void SetModelNumbers(void) {
 	int32_t i;
 	int32_t models;
 	char value[10];
 
 	// 0 is the world - start at 1
 	models = 1;
-	for(i = 1; i < num_entities; i++){
-		if(entities[i].num_brushes){
+	for (i = 1; i < num_entities; i++) {
+		if (entities[i].num_brushes) {
 			sprintf(value, "*%i", models);
 			models++;
 			SetKeyValue(&entities[i], "model", value);
@@ -292,11 +285,10 @@ void SetModelNumbers(void){
 	}
 }
 
-
 /*
  * @brief
  */
-static void EmitBrushes(void){
+static void EmitBrushes(void) {
 	int32_t i, j, bnum, s, x;
 	d_bsp_brush_t *db;
 	map_brush_t *b;
@@ -308,7 +300,7 @@ static void EmitBrushes(void){
 	d_bsp.num_brush_sides = 0;
 	d_bsp.num_brushes = num_map_brushes;
 
-	for(bnum = 0; bnum < num_map_brushes; bnum++){
+	for (bnum = 0; bnum < num_map_brushes; bnum++) {
 		b = &map_brushes[bnum];
 		db = &d_bsp.brushes[bnum];
 
@@ -316,9 +308,9 @@ static void EmitBrushes(void){
 		db->first_side = d_bsp.num_brush_sides;
 		db->num_sides = b->num_sides;
 
-		for(j = 0; j < b->num_sides; j++){
+		for (j = 0; j < b->num_sides; j++) {
 
-			if(d_bsp.num_brush_sides == MAX_BSP_BRUSH_SIDES)
+			if (d_bsp.num_brush_sides == MAX_BSP_BRUSH_SIDES)
 				Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 
 			cp = &d_bsp.brush_sides[d_bsp.num_brush_sides];
@@ -329,30 +321,30 @@ static void EmitBrushes(void){
 		}
 
 		// add any axis planes not contained in the brush to bevel off corners
-		for(x = 0; x < 3; x++){
-			for(s = -1; s <= 1; s += 2){
+		for (x = 0; x < 3; x++) {
+			for (s = -1; s <= 1; s += 2) {
 				// add the plane
 				VectorCopy(vec3_origin, normal);
-				normal[x] = (vec_t)s;
+				normal[x] = (vec_t) s;
 
-				if(s == -1)
+				if (s == -1)
 					dist = -b->mins[x];
 				else
 					dist = b->maxs[x];
 
 				plane_num = FindFloatPlane(normal, dist);
 
-				for(i = 0; i < b->num_sides; i++)
-					if(b->original_sides[i].plane_num == plane_num)
+				for (i = 0; i < b->num_sides; i++)
+					if (b->original_sides[i].plane_num == plane_num)
 						break;
 
-				if(i == b->num_sides){
-					if(d_bsp.num_brush_sides >= MAX_BSP_BRUSH_SIDES)
+				if (i == b->num_sides) {
+					if (d_bsp.num_brush_sides >= MAX_BSP_BRUSH_SIDES)
 						Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 
 					d_bsp.brush_sides[d_bsp.num_brush_sides].plane_num = plane_num;
-					d_bsp.brush_sides[d_bsp.num_brush_sides].surf_num =
-					    d_bsp.brush_sides[d_bsp.num_brush_sides - 1].surf_num;
+					d_bsp.brush_sides[d_bsp.num_brush_sides].surf_num
+							= d_bsp.brush_sides[d_bsp.num_brush_sides - 1].surf_num;
 					d_bsp.num_brush_sides++;
 					db->num_sides++;
 				}
@@ -361,11 +353,10 @@ static void EmitBrushes(void){
 	}
 }
 
-
 /*
  * @brief
  */
-void BeginBSPFile(void){
+void BeginBSPFile(void) {
 
 	// edge 0 is not used, because 0 can't be negated
 	d_bsp.num_edges = 1;
@@ -379,11 +370,10 @@ void BeginBSPFile(void){
 	d_bsp.leafs[0].contents = CONTENTS_SOLID;
 }
 
-
 /*
  * @brief
  */
-void EndBSPFile(void){
+void EndBSPFile(void) {
 
 	EmitBrushes();
 	EmitPlanes();
@@ -398,12 +388,11 @@ void EndBSPFile(void){
 	WriteBSPFile(bsp_name);
 }
 
-
 /*
  * @brief
  */
 extern int32_t first_bsp_model_edge;
-void BeginModel(void){
+void BeginModel(void) {
 	d_bsp_model_t *mod;
 	int32_t start, end;
 	map_brush_t *b;
@@ -411,7 +400,7 @@ void BeginModel(void){
 	entity_t *e;
 	vec3_t mins, maxs;
 
-	if(d_bsp.num_models == MAX_BSP_MODELS)
+	if (d_bsp.num_models == MAX_BSP_MODELS)
 		Com_Error(ERR_FATAL, "MAX_BSP_MODELS\n");
 	mod = &d_bsp.models[d_bsp.num_models];
 
@@ -426,10 +415,10 @@ void BeginModel(void){
 	end = start + e->num_brushes;
 	ClearBounds(mins, maxs);
 
-	for(j = start; j < end; j++){
+	for (j = start; j < end; j++) {
 		b = &map_brushes[j];
-		if(!b->num_sides)
-			continue;				  // not a real brush (origin brush)
+		if (!b->num_sides)
+			continue; // not a real brush (origin brush)
 		AddPointToBounds(b->mins, mins, maxs);
 		AddPointToBounds(b->maxs, mins, maxs);
 	}
@@ -438,11 +427,10 @@ void BeginModel(void){
 	VectorCopy(maxs, mod->maxs);
 }
 
-
 /*
  * @brief
  */
-void EndModel(void){
+void EndModel(void) {
 	d_bsp_model_t *mod;
 
 	mod = &d_bsp.models[d_bsp.num_models];

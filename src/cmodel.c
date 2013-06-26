@@ -507,15 +507,15 @@ c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 	// load the file
 	*size = Fs_Load(name, &buf);
 
-	if (!buf)
+	if (!buf) {
 		Com_Error(ERR_DROP, "Couldn't load %s\n", name);
+	}
 
 	header = *(d_bsp_header_t *) buf;
-	for (i = 0; i < sizeof(d_bsp_header_t) / 4; i++)
+	for (i = 0; i < sizeof(d_bsp_header_t) / sizeof(int32_t); i++)
 		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 
 	if (header.version != BSP_VERSION && header.version != BSP_VERSION_Q2W) {
-		Fs_Free(buf);
 		Com_Error(ERR_DROP, "%s has unsupported version: %d\n", name, header.version);
 	}
 
@@ -524,18 +524,18 @@ c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 	c_bsp.base = (byte *) buf;
 
 	// load into heap
-	Cm_LoadSurfaces(&header.lumps[LUMP_TEXINFO]);
-	Cm_LoadLeafs(&header.lumps[LUMP_LEAFS]);
-	Cm_LoadLeafBrushes(&header.lumps[LUMP_LEAF_BRUSHES]);
-	Cm_LoadPlanes(&header.lumps[LUMP_PLANES]);
-	Cm_LoadBrushes(&header.lumps[LUMP_BRUSHES]);
-	Cm_LoadBrushSides(&header.lumps[LUMP_BRUSH_SIDES]);
-	Cm_LoadSubmodels(&header.lumps[LUMP_MODELS]);
-	Cm_LoadNodes(&header.lumps[LUMP_NODES]);
-	Cm_LoadAreas(&header.lumps[LUMP_AREAS]);
-	Cm_LoadAreaPortals(&header.lumps[LUMP_AREA_PORTALS]);
-	Cm_LoadVisibility(&header.lumps[LUMP_VISIBILITY]);
-	Cm_LoadEntityString(&header.lumps[LUMP_ENTITIES]);
+	Cm_LoadSurfaces(&header.lumps[BSP_LUMP_TEXINFO]);
+	Cm_LoadLeafs(&header.lumps[BSP_LUMP_LEAFS]);
+	Cm_LoadLeafBrushes(&header.lumps[BSP_LUMP_LEAF_BRUSHES]);
+	Cm_LoadPlanes(&header.lumps[BSP_LUMP_PLANES]);
+	Cm_LoadBrushes(&header.lumps[BSP_LUMP_BRUSHES]);
+	Cm_LoadBrushSides(&header.lumps[BSP_LUMP_BRUSH_SIDES]);
+	Cm_LoadSubmodels(&header.lumps[BSP_LUMP_MODELS]);
+	Cm_LoadNodes(&header.lumps[BSP_LUMP_NODES]);
+	Cm_LoadAreas(&header.lumps[BSP_LUMP_AREAS]);
+	Cm_LoadAreaPortals(&header.lumps[BSP_LUMP_AREA_PORTALS]);
+	Cm_LoadVisibility(&header.lumps[BSP_LUMP_VISIBILITY]);
+	Cm_LoadEntityString(&header.lumps[BSP_LUMP_ENTITIES]);
 
 	Fs_Free(buf);
 

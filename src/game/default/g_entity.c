@@ -471,7 +471,6 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 	G_InitMedia();
 
-	// reset teams and votes
 	G_ResetTeams();
 
 	G_ResetVote();

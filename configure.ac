@@ -1,6 +1,7 @@
 AC_PREREQ(2.56)
 
 AC_INIT(quake2world, 0.1.0, jay@jaydolan.com)
+AC_GNU_SOURCE
 
 AC_CONFIG_AUX_DIR(.)
 AC_CONFIG_MACRO_DIR(m4)
@@ -668,6 +669,7 @@ AC_CONFIG_FILES([
 	deps/minizip/Makefile
 	doc/Makefile
 	src/Makefile
+	src/ai/Makefile
 	src/cgame/Makefile
 	src/cgame/default/Makefile
 	src/client/Makefile

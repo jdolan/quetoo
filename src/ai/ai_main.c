@@ -19,14 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_AI_H__
-#define __GAME_AI_H__
+#include "ai_local.h"
 
-#include "g_types.h"
+/*
+ * @brief Initializes the AI subsystem.
+ */
+void Ai_Init(void) {
 
-#ifdef __GAME_LOCAL_H__
-void G_Ai_Init(void);
-void G_Ai_Shutdown(void);
-#endif /* __GAME_LOCAL_H__ */
+}
 
-#endif /* __GAME_AI_H__ */
+/*
+ * @brief Shuts down the AI subsystem.
+ */
+void Ai_Shutdown(void) {
+	Z_FreeTag(Z_TAG_AI);
+}

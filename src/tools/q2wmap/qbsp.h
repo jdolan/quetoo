@@ -28,13 +28,13 @@
 #define	MAX_BRUSH_SIDES 128
 #define	CLIP_EPSILON 0.1
 
-#define	TEXINFO_NODE -1  // side is already on a node
+#define	TEXINFO_NODE -1 // side is already on a node
 
-typedef struct plane_s {
+typedef struct map_plane_s {
 	vec3_t normal;
 	vec_t dist;
 	int32_t type;
-	struct plane_s *hash_chain;
+	struct map_plane_s *hash_chain;
 } map_plane_t;
 
 typedef struct {
@@ -50,12 +50,12 @@ typedef struct side_s {
 	int32_t plane_num;
 	int32_t texinfo;
 	winding_t *winding;
-	struct side_s *original;	// bsp_brush_t sides will reference the brush_t sides
-	int32_t contents;				// from miptex
-	int32_t surf;					// from miptex
-	_Bool visible;			// choose visble planes first
-	_Bool tested;			// this plane already checked as a split
-	_Bool bevel;				// don't ever use for bsp splitting
+	struct side_s *original; // bsp_brush_t sides will reference the brush_t sides
+	int32_t contents; // from miptex
+	int32_t surf; // from miptex
+	_Bool visible; // choose visible planes first
+	_Bool tested; // this plane already checked as a split
+	_Bool bevel; // don't ever use for bsp splitting
 } side_t;
 
 typedef struct brush_s {
@@ -75,69 +75,67 @@ typedef struct brush_s {
 #define	MAXEDGES 20
 
 typedef struct face_s {
-	struct face_s *next;		// on node
+	struct face_s *next; // on node
 
 	// the chain of faces off of a node can be merged or split,
 	// but each face_t along the way will remain in the chain
 	// until the entire tree is freed
-	struct face_s *merged;		// if set, this face isn't valid anymore
-	struct face_s *split[2];	// if set, this face isn't valid anymore
+	struct face_s *merged; // if set, this face isn't valid anymore
+	struct face_s *split[2]; // if set, this face isn't valid anymore
 
 	struct portal_s *portal;
 	int32_t texinfo;
 	int32_t plane_num;
-	int32_t contents;				// faces in different contents can't merge
+	int32_t contents; // faces in different contents can't merge
 	int32_t output_number;
 	winding_t *w;
 	int32_t num_points;
 	int32_t vertexnums[MAXEDGES];
 } face_t;
 
-
 typedef struct bsp_brush_s {
 	struct bsp_brush_s *next;
 	vec3_t mins, maxs;
-	int32_t side, test_side;		// side of node during construction
+	int32_t side, test_side; // side of node during construction
 	map_brush_t *original;
 	int32_t num_sides;
-	side_t sides[6];			// variably sized
+	side_t sides[6]; // variably sized
 } bsp_brush_t;
-
 
 #define	MAX_NODE_BRUSHES	8
 typedef struct node_s {
 	// both leafs and nodes
-	int32_t plane_num;				// -1 = leaf node
+	int32_t plane_num; // -1 = leaf node
 	struct node_s *parent;
-	vec3_t mins, maxs;			// valid after portalization
-	bsp_brush_t *volume;		// one for each leaf/node
+	vec3_t mins, maxs; // valid after portalization
+	bsp_brush_t *volume; // one for each leaf/node
 
 	// nodes only
-	_Bool detail_seperator;	// a detail brush caused the split
-	side_t *side;				 // the side that created the node
+	_Bool detail_seperator; // a detail brush caused the split
+	side_t *side; // the side that created the node
 	struct node_s *children[2];
 	face_t *faces;
 
 	// leafs only
-	bsp_brush_t *brushes;		// fragments of all brushes in this leaf
-	int32_t contents;				// OR of all brush contents
-	int32_t occupied;				// 1 or greater can reach entity
-	entity_t *occupant;			// for leak file testing
-	int32_t cluster;				// for portalfile writing
-	int32_t area;					// for areaportals
-	struct portal_s *portals;	// also on nodes during construction
+	bsp_brush_t *brushes; // fragments of all brushes in this leaf
+	int32_t contents; // OR of all brush contents
+	int32_t occupied; // 1 or greater can reach entity
+	entity_t *occupant; // for leak file testing
+	int32_t cluster; // for portalfile writing
+	int32_t area; // for areaportals
+	struct portal_s *portals; // also on nodes during construction
 } node_t;
 
 typedef struct portal_s {
 	map_plane_t plane;
-	node_t *onnode;				  // NULL = outside box
-	node_t *nodes[2];			  // [0] = front side of plane
+	node_t *onnode; // NULL = outside box
+	node_t *nodes[2]; // [0] = front side of plane
 	struct portal_s *next[2];
 	winding_t *winding;
 
-	_Bool sidefound;			  // false if ->side hasn't been checked
-	side_t *side;				  // NULL = non-visible
-	face_t *face[2];			  // output face in bsp file
+	_Bool sidefound; // false if ->side hasn't been checked
+	side_t *side; // NULL = non-visible
+	face_t *face[2]; // output face in bsp file
 } portal_t;
 
 typedef struct {
@@ -185,8 +183,8 @@ int32_t FindIntPlane(int32_t *inormal, int32_t *iorigin);
 void CreateBrush(int32_t brush_num);
 
 // csg.c
-bsp_brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush,
-                             vec3_t clipmins, vec3_t clipmaxs);
+bsp_brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clipmins,
+		vec3_t clipmaxs);
 bsp_brush_t *ChopBrushes(bsp_brush_t * head);
 
 void WriteBrushMap(char *name, bsp_brush_t * list);
@@ -196,8 +194,7 @@ void WriteBrushList(char *name, bsp_brush_t * brush, _Bool onlyvis);
 
 bsp_brush_t *CopyBrush(bsp_brush_t * brush);
 
-void SplitBrush(bsp_brush_t * brush, int32_t plane_num,
-                bsp_brush_t ** front, bsp_brush_t ** back);
+void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front, bsp_brush_t ** back);
 
 tree_t *AllocTree(void);
 node_t *AllocNode(void);

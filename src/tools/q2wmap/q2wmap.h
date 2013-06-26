@@ -29,6 +29,7 @@
 int32_t BSP_Main(void);
 int32_t VIS_Main(void);
 int32_t LIGHT_Main(void);
+int32_t AAS_Main(void);
 int32_t MAT_Main(void);
 int32_t ZIP_Main(void);
 

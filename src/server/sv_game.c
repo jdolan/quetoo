@@ -141,7 +141,7 @@ static void Sv_WriteAngle(const vec_t v) {
 /*
  * @brief Also checks portal_areas so that doors block sight
  */
-static _Bool Sv_inPVS(const vec3_t p1, const vec3_t p2) {
+static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
 	int32_t leaf_num;
 	int32_t cluster;
 	int32_t area1, area2;
@@ -168,7 +168,7 @@ static _Bool Sv_inPVS(const vec3_t p1, const vec3_t p2) {
 /*
  * @brief Also checks portal_areas so that doors block sound
  */
-static _Bool Sv_inPHS(const vec3_t p1, const vec3_t p2) {
+static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 	int32_t leaf_num;
 	int32_t cluster;
 	int32_t area1, area2;
@@ -182,8 +182,10 @@ static _Bool Sv_inPHS(const vec3_t p1, const vec3_t p2) {
 	leaf_num = Cm_PointLeafnum(p2);
 	cluster = Cm_LeafCluster(leaf_num);
 	area2 = Cm_LeafArea(leaf_num);
+
 	if (mask && (!(mask[cluster >> 3] & (1 << (cluster & 7)))))
 		return false; // more than one bounce away
+
 	if (!Cm_AreasConnected(area1, area2))
 		return false; // a door blocks hearing
 
@@ -233,8 +235,21 @@ void Sv_InitGame(void) {
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Sv_GameError;
 
-	import.BroadcastPrint = Sv_BroadcastPrint;
-	import.ClientPrint = Sv_ClientPrint;
+	import.Malloc = Z_TagMalloc;
+	import.LinkMalloc = Z_LinkMalloc;
+	import.Free = Z_Free;
+	import.FreeTag = Z_FreeTag;
+
+	import.LoadFile = Fs_Load;
+	import.FreeFile = Fs_Free;
+
+	import.Cvar = Cvar_Get;
+	import.Cmd = Cmd_Add;
+	import.Argc = Cmd_Argc;
+	import.Argv = Cmd_Argv;
+	import.Args = Cmd_Args;
+
+	import.AddCommandString = Cbuf_AddText;
 
 	import.ConfigString = Sv_ConfigString;
 
@@ -248,8 +263,8 @@ void Sv_InitGame(void) {
 
 	import.Trace = Sv_Trace;
 	import.PointContents = Sv_PointContents;
-	import.inPVS = Sv_inPVS;
-	import.inPHS = Sv_inPHS;
+	import.inPVS = Sv_InPVS;
+	import.inPHS = Sv_InPHS;
 	import.SetAreaPortalState = Cm_SetAreaPortalState;
 	import.AreasConnected = Cm_AreasConnected;
 	import.Pmove = Pmove;
@@ -270,21 +285,8 @@ void Sv_InitGame(void) {
 	import.WriteDir = Sv_WriteDir;
 	import.WriteAngle = Sv_WriteAngle;
 
-	import.Malloc = Z_TagMalloc;
-	import.Free = Z_Free;
-	import.FreeTag = Z_FreeTag;
-
-	import.LoadFile = Fs_Load;
-	import.FreeFile = Fs_Free;
-
-	import.Cvar = Cvar_Get;
-	import.Cmd = Cmd_Add;
-
-	import.Argc = Cmd_Argc;
-	import.Argv = Cmd_Argv;
-	import.Args = Cmd_Args;
-
-	import.AddCommandString = Cbuf_AddText;
+	import.BroadcastPrint = Sv_BroadcastPrint;
+	import.ClientPrint = Sv_ClientPrint;
 
 	svs.game = (g_export_t *) Sys_LoadLibrary("game", &game_handle, "G_LoadGame", &import);
 

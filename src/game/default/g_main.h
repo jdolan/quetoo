@@ -82,6 +82,7 @@ extern cvar_t *g_mysql_db;
 extern cvar_t *g_mysql_host;
 extern cvar_t *g_mysql_password;
 extern cvar_t *g_mysql_user;
+extern cvar_t *g_password;
 extern cvar_t *g_player_projectile;
 extern cvar_t *g_random_map;
 extern cvar_t *g_respawn_protection;
@@ -94,8 +95,6 @@ extern cvar_t *g_teams;
 extern cvar_t *g_time_limit;
 extern cvar_t *g_voting;
 extern cvar_t *g_weapon_respawn_time;
-
-extern cvar_t *password;
 
 extern cvar_t *sv_max_clients;
 extern cvar_t *sv_hostname;

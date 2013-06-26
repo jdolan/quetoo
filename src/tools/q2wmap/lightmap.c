@@ -134,6 +134,8 @@ static void CalcLightinfoExtents(light_info_t *l) {
 		l->tex_size[i] = lm_maxs[i] - lm_mins[i];
 	}
 
+	// if a surface lightmap is too large to fit in a single lightmap block,
+	// we must fail here -- practically speaking, this is very unlikely
 	if (l->tex_size[0] * l->tex_size[1] > MAX_BSP_LIGHTMAP)
 		Com_Error(ERR_FATAL, "Surface too large to light (%dx%d)\n",
 				l->tex_size[0], l->tex_size[1]);

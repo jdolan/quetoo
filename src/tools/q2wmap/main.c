@@ -281,6 +281,12 @@ static void Check_LIGHT_Options(int32_t argc) {
 /*
  * @brief
  */
+static void Check_AAS_Options(int32_t argc __attribute__((unused))) {
+}
+
+/*
+ * @brief
+ */
 static void Check_ZIP_Options(int32_t argc __attribute__((unused))) {
 }
 
@@ -319,8 +325,7 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -nowater - skip water brushes in compilation\n");
 	Com_Print(" -noweld\n");
 	Com_Print(" -onlyents - modify existing bsp file with entities from map file\n");
-	Com_Print(
-			" -subdivide <int> -subdivide brushes for better light effects (but higher polycount)\n");
+	Com_Print(" -subdivide <int> - subdivide brushes for better light effects\n");
 	Com_Print(" -tmpout\n");
 	Com_Print(" -verboseentities - also be verbose about submodels (entities)\n");
 	Com_Print("\n");
@@ -337,12 +342,19 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -saturation <float> - saturation factor\n");
 	Com_Print(" -surface <float> - surface light scaling\n");
 	Com_Print("\n");
-	Com_Print("-zip               ZIP file options:\n");
+	Com_Print("-aas               AAS stage options:\n");
+	Com_Print("\n");
+	Com_Print("-mat               MAT stage options:\n");
+	Com_Print("\n");
+	Com_Print("-zip               ZIP stage options:\n");
 	Com_Print("\n");
 	Com_Print("Examples:\n");
 	Com_Print("Standard full compile:\n q2wmap -bsp -vis -light maps/my.map\n");
 	Com_Print("Fast vis, extra light, two threads:\n"
-		"q2wmap -t 2 -bsp -vis -fast -light -extra maps/my.map\n");
+		" q2wmap -t 2 -bsp -vis -fast -light -extra maps/my.map\n");
+	Com_Print("Area awareness compile (for bots):\n q2wmap -aas maps/my.bsp\n");
+	Com_Print("Materials file generation:\n q2wmap -mat maps/my.map\n");
+	Com_Print("Zip file generation:\n q2wmap -zip maps/my.bsp\n");
 	Com_Print("\n");
 }
 
@@ -354,6 +366,7 @@ int32_t main(int32_t argc, char **argv) {
 	_Bool do_bsp = false;
 	_Bool do_vis = false;
 	_Bool do_light = false;
+	_Bool do_aas = false;
 	_Bool do_mat = false;
 	_Bool do_zip = false;
 
@@ -429,6 +442,11 @@ int32_t main(int32_t argc, char **argv) {
 			Check_LIGHT_Options(i + 1);
 		}
 
+		if (!g_strcmp0(Com_Argv(i), "-aas")) {
+			do_aas = true;
+			Check_AAS_Options(i + 1);
+		}
+
 		if (!g_strcmp0(Com_Argv(i), "-mat")) {
 			do_mat = true;
 			Check_MAT_Options(i + 1);
@@ -440,7 +458,7 @@ int32_t main(int32_t argc, char **argv) {
 		}
 	}
 
-	if (!do_bsp && !do_vis && !do_light && !do_mat && !do_zip) {
+	if (!do_bsp && !do_vis && !do_light && !do_aas && !do_mat && !do_zip) {
 		Com_Error(ERR_FATAL, "No action specified. Try %s -help\n", Com_Argv(0));
 	}
 
@@ -463,6 +481,8 @@ int32_t main(int32_t argc, char **argv) {
 		VIS_Main();
 	if (do_light)
 		LIGHT_Main();
+	if (do_aas)
+		AAS_Main();
 	if (do_mat)
 		MAT_Main();
 	if (do_zip)
@@ -470,11 +490,11 @@ int32_t main(int32_t argc, char **argv) {
 
 	// emit time
 	const time_t end = time(NULL);
-	const int32_t total_time = (int32_t) (end - start);
+	const time_t duration = end - start;
 	Com_Print("\nTotal Time: ");
-	if (total_time > 59)
-		Com_Print("%d Minutes ", total_time / 60);
-	Com_Print("%d Seconds\n", total_time % 60);
+	if (duration > 59)
+		Com_Print("%ld Minutes ", duration / 60);
+	Com_Print("%ld Seconds\n", duration % 60);
 
 	Com_Shutdown(NULL);
 }

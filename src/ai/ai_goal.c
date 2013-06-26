@@ -19,14 +19,44 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_AI_H__
-#define __GAME_AI_H__
+#include "ai_local.h"
 
-#include "g_types.h"
+typedef struct {
+	GList *goals;
+} ai_goal_state_t;
 
-#ifdef __GAME_LOCAL_H__
-void G_Ai_Init(void);
-void G_Ai_Shutdown(void);
-#endif /* __GAME_LOCAL_H__ */
+static ai_goal_state_t ai_goal_state;
 
-#endif /* __GAME_AI_H__ */
+/*
+ * @brief Utility function for instantiating ai_goal_t.
+ */
+ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_edict_t *ent) {
+	ai_goal_t *goal = Z_TagMalloc(sizeof(*goal), Z_TAG_AI);
+
+	goal->type = type;
+	goal->ent = ent;
+
+	// append the goal to the list
+	ai_goal_state.goals = g_list_prepend(ai_goal_state.goals, goal);
+
+	return goal;
+}
+
+/*
+ * @brief GDestroyNotify for ai_goal_t.
+ */
+static void Ai_FreeGoal(gpointer data) {
+	ai_goal_t *goal = (ai_goal_t *) data;
+
+	Z_Free(goal);
+}
+
+/*
+ * @brief Frees all ai_goal_t.
+ */
+void Ai_FreeGoals(void) {
+
+	g_list_free_full(ai_goal_state.goals, Ai_FreeGoal);
+
+	memset(&ai_goal_state, 0, sizeof(ai_goal_state));
+}

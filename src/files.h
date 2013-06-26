@@ -24,27 +24,24 @@
 
 #include "shared.h"
 
-
 /*
 
-  .MD3 model format
+ .MD3 model format
 
-*/
-
+ */
 
 #define MD3_HEADER			(('3'<<24)+('P'<<16)+('D'<<8)+'I')
 #define MD3_VERSION			15
 
-#define MD3_MAX_LODS		4  // per model
-#define	MD3_MAX_TRIANGLES	8192  // per mesh
-#define MD3_MAX_VERTS		4096  // per mesh
-#define MD3_MAX_SHADERS		256  // per mesh
-#define MD3_MAX_FRAMES		1024  // per model
-#define	MD3_MAX_MESHES		32  // per model
-#define MD3_MAX_TAGS		16  // per frame
-#define MD3_MAX_PATH		64  // relative file references
-#define MD3_MAX_ANIMATIONS	32  // see entity_animation_t
-
+#define MD3_MAX_LODS		0x4 // per model
+#define	MD3_MAX_TRIANGLES	0x2000 // per mesh
+#define MD3_MAX_VERTS		0x1000 // per mesh
+#define MD3_MAX_SHADERS		0x100 // per mesh
+#define MD3_MAX_FRAMES		0x400 // per model
+#define	MD3_MAX_MESHES		0x20 // per model
+#define MD3_MAX_TAGS		0x10 // per frame
+#define MD3_MAX_PATH		0x40 // relative file references
+#define MD3_MAX_ANIMATIONS	0x20 // see entity_animation_t
 // vertex scales from origin
 #define	MD3_XYZ_SCALE		(1.0 / 64)
 
@@ -77,7 +74,7 @@ typedef struct {
 
 typedef struct {
 	char name[MD3_MAX_PATH];
-	int32_t unused;  // shader
+	int32_t unused; // shader
 } d_md3_skin_t;
 
 typedef struct {
@@ -119,87 +116,81 @@ typedef struct {
 	int32_t ofs_end;
 } d_md3_t;
 
-
 /*
 
-  .BSP file format
+ .BSP file format
 
-*/
+ */
 
-#define BSP_HEADER	(('P'<<24)+('S'<<16)+('B'<<8)+'I')
-// little-endian "IBSP"
-
+#define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
 #define BSP_VERSION	38
-#define BSP_VERSION_Q2W 69  // haha, 69..
-
+#define BSP_VERSION_Q2W 69 // haha, 69..
 // upper design bounds
-// leaf faces, leaf brushes, planes, and vertexes are still bounded by
-// 16 bit int16_t limits
-#define MAX_BSP_MODELS			1024
-#define MAX_BSP_BRUSHES			16384
-#define MAX_BSP_ENTITIES		2048
+// planes, leafs, leaf brushes, etc are still bounded by 16 bit limits (UINT16_MAX + 1)
+#define MAX_BSP_MODELS			0x400
+#define MAX_BSP_BRUSHES			0x4000
+#define MAX_BSP_ENTITIES		0x800
 #define MAX_BSP_ENT_STRING		0x40000
-#define MAX_BSP_TEXINFO			16384
+#define MAX_BSP_TEXINFO			0x4000
 
-#define MAX_BSP_AREAS			256
-#define MAX_BSP_AREA_PORTALS	1024
-#define MAX_BSP_PLANES			65536
-#define MAX_BSP_NODES			65536
-#define MAX_BSP_BRUSH_SIDES		65536
-#define MAX_BSP_LEAFS			65536
-#define MAX_BSP_VERTS			65536
-#define MAX_BSP_FACES			65536
-#define MAX_BSP_LEAF_FACES		65536
-#define MAX_BSP_LEAF_BRUSHES 	65536
-#define MAX_BSP_PORTALS			65536
-#define MAX_BSP_EDGES			128000
-#define MAX_BSP_FACE_EDGES		256000
-#define MAX_BSP_LIGHTING		0x10000000  // increased from 0x200000
-#define MAX_BSP_LIGHTMAP		(512 * 512)
-#define MAX_BSP_VISIBILITY		0x400000 // increased from 0x100000
-
+#define MAX_BSP_AREAS			0x100
+#define MAX_BSP_AREA_PORTALS	0x400
+#define MAX_BSP_PLANES			0x10000
+#define MAX_BSP_NODES			0x10000
+#define MAX_BSP_BRUSH_SIDES		0x10000
+#define MAX_BSP_LEAFS			0x10000
+#define MAX_BSP_VERTS			0x10000
+#define MAX_BSP_FACES			0x10000
+#define MAX_BSP_LEAF_FACES		0x10000
+#define MAX_BSP_LEAF_BRUSHES 	0x10000
+#define MAX_BSP_PORTALS			0x10000
+#define MAX_BSP_EDGES			0x20000
+#define MAX_BSP_FACE_EDGES		0x40000
+#define MAX_BSP_LIGHTING		0x10000000 // increased from Quake2 0x200000
+#define MAX_BSP_LIGHTMAP		(256 * 256) // minimum r_lightmap_block_size
+#define MAX_BSP_VISIBILITY		0x400000 // increased from Quake2 0x100000
 // key / value pair sizes
 
-#define MAX_KEY		32
-#define MAX_VALUE	1024
+#define MAX_BSP_ENTITY_KEY		32
+#define MAX_BSP_ENTITY_VALUE	1024
 
 typedef struct {
 	int32_t file_ofs, file_len;
 } d_bsp_lump_t;
 
-#define LUMP_ENTITIES		0
-#define LUMP_PLANES			1
-#define LUMP_VERTEXES		2
-#define LUMP_VISIBILITY		3
-#define LUMP_NODES			4
-#define LUMP_TEXINFO		5
-#define LUMP_FACES			6
-#define LUMP_LIGHMAPS		7
-#define LUMP_LEAFS			8
-#define LUMP_LEAF_FACES		9
-#define LUMP_LEAF_BRUSHES	10
-#define LUMP_EDGES			11
-#define LUMP_FACE_EDGES		12
-#define LUMP_MODELS			13
-#define LUMP_BRUSHES		14
-#define LUMP_BRUSH_SIDES	15
-#define LUMP_POP			16
-#define LUMP_AREAS			17
-#define LUMP_AREA_PORTALS	18
-#define LUMP_NORMALS		19  // new for q2w
-#define HEADER_LUMPS		20
+#define BSP_LUMP_ENTITIES		0
+#define BSP_LUMP_PLANES			1
+#define BSP_LUMP_VERTEXES		2
+#define BSP_LUMP_VISIBILITY		3
+#define BSP_LUMP_NODES			4
+#define BSP_LUMP_TEXINFO		5
+#define BSP_LUMP_FACES			6
+#define BSP_LUMP_LIGHMAPS		7
+#define BSP_LUMP_LEAFS			8
+#define BSP_LUMP_LEAF_FACES		9
+#define BSP_LUMP_LEAF_BRUSHES	10
+#define BSP_LUMP_EDGES			11
+#define BSP_LUMP_FACE_EDGES		12
+#define BSP_LUMP_MODELS			13
+#define BSP_LUMP_BRUSHES		14
+#define BSP_LUMP_BRUSH_SIDES	15
+#define BSP_LUMP_POP			16
+#define BSP_LUMP_AREAS			17
+#define BSP_LUMP_AREA_PORTALS	18
+#define BSP_LUMP_NORMALS		19 // new for q2w
+#define BSP_LUMPS				20
 
 typedef struct {
 	int32_t ident;
 	int32_t version;
-	d_bsp_lump_t lumps[HEADER_LUMPS];
+	d_bsp_lump_t lumps[BSP_LUMPS];
 } d_bsp_header_t;
 
 typedef struct {
 	vec3_t mins, maxs;
-	vec3_t origin;  // for sounds or lights
+	vec3_t origin; // for sounds or lights
 	int32_t head_node;
-	int32_t first_face, num_faces;  // submodels just draw faces
+	int32_t first_face, num_faces; // submodels just draw faces
 	// without walking the bsp tree
 } d_bsp_model_t;
 
@@ -241,51 +232,51 @@ typedef struct {
 typedef struct {
 	vec_t normal[3];
 	vec_t dist;
-	int32_t type;  // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
+	int32_t type; // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
 } d_bsp_plane_t;
 
 typedef struct {
 	int32_t plane_num;
-	int32_t children[2];  // negative numbers are -(leafs+1), not nodes
-	int16_t mins[3];  // for frustum culling
+	int32_t children[2]; // negative numbers are -(leafs+1), not nodes
+	int16_t mins[3]; // for frustum culling
 	int16_t maxs[3];
 	uint16_t first_face;
-	uint16_t num_faces;  // counting both sides
+	uint16_t num_faces; // counting both sides
 } d_bsp_node_t;
 
 typedef struct {
-	vec_t vecs[2][4];  // [s/t][xyz offset]
-	int32_t flags;  // surface values
-	int32_t value;  // light emission, etc
-	char texture[32];  // texture name (textures/*.tga)
-	int32_t next_texinfo;  // no longer used, here to maintain compatibility
+	vec_t vecs[2][4]; // [s/t][xyz offset]
+	uint32_t flags; // surface values
+	int32_t value; // light emission, etc
+	char texture[32]; // texture name (textures/*.tga)
+	int32_t next_texinfo; // no longer used, here to maintain compatibility
 } d_bsp_texinfo_t;
 
 // note that edge 0 is never used, because negative edge nums are used for
 // counterclockwise use of the edge in a face
 typedef struct {
-	uint16_t v[2];  // vertex numbers
+	uint16_t v[2]; // vertex numbers
 } d_bsp_edge_t;
 
 typedef struct {
 	uint16_t plane_num;
 	int16_t side;
 
-	int32_t first_edge;  // we must support > 64k edges
-	int16_t num_edges;
-	int16_t texinfo;
+	int32_t first_edge; // we must support > 64k edges
+	uint16_t num_edges;
+	uint16_t texinfo;
 
-	byte unused[4];  // was light styles
-	int32_t light_ofs;  // start of samples in lighting lump
+	byte unused[4]; // was light styles
+	uint32_t light_ofs; // start of samples in lighting lump
 } d_bsp_face_t;
 
 typedef struct {
-	int32_t contents;  // OR of all brushes(not needed?)
+	int32_t contents; // OR of all brushes (not needed?)
 
 	int16_t cluster;
 	int16_t area;
 
-	int16_t mins[3];  // for frustum culling
+	int16_t mins[3]; // for frustum culling
 	int16_t maxs[3];
 
 	uint16_t first_leaf_face;
@@ -296,7 +287,7 @@ typedef struct {
 } d_bsp_leaf_t;
 
 typedef struct {
-	uint16_t plane_num;  // facing out of the leaf
+	uint16_t plane_num; // facing out of the leaf
 	uint16_t surf_num;
 } d_bsp_brush_side_t;
 
@@ -313,7 +304,7 @@ typedef struct {
 #define DVIS_PHS	1
 typedef struct {
 	int32_t num_clusters;
-	int32_t bit_offsets[8][2];  // bit_offsets[num_clusters][2]
+	int32_t bit_offsets[8][2]; // bit_offsets[num_clusters][2]
 } d_bsp_vis_t;
 
 // each area has a list of portals that lead into other areas
@@ -328,5 +319,57 @@ typedef struct {
 	int32_t num_area_portals;
 	int32_t first_area_portal;
 } d_bsp_area_t;
+
+/*
+
+ .AAS Format
+
+ */
+
+#define AAS_IDENT (('S' << 24) + ('A' << 16) + ('A' << 8) + 'Q') // "QAAS"
+#define AAS_VERSION	1
+
+#define AAS_LUMP_NODES 0
+#define AAS_LUMP_PORTALS 1
+#define AAS_LUMP_PATHS 2
+#define AAS_LUMPS (AAS_LUMP_PATHS + 1)
+
+
+typedef struct {
+	uint32_t ident;
+	uint32_t version;
+	d_bsp_lump_t lumps[AAS_LUMPS];
+} d_aas_header_t;
+
+#define AAS_PORTAL_WALK		0x1
+#define AAS_PORTAL_CROUCH	0x2
+#define AAS_PORTAL_STAIR 	0x4
+#define AAS_PORTAL_JUMP		0x8
+#define AAS_PORTAL_FALL		0x10
+#define AAS_PORTAL_IMPASS	0x10000
+
+// portals are polygons that split two nodes
+typedef struct {
+	uint16_t plane_num; // the plane this portal lives on
+	uint16_t nodes[2]; // the nodes this portal connects (front and back)
+	uint32_t flags[2]; // the travel flags to cross this portal from either side
+} d_aas_portal_t;
+
+#define AAS_INVALID_LEAF INT32_MIN
+
+typedef struct {
+	uint16_t plane_num;
+	int32_t children[2]; // negative children are leafs, just like BSP
+	int16_t mins[3];
+	int16_t maxs[3];
+	uint16_t first_path;
+	uint16_t num_paths;
+} d_aas_node_t;
+
+typedef struct {
+	uint16_t plane_num;
+	int16_t mins[3];
+	int16_t maxs[3];
+} d_aas_leaf_t;
 
 #endif /*__FILES_H__*/

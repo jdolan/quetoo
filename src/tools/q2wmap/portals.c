@@ -251,7 +251,7 @@ void MakeHeadnodePortals(tree_t * tree) {
 				pl->dist = bounds[j][i];
 			}
 			p->plane = *pl;
-			p->winding = BaseWindingForPlane(pl->normal, pl->dist);
+			p->winding = WindingForPlane(pl->normal, pl->dist);
 			AddPortalToNodes(p, node, &tree->outside_node);
 		}
 
@@ -283,7 +283,7 @@ static winding_t *BaseWindingForNode(const node_t * node) {
 	vec3_t normal;
 	vec_t dist;
 
-	w = BaseWindingForPlane(map_planes[node->plane_num].normal, map_planes[node->plane_num].dist);
+	w = WindingForPlane(map_planes[node->plane_num].normal, map_planes[node->plane_num].dist);
 
 	// clip by all the parents
 	for (n = node->parent; n && w;) {

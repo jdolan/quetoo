@@ -19,14 +19,35 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_AI_H__
-#define __GAME_AI_H__
+#ifndef __AI_TYPES_H__
+#define __AI_TYPES_H__
 
-#include "g_types.h"
+#include "mem.h"
+#include "game/game.h"
 
-#ifdef __GAME_LOCAL_H__
-void G_Ai_Init(void);
-void G_Ai_Shutdown(void);
-#endif /* __GAME_LOCAL_H__ */
+typedef struct {
+	GList *portals;
+} ai_path_t;
 
-#endif /* __GAME_AI_H__ */
+typedef struct {
+	c_bsp_plane_t *plane;
+	vec3_t mins;
+	vec3_t maxs;
+	GHashTable *paths;
+} ai_node_t;
+
+typedef enum {
+	AI_GOAL_NAV,
+	AI_GOAL_ITEM,
+	AI_GOAL_ENEMY,
+	AI_GOAL_TEAMMATE
+} ai_goal_type_t;
+
+typedef struct {
+	ai_goal_type_t type;
+	g_edict_t *ent;
+	vec_t priority;
+	ai_node_t *node;
+} ai_goal_t;
+
+#endif /* __AI_TYPES_H__ */

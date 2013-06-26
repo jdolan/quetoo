@@ -390,7 +390,7 @@ static _Bool MakeBrushWindings(map_brush_t * ob) {
 
 	for (i = 0; i < ob->num_sides; i++) {
 		const map_plane_t *plane = &map_planes[ob->original_sides[i].plane_num];
-		winding_t *w = BaseWindingForPlane(plane->normal, plane->dist);
+		winding_t *w = WindingForPlane(plane->normal, plane->dist);
 		for (j = 0; j < ob->num_sides && w; j++) {
 			if (i == j)
 				continue;

@@ -145,6 +145,9 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		return;
 	}
 
+	if (r_draw_bsp_lightmaps->value)
+		R_EnableTexture(&texunit_diffuse, false);
+
 	R_EnableTexture(&texunit_lightmap, true);
 
 	R_EnableLighting(r_state.default_program, true);
@@ -154,6 +157,9 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_EnableLighting(NULL, false);
 
 	R_EnableTexture(&texunit_lightmap, false);
+
+	if (r_draw_bsp_lightmaps->value)
+		R_EnableTexture(&texunit_diffuse, true);
 }
 
 /*
@@ -217,13 +223,23 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		return;
 	}
 
+	if (r_draw_bsp_lightmaps->value)
+		R_EnableTexture(&texunit_diffuse, false);
+
 	// blend is already enabled when this is called
 
 	R_EnableTexture(&texunit_lightmap, true);
 
+	R_EnableLighting(r_state.default_program, true);
+
 	R_DrawBspSurfaces_default(surfs);
 
+	R_EnableLighting(NULL, false);
+
 	R_EnableTexture(&texunit_lightmap, false);
+
+	if (r_draw_bsp_lightmaps->value)
+		R_EnableTexture(&texunit_diffuse, true);
 }
 
 /*

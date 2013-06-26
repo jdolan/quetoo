@@ -120,14 +120,15 @@ void Cl_InitCgame(void) {
 	import.Error_ = Cl_CgameError;
 
 	import.Malloc = Z_TagMalloc;
+	import.LinkMalloc = Z_LinkMalloc;
 	import.Free = Z_Free;
 	import.FreeTag = Z_FreeTag;
 
-	import.Cvar = Cvar_Get;
-	import.Cmd = Cmd_Add;
-
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;
+
+	import.Cvar = Cvar_Get;
+	import.Cmd = Cmd_Add;
 
 	import.ConfigString = Cl_ConfigString;
 

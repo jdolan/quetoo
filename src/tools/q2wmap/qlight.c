@@ -165,19 +165,11 @@ static void LightWorld(void){
 /*
  * @brief
  */
-int32_t LIGHT_Main(void){
-	time_t start, end;
-	int32_t total_light_time;
-
-	#ifdef _WIN32
-		char title[MAX_OSPATH];
-		sprintf(title, "Q2WMap [Compiling LIGHT]");
-		SetConsoleTitle(title);
-	#endif
+int32_t LIGHT_Main(void) {
 
 	Com_Print("\n----- LIGHT -----\n\n");
 
-	start = time(NULL);
+	const time_t start = time(NULL);
 
 	LoadBSPFile(bsp_name);
 
@@ -192,12 +184,12 @@ int32_t LIGHT_Main(void){
 
 	WriteBSPFile(bsp_name);
 
-	end = time(NULL);
-	total_light_time = (int32_t)(end - start);
+	const time_t end = time(NULL);
+	const time_t duration = end - start;
 	Com_Print("\nLIGHT Time: ");
-	if(total_light_time > 59)
-		Com_Print("%d Minutes ", total_light_time / 60);
-	Com_Print("%d Seconds\n", total_light_time % 60);
+	if(duration > 59)
+		Com_Print("%ld Minutes ", duration / 60);
+	Com_Print("%ld Seconds\n", duration % 60);
 
 	return 0;
 }

@@ -326,9 +326,15 @@ void R_DrawBspNormals(void) {
  * @brief Developer tool for viewing BSP leafs and clusters.
  */
 void R_DrawBspLeafs(void) {
-	const vec4_t leaf_colors[] = { { 0.8, 0.2, 0.2, 0.4 }, { 0.2, 0.8, 0.2, 0.4 }, { 0.2, 0.2, 0.8,
-			0.4 }, { 0.8, 0.8, 0.2, 0.4 }, { 0.2, 0.8, 0.8, 0.4 }, { 0.8, 0.2, 0.8, 0.4 }, { 0.8,
-			0.8, 0.8, 0.4 } };
+	const vec4_t leaf_colors[] = {
+	// assign each leaf a color
+			{ 0.8, 0.2, 0.2, 0.4 },
+			{ 0.2, 0.8, 0.2, 0.4 },
+			{ 0.2, 0.2, 0.8, 0.4 },
+			{ 0.8, 0.8, 0.2, 0.4 },
+			{ 0.2, 0.8, 0.8, 0.4 },
+			{ 0.8, 0.2, 0.8, 0.4 },
+			{ 0.8, 0.8, 0.8, 0.4 } };
 
 	if (!r_draw_bsp_leafs->value)
 		return;

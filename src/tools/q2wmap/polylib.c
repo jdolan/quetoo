@@ -160,7 +160,7 @@ void WindingCenter(const winding_t *w, vec3_t center) {
 /*
  * @brief
  */
-winding_t *BaseWindingForPlane(const vec3_t normal, const vec_t dist) {
+winding_t *WindingForPlane(const vec3_t normal, const vec_t dist) {
 	int32_t i, x;
 	vec_t max, v;
 	vec3_t org, vright, vup;
@@ -217,6 +217,34 @@ winding_t *BaseWindingForPlane(const vec3_t normal, const vec_t dist) {
 	VectorSubtract(w->p[3], vup, w->p[3]);
 
 	w->numpoints = 4;
+
+	return w;
+}
+
+/*
+ * @brief
+ */
+winding_t *WindingForFace(const d_bsp_face_t * f) {
+	int32_t i;
+	d_bsp_vertex_t *dv;
+	int32_t v;
+	winding_t *w;
+
+	w = AllocWinding(f->num_edges);
+	w->numpoints = f->num_edges;
+
+	for (i = 0; i < f->num_edges; i++) {
+		const int32_t se = d_bsp.face_edges[f->first_edge + i];
+		if (se < 0)
+			v = d_bsp.edges[-se].v[1];
+		else
+			v = d_bsp.edges[se].v[0];
+
+		dv = &d_bsp.vertexes[v];
+		VectorCopy(dv->point, w->p[i]);
+	}
+
+	RemoveColinearPoints(w);
 
 	return w;
 }

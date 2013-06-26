@@ -34,15 +34,19 @@ typedef struct cg_import_s {
 	void (*Warn_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
+	// zone memory management
 	void *(*Malloc)(size_t size, z_tag_t tag);
+	void *(*LinkMalloc)(size_t size, void *parent);
 	void (*Free)(void *p);
 	void (*FreeTag)(z_tag_t tag);
 
-	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *description);
-	cmd_t *(*Cmd)(const char *name, CmdExecuteFunc Execute, uint32_t flags, const char *description);
-
+	// filesystem interaction
 	int64_t (*LoadFile)(const char *path, void **buffer);
 	void (*FreeFile)(void *buffer);
+
+	// console variable and command interaction
+	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
+	cmd_t *(*Cmd)(const char *name, CmdExecuteFunc Execute, uint32_t flags, const char *desc);
 
 	char *(*ConfigString)(uint16_t index);
 
@@ -68,7 +72,8 @@ typedef struct cg_import_s {
 
 	// collision
 	int32_t (*PointContents)(const vec3_t point);
-	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, int32_t mask);
+	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+			int32_t mask);
 
 	// PVS and PHS
 	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_bsp_model_t *model);

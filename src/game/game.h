@@ -120,8 +120,25 @@ typedef struct {
 	void (*Warn_)(const char *func, const char *fmr, ...) __attribute__((format(printf, 2, 3)));
 	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
-	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-	void (*ClientPrint)(const g_edict_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+	// zone memory management
+	void *(*Malloc)(size_t size, z_tag_t tag);
+	void *(*LinkMalloc)(size_t size, void *parent);
+	void (*Free)(void *p);
+	void (*FreeTag)(z_tag_t tag);
+
+	// filesystem interaction
+	int64_t (*LoadFile)(const char *file_name, void **buffer);
+	void (*FreeFile)(void *buffer);
+
+	// console variable and command interaction
+	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
+	cmd_t *(*Cmd)(const char *name, CmdExecuteFunc Execute, uint32_t flags, const char *desc);
+	int32_t (*Argc)(void);
+	const char *(*Argv)(int32_t arg);
+	const char *(*Args)(void);
+
+	// command buffer interaction
+	void (*AddCommandString)(const char *text);
 
 	// config_strings are used to transmit arbitrary tokens such
 	// as model names, skin names, team names, and weather effects
@@ -145,11 +162,13 @@ typedef struct {
 	_Bool (*inPHS)(const vec3_t p1, const vec3_t p2);
 	void (*SetAreaPortalState)(int32_t portal_num, _Bool open);
 	_Bool (*AreasConnected)(int32_t area1, int32_t area2);
-	void (*Pmove)(pm_move_t *pm_state); // player movement code common with client prediction
+
+	// player movement code common with client prediction
+	void (*Pmove)(pm_move_t *pm_state);
 
 	// an entity will never be sent to a client or used for collision
-	// if it is not passed to linkentity. if the size, position, or
-	// solidity changes, it must be relinked.
+	// if it is not passed to LinkEntity. if the size, position, or
+	// solidity changes, it must be re-linked.
 	void (*LinkEntity)(g_edict_t *ent);
 	void (*UnlinkEntity)(g_edict_t *ent); // call before removing an interactive edict
 	int32_t (*AreaEdicts)(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts,
@@ -168,27 +187,10 @@ typedef struct {
 	void (*WriteDir)(const vec3_t pos); // single byte encoded, very coarse
 	void (*WriteAngle)(const vec_t v);
 
-	// managed memory allocation
-	void *(*Malloc)(size_t size, z_tag_t tag);
-	void (*Free)(void *ptr);
-	void (*FreeTag)(z_tag_t tag);
+	// network console IO
+	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*ClientPrint)(const g_edict_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
-	// filesystem interaction
-	int64_t (*LoadFile)(const char *file_name, void **buffer);
-	void (*FreeFile)(void *buffer);
-
-	// console variable and command interaction
-	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
-	cmd_t *(*Cmd)(const char *name, CmdExecuteFunc Execute, uint32_t flags, const char *desc);
-
-	// command function parameter access
-	int32_t (*Argc)(void);
-	const char *(*Argv)(int32_t n);
-	const char *(*Args)(void); // concatenation of all argv >= 1
-
-	// add commands to the server console as if they were typed in
-	// for map changing, etc
-	void (*AddCommandString)(const char *text);
 } g_import_t;
 
 // functions exported by the game subsystem

@@ -953,10 +953,11 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 _Bool G_ClientConnect(g_edict_t *ent, char *user_info) {
 
 	// check password
-	const char *value = GetUserInfo(user_info, "password");
-	if (*password->string && g_strcmp0(password->string, "none") && g_strcmp0(password->string, value)) {
-		SetUserInfo(user_info, "rejmsg", "Password required or incorrect.");
-		return false;
+	if (strlen(g_password->string) && !ent->ai) {
+		if (g_strcmp0(g_password->string, GetUserInfo(user_info, "password"))) {
+			SetUserInfo(user_info, "rejmsg", "Password required or incorrect.");
+			return false;
+		}
 	}
 
 	// they can connect
@@ -1087,7 +1088,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	AngleVectors(client->locals.angles, client->locals.forward, client->locals.right,
 			client->locals.up);
 
-	// update the horizontal speed scalar basd on new velocity
+	// update the horizontal speed scalar based on new velocity
 	VectorCopy(ent->locals.velocity, velocity);
 	velocity[2] = 0.0;
 

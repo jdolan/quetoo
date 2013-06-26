@@ -69,8 +69,7 @@ void CalcTextureReflectivity(void) {
 			color[2] += *pos++; // b
 		}
 
-		Com_Verbose("Loaded %s (%dx%d)\n", d_bsp.texinfo[i].texture, surf->w,
-				surf->h);
+		Com_Verbose("Loaded %s (%dx%d)\n", d_bsp.texinfo[i].texture, surf->w, surf->h);
 
 		SDL_FreeSurface(surf);
 
@@ -79,34 +78,6 @@ void CalcTextureReflectivity(void) {
 			texture_reflectivity[i][j] = r;
 		}
 	}
-}
-
-/*
- * @brief
- */
-static winding_t *WindingFromFace(const d_bsp_face_t * f) {
-	int32_t i;
-	d_bsp_vertex_t *dv;
-	int32_t v;
-	winding_t *w;
-
-	w = AllocWinding(f->num_edges);
-	w->numpoints = f->num_edges;
-
-	for (i = 0; i < f->num_edges; i++) {
-		const int32_t se = d_bsp.face_edges[f->first_edge + i];
-		if (se < 0)
-			v = d_bsp.edges[-se].v[1];
-		else
-			v = d_bsp.edges[se].v[0];
-
-		dv = &d_bsp.vertexes[v];
-		VectorCopy(dv->point, w->p[i]);
-	}
-
-	RemoveColinearPoints(w);
-
-	return w;
 }
 
 /*
@@ -226,7 +197,7 @@ void BuildPatches(void) {
 			if (!HasLight(f)) // no light
 				continue;
 
-			w = WindingFromFace(f);
+			w = WindingForFace(f);
 
 			for (k = 0; k < w->numpoints; k++) {
 				VectorAdd(w->p[k], origin, w->p[k]);
@@ -286,8 +257,7 @@ static void SubdividePatch(patch_t *patch) {
 	VectorClear(split);
 
 	for (i = 0; i < 3; i++) {
-		if (floor((mins[i] + 1) / PATCH_SUBDIVIDE) < floor(
-				(maxs[i] - 1) / PATCH_SUBDIVIDE)) {
+		if (floor((mins[i] + 1) / PATCH_SUBDIVIDE) < floor((maxs[i] - 1) / PATCH_SUBDIVIDE)) {
 			split[i] = 1.0;
 			break;
 		}

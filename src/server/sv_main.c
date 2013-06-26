@@ -302,10 +302,10 @@ static void Svc_Connect(void) {
 
 	// give the game a chance to reject this connection or modify the user_info
 	if (!(svs.game->ClientConnect(client->edict, user_info))) {
+		const char *rejmsg = GetUserInfo(user_info, "rejmsg");
 
-		if (*GetUserInfo(user_info, "rejmsg")) {
-			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\n%s\nConnection refused\n",
-					GetUserInfo(user_info, "rejmsg"));
+		if (strlen(rejmsg)) {
+			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\n%s\nConnection refused\n", rejmsg);
 		} else {
 			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
 		}
