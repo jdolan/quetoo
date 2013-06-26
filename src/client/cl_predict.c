@@ -216,9 +216,11 @@ void Cl_PredictMovement(void) {
 
 		// for each movement, check for stair interaction and interpolate
 		const vec_t step = pm.s.origin[2] * 0.125 - cl.predicted_origin[2];
+		const vec_t astep = fabs(step);
 
-		if ((pm.s.pm_flags & PMF_ON_STAIRS) && fabs(step) >= 8.0) {
+		if ((pm.s.pm_flags & PMF_ON_STAIRS) && astep >= 8.0 && astep <= 16.0) {
 			cl.predicted_step_time = cls.real_time;
+			cl.predicted_step_lerp = 100 * (astep / 16.0);
 			cl.predicted_step = step;
 		}
 
