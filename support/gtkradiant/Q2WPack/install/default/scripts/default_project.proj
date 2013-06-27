@@ -15,10 +15,10 @@ $TEMPLATEbasedir: base game dir
   <key name="basepath" value="$TEMPLATEenginepath$TEMPLATEbasedir/"/>
   <key name="rshcmd" value=""/>
   <key name="remotebasepath" value="$TEMPLATEenginepath$TEMPLATEbasedir/"/>
-  <key name="entitypath" value="$TEMPLATEtoolspath$TEMPLATEbasedir/scripts/entities.def"/>
+  <key name="entitypath" value="$TEMPLATEenginepath$TEMPLATEbasedir/scripts/entities.def"/>
   <key name="texturepath" value="$TEMPLATEenginepath$TEMPLATEbasedir/textures/"/>
   <key name="autosave" value="$TEMPLATEuserhomepath$TEMPLATEbasedir/maps/autosave.map"/>
-  <key name="mapspath" value="$TEMPLATEenginepath$TEMPLATEbasedir/maps/"/>
+  <key name="mapspath" value="$TEMPLATEuserhomepath$TEMPLATEbasedir/maps/"/>
   <key name="surf1" value="light" />
   <key name="surf2" value="slick" />
   <key name="surf3" value="sky" />
