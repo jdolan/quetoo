@@ -246,9 +246,9 @@ typedef struct {
 
 typedef struct {
 	vec_t vecs[2][4]; // [s/t][xyz offset]
-	uint32_t flags; // surface values
+	int32_t flags; // SURF_* flags
 	int32_t value; // light emission, etc
-	char texture[32]; // texture name (textures/*.tga)
+	char texture[32]; // texture name (e.g. torn/metal1)
 	int32_t next_texinfo; // no longer used, here to maintain compatibility
 } d_bsp_texinfo_t;
 

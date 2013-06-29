@@ -32,7 +32,7 @@ typedef struct fs_state_s {
 	_Bool auto_load_archives;
 
 #ifdef FS_LOAD_DEBUG
-	GHashTable *loaded_files;
+GHashTable *loaded_files;
 #endif
 } fs_state_t;
 
@@ -430,16 +430,15 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
  * process. This is where all files produced by the game are written to.
  */
 static void Fs_AddUserSearchPath(const char *dir) {
-	char gdir[MAX_OSPATH];
+	char path[MAX_OSPATH];
 
-	g_snprintf(gdir, sizeof(gdir), "%s/%s", Sys_UserDir(), dir);
+	g_snprintf(path, sizeof(path), "%s/%s", Sys_UserDir(), dir);
 
-	Com_Print("Using %s for writing.\n", gdir);
+	Fs_Mkdir(path);
 
-	Fs_Mkdir(gdir);
+	Fs_AddToSearchPath(path);
 
-	Fs_AddToSearchPath(gdir);
-	PHYSFS_setWriteDir(gdir);
+	Fs_SetWriteDir(path);
 }
 
 /*
@@ -480,7 +479,34 @@ void Fs_SetGame(const char *dir) {
 	// now add new entries for the new game
 	Fs_AddToSearchPath(va(PKGLIBDIR"/%s", dir));
 	Fs_AddToSearchPath(va(PKGDATADIR"/%s", dir));
+
 	Fs_AddUserSearchPath(dir);
+}
+
+/*
+ * @brief Sets the [user-specific] target directory for writing files.
+ */
+void Fs_SetWriteDir(const char *dir) {
+	struct stat s;
+
+	if (stat(dir, &s) == 0) {
+		if (!S_ISDIR(s.st_mode)) {
+			Com_Warn("%s exists but is not a directory\n", dir);
+			return;
+		}
+	} else {
+		if (Fs_Mkdir(dir)) {
+			Com_Debug("Created %s\n", dir);
+		} else {
+			Com_Warn("Failed to create: %s\n", dir);
+		}
+	}
+
+	if (PHYSFS_setWriteDir(dir)) {
+		Com_Print("Using %s for writing.\n", dir);
+	} else {
+		Com_Warn("Failed to set: %s\n", dir);
+	}
 }
 
 /*

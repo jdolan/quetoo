@@ -55,6 +55,7 @@ void Fs_Enumerate(const char *pattern, FsEnumerateFunc, void *data);
 void Fs_CompleteFile(const char *pattern, GList **matches);
 void Fs_AddToSearchPath(const char *dir);
 void Fs_SetGame(const char *dir);
+void Fs_SetWriteDir(const char *dir);
 const char *Fs_WriteDir(void);
 const char *Fs_RealDir(const char *filename);
 void Fs_Init(_Bool auto_load_archives);

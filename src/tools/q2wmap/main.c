@@ -395,6 +395,12 @@ int32_t main(int32_t argc, char **argv) {
 
 	// general options
 	for (i = 1; i < Com_Argc(); i++) {
+
+		if (!g_strcmp0(Com_Argv(i), "-h") || !g_strcmp0(Com_Argv(i), "-help")) {
+			PrintHelpMessage();
+			Com_Shutdown(NULL);
+		}
+
 		if (!g_strcmp0(Com_Argv(i), "-v") || !g_strcmp0(Com_Argv(i), "-verbose")) {
 			verbose = true;
 			continue;
@@ -402,6 +408,22 @@ int32_t main(int32_t argc, char **argv) {
 
 		if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "-debug")) {
 			debug = true;
+			continue;
+		}
+
+		if (!g_strcmp0(Com_Argv(i), "-l") || !g_strcmp0(Com_Argv(i), "-legacy")) {
+			legacy = true;
+			continue;
+		}
+
+		if (!g_strcmp0(Com_Argv(i), "-p") || !g_strcmp0(Com_Argv(i), "-path")) {
+			Fs_AddToSearchPath(Com_Argv(i + 1));
+			continue;
+		}
+
+		if (!g_strcmp0(Com_Argv(i), "-w") || !g_strcmp0(Com_Argv(i), "-wpath")) {
+			Fs_AddToSearchPath(Com_Argv(i + 1));
+			Fs_SetWriteDir(Com_Argv(i + 1));
 			continue;
 		}
 
@@ -413,19 +435,10 @@ int32_t main(int32_t argc, char **argv) {
 			}
 			continue;
 		}
-
-		if (!g_strcmp0(Com_Argv(i), "-l") || !g_strcmp0(Com_Argv(i), "-legacy")) {
-			legacy = true;
-			continue;
-		}
 	}
 
 	// read compiling options
 	for (i = 1; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "-h") || !g_strcmp0(Com_Argv(i), "-help")) {
-			PrintHelpMessage();
-			Com_Shutdown(NULL);
-		}
 
 		if (!g_strcmp0(Com_Argv(i), "-bsp")) {
 			do_bsp = true;
