@@ -48,7 +48,7 @@ static void Cg_UpdateFov(void) {
  * @brief Update the third person offset, if any. This is used as a client-side
  * option, or as the default chase camera view.
  */
-static void Cg_UpdateThirdperson(const player_state_t *ps) {
+static void Cg_UpdateThirdPerson(const player_state_t *ps __attribute__((unused))) {
 	vec3_t angles, forward, dest;
 	vec3_t mins, maxs;
 	vec_t dist;
@@ -98,8 +98,7 @@ static void Cg_UpdateThirdperson(const player_state_t *ps) {
  * are on the ground, determine the bob frequency and amplitude.
  */
 static void Cg_UpdateBob(const player_state_t *ps) {
-	static vec_t time, vtime;
-	vec_t ftime, speed;
+	static uint32_t time, vtime;
 	vec3_t velocity;
 
 	if (!cg_bob->value)
@@ -120,10 +119,10 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	UnpackPosition(ps->pm_state.velocity, velocity);
 	velocity[2] = 0.0;
 
-	speed = VectorLength(velocity) / (ducked ? 150 : 450.0);
+	vec_t speed = VectorLength(velocity) / (ducked ? 150 : 450.0);
 	speed = Clamp(speed, 0.0, 1.0);
 
-	ftime = Clamp(cgi.view->time - vtime, 0.0, 1.0);
+	vec_t ftime = Clamp(cgi.view->time - vtime, 1, 1000);
 	ftime *= (1.0 + speed * 1.0 + speed);
 
 	if (!(ps->pm_state.pm_flags & PMF_ON_GROUND))
@@ -132,8 +131,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	time += ftime;
 	vtime = cgi.view->time;
 
-	cgi.view->bob = sin(4.5 * time) * (0.5 + speed) * (0.5 + speed);
-
+	cgi.view->bob = sin(0.0045 * time) * (0.5 + speed) * (0.5 + speed);
 	cgi.view->bob *= cg_bob->value; // scale via cvar too
 
 	VectorMA(cgi.view->origin, -cgi.view->bob, cgi.view->forward, cgi.view->origin);
@@ -151,7 +149,7 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 
 	Cg_UpdateFov();
 
-	Cg_UpdateThirdperson(&frame->ps);
+	Cg_UpdateThirdPerson(&frame->ps);
 
 	Cg_UpdateBob(&frame->ps);
 }
@@ -164,7 +162,7 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 void Cg_PopulateView(const cl_frame_t *frame) {
 
 	// add entities
-	Cg_AddEntities();
+	Cg_AddEntities(frame);
 
 	// and client side emits
 	Cg_AddEmits();

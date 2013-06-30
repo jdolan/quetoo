@@ -57,7 +57,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
 	VectorSet(s.light.color, 0.9, 0.9, 0.9);
-	s.sustain = 1.0;
+	s.sustain = 1000;
 
 	cgi.AddSustainedLight(&s);
 }
@@ -98,7 +98,7 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
 	VectorSet(s.light.color, 0.9, 1.0, 1.0);
-	s.sustain = 1.0;
+	s.sustain = 1000;
 
 	cgi.AddSustainedLight(&s);
 }

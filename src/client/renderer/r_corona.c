@@ -61,7 +61,7 @@ void R_DrawCoronas(void) {
 
 	for (k = 0; k < r_view.num_coronas; k++) {
 		const r_corona_t *c = &r_view.coronas[k];
-		const vec_t f = c->radius * c->flicker * sin(90.0 * r_view.time);
+		const vec_t f = c->radius * c->flicker * sin(0.09 * r_view.time);
 		int32_t num_verts, vert_index;
 
 		// use at least 12 verts, more for larger coronas

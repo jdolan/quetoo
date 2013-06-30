@@ -51,7 +51,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, byte color) {
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
 	cgi.ColorFromPalette(color, s.light.color);
-	s.sustain = 0.3;
+	s.sustain = 450;
 
 	cgi.AddSustainedLight(&s);
 
@@ -93,7 +93,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
 	VectorSet(s.light.color, 0.8, 0.7, 0.5);
-	s.sustain = 0.3;
+	s.sustain = 300;
 
 	cgi.AddSustainedLight(&s);
 

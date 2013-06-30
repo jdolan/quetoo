@@ -187,7 +187,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 		color[3] = 1.0;
 
 	if (e->effects & EF_PULSE) {
-		v = sin((r_view.time + e->model->num_verts) * 6.0) * 0.75;
+		v = sin((r_view.time + e->model->num_verts) * 0.005) * 0.75;
 		VectorScale(color, 1.0 + v, color);
 	}
 

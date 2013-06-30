@@ -33,7 +33,7 @@
 	) \
 )
 
-void Cg_AddEntities(void);
+void Cg_AddEntities(const cl_frame_t *frame);
 #endif /* __CG_ENTITY_H__ */
 
 #endif /* __CG_ENTITY_H__ */

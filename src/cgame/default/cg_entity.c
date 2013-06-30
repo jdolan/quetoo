@@ -245,13 +245,11 @@ static void Cg_AddEntity(cl_entity_t *e) {
  * client entities have no visible model, and others (e.g. players) require
  * several.
  */
-void Cg_AddEntities(void) {
+void Cg_AddEntities(const cl_frame_t *frame) {
 	int32_t i;
 
 	if (!cg_add_entities->value)
 		return;
-
-	const cl_frame_t *frame = &cgi.client->frame;
 
 	// resolve any models, animations, interpolations, rotations, bobbing, etc..
 	for (i = 0; i < frame->num_entities; i++) {

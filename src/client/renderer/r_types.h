@@ -112,7 +112,7 @@ typedef struct r_stage_anim_s {
 	uint16_t num_frames;
 	r_image_t **frames;
 	vec_t fps;
-	vec_t dtime;
+	uint32_t dtime;
 	uint16_t dframe;
 } r_stage_anim_t;
 
@@ -144,7 +144,7 @@ typedef struct r_material_s {
 	r_image_t *normalmap;
 	r_image_t *glossmap;
 	uint32_t flags;
-	vec_t time;
+	uint32_t time;
 	vec_t bump;
 	vec_t parallax;
 	vec_t hardness;
@@ -187,7 +187,7 @@ typedef struct {
 	vec_t radius;
 	const r_image_t *image;
 	vec3_t color;
-	vec_t time;
+	uint32_t time;
 	vec_t alpha;
 } r_bsp_flare_t;
 
@@ -556,8 +556,8 @@ typedef struct r_light_s {
  */
 typedef struct r_sustained_light_s {
 	r_light_t light;
-	vec_t time;
-	vec_t sustain;
+	uint32_t time;
+	uint32_t sustain;
 } r_sustained_light_t;
 
 /*
@@ -716,7 +716,7 @@ typedef struct r_view_s {
 	uint32_t contents; // view origin contents mask
 	vec_t bob;
 
-	vec_t time;
+	uint32_t time;
 
 	byte *area_bits; // if not NULL, only areas with set bits will be drawn
 

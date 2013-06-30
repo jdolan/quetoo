@@ -78,7 +78,7 @@ static void R_AddSustainedLights(void) {
 
 		r_light_t l = s->light;
 
-		const vec_t intensity = (s->sustain - r_view.time) / (s->sustain - s->time);
+		const vec_t intensity = (s->sustain - r_view.time) / (vec_t) (s->sustain - s->time);
 		VectorScale(s->light.color, intensity, l.color);
 
 		R_AddLight(&l);

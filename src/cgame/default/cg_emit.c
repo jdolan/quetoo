@@ -402,7 +402,7 @@ void Cg_AddEmits(void) {
 			r_sustained_light_t s;
 
 			s.light = *l;
-			s.sustain = 0.65;
+			s.sustain = 1000;
 
 			cgi.AddSustainedLight(&s);
 		}

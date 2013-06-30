@@ -121,7 +121,7 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 		vec3_t dir;
 
 		VectorCopy(r_view.angles, dir);
-		dir[2] = p->roll * r_view.time;
+		dir[2] = p->roll * r_view.time / 1000.0;
 
 		AngleVectors(dir, NULL, right, up);
 
@@ -152,8 +152,8 @@ static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
 		return;
 	}
 
-	s = p->scroll_s * r_view.time;
-	t = p->scroll_t * r_view.time;
+	s = p->scroll_s * r_view.time / 1000.0;
+	t = p->scroll_t * r_view.time / 1000.0;
 
 	out[0] = 0.0 + s;
 	out[1] = 0.0 + t;

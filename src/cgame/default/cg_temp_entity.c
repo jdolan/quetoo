@@ -59,7 +59,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 	VectorAdd(org, dir, s.light.origin);
 	s.light.radius = 80.0;
 	VectorSet(s.light.color, 0.5, 0.3, 0.2);
-	s.sustain = 0.25;
+	s.sustain = 250;
 
 	cgi.AddSustainedLight(&s);
 
@@ -148,7 +148,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	VectorAdd(org, dir, s.light.origin);
 	s.light.radius = 20.0;
 	VectorSet(s.light.color, 0.5, 0.3, 0.2);
-	s.sustain = 0.25;
+	s.sustain = 250;
 
 	cgi.AddSustainedLight(&s);
 
@@ -314,7 +314,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
 	VectorSet(s.light.color, 0.7, 0.5, 0.5);
-	s.sustain = 0.65;
+	s.sustain = 650;
 
 	cgi.AddSustainedLight(&s);
 
@@ -396,7 +396,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 200.0;
 	VectorSet(s.light.color, 0.8, 0.4, 0.2);
-	s.sustain = 1.0;
+	s.sustain = 1000;
 
 	cgi.AddSustainedLight(&s);
 
@@ -432,7 +432,7 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
 	VectorSet(s.light.color, 0.4, 0.7, 1.0);
-	s.sustain = 0.25;
+	s.sustain = 250;
 
 	cgi.AddSustainedLight(&s);
 
@@ -460,7 +460,7 @@ static void Cg_LightningEffect(const vec3_t org) {
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 160.0;
 	VectorSet(s.light.color, 0.6, 0.6, 1.0);
-	s.sustain = 0.75;
+	s.sustain = 750;
 
 	cgi.AddSustainedLight(&s);
 
@@ -482,7 +482,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 	VectorCopy(start, s.light.origin);
 	s.light.radius = 100.0;
 	cgi.ColorFromPalette(color, s.light.color);
-	s.sustain = 0.5;
+	s.sustain = 500;
 
 	cgi.AddSustainedLight(&s);
 
@@ -552,6 +552,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 		// add sustained lights
 		if (i > 0 && i < len - 64.0 && i % 64 == 0) {
 			VectorCopy(point, s.light.origin);
+			s.sustain += 25;
 			cgi.AddSustainedLight(&s);
 		}
 	}
@@ -575,7 +576,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 
 	VectorMA(end, -12.0, vec, s.light.origin);
 	s.light.radius = 120.0;
-	s.sustain = 1.25;
+	s.sustain += 250;
 
 	cgi.AddSustainedLight(&s);
 }
@@ -632,7 +633,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 200.0;
 	VectorSet(s.light.color, 0.8, 1.0, 0.5);
-	s.sustain = 1.0;
+	s.sustain = 1000;
 
 	cgi.AddSustainedLight(&s);
 

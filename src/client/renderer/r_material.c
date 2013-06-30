@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-#define UPDATE_THRESHOLD 0.02
+#define UPDATE_THRESHOLD 20
 
 /*
  * @brief Materials "think" every few milliseconds to advance animations.
@@ -37,25 +37,25 @@ static void R_UpdateMaterial(r_material_t *m) {
 	for (s = m->stages; s; s = s->next) {
 
 		if (s->flags & STAGE_PULSE)
-			s->pulse.dhz = (sin(r_view.time * s->pulse.hz * 6.28) + 1.0) / 2.0;
+			s->pulse.dhz = (sin(r_view.time * s->pulse.hz * 0.00628) + 1.0) / 2.0;
 
 		if (s->flags & STAGE_STRETCH) {
-			s->stretch.dhz = (sin(r_view.time * s->stretch.hz * 6.28) + 1.0) / 2.0;
+			s->stretch.dhz = (sin(r_view.time * s->stretch.hz * 0.00628) + 1.0) / 2.0;
 			s->stretch.damp = 1.5 - s->stretch.dhz * s->stretch.amp;
 		}
 
 		if (s->flags & STAGE_ROTATE)
-			s->rotate.deg = r_view.time * s->rotate.hz * 360.0;
+			s->rotate.deg = r_view.time * s->rotate.hz * 0.360;
 
 		if (s->flags & STAGE_SCROLL_S)
-			s->scroll.ds = s->scroll.s * r_view.time;
+			s->scroll.ds = s->scroll.s * r_view.time / 1000.0;
 
 		if (s->flags & STAGE_SCROLL_T)
-			s->scroll.dt = s->scroll.t * r_view.time;
+			s->scroll.dt = s->scroll.t * r_view.time / 1000.0;
 
 		if (s->flags & STAGE_ANIM) {
 			if (r_view.time >= s->anim.dtime) { // change frames
-				s->anim.dtime = r_view.time + (1.0 / s->anim.fps);
+				s->anim.dtime = r_view.time + (1000 / s->anim.fps);
 				s->image = s->anim.frames[++s->anim.dframe % s->anim.num_frames];
 			}
 		}
