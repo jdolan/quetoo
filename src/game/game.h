@@ -167,10 +167,10 @@ typedef struct {
 	void (*Pmove)(pm_move_t *pm_state);
 
 	// an entity will never be sent to a client or used for collision
-	// if it is not passed to LinkEntity. if the size, position, or
+	// if it is not passed to LinkEdict. if the size, position, or
 	// solidity changes, it must be re-linked.
-	void (*LinkEntity)(g_edict_t *ent);
-	void (*UnlinkEntity)(g_edict_t *ent); // call before removing an interactive edict
+	void (*LinkEdict)(g_edict_t *ent);
+	void (*UnlinkEdict)(g_edict_t *ent); // call before removing an interactive edict
 	int32_t (*AreaEdicts)(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts,
 			const int32_t max_area_edicts, const int32_t area_type);
 

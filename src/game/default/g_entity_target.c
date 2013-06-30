@@ -79,7 +79,7 @@ void G_target_speaker(g_edict_t *ent) {
 
 	// must link the entity so we get areas and clusters so
 	// the server can determine who to send updates to
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 }
 
 /*
@@ -152,7 +152,7 @@ void G_target_splash(g_edict_t *self) {
 	self->locals.Think = G_target_splash_Think;
 	self->locals.next_think = g_level.time + (Randomf() * 3000);
 
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 }
 
 /*QUAKED target_string (0 0 1) (-8 -8 -8) (8 8 8)

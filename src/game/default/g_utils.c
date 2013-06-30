@@ -342,7 +342,7 @@ g_edict_t *G_Spawn(void) {
  * @brief Marks the edict as free
  */
 void G_FreeEdict(g_edict_t *ed) {
-	gi.UnlinkEntity(ed); // unlink from world
+	gi.UnlinkEdict(ed); // unlink from world
 
 	if ((ed - g_game.edicts) <= sv_max_clients->integer)
 		return;

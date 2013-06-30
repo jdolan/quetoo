@@ -195,7 +195,7 @@ c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push) {
 	trace = gi.Trace(start, ent->mins, ent->maxs, end, ent, mask);
 
 	VectorCopy(trace.end, ent->s.origin);
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 
 	if (trace.fraction != 1.0) {
 		G_Impact(ent, &trace);
@@ -204,7 +204,7 @@ c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push) {
 		if (!trace.ent->in_use && ent->in_use) {
 			// move the pusher back and try again
 			VectorCopy(start, ent->s.origin);
-			gi.LinkEntity(ent);
+			gi.LinkEdict(ent);
 			goto retry;
 		}
 	}
@@ -270,7 +270,7 @@ static _Bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 	// move the pusher to it's final position
 	VectorAdd(pusher->s.origin, move, pusher->s.origin);
 	VectorAdd(pusher->s.angles, amove, pusher->s.angles);
-	gi.LinkEntity(pusher);
+	gi.LinkEdict(pusher);
 
 	// see if any solid entities are inside the final position
 	check = g_game.edicts + 1;
@@ -332,7 +332,7 @@ static _Bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 
 			block = G_TestEntityPosition(check);
 			if (!block) { // pushed okay
-				gi.LinkEntity(check);
+				gi.LinkEdict(check);
 				continue;
 			}
 
@@ -359,7 +359,7 @@ static _Bool G_Push(g_edict_t *pusher, vec3_t move, vec3_t amove) {
 			if (p->ent->client) {
 				p->ent->client->ps.pm_state.delta_angles[YAW] = p->delta_yaw;
 			}
-			gi.LinkEntity(p->ent);
+			gi.LinkEdict(p->ent);
 		}
 		return false;
 	}
@@ -444,7 +444,7 @@ static void G_Physics_Noclip(g_edict_t *ent) {
 	VectorMA(ent->s.angles, gi.frame_seconds, ent->locals.avelocity, ent->s.angles);
 	VectorMA(ent->s.origin, gi.frame_seconds, ent->locals.velocity, ent->s.origin);
 
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 }
 
 /*
@@ -550,7 +550,7 @@ static void G_Physics_Toss(g_edict_t *ent) {
 	// move teamslaves
 	for (slave = ent->locals.team_chain; slave; slave = slave->locals.team_chain) {
 		VectorCopy(ent->s.origin, slave->s.origin);
-		gi.LinkEntity(slave);
+		gi.LinkEdict(slave);
 	}
 }
 

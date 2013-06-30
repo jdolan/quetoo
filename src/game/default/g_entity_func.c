@@ -383,7 +383,7 @@ static void G_func_plat_CreateTrigger(g_edict_t *ent) {
 	VectorCopy(tmin, trigger->mins);
 	VectorCopy(tmax, trigger->maxs);
 
-	gi.LinkEntity(trigger);
+	gi.LinkEdict(trigger);
 }
 
 /*QUAKED func_plat (0 .5 .8) ? PLAT_LOW_TRIGGER
@@ -453,7 +453,7 @@ void G_func_plat(g_edict_t *ent) {
 		ent->locals.move_info.state = STATE_UP;
 	} else {
 		VectorCopy(ent->locals.pos2, ent->s.origin);
-		gi.LinkEntity(ent);
+		gi.LinkEdict(ent);
 		ent->locals.move_info.state = STATE_BOTTOM;
 	}
 
@@ -556,7 +556,7 @@ void G_func_rotating(g_edict_t *ent) {
 		ent->locals.Use(ent, NULL, NULL);
 
 	gi.SetModel(ent, ent->model);
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 }
 
 /*
@@ -704,7 +704,7 @@ void G_func_button(g_edict_t *ent) {
 	VectorCopy(ent->locals.pos2, ent->locals.move_info.end_origin);
 	VectorCopy(ent->s.angles, ent->locals.move_info.end_angles);
 
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 }
 
 #define DOOR_START_OPEN		1
@@ -923,7 +923,7 @@ static void G_func_door_CreateTrigger(g_edict_t *ent) {
 	other->solid = SOLID_TRIGGER;
 	other->locals.move_type = MOVE_TYPE_NONE;
 	other->locals.Touch = G_func_door_TouchTrigger;
-	gi.LinkEntity(other);
+	gi.LinkEdict(other);
 
 	if (ent->locals.spawn_flags & DOOR_START_OPEN)
 		G_func_door_UseAreaPortals(ent, true);
@@ -1080,7 +1080,7 @@ void G_func_door(g_edict_t *ent) {
 	if (!ent->locals.team)
 		ent->locals.team_master = ent;
 
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 
 	ent->locals.next_think = g_level.time + gi.frame_millis;
 	if (ent->locals.health || ent->locals.target_name)
@@ -1101,7 +1101,7 @@ static void G_func_wall_Use(g_edict_t *self, g_edict_t *other __attribute__((unu
 		self->solid = SOLID_NOT;
 		self->sv_flags |= SVF_NO_CLIENT;
 	}
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 
 	if (!(self->locals.spawn_flags & 2))
 		self->locals.Use = NULL;
@@ -1127,7 +1127,7 @@ void G_func_wall(g_edict_t *self) {
 	// just a wall
 	if ((self->locals.spawn_flags & 7) == 0) {
 		self->solid = SOLID_BSP;
-		gi.LinkEntity(self);
+		gi.LinkEdict(self);
 		return;
 	}
 
@@ -1154,7 +1154,7 @@ void G_func_wall(g_edict_t *self) {
 		self->sv_flags |= SVF_NO_CLIENT;
 	}
 
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 }
 
 /*QUAKED func_water(0 .5 .8) ? START_OPEN
@@ -1215,7 +1215,7 @@ void G_func_water(g_edict_t *self) {
 
 	self->class_name = "func_door";
 
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 }
 
 #define TRAIN_START_ON		1
@@ -1314,7 +1314,7 @@ static void G_func_train_Next(g_edict_t *self) {
 		VectorSubtract(ent->s.origin, self->mins, self->s.origin);
 		VectorCopy(self->s.origin, self->s.old_origin);
 		self->s.event = EV_CLIENT_TELEPORT;
-		gi.LinkEntity(self);
+		gi.LinkEdict(self);
 		goto again;
 	}
 
@@ -1370,7 +1370,7 @@ static void G_func_train_Find(g_edict_t *self) {
 	self->locals.target = ent->locals.target;
 
 	VectorSubtract(ent->s.origin, self->mins, self->s.origin);
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 
 	// if not triggered, start immediately
 	if (!self->locals.target_name)
@@ -1438,7 +1438,7 @@ void G_func_train(g_edict_t *self) {
 
 	self->locals.Use = G_func_train_Use;
 
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 
 	if (self->locals.target) {
 		// start trains on the second frame, to make sure their targets have had
@@ -1547,7 +1547,7 @@ void G_func_conveyor(g_edict_t *self) {
 
 	gi.SetModel(self, self->model);
 	self->solid = SOLID_BSP;
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 }
 
 /*

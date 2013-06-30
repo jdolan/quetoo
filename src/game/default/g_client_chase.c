@@ -62,7 +62,7 @@ void G_ClientChaseThink(g_edict_t *ent) {
 	// disable client prediction
 	ent->client->ps.pm_state.pm_flags |= PMF_NO_PREDICTION;
 
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 }
 
 /*

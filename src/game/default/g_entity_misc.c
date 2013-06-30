@@ -40,7 +40,7 @@ static void G_misc_teleporter_Touch(g_edict_t *self, g_edict_t *other, c_bsp_pla
 	}
 
 	// unlink to make sure it can't possibly interfere with G_KillBox
-	gi.UnlinkEntity(other);
+	gi.UnlinkEdict(other);
 
 	VectorCopy(dest->s.origin, other->s.origin);
 	VectorCopy(dest->s.origin, other->s.old_origin);
@@ -70,7 +70,7 @@ static void G_misc_teleporter_Touch(g_edict_t *self, g_edict_t *other, c_bsp_pla
 
 	G_KillBox(other); // telefrag anyone in our spot
 
-	gi.LinkEntity(other);
+	gi.LinkEdict(other);
 }
 
 /*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16)
@@ -107,7 +107,7 @@ void G_misc_teleporter(g_edict_t *ent) {
 
 	ent->locals.Touch = G_misc_teleporter_Touch;
 
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 }
 
 /*QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)

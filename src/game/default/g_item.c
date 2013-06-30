@@ -104,7 +104,7 @@ static void G_ItemRespawn(g_edict_t *ent) {
 
 	ent->sv_flags &= ~SVF_NO_CLIENT;
 	ent->solid = SOLID_TRIGGER;
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 
 	// send an effect
 	ent->s.event = EV_ITEM_RESPAWN;
@@ -121,7 +121,7 @@ void G_SetItemRespawn(g_edict_t *ent, uint32_t delay) {
 	ent->locals.next_think = g_level.time + delay;
 	ent->locals.Think = G_ItemRespawn;
 
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 }
 
 /*
@@ -665,7 +665,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 	dropped->locals.Think = G_DropItem_Think;
 	dropped->locals.next_think = g_level.time + gi.frame_millis;
 
-	gi.LinkEntity(dropped);
+	gi.LinkEdict(dropped);
 
 	return dropped;
 }
@@ -685,7 +685,7 @@ static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)), 
 		ent->locals.Touch = G_TouchItem;
 	}
 
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 }
 
 /*
@@ -715,7 +715,7 @@ static void G_ItemDropToFloor(g_edict_t *ent) {
 		ent->locals.ground_entity = tr.ent;
 	}
 
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 }
 
 /*

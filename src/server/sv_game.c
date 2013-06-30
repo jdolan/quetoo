@@ -269,8 +269,8 @@ void Sv_InitGame(void) {
 	import.AreasConnected = Cm_AreasConnected;
 	import.Pmove = Pmove;
 
-	import.LinkEntity = Sv_LinkEdict;
-	import.UnlinkEntity = Sv_UnlinkEdict;
+	import.LinkEdict = Sv_LinkEdict;
+	import.UnlinkEdict = Sv_UnlinkEdict;
 	import.AreaEdicts = Sv_AreaEdicts;
 
 	import.Multicast = Sv_Multicast;

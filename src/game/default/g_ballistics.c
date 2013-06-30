@@ -223,7 +223,7 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed
 
 	G_PlayerProjectile(blast, scale);
 
-	gi.LinkEntity(blast);
+	gi.LinkEdict(blast);
 }
 
 /*
@@ -412,7 +412,7 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t sp
 
 	G_PlayerProjectile(grenade, scale);
 
-	gi.LinkEntity(grenade);
+	gi.LinkEdict(grenade);
 }
 
 /*
@@ -493,7 +493,7 @@ void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed,
 
 	G_PlayerProjectile(rocket, scale);
 
-	gi.LinkEntity(rocket);
+	gi.LinkEdict(rocket);
 }
 
 /*
@@ -575,7 +575,7 @@ void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t 
 
 	G_PlayerProjectile(bolt, scale);
 
-	gi.LinkEntity(bolt);
+	gi.LinkEdict(bolt);
 }
 
 /*
@@ -697,7 +697,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 	VectorCopy(start, self->s.origin); // update endpoints
 	VectorCopy(tr.end, self->s.old_origin);
 
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 
 	self->locals.next_think = g_level.time + gi.frame_millis;
 }
@@ -726,7 +726,7 @@ void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t dam
 		light->s.sound = g_level.media.lightning_fly_sound;
 		light->class_name = "lightning";
 
-		gi.LinkEntity(light);
+		gi.LinkEdict(light);
 		ent->locals.lightning = light;
 	}
 
@@ -946,6 +946,6 @@ void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, i
 
 		G_PlayerProjectile(bfg, scale);
 
-		gi.LinkEntity(bfg);
+		gi.LinkEdict(bfg);
 	}
 }

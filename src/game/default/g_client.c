@@ -253,7 +253,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 	ent->locals.Think = G_ClientCorpse_Think;
 	ent->locals.next_think = g_level.time + 1000;
 
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 }
 
 /*
@@ -305,7 +305,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
 	self->solid = SOLID_NOT;
 	self->locals.take_damage = false;
 
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 
 	// TODO: If health is sufficiently low, emit a gib.
 	// TODO: We need a gib model ;)
@@ -719,7 +719,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 		ent->sv_flags |= SVF_NO_CLIENT;
 		ent->locals.take_damage = false;
 
-		gi.LinkEntity(ent);
+		gi.LinkEdict(ent);
 		return;
 	}
 
@@ -733,11 +733,11 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	cl->locals.persistent.match_num = g_level.match_num;
 	cl->locals.persistent.round_num = g_level.round_num;
 
-	gi.UnlinkEntity(ent);
+	gi.UnlinkEdict(ent);
 
 	G_KillBox(ent); // telefrag anyone in our spot
 
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 
 	// force the current weapon up
 	cl->locals.new_weapon = cl->locals.persistent.weapon;
@@ -1000,7 +1000,7 @@ void G_ClientDisconnect(g_edict_t *ent) {
 	gi.WriteByte(MZ_LOGOUT);
 	gi.Multicast(ent->s.origin, MULTICAST_ALL);
 
-	gi.UnlinkEntity(ent);
+	gi.UnlinkEdict(ent);
 
 	ent->client->locals.persistent.user_info[0] = 0;
 
@@ -1187,7 +1187,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	}
 
 	// and finally link them back in to collide with others below
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 
 	// touch jump pads, hurt brushes, etc..
 	if (ent->locals.move_type != MOVE_TYPE_NO_CLIP && ent->locals.health > 0)

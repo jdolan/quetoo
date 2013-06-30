@@ -101,7 +101,7 @@ static void G_trigger_multiple_Touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
 static void G_trigger_multiple_Enable(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
 	self->solid = SOLID_TRIGGER;
 	self->locals.Use = G_trigger_multiple_Use;
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 }
 
 /*QUAKED trigger_multiple(.5 .5 .5) ? MONSTER NOT_PLAYER TRIGGERED
@@ -132,7 +132,7 @@ void G_trigger_multiple(g_edict_t *ent) {
 		G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
 
 	gi.SetModel(ent, ent->model);
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 }
 
 /*QUAKED trigger_once(.5 .5 .5) ? x x TRIGGERED
@@ -214,7 +214,7 @@ void G_trigger_push(g_edict_t *self) {
 	if (!self->locals.speed)
 		self->locals.speed = 100;
 
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 
 	if (!(self->locals.spawn_flags & PUSH_EFFECT))
 		return;
@@ -229,7 +229,7 @@ void G_trigger_push(g_edict_t *self) {
 	VectorScale(ent->s.origin, 0.5, ent->s.origin);
 	ent->s.effects = EF_TELEPORTER;
 
-	gi.LinkEntity(ent);
+	gi.LinkEdict(ent);
 }
 
 /*
@@ -241,7 +241,7 @@ static void G_trigger_hurt_Use(g_edict_t *self, g_edict_t *other __attribute__((
 		self->solid = SOLID_TRIGGER;
 	else
 		self->solid = SOLID_NOT;
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 
 	if (!(self->locals.spawn_flags & 2))
 		self->locals.Use = NULL;
@@ -312,7 +312,7 @@ void G_trigger_hurt(g_edict_t *self) {
 	if (self->locals.spawn_flags & 2)
 		self->locals.Use = G_trigger_hurt_Use;
 
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 }
 
 /*
@@ -348,5 +348,5 @@ void G_trigger_exec(g_edict_t *self) {
 
 	self->locals.Touch = G_trigger_exec_Touch;
 
-	gi.LinkEntity(self);
+	gi.LinkEdict(self);
 }

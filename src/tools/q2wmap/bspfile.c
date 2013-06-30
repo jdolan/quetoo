@@ -44,7 +44,7 @@ int32_t CompressVis(byte *vis, byte *dest) {
 
 		rep = 1;
 		for (j++; j < visrow; j++)
-			if (vis[j] || rep == 255)
+			if (vis[j] || rep == 0xff)
 				break;
 			else
 				rep++;

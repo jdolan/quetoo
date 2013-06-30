@@ -578,7 +578,7 @@ typedef struct entity_state_s {
 	/*
 	 * Encoded bounding box dimensions for mesh entities. This facilitates
 	 * client-sided prediction so that players don't e.g. run through each
-	 * other. See gi.LinkEntity.
+	 * other. See gi.LinkEdict.
 	 */
 	uint16_t solid;
 } entity_state_t;

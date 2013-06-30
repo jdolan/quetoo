@@ -206,7 +206,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 		vec_t max, v;
 		int32_t i;
 
-		max = 0;
+		max = 0.0;
 		for (i = 0; i < 3; i++) {
 			v = fabsf(ent->mins[i]);
 			if (v > max)
@@ -226,12 +226,12 @@ void Sv_LinkEdict(g_edict_t *ent) {
 
 	// because movement is clipped an epsilon away from an actual edge,
 	// we must fully check even when bounding boxes don't quite touch
-	ent->abs_mins[0] -= 1;
-	ent->abs_mins[1] -= 1;
-	ent->abs_mins[2] -= 1;
-	ent->abs_maxs[0] += 1;
-	ent->abs_maxs[1] += 1;
-	ent->abs_maxs[2] += 1;
+	ent->abs_mins[0] -= 1.0;
+	ent->abs_mins[1] -= 1.0;
+	ent->abs_mins[2] -= 1.0;
+	ent->abs_maxs[0] += 1.0;
+	ent->abs_maxs[1] += 1.0;
+	ent->abs_maxs[2] += 1.0;
 
 	// link to PVS leafs
 	ent->num_clusters = 0;
@@ -249,8 +249,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 			// but nothing should ever need more than that
 			if (ent->area_num && ent->area_num != area) {
 				if (ent->area_num2 && ent->area_num2 != area && sv.state == SV_LOADING) {
-					Com_Debug("Object touching 3 areas at %f %f %f\n", ent->abs_mins[0],
-							ent->abs_mins[1], ent->abs_mins[2]);
+					Com_Debug("Object touching 3 areas at %s\n", vtos(ent->abs_mins));
 				}
 				ent->area_num2 = area;
 			} else
