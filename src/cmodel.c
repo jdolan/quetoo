@@ -468,6 +468,13 @@ static void Cm_LoadVisibility(const d_bsp_lump_t *l) {
 		c_vis->bit_offsets[i][0] = LittleLong(c_vis->bit_offsets[i][0]);
 		c_vis->bit_offsets[i][1] = LittleLong(c_vis->bit_offsets[i][1]);
 	}
+
+	// If we have no visibility data, pad the clusters so that Cm_DecompressVis
+	// produces correctly-sized rows. If we don't do this, non-VIS'ed maps will
+	// not produce any visible entities.
+	if (c_bsp.num_visibility == 0) {
+		c_vis->num_clusters = c_bsp.num_leafs;
+	}
 }
 
 /*
@@ -1232,8 +1239,8 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
 			c2[i] += 1.0;
 		}
 
-		leafs = Cm_BoxLeafnums_head_node(c1, c2, point_leafs, sizeof(point_leafs) / sizeof(int32_t),
-				head_node, &top_node); // NOTE: was * sizeof(int32_t)
+		leafs = Cm_BoxLeafnums_head_node(c1, c2, point_leafs,
+				sizeof(point_leafs) / sizeof(int32_t), head_node, &top_node); // NOTE: was * sizeof(int32_t)
 
 		for (i = 0; i < leafs; i++) {
 			Cm_TestInLeaf(point_leafs[i], &data);
