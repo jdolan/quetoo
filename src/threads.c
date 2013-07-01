@@ -95,7 +95,7 @@ static void Thread_Shutdown_(void) {
 		uint16_t i = 0;
 
 		for (i = 0; i < thread_pool.num_threads; i++, t++) {
-			Thread_Wait(&t);
+			Thread_Wait(t);
 			SDL_CondSignal(t->cond);
 			SDL_WaitThread(t->thread, NULL);
 			SDL_DestroyCond(t->cond);
@@ -159,16 +159,16 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data) {
 /*
  * @brief Wait for the specified thread to complete.
  */
-void Thread_Wait(thread_t **t) {
+void Thread_Wait(thread_t *t) {
 
-	if (!*t || (*t)->status == THREAD_IDLE)
+	if (!t || t->status == THREAD_IDLE)
 		return;
 
-	while ((*t)->status != THREAD_WAIT) {
+	while (t->status != THREAD_WAIT) {
 		usleep(0);
 	}
 
-	(*t)->status = THREAD_IDLE;
+	t->status = THREAD_IDLE;
 }
 
 /*

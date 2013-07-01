@@ -30,10 +30,10 @@ typedef struct {
 } r_model_format_t;
 
 static const r_model_format_t r_model_formats[] = {
-	{ ".obj", MOD_OBJ, R_LoadObjModel },
-	{ ".md3", MOD_MD3, R_LoadMd3Model },
-	{ ".bsp", MOD_BSP, R_LoadBspModel }
-};
+// supported model formats
+		{ ".obj", MOD_OBJ, R_LoadObjModel },
+		{ ".md3", MOD_MD3, R_LoadMd3Model },
+		{ ".bsp", MOD_BSP, R_LoadBspModel } };
 
 /*
  * @brief Allocates client-side vertex arrays for the specified r_model_t.
@@ -144,6 +144,9 @@ static void R_RegisterModel(r_media_t *self) {
 
 		// keep a reference to the world model
 		r_model_state.world = mod;
+
+		// allocate the per-level elements pool
+		R_InitElements();
 
 	} else if (IS_MESH_MODEL(mod)) {
 		R_RegisterDependency(self, (r_media_t *) mod->mesh->material);

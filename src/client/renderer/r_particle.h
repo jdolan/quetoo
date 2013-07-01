@@ -27,9 +27,8 @@
 void R_AddParticle(const r_particle_t *p);
 
 #ifdef __R_LOCAL_H__
-void R_UpdateParticles(void *data);
-void R_DrawParticles(void);
+void R_UpdateParticles(r_element_t *e, const size_t count);
+void R_DrawParticles(const r_element_t *e, const size_t count);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PARTICLE_H__ */
-

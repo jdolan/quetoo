@@ -34,6 +34,8 @@ void R_AddParticle(const r_particle_t *p) {
 		return;
 
 	r_view.particles[r_view.num_particles++] = *p;
+
+	R_AddElement(ELEMENT_PARTICLE, (const void *) p);
 }
 
 /*
@@ -41,8 +43,6 @@ void R_AddParticle(const r_particle_t *p) {
  * accumulates particle primitives each frame.
  */
 typedef struct {
-	r_element_t sorted_particles[MAX_PARTICLES];
-
 	vec3_t weather_right;
 	vec3_t weather_up;
 	vec3_t splash_right[2];
@@ -185,16 +185,7 @@ static void R_ParticleColor(const r_particle_t *p, GLubyte *out) {
  * @brief Updates the shared angular vectors required for particle generation.
  */
 static void R_UpdateParticleState(void) {
-	int32_t i;
 	vec3_t v;
-
-	// reset the sorted elements array
-	r_element_t *e = r_particle_state.sorted_particles;
-
-	for (i = 0; i < r_view.num_particles; i++, e++) {
-		e->type = ELEMENT_PARTICLE;
-		e->element = &r_view.particles[i];
-	}
 
 	// reset the common angular vectors for particle alignment
 	VectorCopy(r_view.angles, v);
@@ -210,40 +201,34 @@ static void R_UpdateParticleState(void) {
 }
 
 /*
- * @brief Updates all particle primitives for the current frame. This is
- * optionally run in a separate thread.
+ * @brief Generates primitives for the specified particle elements. Each
+ * particle's index into the shared array is written to the element's data
+ * field.
  */
-void R_UpdateParticles(void *data __attribute__((unused))) {
-	int32_t i;
-
-	if (!r_view.num_particles)
-		return;
+void R_UpdateParticles(r_element_t *e, const size_t count) {
+	size_t i, j;
 
 	R_UpdateParticleState();
 
-	R_SortElements(r_particle_state.sorted_particles, r_view.num_particles);
+	for (i = j = 0; i < count; i++, e++) {
 
-	// generate primitives for each particle in the sorted array
-	const r_element_t *e = r_particle_state.sorted_particles;
+		if (e->type == ELEMENT_PARTICLE) {
+			r_particle_t *p = (r_particle_t *) e->element;
 
-	for (i = 0; i < r_view.num_particles; i++, e++) {
+			R_ParticleVerts(p, &r_particle_state.verts[j * 3 * 4]);
+			R_ParticleTexcoords(p, &r_particle_state.texcoords[j * 2 * 4]);
+			R_ParticleColor(p, &r_particle_state.colors[j * 4 * 4]);
 
-		const r_particle_t *p = (const r_particle_t *) e->element;
-
-		R_ParticleVerts(p, &r_particle_state.verts[i * 3 * 4]);
-		R_ParticleTexcoords(p, &r_particle_state.texcoords[i * 2 * 4]);
-		R_ParticleColor(p, &r_particle_state.colors[i * 4 * 4]);
+			e->data = (void *) (intptr_t) (j++ * 4);
+		}
 	}
 }
 
 /*
  * @brief Draws all particles for the current frame.
  */
-void R_DrawParticles(void) {
-	int32_t i, j;
-
-	if (!r_view.num_particles)
-		return;
+void R_DrawParticles(const r_element_t *e, const size_t count) {
+	size_t i, j;
 
 	R_EnableColorArray(true);
 
@@ -254,18 +239,16 @@ void R_DrawParticles(void) {
 	R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, r_particle_state.texcoords);
 	R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, r_particle_state.colors);
 
-	// iterate the sorted elements array
-	const r_element_t *e = r_particle_state.sorted_particles;
+	const GLuint base = (intptr_t) e->data;
 
-	for (i = j = 0; i < r_view.num_particles; i++, e++) {
-
+	for (i = j = 0; i < count; i++, e++) {
 		const r_particle_t *p = (const r_particle_t *) e->element;
 
 		// bind the particle's texture
 		if (p->image->texnum != texunit_diffuse.texnum) {
 
 			if (i > j) { // draw pending particles
-				glDrawArrays(GL_QUADS, j * 4, (i - j) * 4);
+				glDrawArrays(GL_QUADS, base + j * 4, (i - j) * 4);
 				j = i;
 			}
 
@@ -275,7 +258,7 @@ void R_DrawParticles(void) {
 	}
 
 	if (i > j) { // draw any remaining particles
-		glDrawArrays(GL_QUADS, j * 4, (i - j) * 4);
+		glDrawArrays(GL_QUADS, base + j * 4, (i - j) * 4);
 	}
 
 	// restore array pointers

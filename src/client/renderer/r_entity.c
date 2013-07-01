@@ -234,7 +234,7 @@ void R_CullEntities(void *data __attribute__((unused))) {
 /*
  * @brief
  */
-static void R_DrawBspEntities() {
+void R_DrawBspEntities() {
 	const r_entity_t *e;
 
 	e = r_entities.bsp;
@@ -264,7 +264,7 @@ static void R_DrawMeshEntities(r_entity_t *ents) {
 /*
  * @brief
  */
-static void R_DrawOpaqueMeshEntities(void) {
+void R_DrawOpaqueMeshEntities(void) {
 
 	if (!r_entities.mesh)
 		return;
@@ -279,7 +279,7 @@ static void R_DrawOpaqueMeshEntities(void) {
 /*
  * @brief
  */
-static void R_DrawAlphaTestMeshEntities(void) {
+void R_DrawAlphaTestMeshEntities(void) {
 
 	if (!r_entities.mesh_alpha_test)
 		return;
@@ -364,6 +364,8 @@ void R_DrawEntities(void) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
+	R_DrawBspEntities();
+
 	R_DrawOpaqueMeshEntities();
 
 	R_DrawAlphaTestMeshEntities();
@@ -376,8 +378,6 @@ void R_DrawEntities(void) {
 	}
 
 	R_Color(NULL);
-
-	R_DrawBspEntities();
 
 	R_DrawNullEntities();
 

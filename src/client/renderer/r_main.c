@@ -93,39 +93,6 @@ extern cl_client_t cl;
 extern cl_static_t cls;
 
 /*
- * @brief Qsort comparator for render elements.
- */
-static int R_SortElements_Compare(const void *e1, const void *e2) {
-	return ((r_element_t *) e1)->dist > ((r_element_t *) e2)->dist;
-}
-
-/*
- * @brief Sorts the specified elements array by their distance from the origin.
- * Elements are sorted farthest-first so that they are rendered back-to-front.
- */
-void R_SortElements(r_element_t *elements, size_t len) {
-	r_element_t *e = elements;
-	size_t i;
-
-	for (i = 0; i < len; i++, e++) {
-		vec3_t delta;
-
-		switch (e->type) {
-			case ELEMENT_PARTICLE:
-				VectorSubtract(((r_particle_t *)e->element)->org, r_view.origin, delta);
-				break;
-			default:
-				VectorSet(delta, 0.0, 0.0, 0.0);
-				break;
-		}
-
-		e->dist = VectorLength(delta);
-	}
-
-	qsort(elements, len, sizeof(r_element_t), R_SortElements_Compare);
-}
-
-/*
  * @brief Updates the clipping planes for the view frustum based on the origin
  * and angles for this frame.
  */
@@ -156,6 +123,18 @@ void R_UpdateFrustum(void) {
 }
 
 /*
+ * @brief Draws all developer tools towards the end of the frame.
+ */
+static void R_DrawDeveloperTools(void) {
+
+	R_DrawBspNormals();
+
+	R_DrawBspLights();
+
+	R_DrawBspLeafs();
+}
+
+/*
  * @brief Main entry point for drawing the scene (world and entities).
  */
 void R_DrawView(void) {
@@ -171,13 +150,15 @@ void R_DrawView(void) {
 	R_DrawSkyBox();
 
 	// wait for the client to populate our lights array
-	Thread_Wait(&r_view.thread);
-
-	// now dispatch another thread to cull entities while we draw the world
-	r_view.thread = Thread_Create(R_CullEntities, NULL);
+	Thread_Wait(r_view.thread);
 
 	R_MarkLights();
 
+	// dispatch threads to cull entities and sort elements
+	thread_t *cull_entities = Thread_Create(R_CullEntities, NULL);
+	thread_t *sort_elements = Thread_Create(R_SortElements, NULL);
+
+	// while we draw the world model
 	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
 
 	R_DrawOpaqueBspSurfaces(&surfs->opaque);
@@ -196,34 +177,23 @@ void R_DrawView(void) {
 
 	R_EnableBlend(false);
 
-	R_DrawBspNormals();
-
-	// ensure the thread has finished culling entities
-	Thread_Wait(&r_view.thread);
-
-	// now dispatch another thread to update particles while we draw entities
-	r_view.thread = Thread_Create(R_UpdateParticles, NULL);
-
+	Thread_Wait(cull_entities);
 	R_DrawEntities();
 
 	R_EnableBlend(true);
 
-	R_DrawBspLights();
+	Thread_Wait(sort_elements);
+	R_DrawElements();
 
 	R_DrawBlendBspSurfaces(&surfs->blend);
 
 	R_DrawBlendWarpBspSurfaces(&surfs->blend_warp);
 
-	// ensure the thread has finished updating particles
-	Thread_Wait(&r_view.thread);
-
-	R_DrawParticles();
-
 	R_EnableFog(false);
 
 	R_DrawCoronas();
 
-	R_DrawBspLeafs();
+	R_DrawDeveloperTools();
 
 	R_EnableBlend(false);
 

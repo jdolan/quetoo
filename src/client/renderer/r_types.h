@@ -679,7 +679,7 @@ typedef struct r_element_s {
 	r_element_type_t type;
 	const void *element;
 	vec_t dist;
-	struct r_element_s *next;
+	void *data;
 } r_element_t;
 
 /*

@@ -154,6 +154,7 @@ void S_FreeMedia(void) {
  */
 void S_BeginLoading(void) {
 	int32_t s;
+
 	do {
 		s = Random();
 	} while (s == s_media_state.seed);

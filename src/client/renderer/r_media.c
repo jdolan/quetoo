@@ -191,6 +191,7 @@ void R_FreeMedia(void) {
  */
 void R_BeginLoading(void) {
 	int32_t s;
+
 	do {
 		s = Random();
 	} while (s == r_media_state.seed);

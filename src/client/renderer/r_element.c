@@ -37,7 +37,7 @@ void R_AddElement(const r_element_type_t type, const void *element) {
 	vec3_t delta;
 
 	if (r_elements.count == r_elements.size) {
-		Com_Warm("r_elements.size reached\n");
+		Com_Warn("r_elements.size reached\n");
 		return;
 	}
 
@@ -51,12 +51,12 @@ void R_AddElement(const r_element_type_t type, const void *element) {
 			pos = ((r_bsp_surface_t *) e->element)->center;
 			break;
 
-		case ELEMENT_ENTITY:
+		case ELEMENT_MESH_MODEL:
 			pos = ((r_entity_t *) e->element)->origin;
 			break;
 
 		case ELEMENT_PARTICLE:
-			pos = ((r_particle_t *) e->element)->origin;
+			pos = ((r_particle_t *) e->element)->org;
 			break;
 
 		default:
@@ -86,6 +86,8 @@ void R_SortElements(void *data __attribute__((unused))) {
 		return;
 
 	qsort(r_elements.elements, r_elements.count, sizeof(r_element_t), R_SortElements_Compare);
+
+	R_UpdateParticles(r_elements.elements, r_elements.count);
 }
 
 /*
@@ -95,10 +97,9 @@ static void R_DrawElements_(const r_element_t *e, const size_t count) {
 
 	switch (e->type) {
 		case ELEMENT_BSP_SURFACE:
-			R_DrawBlendSurfaces(e, count);
 			break;
 
-		case ELEMENT_ENTITY:
+		case ELEMENT_MESH_MODEL:
 			break;
 
 		case ELEMENT_PARTICLE:
@@ -127,33 +128,39 @@ void R_DrawElements(void) {
 
 		if (e->type != type) { // draw pending
 			if (i > j) {
-				R_DrawElements_(e, i - j);
+				R_DrawElements_(r_elements.elements + j, i - j);
+				j = i;
 			}
 			type = e->type;
 		}
 	}
 
 	if (i > j) { // draw remaining
-		R_DrawElemenents_(e, i - j);
+		R_DrawElements_(r_elements.elements + j, i - j);
 	}
 
 	r_elements.count = 0;
 }
 
 /*
- * brief
+ * @brief Initializes the elements pool, which is allocated based on the
+ * geometry of the current level.
  */
 void R_InitElements(void) {
 
-	r_elements.size = MAX_ENTITIES + MAX_PARTICLES + MAX_CORONAS;
+	if (r_elements.elements) {
+		Z_Free(r_elements.elements);
+	}
 
-	r_elements.size += r_world_model.blend_surfaces.count;
-	r_elements.size += r_world_model.blend_warp_surfaces.count;
+	memset(&r_elements, 0, sizeof(r_elements));
 
-	r_elements.elements = Z_TagMalloc(Z_TAG_RENDERER, r_elements.count * sizeof(r_element_t));
-}
+	r_elements.size = MAX_ENTITIES + MAX_PARTICLES;
 
-void R_FreeElements(void) {
+	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
 
-	Z_Free(r_elements.elements);
+	r_elements.size += surfs->blend.count;
+	r_elements.size += surfs->blend_warp.count;
+	r_elements.size += surfs->flare.count;
+
+	r_elements.elements = Z_TagMalloc(r_elements.size * sizeof(r_element_t), Z_TAG_RENDERER);
 }

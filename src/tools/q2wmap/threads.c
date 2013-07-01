@@ -148,7 +148,7 @@ static void RunThreads(void) {
 		t[i] = Thread_Create(ThreadWork, NULL);
 
 	for (i = 0; i < threads->integer; i++)
-		Thread_Wait(&t[i]);
+		Thread_Wait(t[i]);
 
 	SDL_DestroyMutex(lock);
 	lock = NULL;

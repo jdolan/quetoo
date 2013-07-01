@@ -11,6 +11,7 @@ noinst_HEADERS = \
 	r_context.h \
 	r_corona.h \
 	r_draw.h \
+	r_element.h \
 	r_entity.h \
 	r_flare.h \
 	r_gl.h \
@@ -49,6 +50,7 @@ librenderer_la_SOURCES = \
 	r_context.c \
 	r_corona.c \
 	r_draw.c \
+	r_element.c \
 	r_entity.c \
 	r_flare.c \
 	r_gl.c \
