@@ -55,7 +55,7 @@ void R_UseProgram_warp(void) {
 	static vec3_t offset;
 	r_warp_program_t *p = &r_warp_program;
 
-	offset[0] = offset[1] = r_view.time >> 16;
+	offset[0] = offset[1] = r_view.time * 0.000125;
 
 	R_ProgramParameter3fv(&p->offset, offset);
 }
