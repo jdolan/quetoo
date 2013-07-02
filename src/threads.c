@@ -128,17 +128,28 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data) {
 		SDL_mutexP(thread_pool.mutex);
 
 		for (i = 0; i < thread_pool.num_threads; i++, t++) {
+
+			// if the thread appears idle, lock it and check again
 			if (t->status == THREAD_IDLE) {
+
 				SDL_mutexP(t->mutex);
-				g_strlcpy(t->name, name, sizeof(t->name));
 
-				t->Run = run;
-				t->data = data;
+				// if the thread is idle, dispatch it
+				if (t->status == THREAD_IDLE) {
+					g_strlcpy(t->name, name, sizeof(t->name));
 
-				t->status = THREAD_RUNNING;
+					t->Run = run;
+					t->data = data;
+
+					t->status = THREAD_RUNNING;
+
+					SDL_mutexV(t->mutex);
+					SDL_CondSignal(t->cond);
+
+					break;
+				}
+
 				SDL_mutexV(t->mutex);
-				SDL_CondSignal(t->cond);
-				break;
 			}
 		}
 
@@ -148,8 +159,9 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data) {
 	// if we failed to allocate a thread, run the function in this thread
 	if (i == thread_pool.num_threads) {
 		if (thread_pool.num_threads) {
-			Com_Debug("Thread_Create_: No threads available for %s\n", name);
+			Com_Debug("No threads available for %s\n", name);
 		}
+		t = NULL;
 		run(data);
 	}
 
