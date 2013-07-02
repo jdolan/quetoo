@@ -9,7 +9,7 @@ noinst_HEADERS = \
 	cg_effect.h \
 	cg_emit.h \
 	cg_entity.h \
-	cg_entity_effects.h \
+	cg_entity_effect.h \
 	cg_entity_event.h \
 	cg_hud.h \
 	cg_local.h \
@@ -17,7 +17,7 @@ noinst_HEADERS = \
 	cg_media.h \
 	cg_muzzle_flash.h \
 	cg_particle.h \
-	cg_scores.h \
+	cg_score.h \
 	cg_temp_entity.h \
 	cg_types.h \
 	cg_view.h
@@ -30,14 +30,14 @@ cgame_la_SOURCES = \
 	cg_emit.c \
 	cg_effect.c \
 	cg_entity.c \
-	cg_entity_effects.c \
+	cg_entity_effect.c \
 	cg_entity_event.c \
 	cg_hud.c \
 	cg_main.c \
 	cg_media.c \
 	cg_muzzle_flash.c \
 	cg_particle.c \
-	cg_scores.c \
+	cg_score.c \
 	cg_temp_entity.c \
 	cg_view.c
 
