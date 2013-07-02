@@ -457,7 +457,7 @@ void R_EnableShell(_Bool enable) {
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 		if (r_state.active_program)
-			R_ProgramParameter1f(&offset, r_view.time >> 2);
+			R_ProgramParameter1f(&offset, r_view.time * 0.00033);
 	} else {
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		R_EnableBlend(false);
