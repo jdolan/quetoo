@@ -25,8 +25,13 @@ libtests_la_SOURCES = \
 libtests_la_CFLAGS = \
 	$(TESTS_CFLAGS)
 
-TESTS = check_cmd check_cvar check_filesystem check_mem check_r_media		
-noinst_PROGRAMS = $(TESTS)
+noinst_PROGRAMS = \
+	check_cmd \
+	check_cvar \
+	check_filesystem \
+	check_mem \
+	check_r_media \
+	check_threads
 
 check_cmd_SOURCES = \
 	check_cmd.c \
@@ -75,5 +80,14 @@ check_r_media_LDADD = \
 	$(TESTS_LIBS) \
 	../libcommon.la \
 	../libmem.la
+
+check_threads_SOURCES = \
+	check_threads.c
+check_threads_CFLAGS = \
+	-I../ \
+	$(TESTS_CFLAGS)
+check_threads_LDADD = \
+	$(TESTS_LIBS) \
+	../libthreads.la
 
 endif

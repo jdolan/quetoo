@@ -22,8 +22,7 @@
 #ifndef __Q2WMAP_H__
 #define __Q2WMAP_H__
 
-#include "cmd.h"
-#include "cvar.h"
+#include "threads.h"
 #include "files.h"
 
 int32_t BSP_Main(void);

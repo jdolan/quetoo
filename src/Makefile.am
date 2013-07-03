@@ -162,7 +162,7 @@ libthreads_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 libthreads_la_LIBADD = \
-	libcommon.la
+	libconsole.la
 
 if WINDOWS
 

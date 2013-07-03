@@ -151,10 +151,11 @@ void R_DrawView(void) {
 	// wait for the client to fully populate the scene
 	Thread_Wait(r_view.thread);
 
-	R_MarkLights();
+	// dispatch threads to cull entities and sort elements while we draw the world
+	thread_t *cull_entities = Thread_Create(R_CullEntities, NULL);
+	thread_t *sort_elements = Thread_Create(R_SortElements, NULL);
 
-	// dispatch a thread to cull entities while we draw the world
-	r_view.thread = Thread_Create(R_CullEntities, NULL);
+	R_MarkLights();
 
 	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
 
@@ -175,17 +176,14 @@ void R_DrawView(void) {
 	R_EnableBlend(false);
 
 	// wait for entity culling to complete
-	Thread_Wait(r_view.thread);
-
-	// dispatch a thread to sort blended elements while we draw opaque entities
-	r_view.thread = Thread_Create(R_SortElements, NULL);
+	Thread_Wait(cull_entities);
 
 	R_DrawEntities();
 
 	R_EnableBlend(true);
 
 	// wait for element sorting to complete
-	Thread_Wait(r_view.thread);
+	Thread_Wait(sort_elements);
 
 	R_DrawElements();
 

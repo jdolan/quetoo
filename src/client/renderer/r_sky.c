@@ -214,8 +214,7 @@ static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
 			break;
 		}
 
-		if (sides[i] == SIDE_BOTH || sides[i + 1] == SIDE_BOTH || sides[i + 1]
-				== sides[i])
+		if (sides[i] == SIDE_BOTH || sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i])
 			continue;
 
 		d = dists[i] / (dists[i] - dists[i + 1]);
@@ -261,8 +260,8 @@ void R_ClearSkyBox(void) {
 	int32_t i;
 
 	for (i = 0; i < 6; i++) {
-		r_sky.st_mins[0][i] = r_sky.st_mins[1][i] = 9999;
-		r_sky.st_maxs[0][i] = r_sky.st_maxs[1][i] = -9999;
+		r_sky.st_mins[0][i] = r_sky.st_mins[1][i] = 9999.0;
+		r_sky.st_maxs[0][i] = r_sky.st_maxs[1][i] = -9999.0;
 	}
 }
 
@@ -302,10 +301,9 @@ static void R_MakeSkyVec(vec_t s, vec_t t, int32_t axis) {
  */
 void R_DrawSkyBox(void) {
 	const int32_t sky_order[6] = { 0, 2, 1, 3, 4, 5 };
-	r_bsp_surfaces_t *surfs;
 	uint32_t i, j;
 
-	surfs = &r_model_state.world->bsp->sorted_surfaces->sky;
+	const r_bsp_surfaces_t *surfs = &r_model_state.world->bsp->sorted_surfaces->sky;
 	j = 0;
 
 	// first add all visible sky surfaces to the sky bounds
@@ -325,7 +323,7 @@ void R_DrawSkyBox(void) {
 	glTranslatef(r_view.origin[0], r_view.origin[1], r_view.origin[2]);
 
 	if (r_state.fog_enabled)
-		glFogf(GL_FOG_END, FOG_END * 8);
+		glFogf(GL_FOG_END, FOG_END * 8.0);
 
 	r_sky.texcoord_index = r_sky.vert_index = 0;
 

@@ -23,7 +23,6 @@
 #define __COMMON_H__
 
 #include "shared.h"
-#include "threads.h"
 #include "mem.h"
 
 // the default game module / game directory

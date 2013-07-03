@@ -33,6 +33,7 @@ src/tests/check_cvar
 src/tests/check_filesystem
 src/tests/check_mem
 src/tests/check_r_media
+src/tests/check_threads
 src/tools/q2wmap/q2wmap
 stamp-h1
 *.swp

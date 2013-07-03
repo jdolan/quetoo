@@ -19,37 +19,60 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __THREADS_H__
-#define __THREADS_H__
-
-#include <SDL/SDL_thread.h>
-
+#include "tests.h"
 #include "cvar.h"
 
-typedef enum thread_status_e {
-	THREAD_IDLE,
-	THREAD_RUNNING,
-	THREAD_WAIT
-} thread_status_t;
+/*
+ * @brief Setup fixture.
+ */
+void setup(void) {
 
-typedef void (*ThreadRunFunc)(void *data);
+	Z_Init();
 
-typedef struct thread_s {
-	SDL_Thread *thread;
-	SDL_cond *cond;
-	SDL_mutex *mutex;
-	char name[64];
-	thread_status_t status;
-	ThreadRunFunc Run;
-	void *data;
-} thread_t;
+	Cmd_Init();
 
-extern cvar_t *threads;
+	Cvar_Init();
 
-thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data);
-#define Thread_Create(f, d) Thread_Create_(#f, f, d)
-void Thread_Wait(thread_t *t);
-void Thread_Init(void);
-void Thread_Shutdown(void);
+	Thread_Init();
+}
 
-#endif /*__THREADS_H__ */
+/*
+ * @brief Teardown fixture.
+ */
+void teardown(void) {
+
+	Thread_Shutdown();
+
+	Cvar_Shutdown();
+
+	Cmd_Shutdown();
+
+	Z_Shutdown();
+}
+
+START_TEST(check_CriticalSection)
+	{
+
+
+	}END_TEST
+
+/*
+ * @brief Test entry point.
+ */
+int32_t main(int32_t argc, char **argv) {
+
+	Test_Init(argc, argv);
+
+	TCase *tcase = tcase_create("check_critical_section");
+	tcase_add_checked_fixture(tcase, setup, teardown);
+
+	tcase_add_test(tcase, check_CriticalSection);
+
+	Suite *suite = suite_create("check_threads");
+	suite_add_tcase(suite, tcase);
+
+	int32_t failed = Test_Run(suite);
+
+	Test_Shutdown();
+	return failed;
+}

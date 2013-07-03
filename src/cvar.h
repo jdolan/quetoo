@@ -22,6 +22,7 @@
 #ifndef __CVAR_H__
 #define __CVAR_H__
 
+#include "cmd.h"
 #include "filesystem.h"
 
 extern _Bool cvar_user_info_modified;
