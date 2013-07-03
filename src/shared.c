@@ -313,7 +313,7 @@ byte SignBitsForPlane(const c_bsp_plane_t *plane) {
  * @brief Returns the sidedness of the given bounding box relative to the specified
  * plane. If the box straddles the plane, this function returns SIDE_BOTH.
  */
-int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const struct c_bsp_plane_s *p) {
+int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const c_bsp_plane_t *p) {
 	vec_t dist1, dist2;
 	int32_t sides;
 
