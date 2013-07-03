@@ -25,7 +25,7 @@
 #define __R_ELEMENT_H__
 
 #ifdef __R_LOCAL_H__
-void R_AddElement(const r_element_type_t type, const void *element);
+void R_AddElement(const r_element_t *e);
 void R_SortElements(void *data);
 void R_DrawElements(void);
 void R_InitElements(void);

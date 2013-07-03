@@ -46,7 +46,6 @@ extern cvar_t *r_materials;
 extern cvar_t *r_modulate;
 extern cvar_t *r_monochrome;
 extern cvar_t *r_multisample;
-extern cvar_t *r_optimize;
 extern cvar_t *r_parallax;
 extern cvar_t *r_programs;
 extern cvar_t *r_render_mode;

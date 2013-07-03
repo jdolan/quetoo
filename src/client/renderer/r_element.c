@@ -24,7 +24,9 @@
 typedef struct {
 	r_element_t *elements;
 	size_t size; // the total size (max) allocated for this level
-	size_t count; // the current count for this frame
+	size_t num_elements; // the current count for this frame
+
+	r_bsp_surfaces_t surfs; // a bucket for depth-sorted BSP surfaces
 } r_elements_t;
 
 static r_elements_t r_elements;
@@ -32,47 +34,28 @@ static r_elements_t r_elements;
 /*
  * @brief Adds the specified element to the current frame.
  */
-void R_AddElement(const r_element_type_t type, const void *element) {
-	vec_t *pos;
+void R_AddElement(const r_element_t *e) {
 	vec3_t delta;
 
-	if (r_elements.count == r_elements.size) {
+	if (r_elements.num_elements == r_elements.size) {
 		Com_Warn("r_elements.size reached\n");
 		return;
 	}
 
-	r_element_t *e = &r_elements.elements[r_elements.count++];
+	// copy the element in
+	r_elements.elements[r_elements.num_elements] = *e;
 
-	e->type = type;
-	e->element = element;
-
-	switch (e->type) {
-		case ELEMENT_BSP_SURFACE:
-			pos = ((r_bsp_surface_t *) e->element)->center;
-			break;
-
-		case ELEMENT_MESH_MODEL:
-			pos = ((r_entity_t *) e->element)->origin;
-			break;
-
-		case ELEMENT_PARTICLE:
-			pos = ((r_particle_t *) e->element)->org;
-			break;
-
-		default:
-			VectorCopy(r_view.origin, pos);
-			break;
-	}
-
-	VectorSubtract(pos, r_view.origin, delta);
-	e->dist = VectorLength(delta);
+	// and resolve its depth
+	VectorSubtract(r_view.origin, e->origin, delta);
+	r_elements.elements[r_elements.num_elements++].depth = VectorLength(delta);
 }
 
 /*
- * @brief Qsort comparator for render elements.
+ * @brief Qsort comparator for render elements. Qsort sorts elements into
+ * ascending order, so we return positive values when a is behind b.
  */
-static int R_SortElements_Compare(const void *e1, const void *e2) {
-	return ((r_element_t *) e1)->dist > ((r_element_t *) e2)->dist;
+static int R_SortElements_Compare(const void *a, const void *b) {
+	return ((r_element_t *) b)->depth - ((r_element_t *) a)->depth;
 }
 
 /*
@@ -82,12 +65,26 @@ static int R_SortElements_Compare(const void *e1, const void *e2) {
  */
 void R_SortElements(void *data __attribute__((unused))) {
 
-	if (!r_elements.count)
+	if (!r_elements.num_elements)
 		return;
 
-	qsort(r_elements.elements, r_elements.count, sizeof(r_element_t), R_SortElements_Compare);
+	qsort(r_elements.elements, r_elements.num_elements, sizeof(r_element_t), R_SortElements_Compare);
 
-	R_UpdateParticles(r_elements.elements, r_elements.count);
+	R_UpdateParticles(r_elements.elements, r_elements.num_elements);
+}
+
+/*
+ * @brief Populates an r_bsp_surfaces_t with the specified elements.
+ */
+static void R_DrawElements_PopulateSurfaces(const r_element_t *e, const size_t count) {
+	r_bsp_surfaces_t *surfs = &r_elements.surfs;
+	size_t i;
+
+	for (i = 0; i < count; i++, e++) {
+		surfs->surfaces[i] = (r_bsp_surface_t *) e->element;
+	}
+
+	surfs->count = count;
 }
 
 /*
@@ -96,10 +93,17 @@ void R_SortElements(void *data __attribute__((unused))) {
 static void R_DrawElements_(const r_element_t *e, const size_t count) {
 
 	switch (e->type) {
-		case ELEMENT_BSP_SURFACE:
+		case ELEMENT_BSP_SURFACE_BLEND:
+			R_DrawElements_PopulateSurfaces(e, count);
+			R_DrawBlendBspSurfaces(&r_elements.surfs);
 			break;
 
-		case ELEMENT_MESH_MODEL:
+		case ELEMENT_BSP_SURFACE_BLEND_WARP:
+			R_DrawElements_PopulateSurfaces(e, count);
+			R_DrawBlendWarpBspSurfaces(&r_elements.surfs);
+			break;
+
+		case ELEMENT_ENTITY:
 			break;
 
 		case ELEMENT_PARTICLE:
@@ -118,13 +122,24 @@ static void R_DrawElements_(const r_element_t *e, const size_t count) {
 void R_DrawElements(void) {
 	size_t i, j;
 
-	if (!r_elements.count)
+	if (!r_elements.num_elements)
 		return;
 
 	const r_element_t *e = r_elements.elements;
+
+#if 0
+	static r_corona_t c;
+
+	VectorCopy(e->origin, c.origin);
+	VectorSet(c.color, 1.0, 0.0, 1.0);
+	c.radius = 64.0;
+
+	R_AddCorona(&c);
+#endif
+
 	r_element_type_t type = ELEMENT_NONE;
 
-	for (i = j = 0; i < r_elements.count; i++, e++) {
+	for (i = j = 0; i < r_elements.num_elements; i++, e++) {
 
 		if (e->type != type) { // draw pending
 			if (i > j) {
@@ -139,7 +154,7 @@ void R_DrawElements(void) {
 		R_DrawElements_(r_elements.elements + j, i - j);
 	}
 
-	r_elements.count = 0;
+	r_elements.num_elements = 0;
 }
 
 /*
@@ -150,17 +165,19 @@ void R_InitElements(void) {
 
 	if (r_elements.elements) {
 		Z_Free(r_elements.elements);
+		Z_Free(r_elements.surfs.surfaces);
 	}
 
 	memset(&r_elements, 0, sizeof(r_elements));
 
-	r_elements.size = MAX_ENTITIES + MAX_PARTICLES;
+	r_bsp_surfaces_t *surfs = &r_elements.surfs;
+	const r_sorted_bsp_surfaces_t *sorted_surfs = r_model_state.world->bsp->sorted_surfaces;
 
-	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
+	surfs->count += sorted_surfs->blend.count;
+	surfs->count += sorted_surfs->blend_warp.count;
 
-	r_elements.size += surfs->blend.count;
-	r_elements.size += surfs->blend_warp.count;
-	r_elements.size += surfs->flare.count;
+	surfs->surfaces = Z_TagMalloc(surfs->count * sizeof(r_bsp_surface_t **), Z_TAG_RENDERER);
 
+	r_elements.size = MAX_ENTITIES + MAX_PARTICLES + r_elements.surfs.count;
 	r_elements.elements = Z_TagMalloc(r_elements.size * sizeof(r_element_t), Z_TAG_RENDERER);
 }

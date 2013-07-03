@@ -22,20 +22,29 @@
 #include "r_local.h"
 
 /*
- * @brief Copies the specified particle into the view structure. Simple PVS
- * culling is done for large particles.
+ * @brief Copies the specified particle into the view structure, provided it
+ * passes a basic visibility test.
  */
 void R_AddParticle(const r_particle_t *p) {
+	static r_element_t e;
 
 	if (r_view.num_particles >= MAX_PARTICLES)
 		return;
 
-	if (p->type != PARTICLE_BEAM && R_LeafForPoint(p->org, NULL)->vis_frame != r_locals.vis_frame)
-		return;
+	if (p->type != PARTICLE_BEAM) {
+		if (R_LeafForPoint(p->org, NULL)->vis_frame != r_locals.vis_frame) {
+			return;
+		}
+	}
 
 	r_view.particles[r_view.num_particles++] = *p;
 
-	R_AddElement(ELEMENT_PARTICLE, (const void *) p);
+	e.type = ELEMENT_PARTICLE;
+
+	e.element = (const void *) p;
+	e.origin = (const vec_t *) p->org;
+
+	R_AddElement(&e);
 }
 
 /*
@@ -61,15 +70,8 @@ static r_particle_state_t r_particle_state;
 static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 	vec3_t v, up, right, up_right, down_right;
 	vec3_t *verts;
-	vec_t scale;
 
 	verts = (vec3_t *) out;
-
-	scale = // hack a scale up to keep particles from disappearing
-			(p->org[0] - r_view.origin[0]) * r_view.forward[0] + (p->org[1] - r_view.origin[1])
-					* r_view.forward[1] + (p->org[2] - r_view.origin[2]) * r_view.forward[2];
-
-	scale = scale > 20.0 ? p->scale + scale * 0.002 : p->scale;
 
 	if (p->type == PARTICLE_BEAM) { // beams are lines with starts and ends
 		VectorSubtract(p->org, p->end, v);
@@ -79,7 +81,7 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 		VectorSubtract(r_view.origin, p->end, v);
 		CrossProduct(up, v, right);
 		VectorNormalize(right);
-		VectorScale(right, scale, right);
+		VectorScale(right, p->scale, right);
 
 		VectorAdd(p->org, right, verts[0]);
 		VectorAdd(p->end, right, verts[1]);
@@ -96,26 +98,26 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 		VectorNegate(verts[0], verts[2]);
 		VectorNegate(verts[1], verts[3]);
 
-		VectorMA(p->org, scale, verts[0], verts[0]);
-		VectorMA(p->org, scale, verts[1], verts[1]);
-		VectorMA(p->org, scale, verts[2], verts[2]);
-		VectorMA(p->org, scale, verts[3], verts[3]);
+		VectorMA(p->org, p->scale, verts[0], verts[0]);
+		VectorMA(p->org, p->scale, verts[1], verts[1]);
+		VectorMA(p->org, p->scale, verts[2], verts[2]);
+		VectorMA(p->org, p->scale, verts[3], verts[3]);
 		return;
 	}
 
 	// all other particles are aligned with the client's view
 
 	if (p->type == PARTICLE_WEATHER) { // keep it vertical
-		VectorScale(r_particle_state.weather_right, scale, right);
-		VectorScale(r_particle_state.weather_up, scale, up);
+		VectorScale(r_particle_state.weather_right, p->scale, right);
+		VectorScale(r_particle_state.weather_up, p->scale, up);
 	} else if (p->type == PARTICLE_SPLASH) { // keep it horizontal
 
 		if (p->org[2] > r_view.origin[2]) { // it's above us
-			VectorScale(r_particle_state.splash_right[0], scale, right);
-			VectorScale(r_particle_state.splash_up[0], scale, up);
+			VectorScale(r_particle_state.splash_right[0], p->scale, right);
+			VectorScale(r_particle_state.splash_up[0], p->scale, up);
 		} else { // it's below us
-			VectorScale(r_particle_state.splash_right[1], scale, right);
-			VectorScale(r_particle_state.splash_up[1], scale, up);
+			VectorScale(r_particle_state.splash_right[1], p->scale, right);
+			VectorScale(r_particle_state.splash_up[1], p->scale, up);
 		}
 	} else if (p->type == PARTICLE_ROLL) { // roll it
 		vec3_t dir;
@@ -125,11 +127,11 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 
 		AngleVectors(dir, NULL, right, up);
 
-		VectorScale(right, scale, right);
-		VectorScale(up, scale, up);
+		VectorScale(right, p->scale, right);
+		VectorScale(up, p->scale, up);
 	} else { // default particle alignment with view
-		VectorScale(r_view.right, scale, right);
-		VectorScale(r_view.up, scale, up);
+		VectorScale(r_view.right, p->scale, right);
+		VectorScale(r_view.up, p->scale, up);
 	}
 
 	VectorAdd(up, right, up_right);

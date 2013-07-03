@@ -668,7 +668,11 @@ typedef struct r_corona_s {
  * @brief Renderer element types.
  */
 typedef enum {
-	ELEMENT_NONE, ELEMENT_BSP_SURFACE, ELEMENT_MESH_MODEL, ELEMENT_PARTICLE
+	ELEMENT_NONE,
+	ELEMENT_BSP_SURFACE_BLEND,
+	ELEMENT_BSP_SURFACE_BLEND_WARP,
+	ELEMENT_ENTITY,
+	ELEMENT_PARTICLE
 } r_element_type_t;
 
 /*
@@ -678,7 +682,8 @@ typedef enum {
 typedef struct r_element_s {
 	r_element_type_t type;
 	const void *element;
-	vec_t dist;
+	const vec_t *origin;
+	vec_t depth; // resolved for all elements
 	void *data;
 } r_element_t;
 

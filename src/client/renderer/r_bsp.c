@@ -177,9 +177,10 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 		else
 			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
 
-		if (((surf->flags & R_SURF_SIDE_BACK) && (dot < -BACK_PLANE_EPSILON)) || (!(surf->flags
-				& R_SURF_SIDE_BACK) && (dot > BACK_PLANE_EPSILON))) {
-			// visible, flag for rendering
+		if (surf->flags & R_SURF_SIDE_BACK)
+			dot = -dot;
+
+		if (dot > BACK_PLANE_EPSILON) { // visible, flag for rendering
 			surf->frame = r_locals.frame;
 			surf->back_frame = -1;
 		} else { // back-facing
@@ -256,7 +257,7 @@ void R_DrawBspLights(void) {
 	const r_bsp_light_t *l = r_model_state.world->bsp->bsp_lights;
 	for (i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, l++) {
 		r_corona_t c;
-
+		// FIXME draw spheres instead, coronas to be deprecated
 		VectorCopy(l->origin, c.origin);
 		c.radius = l->radius * r_draw_bsp_lights->value;
 		c.flicker = 0.0;
@@ -328,6 +329,7 @@ void R_DrawBspNormals(void) {
 void R_DrawBspLeafs(void) {
 	const vec4_t leaf_colors[] = {
 	// assign each leaf a color
+			{ 0.2, 0.2, 0.2, 0.4 },
 			{ 0.8, 0.2, 0.2, 0.4 },
 			{ 0.2, 0.8, 0.2, 0.4 },
 			{ 0.2, 0.2, 0.8, 0.4 },
@@ -460,41 +462,45 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 }
 
 /*
- * @brief Entry point for BSP recursion and surface-level visibility test. This
- * is also where the infamous r_optimize strategy is implemented.
+ * @brief Adds elements for the specified blended surfaces lists.
+ */
+static void R_AddBspSurfaceElements(const r_element_type_t type, r_bsp_surfaces_t *surfs) {
+	r_bsp_surface_t **s = surfs->surfaces;
+	static r_element_t e;
+
+	e.type = type;
+
+	uint32_t i;
+	for (i = 0; i < surfs->count; i++, s++) {
+		if ((*s)->frame == r_locals.frame) {
+
+			e.element = (const void *) *s;
+			e.origin = (const vec_t *) (*s)->center;
+
+			R_AddElement(&e);
+		}
+	}
+}
+
+/*
+ * @brief Entry point for BSP recursion and surface-level visibility test.
  */
 void R_MarkBspSurfaces(void) {
-	static vec3_t old_origin, old_angles;
-	static vec2_t old_fov;
-	static int16_t old_vis_frame;
-	vec3_t o, a;
 
-	VectorSubtract(r_view.origin, old_origin, o);
-	VectorSubtract(r_view.angles, old_angles, a);
-
-	// only recurse after cluster change AND significant movement
-	if (r_optimize->value && (r_locals.vis_frame == old_vis_frame) && // same pvs
-			(r_view.fov[0] == old_fov[0] && r_view.fov[1] == old_fov[1]) && // same fov
-			VectorLength(o) < 5.0 && VectorLength(a) < 2.0) // little movement
-		return;
-
-	old_vis_frame = r_locals.vis_frame;
-
-	old_fov[0] = r_view.fov[0];
-	old_fov[1] = r_view.fov[1];
-
-	r_locals.frame++;
-
-	if (r_locals.frame == INT16_MAX) // avoid overflows, negatives are reserved
+	if (++r_locals.frame == INT16_MAX) // avoid overflows, negatives are reserved
 		r_locals.frame = 0;
 
-	VectorCopy(r_view.origin, old_origin);
-	VectorCopy(r_view.angles, old_angles);
-
+	// clear the bounds of the sky box
 	R_ClearSkyBox();
 
 	// flag all visible world surfaces
 	R_MarkBspSurfaces_(r_model_state.world->bsp->nodes);
+
+	// add elements for alpha blended surfaces
+	r_sorted_bsp_surfaces_t *sorted_surfaces = r_model_state.world->bsp->sorted_surfaces;
+
+	R_AddBspSurfaceElements(ELEMENT_BSP_SURFACE_BLEND, &sorted_surfaces->blend);
+	R_AddBspSurfaceElements(ELEMENT_BSP_SURFACE_BLEND_WARP, &sorted_surfaces->blend_warp);
 }
 
 /*

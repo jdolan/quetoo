@@ -65,7 +65,6 @@ cvar_t *r_materials;
 cvar_t *r_modulate;
 cvar_t *r_monochrome;
 cvar_t *r_multisample;
-cvar_t *r_optimize;
 cvar_t *r_parallax;
 cvar_t *r_programs;
 cvar_t *r_render_mode;
@@ -149,16 +148,14 @@ void R_DrawView(void) {
 
 	R_DrawSkyBox();
 
-	// wait for the client to populate our lights array
+	// wait for the client to fully populate the scene
 	Thread_Wait(r_view.thread);
 
 	R_MarkLights();
 
-	// dispatch threads to cull entities and sort elements
-	thread_t *cull_entities = Thread_Create(R_CullEntities, NULL);
-	thread_t *sort_elements = Thread_Create(R_SortElements, NULL);
+	// dispatch a thread to cull entities while we draw the world
+	r_view.thread = Thread_Create(R_CullEntities, NULL);
 
-	// while we draw the world model
 	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
 
 	R_DrawOpaqueBspSurfaces(&surfs->opaque);
@@ -177,23 +174,26 @@ void R_DrawView(void) {
 
 	R_EnableBlend(false);
 
-	Thread_Wait(cull_entities);
+	// wait for entity culling to complete
+	Thread_Wait(r_view.thread);
+
+	// dispatch a thread to sort blended elements while we draw opaque entities
+	r_view.thread = Thread_Create(R_SortElements, NULL);
+
 	R_DrawEntities();
 
 	R_EnableBlend(true);
 
-	Thread_Wait(sort_elements);
+	// wait for element sorting to complete
+	Thread_Wait(r_view.thread);
+
 	R_DrawElements();
-
-	R_DrawBlendBspSurfaces(&surfs->blend);
-
-	R_DrawBlendWarpBspSurfaces(&surfs->blend_warp);
 
 	R_EnableFog(false);
 
-	R_DrawCoronas();
-
 	R_DrawDeveloperTools();
+
+	R_DrawCoronas();
 
 	R_EnableBlend(false);
 
@@ -437,8 +437,6 @@ static void R_InitLocal(void) {
 			"Loads all world textures as monochrome");
 	r_multisample = Cvar_Get("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 			"Controls multisampling (anti-aliasing)");
-	r_optimize = Cvar_Get("r_optimize", "1", CVAR_ARCHIVE,
-			"Controls BSP recursion optimization strategy");
 	r_parallax = Cvar_Get("r_parallax", "1.0", CVAR_ARCHIVE,
 			"Controls the intensity of parallax mapping effects");
 	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE, "Controls GLSL shaders");

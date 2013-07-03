@@ -749,7 +749,7 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 	for (i = 0; i < len; i++, surfs++) {
 
 		if (surfs->count) {
-			surfs->surfaces = Z_LinkMalloc(surfs->count * sizeof(r_bsp_surface_t *), mod->bsp);
+			surfs->surfaces = Z_LinkMalloc(surfs->count * sizeof(r_bsp_surface_t **), mod->bsp);
 			surfs->count = 0;
 		}
 	}
