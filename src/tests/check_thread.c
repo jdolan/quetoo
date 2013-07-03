@@ -22,6 +22,12 @@
 #include "tests.h"
 #include "thread.h"
 
+typedef struct {
+	_Bool ready;
+} critical_section_t;
+
+static critical_section_t cs;
+
 /*
  * @brief Setup fixture.
  */
@@ -34,6 +40,8 @@ void setup(void) {
 	Cvar_Init();
 
 	Thread_Init();
+
+	memset(&cs, 0, sizeof(cs));
 }
 
 /*
@@ -50,9 +58,36 @@ void teardown(void) {
 	Z_Shutdown();
 }
 
-START_TEST(check_CriticalSection)
-	{
+/*
+ * @brief Populates the critical section.
+ */
+static void produce(void *data __attribute__((unused))) {
+	cs.ready = true; // set the CS to ready
+}
 
+/*
+ * @brief Consumes the critical section.
+ */
+static void consume(void *data) {
+
+	Thread_Wait((thread_t *) data); // wait for the producer
+
+	ck_assert(cs.ready); // ensure the CS was made ready
+
+	cs.ready = false; // and reset it
+}
+
+START_TEST(check_Thread_Wait)
+	{
+		Cvar_SetValue("threads", 4);
+
+		thread_t *p = Thread_Create(produce, NULL);
+
+		thread_t *c = Thread_Create(consume, p);
+
+		Thread_Wait(c);
+
+		ck_assert(!cs.ready);
 
 	}END_TEST
 
@@ -63,10 +98,10 @@ int32_t main(int32_t argc, char **argv) {
 
 	Test_Init(argc, argv);
 
-	TCase *tcase = tcase_create("check_critical_section");
+	TCase *tcase = tcase_create("check_Thread_Wait");
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
-	tcase_add_test(tcase, check_CriticalSection);
+	tcase_add_test(tcase, check_Thread_Wait);
 
 	Suite *suite = suite_create("check_threads");
 	suite_add_tcase(suite, tcase);

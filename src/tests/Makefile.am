@@ -25,13 +25,15 @@ libtests_la_SOURCES = \
 libtests_la_CFLAGS = \
 	$(TESTS_CFLAGS)
 
-noinst_PROGRAMS = \
+TESTS = \
 	check_cmd \
 	check_cvar \
 	check_filesystem \
 	check_mem \
 	check_r_media \
 	check_thread
+
+noinst_PROGRAMS = $(TESTS)
 
 check_cmd_SOURCES = \
 	check_cmd.c \
