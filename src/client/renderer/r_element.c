@@ -21,6 +21,8 @@
 
 #include "r_local.h"
 
+#define MIN_ELEMENTS (MAX_PARTICLES + MAX_ENTITIES)
+
 typedef struct {
 	r_element_t *elements;
 	size_t size; // the total size (max) allocated for this level
@@ -32,7 +34,7 @@ typedef struct {
 static r_elements_t r_elements;
 
 /*
- * @brief Adds the specified element to the current frame.
+ * @brief Adds the depth-sorted element to the current frame.
  */
 void R_AddElement(const r_element_t *e) {
 	vec3_t delta;
@@ -70,6 +72,7 @@ void R_SortElements(void *data __attribute__((unused))) {
 
 	qsort(r_elements.elements, r_elements.num_elements, sizeof(r_element_t), R_SortElements_Compare);
 
+	// generate particle primitives against the sorted element list
 	R_UpdateParticles(r_elements.elements, r_elements.num_elements);
 }
 
@@ -161,23 +164,17 @@ void R_DrawElements(void) {
  * @brief Initializes the elements pool, which is allocated based on the
  * geometry of the current level.
  */
-void R_InitElements(void) {
-
-	if (r_elements.elements) {
-		Z_Free(r_elements.elements);
-		Z_Free(r_elements.surfs.surfaces);
-	}
+void R_InitElements(r_bsp_model_t *bsp) {
 
 	memset(&r_elements, 0, sizeof(r_elements));
 
 	r_bsp_surfaces_t *surfs = &r_elements.surfs;
-	const r_sorted_bsp_surfaces_t *sorted_surfs = r_model_state.world->bsp->sorted_surfaces;
 
-	surfs->count += sorted_surfs->blend.count;
-	surfs->count += sorted_surfs->blend_warp.count;
+	surfs->count += bsp->sorted_surfaces->blend.count;
+	surfs->count += bsp->sorted_surfaces->blend_warp.count;
 
-	surfs->surfaces = Z_TagMalloc(surfs->count * sizeof(r_bsp_surface_t **), Z_TAG_RENDERER);
+	surfs->surfaces = Z_LinkMalloc(surfs->count * sizeof(r_bsp_surface_t **), bsp);
 
-	r_elements.size = MAX_ENTITIES + MAX_PARTICLES + r_elements.surfs.count;
-	r_elements.elements = Z_TagMalloc(r_elements.size * sizeof(r_element_t), Z_TAG_RENDERER);
+	r_elements.size = MIN_ELEMENTS + r_elements.surfs.count;
+	r_elements.elements = Z_LinkMalloc(r_elements.size * sizeof(r_element_t), bsp);
 }

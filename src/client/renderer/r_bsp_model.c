@@ -880,5 +880,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspSurfacesArrays(mod);
 	Cl_LoadProgress(58);
 
+	R_InitElements(mod->bsp);
+
 	r_locals.old_cluster = -1; // force bsp iteration
 }

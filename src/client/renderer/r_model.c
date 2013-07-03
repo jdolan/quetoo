@@ -145,9 +145,6 @@ static void R_RegisterModel(r_media_t *self) {
 		// keep a reference to the world model
 		r_model_state.world = mod;
 
-		// allocate the per-level elements pool
-		R_InitElements();
-
 	} else if (IS_MESH_MODEL(mod)) {
 		R_RegisterDependency(self, (r_media_t *) mod->mesh->material);
 	}
