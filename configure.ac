@@ -17,7 +17,7 @@ AC_DEFINE_UNQUOTED(BUILD_HOST,
 AC_SUBST(PROGRAM)
 AC_SUBST(VERSION)
 
-AM_INIT_AUTOMAKE([silent-rules foreign dist-bzip2 dist-zip])
+AM_INIT_AUTOMAKE([silent-rules subdir-objects foreign dist-bzip2 dist-zip])
 AM_SILENT_RULES([yes])
 
 AM_MAINTAINER_MODE
