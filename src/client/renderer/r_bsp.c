@@ -462,27 +462,6 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 }
 
 /*
- * @brief Adds elements for the specified blended surfaces lists.
- */
-static void R_AddBspSurfaceElements(const r_element_type_t type, r_bsp_surfaces_t *surfs) {
-	r_bsp_surface_t **s = surfs->surfaces;
-	static r_element_t e;
-
-	e.type = type;
-
-	uint32_t i;
-	for (i = 0; i < surfs->count; i++, s++) {
-		if ((*s)->frame == r_locals.frame) {
-
-			e.element = (const void *) *s;
-			e.origin = (const vec_t *) (*s)->center;
-
-			R_AddElement(&e);
-		}
-	}
-}
-
-/*
  * @brief Entry point for BSP recursion and surface-level visibility test.
  */
 void R_MarkBspSurfaces(void) {
@@ -495,12 +474,6 @@ void R_MarkBspSurfaces(void) {
 
 	// flag all visible world surfaces
 	R_MarkBspSurfaces_(r_model_state.world->bsp->nodes);
-
-	// add elements for alpha blended surfaces
-	r_sorted_bsp_surfaces_t *sorted_surfaces = r_model_state.world->bsp->sorted_surfaces;
-
-	R_AddBspSurfaceElements(ELEMENT_BSP_SURFACE_BLEND, &sorted_surfaces->blend);
-	R_AddBspSurfaceElements(ELEMENT_BSP_SURFACE_BLEND_WARP, &sorted_surfaces->blend_warp);
 }
 
 /*

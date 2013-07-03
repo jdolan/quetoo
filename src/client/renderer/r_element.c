@@ -24,14 +24,14 @@
 #define MIN_ELEMENTS (MAX_PARTICLES + MAX_ENTITIES)
 
 typedef struct {
-	r_element_t *elements;
+	r_element_t *elements; // the elements pool
+	size_t count; // the number of elements in the current frame
 	size_t size; // the total size (max) allocated for this level
-	size_t num_elements; // the current count for this frame
 
 	r_bsp_surfaces_t surfs; // a bucket for depth-sorted BSP surfaces
-} r_elements_t;
+} r_element_state_t;
 
-static r_elements_t r_elements;
+static r_element_state_t r_element_state;
 
 /*
  * @brief Adds the depth-sorted element to the current frame.
@@ -39,22 +39,53 @@ static r_elements_t r_elements;
 void R_AddElement(const r_element_t *e) {
 	vec3_t delta;
 
-	if (r_elements.num_elements == r_elements.size) {
-		Com_Warn("r_elements.size reached\n");
+	if (r_element_state.count == r_element_state.size) {
+		Com_Warn("r_element_state.size %zu reached\n", r_element_state.size);
 		return;
 	}
 
+	r_element_t *el = &r_element_state.elements[r_element_state.count++];
+
 	// copy the element in
-	r_elements.elements[r_elements.num_elements] = *e;
+	*el = *e;
 
 	// and resolve its depth
-	VectorSubtract(r_view.origin, e->origin, delta);
-	r_elements.elements[r_elements.num_elements++].depth = VectorLength(delta);
+	VectorSubtract(r_view.origin, el->origin, delta);
+	el->depth = VectorLength(delta);
+}
+
+/*
+ * @brief Adds elements for the specified blended surfaces lists.
+ */
+static void R_AddBspSurfaceElements(void) {
+	static r_element_t e;
+
+	r_bsp_surface_t *s = r_model_state.world->bsp->surfaces;
+
+	uint16_t i;
+	for (i = 0; i < r_model_state.world->bsp->num_surfaces; i++, s++) {
+
+		if (s->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
+			if (s->frame == r_locals.frame) {
+
+				if (s->texinfo->flags & SURF_WARP) {
+					e.type = ELEMENT_BSP_SURFACE_BLEND_WARP;
+				} else {
+					e.type = ELEMENT_BSP_SURFACE_BLEND;
+				}
+
+				e.element = (const void *) s;
+				e.origin = (const vec_t *) s->center;
+
+				R_AddElement(&e);
+			}
+		}
+	}
 }
 
 /*
  * @brief Qsort comparator for render elements. Qsort sorts elements into
- * ascending order, so we return positive values when a is behind b.
+ * ascending order, so we return negative values when a is behind b (b - a).
  */
 static int R_SortElements_Compare(const void *a, const void *b) {
 	return ((r_element_t *) b)->depth - ((r_element_t *) a)->depth;
@@ -63,24 +94,32 @@ static int R_SortElements_Compare(const void *a, const void *b) {
 /*
  * @brief Sorts the specified elements array by their distance from the origin.
  * Elements are sorted farthest-first so that they are rendered back-to-front.
- * This is optionally run in a separate thread.
+ */
+static void R_SortElements_(r_element_t *e, const size_t count) {
+	qsort(e, count, sizeof(r_element_t), R_SortElements_Compare);
+}
+
+/*
+ * @brief Sorts the draw elements for the current frame. Once elements are
+ * sorted, particles for the current frame are also updated.
  */
 void R_SortElements(void *data __attribute__((unused))) {
 
-	if (!r_elements.num_elements)
+	R_AddBspSurfaceElements();
+
+	if (!r_element_state.count)
 		return;
 
-	qsort(r_elements.elements, r_elements.num_elements, sizeof(r_element_t), R_SortElements_Compare);
+	R_SortElements_(r_element_state.elements, r_element_state.count);
 
-	// generate particle primitives against the sorted element list
-	R_UpdateParticles(r_elements.elements, r_elements.num_elements);
+	R_UpdateParticles(r_element_state.elements, r_element_state.count);
 }
 
 /*
  * @brief Populates an r_bsp_surfaces_t with the specified elements.
  */
 static void R_DrawElements_PopulateSurfaces(const r_element_t *e, const size_t count) {
-	r_bsp_surfaces_t *surfs = &r_elements.surfs;
+	r_bsp_surfaces_t *surfs = &r_element_state.surfs;
 	size_t i;
 
 	for (i = 0; i < count; i++, e++) {
@@ -98,12 +137,12 @@ static void R_DrawElements_(const r_element_t *e, const size_t count) {
 	switch (e->type) {
 		case ELEMENT_BSP_SURFACE_BLEND:
 			R_DrawElements_PopulateSurfaces(e, count);
-			R_DrawBlendBspSurfaces(&r_elements.surfs);
+			R_DrawBlendBspSurfaces(&r_element_state.surfs);
 			break;
 
 		case ELEMENT_BSP_SURFACE_BLEND_WARP:
 			R_DrawElements_PopulateSurfaces(e, count);
-			R_DrawBlendWarpBspSurfaces(&r_elements.surfs);
+			R_DrawBlendWarpBspSurfaces(&r_element_state.surfs);
 			break;
 
 		case ELEMENT_ENTITY:
@@ -125,10 +164,10 @@ static void R_DrawElements_(const r_element_t *e, const size_t count) {
 void R_DrawElements(void) {
 	size_t i, j;
 
-	if (!r_elements.num_elements)
+	if (!r_element_state.count)
 		return;
 
-	const r_element_t *e = r_elements.elements;
+	const r_element_t *e = r_element_state.elements;
 
 #if 0
 	static r_corona_t c;
@@ -142,11 +181,11 @@ void R_DrawElements(void) {
 
 	r_element_type_t type = ELEMENT_NONE;
 
-	for (i = j = 0; i < r_elements.num_elements; i++, e++) {
+	for (i = j = 0; i < r_element_state.count; i++, e++) {
 
 		if (e->type != type) { // draw pending
 			if (i > j) {
-				R_DrawElements_(r_elements.elements + j, i - j);
+				R_DrawElements_(r_element_state.elements + j, i - j);
 				j = i;
 			}
 			type = e->type;
@@ -154,10 +193,10 @@ void R_DrawElements(void) {
 	}
 
 	if (i > j) { // draw remaining
-		R_DrawElements_(r_elements.elements + j, i - j);
+		R_DrawElements_(r_element_state.elements + j, i - j);
 	}
 
-	r_elements.num_elements = 0;
+	r_element_state.count = 0;
 }
 
 /*
@@ -166,15 +205,15 @@ void R_DrawElements(void) {
  */
 void R_InitElements(r_bsp_model_t *bsp) {
 
-	memset(&r_elements, 0, sizeof(r_elements));
+	memset(&r_element_state, 0, sizeof(r_element_state));
 
-	r_bsp_surfaces_t *surfs = &r_elements.surfs;
+	r_bsp_surfaces_t *surfs = &r_element_state.surfs;
 
 	surfs->count += bsp->sorted_surfaces->blend.count;
 	surfs->count += bsp->sorted_surfaces->blend_warp.count;
 
 	surfs->surfaces = Z_LinkMalloc(surfs->count * sizeof(r_bsp_surface_t **), bsp);
 
-	r_elements.size = MIN_ELEMENTS + r_elements.surfs.count;
-	r_elements.elements = Z_LinkMalloc(r_elements.size * sizeof(r_element_t), bsp);
+	r_element_state.size = MIN_ELEMENTS + r_element_state.surfs.count;
+	r_element_state.elements = Z_LinkMalloc(r_element_state.size * sizeof(r_element_t), bsp);
 }

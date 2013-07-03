@@ -221,7 +221,7 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 			R_ParticleTexcoords(p, &r_particle_state.texcoords[j * 2 * 4]);
 			R_ParticleColor(p, &r_particle_state.colors[j * 4 * 4]);
 
-			e->data = (void *) (intptr_t) (j++ * 4);
+			e->data = (void *) (uintptr_t) j++;
 		}
 	}
 }
@@ -241,7 +241,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, r_particle_state.texcoords);
 	R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, r_particle_state.colors);
 
-	const GLuint base = (intptr_t) e->data;
+	const GLuint base = (uintptr_t) e->data;
 
 	for (i = j = 0; i < count; i++, e++) {
 		const r_particle_t *p = (const r_particle_t *) e->element;
@@ -250,7 +250,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 		if (p->image->texnum != texunit_diffuse.texnum) {
 
 			if (i > j) { // draw pending particles
-				glDrawArrays(GL_QUADS, base + j * 4, (i - j) * 4);
+				glDrawArrays(GL_QUADS, (base + j) * 4, (i - j) * 4);
 				j = i;
 			}
 
@@ -260,7 +260,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	}
 
 	if (i > j) { // draw any remaining particles
-		glDrawArrays(GL_QUADS, base + j * 4, (i - j) * 4);
+		glDrawArrays(GL_QUADS, (base + j) * 4, (i - j) * 4);
 	}
 
 	// restore array pointers

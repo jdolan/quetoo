@@ -64,7 +64,7 @@ typedef enum {
 /*
  * @brief Images are referenced by materials, models, entities, particles, etc.
  */
-typedef struct r_image_s {
+typedef struct {
 	r_media_t media;
 	r_image_type_t type;
 	r_pixel_t width, height; // image dimensions
@@ -72,43 +72,43 @@ typedef struct r_image_s {
 	vec3_t color; // average color
 } r_image_t;
 
-typedef struct r_stage_blend_s {
+typedef struct {
 	GLenum src, dest;
 } r_stage_blend_t;
 
-typedef struct r_stage_pulse_s {
+typedef struct {
 	vec_t hz, dhz;
 } r_stage_pulse_t;
 
-typedef struct r_stage_stretch_s {
+typedef struct {
 	vec_t hz, dhz;
 	vec_t amp, damp;
 } r_stage_stretch_t;
 
-typedef struct r_stage_rotate_s {
+typedef struct {
 	vec_t hz, deg;
 } r_stage_rotate_t;
 
-typedef struct r_stage_scroll_s {
+typedef struct {
 	vec_t s, t;
 	vec_t ds, dt;
 } r_stage_scroll_t;
 
-typedef struct r_stage_scale_s {
+typedef struct {
 	vec_t s, t;
 } r_stage_scale_t;
 
-typedef struct r_stage_terrain_s {
+typedef struct {
 	vec_t floor, ceil;
 	vec_t height;
 } r_stage_terrain_t;
 
-typedef struct r_stage_dirt_s {
+typedef struct {
 	vec_t intensity;
 } r_stage_dirt_t;
 
 // frame based material animation, lerp between consecutive images
-typedef struct r_stage_anim_s {
+typedef struct {
 	uint16_t num_frames;
 	r_image_t **frames;
 	vec_t fps;
@@ -157,8 +157,6 @@ typedef struct r_material_s {
 typedef struct {
 	vec3_t position;
 	vec3_t normal;
-	vec4_t color;
-	uint16_t surfaces;
 } r_bsp_vertex_t;
 
 typedef struct {
@@ -236,7 +234,7 @@ typedef struct {
  */
 typedef struct {
 	r_bsp_surface_t **surfaces;
-	uint32_t count;
+	size_t count;
 } r_bsp_surfaces_t;
 
 typedef struct {
@@ -657,7 +655,7 @@ typedef struct r_particle_s {
 /*
  * @brief Coronas are soft, alpha-blended, rounded sprites.
  */
-typedef struct r_corona_s {
+typedef struct {
 	vec3_t origin;
 	vec_t radius;
 	vec_t flicker;
@@ -679,7 +677,7 @@ typedef enum {
  * @brief Element abstraction to allow sorting of mixed draw lists,
  * asynchronous rendering via commands, etc.
  */
-typedef struct r_element_s {
+typedef struct {
 	r_element_type_t type;
 	const void *element;
 	const vec_t *origin;
@@ -690,7 +688,7 @@ typedef struct r_element_s {
 /*
  * @brief Allows alternate renderer plugins to be dropped in.
  */
-typedef enum render_mode_s {
+typedef enum {
 	RENDER_MODEL_DEFAULT
 } r_render_mode_t;
 
@@ -708,7 +706,7 @@ typedef enum render_mode_s {
 /*
  * @brief Provides read-write visibility and scene management to the client.
  */
-typedef struct r_view_s {
+typedef struct {
 	r_pixel_t x, y, width, height; // in virtual screen coordinates
 	vec2_t fov;
 
@@ -770,7 +768,7 @@ typedef struct r_view_s {
 /*
  * @brief OpenGL context information.
  */
-typedef struct r_context_s {
+typedef struct {
 	r_pixel_t width, height;
 
 	_Bool fullscreen;
