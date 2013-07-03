@@ -145,10 +145,8 @@ void Cg_SmokeTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	int32_t j;
 
 	if (ent) { // trails should be framerate independent
-
 		if (ent->time > cgi.client->time)
 			return;
-
 		ent->time = cgi.client->time + 32;
 	}
 
@@ -187,10 +185,8 @@ void Cg_FlameTrail(const vec3_t start, const vec3_t end, cl_entity_t *ent) {
 	int32_t j;
 
 	if (ent) { // trails should be framerate independent
-
 		if (ent->time > cgi.client->time)
 			return;
-
 		ent->time = cgi.client->time + 16;
 	}
 
@@ -236,10 +232,8 @@ void Cg_SteamTrail(const vec3_t org, const vec3_t vel, cl_entity_t *ent) {
 	VectorAdd(org, vel, end);
 
 	if (ent) { // trails should be framerate independent
-
 		if (ent->time > cgi.client->time)
 			return;
-
 		ent->time = cgi.client->time + 16;
 	}
 
