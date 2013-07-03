@@ -31,7 +31,7 @@ noinst_PROGRAMS = \
 	check_filesystem \
 	check_mem \
 	check_r_media \
-	check_threads
+	check_thread
 
 check_cmd_SOURCES = \
 	check_cmd.c \
@@ -81,13 +81,13 @@ check_r_media_LDADD = \
 	../libcommon.la \
 	../libmem.la
 
-check_threads_SOURCES = \
-	check_threads.c
-check_threads_CFLAGS = \
+check_thread_SOURCES = \
+	check_thread.c
+check_thread_CFLAGS = \
 	-I../ \
 	$(TESTS_CFLAGS)
-check_threads_LDADD = \
+check_thread_LDADD = \
 	$(TESTS_LIBS) \
-	../libthreads.la
+	../libthread.la
 
 endif

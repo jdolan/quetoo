@@ -24,7 +24,7 @@
 
 #include "cmodel.h"
 #include "console.h"
-#include "images.h"
+#include "image.h"
 
 #include "r_array.h"
 #include "r_bsp_light.h"

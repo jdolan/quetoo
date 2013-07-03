@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "cvar.h"
-#include "threads.h"
+#include "thread.h"
 
 typedef struct thread_pool_s {
 	SDL_mutex *mutex;

@@ -35,4 +35,4 @@ libserver_la_LIBADD = \
 	../libconsole.la \
 	../libnet.la \
 	../libpmove.la \
-	../libthreads.la
+	../libthread.la

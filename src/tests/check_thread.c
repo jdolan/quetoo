@@ -20,7 +20,7 @@
  */
 
 #include "tests.h"
-#include "cvar.h"
+#include "thread.h"
 
 /*
  * @brief Setup fixture.

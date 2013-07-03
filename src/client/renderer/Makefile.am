@@ -80,7 +80,7 @@ librenderer_la_CFLAGS = \
 	@SDL_CFLAGS@
 	
 librenderer_la_LIBADD = \
-	../../libimages.la \
+	../../libimage.la \
 	@JPEG_LIBS@ \
 	@OPENGL_LIBS@
 

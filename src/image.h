@@ -19,37 +19,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __THREADS_H__
-#define __THREADS_H__
+#ifndef __IMAGE_H__
+#define __IMAGE_H__
 
-#include <SDL/SDL_thread.h>
+#include "filesystem.h"
 
-#include "cvar.h"
+#ifdef BUILD_CLIENT
+#include <SDL/SDL_image.h>
 
-typedef enum thread_status_e {
-	THREAD_IDLE,
-	THREAD_RUNNING,
-	THREAD_WAIT
-} thread_status_t;
+// 8 bit palette for .wal images and particles
+extern uint32_t palette[256];
 
-typedef void (*ThreadRunFunc)(void *data);
+_Bool Img_LoadImage(const char *name, SDL_Surface **surf);
+_Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf);
+void Img_InitPalette(void);
+void Img_ColorFromPalette(byte c, vec_t *res);
+_Bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality);
 
-typedef struct thread_s {
-	SDL_Thread *thread;
-	SDL_cond *cond;
-	SDL_mutex *mutex;
-	char name[64];
-	thread_status_t status;
-	ThreadRunFunc Run;
-	void *data;
-} thread_t;
-
-extern cvar_t *threads;
-
-thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data);
-#define Thread_Create(f, d) Thread_Create_(#f, f, d)
-void Thread_Wait(thread_t *t);
-void Thread_Init(void);
-void Thread_Shutdown(void);
-
-#endif /*__THREADS_H__ */
+#endif /* BUILD_CLIENT */
+#endif /*__IMAGE_H__*/

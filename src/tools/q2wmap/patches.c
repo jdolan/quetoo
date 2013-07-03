@@ -20,7 +20,7 @@
  */
 
 #include "qlight.h"
-#include "images.h"
+#include "image.h"
 
 static vec3_t texture_reflectivity[MAX_BSP_TEXINFO];
 

@@ -18,14 +18,14 @@ noinst_HEADERS = \
 	console.h \
 	cvar.h \
 	filesystem.h \
-	images.h \
+	image.h \
 	mem.h \
 	net.h \
 	pmove.h \
 	quake2world.h \
 	shared.h \
 	sys.h \
-	threads.h \
+	thread.h \
 	win32.h
 
 noinst_LTLIBRARIES = \
@@ -33,14 +33,14 @@ noinst_LTLIBRARIES = \
 	libcommon.la \
 	libconsole.la \
 	libfilesystem.la \
-	libimages.la \
+	libimage.la \
 	libmem.la \
 	libnet.la \
 	libpmove.la \
 	libshared.la \
 	libswap.la \
 	libsys.la \
-	libthreads.la \
+	libthread.la \
 	libwin32.la
 
 libcmodel_la_SOURCES = \
@@ -87,21 +87,21 @@ libfilesystem_la_LIBADD = \
 
 if BUILD_CLIENT
 
-libimages_la_SOURCES = \
-	images.c
-libimages_la_CFLAGS = \
+libimage_la_SOURCES = \
+	image.c
+libimage_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
-libimages_la_LIBADD = \
+libimage_la_LIBADD = \
 	libfilesystem.la
 
 else
 
-libimages_la_SOURCES = \
+libimage_la_SOURCES = \
 	null.c
-libimages_la_CFLAGS = \
-	-D__LIBTOOL_LIBRARY__=libimages_la
+libimage_la_CFLAGS = \
+	-D__LIBTOOL_LIBRARY__=libimage_la
 
 endif
 
@@ -155,13 +155,13 @@ libsys_la_LIBADD = \
 	libcommon.la \
 	libwin32.la
 
-libthreads_la_SOURCES = \
-	threads.c
-libthreads_la_CFLAGS = \
+libthread_la_SOURCES = \
+	thread.c
+libthread_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
-libthreads_la_LIBADD = \
+libthread_la_LIBADD = \
 	libconsole.la
 
 if WINDOWS

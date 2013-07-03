@@ -22,7 +22,7 @@
 #ifndef __Q2WMAP_H__
 #define __Q2WMAP_H__
 
-#include "threads.h"
+#include "thread.h"
 #include "files.h"
 
 int32_t BSP_Main(void);

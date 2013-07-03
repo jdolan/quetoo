@@ -25,7 +25,7 @@
 #include <SDL/SDL_opengl.h>
 
 #include "files.h"
-#include "threads.h"
+#include "thread.h"
 #include "r_matrix.h"
 
 // media handles
