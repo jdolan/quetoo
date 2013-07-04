@@ -73,7 +73,7 @@ void R_EndFrame(void);
 #if defined(__R_LOCAL_H__) || defined(__ECLIPSE__)
 
 // private hardware configuration information
-typedef struct r_config_s {
+typedef struct {
 	const char *renderer_string;
 	const char *vendor_string;
 	const char *version_string;
@@ -81,12 +81,12 @@ typedef struct r_config_s {
 
 	int32_t max_texunits;
 	int32_t max_teximage_units;
-}r_config_t;
+} r_config_t;
 
 extern r_config_t r_config;
 
 // private renderer structure
-typedef struct r_locals_s {
+typedef struct {
 
 	int16_t cluster; // visibility cluster at origin
 	int16_t old_cluster;
@@ -105,7 +105,7 @@ typedef struct r_locals_s {
 	uint16_t active_light_count; // a count of active lights
 
 	c_bsp_plane_t frustum[4]; // for box culling
-}r_locals_t;
+} r_locals_t;
 
 extern r_locals_t r_locals;
 
@@ -124,13 +124,14 @@ void R_UpdateFrustum(void);
 void R_InitView(void);
 
 // render mode function pointers
-extern void (*R_DrawOpaqueBspSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawOpaqueWarpBspSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawAlphaTestBspSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBlendBspSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBlendWarpBspSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawBackBspSurfaces)(const r_bsp_surfaces_t *surfs);
-extern void (*R_DrawMeshModel)(const r_entity_t *e);
+extern BspSurfacesDrawFunc R_DrawOpaqueBspSurfaces;
+extern BspSurfacesDrawFunc R_DrawOpaqueWarpBspSurfaces;
+extern BspSurfacesDrawFunc R_DrawAlphaTestBspSurfaces;
+extern BspSurfacesDrawFunc R_DrawBlendBspSurfaces;
+extern BspSurfacesDrawFunc R_DrawBlendWarpBspSurfaces;
+extern BspSurfacesDrawFunc R_DrawBackBspSurfaces;
+
+extern MeshModelDrawFunc R_DrawMeshModel;
 
 #endif /* __R_LOCAL_H__ */
 

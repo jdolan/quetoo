@@ -80,13 +80,15 @@ cvar_t *r_width;
 cvar_t *r_windowed_height;
 cvar_t *r_windowed_width;
 
-void (*R_DrawOpaqueBspSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawOpaqueWarpBspSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawAlphaTestBspSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawBlendBspSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawBlendWarpBspSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawBackBspSurfaces)(const r_bsp_surfaces_t *surfs);
-void (*R_DrawMeshModel)(const r_entity_t *e);
+// render mode function pointers
+BspSurfacesDrawFunc R_DrawOpaqueBspSurfaces;
+BspSurfacesDrawFunc R_DrawOpaqueWarpBspSurfaces;
+BspSurfacesDrawFunc R_DrawAlphaTestBspSurfaces;
+BspSurfacesDrawFunc R_DrawBlendBspSurfaces;
+BspSurfacesDrawFunc R_DrawBlendWarpBspSurfaces;
+BspSurfacesDrawFunc R_DrawBackBspSurfaces;
+
+MeshModelDrawFunc R_DrawMeshModel;
 
 extern cl_client_t cl;
 extern cl_static_t cls;
@@ -96,23 +98,20 @@ extern cl_static_t cls;
  * and angles for this frame.
  */
 void R_UpdateFrustum(void) {
+	c_bsp_plane_t *p = r_locals.frustum;
 	int32_t i;
 
 	if (!r_cull->value)
 		return;
 
 	// rotate r_view.forward right by fov_x / 2 degrees
-	RotatePointAroundVector(r_locals.frustum[0].normal, r_view.up, r_view.forward,
-			-(90 - r_view.fov[0] / 2));
+	RotatePointAroundVector((p++)->normal, r_view.up, r_view.forward, -(90.0 - r_view.fov[0] / 2.0));
 	// rotate r_view.forward left by fov_x / 2 degrees
-	RotatePointAroundVector(r_locals.frustum[1].normal, r_view.up, r_view.forward,
-			90 - r_view.fov[0] / 2);
+	RotatePointAroundVector((p++)->normal, r_view.up, r_view.forward, 90.0 - r_view.fov[0] / 2.0);
 	// rotate r_view.forward up by fov_x / 2 degrees
-	RotatePointAroundVector(r_locals.frustum[2].normal, r_view.right, r_view.forward,
-			90 - r_view.fov[1] / 2);
+	RotatePointAroundVector((p++)->normal, r_view.right, r_view.forward, 90.0 - r_view.fov[1] / 2.0);
 	// rotate r_view.forward down by fov_x / 2 degrees
-	RotatePointAroundVector(r_locals.frustum[3].normal, r_view.right, r_view.forward,
-			-(90 - r_view.fov[1] / 2));
+	RotatePointAroundVector(p->normal, r_view.right, r_view.forward, -(90.0 - r_view.fov[1] / 2.0));
 
 	for (i = 0; i < 4; i++) {
 		r_locals.frustum[i].type = PLANE_ANYZ;
@@ -204,7 +203,7 @@ void R_DrawView(void) {
  */
 static void R_RenderMode(const char *mode) {
 
-	r_view.render_mode = RENDER_MODEL_DEFAULT;
+	r_view.render_mode = RENDER_MODE_DEFAULT;
 
 	R_DrawOpaqueBspSurfaces = R_DrawOpaqueBspSurfaces_default;
 	R_DrawOpaqueWarpBspSurfaces = R_DrawOpaqueWarpBspSurfaces_default;

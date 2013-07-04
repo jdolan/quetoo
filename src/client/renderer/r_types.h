@@ -252,6 +252,8 @@ typedef struct {
 #define R_SurfaceToSurfaces(surfs, surf)\
 	(surfs)->surfaces[(surfs)->count++] = surf
 
+typedef void (*BspSurfacesDrawFunc)(const r_bsp_surfaces_t *surfs);
+
 /*
  * @brief BSP nodes comprise the tree representation of the world. At compile
  * time, the map is divided into convex volumes that fall along brushes
@@ -620,7 +622,9 @@ typedef struct r_entity_s {
 	r_lighting_t *lighting; // static lighting information
 } r_entity_t;
 
-#define MAX_ENTITIES		(MAX_EDICTS * 2)
+#define MAX_ENTITIES		(MAX_EDICTS * 2) // to allow for linked entities
+
+typedef void (*MeshModelDrawFunc)(const r_entity_t *e);
 
 typedef enum {
 	PARTICLE_NORMAL,
@@ -689,7 +693,7 @@ typedef struct {
  * @brief Allows alternate renderer plugins to be dropped in.
  */
 typedef enum {
-	RENDER_MODEL_DEFAULT
+	RENDER_MODE_DEFAULT
 } r_render_mode_t;
 
 #define MAX_CORONAS 		1024

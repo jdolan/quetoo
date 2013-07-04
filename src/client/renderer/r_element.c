@@ -118,7 +118,7 @@ void R_SortElements(void *data __attribute__((unused))) {
 /*
  * @brief Populates an r_bsp_surfaces_t with the specified elements.
  */
-static void R_DrawElements_PopulateSurfaces(const r_element_t *e, const size_t count) {
+static void R_DrawBspSurfaceElements(const r_element_t *e, const size_t count, BspSurfacesDrawFunc func) {
 	r_bsp_surfaces_t *surfs = &r_element_state.surfs;
 	size_t i;
 
@@ -127,6 +127,8 @@ static void R_DrawElements_PopulateSurfaces(const r_element_t *e, const size_t c
 	}
 
 	surfs->count = count;
+
+	func(surfs);
 }
 
 /*
@@ -136,13 +138,11 @@ static void R_DrawElements_(const r_element_t *e, const size_t count) {
 
 	switch (e->type) {
 		case ELEMENT_BSP_SURFACE_BLEND:
-			R_DrawElements_PopulateSurfaces(e, count);
-			R_DrawBlendBspSurfaces(&r_element_state.surfs);
+			R_DrawBspSurfaceElements(e, count, R_DrawBlendBspSurfaces);
 			break;
 
 		case ELEMENT_BSP_SURFACE_BLEND_WARP:
-			R_DrawElements_PopulateSurfaces(e, count);
-			R_DrawBlendWarpBspSurfaces(&r_element_state.surfs);
+			R_DrawBspSurfaceElements(e, count, R_DrawBlendWarpBspSurfaces);
 			break;
 
 		case ELEMENT_ENTITY:
