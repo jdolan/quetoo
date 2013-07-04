@@ -51,7 +51,7 @@ static pm_locals_t pml;
 
 #define PM_FRICT_GROUND			8.0
 #define PM_FRICT_GROUND_SLICK	2.0
-#define PM_FRICT_LADDER			12.0
+#define PM_FRICT_LADDER			10.0
 #define PM_FRICT_NO_GROUND		0.125
 #define PM_FRICT_SPECTATOR		3.0
 #define PM_FRICT_SPEED_CLAMP	0.1
@@ -429,7 +429,7 @@ static void Pm_CategorizePosition(void) {
 		point[2] -= PM_STAIR_HEIGHT * 0.5;
 	} else { // otherwise, seek the ground beneath the next origin
 		VectorMA(pml.origin, pml.time, pml.velocity, point);
-		if (pm->ground_entity) { // try to stay on the ground rather than vec_t away
+		if (pm->ground_entity) { // try to stay on the ground rather than float away
 			point[2] -= PM_STAIR_HEIGHT * 0.25;
 		} else {
 			point[2] -= PM_STOP_EPSILON;
@@ -462,8 +462,10 @@ static void Pm_CategorizePosition(void) {
 					}
 				}
 			} else if (pml.velocity[2] > 0.0) {
-				pm->s.pm_flags |= PMF_TIME_DOUBLE_JUMP;
-				pm->s.pm_time = 8;
+				if (!(trace.contents & CONTENTS_LADDER)) {
+					pm->s.pm_flags |= PMF_TIME_DOUBLE_JUMP;
+					pm->s.pm_time = 8;
+				}
 			}
 
 			// we're done being pushed
