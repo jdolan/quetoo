@@ -38,18 +38,18 @@ static void G_target_speaker_Use(g_edict_t *ent, g_edict_t *other __attribute__(
 	}
 }
 
-/*QUAKED target_speaker (1 0 0) (-8 -8 -8) (8 8 8) looped-on looped-off reliable
- "noise"		wav file to play
- "attenuation"
- -1 = none, send to whole level
- 1 = normal fighting sounds
- 2 = idle sound level
- 3 = ambient sound level
-
- Normal sounds play each time the target is used. The reliable flag can be set for crucial voiceovers.
-
- Looped sounds are always atten 3 / vol 1, and the use function toggles it on/off.
- Multiple identical looping sounds will just increase volume without any speed cost.
+/*QUAKED target_speaker (1 0 0) (-8 -8 -8) (8 8 8) LOOP_ON LOOP_OFF
+ Plays a sound each time it is used, or in loop if requested.
+ -------- KEYS --------
+ noise : The name of the sample to play, e.g. voices/haunting.
+ attenuation : The attenuation level; higher levels drop off more quickly (default 1):
+ __-1 : No attenuation, send the sound to the entire level.
+ ___1 : Normal attenuation, hearable to all those in PHS of entity.
+ ___2 : Idle attenuation, hearable only by those near to entity.
+ ___3 : Static attenuation, hearable only by those very close to entity.
+ targetname : The target name of this entity.
+ -------- NOTES --------
+ For ambient sounds, use misc_emit. It is much more efficient.
  */
 void G_target_speaker(g_edict_t *ent) {
 	char buffer[MAX_QPATH];
@@ -93,7 +93,8 @@ static void G_target_explosion_Explode(g_edict_t *self) {
 	gi.WritePosition(self->s.origin);
 	gi.Multicast(self->s.origin, MULTICAST_PHS);
 
-	G_RadiusDamage(self, self->locals.activator, NULL, self->locals.dmg, self->locals.dmg, self->locals.dmg + 40, MOD_EXPLOSIVE);
+	G_RadiusDamage(self, self->locals.activator, NULL, self->locals.dmg, self->locals.dmg,
+			self->locals.dmg + 40, MOD_EXPLOSIVE);
 
 	save = self->locals.delay;
 	self->locals.delay = 0;
@@ -117,10 +118,13 @@ static void G_target_explosion_Use(g_edict_t *self, g_edict_t *other __attribute
 }
 
 /*QUAKED target_explosion (1 0 0) (-8 -8 -8) (8 8 8)
- Spawns an explosion temporary entity when used.
-
- "delay"		wait this long before going off
- "dmg"		how much radius damage should be done, defaults to 0
+ Spawns an explosion when used.
+ -------- KEYS --------
+ delay : Delay in seconds before explosion is issued after being triggered (default 0).
+ dmg : Damage inflicted on players near explosion (default 0).
+ targetname : The target name of this entity.
+ -------- NOTES --------
+ A standard rocket damage value would be 120.
  */
 void G_target_explosion(g_edict_t *ent) {
 	ent->locals.Use = G_target_explosion_Use;
@@ -142,8 +146,11 @@ static void G_target_splash_Think(g_edict_t *self) {
 }
 
 /*QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8)
- Creates a particle splash effect.
- */
+Spawns a particle splash effect when used.
+-------- KEYS --------
+-------- NOTES --------
+This entity remains in place for legacy reasons. New maps should use misc_emit.
+*/
 void G_target_splash(g_edict_t *self) {
 
 	G_SetMoveDir(self->s.angles, self->locals.move_dir);
@@ -156,6 +163,10 @@ void G_target_splash(g_edict_t *self) {
 }
 
 /*QUAKED target_string (0 0 1) (-8 -8 -8) (8 8 8)
+ Displays a center-printed message to the player when used.
+ -------- KEYS --------
+ message : The message to display.
+ targetname : The target name of this entity.
  */
 void G_target_string(g_edict_t *self) {
 

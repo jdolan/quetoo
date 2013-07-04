@@ -30,44 +30,42 @@ static void G_worldspawn(g_edict_t *ent);
 
 static spawn_t g_spawns[] = {
 // entity class names -> spawn functions
-		{ "info_player_start", G_info_player_start },
-		{ "info_player_deathmatch", G_info_player_deathmatch },
-		{ "info_player_team1", G_info_player_team1 },
-		{ "info_player_team2", G_info_player_team2 },
-		{ "info_player_intermission", G_info_player_intermission },
-		{ "info_null", G_info_null },
-		{ "info_notnull", G_info_notnull },
-
-		{ "func_plat", G_func_plat },
-		{ "func_button", G_func_button },
-		{ "func_door", G_func_door },
-		{ "func_rotating", G_func_rotating },
-		{ "func_train", G_func_train },
-		{ "func_conveyor", G_func_conveyor },
 		{ "func_areaportal", G_func_areaportal },
+		{ "func_button", G_func_button },
+		{ "func_conveyor", G_func_conveyor },
+		{ "func_door", G_func_door },
+		{ "func_plat", G_func_plat },
+		{ "func_rotating", G_func_rotating },
+		{ "func_timer", G_func_timer },
+		{ "func_train", G_func_train },
 		{ "func_wall", G_func_wall },
 		{ "func_water", G_func_water },
-		{ "func_timer", G_func_timer },
-		{ "func_killbox", G_func_killbox },
 
-		{ "trigger_always", G_trigger_always },
-		{ "trigger_once", G_trigger_once },
-		{ "trigger_multiple", G_trigger_multiple },
-		{ "trigger_relay", G_trigger_relay },
-		{ "trigger_push", G_trigger_push },
-		{ "trigger_hurt", G_trigger_hurt },
-		{ "trigger_exec", G_trigger_exec },
-		{ "trigger_teleporter", G_misc_teleporter },
-
-		{ "target_speaker", G_target_speaker },
-		{ "target_explosion", G_target_explosion },
-		{ "target_splash", G_target_splash },
-		{ "target_string", G_target_string },
-
-		{ "worldspawn", G_worldspawn },
+		{ "info_notnull", G_info_notnull },
+		{ "info_player_intermission", G_info_player_intermission },
+		{ "info_player_deathmatch", G_info_player_deathmatch },
+		{ "info_player_start", G_info_player_start },
+		{ "info_player_team1", G_info_player_team1 },
+		{ "info_player_team2", G_info_player_team2 },
 
 		{ "misc_teleporter", G_misc_teleporter },
 		{ "misc_teleporter_dest", G_misc_teleporter_dest },
+
+		{ "target_explosion", G_target_explosion },
+		{ "target_speaker", G_target_speaker },
+		{ "target_splash", G_target_splash },
+		{ "target_string", G_target_string },
+
+		{ "trigger_always", G_trigger_always },
+		{ "trigger_exec", G_trigger_exec },
+		{ "trigger_hurt", G_trigger_hurt },
+		{ "trigger_multiple", G_trigger_multiple },
+		{ "trigger_once", G_trigger_once },
+		{ "trigger_push", G_trigger_push },
+		{ "trigger_relay", G_trigger_relay },
+		{ "trigger_teleporter", G_misc_teleporter },
+
+		{ "worldspawn", G_worldspawn },
 
 		{ NULL, NULL } };
 
@@ -190,7 +188,6 @@ static const g_field_t fields[] = {
 		{ "distance", SOFS(distance), F_INT, FFL_SPAWN_TEMP },
 		{ "height", SOFS(height), F_INT, FFL_SPAWN_TEMP },
 		{ "noise", SOFS(noise), F_STRING, FFL_SPAWN_TEMP },
-		{ "pausetime", SOFS(pause_time), F_FLOAT, FFL_SPAWN_TEMP },
 		{ "item", SOFS(item), F_STRING, FFL_SPAWN_TEMP },
 
 		// world vars, we use strings to differentiate between 0 and unset
@@ -435,7 +432,8 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			}
 
 			// emits and models are client sided
-			if (!g_strcmp0(ent->class_name, "misc_emit") || !g_strcmp0(ent->class_name, "misc_model")) {
+			if (!g_strcmp0(ent->class_name, "misc_emit") || !g_strcmp0(ent->class_name,
+					"misc_model")) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;

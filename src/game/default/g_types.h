@@ -223,7 +223,6 @@ typedef struct {
 	int32_t distance;
 	int32_t height;
 	char *noise;
-	vec_t pause_time;
 	char *item;
 } g_spawn_temp_t;
 

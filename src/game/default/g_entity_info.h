@@ -28,7 +28,6 @@
 void G_info_player_deathmatch(g_edict_t *ent);
 void G_info_player_intermission(g_edict_t *ent);
 void G_info_notnull(g_edict_t *self);
-void G_info_null(g_edict_t *self);
 void G_info_player_start(g_edict_t *ent);
 void G_info_player_team1(g_edict_t *ent);
 void G_info_player_team2(g_edict_t *ent);

@@ -82,9 +82,6 @@ static void G_trigger_multiple_Touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
 	if (!other->client)
 		return;
 
-	if (self->locals.spawn_flags & 2)
-		return;
-
 	if (!VectorCompare(self->locals.move_dir, vec3_origin)) {
 
 		if (DotProduct(other->client->locals.forward, self->locals.move_dir) < 0.0)
@@ -104,11 +101,15 @@ static void G_trigger_multiple_Enable(g_edict_t *self, g_edict_t *other __attrib
 	gi.LinkEdict(self);
 }
 
-/*QUAKED trigger_multiple(.5 .5 .5) ? MONSTER NOT_PLAYER TRIGGERED
- Variable sized repeatable trigger. Must be targeted at one or more entities.
- If "delay" is set, the trigger waits some time after activating before firing.
- "wait" : Seconds between triggerings.(.2 default)
- set "message" to text string
+/*QUAKED trigger_multiple (.5 .5 .5) ? TRIGGERED
+ Triggers multiple targets at fixed intervals.
+ -------- KEYS --------
+ delay : Delay in seconds between activation and firing of targets (default 0).
+ wait : Interval in seconds between activations (default 0.2).
+ message : An optional string to display when activated.
+ targetname : The target name of this entity if it is to be triggered.
+ -------- SPAWNFLAGS --------
+ TRIGGERED : If set, this trigger must be targeted before it will activate.
  */
 void G_trigger_multiple(g_edict_t *ent) {
 
@@ -120,7 +121,7 @@ void G_trigger_multiple(g_edict_t *ent) {
 	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->sv_flags |= SVF_NO_CLIENT;
 
-	if (ent->locals.spawn_flags & 4) {
+	if (ent->locals.spawn_flags & 1) {
 		ent->solid = SOLID_NOT;
 		ent->locals.Use = G_trigger_multiple_Enable;
 	} else {
@@ -135,13 +136,14 @@ void G_trigger_multiple(g_edict_t *ent) {
 	gi.LinkEdict(ent);
 }
 
-/*QUAKED trigger_once(.5 .5 .5) ? x x TRIGGERED
- Triggers once, then removes itself.
- You must set the key "target" to the name of another object in the level that has a matching "targetname".
-
- If TRIGGERED, this trigger must be triggered before it is live.
-
- "message"	string to be displayed when triggered
+/*QUAKED trigger_once (.5 .5 .5) ? TRIGGERED
+ Triggers multiple targets once.
+ -------- KEYS --------
+ delay : Delay in seconds between activation and firing of targets (default 0).
+ message : An optional string to display when activated.
+ targetname : The target name of this entity if it is to be triggered.
+ -------- SPAWNFLAGS --------
+ TRIGGERED : If set, this trigger must be targeted before it will activate.
  */
 void G_trigger_once(g_edict_t *ent) {
 	ent->locals.wait = -1;
@@ -155,15 +157,17 @@ static void G_trigger_relay_Use(g_edict_t *self, g_edict_t *other __attribute__(
 	G_UseTargets(self, activator);
 }
 
-/*QUAKED trigger_relay(.5 .5 .5)(-8 -8 -8)(8 8 8)
- This fixed size trigger cannot be touched, it can only be fired by other events.
+/*QUAKED trigger_relay (.5 .5 .5) (-8 -8 -8) (8 8 8)
+ A trigger that can not be touched, but must be triggered by another entity.
+ -------- KEYS --------
+ targetname : The target name of this entity.
  */
 void G_trigger_relay(g_edict_t *self) {
 	self->locals.Use = G_trigger_relay_Use;
 }
 
-/*QUAKED trigger_always(.5 .5 .5)(-8 -8 -8)(8 8 8)
- This trigger will always fire. It is activated by the world.
+/*QUAKED trigger_always (.5 .5 .5) (-8 -8 -8) (8 8 8)
+ Triggers targets once at level spawn.
  */
 void G_trigger_always(g_edict_t *ent) {
 	// we must have some delay to make sure our use targets are present
@@ -200,9 +204,14 @@ static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 		G_FreeEdict(self);
 }
 
-/*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE PUSH_EFFECT
- Pushes the player (jump pads)
- "speed"		defaults to 100
+/*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE ? PUSH_ONCE PUSH_EFFECTS
+ Pushes the player in any direction. These are commonly used to make jump pads to send the player upwards. Using the angles key, you can project the player in any direction using "pitch yaw roll."
+ -------- KEYS --------
+ angles : The direction to push the player in "pitch yaw roll" notation (e.g. -80 270 0).
+ speed : The speed with which to push the player (default 100).
+ -------- SPAWNFLAGS --------
+ PUSH_ONCE : If set, the pusher is freed after it is used once.
+ PUSH_EFFECTS : If set, emit particle effects to indicate that a pusher is here.
  */
 void G_trigger_push(g_edict_t *self) {
 	g_edict_t *ent;
@@ -280,20 +289,21 @@ static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 	else
 		dflags = DAMAGE_NO_ARMOR;
 
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.dmg, self->locals.dmg,
-			dflags, MOD_TRIGGER_HURT);
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.dmg,
+			self->locals.dmg, dflags, MOD_TRIGGER_HURT);
 }
 
-/*QUAKED trigger_hurt (.5 .5 .5) ? START_OFF TOGGLE SILENT NO_PROTECTION SLOW
- Any entity that touches this will be hurt.
-
- It does dmg points of damage evert 100ms.
-
- SILENT			supresses playing the sound
- SLOW			changes the damage rate to once per second
- NO_PROTECTION	*nothing* stops the damage
-
- "dmg"			default 5 (whole numbers only)
+/*QUAKED trigger_hurt (.5 .5 .5) ? START_OFF TOGGLE - NO_PROTECTION SLOW
+ Any player that touches this will be hurt by "dmg" points of damage every 100ms (very fast).
+ -------- KEYS --------
+ dmg : The damage done every 100ms to any player who touches this entity (default 2).
+ targetname : The target name of this entity, if it is to be triggered.
+ -------- SPAWNFLAGS --------
+ START_OFF : If set, this entity must be activated before it will hurt players.
+ TOGGLE : If set, this entity is toggled each time it is activated.
+ -
+ NO_PROTECTION : If set, armor will not be used to absorb damage inflicted by this entity.
+ SLOW : Decreases the damage rate to once per second.
  */
 void G_trigger_hurt(g_edict_t *self) {
 
@@ -302,7 +312,7 @@ void G_trigger_hurt(g_edict_t *self) {
 	self->locals.Touch = G_trigger_hurt_Touch;
 
 	if (!self->locals.dmg)
-		self->locals.dmg = 5;
+		self->locals.dmg = 2;
 
 	if (self->locals.spawn_flags & 1)
 		self->solid = SOLID_NOT;
@@ -333,8 +343,12 @@ static void G_trigger_exec_Touch(g_edict_t *self, g_edict_t *other __attribute__
 		gi.AddCommandString(va("exec %s\n", self->locals.script));
 }
 
-/*
- * @brief A trigger which executes a command or script when touched.
+/*QUAKED trigger_exec (1 0 1)
+ Executes a console command or script file when activated.
+ -------- KEYS --------
+ command : The console command(s) to execute.
+ script : The script file (.cfg) to execute.
+ delay : The delay in seconds between activation and execution of the commands.
  */
 void G_trigger_exec(g_edict_t *self) {
 

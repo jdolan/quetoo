@@ -21,15 +21,10 @@
 
 #include "g_local.h"
 
-/*QUAKED info_null (0 0.5 0) (-4 -4 -4) (4 4 4)
- Used as a positional target for spotlights, etc.
- */
-void G_info_null(g_edict_t *self) {
-	G_FreeEdict(self);
-}
-
-/*QUAKED info_notnull (0 0.5 0) (-4 -4 -4) (4 4 4)
- Used as a positional target for lightning.
+/*QUAKED info_notnull (0 .5 0) (-4 -4 -4) (4 4 4)
+ A positional target for other entities. Unlike info_null, these are available in the game and can be targeted by other entities (e.g. info_player_intermission).
+ -------- KEYS --------
+ targetname : The target name of this entity.
  */
 void G_info_notnull(g_edict_t *self) {
 	VectorCopy(self->s.origin, self->abs_mins);
@@ -37,37 +32,46 @@ void G_info_notnull(g_edict_t *self) {
 }
 
 /*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
- The normal starting point for a level.
+ Single player spawn point.
+ -------- KEYS --------
+ angle : The angle at which the player will face when spawned.
  */
 void G_info_player_start(g_edict_t *self) {
 	G_ProjectSpawn(self);
 }
 
 /*QUAKED info_player_intermission (1 0 1) (-16 -16 -24) (16 16 32)
- Level intermission point will be at one of these
- Use 'angles' instead of 'angle', so you can set pitch or roll as well as yaw.
- 'pitch yaw roll'
+ Camera for intermission screen between matches.
+ -------- KEYS --------
+ angles : The "pitch yaw roll" angles for the camera (e.g. 20 270 0).
+ target : The target name of an info_notnull as an alternate way to set the camera angles.
  */
 void G_info_player_intermission(g_edict_t *self) {
 	G_ProjectSpawn(self);
 }
 
 /*QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32)
- potential spawning position for deathmatch games
+ Deathmatch spawn point.
+ -------- KEYS --------
+ angle : The angle at which the player will face when spawned.
  */
 void G_info_player_deathmatch(g_edict_t *self) {
 	G_ProjectSpawn(self);
 }
 
-/*QUAKED info_player_team1 (1 0 1) (-16 -16 -24) (16 16 32)
- potential spawning position for team games
+/*QUAKED info_player_team1 (0 0 1) (-16 -16 -24) (16 16 32)
+ Player spawn point for blue team in teams or CTF gameplay.
+ -------- KEYS --------
+ angle : The angle at which the player will face when spawned.
  */
 void G_info_player_team1(g_edict_t *self) {
 	G_ProjectSpawn(self);
 }
 
-/*QUAKED info_player_team2 (1 0 1) (-16 -16 -24) (16 16 32)
- potential spawning position for team games
+/*QUAKED info_player_team2 (1 0 0) (-16 -16 -24) (16 16 32)
+ Player spawn point for red team in teams or CTF gameplay.
+ -------- KEYS --------
+ angle : The angle at which the player will face when spawned.
  */
 void G_info_player_team2(g_edict_t *self) {
 	G_ProjectSpawn(self);
