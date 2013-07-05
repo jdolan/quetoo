@@ -107,6 +107,8 @@ static void G_trigger_multiple_Enable(g_edict_t *self, g_edict_t *other __attrib
  delay : Delay in seconds between activation and firing of targets (default 0).
  wait : Interval in seconds between activations (default 0.2).
  message : An optional string to display when activated.
+ target : The name of the entity or team to use on activation.
+ killtarget : The name of the entity or team to kill on activation.
  targetname : The target name of this entity if it is to be triggered.
  -------- SPAWNFLAGS --------
  TRIGGERED : If set, this trigger must be targeted before it will activate.
@@ -141,6 +143,8 @@ void G_trigger_multiple(g_edict_t *ent) {
  -------- KEYS --------
  delay : Delay in seconds between activation and firing of targets (default 0).
  message : An optional string to display when activated.
+ target : The name of the entity or team to use on activation.
+ killtarget : The name of the entity or team to kill on activation.
  targetname : The target name of this entity if it is to be triggered.
  -------- SPAWNFLAGS --------
  TRIGGERED : If set, this trigger must be targeted before it will activate.
@@ -160,6 +164,10 @@ static void G_trigger_relay_Use(g_edict_t *self, g_edict_t *other __attribute__(
 /*QUAKED trigger_relay (.5 .5 .5) (-8 -8 -8) (8 8 8)
  A trigger that can not be touched, but must be triggered by another entity.
  -------- KEYS --------
+ delay : The delay in seconds before using targets (default 0).
+ message : An optional message to display the first time this trigger fires.
+ target : The name of the entity or team to use on activation.
+ killtarget : The name of the entity or team to kill on activation.
  targetname : The target name of this entity.
  */
 void G_trigger_relay(g_edict_t *self) {
@@ -168,8 +176,14 @@ void G_trigger_relay(g_edict_t *self) {
 
 /*QUAKED trigger_always (.5 .5 .5) (-8 -8 -8) (8 8 8)
  Triggers targets once at level spawn.
+ -------- KEYS --------
+ delay : The delay in seconds before using targets (default 0.2).
+ message : An optional message to display when this trigger fires.
+ target : The name of the entity or team to use on activation.
+ killtarget : The name of the entity or team to kill on activation.
  */
 void G_trigger_always(g_edict_t *ent) {
+
 	// we must have some delay to make sure our use targets are present
 	if (ent->locals.delay < 0.2)
 		ent->locals.delay = 0.2;
@@ -204,7 +218,7 @@ static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 		G_FreeEdict(self);
 }
 
-/*QUAKED trigger_push (.5 .5 .5) PUSH_ONCE PUSH_EFFECTS
+/*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE PUSH_EFFECTS
  Pushes the player in any direction. These are commonly used to make jump pads to send the player upwards. Using the angles key, you can project the player in any direction using "pitch yaw roll."
  -------- KEYS --------
  angles : The direction to push the player in "pitch yaw roll" notation (e.g. -80 270 0).

@@ -148,6 +148,7 @@ static void G_target_splash_Think(g_edict_t *self) {
 /*QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8)
 Spawns a particle splash effect when used.
 -------- KEYS --------
+ angles : The angles at which to emit particles (e.g. 0 225 0).
 -------- NOTES --------
 This entity remains in place for legacy reasons. New maps should use misc_emit.
 */

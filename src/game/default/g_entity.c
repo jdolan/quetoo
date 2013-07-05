@@ -510,24 +510,29 @@ static void G_WorldspawnMusic(void) {
 	}
 }
 
-/*QUAKED worldspawn(0 0 0) ?
-
- Only used for the world.
- "message"			"Stress Fractures by Jester"
- "sky"				unit1_
- "weather"			none, rain, snow, fog 0.5 0.8 0.7
- "gravity"			800
- "gameplay"			deathmatch, instagib, rocket arena
- "teams"			0 off, 1 on, 2 balanced
- "ctf"				0 off, 1 on, 2 balanced
- "match"			0 off, 1 on
- "round"			0 off, 1 on
- "frag_limit" 		20 frags
- "round_limit" 		20 rounds
- "capture_limit" 	8 captures
- "time_limit"		20 minutes
- "give"				comma-delimited items list
- "music"			comma-delimited track list
+/*QUAKED worldspawn (0 0 0) ?
+ The worldspawn entity defines global conditions and behavior for the entire level. All brushes not belonging to an explicit entity implicitly belong to worldspawn.
+ -------- KEYS --------
+ message : The map title.
+ sky : The sky environment map (default unit1_).
+ ambient_light : The ambient light level (e.g. 0.14 0.11 0.12).
+ sun_light : Sun light intensity, a single scalar value 0 - 255.
+ sun_color : Sun light color (e.g. 0.8 0.4 0.7).
+ sun_angles : Sun light angles as "pitch yaw roll" (e.g. 85 225 0).
+ brightness : Global light scale, a single positive scalar value (e.g. 1.125).
+ saturation : Global light saturation, a single positive scalar value (e.g. 0.9).
+ contrast : Global light contrast, a single positive scalar value (e.g. 1.17).
+ weather : Weather effects, one of "none, rain, snow" followed optionally by "fog r g b."
+ gravity : Gravity for the level (default 800).
+ gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
+ teams : Enables and enforces teams play (enabled = 1, auto-balance = 2).
+ ctf : Enables CTF play (enabled = 1, auto-balance = 2).
+ match : Enables match play (round-based elimination with warmup) (enabled = 1).
+ fraglimit : The frag limit (default 20).
+ roundlimit : The round limit (default 20).
+ capturelimit : The capture limit (default 8).
+ timelimit : The time limit in minutes (default 20).
+ give : A comma-delimited item string to give each player on spawn.
  */
 static void G_worldspawn(g_edict_t *ent) {
 	uint32_t i;

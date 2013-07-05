@@ -1176,7 +1176,7 @@ void G_func_door(g_edict_t *ent) {
 		ent->locals.Think = G_func_door_CreateTrigger;
 }
 
-/*QUAKED func_door_rotating (0 .5 .8) ? START_OPEN TOGGLE REVERSE X_AXIS Y_AXIS
+/*QUAKED func_door_rotating (0 .5 .8) START_OPEN TOGGLE REVERSE X_AXIS Y_AXIS
  A door which rotates about an origin on its Z axis. By default, doors open when a player walks close to them.
  -------- KEYS --------
  message : An optional string printed when the door is first touched.
@@ -1482,7 +1482,7 @@ static void G_func_train_Next(g_edict_t *self) {
 
 	ent = G_PickTarget(self->locals.target);
 	if (!ent) {
-		gi.Debug("%s at %s has invalid target %s\n", self->class_name, vtos(self->s.origin), self->locals.target);
+		gi.Debug("%s has invalid target %s\n", etos(self), self->locals.target);
 		return;
 	}
 
@@ -1491,8 +1491,7 @@ static void G_func_train_Next(g_edict_t *self) {
 	// check for a teleport path_corner
 	if (ent->locals.spawn_flags & 1) {
 		if (!first) {
-			gi.Debug("Connected teleport path_corners, see %s at %s\n", ent->class_name,
-					vtos(ent->s.origin));
+			gi.Debug("%s has teleport path_corner %s\n", etos(self), etos(ent));
 			return;
 		}
 		first = false;

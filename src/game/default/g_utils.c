@@ -214,7 +214,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 		t->locals.Think = G_UseTargets_Delay;
 		t->locals.activator = activator;
 		if (!activator)
-			gi.Debug("No activator\n");
+			gi.Debug("No activator for %s\n", etos(ent));
 		t->locals.message = ent->locals.message;
 		t->locals.target = ent->locals.target;
 		t->locals.kill_target = ent->locals.kill_target;
@@ -239,32 +239,35 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 		while ((t = G_Find(t, LOFS(target_name), ent->locals.kill_target))) {
 			G_FreeEdict(t);
 			if (!ent->in_use) {
-				gi.Debug("Entity was removed while using kill_targets\n");
+				gi.Debug("%s was removed while using kill_targets\n", etos(ent));
 				return;
 			}
 		}
 	}
 
+	// doors fire area portals in a specific way
+	const _Bool is_door = g_str_has_prefix(ent->class_name, "func_door");
+
 	// fire targets
 	if (ent->locals.target) {
 		t = NULL;
 		while ((t = G_Find(t, LOFS(target_name), ent->locals.target))) {
-			// doors fire area portals in a specific way
-			if (!g_strcmp0(t->class_name, "func_areaportal") && (!g_strcmp0(
-					ent->class_name, "func_door") || !g_strcmp0(ent->class_name,
-					"func_door_rotating"))) {
+
+			if (is_door && !g_strcmp0(t->class_name, "func_areaportal")) {
 				continue;
 			}
 
 			if (t == ent) {
-				gi.Debug("Entity asked to use itself\n");
-			} else {
-				if (t->locals.Use)
-					t->locals.Use(t, ent, activator);
+				gi.Debug("%s tried to use itself\n", etos(ent));
+				continue;
 			}
-			if (!ent->in_use) {
-				gi.Debug("Entity was removed while using targets\n");
-				return;
+
+			if (t->locals.Use) {
+				t->locals.Use(t, ent, activator);
+				if (!ent->in_use) { // see if our target freed us
+					gi.Debug("%s was removed while using targets\n", etos(ent));
+					break;
+				}
 			}
 		}
 	}
