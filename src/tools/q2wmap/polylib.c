@@ -26,6 +26,8 @@ uint32_t c_peak_windings;
 
 #define	BOGUS_RANGE	8192
 
+static const dvec_t MIN_EPSILON = FLT_EPSILON * (dvec_t) 0.5;
+
 /*
  * @brief
  */
@@ -282,26 +284,31 @@ winding_t *ReverseWinding(winding_t *w) {
  */
 void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t epsilon,
 		winding_t **front, winding_t **back) {
-	vec_t dists[MAX_POINTS_ON_WINDING + 4];
+	dvec_t dists[MAX_POINTS_ON_WINDING + 4];
 	int32_t sides[MAX_POINTS_ON_WINDING + 4];
 	int32_t counts[SIDE_BOTH + 1];
-	static vec_t dot; // VC 4.2 optimizer bug if not static
+	dvec3_t dnormal;
+	dvec_t dot;
 	int32_t i, j;
-	const vec_t *p2;
-	vec3_t mid;
+	dvec3_t p1, p2;
+	dvec3_t mid;
 	winding_t *f, *b;
 	int32_t maxpts;
 
 	memset(counts, 0, sizeof(counts));
 
+	VectorCopy(normal, dnormal);
+
+	const dvec_t depsilon = (epsilon > MIN_EPSILON) ? epsilon : MIN_EPSILON;
+
 	// determine sides for each point
 	for (i = 0; i < in->numpoints; i++) {
-		dot = DotProduct(in->p[i], normal);
+		dot = DotProduct(in->p[i], dnormal);
 		dot -= dist;
 		dists[i] = dot;
-		if (dot > epsilon)
+		if (dot > depsilon)
 			sides[i] = SIDE_FRONT;
-		else if (dot < -epsilon)
+		else if (dot < -depsilon)
 			sides[i] = SIDE_BACK;
 		else {
 			sides[i] = SIDE_BOTH;
@@ -328,7 +335,7 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t ep
 	*back = b = AllocWinding(maxpts);
 
 	for (i = 0; i < in->numpoints; i++) {
-		const vec_t *p1 = in->p[i];
+		VectorCopy(in->p[i], p1);
 
 		if (sides[i] == SIDE_BOTH) {
 			VectorCopy(p1, f->p[f->numpoints]);
@@ -351,7 +358,7 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t ep
 			continue;
 
 		// generate a split point
-		p2 = in->p[(i + 1) % in->numpoints];
+		VectorCopy(in->p[(i + 1) % in->numpoints], p2);
 
 		dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (j = 0; j < 3; j++) { // avoid round off error when possible
@@ -381,13 +388,14 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t ep
 void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist,
 		const vec_t epsilon) {
 	winding_t *in;
-	vec_t dists[MAX_POINTS_ON_WINDING + 4];
+	dvec_t dists[MAX_POINTS_ON_WINDING + 4];
 	int32_t sides[MAX_POINTS_ON_WINDING + 4];
 	int32_t counts[SIDE_BOTH + 1];
-	static vec_t dot; // VC 4.2 optimizer bug if not static
+	dvec3_t dnormal;
+	dvec_t dot;
 	int32_t i, j;
-	vec_t *p1, *p2;
-	vec3_t mid;
+	dvec3_t p1, p2;
+	dvec3_t mid;
 	winding_t *f;
 	int32_t maxpts;
 
@@ -395,14 +403,18 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 
 	memset(counts, 0, sizeof(counts));
 
+	VectorCopy(normal, dnormal);
+
+	const dvec_t depsilon = (epsilon > MIN_EPSILON) ? epsilon : MIN_EPSILON;
+
 	// determine sides for each point
 	for (i = 0; i < in->numpoints; i++) {
-		dot = DotProduct(in->p[i], normal);
+		dot = DotProduct(in->p[i], dnormal);
 		dot -= dist;
 		dists[i] = dot;
-		if (dot > epsilon)
+		if (dot > depsilon)
 			sides[i] = SIDE_FRONT;
-		else if (dot < -epsilon)
+		else if (dot < -depsilon)
 			sides[i] = SIDE_BACK;
 		else {
 			sides[i] = SIDE_BOTH;
@@ -425,7 +437,7 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 	f = AllocWinding(maxpts);
 
 	for (i = 0; i < in->numpoints; i++) {
-		p1 = in->p[i];
+		VectorCopy(in->p[i], p1);
 
 		if (sides[i] == SIDE_BOTH) {
 			VectorCopy(p1, f->p[f->numpoints]);
@@ -442,7 +454,7 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 			continue;
 
 		// generate a split point
-		p2 = in->p[(i + 1) % in->numpoints];
+		VectorCopy(in->p[(i + 1) % in->numpoints], p2);
 
 		dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (j = 0; j < 3; j++) { // avoid round off error when possible

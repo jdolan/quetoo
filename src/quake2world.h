@@ -68,6 +68,11 @@ typedef vec_t vec2_t[2];
 typedef vec_t vec3_t[3];
 typedef vec_t vec4_t[4];
 
+typedef double dvec_t;
+typedef dvec_t dvec2_t[2];
+typedef dvec_t dvec3_t[3];
+typedef dvec_t dvec4_t[4];
+
 // angle indexes
 #define PITCH				0 // up / down
 #define YAW					1 // left / right
