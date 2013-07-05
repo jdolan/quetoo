@@ -45,6 +45,7 @@ typedef struct {
 static pm_locals_t pml;
 
 #define PM_ACCEL_GROUND			10.0
+#define PM_ACCEL_GROUND_SLICK	4.33
 #define PM_ACCEL_NO_GROUND		1.33
 #define PM_ACCEL_SPECTATOR		4.5
 #define PM_ACCEL_WATER			4.0
@@ -960,7 +961,7 @@ static void Pm_WalkMove(void) {
 	speed = Clamp(speed, 0.0, max_speed);
 
 	// accelerate based on slickness of ground surface
-	accel = (pml.ground_surface->flags & SURF_SLICK) ? PM_ACCEL_NO_GROUND : PM_ACCEL_GROUND;
+	accel = (pml.ground_surface->flags & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
 
 	Pm_Accelerate(dir, speed, accel);
 
