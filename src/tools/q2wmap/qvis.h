@@ -24,8 +24,6 @@
 
 #include "bspfile.h"
 
-#define	MAX_PORTALS	32768
-
 #define	PORTALFILE	"PRT1"
 
 #define	ON_EPSILON	0.1
@@ -86,7 +84,7 @@ typedef struct leaf_s {
 } leaf_t;
 
 typedef struct pstack_s {
-	byte mightsee[MAX_PORTALS / 8];	// bit string
+	byte mightsee[MAX_BSP_PORTALS / 8];	// bit string
 	struct pstack_s *next;
 	leaf_t *leaf;
 	portal_t *portal;				  // portal exiting
@@ -117,7 +115,7 @@ typedef struct map_vis_s {
 	size_t leaf_bytes; // (portal_clusters + 63) >> 3
 	size_t leaf_longs; // / sizeof(long)
 
-	size_t portal_bytes; // (portal_clusters + 63) >> 3
+	size_t portal_bytes; // (num_portals * 2 + 63) >> 3
 	size_t portal_longs; // / sizeof(long)
 
 	size_t uncompressed_size;
