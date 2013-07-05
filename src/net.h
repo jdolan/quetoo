@@ -25,13 +25,15 @@
 #include "common.h"
 #include "cvar.h"
 
-#define MAX_MSG_SIZE 	1400  // max length of a message
 typedef enum {
-	NA_LOCAL, NA_IP_BROADCAST, NA_IP
+	NA_LOCAL,
+	NA_IP_BROADCAST,
+	NA_IP
 } net_adr_type_t;
 
 typedef enum {
-	NS_CLIENT, NS_SERVER
+	NS_CLIENT,
+	NS_SERVER
 } net_src_t;
 
 typedef struct {
@@ -54,6 +56,8 @@ _Bool Net_IsLocalNetaddr(net_addr_t adr);
 char *Net_NetaddrToString(net_addr_t a);
 _Bool Net_StringToNetaddr(const char *s, net_addr_t *a);
 void Net_Sleep(uint32_t msec);
+
+#define MAX_MSG_SIZE 1400 // max length of a message
 
 typedef struct {
 	_Bool fatal_error;

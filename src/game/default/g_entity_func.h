@@ -29,7 +29,7 @@ void G_func_areaportal(g_edict_t *ent);
 void G_func_button(g_edict_t *ent);
 void G_func_conveyor(g_edict_t *self);
 void G_func_door(g_edict_t *ent);
-void G_func_door_secret(g_edict_t *ent);
+void G_func_door_rotating(g_edict_t *ent);
 void G_func_killbox(g_edict_t *ent);
 void G_func_plat(g_edict_t *ent);
 void G_func_rotating(g_edict_t *ent);

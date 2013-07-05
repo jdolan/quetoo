@@ -204,7 +204,7 @@ static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 		G_FreeEdict(self);
 }
 
-/*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE ? PUSH_ONCE PUSH_EFFECTS
+/*QUAKED trigger_push (.5 .5 .5) PUSH_ONCE PUSH_EFFECTS
  Pushes the player in any direction. These are commonly used to make jump pads to send the player upwards. Using the angles key, you can project the player in any direction using "pitch yaw roll."
  -------- KEYS --------
  angles : The direction to push the player in "pitch yaw roll" notation (e.g. -80 270 0).

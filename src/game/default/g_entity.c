@@ -34,6 +34,7 @@ static spawn_t g_spawns[] = {
 		{ "func_button", G_func_button },
 		{ "func_conveyor", G_func_conveyor },
 		{ "func_door", G_func_door },
+		{ "func_door_rotating", G_func_door_rotating },
 		{ "func_plat", G_func_plat },
 		{ "func_rotating", G_func_rotating },
 		{ "func_timer", G_func_timer },

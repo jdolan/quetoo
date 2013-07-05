@@ -263,7 +263,7 @@ typedef struct {
 	vec_t next_speed;
 	vec_t remaining_distance;
 	vec_t decel_distance;
-	void (*done)(g_edict_t *);
+	void (*Done)(g_edict_t *);
 } g_move_info_t;
 
 // this structure is left intact through an entire game
