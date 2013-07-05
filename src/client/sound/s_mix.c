@@ -46,7 +46,7 @@ void S_FreeChannel(int32_t c) {
 	memset(&s_env.channels[c], 0, sizeof(s_env.channels[0]));
 }
 
-#define SOUND_DISTANCE_SCALE 0.16
+#define SOUND_MAX_DISTANCE 2048.0
 
 /*
  * @brief Set distance and stereo panning for the specified channel.
@@ -60,22 +60,25 @@ _Bool S_SpatializeChannel(s_channel_t *ch) {
 	}
 
 	VectorSubtract(ch->org, r_view.origin, delta);
-	vec_t dist = VectorNormalize(delta) * SOUND_DISTANCE_SCALE * ch->atten;
+	vec_t dist = VectorNormalize(delta) * ch->atten;
 
-	if (dist < 255.0) { // check if there's a clear line of sight to the origin
+	if (dist < SOUND_MAX_DISTANCE) { // check if there's a clear line of sight to the origin
 		R_Trace(r_view.origin, ch->org, vec3_origin, vec3_origin, MASK_SHOT);
 		if (r_view.trace.fraction < 1.0) {
-			dist *= 2.0;
+			dist *= 1.25;
 		}
 	}
+
+	dist = (dist * 255.0) / SOUND_MAX_DISTANCE;
 
 	ch->dist = (uint8_t) Clamp(dist, 0.0, 255.0);
 
 	const vec_t dot = DotProduct(r_view.right, delta);
 	const vec_t angle = acos(dot) * 180.0 / M_PI - 90.0;
+
 	ch->angle = (int16_t) (360.0 - angle) % 360;
 
-	return dist < 255.0;
+	return ch->dist < 255;
 }
 
 /*
