@@ -1237,12 +1237,6 @@ void G_func_door_rotating(g_edict_t *ent) {
 	if (!ent->locals.dmg)
 		ent->locals.dmg = 2;
 
-	if (ent->locals.sounds != 1) {
-		ent->locals.move_info.sound_start = gi.SoundIndex("doors/dr1_strt.wav");
-		ent->locals.move_info.sound_middle = gi.SoundIndex("doors/dr1_mid.wav");
-		ent->locals.move_info.sound_end = gi.SoundIndex("doors/dr1_end.wav");
-	}
-
 	// if it starts open, switch the positions
 	if (ent->locals.spawn_flags & DOOR_START_OPEN) {
 		VectorCopy(ent->locals.pos2, ent->s.angles);
