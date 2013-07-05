@@ -100,7 +100,7 @@ char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
 char *vtos(const vec3_t v);
 
 // a cute little hack for printing g_edict_t
-#define etos(e) va("%s @ %s", e->class_name, e->s.origin)
+#define etos(e) va("%s @ %s", e->class_name, vtos(e->s.origin))
 
 // key / value info strings
 #define MAX_USER_INFO_KEY		64
