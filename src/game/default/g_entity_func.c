@@ -432,6 +432,7 @@ static void G_func_plat_CreateTrigger(g_edict_t *ent) {
 
 	// middle trigger
 	trigger = G_Spawn();
+	trigger->class_name = "func_plat_trigger";
 	trigger->locals.Touch = G_func_plat_Touch;
 	trigger->locals.move_type = MOVE_TYPE_NONE;
 	trigger->solid = SOLID_TRIGGER;
@@ -981,7 +982,7 @@ static void G_func_door_CalculateMove(g_edict_t *self) {
  * @brief
  */
 static void G_func_door_CreateTrigger(g_edict_t *ent) {
-	g_edict_t *other;
+	g_edict_t *trigger;
 	vec3_t mins, maxs;
 
 	if (ent->locals.flags & FL_TEAM_SLAVE)
@@ -990,9 +991,9 @@ static void G_func_door_CreateTrigger(g_edict_t *ent) {
 	VectorCopy(ent->abs_mins, mins);
 	VectorCopy(ent->abs_maxs, maxs);
 
-	for (other = ent->locals.team_chain; other; other = other->locals.team_chain) {
-		AddPointToBounds(other->abs_mins, mins, maxs);
-		AddPointToBounds(other->abs_maxs, mins, maxs);
+	for (trigger = ent->locals.team_chain; trigger; trigger = trigger->locals.team_chain) {
+		AddPointToBounds(trigger->abs_mins, mins, maxs);
+		AddPointToBounds(trigger->abs_maxs, mins, maxs);
 	}
 
 	// expand
@@ -1001,14 +1002,15 @@ static void G_func_door_CreateTrigger(g_edict_t *ent) {
 	maxs[0] += 60;
 	maxs[1] += 60;
 
-	other = G_Spawn();
-	VectorCopy(mins, other->mins);
-	VectorCopy(maxs, other->maxs);
-	other->owner = ent;
-	other->solid = SOLID_TRIGGER;
-	other->locals.move_type = MOVE_TYPE_NONE;
-	other->locals.Touch = G_func_door_TouchTrigger;
-	gi.LinkEdict(other);
+	trigger = G_Spawn();
+	trigger->class_name = "func_door_trigger";
+	VectorCopy(mins, trigger->mins);
+	VectorCopy(maxs, trigger->maxs);
+	trigger->owner = ent;
+	trigger->solid = SOLID_TRIGGER;
+	trigger->locals.move_type = MOVE_TYPE_NONE;
+	trigger->locals.Touch = G_func_door_TouchTrigger;
+	gi.LinkEdict(trigger);
 
 	if (ent->locals.spawn_flags & DOOR_START_OPEN)
 		G_func_door_UseAreaPortals(ent, true);

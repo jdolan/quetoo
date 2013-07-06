@@ -197,6 +197,7 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed
 		VectorCopy(ent->s.origin, start);
 
 	blast = G_Spawn();
+	blast->class_name = "blaster";
 	VectorCopy(start, blast->s.origin);
 	VectorCopy(start, blast->s.old_origin);
 	VectorCopy(dir, blast->locals.move_dir);
@@ -212,7 +213,6 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed
 	blast->locals.Think = G_FreeEdict;
 	blast->locals.dmg = damage;
 	blast->locals.knockback = knockback;
-	blast->class_name = "blaster";
 
 	// set the color, overloading the client byte
 	if (ent->client) {
@@ -302,8 +302,8 @@ static void G_GrenadeProjectile_Explode(g_edict_t *self) {
 
 		VectorSubtract(self->locals.enemy->s.origin, self->s.origin, dir);
 
-		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_origin, (int32_t) d,
-				(int32_t) k, DAMAGE_RADIUS, MOD_GRENADE);
+		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_origin,
+				(int32_t) d, (int32_t) k, DAMAGE_RADIUS, MOD_GRENADE);
 	}
 
 	// hurt anything else nearby
@@ -380,6 +380,8 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t sp
 	AngleVectors(dir, forward, right, up);
 
 	grenade = G_Spawn();
+	grenade->class_name = "grenade";
+
 	VectorCopy(start, grenade->s.origin);
 
 	VectorCopy(dir, grenade->s.angles);
@@ -408,7 +410,6 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t sp
 	grenade->locals.dmg = damage;
 	grenade->locals.knockback = knockback;
 	grenade->locals.dmg_radius = damage_radius;
-	grenade->class_name = "grenade";
 
 	G_PlayerProjectile(grenade, scale);
 
@@ -470,6 +471,7 @@ void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed,
 		VectorCopy(ent->s.origin, start);
 
 	rocket = G_Spawn();
+	rocket->class_name = "rocket";
 	VectorCopy(start, rocket->s.origin);
 	VectorCopy(start, rocket->s.old_origin);
 	VectorCopy(dir, rocket->locals.move_dir);
@@ -489,7 +491,6 @@ void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed,
 	rocket->locals.dmg_radius = damage_radius;
 	rocket->locals.knockback = knockback;
 	rocket->s.sound = g_level.media.rocket_fly_sound;
-	rocket->class_name = "rocket";
 
 	G_PlayerProjectile(rocket, scale);
 
@@ -557,6 +558,7 @@ void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t 
 		VectorCopy(ent->s.origin, start);
 
 	bolt = G_Spawn();
+	bolt->class_name = "bolt";
 	VectorCopy(start, bolt->s.origin);
 	VectorCopy(start, bolt->s.old_origin);
 	VectorAngles(dir, bolt->s.angles);
@@ -571,7 +573,6 @@ void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t 
 	bolt->locals.Think = G_FreeEdict;
 	bolt->locals.dmg = damage;
 	bolt->locals.knockback = knockback;
-	bolt->class_name = "bolt";
 
 	G_PlayerProjectile(bolt, scale);
 
@@ -713,7 +714,7 @@ void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t dam
 
 	if (!light) { // ensure a valid lightning entity exists
 		light = G_Spawn();
-
+		light->class_name = "lightning";
 		VectorCopy(start, light->s.origin);
 		VectorMA(start, 800.0, dir, light->s.old_origin);
 		light->solid = SOLID_NOT;
@@ -724,7 +725,6 @@ void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t dam
 		light->s.client = ent - g_game.edicts; // player number, for client prediction fix
 		light->s.effects = EF_BEAM | EF_LIGHTNING;
 		light->s.sound = g_level.media.lightning_fly_sound;
-		light->class_name = "lightning";
 
 		gi.LinkEdict(light);
 		ent->locals.lightning = light;
@@ -913,6 +913,8 @@ void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, i
 	for (i = 0; i < 8; i++) {
 
 		bfg = G_Spawn();
+		bfg->class_name = "bfg_projectile";
+
 		VectorCopy(start, bfg->s.origin);
 
 		// start with the forward direction
@@ -942,7 +944,6 @@ void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, i
 		bfg->locals.dmg = damage;
 		bfg->locals.knockback = knockback;
 		bfg->locals.dmg_radius = damage_radius;
-		bfg->class_name = "bfg projectile";
 
 		G_PlayerProjectile(bfg, scale);
 

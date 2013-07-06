@@ -244,6 +244,7 @@ void G_trigger_push(g_edict_t *self) {
 
 	// add a teleporter trail
 	ent = G_Spawn();
+	ent->class_name = "trigger_push_effects";
 	ent->solid = SOLID_TRIGGER;
 	ent->locals.move_type = MOVE_TYPE_NONE;
 
