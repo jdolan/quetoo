@@ -220,6 +220,30 @@ static void Sv_Status_f(void) {
 }
 
 /*
+ * @brief Lists all entities currently in use.
+ */
+static void Sv_ListEntities_f(void) {
+	uint16_t i;
+
+	if (!svs.initialized) {
+		Com_Print("No server running\n");
+		return;
+	}
+
+	for (i = 0; i < svs.game->num_edicts; i++) {
+		const g_edict_t *e = EDICT_FOR_NUM(i);
+
+		if (Cmd_Argc() > 1) {
+			if (!GlobMatch(Cmd_Argv(1), e->class_name)) {
+				continue;
+			}
+		}
+
+		Com_Print("%s\n", etos(e));
+	}
+}
+
+/*
  * @brief
  */
 static void Sv_Say_f(void) {
@@ -356,6 +380,7 @@ void Sv_InitCommands(void) {
 
 	Cmd_Add("kick", Sv_Kick_f, CMD_SERVER, "Kick a specific user");
 	Cmd_Add("status", Sv_Status_f, CMD_SERVER, "Print server status information");
+	Cmd_Add("list_entities", Sv_ListEntities_f, CMD_SERVER, "List all entities in use");
 	Cmd_Add("server_info", Sv_ServerInfo_f, CMD_SERVER, "Print server info settings");
 	Cmd_Add("user_info", Sv_UserInfo_f, CMD_SERVER, "Print information for a given user");
 
