@@ -23,12 +23,12 @@
 
 typedef struct {
 	char *name;
-	void (*spawn)(g_edict_t *ent);
-} spawn_t;
+	void (*Spawn)(g_edict_t *ent);
+} g_edict_spawn_t;
 
 static void G_worldspawn(g_edict_t *ent);
 
-static spawn_t g_spawns[] = {
+static g_edict_spawn_t g_edict_spawns[] = {
 // entity class names -> spawn functions
 		{ "func_areaportal", G_func_areaportal },
 		{ "func_button", G_func_button },
@@ -52,6 +52,8 @@ static spawn_t g_spawns[] = {
 		{ "misc_teleporter", G_misc_teleporter },
 		{ "misc_teleporter_dest", G_misc_teleporter_dest },
 
+		{ "path_corner", G_info_notnull },
+
 		{ "target_explosion", G_target_explosion },
 		{ "target_speaker", G_target_speaker },
 		{ "target_splash", G_target_splash },
@@ -68,13 +70,22 @@ static spawn_t g_spawns[] = {
 
 		{ "worldspawn", G_worldspawn },
 
+		// lastly, these are entities which we intentionally suppress
+
+		{ "func_group", G_FreeEdict },
+		{ "info_null", G_FreeEdict },
+		{ "light", G_FreeEdict },
+		{ "light_spot", G_FreeEdict },
+		{ "misc_emit", G_FreeEdict },
+		{ "misc_model", G_FreeEdict },
+
 		{ NULL, NULL } };
 
 /*
  * @brief Finds the spawn function for the entity and calls it.
  */
 static void G_SpawnEntity(g_edict_t *ent) {
-	spawn_t *s;
+	g_edict_spawn_t *s;
 	int32_t i;
 
 	if (!ent->class_name) {
@@ -96,9 +107,9 @@ static void G_SpawnEntity(g_edict_t *ent) {
 	}
 
 	// check normal spawn functions
-	for (s = g_spawns; s->name; s++) {
+	for (s = g_edict_spawns; s->name; s++) {
 		if (!g_strcmp0(s->name, ent->class_name)) { // found it
-			s->spawn(ent);
+			s->Spawn(ent);
 			return;
 		}
 	}
@@ -422,34 +433,17 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 		entities = G_ParseEntity(entities, ent);
 
-		// some ents don't belong in deathmatch
+		// handle legacy spawn flags
 		if (ent != g_game.edicts) {
 
-			// legacy levels may require this
 			if (ent->locals.spawn_flags & SF_NOT_DEATHMATCH) {
 				G_FreeEdict(ent);
 				inhibit++;
 				continue;
 			}
 
-			// emits and models are client sided
-			if (!g_strcmp0(ent->class_name, "misc_emit") || !g_strcmp0(ent->class_name,
-					"misc_model")) {
-				G_FreeEdict(ent);
-				inhibit++;
-				continue;
-			}
-
-			// lights aren't even used
-			if (!g_strcmp0(ent->class_name, "light") || !g_strcmp0(ent->class_name, "light_spot")) {
-				G_FreeEdict(ent);
-				inhibit++;
-				continue;
-			}
-
 			// strip away unsupported flags
-			ent->locals.spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD | SF_NOT_COOP
-					| SF_NOT_DEATHMATCH);
+			ent->locals.spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD | SF_NOT_COOP);
 		}
 
 		// retain the map-specified origin for respawns

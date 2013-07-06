@@ -352,7 +352,6 @@ void G_FreeEdict(g_edict_t *ed) {
 
 	memset(ed, 0, sizeof(*ed));
 	ed->class_name = "freed";
-	ed->in_use = false;
 }
 
 /*
