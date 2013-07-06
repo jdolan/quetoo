@@ -729,6 +729,10 @@ static void G_worldspawn(g_edict_t *ent) {
 	G_PrecacheItem(G_FindItem("Railgun"));
 	G_PrecacheItem(G_FindItem("BFG10K"));
 
+	// always precache these so that the HUD icons are available
+	G_PrecacheItem(G_FindItem("Medium Health"));
+	G_PrecacheItem(G_FindItem("Body Armor"));
+
 	gi.SoundIndex("world/water_in");
 	gi.SoundIndex("world/water_out");
 
