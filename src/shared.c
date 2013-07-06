@@ -328,41 +328,41 @@ int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const c_bsp_plane
 
 	// general case
 	switch (p->sign_bits) {
-	case 0:
-		dist1 = DotProduct(p->normal, emaxs);
-		dist2 = DotProduct(p->normal, emins);
-		break;
-	case 1:
-		dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
-		dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
-		break;
-	case 2:
-		dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
-		dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
-		break;
-	case 3:
-		dist1 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
-		dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
-		break;
-	case 4:
-		dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
-		dist2 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
-		break;
-	case 5:
-		dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
-		dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
-		break;
-	case 6:
-		dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
-		dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
-		break;
-	case 7:
-		dist1 = DotProduct(p->normal, emins);
-		dist2 = DotProduct(p->normal, emaxs);
-		break;
-	default:
-		dist1 = dist2 = 0.0; // shut up compiler
-		break;
+		case 0:
+			dist1 = DotProduct(p->normal, emaxs);
+			dist2 = DotProduct(p->normal, emins);
+			break;
+		case 1:
+			dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
+			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
+			break;
+		case 2:
+			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
+			dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
+			break;
+		case 3:
+			dist1 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
+			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
+			break;
+		case 4:
+			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
+			dist2 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
+			break;
+		case 5:
+			dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
+			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
+			break;
+		case 6:
+			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
+			dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
+			break;
+		case 7:
+			dist1 = DotProduct(p->normal, emins);
+			dist2 = DotProduct(p->normal, emaxs);
+			break;
+		default:
+			dist1 = dist2 = 0.0; // shut up compiler
+			break;
 	}
 
 	sides = 0;
@@ -724,83 +724,87 @@ _Bool GlobMatch(const char *pattern, const char *text) {
 	const char *p = pattern, *t = text;
 	register char c;
 
+	if (!p || !t) {
+		return false;
+	}
+
 	while ((c = *p++) != '\0')
 		switch (c) {
-		case '?':
-			if (*t == '\0')
-				return 0;
-			else
-				++t;
-			break;
+			case '?':
+				if (*t == '\0')
+					return 0;
+				else
+					++t;
+				break;
 
-		case '\\':
-			if (*p++ != *t++)
-				return 0;
-			break;
+			case '\\':
+				if (*p++ != *t++)
+					return 0;
+				break;
 
-		case '*':
-			return GlobMatchStar(p, t);
+			case '*':
+				return GlobMatchStar(p, t);
 
-		case '[': {
-			register char c1 = *t++;
-			int32_t invert;
+			case '[': {
+				register char c1 = *t++;
+				int32_t invert;
 
-			if (!c1)
-				return 0;
-
-			invert = ((*p == '!') || (*p == '^'));
-			if (invert)
-				p++;
-
-			c = *p++;
-			while (true) {
-				register char cstart = c, cend = c;
-
-				if (c == '\\') {
-					cstart = *p++;
-					cend = cstart;
-				}
-				if (c == '\0')
+				if (!c1)
 					return 0;
 
+				invert = ((*p == '!') || (*p == '^'));
+				if (invert)
+					p++;
+
 				c = *p++;
-				if (c == '-' && *p != ']') {
-					cend = *p++;
-					if (cend == '\\')
+				while (true) {
+					register char cstart = c, cend = c;
+
+					if (c == '\\') {
+						cstart = *p++;
+						cend = cstart;
+					}
+					if (c == '\0')
+						return 0;
+
+					c = *p++;
+					if (c == '-' && *p != ']') {
 						cend = *p++;
-					if (cend == '\0')
+						if (cend == '\\')
+							cend = *p++;
+						if (cend == '\0')
+							return 0;
+						c = *p++;
+					}
+					if (c1 >= cstart && c1 <= cend)
+						goto match;
+					if (c == ']')
+						break;
+				}
+				if (!invert)
+					return 0;
+				break;
+
+				match:
+				/* Skip the rest of the [...] construct that already matched. */
+				while (c != ']') {
+					if (c == '\0')
 						return 0;
 					c = *p++;
+					if (c == '\0')
+						return 0;
+					else if (c == '\\')
+						++p;
 				}
-				if (c1 >= cstart && c1 <= cend)
-					goto match;
-				if (c == ']')
-					break;
-			}
-			if (!invert)
-				return 0;
-			break;
-
-			match:
-			/* Skip the rest of the [...] construct that already matched. */
-			while (c != ']') {
-				if (c == '\0')
+				if (invert)
 					return 0;
-				c = *p++;
-				if (c == '\0')
-					return 0;
-				else if (c == '\\')
-					++p;
+				break;
 			}
-			if (invert)
-				return 0;
-			break;
-		}
 
-		default:
-			if (c != *t++)
-				return 0;
-			break;
+			default:
+				if (c != *t++)
+					return 0;
+				break;
 		}
 
 	return *t == '\0';
