@@ -47,7 +47,6 @@ typedef struct {
 
 static r_default_program_t r_default_program;
 
-
 /*
  * @brief
  */

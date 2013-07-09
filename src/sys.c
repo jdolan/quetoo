@@ -30,8 +30,6 @@
 #include <pwd.h>
 #else
 #include <windows.h>
-#define CSIDL_APPDATA  0x001a
-#define CSIDL_PERSONAL 0x0005
 #endif
 
 #ifdef __APPLE__
@@ -48,14 +46,14 @@
  */
 uint32_t Sys_Milliseconds(void) {
 	static uint32_t base;
-	struct timeval tp;
+	GTimeVal time;
 
-	gettimeofday(&tp, NULL);
+	g_get_current_time(&time);
 
 	if (!base)
-		base = tp.tv_sec;
+		base = time.tv_sec;
 
-	return (tp.tv_sec - base) * 1000 + tp.tv_usec / 1000;
+	return (time.tv_sec - base) * 1000 + time.tv_usec / 1000;
 }
 
 /*
