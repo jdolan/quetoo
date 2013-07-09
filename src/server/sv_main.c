@@ -53,8 +53,8 @@ void Sv_DropClient(sv_client_t *cl) {
 			svs.game->ClientDisconnect(cl->edict);
 		}
 
-		Msg_WriteByte(&cl->netchan.message, SV_CMD_DISCONNECT);
-		Netchan_Transmit(&cl->netchan, cl->netchan.message.size, cl->netchan.message.data);
+		Msg_WriteByte(&cl->net_chan.message, SV_CMD_DISCONNECT);
+		Netchan_Transmit(&cl->net_chan, cl->net_chan.message.size, cl->net_chan.message.data);
 	}
 
 	if (cl->download.buffer) {
@@ -270,7 +270,7 @@ static void Svc_Connect(void) {
 	// first check for an ungraceful reconnect (client crashed, perhaps)
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
-		const net_chan_t *ch = &cl->netchan;
+		const net_chan_t *ch = &cl->net_chan;
 
 		if (cl->state == SV_CLIENT_FREE) // not in use, not interested
 			continue;
@@ -321,7 +321,7 @@ static void Svc_Connect(void) {
 	// send the connect packet to the client
 	Netchan_OutOfBandPrint(NS_SERVER, addr, "client_connect %s", sv_download_url->string);
 
-	Netchan_Setup(NS_SERVER, &client->netchan, addr, qport);
+	Netchan_Setup(NS_SERVER, &client->net_chan, addr, qport);
 
 	Sb_Init(&client->datagram, client->datagram_buf, sizeof(client->datagram_buf));
 	client->datagram.allow_overflow = true;
@@ -531,19 +531,19 @@ static void Sv_ReadPackets(void) {
 			if (cl->state == SV_CLIENT_FREE)
 				continue;
 
-			if (!Net_CompareClientNetaddr(net_from, cl->netchan.remote_address))
+			if (!Net_CompareClientNetaddr(net_from, cl->net_chan.remote_address))
 				continue;
 
-			if (cl->netchan.qport != qport)
+			if (cl->net_chan.qport != qport)
 				continue;
 
-			if (cl->netchan.remote_address.port != net_from.port) {
+			if (cl->net_chan.remote_address.port != net_from.port) {
 				Com_Warn("Fixing up a translated port\n");
-				cl->netchan.remote_address.port = net_from.port;
+				cl->net_chan.remote_address.port = net_from.port;
 			}
 
 			// this is a valid, sequenced packet, so process it
-			if (Netchan_Process(&cl->netchan, &net_message)) {
+			if (Netchan_Process(&cl->net_chan, &net_message)) {
 				cl->last_message = svs.real_time; // nudge timeout
 				Sv_ParseClientMessage(cl);
 			}
@@ -719,7 +719,7 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
  * @brief A convenience function for printing out client addresses.
  */
 char *Sv_NetaddrToString(sv_client_t *cl) {
-	return Net_NetaddrToString(cl->netchan.remote_address);
+	return Net_NetaddrToString(cl->net_chan.remote_address);
 }
 
 #define MIN_RATE 8000

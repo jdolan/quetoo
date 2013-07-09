@@ -257,7 +257,7 @@ typedef struct cl_static_s {
 	char server_name[MAX_OSPATH]; // name of server to connect to
 	uint32_t connect_time; // for connection retransmits
 
-	net_chan_t netchan; // network channel
+	net_chan_t net_chan; // network channel
 
 	uint32_t challenge; // from the server to use for connecting
 	uint32_t spawn_count;

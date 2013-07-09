@@ -116,7 +116,7 @@ typedef struct sv_client_s {
 	sv_download_t download; // UDP file downloads
 
 	uint32_t last_message; // svs.real_time when packet was last received
-	net_chan_t netchan;
+	net_chan_t net_chan;
 } sv_client_t;
 
 // the server runs fixed-interval frames at a configurable rate (Hz)

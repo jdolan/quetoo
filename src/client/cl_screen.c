@@ -65,14 +65,14 @@ void Cl_AddNetGraph(void) {
 	if (!cl_draw_net_graph->value)
 		return;
 
-	for (i = 0; i < cls.netchan.dropped; i++)
+	for (i = 0; i < cls.net_chan.dropped; i++)
 		Cl_NetGraph(1.0, 0x40);
 
 	for (i = 0; i < cl.surpress_count; i++)
 		Cl_NetGraph(1.0, 0xdf);
 
 	// see what the latency was on this packet
-	in = cls.netchan.incoming_acknowledged & (CMD_BACKUP - 1);
+	in = cls.net_chan.incoming_acknowledged & (CMD_BACKUP - 1);
 	ping = cls.real_time - cl.cmd_time[in];
 
 	Cl_NetGraph(ping / 300.0, 0xd0); // 300ms is lagged out

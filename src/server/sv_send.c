@@ -34,9 +34,9 @@ void Sv_FlushRedirect(const int32_t target, char *outputbuf) {
 		Netchan_OutOfBandPrint(NS_SERVER, net_from, "print\n%s", outputbuf);
 		break;
 	case RD_CLIENT:
-		Msg_WriteByte(&sv_client->netchan.message, SV_CMD_PRINT);
-		Msg_WriteByte(&sv_client->netchan.message, PRINT_HIGH);
-		Msg_WriteString(&sv_client->netchan.message, outputbuf);
+		Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_PRINT);
+		Msg_WriteByte(&sv_client->net_chan.message, PRINT_HIGH);
+		Msg_WriteString(&sv_client->net_chan.message, outputbuf);
 		break;
 	default:
 		Com_Debug("Sv_FlushRedirect: %d\n", target);
@@ -75,9 +75,9 @@ void Sv_ClientPrint(const g_edict_t *ent, const int32_t level, const char *fmt, 
 	vsprintf(string, fmt, args);
 	va_end(args);
 
-	Msg_WriteByte(&cl->netchan.message, SV_CMD_PRINT);
-	Msg_WriteByte(&cl->netchan.message, level);
-	Msg_WriteString(&cl->netchan.message, string);
+	Msg_WriteByte(&cl->net_chan.message, SV_CMD_PRINT);
+	Msg_WriteByte(&cl->net_chan.message, level);
+	Msg_WriteString(&cl->net_chan.message, string);
 }
 
 /*
@@ -113,9 +113,9 @@ void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) {
 		if (cl->state != SV_CLIENT_ACTIVE)
 			continue;
 
-		Msg_WriteByte(&cl->netchan.message, SV_CMD_PRINT);
-		Msg_WriteByte(&cl->netchan.message, level);
-		Msg_WriteString(&cl->netchan.message, string);
+		Msg_WriteByte(&cl->net_chan.message, SV_CMD_PRINT);
+		Msg_WriteByte(&cl->net_chan.message, level);
+		Msg_WriteString(&cl->net_chan.message, string);
 	}
 }
 
@@ -154,7 +154,7 @@ void Sv_Unicast(const g_edict_t *ent, const _Bool reliable) {
 	cl = svs.clients + (n - 1);
 
 	if (reliable)
-		Sb_Write(&cl->netchan.message, sv.multicast.data, sv.multicast.size);
+		Sb_Write(&cl->net_chan.message, sv.multicast.data, sv.multicast.size);
 	else
 		Sb_Write(&cl->datagram, sv.multicast.data, sv.multicast.size);
 
@@ -246,7 +246,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 		}
 
 		if (reliable)
-			Sb_Write(&client->netchan.message, sv.multicast.data, sv.multicast.size);
+			Sb_Write(&client->net_chan.message, sv.multicast.data, sv.multicast.size);
 		else
 			Sb_Write(&client->datagram, sv.multicast.data, sv.multicast.size);
 	}
@@ -357,7 +357,7 @@ static _Bool Sv_SendClientDatagram(sv_client_t *client) {
 	}
 
 	// send the datagram
-	Netchan_Transmit(&client->netchan, msg.size, msg.data);
+	Netchan_Transmit(&client->net_chan, msg.size, msg.data);
 
 	// record the size for rate estimation
 	client->message_size[sv.frame_num % CLIENT_RATE_MESSAGES] = msg.size;
@@ -380,7 +380,7 @@ static _Bool Sv_RateDrop(sv_client_t *c) {
 	uint16_t i;
 
 	// never drop over the loopback
-	if (c->netchan.remote_address.type == NA_LOCAL)
+	if (c->net_chan.remote_address.type == NA_LOCAL)
 		return false;
 
 	total = 0;
@@ -454,8 +454,8 @@ void Sv_SendClientMessages(void) {
 		if (!c->state) // don't bother
 			continue;
 
-		if (c->netchan.message.overflowed) { // drop the client
-			Sb_Clear(&c->netchan.message);
+		if (c->net_chan.message.overflowed) { // drop the client
+			Sb_Clear(&c->net_chan.message);
 			Sb_Clear(&c->datagram);
 			Sv_BroadcastPrint(PRINT_HIGH, "%s overflowed\n", c->name);
 			Sv_DropClient(c);
@@ -466,7 +466,7 @@ void Sv_SendClientMessages(void) {
 			size_t size;
 
 			if ((size = Sv_GetDemoMessage(buffer))) {
-				Netchan_Transmit(&c->netchan, size, buffer);
+				Netchan_Transmit(&c->net_chan, size, buffer);
 			}
 		} else if (c->state == SV_CLIENT_ACTIVE) { // send the game packet
 
@@ -475,8 +475,8 @@ void Sv_SendClientMessages(void) {
 
 			Sv_SendClientDatagram(c);
 		} else { // just update reliable if needed
-			if (c->netchan.message.size || quake2world.time - c->netchan.last_sent > 1000)
-				Netchan_Transmit(&c->netchan, 0, NULL);
+			if (c->net_chan.message.size || quake2world.time - c->net_chan.last_sent > 1000)
+				Netchan_Transmit(&c->net_chan, 0, NULL);
 		}
 	}
 }

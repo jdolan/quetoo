@@ -82,8 +82,8 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 				Com_Debug("Resuming %s...\n", cls.download.name);
 
 				g_snprintf(cmd, sizeof(cmd), "download %s %u", cls.download.name, (uint32_t) len);
-				Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
-				Msg_WriteString(&cls.netchan.message, cmd);
+				Msg_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
+				Msg_WriteString(&cls.net_chan.message, cmd);
 
 				return false;
 			}
@@ -94,8 +94,8 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 	Com_Debug("Downloading %s...\n", cls.download.name);
 
 	g_snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
-	Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
-	Msg_WriteString(&cls.netchan.message, cmd);
+	Msg_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
+	Msg_WriteString(&cls.net_chan.message, cmd);
 
 	return false;
 }
@@ -218,8 +218,8 @@ static void Cl_ParseDownload(void) {
 	net_message.read += size;
 
 	if (percent != 100) {
-		Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
-		Sb_Print(&cls.netchan.message, "nextdl");
+		Msg_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
+		Sb_Print(&cls.net_chan.message, "nextdl");
 	} else {
 		Fs_Close(cls.download.file);
 		cls.download.file = NULL;

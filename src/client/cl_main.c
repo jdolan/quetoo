@@ -175,7 +175,7 @@ static void Cl_Rcon_f(void) {
 	}
 
 	if (cls.state >= CL_CONNECTED)
-		to = cls.netchan.remote_address;
+		to = cls.net_chan.remote_address;
 	else {
 		if (*rcon_address->string == '\0') {
 			Com_Print("Not connected and no rcon_address set\n");
@@ -204,8 +204,8 @@ static void Cl_ForwardCmdToServer(void) {
 	const char *cmd = Cmd_Argv(0);
 	const char *args = Cmd_Args();
 
-	Msg_WriteByte(&cls.netchan.message, CL_CMD_STRING);
-	Sb_Print(&cls.netchan.message, va("%s %s", cmd, args));
+	Msg_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
+	Sb_Print(&cls.net_chan.message, va("%s %s", cmd, args));
 
 	//Com_Debug("Forwarding '%s %s'\n", cmd, args);
 }
@@ -225,7 +225,7 @@ void Cl_ClearState(void) {
 
 	Com_QuitSubsystem(Q2W_CLIENT);
 
-	Sb_Clear(&cls.netchan.message);
+	Sb_Clear(&cls.net_chan.message);
 }
 
 /*
@@ -245,9 +245,9 @@ void Cl_SendDisconnect(void) {
 	// send a disconnect message to the server
 	final[0] = CL_CMD_STRING;
 	strcpy((char *) final + 1, "disconnect");
-	Netchan_Transmit(&cls.netchan, strlen((char *) final), final);
-	Netchan_Transmit(&cls.netchan, strlen((char *) final), final);
-	Netchan_Transmit(&cls.netchan, strlen((char *) final), final);
+	Netchan_Transmit(&cls.net_chan, strlen((char *) final), final);
+	Netchan_Transmit(&cls.net_chan, strlen((char *) final), final);
+	Netchan_Transmit(&cls.net_chan, strlen((char *) final), final);
 
 	Cl_ClearState();
 
@@ -364,9 +364,9 @@ static void Cl_ConnectionlessPacket(void) {
 		}
 
 		const byte qport = (byte) Cvar_GetValue("net_qport");
-		Netchan_Setup(NS_CLIENT, &cls.netchan, net_from, qport);
-		Msg_WriteChar(&cls.netchan.message, CL_CMD_STRING);
-		Msg_WriteString(&cls.netchan.message, "new");
+		Netchan_Setup(NS_CLIENT, &cls.net_chan, net_from, qport);
+		Msg_WriteChar(&cls.net_chan.message, CL_CMD_STRING);
+		Msg_WriteString(&cls.net_chan.message, "new");
 		cls.state = CL_CONNECTED;
 
 		memset(cls.download_url, 0, sizeof(cls.download_url));
@@ -439,19 +439,19 @@ static void Cl_ReadPackets(void) {
 		}
 
 		// packet from server
-		if (!Net_CompareNetaddr(net_from, cls.netchan.remote_address)) {
+		if (!Net_CompareNetaddr(net_from, cls.net_chan.remote_address)) {
 			Com_Debug("%s: Sequenced packet without connection\n", Net_NetaddrToString(net_from));
 			continue;
 		}
 
-		if (!Netchan_Process(&cls.netchan, &net_message))
+		if (!Netchan_Process(&cls.net_chan, &net_message))
 			continue; // wasn't accepted for some reason
 
 		Cl_ParseServerMessage();
 	}
 
 	// check timeout
-	if (cls.state >= CL_CONNECTED && cls.real_time - cls.netchan.last_received > cl_timeout->value
+	if (cls.state >= CL_CONNECTED && cls.real_time - cls.net_chan.last_received > cl_timeout->value
 			* 1000) {
 		Com_Print("%s: Timed out.\n", Net_NetaddrToString(net_from));
 		Cl_Disconnect();

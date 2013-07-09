@@ -207,13 +207,13 @@ static void Sv_Status_f(void) {
 
 		Com_Print("%7i ", svs.real_time - cl->last_message);
 
-		s = Net_NetaddrToString(cl->netchan.remote_address);
+		s = Net_NetaddrToString(cl->net_chan.remote_address);
 		Com_Print("%s", s);
 		l = 22 - strlen(s);
 		for (j = 0; j < l; j++)
 			Com_Print(" ");
 
-		Com_Print("%5i", (int32_t) cl->netchan.qport);
+		Com_Print("%5i", (int32_t) cl->net_chan.qport);
 
 		Com_Print("\n");
 	}
@@ -369,8 +369,8 @@ static void Sv_Stuff_f(void) {
 		g_strlcat(text, Cmd_Argv(i), sizeof(text));
 	}
 
-	Msg_WriteByte(&sv_client->netchan.message, SV_CMD_CBUF_TEXT);
-	Msg_WriteString(&sv_client->netchan.message, va("%s\n", text));
+	Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
+	Msg_WriteString(&sv_client->net_chan.message, va("%s\n", text));
 }
 
 /*
