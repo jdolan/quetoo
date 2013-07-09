@@ -23,19 +23,22 @@
 
 #ifdef BUILD_CLIENT
 
-/* Work-around for a conflict between windows.h and jpeglib.h.
- If ADDRESS_TAG_BIT is defined then BaseTsd.h has been included and
- INT32 has been defined with a typedef, so we must define XMD_H to
- prevent the jpeg header from defining it again. */
-
-/* And another one... jmorecfg.h defines the 'boolean' type as int,
- which conflicts with the standard Windows 'boolean' definition as
- byte. Ref: http://www.asmail.be/msg0054688232.html */
+/*
+ * Work-around for conflicts between windows.h and jpeglib.h.
+ *
+ * If ADDRESS_TAG_BIT is defined then BaseTsd.h has been included and INT32
+ * has been defined with a typedef, so we must define XMD_H to prevent the JPEG
+ * header from defining it again.
+ *
+ * Next up, jmorecfg.h defines the 'boolean' type as int, which conflicts with
+ * the standard Windows 'boolean' definition as byte.
+ *
+ * @see http://www.asmail.be/msg0054688232.html
+ */
 
 #if defined(_WIN32)
-/* typedef "boolean" as byte to match rpcndr.h */
 typedef byte boolean;
-#define HAVE_BOOLEAN    /* prevent jmorecfg.h from typedef-ing it as int32_t */
+#define HAVE_BOOLEAN
 #endif
 
 # if defined(__WIN32__) && defined(ADDRESS_TAG_BIT) && !defined(XMD_H)
@@ -48,29 +51,20 @@ typedef byte boolean;
 #  undef XMD_H
 # endif
 
-// 8bit palette for wal images and particles
-#define PALETTE "pics/colormap"
-uint32_t palette[256];
-_Bool palette_initialized = false;
+#define IMG_PALETTE "pics/colormap"
 
-// .wal file header for loading legacy .wal textures
-typedef struct miptex_s {
-	char name[32];
-	uint32_t width, height;
-	uint32_t offsets[4]; // four mip maps stored
-	char animname[32]; // next frame in animation chain
-	uint32_t flags;
-	int32_t contents;
-	int32_t value;
-} miptex_t;
+img_palette_t img_palette;
+static _Bool img_palette_initialized;
 
-// default pixel format to which all images are converted
+// RGBA color masks
 #define RMASK 0x000000ff
 #define GMASK 0x0000ff00
 #define BMASK 0x00ff0000
 #define AMASK 0xff000000
 
-SDL_PixelFormat format = { NULL, // palette
+static SDL_PixelFormat img_pixel_format = {
+// default pixel format all images are converted to
+		NULL, // palette
 		32, // bits
 		4, // bytes
 		0, // rloss
@@ -90,7 +84,7 @@ SDL_PixelFormat format = { NULL, // palette
 		};
 
 // image formats, tried in this order
-const char *IMAGE_TYPES[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
+static const char *img_formats[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
 
 /*
  * @brief Loads the specified image from the game filesystem and populates
@@ -101,8 +95,8 @@ _Bool Img_LoadImage(const char *name, SDL_Surface **surf) {
 	int32_t i;
 
 	i = 0;
-	while (IMAGE_TYPES[i]) {
-		if (Img_LoadTypedImage(name, IMAGE_TYPES[i++], surf))
+	while (img_formats[i]) {
+		if (Img_LoadTypedImage(name, img_formats[i++], surf))
 			return true;
 	}
 
@@ -123,32 +117,32 @@ static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	if (Fs_Load(path, &buf) == -1)
 		return false;
 
-	miptex_t *mt = (miptex_t *) buf;
+	d_wal_t *wal = (d_wal_t *) buf;
 
-	mt->width = LittleLong(mt->width);
-	mt->height = LittleLong(mt->height);
+	wal->width = LittleLong(wal->width);
+	wal->height = LittleLong(wal->height);
 
-	mt->offsets[0] = LittleLong(mt->offsets[0]);
+	wal->offsets[0] = LittleLong(wal->offsets[0]);
 
-	if (!palette_initialized) // lazy-load palette if necessary
+	if (!img_palette_initialized) // lazy-load palette if necessary
 		Img_InitPalette();
 
-	size_t size = mt->width * mt->height;
+	size_t size = wal->width * wal->height;
 	uint32_t *p = (uint32_t *) malloc(size * sizeof(uint32_t));
 
-	b = (byte *) mt + mt->offsets[0];
+	b = (byte *) wal + wal->offsets[0];
 
 	for (i = 0; i < size; i++) { // convert to 32bpp RGBA via palette
 		if (b[i] == 255) // transparent
 			p[i] = 0;
 		else
-			p[i] = palette[b[i]];
+			p[i] = img_palette[b[i]];
 	}
 
 	Fs_Free(buf);
 
 	// create the RGBA surface
-	if ((*surf = SDL_CreateRGBSurfaceFrom(p, mt->width, mt->height, 32, 0, RMASK, GMASK, BMASK,
+	if ((*surf = SDL_CreateRGBSurfaceFrom(p, wal->width, wal->height, 32, 0, RMASK, GMASK, BMASK,
 			AMASK))) {
 
 		// trick SDL into freeing the pixel data with the surface
@@ -183,8 +177,8 @@ _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf)
 			SDL_Surface *s;
 			if ((s = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
 
-				if (!g_str_has_prefix(path, PALETTE)) {
-					*surf = SDL_ConvertSurface(s, &format, 0);
+				if (!g_str_has_prefix(path, IMG_PALETTE)) {
+					*surf = SDL_ConvertSurface(s, &img_pixel_format, 0);
 					SDL_FreeSurface(s);
 				} else {
 					*surf = s;
@@ -207,23 +201,23 @@ void Img_InitPalette(void) {
 	uint32_t v;
 	int32_t i;
 
-	if (!Img_LoadTypedImage(PALETTE, "pcx", &surf))
+	if (!Img_LoadTypedImage(IMG_PALETTE, "pcx", &surf))
 		return;
 
-	for (i = 0; i < 256; i++) {
+	for (i = 0; i < IMG_PALETTE_SIZE; i++) {
 		r = surf->format->palette->colors[i].r;
 		g = surf->format->palette->colors[i].g;
 		b = surf->format->palette->colors[i].b;
 
 		v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
-		palette[i] = LittleLong(v);
+		img_palette[i] = LittleLong(v);
 	}
 
-	palette[255] &= LittleLong(0xffffff); // 255 is transparent
+	img_palette[IMG_PALETTE_SIZE - 1] &= LittleLong(0xffffff); // 255 is transparent
 
 	SDL_FreeSurface(surf);
 
-	palette_initialized = true;
+	img_palette_initialized = true;
 }
 
 /*
@@ -232,10 +226,10 @@ void Img_InitPalette(void) {
 void Img_ColorFromPalette(byte c, vec_t *res) {
 	uint32_t color;
 
-	if (!palette_initialized) // lazy-load palette if necessary
+	if (!img_palette_initialized) // lazy-load palette if necessary
 		Img_InitPalette();
 
-	color = palette[c];
+	color = img_palette[c];
 
 	res[0] = (color >> 0 & 255) / 255.0;
 	res[1] = (color >> 8 & 255) / 255.0;

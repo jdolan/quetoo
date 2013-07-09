@@ -330,7 +330,7 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 	if (a < 0.0) { // RGBA integer
 		memcpy(color, &c, 4);
 	} else { // palette index
-		memcpy(color, &palette[c], sizeof(color));
+		memcpy(color, &img_palette[c], sizeof(color));
 		color[3] = a * 255;
 	}
 
@@ -401,7 +401,7 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 	if (a < 0.0) { // RGBA integer
 		memcpy(color, &c, 4);
 	} else { // palette index
-		memcpy(color, &palette[c], sizeof(color));
+		memcpy(color, &img_palette[c], sizeof(color));
 		color[3] = a * 255;
 	}
 

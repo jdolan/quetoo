@@ -177,7 +177,7 @@ static void R_ParticleColor(const r_particle_t *p, GLubyte *out) {
 	int32_t i;
 
 	for (i = 0; i < 4; i++) {
-		memcpy(out, &palette[p->color], 4);
+		memcpy(out, &img_palette[p->color], 4);
 		out[3] = Clamp(p->alpha * 255, 0, 255);
 		out += 4;
 	}

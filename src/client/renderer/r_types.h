@@ -25,6 +25,7 @@
 #include <SDL/SDL_opengl.h>
 
 #include "files.h"
+#include "image.h"
 #include "thread.h"
 #include "r_matrix.h"
 

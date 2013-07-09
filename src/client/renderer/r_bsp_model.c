@@ -268,6 +268,18 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		out->value = LittleLong(in->value);
 
 		out->material = R_LoadMaterial(va("textures/%s", out->name));
+
+		// Hack to down-scale high-res textures for legacy levels
+		if (bsp->version == BSP_VERSION) {
+			void *buffer;
+
+			int64_t len = Fs_Load(va("textures/%s.wal", out->name), &buffer);
+			if (len != -1) {
+				d_wal_t *wal = (d_wal_t *) buffer;
+				out->material->diffuse->width = LittleLong(wal->width);
+				out->material->diffuse->height = LittleLong(wal->height);
+			}
+		}
 	}
 }
 

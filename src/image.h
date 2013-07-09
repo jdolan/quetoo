@@ -22,13 +22,17 @@
 #ifndef __IMAGE_H__
 #define __IMAGE_H__
 
+#include "files.h"
 #include "filesystem.h"
 
 #ifdef BUILD_CLIENT
 #include <SDL/SDL_image.h>
 
 // 8 bit palette for .wal images and particles
-extern uint32_t palette[256];
+#define IMG_PALETTE_SIZE 256
+
+typedef uint32_t img_palette_t[IMG_PALETTE_SIZE];
+extern img_palette_t img_palette;
 
 _Bool Img_LoadImage(const char *name, SDL_Surface **surf);
 _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf);

@@ -25,11 +25,22 @@
 #include "shared.h"
 
 /*
-
- .MD3 model format
-
+ * @brief Quake2 .wal legacy texture format.
  */
+typedef struct {
+	char name[32];
+	uint32_t width;
+	uint32_t height;
+	uint32_t offsets[4]; // four mip maps stored
+	char anim_name[32]; // next frame in animation chain, not used
+	uint32_t flags;
+	int32_t contents;
+	int32_t value;
+} d_wal_t;
 
+/*
+ * @brief Quake3 .md3 model format.
+ */
 #define MD3_HEADER			(('3'<<24)+('P'<<16)+('D'<<8)+'I')
 #define MD3_VERSION			15
 
@@ -117,9 +128,14 @@ typedef struct {
 } d_md3_t;
 
 /*
-
- .BSP file format
-
+ * @brief .bsp file format. Quake2World supports idTech2 BSP as well as an
+ * extended version containing per-pixel lighting information (deluxemaps) and
+ * vertex normals (BSP_LUMP_NORMALS).
+ *
+ * Some of the arbitrary limits set in Quake2 have been increased to support
+ * larger or more complex levels (i.e. visibility and lightmap lumps).
+ *
+ * Quake2World BSP identifies itself with BSP_VERSION_Q2W.
  */
 
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
@@ -321,9 +337,7 @@ typedef struct {
 } d_bsp_area_t;
 
 /*
-
- .AAS Format
-
+ * @brief .aas format. Under heavy construction.
  */
 
 #define AAS_IDENT (('S' << 24) + ('A' << 16) + ('A' << 8) + 'Q') // "QAAS"

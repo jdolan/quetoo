@@ -92,7 +92,7 @@ typedef struct cg_import_s {
 	r_view_t *view;
 
 	// 256 color palette for particle and effect colors
-	unsigned *palette;
+	img_palette_t *palette;
 	void (*ColorFromPalette)(byte c, vec_t *res);
 
 	// RGB color management
