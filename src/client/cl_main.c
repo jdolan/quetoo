@@ -20,6 +20,7 @@
  */
 
 #include "cl_local.h"
+#include "../server/server.h"
 
 cvar_t *cl_async;
 cvar_t *cl_chat_sound;
@@ -50,8 +51,6 @@ cvar_t *skin;
 
 cl_static_t cls;
 cl_client_t cl;
-
-extern void Sv_ShutdownServer(const char *msg);
 
 /*
  * @brief We have gotten a challenge from the server, so try and connect.

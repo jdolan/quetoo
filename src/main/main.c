@@ -76,7 +76,7 @@ static void Error(err_t err, const char *msg) {
 	switch (err) {
 		case ERR_NONE:
 		case ERR_DROP:
-			Sv_Shutdown(msg);
+			Sv_ShutdownServer(msg);
 
 #ifdef BUILD_CLIENT
 			Cl_Disconnect();

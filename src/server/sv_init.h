@@ -24,11 +24,12 @@
 
 #include "sv_types.h"
 
+void Sv_ShutdownServer(const char *msg);
+
 #ifdef __SV_LOCAL_H__
 uint16_t Sv_ModelIndex(const char *name);
 uint16_t Sv_SoundIndex(const char *name);
 uint16_t Sv_ImageIndex(const char *name);
-void Sv_ShutdownServer(const char *msg);
 void Sv_InitServer(const char *name, sv_state_t state);
 #endif /* __SV_LOCAL_H__ */
 
