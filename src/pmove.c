@@ -1041,7 +1041,7 @@ static void Pm_SnapPosition(void) {
 	}
 
 	// go back to the last position
-	Com_Debug("Pm_SnapPosition: Failed to snap to good position: %s.\n", vtos(pml.origin));
+	Com_Debug("Failed to snap to good position: %s.\n", vtos(pml.origin));
 	VectorCopy(pml.previous_origin, pm->s.origin);
 }
 

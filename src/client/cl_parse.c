@@ -75,7 +75,7 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 	if (Fs_Exists(cls.download.tempname)) { // a temp file exists, resume download
 		int64_t len = Fs_Load(cls.download.tempname, NULL);
 
-		if((cls.download.file = Fs_OpenAppend(cls.download.tempname))) {
+		if ((cls.download.file = Fs_OpenAppend(cls.download.tempname))) {
 
 			if (Fs_Seek(cls.download.file, len - 1)) {
 				// give the server the offset to start the download
@@ -390,79 +390,79 @@ void Cl_ParseServerMessage(void) {
 
 		switch (cmd) {
 
-		case SV_CMD_BASELINE:
-			Cl_ParseBaseline();
-			break;
+			case SV_CMD_BASELINE:
+				Cl_ParseBaseline();
+				break;
 
-		case SV_CMD_CBUF_TEXT:
-			s = Msg_ReadString(&net_message);
-			Cbuf_AddText(s);
-			break;
+			case SV_CMD_CBUF_TEXT:
+				s = Msg_ReadString(&net_message);
+				Cbuf_AddText(s);
+				break;
 
-		case SV_CMD_CONFIG_STRING:
-			Cl_ParseConfigString();
-			break;
+			case SV_CMD_CONFIG_STRING:
+				Cl_ParseConfigString();
+				break;
 
-		case SV_CMD_DISCONNECT:
-			Com_Error(ERR_DROP, "Server disconnected\n");
-			break;
+			case SV_CMD_DISCONNECT:
+				Com_Error(ERR_DROP, "Server disconnected\n");
+				break;
 
-		case SV_CMD_DOWNLOAD:
-			Cl_ParseDownload();
-			break;
+			case SV_CMD_DOWNLOAD:
+				Cl_ParseDownload();
+				break;
 
-		case SV_CMD_FRAME:
-			Cl_ParseFrame();
-			break;
+			case SV_CMD_FRAME:
+				Cl_ParseFrame();
+				break;
 
-		case SV_CMD_PRINT:
-			i = Msg_ReadByte(&net_message);
-			s = Msg_ReadString(&net_message);
-			if (i == PRINT_CHAT) {
-				if (Cl_IgnoreChatMessage(s)) // filter /ignore'd chatters
-					break;
-				if (*cl_chat_sound->string) // trigger chat sound
-					S_StartLocalSample(cl_chat_sound->string);
-			} else if (i == PRINT_TEAMCHAT) {
-				if (Cl_IgnoreChatMessage(s)) // filter /ignore'd chatters
-					break;
-				if (*cl_team_chat_sound->string) // trigger chat sound
-					S_StartLocalSample(cl_team_chat_sound->string);
-			}
-			Com_Print("%s", s);
-			break;
+			case SV_CMD_PRINT:
+				i = Msg_ReadByte(&net_message);
+				s = Msg_ReadString(&net_message);
+				if (i == PRINT_CHAT) {
+					if (Cl_IgnoreChatMessage(s)) // filter /ignore'd chatters
+						break;
+					if (*cl_chat_sound->string) // trigger chat sound
+						S_StartLocalSample(cl_chat_sound->string);
+				} else if (i == PRINT_TEAMCHAT) {
+					if (Cl_IgnoreChatMessage(s)) // filter /ignore'd chatters
+						break;
+					if (*cl_team_chat_sound->string) // trigger chat sound
+						S_StartLocalSample(cl_team_chat_sound->string);
+				}
+				Com_Print("%s", s);
+				break;
 
-		case SV_CMD_RECONNECT:
-			Com_Print("Server disconnected, reconnecting...\n");
-			// stop download
-			if (cls.download.file) {
-				if (cls.download.http) // clean up http downloads
-					Cl_HttpDownload_Complete();
-				else
-					// or just stop legacy ones
-					Fs_Close(cls.download.file);
-				cls.download.name[0] = '\0';
-				cls.download.file = NULL;
-			}
-			cls.state = CL_CONNECTING;
-			cls.connect_time = 0; // fire immediately
-			break;
+			case SV_CMD_RECONNECT:
+				Com_Print("Server disconnected, reconnecting...\n");
+				// stop download
+				if (cls.download.file) {
+					if (cls.download.http) // clean up http downloads
+						Cl_HttpDownload_Complete();
+					else
+						// or just stop legacy ones
+						Fs_Close(cls.download.file);
+					cls.download.name[0] = '\0';
+					cls.download.file = NULL;
+				}
+				cls.state = CL_CONNECTING;
+				cls.connect_time = 0; // fire immediately
+				break;
 
-		case SV_CMD_SERVER_DATA:
-			Cl_ParseServerData();
-			break;
+			case SV_CMD_SERVER_DATA:
+				Cl_ParseServerData();
+				break;
 
-		case SV_CMD_SOUND:
-			Cl_ParseSound();
-			break;
+			case SV_CMD_SOUND:
+				Cl_ParseSound();
+				break;
 
-		default:
-			// delegate to the client game module before failing
-			if (!cls.cgame->ParseMessage(cmd)) {
-				Com_Error(ERR_DROP, "Illegible server message:\n"
-					" %d: last command was %s\n", cmd, sv_cmd_names[old_cmd]);
-			}
-			break;
+			default:
+				// delegate to the client game module before failing
+				if (!cls.cgame->ParseMessage(cmd)) {
+					Com_Error(ERR_DROP, "Illegible server message:\n"
+							" %d: last command was %s\n", cmd, sv_cmd_names[old_cmd]);
+				}
+				break;
 		}
 	}
 

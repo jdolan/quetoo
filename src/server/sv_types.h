@@ -31,7 +31,7 @@ typedef enum {
 	SV_ACTIVE_DEMO
 } sv_state_t;
 
-typedef struct sv_server_s {
+typedef struct {
 	sv_state_t state; // precache commands are only valid during load
 
 	uint32_t time; // always sv.frame_num * 1000 / sv_packetrate->value
@@ -58,7 +58,7 @@ typedef enum {
 	SV_CLIENT_ACTIVE // client is spawned
 } sv_client_state_t;
 
-typedef struct sv_frame_s {
+typedef struct {
 	int32_t area_bytes;
 	byte area_bits[MAX_BSP_AREAS >> 3]; // portal area visibility bits
 	player_state_t ps;
@@ -69,6 +69,7 @@ typedef struct sv_frame_s {
 
 #define CLIENT_LATENCY_COUNTS 16  // frame latency, averaged to determine ping
 #define CLIENT_RATE_MESSAGES 10  // message size, used to enforce rate throttle
+
 /*
  * We check users movement command duration every so often to ensure that
  * they are not cheating. If their movement is too far out of sync with the
@@ -79,13 +80,30 @@ typedef struct sv_frame_s {
 #define CMD_MSEC_ALLOWABLE_DRIFT  CMD_MSEC_CHECK_INTERVAL + 150
 #define CMD_MSEC_MAX_DRIFT_ERRORS  10
 
-typedef struct sv_download_s {
+typedef struct {
 	byte *buffer;
 	int32_t size;
 	int32_t count;
 } sv_download_t;
 
-typedef struct sv_client_s {
+#define MAX_FRAME_SIZE 8192 // max buffer size of a frame, to be packetized
+
+typedef struct {
+	size_t offset;
+	size_t len;
+} sv_client_message_t;
+
+/*
+ * @brief A datagram structure that maintains individual message offsets so
+ * that it may be safely fragmented for delivery.
+ */
+typedef struct {
+	size_buf_t buffer; // the managed size buffer
+	byte data[MAX_FRAME_SIZE]; // the raw message buffer
+	GList *messages; // message segmentation
+} sv_client_datagram_t;
+
+typedef struct {
 	sv_client_state_t state;
 
 	char user_info[MAX_USER_INFO_STRING]; // name, skin, etc
@@ -108,8 +126,8 @@ typedef struct sv_client_s {
 
 	// the datagram is written to by sound calls, prints, temp ents, etc.
 	// it can be overflowed without consequence.
-	size_buf_t datagram;
-	byte datagram_buf[MAX_MSG_SIZE];
+	// it is packetized and written to the client, then wiped, each frame.
+	sv_client_datagram_t datagram;
 
 	sv_frame_t frames[UPDATE_BACKUP]; // updates can be delta'd from here
 
@@ -120,17 +138,17 @@ typedef struct sv_client_s {
 } sv_client_t;
 
 // the server runs fixed-interval frames at a configurable rate (Hz)
-#define SERVER_HZ_MIN 20
-#define SERVER_HZ_MAX 120
-#define SERVER_HZ 30
+#define SV_HZ_MIN 20
+#define SV_HZ_MAX 120
+#define SV_HZ 30
 
 // clients will be dropped after no activity in so many seconds
-#define SERVER_TIMEOUT 60
+#define SV_TIMEOUT 60
 
 #define MAX_MASTERS	8  // max recipients for heartbeat packets
 // challenges are a request for a connection; a handshake the client receives
 // and must then re-use to acquire a client slot
-typedef struct sv_challenge_s {
+typedef struct {
 	net_addr_t addr;
 	uint32_t challenge;
 	uint32_t time;
@@ -140,7 +158,7 @@ typedef struct sv_challenge_s {
 // could cycle all of them out before legitimate users connected.
 #define MAX_CHALLENGES 1024
 
-typedef struct sv_static_s {
+typedef struct {
 	_Bool initialized; // sv_init has completed
 	uint32_t real_time; // always increasing, no clamping, etc
 

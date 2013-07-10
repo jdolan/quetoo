@@ -94,7 +94,7 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
  * NULL will be returned if the end of the list is reached.
  *
  * Example:
- *   G_Find(NULL, EEOFS(class_name), "info_player_deathmatch");
+ *   G_Find(NULL, EOFS(class_name), "info_player_deathmatch");
  *
  */
 g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match) {

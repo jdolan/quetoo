@@ -323,8 +323,8 @@ static void Svc_Connect(void) {
 
 	Netchan_Setup(NS_SERVER, &client->net_chan, addr, qport);
 
-	Sb_Init(&client->datagram, client->datagram_buf, sizeof(client->datagram_buf));
-	client->datagram.allow_overflow = true;
+	Sb_Init(&client->datagram.buffer, client->datagram.data, sizeof(client->datagram.data));
+	client->datagram.buffer.allow_overflow = true;
 
 	client->last_message = svs.real_time; // don't timeout
 
@@ -848,7 +848,7 @@ static void Sv_InitLocal(void) {
 	sv_enforce_time = Cvar_Get("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, NULL);
 
 	sv_hostname = Cvar_Get("sv_hostname", "Quake2World", CVAR_SERVER_INFO | CVAR_ARCHIVE, NULL);
-	sv_hz = Cvar_Get("sv_hz", va("%d", SERVER_HZ), CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+	sv_hz = Cvar_Get("sv_hz", va("%d", SV_HZ), CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 
 	sv_public = Cvar_Get("sv_public", "0", 0, "Set to 1 to to advertise to the master server\n");
 
@@ -857,7 +857,7 @@ static void Sv_InitLocal(void) {
 	else
 		sv_max_clients = Cvar_Get("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 
-	sv_timeout = Cvar_Get("sv_timeout", va("%d", SERVER_TIMEOUT), 0, NULL);
+	sv_timeout = Cvar_Get("sv_timeout", va("%d", SV_TIMEOUT), 0, NULL);
 	sv_udp_download = Cvar_Get("sv_udp_download", "1", CVAR_ARCHIVE, NULL);
 
 	// set this so clients and server browsers can see it

@@ -57,7 +57,12 @@ char *Net_NetaddrToString(net_addr_t a);
 _Bool Net_StringToNetaddr(const char *s, net_addr_t *a);
 void Net_Sleep(uint32_t msec);
 
-#define MAX_MSG_SIZE 1400 // max length of a message
+/*
+ * @brief Max length of a single packet, due to UDP fragmentation. No single
+ * net message can exceed this length. However, large frames can be split
+ * into multiple messages and sent in series. See Sv_SendClientDatagram.
+ */
+#define MAX_MSG_SIZE 1400
 
 typedef struct {
 	_Bool fatal_error;

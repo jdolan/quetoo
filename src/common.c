@@ -434,8 +434,8 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
 }
 
 /*
- * @brief Writes part of a packetentities message.
- * Can delta from either a baseline or a previous packet_entity
+ * @brief Writes an entity's state changes to a net message. Can delta from
+ * either a baseline or a previous packet_entity
  */
 void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force,
 		_Bool is_new) {
@@ -794,6 +794,8 @@ void *Sb_Alloc(size_buf_t *buf, size_t length) {
 	void *data;
 
 	if (buf->size + length > buf->max_size) {
+		Com_Warn("Overflow: %zu + %zu > %zu\n", buf->size, length, buf->max_size);
+
 		if (!buf->allow_overflow) {
 			Com_Error(ERR_FATAL, "Overflow without allow_overflow set\n");
 		}
@@ -802,7 +804,6 @@ void *Sb_Alloc(size_buf_t *buf, size_t length) {
 			Com_Error(ERR_FATAL, "%zu is > full buffer size %zu\n", length, buf->max_size);
 		}
 
-		Com_Warn("Overflow\n");
 		Sb_Clear(buf);
 		buf->overflowed = true;
 	}

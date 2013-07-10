@@ -184,8 +184,6 @@ _Bool Netchan_NeedReliable(net_chan_t *chan) {
 void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 	size_buf_t send;
 	byte send_buffer[MAX_MSG_SIZE];
-	_Bool send_reliable;
-	uint32_t w1, w2;
 
 	// check for message overflow
 	if (chan->message.overflowed) {
@@ -194,7 +192,7 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 		return;
 	}
 
-	send_reliable = Netchan_NeedReliable(chan);
+	const _Bool send_reliable = Netchan_NeedReliable(chan);
 
 	if (!chan->reliable_size && chan->message.size) {
 		memcpy(chan->reliable_buffer, chan->message_buffer, chan->message.size);
@@ -206,8 +204,8 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 	// write the packet header
 	Sb_Init(&send, send_buffer, sizeof(send_buffer));
 
-	w1 = (chan->outgoing_sequence & ~(1 << 31)) | (send_reliable << 31);
-	w2 = (chan->incoming_sequence & ~(1 << 31)) | (chan->incoming_reliable_sequence << 31);
+	const uint32_t w1 = (chan->outgoing_sequence & ~(1 << 31)) | (send_reliable << 31);
+	const uint32_t w2 = (chan->incoming_sequence & ~(1 << 31)) | (chan->incoming_reliable_sequence << 31);
 
 	chan->outgoing_sequence++;
 	chan->last_sent = quake2world.time;
@@ -229,7 +227,7 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 	if (send.max_size - send.size >= size)
 		Sb_Write(&send, data, size);
 	else
-		Com_Print("Netchan_Transmit: dumped unreliable\n");
+		Com_Warn("Netchan_Transmit: dumped unreliable\n");
 
 	// send the datagram
 	Net_SendPacket(chan->source, send.size, send.data, chan->remote_address);

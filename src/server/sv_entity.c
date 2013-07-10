@@ -25,7 +25,7 @@
  * @brief Writes a delta update of an entity_state_t list to the message.
  */
 static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
-	entity_state_t *old_ent = NULL, *new_ent = NULL;
+	entity_state_t *old_state = NULL, *new_state = NULL;
 	uint32_t old_index, new_index;
 	uint16_t old_num, new_num;
 	uint16_t from_num_entities;
@@ -41,27 +41,27 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
 		if (new_index >= to->num_entities)
 			new_num = 0xffff;
 		else {
-			new_ent = &svs.entity_states[(to->first_entity + new_index) % svs.num_entity_states];
-			new_num = new_ent->number;
+			new_state = &svs.entity_states[(to->first_entity + new_index) % svs.num_entity_states];
+			new_num = new_state->number;
 		}
 
 		if (old_index >= from_num_entities)
 			old_num = 0xffff;
 		else {
-			old_ent = &svs.entity_states[(from->first_entity + old_index) % svs.num_entity_states];
-			old_num = old_ent->number;
+			old_state = &svs.entity_states[(from->first_entity + old_index) % svs.num_entity_states];
+			old_num = old_state->number;
 		}
 
 		if (new_num == old_num) { // delta update from old position
-			Msg_WriteDeltaEntity(old_ent, new_ent, msg, false,
-					new_ent->number <= sv_max_clients->integer);
+			Msg_WriteDeltaEntity(old_state, new_state, msg, false,
+					new_state->number <= sv_max_clients->integer);
 			old_index++;
 			new_index++;
 			continue;
 		}
 
 		if (new_num < old_num) { // this is a new entity, send it from the baseline
-			Msg_WriteDeltaEntity(&sv.baselines[new_num], new_ent, msg, true, true);
+			Msg_WriteDeltaEntity(&sv.baselines[new_num], new_state, msg, true, true);
 			new_index++;
 			continue;
 		}
@@ -77,7 +77,7 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
 		}
 	}
 
-	Msg_WriteLong(msg, 0); // end of entities
+	Msg_WriteShort(msg, 0); // end of entities
 }
 
 /*

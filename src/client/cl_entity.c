@@ -86,7 +86,6 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 
 	while (true) {
 		const uint16_t number = Msg_ReadShort(&net_message);
-		const uint16_t bits = Msg_ReadShort(&net_message);
 
 		if (number >= MAX_EDICTS)
 			Com_Error(ERR_DROP, "Bad number: %i\n", number);
@@ -96,6 +95,8 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 
 		if (!number)
 			break;
+
+		const uint16_t bits = Msg_ReadShort(&net_message);
 
 		while (old_number < number) { // one or more entities from old_frame are unchanged
 

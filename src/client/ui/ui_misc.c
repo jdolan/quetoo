@@ -58,14 +58,14 @@ void TW_CALL Ui_CenterBar(void *data) {
 		position[0] = (r_context.width - size[0]) / 2.0;
 		position[1] = (r_context.height - size[1]) / 2.0;
 
-		if(position[0] < (r_pixel_t)0)
-			position[0] = (r_pixel_t)0;
-		if(position[1] < (r_pixel_t)0)
-			position[1] = (r_pixel_t)0;
-		position[0] = (r_pixel_t)position[0];
-		position[1] = (r_pixel_t)position[1];
+		if (position[0] < (r_pixel_t) 0)
+			position[0] = (r_pixel_t) 0;
+		if (position[1] < (r_pixel_t) 0)
+			position[1] = (r_pixel_t) 0;
+		position[0] = (r_pixel_t) position[0];
+		position[1] = (r_pixel_t) position[1];
 
-		Com_Debug("%s: %4f, %4f\n", name, position[0], position[1]);
+		// Com_Debug("%s: %4f, %4f\n", name, position[0], position[1]);
 
 		TwSetParam(bar, NULL, "position", TW_PARAM_DOUBLE, 2, position);
 	}

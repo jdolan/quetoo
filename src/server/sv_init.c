@@ -154,7 +154,7 @@ static void Sv_UpdateLatchedVars(void) {
 	Cvar_UpdateLatched();
 
 	sv_max_clients->integer = Clamp(sv_max_clients->integer, MIN_CLIENTS, MAX_CLIENTS);
-	sv_hz->integer = Clamp(sv_hz->integer, SERVER_HZ_MIN, SERVER_HZ_MAX);
+	sv_hz->integer = Clamp(sv_hz->integer, SV_HZ_MIN, SV_HZ_MAX);
 }
 
 /*
@@ -274,6 +274,16 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 		Sv_InitWorld();
 
 		svs.game->SpawnEntities(sv.name, Cm_EntityString());
+
+		/*
+		 * Run a few game frames for entities to settle down. Failure to do
+		 * this will cause the entities to produce all but useless baselines,
+		 * which will in turn blow out the packet entities in Sv_EmitEntities.
+		 */
+
+		for (i = 0; i < 3; i++) {
+			svs.game->Frame();
+		}
 
 		Sv_CreateBaseline();
 
