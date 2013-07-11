@@ -263,11 +263,33 @@ static void EmitVertexes_r(node_t *node) {
  * @brief Forced a dumb check of everything
  */
 static void FindEdgeVerts(vec3_t v1, vec3_t v2) {
-	int32_t i;
 
-	num_edge_verts = d_bsp.num_vertexes - 1;
-	for (i = 0; i < num_edge_verts; i++)
-		edge_verts[i] = i + 1;
+	int32_t x1 = (4096 + (int32_t) (v1[0] + 0.5)) >> 7;
+	int32_t y1 = (4096 + (int32_t) (v1[1] + 0.5)) >> 7;
+	int32_t x2 = (4096 + (int32_t) (v2[0] + 0.5)) >> 7;
+	int32_t y2 = (4096 + (int32_t) (v2[1] + 0.5)) >> 7;
+
+	int32_t tmp;
+	if (x1 > x2) {
+		tmp = x1;
+		x1 = x2;
+		x2 = tmp;
+	}
+	if (y1 > y2) {
+		tmp = y1;
+		y1 = y2;
+		y2 = tmp;
+	}
+
+	int32_t x, y, num_edge_verts = 0;
+	for (x = x1; x <= x2; x++) {
+		for (y = y1; y <= y2; y++) {
+			int32_t vnum;
+			for (vnum = hash_verts[y * HASH_SIZE + x]; vnum; vnum = vertex_chain[vnum]) {
+				edge_verts[num_edge_verts++] = vnum;
+			}
+		}
+	}
 }
 
 /*
