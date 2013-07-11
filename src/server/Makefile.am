@@ -34,5 +34,4 @@ libserver_la_LIBADD = \
 	../libcmodel.la \
 	../libconsole.la \
 	../libnet.la \
-	../libpmove.la \
 	../libthread.la

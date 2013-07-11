@@ -361,7 +361,7 @@ static void Sv_SendClientDatagram(sv_client_t *client) {
 	Sv_WriteFrame(client, &msg);
 
 	if (msg.size > MAX_MSG_SIZE - 16) {
-		Com_Error(ERR_DROP, "Frame exceeds MAX_MSG_SIZE (%zu)\n", msg.size);
+		Com_Error(ERR_DROP, "Frame exceeds MAX_MSG_SIZE (%zd)\n", msg.size);
 	}
 
 	// packetize the pending datagram buffer

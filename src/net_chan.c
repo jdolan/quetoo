@@ -234,11 +234,11 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 
 	if (net_showpackets->value) {
 		if (send_reliable)
-			Com_Print("send %zu : s=%i reliable=%i ack=%i rack=%i\n", send.size,
+			Com_Print("send %zd : s=%i reliable=%i ack=%i rack=%i\n", send.size,
 					chan->outgoing_sequence - 1, chan->reliable_sequence, chan->incoming_sequence,
 					chan->incoming_reliable_sequence);
 		else
-			Com_Print("send %zu : s=%i ack=%i rack=%i\n", send.size,
+			Com_Print("send %zd : s=%i ack=%i rack=%i\n", send.size,
 					chan->outgoing_sequence - 1, chan->incoming_sequence,
 					chan->incoming_reliable_sequence);
 	}
@@ -270,10 +270,10 @@ _Bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
 
 	if (net_showpackets->value) {
 		if (reliable_message)
-			Com_Print("recv %zu : s=%i reliable=%i ack=%i rack=%i\n", msg->size, sequence,
+			Com_Print("recv %zd : s=%i reliable=%i ack=%i rack=%i\n", msg->size, sequence,
 					chan->incoming_reliable_sequence ^ 1, sequence_ack, reliable_ack);
 		else
-			Com_Print("recv %zu : s=%i ack=%i rack=%i\n", msg->size, sequence,
+			Com_Print("recv %zd : s=%i ack=%i rack=%i\n", msg->size, sequence,
 					sequence_ack, reliable_ack);
 	}
 

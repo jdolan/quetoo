@@ -40,7 +40,7 @@ void R_AddElement(const r_element_t *e) {
 	vec3_t delta;
 
 	if (r_element_state.count == r_element_state.size) {
-		Com_Warn("r_element_state.size %zu reached\n", r_element_state.size);
+		Com_Warn("r_element_state.size %zd reached\n", r_element_state.size);
 		return;
 	}
 

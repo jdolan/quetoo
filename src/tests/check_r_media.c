@@ -77,7 +77,7 @@ START_TEST(check_R_RegisterMedia)
 		R_BeginLoading();
 		R_FreeMedia();
 
-		ck_assert_msg(Z_Size() == 0, "Not all memory freed: %zu", Z_Size());
+		ck_assert_msg(Z_Size() == 0, "Not all memory freed: %zd", Z_Size());
 
 	}END_TEST
 
