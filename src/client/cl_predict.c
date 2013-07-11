@@ -146,6 +146,39 @@ c_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, cons
 }
 
 /*
+ * @brief Entry point for client-side prediction. For each server frame, run
+ * the player movement code with the user commands we've sent to the server
+ * but have not yet received acknowledgment for. Store the resulting move so
+ * that it may be interpolated into by Cl_UpdateView.
+ *
+ * Most of the work is passed off to the client game, which is responsible for
+ * the implementation PM_Move.
+ */
+void Cl_PredictMovement(void) {
+
+	if (Cl_UsePrediction()) {
+		const uint32_t current = cls.net_chan.outgoing_sequence;
+		uint32_t ack = cls.net_chan.incoming_acknowledged;
+
+		// if we are too far out of date, just freeze in place
+		if (current - ack >= CMD_BACKUP) {
+			Com_Debug("Exceeded CMD_BACKUP\n");
+			return;
+		}
+
+		GList *cmds = NULL;
+
+		while (++ack <= current) {
+			cmds = g_list_append(cmds, &cl.cmds[ack & CMD_MASK]);
+		}
+
+		cls.cgame->PredictMovement(cmds);
+
+		g_list_free(cmds);
+	}
+}
+
+/*
  * @brief Checks for client side prediction errors. Problems here mean that
  * Pm_Move or the protocol are not functioning correctly.
  */

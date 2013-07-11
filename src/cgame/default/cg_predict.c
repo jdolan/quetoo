@@ -25,7 +25,8 @@
 /*
  * @brief Trace wrapper for Pm_Move.
  */
-static c_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs) {
+static c_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
+		const vec3_t maxs) {
 	return cgi.Trace(start, end, mins, maxs, 0, MASK_PLAYER_SOLID);
 }
 
@@ -37,20 +38,12 @@ static void Cg_PredictMovement_Debug(const char *msg) {
 }
 
 /*
- * @brief Run the latest movement commands through the player movement code
- * locally, using the resulting origin and angles to reduce perceived latency.
+ * @brief Run recent movement commands through the player movement code
+ * locally, storing the resulting origin and angles so that they may be
+ * interpolated to by Cl_UpdateView.
  */
-void Cg_PredictMovement(void) {
+void Cg_PredictMovement(const GList *cmds) {
 	pm_move_t pm;
-
-	const uint32_t current = cgi.net_chan->outgoing_sequence;
-	uint32_t ack = cgi.net_chan->incoming_acknowledged;
-
-	// if we are too far out of date, just freeze
-	if (current - ack >= CMD_BACKUP) {
-		cgi.Debug("Exceeded CMD_BACKUP\n");
-		return;
-	}
 
 	// copy current state to into the move
 	memset(&pm, 0, sizeof(pm));
@@ -63,29 +56,33 @@ void Cg_PredictMovement(void) {
 
 	pm.Debug = Cg_PredictMovement_Debug;
 
+	const GList *e = cmds;
+
 	// run frames
-	while (++ack <= current) {
-		const uint32_t frame = ack & CMD_MASK;
-		const user_cmd_t *cmd = &cgi.client->cmds[frame];
+	while (e) {
+		const user_cmd_t *cmd = (user_cmd_t *) e->data;
 
-		if (!cmd->msec)
-			continue;
+		if (cmd->msec) {
+			const uint32_t frame = (intptr_t) (cmd - cgi.client->cmds);
 
-		pm.cmd = *cmd;
-		Pm_Move(&pm);
+			pm.cmd = *cmd;
+			Pm_Move(&pm);
 
-		// for each movement, check for stair interaction and interpolate
-		const vec_t step = pm.s.origin[2] * 0.125 - cgi.client->predicted_origin[2];
-		const vec_t astep = fabs(step);
+			// for each movement, check for stair interaction and interpolate
+			const vec_t step = pm.s.origin[2] * 0.125 - cgi.client->predicted_origin[2];
+			const vec_t astep = fabs(step);
 
-		if ((pm.s.pm_flags & PMF_ON_STAIRS) && astep >= 8.0 && astep <= 16.0) {
-			cgi.client->predicted_step_time = cgi.client->time;
-			cgi.client->predicted_step_lerp = 100 * (astep / 16.0);
-			cgi.client->predicted_step = step;
+			if ((pm.s.pm_flags & PMF_ON_STAIRS) && astep >= 8.0 && astep <= 16.0) {
+				cgi.client->predicted_step_time = cgi.client->time;
+				cgi.client->predicted_step_lerp = 100 * (astep / 16.0);
+				cgi.client->predicted_step = step;
+			}
+
+			// save for debug checking
+			VectorCopy(pm.s.origin, cgi.client->predicted_origins[frame]);
 		}
 
-		// save for debug checking
-		VectorCopy(pm.s.origin, cgi.client->predicted_origins[frame]);
+		e = e->next;
 	}
 
 	// copy results out for rendering

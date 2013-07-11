@@ -142,8 +142,6 @@ void Cl_InitCgame(void) {
 	import.ReadDirection = Cl_ReadDirection;
 	import.ReadAngle = Cl_ReadAngle;
 
-	import.net_chan = &cls.net_chan;
-
 	import.client = &cl;
 
 	import.EntityString = Cm_EntityString;

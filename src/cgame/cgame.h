@@ -61,9 +61,6 @@ typedef struct cg_import_s {
 	void (*ReadDirection)(vec3_t dir);
 	vec_t (*ReadAngle)(void);
 
-	// net I/O channel
-	net_chan_t *net_chan;
-
 	// public client structure
 	cl_client_t *client;
 
@@ -134,7 +131,7 @@ typedef struct cg_export_s {
 	void (*UpdateConfigString)(uint16_t index);
 
 	_Bool (*ParseMessage)(int32_t cmd);
-	void (*PredictMovement)(void);
+	void (*PredictMovement)(const GList *cmds);
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*PopulateView)(const cl_frame_t *frame);
 	void (*DrawFrame)(const cl_frame_t *frame);

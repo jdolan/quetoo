@@ -30,6 +30,7 @@ c_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, cons
 
 #ifdef __CL_LOCAL_H__
 _Bool Cl_UsePrediction(void);
+void Cl_PredictMovement(void);
 void Cl_CheckPredictionError(void);
 void Cl_UpdatePrediction(void);
 #endif /* __CL_LOCAL_H__ */

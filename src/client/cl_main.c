@@ -627,9 +627,7 @@ void Cl_Frame(uint32_t msec) {
 		Cl_UpdateCmd();
 
 		// predict all unacknowledged movements
-		if (Cl_UsePrediction()) {
-			cls.cgame->PredictMovement();
-		}
+		Cl_PredictMovement();
 
 		// update the screen
 		Cl_UpdateScreen();
