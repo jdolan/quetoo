@@ -3,10 +3,9 @@
 set -e
 set -x
 
-CHROOT=`echo $JOB_NAME|cut -d\-  -f3-10`
+CHROOT=`echo $JOB_NAME|cut -d\- -f3-10`
 
-if ([ "${CHROOT}" == "mingw64" ] || [ "${CHROOT}" == "mingw32" ])
-then
+if ([ "${CHROOT}" == "mingw64" ] || [ "${CHROOT}" == "mingw32" ]); then
 	MINGW_TARGET=${CHROOT}
 	CHROOT="fedora-18-x86_64"
 	DEPS="openssh-clients rsync ${MINGW_TARGET}-SDL ${MINGW_TARGET}-SDL_image ${MINGW_TARGET}-SDL_mixer ${MINGW_TARGET}-curl ${MINGW_TARGET}-physfs ${MINGW_TARGET}-glib2 ${MINGW_TARGET}-libjpeg-turbo libtool ${MINGW_TARGET}-zlib ${MINGW_TARGET}-pkg-config ${MINGW_TARGET}-pdcurses http://maci.satgnu.net/rpmbuild/RPMS/${MINGW_TARGET}-physfs-2.0.3-3.fc18.noarch.rpm http://maci.satgnu.net/rpmbuild/RPMS/${MINGW_TARGET}-lzma-sdk457-4.57-2.fc18.noarch.rpm"

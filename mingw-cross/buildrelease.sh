@@ -1,18 +1,10 @@
-pushd /tmp/quake2world-mingw*
-MINGW_TARGET=`pwd | cut -d\- -f2`
-popd
+#!/bin/bash
+
+test -z ${MINGW_TARGET} && exit 1
+test -z ${MINGW_ARCH} && exit 2
+
 echo MINGW_TARGET $MINGW_TARGET
-
-if [ "${MINGW_TARGET}" == "mingw64" ]
-then
-	MINGW_ARCH="x86_64"
-elif [ "${MINGW_TARGET}" == "mingw32" ]
-then
-	MINGW_ARCH="i686"
-fi
-
 echo MINGW_ARCH $MINGW_ARCH
-
 
 function finddll( ){
 	if [ "$1" != "" ]; then
@@ -25,7 +17,6 @@ function finddll( ){
 }
 
 cp `finddll /tmp/quake2world-${MINGW_TARGET}/bin/quake2world.exe|sort|uniq|grep "\n"` /tmp/quake2world-${MINGW_TARGET}/bin
-
 
 find /tmp/quake2world-${MINGW_TARGET} -name "*.la" -delete
 find /tmp/quake2world-${MINGW_TARGET} -name "*.dll.a" -delete

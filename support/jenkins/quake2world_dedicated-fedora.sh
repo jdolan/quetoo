@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-source ./_common.sh
+source ./common.sh
 
 init_chroot
 
