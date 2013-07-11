@@ -26,10 +26,10 @@ fi
 	make
 	make DESTDIR=/tmp/quake2world-${MINGW_TARGET} install
 	
-	test x${BUILDRELEASE} = xtrue && {
+	if [ x${RELEASE} = xtrue ]; then
 		cd mingw-cross
-		./buildrelease.sh
-	}
+		sh release.sh
+	fi
 "
 
 archive_workspace 

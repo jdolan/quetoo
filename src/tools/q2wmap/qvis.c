@@ -438,8 +438,8 @@ int32_t VIS_Main(void) {
 	CalcPHS();
 
 	d_bsp.vis_data_size = map_vis.pointer - d_bsp.vis_data;
-	Com_Print("VIS data: %d bytes (compressed from %llu bytes)\n", d_bsp.vis_data_size,
-			(uint64_t) (map_vis.uncompressed_size * 2));
+	Com_Print("VIS data: %d bytes (compressed from %u bytes)\n", d_bsp.vis_data_size,
+			(uint32_t) (map_vis.uncompressed_size * 2));
 
 	WriteBSPFile(bsp_name);
 
@@ -447,8 +447,8 @@ int32_t VIS_Main(void) {
 	const time_t duration = end - start;
 	Com_Print("\nVIS Time: ");
 	if (duration > 59)
-		Com_Print("%ld Minutes ", duration / 60);
-	Com_Print("%ld Seconds\n", duration % 60);
+		Com_Print("%d Minutes ", (int32_t) (duration / 60));
+	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	return 0;
 }

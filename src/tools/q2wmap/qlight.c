@@ -30,7 +30,7 @@
 patch_t *face_patches[MAX_BSP_FACES];
 int32_t num_patches;
 
-vec3_t face_offset[MAX_BSP_FACES];	// for rotating bmodels
+vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
 _Bool extra_samples;
 
@@ -43,19 +43,18 @@ vec_t contrast = 1.0;
 vec_t surface_scale = 0.4;
 vec_t entity_scale = 1.0;
 
-
 /*
  * @brief
  */
-static int32_t Light_PointInLeafnum(const vec3_t point){
+static int32_t Light_PointInLeafnum(const vec3_t point) {
 	int32_t nodenum;
 
 	nodenum = 0;
-	while(nodenum >= 0){
+	while (nodenum >= 0) {
 		d_bsp_node_t *node = &d_bsp.nodes[nodenum];
 		d_bsp_plane_t *plane = &d_bsp.planes[node->plane_num];
 		vec_t dist = DotProduct(point, plane->normal) - plane->dist;
-		if(dist > 0)
+		if (dist > 0)
 			nodenum = node->children[0];
 		else
 			nodenum = node->children[1];
@@ -64,30 +63,28 @@ static int32_t Light_PointInLeafnum(const vec3_t point){
 	return -nodenum - 1;
 }
 
-
 /*
  * @brief
  */
-d_bsp_leaf_t *Light_PointInLeaf(const vec3_t point){
+d_bsp_leaf_t *Light_PointInLeaf(const vec3_t point) {
 	const int32_t num = Light_PointInLeafnum(point);
 	return &d_bsp.leafs[num];
 }
 
-
 /*
  * @brief
  */
-_Bool PvsForOrigin(const vec3_t org, byte *pvs){
+_Bool PvsForOrigin(const vec3_t org, byte *pvs) {
 	d_bsp_leaf_t *leaf;
 
-	if(!d_bsp.vis_data_size){
+	if (!d_bsp.vis_data_size) {
 		memset(pvs, 0xff, (d_bsp.num_leafs + 7) / 8);
 		return true;
 	}
 
 	leaf = Light_PointInLeaf(org);
-	if(leaf->cluster == -1)
-		return false;  // in solid leaf
+	if (leaf->cluster == -1)
+		return false; // in solid leaf
 
 	DecompressVis(d_bsp.vis_data + d_vis->bit_offsets[leaf->cluster][DVIS_PVS], pvs);
 	return true;
@@ -100,41 +97,38 @@ static c_model_t *cmodels[MAX_BSP_MODELS];
 /*
  * @brief
  */
-void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask){
+void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask) {
 	vec_t frac;
 	int32_t i;
 
 	frac = 9999.0;
 
 	// and any BSP submodels, too
-	for(i = 0; i < num_cmodels; i++){
+	for (i = 0; i < num_cmodels; i++) {
 		const c_trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin,
 				cmodels[i]->head_node, mask);
 
-		if(tr.fraction < frac){
+		if (tr.fraction < frac) {
 			frac = tr.fraction;
 			*trace = tr;
 		}
 	}
 }
 
-
-
-
 /*
  * @brief
  */
-static void LightWorld(void){
+static void LightWorld(void) {
 	int32_t i;
 
-	if(d_bsp.num_nodes == 0 || d_bsp.num_faces == 0)
+	if (d_bsp.num_nodes == 0 || d_bsp.num_faces == 0)
 		Com_Error(ERR_FATAL, "Empty map\n");
 
 	// load the map for tracing
 	cmodels[0] = Cm_LoadBsp(bsp_name, &i);
 	num_cmodels = Cm_NumModels();
 
-	for(i = 1; i < num_cmodels; i++){
+	for (i = 1; i < num_cmodels; i++) {
 		cmodels[i] = Cm_Model(va("*%d", i));
 	}
 
@@ -161,7 +155,6 @@ static void LightWorld(void){
 	RunThreadsOn(d_bsp.num_faces, true, FinalLightFace);
 }
 
-
 /*
  * @brief
  */
@@ -173,7 +166,7 @@ int32_t LIGHT_Main(void) {
 
 	LoadBSPFile(bsp_name);
 
-	if(!d_bsp.vis_data_size)
+	if (!d_bsp.vis_data_size)
 		Com_Error(ERR_FATAL, "No VIS information\n");
 
 	ParseEntities();
@@ -187,9 +180,9 @@ int32_t LIGHT_Main(void) {
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
 	Com_Print("\nLIGHT Time: ");
-	if(duration > 59)
-		Com_Print("%ld Minutes ", duration / 60);
-	Com_Print("%ld Seconds\n", duration % 60);
+	if (duration > 59)
+		Com_Print("%d Minutes ", (int32_t) (duration / 60));
+	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	return 0;
 }

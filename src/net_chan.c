@@ -235,11 +235,11 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 
 	if (net_showpackets->value) {
 		if (send_reliable)
-			Com_Print("Send %llu bytes: s=%i reliable=%i ack=%i rack=%i\n", (uint64_t) send.size,
+			Com_Print("Send %u bytes: s=%i reliable=%i ack=%i rack=%i\n", (uint32_t) send.size,
 					chan->outgoing_sequence - 1, chan->reliable_sequence, chan->incoming_sequence,
 					chan->incoming_reliable_sequence);
 		else
-			Com_Print("Send %llu bytes : s=%i ack=%i rack=%i\n", (uint64_t) send.size,
+			Com_Print("Send %u bytes : s=%i ack=%i rack=%i\n", (uint32_t) send.size,
 					chan->outgoing_sequence - 1, chan->incoming_sequence,
 					chan->incoming_reliable_sequence);
 	}
@@ -271,10 +271,10 @@ _Bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
 
 	if (net_showpackets->value) {
 		if (reliable_message)
-			Com_Print("Recv %llu bytes: s=%i reliable=%i ack=%i rack=%i\n", (uint64_t) msg->size,
+			Com_Print("Recv %u bytes: s=%i reliable=%i ack=%i rack=%i\n", (uint32_t) msg->size,
 					sequence, chan->incoming_reliable_sequence ^ 1, sequence_ack, reliable_ack);
 		else
-			Com_Print("Recv %llu bytes : s=%i ack=%i rack=%i\n", (uint64_t) msg->size, sequence,
+			Com_Print("Recv %u bytes : s=%i ack=%i rack=%i\n", (uint32_t) msg->size, sequence,
 					sequence_ack, reliable_ack);
 	}
 

@@ -31,7 +31,6 @@ typedef struct {
 
 static d_aas_t d_aas;
 
-
 /*
  * @brief Create the initial AAS nodes, which are just partial copies of the
  * BSP nodes. We'll prune these to remove leafs which are not navigable.
@@ -213,8 +212,8 @@ int32_t AAS_Main(void) {
 	const time_t duration = end - start;
 	Com_Print("\nAAS Time: ");
 	if (duration > 59)
-		Com_Print("%ld Minutes ", duration / 60);
-	Com_Print("%ld Seconds\n", duration % 60);
+		Com_Print("%d Minutes ", (int32_t) (duration / 60));
+	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	return 0;
 }

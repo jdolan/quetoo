@@ -137,7 +137,7 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
 	const size_t s = size + sizeof(z_block_t);
 
 	if (!(z = calloc(s, 1))) {
-		Com_Error(ERR_FATAL, "Failed to allocate %llu bytes\n", (uint64_t) s);
+		Com_Error(ERR_FATAL, "Failed to allocate %u bytes\n", (uint32_t) s);
 	}
 
 	z->magic = Z_MAGIC;

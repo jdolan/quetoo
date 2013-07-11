@@ -324,8 +324,8 @@ int32_t BSP_Main(void) {
 	const time_t duration = end - start;
 	Com_Print("\nBSP Time: ");
 	if (duration > 59)
-		Com_Print("%ld Minutes ", duration / 60);
-	Com_Print("%ld Seconds\n", duration % 60);
+		Com_Print("%d Minutes ", (int32_t) (duration / 60));
+	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	return 0;
 }

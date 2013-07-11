@@ -797,14 +797,14 @@ void *Sb_Alloc(size_buf_t *buf, size_t length) {
 	void *data;
 
 	if (buf->size + length > buf->max_size) {
-		Com_Warn("Overflow: %llu + %llu > %llu\n", (uint64_t) buf->size, (uint64_t) length, (uint64_t) buf->max_size);
+		Com_Warn("Overflow: %u + %u > %u\n", (uint32_t) buf->size, (uint32_t) length, (uint32_t) buf->max_size);
 
 		if (!buf->allow_overflow) {
 			Com_Error(ERR_FATAL, "Overflow without allow_overflow set\n");
 		}
 
 		if (length > buf->max_size) {
-			Com_Error(ERR_FATAL, "%llu is > buffer size %llu\n", (uint64_t) length, (uint64_t) buf->max_size);
+			Com_Error(ERR_FATAL, "%u is > buffer size %u\n", (uint32_t) length, (uint32_t) buf->max_size);
 		}
 
 		Sb_Clear(buf);
