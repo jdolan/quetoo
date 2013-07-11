@@ -19,7 +19,6 @@ function init_chroot() {
 	/usr/bin/mock -r ${CHROOT} --init
 	/usr/bin/mock -r ${CHROOT} --install ${DEPS}
 	/usr/bin/mock -r ${CHROOT} --copyin ${WORKSPACE} "/tmp/quake2world"
-
 }
 
 function destroy_chroot() {
