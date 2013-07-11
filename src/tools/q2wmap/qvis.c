@@ -438,8 +438,8 @@ int32_t VIS_Main(void) {
 	CalcPHS();
 
 	d_bsp.vis_data_size = map_vis.pointer - d_bsp.vis_data;
-	Com_Print("VIS data: %d bytes (compressed from %zd bytes)\n", d_bsp.vis_data_size,
-			map_vis.uncompressed_size * 2);
+	Com_Print("VIS data: %d bytes (compressed from %llu bytes)\n", d_bsp.vis_data_size,
+			(uint64_t) (map_vis.uncompressed_size * 2));
 
 	WriteBSPFile(bsp_name);
 

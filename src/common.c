@@ -440,7 +440,8 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
  * @brief Writes an entity's state changes to a net message. Can delta from
  * either a baseline or a previous packet_entity
  */
-void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force, _Bool is_new) {
+void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force,
+		_Bool is_new) {
 
 	uint16_t bits = 0;
 
@@ -470,8 +471,8 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *
 	if (to->effects != from->effects)
 		bits |= U_EFFECTS;
 
-	if (to->model1 != from->model1 || to->model2 != from->model2 || to->model3 != from->model3 || to->model4
-			!= from->model4)
+	if (to->model1 != from->model1 || to->model2 != from->model2 || to->model3 != from->model3
+			|| to->model4 != from->model4)
 		bits |= U_MODELS;
 
 	if (to->client != from->client)
@@ -531,7 +532,8 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *
 /*
  * @brief
  */
-void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, uint16_t number, uint16_t bits) {
+void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg,
+		uint16_t number, uint16_t bits) {
 
 	// set everything to the state we are delta'ing from
 	*to = *from;
@@ -653,8 +655,8 @@ int32_t Msg_ReadLong(size_buf_t *sb) {
 	if (sb->read + 4 > sb->size)
 		c = -1;
 	else
-		c = sb->data[sb->read] + (sb->data[sb->read + 1] << 8) + (sb->data[sb->read + 2] << 16) + (sb->data[sb->read
-				+ 3] << 24);
+		c = sb->data[sb->read] + (sb->data[sb->read + 1] << 8) + (sb->data[sb->read + 2] << 16)
+				+ (sb->data[sb->read + 3] << 24);
 
 	sb->read += 4;
 
@@ -795,14 +797,14 @@ void *Sb_Alloc(size_buf_t *buf, size_t length) {
 	void *data;
 
 	if (buf->size + length > buf->max_size) {
-		Com_Warn("Overflow: %zd + %zd > %zd\n", buf->size, length, buf->max_size);
+		Com_Warn("Overflow: %llu + %llu > %llu\n", (uint64_t) buf->size, (uint64_t) length, (uint64_t) buf->max_size);
 
 		if (!buf->allow_overflow) {
 			Com_Error(ERR_FATAL, "Overflow without allow_overflow set\n");
 		}
 
 		if (length > buf->max_size) {
-			Com_Error(ERR_FATAL, "%zd is > full buffer size %zd\n", length, buf->max_size);
+			Com_Error(ERR_FATAL, "%llu is > buffer size %llu\n", (uint64_t) length, (uint64_t) buf->max_size);
 		}
 
 		Sb_Clear(buf);
