@@ -190,6 +190,7 @@ static void Curses_Draw(void) {
 	}
 }
 
+#ifndef _WIN32
 /*
  * @brief Window resize signal handler
  */
@@ -199,10 +200,6 @@ static void Curses_Resize(int32_t sig __attribute__((unused))) {
 		return;
 	}
 
-	/*if (sig != SIGWINCH) {
-	 return;
-	 }*/
-
 	endwin();
 	refresh();
 
@@ -211,6 +208,7 @@ static void Curses_Resize(int32_t sig __attribute__((unused))) {
 
 	Curses_Draw();
 }
+#endif
 
 /*
  * @brief Handle curses input and redraw if necessary

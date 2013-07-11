@@ -259,7 +259,6 @@ void WriteBSP(node_t *head_node) {
 	old_faces = d_bsp.num_faces;
 
 	d_bsp.models[d_bsp.num_models].head_node = EmitDrawNode_r(head_node);
-	EmitAreaPortals(head_node);
 
 	Com_Verbose("%5i nodes with faces\n", c_facenodes);
 	Com_Verbose("%5i nodes without faces\n", c_nofaces);
@@ -377,6 +376,7 @@ void EndBSPFile(void) {
 
 	EmitBrushes();
 	EmitPlanes();
+	EmitAreaPortals();
 
 	UnparseEntities();
 

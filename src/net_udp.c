@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "net.h"
-
 #include <errno.h>
 #include <sys/time.h>
 #include <sys/param.h>
@@ -40,6 +38,8 @@
 #define Net_GetError() errno
 #define Net_CloseSocket close
 #endif
+
+#include "net.h"
 
 static net_addr_t net_local_addr = { NA_LOCAL, { 127, 0, 0, 1 }, 0 };
 

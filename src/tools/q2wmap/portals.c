@@ -141,7 +141,7 @@ _Bool Portal_VisFlood(const portal_t * p) {
  * Flowing from side s to side !s
  * ===============
  */
-static _Bool Portal_EntityFlood(const portal_t * p, int32_t s) {
+static _Bool Portal_EntityFlood(const portal_t * p) {
 	if (p->nodes[0]->plane_num != PLANENUM_LEAF || p->nodes[1]->plane_num != PLANENUM_LEAF)
 		Com_Error(ERR_FATAL, "Not a leaf\n");
 
@@ -512,7 +512,7 @@ static void FloodPortals_r(node_t * node, int32_t dist) {
 		if (p->nodes[!s]->occupied)
 			continue;
 
-		if (!Portal_EntityFlood(p, s))
+		if (!Portal_EntityFlood(p))
 			continue;
 
 		FloodPortals_r(p->nodes[!s], dist + 1);
@@ -645,11 +645,12 @@ static void FloodAreas_r(node_t * node) {
 
 	for (p = node->portals; p; p = p->next[s]) {
 		s = (p->nodes[1] == node);
+		// TODO: why is this commented out?
 #if 0
 		if(p->nodes[!s]->occupied)
 		continue;
 #endif
-		if (!Portal_EntityFlood(p, s))
+		if (!Portal_EntityFlood(p))
 			continue;
 
 		FloodAreas_r(p->nodes[!s]);
@@ -697,7 +698,7 @@ static void FindAreas_r(node_t * node) {
  * area set, flood fill out from there
  * =============
  */
-static void SetAreaPortalAreas_r(node_t * node) {
+static void SetAreaPortalAreas_r(node_t *node) {
 	bsp_brush_t *b;
 	entity_t *e;
 
@@ -725,7 +726,7 @@ static void SetAreaPortalAreas_r(node_t * node) {
 /*
  * @brief
  */
-void EmitAreaPortals(node_t * head_node) {
+void EmitAreaPortals(void) {
 	int32_t i, j;
 	d_bsp_area_portal_t *dp;
 
@@ -765,9 +766,11 @@ void EmitAreaPortals(node_t * head_node) {
 /*
  * @brief Mark each leaf with an area, bounded by CONTENTS_AREA_PORTAL
  */
-void FloodAreas(tree_t * tree) {
+void FloodAreas(tree_t *tree) {
+
 	Com_Verbose("--- FloodAreas ---\n");
 	FindAreas_r(tree->head_node);
+
 	SetAreaPortalAreas_r(tree->head_node);
 	Com_Verbose("%5i areas\n", c_areas);
 }

@@ -88,7 +88,8 @@ static _Bool PruneAASNodes_isNavigable(const d_bsp_leaf_t *leaf) {
 static void PruneAASNodes_(d_aas_node_t *node) {
 	int32_t c;
 
-	if (node->children[0] < 0) {
+	c = LittleLong(node->children[0]);
+	if (c < 0) {
 		if (PruneAASNodes_isNavigable(&d_bsp.leafs[-1 - c])) {
 
 		} else {

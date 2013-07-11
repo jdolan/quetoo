@@ -56,7 +56,7 @@ static void AddScriptToStack(const char *file_name) {
 	if (size == -1)
 		Com_Error(ERR_FATAL, "Could not load %s\n", script->file_name);
 
-	Com_Verbose("Loading %s (%"PRId64" bytes)\n", script->file_name, size);
+	Com_Verbose("Loading %s (%u bytes)\n", script->file_name, (uint32_t) size);
 
 	script->line = 1;
 

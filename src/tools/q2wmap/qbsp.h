@@ -221,36 +221,36 @@ void FillOutside(node_t * head_node);
 void FloodAreas(tree_t * tree);
 void MarkVisibleSides(tree_t * tree, int32_t start, int32_t end);
 void FreePortal(portal_t * p);
-void EmitAreaPortals(node_t * head_node);
+void EmitAreaPortals(void);
 
-void MakeTreePortals(tree_t * tree);
+void MakeTreePortals(tree_t *tree);
 
 // leakfile.c
-void LeakFile(tree_t * tree);
+void LeakFile(tree_t *tree);
 
 // prtfile.c
-void WritePortalFile(tree_t * tree);
+void WritePortalFile(tree_t *tree);
 
 // writebsp.c
 void SetModelNumbers(void);
 void BeginBSPFile(void);
-void WriteBSP(node_t * head_node);
+void WriteBSP(node_t *head_node);
 void EndBSPFile(void);
 void BeginModel(void);
 void EndModel(void);
 
 // faces.c
-void MakeFaces(node_t * head_node);
-void FixTjuncs(node_t * head_node);
-int32_t GetEdge2(int32_t v1, int32_t v2, face_t * f);
+void MakeFaces(node_t *head_node);
+void FixTjuncs(node_t *head_node);
+int32_t GetEdge2(int32_t v1, int32_t v2, face_t *f);
 
-void FreeFace(face_t * f);
+void FreeFace(face_t *f);
 
 // tree.c
-void FreeTree(tree_t * tree);
-void FreeTree_r(node_t * node);
-void FreeTreePortals_r(node_t * node);
-void PruneNodes_r(node_t * node);
-void PruneNodes(node_t * node);
+void FreeTree(tree_t *tree);
+void FreeTree_r(node_t *node);
+void FreeTreePortals_r(node_t *node);
+void PruneNodes_r(node_t *node);
+void PruneNodes(node_t *node);
 
 #endif /* __QBSP_H__ */
