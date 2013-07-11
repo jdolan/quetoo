@@ -1,18 +1,14 @@
 #!/bin/bash
-set -e
+set -x
 
 source ./common.sh
 
 init_chroot
 
-export MINGW_TARGET=`echo $JOB_NAME|cut -d\- -f3-10`
-
-if [ "${MINGW_TARGET}" == "mingw64" ]; then
-	export MINGW_ARCH="x86_64"
-elif [ "${MINGW_TARGET}" == "mingw32" ]
-then
-	export MINGW_ARCH="i686"
-fi
+echo
+echo "MINGW_TARGET: ${MINGW_TARGET}"
+echo "MINGW_ARCH: ${MINGW_ARCH}"
+echo
 
 # Copy the SSH config into the chroot in case this is a release build
 /usr/bin/mock -r ${CHROOT} --copyin ~/.ssh "/root/.ssh"

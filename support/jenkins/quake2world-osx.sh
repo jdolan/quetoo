@@ -1,9 +1,7 @@
 #!/bin/bash
-set -e
+set -x
 
 source ~/.profile 
-
-pwd
 
 autoreconf -i --force
 ./configure --with-tests --with-master
