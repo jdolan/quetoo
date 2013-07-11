@@ -24,12 +24,14 @@
 
 #include "cl_types.h"
 
+int32_t Cl_PointContents(const vec3_t point);
+c_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+		const uint16_t skip, const int32_t contents);
+
 #ifdef __CL_LOCAL_H__
 _Bool Cl_UsePrediction(void);
-void Cl_PredictMovement(void);
 void Cl_CheckPredictionError(void);
 void Cl_UpdatePrediction(void);
 #endif /* __CL_LOCAL_H__ */
 
 #endif /* __CL_PREDICT_H__ */
-

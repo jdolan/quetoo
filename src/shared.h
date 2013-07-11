@@ -65,6 +65,8 @@ void PackAngles(const vec3_t in, int16_t *out);
 #define Radians(d) ((d * M_PI) / 180.0)
 void UnpackAngles(const int16_t *in, vec3_t out);
 void ClampAngles(vec3_t angles);
+void PackBounds(const vec3_t mins, const vec3_t maxs, uint16_t *out);
+void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs);
 
 // color functions
 #define EFFECT_COLOR_RED 232

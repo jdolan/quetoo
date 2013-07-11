@@ -19,22 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_BSP_H__
-#define __R_BSP_H__
+#ifndef __PMOVE_H__
+#define __PMOVE_H__
 
-const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp);
-_Bool R_LeafInPvs(const r_bsp_leaf_t *leaf);
-_Bool R_LeafInPhs(const r_bsp_leaf_t *leaf);
+#include "shared.h"
 
-#ifdef __R_LOCAL_H__
-_Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
-_Bool R_CullBspModel(const r_entity_t *e);
-void R_DrawBspInlineModel(const r_entity_t *e);
-void R_DrawBspLeafs(void);
-void R_DrawBspLights(void);
-void R_DrawBspNormals(void);
-void R_MarkBspSurfaces(void);
-void R_UpdateVis(void);
-#endif /* __R_LOCAL_H__ */
+void Pm_Move(pm_move_t *pm_move);
 
-#endif /* __R_BSP_H__ */
+#endif /* __PMOVE_H__ */

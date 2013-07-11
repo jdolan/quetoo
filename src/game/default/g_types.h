@@ -38,11 +38,11 @@ typedef enum {
 typedef struct {
 	uint16_t player_num;
 	uint16_t ping;
-	byte team;
-	byte color;
+	uint8_t team;
+	uint8_t color;
 	int16_t score;
 	int16_t captures;
-	byte flags;
+	uint8_t flags;
 } player_score_t;
 
 //scores flags
@@ -568,9 +568,9 @@ typedef struct {
 	vec_t delay; // before firing targets
 	vec_t random;
 
-	uint32_t water_type;
-	uint32_t old_water_level;
-	uint32_t water_level;
+	int32_t water_type;
+	uint8_t old_water_level;
+	uint8_t water_level;
 
 	int32_t area_portal; // the area portal to toggle
 

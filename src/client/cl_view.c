@@ -116,7 +116,7 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 			r_view.origin[i] -= (1.0 - cl.lerp) * cl.prediction_error[i];
 		}
 
-		const vec_t delta = cls.real_time - cl.predicted_step_time;
+		const vec_t delta = cl.time - cl.predicted_step_time;
 		const vec_t lerp = cl.predicted_step_lerp;
 		if (delta < lerp) { // interpolate stair traversal
 			r_view.origin[2] -= cl.predicted_step * ((lerp - delta) / lerp);
@@ -139,7 +139,7 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 	}
 
 	// update the contents mask for e.g. under-water effects
-	r_view.contents = R_PointContents(r_view.origin);
+	r_view.contents = Cl_PointContents(r_view.origin);
 }
 
 /*

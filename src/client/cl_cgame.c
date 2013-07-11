@@ -142,12 +142,14 @@ void Cl_InitCgame(void) {
 	import.ReadDirection = Cl_ReadDirection;
 	import.ReadAngle = Cl_ReadAngle;
 
+	import.net_chan = &cls.net_chan;
+
 	import.client = &cl;
 
 	import.EntityString = Cm_EntityString;
 
-	import.PointContents = R_PointContents;
-	import.Trace = R_Trace;
+	import.PointContents = Cl_PointContents;
+	import.Trace = Cl_Trace;
 
 	import.LeafForPoint = R_LeafForPoint;
 	import.LeafInPhs = R_LeafInPhs;

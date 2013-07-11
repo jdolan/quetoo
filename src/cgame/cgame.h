@@ -61,19 +61,19 @@ typedef struct cg_import_s {
 	void (*ReadDirection)(vec3_t dir);
 	vec_t (*ReadAngle)(void);
 
-	// incoming server data stream
-	size_buf_t *net_message;
+	// net I/O channel
+	net_chan_t *net_chan;
 
 	// public client structure
 	cl_client_t *client;
 
 	// entity string
-	char *(*EntityString)(void);
+	const char *(*EntityString)(void);
 
 	// collision
 	int32_t (*PointContents)(const vec3_t point);
 	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-			int32_t mask);
+			const uint16_t skip, const int32_t mask);
 
 	// PVS and PHS
 	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_bsp_model_t *model);
@@ -93,7 +93,7 @@ typedef struct cg_import_s {
 
 	// 256 color palette for particle and effect colors
 	img_palette_t *palette;
-	void (*ColorFromPalette)(byte c, vec_t *res);
+	void (*ColorFromPalette)(uint8_t c, vec_t *res);
 
 	// RGB color management
 	void (*Color)(const vec4_t color);
@@ -107,8 +107,8 @@ typedef struct cg_import_s {
 	// scene building facilities
 	void (*AddCorona)(const r_corona_t *c);
 	const r_entity_t *(*AddEntity)(const r_entity_t *ent);
-	const r_entity_t *(*AddLinkedEntity)(const r_entity_t *parent, const r_model_t *model,
-			const char *tag_name);
+	const r_entity_t
+	*(*AddLinkedEntity)(const r_entity_t *parent, const r_model_t *model, const char *tag_name);
 	void (*AddLight)(const r_light_t *l);
 	void (*AddParticle)(const r_particle_t *p);
 	void (*AddSustainedLight)(const r_sustained_light_t *s);
@@ -134,6 +134,7 @@ typedef struct cg_export_s {
 	void (*UpdateConfigString)(uint16_t index);
 
 	_Bool (*ParseMessage)(int32_t cmd);
+	void (*PredictMovement)(void);
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*PopulateView)(const cl_frame_t *frame);
 	void (*DrawFrame)(const cl_frame_t *frame);

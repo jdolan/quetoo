@@ -86,7 +86,7 @@ typedef dvec_t dvec4_t[4];
 #define MIN_CLIENTS			1 // duh
 #define MAX_CLIENTS			256 // absolute limit
 #define MAX_EDICTS			1024 // must change protocol to increase more
-#define MAX_MODELS			256 // these are sent over the net as bytes
+#define MAX_MODELS			256 // these are sent over the net as uint8_t
 #define MAX_SOUNDS			256 // so they cannot be blindly increased
 #define MAX_MUSICS			8 // per level
 #define MAX_IMAGES			256 // that the server knows about
@@ -361,7 +361,7 @@ typedef struct pm_state_s {
 	int16_t origin[3];
 	int16_t velocity[3];
 	uint16_t pm_flags; // ducked, jump_held, etc
-	byte pm_time; // each unit = 8 milliseconds
+	uint8_t pm_time; // each unit = 8 milliseconds
 	int16_t gravity;
 	int16_t view_offset[3]; // add to origin to resolve eyes
 	int16_t view_angles[3]; // base view angles
@@ -375,8 +375,8 @@ typedef struct pm_state_s {
 
 // user_cmd_t is sent to the server each client frame
 typedef struct user_cmd_s {
-	byte msec;
-	byte buttons;
+	uint8_t msec;
+	uint8_t buttons;
 	int16_t angles[3];
 	int16_t forward, right, up;
 } user_cmd_t;
@@ -396,11 +396,14 @@ typedef struct {
 	struct g_edict_s *ground_entity;
 
 	int32_t water_type;
-	int32_t water_level;
+	uint8_t water_level;
 
-	// callbacks to test the world
-	c_trace_t (*Trace)(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end);
+	// collision with the world and solid entities
 	int32_t (*PointContents)(const vec3_t point);
+	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs);
+
+	// print debug messages for development
+	void (*Debug)(const char *msg);
 } pm_move_t;
 
 // entity_state_t->effects
@@ -556,6 +559,19 @@ typedef enum {
 } entity_event_t;
 
 /*
+ * Entity bounds are to be handled by the protocol based on their
+ * solid field. Box entities encode their bounds into a 16 bit
+ * integer. The rest simply send their value.
+ */
+typedef enum {
+	SOLID_NOT, // no interaction with other objects
+	SOLID_TRIGGER, // only touch when inside, after moving
+	SOLID_BOX, // touch on edge
+	SOLID_MISSILE, // touch on edge
+	SOLID_BSP = 31 // bsp clip, touch on edge
+} solid_t;
+
+/*
  * Entity states are transmitted by the server to the client using delta
  * compression. The client parses these states and adds or removes entities
  * from the scene as needed.
@@ -568,17 +584,17 @@ typedef struct entity_state_s {
 
 	vec3_t angles;
 
-	byte animation1, animation2; // animations (running, attacking, ..)
+	uint8_t animation1, animation2; // animations (running, attacking, ..)
 
-	byte event; // client side events (particles, lights, ..)
+	uint8_t event; // client side events (particles, lights, ..)
 
 	uint16_t effects; // particles, lights, etc..
 
-	byte model1, model2, model3, model4; // primary model, linked models
+	uint8_t model1, model2, model3, model4; // primary model, linked models
 
-	byte client; // client info index
+	uint8_t client; // client info index
 
-	byte sound; // looped sounds
+	uint8_t sound; // looped sounds
 
 	/*
 	 * Encoded bounding box dimensions for mesh entities. This facilitates

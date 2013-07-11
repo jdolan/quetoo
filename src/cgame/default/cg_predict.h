@@ -19,11 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __PMOVE_H__
-#define __PMOVE_H__
+#ifndef __CG_PREDICT_H__
+#define __CG_PREDICT_H__
 
-#include "common.h"
+#include "cg_types.h"
 
-void Pmove(pm_move_t *pmove);
+#ifdef __CG_LOCAL_H__
+void Cg_PredictMovement(void);
+#endif /* __CG_LOCAL_H__ */
 
-#endif /* __PMOVE_H__ */
+#endif /* __CG_PREDICT_H__ */

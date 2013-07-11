@@ -1,11 +1,11 @@
 SUBDIRS = \
 	. \
 	ai \
+	game \
+	server \
 	cgame \
 	client \
-	server \
 	main \
-	game \
 	tests \
 	tools \
 	master
@@ -21,7 +21,6 @@ noinst_HEADERS = \
 	image.h \
 	mem.h \
 	net.h \
-	pmove.h \
 	quake2world.h \
 	shared.h \
 	sys.h \
@@ -36,7 +35,6 @@ noinst_LTLIBRARIES = \
 	libimage.la \
 	libmem.la \
 	libnet.la \
-	libpmove.la \
 	libshared.la \
 	libswap.la \
 	libsys.la \
@@ -122,14 +120,6 @@ libnet_la_CFLAGS = \
 	@GLIB_CFLAGS@
 libnet_la_LIBADD = \
 	libconsole.la
-
-libpmove_la_SOURCES = \
-	pmove.c
-libpmove_la_CFLAGS = \
-	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
-libpmove_la_LIBADD = \
-	libshared.la
 
 libshared_la_SOURCES = \
 	shared.c

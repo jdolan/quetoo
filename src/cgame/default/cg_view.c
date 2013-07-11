@@ -80,7 +80,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps __attribute__((unused)
 	// clip it to the world
 	VectorSet(mins, -5.0, -5.0, -5.0);
 	VectorSet(maxs, 5.0, 5.0, 5.0);
-	tr = cgi.Trace(cgi.view->origin, dest, mins, maxs, MASK_SHOT);
+	tr = cgi.Trace(cgi.view->origin, dest, mins, maxs, 0, MASK_SHOT);
 	VectorCopy(tr.end, cgi.view->origin);
 
 	// adjust view angles to compensate for height offset

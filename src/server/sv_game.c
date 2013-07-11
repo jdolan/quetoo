@@ -20,7 +20,6 @@
  */
 
 #include "sv_local.h"
-#include "pmove.h"
 
 /*
  * @brief Abort the server with a game error, always emitting ERR_DROP.
@@ -267,7 +266,6 @@ void Sv_InitGame(void) {
 	import.inPHS = Sv_InPHS;
 	import.SetAreaPortalState = Cm_SetAreaPortalState;
 	import.AreasConnected = Cm_AreasConnected;
-	import.Pmove = Pmove;
 
 	import.LinkEdict = Sv_LinkEdict;
 	import.UnlinkEdict = Sv_UnlinkEdict;

@@ -37,7 +37,7 @@ extern img_palette_t img_palette;
 _Bool Img_LoadImage(const char *name, SDL_Surface **surf);
 _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf);
 void Img_InitPalette(void);
-void Img_ColorFromPalette(byte c, vec_t *res);
+void Img_ColorFromPalette(uint8_t c, vec_t *res);
 _Bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality);
 
 #endif /* BUILD_CLIENT */

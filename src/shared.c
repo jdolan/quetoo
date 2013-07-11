@@ -299,7 +299,8 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
  * is used as an optimization for the box-on-plane-side test.
  */
 byte SignBitsForPlane(const c_bsp_plane_t *plane) {
-	byte i, bits = 0;
+	int32_t i;
+	byte bits = 0;
 
 	for (i = 0; i < 3; i++) {
 		if (plane->normal[i] < 0)
@@ -537,6 +538,38 @@ void ClampAngles(vec3_t angles) {
 	} else if (angles[PITCH] < 360.0 && angles[PITCH] >= 270.0) {
 		angles[PITCH] -= 360.0;
 	}
+}
+
+/*
+ * @brief Packs the specified bounding box to a limited precision integer
+ * representation. Bits 0-5 represent X/Y, scaled down by a factor of 0.125.
+ * Bits 5-10 contain the Z-mins, and 10-15 contain the Z-maxs.
+ */
+void PackBounds(const vec3_t mins, const vec3_t maxs, uint16_t *out) {
+
+	// x/y are assumed equal and symmetric
+	int32_t xy = Clamp(maxs[0] * 0.125, 1.0, 31.0);
+
+	// z is asymmetric
+	int32_t zd = Clamp(-mins[2] * 0.125, 1.0, 31.0);
+
+	// and z maxs can be negative, so shift them +32 units
+	int32_t zu = Clamp((maxs[2] + 32.0) * 0.125, 1.0, 63.0);
+
+	*out = (zu << 10) | (zd << 5) | xy;
+}
+
+/*
+ * @brief Unpacks the specified bounding box to mins and maxs.
+ */
+void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs) {
+
+	const vec_t xy = (in & 31) * 8.0;
+	const vec_t zd = ((in >> 5) & 31) * 8.0;
+	const vec_t zu = ((in >> 10 & 63) - 32) * 8.0;
+
+	VectorSet(mins, -xy, -xy, -zd);
+	VectorSet(maxs, xy, xy, zu);
 }
 
 /*

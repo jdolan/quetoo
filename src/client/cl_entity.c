@@ -25,8 +25,7 @@
  * @brief Parses deltas from the given base and adds the resulting entity
  * to the current frame.
  */
-static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t number,
-		uint16_t bits) {
+static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t number, uint16_t bits) {
 
 	cl_entity_t *ent;
 	entity_state_t *to;
@@ -35,6 +34,7 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t num
 
 	to = &cl.entity_states[cl.entity_state & ENTITY_STATE_MASK];
 	cl.entity_state++;
+
 	frame->num_entities++;
 
 	Msg_ReadDeltaEntity(from, to, &net_message, number, bits);
@@ -337,6 +337,7 @@ void Cl_UpdateEntities(void) {
 
 		for (i = 0; i < MAX_EDICTS; i++) {
 			cl.entities[i].lighting.state = LIGHTING_INIT;
+			cl.entities[i].lighting.number = i;
 		}
 	}
 }

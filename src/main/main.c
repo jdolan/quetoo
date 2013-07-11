@@ -103,10 +103,11 @@ static void Error(err_t err, const char *msg) {
  */
 static void Print(const char *msg) {
 
-	if (quake2world.time)
+	if (quake2world.time) {
 		Con_Print(msg);
-	else
+	} else {
 		printf("%s", msg);
+	}
 }
 
 /*
@@ -114,8 +115,9 @@ static void Print(const char *msg) {
  */
 static void Verbose(const char *msg) {
 
-	if (verbose && !verbose->integer)
+	if (verbose && !verbose->integer) {
 		return;
+	}
 
 	Print(msg);
 }

@@ -47,7 +47,7 @@ static g_edict_t *G_TestEntityPosition(g_edict_t *ent) {
 		mask = ent->clip_mask;
 	else
 		mask = MASK_SOLID;
-	trace = gi.Trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin, ent, mask);
+	trace = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
 
 	if (trace.start_solid)
 		return g_game.edicts;
@@ -192,7 +192,7 @@ c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push) {
 	else
 		mask = MASK_SOLID;
 
-	trace = gi.Trace(start, ent->mins, ent->maxs, end, ent, mask);
+	trace = gi.Trace(start, end, ent->mins, ent->maxs, ent, mask);
 
 	VectorCopy(trace.end, ent->s.origin);
 	gi.LinkEdict(ent);

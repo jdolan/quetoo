@@ -85,7 +85,7 @@ byte net_message_buffer[MAX_MSG_SIZE];
  * @brief
  */
 void Netchan_Init(void) {
-	byte p;
+	uint8_t p;
 
 	net_showpackets = Cvar_Get("net_showpackets", "0", 0, NULL);
 	net_showdrop = Cvar_Get("net_showdrop", "0", 0, NULL);
@@ -131,7 +131,7 @@ void Netchan_OutOfBandPrint(int32_t net_socket, net_addr_t addr, const char *for
 /*
  * @brief Called to open a channel to a remote system.
  */
-void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr, byte qport) {
+void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr, uint8_t qport) {
 	memset(chan, 0, sizeof(*chan));
 
 	chan->source = source;

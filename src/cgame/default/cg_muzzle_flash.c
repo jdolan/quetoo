@@ -24,7 +24,7 @@
 /*
  * @brief
  */
-static void Cg_EnergyFlash(const entity_state_t *ent, byte color) {
+static void Cg_EnergyFlash(const entity_state_t *ent, uint8_t color) {
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 	c_trace_t tr;
@@ -35,7 +35,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, byte color) {
 	VectorMA(ent->origin, 30.0, forward, org);
 	VectorMA(org, 6.0, right, org);
 
-	tr = cgi.Trace(ent->origin, org, vec3_origin, vec3_origin, MASK_SHOT);
+	tr = cgi.Trace(ent->origin, org, NULL, NULL, 0, MASK_SHOT);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		VectorSubtract(ent->origin, tr.end, org);
@@ -77,7 +77,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	VectorMA(ent->origin, 30.0, forward, org);
 	VectorMA(org, 6.0, right, org);
 
-	tr = cgi.Trace(ent->origin, org, vec3_origin, vec3_origin, MASK_SHOT);
+	tr = cgi.Trace(ent->origin, org, NULL, NULL, 0, MASK_SHOT);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		VectorSubtract(ent->origin, tr.end, org);
@@ -149,7 +149,7 @@ void Cg_ParseMuzzleFlash(void) {
 	}
 
 	const cl_entity_t *cent = &cgi.client->entities[ent_num];
-	const byte flash = cgi.ReadByte();
+	const uint8_t flash = cgi.ReadByte();
 
 	switch (flash) {
 	case MZ_BLASTER:

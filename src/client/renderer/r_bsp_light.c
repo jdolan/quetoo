@@ -52,7 +52,7 @@ static void R_ResolveBspLightParameters(void) {
 	const char *c;
 
 	// resolve ambient light
-	if ((c = R_WorldspawnValue("ambient_light"))) {
+	if ((c = Cm_WorldspawnValue("ambient_light"))) {
 		vec_t *f = r_bsp_light_state.ambient_light;
 		sscanf(c, "%f %f %f", &f[0], &f[1], &f[2]);
 
@@ -64,7 +64,7 @@ static void R_ResolveBspLightParameters(void) {
 	}
 
 	// resolve sun light
-	if ((c = R_WorldspawnValue("sun_light"))) {
+	if ((c = Cm_WorldspawnValue("sun_light"))) {
 		r_bsp_light_state.sun_light = atof(c) / 255.0;
 
 		if (r_bsp_light_state.sun_light > 1.0) // should never happen
@@ -76,7 +76,7 @@ static void R_ResolveBspLightParameters(void) {
 	}
 
 	// resolve sun color
-	if ((c = R_WorldspawnValue("sun_color"))) {
+	if ((c = Cm_WorldspawnValue("sun_color"))) {
 		vec_t *f = r_bsp_light_state.sun_color;
 		sscanf(c, "%f %f %f", &f[0], &f[1], &f[2]);
 
@@ -86,21 +86,21 @@ static void R_ResolveBspLightParameters(void) {
 	}
 
 	// resolve brightness
-	if ((c = R_WorldspawnValue("brightness"))) {
+	if ((c = Cm_WorldspawnValue("brightness"))) {
 		r_bsp_light_state.brightness = atof(c);
 	} else { // ensure sane default
 		r_bsp_light_state.brightness = 1.0;
 	}
 
 	// resolve saturation
-	if ((c = R_WorldspawnValue("saturation"))) {
+	if ((c = Cm_WorldspawnValue("saturation"))) {
 		r_bsp_light_state.saturation = atof(c);
 	} else { // ensure sane default
 		r_bsp_light_state.saturation = 1.0;
 	}
 
 	// resolve contrast
-	if ((c = R_WorldspawnValue("contrast"))) {
+	if ((c = Cm_WorldspawnValue("contrast"))) {
 		r_bsp_light_state.contrast = atof(c);
 	} else { // ensure sane default
 		r_bsp_light_state.contrast = 1.0;
@@ -112,14 +112,12 @@ static void R_ResolveBspLightParameters(void) {
 
 	// apply brightness, saturation and contrast to the colors
 	vec_t *f = r_bsp_light_state.ambient_light;
-	ColorFilter(f, f, r_bsp_light_state.brightness, r_bsp_light_state.saturation,
-			r_bsp_light_state.contrast);
+	ColorFilter(f, f, r_bsp_light_state.brightness, r_bsp_light_state.saturation, r_bsp_light_state.contrast);
 
 	Com_Debug("Scaled ambient_light: %1.2f %1.2f %1.2f\n", f[0], f[1], f[2]);
 
 	f = r_bsp_light_state.sun_color;
-	ColorFilter(f, f, r_bsp_light_state.brightness, r_bsp_light_state.saturation,
-			r_bsp_light_state.contrast);
+	ColorFilter(f, f, r_bsp_light_state.brightness, r_bsp_light_state.saturation, r_bsp_light_state.contrast);
 
 	Com_Debug("Scaled sun_color: %1.2f %1.2f %1.2f\n", f[0], f[1], f[2]);
 }

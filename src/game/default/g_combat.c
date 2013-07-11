@@ -44,53 +44,50 @@ _Bool G_OnSameTeam(const g_edict_t *ent1, const g_edict_t *ent2) {
  */
 _Bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
 	vec3_t dest;
-	c_trace_t trace;
+	c_trace_t tr;
 
 	// bmodels need special checking because their origin is 0,0,0
 	if (targ->locals.move_type == MOVE_TYPE_PUSH) {
 		VectorAdd(targ->abs_mins, targ->abs_maxs, dest);
 		VectorScale(dest, 0.5, dest);
-		trace
-				= gi.Trace(inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor,
-						MASK_SOLID);
-		if (trace.fraction == 1.0)
+		tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
+		if (tr.fraction == 1.0)
 			return true;
-		if (trace.ent == targ)
+		if (tr.ent == targ)
 			return true;
 		return false;
 	}
 
-	trace = gi.Trace(inflictor->s.origin, vec3_origin, vec3_origin, targ->s.origin, inflictor,
-			MASK_SOLID);
-	if (trace.fraction == 1.0)
+	tr = gi.Trace(inflictor->s.origin, targ->s.origin, NULL, NULL, inflictor, MASK_SOLID);
+	if (tr.fraction == 1.0)
 		return true;
 
 	VectorCopy(targ->s.origin, dest);
 	dest[0] += 15.0;
 	dest[1] += 15.0;
-	trace = gi.Trace(inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
-	if (trace.fraction == 1.0)
+	tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
+	if (tr.fraction == 1.0)
 		return true;
 
 	VectorCopy(targ->s.origin, dest);
 	dest[0] += 15.0;
 	dest[1] -= 15.0;
-	trace = gi.Trace(inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
-	if (trace.fraction == 1.0)
+	tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
+	if (tr.fraction == 1.0)
 		return true;
 
 	VectorCopy(targ->s.origin, dest);
 	dest[0] -= 15.0;
 	dest[1] += 15.0;
-	trace = gi.Trace(inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
-	if (trace.fraction == 1.0)
+	tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
+	if (tr.fraction == 1.0)
 		return true;
 
 	VectorCopy(targ->s.origin, dest);
 	dest[0] -= 15.0;
 	dest[1] -= 15.0;
-	trace = gi.Trace(inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
-	if (trace.fraction == 1.0)
+	tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
+	if (tr.fraction == 1.0)
 		return true;
 
 	return false;
@@ -115,7 +112,8 @@ static void G_SpawnDamage(int32_t type, vec3_t origin, vec3_t normal, int32_t da
 /*
  * @brief
  */
-static int32_t G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int32_t damage, int32_t dflags) {
+static int32_t G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int32_t damage,
+		int32_t dflags) {
 	g_client_t *client;
 	int32_t saved;
 
@@ -192,7 +190,8 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 		attacker = &g_game.edicts[0];
 
 	// quad damage affects both damage and knockback
-	if (attacker->client && attacker->client->locals.persistent.inventory[g_level.media.quad_damage]) {
+	if (attacker->client
+			&& attacker->client->locals.persistent.inventory[g_level.media.quad_damage]) {
 		damage = (int32_t) (damage * QUAD_DAMAGE_FACTOR);
 		knockback = (int32_t) (knockback * QUAD_KNOCKBACK_FACTOR);
 	}
@@ -350,7 +349,7 @@ void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore
 		if (!G_CanDamage(ent, inflictor))
 			continue;
 
-		G_Damage(ent, inflictor, attacker, dir, ent->s.origin, vec3_origin, (int32_t) d, (int32_t) k,
-				DAMAGE_RADIUS, mod);
+		G_Damage(ent, inflictor, attacker, dir, ent->s.origin, vec3_origin, (int32_t) d,
+				(int32_t) k, DAMAGE_RADIUS, mod);
 	}
 }

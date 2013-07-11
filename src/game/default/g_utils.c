@@ -77,7 +77,7 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 	VectorAdd(ent->s.origin, view, view);
 
 	VectorMA(view, 8192.0, forward, end);
-	tr = gi.Trace(view, vec3_origin, vec3_origin, end, ent, MASK_SHOT);
+	tr = gi.Trace(view, end, NULL, NULL, ent, MASK_SHOT);
 
 	VectorSubtract(tr.end, org, forward);
 	VectorNormalize(forward);
@@ -413,7 +413,7 @@ _Bool G_KillBox(g_edict_t *ent) {
 	c_trace_t tr;
 
 	while (true) {
-		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin, NULL, MASK_PLAYER_SOLID);
+		tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, NULL, MASK_PLAYER_SOLID);
 		if (!tr.ent)
 			break;
 

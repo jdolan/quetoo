@@ -76,7 +76,7 @@ typedef struct {
 
 	net_addr_t remote_address;
 
-	byte qport; // qport value to write when transmitting
+	uint8_t qport; // qport value to write when transmitting
 
 	// sequencing variables
 	uint32_t incoming_sequence;
@@ -103,7 +103,7 @@ extern size_buf_t net_message;
 extern byte net_message_buffer[MAX_MSG_SIZE];
 
 void Netchan_Init(void);
-void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr, byte qport);
+void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr, uint8_t qport);
 void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data);
 void Netchan_OutOfBand(int32_t net_socket, net_addr_t addr, size_t size, byte *data);
 void Netchan_OutOfBandPrint(int32_t net_socket, net_addr_t addr, const char *format, ...) __attribute__((format(printf, 3, 4)));

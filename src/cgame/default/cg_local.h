@@ -37,6 +37,7 @@
 #include "cg_media.h"
 #include "cg_muzzle_flash.h"
 #include "cg_particle.h"
+#include "cg_predict.h"
 #include "cg_score.h"
 #include "cg_temp_entity.h"
 #include "cg_types.h"

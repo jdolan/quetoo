@@ -578,6 +578,7 @@ typedef enum {
  * @brief Provides static lighting information for mesh entities.
  */
 typedef struct r_lighting_s {
+	uint16_t number; // entity number
 	vec3_t origin; // entity origin
 	vec_t radius; // entity radius
 	vec3_t mins, maxs; // entity bounding box in world space
@@ -605,7 +606,7 @@ typedef struct r_entity_s {
 	matrix4x4_t matrix;
 	_Bool culled;
 
-	const struct r_model_s *model;
+	const r_model_t *model;
 
 	uint16_t frame, old_frame; // frame-based animations
 	vec_t lerp, back_lerp;

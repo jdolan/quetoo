@@ -58,8 +58,7 @@ void Msg_WritePos(size_buf_t *sb, const vec3_t pos);
 void Msg_WriteAngle(size_buf_t *sb, const vec_t f);
 void Msg_WriteAngles(size_buf_t *sb, const vec3_t angles);
 void Msg_WriteDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
-void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force,
-		_Bool newentity);
+void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force, _Bool newentity);
 void Msg_WriteDir(size_buf_t *sb, const vec3_t dir);
 
 void Msg_BeginReading(size_buf_t *sb);
@@ -75,8 +74,7 @@ void Msg_ReadPos(size_buf_t *sb, vec3_t pos);
 vec_t Msg_ReadAngle(size_buf_t *sb);
 void Msg_ReadAngles(size_buf_t *sb, vec3_t angles);
 void Msg_ReadDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
-void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, uint16_t bits,
-		uint16_t number);
+void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, uint16_t bits, uint16_t number);
 void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
 
 /*
@@ -132,7 +130,6 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
 #define S_ATTEN		(1<<0) // a byte
 #define S_ORIGIN	(1<<1) // three coordinates
 #define S_ENTNUM	(1<<2) // entity number
-
 // entity_state_t communication
 
 // This bit mask is packed into a int16_t for each entity_state_t per frame.

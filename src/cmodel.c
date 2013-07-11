@@ -589,8 +589,26 @@ int32_t Cm_NumModels(void) {
 /*
  * @brief
  */
-char *Cm_EntityString(void) {
+const char *Cm_EntityString(void) {
 	return c_bsp.entity_string;
+}
+
+/*
+ * @brief Parses values from the worldspawn entity definition.
+ */
+const char *Cm_WorldspawnValue(const char *key) {
+	const char *c, *v;
+
+	c = strstr(Cm_EntityString(), va("\"%s\"", key));
+
+	if (c) {
+		ParseToken(&c); // parse the key itself
+		v = ParseToken(&c); // parse the value
+	} else {
+		v = NULL;
+	}
+
+	return v;
 }
 
 /*
@@ -847,7 +865,7 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
 }
 
 /*
- * @brief Handles offseting and rotation of the end points for moving and
+ * @brief Handles offset and rotation of the end points for moving and
  * rotating entities
  */
 int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const vec3_t origin,
@@ -1204,7 +1222,7 @@ static void Cm_RecursiveHullCheck(int32_t num, vec_t p1f, vec_t p2f, const vec3_
  * @brief
  */
 c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		int32_t head_node, int32_t brush_mask) {
+		int32_t head_node, int32_t contents) {
 	int32_t i, point_leafs[1024];
 
 	c_trace_data_t data;
@@ -1220,7 +1238,7 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
 		return data.trace;
 
 	memset(&data.mailbox, 0xffffffff, sizeof(data.mailbox));
-	data.contents = brush_mask;
+	data.contents = contents;
 	VectorCopy(start, data.start);
 	VectorCopy(end, data.end);
 	VectorCopy(mins, data.mins);
@@ -1279,7 +1297,7 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
  * rotating entities.
  */
 c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
-		const vec3_t maxs, int32_t head_node, int32_t brush_mask, const vec3_t origin,
+		const vec3_t maxs, int32_t head_node, int32_t contents, const vec3_t origin,
 		const vec3_t angles) {
 
 	c_trace_t trace;
@@ -1314,7 +1332,7 @@ c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec
 	}
 
 	// sweep the box through the model
-	trace = Cm_BoxTrace(start_l, end_l, mins, maxs, head_node, brush_mask);
+	trace = Cm_BoxTrace(start_l, end_l, mins, maxs, head_node, contents);
 
 	if (rotated && trace.fraction != 1.0) {
 		// FIXME: figure out how to do this with existing angles

@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "client.h"
 
 /*
  * @brief Allocates an initializes the flare for the specified surface, if one
@@ -121,10 +122,9 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 			if (r_view.time - f->time > 500) // reset old flares
 				f->alpha = 0;
 
-			R_Trace(r_view.origin, f->origin, vec3_origin, vec3_origin, MASK_SHOT);
-			const _Bool visible = r_view.trace.fraction == 1.0;
+			c_trace_t tr = Cl_Trace(r_view.origin, f->origin, NULL, NULL, 0, MASK_SHOT);
 
-			f->alpha += (visible ? 0.03 : -0.15); // ramp
+			f->alpha += (tr.fraction == 1.0) ? 0.03 : -0.15; // ramp
 			f->alpha = Clamp(f->alpha, 0.0, 1.0); // clamp
 
 			f->time = r_view.time;

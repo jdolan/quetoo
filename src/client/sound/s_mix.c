@@ -63,8 +63,8 @@ _Bool S_SpatializeChannel(s_channel_t *ch) {
 	vec_t dist = VectorNormalize(delta) * ch->atten;
 
 	if (dist < SOUND_MAX_DISTANCE) { // check if there's a clear line of sight to the origin
-		R_Trace(r_view.origin, ch->org, vec3_origin, vec3_origin, MASK_SHOT);
-		if (r_view.trace.fraction < 1.0) {
+		c_trace_t tr = Cl_Trace(r_view.origin, ch->org, NULL, NULL, 0, MASK_SHOT);
+		if (tr.fraction < 1.0) {
 			dist *= 1.25;
 		}
 	}

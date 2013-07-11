@@ -157,7 +157,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 	int32_t leafs[MAX_TOTAL_ENT_LEAFS];
 	int32_t clusters[MAX_TOTAL_ENT_LEAFS];
 	int32_t num_leafs;
-	int32_t i, j, k;
+	int32_t i, j;
 	int32_t area;
 	int32_t top_node;
 
@@ -174,32 +174,13 @@ void Sv_LinkEdict(g_edict_t *ent) {
 	VectorSubtract(ent->maxs, ent->mins, ent->size);
 
 	// encode the size into the entity_state for client prediction
-	if (ent->solid == SOLID_BOX) { // assume that x/y are equal and symetric
-		i = ent->maxs[0] / 8;
-		if (i < 1)
-			i = 1;
-		if (i > 31)
-			i = 31;
-
-		// z is not symmetric
-		j = (-ent->mins[2]) / 8;
-		if (j < 1)
-			j = 1;
-		if (j > 31)
-			j = 31;
-
-		// and z maxs can be negative...
-		k = (ent->maxs[2] + 32) / 8;
-		if (k < 1)
-			k = 1;
-		if (k > 63)
-			k = 63;
-
-		ent->s.solid = (k << 10) | (j << 5) | i;
+	if (ent->solid == SOLID_BOX) {
+		PackBounds(ent->mins, ent->maxs, &ent->s.solid);
 	} else if (ent->solid == SOLID_BSP) {
-		ent->s.solid = 31; // a solid_bbox will never create this value
-	} else
-		ent->s.solid = 0;
+		ent->s.solid = SOLID_BSP;
+	} else {
+		ent->s.solid = SOLID_NOT;
+	}
 
 	// set the absolute bounding box
 	if (ent->solid == SOLID_BSP && (ent->s.angles[0] || ent->s.angles[1] || ent->s.angles[2])) { // expand for rotation
@@ -285,6 +266,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 
 	// if first time, make sure old_origin is valid
 	// FIXME overflow = fail, handle old_origin on init
+	// jdolan: i think this is done now?
 	if (!ent->link_count) {
 		VectorCopy(ent->s.origin, ent->s.old_origin);
 	}
@@ -536,7 +518,7 @@ static void Sv_TraceBounds(sv_trace_t *trace) {
  * The skipped edict, and edicts owned by him, are explicitly not checked.
  * This prevents players from clipping against their own projectiles, etc.
  */
-c_trace_t Sv_Trace(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
+c_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 		const g_edict_t *skip, int32_t mask) {
 
 	sv_trace_t trace;

@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "client.h"
 
 #define LIGHTING_MAX_BSP_LIGHT_REFS 64
 
@@ -66,15 +67,18 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 			continue;
 
 		// is it visible to the entity; trace to origin and corners of bounding box
-		R_Trace(l->origin, lighting->origin, vec3_origin, vec3_origin, CONTENTS_SOLID);
 
-		if (r_view.trace.fraction < 1.0) {
-			R_Trace(l->origin, lighting->mins, vec3_origin, vec3_origin, CONTENTS_SOLID);
+		const uint16_t skip = lighting->number;
 
-			if (r_view.trace.fraction < 1.0) {
-				R_Trace(l->origin, lighting->maxs, vec3_origin, vec3_origin, CONTENTS_SOLID);
+		c_trace_t tr = Cl_Trace(l->origin, lighting->origin, NULL, NULL, skip, CONTENTS_SOLID);
 
-				if (r_view.trace.fraction < 1.0) {
+		if (tr.fraction < 1.0) {
+			tr = Cl_Trace(l->origin, lighting->mins, NULL, NULL, skip, CONTENTS_SOLID);
+
+			if (tr.fraction < 1.0) {
+				tr = Cl_Trace(l->origin, lighting->maxs, NULL, NULL, skip, CONTENTS_SOLID);
+
+				if (tr.fraction < 1.0) {
 					continue;
 				}
 			}
@@ -149,12 +153,12 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 	end[2] = start[2] - LIGHTING_MAX_SHADOW_DISTANCE;
 
 	// do the trace
-	R_Trace(start, end, vec3_origin, vec3_origin, MASK_SOLID);
+	c_trace_t tr = Cl_Trace(start, end, NULL, NULL, lighting->number, MASK_SOLID);
 
 	// resolve the shadow origin and direction
-	if (r_view.trace.leaf_num) { // hit something
-		VectorCopy(r_view.trace.end, lighting->shadow_origin);
-		VectorCopy(r_view.trace.plane.normal, lighting->shadow_normal);
+	if (tr.fraction < 1.0) { // hit something
+		VectorCopy(tr.end, lighting->shadow_origin);
+		VectorCopy(tr.plane.normal, lighting->shadow_normal);
 	} else { // clear it
 		VectorClear(lighting->shadow_origin);
 		VectorClear(lighting->shadow_normal);

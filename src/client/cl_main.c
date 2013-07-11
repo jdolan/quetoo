@@ -57,7 +57,7 @@ cl_client_t cl;
  */
 static void Cl_SendConnect(void) {
 	net_addr_t addr;
-	byte qport;
+	uint8_t qport;
 
 	memset(&addr, 0, sizeof(addr));
 
@@ -70,10 +70,10 @@ static void Cl_SendConnect(void) {
 	if (addr.port == 0) // use default port
 		addr.port = BigShort(PORT_SERVER);
 
-	qport = (byte) Cvar_GetValue("net_qport"); // has been set by netchan
+	qport = (uint8_t) Cvar_GetValue("net_qport"); // has been set by netchan
 
-	Netchan_OutOfBandPrint(NS_CLIENT, addr, "connect %i %i %i \"%s\"\n", PROTOCOL, qport,
-			cls.challenge, Cvar_UserInfo());
+	Netchan_OutOfBandPrint(NS_CLIENT, addr, "connect %i %i %i \"%s\"\n", PROTOCOL, qport, cls.challenge,
+			Cvar_UserInfo());
 
 	cvar_user_info_modified = false;
 }
@@ -271,8 +271,7 @@ void Cl_Disconnect(void) {
 
 		const vec_t s = (cls.real_time - cl.time_demo_start) / 1000.0;
 
-		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
-				cl.time_demo_frames / s);
+		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s, cl.time_demo_frames / s);
 
 		cl.time_demo_frames = cl.time_demo_start = 0;
 	}
@@ -363,10 +362,12 @@ static void Cl_ConnectionlessPacket(void) {
 			return;
 		}
 
-		const byte qport = (byte) Cvar_GetValue("net_qport");
+		const uint8_t qport = (uint8_t) Cvar_GetValue("net_qport");
 		Netchan_Setup(NS_CLIENT, &cls.net_chan, net_from, qport);
+
 		Msg_WriteChar(&cls.net_chan.message, CL_CMD_STRING);
 		Msg_WriteString(&cls.net_chan.message, "new");
+
 		cls.state = CL_CONNECTED;
 
 		memset(cls.download_url, 0, sizeof(cls.download_url));
@@ -451,8 +452,7 @@ static void Cl_ReadPackets(void) {
 	}
 
 	// check timeout
-	if (cls.state >= CL_CONNECTED && cls.real_time - cls.net_chan.last_received > cl_timeout->value
-			* 1000) {
+	if (cls.state >= CL_CONNECTED && cls.real_time - cls.net_chan.last_received > cl_timeout->value * 1000) {
 		Com_Print("%s: Timed out.\n", Net_NetaddrToString(net_from));
 		Cl_Disconnect();
 	}
@@ -483,7 +483,7 @@ static void Cl_InitLocal(void) {
 	cl_ignore = Cvar_Get("cl_ignore", "", 0, NULL);
 	cl_max_fps = Cvar_Get("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
 	cl_max_pps = Cvar_Get("cl_max_pps", "0", CVAR_ARCHIVE, NULL);
-	cl_predict = Cvar_Get("cl_predict", "1", 0, NULL);
+	cl_predict = Cvar_Get("cl_predict", "1", 0, "Use client-side prediction to update local view");
 	cl_show_net_messages = Cvar_Get("cl_show_net_messages", "0", CVAR_LO_ONLY, NULL);
 	cl_show_renderer_stats = Cvar_Get("cl_show_renderer_stats", "0", CVAR_LO_ONLY, NULL);
 	cl_show_sound_stats = Cvar_Get("cl_show_sound_stats", "0", CVAR_LO_ONLY, NULL);
@@ -627,7 +627,9 @@ void Cl_Frame(uint32_t msec) {
 		Cl_UpdateCmd();
 
 		// predict all unacknowledged movements
-		Cl_PredictMovement();
+		if (Cl_UsePrediction()) {
+			cls.cgame->PredictMovement();
+		}
 
 		// update the screen
 		Cl_UpdateScreen();

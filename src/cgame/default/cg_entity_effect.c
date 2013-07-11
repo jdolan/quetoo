@@ -31,7 +31,7 @@ static void Cg_BlasterTrail(const vec3_t start, const vec3_t end, cl_entity_t *e
 	vec3_t color;
 	int32_t i;
 
-	const byte col = ent->current.client ? ent->current.client : EFFECT_COLOR_ORANGE;
+	const uint8_t col = ent->current.client ? ent->current.client : EFFECT_COLOR_ORANGE;
 
 	if (ent->time < cgi.client->time) {
 		cg_particle_t *p;

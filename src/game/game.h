@@ -28,16 +28,6 @@
 
 // edict->sv_flags
 #define SVF_NO_CLIENT 1  // don't send entity to clients
-// edict->solid values
-typedef enum {
-	SOLID_NOT, // no interaction with other objects
-	SOLID_TRIGGER, // only touch when inside, after moving
-	SOLID_BOX, // touch on edge
-	SOLID_MISSILE, // touch on edge
-	SOLID_BSP
-// bsp clip, touch on edge
-} solid_t;
-
 // link_t is only used for entity area links now
 typedef struct link_s {
 	struct link_s *prev, *next;
@@ -155,16 +145,15 @@ typedef struct {
 			const uint16_t atten);
 
 	// collision detection
-	c_trace_t (*Trace)(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
-			const g_edict_t *passent, const int32_t mask);
 	int32_t (*PointContents)(const vec3_t point);
+	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+			const g_edict_t *passent, const int32_t mask);
+
+	// PVS / PHS
 	_Bool (*inPVS)(const vec3_t p1, const vec3_t p2);
 	_Bool (*inPHS)(const vec3_t p1, const vec3_t p2);
 	void (*SetAreaPortalState)(int32_t portal_num, _Bool open);
 	_Bool (*AreasConnected)(int32_t area1, int32_t area2);
-
-	// player movement code common with client prediction
-	void (*Pmove)(pm_move_t *pm_state);
 
 	// an entity will never be sent to a client or used for collision
 	// if it is not passed to LinkEdict. if the size, position, or

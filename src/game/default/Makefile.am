@@ -5,6 +5,7 @@ gamelibdir=$(libdir)/@PACKAGE@/default
 endif
 
 noinst_HEADERS = \
+	bg_pmove.h \
 	g_ai.h \
 	g_ai_goal.h \
 	g_ballistics.h \
@@ -27,6 +28,18 @@ noinst_HEADERS = \
 	g_types.h \
 	g_utils.h \
 	g_weapon.h
+
+noinst_LTLIBRARIES = \
+	libpmove.la
+
+libpmove_la_SOURCES = \
+	bg_pmove.c
+libpmove_la_CFLAGS = \
+	-I ../.. \
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
+libpmove_la_LIBADD = \
+	../../libshared.la
 
 gamelib_LTLIBRARIES = \
 	game.la
@@ -61,7 +74,7 @@ game_la_CFLAGS = \
 	@MYSQL_CFLAGS@
 
 game_la_LIBADD = \
-	../../libshared.la \
+	libpmove.la \
 	@MYSQL_LIBS@
 
 game_la_LDFLAGS = \

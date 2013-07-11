@@ -93,8 +93,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 	}
 
 	if (message) { // suicide
-		gi.BroadcastPrint(PRINT_MEDIUM, "%s %s.\n", self->client->locals.persistent.net_name,
-				message);
+		gi.BroadcastPrint(PRINT_MEDIUM, "%s %s.\n", self->client->locals.persistent.net_name, message);
 
 		if (g_level.warmup)
 			return;
@@ -173,8 +172,8 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 		if (message) {
 
 			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s%s\n", (ff ? "^1TEAMKILL^7 " : ""),
-					self->client->locals.persistent.net_name, message,
-					attacker->client->locals.persistent.net_name, message2);
+					self->client->locals.persistent.net_name, message, attacker->client->locals.persistent.net_name,
+					message2);
 
 			if (g_show_attacker_stats->integer) {
 				gi.ClientPrint(self, PRINT_HIGH, "%s had %d health and %d armor\n",
@@ -261,8 +260,7 @@ static void G_ClientCorpse(g_edict_t *self) {
  * certain items we're holding and force the client into a temporary spectator
  * state with the scoreboard shown.
  */
-static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int32_t damage __attribute__((unused)),
-		vec3_t point __attribute__((unused))) {
+static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int32_t damage __attribute__((unused)), vec3_t point __attribute__((unused))) {
 
 	self->locals.enemy = attacker;
 
@@ -580,8 +578,7 @@ static g_edict_t *G_SelectCaptureSpawnPoint(g_edict_t *ent) {
 	if (!ent->client->locals.persistent.team)
 		return NULL;
 
-	c = ent->client->locals.persistent.team == &g_team_good ? "info_player_team1"
-			: "info_player_team2";
+	c = ent->client->locals.persistent.team == &g_team_good ? "info_player_team1" : "info_player_team2";
 
 	if (g_spawn_farthest->value)
 		return G_SelectFarthestSpawnPoint(ent, c);
@@ -765,11 +762,10 @@ void G_ClientRespawn(g_edict_t *ent, _Bool voluntary) {
 		return;
 
 	if (ent->client->locals.persistent.spectator)
-		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n",
-				ent->client->locals.persistent.net_name);
+		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n", ent->client->locals.persistent.net_name);
 	else if (ent->client->locals.persistent.team)
-		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n",
-				ent->client->locals.persistent.net_name, ent->client->locals.persistent.team->name);
+		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", ent->client->locals.persistent.net_name,
+				ent->client->locals.persistent.team->name);
 	else
 		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", ent->client->locals.persistent.net_name);
 }
@@ -893,8 +889,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	if (strncmp(cl->locals.persistent.net_name, name, sizeof(cl->locals.persistent.net_name))) {
 
 		if (*cl->locals.persistent.net_name != '\0')
-			gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n",
-					cl->locals.persistent.net_name, name);
+			gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->locals.persistent.net_name, name);
 
 		g_strlcpy(cl->locals.persistent.net_name, name, sizeof(cl->locals.persistent.net_name));
 	}
@@ -918,8 +913,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	if (*s != '\0') // something valid-ish was provided
 		g_strlcpy(cl->locals.persistent.skin, s, sizeof(cl->locals.persistent.skin));
 	else {
-		g_strlcpy(cl->locals.persistent.skin, "qforcer/enforcer",
-				sizeof(cl->locals.persistent.skin));
+		g_strlcpy(cl->locals.persistent.skin, "qforcer/enforcer", sizeof(cl->locals.persistent.skin));
 	}
 
 	// set color
@@ -929,12 +923,10 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	player_num = ent - g_game.edicts - 1;
 
 	// combine name and skin into a config_string
-	gi.ConfigString(CS_CLIENTS + player_num,
-			va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
+	gi.ConfigString(CS_CLIENTS + player_num, va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
 
 	// save off the user_info in case we want to check something later
-	g_strlcpy(ent->client->locals.persistent.user_info, user_info,
-			sizeof(ent->client->locals.persistent.user_info));
+	g_strlcpy(ent->client->locals.persistent.user_info, user_info, sizeof(ent->client->locals.persistent.user_info));
 
 	s = GetUserInfo(user_info, "active");
 	if (g_strcmp0(s, "0") == 0)
@@ -1019,18 +1011,17 @@ void G_ClientDisconnect(g_edict_t *ent) {
 /*
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
-static c_trace_t G_ClientMoveTrace(const vec3_t start, const vec3_t mins, const vec3_t maxs,
-		const vec3_t end) {
+static c_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs) {
 	const g_edict_t *self = g_level.current_entity;
 
 	if (g_level.current_entity->locals.health > 0)
-		return gi.Trace(start, mins, maxs, end, self, MASK_PLAYER_SOLID);
+		return gi.Trace(start, end, mins, maxs, self, MASK_PLAYER_SOLID);
 	else
-		return gi.Trace(start, mins, maxs, end, self, MASK_DEAD_SOLID);
+		return gi.Trace(start, end, mins, maxs, self, MASK_DEAD_SOLID);
 }
 
 /*
- * @brief Process the movement command, calling Pmove and acting on the results.
+ * @brief Process the movement command, call Pm_Move and act on the result.
  */
 static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	vec3_t old_velocity, velocity;
@@ -1064,11 +1055,11 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	pm.cmd = *cmd;
 	pm.ground_entity = ent->locals.ground_entity;
 
-	pm.Trace = G_ClientMoveTrace;
 	pm.PointContents = gi.PointContents;
+	pm.Trace = G_ClientMove_Trace;
 
 	// perform a pmove
-	gi.Pmove(&pm);
+	Pm_Move(&pm);
 
 	// save results of pmove
 	client->ps.pm_state = pm.s;
@@ -1085,8 +1076,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	VectorCopy(pm.angles, client->locals.angles);
 
 	// update the directional vectors based on new view angles
-	AngleVectors(client->locals.angles, client->locals.forward, client->locals.right,
-			client->locals.up);
+	AngleVectors(client->locals.angles, client->locals.forward, client->locals.right, client->locals.up);
 
 	// update the horizontal speed scalar based on new velocity
 	VectorCopy(ent->locals.velocity, velocity);
@@ -1105,10 +1095,9 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 		VectorMA(ent->s.origin, client->locals.speed * 0.4, velocity, point);
 
 		// trace towards our jump destination to see if we have room to backflip
-		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_PLAYER_SOLID);
+		tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, MASK_PLAYER_SOLID);
 
-		if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && client->locals.speed
-				> 200.0)
+		if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && client->locals.speed > 200.0)
 			G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
 		else
 			G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
@@ -1120,8 +1109,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 		client->locals.jump_time = g_level.time;
 	}
 	// check for water jump
-	else if ((pm.s.pm_flags & PMF_TIME_WATER_JUMP) && client->locals.jump_time < g_level.time
-			- 2000) {
+	else if ((pm.s.pm_flags & PMF_TIME_WATER_JUMP) && client->locals.jump_time < g_level.time - 2000) {
 
 		G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
@@ -1150,8 +1138,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 			vec3_t dir;
 			VectorSet(dir, 0.0, 0.0, 1.0);
 
-			G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage, 0, DAMAGE_NO_ARMOR,
-					MOD_FALLING);
+			G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage, 0, DAMAGE_NO_ARMOR, MOD_FALLING);
 		}
 
 		if (G_IsAnimation(ent, ANIM_LEGS_JUMP2))
@@ -1258,8 +1245,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 
 		client->ps.pm_state.pm_flags |= PMF_NO_PREDICTION;
 
-		if (!client->locals.chase_target->in_use
-				|| client->locals.chase_target->client->locals.persistent.spectator) {
+		if (!client->locals.chase_target->in_use || client->locals.chase_target->client->locals.persistent.spectator) {
 
 			g_edict_t *other = client->locals.chase_target;
 

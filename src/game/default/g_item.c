@@ -627,15 +627,15 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 
 		VectorMA(ent->s.origin, 24.0, forward, dropped->s.origin);
 
-		trace = gi.Trace(ent->s.origin, dropped->mins, dropped->maxs, dropped->s.origin, ent,
-				CONTENTS_SOLID);
+		trace = gi.Trace(ent->s.origin, ent->s.origin, dropped->mins, dropped->maxs, ent,
+				MASK_PLAYER_SOLID);
 
 		VectorCopy(trace.end, dropped->s.origin);
 	} else {
 		AngleVectors(ent->s.angles, forward, NULL, NULL);
 
-		trace = gi.Trace(ent->s.origin, dropped->mins, dropped->maxs, ent->s.origin, ent,
-				CONTENTS_SOLID);
+		trace = gi.Trace(ent->s.origin, ent->s.origin, dropped->mins, dropped->maxs, ent,
+				MASK_PLAYER_SOLID);
 
 		VectorCopy(ent->s.origin, dropped->s.origin);
 	}
@@ -704,7 +704,7 @@ static void G_ItemDropToFloor(g_edict_t *ent) {
 		VectorCopy(ent->s.origin, dest);
 		dest[2] -= 8192;
 
-		tr = gi.Trace(ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
+		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
 		if (tr.start_solid) {
 			gi.Debug("%s start_solid at %s\n", ent->class_name, vtos(ent->s.origin));
 			G_FreeEdict(ent);

@@ -249,7 +249,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		dist = GIB_STREAM_DIST;
 		VectorMA(o, dist, v, tmp);
 
-		tr = cgi.Trace(o, tmp, vec3_origin, vec3_origin, MASK_SHOT);
+		tr = cgi.Trace(o, tmp, NULL, NULL, 0, MASK_SHOT);
 		dist = GIB_STREAM_DIST * tr.fraction;
 
 		for (j = 1; j < GIB_STREAM_COUNT; j++) {
@@ -647,7 +647,7 @@ void Cg_ParseTempEntity(void) {
 	vec3_t pos, pos2, dir;
 	int32_t i, j;
 
-	const byte type = cgi.ReadByte();
+	const uint8_t type = cgi.ReadByte();
 
 	switch (type) {
 

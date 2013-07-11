@@ -22,7 +22,6 @@
 #include "common.h"
 #include "common-anorms.h"
 
-
 // console redirection (e.g. rcon)
 typedef struct redirect_s {
 	int32_t target;
@@ -86,10 +85,11 @@ void Com_Debug_(const char *func, const char *fmt, ...) {
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
-	if (quake2world.Debug)
+	if (quake2world.Debug) {
 		quake2world.Debug((const char *) msg);
-	else
-		printf("%s", msg);
+	} else {
+		fputs(msg, stdout);
+	}
 }
 
 /*
@@ -139,10 +139,11 @@ void Com_Print(const char *fmt, ...) {
 		return;
 	}
 
-	if (quake2world.Print)
+	if (quake2world.Print) {
 		quake2world.Print((const char *) msg);
-	else
-		printf("%s", msg);
+	} else {
+		fputs(msg, stdout);
+	}
 }
 
 /*
@@ -164,10 +165,11 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
-	if (quake2world.Warn)
+	if (quake2world.Warn) {
 		quake2world.Warn((const char *) msg);
-	else
+	} else {
 		fprintf(stderr, "WARNING: %s", msg);
+	}
 }
 
 /*
@@ -181,10 +183,11 @@ void Com_Verbose(const char *fmt, ...) {
 	vsnprintf(msg, sizeof(msg), fmt, args);
 	va_end(args);
 
-	if (quake2world.Verbose)
+	if (quake2world.Verbose) {
 		quake2world.Verbose((const char *) msg);
-	else
-		printf("%s", msg);
+	} else {
+		fputs(msg, stdout);
+	}
 }
 
 /*
@@ -437,8 +440,7 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t dir) {
  * @brief Writes an entity's state changes to a net message. Can delta from
  * either a baseline or a previous packet_entity
  */
-void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force,
-		_Bool is_new) {
+void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force, _Bool is_new) {
 
 	uint16_t bits = 0;
 
@@ -468,8 +470,8 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *
 	if (to->effects != from->effects)
 		bits |= U_EFFECTS;
 
-	if (to->model1 != from->model1 || to->model2 != from->model2 || to->model3 != from->model3
-			|| to->model4 != from->model4)
+	if (to->model1 != from->model1 || to->model2 != from->model2 || to->model3 != from->model3 || to->model4
+			!= from->model4)
 		bits |= U_MODELS;
 
 	if (to->client != from->client)
@@ -529,8 +531,7 @@ void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *
 /*
  * @brief
  */
-void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg,
-		uint16_t number, uint16_t bits) {
+void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, uint16_t number, uint16_t bits) {
 
 	// set everything to the state we are delta'ing from
 	*to = *from;
@@ -652,8 +653,8 @@ int32_t Msg_ReadLong(size_buf_t *sb) {
 	if (sb->read + 4 > sb->size)
 		c = -1;
 	else
-		c = sb->data[sb->read] + (sb->data[sb->read + 1] << 8) + (sb->data[sb->read + 2] << 16)
-				+ (sb->data[sb->read + 3] << 24);
+		c = sb->data[sb->read] + (sb->data[sb->read + 1] << 8) + (sb->data[sb->read + 2] << 16) + (sb->data[sb->read
+				+ 3] << 24);
 
 	sb->read += 4;
 

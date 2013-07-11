@@ -73,7 +73,7 @@ static void Debug(const char *msg) {
 	if (!debug)
 		return;
 
-	printf("%s", msg);
+	fputs(msg, stdout);
 }
 
 static void Shutdown(const char *msg);
@@ -100,7 +100,7 @@ static void Verbose(const char *msg) {
 	if (!verbose)
 		return;
 
-	printf("%s", msg);
+	fputs(msg, stdout);
 }
 
 /*

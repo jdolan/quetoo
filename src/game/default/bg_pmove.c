@@ -19,14 +19,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "pmove.h"
+#include "bg_pmove.h"
 
 static pm_move_t *pm;
 
-// all of the locals will be zeroed before each
-// pmove, just to make damn sure we don't have
-// any differences when running on client or server
-
+/*
+ * @brief A structure containing full floating point precision copies of all
+ * movement variables. This is initialized with the player's last movement
+ * at each call to Pmove (this is obviously not thread-safe).
+ */
 typedef struct {
 	vec3_t origin; // full vec_t precision
 	vec3_t velocity; // full vec_t precision
@@ -82,6 +83,25 @@ static pm_locals_t pml;
 #define PM_CLIP_FLOOR			1.01
 
 #define PM_STOP_EPSILON			0.1
+
+/*
+ * @brief Handle printing of debugging messages for development.
+ */
+static void Pm_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+static void Pm_Debug(const char *fmt, ...) {
+	va_list args;
+	char msg[MAX_STRING_CHARS];
+
+	va_start(args, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, args);
+	va_end(args);
+
+	if (pm->Debug) {
+		pm->Debug(msg);
+	} else {
+		fputs(msg, stdout);
+	}
+}
 
 /*
  * @brief Slide off of the impacted plane.
@@ -157,7 +177,7 @@ static int32_t Pm_StepSlideMove_(void) {
 		VectorMA(pml.origin, time, pml.velocity, end);
 
 		// trace to it
-		trace = pm->Trace(pml.origin, pm->mins, pm->maxs, end);
+		trace = pm->Trace(pml.origin, end, pm->mins, pm->maxs);
 
 		// store a reference to the entity for firing game events
 		if (pm->num_touch < MAX_TOUCH_ENTS && trace.ent) {
@@ -215,7 +235,7 @@ static void Pm_StepSlideMove(void) {
 			VectorCopy(pml.origin, down);
 			down[2] -= (PM_STAIR_HEIGHT + PM_STOP_EPSILON);
 
-			trace = pm->Trace(pml.origin, pm->mins, pm->maxs, down);
+			trace = pm->Trace(pml.origin, down, pm->mins, pm->maxs);
 
 			if (trace.fraction > PM_STOP_EPSILON && trace.fraction < 1.0) {
 				VectorCopy(trace.end, pml.origin);
@@ -238,7 +258,7 @@ static void Pm_StepSlideMove(void) {
 	if (pm->s.pm_flags & PMF_ON_LADDER) // don't bother stepping up on ladders
 		return;
 
-	//Com_Debug("%d step up\n", quake2world.time);
+	//Pm_Debug("%d step up\n", quake2world.time);
 
 	// save the clipped results in case stepping fails
 	VectorCopy(pml.origin, clipped_org);
@@ -252,7 +272,7 @@ static void Pm_StepSlideMove(void) {
 		up[2] += PM_STAIR_HEIGHT;
 	}
 
-	trace = pm->Trace(org, pm->mins, pm->maxs, up);
+	trace = pm->Trace(org, up, pm->mins, pm->maxs);
 
 	if (trace.all_solid) { // it's not
 		return;
@@ -267,7 +287,7 @@ static void Pm_StepSlideMove(void) {
 	VectorCopy(pml.origin, down);
 	down[2] = clipped_org[2];
 
-	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, down);
+	trace = pm->Trace(pml.origin, down, pm->mins, pm->maxs);
 
 	if (!trace.all_solid) {
 		VectorCopy(trace.end, pml.origin);
@@ -419,25 +439,22 @@ static void Pm_AddCurrents(vec3_t vel) {
  * ground entity, water level, and water type.
  */
 static void Pm_CategorizePosition(void) {
-	vec3_t point;
-	int32_t contents;
-	c_trace_t trace;
+	vec3_t pos;
 
 	// if the client wishes to trick-jump, seek ground eagerly
-	if (!pm->ground_entity && (pml.velocity[2] > 0.0 && pm->cmd.up > 0) && !(pm->s.pm_flags
-			& PMF_JUMP_HELD)) {
-		VectorCopy(pml.origin, point);
-		point[2] -= PM_STAIR_HEIGHT * 0.5;
+	if (!pm->ground_entity && (pml.velocity[2] > 0.0 && pm->cmd.up > 0) && !(pm->s.pm_flags & PMF_JUMP_HELD)) {
+		VectorCopy(pml.origin, pos);
+		pos[2] -= PM_STAIR_HEIGHT * 0.5;
 	} else { // otherwise, seek the ground beneath the next origin
-		VectorMA(pml.origin, pml.time, pml.velocity, point);
+		VectorMA(pml.origin, pml.time, pml.velocity, pos);
 		if (pm->ground_entity) { // try to stay on the ground rather than float away
-			point[2] -= PM_STAIR_HEIGHT * 0.25;
+			pos[2] -= PM_STAIR_HEIGHT * 0.25;
 		} else {
-			point[2] -= PM_STOP_EPSILON;
+			pos[2] -= PM_STOP_EPSILON;
 		}
 	}
 
-	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, point);
+	c_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
 	pml.ground_plane = trace.plane;
 	pml.ground_surface = trace.surface;
@@ -471,7 +488,7 @@ static void Pm_CategorizePosition(void) {
 
 			// we're done being pushed
 			pm->s.pm_flags &= ~PMF_PUSHED;
-			//Com_Debug("%d landed\n", quake2world.time);
+			//Pm_Debug("%d landed\n", quake2world.time);
 		}
 
 		VectorCopy(trace.end, pml.origin);
@@ -489,25 +506,25 @@ static void Pm_CategorizePosition(void) {
 	// get water_level, accounting for ducking
 	pm->water_level = pm->water_type = 0;
 
-	point[2] = pml.origin[2] + pm->mins[2] + 1.0;
-	contents = pm->PointContents(point);
+	pos[2] = pml.origin[2] + pm->mins[2] + 1.0;
+	int32_t contents = pm->PointContents(pos);
 
 	if (contents & MASK_WATER) {
 
 		pm->water_type = contents;
 		pm->water_level = 1;
 
-		point[2] = pml.origin[2];
+		pos[2] = pml.origin[2];
 
-		contents = pm->PointContents(point);
+		contents = pm->PointContents(pos);
 
 		if (contents & MASK_WATER) {
 
 			pm->water_level = 2;
 
-			point[2] = pml.origin[2] + pml.view_offset[2] + 1.0;
+			pos[2] = pml.origin[2] + pml.view_offset[2] + 1.0;
 
-			contents = pm->PointContents(point);
+			contents = pm->PointContents(pos);
 
 			if (contents & MASK_WATER) {
 				pm->water_level = 3;
@@ -531,7 +548,7 @@ static void Pm_CheckDuck(void) {
 	} else if (pm->cmd.up < 0) { // duck
 		pm->s.pm_flags |= PMF_DUCKED;
 	} else { // stand up if possible
-		trace = pm->Trace(pml.origin, pm->mins, pm->maxs, pml.origin);
+		trace = pm->Trace(pml.origin, pml.origin, pm->mins, pm->maxs);
 		if (trace.all_solid)
 			pm->s.pm_flags |= PMF_DUCKED;
 	}
@@ -585,7 +602,7 @@ static _Bool Pm_CheckJump(void) {
 	if (pm->cmd.up < 1)
 		return false;
 
-	//Com_Debug("%d jump %d\n", quake2world.time, pm->cmd.up);
+	//Pm_Debug("%d jump %d\n", quake2world.time, pm->cmd.up);
 
 	// finally, do the jump
 	jump = PM_SPEED_JUMP;
@@ -593,7 +610,7 @@ static _Bool Pm_CheckJump(void) {
 	// adding the double jump if eligible
 	if (pm->s.pm_flags & PMF_TIME_DOUBLE_JUMP) {
 		jump += PM_SPEED_DOUBLE_JUMP;
-		//Com_Debug("%d double_jump %3.2f\n", quake2world.time, jump);
+		//Pm_Debug("%d double_jump %3.2f\n", quake2world.time, jump);
 	}
 
 	if (pm->water_level > 1) {
@@ -638,8 +655,7 @@ static _Bool Pm_CheckPush(void) {
  * @brief Check for ladder interaction.
  */
 static _Bool Pm_CheckLadder(void) {
-	vec3_t forward, spot;
-	c_trace_t trace;
+	vec3_t forward, pos;
 
 	if (pm->s.pm_time)
 		return false;
@@ -650,10 +666,10 @@ static _Bool Pm_CheckLadder(void) {
 
 	VectorNormalize(forward);
 
-	VectorMA(pml.origin, 1.0, forward, spot);
-	spot[2] += pml.view_offset[2];
+	VectorMA(pml.origin, 1.0, forward, pos);
+	pos[2] += pml.view_offset[2];
 
-	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, spot);
+	c_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
 	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_LADDER)) {
 		pm->s.pm_flags |= PMF_ON_LADDER;
@@ -668,8 +684,7 @@ static _Bool Pm_CheckLadder(void) {
  * the water.
  */
 static _Bool Pm_CheckWaterJump(void) {
-	vec3_t point;
-	c_trace_t trace;
+	vec3_t pos;
 
 	if (pm->s.pm_time || pm->water_level != 2)
 		return false;
@@ -677,16 +692,16 @@ static _Bool Pm_CheckWaterJump(void) {
 	if (pm->cmd.up < 1 && pm->cmd.forward < 1)
 		return false;
 
-	VectorAdd(pml.origin, pml.view_offset, point);
-	VectorMA(point, 24.0, pml.forward, point);
+	VectorAdd(pml.origin, pml.view_offset, pos);
+	VectorMA(pos, 24.0, pml.forward, pos);
 
-	trace = pm->Trace(pml.origin, pm->mins, pm->maxs, point);
+	c_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
 	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_SOLID)) {
 
-		point[2] += PM_STAIR_HEIGHT + pm->maxs[2] - pm->mins[2];
+		pos[2] += PM_STAIR_HEIGHT + pm->maxs[2] - pm->mins[2];
 
-		trace = pm->Trace(point, pm->mins, pm->maxs, point);
+		trace = pm->Trace(pos, pos, pm->mins, pm->maxs);
 
 		if (trace.start_solid)
 			return false;
@@ -697,7 +712,7 @@ static _Bool Pm_CheckWaterJump(void) {
 		pm->s.pm_flags |= PMF_TIME_WATER_JUMP | PMF_JUMP_HELD;
 		pm->s.pm_time = 255;
 
-		//Com_Debug("%d water jump\n", quake2world.time);
+		//Pm_Debug("%d water jump\n", quake2world.time);
 		return true;
 	}
 
@@ -712,7 +727,7 @@ static void Pm_LadderMove(void) {
 	vec_t speed;
 	int32_t i;
 
-	//Com_Debug("%d ladder move\n", quake2world.time);
+	//Pm_Debug("%d ladder move\n", quake2world.time);
 
 	Pm_Friction();
 
@@ -771,7 +786,7 @@ static void Pm_LadderMove(void) {
 static void Pm_WaterJumpMove(void) {
 	vec3_t forward;
 
-	//Com_Debug("%d water jump move\n", quake2world.time);
+	//Pm_Debug("%d water jump move\n", quake2world.time);
 
 	Pm_Friction();
 
@@ -786,7 +801,7 @@ static void Pm_WaterJumpMove(void) {
 	VectorMA(pml.origin, 30.0, forward, forward);
 
 	// if we've reached a usable spot, clamp the jump to avoid launching
-	if (pm->Trace(pml.origin, pm->mins, pm->maxs, forward).fraction == 1.0) {
+	if (pm->Trace(pml.origin, forward, pm->mins, pm->maxs).fraction == 1.0) {
 		pml.velocity[2] = Clamp(pml.velocity[2], 0.0, PM_SPEED_JUMP);
 	}
 
@@ -812,7 +827,7 @@ static void Pm_WaterMove(void) {
 		return;
 	}
 
-	//Com_Debug("%d water move\n", quake2world.time);
+	//Pm_Debug("%d water move\n", quake2world.time);
 
 	Pm_Friction();
 
@@ -873,7 +888,7 @@ static void Pm_AirMove(void) {
 	vec_t speed, accel;
 	int32_t i;
 
-	//Com_Debug("%d air move\n", quake2world.time);
+	//Pm_Debug("%d air move\n", quake2world.time);
 	Pm_CheckDuck();
 	Pm_Friction();
 
@@ -925,7 +940,7 @@ static void Pm_WalkMove(void) {
 		return;
 	}
 
-	//Com_Debug("%d walk move\n", quake2world.time);
+	//Pm_Debug("%d walk move\n", quake2world.time);
 
 	Pm_CheckDuck();
 
@@ -987,7 +1002,7 @@ static _Bool Pm_GoodPosition(void) {
 
 	UnpackPosition(pm->s.origin, pos);
 
-	trace = pm->Trace(pos, pm->mins, pm->maxs, pos);
+	trace = pm->Trace(pos, pos, pm->mins, pm->maxs);
 
 	return !trace.all_solid;
 }
@@ -1041,7 +1056,7 @@ static void Pm_SnapPosition(void) {
 	}
 
 	// go back to the last position
-	Com_Debug("Failed to snap to good position: %s.\n", vtos(pml.origin));
+	Pm_Debug("Failed to snap to good position: %s.\n", vtos(pml.origin));
 	VectorCopy(pml.previous_origin, pm->s.origin);
 }
 
@@ -1091,8 +1106,7 @@ static void Pm_SpectatorMove() {
 
 	// user intentions on X/Y/Z
 	for (i = 0; i < 3; i++) {
-		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right + pml.up[i]
-				* pm->cmd.up;
+		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right + pml.up[i] * pm->cmd.up;
 	}
 
 	speed = VectorNormalize(vel);
@@ -1164,10 +1178,10 @@ static void Pm_InitLocal(void) {
 }
 
 /*
- * @brief Can be called by either the server or the client to update prediction.
+ * @brief Can be called by either the game or the client game to update prediction.
  */
-void Pmove(pm_move_t *pmove) {
-	pm = pmove;
+void Pm_Move(pm_move_t *pm_move) {
+	pm = pm_move;
 
 	Pm_Init();
 
