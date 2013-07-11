@@ -352,7 +352,7 @@ static _Bool Cl_IgnoreChatMessage(const char *msg) {
  */
 static void Cl_ShowNet(const char *s) {
 	if (cl_show_net_messages->integer >= 2)
-		Com_Print("%3zd: %s\n", net_message.read - 1, s);
+		Com_Print("%3u: %s\n", (uint32_t) (net_message.read - 1), s);
 }
 
 /*
