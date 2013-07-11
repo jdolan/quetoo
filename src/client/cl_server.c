@@ -33,7 +33,7 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 	cls.servers = s;
 
 	s->addr = *addr;
-	strcpy(s->hostname, Net_NetaddrToString(s->addr));
+	g_strlcpy(s->hostname, Net_NetaddrToString(s->addr), sizeof(s->hostname));
 
 	return s;
 }
@@ -96,15 +96,20 @@ void Cl_ParseStatusMessage(void) {
 	if (sscanf(info, "%63c\\%31c\\%31c\\%hu\\%hu", server->hostname, server->name,
 			server->gameplay, &server->clients, &server->max_clients) != 5) {
 
-		strcpy(server->hostname, Net_NetaddrToString(server->addr));
+		Com_Debug("Failed to parse info \"%s\" for %s\n", info, Net_NetaddrToString(server->addr));
+
+		server->hostname[0] = '\0';
 		server->name[0] = '\0';
 		server->gameplay[0] = '\0';
 		server->clients = 0;
 		server->max_clients = 0;
+
+		return;
 	}
-	server->hostname[63] = '\0';
-	server->name[31] = '\0';
-	server->gameplay[31] = '\0';
+
+	server->hostname[sizeof(server->hostname) - 1] = '\0';
+	server->name[sizeof(server->name) - 1] = '\0';
+	server->gameplay[sizeof(server->name) - 1] = '\0';
 
 	server->ping = Clamp(cls.real_time - server->ping_time, 1, 999);
 
