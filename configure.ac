@@ -248,7 +248,7 @@ else
 			;;
 		*-*-mingw*)
 			HOST_ANTTWEAKBAR_CXXFLAGS="-D_WINDOWS -fpermissive"
-			HOST_ANTTWEAKBAR_CFLAGS="-D_WINDOWS -fpermissive"
+			HOST_ANTTWEAKBAR_CFLAGS="-D_WINDOWS"
 			;;
 		*)
 			HOST_ANTTWEAKBAR_CXXFLAGS="-D_UNIX -I/usr/X11R6/include"
