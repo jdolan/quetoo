@@ -303,7 +303,10 @@ void Fs_Free(void *buffer) {
 _Bool Fs_Rename(const char *source, const char *dest) {
 	const char *dir = Fs_WriteDir();
 
-	return rename(va("%s/%s", dir, source), va("%s/%s", dir, dest)) == 0;
+	const char *src = va("%s"G_DIR_SEPARATOR_S"%s", dir, source);
+	const char *dst = va("%s"G_DIR_SEPARATOR_S"%s", dir, dest);
+
+	return rename(src, dst) == 0;
 }
 
 /*
@@ -432,7 +435,7 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
 static void Fs_AddUserSearchPath(const char *dir) {
 	char path[MAX_OSPATH];
 
-	g_snprintf(path, sizeof(path), "%s/%s", Sys_UserDir(), dir);
+	g_snprintf(path, sizeof(path), "%s"G_DIR_SEPARATOR_S"%s", Sys_UserDir(), dir);
 
 	Fs_Mkdir(path);
 
@@ -477,8 +480,8 @@ void Fs_SetGame(const char *dir) {
 	PHYSFS_freeList(paths);
 
 	// now add new entries for the new game
-	Fs_AddToSearchPath(va(PKGLIBDIR"/%s", dir));
-	Fs_AddToSearchPath(va(PKGDATADIR"/%s", dir));
+	Fs_AddToSearchPath(va(PKGLIBDIR G_DIR_SEPARATOR_S "%s", dir));
+	Fs_AddToSearchPath(va(PKGDATADIR G_DIR_SEPARATOR_S "%s", dir));
 
 	Fs_AddUserSearchPath(dir);
 }
@@ -571,8 +574,8 @@ void Fs_Init(_Bool auto_load_archives) {
 	}
 
 	// add default to search path
-	Fs_AddToSearchPath(PKGLIBDIR"/"DEFAULT_GAME);
-	Fs_AddToSearchPath(PKGDATADIR"/"DEFAULT_GAME);
+	Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME);
+	Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME);
 
 	// then add a '.quake2world/default' directory in home directory
 	Fs_AddUserSearchPath(DEFAULT_GAME);
