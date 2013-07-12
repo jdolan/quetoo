@@ -1,15 +1,13 @@
 # Common functions for all Jenkins build scripts
 
-CHROOT=`echo ${JOB_NAME} | cut -d\- -f3-10`
+CHROOT=$(echo "${JOB_NAME}" | cut -d\- -f3)
 
 if ([ "${CHROOT}" == "mingw64" ] || [ "${CHROOT}" == "mingw32" ]); then
 	
 	export MINGW_TARGET=${CHROOT}
-	
 	if [ "${MINGW_TARGET}" == "mingw64" ]; then
 		export MINGW_ARCH="x86_64"
-	elif [ "${MINGW_TARGET}" == "mingw32" ]
-	then
+	else
 		export MINGW_ARCH="i686"
 	fi
 	
