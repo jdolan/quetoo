@@ -1,15 +1,14 @@
-#!/bin/bash
-set -e
+#!/bin/bash -x
 
-test -z ${MINGW_TARGET} && exit 1
-test -z ${MINGW_ARCH} && exit 2
+test -z "${MINGW_TARGET}" && exit 1
+test -z "${MINGW_ARCH}" && exit 2
 
-echo MINGW_TARGET $MINGW_TARGET
-echo MINGW_ARCH $MINGW_ARCH
+echo "MINGW_TARGET: $MINGW_TARGET"
+echo "MINGW_ARCH: $MINGW_ARCH"
 
 function find_dll( ){
 	if [ "$1" != "" ]; then
-		for i in `/usr/bin/${MINGW_ARCH}-w64-mingw32-objdump -p $1 | grep "DLL Name:" | cut -d\: -f2| cut -d\  -f2| sort | uniq`; do
+		for i in `/usr/bin/${MINGW_ARCH}-w64-mingw32-objdump -p $1 | grep "DLL Name:" | cut -d\: -f2 | cut -d\  -f2 | sort | uniq`; do
 			file=`find /usr/${MINGW_ARCH}-w64-mingw32 2>/dev/null | grep  $i | grep -v .dll.a`
 			echo $file
 			find_dll $file

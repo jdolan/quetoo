@@ -22,9 +22,9 @@ echo
 	make
 	make DESTDIR=/tmp/quake2world-${MINGW_TARGET} install
 	
-	if [[ \"$JOB_NAME\" == \"*RELEASE*\" ]]; then
+	if [[ \"$JOB_NAME\" == \"*release*\" ]]; then
 		cd mingw-cross
-		sh release.sh
+		./release.sh
 	fi
 "
 
