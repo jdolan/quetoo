@@ -1,5 +1,4 @@
-#!/bin/bash
-set -x
+#!/bin/bash -x
 
 source ./common.sh
 
@@ -15,6 +14,7 @@ echo
 
 # Now do the build
 /usr/bin/mock -r ${CHROOT} --shell "
+	set -x
 	export PATH=/usr/${MINGW_ARCH}-w64-mingw32/sys-root/mingw/bin:${PATH}
 	cd /tmp/quake2world
 	autoreconf -i --force
@@ -22,7 +22,7 @@ echo
 	make
 	make DESTDIR=/tmp/quake2world-${MINGW_TARGET} install
 	
-	if [[ "$JOB_NAME" == "*RELEASE*" ]]; then
+	if [[ \"$JOB_NAME\" == \"*RELEASE*\" ]]; then
 		cd mingw-cross
 		sh release.sh
 	fi

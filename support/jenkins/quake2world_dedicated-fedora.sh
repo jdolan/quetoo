@@ -1,11 +1,11 @@
-#!/bin/bash
-set -x
+#!/bin/bash -x
 
 source ./common.sh
 
 init_chroot
 
 /usr/bin/mock -r ${CHROOT} --shell "
+	set -x
 	cd /tmp/quake2world
 	autoreconf -i --force
 	./configure --with-tests --with-master --without-client

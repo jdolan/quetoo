@@ -1,5 +1,4 @@
-#!/bin/bash
-set -x
+#!/bin/bash -x
 
 source ~/.profile 
 

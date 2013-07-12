@@ -1,6 +1,6 @@
-#!/bin/bash
+# Common functions for all Jenkins build scripts
 
-CHROOT=`echo $JOB_NAME|cut -d\- -f3-10`
+CHROOT=`echo ${JOB_NAME} | cut -d\- -f3-10`
 
 if ([ "${CHROOT}" == "mingw64" ] || [ "${CHROOT}" == "mingw32" ]); then
 	
