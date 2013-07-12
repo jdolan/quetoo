@@ -76,6 +76,7 @@ void Com_Debug_(const char *func, const char *fmt, ...) {
 		g_snprintf(msg, sizeof(msg), "%s: ", func);
 	} else {
 		msg[0] = '\0';
+		fmt++;
 	}
 
 	const size_t len = strlen(msg);
@@ -102,6 +103,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 		g_snprintf(msg, sizeof(msg), "%s: ", func);
 	} else {
 		msg[0] = '\0';
+		fmt++;
 	}
 
 	const size_t len = strlen(msg);
@@ -156,6 +158,7 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
 		g_snprintf(msg, sizeof(msg), "%s: ", func);
 	} else {
 		msg[0] = '\0';
+		fmt++;
 	}
 
 	const size_t len = strlen(msg);
