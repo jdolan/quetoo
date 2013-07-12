@@ -58,6 +58,7 @@ void Fs_SetGame(const char *dir);
 void Fs_SetWriteDir(const char *dir);
 const char *Fs_WriteDir(void);
 const char *Fs_RealDir(const char *filename);
+const char *Fs_RealPath(const char *path);
 void Fs_Init(_Bool auto_load_archives);
 void Fs_Shutdown(void);
 

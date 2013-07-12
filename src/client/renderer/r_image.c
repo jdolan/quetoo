@@ -29,13 +29,13 @@ typedef struct {
 } r_texture_mode_t;
 
 static r_texture_mode_t r_texture_modes[] = {
+// specifies mipmapping (texture quality)
 		{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
 		{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
 		{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
 		{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
 		{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
-		{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
-};
+		{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR } };
 
 /*
  * @brief Sets the texture parameters for mipmapping and anisotropy.
@@ -349,4 +349,6 @@ void R_InitImages(void) {
 	R_InitWarpImage();
 
 	R_InitShellImage();
+
+	Fs_Mkdir("screenshots");
 }

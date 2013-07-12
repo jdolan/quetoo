@@ -527,6 +527,31 @@ const char *Fs_RealDir(const char *filename) {
 }
 
 /*
+ * @brief Returns the real path name of the specified file or directory.
+ */
+const char *Fs_RealPath(const char *path) {
+	static char real_path[MAX_OSPATH];
+
+	g_snprintf(real_path, sizeof(real_path), "%s%s", Fs_WriteDir(), G_DIR_SEPARATOR_S);
+
+	const char *in = path;
+	char *out = real_path + strlen(real_path);
+
+	while (*in && (size_t) (out - real_path) < (sizeof(real_path) - 1)) {
+		if (*in == '/') {
+			*out = G_DIR_SEPARATOR;
+		} else {
+			*out = *in;
+		}
+		out++;
+		in++;
+	}
+	*out = '\0';
+
+	return real_path;
+}
+
+/*
  * @brief Initializes the file subsystem.
  */
 void Fs_Init(_Bool auto_load_archives) {

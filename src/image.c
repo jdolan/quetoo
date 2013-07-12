@@ -245,8 +245,10 @@ _Bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t heigh
 	JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
 	FILE *f;
 
-	if (!(f = fopen(va("%s/%s", Fs_WriteDir(), path), "wb"))) {
-		Com_Print("Failed to open to %s\n", path);
+	const char *real_path = Fs_RealPath(path);
+
+	if (!(f = fopen(real_path, "wb"))) {
+		Com_Print("Failed to open to %s\n", real_path);
 		return false;
 	}
 
