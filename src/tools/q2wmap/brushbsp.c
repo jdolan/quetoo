@@ -453,7 +453,7 @@ static _Bool CheckPlaneAgainstVolume(int32_t pnum, node_t * node) {
 }
 
 /*
- * @brief Using a hueristic, choses one of the sides out of the brushlist
+ * @brief Using a heuristic, chooses one of the sides out of the brush list
  * to partition the brushes with.
  * Returns NULL if there are no valid planes to split with..
  */
@@ -466,13 +466,11 @@ static side_t *SelectSplitSide(bsp_brush_t * brushes, node_t * node) {
 	int32_t s;
 	int32_t front, back, both, facing, splits;
 	int32_t bsplits;
-	int32_t bestsplits;
 	int32_t epsilonbrush;
 	_Bool hintsplit;
 
 	bestside = NULL;
 	bestvalue = -99999;
-	bestsplits = 0;
 
 	// the search order goes: visible-structural, visible-detail,
 	// nonvisible-structural, nonvisible-detail.
