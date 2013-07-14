@@ -1021,12 +1021,19 @@ static c_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const 
 }
 
 /*
+ * @brief Debug messages for Pm_Move.
+ */
+static void G_ClientMove_Debug(const char *msg) {
+	gi.Debug("!S %u %s", g_level.time, msg);
+}
+
+/*
  * @brief Process the movement command, call Pm_Move and act on the result.
  */
 static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	vec3_t old_velocity, velocity;
 	pm_move_t pm;
-	int32_t i, j;
+	int32_t i;
 
 	g_client_t *client = ent->client;
 
@@ -1057,6 +1064,8 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 
 	pm.PointContents = gi.PointContents;
 	pm.Trace = G_ClientMove_Trace;
+
+	pm.Debug = G_ClientMove_Debug;
 
 	// perform a pmove
 	Pm_Move(&pm);
@@ -1184,13 +1193,6 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	for (i = 0; i < pm.num_touch; i++) {
 
 		g_edict_t *other = pm.touch_ents[i];
-
-		for (j = 0; j < i; j++)
-			if (pm.touch_ents[j] == other)
-				break;
-
-		if (j != i)
-			continue; // duplicated
 
 		if (!other->locals.Touch)
 			continue;

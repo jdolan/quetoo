@@ -532,10 +532,12 @@ c_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, cons
 
 	// clip to world
 	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, mask);
-	trace.trace.ent = svs.game->edicts;
+	if (trace.trace.fraction < 1.0) {
+		trace.trace.ent = svs.game->edicts;
 
-	if (trace.trace.fraction == 0)
-		return trace.trace; // blocked by the world
+		if (trace.trace.all_solid) // blocked entirely
+			return trace.trace;
+	}
 
 	trace.start = start;
 	trace.end = end;

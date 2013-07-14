@@ -89,7 +89,11 @@ c_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, cons
 	// check against world
 	c_trace_t trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents);
 	if (trace.fraction < 1.0) {
-		trace.ent = (struct g_edict_s *) (intptr_t) -1;
+		trace.ent = 0; // 0 is the world (svs->game.edicts) on the server
+
+		if (trace.all_solid) { // blocked entirely
+			return trace;
+		}
 	}
 
 	// check all other solid models
@@ -97,18 +101,16 @@ c_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, cons
 		const int32_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[num];
 
-		int32_t head_node;
-		const vec_t *angles;
-
 		if (ent->number == skip)
-			continue;
-
-		if (ent->solid == SOLID_NOT)
 			continue;
 
 		if (ent->number == cl.player_num + 1)
 			continue;
 
+		if (ent->solid == SOLID_NOT)
+			continue;
+
+		int32_t head_node;
 		if (ent->solid == SOLID_BSP) {
 
 			const c_model_t *mod = cl.model_clip[ent->model1];
@@ -123,18 +125,16 @@ c_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, cons
 			}
 
 			head_node = mod->head_node;
-			angles = ent->angles;
-		} else { // SOLID_BOX
+		} else { // something with an encoded box
 
 			vec3_t emins, emaxs;
 			UnpackBounds(ent->solid, emins, emaxs);
 
 			head_node = Cm_HeadnodeForBox(emins, emaxs);
-			angles = vec3_origin;
 		}
 
 		c_trace_t tr = Cm_TransformedBoxTrace(start, end, mins, maxs, head_node, contents,
-				ent->origin, angles);
+				ent->origin, ent->solid == SOLID_BSP ? ent->angles : vec3_origin);
 
 		if (tr.start_solid || tr.fraction < trace.fraction) {
 			tr.ent = (struct g_edict_s *) (intptr_t) ent->number;
@@ -202,7 +202,7 @@ void Cl_CheckPredictionError(void) {
 		VectorClear(cl.prediction_error);
 	} else { // save the prediction error for interpolation
 		if (error > 4.0) {
-			Com_Debug("%s\n", vtos(delta));
+			// Com_Debug("%s\n", vtos(delta));
 		}
 
 		VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame]);

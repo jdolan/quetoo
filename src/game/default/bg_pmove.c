@@ -87,13 +87,17 @@ static pm_locals_t pml;
 /*
  * @brief Handle printing of debugging messages for development.
  */
-static void Pm_Debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-static void Pm_Debug(const char *fmt, ...) {
-	va_list args;
+static void Pm_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+static void Pm_Debug_(const char *func, const char *fmt, ...) {
 	char msg[MAX_STRING_CHARS];
 
+	g_snprintf(msg, sizeof(msg), "%s: ", func);
+
+	const size_t len = strlen(msg);
+	va_list args;
+
 	va_start(args, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, args);
+	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
 	if (pm->Debug) {
@@ -102,6 +106,8 @@ static void Pm_Debug(const char *fmt, ...) {
 		fputs(msg, stdout);
 	}
 }
+
+#define Pm_Debug(...) Pm_Debug_(__func__, __VA_ARGS__)
 
 /*
  * @brief Slide off of the impacted plane.
@@ -151,13 +157,38 @@ static void Pm_ClampVelocity(void) {
 	pml.velocity[1] *= scale;
 }
 
+/*
+ * @brief Mark the specified entity as touched. This enables the game module to
+ * detect player -> entity interactions.
+ */
+static void Pm_TouchEnt(struct g_edict_s *ent) {
+	int32_t i;
+
+	if (ent == NULL) {
+		return;
+	}
+
+	if (pm->num_touch == MAX_TOUCH_ENTS) {
+		Pm_Debug("MAX_TOUCH_ENTS\n");
+		return;
+	}
+
+	for (i = 0; i < pm->num_touch; i++) {
+		if (pm->touch_ents[i] == ent) {
+			return;
+		}
+	}
+
+	pm->touch_ents[pm->num_touch++] = ent;
+}
+
 #define MAX_CLIP_PLANES	4
 
 /*
  * @brief Calculates a new origin, velocity, and contact entities based on the
  * movement command and world state. Returns the number of planes intersected.
  */
-static int32_t Pm_StepSlideMove_(void) {
+static int32_t Pm_SlideMove(void) {
 	vec3_t vel, end;
 	c_trace_t trace;
 	int32_t k, num_planes;
@@ -180,10 +211,7 @@ static int32_t Pm_StepSlideMove_(void) {
 		trace = pm->Trace(pml.origin, end, pm->mins, pm->maxs);
 
 		// store a reference to the entity for firing game events
-		if (pm->num_touch < MAX_TOUCH_ENTS && trace.ent) {
-			pm->touch_ents[pm->num_touch] = trace.ent;
-			pm->num_touch++;
-		}
+		Pm_TouchEnt(trace.ent);
 
 		if (trace.all_solid) { // player is trapped in a solid
 			VectorClear(pml.velocity);
@@ -212,7 +240,7 @@ static int32_t Pm_StepSlideMove_(void) {
 		}
 	}
 
-	return num_planes;
+	return (num_planes > 0);
 }
 
 /*
@@ -228,7 +256,7 @@ static void Pm_StepSlideMove(void) {
 	VectorCopy(pml.velocity, vel);
 
 	// if nothing blocked us, try to step down to remain on ground
-	if (!Pm_StepSlideMove_()) {
+	if (!Pm_SlideMove()) {
 
 		if ((pm->s.pm_flags & PMF_ON_GROUND) && pm->cmd.up < 1) {
 
@@ -251,14 +279,11 @@ static void Pm_StepSlideMove(void) {
 
 	// something blocked us, try to step over it
 
-	// in order to step up, we must be on the ground or jumping upward
-	if (!(pm->s.pm_flags & PMF_ON_GROUND) && pml.velocity[2] < -PM_SPEED_STAIRS)
+	if (pm->s.pm_flags & PMF_ON_LADDER) { // don't bother stepping up on ladders
 		return;
+	}
 
-	if (pm->s.pm_flags & PMF_ON_LADDER) // don't bother stepping up on ladders
-		return;
-
-	//Pm_Debug("%d step up\n", quake2world.time);
+	Pm_Debug("Try step from %3.2f\n", pml.origin[2]);
 
 	// save the clipped results in case stepping fails
 	VectorCopy(pml.origin, clipped_org);
@@ -282,7 +307,7 @@ static void Pm_StepSlideMove(void) {
 	VectorCopy(trace.end, pml.origin);
 	VectorCopy(vel, pml.velocity);
 
-	Pm_StepSlideMove_(); // step up
+	Pm_SlideMove(); // step up
 
 	VectorCopy(pml.origin, down);
 	down[2] = clipped_org[2];
@@ -442,7 +467,8 @@ static void Pm_CategorizePosition(void) {
 	vec3_t pos;
 
 	// if the client wishes to trick-jump, seek ground eagerly
-	if (!pm->ground_entity && (pml.velocity[2] > 0.0 && pm->cmd.up > 0) && !(pm->s.pm_flags & PMF_JUMP_HELD)) {
+	if (!pm->ground_entity && (pml.velocity[2] > 0.0 && pm->cmd.up > 0) && !(pm->s.pm_flags
+			& PMF_JUMP_HELD)) {
 		VectorCopy(pml.origin, pos);
 		pos[2] -= PM_STAIR_HEIGHT * 0.5;
 	} else { // otherwise, seek the ground beneath the next origin
@@ -488,7 +514,7 @@ static void Pm_CategorizePosition(void) {
 
 			// we're done being pushed
 			pm->s.pm_flags &= ~PMF_PUSHED;
-			//Pm_Debug("%d landed\n", quake2world.time);
+			Pm_Debug("Landed at %s\n", vtos(trace.end));
 		}
 
 		VectorCopy(trace.end, pml.origin);
@@ -498,10 +524,7 @@ static void Pm_CategorizePosition(void) {
 	}
 
 	// save a reference to the entity touched for game events
-	if (pm->num_touch < MAX_TOUCH_ENTS && trace.ent) {
-		pm->touch_ents[pm->num_touch] = trace.ent;
-		pm->num_touch++;
-	}
+	Pm_TouchEnt(trace.ent);
 
 	// get water_level, accounting for ducking
 	pm->water_level = pm->water_type = 0;
@@ -602,7 +625,7 @@ static _Bool Pm_CheckJump(void) {
 	if (pm->cmd.up < 1)
 		return false;
 
-	//Pm_Debug("%d jump %d\n", quake2world.time, pm->cmd.up);
+	Pm_Debug("Jump: %d\n", pm->cmd.up);
 
 	// finally, do the jump
 	jump = PM_SPEED_JUMP;
@@ -610,7 +633,7 @@ static _Bool Pm_CheckJump(void) {
 	// adding the double jump if eligible
 	if (pm->s.pm_flags & PMF_TIME_DOUBLE_JUMP) {
 		jump += PM_SPEED_DOUBLE_JUMP;
-		//Pm_Debug("%d double_jump %3.2f\n", quake2world.time, jump);
+		Pm_Debug("Double jump: %3.2fups\n", jump);
 	}
 
 	if (pm->water_level > 1) {
@@ -712,7 +735,7 @@ static _Bool Pm_CheckWaterJump(void) {
 		pm->s.pm_flags |= PMF_TIME_WATER_JUMP | PMF_JUMP_HELD;
 		pm->s.pm_time = 255;
 
-		//Pm_Debug("%d water jump\n", quake2world.time);
+		Pm_Debug("%s\n", vtos(pml.origin));
 		return true;
 	}
 
@@ -727,7 +750,7 @@ static void Pm_LadderMove(void) {
 	vec_t speed;
 	int32_t i;
 
-	//Pm_Debug("%d ladder move\n", quake2world.time);
+	Pm_Debug("%s\n", vtos(pml.origin));
 
 	Pm_Friction();
 
@@ -786,7 +809,7 @@ static void Pm_LadderMove(void) {
 static void Pm_WaterJumpMove(void) {
 	vec3_t forward;
 
-	//Pm_Debug("%d water jump move\n", quake2world.time);
+	Pm_Debug("%s\n", vtos(pml.origin));
 
 	Pm_Friction();
 
@@ -827,7 +850,7 @@ static void Pm_WaterMove(void) {
 		return;
 	}
 
-	//Pm_Debug("%d water move\n", quake2world.time);
+	Pm_Debug("%s\n", vtos(pml.origin));
 
 	Pm_Friction();
 
@@ -888,7 +911,8 @@ static void Pm_AirMove(void) {
 	vec_t speed, accel;
 	int32_t i;
 
-	//Pm_Debug("%d air move\n", quake2world.time);
+	Pm_Debug("%s\n", vtos(pml.origin));
+
 	Pm_CheckDuck();
 	Pm_Friction();
 
@@ -940,7 +964,7 @@ static void Pm_WalkMove(void) {
 		return;
 	}
 
-	//Pm_Debug("%d walk move\n", quake2world.time);
+	// Pm_Debug("%s\n", vtos(origin));
 
 	Pm_CheckDuck();
 
@@ -1106,7 +1130,8 @@ static void Pm_SpectatorMove() {
 
 	// user intentions on X/Y/Z
 	for (i = 0; i < 3; i++) {
-		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right + pml.up[i] * pm->cmd.up;
+		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right + pml.up[i]
+				* pm->cmd.up;
 	}
 
 	speed = VectorNormalize(vel);
