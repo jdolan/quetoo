@@ -556,7 +556,6 @@ static side_t *SelectSplitSide(bsp_brush_t * brushes, node_t * node) {
 				if (value > bestvalue) {
 					bestvalue = value;
 					bestside = side;
-					bestsplits = splits;
 					for (test = brushes; test; test = test->next)
 						test->side = test->test_side;
 				}
