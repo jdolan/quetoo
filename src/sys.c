@@ -26,12 +26,7 @@
 #include <sys/time.h>
 
 #ifdef _WIN32
-
-#define SIGHUP 9999
-#define SIGQUIT 9998
-
 #define RTLD_NOW 0
-
 #define dlopen(file_name, mode) LoadLibrary(file_name)
 #define dlerror() "Windows.. go figure."
 #define dlsym(handle, symbol) GetProcAddress(handle, symbol)
@@ -201,10 +196,12 @@ void Sys_Backtrace(void) {
 void Sys_Signal(int32_t s) {
 
 	switch (s) {
-		case SIGHUP:
 		case SIGINT:
-		case SIGQUIT:
 		case SIGTERM:
+#ifndef _WIN32
+		case SIGHUP:
+		case SIGQUIT:
+#endif
 			Com_Shutdown("Received signal %d, quitting...\n", s);
 			break;
 		default:

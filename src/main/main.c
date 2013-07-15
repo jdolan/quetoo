@@ -270,14 +270,16 @@ int32_t main(int32_t argc, char **argv) {
 	quake2world.Init = Init;
 	quake2world.Shutdown = Shutdown;
 
-	signal(SIGHUP, Sys_Signal);
 	signal(SIGINT, Sys_Signal);
-	signal(SIGQUIT, Sys_Signal);
 	signal(SIGILL, Sys_Signal);
 	signal(SIGABRT, Sys_Signal);
 	signal(SIGFPE, Sys_Signal);
 	signal(SIGSEGV, Sys_Signal);
 	signal(SIGTERM, Sys_Signal);
+#ifndef _WIN32
+	signal(SIGHUP, Sys_Signal);
+	signal(SIGQUIT, Sys_Signal);
+#endif
 
 	Com_Init(argc, argv); // let's get it started in here
 
