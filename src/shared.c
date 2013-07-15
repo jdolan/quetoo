@@ -919,7 +919,7 @@ int32_t StrColorCmp(const char *s1, const char *s2) {
 	StripColor(s1, string1);
 	StripColor(s2, string2);
 
-	return strcasecmp(string1, string2);
+return g_ascii_strcasecmp(string1, string2);
 }
 
 /*
@@ -1194,21 +1194,21 @@ int32_t ColorByName(const char *s, int32_t def) {
 	if (i > 0 && i < 255)
 		return i;
 
-	if (!strcasecmp(s, "red"))
+	if (!g_ascii_strcasecmp(s, "red"))
 		return EFFECT_COLOR_RED;
-	if (!strcasecmp(s, "green"))
+	if (!g_ascii_strcasecmp(s, "green"))
 		return EFFECT_COLOR_GREEN;
-	if (!strcasecmp(s, "blue"))
+	if (!g_ascii_strcasecmp(s, "blue"))
 		return EFFECT_COLOR_BLUE;
-	if (!strcasecmp(s, "yellow"))
+	if (!g_ascii_strcasecmp(s, "yellow"))
 		return EFFECT_COLOR_YELLOW;
-	if (!strcasecmp(s, "orange"))
+	if (!g_ascii_strcasecmp(s, "orange"))
 		return EFFECT_COLOR_ORANGE;
-	if (!strcasecmp(s, "white"))
+	if (!g_ascii_strcasecmp(s, "white"))
 		return EFFECT_COLOR_WHITE;
-	if (!strcasecmp(s, "pink"))
+	if (!g_ascii_strcasecmp(s, "pink"))
 		return EFFECT_COLOR_PINK;
-	if (!strcasecmp(s, "purple"))
+	if (!g_ascii_strcasecmp(s, "purple"))
 		return EFFECT_COLOR_PURPLE;
 
 	return def;

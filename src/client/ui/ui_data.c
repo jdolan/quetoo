@@ -132,7 +132,7 @@ static void TW_CALL Ui_BindGet(void *value, void *data) {
 	*s = 0;
 
 	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++) {
-		if (binds[i] && !strcasecmp(bind, binds[i])) {
+		if (binds[i] && !g_ascii_strcasecmp(bind, binds[i])) {
 			strcat(s, va(strlen(s) ? ", %s" : "%s", Cl_KeyName(i)));
 		}
 	}

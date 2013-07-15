@@ -48,7 +48,7 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_md3_t *md3, char *li
 	const r_md3_mesh_t *mesh = md3->meshes;
 	for (i = 0; i < md3->num_meshes; i++, mesh++) {
 
-		if (!strcasecmp(mesh_name, mesh->name)) {
+		if (!g_ascii_strcasecmp(mesh_name, mesh->name)) {
 			skins[i] = cgi.LoadMaterial(skin_name);
 			break;
 		}

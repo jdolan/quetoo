@@ -41,8 +41,8 @@ void dlclose(void *handle) {
 }
 
 // wrap ioctl for sockets
-int ioctl(int sockfd, int request, void *null) {
-	return ioctlsocket(sockfd, request, null);
+int ioctl(int fd, int request, void *null) {
+	return ioctlsocket(fd, request, null);
 }
 
 #endif /* _WIN32 */

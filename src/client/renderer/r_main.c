@@ -250,7 +250,7 @@ void R_BeginFrame(void) {
 
 	// draw buffer stuff
 	if (r_draw_buffer->modified) {
-		if (!strcasecmp(r_draw_buffer->string, "GL_FRONT"))
+		if (!g_ascii_strcasecmp(r_draw_buffer->string, "GL_FRONT"))
 			glDrawBuffer(GL_FRONT);
 		else
 			glDrawBuffer(GL_BACK);

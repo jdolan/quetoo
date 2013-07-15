@@ -68,7 +68,7 @@ const g_item_t *G_FindItem(const char *name) {
 		if (!it->name)
 			continue;
 
-		if (!strcasecmp(it->name, name))
+		if (!g_ascii_strcasecmp(it->name, name))
 			return it;
 	}
 

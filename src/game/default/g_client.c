@@ -321,12 +321,12 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
  */
 static void G_Give(g_client_t *client, char *it, int16_t quantity) {
 
-	if (!strcasecmp(it, "Health")) {
+	if (!g_ascii_strcasecmp(it, "Health")) {
 		client->locals.persistent.health = quantity;
 		return;
 	}
 
-	if (!strcasecmp(it, "Armor")) {
+	if (!g_ascii_strcasecmp(it, "Armor")) {
 		client->locals.persistent.armor = quantity;
 		return;
 	}

@@ -803,7 +803,7 @@ static void G_func_door_UseAreaPortals(g_edict_t *self, _Bool open) {
 		return;
 
 	while ((t = G_Find(t, LOFS(target_name), self->locals.target))) {
-		if (strcasecmp(t->class_name, "func_areaportal") == 0) {
+		if (g_ascii_strcasecmp(t->class_name, "func_areaportal") == 0) {
 			gi.SetAreaPortalState(t->locals.area_portal, open);
 		}
 	}

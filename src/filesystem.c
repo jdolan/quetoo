@@ -370,7 +370,7 @@ static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 	StripExtension(Basename(path), match);
 
 	if (!g_list_find_custom(*matches, match, (GCompareFunc) strcmp)) {
-		*matches = g_list_insert_sorted(*matches, Z_CopyString(match), (GCompareFunc) strcasecmp);
+		*matches = g_list_insert_sorted(*matches, Z_CopyString(match), (GCompareFunc) g_ascii_strcasecmp);
 	}
 }
 

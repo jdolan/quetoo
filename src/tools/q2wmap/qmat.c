@@ -31,8 +31,8 @@ static void AddMaterial(const char *name) {
 	if (!name || !g_strcmp0(name, "NULL"))
 		return;
 
-	if (!g_list_find_custom(materials, name, (GCompareFunc) strcasecmp)) {
-		materials = g_list_insert_sorted(materials, (gpointer) name, (GCompareFunc) strcasecmp);
+	if (!g_list_find_custom(materials, name, (GCompareFunc) g_ascii_strcasecmp)) {
+		materials = g_list_insert_sorted(materials, (gpointer) name, (GCompareFunc) g_ascii_strcasecmp);
 	}
 }
 

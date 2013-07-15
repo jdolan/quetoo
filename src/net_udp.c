@@ -24,7 +24,7 @@
 #include <sys/param.h>
 
 #ifdef _WIN32
-#include <winsock.h>
+#include <winsock2.h>
 #include <ws2tcpip.h>
 #define Net_GetError() WSAGetLastError()
 #define Net_CloseSocket closesocket
@@ -362,7 +362,7 @@ static int32_t Net_Socket(const char *net_interface, uint16_t port) {
 		return 0;
 	}
 
-	if (!net_interface || !net_interface[0] || !strcasecmp(net_interface, "localhost"))
+	if (!net_interface || !net_interface[0] || !g_ascii_strcasecmp(net_interface, "localhost"))
 		addr.sin_addr.s_addr = INADDR_ANY;
 	else
 		Net_StringToSockaddr(net_interface, (struct sockaddr *) &addr);

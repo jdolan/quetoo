@@ -229,7 +229,7 @@ static void G_ParseField(const char *key, const char *value, g_edict_t *ent) {
 
 	for (f = fields; f->name; f++) {
 
-		if (!(f->flags & FFL_NO_SPAWN) && !strcasecmp(f->name, key)) { // found it
+		if (!(f->flags & FFL_NO_SPAWN) && !g_ascii_strcasecmp(f->name, key)) { // found it
 
 			if (f->flags & FFL_SPAWN_TEMP)
 				b = (byte *) &g_game.spawn;

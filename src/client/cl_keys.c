@@ -370,7 +370,7 @@ SDLKey Cl_Key(const char *name) {
 		return (SDLKey) SDLK_MLAST;
 
 	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++) {
-		if (!strcasecmp(name, cl_key_names[i]))
+		if (!g_ascii_strcasecmp(name, cl_key_names[i]))
 			return i;
 	}
 

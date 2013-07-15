@@ -31,28 +31,31 @@
 
 #include <windows.h>
 
+#ifndef SIGHUP
 #define SIGHUP 9999
+#endif
+
+#ifndef SIGQUIT
 #define SIGQUIT 9998
+#endif
+
+#ifndef EWOULDBLOCK
+#define EWOULDBLOCK WSAEWOULDBLOCK
+#endif
+
+#ifndef ECONNREFUSED
+#define ECONNREFUSED WSAECONNREFUSED
+#endif
 
 #define RTLD_NOW 0
 #define RTLD_LAZY 0
 
-// WTF oO
-#ifndef _INT32_T
-#define _INT32_T
-typedef INT32 int32_t;
-#endif /* _INT32_T */
-
-void *dlopen(const char *file_name, int32_t flag);
+void *dlopen(const char *file_name, int flag);
 char *dlerror(void);
 void *dlsym(void *handle, const char *symbol);
 void dlclose(void *handle);
 
-int32_t ioctl(int32_t sockfd, int32_t flags, void *null);
-
-#ifndef HAVE_STRCASESTR
-char *strcasestr (char *haystack, char *needle);
-#endif
+int ioctl(int fd, int flags, void *null);
 
 #endif /* __WIN32_H__ */
 #endif /* _WIN32 */

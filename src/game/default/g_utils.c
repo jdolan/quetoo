@@ -111,7 +111,7 @@ g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match) {
 		s = *(char **) ((byte *) from + field);
 		if (!s)
 			continue;
-		if (!strcasecmp(s, match))
+		if (!g_ascii_strcasecmp(s, match))
 			return from;
 	}
 

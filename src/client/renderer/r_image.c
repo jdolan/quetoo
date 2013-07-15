@@ -44,7 +44,7 @@ static void R_TextureMode(void) {
 	uint16_t i;
 
 	for (i = 0; i < lengthof(r_texture_modes); i++) {
-		if (!strcasecmp(r_texture_modes[i].name, r_texture_mode->string))
+		if (!g_ascii_strcasecmp(r_texture_modes[i].name, r_texture_mode->string))
 			break;
 	}
 

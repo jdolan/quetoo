@@ -433,11 +433,11 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		cg_draw_crosshair_color->modified = false;
 
 		const char *c = cg_draw_crosshair_color->string;
-		if (!strcasecmp(c, "red")) {
+		if (!g_ascii_strcasecmp(c, "red")) {
 			color = CROSSHAIR_COLOR_RED;
-		} else if (!strcasecmp(c, "green")) {
+		} else if (!g_ascii_strcasecmp(c, "green")) {
 			color = CROSSHAIR_COLOR_GREEN;
-		} else if (!strcasecmp(c, "yellow")) {
+		} else if (!g_ascii_strcasecmp(c, "yellow")) {
 			color = CROSSHAIR_COLOR_YELLOW;
 		} else {
 			color = CROSSHAIR_COLOR_DEFAULT;
