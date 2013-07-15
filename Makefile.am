@@ -6,7 +6,7 @@ SUBDIRS = \
 	src
 
 RSYNC_REPOSITORY = \
-	rsync://jdolan.dyndns.org/quake2world
+	rsync://quake2world.net/quake2world
 
 rsync-data:
 	mkdir -p $(DESTDIR)@PKGDATADIR@
