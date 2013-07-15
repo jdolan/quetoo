@@ -7,10 +7,13 @@ UPDATE = $(TARGET)/Quake2World/Update.app
 LIBRARIES = $(QUAKE2WORLD)/Contents/lib
 BINARIES = $(QUAKE2WORLD)/Contents/MacOS
 RESOURCES = $(QUAKE2WORLD)/Contents/Resources
+REMOTE_USER = $(shell whoami)
 RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-apple/x86_64
-DMG = $(TARGET)/Quake2World-BETA.dmg
+RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
+IMAGE = $(TARGET)/Quake2World-BETA.dmg
 VOLUME_NAME = "Quake2World BETA"
 HTTP_REPOSITORY = quake2world.net:/var/www/quake2world/files
+HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
 all: bundle
 
@@ -38,15 +41,15 @@ bundle: install
 	-d $(LIBRARIES) -of -p @executable_path/../lib
 
 release:
-	rsync -rzhP --delete -e ssh $(BINARIES) $(LIBRARIES) $(RSYNC_REPOSITORY)
+	rsync -rzhP --delete $(BINARIES) $(LIBRARIES) $(RSYNC_TARGET)
 
 image:
 	ln -f -s /Applications $(TARGET)/Applications
-	hdiutil create $(DMG) -srcfolder $(TARGET) -volname $(VOLUME_NAME)
+	hdiutil create $(IMAGE) -srcfolder $(TARGET) -volname $(VOLUME_NAME)
 	rm $(TARGET)/Applications
 
 release-image:
-	scp $(DMG) $(HTTP_REPOSITORY)
+	rsync -rzhP $(IMAGE) $(HTTP_TARGET)
 
 clean:
 	rm -rf $(TARGET)/*

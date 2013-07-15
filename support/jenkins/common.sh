@@ -6,8 +6,10 @@ if ([ "${CHROOT}" == "mingw64" ] || [ "${CHROOT}" == "mingw32" ]); then
 	
 	export MINGW_TARGET=${CHROOT}
 	if [ "${MINGW_TARGET}" == "mingw64" ]; then
+		export MINGW_HOST="x86_64-w64-mingw32"
 		export MINGW_ARCH="x86_64"
 	else
+		export MINGW_HOST="i686-w64-mingw32"
 		export MINGW_ARCH="i686"
 	fi
 	
@@ -54,8 +56,8 @@ function destroy_chroot() {
 }
 
 function archive_workspace() {
-	rm -Rf ${WORKSPACE}/jenkins-quake2world*
-	cp -r /var/lib/mock/${CHROOT}/root/tmp/quake2world-* "${WORKSPACE}/${BUILD_TAG}"
+	rm -Rf ${WORKSPACE}/*.tgz
+	cp -r /var/lib/mock/${CHROOT}/root/tmp/quake2world "${WORKSPACE}/${BUILD_TAG}"
 	cd ${WORKSPACE}
 	tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
 }

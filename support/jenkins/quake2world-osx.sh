@@ -3,6 +3,8 @@
 source ~/.profile 
 
 autoreconf -i --force
-./configure --with-tests --with-master
+./configure --with-tests
 make
-make DESTDIR=/Users/q2wbuild/jenkins/quake2world-result install
+cd apple
+make ${MAKE_OPTIONS} bundle release image release-image
+make clean

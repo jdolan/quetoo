@@ -12,7 +12,9 @@ configure
 depcomp
 .deps/
 .dirstamp
+*.dll
 .DS_Store
+*.exe
 gmon.out
 install-sh
 *.la

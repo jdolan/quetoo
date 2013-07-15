@@ -5,11 +5,11 @@ source ./common.sh
 init_chroot
 
 echo
-echo "MINGW_TARGET: ${MINGW_TARGET}"
+echo "MINGW_HOST: ${MINGW_HOST}"
 echo "MINGW_ARCH: ${MINGW_ARCH}"
 echo
 
-MAKE_OPTIONS="MINGW_TARGET=${MINGW_TARGET} MINGW_ARCH=${MINGW_ARCH} ${MAKE_OPTIONS}" 
+MAKE_OPTIONS="MINGW_HOST=${MINGW_HOST} MINGW_ARCH=${MINGW_ARCH} ${MAKE_OPTIONS}" 
 
 #
 # Copy the SSH config into the chroot in case this is a release build
@@ -21,17 +21,15 @@ MAKE_OPTIONS="MINGW_TARGET=${MINGW_TARGET} MINGW_ARCH=${MINGW_ARCH} ${MAKE_OPTIO
 #
 /usr/bin/mock -r ${CHROOT} --shell "
 	set -x
-	export PATH=/usr/${MINGW_ARCH}-w64-mingw32/sys-root/mingw/bin:${PATH}
+	export PATH=/usr/${MINGW_HOST}/sys-root/mingw/bin:${PATH}
 	cd /tmp/quake2world
 	autoreconf -i --force
-	./configure --host=${MINGW_ARCH}-w64-mingw32
+	./configure --host=${MINGW_HOST} --prefix=/
 	make
-	
-	if [[ \"$JOB_NAME\" == \"*release*\" ]]; then
-		cd mingw-cross
-		make ${MAKE_OPTIONS} bundle release image release-image
-	fi
+	make DESTDIR=/tmp/quake2world install
+	cd mingw-cross
+	make ${MAKE_OPTIONS} bundle release image release-image
 "
 
-archive_workspace 
+archive_workspace
 destroy_chroot
