@@ -199,7 +199,6 @@ void Sys_Signal(int32_t s) {
 			Com_Shutdown("Received signal %d, quitting...\n", s);
 			break;
 		default:
-			Sys_Backtrace();
 			Com_Error(ERR_FATAL, "Received signal %d\n", s);
 			break;
 	}
