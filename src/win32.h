@@ -39,13 +39,11 @@
 #define SIGQUIT 9998
 #endif
 
-#ifndef EWOULDBLOCK
+#undef EWOULDBLOCK
 #define EWOULDBLOCK WSAEWOULDBLOCK
-#endif
 
-#ifndef ECONNREFUSED
+#undef ECONNREFUSED
 #define ECONNREFUSED WSAECONNREFUSED
-#endif
 
 #define RTLD_NOW 0
 #define RTLD_LAZY 0
