@@ -24,8 +24,7 @@ noinst_HEADERS = \
 	quake2world.h \
 	shared.h \
 	sys.h \
-	thread.h \
-	win32.h
+	thread.h
 
 noinst_LTLIBRARIES = \
 	libcmodel.la \
@@ -38,8 +37,7 @@ noinst_LTLIBRARIES = \
 	libshared.la \
 	libswap.la \
 	libsys.la \
-	libthread.la \
-	libwin32.la
+	libthread.la
 
 libcmodel_la_SOURCES = \
 	cmodel.c
@@ -142,8 +140,7 @@ libsys_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 libsys_la_LIBADD = \
-	libcommon.la \
-	libwin32.la
+	libcommon.la
 
 libthread_la_SOURCES = \
 	thread.c
@@ -153,19 +150,3 @@ libthread_la_CFLAGS = \
 	@SDL_CFLAGS@
 libthread_la_LIBADD = \
 	libconsole.la
-
-if WINDOWS
-
-libwin32_la_SOURCES = \
-	win32.c
-libwin32_la_CFLAGS = \
-	@BASE_CFLAGS@
-
-else
-
-libwin32_la_SOURCES = \
-	null.c
-libwin32_la_CFLAGS = \
-	-D__LIBTOOL_LIBRARY__=libwin32_la
-
-endif

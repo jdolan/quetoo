@@ -26,8 +26,13 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#undef EWOULDBLOCK
+#define EWOULDBLOCK WSAEWOULDBLOCK
+#undef ECONNREFUSED
+#define ECONNREFUSED WSAECONNREFUSED
 #define Net_GetError() WSAGetLastError()
 #define Net_CloseSocket closesocket
+#define ioctl ioctlsocket
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -110,7 +115,7 @@ _Bool Net_CompareNetaddr(net_addr_t a, net_addr_t b) {
 /*
  * @brief Similar to Net_CompareNetaddr, but omits port checks.
  */
- _Bool Net_CompareClientNetaddr(net_addr_t a, net_addr_t b) {
+_Bool Net_CompareClientNetaddr(net_addr_t a, net_addr_t b) {
 
 	if (a.type != b.type)
 		return false;

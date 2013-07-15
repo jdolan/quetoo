@@ -25,11 +25,20 @@
 #include <signal.h>
 #include <sys/time.h>
 
-#ifndef _WIN32
-#include <dlfcn.h>
-#include <pwd.h>
+#ifdef _WIN32
+
+#define SIGHUP 9999
+#define SIGQUIT 9998
+
+#define RTLD_NOW 0
+
+#define dlopen(file_name, mode) LoadLibrary(file_name)
+#define dlerror() "Windows.. go figure."
+#define dlsym(handle, symbol) GetProcAddress(handle, symbol)
+#define dlclose(handle) FreeLibrary(handle)
+
 #else
-#include <windows.h>
+#include <dlfcn.h>
 #endif
 
 #ifdef __APPLE__

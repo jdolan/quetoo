@@ -51,7 +51,7 @@
 #include <unistd.h>
 
 #ifdef _WIN32
-#include "win32.h"
+#include <windows.h>
 #endif
 
 #ifndef true
