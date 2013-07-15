@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 
 mkdir -p ~/.quake2world/default/maps
 touch ~/.quake2world/default/maps/torn.bsp
