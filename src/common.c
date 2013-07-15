@@ -98,6 +98,15 @@ void Com_Debug_(const char *func, const char *fmt, ...) {
  */
 void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	char msg[MAX_PRINT_MSG];
+	static _Bool recursive;
+
+	if (err == ERR_FATAL) {
+		if (recursive) {
+			fprintf(stderr, "Recursive error\n");
+			exit(err);
+		}
+		recursive = true;
+	}
 
 	if (fmt[0] != '!') {
 		g_snprintf(msg, sizeof(msg), "%s: ", func);
