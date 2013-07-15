@@ -451,16 +451,12 @@ static void G_Physics_Noclip(g_edict_t *ent) {
  * @brief Toss, bounce, and fly movement. When on ground, do nothing.
  */
 static void G_Physics_Toss(g_edict_t *ent) {
-	c_trace_t trace;
 	vec3_t org, move;
-	g_edict_t *slave;
-	_Bool was_in_water;
-	_Bool is_in_water;
 
 	// regular thinking
 	G_RunThink(ent);
 
-	// if not a team captain, so movement will be handled elsewhere
+	// if not a team captain, movement will be handled elsewhere
 	if (ent->locals.flags & FL_TEAM_SLAVE)
 		return;
 
@@ -489,7 +485,7 @@ static void G_Physics_Toss(g_edict_t *ent) {
 	VectorScale(ent->locals.velocity, gi.frame_seconds, move);
 
 	// push through the world, interacting with triggers and other ents
-	trace = G_PushEntity(ent, move);
+	c_trace_t trace = G_PushEntity(ent, move);
 
 	if (!ent->in_use)
 		return;
@@ -497,8 +493,8 @@ static void G_Physics_Toss(g_edict_t *ent) {
 	if (trace.fraction < 1.0) { // move was blocked
 
 		// if it was a floor, we might bounce or come to rest
-		if (G_ClipVelocity(ent->locals.velocity, trace.plane.normal, ent->locals.velocity, 1.3)
-				== 1) {
+		vec_t *vel = ent->locals.velocity;
+		if (G_ClipVelocity(vel, trace.plane.normal, vel, 1.3) & 1) {
 
 			VectorSubtract(ent->s.origin, org, move);
 
@@ -525,9 +521,9 @@ static void G_Physics_Toss(g_edict_t *ent) {
 	}
 
 	// check for water transition
-	was_in_water = (ent->locals.water_type & MASK_WATER);
+	const _Bool was_in_water = (ent->locals.water_type & MASK_WATER);
 	ent->locals.water_type = gi.PointContents(ent->s.origin);
-	is_in_water = ent->locals.water_type & MASK_WATER;
+	const _Bool is_in_water = ent->locals.water_type & MASK_WATER;
 
 	if (is_in_water)
 		ent->locals.water_level = 1;
@@ -547,10 +543,13 @@ static void G_Physics_Toss(g_edict_t *ent) {
 		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_out"),
 				ATTN_NORM);
 
-	// move teamslaves
-	for (slave = ent->locals.team_chain; slave; slave = slave->locals.team_chain) {
+	// move team slaves
+	g_edict_t *slave = ent->locals.team_chain;
+	while (slave) {
 		VectorCopy(ent->s.origin, slave->s.origin);
 		gi.LinkEdict(slave);
+
+		slave = slave->locals.team_chain;
 	}
 }
 
