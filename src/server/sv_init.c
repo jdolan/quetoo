@@ -334,14 +334,14 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
 	Com_Print("Server initialization...\n");
 
+	Sb_Init(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
+
 	// initialize the clients, loading the game module if we need it
 	Sv_InitClients();
 
 	// load the map or demo and related media
 	Sv_LoadMedia(server, state);
 	sv.state = state;
-
-	Sb_Init(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
 
 	Com_Print("Server initialized\n");
 	Com_InitSubsystem(Q2W_SERVER);
