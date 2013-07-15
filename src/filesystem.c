@@ -437,7 +437,10 @@ static void Fs_AddUserSearchPath(const char *dir) {
 
 	g_snprintf(path, sizeof(path), "%s"G_DIR_SEPARATOR_S"%s", Sys_UserDir(), dir);
 
-	Fs_Mkdir(path);
+	if (g_mkdir_with_parents(path, 0755)) {
+		Com_Warn("Failed to create %s\n", path);
+		return;
+	}
 
 	Fs_AddToSearchPath(path);
 
@@ -498,11 +501,8 @@ void Fs_SetWriteDir(const char *dir) {
 			return;
 		}
 	} else {
-		if (Fs_Mkdir(dir)) {
-			Com_Debug("Created %s\n", dir);
-		} else {
-			Com_Warn("Failed to create: %s\n", dir);
-		}
+		Com_Warn("%s does not exist\n", dir);
+		return;
 	}
 
 	if (PHYSFS_setWriteDir(dir)) {
