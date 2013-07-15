@@ -21,7 +21,7 @@ test -w "${dir}" || {
 	exit 3
 }
 
-search_path="${MINGW_PREFIX}/usr/${MINGW_HOST}/lib"
+search_path="${MINGW_PREFIX}/usr/${MINGW_HOST}"
 test -d "${search_path}" || {
 	echo "${search_path} does not exist" >&2
 	exit 4
@@ -44,6 +44,8 @@ function bundle_recursively(){
 		}
 
 		bundle_recursively "$dll"
+
+		echo "Installing ${dll}.."
 		install "${dll}" "${dir}"
 	done
 }
