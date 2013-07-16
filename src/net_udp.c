@@ -352,12 +352,12 @@ static int32_t Net_Socket(const char *net_interface, uint16_t port) {
 	}
 
 	// make it non-blocking
-	if (ioctl(sock, FIONBIO, (char *) &i) == -1) {
+	if (ioctl(sock, FIONBIO, (void *) &i) == -1) {
 		Com_Error(ERR_DROP, "ioctl: %s\n", Net_ErrorString());
 	}
 
 	// make it broadcast capable
-	if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *) &i, sizeof(i)) == -1) {
+	if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (const void *) &i, sizeof(i)) == -1) {
 		Com_Error(ERR_DROP, "setsockopt: %s\n", Net_ErrorString());
 	}
 
