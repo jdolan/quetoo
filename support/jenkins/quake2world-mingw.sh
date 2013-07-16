@@ -31,5 +31,5 @@ MAKE_OPTIONS="MINGW_HOST=${MINGW_HOST} MINGW_ARCH=${MINGW_ARCH} ${MAKE_OPTIONS}"
 	make ${MAKE_OPTIONS} bundle release image release-image
 "
 
-archive_workspace
+#archive_workspace
 destroy_chroot
