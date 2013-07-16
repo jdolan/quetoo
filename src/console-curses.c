@@ -30,16 +30,15 @@ static uint16_t history_line;
 static uint16_t input_line;
 static uint16_t input_pos;
 
-console_t sv_con;
+console_t sv_console;
 
 cvar_t *con_curses;
 cvar_t *con_timeout;
 
 static char version_string[32];
 
-static int32_t curses_redraw; // indicates what part needs to be drawn
-static int32_t curses_last_update; // number of milliseconds since last redraw
-
+static uint32_t curses_redraw; // indicates what part needs to be drawn
+static uint32_t curses_last_update; // number of milliseconds since last redraw
 
 /*
  * @brief Set the curses drawing color
@@ -89,9 +88,7 @@ static void Curses_DrawInput(void) {
 }
 
 /*
- * @brief Draw the content of the console,
- * parse color codes and line breaks.
- *
+ * @brief Draw the content of the console, parse color codes and line breaks.
  */
 static void Curses_DrawConsole(void) {
 	int32_t w, h;
@@ -100,7 +97,7 @@ static void Curses_DrawConsole(void) {
 	int32_t line;
 	const char *pos;
 
-	if (!sv_con.initialized)
+	if (!sv_console.initialized)
 		return;
 
 	w = COLS - 1;
@@ -109,20 +106,21 @@ static void Curses_DrawConsole(void) {
 	if (w < 3 && h < 3)
 		return;
 
-	Con_Resize(&sv_con, w - 1, h - 2);
+	Con_Resize(&sv_console, w - 1, h - 2);
 	Curses_SetColor(CON_COLOR_DEFAULT);
 
-	lines = sv_con.height + 1;
+	lines = sv_console.height + 1;
 
 	y = 1;
-	for (line = sv_con.last_line - sv_con.scroll - lines; line < sv_con.last_line - sv_con.scroll; line++) {
-		if (line >= 0 && *sv_con.line_start[line]) {
+	for (line = sv_console.last_line - sv_console.scroll - lines; line < sv_console.last_line
+			- sv_console.scroll; line++) {
+		if (line >= 0 && *sv_console.line_start[line]) {
 			x = 1;
 			// color of the first character of the line
-			Curses_SetColor(sv_con.line_color[line]);
+			Curses_SetColor(sv_console.line_color[line]);
 
-			pos = sv_con.line_start[line];
-			while (pos < sv_con.line_start[line + 1]) {
+			pos = sv_console.line_start[line];
+			while (pos < sv_console.line_start[line + 1]) {
 				if (IS_LEGACY_COLOR(pos)) {
 					Curses_SetColor(CON_COLOR_ALT);
 				} else if (IS_COLOR(pos)) {
@@ -142,9 +140,9 @@ static void Curses_DrawConsole(void) {
 	}
 
 	// draw a scroll indicator
-	if (sv_con.last_line > 0) {
+	if (sv_console.last_line > 0) {
 		Curses_SetColor(CON_COLOR_ALT);
-		mvaddnstr(1 + ((sv_con.last_line-sv_con.scroll) * sv_con.height / sv_con.last_line) , w, "O", 1);
+		mvaddnstr(1 + ((sv_console.last_line-sv_console.scroll) * sv_console.height / sv_console.last_line) , w, "O", 1);
 	}
 
 	// reset drawing colors
@@ -162,15 +160,11 @@ void Curses_Refresh(void) {
  * @brief Draw everything
  */
 static void Curses_Draw(void) {
-	int32_t timeout;
 
-	if (!sv_con.initialized)
+	if (!sv_console.initialized)
 		return;
 
-	if (con_timeout && con_timeout->value)
-		timeout = con_timeout->value;
-	else
-		timeout = 20;
+	const uint32_t timeout = Clamp(con_timeout->integer, 20, 1000);
 
 	if (curses_last_update > timeout && curses_redraw) {
 		if ((curses_redraw & 2) == 2) {
@@ -190,13 +184,13 @@ static void Curses_Draw(void) {
 	}
 }
 
-#ifndef _WIN32
+#ifdef SIGWINCH
 /*
  * @brief Window resize signal handler
  */
 static void Curses_Resize(int32_t sig __attribute__((unused))) {
 
-	if (!sv_con.initialized) {
+	if (!sv_console.initialized) {
 		return;
 	}
 
@@ -217,7 +211,7 @@ void Curses_Frame(uint32_t msec) {
 	int32_t key;
 	char buf[CURSES_LINESIZE];
 
-	if (!sv_con.initialized)
+	if (!sv_console.initialized)
 		return;
 
 	key = wgetch(stdwin);
@@ -278,9 +272,9 @@ void Curses_Frame(uint32_t msec) {
 		} else if (key == KEY_ENTER || key == '\n') {
 			if (input[history_line][0] != '\0') {
 				if (input[history_line][0] == '\\' || input[history_line][0] == '/')
-					g_snprintf(buf, CURSES_LINESIZE - 2,"%s\n", input[history_line] + 1);
+					g_snprintf(buf, CURSES_LINESIZE - 2, "%s\n", input[history_line] + 1);
 				else
-					g_snprintf(buf, CURSES_LINESIZE - 1,"%s\n", input[history_line]);
+					g_snprintf(buf, CURSES_LINESIZE - 1, "%s\n", input[history_line]);
 				Com_Print("]%s\n", input[history_line]);
 				Cmd_ExecuteString(buf);
 
@@ -294,19 +288,19 @@ void Curses_Frame(uint32_t msec) {
 				curses_redraw |= 2;
 			}
 		} else if (key == KEY_PPAGE) {
-			if (sv_con.scroll < sv_con.last_line) {
+			if (sv_console.scroll < sv_console.last_line) {
 				// scroll up
-				sv_con.scroll += CON_SCROLL;
-				if (sv_con.scroll > sv_con.last_line)
-					sv_con.scroll = sv_con.last_line;
+				sv_console.scroll += CON_SCROLL;
+				if (sv_console.scroll > sv_console.last_line)
+					sv_console.scroll = sv_console.last_line;
 				curses_redraw |= 2;
 			}
 		} else if (key == KEY_NPAGE) {
-			if (sv_con.scroll > 0) {
+			if (sv_console.scroll > 0) {
 				// scroll down
-				sv_con.scroll -= CON_SCROLL;
-				if (sv_con.scroll < 0)
-					sv_con.scroll = 0;
+				sv_console.scroll -= CON_SCROLL;
+				if (sv_console.scroll < 0)
+					sv_console.scroll = 0;
 				curses_redraw |= 2;
 			}
 		} else if (key >= 32 && key < 127 && input_pos < CURSES_LINESIZE - 1) {
@@ -338,9 +332,9 @@ void Curses_Frame(uint32_t msec) {
  */
 void Curses_Init(void) {
 
-	memset(&sv_con, 0, sizeof(sv_con));
+	memset(&sv_console, 0, sizeof(sv_console));
 
-	if (dedicated && dedicated->value) {
+	if (dedicated->value) {
 		con_curses = Cvar_Get("con_curses", "1", CVAR_NO_SET, NULL);
 	} else {
 		con_curses = Cvar_Get("con_curses", "0", CVAR_NO_SET, NULL);
@@ -358,7 +352,7 @@ void Curses_Init(void) {
 	nodelay(stdwin, TRUE); // non-blocking input
 	curs_set(1); // enable the cursor
 
-	sv_con.scroll = 0;
+	sv_console.scroll = 0;
 
 	if (has_colors() == TRUE) {
 		start_color();
@@ -383,7 +377,7 @@ void Curses_Init(void) {
 	history_line = 0;
 	memset(input, 0, sizeof(input));
 
-#ifndef _WIN32
+#ifdef SIGWINCH
 	signal(SIGWINCH, Curses_Resize);
 #endif
 
@@ -391,7 +385,7 @@ void Curses_Init(void) {
 
 	curses_last_update = con_timeout->value * 2;
 
-	sv_con.initialized = true;
+	sv_console.initialized = true;
 
 	Curses_Draw();
 }
@@ -400,8 +394,10 @@ void Curses_Init(void) {
  * @brief Shutdown the curses console
  */
 void Curses_Shutdown(void) {
-	// shutdown ncurses
-	endwin();
+
+	if (sv_console.initialized) {
+		endwin();
+	}
 }
 
 #endif /* HAVE_CURSES */
