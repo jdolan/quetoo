@@ -254,6 +254,15 @@ int32_t main(int32_t argc, char **argv) {
 	static uint32_t old_time;
 	uint32_t msec;
 
+#ifdef _WIN32
+	AllocConsole();
+
+	int32_t fd = _open_osfhandle((intptr_t) GetStdHandle(STD_OUTPUT_HANDLE), _O_TEXT);
+	FILE *f = _fdopen(fd, "w");
+	*stdout = *f;
+	setvbuf(stdout, NULL, _IONBF, 0);
+#endif
+
 	printf("Quake2World %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 
 	memset(&quake2world, 0, sizeof(quake2world));
