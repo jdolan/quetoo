@@ -24,7 +24,7 @@ MAKE_OPTIONS="MINGW_HOST=${MINGW_HOST} MINGW_ARCH=${MINGW_ARCH} ${MAKE_OPTIONS}"
 	export PATH=/usr/${MINGW_HOST}/sys-root/mingw/bin:${PATH}
 	cd /tmp/quake2world
 	autoreconf -i --force
-	./configure --host=${MINGW_HOST} --prefix=/
+	./configure --host=${MINGW_HOST} --prefix=/ --without-curses
 	make
 	make DESTDIR=/tmp/quake2world install
 	cd mingw-cross
