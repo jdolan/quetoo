@@ -50,28 +50,30 @@ void Ui_NewServer(void) {
 	TwRemoveAllVars(bar);
 
 	while (s) {
-		char button[128], *group;
 
-		memset(button, 0, sizeof(button));
+		if (s->max_clients) {
+			char button[128], *group;
 
-		g_snprintf(button, sizeof(button), "%-40.40s %-16.16s %-24.24s %02d/%02d %5d", s->hostname,
-				s->name, s->gameplay, s->clients, s->max_clients, s->ping);
+			memset(button, 0, sizeof(button));
 
-		switch (s->source) {
-			case SERVER_SOURCE_BCAST:
-				group = "Local";
-				break;
-			case SERVER_SOURCE_USER:
-				group = "Favorites";
-				break;
-			case SERVER_SOURCE_INTERNET:
-			default:
-				group = "Internet";
-				break;
+			g_snprintf(button, sizeof(button), "%-40.40s %-16.16s %-24.24s %02d/%02d %5d",
+					s->hostname, s->name, s->gameplay, s->clients, s->max_clients, s->ping);
+
+			switch (s->source) {
+				case SERVER_SOURCE_BCAST:
+					group = "Local";
+					break;
+				case SERVER_SOURCE_USER:
+					group = "Favorites";
+					break;
+				case SERVER_SOURCE_INTERNET:
+				default:
+					group = "Internet";
+					break;
+			}
+
+			TwAddButton(bar, button, Ui_Servers_Connect, s, va("group=%s", group));
 		}
-
-		TwAddButton(bar, button, Ui_Servers_Connect, s, va("group=%s", group));
-
 		s = s->next;
 	}
 
