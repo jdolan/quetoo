@@ -291,7 +291,7 @@ _Bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
  */
 void Net_SendPacket(net_src_t source, size_t size, void *data, net_addr_t to) {
 	struct sockaddr_in to_addr;
-	int32_t sock, ret;
+	int32_t sock;
 
 	if (to.type == NA_LOCAL) {
 		Net_SendLocalPacket(source, size, data);
@@ -313,10 +313,10 @@ void Net_SendPacket(net_src_t source, size_t size, void *data, net_addr_t to) {
 
 	Net_NetAddrToSockaddr(&to, &to_addr);
 
-	ret = sendto(sock, data, size, 0, (struct sockaddr *) &to_addr, sizeof(to_addr));
+	ssize_t ret = sendto(sock, data, size, 0, (struct sockaddr *) &to_addr, sizeof(to_addr));
 
 	if (ret == -1)
-		Com_Warn("%s to %s.\n", Net_ErrorString(), Net_NetaddrToString(to));
+		Com_Warn("sendto: %s to %s\n", Net_ErrorString(), Net_NetaddrToString(to));
 }
 
 /*
@@ -330,10 +330,12 @@ void Net_Sleep(uint32_t msec) {
 		return; // we're not a server, simply return
 
 	FD_ZERO(&fdset);
-	FD_SET(ip_sockets[NS_SERVER], &fdset); // network socket
+	FD_SET((uint32_t) ip_sockets[NS_SERVER], &fdset); // network socket
+
 	timeout.tv_sec = msec / 1000;
 	timeout.tv_usec = (msec % 1000) * 1000;
-	select(ip_sockets[NS_SERVER] + 1, &fdset, NULL, NULL, &timeout);
+
+	select(FD_SETSIZE, &fdset, NULL, NULL, &timeout);
 }
 
 /*
