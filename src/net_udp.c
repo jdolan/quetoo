@@ -20,8 +20,6 @@
  */
 
 #include <errno.h>
-#include <sys/time.h>
-#include <sys/param.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -252,11 +250,8 @@ static void Net_SendLocalPacket(net_src_t source, size_t length, void *data) {
  * @brief
  */
 _Bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
-	ssize_t ret;
-	int32_t err;
 	struct sockaddr_in from_addr;
-	socklen_t from_len;
-	char *s;
+	socklen_t from_len = sizeof(from_addr);
 
 	if (Net_GetLocalPacket(source, from, message))
 		return true;
@@ -264,22 +259,19 @@ _Bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
 	if (!ip_sockets[source])
 		return false;
 
-	from_len = sizeof(from_addr);
-
-	ret = recvfrom(ip_sockets[source], (void *) message->data, message->max_size, 0,
+	ssize_t ret = recvfrom(ip_sockets[source], (void *) message->data, message->max_size, 0,
 			(struct sockaddr *) &from_addr, &from_len);
 
 	Net_SockaddrToNetaddr(&from_addr, from);
 
 	if (ret == -1) {
-		err = Net_GetError();
+		int32_t err = Net_GetError();
 
 		if (err == EWOULDBLOCK || err == ECONNREFUSED)
 			return false; // not terribly abnormal
 
-		s = source == NS_SERVER ? "server" : "client";
-		Com_Warn("%s: %s from %s\n", s, Net_ErrorString(),
-				Net_NetaddrToString(*from));
+		const char *s = source == NS_SERVER ? "server" : "client";
+		Com_Warn("%s: %s from %s\n", s, Net_ErrorString(), Net_NetaddrToString(*from));
 		return false;
 	}
 
@@ -288,7 +280,9 @@ _Bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
 		return false;
 	}
 
-	message->size = (uint32_t) ret;
+	message->read = 0;
+	message->size = (size_t) ret;
+
 	return true;
 }
 
@@ -350,35 +344,34 @@ static int32_t Net_Socket(const char *net_interface, uint16_t port) {
 	struct sockaddr_in addr;
 	int32_t i = 1;
 
+	// create the socket
 	if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
-		Com_Error(ERR_FATAL, "Call socket: %s\n", Net_ErrorString());
-		return 0;
+		Com_Error(ERR_DROP, "socket: %s\n", Net_ErrorString());
 	}
 
 	// make it non-blocking
 	if (ioctl(sock, FIONBIO, (char *) &i) == -1) {
-		Com_Error(ERR_FATAL, "Call ioctl: %s\n", Net_ErrorString());
-		return 0;
+		Com_Error(ERR_DROP, "ioctl: %s\n", Net_ErrorString());
 	}
 
 	// make it broadcast capable
 	if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *) &i, sizeof(i)) == -1) {
-		Com_Error(ERR_FATAL, "Call setsockopt: %s\n", Net_ErrorString());
-		return 0;
+		Com_Error(ERR_DROP, "setsockopt: %s\n", Net_ErrorString());
 	}
 
-	if (!net_interface || !net_interface[0] || !g_ascii_strcasecmp(net_interface, "localhost"))
+	memset(&addr, 0, sizeof(addr));
+
+	if (!net_interface[0] || !g_ascii_strcasecmp(net_interface, "localhost")) {
 		addr.sin_addr.s_addr = INADDR_ANY;
-	else
+	} else {
 		Net_StringToSockaddr(net_interface, (struct sockaddr *) &addr);
+	}
 
 	addr.sin_port = htons(port);
 	addr.sin_family = AF_INET;
 
 	if (bind(sock, (void *) &addr, sizeof(addr)) == -1) {
-		Com_Print("ERROR: UDP_OpenSocket: bind: %s\n", Net_ErrorString());
-		close(sock);
-		return 0;
+		Com_Error(ERR_DROP, "bind: %s\n", Net_ErrorString());
 	}
 
 	return sock;
