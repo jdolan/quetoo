@@ -140,7 +140,7 @@ void Con_Resize(console_t *con, uint16_t width, uint16_t height) {
 	Con_Update(con, console_data.text);
 
 #ifdef BUILD_CLIENT
-	if (dedicated && !dedicated->value) {
+	if (!dedicated->value) {
 		// clear client notification timings
 		if (con == &cl_console)
 			Cl_ClearNotify();
@@ -156,7 +156,7 @@ static void Con_Clear_f(void) {
 	console_data.insert = console_data.text;
 
 #ifdef BUILD_CLIENT
-	if (dedicated && !dedicated->value) {
+	if (!dedicated->value) {
 		// update the index for the client console
 		cl_console.last_line = 0;
 		Con_Update(&cl_console, console_data.insert);
@@ -164,8 +164,8 @@ static void Con_Clear_f(void) {
 #endif
 #ifdef HAVE_CURSES
 	// update the index for the server console
-	sv_con.last_line = 0;
-	Con_Update(&sv_con, console_data.insert);
+	sv_console.last_line = 0;
+	Con_Update(&sv_console, console_data.insert);
 	// redraw the server console
 	Curses_Refresh();
 #endif
@@ -204,16 +204,16 @@ static void Con_Dump_f(void) {
 }
 
 /*
- * @brief Print a color-coded string to stdout, remove color codes if requested
+ * @brief Print a color-coded string to stdout, optionally removing colors.
  */
-static void Con_PrintStdOut(const char *text) {
+static void Con_PrintStdout(const char *text) {
 	char buf[MAX_PRINT_MSG];
 	int32_t bold, color;
 	uint32_t i;
 
 	// start the string with foreground color
 	memset(buf, 0, sizeof(buf));
-	if (con_ansi && con_ansi->value) {
+	if (con_ansi->value) {
 		strcpy(buf, "\033[0;39m");
 		i = 7;
 	} else {
@@ -223,7 +223,7 @@ static void Con_PrintStdOut(const char *text) {
 	while (*text && i < sizeof(buf) - 8) {
 
 		if (IS_LEGACY_COLOR(text)) {
-			if (con_ansi && con_ansi->value) {
+			if (con_ansi->value) {
 				strcpy(&buf[i], "\033[0;32m");
 				i += 7;
 			}
@@ -232,37 +232,37 @@ static void Con_PrintStdOut(const char *text) {
 		}
 
 		if (IS_COLOR(text)) {
-			if (con_ansi && con_ansi->value) {
+			if (con_ansi->value) {
 				bold = 0;
 				color = 39;
 				switch (*(text + 1)) {
-				case '0': // black is mapped to bold
-					bold = 1;
-					break;
-				case '1': // red
-					color = 31;
-					break;
-				case '2': // green
-					color = 32;
-					break;
-				case '3': // yellow
-					bold = 1;
-					color = 33;
-					break;
-				case '4': // blue
-					color = 34;
-					break;
-				case '5': // cyan
-					color = 36;
-					break;
-				case '6': // magenta
-					color = 35;
-					break;
-				case '7': // white is mapped to foreground color
-					color = 39;
-					break;
-				default:
-					break;
+					case '0': // black is mapped to bold
+						bold = 1;
+						break;
+					case '1': // red
+						color = 31;
+						break;
+					case '2': // green
+						color = 32;
+						break;
+					case '3': // yellow
+						bold = 1;
+						color = 33;
+						break;
+					case '4': // blue
+						color = 34;
+						break;
+					case '5': // cyan
+						color = 36;
+						break;
+					case '6': // magenta
+						color = 35;
+						break;
+					case '7': // white is mapped to foreground color
+						color = 39;
+						break;
+					default:
+						break;
 				}
 				g_snprintf(&buf[i], 8, "\033[%d;%dm", bold, color);
 				i += 7;
@@ -271,7 +271,7 @@ static void Con_PrintStdOut(const char *text) {
 			continue;
 		}
 
-		if (*text == '\n' && con_ansi && con_ansi->value) {
+		if (*text == '\n' && con_ansi->value) {
 			strcat(buf, "\033[0;39m");
 			i += 7;
 		}
@@ -280,7 +280,7 @@ static void Con_PrintStdOut(const char *text) {
 		text++;
 	}
 
-	if (con_ansi && con_ansi->value) // restore foreground color
+	if (con_ansi->value) // restore foreground color
 		strcat(buf, "\033[0;39m");
 
 	// print to stdout
@@ -292,9 +292,7 @@ static void Con_PrintStdOut(const char *text) {
  * @brief Print a message to the console data buffer
  */
 void Con_Print(const char *text) {
-#ifdef BUILD_CLIENT
-	int32_t last_line;
-#endif
+
 	// this can get called before the console is initialized
 	if (!console_data.insert) {
 		memset(console_data.text, 0, sizeof(console_data.text));
@@ -307,7 +305,7 @@ void Con_Print(const char *text) {
 		memset(console_data.text + (sizeof(console_data.text) >> 1) ,0 , sizeof(console_data.text) >> 1);
 		console_data.insert -= sizeof(console_data.text) >> 1;
 #ifdef BUILD_CLIENT
-		if (dedicated && !dedicated->value) {
+		if (!dedicated->value) {
 			// update the index for the client console
 			cl_console.last_line = 0;
 			Con_Update(&cl_console, console_data.text);
@@ -315,8 +313,8 @@ void Con_Print(const char *text) {
 #endif
 #ifdef HAVE_CURSES
 		// update the index for the server console
-		sv_con.last_line = 0;
-		Con_Update(&sv_con, console_data.text);
+		sv_console.last_line = 0;
+		Con_Update(&sv_console, console_data.text);
 #endif
 	}
 
@@ -324,8 +322,8 @@ void Con_Print(const char *text) {
 	strcpy(console_data.insert, text);
 
 #ifdef BUILD_CLIENT
-	if (dedicated && !dedicated->value) {
-		last_line = cl_console.last_line;
+	if (!dedicated->value) {
+		const int32_t last_line = cl_console.last_line;
 
 		// update the index for the client console
 		Con_Update(&cl_console, console_data.insert);
@@ -337,7 +335,7 @@ void Con_Print(const char *text) {
 
 #ifdef HAVE_CURSES
 	// update the index for the server console
-	Con_Update(&sv_con, console_data.insert);
+	Con_Update(&sv_console, console_data.insert);
 #endif
 
 	console_data.insert += strlen(text);
@@ -345,14 +343,14 @@ void Con_Print(const char *text) {
 #ifdef HAVE_CURSES
 	if (!con_curses->value) {
 		// print output to stdout
-		Con_PrintStdOut(text);
+		Con_PrintStdout(text);
 	} else {
 		// Redraw the server console
 		Curses_Refresh();
 	}
 #else
 	// print output to stdout
-	Con_PrintStdOut(text);
+	Con_PrintStdout(text);
 #endif
 }
 
@@ -414,12 +412,37 @@ _Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len) {
 }
 
 /*
- * @brief Initialize the console subsystem
+ * @brief Initialize the console subsystem. For Windows environments running
+ * servers, we explicitly allocate a console window.
  */
 void Con_Init(void) {
 
 #ifdef _WIN32
-	con_ansi = Cvar_Get("con_ansi", "0", CVAR_ARCHIVE, NULL);
+	if (dedicated->value) {
+		AllocConsole();
+
+		// Redirect unbuffered stdout to the console
+		HANDLE ConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+		int SystemOutput = _open_osfhandle(intptr_t(ConsoleOutput), _O_TEXT);
+		FILE *COutputHandle = _fdopen(SystemOutput, "w" );
+		*stdout = *COutputHandle;
+		setvbuf(stdout, NULL, _IONBF, 0);
+
+		// Redirect unbuffered stderr to the console
+		HANDLE ConsoleError = GetStdHandle(STD_ERROR_HANDLE);
+		int SystemError = _open_osfhandle(intptr_t(ConsoleError), _O_TEXT);
+		FILE *CErrorHandle = _fdopen(SystemError, "w" );
+		*stderr = *CErrorHandle;
+		setvbuf(stderr, NULL, _IONBF, 0);
+
+		// Redirect unbuffered stdin to the console
+		HANDLE ConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
+		int SystemInput = _open_osfhandle(intptr_t(ConsoleInput), _O_TEXT);
+		FILE *CInputHandle = _fdopen(SystemInput, "r" );
+		*stdin = *CInputHandle;
+		setvbuf(stdin, NULL, _IONBF, 0);
+	}
+	con_ansi = Cvar_Get("con_ansi", "0", CVAR_NO_SET, NULL);
 #else
 	con_ansi = Cvar_Get("con_ansi", "1", CVAR_ARCHIVE, NULL);
 #endif
