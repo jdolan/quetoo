@@ -1,4 +1,7 @@
 #!/bin/bash -ex
+#
+# Create unit test fixtures for continuous integration builds
+#
 
 mkdir -p ~/.quake2world/default/maps
 touch ~/.quake2world/default/maps/torn.bsp

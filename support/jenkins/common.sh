@@ -1,11 +1,14 @@
 # Common functions for all Jenkins build scripts
 
-CHROOT=$(echo "${JOB_NAME}" | cut -d\- -f3)
+OS=$(echo "${JOB_NAME}" | cut -d\- -f3)
 
-if ([ "${CHROOT}" == "mingw64" ] || [ "${CHROOT}" == "mingw32" ]); then
+echo
+echo "OS: ${OS"
+echo
+
+if [[ "${OS}" == "mingw*" ]]; then
 	
-	export MINGW_TARGET=${CHROOT}
-	if [ "${MINGW_TARGET}" == "mingw64" ]; then
+	if [ "${OS}" == "mingw64" ]; then
 		export MINGW_HOST="x86_64-w64-mingw32"
 		export MINGW_ARCH="x86_64"
 	else
@@ -17,18 +20,25 @@ if ([ "${CHROOT}" == "mingw64" ] || [ "${CHROOT}" == "mingw32" ]); then
 	
 	DEPS="openssh-clients \
 		rsync \
-		${MINGW_TARGET}-SDL ${MINGW_TARGET}-SDL_image ${MINGW_TARGET}-SDL_mixer \
-		${MINGW_TARGET}-curl \
-		${MINGW_TARGET}-physfs \
-		${MINGW_TARGET}-glib2 \
-		${MINGW_TARGET}-libjpeg-turbo libtool \
-		${MINGW_TARGET}-zlib \
-		${MINGW_TARGET}-pkg-config \
-		${MINGW_TARGET}-pdcurses \
-		http://maci.satgnu.net/rpmbuild/RPMS/${MINGW_TARGET}-physfs-2.0.3-3.fc18.noarch.rpm \
-		http://maci.satgnu.net/rpmbuild/RPMS/${MINGW_TARGET}-lzma-sdk457-4.57-2.fc18.noarch.rpm
+		${OS}-SDL ${OS}-SDL_image ${OS}-SDL_mixer \
+		${OS}-curl \
+		${OS}-physfs \
+		${OS}-glib2 \
+		${OS}-libjpeg-turbo libtool \
+		${OS}-zlib \
+		${OS}-pkg-config \
+		${OS}-pdcurses \
+		http://maci.satgnu.net/rpmbuild/RPMS/${OS}-physfs-2.0.3-3.fc18.noarch.rpm \
+		http://maci.satgnu.net/rpmbuild/RPMS/${OS}-lzma-sdk457-4.57-2.fc18.noarch.rpm
 		"
-else
+elif [[ "${OS}" == "linux*" ]]; then
+
+	if [ "${OS}" == "linux64" ]; then
+		CHROOT="fedora-17-x86_64"
+	else
+		CHROOT="fedora-17-i386"
+	fi
+
 	DEPS="openssh-clients \
 		rsync \
 		SDL-devel SDL_image-devel SDL_mixer-devel \
@@ -42,12 +52,16 @@ else
 		check \
 		check-devel
 		"
+else
+	echo "Unsupported OS in ${JOB_NAME}"
+	exit 1
 fi
 
 function init_chroot() {
 	/usr/bin/mock -r ${CHROOT} --clean
 	/usr/bin/mock -r ${CHROOT} --init
 	/usr/bin/mock -r ${CHROOT} --install ${DEPS}
+	/usr/bin/mock -r ${CHROOT} --copyin ~/.ssh "/root/.ssh"
 	/usr/bin/mock -r ${CHROOT} --copyin ${WORKSPACE} "/tmp/quake2world"
 }
 

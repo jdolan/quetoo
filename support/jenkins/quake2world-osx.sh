@@ -1,10 +1,17 @@
 #!/bin/bash -ex
 
-source ~/.profile 
+source ~/.profile
 
-autoreconf -i --force
-./configure --with-tests
+CONFIGURE_OPTIONS="--prefix=/ ${CONFIGURE_OPTIONS}"
+MAKE_OPTIONS="${MAKE_OPTIONS}"
+
+echo
+echo "CONFIGURE_OPTIONS: ${CONFIGURE_OPTIONS}"
+echo "MAKE_OPTIONS: ${MAKE_OPTIONS}"
+echo
+
+autoreconf -i
+./configure ${CONFIGURE_OPTIONS}
 make
-cd apple
-make ${MAKE_OPTIONS} bundle release image release-image
-make clean
+make -C apple ${MAKE_OPTIONS} bundle release image release-image
+make -C apple clean

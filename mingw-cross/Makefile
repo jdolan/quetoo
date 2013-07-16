@@ -1,6 +1,5 @@
 # Makefile for Quake2World.zip, requires Mingw Cross Environment http://mxe.cc/
 
-MINGW_HOST = i686-pc-mingw32
 MINGW_ARCH = i686
 
 DATA = ../../quake2world-data
