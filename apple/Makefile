@@ -22,7 +22,7 @@ pre-install:
 	install -d $(PACKAGE)
 	cp -r Quake2World/* $(PACKAGE)
 	find $(PACKAGE) -name .turd -delete
-#./set-icon.sh icon.icns $(PACKAGE)
+	./set-icon.sh icon.icns $(PACKAGE)
 
 install: pre-install
 	ln -f -s Contents/MacOS $(QUAKE2WORLD)/bin
