@@ -630,10 +630,10 @@ void Fs_Init(_Bool auto_load_archives) {
 #endif
 	}
 
-	Com_Debug("Resolved base dir: %s\n", fs_state.base_dir);
-
-	// if the base directory was not resolved, add the default search path
-	if (*fs_state.base_dir == '\0') {
+	// if the base directory was not resolved, add the default search paths
+	if (strlen(fs_state.base_dir)) {
+		Com_Debug("Resolved base dir: %s\n", fs_state.base_dir);
+	} else {
 		Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME);
 		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME);
 	}

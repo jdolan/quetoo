@@ -12,6 +12,4 @@ echo
 
 autoreconf -i
 ./configure ${CONFIGURE_OPTIONS}
-make
-make -C apple ${MAKE_OPTIONS} bundle release image release-image
-make -C apple clean
+make -C apple ${MAKE_OPTIONS} bundle release image release-image clean

@@ -18,7 +18,6 @@ echo
 	export PATH=/usr/${MINGW_HOST}/sys-root/mingw/bin:${PATH}
 	autoreconf -i
 	./configure ${CONFIGURE_OPTIONS}
-	make
 	make -C mingw-cross ${MAKE_OPTIONS} bundle release image release-image
 "
 

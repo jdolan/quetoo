@@ -18,7 +18,7 @@ all: install
 
 pre-install:
 	install -d $(PACKAGE)
-	cp -r quake2world-$(ARCH)/* $(PACKAGE)
+	cp -r quake2world/* $(PACKAGE)
 	find $(PACKAGE) -name .turd -delete
 
 install: pre-install
