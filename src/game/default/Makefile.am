@@ -1,8 +1,4 @@
-if WINDOWS
-gamelibdir=$(libdir)/default
-else
-gamelibdir=$(libdir)/@PACKAGE@/default
-endif
+gamelibdir = @PKGLIBDIR@/default
 
 noinst_HEADERS = \
 	bg_pmove.h \

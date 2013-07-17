@@ -19,18 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifdef _WIN32
-#include <fcntl.h>
-#include <io.h>
-#include <windows.h>
-#endif
-
 #include "console.h"
 
 static console_data_t console_data;
 
 #ifdef BUILD_CLIENT
 extern console_t cl_console;
+
 extern void Cl_UpdateNotify(int32_t last_line);
 extern void Cl_ClearNotify(void);
 #endif
@@ -419,35 +414,21 @@ _Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len) {
 
 /*
  * @brief Initialize the console subsystem. For Windows environments running
- * servers, we explicitly allocate a console window.
+ * servers, we explicitly allocate a console and redirect stdio to and from it.
  */
 void Con_Init(void) {
 
 #ifdef _WIN32
 	if (dedicated->value) {
-		AllocConsole();
-
-		// Redirect unbuffered stdout to the console
-		HANDLE ConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-		int SystemOutput = _open_osfhandle(intptr_t(ConsoleOutput), _O_TEXT);
-		FILE *COutputHandle = _fdopen(SystemOutput, "w" );
-		*stdout = *COutputHandle;
-		setvbuf(stdout, NULL, _IONBF, 0);
-
-		// Redirect unbuffered stderr to the console
-		HANDLE ConsoleError = GetStdHandle(STD_ERROR_HANDLE);
-		int SystemError = _open_osfhandle(intptr_t(ConsoleError), _O_TEXT);
-		FILE *CErrorHandle = _fdopen(SystemError, "w" );
-		*stderr = *CErrorHandle;
-		setvbuf(stderr, NULL, _IONBF, 0);
-
-		// Redirect unbuffered stdin to the console
-		HANDLE ConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
-		int SystemInput = _open_osfhandle(intptr_t(ConsoleInput), _O_TEXT);
-		FILE *CInputHandle = _fdopen(SystemInput, "r" );
-		*stdin = *CInputHandle;
-		setvbuf(stdin, NULL, _IONBF, 0);
+		if (AllocConsole()) {
+			freopen("CONIN$", "r", stdin); 
+			freopen("CONOUT$", "w", stdout); 
+			freopen("CONERR$", "w", stderr);
+		} else {
+			Com_Warn("Failed to allocate console: %u\n", (uint32_t) GetLastError());
+		}
 	}
+
 	con_ansi = Cvar_Get("con_ansi", "0", CVAR_NO_SET, NULL);
 #else
 	con_ansi = Cvar_Get("con_ansi", "1", CVAR_ARCHIVE, NULL);

@@ -73,7 +73,7 @@ const char *Sys_ExecutablePath(void) {
 		return path;
 	}
 
-#elif __LINUX__
+#elif __linux__
 
 	if (readlink(va("/proc/%d/exe", getpid()), path, sizeof(path)) > -1) {
 		return path;

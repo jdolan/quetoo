@@ -1,16 +1,17 @@
 # Makefile for Quake2World.app, requires http://macdylibbundler.sourceforge.net/
 
+ARCH = x86_64
 DATA = ../../quake2world-data
 TARGET = target
-QUAKE2WORLD = $(TARGET)/Quake2World/Quake2World.app
-UPDATE = $(TARGET)/Quake2World/Update.app
-LIBRARIES = $(QUAKE2WORLD)/Contents/lib
-BINARIES = $(QUAKE2WORLD)/Contents/MacOS
-RESOURCES = $(QUAKE2WORLD)/Contents/Resources
+PACKAGE = $(TARGET)/Quake2World
+QUAKE2WORLD = $(PACKAGE)/Quake2World.app
+BINDIR = $(QUAKE2WORLD)/Contents/MacOS
+LIBDIR = $(QUAKE2WORLD)/Contents/lib
+DATADIR = $(QUAKE2WORLD)/Contents/Resources
 REMOTE_USER = $(shell whoami)
-RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-apple/x86_64
+RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-apple/$(ARCH)
 RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
-IMAGE = $(TARGET)/Quake2World-BETA.dmg
+DIST = $(TARGET)/Quake2World-BETA.dmg
 VOLUME_NAME = "Quake2World BETA"
 HTTP_REPOSITORY = quake2world.net:/var/www/quake2world/files
 HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
@@ -18,38 +19,38 @@ HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 all: bundle
 
 pre-install:
-	install -d $(TARGET)
-	cp -r Quake2World $(TARGET)
-	find $(TARGET) -name .turd -delete
-	./set-icon.sh icon.icns $(TARGET)/Quake2World
+	install -d $(PACKAGE)
+	cp -r Quake2World/* $(PACKAGE)
+	find $(PACKAGE) -name .turd -delete
+#./set-icon.sh icon.icns $(PACKAGE)
 
 install: pre-install
-	install ../src/tools/q2wmap/q2wmap $(BINARIES)/q2wmap
-	install ../src/main/quake2world $(BINARIES)/quake2world
-	install ../src/cgame/default/.libs/cgame.so $(BINARIES)/default/cgame.so
-	install ../src/game/default/.libs/game.so $(BINARIES)/default/game.so
+	ln -f -s Contents/MacOS $(QUAKE2WORLD)/bin
+	ln -f -s Contents/MacOS $(QUAKE2WORLD)/lib
+	ln -f -s Contents/Resources $(QUAKE2WORLD)/share
+	make -C .. DESTDIR=$(realpath $(QUAKE2WORLD)) install
+	rm -f $(QUAKE2WORLD)/bin $(QUAKE2WORLD)/lib $(QUAKE2WORLD)/share
 
 install-data: pre-install
-	cp -r $(DATA)/target/* $(RESOURCES)
+	cp -r $(DATA)/target/* $(DATADIR)
 
 bundle: install
 	dylibbundler -b \
-		-x $(BINARIES)/q2wmap \
-		-x $(BINARIES)/quake2world \
-		-x $(BINARIES)/default/cgame.so \
-		-x $(BINARIES)/default/game.so \
-	-d $(LIBRARIES) -of -p @executable_path/../lib
+		-x $(BINDIR)/q2wmap \
+		-x $(BINDIR)/quake2world \
+		-x $(BINDIR)/default/cgame.so \
+		-x $(BINDIR)/default/game.so \
+	-d $(LIBDIR) -of -p @executable_path/../lib
 
 release:
-	rsync -rzhP --delete $(BINARIES) $(LIBRARIES) $(RSYNC_TARGET)
+	rsync -rzhP --delete $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
 
-image:
+dist:
 	ln -f -s /Applications $(TARGET)/Applications
-	hdiutil create $(IMAGE) -srcfolder $(TARGET) -volname $(VOLUME_NAME)
-	rm $(TARGET)/Applications
+	hdiutil create $(DIST) -srcfolder $(TARGET) -volname $(VOLUME_NAME)
 
-release-image:
-	rsync -rzhP $(IMAGE) $(HTTP_TARGET)
+dist-release:
+	rsync -rzhP $(DIST) $(HTTP_TARGET)
 
 clean:
 	rm -rf $(TARGET)/*

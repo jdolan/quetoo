@@ -28,11 +28,34 @@
 // #define FS_LOAD_DEBUG // track Fs_Load / Fs_Free
 
 typedef struct fs_state_s {
-	char **base_search_paths;
+
+	/*
+	 * @brief If true, supported archives (.pk3, .pak) in search paths will be
+	 * automatically loaded. Set this to false for tools that require the write
+	 * directory, but not read access to the Quake file system (e.g q2wmaster).
+	 */
 	_Bool auto_load_archives;
 
+	/*
+	 * @brief The base directory of the install, if running from a bundled
+	 * application. On Windows, this will always be set. On Mac and Linux, it
+	 * is set for the .app and .tgz distributables.
+	 */
+	char base_dir[MAX_OSPATH];
+
+	/*
+	 * @brief The base search paths (all those present after invoking Fs_Init).
+	 * When calling Fs_SetGameDir, all paths following the base paths are
+	 * unloaded.
+	 */
+	char **base_search_paths;
+
 #ifdef FS_LOAD_DEBUG
-GHashTable *loaded_files;
+	/*
+	 * @brief For debugging purposes, track all loaded files to ensure that
+	 * they are freed (Fs_Free) in all code paths.
+	 */
+	GHashTable *loaded_files;
 #endif
 } fs_state_t;
 
@@ -570,37 +593,50 @@ void Fs_Init(_Bool auto_load_archives) {
 	if (path) {
 		char *c;
 
-		// Com_Debug("Resolved executable path: %s\n", path);
+		Com_Debug("Resolved executable path: %s\n", path);
 #ifdef __APPLE__
 		if ((c = strstr(path, "Quake2World.app"))) {
+			*(c + strlen("Quake2World.app")) = '\0';
+			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
+
 			strcpy(c + strlen("Quake2World.app"), "/Contents/MacOS/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 
 			strcpy(c + strlen("Quake2World.app"), "/Contents/Resources/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 		}
-#elif __LINUX__
+#elif __linux__
 		if ((c = strstr(path, "quake2world/bin"))) {
-			strcpy(c + strlen("quake2world/"), "lib/"DEFAULT_GAME);
+			*(c + strlen("quake2world")) = '\0';
+			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
+
+			strcpy(c + strlen("quake2world"), "/lib/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 
-			strcpy(c + strlen("quake2world/"), "share/"DEFAULT_GAME);
+			strcpy(c + strlen("quake2world"), "/share/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 		}
 #elif __WIN32__
-		if ((c = strstr(path, "bin\\quake2world.exe"))) {
-			strcpy(c , "lib\\"DEFAULT_GAME);
+		if ((c = strstr(path, "\\bin\\quake2world.exe"))) {
+			*c = '\0';
+			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
+
+			strcpy(c , "\\lib\\"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 
-			strcpy(c , "share\\"DEFAULT_GAME);
+			strcpy(c , "\\share\\"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 		}
 #endif
 	}
 
-	// add default to search path
-	Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME);
-	Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME);
+	Com_Debug("Resolved base dir: %s\n", fs_state.base_dir);
+
+	// if the base directory was not resolved, add the default search path
+	if (*fs_state.base_dir == '\0') {
+		Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME);
+		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME);
+	}
 
 	// then add a '.quake2world/default' directory in home directory
 	Fs_AddUserSearchPath(DEFAULT_GAME);

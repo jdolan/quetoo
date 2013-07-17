@@ -2,7 +2,6 @@ ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = \
 	deps \
-	doc \
 	src
 
 RSYNC_REPOSITORY = \

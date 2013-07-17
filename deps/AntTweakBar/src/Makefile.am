@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = \
 	libanttweakbar.la
-	
+
 if BUILD_CLIENT
 
 noinst_HEADERS = \
@@ -35,7 +35,7 @@ libanttweakbar_la_CXXFLAGS = \
 	@ANTTWEAKBAR_CXXFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
-	
+
 libanttweakbar_la_CFLAGS = \
 	-I../include \
 	@BASE_CFLAGS@ \
@@ -59,4 +59,4 @@ libanttweakbar_la_CFLAGS = \
 	-D__LIBTOOL_LIBRARY__=libanttweakbar_la
 
 endif
-	
+

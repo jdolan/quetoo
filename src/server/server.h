@@ -27,6 +27,7 @@
 #include "filesystem.h"
 #include "game/game.h"
 #include "net.h"
+#include "thread.h"
 
 #include "sv_admin.h"
 #include "sv_client.h"

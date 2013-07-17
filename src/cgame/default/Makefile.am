@@ -1,8 +1,4 @@
-if WINDOWS
-cgamelibdir = $(libdir)/default
-else
-cgamelibdir = $(pkglibdir)/default
-endif
+cgamelibdir = @PKGLIBDIR@/default
 
 noinst_HEADERS = \
 	cg_client.h \

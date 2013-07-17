@@ -1,8 +1,4 @@
-if WINDOWS
-shadersdir = $(libdir)/default/shaders
-else
-shadersdir = $(pkglibdir)/default/shaders
-endif
+shadersdir = @PKGLIBDIR@/default/shaders
 
 shaders_DATA = \
 	default_fs.glsl \

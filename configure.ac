@@ -68,7 +68,7 @@ case "$host" in
 	*-*-mingw*)
 		HOST_NAME="WINDOWS"
 		HOST_LIBS="-lws2_32 -lole32 -lstdc++"
-		DEFAULT_PREFIX="/tmp/quake2world-$target_os"
+		DEFAULT_PREFIX="/"
 		AC_PATH_PROGS([WINDRES], [windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres])
 		if test "x$WINDRES" = "x"; then
 			AC_MSG_ERROR([Could not find windres, please install windres])
@@ -137,9 +137,9 @@ fi
 
 save_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $PHYSFS_CFLAGS"
-	
+
 AC_CHECK_HEADER(physfs.h,
-	PHYSFS_LIBS="$PHYSFS_LIBS -lphysfs",
+	PHYSFS_LIBS="$PHYSFS_LIBS -lphysfs -lz",
 	[AC_MSG_ERROR([Could not find physfs.h, please install PhysFS])]
 )
 AC_SUBST(PHYSFS_CFLAGS)
@@ -177,14 +177,14 @@ else
 	BUILD_CLIENT=yes
 
 	AC_DEFINE(BUILD_CLIENT, 1, [Define to 1 to build a client.])
-	
+
 	dnl ------------------------------------------
 	dnl Check for SDL_opengl, SDL_image, SDL_mixer
 	dnl ------------------------------------------
 
 	save_CPPFLAGS="$CPPFLAGS"
 	CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-	
+
 	AC_CHECK_HEADER(SDL/SDL_opengl.h,,
 		[AC_MSG_ERROR([Could not find SDL_opengl.h, please install libsdl])]
 	)
@@ -198,48 +198,45 @@ else
 		SDL_LIBS="$SDL_LIBS -lSDL_mixer",
 		[AC_MSG_ERROR([Could not find SDL_mixer.h, please install libsdl-mixer])]
 	)
-	
+
 	CPPFLAGS="$save_CPPFLAGS"
-	
+
 	dnl -----------------------------------
 	dnl Sort out OpenGL an flags and libraries
 	dnl -----------------------------------
-	
+
 	HOST_OPENGL_CFLAGS=""
 	HOST_OPENGL_LIBS=""
-	
+
 	case "$host" in
 		*-apple-*)
 			HOST_OPENGL_LIBS="-framework OpenGL"
 			;;
-		*bsd*)
-			HOST_OPENGL_LIBS="-lGL"
-			;;
-		*-*-mingw*)
+		*-mingw*)
 			HOST_OPENGL_LIBS="-lopengl32"
 			;;
 		*)
 			HOST_OPENGL_LIBS="-lGL"
 			;;
 	esac
-	
+
 	AC_SUBST(HOST_OPENGL_CFLAGS)
 	AC_SUBST(HOST_OPENGL_LIBS)
 
 	OPENGL_CFLAGS="$OPENGL_CFLAGS $HOST_OPENGL_CFLAGS"
 	AC_SUBST(OPENGL_CFLAGS)
-	
+
 	OPENGL_LIBS="$OPENGL_LIBS $HOST_OPENGL_LIBS"
 	AC_SUBST(OPENGL_LIBS)
-	
+
 	dnl ----------------------------------------
 	dnl Sort out AntTweakBar flags and libraries
 	dnl ----------------------------------------
-	
+
 	HOST_ANTTWEAKBAR_CXXFLAGS=""
 	HOST_ANTTWEAKBAR_CFLAGS=""
 	HOST_ANTTWEAKBAR_LIBS=""
-	
+
 	case "$host" in
 		*-apple-*)
 			HOST_ANTTWEAKBAR_CXXFLAGS="-D_MACOSX -I/usr/X11R6/include -ObjC++"
@@ -256,20 +253,20 @@ else
 			HOST_ANTTWEAKBAR_LIBS="-lX11 -lXext"
 			;;
 	esac
-	
+
 	AC_SUBST(HOST_ANTTWEAKBAR_CXXFLAGS)
 	AC_SUBST(HOST_ANTTWEAKBAR_CFLAGS)
 	AC_SUBST(HOST_ANTTWEAKBAR_LIBS)
-	
+
 	ANTTWEAKBAR_CXXFLAGS="$ANTTWEAKBAR_CXXFLAGS $HOST_ANTTWEAKBAR_CXXFLAGS"
 	AC_SUBST(ANTTWEAKBAR_CXXFLAGS)
 
 	ANTTWEAKBAR_CFLAGS="$ANTTWEAKBAR_CFLAGS $HOST_ANTTWEAKBAR_CFLAGS"
 	AC_SUBST(ANTTWEAKBAR_CFLAGS)
-	
+
 	ANTTWEAKBAR_LIBS="$ANTTWEAKBAR_LIBS $HOST_ANTTWEAKBAR_LIBS"
 	AC_SUBST(ANTTWEAKBAR_LIBS)
-	
+
 	dnl --------------
 	dnl Check for cURL
 	dnl --------------
@@ -303,7 +300,7 @@ else
 
 	TOOLS="q2wmap"
 	TOOL_DIRS="$TOOLS"
-	
+
 	AC_ARG_WITH(tools,
 		AS_HELP_STRING([--with-tools='q2wmap ...'],
 			[build specified tools]
@@ -317,10 +314,10 @@ else
 		TOOLS="${with_tools}"
 		TOOL_DIRS="${with_tools}"
 	fi
-	
+
 	AC_MSG_RESULT($TOOLS)
 	AC_SUBST(TOOL_DIRS)
-	
+
 fi
 
 AM_CONDITIONAL([BUILD_CLIENT], [test "x$BUILD_CLIENT" = "xyes"])
@@ -416,11 +413,11 @@ if test "x${with_curses}" != xno; then
 			HAVE_CURSES=no
 		)
 	fi
-		
+
 	dnl --------------------------------------------
 	dnl For dedicated servers, curses is recommended
 	dnl --------------------------------------------
-	
+
 	if test "${HAVE_CURSES}" = no -a "${with_client}" = no; then
 		AC_MSG_ERROR([Could not find curses, which is strongly recommended for dedicated servers.
 		You should install curses, or ./configure --without-curses to ignore this error.
@@ -633,12 +630,12 @@ dnl ----------------------
 test "$prefix" = "NONE" && prefix=$DEFAULT_PREFIX
 test "$exec_prefix" = "NONE" && exec_prefix=$prefix
 
-if test "x${HOST_NAME}" = "xWINDOWS"; then
-	eval BINDIR="$bindir"
-	eval PKGLIBDIR="$prefix/lib"
-	eval PKGDATADIR="$prefix/share"
+if test "x${prefix}" = "x/"; then
+	eval BINDIR="/bin"
+	eval PKGLIBDIR="/lib"
+	eval PKGDATADIR="/share"
 else
-	eval BINDIR="$bindir"
+	eval BINDIR="$prefix/bin"
 	eval PKGLIBDIR="$prefix/lib/$PACKAGE"
 	eval PKGDATADIR="$prefix/share/$PACKAGE"
 fi
@@ -646,11 +643,11 @@ fi
 AC_DEFINE_UNQUOTED(PKGLIBDIR, "$PKGLIBDIR",
 	[Define to path containing the shared modules.]
 )
+AC_SUBST(PKGLIBDIR)
 
 AC_DEFINE_UNQUOTED(PKGDATADIR, "$PKGDATADIR",
 	[Define to path containing the game data.]
 )
-
 AC_SUBST(PKGDATADIR)
 
 AM_CONDITIONAL(BUILD_CLIENT, test "x$BUILD_CLIENT" = xyes)
@@ -667,7 +664,6 @@ AC_CONFIG_FILES([
 	deps/AntTweakBar/include/Makefile
 	deps/AntTweakBar/src/Makefile
 	deps/minizip/Makefile
-	doc/Makefile
 	src/Makefile
 	src/ai/Makefile
 	src/cgame/Makefile

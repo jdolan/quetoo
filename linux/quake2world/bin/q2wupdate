@@ -1,9 +1,9 @@
 #!/bin/bash
 
-ARCH=`uname -m`
-pushd `dirname "$0"` > /dev/null
-SCRIPTPATH=`pwd`
-popd > /dev/null
+ARCH=$(uname -m)
+pushd $(dirname "$0") >/dev/null
+SCRIPTPATH=$(pwd)
+popd >/dev/null
 QUAKE2WORLD_HOME=${SCRIPTPATH}/../
 
 #Update icon paths

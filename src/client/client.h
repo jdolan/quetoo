@@ -26,6 +26,7 @@
 #include "console.h"
 #include "filesystem.h"
 #include "net.h"
+#include "thread.h"
 #include "cgame/cgame.h"
 #include "renderer/renderer.h"
 #include "sound/sound.h"
