@@ -17,7 +17,6 @@ echo
 	set -x
 	autoreconf -i
 	./configure ${CONFIGURE_OPTIONS}
-	make
 	make -C linux ${MAKE_OPTIONS} install image
 "
 
