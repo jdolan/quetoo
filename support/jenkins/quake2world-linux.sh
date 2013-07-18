@@ -8,7 +8,7 @@ function build() {
 		set -e
 		autoreconf -i
 		./configure ${CONFIGURE_FLAGS}
-		make -C linux ${MAKE_FLAGS} ${MAKE_TARGETS}
+		make -C linux ${MAKE_OPTIONS} ${MAKE_TARGETS}
 	"
 }
 
