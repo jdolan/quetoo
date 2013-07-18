@@ -26,7 +26,9 @@ test -x "${objdump}" || {
 	exit 2
 }
 
-exe="${2}"
+shift $((OPTIND-1))
+
+exe="${1}"
 test -x "${exe}" || {
 	echo "${exe} is not an executable" >&2
 	exit 3
