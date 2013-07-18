@@ -24,10 +24,10 @@ function init() {
 	while getopts "c:m:rd" opt; do
 		case "${opt}" in
 			c)
-				CONFIGURE_FLAGS="${opt} ${CONFIGURE_FLAGS}"
+				CONFIGURE_FLAGS="${CONFIGURE_FLAGS} ${OPTARG}"
 				;;
 			m)
-				MAKE_OPTIONS="${OPTARG} ${MAKE_OPTIONS}"
+				MAKE_OPTIONS="${MAKE_OPTIONS} ${OPTARG}"
 				;;
 			r)
 				MAKE_TARGETS="${MAKE_TARGETS} release"
