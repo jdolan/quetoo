@@ -105,26 +105,26 @@ function init() {
 	esac
 
 	echo
-	echo "Branch:          ${BRANCH}"
-	echo "Target:          ${TARGET}"
-	echo "Chroot:          ${CHROOT}"
-	echo "Configure flags: ${CONFIGURE_FLAGS}"
-	echo "Make options:    ${MAKE_OPTIONS}"
-	echo "Make targets:    ${MAKE_TARGETS}"
+	echo "Branch:        ${BRANCH}"
+	echo "Target:        ${TARGET}"
+	echo "Chroot:        ${CHROOT}"
+	echo "Configure:     ${CONFIGURE_FLAGS}"
+	echo "Make options:  ${MAKE_OPTIONS}"
+	echo "Make targets:  ${MAKE_TARGETS}"
 	echo
 }
 
 #
 # Boot and update the specified chroot.
 #
-function init_chroot() {
+function create_chroot() {
 	test "${CHROOT}" && {
 		/usr/bin/mock -r ${CHROOT} --clean
 		/usr/bin/mock -r ${CHROOT} --init
 		/usr/bin/mock -r ${CHROOT} --install ${CHROOT_PACKAGES}
 		/usr/bin/mock -r ${CHROOT} --copyin ~/.ssh "/root/.ssh"
 		/usr/bin/mock -r ${CHROOT} --copyin ${WORKSPACE} "/tmp/quake2world"
-	}
+	} || return 0
 }
 
 #
@@ -133,17 +133,17 @@ function init_chroot() {
 function destroy_chroot() {
 	test "${CHROOT}" && {
 		/usr/bin/mock -r ${CHROOT} --clean
-	}
+	} || return 0
 }
 
 #
 # Main entry point. Run the build.
 #
 function main() {
-	init
-	init_chroot
+	init $@
+	create_chroot
 	build
 	destroy_chroot
 }
 
-main
+main $@

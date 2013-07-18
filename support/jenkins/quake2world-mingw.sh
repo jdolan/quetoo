@@ -13,4 +13,4 @@ function build() {
 	"
 }
 
-source ./common.sh
+source $(dirname $0)/common.sh

@@ -10,4 +10,4 @@ function build() {
 	make -C apple ${MAKE_OPTIONS} ${MAKE_TARGETS}
 }
 
-source ./common.sh
+source $(dirname $0)/common.sh
