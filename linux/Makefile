@@ -31,13 +31,13 @@ install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -rzhP --delete $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
+	rsync -rzh --delete $(PACKAGE)/*.* $(BINDIR) $(LIBDIR) $(DATADIR)/*.* $(RSYNC_TARGET)
 
 dist:
 	tar -czvf $(DIST) -C $(TARGET) quake2world
 
 dist-release:
-	rsync -rzhP $(DIST) $(HTTP_TARGET)
+	rsync -rzh $(DIST) $(HTTP_TARGET)
 
 clean:
 	rm -rf $(TARGET)/*

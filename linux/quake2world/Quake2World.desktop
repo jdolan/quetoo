@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Quake2world
-Comment=Quake2world kicks ass!
-Exec=bin/quake2world
-Icon=share/quake2world.png
+Name=Quake2world BETA
+Comment=Pwning nubz one rail slug at a time.
+Exec=%QUAKE2WORLD_HOME%/bin/quake2world
+Icon=%QUAKE2WORLD_HOME%/share/quake2world.png
 Terminal=false
 Type=Application
 Categories=Games;

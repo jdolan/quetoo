@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=Update
-Comment=This updates quake2world.
-Exec=bin/q2wupdate
-Icon=share/quake2world.png
-Terminal=true
-Type=Application
-Categories=Games;
-StartupNotify=true

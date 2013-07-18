@@ -32,14 +32,14 @@ install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -avzP --delete $(PACKAGE)/*.* $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
+	rsync -rzh --delete $(PACKAGE)/*.* $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
 
 dist:
 	rm -f Quake2World; ln -s $(PACKAGE)
 	zip -9 -r $(DIST) Quake2World
 
 dist-release:
-	rsync -avzP $(DIST) $(HTTP_TARGET)
+	rsync -rzh $(DIST) $(HTTP_TARGET)
 
 clean:
 	rm -rf $(TARGET)/*

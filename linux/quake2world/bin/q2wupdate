@@ -1,32 +1,21 @@
 #!/bin/bash
 
+SCRIPT_PATH="$(cd "$(dirname "$0")"; pwd -P)"
+QUAKE2WORLD_HOME="${SCRIPT_PATH%/bin/*}"
+
 ARCH=$(uname -m)
-pushd $(dirname "$0") >/dev/null
-SCRIPTPATH=$(pwd)
-popd >/dev/null
-QUAKE2WORLD_HOME=${SCRIPTPATH}/../
-
-#Update icon paths
-sed -i -e 's@^Icon.*@Icon='${QUAKE2WORLD_HOME}'/share/update.png@' ${QUAKE2WORLD_HOME}/Update.desktop
-sed -i -e 's@^Icon.*@Icon='${QUAKE2WORLD_HOME}'/share/quake2world.png@' ${QUAKE2WORLD_HOME}/Quake2World.desktop
-
-#Update executable paths
-sed -i -e 's@^Exec.*@Exec='${QUAKE2WORLD_HOME}'/bin/q2wupdate@' ${QUAKE2WORLD_HOME}/Update.desktop
-sed -i -e 's@^Exec.*@Exec='${QUAKE2WORLD_HOME}'/bin/quake2world@' ${QUAKE2WORLD_HOME}/Quake2World.desktop
-
-chmod +x ${QUAKE2WORLD_HOME}/Update.desktop
-chmod +x ${QUAKE2WORLD_HOME}/Quake2World.desktop
 
 echo
-echo "Updating $QUAKE2WORLD_HOME.."
+echo "Updating $QUAKE2WORLD_HOME for ${ARCH}.."
 echo
 
 LINUX=rsync://quake2world.net/quake2world-linux/${ARCH}
-rsync -rzhP --delete $LINUX/bin/ ${QUAKE2WORLD_HOME}/bin || exit 1
-rsync -rzhP --delete $LINUX/lib/ ${QUAKE2WORLD_HOME}/lib || exit 1
+rsync -rzhP --delete ${LINUX} "${QUAKE2WORLD_HOME}" || exit 1
 
-DATA=rsync://quake2world.net/quake2world/default/
-rsync -rzhP --delete $DATA ${QUAKE2WORLD_HOME}/share/default || exit 1
+# Ensure that the .desktop entries are in working order
+sed -i "s:%QUAKE2WORLD_HOME%:${QUAKE2WORLD_HOME}:g" \
+	"${QUAKE2WORLD_HOME}/Quake2World.desktop" \
+	"${QUAKE2WORLD_HOME}/Quake2World Update.desktop"
 
 echo
 echo "Update complete."

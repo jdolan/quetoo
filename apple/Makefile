@@ -43,14 +43,14 @@ install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -rzhP --delete $(BINDIR) $(RSYNC_TARGET)
+	rsync -rzh --delete $(BINDIR) $(RSYNC_TARGET)
 
 dist:
 	ln -f -s /Applications $(TARGET)/Applications
 	hdiutil create $(DIST) -srcfolder $(TARGET) -volname $(VOLUME_NAME)
 
 dist-release:
-	rsync -rzhP $(DIST) $(HTTP_TARGET)
+	rsync -rzh $(DIST) $(HTTP_TARGET)
 
 clean:
 	rm -rf $(TARGET)/*
