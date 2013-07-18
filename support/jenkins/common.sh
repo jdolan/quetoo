@@ -23,19 +23,19 @@ function init() {
 
 	while getopts "c:m:rd" opt; do
 		case "${opt}" in
-			"c")
+			c)
 				CONFIGURE_FLAGS="${opt} ${CONFIGURE_FLAGS}"
 				;;
-			"m")
+			m)
 				MAKE_OPTIONS="${OPTARG} ${MAKE_OPTIONS}"
 				;;
-			"r")
+			r)
 				MAKE_TARGETS="${MAKE_TARGETS} release"
 				;;
-			"d")
+			d)
 				MAKE_TARGETS="${MAKE_TARGETS} dist dist-release"
 				;;
-			"\?")
+			\?)
 				echo "Invalid option: -${OPTARG}" >&2
 				exit 1
 				;;
@@ -46,10 +46,10 @@ function init() {
 	TARGET=$(echo "${JOB_NAME}" | cut -d\- -f3)
 
 	case "${TARGET}" in
-		"apple*")
+		apple*)
 			;;
 
-		"linux*")
+		linux*)
 			if [ "${TARGET}" == "linux64" ]; then
 				CHROOT="fedora-17-x86_64"
 			else
@@ -71,7 +71,7 @@ function init() {
 				"
 			;;
 
-		"mingw*")
+		mingw*)
 			if [ "${TARGET}" == "mingw64" ]; then
 				HOST="x86_64-w64-mingw32"
 				ARCH="x86_64"
@@ -99,8 +99,8 @@ function init() {
 				http://maci.satgnu.net/rpmbuild/RPMS/${TARGET}-lzma-sdk457-4.57-2.fc18.noarch.rpm
 				"
 			;;
-		"*")
-			echo "Unsupported target in ${JOB_NAME}"
+		*)
+			echo "Unsupported target \"${TARGET}\" in ${JOB_NAME}"
 			exit 1
 	esac
 
