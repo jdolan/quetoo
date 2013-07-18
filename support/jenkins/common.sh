@@ -81,7 +81,7 @@ function init() {
 			fi
 
 			CONFIGURE_FLAGS="--host=${HOST} ${CONFIGURE_FLAGS}"
-			MAKE_OPTIONS="ARCH=${ARCH} ${MAKE_OPTIONS}"
+			MAKE_OPTIONS="HOST=${HOST} ARCH=${ARCH} ${MAKE_OPTIONS}"
 
 			CHROOT="fedora-18-x86_64"
 

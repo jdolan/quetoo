@@ -1,27 +1,44 @@
-#!/bin/bash
+#!/bin/bash -e
 #
 # Prints the runtime dependencies of the specified program.
 #
 
-objdump=$(which ${MINGW_HOST}-objdump)
-test -x "${objdump}" || {
-	echo "No ${MINGW_HOST}-objdump in PATH" >&2
+while getopts "h:" opt; do
+	case "${opt}" in
+		h)
+			host="${OPTARG}"
+			;;
+		\?)
+			echo "Invalid option: -${OPTARG}" >&2
+			exit 1
+			;;
+	esac
+done
+
+test "${host}" || {
+	echo "Required option -h host is missing" >&2
 	exit 1
 }
 
-exe="${1}"
-test -x "${exe}" || {
-	echo "${exe} is not an executable" >&2
+objdump=$(which ${host}-objdump)
+test -x "${objdump}" || {
+	echo "No ${host}-objdump in PATH" >&2
 	exit 2
 }
 
-dir=$(dirname "${1}")
+exe="${2}"
+test -x "${exe}" || {
+	echo "${exe} is not an executable" >&2
+	exit 3
+}
+
+dir=$(dirname "${exe}")
 test -w "${dir}" || {
 	echo "${dir} is not writable" >&2
 	exit 3
 }
 
-search_path="${MINGW_PREFIX}/usr/${MINGW_HOST}"
+search_path="${MINGW_PREFIX}/usr/${host}"
 test -d "${search_path}" || {
 	echo "${search_path} does not exist" >&2
 	exit 4
@@ -43,11 +60,11 @@ function bundle_recursively(){
 			continue
 		}
 
-		bundle_recursively "$dll"
+		bundle_recursively "${dll}"
 
 		echo "Installing ${dll}.."
 		install "${dll}" "${dir}"
 	done
 }
 
-bundle_recursively "$1"
+bundle_recursively "${exe}"

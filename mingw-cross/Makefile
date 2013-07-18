@@ -1,5 +1,6 @@
 # Makefile for Quake2World Windows distributable.
 
+HOST = i686-pc-mingw32
 ARCH = i686
 DATA = ../../quake2world-data
 TARGET = target
@@ -25,7 +26,7 @@ install: pre-install
 	make -C .. DESTDIR=$(realpath $(PACKAGE)) install
 
 install-lib: install
-	./dllbundler.sh $(BINDIR)/quake2world.exe
+	./dllbundler.sh -h $(HOST) $(BINDIR)/quake2world.exe
 
 install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
