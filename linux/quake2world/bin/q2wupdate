@@ -11,7 +11,7 @@ test -w "${QUAKE2WORLD_HOME}" || {
 ARCH=$(uname -m)
 
 echo
-echo "Updating $QUAKE2WORLD_HOME for ${ARCH}.."
+echo "Updating ${QUAKE2WORLD_HOME} for ${ARCH}.."
 echo
 
 LINUX=rsync://quake2world.net/quake2world-linux/${ARCH}/

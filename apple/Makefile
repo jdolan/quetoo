@@ -11,8 +11,8 @@ DATADIR = $(QUAKE2WORLD)/Contents/Resources
 REMOTE_USER = $(shell whoami)
 RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-apple/$(ARCH)
 RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
-DIST = $(TARGET)/Quake2World-BETA.dmg
-VOLUME_NAME = "Quake2World BETA"
+DIST = $(TARGET)/Quake2World-BETA-$(ARCH).dmg
+VOLUME_NAME = "Quake2World BETA $(ARCH)"
 HTTP_REPOSITORY = quake2world.net:/var/www/quake2world/files
 HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
@@ -43,14 +43,15 @@ install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -rzh --delete $(BINDIR) $(RSYNC_TARGET)
+	rsync -rzhP --delete $(BINDIR) $(RSYNC_TARGET)
+	rsync -rzhP --delete $(DATADIR)/*.* $(RSYNC_TARGET)/Resources/
 
 dist:
 	ln -f -s /Applications $(TARGET)/Applications
-	hdiutil create $(DIST) -srcfolder $(TARGET) -volname $(VOLUME_NAME)
+	hdiutil create -ov $(DIST) -srcfolder $(TARGET) -volname $(VOLUME_NAME)
 
 dist-release:
-	rsync -rzh $(DIST) $(HTTP_TARGET)
+	rsync -rzhP $(DIST) $(HTTP_TARGET)
 
 clean:
 	rm -rf $(TARGET)/*
