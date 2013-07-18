@@ -40,10 +40,16 @@ test -w "${dir}" || {
 	exit 3
 }
 
+tmp=$(mktemp -d /tmp/dllbundler-XXXXXX)
+test -w "${tmp}" || {
+	echo "${tmp} is not writable" >&2
+	exit 4
+}
+
 search_path="${MINGW_PREFIX}/usr/${host}"
 test -d "${search_path}" || {
 	echo "${search_path} does not exist" >&2
-	exit 4
+	exit 5
 }
 
 echo "Bundling .dll files for ${exe} in ${dir}.."
@@ -55,10 +61,12 @@ function bundle_recursively(){
 	local deps=$($objdump -p "${1}" | sed -rn 's/DLL Name: (.*\.dll)/\1/p' | sort -u)
 	for dep in ${deps}; do
 		test -f "${dir}/${dep}" && continue
+		test -f "${tmp}/${dep}" && continue
 
 		local dll=$(find "${search_path}" -name "${dep}")
 		test -z "${dll}" && {
 			echo "WARNING: Couldn't find ${dep} in ${search_path}" >&2
+			touch "${tmp}/${dep}"
 			continue
 		}
 
@@ -70,3 +78,5 @@ function bundle_recursively(){
 }
 
 bundle_recursively "${exe}"
+
+rm -rf "${tmp}"
