@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Quake2World BETA Update
 Comment=Web updater for Quake2World BETA.
-Exec=%QUAKE2WORLD_HOME%/bin/q2wupdate
-Icon=%QUAKE2WORLD_HOME%/share/quake2world.png
+Exec="%QUAKE2WORLD_HOME%/bin/q2wupdate"
+Icon="%QUAKE2WORLD_HOME%/share/default/icons/update.png"
 Terminal=true
 Type=Application
 Categories=Games;

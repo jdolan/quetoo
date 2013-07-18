@@ -31,15 +31,16 @@ install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -rzh --delete $(PACKAGE)/*.* $(BINDIR) $(LIBDIR) $(DATADIR)/*.* $(RSYNC_TARGET)
+	rsync -rzhP --delete $(PACKAGE)/*.* $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
 
 dist:
 	tar -czvf $(DIST) -C $(TARGET) quake2world
 
 dist-release:
-	rsync -rzh $(DIST) $(HTTP_TARGET)
+	rsync -rzhP $(DIST) $(HTTP_TARGET)
 
 clean:
 	rm -rf $(TARGET)/*
 
 .PHONY: all pre-install install install-lib install-data release dist dist-release clean
+
