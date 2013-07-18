@@ -64,14 +64,9 @@ _Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len);
 
 #ifdef HAVE_CURSES
 
-#include <signal.h>
-#include <curses.h>
-
-#define CURSES_HISTORYSIZE 64
-#define CURSES_LINESIZE 1024
-#define CURSES_TIMEOUT 250	// 250 msec redraw timeout
 // structures for the server console
 extern console_t sv_console;
+
 extern cvar_t *con_curses;
 extern cvar_t *con_timeout;
 

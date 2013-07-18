@@ -23,6 +23,13 @@
 
 #ifdef HAVE_CURSES
 
+#include <signal.h>
+#include <curses.h>
+
+#define CURSES_HISTORYSIZE 64
+#define CURSES_LINESIZE 1024
+#define CURSES_TIMEOUT 250	// 250 msec redraw timeout
+
 static WINDOW *stdwin; // ncurses standard window
 
 static char input[CURSES_HISTORYSIZE][CURSES_LINESIZE];
@@ -44,6 +51,7 @@ static uint32_t curses_last_update; // number of milliseconds since last redraw
  * @brief Set the curses drawing color
  */
 static void Curses_SetColor(int32_t color) {
+
 	if (!has_colors())
 		return;
 
