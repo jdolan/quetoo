@@ -8,7 +8,7 @@
 CONFIGURE_FLAGS="--prefix=/ ${CONFIGURE_FLAGS}"
 
 # Flags and options passed to GNU Make
-MAKE_OPTIONS="${MAKE_OPTIONS}"
+MAKE_OPTIONS="REMOTE_USER=q2wbuild ${MAKE_OPTIONS}"
 
 # Targets invoked to produce the build
 MAKE_TARGETS="all ${MAKE_TARGETS}"
