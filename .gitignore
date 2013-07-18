@@ -1,5 +1,6 @@
 # Defines which files Git should ignore
 # http://git-scm.com
+*~
 aclocal.m4
 autom4te.cache/
 config.guess

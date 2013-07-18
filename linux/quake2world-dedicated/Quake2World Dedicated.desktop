@@ -1,9 +1,9 @@
 [Desktop Entry]
-Name=Quake2world BETA
+Name=Quake2world Dedicated BETA
 Comment=Pwning nubz one rail slug at a time.
 Exec="%QUAKE2WORLD_HOME%/bin/run.sh"
 Icon="%QUAKE2WORLD_HOME%/share/default/icons/quake2world.png"
-Terminal=false
+Terminal=true
 Type=Application
 Categories=Games;
 StartupNotify=true

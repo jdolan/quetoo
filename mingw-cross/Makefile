@@ -4,10 +4,10 @@ HOST = i686-pc-mingw32
 ARCH = i686
 DATA = ../../quake2world-data
 TARGET = target
-PACKAGE = $(TARGET)/Quake2World
-BINDIR = $(PACKAGE)/bin
-LIBDIR = $(PACKAGE)/lib
-DATADIR = $(PACKAGE)/share
+INSTALL = $(TARGET)/Quake2World
+BINDIR = $(INSTALL)/bin
+LIBDIR = $(INSTALL)/lib
+DATADIR = $(INSTALL)/share
 REMOTE_USER = $(shell whoami)
 RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-mingw/$(ARCH)
 RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
@@ -18,12 +18,12 @@ HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 all: install-lib
 
 pre-install:
-	install -d $(PACKAGE)
-	cp -r Quake2World-$(ARCH)/* $(PACKAGE)
-	find $(PACKAGE) -name .turd -delete
+	install -d $(INSTALL)
+	cp -r Quake2World-$(ARCH)/* $(INSTALL)
+	find $(INSTALL) -name .turd -delete
 
 install: pre-install
-	make -C .. DESTDIR=$(realpath $(PACKAGE)) install
+	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 
 install-lib: install
 	./dllbundler.sh -h $(HOST) $(BINDIR)/quake2world.exe
@@ -32,10 +32,10 @@ install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -rzh --delete $(PACKAGE)/*.* $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
+	rsync -rzh --delete $(INSTALL)/*.* $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
 
 dist:
-	rm -f Quake2World; ln -s $(PACKAGE)
+	rm -f Quake2World; ln -s $(INSTALL)
 	zip -9 -r $(DIST) Quake2World
 
 dist-release:

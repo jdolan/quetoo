@@ -3,8 +3,8 @@
 ARCH = $(shell uname -m)
 DATA = ../../quake2world-data
 TARGET = target
-PACKAGE = $(TARGET)/Quake2World
-QUAKE2WORLD = $(PACKAGE)/Quake2World.app
+INSTALL = $(TARGET)/Quake2World
+QUAKE2WORLD = $(INSTALL)/Quake2World.app
 BINDIR = $(QUAKE2WORLD)/Contents/MacOS
 LIBDIR = $(QUAKE2WORLD)/Contents/MacOS/lib
 DATADIR = $(QUAKE2WORLD)/Contents/Resources
@@ -19,10 +19,10 @@ HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 all: install-lib
 
 pre-install:
-	install -d $(PACKAGE)
-	cp -r Quake2World/* $(PACKAGE)
-	find $(PACKAGE) -name .turd -delete
-	./set-icon.sh icon.icns $(PACKAGE)
+	install -d $(INSTALL)
+	cp -r Quake2World/* $(INSTALL)
+	find $(INSTALL) -name .turd -delete
+	./set-icon.sh icon.icns $(INSTALL)
 
 install: pre-install
 	ln -f -s Contents/MacOS $(QUAKE2WORLD)/bin

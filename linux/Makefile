@@ -2,39 +2,40 @@
 
 ARCH = $(shell uname -m)
 DATA = ../../quake2world-data
+ARTIFACT = quake2world
 TARGET = target
-PACKAGE = $(TARGET)/quake2world
-LIBDIR = $(PACKAGE)/lib
-BINDIR = $(PACKAGE)/bin
-DATADIR = $(PACKAGE)/share
+INSTALL = $(TARGET)/$(ARTIFACT)
+LIBDIR = $(INSTALL)/lib
+BINDIR = $(INSTALL)/bin
+DATADIR = $(INSTALL)/share
 REMOTE_USER = $(shell whoami)
-RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-linux/$(ARCH)
+RSYNC_REPOSITORY = quake2world.net:/opt/rsync/$(ARTIFACT)-linux/$(ARCH)
 RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
-DIST = $(TARGET)/quake2world-BETA-$(ARCH).tar.gz
+DIST = $(TARGET)/$(ARTIFACT)-BETA-$(ARCH).tar.gz
 HTTP_REPOSITORY = quake2world.net:/var/www/quake2world/files
 HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
 all: install-lib
 
 pre-install:
-	install -d $(PACKAGE)
-	cp -r quake2world/* $(PACKAGE)
-	find $(PACKAGE) -name .turd -delete
+	install -d $(INSTALL)
+	cp -r $(ARTIFACT)/* $(INSTALL)
+	find $(INSTALL) -name .turd -delete
 
 install: pre-install
-	make -C .. DESTDIR=$(realpath $(PACKAGE)) install
+	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 
 install-lib: install
-	touch $(LIBDIR)
+	./sobundler.sh -d $(LIBDIR) $(BINDIR)/quake2world
 
 install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -rzhP --delete $(PACKAGE)/*.* $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
+	rsync -rzhP --delete $(INSTALL)/*.* $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
 
 dist:
-	tar -czvf $(DIST) -C $(TARGET) quake2world
+	tar -czvf $(DIST) -C $(TARGET) $(ARTIFACT)
 
 dist-release:
 	rsync -rzhP $(DIST) $(HTTP_TARGET)
