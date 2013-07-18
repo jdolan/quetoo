@@ -3,15 +3,19 @@
 QUAKE2WORLD_HOME=$(dirname "$0")
 QUAKE2WORLD_HOME=${QUAKE2WORLD_HOME/Update.app*/Quake2World.app}
 
+test -w "${QUAKE2WORLD_HOME}" || {
+	echo "${QUAKE2WORLD_HOME} is not writable" >&2
+	exit 1
+}
+
+ARCH=$(uname -m)
+
 echo
-echo "Updating $QUAKE2WORLD_HOME.."
+echo "Updating ${QUAKE2WORLD_HOME} for ${ARCH}.."
 echo
 
-APPLE=rsync://quake2world.net/quake2world-apple/x86_64/MacOS
-rsync -rzhP --delete $APPLE ${QUAKE2WORLD_HOME}/Contents/MacOS || exit 1
-
-DATA=rsync://quake2world.net/quake2world/default
-rsync -rzhP --delete $DATA ${QUAKE2WORLD_HOME}/Contents/Resources/default || exit 1
+APPLE=rsync://quake2world.net/quake2world-apple/${ARCH}/
+rsync -rLzhP --delete "${APPLE}" ${QUAKE2WORLD_HOME}/Contents || exit 2
 
 echo
 echo "Update complete."
