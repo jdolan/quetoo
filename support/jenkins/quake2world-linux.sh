@@ -1,23 +1,16 @@
 #!/bin/bash -ex
 
+#
+# Build entry point for GNU / Linux via chroot.
+#
+function build() {
+	/usr/bin/mock -r ${CHROOT} --cwd /tmp/quake2world --chroot "
+		set -e
+		set -x
+		autoreconf -i
+		./configure ${CONFIGURE_FLAGS}
+		make -C linux ${MAKE_FLAGS} ${MAKE_TARGETS}
+	"
+}
+
 source ./common.sh
-
-init_chroot
-
-CONFIGURE_OPTIONS="--prefix=/ ${CONFIGURE_OPTIONS}"
-MAKE_OPTIONS="${MAKE_OPTIONS}"
-
-echo
-echo "CONFIGURE_OPTIONS: ${CONFIGURE_OPTIONS}"
-echo "MAKE_OPTIONS: ${MAKE_OPTIONS}"
-echo
-
-/usr/bin/mock -r ${CHROOT} --cwd /tmp/quake2world --chroot "
-	set -e
-	set -x
-	autoreconf -i
-	./configure ${CONFIGURE_OPTIONS}
-	make -C linux ${MAKE_OPTIONS} install image
-"
-
-destroy_chroot

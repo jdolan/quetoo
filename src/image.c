@@ -41,7 +41,7 @@ typedef byte boolean;
 #define HAVE_BOOLEAN
 #endif
 
-# if defined(__WIN32__) && defined(ADDRESS_TAG_BIT) && !defined(XMD_H)
+# if defined(_WIN32) && defined(ADDRESS_TAG_BIT) && !defined(XMD_H)
 #  define XMD_H
 #  define VTK_JPEG_XMD_H
 # endif

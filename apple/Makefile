@@ -1,12 +1,12 @@
 # Makefile for Quake2World.app, requires http://macdylibbundler.sourceforge.net/
 
-ARCH = x86_64
+ARCH = $(shell uname -m)
 DATA = ../../quake2world-data
 TARGET = target
 PACKAGE = $(TARGET)/Quake2World
 QUAKE2WORLD = $(PACKAGE)/Quake2World.app
 BINDIR = $(QUAKE2WORLD)/Contents/MacOS
-LIBDIR = $(QUAKE2WORLD)/Contents/lib
+LIBDIR = $(QUAKE2WORLD)/Contents/MacOS/lib
 DATADIR = $(QUAKE2WORLD)/Contents/Resources
 REMOTE_USER = $(shell whoami)
 RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-apple/$(ARCH)
@@ -16,7 +16,7 @@ VOLUME_NAME = "Quake2World BETA"
 HTTP_REPOSITORY = quake2world.net:/var/www/quake2world/files
 HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
-all: bundle
+all: install-lib
 
 pre-install:
 	install -d $(PACKAGE)
@@ -26,24 +26,24 @@ pre-install:
 
 install: pre-install
 	ln -f -s Contents/MacOS $(QUAKE2WORLD)/bin
-	ln -f -s Contents/MacOS $(QUAKE2WORLD)/lib
+	ln -f -s Contents/MacOS/lib $(QUAKE2WORLD)/lib
 	ln -f -s Contents/Resources $(QUAKE2WORLD)/share
 	make -C .. DESTDIR=$(realpath $(QUAKE2WORLD)) install
 	rm -f $(QUAKE2WORLD)/bin $(QUAKE2WORLD)/lib $(QUAKE2WORLD)/share
 
-install-data: pre-install
-	cp -r $(DATA)/target/* $(DATADIR)
-
-bundle: install
+install-lib: install
 	dylibbundler -b \
 		-x $(BINDIR)/q2wmap \
 		-x $(BINDIR)/quake2world \
-		-x $(BINDIR)/default/cgame.so \
-		-x $(BINDIR)/default/game.so \
-	-d $(LIBDIR) -of -p @executable_path/../lib
+		-x $(LIBDIR)/default/cgame.so \
+		-x $(LIBDIR)/default/game.so \
+	-d $(LIBDIR) -of -p @executable_path/lib
+
+install-data:
+	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -rzhP --delete $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
+	rsync -rzhP --delete $(BINDIR) $(RSYNC_TARGET)
 
 dist:
 	ln -f -s /Applications $(TARGET)/Applications
@@ -54,3 +54,5 @@ dist-release:
 
 clean:
 	rm -rf $(TARGET)/*
+	
+.PHONY: all pre-install install install-lib install-data release dist dist-release clean

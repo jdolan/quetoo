@@ -599,7 +599,7 @@ void Fs_Init(_Bool auto_load_archives) {
 			*(c + strlen("Quake2World.app")) = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-			strcpy(c + strlen("Quake2World.app"), "/Contents/MacOS/"DEFAULT_GAME);
+			strcpy(c + strlen("Quake2World.app"), "/Contents/MacOS/lib/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 
 			strcpy(c + strlen("Quake2World.app"), "/Contents/Resources/"DEFAULT_GAME);
@@ -616,7 +616,7 @@ void Fs_Init(_Bool auto_load_archives) {
 			strcpy(c + strlen("quake2world"), "/share/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 		}
-#elif __WIN32__
+#elif _WIN32
 		if ((c = strstr(path, "\\bin\\quake2world.exe"))) {
 			*c = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));

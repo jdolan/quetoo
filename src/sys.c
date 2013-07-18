@@ -79,7 +79,7 @@ const char *Sys_ExecutablePath(void) {
 		return path;
 	}
 
-#elif __WIN32__
+#elif _WIN32
 
 	if (GetModuleFileName(0, path, sizeof(path))) {
 		return path;
