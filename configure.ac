@@ -1,14 +1,14 @@
-AC_PREREQ(2.56)
+AC_PREREQ([2.69])
 
-AC_INIT(quake2world, 0.1.0, jay@jaydolan.com)
-AC_GNU_SOURCE
+AC_INIT([quake2world],[0.1.0],[jay@jaydolan.com])
+AC_USE_SYSTEM_EXTENSIONS
 
 AC_CONFIG_AUX_DIR(.)
 AC_CONFIG_MACRO_DIR(m4)
 AC_CONFIG_SRCDIR(src/shared.c)
 AC_CONFIG_HEADERS(config.h)
 
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 AC_DEFINE_UNQUOTED(BUILD_HOST,
 	"${target_cpu}-${target_os}",
 	[Set to the canonical name of the target machine]
@@ -28,7 +28,7 @@ dnl ---------------
 
 AC_PROG_CXX
 AC_PROG_CC
-AC_PROG_LIBTOOL
+LT_INIT
 
 dnl ---------------
 dnl Check host type
