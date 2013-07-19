@@ -84,11 +84,14 @@ static pm_locals_t pml;
 
 #define PM_STOP_EPSILON			0.1
 
+#define PM_DEBUG 0
+
 /*
  * @brief Handle printing of debugging messages for development.
  */
 static void Pm_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 static void Pm_Debug_(const char *func, const char *fmt, ...) {
+#if PM_DEBUG
 	char msg[MAX_STRING_CHARS];
 
 	g_snprintf(msg, sizeof(msg), "%s: ", func);
@@ -105,6 +108,11 @@ static void Pm_Debug_(const char *func, const char *fmt, ...) {
 	} else {
 		fputs(msg, stdout);
 	}
+#else
+	if (func || fmt) {
+		// silence compiler warnings
+	}
+#endif
 }
 
 #define Pm_Debug(...) Pm_Debug_(__func__, __VA_ARGS__)

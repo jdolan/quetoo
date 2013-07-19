@@ -437,57 +437,57 @@ typedef struct sv_trace_s {
  * of ALL collision and interaction for the server. Tread carefully.
  */
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
-	g_edict_t *touched[MAX_EDICTS];
+	g_edict_t *area_edicts[MAX_EDICTS];
 	vec_t *angles;
 	c_trace_t tr;
 	int32_t i, num, head_node;
 
 	// first resolve the entities found within our desired trace
-	num = Sv_AreaEdicts(trace->box_mins, trace->box_maxs, touched, MAX_EDICTS, AREA_SOLID);
+	num = Sv_AreaEdicts(trace->box_mins, trace->box_maxs, area_edicts, MAX_EDICTS, AREA_SOLID);
 
 	// then iterate them, determining if they have any bearing on our trace
 	for (i = 0; i < num; i++) {
 
-		g_edict_t *touch = touched[i];
+		g_edict_t *ent = area_edicts[i];
 
-		if (touch->solid == SOLID_NOT) // can't actually touch us
+		if (ent->solid == SOLID_NOT) // can't actually touch us
 			continue;
 
 		if (trace->skip) { // see if we can skip it
 
-			if (touch == trace->skip)
+			if (ent == trace->skip)
 				continue; // explicitly (ourselves)
 
-			if (touch->owner == trace->skip)
+			if (ent->owner == trace->skip)
 				continue; // or via ownership (we own it)
 
 			if (trace->skip->owner) {
 
-				if (touch == trace->skip->owner)
+				if (ent == trace->skip->owner)
 					continue; // which is bi-directional (inverse of previous case)
 
-				if (touch->owner == trace->skip->owner)
+				if (ent->owner == trace->skip->owner)
 					continue; // and communitive (we are both owned by the same)
 			}
 		}
 
 		// we couldn't skip it, so trace to it and see if we hit
-		head_node = Sv_HullForEntity(touch);
+		head_node = Sv_HullForEntity(ent);
 
-		if (touch->solid == SOLID_BSP) // bsp entities can rotate
-			angles = touch->s.angles;
+		if (ent->solid == SOLID_BSP) // bsp entities can rotate
+			angles = ent->s.angles;
 		else
 			angles = vec3_origin;
 
 		// perform the trace against this particular entity
 		tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs, head_node,
-				trace->mask, touch->s.origin, angles);
+				trace->mask, ent->s.origin, angles);
 
 		// check for a full or partial intersection
 		if (tr.all_solid || tr.start_solid || tr.fraction < trace->trace.fraction) {
 
 			trace->trace = tr;
-			trace->trace.ent = touch;
+			trace->trace.ent = ent;
 
 			if (trace->trace.all_solid) // we were actually blocked
 				return;
