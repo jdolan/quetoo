@@ -36,13 +36,44 @@ echo
 echo "Bundling .so files for ${exe} in ${dir}.."
 echo
 
-echo "$(ldd ${1})"
+SKIP='
+	libc.so*
+	libdl.so*
+	libGL.so*
+	libm.so*
+	libnsl.so*
+	libpcre.so*
+	libpthread.so*
+	libresolv.so*
+	librt.so*
+	libuuid.so*
+	libwrap.so*
+	libX11.so*
+	libXext.so*
+	libz.so*
+'
 
-for dep in $(ldd "${1}" | sed -rn 's:.* => (/usr/[^ ]+) .*:\1:p'); do
-	test -f "${dep}" || {
-		echo "WARNING: Failed to resolve ${dep}" >2
-		continue
-	} 
-	install "${dep}" "${dir}"
+nl=$'\n'
+
+for dep in $(ldd "${1}" | sed -rn 's:.* => ([^ ]+) .*:\1:p' | sort); do
+	soname=$(basename "${dep}")
+	
+	unset skip
+	for s in ${SKIP}; do
+		if [[ ${soname} = ${s} ]]; then
+			skip=true
+			skipped="${skipped}${nl} ${soname} @ ${dep}"
+			break
+		fi
+	done
+	
+	test "${skip}" || {
+		echo "Installing ${dep} in ${dir}.."
+		install "${dep}" "${dir}"
+	}
 done
+
+echo
+echo "The following libraries were intentionally skipped:${nl}${skipped}"
+echo
 
