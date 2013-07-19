@@ -1,6 +1,8 @@
 #!/bin/bash -e
 #
-# Prints the runtime dependencies of the specified program.
+# Scans an executable for runtime dependencies and copies them to the
+# executable's directory. This script relies on the mingw-objdump tool to
+# parse dependencies. It processes all input recursively.
 #
 
 while getopts "h:" opt; do
