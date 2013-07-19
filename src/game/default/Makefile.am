@@ -76,6 +76,5 @@ game_la_LIBADD = \
 game_la_LDFLAGS = \
 	-module \
 	-avoid-version \
-	-no-undefined \
-	-rpath $(gamelibdir)
+	-no-undefined
 
