@@ -51,9 +51,9 @@ function init() {
 
 		linux*)
 			if [ "${TARGET}" == "linux64" ]; then
-				CHROOT="fedora-17-x86_64"
+				CHROOT="fedora-18-x86_64"
 			else
-				CHROOT="fedora-17-i386"
+				CHROOT="fedora-18-i386"
 			fi
 
 			CHROOT_PACKAGES="openssh-clients \
