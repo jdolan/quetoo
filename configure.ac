@@ -1,4 +1,4 @@
-AC_PREREQ([2.69])
+AC_PREREQ([2.68])
 
 AC_INIT([quake2world],[0.1.0],[jay@jaydolan.com])
 AC_USE_SYSTEM_EXTENSIONS
