@@ -30,6 +30,9 @@ libserver_la_CFLAGS = \
 	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@
 
+libserver_la_LDFLAGS = \
+	-static
+
 libserver_la_LIBADD = \
 	../libcmodel.la \
 	../libconsole.la \

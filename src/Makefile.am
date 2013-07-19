@@ -1,14 +1,14 @@
 SUBDIRS = \
 	. \
 	ai \
-	game \
 	server \
-	cgame \
+	game \
 	client \
+	cgame \
 	main \
-	tests \
 	tools \
-	master
+	master \
+	tests
 
 noinst_HEADERS = \
 	cmd.h \
@@ -44,6 +44,8 @@ libcmodel_la_SOURCES = \
 libcmodel_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
+libcmodel_la_LDFLAGS =
+	-static
 libcmodel_la_LIBADD = \
 	libfilesystem.la
 
@@ -53,6 +55,8 @@ libcommon_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
+libcommon_la_LDFLAGS = \
+	-static
 libcommon_la_LIBADD = \
 	libshared.la
 	
@@ -65,6 +69,8 @@ libconsole_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@
+libconsole_la_LDFLAGS = \
+	-static
 libconsole_la_LIBADD = \
 	libfilesystem.la \
 	@CURSES_LIBS@
@@ -75,6 +81,8 @@ libfilesystem_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@PHYSFS_CFLAGS@
+libfilesystem_la_LDFLAGS = \
+	-static
 libfilesystem_la_LIBADD = \
 	libmem.la \
 	libswap.la \
@@ -89,6 +97,8 @@ libimage_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
+libimage_la_LDFLAGS = \
+	-static
 libimage_la_LIBADD = \
 	libfilesystem.la
 
@@ -106,6 +116,8 @@ libmem_la_SOURCES = \
 libmem_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
+libmem_la_LDFLAGS = \
+	-static
 libmem_la_LIBADD = \
 	libcommon.la \
 	@SDL_LIBS@
@@ -116,6 +128,8 @@ libnet_la_SOURCES = \
 libnet_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
+libnet_la_LDFLAGS = \
+	-static
 libnet_la_LIBADD = \
 	libconsole.la
 
@@ -139,6 +153,8 @@ libsys_la_SOURCES = \
 libsys_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
+libsys_la_LDFLAGS = \
+	-static
 libsys_la_LIBADD = \
 	libcommon.la
 
@@ -148,5 +164,7 @@ libthread_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
+libthread_la_LDFLAGS = \
+	-static
 libthread_la_LIBADD = \
 	libconsole.la

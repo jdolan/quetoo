@@ -78,6 +78,9 @@ librenderer_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
+
+librenderer_la_LDFLAGS = \
+	-static
 	
 librenderer_la_LIBADD = \
 	../../libimage.la \

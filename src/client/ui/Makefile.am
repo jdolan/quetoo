@@ -32,6 +32,9 @@ libui_la_CFLAGS = \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
 
+libui_la_LDFLAGS = \
+	-static
+
 libui_la_LIBADD = \
 	../../../deps/AntTweakBar/src/libanttweakbar.la \
 	../../libcommon.la

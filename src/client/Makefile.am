@@ -53,6 +53,9 @@ libclient_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
+
+libclient_la_LDFLAGS = \
+	-static
 	
 libclient_la_LIBADD = \
 	renderer/librenderer.la \

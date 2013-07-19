@@ -1,5 +1,3 @@
-gamelibdir = @PKGLIBDIR@/default
-
 noinst_HEADERS = \
 	bg_pmove.h \
 	g_ai.h \
@@ -34,8 +32,12 @@ libpmove_la_CFLAGS = \
 	-I ../.. \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
+libpmove_la_LDFLAGS = \
+	-shared
 libpmove_la_LIBADD = \
 	../../libshared.la
+
+gamelibdir = @PKGLIBDIR@/default
 
 gamelib_LTLIBRARIES = \
 	game.la
@@ -69,12 +71,13 @@ game_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@MYSQL_CFLAGS@
 
+game_la_LDFLAGS = \
+	-avoid-version \
+	-module \
+	-no-undefined \
+	-shared
+
 game_la_LIBADD = \
 	libpmove.la \
 	@MYSQL_LIBS@
-
-game_la_LDFLAGS = \
-	-module \
-	-avoid-version \
-	-no-undefined
 

@@ -47,11 +47,12 @@ cgame_la_CFLAGS = \
 	@OPENGL_CFLAGS@ \
 	@SDL_CFLAGS@
 
+cgame_la_LDFLAGS = \
+	-avoid-version \
+	-module \
+	-no-undefined \
+	-shared
+
 cgame_la_LIBADD = \
 	../../game/default/libpmove.la
-
-cgame_la_LDFLAGS = \
-	-module \
-	-avoid-version \
-	-no-undefined
 

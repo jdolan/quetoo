@@ -12,5 +12,5 @@ quake2world_CFLAGS = \
 
 quake2world_LDADD = \
 	../client/libclient.la \
-	../server/libserver.la \
-	@SDL_LIBS@
+	../server/libserver.la
+
