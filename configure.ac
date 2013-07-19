@@ -149,17 +149,6 @@ AC_SUBST(PHYSFS_LIBS)
 
 CPPFLAGS="$save_CPPFLAGS"
 
-dnl -------------
-dnl Check for SDL
-dnl -------------
-
-AC_PATH_PROG(SDL_CONFIG, sdl-config,
-	[AC_MSG_ERROR([Could not find sdl-config, please install libsdl])]
-)
-
-SDL_CFLAGS=`$SDL_CONFIG --cflags`
-SDL_LIBS=`$SDL_CONFIG --libs`
-
 dnl -----------------------------
 dnl Check whether to build client
 dnl -----------------------------
@@ -174,6 +163,13 @@ AC_MSG_CHECKING(whether to build client)
 
 if test "x${with_client}" = xno; then
     AC_MSG_RESULT(no)
+    
+    dnl ---------------------------------------
+	dnl The server needs SDL core for threading
+	dnl ---------------------------------------
+
+	PKG_CHECK_MODULES([SDL], [sdl >= 1.2.12])
+	
 else
 	AC_MSG_RESULT(yes)
 	BUILD_CLIENT=yes
@@ -181,27 +177,10 @@ else
 	AC_DEFINE(BUILD_CLIENT, 1, [Define to 1 to build a client.])
 
 	dnl ------------------------------------------
-	dnl Check for SDL_opengl, SDL_image, SDL_mixer
+	dnl Check for SDL, SDL_image, SDL_mixer
 	dnl ------------------------------------------
 
-	save_CPPFLAGS="$CPPFLAGS"
-	CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-
-	AC_CHECK_HEADER(SDL/SDL_opengl.h,,
-		[AC_MSG_ERROR([Could not find SDL_opengl.h, please install libsdl])]
-	)
-
-	AC_CHECK_HEADER(SDL/SDL_image.h,
-		SDL_LIBS="$SDL_LIBS -lSDL_image",
-		[AC_MSG_ERROR([Could not find SDL_image.h, please install libsdl-image])]
-	)
-
-	AC_CHECK_HEADER(SDL/SDL_mixer.h,
-		SDL_LIBS="$SDL_LIBS -lSDL_mixer",
-		[AC_MSG_ERROR([Could not find SDL_mixer.h, please install libsdl-mixer])]
-	)
-
-	CPPFLAGS="$save_CPPFLAGS"
+	PKG_CHECK_MODULES([SDL], [sdl >= 1.2.12 SDL_image SDL_mixer])
 
 	dnl -----------------------------------
 	dnl Sort out OpenGL an flags and libraries
@@ -273,16 +252,7 @@ else
 	dnl Check for cURL
 	dnl --------------
 
-	AC_PATH_PROG(CURL_CONFIG, curl-config)
-
-	if test "x${CURL_CONFIG}" != x; then
-		CURL_CFLAGS=`$CURL_CONFIG --cflags`
-		CURL_LIBS=`$CURL_CONFIG --libs`
-	else
-		AC_MSG_ERROR([Could not find curl-config, please install cURL])
-	fi
-	AC_SUBST(CURL_CFLAGS)
-	AC_SUBST(CURL_LIBS)
+	PKG_CHECK_MODULES([CURL], [libcurl])
 
 	dnl --------------
 	dnl Check for JPEG
@@ -319,7 +289,6 @@ else
 
 	AC_MSG_RESULT($TOOLS)
 	AC_SUBST(TOOL_DIRS)
-
 fi
 
 AM_CONDITIONAL([BUILD_CLIENT], [test "x$BUILD_CLIENT" = "xyes"])
