@@ -491,9 +491,9 @@ AC_MSG_CHECKING(whether to build unit tests)
 
 if test "x${with_tests}" = xyes; then
 	BUILD_TESTS=yes
-	AC_MSG_RESULT($BUILD_TESTS)
 	PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
 fi
+AC_MSG_RESULT($BUILD_TESTS)
 
 AM_CONDITIONAL(BUILD_TESTS, test "x$BUILD_TESTS" = xyes)
 
