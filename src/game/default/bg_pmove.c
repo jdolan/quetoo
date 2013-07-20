@@ -276,7 +276,9 @@ static void Pm_StepSlideMove(void) {
 			if (trace.fraction > PM_STOP_EPSILON && trace.fraction < 1.0) {
 				VectorCopy(trace.end, pml.origin);
 
-				if (org[2] - pml.origin[2] >= 4.0) { // we are in fact on stairs
+				pm->step = pml.origin[2] - org[2];
+
+				if (pm->step <= -8.0 && pm->step >= -16.0) { // we are in fact on stairs
 					pm->s.pm_flags |= PMF_ON_STAIRS;
 				}
 			}
@@ -334,7 +336,9 @@ static void Pm_StepSlideMove(void) {
 		}
 	}
 
-	if (pml.origin[2] - clipped_org[2] >= 4.0) { // we are in fact on stairs
+	pm->step = pml.origin[2] - clipped_org[2];
+
+	if (pm->step >= 8.0 && pm->step <= 16.0) { // we are in fact on stairs
 		pm->s.pm_flags |= PMF_ON_STAIRS;
 	}
 }
@@ -1045,8 +1049,8 @@ static _Bool Pm_GoodPosition(void) {
  */
 static void Pm_SnapPosition(void) {
 	static const int16_t jitter_bits[8] = { 0, 4, 1, 2, 3, 5, 6, 7 };
-	int16_t sign[3], base[3];
-	size_t i, j;
+	int16_t i, sign[3], base[3];
+	size_t j;
 
 	// pack velocity for network transmission
 	PackPosition(pml.velocity, pm->s.velocity);

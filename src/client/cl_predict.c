@@ -219,7 +219,7 @@ void Cl_CheckPredictionError(void) {
 	int16_t d[3];
 	vec3_t delta;
 
-	if (!cl_predict->value || (cl.frame.ps.pm_state.pm_flags & PMF_NO_PREDICTION))
+	if (!Cl_UsePrediction())
 		return;
 
 	// calculate the last user_cmd_t we sent that the server has processed
@@ -234,7 +234,7 @@ void Cl_CheckPredictionError(void) {
 	if (error > 256.0) { // assume a teleport or something
 		VectorClear(cl.prediction_error);
 	} else { // save the prediction error for interpolation
-		if (error > 4.0) {
+		if (error > 1.0) {
 			Com_Debug("%s\n", vtos(delta));
 		}
 

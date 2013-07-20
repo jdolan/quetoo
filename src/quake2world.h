@@ -398,6 +398,8 @@ typedef struct {
 	int32_t water_type;
 	uint8_t water_level;
 
+	vec_t step; // stair interaction
+
 	// collision with the world and solid entities
 	int32_t (*PointContents)(const vec3_t point);
 	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs);

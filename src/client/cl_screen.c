@@ -58,8 +58,6 @@ static void Cl_NetGraph(vec_t value, int32_t color) {
  */
 void Cl_AddNetGraph(void) {
 	uint32_t i;
-	uint32_t in;
-	uint32_t ping;
 
 	// we only need to do our accounting when asked to
 	if (!cl_draw_net_graph->value)
@@ -72,8 +70,8 @@ void Cl_AddNetGraph(void) {
 		Cl_NetGraph(1.0, 0xdf);
 
 	// see what the latency was on this packet
-	in = cls.net_chan.incoming_acknowledged & (CMD_BACKUP - 1);
-	ping = cls.real_time - cl.cmd_time[in];
+	uint32_t in = cls.net_chan.incoming_acknowledged & CMD_MASK;
+	uint32_t ping = cls.real_time - cl.cmd_time[in];
 
 	Cl_NetGraph(ping / 300.0, 0xd0); // 300ms is lagged out
 }

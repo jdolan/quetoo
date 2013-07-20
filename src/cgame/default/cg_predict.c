@@ -69,13 +69,10 @@ void Cg_PredictMovement(const GList *cmds) {
 			Pm_Move(&pm);
 
 			// for each movement, check for stair interaction and interpolate
-			const vec_t step = pm.s.origin[2] * 0.125 - cgi.client->predicted_origin[2];
-			const vec_t astep = fabs(step);
-
-			if ((pm.s.pm_flags & PMF_ON_STAIRS) && astep >= 8.0 && astep <= 16.0) {
+			if (pm.s.pm_flags & PMF_ON_STAIRS) {
 				cgi.client->predicted_step_time = cgi.client->time;
-				cgi.client->predicted_step_lerp = 100 * (astep / 16.0);
-				cgi.client->predicted_step = step;
+				cgi.client->predicted_step_interval = 100 * (fabs(pm.step) / 16.0);
+				cgi.client->predicted_step = pm.step;
 			}
 
 			// save for debug checking

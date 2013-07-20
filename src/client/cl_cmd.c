@@ -27,23 +27,32 @@
  */
 void Cl_UpdateCmd(void) {
 	static uint32_t last_move;
-	user_cmd_t *cmd;
+	user_cmd_t c;
 
 	if (cls.state != CL_ACTIVE)
 		return;
 
-	cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+	memset(&c, 0, sizeof(c));
 
 	// determine the interval for just this move
-	if (cls.real_time - last_move > 255) {
-		cmd->msec = 255;
-	} else {
-		cmd->msec = cls.real_time - last_move;
-	}
+	c.msec = Clamp(cls.real_time - last_move, 1, 255);
 
 	// get movement from input devices
-	Cl_Move(cmd);
+	Cl_Move(&c);
 	last_move = cls.real_time;
+
+	// now update the pending command
+	user_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+
+	cmd->msec += c.msec;
+
+	cmd->buttons |= c.buttons;
+
+	VectorCopy(c.angles, cmd->angles);
+
+	cmd->forward += c.forward;
+	cmd->right += c.right;
+	cmd->up += c.up;
 }
 
 /*
@@ -51,11 +60,9 @@ void Cl_UpdateCmd(void) {
  * over the next packet frame.
  */
 static void Cl_InitCmd(void) {
-	user_cmd_t *cmd;
 
-	// the outgoing sequence has just been incremented, mask it off and
-	// clear the command which will now accumulate movement
-	cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+	user_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+
 	memset(cmd, 0, sizeof(user_cmd_t));
 }
 
@@ -64,9 +71,8 @@ static void Cl_InitCmd(void) {
  */
 static void Cl_FinalizeCmd(void) {
 	user_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
-	const uint32_t msec = cls.packet_delta;
 
-	cmd->msec = Clamp(msec, 1, 255);
+	cmd->msec = Clamp(cls.packet_delta, 1, 255);
 	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->msec, cmd->forward, cmd->right, cmd->up);
 }
 
