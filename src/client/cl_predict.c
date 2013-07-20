@@ -202,7 +202,7 @@ void Cl_CheckPredictionError(void) {
 		VectorClear(cl.prediction_error);
 	} else { // save the prediction error for interpolation
 		if (error > 4.0) {
-			// Com_Debug("%s\n", vtos(delta));
+			Com_Debug("%s\n", vtos(delta));
 		}
 
 		VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame]);
