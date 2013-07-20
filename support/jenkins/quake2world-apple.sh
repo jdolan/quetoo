@@ -7,7 +7,7 @@ function build() {
 	source ~/.profile
 	autoreconf -i
 	./configure ${CONFIGURE_FLAGS}
-	make -C apple ${MAKE_OPTIONS} ${MAKE_TARGETS}
+	make -C apple ${MAKE_OPTIONS} clean ${MAKE_TARGETS}
 }
 
 source $(dirname $0)/common.sh
