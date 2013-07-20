@@ -397,8 +397,8 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	if (!cg_draw_crosshair->value)
 		return;
 
-	if (ps->stats[STAT_SCORES])
-		return; // scoreboard up
+	//if (ps->stats[STAT_SCORES])
+	//	return; // scoreboard up
 
 	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE])
 		return; // spectating
