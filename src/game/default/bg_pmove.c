@@ -196,7 +196,7 @@ static void Pm_TouchEnt(struct g_edict_s *ent) {
  * @brief Calculates a new origin, velocity, and contact entities based on the
  * movement command and world state. Returns the number of planes intersected.
  */
-static int32_t Pm_SlideMove(void) {
+static _Bool Pm_SlideMove(void) {
 	vec3_t vel, end;
 	c_trace_t trace;
 	int32_t k, num_planes;
@@ -1036,7 +1036,7 @@ static _Bool Pm_GoodPosition(void) {
 
 	trace = pm->Trace(pos, pos, pm->mins, pm->maxs);
 
-	return !trace.all_solid;
+	return !trace.start_solid;
 }
 
 /*

@@ -1222,7 +1222,7 @@ static void Cm_RecursiveHullCheck(int32_t num, vec_t p1f, vec_t p2f, const vec3_
  * @brief
  */
 c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		int32_t head_node, int32_t contents) {
+		const int32_t head_node, const int32_t contents) {
 	int32_t i, point_leafs[1024];
 
 	c_trace_data_t data;
@@ -1297,7 +1297,7 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
  * rotating entities.
  */
 c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
-		const vec3_t maxs, int32_t head_node, int32_t contents, const vec3_t origin,
+		const vec3_t maxs, const int32_t head_node, const int32_t contents, const vec3_t origin,
 		const vec3_t angles) {
 
 	c_trace_t trace;

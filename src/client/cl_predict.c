@@ -71,37 +71,28 @@ int32_t Cl_PointContents(const vec3_t point) {
 }
 
 /*
- * @brief Client-side collision model tracing. This is the reciprocal of
- * Sv_Trace.
- *
- * @param skip An optional entity number for which all tests are skipped. Pass
- * 0 for none.
+ * @brief A structure facilitating clipping to SOLID_BOX entities.
  */
-c_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		const uint16_t skip, const int32_t contents) {
+typedef struct {
+	const vec_t *mins, *maxs;
+	const vec_t *start, *end;
+	c_trace_t trace;
+	uint16_t skip;
+	int32_t contents;
+} cl_trace_t;
+
+/*
+ * @brief Clips the specified trace to other solid entities in the frame.
+ */
+static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 	int32_t i;
-
-	if (!mins)
-		mins = vec3_origin;
-	if (!maxs)
-		maxs = vec3_origin;
-
-	// check against world
-	c_trace_t trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents);
-	if (trace.fraction < 1.0) {
-		trace.ent = 0; // 0 is the world (svs->game.edicts) on the server
-
-		if (trace.all_solid) { // blocked entirely
-			return trace;
-		}
-	}
 
 	// check all other solid models
 	for (i = 0; i < cl.frame.num_entities; i++) {
 		const int32_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[num];
 
-		if (ent->number == skip)
+		if (ent->number == trace->skip)
 			continue;
 
 		if (ent->number == cl.player_num + 1)
@@ -111,6 +102,7 @@ c_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, cons
 			continue;
 
 		int32_t head_node;
+		const vec_t *angles;
 		if (ent->solid == SOLID_BSP) {
 
 			const c_model_t *mod = cl.model_clip[ent->model1];
@@ -125,24 +117,65 @@ c_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, cons
 			}
 
 			head_node = mod->head_node;
+			angles = ent->angles;
 		} else { // something with an encoded box
 
 			vec3_t emins, emaxs;
 			UnpackBounds(ent->solid, emins, emaxs);
 
 			head_node = Cm_HeadnodeForBox(emins, emaxs);
+			angles = vec3_origin;
 		}
 
-		c_trace_t tr = Cm_TransformedBoxTrace(start, end, mins, maxs, head_node, contents,
-				ent->origin, ent->solid == SOLID_BSP ? ent->angles : vec3_origin);
+		c_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
+				head_node, trace->contents, ent->origin, angles);
 
-		if (tr.start_solid || tr.fraction < trace.fraction) {
-			tr.ent = (struct g_edict_s *) (intptr_t) ent->number;
-			trace = tr;
+		if (tr.all_solid || tr.start_solid || tr.fraction < trace->trace.fraction) {
+			trace->trace = tr;
+			trace->trace.ent = (struct g_edict_s *) (intptr_t) ent->number;
+		}
+	}
+}
+
+/*
+ * @brief Client-side collision model tracing. This is the reciprocal of
+ * Sv_Trace.
+ *
+ * @param skip An optional entity number for which all tests are skipped. Pass
+ * 0 for none, because entity 0 is the world, which we always test.
+ */
+c_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+		const uint16_t skip, const int32_t contents) {
+
+	cl_trace_t trace;
+
+	memset(&trace, 0, sizeof(trace));
+
+	if (!mins)
+		mins = vec3_origin;
+	if (!maxs)
+		maxs = vec3_origin;
+
+	// clip to world
+	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents);
+	if (trace.trace.fraction < 1.0) {
+		trace.trace.ent = (struct g_edict_s *) (intptr_t) -1;
+
+		if (trace.trace.start_solid) { // blocked entirely
+			return trace.trace;
 		}
 	}
 
-	return trace;
+	trace.start = start;
+	trace.end = end;
+	trace.mins = mins;
+	trace.maxs = maxs;
+	trace.skip = skip;
+	trace.contents = contents;
+
+	Cl_ClipTraceToEntities(&trace);
+
+	return trace.trace;
 }
 
 /*

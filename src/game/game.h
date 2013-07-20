@@ -147,7 +147,7 @@ typedef struct {
 	// collision detection
 	int32_t (*PointContents)(const vec3_t point);
 	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-			const g_edict_t *passent, const int32_t mask);
+			const g_edict_t *skip, const int32_t contents);
 
 	// PVS / PHS
 	_Bool (*inPVS)(const vec3_t p1, const vec3_t p2);

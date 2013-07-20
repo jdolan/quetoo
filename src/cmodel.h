@@ -39,12 +39,15 @@ int32_t Cm_HeadnodeForBox(const vec3_t mins, const vec3_t maxs);
 
 // returns an ORed contents mask
 int32_t Cm_PointContents(const vec3_t p, int32_t head_node);
-int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const vec3_t origin, const vec3_t angles);
+int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const vec3_t origin,
+		const vec3_t angles);
 
-c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, int32_t head_node,
-		int32_t contents);
-c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		int32_t head_node, int32_t contents, const vec3_t origin, const vec3_t angles);
+c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+		const int32_t head_node, const int32_t contents);
+
+c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
+		const vec3_t maxs, const int32_t head_node, const int32_t contents, const vec3_t origin,
+		const vec3_t angles);
 
 byte *Cm_ClusterPVS(const int32_t cluster);
 byte *Cm_ClusterPHS(const int32_t cluster);
@@ -53,7 +56,8 @@ int32_t Cm_PointLeafnum(const vec3_t p);
 
 // call with top_node set to the head_node, returns with top_node
 // set to the first node that splits the box
-int32_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len, int32_t *top_node);
+int32_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len,
+		int32_t *top_node);
 
 int32_t Cm_LeafContents(const int32_t leaf_num);
 int32_t Cm_LeafCluster(const int32_t leaf_num);

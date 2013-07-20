@@ -423,13 +423,13 @@ int32_t Sv_PointContents(const vec3_t point) {
 }
 
 // an entity's movement, with allowed exceptions and other info
-typedef struct sv_trace_s {
+typedef struct {
 	vec3_t box_mins, box_maxs; // enclose the test object along entire move
 	const vec_t *mins, *maxs; // size of the moving object
 	const vec_t *start, *end;
 	c_trace_t trace;
 	const g_edict_t *skip;
-	int32_t mask;
+	int32_t contents;
 } sv_trace_t;
 
 /*
@@ -481,7 +481,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 
 		// perform the trace against this particular entity
 		tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs, head_node,
-				trace->mask, ent->s.origin, angles);
+				trace->contents, ent->s.origin, angles);
 
 		// check for a full or partial intersection
 		if (tr.all_solid || tr.start_solid || tr.fraction < trace->trace.fraction) {
@@ -519,11 +519,11 @@ static void Sv_TraceBounds(sv_trace_t *trace) {
  * This prevents players from clipping against their own projectiles, etc.
  */
 c_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		const g_edict_t *skip, int32_t mask) {
+		const g_edict_t *skip, const int32_t contents) {
 
 	sv_trace_t trace;
 
-	memset(&trace, 0, sizeof(sv_trace_t));
+	memset(&trace, 0, sizeof(trace));
 
 	if (!mins)
 		mins = vec3_origin;
@@ -531,11 +531,11 @@ c_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, cons
 		maxs = vec3_origin;
 
 	// clip to world
-	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, mask);
+	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents);
 	if (trace.trace.fraction < 1.0) {
 		trace.trace.ent = svs.game->edicts;
 
-		if (trace.trace.all_solid) // blocked entirely
+		if (trace.trace.start_solid) // blocked entirely
 			return trace.trace;
 	}
 
@@ -544,7 +544,7 @@ c_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, cons
 	trace.mins = mins;
 	trace.maxs = maxs;
 	trace.skip = skip;
-	trace.mask = mask;
+	trace.contents = contents;
 
 	// create the bounding box of the entire move
 	Sv_TraceBounds(&trace);
