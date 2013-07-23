@@ -79,11 +79,11 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
 	}
 
 	if (cl.time > cl.frame.server_time) {
-		Com_Debug("High clamp: %dms\n", cl.time - cl.frame.server_time);
+		// Com_Debug("High clamp: %dms\n", cl.time - cl.frame.server_time);
 		cl.time = cl.frame.server_time;
 		cl.lerp = 1.0;
 	} else if (cl.time < from->server_time) {
-		Com_Debug("Low clamp: %dms\n", from->server_time - cl.time);
+		// Com_Debug("Low clamp: %dms\n", from->server_time - cl.time);
 		cl.time = from->server_time;
 		cl.lerp = 0.0;
 	} else {
