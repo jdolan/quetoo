@@ -218,8 +218,8 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 		if (var->flags & CVAR_CLI) {
 			if (!Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER)) {
 				Com_Debug("%s: retaining value \"%s\" from command line\n", name, var->string);
+				return var;
 			}
-			return var;
 		}
 
 		// local-only variables can not be modified when in multiplayer mode
