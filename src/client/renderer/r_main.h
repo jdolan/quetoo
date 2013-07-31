@@ -70,7 +70,7 @@ void R_BeginFrame(void);
 void R_DrawView(void);
 void R_EndFrame(void);
 
-#if defined(__R_LOCAL_H__) || defined(__ECLIPSE__)
+#ifdef __R_LOCAL_H__
 
 // private hardware configuration information
 typedef struct {

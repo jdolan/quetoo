@@ -299,7 +299,6 @@ void R_InitView(void) {
  * @brief Loads all media for the renderer subsystem.
  */
 void R_LoadMedia(void) {
-	extern cl_client_t cl;
 	uint32_t i;
 
 	if (!cl.config_strings[CS_MODELS][0]) {
