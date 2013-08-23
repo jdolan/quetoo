@@ -1024,7 +1024,7 @@ static c_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const 
  * @brief Debug messages for Pm_Move.
  */
 static void G_ClientMove_Debug(const char *msg) {
-	gi.Debug("!S %u %s", g_level.time, msg);
+	gi.Debug("!Server: %u %s", g_level.time, msg);
 }
 
 /*
@@ -1067,10 +1067,10 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 
 	pm.Debug = G_ClientMove_Debug;
 
-	// perform a pmove
+	// perform a move
 	Pm_Move(&pm);
 
-	// save results of pmove
+	// save results of move
 	client->ps.pm_state = pm.s;
 
 	VectorCopy(ent->locals.velocity, old_velocity);

@@ -230,7 +230,7 @@ static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_fra
 		ps->pm_state.pm_flags = Msg_ReadShort(&net_message);
 
 	if (pm_state_bits & PS_M_TIME)
-		ps->pm_state.pm_time = Msg_ReadByte(&net_message);
+		ps->pm_state.pm_time = Msg_ReadShort(&net_message);
 
 	if (pm_state_bits & PS_M_GRAVITY)
 		ps->pm_state.gravity = Msg_ReadShort(&net_message);

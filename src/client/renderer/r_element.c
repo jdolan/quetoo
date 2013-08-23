@@ -92,7 +92,7 @@ static int R_SortElements_Compare(const void *a, const void *b) {
 }
 
 /*
- * @brief Sorts the specified elements array by their distance from the origin.
+ * @brief Sorts the specified elements array by their distance from the view.
  * Elements are sorted farthest-first so that they are rendered back-to-front.
  */
 static void R_SortElements_(r_element_t *e, const size_t count) {

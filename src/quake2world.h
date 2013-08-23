@@ -312,15 +312,11 @@ typedef struct c_trace_s {
 	struct g_edict_s *ent; // not set by Cm_*() functions
 } c_trace_t;
 
-typedef struct c_floor_s {
-	int32_t cluster;
-} c_floor_s;
-
-// player bbox and view_height scaling
+// player bbox and view height scaling
 extern vec3_t PM_MINS;
 extern vec3_t PM_MAXS;
 
-#define PM_SCALE			1.2 // global player scale factor
+#define PM_SCALE			1.125 // global player scale factor
 #define PM_STAIR_HEIGHT		16.0 // maximum stair height player can walk up
 #define PM_STAIR_NORMAL		0.7 // can't step up onto very steep slopes
 // pmove_state_t is the information necessary for client side movement prediction
@@ -333,23 +329,23 @@ typedef enum {
 	PM_FREEZE
 } pm_type_t;
 
-// pmove->pm_flags
+// pm_move->s.pm_flags
 #define PMF_DUCKED				0x1
 #define PMF_JUMPED				0x2
 #define PMF_JUMP_HELD			0x4
 #define PMF_ON_GROUND			0x8
 #define PMF_ON_STAIRS			0x10
 #define PMF_ON_LADDER			0x20
-#define PMF_TIME_DOUBLE_JUMP	0x40
-#define PMF_TIME_WATER_JUMP		0x80 // pm_time is time before control
-#define PMF_TIME_LAND			0x100 // pm_time is time before rejump
-#define PMF_TIME_TELEPORT		0x200 // pm_time is non-moving time
-#define PMF_NO_PREDICTION		0x400 // temporarily disables prediction
-#define PMF_PUSHED				0x800 // disables stair checking and velocity clamp
-#define PMF_UNDER_WATER			0x1000
+#define PMF_UNDER_WATER			0x40
+#define PMF_PUSHED				0x80 // disables stair checking
+#define PMF_NO_PREDICTION		0x100 // temporarily disables prediction
+#define PMF_TIME_TRICK_JUMP		0x200 // time eligible for trick jump
+#define PMF_TIME_WATER_JUMP		0x400 // time before control
+#define PMF_TIME_LAND			0x800 // time before jump eligible
+#define PMF_TIME_TELEPORT		0x1000 // time frozen in place
 
-#define PMF_TIME_MASK		(PMF_TIME_DOUBLE_JUMP | PMF_TIME_WATER_JUMP | \
-		PMF_TIME_LAND | PMF_TIME_TELEPORT)
+#define PMF_TIME_MASK			(PMF_TIME_TRICK_JUMP | PMF_TIME_WATER_JUMP | \
+									PMF_TIME_LAND | PMF_TIME_TELEPORT)
 
 // this structure needs to be communicated bit-accurate
 // from the server to the client to guarantee that
@@ -361,7 +357,7 @@ typedef struct pm_state_s {
 	int16_t origin[3];
 	int16_t velocity[3];
 	uint16_t pm_flags; // ducked, jump_held, etc
-	uint8_t pm_time; // each unit = 8 milliseconds
+	uint16_t pm_time; // duration for PMF_TIME_* flags
 	int16_t gravity;
 	int16_t view_offset[3]; // add to origin to resolve eyes
 	int16_t view_angles[3]; // base view angles

@@ -83,7 +83,7 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
 
  */
 
-#define PROTOCOL 1002 // change this when netcode changes
+#define PROTOCOL 1003 // change this when netcode changes
 #define IP_MASTER "67.228.69.114" // tastyspleen.net
 #define PORT_MASTER	1996 // some good years
 #define PORT_CLIENT	1997

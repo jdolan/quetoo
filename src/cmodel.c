@@ -1283,7 +1283,7 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
 	// general sweeping through world
 	Cm_RecursiveHullCheck(head_node, 0, 1, start, end, &data);
 
-	if (data.trace.fraction == 1) {
+	if (data.trace.fraction == 1.0) {
 		VectorCopy(end, data.trace.end);
 	} else {
 		for (i = 0; i < 3; i++)

@@ -34,7 +34,7 @@ static c_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, 
  * @brief Debug messages for Pm_Move.
  */
 static void Cg_PredictMovement_Debug(const char *msg) {
-	cgi.Debug("!C %u %s", cgi.client->time, msg);
+	cgi.Debug("!Client: %u %s", cgi.client->time, msg);
 }
 
 /*

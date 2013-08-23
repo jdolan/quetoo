@@ -165,7 +165,7 @@ static void Sv_WritePlayerstate(sv_frame_t *from, sv_frame_t *to, size_buf_t *ms
 		Msg_WriteShort(msg, ps->pm_state.pm_flags);
 
 	if (pm_state_bits & PS_M_TIME)
-		Msg_WriteByte(msg, ps->pm_state.pm_time);
+		Msg_WriteShort(msg, ps->pm_state.pm_time);
 
 	if (pm_state_bits & PS_M_GRAVITY)
 		Msg_WriteShort(msg, ps->pm_state.gravity);
