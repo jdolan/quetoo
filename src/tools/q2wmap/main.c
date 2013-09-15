@@ -371,6 +371,7 @@ int32_t main(int32_t argc, char **argv) {
 	_Bool do_zip = false;
 
 #ifdef _WIN32
+	AllocConsole();
 	freopen("CON", "w", stdout);
 	freopen("CON", "w", stderr);
 #endif
