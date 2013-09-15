@@ -54,20 +54,29 @@ static pm_locals_t pml;
 #define PM_ACCEL_SPECTATOR		4.5
 #define PM_ACCEL_WATER			4.0
 
+#define PM_CLIP_BOUNCE			1.001
+
+#define PM_DEBUG 1
+
 #define PM_FRICT_GROUND			6.0
 #define PM_FRICT_GROUND_SLICK	2.0
 #define PM_FRICT_LADDER			10.0
-#define PM_FRICT_NO_GROUND		0.675
+#define PM_FRICT_NO_GROUND		0.5
 #define PM_FRICT_SPECTATOR		3.0
 #define PM_FRICT_WATER			1.0
+
+#define PM_GRAVITY_WATER		0.55
+
+#define PM_GROUND_DIST			0.25
+#define PM_GROUND_DIST_TRICK	12.0
 
 #define PM_SPEED_AIR			450.0
 #define PM_SPEED_CURRENT		100.0
 #define PM_SPEED_DUCK_STAND		225.0
 #define PM_SPEED_DUCKED			140.0
-#define PM_SPEED_FALL			450.0
-#define PM_SPEED_FALL_FAR		600.0
-#define PM_SPEED_JUMP			265.0
+#define PM_SPEED_FALL			420.0
+#define PM_SPEED_FALL_FAR		560.0
+#define PM_SPEED_JUMP			262.5
 #define PM_SPEED_LADDER			125.0
 #define PM_SPEED_LAND			300.0
 #define PM_SPEED_RUN			300.0
@@ -78,16 +87,10 @@ static pm_locals_t pml;
 #define PM_SPEED_WATER_JUMP		450.0
 #define PM_SPEED_WATER_SINK		50.0
 
-#define PM_GRAVITY_WATER		0.55
-
-#define PM_GROUND_DIST			0.25
-#define PM_GROUND_DIST_TRICK	8.0
-
-#define PM_CLIP_BOUNCE			1.001
+#define PM_STEP_HEIGHT			16.0
+#define PM_STEP_NORMAL			0.7
 
 #define PM_STOP_EPSILON			0.1
-
-#define PM_DEBUG 1
 
 /*
  * @brief Handle printing of debugging messages for development.
@@ -239,11 +242,11 @@ static _Bool Pm_StepMove(void) {
 
 	// see if the upward position is available
 	VectorCopy(pml.origin, pos);
-	pos[2] += PM_STAIR_HEIGHT;
+	pos[2] += PM_STEP_HEIGHT;
 
 	// reaching even higher if trying to climb out of the water
 	if (pm->s.pm_flags & PMF_TIME_WATER_JUMP) {
-		pos[2] += PM_STAIR_HEIGHT;
+		pos[2] += PM_STEP_HEIGHT;
 	}
 
 	c_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
@@ -265,7 +268,7 @@ static _Bool Pm_StepMove(void) {
 	trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
 	// if a new floor was found, the step was successful
-	if (trace.ent && trace.plane.normal[2] >= PM_STAIR_NORMAL) {
+	if (trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL) {
 
 		// clip to the new floor without dropping or slowing down
 		if (pm->s.pm_flags & PMF_ON_GROUND) {
@@ -278,7 +281,7 @@ static _Bool Pm_StepMove(void) {
 
 		const vec_t step = trace.end[2] - org[2];
 
-		if (step >= 8.0 && step <= 16.0) { // we are in fact on stairs
+		if (step >= 1.0 && step <= PM_STEP_HEIGHT) { // we are in fact on stairs
 			pm->s.pm_flags |= PMF_ON_STAIRS;
 			pm->step = step;
 
@@ -346,7 +349,7 @@ static void Pm_StepSlideMove(void) {
 		vec3_t down;
 
 		VectorCopy(pml.origin, down);
-		down[2] -= (PM_STAIR_HEIGHT + PM_GROUND_DIST);
+		down[2] -= (PM_STEP_HEIGHT + PM_GROUND_DIST);
 
 		c_trace_t trace = pm->Trace(pml.origin, down, pm->mins, pm->maxs);
 
@@ -355,7 +358,7 @@ static void Pm_StepSlideMove(void) {
 
 			const vec_t step = pml.origin[2] - org[2];
 
-			if (step <= -4.0 && step >= -16.0) { // we are in fact on stairs
+			if (step <= -1.0 && step >= -PM_STEP_HEIGHT) { // we are in fact on stairs
 
 				pm->s.pm_flags |= PMF_ON_STAIRS;
 				pm->step = step;
@@ -370,7 +373,6 @@ static void Pm_StepSlideMove(void) {
  * @brief Handles friction against user intentions, and based on contents.
  */
 static void Pm_Friction(void) {
-	vec_t scale, friction;
 
 	const vec_t speed = VectorLength(pml.velocity);
 
@@ -379,9 +381,9 @@ static void Pm_Friction(void) {
 		return;
 	}
 
-	const vec_t control = speed < PM_SPEED_STOP ? PM_SPEED_STOP : speed;
+	const vec_t control = MAX(PM_SPEED_STOP, speed);
 
-	friction = 0.0;
+	vec_t friction = 0.0;
 
 	if (pm->s.pm_type == PM_SPECTATOR) { // spectator friction
 		friction = PM_FRICT_SPECTATOR;
@@ -389,20 +391,18 @@ static void Pm_Friction(void) {
 		if (pm->s.pm_flags & PMF_ON_LADDER) {
 			friction = PM_FRICT_LADDER;
 		} else {
-			if (pm->ground_entity) {
+			if (pm->s.pm_flags & PMF_ON_GROUND) {
 				if (pml.ground_surface && (pml.ground_surface->flags & SURF_SLICK)) {
 					friction = PM_FRICT_GROUND_SLICK;
 				} else {
 					friction = PM_FRICT_GROUND;
 				}
+			} else {
+				friction = PM_FRICT_NO_GROUND;
 			}
 
 			if (pm->water_level) {
 				friction += PM_FRICT_WATER * pm->water_level;
-			}
-
-			if (!friction) {
-				friction = PM_FRICT_NO_GROUND;
 			}
 		}
 	}
@@ -410,7 +410,7 @@ static void Pm_Friction(void) {
 	friction *= control * pml.time;
 
 	// scale the velocity
-	scale = speed - friction;
+	vec_t scale = speed - friction;
 
 	if (scale < 2.0) {
 		VectorClear(pml.velocity);
@@ -553,7 +553,7 @@ static void Pm_CategorizePosition(void) {
 	pml.ground_contents = trace.contents;
 
 	// if we hit an upward facing plane, make it our ground
-	if (trace.ent && trace.plane.normal[2] >= PM_STAIR_NORMAL) {
+	if (trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL) {
 
 		// if we had no ground, then handle landing events
 		if (!pm->ground_entity) {
@@ -628,7 +628,8 @@ static void Pm_CategorizePosition(void) {
 }
 
 /*
- * @brief
+ * @brief Handles ducking, adjusting both the player's bounding box and view
+ * offset accordingly. Players must be on the ground in order to duck.
  */
 static void Pm_CheckDuck(void) {
 
@@ -636,12 +637,15 @@ static void Pm_CheckDuck(void) {
 
 	if (pm->s.pm_type == PM_DEAD) {
 		pm->s.pm_flags |= PMF_DUCKED;
-	} else if (pm->cmd.up < 0) { // duck
-		pm->s.pm_flags |= PMF_DUCKED;
-	} else { // stand up if possible
-		c_trace_t trace = pm->Trace(pml.origin, pml.origin, pm->mins, pm->maxs);
-		if (trace.all_solid) {
+	} else {
+		// if on the ground and requesting to crouch, duck
+		if (pm->s.pm_flags & PMF_ON_GROUND && pm->cmd.up < 0) {
 			pm->s.pm_flags |= PMF_DUCKED;
+		} else { // stand up if possible
+			c_trace_t trace = pm->Trace(pml.origin, pml.origin, pm->mins, pm->maxs);
+			if (trace.all_solid) {
+				pm->s.pm_flags |= PMF_DUCKED;
+			}
 		}
 	}
 
@@ -805,7 +809,7 @@ static _Bool Pm_CheckWaterJump(void) {
 
 	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_SOLID)) {
 
-		pos[2] += PM_STAIR_HEIGHT + pm->maxs[2] - pm->mins[2];
+		pos[2] += PM_STEP_HEIGHT + pm->maxs[2] - pm->mins[2];
 
 		trace = pm->Trace(pos, pos, pm->mins, pm->maxs);
 

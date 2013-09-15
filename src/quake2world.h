@@ -312,13 +312,12 @@ typedef struct c_trace_s {
 	struct g_edict_s *ent; // not set by Cm_*() functions
 } c_trace_t;
 
-// player bbox and view height scaling
+// player bounding box and view height scaling
+#define PM_SCALE			1.125
+
 extern vec3_t PM_MINS;
 extern vec3_t PM_MAXS;
 
-#define PM_SCALE			1.125 // global player scale factor
-#define PM_STAIR_HEIGHT		16.0 // maximum stair height player can walk up
-#define PM_STAIR_NORMAL		0.7 // can't step up onto very steep slopes
 // pmove_state_t is the information necessary for client side movement prediction
 typedef enum {
 	// can accelerate and turn
@@ -343,7 +342,6 @@ typedef enum {
 #define PMF_TIME_WATER_JUMP		0x400 // time before control
 #define PMF_TIME_LAND			0x800 // time before jump eligible
 #define PMF_TIME_TELEPORT		0x1000 // time frozen in place
-
 #define PMF_TIME_MASK			(PMF_TIME_TRICK_JUMP | PMF_TIME_WATER_JUMP | \
 									PMF_TIME_LAND | PMF_TIME_TELEPORT)
 
@@ -566,7 +564,8 @@ typedef enum {
 	SOLID_TRIGGER, // only touch when inside, after moving
 	SOLID_BOX, // touch on edge
 	SOLID_MISSILE, // touch on edge
-	SOLID_BSP = 31 // bsp clip, touch on edge
+	SOLID_BSP = 31
+// bsp clip, touch on edge
 } solid_t;
 
 /*
