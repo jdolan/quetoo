@@ -521,6 +521,8 @@ int32_t main(int32_t argc, char **argv) {
 	Com_Shutdown(NULL);
 
 #ifdef _WIN32
+	puts("\nPress any key to close..\n");
+	getchar();
 	FreeConsole();
 #endif
 }
