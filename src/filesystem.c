@@ -617,7 +617,7 @@ void Fs_Init(_Bool auto_load_archives) {
 			Fs_AddToSearchPath(path);
 		}
 #elif _WIN32
-		if ((c = strstr(path, "\\bin\\quake2world.exe"))) {
+		if ((c = strstr(path, "\\bin\\"))) {
 			*c = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 

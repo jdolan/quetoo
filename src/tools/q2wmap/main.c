@@ -305,6 +305,7 @@ static void PrintHelpMessage(void) {
 	Com_Print("-l -legacy            Compile a legacy Quake2 map\n");
 	Com_Print("-d -debug\n");
 	Com_Print("-t -threads <int>\n");
+	Com_Print("-p -path <game directory>\n");
 
 	Com_Print("\n");
 	Com_Print("-bsp               Binary space partitioning (BSPing) options:\n");
@@ -331,16 +332,15 @@ static void PrintHelpMessage(void) {
 	Com_Print("\n");
 	Com_Print("-vis               VIS stage options:\n");
 	Com_Print(" -fast\n");
-	Com_Print(" -level\n");
 	Com_Print(" -nosort\n");
 	Com_Print("\n");
 	Com_Print("-light             Lighting stage options:\n");
-	Com_Print(" -contrast <float> - contrast factor\n");
-	Com_Print(" -entity <float> - entity light scaling\n");
 	Com_Print(" -extra - extra light samples\n");
-	Com_Print(" -brightness <float> - brightness factor\n");
-	Com_Print(" -saturation <float> - saturation factor\n");
+	Com_Print(" -entity <float> - entity light scaling\n");
 	Com_Print(" -surface <float> - surface light scaling\n");
+	Com_Print(" -brightness <float> - brightness factor\n");
+	Com_Print(" -contrast <float> - contrast factor\n");
+	Com_Print(" -saturation <float> - saturation factor\n");
 	Com_Print("\n");
 	Com_Print("-aas               AAS stage options:\n");
 	Com_Print("\n");
@@ -369,6 +369,11 @@ int32_t main(int32_t argc, char **argv) {
 	_Bool do_aas = false;
 	_Bool do_mat = false;
 	_Bool do_zip = false;
+
+#ifdef _WIN32
+	freopen("CON", "w", stdout);
+	freopen("CON", "w", stderr);
+#endif
 
 	printf("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 
