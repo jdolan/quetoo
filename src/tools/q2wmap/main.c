@@ -371,9 +371,10 @@ int32_t main(int32_t argc, char **argv) {
 	_Bool do_zip = false;
 
 #ifdef _WIN32
-	AllocConsole();
-	freopen("CON", "w", stdout);
-	freopen("CON", "w", stderr);
+	if (AllocConsole()) {
+		freopen("CON", "w", stdout);
+		freopen("CON", "w", stderr);
+	}
 #endif
 
 	printf("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
@@ -518,4 +519,8 @@ int32_t main(int32_t argc, char **argv) {
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	Com_Shutdown(NULL);
+
+#ifdef _WIN32
+	FreeConsole();
+#endif
 }
