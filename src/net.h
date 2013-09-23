@@ -27,6 +27,11 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
+#ifndef in_addr_t
+typedef uint32_t in_addr_t;
+typedef uint16_t in_port_t;
+#endif
+
 #undef  EWOULDBLOCK
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #undef  ECONNREFUSED
