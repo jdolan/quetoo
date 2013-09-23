@@ -19,270 +19,97 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <arpa/inet.h>
 #include <errno.h>
 #include <sys/time.h>
 
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#undef EWOULDBLOCK
-#define EWOULDBLOCK WSAEWOULDBLOCK
-#undef ECONNREFUSED
-#define ECONNREFUSED WSAECONNREFUSED
-#define Net_GetError() WSAGetLastError()
-#define Net_CloseSocket closesocket
-#define ioctl ioctlsocket
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/ioctl.h>
-#include <sys/uio.h>
-#define Net_GetError() errno
-#define Net_CloseSocket close
-#endif
-
 #include "net.h"
 
-static net_addr_t net_local_addr = { NA_LOCAL, { 127, 0, 0, 1 }, 0 };
-
-#define MAX_LOOPBACK 4
+#define MAX_NET_UDP_LOOPS 4
 
 typedef struct {
 	byte data[MAX_MSG_SIZE];
 	size_t size;
-} loopback_msg_t;
+} net_udp_loop_message_t;
 
 typedef struct {
-	loopback_msg_t msgs[MAX_LOOPBACK];
-	int32_t get, send;
-} loopback_t;
+	net_udp_loop_message_t messages[MAX_NET_UDP_LOOPS];
+	int32_t send, recv;
+} net_udp_loopback_t;
 
-static loopback_t loopbacks[2];
-static int32_t ip_sockets[2];
-
-static cvar_t *net_ip;
-static cvar_t *net_port;
+static net_udp_loopback_t net_udp_loopbacks[2];
+static int32_t net_udp_sockets[2];
 
 /*
  * @brief
  */
-static const char *Net_ErrorString(void) {
-	const int32_t code = Net_GetError();
-	return strerror(code);
-}
+static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, size_buf_t *message) {
+	net_udp_loopback_t *loop = &net_udp_loopbacks[source];
 
-/*
- * @brief
- */
-static void Net_NetAddrToSockaddr(const net_addr_t *a, struct sockaddr_in *s) {
-	memset(s, 0, sizeof(*s));
+	if (loop->send - loop->recv > MAX_NET_UDP_LOOPS)
+		loop->recv = loop->send - MAX_NET_UDP_LOOPS;
 
-	if (a->type == NA_IP_BROADCAST) {
-		s->sin_family = AF_INET;
-		s->sin_port = a->port;
-		*(uint32_t *) &s->sin_addr = -1;
-	} else if (a->type == NA_IP) {
-		s->sin_family = AF_INET;
-		s->sin_port = a->port;
-		memcpy(&s->sin_addr, a->ip, sizeof(a->ip));
-	}
-}
-
-/*
- * @brief
- */
-static void Net_SockaddrToNetaddr(const struct sockaddr_in *s, net_addr_t *a) {
-	memcpy(a->ip, &s->sin_addr, sizeof(a->ip));
-	a->port = s->sin_port;
-	a->type = NA_IP;
-}
-
-/*
- * @brief
- */
-_Bool Net_CompareNetaddr(net_addr_t a, net_addr_t b) {
-
-	if (a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1] && a.ip[2] == b.ip[2] && a.ip[3] == b.ip[3]
-			&& a.port == b.port)
-		return true;
-
-	return false;
-}
-
-/*
- * @brief Similar to Net_CompareNetaddr, but omits port checks.
- */
-_Bool Net_CompareClientNetaddr(net_addr_t a, net_addr_t b) {
-
-	if (a.type != b.type)
+	if (loop->recv >= loop->send)
 		return false;
 
-	if (a.type == NA_LOCAL)
-		return true;
+	const uint32_t i = loop->recv & (MAX_NET_UDP_LOOPS - 1);
+	loop->recv++;
 
-	if (a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1] && a.ip[2] == b.ip[2] && a.ip[3] == b.ip[3])
-		return true;
+	memcpy(message->data, loop->messages[i].data, loop->messages[i].size);
+	message->size = loop->messages[i].size;
 
-	return false;
-}
+	from->type = NA_LOOP;
 
-/*
- * @brief
- */
-char *Net_NetaddrToString(net_addr_t a) {
-	static char s[64];
-
-	g_snprintf(s, sizeof(s), "%i.%i.%i.%i:%i", a.ip[0], a.ip[1], a.ip[2], a.ip[3], ntohs(a.port));
-
-	return s;
-}
-
-/*
- * @brief localhost
- * idnewt
- * idnewt:28000
- * 192.246.40.70
- * 192.246.40.70:28000
- */
-static _Bool Net_StringToSockaddr(const char *s, struct sockaddr *saddr) {
-	struct hostent *h;
-	char *colon;
-	char copy[128];
-
-	memset(saddr, 0, sizeof(*saddr));
-	((struct sockaddr_in *) saddr)->sin_family = AF_INET;
-
-	((struct sockaddr_in *) saddr)->sin_port = 0;
-
-	strcpy(copy, s);
-	// strip off a trailing :port if present
-	for (colon = copy; *colon; colon++) {
-		if (*colon == ':') {
-			*colon = 0;
-			((struct sockaddr_in *) saddr)->sin_port = htons((int16_t)atoi(colon + 1));
-		}
-	}
-
-	if (copy[0] >= '0' && copy[0] <= '9') {
-		*(uint32_t *) &((struct sockaddr_in *) saddr)->sin_addr = inet_addr(copy);
-	} else {
-		if (!(h = gethostbyname(copy)))
-			return false;
-		*(uint32_t *) &((struct sockaddr_in *) saddr)->sin_addr = *(uint32_t *) h->h_addr_list[0];
-	}
+	from->addr = inet_addr("127.0.0.1");
+	from->port = 0;
 
 	return true;
 }
 
 /*
- * @brief localhost
- * idnewt
- * idnewt:28000
- * 192.246.40.70
- * 192.246.40.70:28000
+ * @brief Receive a datagram from the specified address.
  */
-_Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
-	struct sockaddr_in saddr;
+_Bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, size_buf_t *message) {
 
-	if (!g_strcmp0(s, "localhost")) {
-		memset(a, 0, sizeof(*a));
-		a->type = NA_LOCAL;
-		return true;
-	}
+	memset(from, 0, sizeof(*from));
 
-	if (!Net_StringToSockaddr(s, (struct sockaddr *) &saddr))
-		return false;
-
-	Net_SockaddrToNetaddr(&saddr, a);
-
-	return true;
-}
-
-/*
- * @brief
- */
-_Bool Net_IsLocalNetaddr(net_addr_t addr) {
-	return Net_CompareNetaddr(addr, net_local_addr);
-}
-
-/*
- * @brief
- */
-static _Bool Net_GetLocalPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
-	uint32_t i;
-	loopback_t *loop;
-
-	loop = &loopbacks[source];
-
-	if (loop->send - loop->get > MAX_LOOPBACK)
-		loop->get = loop->send - MAX_LOOPBACK;
-
-	if (loop->get >= loop->send)
-		return false;
-
-	i = loop->get & (MAX_LOOPBACK - 1);
-	loop->get++;
-
-	memcpy(message->data, loop->msgs[i].data, loop->msgs[i].size);
-	message->size = loop->msgs[i].size;
-	*from = net_local_addr;
-	return true;
-}
-
-/*
- * @brief
- */
-static void Net_SendLocalPacket(net_src_t source, size_t length, void *data) {
-	uint32_t i;
-	loopback_t *loop;
-
-	loop = &loopbacks[source ^ 1];
-
-	i = loop->send & (MAX_LOOPBACK - 1);
-	loop->send++;
-
-	memcpy(loop->msgs[i].data, data, length);
-	loop->msgs[i].size = length;
-}
-
-/*
- * @brief
- */
-_Bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
-	struct sockaddr_in from_addr;
-	socklen_t from_len = sizeof(from_addr);
-
-	if (Net_GetLocalPacket(source, from, message))
+	if (Net_ReceiveDatagram_Loop(source, from, message))
 		return true;
 
-	if (!ip_sockets[source])
+	const int32_t sock = net_udp_sockets[source];
+
+	if (!sock)
 		return false;
 
-	ssize_t ret = recvfrom(ip_sockets[source], (void *) message->data, message->max_size, 0,
-			(struct sockaddr *) &from_addr, &from_len);
+	struct sockaddr_in from_saddr;
+	socklen_t from_len = sizeof(from_saddr);
 
-	Net_SockaddrToNetaddr(&from_addr, from);
+	ssize_t len = recvfrom(sock, (void *) message->data, message->max_size, 0,
+			(struct sockaddr *) &from_saddr, &from_len);
 
-	if (ret == -1) {
+	from->type = NA_DATAGRAM;
+
+	from->addr = from_saddr.sin_addr.s_addr;
+	from->port = from_saddr.sin_port;
+
+	if (len == -1) {
 		int32_t err = Net_GetError();
 
 		if (err == EWOULDBLOCK || err == ECONNREFUSED)
 			return false; // not terribly abnormal
 
-		const char *s = source == NS_SERVER ? "server" : "client";
-		Com_Warn("%s: %s from %s\n", s, Net_ErrorString(), Net_NetaddrToString(*from));
+		const char *s = source == NS_UDP_SERVER ? "server" : "client";
+		Com_Warn("%s: %s from %s\n", s, Net_GetErrorString(), Net_NetaddrToString(from));
 		return false;
 	}
 
-	if (ret == ((ssize_t) message->max_size)) {
-		Com_Warn("Oversized packet from %s\n", Net_NetaddrToString(*from));
+	if (len == ((ssize_t) message->max_size)) {
+		Com_Warn("Oversized packet from %s\n", Net_NetaddrToString(from));
 		return false;
 	}
 
 	message->read = 0;
-	message->size = (size_t) ret;
+	message->size = (size_t) len;
 
 	return true;
 }
@@ -290,34 +117,46 @@ _Bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message) {
 /*
  * @brief
  */
-void Net_SendPacket(net_src_t source, size_t size, void *data, net_addr_t to) {
-	struct sockaddr_in to_addr;
-	int32_t sock;
+static _Bool Net_SendDatagram_Loop(net_src_t source, const void *data, size_t len) {
+	net_udp_loopback_t *loop = &net_udp_loopbacks[source ^ 1];
 
-	if (to.type == NA_LOCAL) {
-		Net_SendLocalPacket(source, size, data);
-		return;
+	const uint32_t i = loop->send & (MAX_NET_UDP_LOOPS - 1);
+	loop->send++;
+
+	memcpy(loop->messages[i].data, data, len);
+	loop->messages[i].size = len;
+
+	return true;
+}
+
+/*
+ * @brief Send a datagram to the specified address.
+ */
+_Bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data, size_t len) {
+
+	if (to->type == NA_LOOP) {
+		return Net_SendDatagram_Loop(source, data, len);
 	}
 
-	if (to.type == NA_IP_BROADCAST) {
-		sock = ip_sockets[source];
-		if (!sock)
-			return;
-	} else if (to.type == NA_IP) {
-		sock = ip_sockets[source];
-		if (!sock)
-			return;
+	int32_t sock;
+	if (to->type == NA_BROADCAST || to->type == NA_DATAGRAM) {
+		if (!(sock = net_udp_sockets[source]))
+			return false;
 	} else {
 		Com_Error(ERR_DROP, "Bad address type\n");
-		return;
 	}
 
-	Net_NetAddrToSockaddr(&to, &to_addr);
+	struct sockaddr_in to_addr;
+	Net_NetAddrToSockaddr(to, &to_addr);
 
-	ssize_t ret = sendto(sock, data, size, 0, (struct sockaddr *) &to_addr, sizeof(to_addr));
+	ssize_t ret = sendto(sock, data, len, 0, (const struct sockaddr *) &to_addr, sizeof(to_addr));
 
-	if (ret == -1)
-		Com_Warn("sendto: %s to %s\n", Net_ErrorString(), Net_NetaddrToString(to));
+	if (ret == -1) {
+		Com_Warn("sendto: %s to %s\n", Net_GetErrorString(), Net_NetaddrToString(to));
+		return false;
+	}
+
+	return true;
 }
 
 /*
@@ -327,11 +166,11 @@ void Net_Sleep(uint32_t msec) {
 	struct timeval timeout;
 	fd_set fdset;
 
-	if (!ip_sockets[NS_SERVER] || !dedicated->value)
+	if (!net_udp_sockets[NS_UDP_SERVER] || !dedicated->value)
 		return; // we're not a server, simply return
 
 	FD_ZERO(&fdset);
-	FD_SET((uint32_t) ip_sockets[NS_SERVER], &fdset); // network socket
+	FD_SET((uint32_t) net_udp_sockets[NS_UDP_SERVER], &fdset); // network socket
 
 	timeout.tv_sec = msec / 1000;
 	timeout.tv_usec = (msec % 1000) * 1000;
@@ -340,95 +179,23 @@ void Net_Sleep(uint32_t msec) {
 }
 
 /*
- * @brief
- */
-static int32_t Net_Socket(const char *net_interface, uint16_t port) {
-	int32_t sock;
-	struct sockaddr_in addr;
-	int32_t i = 1;
-
-	// create the socket
-	if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
-		Com_Error(ERR_DROP, "socket: %s\n", Net_ErrorString());
-	}
-
-	// make it non-blocking
-	if (ioctl(sock, FIONBIO, (void *) &i) == -1) {
-		Com_Error(ERR_DROP, "ioctl: %s\n", Net_ErrorString());
-	}
-
-	// make it broadcast capable
-	if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (const void *) &i, sizeof(i)) == -1) {
-		Com_Error(ERR_DROP, "setsockopt: %s\n", Net_ErrorString());
-	}
-
-	memset(&addr, 0, sizeof(addr));
-
-	if (!net_interface[0] || !g_ascii_strcasecmp(net_interface, "localhost")) {
-		addr.sin_addr.s_addr = INADDR_ANY;
-	} else {
-		Net_StringToSockaddr(net_interface, (struct sockaddr *) &addr);
-	}
-
-	addr.sin_port = htons(port);
-	addr.sin_family = AF_INET;
-
-	if (bind(sock, (void *) &addr, sizeof(addr)) == -1) {
-		Com_Error(ERR_DROP, "bind: %s\n", Net_ErrorString());
-	}
-
-	return sock;
-}
-
-/*
- * @brief
+ * @brief Opens or closes the managed UDP socket for the given net_src_t.
  */
 void Net_Config(net_src_t source, _Bool up) {
-	uint16_t p = 0;
+	int32_t *sock = &net_udp_sockets[source];
 
-	if (source == NS_SERVER) {
-		p = (uint16_t) net_port->integer;
+	if (up) {
+		if (*sock == 0) {
+			const char *interface = Cvar_GetString("net_interface");
+			const in_port_t port = source == NS_UDP_SERVER ? Cvar_GetValue("net_port") : 0;
+
+			*sock = Net_Socket(NA_DATAGRAM, interface, port);
+		}
+	} else {
+		if (*sock != 0) {
+			Net_CloseSocket(*sock);
+			*sock = 0;
+		}
 	}
-
-	if (up) { // open the socket
-		if (!ip_sockets[source])
-			ip_sockets[source] = Net_Socket(net_ip->string, p);
-		return;
-	}
-
-	// or close it
-	if (ip_sockets[source])
-		Net_CloseSocket(ip_sockets[source]);
-
-	ip_sockets[source] = 0;
 }
 
-/*
- * @brief
- */
-void Net_Init(void) {
-
-#ifdef _WIN32
-	WORD v;
-	WSADATA d;
-
-	v = MAKEWORD(2, 2);
-	WSAStartup(v, &d);
-#endif
-
-	net_port = Cvar_Get("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
-	net_ip = Cvar_Get("net_ip", "localhost", CVAR_NO_SET, NULL);
-}
-
-/*
- * @brief
- */
-void Net_Shutdown(void) {
-
-	Net_Config(NS_CLIENT, false); // close client socket
-	Net_Config(NS_SERVER, false); // and server socket
-
-#ifdef _WIN32
-	WSACleanup();
-#endif
-}

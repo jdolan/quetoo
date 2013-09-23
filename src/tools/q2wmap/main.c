@@ -65,6 +65,8 @@ extern vec_t contrast;
 extern vec_t surface_scale;
 extern vec_t entity_scale;
 
+static void Print(const char *msg);
+
 /*
  * @brief
  */
@@ -73,7 +75,7 @@ static void Debug(const char *msg) {
 	if (!debug)
 		return;
 
-	fputs(msg, stdout);
+	Print(msg);
 }
 
 static void Shutdown(const char *msg);
@@ -93,6 +95,16 @@ static void Error(err_t err __attribute__((unused)), const char *msg) {
 }
 
 /*
+ * @brief Print to stdout and, optionally, to the monitor socket.
+ */
+static void Print(const char *msg) {
+
+	fputs(msg, stdout);
+
+	// TODO: XML bullshit
+}
+
+/*
  * @brief
  */
 static void Verbose(const char *msg) {
@@ -100,7 +112,7 @@ static void Verbose(const char *msg) {
 	if (!verbose)
 		return;
 
-	fputs(msg, stdout);
+	Print(msg);
 }
 
 /*
@@ -383,6 +395,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	quake2world.Debug = Debug;
 	quake2world.Error = Error;
+	quake2world.Print = Print;
 	quake2world.Verbose = Verbose;
 	quake2world.Warn = Warn;
 

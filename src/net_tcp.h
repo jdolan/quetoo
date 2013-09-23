@@ -19,34 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
+#ifndef __NET_TCP_H__
+#define __NET_TCP_H__
 
-#include "cmodel.h"
-#include "console.h"
-#include "filesystem.h"
-#include "net_chan.h"
-#include "thread.h"
-#include "cgame/cgame.h"
-#include "renderer/renderer.h"
-#include "sound/sound.h"
-#include "ui/ui.h"
+#include "net.h"
 
-#include "cl_cgame.h"
-#include "cl_cmd.h"
-#include "cl_console.h"
-#include "cl_demo.h"
-#include "cl_entity.h"
-#include "cl_http.h"
-#include "cl_input.h"
-#include "cl_keys.h"
-#include "cl_main.h"
-#include "cl_media.h"
-#include "cl_parse.h"
-#include "cl_predict.h"
-#include "cl_screen.h"
-#include "cl_server.h"
-#include "cl_types.h"
-#include "cl_view.h"
+int32_t Net_Connect(const char *host);
 
-#endif /* __CLIENT_H__ */
+_Bool Net_SendStream(int32_t sock, const void *data, size_t len);
+_Bool Net_ReceiveStream(int32_t sock, size_buf_t *buf);
+
+#endif /* __NET_TCP_H__ */

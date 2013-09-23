@@ -19,34 +19,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
+#ifndef __NET_UDP_H__
+#define __NET_UDP_H__
 
-#include "cmodel.h"
-#include "console.h"
-#include "filesystem.h"
-#include "net_chan.h"
-#include "thread.h"
-#include "cgame/cgame.h"
-#include "renderer/renderer.h"
-#include "sound/sound.h"
-#include "ui/ui.h"
+#include "net.h"
 
-#include "cl_cgame.h"
-#include "cl_cmd.h"
-#include "cl_console.h"
-#include "cl_demo.h"
-#include "cl_entity.h"
-#include "cl_http.h"
-#include "cl_input.h"
-#include "cl_keys.h"
-#include "cl_main.h"
-#include "cl_media.h"
-#include "cl_parse.h"
-#include "cl_predict.h"
-#include "cl_screen.h"
-#include "cl_server.h"
-#include "cl_types.h"
-#include "cl_view.h"
+_Bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, size_buf_t *message);
+_Bool Net_SendDatagram(net_src_t source, const net_addr_t *to, void *data, size_t len);
 
-#endif /* __CLIENT_H__ */
+void Net_Config(net_src_t source, _Bool up);
+void Net_Sleep(uint32_t msec);
+
+#endif /* __NET_UDP_H__ */

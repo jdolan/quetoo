@@ -57,7 +57,6 @@ cl_client_t cl;
  */
 static void Cl_SendConnect(void) {
 	net_addr_t addr;
-	uint8_t qport;
 
 	memset(&addr, 0, sizeof(addr));
 
@@ -68,12 +67,12 @@ static void Cl_SendConnect(void) {
 	}
 
 	if (addr.port == 0) // use default port
-		addr.port = BigShort(PORT_SERVER);
+		addr.port = htons(PORT_SERVER);
 
-	qport = (uint8_t) Cvar_GetValue("net_qport"); // has been set by netchan
+	const uint8_t qport = (uint8_t) Cvar_GetValue("net_qport"); // has been set by netchan
 
-	Netchan_OutOfBandPrint(NS_CLIENT, addr, "connect %i %i %i \"%s\"\n", PROTOCOL, qport, cls.challenge,
-			Cvar_UserInfo());
+	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %i \"%s\"\n", PROTOCOL, qport,
+			cls.challenge, Cvar_UserInfo());
 
 	cvar_user_info_modified = false;
 }
@@ -82,7 +81,6 @@ static void Cl_SendConnect(void) {
  * @brief Re-send a connect message if the last one has timed out.
  */
 static void Cl_CheckForResend(void) {
-	net_addr_t addr;
 
 	// if the local server is running and we aren't then connect
 	if (Com_WasInit(Q2W_SERVER) && g_strcmp0(cls.server_name, "localhost")) {
@@ -105,6 +103,8 @@ static void Cl_CheckForResend(void) {
 	if (cls.connect_time && (cls.real_time - cls.connect_time < 3000))
 		return;
 
+	net_addr_t addr;
+
 	if (!Net_StringToNetaddr(cls.server_name, &addr)) {
 		Com_Print("Bad server address\n");
 		cls.state = CL_DISCONNECTED;
@@ -112,13 +112,18 @@ static void Cl_CheckForResend(void) {
 	}
 
 	if (addr.port == 0)
-		addr.port = BigShort(PORT_SERVER);
+		addr.port = htons(PORT_SERVER);
 
 	cls.connect_time = cls.real_time; // for retransmit requests
 
-	Com_Print("Connecting to %s...\n", cls.server_name);
+	const char *s = Net_NetaddrToString(&addr);
+	if (g_strcmp0(cls.server_name, s)) {
+		Com_Print("Connecting to %s (%s)...\n", cls.server_name, s);
+	} else {
+		Com_Print("Connecting to %s...\n", cls.server_name);
+	}
 
-	Netchan_OutOfBandPrint(NS_CLIENT, addr, "get_challenge\n");
+	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "get_challenge\n");
 }
 
 /*
@@ -181,12 +186,17 @@ static void Cl_Rcon_f(void) {
 			Com_Print("Not connected and no rcon_address set\n");
 			return;
 		}
-		Net_StringToNetaddr(rcon_address->string, &to);
+
+		if (!Net_StringToNetaddr(rcon_address->string, &to)) {
+			Com_Warn("Invalid rcon_address: %s\n", rcon_address->string);
+			return;
+		}
+
 		if (to.port == 0)
-			to.port = BigShort(PORT_SERVER);
+			to.port = htons(PORT_SERVER);
 	}
 
-	Net_SendPacket(NS_CLIENT, strlen(message) + 1, message, to);
+	Net_SendDatagram(NS_UDP_CLIENT, &to, message, strlen(message) + 1);
 }
 
 /*
@@ -245,9 +255,9 @@ void Cl_SendDisconnect(void) {
 	// send a disconnect message to the server
 	final[0] = CL_CMD_STRING;
 	strcpy((char *) final + 1, "disconnect");
-	Netchan_Transmit(&cls.net_chan, strlen((char *) final), final);
-	Netchan_Transmit(&cls.net_chan, strlen((char *) final), final);
-	Netchan_Transmit(&cls.net_chan, strlen((char *) final), final);
+	Netchan_Transmit(&cls.net_chan, final, strlen((char *) final));
+	Netchan_Transmit(&cls.net_chan, final, strlen((char *) final));
+	Netchan_Transmit(&cls.net_chan, final, strlen((char *) final));
 
 	Cl_ClearState();
 
@@ -271,7 +281,8 @@ void Cl_Disconnect(void) {
 
 		const vec_t s = (cls.real_time - cl.time_demo_start) / 1000.0;
 
-		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s, cl.time_demo_frames / s);
+		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
+				cl.time_demo_frames / s);
 
 		cl.time_demo_frames = cl.time_demo_start = 0;
 	}
@@ -352,18 +363,18 @@ static void Cl_ConnectionlessPacket(void) {
 
 	const char *c = Cmd_Argv(0);
 
-	Com_Debug("%s: %s\n", Net_NetaddrToString(net_from), c);
+	Com_Debug("%s: %s\n", Net_NetaddrToString(&net_from), c);
 
 	// server connection
 	if (!g_strcmp0(c, "client_connect")) {
 
 		if (cls.state == CL_CONNECTED) {
-			Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(net_from));
+			Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(&net_from));
 			return;
 		}
 
 		const uint8_t qport = (uint8_t) Cvar_GetValue("net_qport");
-		Netchan_Setup(NS_CLIENT, &cls.net_chan, net_from, qport);
+		Netchan_Setup(NS_UDP_CLIENT, &cls.net_chan, &net_from, qport);
 
 		Msg_WriteChar(&cls.net_chan.message, CL_CMD_STRING);
 		Msg_WriteString(&cls.net_chan.message, "new");
@@ -392,7 +403,7 @@ static void Cl_ConnectionlessPacket(void) {
 
 	// ping from somewhere
 	if (!g_strcmp0(c, "ping")) {
-		Netchan_OutOfBandPrint(NS_CLIENT, net_from, "ack");
+		Netchan_OutOfBandPrint(NS_UDP_CLIENT, &net_from, "ack");
 		return;
 	}
 
@@ -405,7 +416,7 @@ static void Cl_ConnectionlessPacket(void) {
 	// challenge from the server we are connecting to
 	if (!g_strcmp0(c, "challenge")) {
 		if (cls.state != CL_CONNECTING) {
-			Com_Print("Ignoring duplicate challenge from %s\n", Net_NetaddrToString(net_from));
+			Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&net_from));
 			return;
 		}
 		cls.challenge = atoi(Cmd_Argv(1));
@@ -413,7 +424,7 @@ static void Cl_ConnectionlessPacket(void) {
 		return;
 	}
 
-	Com_Warn("Unknown command: %s\n", c);
+	Com_Warn("Unknown command: %s from %s\n", c, Net_NetaddrToString(&net_from));
 }
 
 /*
@@ -423,7 +434,7 @@ static void Cl_ReadPackets(void) {
 
 	memset(&net_from, 0, sizeof(net_from));
 
-	while (Net_GetPacket(NS_CLIENT, &net_from, &net_message)) {
+	while (Net_ReceiveDatagram(NS_UDP_CLIENT, &net_from, &net_message)) {
 
 		// remote command packet
 		if (*(int32_t *) net_message.data == -1) {
@@ -435,13 +446,13 @@ static void Cl_ReadPackets(void) {
 			continue; // dump it if not connected
 
 		if (net_message.size < 8) {
-			Com_Debug("%s: Runt packet\n", Net_NetaddrToString(net_from));
+			Com_Debug("%s: Runt packet\n", Net_NetaddrToString(&net_from));
 			continue;
 		}
 
 		// packet from server
-		if (!Net_CompareNetaddr(net_from, cls.net_chan.remote_address)) {
-			Com_Debug("%s: Sequenced packet without connection\n", Net_NetaddrToString(net_from));
+		if (!Net_CompareNetaddr(&net_from, &cls.net_chan.remote_address)) {
+			Com_Debug("%s: Sequenced packet without connection\n", Net_NetaddrToString(&net_from));
 			continue;
 		}
 
@@ -452,9 +463,14 @@ static void Cl_ReadPackets(void) {
 	}
 
 	// check timeout
-	if (cls.state >= CL_CONNECTED && cls.real_time - cls.net_chan.last_received > cl_timeout->value * 1000) {
-		Com_Print("%s: Timed out.\n", Net_NetaddrToString(net_from));
-		Cl_Disconnect();
+	if (cls.state >= CL_CONNECTED) {
+
+		const uint32_t ttl = cls.real_time - cls.net_chan.last_received;
+		if (ttl > cl_timeout->value * 1000) {
+
+			Com_Print("%s: Timed out.\n", Net_NetaddrToString(&net_from));
+			Cl_Disconnect();
+		}
 	}
 }
 
@@ -545,7 +561,7 @@ static void Cl_WriteConfiguration(void) {
 /*
  * @brief
  */
-void Cl_Frame(uint32_t msec) {
+void Cl_Frame(const uint32_t msec) {
 	_Bool packet_frame = true, render_frame = true;
 	uint32_t ms;
 
@@ -677,7 +693,7 @@ void Cl_Init(void) {
 
 	Cl_InitKeys();
 
-	Net_Config(NS_CLIENT, true);
+	Net_Config(NS_UDP_CLIENT, true);
 
 	net_message.data = net_message_buffer;
 	net_message.max_size = sizeof(net_message_buffer);

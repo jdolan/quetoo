@@ -21,6 +21,9 @@ noinst_HEADERS = \
 	image.h \
 	mem.h \
 	net.h \
+	net_chan.h \
+	net_tcp.h \
+	net_udp.h \
 	quake2world.h \
 	shared.h \
 	sys.h \
@@ -44,7 +47,7 @@ libcmodel_la_SOURCES = \
 libcmodel_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
-libcmodel_la_LDFLAGS =
+libcmodel_la_LDFLAGS = \
 	-static
 libcmodel_la_LIBADD = \
 	libfilesystem.la
@@ -123,7 +126,9 @@ libmem_la_LIBADD = \
 	@SDL_LIBS@
 
 libnet_la_SOURCES = \
+	net.c \
 	net_chan.c \
+	net_tcp.c \
 	net_udp.c
 libnet_la_CFLAGS = \
 	@BASE_CFLAGS@ \

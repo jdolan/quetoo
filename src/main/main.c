@@ -165,7 +165,6 @@ static void Init(void) {
 
 	Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quake2World");
 
-	Net_Init();
 	Netchan_Init();
 
 	Sv_Init();
@@ -199,6 +198,8 @@ static void Shutdown(const char *msg) {
 	Cl_Shutdown();
 #endif
 
+	Netchan_Shutdown();
+
 	Thread_Shutdown();
 
 	Con_Shutdown();
@@ -216,7 +217,7 @@ static void Shutdown(const char *msg) {
 /*
  * @brief
  */
-static void Frame(uint32_t msec) {
+static void Frame(const uint32_t msec) {
 	extern int32_t c_traces, c_bsp_brush_traces;
 	extern int32_t c_point_contents;
 	extern cvar_t *threads;
@@ -291,14 +292,14 @@ int32_t main(int32_t argc, char **argv) {
 				time_scale->value = 3.0;
 		}
 
-		old_time = quake2world.time;
-
 		do {
 			quake2world.time = Sys_Milliseconds();
 			msec = (quake2world.time - old_time) * time_scale->value;
 		} while (msec < 1);
 
 		Frame(msec);
+
+		old_time = quake2world.time;
 	}
 
 	return 0;

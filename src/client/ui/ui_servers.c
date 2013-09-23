@@ -30,7 +30,7 @@ extern cl_static_t cls;
 static TW_CALL void Ui_Servers_Connect(void *data) {
 	cl_server_info_t *s = (cl_server_info_t *) data;
 
-	Cbuf_AddText(va("connect %s\n", Net_NetaddrToString(s->addr)));
+	Cbuf_AddText(va("connect %s\n", Net_NetaddrToString(&s->addr)));
 }
 
 /*
