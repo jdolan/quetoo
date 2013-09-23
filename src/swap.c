@@ -26,30 +26,6 @@
 /*
  * @brief
  */
-static int16_t SwapShort(int16_t l) {
-
-	const byte b1 = l & 255;
-	const byte b2 = (l >> 8) & 255;
-
-	return (b1 << 8) + b2;
-}
-
-/*
- * @brief
- */
-static int32_t SwapLong(int32_t l) {
-
-	const byte b1 = l & 255;
-	const byte b2 = (l >> 8) & 255;
-	const byte b3 = (l >> 16) & 255;
-	const byte b4 = (l >> 24) & 255;
-
-	return ((int32_t) b1 << 24) + ((int32_t) b2 << 16) + ((int32_t) b3 << 8) + b4;
-}
-
-/*
- * @brief
- */
 static vec_t SwapFloat(vec_t f) {
 
 	union {
@@ -71,36 +47,28 @@ static vec_t SwapFloat(vec_t f) {
  * @brief
  */
 int16_t BigShort(int16_t s) {
-	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
-		return SwapShort(s);
-	return s;
+	return SDL_SwapBE16(s);
 }
 
 /*
  * @brief
  */
 int16_t LittleShort(int16_t s) {
-	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-		return SwapShort(s);
-	return s;
+	return SDL_SwapLE16(s);
 }
 
 /*
  * @brief
  */
 int32_t BigLong(int32_t l) {
-	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
-		return SwapLong(l);
-	return l;
+	return SDL_SwapBE32(l);
 }
 
 /*
  * @brief
  */
 int32_t LittleLong(int32_t l) {
-	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-		return SwapLong(l);
-	return l;
+	return SDL_SwapLE32(l);
 }
 
 /*
