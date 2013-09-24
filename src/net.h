@@ -22,15 +22,13 @@
 #ifndef __NET_H__
 #define __NET_H__
 
-#include "common.h"
-#include "cvar.h"
-
 #ifdef _WIN32
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
 #ifndef in_addr_t
+#include <stdint.h>
 typedef uint32_t in_addr_t;
 typedef uint16_t in_port_t;
 #endif
@@ -53,6 +51,9 @@ typedef uint16_t in_port_t;
 #define Net_CloseSocket close
 
 #endif
+
+#include "common.h"
+#include "cvar.h"
 
 typedef enum {
 	NA_LOOP,
