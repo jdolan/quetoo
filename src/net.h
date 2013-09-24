@@ -22,6 +22,9 @@
 #ifndef __NET_H__
 #define __NET_H__
 
+#include "common.h"
+#include "cvar.h"
+
 #ifdef _WIN32
 
 #include <winsock2.h>
@@ -43,15 +46,13 @@ typedef uint16_t in_port_t;
 
 #else
 
+#include <errno.h>
 #include <netinet/in.h>
 
 #define Net_GetError() errno
 #define Net_CloseSocket close
 
 #endif
-
-#include "common.h"
-#include "cvar.h"
 
 typedef enum {
 	NA_LOOP,
@@ -71,6 +72,8 @@ typedef enum {
 	NS_UDP_SERVER
 } net_src_t;
 
+extern in_addr_t net_lo;
+
 /*
  * @brief Max length of a single packet, due to UDP fragmentation. No single
  * net message can exceed this length. However, large frames can be split
@@ -81,7 +84,6 @@ typedef enum {
 const char *Net_GetErrorString(void);
 _Bool Net_CompareNetaddr(const net_addr_t *a, const net_addr_t *b);
 _Bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b);
-_Bool Net_IsLocalNetaddr(const net_addr_t *a);
 
 void Net_NetAddrToSockaddr(const net_addr_t *a, struct sockaddr_in *s);
 const char *Net_NetaddrToString(const net_addr_t *a);

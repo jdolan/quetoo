@@ -32,15 +32,17 @@
 
 #include "net.h"
 
+in_addr_t net_lo;
+
 /*
- * @brief
+ * @return A printable error string for the most recent OS-level network error.
  */
 const char *Net_GetErrorString(void) {
 	return strerror(Net_GetError());
 }
 
 /*
- * @brief
+ * @brief Initializes the specified sockaddr_in according to the net_addr_t.
  */
 void Net_NetAddrToSockaddr(const net_addr_t *a, struct sockaddr_in *s) {
 
@@ -57,22 +59,17 @@ void Net_NetAddrToSockaddr(const net_addr_t *a, struct sockaddr_in *s) {
 }
 
 /*
- * @brief
+ * @return True if the addresses share the same base and port.
  */
 _Bool Net_CompareNetaddr(const net_addr_t *a, const net_addr_t *b) {
 	return a->addr == b->addr && a->port == b->port;
 }
 
 /*
- * @brief Similar to Net_CompareNetaddr, but omits port checks.
+ * @return True if the addresses share the same type and base.
  */
 _Bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b) {
-
-	if (a->type == b->type && a->addr == b->addr) {
-		return true;
-	}
-
-	return false;
+	return a->type == b->type && a->addr == b->addr;
 }
 
 /*
@@ -129,18 +126,14 @@ _Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr) {
  * @brief Parses the hostname and port into the specified net_addr_t.
  */
 _Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
-	static in_addr_t localhost;
-	if (!localhost) {
-		localhost = inet_addr("127.0.0.1");
-	}
-
 	struct sockaddr_in saddr;
+
 	if (!Net_StringToSockaddr(s, &saddr))
 		return false;
 
 	a->addr = saddr.sin_addr.s_addr;
 
-	if (a->addr == localhost) {
+	if (a->addr == net_lo) {
 		a->port = 0;
 		a->type = NA_LOOP;
 	} else {
@@ -190,7 +183,7 @@ int32_t Net_Socket(net_addr_type_t type, const char *interface, in_port_t port) 
 
 	struct sockaddr_in addr;
 
-	if (!interface || !g_ascii_strcasecmp(interface, "localhost")) {
+	if (!strlen(interface)) {
 		memset(&addr, 0, sizeof(addr));
 		addr.sin_addr.s_addr = INADDR_ANY;
 	} else {
@@ -220,12 +213,13 @@ void Net_Init(void) {
 	WSAStartup(v, &d);
 #endif
 
-	Cvar_Get("net_interface", "localhost", CVAR_NO_SET, NULL);
+	Cvar_Get("net_interface", "", CVAR_NO_SET, NULL);
 	Cvar_Get("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
 
 	// assign a small random number for the qport
 	Cvar_Get("net_qport", va("%d", Sys_Milliseconds() & 255), CVAR_NO_SET, NULL);
 
+	net_lo = inet_addr("127.0.0.1");
 }
 
 /*

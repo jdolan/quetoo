@@ -52,6 +52,13 @@ int32_t Net_Connect(const char *host) {
  */
 _Bool Net_SendStream(int32_t sock, const void *buf, size_t len) {
 
+	const ssize_t sent = send(sock, buf, len, 0);
+
+	if (sent == -1) {
+		Com_Warn("%s", Net_GetErrorString());
+		return false;
+	}
+
 	return true;
 }
 
@@ -60,6 +67,18 @@ _Bool Net_SendStream(int32_t sock, const void *buf, size_t len) {
  */
 _Bool Net_ReceiveStream(int32_t sock, size_buf_t *buf) {
 
-	return true;
+	buf->size = buf->read = 0;
 
+	const ssize_t received = recv(sock, buf->data, buf->max_size, 0);
+	if (received == -1) {
+
+		if (Net_GetError() == EWOULDBLOCK)
+			return false; // no data, don't crap our pants
+
+		Com_Warn("%s", Net_GetErrorString());
+		return false;
+	}
+
+	buf->size = received;
+	return true;
 }
