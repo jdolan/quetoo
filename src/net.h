@@ -91,7 +91,7 @@ const char *Net_NetaddrToString(const net_addr_t *a);
 _Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr);
 _Bool Net_StringToNetaddr(const char *s, net_addr_t *a);
 
-int32_t Net_Socket(net_addr_type_t type, const char *interface, in_port_t port);
+int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port);
 
 void Net_Init(void);
 void Net_Shutdown(void);

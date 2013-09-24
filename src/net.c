@@ -147,7 +147,7 @@ _Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 /*
  * @brief Creates and binds a new network socket for the specified protocol.
  */
-int32_t Net_Socket(net_addr_type_t type, const char *interface, in_port_t port) {
+int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 	int32_t sock, i = 1;
 
 	switch (type) {
@@ -183,11 +183,11 @@ int32_t Net_Socket(net_addr_type_t type, const char *interface, in_port_t port) 
 
 	struct sockaddr_in addr;
 
-	if (!strlen(interface)) {
+	if (!strlen(iface)) {
 		memset(&addr, 0, sizeof(addr));
 		addr.sin_addr.s_addr = INADDR_ANY;
 	} else {
-		Net_StringToSockaddr(interface, &addr);
+		Net_StringToSockaddr(iface, &addr);
 	}
 
 	addr.sin_port = htons(port);
