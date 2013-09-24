@@ -69,7 +69,7 @@ _Bool Net_ReceiveStream(int32_t sock, size_buf_t *buf) {
 
 	buf->size = buf->read = 0;
 
-	const ssize_t received = recv(sock, buf->data, buf->max_size, 0);
+	const ssize_t received = recv(sock, (void *) buf->data, buf->max_size, 0);
 	if (received == -1) {
 
 		if (Net_GetError() == EWOULDBLOCK)

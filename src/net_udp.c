@@ -90,8 +90,8 @@ _Bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, size_buf_t *buf) {
 	struct sockaddr_in addr;
 	socklen_t addr_len = sizeof(addr);
 
-	const ssize_t received = recvfrom(sock, buf->data, buf->max_size, 0, (struct sockaddr *) &addr,
-			&addr_len);
+	const ssize_t received = recvfrom(sock, (void *) buf->data, buf->max_size, 0,
+			(struct sockaddr *) &addr, &addr_len);
 
 	from->addr = addr.sin_addr.s_addr;
 	from->port = addr.sin_port;
@@ -175,7 +175,7 @@ void Net_Sleep(uint32_t msec) {
 		return; // we're not a server, simply return
 
 	FD_ZERO(&fdset);
-	FD_SET(net_udp_state.sockets[NS_UDP_SERVER], &fdset); // server socket
+	FD_SET((uint32_t) net_udp_state.sockets[NS_UDP_SERVER], &fdset); // server socket
 
 	timeout.tv_sec = msec / 1000;
 	timeout.tv_usec = (msec % 1000) * 1000;
@@ -191,10 +191,10 @@ void Net_Config(net_src_t source, _Bool up) {
 
 	if (up) {
 		if (*sock == 0) {
-			const char *interface = Cvar_GetString("net_interface");
+			const char *iface = Cvar_GetString("net_interface");
 			const in_port_t port = source == NS_UDP_SERVER ? Cvar_GetValue("net_port") : 0;
 
-			*sock = Net_Socket(NA_DATAGRAM, interface, port);
+			*sock = Net_Socket(NA_DATAGRAM, iface, port);
 		}
 	} else {
 		if (*sock != 0) {
