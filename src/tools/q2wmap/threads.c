@@ -20,6 +20,7 @@
  */
 
 #include "q2wmap.h"
+#include "thread.h"
 
 semaphores_t semaphores;
 thread_work_t thread_work;

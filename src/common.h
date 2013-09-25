@@ -151,6 +151,7 @@ extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
 
 typedef enum {
 	ERR_NONE,
+	ERR_PRINT,
 	ERR_DROP,
 	ERR_FATAL
 } err_t;

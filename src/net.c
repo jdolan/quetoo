@@ -98,7 +98,6 @@ _Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr) {
 
 	memset(saddr, 0, sizeof(*saddr));
 	saddr->sin_family = AF_INET;
-	saddr->sin_port = 0;
 
 	g_strlcpy(copy, s, sizeof(copy));
 
@@ -182,16 +181,16 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 	}
 
 	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(addr));
 
-	if (!strlen(iface)) {
-		memset(&addr, 0, sizeof(addr));
-		addr.sin_addr.s_addr = INADDR_ANY;
-	} else {
+	if (iface) {
 		Net_StringToSockaddr(iface, &addr);
+	} else {
+		addr.sin_family = AF_INET;
+		addr.sin_addr.s_addr = INADDR_ANY;
 	}
 
 	addr.sin_port = htons(port);
-	addr.sin_family = AF_INET;
 
 	if (bind(sock, (void *) &addr, sizeof(addr)) == -1) {
 		Com_Error(ERR_DROP, "bind: %s\n", Net_GetErrorString());

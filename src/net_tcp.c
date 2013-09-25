@@ -29,7 +29,7 @@
 int32_t Net_Connect(const char *host) {
 	struct sockaddr_in addr;
 
-	int32_t sock = Net_Socket(NA_STREAM, "localhost", 0);
+	int32_t sock = Net_Socket(NA_STREAM, NULL, 0);
 
 	memset(&addr, 0, sizeof(addr));
 

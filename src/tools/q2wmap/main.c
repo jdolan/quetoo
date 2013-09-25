@@ -20,6 +20,7 @@
  */
 
 #include <SDL/SDL.h>
+
 #include "q2wmap.h"
 
 quake2world_t quake2world;
