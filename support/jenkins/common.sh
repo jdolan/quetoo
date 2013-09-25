@@ -66,6 +66,7 @@ function init() {
 				libtool \
 				zlib-devel \
 				ncurses-devel \
+				libxml2-devel \
 				check \
 				check-devel
 				"
@@ -95,6 +96,7 @@ function init() {
 				${TARGET}-zlib \
 				${TARGET}-pkg-config \
 				${TARGET}-pdcurses \
+				${TARGET}-libxml2 \
 				http://maci.satgnu.net/rpmbuild/RPMS/${TARGET}-physfs-2.0.3-3.fc18.noarch.rpm \
 				http://maci.satgnu.net/rpmbuild/RPMS/${TARGET}-lzma-sdk457-4.57-2.fc18.noarch.rpm
 				"
