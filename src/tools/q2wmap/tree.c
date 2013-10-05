@@ -105,9 +105,9 @@ void PruneNodes_r(node_t * node) {
 	if ((node->children[0]->contents & CONTENTS_SOLID) && (node->children[1]->contents
 			& CONTENTS_SOLID)) {
 		if (node->faces)
-			Com_Error(ERR_FATAL, "Node faces separating CONTENTS_SOLID\n");
+			Com_Error(ERR_FATAL, "@Node faces separating CONTENTS_SOLID\n");
 		if (node->children[0]->faces || node->children[1]->faces)
-			Com_Error(ERR_FATAL, "Node has no faces but children do\n");
+			Com_Error(ERR_FATAL, "@Node has no faces but children do\n");
 
 		// FIXME: free stuff
 		node->plane_num = PLANENUM_LEAF;
@@ -115,7 +115,7 @@ void PruneNodes_r(node_t * node) {
 		node->detail_seperator = false;
 
 		if (node->brushes)
-			Com_Error(ERR_FATAL, "Node still references brushes\n");
+			Com_Error(ERR_FATAL, "@Node still references brushes\n");
 
 		// combine brush lists
 		node->brushes = node->children[1]->brushes;

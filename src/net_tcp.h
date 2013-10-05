@@ -24,7 +24,7 @@
 
 #include "net.h"
 
-int32_t Net_Connect(const char *host);
+int32_t Net_Connect(const char *host, struct timeval *timeout);
 
 _Bool Net_SendStream(int32_t sock, const void *data, size_t len);
 _Bool Net_ReceiveStream(int32_t sock, size_buf_t *buf);

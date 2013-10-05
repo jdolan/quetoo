@@ -53,7 +53,7 @@ void CalcTextureReflectivity(void) {
 		g_snprintf(path, sizeof(path), "textures/%s", d_bsp.texinfo[i].texture);
 
 		if (!Img_LoadImage(path, &surf)) {
-			Com_Warn("Couldn't load %s\n", path);
+			Com_Warn("@Couldn't load %s\n", path);
 			VectorSet(texture_reflectivity[i], 0.5, 0.5, 0.5);
 			continue;
 		}
@@ -199,8 +199,8 @@ void BuildPatches(void) {
 
 			w = WindingForFace(f);
 
-			for (k = 0; k < w->numpoints; k++) {
-				VectorAdd(w->p[k], origin, w->p[k]);
+			for (k = 0; k < w->num_points; k++) {
+				VectorAdd(w->points[k], origin, w->points[k]);
 			}
 
 			BuildPatch(facenum, w);

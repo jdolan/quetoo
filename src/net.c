@@ -175,7 +175,7 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 			Com_Error(ERR_DROP, "Invalid socket type: %d", type);
 	}
 
-	// make it non-blocking
+	// make all sockets non-blocking
 	if (ioctl(sock, FIONBIO, (void *) &i) == -1) {
 		Com_Error(ERR_DROP, "ioctl: %s\n", Net_GetErrorString());
 	}

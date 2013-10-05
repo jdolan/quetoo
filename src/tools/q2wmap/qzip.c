@@ -75,7 +75,7 @@ static void AddSound(const char *sound) {
 	const char *sound_formats[] = { "ogg", "wav", NULL };
 
 	if (!ResolveAsset(va("sounds/%s", sound), sound_formats)) {
-		Com_Warn("Failed to resolve %s\n", sound);
+		Com_Warn("@Failed to resolve %s\n", sound);
 	}
 }
 
@@ -88,7 +88,7 @@ static void AddImage(const char *image, _Bool required) {
 
 	if (!ResolveAsset(image, image_formats)) {
 		if (required) {
-			Com_Warn("Failed to resolve %s\n", image);
+			Com_Warn("@Failed to resolve %s\n", image);
 		}
 	}
 }
@@ -144,7 +144,7 @@ static void AddMaterials(const char *path) {
 
 	// load the materials file
 	if ((i = Fs_Load(path, (void **) &buffer)) == -1) {
-		Com_Warn("Couldn't load materials %s\n", path);
+		Com_Warn("@Couldn't load materials %s\n", path);
 		return;
 	}
 
@@ -257,7 +257,7 @@ static void AddModel(char *model) {
 		return;
 
 	if (!ResolveAsset(model, model_formats)) {
-		Com_Warn("Failed to resolve %s\n", model);
+		Com_Warn("@Failed to resolve %s\n", model);
 		return;
 	}
 
@@ -329,13 +329,13 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
 	file_t *file;
 
 	if (!(file = Fs_OpenRead(filename))) {
-		Com_Warn("Failed to read %s\n", filename);
+		Com_Warn("@Failed to read %s\n", filename);
 		return false;
 	}
 
 	if (zipOpenNewFileInZip(zip_file, filename, &zip_info, NULL, 0, NULL, 0, NULL, Z_DEFLATED,
 			Z_DEFAULT_COMPRESSION) != Z_OK) {
-		Com_Warn("Failed to write %s\n", filename);
+		Com_Warn("@Failed to write %s\n", filename);
 		return false;
 	}
 
@@ -346,12 +346,12 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
 		int64_t len = Fs_Read(file, buffer, 1, ZIP_BUFFER_SIZE);
 		if (len > 0) {
 			if (zipWriteInFileInZip(zip_file, buffer, len) != ZIP_OK) {
-				Com_Warn("Failed to deflate %s\n", filename);
+				Com_Warn("@Failed to deflate %s\n", filename);
 				success = false;
 				break;
 			}
 		} else {
-			Com_Warn("Failed to buffer %s\n", filename);
+			Com_Warn("@Failed to buffer %s\n", filename);
 			success = false;
 			break;
 		}
@@ -447,7 +447,7 @@ int32_t ZIP_Main(void) {
 
 		zipClose(zip_file, NULL);
 	} else {
-		Com_Warn("Failed to open %s\n", zip);
+		Com_Warn("@Failed to open %s\n", zip);
 	}
 
 	g_list_free(assets);

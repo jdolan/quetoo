@@ -74,7 +74,7 @@ void DecompressVis(byte *in, byte *decompressed) {
 
 		c = in[1];
 		if (!c)
-			Com_Error(ERR_FATAL, "0 repeat\n");
+			Com_Error(ERR_FATAL, "@0 repeat\n");
 		in += 2;
 		while (c) {
 			*out++ = 0;
@@ -230,7 +230,7 @@ static int32_t CopyLump(int32_t lump, void *dest, int32_t size) {
 	ofs = header->lumps[lump].file_ofs;
 
 	if (length % size)
-		Com_Error(ERR_FATAL, "Funny lump size\n");
+		Com_Error(ERR_FATAL, "@Funny lump size\n");
 
 	memcpy(dest, (byte *)header + ofs, length);
 
@@ -245,17 +245,17 @@ void LoadBSPFile(char *file_name) {
 
 	// load the file header
 	if (Fs_Load(file_name, (void **) (char *) &header) == -1)
-		Com_Error(ERR_FATAL, "Failed to open %s\n", file_name);
+		Com_Error(ERR_FATAL, "@Failed to open %s\n", file_name);
 
 	// swap the header
 	for (i = 0; i < sizeof(d_bsp_header_t) / 4; i++)
 		((int32_t *) header)[i] = LittleLong(((int32_t *) header)[i]);
 
 	if (header->ident != BSP_IDENT)
-		Com_Error(ERR_FATAL, "%s is not a IBSP file\n", file_name);
+		Com_Error(ERR_FATAL, "@%s is not a IBSP file\n", file_name);
 
 	if (header->version != BSP_VERSION && header->version != BSP_VERSION_Q2W)
-		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", file_name,
+		Com_Error(ERR_FATAL, "@%s is unsupported version %i\n", file_name,
 				header->version);
 
 	d_bsp.num_models = CopyLump(BSP_LUMP_MODELS, d_bsp.models, sizeof(d_bsp_model_t));
@@ -311,7 +311,7 @@ void LoadBSPFileTexinfo(char *file_name) {
 	header = Z_Malloc(sizeof(*header));
 
 	if (!(f = Fs_OpenRead(file_name)))
-		Com_Error(ERR_FATAL, "Could not open %s\n", file_name);
+		Com_Error(ERR_FATAL, "@Could not open %s\n", file_name);
 
 	Fs_Read(f, header, sizeof(*header), 1);
 
@@ -320,10 +320,10 @@ void LoadBSPFileTexinfo(char *file_name) {
 		((int32_t *) header)[i] = LittleLong(((int32_t *) header)[i]);
 
 	if (header->ident != BSP_IDENT)
-		Com_Error(ERR_FATAL, "%s is not a bsp file\n", file_name);
+		Com_Error(ERR_FATAL, "@%s is not a bsp file\n", file_name);
 
 	if (header->version != BSP_VERSION && header->version != BSP_VERSION_Q2W)
-		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", file_name,
+		Com_Error(ERR_FATAL, "@%s is unsupported version %i\n", file_name,
 				header->version);
 
 	length = header->lumps[BSP_LUMP_TEXINFO].file_len;
@@ -377,7 +377,7 @@ void WriteBSPFile(char *file_name) {
 		header->version = LittleLong(BSP_VERSION_Q2W);
 
 	if (!(fp = Fs_OpenWrite(file_name)))
-		Com_Error(ERR_FATAL, "Could not open %s\n", file_name);
+		Com_Error(ERR_FATAL, "@Could not open %s\n", file_name);
 
 	Fs_Write(fp, header, 1, sizeof(d_bsp_header_t));
 
@@ -503,11 +503,11 @@ epair_t *ParseEpair(void) {
 	e = Z_Malloc(sizeof(*e));
 
 	if (strlen(token) >= MAX_BSP_ENTITY_KEY - 1)
-		Com_Error(ERR_FATAL, "Token too long\n");
+		Com_Error(ERR_FATAL, "@Token too long\n");
 	e->key = Z_CopyString(token);
 	GetToken(false);
 	if (strlen(token) >= MAX_BSP_ENTITY_VALUE - 1)
-		Com_Error(ERR_FATAL, "Token too long\n");
+		Com_Error(ERR_FATAL, "@Token too long\n");
 	e->value = Z_CopyString(token);
 
 	// strip trailing spaces
@@ -528,17 +528,17 @@ static _Bool ParseEntity(void) {
 		return false;
 
 	if (g_strcmp0(token, "{"))
-		Com_Error(ERR_FATAL, "\"{\" not found\n");
+		Com_Error(ERR_FATAL, "@\"{\" not found\n");
 
 	if (num_entities == MAX_BSP_ENTITIES)
-		Com_Error(ERR_FATAL, "MAX_BSP_ENTITIES\n");
+		Com_Error(ERR_FATAL, "@MAX_BSP_ENTITIES\n");
 
 	mapent = &entities[num_entities];
 	num_entities++;
 
 	do {
 		if (!GetToken(true))
-			Com_Error(ERR_FATAL, "EOF without closing brace\n");
+			Com_Error(ERR_FATAL, "@EOF without closing brace\n");
 		if (!g_strcmp0(token, "}"))
 			break;
 		e = ParseEpair();
@@ -605,7 +605,7 @@ void UnparseEntities(void) {
 		end += 2;
 
 		if (end > buf + MAX_BSP_ENT_STRING)
-			Com_Error(ERR_FATAL, "MAX_BSP_ENT_STRING\n");
+			Com_Error(ERR_FATAL, "@MAX_BSP_ENT_STRING\n");
 	}
 
 	d_bsp.entity_string_len = end - buf + 1;

@@ -19,6 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#ifndef _WIN32
+#include <sys/select.h>
+#endif
+
 #include "net_tcp.h"
 
 /*
@@ -26,7 +30,7 @@
  *
  * @param host The host to connect to. See Net_StringToNetaddr.
  */
-int32_t Net_Connect(const char *host) {
+int32_t Net_Connect(const char *host, struct timeval *timeout) {
 	struct sockaddr_in addr;
 
 	int32_t sock = Net_Socket(NA_STREAM, NULL, 0);
@@ -41,7 +45,19 @@ int32_t Net_Connect(const char *host) {
 	Net_StringToSockaddr(host, &to);
 
 	if (connect(sock, (const struct sockaddr *) &to, sizeof(to)) == -1) {
-		Com_Error(ERR_DROP, "connect: %s", Net_GetErrorString());
+
+		if (Net_GetError() == EINPROGRESS) { // non-blocking sockets do this
+			fd_set fdset;
+
+			FD_ZERO(&fdset);
+			FD_SET((uint32_t) sock, &fdset);
+
+			if (select(sock + 1, NULL, &fdset, NULL, timeout) < 1) {
+				Com_Error(ERR_DROP, "%s", Net_GetErrorString());
+			}
+		} else {
+			Com_Error(ERR_DROP, "%s", Net_GetErrorString());
+		}
 	}
 
 	return sock;
@@ -50,16 +66,30 @@ int32_t Net_Connect(const char *host) {
 /*
  * @brief Send data to the specified TCP stream.
  */
-_Bool Net_SendStream(int32_t sock, const void *buf, size_t len) {
+_Bool Net_SendStream(int32_t sock, const void *data, size_t len) {
+	size_buf_t buf;
+	byte buffer[MAX_MSG_SIZE];
 
-	const ssize_t sent = send(sock, buf, len, 0);
+	Sb_Init(&buf, buffer, sizeof(buffer));
 
-	if (sent == -1) {
-		Com_Warn("%s", Net_GetErrorString());
-		return false;
+	// write the packet length
+	Msg_WriteLong(&buf, (int32_t) len);
+
+	// and copy the payload
+	Msg_WriteData(&buf, data, len);
+
+	ssize_t sent;
+	while ((sent = send(sock, (void *) buf.data, buf.size, 0)) == -1) {
+
+		if (Net_GetError() != EWOULDBLOCK) {
+			Com_Warn("%s\n", Net_GetErrorString());
+			return false;
+		}
+
+		usleep(1); // probably not necessary, but oh well
 	}
 
-	return true;
+	return sent == (ssize_t) buf.size;
 }
 
 /*
@@ -75,10 +105,12 @@ _Bool Net_ReceiveStream(int32_t sock, size_buf_t *buf) {
 		if (Net_GetError() == EWOULDBLOCK)
 			return false; // no data, don't crap our pants
 
-		Com_Warn("%s", Net_GetErrorString());
+		Com_Warn("%s\n", Net_GetErrorString());
 		return false;
 	}
 
 	buf->size = received;
-	return true;
+
+	// check the packet length
+	return Msg_ReadLong(buf) > -1;
 }

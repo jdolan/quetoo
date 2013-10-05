@@ -102,10 +102,10 @@ static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 	map_plane_t *p, temp;
 
 	if (VectorLength(normal) < 0.5)
-		Com_Error(ERR_FATAL, "FloatPlane: bad normal\n");
+		Com_Error(ERR_FATAL, "@FloatPlane: bad normal\n");
 	// create a new plane
 	if (num_map_planes + 2 > MAX_BSP_PLANES)
-		Com_Error(ERR_FATAL, "MAX_BSP_PLANES\n");
+		Com_Error(ERR_FATAL, "@MAX_BSP_PLANES\n");
 
 	p = &map_planes[num_map_planes];
 	VectorCopy(normal, p->normal);
@@ -269,7 +269,7 @@ static void AddBrushBevels(map_brush_t * b) {
 
 			if (i == b->num_sides) { // add a new side
 				if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
-					Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+					Com_Error(ERR_FATAL, "@MAX_BSP_BRUSH_SIDES\n");
 				num_map_brush_sides++;
 				b->num_sides++;
 				VectorClear(normal);
@@ -308,9 +308,9 @@ static void AddBrushBevels(map_brush_t * b) {
 		w = s->winding;
 		if (!w)
 			continue;
-		for (j = 0; j < w->numpoints; j++) {
-			k = (j + 1) % w->numpoints;
-			VectorSubtract(w->p[j], w->p[k], vec);
+		for (j = 0; j < w->num_points; j++) {
+			k = (j + 1) % w->num_points;
+			VectorSubtract(w->points[j], w->points[k], vec);
 			if (VectorNormalize(vec) < 0.5)
 				continue;
 			SnapVector(vec);
@@ -329,7 +329,7 @@ static void AddBrushBevels(map_brush_t * b) {
 					CrossProduct(vec, vec2, normal);
 					if (VectorNormalize(normal) < 0.5)
 						continue;
-					dist = DotProduct(w->p[j], normal);
+					dist = DotProduct(w->points[j], normal);
 
 					// if all the points on all the sides are
 					// behind this plane, it is a proper edge bevel
@@ -344,15 +344,15 @@ static void AddBrushBevels(map_brush_t * b) {
 						if (!w2)
 							continue;
 						minBack = 0.0f;
-						for (l = 0; l < w2->numpoints; l++) {
-							d = DotProduct(w2->p[l], normal) - dist;
+						for (l = 0; l < w2->num_points; l++) {
+							d = DotProduct(w2->points[l], normal) - dist;
 							if (d > 0.1)
 								break; // point in front
 							if (d < minBack)
 								minBack = d;
 						}
 						// if some point was at the front
-						if (l != w2->numpoints)
+						if (l != w2->num_points)
 							break;
 						// if no points at the back then the winding is on the
 						// bevel plane
@@ -364,7 +364,7 @@ static void AddBrushBevels(map_brush_t * b) {
 						continue; // wasn't part of the outer hull
 					// add this plane
 					if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
-						Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+						Com_Error(ERR_FATAL, "@MAX_BSP_BRUSH_SIDES\n");
 					num_map_brush_sides++;
 					s2 = &b->original_sides[b->num_sides];
 					s2->plane_num = FindFloatPlane(normal, dist);
@@ -407,8 +407,8 @@ static _Bool MakeBrushWindings(map_brush_t * ob) {
 		side->winding = w;
 		if (w) {
 			side->visible = true;
-			for (j = 0; j < w->numpoints; j++)
-				AddPointToBounds(w->p[j], ob->mins, ob->maxs);
+			for (j = 0; j < w->num_points; j++)
+				AddPointToBounds(w->points[j], ob->mins, ob->maxs);
 		}
 	}
 
@@ -469,7 +469,7 @@ static void ParseBrush(entity_t *mapent) {
 	vec3_t planepts[3];
 
 	if (num_map_brushes == MAX_BSP_BRUSHES)
-		Com_Error(ERR_FATAL, "MAX_BSP_BRUSHES\n");
+		Com_Error(ERR_FATAL, "@MAX_BSP_BRUSHES\n");
 
 	b = &map_brushes[num_map_brushes];
 	b->original_sides = &map_brush_sides[num_map_brush_sides];
@@ -483,7 +483,7 @@ static void ParseBrush(entity_t *mapent) {
 			break;
 
 		if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
-			Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+			Com_Error(ERR_FATAL, "@MAX_BSP_BRUSH_SIDES\n");
 		side = &map_brush_sides[num_map_brush_sides];
 
 		// read the three point plane definition
@@ -491,7 +491,7 @@ static void ParseBrush(entity_t *mapent) {
 			if (i != 0)
 				GetToken(true);
 			if (g_strcmp0(token, "("))
-				Com_Error(ERR_FATAL, "Parsing brush\n");
+				Com_Error(ERR_FATAL, "@Parsing brush\n");
 
 			for (j = 0; j < 3; j++) {
 				GetToken(false);
@@ -500,7 +500,7 @@ static void ParseBrush(entity_t *mapent) {
 
 			GetToken(false);
 			if (g_strcmp0(token, ")"))
-				Com_Error(ERR_FATAL, "Parsing brush\n");
+				Com_Error(ERR_FATAL, "@Parsing brush\n");
 		}
 
 		memset(&td, 0, sizeof(td));
@@ -509,7 +509,7 @@ static void ParseBrush(entity_t *mapent) {
 		GetToken(false);
 
 		if (strlen(token) > sizeof(td.name) - 1)
-			Com_Error(ERR_FATAL, "Texture name \"%s\" is too long.\n", token);
+			Com_Error(ERR_FATAL, "@Texture name \"%s\" is too long.\n", token);
 
 		g_strlcpy(td.name, token, sizeof(td.name));
 
@@ -709,10 +709,10 @@ static _Bool ParseMapEntity(void) {
 		return false;
 
 	if (g_strcmp0(token, "{"))
-		Com_Error(ERR_FATAL, "\"{\" not found\n");
+		Com_Error(ERR_FATAL, "@\"{\" not found\n");
 
 	if (num_entities == MAX_BSP_ENTITIES)
-		Com_Error(ERR_FATAL, "MAX_BSP_ENTITIES\n");
+		Com_Error(ERR_FATAL, "@MAX_BSP_ENTITIES\n");
 
 	mapent = &entities[num_entities];
 	num_entities++;
@@ -722,7 +722,7 @@ static _Bool ParseMapEntity(void) {
 
 	do {
 		if (!GetToken(true))
-			Com_Error(ERR_FATAL, "EOF without closing brace\n");
+			Com_Error(ERR_FATAL, "@EOF without closing brace\n");
 		if (!g_strcmp0(token, "}"))
 			break;
 		if (!g_strcmp0(token, "{"))

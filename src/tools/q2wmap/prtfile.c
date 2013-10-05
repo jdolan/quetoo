@@ -80,16 +80,16 @@ static void WritePortalFile_r(node_t *node) {
 			// FIXME: is this still relevent?
 			WindingPlane(w, normal, &dist);
 			if (DotProduct(p->plane.normal, normal) < 0.99) { // backwards...
-				Fs_Print(prtfile, "%i %i %i ", w->numpoints, p->nodes[1]->cluster,
+				Fs_Print(prtfile, "%i %i %i ", w->num_points, p->nodes[1]->cluster,
 						p->nodes[0]->cluster);
 			} else
-				Fs_Print(prtfile, "%i %i %i ", w->numpoints, p->nodes[0]->cluster,
+				Fs_Print(prtfile, "%i %i %i ", w->num_points, p->nodes[0]->cluster,
 						p->nodes[1]->cluster);
-			for (i = 0; i < w->numpoints; i++) {
+			for (i = 0; i < w->num_points; i++) {
 				Fs_Print(prtfile, "(");
-				WriteFloat(prtfile, w->p[i][0]);
-				WriteFloat(prtfile, w->p[i][1]);
-				WriteFloat(prtfile, w->p[i][2]);
+				WriteFloat(prtfile, w->points[i][0]);
+				WriteFloat(prtfile, w->points[i][1]);
+				WriteFloat(prtfile, w->points[i][2]);
 				Fs_Print(prtfile, ") ");
 			}
 			Fs_Print(prtfile, "\n");
@@ -202,7 +202,7 @@ void WritePortalFile(tree_t *tree) {
 	strcat(filename, ".prt");
 
 	if (!(prtfile = Fs_OpenWrite(filename)))
-		Com_Error(ERR_FATAL, "Error opening %s\n", filename);
+		Com_Error(ERR_FATAL, "@Error opening %s\n", filename);
 
 	Fs_Print(prtfile, "%s\n", PORTALFILE);
 	Fs_Print(prtfile, "%i\n", num_visclusters);

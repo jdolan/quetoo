@@ -69,6 +69,7 @@ static void Error(err_t err, const char *msg) {
 
 	switch (err) {
 		case ERR_NONE:
+		case ERR_PRINT:
 		case ERR_DROP:
 			Sv_ShutdownServer(msg);
 

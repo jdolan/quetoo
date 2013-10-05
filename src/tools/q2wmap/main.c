@@ -90,23 +90,33 @@ static void Error(err_t err __attribute__((unused)), const char *msg) {
 	fprintf(stderr, "************ ERROR ************\n");
 	fprintf(stderr, "%s", msg);
 
-	Shutdown(NULL);
+	fflush(stderr);
+
+	Shutdown(msg);
 
 	exit(err);
 }
 
 /*
- * @brief Print to stdout and, optionally, to the monitor socket.
+ * @brief Print to stdout and, if decorated, to the monitor socket.
  */
 static void Print(const char *msg) {
 
-	fputs(msg, stdout);
+	if (msg) {
+		if (*msg == '@') {
+			fputs(msg + 1, stdout);
+			Mon_SendMessage(msg + 1, ERR_PRINT);
+		} else {
+			fputs(msg, stdout);
+		}
 
-	// TODO: XML bullshit
+		fflush(stdout);
+	}
 }
 
 /*
- * @brief
+ * @brief Print a verbose message to stdout and, unless escaped, to the monitor
+ * socket.
  */
 static void Verbose(const char *msg) {
 
@@ -117,10 +127,21 @@ static void Verbose(const char *msg) {
 }
 
 /*
- * @brief
+ * @brief Print a warning message to stdout and, if decorated, to the monitor
+ * socket.
  */
 static void Warn(const char *msg) {
-	fprintf(stderr, "WARNING: %s", msg);
+
+	if (msg) {
+		if (*msg == '@') {
+			fprintf(stderr, "WARNING: %s", msg + 1);
+			Mon_SendMessage(msg + 1, ERR_DROP);
+		} else {
+			fprintf(stderr, "WARNING: %s", msg);
+		}
+
+		fflush(stderr);
+	}
 }
 
 /*
@@ -144,7 +165,9 @@ static void Init(void) {
 /*
  * @brief Shuts down subsystems.
  */
-static void Shutdown(const char *msg __attribute__((unused))) {
+static void Shutdown(const char *msg) {
+
+	Mon_Shutdown(msg);
 
 	Sem_Shutdown();
 
@@ -315,13 +338,15 @@ static void Check_MAT_Options(int32_t argc __attribute__((unused))) {
 static void PrintHelpMessage(void) {
 	Com_Print("General options\n");
 	Com_Print("-v -verbose\n");
-	Com_Print("-l -legacy            Compile a legacy Quake2 map\n");
+	Com_Print("-l -legacy - compile a legacy Quake II map\n");
 	Com_Print("-d -debug\n");
 	Com_Print("-t -threads <int>\n");
-	Com_Print("-p -path <game directory>\n");
+	Com_Print("-p -path <game directory> - add the path to the search directory\n");
+	Com_Print("-w -wpath <game directory> - add the write path to the search directory\n");
+	Com_Print("-c -connect <host> - use GtkRadiant's BSP monitoring server\n");
 
 	Com_Print("\n");
-	Com_Print("-bsp               Binary space partitioning (BSPing) options:\n");
+	Com_Print("-bsp               BSP stage options:\n");
 	Com_Print(" -block <int> <int>\n");
 	Com_Print(" -blocks <int> <int> <int> <int>\n");
 	Com_Print(" -fulldetail - don't treat details (and trans surfaces) as details\n");
@@ -347,7 +372,7 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -fast\n");
 	Com_Print(" -nosort\n");
 	Com_Print("\n");
-	Com_Print("-light             Lighting stage options:\n");
+	Com_Print("-light             LIGHT stage options:\n");
 	Com_Print(" -extra - extra light samples\n");
 	Com_Print(" -entity <float> - entity light scaling\n");
 	Com_Print(" -surface <float> - surface light scaling\n");
@@ -458,6 +483,11 @@ int32_t main(int32_t argc, char **argv) {
 			}
 			continue;
 		}
+
+		if (!g_strcmp0(Com_Argv(i), "-c") || !g_strcmp0(Com_Argv(i), "-connect")) {
+			Mon_Init(Com_Argv(i + 1));
+			continue;
+		}
 	}
 
 	// read compiling options
@@ -495,7 +525,7 @@ int32_t main(int32_t argc, char **argv) {
 	}
 
 	if (!do_bsp && !do_vis && !do_light && !do_aas && !do_mat && !do_zip) {
-		Com_Error(ERR_FATAL, "No action specified. Try %s -help\n", Com_Argv(0));
+		Com_Error(ERR_FATAL, "@No action specified. Try %s -help\n", Com_Argv(0));
 	}
 
 	// ugly little hack to localize global paths to game paths

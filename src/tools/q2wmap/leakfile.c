@@ -42,7 +42,7 @@ void LeakFile(tree_t *tree) {
 	strcat(file_name, ".lin");
 
 	if (!(leakfile = Fs_OpenWrite(file_name)))
-		Com_Error(ERR_FATAL, "Couldn't open %s\n", file_name);
+		Com_Error(ERR_FATAL, "@Couldn't open %s\n", file_name);
 
 	count = 0;
 	node = &tree->outside_node;

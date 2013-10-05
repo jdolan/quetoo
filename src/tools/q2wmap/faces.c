@@ -77,7 +77,7 @@ static int32_t HashVec(const vec3_t vec) {
 	const int32_t y = (4096 + (int32_t) (vec[1] + 0.5)) >> 7;
 
 	if (x < 0 || x >= HASH_SIZE || y < 0 || y >= HASH_SIZE)
-		Com_Error(ERR_FATAL, "Point outside valid range\n");
+		Com_Error(ERR_FATAL, "@Point outside valid range\n");
 
 	return y * HASH_SIZE + x;
 }
@@ -114,7 +114,7 @@ static int32_t GetVertexNum(const vec3_t in) {
 
 	// emit a vertex
 	if (d_bsp.num_vertexes == MAX_BSP_VERTS)
-		Com_Error(ERR_FATAL, "MAX_BSP_VERTS\n");
+		Com_Error(ERR_FATAL, "@MAX_BSP_VERTS\n");
 
 	d_bsp.vertexes[d_bsp.num_vertexes].point[0] = vert[0];
 	d_bsp.vertexes[d_bsp.num_vertexes].point[1] = vert[1];
@@ -223,19 +223,19 @@ static void EmitFaceVertexes(node_t *node, face_t *f) {
 		return;
 
 	w = f->w;
-	for (i = 0; i < w->numpoints; i++) {
+	for (i = 0; i < w->num_points; i++) {
 		if (noweld) { // make every point unique
 			if (d_bsp.num_vertexes == MAX_BSP_VERTS)
-				Com_Error(ERR_FATAL, "MAX_BSP_VERTS\n");
+				Com_Error(ERR_FATAL, "@MAX_BSP_VERTS\n");
 			superverts[i] = d_bsp.num_vertexes;
-			VectorCopy(w->p[i], d_bsp.vertexes[d_bsp.num_vertexes].point);
+			VectorCopy(w->points[i], d_bsp.vertexes[d_bsp.num_vertexes].point);
 			d_bsp.num_vertexes++;
 			c_uniqueverts++;
 			c_totalverts++;
 		} else
-			superverts[i] = GetVertexNum(w->p[i]);
+			superverts[i] = GetVertexNum(w->points[i]);
 	}
-	num_superverts = w->numpoints;
+	num_superverts = w->num_points;
 
 	// this may fragment the face if > MAXEDGES
 	FaceFromSuperverts(node, f, 0);
@@ -337,7 +337,7 @@ static void TestEdge(vec_t start, vec_t end, int32_t p1, int32_t p2, int32_t sta
 
 	// the edge p1 to p2 is now free of tjunctions
 	if (num_superverts >= MAX_SUPERVERTS)
-		Com_Error(ERR_FATAL, "MAX_SUPERVERTS\n");
+		Com_Error(ERR_FATAL, "@MAX_SUPERVERTS\n");
 	superverts[num_superverts] = p1;
 	num_superverts++;
 }
@@ -467,7 +467,7 @@ int32_t GetEdge2(int32_t v1, int32_t v2, face_t * f) {
 	}
 	// emit an edge
 	if (d_bsp.num_edges >= MAX_BSP_EDGES)
-		Com_Error(ERR_FATAL, "MAX_BSP_EDGES\n");
+		Com_Error(ERR_FATAL, "@MAX_BSP_EDGES\n");
 	edge = &d_bsp.edges[d_bsp.num_edges];
 	edge->v[0] = v1;
 	edge->v[1] = v2;
@@ -504,12 +504,12 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2, const vec3_t p
 	p1 = p2 = NULL;
 	j = 0;
 
-	for (i = 0; i < f1->numpoints; i++) {
-		p1 = f1->p[i];
-		p2 = f1->p[(i + 1) % f1->numpoints];
-		for (j = 0; j < f2->numpoints; j++) {
-			const vec_t *p3 = f2->p[j];
-			const vec_t *p4 = f2->p[(j + 1) % f2->numpoints];
+	for (i = 0; i < f1->num_points; i++) {
+		p1 = f1->points[i];
+		p2 = f1->points[(i + 1) % f1->num_points];
+		for (j = 0; j < f2->num_points; j++) {
+			const vec_t *p3 = f2->points[j];
+			const vec_t *p4 = f2->points[(j + 1) % f2->num_points];
 			for (k = 0; k < 3; k++) {
 				if (fabs(p1[k] - p4[k]) > EQUAL_EPSILON)
 					break;
@@ -519,33 +519,33 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2, const vec3_t p
 			if (k == 3)
 				break;
 		}
-		if (j < f2->numpoints)
+		if (j < f2->num_points)
 			break;
 	}
 
-	if (i == f1->numpoints)
+	if (i == f1->num_points)
 		return NULL; // no matching edges
 
 	// check slope of connected lines
 	// if the slopes are colinear, the point can be removed
-	back = f1->p[(i + f1->numpoints - 1) % f1->numpoints];
+	back = f1->points[(i + f1->num_points - 1) % f1->num_points];
 	VectorSubtract(p1, back, delta);
 	CrossProduct(planenormal, delta, normal);
 	VectorNormalize(normal);
 
-	back = f2->p[(j + 2) % f2->numpoints];
+	back = f2->points[(j + 2) % f2->num_points];
 	VectorSubtract(back, p1, delta);
 	dot = DotProduct(delta, normal);
 	if (dot > CONTINUOUS_EPSILON)
 		return NULL; // not a convex polygon
 	keep1 = (_Bool) (dot < -CONTINUOUS_EPSILON);
 
-	back = f1->p[(i + 2) % f1->numpoints];
+	back = f1->points[(i + 2) % f1->num_points];
 	VectorSubtract(back, p2, delta);
 	CrossProduct(planenormal, delta, normal);
 	VectorNormalize(normal);
 
-	back = f2->p[(j + f2->numpoints - 1) % f2->numpoints];
+	back = f2->points[(j + f2->num_points - 1) % f2->num_points];
 	VectorSubtract(back, p2, delta);
 	dot = DotProduct(delta, normal);
 	if (dot > CONTINUOUS_EPSILON)
@@ -553,23 +553,23 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2, const vec3_t p
 	keep2 = (_Bool) (dot < -CONTINUOUS_EPSILON);
 
 	// build the new polygon
-	newf = AllocWinding(f1->numpoints + f2->numpoints);
+	newf = AllocWinding(f1->num_points + f2->num_points);
 
 	// copy first polygon
-	for (k = (i + 1) % f1->numpoints; k != i; k = (k + 1) % f1->numpoints) {
-		if (k == (i + 1) % f1->numpoints && !keep2)
+	for (k = (i + 1) % f1->num_points; k != i; k = (k + 1) % f1->num_points) {
+		if (k == (i + 1) % f1->num_points && !keep2)
 			continue;
 
-		VectorCopy(f1->p[k], newf->p[newf->numpoints]);
-		newf->numpoints++;
+		VectorCopy(f1->points[k], newf->points[newf->num_points]);
+		newf->num_points++;
 	}
 
 	// copy second polygon
-	for (l = (j + 1) % f2->numpoints; l != j; l = (l + 1) % f2->numpoints) {
-		if (l == (j + 1) % f2->numpoints && !keep1)
+	for (l = (j + 1) % f2->num_points; l != j; l = (l + 1) % f2->num_points) {
+		if (l == (j + 1) % f2->num_points && !keep1)
 			continue;
-		VectorCopy(f2->p[l], newf->p[newf->numpoints]);
-		newf->numpoints++;
+		VectorCopy(f2->points[l], newf->points[newf->num_points]);
+		newf->num_points++;
 	}
 
 	return newf;
@@ -669,8 +669,8 @@ static void SubdivideFace(node_t *node, face_t * f) {
 
 			VectorCopy(tex->vecs[axis], temp);
 			w = f->w;
-			for (i = 0; i < w->numpoints; i++) {
-				v = DotProduct(w->p[i], temp);
+			for (i = 0; i < w->num_points; i++) {
+				v = DotProduct(w->points[i], temp);
 				if (v < mins)
 					mins = v;
 				if (v > maxs)
@@ -689,7 +689,7 @@ static void SubdivideFace(node_t *node, face_t * f) {
 
 			ClipWindingEpsilon(w, temp, dist, ON_EPSILON, &frontw, &backw);
 			if (!frontw || !backw)
-				Com_Error(ERR_FATAL, "Didn't split the polygon\n");
+				Com_Error(ERR_FATAL, "@Didn't split the polygon\n");
 
 			f->split[0] = NewFaceFromFace(f);
 			f->split[0]->w = frontw;

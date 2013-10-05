@@ -137,7 +137,7 @@ static void CalcLightinfoExtents(light_info_t *l) {
 	// if a surface lightmap is too large to fit in a single lightmap block,
 	// we must fail here -- practically speaking, this is very unlikely
 	if (l->tex_size[0] * l->tex_size[1] > MAX_BSP_LIGHTMAP)
-		Com_Error(ERR_FATAL, "Surface too large to light (%dx%d)\n",
+		Com_Error(ERR_FATAL, "@Surface too large to light (%dx%d)\n",
 				l->tex_size[0], l->tex_size[1]);
 }
 
@@ -170,7 +170,7 @@ static void CalcLightinfoVectors(light_info_t *l) {
 	// flip it towards plane normal
 	dist_scale = DotProduct(tex_normal, l->face_normal);
 	if (dist_scale == 0.0) {
-		Com_Warn("Texture axis perpendicular to face\n");
+		Com_Warn("@Texture axis perpendicular to face\n");
 		dist_scale = 1.0;
 	}
 	if (dist_scale < 0.0) {
@@ -386,9 +386,7 @@ void BuildLights(void) {
 			if (target[0]) { // point towards target
 				entity_t *e2 = FindTargetEntity(target);
 				if (!e2) {
-					Com_Warn("Light at (%i %i %i) has missing target\n",
-							(int32_t) l->origin[0], (int32_t) l->origin[1],
-							(int32_t) l->origin[2]);
+					Mon_SendSelect(va("Light at %s missing target", vtos(l->origin)), i, 0, ERR_DROP);
 				} else {
 					GetVectorForKey(e2, "origin", dest);
 					VectorSubtract(dest, l->origin, l->normal);
@@ -556,7 +554,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 					light = (l->intensity * 0.5 - dist) * dot;
 				break;
 			default:
-				Com_Error(ERR_FATAL, "Bad l->type\n");
+				Com_Error(ERR_FATAL, "@Bad l->type\n");
 				break;
 			}
 
@@ -628,7 +626,7 @@ static void FacesWithVert(int32_t vert, int32_t *faces, int32_t *nfaces) {
 			if (v == vert) { // face references vert
 				faces[k++] = i;
 				if (k == MAX_VERT_FACES)
-					Com_Error(ERR_FATAL, "MAX_VERT_FACES\n");
+					Com_Error(ERR_FATAL, "@MAX_VERT_FACES\n");
 				break;
 			}
 		}
@@ -693,7 +691,7 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 	best_normal = NULL;
 
 	if(l->face->num_edges < 3)
-		Com_Error(ERR_FATAL, "Attempted to calculate a normal for a degenerate vertex\n");
+		Com_Error(ERR_FATAL, "@Attempted to calculate a normal for a degenerate vertex\n");
 
 	// calculate the distance to each vertex
 	for (i = 0; i < l->face->num_edges; i++) {
@@ -892,7 +890,7 @@ void FinalLightFace(int32_t face_num) {
 		d_bsp.lightmap_data_size += fl->num_samples * 3;
 
 	if (d_bsp.lightmap_data_size > MAX_BSP_LIGHTING)
-		Com_Error(ERR_FATAL, "MAX_BSP_LIGHTING\n");
+		Com_Error(ERR_FATAL, "@MAX_BSP_LIGHTING\n");
 
 	ThreadUnlock();
 

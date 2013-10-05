@@ -171,16 +171,19 @@ void Net_Sleep(uint32_t msec) {
 	struct timeval timeout;
 	fd_set fdset;
 
-	if (!net_udp_state.sockets[NS_UDP_SERVER] || !dedicated->value)
+	const uint32_t sock = net_udp_state.sockets[NS_UDP_SERVER];
+
+	if (!sock || !dedicated->value)
 		return; // we're not a server, simply return
 
+
 	FD_ZERO(&fdset);
-	FD_SET((uint32_t) net_udp_state.sockets[NS_UDP_SERVER], &fdset); // server socket
+	FD_SET(sock, &fdset); // server socket
 
 	timeout.tv_sec = msec / 1000;
 	timeout.tv_usec = (msec % 1000) * 1000;
 
-	select(FD_SETSIZE, &fdset, NULL, NULL, &timeout);
+	select(sock + 1, &fdset, NULL, NULL, &timeout);
 }
 
 /*

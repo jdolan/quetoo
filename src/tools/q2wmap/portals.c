@@ -143,7 +143,7 @@ _Bool Portal_VisFlood(const portal_t * p) {
  */
 static _Bool Portal_EntityFlood(const portal_t * p) {
 	if (p->nodes[0]->plane_num != PLANENUM_LEAF || p->nodes[1]->plane_num != PLANENUM_LEAF)
-		Com_Error(ERR_FATAL, "Not a leaf\n");
+		Com_Error(ERR_FATAL, "@Not a leaf\n");
 
 	// can never cross to a solid
 	if ((p->nodes[0]->contents & CONTENTS_SOLID) || (p->nodes[1]->contents & CONTENTS_SOLID))
@@ -164,7 +164,7 @@ static int32_t c_tinyportals;
  */
 static void AddPortalToNodes(portal_t * p, node_t * front, node_t * back) {
 	if (p->nodes[0] || p->nodes[1])
-		Com_Error(ERR_FATAL, "Already included\n");
+		Com_Error(ERR_FATAL, "@Already included\n");
 
 	p->nodes[0] = front;
 	p->next[0] = front->portals;
@@ -188,7 +188,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l) {
 	while (true) {
 		t = *pp;
 		if (!t)
-			Com_Error(ERR_FATAL, "Portal not in leaf\n");
+			Com_Error(ERR_FATAL, "@Portal not in leaf\n");
 
 		if (t == portal)
 			break;
@@ -198,7 +198,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l) {
 		else if (t->nodes[1] == l)
 			pp = &t->next[1];
 		else
-			Com_Error(ERR_FATAL, "Portal not bounding leaf\n");
+			Com_Error(ERR_FATAL, "@Portal not bounding leaf\n");
 	}
 
 	if (portal->nodes[0] == l) {
@@ -327,7 +327,7 @@ void MakeNodePortal(node_t * node) {
 			VectorSubtract(vec3_origin, p->plane.normal, normal);
 			dist = -p->plane.dist;
 		} else
-			Com_Error(ERR_FATAL, "Mis-linked portal\n");
+			Com_Error(ERR_FATAL, "@Mis-linked portal\n");
 
 		ChopWindingInPlace(&w, normal, dist, 0.1);
 	}
@@ -374,7 +374,7 @@ void SplitNodePortals(node_t * node) {
 		else if (p->nodes[1] == node)
 			side = 1;
 		else
-			Com_Error(ERR_FATAL, "Mis-linked portal\n");
+			Com_Error(ERR_FATAL, "@Mis-linked portal\n");
 		next_portal = p->next[side];
 
 		other_node = p->nodes[!side];
@@ -451,8 +451,8 @@ static void CalcNodeBounds(node_t * node) {
 	ClearBounds(node->mins, node->maxs);
 	for (p = node->portals; p; p = p->next[s]) {
 		s = (p->nodes[1] == node);
-		for (i = 0; i < p->winding->numpoints; i++)
-			AddPointToBounds(p->winding->p[i], node->mins, node->maxs);
+		for (i = 0; i < p->winding->num_points; i++)
+			AddPointToBounds(p->winding->points[i], node->mins, node->maxs);
 	}
 }
 
@@ -647,7 +647,7 @@ static void FloodAreas_r(node_t * node) {
 		s = (p->nodes[1] == node);
 		// TODO: why is this commented out?
 #if 0
-		if(p->nodes[!s]->occupied)
+		if(points->nodes[!s]->occupied)
 		continue;
 #endif
 		if (!Portal_EntityFlood(p))
@@ -731,7 +731,7 @@ void EmitAreaPortals(void) {
 	d_bsp_area_portal_t *dp;
 
 	if (c_areas > MAX_BSP_AREAS)
-		Com_Error(ERR_FATAL, "MAX_BSP_AREAS\n");
+		Com_Error(ERR_FATAL, "@MAX_BSP_AREAS\n");
 
 	d_bsp.num_areas = c_areas + 1;
 	d_bsp.num_area_portals = 1; // leave 0 as an error

@@ -23,6 +23,7 @@
 #define __Q2WMAP_H__
 
 #include "files.h"
+#include "monitor.h"
 #include "thread.h"
 
 int32_t BSP_Main(void);
