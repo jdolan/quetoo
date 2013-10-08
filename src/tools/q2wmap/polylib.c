@@ -179,7 +179,7 @@ winding_t *WindingForPlane(const vec3_t normal, const vec_t dist) {
 		}
 	}
 	if (x == -1)
-		Com_Error(ERR_FATAL, "@No axis found\n");
+		Com_Error(ERR_FATAL, "No axis found\n");
 
 	VectorCopy(vec3_origin, vup);
 	switch (x) {
@@ -377,9 +377,9 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t ep
 	}
 
 	if (f->num_points > maxpts || b->num_points > maxpts)
-		Com_Error(ERR_FATAL, "@Points exceeded estimate\n");
+		Com_Error(ERR_FATAL, "Points exceeded estimate\n");
 	if (f->num_points > MAX_POINTS_ON_WINDING || b->num_points > MAX_POINTS_ON_WINDING)
-		Com_Error(ERR_FATAL, "@MAX_POINTS_ON_WINDING\n");
+		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n");
 }
 
 /*
@@ -471,9 +471,9 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 	}
 
 	if (f->num_points > maxpts)
-		Com_Error(ERR_FATAL, "@Points exceeded estimate\n");
+		Com_Error(ERR_FATAL, "Points exceeded estimate\n");
 	if (f->num_points > MAX_POINTS_ON_WINDING)
-		Com_Error(ERR_FATAL, "@MAX_POINTS_ON_WINDING\n");
+		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n");
 
 	FreeWinding(in);
 	*inout = f;

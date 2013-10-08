@@ -53,7 +53,7 @@ void CalcTextureReflectivity(void) {
 		g_snprintf(path, sizeof(path), "textures/%s", d_bsp.texinfo[i].texture);
 
 		if (!Img_LoadImage(path, &surf)) {
-			Com_Warn("@Couldn't load %s\n", path);
+			Com_Warn("Couldn't load %s\n", path);
 			VectorSet(texture_reflectivity[i], 0.5, 0.5, 0.5);
 			continue;
 		}

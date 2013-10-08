@@ -98,16 +98,16 @@ static void Error(err_t err __attribute__((unused)), const char *msg) {
 }
 
 /*
- * @brief Print to stdout and, if decorated, to the monitor socket.
+ * @brief Print to stdout and, if not escaped, to the monitor socket.
  */
 static void Print(const char *msg) {
 
 	if (msg) {
 		if (*msg == '@') {
 			fputs(msg + 1, stdout);
-			Mon_SendMessage(msg + 1, ERR_PRINT);
 		} else {
 			fputs(msg, stdout);
+			Mon_SendMessage(ERR_PRINT, msg);
 		}
 
 		fflush(stdout);
@@ -127,7 +127,7 @@ static void Verbose(const char *msg) {
 }
 
 /*
- * @brief Print a warning message to stdout and, if decorated, to the monitor
+ * @brief Print a warning message to stdout and, if not escaped, to the monitor
  * socket.
  */
 static void Warn(const char *msg) {
@@ -135,9 +135,9 @@ static void Warn(const char *msg) {
 	if (msg) {
 		if (*msg == '@') {
 			fprintf(stderr, "WARNING: %s", msg + 1);
-			Mon_SendMessage(msg + 1, ERR_DROP);
 		} else {
 			fprintf(stderr, "WARNING: %s", msg);
+			Mon_SendMessage(ERR_WARN, va("WARNING: %s", msg));
 		}
 
 		fflush(stderr);
@@ -160,6 +160,8 @@ static void Init(void) {
 	Thread_Init();
 
 	Sem_Init();
+
+	Com_Print("Quake2World Map %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
 }
 
 /*
@@ -525,7 +527,7 @@ int32_t main(int32_t argc, char **argv) {
 	}
 
 	if (!do_bsp && !do_vis && !do_light && !do_aas && !do_mat && !do_zip) {
-		Com_Error(ERR_FATAL, "@No action specified. Try %s -help\n", Com_Argv(0));
+		Com_Error(ERR_FATAL, "No action specified. Try %s -help\n", Com_Argv(0));
 	}
 
 	// ugly little hack to localize global paths to game paths

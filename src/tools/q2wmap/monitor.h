@@ -24,10 +24,15 @@
 
 #include "common.h"
 
-void Mon_SendMessage(const char *msg, err_t error);
-void Mon_SendSelect(const char *msg, uint16_t ent_num, uint16_t brush_num, err_t error);
-void Mon_SendWinding(const char *msg, const vec3_t p[], uint16_t num_points, err_t error);
-void Mon_SendPosition(const char *msg, const vec3_t p, err_t error);
+void Mon_SendMessage(err_t err, const char *msg);
+
+void Mon_SendSelect_(const char *func, err_t err, uint16_t e, uint16_t b, const char *msg);
+void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n, const char *msg);
+void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg);
+
+#define Mon_SendSelect(err, e, b, msg) Mon_SendSelect_(__func__, err, e, b, msg)
+#define Mon_SendWinding(err, p, n, msg) Mon_SendWinding_(__func__, err, p, n, msg)
+#define Mon_SendPoint(err, p, msg) Mon_SendPoint_(__func__, err, p, msg)
 
 void Mon_Init(const char *host);
 void Mon_Shutdown(const char *msg);

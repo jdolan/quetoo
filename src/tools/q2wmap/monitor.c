@@ -28,44 +28,20 @@
 
 #include <libxml/tree.h>
 
-#define MAX_MON_MSG_SIZE 2048
-
 typedef struct {
 	int32_t socket;
 
 	size_buf_t message;
-	byte buffer[MAX_MON_MSG_SIZE];
+	byte buffer[MAX_MSG_SIZE];
 
 	xmlDocPtr doc;
 } mon_state_t;
 
 static mon_state_t mon_state;
+static GList *mon_backlog; // nodes created before a connection was established
 
 #define xmlString(s) ((const xmlChar *) s)
 #define xmlStringf(...) xmlString(va(__VA_ARGS__))
-
-/*
- * @brief Duplicate all XML messages to the correct stdio handle.
- */
-static void Mon_Stdio(const char *msg, err_t error) {
-
-	switch (error) {
-		case ERR_NONE:
-			Com_Verbose("%s", msg);
-			break;
-		case ERR_PRINT:
-			Com_Print("%s", msg);
-			break;
-		case ERR_DROP:
-			Com_Warn("%s", msg);
-			break;
-		case ERR_FATAL:
-			Com_Error(error, "%s", msg);
-			break;
-		default:
-			break;
-	}
-}
 
 /*
  * @brief Sends the specified (XML) string to the stream.
@@ -93,98 +69,115 @@ static void Mon_SendString(const xmlChar *string) {
 static void Mon_SendXML(xmlNodePtr node) {
 
 	if (node) {
-		xmlAddChild(xmlDocGetRootElement(mon_state.doc), node);
+		if (mon_state.doc) {
+			xmlAddChild(xmlDocGetRootElement(mon_state.doc), node);
 
-		xmlBufferPtr buffer = xmlBufferCreate();
+			xmlBufferPtr buffer = xmlBufferCreate();
 
-		if (xmlNodeDump(buffer, mon_state.doc, node, 0, 0) == -1) {
-			Com_Warn("Failed to dump node %s", (char *) node->name);
+			if (xmlNodeDump(buffer, mon_state.doc, node, 0, 0) == -1) {
+				Com_Warn("@Failed to dump node %s", (char *) node->name);
+			} else {
+				Mon_SendString(xmlBufferContent(buffer));
+			}
+
+			xmlBufferFree(buffer);
 		} else {
-			Mon_SendString(xmlBufferContent(buffer));
+			mon_backlog = g_list_append(mon_backlog, node);
 		}
-
-		xmlBufferFree(buffer);
 	}
 }
 
 /*
- * @brief Sends a message to GtkRadiant. Do not call this directly; rather, use
- * Com_Print, Com_Warn and friends, which will route through this.
+ * @brief Sends a message to GtkRadiant. Note that Com_Print, Com_Warn and
+ * friends will route through this so that stdout and stderr are duplicated to
+ * GtkRadiant.
  */
-void Mon_SendMessage(const char *msg, err_t error) {
+void Mon_SendMessage(err_t err, const char *msg) {
 
-	if (mon_state.doc) {
-		xmlNodePtr message = xmlNewNode(NULL, xmlString("message"));
-		xmlNodeSetContent(message, xmlString(msg));
-		xmlSetProp(message, xmlString("level"), xmlStringf("%d", error));
+	xmlNodePtr message = xmlNewNode(NULL, xmlString("message"));
+	xmlNodeSetContent(message, xmlString(msg));
+	xmlSetProp(message, xmlString("level"), xmlStringf("%d", err));
 
-		Mon_SendXML(message);
+	Mon_SendXML(message);
+}
+
+/*
+ * @brief Routes all XML-originating messages (Mon_Send* below) to the
+ * appropriate stdio routines, escaping them to avoid infinite loops.
+ */
+static void Mon_Stdio(err_t err, const char *msg) {
+	switch (err) {
+		case ERR_PRINT:
+			Com_Print("@%s\n", msg);
+			break;
+		case ERR_WARN:
+			Com_Warn("!@%s\n", msg);
+			break;
+		case ERR_FATAL:
+			Com_Error(err, "!@%s\n", msg);
+			break;
+		default:
+			break;
 	}
 }
 
 /*
  * @brief Sends a brush selection to GtkRadiant.
  */
-void Mon_SendSelect(const char *msg, uint16_t ent_num, uint16_t brush_num, err_t error) {
+void Mon_SendSelect_(const char *func, err_t err, uint16_t e, uint16_t b, const char *msg) {
 
-	if (mon_state.doc) {
-		xmlNodePtr select = xmlNewNode(NULL, xmlString("select"));
-		xmlNodeSetContent(select, xmlStringf("Entity %u, Brush %u: %s", ent_num, brush_num, msg));
-		xmlSetProp(select, xmlString("level"), xmlStringf("%d", error));
+	xmlNodePtr select = xmlNewNode(NULL, xmlString("select"));
+	xmlNodeSetContent(select, xmlStringf("%s: Entity %u, Brush %u: %s", func, e, b, msg));
+	xmlSetProp(select, xmlString("level"), xmlStringf("%d", err));
 
-		xmlNodePtr brush = xmlNewNode(NULL, xmlString("brush"));
-		xmlNodeSetContent(brush, xmlStringf("%u %u", ent_num, brush_num));
-		xmlAddChild(select, brush);
+	xmlNodePtr brush = xmlNewNode(NULL, xmlString("brush"));
+	xmlNodeSetContent(brush, xmlStringf("%u %u", e, b));
+	xmlAddChild(select, brush);
 
-		Mon_SendXML(select);
-	}
+	Mon_SendXML(select);
 
-	Mon_Stdio(va("Entity %u, Brush %u: %s\n", ent_num, brush_num, msg), error);
+	Mon_Stdio(err, va("%s: Entity %u, Brush %u: %s", func, e, b, msg));
 }
 
 /*
  * @brief Sends a positional vector to GtkRadiant.
  */
-void Mon_SendPosition(const char *msg, const vec3_t pos, err_t error) {
+void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg) {
 
-	if (mon_state.doc) {
-		xmlNodePtr point_msg = xmlNewNode(NULL, xmlString("pointmsg"));
-		xmlNodeSetContent(point_msg, xmlString(msg));
-		xmlSetProp(point_msg, xmlString("level"), xmlStringf("%d", error));
+	xmlNodePtr point_msg = xmlNewNode(NULL, xmlString("pointmsg"));
+	xmlNodeSetContent(point_msg, xmlStringf("%s: Point %s: %s", func, vtos(p), msg));
+	xmlSetProp(point_msg, xmlString("level"), xmlStringf("%d", err));
 
-		xmlNodePtr point = xmlNewNode(NULL, xmlString("point"));
-		xmlNodeSetContent(point, xmlStringf("(%g %g %g", pos[0], pos[1], pos[2]));
-		xmlAddChild(point_msg, point);
+	xmlNodePtr point = xmlNewNode(NULL, xmlString("point"));
+	xmlNodeSetContent(point, xmlStringf("(%g %g %g", p[0], p[1], p[2]));
+	xmlAddChild(point_msg, point);
 
-		Mon_SendXML(point_msg);
-	}
+	Mon_SendXML(point_msg);
 
-	Mon_Stdio(va("Point %s: %s\n", vtos(pos), msg), error);
+	Mon_Stdio(err, va("%s: Point %s: %s", func, vtos(p), msg));
 }
 
 /*
  * @brief Sends a winding to GtkRadiant.
  */
-void Mon_SendWinding(const char *msg, const vec3_t p[], uint16_t num_points, err_t error) {
+void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n, const char *msg) {
 
-	if (mon_state.doc) {
-		xmlNodePtr winding_msg = xmlNewNode(NULL, xmlString("windingmsg"));
-		xmlNodeSetContent(winding_msg, xmlString(msg));
-		xmlSetProp(winding_msg, xmlString("level"), xmlStringf("%d", error));
+	xmlNodePtr winding_msg = xmlNewNode(NULL, xmlString("windingmsg"));
+	xmlNodeSetContent(winding_msg, xmlStringf("%s: %s", func, msg));
+	xmlSetProp(winding_msg, xmlString("level"), xmlStringf("%d", err));
 
-		xmlNodePtr winding = xmlNewNode(NULL, xmlString("winding"));
-		xmlNodeSetContent(winding, xmlStringf("%u", num_points));
-		xmlAddChild(winding_msg, winding);
+	xmlNodePtr winding = xmlNewNode(NULL, xmlString("winding"));
+	xmlNodeSetContent(winding, xmlStringf("%u", n));
+	xmlAddChild(winding_msg, winding);
 
-		int32_t i;
-		for (i = 0; i < num_points; i++) {
-			xmlNodeAddContent(winding, xmlStringf("(%g %g %g)", p[i][0], p[i][1], p[i][2]));
-		}
-
-		Mon_SendXML(winding_msg);
+	int32_t i;
+	for (i = 0; i < n; i++) {
+		xmlNodeAddContent(winding, xmlStringf("(%g %g %g)", p[i][0], p[i][1], p[i][2]));
 	}
 
-	Mon_Stdio(va("Winding at %s: %s\n", vtos(p[0]), msg), error);
+	Mon_SendXML(winding_msg);
+
+	Mon_Stdio(err, va("%s: Winding at %s: %s", func, vtos(p[0]), msg));
 }
 
 /*
@@ -196,23 +189,36 @@ void Mon_Init(const char *host) {
 
 	memset(&mon_state, 0, sizeof(mon_state));
 
-	mon_state.doc = xmlNewDoc(xmlString("1.0"));
-
-	xmlNodePtr root = xmlNewNode(NULL, xmlString("q3map_feedback"));
-	xmlSetProp(root, xmlString("version"), xmlString("1.0"));
-	xmlDocSetRootElement(mon_state.doc, root);
-
 	if ((mon_state.socket = Net_Connect(host, NULL))) {
 		Sb_Init(&mon_state.message, mon_state.buffer, sizeof(mon_state.buffer));
 
-		Com_Print("Connected to %s\n", host);
+		Com_Print("@Connected to %s\n", host);
+
+		mon_state.doc = xmlNewDoc(xmlString("1.0"));
+
+		xmlNodePtr root = xmlNewNode(NULL, xmlString("q3map_feedback"));
+		xmlSetProp(root, xmlString("version"), xmlString("1.0"));
+		xmlDocSetRootElement(mon_state.doc, root);
 
 		// because we stream child nodes on-demand, we must manually duplicate
 		// the XML document header and root element
 		Mon_SendString(xmlString("<?xml version=\"1.0\"?><q3map_feedback version=\"1\">"));
 
-		// announce ourselves to Radiant
-		Com_Print("@Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+		// deliver the backlog of queued messages
+		GList *backlog = mon_backlog;
+		while (backlog) {
+			Mon_SendXML((xmlNodePtr) backlog->data);
+			backlog = backlog->next;
+		}
+
+		// and free the backlog
+		g_list_free(mon_backlog);
+		mon_backlog = NULL;
+
+#if 1
+		Mon_SendSelect_("foobar", ERR_WARN, 0, 4, "Fuck yo couch");
+		Mon_SendPoint_("whizbang", ERR_WARN, vec3_origin, "This is the center");
+#endif
 	}
 }
 
@@ -223,23 +229,34 @@ void Mon_Shutdown(const char *msg) {
 
 	if (mon_state.socket) {
 
-		if (msg && (*msg == '@')) {
-			Mon_SendMessage(msg, ERR_FATAL);
+		if (msg && *msg == '@') {
+			// shut down immediately by an error in the monitor itself
+		} else {
+			if (msg) {
+				Mon_SendMessage(ERR_FATAL, msg);
+			}
+			Mon_SendString(xmlString("</q3map_feedback>"));
+			sleep(1);
 		}
-
-		Mon_SendString(xmlString("</q3map_feedback>"));
-		sleep(1); // sigh..
 
 		Net_CloseSocket(mon_state.socket);
 		mon_state.socket = 0;
 	}
 
 	if (mon_state.doc) {
+#if 0
 		xmlSaveFile("/tmp/q2wmap_feedback.xml", mon_state.doc);
+#endif
 
 		xmlFreeDoc(mon_state.doc);
 		mon_state.doc = NULL;
+
+		g_list_free(mon_backlog);
+	} else {
+		g_list_free_full(mon_backlog, xmlFree);
 	}
+
+	mon_backlog = NULL;
 
 	Net_Shutdown();
 }

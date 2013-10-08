@@ -174,7 +174,7 @@ static void Init(void) {
 	Cl_Init();
 #endif
 
-	Com_Print("Quake2World initialized\n");
+	Com_Print("Quake2World %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
 
 	// execute any +commands specified on the command line
 	Cbuf_InsertFromDefer();

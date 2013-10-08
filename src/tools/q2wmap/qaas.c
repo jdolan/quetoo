@@ -160,7 +160,7 @@ void WriteAASFile(void) {
 	g_strlcat(path, ".aas", sizeof(path));
 
 	if (!(f = Fs_OpenWrite(path))) {
-		Com_Error(ERR_FATAL, "@Couldn't open %s for writing\n", path);
+		Com_Error(ERR_FATAL, "Couldn't open %s for writing\n", path);
 	}
 
 	Com_Print("Writing %d AAS nodes..\n", d_aas.num_nodes);
@@ -198,7 +198,7 @@ int32_t AAS_Main(void) {
 	LoadBSPFile(bsp_name);
 
 	if (d_bsp.num_nodes == 0) {
-		Com_Error(ERR_FATAL, "@No nodes");
+		Com_Error(ERR_FATAL, "No nodes");
 	}
 
 	memset(&d_aas, 0, sizeof(d_aas));

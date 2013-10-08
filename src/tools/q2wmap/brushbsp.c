@@ -306,8 +306,7 @@ static int32_t TestBrushToPlanenum(bsp_brush_t * brush, int32_t plane_num, int32
 	for (i = 0; i < brush->num_sides; i++) {
 		num = brush->sides[i].plane_num;
 		if (num >= MAX_BSP_PLANES) {
-			const map_brush_t *o = brush->original;
-			Mon_SendSelect("Bad plane", o->entity_num, o->brush_num, ERR_FATAL);
+			Mon_SendSelect(ERR_FATAL, brush->original->entity_num, brush->original->brush_num, "Bad plane");
 		}
 		if (num == plane_num)
 			return SIDE_BACK | SIDE_FACING;
@@ -433,7 +432,7 @@ static void CheckPlaneAgainstParents(int32_t pnum, node_t * node) {
 
 	for (p = node->parent; p; p = p->parent) {
 		if (p->plane_num == pnum)
-			Com_Error(ERR_FATAL, "@Tried parent\n");
+			Com_Error(ERR_FATAL, "Tried parent\n");
 	}
 }
 
@@ -520,7 +519,7 @@ static side_t *SelectSplitSide(bsp_brush_t * brushes, node_t * node) {
 
 					splits += bsplits;
 					if (bsplits && (s & SIDE_FACING))
-						Com_Error(ERR_FATAL, "@PSIDE_FACING with splits\n");
+						Com_Error(ERR_FATAL, "PSIDE_FACING with splits\n");
 
 					test->test_side = s;
 					// if the brush shares this face, don't bother
@@ -672,7 +671,7 @@ void SplitBrush(bsp_brush_t *brush, int32_t plane_num, bsp_brush_t **front, bsp_
 	}
 
 	if (WindingIsHuge(w)) {
-		Mon_SendWinding("Large winding", (const vec3_t *) w->points, w->num_points, ERR_DROP);
+		Mon_SendWinding(ERR_WARN, (const vec3_t *) w->points, w->num_points, "Large winding");
 	}
 
 	midwinding = w;
@@ -901,7 +900,7 @@ tree_t *BrushBSP(bsp_brush_t * brushlist, vec3_t mins, vec3_t maxs) {
 
 		volume = BrushVolume(b);
 		if (volume < microvolume) {
-			Mon_SendSelect("Microbrush", b->original->entity_num, b->original->brush_num, ERR_DROP);
+			Mon_SendSelect(ERR_WARN, b->original->entity_num, b->original->brush_num, "Microbrush");
 		}
 
 		for (i = 0; i < b->num_sides; i++) {

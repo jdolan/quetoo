@@ -122,7 +122,7 @@ static void LightWorld(void) {
 	int32_t i;
 
 	if (d_bsp.num_nodes == 0 || d_bsp.num_faces == 0)
-		Com_Error(ERR_FATAL, "@Empty map\n");
+		Com_Error(ERR_FATAL, "Empty map\n");
 
 	// load the map for tracing
 	cmodels[0] = Cm_LoadBsp(bsp_name, &i);
@@ -167,7 +167,7 @@ int32_t LIGHT_Main(void) {
 	LoadBSPFile(bsp_name);
 
 	if (!d_bsp.vis_data_size)
-		Com_Error(ERR_FATAL, "@No VIS information\n");
+		Com_Error(ERR_FATAL, "No VIS information\n");
 
 	ParseEntities();
 

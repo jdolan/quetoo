@@ -27,16 +27,16 @@ char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
  * @brief Handles Com_Print output redirection, allowing the server to send output
  * from any command to a connected client or even a foreign one.
  */
-void Sv_FlushRedirect(const int32_t target, char *outputbuf) {
+void Sv_FlushRedirect(int32_t target, const char *buffer) {
 
 	switch (target) {
 		case RD_PACKET:
-			Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "print\n%s", outputbuf);
+			Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "print\n%s", buffer);
 			break;
 		case RD_CLIENT:
 			Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_PRINT);
 			Msg_WriteByte(&sv_client->net_chan.message, PRINT_HIGH);
-			Msg_WriteString(&sv_client->net_chan.message, outputbuf);
+			Msg_WriteString(&sv_client->net_chan.message, buffer);
 			break;
 		default:
 			Com_Debug("Sv_FlushRedirect: %d\n", target);

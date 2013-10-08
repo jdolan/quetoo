@@ -47,14 +47,14 @@ static void AddScriptToStack(const char *file_name) {
 
 	script++;
 	if (script == &scriptstack[MAX_INCLUDES])
-		Com_Error(ERR_FATAL, "@Script file exceeded MAX_INCLUDES\n");
+		Com_Error(ERR_FATAL, "Script file exceeded MAX_INCLUDES\n");
 
 	strcpy(script->file_name, file_name);
 
 	size = Fs_Load(script->file_name, (void **) (char *) &script->buffer);
 
 	if (size == -1)
-		Com_Error(ERR_FATAL, "@Could not load %s\n", script->file_name);
+		Com_Error(ERR_FATAL, "Could not load %s\n", script->file_name);
 
 	Com_Verbose("Loading %s (%u bytes)\n", script->file_name, (uint32_t) size);
 
@@ -81,7 +81,7 @@ void ParseFromMemory(char *buffer, int32_t size) {
 	script = scriptstack;
 	script++;
 	if (script == &scriptstack[MAX_INCLUDES])
-		Com_Error(ERR_FATAL, "@Script file exceeded MAX_INCLUDES\n");
+		Com_Error(ERR_FATAL, "Script file exceeded MAX_INCLUDES\n");
 	strcpy(script->file_name, "memory buffer");
 
 	script->buffer = buffer;
@@ -97,7 +97,7 @@ void ParseFromMemory(char *buffer, int32_t size) {
  */
 static _Bool EndOfScript(_Bool crossline) {
 	if (!crossline)
-		Com_Error(ERR_FATAL, "@Line %i is incomplete\n", scriptline);
+		Com_Error(ERR_FATAL, "Line %i is incomplete\n", scriptline);
 
 	if (!g_strcmp0(script->file_name, "memory buffer")) {
 		endofscript = true;
@@ -130,7 +130,7 @@ _Bool GetToken(_Bool crossline) {
 			return EndOfScript(crossline);
 		if (*script->script_p++ == '\n') {
 			if (!crossline)
-				Com_Error(ERR_FATAL, "@Line %i is incomplete (skip space)\n", scriptline);
+				Com_Error(ERR_FATAL, "Line %i is incomplete (skip space)\n", scriptline);
 			scriptline = script->line++;
 		}
 	}
@@ -141,7 +141,7 @@ _Bool GetToken(_Bool crossline) {
 	// comments
 	if ((script->script_p[0] == '/' && script->script_p[1] == '/') || script->script_p[0] == ';') {
 		if (!crossline)
-			Com_Error(ERR_FATAL, "@Line %i is incomplete (// comments)\n", scriptline);
+			Com_Error(ERR_FATAL, "Line %i is incomplete (// comments)\n", scriptline);
 		while (*script->script_p++ != '\n')
 			if (script->script_p >= script->end_p)
 				return EndOfScript(crossline);
@@ -151,7 +151,7 @@ _Bool GetToken(_Bool crossline) {
 	// /* */ comments
 	if (script->script_p[0] == '/' && script->script_p[1] == '*') {
 		if (!crossline)
-			Com_Error(ERR_FATAL, "@Line %i is incomplete (/* comments */)\n", scriptline);
+			Com_Error(ERR_FATAL, "Line %i is incomplete (/* comments */)\n", scriptline);
 		script->script_p += 2;
 		while (script->script_p[0] != '*' && script->script_p[1] != '/') {
 			script->script_p++;
@@ -173,7 +173,7 @@ _Bool GetToken(_Bool crossline) {
 			if (script->script_p == script->end_p)
 				break;
 			if (token_p == &token[MAXTOKEN])
-				Com_Error(ERR_FATAL, "@Token too large on line %i\n", scriptline);
+				Com_Error(ERR_FATAL, "Token too large on line %i\n", scriptline);
 		}
 		script->script_p++;
 	} else
@@ -183,7 +183,7 @@ _Bool GetToken(_Bool crossline) {
 			if (script->script_p == script->end_p)
 				break;
 			if (token_p == &token[MAXTOKEN])
-				Com_Error(ERR_FATAL, "@Token too large on line %i\n", scriptline);
+				Com_Error(ERR_FATAL, "Token too large on line %i\n", scriptline);
 		}
 
 	*token_p = 0;
