@@ -279,7 +279,7 @@ static _Bool Pm_StepMove(void) {
 			pml.velocity[2] = MAX(pml.velocity[2], vel[2]);
 		}
 
-		const vec_t step = trace.end[2] - org[2];
+		const vec_t step = pml.origin[2] - org[2];
 
 		if (step >= 1.0 && step <= PM_STEP_HEIGHT) { // we are in fact on stairs
 			pm->s.pm_flags |= PMF_ON_STAIRS;
@@ -287,7 +287,6 @@ static _Bool Pm_StepMove(void) {
 
 			Pm_Debug("Step up %2.1f\n", pm->step);
 		}
-
 		return true;
 	}
 
@@ -337,6 +336,9 @@ static void Pm_StepSlideMove(void) {
 			if (dist1 <= dist0) {
 				VectorCopy(org0, pml.origin);
 				VectorCopy(vel0, pml.velocity);
+
+				pm->s.pm_flags &= ~PMF_ON_STAIRS;
+				pm->step = 0.0;
 			}
 		} else {
 			VectorCopy(org0, pml.origin);
