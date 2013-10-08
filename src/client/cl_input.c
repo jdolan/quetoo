@@ -28,14 +28,13 @@ static cvar_t *cl_right_speed;
 static cvar_t *cl_up_speed;
 static cvar_t *cl_yaw_speed;
 
+static cvar_t *m_grab;
 cvar_t *m_interpolate;
 cvar_t *m_invert;
-cvar_t *m_pitch;
+static cvar_t *m_pitch;
 cvar_t *m_sensitivity_zoom;
 cvar_t *m_sensitivity;
-cvar_t *m_yaw;
-
-cvar_t *debug_m_capture;
+static cvar_t *m_yaw;
 
 // key strokes queued per frame, power of 2
 #define MAX_KEY_QUEUE 64
@@ -345,7 +344,7 @@ static void Cl_MouseMove(int32_t mx, int32_t my) {
 		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
 	}
 
-	if (cls.key_state.dest != KEY_UI && cls.mouse_state.grabbed && debug_m_capture->integer != 0) {
+	if (cls.key_state.dest != KEY_UI && cls.mouse_state.grabbed) {
 		// warp the cursor back to the center of the screen
 		SDL_WarpMouse(r_context.width / 2, r_context.height / 2);
 	}
@@ -413,14 +412,13 @@ void Cl_HandleEvents(void) {
 		cls.mouse_state.grabbed = false;
 	}
 
-	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI || debug_m_capture->integer == 0) {
-		if (!r_context.fullscreen) {
-			// allow cursor to move outside window on console or menu
+	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI || !m_grab->integer) {
+		if (!r_context.fullscreen) { // allow cursor to move outside window
 			SDL_WM_GrabInput(SDL_GRAB_OFF);
 			cls.mouse_state.grabbed = false;
 		}
 	} else {
-		if (!cls.mouse_state.grabbed) { // grab the cursor for everything else
+		if (!cls.mouse_state.grabbed) { // grab it for everything else
 			SDL_WM_GrabInput(SDL_GRAB_ON);
 			cls.mouse_state.grabbed = true;
 			invalid_mouse_state = true;
@@ -571,14 +569,13 @@ void Cl_InitInput(void) {
 	cl_up_speed = Cvar_Get("cl_up_speed", "100.0", 0, NULL);
 	cl_yaw_speed = Cvar_Get("cl_yaw_speed", "0.2", 0, NULL);
 
+	m_grab = Cvar_Get("m_grab", "1", 0, NULL);
 	m_interpolate = Cvar_Get("m_interpolate", "0", CVAR_ARCHIVE, NULL);
 	m_invert = Cvar_Get("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
 	m_pitch = Cvar_Get("m_pitch", "0.022", 0, NULL);
 	m_sensitivity = Cvar_Get("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
 	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0, NULL);
-
-	debug_m_capture = Cvar_Get("debug_m_capture", "1", 0, NULL);
 
 	Cl_ClearInput();
 
