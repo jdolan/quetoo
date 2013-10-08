@@ -22,40 +22,58 @@
 #ifndef __NET_H__
 #define __NET_H__
 
+#ifdef _WIN32
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#ifndef in_addr_t
+#include <stdint.h>
+typedef uint32_t in_addr_t;
+typedef uint16_t in_port_t;
+#endif
+
+#undef  EWOULDBLOCK
+#define EWOULDBLOCK WSAEWOULDBLOCK
+#undef  ECONNREFUSED
+#define ECONNREFUSED WSAECONNREFUSED
+
+#define Net_GetError() WSAGetLastError()
+#define Net_CloseSocket closesocket
+#define ioctl ioctlsocket
+
+#else
+
+#include <errno.h>
+#include <netinet/in.h>
+
+#define Net_GetError() errno
+#define Net_CloseSocket close
+
+#endif
+
 #include "common.h"
 #include "cvar.h"
 
 typedef enum {
-	NA_LOCAL,
-	NA_IP_BROADCAST,
-	NA_IP
-} net_adr_type_t;
-
-typedef enum {
-	NS_CLIENT,
-	NS_SERVER
-} net_src_t;
+	NA_LOOP,
+	NA_BROADCAST,
+	NA_DATAGRAM,
+	NA_STREAM
+} net_addr_type_t;
 
 typedef struct {
-	net_adr_type_t type;
-	byte ip[4];
-	uint16_t port;
+	net_addr_type_t type;
+	in_addr_t addr;
+	in_port_t port;
 } net_addr_t;
 
-void Net_Init(void);
-void Net_Shutdown(void);
+typedef enum {
+	NS_UDP_CLIENT,
+	NS_UDP_SERVER
+} net_src_t;
 
-void Net_Config(net_src_t source, _Bool up);
-
-_Bool Net_GetPacket(net_src_t source, net_addr_t *from, size_buf_t *message);
-void Net_SendPacket(net_src_t source, size_t length, void *data, net_addr_t to);
-
-_Bool Net_CompareNetaddr(net_addr_t a, net_addr_t b);
-_Bool Net_CompareClientNetaddr(net_addr_t a, net_addr_t b);
-_Bool Net_IsLocalNetaddr(net_addr_t adr);
-char *Net_NetaddrToString(net_addr_t a);
-_Bool Net_StringToNetaddr(const char *s, net_addr_t *a);
-void Net_Sleep(uint32_t msec);
+extern in_addr_t net_lo;
 
 /*
  * @brief Max length of a single packet, due to UDP fragmentation. No single
@@ -64,51 +82,18 @@ void Net_Sleep(uint32_t msec);
  */
 #define MAX_MSG_SIZE 1400
 
-typedef struct {
-	_Bool fatal_error;
+const char *Net_GetErrorString(void);
+_Bool Net_CompareNetaddr(const net_addr_t *a, const net_addr_t *b);
+_Bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b);
 
-	net_src_t source;
+void Net_NetAddrToSockaddr(const net_addr_t *a, struct sockaddr_in *s);
+const char *Net_NetaddrToString(const net_addr_t *a);
+_Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr);
+_Bool Net_StringToNetaddr(const char *s, net_addr_t *a);
 
-	uint32_t dropped; // between last packet and previous
+int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port);
 
-	uint32_t last_received; // for timeouts
-	uint32_t last_sent; // for retransmits
-
-	net_addr_t remote_address;
-
-	uint8_t qport; // qport value to write when transmitting
-
-	// sequencing variables
-	uint32_t incoming_sequence;
-	uint32_t incoming_acknowledged;
-	uint32_t incoming_reliable_acknowledged; // single bit
-
-	uint32_t incoming_reliable_sequence; // single bit, maintained local
-
-	uint32_t outgoing_sequence;
-	uint32_t reliable_sequence; // single bit
-	uint32_t last_reliable_sequence; // sequence number of last send
-
-	// reliable staging and holding areas
-	size_buf_t message; // writing buffer to send to server
-	byte message_buffer[MAX_MSG_SIZE - 16]; // leave space for header
-
-	// message is copied to this buffer when it is first transfered
-	size_t reliable_size;
-	byte reliable_buffer[MAX_MSG_SIZE - 16]; // un-acked reliable message
-} net_chan_t;
-
-extern net_addr_t net_from;
-extern size_buf_t net_message;
-extern byte net_message_buffer[MAX_MSG_SIZE];
-
-void Netchan_Init(void);
-void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr, uint8_t qport);
-void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data);
-void Netchan_OutOfBand(int32_t net_socket, net_addr_t addr, size_t size, byte *data);
-void Netchan_OutOfBandPrint(int32_t net_socket, net_addr_t addr, const char *format, ...) __attribute__((format(printf, 3, 4)));
-_Bool Netchan_Process(net_chan_t *chan, size_buf_t *msg);
-_Bool Netchan_CanReliable(net_chan_t *chan);
-_Bool Netchan_NeedReliable(net_chan_t *chan);
+void Net_Init(void);
+void Net_Shutdown(void);
 
 #endif /* __NET_H__ */

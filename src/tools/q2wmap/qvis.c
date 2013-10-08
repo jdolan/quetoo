@@ -137,8 +137,9 @@ static void ClusterMerge(uint32_t leaf_num) {
 	// convert portal bits to leaf bits
 	numvis = LeafVectorFromPortalVector(portalvector, uncompressed);
 
-	if (uncompressed[leaf_num >> 3] & (1 << (leaf_num & 7)))
+	if (uncompressed[leaf_num >> 3] & (1 << (leaf_num & 7))) {
 		Com_Warn("Leaf portals saw into leaf\n");
+	}
 
 	uncompressed[leaf_num >> 3] |= (1 << (leaf_num & 7));
 	numvis++; // count the leaf itself

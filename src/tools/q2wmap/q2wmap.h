@@ -22,8 +22,9 @@
 #ifndef __Q2WMAP_H__
 #define __Q2WMAP_H__
 
-#include "thread.h"
 #include "files.h"
+#include "monitor.h"
+#include "thread.h"
 
 int32_t BSP_Main(void);
 int32_t VIS_Main(void);

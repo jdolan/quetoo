@@ -19,72 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "swap.h"
+#ifndef __NET_TCP_H__
+#define __NET_TCP_H__
 
-#include <SDL/SDL.h>
+#include "net.h"
 
-/*
- * @brief
- */
-static vec_t SwapFloat(vec_t f) {
+int32_t Net_Connect(const char *host, struct timeval *timeout);
 
-	union {
-		vec_t f;
-		byte b[4];
-	} dat1, dat2;
+_Bool Net_SendStream(int32_t sock, const void *data, size_t len);
+_Bool Net_ReceiveStream(int32_t sock, size_buf_t *buf);
 
-	dat1.f = f;
-
-	dat2.b[0] = dat1.b[3];
-	dat2.b[1] = dat1.b[2];
-	dat2.b[2] = dat1.b[1];
-	dat2.b[3] = dat1.b[0];
-
-	return dat2.f;
-}
-
-/*
- * @brief
- */
-int16_t BigShort(int16_t s) {
-	return SDL_SwapBE16(s);
-}
-
-/*
- * @brief
- */
-int16_t LittleShort(int16_t s) {
-	return SDL_SwapLE16(s);
-}
-
-/*
- * @brief
- */
-int32_t BigLong(int32_t l) {
-	return SDL_SwapBE32(l);
-}
-
-/*
- * @brief
- */
-int32_t LittleLong(int32_t l) {
-	return SDL_SwapLE32(l);
-}
-
-/*
- * @brief
- */
-vec_t BigFloat(vec_t f) {
-	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
-		return SwapFloat(f);
-	return f;
-}
-
-/*
- * @brief
- */
-vec_t LittleFloat(vec_t f) {
-	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-		return SwapFloat(f);
-	return f;
-}
+#endif /* __NET_TCP_H__ */

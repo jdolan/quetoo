@@ -56,10 +56,10 @@ static void Sv_SetMaster_f(void) {
 		}
 
 		if (addr->port == 0)
-			addr->port = BigShort(PORT_MASTER);
+			addr->port = htons(PORT_MASTER);
 
-		Com_Print("Master server at %s\n", Net_NetaddrToString(*addr));
-		Netchan_OutOfBandPrint(NS_SERVER, *addr, "ping");
+		Com_Print("Master server at %s\n", Net_NetaddrToString(addr));
+		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "ping");
 
 		slot++;
 	}
@@ -175,7 +175,7 @@ static void Sv_Kick_f(void) {
 static void Sv_Status_f(void) {
 	int32_t i, j, l;
 	sv_client_t * cl;
-	char *s;
+	const char *s;
 	uint32_t ping;
 
 	if (!svs.initialized) {
@@ -207,7 +207,7 @@ static void Sv_Status_f(void) {
 
 		Com_Print("%7i ", svs.real_time - cl->last_message);
 
-		s = Net_NetaddrToString(cl->net_chan.remote_address);
+		s = Net_NetaddrToString(&(cl->net_chan.remote_address));
 		Com_Print("%s", s);
 		l = 22 - strlen(s);
 		for (j = 0; j < l; j++)

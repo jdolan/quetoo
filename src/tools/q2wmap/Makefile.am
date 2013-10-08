@@ -3,6 +3,7 @@ bin_PROGRAMS = \
 
 noinst_HEADERS = \
 	bspfile.h \
+	monitor.h \
 	polylib.h \
 	q2wmap.h \
 	qbsp.h \
@@ -20,6 +21,7 @@ q2wmap_SOURCES = \
 	lightmap.c \
 	main.c \
 	map.c \
+	monitor.c \
 	patches.c \
 	polylib.c \
 	portals.c \
@@ -41,14 +43,16 @@ q2wmap_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL_CFLAGS@ \
+	@XML_CFLAGS@
 
 q2wmap_LDADD = \
 	../../../deps/minizip/libminizip.la \
 	../../libcmodel.la \
-	../../libconsole.la \
 	../../libimage.la \
+	../../libnet.la \
 	../../libthread.la \
 	@CURSES_LIBS@ \
+	@JPEG_LIBS@ \
 	@SDL_LIBS@ \
-	@JPEG_LIBS@
+	@XML_LIBS@

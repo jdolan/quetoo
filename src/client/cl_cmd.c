@@ -94,7 +94,7 @@ void Cl_SendCmd(void) {
 	if (cls.state == CL_CONNECTED) {
 		// send anything we have pending, or just don't timeout
 		if (cls.net_chan.message.size || cls.real_time - cls.net_chan.last_sent > 1000)
-			Netchan_Transmit(&cls.net_chan, 0, buf.data);
+			Netchan_Transmit(&cls.net_chan, buf.data, buf.size);
 		return;
 	}
 
@@ -138,7 +138,7 @@ void Cl_SendCmd(void) {
 	cl.cmd_time[(cls.net_chan.outgoing_sequence) & CMD_MASK] = cls.real_time;
 
 	// deliver the message
-	Netchan_Transmit(&cls.net_chan, buf.size, buf.data);
+	Netchan_Transmit(&cls.net_chan, buf.data, buf.size);
 
 	cl.packet_counter++;
 

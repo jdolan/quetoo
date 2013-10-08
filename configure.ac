@@ -289,6 +289,15 @@ else
 
 	AC_MSG_RESULT($TOOLS)
 	AC_SUBST(TOOL_DIRS)
+	
+	echo "${TOOLS}" | grep -q q2wmap && {
+	
+		dnl -----------------
+		dnl Check for libxml2
+		dnl -----------------
+		
+		PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4)
+	}
 fi
 
 AM_CONDITIONAL([BUILD_CLIENT], [test "x$BUILD_CLIENT" = "xyes"])

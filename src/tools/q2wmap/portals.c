@@ -451,8 +451,8 @@ static void CalcNodeBounds(node_t * node) {
 	ClearBounds(node->mins, node->maxs);
 	for (p = node->portals; p; p = p->next[s]) {
 		s = (p->nodes[1] == node);
-		for (i = 0; i < p->winding->numpoints; i++)
-			AddPointToBounds(p->winding->p[i], node->mins, node->maxs);
+		for (i = 0; i < p->winding->num_points; i++)
+			AddPointToBounds(p->winding->points[i], node->mins, node->maxs);
 	}
 }
 
@@ -647,7 +647,7 @@ static void FloodAreas_r(node_t * node) {
 		s = (p->nodes[1] == node);
 		// TODO: why is this commented out?
 #if 0
-		if(p->nodes[!s]->occupied)
+		if(points->nodes[!s]->occupied)
 		continue;
 #endif
 		if (!Portal_EntityFlood(p))

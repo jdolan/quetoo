@@ -199,8 +199,8 @@ void BuildPatches(void) {
 
 			w = WindingForFace(f);
 
-			for (k = 0; k < w->numpoints; k++) {
-				VectorAdd(w->p[k], origin, w->p[k]);
+			for (k = 0; k < w->num_points; k++) {
+				VectorAdd(w->points[k], origin, w->points[k]);
 			}
 
 			BuildPatch(facenum, w);

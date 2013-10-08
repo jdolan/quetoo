@@ -27,16 +27,16 @@ char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
  * @brief Handles Com_Print output redirection, allowing the server to send output
  * from any command to a connected client or even a foreign one.
  */
-void Sv_FlushRedirect(const int32_t target, char *outputbuf) {
+void Sv_FlushRedirect(int32_t target, const char *buffer) {
 
 	switch (target) {
 		case RD_PACKET:
-			Netchan_OutOfBandPrint(NS_SERVER, net_from, "print\n%s", outputbuf);
+			Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "print\n%s", buffer);
 			break;
 		case RD_CLIENT:
 			Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_PRINT);
 			Msg_WriteByte(&sv_client->net_chan.message, PRINT_HIGH);
-			Msg_WriteString(&sv_client->net_chan.message, outputbuf);
+			Msg_WriteString(&sv_client->net_chan.message, buffer);
 			break;
 		default:
 			Com_Debug("Sv_FlushRedirect: %d\n", target);
@@ -376,7 +376,7 @@ static void Sv_SendClientDatagram(sv_client_t *client) {
 			if (msg.size + cmsg->len > (MAX_MSG_SIZE - 16)) {
 				Com_Debug("Avoiding overflow\n");
 
-				Netchan_Transmit(&client->net_chan, msg.size, msg.data);
+				Netchan_Transmit(&client->net_chan, msg.data, msg.size);
 				Sb_Clear(&msg);
 			}
 
@@ -386,7 +386,7 @@ static void Sv_SendClientDatagram(sv_client_t *client) {
 	}
 
 	// send the pending package, which may include reliable messages
-	Netchan_Transmit(&client->net_chan, msg.size, msg.data);
+	Netchan_Transmit(&client->net_chan, msg.data, msg.size);
 
 	// record the total size for rate estimation
 	client->message_size[sv.frame_num % CLIENT_RATE_MESSAGES] = client->datagram.buffer.size;
@@ -413,7 +413,7 @@ static _Bool Sv_RateDrop(sv_client_t *c) {
 	uint16_t i;
 
 	// never drop over the loopback
-	if (c->net_chan.remote_address.type == NA_LOCAL)
+	if (c->net_chan.remote_address.type == NA_LOOP)
 		return false;
 
 	total = 0;
@@ -499,7 +499,7 @@ void Sv_SendClientMessages(void) {
 			size_t size;
 
 			if ((size = Sv_GetDemoMessage(buffer))) {
-				Netchan_Transmit(&c->net_chan, size, buffer);
+				Netchan_Transmit(&c->net_chan, buffer, size);
 			}
 		} else if (c->state == SV_CLIENT_ACTIVE) { // send the game packet
 
@@ -509,7 +509,7 @@ void Sv_SendClientMessages(void) {
 			Sv_SendClientDatagram(c);
 		} else { // just update reliable if needed
 			if (c->net_chan.message.size || quake2world.time - c->net_chan.last_sent > 1000)
-				Netchan_Transmit(&c->net_chan, 0, NULL);
+				Netchan_Transmit(&c->net_chan, NULL, 0);
 		}
 	}
 }

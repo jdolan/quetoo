@@ -54,7 +54,7 @@ void Sv_DropClient(sv_client_t *cl) {
 		}
 
 		Msg_WriteByte(&cl->net_chan.message, SV_CMD_DISCONNECT);
-		Netchan_Transmit(&cl->net_chan, cl->net_chan.message.size, cl->net_chan.message.data);
+		Netchan_Transmit(&cl->net_chan, cl->net_chan.message.data, cl->net_chan.message.size);
 	}
 
 	if (cl->download.buffer) {
@@ -105,14 +105,14 @@ static const char *Sv_StatusString(void) {
  * @brief Responds with all the info that qplug or qspy can see.
  */
 static void Svc_Status(void) {
-	Netchan_OutOfBandPrint(NS_SERVER, net_from, "print\n%s", Sv_StatusString());
+	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "print\n%s", Sv_StatusString());
 }
 
 /*
  * @brief
  */
 static void Svc_Ack(void) {
-	Com_Print("Ping acknowledge from %s\n", Net_NetaddrToString(net_from));
+	Com_Print("Ping acknowledge from %s\n", Net_NetaddrToString(&net_from));
 }
 
 /*
@@ -120,18 +120,16 @@ static void Svc_Ack(void) {
  */
 static void Svc_Info(void) {
 	char string[MAX_MSG_SIZE];
-	int32_t i, count;
-	int32_t prot;
 
 	if (sv_max_clients->integer == 1)
 		return; // ignore in single player
 
-	prot = atoi(Cmd_Argv(1));
+	const int32_t prot = atoi(Cmd_Argv(1));
 
 	if (prot != PROTOCOL)
 		g_snprintf(string, sizeof(string), "%s: wrong protocol version\n", sv_hostname->string);
 	else {
-		count = 0;
+		int32_t i, count = 0;
 
 		for (i = 0; i < sv_max_clients->integer; i++) {
 			if (svs.clients[i].state >= SV_CLIENT_CONNECTED)
@@ -142,14 +140,14 @@ static void Svc_Info(void) {
 				sv.name, svs.game->GameName(), count, sv_max_clients->integer);
 	}
 
-	Netchan_OutOfBandPrint(NS_SERVER, net_from, "info\n%s", string);
+	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "info\n%s", string);
 }
 
 /*
  * @brief Just responds with an acknowledgment.
  */
 static void Svc_Ping(void) {
-	Netchan_OutOfBandPrint(NS_SERVER, net_from, "ack");
+	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "ack");
 }
 
 /*
@@ -169,7 +167,7 @@ static void Svc_GetChallenge(void) {
 	// see if we already have a challenge for this ip
 	for (i = 0; i < MAX_CHALLENGES; i++) {
 
-		if (Net_CompareClientNetaddr(net_from, svs.challenges[i].addr))
+		if (Net_CompareClientNetaddr(&net_from, &svs.challenges[i].addr))
 			break;
 
 		if (svs.challenges[i].time < oldest_time) {
@@ -187,7 +185,7 @@ static void Svc_GetChallenge(void) {
 	}
 
 	// send it back
-	Netchan_OutOfBandPrint(NS_SERVER, net_from, "challenge %i", svs.challenges[i].challenge);
+	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "challenge %i", svs.challenges[i].challenge);
 }
 
 /*
@@ -196,52 +194,48 @@ static void Svc_GetChallenge(void) {
 static void Svc_Connect(void) {
 	char user_info[MAX_USER_INFO_STRING];
 	sv_client_t *cl, *client;
-	net_addr_t addr;
-	int32_t version;
-	byte qport;
-	uint32_t challenge;
 	int32_t i;
 
 	Com_Debug("Svc_Connect()\n");
 
-	addr = net_from;
+	net_addr_t *addr = &net_from;
 
-	version = atoi(Cmd_Argv(1));
+	const int32_t version = strtol(Cmd_Argv(1), NULL, 0);
 
 	// resolve protocol
 	if (version != PROTOCOL) {
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nServer is version %d.\n", PROTOCOL);
+		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n", PROTOCOL);
 		return;
 	}
 
-	qport = strtoul(Cmd_Argv(2), NULL, 0) & 0xff;
+	const uint8_t qport = strtoul(Cmd_Argv(2), NULL, 0);
 
-	challenge = strtoul(Cmd_Argv(3), NULL, 0);
+	const uint32_t challenge = strtoul(Cmd_Argv(3), NULL, 0);
 
-	//copy user_info, leave room for ip stuffing
+	// copy user_info, leave room for ip stuffing
 	g_strlcpy(user_info, Cmd_Argv(4), sizeof(user_info) - 25);
 
 	if (*user_info == '\0') { // catch empty user_info
 		Com_Print("Empty user_info from %s\n", Net_NetaddrToString(addr));
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
+		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
 		return;
 	}
 
 	if (strchr(user_info, '\xFF')) { // catch end of message in string exploit
 		Com_Print("Illegal user_info contained xFF from %s\n", Net_NetaddrToString(addr));
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
+		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
 		return;
 	}
 
 	if (strlen(GetUserInfo(user_info, "ip"))) { // catch spoofed ips
 		Com_Print("Illegal user_info contained ip from %s\n", Net_NetaddrToString(addr));
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
+		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
 		return;
 	}
 
 	if (!ValidateUserInfo(user_info)) { // catch otherwise invalid user_info
 		Com_Print("Invalid user_info from %s\n", Net_NetaddrToString(addr));
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
+		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
 		return;
 	}
 
@@ -250,17 +244,17 @@ static void Svc_Connect(void) {
 
 	// enforce a valid challenge to avoid denial of service attack
 	for (i = 0; i < MAX_CHALLENGES; i++) {
-		if (Net_CompareClientNetaddr(addr, svs.challenges[i].addr)) {
+		if (Net_CompareClientNetaddr(addr, &svs.challenges[i].addr)) {
 			if (challenge == svs.challenges[i].challenge) {
 				svs.challenges[i].challenge = 0;
 				break; // good
 			}
-			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nBad challenge\n");
+			Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nBad challenge\n");
 			return;
 		}
 	}
 	if (i == MAX_CHALLENGES) {
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nNo challenge for address\n");
+		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nNo challenge for address\n");
 		return;
 	}
 
@@ -276,10 +270,12 @@ static void Svc_Connect(void) {
 			continue;
 
 		// the base address and either the qport or real port must match
-		if (Net_CompareClientNetaddr(addr, ch->remote_address) && (qport == ch->qport
-				|| ch->remote_address.port == addr.port)) {
-			client = cl;
-			break;
+		if (Net_CompareClientNetaddr(addr, &ch->remote_address)) {
+
+			if (addr->port == ch->remote_address.port || qport == ch->qport) {
+				client = cl;
+				break;
+			}
 		}
 	}
 
@@ -295,7 +291,7 @@ static void Svc_Connect(void) {
 
 	// no soup for you, next!!
 	if (!client) {
-		Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nServer is full\n");
+		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is full\n");
 		Com_Debug("Rejected a connection\n");
 		return;
 	}
@@ -305,9 +301,9 @@ static void Svc_Connect(void) {
 		const char *rejmsg = GetUserInfo(user_info, "rejmsg");
 
 		if (strlen(rejmsg)) {
-			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\n%s\nConnection refused\n", rejmsg);
+			Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\n%s\nConnection refused\n", rejmsg);
 		} else {
-			Netchan_OutOfBandPrint(NS_SERVER, addr, "print\nConnection refused\n");
+			Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
 		}
 
 		Com_Debug("Game rejected a connection\n");
@@ -319,9 +315,9 @@ static void Svc_Connect(void) {
 	Sv_UserInfoChanged(client);
 
 	// send the connect packet to the client
-	Netchan_OutOfBandPrint(NS_SERVER, addr, "client_connect %s", sv_download_url->string);
+	Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "client_connect %s", sv_download_url->string);
 
-	Netchan_Setup(NS_SERVER, &client->net_chan, addr, qport);
+	Netchan_Setup(NS_UDP_SERVER, &client->net_chan, addr, qport);
 
 	Sb_Init(&client->datagram.buffer, client->datagram.data, sizeof(client->datagram.data));
 	client->datagram.buffer.allow_overflow = true;
@@ -353,12 +349,13 @@ static _Bool Sv_RconAuthenticate(void) {
  */
 static void Svc_RemoteCommand(void) {
 	const _Bool auth = Sv_RconAuthenticate();
+	const char *addr = Net_NetaddrToString(&net_from);
 
 	// first print to the server console
 	if (auth)
-		Com_Print("Rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
+		Com_Print("Rcon from %s:\n%s\n", addr, net_message.data + 4);
 	else
-		Com_Print("Bad rcon from %s:\n%s\n", Net_NetaddrToString(net_from), net_message.data + 4);
+		Com_Print("Bad rcon from %s:\n%s\n", addr, net_message.data + 4);
 
 	// then redirect the remaining output back to the client
 	Com_BeginRedirect(RD_PACKET, sv_outputbuf, SV_OUTPUTBUF_LENGTH, Sv_FlushRedirect);
@@ -383,9 +380,9 @@ static void Svc_RemoteCommand(void) {
 }
 
 /*
- * @brief A connectionless packet has four leading 0xff bytes to distinguish it from
- * a game channel. Clients that are in the game can still send these, and they
- * will be handled here.
+ * @brief A connection-less packet has four leading 0xff bytes to distinguish
+ * it from a game channel. Clients that are in the game can still send these,
+ * and they will be handled here.
  */
 static void Sv_ConnectionlessPacket(void) {
 
@@ -397,7 +394,9 @@ static void Sv_ConnectionlessPacket(void) {
 	Cmd_TokenizeString(s);
 
 	const char *c = Cmd_Argv(0);
-	Com_Debug("Packet from %s: %s\n", Net_NetaddrToString(net_from), c);
+	const char *a = Net_NetaddrToString(&net_from);
+
+	Com_Debug("Packet from %s: %s\n", a, c);
 
 	if (!g_strcmp0(c, "ping"))
 		Svc_Ping();
@@ -414,7 +413,7 @@ static void Sv_ConnectionlessPacket(void) {
 	else if (!g_strcmp0(c, "rcon"))
 		Svc_RemoteCommand();
 	else
-		Com_Print("Bad connectionless packet from %s:\n%s\n", Net_NetaddrToString(net_from), s);
+		Com_Print("Bad connectionless packet from %s:\n%s\n", a, s);
 }
 
 /*
@@ -508,7 +507,7 @@ static void Sv_ReadPackets(void) {
 	sv_client_t * cl;
 	byte qport;
 
-	while (Net_GetPacket(NS_SERVER, &net_from, &net_message)) {
+	while (Net_ReceiveDatagram(NS_UDP_SERVER, &net_from, &net_message)) {
 
 		// check for connectionless packet (0xffffffff) first
 		if (*(uint32_t *) net_message.data == 0xffffffff) {
@@ -531,7 +530,7 @@ static void Sv_ReadPackets(void) {
 			if (cl->state == SV_CLIENT_FREE)
 				continue;
 
-			if (!Net_CompareClientNetaddr(net_from, cl->net_chan.remote_address))
+			if (!Net_CompareClientNetaddr(&net_from, &cl->net_chan.remote_address))
 				continue;
 
 			if (cl->net_chan.qport != qport)
@@ -627,7 +626,7 @@ static void Sv_InitMasters(void) {
 
 	// set default master server
 	Net_StringToNetaddr(IP_MASTER, &svs.masters[0]);
-	svs.masters[0].port = BigShort(PORT_MASTER);
+	svs.masters[0].port = htons(PORT_MASTER);
 }
 
 #define HEARTBEAT_SECONDS 300
@@ -659,8 +658,8 @@ static void Sv_HeartbeatMasters(void) {
 	// send to each master server
 	for (i = 0; i < MAX_MASTERS; i++) {
 		if (svs.masters[i].port) {
-			Com_Print("Sending heartbeat to %s\n", Net_NetaddrToString(svs.masters[i]));
-			Netchan_OutOfBandPrint(NS_SERVER, svs.masters[i], "heartbeat\n%s", string);
+			Com_Print("Sending heartbeat to %s\n", Net_NetaddrToString(&svs.masters[i]));
+			Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "heartbeat\n%s", string);
 		}
 	}
 }
@@ -680,8 +679,8 @@ static void Sv_ShutdownMasters(void) {
 	// send to group master
 	for (i = 0; i < MAX_MASTERS; i++) {
 		if (svs.masters[i].port) {
-			Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(svs.masters[i]));
-			Netchan_OutOfBandPrint(NS_SERVER, svs.masters[i], "shutdown");
+			Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(&svs.masters[i]));
+			Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "shutdown");
 		}
 	}
 }
@@ -718,8 +717,8 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
 /*
  * @brief A convenience function for printing out client addresses.
  */
-char *Sv_NetaddrToString(sv_client_t *cl) {
-	return Net_NetaddrToString(cl->net_chan.remote_address);
+const char *Sv_NetaddrToString(const sv_client_t *cl) {
+	return Net_NetaddrToString(&cl->net_chan.remote_address);
 }
 
 #define MIN_RATE 8000
@@ -784,7 +783,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 /*
  * @brief
  */
-void Sv_Frame(uint32_t msec) {
+void Sv_Frame(const uint32_t msec) {
 
 	// if server is not active, do nothing
 	if (!svs.initialized)
@@ -879,7 +878,7 @@ void Sv_Init(void) {
 
 	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
 
-	Net_Config(NS_SERVER, true);
+	Net_Config(NS_UDP_SERVER, true);
 }
 
 /*
@@ -891,7 +890,7 @@ void Sv_Shutdown(const char *msg) {
 
 	Sv_ShutdownMasters();
 
-	Net_Config(NS_SERVER, false);
+	Net_Config(NS_UDP_SERVER, false);
 
 	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
 

@@ -58,7 +58,8 @@ void Msg_WritePos(size_buf_t *sb, const vec3_t pos);
 void Msg_WriteAngle(size_buf_t *sb, const vec_t f);
 void Msg_WriteAngles(size_buf_t *sb, const vec3_t angles);
 void Msg_WriteDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
-void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force, _Bool newentity);
+void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force,
+		_Bool newentity);
 void Msg_WriteDir(size_buf_t *sb, const vec3_t dir);
 
 void Msg_BeginReading(size_buf_t *sb);
@@ -74,7 +75,8 @@ void Msg_ReadPos(size_buf_t *sb, vec3_t pos);
 vec_t Msg_ReadAngle(size_buf_t *sb);
 void Msg_ReadAngles(size_buf_t *sb, vec3_t angles);
 void Msg_ReadDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
-void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, uint16_t bits, uint16_t number);
+void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, uint16_t bits,
+		uint16_t number);
 void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
 
 /*
@@ -130,9 +132,11 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
 #define S_ATTEN		(1<<0) // a byte
 #define S_ORIGIN	(1<<1) // three coordinates
 #define S_ENTNUM	(1<<2) // entity number
+//
+
 // entity_state_t communication
 
-// This bit mask is packed into a int16_t for each entity_state_t per frame.
+// This bit mask is packed into a uint16_t for each entity_state_t per frame.
 // It describes which fields must be read to successfully parse the delta-
 // compression.
 #define U_ORIGIN		(1<<0)
@@ -146,13 +150,20 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
 #define U_SOUND			(1<<8) // looped sounds
 #define U_SOLID			(1<<9)
 #define U_REMOVE		(1<<10) // remove this entity, don't add it
+//
+
+// A table of approximate normal vectors is used to save bandwidth when
+// transmitting entity angles, which would otherwise require 12 bytes.
 #define NUM_APPROXIMATE_NORMALS 162
 extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
 
 typedef enum {
 	ERR_NONE,
-	ERR_DROP,
-	ERR_FATAL
+	ERR_PRINT,
+	ERR_WARN,
+	ERR_FATAL, // program must exit
+	ERR_DROP
+// don't fully shit pants, but drop to console
 } err_t;
 
 int32_t Com_Argc(void);
@@ -161,7 +172,7 @@ void Com_InitArgv(int32_t argc, char **argv);
 
 void Com_PrintInfo(const char *s);
 
-typedef void (*RedirectFlush)(int32_t target, char *buffer);
+typedef void (*RedirectFlush)(int32_t target, const char *buffer);
 void Com_BeginRedirect(int32_t target, char *buffer, size_t size, RedirectFlush flush);
 void Com_EndRedirect(void);
 

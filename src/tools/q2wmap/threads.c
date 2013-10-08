@@ -20,6 +20,7 @@
  */
 
 #include "q2wmap.h"
+#include "thread.h"
 
 semaphores_t semaphores;
 thread_work_t thread_work;
@@ -75,7 +76,6 @@ static int32_t GetThreadWork(void) {
 		thread_work.fraction = f;
 		if (thread_work.progress && !(verbose || debug)) {
 			Com_Print("%i...", f);
-			fflush(stdout);
 		}
 	}
 

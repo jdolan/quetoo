@@ -47,7 +47,7 @@ extern cvar_t *rate;
 extern cvar_t *skin;
 
 void Cl_Disconnect(void);
-void Cl_Frame(uint32_t msec);
+void Cl_Frame(const uint32_t msec);
 void Cl_Init(void);
 void Cl_Shutdown(void);
 

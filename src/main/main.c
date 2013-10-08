@@ -69,6 +69,7 @@ static void Error(err_t err, const char *msg) {
 
 	switch (err) {
 		case ERR_NONE:
+		case ERR_PRINT:
 		case ERR_DROP:
 			Sv_ShutdownServer(msg);
 
@@ -165,7 +166,6 @@ static void Init(void) {
 
 	Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quake2World");
 
-	Net_Init();
 	Netchan_Init();
 
 	Sv_Init();
@@ -174,7 +174,7 @@ static void Init(void) {
 	Cl_Init();
 #endif
 
-	Com_Print("Quake2World initialized\n");
+	Com_Print("Quake2World %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
 
 	// execute any +commands specified on the command line
 	Cbuf_InsertFromDefer();
@@ -199,6 +199,8 @@ static void Shutdown(const char *msg) {
 	Cl_Shutdown();
 #endif
 
+	Netchan_Shutdown();
+
 	Thread_Shutdown();
 
 	Con_Shutdown();
@@ -216,7 +218,7 @@ static void Shutdown(const char *msg) {
 /*
  * @brief
  */
-static void Frame(uint32_t msec) {
+static void Frame(const uint32_t msec) {
 	extern int32_t c_traces, c_bsp_brush_traces;
 	extern int32_t c_point_contents;
 	extern cvar_t *threads;
@@ -291,14 +293,14 @@ int32_t main(int32_t argc, char **argv) {
 				time_scale->value = 3.0;
 		}
 
-		old_time = quake2world.time;
-
 		do {
 			quake2world.time = Sys_Milliseconds();
 			msec = (quake2world.time - old_time) * time_scale->value;
 		} while (msec < 1);
 
 		Frame(msec);
+
+		old_time = quake2world.time;
 	}
 
 	return 0;

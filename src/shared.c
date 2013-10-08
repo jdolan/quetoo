@@ -953,7 +953,7 @@ char *vtos(const vec3_t v) {
 	// use an array so that multiple vtos won't collide
 	s = str[index++ % 8];
 
-	g_snprintf(s, 32, "(%3.2f %3.2f %3.2f)", v[0], v[1], v[2]);
+	g_snprintf(s, 32, "(%04.2f %04.2f %04.2f)", v[0], v[1], v[2]);
 
 	return s;
 }

@@ -33,7 +33,7 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 	cls.servers = s;
 
 	s->addr = *addr;
-	g_strlcpy(s->hostname, Net_NetaddrToString(s->addr), sizeof(s->hostname));
+	g_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
 
 	return s;
 }
@@ -48,7 +48,7 @@ static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
 
 	while (s) {
 
-		if (Net_CompareNetaddr(*addr, s->addr))
+		if (Net_CompareNetaddr(addr, &s->addr))
 			return s;
 
 		s = s->next;
@@ -78,11 +78,9 @@ void Cl_FreeServers(void) {
  */
 void Cl_ParseStatusMessage(void) {
 	extern void Ui_NewServer(void);
-	cl_server_info_t *server;
 	char info[MAX_MSG_SIZE];
 
-	server = Cl_ServerForNetaddr(&net_from);
-
+	cl_server_info_t *server = Cl_ServerForNetaddr(&net_from);
 	if (!server) { // unknown server, assumed response to broadcast
 
 		server = Cl_AddServer(&net_from);
@@ -96,7 +94,7 @@ void Cl_ParseStatusMessage(void) {
 	if (sscanf(info, "%63c\\%31c\\%31c\\%hu\\%hu", server->hostname, server->name,
 			server->gameplay, &server->clients, &server->max_clients) != 5) {
 
-		Com_Debug("Failed to parse info \"%s\" for %s\n", info, Net_NetaddrToString(server->addr));
+		Com_Debug("Failed to parse info \"%s\" for %s\n", info, Net_NetaddrToString(&server->addr));
 
 		server->hostname[0] = '\0';
 		server->name[0] = '\0';
@@ -136,7 +134,7 @@ void Cl_Ping_f(void) {
 	}
 
 	if (!addr.port) // use default
-		addr.port = (uint16_t) BigShort(PORT_SERVER);
+		addr.port = (uint16_t) htons(PORT_SERVER);
 
 	server = Cl_ServerForNetaddr(&addr);
 
@@ -148,9 +146,9 @@ void Cl_Ping_f(void) {
 	server->ping_time = cls.real_time;
 	server->ping = 0;
 
-	Com_Print("Pinging %s\n", Net_NetaddrToString(server->addr));
+	Com_Print("Pinging %s\n", Net_NetaddrToString(&server->addr));
 
-	Netchan_OutOfBandPrint(NS_CLIENT, server->addr, "info %i", PROTOCOL);
+	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "info %i", PROTOCOL);
 }
 
 /*
@@ -176,10 +174,10 @@ static void Cl_SendBroadcast(void) {
 
 	memset(&addr, 0, sizeof(addr));
 
-	addr.type = NA_IP_BROADCAST;
-	addr.port = (uint16_t) BigShort(PORT_SERVER);
+	addr.type = NA_BROADCAST;
+	addr.port = htons(PORT_SERVER);
 
-	Netchan_OutOfBandPrint(NS_CLIENT, addr, "info %i", PROTOCOL);
+	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "info %i", PROTOCOL);
 }
 
 /*
@@ -195,9 +193,10 @@ void Cl_Servers_f(void) {
 
 	Com_Print("Refreshing servers\n");
 
-	addr.type = NA_IP;
-	addr.port = (uint16_t) BigShort(PORT_MASTER);
-	Netchan_OutOfBandPrint(NS_CLIENT, addr, "getservers");
+	addr.type = NA_DATAGRAM;
+	addr.port = htons(PORT_MASTER);
+
+	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "getservers");
 
 	Cl_SendBroadcast();
 }
@@ -257,7 +256,7 @@ void Cl_ParseServersList(void) {
 			server->ping_time = cls.real_time;
 			server->ping = 0;
 
-			Netchan_OutOfBandPrint(NS_CLIENT, server->addr, "info %i", PROTOCOL);
+			Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "info %i", PROTOCOL);
 		}
 
 		server = server->next;
@@ -276,7 +275,7 @@ void Cl_Servers_List_f(void) {
 	while (server) {
 		g_snprintf(server_info, sizeof(server_info),
 				"%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms", server->hostname,
-				Net_NetaddrToString(server->addr), server->name, server->gameplay, server->clients,
+				Net_NetaddrToString(&server->addr), server->name, server->gameplay, server->clients,
 				server->max_clients, server->ping);
 		server_info[127] = '\0';
 		Com_Print("%s\n", server_info);

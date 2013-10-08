@@ -25,8 +25,8 @@
 #include <float.h>
 
 typedef struct {
-	int32_t numpoints;
-	vec3_t p[4]; // variable sized
+	uint16_t num_points;
+	vec3_t points[4]; // variable sized
 } winding_t;
 
 #define	MAX_POINTS_ON_WINDING	64

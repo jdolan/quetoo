@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "net.h"
+#include "net_chan.h"
 
 /*
  *
@@ -73,32 +73,17 @@
  * unacknowledged reliable
  */
 
-cvar_t *net_showpackets;
-cvar_t *net_showdrop;
-cvar_t *net_qport;
+static cvar_t *net_showpackets;
+static cvar_t *net_showdrop;
 
 net_addr_t net_from;
 size_buf_t net_message;
 byte net_message_buffer[MAX_MSG_SIZE];
 
 /*
- * @brief
- */
-void Netchan_Init(void) {
-	uint8_t p;
-
-	net_showpackets = Cvar_Get("net_showpackets", "0", 0, NULL);
-	net_showdrop = Cvar_Get("net_showdrop", "0", 0, NULL);
-
-	// assign a small random number for the qport
-	p = ((uint32_t) time(NULL)) & 255;
-	net_qport = Cvar_Get("net_qport", va("%d", p), CVAR_NO_SET, NULL);
-}
-
-/*
  * @brief Sends an out-of-band datagram
  */
-void Netchan_OutOfBand(int32_t net_socket, net_addr_t addr, size_t size, byte *data) {
+void Netchan_OutOfBand(int32_t sock, const net_addr_t *addr, const void *data, size_t len) {
 	size_buf_t send;
 	byte send_buffer[MAX_MSG_SIZE];
 
@@ -106,16 +91,16 @@ void Netchan_OutOfBand(int32_t net_socket, net_addr_t addr, size_t size, byte *d
 	Sb_Init(&send, send_buffer, sizeof(send_buffer));
 
 	Msg_WriteLong(&send, -1); // -1 sequence means out of band
-	Sb_Write(&send, data, size);
+	Sb_Write(&send, data, len);
 
 	// send the datagram
-	Net_SendPacket(net_socket, send.size, send.data, addr);
+	Net_SendDatagram(sock, addr, send.data, send.size);
 }
 
 /*
  * @brief Sends a text message in an out-of-band datagram
  */
-void Netchan_OutOfBandPrint(int32_t net_socket, net_addr_t addr, const char *format, ...) {
+void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *format, ...) {
 	va_list args;
 	char string[MAX_MSG_SIZE - 4];
 
@@ -125,17 +110,17 @@ void Netchan_OutOfBandPrint(int32_t net_socket, net_addr_t addr, const char *for
 	vsnprintf(string, sizeof(string), format, args);
 	va_end(args);
 
-	Netchan_OutOfBand(net_socket, addr, strlen(string), (byte *) string);
+	Netchan_OutOfBand(sock, addr, (const void *) string, strlen(string));
 }
 
 /*
  * @brief Called to open a channel to a remote system.
  */
-void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr, uint8_t qport) {
+void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t qport) {
 	memset(chan, 0, sizeof(*chan));
 
 	chan->source = source;
-	chan->remote_address = addr;
+	chan->remote_address = *addr;
 	chan->qport = qport;
 	chan->last_received = quake2world.time;
 	chan->incoming_sequence = 0;
@@ -149,8 +134,10 @@ void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t addr, uint8_t 
  * @brief Returns true if the last reliable message has acked.
  */
 _Bool Netchan_CanReliable(net_chan_t *chan) {
+
 	if (chan->reliable_size)
 		return false; // waiting for ack
+
 	return true;
 }
 
@@ -158,11 +145,9 @@ _Bool Netchan_CanReliable(net_chan_t *chan) {
  * @brief
  */
 _Bool Netchan_NeedReliable(net_chan_t *chan) {
-	_Bool send_reliable;
+	_Bool send_reliable = false;
 
 	// if the remote side dropped the last reliable message, resend it
-	send_reliable = false;
-
 	if (chan->incoming_acknowledged > chan->last_reliable_sequence
 			&& chan->incoming_reliable_acknowledged != chan->reliable_sequence)
 		send_reliable = true;
@@ -181,14 +166,14 @@ _Bool Netchan_NeedReliable(net_chan_t *chan) {
  *
  * A 0 size will still generate a packet and deal with the reliable messages.
  */
-void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
+void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 	size_buf_t send;
 	byte send_buffer[MAX_MSG_SIZE];
 
 	// check for message overflow
 	if (chan->message.overflowed) {
 		chan->fatal_error = true;
-		Com_Print("%s:Outgoing message overflow\n", Net_NetaddrToString(chan->remote_address));
+		Com_Print("%s:Outgoing message overflow\n", Net_NetaddrToString(&chan->remote_address));
 		return;
 	}
 
@@ -215,7 +200,7 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 	Msg_WriteLong(&send, w2);
 
 	// send the qport if we are a client
-	if (chan->source == NS_CLIENT)
+	if (chan->source == NS_UDP_CLIENT)
 		Msg_WriteByte(&send, chan->qport);
 
 	// copy the reliable message to the packet first
@@ -225,13 +210,13 @@ void Netchan_Transmit(net_chan_t *chan, size_t size, byte *data) {
 	}
 
 	// add the unreliable part if space is available
-	if (send.max_size - send.size >= size)
-		Sb_Write(&send, data, size);
+	if (send.max_size - send.size >= len)
+		Sb_Write(&send, data, len);
 	else
 		Com_Warn("Netchan_Transmit: dumped unreliable\n");
 
 	// send the datagram
-	Net_SendPacket(chan->source, send.size, send.data, chan->remote_address);
+	Net_SendDatagram(chan->source, &chan->remote_address, send.data, send.size);
 
 	if (net_showpackets->value) {
 		if (send_reliable)
@@ -260,7 +245,7 @@ _Bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
 	sequence_ack = Msg_ReadLong(msg);
 
 	// read the qport if we are a server
-	if (chan->source == NS_SERVER)
+	if (chan->source == NS_UDP_SERVER)
 		Msg_ReadByte(msg);
 
 	reliable_message = sequence >> 31;
@@ -282,7 +267,7 @@ _Bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
 	if (sequence <= chan->incoming_sequence) {
 		if (net_showdrop->value)
 			Com_Print("%s:Out of order packet %i at %i\n",
-					Net_NetaddrToString(chan->remote_address), sequence, chan->incoming_sequence);
+					Net_NetaddrToString(&chan->remote_address), sequence, chan->incoming_sequence);
 		return false;
 	}
 
@@ -290,7 +275,7 @@ _Bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
 	chan->dropped = sequence - (chan->incoming_sequence + 1);
 	if (chan->dropped > 0) {
 		if (net_showdrop->value)
-			Com_Print("%s:Dropped %i packets at %i\n", Net_NetaddrToString(chan->remote_address),
+			Com_Print("%s:Dropped %i packets at %i\n", Net_NetaddrToString(&chan->remote_address),
 					chan->dropped, sequence);
 	}
 
@@ -311,5 +296,27 @@ _Bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
 	chan->last_received = quake2world.time;
 
 	return true;
+}
+
+/*
+ * @brief
+ */
+void Netchan_Init(void) {
+
+	Net_Init();
+
+	net_showpackets = Cvar_Get("net_showpackets", "0", 0, NULL);
+	net_showdrop = Cvar_Get("net_showdrop", "0", 0, NULL);
+}
+
+/*
+ * @brief
+ */
+void Netchan_Shutdown(void) {
+
+	Net_Config(NS_UDP_CLIENT, false);
+	Net_Config(NS_UDP_SERVER, false);
+
+	Net_Shutdown();
 }
 

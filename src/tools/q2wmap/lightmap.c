@@ -95,8 +95,7 @@ static void BuildFaceExtents(void) {
 			}
 
 			for (j = 0; j < 2; j++) { // calculate st_mins, st_maxs
-				const vec_t val = DotProduct(v->point, tex->vecs[j])
-						+ tex->vecs[j][3];
+				const vec_t val = DotProduct(v->point, tex->vecs[j]) + tex->vecs[j][3];
 				if (val < st_mins[j])
 					st_mins[j] = val;
 				if (val > st_maxs[j])
@@ -136,9 +135,12 @@ static void CalcLightinfoExtents(light_info_t *l) {
 
 	// if a surface lightmap is too large to fit in a single lightmap block,
 	// we must fail here -- practically speaking, this is very unlikely
-	if (l->tex_size[0] * l->tex_size[1] > MAX_BSP_LIGHTMAP)
-		Com_Error(ERR_FATAL, "Surface too large to light (%dx%d)\n",
-				l->tex_size[0], l->tex_size[1]);
+	if (l->tex_size[0] * l->tex_size[1] > MAX_BSP_LIGHTMAP) {
+		const winding_t *w = WindingForFace(s);
+
+		Mon_SendWinding(ERR_FATAL, (const vec3_t *) w->points, w->num_points,
+				va("Surface too large to light (%dx%d)\n", l->tex_size[0], l->tex_size[1]));
+	}
 }
 
 /*
@@ -159,12 +161,9 @@ static void CalcLightinfoVectors(light_info_t *l) {
 
 	// calculate a normal to the texture axis. points can be moved along this
 	// without changing their S/T
-	tex_normal[0] = tex->vecs[1][1] * tex->vecs[0][2] - tex->vecs[1][2]
-			* tex->vecs[0][1];
-	tex_normal[1] = tex->vecs[1][2] * tex->vecs[0][0] - tex->vecs[1][0]
-			* tex->vecs[0][2];
-	tex_normal[2] = tex->vecs[1][0] * tex->vecs[0][1] - tex->vecs[1][1]
-			* tex->vecs[0][0];
+	tex_normal[0] = tex->vecs[1][1] * tex->vecs[0][2] - tex->vecs[1][2] * tex->vecs[0][1];
+	tex_normal[1] = tex->vecs[1][2] * tex->vecs[0][0] - tex->vecs[1][0] * tex->vecs[0][2];
+	tex_normal[2] = tex->vecs[1][0] * tex->vecs[0][1] - tex->vecs[1][1] * tex->vecs[0][0];
 	VectorNormalize(tex_normal);
 
 	// flip it towards plane normal
@@ -183,16 +182,15 @@ static void CalcLightinfoVectors(light_info_t *l) {
 
 	for (i = 0; i < 2; i++) {
 		const vec_t len = VectorLength(l->world_to_tex[i]);
-		const vec_t distance = DotProduct(l->world_to_tex[i], l->face_normal)
-				* dist_scale;
+		const vec_t distance = DotProduct(l->world_to_tex[i], l->face_normal) * dist_scale;
 		VectorMA(l->world_to_tex[i], -distance, tex_normal, l->tex_to_world[i]);
 		VectorScale(l->tex_to_world[i], (1 / len) * (1 / len), l->tex_to_world[i]);
 	}
 
 	// calculate tex_org on the texture plane
 	for (i = 0; i < 3; i++)
-		l->tex_org[i] = -tex->vecs[0][3] * l->tex_to_world[0][i]
-				- tex->vecs[1][3] * l->tex_to_world[1][i];
+		l->tex_org[i] = -tex->vecs[0][3] * l->tex_to_world[0][i] - tex->vecs[1][3]
+				* l->tex_to_world[1][i];
 
 	// project back to the face plane
 	dist = DotProduct(l->tex_org, l->face_normal) - l->face_dist - 1;
@@ -233,8 +231,7 @@ static void CalcPoints(light_info_t *l, vec_t sofs, vec_t tofs) {
 
 			// calculate texture point
 			for (j = 0; j < 3; j++)
-				surf[j] = l->tex_org[j] + l->tex_to_world[0][j] * us
-						+ l->tex_to_world[1][j] * ut;
+				surf[j] = l->tex_org[j] + l->tex_to_world[0][j] * us + l->tex_to_world[1][j] * ut;
 		}
 	}
 }
@@ -386,9 +383,7 @@ void BuildLights(void) {
 			if (target[0]) { // point towards target
 				entity_t *e2 = FindTargetEntity(target);
 				if (!e2) {
-					Com_Warn("Light at (%i %i %i) has missing target\n",
-							(int32_t) l->origin[0], (int32_t) l->origin[1],
-							(int32_t) l->origin[2]);
+					Mon_SendSelect(ERR_WARN, i, 0, va("Light at %s missing target", vtos(l->origin)));
 				} else {
 					GetVectorForKey(e2, "origin", dest);
 					VectorSubtract(dest, l->origin, l->normal);
@@ -422,8 +417,7 @@ void BuildLights(void) {
 		VectorSet(sun.color, 1.0, 1.0, 1.0);
 		color = ValueForKey(e, "sun_color");
 		if (color && color[0]) {
-			sscanf(color, "%f %f %f", &sun.color[0], &sun.color[1],
-					&sun.color[2]);
+			sscanf(color, "%f %f %f", &sun.color[0], &sun.color[1], &sun.color[2]);
 			ColorNormalize(sun.color, sun.color);
 		}
 
@@ -435,20 +429,17 @@ void BuildLights(void) {
 		AngleVectors(sun.angles, sun.normal, NULL, NULL);
 
 		if (sun.intensity)
-			Com_Verbose(
-					"Sun defined with light %3.0f, color %0.2f %0.2f %0.2f, "
-						"angles %1.3f %1.3f %1.3f\n", sun.intensity,
-					sun.color[0], sun.color[1], sun.color[2], sun.angles[0],
-					sun.angles[1], sun.angles[2]);
+			Com_Verbose("Sun defined with light %3.0f, color %0.2f %0.2f %0.2f, "
+				"angles %1.3f %1.3f %1.3f\n", sun.intensity, sun.color[0], sun.color[1],
+					sun.color[2], sun.angles[0], sun.angles[1], sun.angles[2]);
 
 		// ambient light, also from worldspawn
 		color = ValueForKey(e, "ambient_light");
 		sscanf(color, "%f %f %f", &ambient[0], &ambient[1], &ambient[2]);
 
 		if (VectorLength(ambient))
-			Com_Verbose(
-					"Ambient lighting defined with color %0.2f %0.2f %0.2f\n",
-					ambient[0], ambient[1], ambient[2]);
+			Com_Verbose("Ambient lighting defined with color %0.2f %0.2f %0.2f\n", ambient[0],
+					ambient[1], ambient[2]);
 
 		// optionally pull brightness from worldspawn
 		v = FloatForKey(e, "brightness");
@@ -475,8 +466,8 @@ void BuildLights(void) {
  * @brief A follow-up to GatherSampleLight, simply trace along the sun normal, adding
  * sunlight when a sky surface is struck.
  */
-static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal,
-		vec_t *sample, vec_t *direction, vec_t scale) {
+static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *sample,
+		vec_t *direction, vec_t scale) {
 
 	vec3_t delta;
 	vec_t dot, light;
@@ -511,8 +502,8 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal,
  * @brief Iterate over all light sources for the sample position's PVS, accumulating
  * light and directional information to the specified pointers.
  */
-static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
-		vec_t *sample, vec_t *direction, vec_t scale) {
+static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sample,
+		vec_t *direction, vec_t scale) {
 
 	light_t *l;
 	vec3_t delta;
@@ -539,25 +530,25 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
 				continue; // behind sample surface
 
 			switch (l->type) {
-			case emit_point: // linear falloff
-				light = (l->intensity - dist) * dot;
-				break;
-
-			case emit_surface: // exponential falloff
-				light = (l->intensity / (dist * dist)) * dot;
-				break;
-
-			case emit_spotlight: // linear falloff with cone
-				dot2 = -DotProduct(delta, l->normal);
-				if (dot2 > l->stopdot) // inside the cone
+				case emit_point: // linear falloff
 					light = (l->intensity - dist) * dot;
-				else
-					// outside the cone
-					light = (l->intensity * 0.5 - dist) * dot;
-				break;
-			default:
-				Com_Error(ERR_FATAL, "Bad l->type\n");
-				break;
+					break;
+
+				case emit_surface: // exponential falloff
+					light = (l->intensity / (dist * dist)) * dot;
+					break;
+
+				case emit_spotlight: // linear falloff with cone
+					dot2 = -DotProduct(delta, l->normal);
+					if (dot2 > l->stopdot) // inside the cone
+						light = (l->intensity - dist) * dot;
+					else
+						// outside the cone
+						light = (l->intensity * 0.5 - dist) * dot;
+					break;
+				default:
+					Mon_SendPoint(ERR_WARN, l->origin, "Light with bad type");
+					break;
 			}
 
 			if (light <= 0.0) // no light
@@ -587,8 +578,8 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs,
  * surface normal to reduce false-positive traces. Test the PVS at the new
  * position, returning true if the new point is valid, false otherwise.
  */
-static _Bool NudgeSamplePosition(const vec3_t in, const vec3_t normal,
-		const vec3_t center, vec3_t out, byte *pvs) {
+static _Bool NudgeSamplePosition(const vec3_t in, const vec3_t normal, const vec3_t center,
+		vec3_t out, byte *pvs) {
 
 	vec3_t dir;
 
@@ -627,8 +618,9 @@ static void FacesWithVert(int32_t vert, int32_t *faces, int32_t *nfaces) {
 
 			if (v == vert) { // face references vert
 				faces[k++] = i;
-				if (k == MAX_VERT_FACES)
-					Com_Error(ERR_FATAL, "MAX_VERT_FACES\n");
+				if (k == MAX_VERT_FACES) {
+					Mon_SendPoint(ERR_FATAL, d_bsp.vertexes[v].point, "MAX_VERT_FACES");
+				}
 				break;
 			}
 		}
@@ -690,10 +682,7 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 	int32_t i;
 
 	best_dist = 0x7fffffff;
-	best_normal = NULL;
-
-	if(l->face->num_edges < 3)
-		Com_Error(ERR_FATAL, "Attempted to calculate a normal for a degenerate vertex\n");
+	best_normal = vec3_origin;
 
 	// calculate the distance to each vertex
 	for (i = 0; i < l->face->num_edges; i++) {
@@ -722,9 +711,12 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 }
 
 #define MAX_SAMPLES 5
-static const vec_t sampleofs[MAX_SAMPLES][2] = { { 0.0, 0.0 },
-		{ -0.125, -0.125 }, { 0.125, -0.125 }, { 0.125, 0.125 }, { -0.125,
-				0.125 } };
+static const vec_t sampleofs[MAX_SAMPLES][2] = {
+		{ 0.0, 0.0 },
+		{ -0.125, -0.125 },
+		{ 0.125, -0.125 },
+		{ 0.125, 0.125 },
+		{ -0.125, 0.125 } };
 
 /*
  * @brief
@@ -818,8 +810,7 @@ void BuildFacelights(int32_t face_num) {
 				VectorCopy(l[0].face_normal, normal);
 			}
 
-			if (!NudgeSamplePosition(l[j].sample_points[i], normal, center,
-					pos, pvs))
+			if (!NudgeSamplePosition(l[j].sample_points[i], normal, center, pos, pvs))
 				continue; // not a valid point
 
 			GatherSampleLight(pos, normal, pvs, sample, direction, scale);

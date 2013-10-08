@@ -308,9 +308,9 @@ static void AddBrushBevels(map_brush_t * b) {
 		w = s->winding;
 		if (!w)
 			continue;
-		for (j = 0; j < w->numpoints; j++) {
-			k = (j + 1) % w->numpoints;
-			VectorSubtract(w->p[j], w->p[k], vec);
+		for (j = 0; j < w->num_points; j++) {
+			k = (j + 1) % w->num_points;
+			VectorSubtract(w->points[j], w->points[k], vec);
 			if (VectorNormalize(vec) < 0.5)
 				continue;
 			SnapVector(vec);
@@ -329,7 +329,7 @@ static void AddBrushBevels(map_brush_t * b) {
 					CrossProduct(vec, vec2, normal);
 					if (VectorNormalize(normal) < 0.5)
 						continue;
-					dist = DotProduct(w->p[j], normal);
+					dist = DotProduct(w->points[j], normal);
 
 					// if all the points on all the sides are
 					// behind this plane, it is a proper edge bevel
@@ -344,15 +344,15 @@ static void AddBrushBevels(map_brush_t * b) {
 						if (!w2)
 							continue;
 						minBack = 0.0f;
-						for (l = 0; l < w2->numpoints; l++) {
-							d = DotProduct(w2->p[l], normal) - dist;
+						for (l = 0; l < w2->num_points; l++) {
+							d = DotProduct(w2->points[l], normal) - dist;
 							if (d > 0.1)
 								break; // point in front
 							if (d < minBack)
 								minBack = d;
 						}
 						// if some point was at the front
-						if (l != w2->numpoints)
+						if (l != w2->num_points)
 							break;
 						// if no points at the back then the winding is on the
 						// bevel plane
@@ -407,8 +407,8 @@ static _Bool MakeBrushWindings(map_brush_t * ob) {
 		side->winding = w;
 		if (w) {
 			side->visible = true;
-			for (j = 0; j < w->numpoints; j++)
-				AddPointToBounds(w->p[j], ob->mins, ob->maxs);
+			for (j = 0; j < w->num_points; j++)
+				AddPointToBounds(w->points[j], ob->mins, ob->maxs);
 		}
 	}
 

@@ -26,7 +26,7 @@
 
 void Sv_Init(void);
 void Sv_Shutdown(const char *msg);
-void Sv_Frame(uint32_t msec);
+void Sv_Frame(const uint32_t msec);
 
 #ifdef __SV_LOCAL_H__
 // cvars
@@ -48,7 +48,7 @@ extern sv_static_t svs;
 extern sv_client_t *sv_client;
 extern g_edict_t *sv_player;
 
-char *Sv_NetaddrToString(sv_client_t *cl);
+const char *Sv_NetaddrToString(const sv_client_t *cl);
 void Sv_KickClient(sv_client_t *cl, const char *msg);
 void Sv_DropClient(sv_client_t *cl);
 void Sv_UserInfoChanged(sv_client_t *cl);

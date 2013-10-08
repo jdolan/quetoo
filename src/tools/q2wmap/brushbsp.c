@@ -35,8 +35,8 @@ static void BoundBrush(bsp_brush_t * brush) {
 		w = brush->sides[i].winding;
 		if (!w)
 			continue;
-		for (j = 0; j < w->numpoints; j++)
-			AddPointToBounds(w->p[j], brush->mins, brush->maxs);
+		for (j = 0; j < w->num_points; j++)
+			AddPointToBounds(w->points[j], brush->mins, brush->maxs);
 	}
 }
 
@@ -118,7 +118,7 @@ static vec_t BrushVolume(bsp_brush_t * brush) {
 	}
 	if (!w)
 		return 0;
-	VectorCopy(w->p[0], corner);
+	VectorCopy(w->points[0], corner);
 
 	// make tetrahedrons to all other faces
 
@@ -302,12 +302,12 @@ static int32_t TestBrushToPlanenum(bsp_brush_t * brush, int32_t plane_num, int32
 	*numsplits = 0;
 	*hintsplit = false;
 
-	// if the brush actually uses the plane_num,
-	// we can tell the side for sure
+	// if the brush actually uses the plane_num, we can tell the side for sure
 	for (i = 0; i < brush->num_sides; i++) {
 		num = brush->sides[i].plane_num;
-		if (num >= 0x10000)
-			Com_Error(ERR_FATAL, "Bad plane_num\n");
+		if (num >= MAX_BSP_PLANES) {
+			Mon_SendSelect(ERR_FATAL, brush->original->entity_num, brush->original->brush_num, "Bad plane");
+		}
 		if (num == plane_num)
 			return SIDE_BACK | SIDE_FACING;
 		if (num == (plane_num ^ 1))
@@ -333,8 +333,8 @@ static int32_t TestBrushToPlanenum(bsp_brush_t * brush, int32_t plane_num, int32
 		if (!w)
 			continue;
 		front = back = 0;
-		for (j = 0; j < w->numpoints; j++) {
-			d = DotProduct(w->p[j], plane->normal) - plane->dist;
+		for (j = 0; j < w->num_points; j++) {
+			d = DotProduct(w->points[j], plane->normal) - plane->dist;
 			if (d > d_front)
 				d_front = d;
 			if (d < d_back)
@@ -372,9 +372,9 @@ _Bool WindingIsTiny(const winding_t * w) {
 	int32_t edges;
 
 	edges = 0;
-	for (i = 0; i < w->numpoints; i++) {
-		j = i == w->numpoints - 1 ? 0 : i + 1;
-		VectorSubtract(w->p[j], w->p[i], delta);
+	for (i = 0; i < w->num_points; i++) {
+		j = i == w->num_points - 1 ? 0 : i + 1;
+		VectorSubtract(w->points[j], w->points[i], delta);
 		len = (vec_t) VectorLength(delta);
 		if (len > EDGE_LENGTH) {
 			if (++edges == 3)
@@ -391,9 +391,9 @@ _Bool WindingIsTiny(const winding_t * w) {
 static _Bool WindingIsHuge(winding_t * w) {
 	int32_t i, j;
 
-	for (i = 0; i < w->numpoints; i++) {
+	for (i = 0; i < w->num_points; i++) {
 		for (j = 0; j < 3; j++)
-			if (w->p[i][j] < -8000 || w->p[i][j] > 8000)
+			if (w->points[i][j] < -8000 || w->points[i][j] > 8000)
 				return true;
 	}
 	return false;
@@ -486,7 +486,7 @@ static side_t *SelectSplitSide(bsp_brush_t * brushes, node_t * node) {
 			for (i = 0; i < brush->num_sides; i++) {
 				side = brush->sides + i;
 				if (side->bevel)
-					continue; // never use a bevel as a spliter
+					continue; // never use a bevel as a splitter
 				if (!side->winding)
 					continue; // nothing visible, so it can't split
 				if (side->texinfo == TEXINFO_NODE)
@@ -598,8 +598,8 @@ static int32_t BrushMostlyOnSide(bsp_brush_t * brush, map_plane_t * plane) {
 		w = brush->sides[i].winding;
 		if (!w)
 			continue;
-		for (j = 0; j < w->numpoints; j++) {
-			d = DotProduct(w->p[j], plane->normal) - plane->dist;
+		for (j = 0; j < w->num_points; j++) {
+			d = DotProduct(w->points[j], plane->normal) - plane->dist;
 			if (d > max) {
 				max = d;
 				side = SIDE_FRONT;
@@ -616,7 +616,7 @@ static int32_t BrushMostlyOnSide(bsp_brush_t * brush, map_plane_t * plane) {
 /*
  * @brief Generates two new brushes, leaving the original unchanged
  */
-void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front, bsp_brush_t ** back) {
+void SplitBrush(bsp_brush_t *brush, int32_t plane_num, bsp_brush_t **front, bsp_brush_t **back) {
 	bsp_brush_t *b[2];
 	int32_t i, j;
 	winding_t *w, *cw[2], *midwinding;
@@ -633,8 +633,8 @@ void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front, bs
 		w = brush->sides[i].winding;
 		if (!w)
 			continue;
-		for (j = 0; j < w->numpoints; j++) {
-			d = DotProduct(w->p[j], plane->normal) - plane->dist;
+		for (j = 0; j < w->num_points; j++) {
+			d = DotProduct(w->points[j], plane->normal) - plane->dist;
 			if (d > 0 && d > d_front)
 				d_front = d;
 			if (d < 0 && d < d_back)
@@ -671,7 +671,7 @@ void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front, bs
 	}
 
 	if (WindingIsHuge(w)) {
-		Com_Warn("Large winding\n");
+		Mon_SendWinding(ERR_WARN, (const vec3_t *) w->points, w->num_points, "Large winding");
 	}
 
 	midwinding = w;
@@ -900,8 +900,7 @@ tree_t *BrushBSP(bsp_brush_t * brushlist, vec3_t mins, vec3_t maxs) {
 
 		volume = BrushVolume(b);
 		if (volume < microvolume) {
-			Com_Warn("Entity %i, brush %i: microbrush\n",
-					b->original->entity_num, b->original->brush_num);
+			Mon_SendSelect(ERR_WARN, b->original->entity_num, b->original->brush_num, "Microbrush");
 		}
 
 		for (i = 0; i < b->num_sides; i++) {

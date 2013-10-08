@@ -20,6 +20,7 @@
  */
 
 #include <SDL/SDL.h>
+
 #include "q2wmap.h"
 
 quake2world_t quake2world;
@@ -65,6 +66,8 @@ extern vec_t contrast;
 extern vec_t surface_scale;
 extern vec_t entity_scale;
 
+static void Print(const char *msg);
+
 /*
  * @brief
  */
@@ -73,7 +76,7 @@ static void Debug(const char *msg) {
 	if (!debug)
 		return;
 
-	fputs(msg, stdout);
+	Print(msg);
 }
 
 static void Shutdown(const char *msg);
@@ -87,27 +90,58 @@ static void Error(err_t err __attribute__((unused)), const char *msg) {
 	fprintf(stderr, "************ ERROR ************\n");
 	fprintf(stderr, "%s", msg);
 
-	Shutdown(NULL);
+	fflush(stderr);
+
+	Shutdown(msg);
 
 	exit(err);
 }
 
 /*
- * @brief
+ * @brief Print to stdout and, if not escaped, to the monitor socket.
+ */
+static void Print(const char *msg) {
+
+	if (msg) {
+		if (*msg == '@') {
+			fputs(msg + 1, stdout);
+		} else {
+			fputs(msg, stdout);
+			Mon_SendMessage(ERR_PRINT, msg);
+		}
+
+		fflush(stdout);
+	}
+}
+
+/*
+ * @brief Print a verbose message to stdout and, unless escaped, to the monitor
+ * socket.
  */
 static void Verbose(const char *msg) {
 
 	if (!verbose)
 		return;
 
-	fputs(msg, stdout);
+	Print(msg);
 }
 
 /*
- * @brief
+ * @brief Print a warning message to stdout and, if not escaped, to the monitor
+ * socket.
  */
 static void Warn(const char *msg) {
-	fprintf(stderr, "WARNING: %s", msg);
+
+	if (msg) {
+		if (*msg == '@') {
+			fprintf(stderr, "WARNING: %s", msg + 1);
+		} else {
+			fprintf(stderr, "WARNING: %s", msg);
+			Mon_SendMessage(ERR_WARN, va("WARNING: %s", msg));
+		}
+
+		fflush(stderr);
+	}
 }
 
 /*
@@ -126,12 +160,16 @@ static void Init(void) {
 	Thread_Init();
 
 	Sem_Init();
+
+	Com_Print("Quake2World Map %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
 }
 
 /*
  * @brief Shuts down subsystems.
  */
-static void Shutdown(const char *msg __attribute__((unused))) {
+static void Shutdown(const char *msg) {
+
+	Mon_Shutdown(msg);
 
 	Sem_Shutdown();
 
@@ -302,12 +340,15 @@ static void Check_MAT_Options(int32_t argc __attribute__((unused))) {
 static void PrintHelpMessage(void) {
 	Com_Print("General options\n");
 	Com_Print("-v -verbose\n");
-	Com_Print("-l -legacy            Compile a legacy Quake2 map\n");
+	Com_Print("-l -legacy - compile a legacy Quake II map\n");
 	Com_Print("-d -debug\n");
 	Com_Print("-t -threads <int>\n");
+	Com_Print("-p -path <game directory> - add the path to the search directory\n");
+	Com_Print("-w -wpath <game directory> - add the write path to the search directory\n");
+	Com_Print("-c -connect <host> - use GtkRadiant's BSP monitoring server\n");
 
 	Com_Print("\n");
-	Com_Print("-bsp               Binary space partitioning (BSPing) options:\n");
+	Com_Print("-bsp               BSP stage options:\n");
 	Com_Print(" -block <int> <int>\n");
 	Com_Print(" -blocks <int> <int> <int> <int>\n");
 	Com_Print(" -fulldetail - don't treat details (and trans surfaces) as details\n");
@@ -331,16 +372,15 @@ static void PrintHelpMessage(void) {
 	Com_Print("\n");
 	Com_Print("-vis               VIS stage options:\n");
 	Com_Print(" -fast\n");
-	Com_Print(" -level\n");
 	Com_Print(" -nosort\n");
 	Com_Print("\n");
-	Com_Print("-light             Lighting stage options:\n");
-	Com_Print(" -contrast <float> - contrast factor\n");
-	Com_Print(" -entity <float> - entity light scaling\n");
+	Com_Print("-light             LIGHT stage options:\n");
 	Com_Print(" -extra - extra light samples\n");
-	Com_Print(" -brightness <float> - brightness factor\n");
-	Com_Print(" -saturation <float> - saturation factor\n");
+	Com_Print(" -entity <float> - entity light scaling\n");
 	Com_Print(" -surface <float> - surface light scaling\n");
+	Com_Print(" -brightness <float> - brightness factor\n");
+	Com_Print(" -contrast <float> - contrast factor\n");
+	Com_Print(" -saturation <float> - saturation factor\n");
 	Com_Print("\n");
 	Com_Print("-aas               AAS stage options:\n");
 	Com_Print("\n");
@@ -370,12 +410,20 @@ int32_t main(int32_t argc, char **argv) {
 	_Bool do_mat = false;
 	_Bool do_zip = false;
 
+#ifdef _WIN32
+	if (AllocConsole()) {
+		freopen("CON", "w", stdout);
+		freopen("CON", "w", stderr);
+	}
+#endif
+
 	printf("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 
 	memset(&quake2world, 0, sizeof(quake2world));
 
 	quake2world.Debug = Debug;
 	quake2world.Error = Error;
+	quake2world.Print = Print;
 	quake2world.Verbose = Verbose;
 	quake2world.Warn = Warn;
 
@@ -435,6 +483,11 @@ int32_t main(int32_t argc, char **argv) {
 				Thread_Shutdown();
 				Thread_Init();
 			}
+			continue;
+		}
+
+		if (!g_strcmp0(Com_Argv(i), "-c") || !g_strcmp0(Com_Argv(i), "-connect")) {
+			Mon_Init(Com_Argv(i + 1));
 			continue;
 		}
 	}
@@ -512,4 +565,10 @@ int32_t main(int32_t argc, char **argv) {
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	Com_Shutdown(NULL);
+
+#ifdef _WIN32
+	puts("\nPress any key to close..\n");
+	getchar();
+	FreeConsole();
+#endif
 }
