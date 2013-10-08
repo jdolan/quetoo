@@ -358,7 +358,8 @@ static void Pm_StepSlideMove(void) {
 
 			const vec_t step = pml.origin[2] - org[2];
 
-			if (step <= -1.0 && step >= -PM_STEP_HEIGHT) { // we are in fact on stairs
+			// if the step falls within the range, we are in fact on stairs
+			if (step <= -1.0 && step >= -(PM_STEP_HEIGHT + PM_GROUND_DIST)) {
 
 				pm->s.pm_flags |= PMF_ON_STAIRS;
 				pm->step = step;

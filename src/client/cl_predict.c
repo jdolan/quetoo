@@ -185,7 +185,7 @@ c_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, cons
  * that it may be interpolated into by Cl_UpdateView.
  *
  * Most of the work is passed off to the client game, which is responsible for
- * the implementation PM_Move.
+ * the implementation Pm_Move.
  */
 void Cl_PredictMovement(void) {
 

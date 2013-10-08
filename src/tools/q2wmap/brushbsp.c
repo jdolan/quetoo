@@ -519,7 +519,7 @@ static side_t *SelectSplitSide(bsp_brush_t * brushes, node_t * node) {
 
 					splits += bsplits;
 					if (bsplits && (s & SIDE_FACING))
-						Com_Error(ERR_FATAL, "PSIDE_FACING with splits\n");
+						Com_Error(ERR_FATAL, "SIDE_FACING with splits\n");
 
 					test->test_side = s;
 					// if the brush shares this face, don't bother
