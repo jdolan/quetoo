@@ -689,17 +689,15 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 		const int32_t e = d_bsp.face_edges[l->face->first_edge + i];
 		uint16_t v;
 
-		vec3_t delta;
-		vec_t dist;
-
 		if (e >= 0)
 			v = d_bsp.edges[e].v[0];
 		else
 			v = d_bsp.edges[-e].v[1];
 
+		vec3_t delta;
 		VectorSubtract(d_bsp.vertexes[v].point, pos, delta);
 
-		dist = VectorLength(delta);
+		const vec_t dist = VectorLength(delta);
 
 		if (dist <= best_dist) {
 			best_dist = dist;

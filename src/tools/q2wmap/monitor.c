@@ -214,11 +214,6 @@ void Mon_Init(const char *host) {
 		// and free the backlog
 		g_list_free(mon_backlog);
 		mon_backlog = NULL;
-
-#if 1
-		Mon_SendSelect_("foobar", ERR_WARN, 0, 4, "Fuck yo couch");
-		Mon_SendPoint_("whizbang", ERR_WARN, vec3_origin, "This is the center");
-#endif
 	}
 }
 
