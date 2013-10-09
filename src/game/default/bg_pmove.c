@@ -82,6 +82,7 @@ static pm_locals_t pml;
 #define PM_SPEED_RUN			300.0
 #define PM_SPEED_SPECTATOR		350.0
 #define PM_SPEED_STOP			100.0
+#define PM_SPEED_UP				0.1
 #define PM_SPEED_TRICK_JUMP		75.0
 #define PM_SPEED_WATER			125.0
 #define PM_SPEED_WATER_JUMP		450.0
@@ -178,15 +179,14 @@ static void Pm_TouchEnt(struct g_edict_s *ent) {
  * movement command and world state. Returns true if not blocked.
  */
 static _Bool Pm_SlideMove(void) {
-	vec3_t vel;
-	int32_t k;
+	int32_t i, num_planes = 0;
 
+	vec3_t vel;
 	VectorCopy(pml.velocity, vel);
 
-	int32_t num_planes = 0;
 	vec_t time = pml.time;
 
-	for (k = 0; k < MAX_CLIP_PLANES; k++) {
+	for (i = 0; i < MAX_CLIP_PLANES; i++) {
 		vec3_t pos;
 
 		if (time <= 0.0) // out of time
@@ -233,6 +233,8 @@ static _Bool Pm_SlideMove(void) {
 
 /*
  * @brief Performs the step portion of step-slide-move.
+ *
+ * @return True if the step was successful, false otherwise.
  */
 static _Bool Pm_StepMove(void) {
 	vec3_t org, vel, pos;
@@ -256,38 +258,40 @@ static _Bool Pm_StepMove(void) {
 		return false;
 	}
 
-	// an upward position is available, try to step from there
+	// an upward position is available, try to slide from there
 	VectorCopy(trace.end, pml.origin);
 
 	Pm_SlideMove(); // slide from the higher position
 
-	VectorCopy(pml.origin, pos); // then seek the new floor
+	VectorCopy(pml.origin, pos); // then seek the floor
 	pos[2] -= ((pos[2] - org[2]) + PM_GROUND_DIST);
 
 	// by tracing down by the actual step amount
 	trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
-	// if a new floor was found, the step was successful
+	// check if the floor was found
 	if (trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL) {
 
-		// clip to the new floor without dropping or slowing down
-		if (pm->s.pm_flags & PMF_ON_GROUND) {
-			VectorCopy(trace.end, pml.origin);
-			pml.origin[2] = MAX(pml.origin[2], org[2]);
+		VectorCopy(trace.end, pml.origin);
+		pml.origin[2] = MAX(pml.origin[2], org[2]);
 
-			Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_BOUNCE);
-			pml.velocity[2] = MAX(pml.velocity[2], vel[2]);
-		}
-
+		// if the step falls within range, we are in fact on stairs
 		const vec_t step = pml.origin[2] - org[2];
+		if (step >= 4.0 && step <= PM_STEP_HEIGHT) {
 
-		if (step >= 1.0 && step <= PM_STEP_HEIGHT) { // we are in fact on stairs
 			pm->s.pm_flags |= PMF_ON_STAIRS;
 			pm->step = step;
 
 			Pm_Debug("Step up %2.1f\n", pm->step);
+
+			// if walking, clip to the floor without slowing down
+			if (pm->s.pm_flags & PMF_ON_GROUND) {
+				Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_BOUNCE);
+				pml.velocity[2] = MAX(pml.velocity[2], vel[2]);
+			}
+
+			return true;
 		}
-		return true;
 	}
 
 	return false;
@@ -329,11 +333,8 @@ static void Pm_StepSlideMove(void) {
 
 			delta0[2] = delta1[2] = 0.0;
 
-			const vec_t dist0 = VectorLength(delta0);
-			const vec_t dist1 = VectorLength(delta1);
-
 			// if the step wasn't productive, revert it
-			if (dist1 <= dist0) {
+			if (VectorLength(delta1) <= VectorLength(delta0)) {
 				VectorCopy(org0, pml.origin);
 				VectorCopy(vel0, pml.velocity);
 
@@ -361,7 +362,7 @@ static void Pm_StepSlideMove(void) {
 			const vec_t step = pml.origin[2] - org[2];
 
 			// if the step falls within the range, we are in fact on stairs
-			if (step <= -1.0 && step >= -(PM_STEP_HEIGHT + PM_GROUND_DIST)) {
+			if (step <= -4.0 && step >= -(PM_STEP_HEIGHT + PM_GROUND_DIST)) {
 
 				pm->s.pm_flags |= PMF_ON_STAIRS;
 				pm->step = step;
@@ -489,7 +490,7 @@ static void Pm_Currents(vec3_t vel) {
 		VectorMA(vel, s, v, vel);
 	}
 
-	// add conveyor belt velocities
+	// add conveyer belt velocities
 	if (pm->ground_entity) {
 		VectorClear(v);
 
@@ -519,13 +520,16 @@ static _Bool Pm_CheckTrickJump(void) {
 	if (pm->ground_entity)
 		return false;
 
-	if (pml.previous_velocity[2] <= 0.0)
+	if (pml.previous_velocity[2] < PM_SPEED_UP)
 		return false;
 
 	if (pm->cmd.up < 1)
 		return false;
 
 	if (pm->s.pm_flags & PMF_JUMP_HELD)
+		return false;
+
+	if (pm->s.pm_flags & PMF_TIME_MASK)
 		return false;
 
 	return true;
@@ -1093,10 +1097,6 @@ static void Pm_WalkMove(void) {
 	// and now scale by the speed to avoid slowing down on slopes
 	VectorNormalize(pml.velocity);
 	VectorScale(pml.velocity, speed, pml.velocity);
-
-	if (pml.velocity[0] == 0.0 && pml.velocity[1] == 0.0) { // don't bother stepping
-		return;
-	}
 
 	Pm_StepSlideMove();
 }
