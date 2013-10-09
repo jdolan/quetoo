@@ -678,11 +678,9 @@ void BuildVertexNormals(void) {
  * linear interpolation between the nearest and farthest vertexes.
  */
 static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal) {
-	vec_t best_dist, *best_normal;
+	vec_t total_dist = 0.0;
+	vec_t dist[MAX_VERT_FACES];
 	int32_t i;
-
-	best_dist = 0x7fffffff;
-	best_normal = vec3_origin;
 
 	// calculate the distance to each vertex
 	for (i = 0; i < l->face->num_edges; i++) {
@@ -695,17 +693,32 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 			v = d_bsp.edges[-e].v[1];
 
 		vec3_t delta;
-		VectorSubtract(d_bsp.vertexes[v].point, pos, delta);
+		VectorSubtract(pos, d_bsp.vertexes[v].point, delta);
 
-		const vec_t dist = VectorLength(delta);
-
-		if (dist <= best_dist) {
-			best_dist = dist;
-			best_normal = d_bsp.normals[v].normal;
-		}
+		dist[i] = VectorLength(delta);
+		total_dist += dist[i];
 	}
 
-	VectorCopy(best_normal, normal);
+	VectorSet(normal, 0.0, 0.0, 0.0);
+	const vec_t target = 2.0 * total_dist / l->face->num_edges;
+
+	// add in weighted components from the vertex normals
+	for (i = 0; i < l->face->num_edges; i++) {
+		const int32_t e = d_bsp.face_edges[l->face->first_edge + i];
+		uint16_t v;
+
+		if (e >= 0)
+			v = d_bsp.edges[e].v[0];
+		else
+			v = d_bsp.edges[-e].v[1];
+
+		const vec_t mix = 0.5 * ((target - dist[i]) / target);
+		VectorMA(normal, mix, d_bsp.normals[v].normal, normal);
+
+		// printf("%03.2f / %03.2f contributes %01.2f\n", dist[i], target, mix);
+	}
+
+	VectorNormalize(normal);
 }
 
 #define MAX_SAMPLES 5
