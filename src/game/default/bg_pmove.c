@@ -272,17 +272,18 @@ static _Bool Pm_StepMove(void) {
 	// check if the floor was found
 	if (trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL) {
 
-		VectorCopy(trace.end, pml.origin);
-		pml.origin[2] = MAX(pml.origin[2], org[2]);
-
 		// if the step falls within range, we are in fact on stairs
-		const vec_t step = pml.origin[2] - org[2];
+		const vec_t step = trace.end[2] - org[2];
 		if (step >= 4.0 && step <= PM_STEP_HEIGHT) {
 
 			pm->s.pm_flags |= PMF_ON_STAIRS;
 			pm->step = step;
 
 			Pm_Debug("Step up %2.1f\n", pm->step);
+
+			// settle atop the new step
+			VectorCopy(trace.end, pml.origin);
+			pml.origin[2] = MAX(pml.origin[2], org[2]);
 
 			// if walking, clip to the floor without slowing down
 			if (pm->s.pm_flags & PMF_ON_GROUND) {
