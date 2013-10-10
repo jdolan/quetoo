@@ -127,7 +127,7 @@ static void Pm_Debug_(const char *func, const char *fmt, ...) {
 /*
  * @brief Slide off of the impacted plane.
  */
-static void Pm_ClipVelocity(vec3_t in, const vec3_t normal, vec3_t out, vec_t bounce) {
+static void Pm_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, vec_t bounce) {
 	int32_t i;
 
 	vec_t backoff = DotProduct(in, normal);
@@ -212,14 +212,14 @@ static _Bool Pm_SlideMove(void) {
 		if (trace.fraction == 1.0) // moved the entire distance
 			break;
 
-		// now slide along the plane
-		Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_BOUNCE);
-
 		// update the movement time remaining
 		time -= (time * trace.fraction);
 
 		// and increase the number of planes intersected
 		num_planes++;
+
+		// now slide along the plane
+		Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_BOUNCE);
 
 		// if we've been deflected backwards, settle to prevent oscillations
 		if (DotProduct(pml.velocity, vel) <= 0.0) {
@@ -236,60 +236,64 @@ static _Bool Pm_SlideMove(void) {
  *
  * @return True if the step was successful, false otherwise.
  */
-static _Bool Pm_StepMove(void) {
+static _Bool Pm_StepMove(_Bool up) {
 	vec3_t org, vel, pos;
+	c_trace_t trace;
 
 	VectorCopy(pml.origin, org);
 	VectorCopy(pml.velocity, vel);
 
-	// see if the upward position is available
-	VectorCopy(pml.origin, pos);
-	pos[2] += PM_STEP_HEIGHT;
+	if (up) { // try sliding from a higher position if requested
 
-	// reaching even higher if trying to climb out of the water
-	if (pm->s.pm_flags & PMF_TIME_WATER_JUMP) {
+		// see if the upward position is available
+		VectorCopy(pml.origin, pos);
 		pos[2] += PM_STEP_HEIGHT;
+
+		// reaching even higher if trying to climb out of the water
+		if (pm->s.pm_flags & PMF_TIME_WATER_JUMP) {
+			pos[2] += PM_STEP_HEIGHT;
+		}
+
+		trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
+
+		if (trace.all_solid) { // it's not
+			Pm_Debug("Can't step up: %s\n", vtos(pml.origin));
+			return false;
+		}
+
+		// an upward position is available, try to slide from there
+		VectorCopy(trace.end, pml.origin);
+
+		Pm_SlideMove(); // slide from the higher position
 	}
 
-	c_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
+	// if stepping down, or if we've just stepped up, we must settle to the floor
+	VectorCopy(pml.origin, pos);
+	pos[2] -= (PM_STEP_HEIGHT + PM_GROUND_DIST);
 
-	if (trace.all_solid) { // it's not
-		Pm_Debug("Can't step up: %s\n", vtos(pml.origin));
-		return false;
-	}
-
-	// an upward position is available, try to slide from there
-	VectorCopy(trace.end, pml.origin);
-
-	Pm_SlideMove(); // slide from the higher position
-
-	VectorCopy(pml.origin, pos); // then seek the floor
-	pos[2] -= ((pos[2] - org[2]) + PM_GROUND_DIST);
-
-	// by tracing down by the actual step amount
+	// by tracing down to it
 	trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
 	// check if the floor was found
 	if (trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL) {
 
-		// if the step falls within range, we are in fact on stairs
-		const vec_t step = trace.end[2] - org[2];
-		if (step >= 4.0 && step <= PM_STEP_HEIGHT) {
+		// check if the floor is new, if so, we've stepped
+		if (memcmp(&trace.plane, &pml.ground_plane, sizeof(c_bsp_plane_t))) {
 
-			pm->s.pm_flags |= PMF_ON_STAIRS;
-			pm->step = step;
-
-			Pm_Debug("Step up %2.1f\n", pm->step);
-
-			// settle atop the new step
-			VectorCopy(trace.end, pml.origin);
-			pml.origin[2] = MAX(pml.origin[2], org[2]);
+			// settle atop the new floor
+			pml.origin[2] = trace.end[2];
 
 			// if walking, clip to the floor without slowing down
 			if (pm->s.pm_flags & PMF_ON_GROUND) {
 				Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_BOUNCE);
 				pml.velocity[2] = MAX(pml.velocity[2], vel[2]);
 			}
+
+			// calculate the step so that the client may interpolate
+			pm->s.pm_flags |= PMF_ON_STAIRS;
+			pm->step = pml.origin[2] - org[2];
+
+			Pm_Debug("Step %2.1f\n", pm->step);
 
 			return true;
 		}
@@ -321,7 +325,7 @@ static void Pm_StepSlideMove(void) {
 		VectorCopy(vel, pml.velocity);
 
 		// if the step succeeds, select the more productive of the two moves
-		if (Pm_StepMove()) {
+		if (Pm_StepMove(true)) {
 			vec3_t org1, vel1;
 
 			VectorCopy(pml.origin, org1);
@@ -336,6 +340,8 @@ static void Pm_StepSlideMove(void) {
 
 			// if the step wasn't productive, revert it
 			if (VectorLength(delta1) <= VectorLength(delta0)) {
+				Pm_Debug("Reverting step %2.1f\n", pm->step);
+
 				VectorCopy(org0, pml.origin);
 				VectorCopy(vel0, pml.velocity);
 
@@ -350,26 +356,15 @@ static void Pm_StepSlideMove(void) {
 
 	// try to step down to remain on the ground
 	if ((pm->s.pm_flags & PMF_ON_GROUND) && !(pm->s.pm_flags & PMF_ON_STAIRS)) {
-		vec3_t down;
+		vec3_t org0, vel0;
 
-		VectorCopy(pml.origin, down);
-		down[2] -= (PM_STEP_HEIGHT + PM_GROUND_DIST);
+		// save these initial results in case stepping fails
+		VectorCopy(pml.origin, org0);
+		VectorCopy(pml.velocity, vel0);
 
-		c_trace_t trace = pm->Trace(pml.origin, down, pm->mins, pm->maxs);
-
-		if (!trace.start_solid && trace.fraction < 1.0) {
-			VectorCopy(trace.end, pml.origin);
-
-			const vec_t step = pml.origin[2] - org[2];
-
-			// if the step falls within the range, we are in fact on stairs
-			if (step <= -4.0 && step >= -(PM_STEP_HEIGHT + PM_GROUND_DIST)) {
-
-				pm->s.pm_flags |= PMF_ON_STAIRS;
-				pm->step = step;
-
-				Pm_Debug("Step down %2.1f\n", pm->step);
-			}
+		if (!Pm_StepMove(false)) {
+			VectorCopy(org0, pml.origin);
+			VectorCopy(vel0, pml.velocity);
 		}
 	}
 }
