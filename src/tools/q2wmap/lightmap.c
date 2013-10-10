@@ -712,10 +712,10 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 		else
 			v = d_bsp.edges[-e].v[1];
 
-		const vec_t mix = 0.5 * ((target - dist[i]) / target);
+		const vec_t mix = powf((target - dist[i]) / target, 8.0);
 		VectorMA(normal, mix, d_bsp.normals[v].normal, normal);
 
-		// printf("%03.2f / %03.2f contributes %01.2f\n", dist[i], target, mix);
+		printf("%03.2f / %03.2f contributes %01.2f\n", dist[i], target, mix);
 	}
 
 	VectorNormalize(normal);
