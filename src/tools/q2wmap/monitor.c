@@ -183,7 +183,7 @@ void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n,
 /*
  * @brief Initialize BSP monitoring facilities (XML over TCP).
  */
-void Mon_Init(const char *host) {
+_Bool Mon_Init(const char *host) {
 
 	Net_Init();
 
@@ -214,7 +214,11 @@ void Mon_Init(const char *host) {
 		// and free the backlog
 		g_list_free(mon_backlog);
 		mon_backlog = NULL;
+
+		return true;
 	}
+
+	return false;
 }
 
 /*

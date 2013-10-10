@@ -409,11 +409,15 @@ int32_t main(int32_t argc, char **argv) {
 	_Bool do_aas = false;
 	_Bool do_mat = false;
 	_Bool do_zip = false;
+	_Bool is_monitor = false;
 
 #ifdef _WIN32
 	if (AllocConsole()) {
-		freopen("CON", "w", stdout);
-		freopen("CON", "w", stderr);
+		freopen("CONIN$", "r", stdin);
+		freopen("CONOUT$", "w", stdout);
+		freopen("CONERR$", "w", stderr);
+	} else {
+		Com_Error(ERR_FATAL, "Failed to allocate console: %u\n", (uint32_t) GetLastError());
 	}
 #endif
 
@@ -487,7 +491,7 @@ int32_t main(int32_t argc, char **argv) {
 		}
 
 		if (!g_strcmp0(Com_Argv(i), "-c") || !g_strcmp0(Com_Argv(i), "-connect")) {
-			Mon_Init(Com_Argv(i + 1));
+			is_monitor = Mon_Init(Com_Argv(i + 1));
 			continue;
 		}
 	}
@@ -567,8 +571,11 @@ int32_t main(int32_t argc, char **argv) {
 	Com_Shutdown(NULL);
 
 #ifdef _WIN32
-	puts("\nPress any key to close..\n");
-	getchar();
+	if (!is_monitor) {
+		puts("\nPress any key to close..\n");
+		getchar();
+	}
+
 	FreeConsole();
 #endif
 }

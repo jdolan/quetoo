@@ -34,7 +34,7 @@ void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg
 #define Mon_SendWinding(err, p, n, msg) Mon_SendWinding_(__func__, err, p, n, msg)
 #define Mon_SendPoint(err, p, msg) Mon_SendPoint_(__func__, err, p, msg)
 
-void Mon_Init(const char *host);
+_Bool Mon_Init(const char *host);
 void Mon_Shutdown(const char *msg);
 
 #endif /* __MONITOR_H__ */
