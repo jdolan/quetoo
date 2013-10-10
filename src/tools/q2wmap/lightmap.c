@@ -700,7 +700,7 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 	}
 
 	VectorSet(normal, 0.0, 0.0, 0.0);
-	const vec_t target = 2.0 * total_dist / l->face->num_edges;
+	const vec_t max_dist = 2.0 * total_dist / l->face->num_edges;
 
 	// add in weighted components from the vertex normals
 	for (i = 0; i < l->face->num_edges; i++) {
@@ -712,10 +712,10 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 		else
 			v = d_bsp.edges[-e].v[1];
 
-		const vec_t mix = powf((target - dist[i]) / target, 8.0);
+		const vec_t mix = powf(max_dist - dist[i], 4.0) / powf(max_dist, 4.0);
 		VectorMA(normal, mix, d_bsp.normals[v].normal, normal);
 
-		printf("%03.2f / %03.2f contributes %01.2f\n", dist[i], target, mix);
+		// printf("%03.2f / %03.2f contributes %01.2f\n", dist[i], max_dist, mix);
 	}
 
 	VectorNormalize(normal);
