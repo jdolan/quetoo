@@ -277,21 +277,20 @@ static _Bool Pm_StepMove(_Bool up) {
 	// check if the floor was found
 	if (trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL) {
 
-		// check if the floor is new; if so, we've stepped
+		// check if the floor is new; if so, we've likely stepped
 		if (memcmp(&trace.plane, &pml.ground_plane, sizeof(c_bsp_plane_t))) {
 
-			pml.origin[2] = trace.end[2];
-			pml.velocity[2] = vel[2];
+			if (up) {
+				pml.origin[2] = MAX(org[2], trace.end[2]);
+				pml.velocity[2] = MAX(vel[2], pml.velocity[2]);
+			} else {
+				pml.origin[2] = MIN(org[2], trace.end[2]);
+				pml.velocity[2] = MIN(vel[2], pml.velocity[2]);
+			}
 
 			// calculate the step so that the client may interpolate
 			pm->step = pml.origin[2] - org[2];
-
-			const vec_t step = fabs(pm->step);
-
-			if (step >= 4.0 && step <= (PM_STEP_HEIGHT + PM_GROUND_DIST)) {
-				pm->s.pm_flags |= PMF_ON_STAIRS;
-				Pm_Debug("Step %2.1f\n", pm->step);
-			}
+			pm->s.pm_flags |= PMF_ON_STAIRS;
 
 			return true;
 		}
@@ -355,8 +354,7 @@ static void Pm_StepSlideMove(void) {
 	// try to step down to remain on the ground
 	if ((pm->s.pm_flags & PMF_ON_GROUND) && !(pm->s.pm_flags & PMF_TIME_TRICK_JUMP)) {
 
-		// of course, if we just stepped up, we can skip this check
-		if (fabs(pm->step) < PM_STOP_EPSILON) {
+		if (pml.velocity[2] < PM_SPEED_UP) {
 			vec3_t org0, vel0;
 
 			// save these initial results in case stepping down fails
