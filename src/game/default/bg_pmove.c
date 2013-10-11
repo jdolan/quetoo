@@ -68,22 +68,22 @@ static pm_locals_t pml;
 #define PM_GRAVITY_WATER		0.55
 
 #define PM_GROUND_DIST			0.25
-#define PM_GROUND_DIST_TRICK	12.0
+#define PM_GROUND_DIST_TRICK	16.0
 
 #define PM_SPEED_AIR			450.0
 #define PM_SPEED_CURRENT		100.0
 #define PM_SPEED_DUCK_STAND		225.0
 #define PM_SPEED_DUCKED			140.0
-#define PM_SPEED_FALL			420.0
-#define PM_SPEED_FALL_FAR		560.0
+#define PM_SPEED_FALL			-420.0
+#define PM_SPEED_FALL_FAR		-560.0
 #define PM_SPEED_JUMP			262.5
 #define PM_SPEED_LADDER			125.0
-#define PM_SPEED_LAND			300.0
+#define PM_SPEED_LAND			-300.0
 #define PM_SPEED_RUN			300.0
 #define PM_SPEED_SPECTATOR		350.0
 #define PM_SPEED_STOP			100.0
 #define PM_SPEED_UP				0.1
-#define PM_SPEED_TRICK_JUMP		75.0
+#define PM_SPEED_TRICK_JUMP		85.0
 #define PM_SPEED_WATER			125.0
 #define PM_SPEED_WATER_JUMP		450.0
 #define PM_SPEED_WATER_SINK		50.0
@@ -243,9 +243,9 @@ static _Bool Pm_StepMove(_Bool up) {
 	VectorCopy(pml.origin, org);
 	VectorCopy(pml.velocity, vel);
 
-	if (up) { // try sliding from a higher position if requested
+	if (up) { // try sliding from a higher position
 
-		// see if the upward position is available
+		// check if the upward position is available
 		VectorCopy(pml.origin, pos);
 		pos[2] += PM_STEP_HEIGHT;
 
@@ -267,7 +267,7 @@ static _Bool Pm_StepMove(_Bool up) {
 		Pm_SlideMove(); // slide from the higher position
 	}
 
-	// if stepping down, or if we've just stepped up, we must settle to the floor
+	// if stepping down, or if we've just stepped up, settle to the floor
 	VectorCopy(pml.origin, pos);
 	pos[2] -= (PM_STEP_HEIGHT + PM_GROUND_DIST);
 
@@ -277,23 +277,21 @@ static _Bool Pm_StepMove(_Bool up) {
 	// check if the floor was found
 	if (trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL) {
 
-		// check if the floor is new, if so, we've stepped
+		// check if the floor is new; if so, we've stepped
 		if (memcmp(&trace.plane, &pml.ground_plane, sizeof(c_bsp_plane_t))) {
 
-			// settle atop the new floor
 			pml.origin[2] = trace.end[2];
-
-			// if walking, clip to the floor without slowing down
-			if (pm->s.pm_flags & PMF_ON_GROUND) {
-				Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_BOUNCE);
-				pml.velocity[2] = MAX(pml.velocity[2], vel[2]);
-			}
+			pml.velocity[2] = vel[2];
 
 			// calculate the step so that the client may interpolate
-			pm->s.pm_flags |= PMF_ON_STAIRS;
 			pm->step = pml.origin[2] - org[2];
 
-			Pm_Debug("Step %2.1f\n", pm->step);
+			const vec_t step = fabs(pm->step);
+
+			if (step >= 4.0 && step <= (PM_STEP_HEIGHT + PM_GROUND_DIST)) {
+				pm->s.pm_flags |= PMF_ON_STAIRS;
+				Pm_Debug("Step %2.1f\n", pm->step);
+			}
 
 			return true;
 		}
@@ -316,7 +314,7 @@ static void Pm_StepSlideMove(void) {
 	if (!Pm_SlideMove() && !(pm->s.pm_flags & PMF_ON_LADDER)) {
 		vec3_t org0, vel0;
 
-		// save the initial results in case stepping fails
+		// save the initial results in case stepping up fails
 		VectorCopy(pml.origin, org0);
 		VectorCopy(pml.velocity, vel0);
 
@@ -355,16 +353,20 @@ static void Pm_StepSlideMove(void) {
 	}
 
 	// try to step down to remain on the ground
-	if ((pm->s.pm_flags & PMF_ON_GROUND) && !(pm->s.pm_flags & PMF_ON_STAIRS)) {
-		vec3_t org0, vel0;
+	if ((pm->s.pm_flags & PMF_ON_GROUND) && !(pm->s.pm_flags & PMF_TIME_TRICK_JUMP)) {
 
-		// save these initial results in case stepping fails
-		VectorCopy(pml.origin, org0);
-		VectorCopy(pml.velocity, vel0);
+		// of course, if we just stepped up, we can skip this check
+		if (fabs(pm->step) < PM_STOP_EPSILON) {
+			vec3_t org0, vel0;
 
-		if (!Pm_StepMove(false)) {
-			VectorCopy(org0, pml.origin);
-			VectorCopy(vel0, pml.velocity);
+			// save these initial results in case stepping down fails
+			VectorCopy(pml.origin, org0);
+			VectorCopy(pml.velocity, vel0);
+
+			if (!Pm_StepMove(false)) {
+				VectorCopy(org0, pml.origin);
+				VectorCopy(vel0, pml.velocity);
+			}
 		}
 	}
 }
@@ -568,21 +570,21 @@ static void Pm_CategorizePosition(void) {
 			}
 
 			// hard landings disable jumping briefly
-			if (pml.previous_velocity[2] <= -PM_SPEED_LAND) {
+			if (pml.previous_velocity[2] <= PM_SPEED_LAND) {
 				pm->s.pm_flags |= PMF_TIME_LAND;
 				pm->s.pm_time = 32;
 
-				if (pml.previous_velocity[2] <= -PM_SPEED_FALL) {
+				if (pml.previous_velocity[2] <= PM_SPEED_FALL) {
 					pm->s.pm_time = 250;
 
-					if (pml.previous_velocity[2] <= -PM_SPEED_FALL_FAR) {
+					if (pml.previous_velocity[2] <= PM_SPEED_FALL_FAR) {
 						pm->s.pm_time = 500;
 					}
 				}
 			} else { // soft landings with upward momentum grant trick jumps
 				if (trick_jump) {
 					pm->s.pm_flags |= PMF_TIME_TRICK_JUMP;
-					pm->s.pm_time = 16;
+					pm->s.pm_time = 32;
 				}
 			}
 		}
