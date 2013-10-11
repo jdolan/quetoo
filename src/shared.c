@@ -295,6 +295,18 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
 }
 
 /*
+ * @brief Returns true if the specified planes are equal, false otherwise.
+ */
+_Bool PlaneCompare(const c_bsp_plane_t *p1, const c_bsp_plane_t *p2) {
+
+	if (VectorCompare(p1->normal, p2->normal)) {
+		return fabs(p1->dist - p2->dist) < 0.1;
+	}
+
+	return false;
+}
+
+/*
  * @brief Returns a bit mask hinting at the sign of each normal vector component. This
  * is used as an optimization for the box-on-plane-side test.
  */
@@ -919,7 +931,7 @@ int32_t StrColorCmp(const char *s1, const char *s2) {
 	StripColor(s1, string1);
 	StripColor(s2, string2);
 
-return g_ascii_strcasecmp(string1, string2);
+	return g_ascii_strcasecmp(string1, string2);
 }
 
 /*

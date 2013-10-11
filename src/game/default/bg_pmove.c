@@ -83,7 +83,7 @@ static pm_locals_t pml;
 #define PM_SPEED_SPECTATOR		350.0
 #define PM_SPEED_STOP			100.0
 #define PM_SPEED_UP				0.1
-#define PM_SPEED_TRICK_JUMP		85.0
+#define PM_SPEED_TRICK_JUMP		75.0
 #define PM_SPEED_WATER			125.0
 #define PM_SPEED_WATER_JUMP		450.0
 #define PM_SPEED_WATER_SINK		50.0
@@ -278,17 +278,14 @@ static _Bool Pm_StepMove(_Bool up) {
 	if (trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL) {
 
 		// check if the floor is new; if so, we've likely stepped
-		if (memcmp(&trace.plane, &pml.ground_plane, sizeof(c_bsp_plane_t))) {
+		if (trace.ent != pm->ground_entity || !PlaneCompare(&trace.plane, &pml.ground_plane)) {
 
 			// never slow down on Z; this is critical
 			pml.velocity[2] = vel[2];
 
 			// Quake2 trick jumping secret sauce
-			if (up) {
-				if (pml.velocity[2] < PM_SPEED_UP) {
-					pml.origin[2] = trace.end[2];
-					Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_BOUNCE);
-				}
+			if (up && pml.velocity[2] >= PM_SPEED_UP) {
+				pml.origin[2] = MIN(org[2] + PM_STEP_HEIGHT, pml.origin[2]);
 			} else {
 				pml.origin[2] = trace.end[2];
 				Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_BOUNCE);
