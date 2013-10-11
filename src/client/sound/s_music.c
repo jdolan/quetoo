@@ -92,7 +92,7 @@ static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mi
 /*
  * @brief Clears the musics playlist so that it may be rebuilt.
  */
-void S_FlushPlaylist(void) {
+void S_ClearPlaylist(void) {
 
 	g_list_free(s_music_state.playlist);
 
@@ -185,7 +185,15 @@ static s_music_t *S_NextMusic(void) {
  */
 void S_FrameMusic(void) {
 	extern cl_static_t cls;
-	static cl_state_t s = CL_UNINITIALIZED;
+	static cl_state_t last_state = CL_UNINITIALIZED;
+
+	// revert to the default music when the client disconnects
+	if (last_state == CL_ACTIVE && cls.state != CL_ACTIVE) {
+		S_ClearPlaylist();
+		S_StopMusic();
+	}
+
+	last_state = cls.state;
 
 	if (s_music_volume->modified) {
 		s_music_volume->value = Clamp(s_music_volume->value, 0.0, 1.0);
@@ -196,18 +204,8 @@ void S_FrameMusic(void) {
 			S_StopMusic();
 	}
 
-	if (!s_music_volume->value)
-		return;
-
-	// revert to the default music when the client disconnects
-	if (s == CL_ACTIVE && cls.state != CL_ACTIVE) {
-		S_FlushPlaylist();
-		S_StopMusic();
-	}
-
-	s = cls.state;
-
-	if (!Mix_PlayingMusic())
+	// if music is enabled but not playing, play that funky music
+	if (s_music_volume->value && !s_music_state.current_music)
 		S_NextTrack_f();
 }
 
@@ -215,12 +213,17 @@ void S_FrameMusic(void) {
  * @brief Plays the next track in the configured playlist.
  */
 void S_NextTrack_f(void) {
-	s_music_t *music = S_NextMusic();
 
-	if (music) {
-		S_PlayMusic(music);
+	if (s_music_volume->value) {
+		s_music_t *music = S_NextMusic();
+
+		if (music) {
+			S_PlayMusic(music);
+		} else {
+			Com_Debug("No music available\n");
+		}
 	} else {
-		Com_Debug("No music available\n");
+		Com_Debug("Music is muted\n");
 	}
 }
 

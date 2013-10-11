@@ -136,7 +136,7 @@ void S_LoadMedia(void) {
 		return; // no map specified
 	}
 
-	S_FlushPlaylist();
+	S_ClearPlaylist();
 
 	S_BeginLoading();
 
