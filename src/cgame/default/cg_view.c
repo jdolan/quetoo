@@ -54,10 +54,10 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps __attribute__((unused)
 	vec_t dist;
 	c_trace_t tr;
 
-	if (!cg_third_person->value)
-			return;
+	cgi.client->third_person = cg_third_person->value;
 
-	cgi.client->third_person = true;
+	if (!cg_third_person->value)
+		return;
 
 	VectorCopy(cgi.view->angles, angles);
 
