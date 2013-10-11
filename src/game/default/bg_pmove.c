@@ -287,9 +287,11 @@ static _Bool Pm_StepMove(_Bool up) {
 			if (up) {
 				if (pml.velocity[2] < PM_SPEED_UP) {
 					pml.origin[2] = trace.end[2];
+					Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_BOUNCE);
 				}
 			} else {
 				pml.origin[2] = trace.end[2];
+				Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_BOUNCE);
 			}
 
 			// calculate the step so that the client may interpolate
