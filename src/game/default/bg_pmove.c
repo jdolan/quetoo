@@ -280,19 +280,31 @@ static _Bool Pm_StepMove(_Bool up) {
 		// check if the floor is new; if so, we've likely stepped
 		if (memcmp(&trace.plane, &pml.ground_plane, sizeof(c_bsp_plane_t))) {
 
+			// never slow down on Z; this is critical
+			pml.velocity[2] = vel[2];
+
+			// Quake2 trick jumping secret sauce
 			if (up) {
-				pml.origin[2] = MAX(org[2], trace.end[2]);
-				pml.velocity[2] = MAX(vel[2], pml.velocity[2]);
+				if (pml.velocity[2] < PM_SPEED_UP) {
+					pml.origin[2] = trace.end[2];
+				}
 			} else {
-				pml.origin[2] = MIN(org[2], trace.end[2]);
-				pml.velocity[2] = MIN(vel[2], pml.velocity[2]);
+				pml.origin[2] = trace.end[2];
 			}
 
 			// calculate the step so that the client may interpolate
-			pm->step = pml.origin[2] - org[2];
-			pm->s.pm_flags |= PMF_ON_STAIRS;
+			const vec_t step = fabs(pml.origin[2] - org[2]);
 
-			return true;
+			if (step >= PM_STOP_EPSILON) {
+				pm->step = pml.origin[2] - org[2];
+
+				if (step >= 4.0) {
+					pm->s.pm_flags |= PMF_ON_STAIRS;
+					Pm_Debug("Step %2.1f\n", pm->step);
+				}
+
+				return true;
+			}
 		}
 	}
 
@@ -336,7 +348,7 @@ static void Pm_StepSlideMove(void) {
 			delta0[2] = delta1[2] = 0.0;
 
 			// if the step wasn't productive, revert it
-			if (VectorLength(delta1) <= VectorLength(delta0)) {
+			if (VectorLength(delta0) > VectorLength(delta1)) {
 				Pm_Debug("Reverting step %2.1f\n", pm->step);
 
 				VectorCopy(org0, pml.origin);
@@ -354,7 +366,8 @@ static void Pm_StepSlideMove(void) {
 	// try to step down to remain on the ground
 	if ((pm->s.pm_flags & PMF_ON_GROUND) && !(pm->s.pm_flags & PMF_TIME_TRICK_JUMP)) {
 
-		if (pml.velocity[2] < PM_SPEED_UP) {
+		// but only if we're not already climbing up
+		if (pm->step < PM_STOP_EPSILON && pml.velocity[2] < PM_SPEED_UP) {
 			vec3_t org0, vel0;
 
 			// save these initial results in case stepping down fails
