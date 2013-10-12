@@ -62,9 +62,10 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 	VectorCopy(ent->client->locals.up, up);
 	VectorCopy(ent->s.origin, org);
 
-	const vec_t u = ent->client->ps.pm_state.pm_flags & PMF_DUCKED ? 0.0 : 14.0;
+	const vec_t up_offset = ent->client->ps.pm_state.pm_flags & PMF_DUCKED ? 0.0 : 14.0;
+	const vec_t up_scale = (30.0 - fabs(ent->s.angles[0])) / 30.0;
 
-	VectorMA(org, u, up, org);
+	VectorMA(org, up_offset * up_scale, up, org);
 	VectorMA(org, 8.0, right, org);
 	VectorMA(org, 28.0, forward, org);
 
