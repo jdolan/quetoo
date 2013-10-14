@@ -122,8 +122,7 @@ static void G_Give_f(g_edict_t *ent) {
 		else
 			ent->client->locals.persistent.inventory[index] += it->quantity;
 	} else { // or spawn and touch whatever they asked for
-		it_ent = G_Spawn();
-		it_ent->class_name = it->class_name;
+		it_ent = G_Spawn(it->class_name);
 
 		G_SpawnItem(it_ent, it);
 		G_TouchItem(it_ent, ent, NULL, NULL);

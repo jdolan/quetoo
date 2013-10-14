@@ -203,8 +203,7 @@ void G_BlasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed
 	if (G_ImmediateWall(ent, start))
 		VectorCopy(ent->s.origin, start);
 
-	blast = G_Spawn();
-	blast->class_name = "blaster";
+	blast = G_Spawn("blast");
 	VectorCopy(start, blast->s.origin);
 	VectorCopy(start, blast->s.old_origin);
 	VectorCopy(dir, blast->locals.move_dir);
@@ -380,8 +379,7 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t sp
 	VectorAngles(aimdir, dir);
 	AngleVectors(dir, forward, right, up);
 
-	grenade = G_Spawn();
-	grenade->class_name = "grenade";
+	grenade = G_Spawn("grenade");
 
 	VectorCopy(start, grenade->s.origin);
 
@@ -471,8 +469,7 @@ void G_RocketProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed,
 	if (G_ImmediateWall(ent, start))
 		VectorCopy(ent->s.origin, start);
 
-	rocket = G_Spawn();
-	rocket->class_name = "rocket";
+	rocket = G_Spawn("rocket");
 	VectorCopy(start, rocket->s.origin);
 	VectorCopy(start, rocket->s.old_origin);
 	VectorCopy(dir, rocket->locals.move_dir);
@@ -558,8 +555,7 @@ void G_HyperblasterProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t 
 	if (G_ImmediateWall(ent, start))
 		VectorCopy(ent->s.origin, start);
 
-	bolt = G_Spawn();
-	bolt->class_name = "bolt";
+	bolt = G_Spawn("bolt");
 	VectorCopy(start, bolt->s.origin);
 	VectorCopy(start, bolt->s.old_origin);
 	VectorAngles(dir, bolt->s.angles);
@@ -709,31 +705,30 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
  */
 void G_LightningProjectile(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t damage,
 		int32_t knockback) {
-	g_edict_t *light;
+	g_edict_t *lightning;
 
-	light = ent->locals.lightning;
+	lightning = ent->locals.lightning;
 
-	if (!light) { // ensure a valid lightning entity exists
-		light = G_Spawn();
-		light->class_name = "lightning";
-		VectorCopy(start, light->s.origin);
-		VectorMA(start, 800.0, dir, light->s.old_origin);
-		light->solid = SOLID_NOT;
-		light->locals.move_type = MOVE_TYPE_THINK;
-		light->owner = ent;
-		light->locals.Think = G_LightningProjectile_Think;
-		light->locals.knockback = knockback;
-		light->s.client = ent - g_game.edicts; // player number, for client prediction fix
-		light->s.effects = EF_BEAM | EF_LIGHTNING;
-		light->s.sound = g_level.media.lightning_fly_sound;
+	if (!lightning) { // ensure a valid lightning entity exists
+		lightning = G_Spawn("lightning");
+		VectorCopy(start, lightning->s.origin);
+		VectorMA(start, 800.0, dir, lightning->s.old_origin);
+		lightning->solid = SOLID_NOT;
+		lightning->locals.move_type = MOVE_TYPE_THINK;
+		lightning->owner = ent;
+		lightning->locals.Think = G_LightningProjectile_Think;
+		lightning->locals.knockback = knockback;
+		lightning->s.client = ent - g_game.edicts; // player number, for client prediction fix
+		lightning->s.effects = EF_BEAM | EF_LIGHTNING;
+		lightning->s.sound = g_level.media.lightning_fly_sound;
 
-		gi.LinkEdict(light);
-		ent->locals.lightning = light;
+		gi.LinkEdict(lightning);
+		ent->locals.lightning = lightning;
 	}
 
 	// set the damage and think time
-	light->locals.dmg = damage;
-	light->locals.timestamp = light->locals.next_think = g_level.time;
+	lightning->locals.dmg = damage;
+	lightning->locals.timestamp = lightning->locals.next_think = g_level.time;
 }
 
 /*
@@ -899,11 +894,9 @@ static void G_BfgProjectile_Think(g_edict_t *self) {
  */
 void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, int32_t damage,
 		int32_t knockback, vec_t damage_radius) {
-	g_edict_t *bfg;
-	vec3_t angles, right, up, r, u;
-	int32_t i;
-	vec_t s;
 	const vec3_t scale = { 0.15, 0.15, 0.05 };
+	vec3_t angles, right, up;
+	int32_t i;
 
 	if (G_ImmediateWall(ent, start))
 		VectorCopy(ent->s.origin, start);
@@ -913,9 +906,8 @@ void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, i
 	AngleVectors(angles, NULL, right, up);
 
 	for (i = 0; i < 8; i++) {
-
-		bfg = G_Spawn();
-		bfg->class_name = "bfg_projectile";
+		g_edict_t *bfg = G_Spawn("bfg");
+		vec3_t u, r;
 
 		VectorCopy(start, bfg->s.origin);
 
@@ -932,7 +924,7 @@ void G_BfgProjectiles(g_edict_t *ent, vec3_t start, vec3_t dir, int32_t speed, i
 		// finalize the direction and resolve angles, velocity, ..
 		VectorAngles(bfg->locals.move_dir, bfg->s.angles);
 
-		s = speed + (0.2 * speed * Randomc());
+		const vec_t s = speed + (0.2 * speed * Randomc());
 		VectorScale(bfg->locals.move_dir, s, bfg->locals.velocity);
 
 		bfg->locals.move_type = MOVE_TYPE_FLY;

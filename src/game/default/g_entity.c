@@ -429,7 +429,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 		if (!ent)
 			ent = g_game.edicts;
 		else
-			ent = G_Spawn();
+			ent = G_Spawn(__func__);
 
 		entities = G_ParseEntity(entities, ent);
 

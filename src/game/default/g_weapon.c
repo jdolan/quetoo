@@ -225,7 +225,7 @@ void G_TossWeapon(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_FireWeapon(g_edict_t *ent, uint32_t interval, void(*fire)(g_edict_t *ent)) {
+static void G_FireWeapon(g_edict_t *ent, uint32_t interval, void(*Fire)(g_edict_t *ent)) {
 	int32_t n, m;
 	int32_t buttons;
 
@@ -272,7 +272,7 @@ static void G_FireWeapon(g_edict_t *ent, uint32_t interval, void(*fire)(g_edict_
 		}
 	}
 
-	fire(ent); // fire the weapon
+	Fire(ent); // fire the weapon
 
 	// and decrease their inventory
 	if (ent->client->locals.ammo_index)

@@ -607,9 +607,8 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 	vec3_t v;
 	c_trace_t trace;
 
-	dropped = G_Spawn();
+	dropped = G_Spawn(item->class_name);
 
-	dropped->class_name = item->class_name;
 	dropped->locals.item = item;
 	dropped->locals.spawn_flags = SF_ITEM_DROPPED;
 	dropped->s.effects = (item->effects & ~EF_BOB);

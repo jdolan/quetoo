@@ -83,7 +83,7 @@ static pm_locals_t pml;
 #define PM_SPEED_SPECTATOR		350.0
 #define PM_SPEED_STOP			100.0
 #define PM_SPEED_UP				0.1
-#define PM_SPEED_TRICK_JUMP		75.0
+#define PM_SPEED_TRICK_JUMP		60.0
 #define PM_SPEED_WATER			125.0
 #define PM_SPEED_WATER_JUMP		450.0
 #define PM_SPEED_WATER_SINK		50.0

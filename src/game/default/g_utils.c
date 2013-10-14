@@ -209,8 +209,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 	// check for a delay
 	if (ent->locals.delay) {
 		// create a temp object to fire at a later time
-		t = G_Spawn();
-		t->class_name = "DelayedUse";
+		t = G_Spawn(__func__);
 		t->locals.next_think = g_level.time + ent->locals.delay * 1000;
 		t->locals.Think = G_UseTargets_Delay;
 		t->locals.activator = activator;
@@ -308,9 +307,11 @@ char *G_CopyString(char *in) {
 /*
  * @brief
  */
-void G_InitEdict(g_edict_t *e) {
+void G_InitEdict(g_edict_t *e, const char *class_name) {
+
+	e->class_name = class_name;
 	e->in_use = true;
-	e->class_name = "noclass";
+
 	e->locals.timestamp = g_level.time;
 	e->s.number = e - g_game.edicts;
 }
@@ -322,14 +323,14 @@ void G_InitEdict(g_edict_t *e) {
  * instead of being removed and recreated, which can cause interpolated
  * angles and bad trails.
  */
-g_edict_t *G_Spawn(void) {
+g_edict_t *G_Spawn(const char *class_name) {
 	uint32_t i;
 	g_edict_t *e;
 
 	e = &g_game.edicts[sv_max_clients->integer + 1];
 	for (i = sv_max_clients->integer + 1; i < ge.num_edicts; i++, e++) {
 		if (!e->in_use) {
-			G_InitEdict(e);
+			G_InitEdict(e, class_name);
 			return e;
 		}
 	}
@@ -338,7 +339,7 @@ g_edict_t *G_Spawn(void) {
 		gi.Error("No free edicts\n");
 
 	ge.num_edicts++;
-	G_InitEdict(e);
+	G_InitEdict(e, class_name);
 	return e;
 }
 

@@ -431,8 +431,7 @@ static void G_func_plat_CreateTrigger(g_edict_t *ent) {
 	vec3_t tmin, tmax;
 
 	// middle trigger
-	trigger = G_Spawn();
-	trigger->class_name = "func_plat_trigger";
+	trigger = G_Spawn("func_plat trigger");
 	trigger->locals.Touch = G_func_plat_Touch;
 	trigger->locals.move_type = MOVE_TYPE_NONE;
 	trigger->solid = SOLID_TRIGGER;
@@ -1002,8 +1001,7 @@ static void G_func_door_CreateTrigger(g_edict_t *ent) {
 	maxs[0] += 60;
 	maxs[1] += 60;
 
-	trigger = G_Spawn();
-	trigger->class_name = "func_door_trigger";
+	trigger = G_Spawn("func_door trigger");
 	VectorCopy(mins, trigger->mins);
 	VectorCopy(maxs, trigger->maxs);
 	trigger->owner = ent;
