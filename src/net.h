@@ -34,9 +34,11 @@ typedef uint16_t in_port_t;
 #endif
 
 #undef  EWOULDBLOCK
-#define EWOULDBLOCK WSAEWOULDBLOCK
+#define EWOULDBLOCK  WSAEWOULDBLOCK
 #undef  ECONNREFUSED
 #define ECONNREFUSED WSAECONNREFUSED
+#undef  EINPROGRESS
+#define EINPROGRESS  WSAEINPROGRESS
 
 #define Net_GetError() WSAGetLastError()
 #define Net_CloseSocket closesocket
