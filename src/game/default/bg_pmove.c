@@ -285,7 +285,7 @@ static _Bool Pm_StepMove(_Bool up) {
 
 			// Quake2 trick jumping secret sauce
 			if (up && pml.velocity[2] >= PM_SPEED_UP) {
-				pml.origin[2] = MIN(org[2] + PM_STEP_HEIGHT, pml.origin[2]);
+				pml.origin[2] = MAX(org[2] + PM_STEP_HEIGHT, pml.origin[2]);
 			} else {
 				pml.origin[2] = trace.end[2];
 				Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_BOUNCE);
