@@ -592,7 +592,7 @@ static void Pm_CategorizePosition(void) {
 					}
 				}
 			} else { // soft landings with upward momentum grant trick jumps
-				if (trick_jump) {
+				if (trick_jump && !(pml.ground_contents & CONTENTS_LADDER)) {
 					pm->s.pm_flags |= PMF_TIME_TRICK_JUMP;
 					pm->s.pm_time = 32;
 				}
@@ -891,6 +891,10 @@ static void Pm_LadderMove(void) {
 		} else if (vel[1] > s) {
 			vel[1] = s;
 		}
+	}
+
+	if (pm->cmd.up > 0) { // avoid jumps when exiting ladders
+		pm->s.pm_flags |= PMF_JUMP_HELD;
 	}
 
 	Pm_Currents(vel);
