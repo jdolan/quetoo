@@ -97,18 +97,21 @@ static void Cl_WriteDemoHeader(void) {
  * @brief Dumps the current net message, prefixed by the length.
  */
 void Cl_WriteDemoMessage(void) {
-	int32_t len;
 
 	if (!cls.demo_file)
 		return;
 
-	// if we received an uncompressed frame, write the demo header
-	if (cl.frame.delta_frame < 1 && !Fs_Tell(cls.demo_file)) {
-		Cl_WriteDemoHeader();
+	if (!Fs_Tell(cls.demo_file)) {
+		if (cl.frame.delta_frame < 0) {
+			Com_Debug("Received uncompressed frame, writing demo header..\n");
+			Cl_WriteDemoHeader();
+		} else {
+			return; // wait for an uncompressed packet
+		}
 	}
 
 	// the first eight bytes are just packet sequencing stuff
-	len = LittleLong(net_message.size - 8);
+	int32_t len = LittleLong(net_message.size - 8);
 	Fs_Write(cls.demo_file, &len, sizeof(len), 1);
 	Fs_Write(cls.demo_file, net_message.data + 8, len, 1);
 }
