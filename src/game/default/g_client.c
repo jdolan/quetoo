@@ -643,6 +643,11 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	memset(cl, 0, sizeof(*cl));
 	cl->locals.persistent = persistent;
 
+	ent->class_name = "client";
+	ent->solid = SOLID_BOX;
+	ent->clip_mask = MASK_PLAYER_SOLID;
+	ent->sv_flags = 0;
+
 	// clear entity values
 	VectorScale(PM_MINS, PM_SCALE, ent->mins);
 	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
@@ -650,15 +655,11 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	ent->locals.ground_entity = NULL;
 	ent->locals.take_damage = true;
 	ent->locals.move_type = MOVE_TYPE_WALK;
-	ent->class_name = "player";
 	ent->locals.mass = 200.0;
-	ent->solid = SOLID_BOX;
 	ent->locals.dead = false;
-	ent->clip_mask = MASK_PLAYER_SOLID;
 	ent->locals.Die = G_ClientDie;
 	ent->locals.water_level = ent->locals.old_water_level = 0;
 	ent->locals.water_type = 0;
-	ent->sv_flags = 0;
 
 	// copy these back once they have been set in locals
 	ent->locals.health = ent->client->locals.persistent.health;

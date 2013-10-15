@@ -336,7 +336,7 @@ g_edict_t *G_Spawn(const char *class_name) {
 	}
 
 	if (i >= g_max_entities->value)
-		gi.Error("No free edicts\n");
+		gi.Error("No free edicts for %s\n", class_name);
 
 	ge.num_edicts++;
 	G_InitEdict(e, class_name);

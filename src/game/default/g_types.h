@@ -185,12 +185,11 @@ typedef struct g_item_s {
 	const char *model;
 	uint32_t effects;
 
-	// client side info
-	const char *icon;
+	const char *icon; // for the HUD and pickup
 	const char *name; // for printing on pickup
 
-	uint16_t quantity; // for ammo how much, for weapons how much is used per shot
-	const char *ammo; // for weapons
+	uint16_t quantity; // for ammo: how much, for weapons: how much per shot
+	const char *ammo; // for weapons: the ammo item name
 
 	g_item_type_t type; // g_item_type_t, see above
 	uint16_t tag; // type-specific flags

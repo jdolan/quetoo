@@ -73,11 +73,9 @@ static void G_ClampVelocity(g_edict_t *ent) {
  * @brief Runs thinking code for this frame if necessary
  */
 static _Bool G_RunThink(g_edict_t *ent) {
-	vec_t think_time;
+	uint32_t think_time = ent->locals.next_think;
 
-	think_time = ent->locals.next_think;
-
-	if (think_time <= 0)
+	if (think_time == 0)
 		return true;
 
 	if (think_time > g_level.time + 1)
