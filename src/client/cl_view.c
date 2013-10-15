@@ -70,7 +70,7 @@ static void Cl_UpdateViewSize(void) {
  * use linear interpolation between the last 2 server frames. We aim to reach
  * the current server time just as a new packet arrives.
  */
-static void Cl_UpdateLerp(cl_frame_t *from) {
+static void Cl_UpdateLerp(const cl_frame_t *from) {
 
 	if (time_demo->value) {
 		cl.time = cl.frame.server_time;
@@ -87,16 +87,17 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
 		cl.time = from->server_time;
 		cl.lerp = 0.0;
 	} else {
-		const vec_t delta = cl.time - from->server_time;
-		const vec_t interval = cl.frame.server_time - from->server_time;
+		const uint32_t delta = cl.time - from->server_time;
+		const uint32_t interval = cl.frame.server_time - from->server_time;
 
-		if (interval <= 0.0) {
+		if (interval == 0) {
 			Com_Debug("Bad clamp\n");
+			cl.time = cl.frame.server_time;
 			cl.lerp = 1.0;
 			return;
 		}
 
-		cl.lerp = delta / interval;
+		cl.lerp = delta / (vec_t) interval;
 	}
 }
 
@@ -105,7 +106,7 @@ static void Cl_UpdateLerp(cl_frame_t *from) {
  * the client is not viewing a demo, playing in 3rd person mode, or chasing
  * another player.
  */
-static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
+static void Cl_UpdateOrigin(const player_state_t *ps, const player_state_t *ops) {
 
 	if (Cl_UsePrediction()) {
 		int32_t i;
@@ -123,6 +124,7 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
 			const vec_t lerp = (interval - delta) / (vec_t) interval;
 			r_view.origin[2] -= cl.predicted_step * lerp;
 		}
+
 	} else { // just use interpolated values from frame
 		vec3_t old_origin, current_origin, origin;
 		vec3_t old_offset, current_offset, offset;
@@ -148,7 +150,7 @@ static void Cl_UpdateOrigin(player_state_t *ps, player_state_t *ops) {
  * @brief The angles are typically fetched from input, after factoring in client-side
  * prediction, unless the client is watching a demo or chase camera.
  */
-static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops) {
+static void Cl_UpdateAngles(const player_state_t *ps, const player_state_t *ops) {
 	vec3_t old_angles, new_angles, angles;
 
 	// start with the predicted angles, or interpolate the server states
@@ -203,22 +205,20 @@ static void Cl_UpdateAngles(player_state_t *ps, player_state_t *ops) {
  * Scene population is then delegated to the client game.
  */
 void Cl_UpdateView(void) {
-	cl_frame_t *prev;
-	player_state_t *ps, *ops;
 
 	if (!cl.frame.valid && !r_view.update)
 		return; // not a valid frame, and no forced update
 
 	// find the previous frame to interpolate from
-	prev = &cl.frames[(cl.frame.server_frame - 1) & UPDATE_MASK];
+	cl_frame_t *prev = &cl.frames[(cl.frame.server_frame - 1) & UPDATE_MASK];
 
 	if (prev->server_frame != cl.frame.server_frame - 1 || !prev->valid)
 		prev = &cl.frame; // previous frame was dropped or invalid
 
 	Cl_UpdateLerp(prev);
 
-	ps = &cl.frame.ps;
-	ops = &prev->ps;
+	const player_state_t *ps = &cl.frame.ps;
+	const player_state_t *ops = &prev->ps;
 
 	if (ps != ops) { // see if we've teleported
 		vec3_t org, old_org, delta;

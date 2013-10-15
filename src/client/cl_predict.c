@@ -234,12 +234,11 @@ void Cl_CheckPredictionError(void) {
 	if (error > 256.0) { // assume a teleport or something
 		VectorClear(cl.prediction_error);
 	} else { // save the prediction error for interpolation
+		VectorCopy(delta, cl.prediction_error);
+
 		if (error > 1.0) {
 			Com_Debug("%s\n", vtos(delta));
 		}
-
-		VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame]);
-		VectorCopy(delta, cl.prediction_error);
 	}
 }
 

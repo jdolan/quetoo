@@ -119,6 +119,8 @@ void Cl_InitCgame(void) {
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Cl_CgameError;
 
+	import.Time = Sys_Milliseconds;
+
 	import.Malloc = Z_TagMalloc;
 	import.LinkMalloc = Z_LinkMalloc;
 	import.Free = Z_Free;

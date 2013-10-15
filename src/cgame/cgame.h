@@ -34,6 +34,9 @@ typedef struct cg_import_s {
 	void (*Warn_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
+	// milliseconds since launch
+	uint32_t (*Time)(void);
+
 	// zone memory management
 	void *(*Malloc)(size_t size, z_tag_t tag);
 	void *(*LinkMalloc)(size_t size, void *parent);
