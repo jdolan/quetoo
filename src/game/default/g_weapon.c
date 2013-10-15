@@ -222,35 +222,36 @@ void G_TossWeapon(g_edict_t *ent) {
 		dropped->locals.health = ammo;
 }
 
-/*
- * @brief
- */
-static void G_FireWeapon(g_edict_t *ent, uint32_t interval, void(*Fire)(g_edict_t *ent)) {
-	int32_t n, m;
-	int32_t buttons;
+typedef void(*G_FireWeaponFunc)(g_edict_t *ent);
 
-	buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
+/*
+ * @brief Returns true if the specified client can fire their weapon, false
+ * otherwise.
+ */
+static _Bool G_FireWeapon(g_edict_t *ent) {
+
+	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
 
 	if (!(buttons & BUTTON_ATTACK))
-		return;
+		return false;
 
 	ent->client->locals.latched_buttons &= ~BUTTON_ATTACK;
 
 	// use small epsilon for low server_frame rates
 	if (ent->client->locals.weapon_fire_time > g_level.time + 1)
-		return;
-
-	ent->client->locals.weapon_fire_time = g_level.time + interval;
+		return false;
 
 	// determine if ammo is required, and if the quantity is sufficient
+	int16_t ammo;
 	if (ent->client->locals.ammo_index)
-		n = ent->client->locals.persistent.inventory[ent->client->locals.ammo_index];
+		ammo = ent->client->locals.persistent.inventory[ent->client->locals.ammo_index];
 	else
-		n = 0;
-	m = ent->client->locals.persistent.weapon->quantity;
+		ammo = 0;
 
-	// they are out of ammo
-	if (ent->client->locals.ammo_index && n < m) {
+	const uint16_t ammo_needed = ent->client->locals.persistent.weapon->quantity;
+
+	// if the client does not have enough ammo, change weapons
+	if (ent->client->locals.ammo_index && ammo < ammo_needed) {
 
 		if (g_level.time >= ent->client->locals.pain_time) { // play a click sound
 			gi.Sound(ent, gi.SoundIndex("weapons/common/no_ammo"), ATTN_NORM);
@@ -258,25 +259,39 @@ static void G_FireWeapon(g_edict_t *ent, uint32_t interval, void(*Fire)(g_edict_
 		}
 
 		G_UseBestWeapon(ent->client);
-		return;
+		ent->client->locals.weapon_fire_time = g_level.time + 200;
+		return false;
 	}
 
-	// they've pressed their fire button, and have ammo, so fire
+	// you may fire when ready, commander
+	return true;
+}
+
+/*
+ * @brief
+ */
+static void G_WeaponFired(g_edict_t *ent, uint32_t interval) {
+
+	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
-	if (ent->client->locals.persistent.inventory[g_level.media.quad_damage]) { // quad sound
+	// push the next fire time out by the interval
+	ent->client->locals.weapon_fire_time = g_level.time + interval;
+
+	// and decrease their inventory
+	if (ent->client->locals.ammo_index) {
+		ent->client->locals.persistent.inventory[ent->client->locals.ammo_index]
+				-= ent->client->locals.persistent.weapon->quantity;
+	}
+
+	// play a quad damage sound if applicable
+	if (ent->client->locals.persistent.inventory[g_level.media.quad_damage]) {
 
 		if (ent->client->locals.quad_attack_time < g_level.time) {
 			gi.Sound(ent, gi.SoundIndex("quad/attack"), ATTN_NORM);
 			ent->client->locals.quad_attack_time = g_level.time + 500;
 		}
 	}
-
-	Fire(ent); // fire the weapon
-
-	// and decrease their inventory
-	if (ent->client->locals.ammo_index)
-		ent->client->locals.persistent.inventory[ent->client->locals.ammo_index] -= m;
 }
 
 /*
@@ -324,192 +339,201 @@ static void G_MuzzleFlash(g_edict_t *ent, muzzle_flash_t flash) {
 /*
  * @brief
  */
-static void G_FireBlaster_(g_edict_t *ent) {
-	vec3_t forward, right, up, org;
-
-	G_InitProjectile(ent, forward, right, up, org);
-
-	G_BlasterProjectile(ent, org, forward, 1000, 15, 2);
-
-	G_MuzzleFlash(ent, MZ_BLASTER);
-
-	G_ClientWeaponKick(ent, 0.08);
-}
-
 void G_FireBlaster(g_edict_t *ent) {
-	G_FireWeapon(ent, 500, G_FireBlaster_);
-}
 
-/*
- * @brief
- */
-static void G_FireShotgun_(g_edict_t *ent) {
-	vec3_t forward, right, up, org;
+	if (G_FireWeapon(ent)) {
+		vec3_t forward, right, up, org;
 
-	G_InitProjectile(ent, forward, right, up, org);
+		G_InitProjectile(ent, forward, right, up, org);
 
-	G_ShotgunProjectiles(ent, org, forward, 6, 4, 700, 300, 12, MOD_SHOTGUN);
+		G_BlasterProjectile(ent, org, forward, 1000, 15, 2);
 
-	G_MuzzleFlash(ent, MZ_SHOTGUN);
+		G_MuzzleFlash(ent, MZ_BLASTER);
 
-	G_ClientWeaponKick(ent, 0.15);
-}
+		G_ClientWeaponKick(ent, 0.08);
 
-void G_FireShotgun(g_edict_t *ent) {
-	G_FireWeapon(ent, 800, G_FireShotgun_);
-}
-
-/*
- * @brief
- */
-static void G_FireSuperShotgun_(g_edict_t *ent) {
-	vec3_t forward, right, up, org;
-
-	ent->client->locals.angles[YAW] -= 4.0;
-
-	G_InitProjectile(ent, forward, right, up, org);
-
-	G_ShotgunProjectiles(ent, org, forward, 6, 4, 1400, 600, 12, MOD_SUPER_SHOTGUN);
-
-	ent->client->locals.angles[YAW] += 8.0;
-
-	G_InitProjectile(ent, forward, right, up, org);
-
-	G_ShotgunProjectiles(ent, org, forward, 6, 4, 1400, 600, 12, MOD_SUPER_SHOTGUN);
-
-	ent->client->locals.angles[YAW] -= 4.0;
-
-	G_MuzzleFlash(ent, MZ_SSHOTGUN);
-
-	G_ClientWeaponKick(ent, 0.2);
-}
-
-void G_FireSuperShotgun(g_edict_t *ent) {
-	G_FireWeapon(ent, 1000, G_FireSuperShotgun_);
-}
-
-/*
- * @brief
- */
-static void G_FireMachinegun_(g_edict_t *ent) {
-	vec3_t forward, right, up, org;
-
-	G_InitProjectile(ent, forward, right, up, org);
-
-	G_BulletProjectile(ent, org, forward, 6, 6, 100, 200, MOD_MACHINEGUN);
-
-	G_MuzzleFlash(ent, MZ_MACHINEGUN);
-
-	G_ClientWeaponKick(ent, 0.125);
-}
-
-void G_FireMachinegun(g_edict_t *ent) {
-	G_FireWeapon(ent, 75, G_FireMachinegun_);
-}
-
-/*
- * @brief
- */
-static void G_FireGrenadeLauncher_(g_edict_t *ent) {
-	vec3_t forward, right, up, org;
-
-	const int32_t dmg = 120 + Randomc() * 30.0;
-	const int32_t knockback = 120 + Randomf() * 20.0;
-
-	G_InitProjectile(ent, forward, right, up, org);
-
-	G_GrenadeProjectile(ent, org, forward, 700, dmg, knockback, 185.0, 2000);
-
-	G_MuzzleFlash(ent, MZ_GRENADE);
-
-	G_ClientWeaponKick(ent, 0.225);
-}
-
-void G_FireGrenadeLauncher(g_edict_t *ent) {
-	G_FireWeapon(ent, 1000, G_FireGrenadeLauncher_);
-}
-
-/*
- * @brief
- */
-static void G_FireRocketLauncher_(g_edict_t *ent) {
-	vec3_t forward, right, up, org;
-
-	const int32_t dmg = 110 + Randomf() * 20.0;
-	const int32_t knockback = 110 + Randomf() * 20.0;
-
-	G_InitProjectile(ent, forward, right, up, org);
-
-	G_RocketProjectile(ent, org, forward, 900, dmg, knockback, 150.0);
-
-	G_MuzzleFlash(ent, MZ_ROCKET);
-
-	G_ClientWeaponKick(ent, 0.275);
-}
-
-void G_FireRocketLauncher(g_edict_t *ent) {
-	G_FireWeapon(ent, 1000, G_FireRocketLauncher_);
-}
-
-/*
- * @brief
- */
-static void G_FireHyperblaster_(g_edict_t *ent) {
-	vec3_t forward, right, up, org;
-
-	G_InitProjectile(ent, forward, right, up, org);
-
-	G_HyperblasterProjectile(ent, org, forward, 1400, 12, 6);
-
-	G_MuzzleFlash(ent, MZ_HYPERBLASTER);
-
-	G_ClientWeaponKick(ent, 0.15);
-}
-
-void G_FireHyperblaster(g_edict_t *ent) {
-	G_FireWeapon(ent, 100, G_FireHyperblaster_);
-}
-
-/*
- * @brief
- */
-static void G_FireLightning_(g_edict_t *ent) {
-	vec3_t forward, right, up, org;
-
-	const _Bool muzzle_flash = !ent->locals.lightning;
-
-	G_InitProjectile(ent, forward, right, up, org);
-
-	G_LightningProjectile(ent, org, forward, 16, 12);
-
-	if (muzzle_flash) {
-		G_MuzzleFlash(ent, MZ_LIGHTNING);
+		G_WeaponFired(ent, 500);
 	}
-
-	G_ClientWeaponKick(ent, 0.15);
-}
-
-void G_FireLightning(g_edict_t *ent) {
-	G_FireWeapon(ent, 100, G_FireLightning_);
 }
 
 /*
  * @brief
  */
-static void G_FireRailgun_(g_edict_t *ent) {
-	vec3_t forward, right, up, org;
+void G_FireShotgun(g_edict_t *ent) {
 
-	G_InitProjectile(ent, forward, right, up, org);
+	if (G_FireWeapon(ent)) {
+		vec3_t forward, right, up, org;
 
-	G_RailgunProjectile(ent, org, forward, 120, 80);
+		G_InitProjectile(ent, forward, right, up, org);
 
-	G_MuzzleFlash(ent, MZ_RAILGUN);
+		G_ShotgunProjectiles(ent, org, forward, 6, 4, 700, 300, 12, MOD_SHOTGUN);
 
-	G_ClientWeaponKick(ent, 0.3);
+		G_MuzzleFlash(ent, MZ_SHOTGUN);
+
+		G_ClientWeaponKick(ent, 0.15);
+
+		G_WeaponFired(ent, 800);
+	}
 }
 
+/*
+ * @brief
+ */
+void G_FireSuperShotgun(g_edict_t *ent) {
+
+	if (G_FireWeapon(ent)) {
+		vec3_t forward, right, up, org;
+
+		ent->client->locals.angles[YAW] -= 4.0;
+
+		G_InitProjectile(ent, forward, right, up, org);
+
+		G_ShotgunProjectiles(ent, org, forward, 6, 4, 1400, 600, 12, MOD_SUPER_SHOTGUN);
+
+		ent->client->locals.angles[YAW] += 8.0;
+
+		G_InitProjectile(ent, forward, right, up, org);
+
+		G_ShotgunProjectiles(ent, org, forward, 6, 4, 1400, 600, 12, MOD_SUPER_SHOTGUN);
+
+		ent->client->locals.angles[YAW] -= 4.0;
+
+		G_MuzzleFlash(ent, MZ_SSHOTGUN);
+
+		G_ClientWeaponKick(ent, 0.2);
+
+		G_WeaponFired(ent, 1000);
+	}
+}
+
+/*
+ * @brief
+ */
+void G_FireMachinegun(g_edict_t *ent) {
+
+	if (G_FireWeapon(ent)) {
+		vec3_t forward, right, up, org;
+
+		G_InitProjectile(ent, forward, right, up, org);
+
+		G_BulletProjectile(ent, org, forward, 6, 6, 100, 200, MOD_MACHINEGUN);
+
+		G_MuzzleFlash(ent, MZ_MACHINEGUN);
+
+		G_ClientWeaponKick(ent, 0.125);
+
+		G_WeaponFired(ent, 75);
+	}
+}
+
+/*
+ * @brief
+ */
+void G_FireGrenadeLauncher(g_edict_t *ent) {
+
+	if (G_FireWeapon(ent)) {
+		vec3_t forward, right, up, org;
+
+		const int32_t dmg = 120 + Randomc() * 30.0;
+		const int32_t knockback = 120 + Randomf() * 20.0;
+
+		G_InitProjectile(ent, forward, right, up, org);
+
+		G_GrenadeProjectile(ent, org, forward, 700, dmg, knockback, 185.0, 2000);
+
+		G_MuzzleFlash(ent, MZ_GRENADE);
+
+		G_ClientWeaponKick(ent, 0.225);
+
+		G_WeaponFired(ent, 1000);
+	}
+}
+
+/*
+ * @brief
+ */
+void G_FireRocketLauncher(g_edict_t *ent) {
+
+	if (G_FireWeapon(ent)) {
+		vec3_t forward, right, up, org;
+
+		const int32_t dmg = 110 + Randomf() * 20.0;
+		const int32_t knockback = 110 + Randomf() * 20.0;
+
+		G_InitProjectile(ent, forward, right, up, org);
+
+		G_RocketProjectile(ent, org, forward, 900, dmg, knockback, 150.0);
+
+		G_MuzzleFlash(ent, MZ_ROCKET);
+
+		G_ClientWeaponKick(ent, 0.275);
+
+		G_WeaponFired(ent, 1000);
+	}
+}
+
+/*
+ * @brief
+ */
+void G_FireHyperblaster(g_edict_t *ent) {
+
+	if (G_FireWeapon(ent)) {
+		vec3_t forward, right, up, org;
+
+		G_InitProjectile(ent, forward, right, up, org);
+
+		G_HyperblasterProjectile(ent, org, forward, 1400, 12, 6);
+
+		G_MuzzleFlash(ent, MZ_HYPERBLASTER);
+
+		G_ClientWeaponKick(ent, 0.15);
+
+		G_WeaponFired(ent, 100);
+	}
+}
+
+/*
+ * @brief
+ */
+void G_FireLightning(g_edict_t *ent) {
+
+	if (G_FireWeapon(ent)) {
+		vec3_t forward, right, up, org;
+
+		const _Bool muzzle_flash = !ent->locals.lightning;
+
+		G_InitProjectile(ent, forward, right, up, org);
+
+		G_LightningProjectile(ent, org, forward, 16, 12);
+
+		if (muzzle_flash) {
+			G_MuzzleFlash(ent, MZ_LIGHTNING);
+		}
+
+		G_ClientWeaponKick(ent, 0.15);
+
+		G_WeaponFired(ent, 100);
+	}
+}
+
+/*
+ * @brief
+ */
 void G_FireRailgun(g_edict_t *ent) {
-	G_FireWeapon(ent, 1800, G_FireRailgun_);
+
+	if (G_FireWeapon(ent)) {
+		vec3_t forward, right, up, org;
+
+		G_InitProjectile(ent, forward, right, up, org);
+
+		G_RailgunProjectile(ent, org, forward, 120, 80);
+
+		G_MuzzleFlash(ent, MZ_RAILGUN);
+
+		G_ClientWeaponKick(ent, 0.3);
+
+		G_WeaponFired(ent, 1800);
+	}
 }
 
 /*
@@ -518,15 +542,32 @@ void G_FireRailgun(g_edict_t *ent) {
 static void G_FireBfg_(g_edict_t *ent) {
 	vec3_t forward, right, up, org;
 
-	G_InitProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent->owner, forward, right, up, org);
 
-	G_BfgProjectiles(ent, org, forward, 600, 100, 100, 256.0);
+	G_BfgProjectiles(ent->owner, org, forward, 600, 100, 100, 256.0);
 
-	G_MuzzleFlash(ent, MZ_BFG);
+	G_MuzzleFlash(ent->owner, MZ_BFG);
 
-	G_ClientWeaponKick(ent, 0.5);
+	G_ClientWeaponKick(ent->owner, 0.5);
+
+	G_WeaponFired(ent->owner, 2000);
+
+	ent->locals.Think = G_FreeEdict;
+	ent->locals.next_think = g_level.time + 1;
 }
 
+/*
+ * @brief
+ */
 void G_FireBfg(g_edict_t *ent) {
-	G_FireWeapon(ent, 2000, G_FireBfg_);
+
+	if (G_FireWeapon(ent)) {
+		g_edict_t *timer = G_Spawn(__func__);
+		timer->owner = ent;
+
+		timer->locals.Think = G_FireBfg_;
+		timer->locals.next_think = g_level.time + 1;
+
+		//gi.Sound(ent, gi.SoundIndex("weapons/bfg/fire"), ATTN_NORM);
+	}
 }
