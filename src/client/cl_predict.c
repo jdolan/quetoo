@@ -255,7 +255,7 @@ void Cl_UpdatePrediction(void) {
 		int32_t bs;
 
 		const char *bsp_name = cl.config_strings[CS_MODELS];
-		const int bsp_size = atoi(cl.config_strings[CS_BSP_SIZE]);
+		const int32_t bsp_size = atoi(cl.config_strings[CS_BSP_SIZE]);
 
 		Cm_LoadBsp(bsp_name, &bs);
 
