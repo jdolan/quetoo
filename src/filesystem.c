@@ -346,7 +346,7 @@ _Bool Fs_Unlink(const char *filename) {
 
 typedef struct {
 	char pattern[MAX_QPATH];
-	FsEnumerateFunc function;
+	Fs_EnumerateFunc function;
 	char dir[MAX_QPATH];
 } fs_enumerate_t;
 
@@ -368,7 +368,7 @@ static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
 /*
  * @brief Enumerates files in the specified directory, calling the given function.
  */
-void Fs_Enumerate(const char *pattern, FsEnumerateFunc func, void *data) {
+void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
 
 	g_strlcpy(fs_enumerate.pattern, pattern, sizeof(fs_enumerate.pattern));
 
