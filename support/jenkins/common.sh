@@ -51,9 +51,9 @@ function init() {
 
 		linux*)
 			if [ "${TARGET}" == "linux64" ]; then
-				CHROOT="fedora-18-x86_64"
+				CHROOT="fedora-19-x86_64"
 			else
-				CHROOT="fedora-18-i386"
+				CHROOT="fedora-19-i386"
 			fi
 
 			CHROOT_PACKAGES="openssh-clients \
@@ -84,7 +84,7 @@ function init() {
 			CONFIGURE_FLAGS="--host=${HOST} ${CONFIGURE_FLAGS}"
 			MAKE_OPTIONS="HOST=${HOST} ARCH=${ARCH} ${MAKE_OPTIONS}"
 
-			CHROOT="fedora-18-x86_64"
+			CHROOT="fedora-19-x86_64"
 
 			CHROOT_PACKAGES="openssh-clients \
 				rsync \
@@ -97,8 +97,7 @@ function init() {
 				${TARGET}-pkg-config \
 				${TARGET}-pdcurses \
 				${TARGET}-libxml2 \
-				http://maci.satgnu.net/rpmbuild/RPMS/${TARGET}-physfs-2.0.3-3.fc18.noarch.rpm \
-				http://maci.satgnu.net/rpmbuild/RPMS/${TARGET}-lzma-sdk457-4.57-2.fc18.noarch.rpm
+				https://raw.github.com/maci0/rpmbuild/master/RPMS/noarch/${TARGET}-physfs-2.0.3-4.fc19.noarch.rpm
 				"
 			;;
 		*)

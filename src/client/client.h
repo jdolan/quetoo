@@ -24,8 +24,8 @@
 
 #include "cmodel.h"
 #include "console.h"
-#include "filesystem.h"
 #include "net_chan.h"
+#include "filesystem.h"
 #include "thread.h"
 #include "cgame/cgame.h"
 #include "renderer/renderer.h"
