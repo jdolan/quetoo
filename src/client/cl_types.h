@@ -26,7 +26,7 @@
 #include "sound/s_types.h"
 #include "ui/ui_types.h"
 
-typedef struct cl_frame_s {
+typedef struct {
 	_Bool valid; // cleared if delta parsing was invalid
 	uint32_t server_frame;
 	uint32_t server_time; // server time the message is valid for (in milliseconds)
@@ -37,7 +37,7 @@ typedef struct cl_frame_s {
 	uint32_t entity_state; // non-masked index into cl.entity_states array
 } cl_frame_t;
 
-typedef struct cl_entity_animation_s {
+typedef struct {
 	entity_animation_t animation;
 	uint32_t time;
 	uint16_t frame;
@@ -46,7 +46,7 @@ typedef struct cl_entity_animation_s {
 	vec_t fraction;
 } cl_entity_animation_t;
 
-typedef struct cl_entity_s {
+typedef struct {
 	entity_state_t baseline; // delta from this if not from a previous frame
 	entity_state_t current;
 	entity_state_t prev; // will always be valid, but might just be a copy of current
@@ -61,7 +61,7 @@ typedef struct cl_entity_s {
 	r_lighting_t lighting; // cached static lighting info
 } cl_entity_t;
 
-typedef struct cl_client_info_s {
+typedef struct {
 	char info[MAX_QPATH]; // the full info string, e.g. newbie\qforcer/blue
 	char name[MAX_QPATH]; // the player name, e.g. newbie
 	char model[MAX_QPATH]; // the model name, e.g. qforcer
@@ -79,16 +79,16 @@ typedef struct cl_client_info_s {
 	r_image_t *icon; // for the scoreboard
 } cl_client_info_t;
 
-#define CMD_BACKUP 512 // allow a lot of command backups for very fast systems
+#define CMD_BACKUP 64 // allow a lot of command backups for very fast systems
 #define CMD_MASK (CMD_BACKUP - 1)
 
 // we accumulate parsed entity states in a rather large buffer so that they
 // may be safely delta'd in the future
-#define ENTITY_STATE_BACKUP (UPDATE_BACKUP * MAX_PACKET_ENTITIES)
+#define ENTITY_STATE_BACKUP (PACKET_BACKUP * MAX_PACKET_ENTITIES)
 #define ENTITY_STATE_MASK (ENTITY_STATE_BACKUP - 1)
 
 // the cl_client_s structure is wiped completely at every map change
-typedef struct cl_client_s {
+typedef struct {
 	uint32_t time_demo_frames;
 	uint32_t time_demo_start;
 
@@ -111,7 +111,7 @@ typedef struct cl_client_s {
 	int16_t predicted_origins[CMD_BACKUP][3]; // for debug comparing against server
 
 	cl_frame_t frame; // received from server
-	cl_frame_t frames[UPDATE_BACKUP]; // for calculating delta compression
+	cl_frame_t frames[PACKET_BACKUP]; // for calculating delta compression
 
 	cl_entity_t entities[MAX_EDICTS]; // client entities
 

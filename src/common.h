@@ -85,14 +85,14 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
 
  */
 
-#define PROTOCOL 1003 // change this when netcode changes
+#define PROTOCOL 1004 // change this when netcode changes
 #define IP_MASTER "67.228.69.114" // tastyspleen.net
 #define PORT_MASTER	1996 // some good years
 #define PORT_CLIENT	1997
 #define PORT_SERVER	1998
 
-#define UPDATE_BACKUP 1024 // copies of entity_state_t to keep buffered
-#define UPDATE_MASK (UPDATE_BACKUP - 1)
+#define PACKET_BACKUP 32 // copies of entity_state_t to keep buffered
+#define PACKET_MASK (PACKET_BACKUP - 1)
 
 // maximum number of entities we would ever reference in a single message
 #define MAX_PACKET_ENTITIES 64

@@ -210,7 +210,7 @@ void Cl_UpdateView(void) {
 		return; // not a valid frame, and no forced update
 
 	// find the previous frame to interpolate from
-	cl_frame_t *prev = &cl.frames[(cl.frame.server_frame - 1) & UPDATE_MASK];
+	cl_frame_t *prev = &cl.frames[(cl.frame.server_frame - 1) & PACKET_MASK];
 
 	if (prev->server_frame != cl.frame.server_frame - 1 || !prev->valid)
 		prev = &cl.frame; // previous frame was dropped or invalid

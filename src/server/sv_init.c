@@ -201,7 +201,7 @@ static void Sv_InitClients(void) {
 		svs.clients = Z_TagMalloc(sizeof(sv_client_t) * sv_max_clients->integer, Z_TAG_SERVER);
 
 		// and the entity states array
-		svs.num_entity_states = sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES;
+		svs.num_entity_states = sv_max_clients->integer * PACKET_BACKUP * MAX_PACKET_ENTITIES;
 		svs.entity_states = Z_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states,
 				Z_TAG_SERVER);
 

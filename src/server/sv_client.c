@@ -432,7 +432,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 					if (cl->last_frame > -1) {
 						cl->frame_latency[cl->last_frame & (CLIENT_LATENCY_COUNTS - 1)]
 								= svs.real_time
-										- cl->frames[cl->last_frame & UPDATE_MASK].sent_time;
+										- cl->frames[cl->last_frame & PACKET_MASK].sent_time;
 					}
 				}
 

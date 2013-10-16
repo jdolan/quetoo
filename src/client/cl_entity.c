@@ -290,7 +290,7 @@ void Cl_ParseFrame(void) {
 		old_frame = NULL;
 		cl.frame.valid = true;
 	} else { // delta compressed frame
-		old_frame = &cl.frames[cl.frame.delta_frame & UPDATE_MASK];
+		old_frame = &cl.frames[cl.frame.delta_frame & PACKET_MASK];
 
 		if (!old_frame->valid)
 			Com_Error(ERR_DROP, "Delta from invalid frame\n");
@@ -298,7 +298,7 @@ void Cl_ParseFrame(void) {
 		if (old_frame->server_frame != (uint32_t) cl.frame.delta_frame)
 			Com_Error(ERR_DROP, "Delta frame too old\n");
 
-		else if (cl.entity_state - old_frame->entity_state > ENTITY_STATE_BACKUP - UPDATE_BACKUP)
+		else if (cl.entity_state - old_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP)
 			Com_Error(ERR_DROP, "Delta parse_entities too old\n");
 
 		cl.frame.valid = true;
@@ -312,7 +312,7 @@ void Cl_ParseFrame(void) {
 	Cl_ParseEntities(old_frame, &cl.frame);
 
 	// save the frame off in the backup array for later delta comparisons
-	cl.frames[cl.frame.server_frame & UPDATE_MASK] = cl.frame;
+	cl.frames[cl.frame.server_frame & PACKET_MASK] = cl.frame;
 
 	if (cl.frame.valid) {
 		// getting a valid frame message ends the connection process

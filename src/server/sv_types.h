@@ -129,7 +129,7 @@ typedef struct {
 	// it is packetized and written to the client, then wiped, each frame.
 	sv_client_datagram_t datagram;
 
-	sv_frame_t frames[UPDATE_BACKUP]; // updates can be delta'd from here
+	sv_frame_t frames[PACKET_BACKUP]; // updates can be delta'd from here
 
 	sv_download_t download; // UDP file downloads
 

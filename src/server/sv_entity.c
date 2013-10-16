@@ -220,19 +220,19 @@ void Sv_WriteFrame(sv_client_t *client, size_buf_t *msg) {
 	int32_t last_frame;
 
 	// this is the frame we are creating
-	frame = &client->frames[sv.frame_num & UPDATE_MASK];
+	frame = &client->frames[sv.frame_num & PACKET_MASK];
 
 	if (client->last_frame < 0) {
 		// client is asking for a retransmit
 		old_frame = NULL;
 		last_frame = -1;
-	} else if (sv.frame_num - client->last_frame >= (UPDATE_BACKUP - 3)) {
+	} else if (sv.frame_num - client->last_frame >= (PACKET_BACKUP - 3)) {
 		// client hasn't gotten a good message through in a long time
 		old_frame = NULL;
 		last_frame = -1;
 	} else {
 		// we have a valid message to delta from
-		old_frame = &client->frames[client->last_frame & UPDATE_MASK];
+		old_frame = &client->frames[client->last_frame & PACKET_MASK];
 		last_frame = client->last_frame;
 	}
 
@@ -322,7 +322,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 		return; // not in game yet
 
 	// this is the frame we are creating
-	frame = &client->frames[sv.frame_num & UPDATE_MASK];
+	frame = &client->frames[sv.frame_num & PACKET_MASK];
 
 	frame->sent_time = svs.real_time; // save it for ping calc later
 
