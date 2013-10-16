@@ -60,7 +60,6 @@ void Cl_UpdateCmd(void) {
  * over the next packet frame.
  */
 static void Cl_InitCmd(void) {
-
 	user_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
 	memset(cmd, 0, sizeof(user_cmd_t));
@@ -83,8 +82,6 @@ static void Cl_FinalizeCmd(void) {
 void Cl_SendCmd(void) {
 	size_buf_t buf;
 	byte data[128];
-	user_cmd_t *cmd, *old_cmd;
-	user_cmd_t null_cmd;
 
 	if (cls.state <= CL_CONNECTING)
 		return;
@@ -121,12 +118,12 @@ void Cl_SendCmd(void) {
 
 	// send this and the previous two cmds in the message, so
 	// if the last packet was dropped, it can be recovered
-	memset(&null_cmd, 0, sizeof(null_cmd));
+	static user_cmd_t null_cmd;
 
-	cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
+	user_cmd_t *cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
 	Msg_WriteDeltaUsercmd(&buf, &null_cmd, cmd);
 
-	old_cmd = cmd;
+	user_cmd_t *old_cmd = cmd;
 	cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
 	Msg_WriteDeltaUsercmd(&buf, old_cmd, cmd);
 

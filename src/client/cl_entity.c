@@ -319,8 +319,10 @@ void Cl_ParseFrame(void) {
 		if (cls.state != CL_ACTIVE) {
 			cls.state = CL_ACTIVE;
 
-			UnpackPosition(cl.frame.ps.pm_state.origin, cl.predicted_origin);
-			UnpackAngles(cl.frame.ps.pm_state.view_angles, cl.predicted_angles);
+			UnpackPosition(cl.frame.ps.pm_state.origin, cl.predicted_state.origin);
+
+			UnpackPosition(cl.frame.ps.pm_state.view_offset, cl.predicted_state.view_offset);
+			UnpackAngles(cl.frame.ps.pm_state.view_angles, cl.predicted_state.view_angles);
 		}
 
 		Cl_CheckPredictionError();

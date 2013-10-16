@@ -226,15 +226,15 @@ void Cl_CheckPredictionError(void) {
 	const uint32_t frame = (cls.net_chan.incoming_acknowledged & CMD_MASK);
 
 	// compare what the server returned with what we had predicted it to be
-	VectorSubtract(cl.frame.ps.pm_state.origin, cl.predicted_origins[frame], d);
+	VectorSubtract(cl.frame.ps.pm_state.origin, cl.predicted_state.origins[frame], d);
 	UnpackPosition(d, delta); // convert back to floating point
 
 	const vec_t error = VectorLength(delta);
 
 	if (error > 256.0) { // assume a teleport or something
-		VectorClear(cl.prediction_error);
+		VectorClear(cl.predicted_state.error);
 	} else { // save the prediction error for interpolation
-		VectorCopy(delta, cl.prediction_error);
+		VectorCopy(delta, cl.predicted_state.error);
 
 		if (error > 1.0) {
 			Com_Debug("%s\n", vtos(delta));
