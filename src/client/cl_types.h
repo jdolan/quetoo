@@ -97,7 +97,7 @@ typedef struct {
 	uint32_t byte_counter;
 
 	user_cmd_t cmds[CMD_BACKUP]; // each message will send several old cmds
-	uint32_t cmd_time[CMD_BACKUP]; // time sent, for calculating pings
+	uint32_t cmd_times[CMD_BACKUP]; // time sent, for calculating pings
 
 	vec_t predicted_step; // the step height
 	uint32_t predicted_step_time; // simulation time when the stair was traversed

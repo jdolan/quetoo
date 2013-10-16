@@ -135,7 +135,7 @@ void Cl_SendCmd(void) {
 	Msg_WriteDeltaUsercmd(&buf, old_cmd, cmd);
 
 	// record a timestamp for netgraph calculations
-	cl.cmd_time[(cls.net_chan.outgoing_sequence) & CMD_MASK] = cls.real_time;
+	cl.cmd_times[(cls.net_chan.outgoing_sequence) & CMD_MASK] = cls.real_time;
 
 	// deliver the message
 	Netchan_Transmit(&cls.net_chan, buf.data, buf.size);
