@@ -185,7 +185,7 @@ typedef enum {
 	SV_CMD_SOUND,
 	SV_CMD_CGAME,
 // this MUST be the last element here, as cgame extends from this point
-} sv_cmd_t;
+} sv_packet_cmd_t;
 
 // client to server
 typedef enum {
@@ -194,7 +194,7 @@ typedef enum {
 	CL_CMD_STRING, // [string] message
 	CL_CMD_USER_INFO
 // [user_info_string]
-} cl_cmd_t;
+} cl_packet_cmd_t;
 
 // a singleton for (0.0, 0.0, 0.0)
 extern vec3_t vec3_origin;

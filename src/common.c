@@ -367,46 +367,47 @@ void Msg_WriteAngles(size_buf_t *sb, const vec3_t angles) {
 /*
  * @brief
  */
-void Msg_WriteDeltaUsercmd(size_buf_t *buf, user_cmd_t *from, user_cmd_t *cmd) {
-	int32_t bits;
+void Msg_WriteDeltaUserCmd(size_buf_t *buf, const user_cmd_t *from, const user_cmd_t *to) {
+	byte bits = 0;
 
 	// send the movement message
-	bits = 0;
-	if (cmd->angles[0] != from->angles[0])
+	if (to->angles[0] != from->angles[0])
 		bits |= CMD_ANGLE1;
-	if (cmd->angles[1] != from->angles[1])
+	if (to->angles[1] != from->angles[1])
 		bits |= CMD_ANGLE2;
-	if (cmd->angles[2] != from->angles[2])
+	if (to->angles[2] != from->angles[2])
 		bits |= CMD_ANGLE3;
-	if (cmd->forward != from->forward)
+
+	if (to->forward != from->forward)
 		bits |= CMD_FORWARD;
-	if (cmd->right != from->right)
+	if (to->right != from->right)
 		bits |= CMD_RIGHT;
-	if (cmd->up != from->up)
+	if (to->up != from->up)
 		bits |= CMD_UP;
-	if (cmd->buttons != from->buttons)
+
+	if (to->buttons != from->buttons)
 		bits |= CMD_BUTTONS;
 
 	Msg_WriteByte(buf, bits);
 
 	if (bits & CMD_ANGLE1)
-		Msg_WriteShort(buf, cmd->angles[0]);
+		Msg_WriteShort(buf, to->angles[0]);
 	if (bits & CMD_ANGLE2)
-		Msg_WriteShort(buf, cmd->angles[1]);
+		Msg_WriteShort(buf, to->angles[1]);
 	if (bits & CMD_ANGLE3)
-		Msg_WriteShort(buf, cmd->angles[2]);
+		Msg_WriteShort(buf, to->angles[2]);
 
 	if (bits & CMD_FORWARD)
-		Msg_WriteShort(buf, cmd->forward);
+		Msg_WriteShort(buf, to->forward);
 	if (bits & CMD_RIGHT)
-		Msg_WriteShort(buf, cmd->right);
+		Msg_WriteShort(buf, to->right);
 	if (bits & CMD_UP)
-		Msg_WriteShort(buf, cmd->up);
+		Msg_WriteShort(buf, to->up);
 
 	if (bits & CMD_BUTTONS)
-		Msg_WriteByte(buf, cmd->buttons);
+		Msg_WriteByte(buf, to->buttons);
 
-	Msg_WriteByte(buf, cmd->msec);
+	Msg_WriteByte(buf, to->msec);
 }
 
 /*

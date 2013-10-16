@@ -42,17 +42,21 @@ void Cl_UpdateCmd(void) {
 	last_move = cls.real_time;
 
 	// now update the pending command
-	user_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
-	cmd->msec += c.msec;
+	cmd->cmd.msec += c.msec;
 
-	cmd->buttons |= c.buttons;
+	cmd->cmd.buttons |= c.buttons;
 
-	VectorCopy(c.angles, cmd->angles);
+	VectorCopy(c.angles, cmd->cmd.angles);
 
-	cmd->forward += c.forward;
-	cmd->right += c.right;
-	cmd->up += c.up;
+	cmd->cmd.forward += c.forward;
+	cmd->cmd.right += c.right;
+	cmd->cmd.up += c.up;
+
+	// store timestamps for netgraph and prediction calculations
+	cmd->time = cl.time;
+	cmd->real_time = cls.real_time;
 }
 
 /*
@@ -60,7 +64,7 @@ void Cl_UpdateCmd(void) {
  * over the next packet frame.
  */
 static void Cl_InitCmd(void) {
-	user_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
 	memset(cmd, 0, sizeof(user_cmd_t));
 }
@@ -69,10 +73,10 @@ static void Cl_InitCmd(void) {
  * @brief Calculate the true command duration and clamp it so that it may be sent.
  */
 static void Cl_FinalizeCmd(void) {
-	user_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
-	cmd->msec = Clamp(cls.packet_delta, 1, 255);
-	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->msec, cmd->forward, cmd->right, cmd->up);
+	cmd->cmd.msec = Clamp(cls.packet_delta, 1, 255);
+	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->cmd.msec, cmd->cmd.forward, cmd->cmd.right, cmd->cmd.up);
 }
 
 /*
@@ -86,16 +90,14 @@ void Cl_SendCmd(void) {
 	if (cls.state <= CL_CONNECTING)
 		return;
 
-	Sb_Init(&buf, data, sizeof(data));
-
 	if (cls.state == CL_CONNECTED) {
-		// send anything we have pending, or just don't timeout
+		// send any reliable messages and / or don't timeout
 		if (cls.net_chan.message.size || cls.real_time - cls.net_chan.last_sent > 1000)
-			Netchan_Transmit(&cls.net_chan, buf.data, buf.size);
+			Netchan_Transmit(&cls.net_chan, NULL, 0);
 		return;
 	}
 
-	// send a user_info update if needed
+	// send a user info update if needed
 	if (cvar_user_info_modified) {
 		Msg_WriteByte(&cls.net_chan.message, CL_CMD_USER_INFO);
 		Msg_WriteString(&cls.net_chan.message, Cvar_UserInfo());
@@ -106,7 +108,9 @@ void Cl_SendCmd(void) {
 	// finalize the current command
 	Cl_FinalizeCmd();
 
-	// write it out
+	// and write it out
+	Sb_Init(&buf, data, sizeof(data));
+
 	Msg_WriteByte(&buf, CL_CMD_MOVE);
 
 	// let the server know what the last frame we got was, so the next
@@ -120,19 +124,16 @@ void Cl_SendCmd(void) {
 	// if the last packet was dropped, it can be recovered
 	static user_cmd_t null_cmd;
 
-	user_cmd_t *cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
-	Msg_WriteDeltaUsercmd(&buf, &null_cmd, cmd);
+	cl_cmd_t *cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
+	Msg_WriteDeltaUserCmd(&buf, &null_cmd, &cmd->cmd);
 
-	user_cmd_t *old_cmd = cmd;
+	user_cmd_t *old_cmd = &cmd->cmd;
 	cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
-	Msg_WriteDeltaUsercmd(&buf, old_cmd, cmd);
+	Msg_WriteDeltaUserCmd(&buf, old_cmd, &cmd->cmd);
 
-	old_cmd = cmd;
+	old_cmd = &cmd->cmd;
 	cmd = &cl.cmds[(cls.net_chan.outgoing_sequence) & CMD_MASK];
-	Msg_WriteDeltaUsercmd(&buf, old_cmd, cmd);
-
-	// record a timestamp for netgraph calculations
-	cl.cmd_times[(cls.net_chan.outgoing_sequence) & CMD_MASK] = cls.real_time;
+	Msg_WriteDeltaUserCmd(&buf, old_cmd, &cmd->cmd);
 
 	// deliver the message
 	Netchan_Transmit(&cls.net_chan, buf.data, buf.size);

@@ -27,6 +27,12 @@
 #include "ui/ui_types.h"
 
 typedef struct {
+	user_cmd_t cmd; // the movement command
+	uint32_t time; // simulation time when the command was sent
+	uint32_t real_time; // system time when the command was sent
+} cl_cmd_t;
+
+typedef struct {
 	_Bool valid; // cleared if delta parsing was invalid
 	uint32_t server_frame;
 	uint32_t server_time; // server time the message is valid for (in milliseconds)
@@ -120,9 +126,7 @@ typedef struct {
 	uint32_t packet_counter;
 	uint32_t byte_counter;
 
-	user_cmd_t cmds[CMD_BACKUP]; // each message will send several old cmds
-	uint32_t cmd_times[CMD_BACKUP]; // time sent, for calculating latency
-
+	cl_cmd_t cmds[CMD_BACKUP]; // each message will send several old cmds
 	cl_predicted_state_t predicted_state; // client side prediction output
 
 	cl_frame_t frame; // received from server

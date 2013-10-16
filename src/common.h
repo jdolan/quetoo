@@ -57,7 +57,7 @@ void Msg_WriteCoord(size_buf_t *sb, const vec_t f);
 void Msg_WritePos(size_buf_t *sb, const vec3_t pos);
 void Msg_WriteAngle(size_buf_t *sb, const vec_t f);
 void Msg_WriteAngles(size_buf_t *sb, const vec3_t angles);
-void Msg_WriteDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
+void Msg_WriteDeltaUserCmd(size_buf_t *sb, const user_cmd_t *from, const user_cmd_t *to);
 void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force,
 		_Bool newentity);
 void Msg_WriteDir(size_buf_t *sb, const vec3_t dir);
@@ -85,7 +85,7 @@ void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
 
  */
 
-#define PROTOCOL 1004 // change this when netcode changes
+#define PROTOCOL 1003 // change this when netcode changes
 #define IP_MASTER "67.228.69.114" // tastyspleen.net
 #define PORT_MASTER	1996 // some good years
 #define PORT_CLIENT	1997
