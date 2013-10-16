@@ -92,12 +92,6 @@ typedef struct {
 // user_cmd_t's through the player movement code locally
 
 typedef struct {
-	uint32_t time; // simulation time when step was traversed
-	uint32_t interval; // interpolation interval for step
-	vec_t step; // step height
-} cl_predicted_step_t;
-
-typedef struct {
 	vec3_t origin; // this essentially becomes the view orientation
 
 	vec3_t view_offset; // by adding in this offset
@@ -107,7 +101,9 @@ typedef struct {
 
 	struct g_edict_s *ground_entity;
 
-	cl_predicted_step_t step; // interpolated over several server frames
+	uint32_t step_time; // simulation time when step was traversed
+	uint32_t step_interval; // interpolation interval for step
+	vec_t step; // step height (up or down)
 
 	int16_t origins[CMD_BACKUP][3]; // for debugging against the server
 } cl_predicted_state_t;
