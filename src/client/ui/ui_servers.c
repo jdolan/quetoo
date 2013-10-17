@@ -45,11 +45,12 @@ static TW_CALL void Ui_Servers_Refresh(void *data __attribute__((unused))) {
  */
 void Ui_NewServer(void) {
 	TwBar *bar = ui.servers;
-	cl_server_info_t *s = cls.servers;
+	const GList *e = cls.servers;
 
 	TwRemoveAllVars(bar);
 
-	while (s) {
+	while (e) {
+		const cl_server_info_t *s = (cl_server_info_t *) e->data;
 
 		if (s->max_clients) {
 			char button[128], *group;
@@ -74,7 +75,7 @@ void Ui_NewServer(void) {
 
 			TwAddButton(bar, button, Ui_Servers_Connect, s, va("group=%s", group));
 		}
-		s = s->next;
+		e = e->next;
 	}
 
 	TwAddSeparator(bar, NULL, NULL);

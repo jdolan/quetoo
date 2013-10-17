@@ -238,6 +238,7 @@ typedef struct cl_download_s {
 	char name[MAX_OSPATH];
 } cl_download_t;
 
+// server information, for finding network games
 typedef enum {
 	SERVER_SOURCE_INTERNET,
 	SERVER_SOURCE_USER,
@@ -252,9 +253,8 @@ typedef struct cl_server_info_s {
 	char gameplay[32];
 	uint16_t clients;
 	uint16_t max_clients;
-	uint32_t ping_time;
-	uint16_t ping;
-	struct cl_server_info_s *next;
+	uint32_t ping_time; // when we pinged the server
+	uint16_t ping; // server latency
 } cl_server_info_t;
 
 #define MAX_SERVER_INFOS 128
@@ -290,8 +290,7 @@ typedef struct cl_static_s {
 	char demo_filename[MAX_OSPATH];
 	file_t *demo_file;
 
-	cl_server_info_t *servers; // list of servers from all sources
-	char *servers_text; // tabular data for servers menu
+	GList *servers; // list of cl_server_info_t from all sources
 
 	uint32_t broadcast_time; // time when last broadcast ping was sent
 

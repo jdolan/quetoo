@@ -29,11 +29,10 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 
 	s = (cl_server_info_t *) Z_TagMalloc(sizeof(*s), Z_TAG_CLIENT);
 
-	s->next = cls.servers;
-	cls.servers = s;
-
 	s->addr = *addr;
 	g_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
+
+	cls.servers = g_list_prepend(cls.servers, s);
 
 	return s;
 }
@@ -42,16 +41,15 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
  * @brief
  */
 static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
-	cl_server_info_t *s;
+	const GList *e = cls.servers;
 
-	s = cls.servers;
-
-	while (s) {
+	while (e) {
+		cl_server_info_t *s = (cl_server_info_t *) e->data;
 
 		if (Net_CompareNetaddr(addr, &s->addr))
 			return s;
 
-		s = s->next;
+		e = e->next;
 	}
 
 	return NULL;
@@ -61,16 +59,10 @@ static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
  * @brief
  */
 void Cl_FreeServers(void) {
-	cl_server_info_t *s, *next;
 
-	s = cls.servers;
+	g_list_free_full(cls.servers, Z_Free);
 
-	while (s) {
-
-		next = s->next;
-		Z_Free(s);
-		s = next;
-	}
+	cls.servers = NULL;
 }
 
 /*
@@ -155,29 +147,28 @@ void Cl_Ping_f(void) {
  * @brief
  */
 static void Cl_SendBroadcast(void) {
-	cl_server_info_t *server;
-	net_addr_t addr;
+	const GList *e = cls.servers;
 
-	cls.broadcast_time = cls.real_time;
+	while (e) { // update old ping times
+		cl_server_info_t *s = (cl_server_info_t *) e->data;
 
-	server = cls.servers;
-
-	while (server) { // update old ping times
-
-		if (server->source == SERVER_SOURCE_BCAST) {
-			server->ping_time = cls.broadcast_time;
-			server->ping = 0;
+		if (s->source == SERVER_SOURCE_BCAST) {
+			s->ping_time = cls.broadcast_time;
+			s->ping = 0;
 		}
 
-		server = server->next;
+		e = e->next;
 	}
 
+	net_addr_t addr;
 	memset(&addr, 0, sizeof(addr));
 
 	addr.type = NA_BROADCAST;
 	addr.port = htons(PORT_SERVER);
 
 	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "info %i", PROTOCOL);
+
+	cls.broadcast_time = cls.real_time;
 }
 
 /*
@@ -248,9 +239,11 @@ void Cl_ParseServersList(void) {
 	net_message.read = net_message.size;
 
 	// then ping them
-	server = cls.servers;
 
-	while (server) {
+	GList *e = cls.servers;
+
+	while (e) {
+		server = (cl_server_info_t *) e->data;
 
 		if (server->source == SERVER_SOURCE_INTERNET) {
 			server->ping_time = cls.real_time;
@@ -259,7 +252,7 @@ void Cl_ParseServersList(void) {
 			Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "info %i", PROTOCOL);
 		}
 
-		server = server->next;
+		e = e->next;
 	}
 }
 
@@ -267,18 +260,17 @@ void Cl_ParseServersList(void) {
  * @brief
  */
 void Cl_Servers_List_f(void) {
-	cl_server_info_t *server;
-	char server_info[192];
+	char string[256];
 
-	server = cls.servers;
+	GList *e = cls.servers;
 
-	while (server) {
-		g_snprintf(server_info, sizeof(server_info),
-				"%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms", server->hostname,
-				Net_NetaddrToString(&server->addr), server->name, server->gameplay, server->clients,
-				server->max_clients, server->ping);
-		server_info[127] = '\0';
-		Com_Print("%s\n", server_info);
-		server = server->next;
+	while (e) {
+		const cl_server_info_t *s = (cl_server_info_t *) e->data;
+
+		g_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
+				s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gameplay, s->clients,
+				s->max_clients, s->ping);
+		Com_Print("%s\n", string);
+		e = e->next;
 	}
 }

@@ -229,7 +229,7 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t c
 	} else if (stage->flags & STAGE_DIRTMAP) {
 
 		// resolve dirtmap based on vertex position
-		const int32_t index = (int32_t) (v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
+		const uint16_t index = (uint16_t) (v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
 		if (stage->flags & STAGE_COLOR) // honor stage color
 			VectorCopy(stage->color, color);
 		else
