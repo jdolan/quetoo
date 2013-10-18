@@ -285,7 +285,7 @@ static void G_ClientAnimation(g_edict_t *ent) {
 				G_SetAnimation(ent, ANIM_LEGS_SWIM, false);
 				return;
 			}
-			if (ent->client->ps.pm_state.pm_flags & PMF_DUCKED) { // ducking
+			if (ent->client->ps.pm_state.flags & PMF_DUCKED) { // ducking
 				G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
 				return;
 			}
@@ -304,7 +304,7 @@ static void G_ClientAnimation(g_edict_t *ent) {
 
 	if (g_level.time - 400 > cl->land_time && g_level.time - 50 > cl->ground_time) {
 
-		if (ent->client->ps.pm_state.pm_flags & PMF_DUCKED) { // ducked
+		if (ent->client->ps.pm_state.flags & PMF_DUCKED) { // ducked
 			if (cl->speed < 1.0)
 				G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
 			else
@@ -347,8 +347,8 @@ void G_ClientEndFrame(g_edict_t *ent) {
 	//
 	// If it wasn't updated here, the view position would lag a frame
 	// behind the body position when pushed -- "sinking into plats"
-	PackPosition(ent->s.origin, client->ps.pm_state.origin);
-	PackPosition(ent->locals.velocity, client->ps.pm_state.velocity);
+	PackVector(ent->s.origin, client->ps.pm_state.origin);
+	PackVector(ent->locals.velocity, client->ps.pm_state.velocity);
 
 	// If in intermission, just set stats and scores and return
 	if (g_level.intermission_time) {

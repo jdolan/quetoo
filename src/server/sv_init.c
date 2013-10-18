@@ -47,10 +47,10 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, _Bo
 	g_strlcpy(sv.config_strings[start + i], name, sizeof(sv.config_strings[i]));
 
 	if (sv.state != SV_LOADING) { // send the update to everyone
-		Sb_Clear(&sv.multicast);
-		Msg_WriteChar(&sv.multicast, SV_CMD_CONFIG_STRING);
-		Msg_WriteShort(&sv.multicast, start + i);
-		Msg_WriteString(&sv.multicast, name);
+		Mem_ClearBuffer(&sv.multicast);
+		Net_WriteByte(&sv.multicast, SV_CMD_CONFIG_STRING);
+		Net_WriteShort(&sv.multicast, start + i);
+		Net_WriteString(&sv.multicast, name);
 		Sv_Multicast(vec3_origin, MULTICAST_ALL_R);
 	}
 
@@ -108,19 +108,19 @@ static void Sv_ShutdownMessage(const char *msg, _Bool reconnect) {
 	if (!svs.initialized)
 		return;
 
-	Sb_Clear(&net_message);
+	Mem_ClearBuffer(&net_message);
 
 	if (msg) { // send message
-		Msg_WriteByte(&net_message, SV_CMD_PRINT);
-		Msg_WriteByte(&net_message, PRINT_HIGH);
-		Msg_WriteString(&net_message, msg);
+		Net_WriteByte(&net_message, SV_CMD_PRINT);
+		Net_WriteByte(&net_message, PRINT_HIGH);
+		Net_WriteString(&net_message, msg);
 	}
 
 	if (reconnect) // send reconnect
-		Msg_WriteByte(&net_message, SV_CMD_RECONNECT);
+		Net_WriteByte(&net_message, SV_CMD_RECONNECT);
 	else
 		// or just disconnect
-		Msg_WriteByte(&net_message, SV_CMD_DISCONNECT);
+		Net_WriteByte(&net_message, SV_CMD_DISCONNECT);
 
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++)
 		if (cl->state >= SV_CLIENT_CONNECTED)
@@ -174,10 +174,10 @@ static void Sv_ShutdownClients(void) {
 		}
 	}
 
-	Z_Free(svs.clients);
+	Mem_Free(svs.clients);
 	svs.clients = NULL;
 
-	Z_Free(svs.entity_states);
+	Mem_Free(svs.entity_states);
 	svs.entity_states = NULL;
 }
 
@@ -198,11 +198,11 @@ static void Sv_InitClients(void) {
 		Sv_UpdateLatchedVars();
 
 		// initialize the clients array
-		svs.clients = Z_TagMalloc(sizeof(sv_client_t) * sv_max_clients->integer, Z_TAG_SERVER);
+		svs.clients = Mem_TagMalloc(sizeof(sv_client_t) * sv_max_clients->integer, Z_TAG_SERVER);
 
 		// and the entity states array
 		svs.num_entity_states = sv_max_clients->integer * PACKET_BACKUP * MAX_PACKET_ENTITIES;
-		svs.entity_states = Z_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states,
+		svs.entity_states = Mem_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states,
 				Z_TAG_SERVER);
 
 		svs.frame_rate = sv_hz->integer;
@@ -334,7 +334,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
 	Com_Print("Server initialization...\n");
 
-	Sb_Init(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
+	Mem_InitBuffer(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
 
 	// initialize the clients, loading the game module if we need it
 	Sv_InitClients();

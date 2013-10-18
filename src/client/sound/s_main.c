@@ -298,5 +298,5 @@ void S_Shutdown(void) {
 
 	s_env.initialized = false;
 
-	Z_FreeTag(Z_TAG_SOUND);
+	Mem_FreeTag(Z_TAG_SOUND);
 }

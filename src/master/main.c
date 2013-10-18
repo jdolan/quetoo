@@ -69,7 +69,7 @@ static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
  */
 static void Ms_DropServer(ms_server_t *server) {
 	ms_servers = g_list_remove(ms_servers, server);
-	Z_Free(server);
+	Mem_Free(server);
 }
 
 /*
@@ -126,7 +126,7 @@ static void Ms_AddServer(struct sockaddr_in *from) {
 		return;
 	}
 
-	ms_server_t *server = Z_Malloc(sizeof(*server));
+	ms_server_t *server = Mem_Malloc(sizeof(*server));
 
 	server->ip = *from;
 	server->last_heartbeat = time(0);
@@ -307,7 +307,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
  */
 static void Init(void) {
 
-	Z_Init();
+	Mem_Init();
 
 	Fs_Init(false);
 }
@@ -319,11 +319,11 @@ static void Shutdown(const char *msg) {
 
 	Com_Print("%s", msg);
 
-	g_list_free_full(ms_servers, Z_Free);
+	g_list_free_full(ms_servers, Mem_Free);
 
 	Fs_Shutdown();
 
-	Z_Shutdown();
+	Mem_Shutdown();
 }
 
 /*

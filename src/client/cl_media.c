@@ -59,8 +59,8 @@ void Cl_RequestNextDownload(void) {
 
 	Cl_LoadMedia();
 
-	Msg_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-	Msg_WriteString(&cls.net_chan.message, va("begin %i\n", cls.spawn_count));
+	Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
+	Net_WriteString(&cls.net_chan.message, va("begin %i\n", cls.spawn_count));
 }
 
 /*

@@ -24,7 +24,7 @@
 /*
  * @brief Writes a delta update of an entity_state_t list to the message.
  */
-static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
+static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 	entity_state_t *old_state = NULL, *new_state = NULL;
 	uint32_t old_index, new_index;
 	uint16_t old_num, new_num;
@@ -53,7 +53,7 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
 		}
 
 		if (new_num == old_num) { // delta update from old position
-			Msg_WriteDeltaEntity(old_state, new_state, msg, false,
+			Net_WriteDeltaEntity(old_state, new_state, msg, false,
 					new_state->number <= sv_max_clients->integer);
 			old_index++;
 			new_index++;
@@ -61,7 +61,7 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
 		}
 
 		if (new_num < old_num) { // this is a new entity, send it from the baseline
-			Msg_WriteDeltaEntity(&sv.baselines[new_num], new_state, msg, true, true);
+			Net_WriteDeltaEntity(&sv.baselines[new_num], new_state, msg, true, true);
 			new_index++;
 			continue;
 		}
@@ -69,21 +69,21 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
 		if (new_num > old_num) { // the old entity isn't present in the new message
 			const int16_t bits = U_REMOVE;
 
-			Msg_WriteShort(msg, old_num);
-			Msg_WriteShort(msg, bits);
+			Net_WriteShort(msg, old_num);
+			Net_WriteShort(msg, bits);
 
 			old_index++;
 			continue;
 		}
 	}
 
-	Msg_WriteShort(msg, 0); // end of entities
+	Net_WriteShort(msg, 0); // end of entities
 }
 
 /*
  * @brief
  */
-static void Sv_WritePlayerstate(sv_frame_t *from, sv_frame_t *to, size_buf_t *msg) {
+static void Sv_WritePlayerstate(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 	uint16_t pm_state_bits;
 	uint32_t stat_bits;
 	player_state_t *ps, *ops;
@@ -102,96 +102,96 @@ static void Sv_WritePlayerstate(sv_frame_t *from, sv_frame_t *to, size_buf_t *ms
 	// determine what needs to be sent
 	pm_state_bits = 0;
 
-	if (ps->pm_state.pm_type != ops->pm_state.pm_type)
-		pm_state_bits |= PS_M_TYPE;
+	if (ps->pm_state.type != ops->pm_state.type)
+		pm_state_bits |= PS_PM_TYPE;
 
 	if (ps->pm_state.origin[0] != ops->pm_state.origin[0] || ps->pm_state.origin[1]
 			!= ops->pm_state.origin[1] || ps->pm_state.origin[2] != ops->pm_state.origin[2])
-		pm_state_bits |= PS_M_ORIGIN;
+		pm_state_bits |= PS_PM_ORIGIN;
 
 	if (ps->pm_state.velocity[0] != ops->pm_state.velocity[0] || ps->pm_state.velocity[1]
 			!= ops->pm_state.velocity[1] || ps->pm_state.velocity[2] != ops->pm_state.velocity[2])
-		pm_state_bits |= PS_M_VELOCITY;
+		pm_state_bits |= PS_PM_VELOCITY;
 
-	if (ps->pm_state.pm_flags != ops->pm_state.pm_flags)
-		pm_state_bits |= PS_M_FLAGS;
+	if (ps->pm_state.flags != ops->pm_state.flags)
+		pm_state_bits |= PS_PM_FLAGS;
 
-	if (ps->pm_state.pm_time != ops->pm_state.pm_time)
-		pm_state_bits |= PS_M_TIME;
+	if (ps->pm_state.time != ops->pm_state.time)
+		pm_state_bits |= PS_PM_TIME;
 
 	if (ps->pm_state.gravity != ops->pm_state.gravity)
-		pm_state_bits |= PS_M_GRAVITY;
+		pm_state_bits |= PS_PM_GRAVITY;
 
 	if (ps->pm_state.view_offset[0] != ops->pm_state.view_offset[0] || ps->pm_state.view_offset[1]
 			!= ops->pm_state.view_offset[1] || ps->pm_state.view_offset[2]
 			!= ops->pm_state.view_offset[2])
-		pm_state_bits |= PS_M_VIEW_OFFSET;
+		pm_state_bits |= PS_PM_VIEW_OFFSET;
 
 	if (ps->pm_state.view_angles[0] != ops->pm_state.view_angles[0] || ps->pm_state.view_angles[1]
 			!= ops->pm_state.view_angles[1] || ps->pm_state.view_angles[2]
 			!= ops->pm_state.view_angles[2])
-		pm_state_bits |= PS_M_VIEW_ANGLES;
+		pm_state_bits |= PS_PM_VIEW_ANGLES;
 
 	if (ps->pm_state.kick_angles[0] != ops->pm_state.kick_angles[0] || ps->pm_state.kick_angles[1]
 			!= ops->pm_state.kick_angles[1] || ps->pm_state.kick_angles[2]
 			!= ops->pm_state.kick_angles[2])
-		pm_state_bits |= PS_M_KICK_ANGLES;
+		pm_state_bits |= PS_PM_KICK_ANGLES;
 
 	if (ps->pm_state.delta_angles[0] != ops->pm_state.delta_angles[0]
 			|| ps->pm_state.delta_angles[1] != ops->pm_state.delta_angles[1]
 			|| ps->pm_state.delta_angles[2] != ops->pm_state.delta_angles[2])
-		pm_state_bits |= PS_M_DELTA_ANGLES;
+		pm_state_bits |= PS_PM_DELTA_ANGLES;
 
 	// write it
-	Msg_WriteShort(msg, pm_state_bits);
+	Net_WriteShort(msg, pm_state_bits);
 
 	// write the pmove_state_t
-	if (pm_state_bits & PS_M_TYPE)
-		Msg_WriteByte(msg, ps->pm_state.pm_type);
+	if (pm_state_bits & PS_PM_TYPE)
+		Net_WriteByte(msg, ps->pm_state.type);
 
-	if (pm_state_bits & PS_M_ORIGIN) {
-		Msg_WriteShort(msg, ps->pm_state.origin[0]);
-		Msg_WriteShort(msg, ps->pm_state.origin[1]);
-		Msg_WriteShort(msg, ps->pm_state.origin[2]);
+	if (pm_state_bits & PS_PM_ORIGIN) {
+		Net_WriteShort(msg, ps->pm_state.origin[0]);
+		Net_WriteShort(msg, ps->pm_state.origin[1]);
+		Net_WriteShort(msg, ps->pm_state.origin[2]);
 	}
 
-	if (pm_state_bits & PS_M_VELOCITY) {
-		Msg_WriteShort(msg, ps->pm_state.velocity[0]);
-		Msg_WriteShort(msg, ps->pm_state.velocity[1]);
-		Msg_WriteShort(msg, ps->pm_state.velocity[2]);
+	if (pm_state_bits & PS_PM_VELOCITY) {
+		Net_WriteShort(msg, ps->pm_state.velocity[0]);
+		Net_WriteShort(msg, ps->pm_state.velocity[1]);
+		Net_WriteShort(msg, ps->pm_state.velocity[2]);
 	}
 
-	if (pm_state_bits & PS_M_FLAGS)
-		Msg_WriteShort(msg, ps->pm_state.pm_flags);
+	if (pm_state_bits & PS_PM_FLAGS)
+		Net_WriteShort(msg, ps->pm_state.flags);
 
-	if (pm_state_bits & PS_M_TIME)
-		Msg_WriteShort(msg, ps->pm_state.pm_time);
+	if (pm_state_bits & PS_PM_TIME)
+		Net_WriteShort(msg, ps->pm_state.time);
 
-	if (pm_state_bits & PS_M_GRAVITY)
-		Msg_WriteShort(msg, ps->pm_state.gravity);
+	if (pm_state_bits & PS_PM_GRAVITY)
+		Net_WriteShort(msg, ps->pm_state.gravity);
 
-	if (pm_state_bits & PS_M_VIEW_OFFSET) {
-		Msg_WriteShort(msg, ps->pm_state.view_offset[0]);
-		Msg_WriteShort(msg, ps->pm_state.view_offset[1]);
-		Msg_WriteShort(msg, ps->pm_state.view_offset[2]);
+	if (pm_state_bits & PS_PM_VIEW_OFFSET) {
+		Net_WriteShort(msg, ps->pm_state.view_offset[0]);
+		Net_WriteShort(msg, ps->pm_state.view_offset[1]);
+		Net_WriteShort(msg, ps->pm_state.view_offset[2]);
 	}
 
-	if (pm_state_bits & PS_M_VIEW_ANGLES) {
-		Msg_WriteShort(msg, ps->pm_state.view_angles[0]);
-		Msg_WriteShort(msg, ps->pm_state.view_angles[1]);
-		Msg_WriteShort(msg, ps->pm_state.view_angles[2]);
+	if (pm_state_bits & PS_PM_VIEW_ANGLES) {
+		Net_WriteShort(msg, ps->pm_state.view_angles[0]);
+		Net_WriteShort(msg, ps->pm_state.view_angles[1]);
+		Net_WriteShort(msg, ps->pm_state.view_angles[2]);
 	}
 
-	if (pm_state_bits & PS_M_KICK_ANGLES) {
-		Msg_WriteShort(msg, ps->pm_state.kick_angles[0]);
-		Msg_WriteShort(msg, ps->pm_state.kick_angles[1]);
-		Msg_WriteShort(msg, ps->pm_state.kick_angles[2]);
+	if (pm_state_bits & PS_PM_KICK_ANGLES) {
+		Net_WriteShort(msg, ps->pm_state.kick_angles[0]);
+		Net_WriteShort(msg, ps->pm_state.kick_angles[1]);
+		Net_WriteShort(msg, ps->pm_state.kick_angles[2]);
 	}
 
-	if (pm_state_bits & PS_M_DELTA_ANGLES) {
-		Msg_WriteShort(msg, ps->pm_state.delta_angles[0]);
-		Msg_WriteShort(msg, ps->pm_state.delta_angles[1]);
-		Msg_WriteShort(msg, ps->pm_state.delta_angles[2]);
+	if (pm_state_bits & PS_PM_DELTA_ANGLES) {
+		Net_WriteShort(msg, ps->pm_state.delta_angles[0]);
+		Net_WriteShort(msg, ps->pm_state.delta_angles[1]);
+		Net_WriteShort(msg, ps->pm_state.delta_angles[2]);
 	}
 
 	// send stats
@@ -203,11 +203,11 @@ static void Sv_WritePlayerstate(sv_frame_t *from, sv_frame_t *to, size_buf_t *ms
 		}
 	}
 
-	Msg_WriteLong(msg, stat_bits);
+	Net_WriteLong(msg, stat_bits);
 
 	for (i = 0; i < MAX_STATS; i++) {
 		if (stat_bits & (1 << i)) {
-			Msg_WriteShort(msg, ps->stats[i]);
+			Net_WriteShort(msg, ps->stats[i]);
 		}
 	}
 }
@@ -215,7 +215,7 @@ static void Sv_WritePlayerstate(sv_frame_t *from, sv_frame_t *to, size_buf_t *ms
 /*
  * @brief
  */
-void Sv_WriteFrame(sv_client_t *client, size_buf_t *msg) {
+void Sv_WriteFrame(sv_client_t *client, mem_buf_t *msg) {
 	sv_frame_t *frame, *old_frame;
 	int32_t last_frame;
 
@@ -236,15 +236,15 @@ void Sv_WriteFrame(sv_client_t *client, size_buf_t *msg) {
 		last_frame = client->last_frame;
 	}
 
-	Msg_WriteByte(msg, SV_CMD_FRAME);
-	Msg_WriteLong(msg, sv.frame_num);
-	Msg_WriteLong(msg, last_frame); // what we are delta'ing from
-	Msg_WriteByte(msg, client->surpress_count); // rate dropped packets
+	Net_WriteByte(msg, SV_CMD_FRAME);
+	Net_WriteLong(msg, sv.frame_num);
+	Net_WriteLong(msg, last_frame); // what we are delta'ing from
+	Net_WriteByte(msg, client->surpress_count); // rate dropped packets
 	client->surpress_count = 0;
 
 	// send over the area_bits
-	Msg_WriteByte(msg, frame->area_bytes);
-	Msg_WriteData(msg, frame->area_bits, frame->area_bytes);
+	Net_WriteByte(msg, frame->area_bytes);
+	Net_WriteData(msg, frame->area_bits, frame->area_bytes);
 
 	// delta encode the playerstate
 	Sv_WritePlayerstate(old_frame, frame, msg);

@@ -89,8 +89,8 @@ void Cl_HttpDownload_Complete() {
 
 		// try legacy UDP download
 
-		Msg_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-		Msg_WriteString(&cls.net_chan.message, va("download %s", cls.download.name));
+		Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
+		Net_WriteString(&cls.net_chan.message, va("download %s", cls.download.name));
 
 		Fs_Unlink(cls.download.name); // delete partial file
 	}

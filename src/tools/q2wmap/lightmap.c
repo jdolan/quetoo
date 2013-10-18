@@ -202,7 +202,7 @@ static void CalcLightinfoVectors(light_info_t *l) {
 
 	// total sample count
 	l->num_sample_points = (l->tex_size[0] + 1) * (l->tex_size[1] + 1);
-	l->sample_points = Z_Malloc(l->num_sample_points * sizeof(vec3_t));
+	l->sample_points = Mem_Malloc(l->num_sample_points * sizeof(vec3_t));
 }
 
 /*
@@ -312,7 +312,7 @@ void BuildLights(void) {
 				continue;
 
 			num_lights++;
-			l = Z_Malloc(sizeof(*l));
+			l = Mem_Malloc(sizeof(*l));
 
 			VectorCopy(p->origin, l->origin);
 
@@ -341,7 +341,7 @@ void BuildLights(void) {
 			continue;
 
 		num_lights++;
-		l = Z_Malloc(sizeof(*l));
+		l = Mem_Malloc(sizeof(*l));
 
 		GetVectorForKey(e, "origin", l->origin);
 
@@ -799,11 +799,11 @@ void BuildFacelights(int32_t face_num) {
 	fl = &face_lights[face_num];
 	fl->num_samples = l[0].num_sample_points;
 
-	fl->origins = Z_Malloc(fl->num_samples * sizeof(vec3_t));
+	fl->origins = Mem_Malloc(fl->num_samples * sizeof(vec3_t));
 	memcpy(fl->origins, l[0].sample_points, fl->num_samples * sizeof(vec3_t));
 
-	fl->samples = Z_Malloc(fl->num_samples * sizeof(vec3_t));
-	fl->directions = Z_Malloc(fl->num_samples * sizeof(vec3_t));
+	fl->samples = Mem_Malloc(fl->num_samples * sizeof(vec3_t));
+	fl->directions = Mem_Malloc(fl->num_samples * sizeof(vec3_t));
 
 	center = face_extents[face_num].center; // center of the face
 
@@ -860,7 +860,7 @@ void BuildFacelights(int32_t face_num) {
 
 	// free the sample positions for the face
 	for (i = 0; i < num_samples; i++) {
-		Z_Free(l[i].sample_points);
+		Mem_Free(l[i].sample_points);
 	}
 }
 

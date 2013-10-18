@@ -33,7 +33,7 @@ static critical_section_t cs;
  */
 void setup(void) {
 
-	Z_Init();
+	Mem_Init();
 
 	Cmd_Init();
 
@@ -55,7 +55,7 @@ void teardown(void) {
 
 	Cmd_Shutdown();
 
-	Z_Shutdown();
+	Mem_Shutdown();
 }
 
 /*

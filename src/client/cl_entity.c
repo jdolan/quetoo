@@ -37,7 +37,7 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t num
 
 	frame->num_entities++;
 
-	Msg_ReadDeltaEntity(from, to, &net_message, number, bits);
+	Net_ReadDeltaEntity(from, to, &net_message, number, bits);
 
 	// some data changes will force no interpolation
 	if (to->event == EV_CLIENT_TELEPORT) {
@@ -85,7 +85,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 	}
 
 	while (true) {
-		const uint16_t number = Msg_ReadShort(&net_message);
+		const uint16_t number = Net_ReadShort(&net_message);
 
 		if (number >= MAX_EDICTS)
 			Com_Error(ERR_DROP, "Bad number: %i\n", number);
@@ -96,7 +96,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 		if (!number)
 			break;
 
-		const uint16_t bits = Msg_ReadShort(&net_message);
+		const uint16_t bits = Net_ReadShort(&net_message);
 
 		while (old_number < number) { // one or more entities from old_frame are unchanged
 
@@ -204,68 +204,68 @@ static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_fra
 		// or start clean
 		memset(ps, 0, sizeof(*ps));
 
-	pm_state_bits = Msg_ReadShort(&net_message);
+	pm_state_bits = Net_ReadShort(&net_message);
 
 	// parse the pm_state_t
 
-	if (pm_state_bits & PS_M_TYPE)
-		ps->pm_state.pm_type = Msg_ReadByte(&net_message);
+	if (pm_state_bits & PS_PM_TYPE)
+		ps->pm_state.type = Net_ReadByte(&net_message);
 
 	if (cl.demo_server)
-		ps->pm_state.pm_type = PM_FREEZE;
+		ps->pm_state.type = PM_FREEZE;
 
-	if (pm_state_bits & PS_M_ORIGIN) {
-		ps->pm_state.origin[0] = Msg_ReadShort(&net_message);
-		ps->pm_state.origin[1] = Msg_ReadShort(&net_message);
-		ps->pm_state.origin[2] = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_PM_ORIGIN) {
+		ps->pm_state.origin[0] = Net_ReadShort(&net_message);
+		ps->pm_state.origin[1] = Net_ReadShort(&net_message);
+		ps->pm_state.origin[2] = Net_ReadShort(&net_message);
 	}
 
-	if (pm_state_bits & PS_M_VELOCITY) {
-		ps->pm_state.velocity[0] = Msg_ReadShort(&net_message);
-		ps->pm_state.velocity[1] = Msg_ReadShort(&net_message);
-		ps->pm_state.velocity[2] = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_PM_VELOCITY) {
+		ps->pm_state.velocity[0] = Net_ReadShort(&net_message);
+		ps->pm_state.velocity[1] = Net_ReadShort(&net_message);
+		ps->pm_state.velocity[2] = Net_ReadShort(&net_message);
 	}
 
-	if (pm_state_bits & PS_M_FLAGS)
-		ps->pm_state.pm_flags = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_PM_FLAGS)
+		ps->pm_state.flags = Net_ReadShort(&net_message);
 
-	if (pm_state_bits & PS_M_TIME)
-		ps->pm_state.pm_time = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_PM_TIME)
+		ps->pm_state.time = Net_ReadShort(&net_message);
 
-	if (pm_state_bits & PS_M_GRAVITY)
-		ps->pm_state.gravity = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_PM_GRAVITY)
+		ps->pm_state.gravity = Net_ReadShort(&net_message);
 
-	if (pm_state_bits & PS_M_VIEW_OFFSET) {
-		ps->pm_state.view_offset[0] = Msg_ReadShort(&net_message);
-		ps->pm_state.view_offset[1] = Msg_ReadShort(&net_message);
-		ps->pm_state.view_offset[2] = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_PM_VIEW_OFFSET) {
+		ps->pm_state.view_offset[0] = Net_ReadShort(&net_message);
+		ps->pm_state.view_offset[1] = Net_ReadShort(&net_message);
+		ps->pm_state.view_offset[2] = Net_ReadShort(&net_message);
 	}
 
-	if (pm_state_bits & PS_M_VIEW_ANGLES) {
-		ps->pm_state.view_angles[0] = Msg_ReadShort(&net_message);
-		ps->pm_state.view_angles[1] = Msg_ReadShort(&net_message);
-		ps->pm_state.view_angles[2] = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_PM_VIEW_ANGLES) {
+		ps->pm_state.view_angles[0] = Net_ReadShort(&net_message);
+		ps->pm_state.view_angles[1] = Net_ReadShort(&net_message);
+		ps->pm_state.view_angles[2] = Net_ReadShort(&net_message);
 	}
 
-	if (pm_state_bits & PS_M_KICK_ANGLES) {
-		ps->pm_state.kick_angles[0] = Msg_ReadShort(&net_message);
-		ps->pm_state.kick_angles[1] = Msg_ReadShort(&net_message);
-		ps->pm_state.kick_angles[2] = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_PM_KICK_ANGLES) {
+		ps->pm_state.kick_angles[0] = Net_ReadShort(&net_message);
+		ps->pm_state.kick_angles[1] = Net_ReadShort(&net_message);
+		ps->pm_state.kick_angles[2] = Net_ReadShort(&net_message);
 	}
 
-	if (pm_state_bits & PS_M_DELTA_ANGLES) {
-		ps->pm_state.delta_angles[0] = Msg_ReadShort(&net_message);
-		ps->pm_state.delta_angles[1] = Msg_ReadShort(&net_message);
-		ps->pm_state.delta_angles[2] = Msg_ReadShort(&net_message);
+	if (pm_state_bits & PS_PM_DELTA_ANGLES) {
+		ps->pm_state.delta_angles[0] = Net_ReadShort(&net_message);
+		ps->pm_state.delta_angles[1] = Net_ReadShort(&net_message);
+		ps->pm_state.delta_angles[2] = Net_ReadShort(&net_message);
 	}
 
 	// parse stats
 
-	stat_bits = Msg_ReadLong(&net_message);
+	stat_bits = Net_ReadLong(&net_message);
 
 	for (i = 0; i < MAX_STATS; i++) {
 		if (stat_bits & (1 << i))
-			ps->stats[i] = Msg_ReadShort(&net_message);
+			ps->stats[i] = Net_ReadShort(&net_message);
 	}
 }
 
@@ -276,12 +276,12 @@ void Cl_ParseFrame(void) {
 	size_t len;
 	cl_frame_t *old_frame;
 
-	cl.frame.server_frame = Msg_ReadLong(&net_message);
+	cl.frame.server_frame = Net_ReadLong(&net_message);
 	cl.frame.server_time = cl.frame.server_frame * 1000 / cl.server_hz;
 
-	cl.frame.delta_frame = Msg_ReadLong(&net_message);
+	cl.frame.delta_frame = Net_ReadLong(&net_message);
 
-	cl.surpress_count = Msg_ReadByte(&net_message);
+	cl.surpress_count = Net_ReadByte(&net_message);
 
 	if (cl_show_net_messages->integer == 3)
 		Com_Print("   frame:%i  delta:%i\n", cl.frame.server_frame, cl.frame.delta_frame);
@@ -304,8 +304,8 @@ void Cl_ParseFrame(void) {
 		cl.frame.valid = true;
 	}
 
-	len = Msg_ReadByte(&net_message); // read area_bits
-	Msg_ReadData(&net_message, &cl.frame.area_bits, len);
+	len = Net_ReadByte(&net_message); // read area_bits
+	Net_ReadData(&net_message, &cl.frame.area_bits, len);
 
 	Cl_ParsePlayerstate(old_frame, &cl.frame);
 
@@ -319,9 +319,9 @@ void Cl_ParseFrame(void) {
 		if (cls.state != CL_ACTIVE) {
 			cls.state = CL_ACTIVE;
 
-			UnpackPosition(cl.frame.ps.pm_state.origin, cl.predicted_state.origin);
+			UnpackVector(cl.frame.ps.pm_state.origin, cl.predicted_state.origin);
 
-			UnpackPosition(cl.frame.ps.pm_state.view_offset, cl.predicted_state.view_offset);
+			UnpackVector(cl.frame.ps.pm_state.view_offset, cl.predicted_state.view_offset);
 			UnpackAngles(cl.frame.ps.pm_state.view_angles, cl.predicted_state.view_angles);
 		}
 

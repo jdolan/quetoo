@@ -164,8 +164,8 @@ file_t *Fs_OpenWrite(const char *filename) {
  * @return The number of characters written, or -1 on failure.
  */
 int64_t Fs_Print(file_t *file, const char *fmt, ...) {
-	va_list args;
 	static char string[MAX_PRINT_MSG];
+	va_list args;
 
 	va_start(args, fmt);
 	vsnprintf(string, sizeof(string), fmt, args);
@@ -257,9 +257,9 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 		}
 
 		while (!Fs_Eof(file)) {
-			fs_block_t *b = Z_Malloc(sizeof(fs_block_t));
+			fs_block_t *b = Mem_Malloc(sizeof(fs_block_t));
 
-			b->data = Z_LinkMalloc(FS_FILE_BUFFER, b);
+			b->data = Mem_LinkMalloc(FS_FILE_BUFFER, b);
 			b->len = Fs_Read(file, b->data, 1, FS_FILE_BUFFER);
 
 			if (b->len == -1) {
@@ -272,7 +272,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 
 		if (buffer) {
 			if (len > 0) {
-				byte *buf = *buffer = Z_Malloc(len + 1);
+				byte *buf = *buffer = Mem_Malloc(len + 1);
 
 				GList *e = list;
 				while (e) {
@@ -285,14 +285,14 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 				}
 
 #ifdef FS_LOAD_DEBUG
-				g_hash_table_insert(fs_state.loaded_files, *buffer, (gpointer) Z_CopyString(filename));
+				g_hash_table_insert(fs_state.loaded_files, *buffer, (gpointer) Mem_CopyString(filename));
 #endif
 			} else {
 				*buffer = NULL;
 			}
 		}
 
-		g_list_free_full(list, Z_Free);
+		g_list_free_full(list, Mem_Free);
 		Fs_Close(file);
 	} else {
 		len = -1;
@@ -316,7 +316,7 @@ void Fs_Free(void *buffer) {
 			Com_Warn("Invalid buffer\n");
 		}
 #endif
-		Z_Free(buffer);
+		Mem_Free(buffer);
 	}
 }
 
@@ -393,7 +393,7 @@ static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 	StripExtension(Basename(path), match);
 
 	if (!g_list_find_custom(*matches, match, (GCompareFunc) strcmp)) {
-		*matches = g_list_insert_sorted(*matches, Z_CopyString(match), (GCompareFunc) g_ascii_strcasecmp);
+		*matches = g_list_insert_sorted(*matches, Mem_CopyString(match), (GCompareFunc) g_ascii_strcasecmp);
 	}
 }
 
@@ -645,7 +645,7 @@ void Fs_Init(_Bool auto_load_archives) {
 	fs_state.base_search_paths = PHYSFS_getSearchPath();
 
 #ifdef FS_LOAD_DEBUG
-	fs_state.loaded_files = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, Z_Free);
+	fs_state.loaded_files = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, Mem_Free);
 #endif
 }
 

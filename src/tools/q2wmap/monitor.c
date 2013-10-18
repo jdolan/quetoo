@@ -21,6 +21,7 @@
 
 #include "monitor.h"
 #include "net_tcp.h"
+#include "net_message.h"
 
 #ifdef _WIN32
 #define LIBXML_STATIC
@@ -31,7 +32,7 @@
 typedef struct {
 	int32_t socket;
 
-	size_buf_t message;
+	mem_buf_t message;
 	byte buffer[MAX_MSG_SIZE];
 
 	xmlDocPtr doc;
@@ -51,8 +52,8 @@ static void Mon_SendString(const xmlChar *string) {
 	const char *s = (const char *) string;
 	if (strlen(s) && mon_state.socket) {
 
-		Sb_Clear(&mon_state.message);
-		Msg_WriteString(&mon_state.message, s);
+		Mem_ClearBuffer(&mon_state.message);
+		Net_WriteString(&mon_state.message, s);
 
 		const void *data = (const void *) mon_state.message.data;
 		const size_t len = mon_state.message.size;
@@ -190,7 +191,7 @@ _Bool Mon_Init(const char *host) {
 	memset(&mon_state, 0, sizeof(mon_state));
 
 	if ((mon_state.socket = Net_Connect(host, NULL))) {
-		Sb_Init(&mon_state.message, mon_state.buffer, sizeof(mon_state.buffer));
+		Mem_InitBuffer(&mon_state.message, mon_state.buffer, sizeof(mon_state.buffer));
 
 		Com_Print("@Connected to %s\n", host);
 

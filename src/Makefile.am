@@ -20,8 +20,10 @@ noinst_HEADERS = \
 	filesystem.h \
 	image.h \
 	mem.h \
+	mem_buf.h \
 	net.h \
 	net_chan.h \
+	net_message.h \
 	net_tcp.h \
 	net_udp.h \
 	quake2world.h \
@@ -115,7 +117,8 @@ libimage_la_CFLAGS = \
 endif
 
 libmem_la_SOURCES = \
-	mem.c
+	mem.c \
+	mem_buf.c
 libmem_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
@@ -128,6 +131,7 @@ libmem_la_LIBADD = \
 libnet_la_SOURCES = \
 	net.c \
 	net_chan.c \
+	net_message.c \
 	net_tcp.c \
 	net_udp.c
 libnet_la_CFLAGS = \

@@ -205,7 +205,7 @@ static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 		VectorScale(self->locals.move_dir, self->locals.speed * 10.0, other->locals.velocity);
 
 		if (other->client) { // don't take falling damage immediately from this
-			other->client->ps.pm_state.pm_flags |= PMF_PUSHED;
+			other->client->ps.pm_state.flags |= PMF_PUSHED;
 		}
 
 		if (other->locals.push_time < g_level.time) {

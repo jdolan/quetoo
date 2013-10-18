@@ -27,23 +27,23 @@
  */
 static void Cl_WriteDemoHeader(void) {
 	byte buffer[MAX_MSG_SIZE];
-	size_buf_t msg;
+	mem_buf_t msg;
 	int32_t i;
 	int32_t len;
 	entity_state_t null_state;
 
 	// write out messages to hold the startup information
-	Sb_Init(&msg, buffer, sizeof(buffer));
+	Mem_InitBuffer(&msg, buffer, sizeof(buffer));
 
 	// write the server data
-	Msg_WriteByte(&msg, SV_CMD_SERVER_DATA);
-	Msg_WriteLong(&msg, PROTOCOL);
-	Msg_WriteLong(&msg, cl.server_count);
-	Msg_WriteLong(&msg, cl.server_hz);
-	Msg_WriteByte(&msg, 1); // demo_server byte
-	Msg_WriteString(&msg, Cvar_GetString("game"));
-	Msg_WriteShort(&msg, cl.player_num);
-	Msg_WriteString(&msg, cl.config_strings[CS_NAME]);
+	Net_WriteByte(&msg, SV_CMD_SERVER_DATA);
+	Net_WriteLong(&msg, PROTOCOL);
+	Net_WriteLong(&msg, cl.server_count);
+	Net_WriteLong(&msg, cl.server_hz);
+	Net_WriteByte(&msg, 1); // demo_server byte
+	Net_WriteString(&msg, Cvar_GetString("game"));
+	Net_WriteShort(&msg, cl.player_num);
+	Net_WriteString(&msg, cl.config_strings[CS_NAME]);
 
 	// and config_strings
 	for (i = 0; i < MAX_CONFIG_STRINGS; i++) {
@@ -55,9 +55,9 @@ static void Cl_WriteDemoHeader(void) {
 				msg.size = 0;
 			}
 
-			Msg_WriteByte(&msg, SV_CMD_CONFIG_STRING);
-			Msg_WriteShort(&msg, i);
-			Msg_WriteString(&msg, cl.config_strings[i]);
+			Net_WriteByte(&msg, SV_CMD_CONFIG_STRING);
+			Net_WriteShort(&msg, i);
+			Net_WriteString(&msg, cl.config_strings[i]);
 		}
 	}
 
@@ -76,12 +76,12 @@ static void Cl_WriteDemoHeader(void) {
 
 		memset(&null_state, 0, sizeof(null_state));
 
-		Msg_WriteByte(&msg, SV_CMD_BASELINE);
-		Msg_WriteDeltaEntity(&null_state, &cl.entities[i].baseline, &msg, true, true);
+		Net_WriteByte(&msg, SV_CMD_BASELINE);
+		Net_WriteDeltaEntity(&null_state, &cl.entities[i].baseline, &msg, true, true);
 	}
 
-	Msg_WriteByte(&msg, SV_CMD_CBUF_TEXT);
-	Msg_WriteString(&msg, "precache 0\n");
+	Net_WriteByte(&msg, SV_CMD_CBUF_TEXT);
+	Net_WriteString(&msg, "precache 0\n");
 
 	// write it to the demo file
 

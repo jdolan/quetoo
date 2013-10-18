@@ -26,50 +26,50 @@
  * @brief Setup fixture.
  */
 void setup(void) {
-	Z_Init();
+	Mem_Init();
 }
 
 /*
  * @brief Teardown fixture.
  */
 void teardown(void) {
-	Z_Shutdown();
+	Mem_Shutdown();
 }
 
 START_TEST(check_Z_LinkMalloc)
 	{
-		byte *parent = Z_Malloc(1);
+		byte *parent = Mem_Malloc(1);
 
-		byte *child1 = Z_LinkMalloc(1, parent);
-		byte *child2 = Z_LinkMalloc(1, parent);
+		byte *child1 = Mem_LinkMalloc(1, parent);
+		byte *child2 = Mem_LinkMalloc(1, parent);
 
-		ck_assert(Z_Size() == 3);
+		ck_assert(Mem_Size() == 3);
 
-		Z_Free(child2);
+		Mem_Free(child2);
 
-		ck_assert(Z_Size() == 2);
+		ck_assert(Mem_Size() == 2);
 
-		byte *grandchild1 = Z_Malloc(1);
+		byte *grandchild1 = Mem_Malloc(1);
 
-		ck_assert(Z_Size() == 3);
+		ck_assert(Mem_Size() == 3);
 
-		Z_Link(grandchild1, child1);
+		Mem_Link(grandchild1, child1);
 
-		Z_Free(parent);
+		Mem_Free(parent);
 
-		ck_assert(Z_Size() == 0);
+		ck_assert(Mem_Size() == 0);
 
 	}END_TEST
 
 START_TEST(check_Z_CopyString)
 	{
-		char *test = Z_CopyString("test");
+		char *test = Mem_CopyString("test");
 
-		ck_assert(Z_Size() == strlen(test) + 1);
+		ck_assert(Mem_Size() == strlen(test) + 1);
 
-		Z_Free(test);
+		Mem_Free(test);
 
-		ck_assert(Z_Size() == 0);
+		ck_assert(Mem_Size() == 0);
 	}END_TEST
 
 /*

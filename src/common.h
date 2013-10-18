@@ -24,136 +24,83 @@
 
 #include "shared.h"
 #include "mem.h"
-
-// the default game module / game directory
-#define DEFAULT_GAME "default"
-
-// the maximum print message length
-#define MAX_PRINT_MSG 2048
-
-// sizebuf and net message facilities
-typedef struct size_buf_s {
-	_Bool allow_overflow; // error if false and overflow occurs
-	_Bool overflowed; // set to true when a write exceeds max_size
-	byte *data;
-	size_t max_size;
-	size_t size;
-	size_t read;
-} size_buf_t;
-
-void Sb_Init(size_buf_t *buf, byte *data, size_t length);
-void Sb_Clear(size_buf_t *buf);
-void *Sb_Alloc(size_buf_t *buf, size_t length);
-void Sb_Write(size_buf_t *buf, const void *data, size_t len);
-void Sb_Print(size_buf_t *buf, const char *data);
-
-void Msg_WriteData(size_buf_t *sb, const void *data, size_t len);
-void Msg_WriteChar(size_buf_t *sb, const int32_t c);
-void Msg_WriteByte(size_buf_t *sb, const int32_t c);
-void Msg_WriteShort(size_buf_t *sb, const int32_t c);
-void Msg_WriteLong(size_buf_t *sb, const int32_t c);
-void Msg_WriteString(size_buf_t *sb, const char *s);
-void Msg_WriteCoord(size_buf_t *sb, const vec_t f);
-void Msg_WritePos(size_buf_t *sb, const vec3_t pos);
-void Msg_WriteAngle(size_buf_t *sb, const vec_t f);
-void Msg_WriteAngles(size_buf_t *sb, const vec3_t angles);
-void Msg_WriteDeltaUserCmd(size_buf_t *sb, const user_cmd_t *from, const user_cmd_t *to);
-void Msg_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, _Bool force,
-		_Bool newentity);
-void Msg_WriteDir(size_buf_t *sb, const vec3_t dir);
-
-void Msg_BeginReading(size_buf_t *sb);
-void Msg_ReadData(size_buf_t *sb, void *data, size_t len);
-int32_t Msg_ReadChar(size_buf_t *sb);
-int32_t Msg_ReadByte(size_buf_t *sb);
-int32_t Msg_ReadShort(size_buf_t *sb);
-int32_t Msg_ReadLong(size_buf_t *sb);
-char *Msg_ReadString(size_buf_t *sb);
-char *Msg_ReadStringLine(size_buf_t *sb);
-vec_t Msg_ReadCoord(size_buf_t *sb);
-void Msg_ReadPos(size_buf_t *sb, vec3_t pos);
-vec_t Msg_ReadAngle(size_buf_t *sb);
-void Msg_ReadAngles(size_buf_t *sb, vec3_t angles);
-void Msg_ReadDeltaUsercmd(size_buf_t *sb, struct user_cmd_s *from, struct user_cmd_s *cmd);
-void Msg_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, size_buf_t *msg, uint16_t bits,
-		uint16_t number);
-void Msg_ReadDir(size_buf_t *sb, vec3_t vector);
+#include "mem_buf.h"
 
 /*
-
- PROTOCOL
-
+ * @brief The default game / cgame module name.
  */
+#define DEFAULT_GAME "default"
 
-#define PROTOCOL 1003 // change this when netcode changes
-#define IP_MASTER "67.228.69.114" // tastyspleen.net
-#define PORT_MASTER	1996 // some good years
-#define PORT_CLIENT	1997
-#define PORT_SERVER	1998
+/*
+ * @brief The max length of any given output message (stdio).
+ */
+#define MAX_PRINT_MSG		2048
 
-#define PACKET_BACKUP 32 // copies of entity_state_t to keep buffered
-#define PACKET_MASK (PACKET_BACKUP - 1)
+/*
+ * @brief Quake net protocol version; this must be changed when the structure
+ * of any net message or serialized data type changes.
+ */
+#define PROTOCOL			1004
 
-// maximum number of entities we would ever reference in a single message
-#define MAX_PACKET_ENTITIES 64
+/*
+ * @brief The IP address of the master server, where the authoritative list of
+ * game servers is maintained.
+ *
+ * @see src/master/main.c
+ */
+#define IP_MASTER 			"67.228.69.114" // tastyspleen.net
 
-// per-client bandwidth throttle, in bytes per second
-#define CLIENT_RATE_MIN 8192
-#define CLIENT_RATE_MAX 32768
-#define CLIENT_RATE 16384
+/*
+ * @brief Default port for the master server.
+ */
+#define PORT_MASTER			1996
 
-// disallow dangerous file downloads from both sides
-#define IS_INVALID_DOWNLOAD(f) (!*f || *f == '/' || strstr(f, "..") || strchr(f, ' '))
+/*
+ * @brief Default port for the client.
+ */
+#define PORT_CLIENT			1997
 
-// player_state_t communication
+/*
+ * @brief Default port for game server.
+ */
+#define PORT_SERVER			1998
 
-#define PS_M_TYPE			(1<<0)
-#define PS_M_ORIGIN			(1<<1)
-#define PS_M_VELOCITY		(1<<2)
-#define PS_M_FLAGS			(1<<3)
-#define PS_M_TIME			(1<<4)
-#define PS_M_GRAVITY		(1<<5)
-#define PS_M_VIEW_OFFSET	(1<<6)
-#define PS_M_VIEW_ANGLES	(1<<7)
-#define PS_M_KICK_ANGLES	(1<<8)
-#define PS_M_DELTA_ANGLES	(1<<9)
+/*
+ * @brief Both the client and the server retain multiple snapshots of each
+ * g_edict_t's state (entity_state_t) in order to calculate delta compression.
+ */
+#define PACKET_BACKUP		32
+#define PACKET_MASK			(PACKET_BACKUP - 1)
 
-// user_cmd_t communication
+/*
+ * @brief The maximum number of entities to be referenced in a single message.
+ */
+#define MAX_PACKET_ENTITIES	64
 
-#define CMD_ANGLE1 	(1<<0)
-#define CMD_ANGLE2 	(1<<1)
-#define CMD_ANGLE3 	(1<<2)
-#define CMD_FORWARD	(1<<3)
-#define CMD_RIGHT	(1<<4)
-#define CMD_UP		(1<<5)
-#define CMD_BUTTONS	(1<<6)
+/*
+ * @brief Client bandwidth throttling thresholds, in bytes per second. Clients
+ * may actually request that the server drops messages for them above a certain
+ * bandwidth saturation point in order to maintain some level of connectivity.
+ */
+#define CLIENT_RATE_MIN		8192
+#define CLIENT_RATE_MAX		32768
 
-// a sound without an entity or position will be a local only sound
-#define S_ATTEN		(1<<0) // a byte
-#define S_ORIGIN	(1<<1) // three coordinates
-#define S_ENTNUM	(1<<2) // entity number
-//
+/*
+ * @brief Default client bandwidth rate threshold.
+ */
+#define CLIENT_RATE			16384
 
-// entity_state_t communication
+/*
+ * Disallow dangerous downloads for both the client and server.
+ */
+#define IS_INVALID_DOWNLOAD(f) (\
+		!*f || *f == '/' || strstr(f, "..") || strchr(f, ' ') \
+	)
 
-// This bit mask is packed into a uint16_t for each entity_state_t per frame.
-// It describes which fields must be read to successfully parse the delta-
-// compression.
-#define U_ORIGIN		(1<<0)
-#define U_OLD_ORIGIN	(1<<1) // used by lightning
-#define U_ANGLES		(1<<2)
-#define U_ANIMATIONS	(1<<3) // animation frames
-#define U_EVENT			(1<<4) // client side events
-#define U_EFFECTS		(1<<5) // client side effects
-#define U_MODELS		(1<<6) // models (primary and linked)
-#define U_CLIENT		(1<<7) // offset into client skins array
-#define U_SOUND			(1<<8) // looped sounds
-#define U_SOLID			(1<<9)
-#define U_REMOVE		(1<<10) // remove this entity, don't add it
-//
-
-// A table of approximate normal vectors is used to save bandwidth when
-// transmitting entity angles, which would otherwise require 12 bytes.
+/*
+ * @brief A table of approximate normal vectors is used to save bandwidth when
+ * transmitting entity angles, which would otherwise require 12 bytes.
+ */
 #define NUM_APPROXIMATE_NORMALS 162
 extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
 

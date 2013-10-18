@@ -66,7 +66,7 @@ static void Thread_Init_(void) {
 	thread_pool.num_threads = Clamp(threads->integer, 0, MAX_THREADS);
 
 	if (thread_pool.num_threads) {
-		thread_pool.threads = Z_Malloc(sizeof(thread_t) * thread_pool.num_threads);
+		thread_pool.threads = Mem_Malloc(sizeof(thread_t) * thread_pool.num_threads);
 
 		thread_t *t = thread_pool.threads;
 		uint16_t i = 0;
@@ -96,7 +96,7 @@ static void Thread_Shutdown_(void) {
 			SDL_DestroyMutex(t->mutex);
 		}
 
-		Z_Free(thread_pool.threads);
+		Mem_Free(thread_pool.threads);
 	}
 }
 

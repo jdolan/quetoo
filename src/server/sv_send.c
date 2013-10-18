@@ -34,9 +34,9 @@ void Sv_FlushRedirect(int32_t target, const char *buffer) {
 			Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "print\n%s", buffer);
 			break;
 		case RD_CLIENT:
-			Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_PRINT);
-			Msg_WriteByte(&sv_client->net_chan.message, PRINT_HIGH);
-			Msg_WriteString(&sv_client->net_chan.message, buffer);
+			Net_WriteByte(&sv_client->net_chan.message, SV_CMD_PRINT);
+			Net_WriteByte(&sv_client->net_chan.message, PRINT_HIGH);
+			Net_WriteString(&sv_client->net_chan.message, buffer);
 			break;
 		default:
 			Com_Debug("Sv_FlushRedirect: %d\n", target);
@@ -75,9 +75,9 @@ void Sv_ClientPrint(const g_edict_t *ent, const int32_t level, const char *fmt, 
 	vsprintf(string, fmt, args);
 	va_end(args);
 
-	Msg_WriteByte(&cl->net_chan.message, SV_CMD_PRINT);
-	Msg_WriteByte(&cl->net_chan.message, level);
-	Msg_WriteString(&cl->net_chan.message, string);
+	Net_WriteByte(&cl->net_chan.message, SV_CMD_PRINT);
+	Net_WriteByte(&cl->net_chan.message, level);
+	Net_WriteString(&cl->net_chan.message, string);
 }
 
 /*
@@ -113,9 +113,9 @@ void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) {
 		if (cl->state != SV_CLIENT_ACTIVE)
 			continue;
 
-		Msg_WriteByte(&cl->net_chan.message, SV_CMD_PRINT);
-		Msg_WriteByte(&cl->net_chan.message, level);
-		Msg_WriteString(&cl->net_chan.message, string);
+		Net_WriteByte(&cl->net_chan.message, SV_CMD_PRINT);
+		Net_WriteByte(&cl->net_chan.message, level);
+		Net_WriteString(&cl->net_chan.message, string);
 	}
 }
 
@@ -132,8 +132,8 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 	vsprintf(string, fmt, args);
 	va_end(args);
 
-	Msg_WriteByte(&sv.multicast, SV_CMD_CBUF_TEXT);
-	Msg_WriteString(&sv.multicast, string);
+	Net_WriteByte(&sv.multicast, SV_CMD_CBUF_TEXT);
+	Net_WriteString(&sv.multicast, string);
 	Sv_Multicast(NULL, MULTICAST_ALL_R);
 }
 
@@ -146,9 +146,9 @@ static void Sv_DatagramMessage(sv_client_datagram_t *datagram, byte *data, size_
 		Com_Error(ERR_DROP, "Single datagram message exceeded MAX_MSG_LEN\n");
 	}
 
-	Sb_Write(&datagram->buffer, data, len);
+	Mem_WriteBuffer(&datagram->buffer, data, len);
 
-	sv_client_message_t *msg = Z_Malloc(sizeof(*msg));
+	sv_client_message_t *msg = Mem_Malloc(sizeof(*msg));
 
 	msg->offset = datagram->buffer.size - len;
 	msg->len = len;
@@ -173,12 +173,12 @@ void Sv_Unicast(const g_edict_t *ent, const _Bool reliable) {
 	cl = svs.clients + (n - 1);
 
 	if (reliable) {
-		Sb_Write(&cl->net_chan.message, sv.multicast.data, sv.multicast.size);
+		Mem_WriteBuffer(&cl->net_chan.message, sv.multicast.data, sv.multicast.size);
 	} else {
 		Sv_DatagramMessage(&cl->datagram, sv.multicast.data, sv.multicast.size);
 	}
 
-	Sb_Clear(&sv.multicast);
+	Mem_ClearBuffer(&sv.multicast);
 }
 
 /*
@@ -266,13 +266,13 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 		}
 
 		if (reliable) {
-			Sb_Write(&client->net_chan.message, sv.multicast.data, sv.multicast.size);
+			Mem_WriteBuffer(&client->net_chan.message, sv.multicast.data, sv.multicast.size);
 		} else {
 			Sv_DatagramMessage(&client->datagram, sv.multicast.data, sv.multicast.size);
 		}
 	}
 
-	Sb_Clear(&sv.multicast);
+	Mem_ClearBuffer(&sv.multicast);
 }
 
 /*
@@ -320,18 +320,18 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint
 		}
 	}
 
-	Msg_WriteByte(&sv.multicast, SV_CMD_SOUND);
-	Msg_WriteByte(&sv.multicast, flags);
-	Msg_WriteByte(&sv.multicast, index);
+	Net_WriteByte(&sv.multicast, SV_CMD_SOUND);
+	Net_WriteByte(&sv.multicast, flags);
+	Net_WriteByte(&sv.multicast, index);
 
 	if (flags & S_ATTEN)
-		Msg_WriteByte(&sv.multicast, at);
+		Net_WriteByte(&sv.multicast, at);
 
 	if (flags & S_ENTNUM)
-		Msg_WriteShort(&sv.multicast, NUM_FOR_EDICT(entity));
+		Net_WriteShort(&sv.multicast, NUM_FOR_EDICT(entity));
 
 	if (flags & S_ORIGIN)
-		Msg_WritePos(&sv.multicast, org);
+		Net_WritePos(&sv.multicast, org);
 
 	if (atten != ATTN_NONE)
 		Sv_Multicast(org, MULTICAST_PHS);
@@ -350,11 +350,11 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint
  */
 static void Sv_SendClientDatagram(sv_client_t *client) {
 	byte msg_buf[MAX_FRAME_SIZE];
-	size_buf_t msg;
+	mem_buf_t msg;
 
 	Sv_BuildClientFrame(client);
 
-	Sb_Init(&msg, msg_buf, sizeof(msg_buf));
+	Mem_InitBuffer(&msg, msg_buf, sizeof(msg_buf));
 	msg.allow_overflow = true;
 
 	// send over all the relevant entity_state_t and the player_state_t
@@ -377,10 +377,10 @@ static void Sv_SendClientDatagram(sv_client_t *client) {
 				Com_Debug("Avoiding overflow\n");
 
 				Netchan_Transmit(&client->net_chan, msg.data, msg.size);
-				Sb_Clear(&msg);
+				Mem_ClearBuffer(&msg);
 			}
 
-			Sb_Write(&msg, client->datagram.data + cmsg->offset, cmsg->len);
+			Mem_WriteBuffer(&msg, client->datagram.data + cmsg->offset, cmsg->len);
 			e = e->next;
 		}
 	}
@@ -392,8 +392,8 @@ static void Sv_SendClientDatagram(sv_client_t *client) {
 	client->message_size[sv.frame_num % CLIENT_RATE_MESSAGES] = client->datagram.buffer.size;
 
 	// finally clean up for the next frame
-	Sb_Clear(&client->datagram.buffer);
-	g_list_free_full(client->datagram.messages, Z_Free);
+	Mem_ClearBuffer(&client->datagram.buffer);
+	g_list_free_full(client->datagram.messages, Mem_Free);
 	client->datagram.messages = NULL;
 }
 
@@ -488,8 +488,8 @@ void Sv_SendClientMessages(void) {
 			continue;
 
 		if (c->net_chan.message.overflowed) { // drop the client
-			Sb_Clear(&c->net_chan.message);
-			Sb_Clear(&c->datagram.buffer);
+			Mem_ClearBuffer(&c->net_chan.message);
+			Mem_ClearBuffer(&c->datagram.buffer);
 			Sv_BroadcastPrint(PRINT_HIGH, "%s overflowed\n", c->name);
 			Sv_DropClient(c);
 		}

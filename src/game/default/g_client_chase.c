@@ -57,10 +57,10 @@ void G_ClientChaseThink(g_edict_t *ent) {
 	VectorAdd(ent->client->ps.pm_state.delta_angles, delta, ent->client->ps.pm_state.delta_angles);
 
 	// disable the spectator's input
-	ent->client->ps.pm_state.pm_type = PM_FREEZE;
+	ent->client->ps.pm_state.type = PM_FREEZE;
 
 	// disable client prediction
-	ent->client->ps.pm_state.pm_flags |= PMF_NO_PREDICTION;
+	ent->client->ps.pm_state.flags |= PMF_NO_PREDICTION;
 
 	gi.LinkEdict(ent);
 }

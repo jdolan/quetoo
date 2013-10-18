@@ -90,7 +90,7 @@ void R_Screenshot_f(void) {
 	const uint32_t width = r_context.width;
 	const uint32_t height = r_context.height;
 
-	byte *buffer = Z_Malloc(width * height * 3);
+	byte *buffer = Mem_Malloc(width * height * 3);
 
 	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
@@ -102,7 +102,7 @@ void R_Screenshot_f(void) {
 		Com_Warn("Failed to write %s\n", filename);
 	}
 
-	Z_Free(buffer);
+	Mem_Free(buffer);
 }
 
 /*

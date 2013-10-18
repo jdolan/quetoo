@@ -485,17 +485,17 @@ void VectorMix(const vec3_t v1, const vec3_t v2, vec_t mix, vec3_t out) {
 }
 
 /*
- * @brief Packs the specified floating point coordinates to the int16_t array in out
+ * @brief Packs the specified floating point vector to the int16_t array in out
  * for network transmission.
  */
-void PackPosition(const vec3_t in, int16_t *out) {
+void PackVector(const vec3_t in, int16_t *out) {
 	VectorScale(in, 8.0, out);
 }
 
 /*
- * @brief Unpacks the compressed coordinates to 32 bit floating point in out.
+ * @brief Unpacks the compressed vector to 32 bit floating point in out.
  */
-void UnpackPosition(const int16_t *in, vec3_t out) {
+void UnpackVector(const int16_t *in, vec3_t out) {
 	VectorScale(in, 0.125, out);
 }
 

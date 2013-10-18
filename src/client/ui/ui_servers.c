@@ -50,7 +50,7 @@ void Ui_NewServer(void) {
 	TwRemoveAllVars(bar);
 
 	while (e) {
-		const cl_server_info_t *s = (cl_server_info_t *) e->data;
+		cl_server_info_t *s = (cl_server_info_t *) e->data;
 
 		if (s->max_clients) {
 			char button[128], *group;

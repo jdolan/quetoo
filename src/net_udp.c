@@ -45,7 +45,7 @@ static net_udp_state_t net_udp_state;
 /*
  * @brief
  */
-static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, size_buf_t *buf) {
+static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
 	net_udp_loop_t *loop = &net_udp_state.loops[source];
 
 	if (loop->send - loop->recv > MAX_NET_UDP_LOOPS)
@@ -72,7 +72,7 @@ static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, size_b
  * @brief Receive a datagram on the specified socket, populating the from
  * address with the sender.
  */
-_Bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, size_buf_t *buf) {
+_Bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
 
 	buf->read = buf->size = 0;
 

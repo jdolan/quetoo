@@ -271,7 +271,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
 	gi.Sound(self, gi.SoundIndex("*death_1"), ATTN_NORM);
 
 	self->client->locals.respawn_time = g_level.time + 1000;
-	self->client->ps.pm_state.pm_type = PM_DEAD;
+	self->client->ps.pm_state.type = PM_DEAD;
 
 	G_ClientObituary(self, attacker);
 
@@ -667,20 +667,21 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	if (!ent->client->locals.persistent.spectator) {
 		ent->locals.velocity[2] = 200.0;
 	}
+	PackVector(ent->locals.velocity, cl->ps.pm_state.velocity);
 
 	cl->locals.land_time = g_level.time;
 
 	// clear player state values
 	memset(&cl->ps, 0, sizeof(cl->ps));
 
-	PackPosition(spawn_origin, cl->ps.pm_state.origin);
+	PackVector(spawn_origin, cl->ps.pm_state.origin);
 
 	if (cl->locals.persistent.spectator) {
 		VectorClear(cl->ps.pm_state.view_offset);
 	} else { // project eyes to top-front of head
 		vec3_t offset;
 		VectorSet(offset, 0.0, 0.0, (ent->maxs[2] - ent->mins[2]) * 0.75);
-		PackPosition(offset, cl->ps.pm_state.view_offset);
+		PackVector(offset, cl->ps.pm_state.view_offset);
 	}
 
 	// clear entity state values
@@ -726,8 +727,8 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	ent->s.event = EV_CLIENT_TELEPORT;
 
 	// hold in place briefly
-	cl->ps.pm_state.pm_flags = PMF_TIME_TELEPORT;
-	cl->ps.pm_state.pm_time = 20;
+	cl->ps.pm_state.flags = PMF_TIME_TELEPORT;
+	cl->ps.pm_state.time = 20;
 
 	cl->locals.persistent.match_num = g_level.match_num;
 	cl->locals.persistent.round_num = g_level.round_num;
@@ -1041,31 +1042,28 @@ static void G_ClientMove_Debug(const char *msg) {
 static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	vec3_t old_velocity, velocity;
 	pm_move_t pm;
-	int32_t i;
 
-	g_client_t *client = ent->client;
+	g_client_t *cl = ent->client;
 
 	// save the raw angles sent over in the command
-	UnpackAngles(cmd->angles, client->locals.cmd_angles);
+	UnpackAngles(cmd->angles, cl->locals.cmd_angles);
 
-	// try to re-enable client side prediction each frame
-	client->ps.pm_state.pm_flags &= ~PMF_NO_PREDICTION;
-
+	// set the move type
 	if (ent->locals.move_type == MOVE_TYPE_NO_CLIP)
-		client->ps.pm_state.pm_type = PM_SPECTATOR;
+		cl->ps.pm_state.type = PM_SPECTATOR;
 	else if (ent->s.model1 != 255 || ent->locals.dead)
-		client->ps.pm_state.pm_type = PM_DEAD;
+		cl->ps.pm_state.type = PM_DEAD;
 	else
-		client->ps.pm_state.pm_type = PM_NORMAL;
+		cl->ps.pm_state.type = PM_NORMAL;
 
 	// copy the current gravity in
-	client->ps.pm_state.gravity = g_level.gravity;
+	cl->ps.pm_state.gravity = g_level.gravity;
 
 	memset(&pm, 0, sizeof(pm));
-	pm.s = client->ps.pm_state;
+	pm.s = cl->ps.pm_state;
 
-	PackPosition(ent->s.origin, pm.s.origin);
-	PackPosition(ent->locals.velocity, pm.s.velocity);
+	PackVector(ent->s.origin, pm.s.origin);
+	PackVector(ent->locals.velocity, pm.s.velocity);
 
 	pm.cmd = *cmd;
 	pm.ground_entity = ent->locals.ground_entity;
@@ -1079,44 +1077,42 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	Pm_Move(&pm);
 
 	// save results of move
-	client->ps.pm_state = pm.s;
+	cl->ps.pm_state = pm.s;
 
 	VectorCopy(ent->locals.velocity, old_velocity);
 
-	UnpackPosition(pm.s.origin, ent->s.origin);
-	UnpackPosition(pm.s.velocity, ent->locals.velocity);
+	UnpackVector(pm.s.origin, ent->s.origin);
+	UnpackVector(pm.s.velocity, ent->locals.velocity);
 
 	VectorCopy(pm.mins, ent->mins);
 	VectorCopy(pm.maxs, ent->maxs);
 
 	// copy the clamped angles out
-	VectorCopy(pm.angles, client->locals.angles);
+	VectorCopy(pm.angles, cl->locals.angles);
 
 	// update the directional vectors based on new view angles
-	AngleVectors(client->locals.angles, client->locals.forward, client->locals.right,
-			client->locals.up);
+	AngleVectors(cl->locals.angles, cl->locals.forward, cl->locals.right, cl->locals.up);
 
 	// update the horizontal speed scalar based on new velocity
 	VectorCopy(ent->locals.velocity, velocity);
 	velocity[2] = 0.0;
 
-	client->locals.speed = VectorNormalize(velocity);
+	cl->locals.speed = VectorNormalize(velocity);
 
 	// check for jump
-	if ((pm.s.pm_flags & PMF_JUMPED) && client->locals.jump_time < g_level.time - 100) {
+	if ((pm.s.flags & PMF_JUMPED) && cl->locals.jump_time < g_level.time - 100) {
 		vec3_t angles, forward, point;
 		c_trace_t tr;
 
 		VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
 		AngleVectors(angles, forward, NULL, NULL);
 
-		VectorMA(ent->s.origin, client->locals.speed * 0.4, velocity, point);
+		VectorMA(ent->s.origin, cl->locals.speed * 0.4, velocity, point);
 
 		// trace towards our jump destination to see if we have room to backflip
 		tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, MASK_PLAYER_SOLID);
 
-		if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && client->locals.speed
-				> 200.0)
+		if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0)
 			G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
 		else
 			G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
@@ -1125,35 +1121,35 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 			ent->s.event = EV_CLIENT_JUMP;
 		}
 
-		client->locals.jump_time = g_level.time;
+		cl->locals.jump_time = g_level.time;
 	}
 	// check for water jump
-	else if ((pm.s.pm_flags & PMF_TIME_WATER_JUMP) && client->locals.jump_time < g_level.time
-			- 2000) {
+	else if ((pm.s.flags & PMF_TIME_WATER_JUMP) && cl->locals.jump_time < g_level.time - 2000) {
 
 		G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
 		ent->s.event = EV_CLIENT_JUMP;
-		client->locals.jump_time = g_level.time;
+		cl->locals.jump_time = g_level.time;
 	}
 	// check for landing
-	else if ((pm.s.pm_flags & PMF_TIME_LAND) && client->locals.land_time < g_level.time - 1000) {
-		const vec_t fall = -old_velocity[2];
+	else if ((pm.s.flags & PMF_TIME_LAND) && cl->locals.land_time < g_level.time - 1000) {
 
 		entity_event_t event = EV_CLIENT_LAND;
 
-		if (fall >= 600.0) { // player will take damage
-			int32_t damage = ((int32_t) ((fall - 600.0) * 0.05)) >> ent->locals.water_level;
+		if (old_velocity[2] <= PM_SPEED_FALL) { // player will take damage
+			int16_t damage = ((int16_t) -((old_velocity[2] - PM_SPEED_FALL) * 0.05));
+
+			damage >>= ent->locals.water_level; // water breaks the fall
 
 			if (damage < 1)
 				damage = 1;
 
-			if (fall > 750.0)
+			if (old_velocity[2] <= PM_SPEED_FALL_FAR)
 				event = EV_CLIENT_FALL_FAR;
 			else
 				event = EV_CLIENT_FALL;
 
-			client->locals.pain_time = g_level.time; // suppress pain sound
+			cl->locals.pain_time = g_level.time; // suppress pain sound
 
 			vec3_t dir;
 			VectorSet(dir, 0.0, 0.0, 1.0);
@@ -1168,20 +1164,20 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 			G_SetAnimation(ent, ANIM_LEGS_LAND1, true);
 
 		ent->s.event = event;
-		client->locals.land_time = g_level.time;
+		cl->locals.land_time = g_level.time;
 	}
-	// check for ladder, play a randomized sound
-	else if ((pm.s.pm_flags & PMF_ON_LADDER) && client->locals.jump_time < g_level.time - 400) {
+	// check for ladder, play a jump sound
+	else if ((pm.s.flags & PMF_ON_LADDER) && cl->locals.jump_time < g_level.time - 400) {
 
 		if (fabs(ent->locals.velocity[2]) > 20.0) {
 			ent->s.event = EV_CLIENT_JUMP;
-			client->locals.jump_time = g_level.time;
+			cl->locals.jump_time = g_level.time;
 		}
 	}
 
 	// detect hitting the ground to help with animation blending
 	if (pm.ground_entity && !ent->locals.ground_entity) {
-		client->locals.ground_time = g_level.time;
+		cl->locals.ground_time = g_level.time;
 	}
 
 	// copy ground and water state back into entity
@@ -1202,8 +1198,8 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 		G_TouchTriggers(ent);
 
 	// touch other objects
+	int32_t i;
 	for (i = 0; i < pm.num_touch; i++) {
-
 		g_edict_t *other = pm.touch_ents[i];
 
 		if (!other->locals.Touch)
@@ -1257,7 +1253,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 
 	if (client->locals.chase_target) { // ensure chase is valid
 
-		client->ps.pm_state.pm_flags |= PMF_NO_PREDICTION;
+		client->ps.pm_state.flags |= PMF_NO_PREDICTION;
 
 		if (!client->locals.chase_target->in_use
 				|| client->locals.chase_target->client->locals.persistent.spectator) {
@@ -1288,7 +1284,7 @@ void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
 
 			if (client->locals.chase_target) { // toggle chase camera
 				client->locals.chase_target = client->locals.old_chase_target = NULL;
-				client->ps.pm_state.pm_flags &= ~PMF_NO_PREDICTION;
+				client->ps.pm_state.flags &= ~PMF_NO_PREDICTION;
 			} else {
 				G_ClientChaseTarget(ent);
 			}
@@ -1323,7 +1319,7 @@ void G_ClientBeginFrame(g_edict_t *ent) {
 	client = ent->client;
 
 	if (ent->locals.ground_entity) // let this be reset each frame as needed
-		client->ps.pm_state.pm_flags &= ~PMF_PUSHED;
+		client->ps.pm_state.flags &= ~PMF_PUSHED;
 
 	// run weapon think if it hasn't been done by a command
 	if (client->locals.weapon_think_time < g_level.time && !client->locals.persistent.spectator)

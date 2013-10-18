@@ -38,7 +38,7 @@ static portal_t *AllocPortal(void) {
 			c_peak_portals = active_portals;
 	}
 
-	return Z_Malloc(sizeof(portal_t));
+	return Mem_Malloc(sizeof(portal_t));
 }
 
 void FreePortal(portal_t * p) {
@@ -49,7 +49,7 @@ void FreePortal(portal_t * p) {
 	if (debug)
 		SDL_SemWait(semaphores.active_portals);
 
-	Z_Free(p);
+	Mem_Free(p);
 }
 
 //==============================================================

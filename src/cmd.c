@@ -34,7 +34,7 @@ typedef struct cmd_state_s {
 	GHashTable *commands;
 	GList *keys;
 
-	size_buf_t buf;
+	mem_buf_t buf;
 	char buffers[2][CBUF_CHARS];
 
 	cmd_args_t args;
@@ -61,7 +61,7 @@ void Cbuf_AddText(const char *text) {
 		return;
 	}
 
-	Sb_Write(&cmd_state.buf, text, l);
+	Mem_WriteBuffer(&cmd_state.buf, text, l);
 }
 
 /*
@@ -75,9 +75,9 @@ void Cbuf_InsertText(const char *text) {
 	// copy off any commands still remaining in the exec buffer
 	temp_len = cmd_state.buf.size;
 	if (temp_len) {
-		temp = Z_Malloc(temp_len);
+		temp = Mem_Malloc(temp_len);
 		memcpy(temp, cmd_state.buf.data, temp_len);
-		Sb_Clear(&cmd_state.buf);
+		Mem_ClearBuffer(&cmd_state.buf);
 	} else
 		temp = NULL; // shut up compiler
 
@@ -86,8 +86,8 @@ void Cbuf_InsertText(const char *text) {
 
 	// add the copied off data
 	if (temp_len) {
-		Sb_Write(&cmd_state.buf, temp, temp_len);
-		Z_Free(temp);
+		Mem_WriteBuffer(&cmd_state.buf, temp, temp_len);
+		Mem_Free(temp);
 	}
 }
 
@@ -299,14 +299,14 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 		return cmd;
 	}
 
-	cmd = Z_Malloc(sizeof(*cmd));
+	cmd = Mem_Malloc(sizeof(*cmd));
 
-	cmd->name = Z_Link(Z_CopyString(name), cmd);
+	cmd->name = Mem_Link(Mem_CopyString(name), cmd);
 	cmd->Execute = function;
 	cmd->flags = flags;
 
 	if (description) {
-		cmd->description = Z_Link(Z_CopyString(description), cmd);
+		cmd->description = Mem_Link(Mem_CopyString(description), cmd);
 	}
 
 	gpointer key = (gpointer) name;
@@ -333,10 +333,10 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 		return cmd;
 	}
 
-	cmd = Z_Malloc(sizeof(*cmd));
+	cmd = Mem_Malloc(sizeof(*cmd));
 
-	cmd->name = Z_Link(Z_CopyString(name), cmd);
-	cmd->commands = Z_Link(Z_CopyString(commands), cmd);
+	cmd->name = Mem_Link(Mem_CopyString(name), cmd);
+	cmd->commands = Mem_Link(Mem_CopyString(commands), cmd);
 
 	gpointer *key = (gpointer *) cmd->name;
 
@@ -395,7 +395,7 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
 			Com_Print("\t%s\n", cmd->commands);
 		}
 
-		*matches = g_list_prepend(*matches, Z_CopyString(cmd->name));
+		*matches = g_list_prepend(*matches, Mem_CopyString(cmd->name));
 	}
 }
 
@@ -566,9 +566,9 @@ void Cmd_Init(void) {
 
 	memset(&cmd_state, 0, sizeof(cmd_state));
 
-	cmd_state.commands = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
+	cmd_state.commands = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
 
-	Sb_Init(&cmd_state.buf, (byte *) cmd_state.buffers[0], sizeof(cmd_state.buffers[0]));
+	Mem_InitBuffer(&cmd_state.buf, (byte *) cmd_state.buffers[0], sizeof(cmd_state.buffers[0]));
 
 	Cmd_Add("cmd_list", Cmd_List_f, CMD_SYSTEM, NULL);
 	Cmd_Add("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
@@ -576,7 +576,7 @@ void Cmd_Init(void) {
 	Cmd_Add("alias", Cmd_Alias_f, CMD_SYSTEM, NULL);
 	Cmd_Add("wait", Cmd_Wait_f, 0, NULL);
 
-	Cmd_Add("z_size", Z_Size_f, CMD_SYSTEM, "Print zone allocation pool size");
+	Cmd_Add("z_size", Mem_Size_f, CMD_SYSTEM, "Print zone allocation pool size");
 
 	int32_t i;
 	for (i = 1; i < Com_Argc(); i++) {

@@ -502,9 +502,9 @@ void BaseVis(int32_t portal_num) {
 
 	p = map_vis.portals + portal_num;
 
-	p->front = Z_Malloc(map_vis.portal_bytes);
-	p->flood = Z_Malloc(map_vis.portal_bytes);
-	p->vis = Z_Malloc(map_vis.portal_bytes);
+	p->front = Mem_Malloc(map_vis.portal_bytes);
+	p->flood = Mem_Malloc(map_vis.portal_bytes);
+	p->vis = Mem_Malloc(map_vis.portal_bytes);
 
 	for (j = 0, tp = map_vis.portals; j < map_vis.num_portals * 2; j++, tp++) {
 

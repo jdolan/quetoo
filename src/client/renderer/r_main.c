@@ -540,5 +540,5 @@ void R_Shutdown(void) {
 
 	R_ShutdownState();
 
-	Z_FreeTag(Z_TAG_RENDERER);
+	Mem_FreeTag(Z_TAG_RENDERER);
 }

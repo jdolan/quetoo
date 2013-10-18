@@ -212,8 +212,8 @@ void R_InitElements(r_bsp_model_t *bsp) {
 	surfs->count += bsp->sorted_surfaces->blend.count;
 	surfs->count += bsp->sorted_surfaces->blend_warp.count;
 
-	surfs->surfaces = Z_LinkMalloc(surfs->count * sizeof(r_bsp_surface_t **), bsp);
+	surfs->surfaces = Mem_LinkMalloc(surfs->count * sizeof(r_bsp_surface_t **), bsp);
 
 	r_element_state.size = MIN_ELEMENTS + r_element_state.surfs.count;
-	r_element_state.elements = Z_LinkMalloc(r_element_state.size * sizeof(r_element_t), bsp);
+	r_element_state.elements = Mem_LinkMalloc(r_element_state.size * sizeof(r_element_t), bsp);
 }

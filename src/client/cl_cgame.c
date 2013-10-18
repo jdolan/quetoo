@@ -52,39 +52,39 @@ static void Cl_CgameError(const char *func, const char *fmt, ...) {
  */
 
 static void Cl_ReadData(void *data, size_t len) {
-	Msg_ReadData(&net_message, data, len);
+	Net_ReadData(&net_message, data, len);
 }
 
 static int32_t Cl_ReadChar(void) {
-	return Msg_ReadChar(&net_message);
+	return Net_ReadChar(&net_message);
 }
 
 static int32_t Cl_ReadByte(void) {
-	return Msg_ReadByte(&net_message);
+	return Net_ReadByte(&net_message);
 }
 
 static int32_t Cl_ReadShort(void) {
-	return Msg_ReadShort(&net_message);
+	return Net_ReadShort(&net_message);
 }
 
 static int32_t Cl_ReadLong(void) {
-	return Msg_ReadLong(&net_message);
+	return Net_ReadLong(&net_message);
 }
 
 static char *Cl_ReadString(void) {
-	return Msg_ReadString(&net_message);
+	return Net_ReadString(&net_message);
 }
 
 static void Cl_ReadPosition(vec3_t pos) {
-	Msg_ReadPos(&net_message, pos);
+	Net_ReadPos(&net_message, pos);
 }
 
 static void Cl_ReadDirection(vec3_t dir) {
-	Msg_ReadDir(&net_message, dir);
+	Net_ReadDir(&net_message, dir);
 }
 
 static vec_t Cl_ReadAngle(void) {
-	return Msg_ReadAngle(&net_message);
+	return Net_ReadAngle(&net_message);
 }
 
 /*
@@ -121,10 +121,10 @@ void Cl_InitCgame(void) {
 
 	import.Time = Sys_Milliseconds;
 
-	import.Malloc = Z_TagMalloc;
-	import.LinkMalloc = Z_LinkMalloc;
-	import.Free = Z_Free;
-	import.FreeTag = Z_FreeTag;
+	import.Malloc = Mem_TagMalloc;
+	import.LinkMalloc = Mem_LinkMalloc;
+	import.Free = Mem_Free;
+	import.FreeTag = Mem_FreeTag;
 
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;
@@ -218,8 +218,8 @@ void Cl_ShutdownCgame(void) {
 
 	Cmd_RemoveAll(CMD_CGAME);
 
-	Z_FreeTag(Z_TAG_CGAME_LEVEL);
-	Z_FreeTag(Z_TAG_CGAME);
+	Mem_FreeTag(Z_TAG_CGAME_LEVEL);
+	Mem_FreeTag(Z_TAG_CGAME);
 
 	Com_Print("Client game down\n");
 	Com_QuitSubsystem(Q2W_CGAME);

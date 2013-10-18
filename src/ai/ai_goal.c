@@ -31,7 +31,7 @@ static ai_goal_state_t ai_goal_state;
  * @brief Utility function for instantiating ai_goal_t.
  */
 ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_edict_t *ent) {
-	ai_goal_t *goal = Z_TagMalloc(sizeof(*goal), Z_TAG_AI);
+	ai_goal_t *goal = Mem_TagMalloc(sizeof(*goal), Z_TAG_AI);
 
 	goal->type = type;
 	goal->ent = ent;
@@ -48,7 +48,7 @@ ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_edict_t *ent) {
 static void Ai_FreeGoal(gpointer data) {
 	ai_goal_t *goal = (ai_goal_t *) data;
 
-	Z_Free(goal);
+	Mem_Free(goal);
 }
 
 /*

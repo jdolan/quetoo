@@ -67,16 +67,16 @@ int32_t Net_Connect(const char *host, struct timeval *timeout) {
  * @brief Send data to the specified TCP stream.
  */
 _Bool Net_SendStream(int32_t sock, const void *data, size_t len) {
-	size_buf_t buf;
+	mem_buf_t buf;
 	byte buffer[MAX_MSG_SIZE];
 
-	Sb_Init(&buf, buffer, sizeof(buffer));
+	Mem_InitBuffer(&buf, buffer, sizeof(buffer));
 
 	// write the packet length
-	Msg_WriteLong(&buf, (int32_t) len);
+	Net_WriteLong(&buf, (int32_t) len);
 
 	// and copy the payload
-	Msg_WriteData(&buf, data, len);
+	Net_WriteData(&buf, data, len);
 
 	ssize_t sent;
 	while ((sent = send(sock, (void *) buf.data, buf.size, 0)) == -1) {
@@ -95,7 +95,7 @@ _Bool Net_SendStream(int32_t sock, const void *data, size_t len) {
 /*
  * @brief Receive data from the specified TCP stream.
  */
-_Bool Net_ReceiveStream(int32_t sock, size_buf_t *buf) {
+_Bool Net_ReceiveStream(int32_t sock, mem_buf_t *buf) {
 
 	buf->size = buf->read = 0;
 
@@ -112,5 +112,5 @@ _Bool Net_ReceiveStream(int32_t sock, size_buf_t *buf) {
 	buf->size = received;
 
 	// check the packet length
-	return Msg_ReadLong(buf) > -1;
+	return Net_ReadLong(buf) > -1;
 }

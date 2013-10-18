@@ -407,7 +407,7 @@ _Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len) {
 	g_snprintf(partial, len - (partial - input), "%s", match);
 	(*pos) = strlen(input);
 
-	g_list_free_full(matches, Z_Free);
+	g_list_free_full(matches, Mem_Free);
 
 	return true;
 }

@@ -24,7 +24,7 @@
 
 #include "net.h"
 
-_Bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, size_buf_t *buf);
+_Bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, mem_buf_t *buf);
 _Bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data, size_t len);
 
 void Net_Config(net_src_t source, _Bool up);

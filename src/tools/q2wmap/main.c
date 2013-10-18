@@ -149,7 +149,7 @@ static void Warn(const char *msg) {
  */
 static void Init(void) {
 
-	Z_Init();
+	Mem_Init();
 
 	Fs_Init(true);
 
@@ -181,7 +181,7 @@ static void Shutdown(const char *msg) {
 
 	Fs_Shutdown();
 
-	Z_Shutdown();
+	Mem_Shutdown();
 }
 
 /*

@@ -27,7 +27,7 @@
  */
 void setup(void) {
 
-	Z_Init();
+	Mem_Init();
 
 	R_InitMedia();
 }
@@ -39,7 +39,7 @@ void teardown(void) {
 
 	R_ShutdownMedia();
 
-	Z_Shutdown();
+	Mem_Shutdown();
 }
 
 START_TEST(check_R_RegisterMedia)
@@ -77,7 +77,7 @@ START_TEST(check_R_RegisterMedia)
 		R_BeginLoading();
 		R_FreeMedia();
 
-		ck_assert_msg(Z_Size() == 0, "Not all memory freed: %u", (uint32_t) Z_Size());
+		ck_assert_msg(Mem_Size() == 0, "Not all memory freed: %u", (uint32_t) Mem_Size());
 
 	}END_TEST
 

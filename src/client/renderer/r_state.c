@@ -627,7 +627,7 @@ void R_InitState(void) {
 			texunit->texture = GL_TEXTURE0_ARB + i;
 
 			if (i < r_config.max_texunits) {
-				texunit->texcoord_array = Z_TagMalloc(len, Z_TAG_RENDERER);
+				texunit->texcoord_array = Mem_TagMalloc(len, Z_TAG_RENDERER);
 
 				R_EnableTexture(texunit, true);
 
@@ -672,7 +672,7 @@ void R_ShutdownState(void) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
 		if (texunit->texcoord_array)
-			Z_Free(texunit->texcoord_array);
+			Mem_Free(texunit->texcoord_array);
 	}
 
 	memset(&r_state, 0, sizeof(r_state));

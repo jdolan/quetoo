@@ -104,7 +104,7 @@ static _Bool EndOfScript(_Bool crossline) {
 		return false;
 	}
 
-	Z_Free(script->buffer);
+	Mem_Free(script->buffer);
 	if (script == scriptstack + 1) {
 		endofscript = true;
 		return false;

@@ -36,10 +36,10 @@ _Bool Cl_UsePrediction(void) {
 	if (cl.demo_server || cl.third_person)
 		return false;
 
-	if (cl.frame.ps.pm_state.pm_flags & PMF_NO_PREDICTION)
+	if (cl.frame.ps.pm_state.flags & PMF_NO_PREDICTION)
 		return false;
 
-	if (cl.frame.ps.pm_state.pm_type == PM_FREEZE)
+	if (cl.frame.ps.pm_state.type == PM_FREEZE)
 		return false;
 
 	return true;
@@ -227,7 +227,7 @@ void Cl_CheckPredictionError(void) {
 
 	// compare what the server returned with what we had predicted it to be
 	VectorSubtract(cl.frame.ps.pm_state.origin, cl.predicted_state.origins[frame], d);
-	UnpackPosition(d, delta); // convert back to floating point
+	UnpackVector(d, delta); // convert back to floating point
 
 	const vec_t error = VectorLength(delta);
 

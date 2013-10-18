@@ -47,10 +47,10 @@ static void G_misc_teleporter_Touch(g_edict_t *self, g_edict_t *other, c_bsp_pla
 	other->s.origin[2] += 10.0;
 
 	// overwrite velocity and hold them in place briefly
-	other->client->ps.pm_state.pm_flags &= ~PMF_TIME_MASK;
-	other->client->ps.pm_state.pm_flags = PMF_TIME_TELEPORT;
+	other->client->ps.pm_state.flags &= ~PMF_TIME_MASK;
+	other->client->ps.pm_state.flags = PMF_TIME_TELEPORT;
 
-	other->client->ps.pm_state.pm_time = 20;
+	other->client->ps.pm_state.time = 20;
 
 	// draw the teleport splash at source and on the player
 	self->s.event = EV_CLIENT_TELEPORT;

@@ -37,7 +37,7 @@ static qzip_t qzip;
  * filename.
  */
 static void AddAsset(const char *name) {
-	g_hash_table_insert(qzip.assets, (gpointer) name, Z_CopyString(name));
+	g_hash_table_insert(qzip.assets, (gpointer) name, Mem_CopyString(name));
 }
 
 /*
@@ -58,7 +58,7 @@ static _Bool ResolveAsset(const char *name, const char **extensions) {
 	while (*ext) {
 		const char *path = va("%s.%s", key, *ext);
 		if (Fs_Exists(path)) {
-			g_hash_table_insert(qzip.assets, (gpointer) key, Z_CopyString(path));
+			g_hash_table_insert(qzip.assets, (gpointer) key, Mem_CopyString(path));
 			return true;
 		}
 		ext++;
@@ -339,7 +339,7 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
 		return false;
 	}
 
-	void *buffer = Z_Malloc(ZIP_BUFFER_SIZE);
+	void *buffer = Mem_Malloc(ZIP_BUFFER_SIZE);
 	_Bool success = true;
 
 	while (!Fs_Eof(file)) {
@@ -357,7 +357,7 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
 		}
 	}
 
-	Z_Free(buffer);
+	Mem_Free(buffer);
 
 	zipCloseFileInZip(zip_file);
 	Fs_Close(file);
@@ -381,7 +381,7 @@ int32_t ZIP_Main(void) {
 	const time_t start = time(NULL);
 
 	qzip.assets = g_hash_table_new(g_str_hash, g_str_equal);
-	qzip.missing = Z_CopyString(MISSING);
+	qzip.missing = Mem_CopyString(MISSING);
 
 	LoadBSPFile(bsp_name);
 

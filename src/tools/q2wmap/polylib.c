@@ -42,7 +42,7 @@ winding_t *AllocWinding(int32_t points) {
 		}
 	}
 
-	return Z_Malloc(sizeof(int32_t) + sizeof(vec3_t) * points);
+	return Mem_Malloc(sizeof(int32_t) + sizeof(vec3_t) * points);
 }
 
 /*
@@ -53,7 +53,7 @@ void FreeWinding(winding_t *w) {
 	if (debug)
 		SDL_SemWait(semaphores.active_windings);
 
-	Z_Free(w);
+	Mem_Free(w);
 }
 
 /*

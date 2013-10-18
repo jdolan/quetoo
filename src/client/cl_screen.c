@@ -222,7 +222,7 @@ static void Cl_DrawCounters(void) {
 
 	if (cls.real_time - last_draw_time >= 200) {
 
-		UnpackPosition(cl.frame.ps.pm_state.velocity, velocity);
+		UnpackVector(cl.frame.ps.pm_state.velocity, velocity);
 		velocity[2] = 0.0;
 
 		g_snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));

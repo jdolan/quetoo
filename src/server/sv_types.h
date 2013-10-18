@@ -45,7 +45,7 @@ typedef struct {
 
 	// the multicast buffer is used to send a message to a set of clients
 	// it is only used to marshall data until Sv_Multicast is called
-	size_buf_t multicast;
+	mem_buf_t multicast;
 	byte multicast_buffer[MAX_MSG_SIZE];
 
 	// demo server information
@@ -98,7 +98,7 @@ typedef struct {
  * that it may be safely fragmented for delivery.
  */
 typedef struct {
-	size_buf_t buffer; // the managed size buffer
+	mem_buf_t buffer; // the managed size buffer
 	byte data[MAX_FRAME_SIZE]; // the raw message buffer
 	GList *messages; // message segmentation
 } sv_client_datagram_t;

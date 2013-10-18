@@ -41,22 +41,22 @@ static void Sv_New_f(void) {
 	}
 
 	// send the server data
-	Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_SERVER_DATA);
-	Msg_WriteLong(&sv_client->net_chan.message, PROTOCOL);
-	Msg_WriteLong(&sv_client->net_chan.message, svs.spawn_count);
-	Msg_WriteLong(&sv_client->net_chan.message, svs.frame_rate);
-	Msg_WriteByte(&sv_client->net_chan.message, 0);
-	Msg_WriteString(&sv_client->net_chan.message, Cvar_GetString("game"));
+	Net_WriteByte(&sv_client->net_chan.message, SV_CMD_SERVER_DATA);
+	Net_WriteLong(&sv_client->net_chan.message, PROTOCOL);
+	Net_WriteLong(&sv_client->net_chan.message, svs.spawn_count);
+	Net_WriteLong(&sv_client->net_chan.message, svs.frame_rate);
+	Net_WriteByte(&sv_client->net_chan.message, 0);
+	Net_WriteString(&sv_client->net_chan.message, Cvar_GetString("game"));
 
 	player_num = sv_client - svs.clients;
-	Msg_WriteShort(&sv_client->net_chan.message, player_num);
+	Net_WriteShort(&sv_client->net_chan.message, player_num);
 
 	// send full level name
-	Msg_WriteString(&sv_client->net_chan.message, sv.config_strings[CS_NAME]);
+	Net_WriteString(&sv_client->net_chan.message, sv.config_strings[CS_NAME]);
 
 	// begin fetching config_strings
-	Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
-	Msg_WriteString(&sv_client->net_chan.message, va("config_strings %i 0\n", svs.spawn_count));
+	Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
+	Net_WriteString(&sv_client->net_chan.message, va("config_strings %i 0\n", svs.spawn_count));
 }
 
 /*
@@ -90,20 +90,20 @@ static void Sv_ConfigStrings_f(void) {
 	// write a packet full of data
 	while (sv_client->net_chan.message.size < MAX_MSG_SIZE / 2 && start < MAX_CONFIG_STRINGS) {
 		if (sv.config_strings[start][0]) {
-			Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_CONFIG_STRING);
-			Msg_WriteShort(&sv_client->net_chan.message, start);
-			Msg_WriteString(&sv_client->net_chan.message, sv.config_strings[start]);
+			Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CONFIG_STRING);
+			Net_WriteShort(&sv_client->net_chan.message, start);
+			Net_WriteString(&sv_client->net_chan.message, sv.config_strings[start]);
 		}
 		start++;
 	}
 
 	// send next command
 	if (start == MAX_CONFIG_STRINGS) {
-		Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
-		Msg_WriteString(&sv_client->net_chan.message, va("baselines %i 0\n", svs.spawn_count));
+		Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
+		Net_WriteString(&sv_client->net_chan.message, va("baselines %i 0\n", svs.spawn_count));
 	} else {
-		Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
-		Msg_WriteString(&sv_client->net_chan.message,
+		Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
+		Net_WriteString(&sv_client->net_chan.message,
 				va("config_strings %i %i\n", svs.spawn_count, start));
 	}
 }
@@ -138,19 +138,19 @@ static void Sv_Baselines_f(void) {
 	while (sv_client->net_chan.message.size < (MAX_MSG_SIZE >> 1) && start < MAX_EDICTS) {
 		base = &sv.baselines[start];
 		if (base->model1 || base->sound || base->effects) {
-			Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_BASELINE);
-			Msg_WriteDeltaEntity(&null_state, base, &sv_client->net_chan.message, true, true);
+			Net_WriteByte(&sv_client->net_chan.message, SV_CMD_BASELINE);
+			Net_WriteDeltaEntity(&null_state, base, &sv_client->net_chan.message, true, true);
 		}
 		start++;
 	}
 
 	// send next command
 	if (start == MAX_EDICTS) {
-		Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
-		Msg_WriteString(&sv_client->net_chan.message, va("precache %i\n", svs.spawn_count));
+		Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
+		Net_WriteString(&sv_client->net_chan.message, va("precache %i\n", svs.spawn_count));
 	} else {
-		Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
-		Msg_WriteString(&sv_client->net_chan.message,
+		Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
+		Net_WriteString(&sv_client->net_chan.message,
 				va("baselines %i %i\n", svs.spawn_count, start));
 	}
 }
@@ -191,25 +191,25 @@ static void Sv_Begin_f(void) {
  */
 static void Sv_NextDownload_f(void) {
 	byte buf[MAX_MSG_SIZE];
-	size_buf_t msg;
+	mem_buf_t msg;
 
 	sv_download_t *download = &sv_client->download;
 
 	if (!download->buffer)
 		return;
 
-	Sb_Init(&msg, buf, sizeof(buf));
+	Mem_InitBuffer(&msg, buf, sizeof(buf));
 
 	int32_t len = Clamp(download->size - download->count, 0, 1024);
 
-	Msg_WriteByte(&msg, SV_CMD_DOWNLOAD);
-	Msg_WriteShort(&msg, len);
+	Net_WriteByte(&msg, SV_CMD_DOWNLOAD);
+	Net_WriteShort(&msg, len);
 
 	int32_t percent = download->count * 100 / (Clamp(download->size, 1, download->size));
-	Msg_WriteByte(&msg, percent);
+	Net_WriteByte(&msg, percent);
 
-	Sb_Write(&msg, download->buffer + download->count, len);
-	Sb_Write(&sv_client->net_chan.message, msg.data, msg.size);
+	Mem_WriteBuffer(&msg, download->buffer + download->count, len);
+	Mem_WriteBuffer(&sv_client->net_chan.message, msg.data, msg.size);
 
 	download->count += len;
 
@@ -257,9 +257,9 @@ static void Sv_Download_f(void) {
 	}
 
 	if (!sv_udp_download->value) { // ensure server wishes to allow
-		Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_DOWNLOAD);
-		Msg_WriteShort(&sv_client->net_chan.message, -1);
-		Msg_WriteByte(&sv_client->net_chan.message, 0);
+		Net_WriteByte(&sv_client->net_chan.message, SV_CMD_DOWNLOAD);
+		Net_WriteShort(&sv_client->net_chan.message, -1);
+		Net_WriteByte(&sv_client->net_chan.message, 0);
 		return;
 	}
 
@@ -276,9 +276,9 @@ static void Sv_Download_f(void) {
 
 	if (download->size == -1) {
 		Com_Warn("Couldn't download %s to %s\n", filename, Sv_NetaddrToString(sv_client));
-		Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_DOWNLOAD);
-		Msg_WriteShort(&sv_client->net_chan.message, -1);
-		Msg_WriteByte(&sv_client->net_chan.message, 0);
+		Net_WriteByte(&sv_client->net_chan.message, SV_CMD_DOWNLOAD);
+		Net_WriteShort(&sv_client->net_chan.message, -1);
+		Net_WriteByte(&sv_client->net_chan.message, 0);
 		return;
 	}
 
@@ -410,14 +410,14 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 			return;
 		}
 
-		c = Msg_ReadByte(&net_message);
+		c = Net_ReadByte(&net_message);
 		if (c == -1)
 			break;
 
 		switch (c) {
 
 			case CL_CMD_USER_INFO:
-				g_strlcpy(cl->user_info, Msg_ReadString(&net_message), sizeof(cl->user_info));
+				g_strlcpy(cl->user_info, Net_ReadString(&net_message), sizeof(cl->user_info));
 				Sv_UserInfoChanged(cl);
 				break;
 
@@ -426,7 +426,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 					return; // someone is trying to cheat
 				}
 
-				last_frame = Msg_ReadLong(&net_message);
+				last_frame = Net_ReadLong(&net_message);
 				if (last_frame != cl->last_frame) {
 					cl->last_frame = last_frame;
 					if (cl->last_frame > -1) {
@@ -437,9 +437,9 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 				}
 
 				memset(&null_cmd, 0, sizeof(null_cmd));
-				Msg_ReadDeltaUsercmd(&net_message, &null_cmd, &oldest_cmd);
-				Msg_ReadDeltaUsercmd(&net_message, &oldest_cmd, &old_cmd);
-				Msg_ReadDeltaUsercmd(&net_message, &old_cmd, &new_cmd);
+				Net_ReadDeltaUsercmd(&net_message, &null_cmd, &oldest_cmd);
+				Net_ReadDeltaUsercmd(&net_message, &oldest_cmd, &old_cmd);
+				Net_ReadDeltaUsercmd(&net_message, &old_cmd, &new_cmd);
 
 				// don't start delta compression until the client is spawned
 				// TODO: should this be a little higher up?
@@ -464,7 +464,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 				break;
 
 			case CL_CMD_STRING:
-				s = Msg_ReadString(&net_message);
+				s = Net_ReadString(&net_message);
 
 				// malicious users may try using too many string commands
 				if (++strings_issued < CMD_MAX_STRINGS)

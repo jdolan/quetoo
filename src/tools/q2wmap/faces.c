@@ -138,7 +138,7 @@ static int32_t c_faces;
 static face_t *AllocFace(void) {
 	face_t *f;
 
-	f = Z_Malloc(sizeof(*f));
+	f = Mem_Malloc(sizeof(*f));
 	c_faces++;
 
 	return f;
@@ -164,7 +164,7 @@ static face_t *NewFaceFromFace(const face_t *f) {
 void FreeFace(face_t *f) {
 	if (f->w)
 		FreeWinding(f->w);
-	Z_Free(f);
+	Mem_Free(f);
 	c_faces--;
 }
 

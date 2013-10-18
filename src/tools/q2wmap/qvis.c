@@ -53,7 +53,7 @@ static winding_t *NewWinding(uint16_t points) {
 		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n");
 
 	size = (size_t) ((winding_t *) 0)->points[points];
-	w = Z_Malloc(size);
+	w = Mem_Malloc(size);
 
 	return w;
 }
@@ -264,13 +264,13 @@ static void LoadPortals(const char *filename) {
 	map_vis.portal_longs = map_vis.portal_bytes / sizeof(long);
 
 	// each file portal is split into two memory portals
-	map_vis.portals = Z_Malloc(2 * map_vis.num_portals * sizeof(portal_t));
+	map_vis.portals = Mem_Malloc(2 * map_vis.num_portals * sizeof(portal_t));
 
 	// allocate the leafs
-	map_vis.leafs = Z_Malloc(map_vis.portal_clusters * sizeof(leaf_t));
+	map_vis.leafs = Mem_Malloc(map_vis.portal_clusters * sizeof(leaf_t));
 
 	map_vis.uncompressed_size = map_vis.portal_clusters * map_vis.leaf_bytes;
-	map_vis.uncompressed = Z_Malloc(map_vis.uncompressed_size);
+	map_vis.uncompressed = Mem_Malloc(map_vis.uncompressed_size);
 
 	map_vis.base = map_vis.pointer = d_bsp.vis_data;
 	d_vis->num_clusters = map_vis.portal_clusters;

@@ -28,7 +28,7 @@
  */
 void setup(void) {
 
-	Z_Init();
+	Mem_Init();
 
 	Fs_Init(false);
 
@@ -48,7 +48,7 @@ void teardown(void) {
 
 	Fs_Shutdown();
 
-	Z_Shutdown();
+	Mem_Shutdown();
 }
 
 START_TEST(check_Cvar_Get)

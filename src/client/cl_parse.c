@@ -82,8 +82,8 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 				Com_Debug("Resuming %s...\n", cls.download.name);
 
 				g_snprintf(cmd, sizeof(cmd), "download %s %u", cls.download.name, (uint32_t) len);
-				Msg_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-				Msg_WriteString(&cls.net_chan.message, cmd);
+				Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
+				Net_WriteString(&cls.net_chan.message, cmd);
 
 				return false;
 			}
@@ -94,8 +94,8 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 	Com_Debug("Downloading %s...\n", cls.download.name);
 
 	g_snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
-	Msg_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-	Msg_WriteString(&cls.net_chan.message, cmd);
+	Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
+	Net_WriteString(&cls.net_chan.message, cmd);
 
 	return false;
 }
@@ -138,26 +138,26 @@ static void Cl_ParseBaseline(void) {
 	entity_state_t *state;
 	entity_state_t null_state;
 
-	const uint16_t number = Msg_ReadShort(&net_message);
-	const uint16_t bits = Msg_ReadShort(&net_message);
+	const uint16_t number = Net_ReadShort(&net_message);
+	const uint16_t bits = Net_ReadShort(&net_message);
 
 	memset(&null_state, 0, sizeof(null_state));
 	state = &cl.entities[number].baseline;
 
-	Msg_ReadDeltaEntity(&null_state, state, &net_message, number, bits);
+	Net_ReadDeltaEntity(&null_state, state, &net_message, number, bits);
 }
 
 /*
  * @brief
  */
 void Cl_ParseConfigString(void) {
-	const uint16_t i = (uint16_t) Msg_ReadShort(&net_message);
+	const uint16_t i = (uint16_t) Net_ReadShort(&net_message);
 
 	if (i >= MAX_CONFIG_STRINGS) {
 		Com_Error(ERR_DROP, "Invalid index %i\n", i);
 	}
 
-	strcpy(cl.config_strings[i], Msg_ReadString(&net_message));
+	strcpy(cl.config_strings[i], Net_ReadString(&net_message));
 	const char *s = cl.config_strings[i];
 
 	if (i > CS_MODELS && i < CS_MODELS + MAX_MODELS) {
@@ -189,8 +189,8 @@ static void Cl_ParseDownload(void) {
 	int32_t size, percent;
 
 	// read the data
-	size = Msg_ReadShort(&net_message);
-	percent = Msg_ReadByte(&net_message);
+	size = Net_ReadShort(&net_message);
+	percent = Net_ReadByte(&net_message);
 	if (size < 0) {
 		Com_Debug("Server does not have this file\n");
 		if (cls.download.file) {
@@ -218,8 +218,8 @@ static void Cl_ParseDownload(void) {
 	net_message.read += size;
 
 	if (percent != 100) {
-		Msg_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-		Sb_Print(&cls.net_chan.message, "nextdl");
+		Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
+		Mem_PrintBuffer(&cls.net_chan.message, "nextdl");
 	} else {
 		Fs_Close(cls.download.file);
 		cls.download.file = NULL;
@@ -252,7 +252,7 @@ static void Cl_ParseServerData(void) {
 	cls.key_state.dest = KEY_CONSOLE;
 
 	// parse protocol version number
-	i = Msg_ReadLong(&net_message);
+	i = Net_ReadLong(&net_message);
 
 	// ensure protocol matches
 	if (i != PROTOCOL) {
@@ -260,14 +260,14 @@ static void Cl_ParseServerData(void) {
 	}
 
 	// retrieve spawn count and packet rate
-	cl.server_count = Msg_ReadLong(&net_message);
-	cl.server_hz = Msg_ReadLong(&net_message);
+	cl.server_count = Net_ReadLong(&net_message);
+	cl.server_hz = Net_ReadLong(&net_message);
 
 	// determine if we're viewing a demo
-	cl.demo_server = Msg_ReadByte(&net_message);
+	cl.demo_server = Net_ReadByte(&net_message);
 
 	// game directory
-	str = Msg_ReadString(&net_message);
+	str = Net_ReadString(&net_message);
 	if (g_strcmp0(Cvar_GetString("game"), str)) {
 
 		Fs_SetGame(str);
@@ -277,10 +277,10 @@ static void Cl_ParseServerData(void) {
 	}
 
 	// parse player entity number
-	cl.player_num = Msg_ReadShort(&net_message);
+	cl.player_num = Net_ReadShort(&net_message);
 
 	// get the full level name
-	str = Msg_ReadString(&net_message);
+	str = Net_ReadString(&net_message);
 	Com_Print("\n");
 	Com_Print("%c%s\n", 2, str);
 }
@@ -296,18 +296,18 @@ static void Cl_ParseSound(void) {
 	int32_t atten;
 	int32_t flags;
 
-	flags = Msg_ReadByte(&net_message);
+	flags = Net_ReadByte(&net_message);
 
-	if ((index = Msg_ReadByte(&net_message)) > MAX_SOUNDS)
+	if ((index = Net_ReadByte(&net_message)) > MAX_SOUNDS)
 		Com_Error(ERR_DROP, "Bad index (%d)\n", index);
 
 	if (flags & S_ATTEN)
-		atten = Msg_ReadByte(&net_message);
+		atten = Net_ReadByte(&net_message);
 	else
 		atten = DEFAULT_SOUND_ATTENUATION;
 
 	if (flags & S_ENTNUM) { // entity relative
-		ent_num = Msg_ReadShort(&net_message);
+		ent_num = Net_ReadShort(&net_message);
 
 		if (ent_num > MAX_EDICTS)
 			Com_Error(ERR_DROP, "Bad entity number (%d)\n", ent_num);
@@ -316,7 +316,7 @@ static void Cl_ParseSound(void) {
 	}
 
 	if (flags & S_ORIGIN) { // positioned in space
-		Msg_ReadPos(&net_message, origin);
+		Net_ReadPos(&net_message, origin);
 
 		org = origin;
 	} else
@@ -378,7 +378,7 @@ void Cl_ParseServerMessage(void) {
 		}
 
 		old_cmd = cmd;
-		cmd = Msg_ReadByte(&net_message);
+		cmd = Net_ReadByte(&net_message);
 
 		if (cmd == -1) {
 			Cl_ShowNet("END OF MESSAGE");
@@ -395,7 +395,7 @@ void Cl_ParseServerMessage(void) {
 				break;
 
 			case SV_CMD_CBUF_TEXT:
-				s = Msg_ReadString(&net_message);
+				s = Net_ReadString(&net_message);
 				Cbuf_AddText(s);
 				break;
 
@@ -416,8 +416,8 @@ void Cl_ParseServerMessage(void) {
 				break;
 
 			case SV_CMD_PRINT:
-				i = Msg_ReadByte(&net_message);
-				s = Msg_ReadString(&net_message);
+				i = Net_ReadByte(&net_message);
+				s = Net_ReadString(&net_message);
 				if (i == PRINT_CHAT) {
 					if (Cl_IgnoreChatMessage(s)) // filter /ignore'd chatters
 						break;

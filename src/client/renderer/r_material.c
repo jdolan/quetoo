@@ -579,7 +579,7 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 	// the first image was already loaded by the stage parse, so just copy
 	// the pointer into the array
 
-	s->anim.frames = Z_LinkMalloc(s->anim.num_frames * sizeof(r_image_t *), s);
+	s->anim.frames = Mem_LinkMalloc(s->anim.num_frames * sizeof(r_image_t *), s);
 	s->anim.frames[0] = s->image;
 
 	// now load the rest
@@ -1038,17 +1038,17 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 		if (*c == '{' && in_material) {
 
-			r_stage_t *s = (r_stage_t *) Z_LinkMalloc(sizeof(*s), m);
+			r_stage_t *s = (r_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
 
 			if (R_ParseStage(s, &buffer) == -1) {
-				Z_Free(s);
+				Mem_Free(s);
 				continue;
 			}
 
 			// load animation frame images
 			if (s->flags & STAGE_ANIM) {
 				if (R_LoadStageFrames(s) == -1) {
-					Z_Free(s);
+					Mem_Free(s);
 					continue;
 				}
 			}

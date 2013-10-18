@@ -387,12 +387,12 @@ void Cl_Bind(SDLKey key, const char *binding) {
 
 	// free the old binding
 	if (ks->binds[key]) {
-		Z_Free(ks->binds[key]);
+		Mem_Free(ks->binds[key]);
 		ks->binds[key] = NULL;
 	}
 
 	// allocate for new binding and copy it in
-	ks->binds[key] = Z_TagMalloc(strlen(binding) + 1, Z_TAG_CLIENT);
+	ks->binds[key] = Mem_TagMalloc(strlen(binding) + 1, Z_TAG_CLIENT);
 	strcpy(ks->binds[key], binding);
 }
 
@@ -545,13 +545,13 @@ void Cl_InitKeys(void) {
 	uint16_t i;
 	SDLKey k;
 
-	cl_key_names = Z_TagMalloc(SDLK_MLAST * sizeof(char *), Z_TAG_CLIENT);
+	cl_key_names = Mem_TagMalloc(SDLK_MLAST * sizeof(char *), Z_TAG_CLIENT);
 
 	for (k = SDLK_FIRST; k < SDLK_LAST; k++) {
-		cl_key_names[k] = Z_Link(Z_CopyString(SDL_GetKeyName(k)), cl_key_names);
+		cl_key_names[k] = Mem_Link(Mem_CopyString(SDL_GetKeyName(k)), cl_key_names);
 	}
 	for (k = SDLK_MOUSE1; k < (SDLKey) SDLK_MLAST; k++) {
-		cl_key_names[k] = Z_Link(Z_CopyString(va("mouse %d", k - SDLK_MOUSE1 + 1)), cl_key_names);
+		cl_key_names[k] = Mem_Link(Mem_CopyString(va("mouse %d", k - SDLK_MOUSE1 + 1)), cl_key_names);
 	}
 
 	memset(ks, 0, sizeof(cl_key_state_t));
@@ -585,7 +585,7 @@ void Cl_ShutdownKeys(void) {
 
 	Cl_WriteHistory();
 
-	Z_Free(cl_key_names);
+	Mem_Free(cl_key_names);
 }
 
 /*

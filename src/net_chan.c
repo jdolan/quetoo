@@ -43,7 +43,7 @@
  * if the sequence number is -1, the packet should be handled without a netcon
  *
  * The reliable message can be added to at any time by doing
- * Msg_Write*(&netchan->message, <data>).
+ * Net_Write*(&netchan->message, <data>).
  *
  * If the message buffer is overflowed, either by a single message, or by
  * multiple frames worth piling up while the last reliable transmit goes
@@ -77,21 +77,21 @@ static cvar_t *net_showpackets;
 static cvar_t *net_showdrop;
 
 net_addr_t net_from;
-size_buf_t net_message;
+mem_buf_t net_message;
 byte net_message_buffer[MAX_MSG_SIZE];
 
 /*
  * @brief Sends an out-of-band datagram
  */
 void Netchan_OutOfBand(int32_t sock, const net_addr_t *addr, const void *data, size_t len) {
-	size_buf_t send;
+	mem_buf_t send;
 	byte send_buffer[MAX_MSG_SIZE];
 
 	// write the packet header
-	Sb_Init(&send, send_buffer, sizeof(send_buffer));
+	Mem_InitBuffer(&send, send_buffer, sizeof(send_buffer));
 
-	Msg_WriteLong(&send, -1); // -1 sequence means out of band
-	Sb_Write(&send, data, len);
+	Net_WriteLong(&send, -1); // -1 sequence means out of band
+	Mem_WriteBuffer(&send, data, len);
 
 	// send the datagram
 	Net_SendDatagram(sock, addr, send.data, send.size);
@@ -126,7 +126,7 @@ void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t
 	chan->incoming_sequence = 0;
 	chan->outgoing_sequence = 1;
 
-	Sb_Init(&chan->message, chan->message_buffer, sizeof(chan->message_buffer));
+	Mem_InitBuffer(&chan->message, chan->message_buffer, sizeof(chan->message_buffer));
 	chan->message.allow_overflow = true;
 }
 
@@ -167,7 +167,7 @@ _Bool Netchan_NeedReliable(net_chan_t *chan) {
  * A 0 size will still generate a packet and deal with the reliable messages.
  */
 void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
-	size_buf_t send;
+	mem_buf_t send;
 	byte send_buffer[MAX_MSG_SIZE];
 
 	// check for message overflow
@@ -187,7 +187,7 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 	}
 
 	// write the packet header
-	Sb_Init(&send, send_buffer, sizeof(send_buffer));
+	Mem_InitBuffer(&send, send_buffer, sizeof(send_buffer));
 
 	const uint32_t w1 = (chan->outgoing_sequence & ~(1 << 31)) | (send_reliable << 31);
 	const uint32_t w2 = (chan->incoming_sequence & ~(1 << 31)) | (chan->incoming_reliable_sequence
@@ -196,22 +196,22 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 	chan->outgoing_sequence++;
 	chan->last_sent = quake2world.time;
 
-	Msg_WriteLong(&send, w1);
-	Msg_WriteLong(&send, w2);
+	Net_WriteLong(&send, w1);
+	Net_WriteLong(&send, w2);
 
 	// send the qport if we are a client
 	if (chan->source == NS_UDP_CLIENT)
-		Msg_WriteByte(&send, chan->qport);
+		Net_WriteByte(&send, chan->qport);
 
 	// copy the reliable message to the packet first
 	if (send_reliable) {
-		Sb_Write(&send, chan->reliable_buffer, chan->reliable_size);
+		Mem_WriteBuffer(&send, chan->reliable_buffer, chan->reliable_size);
 		chan->last_reliable_sequence = chan->outgoing_sequence;
 	}
 
 	// add the unreliable part if space is available
 	if (send.max_size - send.size >= len)
-		Sb_Write(&send, data, len);
+		Mem_WriteBuffer(&send, data, len);
 	else
 		Com_Warn("Netchan_Transmit: dumped unreliable\n");
 
@@ -234,19 +234,19 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
  * @brief Called when the current net_message is from remote_address
  * modifies net_message so that it points to the packet payload
  */
-_Bool Netchan_Process(net_chan_t *chan, size_buf_t *msg) {
+_Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
 	uint32_t sequence, sequence_ack;
 	uint32_t reliable_ack, reliable_message;
 
 	// get sequence numbers
-	Msg_BeginReading(msg);
+	Net_BeginReading(msg);
 
-	sequence = Msg_ReadLong(msg);
-	sequence_ack = Msg_ReadLong(msg);
+	sequence = Net_ReadLong(msg);
+	sequence_ack = Net_ReadLong(msg);
 
 	// read the qport if we are a server
 	if (chan->source == NS_UDP_SERVER)
-		Msg_ReadByte(msg);
+		Net_ReadByte(msg);
 
 	reliable_message = sequence >> 31;
 	reliable_ack = sequence_ack >> 31;

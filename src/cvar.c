@@ -117,7 +117,7 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
 		if (var->description)
 			Com_Print("\t%s\n", var->description);
 
-		*matches = g_list_prepend(*matches, Z_CopyString(var->name));
+		*matches = g_list_prepend(*matches, Mem_CopyString(var->name));
 	}
 }
 
@@ -153,16 +153,16 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 	if (var) {
 		if (value) {
 			if (var->default_value) {
-				Z_Free((void *) var->default_value);
+				Mem_Free((void *) var->default_value);
 			}
-			var->default_value = Z_Link(Z_CopyString(value), var);
+			var->default_value = Mem_Link(Mem_CopyString(value), var);
 		}
 		var->flags |= flags;
 		if (description) {
 			if (var->description) {
-				Z_Free((void *) var->description);
+				Mem_Free((void *) var->description);
 			}
-			var->description = Z_Link(Z_CopyString(description), var);
+			var->description = Mem_Link(Mem_CopyString(description), var);
 		}
 		return var;
 	}
@@ -171,18 +171,18 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 		return NULL;
 
 	// create a new variable
-	var = Z_Malloc(sizeof(*var));
+	var = Mem_Malloc(sizeof(*var));
 
-	var->name = Z_Link(Z_CopyString(name), var);
-	var->default_value = Z_Link(Z_CopyString(value), var);
-	var->string = Z_Link(Z_CopyString(value), var);
+	var->name = Mem_Link(Mem_CopyString(name), var);
+	var->default_value = Mem_Link(Mem_CopyString(value), var);
+	var->string = Mem_Link(Mem_CopyString(value), var);
 	var->modified = true;
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
 	var->flags = flags;
 
 	if (description) {
-		var->description = Z_Link(Z_CopyString(description), var);
+		var->description = Mem_Link(Mem_CopyString(description), var);
 	}
 
 	gpointer key = (gpointer) var->name;
@@ -242,7 +242,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 			if (var->latched_string) {
 				if (!g_strcmp0(value, var->latched_string))
 					return var;
-				Z_Free(var->latched_string);
+				Mem_Free(var->latched_string);
 			} else {
 				if (!g_strcmp0(value, var->string))
 					return var;
@@ -250,11 +250,11 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 
 			if (Com_WasInit(Q2W_SERVER)) {
 				Com_Print("%s will be changed for next game.\n", name);
-				var->latched_string = Z_Link(Z_CopyString(value), var);
+				var->latched_string = Mem_Link(Mem_CopyString(value), var);
 			} else {
 				if (var->string)
-					Z_Free(var->string);
-				var->string = Z_Link(Z_CopyString(value), var);
+					Mem_Free(var->string);
+				var->string = Mem_Link(Mem_CopyString(value), var);
 				var->value = atof(var->string);
 				var->integer = atoi(var->string);
 			}
@@ -262,7 +262,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 		}
 	} else {
 		if (var->latched_string) {
-			Z_Free(var->latched_string);
+			Mem_Free(var->latched_string);
 			var->latched_string = NULL;
 		}
 	}
@@ -279,9 +279,9 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 	if (var->flags & CVAR_USER_INFO)
 		cvar_user_info_modified = true; // transmit at next opportunity
 
-	Z_Free(var->string);
+	Mem_Free(var->string);
 
-	var->string = Z_Link(Z_CopyString(value), var);
+	var->string = Mem_Link(Mem_CopyString(value), var);
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
 
@@ -318,9 +318,9 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 	if (var->flags & CVAR_USER_INFO)
 		cvar_user_info_modified = true; // transmit at next opportunity
 
-	Z_Free(var->string);
+	Mem_Free(var->string);
 
-	var->string = Z_Link(Z_CopyString(value), var);
+	var->string = Mem_Link(Mem_CopyString(value), var);
 	var->value = atof(var->string);
 	var->integer = atoi(var->string);
 	var->flags = flags;
@@ -414,7 +414,7 @@ _Bool Cvar_PendingLatched(void) {
 void Cvar_UpdateLatched_enumerate(cvar_t *var, void *data __attribute__((unused))) {
 
 	if (var->latched_string) {
-		Z_Free(var->string);
+		Mem_Free(var->string);
 
 		var->string = var->latched_string;
 		var->latched_string = NULL;
@@ -643,7 +643,7 @@ void Cvar_Init(void) {
 
 	memset(&cvar_state, 0, sizeof(cvar_state));
 
-	cvar_state.vars = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
+	cvar_state.vars = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
 
 	Cmd_Add("set", Cvar_Set_f, 0, "Create or modify a console variable");
 	Cmd_Add("seta", Cvar_Set_f, 0, "Create an archived console variable");

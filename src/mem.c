@@ -80,7 +80,7 @@ static void Z_Free_(z_block_t *z) {
  * @brief Free an allocation of managed memory. Any child objects are
  * automatically freed as well.
  */
-void Z_Free(void *p) {
+void Mem_Free(void *p) {
 	z_block_t *z = Z_CheckMagic(p);
 
 	SDL_mutexP(z_state.lock);
@@ -99,7 +99,7 @@ void Z_Free(void *p) {
 /*
  * @brief Free all managed items allocated with the specified tag.
  */
-void Z_FreeTag(z_tag_t tag) {
+void Mem_FreeTag(z_tag_t tag) {
 	GHashTableIter it;
 	gpointer key, value;
 
@@ -171,7 +171,7 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
  *
  * @return A block of managed memory initialized to 0x0.
  */
-void *Z_TagMalloc(size_t size, z_tag_t tag) {
+void *Mem_TagMalloc(size_t size, z_tag_t tag) {
 	return Z_Malloc_(size, tag, NULL);
 }
 
@@ -185,7 +185,7 @@ void *Z_TagMalloc(size_t size, z_tag_t tag) {
  *
  * @return A block of managed memory initialized to 0x0.
  */
-void *Z_LinkMalloc(size_t size, void *parent) {
+void *Mem_LinkMalloc(size_t size, void *parent) {
 	return Z_Malloc_(size, Z_TAG_DEFAULT, parent);
 }
 
@@ -195,7 +195,7 @@ void *Z_LinkMalloc(size_t size, void *parent) {
  *
  * @return A block of memory initialized to 0x0.
  */
-void *Z_Malloc(size_t size) {
+void *Mem_Malloc(size_t size) {
 	return Z_Malloc_(size, Z_TAG_DEFAULT, NULL);
 }
 
@@ -208,7 +208,7 @@ void *Z_Malloc(size_t size) {
  *
  * @return The child, for convenience.
  */
-void *Z_Link(void *child, void *parent) {
+void *Mem_Link(void *child, void *parent) {
 	z_block_t *c = Z_CheckMagic(child);
 	z_block_t *p = Z_CheckMagic(parent);
 
@@ -231,24 +231,24 @@ void *Z_Link(void *child, void *parent) {
 /*
  * @return The current size (user bytes) of the zone allocation pool.
  */
-size_t Z_Size(void) {
+size_t Mem_Size(void) {
 	return z_state.size;
 }
 
 /*
  * @brief Prints the current size (in MB) of the zone allocation pool.
  */
-void Z_Size_f(void) {
-	Com_Print("%.2fMB\n", (vec_t) (Z_Size() / (1024.0 * 1024.0)));
+void Mem_Size_f(void) {
+	Com_Print("%.2fMB\n", (vec_t) (Mem_Size() / (1024.0 * 1024.0)));
 }
 
 /*
  * @brief Allocates and returns a copy of the specified string.
  */
-char *Z_CopyString(const char *in) {
+char *Mem_CopyString(const char *in) {
 	char *out;
 
-	out = Z_Malloc(strlen(in) + 1);
+	out = Mem_Malloc(strlen(in) + 1);
 	strcpy(out, in);
 
 	return out;
@@ -258,7 +258,7 @@ char *Z_CopyString(const char *in) {
  * @brief Initializes the managed memory subsystem. This should be one of the first
  * subsystems initialized by Quake2World.
  */
-void Z_Init(void) {
+void Mem_Init(void) {
 
 	memset(&z_state, 0, sizeof(z_state));
 
@@ -271,9 +271,9 @@ void Z_Init(void) {
  * @brief Shuts down the managed memory subsystem. This should be one of the last
  * subsystems brought down by Quake2World.
  */
-void Z_Shutdown(void) {
+void Mem_Shutdown(void) {
 
-	Z_FreeTag(Z_TAG_ALL);
+	Mem_FreeTag(Z_TAG_ALL);
 
 	g_hash_table_destroy(z_state.blocks);
 

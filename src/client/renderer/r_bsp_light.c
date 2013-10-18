@@ -149,7 +149,7 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, vec_t radius, vec3_t c
 	}
 
 	if (!l) { // or allocate a new one
-		l = Z_LinkMalloc(sizeof(*l), bsp);
+		l = Mem_LinkMalloc(sizeof(*l), bsp);
 		r_bsp_light_state.lights = g_list_prepend(r_bsp_light_state.lights, l);
 
 		VectorCopy(org, l->origin);
@@ -275,7 +275,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 
 	// allocate the lights array
 	bsp->num_bsp_lights = g_list_length(r_bsp_light_state.lights);
-	bsp->bsp_lights = Z_LinkMalloc(sizeof(r_bsp_light_t) * bsp->num_bsp_lights, bsp);
+	bsp->bsp_lights = Mem_LinkMalloc(sizeof(r_bsp_light_t) * bsp->num_bsp_lights, bsp);
 
 	i = 0;
 	GList *e = r_bsp_light_state.lights;
@@ -301,7 +301,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	}
 
 	// reset state
-	g_list_free_full(r_bsp_light_state.lights, Z_Free);
+	g_list_free_full(r_bsp_light_state.lights, Mem_Free);
 	r_bsp_light_state.lights = NULL;
 
 	Com_Debug("Loaded %d bsp lights\n", bsp->num_bsp_lights);

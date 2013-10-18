@@ -120,7 +120,7 @@ static void BuildPatch(int32_t fn, winding_t *w) {
 	patch_t *patch;
 	d_bsp_plane_t *plane;
 
-	patch = (patch_t *) Z_Malloc(sizeof(*patch));
+	patch = (patch_t *) Mem_Malloc(sizeof(*patch));
 
 	face_patches[fn] = patch;
 
@@ -270,7 +270,7 @@ static void SubdividePatch(patch_t *patch) {
 	ClipWindingEpsilon(w, split, dist, ON_EPSILON, &o1, &o2);
 
 	// create a new patch
-	newp = (patch_t *) Z_Malloc(sizeof(*newp));
+	newp = (patch_t *) Mem_Malloc(sizeof(*newp));
 
 	newp->next = patch->next;
 	patch->next = newp;
@@ -313,7 +313,7 @@ void FreePatches(void) {
 
 		while (p) {
 			patch_t *pnext = p->next;
-			Z_Free(p);
+			Mem_Free(p);
 			p = pnext;
 		}
 	}

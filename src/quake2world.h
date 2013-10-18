@@ -312,7 +312,7 @@ typedef struct c_trace_s {
 	struct g_edict_s *ent; // not set by Cm_*() functions
 } c_trace_t;
 
-// pmove_state_t is the information necessary for client side movement prediction
+// pm_state_t is the information necessary for client side movement prediction
 typedef enum {
 	// can accelerate and turn
 	PM_NORMAL,
@@ -322,34 +322,20 @@ typedef enum {
 	PM_FREEZE
 } pm_type_t;
 
-// pm_move->s.pm_flags
-#define PMF_DUCKED				0x1
-#define PMF_JUMPED				0x2
-#define PMF_JUMP_HELD			0x4
-#define PMF_ON_GROUND			0x8
-#define PMF_ON_STAIRS			0x10
-#define PMF_ON_LADDER			0x20
-#define PMF_UNDER_WATER			0x40
-#define PMF_PUSHED				0x80 // disables stair checking
-#define PMF_NO_PREDICTION		0x100 // temporarily disables prediction
-#define PMF_TIME_TRICK_JUMP		0x200 // time eligible for trick jump
-#define PMF_TIME_WATER_JUMP		0x400 // time before control
-#define PMF_TIME_LAND			0x800 // time before jump eligible
-#define PMF_TIME_TELEPORT		0x1000 // time frozen in place
-#define PMF_TIME_MASK			(PMF_TIME_TRICK_JUMP | PMF_TIME_WATER_JUMP | \
-									PMF_TIME_LAND | PMF_TIME_TELEPORT)
+// pm_state_t flags, the game is free to define the rest of these
+#define PMF_NO_PREDICTION	0x1
 
-// this structure needs to be communicated bit-accurate
-// from the server to the client to guarantee that
-// prediction stays in sync, so no floats are used.
-// if any part of the game code modifies this struct, it
-// will result in a prediction error of some degree.
+/*
+ * @brief The player movement state contains quantized snapshots of player
+ * position, orientation, velocity and world interaction state. This should
+ * be modified only through invoking Pm_Move.
+ */
 typedef struct pm_state_s {
-	pm_type_t pm_type;
+	pm_type_t type;
 	int16_t origin[3];
 	int16_t velocity[3];
-	uint16_t pm_flags; // ducked, jump_held, etc
-	uint16_t pm_time; // duration for PMF_TIME_* flags
+	uint16_t flags; // ducked, jump_held, etc
+	uint16_t time; // duration for PMF_TIME_* flags
 	int16_t gravity;
 	int16_t view_offset[3]; // add to origin to resolve eyes
 	int16_t view_angles[3]; // base view angles

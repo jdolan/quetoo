@@ -27,7 +27,7 @@
 static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 	cl_server_info_t *s;
 
-	s = (cl_server_info_t *) Z_TagMalloc(sizeof(*s), Z_TAG_CLIENT);
+	s = (cl_server_info_t *) Mem_TagMalloc(sizeof(*s), Z_TAG_CLIENT);
 
 	s->addr = *addr;
 	g_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
@@ -60,7 +60,7 @@ static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
  */
 void Cl_FreeServers(void) {
 
-	g_list_free_full(cls.servers, Z_Free);
+	g_list_free_full(cls.servers, Mem_Free);
 
 	cls.servers = NULL;
 }
@@ -82,7 +82,7 @@ void Cl_ParseStatusMessage(void) {
 	}
 
 	// try to parse the info string
-	g_strlcpy(info, Msg_ReadString(&net_message), sizeof(info));
+	g_strlcpy(info, Net_ReadString(&net_message), sizeof(info));
 	if (sscanf(info, "%63c\\%31c\\%31c\\%hu\\%hu", server->hostname, server->name,
 			server->gameplay, &server->clients, &server->max_clients) != 5) {
 

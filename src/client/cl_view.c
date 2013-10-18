@@ -129,13 +129,13 @@ static void Cl_UpdateOrigin(const player_state_t *ps, const player_state_t *ops)
 		vec3_t old_origin, current_origin, origin;
 		vec3_t old_offset, current_offset, offset;
 
-		UnpackPosition(ops->pm_state.origin, old_origin);
-		UnpackPosition(ps->pm_state.origin, current_origin);
+		UnpackVector(ops->pm_state.origin, old_origin);
+		UnpackVector(ps->pm_state.origin, current_origin);
 
 		VectorLerp(old_origin, current_origin, cl.lerp, origin);
 
-		UnpackPosition(ops->pm_state.view_offset, old_offset);
-		UnpackPosition(ps->pm_state.view_offset, current_offset);
+		UnpackVector(ops->pm_state.view_offset, old_offset);
+		UnpackVector(ps->pm_state.view_offset, current_offset);
 
 		VectorLerp(old_offset, current_offset, cl.lerp, offset);
 
@@ -191,7 +191,7 @@ static void Cl_UpdateAngles(const player_state_t *ps, const player_state_t *ops)
 
 	ClampAngles(r_view.angles);
 
-	if (cl.frame.ps.pm_state.pm_type == PM_DEAD) { // look only on x axis
+	if (cl.frame.ps.pm_state.type == PM_DEAD) { // look only on x axis
 		r_view.angles[0] = 0.0;
 		r_view.angles[2] = 45.0;
 	}
@@ -223,8 +223,8 @@ void Cl_UpdateView(void) {
 	if (ps != ops) { // see if we've teleported
 		vec3_t org, old_org, delta;
 
-		UnpackPosition(ps->pm_state.origin, org);
-		UnpackPosition(ops->pm_state.origin, old_org);
+		UnpackVector(ps->pm_state.origin, org);
+		UnpackVector(ops->pm_state.origin, old_org);
 
 		VectorSubtract(org, old_org, delta);
 

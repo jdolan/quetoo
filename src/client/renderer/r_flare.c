@@ -36,7 +36,7 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	if (!(m->flags & STAGE_FLARE)) // surface is not flared
 		return;
 
-	surf->flare = Z_LinkMalloc(sizeof(*surf->flare), bsp);
+	surf->flare = Mem_LinkMalloc(sizeof(*surf->flare), bsp);
 
 	// move the flare away from the surface, into the level
 	VectorMA(surf->center, 2, surf->normal, surf->flare->origin);

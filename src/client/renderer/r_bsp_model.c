@@ -35,14 +35,14 @@ static const byte *mod_base;
 static void R_LoadBspLightmaps(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	const char *c;
 
-	bsp->lightmaps = Z_LinkMalloc(sizeof(r_bsp_lightmaps_t), bsp);
+	bsp->lightmaps = Mem_LinkMalloc(sizeof(r_bsp_lightmaps_t), bsp);
 
 	if (!l->file_len) {
 		bsp->lightmaps->size = 0;
 		bsp->lightmaps->data = NULL;
 	} else {
 		bsp->lightmaps->size = l->file_len;
-		bsp->lightmaps->data = Z_LinkMalloc(l->file_len, bsp);
+		bsp->lightmaps->data = Mem_LinkMalloc(l->file_len, bsp);
 
 		memcpy(bsp->lightmaps->data, mod_base + l->file_ofs, l->file_len);
 	}
@@ -70,7 +70,7 @@ static void R_LoadBspClusters(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	d_bsp_vis_t *vis = (d_bsp_vis_t *) (mod_base + l->file_ofs);
 
 	bsp->num_clusters = LittleLong(vis->num_clusters);
-	bsp->clusters = Z_LinkMalloc(bsp->num_clusters * sizeof(r_bsp_cluster_t), bsp);
+	bsp->clusters = Mem_LinkMalloc(bsp->num_clusters * sizeof(r_bsp_cluster_t), bsp);
 }
 
 /*
@@ -86,7 +86,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	bsp->num_vertexes = l->file_len / sizeof(*in);
-	bsp->vertexes = out = Z_LinkMalloc(bsp->num_vertexes * sizeof(*out), bsp);
+	bsp->vertexes = out = Mem_LinkMalloc(bsp->num_vertexes * sizeof(*out), bsp);
 
 	for (i = 0; i < bsp->num_vertexes; i++, in++, out++) {
 		out->position[0] = LittleFloat(in->point[0]);
@@ -150,7 +150,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	bsp->num_inline_models = l->file_len / sizeof(*in);
-	bsp->inline_models = out = Z_LinkMalloc(bsp->num_inline_models * sizeof(*out), bsp);
+	bsp->inline_models = out = Mem_LinkMalloc(bsp->num_inline_models * sizeof(*out), bsp);
 
 	for (i = 0; i < bsp->num_inline_models; i++, in++, out++) {
 
@@ -198,7 +198,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 	uint16_t i;
 
 	for (i = 0; i < mod->bsp->num_inline_models; i++) {
-		r_model_t *m = Z_TagMalloc(sizeof(r_model_t), Z_TAG_RENDERER);
+		r_model_t *m = Mem_TagMalloc(sizeof(r_model_t), Z_TAG_RENDERER);
 
 		g_snprintf(m->media.name, sizeof(m->media.name), "%s#%d", mod->media.name, i);
 		m->type = MOD_BSP_INLINE;
@@ -234,7 +234,7 @@ static void R_LoadBspEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	bsp->num_edges = l->file_len / sizeof(*in);
-	bsp->edges = out = Z_LinkMalloc(bsp->num_edges * sizeof(*out), bsp);
+	bsp->edges = out = Mem_LinkMalloc(bsp->num_edges * sizeof(*out), bsp);
 
 	for (i = 0; i < bsp->num_edges; i++, in++, out++) {
 		out->v[0] = (uint16_t) LittleShort(in->v[0]);
@@ -256,7 +256,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	bsp->num_texinfo = l->file_len / sizeof(*in);
-	bsp->texinfo = out = Z_LinkMalloc(bsp->num_texinfo * sizeof(*out), bsp);
+	bsp->texinfo = out = Mem_LinkMalloc(bsp->num_texinfo * sizeof(*out), bsp);
 
 	for (i = 0; i < bsp->num_texinfo; i++, in++, out++) {
 		g_strlcpy(out->name, in->texture, sizeof(out->name));
@@ -346,7 +346,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	bsp->num_surfaces = l->file_len / sizeof(*in);
-	bsp->surfaces = out = Z_LinkMalloc(bsp->num_surfaces * sizeof(*out), bsp);
+	bsp->surfaces = out = Mem_LinkMalloc(bsp->num_surfaces * sizeof(*out), bsp);
 
 	R_BeginBspSurfaceLightmaps(bsp);
 
@@ -395,7 +395,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	// free the lightmap lump, we're done with it
 	if (bsp->lightmaps->size) {
-		Z_Free(bsp->lightmaps->data);
+		Mem_Free(bsp->lightmaps->data);
 		bsp->lightmaps->size = 0;
 	}
 }
@@ -429,7 +429,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	bsp->num_nodes = l->file_len / sizeof(*in);
-	bsp->nodes = out = Z_LinkMalloc(bsp->num_nodes * sizeof(*out), bsp);
+	bsp->nodes = out = Mem_LinkMalloc(bsp->num_nodes * sizeof(*out), bsp);
 
 	for (i = 0; i < bsp->num_nodes; i++, in++, out++) {
 
@@ -471,7 +471,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	bsp->num_leafs = l->file_len / sizeof(*in);
-	bsp->leafs = out = Z_LinkMalloc(bsp->num_leafs * sizeof(*out), bsp);
+	bsp->leafs = out = Mem_LinkMalloc(bsp->num_leafs * sizeof(*out), bsp);
 
 	for (i = 0; i < bsp->num_leafs; i++, in++, out++) {
 
@@ -505,7 +505,7 @@ static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	bsp->num_leaf_surfaces = l->file_len / sizeof(*in);
-	bsp->leaf_surfaces = out = Z_LinkMalloc(bsp->num_leaf_surfaces * sizeof(*out), bsp);
+	bsp->leaf_surfaces = out = Mem_LinkMalloc(bsp->num_leaf_surfaces * sizeof(*out), bsp);
 
 	for (i = 0; i < bsp->num_leaf_surfaces; i++) {
 
@@ -537,7 +537,7 @@ static void R_LoadBspSurfaceEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		Com_Error(ERR_DROP, "Bad surfface edges count: %i\n", count);
 	}
 
-	out = Z_LinkMalloc(count * sizeof(*out), bsp);
+	out = Mem_LinkMalloc(count * sizeof(*out), bsp);
 
 	bsp->surface_edges = out;
 	bsp->num_surface_edges = count;
@@ -561,7 +561,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	count = l->file_len / sizeof(*in);
-	out = Z_LinkMalloc(count * 2 * sizeof(*out), bsp);
+	out = Mem_LinkMalloc(count * 2 * sizeof(*out), bsp);
 
 	bsp->planes = out;
 	bsp->num_planes = count;
@@ -718,7 +718,7 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 	size_t i;
 
 	// allocate the surfaces array structures
-	sorted = Z_LinkMalloc(sizeof(r_sorted_bsp_surfaces_t), mod->bsp);
+	sorted = Mem_LinkMalloc(sizeof(r_sorted_bsp_surfaces_t), mod->bsp);
 	mod->bsp->sorted_surfaces = sorted;
 
 	// determine the maximum counts for each rendered type in order to
@@ -761,7 +761,7 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 	for (i = 0; i < len; i++, surfs++) {
 
 		if (surfs->count) {
-			surfs->surfaces = Z_LinkMalloc(surfs->count * sizeof(r_bsp_surface_t **), mod->bsp);
+			surfs->surfaces = Mem_LinkMalloc(surfs->count * sizeof(r_bsp_surface_t **), mod->bsp);
 			surfs->count = 0;
 		}
 	}
@@ -820,7 +820,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 		Com_Error(ERR_DROP, "%s has unsupported version: %d\n", mod->media.name, header.version);
 	}
 
-	mod->bsp = Z_LinkMalloc(sizeof(r_bsp_model_t), mod);
+	mod->bsp = Mem_LinkMalloc(sizeof(r_bsp_model_t), mod);
 	mod->bsp->version = header.version;
 
 	// set the base pointer for lump loading

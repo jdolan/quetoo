@@ -673,7 +673,7 @@ static void MoveBrushesToWorld(entity_t *ent) {
 	new_brushes = ent->num_brushes;
 	world_brushes = entities[0].num_brushes;
 
-	temp = Z_Malloc(new_brushes * sizeof(map_brush_t));
+	temp = Mem_Malloc(new_brushes * sizeof(map_brush_t));
 	memcpy(temp, map_brushes + ent->first_brush,
 			new_brushes * sizeof(map_brush_t));
 
@@ -689,7 +689,7 @@ static void MoveBrushesToWorld(entity_t *ent) {
 	entities[0].num_brushes += new_brushes;
 	for (i = 1; i < num_entities; i++)
 		entities[i].first_brush += new_brushes;
-	Z_Free(temp);
+	Mem_Free(temp);
 
 	ent->num_brushes = 0;
 }

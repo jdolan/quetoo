@@ -88,10 +88,10 @@ static void Sv_ConfigString(const uint16_t index, const char *val) {
 	g_strlcpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
 
 	if (sv.state != SV_LOADING) { // send the update to everyone
-		Sb_Clear(&sv.multicast);
-		Msg_WriteChar(&sv.multicast, SV_CMD_CONFIG_STRING);
-		Msg_WriteShort(&sv.multicast, index);
-		Msg_WriteString(&sv.multicast, val);
+		Mem_ClearBuffer(&sv.multicast);
+		Net_WriteByte(&sv.multicast, SV_CMD_CONFIG_STRING);
+		Net_WriteShort(&sv.multicast, index);
+		Net_WriteString(&sv.multicast, val);
 
 		Sv_Multicast(vec3_origin, MULTICAST_ALL_R);
 	}
@@ -102,39 +102,39 @@ static void Sv_ConfigString(const uint16_t index, const char *val) {
  */
 
 static void Sv_WriteData(const void *data, size_t len) {
-	Msg_WriteData(&sv.multicast, data, len);
+	Net_WriteData(&sv.multicast, data, len);
 }
 
 static void Sv_WriteChar(const int32_t c) {
-	Msg_WriteChar(&sv.multicast, c);
+	Net_WriteChar(&sv.multicast, c);
 }
 
 static void Sv_WriteByte(const int32_t c) {
-	Msg_WriteByte(&sv.multicast, c);
+	Net_WriteByte(&sv.multicast, c);
 }
 
 static void Sv_WriteShort(const int32_t c) {
-	Msg_WriteShort(&sv.multicast, c);
+	Net_WriteShort(&sv.multicast, c);
 }
 
 static void Sv_WriteLong(const int32_t c) {
-	Msg_WriteLong(&sv.multicast, c);
+	Net_WriteLong(&sv.multicast, c);
 }
 
 static void Sv_WriteString(const char *s) {
-	Msg_WriteString(&sv.multicast, s);
+	Net_WriteString(&sv.multicast, s);
 }
 
 static void Sv_WritePos(const vec3_t pos) {
-	Msg_WritePos(&sv.multicast, pos);
+	Net_WritePos(&sv.multicast, pos);
 }
 
 static void Sv_WriteDir(const vec3_t dir) {
-	Msg_WriteDir(&sv.multicast, dir);
+	Net_WriteDir(&sv.multicast, dir);
 }
 
 static void Sv_WriteAngle(const vec_t v) {
-	Msg_WriteAngle(&sv.multicast, v);
+	Net_WriteAngle(&sv.multicast, v);
 }
 
 /*
@@ -234,10 +234,10 @@ void Sv_InitGame(void) {
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Sv_GameError;
 
-	import.Malloc = Z_TagMalloc;
-	import.LinkMalloc = Z_LinkMalloc;
-	import.Free = Z_Free;
-	import.FreeTag = Z_FreeTag;
+	import.Malloc = Mem_TagMalloc;
+	import.LinkMalloc = Mem_LinkMalloc;
+	import.Free = Mem_Free;
+	import.FreeTag = Mem_FreeTag;
 
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;
@@ -320,8 +320,8 @@ void Sv_ShutdownGame(void) {
 	Cmd_RemoveAll(CMD_GAME);
 
 	// the game module code should call this, but lets not assume
-	Z_FreeTag(Z_TAG_GAME_LEVEL);
-	Z_FreeTag(Z_TAG_GAME);
+	Mem_FreeTag(Z_TAG_GAME_LEVEL);
+	Mem_FreeTag(Z_TAG_GAME);
 
 	Com_Print("Game down\n");
 	Com_QuitSubsystem(Q2W_GAME);

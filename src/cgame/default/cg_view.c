@@ -20,6 +20,7 @@
  */
 
 #include "cg_local.h"
+#include "game/default/bg_pmove.h"
 
 /*
  * @brief Update the field of view, which affects the view port as well as the culling
@@ -107,16 +108,16 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	if (cg_third_person->value)
 		return;
 
-	if (ps->pm_state.pm_type != PM_NORMAL) {
+	if (ps->pm_state.type != PM_NORMAL) {
 
 		// if we're frozen and not chasing, don't bob
 		if (!ps->stats[STAT_CHASE])
 			return;
 	}
 
-	const _Bool ducked = ps->pm_state.pm_flags & PMF_DUCKED;
+	const _Bool ducked = ps->pm_state.flags & PMF_DUCKED;
 
-	UnpackPosition(ps->pm_state.velocity, velocity);
+	UnpackVector(ps->pm_state.velocity, velocity);
 	velocity[2] = 0.0;
 
 	vec_t speed = VectorLength(velocity) / (ducked ? 150 : 450.0);
@@ -125,7 +126,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	vec_t ftime = Clamp(cgi.view->time - vtime, 1, 1000);
 	ftime *= (1.0 + speed * 1.0 + speed);
 
-	if (!(ps->pm_state.pm_flags & PMF_ON_GROUND))
+	if (!(ps->pm_state.flags & PMF_ON_GROUND))
 		ftime *= 0.25;
 
 	time += ftime;

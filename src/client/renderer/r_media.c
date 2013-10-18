@@ -145,7 +145,7 @@ r_media_t *R_AllocMedia(const char *name, size_t size) {
 		Com_Error(ERR_DROP, "NULL name\n");
 	}
 
-	r_media_t *media = Z_TagMalloc(size, Z_TAG_RENDERER);
+	r_media_t *media = Mem_TagMalloc(size, Z_TAG_RENDERER);
 
 	g_strlcpy(media->name, name, sizeof(media->name));
 
@@ -206,7 +206,7 @@ void R_InitMedia(void) {
 
 	memset(&r_media_state, 0, sizeof(r_media_state));
 
-	r_media_state.media = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Z_Free);
+	r_media_state.media = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
 }
 
 /*

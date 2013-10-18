@@ -84,7 +84,7 @@ static void Cl_FinalizeCmd(void) {
  * to the server.
  */
 void Cl_SendCmd(void) {
-	size_buf_t buf;
+	mem_buf_t buf;
 	byte data[128];
 
 	if (cls.state <= CL_CONNECTING)
@@ -99,8 +99,8 @@ void Cl_SendCmd(void) {
 
 	// send a user info update if needed
 	if (cvar_user_info_modified) {
-		Msg_WriteByte(&cls.net_chan.message, CL_CMD_USER_INFO);
-		Msg_WriteString(&cls.net_chan.message, Cvar_UserInfo());
+		Net_WriteByte(&cls.net_chan.message, CL_CMD_USER_INFO);
+		Net_WriteString(&cls.net_chan.message, Cvar_UserInfo());
 
 		cvar_user_info_modified = false;
 	}
@@ -109,31 +109,31 @@ void Cl_SendCmd(void) {
 	Cl_FinalizeCmd();
 
 	// and write it out
-	Sb_Init(&buf, data, sizeof(data));
+	Mem_InitBuffer(&buf, data, sizeof(data));
 
-	Msg_WriteByte(&buf, CL_CMD_MOVE);
+	Net_WriteByte(&buf, CL_CMD_MOVE);
 
 	// let the server know what the last frame we got was, so the next
 	// message can be delta compressed
 	if (!cl.frame.valid || (cls.demo_file && Fs_Tell(cls.demo_file) == 0))
-		Msg_WriteLong(&buf, -1); // no compression
+		Net_WriteLong(&buf, -1); // no compression
 	else
-		Msg_WriteLong(&buf, cl.frame.server_frame);
+		Net_WriteLong(&buf, cl.frame.server_frame);
 
 	// send this and the previous two cmds in the message, so
 	// if the last packet was dropped, it can be recovered
 	static user_cmd_t null_cmd;
 
 	cl_cmd_t *cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
-	Msg_WriteDeltaUserCmd(&buf, &null_cmd, &cmd->cmd);
+	Net_WriteDeltaUserCmd(&buf, &null_cmd, &cmd->cmd);
 
 	user_cmd_t *old_cmd = &cmd->cmd;
 	cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
-	Msg_WriteDeltaUserCmd(&buf, old_cmd, &cmd->cmd);
+	Net_WriteDeltaUserCmd(&buf, old_cmd, &cmd->cmd);
 
 	old_cmd = &cmd->cmd;
 	cmd = &cl.cmds[(cls.net_chan.outgoing_sequence) & CMD_MASK];
-	Msg_WriteDeltaUserCmd(&buf, old_cmd, &cmd->cmd);
+	Net_WriteDeltaUserCmd(&buf, old_cmd, &cmd->cmd);
 
 	// deliver the message
 	Netchan_Transmit(&cls.net_chan, buf.data, buf.size);

@@ -214,8 +214,8 @@ static void Cl_ForwardCmdToServer(void) {
 	const char *cmd = Cmd_Argv(0);
 	const char *args = Cmd_Args();
 
-	Msg_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-	Sb_Print(&cls.net_chan.message, va("%s %s", cmd, args));
+	Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
+	Mem_PrintBuffer(&cls.net_chan.message, va("%s %s", cmd, args));
 
 	//Com_Debug("Forwarding '%s %s'\n", cmd, args);
 }
@@ -235,7 +235,7 @@ void Cl_ClearState(void) {
 
 	Com_QuitSubsystem(Q2W_CLIENT);
 
-	Sb_Clear(&cls.net_chan.message);
+	Mem_ClearBuffer(&cls.net_chan.message);
 }
 
 /*
@@ -354,10 +354,10 @@ void Cl_Reconnect_f(void) {
  */
 static void Cl_ConnectionlessPacket(void) {
 
-	Msg_BeginReading(&net_message);
-	Msg_ReadLong(&net_message); // skip the -1
+	Net_BeginReading(&net_message);
+	Net_ReadLong(&net_message); // skip the -1
 
-	const char *s = Msg_ReadStringLine(&net_message);
+	const char *s = Net_ReadStringLine(&net_message);
 
 	Cmd_TokenizeString(s);
 
@@ -376,8 +376,8 @@ static void Cl_ConnectionlessPacket(void) {
 		const uint8_t qport = (uint8_t) Cvar_GetValue("net_qport");
 		Netchan_Setup(NS_UDP_CLIENT, &cls.net_chan, &net_from, qport);
 
-		Msg_WriteChar(&cls.net_chan.message, CL_CMD_STRING);
-		Msg_WriteString(&cls.net_chan.message, "new");
+		Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
+		Net_WriteString(&cls.net_chan.message, "new");
 
 		cls.state = CL_CONNECTED;
 
@@ -396,7 +396,7 @@ static void Cl_ConnectionlessPacket(void) {
 
 	// print command from somewhere
 	if (!g_strcmp0(c, "print")) {
-		s = Msg_ReadString(&net_message);
+		s = Net_ReadString(&net_message);
 		Com_Print("%s", s);
 		return;
 	}
@@ -745,5 +745,5 @@ void Cl_Shutdown(void) {
 
 	Cmd_RemoveAll(CMD_CLIENT);
 
-	Z_FreeTag(Z_TAG_CLIENT);
+	Mem_FreeTag(Z_TAG_CLIENT);
 }

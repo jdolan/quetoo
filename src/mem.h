@@ -24,16 +24,16 @@
 
 #include "quake2world.h"
 
-void Z_Free(void *p);
-void Z_FreeTag(z_tag_t tag);
-void *Z_TagMalloc(size_t size, z_tag_t tag);
-void *Z_LinkMalloc(size_t size, void *parent);
-void *Z_Malloc(size_t size);
-void *Z_Link(void *parent, void *child);
-size_t Z_Size(void);
-void Z_Size_f(void);
-char *Z_CopyString(const char *in);
-void Z_Init(void);
-void Z_Shutdown(void);
+void Mem_Free(void *p);
+void Mem_FreeTag(z_tag_t tag);
+void *Mem_TagMalloc(size_t size, z_tag_t tag);
+void *Mem_LinkMalloc(size_t size, void *parent);
+void *Mem_Malloc(size_t size);
+void *Mem_Link(void *parent, void *child);
+size_t Mem_Size(void);
+void Mem_Size_f(void);
+char *Mem_CopyString(const char *in);
+void Mem_Init(void);
+void Mem_Shutdown(void);
 
 #endif /* __MEM_H__ */

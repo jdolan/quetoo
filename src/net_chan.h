@@ -23,6 +23,7 @@
 #define __NET_CHAN_H__
 
 #include "net_udp.h"
+#include "net_message.h"
 
 typedef struct {
 	_Bool fatal_error;
@@ -50,7 +51,7 @@ typedef struct {
 	uint32_t last_reliable_sequence; // sequence number of last send
 
 	// reliable staging and holding areas
-	size_buf_t message; // writing buffer to send to server
+	mem_buf_t message; // writing buffer to send to server
 	byte message_buffer[MAX_MSG_SIZE - 16]; // leave space for header
 
 	// message is copied to this buffer when it is first transfered
@@ -59,14 +60,14 @@ typedef struct {
 } net_chan_t;
 
 extern net_addr_t net_from;
-extern size_buf_t net_message;
+extern mem_buf_t net_message;
 extern byte net_message_buffer[MAX_MSG_SIZE];
 
 void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t qport);
 void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len);
 void Netchan_OutOfBand(int32_t sock, const net_addr_t *addr, const void *data, size_t len);
 void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *format, ...) __attribute__((format(printf, 3, 4)));
-_Bool Netchan_Process(net_chan_t *chan, size_buf_t *msg);
+_Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg);
 _Bool Netchan_CanReliable(net_chan_t *chan);
 _Bool Netchan_NeedReliable(net_chan_t *chan);
 void Netchan_Init(void);

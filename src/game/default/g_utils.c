@@ -62,7 +62,7 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 	VectorCopy(ent->client->locals.up, up);
 	VectorCopy(ent->s.origin, org);
 
-	const vec_t up_offset = ent->client->ps.pm_state.pm_flags & PMF_DUCKED ? 0.0 : 14.0;
+	const vec_t up_offset = ent->client->ps.pm_state.flags & PMF_DUCKED ? 0.0 : 14.0;
 	const vec_t up_scale = (30.0 - fabs(ent->s.angles[0])) / 30.0;
 
 	VectorMA(org, up_offset * up_scale, up, org);
@@ -74,7 +74,7 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 		return;
 
 	// correct the destination of the shot for the offset produced above
-	UnpackPosition(ent->client->ps.pm_state.view_offset, view);
+	UnpackVector(ent->client->ps.pm_state.view_offset, view);
 	VectorAdd(ent->s.origin, view, view);
 
 	VectorMA(view, 8192.0, forward, end);

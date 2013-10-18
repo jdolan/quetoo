@@ -53,7 +53,7 @@ void Sv_DropClient(sv_client_t *cl) {
 			svs.game->ClientDisconnect(cl->edict);
 		}
 
-		Msg_WriteByte(&cl->net_chan.message, SV_CMD_DISCONNECT);
+		Net_WriteByte(&cl->net_chan.message, SV_CMD_DISCONNECT);
 		Netchan_Transmit(&cl->net_chan, cl->net_chan.message.data, cl->net_chan.message.size);
 	}
 
@@ -319,7 +319,7 @@ static void Svc_Connect(void) {
 
 	Netchan_Setup(NS_UDP_SERVER, &client->net_chan, addr, qport);
 
-	Sb_Init(&client->datagram.buffer, client->datagram.data, sizeof(client->datagram.data));
+	Mem_InitBuffer(&client->datagram.buffer, client->datagram.data, sizeof(client->datagram.data));
 	client->datagram.buffer.allow_overflow = true;
 
 	client->last_message = svs.real_time; // don't timeout
@@ -386,10 +386,10 @@ static void Svc_RemoteCommand(void) {
  */
 static void Sv_ConnectionlessPacket(void) {
 
-	Msg_BeginReading(&net_message);
-	Msg_ReadLong(&net_message); // skip the -1 marker
+	Net_BeginReading(&net_message);
+	Net_ReadLong(&net_message); // skip the -1 marker
 
-	const char *s = Msg_ReadStringLine(&net_message);
+	const char *s = Net_ReadStringLine(&net_message);
 
 	Cmd_TokenizeString(s);
 
@@ -517,12 +517,12 @@ static void Sv_ReadPackets(void) {
 
 		// read the qport out of the message so we can fix up
 		// stupid address translating routers
-		Msg_BeginReading(&net_message);
+		Net_BeginReading(&net_message);
 
-		Msg_ReadLong(&net_message); // sequence number
-		Msg_ReadLong(&net_message); // sequence number
+		Net_ReadLong(&net_message); // sequence number
+		Net_ReadLong(&net_message); // sequence number
 
-		qport = Msg_ReadByte(&net_message) & 0xff;
+		qport = Net_ReadByte(&net_message) & 0xff;
 
 		// check for packets from connected clients
 		for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
@@ -876,7 +876,7 @@ void Sv_Init(void) {
 
 	Sv_InitMasters();
 
-	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
+	Mem_InitBuffer(&net_message, net_message_buffer, sizeof(net_message_buffer));
 
 	Net_Config(NS_UDP_SERVER, true);
 }
@@ -892,11 +892,11 @@ void Sv_Shutdown(const char *msg) {
 
 	Net_Config(NS_UDP_SERVER, false);
 
-	Sb_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
+	Mem_InitBuffer(&net_message, net_message_buffer, sizeof(net_message_buffer));
 
 	memset(&svs, 0, sizeof(svs));
 
 	Cmd_RemoveAll(CMD_SERVER);
 
-	Z_FreeTag(Z_TAG_SERVER);
+	Mem_FreeTag(Z_TAG_SERVER);
 }

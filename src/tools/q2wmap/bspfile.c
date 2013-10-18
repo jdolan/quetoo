@@ -291,7 +291,7 @@ void LoadBSPFile(char *file_name) {
 
 	CopyLump(BSP_LUMP_POP, d_bsp.dpop, 1);
 
-	Z_Free(header); // everything has been copied out
+	Mem_Free(header); // everything has been copied out
 
 	// swap everything
 	SwapBSPFile(false);
@@ -308,7 +308,7 @@ void LoadBSPFileTexinfo(char *file_name) {
 	file_t *f;
 	int32_t length, ofs;
 
-	header = Z_Malloc(sizeof(*header));
+	header = Mem_Malloc(sizeof(*header));
 
 	if (!(f = Fs_OpenRead(file_name)))
 		Com_Error(ERR_FATAL, "Could not open %s\n", file_name);
@@ -335,7 +335,7 @@ void LoadBSPFileTexinfo(char *file_name) {
 
 	d_bsp.num_texinfo = length / sizeof(d_bsp_texinfo_t);
 
-	Z_Free(header); // everything has been copied out
+	Mem_Free(header); // everything has been copied out
 
 	SwapBSPFile(false);
 }
@@ -500,15 +500,15 @@ static void StripTrailing(char *e) {
 epair_t *ParseEpair(void) {
 	epair_t *e;
 
-	e = Z_Malloc(sizeof(*e));
+	e = Mem_Malloc(sizeof(*e));
 
 	if (strlen(token) >= MAX_BSP_ENTITY_KEY - 1)
 		Com_Error(ERR_FATAL, "Token too long\n");
-	e->key = Z_CopyString(token);
+	e->key = Mem_CopyString(token);
 	GetToken(false);
 	if (strlen(token) >= MAX_BSP_ENTITY_VALUE - 1)
 		Com_Error(ERR_FATAL, "Token too long\n");
-	e->value = Z_CopyString(token);
+	e->value = Mem_CopyString(token);
 
 	// strip trailing spaces
 	StripTrailing(e->key);
@@ -616,17 +616,17 @@ void SetKeyValue(entity_t *ent, const char *key, const char *value) {
 
 	for (ep = ent->epairs; ep; ep = ep->next) {
 		if (!g_strcmp0(ep->key, key)) {
-			Z_Free(ep->value);
-			ep->value = Z_CopyString(value);
+			Mem_Free(ep->value);
+			ep->value = Mem_CopyString(value);
 			return;
 		}
 	}
 
-	ep = Z_Malloc(sizeof(*ep));
+	ep = Mem_Malloc(sizeof(*ep));
 	ep->next = ent->epairs;
 	ent->epairs = ep;
-	ep->key = Z_CopyString(key);
-	ep->value = Z_CopyString(value);
+	ep->key = Mem_CopyString(key);
+	ep->value = Mem_CopyString(value);
 }
 
 const char *ValueForKey(const entity_t *ent, const char *key) {

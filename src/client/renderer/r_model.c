@@ -67,19 +67,19 @@ void R_AllocVertexArrays(r_model_t *mod) {
 
 	// allocate the arrays, static models get verts, normals and tangents
 	if (mod->bsp || mod->mesh->num_frames == 1) {
-		mod->verts = Z_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
-		mod->normals = Z_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
-		mod->tangents = Z_LinkMalloc(mod->num_verts * sizeof(vec4_t), mod);
+		mod->verts = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
+		mod->normals = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
+		mod->tangents = Mem_LinkMalloc(mod->num_verts * sizeof(vec4_t), mod);
 	}
 
 	// all models get texcoords
-	mod->texcoords = Z_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
+	mod->texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
 
 	if (mod->type != MOD_BSP)
 		return;
 
 	// and BSP models get lightmap texcoords
-	mod->lightmap_texcoords = Z_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
+	mod->lightmap_texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
 }
 
 /*

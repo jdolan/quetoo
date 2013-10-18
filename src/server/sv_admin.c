@@ -369,8 +369,8 @@ static void Sv_Stuff_f(void) {
 		g_strlcat(text, Cmd_Argv(i), sizeof(text));
 	}
 
-	Msg_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
-	Msg_WriteString(&sv_client->net_chan.message, va("%s\n", text));
+	Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
+	Net_WriteString(&sv_client->net_chan.message, va("%s\n", text));
 }
 
 /*

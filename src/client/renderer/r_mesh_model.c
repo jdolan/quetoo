@@ -54,7 +54,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 		return;
 	}
 
-	md3->animations = Z_LinkMalloc(sizeof(r_md3_animation_t) * MD3_MAX_ANIMATIONS, mod->mesh);
+	md3->animations = Mem_LinkMalloc(sizeof(r_md3_animation_t) * MD3_MAX_ANIMATIONS, mod->mesh);
 
 	buffer = (char *) buf;
 	skip = 0;
@@ -159,9 +159,9 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 static void R_LoadMeshConfigs(r_model_t *mod) {
 	char path[MAX_QPATH];
 
-	mod->mesh->world_config = Z_LinkMalloc(sizeof(r_mesh_config_t), mod->mesh);
-	mod->mesh->view_config = Z_LinkMalloc(sizeof(r_mesh_config_t), mod->mesh);
-	mod->mesh->link_config = Z_LinkMalloc(sizeof(r_mesh_config_t), mod->mesh);
+	mod->mesh->world_config = Mem_LinkMalloc(sizeof(r_mesh_config_t), mod->mesh);
+	mod->mesh->view_config = Mem_LinkMalloc(sizeof(r_mesh_config_t), mod->mesh);
+	mod->mesh->link_config = Mem_LinkMalloc(sizeof(r_mesh_config_t), mod->mesh);
 
 	mod->mesh->world_config->scale = 1.0;
 
@@ -186,8 +186,8 @@ static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 	uint32_t *tri;
 	int32_t i;
 
-	tan1 = (vec3_t *) Z_Malloc(mesh->num_verts * sizeof(vec3_t));
-	tan2 = (vec3_t *) Z_Malloc(mesh->num_verts * sizeof(vec3_t));
+	tan1 = (vec3_t *) Mem_Malloc(mesh->num_verts * sizeof(vec3_t));
+	tan2 = (vec3_t *) Mem_Malloc(mesh->num_verts * sizeof(vec3_t));
 
 	tri = mesh->tris;
 
@@ -258,8 +258,8 @@ static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 		TangentVectors(normal, tan1[i], tan2[i], tangent, bitangent);
 	}
 
-	Z_Free(tan1);
-	Z_Free(tan2);
+	Mem_Free(tan1);
+	Mem_Free(tan2);
 }
 
 /*
@@ -352,8 +352,8 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 			"(%i should be %i)\n", mod->media.name, version, MD3_VERSION);
 	}
 
-	mod->mesh = Z_LinkMalloc(sizeof(r_mesh_model_t), mod);
-	mod->mesh->data = out_md3 = Z_LinkMalloc(sizeof(r_md3_t), mod->mesh);
+	mod->mesh = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
+	mod->mesh->data = out_md3 = Mem_LinkMalloc(sizeof(r_md3_t), mod->mesh);
 
 	// byte swap the header fields and sanity check
 	in_md3->ofs_frames = LittleLong(in_md3->ofs_frames);
@@ -383,7 +383,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	// load the frames
 	in_frame = (d_md3_frame_t *) ((byte *) in_md3 + in_md3->ofs_frames);
 	size = out_md3->num_frames * sizeof(d_md3_frame_t);
-	out_md3->frames = out_frame = Z_LinkMalloc(size, mod->mesh);
+	out_md3->frames = out_frame = Mem_LinkMalloc(size, mod->mesh);
 
 	ClearBounds(mod->mins, mod->maxs);
 
@@ -403,7 +403,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 		in_tag = (d_md3_tag_t *) ((byte *) in_md3 + in_md3->ofs_tags);
 		size = out_md3->num_tags * out_md3->num_frames * sizeof(r_md3_tag_t);
-		out_md3->tags = out_tag = Z_LinkMalloc(size, mod->mesh);
+		out_md3->tags = out_tag = Mem_LinkMalloc(size, mod->mesh);
 
 		for (i = 0; i < out_md3->num_frames; i++) {
 			for (l = 0; l < out_md3->num_tags; l++, in_tag++, out_tag++) {
@@ -425,7 +425,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	// load the meshes
 	in_mesh = (d_md3_mesh_t *) ((byte *) in_md3 + in_md3->ofs_meshes);
 	size = out_md3->num_meshes * sizeof(r_md3_mesh_t);
-	out_md3->meshes = out_mesh = Z_LinkMalloc(size, mod->mesh);
+	out_md3->meshes = out_mesh = Mem_LinkMalloc(size, mod->mesh);
 
 	for (i = 0; i < out_md3->num_meshes; i++, out_mesh++) {
 		memcpy(out_mesh->name, in_mesh->name, MD3_MAX_PATH);
@@ -456,7 +456,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		// load the triangle indexes
 		inindex = (uint32_t *) ((byte *) in_mesh + in_mesh->ofs_tris);
 		size = out_mesh->num_tris * sizeof(uint32_t) * 3;
-		out_mesh->tris = out_index = Z_LinkMalloc(size, mod->mesh);
+		out_mesh->tris = out_index = Mem_LinkMalloc(size, mod->mesh);
 
 		for (j = 0; j < out_mesh->num_tris; j++, inindex += 3, out_index += 3) {
 			out_index[0] = (uint32_t) LittleLong(inindex[0]);
@@ -467,7 +467,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		// load the texcoords
 		in_coord = (d_md3_texcoord_t *) ((byte *) in_mesh + in_mesh->ofs_tcs);
 		size = out_mesh->num_verts * sizeof(d_md3_texcoord_t);
-		out_mesh->coords = out_coord = Z_LinkMalloc(size, mod->mesh);
+		out_mesh->coords = out_coord = Mem_LinkMalloc(size, mod->mesh);
 
 		for (j = 0; j < out_mesh->num_verts; j++, in_coord++, out_coord++) {
 			out_coord->st[0] = LittleFloat(in_coord->st[0]);
@@ -477,7 +477,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		// load the verts and norms
 		in_vert = (d_md3_vertex_t *) ((byte *) in_mesh + in_mesh->ofs_verts);
 		size = out_md3->num_frames * out_mesh->num_verts * sizeof(r_md3_vertex_t);
-		out_mesh->verts = out_vert = Z_LinkMalloc(size, mod->mesh);
+		out_mesh->verts = out_vert = Mem_LinkMalloc(size, mod->mesh);
 
 		for (l = 0; l < out_md3->num_frames; l++) {
 			for (j = 0; j < out_mesh->num_verts; j++, in_vert++, out_vert++) {
@@ -529,8 +529,8 @@ static void R_LoadObjModelTangents(r_obj_t *obj) {
 	r_obj_tri_t *tri;
 	int32_t i, j;
 
-	tan1 = (vec3_t *) Z_Malloc(obj->num_verts * sizeof(vec3_t));
-	tan2 = (vec3_t *) Z_Malloc(obj->num_verts * sizeof(vec3_t));
+	tan1 = (vec3_t *) Mem_Malloc(obj->num_verts * sizeof(vec3_t));
+	tan2 = (vec3_t *) Mem_Malloc(obj->num_verts * sizeof(vec3_t));
 
 	tri = obj->tris;
 
@@ -612,8 +612,8 @@ static void R_LoadObjModelTangents(r_obj_t *obj) {
 		}
 	}
 
-	Z_Free(tan1);
-	Z_Free(tan2);
+	Mem_Free(tan1);
+	Mem_Free(tan2);
 }
 
 /*
@@ -882,8 +882,8 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	const vec_t *v;
 	int32_t i;
 
-	mod->mesh = Z_LinkMalloc(sizeof(r_mesh_model_t), mod);
-	mod->mesh->data = obj = Z_LinkMalloc(sizeof(r_obj_t), mod->mesh);
+	mod->mesh = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
+	mod->mesh->data = obj = Mem_LinkMalloc(sizeof(r_obj_t), mod->mesh);
 
 	R_LoadObjModel_(mod, obj, buffer); // resolve counts
 
@@ -894,13 +894,13 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	mod->mesh->num_frames = 1;
 
 	// allocate the arrays
-	obj->verts = Z_LinkMalloc(obj->num_verts * sizeof(vec_t) * 3, mod->mesh);
-	obj->normals = Z_LinkMalloc(obj->num_normals * sizeof(vec_t) * 3, mod->mesh);
-	obj->texcoords = Z_LinkMalloc(obj->num_texcoords * sizeof(vec_t) * 2, mod->mesh);
-	obj->tris = Z_LinkMalloc(obj->num_tris * sizeof(r_obj_tri_t), mod->mesh);
+	obj->verts = Mem_LinkMalloc(obj->num_verts * sizeof(vec_t) * 3, mod->mesh);
+	obj->normals = Mem_LinkMalloc(obj->num_normals * sizeof(vec_t) * 3, mod->mesh);
+	obj->texcoords = Mem_LinkMalloc(obj->num_texcoords * sizeof(vec_t) * 2, mod->mesh);
+	obj->tris = Mem_LinkMalloc(obj->num_tris * sizeof(r_obj_tri_t), mod->mesh);
 
 	// including the tangents
-	obj->tangents = Z_LinkMalloc(obj->num_verts * sizeof(vec_t) * 4, mod->mesh);
+	obj->tangents = Mem_LinkMalloc(obj->num_verts * sizeof(vec_t) * 4, mod->mesh);
 
 	R_LoadObjModel_(mod, obj, buffer); // load it
 

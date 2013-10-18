@@ -155,7 +155,7 @@ int32_t CountBrushList(bsp_brush_t * brushes) {
 tree_t *AllocTree(void) {
 	tree_t *tree;
 
-	tree = Z_Malloc(sizeof(*tree));
+	tree = Mem_Malloc(sizeof(*tree));
 	ClearBounds(tree->mins, tree->maxs);
 
 	return tree;
@@ -169,7 +169,7 @@ node_t *AllocNode(void) {
 	if (debug)
 		SDL_SemPost(semaphores.active_nodes);
 
-	return Z_Malloc(sizeof(node_t));
+	return Mem_Malloc(sizeof(node_t));
 }
 
 /*
@@ -180,7 +180,7 @@ void FreeNode(node_t *node) {
 	if (debug)
 		SDL_SemWait(semaphores.active_nodes);
 
-	Z_Free(node);
+	Mem_Free(node);
 }
 
 /*
@@ -193,7 +193,7 @@ bsp_brush_t *AllocBrush(int32_t num_sides) {
 	if (debug)
 		SDL_SemPost(semaphores.active_brushes);
 
-	return Z_Malloc(size);
+	return Mem_Malloc(size);
 }
 
 /*
@@ -209,7 +209,7 @@ void FreeBrush(bsp_brush_t * brush) {
 	if (debug)
 		SDL_SemWait(semaphores.active_brushes);
 
-	Z_Free(brush);
+	Mem_Free(brush);
 }
 
 /*

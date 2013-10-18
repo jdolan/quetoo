@@ -58,8 +58,8 @@ void PerpendicularVector(vec3_t dst, const vec3_t src);
 void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent, vec3_t bitangent);
 void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, vec_t degrees);
 
-void PackPosition(const vec3_t in, int16_t *out);
-void UnpackPosition(const int16_t *in, vec3_t out);
+void PackVector(const vec3_t in, int16_t *out);
+void UnpackVector(const int16_t *in, vec3_t out);
 #define PackAngle(x) ((uint16_t)((x) * 65536 / 360.0) & 65535)
 void PackAngles(const vec3_t in, int16_t *out);
 #define UnpackAngle(x) ((x) * (360.0 / 65536.0))

@@ -19,14 +19,27 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __NET_TCP_H__
-#define __NET_TCP_H__
+#ifndef __MEM_BUF_H__
+#define __MEM_BUF_H__
 
-#include "net.h"
+#include "quake2world.h"
 
-int32_t Net_Connect(const char *host, struct timeval *timeout);
+/*
+ * @brief A fixed-sized buffer, used for accumulating e.g. net messages.
+ */
+typedef struct size_buf_s {
+	_Bool allow_overflow; // error if false and overflow occurs
+	_Bool overflowed; // set to true when a write exceeds max_size
+	byte *data;
+	size_t max_size; // maximum size before overflow
+	size_t size; // current size
+	size_t read;
+} mem_buf_t;
 
-_Bool Net_SendStream(int32_t sock, const void *data, size_t len);
-_Bool Net_ReceiveStream(int32_t sock, mem_buf_t *buf);
+void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t length);
+void Mem_ClearBuffer(mem_buf_t *buf);
+void *Mem_AllocBuffer(mem_buf_t *buf, size_t length);
+void Mem_WriteBuffer(mem_buf_t *buf, const void *data, size_t len);
+void Mem_PrintBuffer(mem_buf_t *buf, const char *data);
 
-#endif /* __NET_TCP_H__ */
+#endif /* __MEM_BUF_H__ */

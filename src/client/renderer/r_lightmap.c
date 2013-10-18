@@ -188,13 +188,13 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 	const size_t size = smax * tmax;
 	stride -= (smax * 3);
 
-	lightmap = (byte *) Z_TagMalloc(size * 3, Z_TAG_RENDERER);
+	lightmap = (byte *) Mem_TagMalloc(size * 3, Z_TAG_RENDERER);
 	lm = lightmap;
 
 	deluxemap = dm = NULL;
 
 	if (bsp->version == BSP_VERSION_Q2W) {
-		deluxemap = (byte *) Z_TagMalloc(size * 3, Z_TAG_RENDERER);
+		deluxemap = (byte *) Mem_TagMalloc(size * 3, Z_TAG_RENDERER);
 		dm = deluxemap;
 	}
 
@@ -241,10 +241,10 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 		}
 	}
 
-	Z_Free(lightmap);
+	Mem_Free(lightmap);
 
 	if (bsp->version == BSP_VERSION_Q2W)
-		Z_Free(deluxemap);
+		Mem_Free(deluxemap);
 }
 
 /*
@@ -312,10 +312,10 @@ void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 
 	const r_pixel_t bs = r_lightmap_state.block_size;
 
-	r_lightmap_state.allocated = Z_TagMalloc(bs * sizeof(r_pixel_t), Z_TAG_RENDERER);
+	r_lightmap_state.allocated = Mem_TagMalloc(bs * sizeof(r_pixel_t), Z_TAG_RENDERER);
 
-	r_lightmap_state.sample_buffer = Z_TagMalloc(bs * bs * sizeof(uint32_t), Z_TAG_RENDERER);
-	r_lightmap_state.direction_buffer = Z_TagMalloc(bs * bs * sizeof(uint32_t), Z_TAG_RENDERER);
+	r_lightmap_state.sample_buffer = Mem_TagMalloc(bs * bs * sizeof(uint32_t), Z_TAG_RENDERER);
+	r_lightmap_state.direction_buffer = Mem_TagMalloc(bs * bs * sizeof(uint32_t), Z_TAG_RENDERER);
 
 	// generate the initial texture for lightmap data
 	r_lightmap_state.lightmap = R_AllocLightmap();
@@ -334,8 +334,8 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 	// upload the pending lightmap block
 	R_UploadLightmapBlock(bsp);
 
-	Z_Free(r_lightmap_state.allocated);
+	Mem_Free(r_lightmap_state.allocated);
 
-	Z_Free(r_lightmap_state.sample_buffer);
-	Z_Free(r_lightmap_state.direction_buffer);
+	Mem_Free(r_lightmap_state.sample_buffer);
+	Mem_Free(r_lightmap_state.direction_buffer);
 }
