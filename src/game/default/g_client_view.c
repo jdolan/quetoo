@@ -20,6 +20,7 @@
  */
 
 #include "g_local.h"
+#include "bg_pmove.h"
 
 /*
  * @brief Inspect all damage received this frame and play a pain sound if appropriate.

@@ -20,6 +20,7 @@
  */
 
 #include "g_local.h"
+#include "bg_pmove.h"
 
 /*
  * @brief Make a tasteless death announcement.

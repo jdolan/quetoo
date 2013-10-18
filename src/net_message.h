@@ -71,7 +71,6 @@
 #define U_SOUND					0x100 // looped sounds
 #define U_SOLID					0x200
 #define U_REMOVE				0x400 // remove this entity, don't add it
-
 /*
  * @brief Message authoring facilities.
  */

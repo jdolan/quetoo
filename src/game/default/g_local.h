@@ -29,7 +29,6 @@
 #define Warn(...) Warn_(__func__, __VA_ARGS__)
 #define Error(...) Error_(__func__, __VA_ARGS__)
 
-#include "bg_pmove.h"
 #include "g_ai.h"
 #include "g_ai_goal.h"
 #include "g_ballistics.h"

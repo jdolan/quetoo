@@ -72,7 +72,7 @@
 #define PM_SPEED_DUCK_STAND		225.0
 #define PM_SPEED_DUCKED			140.0
 #define PM_SPEED_FALL			-420.0
-#define PM_SPEED_FALL_FAR		-560.0
+#define PM_SPEED_FALL_FAR		-700.0
 #define PM_SPEED_JUMP			262.5
 #define PM_SPEED_LADDER			125.0
 #define PM_SPEED_LAND			-300.0
