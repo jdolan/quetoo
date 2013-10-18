@@ -205,7 +205,7 @@ void S_FrameMusic(void) {
 	}
 
 	// if music is enabled but not playing, play that funky music
-	if (s_music_volume->value && !s_music_state.current_music)
+	if (s_music_volume->value && !Mix_PlayingMusic())
 		S_NextTrack_f();
 }
 
