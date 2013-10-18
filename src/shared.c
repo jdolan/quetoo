@@ -24,9 +24,6 @@
 
 vec3_t vec3_origin = { 0.0, 0.0, 0.0 };
 
-vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
-vec3_t PM_MAXS = { 16.0, 16.0, 40.0 };
-
 /*
  * @brief Returns a pseudo-random positive integer.
  *

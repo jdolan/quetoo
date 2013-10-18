@@ -20,6 +20,7 @@
  */
 
 #include "cg_local.h"
+#include "game/default/bg_pmove.h"
 
 /*
  * @brief

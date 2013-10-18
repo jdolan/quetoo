@@ -624,13 +624,11 @@ static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles) {
  */
 static void G_ClientRespawn_(g_edict_t *ent) {
 	vec3_t spawn_origin, spawn_angles, old_angles;
-	g_client_t *cl;
-	g_client_persistent_t persistent;
 
 	// find a spawn point
 	G_SelectSpawnPoint(ent, spawn_origin, spawn_angles);
 
-	cl = ent->client;
+	g_client_t *cl = ent->client;
 
 	// retain last angles for delta
 	VectorCopy(ent->client->locals.cmd_angles, old_angles);
@@ -639,7 +637,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	G_InitClientPersistent(cl);
 
 	// clear everything but locals
-	persistent = cl->locals.persistent;
+	g_client_persistent_t persistent = cl->locals.persistent;
 	memset(cl, 0, sizeof(*cl));
 	cl->locals.persistent = persistent;
 

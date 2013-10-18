@@ -24,6 +24,12 @@
 
 #include "shared.h"
 
+// player bounding box and view height scaling
+#define PM_SCALE 1.0
+
+extern vec3_t PM_MINS;
+extern vec3_t PM_MAXS;
+
 void Pm_Move(pm_move_t *pm_move);
 
 #endif /* __PMOVE_H__ */

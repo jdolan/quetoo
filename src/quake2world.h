@@ -312,12 +312,6 @@ typedef struct c_trace_s {
 	struct g_edict_s *ent; // not set by Cm_*() functions
 } c_trace_t;
 
-// player bounding box and view height scaling
-#define PM_SCALE			1.125
-
-extern vec3_t PM_MINS;
-extern vec3_t PM_MAXS;
-
 // pmove_state_t is the information necessary for client side movement prediction
 typedef enum {
 	// can accelerate and turn

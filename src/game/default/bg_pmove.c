@@ -21,6 +21,14 @@
 
 #include "bg_pmove.h"
 
+/*
+ * @brief PM_MINS and PM_MAXS are the default bounding box, scaled by PM_SCALE
+ * in Pm_Init. They are referenced in a few other places e.g. to create effects
+ * at a certain body position on the player model.
+ */
+vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
+vec3_t PM_MAXS = { 16.0, 16.0, 40.0 };
+
 static pm_move_t *pm;
 
 /*
@@ -58,16 +66,16 @@ static pm_locals_t pml;
 
 #define PM_DEBUG 1
 
+#define PM_FRICT_AIR			0.33
 #define PM_FRICT_GROUND			6.0
 #define PM_FRICT_GROUND_SLICK	2.0
 #define PM_FRICT_LADDER			10.0
-#define PM_FRICT_NO_GROUND		0.5
 #define PM_FRICT_SPECTATOR		3.0
 #define PM_FRICT_WATER			1.0
 
 #define PM_GRAVITY_WATER		0.55
 
-#define PM_GROUND_DIST			0.25
+#define PM_GROUND_DIST			1.0
 #define PM_GROUND_DIST_TRICK	16.0
 
 #define PM_SPEED_AIR			450.0
@@ -410,7 +418,7 @@ static void Pm_Friction(void) {
 					friction = PM_FRICT_GROUND;
 				}
 			} else {
-				friction = PM_FRICT_NO_GROUND;
+				friction = PM_FRICT_AIR;
 			}
 
 			if (pm->water_level) {
