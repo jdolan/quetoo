@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-#define UPDATE_THRESHOLD 20
+#define UPDATE_THRESHOLD 16
 
 /*
  * @brief Materials "think" every few milliseconds to advance animations.

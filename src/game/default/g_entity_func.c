@@ -535,7 +535,7 @@ void G_func_plat(g_edict_t *ent) {
 	ent->locals.move_info.speed = ent->locals.speed;
 	ent->locals.move_info.accel = ent->locals.accel;
 	ent->locals.move_info.decel = ent->locals.decel;
-	ent->locals.move_info.wait = ent->locals.wait * 1000.0; // this appears to be completely optimized out by GCC
+	ent->locals.move_info.wait = ent->locals.wait;
 	VectorCopy(ent->locals.pos1, ent->locals.move_info.start_origin);
 	VectorCopy(ent->s.angles, ent->locals.move_info.start_angles);
 	VectorCopy(ent->locals.pos2, ent->locals.move_info.end_origin);
@@ -777,7 +777,7 @@ void G_func_button(g_edict_t *ent) {
 	ent->locals.move_info.speed = ent->locals.speed;
 	ent->locals.move_info.accel = ent->locals.accel;
 	ent->locals.move_info.decel = ent->locals.decel;
-	ent->locals.move_info.wait = ent->locals.wait * 1000;
+	ent->locals.move_info.wait = ent->locals.wait;
 	VectorCopy(ent->locals.pos1, ent->locals.move_info.start_origin);
 	VectorCopy(ent->s.angles, ent->locals.move_info.start_angles);
 	VectorCopy(ent->locals.pos2, ent->locals.move_info.end_origin);
@@ -1120,9 +1120,9 @@ void G_func_door(g_edict_t *ent) {
 		ent->locals.decel = ent->locals.speed;
 
 	if (!ent->locals.wait)
-		ent->locals.wait = 3;
+		ent->locals.wait = 3.0;
 	if (!g_game.spawn.lip)
-		g_game.spawn.lip = 8;
+		g_game.spawn.lip = 8.0;
 	if (!ent->locals.dmg)
 		ent->locals.dmg = 2;
 
@@ -1157,7 +1157,7 @@ void G_func_door(g_edict_t *ent) {
 	ent->locals.move_info.speed = ent->locals.speed;
 	ent->locals.move_info.accel = ent->locals.accel;
 	ent->locals.move_info.decel = ent->locals.decel;
-	ent->locals.move_info.wait = ent->locals.wait * 1000;
+	ent->locals.move_info.wait = ent->locals.wait;
 	VectorCopy(ent->locals.pos1, ent->locals.move_info.start_origin);
 	VectorCopy(ent->s.angles, ent->locals.move_info.start_angles);
 	VectorCopy(ent->locals.pos2, ent->locals.move_info.end_origin);
@@ -1394,7 +1394,7 @@ void G_func_water(g_edict_t *self) {
 
 	if (!self->locals.wait)
 		self->locals.wait = -1;
-	self->locals.move_info.wait = self->locals.wait * 1000;
+	self->locals.move_info.wait = self->locals.wait;
 
 	self->locals.Use = G_func_door_Use;
 
@@ -1448,7 +1448,7 @@ static void G_func_train_Wait(g_edict_t *self) {
 
 	if (self->locals.move_info.wait) {
 		if (self->locals.move_info.wait > 0) {
-			self->locals.next_think = g_level.time + self->locals.move_info.wait;
+			self->locals.next_think = g_level.time + (self->locals.move_info.wait * 1000);
 			self->locals.Think = G_func_train_Next;
 		} else if (self->locals.spawn_flags & TRAIN_TOGGLE) // && wait < 0
 		{
@@ -1502,7 +1502,7 @@ static void G_func_train_Next(g_edict_t *self) {
 		goto again;
 	}
 
-	self->locals.move_info.wait = ent->locals.wait * 1000;
+	self->locals.move_info.wait = ent->locals.wait;
 	self->locals.target_ent = ent;
 
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
