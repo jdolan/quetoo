@@ -1277,6 +1277,8 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	Pm_InitLocal();
 
+	Pm_SnapPosition();
+
 	if (pm->s.type == PM_SPECTATOR) { // fly around without world interaction
 
 		Pm_ClampAngles();
@@ -1323,6 +1325,11 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	// set ground_entity, water_type, and water_level for final spot
 	Pm_CategorizePosition();
+
+	// touching the ground terminates being pushed
+	if (pm->s.flags & PMF_ON_GROUND) {
+		pm->s.flags &= ~PMF_PUSHED;
+	}
 
 	// ensure we're at a good point
 	Pm_SnapPosition();

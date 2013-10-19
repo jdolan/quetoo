@@ -1319,9 +1319,6 @@ void G_ClientBeginFrame(g_edict_t *ent) {
 
 	client = ent->client;
 
-	if (ent->locals.ground_entity) // let this be reset each frame as needed
-		client->ps.pm_state.flags &= ~PMF_PUSHED;
-
 	// run weapon think if it hasn't been done by a command
 	if (client->locals.weapon_think_time < g_level.time && !client->locals.persistent.spectator)
 		G_ClientWeaponThink(ent);

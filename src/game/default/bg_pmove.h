@@ -112,13 +112,13 @@ extern vec3_t PM_MAXS;
  * @brief Game-specific flags for pm_state_t.flags.
  */
 #define PMF_DUCKED				0x2 // player is ducked
-#define PMF_JUMPED				0x4 // player just jumped
+#define PMF_JUMPED				0x4 // player jumped
 #define PMF_JUMP_HELD			0x8 // player's jump key is down
 #define PMF_ON_GROUND			0x10 // player is on ground
-#define PMF_ON_STAIRS			0x20 // player just traversed step
+#define PMF_ON_STAIRS			0x20 // player traversed step
 #define PMF_ON_LADDER			0x40 // player is on ladder
 #define PMF_UNDER_WATER			0x80 // player is under water
-#define PMF_PUSHED				0x100 // disable stair checking (?)
+#define PMF_PUSHED				0x100 // player pushed by entity
 #define PMF_TIME_TRICK_JUMP		0x200 // time eligible for trick jump
 #define PMF_TIME_WATER_JUMP		0x400 // time before control
 #define PMF_TIME_LAND			0x800 // time before jump eligible
