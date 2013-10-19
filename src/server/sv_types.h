@@ -31,6 +31,9 @@ typedef enum {
 	SV_ACTIVE_DEMO
 } sv_state_t;
 
+/*
+ * @brief The sv_server_t struct is wiped at each level load.
+ */
 typedef struct {
 	sv_state_t state; // precache commands are only valid during load
 
@@ -71,14 +74,13 @@ typedef struct {
 #define CLIENT_RATE_MESSAGES 10  // message size, used to enforce rate throttle
 
 /*
- * We check users movement command duration every so often to ensure that
+ * @brief User movement command duration is inspected regularly to ensure that
  * they are not cheating. If their movement is too far out of sync with the
  * server's clock, we take notice and eventually kick them.
  */
-
 #define CMD_MSEC_CHECK_INTERVAL 1000
-#define CMD_MSEC_ALLOWABLE_DRIFT  CMD_MSEC_CHECK_INTERVAL + 150
-#define CMD_MSEC_MAX_DRIFT_ERRORS  10
+#define CMD_MSEC_ALLOWABLE_DRIFT CMD_MSEC_CHECK_INTERVAL + 150
+#define CMD_MSEC_MAX_DRIFT_ERRORS 10
 
 typedef struct {
 	byte *buffer;
@@ -86,7 +88,12 @@ typedef struct {
 	int32_t count;
 } sv_download_t;
 
-#define MAX_FRAME_SIZE 8192 // max buffer size of a frame, to be packetized
+/*
+ * The absolute maximum size of a frame (packet entities). Large frames are
+ * buffered and packetized for network transmission in smaller envelopes. See
+ * MAX_MSG_SIZE.
+ */
+#define MAX_FRAME_SIZE 8192
 
 typedef struct {
 	size_t offset;
@@ -103,6 +110,10 @@ typedef struct {
 	GList *messages; // message segmentation
 } sv_client_datagram_t;
 
+/*
+ * @brief Per-client accounting for protocol flow control and low-level
+ * connection state management.
+ */
 typedef struct {
 	sv_client_state_t state;
 
@@ -137,12 +148,20 @@ typedef struct {
 	net_chan_t net_chan;
 } sv_client_t;
 
-// the server runs fixed-interval frames at a configurable rate (Hz)
-#define SV_HZ_MIN 20
+/*
+ * @brief The server runs at fixed-interval frames at a configurable rate.
+ */
+#define SV_HZ_MIN 10
 #define SV_HZ_MAX 120
+
+/*
+ * @brief The default server frame rate.
+ */
 #define SV_HZ 30
 
-// clients will be dropped after no activity in so many seconds
+/*
+ * @brief Clients are dropped after 60 seconds without receiving a packet.
+ */
 #define SV_TIMEOUT 60
 
 #define MAX_MASTERS	8  // max recipients for heartbeat packets
@@ -154,17 +173,24 @@ typedef struct {
 	uint32_t time;
 } sv_challenge_t;
 
-// MAX_CHALLENGES is made large to prevent a denial of service attack that
-// could cycle all of them out before legitimate users connected.
+/*
+ * @brief MAX_CHALLENGES is large to prevent a denial of service attack that
+ * could cycle all of them out before legitimate users connected.
+ */
 #define MAX_CHALLENGES 1024
 
+/*
+ * @brief The sv_static_t structure is persistent for the execution of the
+ * game. It is only cleared when Sv_Init is called. It is not exposed to the
+ * game module.
+ */
 typedef struct {
 	_Bool initialized; // sv_init has completed
 	uint32_t real_time; // always increasing, no clamping, etc
 
 	uint32_t spawn_count; // incremented each level start, used to check late spawns
 
-	uint16_t frame_rate; // configurable server frame rate
+	uint16_t frame_rate; // configurable server frame rate (sv_hz)
 
 	sv_client_t *clients; // server-side client structures
 
