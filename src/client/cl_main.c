@@ -215,7 +215,7 @@ static void Cl_ForwardCmdToServer(void) {
 	const char *args = Cmd_Args();
 
 	Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-	Mem_PrintBuffer(&cls.net_chan.message, va("%s %s", cmd, args));
+	Net_WriteString(&cls.net_chan.message, va("%s %s", cmd, args));
 
 	//Com_Debug("Forwarding '%s %s'\n", cmd, args);
 }

@@ -74,20 +74,3 @@ void *Mem_AllocBuffer(mem_buf_t *buf, size_t length) {
 void Mem_WriteBuffer(mem_buf_t *buf, const void *data, size_t len) {
 	memcpy(Mem_AllocBuffer(buf, len), data, len);
 }
-
-/*
- * @brief
- */
-void Mem_PrintBuffer(mem_buf_t *buf, const char *data) {
-	size_t len;
-
-	len = strlen(data) + 1;
-
-	if (buf->size) {
-		if (buf->data[buf->size - 1])
-			memcpy((byte *)Mem_AllocBuffer(buf, len), data, len); // no trailing 0
-		else
-			memcpy((byte *)Mem_AllocBuffer(buf, len - 1) - 1, data, len); // write over trailing 0
-	} else
-		memcpy((byte *)Mem_AllocBuffer(buf, len), data, len);
-}
