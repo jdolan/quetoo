@@ -548,10 +548,10 @@ static void Pm_CategorizePosition(void) {
 				pm->s.time = 32;
 
 				if (pml.previous_velocity[2] <= PM_SPEED_FALL) {
-					pm->s.time = 250;
+					pm->s.time = 512;
 
 					if (pml.previous_velocity[2] <= PM_SPEED_FALL_FAR) {
-						pm->s.time = 500;
+						pm->s.time = 1024;
 					}
 				}
 			} else { // soft landings with upward momentum grant trick jumps
@@ -1001,7 +1001,7 @@ static void Pm_AirMove(void) {
 
 	speed = Clamp(speed, 0.0, PM_SPEED_AIR);
 
-	Pm_Accelerate(dir, speed, PM_ACCEL_NO_GROUND);
+	Pm_Accelerate(dir, speed, PM_ACCEL_AIR);
 
 	Pm_StepSlideMove();
 }

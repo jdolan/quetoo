@@ -27,9 +27,9 @@
 /*
  * @brief Acceleration constants.
  */
+#define PM_ACCEL_AIR			1.66
 #define PM_ACCEL_GROUND			10.0
 #define PM_ACCEL_GROUND_SLICK	4.375
-#define PM_ACCEL_NO_GROUND		1.15
 #define PM_ACCEL_SPECTATOR		4.5
 #define PM_ACCEL_WATER			4.0
 
@@ -46,7 +46,7 @@
 /*
  * @brief Friction constants.
  */
-#define PM_FRICT_AIR			0.33
+#define PM_FRICT_AIR			0.45
 #define PM_FRICT_GROUND			6.0
 #define PM_FRICT_GROUND_SLICK	2.0
 #define PM_FRICT_LADDER			10.0
@@ -67,12 +67,12 @@
 /*
  * @brief Speed constants; intended velocities are clipped to these.
  */
-#define PM_SPEED_AIR			450.0
+#define PM_SPEED_AIR			380.0
 #define PM_SPEED_CURRENT		100.0
 #define PM_SPEED_DUCK_STAND		225.0
 #define PM_SPEED_DUCKED			140.0
-#define PM_SPEED_FALL			-420.0
-#define PM_SPEED_FALL_FAR		-700.0
+#define PM_SPEED_FALL			-540.0
+#define PM_SPEED_FALL_FAR		-720.0
 #define PM_SPEED_JUMP			262.5
 #define PM_SPEED_LADDER			125.0
 #define PM_SPEED_LAND			-300.0
