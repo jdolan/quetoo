@@ -1026,6 +1026,8 @@ static void Pm_WalkMove(void) {
 
 	// Pm_Debug("%s\n", vtos(pml.origin));
 
+	Pm_ClipVelocity(pml.velocity, pml.ground_plane.normal, pml.velocity, PM_CLIP_BOUNCE);
+
 	Pm_Friction();
 
 	pml.forward[2] = 0.0;
