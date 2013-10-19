@@ -35,7 +35,7 @@ typedef struct {
 	sv_state_t state; // precache commands are only valid during load
 
 	uint32_t time; // always sv.frame_num * 1000 / sv_packetrate->value
-	uint32_t frame_num;
+	int32_t frame_num;
 
 	char name[MAX_QPATH]; // map name
 	struct c_model_s *models[MAX_BSP_MODELS];

@@ -102,7 +102,7 @@ void Cl_WriteDemoMessage(void) {
 		return;
 
 	if (!Fs_Tell(cls.demo_file)) {
-		if (cl.frame.delta_frame < 0) {
+		if (cl.frame.delta_frame_num < 0) {
 			Com_Debug("Received uncompressed frame, writing demo header..\n");
 			Cl_WriteDemoHeader();
 		} else {

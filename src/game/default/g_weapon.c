@@ -237,7 +237,7 @@ static _Bool G_FireWeapon(g_edict_t *ent) {
 
 	ent->client->locals.latched_buttons &= ~BUTTON_ATTACK;
 
-	// use small epsilon for low server_frame rates
+	// use small epsilon for low frame_num rates
 	if (ent->client->locals.weapon_fire_time > g_level.time + 1)
 		return false;
 

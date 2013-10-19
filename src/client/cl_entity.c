@@ -41,10 +41,10 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t num
 
 	// some data changes will force no interpolation
 	if (to->event == EV_CLIENT_TELEPORT) {
-		ent->server_frame = -99999;
+		ent->frame_num = -99999;
 	}
 
-	if (ent->server_frame != cl.frame.server_frame - 1) {
+	if (ent->frame_num != cl.frame.frame_num - 1) {
 		// wasn't in last update, so initialize some things
 		// duplicate the current state so interpolation works
 		ent->prev = *to;
@@ -54,32 +54,32 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t num
 		ent->prev = ent->current;
 	}
 
-	ent->server_frame = cl.frame.server_frame;
+	ent->frame_num = cl.frame.frame_num;
 	ent->current = *to;
 }
 
 /*
  * @brief An svc_packetentities has just been parsed, deal with the rest of the data stream.
  */
-static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame) {
+static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	entity_state_t *old_state = NULL;
 	uint32_t old_index;
 	uint16_t old_number;
 
-	new_frame->entity_state = cl.entity_state;
-	new_frame->num_entities = 0;
+	frame->entity_state = cl.entity_state;
+	frame->num_entities = 0;
 
 	// delta from the entities present in old_frame
 	old_index = 0;
 
-	if (!old_frame)
+	if (!delta_frame)
 		old_number = 0xffff;
 	else {
-		if (old_index >= old_frame->num_entities)
+		if (old_index >= delta_frame->num_entities)
 			old_number = 0xffff;
 		else {
-			old_state
-					= &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
+			old_state = &cl.entity_states[(delta_frame->entity_state + old_index)
+					& ENTITY_STATE_MASK];
 			old_number = old_state->number;
 		}
 	}
@@ -103,14 +103,14 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   unchanged: %i\n", old_number);
 
-			Cl_DeltaEntity(new_frame, old_state, old_number, 0);
+			Cl_DeltaEntity(frame, old_state, old_number, 0);
 
 			old_index++;
 
-			if (old_index >= old_frame->num_entities)
+			if (old_index >= delta_frame->num_entities)
 				old_number = 0xffff;
 			else {
-				old_state = &cl.entity_states[(old_frame->entity_state + old_index)
+				old_state = &cl.entity_states[(delta_frame->entity_state + old_index)
 						& ENTITY_STATE_MASK];
 				old_number = old_state->number;
 			}
@@ -126,10 +126,10 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 
 			old_index++;
 
-			if (old_index >= old_frame->num_entities)
+			if (old_index >= delta_frame->num_entities)
 				old_number = 0xffff;
 			else {
-				old_state = &cl.entity_states[(old_frame->entity_state + old_index)
+				old_state = &cl.entity_states[(delta_frame->entity_state + old_index)
 						& ENTITY_STATE_MASK];
 				old_number = old_state->number;
 			}
@@ -141,14 +141,14 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   delta: %i\n", number);
 
-			Cl_DeltaEntity(new_frame, old_state, number, bits);
+			Cl_DeltaEntity(frame, old_state, number, bits);
 
 			old_index++;
 
-			if (old_index >= old_frame->num_entities)
+			if (old_index >= delta_frame->num_entities)
 				old_number = 0xffff;
 			else {
-				old_state = &cl.entity_states[(old_frame->entity_state + old_index)
+				old_state = &cl.entity_states[(delta_frame->entity_state + old_index)
 						& ENTITY_STATE_MASK];
 				old_number = old_state->number;
 			}
@@ -160,7 +160,7 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   baseline: %i\n", number);
 
-			Cl_DeltaEntity(new_frame, &cl.entities[number].baseline, number, bits);
+			Cl_DeltaEntity(frame, &cl.entities[number].baseline, number, bits);
 			continue;
 		}
 	}
@@ -171,15 +171,15 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
 		if (cl_show_net_messages->integer == 3)
 			Com_Print("   unchanged: %i\n", old_number);
 
-		Cl_DeltaEntity(new_frame, old_state, old_number, 0);
+		Cl_DeltaEntity(frame, old_state, old_number, 0);
 
 		old_index++;
 
-		if (old_index >= old_frame->num_entities)
+		if (old_index >= delta_frame->num_entities)
 			old_number = 0xffff;
 		else {
-			old_state
-					= &cl.entity_states[(old_frame->entity_state + old_index) & ENTITY_STATE_MASK];
+			old_state = &cl.entity_states[(delta_frame->entity_state + old_index)
+					& ENTITY_STATE_MASK];
 			old_number = old_state->number;
 		}
 	}
@@ -189,17 +189,17 @@ static void Cl_ParseEntities(const cl_frame_t *old_frame, cl_frame_t *new_frame)
  * @brief Parse the player_state_t for the current frame from the server, using delta
  * compression for all fields where possible.
  */
-static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_frame) {
+static void Cl_ParsePlayerstate(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	player_state_t *ps;
 	uint16_t pm_state_bits;
 	int32_t i;
 	uint32_t stat_bits;
 
-	ps = &new_frame->ps;
+	ps = &frame->ps;
 
 	// copy old value before delta parsing
-	if (old_frame)
-		*ps = old_frame->ps;
+	if (delta_frame)
+		*ps = delta_frame->ps;
 	else
 		// or start clean
 		memset(ps, 0, sizeof(*ps));
@@ -273,46 +273,47 @@ static void Cl_ParsePlayerstate(const cl_frame_t *old_frame, cl_frame_t *new_fra
  * @brief
  */
 void Cl_ParseFrame(void) {
-	size_t len;
-	cl_frame_t *old_frame;
+	cl_frame_t *delta_frame;
 
-	cl.frame.server_frame = Net_ReadLong(&net_message);
-	cl.frame.server_time = cl.frame.server_frame * 1000 / cl.server_hz;
+	cl.frame.frame_num = Net_ReadLong(&net_message);
 
-	cl.frame.delta_frame = Net_ReadLong(&net_message);
+	cl.frame.delta_frame_num = Net_ReadLong(&net_message);
 
 	cl.surpress_count = Net_ReadByte(&net_message);
 
 	if (cl_show_net_messages->integer == 3)
-		Com_Print("   frame:%i  delta:%i\n", cl.frame.server_frame, cl.frame.delta_frame);
+		Com_Print("   frame:%i  delta:%i\n", cl.frame.frame_num, cl.frame.delta_frame_num);
 
-	if (cl.frame.delta_frame <= 0) { // uncompressed frame
-		old_frame = NULL;
+	if (cl.frame.delta_frame_num <= 0) { // uncompressed frame
+		delta_frame = NULL;
 		cl.frame.valid = true;
 	} else { // delta compressed frame
-		old_frame = &cl.frames[cl.frame.delta_frame & PACKET_MASK];
+		delta_frame = &cl.frames[cl.frame.delta_frame_num & PACKET_MASK];
 
-		if (!old_frame->valid)
+		if (!delta_frame->valid)
 			Com_Error(ERR_DROP, "Delta from invalid frame\n");
 
-		if (old_frame->server_frame != (uint32_t) cl.frame.delta_frame)
+		if (delta_frame->frame_num != cl.frame.delta_frame_num)
 			Com_Error(ERR_DROP, "Delta frame too old\n");
 
-		else if (cl.entity_state - old_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP)
+		else if (cl.entity_state - delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP)
 			Com_Error(ERR_DROP, "Delta parse_entities too old\n");
 
 		cl.frame.valid = true;
 	}
 
-	len = Net_ReadByte(&net_message); // read area_bits
+	const size_t len = Net_ReadByte(&net_message); // read area_bits
 	Net_ReadData(&net_message, &cl.frame.area_bits, len);
 
-	Cl_ParsePlayerstate(old_frame, &cl.frame);
+	Cl_ParsePlayerstate(delta_frame, &cl.frame);
 
-	Cl_ParseEntities(old_frame, &cl.frame);
+	Cl_ParseEntities(delta_frame, &cl.frame);
+
+	// set the simulation time for the frame
+	cl.frame.time = cl.frame.frame_num * 1000 / cl.server_hz;
 
 	// save the frame off in the backup array for later delta comparisons
-	cl.frames[cl.frame.server_frame & PACKET_MASK] = cl.frame;
+	cl.frames[cl.frame.frame_num & PACKET_MASK] = cl.frame;
 
 	if (cl.frame.valid) {
 		// getting a valid frame message ends the connection process

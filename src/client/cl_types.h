@@ -33,14 +33,14 @@ typedef struct {
 } cl_cmd_t;
 
 typedef struct {
-	_Bool valid; // cleared if delta parsing was invalid
-	uint32_t server_frame;
-	uint32_t server_time; // server time the message is valid for (in milliseconds)
-	int32_t delta_frame; // negatives indicate no delta
+	uint32_t time; // simulation time for which the frame is valid
+	int32_t frame_num; // sequential identifier, used for delta
+	int32_t delta_frame_num; // negatives indicate no delta
 	byte area_bits[MAX_BSP_AREAS >> 3]; // portal area visibility bits
 	player_state_t ps;
 	uint16_t num_entities;
 	uint32_t entity_state; // non-masked index into cl.entity_states array
+	_Bool valid; // cleared if delta parsing failed
 } cl_frame_t;
 
 typedef struct {
@@ -57,12 +57,12 @@ typedef struct {
 	entity_state_t current;
 	entity_state_t prev; // will always be valid, but might just be a copy of current
 
-	uint32_t server_frame; // if not current, this entity isn't in the frame
+	int32_t frame_num; // if not current, this entity isn't in the frame
 
 	uint32_t time; // for intermittent effects
 
-	cl_entity_animation_t animation1;
-	cl_entity_animation_t animation2;
+	cl_entity_animation_t animation1; // upper body animation
+	cl_entity_animation_t animation2; // lower body animation
 
 	r_lighting_t lighting; // cached static lighting info
 } cl_entity_t;
@@ -85,12 +85,18 @@ typedef struct {
 	r_image_t *icon; // for the scoreboard
 } cl_client_info_t;
 
-#define CMD_BACKUP 64 // allow a lot of command backups for very fast systems
+/*
+ * @brief A circular buffer of recently sent user_cmd_t is maintained so that
+ * we can always re-send the last 2 commands to counter packet loss, and so
+ * that client-side prediction can verify its accuracy.
+ */
+#define CMD_BACKUP 64
 #define CMD_MASK (CMD_BACKUP - 1)
 
-// client side prediction output, produced by running sent but unacknowledged
-// user_cmd_t's through the player movement code locally
-
+/*
+ * @brief Client side prediction output, produced by running sent but
+ * unacknowledged user_cmd_t's through the player movement code locally.
+ */
 typedef struct {
 	vec3_t origin; // this essentially becomes the view orientation
 
@@ -108,12 +114,17 @@ typedef struct {
 	int16_t origins[CMD_BACKUP][3]; // for debugging against the server
 } cl_predicted_state_t;
 
-// we accumulate parsed entity states in a rather large buffer so that they
-// may be safely delta'd in the future
+/*
+ * @brief We accumulate a large circular buffer of entity states for each
+ * entity in order to calculate delta compression.
+ */
 #define ENTITY_STATE_BACKUP (PACKET_BACKUP * MAX_PACKET_ENTITIES)
 #define ENTITY_STATE_MASK (ENTITY_STATE_BACKUP - 1)
 
-// the cl_client_s structure is wiped completely at every map change
+/*
+ * @brief The client structure is cleared at each level load, and is exposed to
+ * the client game module to provide access to media and other client state.
+ */
 typedef struct {
 	uint32_t time_demo_frames;
 	uint32_t time_demo_start;
@@ -169,9 +180,6 @@ typedef struct {
 	cl_client_info_t client_info[MAX_CLIENTS];
 } cl_client_t;
 
-// the client_static_t structure is persistent through an arbitrary
-// number of server connections
-
 typedef enum {
 	CL_UNINITIALIZED, // not initialized
 	CL_DISCONNECTED, // not talking to a server
@@ -203,7 +211,7 @@ typedef enum {
 	SDLK_MLAST
 } SDLButton;
 
-typedef struct cl_key_state_s {
+typedef struct {
 	cl_key_dest_t dest;
 
 	char lines[KEY_HISTORY_SIZE][KEY_LINE_SIZE];
@@ -219,19 +227,19 @@ typedef struct cl_key_state_s {
 	_Bool down[SDLK_MLAST];
 } cl_key_state_t;
 
-typedef struct cl_mouse_state_s {
+typedef struct {
 	vec_t x, y;
 	vec_t old_x, old_y;
 	_Bool grabbed;
 } cl_mouse_state_t;
 
-typedef struct cl_chat_state_s {
+typedef struct {
 	char buffer[KEY_LINE_SIZE];
 	size_t len;
 	_Bool team;
 } cl_chat_state_t;
 
-typedef struct cl_download_s {
+typedef struct {
 	_Bool http;
 	file_t *file;
 	char tempname[MAX_OSPATH];
@@ -245,7 +253,7 @@ typedef enum {
 	SERVER_SOURCE_BCAST
 } cl_server_source_t;
 
-typedef struct cl_server_info_s {
+typedef struct {
 	net_addr_t addr;
 	cl_server_source_t source;
 	char hostname[64];
@@ -257,9 +265,12 @@ typedef struct cl_server_info_s {
 	uint16_t ping; // server latency
 } cl_server_info_t;
 
-#define MAX_SERVER_INFOS 128
-
-typedef struct cl_static_s {
+/*
+ * @brief The cl_static_t structure is persistent for the execution of the
+ * game. It is only cleared when Cl_Init is called. It is not exposed to the
+ * client game module, but is (rarely) visible to other subsystems (renderer).
+ */
+typedef struct {
 	cl_state_t state;
 
 	cl_key_state_t key_state;

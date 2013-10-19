@@ -73,16 +73,23 @@ typedef dvec_t dvec2_t[2];
 typedef dvec_t dvec3_t[3];
 typedef dvec_t dvec4_t[4];
 
-// angle indexes
+/*
+ * @brief Indicies for angle vectors.
+ */
 #define PITCH				0 // up / down
 #define YAW					1 // left / right
 #define ROLL				2 // tilt / lean
+/*
+ * @brief String length constants.
+ */
 #define MAX_STRING_CHARS	1024 // max length of a string passed to Cmd_TokenizeString
 #define MAX_STRING_TOKENS	128 // max tokens resulting from Cmd_TokenizeString
 #define MAX_TOKEN_CHARS		256 // max length of an individual token
 #define MAX_QPATH			64 // max length of a quake game pathname
 #define MAX_OSPATH			256 // max length of a filesystem pathname
-// per-level limits
+/*
+ * @brief Protocol limits.
+ */
 #define MIN_CLIENTS			1 // duh
 #define MAX_CLIENTS			256 // absolute limit
 #define MAX_EDICTS			1024 // must change protocol to increase more
@@ -92,13 +99,17 @@ typedef dvec_t dvec4_t[4];
 #define MAX_IMAGES			256 // that the server knows about
 #define MAX_ITEMS			64 // pickup items
 #define MAX_GENERAL			256 // general config strings
-// print levels
+/*
+ * @brief Print message levels, for filtering.
+ */
 #define PRINT_LOW			0 // pickup messages
 #define PRINT_MEDIUM		1 // death messages
 #define PRINT_HIGH			2 // critical messages
 #define PRINT_CHAT			3 // chat messages
 #define PRINT_TEAMCHAT		4 // teamchat messages
-// console commands
+/*
+ * @brief Console command flags.
+ */
 #define CMD_SYSTEM			0x1 // always execute, even if not connected
 #define CMD_SERVER			0x2 // added by server
 #define CMD_GAME			0x4 // added by game module
@@ -107,7 +118,9 @@ typedef dvec_t dvec4_t[4];
 #define CMD_SOUND			0x20 // added by sound
 #define CMD_UI				0x40 // added by user interface
 #define CMD_CGAME			0x80 // added by client game module
-// console variables
+/*
+ * @brief Console variable flags.
+ */
 #define CVAR_CLI			0x1 // will retain value through initialization
 #define CVAR_ARCHIVE		0x2 // saved to quake2world.cfg
 #define CVAR_USER_INFO		0x4 // added to user_info when changed

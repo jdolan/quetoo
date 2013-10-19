@@ -118,7 +118,7 @@ void Cl_SendCmd(void) {
 	if (!cl.frame.valid || (cls.demo_file && Fs_Tell(cls.demo_file) == 0))
 		Net_WriteLong(&buf, -1); // no compression
 	else
-		Net_WriteLong(&buf, cl.frame.server_frame);
+		Net_WriteLong(&buf, cl.frame.frame_num);
 
 	// send this and the previous two cmds in the message, so
 	// if the last packet was dropped, it can be recovered

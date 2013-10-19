@@ -216,29 +216,29 @@ static void Sv_WritePlayerstate(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg
  * @brief
  */
 void Sv_WriteFrame(sv_client_t *client, mem_buf_t *msg) {
-	sv_frame_t *frame, *old_frame;
-	int32_t last_frame;
+	sv_frame_t *frame, *delta_frame;
+	int32_t delta_frame_num;
 
 	// this is the frame we are creating
 	frame = &client->frames[sv.frame_num & PACKET_MASK];
 
 	if (client->last_frame < 0) {
 		// client is asking for a retransmit
-		old_frame = NULL;
-		last_frame = -1;
+		delta_frame = NULL;
+		delta_frame_num = -1;
 	} else if (sv.frame_num - client->last_frame >= (PACKET_BACKUP - 3)) {
 		// client hasn't gotten a good message through in a long time
-		old_frame = NULL;
-		last_frame = -1;
+		delta_frame = NULL;
+		delta_frame_num = -1;
 	} else {
 		// we have a valid message to delta from
-		old_frame = &client->frames[client->last_frame & PACKET_MASK];
-		last_frame = client->last_frame;
+		delta_frame = &client->frames[client->last_frame & PACKET_MASK];
+		delta_frame_num = client->last_frame;
 	}
 
 	Net_WriteByte(msg, SV_CMD_FRAME);
 	Net_WriteLong(msg, sv.frame_num);
-	Net_WriteLong(msg, last_frame); // what we are delta'ing from
+	Net_WriteLong(msg, delta_frame_num); // what we are delta'ing from
 	Net_WriteByte(msg, client->surpress_count); // rate dropped packets
 	client->surpress_count = 0;
 
@@ -247,10 +247,10 @@ void Sv_WriteFrame(sv_client_t *client, mem_buf_t *msg) {
 	Net_WriteData(msg, frame->area_bits, frame->area_bytes);
 
 	// delta encode the playerstate
-	Sv_WritePlayerstate(old_frame, frame, msg);
+	Sv_WritePlayerstate(delta_frame, frame, msg);
 
 	// delta encode the entities
-	Sv_EmitEntities(old_frame, frame, msg);
+	Sv_EmitEntities(delta_frame, frame, msg);
 }
 
 /*

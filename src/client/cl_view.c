@@ -73,26 +73,26 @@ static void Cl_UpdateViewSize(void) {
 static void Cl_UpdateLerp(const cl_frame_t *from) {
 
 	if (time_demo->value) {
-		cl.time = cl.frame.server_time;
+		cl.time = cl.frame.time;
 		cl.lerp = 1.0;
 		return;
 	}
 
-	if (cl.time > cl.frame.server_time) {
-		// Com_Debug("High clamp: %dms\n", cl.time - cl.frame.server_time);
-		cl.time = cl.frame.server_time;
+	if (cl.time > cl.frame.time) {
+		// Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
+		cl.time = cl.frame.time;
 		cl.lerp = 1.0;
-	} else if (cl.time < from->server_time) {
-		// Com_Debug("Low clamp: %dms\n", from->server_time - cl.time);
-		cl.time = from->server_time;
+	} else if (cl.time < from->time) {
+		// Com_Debug("Low clamp: %dms\n", from->time - cl.time);
+		cl.time = from->time;
 		cl.lerp = 0.0;
 	} else {
-		const uint32_t delta = cl.time - from->server_time;
-		const uint32_t interval = cl.frame.server_time - from->server_time;
+		const uint32_t delta = cl.time - from->time;
+		const uint32_t interval = cl.frame.time - from->time;
 
 		if (interval == 0) {
 			Com_Debug("Bad clamp\n");
-			cl.time = cl.frame.server_time;
+			cl.time = cl.frame.time;
 			cl.lerp = 1.0;
 			return;
 		}
@@ -210,9 +210,9 @@ void Cl_UpdateView(void) {
 		return; // not a valid frame, and no forced update
 
 	// find the previous frame to interpolate from
-	cl_frame_t *prev = &cl.frames[(cl.frame.server_frame - 1) & PACKET_MASK];
+	cl_frame_t *prev = &cl.frames[(cl.frame.frame_num - 1) & PACKET_MASK];
 
-	if (prev->server_frame != cl.frame.server_frame - 1 || !prev->valid)
+	if (prev->frame_num != cl.frame.frame_num - 1 || !prev->valid)
 		prev = &cl.frame; // previous frame was dropped or invalid
 
 	Cl_UpdateLerp(prev);
