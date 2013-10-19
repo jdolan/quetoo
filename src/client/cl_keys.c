@@ -392,7 +392,7 @@ void Cl_Bind(SDLKey key, const char *binding) {
 	}
 
 	// allocate for new binding and copy it in
-	ks->binds[key] = Mem_TagMalloc(strlen(binding) + 1, Z_TAG_CLIENT);
+	ks->binds[key] = Mem_TagMalloc(strlen(binding) + 1, MEM_TAG_CLIENT);
 	strcpy(ks->binds[key], binding);
 }
 
@@ -545,7 +545,7 @@ void Cl_InitKeys(void) {
 	uint16_t i;
 	SDLKey k;
 
-	cl_key_names = Mem_TagMalloc(SDLK_MLAST * sizeof(char *), Z_TAG_CLIENT);
+	cl_key_names = Mem_TagMalloc(SDLK_MLAST * sizeof(char *), MEM_TAG_CLIENT);
 
 	for (k = SDLK_FIRST; k < SDLK_LAST; k++) {
 		cl_key_names[k] = Mem_Link(Mem_CopyString(SDL_GetKeyName(k)), cl_key_names);

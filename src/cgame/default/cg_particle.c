@@ -119,7 +119,7 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
 cg_particles_t *Cg_AllocParticles(const r_image_t *image) {
 	cg_particles_t *particles;
 
-	particles = cgi.Malloc(sizeof(*particles), Z_TAG_CGAME);
+	particles = cgi.Malloc(sizeof(*particles), MEM_TAG_CGAME);
 	particles->image = image;
 
 	particles->next = cg_active_particles;

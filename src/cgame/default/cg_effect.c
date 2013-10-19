@@ -84,7 +84,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 	vec3_t delta;
 	uint16_t i;
 
-	cg_weather_emit_t *e = cgi.Malloc(sizeof(cg_weather_emit_t), Z_TAG_CGAME_LEVEL);
+	cg_weather_emit_t *e = cgi.Malloc(sizeof(cg_weather_emit_t), MEM_TAG_CGAME_LEVEL);
 
 	// resolve the leaf for the point just in front of the surface
 	VectorMA(s->center, 1.0, s->normal, delta);
@@ -95,8 +95,8 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 	e->num_origins = VectorLength(delta) / 64.0;
 	e->num_origins = Clamp(e->num_origins, 1, 128);
 
-	e->origins = cgi.Malloc(sizeof(vec3_t) * e->num_origins, Z_TAG_CGAME_LEVEL);
-	e->end_z = cgi.Malloc(sizeof(vec_t) * e->num_origins, Z_TAG_CGAME_LEVEL);
+	e->origins = cgi.Malloc(sizeof(vec3_t) * e->num_origins, MEM_TAG_CGAME_LEVEL);
+	e->end_z = cgi.Malloc(sizeof(vec_t) * e->num_origins, MEM_TAG_CGAME_LEVEL);
 
 	// resolve the origins and end_z
 	for (i = 0; i < e->num_origins; i++) {

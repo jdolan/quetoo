@@ -300,7 +300,7 @@ void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
 char *G_CopyString(char *in) {
 	char *out;
 
-	out = gi.Malloc(strlen(in) + 1, Z_TAG_GAME_LEVEL);
+	out = gi.Malloc(strlen(in) + 1, MEM_TAG_GAME_LEVEL);
 	strcpy(out, in);
 	return out;
 }

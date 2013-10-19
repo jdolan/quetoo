@@ -27,7 +27,7 @@
 static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 	cl_server_info_t *s;
 
-	s = (cl_server_info_t *) Mem_TagMalloc(sizeof(*s), Z_TAG_CLIENT);
+	s = (cl_server_info_t *) Mem_TagMalloc(sizeof(*s), MEM_TAG_CLIENT);
 
 	s->addr = *addr;
 	g_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));

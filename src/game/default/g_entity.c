@@ -126,7 +126,7 @@ static char *G_NewString(const char *string) {
 
 	l = strlen(string) + 1;
 
-	newb = gi.Malloc(l, Z_TAG_GAME_LEVEL);
+	newb = gi.Malloc(l, MEM_TAG_GAME_LEVEL);
 
 	new_p = newb;
 
@@ -399,7 +399,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	char *com_token;
 	int32_t i;
 
-	gi.FreeTag(Z_TAG_GAME_LEVEL);
+	gi.FreeTag(MEM_TAG_GAME_LEVEL);
 
 	memset(&g_level, 0, sizeof(g_level));
 	memset(g_game.edicts, 0, g_max_entities->value * sizeof(g_game.edicts[0]));

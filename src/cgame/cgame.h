@@ -38,10 +38,10 @@ typedef struct cg_import_s {
 	uint32_t (*Time)(void);
 
 	// zone memory management
-	void *(*Malloc)(size_t size, z_tag_t tag);
+	void *(*Malloc)(size_t size, mem_tag_t tag);
 	void *(*LinkMalloc)(size_t size, void *parent);
 	void (*Free)(void *p);
-	void (*FreeTag)(z_tag_t tag);
+	void (*FreeTag)(mem_tag_t tag);
 
 	// filesystem interaction
 	int64_t (*LoadFile)(const char *path, void **buffer);

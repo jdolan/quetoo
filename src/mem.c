@@ -23,57 +23,57 @@
 
 #include <SDL/SDL_thread.h>
 
-#define Z_MAGIC 0x69
-typedef byte z_magic_t;
+#define MEM_MAGIC 0x69
+typedef byte mem_magic_t;
 
-typedef struct z_block_s {
-	z_magic_t magic;
-	z_tag_t tag; // for group free
-	struct z_block_s *parent;
+typedef struct mem_block_s {
+	mem_magic_t magic;
+	mem_tag_t tag; // for group free
+	struct mem_block_s *parent;
 	GList *children;
 	size_t size;
-} z_block_t;
+} mem_block_t;
 
 typedef struct {
 	GHashTable *blocks;
 	size_t size;
 	SDL_mutex *lock;
-} z_state_t;
+} mem_state_t;
 
-static z_state_t z_state;
+static mem_state_t mem_state;
 
 /*
  * @brief Throws a fatal error if the specified memory block is non-NULL but
  * not owned by the memory subsystem.
  */
-static z_block_t *Z_CheckMagic(void *p) {
-	z_block_t *z = NULL;
+static mem_block_t *Mem_CheckMagic(void *p) {
+	mem_block_t *b = NULL;
 
 	if (p) {
-		z = ((z_block_t *) p) - 1;
+		b = ((mem_block_t *) p) - 1;
 
-		if (z->magic != Z_MAGIC) {
-			Com_Error(ERR_FATAL, "Invalid magic (%d) for %p\n", z->magic, p);
+		if (b->magic != MEM_MAGIC) {
+			Com_Error(ERR_FATAL, "Invalid magic (%d) for %p\n", b->magic, p);
 		}
 	}
 
-	return z;
+	return b;
 }
 
 /*
  * @brief Recursively frees linked managed memory.
  */
-static void Z_Free_(z_block_t *z) {
+static void Mem_Free_(mem_block_t *b) {
 
 	// recurse down the tree, freeing children
-	if (z->children) {
-		g_list_free_full(z->children, (GDestroyNotify) Z_Free_);
+	if (b->children) {
+		g_list_free_full(b->children, (GDestroyNotify) Mem_Free_);
 	}
 
 	// decrement the pool size and free the memory
-	z_state.size -= z->size;
+	mem_state.size -= b->size;
 
-	free(z);
+	free(b);
 }
 
 /*
@@ -81,85 +81,85 @@ static void Z_Free_(z_block_t *z) {
  * automatically freed as well.
  */
 void Mem_Free(void *p) {
-	z_block_t *z = Z_CheckMagic(p);
+	mem_block_t *b = Mem_CheckMagic(p);
 
-	SDL_mutexP(z_state.lock);
+	SDL_mutexP(mem_state.lock);
 
-	if (z->parent) {
-		z->parent->children = g_list_remove(z->parent->children, z);
+	if (b->parent) {
+		b->parent->children = g_list_remove(b->parent->children, b);
 	} else {
-		g_hash_table_remove(z_state.blocks, (gconstpointer) z);
+		g_hash_table_remove(mem_state.blocks, (gconstpointer) b);
 	}
 
-	Z_Free_(z);
+	Mem_Free_(b);
 
-	SDL_mutexV(z_state.lock);
+	SDL_mutexV(mem_state.lock);
 }
 
 /*
  * @brief Free all managed items allocated with the specified tag.
  */
-void Mem_FreeTag(z_tag_t tag) {
+void Mem_FreeTag(mem_tag_t tag) {
 	GHashTableIter it;
 	gpointer key, value;
 
-	SDL_mutexP(z_state.lock);
+	SDL_mutexP(mem_state.lock);
 
-	g_hash_table_iter_init(&it, z_state.blocks);
+	g_hash_table_iter_init(&it, mem_state.blocks);
 
 	while (g_hash_table_iter_next(&it, &key, &value)) {
-		z_block_t *z = (z_block_t *) key;
+		mem_block_t *b = (mem_block_t *) key;
 
-		if (tag == Z_TAG_ALL || z->tag == tag) {
+		if (tag == MEM_TAG_ALL || b->tag == tag) {
 			g_hash_table_iter_remove(&it);
-			Z_Free_(z);
+			Mem_Free_(b);
 		}
 	}
 
-	SDL_mutexV(z_state.lock);
+	SDL_mutexV(mem_state.lock);
 }
 
 /*
- * @brief Performs the grunt work of allocating a z_block_t and inserting it
+ * @brief Performs the grunt work of allocating a mem_block_t and inserting it
  * into the managed memory structures. Note that parent should be a pointer to
- * a previously allocated structure, and not to a z_block_t.
+ * a previously allocated structure, and not to a mem_block_t.
  *
  * @param size The number of bytes to allocate.
- * @param tag The tag to allocate with (e.g. Z_TAG_DEFAULT).
+ * @param tag The tag to allocate with (e.g. MEM_TAG_DEFAULT).
  * @param parent The parent to link this allocation to.
  *
  * @return A block of managed memory initialized to 0x0.
  */
-static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
-	z_block_t *z, *p = Z_CheckMagic(parent);
+static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
+	mem_block_t *b, *p = Mem_CheckMagic(parent);
 
 	// allocate the block plus the desired size
-	const size_t s = size + sizeof(z_block_t);
+	const size_t s = size + sizeof(mem_block_t);
 
-	if (!(z = calloc(s, 1))) {
+	if (!(b = calloc(s, 1))) {
 		Com_Error(ERR_FATAL, "Failed to allocate %u bytes\n", (uint32_t) s);
 	}
 
-	z->magic = Z_MAGIC;
-	z->tag = tag;
-	z->parent = p;
-	z->size = size;
+	b->magic = MEM_MAGIC;
+	b->tag = tag;
+	b->parent = p;
+	b->size = size;
 
 	// insert it into the managed memory structures
-	SDL_mutexP(z_state.lock);
+	SDL_mutexP(mem_state.lock);
 
-	if (z->parent) {
-		z->parent->children = g_list_prepend(z->parent->children, z);
+	if (b->parent) {
+		b->parent->children = g_list_prepend(b->parent->children, b);
 	} else {
-		g_hash_table_insert(z_state.blocks, z, z);
+		g_hash_table_insert(mem_state.blocks, b, b);
 	}
 
-	z_state.size += size;
+	mem_state.size += size;
 
-	SDL_mutexV(z_state.lock);
+	SDL_mutexV(mem_state.lock);
 
 	// return the address in front of the block
-	return (void *) (z + 1);
+	return (void *) (b + 1);
 }
 
 /*
@@ -171,59 +171,59 @@ static void *Z_Malloc_(size_t size, z_tag_t tag, void *parent) {
  *
  * @return A block of managed memory initialized to 0x0.
  */
-void *Mem_TagMalloc(size_t size, z_tag_t tag) {
-	return Z_Malloc_(size, tag, NULL);
+void *Mem_TagMalloc(size_t size, mem_tag_t tag) {
+	return Mem_Malloc_(size, tag, NULL);
 }
 
 /*
  * @brief Allocates a block of managed memory with the specified parent.
  *
  * @param size The number of bytes to allocate.
- * @param parent The parent block previously allocated through Z_Malloc /
- * Z_TagMalloc. The returned block will automatically be released when the
- * parent is freed through Z_Free.
+ * @param parent The parent block previously allocated through Mem_Malloc /
+ * Mem_TagMalloc. The returned block will automatically be released when the
+ * parent is freed through Mem_Free.
  *
  * @return A block of managed memory initialized to 0x0.
  */
 void *Mem_LinkMalloc(size_t size, void *parent) {
-	return Z_Malloc_(size, Z_TAG_DEFAULT, parent);
+	return Mem_Malloc_(size, MEM_TAG_DEFAULT, parent);
 }
 
 /*
  * @brief Allocates a block of managed memory. All managed memory is freed when
- * the game exits, but may be explicitly freed with Z_Free.
+ * the game exits, but may be explicitly freed with Mem_Free.
  *
  * @return A block of memory initialized to 0x0.
  */
 void *Mem_Malloc(size_t size) {
-	return Z_Malloc_(size, Z_TAG_DEFAULT, NULL);
+	return Mem_Malloc_(size, MEM_TAG_DEFAULT, NULL);
 }
 
 /*
  * @brief Links the specified child to the given parent. The child will
  * subsequently be freed with the parent.
  *
- * @param child The child object, previously allocated with Z_Malloc.
- * @param parent The parent object, previously allocated with Z_Malloc.
+ * @param child The child object, previously allocated with Mem_Malloc.
+ * @param parent The parent object, previously allocated with Mem_Malloc.
  *
  * @return The child, for convenience.
  */
 void *Mem_Link(void *child, void *parent) {
-	z_block_t *c = Z_CheckMagic(child);
-	z_block_t *p = Z_CheckMagic(parent);
+	mem_block_t *c = Mem_CheckMagic(child);
+	mem_block_t *p = Mem_CheckMagic(parent);
 
-	SDL_mutexP(z_state.lock);
+	SDL_mutexP(mem_state.lock);
 
 	if (c->parent) {
 		c->parent->children = g_list_remove(c->parent->children, c);
 	} else {
-		g_hash_table_remove(z_state.blocks, c);
+		g_hash_table_remove(mem_state.blocks, c);
 	}
 
 	c->parent = p;
 	p->children = g_list_prepend(p->children, c);
 
-	SDL_mutexV(z_state.lock);
+	SDL_mutexV(mem_state.lock);
 
 	return child;
 }
@@ -232,7 +232,7 @@ void *Mem_Link(void *child, void *parent) {
  * @return The current size (user bytes) of the zone allocation pool.
  */
 size_t Mem_Size(void) {
-	return z_state.size;
+	return mem_state.size;
 }
 
 /*
@@ -260,11 +260,11 @@ char *Mem_CopyString(const char *in) {
  */
 void Mem_Init(void) {
 
-	memset(&z_state, 0, sizeof(z_state));
+	memset(&mem_state, 0, sizeof(mem_state));
 
-	z_state.blocks = g_hash_table_new(g_direct_hash, g_direct_equal);
+	mem_state.blocks = g_hash_table_new(g_direct_hash, g_direct_equal);
 
-	z_state.lock = SDL_CreateMutex();
+	mem_state.lock = SDL_CreateMutex();
 }
 
 /*
@@ -273,9 +273,9 @@ void Mem_Init(void) {
  */
 void Mem_Shutdown(void) {
 
-	Mem_FreeTag(Z_TAG_ALL);
+	Mem_FreeTag(MEM_TAG_ALL);
 
-	g_hash_table_destroy(z_state.blocks);
+	g_hash_table_destroy(mem_state.blocks);
 
-	SDL_DestroyMutex(z_state.lock);
+	SDL_DestroyMutex(mem_state.lock);
 }

@@ -218,8 +218,8 @@ void Cl_ShutdownCgame(void) {
 
 	Cmd_RemoveAll(CMD_CGAME);
 
-	Mem_FreeTag(Z_TAG_CGAME_LEVEL);
-	Mem_FreeTag(Z_TAG_CGAME);
+	Mem_FreeTag(MEM_TAG_CGAME_LEVEL);
+	Mem_FreeTag(MEM_TAG_CGAME);
 
 	Com_Print("Client game down\n");
 	Com_QuitSubsystem(Q2W_CGAME);

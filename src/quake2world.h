@@ -124,19 +124,19 @@ typedef dvec_t dvec4_t[4];
 
 // managed memory tags
 typedef enum {
-	Z_TAG_DEFAULT,
-	Z_TAG_SERVER,
-	Z_TAG_AI,
-	Z_TAG_GAME,
-	Z_TAG_GAME_LEVEL,
-	Z_TAG_CLIENT,
-	Z_TAG_RENDERER,
-	Z_TAG_SOUND,
-	Z_TAG_UI,
-	Z_TAG_CGAME,
-	Z_TAG_CGAME_LEVEL,
-	Z_TAG_ALL = -1
-} z_tag_t;
+	MEM_TAG_DEFAULT,
+	MEM_TAG_SERVER,
+	MEM_TAG_AI,
+	MEM_TAG_GAME,
+	MEM_TAG_GAME_LEVEL,
+	MEM_TAG_CLIENT,
+	MEM_TAG_RENDERER,
+	MEM_TAG_SOUND,
+	MEM_TAG_UI,
+	MEM_TAG_CGAME,
+	MEM_TAG_CGAME_LEVEL,
+	MEM_TAG_ALL = -1
+} mem_tag_t;
 
 typedef struct cvar_s {
 	const char *name;

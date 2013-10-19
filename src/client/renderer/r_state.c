@@ -627,7 +627,7 @@ void R_InitState(void) {
 			texunit->texture = GL_TEXTURE0_ARB + i;
 
 			if (i < r_config.max_texunits) {
-				texunit->texcoord_array = Mem_TagMalloc(len, Z_TAG_RENDERER);
+				texunit->texcoord_array = Mem_TagMalloc(len, MEM_TAG_RENDERER);
 
 				R_EnableTexture(texunit, true);
 

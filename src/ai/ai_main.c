@@ -32,5 +32,5 @@ void Ai_Init(void) {
  * @brief Shuts down the AI subsystem.
  */
 void Ai_Shutdown(void) {
-	Mem_FreeTag(Z_TAG_AI);
+	Mem_FreeTag(MEM_TAG_AI);
 }

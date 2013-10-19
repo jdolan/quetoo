@@ -24,6 +24,7 @@
 #endif
 
 #include "net_tcp.h"
+#include "net_message.h"
 
 /*
  * @brief Establishes a TCP connection to the specified host.

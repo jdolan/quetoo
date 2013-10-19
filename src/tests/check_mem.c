@@ -36,7 +36,7 @@ void teardown(void) {
 	Mem_Shutdown();
 }
 
-START_TEST(check_Z_LinkMalloc)
+START_TEST(check_Mem_LinkMalloc)
 	{
 		byte *parent = Mem_Malloc(1);
 
@@ -61,7 +61,7 @@ START_TEST(check_Z_LinkMalloc)
 
 	}END_TEST
 
-START_TEST(check_Z_CopyString)
+START_TEST(check_Mem_CopyString)
 	{
 		char *test = Mem_CopyString("test");
 
@@ -82,8 +82,8 @@ int32_t main(int32_t argc, char **argv) {
 	TCase *tcase = tcase_create("check_mem");
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
-	tcase_add_test(tcase, check_Z_LinkMalloc);
-	tcase_add_test(tcase, check_Z_CopyString);
+	tcase_add_test(tcase, check_Mem_LinkMalloc);
+	tcase_add_test(tcase, check_Mem_CopyString);
 
 	Suite *suite = suite_create("check_mem");
 	suite_add_tcase(suite, tcase);

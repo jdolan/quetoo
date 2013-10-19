@@ -198,7 +198,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 	uint16_t i;
 
 	for (i = 0; i < mod->bsp->num_inline_models; i++) {
-		r_model_t *m = Mem_TagMalloc(sizeof(r_model_t), Z_TAG_RENDERER);
+		r_model_t *m = Mem_TagMalloc(sizeof(r_model_t), MEM_TAG_RENDERER);
 
 		g_snprintf(m->media.name, sizeof(m->media.name), "%s#%d", mod->media.name, i);
 		m->type = MOD_BSP_INLINE;

@@ -745,5 +745,5 @@ void Cl_Shutdown(void) {
 
 	Cmd_RemoveAll(CMD_CLIENT);
 
-	Mem_FreeTag(Z_TAG_CLIENT);
+	Mem_FreeTag(MEM_TAG_CLIENT);
 }

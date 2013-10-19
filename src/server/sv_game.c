@@ -320,8 +320,8 @@ void Sv_ShutdownGame(void) {
 	Cmd_RemoveAll(CMD_GAME);
 
 	// the game module code should call this, but lets not assume
-	Mem_FreeTag(Z_TAG_GAME_LEVEL);
-	Mem_FreeTag(Z_TAG_GAME);
+	Mem_FreeTag(MEM_TAG_GAME_LEVEL);
+	Mem_FreeTag(MEM_TAG_GAME);
 
 	Com_Print("Game down\n");
 	Com_QuitSubsystem(Q2W_GAME);

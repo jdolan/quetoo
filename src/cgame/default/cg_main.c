@@ -119,8 +119,8 @@ static void Cg_Shutdown(void) {
 
 	cgi.Print("  Client game shutdown...\n");
 
-	cgi.FreeTag(Z_TAG_CGAME_LEVEL);
-	cgi.FreeTag(Z_TAG_CGAME);
+	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
+	cgi.FreeTag(MEM_TAG_CGAME);
 }
 
 /*

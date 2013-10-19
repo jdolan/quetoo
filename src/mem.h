@@ -25,8 +25,8 @@
 #include "quake2world.h"
 
 void Mem_Free(void *p);
-void Mem_FreeTag(z_tag_t tag);
-void *Mem_TagMalloc(size_t size, z_tag_t tag);
+void Mem_FreeTag(mem_tag_t tag);
+void *Mem_TagMalloc(size_t size, mem_tag_t tag);
 void *Mem_LinkMalloc(size_t size, void *parent);
 void *Mem_Malloc(size_t size);
 void *Mem_Link(void *parent, void *child);

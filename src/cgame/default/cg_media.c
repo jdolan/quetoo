@@ -73,8 +73,8 @@ void Cg_UpdateMedia(void) {
 
 	Cg_FreeParticles();
 
-	cgi.FreeTag(Z_TAG_CGAME);
-	cgi.FreeTag(Z_TAG_CGAME_LEVEL);
+	cgi.FreeTag(MEM_TAG_CGAME);
+	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
 
 	cg_sample_blaster_fire = cgi.LoadSample("weapons/blaster/fire");
 	cg_sample_blaster_hit = cgi.LoadSample("weapons/blaster/hit");

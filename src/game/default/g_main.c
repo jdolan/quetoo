@@ -1193,8 +1193,8 @@ void G_Init(void) {
 	G_ParseMapList("maps.lst");
 
 	// initialize entities and clients for this game
-	g_game.edicts = gi.Malloc(g_max_entities->integer * sizeof(g_edict_t), Z_TAG_GAME);
-	g_game.clients = gi.Malloc(sv_max_clients->integer * sizeof(g_client_t), Z_TAG_GAME);
+	g_game.edicts = gi.Malloc(g_max_entities->integer * sizeof(g_edict_t), MEM_TAG_GAME);
+	g_game.clients = gi.Malloc(sv_max_clients->integer * sizeof(g_client_t), MEM_TAG_GAME);
 
 	ge.edicts = g_game.edicts;
 	ge.max_edicts = g_max_entities->integer;
@@ -1224,8 +1224,8 @@ void G_Shutdown(void) {
 	mysql_close(mysql); // and db
 #endif
 
-	gi.FreeTag(Z_TAG_GAME_LEVEL);
-	gi.FreeTag(Z_TAG_GAME);
+	gi.FreeTag(MEM_TAG_GAME_LEVEL);
+	gi.FreeTag(MEM_TAG_GAME);
 }
 
 /*
