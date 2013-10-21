@@ -60,11 +60,11 @@ void G_ClientToIntermission(g_edict_t *ent) {
  * @brief Write the scores information for the specified client.
  */
 static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
-	player_score_t s;
+	g_score_t s;
 
 	memset(&s, 0, sizeof(s));
 
-	s.player_num = ent - g_game.edicts - 1;
+	s.client = ent - g_game.edicts - 1;
 	s.ping = ent->client->ping < 999 ? ent->client->ping : 999;
 
 	if (ent->client->locals.persistent.spectator) {
@@ -77,7 +77,7 @@ static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
 		}
 		if (g_level.ctf) {
 			if (ent->s.effects & (EF_CTF_BLUE | EF_CTF_RED))
-				s.flags |= SCORES_FLAG;
+				s.flags |= SCORES_CTF_FLAG;
 		}
 		if (ent->client->locals.persistent.team) {
 			if (ent->client->locals.persistent.team == &g_team_good) {
@@ -128,16 +128,16 @@ static uint32_t G_UpdateScores(void) {
 
 	// and optionally concatenate the team scores
 	if (g_level.teams || g_level.ctf) {
-		player_score_t s[2];
+		g_score_t s[2];
 
 		memset(s, 0, sizeof(s));
 
-		s[0].player_num = MAX_CLIENTS;
+		s[0].client = MAX_CLIENTS;
 		s[0].team = 1;
 		s[0].score = g_team_good.score;
 		s[0].captures = g_team_good.captures;
 
-		s[1].player_num = MAX_CLIENTS;
+		s[1].client = MAX_CLIENTS;
 		s[1].team = 2;
 		s[1].score = g_team_evil.score;
 		s[1].captures = g_team_evil.captures;
@@ -146,7 +146,7 @@ static uint32_t G_UpdateScores(void) {
 		j += 2;
 	}
 
-	return j * sizeof(player_score_t);
+	return j * sizeof(g_score_t);
 }
 
 /*

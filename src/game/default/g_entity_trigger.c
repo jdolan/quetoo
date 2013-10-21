@@ -210,7 +210,7 @@ static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 
 		if (other->locals.push_time < g_level.time) {
 			other->locals.push_time = g_level.time + 1500;
-			gi.Sound(other, gi.SoundIndex("world/jumppad"), ATTN_NORM);
+			gi.Sound(other, gi.SoundIndex("world/jumppad"), ATTEN_NORM);
 		}
 	}
 

@@ -328,7 +328,7 @@ static void G_func_plat_GoDown(g_edict_t *ent);
 static void G_func_plat_Up(g_edict_t *ent) {
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 		if (ent->locals.move_info.sound_end)
-			gi.Sound(ent, ent->locals.move_info.sound_end, ATTN_IDLE);
+			gi.Sound(ent, ent->locals.move_info.sound_end, ATTEN_IDLE);
 		ent->s.sound = 0;
 	}
 	ent->locals.move_info.state = STATE_TOP;
@@ -343,7 +343,7 @@ static void G_func_plat_Up(g_edict_t *ent) {
 static void G_func_plat_Down(g_edict_t *ent) {
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 		if (ent->locals.move_info.sound_end)
-			gi.Sound(ent, ent->locals.move_info.sound_end, ATTN_IDLE);
+			gi.Sound(ent, ent->locals.move_info.sound_end, ATTEN_IDLE);
 		ent->s.sound = 0;
 	}
 	ent->locals.move_info.state = STATE_BOTTOM;
@@ -355,7 +355,7 @@ static void G_func_plat_Down(g_edict_t *ent) {
 static void G_func_plat_GoDown(g_edict_t *ent) {
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 		if (ent->locals.move_info.sound_start)
-			gi.Sound(ent, ent->locals.move_info.sound_start, ATTN_IDLE);
+			gi.Sound(ent, ent->locals.move_info.sound_start, ATTEN_IDLE);
 		ent->s.sound = ent->locals.move_info.sound_middle;
 	}
 	ent->locals.move_info.state = STATE_DOWN;
@@ -368,7 +368,7 @@ static void G_func_plat_GoDown(g_edict_t *ent) {
 static void G_func_plat_GoUp(g_edict_t *ent) {
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 		if (ent->locals.move_info.sound_start)
-			gi.Sound(ent, ent->locals.move_info.sound_start, ATTN_IDLE);
+			gi.Sound(ent, ent->locals.move_info.sound_start, ATTEN_IDLE);
 		ent->s.sound = ent->locals.move_info.sound_middle;
 	}
 	ent->locals.move_info.state = STATE_UP;
@@ -683,7 +683,7 @@ static void G_func_button_Activate(g_edict_t *self) {
 	self->locals.move_info.state = STATE_UP;
 
 	if (self->locals.move_info.sound_start && !(self->locals.flags & FL_TEAM_SLAVE))
-		gi.Sound(self, self->locals.move_info.sound_start, ATTN_IDLE);
+		gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE);
 
 	G_MoveInfo_Init(self, self->locals.move_info.end_origin, G_func_button_Wait);
 }
@@ -816,7 +816,7 @@ static void G_func_door_GoDown(g_edict_t *self);
 static void G_func_door_Up(g_edict_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_end)
-			gi.Sound(self, self->locals.move_info.sound_end, ATTN_IDLE);
+			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE);
 		self->s.sound = 0;
 	}
 	self->locals.move_info.state = STATE_TOP;
@@ -836,7 +836,7 @@ static void G_func_door_Up(g_edict_t *self) {
 static void G_func_door_Down(g_edict_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_end)
-			gi.Sound(self, self->locals.move_info.sound_end, ATTN_IDLE);
+			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE);
 		self->s.sound = 0;
 	}
 	self->locals.move_info.state = STATE_BOTTOM;
@@ -849,7 +849,7 @@ static void G_func_door_Down(g_edict_t *self) {
 static void G_func_door_GoDown(g_edict_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start)
-			gi.Sound(self, self->locals.move_info.sound_start, ATTN_IDLE);
+			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE);
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
 	if (self->locals.max_health) {
@@ -880,7 +880,7 @@ static void G_func_door_GoUp(g_edict_t *self, g_edict_t *activator) {
 
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start)
-			gi.Sound(self, self->locals.move_info.sound_start, ATTN_IDLE);
+			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE);
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
 	self->locals.move_info.state = STATE_UP;
@@ -1075,7 +1075,7 @@ static void G_func_door_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *
 		gi.Unicast(other, true);
 	}
 
-	gi.Sound(other, gi.SoundIndex("misc/chat"), ATTN_NORM);
+	gi.Sound(other, gi.SoundIndex("misc/chat"), ATTEN_NORM);
 }
 
 /*QUAKED func_door (0 .5 .8) ? START_OPEN TOGGLE
@@ -1460,7 +1460,7 @@ static void G_func_train_Wait(g_edict_t *self) {
 
 		if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 			if (self->locals.move_info.sound_end)
-				gi.Sound(self, self->locals.move_info.sound_end, ATTN_IDLE);
+				gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE);
 			self->s.sound = 0;
 		}
 	} else {
@@ -1507,7 +1507,7 @@ static void G_func_train_Next(g_edict_t *self) {
 
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start)
-			gi.Sound(self, self->locals.move_info.sound_start, ATTN_IDLE);
+			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE);
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
 

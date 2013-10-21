@@ -42,7 +42,7 @@ static void Cl_WriteDemoHeader(void) {
 	Net_WriteLong(&msg, cl.server_hz);
 	Net_WriteByte(&msg, 1); // demo_server byte
 	Net_WriteString(&msg, Cvar_GetString("game"));
-	Net_WriteShort(&msg, cl.player_num);
+	Net_WriteShort(&msg, cl.entity_num);
 	Net_WriteString(&msg, cl.config_strings[CS_NAME]);
 
 	// and config_strings

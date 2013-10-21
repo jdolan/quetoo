@@ -355,7 +355,7 @@ void G_ResetFlag(g_edict_t *ent) {
 	f->sv_flags &= ~SVF_NO_CLIENT;
 	f->s.event = EV_ITEM_RESPAWN;
 
-	gi.Sound(ent, gi.SoundIndex("ctf/return"), ATTN_NONE);
+	gi.Sound(ent, gi.SoundIndex("ctf/return"), ATTEN_NONE);
 
 	gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned\n", t->name);
 
@@ -393,7 +393,7 @@ static _Bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 			f->sv_flags &= ~SVF_NO_CLIENT; // and toggle the static one
 			f->s.event = EV_ITEM_RESPAWN;
 
-			gi.Sound(other, gi.SoundIndex("ctf/return"), ATTN_NONE);
+			gi.Sound(other, gi.SoundIndex("ctf/return"), ATTEN_NONE);
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag\n",
 					other->client->locals.persistent.net_name, t->name);
@@ -411,7 +411,7 @@ static _Bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 			of->sv_flags &= ~SVF_NO_CLIENT; // reset the other flag
 			of->s.event = EV_ITEM_RESPAWN;
 
-			gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTN_NONE);
+			gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTEN_NONE);
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag\n",
 					other->client->locals.persistent.net_name, ot->name);
@@ -437,7 +437,7 @@ static _Bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 	// link the flag model to the player
 	other->s.model3 = gi.ModelIndex(f->locals.item->model);
 
-	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTN_NONE);
+	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTEN_NONE);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
 			other->client->locals.persistent.net_name, t->name);
@@ -514,7 +514,7 @@ void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attrib
 		other->client->locals.pickup_msg_time = g_level.time + 3000;
 
 		if (ent->locals.item->pickup_sound) { // play pickup sound
-			gi.Sound(other, gi.SoundIndex(ent->locals.item->pickup_sound), ATTN_NORM);
+			gi.Sound(other, gi.SoundIndex(ent->locals.item->pickup_sound), ATTEN_NORM);
 		}
 
 		other->s.event = EV_ITEM_PICKUP;
@@ -1599,7 +1599,7 @@ const g_item_t g_items[] = {
 		"models/ctf/flag1/tris.md3",
 		EF_BOB | EF_ROTATE,
 		"pics/i_flag1",
-		"Flag",
+		"Enemy Flag",
 		0,
 		NULL,
 		ITEM_FLAG,
@@ -1625,7 +1625,7 @@ const g_item_t g_items[] = {
 		"models/ctf/flag2/tris.md3",
 		EF_BOB | EF_ROTATE,
 		"pics/i_flag2",
-		"Flag",
+		"Enemy Flag",
 		0,
 		NULL,
 		ITEM_FLAG,

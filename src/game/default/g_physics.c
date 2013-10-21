@@ -535,11 +535,11 @@ static void G_Physics_Toss(g_edict_t *ent) {
 		G_AddGravity(ent);
 
 	if (!was_in_water && is_in_water) {
-		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_in"), ATTN_NORM);
+		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_in"), ATTEN_NORM);
 		VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
 	} else if (was_in_water && !is_in_water)
 		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_out"),
-				ATTN_NORM);
+				ATTEN_NORM);
 
 	// move team slaves
 	g_edict_t *slave = ent->locals.team_chain;

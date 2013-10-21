@@ -275,7 +275,7 @@ static void Cl_ParseServerData(void) {
 	}
 
 	// parse player entity number
-	cl.player_num = Net_ReadShort(&net_message);
+	cl.entity_num = Net_ReadShort(&net_message);
 
 	// get the full level name
 	str = Net_ReadString(&net_message);
@@ -302,7 +302,7 @@ static void Cl_ParseSound(void) {
 	if (flags & S_ATTEN)
 		atten = Net_ReadByte(&net_message);
 	else
-		atten = DEFAULT_SOUND_ATTENUATION;
+		atten = ATTEN_DEFAULT;
 
 	if (flags & S_ENTNUM) { // entity relative
 		ent_num = Net_ReadShort(&net_message);

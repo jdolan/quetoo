@@ -113,7 +113,7 @@ void Cg_TeleporterTrail(const vec3_t org, cl_entity_t *cent) {
 		if (cent->time > cgi.client->time)
 			return;
 
-		cgi.PlaySample(NULL, cent->current.number, cg_sample_respawn, ATTN_IDLE);
+		cgi.PlaySample(NULL, cent->current.number, cg_sample_respawn, ATTEN_IDLE);
 
 		cent->time = cgi.client->time + 1000 + (2000 * Randomf());
 	}
@@ -597,7 +597,7 @@ void Cg_EntityEffects(cl_entity_t *e, r_entity_t *ent) {
 	if (s->effects & EF_BEAM) {
 
 		// client is overridden to specify owner of the beam
-		if ((e->current.client == cgi.client->player_num + 1) && !cg_third_person->value) {
+		if ((e->current.client == cgi.client->entity_num + 1) && !cg_third_person->value) {
 			// we own this beam (lightning, grapple, etc..)
 			// project start position in front of view origin
 			VectorCopy(cgi.view->origin, start);

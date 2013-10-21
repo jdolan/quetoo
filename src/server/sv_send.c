@@ -292,12 +292,12 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint
 	flags = 0;
 
 	at = atten;
-	if (at > ATTN_STATIC) {
+	if (at > ATTEN_STATIC) {
 		Com_Warn("Bad attenuation %d\n", at);
-		at = DEFAULT_SOUND_ATTENUATION;
+		at = ATTEN_DEFAULT;
 	}
 
-	if (at != DEFAULT_SOUND_ATTENUATION)
+	if (at != ATTEN_DEFAULT)
 		flags |= S_ATTEN;
 
 	// the client doesn't know that bsp models have weird origins
@@ -333,7 +333,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint
 	if (flags & S_ORIGIN)
 		Net_WritePosition(&sv.multicast, org);
 
-	if (atten != ATTN_NONE)
+	if (atten != ATTEN_NONE)
 		Sv_Multicast(org, MULTICAST_PHS);
 	else
 		Sv_Multicast(org, MULTICAST_ALL);

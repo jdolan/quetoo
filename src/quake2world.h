@@ -135,7 +135,9 @@ typedef dvec_t dvec4_t[4];
 #define CVAR_R_MASK			(CVAR_R_CONTEXT | CVAR_R_MEDIA)
 #define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_MEDIA)
 
-// managed memory tags
+/*
+ * @brief Managed memory tags allow freeing of subsystem memory in batch.
+ */
 typedef enum {
 	MEM_TAG_DEFAULT,
 	MEM_TAG_SERVER,
@@ -151,6 +153,9 @@ typedef enum {
 	MEM_TAG_ALL = -1
 } mem_tag_t;
 
+/*
+ * @brief Console variables hold mutable scalars and strings.
+ */
 typedef struct cvar_s {
 	const char *name;
 	const char *description;
@@ -165,6 +170,9 @@ typedef struct cvar_s {
 
 typedef void (*CmdExecuteFunc)(void);
 
+/*
+ * @brief Console commands provide a scripting environment for users.
+ */
 typedef struct cmd_s {
 	const char *name;
 	const char *description;
@@ -173,7 +181,9 @@ typedef struct cmd_s {
 	uint32_t flags;
 } cmd_t;
 
-// server multicast scope for entities and events
+/*
+ * @brief Server multicast scope for entities and events.
+ */
 typedef enum {
 	MULTICAST_ALL,
 	MULTICAST_PHS,
@@ -183,7 +193,10 @@ typedef enum {
 	MULTICAST_PVS_R
 } multicast_t;
 
-// server to client communication
+/*
+ * @brief Server protocol commands. The game and client game module are free
+ * to implement custom commands as well.
+ */
 typedef enum {
 	SV_CMD_BAD,
 	SV_CMD_BASELINE,
@@ -200,7 +213,10 @@ typedef enum {
 // this MUST be the last element here, as cgame extends from this point
 } sv_packet_cmd_t;
 
-// client to server
+/*
+ * @brief Client protocol commands. The game and client game module are free
+ * to implement custom commands as well.
+ */
 typedef enum {
 	CL_CMD_BAD,
 	CL_CMD_MOVE, // [user_cmd_t]
@@ -209,7 +225,9 @@ typedef enum {
 // [user_info_string]
 } cl_packet_cmd_t;
 
-// a singleton for (0.0, 0.0, 0.0)
+/*
+ * @brief The origin (0, 0, 0).
+ */
 extern vec3_t vec3_origin;
 
 #define Clamp(x, y, z)			(x < y ? y : x > z ? z : x)
@@ -260,10 +278,15 @@ extern vec3_t vec3_origin;
 #define CONTENTS_TRANSLUCENT	0x10000000 // auto set if any surface has trans
 #define CONTENTS_LADDER			0x20000000
 
-// leafs will have some combination of the above, nodes will always be -1
+/*
+ * @brief Leafs will have some combination of the above flags; nodes will
+ * always be -1.
+ */
 #define CONTENTS_NODE			-1
 
-// surface flags
+/*
+ * @brief c_bsp_surface_t.flags.
+ */
 #define SURF_LIGHT				0x1 // value will hold the light strength
 #define SURF_SLICK				0x2 // effects game physics
 #define SURF_SKY				0x4 // don't draw, but add to skybox
@@ -277,7 +300,9 @@ extern vec3_t vec3_origin;
 #define SURF_ALPHA_TEST			0x400 // alpha test (grates, foliage, etc..)
 #define SURF_PHONG				0x800 // phong interpolated lighting at compile time
 #define SURF_MATERIAL			0x1000 // retain the geometry, but don't draw diffuse pass
-// content masks
+/*
+ * @brief Contents masks; OR'ed combinations of CONTENTS_*.
+ */
 #define MASK_ALL				(-1)
 #define MASK_SOLID				(CONTENTS_SOLID|CONTENTS_WINDOW)
 #define MASK_PLAYER_SOLID		(CONTENTS_SOLID|CONTENTS_PLAYER_CLIP|CONTENTS_WINDOW|CONTENTS_MONSTER)
@@ -395,83 +420,25 @@ typedef struct {
 	void (*Debug)(const char *msg);
 } pm_move_t;
 
-// entity_state_t->effects
-// handled on the client side (particles, lights, ..)
-// an entity that has effects will be sent to the client
-// even if it has a zero index model.
-#define EF_ROTATE			(1 << 0) // rotate on z
-#define EF_BOB				(1 << 1) // bob on z
-#define EF_PULSE			(1 << 2) // pulsate lighting color
-#define EF_BLASTER			(1 << 3) // particle trail above water, bubble trail in water
-#define EF_GRENADE			(1 << 4) // smoke trail above water, bubble trail in water
-#define EF_ROCKET			(1 << 5) // smoke trail above water, bubble trail in water
-#define EF_HYPERBLASTER		(1 << 6) // bubble trail in water
-#define EF_LIGHTNING		(1 << 7) // lightning bolt
-#define EF_BFG				(1 << 8) // big particle snotball
-#define EF_TELEPORTER		(1 << 9) // particle fountain
-#define EF_QUAD				(1 << 10) // quad damage
-#define EF_CTF_BLUE			(1 << 11) // blue flag carrier
-#define EF_CTF_RED			(1 << 12) // red flag carrier
-#define EF_BEAM				(1 << 13) // overload old_origin for 2nd endpoint
-#define EF_INACTIVE			(1 << 14) // inactive icon for when input is not going to game
-#define EF_RESPAWN			(1 << 15) // respawn protection
-// small or full-bright entities can skip static and dynamic lighting
-#define EF_NO_LIGHTING		(0)
+/*
+ * @brief Sound attenuation constants.
+ */
+#define ATTEN_NONE  		0 // full volume the entire level
+#define ATTEN_NORM  		1 // normal linear attenuation
+#define ATTEN_IDLE  		2 // exponential decay
+#define ATTEN_STATIC  		3 // high exponential decay
+#define ATTEN_DEFAULT		ATTEN_NORM
 
-// the 16 high bits are never transmitted, they're for the renderer only
-#define EF_WEAPON			(1 << 27) // view weapon
-#define EF_ALPHATEST		(1 << 28) // alpha test
-#define EF_BLEND			(1 << 29) // blend
-#define EF_NO_SHADOW		(1 << 30) // no shadow
-#define EF_NO_DRAW			(1 << 31) // no draw (but perhaps shadow)
-// muzzle flashes
-typedef enum {
-	MZ_BLASTER,
-	MZ_SHOTGUN,
-	MZ_SSHOTGUN,
-	MZ_MACHINEGUN,
-	MZ_GRENADE,
-	MZ_ROCKET,
-	MZ_HYPERBLASTER,
-	MZ_LIGHTNING,
-	MZ_RAILGUN,
-	MZ_BFG,
-	MZ_LOGOUT,
-} muzzle_flash_t;
-
-// Temp entity events are for things that happen
-// at a location separate from any existing entity.
-// Temporary entity messages are explicitly constructed
-// and broadcast.
-typedef enum {
-	TE_BLASTER,
-	TE_TRACER,
-	TE_BULLET,
-	TE_BURN,
-	TE_BLOOD,
-	TE_SPARKS,
-	TE_HYPERBLASTER,
-	TE_LIGHTNING,
-	TE_RAIL,
-	TE_EXPLOSION,
-	TE_BUBBLES,
-	TE_BFG,
-	TE_GIB
-} temp_event_t;
-
-// sound attenuation values
-#define ATTN_NONE  			0 // full volume the entire level
-#define ATTN_NORM  			1
-#define ATTN_IDLE  			2
-#define ATTN_STATIC  		3 // diminish very rapidly with distance
-#define DEFAULT_SOUND_ATTENUATION	ATTN_NORM
-
-// -4096 up to +4096
+/*
+ * @brief The absolute world bounds is +/- 4096. This is the largest box we can
+ * safely encode using 16 bit integers (vec_t * 8.0).
+ */
 #define MAX_WORLD_WIDTH		4096
 
 /*
- * ConfigStrings are a general means of communication from the server to all
- * connected clients. Each ConfigString can be at most MAX_STRING_CHARS in length.
+ * @brief ConfigStrings are a general means of communication from the server to
+ * all connected clients. Each ConfigString can be at most MAX_STRING_CHARS in
+ * length. The game module is free to populate CS_GENERAL - MAX_CONFIG_STRINGS.
  */
 #define CS_NAME				0 // the name (message) of the current level
 #define CS_SKY				1 // the sky box
@@ -489,8 +456,8 @@ typedef enum {
 #define MAX_CONFIG_STRINGS	(CS_GENERAL + MAX_GENERAL)
 
 /*
- * Entity animation sequences (player animations) are resolved on the server
- * but are run (interpolated) on the client.
+ * @brief Entity animation sequences (player animations) are dictated by the
+ * game module but are run (interpolated) by the client game.
  */
 typedef enum {
 	ANIM_BOTH_DEATH1,
@@ -528,7 +495,11 @@ typedef enum {
 	ANIM_LEGS_TURN
 } entity_animation_t;
 
-#define ANIM_TOGGLE_BIT 0x80 // used to restart the same animation
+/*
+ * @brief Restarts the current animation sequence.
+ */
+#define ANIM_TOGGLE_BIT 0x80
+
 /*
  * Entity events are instantaneous, transpiring at an entity's origin for
  * precisely one frame.
@@ -548,6 +519,44 @@ typedef enum {
 } entity_event_t;
 
 /*
+ * @brief These flags (entity_state_t.effects) are used to apply particle
+ * trails, dynamic lighting and other effects to entities. These effects are
+ * visible even if the entity has no visible model.
+ */
+#define EF_ROTATE			(1 << 0) // rotate on z
+#define EF_BOB				(1 << 1) // bob on z
+#define EF_PULSE			(1 << 2) // pulsate lighting color
+#define EF_BLASTER			(1 << 3) // particle trail above water, bubble trail in water
+#define EF_GRENADE			(1 << 4) // smoke trail above water, bubble trail in water
+#define EF_ROCKET			(1 << 5) // smoke trail above water, bubble trail in water
+#define EF_HYPERBLASTER		(1 << 6) // bubble trail in water
+#define EF_LIGHTNING		(1 << 7) // lightning bolt
+#define EF_BFG				(1 << 8) // big particle snotball
+#define EF_TELEPORTER		(1 << 9) // particle fountain
+#define EF_QUAD				(1 << 10) // quad damage
+#define EF_CTF_BLUE			(1 << 11) // blue flag carrier
+#define EF_CTF_RED			(1 << 12) // red flag carrier
+#define EF_BEAM				(1 << 13) // overload old_origin for 2nd endpoint
+#define EF_INACTIVE			(1 << 14) // inactive icon for when input is not going to game
+#define EF_RESPAWN			(1 << 15) // respawn protection
+
+/*
+ * @brief Very small or full-bright entities skip the lighting code paths for
+ * performance reasons.
+ */
+#define EF_NO_LIGHTING		(0)
+
+/*
+ * @brief The high bits of the effects mask are not transmitted by the
+ * protocol. Rather, they are reserved for the renderer.
+ */
+#define EF_WEAPON			(1 << 27) // view weapon
+#define EF_ALPHATEST		(1 << 28) // alpha test
+#define EF_BLEND			(1 << 29) // blend
+#define EF_NO_SHADOW		(1 << 30) // no shadow
+#define EF_NO_DRAW			(1 << 31) // no draw (but perhaps shadow)
+
+/*
  * Entity bounds are to be handled by the protocol based on their
  * solid field. Box entities encode their bounds into a 16 bit
  * integer. The rest simply send their value.
@@ -557,8 +566,7 @@ typedef enum {
 	SOLID_TRIGGER, // only touch when inside, after moving
 	SOLID_BOX, // touch on edge
 	SOLID_MISSILE, // touch on edge
-	SOLID_BSP = 31
-// bsp clip, touch on edge
+	SOLID_BSP = 31 // BSP clip, touch on edge
 } solid_t;
 
 /*
@@ -576,7 +584,7 @@ typedef struct {
 
 	uint8_t animation1, animation2; // animations (running, attacking, ..)
 
-	uint8_t event; // client side events (particles, lights, ..)
+	uint8_t event; // client side events (sounds, blood, ..)
 
 	uint16_t effects; // particles, lights, etc..
 
@@ -599,6 +607,7 @@ typedef struct {
 /*
  * Player state structures contain authoritative snapshots of the player's
  * movement, as well as the player's statistics (inventory, health, etc.).
+ * The game module is free to define what the stats array actually contains.
  */
 typedef struct player_state_s {
 	pm_state_t pm_state; // movement and contents state

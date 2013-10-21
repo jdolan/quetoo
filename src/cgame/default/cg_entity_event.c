@@ -116,7 +116,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 static void Cg_GurpEffect(cl_entity_t *e) {
 	vec3_t start, end;
 
-	cgi.PlaySample(NULL, e->current.number, cgi.LoadSample("*gurp_1"), ATTN_NORM);
+	cgi.PlaySample(NULL, e->current.number, cgi.LoadSample("*gurp_1"), ATTEN_NORM);
 
 	VectorCopy(e->current.origin, start);
 	start[2] += 16.0;
@@ -133,7 +133,7 @@ static void Cg_GurpEffect(cl_entity_t *e) {
 static void Cg_DrownEffect(cl_entity_t *e) {
 	vec3_t start, end;
 
-	cgi.PlaySample(NULL, e->current.number, cgi.LoadSample("*drown_1"), ATTN_NORM);
+	cgi.PlaySample(NULL, e->current.number, cgi.LoadSample("*drown_1"), ATTEN_NORM);
 
 	VectorCopy(e->current.origin, start);
 	start[2] += 16.0;
@@ -157,31 +157,31 @@ void Cg_EntityEvent(cl_entity_t *e) {
 		Cg_DrownEffect(e);
 		break;
 	case EV_CLIENT_FALL:
-		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*fall_2"), ATTN_NORM);
+		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*fall_2"), ATTEN_NORM);
 		break;
 	case EV_CLIENT_FALL_FAR:
-		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*fall_1"), ATTN_NORM);
+		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*fall_1"), ATTEN_NORM);
 		break;
 	case EV_CLIENT_FOOTSTEP:
-		cgi.PlaySample(NULL, s->number, cg_sample_footsteps[Random() & 3], ATTN_NORM);
+		cgi.PlaySample(NULL, s->number, cg_sample_footsteps[Random() & 3], ATTEN_NORM);
 		break;
 	case EV_CLIENT_GURP:
 		Cg_GurpEffect(e);
 		break;
 	case EV_CLIENT_LAND:
-		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*land_1"), ATTN_NORM);
+		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*land_1"), ATTEN_NORM);
 		break;
 	case EV_CLIENT_JUMP:
 		cgi.PlaySample(NULL, s->number, cgi.LoadSample(va("*jump_%d", Random() % 5 + 1)),
-				ATTN_NORM);
+				ATTEN_NORM);
 		break;
 	case EV_CLIENT_TELEPORT:
-		cgi.PlaySample(NULL, s->number, cg_sample_teleport, ATTN_IDLE);
+		cgi.PlaySample(NULL, s->number, cg_sample_teleport, ATTEN_IDLE);
 		Cg_TeleporterEffect(s->origin);
 		break;
 
 	case EV_ITEM_RESPAWN:
-		cgi.PlaySample(NULL, s->number, cg_sample_respawn, ATTN_IDLE);
+		cgi.PlaySample(NULL, s->number, cg_sample_respawn, ATTEN_IDLE);
 		Cg_ItemRespawnEffect(s->origin);
 		break;
 	case EV_ITEM_PICKUP:

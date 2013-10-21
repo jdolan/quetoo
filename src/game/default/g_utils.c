@@ -229,9 +229,9 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 		gi.Unicast(activator, true);
 
 		if (ent->locals.noise_index)
-			gi.Sound(activator, ent->locals.noise_index, ATTN_NORM);
+			gi.Sound(activator, ent->locals.noise_index, ATTEN_NORM);
 		else
-			gi.Sound(activator, gi.SoundIndex("misc/chat"), ATTN_NORM);
+			gi.Sound(activator, gi.SoundIndex("misc/chat"), ATTEN_NORM);
 	}
 
 	// kill kill_targets

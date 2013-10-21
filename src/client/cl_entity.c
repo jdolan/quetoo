@@ -41,7 +41,7 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t num
 
 	// some data changes will force no interpolation
 	if (to->event == EV_CLIENT_TELEPORT) {
-		ent->frame_num = -99999;
+		ent->frame_num = -1;
 	}
 
 	if (ent->frame_num != cl.frame.frame_num - 1) {

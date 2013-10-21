@@ -49,17 +49,10 @@
 #define CMD_UP					0x20
 #define CMD_BUTTONS				0x40
 
-// a sound without an entity or position will be a local only sound
-#define S_ATTEN					0x1 // a byte
-#define S_ORIGIN				0x2 // three coordinates
-#define S_ENTNUM				0x4 // entity number
-//
-
-// entity_state_t communication
-
-// This bit mask is packed into a uint16_t for each entity_state_t per frame.
-// It describes which fields must be read to successfully parse the delta-
-// compression.
+/*
+ * @brief These flags indicate which fields in a given entity_state_t must be
+ * written or read for delta compression from one snapshot to the next.
+ */
 #define U_ORIGIN				0x1
 #define U_OLD_ORIGIN			0x2 // used by lightning
 #define U_ANGLES				0x4
@@ -69,8 +62,16 @@
 #define U_MODELS				0x40 // models (primary and linked)
 #define U_CLIENT				0x80 // offset into client skins array
 #define U_SOUND					0x100 // looped sounds
-#define U_SOLID					0x200
+#define U_SOLID					0x200 // encoded bounding box
 #define U_REMOVE				0x400 // remove this entity, don't add it
+
+/*
+ * @brief These flags indicate which fields a given sound packet will contain.
+ */
+#define S_ATTEN					0x1
+#define S_ORIGIN				0x2
+#define S_ENTNUM				0x4
+
 /*
  * @brief Message writing and reading facilities.
  */

@@ -107,7 +107,7 @@ void S_Frame(void) {
 		}
 
 		if (j == MAX_CHANNELS)
-			S_PlaySample(NULL, ent->number, cl.sound_precache[ent->sound], ATTN_NORM);
+			S_PlaySample(NULL, ent->number, cl.sound_precache[ent->sound], ATTEN_NORM);
 	}
 
 	if (r_view.contents & MASK_WATER) { // add under water sample

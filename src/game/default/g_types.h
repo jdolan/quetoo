@@ -19,12 +19,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_TYPES_H__ // don't collide with glib.h
+#ifndef __GAME_TYPES_H__ // don't collide with <glib/gtypes.h>
 #define __GAME_TYPES_H__
 
 #include "shared.h"
 
-// server commands sent directly to the client game
+/*
+ * @brief Game-specific server protocol commands. These are parsed directly by
+ * the client game module.
+ */
 typedef enum {
 	SV_CMD_CENTER_PRINT = SV_CMD_CGAME,
 	SV_CMD_MUZZLE_FLASH,
@@ -32,24 +35,28 @@ typedef enum {
 	SV_CMD_TEMP_ENTITY,
 	SV_CMD_FOOBAR
 // add custom commands here
-} g_sv_cmd_t;
+} g_sv_packet_cmd_t;
 
 // scores are transmitted as binary to the client game module
 typedef struct {
-	uint16_t player_num;
+	uint16_t client;
 	uint16_t ping;
 	uint8_t team;
 	uint8_t color;
 	int16_t score;
 	int16_t captures;
 	uint8_t flags;
-} player_score_t;
+} g_score_t;
 
-//scores flags
+/*
+ * @brief Player scores flags.
+ */
 #define SCORES_NOT_READY	(1 << 0)
-#define SCORES_FLAG			(1 << 1)
+#define SCORES_CTF_FLAG		(1 << 1)
 
-// ConfigStrings that are local to the game and client game
+/*
+ * @brief ConfigStrings that are local to the game module.
+ */
 #define CS_GAMEPLAY			(CS_GENERAL + 0) // gameplay string
 #define CS_TEAMS			(CS_GENERAL + 1) // are teams enabled?
 #define CS_CTF				(CS_GENERAL + 2) // is capture enabled?
@@ -60,34 +67,81 @@ typedef struct {
 #define CS_TIME				(CS_GENERAL + 7) // level or match timer
 #define CS_ROUND			(CS_GENERAL + 8) // round number
 #define CS_VOTE				(CS_GENERAL + 9) // vote string\yes count\no count
-// player_state->stats[] indexes
-#define STAT_AMMO			0
-#define STAT_AMMO_ICON		1
-#define STAT_AMMO_LOW		2
-#define STAT_ARMOR			3
-#define STAT_ARMOR_ICON		4
-#define STAT_CAPTURES		5
-#define STAT_CHASE			6
-#define STAT_DAMAGE_ARMOR	7
-#define STAT_DAMAGE_HEALTH	8
-#define STAT_DAMAGE_INFLICT	9
-#define STAT_FRAGS			10
-#define STAT_HEALTH			11
-#define STAT_HEALTH_ICON	12
-#define STAT_PICKUP_ICON	13
-#define STAT_PICKUP_STRING	14
-#define STAT_READY			15
-#define STAT_ROUND			16
-#define STAT_SCORES			17
-#define STAT_SPECTATOR		18
-#define STAT_TEAM			19
-#define STAT_TIME			20
-#define STAT_VOTE			21
-#define STAT_WEAPON			22
-#define STAT_WEAPON_ICON	23
-// mods may define new STATs, up to 31
 
-#define STAT_TOGGLE_BIT		0x8000 // used to force a stats field update
+/*
+ * @brief Player state statistics (inventory, score, etc).
+ */
+typedef enum {
+	STAT_AMMO,
+	STAT_AMMO_ICON,
+	STAT_AMMO_LOW,
+	STAT_ARMOR,
+	STAT_ARMOR_ICON,
+	STAT_CAPTURES,
+	STAT_CHASE,
+	STAT_DAMAGE_ARMOR,
+	STAT_DAMAGE_HEALTH,
+	STAT_DAMAGE_INFLICT,
+	STAT_FRAGS,
+	STAT_HEALTH,
+	STAT_HEALTH_ICON,
+	STAT_PICKUP_ICON,
+	STAT_PICKUP_STRING,
+	STAT_READY,
+	STAT_ROUND,
+	STAT_SCORES,
+	STAT_SPECTATOR,
+	STAT_TEAM,
+	STAT_TIME,
+	STAT_VOTE,
+	STAT_WEAPON,
+	STAT_WEAPON_ICON
+} g_stat_t;
+
+/*
+ * @brief Forces a statistic field to be re-sent, even if the value has not changed.
+ */
+#define STAT_TOGGLE_BIT		0x8000
+
+/*
+ * @brief Muzzle flashes are bound to the entity that created them. This allows
+ * the protocol to forego sending the origin and angles for the effect, as they
+ * can be inferred from the referenced entity.
+ */
+typedef enum {
+	MZ_BLASTER,
+	MZ_SHOTGUN,
+	MZ_SSHOTGUN,
+	MZ_MACHINEGUN,
+	MZ_GRENADE,
+	MZ_ROCKET,
+	MZ_HYPERBLASTER,
+	MZ_LIGHTNING,
+	MZ_RAILGUN,
+	MZ_BFG,
+	MZ_LOGOUT,
+} g_muzzle_flash_t;
+
+/*
+ * @brief Temporary entities are positional events that are not explicitly
+ * bound to a game entity (g_edict_t). Examples are explosions, certain weapon
+ * trails and other short-lived effects.
+ */
+typedef enum {
+	TE_BLASTER,
+	TE_TRACER,
+	TE_BULLET,
+	TE_BURN,
+	TE_BLOOD,
+	TE_SPARKS,
+	TE_HYPERBLASTER,
+	TE_LIGHTNING,
+	TE_RAIL,
+	TE_EXPLOSION,
+	TE_BUBBLES,
+	TE_BFG,
+	TE_GIB
+} g_temp_entity_t;
 
 #if defined(__GAME_LOCAL_H__)
 

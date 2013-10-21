@@ -349,7 +349,7 @@ static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_p
 	if (!other->locals.take_damage) { // bounce
 		if (g_level.time - self->locals.touch_time > 200) {
 			VectorScale(self->locals.velocity, 1.25, self->locals.velocity);
-			gi.Sound(self, g_level.media.grenade_hit_sound, ATTN_NORM);
+			gi.Sound(self, g_level.media.grenade_hit_sound, ATTEN_NORM);
 			self->locals.touch_time = g_level.time;
 		}
 		return;
@@ -667,7 +667,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 
 		if (!self->locals.water_level) {
 			gi.PositionedSound(water_start, g_game.edicts, gi.SoundIndex("world/water_in"),
-					ATTN_NORM);
+					ATTEN_NORM);
 			self->locals.water_level = 1;
 		}
 
@@ -676,7 +676,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
 			gi.PositionedSound(water_start, g_game.edicts, gi.SoundIndex("world/water_out"),
-					ATTN_NORM);
+					ATTEN_NORM);
 			self->locals.water_level = 0;
 		}
 	}
@@ -772,7 +772,7 @@ void G_RailgunProjectile(g_edict_t *ent, vec3_t start, vec3_t aimdir, int32_t da
 			VectorCopy(tr.end, water_start);
 
 			gi.PositionedSound(water_start, g_game.edicts, gi.SoundIndex("world/water_in"),
-					ATTN_NORM);
+					ATTEN_NORM);
 
 			ignore = ent;
 			continue;

@@ -154,46 +154,46 @@ void Cg_ParseMuzzleFlash(void) {
 	switch (flash) {
 	case MZ_BLASTER:
 		c = cgi.ReadByte();
-		cgi.PlaySample(NULL, ent_num, cg_sample_blaster_fire, ATTN_NORM);
+		cgi.PlaySample(NULL, ent_num, cg_sample_blaster_fire, ATTEN_NORM);
 		Cg_EnergyFlash(&cent->current, c ? c : EFFECT_COLOR_ORANGE);
 		break;
 	case MZ_SHOTGUN:
-		cgi.PlaySample(NULL, ent_num, cg_sample_shotgun_fire, ATTN_NORM);
+		cgi.PlaySample(NULL, ent_num, cg_sample_shotgun_fire, ATTEN_NORM);
 		Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_SSHOTGUN:
-		cgi.PlaySample(NULL, ent_num, cg_sample_supershotgun_fire, ATTN_NORM);
+		cgi.PlaySample(NULL, ent_num, cg_sample_supershotgun_fire, ATTEN_NORM);
 		Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_MACHINEGUN:
-		cgi.PlaySample(NULL, ent_num, cg_sample_machinegun_fire[Random() % 4], ATTN_NORM);
+		cgi.PlaySample(NULL, ent_num, cg_sample_machinegun_fire[Random() % 4], ATTEN_NORM);
 		if (Random() & 1)
 			Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_ROCKET:
-		cgi.PlaySample(NULL, ent_num, cg_sample_rocketlauncher_fire, ATTN_NORM);
+		cgi.PlaySample(NULL, ent_num, cg_sample_rocketlauncher_fire, ATTEN_NORM);
 		Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_GRENADE:
-		cgi.PlaySample(NULL, ent_num, cg_sample_grenadelauncher_fire, ATTN_NORM);
+		cgi.PlaySample(NULL, ent_num, cg_sample_grenadelauncher_fire, ATTEN_NORM);
 		Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_HYPERBLASTER:
-		cgi.PlaySample(NULL, ent_num, cg_sample_hyperblaster_fire, ATTN_NORM);
+		cgi.PlaySample(NULL, ent_num, cg_sample_hyperblaster_fire, ATTEN_NORM);
 		Cg_EnergyFlash(&cent->current, 105);
 		break;
 	case MZ_LIGHTNING:
-		cgi.PlaySample(NULL, ent_num, cg_sample_lightning_fire, ATTN_NORM);
+		cgi.PlaySample(NULL, ent_num, cg_sample_lightning_fire, ATTEN_NORM);
 		break;
 	case MZ_RAILGUN:
-		cgi.PlaySample(NULL, ent_num, cg_sample_railgun_fire, ATTN_NORM);
+		cgi.PlaySample(NULL, ent_num, cg_sample_railgun_fire, ATTEN_NORM);
 		break;
 	case MZ_BFG:
-		cgi.PlaySample(NULL, ent_num, cg_sample_bfg_fire, ATTN_NORM);
+		cgi.PlaySample(NULL, ent_num, cg_sample_bfg_fire, ATTEN_NORM);
 		Cg_EnergyFlash(&cent->current, 200);
 		break;
 	case MZ_LOGOUT:
-		cgi.PlaySample(NULL, ent_num, cg_sample_teleport, ATTN_NONE);
+		cgi.PlaySample(NULL, ent_num, cg_sample_teleport, ATTEN_NONE);
 		Cg_LogoutFlash(cent->current.origin);
 		break;
 	default:

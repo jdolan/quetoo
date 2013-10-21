@@ -144,7 +144,7 @@ typedef struct {
 	entity_state_t entity_states[ENTITY_STATE_BACKUP]; // accumulated each frame
 	uint32_t entity_state; // index (not wrapped) into entity states
 
-	uint16_t player_num; // our entity number
+	uint16_t entity_num; // our entity number
 
 	uint32_t surpress_count; // number of messages rate suppressed
 

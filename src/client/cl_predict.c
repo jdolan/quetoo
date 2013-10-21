@@ -95,7 +95,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 		if (ent->number == trace->skip)
 			continue;
 
-		if (ent->number == cl.player_num + 1)
+		if (ent->number == cl.entity_num + 1)
 			continue;
 
 		if (ent->solid == SOLID_NOT)

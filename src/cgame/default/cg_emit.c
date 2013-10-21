@@ -190,13 +190,13 @@ void Cg_LoadEmits(void) {
 				if (e->flags & EMIT_SOUND) { // resolve attenuation and looping
 
 					if (e->atten == -1) // explicit -1 for global
-						e->atten = ATTN_NONE;
+						e->atten = ATTEN_NONE;
 					else {
 						if (e->atten == 0) { // default
 							if (e->flags & EMIT_SPARKS) {
-								e->atten = ATTN_STATIC;
+								e->atten = ATTEN_STATIC;
 							} else {
-								e->atten = DEFAULT_SOUND_ATTENUATION;
+								e->atten = ATTEN_DEFAULT;
 							}
 						}
 					}

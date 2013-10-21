@@ -614,7 +614,7 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 
 		// play the hit sound
 		if (cgi.client->time - last_damage_time > 50) {
-			cgi.PlaySample(cgi.view->origin, 0, cg_sample_hit, ATTN_NONE);
+			cgi.PlaySample(cgi.view->origin, 0, cg_sample_hit, ATTEN_NONE);
 			last_damage_time = cgi.client->time;
 		}
 

@@ -64,7 +64,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 
 	cgi.AddSustainedLight(&s);
 
-	cgi.PlaySample(org, 0, cg_sample_blaster_hit, ATTN_NORM);
+	cgi.PlaySample(org, 0, cg_sample_blaster_hit, ATTEN_NORM);
 }
 
 /*
@@ -157,7 +157,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		last_ric_time = 0;
 
 	if (cgi.client->time - last_ric_time > 300) {
-		cgi.PlaySample(org, -1, cg_sample_machinegun_hit[Random() % 3], ATTN_NORM);
+		cgi.PlaySample(org, -1, cg_sample_machinegun_hit[Random() % 3], ATTEN_NORM);
 		last_ric_time = cgi.client->time;
 	}
 }
@@ -319,7 +319,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	cgi.AddSustainedLight(&s);
 
-	cgi.PlaySample(org, -1, cg_sample_sparks, ATTN_STATIC);
+	cgi.PlaySample(org, -1, cg_sample_sparks, ATTEN_STATIC);
 }
 
 /*
@@ -401,7 +401,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&s);
 
-	cgi.PlaySample(org, -1, cg_sample_explosion, ATTN_NORM);
+	cgi.PlaySample(org, -1, cg_sample_explosion, ATTEN_NORM);
 }
 
 /*
@@ -437,7 +437,7 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&s);
 
-	cgi.PlaySample(org, -1, cg_sample_hyperblaster_hit, ATTN_NORM);
+	cgi.PlaySample(org, -1, cg_sample_hyperblaster_hit, ATTEN_NORM);
 }
 
 /*
@@ -465,7 +465,7 @@ static void Cg_LightningEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&s);
 
-	cgi.PlaySample(org, -1, cg_sample_lightning_discharge, ATTN_NORM);
+	cgi.PlaySample(org, -1, cg_sample_lightning_discharge, ATTEN_NORM);
 }
 
 /*
@@ -638,7 +638,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&s);
 
-	cgi.PlaySample(org, -1, cg_sample_bfg_hit, ATTN_NORM);
+	cgi.PlaySample(org, -1, cg_sample_bfg_hit, ATTEN_NORM);
 }
 
 /*
@@ -667,20 +667,20 @@ void Cg_ParseTempEntity(void) {
 
 	case TE_BULLET: // bullet hitting wall
 		cgi.ReadPosition(pos);
-		cgi.ReadDirection(dir);
+		cgi.ReadDir(dir);
 		Cg_BulletEffect(pos, dir);
 		break;
 
 	case TE_BURN: // burn mark on wall
 		cgi.ReadPosition(pos);
-		cgi.ReadDirection(dir);
+		cgi.ReadDir(dir);
 		i = cgi.ReadByte();
 		Cg_BurnEffect(pos, dir, i);
 		break;
 
 	case TE_BLOOD: // projectile hitting flesh
 		cgi.ReadPosition(pos);
-		cgi.ReadDirection(dir);
+		cgi.ReadDir(dir);
 		Cg_BloodEffect(pos, dir, 12);
 		break;
 
@@ -691,7 +691,7 @@ void Cg_ParseTempEntity(void) {
 
 	case TE_SPARKS: // colored sparks
 		cgi.ReadPosition(pos);
-		cgi.ReadDirection(dir);
+		cgi.ReadDir(dir);
 		Cg_SparksEffect(pos, dir, 12);
 		break;
 

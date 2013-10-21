@@ -91,7 +91,7 @@ void G_ChangeWeapon(g_edict_t *ent) {
 	G_SetAnimation(ent, ANIM_TORSO_DROP, false);
 
 	// play a sound
-	gi.Sound(ent, gi.SoundIndex("weapons/common/switch"), ATTN_NORM);
+	gi.Sound(ent, gi.SoundIndex("weapons/common/switch"), ATTEN_NORM);
 }
 
 /*
@@ -254,7 +254,7 @@ static _Bool G_FireWeapon(g_edict_t *ent) {
 	if (ent->client->locals.ammo_index && ammo < ammo_needed) {
 
 		if (g_level.time >= ent->client->locals.pain_time) { // play a click sound
-			gi.Sound(ent, gi.SoundIndex("weapons/common/no_ammo"), ATTN_NORM);
+			gi.Sound(ent, gi.SoundIndex("weapons/common/no_ammo"), ATTEN_NORM);
 			ent->client->locals.pain_time = g_level.time + 1000;
 		}
 
@@ -288,7 +288,7 @@ static void G_WeaponFired(g_edict_t *ent, uint32_t interval) {
 	if (ent->client->locals.persistent.inventory[g_level.media.quad_damage]) {
 
 		if (ent->client->locals.quad_attack_time < g_level.time) {
-			gi.Sound(ent, gi.SoundIndex("quad/attack"), ATTN_NORM);
+			gi.Sound(ent, gi.SoundIndex("quad/attack"), ATTEN_NORM);
 			ent->client->locals.quad_attack_time = g_level.time + 500;
 		}
 	}
@@ -323,7 +323,7 @@ void G_ClientWeaponThink(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_MuzzleFlash(g_edict_t *ent, muzzle_flash_t flash) {
+static void G_MuzzleFlash(g_edict_t *ent, g_muzzle_flash_t flash) {
 
 	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent - g_game.edicts);
@@ -568,6 +568,6 @@ void G_FireBfg(g_edict_t *ent) {
 		timer->locals.Think = G_FireBfg_;
 		timer->locals.next_think = g_level.time + 1;
 
-		//gi.Sound(ent, gi.SoundIndex("weapons/bfg/fire"), ATTN_NORM);
+		//gi.Sound(ent, gi.SoundIndex("weapons/bfg/fire"), ATTEN_NORM);
 	}
 }

@@ -162,7 +162,7 @@ void S_LoopSample(const vec3_t org, s_sample_t *sample) {
 		VectorCopy(org, ch->org);
 		ch->ent_num = -1;
 		ch->count = 1;
-		ch->atten = ATTN_IDLE;
+		ch->atten = ATTEN_IDLE;
 		ch->sample = sample;
 
 		if (S_SpatializeChannel(ch)) {
@@ -190,5 +190,5 @@ void S_StartLocalSample(const char *name) {
 		return;
 	}
 
-	S_PlaySample(NULL, cl.player_num + 1, sample, ATTN_NONE);
+	S_PlaySample(NULL, cl.entity_num + 1, sample, ATTEN_NONE);
 }

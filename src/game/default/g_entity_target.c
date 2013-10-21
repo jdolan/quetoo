@@ -67,9 +67,9 @@ void G_target_speaker(g_edict_t *ent) {
 	ent->locals.noise_index = gi.SoundIndex(buffer);
 
 	if (!ent->locals.attenuation)
-		ent->locals.attenuation = ATTN_NORM;
+		ent->locals.attenuation = ATTEN_NORM;
 	else if (ent->locals.attenuation == -1) // use -1 so 0 defaults to 1
-		ent->locals.attenuation = ATTN_NONE;
+		ent->locals.attenuation = ATTEN_NONE;
 
 	// check for looping sound
 	if (ent->locals.spawn_flags & 1)

@@ -26,7 +26,7 @@
  * This will be sent on the initial connection and upon each server load.
  */
 static void Sv_New_f(void) {
-	int32_t player_num;
+	int32_t entity_num;
 
 	Com_Debug("%s\n", Sv_NetaddrToString(sv_client));
 
@@ -48,8 +48,8 @@ static void Sv_New_f(void) {
 	Net_WriteByte(&sv_client->net_chan.message, 0);
 	Net_WriteString(&sv_client->net_chan.message, Cvar_GetString("game"));
 
-	player_num = sv_client - svs.clients;
-	Net_WriteShort(&sv_client->net_chan.message, player_num);
+	entity_num = sv_client - svs.clients;
+	Net_WriteShort(&sv_client->net_chan.message, entity_num);
 
 	// send full level name
 	Net_WriteString(&sv_client->net_chan.message, sv.config_strings[CS_NAME]);

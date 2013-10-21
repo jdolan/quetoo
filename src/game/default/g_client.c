@@ -269,7 +269,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
 
 	G_ClientCorpse(self);
 
-	gi.Sound(self, gi.SoundIndex("*death_1"), ATTN_NORM);
+	gi.Sound(self, gi.SoundIndex("*death_1"), ATTEN_NORM);
 
 	self->client->locals.respawn_time = g_level.time + 1000;
 	self->client->ps.pm_state.type = PM_DEAD;
@@ -782,9 +782,9 @@ void G_ClientRespawn(g_edict_t *ent, _Bool voluntary) {
 void G_ClientBegin(g_edict_t *ent) {
 	char welcome[MAX_STRING_CHARS];
 
-	int32_t player_num = ent - g_game.edicts - 1;
+	int32_t entity_num = ent - g_game.edicts - 1;
 
-	ent->client = g_game.clients + player_num;
+	ent->client = g_game.clients + entity_num;
 
 	G_InitEdict(ent, "client");
 
@@ -848,7 +848,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	const char *s;
 	char *c;
 	char name[MAX_NET_NAME];
-	int32_t player_num, i;
+	int32_t entity_num, i;
 	_Bool color;
 	g_client_t *cl;
 
@@ -927,10 +927,10 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	s = GetUserInfo(user_info, "color");
 	cl->locals.persistent.color = ColorByName(s, EFFECT_COLOR_DEFAULT);
 
-	player_num = ent - g_game.edicts - 1;
+	entity_num = ent - g_game.edicts - 1;
 
 	// combine name and skin into a config_string
-	gi.ConfigString(CS_CLIENTS + player_num,
+	gi.ConfigString(CS_CLIENTS + entity_num,
 			va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
 
 	// save off the user_info in case we want to check something later
@@ -985,7 +985,7 @@ _Bool G_ClientConnect(g_edict_t *ent, char *user_info) {
  * @brief Called when a player drops from the server. Not be called between levels.
  */
 void G_ClientDisconnect(g_edict_t *ent) {
-	int32_t player_num;
+	int32_t entity_num;
 
 	if (!ent->client)
 		return;
@@ -1013,8 +1013,8 @@ void G_ClientDisconnect(g_edict_t *ent) {
 	memset(&ent->s, 0, sizeof(ent->s));
 	ent->s.number = ent - g_game.edicts;
 
-	player_num = ent - g_game.edicts - 1;
-	gi.ConfigString(CS_CLIENTS + player_num, "");
+	entity_num = ent - g_game.edicts - 1;
+	gi.ConfigString(CS_CLIENTS + entity_num, "");
 }
 
 /*
@@ -1222,7 +1222,7 @@ static void G_ClientInventoryThink(g_edict_t *ent) {
 			ent->client->locals.quad_damage_time = 0.0;
 			ent->client->locals.persistent.inventory[g_level.media.quad_damage] = 0;
 
-			gi.Sound(ent, gi.SoundIndex("quad/expire"), ATTN_NORM);
+			gi.Sound(ent, gi.SoundIndex("quad/expire"), ATTEN_NORM);
 
 			ent->s.effects &= ~EF_QUAD;
 		}
