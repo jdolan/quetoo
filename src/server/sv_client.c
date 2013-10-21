@@ -139,7 +139,7 @@ static void Sv_Baselines_f(void) {
 		base = &sv.baselines[start];
 		if (base->model1 || base->sound || base->effects) {
 			Net_WriteByte(&sv_client->net_chan.message, SV_CMD_BASELINE);
-			Net_WriteDeltaEntity(&null_state, base, &sv_client->net_chan.message, true, true);
+			Net_WriteDeltaEntity(&sv_client->net_chan.message, &null_state, base, true, true);
 		}
 		start++;
 	}
@@ -437,9 +437,9 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 				}
 
 				memset(&null_cmd, 0, sizeof(null_cmd));
-				Net_ReadDeltaUsercmd(&net_message, &null_cmd, &oldest_cmd);
-				Net_ReadDeltaUsercmd(&net_message, &oldest_cmd, &old_cmd);
-				Net_ReadDeltaUsercmd(&net_message, &old_cmd, &new_cmd);
+				Net_ReadDeltaUserCmd(&net_message, &null_cmd, &oldest_cmd);
+				Net_ReadDeltaUserCmd(&net_message, &oldest_cmd, &old_cmd);
+				Net_ReadDeltaUserCmd(&net_message, &old_cmd, &new_cmd);
 
 				// don't start delta compression until the client is spawned
 				// TODO: should this be a little higher up?

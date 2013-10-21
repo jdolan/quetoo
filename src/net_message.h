@@ -85,8 +85,8 @@ void Net_WritePos(mem_buf_t *buf, const vec3_t pos);
 void Net_WriteAngle(mem_buf_t *buf, const vec_t f);
 void Net_WriteAngles(mem_buf_t *buf, const vec3_t angles);
 void Net_WriteDeltaUserCmd(mem_buf_t *buf, const user_cmd_t *from, const user_cmd_t *to);
-void Net_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, mem_buf_t *msg, _Bool force,
-		_Bool newentity);
+void Net_WriteDeltaEntity(mem_buf_t *buf, const entity_state_t *from, const entity_state_t *to,
+		_Bool force, _Bool newentity);
 void Net_WriteDir(mem_buf_t *buf, const vec3_t dir);
 
 // message reading
@@ -102,9 +102,9 @@ vec_t Net_ReadCoord(mem_buf_t *buf);
 void Net_ReadPos(mem_buf_t *buf, vec3_t pos);
 vec_t Net_ReadAngle(mem_buf_t *buf);
 void Net_ReadAngles(mem_buf_t *buf, vec3_t angles);
-void Net_ReadDeltaUsercmd(mem_buf_t *buf, struct user_cmd_s *from, struct user_cmd_s *cmd);
-void Net_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, mem_buf_t *msg, uint16_t bits,
-		uint16_t number);
+void Net_ReadDeltaUserCmd(mem_buf_t *buf, const user_cmd_t *from, user_cmd_t *to);
+void Net_ReadDeltaEntity(mem_buf_t *buf, const entity_state_t *from, entity_state_t *to,
+		uint16_t bits, uint16_t number);
 void Net_ReadDir(mem_buf_t *buf, vec3_t vector);
 
 #endif /* __NET_MESSAGE_H__ */

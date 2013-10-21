@@ -48,12 +48,13 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 		if (old_index >= from_num_entities)
 			old_num = 0xffff;
 		else {
-			old_state = &svs.entity_states[(from->first_entity + old_index) % svs.num_entity_states];
+			old_state
+					= &svs.entity_states[(from->first_entity + old_index) % svs.num_entity_states];
 			old_num = old_state->number;
 		}
 
 		if (new_num == old_num) { // delta update from old position
-			Net_WriteDeltaEntity(old_state, new_state, msg, false,
+			Net_WriteDeltaEntity(msg, old_state, new_state, false,
 					new_state->number <= sv_max_clients->integer);
 			old_index++;
 			new_index++;
@@ -61,7 +62,7 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 		}
 
 		if (new_num < old_num) { // this is a new entity, send it from the baseline
-			Net_WriteDeltaEntity(&sv.baselines[new_num], new_state, msg, true, true);
+			Net_WriteDeltaEntity(msg, &sv.baselines[new_num], new_state, true, true);
 			new_index++;
 			continue;
 		}

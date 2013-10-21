@@ -37,7 +37,7 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t num
 
 	frame->num_entities++;
 
-	Net_ReadDeltaEntity(from, to, &net_message, number, bits);
+	Net_ReadDeltaEntity(&net_message, from, to, number, bits);
 
 	// some data changes will force no interpolation
 	if (to->event == EV_CLIENT_TELEPORT) {

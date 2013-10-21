@@ -203,8 +203,8 @@ void Net_ReadDir(mem_buf_t *sb, vec3_t dir) {
  * @brief Writes an entity's state changes to a net message. Can delta from
  * either a baseline or a previous packet_entity
  */
-void Net_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, mem_buf_t *msg, _Bool force,
-		_Bool is_new) {
+void Net_WriteDeltaEntity(mem_buf_t *buf, const entity_state_t *from, const entity_state_t *to,
+		_Bool force, _Bool is_new) {
 
 	uint16_t bits = 0;
 
@@ -252,50 +252,50 @@ void Net_WriteDeltaEntity(entity_state_t *from, entity_state_t *to, mem_buf_t *m
 
 	// write the message
 
-	Net_WriteShort(msg, to->number);
-	Net_WriteShort(msg, bits);
+	Net_WriteShort(buf, to->number);
+	Net_WriteShort(buf, bits);
 
 	if (bits & U_ORIGIN)
-		Net_WritePos(msg, to->origin);
+		Net_WritePos(buf, to->origin);
 
 	if (bits & U_OLD_ORIGIN)
-		Net_WritePos(msg, to->old_origin);
+		Net_WritePos(buf, to->old_origin);
 
 	if (bits & U_ANGLES)
-		Net_WriteAngles(msg, to->angles);
+		Net_WriteAngles(buf, to->angles);
 
 	if (bits & U_ANIMATIONS) {
-		Net_WriteByte(msg, to->animation1);
-		Net_WriteByte(msg, to->animation2);
+		Net_WriteByte(buf, to->animation1);
+		Net_WriteByte(buf, to->animation2);
 	}
 
 	if (bits & U_EVENT)
-		Net_WriteByte(msg, to->event);
+		Net_WriteByte(buf, to->event);
 
 	if (bits & U_EFFECTS)
-		Net_WriteShort(msg, to->effects);
+		Net_WriteShort(buf, to->effects);
 
 	if (bits & U_MODELS) {
-		Net_WriteByte(msg, to->model1);
-		Net_WriteByte(msg, to->model2);
-		Net_WriteByte(msg, to->model3);
-		Net_WriteByte(msg, to->model4);
+		Net_WriteByte(buf, to->model1);
+		Net_WriteByte(buf, to->model2);
+		Net_WriteByte(buf, to->model3);
+		Net_WriteByte(buf, to->model4);
 	}
 
 	if (bits & U_CLIENT)
-		Net_WriteByte(msg, to->client);
+		Net_WriteByte(buf, to->client);
 
 	if (bits & U_SOUND)
-		Net_WriteByte(msg, to->sound);
+		Net_WriteByte(buf, to->sound);
 
 	if (bits & U_SOLID)
-		Net_WriteShort(msg, to->solid);
+		Net_WriteShort(buf, to->solid);
 }
 
 /*
  * @brief
  */
-void Net_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, mem_buf_t *msg,
+void Net_ReadDeltaEntity(mem_buf_t *buf, const entity_state_t *from, entity_state_t *to,
 		uint16_t number, uint16_t bits) {
 
 	// set everything to the state we are delta'ing from
@@ -307,42 +307,42 @@ void Net_ReadDeltaEntity(entity_state_t *from, entity_state_t *to, mem_buf_t *ms
 	to->number = number;
 
 	if (bits & U_ORIGIN)
-		Net_ReadPos(msg, to->origin);
+		Net_ReadPos(buf, to->origin);
 
 	if (bits & U_OLD_ORIGIN)
-		Net_ReadPos(msg, to->old_origin);
+		Net_ReadPos(buf, to->old_origin);
 
 	if (bits & U_ANGLES)
-		Net_ReadAngles(msg, to->angles);
+		Net_ReadAngles(buf, to->angles);
 
 	if (bits & U_ANIMATIONS) {
-		to->animation1 = Net_ReadByte(msg);
-		to->animation2 = Net_ReadByte(msg);
+		to->animation1 = Net_ReadByte(buf);
+		to->animation2 = Net_ReadByte(buf);
 	}
 
 	if (bits & U_EVENT)
-		to->event = Net_ReadByte(msg);
+		to->event = Net_ReadByte(buf);
 	else
 		to->event = 0;
 
 	if (bits & U_EFFECTS)
-		to->effects = Net_ReadShort(msg);
+		to->effects = Net_ReadShort(buf);
 
 	if (bits & U_MODELS) {
-		to->model1 = Net_ReadByte(msg);
-		to->model2 = Net_ReadByte(msg);
-		to->model3 = Net_ReadByte(msg);
-		to->model4 = Net_ReadByte(msg);
+		to->model1 = Net_ReadByte(buf);
+		to->model2 = Net_ReadByte(buf);
+		to->model3 = Net_ReadByte(buf);
+		to->model4 = Net_ReadByte(buf);
 	}
 
 	if (bits & U_CLIENT)
-		to->client = Net_ReadByte(msg);
+		to->client = Net_ReadByte(buf);
 
 	if (bits & U_SOUND)
-		to->sound = Net_ReadByte(msg);
+		to->sound = Net_ReadByte(buf);
 
 	if (bits & U_SOLID)
-		to->solid = Net_ReadShort(msg);
+		to->solid = Net_ReadShort(buf);
 }
 
 /*
@@ -505,33 +505,33 @@ void Net_ReadAngles(mem_buf_t *sb, vec3_t angles) {
 /*
  * @brief
  */
-void Net_ReadDeltaUsercmd(mem_buf_t *sb, user_cmd_t *from, user_cmd_t *move) {
+void Net_ReadDeltaUserCmd(mem_buf_t *sb, const user_cmd_t *from, user_cmd_t *to) {
 	int32_t bits;
 
-	*move = *from;
+	*to = *from;
 
 	bits = Net_ReadByte(sb);
 
 	// read current angles
 	if (bits & CMD_ANGLE1)
-		move->angles[0] = Net_ReadShort(sb);
+		to->angles[0] = Net_ReadShort(sb);
 	if (bits & CMD_ANGLE2)
-		move->angles[1] = Net_ReadShort(sb);
+		to->angles[1] = Net_ReadShort(sb);
 	if (bits & CMD_ANGLE3)
-		move->angles[2] = Net_ReadShort(sb);
+		to->angles[2] = Net_ReadShort(sb);
 
 	// read movement
 	if (bits & CMD_FORWARD)
-		move->forward = Net_ReadShort(sb);
+		to->forward = Net_ReadShort(sb);
 	if (bits & CMD_RIGHT)
-		move->right = Net_ReadShort(sb);
+		to->right = Net_ReadShort(sb);
 	if (bits & CMD_UP)
-		move->up = Net_ReadShort(sb);
+		to->up = Net_ReadShort(sb);
 
 	// read buttons
 	if (bits & CMD_BUTTONS)
-		move->buttons = Net_ReadByte(sb);
+		to->buttons = Net_ReadByte(sb);
 
 	// read time to run command
-	move->msec = Net_ReadByte(sb);
+	to->msec = Net_ReadByte(sb);
 }

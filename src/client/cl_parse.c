@@ -135,16 +135,14 @@ void Cl_Precache_f(void) {
  * @brief
  */
 static void Cl_ParseBaseline(void) {
-	entity_state_t *state;
-	entity_state_t null_state;
+	static entity_state_t null_state;
 
 	const uint16_t number = Net_ReadShort(&net_message);
 	const uint16_t bits = Net_ReadShort(&net_message);
 
-	memset(&null_state, 0, sizeof(null_state));
-	state = &cl.entities[number].baseline;
+	entity_state_t *state = &cl.entities[number].baseline;
 
-	Net_ReadDeltaEntity(&null_state, state, &net_message, number, bits);
+	Net_ReadDeltaEntity(&net_message, &null_state, state, number, bits);
 }
 
 /*
