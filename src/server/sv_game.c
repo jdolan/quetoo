@@ -125,8 +125,12 @@ static void Sv_WriteString(const char *s) {
 	Net_WriteString(&sv.multicast, s);
 }
 
-static void Sv_WritePos(const vec3_t pos) {
-	Net_WritePos(&sv.multicast, pos);
+static void Sv_WriteVector(const vec_t v) {
+	Net_WriteVector(&sv.multicast, v);
+}
+
+static void Sv_WritePosition(const vec3_t pos) {
+	Net_WritePosition(&sv.multicast, pos);
 }
 
 static void Sv_WriteDir(const vec3_t dir) {
@@ -135,6 +139,10 @@ static void Sv_WriteDir(const vec3_t dir) {
 
 static void Sv_WriteAngle(const vec_t v) {
 	Net_WriteAngle(&sv.multicast, v);
+}
+
+static void Sv_WriteAngles(const vec3_t angles) {
+	Net_WriteAngles(&sv.multicast, angles);
 }
 
 /*
@@ -279,9 +287,11 @@ void Sv_InitGame(void) {
 	import.WriteShort = Sv_WriteShort;
 	import.WriteLong = Sv_WriteLong;
 	import.WriteString = Sv_WriteString;
-	import.WritePosition = Sv_WritePos;
+	import.WriteVector = Sv_WriteVector;
+	import.WritePosition = Sv_WritePosition;
 	import.WriteDir = Sv_WriteDir;
 	import.WriteAngle = Sv_WriteAngle;
+	import.WriteAngles = Sv_WriteAngles;
 
 	import.BroadcastPrint = Sv_BroadcastPrint;
 	import.ClientPrint = Sv_ClientPrint;

@@ -566,7 +566,7 @@ typedef enum {
  * compression. The client parses these states and adds or removes entities
  * from the scene as needed.
  */
-typedef struct entity_state_s {
+typedef struct {
 	uint16_t number; // edict index
 
 	vec3_t origin;

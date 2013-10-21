@@ -314,7 +314,7 @@ static void Cl_ParseSound(void) {
 	}
 
 	if (flags & S_ORIGIN) { // positioned in space
-		Net_ReadPos(&net_message, origin);
+		Net_ReadPosition(&net_message, origin);
 
 		org = origin;
 	} else

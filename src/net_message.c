@@ -85,14 +85,14 @@ void Net_WriteString(mem_buf_t *sb, const char *s) {
 /*
  * @brief
  */
-void Net_WriteCoord(mem_buf_t *sb, const vec_t v) {
+void Net_WriteVector(mem_buf_t *sb, const vec_t v) {
 	Net_WriteShort(sb, (int32_t) (v * 8.0));
 }
 
 /*
  * @brief
  */
-void Net_WritePos(mem_buf_t *sb, const vec3_t pos) {
+void Net_WritePosition(mem_buf_t *sb, const vec3_t pos) {
 	Net_WriteShort(sb, (int32_t) (pos[0] * 8.0));
 	Net_WriteShort(sb, (int32_t) (pos[1] * 8.0));
 	Net_WriteShort(sb, (int32_t) (pos[2] * 8.0));
@@ -112,6 +112,24 @@ void Net_WriteAngles(mem_buf_t *sb, const vec3_t angles) {
 	Net_WriteAngle(sb, angles[0]);
 	Net_WriteAngle(sb, angles[1]);
 	Net_WriteAngle(sb, angles[2]);
+}
+
+/*
+ * @brief
+ */
+void Net_WriteDir(mem_buf_t *sb, const vec3_t dir) {
+	int32_t i, best = 0;
+	vec_t best_d = 0.0;
+
+	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
+		const vec_t d = DotProduct(dir, approximate_normals[i]);
+		if (d > best_d) {
+			best_d = d;
+			best = i;
+		}
+	}
+
+	Net_WriteByte(sb, best);
 }
 
 /*
@@ -158,45 +176,6 @@ void Net_WriteDeltaUserCmd(mem_buf_t *buf, const user_cmd_t *from, const user_cm
 		Net_WriteByte(buf, to->buttons);
 
 	Net_WriteByte(buf, to->msec);
-}
-
-/*
- * @brief
- */
-void Net_WriteDir(mem_buf_t *sb, const vec3_t dir) {
-	int32_t i, best;
-	vec_t d, bestd;
-
-	if (!dir) {
-		Net_WriteByte(sb, 0);
-		return;
-	}
-
-	bestd = 0;
-	best = 0;
-	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
-		d = DotProduct(dir, approximate_normals[i]);
-		if (d > bestd) {
-			bestd = d;
-			best = i;
-		}
-	}
-	Net_WriteByte(sb, best);
-}
-
-/*
- * @brief
- */
-void Net_ReadDir(mem_buf_t *sb, vec3_t dir) {
-	int32_t b;
-
-	b = Net_ReadByte(sb);
-
-	if (b >= NUM_APPROXIMATE_NORMALS) {
-		Com_Error(ERR_DROP, "%d out of range\n", b);
-	}
-
-	VectorCopy(approximate_normals[b], dir);
 }
 
 /*
@@ -256,10 +235,10 @@ void Net_WriteDeltaEntity(mem_buf_t *buf, const entity_state_t *from, const enti
 	Net_WriteShort(buf, bits);
 
 	if (bits & U_ORIGIN)
-		Net_WritePos(buf, to->origin);
+		Net_WritePosition(buf, to->origin);
 
 	if (bits & U_OLD_ORIGIN)
-		Net_WritePos(buf, to->old_origin);
+		Net_WritePosition(buf, to->old_origin);
 
 	if (bits & U_ANGLES)
 		Net_WriteAngles(buf, to->angles);
@@ -290,59 +269,6 @@ void Net_WriteDeltaEntity(mem_buf_t *buf, const entity_state_t *from, const enti
 
 	if (bits & U_SOLID)
 		Net_WriteShort(buf, to->solid);
-}
-
-/*
- * @brief
- */
-void Net_ReadDeltaEntity(mem_buf_t *buf, const entity_state_t *from, entity_state_t *to,
-		uint16_t number, uint16_t bits) {
-
-	// set everything to the state we are delta'ing from
-	*to = *from;
-
-	if (!(from->effects & EF_BEAM))
-		VectorCopy(from->origin, to->old_origin);
-
-	to->number = number;
-
-	if (bits & U_ORIGIN)
-		Net_ReadPos(buf, to->origin);
-
-	if (bits & U_OLD_ORIGIN)
-		Net_ReadPos(buf, to->old_origin);
-
-	if (bits & U_ANGLES)
-		Net_ReadAngles(buf, to->angles);
-
-	if (bits & U_ANIMATIONS) {
-		to->animation1 = Net_ReadByte(buf);
-		to->animation2 = Net_ReadByte(buf);
-	}
-
-	if (bits & U_EVENT)
-		to->event = Net_ReadByte(buf);
-	else
-		to->event = 0;
-
-	if (bits & U_EFFECTS)
-		to->effects = Net_ReadShort(buf);
-
-	if (bits & U_MODELS) {
-		to->model1 = Net_ReadByte(buf);
-		to->model2 = Net_ReadByte(buf);
-		to->model3 = Net_ReadByte(buf);
-		to->model4 = Net_ReadByte(buf);
-	}
-
-	if (bits & U_CLIENT)
-		to->client = Net_ReadByte(buf);
-
-	if (bits & U_SOUND)
-		to->sound = Net_ReadByte(buf);
-
-	if (bits & U_SOLID)
-		to->solid = Net_ReadShort(buf);
 }
 
 /*
@@ -473,17 +399,17 @@ char *Net_ReadStringLine(mem_buf_t *sb) {
 /*
  * @brief
  */
-vec_t Net_ReadCoord(mem_buf_t *sb) {
+vec_t Net_ReadVector(mem_buf_t *sb) {
 	return Net_ReadShort(sb) * (1.0 / 8.0);
 }
 
 /*
  * @brief
  */
-void Net_ReadPos(mem_buf_t *sb, vec3_t pos) {
-	pos[0] = Net_ReadCoord(sb);
-	pos[1] = Net_ReadCoord(sb);
-	pos[2] = Net_ReadCoord(sb);
+void Net_ReadPosition(mem_buf_t *sb, vec3_t pos) {
+	pos[0] = Net_ReadVector(sb);
+	pos[1] = Net_ReadVector(sb);
+	pos[2] = Net_ReadVector(sb);
 }
 
 /*
@@ -500,6 +426,21 @@ void Net_ReadAngles(mem_buf_t *sb, vec3_t angles) {
 	angles[0] = Net_ReadAngle(sb);
 	angles[1] = Net_ReadAngle(sb);
 	angles[2] = Net_ReadAngle(sb);
+}
+
+/*
+ * @brief
+ */
+void Net_ReadDir(mem_buf_t *sb, vec3_t dir) {
+	int32_t b;
+
+	b = Net_ReadByte(sb);
+
+	if (b >= NUM_APPROXIMATE_NORMALS) {
+		Com_Error(ERR_DROP, "%d out of range\n", b);
+	}
+
+	VectorCopy(approximate_normals[b], dir);
 }
 
 /*
@@ -535,3 +476,57 @@ void Net_ReadDeltaUserCmd(mem_buf_t *sb, const user_cmd_t *from, user_cmd_t *to)
 	// read time to run command
 	to->msec = Net_ReadByte(sb);
 }
+
+/*
+ * @brief
+ */
+void Net_ReadDeltaEntity(mem_buf_t *buf, const entity_state_t *from, entity_state_t *to,
+		uint16_t number, uint16_t bits) {
+
+	// set everything to the state we are delta'ing from
+	*to = *from;
+
+	if (!(from->effects & EF_BEAM))
+		VectorCopy(from->origin, to->old_origin);
+
+	to->number = number;
+
+	if (bits & U_ORIGIN)
+		Net_ReadPosition(buf, to->origin);
+
+	if (bits & U_OLD_ORIGIN)
+		Net_ReadPosition(buf, to->old_origin);
+
+	if (bits & U_ANGLES)
+		Net_ReadAngles(buf, to->angles);
+
+	if (bits & U_ANIMATIONS) {
+		to->animation1 = Net_ReadByte(buf);
+		to->animation2 = Net_ReadByte(buf);
+	}
+
+	if (bits & U_EVENT)
+		to->event = Net_ReadByte(buf);
+	else
+		to->event = 0;
+
+	if (bits & U_EFFECTS)
+		to->effects = Net_ReadShort(buf);
+
+	if (bits & U_MODELS) {
+		to->model1 = Net_ReadByte(buf);
+		to->model2 = Net_ReadByte(buf);
+		to->model3 = Net_ReadByte(buf);
+		to->model4 = Net_ReadByte(buf);
+	}
+
+	if (bits & U_CLIENT)
+		to->client = Net_ReadByte(buf);
+
+	if (bits & U_SOUND)
+		to->sound = Net_ReadByte(buf);
+
+	if (bits & U_SOLID)
+		to->solid = Net_ReadShort(buf);
+}
+

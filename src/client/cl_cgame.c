@@ -75,16 +75,24 @@ static char *Cl_ReadString(void) {
 	return Net_ReadString(&net_message);
 }
 
-static void Cl_ReadPosition(vec3_t pos) {
-	Net_ReadPos(&net_message, pos);
+static vec_t Cl_ReadVector(void) {
+	return Net_ReadVector(&net_message);
 }
 
-static void Cl_ReadDirection(vec3_t dir) {
+static void Cl_ReadPosition(vec3_t pos) {
+	Net_ReadPosition(&net_message, pos);
+}
+
+static void Cl_ReadDir(vec3_t dir) {
 	Net_ReadDir(&net_message, dir);
 }
 
 static vec_t Cl_ReadAngle(void) {
 	return Net_ReadAngle(&net_message);
+}
+
+static void Cl_ReadAngles(vec3_t angles) {
+	Net_ReadAngles(&net_message, angles);
 }
 
 /*
@@ -140,9 +148,11 @@ void Cl_InitCgame(void) {
 	import.ReadShort = Cl_ReadShort;
 	import.ReadLong = Cl_ReadLong;
 	import.ReadString = Cl_ReadString;
+	import.ReadVector = Cl_ReadVector;
 	import.ReadPosition = Cl_ReadPosition;
-	import.ReadDirection = Cl_ReadDirection;
+	import.ReadDir = Cl_ReadDir;
 	import.ReadAngle = Cl_ReadAngle;
+	import.ReadAngles = Cl_ReadAngles;
 
 	import.client = &cl;
 

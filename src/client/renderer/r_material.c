@@ -825,7 +825,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			c = ParseToken(buffer);
 			s->anim.fps = atof(c);
 
-			if (s->anim.fps <= 0.0) {
+			if (s->anim.fps < 0.0) {
 				Com_Warn("Invalid anim fps for %s\n",
 						(s->image ? s->image->media.name : "NULL"));
 				return -1;

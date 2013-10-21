@@ -331,7 +331,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint
 		Net_WriteShort(&sv.multicast, NUM_FOR_EDICT(entity));
 
 	if (flags & S_ORIGIN)
-		Net_WritePos(&sv.multicast, org);
+		Net_WritePosition(&sv.multicast, org);
 
 	if (atten != ATTN_NONE)
 		Sv_Multicast(org, MULTICAST_PHS);

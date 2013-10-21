@@ -172,9 +172,11 @@ typedef struct {
 	void (*WriteShort)(const int32_t c);
 	void (*WriteLong)(const int32_t c);
 	void (*WriteString)(const char *s);
-	void (*WritePosition)(const vec3_t pos); // some fractional bits
+	void (*WriteVector)(const vec_t v);
+	void (*WritePosition)(const vec3_t pos);
 	void (*WriteDir)(const vec3_t pos); // single byte encoded, very coarse
 	void (*WriteAngle)(const vec_t v);
+	void (*WriteAngles)(const vec3_t angles);
 
 	// network console IO
 	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));

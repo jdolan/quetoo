@@ -60,9 +60,11 @@ typedef struct cg_import_s {
 	int32_t (*ReadShort)(void);
 	int32_t (*ReadLong)(void);
 	char *(*ReadString)(void);
+	vec_t (*ReadVector)(void);
 	void (*ReadPosition)(vec3_t pos);
-	void (*ReadDirection)(vec3_t dir);
+	void (*ReadDir)(vec3_t dir);
 	vec_t (*ReadAngle)(void);
+	void (*ReadAngles)(vec3_t angles);
 
 	// public client structure
 	cl_client_t *client;
