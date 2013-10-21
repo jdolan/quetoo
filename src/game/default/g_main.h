@@ -26,7 +26,10 @@
 
 #ifdef __GAME_LOCAL_H__
 
-// maplist structs
+// FIXME: Use GList for this; this is terrible.
+#define MAX_MAP_LIST_ELTS 64
+#define MAP_LIST_WEIGHT 16384
+
 typedef struct g_map_list_elt_s {
 	char name[32];
 	char title[128];

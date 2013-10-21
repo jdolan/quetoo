@@ -252,7 +252,7 @@ static void G_MoveInfo_Angular_Done(g_edict_t *ent) {
 static void G_MoveInfo_Angular_Final(g_edict_t *ent) {
 	vec3_t move;
 
-	if (ent->locals.move_info.state == STATE_UP)
+	if (ent->locals.move_info.state == MOVE_STATE_GOING_UP)
 		VectorSubtract(ent->locals.move_info.end_angles, ent->s.angles, move);
 	else
 		VectorSubtract(ent->locals.move_info.start_angles, ent->s.angles, move);
@@ -275,7 +275,7 @@ static void G_MoveInfo_Angular_Begin(g_edict_t *ent) {
 	vec3_t move;
 
 	// set move to the vector needed to move
-	if (ent->locals.move_info.state == STATE_UP)
+	if (ent->locals.move_info.state == MOVE_STATE_GOING_UP)
 		VectorSubtract(ent->locals.move_info.end_angles, ent->s.angles, move);
 	else
 		VectorSubtract(ent->locals.move_info.start_angles, ent->s.angles, move);
@@ -331,7 +331,7 @@ static void G_func_plat_Up(g_edict_t *ent) {
 			gi.Sound(ent, ent->locals.move_info.sound_end, ATTEN_IDLE);
 		ent->s.sound = 0;
 	}
-	ent->locals.move_info.state = STATE_TOP;
+	ent->locals.move_info.state = MOVE_STATE_TOP;
 
 	ent->locals.Think = G_func_plat_GoDown;
 	ent->locals.next_think = g_level.time + 3000;
@@ -346,7 +346,7 @@ static void G_func_plat_Down(g_edict_t *ent) {
 			gi.Sound(ent, ent->locals.move_info.sound_end, ATTEN_IDLE);
 		ent->s.sound = 0;
 	}
-	ent->locals.move_info.state = STATE_BOTTOM;
+	ent->locals.move_info.state = MOVE_STATE_BOTTOM;
 }
 
 /*
@@ -358,7 +358,7 @@ static void G_func_plat_GoDown(g_edict_t *ent) {
 			gi.Sound(ent, ent->locals.move_info.sound_start, ATTEN_IDLE);
 		ent->s.sound = ent->locals.move_info.sound_middle;
 	}
-	ent->locals.move_info.state = STATE_DOWN;
+	ent->locals.move_info.state = MOVE_STATE_GOING_DOWN;
 	G_MoveInfo_Init(ent, ent->locals.move_info.end_origin, G_func_plat_Down);
 }
 
@@ -371,7 +371,7 @@ static void G_func_plat_GoUp(g_edict_t *ent) {
 			gi.Sound(ent, ent->locals.move_info.sound_start, ATTEN_IDLE);
 		ent->s.sound = ent->locals.move_info.sound_middle;
 	}
-	ent->locals.move_info.state = STATE_UP;
+	ent->locals.move_info.state = MOVE_STATE_GOING_UP;
 	G_MoveInfo_Init(ent, ent->locals.move_info.start_origin, G_func_plat_Up);
 }
 
@@ -386,9 +386,9 @@ static void G_func_plat_Blocked(g_edict_t *self, g_edict_t *other) {
 	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.dmg, 1, 0,
 			MOD_CRUSH);
 
-	if (self->locals.move_info.state == STATE_UP)
+	if (self->locals.move_info.state == MOVE_STATE_GOING_UP)
 		G_func_plat_GoDown(self);
-	else if (self->locals.move_info.state == STATE_DOWN)
+	else if (self->locals.move_info.state == MOVE_STATE_GOING_DOWN)
 		G_func_plat_GoUp(self);
 }
 
@@ -417,9 +417,9 @@ static void G_func_plat_Touch(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *p
 
 	ent = ent->locals.enemy; // now point at the plat, not the trigger
 
-	if (ent->locals.move_info.state == STATE_BOTTOM)
+	if (ent->locals.move_info.state == MOVE_STATE_BOTTOM)
 		G_func_plat_GoUp(ent);
-	else if (ent->locals.move_info.state == STATE_TOP)
+	else if (ent->locals.move_info.state == MOVE_STATE_TOP)
 		ent->locals.next_think = g_level.time + 1000; // the player is still on the plat, so delay going down
 }
 
@@ -525,11 +525,11 @@ void G_func_plat(g_edict_t *ent) {
 	G_func_plat_CreateTrigger(ent); // the "start moving" trigger
 
 	if (ent->locals.target_name) {
-		ent->locals.move_info.state = STATE_UP;
+		ent->locals.move_info.state = MOVE_STATE_GOING_UP;
 	} else {
 		VectorCopy(ent->locals.pos2, ent->s.origin);
 		gi.LinkEdict(ent);
-		ent->locals.move_info.state = STATE_BOTTOM;
+		ent->locals.move_info.state = MOVE_STATE_BOTTOM;
 	}
 
 	ent->locals.move_info.speed = ent->locals.speed;
@@ -641,7 +641,7 @@ void G_func_rotating(g_edict_t *ent) {
  * @brief
  */
 static void G_func_button_Done(g_edict_t *self) {
-	self->locals.move_info.state = STATE_BOTTOM;
+	self->locals.move_info.state = MOVE_STATE_BOTTOM;
 }
 
 /*
@@ -649,7 +649,7 @@ static void G_func_button_Done(g_edict_t *self) {
  */
 static void G_func_button_Reset(g_edict_t *self) {
 
-	self->locals.move_info.state = STATE_DOWN;
+	self->locals.move_info.state = MOVE_STATE_GOING_DOWN;
 
 	G_MoveInfo_Init(self, self->locals.move_info.start_origin, G_func_button_Done);
 
@@ -662,7 +662,7 @@ static void G_func_button_Reset(g_edict_t *self) {
  */
 static void G_func_button_Wait(g_edict_t *self) {
 
-	self->locals.move_info.state = STATE_TOP;
+	self->locals.move_info.state = MOVE_STATE_TOP;
 
 	G_UseTargets(self, self->locals.activator);
 
@@ -677,10 +677,11 @@ static void G_func_button_Wait(g_edict_t *self) {
  */
 static void G_func_button_Activate(g_edict_t *self) {
 
-	if (self->locals.move_info.state == STATE_UP || self->locals.move_info.state == STATE_TOP)
+	if (self->locals.move_info.state == MOVE_STATE_GOING_UP || self->locals.move_info.state
+			== MOVE_STATE_TOP)
 		return;
 
-	self->locals.move_info.state = STATE_UP;
+	self->locals.move_info.state = MOVE_STATE_GOING_UP;
 
 	if (self->locals.move_info.sound_start && !(self->locals.flags & FL_TEAM_SLAVE))
 		gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE);
@@ -772,7 +773,7 @@ void G_func_button(g_edict_t *ent) {
 	} else if (!ent->locals.target_name)
 		ent->locals.Touch = G_func_button_Touch;
 
-	ent->locals.move_info.state = STATE_BOTTOM;
+	ent->locals.move_info.state = MOVE_STATE_BOTTOM;
 
 	ent->locals.move_info.speed = ent->locals.speed;
 	ent->locals.move_info.accel = ent->locals.accel;
@@ -819,7 +820,7 @@ static void G_func_door_Up(g_edict_t *self) {
 			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE);
 		self->s.sound = 0;
 	}
-	self->locals.move_info.state = STATE_TOP;
+	self->locals.move_info.state = MOVE_STATE_TOP;
 
 	if (self->locals.spawn_flags & DOOR_TOGGLE)
 		return;
@@ -839,7 +840,7 @@ static void G_func_door_Down(g_edict_t *self) {
 			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE);
 		self->s.sound = 0;
 	}
-	self->locals.move_info.state = STATE_BOTTOM;
+	self->locals.move_info.state = MOVE_STATE_BOTTOM;
 	G_func_door_UseAreaPortals(self, false);
 }
 
@@ -857,7 +858,7 @@ static void G_func_door_GoDown(g_edict_t *self) {
 		self->locals.health = self->locals.max_health;
 	}
 
-	self->locals.move_info.state = STATE_DOWN;
+	self->locals.move_info.state = MOVE_STATE_GOING_DOWN;
 	if (!g_strcmp0(self->class_name, "func_door")) {
 		G_MoveInfo_Init(self, self->locals.move_info.start_origin, G_func_door_Down);
 	} else { // rotating
@@ -869,10 +870,10 @@ static void G_func_door_GoDown(g_edict_t *self) {
  * @brief
  */
 static void G_func_door_GoUp(g_edict_t *self, g_edict_t *activator) {
-	if (self->locals.move_info.state == STATE_UP)
+	if (self->locals.move_info.state == MOVE_STATE_GOING_UP)
 		return; // already going up
 
-	if (self->locals.move_info.state == STATE_TOP) { // reset top wait time
+	if (self->locals.move_info.state == MOVE_STATE_TOP) { // reset top wait time
 		if (self->locals.move_info.wait >= 0)
 			self->locals.next_think = g_level.time + self->locals.move_info.wait * 1000;
 		return;
@@ -883,7 +884,7 @@ static void G_func_door_GoUp(g_edict_t *self, g_edict_t *activator) {
 			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE);
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
-	self->locals.move_info.state = STATE_UP;
+	self->locals.move_info.state = MOVE_STATE_GOING_UP;
 	if (!g_strcmp0(self->class_name, "func_door")) {
 		G_MoveInfo_Init(self, self->locals.move_info.end_origin, G_func_door_Up);
 	} else { // rotating
@@ -904,7 +905,8 @@ static void G_func_door_Use(g_edict_t *self, g_edict_t *other __attribute__((unu
 		return;
 
 	if (self->locals.spawn_flags & DOOR_TOGGLE) {
-		if (self->locals.move_info.state == STATE_UP || self->locals.move_info.state == STATE_TOP) {
+		if (self->locals.move_info.state == MOVE_STATE_GOING_UP || self->locals.move_info.state
+				== MOVE_STATE_TOP) {
 			// trigger all paired doors
 			for (ent = self; ent; ent = ent->locals.team_chain) {
 				ent->locals.message = NULL;
@@ -1031,7 +1033,7 @@ static void G_func_door_Blocked(g_edict_t *self, g_edict_t *other) {
 	// if a door has a negative wait, it would never come back if blocked,
 	// so let it just squash the object to death real fast
 	if (self->locals.move_info.wait >= 0) {
-		if (self->locals.move_info.state == STATE_DOWN) {
+		if (self->locals.move_info.state == MOVE_STATE_GOING_DOWN) {
 			for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain)
 				G_func_door_GoUp(ent, ent->locals.activator);
 		} else {
@@ -1143,7 +1145,7 @@ void G_func_door(g_edict_t *ent) {
 		VectorCopy(ent->s.origin, ent->locals.pos1);
 	}
 
-	ent->locals.move_info.state = STATE_BOTTOM;
+	ent->locals.move_info.state = MOVE_STATE_BOTTOM;
 
 	if (ent->locals.health) {
 		ent->locals.take_damage = true;
@@ -1256,7 +1258,7 @@ void G_func_door_rotating(g_edict_t *ent) {
 		ent->locals.Touch = G_func_door_Touch;
 	}
 
-	ent->locals.move_info.state = STATE_BOTTOM;
+	ent->locals.move_info.state = MOVE_STATE_BOTTOM;
 	ent->locals.move_info.speed = ent->locals.speed;
 	ent->locals.move_info.accel = ent->locals.accel;
 	ent->locals.move_info.decel = ent->locals.decel;
@@ -1385,7 +1387,7 @@ void G_func_water(g_edict_t *self) {
 	VectorCopy(self->locals.pos2, self->locals.move_info.end_origin);
 	VectorCopy(self->s.angles, self->locals.move_info.end_angles);
 
-	self->locals.move_info.state = STATE_BOTTOM;
+	self->locals.move_info.state = MOVE_STATE_BOTTOM;
 
 	if (!self->locals.speed)
 		self->locals.speed = 25;
@@ -1512,7 +1514,7 @@ static void G_func_train_Next(g_edict_t *self) {
 	}
 
 	VectorSubtract(ent->s.origin, self->mins, dest);
-	self->locals.move_info.state = STATE_TOP;
+	self->locals.move_info.state = MOVE_STATE_TOP;
 	VectorCopy(self->s.origin, self->locals.move_info.start_origin);
 	VectorCopy(dest, self->locals.move_info.end_origin);
 	G_MoveInfo_Init(self, dest, G_func_train_Wait);
@@ -1529,7 +1531,7 @@ static void G_func_train_Resume(g_edict_t *self) {
 	ent = self->locals.target_ent;
 
 	VectorSubtract(ent->s.origin, self->mins, dest);
-	self->locals.move_info.state = STATE_TOP;
+	self->locals.move_info.state = MOVE_STATE_TOP;
 	VectorCopy(self->s.origin, self->locals.move_info.start_origin);
 	VectorCopy(dest, self->locals.move_info.end_origin);
 	G_MoveInfo_Init(self, dest, G_func_train_Wait);

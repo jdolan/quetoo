@@ -32,27 +32,16 @@ typedef enum {
 	SV_CMD_CENTER_PRINT = SV_CMD_CGAME,
 	SV_CMD_MUZZLE_FLASH,
 	SV_CMD_SCORES,
-	SV_CMD_TEMP_ENTITY,
-	SV_CMD_FOOBAR
-// add custom commands here
+	SV_CMD_TEMP_ENTITY
 } g_sv_packet_cmd_t;
 
-// scores are transmitted as binary to the client game module
-typedef struct {
-	uint16_t client;
-	uint16_t ping;
-	uint8_t team;
-	uint8_t color;
-	int16_t score;
-	int16_t captures;
-	uint8_t flags;
-} g_score_t;
-
 /*
- * @brief Player scores flags.
+ * @brief Game-specific client protocol commands. These are parsed directly by
+ * the game module.
  */
-#define SCORES_NOT_READY	(1 << 0)
-#define SCORES_CTF_FLAG		(1 << 1)
+typedef enum {
+	CL_CMD_EXAMPLE
+} g_cl_packet_cmd_t;
 
 /*
  * @brief ConfigStrings that are local to the game module.
@@ -67,7 +56,6 @@ typedef struct {
 #define CS_TIME				(CS_GENERAL + 7) // level or match timer
 #define CS_ROUND			(CS_GENERAL + 8) // round number
 #define CS_VOTE				(CS_GENERAL + 9) // vote string\yes count\no count
-
 /*
  * @brief Player state statistics (inventory, score, etc).
  */
@@ -143,34 +131,73 @@ typedef enum {
 	TE_GIB
 } g_temp_entity_t;
 
-#if defined(__GAME_LOCAL_H__)
+/*
+ * @brief Player scores are transmitted as binary to the client game module.
+ */
+typedef struct {
+	uint16_t client;
+	uint16_t ping;
+	uint8_t team;
+	uint8_t color;
+	int16_t score;
+	int16_t captures;
+	uint8_t flags;
+} g_score_t;
 
+/*
+ * @brief Player scores flags.
+ */
+#define SCORES_NOT_READY	(1 << 0)
+#define SCORES_CTF_FLAG		(1 << 1)
+
+#ifdef __GAME_LOCAL_H__
+
+/*
+ * @brief This file will define the game-visible definitions of g_client_t
+ * and g_edict_t. They are much larger than the server-visible definitions,
+ * which are intentionally truncated stubs.
+ */
 typedef struct g_client_s g_client_t;
 typedef struct g_edict_s g_edict_t;
 
-// edict->spawnflags
+/*
+ * @brief Spawn flags for g_edict_t are set in the level editor.
+ */
 #define SF_ITEM_TRIGGER			0x00000001
 #define SF_ITEM_NO_TOUCH		0x00000002
 #define SF_ITEM_HOVER			0x00000004
 
-// we keep these around for compatibility with legacy levels
+/*
+ * @brief These are legacy spawn flags from Quake II. We maintain these simply
+ * for backwards compatibility with old levels. They do nothing in Q2W.
+ */
 #define SF_NOT_EASY				0x00000100
 #define SF_NOT_MEDIUM			0x00000200
 #define SF_NOT_HARD				0x00000400
 #define SF_NOT_DEATHMATCH		0x00000800
 #define SF_NOT_COOP				0x00001000
 
+/*
+ * @brief These spawn flags are actually set by the game module on edicts that
+ * are programmatically instantiated.
+ */
 #define SF_ITEM_DROPPED			0x00010000
 #define SF_ITEM_TARGETS_USED	0x00020000
 
-// edict->flags
+/*
+ * @brief Edict flags (g_edict_locals.flags). These again are mostly for
+ * backwards compatibility with Quake II. Team slaves and respawn are
+ * still valid.
+ */
 #define FL_FLY					0x00000001
 #define FL_SWIM					0x00000002  // implied immunity to drowning
 #define FL_GOD_MODE				0x00000004
 #define FL_TEAM_SLAVE			0x00000008  // not the first on the team
-#define FL_RESPAWN				0x80000000  // used for item respawning
+#define FL_RESPAWN				0x80000000
 
-// ammo types
+/*
+ * @brief Ammunition types.
+ */
 typedef enum {
 	AMMO_NONE,
 	AMMO_SHELLS,
@@ -183,7 +210,9 @@ typedef enum {
 	AMMO_NUKES
 } g_ammo_t;
 
-// armor types
+/*
+ * @brief Armor types.
+ */
 typedef enum {
 	ARMOR_NONE,
 	ARMOR_JACKET,
@@ -192,7 +221,9 @@ typedef enum {
 	ARMOR_SHARD
 } g_armor_t;
 
-// health types
+/*
+ * @brief Health types.
+ */
 typedef enum {
 	HEALTH_NONE,
 	HEALTH_SMALL,
@@ -201,7 +232,9 @@ typedef enum {
 	HEALTH_MEGA
 } g_health_t;
 
-// edict->move_type values
+/*
+ * @brief Move types govern the physics dispatch in G_RunEntity.
+ */
 typedef enum {
 	MOVE_TYPE_NONE, // never moves
 	MOVE_TYPE_NO_CLIP, // origin and angles change with no interaction
@@ -211,13 +244,18 @@ typedef enum {
 	MOVE_TYPE_WALK, // gravity
 	MOVE_TYPE_FLY,
 	MOVE_TYPE_TOSS,
-// gravity
+	// gravity
 } g_move_type_t;
 
-// a synonym for readability
+/*
+ * @brief A synonym for readability; MOVE_TYPE_THINK implies that the entity's
+ * Think function will update its origin and handle other interactions.
+ */
 #define MOVE_TYPE_THINK MOVE_TYPE_NONE
 
-// gitem_t->flags
+/*
+ * @brief Item types.
+ */
 typedef enum {
 	ITEM_AMMO,
 	ITEM_ARMOR,
@@ -227,6 +265,9 @@ typedef enum {
 	ITEM_WEAPON
 } g_item_type_t;
 
+/*
+ * @brief Items are touchable entities that players visit to acquire inventory.
+ */
 typedef struct g_item_s {
 	const char *class_name; // spawning name
 
@@ -252,9 +293,11 @@ typedef struct g_item_s {
 	const char *precaches; // string of all models, sounds, and images this item will use
 } g_item_t;
 
-// spawn_temp_t is only used to hold entity field values that
-// can be set from the editor, but aren't actually present
-// in g_edict_t at runtime
+/*
+ * @brief A singleton container used to hold entity information that is set
+ * in the editor (and thus the entities string) but that does not map directly
+ * to a field in g_edict_t.
+ */
 typedef struct {
 	// world vars, we use strings to avoid ambiguity between 0 and unset
 	char *sky;
@@ -283,13 +326,19 @@ typedef struct {
 #define LOFS(x) (ptrdiff_t)&(((g_edict_t *) 0)->locals.x)
 #define SOFS(x) (ptrdiff_t)&(((g_spawn_temp_t *) 0)->x)
 
+/*
+ * @brief Movement states.
+ */
 typedef enum {
-	STATE_TOP,
-	STATE_BOTTOM,
-	STATE_UP,
-	STATE_DOWN
+	MOVE_STATE_TOP,
+	MOVE_STATE_BOTTOM,
+	MOVE_STATE_GOING_UP,
+	MOVE_STATE_GOING_DOWN
 } g_move_state_t;
 
+/*
+ * @brief Physics parameters and think functions for entities which move.
+ */
 typedef struct {
 	// fixed data
 	vec3_t start_origin;
@@ -319,7 +368,11 @@ typedef struct {
 	void (*Done)(g_edict_t *);
 } g_move_info_t;
 
-// this structure is left intact through an entire game
+/*
+ * @brief This structure is initialized when the game module is loaded and
+ * remains in tact until it is unloaded. The server receives the pointers
+ * within this structure so that it may e.g. iterate over entities.
+ */
 typedef struct {
 	g_edict_t *edicts; // [g_max_entities]
 	g_client_t *clients; // [sv_max_clients]
@@ -329,7 +382,9 @@ typedef struct {
 
 extern g_game_t g_game;
 
-// this structure holds references to frequently accessed media
+/*
+ * @brief This structure holds references to frequently accessed media.
+ */
 typedef struct {
 	uint16_t grenade_model;
 	uint16_t grenade_hit_sound;
@@ -342,7 +397,10 @@ typedef struct {
 	uint16_t quad_damage;
 } g_media_t;
 
-// this structure is cleared as each map is entered
+/*
+ * @brief The main structure for all world management. This is cleared at each
+ * level load.
+ */
 typedef struct {
 	uint32_t frame_num;
 	uint32_t time;
@@ -387,7 +445,9 @@ typedef struct {
 	g_edict_t *current_entity; // entity running from G_RunFrame
 } g_level_t;
 
-// means of death
+/*
+ * @brief Means of death.
+ */
 #define MOD_UNKNOWN					0
 #define MOD_BLASTER					1
 #define MOD_SHOTGUN					2
@@ -414,10 +474,9 @@ typedef struct {
 #define MOD_TRIGGER_HURT			23
 #define MOD_FRIENDLY_FIRE			0x8000000
 
-#define MAX_MAP_LIST_ELTS 64
-#define MAP_LIST_WEIGHT 16384
-
-// voting
+/*
+ * @brief Voting constants.
+ */
 #define MAX_VOTE_TIME 60000
 #define VOTE_MAJORITY 0.51
 
@@ -427,7 +486,9 @@ typedef enum {
 	VOTE_NO
 } g_vote_t;
 
-// gameplay modes
+/*
+ * @brief Game modes. These are selected via g_gameplay.
+ */
 typedef enum {
 	DEFAULT,
 	DEATHMATCH,
@@ -435,27 +496,38 @@ typedef enum {
 	ARENA
 } g_gameplay_t;
 
-#define TEAM_CHANGE_TIME 5.0
+/*
+ * @brief Team name and team skin changes are throttled.
+ */
+#define TEAM_CHANGE_TIME 5000
 
-// damage flags
+/*
+ * @brief Damage flags. These can be and often are combined.
+ */
 #define DAMAGE_RADIUS			0x00000001  // damage was indirect
 #define DAMAGE_NO_ARMOR			0x00000002  // armor does not protect from this damage
 #define DAMAGE_ENERGY			0x00000004  // damage is from an energy based weapon
 #define DAMAGE_BULLET			0x00000008  // damage is from a bullet (used for ricochets)
 #define DAMAGE_NO_PROTECTION	0x00000010  // armor and godmode have no effect
-#define MAX_NET_NAME 64
 
-// teams
+/*
+ * @brief There are two teams in the default game module.
+ */
 typedef struct {
-	char name[16];
+	char name[16]; // kept short for HUD consideration
 	char skin[32];
 	int16_t score;
 	int16_t captures;
-	uint32_t name_time; // prevent change spamming
+	uint32_t name_time;
 	uint32_t skin_time;
 } g_team_t;
 
-// client data that persists through respawns
+#define MAX_NET_NAME 64
+
+/*
+ * @brief This structure contains client data that persists over multiple
+ * respawns.
+ */
 typedef struct {
 	uint32_t first_frame; // g_level.frame_num the client entered the game
 
@@ -497,8 +569,12 @@ typedef struct {
 	int32_t color; // weapon effect colors
 } g_client_persistent_t;
 
-// this structure is cleared on each spawn, with the persistent structure
-// explicitly copied over to preserve team membership, etc.
+/*
+ * @brief This structure is cleared on each spawn, with the persistent structure
+ * explicitly copied over to preserve team membership, etc. This structure
+ * extends the server-visible definition to provide all of the state management
+ * the game module requires.
+ */
 typedef struct {
 	user_cmd_t cmd;
 
@@ -552,8 +628,12 @@ typedef struct {
 	const g_item_t *last_dropped; // last dropped item, used for variable expansion
 } g_client_locals_t;
 
+/*
+ * @brief Finally the g_edict_locals structure extends the server stub to
+ * provide all of the state management the game module requires.
+ */
 typedef struct {
-	uint32_t spawn_flags;
+	uint32_t spawn_flags; // SF_ITEM_HOVER, etc..
 	uint32_t flags; // FL_GOD_MODE, etc..
 
 	g_move_type_t move_type;
@@ -637,6 +717,6 @@ typedef struct {
 
 #include "game/game.h"
 
-#endif
+#endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_TYPES_H__ */

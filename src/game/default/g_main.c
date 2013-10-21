@@ -1058,7 +1058,7 @@ static void G_ParseMapList(const char *file_name) {
 
 	gi.FreeFile(buf);
 
-	// thou shalt not divide by zero
+	// thou shall not divide by zero
 	if (!g_map_list.total_weight)
 		g_map_list.total_weight = 1.0;
 
