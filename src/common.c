@@ -20,7 +20,6 @@
  */
 
 #include "common.h"
-#include "common-anorms.h"
 
 // console redirection (e.g. rcon)
 typedef struct redirect_s {

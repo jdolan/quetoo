@@ -25,22 +25,26 @@
  * @brief Parses deltas from the given base and adds the resulting entity
  * to the current frame.
  */
-static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t number, uint16_t bits) {
+static void Cl_ParseDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t number,
+		uint16_t bits) {
 
-	cl_entity_t *ent;
-	entity_state_t *to;
+	cl_entity_t *ent = &cl.entities[number];
 
-	ent = &cl.entities[number];
-
-	to = &cl.entity_states[cl.entity_state & ENTITY_STATE_MASK];
+	entity_state_t *to = &cl.entity_states[cl.entity_state & ENTITY_STATE_MASK];
 	cl.entity_state++;
 
 	frame->num_entities++;
 
 	Net_ReadDeltaEntity(&net_message, from, to, number, bits);
 
-	// some data changes will force no interpolation
-	if (to->event == EV_CLIENT_TELEPORT) {
+	// some changes will force no interpolation
+	if (from->model1 != to->model1
+			|| from->model2 != to->model2
+			|| from->model3 != to->model3
+			|| from->model4 != to->model4
+			|| fabs(from->origin[0] - to->origin[0]) > 256.0
+			|| fabs(from->origin[1] - to->origin[1]) > 256.0
+			|| fabs(from->origin[2] - to->origin[2]) > 256.0) {
 		ent->frame_num = -1;
 	}
 
@@ -54,6 +58,7 @@ static void Cl_DeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t num
 		ent->prev = ent->current;
 	}
 
+	// finally set the current frame number and entity state
 	ent->frame_num = cl.frame.frame_num;
 	ent->current = *to;
 }
@@ -103,7 +108,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   unchanged: %i\n", old_number);
 
-			Cl_DeltaEntity(frame, old_state, old_number, 0);
+			Cl_ParseDeltaEntity(frame, old_state, old_number, 0);
 
 			old_index++;
 
@@ -141,7 +146,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   delta: %i\n", number);
 
-			Cl_DeltaEntity(frame, old_state, number, bits);
+			Cl_ParseDeltaEntity(frame, old_state, number, bits);
 
 			old_index++;
 
@@ -160,7 +165,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   baseline: %i\n", number);
 
-			Cl_DeltaEntity(frame, &cl.entities[number].baseline, number, bits);
+			Cl_ParseDeltaEntity(frame, &cl.entities[number].baseline, number, bits);
 			continue;
 		}
 	}
@@ -171,7 +176,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 		if (cl_show_net_messages->integer == 3)
 			Com_Print("   unchanged: %i\n", old_number);
 
-		Cl_DeltaEntity(frame, old_state, old_number, 0);
+		Cl_ParseDeltaEntity(frame, old_state, old_number, 0);
 
 		old_index++;
 

@@ -195,7 +195,7 @@ typedef enum {
 
 /*
  * @brief Server protocol commands. The game and client game module are free
- * to implement custom commands as well.
+ * to implement custom commands as well (8 bits).
  */
 typedef enum {
 	SV_CMD_BAD,
@@ -209,42 +209,20 @@ typedef enum {
 	SV_CMD_RECONNECT,
 	SV_CMD_SERVER_DATA, // [long] protocol ...
 	SV_CMD_SOUND,
-	SV_CMD_CGAME,
-// this MUST be the last element here, as cgame extends from this point
+	SV_CMD_CGAME, // the game may extend from here
 } sv_packet_cmd_t;
 
 /*
  * @brief Client protocol commands. The game and client game module are free
- * to implement custom commands as well.
+ * to implement custom commands as well (8 bits).
  */
 typedef enum {
 	CL_CMD_BAD,
 	CL_CMD_MOVE, // [user_cmd_t]
 	CL_CMD_STRING, // [string] message
-	CL_CMD_USER_INFO
-// [user_info_string]
+	CL_CMD_USER_INFO, // [user_info_string]
+	CL_CMD_CGAME, // the game may extend from here
 } cl_packet_cmd_t;
-
-/*
- * @brief The origin (0, 0, 0).
- */
-extern vec3_t vec3_origin;
-
-#define Clamp(x, y, z)			(x < y ? y : x > z ? z : x)
-#define DotProduct(x,y)			(x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
-#define VectorSubtract(a,b,c)	(c[0]=a[0]-b[0],c[1]=a[1]-b[1],c[2]=a[2]-b[2])
-#define VectorAdd(a,b,c)		(c[0]=a[0]+b[0],c[1]=a[1]+b[1],c[2]=a[2]+b[2])
-#define VectorScale(a,s,b)		(b[0]=a[0]*(s),b[1]=a[1]*(s),b[2]=a[2]*(s))
-#define VectorCopy(a,b)			((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2])
-#define Vector4Copy(a,b)		(b[0]=a[0],b[1]=a[1],b[2]=a[2],b[3]=a[3])
-#define VectorClear(a)			(a[0]=a[1]=a[2]=0)
-#define VectorNegate(a,b)		(b[0]=-a[0],b[1]=-a[1],b[2]=-a[2])
-#define VectorSet(v, x, y, z)	(v[0]=(x), v[1]=(y), v[2]=(z))
-#define VectorSum(a)			(a[0] + a[1] + a[2])
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846 // matches value in gcc v2 math.h
-#endif
 
 // lower bits are stronger, and will eat weaker brushes completely
 #define CONTENTS_SOLID			0x1 // an eye is never valid in a solid
@@ -501,61 +479,37 @@ typedef enum {
 #define ANIM_TOGGLE_BIT 0x80
 
 /*
- * Entity events are instantaneous, transpiring at an entity's origin for
- * precisely one frame.
+ * @brief Entity events are instantaneous, transpiring at an entity's origin
+ * for precisely one frame. The game module can define custom events as well
+ * (8 bits).
  */
 typedef enum {
 	EV_NONE,
-	EV_CLIENT_DROWN,
-	EV_CLIENT_FALL,
-	EV_CLIENT_FALL_FAR,
-	EV_CLIENT_FOOTSTEP,
-	EV_CLIENT_GURP,
-	EV_CLIENT_JUMP,
-	EV_CLIENT_LAND,
 	EV_CLIENT_TELEPORT,
-	EV_ITEM_RESPAWN,
-	EV_ITEM_PICKUP,
+	EV_GAME, // the game may extend from here
 } entity_event_t;
 
 /*
- * @brief These flags (entity_state_t.effects) are used to apply particle
- * trails, dynamic lighting and other effects to entities. These effects are
- * visible even if the entity has no visible model.
+ * @brief Entity effects flags are used to apply particle trails, dynamic
+ * lighting and other effects to entities. These are visible even if the entity
+ * has no visible model. The game module can define custom effects as well
+ * (16 bits).
  */
 #define EF_ROTATE			(1 << 0) // rotate on z
 #define EF_BOB				(1 << 1) // bob on z
-#define EF_PULSE			(1 << 2) // pulsate lighting color
-#define EF_BLASTER			(1 << 3) // particle trail above water, bubble trail in water
-#define EF_GRENADE			(1 << 4) // smoke trail above water, bubble trail in water
-#define EF_ROCKET			(1 << 5) // smoke trail above water, bubble trail in water
-#define EF_HYPERBLASTER		(1 << 6) // bubble trail in water
-#define EF_LIGHTNING		(1 << 7) // lightning bolt
-#define EF_BFG				(1 << 8) // big particle snotball
-#define EF_TELEPORTER		(1 << 9) // particle fountain
-#define EF_QUAD				(1 << 10) // quad damage
-#define EF_CTF_BLUE			(1 << 11) // blue flag carrier
-#define EF_CTF_RED			(1 << 12) // red flag carrier
-#define EF_BEAM				(1 << 13) // overload old_origin for 2nd endpoint
-#define EF_INACTIVE			(1 << 14) // inactive icon for when input is not going to game
-#define EF_RESPAWN			(1 << 15) // respawn protection
+#define EF_PULSE			(1 << 2) // pulsing light effect
+#define EF_GAME				(EF_PULSE << 1) // the game may extend from here
 
 /*
- * @brief Very small or full-bright entities skip the lighting code paths for
- * performance reasons.
- */
-#define EF_NO_LIGHTING		(0)
-
-/*
- * @brief The high bits of the effects mask are not transmitted by the
+ * @brief The 16 high bits of the effects mask are not transmitted by the
  * protocol. Rather, they are reserved for the renderer.
  */
-#define EF_WEAPON			(1 << 27) // view weapon
-#define EF_ALPHATEST		(1 << 28) // alpha test
-#define EF_BLEND			(1 << 29) // blend
+#define EF_WEAPON			(1 << 25) // view weapon
+#define EF_ALPHATEST		(1 << 27) // alpha test
+#define EF_BLEND			(1 << 28) // blend
+#define EF_NO_LIGHTING		(1 << 29) // no lighting (full bright)
 #define EF_NO_SHADOW		(1 << 30) // no shadow
 #define EF_NO_DRAW			(1 << 31) // no draw (but perhaps shadow)
-
 /*
  * Entity bounds are to be handled by the protocol based on their
  * solid field. Box entities encode their bounds into a 16 bit
@@ -566,7 +520,7 @@ typedef enum {
 	SOLID_TRIGGER, // only touch when inside, after moving
 	SOLID_BOX, // touch on edge
 	SOLID_MISSILE, // touch on edge
-	SOLID_BSP = 31 // BSP clip, touch on edge
+	SOLID_BSP = 31, // BSP clip, touch on edge
 } solid_t;
 
 /*

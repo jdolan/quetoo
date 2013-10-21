@@ -1135,7 +1135,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	// check for landing
 	else if ((pm.s.flags & PMF_TIME_LAND) && cl->locals.land_time < g_level.time - 1000) {
 
-		entity_event_t event = EV_CLIENT_LAND;
+		g_entity_event_t event = EV_CLIENT_LAND;
 
 		if (old_velocity[2] <= PM_SPEED_FALL) { // player will take damage
 			int16_t damage = ((int16_t) -((old_velocity[2] - PM_SPEED_FALL) * 0.05));

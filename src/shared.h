@@ -24,7 +24,34 @@
 
 #include "quake2world.h"
 
-// math and trigonometry functions
+/*
+ * @brief The origin (0, 0, 0).
+ */
+extern vec3_t vec3_origin;
+
+/*
+ * @brief Math library.
+ */
+#define Clamp(x, y, z)			(x < y ? y : x > z ? z : x)
+#define DotProduct(x,y)			(x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
+#define VectorSubtract(a,b,c)	(c[0]=a[0]-b[0],c[1]=a[1]-b[1],c[2]=a[2]-b[2])
+#define VectorAdd(a,b,c)		(c[0]=a[0]+b[0],c[1]=a[1]+b[1],c[2]=a[2]+b[2])
+#define VectorScale(a,s,b)		(b[0]=a[0]*(s),b[1]=a[1]*(s),b[2]=a[2]*(s))
+#define VectorCopy(a,b)			((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2])
+#define Vector4Copy(a,b)		(b[0]=a[0],b[1]=a[1],b[2]=a[2],b[3]=a[3])
+#define VectorClear(a)			(a[0]=a[1]=a[2]=0)
+#define VectorNegate(a,b)		(b[0]=-a[0],b[1]=-a[1],b[2]=-a[2])
+#define VectorSet(v, x, y, z)	(v[0]=(x), v[1]=(y), v[2]=(z))
+#define VectorSum(a)			(a[0] + a[1] + a[2])
+#define Radians(d) 				((d * M_PI) / 180.0)
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+/*
+ * @brief Math and trigonometry functions.
+ */
 int32_t Random(void); // 0 to (2^32)-1
 vec_t Randomf(void); // 0.0 to 1.0
 vec_t Randomc(void); // -1.0 to 1.0
@@ -58,12 +85,21 @@ void PerpendicularVector(vec3_t dst, const vec3_t src);
 void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent, vec3_t bitangent);
 void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, vec_t degrees);
 
+/*
+ * @brief A table of approximate normal vectors is used to save bandwidth when
+ * transmitting entity angles, which would otherwise require 12 bytes.
+ */
+#define NUM_APPROXIMATE_NORMALS 162
+extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
+
+/*
+ * @brief Serialization helpers.
+ */
 void PackVector(const vec3_t in, int16_t *out);
 void UnpackVector(const int16_t *in, vec3_t out);
 #define PackAngle(x) ((uint16_t)((x) * 65536 / 360.0) & 65535)
 void PackAngles(const vec3_t in, int16_t *out);
 #define UnpackAngle(x) ((x) * (360.0 / 65536.0))
-#define Radians(d) ((d * M_PI) / 180.0)
 void UnpackAngles(const int16_t *in, vec3_t out);
 void ClampAngles(vec3_t angles);
 void PackBounds(const vec3_t mins, const vec3_t maxs, uint16_t *out);

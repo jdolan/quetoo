@@ -40,7 +40,7 @@
  * @brief Quake net protocol version; this must be changed when the structure
  * of any net message or serialized data type changes.
  */
-#define PROTOCOL			1004
+#define PROTOCOL			1005
 
 /*
  * @brief The IP address of the master server, where the authoritative list of
@@ -96,13 +96,6 @@
 #define IS_INVALID_DOWNLOAD(f) (\
 		!*f || *f == '/' || strstr(f, "..") || strchr(f, ' ') \
 	)
-
-/*
- * @brief A table of approximate normal vectors is used to save bandwidth when
- * transmitting entity angles, which would otherwise require 12 bytes.
- */
-#define NUM_APPROXIMATE_NORMALS 162
-extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
 
 typedef enum {
 	ERR_NONE,

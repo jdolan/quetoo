@@ -19,11 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __COMMON_ANORMS_H__
-#define __COMMON_ANORMS_H__
+#include "shared.h"
 
 /*
- * Directional vectors for over-the-wire approximations.
+ * @brief Directional vectors for over-the-wire approximations.
  */
 const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS] = {
 	{ -0.525731, 0.000000, 0.850651},
@@ -189,5 +188,3 @@ const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS] = {
 	{ -0.587785, -0.425325, -0.688191},
 	{ -0.688191, -0.587785, -0.425325}
 };
-
-#endif /* __COMMON_ANORMS_H__ */

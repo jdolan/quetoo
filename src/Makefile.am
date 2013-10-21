@@ -14,7 +14,6 @@ noinst_HEADERS = \
 	cmd.h \
 	cmodel.h \
 	common.h \
-	common-anorms.h \
 	console.h \
 	cvar.h \
 	filesystem.h \
@@ -143,7 +142,8 @@ libnet_la_LIBADD = \
 	libconsole.la
 
 libshared_la_SOURCES = \
-	shared.c
+	shared.c \
+	shared-anorms.c
 libshared_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@

@@ -20,7 +20,6 @@
  */
 
 #include "cg_local.h"
-#include "common-anorms.h"
 
 /*
  * @brief

@@ -145,6 +145,38 @@ typedef struct {
 } g_score_t;
 
 /*
+ * @brief Game-specific entity events.
+ */
+typedef enum {
+	EV_CLIENT_DROWN = EV_GAME,
+	EV_CLIENT_FALL,
+	EV_CLIENT_FALL_FAR,
+	EV_CLIENT_FOOTSTEP,
+	EV_CLIENT_GURP,
+	EV_CLIENT_JUMP,
+	EV_CLIENT_LAND,
+	EV_ITEM_RESPAWN,
+	EV_ITEM_PICKUP,
+} g_entity_event_t;
+
+/*
+ * @brief Game-specific entity effects.
+ */
+#define EF_BLASTER			(EF_GAME << 0) // particle trail above water, bubble trail in water
+#define EF_GRENADE			(EF_GAME << 1) // smoke trail above water, bubble trail in water
+#define EF_ROCKET			(EF_GAME << 2) // smoke trail above water, bubble trail in water
+#define EF_HYPERBLASTER		(EF_GAME << 3) // bubble trail in water
+#define EF_LIGHTNING		(EF_GAME << 4) // lightning bolt
+#define EF_BFG				(EF_GAME << 5) // big particle snotball
+#define EF_TELEPORTER		(EF_GAME << 6) // particle fountain
+#define EF_QUAD				(EF_GAME << 7) // quad damage
+#define EF_CTF_BLUE			(EF_GAME << 8) // blue flag carrier
+#define EF_CTF_RED			(EF_GAME << 9) // red flag carrier
+#define EF_BEAM				(EF_GAME << 10) // overload old_origin for 2nd endpoint
+#define EF_INACTIVE			(EF_GAME << 11) // inactive icon for when input is not going to game
+#define EF_RESPAWN			(EF_GAME << 12) // respawn protection
+
+/*
  * @brief Player scores flags.
  */
 #define SCORES_NOT_READY	(1 << 0)

@@ -486,9 +486,6 @@ void Net_ReadDeltaEntity(mem_buf_t *buf, const entity_state_t *from, entity_stat
 	// set everything to the state we are delta'ing from
 	*to = *from;
 
-	if (!(from->effects & EF_BEAM))
-		VectorCopy(from->origin, to->old_origin);
-
 	to->number = number;
 
 	if (bits & U_ORIGIN)
