@@ -19,8 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_UTILS_H__
-#define __GAME_UTILS_H__
+#ifndef __GAME_UTIL_H__
+#define __GAME_UTIL_H__
 
 #ifdef __GAME_LOCAL_H__
 
@@ -43,6 +43,7 @@ g_edict_t *G_FlagForTeam(g_team_t *t);
 uint32_t G_EffectForTeam(g_team_t *t);
 g_team_t *G_SmallestTeam(void);
 g_client_t *G_ClientByName(char *name);
+int32_t G_ColorByName(const char *s, int32_t def);
 _Bool G_IsStationary(g_edict_t *ent);
 void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, _Bool restart);
 _Bool G_IsAnimation(g_edict_t *ent, entity_animation_t anim);
@@ -56,4 +57,4 @@ char *G_CopyString(char *in);
 
 #endif /* __GAME_LOCAL_H__ */
 
-#endif /* __GAME_UTILS_H__ */
+#endif /* __GAME_UTIL_H__ */

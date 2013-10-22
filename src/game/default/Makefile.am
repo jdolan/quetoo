@@ -20,7 +20,7 @@ noinst_HEADERS = \
 	g_main.h \
 	g_physics.h \
 	g_types.h \
-	g_utils.h \
+	g_util.h \
 	g_weapon.h
 
 noinst_LTLIBRARIES = \
@@ -61,7 +61,7 @@ game_la_SOURCES = \
 	g_item.c \
 	g_main.c \
 	g_physics.c \
-	g_utils.c \
+	g_util.c \
 	g_weapon.c
 
 game_la_CFLAGS = \

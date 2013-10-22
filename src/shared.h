@@ -105,25 +105,15 @@ void ClampAngles(vec3_t angles);
 void PackBounds(const vec3_t mins, const vec3_t maxs, uint16_t *out);
 void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs);
 
-// color functions
-#define EFFECT_COLOR_RED 232
-#define EFFECT_COLOR_GREEN 201
-#define EFFECT_COLOR_BLUE 119
-#define EFFECT_COLOR_YELLOW 219
-#define EFFECT_COLOR_ORANGE 225
-#define EFFECT_COLOR_WHITE 216
-#define EFFECT_COLOR_PINK 247
-#define EFFECT_COLOR_PURPLE 187
-#define EFFECT_COLOR_DEFAULT 0
-
-#define TEAM_COLOR_RED 242
-#define TEAM_COLOR_BLUE 243
-
+/*
+ * @brief Color manipulating.
+ */
 vec_t ColorNormalize(const vec3_t in, vec3_t out);
 void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation, vec_t contrast);
-int32_t ColorByName(const char *s, int32_t def);
 
-// string functions
+/*
+ * @brief String manipulation functions.
+ */
 _Bool GlobMatch(const char *pattern, const char *text);
 _Bool MixedCase(const char *s);
 char *CommonPrefix(GList *words);

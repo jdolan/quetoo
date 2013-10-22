@@ -640,6 +640,38 @@ g_client_t *G_ClientByName(char *name) {
 /*
  * @brief
  */
+int32_t G_ColorByName(const char *s, int32_t def) {
+
+	if (!s || *s == '\0')
+		return def;
+
+	int32_t i = atoi(s);
+	if (i > 0 && i < 255)
+		return i;
+
+	if (!g_ascii_strcasecmp(s, "red"))
+		return EFFECT_COLOR_RED;
+	if (!g_ascii_strcasecmp(s, "green"))
+		return EFFECT_COLOR_GREEN;
+	if (!g_ascii_strcasecmp(s, "blue"))
+		return EFFECT_COLOR_BLUE;
+	if (!g_ascii_strcasecmp(s, "yellow"))
+		return EFFECT_COLOR_YELLOW;
+	if (!g_ascii_strcasecmp(s, "orange"))
+		return EFFECT_COLOR_ORANGE;
+	if (!g_ascii_strcasecmp(s, "white"))
+		return EFFECT_COLOR_WHITE;
+	if (!g_ascii_strcasecmp(s, "pink"))
+		return EFFECT_COLOR_PINK;
+	if (!g_ascii_strcasecmp(s, "purple"))
+		return EFFECT_COLOR_PURPLE;
+
+	return def;
+}
+
+/*
+ * @brief
+ */
 _Bool G_IsStationary(g_edict_t *ent) {
 
 	if (!ent)

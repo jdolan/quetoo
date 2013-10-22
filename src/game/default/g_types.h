@@ -182,6 +182,25 @@ typedef enum {
 #define SCORES_NOT_READY	(1 << 0)
 #define SCORES_CTF_FLAG		(1 << 1)
 
+/*
+ * @brief Effect colors for particle trails and dynamic light flashes.
+ */
+#define EFFECT_COLOR_RED 232
+#define EFFECT_COLOR_GREEN 201
+#define EFFECT_COLOR_BLUE 119
+#define EFFECT_COLOR_YELLOW 219
+#define EFFECT_COLOR_ORANGE 225
+#define EFFECT_COLOR_WHITE 216
+#define EFFECT_COLOR_PINK 247
+#define EFFECT_COLOR_PURPLE 187
+#define EFFECT_COLOR_DEFAULT 0
+
+/*
+ * @brief Scoreboard background colors.
+ */
+#define TEAM_COLOR_RED 242
+#define TEAM_COLOR_BLUE 243
+
 #ifdef __GAME_LOCAL_H__
 
 /*

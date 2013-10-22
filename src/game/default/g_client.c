@@ -925,7 +925,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 
 	// set color
 	s = GetUserInfo(user_info, "color");
-	cl->locals.persistent.color = ColorByName(s, EFFECT_COLOR_DEFAULT);
+	cl->locals.persistent.color = G_ColorByName(s, EFFECT_COLOR_DEFAULT);
 
 	entity_num = ent - g_game.edicts - 1;
 
