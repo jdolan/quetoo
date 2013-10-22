@@ -80,10 +80,10 @@ _Bool PlaneCompare(const c_bsp_plane_t *p1, const c_bsp_plane_t *p2);
 byte SignBitsForPlane(const c_bsp_plane_t *plane);
 int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const c_bsp_plane_t *plane);
 
-void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal);
-void PerpendicularVector(vec3_t dst, const vec3_t src);
+void ProjectPointOnPlane(const vec3_t p, const vec3_t normal, vec3_t out);
+void PerpendicularVector(const vec3_t in, vec3_t out);
 void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent, vec3_t bitangent);
-void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, vec_t degrees);
+void RotatePointAroundVector(const vec3_t p, const vec3_t dir, const vec_t degrees, vec3_t out);
 
 /*
  * @brief A table of approximate normal vectors is used to save bandwidth when

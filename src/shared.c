@@ -62,7 +62,7 @@ vec_t Randomc(void) {
 /*
  * @brief
  */
-void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, vec_t degrees) {
+void RotatePointAroundVector(const vec3_t point, const vec3_t dir, const vec_t degrees, vec3_t out) {
 	vec_t m[3][3];
 	vec_t im[3][3];
 	vec_t zrot[3][3];
@@ -75,7 +75,7 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, v
 	vf[1] = dir[1];
 	vf[2] = dir[2];
 
-	PerpendicularVector(vr, dir);
+	PerpendicularVector(dir, vr);
 	CrossProduct(vr, vf, vu);
 
 	m[0][0] = vr[0];
@@ -111,7 +111,7 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, v
 	ConcatRotations(tmpmat, im, rot);
 
 	for (i = 0; i < 3; i++) {
-		dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
+		out[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
 	}
 }
 
@@ -167,48 +167,45 @@ void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) 
 /*
  * @brief
  */
-void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal) {
-	vec_t d;
+void ProjectPointOnPlane(const vec3_t p, const vec3_t normal, vec3_t out) {
 	vec3_t n;
-	vec_t inv_denom;
 
-	inv_denom = 1.0F / DotProduct(normal, normal);
+	const vec_t inv_denom = 1.0 / DotProduct(normal, normal);
 
-	d = DotProduct(normal, p) * inv_denom;
+	const vec_t d = DotProduct(normal, p) * inv_denom;
 
 	n[0] = normal[0] * inv_denom;
 	n[1] = normal[1] * inv_denom;
 	n[2] = normal[2] * inv_denom;
 
-	dst[0] = p[0] - d * n[0];
-	dst[1] = p[1] - d * n[1];
-	dst[2] = p[2] - d * n[2];
+	out[0] = p[0] - d * n[0];
+	out[1] = p[1] - d * n[1];
+	out[2] = p[2] - d * n[2];
 }
 
 /*
- * @brief Assumes src vector is normalized.
+ * @brief Assumes input vector is normalized.
  */
-void PerpendicularVector(vec3_t dst, const vec3_t src) {
-	int32_t pos;
-	int32_t i;
-	vec_t minelem = 1.0F;
-	vec3_t tempvec;
+void PerpendicularVector(const vec3_t in, vec3_t out) {
+	int32_t i, pos = 0;
+	vec_t min_elem = 1.0;
+	vec3_t tmp;
 
 	// find the smallest magnitude axially aligned vector
-	for (pos = 0, i = 0; i < 3; i++) {
-		if (fabsf(src[i]) < minelem) {
+	for (i = 0; i < 3; i++) {
+		if (fabsf(in[i]) < min_elem) {
 			pos = i;
-			minelem = fabsf(src[i]);
+			min_elem = fabsf(in[i]);
 		}
 	}
-	tempvec[0] = tempvec[1] = tempvec[2] = 0.0;
-	tempvec[pos] = 1.0;
+	VectorClear(tmp);
+	tmp[pos] = 1.0;
 
 	// project the point onto the plane defined by src
-	ProjectPointOnPlane(dst, tempvec, src);
+	ProjectPointOnPlane(tmp, in, out);
 
 	// normalize the result
-	VectorNormalize(dst);
+	VectorNormalize(out);
 }
 
 /*

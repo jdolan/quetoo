@@ -105,13 +105,13 @@ void R_UpdateFrustum(void) {
 		return;
 
 	// rotate r_view.forward right by fov_x / 2 degrees
-	RotatePointAroundVector((p++)->normal, r_view.up, r_view.forward, -(90.0 - r_view.fov[0] / 2.0));
+	RotatePointAroundVector(r_view.forward, r_view.up, -(90.0 - r_view.fov[0] / 2.0), (p++)->normal);
 	// rotate r_view.forward left by fov_x / 2 degrees
-	RotatePointAroundVector((p++)->normal, r_view.up, r_view.forward, 90.0 - r_view.fov[0] / 2.0);
+	RotatePointAroundVector(r_view.forward, r_view.up, 90.0 - r_view.fov[0] / 2.0, (p++)->normal);
 	// rotate r_view.forward up by fov_x / 2 degrees
-	RotatePointAroundVector((p++)->normal, r_view.right, r_view.forward, 90.0 - r_view.fov[1] / 2.0);
+	RotatePointAroundVector(r_view.forward, r_view.right, 90.0 - r_view.fov[1] / 2.0, (p++)->normal);
 	// rotate r_view.forward down by fov_x / 2 degrees
-	RotatePointAroundVector(p->normal, r_view.right, r_view.forward, -(90.0 - r_view.fov[1] / 2.0));
+	RotatePointAroundVector(r_view.forward, r_view.right, -(90.0 - r_view.fov[1] / 2.0), p->normal);
 
 	for (i = 0; i < 4; i++) {
 		r_locals.frustum[i].type = PLANE_ANYZ;
