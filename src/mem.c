@@ -19,9 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "common.h"
-
+#include <signal.h>
 #include <SDL/SDL_thread.h>
+
+#include "mem.h"
 
 #define MEM_MAGIC 0x69
 typedef byte mem_magic_t;
@@ -53,7 +54,8 @@ static mem_block_t *Mem_CheckMagic(void *p) {
 		b = ((mem_block_t *) p) - 1;
 
 		if (b->magic != MEM_MAGIC) {
-			Com_Error(ERR_FATAL, "Invalid magic (%d) for %p\n", b->magic, p);
+			fprintf(stderr, "Invalid magic (%d) for %p\n", b->magic, p);
+			raise(SIGABRT);
 		}
 	}
 
@@ -137,7 +139,8 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 	const size_t s = size + sizeof(mem_block_t);
 
 	if (!(b = calloc(s, 1))) {
-		Com_Error(ERR_FATAL, "Failed to allocate %u bytes\n", (uint32_t) s);
+		fprintf(stderr, "Failed to allocate %u bytes\n", (uint32_t) s);
+		raise(SIGABRT);
 	}
 
 	b->magic = MEM_MAGIC;
@@ -233,13 +236,6 @@ void *Mem_Link(void *child, void *parent) {
  */
 size_t Mem_Size(void) {
 	return mem_state.size;
-}
-
-/*
- * @brief Prints the current size (in MB) of the zone allocation pool.
- */
-void Mem_Size_f(void) {
-	Com_Print("%.2fMB\n", (vec_t) (Mem_Size() / (1024.0 * 1024.0)));
 }
 
 /*

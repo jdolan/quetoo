@@ -88,6 +88,7 @@ libfilesystem_la_CFLAGS = \
 libfilesystem_la_LDFLAGS = \
 	-static
 libfilesystem_la_LIBADD = \
+	libcommon.la \
 	libmem.la \
 	libswap.la \
 	libsys.la \
@@ -120,11 +121,13 @@ libmem_la_SOURCES = \
 	mem_buf.c
 libmem_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@GLIB_CFLAGS@ \
+	@SDL_CFLAGS@
 libmem_la_LDFLAGS = \
 	-static
 libmem_la_LIBADD = \
-	libcommon.la \
+	@BASE_LIBS@ \
+	@GLIB_LIBS@ \
 	@SDL_LIBS@
 
 libnet_la_SOURCES = \

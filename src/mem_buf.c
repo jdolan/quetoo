@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <signal.h>
+
 #include "mem_buf.h"
 
 /*
@@ -50,12 +52,12 @@ void *Mem_AllocBuffer(mem_buf_t *buf, size_t length) {
 
 		if (!buf->allow_overflow) {
 			fprintf(stderr, "Overflow without allow_overflow set\n");
-			kill(getpid(), SIGABRT);
+			raise(SIGABRT);
 		}
 
 		if (length > buf->max_size) {
 			fprintf(stderr, "%u is > buffer size %u\n", (uint32_t) length, (uint32_t) buf->max_size);
-			kill(getpid(), SIGABRT);
+			raise(SIGABRT);
 		}
 
 		Mem_ClearBuffer(buf);

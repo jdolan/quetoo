@@ -576,8 +576,6 @@ void Cmd_Init(void) {
 	Cmd_Add("alias", Cmd_Alias_f, CMD_SYSTEM, NULL);
 	Cmd_Add("wait", Cmd_Wait_f, 0, NULL);
 
-	Cmd_Add("z_size", Mem_Size_f, CMD_SYSTEM, "Print zone allocation pool size");
-
 	int32_t i;
 	for (i = 1; i < Com_Argc(); i++) {
 		const char *c = Com_Argv(i);

@@ -340,8 +340,6 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
  * state after all surface stages have been rendered.
  */
 void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
-	r_material_t *m;
-	r_stage_t *s;
 	uint32_t i;
 
 	if (!r_materials->value || r_draw_wireframe->value)
@@ -376,10 +374,11 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		if (surf->frame != r_locals.frame)
 			continue;
 
-		m = surf->texinfo->material;
+		r_material_t *m = surf->texinfo->material;
 
 		R_UpdateMaterial(m);
 
+		const r_stage_t *s;
 		for (s = m->stages; s; s = s->next, j--) {
 
 			if (!(s->flags & STAGE_DIFFUSE))

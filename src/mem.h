@@ -31,7 +31,6 @@ void *Mem_LinkMalloc(size_t size, void *parent);
 void *Mem_Malloc(size_t size);
 void *Mem_Link(void *parent, void *child);
 size_t Mem_Size(void);
-void Mem_Size_f(void);
 char *Mem_CopyString(const char *in);
 void Mem_Init(void);
 void Mem_Shutdown(void);

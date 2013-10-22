@@ -26,6 +26,8 @@ libtests_la_CFLAGS = \
 	$(TESTS_CFLAGS)
 libtests_la_LDFLAGS = \
 	-static
+libtests_la_LIBADD = \
+	../libcommon.la
 
 TESTS = \
 	check_cmd \
@@ -45,7 +47,7 @@ check_cmd_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cmd_LDADD = \
 	$(TESTS_LIBS) \
-	../libfilesystem.la
+	../libconsole.la
 
 check_cvar_SOURCES = \
 	check_cvar.c \
@@ -55,7 +57,7 @@ check_cvar_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cvar_LDADD = \
 	$(TESTS_LIBS) \
-	../libfilesystem.la
+	../libconsole.la
 
 check_filesystem_SOURCES = \
 	check_filesystem.c
@@ -82,7 +84,6 @@ check_r_media_CFLAGS = \
 	@OPENGL_CFLAGS@
 check_r_media_LDADD = \
 	$(TESTS_LIBS) \
-	../libcommon.la \
 	../libmem.la
 
 check_thread_SOURCES = \
