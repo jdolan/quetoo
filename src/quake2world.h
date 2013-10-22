@@ -29,25 +29,13 @@
 #  define __attribute__(x)  /*NOTHING*/
 #endif
 
-#include <ctype.h>
 #include <glib.h>
 #include <math.h>
-#include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
-#endif
-
-#include <time.h>
 #include <unistd.h>
 
 #ifdef _WIN32
