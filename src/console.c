@@ -421,8 +421,8 @@ void Con_Init(void) {
 #ifdef _WIN32
 	if (dedicated->value) {
 		if (AllocConsole()) {
-			freopen("CONIN$", "r", stdin); 
-			freopen("CONOUT$", "w", stdout); 
+			freopen("CONIN$", "r", stdin);
+			freopen("CONOUT$", "w", stdout);
 			freopen("CONERR$", "w", stderr);
 		} else {
 			Com_Warn("Failed to allocate console: %u\n", (uint32_t) GetLastError());
@@ -447,10 +447,16 @@ void Con_Init(void) {
  */
 void Con_Shutdown(void) {
 
+	Cmd_Remove("clear");
+	Cmd_Remove("dump");
+
 #ifdef HAVE_CURSES
 	Curses_Shutdown();
 #endif
 
-	Cmd_Remove("clear");
-	Cmd_Remove("dump");
+#ifdef _WIN32
+	if (dedicated->value) {
+		FreeConsole();
+	}
+#endif
 }
