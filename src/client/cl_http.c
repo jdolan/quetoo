@@ -202,6 +202,7 @@ void Cl_InitHttp(void) {
 
 	memset(&cl_http_state, 0, sizeof(cl_http_state));
 
+#ifndef _WIN32
 	if (!(cl_http_state.curlm = curl_multi_init()))
 		return;
 
@@ -209,6 +210,7 @@ void Cl_InitHttp(void) {
 		return;
 
 	cl_http_state.ready = true;
+#endif
 }
 
 /*
@@ -218,9 +220,11 @@ void Cl_ShutdownHttp(void) {
 
 	Cl_HttpDownload_Complete();
 
+#ifndef _WIN32
 	if (cl_http_state.curl)
 		curl_easy_cleanup(cl_http_state.curl);
 
 	if (cl_http_state.curlm)
 		curl_multi_cleanup(cl_http_state.curlm);
+#endif
 }
