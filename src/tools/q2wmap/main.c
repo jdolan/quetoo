@@ -29,9 +29,11 @@ char map_name[MAX_OSPATH];
 char bsp_name[MAX_OSPATH];
 char outbase[MAX_OSPATH];
 
-_Bool verbose;
-_Bool debug;
-_Bool legacy;
+_Bool verbose = false;
+_Bool debug = false;
+_Bool legacy = false;
+_Bool is_monitor = false;
+
 
 /* BSP */
 extern _Bool noprune;
@@ -149,6 +151,16 @@ static void Warn(const char *msg) {
  */
 static void Init(void) {
 
+#ifdef _WIN32
+	if (AllocConsole()) {
+		freopen("CONIN$", "r", stdin);
+		freopen("CONOUT$", "w", stdout);
+		freopen("CONERR$", "w", stderr);
+	} else {
+		Com_Error(ERR_FATAL, "Failed to allocate console: %u\n", (uint32_t) GetLastError());
+	}
+#endif
+
 	Mem_Init();
 
 	Fs_Init(true);
@@ -182,6 +194,15 @@ static void Shutdown(const char *msg) {
 	Fs_Shutdown();
 
 	Mem_Shutdown();
+
+#ifdef _WIN32
+	if (!is_monitor) {
+		puts("\nPress any key to close..\n");
+		getchar();
+	}
+
+	FreeConsole();
+#endif
 }
 
 /*
@@ -409,17 +430,6 @@ int32_t main(int32_t argc, char **argv) {
 	_Bool do_aas = false;
 	_Bool do_mat = false;
 	_Bool do_zip = false;
-	_Bool is_monitor = false;
-
-#ifdef _WIN32
-	if (AllocConsole()) {
-		freopen("CONIN$", "r", stdin);
-		freopen("CONOUT$", "w", stdout);
-		freopen("CONERR$", "w", stderr);
-	} else {
-		Com_Error(ERR_FATAL, "Failed to allocate console: %u\n", (uint32_t) GetLastError());
-	}
-#endif
 
 	printf("Quake2World Map %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 
@@ -569,13 +579,4 @@ int32_t main(int32_t argc, char **argv) {
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	Com_Shutdown(NULL);
-
-#ifdef _WIN32
-	if (!is_monitor) {
-		puts("\nPress any key to close..\n");
-		getchar();
-	}
-
-	FreeConsole();
-#endif
 }

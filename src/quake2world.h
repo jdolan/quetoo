@@ -64,7 +64,7 @@ typedef dvec_t dvec3_t[3];
 typedef dvec_t dvec4_t[4];
 
 /*
- * @brief Indicies for angle vectors.
+ * @brief Indices for angle vectors.
  */
 #define PITCH				0 // up / down
 #define YAW					1 // left / right

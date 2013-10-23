@@ -23,21 +23,21 @@
 #include "qbsp.h"
 
 vec_t microvolume = 1.0;
-_Bool noprune;
-_Bool nodetail;
-_Bool fulldetail;
-_Bool onlyents;
-_Bool nomerge;
-_Bool nowater;
-_Bool nofill;
-_Bool nocsg;
-_Bool noweld;
-_Bool noshare;
-_Bool nosubdivide;
-_Bool notjunc;
-_Bool noopt;
-_Bool leaktest;
-_Bool verboseentities;
+_Bool noprune = false;
+_Bool nodetail = false;
+_Bool fulldetail = false;
+_Bool onlyents = false;
+_Bool nomerge = false;
+_Bool nowater = false;
+_Bool nofill = false;
+_Bool nocsg = false;
+_Bool noweld = false;
+_Bool noshare = false;
+_Bool nosubdivide = false;
+_Bool notjunc = false;
+_Bool noopt = false;
+_Bool leaktest = false;
+_Bool verboseentities = false;
 
 int32_t block_xl = -8, block_xh = 7, block_yl = -8, block_yh = 7;
 

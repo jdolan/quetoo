@@ -32,7 +32,7 @@ int32_t num_patches;
 
 vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 
-_Bool extra_samples;
+_Bool extra_samples = false;
 
 vec3_t ambient;
 

@@ -23,8 +23,8 @@
 
 map_vis_t map_vis;
 
-_Bool fastvis;
-_Bool nosort;
+_Bool fastvis = false;
+_Bool nosort = false;
 
 static int32_t visibility_count;
 

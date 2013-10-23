@@ -281,7 +281,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	while (true) { // this is our main loop
 
-		if (setjmp(environment)) { // an ERR_RECOVERABLE or ERR_NONE was thrown
+		if (setjmp(environment)) { // an ERR_DROP or ERR_NONE was thrown
 			Com_Debug("Error detected, recovering..\n");
 			continue;
 		}
