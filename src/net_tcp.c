@@ -86,8 +86,6 @@ _Bool Net_SendStream(int32_t sock, const void *data, size_t len) {
 			Com_Warn("%s\n", Net_GetErrorString());
 			return false;
 		}
-
-		usleep(1); // probably not necessary, but oh well
 	}
 
 	return sent == (ssize_t) buf.size;
