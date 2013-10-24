@@ -297,15 +297,10 @@ static void Pm_StepSlideMove(void) {
 
 		// if the step succeeds, select the more productive of the two moves
 		if (Pm_StepMove(true)) {
-			vec3_t org1, vel1;
-
-			VectorCopy(pml.origin, org1);
-			VectorCopy(pml.velocity, vel1);
-
 			vec3_t delta0, delta1;
 
 			VectorSubtract(org0, org, delta0);
-			VectorSubtract(org1, org, delta1);
+			VectorSubtract(pml.origin, org, delta1);
 
 			delta0[2] = delta1[2] = 0.0;
 
