@@ -24,7 +24,9 @@
 
 #include <SDL/SDL_thread.h>
 
-#include "cvar.h"
+#include "mem.h"
+
+#define MAX_THREADS 128
 
 typedef enum thread_status_e {
 	THREAD_IDLE,
@@ -44,12 +46,11 @@ typedef struct thread_s {
 	void *data;
 } thread_t;
 
-extern cvar_t *threads;
-
 thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data);
 #define Thread_Create(f, d) Thread_Create_(#f, f, d)
 void Thread_Wait(thread_t *t);
-void Thread_Init(void);
+uint16_t Thread_Count(void);
+void Thread_Init(uint16_t num_threads);
 void Thread_Shutdown(void);
 
 #endif /*__THREAD_H__ */

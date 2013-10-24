@@ -27,4 +27,4 @@
  * Compile with e.g. -D__LIBTOOL_ARCHIVE__=librenderer_la.
  */
 
-const void *__LIBTOOL_ARCHIVE__ = 0;
+const void *__LIBTOOL_ARCHIVE__ = NULL;

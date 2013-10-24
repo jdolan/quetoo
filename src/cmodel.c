@@ -103,13 +103,13 @@ typedef struct c_bsp_s {
 static c_bsp_t c_bsp;
 static d_bsp_vis_t *c_vis = (d_bsp_vis_t *) c_bsp.visibility;
 
-static cvar_t *c_no_areas;
-
 static void Cm_InitBoxHull(void);
 static void Cm_FloodAreaConnections(void);
 
 int32_t c_point_contents;
 int32_t c_traces, c_bsp_brush_traces;
+
+_Bool c_no_areas;
 
 /*
  * @brief
@@ -498,8 +498,6 @@ c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 	d_bsp_header_t header;
 	void *buf;
 	uint32_t i;
-
-	c_no_areas = Cvar_Get("c_no_areas", "0", 0, "Disable server-side visibility culling");
 
 	memset(&c_bsp, 0, sizeof(c_bsp));
 
@@ -1496,7 +1494,7 @@ void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open) {
  */
 _Bool Cm_AreasConnected(int32_t area1, int32_t area2) {
 
-	if (c_no_areas->value)
+	if (c_no_areas)
 		return true;
 
 	if (area1 > c_bsp.num_areas || area2 > c_bsp.num_areas) {
@@ -1519,7 +1517,7 @@ int32_t Cm_WriteAreaBits(byte *buffer, const int32_t area) {
 	int32_t i;
 	const int32_t bytes = (c_bsp.num_areas + 7) >> 3;
 
-	if (c_no_areas->value) { // for debugging, send everything
+	if (c_no_areas) { // for debugging, send everything
 		memset(buffer, 0xff, bytes);
 	} else {
 		const int32_t flood_num = c_bsp.areas[area].flood_num;

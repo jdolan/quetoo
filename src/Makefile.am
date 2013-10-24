@@ -88,7 +88,6 @@ libfilesystem_la_CFLAGS = \
 libfilesystem_la_LDFLAGS = \
 	-static
 libfilesystem_la_LIBADD = \
-	libcommon.la \
 	libmem.la \
 	libswap.la \
 	libsys.la \
@@ -150,6 +149,8 @@ libshared_la_SOURCES = \
 libshared_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
+libshared_la_LDFLAGS = \
+	-static
 libshared_la_LIBADD = \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@
@@ -159,6 +160,8 @@ libswap_la_SOURCES = \
 libswap_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
+libswap_la_LDFLAGS = \
+	-static
 
 libsys_la_SOURCES = \
 	sys.c
@@ -179,4 +182,4 @@ libthread_la_CFLAGS = \
 libthread_la_LDFLAGS = \
 	-static
 libthread_la_LIBADD = \
-	libconsole.la
+	libmem.la

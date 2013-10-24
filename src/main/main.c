@@ -33,13 +33,14 @@ jmp_buf environment;
 
 quake2world_t quake2world;
 
-cvar_t *debug;
+static cvar_t *debug;
 cvar_t *dedicated;
 cvar_t *game;
-cvar_t *show_trace;
+static cvar_t *show_trace;
+static cvar_t *threads;
 cvar_t *time_demo;
 cvar_t *time_scale;
-cvar_t *verbose;
+static cvar_t *verbose;
 
 static void Debug(const char *msg);
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
@@ -153,16 +154,18 @@ static void Init(void) {
 #endif
 	game = Cvar_Get("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
 	show_trace = Cvar_Get("show_trace", "0", 0, "Print trace counts per frame");
+	threads = Cvar_Get("threads", "4", CVAR_ARCHIVE, "Enable or disable multicore processing.");
 	time_demo = Cvar_Get("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
 	time_scale = Cvar_Get("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
 	verbose = Cvar_Get("verbose", "0", 0, "Print verbose debugging information");
 	const char *s = va("Quake2World %s %s %s", VERSION, __DATE__, BUILD_HOST);
 	Cvar_Get("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
+	Thread_Init(threads->integer);
+	threads->modified = false;
+
 	Con_Init();
 	quake2world.time = Sys_Milliseconds();
-
-	Thread_Init();
 
 	Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quake2World");
 
@@ -221,7 +224,6 @@ static void Shutdown(const char *msg) {
 static void Frame(const uint32_t msec) {
 	extern int32_t c_traces, c_bsp_brush_traces;
 	extern int32_t c_point_contents;
-	extern cvar_t *threads;
 
 	if (show_trace->value) {
 		Com_Print("%4i traces (%4i clips), %4i points\n", c_traces, c_bsp_brush_traces,
@@ -233,7 +235,7 @@ static void Frame(const uint32_t msec) {
 
 	if (threads->modified) {
 		Thread_Shutdown();
-		Thread_Init();
+		Thread_Init(threads->integer);
 	}
 
 	Sv_Frame(msec);

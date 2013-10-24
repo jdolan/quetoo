@@ -22,6 +22,7 @@
 #include "q2wmap.h"
 #include "thread.h"
 
+uint16_t num_threads;
 semaphores_t semaphores;
 thread_work_t thread_work;
 
@@ -53,7 +54,6 @@ void Sem_Shutdown(void) {
 	SDL_DestroySemaphore(semaphores.active_brushes);
 	SDL_DestroySemaphore(semaphores.active_windings);
 	SDL_DestroySemaphore(semaphores.removed_points);
-
 }
 
 /*
@@ -134,20 +134,20 @@ void ThreadUnlock(void) {
  * @brief
  */
 static void RunThreads(void) {
-	thread_t *t[64];
+	thread_t *t[MAX_THREADS];
 	int32_t i;
 
-	if (!threads->integer) {
+	if (Thread_Count() == 0) {
 		ThreadWork(0);
 		return;
 	}
 
 	lock = SDL_CreateMutex();
 
-	for (i = 0; i < threads->integer; i++)
+	for (i = 0; i < Thread_Count(); i++)
 		t[i] = Thread_Create(ThreadWork, NULL);
 
-	for (i = 0; i < threads->integer; i++)
+	for (i = 0; i < Thread_Count(); i++)
 		Thread_Wait(t[i]);
 
 	SDL_DestroyMutex(lock);
@@ -157,11 +157,11 @@ static void RunThreads(void) {
 /*
  * @brief Entry point for all thread work requests.
  */
-void RunThreadsOn(int32_t workcount, _Bool progress, ThreadWorkFunc func) {
+void RunThreadsOn(int32_t work_count, _Bool progress, ThreadWorkFunc func) {
 	time_t start, end;
 
 	thread_work.index = 0;
-	thread_work.count = workcount;
+	thread_work.count = work_count;
 	thread_work.fraction = -1;
 	thread_work.progress = progress;
 

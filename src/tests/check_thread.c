@@ -35,11 +35,7 @@ void setup(void) {
 
 	Mem_Init();
 
-	Cmd_Init();
-
-	Cvar_Init();
-
-	Thread_Init();
+	Thread_Init(2);
 
 	memset(&cs, 0, sizeof(cs));
 }
@@ -50,10 +46,6 @@ void setup(void) {
 void teardown(void) {
 
 	Thread_Shutdown();
-
-	Cvar_Shutdown();
-
-	Cmd_Shutdown();
 
 	Mem_Shutdown();
 }
@@ -79,8 +71,6 @@ static void consume(void *data) {
 
 START_TEST(check_Thread_Wait)
 	{
-		Cvar_SetValue("threads", 4);
-
 		thread_t *p = Thread_Create(produce, NULL);
 
 		thread_t *c = Thread_Create(consume, p);

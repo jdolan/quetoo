@@ -150,11 +150,15 @@ static void Sv_ClearState() {
  * @brief Applies any pending variable changes and clamps ones we really care about.
  */
 static void Sv_UpdateLatchedVars(void) {
+	extern _Bool c_no_areas;
 
 	Cvar_UpdateLatched();
 
 	sv_max_clients->integer = Clamp(sv_max_clients->integer, MIN_CLIENTS, MAX_CLIENTS);
+
 	sv_hz->integer = Clamp(sv_hz->integer, SV_HZ_MIN, SV_HZ_MAX);
+
+	c_no_areas = sv_no_areas->integer;
 }
 
 /*

@@ -22,8 +22,8 @@
 #ifndef __CMODEL_H__
 #define __CMODEL_H__
 
-#include "cvar.h"
 #include "files.h"
+#include "filesystem.h"
 
 c_model_t *Cm_LoadBsp(const char *name, int32_t *map_size);
 c_model_t *Cm_Model(const char *name); // *1, *2, etc

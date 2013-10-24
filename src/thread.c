@@ -21,8 +21,6 @@
 
 #include "thread.h"
 
-#define MAX_THREADS 128
-
 typedef struct thread_pool_s {
 	SDL_mutex *mutex;
 
@@ -41,7 +39,9 @@ static int32_t Thread_Run(void *data) {
 	thread_t *t = (thread_t *) data;
 
 	while (thread_pool.mutex) {
+
 		SDL_mutexP(t->mutex);
+
 		if (t->status == THREAD_RUNNING) {
 			t->Run(t->data);
 
@@ -52,6 +52,7 @@ static int32_t Thread_Run(void *data) {
 		} else {
 			SDL_CondWait(t->cond, t->mutex);
 		}
+
 		SDL_mutexV(t->mutex);
 	}
 
@@ -61,9 +62,9 @@ static int32_t Thread_Run(void *data) {
 /*
  * @brief Initializes the threads backing the thread pool.
  */
-static void Thread_Init_(void) {
+static void Thread_Init_(uint16_t num_threads) {
 
-	thread_pool.num_threads = Clamp(threads->integer, 0, MAX_THREADS);
+	thread_pool.num_threads = MIN(num_threads, MAX_THREADS);
 
 	if (thread_pool.num_threads) {
 		thread_pool.threads = Mem_Malloc(sizeof(thread_t) * thread_pool.num_threads);
@@ -106,14 +107,6 @@ static void Thread_Shutdown_(void) {
  */
 thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data) {
 
-	// update the thread pool if needed
-	if (threads->modified) {
-		threads->modified = false;
-
-		Thread_Shutdown();
-		Thread_Init();
-	}
-
 	thread_t *t = thread_pool.threads;
 	uint16_t i = 0;
 
@@ -153,7 +146,9 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data) {
 	// if we failed to allocate a thread, run the function in this thread
 	if (i == thread_pool.num_threads) {
 		if (thread_pool.num_threads) {
-			Com_Debug("No threads available for %s\n", name);
+#if 0
+			printf("No threads available for %s\n", name);
+#endif
 		}
 		t = NULL;
 		run(data);
@@ -178,18 +173,22 @@ void Thread_Wait(thread_t *t) {
 }
 
 /*
+ * @brief Returns the number of threads in the pool.
+ */
+uint16_t Thread_Count(void) {
+	return thread_pool.num_threads;
+}
+
+/*
  * @brief Initializes the thread pool.
  */
-void Thread_Init(void) {
-
-	threads = Cvar_Get("threads", "4", CVAR_ARCHIVE, "Enable or disable multicore processing.");
-	threads->modified = false;
+void Thread_Init(uint16_t num_threads) {
 
 	memset(&thread_pool, 0, sizeof(thread_pool));
 
 	thread_pool.mutex = SDL_CreateMutex();
 
-	Thread_Init_();
+	Thread_Init_(num_threads);
 }
 
 /*
@@ -197,8 +196,10 @@ void Thread_Init(void) {
  */
 void Thread_Shutdown(void) {
 
-	SDL_DestroyMutex(thread_pool.mutex);
-	thread_pool.mutex = NULL;
+	if (thread_pool.mutex) {
+		SDL_DestroyMutex(thread_pool.mutex);
+		thread_pool.mutex = NULL;
+	}
 
 	Thread_Shutdown_();
 

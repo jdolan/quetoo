@@ -28,14 +28,14 @@ sv_server_t sv; // per-level server info
 sv_client_t *sv_client; // current client
 g_edict_t *sv_player; // current client edict
 
-cvar_t *sv_rcon_password; // password for remote server commands
-
 cvar_t *sv_download_url;
 cvar_t *sv_enforce_time;
 cvar_t *sv_hostname;
 cvar_t *sv_hz;
 cvar_t *sv_max_clients;
+cvar_t *sv_no_areas;
 cvar_t *sv_public;
+cvar_t *sv_rcon_password; // password for remote server commands
 cvar_t *sv_timeout;
 cvar_t *sv_udp_download;
 
@@ -848,6 +848,8 @@ static void Sv_InitLocal(void) {
 
 	sv_hostname = Cvar_Get("sv_hostname", "Quake2World", CVAR_SERVER_INFO | CVAR_ARCHIVE, NULL);
 	sv_hz = Cvar_Get("sv_hz", va("%d", SV_HZ), CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+
+	sv_no_areas = Cvar_Get("sv_no_areas", "0", CVAR_LATCH, "Disable server-side area management\n");
 
 	sv_public = Cvar_Get("sv_public", "0", 0, "Set to 1 to to advertise to the master server\n");
 

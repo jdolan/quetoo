@@ -165,12 +165,6 @@ static void Init(void) {
 
 	Fs_Init(true);
 
-	Cmd_Init();
-
-	Cvar_Init();
-
-	Thread_Init();
-
 	Sem_Init();
 
 	Com_Print("Quake2World Map %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
@@ -186,10 +180,6 @@ static void Shutdown(const char *msg) {
 	Sem_Shutdown();
 
 	Thread_Shutdown();
-
-	Cvar_Shutdown();
-
-	Cmd_Shutdown();
 
 	Fs_Shutdown();
 
@@ -492,11 +482,8 @@ int32_t main(int32_t argc, char **argv) {
 		}
 
 		if (!g_strcmp0(Com_Argv(i), "-t") || !g_strcmp0(Com_Argv(i), "-threads")) {
-			Cvar_Set("threads", Com_Argv(i + 1));
-			if (threads->modified) {
-				Thread_Shutdown();
-				Thread_Init();
-			}
+			Thread_Init(atoi(Com_Argv(i + 1)));
+			Com_Print("Using %u threads\n", Thread_Count());
 			continue;
 		}
 

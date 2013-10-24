@@ -23,6 +23,7 @@
 #define __Q2WMAP_H__
 
 #include "files.h"
+#include "filesystem.h"
 #include "monitor.h"
 #include "thread.h"
 
