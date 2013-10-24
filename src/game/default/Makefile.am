@@ -33,7 +33,7 @@ libpmove_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 libpmove_la_LDFLAGS = \
-	-shared
+	-static
 libpmove_la_LIBADD = \
 	../../libshared.la
 
