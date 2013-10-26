@@ -27,7 +27,7 @@ libsound_la_CFLAGS = \
 	@SDL_CFLAGS@
 
 libsound_la_LDFLAGS = \
-	-static
+	-shared
 
 libsound_la_LIBADD = \
 	../../libshared.la \

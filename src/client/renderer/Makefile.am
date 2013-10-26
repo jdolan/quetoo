@@ -80,7 +80,7 @@ librenderer_la_CFLAGS = \
 	@SDL_CFLAGS@
 
 librenderer_la_LDFLAGS = \
-	-static
+	-shared
 	
 librenderer_la_LIBADD = \
 	../../libimage.la \

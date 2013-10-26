@@ -33,7 +33,7 @@ libui_la_CFLAGS = \
 	@SDL_CFLAGS@
 
 libui_la_LDFLAGS = \
-	-static
+	-shared
 
 libui_la_LIBADD = \
 	../../../deps/AntTweakBar/src/libanttweakbar.la \

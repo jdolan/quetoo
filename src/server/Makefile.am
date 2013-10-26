@@ -31,7 +31,7 @@ libserver_la_CFLAGS = \
 	@GLIB_CFLAGS@
 
 libserver_la_LDFLAGS = \
-	-static
+	-shared
 
 libserver_la_LIBADD = \
 	../libcmodel.la \

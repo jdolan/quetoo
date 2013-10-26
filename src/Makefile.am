@@ -49,7 +49,7 @@ libcmodel_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 libcmodel_la_LDFLAGS = \
-	-static
+	-shared
 libcmodel_la_LIBADD = \
 	libfilesystem.la
 
@@ -60,7 +60,7 @@ libcommon_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 libcommon_la_LDFLAGS = \
-	-static
+	-shared
 libcommon_la_LIBADD = \
 	libshared.la
 	
@@ -74,7 +74,7 @@ libconsole_la_CFLAGS = \
 	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@
 libconsole_la_LDFLAGS = \
-	-static
+	-shared
 libconsole_la_LIBADD = \
 	libfilesystem.la \
 	@CURSES_LIBS@
@@ -86,7 +86,7 @@ libfilesystem_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@PHYSFS_CFLAGS@
 libfilesystem_la_LDFLAGS = \
-	-static
+	-shared
 libfilesystem_la_LIBADD = \
 	libmem.la \
 	libswap.la \
@@ -102,7 +102,7 @@ libimage_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 libimage_la_LDFLAGS = \
-	-static
+	-shared
 libimage_la_LIBADD = \
 	libfilesystem.la
 
@@ -123,7 +123,7 @@ libmem_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 libmem_la_LDFLAGS = \
-	-static
+	-shared
 libmem_la_LIBADD = \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@ \
@@ -139,7 +139,7 @@ libnet_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 libnet_la_LDFLAGS = \
-	-static
+	-shared
 libnet_la_LIBADD = \
 	libconsole.la
 
@@ -150,7 +150,7 @@ libshared_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 libshared_la_LDFLAGS = \
-	-static
+	-shared
 libshared_la_LIBADD = \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@
@@ -161,7 +161,7 @@ libswap_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 libswap_la_LDFLAGS = \
-	-static
+	-shared
 
 libsys_la_SOURCES = \
 	sys.c
@@ -169,7 +169,7 @@ libsys_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 libsys_la_LDFLAGS = \
-	-static
+	-shared
 libsys_la_LIBADD = \
 	libcommon.la
 
@@ -180,6 +180,6 @@ libthread_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@SDL_CFLAGS@
 libthread_la_LDFLAGS = \
-	-static
+	-shared
 libthread_la_LIBADD = \
 	libmem.la

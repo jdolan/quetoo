@@ -25,7 +25,7 @@ libtests_la_SOURCES = \
 libtests_la_CFLAGS = \
 	$(TESTS_CFLAGS)
 libtests_la_LDFLAGS = \
-	-static
+	-shared
 libtests_la_LIBADD = \
 	../libcommon.la
 

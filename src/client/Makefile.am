@@ -55,7 +55,7 @@ libclient_la_CFLAGS = \
 	@SDL_CFLAGS@
 
 libclient_la_LDFLAGS = \
-	-static
+	-shared
 	
 libclient_la_LIBADD = \
 	renderer/librenderer.la \
