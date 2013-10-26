@@ -3,7 +3,7 @@
 
 ## Overview
 
-_Quake2World_ is a Free, standalone first person shooter video game based on id Tech2. Our goal is to bring the fun of oldschool deathmatch to a more contemporary platform, and perhaps to a new generation of gamers. _Quake2World_ is multiplayer-only. There is no single-player or offline gameplay mode. If you have no Internet and no friends, _Quake2World_ might not be for you. Some of _Quake2World_'s features include:
+[_Quake2World_](http://quake2world.net) is a Free, standalone first person shooter video game based on id Tech2. Our goal is to bring the fun of oldschool deathmatch to a more contemporary platform, and perhaps to a new generation of gamers. _Quake2World_ is multiplayer-only. There is no single-player or offline gameplay mode. If you have no Internet and no friends, _Quake2World_ might not be for you. Some of _Quake2World_'s features include:
 
  * Deathmatch, Capture, Instagib, and Rocket Arena gameplay modes right out of the box.
  * Teams Play and Match Mode support, with Warmup and Ready functionality.
