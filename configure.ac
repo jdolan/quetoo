@@ -512,7 +512,7 @@ dnl -----------------
 
 AC_MSG_CHECKING(whether to abort on compiler warnings)
 
-WARN_CFLAGS="-pedantic -W -Wall"
+WARN_CFLAGS="-Wall -Wextra"
 
 AC_ARG_ENABLE(warn,
 	AS_HELP_STRING(
