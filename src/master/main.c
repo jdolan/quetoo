@@ -83,31 +83,37 @@ static void Ms_DropServer(ms_server_t *server) {
  * TODO This is entirely untested
  */
 static _Bool Ms_BlacklistServer(struct sockaddr_in *from) {
-	void *buf;
-	int32_t len;
+	char *buf;
+	int64_t len;
 
-	if ((len = Fs_Load("servers-blacklist", &buf)) == -1) {
+	if ((len = Fs_Load("servers-blacklist", (void *) &buf)) == -1) {
 		return false;
 	}
 
 	char *c = (char *) buf;
 	char *ip = inet_ntoa(from->sin_addr);
 
-	while ((c - (char *) buf) < len) {
+	_Bool blacklisted = false;
+
+	while ((c - buf) < len) {
 		char line[256];
 
 		sscanf(c, "%s\n", line);
+		c += strlen(line) + 1;
 
-		if (strncmp(line, "//", 2)) {
-			if (GlobMatch(line, ip)) {
-				return true;
+		const char *l = g_strstrip(line);
+
+		if (!g_str_has_prefix(l, "//")) {
+			if (GlobMatch(l, ip)) {
+				blacklisted = true;
+				break;
 			}
 		}
-
-		c += strlen(line) + 1;
 	}
 
-	return false;
+	Fs_Free((void *) buf);
+
+	return blacklisted;
 }
 
 /*
@@ -211,7 +217,7 @@ static void Ms_SendServersList(struct sockaddr_in *from) {
 	buflen = 0;
 	memset(buff, 0, sizeof(buff));
 
-	memcpy(buff, "\xFF\xFF\xFF\xFF""servers ", 12);
+	memcpy(buff, "\xFF\xFF\xFF\xFF" "servers ", 12);
 	buflen += 12;
 
 	GList *s = ms_servers;
@@ -287,15 +293,15 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 	*(line++) = '\0';
 	cmd += 4;
 
-	if (!strncasecmp(cmd, "ping", 4)) {
+	if (!g_ascii_strncasecmp(cmd, "ping", 4)) {
 		Ms_AddServer(from);
-	} else if (!strncasecmp(cmd, "heartbeat", 9) || !strncasecmp(cmd, "print", 5)) {
+	} else if (!g_ascii_strncasecmp(cmd, "heartbeat", 9) || !g_ascii_strncasecmp(cmd, "print", 5)) {
 		Ms_Heartbeat(from);
-	} else if (!strncasecmp(cmd, "ack", 3)) {
+	} else if (!g_ascii_strncasecmp(cmd, "ack", 3)) {
 		Ms_Ack(from);
-	} else if (!strncasecmp(cmd, "shutdown", 8)) {
+	} else if (!g_ascii_strncasecmp(cmd, "shutdown", 8)) {
 		Ms_RemoveServer(from, NULL);
-	} else if (!strncasecmp(cmd, "getservers", 10) || !strncasecmp(cmd, "y", 1)) {
+	} else if (!g_ascii_strncasecmp(cmd, "getservers", 10) || !g_ascii_strncasecmp(cmd, "y", 1)) {
 		Ms_SendServersList(from);
 	} else {
 		Com_Print("Unknown command from %s: '%s'", inet_ntoa(from->sin_addr), cmd);

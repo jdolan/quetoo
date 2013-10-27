@@ -11,7 +11,13 @@ q2wmaster_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 
+q2wmaster_LDFLAGS = \
+	-all-static
+
 q2wmaster_LDADD = \
-	../libfilesystem.la
+	../libfilesystem.la \
+	@GLIB_LIBS@ -lrt \
+	@PHYSFS_LIBS@ \
+	@SDL_LIBS@ -lpthread
 
 endif
