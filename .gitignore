@@ -35,6 +35,7 @@ src/tests/*.trs
 src/tests/check_cmd
 src/tests/check_cvar
 src/tests/check_filesystem
+src/tests/check_master
 src/tests/check_mem
 src/tests/check_r_media
 src/tests/check_thread

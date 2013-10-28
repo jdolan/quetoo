@@ -33,6 +33,7 @@ TESTS = \
 	check_cmd \
 	check_cvar \
 	check_filesystem \
+	check_master \
 	check_mem \
 	check_r_media \
 	check_thread
@@ -64,6 +65,14 @@ check_filesystem_SOURCES = \
 check_filesystem_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_filesystem_LDADD = \
+	$(TESTS_LIBS) \
+	../libfilesystem.la
+
+check_master_SOURCES = \
+	check_master.c
+check_master_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_master_LDADD = \
 	$(TESTS_LIBS) \
 	../libfilesystem.la
 
