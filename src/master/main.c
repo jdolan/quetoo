@@ -300,7 +300,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 static void Debug(const char *msg) {
 
 	if (debug) {
-		puts(msg);
+		fputs(msg, stdout);
 	}
 }
 
@@ -310,7 +310,7 @@ static void Debug(const char *msg) {
 static void Verbose(const char *msg) {
 
 	if (verbose) {
-		puts(msg);
+		fputs(msg, stdout);
 	}
 }
 
@@ -330,7 +330,7 @@ static void Init(void) {
 static void Shutdown(const char *msg) {
 
 	if (msg) {
-		puts(msg);
+		fputs(msg, stdout);
 	}
 
 	g_list_free_full(ms_servers, Mem_Free);
