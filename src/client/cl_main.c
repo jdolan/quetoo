@@ -390,7 +390,7 @@ static void Cl_ConnectionlessPacket(void) {
 
 	// server responding to a status broadcast
 	if (!g_strcmp0(c, "info")) {
-		Cl_ParseStatusMessage();
+		Cl_ParseServerInfo();
 		return;
 	}
 
@@ -409,7 +409,7 @@ static void Cl_ConnectionlessPacket(void) {
 
 	// servers list from master
 	if (!g_strcmp0(c, "servers")) {
-		Cl_ParseServersList();
+		Cl_ParseServers();
 		return;
 	}
 

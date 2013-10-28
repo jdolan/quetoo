@@ -68,7 +68,7 @@ void Cl_FreeServers(void) {
 /*
  * @brief
  */
-void Cl_ParseStatusMessage(void) {
+void Cl_ParseServerInfo(void) {
 	extern void Ui_NewServer(void);
 	char info[MAX_MSG_SIZE];
 
@@ -195,30 +195,29 @@ void Cl_Servers_f(void) {
 /*
  * @brief
  */
-void Cl_ParseServersList(void) {
-	byte *buffptr;
-	byte *buffend;
-	byte ip[4];
-	uint16_t port;
-	net_addr_t addr;
+void Cl_ParseServers(void) {
 	cl_server_info_t *server;
-	char s[32];
 
-	buffptr = net_message.data + 12;
-	buffend = buffptr + net_message.size - 12;
+	byte *buffptr = net_message.data + 12;
+	byte *buffend = buffptr + net_message.size - 12;
 
 	// parse the list
 	while (buffptr + 1 < buffend) {
+		net_addr_t addr;
+		byte ip[4];
 
 		ip[0] = *buffptr++; // parse the address
 		ip[1] = *buffptr++;
 		ip[2] = *buffptr++;
 		ip[3] = *buffptr++;
 
-		port = (*buffptr++) << 8; // and the port
+		uint16_t port = (*buffptr++) << 8; // and the port
 		port += *buffptr++;
 
+		char s[32];
 		g_snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
+
+		Com_Debug("Parsed %s\n", s);
 
 		if (!Net_StringToNetaddr(s, &addr)) { // make sure it's valid
 			Com_Warn("Invalid address: %s\n", s);

@@ -211,7 +211,8 @@ static void Ms_GetServers(struct sockaddr_in *from) {
 
 	Mem_InitBuffer(&buf, buffer, sizeof(buffer));
 
-	Mem_WriteBuffer(&buf, (const void *) "\xFF\xFF\xFF\xFF" "servers ", 12);
+	const char *servers = "\xFF\xFF\xFF\xFF" "servers ";
+	Mem_WriteBuffer(&buf, servers, strlen(servers));
 
 	uint32_t i = 0;
 	GList *s = ms_servers;
@@ -225,7 +226,7 @@ static void Ms_GetServers(struct sockaddr_in *from) {
 		s = s->next;
 	}
 
-	if ((sendto(ms_sock, buffer, buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1)
+	if ((sendto(ms_sock, buf.data, buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1)
 		Com_Warn("%s: %s\n", atos(from), strerror(errno));
 	else
 		Com_Verbose("Sent %d servers to %s\n", i, atos(from));

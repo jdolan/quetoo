@@ -116,7 +116,7 @@ static void Svc_Ack(void) {
 }
 
 /*
- * @brief Responds with int16_t info for broadcast scans.
+ * @brief Responds with brief info for broadcast scans.
  */
 static void Svc_Info(void) {
 	char string[MAX_MSG_SIZE];
@@ -124,11 +124,11 @@ static void Svc_Info(void) {
 	if (sv_max_clients->integer == 1)
 		return; // ignore in single player
 
-	const int32_t prot = atoi(Cmd_Argv(1));
-
-	if (prot != PROTOCOL)
-		g_snprintf(string, sizeof(string), "%s: wrong protocol version\n", sv_hostname->string);
-	else {
+	const int32_t p = atoi(Cmd_Argv(1));
+	if (p != PROTOCOL) {
+		g_snprintf(string, sizeof(string), "%s: Wrong protocol: %d != %d", sv_hostname->string, p,
+				PROTOCOL);
+	} else {
 		int32_t i, count = 0;
 
 		for (i = 0; i < sv_max_clients->integer; i++) {
