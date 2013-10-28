@@ -54,7 +54,7 @@ START_TEST(check_Ms_AddServer)
 
 		*(in_addr_t *) &addr.sin_addr = inet_addr("192.168.1.1");
 		addr.sin_family = AF_INET;
-		addr.sin_port = PORT_SERVER;
+		addr.sin_port = htons(PORT_SERVER);
 
 		Ms_AddServer(&addr);
 		ck_assert_int_eq(g_list_length(ms_servers), 1);
@@ -94,7 +94,7 @@ START_TEST(check_Ms_BlacklistServer)
 
 		*(in_addr_t *) &addr.sin_addr = inet_addr("192.168.0.1");
 		addr.sin_family = AF_INET;
-		addr.sin_port = PORT_SERVER;
+		addr.sin_port = htons(PORT_SERVER);
 
 		ck_assert_msg(Ms_BlacklistServer(&addr), "Missed %s", inet_ntoa(addr.sin_addr));
 

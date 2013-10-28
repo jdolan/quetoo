@@ -42,6 +42,15 @@ static GList *ms_servers;
 static int32_t ms_sock;
 
 /*
+ * @brief Shorthand for printing Internet addresses.
+ */
+static const char *atos(const struct sockaddr_in *addr) {
+	return va("%s:%d", inet_ntoa(addr->sin_addr), ntohs(addr->sin_port));
+}
+
+#define stos(s) (atos(&s->addr))
+
+/*
  * @brief Returns the server for the specified address, or NULL.
  */
 static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
@@ -122,12 +131,12 @@ static _Bool Ms_BlacklistServer(struct sockaddr_in *from) {
 static void Ms_AddServer(struct sockaddr_in *from) {
 
 	if (Ms_GetServer(from)) {
-		Com_Print("Duplicate ping from %s\n", inet_ntoa(from->sin_addr));
+		Com_Print("Duplicate ping from %s\n", atos(from));
 		return;
 	}
 
 	if (Ms_BlacklistServer(from)) {
-		Com_Print("Server %s has been blacklisted\n", inet_ntoa(from->sin_addr));
+		Com_Print("Server %s has been blacklisted\n", atos(from));
 		return;
 	}
 
@@ -137,7 +146,7 @@ static void Ms_AddServer(struct sockaddr_in *from) {
 	server->last_heartbeat = time(NULL);
 
 	ms_servers = g_list_prepend(ms_servers, server);
-	Com_Print("Server %s registered\n", inet_ntoa(server->addr.sin_addr));
+	Com_Print("Server %s registered\n", stos(server));
 
 	// send an acknowledgment
 	sendto(ms_sock, "\xFF\xFF\xFF\xFF" "ack", 7, 0, (struct sockaddr *) from, sizeof(*from));
@@ -150,11 +159,11 @@ static void Ms_RemoveServer(struct sockaddr_in *from) {
 	ms_server_t *server = Ms_GetServer(from);
 
 	if (!server) {
-		Com_Print("Shutdown from unregistered server %s\n", inet_ntoa(from->sin_addr));
+		Com_Print("Shutdown from unregistered server %s\n", atos(from));
 		return;
 	}
 
-	Com_Print("Shutdown from %s\n", inet_ntoa(server->addr.sin_addr));
+	Com_Print("Shutdown from %s\n", stos(server));
 	Ms_DropServer(server);
 }
 
@@ -170,14 +179,14 @@ static void Ms_RunFrame(void) {
 		if (now - server->last_heartbeat > 30) {
 
 			if (server->queued_pings > 6) {
-				Com_Print("Server %s timed out\n", inet_ntoa(server->addr.sin_addr));
+				Com_Print("Server %s timed out\n", stos(server));
 				Ms_DropServer(server);
 			} else {
 				if (now - server->last_ping >= 10) {
 					server->queued_pings++;
 					server->last_ping = now;
 
-					Com_Print("Pinging %s\n", inet_ntoa(server->addr.sin_addr));
+					Com_Print("Pinging %s\n", stos(server));
 
 					const char *ping = "\xFF\xFF\xFF\xFF" "ping";
 					sendto(ms_sock, ping, strlen(ping), 0, (struct sockaddr *) &server->addr,
@@ -212,9 +221,9 @@ static void Ms_GetServers(struct sockaddr_in *from) {
 	}
 
 	if ((sendto(ms_sock, buffer, buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1)
-		Com_Warn("Socket error on send: %s\n", strerror(errno));
+		Com_Warn("%s: %s\n", atos(from), strerror(errno));
 	else
-		Com_Print("Sent server list to %s\n", inet_ntoa(from->sin_addr));
+		Com_Print("Sent server list to %s\n", atos(from));
 }
 
 /*
@@ -224,28 +233,26 @@ static void Ms_Ack(struct sockaddr_in *from) {
 	ms_server_t *server = Ms_GetServer(from);
 
 	if (server) {
-		Com_Print("Ack from %s (%d)\n", inet_ntoa(from->sin_addr), server->queued_pings);
-
-		server->last_heartbeat = time(NULL);
-		server->queued_pings = 0;
+		Com_Print("Ack from %s (%d)\n", stos(server), server->queued_pings);
 
 		server->validated = true;
+		server->queued_pings = 0;
+
 	} else {
-		Com_Warn("Ack from unregistered server %s\n", inet_ntoa(from->sin_addr));
+		Com_Warn("Ack from unregistered server %s\n", atos(from));
 	}
 }
 
 /*
- * @brief Accept a heartbeat from the specified server address.
+ * @brief Accept a "heartbeat" from the specified server address.
  */
 static void Ms_Heartbeat(struct sockaddr_in *from) {
 	ms_server_t *server = Ms_GetServer(from);
 
 	if (server) {
-		server->validated = true;
 		server->last_heartbeat = time(NULL);
 
-		Com_Print("Heartbeat from %s\n", inet_ntoa(server->addr.sin_addr));
+		Com_Print("Heartbeat from %s\n", stos(server));
 
 		const void *ack = "\xFF\xFF\xFF\xFF" "ack";
 		sendto(ms_sock, ack, 7, 0, (struct sockaddr *) &server->addr, sizeof(server->addr));
@@ -278,7 +285,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 	} else if (!g_ascii_strncasecmp(cmd, "getservers", 10) || !g_ascii_strncasecmp(cmd, "y", 1)) {
 		Ms_GetServers(from);
 	} else {
-		Com_Print("Unknown command from %s: '%s'", inet_ntoa(from->sin_addr), cmd);
+		Com_Print("Unknown command from %s: '%s'", atos(from), cmd);
 	}
 }
 
@@ -321,12 +328,8 @@ int32_t main(int32_t argc, char **argv) {
 	quake2world.Init = Init;
 	quake2world.Shutdown = Shutdown;
 
-	signal(SIGHUP, Sys_Signal);
 	signal(SIGINT, Sys_Signal);
 	signal(SIGQUIT, Sys_Signal);
-	signal(SIGILL, Sys_Signal);
-	signal(SIGTRAP, Sys_Signal);
-	signal(SIGFPE, Sys_Signal);
 	signal(SIGSEGV, Sys_Signal);
 	signal(SIGTERM, Sys_Signal);
 
@@ -376,11 +379,9 @@ int32_t main(int32_t argc, char **argv) {
 					if (len > 4)
 						Ms_ParseMessage(&from, buffer);
 					else
-						Com_Print("Invalid packet from %s:%d\n", inet_ntoa(from.sin_addr),
-								ntohs(from.sin_port));
+						Com_Print("Invalid packet from %s\n", atos(&from));
 				} else {
-					Com_Print("Socket error from %s:%d (%s)\n", inet_ntoa(from.sin_addr),
-							ntohs(from.sin_port), strerror(errno));
+					Com_Print("Socket error: %s\n", strerror(errno));
 				}
 			}
 		}
