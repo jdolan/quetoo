@@ -36,9 +36,9 @@ typedef struct {
 	size_t read;
 } mem_buf_t;
 
-void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t length);
+void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t len);
 void Mem_ClearBuffer(mem_buf_t *buf);
-void *Mem_AllocBuffer(mem_buf_t *buf, size_t length);
+void *Mem_AllocBuffer(mem_buf_t *buf, size_t len);
 void Mem_WriteBuffer(mem_buf_t *buf, const void *data, size_t len);
 
 #endif /* __MEM_BUF_H__ */

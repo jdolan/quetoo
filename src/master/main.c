@@ -41,6 +41,9 @@ typedef struct ms_server_s {
 static GList *ms_servers;
 static int32_t ms_sock;
 
+static _Bool verbose;
+static _Bool debug;
+
 /*
  * @brief Shorthand for printing Internet addresses.
  */
@@ -131,12 +134,12 @@ static _Bool Ms_BlacklistServer(struct sockaddr_in *from) {
 static void Ms_AddServer(struct sockaddr_in *from) {
 
 	if (Ms_GetServer(from)) {
-		Com_Print("Duplicate ping from %s\n", atos(from));
+		Com_Warn("Duplicate ping from %s\n", atos(from));
 		return;
 	}
 
 	if (Ms_BlacklistServer(from)) {
-		Com_Print("Server %s has been blacklisted\n", atos(from));
+		Com_Warn("Server %s has been blacklisted\n", atos(from));
 		return;
 	}
 
@@ -159,7 +162,7 @@ static void Ms_RemoveServer(struct sockaddr_in *from) {
 	ms_server_t *server = Ms_GetServer(from);
 
 	if (!server) {
-		Com_Print("Shutdown from unregistered server %s\n", atos(from));
+		Com_Warn("Shutdown from unregistered server %s\n", atos(from));
 		return;
 	}
 
@@ -170,7 +173,7 @@ static void Ms_RemoveServer(struct sockaddr_in *from) {
 /*
  * @brief
  */
-static void Ms_RunFrame(void) {
+static void Ms_Frame(void) {
 	const time_t now = time(NULL);
 
 	GList *s = ms_servers;
@@ -186,7 +189,7 @@ static void Ms_RunFrame(void) {
 					server->queued_pings++;
 					server->last_ping = now;
 
-					Com_Print("Pinging %s\n", stos(server));
+					Com_Verbose("Pinging %s\n", stos(server));
 
 					const char *ping = "\xFF\xFF\xFF\xFF" "ping";
 					sendto(ms_sock, ping, strlen(ping), 0, (struct sockaddr *) &server->addr,
@@ -210,12 +213,14 @@ static void Ms_GetServers(struct sockaddr_in *from) {
 
 	Mem_WriteBuffer(&buf, (const void *) "\xFF\xFF\xFF\xFF" "servers ", 12);
 
+	uint32_t i = 0;
 	GList *s = ms_servers;
 	while (s) {
 		const ms_server_t *server = (ms_server_t *) s->data;
 		if (server->validated) {
 			Mem_WriteBuffer(&buf, &server->addr.sin_addr, sizeof(server->addr.sin_addr));
 			Mem_WriteBuffer(&buf, &server->addr.sin_port, sizeof(server->addr.sin_port));
+			i++;
 		}
 		s = s->next;
 	}
@@ -223,7 +228,7 @@ static void Ms_GetServers(struct sockaddr_in *from) {
 	if ((sendto(ms_sock, buffer, buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1)
 		Com_Warn("%s: %s\n", atos(from), strerror(errno));
 	else
-		Com_Print("Sent server list to %s\n", atos(from));
+		Com_Verbose("Sent %d servers to %s\n", i, atos(from));
 }
 
 /*
@@ -233,7 +238,7 @@ static void Ms_Ack(struct sockaddr_in *from) {
 	ms_server_t *server = Ms_GetServer(from);
 
 	if (server) {
-		Com_Print("Ack from %s (%d)\n", stos(server), server->queued_pings);
+		Com_Verbose("Ack from %s (%d)\n", stos(server), server->queued_pings);
 
 		server->validated = true;
 		server->queued_pings = 0;
@@ -252,7 +257,7 @@ static void Ms_Heartbeat(struct sockaddr_in *from) {
 	if (server) {
 		server->last_heartbeat = time(NULL);
 
-		Com_Print("Heartbeat from %s\n", stos(server));
+		Com_Verbose("Heartbeat from %s\n", stos(server));
 
 		const void *ack = "\xFF\xFF\xFF\xFF" "ack";
 		sendto(ms_sock, ack, 7, 0, (struct sockaddr *) &server->addr, sizeof(server->addr));
@@ -285,12 +290,32 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 	} else if (!g_ascii_strncasecmp(cmd, "getservers", 10) || !g_ascii_strncasecmp(cmd, "y", 1)) {
 		Ms_GetServers(from);
 	} else {
-		Com_Print("Unknown command from %s: '%s'", atos(from), cmd);
+		Com_Warn("Unknown command from %s: '%s'", atos(from), cmd);
 	}
 }
 
 /*
- * @brief Initializes the master server.
+ * @brief Com_Debug implementation.
+ */
+static void Debug(const char *msg) {
+
+	if (debug) {
+		puts(msg);
+	}
+}
+
+/*
+ * @brief Com_Verbose implementation.
+ */
+static void Verbose(const char *msg) {
+
+	if (verbose) {
+		puts(msg);
+	}
+}
+
+/*
+ * @brief Com_Init implementation.
  */
 static void Init(void) {
 
@@ -300,12 +325,12 @@ static void Init(void) {
 }
 
 /*
- * @brief Shuts down the master server.
+ * @brief Com_Shutdown implementation.
  */
 static void Shutdown(const char *msg) {
 
 	if (msg) {
-		Com_Print("%s", msg);
+		puts(msg);
 	}
 
 	g_list_free_full(ms_servers, Mem_Free);
@@ -319,11 +344,13 @@ static void Shutdown(const char *msg) {
  * @brief
  */
 int32_t main(int32_t argc, char **argv) {
-	struct sockaddr_in address;
 
 	printf("Quake2World Master Server %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 
 	memset(&quake2world, 0, sizeof(quake2world));
+
+	quake2world.Debug = Debug;
+	quake2world.Verbose = Verbose;
 
 	quake2world.Init = Init;
 	quake2world.Shutdown = Shutdown;
@@ -335,8 +362,23 @@ int32_t main(int32_t argc, char **argv) {
 
 	Com_Init(argc, argv);
 
+	int32_t i;
+	for (i = 0; i < Com_Argc(); i++) {
+
+		if (!g_strcmp0(Com_Argv(i), "-v") || !g_strcmp0(Com_Argv(i), "-verbose")) {
+			verbose = true;
+			continue;
+		}
+
+		if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "-debug")) {
+			debug = true;
+			continue;
+		}
+	}
+
 	ms_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
+	struct sockaddr_in address;
 	memset(&address, 0, sizeof(address));
 
 	address.sin_family = AF_INET;
@@ -344,11 +386,10 @@ int32_t main(int32_t argc, char **argv) {
 	address.sin_addr.s_addr = INADDR_ANY;
 
 	if ((bind(ms_sock, (struct sockaddr *) &address, sizeof(address))) == -1) {
-		Com_Print("Failed to bind port %i\n", PORT_MASTER);
-		return 1;
+		Com_Error(ERR_FATAL, "Failed to bind port %i\n", PORT_MASTER);
 	}
 
-	Com_Print("Listening on %i\n", PORT_MASTER);
+	Com_Print("Listening on %s\n", atos(&address));
 
 	while (true) {
 		fd_set set;
@@ -379,13 +420,13 @@ int32_t main(int32_t argc, char **argv) {
 					if (len > 4)
 						Ms_ParseMessage(&from, buffer);
 					else
-						Com_Print("Invalid packet from %s\n", atos(&from));
+						Com_Warn("Invalid packet from %s\n", atos(&from));
 				} else {
-					Com_Print("Socket error: %s\n", strerror(errno));
+					Com_Warn("Socket error: %s\n", strerror(errno));
 				}
 			}
 		}
 
-		Ms_RunFrame();
+		Ms_Frame();
 	}
 }

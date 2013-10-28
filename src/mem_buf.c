@@ -26,16 +26,19 @@
 /*
  * @brief
  */
-void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t length) {
+void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t len) {
+
 	memset(buf, 0, sizeof(*buf));
+
 	buf->data = data;
-	buf->max_size = length;
+	buf->max_size = len;
 }
 
 /*
  * @brief
  */
 void Mem_ClearBuffer(mem_buf_t *buf) {
+
 	buf->size = 0;
 	buf->overflowed = false;
 }
@@ -43,11 +46,11 @@ void Mem_ClearBuffer(mem_buf_t *buf) {
 /*
  * @brief
  */
-void *Mem_AllocBuffer(mem_buf_t *buf, size_t length) {
+void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
 	void *data;
 
-	if (buf->size + length > buf->max_size) {
-		const uint32_t delta = buf->size + length - buf->max_size;
+	if (buf->size + len > buf->max_size) {
+		const uint32_t delta = buf->size + len - buf->max_size;
 		fprintf(stderr, "%s: Overflow by %u bytes\n", __func__, delta);
 
 		if (!buf->allow_overflow) {
@@ -55,8 +58,8 @@ void *Mem_AllocBuffer(mem_buf_t *buf, size_t length) {
 			raise(SIGABRT);
 		}
 
-		if (length > buf->max_size) {
-			fprintf(stderr, "%u is > buffer size %u\n", (uint32_t) length, (uint32_t) buf->max_size);
+		if (len > buf->max_size) {
+			fprintf(stderr, "%u is > buffer size %u\n", (uint32_t) len, (uint32_t) buf->max_size);
 			raise(SIGABRT);
 		}
 
@@ -65,7 +68,7 @@ void *Mem_AllocBuffer(mem_buf_t *buf, size_t length) {
 	}
 
 	data = buf->data + buf->size;
-	buf->size += length;
+	buf->size += len;
 
 	return data;
 }
