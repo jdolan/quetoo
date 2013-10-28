@@ -41,9 +41,7 @@ TESTS = \
 noinst_PROGRAMS = $(TESTS)
 
 check_cmd_SOURCES = \
-	check_cmd.c \
-	../cmd.c \
-	../cvar.c
+	check_cmd.c
 check_cmd_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cmd_LDADD = \
@@ -51,9 +49,7 @@ check_cmd_LDADD = \
 	../libconsole.la
 
 check_cvar_SOURCES = \
-	check_cvar.c \
-	../cmd.c \
-	../cvar.c
+	check_cvar.c
 check_cvar_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cvar_LDADD = \

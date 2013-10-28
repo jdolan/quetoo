@@ -170,7 +170,7 @@ static void Ms_RunFrame(void) {
 		if (now - server->last_heartbeat > 30) {
 
 			if (server->queued_pings > 6) {
-				Com_Print("Server %s timed out.\n", inet_ntoa(server->addr.sin_addr));
+				Com_Print("Server %s timed out\n", inet_ntoa(server->addr.sin_addr));
 				Ms_DropServer(server);
 			} else {
 				if (now - server->last_ping >= 10) {
@@ -179,8 +179,8 @@ static void Ms_RunFrame(void) {
 
 					Com_Print("Pinging %s\n", inet_ntoa(server->addr.sin_addr));
 
-					const char *msg = "\xFF\xFF\xFF\xFF" "ping";
-					sendto(ms_sock, msg, strlen(msg), 0, (struct sockaddr *) &server->addr,
+					const char *ping = "\xFF\xFF\xFF\xFF" "ping";
+					sendto(ms_sock, ping, strlen(ping), 0, (struct sockaddr *) &server->addr,
 							sizeof(server->addr));
 				}
 			}
@@ -191,9 +191,9 @@ static void Ms_RunFrame(void) {
 }
 
 /*
- * @brief
+ * @brief Send the servers list to the specified client address.
  */
-static void Ms_SendServersList(struct sockaddr_in *from) {
+static void Ms_GetServers(struct sockaddr_in *from) {
 	mem_buf_t buf;
 	byte buffer[0xffff];
 
@@ -212,29 +212,31 @@ static void Ms_SendServersList(struct sockaddr_in *from) {
 	}
 
 	if ((sendto(ms_sock, buffer, buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1)
-		Com_Warn("Socket error on send: %s.\n", strerror(errno));
+		Com_Warn("Socket error on send: %s\n", strerror(errno));
 	else
 		Com_Print("Sent server list to %s\n", inet_ntoa(from->sin_addr));
 }
 
 /*
- * @brief
+ * @brief Acknowledge the server from the specified address.
  */
 static void Ms_Ack(struct sockaddr_in *from) {
-	ms_server_t *server;
+	ms_server_t *server = Ms_GetServer(from);
 
-	if (!(server = Ms_GetServer(from)))
-		return;
+	if (server) {
+		Com_Print("Ack from %s (%d)\n", inet_ntoa(from->sin_addr), server->queued_pings);
 
-	Com_Print("Ack from %s (%d).\n", inet_ntoa(from->sin_addr), server->queued_pings);
+		server->last_heartbeat = time(NULL);
+		server->queued_pings = 0;
 
-	server->last_heartbeat = time(0);
-	server->queued_pings = 0;
-	server->validated = true;
+		server->validated = true;
+	} else {
+		Com_Warn("Ack from unregistered server %s\n", inet_ntoa(from->sin_addr));
+	}
 }
 
 /*
- * @brief
+ * @brief Accept a heartbeat from the specified server address.
  */
 static void Ms_Heartbeat(struct sockaddr_in *from) {
 	ms_server_t *server = Ms_GetServer(from);
@@ -243,7 +245,7 @@ static void Ms_Heartbeat(struct sockaddr_in *from) {
 		server->validated = true;
 		server->last_heartbeat = time(NULL);
 
-		Com_Print("Heartbeat from %s.\n", inet_ntoa(server->addr.sin_addr));
+		Com_Print("Heartbeat from %s\n", inet_ntoa(server->addr.sin_addr));
 
 		const void *ack = "\xFF\xFF\xFF\xFF" "ack";
 		sendto(ms_sock, ack, 7, 0, (struct sockaddr *) &server->addr, sizeof(server->addr));
@@ -274,7 +276,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 	} else if (!g_ascii_strncasecmp(cmd, "shutdown", 8)) {
 		Ms_RemoveServer(from);
 	} else if (!g_ascii_strncasecmp(cmd, "getservers", 10) || !g_ascii_strncasecmp(cmd, "y", 1)) {
-		Ms_SendServersList(from);
+		Ms_GetServers(from);
 	} else {
 		Com_Print("Unknown command from %s: '%s'", inet_ntoa(from->sin_addr), cmd);
 	}
@@ -363,7 +365,9 @@ int32_t main(int32_t argc, char **argv) {
 				memset(buffer, 0, sizeof(buffer));
 
 				struct sockaddr_in from;
-				socklen_t from_len;
+				memset(&from, 0, sizeof(from));
+
+				socklen_t from_len = sizeof(from);
 
 				const ssize_t len = recvfrom(ms_sock, buffer, sizeof(buffer), 0,
 						(struct sockaddr *) &from, &from_len);
