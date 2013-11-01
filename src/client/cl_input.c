@@ -283,26 +283,26 @@ static void Cl_HandleEvent(SDL_Event *event) {
 	}
 
 	switch (event->type) {
-	case SDL_MOUSEBUTTONUP:
-	case SDL_MOUSEBUTTONDOWN:
-		b = SDLK_MOUSE1 + (event->button.button - 1) % 8;
-		EVENT_ENQUEUE(b, b, (event->type == SDL_MOUSEBUTTONDOWN))
-		break;
+		case SDL_MOUSEBUTTONUP:
+		case SDL_MOUSEBUTTONDOWN:
+			b = SDLK_MOUSE1 + (event->button.button - 1) % 8;
+			EVENT_ENQUEUE(b, b, (event->type == SDL_MOUSEBUTTONDOWN))
+			break;
 
-	case SDL_KEYDOWN:
-	case SDL_KEYUP:
-		EVENT_ENQUEUE(event->key.keysym.sym, event->key.keysym.unicode, (event->type == SDL_KEYDOWN))
-		break;
+		case SDL_KEYDOWN:
+		case SDL_KEYUP:
+			EVENT_ENQUEUE(event->key.keysym.sym, event->key.keysym.unicode, (event->type == SDL_KEYDOWN))
+			break;
 
-	case SDL_QUIT:
-		Cmd_ExecuteString("quit");
-		break;
+		case SDL_QUIT:
+			Cmd_ExecuteString("quit");
+			break;
 
-	case SDL_VIDEORESIZE:
-		Cvar_SetValue("r_windowed_width", event->resize.w);
-		Cvar_SetValue("r_windowed_height", event->resize.h);
-		Cbuf_AddText("r_restart\n");
-		break;
+		case SDL_VIDEORESIZE:
+			Cvar_SetValue("r_windowed_width", event->resize.w);
+			Cvar_SetValue("r_windowed_height", event->resize.h);
+			Cbuf_AddText("r_restart\n");
+			break;
 	}
 }
 
@@ -374,9 +374,13 @@ void Cl_HandleEvents(void) {
 		}
 	}
 
+	// ignore mouse position after SDL re-grabs mouse, or after the menu is closed
+	// http://bugzilla.libsdl.org/show_bug.cgi?id=341
+	_Bool invalid_mouse_state = false;
+
 	// send key-up events to previous destination before handling new events
 	if (prev_key_dest != cls.key_state.dest) {
-		cl_key_dest_t dest = cls.key_state.dest;
+		const cl_key_dest_t dest = cls.key_state.dest;
 		cls.key_state.dest = prev_key_dest;
 
 		SDLKey i;
@@ -389,8 +393,13 @@ void Cl_HandleEvents(void) {
 			}
 		}
 
+		if (prev_key_dest == KEY_UI)
+			invalid_mouse_state = true;
+
 		cls.key_state.dest = dest;
 	}
+
+	prev_key_dest = cls.key_state.dest;
 
 	// handle new key events
 	while (true) {
@@ -402,10 +411,6 @@ void Cl_HandleEvents(void) {
 		else
 			break;
 	}
-
-	// ignore mouse position after SDL re-grabs mouse
-	// http://bugzilla.libsdl.org/show_bug.cgi?id=341
-	_Bool invalid_mouse_state = false;
 
 	// force a mouse grab when changing video modes
 	if (r_view.update) {
@@ -424,8 +429,6 @@ void Cl_HandleEvents(void) {
 			invalid_mouse_state = true;
 		}
 	}
-
-	prev_key_dest = cls.key_state.dest;
 
 	SDL_GetMouseState(&mx, &my);
 
