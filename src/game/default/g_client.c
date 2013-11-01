@@ -225,7 +225,7 @@ static void G_ClientCorpse_Think(g_edict_t *ent) {
 static void G_ClientCorpse(g_edict_t *self) {
 	const vec_t r = Randomf();
 
-	g_edict_t *ent = G_Spawn("corpse");
+	g_edict_t *ent = G_Spawn(__func__);
 
 	ent->locals.move_type = MOVE_TYPE_TOSS;
 	ent->solid = SOLID_NOT;
@@ -262,8 +262,8 @@ static void G_ClientCorpse(g_edict_t *self) {
  * certain items we're holding and force the client into a temporary spectator
  * state with the scoreboard shown.
  */
-static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int32_t damage __attribute__((unused)),
-		vec3_t point __attribute__((unused))) {
+static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker,
+		int16_t damage __attribute__((unused)), const vec3_t pos __attribute__((unused))) {
 
 	self->locals.enemy = attacker;
 
@@ -380,7 +380,7 @@ static _Bool G_GiveLevelLocals(g_client_t *client) {
 		if (!it)
 			break;
 
-		it = Trim(it);
+		it = g_strstrip(it);
 
 		if (*it != '\0') {
 

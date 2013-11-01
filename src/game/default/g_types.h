@@ -44,6 +44,15 @@ typedef enum {
 } g_cl_packet_cmd_t;
 
 /*
+ * @brief Game modes. These are selected via g_gameplay.
+ */
+typedef enum {
+	DEATHMATCH,
+	INSTAGIB,
+	ARENA
+} g_gameplay_t;
+
+/*
  * @brief ConfigStrings that are local to the game module.
  */
 #define CS_GAMEPLAY			(CS_GENERAL + 0) // gameplay string
@@ -458,12 +467,12 @@ typedef struct {
 
 	char title[MAX_STRING_CHARS]; // the descriptive name (Stress Fractures, etc)
 	char name[MAX_QPATH]; // the server name (fractures, etc)
-	int32_t gravity; // defaults to 800
-	int32_t gameplay; // DEATHMATCH, INSTAGIB, ARENA
-	int32_t teams;
-	int32_t ctf;
-	int32_t match;
-	int32_t rounds;
+	int16_t gravity; // defaults to 800
+	g_gameplay_t gameplay; // DEATHMATCH, INSTAGIB, ARENA
+	_Bool teams;
+	_Bool ctf;
+	_Bool match;
+	_Bool rounds;
 	int32_t frag_limit;
 	int32_t round_limit;
 	int32_t capture_limit;
@@ -536,16 +545,6 @@ typedef enum {
 	VOTE_YES,
 	VOTE_NO
 } g_vote_t;
-
-/*
- * @brief Game modes. These are selected via g_gameplay.
- */
-typedef enum {
-	DEFAULT,
-	DEATHMATCH,
-	INSTAGIB,
-	ARENA
-} g_gameplay_t;
 
 /*
  * @brief Team name and team skin changes are throttled.
@@ -717,9 +716,9 @@ typedef struct {
 	void (*Blocked)(g_edict_t *self, g_edict_t *other); // move to move_info?
 	void (*Touch)(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
 	void (*Use)(g_edict_t *self, g_edict_t *other, g_edict_t *activator);
-	void (*Pain)(g_edict_t *self, g_edict_t *other, int32_t damage, int32_t knockback);
-	void (*Die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int32_t damage,
-			vec3_t point);
+	void (*Pain)(g_edict_t *self, g_edict_t *other, int16_t damage, int16_t knockback);
+	void (*Die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int16_t damage,
+			const vec3_t pos);
 
 	uint32_t touch_time;
 	uint32_t push_time;

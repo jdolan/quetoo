@@ -431,7 +431,7 @@ static void G_func_plat_CreateTrigger(g_edict_t *ent) {
 	vec3_t tmin, tmax;
 
 	// middle trigger
-	trigger = G_Spawn("func_plat trigger");
+	trigger = G_Spawn(__func__);
 	trigger->locals.Touch = G_func_plat_Touch;
 	trigger->locals.move_type = MOVE_TYPE_NONE;
 	trigger->solid = SOLID_TRIGGER;
@@ -714,7 +714,7 @@ static void G_func_button_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t
 }
 
 static void G_func_button_Die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker,
-		int32_t damage __attribute__((unused)), vec3_t point __attribute__((unused))) {
+		int16_t damage __attribute__((unused)), const vec3_t pos __attribute__((unused))) {
 	self->locals.activator = attacker;
 	self->locals.health = self->locals.max_health;
 	self->locals.take_damage = false;
@@ -1003,7 +1003,7 @@ static void G_func_door_CreateTrigger(g_edict_t *ent) {
 	maxs[0] += 60;
 	maxs[1] += 60;
 
-	trigger = G_Spawn("func_door trigger");
+	trigger = G_Spawn(__func__);
 	VectorCopy(mins, trigger->mins);
 	VectorCopy(maxs, trigger->maxs);
 	trigger->owner = ent;
@@ -1047,7 +1047,7 @@ static void G_func_door_Blocked(g_edict_t *self, g_edict_t *other) {
  * @brief
  */
 static void G_func_door_Die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker,
-		int32_t damage __attribute__((unused)), vec3_t point __attribute__((unused))) {
+		int16_t damage __attribute__((unused)), const vec3_t pos __attribute__((unused))) {
 	g_edict_t *ent;
 
 	for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain) {

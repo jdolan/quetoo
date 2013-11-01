@@ -600,7 +600,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 		p->part.alpha = 1.0;
 		p->alpha_vel = -3.0;
 
-		p->part.scale = 4.0;
+		p->part.scale = 6.0;
 		p->scale_vel = 200.0 * (i + 1);
 
 		p->part.roll = 100.0 * Randomc();

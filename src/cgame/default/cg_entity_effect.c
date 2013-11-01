@@ -311,52 +311,48 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
  */
 static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int32_t color) {
 	static vec3_t angles[NUM_APPROXIMATE_NORMALS];
-	int32_t i, c;
 	cg_particle_t *p;
-	vec_t angle;
-	vec_t sp, sy, cp, cy;
-	vec3_t forward;
-	vec_t dist;
-	vec3_t v;
-	vec_t ltime;
+	int32_t i;
 
 	if (!angles[0][0]) { // initialize our angular velocities
 		for (i = 0; i < NUM_APPROXIMATE_NORMALS * 3; i++)
 			angles[0][i] = (Random() & 255) * 0.01;
 	}
 
-	ltime = (vec_t) cgi.client->time / 300.0;
+	const vec_t ltime = (vec_t) cgi.client->time / 300.0;
 
-	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i += 2) {
+	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
+
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
 			return;
 
-		angle = ltime * angles[i][0];
-		sy = sin(angle);
-		cy = cos(angle);
+		vec_t angle = ltime * angles[i][0];
+		const vec_t sp = sin(angle);
+		const vec_t cp = cos(angle);
 
 		angle = ltime * angles[i][1];
-		sp = sin(angle);
-		cp = cos(angle);
+		const vec_t sy = sin(angle);
+		const vec_t cy = cos(angle);
 
-		forward[0] = cp * cy;
-		forward[1] = cp * sy;
-		forward[2] = -sp;
+		vec3_t forward;
+		VectorSet(forward, cp * sy, cy * sy, -sp);
 
-		dist = sin(ltime + i) * radius;
+		vec_t dist = sin(ltime + i) * radius;
 
 		p->part.alpha = 1.0;
 		p->alpha_vel = -100.0;
 
 		p->part.scale = 0.5 + (0.05 * radius);
 
-		for (c = 0; c < 3; c++) {
+		int32_t j;
+		for (j = 0; j < 3; j++) {
 			// project the origin outward, adding in angular velocity
-			p->part.org[c] = org[c] + (approximate_normals[i][c] * dist) + forward[c] * radius;
+			p->part.org[j] = org[j] + (approximate_normals[i][j] * dist) + forward[j] * radius;
 		}
 
-		VectorSubtract(p->part.org, org, v);
-		dist = VectorLength(v) / (3.0 * radius);
+		vec3_t delta;
+		VectorSubtract(p->part.org, org, delta);
+		dist = VectorLength(delta) / (3.0 * radius);
 		p->part.color = color + dist * 7.0;
 
 		p->vel[0] = p->vel[1] = p->vel[2] = 2.0 * Randomc();
@@ -540,17 +536,17 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 	r_corona_t c;
 	r_light_t l;
 
-	Cg_EnergyTrail(ent, org, 24.0, 206);
+	Cg_EnergyTrail(ent, org, 48.0, 206);
 
 	VectorCopy(org, c.origin);
-	c.radius = 24.0;
+	c.radius = 48.0;
 	c.flicker = 0.05;
 	VectorSet(c.color, 0.4, 1.0, 0.4);
 
 	cgi.AddCorona(&c);
 
 	VectorCopy(org, l.origin);
-	l.radius = 120.0;
+	l.radius = 200.0;
 	VectorSet(l.color, 0.4, 1.0, 0.4);
 
 	cgi.AddLight(&l);

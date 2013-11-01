@@ -280,7 +280,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
  * Larger attenuation will drop off (max 4 attenuation).
  *
  * If origin is NULL, the origin is determined from the entity origin
- * or the midpoint of the entity box for bmodels.
+ * or the midpoint of the entity box for BSP sub-models.
  */
 void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint16_t index,
 		const uint16_t atten) {

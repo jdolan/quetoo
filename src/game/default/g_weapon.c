@@ -434,12 +434,9 @@ void G_FireGrenadeLauncher(g_edict_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		const int32_t dmg = 120 + Randomc() * 30.0;
-		const int32_t knockback = 120 + Randomf() * 20.0;
-
 		G_InitProjectile(ent, forward, right, up, org);
 
-		G_GrenadeProjectile(ent, org, forward, 700, dmg, knockback, 185.0, 2000);
+		G_GrenadeProjectile(ent, org, forward, 700, 120, 120, 185.0, 2000);
 
 		G_MuzzleFlash(ent, MZ_GRENADE);
 
@@ -457,12 +454,9 @@ void G_FireRocketLauncher(g_edict_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		const int32_t dmg = 110 + Randomf() * 20.0;
-		const int32_t knockback = 110 + Randomf() * 20.0;
-
 		G_InitProjectile(ent, forward, right, up, org);
 
-		G_RocketProjectile(ent, org, forward, 900, dmg, knockback, 150.0);
+		G_RocketProjectile(ent, org, forward, 900, 120, 120, 150.0);
 
 		G_MuzzleFlash(ent, MZ_ROCKET);
 
@@ -526,7 +520,9 @@ void G_FireRailgun(g_edict_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org);
 
-		G_RailgunProjectile(ent, org, forward, 120, 80);
+		const int16_t damage = (g_level.gameplay == INSTAGIB) ? 999 : 120;
+
+		G_RailgunProjectile(ent, org, forward, damage, 80);
 
 		G_MuzzleFlash(ent, MZ_RAILGUN);
 
@@ -544,7 +540,7 @@ static void G_FireBfg_(g_edict_t *ent) {
 
 	G_InitProjectile(ent->owner, forward, right, up, org);
 
-	G_BfgProjectiles(ent->owner, org, forward, 600, 100, 100, 256.0);
+	G_BfgProjectile(ent->owner, org, forward, 600, 180, 140, 256.0);
 
 	G_MuzzleFlash(ent->owner, MZ_BFG);
 
@@ -562,12 +558,14 @@ static void G_FireBfg_(g_edict_t *ent) {
 void G_FireBfg(g_edict_t *ent) {
 
 	if (G_FireWeapon(ent)) {
+		ent->client->locals.weapon_fire_time = g_level.time + 1000 + gi.frame_millis;
+
 		g_edict_t *timer = G_Spawn(__func__);
 		timer->owner = ent;
 
 		timer->locals.Think = G_FireBfg_;
-		timer->locals.next_think = g_level.time + 1;
+		timer->locals.next_think = g_level.time + 1000;
 
-		//gi.Sound(ent, gi.SoundIndex("weapons/bfg/fire"), ATTEN_NORM);
+		gi.Sound(ent, gi.SoundIndex("weapons/bfg/fire"), ATTEN_NORM);
 	}
 }

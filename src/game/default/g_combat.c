@@ -96,14 +96,15 @@ _Bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
 /*
  * @brief
  */
-static void G_SpawnDamage(int32_t type, vec3_t origin, vec3_t normal, int32_t damage) {
+static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t normal,
+		int16_t damage) {
 
 	while (damage > 0) {
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(type);
-		gi.WritePosition(origin);
+		gi.WritePosition(pos);
 		gi.WriteDir(normal);
-		gi.Multicast(origin, MULTICAST_PVS);
+		gi.Multicast(pos, MULTICAST_PVS);
 
 		damage -= 50;
 	}
@@ -112,8 +113,9 @@ static void G_SpawnDamage(int32_t type, vec3_t origin, vec3_t normal, int32_t da
 /*
  * @brief
  */
-static int32_t G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int32_t damage,
+static int32_t G_CheckArmor(g_edict_t *ent, const vec3_t pos, const vec3_t normal, int16_t damage,
 		int32_t dflags) {
+
 	g_client_t *client;
 	int32_t saved;
 
@@ -140,7 +142,7 @@ static int32_t G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int32_t
 
 	ent->client->locals.persistent.armor -= saved;
 
-	G_SpawnDamage(TE_BLOOD, point, normal, saved);
+	G_SpawnDamage(TE_BLOOD, pos, normal, saved);
 
 	return saved;
 }
@@ -149,56 +151,53 @@ static int32_t G_CheckArmor(g_edict_t *ent, vec3_t point, vec3_t normal, int32_t
 #define QUAD_KNOCKBACK_FACTOR 2.0
 
 /*
- * @brief targ		entity that is being damaged
- * inflictor	entity that is causing the damage
- * attacker	entity that caused the inflictor to damage targ
- * 	example: targ=player2, inflictor=rocket, attacker=player1
+ * @brief Damage routine. The inflictor imparts damage on the target on behalf
+ * of the attacker.
  *
- * dir			direction of the attack
- * point       point at which the damage is being inflicted
- * normal		normal vector from that point
- * damage		amount of damage being inflicted
- * knockback	force to be applied against targ as a result of the damage
+ * @param target The target may receive damage.
+ * @param inflictor The entity inflicting the damage (projectile).
+ * @param attacker The entity taking credit for the damage (client).
+ * @param dir The direction of the attack.
+ * @param pos The point at which damage is being inflicted.
+ * @param normal The normal vector from that point.
+ * @param damage The damage to be inflicted.
+ * @param knockback Velocity added to target in the direction of the normal.
+ * @param dflags Damage flags:
  *
- * dflags		these flags are used to control how G_Damage works
- * 	DAMAGE_RADIUS			damage was indirect (from a nearby explosion)
+ *  DAMAGE_RADIUS			damage was indirect (from a nearby explosion)
  * 	DAMAGE_NO_ARMOR			armor does not protect from this damage
  * 	DAMAGE_ENERGY			damage is from an energy based weapon
- * 	DAMAGE_BULLET			damage is from a bullet (used for ricochets)
- * 	DAMAGE_NO_PROTECTION	kills godmode, armor, everything
+ * 	DAMAGE_BULLET			damage is from a bullet
+ * 	DAMAGE_NO_PROTECTION	kills god mode, armor, everything
  */
-void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t dir, vec3_t point,
-		vec3_t normal, int16_t damage, int16_t knockback, int32_t dflags, int32_t mod) {
+void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, const vec3_t dir,
+		const vec3_t pos, const vec3_t normal, int16_t damage, int16_t knockback, int32_t dflags,
+		int32_t mod) {
 
-	g_client_t *client;
-	int16_t take;
-	int16_t save;
-	int16_t asave;
-	int32_t te_sparks;
-	vec_t scale;
-
-	if (!targ->locals.take_damage)
+	if (!target->locals.take_damage)
 		return;
 
-	if (targ != attacker && targ->client->locals.respawn_protection_time > g_level.time)
-		return;
+	if (target->client) {
+		if (target->client->locals.respawn_protection_time > g_level.time)
+			return;
+	}
 
-	if (!inflictor) // use world
-		inflictor = &g_game.edicts[0];
+	if (!inflictor)
+		inflictor = g_game.edicts;
 
-	if (!attacker) // use world
-		attacker = &g_game.edicts[0];
+	if (!attacker)
+		attacker = g_game.edicts;
 
-	// quad damage affects both damage and knockback
-	if (attacker->client
-			&& attacker->client->locals.persistent.inventory[g_level.media.quad_damage]) {
-		damage = (int32_t) (damage * QUAD_DAMAGE_FACTOR);
-		knockback = (int32_t) (knockback * QUAD_KNOCKBACK_FACTOR);
+	if (attacker->client) { // quad damage affects both damage and knockback
+		if (attacker->client->locals.persistent.inventory[g_level.media.quad_damage]) {
+			damage *= QUAD_DAMAGE_FACTOR;
+			knockback *= QUAD_KNOCKBACK_FACTOR;
+		}
 	}
 
 	// friendly fire avoidance
-	if (targ != attacker && (g_level.teams || g_level.ctf)) {
-		if (G_OnSameTeam(targ, attacker)) { // target and attacker are on same team
+	if (target != attacker && (g_level.teams || g_level.ctf)) {
+		if (G_OnSameTeam(target, attacker)) { // target and attacker are on same team
 
 			if (mod == MOD_TELEFRAG) { // telefrags can not be avoided
 				mod |= MOD_FRIENDLY_FIRE;
@@ -212,28 +211,24 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 	}
 
 	// there is no self damage in instagib or arena, but there is knockback
-	if (targ == attacker && g_level.gameplay > 1)
+	if (target == attacker && g_level.gameplay != DEATHMATCH)
 		damage = 0;
 
 	means_of_death = mod;
 
-	client = targ->client;
-
-	VectorNormalize(dir);
+	g_client_t *client = target->client;
 
 	// calculate velocity change due to knockback
-	if (knockback && (targ->locals.move_type == MOVE_TYPE_WALK)) {
-		vec3_t kvel;
-		vec_t mass;
+	if (knockback && (target->locals.move_type == MOVE_TYPE_WALK)) {
+		vec3_t knockback_vel, ndir;
 
-		if (targ->locals.mass < 50.0)
-			mass = 50.0;
-		else
-			mass = targ->locals.mass;
+		VectorCopy(dir, ndir);
+		VectorNormalize(ndir);
 
-		scale = 1000.0; // default knockback scale
+		vec_t mass = Clamp(target->locals.mass, 50.0, 999.0);
+		vec_t scale = 1000.0; // default knockback scale
 
-		if (targ == attacker) { // weapon jump hacks
+		if (target == attacker) { // weapon jump hacks
 			if (mod == MOD_BFG_BLAST)
 				scale = 300.0;
 			else if (mod == MOD_ROCKET_SPLASH)
@@ -242,71 +237,69 @@ void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t
 				scale = 1200.0;
 		}
 
-		VectorScale(dir, scale * (vec_t)knockback / mass, kvel);
-		VectorAdd(targ->locals.velocity, kvel, targ->locals.velocity);
+		VectorScale(ndir, scale * knockback / mass, knockback_vel);
+		VectorAdd(target->locals.velocity, knockback_vel, target->locals.velocity);
 	}
 
-	take = damage;
-	save = 0;
+	int16_t inflicted = damage;
+	int16_t saved = 0;
 
 	// check for god mode
-	if ((targ->locals.flags & FL_GOD_MODE) && !(dflags & DAMAGE_NO_PROTECTION)) {
-		take = 0;
-		save = damage;
-		G_SpawnDamage(TE_BLOOD, point, normal, save);
+	if ((target->locals.flags & FL_GOD_MODE) && !(dflags & DAMAGE_NO_PROTECTION)) {
+		inflicted = 0;
+		saved = damage;
+		G_SpawnDamage(TE_BLOOD, pos, normal, saved);
 	}
 
-	asave = G_CheckArmor(targ, point, normal, take, dflags);
-	take -= asave;
+	int16_t saved_armor = G_CheckArmor(target, pos, normal, inflicted, dflags);
+	inflicted -= saved_armor;
 
 	// treat cheat savings the same as armor
-	asave += save;
+	saved_armor += saved;
 
 	// do the damage
-	if (take) {
+	if (inflicted) {
 		if (client)
-			G_SpawnDamage(TE_BLOOD, point, normal, take);
+			G_SpawnDamage(TE_BLOOD, pos, normal, inflicted);
 		else {
 			// impact effects for things we can hurt which shouldn't bleed
 			if (dflags & DAMAGE_BULLET)
-				te_sparks = TE_BULLET;
+				G_SpawnDamage(TE_BULLET, pos, normal, inflicted);
 			else
-				te_sparks = TE_SPARKS;
-
-			G_SpawnDamage(te_sparks, point, normal, take);
+				G_SpawnDamage(TE_SPARKS, pos, normal, inflicted);
 		}
 
-		targ->locals.health = targ->locals.health - take;
+		target->locals.health = target->locals.health - inflicted;
 
-		if (targ->locals.health <= 0) {
-			if (targ->locals.Die) {
-				targ->locals.Die(targ, inflictor, attacker, take, point);
+		if (target->locals.health <= 0) {
+			if (target->locals.Die) {
+				target->locals.Die(target, inflictor, attacker, inflicted, pos);
 			} else {
-				gi.Debug("No die function for %s\n", targ->class_name);
+				gi.Debug("No die function for %s\n", target->class_name);
 			}
 			return;
 		}
 	}
 
 	// invoke the pain callback
-	if ((take || knockback) && targ->locals.Pain)
-		targ->locals.Pain(targ, attacker, take, knockback);
+	if ((inflicted || knockback) && target->locals.Pain)
+		target->locals.Pain(target, attacker, inflicted, knockback);
 
 	// add to the damage inflicted on a player this frame
 	if (client) {
-		client->locals.damage_armor += asave;
-		client->locals.damage_health += take;
+		client->locals.damage_armor += saved_armor;
+		client->locals.damage_health += inflicted;
 
-		vec_t kick = (asave + take) / 30.0;
+		vec_t kick = (saved_armor + inflicted) / 30.0;
 
 		if (kick > 1.0) {
 			kick = 1.0;
 		}
 
-		G_ClientDamageKick(targ, dir, kick);
+		G_ClientDamageKick(target, dir, kick);
 
 		if (attacker->client && attacker->client != client) {
-			attacker->client->locals.damage_inflicted += take;
+			attacker->client->locals.damage_inflicted += inflicted;
 		}
 	}
 }

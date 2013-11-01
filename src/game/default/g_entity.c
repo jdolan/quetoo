@@ -498,7 +498,7 @@ static void G_WorldspawnMusic(void) {
 			break;
 
 		if (*t != '\0')
-			gi.ConfigString(CS_MUSICS + i++, Trim(t));
+			gi.ConfigString(CS_MUSICS + i++, g_strstrip(t));
 
 		t = strtok(NULL, ",");
 	}
@@ -593,8 +593,6 @@ static void G_worldspawn(g_edict_t *ent) {
 			// or default to deathmatch
 			g_level.gameplay = DEATHMATCH;
 	}
-	if (g_level.gameplay == DEFAULT)
-		g_level.gameplay = DEATHMATCH;
 	gi.ConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
 	if (map && map->teams > -1) // prefer maps.lst teams

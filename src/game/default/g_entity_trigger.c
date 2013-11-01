@@ -218,6 +218,23 @@ static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 		G_FreeEdict(self);
 }
 
+/*
+ * @brief Creates an effect trail for the specified entity.
+ */
+static void G_trigger_push_Effect(g_edict_t *self) {
+
+	g_edict_t *ent = G_Spawn(__func__);
+	ent->solid = SOLID_TRIGGER;
+	ent->locals.move_type = MOVE_TYPE_NONE;
+
+	// uber hack to resolve origin
+	VectorAdd(self->mins, self->maxs, ent->s.origin);
+	VectorScale(ent->s.origin, 0.5, ent->s.origin);
+	ent->s.effects = EF_TELEPORTER;
+
+	gi.LinkEdict(ent);
+}
+
 /*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE PUSH_EFFECTS
  Pushes the player in any direction. These are commonly used to make jump pads to send the player upwards. Using the angles key, you can project the player in any direction using "pitch yaw roll."
  -------- KEYS --------
@@ -228,7 +245,6 @@ static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
  PUSH_EFFECTS : If set, emit particle effects to indicate that a pusher is here.
  */
 void G_trigger_push(g_edict_t *self) {
-	g_edict_t *ent;
 
 	G_Trigger_Init(self);
 
@@ -239,20 +255,8 @@ void G_trigger_push(g_edict_t *self) {
 
 	gi.LinkEdict(self);
 
-	if (!(self->locals.spawn_flags & PUSH_EFFECT))
-		return;
-
-	// add a teleporter trail
-	ent = G_Spawn("trigger_push trigger");
-	ent->solid = SOLID_TRIGGER;
-	ent->locals.move_type = MOVE_TYPE_NONE;
-
-	// uber hack to resolve origin
-	VectorAdd(self->mins, self->maxs, ent->s.origin);
-	VectorScale(ent->s.origin, 0.5, ent->s.origin);
-	ent->s.effects = EF_TELEPORTER;
-
-	gi.LinkEdict(ent);
+	if (self->locals.spawn_flags & PUSH_EFFECT)
+		G_trigger_push_Effect(self);
 }
 
 /*

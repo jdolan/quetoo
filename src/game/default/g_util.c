@@ -451,35 +451,22 @@ char *G_GameplayName(int32_t g) {
 /*
  * @brief
  */
-int32_t G_GameplayByName(const char *c) {
+g_gameplay_t G_GameplayByName(const char *c) {
+	g_gameplay_t gameplay = DEATHMATCH;
 
 	if (!c || *c == '\0')
-		return DEATHMATCH;
+		return gameplay;
 
-	switch (*c) { // hack for numeric matches, atoi wont cut it
-		case '0':
-			return DEFAULT;
-		case '1':
-			return DEATHMATCH;
-		case '2':
-			return INSTAGIB;
-		case '3':
-			return ARENA;
-		default:
-			break;
+	char *lower = g_ascii_strdown(c, -1);
+
+	if (g_str_has_prefix(g_strchug(lower), "insta")) {
+		gameplay = INSTAGIB;
+	} else if (g_str_has_prefix(g_strchug(lower), "arena")) {
+		gameplay = ARENA;
 	}
 
-	char name[MAX_TOKEN_CHARS];
-	Lowercase(c, name);
-
-	if (strstr(name, "insta"))
-		return INSTAGIB;
-	if (strstr(name, "arena"))
-		return ARENA;
-	if (strstr(name, "deathmatch") || strstr(name, "dm"))
-		return DEATHMATCH;
-
-	return DEFAULT;
+	free(lower);
+	return gameplay;
 }
 
 /*

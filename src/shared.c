@@ -643,47 +643,6 @@ void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation
 	}
 }
 
-/*
- * @brief Returns true if the specified string has some upper case characters.
- */
-_Bool MixedCase(const char *s) {
-	const char *c = s;
-	while (*c) {
-		if (isupper(*c))
-			return true;
-		c++;
-	}
-	return false;
-}
-
-/*
- * @brief Lowercases the specified string.
- */
-void Lowercase(const char *in, char *out) {
-	while (*in) {
-		*out++ = tolower(*in++);
-	}
-	*out = '\0';
-}
-
-/*
- * @brief Trims leading and trailing whitespace from the specified string.
- */
-char *Trim(char *s) {
-	char *left, *right;
-
-	left = s;
-
-	while (isspace(*left))
-		left++;
-
-	right = left + strlen(left) - 1;
-
-	while (isspace(*right))
-		*right-- = '\0';
-
-	return left;
-}
 
 /*
  * @brief Returns the longest common prefix the specified words share.

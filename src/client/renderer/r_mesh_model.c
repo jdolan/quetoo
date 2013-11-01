@@ -859,7 +859,7 @@ static void R_LoadObjModel_(r_model_t *mod, r_obj_t *obj, const void *buffer) {
 		if (*c == '\r' || *c == '\n') { // end of line
 
 			if (i && !comment)
-				R_LoadObjModelLine(mod, obj, Trim(line));
+				R_LoadObjModelLine(mod, obj, g_strstrip(line));
 
 			c++;
 			comment = false;

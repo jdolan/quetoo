@@ -115,10 +115,7 @@ void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation
  * @brief String manipulation functions.
  */
 _Bool GlobMatch(const char *pattern, const char *text);
-_Bool MixedCase(const char *s);
 char *CommonPrefix(GList *words);
-void Lowercase(const char *in, char *out);
-char *Trim(char *s);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);
 void StripExtension(const char *in, char *out);

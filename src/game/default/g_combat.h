@@ -26,8 +26,9 @@
 
 #ifdef __GAME_LOCAL_H__
 _Bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor);
-void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, vec3_t dir,
-		vec3_t point, vec3_t normal, int16_t damage, int16_t knockback, int32_t dflags, int32_t mod);
+void G_Damage(g_edict_t *targ, g_edict_t *inflictor, g_edict_t *attacker, const vec3_t dir,
+		const vec3_t point, const vec3_t normal, int16_t damage, int16_t knockback, int32_t dflags,
+		int32_t mod);
 _Bool G_OnSameTeam(const g_edict_t *ent1, const g_edict_t *ent2);
 void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore,
 		int32_t damage, int32_t knockback, vec_t radius, int32_t mod);
