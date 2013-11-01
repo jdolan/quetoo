@@ -437,11 +437,11 @@ _Bool G_KillBox(g_edict_t *ent) {
  */
 char *G_GameplayName(int32_t g) {
 	switch (g) {
-		case DEATHMATCH:
+		case GAME_DEATHMATCH:
 			return "DEATHMATCH";
-		case INSTAGIB:
+		case GAME_INSTAGIB:
 			return "INSTAGIB";
-		case ARENA:
+		case GAME_ARENA:
 			return "ARENA";
 		default:
 			return "DEATHMATCH";
@@ -452,7 +452,7 @@ char *G_GameplayName(int32_t g) {
  * @brief
  */
 g_gameplay_t G_GameplayByName(const char *c) {
-	g_gameplay_t gameplay = DEATHMATCH;
+	g_gameplay_t gameplay = GAME_DEATHMATCH;
 
 	if (!c || *c == '\0')
 		return gameplay;
@@ -460,9 +460,9 @@ g_gameplay_t G_GameplayByName(const char *c) {
 	char *lower = g_ascii_strdown(c, -1);
 
 	if (g_str_has_prefix(g_strchug(lower), "insta")) {
-		gameplay = INSTAGIB;
+		gameplay = GAME_INSTAGIB;
 	} else if (g_str_has_prefix(g_strchug(lower), "arena")) {
-		gameplay = ARENA;
+		gameplay = GAME_ARENA;
 	}
 
 	free(lower);

@@ -211,7 +211,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 	}
 
 	// there is no self damage in instagib or arena, but there is knockback
-	if (target == attacker && g_level.gameplay != DEATHMATCH)
+	if (target == attacker && g_level.gameplay != GAME_DEATHMATCH)
 		damage = 0;
 
 	means_of_death = mod;

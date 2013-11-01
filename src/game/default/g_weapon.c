@@ -520,7 +520,7 @@ void G_FireRailgun(g_edict_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org);
 
-		const int16_t damage = (g_level.gameplay == INSTAGIB) ? 999 : 120;
+		const int16_t damage = (g_level.gameplay == GAME_INSTAGIB) ? 999 : 120;
 
 		G_RailgunProjectile(ent, org, forward, damage, 80);
 

@@ -591,7 +591,7 @@ static void G_worldspawn(g_edict_t *ent) {
 			g_level.gameplay = G_GameplayByName(g_game.spawn.gameplay);
 		else
 			// or default to deathmatch
-			g_level.gameplay = DEATHMATCH;
+			g_level.gameplay = GAME_DEATHMATCH;
 	}
 	gi.ConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 

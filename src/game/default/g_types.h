@@ -47,9 +47,9 @@ typedef enum {
  * @brief Game modes. These are selected via g_gameplay.
  */
 typedef enum {
-	DEATHMATCH,
-	INSTAGIB,
-	ARENA
+	GAME_DEATHMATCH,
+	GAME_INSTAGIB,
+	GAME_ARENA
 } g_gameplay_t;
 
 /*

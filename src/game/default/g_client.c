@@ -429,12 +429,12 @@ static void G_InitClientPersistent(g_client_t *client) {
 	client->locals.persistent.max_nukes = 10;
 
 	// instagib gets railgun and slugs, both in normal mode and warmup
-	if (g_level.gameplay == INSTAGIB) {
+	if (g_level.gameplay == GAME_INSTAGIB) {
 		G_Give(client, "Railgun", 1000);
 		item = G_FindItem("Railgun");
 	}
 	// arena or dm warmup yields all weapons, health, etc..
-	else if ((g_level.gameplay == ARENA) || g_level.warmup) {
+	else if ((g_level.gameplay == GAME_ARENA) || g_level.warmup) {
 		G_Give(client, "Railgun", 50);
 		G_Give(client, "Lightning", 200);
 		G_Give(client, "Hyperblaster", 200);
