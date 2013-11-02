@@ -906,8 +906,8 @@ static void G_BfgProjectile_Think(g_edict_t *self) {
 		if (ent == self || ent == self->owner)
 			continue;
 
-		//if (!ent->locals.take_damage)
-			//continue;
+		if (!ent->locals.take_damage)
+			continue;
 
 		if (!G_CanDamage(ent, self))
 			continue;
