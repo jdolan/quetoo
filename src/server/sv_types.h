@@ -70,8 +70,26 @@ typedef struct {
 	uint32_t sent_time; // for ping calculations
 } sv_frame_t;
 
-#define CLIENT_LATENCY_COUNTS 16  // frame latency, averaged to determine ping
-#define CLIENT_RATE_MESSAGES 10  // message size, used to enforce rate throttle
+/*
+ * @brief The server runs at fixed-interval frames at a configurable rate.
+ */
+#define SV_HZ_MIN 10
+#define SV_HZ_MAX 120
+
+/*
+ * @brief The default server frame rate.
+ */
+#define SV_HZ 30
+
+/*
+ * @brief Clients are dropped after 60 seconds without receiving a packet.
+ */
+#define SV_TIMEOUT 60
+
+/*
+ * @brief Frame latency accounting, used to estimate ping.
+ */
+#define SV_CLIENT_LATENCY_COUNT 16
 
 /*
  * @brief User movement command duration is inspected regularly to ensure that
@@ -125,9 +143,9 @@ typedef struct {
 	uint32_t cmd_msec; // for sv_enforce_time
 	uint16_t cmd_msec_errors; // maintain how many problems we've seen
 
-	uint32_t frame_latency[CLIENT_LATENCY_COUNTS]; // used to calculate ping
+	uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT]; // used to calculate ping
 
-	uint32_t message_size[CLIENT_RATE_MESSAGES]; // used to rate drop packets
+	uint32_t message_size[SV_HZ_MAX]; // used to rate drop packets
 	uint32_t rate;
 	uint32_t surpress_count; // number of messages rate suppressed
 
@@ -148,21 +166,6 @@ typedef struct {
 	net_chan_t net_chan;
 } sv_client_t;
 
-/*
- * @brief The server runs at fixed-interval frames at a configurable rate.
- */
-#define SV_HZ_MIN 10
-#define SV_HZ_MAX 120
-
-/*
- * @brief The default server frame rate.
- */
-#define SV_HZ 30
-
-/*
- * @brief Clients are dropped after 60 seconds without receiving a packet.
- */
-#define SV_TIMEOUT 60
 
 #define MAX_MASTERS	8  // max recipients for heartbeat packets
 // challenges are a request for a connection; a handshake the client receives

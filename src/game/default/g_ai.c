@@ -38,29 +38,47 @@ static void G_Ai_ClientThink(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_Ai_Add_f(void) {
-	int32_t i;
+static void G_Ai_Spawn(g_edict_t *self) {
 
-	g_edict_t *ent = &g_game.edicts[1];
-	for (i = 1; i <= sv_max_clients->integer; i++, ent++) {
-		if (!g_game.edicts[i].in_use) {
+	self->ai = true; // and away we go!
+
+	G_ClientConnect(self, "\\name\\newbie\\skin\\qforcer/enforcer");
+	G_ClientBegin(self);
+
+	gi.Debug("Spawned %s at %s", self->client->locals.persistent.net_name, vtos(self->s.origin));
+
+	self->locals.Think = G_Ai_ClientThink;
+	self->locals.next_think = g_level.time + gi.frame_millis;
+
+}
+
+/*
+ * @brief
+ */
+static void G_Ai_Add_f(void) {
+	int32_t i, count = 1;
+
+	if (gi.Argc() > 1) {
+		count = Clamp(atoi(gi.Argv(1)), 1, sv_max_clients->integer);
+	}
+
+	for (i = 0; i < count; i++) {
+
+		g_edict_t *ent = &g_game.edicts[1];
+		int32_t j;
+
+		for (j = 1; j <= sv_max_clients->integer; j++, ent++) {
+			if (!ent->in_use) {
+				G_Ai_Spawn(ent);
+				break;
+			}
+		}
+
+		if (j > sv_max_clients->integer) {
+			gi.Print("No client slots available, increase sv_max_clients\n");
 			break;
 		}
 	}
-
-	if (i > sv_max_clients->integer) {
-		gi.Print("No client slots available, increase sv_max_clients\n");
-		return;
-	}
-
-	ent->ai = true; // and away we go!
-
-	G_ClientConnect(ent, "\\name\\newbie\\skin\\qforcer/enforcer");
-	G_ClientBegin(ent);
-
-	gi.Debug("Spawned %s at %s", ent->client->locals.persistent.net_name, vtos(ent->s.origin));
-
-	ent->locals.Think = G_Ai_ClientThink;
 }
 
 /*
@@ -68,7 +86,7 @@ static void G_Ai_Add_f(void) {
  */
 void G_Ai_Init(void) {
 
-	gi.Cmd("g_ai_add", G_Ai_Add_f, CMD_GAME, NULL);
+	gi.Cmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
 }
 
 /*

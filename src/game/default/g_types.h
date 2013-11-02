@@ -28,7 +28,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1001
+#define PROTOCOL_MINOR 1002
 
 /*
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -167,6 +167,7 @@ typedef struct {
 #define SCORES_CTF_FLAG		(1 << 2)
 #define SCORES_NOT_READY	(1 << 3)
 #define SCORES_SPECTATOR	(1 << 4)
+#define SCORES_AGGREGATE	(1 << 5)
 
 /*
  * @brief Game-specific entity events.
@@ -488,6 +489,8 @@ typedef struct {
 	uint32_t time_limit;
 	char give[MAX_STRING_CHARS];
 	char music[MAX_STRING_CHARS];
+
+	uint32_t scores_time; // time scores updated
 
 	// intermission state
 	uint32_t intermission_time; // time intermission started

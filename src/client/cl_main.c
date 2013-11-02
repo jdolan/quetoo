@@ -442,9 +442,13 @@ static void Cl_ReadPackets(void) {
 			continue;
 		}
 
-		if (cls.state <= CL_CONNECTING)
-			continue; // dump it if not connected
+		// dump it if not connected
+		if (cls.state <= CL_CONNECTING) {
+			Com_Debug("%s: Unsolicited packet\n", Net_NetaddrToString(&net_from));
+			continue;
+		}
 
+		// check for runt packets
 		if (net_message.size < 8) {
 			Com_Debug("%s: Runt packet\n", Net_NetaddrToString(&net_from));
 			continue;
@@ -694,9 +698,6 @@ void Cl_Init(void) {
 	Cl_InitKeys();
 
 	Net_Config(NS_UDP_CLIENT, true);
-
-	net_message.data = net_message_buffer;
-	net_message.max_size = sizeof(net_message_buffer);
 
 	S_Init();
 

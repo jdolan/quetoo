@@ -49,7 +49,7 @@ void G_ClientToIntermission(g_edict_t *ent) {
 	// show scores
 	ent->client->locals.show_scores = true;
 
-	// hide the hud
+	// hide the HUD
 	ent->client->locals.persistent.weapon = NULL;
 	ent->client->locals.ammo_index = 0;
 	ent->client->locals.persistent.armor = 0;
@@ -119,13 +119,13 @@ static size_t G_UpdateScores(g_score_t *scores) {
 		s->client = MAX_CLIENTS;
 		s->score = g_team_good.score;
 		s->captures = g_team_good.captures;
-		s->flags = SCORES_TEAM_GOOD;
+		s->flags = SCORES_TEAM_GOOD | SCORES_AGGREGATE;
 		s++;
 
 		s->client = MAX_CLIENTS;
 		s->score = g_team_evil.score;
 		s->captures = g_team_evil.captures;
-		s->flags = SCORES_TEAM_EVIL;
+		s->flags = SCORES_TEAM_EVIL | SCORES_AGGREGATE;
 		s++;
 	}
 
@@ -137,37 +137,45 @@ static size_t G_UpdateScores(g_score_t *scores) {
  * chunks to overcome the 1400 byte UDP packet limitation.
  */
 void G_ClientScores(g_edict_t *ent) {
-	g_score_t scores[MAX_CLIENTS + 2];
+	static g_score_t scores[MAX_CLIENTS + 2];
+	static size_t count;
 
 	if (!ent->client->locals.show_scores || (ent->client->locals.scores_time > g_level.time))
 		return;
 
 	ent->client->locals.scores_time = g_level.time + 500;
 
-	size_t i = 0, j = 0, count = G_UpdateScores(scores);
+	// update the scoreboard if it's stale; this is shared to all clients
+	if (g_level.scores_time <= g_level.time) {
+		count = G_UpdateScores(scores);
+		g_level.scores_time = g_level.time + 500;
+	}
 
-	while (i < count) {
-		const size_t bytes = (i - j) * sizeof(g_score_t);
-		if (bytes > 512) {
+	// send the scores over in chunks
+	size_t i = 0, j = 0;
+	while (++i < count) {
+		const size_t len = (i - j) * sizeof(g_score_t);
+		if (len > 512) {
 			gi.WriteByte(SV_CMD_SCORES);
 			gi.WriteShort(j);
 			gi.WriteShort(i);
-			gi.WriteData((const void *) (scores + j), bytes);
+			gi.WriteData((const void *) (scores + j), len);
+			gi.WriteByte(0); // sequence is incomplete
 			gi.Unicast(ent, false);
 
 			j = i;
 		}
-		i++;
 	}
 
-	const size_t bytes = (i - j) * sizeof(g_score_t);
-	if (bytes) {
-		gi.WriteByte(SV_CMD_SCORES);
-		gi.WriteShort(j);
-		gi.WriteShort(i);
-		gi.WriteData((const void *) (scores + j), bytes);
-		gi.Unicast(ent, false);
-	}
+	// send any remaining scores, and indicate that the sequence is complete
+	const size_t len = (i - j) * sizeof(g_score_t);
+
+	gi.WriteByte(SV_CMD_SCORES);
+	gi.WriteShort(j);
+	gi.WriteShort(i);
+	gi.WriteData((const void *) (scores + j), len);
+	gi.WriteByte(1); // sequence is complete
+	gi.Unicast(ent, false);
 }
 
 /*

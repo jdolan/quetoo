@@ -25,6 +25,11 @@
 #include "net_udp.h"
 #include "net_message.h"
 
+/*
+ * @brief The network channel provides a conduit for packet sequencing and
+ * optional reliable message delivery. The client and server speak explicitly
+ * through this interface.
+ */
 typedef struct {
 	_Bool fatal_error;
 
@@ -37,18 +42,17 @@ typedef struct {
 
 	net_addr_t remote_address;
 
-	uint8_t qport; // qport value to write when transmitting
+	uint8_t qport; // to differentiate multiple clients behind NAT
 
 	// sequencing variables
 	uint32_t incoming_sequence;
 	uint32_t incoming_acknowledged;
-	uint32_t incoming_reliable_acknowledged; // single bit
-
-	uint32_t incoming_reliable_sequence; // single bit, maintained local
-
 	uint32_t outgoing_sequence;
+
 	uint32_t reliable_sequence; // single bit
-	uint32_t last_reliable_sequence; // sequence number of last send
+	uint32_t reliable_acknowledged; // single bit
+	uint32_t reliable_incoming; // single bit
+	uint32_t reliable_outgoing; // outgoing sequence number of last reliable
 
 	// reliable staging and holding areas
 	mem_buf_t message; // writing buffer to send to server
@@ -61,15 +65,12 @@ typedef struct {
 
 extern net_addr_t net_from;
 extern mem_buf_t net_message;
-extern byte net_message_buffer[MAX_MSG_SIZE];
 
 void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t qport);
 void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len);
 void Netchan_OutOfBand(int32_t sock, const net_addr_t *addr, const void *data, size_t len);
 void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *format, ...) __attribute__((format(printf, 3, 4)));
 _Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg);
-_Bool Netchan_CanReliable(net_chan_t *chan);
-_Bool Netchan_NeedReliable(net_chan_t *chan);
 void Netchan_Init(void);
 void Netchan_Shutdown(void);
 

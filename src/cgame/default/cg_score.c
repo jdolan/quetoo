@@ -59,38 +59,47 @@ void Cg_ParseScores(void) {
 	const size_t index = cgi.ReadShort();
 	const size_t count = cgi.ReadShort();
 
+	if (index == 0) {
+		memset(&cg_score_state, 0, sizeof(cg_score_state));
+	}
+
 	cgi.ReadData(cg_score_state.scores + index, count * sizeof(g_score_t));
 
-	cg_score_state.num_scores = index + count;
+	if (cgi.ReadByte()) { // last packet in sequence
 
-	cg_score_state.teams = atoi(cgi.ConfigString(CS_TEAMS));
-	cg_score_state.ctf = atoi(cgi.ConfigString(CS_CTF));
+		cg_score_state.teams = atoi(cgi.ConfigString(CS_TEAMS));
+		cg_score_state.ctf = atoi(cgi.ConfigString(CS_CTF));
 
-	// the last two scores in the sequence are the team scores
-	if (cg_score_state.teams || cg_score_state.ctf)
-		cg_score_state.num_scores -= 2;
+		cg_score_state.num_scores = index + count;
+
+		// the aggregate scores are the last two in the array
+		if (cg_score_state.ctf || cg_score_state.teams) {
+			cg_score_state.num_scores -= 2;
+		}
+	}
 
 	/*
 	 // to test the scoreboard, uncomment this block
 	 uint16_t i;
 	 for (i = cg_score_state.num_scores; i < 16; i++) {
-		 cg_score_state.scores[i].client = cg_score_state.scores[cg_score_state.num_scores - 1].client;
-		 cg_score_state.scores[i].ping = i;
-		 cg_score_state.scores[i].score = i;
-		 cg_score_state.scores[i].captures = i;
+	 cg_score_state.scores[i].client
+	 = cg_score_state.scores[cg_score_state.num_scores - 1].client;
+	 cg_score_state.scores[i].ping = i;
+	 cg_score_state.scores[i].score = i;
+	 cg_score_state.scores[i].captures = i;
 
-		 if (i % 6 == 0) { // some spectators
-			 cg_score_state.scores[i].team = 0xff;
-			 cg_score_state.scores[i].color = 0;
-		 } else {
-			 if (cg_score_state.teams) {
-				 cg_score_state.scores[i].team = i & 1 ? CS_TEAM_GOOD : CS_TEAM_EVIL;
-				 cg_score_state.scores[i].color = ColorByName(i & 1 ? "blue" : "red", 0);
-			 } else {
-				 cg_score_state.scores[i].team = 0;
-				 cg_score_state.scores[i].color = (i + 16) * 3;
-			 }
-		 }
+	 if (i % 6 == 0) { // some spectators
+	 cg_score_state.scores[i].flags = SCORES_SPECTATOR;
+	 cg_score_state.scores[i].color = 0;
+	 } else {
+	 if (cg_score_state.teams) {
+	 cg_score_state.scores[i].flags = i & 1 ? SCORES_TEAM_GOOD : SCORES_TEAM_EVIL;
+	 cg_score_state.scores[i].color = ColorByName(i & 1 ? "blue" : "red", 0);
+	 } else {
+	 cg_score_state.scores[i].flags = 0;
+	 cg_score_state.scores[i].color = (i + 16) * 3;
+	 }
+	 }
 	 }
 	 cg_score_state.num_scores = i;
 	 */

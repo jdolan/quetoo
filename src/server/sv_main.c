@@ -47,6 +47,13 @@ cvar_t *sv_udp_download;
 void Sv_DropClient(sv_client_t *cl) {
 	g_edict_t *ent;
 
+	Mem_ClearBuffer(&cl->net_chan.message);
+	Mem_ClearBuffer(&cl->datagram.buffer);
+
+	if (cl->datagram.messages) {
+		g_list_free_full(cl->datagram.messages, Mem_Free);
+	}
+
 	if (cl->state > SV_CLIENT_FREE) { // send the disconnect
 
 		if (cl->state == SV_CLIENT_ACTIVE) { // after informing the game module
@@ -204,7 +211,8 @@ static void Svc_Connect(void) {
 
 	// resolve protocol
 	if (version != PROTOCOL_MAJOR) {
-		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n", PROTOCOL_MAJOR);
+		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n",
+				PROTOCOL_MAJOR);
 		return;
 	}
 
@@ -432,7 +440,7 @@ static void Sv_UpdatePings(void) {
 			continue;
 
 		total = count = 0;
-		for (j = 0; j < CLIENT_LATENCY_COUNTS; j++) {
+		for (j = 0; j < SV_CLIENT_LATENCY_COUNT; j++) {
 			if (cl->frame_latency[j] > 0) {
 				total += cl->frame_latency[j];
 				count++;
@@ -878,7 +886,7 @@ void Sv_Init(void) {
 
 	Sv_InitMasters();
 
-	Mem_InitBuffer(&net_message, net_message_buffer, sizeof(net_message_buffer));
+	net_message.size = 0;
 
 	Net_Config(NS_UDP_SERVER, true);
 }
@@ -894,7 +902,7 @@ void Sv_Shutdown(const char *msg) {
 
 	Net_Config(NS_UDP_SERVER, false);
 
-	Mem_InitBuffer(&net_message, net_message_buffer, sizeof(net_message_buffer));
+	net_message.size = 0;
 
 	memset(&svs, 0, sizeof(svs));
 

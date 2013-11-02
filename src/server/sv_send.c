@@ -48,7 +48,7 @@ void Sv_FlushRedirect(int32_t target, const char *buffer) {
  * @brief Sends text across to be displayed if the level filter passes.
  */
 void Sv_ClientPrint(const g_edict_t *ent, const int32_t level, const char *fmt, ...) {
-	sv_client_t *cl;
+	sv_client_t * cl;
 	va_list args;
 	char string[MAX_STRING_CHARS];
 	int32_t n;
@@ -84,9 +84,9 @@ void Sv_ClientPrint(const g_edict_t *ent, const int32_t level, const char *fmt, 
  * @brief Sends text to all active clients over their unreliable channels.
  */
 void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) {
-	va_list args;
 	char string[MAX_STRING_CHARS];
-	sv_client_t *cl;
+	va_list args;
+	sv_client_t * cl;
 	int32_t i;
 
 	va_start(args, fmt);
@@ -123,11 +123,12 @@ void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) {
  * @brief Sends text to all active clients
  */
 void Sv_BroadcastCommand(const char *fmt, ...) {
-	va_list args;
 	char string[MAX_STRING_CHARS];
+	va_list args;
 
 	if (!sv.state)
 		return;
+
 	va_start(args, fmt);
 	vsprintf(string, fmt, args);
 	va_end(args);
@@ -160,22 +161,22 @@ static void Sv_DatagramMessage(sv_client_datagram_t *datagram, byte *data, size_
  * @brief Sends the contents of the mutlicast buffer to a single client
  */
 void Sv_Unicast(const g_edict_t *ent, const _Bool reliable) {
-	int32_t n;
-	sv_client_t *cl;
 
-	if (!ent || ent->ai)
-		return;
+	if (ent && !ent->ai) {
 
-	n = NUM_FOR_EDICT(ent);
-	if (n < 1 || n > sv_max_clients->integer)
-		return;
+		const uint16_t n = NUM_FOR_EDICT(ent);
+		if (n < 1 || n > sv_max_clients->integer) {
+			Com_Warn("Non-client: %s\n", etos(ent));
+			return;
+		}
 
-	cl = svs.clients + (n - 1);
+		sv_client_t *cl = svs.clients + (n - 1);
 
-	if (reliable) {
-		Mem_WriteBuffer(&cl->net_chan.message, sv.multicast.data, sv.multicast.size);
-	} else {
-		Sv_DatagramMessage(&cl->datagram, sv.multicast.data, sv.multicast.size);
+		if (reliable) {
+			Mem_WriteBuffer(&cl->net_chan.message, sv.multicast.data, sv.multicast.size);
+		} else {
+			Sv_DatagramMessage(&cl->datagram, sv.multicast.data, sv.multicast.size);
+		}
 	}
 
 	Mem_ClearBuffer(&sv.multicast);
@@ -233,6 +234,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 
 		default:
 			Com_Warn("Bad multicast: %i\n", to);
+			Mem_ClearBuffer(&sv.multicast);
 			return;
 	}
 
@@ -348,53 +350,48 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint
 /*
  * @brief
  */
-static void Sv_SendClientDatagram(sv_client_t *client) {
-	byte msg_buf[MAX_FRAME_SIZE];
-	mem_buf_t msg;
+static void Sv_SendClientDatagram(sv_client_t *cl) {
+	byte buffer[MAX_FRAME_SIZE];
+	mem_buf_t buf;
 
-	Sv_BuildClientFrame(client);
+	Sv_BuildClientFrame(cl);
 
-	Mem_InitBuffer(&msg, msg_buf, sizeof(msg_buf));
-	msg.allow_overflow = true;
+	Mem_InitBuffer(&buf, buffer, sizeof(buffer));
+	buf.allow_overflow = true;
 
 	// send over all the relevant entity_state_t and the player_state_t
-	Sv_WriteFrame(client, &msg);
+	Sv_WriteFrame(cl, &buf);
 
-	if (msg.size > MAX_MSG_SIZE - 16) {
-		Com_Error(ERR_DROP, "Frame exceeds MAX_MSG_SIZE (%u)\n", (uint32_t) msg.size);
+	if (buf.size > MAX_MSG_SIZE - 16) {
+		Com_Error(ERR_DROP, "Frame exceeds MAX_MSG_SIZE (%u)\n", (uint32_t) buf.size);
 	}
 
 	// packetize the pending datagram buffer
-	if (client->datagram.buffer.overflowed)
-		Com_Warn("Datagram overflowed for %s\n", client->name);
+	if (cl->datagram.buffer.overflowed)
+		Com_Warn("Datagram overflowed for %s\n", cl->name);
 	else {
-		GList *e = client->datagram.messages;
+		GList *e = cl->datagram.messages;
 		while (e) {
-			sv_client_message_t *cmsg = (sv_client_message_t *) e->data;
+			sv_client_message_t *msg = (sv_client_message_t *) e->data;
 
 			// if we would overflow the packet, flush it first
-			if (msg.size + cmsg->len > (MAX_MSG_SIZE - 16)) {
+			if (buf.size + msg->len > (MAX_MSG_SIZE - 16)) {
 				Com_Debug("Avoiding overflow\n");
 
-				Netchan_Transmit(&client->net_chan, msg.data, msg.size);
-				Mem_ClearBuffer(&msg);
+				Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
+				Mem_ClearBuffer(&buf);
 			}
 
-			Mem_WriteBuffer(&msg, client->datagram.data + cmsg->offset, cmsg->len);
+			Mem_WriteBuffer(&buf, cl->datagram.data + msg->offset, msg->len);
 			e = e->next;
 		}
 	}
 
-	// send the pending package, which may include reliable messages
-	Netchan_Transmit(&client->net_chan, msg.data, msg.size);
+	// send the pending packet, which may include reliable messages
+	Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
 
 	// record the total size for rate estimation
-	client->message_size[sv.frame_num % CLIENT_RATE_MESSAGES] = client->datagram.buffer.size;
-
-	// finally clean up for the next frame
-	Mem_ClearBuffer(&client->datagram.buffer);
-	g_list_free_full(client->datagram.messages, Mem_Free);
-	client->datagram.messages = NULL;
+	cl->message_size[sv.frame_num % sv_hz->integer] = cl->datagram.buffer.size;
 }
 
 /*
@@ -408,23 +405,23 @@ static void Sv_DemoCompleted(void) {
  * @brief Returns true if the client is over its current
  * bandwidth estimation and should not be sent another packet
  */
-static _Bool Sv_RateDrop(sv_client_t *c) {
+static _Bool Sv_RateDrop(sv_client_t *cl) {
 	uint32_t total;
 	uint16_t i;
 
-	// never drop over the loopback
-	if (c->net_chan.remote_address.type == NA_LOOP)
+	// never drop over the loop device
+	if (cl->net_chan.remote_address.type == NA_LOOP)
 		return false;
 
 	total = 0;
 
-	for (i = 0; i < CLIENT_RATE_MESSAGES; i++) {
-		total += c->message_size[i];
+	for (i = 0; i < sv_hz->integer; i++) {
+		total += cl->message_size[i];
 	}
 
-	if (total > c->rate) {
-		c->surpress_count++;
-		c->message_size[sv.frame_num % CLIENT_RATE_MESSAGES] = 0;
+	if (total > cl->rate) {
+		cl->surpress_count++;
+		cl->message_size[sv.frame_num % sv_hz->integer] = 0;
 		return true;
 	}
 
@@ -475,23 +472,21 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
  * @brief
  */
 void Sv_SendClientMessages(void) {
-	sv_client_t *c;
+	sv_client_t *cl;
 	int32_t i;
 
 	if (!svs.initialized)
 		return;
 
 	// send a message to each connected client
-	for (i = 0, c = svs.clients; i < sv_max_clients->integer; i++, c++) {
+	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
-		if (c->state == SV_CLIENT_FREE) // don't bother
+		if (cl->state == SV_CLIENT_FREE) // don't bother
 			continue;
 
-		if (c->net_chan.message.overflowed) { // drop the client
-			Mem_ClearBuffer(&c->net_chan.message);
-			Mem_ClearBuffer(&c->datagram.buffer);
-			Sv_BroadcastPrint(PRINT_HIGH, "%s overflowed\n", c->name);
-			Sv_DropClient(c);
+		if (cl->net_chan.message.overflowed) { // drop the client
+			Sv_DropClient(cl);
+			Sv_BroadcastPrint(PRINT_HIGH, "%s overflowed\n", cl->name);
 		}
 
 		if (sv.state == SV_ACTIVE_DEMO) { // send the demo packet
@@ -499,17 +494,23 @@ void Sv_SendClientMessages(void) {
 			size_t size;
 
 			if ((size = Sv_GetDemoMessage(buffer))) {
-				Netchan_Transmit(&c->net_chan, buffer, size);
+				Netchan_Transmit(&cl->net_chan, buffer, size);
 			}
-		} else if (c->state == SV_CLIENT_ACTIVE) { // send the game packet
+		} else if (cl->state == SV_CLIENT_ACTIVE) { // send the game packet
 
-			if (Sv_RateDrop(c)) // don't overrun bandwidth
-				continue;
+			if (!Sv_RateDrop(cl)) { // enforce rate throttle
+				Sv_SendClientDatagram(cl);
+			}
 
-			Sv_SendClientDatagram(c);
+			// clean up for the next frame
+			Mem_ClearBuffer(&cl->datagram.buffer);
+
+			g_list_free_full(cl->datagram.messages, Mem_Free);
+			cl->datagram.messages = NULL;
+
 		} else { // just update reliable if needed
-			if (c->net_chan.message.size || quake2world.time - c->net_chan.last_sent > 1000)
-				Netchan_Transmit(&c->net_chan, NULL, 0);
+			if (cl->net_chan.message.size || quake2world.time - cl->net_chan.last_sent > 1000)
+				Netchan_Transmit(&cl->net_chan, NULL, 0);
 		}
 	}
 }

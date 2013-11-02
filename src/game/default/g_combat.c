@@ -99,14 +99,17 @@ _Bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
 static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t normal,
 		int16_t damage) {
 
-	while (damage > 0) {
+	if (damage < 1)
+		return;
+
+	int16_t count = Clamp(damage / 50, 1, 4);
+
+	while (count--) {
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(type);
 		gi.WritePosition(pos);
 		gi.WriteDir(normal);
 		gi.Multicast(pos, MULTICAST_PVS);
-
-		damage -= 50;
 	}
 }
 
