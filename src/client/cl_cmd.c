@@ -35,7 +35,7 @@ void Cl_UpdateCmd(void) {
 	memset(&c, 0, sizeof(c));
 
 	// determine the interval for just this move
-	c.msec = Clamp(cls.real_time - last_move, 1, 255);
+	c.msec = Clamp((cls.real_time - last_move) * time_scale->value, 1, 255);
 
 	// get movement from input devices
 	Cl_Move(&c);
