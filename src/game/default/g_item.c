@@ -792,14 +792,14 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 				ent->locals.spawn_flags);
 	}
 
-	VectorSet(ent->mins, -15, -15, -15);
-	VectorSet(ent->maxs, 15, 15, 15);
+	VectorSet(ent->mins, -16.0, -16.0, -16.0);
+	VectorSet(ent->maxs, 16.0, 16.0, 16.0);
 
 	ent->solid = SOLID_TRIGGER;
 	ent->locals.move_type = MOVE_TYPE_TOSS;
 	ent->locals.Touch = G_TouchItem;
 	ent->locals.Think = G_ItemDropToFloor;
-	ent->locals.next_think = g_level.time + 2000 * gi.frame_millis; // items start after other solids
+	ent->locals.next_think = g_level.time + 2000; // items start after other solids
 
 	ent->locals.item = item;
 	ent->s.effects = item->effects;

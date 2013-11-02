@@ -345,7 +345,7 @@ g_edict_t *G_Spawn(const char *class_name) {
 }
 
 /*
- * @brief Marks the edict as free
+ * @brief Marks the edict as free.
  */
 void G_FreeEdict(g_edict_t *ed) {
 	gi.UnlinkEdict(ed); // unlink from world

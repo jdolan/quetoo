@@ -223,7 +223,7 @@ typedef enum {
 #define CONTENTS_WATER			0x20
 #define CONTENTS_MIST			0x40
 
-#define LAST_VISIBLE_CONTENTS	0x40
+#define LAST_VISIBLE_CONTENTS	CONTENTS_MIST
 
 // remaining contents are non-visible, and don't eat brushes
 #define CONTENTS_AREA_PORTAL	0x8000

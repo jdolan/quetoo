@@ -89,7 +89,7 @@ struct g_edict_s {
 	vec3_t mins, maxs;
 	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
-	uint32_t clip_mask; // e.g. MASK_SHOT, MASK_PLAYER_SOLID, ..
+	int32_t clip_mask; // e.g. MASK_SHOT, MASK_PLAYER_SOLID, ..
 	g_edict_t *owner; // projectiles are not clipped against their owner
 
 	// the client struct, as a pointer, because it is both optional and variable sized

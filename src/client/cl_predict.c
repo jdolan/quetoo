@@ -89,7 +89,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
 	// check all other solid models
 	for (i = 0; i < cl.frame.num_entities; i++) {
-		const int32_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		const uint16_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[num];
 
 		if (ent->number == trace->skip)

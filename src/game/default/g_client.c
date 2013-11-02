@@ -1003,8 +1003,6 @@ void G_ClientDisconnect(g_edict_t *ent) {
 
 	gi.UnlinkEdict(ent);
 
-	ent->client->locals.persistent.user_info[0] = 0;
-
 	ent->class_name = "disconnected";
 	ent->in_use = false;
 	ent->solid = SOLID_NOT;
@@ -1012,6 +1010,8 @@ void G_ClientDisconnect(g_edict_t *ent) {
 
 	memset(&ent->s, 0, sizeof(ent->s));
 	ent->s.number = ent - g_game.edicts;
+
+	memset(ent->client, 0, sizeof(g_client_t));
 
 	entity_num = ent - g_game.edicts - 1;
 	gi.ConfigString(CS_CLIENTS + entity_num, "");
