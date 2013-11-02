@@ -540,7 +540,7 @@ static void G_FireBfg_(g_edict_t *ent) {
 
 	G_InitProjectile(ent->owner, forward, right, up, org);
 
-	G_BfgProjectile(ent->owner, org, forward, 600, 180, 140, 256.0);
+	G_BfgProjectile(ent->owner, org, forward, 600, 180, 140, 512.0);
 
 	G_MuzzleFlash(ent->owner, MZ_BFG);
 

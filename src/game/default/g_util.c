@@ -155,8 +155,7 @@ g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, vec_t rad) {
 }
 
 /*
- * @brief Searches all active entities for the next one that holds
- * the matching string at fieldofs(use the ELOFS() macro) in the structure.
+ * @brief Searches all active entities for the next targeted one.
  *
  * Searches beginning at the edict after from, or the beginning if NULL
  * NULL will be returned if the end of the list is reached.

@@ -59,59 +59,48 @@ void G_ClientToIntermission(g_edict_t *ent) {
 /*
  * @brief Write the scores information for the specified client.
  */
-static void G_UpdateScores_(const g_edict_t *ent, char **buf) {
-	g_score_t s;
+static void G_UpdateScore(const g_edict_t *ent, g_score_t *s) {
 
-	memset(&s, 0, sizeof(s));
+	memset(s, 0, sizeof(*s));
 
-	s.client = ent - g_game.edicts - 1;
-	s.ping = ent->client->ping < 999 ? ent->client->ping : 999;
+	s->client = ent - g_game.edicts - 1;
+	s->ping = ent->client->ping < 999 ? ent->client->ping : 999;
 
 	if (ent->client->locals.persistent.spectator) {
-		s.team = 0xff;
-		s.color = 0;
+		s->color = 0;
+		s->flags |= SCORES_SPECTATOR;
 	} else {
 		if (g_level.match) {
 			if (!ent->client->locals.persistent.ready)
-				s.flags |= SCORES_NOT_READY;
+				s->flags |= SCORES_NOT_READY;
 		}
 		if (g_level.ctf) {
 			if (ent->s.effects & (EF_CTF_BLUE | EF_CTF_RED))
-				s.flags |= SCORES_CTF_FLAG;
+				s->flags |= SCORES_CTF_FLAG;
 		}
 		if (ent->client->locals.persistent.team) {
 			if (ent->client->locals.persistent.team == &g_team_good) {
-				s.team = 1;
-				s.color = TEAM_COLOR_BLUE;
+				s->color = TEAM_COLOR_GOOD;
+				s->flags |= SCORES_TEAM_GOOD;
 			} else {
-				s.team = 2;
-				s.color = TEAM_COLOR_RED;
+				s->color = TEAM_COLOR_EVIL;
+				s->flags |= SCORES_TEAM_EVIL;
 			}
 		} else {
-			s.team = 0;
-			s.color = ent->client->locals.persistent.color;
+			s->color = ent->client->locals.persistent.color;
 		}
 	}
 
-	s.score = ent->client->locals.persistent.score;
-	s.captures = ent->client->locals.persistent.captures;
-
-	memcpy(*buf, &s, sizeof(s));
-	*buf += sizeof(s);
+	s->score = ent->client->locals.persistent.score;
+	s->captures = ent->client->locals.persistent.captures;
 }
 
-// all scores are dumped into this buffer several times per second
-static char scores_buffer[MAX_STRING_CHARS];
-
 /*
- * @brief Returns the size of the resulting scores buffer.
- *
- * FIXME: Because we can only send the first 32 or so scores, we should sort
- * the clients here before serializing them.
+ * @brief Returns the number of scores written to the buffer.
  */
-static uint32_t G_UpdateScores(void) {
-	char *buf = scores_buffer;
-	int32_t i, j = 0;
+static size_t G_UpdateScores(g_score_t *scores) {
+	g_score_t *s = scores;
+	int32_t i;
 
 	// assemble the client scores
 	for (i = 0; i < sv_max_clients->integer; i++) {
@@ -120,52 +109,65 @@ static uint32_t G_UpdateScores(void) {
 		if (!e->in_use)
 			continue;
 
-		G_UpdateScores_(e, &buf);
-
-		if (++j == 64)
-			break;
+		G_UpdateScore(e, s++);
 	}
 
 	// and optionally concatenate the team scores
 	if (g_level.teams || g_level.ctf) {
-		g_score_t s[2];
+		memset(s, 0, sizeof(s) * 2);
 
-		memset(s, 0, sizeof(s));
+		s->client = MAX_CLIENTS;
+		s->score = g_team_good.score;
+		s->captures = g_team_good.captures;
+		s->flags = SCORES_TEAM_GOOD;
+		s++;
 
-		s[0].client = MAX_CLIENTS;
-		s[0].team = 1;
-		s[0].score = g_team_good.score;
-		s[0].captures = g_team_good.captures;
-
-		s[1].client = MAX_CLIENTS;
-		s[1].team = 2;
-		s[1].score = g_team_evil.score;
-		s[1].captures = g_team_evil.captures;
-
-		memcpy(buf, s, sizeof(s));
-		j += 2;
+		s->client = MAX_CLIENTS;
+		s->score = g_team_evil.score;
+		s->captures = g_team_evil.captures;
+		s->flags = SCORES_TEAM_EVIL;
+		s++;
 	}
 
-	return j * sizeof(g_score_t);
+	return (size_t) (s - scores);
 }
 
 /*
- * @brief Assemble the binary scores data for the client.
+ * @brief Assemble the binary scores data for the client. Scores are sent in
+ * chunks to overcome the 1400 byte UDP packet limitation.
  */
 void G_ClientScores(g_edict_t *ent) {
-	uint16_t length;
+	g_score_t scores[MAX_CLIENTS + 2];
 
 	if (!ent->client->locals.show_scores || (ent->client->locals.scores_time > g_level.time))
 		return;
 
-	length = G_UpdateScores();
-
-	gi.WriteByte(SV_CMD_SCORES);
-	gi.WriteShort(length);
-	gi.WriteData(scores_buffer, length);
-	gi.Unicast(ent, false);
-
 	ent->client->locals.scores_time = g_level.time + 500;
+
+	size_t i = 0, j = 0, count = G_UpdateScores(scores);
+
+	while (i < count) {
+		const size_t bytes = (i - j) * sizeof(g_score_t);
+		if (bytes > 512) {
+			gi.WriteByte(SV_CMD_SCORES);
+			gi.WriteShort(j);
+			gi.WriteShort(i);
+			gi.WriteData((const void *) (scores + j), bytes);
+			gi.Unicast(ent, false);
+
+			j = i;
+		}
+		i++;
+	}
+
+	const size_t bytes = (i - j) * sizeof(g_score_t);
+	if (bytes) {
+		gi.WriteByte(SV_CMD_SCORES);
+		gi.WriteShort(j);
+		gi.WriteShort(i);
+		gi.WriteData((const void *) (scores + j), bytes);
+		gi.Unicast(ent, false);
+	}
 }
 
 /*
@@ -282,7 +284,8 @@ void G_ClientSpectatorStats(g_edict_t *ent) {
 
 	// chase camera inherits stats from their chase target
 	if (client->locals.chase_target && client->locals.chase_target->in_use) {
-		client->ps.stats[STAT_CHASE] = CS_CLIENTS + (client->locals.chase_target - g_game.edicts) - 1;
+		client->ps.stats[STAT_CHASE] = CS_CLIENTS + (client->locals.chase_target - g_game.edicts)
+				- 1;
 
 		// scores are independent of chase camera target
 		if (g_level.intermission_time || client->locals.show_scores)

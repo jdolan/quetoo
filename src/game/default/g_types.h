@@ -28,7 +28,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1000
+#define PROTOCOL_MINOR 1001
 
 /*
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -152,13 +152,21 @@ typedef enum {
  */
 typedef struct {
 	uint16_t client;
-	uint16_t ping;
-	uint8_t team;
+	int16_t ping;
 	uint8_t color;
 	int16_t score;
 	int16_t captures;
 	uint8_t flags;
 } g_score_t;
+
+/*
+ * @brief Player scores flags.
+ */
+#define SCORES_TEAM_GOOD	(1 << 0)
+#define SCORES_TEAM_EVIL	(1 << 1)
+#define SCORES_CTF_FLAG		(1 << 2)
+#define SCORES_NOT_READY	(1 << 3)
+#define SCORES_SPECTATOR	(1 << 4)
 
 /*
  * @brief Game-specific entity events.
@@ -193,12 +201,6 @@ typedef enum {
 #define EF_RESPAWN			(EF_GAME << 12) // respawn protection
 
 /*
- * @brief Player scores flags.
- */
-#define SCORES_NOT_READY	(1 << 0)
-#define SCORES_CTF_FLAG		(1 << 1)
-
-/*
  * @brief Effect colors for particle trails and dynamic light flashes.
  */
 #define EFFECT_COLOR_RED 232
@@ -214,8 +216,8 @@ typedef enum {
 /*
  * @brief Scoreboard background colors.
  */
-#define TEAM_COLOR_RED 242
-#define TEAM_COLOR_BLUE 243
+#define TEAM_COLOR_GOOD 243
+#define TEAM_COLOR_EVIL 242
 
 #ifdef __GAME_LOCAL_H__
 

@@ -691,8 +691,6 @@ static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)), 
  * @brief
  */
 static void G_ItemDropToFloor(g_edict_t *ent) {
-	c_trace_t tr;
-	vec3_t dest;
 
 	VectorClear(ent->locals.velocity);
 
@@ -700,12 +698,22 @@ static void G_ItemDropToFloor(g_edict_t *ent) {
 		ent->locals.move_type = MOVE_TYPE_FLY;
 		ent->locals.ground_entity = NULL;
 	} else { // while most do, and will also be pushed by their ground
+		c_trace_t tr;
+		vec3_t dest;
+
+		// first make an effort to come up out of the floor (broken maps)
+		tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_SOLID);
+		if (tr.start_solid) {
+			ent->s.origin[2] += 8.0;
+		}
+
 		VectorCopy(ent->s.origin, dest);
 		dest[2] -= 8192;
 
+		// then settle down to the floor
 		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
 		if (tr.start_solid) {
-			gi.Debug("%s start_solid at %s\n", ent->class_name, vtos(ent->s.origin));
+			gi.Warn("%s start_solid at %s\n", ent->class_name, vtos(ent->s.origin));
 			G_FreeEdict(ent);
 			return;
 		}
@@ -799,7 +807,7 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 	ent->locals.move_type = MOVE_TYPE_TOSS;
 	ent->locals.Touch = G_TouchItem;
 	ent->locals.Think = G_ItemDropToFloor;
-	ent->locals.next_think = g_level.time + 2000; // items start after other solids
+	ent->locals.next_think = g_level.time + gi.frame_millis;
 
 	ent->locals.item = item;
 	ent->s.effects = item->effects;
@@ -817,7 +825,7 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 		ent->sv_flags |= SVF_NO_CLIENT;
 		ent->solid = SOLID_NOT;
 		if (ent == ent->locals.team_master) {
-			ent->locals.next_think = g_level.time + gi.frame_millis;
+			ent->locals.next_think = g_level.time + gi.frame_millis; // FIXME
 			ent->locals.Think = G_ItemRespawn;
 		}
 	}

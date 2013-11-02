@@ -892,12 +892,8 @@ static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane
  */
 static void G_BfgProjectile_Think(g_edict_t *self) {
 
-	// linear, clamped acceleration
-	if (VectorLength(self->locals.velocity) < 1000.0)
-		VectorScale(self->locals.velocity, 1.0 + (0.5 * gi.frame_seconds), self->locals.velocity);
-
-	const int16_t d = self->locals.damage * 10 * gi.frame_seconds;
-	const int16_t k = self->locals.knockback * 10 * gi.frame_seconds;
+	const int16_t frame_damage = self->locals.damage * gi.frame_seconds;
+	const int16_t frame_knockback = self->locals.knockback * gi.frame_seconds;
 
 	g_edict_t *ent = NULL;
 	while ((ent = G_FindRadius(ent, self->s.origin, self->locals.damage_radius)) != NULL) {
@@ -913,11 +909,13 @@ static void G_BfgProjectile_Think(g_edict_t *self) {
 			continue;
 
 		VectorSubtract(ent->s.origin, self->s.origin, dir);
-		VectorNormalize(dir);
+		const vec_t dist = VectorNormalize(dir);
 		VectorNegate(dir, normal);
 
-		G_Damage(ent, self, self->owner, dir, ent->s.origin, normal, d, k, DAMAGE_RADIUS,
-				MOD_BFG_LASER);
+		const vec_t f = 1.0 - dist / self->locals.damage_radius;
+
+		G_Damage(ent, self, self->owner, dir, ent->s.origin, normal, frame_damage * f,
+				frame_knockback * f, DAMAGE_RADIUS, MOD_BFG_LASER);
 
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(TE_BFG_LASER);
