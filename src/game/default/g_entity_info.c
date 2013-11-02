@@ -23,9 +23,10 @@
 
 /*QUAKED info_notnull (0 .5 0) (-4 -4 -4) (4 4 4)
  A positional target for other entities. Unlike info_null, these are available in the game and can be targeted by other entities (e.g. info_player_intermission).
- -------- KEYS --------
+
+ -------- Keys --------
  targetname : The target name of this entity.
- */
+*/
 void G_info_notnull(g_edict_t *self) {
 	VectorCopy(self->s.origin, self->abs_mins);
 	VectorCopy(self->s.origin, self->abs_maxs);
@@ -33,46 +34,51 @@ void G_info_notnull(g_edict_t *self) {
 
 /*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
  Single player spawn point.
- -------- KEYS --------
+
+ -------- Keys --------
  angle : The angle at which the player will face when spawned.
- */
+*/
 void G_info_player_start(g_edict_t *self) {
 	G_ProjectSpawn(self);
 }
 
 /*QUAKED info_player_intermission (1 0 1) (-16 -16 -24) (16 16 32)
  Camera for intermission screen between matches.
- -------- KEYS --------
+
+ -------- Keys --------
  angles : The "pitch yaw roll" angles for the camera (e.g. 20 270 0).
  target : The target name of an info_notnull as an alternate way to set the camera angles.
- */
+*/
 void G_info_player_intermission(g_edict_t *self) {
 	G_ProjectSpawn(self);
 }
 
 /*QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32)
  Deathmatch spawn point.
- -------- KEYS --------
+
+ -------- Keys --------
  angle : The angle at which the player will face when spawned.
- */
+*/
 void G_info_player_deathmatch(g_edict_t *self) {
 	G_ProjectSpawn(self);
 }
 
 /*QUAKED info_player_team1 (0 0 1) (-16 -16 -24) (16 16 32)
  Player spawn point for blue team in teams or CTF gameplay.
- -------- KEYS --------
+
+ -------- Keys --------
  angle : The angle at which the player will face when spawned.
- */
+*/
 void G_info_player_team1(g_edict_t *self) {
 	G_ProjectSpawn(self);
 }
 
 /*QUAKED info_player_team2 (1 0 0) (-16 -16 -24) (16 16 32)
  Player spawn point for red team in teams or CTF gameplay.
- -------- KEYS --------
+
+ -------- Keys --------
  angle : The angle at which the player will face when spawned.
- */
+*/
 void G_info_player_team2(g_edict_t *self) {
 	G_ProjectSpawn(self);
 }

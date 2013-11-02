@@ -31,7 +31,8 @@ static void G_func_areaportal_Use(g_edict_t *ent, g_edict_t *other __attribute__
 
 /*QUAKED func_areaportal (0 0 0) ?
  A non-visible object indicating disjoint areas in the world that should be combined when this entity is used. These are typically enclosed inside door brushes to toggle visibility of the rooms they separate.
- -------- KEYS --------
+
+ -------- Keys --------
  targetname : The target name of this entity if it is to be triggered.
  */
 void G_func_areaportal(g_edict_t *ent) {
@@ -465,16 +466,18 @@ static void G_func_plat_CreateTrigger(g_edict_t *ent) {
 	gi.LinkEdict(trigger);
 }
 
-/*QUAKED func_plat (0 .5 .8) LOW_TRIGGER
+/*QUAKED func_plat (0 .5 .8) ? low_trigger
  Rising platform the player can ride to reach higher places. Platforms must be placed in the raised position, so they will operate and be lit correctly, but they spawn in the lowered position. If the platform is the target of a trigger or button, it will start out disabled and in the extended position.
- -------- KEYS --------
+
+ -------- Keys --------
  speed : The speed with which the platform moves (default 200).
  accel : The platform acceleration (default 500).
  lip : The lip remaining at end of move (default 8 units).
  height : If set, this will determine the extent of the platform's movement, rather than implicitly using the platform's height.
  targetname : The target name of this entity if it is to be triggered.
- -------- SPAWNFLAGS --------
- LOW_TRIGGER : If set, the touch field for this platform will only exist at the lower position.
+
+ -------- Spawn flags --------
+ low_trigger : If set, the touch field for this platform will only exist at the lower position.
  */
 void G_func_plat(g_edict_t *ent) {
 
@@ -583,19 +586,21 @@ static void G_func_rotating_Use(g_edict_t *self, g_edict_t *other __attribute__(
 	}
 }
 
-/*QUAKED func_rotating (0 .5 .8) ? START_ON REVERSE X_AXIS Y_AXIS TOUCH_PAIN STOP
+/*QUAKED func_rotating (0 .5 .8) ? start_on reverse x_axis y_axis touch_pain stop
  Solid entity that rotates continuously. Rotates on the Z axis by default and requires an origin brush. It will always start on in the game and is not targetable.
- -------- KEYS --------
+
+ -------- Keys --------
  speed : The speed at which the entity rotates (default 100).
  dmg : The damage to inflict to players who touch or block the entity (default 2).
  targetname : The target name of this entity if it is to be triggered.
- -------- SPAWNFLAGS --------
- START_ON : The entity will spawn rotating.
- REVERSE : Will cause the entity to rotate in the opposite direction.
- X_AXIS : Rotate on the X axis.
- Y AXIS : Rotate on the Y axis.
- TOUCH_PAIN : If set, any interaction with the entity will inflict damage to the player.
- STOP : If set and the entity is blocked, the entity will stop rotating.
+
+ -------- Spawn flags --------
+ start_on : The entity will spawn rotating.
+ reverse : Will cause the entity to rotate in the opposite direction.
+ x_axis : Rotate on the X axis.
+ y_axis : Rotate on the Y axis.
+ touch_pain : If set, any interaction with the entity will inflict damage to the player.
+ stop : If set and the entity is blocked, the entity will stop rotating.
  */
 void G_func_rotating(g_edict_t *ent) {
 
@@ -723,7 +728,8 @@ static void G_func_button_Die(g_edict_t *self, g_edict_t *inflictor __attribute_
 
 /*QUAKED func_button (0 .5 .8) ?
  When a button is touched by a player, it moves in the direction set by the "angle" key, triggers all its targets, stays pressed by the amount of time set by the "wait" key, then returns to its original position where it can be operated again.
- -------- KEYS --------
+
+ -------- Keys --------
  angle : Determines the direction in which the button will move (up = -1, down = -2).
  target : All entities with a matching target name will be triggered.
  speed : Speed of the button's displacement (default 40).
@@ -1080,9 +1086,10 @@ static void G_func_door_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *
 	gi.Sound(other, gi.SoundIndex("misc/chat"), ATTEN_NORM);
 }
 
-/*QUAKED func_door (0 .5 .8) ? START_OPEN TOGGLE
+/*QUAKED func_door (0 .5 .8) ? start_open toggle
  A sliding door. By default, doors open when a player walks close to them.
- -------- KEYS --------
+
+ -------- Keys --------
  message : An optional string printed when the door is first touched.
  angle : Determines the opening direction of the door (up = -1, down = -2).
  health : If set, door must take damage to open.
@@ -1091,9 +1098,10 @@ static void G_func_door_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *
  lip : The lip remaining at end of move (default 8 units).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
- -------- SPAWNFLAGS --------
- START_OPEN : The door to moves to its destination when spawned, and operates in reverse.
- TOGGLE : The door will wait in both the start and end states for a trigger event.
+
+ -------- Spawn flags --------
+ start_open : The door to moves to its destination when spawned, and operates in reverse.
+ toggle : The door will wait in both the start and end states for a trigger event.
  */
 void G_func_door(g_edict_t *ent) {
 	vec3_t abs_move_dir;
@@ -1178,9 +1186,10 @@ void G_func_door(g_edict_t *ent) {
 		ent->locals.Think = G_func_door_CreateTrigger;
 }
 
-/*QUAKED func_door_rotating (0 .5 .8) START_OPEN TOGGLE REVERSE X_AXIS Y_AXIS
+/*QUAKED func_door_rotating (0 .5 .8) ? start_open toggle reverse x_axis y_axis
  A door which rotates about an origin on its Z axis. By default, doors open when a player walks close to them.
- -------- KEYS --------
+
+ -------- Keys --------
  message : An optional string printed when the door is first touched.
  health : If set, door must take damage to open.
  speed : The speed with which the door opens (default 100).
@@ -1188,12 +1197,13 @@ void G_func_door(g_edict_t *ent) {
  lip : The lip remaining at end of move (default 8 units).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
- -------- SPAWNFLAGS --------
- START_OPEN : The door to moves to its destination when spawned, and operates in reverse.
- TOGGLE : The door will wait in both the start and end states for a trigger event.
- REVERSE : The door will rotate in the opposite (negative) direction along its axis.
- X_AXIS : The door will rotate along its X axis.
- Y_AXIS : The door will rotate along its Y axis.
+
+ -------- Spawn flags --------
+ start_open : The door to moves to its destination when spawned, and operates in reverse.
+ toggle : The door will wait in both the start and end states for a trigger event.
+ reverse : The door will rotate in the opposite (negative) direction along its axis.
+ x_axis : The door will rotate along its X axis.
+ y_axis : The door will rotate along its Y axis.
  */
 void G_func_door_rotating(g_edict_t *ent) {
 	VectorClear (ent->s.angles);
@@ -1300,14 +1310,16 @@ static void G_func_wall_Use(g_edict_t *self, g_edict_t *other __attribute__((unu
 		self->locals.Use = NULL;
 }
 
-/*QUAKED func_wall (0 .5 .8) ? TRIGGER_SPAWN TOGGLE START_ON
+/*QUAKED func_wall (0 .5 .8) ? triggered toggle start_on
  A solid that may spawn into existence via trigger.
- -------- KEYS --------
+
+ -------- Keys --------
  targetname : The target name of this entity if it is to be triggered.
- -------- SPAWNFLAGS --------
- TRIGGER_SPAWN : The wall is inhibited until triggered, at which point it appears and kills everything in its way.
- TOGGLE : The wall may be triggered off and on.
- START_ON : The wall will initially be present, but can be toggled off.
+
+ -------- Spawn flags --------
+ triggered : The wall is inhibited until triggered, at which point it appears and kills everything in its way.
+ toggle : The wall may be triggered off and on.
+ start_on : The wall will initially be present, but can be toggled off.
  */
 void G_func_wall(g_edict_t *self) {
 	self->locals.move_type = MOVE_TYPE_PUSH;
@@ -1346,16 +1358,18 @@ void G_func_wall(g_edict_t *self) {
 	gi.LinkEdict(self);
 }
 
-/*QUAKED func_water(0 .5 .8) ? START_OPEN
+/*QUAKED func_water(0 .5 .8) ? start_open
  A movable water brush, which must be targeted to operate.
- -------- KEYS --------
+
+ -------- Keys --------
  angle : Determines the opening direction (up = -1, down = -2)
  speed : The speed at which the water moves (default 25).
  wait : Delay in seconds before returning to the initial position (default -1).
  lip : Lip remaining at end of move (default 0 units).
  targetname : The target name of this entity if it is to be triggered.
- -------- SPAWNFLAGS ---------
- START_OPEN : If set, causes the water to move to its destination when spawned and operate in reverse.
+
+ -------- Spawn flags ---------
+ start_open : If set, causes the water to move to its destination when spawned and operate in reverse.
  */
 void G_func_water(g_edict_t *self) {
 	vec3_t abs_move_dir;
@@ -1589,17 +1603,19 @@ static void G_func_train_Use(g_edict_t *self, g_edict_t *other __attribute__((un
 	}
 }
 
-/*QUAKED func_train (0 .5 .8) ? START_ON TOGGLE BLOCK_STOPS
+/*QUAKED func_train (0 .5 .8) ? start_on toggle block_stops
  Trains are moving solids that players can ride along a series of path_corners. The origin of each corner specifies the lower bounding point of the train at that corner. If the train is the target of a button or trigger, it will not begin moving until activated.
- -------- KEYS --------
+
+ -------- Keys --------
  speed : The speed with which the train moves (default 100).
  dmg : The damage inflicted on players who block the train (default 2).
  noise : The looping sound to play while the train is in motion.
  targetname : The target name of this entity if it is to be triggered.
- -------- SPAWNFLAGS --------
- START_ON : If set, the train will begin moving once spawned.
- TOGGLE : If set, the train will start or stop each time it is activated.
- BLOCK_STOPS : Never inflict damage on a player blocking the train.
+
+ -------- Spawn flags --------
+ start_on : If set, the train will begin moving once spawned.
+ toggle : If set, the train will start or stop each time it is activated.
+ block_stops : When blocked, stop moving and inflict no damage.
  */
 void G_func_train(g_edict_t *self) {
 	self->locals.move_type = MOVE_TYPE_PUSH;
@@ -1670,15 +1686,17 @@ static void G_func_timer_Use(g_edict_t *self, g_edict_t *other __attribute__((un
 		G_func_timer_Think(self);
 }
 
-/*QUAKED func_timer (0.3 0.1 0.6) (-8 -8 -8) (8 8 8) START_ON
+/*QUAKED func_timer (0.3 0.1 0.6) (-8 -8 -8) (8 8 8) start_on
  Time delay trigger that will continuously fire its targets after a preset time delay. The time delay can also be randomized. When triggered, the timer will toggle on/off.
- -------- KEYS --------
+
+ -------- Keys --------
  wait : Delay in seconds between each triggering of all targets (default 1).
  random : Random time variance in seconds added or subtracted from "wait" delay (default 0).
- delay :  Additional delay before the first firing when START_ON (default 0).
+ delay :  Additional delay before the first firing when start_on (default 0).
  targetname : The target name of this entity if it is to be triggered.
- -------- SPAWNFLAGS --------
- START_ON : If set, the timer will begin firing once spawned.
+
+ -------- Spawn flags --------
+ start_on : If set, the timer will begin firing once spawned.
  */
 void G_func_timer(g_edict_t *self) {
 
@@ -1723,14 +1741,16 @@ static void G_func_conveyor_Use(g_edict_t *self, g_edict_t *other __attribute__(
 		self->locals.count = 0;
 }
 
-/*QUAKED func_conveyor (0 .5 .8) ? START_ON TOGGLE
+/*QUAKED func_conveyor (0 .5 .8) ? start_on toggle
  Conveyors are stationary brushes that move what's on them. The brush should be have a surface with at least one current content enabled.
- -------- KEYS --------
+
+ -------- Keys --------
  speed : The speed at which objects on the conveyor are moved (default 100).
  targetname : The target name of this entity if it is to be triggered.
- -------- SPAWNFLAGS --------
- START_ON : The conveyor will be active immediately.
- TOGGLE : The conveyor is toggled each time it is used.
+
+ -------- Spawn flags --------
+ start_on : The conveyor will be active immediately.
+ toggle : The conveyor is toggled each time it is used.
  */
 void G_func_conveyor(g_edict_t *self) {
 	if (!self->locals.speed)

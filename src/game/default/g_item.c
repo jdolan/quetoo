@@ -849,13 +849,18 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 }
 
 const g_item_t g_items[] = {
-/*QUAKED item_armor_body (.8 .2 .2) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED item_armor_body (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Body armor (+200).
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/armor/body/tris.md3"
  */
 {
@@ -876,13 +881,18 @@ const g_item_t g_items[] = {
 		0.80,
 		"" },
 
-/*QUAKED item_armor_combat (.8 .8 .2) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED item_armor_combat (.8 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Combat armor (+100).
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/armor/combat/tris.md3"
  */
 {
@@ -903,13 +913,18 @@ const g_item_t g_items[] = {
 		0.66,
 		"" },
 
-/*QUAKED item_armor_jacket (.2 .8 .2) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED item_armor_jacket (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Jacket armor (+50).
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/armor/jacket/tris.md3"
  */
 {
@@ -930,13 +945,18 @@ const g_item_t g_items[] = {
 		0.50,
 		"" },
 
-/*QUAKED item_armor_shard (.1 .6 .1) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED item_armor_shard (.1 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Shard armor (+3).
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/armor/shard/tris.md3"
  */
 {
@@ -957,13 +977,18 @@ const g_item_t g_items[] = {
 		0.10,
 		"" },
 
-/*QUAKED weapon_blaster (.8 .8 .1) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED weapon_blaster (.8 .8 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Blaster.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/weapons/shotgun/tris.obj"
  */
 {
@@ -984,13 +1009,18 @@ const g_item_t g_items[] = {
 		0.10,
 		"weapons/blaster/fire.wav" },
 
-/*QUAKED weapon_shotgun (.6 .6 .1) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED weapon_shotgun (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Shotgun.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/weapons/shotgun/tris.obj"
  */
 {
@@ -1011,13 +1041,18 @@ const g_item_t g_items[] = {
 		0.15,
 		"weapons/shotgun/fire.wav" },
 
-/*QUAKED weapon_supershotgun (.6 .6 .1) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED weapon_supershotgun (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Super shotgun.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/weapons/supershotgun/tris.obj"
  */
 {
@@ -1038,13 +1073,18 @@ const g_item_t g_items[] = {
 		0.25,
 		"weapons/supershotgun/fire.wav" },
 
-/*QUAKED weapon_machinegun (.8 .8 .2) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED weapon_machinegun (.8 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Machinegun.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/weapons/machinegun/tris.obj"
  */
 {
@@ -1066,13 +1106,18 @@ const g_item_t g_items[] = {
 		"weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
 			"weapons/machinegun/fire_3.wav weapons/machinegun/fire_4.wav" },
 
-/*QUAKED weapon_grenadelauncher (.2 .8 .2) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED weapon_grenadelauncher (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Grenade Launcher.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/weapons/grenadelauncher/tris.obj"
  */
 {
@@ -1093,13 +1138,18 @@ const g_item_t g_items[] = {
 		0.40,
 		"models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav" },
 
-/*QUAKED weapon_rocketlauncher (.8 .2 .2) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED weapon_rocketlauncher (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Rocket Launcher.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/weapons/rocketlauncher/tris.md3"
  */
 {
@@ -1121,13 +1171,18 @@ const g_item_t g_items[] = {
 		"models/objects/rocket/tris.md3 objects/rocket/fly.wav "
 			"weapons/rocketlauncher/fire.wav" },
 
-/*QUAKED weapon_hyperblaster (.4 .7 1) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED weapon_hyperblaster (.4 .7 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Hyperblaster.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/weapons/hyperblaster/tris.md3"
  */
 {
@@ -1148,13 +1203,18 @@ const g_item_t g_items[] = {
 		0.50,
 		"weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav" },
 
-/*QUAKED weapon_lightning (.9 .9 .9) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED weapon_lightning (.9 .9 .9) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Lightning.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/weapons/lightning/tris.md3"
  */
 {
@@ -1176,13 +1236,18 @@ const g_item_t g_items[] = {
 		"weapons/lightning/fire.wav weapons/lightning/fly.wav "
 			"weapons/lightning/discharge.wav" },
 
-/*QUAKED weapon_railgun (.1 .1 .8) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED weapon_railgun (.1 .1 .8) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Railgun.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/weapons/railgun/tris.obj"
  */
 {
@@ -1203,13 +1268,18 @@ const g_item_t g_items[] = {
 		0.60,
 		"weapons/railgun/fire.wav" },
 
-/*QUAKED weapon_bfg (.4 1 .5) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED weapon_bfg (.4 1 .5) (-16 -16 -16) (16 16 16) triggered no_touch hover
  BFG10K.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/weapons/bfg/tris.md3"
  */
 {
@@ -1230,13 +1300,18 @@ const g_item_t g_items[] = {
 		0.66,
 		"weapons/bfg/fire.wav weapons/bfg/hit.wav" },
 
-/*QUAKED ammo_shells (.6 .6 .1) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED ammo_shells (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Shells for the Shotgun and Super Shotgun.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/ammo/shells/tris.md3"
  */
 {
@@ -1257,13 +1332,18 @@ const g_item_t g_items[] = {
 		0.15,
 		"" },
 
-/*QUAKED ammo_bullets (.8 .8 .2) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED ammo_bullets (.8 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Bullets for the Machinegun.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/ammo/bullets/tris.md3"
  */
 {
@@ -1284,13 +1364,18 @@ const g_item_t g_items[] = {
 		0.15,
 		"" },
 
-/*QUAKED ammo_grenades (.2 .8 .2) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED ammo_grenades (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Grenades for the Grenade Launcher.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/ammo/grenades/tris.md3"
  */
 {
@@ -1311,13 +1396,18 @@ const g_item_t g_items[] = {
 		0.15,
 		"" },
 
-/*QUAKED ammo_rockets (.8 .2 .2) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED ammo_rockets (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Rockets for the Rocket Launcher.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/ammo/rockets/tris.md3"
  */
 {
@@ -1338,13 +1428,18 @@ const g_item_t g_items[] = {
 		0.15,
 		"" },
 
-/*QUAKED ammo_cells (.4 .7 1) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED ammo_cells (.4 .7 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Cells for the Hyperblaster.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/ammo/cells/tris.md3"
  */
 {
@@ -1365,13 +1460,18 @@ const g_item_t g_items[] = {
 		0.15,
 		"" },
 
-/*QUAKED ammo_bolts (.9 .9 .9) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED ammo_bolts (.9 .9 .9) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Bolts for the Lightning.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/ammo/bolts/tris.md3"
  */
 {
@@ -1392,13 +1492,18 @@ const g_item_t g_items[] = {
 		0.15,
 		"" },
 
-/*QUAKED ammo_slugs (.1 .1 .8) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED ammo_slugs (.1 .1 .8) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Slugs for the Railgun.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/ammo/slugs/tris.md3"
  */
 {
@@ -1419,13 +1524,18 @@ const g_item_t g_items[] = {
 		0.15,
 		"" },
 
-/*QUAKED ammo_nukes (.4 1 .5) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED ammo_nukes (.4 1 .5) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Nukes for the BFG10K.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/ammo/nukes/tris.md3"
  */
 {
@@ -1446,13 +1556,18 @@ const g_item_t g_items[] = {
 		0.15,
 		"" },
 
-/*QUAKED item_adrenaline (.3 .3 1) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED item_adrenaline (.3 .3 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Adrenaline (=100).
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/powerups/adren/tris.obj"
  */
 {
@@ -1473,13 +1588,18 @@ const g_item_t g_items[] = {
 		0.45,
 		"" },
 
-/*QUAKED item_health_small (.3 1 .3) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED item_health_small (.3 1 .3) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Small health (+3).
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/health/small/tris.obj"
  */
 {
@@ -1500,13 +1620,18 @@ const g_item_t g_items[] = {
 		0.10,
 		"" },
 
-/*QUAKED item_health (.8 .8 0) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED item_health (.8 .8 0) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Health (+15).
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/health/medium/tris.obj"
  */
 {
@@ -1527,13 +1652,18 @@ const g_item_t g_items[] = {
 		0.25,
 		"" },
 
-/*QUAKED item_health_large (1 0 0) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED item_health_large (1 0 0) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Large health (+25).
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/health/large/tris.obj"
  */
 {
@@ -1554,13 +1684,18 @@ const g_item_t g_items[] = {
 		0.40,
 		"" },
 
-/*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Mega health (+75).
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/health/mega/tris.obj"
  */
 {
@@ -1581,12 +1716,14 @@ const g_item_t g_items[] = {
 		0.60,
 		"" },
 
-/*QUAKED item_flag_team1 (.2 .2 1) (-16 -16 -24) (16 16 32) ? TRIGGER NO_TOUCH HOVER
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+/*QUAKED item_flag_team1 (.2 .2 1) (-16 -16 -24) (16 16 32) triggered no_touch hover
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/ctf/flag1/tris.md3"
  */
 {
@@ -1607,12 +1744,14 @@ const g_item_t g_items[] = {
 		0.75,
 		"ctf/capture.wav ctf/steal.wav ctf/return.wav" },
 
-/*QUAKED item_flag_team2 (1 .2 .2) (-16 -16 -24) (16 16 32) ? TRIGGER NO_TOUCH HOVER
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+/*QUAKED item_flag_team2 (1 .2 .2) (-16 -16 -24) (16 16 32) triggered no_touch hover
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/ctf/flag2/tris.md3"
  */
 {
@@ -1633,13 +1772,18 @@ const g_item_t g_items[] = {
 		0.75,
 		"ctf/capture.wav ctf/steal.wav ctf/return.wav" },
 
-/*QUAKED item_quad (.2 .4 1) (-16 -16 -16) (16 16 16) ? TRIGGER NO_TOUCH HOVER
+/*QUAKED item_quad (.2 .4 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Quad damage.
- -------- SPAWNFLAGS --------
- TRIGGER : Item will not appear until triggered.
- NO_TOUCH : Item will interact as solid instead of being picked up by player.
- HOVER : Item will spawn where it was placed in the map and won't drop the floor.
- -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
+
+ -------- Keys --------
+ team : The team name for alternating item spawns.
+
+ -------- Spawn flags --------
+ triggered : Item will not appear until triggered.
+ no_touch : Item will interact as solid instead of being picked up by player.
+ hover : Item will spawn where it was placed in the map and won't drop the floor.
+
+ -------- Radiant config --------
  model="models/powerups/quad/tris.md3"
  */
 {

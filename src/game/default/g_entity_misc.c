@@ -74,12 +74,13 @@ static void G_misc_teleporter_Touch(g_edict_t *self, g_edict_t *other, c_bsp_pla
 	gi.LinkEdict(other);
 }
 
-/*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16) ? - - NO_EFFECTS
+/*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16) ? ? no_effects
  Warps players who touch this entity to the targeted misc_teleporter_dest entity.
- -------- SPAWNFLAGS --------
- -
- -
- NO_EFFECTS : Suppress the default teleporter particle effects.
+
+ -------- Spawn flags --------
+ ?
+ ?
+ no_effects : Suppress the default teleporter particle effects.
  */
 void G_misc_teleporter(g_edict_t *ent) {
 	vec3_t v;
@@ -117,7 +118,8 @@ void G_misc_teleporter(g_edict_t *ent) {
 
 /*QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)
  Teleport destination for misc_teleporters.
- -------- KEYS --------
+
+ -------- Keys --------
  angle : Direction in which player will look when teleported.
  targetname : The target name of this entity.
  */

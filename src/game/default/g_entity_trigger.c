@@ -102,18 +102,20 @@ static void G_trigger_multiple_Enable(g_edict_t *self, g_edict_t *other __attrib
 	gi.LinkEdict(self);
 }
 
-/*QUAKED trigger_multiple (.5 .5 .5) ? TRIGGERED
+/*QUAKED trigger_multiple (.5 .5 .5) ? triggered
  Triggers multiple targets at fixed intervals.
- -------- KEYS --------
+
+ -------- Keys --------
  delay : Delay in seconds between activation and firing of targets (default 0).
  wait : Interval in seconds between activations (default 0.2).
  message : An optional string to display when activated.
  target : The name of the entity or team to use on activation.
  killtarget : The name of the entity or team to kill on activation.
  targetname : The target name of this entity if it is to be triggered.
- -------- SPAWNFLAGS --------
- TRIGGERED : If set, this trigger must be targeted before it will activate.
- */
+
+ -------- Spawn flags --------
+ triggered : If set, this trigger must be targeted before it will activate.
+*/
 void G_trigger_multiple(g_edict_t *ent) {
 
 	ent->locals.noise_index = gi.SoundIndex("misc/chat");
@@ -139,17 +141,19 @@ void G_trigger_multiple(g_edict_t *ent) {
 	gi.LinkEdict(ent);
 }
 
-/*QUAKED trigger_once (.5 .5 .5) ? TRIGGERED
+/*QUAKED trigger_once (.5 .5 .5) ? triggered
  Triggers multiple targets once.
- -------- KEYS --------
+
+ -------- Keys --------
  delay : Delay in seconds between activation and firing of targets (default 0).
  message : An optional string to display when activated.
  target : The name of the entity or team to use on activation.
  killtarget : The name of the entity or team to kill on activation.
  targetname : The target name of this entity if it is to be triggered.
- -------- SPAWNFLAGS --------
- TRIGGERED : If set, this trigger must be targeted before it will activate.
- */
+
+ -------- Spawn flags --------
+ triggered : If set, this trigger must be targeted before it will activate.
+*/
 void G_trigger_once(g_edict_t *ent) {
 	ent->locals.wait = -1;
 	G_trigger_multiple(ent);
@@ -164,25 +168,27 @@ static void G_trigger_relay_Use(g_edict_t *self, g_edict_t *other __attribute__(
 
 /*QUAKED trigger_relay (.5 .5 .5) (-8 -8 -8) (8 8 8)
  A trigger that can not be touched, but must be triggered by another entity.
- -------- KEYS --------
- delay : The delay in seconds before using targets (default 0).
- message : An optional message to display the first time this trigger fires.
+
+ -------- Keys --------
+ delay : The delay in seconds between activation and firing of targets (default 0).
+ message : An optional string to display when activated.
  target : The name of the entity or team to use on activation.
  killtarget : The name of the entity or team to kill on activation.
  targetname : The target name of this entity.
- */
+*/
 void G_trigger_relay(g_edict_t *self) {
 	self->locals.Use = G_trigger_relay_Use;
 }
 
 /*QUAKED trigger_always (.5 .5 .5) (-8 -8 -8) (8 8 8)
  Triggers targets once at level spawn.
- -------- KEYS --------
- delay : The delay in seconds before using targets (default 0.2).
+
+ -------- Keys --------
+ delay : The delay in seconds between activation and firing of targets (default 0.2).
  message : An optional message to display when this trigger fires.
  target : The name of the entity or team to use on activation.
- killtarget : The name of the entity or team to kill on activation.
- */
+ kill_target : The name of the entity or team to kill on activation.
+*/
 void G_trigger_always(g_edict_t *ent) {
 
 	// we must have some delay to make sure our use targets are present
@@ -235,15 +241,17 @@ static void G_trigger_push_Effect(g_edict_t *self) {
 	gi.LinkEdict(ent);
 }
 
-/*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE PUSH_EFFECTS
+/*QUAKED trigger_push (.5 .5 .5) ? push_once push_effects
  Pushes the player in any direction. These are commonly used to make jump pads to send the player upwards. Using the angles key, you can project the player in any direction using "pitch yaw roll."
- -------- KEYS --------
+
+ -------- Keys --------
  angles : The direction to push the player in "pitch yaw roll" notation (e.g. -80 270 0).
  speed : The speed with which to push the player (default 100).
- -------- SPAWNFLAGS --------
- PUSH_ONCE : If set, the pusher is freed after it is used once.
- PUSH_EFFECTS : If set, emit particle effects to indicate that a pusher is here.
- */
+
+ -------- Spawn flags --------
+ push_once : If set, the pusher is freed after it is used once.
+ push_effects : If set, emit particle effects to indicate that a pusher is here.
+*/
 void G_trigger_push(g_edict_t *self) {
 
 	G_Trigger_Init(self);
@@ -311,18 +319,20 @@ static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 			self->locals.damage, dflags, MOD_TRIGGER_HURT);
 }
 
-/*QUAKED trigger_hurt (.5 .5 .5) ? START_OFF TOGGLE - NO_PROTECTION SLOW
+/*QUAKED trigger_hurt (.5 .5 .5) ? start_off toggle ? no_protection slow
  Any player that touches this will be hurt by "dmg" points of damage every 100ms (very fast).
- -------- KEYS --------
+
+ -------- Keys --------
  dmg : The damage done every 100ms to any player who touches this entity (default 2).
  targetname : The target name of this entity, if it is to be triggered.
- -------- SPAWNFLAGS --------
- START_OFF : If set, this entity must be activated before it will hurt players.
- TOGGLE : If set, this entity is toggled each time it is activated.
- -
- NO_PROTECTION : If set, armor will not be used to absorb damage inflicted by this entity.
- SLOW : Decreases the damage rate to once per second.
- */
+
+ -------- Spawn flags --------
+ start_off : If set, this entity must be activated before it will hurt players.
+ toggle : If set, this entity is toggled each time it is activated.
+ ?
+ no_protection : If set, armor will not be used to absorb damage inflicted by this entity.
+ slow : Decreases the damage rate to once per second.
+*/
 void G_trigger_hurt(g_edict_t *self) {
 
 	G_Trigger_Init(self);
@@ -361,13 +371,14 @@ static void G_trigger_exec_Touch(g_edict_t *self, g_edict_t *other __attribute__
 		gi.AddCommandString(va("exec %s\n", self->locals.script));
 }
 
-/*QUAKED trigger_exec (1 0 1)
+/*QUAKED trigger_exec (0 1 0) ?
  Executes a console command or script file when activated.
- -------- KEYS --------
+
+ -------- Keys --------
  command : The console command(s) to execute.
  script : The script file (.cfg) to execute.
  delay : The delay in seconds between activation and execution of the commands.
- */
+*/
 void G_trigger_exec(g_edict_t *self) {
 
 	if (!self->locals.command && !self->locals.script) {
