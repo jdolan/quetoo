@@ -71,7 +71,7 @@ static void Cl_SendConnect(void) {
 
 	const uint8_t qport = (uint8_t) Cvar_GetValue("net_qport"); // has been set by netchan
 
-	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %i \"%s\"\n", PROTOCOL, qport,
+	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %i \"%s\"\n", PROTOCOL_MAJOR, qport,
 			cls.challenge, Cvar_UserInfo());
 
 	cvar_user_info_modified = false;

@@ -188,7 +188,7 @@ static const g_field_t fields[] = {
 		{ "count", LOFS(count), F_INT, 0 },
 		{ "health", LOFS(health), F_SHORT, 0 },
 		{ "sounds", LOFS(sounds), F_SHORT, 0 },
-		{ "dmg", LOFS(dmg), F_SHORT, 0 },
+		{ "dmg", LOFS(damage), F_SHORT, 0 },
 		{ "mass", LOFS(mass), F_FLOAT, 0 },
 		{ "attenuation", LOFS(attenuation), F_SHORT, 0 },
 		{ "origin", EOFS(s.origin), F_VECTOR, 0 },

@@ -25,6 +25,12 @@
 #include "shared.h"
 
 /*
+ * @brief Game protocol version (protocol minor version). To be incremented
+ * whenever the game protocol changes.
+ */
+#define PROTOCOL_MINOR 1000
+
+/*
  * @brief Game-specific server protocol commands. These are parsed directly by
  * the client game module.
  */
@@ -136,6 +142,7 @@ typedef enum {
 	TE_RAIL,
 	TE_EXPLOSION,
 	TE_BUBBLES,
+	TE_BFG_LASER,
 	TE_BFG,
 	TE_GIB
 } g_temp_entity_t;
@@ -728,9 +735,9 @@ typedef struct {
 	_Bool dead;
 
 	_Bool take_damage;
-	int16_t dmg;
+	int16_t damage;
 	int16_t knockback;
-	vec_t dmg_radius;
+	vec_t damage_radius;
 	int16_t sounds; // make this a spawntemp var?
 	int32_t count;
 

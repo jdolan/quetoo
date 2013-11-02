@@ -383,8 +383,8 @@ static void G_func_plat_Blocked(g_edict_t *self, g_edict_t *other) {
 	if (!other->client)
 		return;
 
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.dmg, 1, 0,
-			MOD_CRUSH);
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1,
+			0, MOD_CRUSH);
 
 	if (self->locals.move_info.state == MOVE_STATE_GOING_UP)
 		G_func_plat_GoDown(self);
@@ -504,8 +504,8 @@ void G_func_plat(g_edict_t *ent) {
 	ent->locals.accel *= v;
 	ent->locals.decel *= v;
 
-	if (!ent->locals.dmg)
-		ent->locals.dmg = 2;
+	if (!ent->locals.damage)
+		ent->locals.damage = 2;
 
 	if (!g_game.spawn.lip)
 		g_game.spawn.lip = 8;
@@ -550,8 +550,8 @@ void G_func_plat(g_edict_t *ent) {
  * @brief
  */
 static void G_func_rotating_Blocked(g_edict_t *self, g_edict_t *other) {
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.dmg, 1, 0,
-			MOD_CRUSH);
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1,
+			0, MOD_CRUSH);
 }
 
 /*
@@ -561,8 +561,8 @@ static void G_func_rotating_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane
 		c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!VectorCompare(self->locals.avelocity, vec3_origin)) {
-		G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.dmg, 1,
-				0, MOD_CRUSH);
+		G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage,
+				1, 0, MOD_CRUSH);
 	}
 }
 
@@ -623,11 +623,11 @@ void G_func_rotating(g_edict_t *ent) {
 	if (!ent->locals.speed)
 		ent->locals.speed = 100;
 
-	if (!ent->locals.dmg)
-		ent->locals.dmg = 2;
+	if (!ent->locals.damage)
+		ent->locals.damage = 2;
 
 	ent->locals.Use = G_func_rotating_Use;
-	if (ent->locals.dmg)
+	if (ent->locals.damage)
 		ent->locals.Blocked = G_func_rotating_Blocked;
 
 	if (ent->locals.spawn_flags & 1)
@@ -1027,8 +1027,8 @@ static void G_func_door_Blocked(g_edict_t *self, g_edict_t *other) {
 	if (!other->client)
 		return;
 
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.dmg, 1, 0,
-			MOD_CRUSH);
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1,
+			0, MOD_CRUSH);
 
 	// if a door has a negative wait, it would never come back if blocked,
 	// so let it just squash the object to death real fast
@@ -1125,8 +1125,8 @@ void G_func_door(g_edict_t *ent) {
 		ent->locals.wait = 3.0;
 	if (!g_game.spawn.lip)
 		g_game.spawn.lip = 8.0;
-	if (!ent->locals.dmg)
-		ent->locals.dmg = 2;
+	if (!ent->locals.damage)
+		ent->locals.damage = 2;
 
 	// calculate second position
 	VectorCopy(ent->s.origin, ent->locals.pos1);
@@ -1236,8 +1236,8 @@ void G_func_door_rotating(g_edict_t *ent) {
 
 	if (!ent->locals.wait)
 		ent->locals.wait = 3.0;
-	if (!ent->locals.dmg)
-		ent->locals.dmg = 2;
+	if (!ent->locals.damage)
+		ent->locals.damage = 2;
 
 	// if it starts open, switch the positions
 	if (ent->locals.spawn_flags & DOOR_START_OPEN) {
@@ -1424,12 +1424,12 @@ static void G_func_train_Blocked(g_edict_t *self, g_edict_t *other) {
 	if (g_level.time < self->locals.touch_time)
 		return;
 
-	if (!self->locals.dmg)
+	if (!self->locals.damage)
 		return;
 
 	self->locals.touch_time = g_level.time + 500;
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.dmg, 1, 0,
-			MOD_CRUSH);
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1,
+			0, MOD_CRUSH);
 }
 
 /*
@@ -1607,10 +1607,10 @@ void G_func_train(g_edict_t *self) {
 	VectorClear(self->s.angles);
 	self->locals.Blocked = G_func_train_Blocked;
 	if (self->locals.spawn_flags & TRAIN_BLOCK_STOPS)
-		self->locals.dmg = 0;
+		self->locals.damage = 0;
 	else {
-		if (!self->locals.dmg)
-			self->locals.dmg = 100;
+		if (!self->locals.damage)
+			self->locals.damage = 100;
 	}
 	self->solid = SOLID_BSP;
 	gi.SetModel(self, self->model);

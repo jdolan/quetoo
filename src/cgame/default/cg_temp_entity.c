@@ -373,7 +373,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	for (j = 0; j < 128; j++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
 			break;
 
 		p->part.color = 0xe0 + (Random() & 7);
@@ -526,7 +526,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 
 	for (i = 0; i < len; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
 			return;
 
 		p->part.color = color;
@@ -585,6 +585,35 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 /*
  * @brief
  */
+static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
+	cg_particle_t *p;
+	r_light_t l;
+
+	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam)))
+		return;
+
+	VectorCopy(org, p->part.org);
+	VectorCopy(end, p->part.end);
+
+	p->part.color = 200 + Random() % 3;
+
+	p->part.alpha = 1.0;
+	p->alpha_vel = -3.0;
+
+	p->part.scale = 6.0;
+
+	p->part.scroll_s = -4.0;
+
+	VectorCopy(end, l.origin);
+	l.radius = 80.0;
+	VectorSet(l.color, 0.8, 1.0, 0.5);
+
+	cgi.AddLight(&l);
+}
+
+/*
+ * @brief
+ */
 static void Cg_BfgEffect(const vec3_t org) {
 	cg_particle_t *p;
 	r_sustained_light_t s;
@@ -610,7 +639,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	for (i = 0; i < 96; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
 			break;
 
 		p->part.color = 200 + Random() % 3;
@@ -652,85 +681,91 @@ void Cg_ParseTempEntity(void) {
 
 	switch (type) {
 
-	case TE_BLASTER:
-		cgi.ReadPosition(pos);
-		cgi.ReadPosition(dir);
-		i = cgi.ReadByte();
-		Cg_BlasterEffect(pos, dir, i);
-		break;
+		case TE_BLASTER:
+			cgi.ReadPosition(pos);
+			cgi.ReadPosition(dir);
+			i = cgi.ReadByte();
+			Cg_BlasterEffect(pos, dir, i);
+			break;
 
-	case TE_TRACER:
-		cgi.ReadPosition(pos);
-		cgi.ReadPosition(pos2);
-		Cg_TracerEffect(pos, pos2);
-		break;
+		case TE_TRACER:
+			cgi.ReadPosition(pos);
+			cgi.ReadPosition(pos2);
+			Cg_TracerEffect(pos, pos2);
+			break;
 
-	case TE_BULLET: // bullet hitting wall
-		cgi.ReadPosition(pos);
-		cgi.ReadDir(dir);
-		Cg_BulletEffect(pos, dir);
-		break;
+		case TE_BULLET: // bullet hitting wall
+			cgi.ReadPosition(pos);
+			cgi.ReadDir(dir);
+			Cg_BulletEffect(pos, dir);
+			break;
 
-	case TE_BURN: // burn mark on wall
-		cgi.ReadPosition(pos);
-		cgi.ReadDir(dir);
-		i = cgi.ReadByte();
-		Cg_BurnEffect(pos, dir, i);
-		break;
+		case TE_BURN: // burn mark on wall
+			cgi.ReadPosition(pos);
+			cgi.ReadDir(dir);
+			i = cgi.ReadByte();
+			Cg_BurnEffect(pos, dir, i);
+			break;
 
-	case TE_BLOOD: // projectile hitting flesh
-		cgi.ReadPosition(pos);
-		cgi.ReadDir(dir);
-		Cg_BloodEffect(pos, dir, 12);
-		break;
+		case TE_BLOOD: // projectile hitting flesh
+			cgi.ReadPosition(pos);
+			cgi.ReadDir(dir);
+			Cg_BloodEffect(pos, dir, 12);
+			break;
 
-	case TE_GIB: // player over-death
-		cgi.ReadPosition(pos);
-		Cg_GibEffect(pos, 12);
-		break;
+		case TE_GIB: // player over-death
+			cgi.ReadPosition(pos);
+			Cg_GibEffect(pos, 12);
+			break;
 
-	case TE_SPARKS: // colored sparks
-		cgi.ReadPosition(pos);
-		cgi.ReadDir(dir);
-		Cg_SparksEffect(pos, dir, 12);
-		break;
+		case TE_SPARKS: // colored sparks
+			cgi.ReadPosition(pos);
+			cgi.ReadDir(dir);
+			Cg_SparksEffect(pos, dir, 12);
+			break;
 
-	case TE_HYPERBLASTER: // hyperblaster hitting wall
-		cgi.ReadPosition(pos);
-		Cg_HyperblasterEffect(pos);
-		break;
+		case TE_HYPERBLASTER: // hyperblaster hitting wall
+			cgi.ReadPosition(pos);
+			Cg_HyperblasterEffect(pos);
+			break;
 
-	case TE_LIGHTNING: // lightning discharge in water
-		cgi.ReadPosition(pos);
-		Cg_LightningEffect(pos);
-		break;
+		case TE_LIGHTNING: // lightning discharge in water
+			cgi.ReadPosition(pos);
+			Cg_LightningEffect(pos);
+			break;
 
-	case TE_RAIL: // railgun effect
-		cgi.ReadPosition(pos);
-		cgi.ReadPosition(pos2);
-		i = cgi.ReadLong();
-		j = cgi.ReadByte();
-		Cg_RailEffect(pos, pos2, i, j);
-		break;
+		case TE_RAIL: // railgun effect
+			cgi.ReadPosition(pos);
+			cgi.ReadPosition(pos2);
+			i = cgi.ReadLong();
+			j = cgi.ReadByte();
+			Cg_RailEffect(pos, pos2, i, j);
+			break;
 
-	case TE_EXPLOSION: // rocket and grenade explosions
-		cgi.ReadPosition(pos);
-		Cg_ExplosionEffect(pos);
-		break;
+		case TE_EXPLOSION: // rocket and grenade explosions
+			cgi.ReadPosition(pos);
+			Cg_ExplosionEffect(pos);
+			break;
 
-	case TE_BFG: // bfg explosion
-		cgi.ReadPosition(pos);
-		Cg_BfgEffect(pos);
-		break;
+		case TE_BFG_LASER:
+			cgi.ReadPosition(pos);
+			cgi.ReadPosition(pos2);
+			Cg_BfgLaserEffect(pos, pos2);
+			break;
 
-	case TE_BUBBLES: // bubbles chasing projectiles in water
-		cgi.ReadPosition(pos);
-		cgi.ReadPosition(pos2);
-		Cg_BubbleTrail(pos, pos2, 1.0);
-		break;
+		case TE_BFG: // bfg explosion
+			cgi.ReadPosition(pos);
+			Cg_BfgEffect(pos);
+			break;
 
-	default:
-		cgi.Warn("Unknown type: %d\n", type);
-		return;
+		case TE_BUBBLES: // bubbles chasing projectiles in water
+			cgi.ReadPosition(pos);
+			cgi.ReadPosition(pos2);
+			Cg_BubbleTrail(pos, pos2, 1.0);
+			break;
+
+		default:
+			cgi.Warn("Unknown type: %d\n", type);
+			return;
 	}
 }

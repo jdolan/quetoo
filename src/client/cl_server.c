@@ -140,7 +140,7 @@ void Cl_Ping_f(void) {
 
 	Com_Print("Pinging %s\n", Net_NetaddrToString(&server->addr));
 
-	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "info %i", PROTOCOL);
+	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "info %i", PROTOCOL_MAJOR);
 }
 
 /*
@@ -166,7 +166,7 @@ static void Cl_SendBroadcast(void) {
 	addr.type = NA_BROADCAST;
 	addr.port = htons(PORT_SERVER);
 
-	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "info %i", PROTOCOL);
+	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "info %i", PROTOCOL_MAJOR);
 
 	cls.broadcast_time = cls.real_time;
 }
@@ -248,7 +248,7 @@ void Cl_ParseServers(void) {
 			server->ping_time = cls.real_time;
 			server->ping = 0;
 
-			Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "info %i", PROTOCOL);
+			Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "info %i", PROTOCOL_MAJOR);
 		}
 
 		e = e->next;

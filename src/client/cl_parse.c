@@ -240,8 +240,6 @@ static void Cl_ParseDownload(void) {
  * @brief
  */
 static void Cl_ParseServerData(void) {
-	char *str;
-	int32_t i;
 
 	// wipe the cl_client_t struct
 	Cl_ClearState();
@@ -250,11 +248,12 @@ static void Cl_ParseServerData(void) {
 	cls.key_state.dest = KEY_CONSOLE;
 
 	// parse protocol version number
-	i = Net_ReadLong(&net_message);
+	const uint16_t major = Net_ReadShort(&net_message);
+	const uint16_t minor = Net_ReadShort(&net_message);
 
-	// ensure protocol matches
-	if (i != PROTOCOL) {
-		Com_Error(ERR_DROP, "Server is using unknown protocol %d\n", i);
+	// ensure protocol major matches
+	if (major != PROTOCOL_MAJOR) {
+		Com_Error(ERR_DROP, "Server is using protocol major %d\n", major);
 	}
 
 	// retrieve spawn count and packet rate
@@ -265,13 +264,18 @@ static void Cl_ParseServerData(void) {
 	cl.demo_server = Net_ReadByte(&net_message);
 
 	// game directory
-	str = Net_ReadString(&net_message);
+	char *str = Net_ReadString(&net_message);
 	if (g_strcmp0(Cvar_GetString("game"), str)) {
 
 		Fs_SetGame(str);
 
 		// reload the client game
 		Cl_InitCgame();
+	}
+
+	// ensure protocol minor matches
+	if (minor != cls.cgame->protocol) {
+		Com_Error(ERR_DROP, "Server is using protocol minor %d\n", minor);
 	}
 
 	// parse player entity number

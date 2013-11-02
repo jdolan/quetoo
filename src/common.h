@@ -38,9 +38,10 @@
 
 /*
  * @brief Quake net protocol version; this must be changed when the structure
- * of any net message or serialized data type changes.
+ * of core net messages or serialized data types change. The game and client
+ * game maintain PROTOCOL_MINOR as well.
  */
-#define PROTOCOL			1005
+#define PROTOCOL_MAJOR		1006
 
 /*
  * @brief The IP address of the master server, where the authoritative list of

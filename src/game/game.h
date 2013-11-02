@@ -186,7 +186,8 @@ typedef struct {
 
 // functions exported by the game subsystem
 typedef struct {
-	int32_t api_version;
+	uint16_t api_version;
+	uint16_t protocol;
 
 	// the init function will only be called when a game starts,
 	// not each time a level is loaded. Persistent data for clients

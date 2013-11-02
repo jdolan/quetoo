@@ -1242,6 +1242,7 @@ g_export_t *G_LoadGame(g_import_t *import) {
 	memset(&ge, 0, sizeof(ge));
 
 	ge.api_version = GAME_API_VERSION;
+	ge.protocol = PROTOCOL_MINOR;
 
 	ge.Init = G_Init;
 	ge.Shutdown = G_Shutdown;

@@ -93,8 +93,8 @@ static void G_target_explosion_Explode(g_edict_t *self) {
 	gi.WritePosition(self->s.origin);
 	gi.Multicast(self->s.origin, MULTICAST_PHS);
 
-	G_RadiusDamage(self, self->locals.activator, NULL, self->locals.dmg, self->locals.dmg,
-			self->locals.dmg + 40, MOD_EXPLOSIVE);
+	G_RadiusDamage(self, self->locals.activator, NULL, self->locals.damage, self->locals.damage,
+			self->locals.damage + 40, MOD_EXPLOSIVE);
 
 	save = self->locals.delay;
 	self->locals.delay = 0;
@@ -146,12 +146,12 @@ static void G_target_splash_Think(g_edict_t *self) {
 }
 
 /*QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8)
-Spawns a particle splash effect when used.
--------- KEYS --------
+ Spawns a particle splash effect when used.
+ -------- KEYS --------
  angles : The angles at which to emit particles (e.g. 0 225 0).
--------- NOTES --------
-This entity remains in place for legacy reasons. New maps should use misc_emit.
-*/
+ -------- NOTES --------
+ This entity remains in place for legacy reasons. New maps should use misc_emit.
+ */
 void G_target_splash(g_edict_t *self) {
 
 	G_SetMoveDir(self->s.angles, self->locals.move_dir);

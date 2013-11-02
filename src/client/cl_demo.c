@@ -26,18 +26,18 @@
  * compressed frame arrives from the server.
  */
 static void Cl_WriteDemoHeader(void) {
-	byte buffer[MAX_MSG_SIZE];
+	static entity_state_t null_state;
 	mem_buf_t msg;
-	int32_t i;
-	int32_t len;
-	entity_state_t null_state;
+	byte buffer[MAX_MSG_SIZE];
+	int32_t i, len;
 
 	// write out messages to hold the startup information
 	Mem_InitBuffer(&msg, buffer, sizeof(buffer));
 
 	// write the server data
 	Net_WriteByte(&msg, SV_CMD_SERVER_DATA);
-	Net_WriteLong(&msg, PROTOCOL);
+	Net_WriteShort(&msg, PROTOCOL_MAJOR);
+	Net_WriteShort(&msg, cls.cgame->protocol);
 	Net_WriteLong(&msg, cl.server_count);
 	Net_WriteLong(&msg, cl.server_hz);
 	Net_WriteByte(&msg, 1); // demo_server byte
@@ -73,8 +73,6 @@ static void Cl_WriteDemoHeader(void) {
 			Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 			msg.size = 0;
 		}
-
-		memset(&null_state, 0, sizeof(null_state));
 
 		Net_WriteByte(&msg, SV_CMD_BASELINE);
 		Net_WriteDeltaEntity(&msg, &null_state, &cl.entities[i].baseline, true, true);

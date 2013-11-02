@@ -126,7 +126,8 @@ typedef struct cg_import_s {
 
 // exposed to the engine by the client game
 typedef struct cg_export_s {
-	int32_t api_version;
+	uint16_t api_version;
+	uint16_t protocol;
 
 	void (*Init)(void);
 	void (*Shutdown)(void);

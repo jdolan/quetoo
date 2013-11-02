@@ -85,7 +85,8 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 		gi.Sound(ent, gi.SoundIndex("world/water_out"), ATTEN_NORM);
 
 	// head just coming out of water, play a gasp if we were down for a while
-	if (old_water_level == 3 && water_level != 3 && (client->locals.drown_time - g_level.time) < 8000) {
+	if (old_water_level == 3 && water_level != 3 && (client->locals.drown_time - g_level.time)
+			< 8000) {
 		vec3_t org;
 
 		VectorAdd(client->ps.pm_state.origin, client->ps.pm_state.view_offset, org);
@@ -97,19 +98,19 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 	// check for drowning
 	if (water_level != 3) { // take some air, push out drown time
 		client->locals.drown_time = g_level.time + 12000;
-		ent->locals.dmg = 0;
+		ent->locals.damage = 0;
 	} else { // we're under water
 		if (client->locals.drown_time < g_level.time && ent->locals.health > 0) {
 			client->locals.drown_time = g_level.time + 1000;
 
 			// take more damage the longer under water
-			ent->locals.dmg += 2;
+			ent->locals.damage += 2;
 
-			if (ent->locals.dmg > 15)
-				ent->locals.dmg = 15;
+			if (ent->locals.damage > 15)
+				ent->locals.damage = 15;
 
 			// play a gurp sound instead of a normal pain sound
-			if (ent->locals.health <= ent->locals.dmg)
+			if (ent->locals.health <= ent->locals.damage)
 				ent->s.event = EV_CLIENT_DROWN;
 			else
 				ent->s.event = EV_CLIENT_GURP;
@@ -118,8 +119,8 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 			client->locals.pain_time = g_level.time;
 
 			// and apply the damage
-			G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, ent->locals.dmg, 0, DAMAGE_NO_ARMOR,
-					MOD_WATER);
+			G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, ent->locals.damage,
+					0, DAMAGE_NO_ARMOR, MOD_WATER);
 		}
 	}
 
@@ -130,13 +131,13 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 			client->locals.sizzle_time = g_level.time + 200;
 
 			if (ent->locals.water_type & CONTENTS_LAVA) {
-				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, 2 * water_level, 0, DAMAGE_NO_ARMOR,
-						MOD_LAVA);
+				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, 2 * water_level,
+						0, DAMAGE_NO_ARMOR, MOD_LAVA);
 			}
 
 			if (ent->locals.water_type & CONTENTS_SLIME) {
-				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, 1 * water_level, 0, DAMAGE_NO_ARMOR,
-						MOD_SLIME);
+				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, 1 * water_level,
+						0, DAMAGE_NO_ARMOR, MOD_SLIME);
 			}
 		}
 	}

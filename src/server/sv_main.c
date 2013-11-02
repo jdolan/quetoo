@@ -125,9 +125,9 @@ static void Svc_Info(void) {
 		return; // ignore in single player
 
 	const int32_t p = atoi(Cmd_Argv(1));
-	if (p != PROTOCOL) {
+	if (p != PROTOCOL_MAJOR) {
 		g_snprintf(string, sizeof(string), "%s: Wrong protocol: %d != %d", sv_hostname->string, p,
-				PROTOCOL);
+				PROTOCOL_MAJOR);
 	} else {
 		int32_t i, count = 0;
 
@@ -203,8 +203,8 @@ static void Svc_Connect(void) {
 	const int32_t version = strtol(Cmd_Argv(1), NULL, 0);
 
 	// resolve protocol
-	if (version != PROTOCOL) {
-		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n", PROTOCOL);
+	if (version != PROTOCOL_MAJOR) {
+		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n", PROTOCOL_MAJOR);
 		return;
 	}
 
@@ -862,7 +862,7 @@ static void Sv_InitLocal(void) {
 	sv_udp_download = Cvar_Get("sv_udp_download", "1", CVAR_ARCHIVE, NULL);
 
 	// set this so clients and server browsers can see it
-	Cvar_Get("sv_protocol", va("%i", PROTOCOL), CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+	Cvar_Get("sv_protocol", va("%i", PROTOCOL_MAJOR), CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 }
 
 /*

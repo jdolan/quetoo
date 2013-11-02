@@ -307,8 +307,8 @@ static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 	else
 		dflags = DAMAGE_NO_ARMOR;
 
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.dmg,
-			self->locals.dmg, dflags, MOD_TRIGGER_HURT);
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage,
+			self->locals.damage, dflags, MOD_TRIGGER_HURT);
 }
 
 /*QUAKED trigger_hurt (.5 .5 .5) ? START_OFF TOGGLE - NO_PROTECTION SLOW
@@ -329,8 +329,8 @@ void G_trigger_hurt(g_edict_t *self) {
 
 	self->locals.Touch = G_trigger_hurt_Touch;
 
-	if (!self->locals.dmg)
-		self->locals.dmg = 2;
+	if (!self->locals.damage)
+		self->locals.damage = 2;
 
 	if (self->locals.spawn_flags & 1)
 		self->solid = SOLID_NOT;

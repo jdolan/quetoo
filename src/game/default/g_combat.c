@@ -46,7 +46,7 @@ _Bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
 	vec3_t dest;
 	c_trace_t tr;
 
-	// bmodels need special checking because their origin is 0,0,0
+	// BSP sub-models need special checking because their origin is 0,0,0
 	if (targ->locals.move_type == MOVE_TYPE_PUSH) {
 		VectorAdd(targ->abs_mins, targ->abs_maxs, dest);
 		VectorScale(dest, 0.5, dest);
@@ -169,10 +169,12 @@ static int32_t G_CheckArmor(g_edict_t *ent, const vec3_t pos, const vec3_t norma
  * 	DAMAGE_ENERGY			damage is from an energy based weapon
  * 	DAMAGE_BULLET			damage is from a bullet
  * 	DAMAGE_NO_PROTECTION	kills god mode, armor, everything
+ *
+ * @param mod The means of death, used by the obituaries routine.
  */
 void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, const vec3_t dir,
-		const vec3_t pos, const vec3_t normal, int16_t damage, int16_t knockback, int32_t dflags,
-		int32_t mod) {
+		const vec3_t pos, const vec3_t normal, int16_t damage, int16_t knockback, uint32_t dflags,
+		uint32_t mod) {
 
 	if (!target->locals.take_damage)
 		return;
@@ -188,7 +190,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 	if (!attacker)
 		attacker = g_game.edicts;
 
-	if (attacker->client) { // quad damage affects both damage and knockback
+	if (attacker->client) {
 		if (attacker->client->locals.persistent.inventory[g_level.media.quad_damage]) {
 			damage *= QUAD_DAMAGE_FACTOR;
 			knockback *= QUAD_KNOCKBACK_FACTOR;
@@ -307,15 +309,13 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 /*
  * @brief
  */
-void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore, int32_t damage,
-		int32_t knockback, vec_t radius, int32_t mod) {
-	g_edict_t *ent;
-	vec_t d, k, dist;
-	vec3_t dir;
+void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore, int16_t damage,
+		int16_t knockback, vec_t radius, uint32_t mod) {
 
-	ent = NULL;
+	g_edict_t *ent = NULL;
 
 	while ((ent = G_FindRadius(ent, inflictor->s.origin, radius)) != NULL) {
+		vec3_t dir;
 
 		if (ent == ignore)
 			continue;
@@ -324,10 +324,10 @@ void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore
 			continue;
 
 		VectorSubtract(ent->s.origin, inflictor->s.origin, dir);
-		dist = VectorNormalize(dir);
+		const vec_t dist = VectorNormalize(dir);
 
-		d = damage - 0.5 * dist;
-		k = knockback - 0.5 * dist;
+		vec_t d = damage - 0.5 * dist;
+		const vec_t k = knockback - 0.5 * dist;
 
 		if (d <= 0 && k <= 0) // too far away to be damaged
 			continue;

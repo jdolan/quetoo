@@ -196,6 +196,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cgi = *import;
 
 	cge.api_version = CGAME_API_VERSION;
+	cge.protocol = PROTOCOL_MINOR;
 
 	cge.Init = Cg_Init;
 	cge.Shutdown = Cg_Shutdown;
