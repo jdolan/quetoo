@@ -574,7 +574,7 @@ void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs) {
 
 	const vec_t xy = (in & 31) * 8.0;
 	const vec_t zd = ((in >> 5) & 31) * 8.0;
-	const vec_t zu = ((in >> 10 & 63) - 32) * 8.0;
+	const vec_t zu = ((in >> 10) & 31) * 8.0 - 32.0;
 
 	VectorSet(mins, -xy, -xy, -zd);
 	VectorSet(maxs, xy, xy, zu);
