@@ -68,23 +68,23 @@ static void G_UpdateScore(const g_edict_t *ent, g_score_t *s) {
 
 	if (ent->client->locals.persistent.spectator) {
 		s->color = 0;
-		s->flags |= SCORES_SPECTATOR;
+		s->flags |= SCORE_SPECTATOR;
 	} else {
 		if (g_level.match) {
 			if (!ent->client->locals.persistent.ready)
-				s->flags |= SCORES_NOT_READY;
+				s->flags |= SCORE_NOT_READY;
 		}
 		if (g_level.ctf) {
 			if (ent->s.effects & (EF_CTF_BLUE | EF_CTF_RED))
-				s->flags |= SCORES_CTF_FLAG;
+				s->flags |= SCORE_CTF_FLAG;
 		}
 		if (ent->client->locals.persistent.team) {
 			if (ent->client->locals.persistent.team == &g_team_good) {
 				s->color = TEAM_COLOR_GOOD;
-				s->flags |= SCORES_TEAM_GOOD;
+				s->flags |= SCORE_TEAM_GOOD;
 			} else {
 				s->color = TEAM_COLOR_EVIL;
-				s->flags |= SCORES_TEAM_EVIL;
+				s->flags |= SCORE_TEAM_EVIL;
 			}
 		} else {
 			s->color = ent->client->locals.persistent.color;
@@ -119,13 +119,13 @@ static size_t G_UpdateScores(g_score_t *scores) {
 		s->client = MAX_CLIENTS;
 		s->score = g_team_good.score;
 		s->captures = g_team_good.captures;
-		s->flags = SCORES_TEAM_GOOD | SCORES_AGGREGATE;
+		s->flags = SCORE_TEAM_GOOD | SCORE_AGGREGATE;
 		s++;
 
 		s->client = MAX_CLIENTS;
 		s->score = g_team_evil.score;
 		s->captures = g_team_evil.captures;
-		s->flags = SCORES_TEAM_EVIL | SCORES_AGGREGATE;
+		s->flags = SCORE_TEAM_EVIL | SCORE_AGGREGATE;
 		s++;
 	}
 

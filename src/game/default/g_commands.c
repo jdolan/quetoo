@@ -155,8 +155,8 @@ static void G_God_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_Nextmap_f(g_edict_t *ent) {
-	gi.AddCommandString(va("map %s\n", G_SelectNextmap()));
+static void G_NextMap_f(g_edict_t *ent __attribute__((unused))) {
+	gi.AddCommandString(va("map %s\n", G_SelectNextMap()));
 }
 
 /*
@@ -585,6 +585,7 @@ static const char *vote_cmds[] = {
 		"kick",
 		"map",
 		"mute",
+		"next_map",
 		"restart",
 		"unmute",
 		NULL };
@@ -637,7 +638,7 @@ static _Bool Vote_Help(g_edict_t *ent) {
 		return true;
 	}
 
-	if (!g_strcmp0(gi.Argv(1), "restart"))
+	if (!g_strcmp0(gi.Argv(1), "restart") || !g_strcmp0(gi.Argv(1), "next_map"))
 		return false; // takes no args, this is okay
 
 	// command-specific help for some commands
@@ -726,7 +727,7 @@ static void G_Vote_f(g_edict_t *ent) {
 	if (Vote_Help(ent)) // vote command got help, ignore it
 		return;
 
-	if (!g_strcmp0(gi.Argv(1), "map")) { // ensure map is in maplist
+	if (!g_strcmp0(gi.Argv(1), "map")) { // ensure map is in map list
 		for (i = 0; i < g_map_list.count; i++) {
 			if (!g_strcmp0(gi.Argv(2), g_map_list.maps[i].name))
 				break; // found it
@@ -741,7 +742,7 @@ static void G_Vote_f(g_edict_t *ent) {
 	g_strlcpy(g_level.vote_cmd, vote, sizeof(g_level.vote_cmd));
 	g_level.vote_time = g_level.time;
 
-	ent->client->locals.persistent.vote = VOTE_YES; // client has implicity voted
+	ent->client->locals.persistent.vote = VOTE_YES; // client has implicitly voted
 	g_level.votes[VOTE_YES] = 1;
 
 	gi.ConfigString(CS_VOTE, g_level.vote_cmd); // send to layout
@@ -1123,6 +1124,8 @@ void G_ClientCommand(g_edict_t *ent) {
 		G_Give_f(ent);
 	else if (g_strcmp0(cmd, "god") == 0)
 		G_God_f(ent);
+	else if (g_strcmp0(cmd, "next_map") == 0)
+		G_NextMap_f(ent);
 	else if (g_strcmp0(cmd, "no_clip") == 0)
 		G_NoClip_f(ent);
 	else if (g_strcmp0(cmd, "wave") == 0)

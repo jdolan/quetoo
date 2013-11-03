@@ -347,7 +347,7 @@ static void G_CheckVote(void) {
  * @brief The time limit, frag limit, etc.. has been exceeded.
  */
 static void G_EndLevel(void) {
-	G_BeginIntermission(G_SelectNextmap());
+	G_BeginIntermission(G_SelectNextMap());
 }
 
 /*
@@ -1076,7 +1076,7 @@ static void G_ParseMapList(const char *file_name) {
 /*
  * @brief
  */
-const char *G_SelectNextmap(void) {
+const char *G_SelectNextMap(void) {
 	uint32_t i = 0;
 	if (g_map_list.count > 0) {
 		if (g_random_map->value) { // random weighted selection

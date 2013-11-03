@@ -43,8 +43,8 @@ static int32_t Cg_ParseScores_Compare(const void *a, const void *b) {
 	const g_score_t *sb = (g_score_t *) b;
 
 	// push spectators to the bottom of the board
-	const int16_t s1 = (sa->flags & SCORES_SPECTATOR ? -9999 : sa->score);
-	const int16_t s2 = (sb->flags & SCORES_SPECTATOR ? -9999 : sb->score);
+	const int16_t s1 = (sa->flags & SCORE_SPECTATOR ? -9999 : sa->score);
+	const int16_t s2 = (sb->flags & SCORE_SPECTATOR ? -9999 : sb->score);
 
 	return s2 - s1;
 }
@@ -171,8 +171,8 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	cgi.DrawImage(x, y, 0.33, info->icon);
 
 	// flag carrier icon
-	if (atoi(cgi.ConfigString(CS_CTF)) && s->flags & SCORES_CTF_FLAG) {
-		const int32_t team = (s->flags & SCORES_TEAM_GOOD) ? 1 : 2;
+	if (atoi(cgi.ConfigString(CS_CTF)) && s->flags & SCORE_CTF_FLAG) {
+		const int32_t team = (s->flags & SCORE_TEAM_GOOD) ? 1 : 2;
 		const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IT_PIC);
 		cgi.DrawImage(x, y, 0.33, flag);
 	}
@@ -201,7 +201,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	}
 
 	// spectating
-	if (s->flags & SCORES_SPECTATOR) {
+	if (s->flags & SCORE_SPECTATOR) {
 		cgi.DrawString(x, y, "spectating", CON_COLOR_DEFAULT);
 		return true;
 	}
@@ -211,7 +211,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 
 	// ready/not ready
 	if (atoi(cgi.ConfigString(CS_MATCH))) {
-		if (s->flags & SCORES_NOT_READY)
+		if (s->flags & SCORE_NOT_READY)
 			cgi.DrawString(x + cw * 14, y, "not ready", CON_COLOR_DEFAULT);
 	}
 	y += ch;
@@ -242,7 +242,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	for (i = 0; i < cg_score_state.num_scores; i++) {
 		const g_score_t *s = &cg_score_state.scores[i];
 
-		if (!(s->flags & SCORES_TEAM_GOOD))
+		if (!(s->flags & SCORE_TEAM_GOOD))
 			continue;
 
 		if ((int16_t) i == rows)
@@ -259,7 +259,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	for (i = 0; i < cg_score_state.num_scores; i++) {
 		const g_score_t *s = &cg_score_state.scores[i];
 
-		if (!(s->flags & SCORES_TEAM_EVIL))
+		if (!(s->flags & SCORE_TEAM_EVIL))
 			continue;
 
 		if ((int16_t) i == rows)
@@ -276,7 +276,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	for (i = 0; i < cg_score_state.num_scores; i++) {
 		const g_score_t *s = &cg_score_state.scores[i];
 
-		if (!(s->flags & SCORES_SPECTATOR))
+		if (!(s->flags & SCORE_SPECTATOR))
 			continue;
 
 		if ((int16_t) i == rows)

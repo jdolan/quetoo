@@ -162,12 +162,12 @@ typedef struct {
 /*
  * @brief Player scores flags.
  */
-#define SCORES_TEAM_GOOD	(1 << 0)
-#define SCORES_TEAM_EVIL	(1 << 1)
-#define SCORES_CTF_FLAG		(1 << 2)
-#define SCORES_NOT_READY	(1 << 3)
-#define SCORES_SPECTATOR	(1 << 4)
-#define SCORES_AGGREGATE	(1 << 5)
+#define SCORE_TEAM_GOOD		(1 << 0)
+#define SCORE_TEAM_EVIL		(1 << 1)
+#define SCORE_CTF_FLAG		(1 << 2)
+#define SCORE_NOT_READY		(1 << 3)
+#define SCORE_SPECTATOR		(1 << 4)
+#define SCORE_AGGREGATE		(1 << 5)
 
 /*
  * @brief Game-specific entity events.
