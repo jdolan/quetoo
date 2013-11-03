@@ -50,7 +50,7 @@ static void Cl_ParseDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_
 
 	if (ent->frame_num != cl.frame.frame_num - 1) {
 		// wasn't in last update, so initialize some things
-		// duplicate the current state so interpolation works
+		// duplicate the current state to avoid interpolation
 		ent->prev = *to;
 		VectorCopy(to->old_origin, ent->prev.origin);
 		ent->animation1.time = ent->animation2.time = 0;

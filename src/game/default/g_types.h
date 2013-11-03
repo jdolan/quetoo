@@ -400,10 +400,10 @@ typedef struct {
  * @brief Movement states.
  */
 typedef enum {
-	MOVE_STATE_TOP,
 	MOVE_STATE_BOTTOM,
 	MOVE_STATE_GOING_UP,
-	MOVE_STATE_GOING_DOWN
+	MOVE_STATE_GOING_DOWN,
+	MOVE_STATE_TOP,
 } g_move_state_t;
 
 /*

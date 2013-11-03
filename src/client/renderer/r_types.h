@@ -750,8 +750,7 @@ typedef struct {
 
 	thread_t *thread; // client thread which populates view
 
-	c_trace_t trace; // occlusion testing
-	r_entity_t *trace_ent;
+	const r_entity_t *current_entity; // entity being rendered
 
 	// counters, reset each frame
 

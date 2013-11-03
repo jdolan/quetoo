@@ -29,8 +29,10 @@
 static void R_UpdateMaterial(r_material_t *m) {
 	r_stage_t *s;
 
-	if (r_view.time - m->time < UPDATE_THRESHOLD)
-		return;
+	if (!r_view.current_entity) {
+		if (r_view.time - m->time < UPDATE_THRESHOLD)
+			return;
+	}
 
 	m->time = r_view.time;
 
@@ -54,9 +56,13 @@ static void R_UpdateMaterial(r_material_t *m) {
 			s->scroll.dt = s->scroll.t * r_view.time / 1000.0;
 
 		if (s->flags & STAGE_ANIM) {
-			if (r_view.time >= s->anim.dtime) { // change frames
-				s->anim.dtime = r_view.time + (1000 / s->anim.fps);
-				s->image = s->anim.frames[++s->anim.dframe % s->anim.num_frames];
+			if (s->anim.fps) {
+				if (r_view.time >= s->anim.dtime) { // change frames
+					s->anim.dtime = r_view.time + (1000 / s->anim.fps);
+					s->image = s->anim.frames[++s->anim.dframe % s->anim.num_frames];
+				}
+			} else {
+				s->image = s->anim.frames[r_view.current_entity->frame % s->anim.num_frames];
 			}
 		}
 	}
@@ -611,7 +617,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (*c == '\0')
 			break;
 
-		if (!g_strcmp0(c, "texture")) {
+		if (!g_strcmp0(c, "texture") || !g_strcmp0(c, "diffuse")) {
 
 			c = ParseToken(buffer);
 			if (*c == '#') {

@@ -235,30 +235,36 @@ void R_CullEntities(void *data __attribute__((unused))) {
  * @brief
  */
 void R_DrawBspEntities() {
-	const r_entity_t *e;
 
-	e = r_entities.bsp;
+	const r_entity_t *e = r_entities.bsp;
 
 	while (e) {
-		if (!e->culled)
+		if (!e->culled) {
+			r_view.current_entity = e;
 			R_DrawBspInlineModel(e);
+		}
 		e = e->next;
 	}
+
+	r_view.current_entity = NULL;
 }
 
 /*
  * @brief
  */
 static void R_DrawMeshEntities(r_entity_t *ents) {
-	r_entity_t *e;
 
-	e = ents;
+	const r_entity_t *e = ents;
 
 	while (e) {
-		if (!e->culled)
+		if (!e->culled) {
+			r_view.current_entity = e;
 			R_DrawMeshModel(e);
+		}
 		e = e->next;
 	}
+
+	r_view.current_entity = NULL;
 }
 
 /*

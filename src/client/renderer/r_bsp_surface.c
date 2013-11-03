@@ -78,7 +78,7 @@ static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
  * @brief
  */
 static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
-	register size_t i;
+	size_t i;
 
 	R_SetArrayState(r_model_state.world);
 
@@ -111,7 +111,7 @@ static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
  * @brief
  */
 static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
-	register size_t i;
+	size_t i;
 
 	R_EnableTexture(&texunit_diffuse, false);
 

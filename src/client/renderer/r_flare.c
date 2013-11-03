@@ -117,7 +117,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		}
 
 		// periodically test visibility to ramp alpha
-		if (r_view.time - f->time > 20) {
+		if (r_view.time - f->time > 15) {
 
 			if (r_view.time - f->time > 500) // reset old flares
 				f->alpha = 0;

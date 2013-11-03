@@ -575,4 +575,9 @@ void G_RunEntity(g_edict_t *ent) {
 			gi.Error("Bad move type %i\n", ent->locals.move_type);
 			break;
 	}
+
+	// update BSP sub-model animations based on move state
+	if (ent->solid == SOLID_BSP) {
+		ent->s.animation1 = ent->locals.move_info.state;
+	}
 }

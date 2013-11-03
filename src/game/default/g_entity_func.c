@@ -25,7 +25,9 @@
  * @brief
  */
 static void G_func_areaportal_Use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
+
 	ent->locals.count ^= 1; // toggle state
+
 	gi.SetAreaPortalState(ent->locals.area_portal, ent->locals.count);
 }
 
@@ -36,7 +38,9 @@ static void G_func_areaportal_Use(g_edict_t *ent, g_edict_t *other __attribute__
  targetname : The target name of this entity if it is to be triggered.
  */
 void G_func_areaportal(g_edict_t *ent) {
+
 	ent->locals.Use = G_func_areaportal_Use;
+
 	ent->locals.count = 0; // always start closed;
 }
 
@@ -44,7 +48,9 @@ void G_func_areaportal(g_edict_t *ent) {
  * @brief
  */
 static void G_MoveInfo_Done(g_edict_t *ent) {
+
 	VectorClear(ent->locals.velocity);
+
 	ent->locals.move_info.Done(ent);
 }
 
@@ -53,7 +59,7 @@ static void G_MoveInfo_Done(g_edict_t *ent) {
  */
 static void G_MoveInfo_End(g_edict_t *ent) {
 
-	if (ent->locals.move_info.remaining_distance == 0) {
+	if (ent->locals.move_info.remaining_distance == 0.0) {
 		G_MoveInfo_Done(ent);
 		return;
 	}
@@ -69,20 +75,18 @@ static void G_MoveInfo_End(g_edict_t *ent) {
  * has reached its destination.
  */
 static void G_MoveInfo_Constant(g_edict_t *ent) {
-	vec_t frames;
+	g_move_info_t *move = &ent->locals.move_info;
 
-	if ((ent->locals.move_info.speed * gi.frame_seconds)
-			>= ent->locals.move_info.remaining_distance) {
+	if ((move->speed * gi.frame_seconds) >= move->remaining_distance) {
 		G_MoveInfo_End(ent);
 		return;
 	}
 
-	VectorScale(ent->locals.move_info.dir, ent->locals.move_info.speed, ent->locals.velocity);
-	frames = floor(
-			(ent->locals.move_info.remaining_distance / ent->locals.move_info.speed)
-					/ gi.frame_seconds);
-	ent->locals.move_info.remaining_distance -= frames * ent->locals.move_info.speed
-			* gi.frame_seconds;
+	VectorScale(move->dir, move->speed, ent->locals.velocity);
+	const vec_t frames = floor((move->remaining_distance / move->speed) / gi.frame_seconds);
+
+	move->remaining_distance -= frames * move->speed * gi.frame_seconds;
+
 	ent->locals.next_think = g_level.time + (frames * gi.frame_millis);
 	ent->locals.Think = G_MoveInfo_End;
 }
@@ -93,36 +97,34 @@ static void G_MoveInfo_Constant(g_edict_t *ent) {
  * @brief Updates the acceleration parameters for the specified move. This determines
  * whether we should accelerate or decelerate based on the distance remaining.
  */
-static void G_MoveInfo_UpdateAcceleration(g_move_info_t *move_info) {
-	vec_t accel_dist;
-	vec_t decel_dist;
+static void G_MoveInfo_UpdateAcceleration(g_move_info_t *move) {
 
-	move_info->move_speed = move_info->speed;
+	move->move_speed = move->speed;
 
-	if (move_info->remaining_distance < move_info->accel) {
-		move_info->current_speed = move_info->remaining_distance;
+	if (move->remaining_distance < move->accel) {
+		move->current_speed = move->remaining_distance;
 		return;
 	}
 
-	accel_dist = AccelerationDistance(move_info->speed, move_info->accel);
-	decel_dist = AccelerationDistance(move_info->speed, move_info->decel);
+	const vec_t accel_dist = AccelerationDistance(move->speed, move->accel);
+	vec_t decel_dist = AccelerationDistance(move->speed, move->decel);
 
-	if ((move_info->remaining_distance - accel_dist - decel_dist) < 0) {
-		vec_t v;
+	if ((move->remaining_distance - accel_dist - decel_dist) < 0) {
+		const vec_t v = (move->accel + move->decel) / (move->accel * move->decel);
 
-		v = (move_info->accel + move_info->decel) / (move_info->accel * move_info->decel);
-		move_info->move_speed = (-2 + sqrt(4 - 4 * v * (-2 * move_info->remaining_distance))) / (2
-				* v);
-		decel_dist = AccelerationDistance(move_info->move_speed, move_info->decel);
+		move->move_speed = (-2 + sqrt(4 - 4 * v * (-2 * move->remaining_distance))) / (2 * v);
+
+		decel_dist = AccelerationDistance(move->move_speed, move->decel);
 	}
 
-	move_info->decel_distance = decel_dist;
+	move->decel_distance = decel_dist;
 }
 
 /*
  * @brief Applies any acceleration / deceleration based on the distance remaining.
  */
 static void G_MoveInfo_Accelerate(g_move_info_t *move_info) {
+
 	// are we decelerating?
 	if (move_info->remaining_distance <= move_info->decel_distance) {
 		if (move_info->remaining_distance < move_info->decel_distance) {
@@ -191,40 +193,42 @@ static void G_MoveInfo_Accelerate(g_move_info_t *move_info) {
  * and decelerate towards the end.
  */
 static void G_MoveInfo_Accelerative(g_edict_t *ent) {
+	g_move_info_t *move = &ent->locals.move_info;
 
-	ent->locals.move_info.remaining_distance -= ent->locals.move_info.current_speed;
+	move->remaining_distance -= move->current_speed;
 
-	if (ent->locals.move_info.current_speed == 0) // starting or blocked
+	if (move->current_speed == 0) // starting or blocked
 		G_MoveInfo_UpdateAcceleration(&ent->locals.move_info);
 
 	G_MoveInfo_Accelerate(&ent->locals.move_info);
 
 	// will the entire move complete on next frame?
-	if (ent->locals.move_info.remaining_distance <= ent->locals.move_info.current_speed) {
+	if (move->remaining_distance <= move->current_speed) {
 		G_MoveInfo_End(ent);
 		return;
 	}
 
-	VectorScale(ent->locals.move_info.dir, ent->locals.move_info.current_speed * gi.frame_rate, ent->locals.velocity);
+	VectorScale(move->dir, move->current_speed * gi.frame_rate, ent->locals.velocity);
 	ent->locals.next_think = g_level.time + gi.frame_millis;
 	ent->locals.Think = G_MoveInfo_Accelerative;
 }
 
 /*
- * @brief Sets up movement for the specified entity. Both constant and accelerative
- * movements are initiated through this function.
+ * @brief Sets up movement for the specified entity. Both constant and
+ * accelerative movements are initiated through this function. Animations are
+ * also kicked off here.
  */
 static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest, void(*Done)(g_edict_t*)) {
+	g_move_info_t *move = &ent->locals.move_info;
 
 	VectorClear(ent->locals.velocity);
 
-	VectorSubtract(dest, ent->s.origin, ent->locals.move_info.dir);
-	ent->locals.move_info.remaining_distance = VectorNormalize(ent->locals.move_info.dir);
+	VectorSubtract(dest, ent->s.origin, move->dir);
+	move->remaining_distance = VectorNormalize(move->dir);
 
-	ent->locals.move_info.Done = Done;
+	move->Done = Done;
 
-	if (ent->locals.move_info.speed == ent->locals.move_info.accel && ent->locals.move_info.speed
-			== ent->locals.move_info.decel) { // constant
+	if (move->speed == move->accel && move->speed == move->decel) { // constant
 		if (g_level.current_entity == ((ent->locals.flags & FL_TEAM_SLAVE)
 				? ent->locals.team_master : ent)) {
 			G_MoveInfo_Constant(ent);
@@ -233,7 +237,7 @@ static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest, void(*Done)(g_edict_t*)
 			ent->locals.Think = G_MoveInfo_Constant;
 		}
 	} else { // accelerative
-		ent->locals.move_info.current_speed = 0;
+		move->current_speed = 0;
 		ent->locals.Think = G_MoveInfo_Accelerative;
 		ent->locals.next_think = g_level.time + gi.frame_millis;
 	}
@@ -243,7 +247,9 @@ static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest, void(*Done)(g_edict_t*)
  * @brief
  */
 static void G_MoveInfo_Angular_Done(g_edict_t *ent) {
+
 	VectorClear(ent->locals.avelocity);
+
 	ent->locals.move_info.Done(ent);
 }
 
@@ -251,19 +257,20 @@ static void G_MoveInfo_Angular_Done(g_edict_t *ent) {
  * @brief
  */
 static void G_MoveInfo_Angular_Final(g_edict_t *ent) {
-	vec3_t move;
+	g_move_info_t *move = &ent->locals.move_info;
+	vec3_t delta;
 
-	if (ent->locals.move_info.state == MOVE_STATE_GOING_UP)
-		VectorSubtract(ent->locals.move_info.end_angles, ent->s.angles, move);
+	if (move->state == MOVE_STATE_GOING_UP)
+		VectorSubtract(move->end_angles, ent->s.angles, delta);
 	else
-		VectorSubtract(ent->locals.move_info.start_angles, ent->s.angles, move);
+		VectorSubtract(move->start_angles, ent->s.angles, delta);
 
-	if (VectorCompare(move, vec3_origin)) {
+	if (VectorCompare(delta, vec3_origin)) {
 		G_MoveInfo_Angular_Done(ent);
 		return;
 	}
 
-	VectorScale(move, 1.0 / gi.frame_seconds, ent->locals.avelocity);
+	VectorScale(delta, 1.0 / gi.frame_seconds, ent->locals.avelocity);
 
 	ent->locals.Think = G_MoveInfo_Angular_Done;
 	ent->locals.next_think = g_level.time + gi.frame_millis;
@@ -273,19 +280,20 @@ static void G_MoveInfo_Angular_Final(g_edict_t *ent) {
  * @brief
  */
 static void G_MoveInfo_Angular_Begin(g_edict_t *ent) {
-	vec3_t move;
+	g_move_info_t *move = &ent->locals.move_info;
+	vec3_t delta;
 
 	// set move to the vector needed to move
-	if (ent->locals.move_info.state == MOVE_STATE_GOING_UP)
-		VectorSubtract(ent->locals.move_info.end_angles, ent->s.angles, move);
+	if (move->state == MOVE_STATE_GOING_UP)
+		VectorSubtract(move->end_angles, ent->s.angles, delta);
 	else
-		VectorSubtract(ent->locals.move_info.start_angles, ent->s.angles, move);
+		VectorSubtract(move->start_angles, ent->s.angles, delta);
 
 	// calculate length of vector
-	const vec_t len = VectorLength(move);
+	const vec_t len = VectorLength(delta);
 
 	// divide by speed to get time to reach dest
-	const vec_t time = len / ent->locals.move_info.speed;
+	const vec_t time = len / move->speed;
 
 	if (time < gi.frame_seconds) {
 		G_MoveInfo_Angular_Final(ent);
@@ -295,7 +303,7 @@ static void G_MoveInfo_Angular_Begin(g_edict_t *ent) {
 	const vec_t frames = floor(time / gi.frame_seconds);
 
 	// scale the move vector by the time spent traveling to get velocity
-	VectorScale(move, 1.0 / time, ent->locals.avelocity);
+	VectorScale(delta, 1.0 / time, ent->locals.avelocity);
 
 	// set next_think to trigger a think when dest is reached
 	ent->locals.next_think = g_level.time + frames * gi.frame_millis;
@@ -310,8 +318,9 @@ static void G_MoveInfo_Angular_Init(g_edict_t *ent, void(*Done)(g_edict_t *)) {
 	VectorClear(ent->locals.avelocity);
 
 	ent->locals.move_info.Done = Done;
-	if (g_level.current_entity == ((ent->locals.flags & FL_TEAM_SLAVE) ? ent->locals.team_master
-			: ent)) {
+
+	const g_edict_t *master = (ent->locals.flags & FL_TEAM_SLAVE) ? ent->locals.team_master : ent;
+	if (g_level.current_entity == master) {
 		G_MoveInfo_Angular_Begin(ent);
 	} else {
 		ent->locals.next_think = g_level.time + gi.frame_millis;
@@ -321,59 +330,75 @@ static void G_MoveInfo_Angular_Init(g_edict_t *ent, void(*Done)(g_edict_t *)) {
 
 #define PLAT_LOW_TRIGGER	1
 
-static void G_func_plat_GoDown(g_edict_t *ent);
+static void G_func_plat_GoingDown(g_edict_t *ent);
 
 /*
  * @brief
  */
-static void G_func_plat_Up(g_edict_t *ent) {
+static void G_func_plat_Top(g_edict_t *ent) {
+
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
+
 		if (ent->locals.move_info.sound_end)
 			gi.Sound(ent, ent->locals.move_info.sound_end, ATTEN_IDLE);
+
 		ent->s.sound = 0;
 	}
+
 	ent->locals.move_info.state = MOVE_STATE_TOP;
 
-	ent->locals.Think = G_func_plat_GoDown;
+	ent->locals.Think = G_func_plat_GoingDown;
 	ent->locals.next_think = g_level.time + 3000;
 }
 
 /*
  * @brief
  */
-static void G_func_plat_Down(g_edict_t *ent) {
+static void G_func_plat_Bottom(g_edict_t *ent) {
+
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
+
 		if (ent->locals.move_info.sound_end)
 			gi.Sound(ent, ent->locals.move_info.sound_end, ATTEN_IDLE);
+
 		ent->s.sound = 0;
 	}
+
 	ent->locals.move_info.state = MOVE_STATE_BOTTOM;
 }
 
 /*
  * @brief
  */
-static void G_func_plat_GoDown(g_edict_t *ent) {
+static void G_func_plat_GoingDown(g_edict_t *ent) {
+
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
+
 		if (ent->locals.move_info.sound_start)
 			gi.Sound(ent, ent->locals.move_info.sound_start, ATTEN_IDLE);
+
 		ent->s.sound = ent->locals.move_info.sound_middle;
 	}
+
 	ent->locals.move_info.state = MOVE_STATE_GOING_DOWN;
-	G_MoveInfo_Init(ent, ent->locals.move_info.end_origin, G_func_plat_Down);
+	G_MoveInfo_Init(ent, ent->locals.move_info.end_origin, G_func_plat_Bottom);
 }
 
 /*
  * @brief
  */
-static void G_func_plat_GoUp(g_edict_t *ent) {
+static void G_func_plat_GoingUp(g_edict_t *ent) {
+
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
+
 		if (ent->locals.move_info.sound_start)
 			gi.Sound(ent, ent->locals.move_info.sound_start, ATTEN_IDLE);
+
 		ent->s.sound = ent->locals.move_info.sound_middle;
 	}
+
 	ent->locals.move_info.state = MOVE_STATE_GOING_UP;
-	G_MoveInfo_Init(ent, ent->locals.move_info.start_origin, G_func_plat_Up);
+	G_MoveInfo_Init(ent, ent->locals.move_info.start_origin, G_func_plat_Top);
 }
 
 /*
@@ -388,9 +413,9 @@ static void G_func_plat_Blocked(g_edict_t *self, g_edict_t *other) {
 			0, MOD_CRUSH);
 
 	if (self->locals.move_info.state == MOVE_STATE_GOING_UP)
-		G_func_plat_GoDown(self);
+		G_func_plat_GoingDown(self);
 	else if (self->locals.move_info.state == MOVE_STATE_GOING_DOWN)
-		G_func_plat_GoUp(self);
+		G_func_plat_GoingUp(self);
 }
 
 /*
@@ -401,7 +426,7 @@ static void G_func_plat_Use(g_edict_t *ent, g_edict_t *other __attribute__((unus
 	if (ent->locals.Think)
 		return; // already down
 
-	G_func_plat_GoDown(ent);
+	G_func_plat_GoingDown(ent);
 }
 
 /*
@@ -419,7 +444,7 @@ static void G_func_plat_Touch(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *p
 	ent = ent->locals.enemy; // now point at the plat, not the trigger
 
 	if (ent->locals.move_info.state == MOVE_STATE_BOTTOM)
-		G_func_plat_GoUp(ent);
+		G_func_plat_GoingUp(ent);
 	else if (ent->locals.move_info.state == MOVE_STATE_TOP)
 		ent->locals.next_think = g_level.time + 1000; // the player is still on the plat, so delay going down
 }
@@ -449,7 +474,7 @@ static void G_func_plat_CreateTrigger(g_edict_t *ent) {
 	tmin[2] = tmax[2] - (ent->locals.pos1[2] - ent->locals.pos2[2] + g_game.spawn.lip);
 
 	if (ent->locals.spawn_flags & PLAT_LOW_TRIGGER)
-		tmax[2] = tmin[2] + 8;
+		tmax[2] = tmin[2] + 8.0;
 
 	if (tmax[0] - tmin[0] <= 0) {
 		tmin[0] = (ent->mins[0] + ent->maxs[0]) * 0.5;
@@ -653,10 +678,11 @@ static void G_func_button_Done(g_edict_t *self) {
  * @brief
  */
 static void G_func_button_Reset(g_edict_t *self) {
+	g_move_info_t *move = &self->locals.move_info;
 
-	self->locals.move_info.state = MOVE_STATE_GOING_DOWN;
+	move->state = MOVE_STATE_GOING_DOWN;
 
-	G_MoveInfo_Init(self, self->locals.move_info.start_origin, G_func_button_Done);
+	G_MoveInfo_Init(self, move->start_origin, G_func_button_Done);
 
 	if (self->locals.health)
 		self->locals.take_damage = true;
@@ -666,13 +692,14 @@ static void G_func_button_Reset(g_edict_t *self) {
  * @brief
  */
 static void G_func_button_Wait(g_edict_t *self) {
+	g_move_info_t *move = &self->locals.move_info;
 
-	self->locals.move_info.state = MOVE_STATE_TOP;
+	move->state = MOVE_STATE_TOP;
 
 	G_UseTargets(self, self->locals.activator);
 
-	if (self->locals.move_info.wait >= 0) {
-		self->locals.next_think = g_level.time + self->locals.move_info.wait * 1000;
+	if (move->wait >= 0) {
+		self->locals.next_think = g_level.time + move->wait * 1000;
 		self->locals.Think = G_func_button_Reset;
 	}
 }
@@ -681,23 +708,24 @@ static void G_func_button_Wait(g_edict_t *self) {
  * @brief
  */
 static void G_func_button_Activate(g_edict_t *self) {
+	g_move_info_t *move = &self->locals.move_info;
 
-	if (self->locals.move_info.state == MOVE_STATE_GOING_UP || self->locals.move_info.state
-			== MOVE_STATE_TOP)
+	if (move->state == MOVE_STATE_GOING_UP || move->state == MOVE_STATE_TOP)
 		return;
 
-	self->locals.move_info.state = MOVE_STATE_GOING_UP;
+	move->state = MOVE_STATE_GOING_UP;
 
-	if (self->locals.move_info.sound_start && !(self->locals.flags & FL_TEAM_SLAVE))
-		gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE);
+	if (move->sound_start && !(self->locals.flags & FL_TEAM_SLAVE))
+		gi.Sound(self, move->sound_start, ATTEN_IDLE);
 
-	G_MoveInfo_Init(self, self->locals.move_info.end_origin, G_func_button_Wait);
+	G_MoveInfo_Init(self, move->end_origin, G_func_button_Wait);
 }
 
 /*
  * @brief
  */
 static void G_func_button_Use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
+
 	self->locals.activator = activator;
 	G_func_button_Activate(self);
 }
@@ -720,9 +748,11 @@ static void G_func_button_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t
 
 static void G_func_button_Die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker,
 		int16_t damage __attribute__((unused)), const vec3_t pos __attribute__((unused))) {
-	self->locals.activator = attacker;
+
 	self->locals.health = self->locals.max_health;
 	self->locals.take_damage = false;
+
+	self->locals.activator = attacker;
 	G_func_button_Activate(self);
 }
 
@@ -751,16 +781,16 @@ void G_func_button(g_edict_t *ent) {
 		ent->locals.move_info.sound_start = gi.SoundIndex("world/switch");
 
 	if (!ent->locals.speed)
-		ent->locals.speed = 40;
+		ent->locals.speed = 40.0;
 	if (!ent->locals.accel)
 		ent->locals.accel = ent->locals.speed;
 	if (!ent->locals.decel)
 		ent->locals.decel = ent->locals.speed;
 
 	if (!ent->locals.wait)
-		ent->locals.wait = 3;
+		ent->locals.wait = 3.0;
 	if (!g_game.spawn.lip)
-		g_game.spawn.lip = 4;
+		g_game.spawn.lip = 4.0;
 
 	VectorCopy(ent->s.origin, ent->locals.pos1);
 	abs_move_dir[0] = fabsf(ent->locals.move_dir[0]);
@@ -793,11 +823,11 @@ void G_func_button(g_edict_t *ent) {
 	gi.LinkEdict(ent);
 }
 
-#define DOOR_START_OPEN		1
-#define DOOR_TOGGLE			2
-#define DOOR_REVERSE		4
-#define DOOR_X_AXIS			8
-#define DOOR_Y_AXIS			16
+#define DOOR_START_OPEN		0x1
+#define DOOR_TOGGLE			0x2
+#define DOOR_REVERSE		0x4
+#define DOOR_X_AXIS			0x8
+#define DOOR_Y_AXIS			0x10
 
 /*
  * @brief
@@ -815,24 +845,28 @@ static void G_func_door_UseAreaPortals(g_edict_t *self, _Bool open) {
 	}
 }
 
-static void G_func_door_GoDown(g_edict_t *self);
+static void G_func_door_GoingDown(g_edict_t *self);
 
 /*
  * @brief
  */
-static void G_func_door_Up(g_edict_t *self) {
+static void G_func_door_Top(g_edict_t *self) {
+
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
+
 		if (self->locals.move_info.sound_end)
 			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE);
+
 		self->s.sound = 0;
 	}
+
 	self->locals.move_info.state = MOVE_STATE_TOP;
 
 	if (self->locals.spawn_flags & DOOR_TOGGLE)
 		return;
 
 	if (self->locals.move_info.wait >= 0) {
-		self->locals.Think = G_func_door_GoDown;
+		self->locals.Think = G_func_door_GoingDown;
 		self->locals.next_think = g_level.time + self->locals.move_info.wait * 1000;
 	}
 }
@@ -840,12 +874,16 @@ static void G_func_door_Up(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_func_door_Down(g_edict_t *self) {
+static void G_func_door_Bottom(g_edict_t *self) {
+
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
+
 		if (self->locals.move_info.sound_end)
 			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE);
+
 		self->s.sound = 0;
 	}
+
 	self->locals.move_info.state = MOVE_STATE_BOTTOM;
 	G_func_door_UseAreaPortals(self, false);
 }
@@ -853,7 +891,7 @@ static void G_func_door_Down(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_func_door_GoDown(g_edict_t *self) {
+static void G_func_door_GoingDown(g_edict_t *self) {
 	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 		if (self->locals.move_info.sound_start)
 			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE);
@@ -866,16 +904,16 @@ static void G_func_door_GoDown(g_edict_t *self) {
 
 	self->locals.move_info.state = MOVE_STATE_GOING_DOWN;
 	if (!g_strcmp0(self->class_name, "func_door")) {
-		G_MoveInfo_Init(self, self->locals.move_info.start_origin, G_func_door_Down);
+		G_MoveInfo_Init(self, self->locals.move_info.start_origin, G_func_door_Bottom);
 	} else { // rotating
-		G_MoveInfo_Angular_Init(self, G_func_door_Down);
+		G_MoveInfo_Angular_Init(self, G_func_door_Bottom);
 	}
 }
 
 /*
  * @brief
  */
-static void G_func_door_GoUp(g_edict_t *self, g_edict_t *activator) {
+static void G_func_door_GoingUp(g_edict_t *self, g_edict_t *activator) {
 	if (self->locals.move_info.state == MOVE_STATE_GOING_UP)
 		return; // already going up
 
@@ -892,9 +930,9 @@ static void G_func_door_GoUp(g_edict_t *self, g_edict_t *activator) {
 	}
 	self->locals.move_info.state = MOVE_STATE_GOING_UP;
 	if (!g_strcmp0(self->class_name, "func_door")) {
-		G_MoveInfo_Init(self, self->locals.move_info.end_origin, G_func_door_Up);
+		G_MoveInfo_Init(self, self->locals.move_info.end_origin, G_func_door_Top);
 	} else { // rotating
-		G_MoveInfo_Angular_Init(self, G_func_door_Up);
+		G_MoveInfo_Angular_Init(self, G_func_door_Top);
 	}
 
 	G_UseTargets(self, activator);
@@ -917,7 +955,7 @@ static void G_func_door_Use(g_edict_t *self, g_edict_t *other __attribute__((unu
 			for (ent = self; ent; ent = ent->locals.team_chain) {
 				ent->locals.message = NULL;
 				ent->locals.Touch = NULL;
-				G_func_door_GoDown(ent);
+				G_func_door_GoingDown(ent);
 			}
 			return;
 		}
@@ -927,7 +965,7 @@ static void G_func_door_Use(g_edict_t *self, g_edict_t *other __attribute__((unu
 	for (ent = self; ent; ent = ent->locals.team_chain) {
 		ent->locals.message = NULL;
 		ent->locals.Touch = NULL;
-		G_func_door_GoUp(ent, activator);
+		G_func_door_GoingUp(ent, activator);
 	}
 }
 
@@ -1041,10 +1079,10 @@ static void G_func_door_Blocked(g_edict_t *self, g_edict_t *other) {
 	if (self->locals.move_info.wait >= 0) {
 		if (self->locals.move_info.state == MOVE_STATE_GOING_DOWN) {
 			for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain)
-				G_func_door_GoUp(ent, ent->locals.activator);
+				G_func_door_GoingUp(ent, ent->locals.activator);
 		} else {
 			for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain)
-				G_func_door_GoDown(ent);
+				G_func_door_GoingDown(ent);
 		}
 	}
 }
