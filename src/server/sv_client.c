@@ -226,7 +226,7 @@ static void Sv_NextDownload_f(void) {
  * @brief
  */
 static void Sv_Download_f(void) {
-	static const char *allowed_patterns[] = {
+	const char *allowed_patterns[] = {
 			"*.zip",
 			"maps/*",
 			"models/*",

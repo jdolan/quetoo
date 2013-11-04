@@ -67,7 +67,7 @@
 /*
  * @brief Speed constants; intended velocities are clipped to these.
  */
-#define PM_SPEED_AIR			380.0
+#define PM_SPEED_AIR			350.0
 #define PM_SPEED_CURRENT		100.0
 #define PM_SPEED_DUCK_STAND		225.0
 #define PM_SPEED_DUCKED			140.0
@@ -80,10 +80,10 @@
 #define PM_SPEED_SPECTATOR		350.0
 #define PM_SPEED_STOP			100.0
 #define PM_SPEED_UP				0.1
-#define PM_SPEED_TRICK_JUMP		60.0
-#define PM_SPEED_WATER			125.0
+#define PM_SPEED_TRICK_JUMP		45.0
+#define PM_SPEED_WATER			100.0
 #define PM_SPEED_WATER_JUMP		450.0
-#define PM_SPEED_WATER_SINK		50.0
+#define PM_SPEED_WATER_SINK		-30.0
 
 /*
  * @brief The vertical distance afforded in step climbing.

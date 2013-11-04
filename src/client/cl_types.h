@@ -40,7 +40,7 @@ typedef struct {
 	player_state_t ps;
 	uint16_t num_entities;
 	uint32_t entity_state; // non-masked index into cl.entity_states array
-	_Bool valid; // cleared if delta parsing failed
+	_Bool valid; // false if delta parsing failed
 } cl_frame_t;
 
 typedef struct {

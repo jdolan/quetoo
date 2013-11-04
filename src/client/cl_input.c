@@ -250,10 +250,8 @@ static void Cl_CenterView_f(void) {
  * @brief Returns the fraction of the command interval for which the key was down.
  */
 static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
-	uint32_t msec;
-	vec_t v;
 
-	msec = key->msec;
+	uint32_t msec = key->msec;
 	key->msec = 0;
 
 	if (key->state) { // still down, reset downtime for next frame
@@ -261,14 +259,9 @@ static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 		key->down_time = cls.real_time;
 	}
 
-	v = (msec * 1000.0) / (cmd_msec * 1000.0);
+	const vec_t frac = (msec * 1000.0) / (cmd_msec * 1000.0);
 
-	if (v > 1.0)
-		v = 1.0;
-	else if (v < 0.0)
-		v = 0.0;
-
-	return v;
+	return Clamp(frac, 0.0, 1.0);
 }
 
 /*

@@ -343,11 +343,18 @@ static void Pm_StepSlideMove(void) {
  * @brief Handles friction against user intentions, and based on contents.
  */
 static void Pm_Friction(void) {
+	vec3_t vel;
 
-	const vec_t speed = VectorLength(pml.velocity);
+	VectorCopy(pml.velocity, vel);
 
-	if (speed < 2.0) {
-		VectorClear(pml.velocity);
+	if (pm->s.flags & PMF_ON_GROUND) {
+		vel[2] = 0.0;
+	}
+
+	const vec_t speed = VectorLength(vel);
+
+	if (speed < 1.0) {
+		pml.velocity[0] = pml.velocity[1] = 0.0;
 		return;
 	}
 
@@ -377,17 +384,8 @@ static void Pm_Friction(void) {
 		}
 	}
 
-	friction *= control * pml.time;
-
-	// scale the velocity
-	vec_t scale = speed - friction;
-
-	if (scale < 2.0) {
-		VectorClear(pml.velocity);
-		return;
-	}
-
-	scale /= speed;
+	// scale the velocity, taking care to not reverse direction
+	vec_t scale = MAX(0.0, speed - (friction * control * pml.time)) / speed;
 
 	VectorScale(pml.velocity, scale, pml.velocity);
 }
@@ -396,15 +394,14 @@ static void Pm_Friction(void) {
  * @brief Handles user intended acceleration.
  */
 static void Pm_Accelerate(vec3_t dir, vec_t speed, vec_t accel) {
-	vec_t add_speed, accel_speed, current_speed;
 
-	current_speed = DotProduct(pml.velocity, dir);
-	add_speed = speed - current_speed;
+	const vec_t current_speed = DotProduct(pml.velocity, dir);
+	const vec_t add_speed = speed - current_speed;
 
 	if (add_speed <= 0.0)
 		return;
 
-	accel_speed = accel * pml.time * speed;
+	vec_t accel_speed = accel * pml.time * speed;
 
 	if (accel_speed > add_speed)
 		accel_speed = add_speed;
@@ -912,7 +909,7 @@ static void Pm_WaterMove(void) {
 		return;
 	}
 
-	Pm_Debug("%s\n", vtos(pml.origin));
+	// Pm_Debug("%s\n", vtos(pml.origin));
 
 	Pm_Friction();
 
@@ -926,7 +923,7 @@ static void Pm_WaterMove(void) {
 
 	// and sink if idle
 	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up) {
-		if (pml.velocity[2] > -PM_SPEED_WATER_SINK) {
+		if (pml.velocity[2] > PM_SPEED_WATER_SINK) {
 			Pm_Gravity();
 		}
 	}
