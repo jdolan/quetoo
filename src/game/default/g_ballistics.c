@@ -22,21 +22,17 @@
 #include "g_local.h"
 
 /*
- * @brief Adds a fraction of the player's velocity to any projectiles they emit. This
- * is more realistic, but very strange feeling in Quake, so we keep the fraction
- * quite low.
+ * @brief Adds a fraction of the player's velocity to any projectiles they
+ * emit. This is more realistic, but very strange feeling in Quake, so the
+ * scale is generally kept quite low.
  */
-static void G_PlayerProjectile(g_edict_t *ent, const vec3_t scale) {
+static void G_PlayerProjectile(g_edict_t *ent, const vec_t scale) {
 
 	if (ent->owner) {
-		int32_t i;
-
-		for (i = 0; i < 3; i++) {
-			ent->locals.velocity[i] += scale[i] * ent->owner->locals.velocity[i];
-		}
-
+		const vec_t s = scale * g_player_projectile->value;
+		VectorMA(ent->locals.velocity, s, ent->owner->locals.velocity, ent->locals.velocity);
 	} else {
-		gi.Debug("No owner for %s", etos(ent));
+		gi.Debug("No owner for %s\n", etos(ent));
 	}
 }
 
@@ -201,9 +197,9 @@ void G_BlasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 
 	const vec3_t mins = { -1.0, -1.0, -1.0 };
 	const vec3_t maxs = { 1.0, 1.0, 1.0 };
-	const vec3_t scale = { 0.25, 0.25, 0.15 };
 
 	g_edict_t *projectile = G_Spawn(__func__);
+	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
 	VectorCopy(mins, projectile->mins);
@@ -211,19 +207,20 @@ void G_BlasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 	VectorAngles(dir, projectile->s.angles);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
+	G_PlayerProjectile(projectile, 0.25);
+
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
-	projectile->locals.move_type = MOVE_TYPE_FLY;
 	projectile->clip_mask = MASK_SHOT;
 	projectile->solid = SOLID_MISSILE;
-	projectile->s.effects = EF_BLASTER;
-	projectile->owner = ent;
-	projectile->locals.Touch = G_BlasterProjectile_Touch;
-	projectile->locals.Think = G_FreeEdict;
-	projectile->locals.next_think = g_level.time + 8000;
 	projectile->locals.damage = damage;
 	projectile->locals.knockback = knockback;
+	projectile->locals.move_type = MOVE_TYPE_FLY;
+	projectile->locals.next_think = g_level.time + 8000;
+	projectile->locals.Think = G_FreeEdict;
+	projectile->locals.Touch = G_BlasterProjectile_Touch;
+	projectile->s.effects = EF_BLASTER;
 
 	// set the color, overloading the client byte
 	if (ent->client) {
@@ -231,8 +228,6 @@ void G_BlasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 	} else {
 		projectile->s.client = 0;
 	}
-
-	G_PlayerProjectile(projectile, scale);
 
 	gi.LinkEdict(projectile);
 }
@@ -372,10 +367,11 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t const start, const vec3_t dir, i
 
 	const vec3_t mins = { -3.0, -3.0, -3.0 };
 	const vec3_t maxs = { 3.0, 3.0, 3.0 };
-	const vec3_t scale = { 0.3, 0.3, 0.3 };
+
 	vec3_t forward, right, up;
 
 	g_edict_t *projectile = G_Spawn(__func__);
+	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
 	VectorCopy(mins, projectile->mins);
@@ -388,13 +384,12 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t const start, const vec3_t dir, i
 	VectorMA(projectile->locals.velocity, 200.0 + Randomc() * 10.0, up, projectile->locals.velocity);
 	VectorMA(projectile->locals.velocity, Randomc() * 30.0, right, projectile->locals.velocity);
 
-	G_PlayerProjectile(projectile, scale);
+	G_PlayerProjectile(projectile, 0.33);
 
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
 	projectile->clip_mask = MASK_SHOT;
-	projectile->owner = ent;
 	projectile->solid = SOLID_MISSILE;
 	projectile->locals.avelocity[0] = -300.0 + 10 * Randomc();
 	projectile->locals.avelocity[1] = 50.0 * Randomc();
@@ -464,9 +459,9 @@ void G_RocketProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, in
 
 	const vec3_t mins = { -3.0, -3.0, -3.0 };
 	const vec3_t maxs = { 3.0, 3.0, 3.0 };
-	const vec3_t scale = { 0.25, 0.25, 0.15 };
 
 	g_edict_t *projectile = G_Spawn(__func__);
+	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
 	VectorAngles(dir, projectile->s.angles);
@@ -475,13 +470,12 @@ void G_RocketProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, in
 	VectorScale(dir, speed, projectile->locals.velocity);
 	VectorSet(projectile->locals.avelocity, 0.0, 0.0, 600.0);
 
-	G_PlayerProjectile(projectile, scale);
+	G_PlayerProjectile(projectile, 0.25);
 
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
 	projectile->clip_mask = MASK_SHOT;
-	projectile->owner = ent;
 	projectile->solid = SOLID_MISSILE;
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
@@ -553,21 +547,19 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_
 void G_HyperblasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback) {
 
-	const vec3_t scale = { 0.5, 0.5, 0.25 };
-
 	g_edict_t *projectile = G_Spawn(__func__);
+	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
 	VectorAngles(dir, projectile->s.angles);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
-	G_PlayerProjectile(projectile, scale);
+	G_PlayerProjectile(projectile, 0.25);
 
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
 	projectile->clip_mask = MASK_SHOT;
-	projectile->owner = ent;
 	projectile->solid = SOLID_MISSILE;
 	projectile->locals.damage = damage;
 	projectile->locals.knockback = knockback;
@@ -933,21 +925,19 @@ static void G_BfgProjectile_Think(g_edict_t *self) {
 void G_BfgProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback, vec_t damage_radius) {
 
-	const vec3_t scale = { 0.15, 0.15, 0.05 };
-
 	g_edict_t *projectile = G_Spawn(__func__);
+	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
-	G_PlayerProjectile(projectile, scale);
+	G_PlayerProjectile(projectile, 0.33);
 
 	if (G_ImmediateWall(ent, projectile)) {
 		VectorCopy(ent->s.origin, projectile->s.origin);
 	}
 
 	projectile->clip_mask = MASK_SHOT;
-	projectile->owner = ent;
 	projectile->solid = SOLID_MISSILE;
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;

@@ -344,8 +344,8 @@ void G_ClientEndFrame(g_edict_t *ent) {
 	g_client_t *client = ent->client;
 
 	// If the origin or velocity have changed since G_ClientThink(),
-	// update the pmove values. This will happen when the client
-	// is pushed by a bsp model or kicked by an explosion.
+	// update the pm_state_t values. This will happen when the client
+	// is pushed by another entity or kicked by an explosion.
 	//
 	// If it wasn't updated here, the view position would lag a frame
 	// behind the body position when pushed -- "sinking into plats"

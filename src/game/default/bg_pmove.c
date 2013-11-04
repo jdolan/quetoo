@@ -34,19 +34,22 @@ static pm_move_t *pm;
 /*
  * @brief A structure containing full floating point precision copies of all
  * movement variables. This is initialized with the player's last movement
- * at each call to Pmove (this is obviously not thread-safe).
+ * at each call to PM_Move (this is obviously not thread-safe).
  */
 typedef struct {
+
+	// float point precision copies
 	vec3_t origin;
-	vec3_t previous_origin; // in case movement fails
-
 	vec3_t velocity;
-	vec3_t previous_velocity; // for detecting landings
+	vec3_t view_offset;
 
-	vec3_t view_offset; // eye position in floating point
+	// previous values, in case movement fails
+	vec3_t previous_origin;
+	vec3_t previous_velocity;
+	vec3_t previous_view_offset;
 
 	vec3_t forward, right, up;
-	vec_t time; // in seconds
+	vec_t time; // the command milliseconds in seconds
 
 	c_bsp_surface_t *ground_surface;
 	c_bsp_plane_t ground_plane;
@@ -569,7 +572,7 @@ static void Pm_CategorizePosition(void) {
 	pm->water_level = pm->water_type = 0;
 
 	VectorCopy(pml.origin, pos);
-	pos[2] = pml.origin[2] + pm->mins[2] + 1.0;
+	pos[2] = pml.origin[2] + pm->mins[2] + PM_GROUND_DIST;
 
 	int32_t contents = pm->PointContents(pos);
 	if (contents & MASK_WATER) {
@@ -583,6 +586,7 @@ static void Pm_CategorizePosition(void) {
 
 		if (contents & MASK_WATER) {
 
+			pm->water_type |= contents;
 			pm->water_level = 2;
 
 			pos[2] = pml.origin[2] + pml.view_offset[2] + 1.0;
@@ -590,7 +594,9 @@ static void Pm_CategorizePosition(void) {
 			contents = pm->PointContents(pos);
 
 			if (contents & MASK_WATER) {
+				pm->water_type |= contents;
 				pm->water_level = 3;
+
 				pm->s.flags |= PMF_UNDER_WATER;
 			}
 		}
@@ -1074,7 +1080,6 @@ static void Pm_WalkMove(void) {
  * @brief
  */
 static _Bool Pm_GoodPosition(void) {
-	c_trace_t trace;
 	vec3_t pos;
 
 	if (pm->s.type == PM_SPECTATOR)
@@ -1082,62 +1087,50 @@ static _Bool Pm_GoodPosition(void) {
 
 	UnpackVector(pm->s.origin, pos);
 
-	trace = pm->Trace(pos, pos, pm->mins, pm->maxs);
-
-	return !trace.start_solid;
+	return !pm->Trace(pos, pos, pm->mins, pm->maxs).start_solid;
 }
 
 /*
- * @brief On exit, the origin will have a value that is pre-quantized to the 0.125
- * precision of the network channel and in a valid position.
+ * @brief On entry and exit, the origin is not necessarily quantized to the
+ * 0.125 unit precision afforded by the network channel. We must test the
+ * position, trying a series of small offsets to resolve a valid position.
  */
 static void Pm_SnapPosition(void) {
-	static const int16_t jitter_bits[8] = { 0, 4, 1, 2, 3, 5, 6, 7 };
-	int16_t i, sign[3], base[3];
+	const int16_t jitter_bits[8] = { 0, 4, 1, 2, 3, 5, 6, 7 };
+	int16_t i, sign[3];
 	size_t j;
-
-	// pack velocity for network transmission
-	PackVector(pml.velocity, pm->s.velocity);
 
 	// snap the origin, but be prepared to try nearby locations
 	for (i = 0; i < 3; i++) {
-
 		if (pml.origin[i] >= 0.0)
 			sign[i] = 1;
 		else
 			sign[i] = -1;
-
-		pm->s.origin[i] = (int16_t) (pml.origin[i] * 8.0);
-
-		if (pm->s.origin[i] * 0.125 == pml.origin[i])
-			sign[i] = 0;
 	}
 
-	// pack view offset for network transmission
-	PackVector(pml.view_offset, pm->s.view_offset);
-
-	VectorCopy(pm->s.origin, base);
-
-	// try all combinations
+	// try all combinations, bumping the position away from the origin
 	for (j = 0; j < lengthof(jitter_bits); j++) {
-
 		const int16_t bit = jitter_bits[j];
 
-		VectorCopy(base, pm->s.origin);
+		PackVector(pml.origin, pm->s.origin);
 
-		for (i = 0; i < 3; i++) { // shift the origin
-
+		for (i = 0; i < 3; i++) {
 			if (bit & (1 << i))
 				pm->s.origin[i] += sign[i];
 		}
 
-		if (Pm_GoodPosition())
+		if (Pm_GoodPosition()) {
+			PackVector(pml.velocity, pm->s.velocity);
+			PackVector(pml.view_offset, pm->s.view_offset);
 			return;
+		}
 	}
 
-	// go back to the last position
-	Pm_Debug("Failed to snap to good position: %s.\n", vtos(pml.origin));
+	Pm_Debug("Failed to snap to final position: %s\n", vtos(pml.origin));
+
 	PackVector(pml.previous_origin, pm->s.origin);
+	PackVector(pml.previous_velocity, pm->s.velocity);
+	PackVector(pml.previous_view_offset, pm->s.view_offset);
 }
 
 /*
@@ -1241,7 +1234,6 @@ static void Pm_Init(void) {
  */
 static void Pm_InitLocal(void) {
 
-	// clear all move local vars
 	memset(&pml, 0, sizeof(pml));
 
 	// convert origin, velocity and view offset to floating point
@@ -1249,18 +1241,18 @@ static void Pm_InitLocal(void) {
 	UnpackVector(pm->s.velocity, pml.velocity);
 	UnpackVector(pm->s.view_offset, pml.view_offset);
 
-	// save previous origin in case move fails entirely
+	// save previous values in case move fails
 	VectorCopy(pml.origin, pml.previous_origin);
-
-	// save previous velocity for detecting landings
 	VectorCopy(pml.velocity, pml.previous_velocity);
+	VectorCopy(pml.view_offset, pml.previous_view_offset);
 
 	// convert from milliseconds to seconds
 	pml.time = pm->cmd.msec * 0.001;
 }
 
 /*
- * @brief Can be called by either the game or the client game to update prediction.
+ * @brief Called by the game and the client game to update the player's
+ * authoritative or predicted movement state, respectively.
  */
 void Pm_Move(pm_move_t *pm_move) {
 	pm = pm_move;
