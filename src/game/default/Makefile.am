@@ -8,7 +8,7 @@ noinst_HEADERS = \
 	g_client_view.h \
 	g_client.h \
 	g_combat.h \
-	g_commands.h \
+	g_cmd.h \
 	g_entity_func.h \
 	g_entity_info.h \
 	g_entity_misc.h \
@@ -50,7 +50,7 @@ game_la_SOURCES = \
 	g_client_stats.c \
 	g_client_view.c \
 	g_client.c \
-	g_commands.c \
+	g_cmd.c \
 	g_combat.c \
 	g_entity_func.c \
 	g_entity_info.c \
