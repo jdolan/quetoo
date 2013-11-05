@@ -560,6 +560,11 @@ static void Pm_CategorizePosition(void) {
 		// save a reference to the ground
 		pm->s.flags |= PMF_ON_GROUND;
 		pm->ground_entity = trace.ent;
+
+		// and sink down to it if not trick jumping
+		if (!(pm->s.flags & PMF_TIME_TRICK_JUMP)) {
+			pml.origin[2] = trace.end[2] + PM_STOP_EPSILON;
+		}
 	} else {
 		pm->s.flags &= ~PMF_ON_GROUND;
 		pm->ground_entity = NULL;
