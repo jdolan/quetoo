@@ -50,9 +50,11 @@ void G_ClientToIntermission(g_edict_t *ent) {
 	ent->client->locals.show_scores = true;
 
 	// hide the HUD
-	ent->client->locals.persistent.weapon = NULL;
+	g_client_persistent_t *persistent = &ent->client->locals.persistent;
+	memset(persistent->inventory, 0, sizeof(persistent->inventory));
+	persistent->weapon = NULL;
+
 	ent->client->locals.ammo_index = 0;
-	ent->client->locals.persistent.armor = 0;
 	ent->client->locals.pickup_msg_time = 0;
 }
 
@@ -183,33 +185,36 @@ void G_ClientScores(g_edict_t *ent) {
  * largely derived from this information.
  */
 void G_ClientStats(g_edict_t *ent) {
-
 	g_client_t *client = ent->client;
+
 	const g_client_persistent_t *persistent = &client->locals.persistent;
 
 	// ammo
-	if (!client->locals.ammo_index) {
+	if (client->locals.ammo_index) {
+		const g_item_t *ammo = &g_items[client->locals.ammo_index];
+		client->ps.stats[STAT_AMMO_ICON] = gi.ImageIndex(ammo->icon);
+		client->ps.stats[STAT_AMMO] = persistent->inventory[client->locals.ammo_index];
+		client->ps.stats[STAT_AMMO_LOW] = ammo->quantity;
+	} else {
 		client->ps.stats[STAT_AMMO_ICON] = 0;
 		client->ps.stats[STAT_AMMO] = 0;
-	} else {
-		const g_item_t *item = &g_items[client->locals.ammo_index];
-		client->ps.stats[STAT_AMMO_ICON] = gi.ImageIndex(item->icon);
-		client->ps.stats[STAT_AMMO] = persistent->inventory[client->locals.ammo_index];
-		client->ps.stats[STAT_AMMO_LOW] = item->quantity;
 	}
 
 	// armor
-	if (persistent->armor >= 200)
-		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_bodyarmor");
-	else if (persistent->armor >= 100)
-		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_combatarmor");
-	else if (persistent->armor >= 50)
-		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_jacketarmor");
-	else if (persistent->armor > 0)
-		client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_shard");
-	else
+	const g_item_t *armor = G_ClientArmor(ent);
+	if (armor) {
+		if (armor->tag == ARMOR_BODY)
+			client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_bodyarmor");
+		else if (armor->tag == ARMOR_COMBAT)
+			client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_combatarmor");
+		else
+			client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_jacketarmor");
+
+		client->ps.stats[STAT_ARMOR] = persistent->inventory[ITEM_INDEX(armor)];
+	} else {
 		client->ps.stats[STAT_ARMOR_ICON] = 0;
-	client->ps.stats[STAT_ARMOR] = persistent->armor;
+		client->ps.stats[STAT_ARMOR] = 0;
+	}
 
 	// captures
 	client->ps.stats[STAT_CAPTURES] = persistent->captures;

@@ -76,6 +76,32 @@ const g_item_t *G_FindItem(const char *name) {
 }
 
 /*
+ * @return The strongest armor item held by the specified client, or NULL. This
+ * will never return the shard armor, because shards are added to the currently
+ * held armor type, or to jacket armor if no armor is held.
+ */
+const g_item_t *G_ClientArmor(const g_edict_t *ent) {
+
+	if (ent->client) {
+		const g_client_persistent_t *persistent = &ent->client->locals.persistent;
+
+		if (persistent->inventory[g_level.media.body_armor]) {
+			return &g_items[g_level.media.body_armor];
+		}
+
+		if (persistent->inventory[g_level.media.combat_armor]) {
+			return &g_items[g_level.media.combat_armor];
+		}
+
+		if (persistent->inventory[g_level.media.jacket_armor]) {
+			return &g_items[g_level.media.jacket_armor];
+		}
+	}
+
+	return NULL;
+}
+
+/*
  * @brief
  */
 static void G_ItemRespawn(g_edict_t *ent) {
@@ -318,23 +344,43 @@ static _Bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
  * @brief
  */
 static _Bool G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
-	_Bool taken = true;
+	const g_item_t *armor = ent->locals.item;
 
-	if (ent->locals.item->tag == ARMOR_SHARD) { // take it, ignoring cap
-		other->client->locals.persistent.armor += ent->locals.item->quantity;
-	} else if (other->client->locals.persistent.armor < other->client->locals.persistent.max_armor) {
+	g_client_persistent_t *persistent = &other->client->locals.persistent;
 
-		// take it, but enforce cap
-		other->client->locals.persistent.armor += ent->locals.item->quantity;
-
-		if (other->client->locals.persistent.armor > other->client->locals.persistent.max_armor)
-			other->client->locals.persistent.armor = other->client->locals.persistent.max_armor;
-	} else { // don't take it
-		taken = false;
+	_Bool taken = false;
+	if (armor->tag == ARMOR_SHARD) { // take it, ignoring cap
+		const g_item_t *old_armor = G_ClientArmor(other);
+		if (old_armor) {
+			persistent->inventory[ITEM_INDEX(old_armor)] += armor->quantity;
+		} else {
+			persistent->inventory[g_level.media.jacket_armor] = armor->quantity;
+		}
+		taken = true;
+	} else {
+		if (persistent->inventory[ITEM_INDEX(armor)] < armor->quantity) {
+			persistent->inventory[ITEM_INDEX(armor)] = armor->quantity;
+			taken = true;
+		}
 	}
 
-	if (taken && !(ent->locals.spawn_flags & SF_ITEM_DROPPED))
-		G_SetItemRespawn(ent, 20000);
+	if (taken && !(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
+		switch (armor->tag) {
+			case ARMOR_SHARD:
+				G_SetItemRespawn(ent, 20000);
+				break;
+			case ARMOR_JACKET:
+			case ARMOR_COMBAT:
+				G_SetItemRespawn(ent, 60000);
+				break;
+			case ARMOR_BODY:
+				G_SetItemRespawn(ent, 90000);
+				break;
+			default:
+				gi.Debug("Invalid armor tag: %d\n", armor->tag);
+				break;
+		}
+	}
 
 	return taken;
 }

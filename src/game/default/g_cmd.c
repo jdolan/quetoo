@@ -60,6 +60,19 @@ static void G_Give_f(g_edict_t *ent) {
 			return;
 	}
 
+	if (give_all || g_strcmp0(name, "armor") == 0) {
+		for (i = 0; i < g_num_items; i++) {
+			it = g_items + i;
+			if (!it->Pickup)
+				continue;
+			if (it->type != ITEM_ARMOR)
+				continue;
+			ent->client->locals.persistent.inventory[i] = it->quantity;
+		}
+		if (!give_all)
+			return;
+	}
+
 	if (give_all || g_strcmp0(name, "weapons") == 0) {
 		for (i = 0; i < g_num_items; i++) {
 			it = g_items + i;
@@ -82,16 +95,6 @@ static void G_Give_f(g_edict_t *ent) {
 				continue;
 			G_AddAmmo(ent, it, quantity);
 		}
-		if (!give_all)
-			return;
-	}
-
-	if (give_all || g_strcmp0(name, "armor") == 0) {
-		if (gi.Argc() == 3)
-			ent->client->locals.persistent.armor = quantity;
-		else
-			ent->client->locals.persistent.armor = ent->client->locals.persistent.max_armor;
-
 		if (!give_all)
 			return;
 	}

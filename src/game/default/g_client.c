@@ -178,9 +178,13 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 					attacker->client->locals.persistent.net_name, message2);
 
 			if (g_show_attacker_stats->integer) {
+				int16_t a = 0;
+				const g_item_t *armor = G_ClientArmor(attacker);
+				if (armor) {
+					a = attacker->client->locals.persistent.inventory[ITEM_INDEX(armor)];
+				}
 				gi.ClientPrint(self, PRINT_HIGH, "%s had %d health and %d armor\n",
-						attacker->client->locals.persistent.net_name, attacker->locals.health,
-						attacker->client->locals.persistent.armor);
+						attacker->client->locals.persistent.net_name, attacker->locals.health, a);
 			}
 
 			if (g_level.warmup)
@@ -262,8 +266,8 @@ static void G_ClientCorpse(g_edict_t *self) {
  * certain items we're holding and force the client into a temporary spectator
  * state with the scoreboard shown.
  */
-static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker,
-		int16_t damage __attribute__((unused)), const vec3_t pos __attribute__((unused))) {
+static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int16_t damage __attribute__((unused)),
+		const vec3_t pos __attribute__((unused))) {
 
 	self->locals.enemy = attacker;
 
@@ -326,11 +330,6 @@ static void G_Give(g_client_t *client, char *it, int16_t quantity) {
 
 	if (!g_ascii_strcasecmp(it, "Health")) {
 		client->locals.persistent.health = quantity;
-		return;
-	}
-
-	if (!g_ascii_strcasecmp(it, "Armor")) {
-		client->locals.persistent.armor = quantity;
 		return;
 	}
 
@@ -415,9 +414,6 @@ static void G_InitClientPersistent(g_client_t *client) {
 	// set max inventory levels
 	client->locals.persistent.health = 100;
 	client->locals.persistent.max_health = 100;
-
-	client->locals.persistent.armor = 0;
-	client->locals.persistent.max_armor = 200;
 
 	client->locals.persistent.max_shells = 80;
 	client->locals.persistent.max_bullets = 200;

@@ -114,36 +114,43 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
 }
 
 /*
- * @brief
+ * @brief Absorbs damage with the strongest armor the specified client holds.
+ *
+ * @return The amount of damage absorbed, which is not necessarily the amount
+ * of armor consumed.
  */
-static int32_t G_CheckArmor(g_edict_t *ent, const vec3_t pos, const vec3_t normal, int16_t damage,
-		int32_t dflags) {
-
-	g_client_t *client;
-	int32_t saved;
-
-	if (damage < 1)
-		return 0;
-
-	if (damage < 2) // sometimes protect very small damage
-		damage = Random() & 1;
-	else
-		damage *= 0.80; // mostly protect large damage
-
-	client = ent->client;
-
-	if (!client)
-		return 0;
+static int16_t G_CheckArmor(g_edict_t *ent, const vec3_t pos, const vec3_t normal, int16_t damage,
+		uint32_t dflags) {
 
 	if (dflags & DAMAGE_NO_ARMOR)
 		return 0;
 
-	if (damage > ent->client->locals.persistent.armor)
-		saved = ent->client->locals.persistent.armor;
-	else
-		saved = damage;
+	if (!ent->client)
+		return 0;
 
-	ent->client->locals.persistent.armor -= saved;
+	const g_item_t *armor = G_ClientArmor(ent);
+
+	if (!armor)
+		return 0;
+
+	const int16_t quantity = ent->client->locals.persistent.inventory[ITEM_INDEX(armor)];
+
+	vec_t protection = 0.0;
+
+	switch (armor->tag) {
+		case ARMOR_BODY:
+			protection = 1.0;
+			break;
+		case ARMOR_COMBAT:
+			protection = 0.66;
+			break;
+		case ARMOR_JACKET:
+			protection = 0.5;
+			break;
+	}
+
+	const int16_t saved = Clamp(protection * damage, 0, quantity);
+	ent->client->locals.persistent.inventory[ITEM_INDEX(armor)] -= saved;
 
 	G_SpawnDamage(TE_BLOOD, pos, normal, saved);
 
@@ -187,11 +194,8 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 			return;
 	}
 
-	if (!inflictor)
-		inflictor = g_game.edicts;
-
-	if (!attacker)
-		attacker = g_game.edicts;
+	inflictor = inflictor ? inflictor : g_game.edicts;
+	attacker = attacker ? attacker : g_game.edicts;
 
 	if (attacker->client) {
 		if (attacker->client->locals.persistent.inventory[g_level.media.quad_damage]) {

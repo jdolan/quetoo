@@ -386,6 +386,10 @@ static void G_InitMedia(void) {
 
 	g_level.media.lightning_fly_sound = gi.SoundIndex("weapons/lightning/fly");
 
+	g_level.media.jacket_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_jacket"));
+	g_level.media.combat_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_combat"));
+	g_level.media.body_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_body"));
+
 	g_level.media.quad_damage = ITEM_INDEX(G_FindItemByClassName("item_quad"));
 }
 
