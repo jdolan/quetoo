@@ -1167,10 +1167,13 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 		ent->s.event = event;
 		cl->locals.land_time = g_level.time;
 	}
-	// check for ladder, play a jump sound
+	// check for ladder, play a jump animation
 	else if ((pm.s.flags & PMF_ON_LADDER) && cl->locals.jump_time < g_level.time - 400) {
 
 		if (fabs(ent->locals.velocity[2]) > 20.0) {
+
+			G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
+
 			ent->s.event = EV_CLIENT_JUMP;
 			cl->locals.jump_time = g_level.time;
 		}
