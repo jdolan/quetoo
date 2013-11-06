@@ -735,6 +735,7 @@ void SplitBrush(bsp_brush_t *brush, int32_t plane_num, bsp_brush_t **front, bsp_
 		}
 		return;
 	}
+
 	// add the midwinding to both sides
 	for (i = 0; i < 2; i++) {
 		cs = &b[i]->sides[b[i]->num_sides];

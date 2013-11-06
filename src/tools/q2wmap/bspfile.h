@@ -89,8 +89,8 @@ extern d_bsp_t d_bsp;
 extern d_bsp_vis_t *d_vis;
 
 
-void DecompressVis(byte *in, byte *decompressed);
-int32_t CompressVis(byte *vis, byte *dest);
+void DecompressVis(const byte *in, byte *decompressed);
+int32_t CompressVis(const byte *vis, byte *dest);
 
 void LoadBSPFile(char *file_name);
 void LoadBSPFileTexinfo(char *file_name);	// just for qdata
@@ -114,7 +114,7 @@ typedef struct {
 	int32_t portal_areas[2];
 } entity_t;
 
-extern int32_t num_entities;
+extern uint16_t num_entities;
 extern entity_t entities[MAX_BSP_ENTITIES];
 
 void ParseEntities(void);
@@ -125,7 +125,7 @@ const char *ValueForKey(const entity_t *ent, const char *key);
 // will return "" if not present
 
 vec_t FloatForKey(const entity_t *ent, const char *key);
-void GetVectorForKey(const entity_t *ent, const char *key, vec3_t vec);
+void VectorForKey(const entity_t *ent, const char *key, vec3_t vec);
 
 epair_t *ParseEpair(void);
 

@@ -12,7 +12,7 @@ noinst_HEADERS = \
 	scriplib.h
 
 q2wmap_SOURCES = \
-	brushbsp.c \
+	brush.c \
 	bspfile.c \
 	csg.c \
 	faces.c \

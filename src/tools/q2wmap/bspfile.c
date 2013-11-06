@@ -28,7 +28,7 @@ d_bsp_vis_t *d_vis = (d_bsp_vis_t *) d_bsp.vis_data;
 /*
  * @brief
  */
-int32_t CompressVis(byte *vis, byte *dest) {
+int32_t CompressVis(const byte *vis, byte *dest) {
 	int32_t j;
 	int32_t rep;
 	int32_t visrow;
@@ -58,7 +58,7 @@ int32_t CompressVis(byte *vis, byte *dest) {
 /*
  * @brief
  */
-void DecompressVis(byte *in, byte *decompressed) {
+void DecompressVis(const byte *in, byte *decompressed) {
 	int32_t c;
 	byte *out;
 	int32_t row;
@@ -478,7 +478,7 @@ void PrintBSPFileSizes(void) {
 	Com_Verbose("      vis          %7i\n", d_bsp.vis_data_size);
 }
 
-int32_t num_entities;
+uint16_t num_entities;
 entity_t entities[MAX_BSP_ENTITIES];
 
 /*
@@ -645,7 +645,7 @@ vec_t FloatForKey(const entity_t *ent, const char *key) {
 	return atof(k);
 }
 
-void GetVectorForKey(const entity_t *ent, const char *key, vec3_t vec) {
+void VectorForKey(const entity_t *ent, const char *key, vec3_t vec) {
 	const char *k;
 
 	k = ValueForKey(ent, key);

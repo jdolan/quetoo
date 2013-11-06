@@ -759,7 +759,7 @@ static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
 			num = node->children[0];
 	}
 
-	c_point_contents++; // optimize counter, TOOD: atomic increment for thread-safety
+	c_point_contents++; // optimize counter, TODO: atomic increment for thread-safety
 
 	return -1 - num;
 }

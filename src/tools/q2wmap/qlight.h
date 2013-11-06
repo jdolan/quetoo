@@ -59,26 +59,21 @@ extern vec3_t ambient;
 
 extern _Bool extra_samples;
 
-void BuildLightmaps(void);
-
-void BuildVertexNormals(void);
-
-void BuildFacelights(int32_t facenum);
-
-void FinalLightFace(int32_t facenum);
-
-_Bool PvsForOrigin(const vec3_t org, byte *pvs);
-
+// lightmap.c
 void BuildLights(void);
-
-d_bsp_leaf_t *Light_PointInLeaf(const vec3_t point);
-
-void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
+void BuildVertexNormals(void);
+void BuildFacelights(int32_t facenum);
+void FinalLightFace(int32_t facenum);
 
 // patches.c
 void CalcTextureReflectivity(void);
 void BuildPatches(void);
 void SubdividePatches(void);
 void FreePatches(void);
+
+// qlight.c
+_Bool Light_PointPVS(const vec3_t org, byte *pvs);
+int32_t Light_PointLeafnum(const vec3_t point);
+void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
 
 #endif /* __QLIGHT_H__ */

@@ -562,7 +562,7 @@ _Bool FloodEntities(tree_t *tree) {
 	cl = "";
 
 	for (i = 1; i < num_entities; i++) {
-		GetVectorForKey(&entities[i], "origin", origin);
+		VectorForKey(&entities[i], "origin", origin);
 		if (VectorCompare(origin, vec3_origin))
 			continue;
 

@@ -291,7 +291,7 @@ static entity_t *FindTargetEntity(const char *target) {
  * @brief
  */
 void BuildLights(void) {
-	int32_t i;
+	size_t i;
 	light_t *l;
 	const d_bsp_leaf_t *leaf;
 	int32_t cluster;
@@ -302,9 +302,8 @@ void BuildLights(void) {
 	vec_t v, intensity;
 
 	// surfaces
-	for (i = 0; i < MAX_BSP_FACES; i++) {
-
-		patch_t *p = face_patches[i];
+	for (i = 0; i < lengthof(face_patches); i++) {
+		const patch_t *p = face_patches[i];
 
 		while (p) { // iterate subdivided patches
 
@@ -316,7 +315,7 @@ void BuildLights(void) {
 
 			VectorCopy(p->origin, l->origin);
 
-			leaf = Light_PointInLeaf(l->origin);
+			leaf = &d_bsp.leafs[Light_PointLeafnum(l->origin)];
 			cluster = leaf->cluster;
 			l->next = lights[cluster];
 			lights[cluster] = l;
@@ -332,20 +331,18 @@ void BuildLights(void) {
 
 	// entities
 	for (i = 1; i < num_entities; i++) {
-
 		const entity_t *e = &entities[i];
 
 		const char *name = ValueForKey(e, "classname");
-
 		if (strncmp(name, "light", 5)) // not a light
 			continue;
 
 		num_lights++;
 		l = Mem_Malloc(sizeof(*l));
 
-		GetVectorForKey(e, "origin", l->origin);
+		VectorForKey(e, "origin", l->origin);
 
-		leaf = Light_PointInLeaf(l->origin);
+		leaf = &d_bsp.leafs[Light_PointLeafnum(l->origin)];
 		cluster = leaf->cluster;
 
 		l->next = lights[cluster];
@@ -385,7 +382,7 @@ void BuildLights(void) {
 				if (!e2) {
 					Mon_SendSelect(ERR_WARN, i, 0, va("Light at %s missing target", vtos(l->origin)));
 				} else {
-					GetVectorForKey(e2, "origin", dest);
+					VectorForKey(e2, "origin", dest);
 					VectorSubtract(dest, l->origin, l->normal);
 					VectorNormalize(l->normal);
 				}
@@ -580,7 +577,6 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
  */
 static _Bool NudgeSamplePosition(const vec3_t in, const vec3_t normal, const vec3_t center,
 		vec3_t out, byte *pvs) {
-
 	vec3_t dir;
 
 	VectorCopy(in, out);
@@ -592,14 +588,15 @@ static _Bool NudgeSamplePosition(const vec3_t in, const vec3_t normal, const vec
 	VectorMA(out, SAMPLE_NUDGE, dir, out);
 	VectorMA(out, SAMPLE_NUDGE, normal, out);
 
-	return PvsForOrigin(out, pvs);
+	return Light_PointPVS(out, pvs);
 }
 
 #define MAX_VERT_FACES 256
 
 /*
- * @brief Populate faces with indexes of all d_bsp_face_t's referencing the specified edge.
- * The number of d_bsp_face_t's referencing edge is returned in nfaces.
+ * @brief Populate faces with indexes of all Phong-shaded d_bsp_face_t's
+ * referencing the specified vertex. The number of d_bsp_face_t's referencing
+ * the vertex is returned in nfaces.
  */
 static void FacesWithVert(int32_t vert, int32_t *faces, int32_t *nfaces) {
 	int32_t i, j, k;

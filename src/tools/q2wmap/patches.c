@@ -185,7 +185,7 @@ void BuildPatches(void) {
 
 		// bmodels with origin brushes need to be offset into their
 		// in-use position
-		GetVectorForKey(ent, "origin", origin);
+		VectorForKey(ent, "origin", origin);
 
 		for (j = 0; j < mod->num_faces; j++) {
 

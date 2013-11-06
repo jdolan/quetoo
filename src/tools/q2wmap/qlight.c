@@ -46,7 +46,7 @@ vec_t entity_scale = 1.0;
 /*
  * @brief
  */
-static int32_t Light_PointInLeafnum(const vec3_t point) {
+int32_t Light_PointLeafnum(const vec3_t point) {
 	int32_t nodenum;
 
 	nodenum = 0;
@@ -66,15 +66,7 @@ static int32_t Light_PointInLeafnum(const vec3_t point) {
 /*
  * @brief
  */
-d_bsp_leaf_t *Light_PointInLeaf(const vec3_t point) {
-	const int32_t num = Light_PointInLeafnum(point);
-	return &d_bsp.leafs[num];
-}
-
-/*
- * @brief
- */
-_Bool PvsForOrigin(const vec3_t org, byte *pvs) {
+_Bool Light_PointPVS(const vec3_t org, byte *pvs) {
 	d_bsp_leaf_t *leaf;
 
 	if (!d_bsp.vis_data_size) {
@@ -82,7 +74,7 @@ _Bool PvsForOrigin(const vec3_t org, byte *pvs) {
 		return true;
 	}
 
-	leaf = Light_PointInLeaf(org);
+	leaf = &d_bsp.leafs[Light_PointLeafnum(org)];
 	if (leaf->cluster == -1)
 		return false; // in solid leaf
 

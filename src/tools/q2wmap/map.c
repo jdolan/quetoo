@@ -734,7 +734,7 @@ static _Bool ParseMapEntity(void) {
 		}
 	} while (true);
 
-	GetVectorForKey(mapent, "origin", mapent->origin);
+	VectorForKey(mapent, "origin", mapent->origin);
 
 	// if there was an origin brush, offset all of the planes and texinfo
 	if (mapent->origin[0] || mapent->origin[1] || mapent->origin[2]) {
