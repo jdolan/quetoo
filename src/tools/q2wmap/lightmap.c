@@ -481,7 +481,7 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *s
 	if (dot <= 0.001)
 		return; // wrong direction
 
-	VectorMA(pos, 2 * MAX_WORLD_WIDTH, sun.normal, delta);
+	VectorMA(pos, 2.0 * MAX_WORLD_COORD, sun.normal, delta);
 
 	Light_Trace(&trace, pos, delta, CONTENTS_SOLID);
 

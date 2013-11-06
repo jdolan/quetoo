@@ -401,7 +401,8 @@ typedef struct {
  * @brief The absolute world bounds is +/- 4096. This is the largest box we can
  * safely encode using 16 bit integers (vec_t * 8.0).
  */
-#define MAX_WORLD_WIDTH		4096
+#define MIN_WORLD_COORD		-4096.0
+#define MAX_WORLD_COORD		4096.0
 
 /*
  * @brief ConfigStrings are a general means of communication from the server to

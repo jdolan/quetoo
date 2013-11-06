@@ -108,10 +108,10 @@ static void ProcessBlock_Thread(int32_t blocknum) {
 
 	mins[0] = xblock * 1024;
 	mins[1] = yblock * 1024;
-	mins[2] = -MAX_WORLD_WIDTH;
+	mins[2] = MIN_WORLD_COORD;
 	maxs[0] = (xblock + 1) * 1024;
 	maxs[1] = (yblock + 1) * 1024;
-	maxs[2] = MAX_WORLD_WIDTH;
+	maxs[2] = MAX_WORLD_COORD;
 
 	ThreadLock();
 
@@ -245,8 +245,8 @@ static void ProcessSubModel(void) {
 	start = e->first_brush;
 	end = start + e->num_brushes;
 
-	mins[0] = mins[1] = mins[2] = -MAX_WORLD_WIDTH;
-	maxs[0] = maxs[1] = maxs[2] = MAX_WORLD_WIDTH;
+	mins[0] = mins[1] = mins[2] = MIN_WORLD_COORD;
+	maxs[0] = maxs[1] = maxs[2] = MAX_WORLD_COORD;
 	list = MakeBspBrushList(start, end, mins, maxs);
 	if (!nocsg)
 		list = ChopBrushes(list);

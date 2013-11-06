@@ -708,7 +708,7 @@ void SplitBrush(bsp_brush_t *brush, int32_t plane_num, bsp_brush_t **front, bsp_
 	for (i = 0; i < 2; i++) {
 		BoundBrush(b[i]);
 		for (j = 0; j < 3; j++) {
-			if (b[i]->mins[j] < -MAX_WORLD_WIDTH || b[i]->maxs[j] > MAX_WORLD_WIDTH) {
+			if (b[i]->mins[j] < MIN_WORLD_COORD || b[i]->maxs[j] > MAX_WORLD_COORD) {
 				Com_Debug("bogus brush after clip\n");
 				break;
 			}

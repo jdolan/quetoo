@@ -24,9 +24,9 @@
 
 uint32_t c_peak_windings;
 
-#define	BOGUS_RANGE	8192
+#define	BOGUS_RANGE	8192.0
 
-static const dvec_t MIN_EPSILON = FLT_EPSILON * (dvec_t) 0.5;
+static const dvec_t MIN_EPSILON = (FLT_EPSILON * (dvec_t) 0.5);
 
 /*
  * @brief
@@ -160,19 +160,20 @@ void WindingCenter(const winding_t *w, vec3_t center) {
 }
 
 /*
- * @brief
+ * @brief Create a massive polygon for the specified plane. This will be used
+ * as the basis for all clipping operations against the plane. Double precision
+ * is used to produce very accurate results; this is an improvement over the
+ * Quake II tools.
  */
 winding_t *WindingForPlane(const vec3_t normal, const vec_t dist) {
-	int32_t i, x;
-	vec_t max, v;
-	vec3_t org, vright, vup;
-	winding_t *w;
+	dvec3_t org, vnormal, vright, vup;
+	int32_t i;
 
 	// find the major axis
-	max = -BOGUS_RANGE;
-	x = -1;
+	vec_t max = -BOGUS_RANGE;
+	int32_t x = -1;
 	for (i = 0; i < 3; i++) {
-		v = fabs(normal[i]);
+		const vec_t v = fabs(normal[i]);
 		if (v > max) {
 			x = i;
 			max = v;
@@ -181,30 +182,29 @@ winding_t *WindingForPlane(const vec3_t normal, const vec_t dist) {
 	if (x == -1)
 		Com_Error(ERR_FATAL, "No axis found\n");
 
-	VectorCopy(vec3_origin, vup);
 	switch (x) {
 		case 0:
 		case 1:
-			vup[2] = 1;
+			VectorSet(vright, -normal[1], normal[0], 0.0);
 			break;
 		case 2:
-			vup[0] = 1;
+			VectorSet(vright, 0.0, -normal[2], normal[1]);
 			break;
 	}
 
-	v = DotProduct(vup, normal);
-	VectorMA(vup, -v, normal, vup);
-	VectorNormalize(vup);
+	VectorScale(vright, MAX_WORLD_COORD * 8.0, vright);
 
-	VectorScale(normal, dist, org);
+	VectorCopy(normal, vnormal);
 
-	CrossProduct(vup, normal, vright);
+	// CrossProduct(vnormal, vright, vup);
+	vup[0] = vnormal[1] * vright[2] - vnormal[2] * vright[1];
+	vup[1] = vnormal[2] * vright[0] - vnormal[0] * vright[2];
+	vup[2] = vnormal[0] * vright[1] - vnormal[1] * vright[0];
 
-	VectorScale(vup, 8192, vup);
-	VectorScale(vright, 8192, vright);
+	VectorScale(vnormal, dist, org);
 
 	// project a really big	axis aligned box onto the plane
-	w = AllocWinding(4);
+	winding_t *w = AllocWinding(4);
 
 	VectorSubtract(org, vright, w->points[0]);
 	VectorAdd(w->points[0], vup, w->points[0]);
