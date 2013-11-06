@@ -207,7 +207,7 @@ c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push) {
 		}
 	}
 
-	if (ent->in_use && ent->client && ent->locals.health > 0)
+	if (ent->in_use /*&& ent->client && ent->locals.health > 0*/)
 		G_TouchTriggers(ent);
 
 	return trace;

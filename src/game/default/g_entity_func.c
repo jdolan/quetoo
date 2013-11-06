@@ -974,6 +974,7 @@ static void G_func_door_Use(g_edict_t *self, g_edict_t *other __attribute__((unu
  */
 static void G_func_door_TouchTrigger(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
+
 	if (other->locals.health <= 0)
 		return;
 

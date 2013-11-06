@@ -22,6 +22,9 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
+#define TRIGGERED 0x1
+#define SHOOTABLE 0x2
+
 /*
  * @brief
  */
@@ -80,12 +83,18 @@ static void G_trigger_multiple_Use(g_edict_t *ent, g_edict_t *other __attribute_
 static void G_trigger_multiple_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
 
-	if (!other->client)
-		return;
+	if (!other->client) {
+		if(!((self->locals.spawn_flags & SHOOTABLE) && other->solid == SOLID_MISSILE)) {
+			return;
+		}
+	}
 
 	if (!VectorCompare(self->locals.move_dir, vec3_origin)) {
+		vec3_t forward;
 
-		if (DotProduct(other->client->locals.forward, self->locals.move_dir) < 0.0)
+		AngleVectors(other->s.angles, forward, NULL, NULL);
+
+		if (DotProduct(forward, self->locals.move_dir) < 0.0)
 			return;
 	}
 
@@ -115,6 +124,7 @@ static void G_trigger_multiple_Enable(g_edict_t *self, g_edict_t *other __attrib
 
  -------- Spawn flags --------
  triggered : If set, this trigger must be targeted before it will activate.
+ shootable : If set, this trigger will fire when projectiles touch it.
 */
 void G_trigger_multiple(g_edict_t *ent) {
 
@@ -126,7 +136,7 @@ void G_trigger_multiple(g_edict_t *ent) {
 	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->sv_flags |= SVF_NO_CLIENT;
 
-	if (ent->locals.spawn_flags & 1) {
+	if (ent->locals.spawn_flags & TRIGGERED) {
 		ent->solid = SOLID_NOT;
 		ent->locals.Use = G_trigger_multiple_Enable;
 	} else {
