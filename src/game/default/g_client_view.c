@@ -204,6 +204,13 @@ void G_ClientWeaponKick(g_edict_t *ent, const vec_t kick) {
 static void G_ClientKickAngles(g_edict_t *ent) {
 	int16_t *kick_angles = ent->client->ps.pm_state.kick_angles;
 
+	// spectators and dead clients receive no kick angles
+
+	if (ent->client->ps.pm_state.type != PM_NORMAL) {
+		VectorClear(kick_angles);
+		return;
+	}
+
 	vec3_t kick;
 	UnpackAngles(kick_angles, kick);
 

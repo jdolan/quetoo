@@ -357,7 +357,7 @@ static void Pm_Friction(void) {
 	const vec_t speed = VectorLength(vel);
 
 	if (speed < 1.0) {
-		pml.velocity[0] = pml.velocity[1] = 0.0;
+		VectorClear(pml.velocity);
 		return;
 	}
 
