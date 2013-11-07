@@ -521,7 +521,7 @@ static void Cl_InitLocal(void) {
 	name = Cvar_Get("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);
 	rate = Cvar_Get("rate", va("%d", CLIENT_RATE), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	skin = Cvar_Get("skin", "qforcer/enforcer", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	skin = Cvar_Get("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 
 	// register our commands
 	Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);

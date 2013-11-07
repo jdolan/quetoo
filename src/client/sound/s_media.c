@@ -66,16 +66,18 @@ void S_RegisterMedia(s_media_t *media) {
 
 		if ((m = g_hash_table_lookup(s_media_state.media, media->name))) {
 			if (m != media) {
-				Com_Error(ERR_DROP, "Name collision: %s\n", media->name);
+				Com_Debug("Replacing %s\n", media->name);
+				S_FreeMedia_(NULL, m, m);
+				g_hash_table_replace(s_media_state.media, media->name, media);
 			} else {
 				Com_Debug("Retaining %s\n", media->name);
 			}
 		} else {
 			Com_Debug("Inserting %s\n", media->name);
 			g_hash_table_insert(s_media_state.media, media->name, media);
-			s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media->name,
-					S_RegisterMedia_Compare);
 		}
+
+		s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media->name, S_RegisterMedia_Compare);
 
 		// re-seed the media to retain it
 		media->seed = s_media_state.seed;

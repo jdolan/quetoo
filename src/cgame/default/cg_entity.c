@@ -59,8 +59,6 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 
 	int32_t effects = s->effects;
 
-	ent->origin[2] -= 2.0; // small hack for PM_SCALE
-
 	// copy the specified entity to all body segments
 	head = upper = lower = *ent;
 

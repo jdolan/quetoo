@@ -38,7 +38,6 @@ typedef struct s_media_s {
 typedef struct s_sample_s {
 	s_media_t media;
 	Mix_Chunk *chunk;
-	_Bool alias;
 } s_sample_t;
 
 typedef struct s_channel_s {

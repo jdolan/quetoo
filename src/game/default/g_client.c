@@ -850,7 +850,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 
 	// check for malformed or illegal info strings
 	if (!ValidateUserInfo(user_info)) {
-		user_info = "\\name\\newbie\\skin\\qforcer/enforcer";
+		user_info = DEFAULT_USER_INFO;
 	}
 
 	cl = ent->client;
@@ -912,11 +912,10 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	else
 		s = GetUserInfo(user_info, "skin");
 
-	if (*s != '\0') // something valid-ish was provided
+	if (strlen(s) && !strstr(s, "..")) // something valid-ish was provided
 		g_strlcpy(cl->locals.persistent.skin, s, sizeof(cl->locals.persistent.skin));
 	else {
-		g_strlcpy(cl->locals.persistent.skin, "qforcer/enforcer",
-				sizeof(cl->locals.persistent.skin));
+		g_strlcpy(cl->locals.persistent.skin, "qforcer/default", sizeof(cl->locals.persistent.skin));
 	}
 
 	// set color

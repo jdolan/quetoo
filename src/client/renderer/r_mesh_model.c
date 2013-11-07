@@ -66,6 +66,23 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 		if (*c == '\0')
 			break;
 
+		if (!g_strcmp0(c, "footsteps")) {
+			ParseToken(&buffer);
+			continue;
+		}
+
+		if (!g_strcmp0(c, "headoffset")) {
+			ParseToken(&buffer);
+			ParseToken(&buffer);
+			ParseToken(&buffer);
+			continue;
+		}
+
+		if (!g_strcmp0(c, "sex")) {
+			ParseToken(&buffer);
+			continue;
+		}
+
 		if (*c >= '0' && *c <= '9') {
 			r_md3_animation_t *a = &md3->animations[md3->num_animations];
 
@@ -93,11 +110,10 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 					a->first_frame, a->num_frames, a->looped_frames, a->hz);
 
 			md3->num_animations++;
-		}
-
-		if (md3->num_animations == MD3_MAX_ANIMATIONS) {
-			Com_Warn("MD3_MAX_ANIMATIONS reached: %s\n", mod->media.name);
-			break;
+			if (md3->num_animations == MD3_MAX_ANIMATIONS) {
+				Com_Warn("MD3_MAX_ANIMATIONS reached: %s\n", mod->media.name);
+				break;
+			}
 		}
 	}
 
@@ -349,7 +365,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	const int32_t version = LittleLong(in_md3->version);
 	if (version != MD3_VERSION) {
 		Com_Error(ERR_DROP, "%s has wrong version number "
-			"(%i should be %i)\n", mod->media.name, version, MD3_VERSION);
+				"(%i should be %i)\n", mod->media.name, version, MD3_VERSION);
 	}
 
 	mod->mesh = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);

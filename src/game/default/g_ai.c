@@ -42,7 +42,7 @@ static void G_Ai_Spawn(g_edict_t *self) {
 
 	self->ai = true; // and away we go!
 
-	G_ClientConnect(self, "\\name\\newbie\\skin\\qforcer/enforcer");
+	G_ClientConnect(self, DEFAULT_USER_INFO);
 	G_ClientBegin(self);
 
 	gi.Debug("Spawned %s at %s", self->client->locals.persistent.net_name, vtos(self->s.origin));

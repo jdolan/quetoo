@@ -757,10 +757,6 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 		return;
 	}
 
-	val = GetUserInfo(cl->user_info, "skin");
-	if (strstr(val, "..")) // catch malformed skins
-		SetUserInfo(cl->user_info, "skin", "enforcer/qforcer");
-
 	// call game code to allow overrides
 	svs.game->ClientUserInfoChanged(cl->edict, cl->user_info);
 

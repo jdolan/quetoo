@@ -588,6 +588,14 @@ typedef struct {
 	uint32_t skin_time;
 } g_team_t;
 
+/*
+ * @brief The default user info string (name and skin).
+ */
+#define DEFAULT_USER_INFO "\\name\\newbie\\skin\\qforcer/default"
+
+/*
+ * @brief The full length of a net name, in bytes (including non-printables).
+ */
 #define MAX_NET_NAME 64
 
 /*

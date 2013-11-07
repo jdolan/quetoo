@@ -79,6 +79,23 @@ START_TEST(check_R_RegisterMedia)
 
 		ck_assert_msg(Mem_Size() == 0, "Not all memory freed: %u", (uint32_t) Mem_Size());
 
+		R_BeginLoading();
+
+		r_media_t *copy0 = R_AllocMedia("copy", sizeof(r_media_t));
+		R_RegisterMedia(copy0);
+
+		ck_assert_msg(R_FindMedia("copy") == copy0, "Failed to find copy0");
+
+		r_media_t *copy1 = R_AllocMedia("copy", sizeof(r_media_t));
+		R_RegisterMedia(copy1);
+
+		ck_assert_msg(R_FindMedia("copy") == copy1, "Failed to replace copy0 with copy1");
+
+		R_BeginLoading();
+		R_FreeMedia();
+
+		ck_assert_msg(Mem_Size() == 0, "Not all memory freed: %u", (uint32_t) Mem_Size());
+
 	}END_TEST
 
 /*

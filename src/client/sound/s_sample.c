@@ -51,7 +51,7 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 	while (SAMPLE_TYPES[i]) {
 
 		StripExtension(path, path);
-		strcat(path, SAMPLE_TYPES[i++]);
+		g_strlcat(path, SAMPLE_TYPES[i++], sizeof(path));
 
 		if ((len = Fs_Load(path, &buf)) == -1)
 			continue;
@@ -68,14 +68,21 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 
 		SDL_FreeRW(rw);
 
-		if (sample->chunk) // success
+		if (sample->chunk) { // success
 			break;
+		}
 	}
 
-	if (sample->chunk)
+	if (sample->chunk) {
 		Mix_VolumeChunk(sample->chunk, s_volume->value * MIX_MAX_VOLUME);
-	else
-		Com_Warn("Failed to load %s\n", sample->media.name);
+		Com_Debug("Loaded %s\n", path);
+	} else {
+		if (g_str_has_prefix(sample->media.name, "#players")) {
+			Com_Debug("Failed to load player sample %s\n", sample->media.name);
+		} else {
+			Com_Warn("Failed to load %s\n", sample->media.name);
+		}
+	}
 }
 
 /*
@@ -119,14 +126,16 @@ s_sample_t *S_LoadSample(const char *name) {
 }
 
 /*
- * @brief
+ * @brief Registers and returns a new sample, aliasing the chunk provided by
+ * the specified sample.
  */
 static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
 
 	s_sample_t *s = (s_sample_t *) S_AllocMedia(alias, sizeof(s_sample_t));
 
 	s->chunk = sample->chunk;
-	s->alias = true;
+
+	S_RegisterMedia((s_media_t *) s);
 
 	return s;
 }
@@ -135,13 +144,10 @@ static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
  * @brief
  */
 s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
-	int32_t n;
-	char *p;
-	s_sample_t *sample;
 	char model[MAX_QPATH];
-	char alias[MAX_QPATH];
 	char path[MAX_QPATH];
-	file_t *f;
+	char alias[MAX_QPATH];
+	s_sample_t *sample;
 
 	if (!s_env.initialized)
 		return NULL;
@@ -154,9 +160,9 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 		return NULL;
 	}
 
-	n = CS_CLIENTS + ent->number - 1;
+	uint16_t n = CS_CLIENTS + ent->number - 1;
 	if (cl.config_strings[n][0]) {
-		p = strchr(cl.config_strings[n], '\\');
+		char *p = strchr(cl.config_strings[n], '\\');
 		if (p) {
 			p += 1;
 			strcpy(model, p);
@@ -170,24 +176,25 @@ s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
 	if (*model == '\0')
 		strcpy(model, "common");
 
-	// see if we already know of the model specific sound
-	g_snprintf(alias, sizeof(alias), "#players/%s/%s", model, name + 1);
+	// see if we already know of the model-specific sound
+	g_snprintf(alias, sizeof(path), "#players/%s/%s", model, name + 1);
 	sample = (s_sample_t *) S_FindMedia(alias);
 
-	if (sample) // we do, use it
+	if (sample)
 		return sample;
 
 	// we don't, try it
-	if ((f = Fs_OpenRead(alias + 1))) {
-		Fs_Close(f);
-		return S_LoadSample(alias);
-	}
+	sample = S_LoadSample(alias);
+
+	if (sample->chunk)
+		return sample;
 
 	// that didn't work, so load the common one and alias it
+	// the media subsystem will free the previous sample for us
 	g_snprintf(path, sizeof(path), "#players/common/%s", name + 1);
 	sample = S_LoadSample(path);
 
-	if (sample)
+	if (sample->chunk)
 		return S_AliasSample(sample, alias);
 
 	Com_Warn("Failed to load %s\n", alias);

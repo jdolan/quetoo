@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 
-#define DEFAULT_CLIENT_INFO "newbie\\qforcer/enforcer"
+#define DEFAULT_CLIENT_INFO "newbie\\qforcer/default"
 
 /*
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,

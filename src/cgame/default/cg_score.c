@@ -168,7 +168,8 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	const cl_client_info_t *info = &cgi.client->client_info[s->client];
 
 	// icon
-	cgi.DrawImage(x, y, 0.33, info->icon);
+	const vec_t is = (vec_t) (SCORES_ICON_WIDTH - 2) / (vec_t) info->icon->width;
+	cgi.DrawImage(x, y, is, info->icon);
 
 	// flag carrier icon
 	if (atoi(cgi.ConfigString(CS_CTF)) && s->flags & SCORE_CTF_FLAG) {
