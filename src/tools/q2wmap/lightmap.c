@@ -634,7 +634,6 @@ void BuildVertexNormals(void) {
 	int32_t vert_faces[MAX_VERT_FACES];
 	int32_t num_vert_faces;
 	vec3_t norm, delta;
-	vec_t scale;
 	int32_t i, j;
 
 	BuildFaceExtents();
@@ -649,14 +648,15 @@ void BuildVertexNormals(void) {
 			continue;
 
 		for (j = 0; j < num_vert_faces; j++) {
+
 			const d_bsp_face_t *face = &d_bsp.faces[vert_faces[j]];
 			const d_bsp_plane_t *plane = &d_bsp.planes[face->plane_num];
 
 			// scale the contribution of each face based on size
-			VectorSubtract(face_extents[vert_faces[j]].maxs,
-					face_extents[vert_faces[j]].mins, delta);
+			const face_extents_t *extents = &face_extents[vert_faces[j]];
+			VectorSubtract(extents->maxs, extents->mins, delta);
 
-			scale = VectorLength(delta);
+			const vec_t scale = VectorLength(delta);
 
 			if (face->side)
 				VectorScale(plane->normal, -scale, norm);
