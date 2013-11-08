@@ -250,39 +250,35 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 		VectorAdd(target->locals.velocity, knockback_vel, target->locals.velocity);
 	}
 
-	int16_t inflicted = damage;
-	int16_t saved = 0;
+	int16_t damage_armor = 0, damage_health = 0;
 
-	// check for god mode
+	// check for god mode protection
 	if ((target->locals.flags & FL_GOD_MODE) && !(dflags & DAMAGE_NO_PROTECTION)) {
-		inflicted = 0;
-		saved = damage;
-		G_SpawnDamage(TE_BLOOD, pos, normal, saved);
+		damage_armor = damage;
+		damage_health = 0;
+		G_SpawnDamage(TE_BLOOD, pos, normal, damage);
+	} else { // or armor protection
+		damage_armor = G_CheckArmor(target, pos, normal, damage, dflags);
+		damage_health = damage - damage_armor;
 	}
 
-	int16_t saved_armor = G_CheckArmor(target, pos, normal, inflicted, dflags);
-	inflicted -= saved_armor;
-
-	// treat cheat savings the same as armor
-	saved_armor += saved;
-
 	// do the damage
-	if (inflicted) {
+	if (damage_health) {
 		if (client)
-			G_SpawnDamage(TE_BLOOD, pos, normal, inflicted);
+			G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
 		else {
 			// impact effects for things we can hurt which shouldn't bleed
 			if (dflags & DAMAGE_BULLET)
-				G_SpawnDamage(TE_BULLET, pos, normal, inflicted);
+				G_SpawnDamage(TE_BULLET, pos, normal, damage_health);
 			else
-				G_SpawnDamage(TE_SPARKS, pos, normal, inflicted);
+				G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
 		}
 
-		target->locals.health = target->locals.health - inflicted;
+		target->locals.health = target->locals.health - damage_health;
 
 		if (target->locals.health <= 0) {
 			if (target->locals.Die) {
-				target->locals.Die(target, inflictor, attacker, inflicted, pos);
+				target->locals.Die(target, inflictor, attacker, damage_health, pos);
 			} else {
 				gi.Debug("No die function for %s\n", target->class_name);
 			}
@@ -291,15 +287,15 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 	}
 
 	// invoke the pain callback
-	if ((inflicted || knockback) && target->locals.Pain)
-		target->locals.Pain(target, attacker, inflicted, knockback);
+	if ((damage_health || knockback) && target->locals.Pain)
+		target->locals.Pain(target, attacker, damage_health, knockback);
 
 	// add to the damage inflicted on a player this frame
 	if (client) {
-		client->locals.damage_armor += saved_armor;
-		client->locals.damage_health += inflicted;
+		client->locals.damage_armor += damage_armor;
+		client->locals.damage_health += damage_health;
 
-		vec_t kick = (saved_armor + inflicted) / 30.0;
+		vec_t kick = (damage_armor + damage_health) / 30.0;
 
 		if (kick > 1.0) {
 			kick = 1.0;
@@ -308,7 +304,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 		G_ClientDamageKick(target, dir, kick);
 
 		if (attacker->client && attacker->client != client) {
-			attacker->client->locals.damage_inflicted += inflicted;
+			attacker->client->locals.damage_inflicted += damage_health;
 		}
 	}
 }
