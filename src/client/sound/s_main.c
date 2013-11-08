@@ -132,6 +132,9 @@ void S_LoadMedia(void) {
 	extern cl_client_t cl;
 	uint32_t i;
 
+	if (!s_env.initialized)
+		return; // sound disabled
+
 	if (!cl.config_strings[CS_MODELS][0]) {
 		return; // no map specified
 	}
@@ -278,6 +281,9 @@ void S_Init(void) {
  * @brief
  */
 void S_Shutdown(void) {
+
+	if (!s_env.initialized)
+		return;
 
 	S_Stop();
 
