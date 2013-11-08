@@ -453,16 +453,19 @@ void FinalVis(int32_t portal_num) {
 	data.pstack_head.portal = p;
 	data.pstack_head.source = p->winding;
 	data.pstack_head.portalplane = p->plane;
-	for (i = 0; i < map_vis.portal_longs; i++)
+
+	for (i = 0; i < map_vis.portal_longs; i++) {
 		((long *) data.pstack_head.mightsee)[i] = ((long *) p->flood)[i];
+	}
+
 	RecursiveLeafFlow(p->leaf, &data, &data.pstack_head);
 
 	p->status = stat_done;
 
 	c_can = CountBits(p->vis, map_vis.num_portals * 2);
 
-	Com_Debug("portal:%4i  mightsee:%4i  cansee:%4i (%i chains)\n",
-			(int32_t) (p - map_vis.portals), (int32_t)c_might, (int32_t)c_can, data.c_chains);
+	Com_Debug("portal:%4i mightsee:%4i cansee:%4i (%i chains)\n",
+			(int32_t) (p - map_vis.portals), (int32_t) c_might, (int32_t) c_can, data.c_chains);
 }
 
 /*

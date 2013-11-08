@@ -83,14 +83,12 @@ static int32_t HashVec(const vec3_t vec) {
 }
 
 /*
- * @brief Uses hashing
+ * @brief Snaps the vertex to integer coordinates if it is already very close,
+ * then hashes it and searches for an existing vertex to reuse.
  */
 static int32_t GetVertexNum(const vec3_t in) {
-	int32_t h;
-	int32_t i;
-	vec_t *p;
+	int32_t i, vnum;
 	vec3_t vert;
-	int32_t vnum;
 
 	c_totalverts++;
 
@@ -103,11 +101,11 @@ static int32_t GetVertexNum(const vec3_t in) {
 			vert[i] = in[i];
 	}
 
-	h = HashVec(vert);
+	const int32_t h = HashVec(vert);
 
 	for (vnum = hash_verts[h]; vnum; vnum = vertex_chain[vnum]) {
-		p = d_bsp.vertexes[vnum].point;
-		if (fabs(p[0] - vert[0]) < POINT_EPSILON && fabs(p[1] - vert[1]) < POINT_EPSILON && fabs(
+		const vec_t *p = d_bsp.vertexes[vnum].point;
+		if (fabsl(p[0] - vert[0]) < POINT_EPSILON && fabsl(p[1] - vert[1]) < POINT_EPSILON && fabsl(
 				p[2] - vert[2]) < POINT_EPSILON)
 			return vnum;
 	}
@@ -116,9 +114,7 @@ static int32_t GetVertexNum(const vec3_t in) {
 	if (d_bsp.num_vertexes == MAX_BSP_VERTS)
 		Com_Error(ERR_FATAL, "MAX_BSP_VERTS\n");
 
-	d_bsp.vertexes[d_bsp.num_vertexes].point[0] = vert[0];
-	d_bsp.vertexes[d_bsp.num_vertexes].point[1] = vert[1];
-	d_bsp.vertexes[d_bsp.num_vertexes].point[2] = vert[2];
+	VectorCopy(vert, d_bsp.vertexes[d_bsp.num_vertexes].point);
 
 	vertex_chain[d_bsp.num_vertexes] = hash_verts[h];
 	hash_verts[h] = d_bsp.num_vertexes;
@@ -169,7 +165,7 @@ void FreeFace(face_t *f) {
 }
 
 /*
- * @brief The faces vertexes have beebn added to the superverts[] array,
+ * @brief The faces vertexes have been added to the superverts[] array,
  * and there may be more there than can be held in a face (MAXEDGES).
  *
  * If less, the faces vertexnums[] will be filled in, otherwise
@@ -420,7 +416,7 @@ static void FixEdges_r(node_t *node) {
  */
 void FixTjuncs(node_t *head_node) {
 	// snap and merge all vertexes
-	Com_Verbose("---- snap verts ----\n");
+	Com_Verbose("---- Fixing T Junctions ----\n");
 	memset(hash_verts, 0, sizeof(hash_verts));
 	c_totalverts = 0;
 	c_uniqueverts = 0;

@@ -34,7 +34,7 @@ static map_brush_texture_t map_brush_textures[MAX_BSP_SIDES];
 int32_t num_map_planes;
 map_plane_t map_planes[MAX_BSP_PLANES];
 
-#define	PLANE_HASHES 1024
+#define	PLANE_HASHES 8192
 static map_plane_t *plane_hash[PLANE_HASHES];
 
 vec3_t map_mins, map_maxs;
@@ -45,12 +45,10 @@ static int32_t c_area_portals;
 static int32_t c_clip_brushes;
 
 /*
- * @brief Set the type of the plane according to it's normal vector
+ * @brief Set the type of the plane according to it's (snapped) normal vector.
  */
 static int32_t PlaneTypeForNormal(const vec3_t normal) {
-	vec_t ax, ay, az;
 
-	// NOTE: should these have an epsilon around 1.0?
 	if (normal[0] == 1.0 || normal[0] == -1.0)
 		return PLANE_X;
 	if (normal[1] == 1.0 || normal[1] == -1.0)
@@ -58,9 +56,9 @@ static int32_t PlaneTypeForNormal(const vec3_t normal) {
 	if (normal[2] == 1.0 || normal[2] == -1.0)
 		return PLANE_Z;
 
-	ax = fabs(normal[0]);
-	ay = fabs(normal[1]);
-	az = fabs(normal[2]);
+	const vec_t ax = fabs(normal[0]);
+	const vec_t ay = fabs(normal[1]);
+	const vec_t az = fabs(normal[2]);
 
 	if (ax >= ay && ax >= az)
 		return PLANE_ANYX;
@@ -69,16 +67,24 @@ static int32_t PlaneTypeForNormal(const vec3_t normal) {
 	return PLANE_ANYZ;
 }
 
+#define	NORMAL_EPSILON	0.00001
+#define	DIST_EPSILON	0.005
+
 /*
  * @brief
  */
-#define	NORMAL_EPSILON	0.00001
-#define	DIST_EPSILON	0.01
-static inline _Bool PlaneEqual(const map_plane_t * p, const vec3_t normal, const vec_t dist) {
-	if (fabs(p->normal[0] - normal[0]) < NORMAL_EPSILON && fabs(p->normal[1] - normal[1])
-			< NORMAL_EPSILON && fabs(p->normal[2] - normal[2]) < NORMAL_EPSILON && fabs(
-			p->dist - dist) < DIST_EPSILON)
+static _Bool PlaneEqual(const map_plane_t * p, const vec3_t normal, const dvec_t dist) {
+
+	const vec_t ne = NORMAL_EPSILON;
+	const dvec_t de = DIST_EPSILON;
+
+	if ((p->dist == dist || fabsl(p->dist - dist) < de) && (p->normal[0] == normal[0] || fabs(
+			p->normal[0] - normal[0]) < ne) && (p->normal[1] == normal[1] || fabs(
+			p->normal[1] - normal[1]) < ne) && (p->normal[2] == normal[2] || fabs(
+			p->normal[2] - normal[2]) < ne)) {
 		return true;
+	}
+
 	return false;
 }
 
@@ -86,10 +92,8 @@ static inline _Bool PlaneEqual(const map_plane_t * p, const vec3_t normal, const
  * @brief
  */
 static inline void AddPlaneToHash(map_plane_t * p) {
-	int32_t hash;
 
-	hash = (int32_t) fabs(p->dist) / 8;
-	hash &= (PLANE_HASHES - 1);
+	const uint16_t hash = ((uint32_t) fabs(p->dist)) & (PLANE_HASHES - 1);
 
 	p->hash_chain = plane_hash[hash];
 	plane_hash[hash] = p;
@@ -119,7 +123,7 @@ static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 
 	// always put axial planes facing positive first
 	if (AXIAL(p)) {
-		if (p->normal[0] < 0 || p->normal[1] < 0 || p->normal[2] < 0) {
+		if (p->normal[0] < 0.0 || p->normal[1] < 0.0 || p->normal[2] < 0.0) {
 			// flip order
 			temp = *p;
 			*p = *(p + 1);
@@ -137,55 +141,60 @@ static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 }
 
 /*
- * @brief
+ * @brief If the specified normal is very close to an axis, align with it.
  */
-static void SnapVector(vec3_t normal) {
+static void SnapNormal(vec3_t normal) {
 	int32_t i;
 
+	_Bool snap = false;
+
 	for (i = 0; i < 3; i++) {
-		if (fabs(normal[i] - 1) < NORMAL_EPSILON) {
-			VectorClear(normal);
-			normal[i] = 1;
-			break;
+		if (normal[i] != 0.0 && -NORMAL_EPSILON < normal[i] && normal[i] < NORMAL_EPSILON) {
+			normal[i] = 0.0;
+			snap = true;
 		}
-		if (fabs(normal[i] - -1) < NORMAL_EPSILON) {
-			VectorClear(normal);
-			normal[i] = -1;
-			break;
-		}
+	}
+
+	if (snap) {
+		VectorNormalize(normal);
 	}
 }
 
 /*
  * @brief
  */
-static inline void SnapPlane(vec3_t normal, vec_t *dist) {
-	const vec_t f = floor(*dist + 0.5);
+static void SnapPlane(vec3_t normal, dvec_t *dist) {
 
-	SnapVector(normal);
+	SnapNormal(normal);
 
-	if (fabs(*dist - f) < DIST_EPSILON)
-		*dist = f;
+	// snap axial planes to integer distances
+	if (PlaneTypeForNormal(normal) <= PLANE_Z) {
+
+		const vec_t f = floor(*dist + 0.5);
+		if (fabs(*dist - f) < DIST_EPSILON)
+			*dist = f;
+	}
 }
 
 /*
  * @brief
  */
-int32_t FindFloatPlane(vec3_t normal, vec_t dist) {
+int32_t FindFloatPlane(vec3_t normal, dvec_t dist) {
 	int32_t i;
-	const map_plane_t *p;
-	int32_t hash;
 
 	SnapPlane(normal, &dist);
-	hash = (int32_t) fabs(dist) / 8;
-	hash &= (PLANE_HASHES - 1);
+	const uint16_t hash = ((uint32_t) fabsl(dist)) & (PLANE_HASHES - 1);
 
 	// search the border bins as well
 	for (i = -1; i <= 1; i++) {
-		const int32_t h = (hash + i) & (PLANE_HASHES - 1);
-		for (p = plane_hash[h]; p; p = p->hash_chain) {
-			if (PlaneEqual(p, normal, dist))
+		const uint16_t h = (hash + i) & (PLANE_HASHES - 1);
+		const map_plane_t *p = plane_hash[h];
+
+		while (p) {
+			if (PlaneEqual(p, normal, dist)) {
 				return p - map_planes;
+			}
+			p = p->hash_chain;
 		}
 	}
 
@@ -197,14 +206,13 @@ int32_t FindFloatPlane(vec3_t normal, vec_t dist) {
  */
 static int32_t PlaneFromPoints(const vec3_t p0, const vec3_t p1, const vec3_t p2) {
 	vec3_t t1, t2, normal;
-	vec_t dist;
 
 	VectorSubtract(p0, p1, t1);
 	VectorSubtract(p2, p1, t2);
 	CrossProduct(t1, t2, normal);
 	VectorNormalize(normal);
 
-	dist = DotProduct(p0, normal);
+	const dvec_t dist = DotProduct(p0, normal);
 
 	return FindFloatPlane(normal, dist);
 }
@@ -311,14 +319,18 @@ static void AddBrushBevels(map_brush_t * b) {
 		for (j = 0; j < w->num_points; j++) {
 			k = (j + 1) % w->num_points;
 			VectorSubtract(w->points[j], w->points[k], vec);
-			if (VectorNormalize(vec) < 0.5)
+			if (VectorNormalize(vec) < 0.5) {
 				continue;
-			SnapVector(vec);
-			for (k = 0; k < 3; k++)
-				if (vec[k] == -1 || vec[k] == 1)
+			}
+			SnapNormal(vec);
+			for (k = 0; k < 3; k++) {
+				if (vec[k] == -1.0 || vec[k] == 1.0 || (vec[k] == 0.0 && vec[(k + 1) % 3] == 0.0)) {
 					break; // axial
-			if (k != 3)
+				}
+			}
+			if (k != 3) {
 				continue; // only test non-axial edges
+			}
 
 			// try the six possible slanted axials from this edge
 			for (axis = 0; axis < 3; axis++) {
@@ -365,14 +377,15 @@ static void AddBrushBevels(map_brush_t * b) {
 					// add this plane
 					if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
 						Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
-					num_map_brush_sides++;
-					s2 = &b->original_sides[b->num_sides];
+
+					s2 = &b->original_sides[b->num_sides++];
 					s2->plane_num = FindFloatPlane(normal, dist);
 					s2->texinfo = b->original_sides[0].texinfo;
 					s2->contents = b->original_sides[0].contents;
 					s2->bevel = true;
+
+					num_map_brush_sides++;
 					c_edge_bevels++;
-					b->num_sides++;
 				}
 			}
 		}
