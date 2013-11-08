@@ -20,6 +20,7 @@
  */
 
 #include "g_local.h"
+#include "bg_pmove.h"
 
 /*
  * @brief Returns true if ent1 and ent2 are on the same team.
@@ -228,26 +229,23 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 	g_client_t *client = target->client;
 
 	// calculate velocity change due to knockback
-	if (knockback && (target->locals.move_type == MOVE_TYPE_WALK)) {
+	if (knockback && (target->locals.move_type >= MOVE_TYPE_WALK)) {
 		vec3_t knockback_vel, ndir;
 
 		VectorCopy(dir, ndir);
 		VectorNormalize(ndir);
 
-		vec_t mass = Clamp(target->locals.mass, 50.0, 999.0);
-		vec_t scale = 1000.0; // default knockback scale
+		const vec_t mass = Clamp(target->locals.mass, 50.0, 999.0);
 
-		if (target == attacker) { // weapon jump hacks
-			if (mod == MOD_BFG_BLAST)
-				scale = 300.0;
-			else if (mod == MOD_ROCKET_SPLASH)
-				scale = 1400.0;
-			else if (mod == MOD_GRENADE)
-				scale = 1200.0;
-		}
+		// rocket jump hack
+		const vec_t scale = (target == attacker ? 1000.0 : 500.0);
 
 		VectorScale(ndir, scale * knockback / mass, knockback_vel);
 		VectorAdd(target->locals.velocity, knockback_vel, target->locals.velocity);
+
+		if (target->client) { // lose the ground for a moment
+			target->client->ps.pm_state.flags |= PMF_PUSHED;
+		}
 	}
 
 	int16_t damage_armor = 0, damage_health = 0;
