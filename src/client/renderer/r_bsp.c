@@ -412,15 +412,27 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp) {
 }
 
 /*
- * @brief Returns true if the specified leaf is in the given PVS/PHS vector.
+ * @brief Returns true if the specified leaf is in the PVS for the current frame.
  */
-static inline _Bool R_LeafInVis(const r_bsp_leaf_t *leaf, const byte *vis) {
+_Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
 	int32_t c;
 
 	if ((c = leaf->cluster) == -1)
 		return false;
 
-	return vis[c >> 3] & (1 << (c & 7));
+	return r_locals.vis_data_pvs[c >> 3] & (1 << (c & 7));
+}
+
+/*
+ * @brief Returns true if the specified leaf is in the PHS for the current frame.
+ */
+_Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
+	int32_t c;
+
+	if ((c = leaf->cluster) == -1)
+		return false;
+
+	return r_locals.vis_data_phs[c >> 3] & (1 << (c & 7));
 }
 
 /*
@@ -478,6 +490,9 @@ void R_UpdateVis(void) {
 	// if we have no vis, mark everything and return
 	if (r_no_vis->value || !r_model_state.world->bsp->num_clusters || r_locals.cluster == -1) {
 
+		memset(r_locals.vis_data_pvs, 0xff, sizeof(r_locals.vis_data_pvs));
+		memset(r_locals.vis_data_phs, 0xff, sizeof(r_locals.vis_data_phs));
+
 		for (i = 0; i < r_model_state.world->bsp->num_leafs; i++)
 			r_model_state.world->bsp->leafs[i].vis_frame = r_locals.vis_frame;
 
@@ -514,7 +529,7 @@ void R_UpdateVis(void) {
 
 	for (i = 0; i < r_model_state.world->bsp->num_leafs; i++, leaf++) {
 
-		if (!R_LeafInVis(leaf, r_locals.vis_data_pvs))
+		if (!R_LeafVisible(leaf))
 			continue;
 
 		r_view.num_bsp_leafs++;
@@ -537,18 +552,4 @@ void R_UpdateVis(void) {
 			node = node->parent;
 		}
 	}
-}
-
-/*
- * @brief Returns true if the specified leaf is in the PVS for the current frame.
- */
-_Bool R_LeafInPvs(const r_bsp_leaf_t *leaf) {
-	return R_LeafInVis(leaf, r_locals.vis_data_pvs);
-}
-
-/*
- * @brief Returns true if the specified leaf is in the PHS for the current frame.
- */
-_Bool R_LeafInPhs(const r_bsp_leaf_t *leaf) {
-	return R_LeafInVis(leaf, r_locals.vis_data_phs);
 }

@@ -162,8 +162,8 @@ void Cl_InitCgame(void) {
 	import.Trace = Cl_Trace;
 
 	import.LeafForPoint = R_LeafForPoint;
-	import.LeafInPhs = R_LeafInPhs;
-	import.LeafInPvs = R_LeafInPvs;
+	import.LeafHearable = R_LeafHearable;
+	import.LeafVisible = R_LeafVisible;
 
 	import.LoadSample = S_LoadSample;
 	import.PlaySample = S_PlaySample;

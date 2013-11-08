@@ -23,8 +23,8 @@
 #define __R_BSP_H__
 
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp);
-_Bool R_LeafInPvs(const r_bsp_leaf_t *leaf);
-_Bool R_LeafInPhs(const r_bsp_leaf_t *leaf);
+_Bool R_LeafVisible(const r_bsp_leaf_t *leaf);
+_Bool R_LeafHearable(const r_bsp_leaf_t *leaf);
 
 #ifdef __R_LOCAL_H__
 _Bool R_CullBox(const vec3_t mins, const vec3_t maxs);

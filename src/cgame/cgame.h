@@ -79,8 +79,8 @@ typedef struct cg_import_s {
 
 	// PVS and PHS
 	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_bsp_model_t *model);
-	_Bool (*LeafInPhs)(const r_bsp_leaf_t *leaf);
-	_Bool (*LeafInPvs)(const r_bsp_leaf_t *leaf);
+	_Bool (*LeafHearable)(const r_bsp_leaf_t *leaf);
+	_Bool (*LeafVisible)(const r_bsp_leaf_t *leaf);
 
 	// sound
 	s_sample_t *(*LoadSample)(const char *name);

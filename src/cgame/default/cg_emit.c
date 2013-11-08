@@ -329,9 +329,9 @@ cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
 
 	em = *e;
 
-	if (!cgi.LeafInPhs(e->leaf))
+	if (!cgi.LeafHearable(e->leaf))
 		em.flags = 0;
-	else if (!cgi.LeafInPvs(e->leaf)) {
+	else if (!cgi.LeafVisible(e->leaf)) {
 		em.flags &= ~EMIT_VISIBLE;
 	}
 

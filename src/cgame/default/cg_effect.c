@@ -249,7 +249,7 @@ static void Cg_AddWeather(void) {
 	const cg_weather_emit_t *e = cg_weather_state.emits;
 
 	while (e) {
-		if (cgi.LeafInPhs(e->leaf)) {
+		if (cgi.LeafHearable(e->leaf)) {
 			Cg_AddWeather_(e);
 		}
 		e = e->next;
