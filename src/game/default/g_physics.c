@@ -73,12 +73,11 @@ static void G_ClampVelocity(g_edict_t *ent) {
  * @brief Runs thinking code for this frame if necessary
  */
 static _Bool G_RunThink(g_edict_t *ent) {
-	uint32_t think_time = ent->locals.next_think;
 
-	if (think_time == 0)
+	if (ent->locals.next_think == 0)
 		return true;
 
-	if (think_time > g_level.time + 1)
+	if (ent->locals.next_think > g_level.time + 1)
 		return true;
 
 	ent->locals.next_think = 0;
@@ -535,7 +534,8 @@ static void G_Physics_Toss(g_edict_t *ent) {
 		G_AddGravity(ent);
 
 	if (!was_in_water && is_in_water) {
-		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_in"), ATTEN_NORM);
+		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_in"),
+				ATTEN_NORM);
 		VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
 	} else if (was_in_water && !is_in_water)
 		gi.PositionedSound(ent->s.origin, g_game.edicts, gi.SoundIndex("world/water_out"),

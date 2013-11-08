@@ -399,6 +399,7 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t const start, const vec3_t dir, i
 	projectile->locals.knockback = knockback;
 	projectile->locals.move_type = MOVE_TYPE_TOSS;
 	projectile->locals.next_think = g_level.time + timer;
+	projectile->locals.take_damage = true;
 	projectile->locals.Think = G_GrenadeProjectile_Explode;
 	projectile->locals.Touch = G_GrenadeProjectile_Touch;
 	projectile->locals.touch_time = g_level.time;
@@ -470,7 +471,7 @@ void G_RocketProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, in
 	VectorScale(dir, speed, projectile->locals.velocity);
 	VectorSet(projectile->locals.avelocity, 0.0, 0.0, 600.0);
 
-	G_PlayerProjectile(projectile, 0.25);
+	G_PlayerProjectile(projectile, 0.125);
 
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);

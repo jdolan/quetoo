@@ -235,7 +235,13 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 		VectorCopy(dir, ndir);
 		VectorNormalize(ndir);
 
-		const vec_t mass = Clamp(target->locals.mass, 50.0, 999.0);
+		// knock the target upwards at least a bit -- it's fun
+		if (ndir[2] >= 0.0) {
+			ndir[2] = MAX(0.2, ndir[2]);
+			VectorNormalize(ndir);
+		}
+
+		const vec_t mass = Clamp(target->locals.mass, 20.0, 1000.0);
 
 		// rocket jump hack
 		const vec_t scale = (target == attacker ? 1000.0 : 500.0);
@@ -243,7 +249,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 		VectorScale(ndir, scale * knockback / mass, knockback_vel);
 		VectorAdd(target->locals.velocity, knockback_vel, target->locals.velocity);
 
-		if (target->client) { // lose the ground for a moment
+		if (target->client) { // make sure the client can leave the ground
 			target->client->ps.pm_state.flags |= PMF_PUSHED;
 		}
 	}
@@ -261,7 +267,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 	}
 
 	// do the damage
-	if (damage_health) {
+	if (damage_health && target->locals.max_health) {
 		if (client)
 			G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
 		else {
