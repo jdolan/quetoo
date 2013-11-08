@@ -247,7 +247,7 @@ static face_light_t face_lights[MAX_BSP_FACES];
 
 typedef struct light_s { // a light source
 	struct light_s *next;
-	emittype_t type;
+	light_type_t type;
 
 	vec_t intensity; // brightness
 	vec3_t origin;
@@ -320,7 +320,7 @@ void BuildLights(void) {
 			l->next = lights[cluster];
 			lights[cluster] = l;
 
-			l->type = emit_surface;
+			l->type = LIGHT_FACE;
 
 			l->intensity = ColorNormalize(p->light, l->color);
 			l->intensity *= p->area * surface_scale;
@@ -363,19 +363,20 @@ void BuildLights(void) {
 		}
 
 		l->intensity = intensity * entity_scale;
-		l->type = emit_point;
+		l->type = LIGHT_POINT;
 
 		target = ValueForKey(e, "target");
 		if (!g_strcmp0(name, "light_spot") || target[0]) {
 
-			l->type = emit_spotlight;
+			l->type = LIGHT_SPOT;
 
-			l->stopdot = FloatForKey(e, "_cone");
-
+			l->stopdot = FloatForKey(e, "cone");
+			if (!l->stopdot)
+				l->stopdot = FloatForKey(e, "_cone");
 			if (!l->stopdot) // reasonable default cone
-				l->stopdot = 10;
+				l->stopdot = 20.0;
 
-			l->stopdot = cos(l->stopdot / 180.0 * M_PI);
+			l->stopdot = cos(Radians(l->stopdot));
 
 			if (target[0]) { // point towards target
 				entity_t *e2 = FindTargetEntity(target);
@@ -527,21 +528,22 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
 				continue; // behind sample surface
 
 			switch (l->type) {
-				case emit_point: // linear falloff
+				case LIGHT_POINT: // linear falloff
 					light = (l->intensity - dist) * dot;
 					break;
 
-				case emit_surface: // exponential falloff
+				case LIGHT_FACE: // exponential falloff
 					light = (l->intensity / (dist * dist)) * dot;
 					break;
 
-				case emit_spotlight: // linear falloff with cone
+				case LIGHT_SPOT: // linear falloff with cone
 					dot2 = -DotProduct(delta, l->normal);
 					if (dot2 > l->stopdot) // inside the cone
 						light = (l->intensity - dist) * dot;
-					else
-						// outside the cone
-						light = (l->intensity * 0.5 - dist) * dot;
+					else { // outside the cone
+						const vec_t decay = 1.0 + l->stopdot - dot2;
+						light = (l->intensity - decay * decay * dist) * dot;
+					}
 					break;
 				default:
 					Mon_SendPoint(ERR_WARN, l->origin, "Light with bad type");

@@ -27,10 +27,10 @@
 #include "cmodel.h"
 
 typedef enum {
-    emit_surface,
-    emit_point,
-    emit_spotlight
-} emittype_t;
+    LIGHT_POINT,
+    LIGHT_SPOT,
+    LIGHT_FACE,
+} light_type_t;
 
 typedef struct patch_s {
 	d_bsp_face_t *face;
