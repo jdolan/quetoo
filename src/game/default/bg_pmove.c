@@ -27,7 +27,7 @@
  * at a certain body position on the player model.
  */
 vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
-vec3_t PM_MAXS = { 16.0, 16.0, 40.0 };
+vec3_t PM_MAXS = { 16.0, 16.0, 32.0 };
 
 static pm_move_t *pm;
 
@@ -43,14 +43,16 @@ typedef struct {
 	vec3_t velocity;
 	vec3_t view_offset;
 
-	// previous values, in case movement fails
+	// previous origin, in case movement fails
 	vec3_t previous_origin;
+
+	// previous velocity, for detecting landings
 	vec3_t previous_velocity;
-	vec3_t previous_view_offset;
 
 	vec3_t forward, right, up;
 	vec_t time; // the command milliseconds in seconds
 
+	// ground interactions
 	c_bsp_surface_t *ground_surface;
 	c_bsp_plane_t ground_plane;
 	int32_t ground_contents;
@@ -1100,7 +1102,7 @@ static _Bool Pm_GoodPosition(void) {
  * 0.125 unit precision afforded by the network channel. We must test the
  * position, trying a series of small offsets to resolve a valid position.
  */
-static void Pm_SnapPosition(void) {
+static _Bool Pm_SnapPosition(void) {
 	const int16_t jitter_bits[8] = { 0, 4, 1, 2, 3, 5, 6, 7 };
 	int16_t i, sign[3];
 	size_t j;
@@ -1127,15 +1129,11 @@ static void Pm_SnapPosition(void) {
 		if (Pm_GoodPosition()) {
 			PackVector(pml.velocity, pm->s.velocity);
 			PackVector(pml.view_offset, pm->s.view_offset);
-			return;
+			return true;
 		}
 	}
 
-	Pm_Debug("Failed to snap to final position: %s\n", vtos(pml.origin));
-
-	PackVector(pml.previous_origin, pm->s.origin);
-	PackVector(pml.previous_velocity, pm->s.velocity);
-	PackVector(pml.previous_view_offset, pm->s.view_offset);
+	return false;
 }
 
 /*
@@ -1246,10 +1244,9 @@ static void Pm_InitLocal(void) {
 	UnpackVector(pm->s.velocity, pml.velocity);
 	UnpackVector(pm->s.view_offset, pml.view_offset);
 
-	// save previous values in case move fails
+	// save previous values in case move fails, and to detect landings
 	VectorCopy(pml.origin, pml.previous_origin);
 	VectorCopy(pml.velocity, pml.previous_velocity);
-	VectorCopy(pml.view_offset, pml.previous_view_offset);
 
 	// convert from milliseconds to seconds
 	pml.time = pm->cmd.msec * 0.001;
@@ -1320,7 +1317,13 @@ void Pm_Move(pm_move_t *pm_move) {
 		pm->s.flags &= ~PMF_PUSHED;
 	}
 
-	// ensure we're at a good point
-	Pm_SnapPosition();
+	if (!Pm_SnapPosition()) { // finalize the move, revert it if necessary
+
+		Pm_Debug("Failed to snap to final position: %s\n", vtos(pml.origin));
+
+		PackVector(pml.previous_origin, pm->s.origin);
+
+		VectorClear(pm->s.velocity);
+	}
 }
 
