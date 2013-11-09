@@ -57,23 +57,24 @@ static _Bool ResolveAsset(const char *name, const char **extensions) {
 	char base[MAX_QPATH];
 
 	StripExtension(name, base);
-	char *key = Mem_CopyString(base);
 
-	if (g_hash_table_contains(qzip.assets, key)) {
+	if (g_hash_table_contains(qzip.assets, base)) {
 		return true;
 	}
 
+	gpointer *key = (gpointer *) Mem_CopyString(base);
+
 	const char **ext = extensions;
 	while (*ext) {
-		const char *path = va("%s.%s", key, *ext);
+		const char *path = va("%s.%s", (char *) key, *ext);
 		if (Fs_Exists(path)) {
-			g_hash_table_replace(qzip.assets, (gpointer) key, Mem_CopyString(path));
+			g_hash_table_replace(qzip.assets, key, Mem_CopyString(path));
 			return true;
 		}
 		ext++;
 	}
 
-	g_hash_table_insert(qzip.assets, (gpointer) key, Mem_CopyString(MISSING));
+	g_hash_table_insert(qzip.assets, key, Mem_CopyString(MISSING));
 	return false;
 }
 

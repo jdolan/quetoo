@@ -73,7 +73,7 @@ static node_t *BlockTree(int32_t xl, int32_t yl, int32_t xh, int32_t yh) {
 		normal[1] = 0;
 		normal[2] = 0;
 		dist = mid * 1024;
-		node->plane_num = FindFloatPlane(normal, dist);
+		node->plane_num = FindPlane(normal, dist);
 		node->children[0] = BlockTree(mid, yl, xh, yh);
 		node->children[1] = BlockTree(xl, yl, mid - 1, yh);
 	} else {
@@ -82,7 +82,7 @@ static node_t *BlockTree(int32_t xl, int32_t yl, int32_t xh, int32_t yh) {
 		normal[1] = 1;
 		normal[2] = 0;
 		dist = mid * 1024;
-		node->plane_num = FindFloatPlane(normal, dist);
+		node->plane_num = FindPlane(normal, dist);
 		node->children[0] = BlockTree(xl, mid, xh, yh);
 		node->children[1] = BlockTree(xl, yl, xh, mid - 1);
 	}

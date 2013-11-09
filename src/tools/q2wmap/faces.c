@@ -63,7 +63,7 @@ static int32_t edge_verts[MAX_BSP_VERTS];
 
 int32_t subdivide_size = 1024;
 
-#define	HASH_SIZE	64
+#define	HASH_SIZE 128
 
 static int32_t vertex_chain[MAX_BSP_VERTS]; // the next vertex in a hash chain
 static int32_t hash_verts[HASH_SIZE * HASH_SIZE]; // a vertex number, or 0 for no verts
@@ -72,9 +72,10 @@ static int32_t hash_verts[HASH_SIZE * HASH_SIZE]; // a vertex number, or 0 for n
 /*
  * @brief
  */
-static int32_t HashVec(const vec3_t vec) {
-	const int32_t x = (4096 + (int32_t) (vec[0] + 0.5)) >> 7;
-	const int32_t y = (4096 + (int32_t) (vec[1] + 0.5)) >> 7;
+static int32_t HashVertex(const vec3_t vec) {
+
+	const int32_t x = (4096 + (int32_t) (vec[0] + 0.5)) >> 8;
+	const int32_t y = (4096 + (int32_t) (vec[1] + 0.5)) >> 8;
 
 	if (x < 0 || x >= HASH_SIZE || y < 0 || y >= HASH_SIZE)
 		Com_Error(ERR_FATAL, "Point outside valid range\n");
@@ -86,7 +87,7 @@ static int32_t HashVec(const vec3_t vec) {
  * @brief Snaps the vertex to integer coordinates if it is already very close,
  * then hashes it and searches for an existing vertex to reuse.
  */
-static int32_t GetVertexNum(const vec3_t in) {
+static int32_t FindVertex(const vec3_t in) {
 	int32_t i, vnum;
 	vec3_t vert;
 
@@ -101,13 +102,21 @@ static int32_t GetVertexNum(const vec3_t in) {
 			vert[i] = in[i];
 	}
 
-	const int32_t h = HashVec(vert);
+	const int32_t h = HashVertex(vert);
 
 	for (vnum = hash_verts[h]; vnum; vnum = vertex_chain[vnum]) {
-		const vec_t *p = d_bsp.vertexes[vnum].point;
-		if (fabsl(p[0] - vert[0]) < POINT_EPSILON && fabsl(p[1] - vert[1]) < POINT_EPSILON && fabsl(
-				p[2] - vert[2]) < POINT_EPSILON)
-			return vnum;
+		vec3_t delta;
+
+		// compare the points; we go out of our way to avoid using VectorLength
+		VectorSubtract(d_bsp.vertexes[vnum].point, vert, delta);
+
+		if (delta[0] < POINT_EPSILON && delta[0] > -POINT_EPSILON) {
+			if (delta[1] < POINT_EPSILON && delta[1] > -POINT_EPSILON) {
+				if (delta[2] < POINT_EPSILON && delta[2] > -POINT_EPSILON) {
+					return vnum;
+				}
+			}
+		}
 	}
 
 	// emit a vertex
@@ -229,7 +238,7 @@ static void EmitFaceVertexes(node_t *node, face_t *f) {
 			c_uniqueverts++;
 			c_totalverts++;
 		} else
-			superverts[i] = GetVertexNum(w->points[i]);
+			superverts[i] = FindVertex(w->points[i]);
 	}
 	num_superverts = w->num_points;
 
@@ -258,12 +267,12 @@ static void EmitVertexes_r(node_t *node) {
 /*
  * @brief Forced a dumb check of everything
  */
-static void FindEdgeVerts(vec3_t v1, vec3_t v2) {
+static void FindEdgeVertexes(vec3_t v1, vec3_t v2) {
 
-	int32_t x1 = (4096 + (int32_t) (v1[0] + 0.5)) >> 7;
-	int32_t y1 = (4096 + (int32_t) (v1[1] + 0.5)) >> 7;
-	int32_t x2 = (4096 + (int32_t) (v2[0] + 0.5)) >> 7;
-	int32_t y2 = (4096 + (int32_t) (v2[1] + 0.5)) >> 7;
+	int32_t x1 = (4096 + (int32_t) (v1[0] + 0.5)) >> 8;
+	int32_t y1 = (4096 + (int32_t) (v1[1] + 0.5)) >> 8;
+	int32_t x2 = (4096 + (int32_t) (v2[0] + 0.5)) >> 8;
+	int32_t y2 = (4096 + (int32_t) (v2[1] + 0.5)) >> 8;
 
 	int32_t tmp;
 	if (x1 > x2) {
@@ -360,7 +369,7 @@ static void FixFaceEdges(node_t *node, face_t *f) {
 		VectorCopy(d_bsp.vertexes[p1].point, edge_start);
 		VectorCopy(d_bsp.vertexes[p2].point, e2);
 
-		FindEdgeVerts(edge_start, e2);
+		FindEdgeVertexes(edge_start, e2);
 
 		VectorSubtract(e2, edge_start, edge_dir);
 		len = VectorNormalize(edge_dir);

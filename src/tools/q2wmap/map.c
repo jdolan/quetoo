@@ -179,7 +179,7 @@ static void SnapPlane(vec3_t normal, dvec_t *dist) {
 /*
  * @brief
  */
-int32_t FindFloatPlane(vec3_t normal, dvec_t dist) {
+int32_t FindPlane(vec3_t normal, dvec_t dist) {
 	int32_t i;
 
 	SnapPlane(normal, &dist);
@@ -214,7 +214,7 @@ static int32_t PlaneFromPoints(const vec3_t p0, const vec3_t p1, const vec3_t p2
 
 	const dvec_t dist = DotProduct(p0, normal);
 
-	return FindFloatPlane(normal, dist);
+	return FindPlane(normal, dist);
 }
 
 /*
@@ -286,7 +286,7 @@ static void AddBrushBevels(map_brush_t * b) {
 					dist = b->maxs[axis];
 				else
 					dist = -b->mins[axis];
-				s->plane_num = FindFloatPlane(normal, dist);
+				s->plane_num = FindPlane(normal, dist);
 				s->texinfo = b->original_sides[0].texinfo;
 				s->contents = b->original_sides[0].contents;
 				s->bevel = true;
@@ -379,7 +379,7 @@ static void AddBrushBevels(map_brush_t * b) {
 						Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
 
 					s2 = &b->original_sides[b->num_sides++];
-					s2->plane_num = FindFloatPlane(normal, dist);
+					s2->plane_num = FindPlane(normal, dist);
 					s2->texinfo = b->original_sides[0].texinfo;
 					s2->contents = b->original_sides[0].contents;
 					s2->bevel = true;
@@ -760,7 +760,7 @@ static _Bool ParseMapEntity(void) {
 				newdist = map_planes[s->plane_num].dist
 						- DotProduct(map_planes[s->plane_num].normal, mapent->origin);
 
-				s->plane_num = FindFloatPlane(map_planes[s->plane_num].normal, newdist);
+				s->plane_num = FindPlane(map_planes[s->plane_num].normal, newdist);
 
 				s->texinfo = TexinfoForBrushTexture(&map_planes[s->plane_num],
 						&map_brush_textures[s - map_brush_sides], mapent->origin);

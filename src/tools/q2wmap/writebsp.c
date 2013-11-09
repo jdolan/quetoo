@@ -331,7 +331,7 @@ static void EmitBrushes(void) {
 				else
 					dist = b->maxs[x];
 
-				plane_num = FindFloatPlane(normal, dist);
+				plane_num = FindPlane(normal, dist);
 
 				for (i = 0; i < b->num_sides; i++)
 					if (b->original_sides[i].plane_num == plane_num)

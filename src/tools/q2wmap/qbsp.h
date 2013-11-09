@@ -167,7 +167,7 @@ extern _Bool notjunc;
 extern vec_t microvolume;
 
 void LoadMapFile(const char *file_name);
-int32_t FindFloatPlane(vec3_t normal, dvec_t dist);
+int32_t FindPlane(vec3_t normal, dvec_t dist);
 _Bool WindingIsTiny(const winding_t * w);
 
 // textures.c
