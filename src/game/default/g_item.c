@@ -105,14 +105,11 @@ const g_item_t *G_ClientArmor(const g_edict_t *ent) {
  * @brief
  */
 static void G_ItemRespawn(g_edict_t *ent) {
-	g_edict_t *master;
-	int32_t count, choice;
-	vec3_t origin;
 
 	if (ent->locals.team) { // pick a random member from the team
+		g_edict_t *master = ent->locals.team_master;
 
-		master = ent->locals.team_master;
-		VectorCopy(master->locals.map_origin, origin);
+		int32_t count, choice;
 
 		for (count = 0, ent = master; ent; ent = ent->locals.chain, count++)
 			;
@@ -121,15 +118,11 @@ static void G_ItemRespawn(g_edict_t *ent) {
 
 		for (count = 0, ent = master; count < choice; ent = ent->locals.chain, count++)
 			;
-	} else {
-		VectorCopy(ent->locals.map_origin, origin);
 	}
-
-	VectorCopy(origin, ent->s.origin);
-	G_ItemDropToFloor(ent);
 
 	ent->sv_flags &= ~SVF_NO_CLIENT;
 	ent->solid = SOLID_TRIGGER;
+
 	gi.LinkEdict(ent);
 
 	// send an effect
@@ -734,38 +727,84 @@ static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)), 
 }
 
 /*
- * @brief
+ * @brief Drops the specified item to the floor and sets up interaction
+ * properties (Touch, Use, move type, ..).
  */
 static void G_ItemDropToFloor(g_edict_t *ent) {
+	c_trace_t tr;
+	vec3_t dest;
 
 	VectorClear(ent->locals.velocity);
+	VectorCopy(ent->s.origin, dest);
 
-	if (ent->locals.spawn_flags & SF_ITEM_HOVER) { // some items should not fall
-		ent->locals.move_type = MOVE_TYPE_FLY;
-		ent->locals.ground_entity = NULL;
-	} else { // while most do, and will also be pushed by their ground
-		c_trace_t tr;
-		vec3_t dest;
+	if (!(ent->locals.spawn_flags & SF_ITEM_HOVER)) { // drop to the floor
+		ent->locals.move_type = MOVE_TYPE_TOSS;
 
 		// first make an effort to come up out of the floor (broken maps)
 		tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_SOLID);
 		if (tr.start_solid) {
+			gi.Debug("%s start_solid, correcting..\n", etos(ent));
 			ent->s.origin[2] += 8.0;
 		}
 
-		VectorCopy(ent->s.origin, dest);
-		dest[2] -= 8192;
+		dest[2] -= 8192.0;
 
 		// then settle down to the floor
 		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
-		if (tr.start_solid) {
-			gi.Warn("%s start_solid at %s\n", ent->class_name, vtos(ent->s.origin));
-			G_FreeEdict(ent);
-			return;
-		}
 
 		VectorCopy(tr.end, ent->s.origin);
 		ent->locals.ground_entity = tr.ent;
+	} else {
+		ent->locals.move_type = MOVE_TYPE_FLY;
+		ent->locals.ground_entity = NULL;
+	}
+
+	tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
+	if (tr.start_solid) {
+		gi.Warn("%s start_solid\n", etos(ent));
+		G_FreeEdict(ent);
+		return;
+	}
+
+	// now setup interactions with other entities
+	ent->solid = SOLID_TRIGGER;
+	ent->locals.Touch = G_TouchItem;
+
+	// teamed items alternate respawns
+	if (ent->locals.team) {
+
+		ent->locals.flags &= ~FL_TEAM_SLAVE;
+		ent->locals.chain = ent->locals.team_chain;
+		ent->locals.team_chain = NULL;
+
+		ent->sv_flags |= SVF_NO_CLIENT;
+		ent->solid = SOLID_NOT;
+
+		if (ent == ent->locals.team_master) {
+			ent->locals.next_think = g_level.time + gi.frame_millis;
+			ent->locals.Think = G_ItemRespawn;
+		}
+	}
+
+	// untouchable items should simply block movement
+	if (ent->locals.spawn_flags & SF_ITEM_NO_TOUCH) {
+		ent->solid = SOLID_BOX;
+		ent->locals.Touch = NULL;
+	}
+
+	// triggered items must be targeted to become visible
+	if (ent->locals.spawn_flags & SF_ITEM_TRIGGER) {
+		ent->sv_flags |= SVF_NO_CLIENT;
+		ent->solid = SOLID_NOT;
+		ent->locals.Use = G_UseItem;
+	}
+
+	// CTF items are hidden unless CTF is enabled
+	if (!g_level.ctf) {
+		if (g_str_has_prefix(ent->class_name, "item_flag_team")) {
+			ent->sv_flags |= SVF_NO_CLIENT;
+			ent->solid = SOLID_NOT;
+		}
 	}
 
 	gi.LinkEdict(ent);
@@ -839,67 +878,30 @@ void G_PrecacheItem(const g_item_t *it) {
  */
 void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 
-	G_PrecacheItem(item);
-
-	if (ent->locals.spawn_flags) {
-		gi.Debug("%s at %s has spawnflags %d\n", ent->class_name, vtos(ent->s.origin),
-				ent->locals.spawn_flags);
-	}
+	ent->locals.item = item;
+	G_PrecacheItem(ent->locals.item);
 
 	VectorSet(ent->mins, -16.0, -16.0, -16.0);
 	VectorSet(ent->maxs, 16.0, 16.0, 16.0);
-
-	ent->solid = SOLID_TRIGGER;
-	ent->locals.move_type = MOVE_TYPE_TOSS;
-	ent->locals.Touch = G_TouchItem;
-	ent->locals.Think = G_ItemDropToFloor;
-	ent->locals.next_think = g_level.time + gi.frame_millis;
-
-	ent->locals.item = item;
-	ent->s.effects = item->effects;
 
 	if (ent->model)
 		gi.SetModel(ent, ent->model);
 	else
 		gi.SetModel(ent, ent->locals.item->model);
 
-	if (ent->locals.team) {
-		ent->locals.flags &= ~FL_TEAM_SLAVE;
-		ent->locals.chain = ent->locals.team_chain;
-		ent->locals.team_chain = NULL;
+	ent->s.effects = item->effects;
 
-		ent->sv_flags |= SVF_NO_CLIENT;
-		ent->solid = SOLID_NOT;
-		if (ent == ent->locals.team_master) {
-			ent->locals.next_think = g_level.time + gi.frame_millis; // FIXME
-			ent->locals.Think = G_ItemRespawn;
-		}
-	}
-
+	// weapons override the health field to store their ammo count
 	if (ent->locals.item->type == ITEM_WEAPON) {
 		const g_item_t *ammo = G_FindItem(ent->locals.item->ammo);
 		if (ammo)
-			ent->locals.health = ammo->quantity;
+			ent->locals.health = ammo->quantity; // TODO use "count"?
 		else
 			ent->locals.health = 0;
 	}
 
-	// hide flags unless ctf is enabled
-	if (!g_level.ctf && g_str_has_prefix(ent->class_name, "item_flag_team")) {
-		ent->sv_flags |= SVF_NO_CLIENT;
-		ent->solid = SOLID_NOT;
-	}
-
-	if (ent->locals.spawn_flags & SF_ITEM_NO_TOUCH) {
-		ent->solid = SOLID_BOX;
-		ent->locals.Touch = NULL;
-	}
-
-	if (ent->locals.spawn_flags & SF_ITEM_TRIGGER) {
-		ent->sv_flags |= SVF_NO_CLIENT;
-		ent->solid = SOLID_NOT;
-		ent->locals.Use = G_UseItem;
-	}
+	ent->locals.next_think = g_level.time + gi.frame_millis * 2;
+	ent->locals.Think = G_ItemDropToFloor;
 }
 
 const g_item_t g_items[] = {
