@@ -343,7 +343,7 @@ typedef struct g_item_s {
 
 	_Bool (*Pickup)(g_edict_t *ent, g_edict_t *other);
 	void (*Use)(g_edict_t *ent, const struct g_item_s *item);
-	void (*Drop)(g_edict_t *ent, const struct g_item_s *item);
+	g_edict_t *(*Drop)(g_edict_t *ent, const struct g_item_s *item);
 	void (*Think)(g_edict_t *ent);
 
 	const char *pickup_sound;

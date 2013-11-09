@@ -171,9 +171,9 @@ void G_UseWeapon(g_edict_t *ent, const g_item_t *item) {
 }
 
 /*
- * @brief
+ * @brief Drop the specified weapon if the client has sufficient ammo.
  */
-void G_DropWeapon(g_edict_t *ent, const g_item_t *item) {
+g_edict_t *G_DropWeapon(g_edict_t *ent, const g_item_t *item) {
 
 	const uint16_t index = ITEM_INDEX(item);
 
@@ -181,45 +181,47 @@ void G_DropWeapon(g_edict_t *ent, const g_item_t *item) {
 	if ((item == ent->client->locals.persistent.weapon || item == ent->client->locals.new_weapon)
 			&& (ent->client->locals.persistent.inventory[index] == 1)) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop current weapon\n");
-		return;
+		return NULL;
 	}
 
 	const g_item_t *ammo = G_FindItem(item->ammo);
 	const uint16_t ammo_index = ITEM_INDEX(ammo);
 	if (ent->client->locals.persistent.inventory[ammo_index] <= 0) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop a weapon without ammo\n");
-		return;
+		return NULL;
 	}
 
 	g_edict_t *dropped = G_DropItem(ent, item);
 	ent->client->locals.persistent.inventory[index]--;
 
-	//now adjust dropped ammo quantity to reflect what we actually had available
+	// now adjust dropped ammo quantity to reflect what we actually had available
 	if (ent->client->locals.persistent.inventory[ammo_index] < ammo->quantity)
 		dropped->locals.health = ent->client->locals.persistent.inventory[ammo_index];
 
-	G_AddAmmo(ent, ammo, -1 * ammo->quantity);
-
+	G_AddAmmo(ent, ammo, -dropped->locals.health);
+	return dropped;
 }
 
 /*
- * @brief
+ * @brief Toss the currently held weapon when dead.
  */
-void G_TossWeapon(g_edict_t *ent) {
+g_edict_t *G_TossWeapon(g_edict_t *ent) {
 
 	// don't drop weapon when falling into void
 	if (means_of_death == MOD_TRIGGER_HURT)
-		return;
+		return NULL;
 
 	const int16_t ammo = ent->client->locals.persistent.inventory[ent->client->locals.ammo_index];
 
 	if (!ammo)
-		return; // don't drop when out of ammo
+		return NULL; // don't drop when out of ammo
 
 	g_edict_t *dropped = G_DropItem(ent, ent->client->locals.persistent.weapon);
 
 	if (dropped->locals.health > ammo)
 		dropped->locals.health = ammo;
+
+	return dropped;
 }
 
 typedef void(*G_FireWeaponFunc)(g_edict_t *ent);

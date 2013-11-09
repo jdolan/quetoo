@@ -181,11 +181,11 @@ static _Bool G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 /*
  * @brief
  */
-void G_TossQuadDamage(g_edict_t *ent) {
+g_edict_t *G_TossQuadDamage(g_edict_t *ent) {
 	g_edict_t *quad;
 
 	if (!ent->client->locals.persistent.inventory[g_level.media.quad_damage])
-		return;
+		return NULL;
 
 	quad = G_DropItem(ent, G_FindItemByClassName("item_quad"));
 
@@ -194,6 +194,8 @@ void G_TossQuadDamage(g_edict_t *ent) {
 
 	ent->client->locals.quad_damage_time = 0.0;
 	ent->client->locals.persistent.inventory[g_level.media.quad_damage] = 0;
+
+	return quad;
 }
 
 /*
@@ -488,21 +490,21 @@ static _Bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 /*
  * @brief
  */
-void G_TossFlag(g_edict_t *ent) {
+g_edict_t *G_TossFlag(g_edict_t *ent) {
 	g_team_t *ot;
 	g_edict_t *of;
 	int32_t index;
 
 	if (!(ot = G_OtherTeam(ent->client->locals.persistent.team)))
-		return;
+		return NULL;
 
 	if (!(of = G_FlagForTeam(ot)))
-		return;
+		return NULL;
 
 	index = ITEM_INDEX(of->locals.item);
 
 	if (!ent->client->locals.persistent.inventory[index])
-		return;
+		return NULL;
 
 	ent->client->locals.persistent.inventory[index] = 0;
 
@@ -512,14 +514,14 @@ void G_TossFlag(g_edict_t *ent) {
 	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
 			ent->client->locals.persistent.net_name, ot->name);
 
-	G_DropItem(ent, of->locals.item);
+	return G_DropItem(ent, of->locals.item);
 }
 
 /*
  * @brief
  */
-static void G_DropFlag(g_edict_t *ent, const g_item_t *item __attribute__((unused))) {
-	G_TossFlag(ent);
+static g_edict_t *G_DropFlag(g_edict_t *ent, const g_item_t *item __attribute__((unused))) {
+	return G_TossFlag(ent);
 }
 
 /*
@@ -641,12 +643,10 @@ static void G_DropItem_Think(g_edict_t *ent) {
  * inventory. That is left to the caller.
  */
 g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
-	g_edict_t *dropped;
-	vec3_t forward;
-	vec3_t v;
+	vec3_t v, forward;
 	c_trace_t trace;
 
-	dropped = G_Spawn(item->class_name);
+	g_edict_t *dropped = G_Spawn(item->class_name);
 
 	dropped->locals.item = item;
 	dropped->locals.spawn_flags = SF_ITEM_DROPPED;
@@ -1374,7 +1374,7 @@ const g_item_t g_items[] = {
 		"ammo_shells",
 		G_PickupAmmo,
 		NULL,
-		NULL,
+		G_DropItem,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/shells/tris.md3",
@@ -1406,7 +1406,7 @@ const g_item_t g_items[] = {
 		"ammo_bullets",
 		G_PickupAmmo,
 		NULL,
-		NULL,
+		G_DropItem,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/bullets/tris.md3",
@@ -1438,7 +1438,7 @@ const g_item_t g_items[] = {
 		"ammo_grenades",
 		G_PickupAmmo,
 		NULL,
-		NULL,
+		G_DropItem,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/grenades/tris.md3",
@@ -1470,7 +1470,7 @@ const g_item_t g_items[] = {
 		"ammo_rockets",
 		G_PickupAmmo,
 		NULL,
-		NULL,
+		G_DropItem,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/rockets/tris.md3",
@@ -1502,7 +1502,7 @@ const g_item_t g_items[] = {
 		"ammo_cells",
 		G_PickupAmmo,
 		NULL,
-		NULL,
+		G_DropItem,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/cells/tris.md3",
@@ -1534,7 +1534,7 @@ const g_item_t g_items[] = {
 		"ammo_bolts",
 		G_PickupAmmo,
 		NULL,
-		NULL,
+		G_DropItem,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/bolts/tris.md3",
@@ -1566,7 +1566,7 @@ const g_item_t g_items[] = {
 		"ammo_slugs",
 		G_PickupAmmo,
 		NULL,
-		NULL,
+		G_DropItem,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/slugs/tris.md3",
@@ -1598,7 +1598,7 @@ const g_item_t g_items[] = {
 		"ammo_nukes",
 		G_PickupAmmo,
 		NULL,
-		NULL,
+		G_DropItem,
 		NULL,
 		"ammo/common/pickup.wav",
 		"models/ammo/nukes/tris.md3",

@@ -255,7 +255,7 @@ static void G_Drop_f(g_edict_t *ent) {
 	}
 
 	if (!it->Drop) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Item is not dropable\n");
+		gi.ClientPrint(ent, PRINT_HIGH, "Item can not be dropped\n");
 		return;
 	}
 
