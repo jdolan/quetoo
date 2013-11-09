@@ -27,7 +27,6 @@
 // assets are accumulated in this structure
 typedef struct qzip_s {
 	GHashTable *assets;
-	char *missing;
 } qzip_t;
 
 static qzip_t qzip;
@@ -36,8 +35,17 @@ static qzip_t qzip;
  * @brief Adds the specified asset, assuming the given name is a valid
  * filename.
  */
-static void AddAsset(const char *name) {
-	g_hash_table_insert(qzip.assets, (gpointer) name, Mem_CopyString(name));
+static void AddAsset(const char *name, _Bool required) {
+	if (Fs_Exists(name)) {
+		char *key = Mem_CopyString(name);
+		g_hash_table_replace(qzip.assets, (gpointer) key, Mem_CopyString(name));
+	} else {
+		if (required) {
+			Com_Error(ERR_FATAL, "Failed to add %s\n", name);
+		} else {
+			Com_Verbose("Failed to add %s\n", name);
+		}
+	}
 }
 
 /*
@@ -46,9 +54,10 @@ static void AddAsset(const char *name) {
  * @return True if the asset was found, false otherwise.
  */
 static _Bool ResolveAsset(const char *name, const char **extensions) {
-	char key[MAX_QPATH];
+	char base[MAX_QPATH];
 
-	StripExtension(name, key);
+	StripExtension(name, base);
+	char *key = Mem_CopyString(base);
 
 	if (g_hash_table_contains(qzip.assets, key)) {
 		return true;
@@ -58,13 +67,13 @@ static _Bool ResolveAsset(const char *name, const char **extensions) {
 	while (*ext) {
 		const char *path = va("%s.%s", key, *ext);
 		if (Fs_Exists(path)) {
-			g_hash_table_insert(qzip.assets, (gpointer) key, Mem_CopyString(path));
+			g_hash_table_replace(qzip.assets, (gpointer) key, Mem_CopyString(path));
 			return true;
 		}
 		ext++;
 	}
 
-	g_hash_table_insert(qzip.assets, (gpointer) key, qzip.missing);
+	g_hash_table_insert(qzip.assets, (gpointer) key, Mem_CopyString(MISSING));
 	return false;
 }
 
@@ -148,7 +157,7 @@ static void AddMaterials(const char *path) {
 		return;
 	}
 
-	AddAsset(path); // add the materials file itself
+	AddAsset(path, true); // add the materials file itself
 
 	buf = buffer;
 
@@ -269,7 +278,7 @@ static void AddModel(char *model) {
 	Dirname(model, path);
 	g_strlcat(path, "world.cfg", sizeof(path));
 
-	AddAsset(path);
+	AddAsset(path, false);
 
 	StripExtension(model, path);
 	g_strlcat(path, ".mat", sizeof(path));
@@ -286,9 +295,7 @@ static void AddLocation(void) {
 	StripExtension(bsp_name, loc);
 	g_strlcat(loc, ".loc", sizeof(loc));
 
-	if (Fs_Exists(loc)) {
-		AddAsset(loc);
-	}
+	AddAsset(loc, false);
 }
 
 /*
@@ -298,11 +305,7 @@ static void AddDocumentation(void) {
 	char base[MAX_OSPATH];
 
 	StripExtension(Basename(bsp_name), base);
-	const char *doc = va("docs/map-%s.txt", base);
-
-	if (Fs_Exists(doc)) {
-		AddAsset(doc);
-	}
+	AddAsset(va("docs/map-%s.txt", base), false);
 }
 
 /*
@@ -380,8 +383,7 @@ int32_t ZIP_Main(void) {
 
 	const time_t start = time(NULL);
 
-	qzip.assets = g_hash_table_new(g_str_hash, g_str_equal);
-	qzip.missing = Mem_CopyString(MISSING);
+	qzip.assets = g_hash_table_new_full(g_str_hash, g_str_equal, Mem_Free, Mem_Free);
 
 	LoadBSPFile(bsp_name);
 
@@ -422,12 +424,12 @@ int32_t ZIP_Main(void) {
 	AddDocumentation();
 
 	// and of course the bsp and map
-	AddAsset(bsp_name);
-	AddAsset(map_name);
+	AddAsset(bsp_name, true);
+	AddAsset(map_name, false);
 
 	// prune the assets list, removing missing resources
 	GList *assets = g_hash_table_get_values(qzip.assets);
-	assets = g_list_remove_all(assets, qzip.missing);
+	assets = g_list_sort(assets, (GCompareFunc) g_strcmp0);
 
 	g_snprintf(zip, sizeof(zip), "%s/%s", Fs_WriteDir(), GetZipFilename());
 	zipFile zip_file = zipOpen(zip, APPEND_STATUS_CREATE);
@@ -438,10 +440,12 @@ int32_t ZIP_Main(void) {
 		GList *a = assets;
 		while (a) {
 			const char *filename = (char *) a->data;
+			if (g_strcmp0(filename, MISSING)) {
 
-			DeflateAsset(zip_file, filename);
+				DeflateAsset(zip_file, filename);
 
-			Com_Print("%s\n", filename);
+				Com_Print("%s\n", filename);
+			}
 			a = a->next;
 		}
 
