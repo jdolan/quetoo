@@ -220,13 +220,17 @@ typedef enum {
 #define EFFECT_COLOR_PURPLE 187
 #define EFFECT_COLOR_DEFAULT 0
 
-
-
 /*
  * @brief Scoreboard background colors.
  */
 #define TEAM_COLOR_GOOD 243
 #define TEAM_COLOR_EVIL 242
+
+/*
+ * @brief Entity state model number to indicate that the entity is a client.
+ * When this is set, the model should be resolved from CS_CLIENTS.
+ */
+#define MODEL_CLIENT 0xff
 
 #ifdef __GAME_LOCAL_H__
 
@@ -585,8 +589,8 @@ typedef enum {
 #define DAMAGE_RADIUS			0x00000001  // damage was indirect
 #define DAMAGE_NO_ARMOR			0x00000002  // armor does not protect from this damage
 #define DAMAGE_ENERGY			0x00000004  // damage is from an energy based weapon
-#define DAMAGE_BULLET			0x00000008  // damage is from a bullet (used for ricochets)
-#define DAMAGE_NO_PROTECTION	0x00000010  // armor and godmode have no effect
+#define DAMAGE_BULLET			0x00000008  // damage is from a bullet
+#define DAMAGE_NO_PROTECTION	0x00000010  // armor and god mode have no effect
 
 /*
  * @brief There are two teams in the default game module.
@@ -750,7 +754,7 @@ typedef struct {
 	void (*Touch)(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
 	void (*Use)(g_edict_t *self, g_edict_t *other, g_edict_t *activator);
 	void (*Pain)(g_edict_t *self, g_edict_t *other, int16_t damage, int16_t knockback);
-	void (*Die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker);
+	void (*Die)(g_edict_t *self, g_edict_t *attacker, uint32_t mod);
 
 	uint32_t touch_time;
 	uint32_t push_time;

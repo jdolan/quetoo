@@ -27,8 +27,6 @@ g_export_t ge;
 g_game_t g_game;
 g_level_t g_level;
 
-uint32_t means_of_death;
-
 cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
 cvar_t *g_capture_limit;

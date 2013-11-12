@@ -236,7 +236,7 @@ void G_BlasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
  * @brief
  */
 void G_BulletProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
-		int16_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
+		int16_t knockback, uint16_t hspread, uint16_t vspread, uint32_t mod) {
 
 	c_trace_t tr = gi.Trace(ent->s.origin, start, NULL, NULL, ent, MASK_SHOT);
 	if (tr.fraction == 1.0) {
@@ -254,6 +254,8 @@ void G_BulletProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, in
 
 	// send trails and marks
 	if (tr.fraction < 1.0) {
+
+		gi.Print("%s\n", etos(tr.ent));
 
 		if (G_TakesDamage(tr.ent)) { // bleed and damage the enemy
 			G_Damage(tr.ent, ent, ent, dir, tr.end, tr.plane.normal, damage, knockback,
@@ -275,7 +277,7 @@ void G_BulletProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, in
  * @brief
  */
 void G_ShotgunProjectiles(g_edict_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
-		int16_t knockback, int32_t hspread, int32_t vspread, int32_t count, int32_t mod) {
+		int16_t knockback, int32_t hspread, int32_t vspread, int32_t count, uint32_t mod) {
 	int32_t i;
 
 	for (i = 0; i < count; i++)

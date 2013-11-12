@@ -396,12 +396,10 @@ static void G_Kill_f(g_edict_t *ent) {
 	if (ent->locals.dead)
 		return;
 
-	means_of_death = MOD_SUICIDE;
-
 	ent->locals.flags &= ~FL_GOD_MODE;
 	ent->locals.health = 0;
 
-	ent->locals.Die(ent, NULL, ent);
+	ent->locals.Die(ent, ent, MOD_SUICIDE);
 }
 
 /*

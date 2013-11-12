@@ -187,10 +187,12 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 		const vec3_t pos, const vec3_t normal, int16_t damage, int16_t knockback, uint32_t dflags,
 		uint32_t mod) {
 
+	gi.Print("%s d: %d k: %d\n", etos(target), damage, knockback);
+
 	if (!target->locals.take_damage)
 		return;
 
-	if (target->client) {
+	if (target->client) { // respawn protection
 		if (target->client->locals.respawn_protection_time > g_level.time)
 			return;
 	}
@@ -224,8 +226,6 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 	if (target == attacker && g_level.gameplay != GAME_DEATHMATCH)
 		damage = 0;
 
-	means_of_death = mod;
-
 	g_client_t *client = target->client;
 
 	// calculate velocity change due to knockback
@@ -241,6 +241,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 			VectorNormalize(ndir);
 		}
 
+		// ensure the target has valid mass for knockback calculation
 		const vec_t mass = Clamp(target->locals.mass, 20.0, 1000.0);
 
 		// rocket jump hack
@@ -267,7 +268,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 	}
 
 	// do the damage
-	if (damage_health && target->locals.health) {
+	if (damage_health && (target->locals.health || target->locals.dead)) {
 		if (client)
 			G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
 		else {
@@ -282,7 +283,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 
 		if (target->locals.health <= 0) {
 			if (target->locals.Die) {
-				target->locals.Die(target, inflictor, attacker);
+				target->locals.Die(target, attacker, mod);
 			} else {
 				gi.Debug("No die function for %s\n", target->class_name);
 			}

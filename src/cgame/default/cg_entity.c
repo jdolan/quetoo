@@ -222,7 +222,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	if (!ent->current.model1)
 		return;
 
-	if (ent->current.model1 == 0xff) { // add a player entity
+	if (ent->current.model1 == MODEL_CLIENT) { // add a player entity
 
 		Cg_AddClientEntity(ent, &e);
 

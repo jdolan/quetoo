@@ -25,10 +25,10 @@
 /*
  * @brief Make a tasteless death announcement.
  */
-static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
+static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker, uint32_t mod) {
 
-	const uint32_t ff = means_of_death & MOD_FRIENDLY_FIRE;
-	const uint32_t mod = means_of_death & ~MOD_FRIENDLY_FIRE;
+	const _Bool friendy_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
+	mod &= ~MOD_FRIENDLY_FIRE;
 
 #ifdef HAVE_MYSQL
 	if(!g_level.warmup && mysql != NULL) { // insert to db
@@ -169,7 +169,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 
 		if (message) {
 
-			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s%s\n", (ff ? "^1TEAMKILL^7 " : ""),
+			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s%s\n", (friendy_fire ? "^1TEAMKILL^7 " : ""),
 					self->client->locals.persistent.net_name, message,
 					attacker->client->locals.persistent.net_name, message2);
 
@@ -186,13 +186,13 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 			if (g_level.warmup)
 				return;
 
-			if (ff)
+			if (friendy_fire)
 				attacker->client->locals.persistent.score--;
 			else
 				attacker->client->locals.persistent.score++;
 
 			if ((g_level.teams || g_level.ctf) && attacker->client->locals.persistent.team) { // handle team scores too
-				if (ff)
+				if (friendy_fire)
 					attacker->client->locals.persistent.team->score--;
 				else
 					attacker->client->locals.persistent.team->score++;
@@ -202,25 +202,28 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 }
 
 /*
- * @brief Remove EF_CORPSE once the player has respawned. Sink in the floor
- * after a few seconds.
+ * @brief Set EF_CORPSE once the player has respawned. Sink into the floor
+ * after a few seconds, providing a window of time for us to be made into
+ * giblets or knocked around. This is called by corpses and giblets alike.
  */
 static void G_ClientCorpse_Think(g_edict_t *self) {
 
-	if (self->owner && self->owner->in_use) {
-		if (!self->owner->locals.dead) {
+	if (self->s.model1 == MODEL_CLIENT) {
+		g_edict_t *client = &g_game.edicts[self->s.client + 1];
+
+		if (client->in_use && !client->locals.dead) {
 			self->s.effects |= EF_CORPSE;
 		}
 	}
 
 	const uint32_t age = g_level.time - self->locals.timestamp;
 
-	if (age > 30000) { // 5000
+	if (age > 20000) {
 		G_FreeEdict(self);
 		return;
 	}
 
-	if (age > 27000 && self->locals.ground_entity) { // 3000
+	if (age > 18000 && self->locals.ground_entity) {
 		self->s.origin[2] -= gi.frame_seconds * 8.0;
 		self->locals.take_damage = false;
 	}
@@ -233,7 +236,8 @@ static void G_ClientCorpse_Think(g_edict_t *self) {
  * velocity of the corpse, and bounce when damaged. They eventually sink
  * through the floor and disappear.
  */
-static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker __attribute__((unused))) {
+static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute__((unused)),
+		uint32_t mod __attribute__((unused))) {
 
 	uint16_t i, count = 3 + Random() % 5;
 
@@ -245,25 +249,26 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *inflictor __attribute
 		VectorSet(ent->mins, -8.0, -8.0, -8.0);
 		VectorSet(ent->maxs, 8.0, 8.0, 8.0);
 
-		VectorCopy(self->locals.velocity, ent->locals.velocity);
-
-		const int16_t h = -self->locals.health;
-
-		ent->locals.velocity[0] += 40.0 + (h * Randomc());
-		ent->locals.velocity[1] += 40.0 + (h * Randomc());
-		ent->locals.velocity[2] += 40.0 + (h * Randomf());
-
-		VectorSet(ent->locals.avelocity, Randomc() * 25.0, Randomc() * 25.0, Randomc() * 25.0);
-
 		ent->clip_mask = MASK_DEAD_SOLID;
 		ent->solid = SOLID_BOX;
 		ent->sv_flags = SVF_DEAD_MONSTER;
 
 		ent->s.model1 = g_level.media.gib_models[Random() % NUM_GIB_MODELS];
 
+		VectorCopy(self->locals.velocity, ent->locals.velocity);
+
+		const int16_t h = -self->locals.health;
+
+		ent->locals.velocity[0] += 100.0 + (h * Randomc());
+		ent->locals.velocity[1] += 100.0 + (h * Randomc());
+		ent->locals.velocity[2] += 100.0 + (h * Randomf());
+
+		VectorSet(ent->locals.avelocity, Randomc() * 25.0, Randomc() * 25.0, Randomc() * 25.0);
+
+		ent->locals.dead = true;
 		ent->locals.mass = 40.0;
 		ent->locals.move_type = MOVE_TYPE_TOSS;
-		ent->locals.next_think = g_level.time + 1000;
+		ent->locals.next_think = g_level.time + gi.frame_millis;
 		ent->locals.take_damage = true;
 		ent->locals.Think = G_ClientCorpse_Think;
 
@@ -286,7 +291,6 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *inflictor __attribute
 static void G_ClientCorpse(g_edict_t *self) {
 
 	g_edict_t *ent = G_Spawn(__func__);
-	ent->owner = self;
 
 	VectorScale(PM_MINS, PM_SCALE, ent->mins);
 	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
@@ -312,6 +316,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 
 	VectorCopy(self->locals.velocity, ent->locals.velocity);
 
+	ent->locals.dead = true;
 	ent->locals.mass = 100.0;
 	ent->locals.move_type = MOVE_TYPE_TOSS;
 	ent->locals.take_damage = true;
@@ -328,12 +333,15 @@ static void G_ClientCorpse(g_edict_t *self) {
  * certain items we're holding and force the client into a temporary spectator
  * state with the scoreboard shown.
  */
-static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker) {
+static void G_ClientDie(g_edict_t *self, g_edict_t *attacker, uint32_t mod) {
 
-	G_ClientObituary(self, attacker);
+	G_ClientObituary(self, attacker, mod);
 
-	if (g_level.gameplay == GAME_DEATHMATCH && !g_level.warmup) // drop weapon
-		G_TossWeapon(self);
+	if (g_level.gameplay == GAME_DEATHMATCH && !g_level.warmup) { // drop weapon
+
+		if (mod != MOD_TRIGGER_HURT) // but not if killed in the void
+			G_TossWeapon(self);
+	}
 
 	self->client->locals.new_weapon = NULL; // reset weapon state
 	G_ChangeWeapon(self);
@@ -345,7 +353,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attack
 		G_TossFlag(self);
 
 	if (self->locals.health <= -20) // gib immediately
-		G_ClientCorpse_Die(self, inflictor, attacker);
+		G_ClientCorpse_Die(self, attacker, mod);
 	else
 		G_ClientCorpse(self);
 
@@ -741,7 +749,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 
 	// clear entity state values
 	ent->s.effects = 0;
-	ent->s.model1 = 0xff; // use the client info model
+	ent->s.model1 = MODEL_CLIENT; // use the client info model
 	ent->s.model2 = 0;
 	ent->s.model3 = 0;
 	ent->s.model4 = 0;

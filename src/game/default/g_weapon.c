@@ -25,26 +25,25 @@
  * @brief
  */
 _Bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
-	int32_t delta;
 
+	// add the weapon to inventory
 	const uint16_t index = ITEM_INDEX(ent->locals.item);
-	const g_item_t *ammo = G_FindItem(ent->locals.item->ammo);
-	const uint16_t ammo_index = ITEM_INDEX(ammo);
+	other->client->locals.persistent.inventory[index]++;
 
-	delta = ent->locals.health - other->client->locals.persistent.inventory[ammo_index];
-	if (delta <= 0)
-		G_AddAmmo(other, ammo, ent->locals.health / 2);
-	else
-		G_SetAmmo(other, ammo,
-				ent->locals.health + other->client->locals.persistent.inventory[ammo_index] / 2);
+	const g_item_t *ammo = G_FindItem(ent->locals.item->ammo);
+	if (ammo) {
+		const int16_t *stock = &other->client->locals.persistent.inventory[ITEM_INDEX(ammo)];
+
+		if (*stock >= ent->locals.health)
+			G_AddAmmo(other, ammo, ent->locals.health / 2);
+		else
+			G_AddAmmo(other, ammo, ent->locals.health);
+	}
 
 	// setup respawn if it's not a dropped item
 	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
 		G_SetItemRespawn(ent, g_weapon_respawn_time->value * 1000);
 	}
-
-	// add the weapon to inventory
-	other->client->locals.persistent.inventory[index]++;
 
 	// auto-change if it's the first weapon we pick up
 	if (other->client->locals.persistent.weapon != ent->locals.item
@@ -210,10 +209,6 @@ g_edict_t *G_DropWeapon(g_edict_t *ent, const g_item_t *item) {
  * @brief Toss the currently held weapon when dead.
  */
 g_edict_t *G_TossWeapon(g_edict_t *ent) {
-
-	// don't drop weapon when falling into void
-	if (means_of_death == MOD_TRIGGER_HURT)
-		return NULL;
 
 	const int16_t ammo = ent->client->locals.persistent.inventory[ent->client->locals.ammo_index];
 

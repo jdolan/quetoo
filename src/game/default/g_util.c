@@ -408,18 +408,21 @@ void G_TouchSolids(g_edict_t *ent) {
 
 /*
  * @brief Kills all entities that would touch the proposed new positioning
- * of ent. Ent should be unlinked before calling this!
+ * of the entity. The entity should be unlinked before calling this!
  */
 _Bool G_KillBox(g_edict_t *ent) {
 	c_trace_t tr;
 
+	// kill all solids that take damage, including corpses for bonus giblets
+	const int32_t mask = MASK_PLAYER_SOLID | CONTENTS_DEAD_MONSTER;
+
 	while (true) {
-		tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, NULL, MASK_PLAYER_SOLID);
+		tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, NULL, mask);
 		if (!tr.ent)
 			break;
 
 		// nail it
-		G_Damage(tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin, 9999, 0,
+		G_Damage(tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin, 999, 0,
 				DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
 
 		// if we didn't kill it, fail
