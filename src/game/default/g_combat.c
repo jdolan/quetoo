@@ -249,8 +249,8 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 		VectorScale(ndir, scale * knockback / mass, knockback_vel);
 		VectorAdd(target->locals.velocity, knockback_vel, target->locals.velocity);
 
-		if (target->client) { // make sure the client can leave the ground
-			target->client->ps.pm_state.flags |= PMF_PUSHED;
+		if (client) { // make sure the client can leave the ground
+			client->ps.pm_state.flags |= PMF_PUSHED;
 		}
 	}
 
@@ -267,7 +267,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 	}
 
 	// do the damage
-	if (damage_health && target->locals.max_health) {
+	if (damage_health && target->locals.health) {
 		if (client)
 			G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
 		else {
@@ -278,11 +278,11 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 				G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
 		}
 
-		target->locals.health = target->locals.health - damage_health;
+		target->locals.health -= damage_health;
 
 		if (target->locals.health <= 0) {
 			if (target->locals.Die) {
-				target->locals.Die(target, inflictor, attacker, damage_health, pos);
+				target->locals.Die(target, inflictor, attacker);
 			} else {
 				gi.Debug("No die function for %s\n", target->class_name);
 			}

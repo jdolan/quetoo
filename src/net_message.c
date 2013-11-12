@@ -213,6 +213,9 @@ void Net_WriteDeltaEntity(mem_buf_t *buf, const entity_state_t *from, const enti
 	if (to->effects != from->effects)
 		bits |= U_EFFECTS;
 
+	if (to->trail != from->trail)
+		bits |= U_TRAIL;
+
 	if (to->model1 != from->model1 || to->model2 != from->model2 || to->model3 != from->model3
 			|| to->model4 != from->model4)
 		bits |= U_MODELS;
@@ -253,6 +256,9 @@ void Net_WriteDeltaEntity(mem_buf_t *buf, const entity_state_t *from, const enti
 
 	if (bits & U_EFFECTS)
 		Net_WriteShort(buf, to->effects);
+
+	if (bits & U_TRAIL)
+		Net_WriteByte(buf, to->trail);
 
 	if (bits & U_MODELS) {
 		Net_WriteByte(buf, to->model1);
@@ -509,6 +515,9 @@ void Net_ReadDeltaEntity(mem_buf_t *buf, const entity_state_t *from, entity_stat
 
 	if (bits & U_EFFECTS)
 		to->effects = Net_ReadShort(buf);
+
+	if (bits & U_TRAIL)
+		to->trail = Net_ReadByte(buf);
 
 	if (bits & U_MODELS) {
 		to->model1 = Net_ReadByte(buf);

@@ -355,12 +355,12 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	for (e = 1; e < svs.game->num_edicts; e++) {
 		ent = EDICT_FOR_NUM(e);
 
-		// ignore ents that are local to the server
+		// ignore entities that are local to the server
 		if (ent->sv_flags & SVF_NO_CLIENT)
 			continue;
 
-		// ignore ents without visible models unless they have an effect
-		if (!ent->s.model1 && !ent->s.effects && !ent->s.sound && !ent->s.event)
+		// ignore entities without visible presence unless they have an effect
+		if (!ent->s.event && !ent->s.effects && !ent->s.trail && !ent->s.model1 && !ent->s.sound)
 			continue;
 
 		// ignore if not touching a PVS leaf

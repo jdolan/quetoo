@@ -29,6 +29,7 @@ cgame_la_SOURCES = \
 	cg_entity.c \
 	cg_entity_effect.c \
 	cg_entity_event.c \
+	cg_entity_trail.c \
 	cg_hud.c \
 	cg_main.c \
 	cg_media.c \

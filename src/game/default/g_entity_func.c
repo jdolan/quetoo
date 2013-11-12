@@ -746,8 +746,7 @@ static void G_func_button_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t
 	G_func_button_Activate(self);
 }
 
-static void G_func_button_Die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker,
-		int16_t damage __attribute__((unused)), const vec3_t pos __attribute__((unused))) {
+static void G_func_button_Die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker) {
 
 	self->locals.health = self->locals.max_health;
 	self->locals.take_damage = false;
@@ -1091,8 +1090,7 @@ static void G_func_door_Blocked(g_edict_t *self, g_edict_t *other) {
 /*
  * @brief
  */
-static void G_func_door_Die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker,
-		int16_t damage __attribute__((unused)), const vec3_t pos __attribute__((unused))) {
+static void G_func_door_Die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker) {
 	g_edict_t *ent;
 
 	for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain) {

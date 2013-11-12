@@ -26,8 +26,8 @@
  * in Pm_Init. They are referenced in a few other places e.g. to create effects
  * at a certain body position on the player model.
  */
-vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
-vec3_t PM_MAXS = { 16.0, 16.0, 32.0 };
+const vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
+const vec3_t PM_MAXS = { 16.0, 16.0, 32.0 };
 
 static pm_move_t *pm;
 

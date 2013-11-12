@@ -21,6 +21,11 @@
 
 #include "g_local.h"
 
+const vec3_t ITEM_MINS = { -16.0, -16.0, -16.0 };
+const vec3_t ITEM_MAXS = { 16.0, 16.0, 16.0 };
+
+#define ITEM_SCALE 1.0
+
 static void G_ItemDropToFloor(g_edict_t *ent);
 
 /*
@@ -647,17 +652,20 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 	c_trace_t trace;
 
 	g_edict_t *dropped = G_Spawn(item->class_name);
+	dropped->owner = ent;
+
+	gi.SetModel(dropped, item->model);
+
+	VectorScale(ITEM_MINS, ITEM_SCALE, dropped->mins);
+	VectorScale(ITEM_MAXS, ITEM_SCALE, dropped->maxs);
+
+	dropped->solid = SOLID_TRIGGER;
 
 	dropped->locals.item = item;
 	dropped->locals.spawn_flags = SF_ITEM_DROPPED;
-	dropped->s.effects = (item->effects & ~EF_BOB);
-	VectorSet(dropped->mins, -15, -15, -15);
-	VectorSet(dropped->maxs, 15, 15, 15);
-	gi.SetModel(dropped, dropped->locals.item->model);
-	dropped->solid = SOLID_TRIGGER;
 	dropped->locals.move_type = MOVE_TYPE_TOSS;
 	dropped->locals.Touch = G_DropItemUntouchable;
-	dropped->owner = ent;
+	dropped->s.effects = (item->effects & ~EF_BOB);
 
 	if (ent->client && ent->locals.health <= 0) { // randomize the direction we toss in
 		VectorSet(v, 0.0, ent->client->locals.angles[1] + Randomc() * 45.0, 0.0);
@@ -665,7 +673,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 
 		VectorMA(ent->s.origin, 24.0, forward, dropped->s.origin);
 
-		trace = gi.Trace(ent->s.origin, ent->s.origin, dropped->mins, dropped->maxs, ent,
+		trace = gi.Trace(ent->s.origin, dropped->s.origin, dropped->mins, dropped->maxs, ent,
 				MASK_PLAYER_SOLID);
 
 		VectorCopy(trace.end, dropped->s.origin);
@@ -881,8 +889,8 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
 	ent->locals.item = item;
 	G_PrecacheItem(ent->locals.item);
 
-	VectorSet(ent->mins, -16.0, -16.0, -16.0);
-	VectorSet(ent->maxs, 16.0, 16.0, 16.0);
+	VectorScale(ITEM_MINS, ITEM_SCALE, ent->mins);
+	VectorScale(ITEM_MAXS, ITEM_SCALE, ent->maxs);
 
 	if (ent->model)
 		gi.SetModel(ent, ent->model);

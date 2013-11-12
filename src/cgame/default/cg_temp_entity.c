@@ -283,11 +283,11 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
  * @brief
  */
 void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
-	cg_particle_t *p;
 	r_sustained_light_t s;
 	int32_t i, j;
 
 	for (i = 0; i < count; i++) {
+		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_spark)))
 			break;

@@ -106,8 +106,8 @@ void G_misc_teleporter(g_edict_t *ent) {
 
 		// add effect if ent is not buried and effect is not inhibited
 		if (!gi.PointContents(v) && !(ent->locals.spawn_flags & 4)) {
-			ent->s.effects = EF_TELEPORTER;
 			ent->s.sound = gi.SoundIndex("world/teleport_hum");
+			ent->s.trail = TRAIL_TELEPORTER;
 		}
 	}
 

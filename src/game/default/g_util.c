@@ -325,9 +325,8 @@ void G_InitEdict(g_edict_t *e, const char *class_name) {
  */
 g_edict_t *G_Spawn(const char *class_name) {
 	uint32_t i;
-	g_edict_t *e;
 
-	e = &g_game.edicts[sv_max_clients->integer + 1];
+	g_edict_t *e = &g_game.edicts[sv_max_clients->integer + 1];
 	for (i = sv_max_clients->integer + 1; i < ge.num_edicts; i++, e++) {
 		if (!e->in_use) {
 			G_InitEdict(e, class_name);

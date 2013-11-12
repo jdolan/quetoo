@@ -26,28 +26,24 @@
  * @brief Make a tasteless death announcement.
  */
 static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
-	uint32_t ff, mod;
-	char *message, *message2;
-	g_client_t *killer;
 
-	ff = means_of_death & MOD_FRIENDLY_FIRE;
-	mod = means_of_death & ~MOD_FRIENDLY_FIRE;
-	message = NULL;
-	message2 = "";
-
-	killer = attacker->client ? attacker->client : self->client;
+	const uint32_t ff = means_of_death & MOD_FRIENDLY_FIRE;
+	const uint32_t mod = means_of_death & ~MOD_FRIENDLY_FIRE;
 
 #ifdef HAVE_MYSQL
 	if(!g_level.warmup && mysql != NULL) { // insert to db
+		g_client_t *killer = attacker->client ? attacker->client : self->client;
 
 		g_snprintf(sql, sizeof(sql), "insert into frag values(null, now(), '%s', '%s', '%s', %d)",
 				g_level.name, killer->locals.persistent.sql_name, self->client->locals.persistent.sql_name, mod
 		);
 
-		sql[sizeof(sql) - 1] = '\0';
 		mysql_query(mysql, sql);
 	}
 #endif
+
+	char *message = NULL;
+	char *message2 = "";
 
 	switch (mod) {
 		case MOD_SUICIDE:
@@ -206,48 +202,103 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker) {
 }
 
 /*
- * @brief
+ * @brief Remove EF_CORPSE once the player has respawned. Sink in the floor
+ * after a few seconds.
  */
-static void G_ClientCorpse_Think(g_edict_t *ent) {
-	const uint32_t age = g_level.time - ent->locals.timestamp;
+static void G_ClientCorpse_Think(g_edict_t *self) {
 
-	if (age > 5000) {
-		G_FreeEdict(ent);
+	if (self->owner && self->owner->in_use) {
+		if (!self->owner->locals.dead) {
+			self->s.effects |= EF_CORPSE;
+		}
+	}
+
+	const uint32_t age = g_level.time - self->locals.timestamp;
+
+	if (age > 30000) { // 5000
+		G_FreeEdict(self);
 		return;
 	}
 
-	if (age > 2000 && ent->locals.ground_entity) {
-		ent->s.origin[2] -= 1.0;
+	if (age > 27000 && self->locals.ground_entity) { // 3000
+		self->s.origin[2] -= gi.frame_seconds * 8.0;
+		self->locals.take_damage = false;
 	}
 
-	ent->locals.next_think = g_level.time + 100;
+	self->locals.next_think = g_level.time + gi.frame_millis;
 }
 
 /*
- * @brief
+ * @brief Corpses explode into giblets when killed. Giblets receive the
+ * velocity of the corpse, and bounce when damaged. They eventually sink
+ * through the floor and disappear.
+ */
+static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker __attribute__((unused))) {
+
+	uint16_t i, count = 3 + Random() % 5;
+
+	for (i = 0; i < count; i++) {
+		g_edict_t *ent = G_Spawn(__func__);
+
+		VectorCopy(self->s.origin, ent->s.origin);
+
+		VectorSet(ent->mins, -4.0, -4.0, -4.0);
+		VectorSet(ent->maxs, 4.0, 4.0, 4.0);
+
+		VectorCopy(self->locals.velocity, ent->locals.velocity);
+
+		const int16_t h = -self->locals.health;
+
+		ent->locals.velocity[0] += 40.0 + (h * Randomc());
+		ent->locals.velocity[1] += 40.0 + (h * Randomc());
+		ent->locals.velocity[2] += 40.0 + (h * Randomf());
+
+		VectorSet(ent->locals.avelocity, Randomc() * 25.0, Randomc() * 25.0, Randomc() * 25.0);
+
+		ent->solid = SOLID_BOX;
+
+		ent->s.model1 = g_level.media.gib_models[Random() % NUM_GIB_MODELS];
+
+		ent->locals.mass = 40.0;
+		ent->locals.move_type = MOVE_TYPE_TOSS;
+		ent->locals.next_think = g_level.time + 1000;
+		ent->locals.take_damage = true;
+		ent->locals.Think = G_ClientCorpse_Think;
+
+		gi.LinkEdict(ent);
+	}
+
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
+	gi.WriteByte(TE_GIB);
+	gi.WritePosition(self->s.origin);
+	gi.Multicast(self->s.origin, MULTICAST_PVS);
+
+	if (!self->client) // this can be called immediately by the client
+		G_FreeEdict(self);
+}
+
+/*
+ * @brief Spawns a corpse for the specified client. The corpse will eventually
+ * sink into the floor and disappear if not over-killed.
  */
 static void G_ClientCorpse(g_edict_t *self) {
-	const vec_t r = Randomf();
 
 	g_edict_t *ent = G_Spawn(__func__);
-
-	ent->locals.move_type = MOVE_TYPE_TOSS;
-	ent->solid = SOLID_NOT;
+	ent->owner = self;
 
 	VectorScale(PM_MINS, PM_SCALE, ent->mins);
 	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
 
-	VectorCopy(self->locals.velocity, ent->locals.velocity);
+	ent->maxs[2] = 0.0; // corpses are laying down
 
-	memcpy(&ent->s, &self->s, sizeof(ent->s));
-	ent->s.number = ent - g_game.edicts;
+	ent->solid = SOLID_BOX;
 
-	ent->s.effects = 0;
+	VectorCopy(self->s.origin, ent->s.origin);
 
-	ent->s.model2 = 0;
-	ent->s.model3 = 0;
-	ent->s.model4 = 0;
+	ent->s.model1 = self->s.model1;
+	ent->s.client = self->s.client;
 
+	const vec_t r = Randomf();
 	if (r < 0.33)
 		G_SetAnimation(ent, ANIM_BOTH_DEATH1, true);
 	else if (r < 0.66)
@@ -255,8 +306,15 @@ static void G_ClientCorpse(g_edict_t *self) {
 	else
 		G_SetAnimation(ent, ANIM_BOTH_DEATH3, true);
 
+	VectorCopy(self->locals.velocity, ent->locals.velocity);
+
+	ent->locals.mass = 100.0;
+	ent->locals.move_type = MOVE_TYPE_TOSS;
+	ent->locals.take_damage = true;
+	ent->locals.health = 3000;
+	ent->locals.Die = G_ClientCorpse_Die;
 	ent->locals.Think = G_ClientCorpse_Think;
-	ent->locals.next_think = g_level.time + 1000;
+	ent->locals.next_think = g_level.time + gi.frame_millis;
 
 	gi.LinkEdict(ent);
 }
@@ -266,17 +324,7 @@ static void G_ClientCorpse(g_edict_t *self) {
  * certain items we're holding and force the client into a temporary spectator
  * state with the scoreboard shown.
  */
-static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unused)), g_edict_t *attacker, int16_t damage __attribute__((unused)),
-		const vec3_t pos __attribute__((unused))) {
-
-	self->locals.enemy = attacker;
-
-	G_ClientCorpse(self);
-
-	gi.Sound(self, gi.SoundIndex("*death_1"), ATTEN_NORM);
-
-	self->client->locals.respawn_time = g_level.time + 1000;
-	self->client->ps.pm_state.type = PM_DEAD;
+static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker) {
 
 	G_ClientObituary(self, attacker);
 
@@ -292,6 +340,16 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
 	if (g_level.ctf && !g_level.warmup) // drop flag in ctf
 		G_TossFlag(self);
 
+	if (self->locals.health <= -50) // gib immediately
+		G_ClientCorpse_Die(self, inflictor, attacker);
+	else
+		G_ClientCorpse(self);
+
+	gi.Sound(self, gi.SoundIndex("*death_1"), ATTEN_NORM);
+
+	self->client->locals.respawn_time = g_level.time + 1000;
+	self->client->ps.pm_state.type = PM_DEAD;
+
 	self->client->locals.show_scores = true; // show scores
 
 	self->sv_flags |= SVF_NO_CLIENT;
@@ -299,26 +357,19 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor __attribute__((unu
 	self->locals.dead = true;
 	self->class_name = "dead";
 
+	self->s.event = EV_NONE;
+	self->s.effects = EF_NONE;
+	self->s.trail = TRAIL_NONE;
 	self->s.model1 = 0;
 	self->s.model2 = 0;
 	self->s.model3 = 0;
 	self->s.model4 = 0;
 	self->s.sound = 0;
-	self->s.event = 0;
-	self->s.effects = 0;
 
 	self->solid = SOLID_NOT;
 	self->locals.take_damage = false;
 
 	gi.LinkEdict(self);
-
-	// TODO: If health is sufficiently low, emit a gib.
-	// TODO: We need a gib model ;)
-
-	/*gi.WriteByte(svc_temp_entity);
-	 gi.WriteByte(TE_GIB);
-	 gi.WritePosition(self->s.origin);
-	 gi.Multicast(self->s.origin, MULTICAST_PVS);*/
 }
 
 /*
@@ -345,12 +396,14 @@ static void G_Give(g_client_t *client, char *it, int16_t quantity) {
 
 		if (item->ammo) {
 			const g_item_t *ammo = G_FindItem(item->ammo);
-			const uint16_t ammo_index = ITEM_INDEX(ammo);
+			if (ammo) {
+				const uint16_t ammo_index = ITEM_INDEX(ammo);
 
-			if (quantity > -1)
-				client->locals.persistent.inventory[ammo_index] = quantity;
-			else
-				client->locals.persistent.inventory[ammo_index] = ammo->quantity;
+				if (quantity > -1)
+					client->locals.persistent.inventory[ammo_index] = quantity;
+				else
+					client->locals.persistent.inventory[ammo_index] = ammo->quantity;
+			}
 		}
 	} else { // while other items receive quantity directly
 		if (quantity > -1)
@@ -441,11 +494,11 @@ static void G_InitClientPersistent(g_client_t *client) {
 		G_Give(client, "Shotgun", 80);
 		G_Give(client, "Blaster", 0);
 
-		G_Give(client, "Armor", 200);
+		G_Give(client, "Body Armor", -1);
 
 		item = G_FindItem("Rocket Launcher");
 	}
-	// dm gets shotgun and 10 shots
+	// dm gets the blaster
 	else {
 		G_Give(client, "Blaster", 0);
 		item = G_FindItem("Blaster");
@@ -633,8 +686,9 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	// reset inventory, health, etc
 	G_InitClientPersistent(cl);
 
-	// clear everything but locals
+	// clear everything but the persistent structure
 	g_client_persistent_t persistent = cl->locals.persistent;
+
 	memset(cl, 0, sizeof(*cl));
 	cl->locals.persistent = persistent;
 

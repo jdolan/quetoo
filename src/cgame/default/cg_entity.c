@@ -25,19 +25,19 @@
  * @brief Establishes the write-through lighting cache for the specified entity,
  * marking it as dirty if necessary.
  */
-static void Cg_UpdateLighting(cl_entity_t *e, r_entity_t *ent) {
+static void Cg_UpdateLighting(cl_entity_t *ent, r_entity_t *e) {
 
 	// setup the write-through lighting cache
-	ent->lighting = &e->lighting;
+	e->lighting = &ent->lighting;
 
-	if (e->current.effects & EF_NO_LIGHTING) {
+	if (ent->current.effects & EF_NO_LIGHTING) {
 		// some entities are never lit
-		ent->lighting->state = LIGHTING_READY;
+		e->lighting->state = LIGHTING_READY;
 	} else {
 		// but most are, so update their lighting if appropriate
-		if (ent->lighting->state == LIGHTING_READY) {
-			if (!VectorCompare(e->current.origin, e->prev.origin)) {
-				ent->lighting->state = LIGHTING_DIRTY;
+		if (e->lighting->state == LIGHTING_READY) {
+			if (!VectorCompare(ent->current.origin, e->origin)) {
+				e->lighting->state = LIGHTING_DIRTY;
 			}
 		}
 	}
@@ -47,20 +47,19 @@ static void Cg_UpdateLighting(cl_entity_t *e, r_entity_t *ent) {
  * @brief Adds the numerous render entities which comprise a given client (player)
  * entity: head, upper, lower, weapon, flags, etc.
  */
-static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
-	const entity_state_t *s = &e->current;
-	const cl_client_info_t *ci = &cgi.client->client_info[s->client];
-	r_entity_t head, upper, lower;
+static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
+	const entity_state_t *s = &ent->current;
 
+	const cl_client_info_t *ci = &cgi.client->client_info[s->client];
 	if (!ci->head || !ci->upper || !ci->lower) {
 		cgi.Debug("Invalid client info: %d\n", s->client);
 		return;
 	}
 
-	int32_t effects = s->effects;
+	r_entity_t head, upper, lower;
 
 	// copy the specified entity to all body segments
-	head = upper = lower = *ent;
+	head = upper = lower = *e;
 
 	head.model = ci->head;
 	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
@@ -71,18 +70,17 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 	lower.model = ci->lower;
 	memcpy(lower.skins, ci->lower_skins, sizeof(lower.skins));
 
-	Cg_AnimateClientEntity(e, &upper, &lower);
+	Cg_AnimateClientEntity(ent, &upper, &lower);
+
+	uint32_t effects = s->effects;
 
 	// don't draw ourselves unless third person is set
-	if (IS_SELF(e)) {
+	if (IS_SELF(ent) && !(s->effects & EF_CORPSE) && !cg_third_person->value) {
+		effects |= EF_NO_DRAW;
 
-		if (!cg_third_person->value) {
-			effects |= EF_NO_DRAW;
-
-			// keep our shadow underneath us using the predicted origin
-			lower.origin[0] = cgi.view->origin[0];
-			lower.origin[1] = cgi.view->origin[1];
-		}
+		// keep our shadow underneath us using the predicted origin
+		lower.origin[0] = cgi.view->origin[0];
+		lower.origin[1] = cgi.view->origin[1];
 	}
 
 	head.effects = upper.effects = lower.effects = effects;
@@ -112,7 +110,8 @@ static void Cg_AddClientEntity(cl_entity_t *e, r_entity_t *ent) {
 /*
  * @brief Calculates a kick offset and angles based on our player's animation state.
  */
-static void Cg_WeaponKick(cl_entity_t *e, vec3_t offset, vec3_t angles) {
+static void Cg_WeaponKick(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
+
 	const vec3_t drop_raise_offset = { -4.0, -4.0, -4.0 };
 	const vec3_t drop_raise_angles = { 25.0, -35.0, 2.0 };
 
@@ -122,15 +121,15 @@ static void Cg_WeaponKick(cl_entity_t *e, vec3_t offset, vec3_t angles) {
 	VectorSet(offset, cg_draw_weapon_x->value, cg_draw_weapon_y->value, cg_draw_weapon_z->value);
 	VectorClear(angles);
 
-	if (e->animation1.animation == ANIM_TORSO_DROP) {
-		VectorMA(offset, e->animation1.fraction, drop_raise_offset, offset);
-		VectorScale(drop_raise_angles, e->animation1.fraction, angles);
-	} else if (e->animation1.animation == ANIM_TORSO_RAISE) {
-		VectorMA(offset, 1.0 - e->animation1.fraction, drop_raise_offset, offset);
-		VectorScale(drop_raise_angles, 1.0 - e->animation1.fraction, angles);
-	} else if (e->animation1.animation == ANIM_TORSO_ATTACK1) {
-		VectorMA(offset, 1.0 - e->animation1.fraction, kick_offset, offset);
-		VectorScale(kick_angles, 1.0 - e->animation1.fraction, angles);
+	if (ent->animation1.animation == ANIM_TORSO_DROP) {
+		VectorMA(offset, ent->animation1.fraction, drop_raise_offset, offset);
+		VectorScale(drop_raise_angles, ent->animation1.fraction, angles);
+	} else if (ent->animation1.animation == ANIM_TORSO_RAISE) {
+		VectorMA(offset, 1.0 - ent->animation1.fraction, drop_raise_offset, offset);
+		VectorScale(drop_raise_angles, 1.0 - ent->animation1.fraction, angles);
+	} else if (ent->animation1.animation == ANIM_TORSO_ATTACK1) {
+		VectorMA(offset, 1.0 - ent->animation1.fraction, kick_offset, offset);
+		VectorScale(kick_angles, 1.0 - ent->animation1.fraction, angles);
 	}
 
 	VectorScale(offset, cg_bob->value, offset);
@@ -140,8 +139,8 @@ static void Cg_WeaponKick(cl_entity_t *e, vec3_t offset, vec3_t angles) {
 /*
  * @brief Adds the first-person weapon model to the view.
  */
-static void Cg_AddWeapon(cl_entity_t *e, r_entity_t *self) {
-	static r_entity_t ent;
+static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
+	static r_entity_t w;
 	static r_lighting_t lighting;
 	vec3_t offset, angles;
 
@@ -162,80 +161,85 @@ static void Cg_AddWeapon(cl_entity_t *e, r_entity_t *self) {
 	if (!ps->stats[STAT_WEAPON])
 		return; // no weapon, e.g. level intermission
 
-	memset(&ent, 0, sizeof(ent));
+	memset(&w, 0, sizeof(w));
 
-	Cg_WeaponKick(e, offset, angles);
+	Cg_WeaponKick(ent, offset, angles);
 
-	VectorCopy(cgi.view->origin, ent.origin);
+	VectorCopy(cgi.view->origin, w.origin);
 
-	VectorMA(ent.origin, offset[2], cgi.view->up, ent.origin);
-	VectorMA(ent.origin, offset[1], cgi.view->right, ent.origin);
-	VectorMA(ent.origin, offset[0], cgi.view->forward, ent.origin);
+	VectorMA(w.origin, offset[2], cgi.view->up, w.origin);
+	VectorMA(w.origin, offset[1], cgi.view->right, w.origin);
+	VectorMA(w.origin, offset[0], cgi.view->forward, w.origin);
 
-	VectorAdd(cgi.view->angles, angles, ent.angles);
+	VectorAdd(cgi.view->angles, angles, w.angles);
 
-	ent.effects = EF_WEAPON | EF_NO_SHADOW;
+	w.effects = EF_WEAPON | EF_NO_SHADOW;
 
 	if (cg_draw_weapon_alpha->value < 1.0) {
-		ent.effects |= EF_BLEND;
-		ent.alpha = cg_draw_weapon_alpha->value;
+		w.effects |= EF_BLEND;
+		w.alpha = cg_draw_weapon_alpha->value;
 	}
 
-	VectorCopy(self->shell, ent.shell);
+	VectorCopy(self->shell, w.shell);
 
-	ent.model = cgi.client->model_precache[ps->stats[STAT_WEAPON]];
+	w.model = cgi.client->model_precache[ps->stats[STAT_WEAPON]];
 
-	ent.lerp = ent.scale = 1.0;
+	w.lerp = w.scale = 1.0;
 
 	memset(&lighting, 0, sizeof(lighting));
-	ent.lighting = &lighting;
+	w.lighting = &lighting;
 
-	cgi.AddEntity(&ent);
+	cgi.AddEntity(&w);
 }
 
 /*
  * @brief Adds the specified client entity to the view.
  */
-static void Cg_AddEntity(cl_entity_t *e) {
-	r_entity_t ent;
+static void Cg_AddEntity(cl_entity_t *ent) {
+	r_entity_t e;
 
-	memset(&ent, 0, sizeof(ent));
-	ent.scale = 1.0;
+	memset(&e, 0, sizeof(e));
+	e.scale = 1.0;
+
+	// resolve the origin and angles so that we know where to add effects
+	VectorLerp(ent->prev.origin, ent->current.origin, cgi.client->lerp, e.origin);
+
+	AngleLerp(ent->prev.angles, ent->current.angles, cgi.client->lerp, e.angles);
 
 	// update the static lighting cache
-	Cg_UpdateLighting(e, &ent);
-
-	// resolve the origin so that we know where to add effects
-	VectorLerp(e->prev.origin, e->current.origin, cgi.client->lerp, ent.origin);
+	Cg_UpdateLighting(ent, &e);
 
 	// add events
-	Cg_EntityEvent(e);
+	Cg_EntityEvent(ent);
 
 	// add effects, augmenting the renderer entity
-	Cg_EntityEffects(e, &ent);
+	Cg_EntityEffects(ent, &e);
+
+	// and particle and light trails
+	Cg_EntityTrail(ent, &e);
 
 	// if there's no model associated with the entity, we're done
-	if (!e->current.model1)
+	if (!ent->current.model1)
 		return;
 
-	if (e->current.model1 == 0xff) { // add a player entity
+	if (ent->current.model1 == 0xff) { // add a player entity
 
-		Cg_AddClientEntity(e, &ent);
+		Cg_AddClientEntity(ent, &e);
 
-		if (IS_SELF(e))
-			Cg_AddWeapon(e, &ent);
+		if (IS_SELF(ent))
+			Cg_AddWeapon(ent, &e);
 
 		return;
 	}
 
 	// assign the model
-	ent.model = cgi.client->model_precache[e->current.model1];
+	e.model = cgi.client->model_precache[ent->current.model1];
 
 	// and any frame animations (button state, etc)
-	ent.frame = e->current.animation1;
+	e.frame = ent->current.animation1;
 
 	// add to view list
-	cgi.AddEntity(&ent);
+	cgi.AddEntity(&e);
 }
 
 /*
@@ -247,7 +251,7 @@ static void Cg_AddEntity(cl_entity_t *e) {
  * several.
  */
 void Cg_AddEntities(const cl_frame_t *frame) {
-	int32_t i;
+	uint16_t i;
 
 	if (!cg_add_entities->value)
 		return;
@@ -258,8 +262,8 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 		const int32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *s = &cgi.client->entity_states[snum];
 
-		cl_entity_t *cent = &cgi.client->entities[s->number];
+		cl_entity_t *ent = &cgi.client->entities[s->number];
 
-		Cg_AddEntity(cent);
+		Cg_AddEntity(ent);
 	}
 }

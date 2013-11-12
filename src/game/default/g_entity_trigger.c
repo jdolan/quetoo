@@ -84,7 +84,7 @@ static void G_trigger_multiple_Touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
 		c_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client) {
-		if(!((self->locals.spawn_flags & SHOOTABLE) && other->solid == SOLID_MISSILE)) {
+		if (!((self->locals.spawn_flags & SHOOTABLE) && other->solid == SOLID_MISSILE)) {
 			return;
 		}
 	}
@@ -125,7 +125,7 @@ static void G_trigger_multiple_Enable(g_edict_t *self, g_edict_t *other __attrib
  -------- Spawn flags --------
  triggered : If set, this trigger must be targeted before it will activate.
  shootable : If set, this trigger will fire when projectiles touch it.
-*/
+ */
 void G_trigger_multiple(g_edict_t *ent) {
 
 	ent->locals.noise_index = gi.SoundIndex("misc/chat");
@@ -163,7 +163,7 @@ void G_trigger_multiple(g_edict_t *ent) {
 
  -------- Spawn flags --------
  triggered : If set, this trigger must be targeted before it will activate.
-*/
+ */
 void G_trigger_once(g_edict_t *ent) {
 	ent->locals.wait = -1;
 	G_trigger_multiple(ent);
@@ -185,7 +185,7 @@ static void G_trigger_relay_Use(g_edict_t *self, g_edict_t *other __attribute__(
  target : The name of the entity or team to use on activation.
  killtarget : The name of the entity or team to kill on activation.
  targetname : The target name of this entity.
-*/
+ */
 void G_trigger_relay(g_edict_t *self) {
 	self->locals.Use = G_trigger_relay_Use;
 }
@@ -198,7 +198,7 @@ void G_trigger_relay(g_edict_t *self) {
  message : An optional message to display when this trigger fires.
  target : The name of the entity or team to use on activation.
  kill_target : The name of the entity or team to kill on activation.
-*/
+ */
 void G_trigger_always(g_edict_t *ent) {
 
 	// we must have some delay to make sure our use targets are present
@@ -240,13 +240,12 @@ static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 static void G_trigger_push_Effect(g_edict_t *self) {
 
 	g_edict_t *ent = G_Spawn(__func__);
-	ent->solid = SOLID_TRIGGER;
-	ent->locals.move_type = MOVE_TYPE_NONE;
 
-	// uber hack to resolve origin
 	VectorAdd(self->mins, self->maxs, ent->s.origin);
 	VectorScale(ent->s.origin, 0.5, ent->s.origin);
-	ent->s.effects = EF_TELEPORTER;
+
+	ent->locals.move_type = MOVE_TYPE_NONE;
+	ent->s.trail = TRAIL_TELEPORTER;
 
 	gi.LinkEdict(ent);
 }
@@ -261,7 +260,7 @@ static void G_trigger_push_Effect(g_edict_t *self) {
  -------- Spawn flags --------
  push_once : If set, the pusher is freed after it is used once.
  push_effects : If set, emit particle effects to indicate that a pusher is here.
-*/
+ */
 void G_trigger_push(g_edict_t *self) {
 
 	G_Trigger_Init(self);
@@ -342,7 +341,7 @@ static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
  ?
  no_protection : If set, armor will not be used to absorb damage inflicted by this entity.
  slow : Decreases the damage rate to once per second.
-*/
+ */
 void G_trigger_hurt(g_edict_t *self) {
 
 	G_Trigger_Init(self);
@@ -388,7 +387,7 @@ static void G_trigger_exec_Touch(g_edict_t *self, g_edict_t *other __attribute__
  command : The console command(s) to execute.
  script : The script file (.cfg) to execute.
  delay : The delay in seconds between activation and execution of the commands.
-*/
+ */
 void G_trigger_exec(g_edict_t *self) {
 
 	if (!self->locals.command && !self->locals.script) {

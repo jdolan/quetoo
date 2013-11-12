@@ -40,10 +40,7 @@ _Bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 
 	// setup respawn if it's not a dropped item
 	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
-		if (!g_strcmp0(ent->locals.item->name, "BFG10K"))
-			G_SetItemRespawn(ent, g_weapon_respawn_time->value * 3 * 1000);
-		else
-			G_SetItemRespawn(ent, g_weapon_respawn_time->value * 1000);
+		G_SetItemRespawn(ent, g_weapon_respawn_time->value * 1000);
 	}
 
 	// add the weapon to inventory
@@ -186,19 +183,26 @@ g_edict_t *G_DropWeapon(g_edict_t *ent, const g_item_t *item) {
 
 	const g_item_t *ammo = G_FindItem(item->ammo);
 	const uint16_t ammo_index = ITEM_INDEX(ammo);
+
 	if (ent->client->locals.persistent.inventory[ammo_index] <= 0) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Can't drop a weapon without ammo\n");
 		return NULL;
 	}
 
 	g_edict_t *dropped = G_DropItem(ent, item);
-	ent->client->locals.persistent.inventory[index]--;
 
-	// now adjust dropped ammo quantity to reflect what we actually had available
-	if (ent->client->locals.persistent.inventory[ammo_index] < ammo->quantity)
-		dropped->locals.health = ent->client->locals.persistent.inventory[ammo_index];
+	if (dropped) {
+		ent->client->locals.persistent.inventory[index]--;
 
-	G_AddAmmo(ent, ammo, -dropped->locals.health);
+		// now adjust dropped ammo quantity to reflect what we actually had available
+		if (ent->client->locals.persistent.inventory[ammo_index] < ammo->quantity)
+			dropped->locals.health = ent->client->locals.persistent.inventory[ammo_index];
+
+		G_AddAmmo(ent, ammo, -dropped->locals.health);
+	} else {
+		gi.Debug("Failed to drop %s\n", item->name);
+	}
+
 	return dropped;
 }
 
@@ -213,13 +217,16 @@ g_edict_t *G_TossWeapon(g_edict_t *ent) {
 
 	const int16_t ammo = ent->client->locals.persistent.inventory[ent->client->locals.ammo_index];
 
-	if (!ammo)
-		return NULL; // don't drop when out of ammo
+	gi.Print("toss: %d: %d\n", ent->client->locals.ammo_index, ammo);
+	if (!ammo) // don't drop when out of ammo
+		return NULL;
 
 	g_edict_t *dropped = G_DropItem(ent, ent->client->locals.persistent.weapon);
 
-	if (dropped->locals.health > ammo)
-		dropped->locals.health = ammo;
+	if (dropped) {
+		if (dropped->locals.health > ammo)
+			dropped->locals.health = ammo;
+	}
 
 	return dropped;
 }

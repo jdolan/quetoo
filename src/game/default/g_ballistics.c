@@ -220,7 +220,7 @@ void G_BlasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 	projectile->locals.next_think = g_level.time + 8000;
 	projectile->locals.Think = G_FreeEdict;
 	projectile->locals.Touch = G_BlasterProjectile_Touch;
-	projectile->s.effects = EF_BLASTER;
+	projectile->s.trail = TRAIL_BLASTER;
 
 	// set the color, overloading the client byte
 	if (ent->client) {
@@ -303,7 +303,7 @@ static void G_GrenadeProjectile_Explode(g_edict_t *self) {
 		VectorSubtract(self->locals.enemy->s.origin, self->s.origin, dir);
 
 		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_origin,
-				(int32_t) d, (int32_t) k, DAMAGE_RADIUS, MOD_GRENADE);
+				(int16_t) d, (int16_t) k, DAMAGE_RADIUS, MOD_GRENADE);
 	}
 
 	// hurt anything else nearby
@@ -403,8 +403,12 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t const start, const vec3_t dir, i
 	projectile->locals.Think = G_GrenadeProjectile_Explode;
 	projectile->locals.Touch = G_GrenadeProjectile_Touch;
 	projectile->locals.touch_time = g_level.time;
-	projectile->s.effects = EF_GRENADE;
+	projectile->s.trail = TRAIL_GRENADE;
 	projectile->s.model1 = g_level.media.grenade_model;
+
+	// Giblet testing
+	// projectile->s.model1 = gi.ModelIndex(va("models/gibs/gib%02d/tris.obj", (Random() % 3) + 1));
+	// projectile->locals.next_think = 0;
 
 	gi.LinkEdict(projectile);
 }
@@ -485,9 +489,9 @@ void G_RocketProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, in
 	projectile->locals.next_think = g_level.time + 8000;
 	projectile->locals.Think = G_FreeEdict;
 	projectile->locals.Touch = G_RocketProjectile_Touch;
-	projectile->s.effects = EF_ROCKET;
 	projectile->s.model1 = g_level.media.rocket_model;
 	projectile->s.sound = g_level.media.rocket_fly_sound;
+	projectile->s.trail = TRAIL_ROCKET;
 
 	gi.LinkEdict(projectile);
 }
@@ -568,7 +572,7 @@ void G_HyperblasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t d
 	projectile->locals.Think = G_FreeEdict;
 	projectile->locals.next_think = g_level.time + 6000;
 	projectile->locals.Touch = G_HyperblasterProjectile_Touch;
-	projectile->s.effects = EF_HYPERBLASTER;
+	projectile->s.trail = TRAIL_HYPERBLASTER;
 
 	gi.LinkEdict(projectile);
 }
@@ -722,8 +726,9 @@ void G_LightningProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
 		projectile->locals.Think = G_LightningProjectile_Think;
 		projectile->locals.knockback = knockback;
 		projectile->s.client = ent - g_game.edicts; // player number, for client prediction fix
-		projectile->s.effects = EF_BEAM | EF_LIGHTNING;
+		projectile->s.effects = EF_BEAM;
 		projectile->s.sound = g_level.media.lightning_fly_sound;
+		projectile->s.trail = TRAIL_LIGHTNING;
 
 		gi.LinkEdict(projectile);
 		ent->locals.lightning = projectile;
@@ -947,7 +952,7 @@ void G_BfgProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int32
 	projectile->locals.next_think = g_level.time + gi.frame_millis;
 	projectile->locals.Think = G_BfgProjectile_Think;
 	projectile->locals.Touch = G_BfgProjectile_Touch;
-	projectile->s.effects = EF_BFG;
+	projectile->s.trail = TRAIL_BFG;
 
 	gi.LinkEdict(projectile);
 }

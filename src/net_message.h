@@ -57,13 +57,14 @@
 #define U_OLD_ORIGIN			0x2 // used by lightning
 #define U_ANGLES				0x4
 #define U_ANIMATIONS			0x8 // animation frames
-#define U_EVENT					0x10 // client side events
-#define U_EFFECTS				0x20 // client side effects
-#define U_MODELS				0x40 // models (primary and linked)
-#define U_CLIENT				0x80 // offset into client skins array
-#define U_SOUND					0x100 // looped sounds
-#define U_SOLID					0x200 // encoded bounding box
-#define U_REMOVE				0x400 // remove this entity, don't add it
+#define U_EVENT					0x10 // single-frame events
+#define U_EFFECTS				0x20 // bit masked effects
+#define U_TRAIL					0x40 // enumerated trails
+#define U_MODELS				0x80 // models (primary and linked)
+#define U_CLIENT				0x100 // offset into client skins array
+#define U_SOUND					0x200 // looped sounds
+#define U_SOLID					0x400 // encoded bounding box
+#define U_REMOVE				0x800 // remove this entity, don't add it
 
 /*
  * @brief These flags indicate which fields a given sound packet will contain.

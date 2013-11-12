@@ -32,6 +32,7 @@
 #include "cg_entity.h"
 #include "cg_entity_effect.h"
 #include "cg_entity_event.h"
+#include "cg_entity_trail.h"
 #include "cg_hud.h"
 #include "cg_main.h"
 #include "cg_media.h"

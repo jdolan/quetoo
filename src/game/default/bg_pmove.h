@@ -105,8 +105,8 @@
  */
 #define PM_SCALE 1.0
 
-extern vec3_t PM_MINS;
-extern vec3_t PM_MAXS;
+extern const vec3_t PM_MINS;
+extern const vec3_t PM_MAXS;
 
 /*
  * @brief Game-specific flags for pm_state_t.flags.

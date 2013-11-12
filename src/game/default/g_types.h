@@ -185,21 +185,27 @@ typedef enum {
 } g_entity_event_t;
 
 /*
- * @brief Game-specific entity effects.
+ * @brief Game-specific entity state effects.
  */
-#define EF_BLASTER			(EF_GAME << 0) // particle trail above water, bubble trail in water
-#define EF_GRENADE			(EF_GAME << 1) // smoke trail above water, bubble trail in water
-#define EF_ROCKET			(EF_GAME << 2) // smoke trail above water, bubble trail in water
-#define EF_HYPERBLASTER		(EF_GAME << 3) // bubble trail in water
-#define EF_LIGHTNING		(EF_GAME << 4) // lightning bolt
-#define EF_BFG				(EF_GAME << 5) // big particle snotball
-#define EF_TELEPORTER		(EF_GAME << 6) // particle fountain
-#define EF_QUAD				(EF_GAME << 7) // quad damage
-#define EF_CTF_BLUE			(EF_GAME << 8) // blue flag carrier
-#define EF_CTF_RED			(EF_GAME << 9) // red flag carrier
-#define EF_BEAM				(EF_GAME << 10) // overload old_origin for 2nd endpoint
-#define EF_INACTIVE			(EF_GAME << 11) // inactive icon for when input is not going to game
-#define EF_RESPAWN			(EF_GAME << 12) // respawn protection
+#define EF_BEAM				(EF_GAME << 0) // overloads old_origin for endpoint
+#define EF_CORPSE			(EF_GAME << 1) // to differentiate own corpse from self
+#define EF_RESPAWN			(EF_GAME << 2) // yellow shell
+#define EF_QUAD				(EF_GAME << 3) // green shell
+#define EF_CTF_BLUE			(EF_GAME << 4) // blue shell
+#define EF_CTF_RED			(EF_GAME << 5) // red shell
+
+/*
+ * @brief Game-specific entity state trails.
+ */
+typedef enum {
+	TRAIL_BLASTER = TRAIL_GAME,
+	TRAIL_GRENADE,
+	TRAIL_ROCKET,
+	TRAIL_HYPERBLASTER,
+	TRAIL_LIGHTNING,
+	TRAIL_BFG,
+	TRAIL_TELEPORTER,
+} g_entity_trail_t;
 
 /*
  * @brief Effect colors for particle trails and dynamic light flashes.
@@ -213,6 +219,8 @@ typedef enum {
 #define EFFECT_COLOR_PINK 247
 #define EFFECT_COLOR_PURPLE 187
 #define EFFECT_COLOR_DEFAULT 0
+
+
 
 /*
  * @brief Scoreboard background colors.
@@ -452,10 +460,14 @@ typedef struct {
 
 extern g_game_t g_game;
 
+#define NUM_GIB_MODELS 3
+
 /*
  * @brief This structure holds references to frequently accessed media.
  */
 typedef struct {
+	uint16_t gib_models[NUM_GIB_MODELS];
+
 	uint16_t grenade_model;
 	uint16_t grenade_hit_sound;
 
@@ -738,8 +750,7 @@ typedef struct {
 	void (*Touch)(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
 	void (*Use)(g_edict_t *self, g_edict_t *other, g_edict_t *activator);
 	void (*Pain)(g_edict_t *self, g_edict_t *other, int16_t damage, int16_t knockback);
-	void (*Die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker, int16_t damage,
-			const vec3_t pos);
+	void (*Die)(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attacker);
 
 	uint32_t touch_time;
 	uint32_t push_time;

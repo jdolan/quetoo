@@ -481,15 +481,16 @@ typedef enum {
 } entity_event_t;
 
 /*
- * @brief Entity effects flags are used to apply particle trails, dynamic
- * lighting and other effects to entities. These are visible even if the entity
- * has no visible model. The game module can define custom effects as well
- * (16 bits).
+ * @brief Entity state effects are a bit mask used to combine common effects
+ * such as rotating, bobbing, and pulsing. The game module may define custom
+ * effects, up to 16 bits.
  */
+#define EF_NONE				(0)
 #define EF_ROTATE			(1 << 0) // rotate on z
 #define EF_BOB				(1 << 1) // bob on z
 #define EF_PULSE			(1 << 2) // pulsing light effect
-#define EF_GAME				(EF_PULSE << 1) // the game may extend from here
+#define EF_INACTIVE			(1 << 3) // inactive icon for when input is not going to game
+#define EF_GAME				(1 << 4) // the game may extend from here
 
 /*
  * @brief The 16 high bits of the effects mask are not transmitted by the
@@ -501,6 +502,16 @@ typedef enum {
 #define EF_NO_LIGHTING		(1 << 29) // no lighting (full bright)
 #define EF_NO_SHADOW		(1 << 30) // no shadow
 #define EF_NO_DRAW			(1 << 31) // no draw (but perhaps shadow)
+
+/*
+ * @brief Entity trails are used to apply unique trail effects to entities
+ * (typically projectiles).
+ */
+typedef enum {
+	TRAIL_NONE,
+	TRAIL_GAME, // the game may extend from here
+} entity_trail_t;
+
 /*
  * Entity bounds are to be handled by the protocol based on their
  * solid field. Box entities encode their bounds into a 16 bit
@@ -531,7 +542,9 @@ typedef struct {
 
 	uint8_t event; // client side events (sounds, blood, ..)
 
-	uint16_t effects; // particles, lights, etc..
+	uint16_t effects; // pulse, bob, rotate, etc..
+
+	uint8_t trail; // particle trails, dynamic lights, etc..
 
 	uint8_t model1, model2, model3, model4; // primary model, linked models
 

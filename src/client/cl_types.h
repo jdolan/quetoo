@@ -61,6 +61,9 @@ typedef struct {
 
 	uint32_t time; // for intermittent effects
 
+	vec3_t origin; // the interpolated origin for the current frame
+	vec3_t origin2; // the secondary interpolated origin for the current frame
+
 	cl_entity_animation_t animation1; // upper body animation
 	cl_entity_animation_t animation2; // lower body animation
 

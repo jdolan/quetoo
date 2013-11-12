@@ -411,10 +411,10 @@ void Cg_AddEmits(void) {
 			Cg_SparksEffect(e->org, e->dir, e->count);
 
 		if (e->flags & EMIT_STEAM)
-			Cg_SteamTrail(e->org, e->vel, NULL);
+			Cg_SteamTrail(NULL, e->org, e->vel);
 
 		if (e->flags & EMIT_FLAME)
-			Cg_FlameTrail(e->org, e->org, NULL);
+			Cg_FlameTrail(NULL, e->org, e->org);
 
 		if ((e->flags & EMIT_SOUND) && !e->loop)
 			cgi.PlaySample(e->org, -1, e->sample, e->atten);

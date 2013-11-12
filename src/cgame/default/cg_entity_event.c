@@ -107,18 +107,18 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
  * @brief
  */
 static void Cg_TeleporterEffect(const vec3_t org) {
-	Cg_TeleporterTrail(org, NULL );
+	Cg_TeleporterTrail(NULL, org);
 }
 
 /*
  * @brief A player is gasping for air under water.
  */
-static void Cg_GurpEffect(cl_entity_t *e) {
+static void Cg_GurpEffect(cl_entity_t *ent) {
 	vec3_t start, end;
 
-	cgi.PlaySample(NULL, e->current.number, cgi.LoadSample("*gurp_1"), ATTEN_NORM);
+	cgi.PlaySample(NULL, ent->current.number, cgi.LoadSample("*gurp_1"), ATTEN_NORM);
 
-	VectorCopy(e->current.origin, start);
+	VectorCopy(ent->current.origin, start);
 	start[2] += 16.0;
 
 	VectorCopy(start, end);
@@ -130,12 +130,12 @@ static void Cg_GurpEffect(cl_entity_t *e) {
 /*
  * @brief A player has drowned.
  */
-static void Cg_DrownEffect(cl_entity_t *e) {
+static void Cg_DrownEffect(cl_entity_t *ent) {
 	vec3_t start, end;
 
-	cgi.PlaySample(NULL, e->current.number, cgi.LoadSample("*drown_1"), ATTEN_NORM);
+	cgi.PlaySample(NULL, ent->current.number, cgi.LoadSample("*drown_1"), ATTEN_NORM);
 
-	VectorCopy(e->current.origin, start);
+	VectorCopy(ent->current.origin, start);
 	start[2] += 16.0;
 
 	VectorCopy(start, end);
@@ -148,13 +148,13 @@ static void Cg_DrownEffect(cl_entity_t *e) {
  * @brief Process any event set on the given entity. These are only valid for a single
  * frame, so we reset the event flag after processing it.
  */
-void Cg_EntityEvent(cl_entity_t *e) {
+void Cg_EntityEvent(cl_entity_t *ent) {
 
-	entity_state_t *s = &e->current;
+	entity_state_t *s = &ent->current;
 
 	switch (s->event) {
 	case EV_CLIENT_DROWN:
-		Cg_DrownEffect(e);
+		Cg_DrownEffect(ent);
 		break;
 	case EV_CLIENT_FALL:
 		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*fall_2"), ATTEN_NORM);
@@ -166,7 +166,7 @@ void Cg_EntityEvent(cl_entity_t *e) {
 		cgi.PlaySample(NULL, s->number, cg_sample_footsteps[Random() & 3], ATTEN_NORM);
 		break;
 	case EV_CLIENT_GURP:
-		Cg_GurpEffect(e);
+		Cg_GurpEffect(ent);
 		break;
 	case EV_CLIENT_LAND:
 		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*land_1"), ATTEN_NORM);

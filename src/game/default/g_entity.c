@@ -377,6 +377,11 @@ static void G_InitEntityTeams(void) {
  * @brief Resolves references to frequently accessed media.
  */
 static void G_InitMedia(void) {
+	uint16_t i;
+
+	for (i = 0; i < NUM_GIB_MODELS; i++) {
+		g_level.media.gib_models[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris.obj", i + 1));
+	}
 
 	g_level.media.grenade_model = gi.ModelIndex("models/objects/grenade/tris.md3");
 	g_level.media.grenade_hit_sound = gi.SoundIndex("objects/grenade/hit");

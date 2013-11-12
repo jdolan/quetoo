@@ -31,6 +31,14 @@ extern const uint16_t g_num_items;
 
 #define ITEM_INDEX(x) ((x) - g_items)
 
+/*
+ * @brief Item bounding box scaling.
+ */
+#define ITEM_SCALE 1.0
+
+extern const vec3_t ITEM_MINS;
+extern const vec3_t ITEM_MAXS;
+
 _Bool G_AddAmmo(g_edict_t *ent, const g_item_t *item, int16_t count);
 g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item);
 const g_item_t *G_FindItem(const char *name);
