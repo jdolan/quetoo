@@ -174,7 +174,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 	VectorSubtract(ent->maxs, ent->mins, ent->size);
 
 	// encode the size into the entity state for client prediction
-	if (ent->solid == SOLID_BOX) {
+	if (ent->solid == SOLID_BOX && (!ent->sv_flags & SVF_DEAD_MONSTER)) {
 		PackBounds(ent->mins, ent->maxs, &ent->s.solid);
 	} else if (ent->solid == SOLID_BSP) {
 		ent->s.solid = SOLID_BSP;
@@ -470,6 +470,9 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 					continue; // and communitive (we are both owned by the same)
 			}
 		}
+
+		if (!(trace->contents & CONTENTS_DEAD_MONSTER) && (ent->sv_flags & SVF_DEAD_MONSTER))
+			continue; // don't clip against corpses and gibs
 
 		// we couldn't skip it, so trace to it and see if we hit
 		head_node = Sv_HullForEntity(ent);

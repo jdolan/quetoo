@@ -217,7 +217,6 @@ g_edict_t *G_TossWeapon(g_edict_t *ent) {
 
 	const int16_t ammo = ent->client->locals.persistent.inventory[ent->client->locals.ammo_index];
 
-	gi.Print("toss: %d: %d\n", ent->client->locals.ammo_index, ammo);
 	if (!ammo) // don't drop when out of ammo
 		return NULL;
 

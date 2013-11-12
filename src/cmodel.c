@@ -722,6 +722,7 @@ static void Cm_InitBoxHull(void) {
  * BSP trees instead of being compared directly.
  */
 int32_t Cm_HeadnodeForBox(const vec3_t mins, const vec3_t maxs) {
+
 	cm_box.planes[0].dist = maxs[0];
 	cm_box.planes[1].dist = -maxs[0];
 	cm_box.planes[2].dist = mins[0];

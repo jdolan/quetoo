@@ -26,9 +26,15 @@
 
 #define GAME_API_VERSION 1
 
-// edict->sv_flags
-#define SVF_NO_CLIENT 1  // don't send entity to clients
-// link_t is only used for entity area links now
+/*
+ * @brief Server flags for g_edict_t.
+ */
+#define SVF_NO_CLIENT 		(1 << 0) // don't send entity to clients
+#define SVF_DEAD_MONSTER	(1 << 1) // don't clip against corpses
+
+/*
+ * @brief Used to join adjacent areas.
+ */
 typedef struct link_s {
 	struct link_s *prev, *next;
 } link_t;

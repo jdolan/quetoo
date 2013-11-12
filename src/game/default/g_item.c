@@ -667,6 +667,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 	dropped->locals.Touch = G_DropItemUntouchable;
 	dropped->s.effects = (item->effects & ~EF_BOB);
 
+	// FIXME This is disgusting.
 	if (ent->client && ent->locals.health <= 0) { // randomize the direction we toss in
 		VectorSet(v, 0.0, ent->client->locals.angles[1] + Randomc() * 45.0, 0.0);
 		AngleVectors(v, forward, NULL, NULL);

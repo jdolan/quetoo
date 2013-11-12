@@ -242,8 +242,8 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *inflictor __attribute
 
 		VectorCopy(self->s.origin, ent->s.origin);
 
-		VectorSet(ent->mins, -4.0, -4.0, -4.0);
-		VectorSet(ent->maxs, 4.0, 4.0, 4.0);
+		VectorSet(ent->mins, -8.0, -8.0, -8.0);
+		VectorSet(ent->maxs, 8.0, 8.0, 8.0);
 
 		VectorCopy(self->locals.velocity, ent->locals.velocity);
 
@@ -255,7 +255,9 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *inflictor __attribute
 
 		VectorSet(ent->locals.avelocity, Randomc() * 25.0, Randomc() * 25.0, Randomc() * 25.0);
 
+		ent->clip_mask = MASK_DEAD_SOLID;
 		ent->solid = SOLID_BOX;
+		ent->sv_flags = SVF_DEAD_MONSTER;
 
 		ent->s.model1 = g_level.media.gib_models[Random() % NUM_GIB_MODELS];
 
@@ -291,7 +293,9 @@ static void G_ClientCorpse(g_edict_t *self) {
 
 	ent->maxs[2] = 0.0; // corpses are laying down
 
+	ent->clip_mask = MASK_DEAD_SOLID;
 	ent->solid = SOLID_BOX;
+	ent->sv_flags = SVF_DEAD_MONSTER;
 
 	VectorCopy(self->s.origin, ent->s.origin);
 
@@ -311,7 +315,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 	ent->locals.mass = 100.0;
 	ent->locals.move_type = MOVE_TYPE_TOSS;
 	ent->locals.take_damage = true;
-	ent->locals.health = 3000;
+	ent->locals.health = 20;
 	ent->locals.Die = G_ClientCorpse_Die;
 	ent->locals.Think = G_ClientCorpse_Think;
 	ent->locals.next_think = g_level.time + gi.frame_millis;
@@ -340,7 +344,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *inflictor, g_edict_t *attack
 	if (g_level.ctf && !g_level.warmup) // drop flag in ctf
 		G_TossFlag(self);
 
-	if (self->locals.health <= -50) // gib immediately
+	if (self->locals.health <= -20) // gib immediately
 		G_ClientCorpse_Die(self, inflictor, attacker);
 	else
 		G_ClientCorpse(self);
