@@ -278,8 +278,8 @@ static void Cl_ParseServerData(void) {
 		Com_Error(ERR_DROP, "Server is using protocol minor %d\n", minor);
 	}
 
-	// parse player entity number
-	cl.entity_num = Net_ReadShort(&net_message);
+	// parse client slot number, which is our entity number + 1
+	cl.client_num = Net_ReadShort(&net_message);
 
 	// get the full level name
 	str = Net_ReadString(&net_message);

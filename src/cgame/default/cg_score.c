@@ -182,7 +182,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 
 	// background
 	{
-		const vec_t fa = s->client == cgi.client->entity_num ? 0.3 : 0.15;
+		const vec_t fa = s->client == cgi.client->client_num ? 0.3 : 0.15;
 		const r_pixel_t fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
 		const r_pixel_t fh = SCORES_ROW_HEIGHT - 1;
 

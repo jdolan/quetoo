@@ -111,21 +111,21 @@ static const char *Sv_StatusString(void) {
 /*
  * @brief Responds with all the info that qplug or qspy can see.
  */
-static void Svc_Status(void) {
+static void Sv_Status_f(void) {
 	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "print\n%s", Sv_StatusString());
 }
 
 /*
  * @brief
  */
-static void Svc_Ack(void) {
+static void Sv_Ack_f(void) {
 	Com_Print("Ping acknowledge from %s\n", Net_NetaddrToString(&net_from));
 }
 
 /*
  * @brief Responds with brief info for broadcast scans.
  */
-static void Svc_Info(void) {
+static void Sv_Info_f(void) {
 	char string[MAX_MSG_SIZE];
 
 	if (sv_max_clients->integer == 1)
@@ -153,7 +153,7 @@ static void Svc_Info(void) {
 /*
  * @brief Just responds with an acknowledgment.
  */
-static void Svc_Ping(void) {
+static void Sv_Ping_f(void) {
 	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "ack");
 }
 
@@ -164,7 +164,7 @@ static void Svc_Ping(void) {
  * We do this to prevent denial of service attacks that flood the server with
  * invalid connection IPs. With a challenge, they must give a valid address.
  */
-static void Svc_GetChallenge(void) {
+static void Sv_GetChallenge_f(void) {
 	uint16_t i, oldest;
 	uint32_t oldest_time;
 
@@ -198,7 +198,7 @@ static void Svc_GetChallenge(void) {
 /*
  * @brief A connection request that did not come from the master.
  */
-static void Svc_Connect(void) {
+static void Sv_Connect_f(void) {
 	char user_info[MAX_USER_INFO_STRING];
 	sv_client_t *cl, *client;
 	int32_t i;
@@ -355,7 +355,7 @@ static _Bool Sv_RconAuthenticate(void) {
  * @brief A client issued an rcon command. Shift down the remaining args and
  * redirect all output to the invoking client.
  */
-static void Svc_RemoteCommand(void) {
+static void Sv_Rcon_f(void) {
 	const _Bool auth = Sv_RconAuthenticate();
 	const char *addr = Net_NetaddrToString(&net_from);
 
@@ -407,19 +407,19 @@ static void Sv_ConnectionlessPacket(void) {
 	Com_Debug("Packet from %s: %s\n", a, c);
 
 	if (!g_strcmp0(c, "ping"))
-		Svc_Ping();
+		Sv_Ping_f();
 	else if (!g_strcmp0(c, "ack"))
-		Svc_Ack();
+		Sv_Ack_f();
 	else if (!g_strcmp0(c, "status"))
-		Svc_Status();
+		Sv_Status_f();
 	else if (!g_strcmp0(c, "info"))
-		Svc_Info();
+		Sv_Info_f();
 	else if (!g_strcmp0(c, "get_challenge"))
-		Svc_GetChallenge();
+		Sv_GetChallenge_f();
 	else if (!g_strcmp0(c, "connect"))
-		Svc_Connect();
+		Sv_Connect_f();
 	else if (!g_strcmp0(c, "rcon"))
-		Svc_RemoteCommand();
+		Sv_Rcon_f();
 	else
 		Com_Print("Bad connectionless packet from %s:\n%s\n", a, s);
 }
@@ -878,7 +878,7 @@ void Sv_Init(void) {
 
 	Sv_InitLocal();
 
-	Sv_InitCommands();
+	Sv_InitAdmin();
 
 	Sv_InitMasters();
 

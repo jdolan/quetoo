@@ -27,7 +27,7 @@
 #ifdef __CG_LOCAL_H__
 
 #define IS_SELF(e) ( \
-	e->current.client == cgi.client->entity_num || ( \
+	e->current.client == cgi.client->client_num || ( \
 		cgi.client->frame.ps.stats[STAT_CHASE] && \
 		e->current.client == cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS \
 	) \

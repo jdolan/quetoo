@@ -376,7 +376,7 @@ static void Sv_Stuff_f(void) {
 /*
  * @brief
  */
-void Sv_InitCommands(void) {
+void Sv_InitAdmin(void) {
 
 	Cmd_Add("kick", Sv_Kick_f, CMD_SERVER, "Kick a specific user");
 	Cmd_Add("status", Sv_Status_f, CMD_SERVER, "Print server status information");

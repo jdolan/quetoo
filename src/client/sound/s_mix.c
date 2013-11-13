@@ -190,5 +190,5 @@ void S_StartLocalSample(const char *name) {
 		return;
 	}
 
-	S_PlaySample(NULL, cl.entity_num + 1, sample, ATTEN_NONE);
+	S_PlaySample(NULL, cl.client_num + 1, sample, ATTEN_NONE);
 }

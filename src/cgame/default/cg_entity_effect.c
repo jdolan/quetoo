@@ -35,7 +35,7 @@ void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 		p->part.color = 11;
 
 		p->part.alpha = 1.0;
-		p->alpha_vel = -99999999.0;
+		p->alpha_vel = -9999.0;
 
 		p->part.scale = 10.0;
 

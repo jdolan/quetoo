@@ -224,24 +224,24 @@ void Cg_LoadClients(void) {
 static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
 
 	switch (a) {
-	case ANIM_BOTH_DEATH1:
-	case ANIM_BOTH_DEATH2:
-	case ANIM_BOTH_DEATH3:
-		return a + 1;
+		case ANIM_BOTH_DEATH1:
+		case ANIM_BOTH_DEATH2:
+		case ANIM_BOTH_DEATH3:
+			return a + 1;
 
-	case ANIM_TORSO_GESTURE:
-	case ANIM_TORSO_ATTACK1:
-	case ANIM_TORSO_ATTACK2:
-	case ANIM_TORSO_DROP:
-	case ANIM_TORSO_RAISE:
-		return ANIM_TORSO_STAND1;
+		case ANIM_TORSO_GESTURE:
+		case ANIM_TORSO_ATTACK1:
+		case ANIM_TORSO_ATTACK2:
+		case ANIM_TORSO_DROP:
+		case ANIM_TORSO_RAISE:
+			return ANIM_TORSO_STAND1;
 
-	case ANIM_LEGS_LAND1:
-	case ANIM_LEGS_LAND2:
-		return ANIM_LEGS_IDLE;
+		case ANIM_LEGS_LAND1:
+		case ANIM_LEGS_LAND2:
+			return ANIM_LEGS_IDLE;
 
-	default:
-		return a;
+		default:
+			return a;
 	}
 }
 
@@ -268,10 +268,10 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 		return;
 	}
 
-	const int32_t frame_time = 1000 / anim->hz;
-	const int32_t animation_time = anim->num_frames * frame_time;
-	const int32_t elapsed_time = cgi.client->time - a->time;
-	int32_t frame = elapsed_time / frame_time;
+	const uint32_t frame_time = 1000 / anim->hz;
+	const uint32_t animation_time = anim->num_frames * frame_time;
+	const uint32_t elapsed_time = cgi.client->time - a->time;
+	uint16_t frame = elapsed_time / frame_time;
 
 	if (elapsed_time >= animation_time) { // to loop, or not to loop
 
