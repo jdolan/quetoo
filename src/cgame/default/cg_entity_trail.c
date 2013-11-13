@@ -110,16 +110,16 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
  */
 void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 	cg_particle_t *p;
-	vec3_t end;
-	int32_t j;
-
-	VectorAdd(org, vel, end);
+	int32_t i;
 
 	if (ent) { // trails should be framerate independent
 		if (ent->time > cgi.client->time)
 			return;
 		ent->time = cgi.client->time + 16;
 	}
+
+	vec3_t end;
+	VectorAdd(org, vel, end);
 
 	if (cgi.PointContents(org) & MASK_WATER) {
 		Cg_BubbleTrail(org, end, 10.0);
@@ -142,8 +142,8 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 	VectorCopy(org, p->part.org);
 	VectorCopy(vel, p->vel);
 
-	for (j = 0; j < 3; j++) {
-		p->vel[j] += 2.0 * Randomc();
+	for (i = 0; i < 3; i++) {
+		p->vel[i] += 2.0 * Randomc();
 	}
 }
 
@@ -179,7 +179,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 		p->part.alpha = 1.0;
 		p->alpha_vel = -0.2 - Randomf() * 0.2;
 
-		p->part.scale = 1.5;
+		p->part.scale = 1.0;
 		p->scale_vel = -0.4 - Randomf() * 0.2;
 
 		for (j = 0; j < 3; j++) {
@@ -559,6 +559,50 @@ void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
 }
 
 /*
+ * @brief
+ */
+static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+
+	if (ent) {
+		if (ent->time > cgi.client->time)
+			return;
+		ent->time = cgi.client->time + 16;
+	}
+
+	if (cgi.PointContents(end) & MASK_WATER) {
+		Cg_BubbleTrail(start, end, 8.0);
+		return;
+	}
+
+	vec3_t move;
+	VectorSubtract(end, start, move);
+
+	vec_t dist = VectorNormalize(move);
+	while (dist > 0.0) {
+		cg_particle_t *p;
+
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood)))
+			break;
+
+		VectorMA(end, dist, move, p->part.org);
+
+		p->part.color = 232 + (Random() & 7);
+
+		p->part.alpha = 1.0;
+		p->alpha_vel = -1.0 / (0.5 + Randomf() * 0.3);
+
+		p->part.scale = 3.0;
+
+		VectorScale(move, 40.0, p->vel);
+
+		p->accel[0] = p->accel[1] = 0.0;
+		p->accel[2] = PARTICLE_GRAVITY / 2.0;
+
+		dist -= 1.5;
+	}
+}
+
+/*
  * @brief Apply unique trails to entities between their previous packet origin
  * and their current interpolated origin. Beam trails are a special case: the
  * old origin field is overridden to specify the endpoint of the beam.
@@ -612,6 +656,9 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 			break;
 		case TRAIL_TELEPORTER:
 			Cg_TeleporterTrail(ent, e->origin);
+			break;
+		case TRAIL_GIB:
+			Cg_GibTrail(ent, start, end);
 			break;
 		default:
 			break;

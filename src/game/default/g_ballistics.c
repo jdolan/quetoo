@@ -49,21 +49,6 @@ static _Bool G_ImmediateWall(g_edict_t *ent, g_edict_t *projectile) {
 }
 
 /*
- * @brief Returns true if the specified surface appears structural.
- */
-static _Bool G_IsStructural(g_edict_t *ent, c_bsp_surface_t *surf) {
-
-	if (!ent || ent->client || ent->locals.take_damage)
-		return false; // we hit nothing, or something we damaged
-
-	if (!surf || (surf->flags & SURF_SKY))
-		return false; // we hit nothing, or the sky
-
-	// don't leave marks on moving world objects
-	return G_IsStationary(ent);
-}
-
-/*
  * @brief Returns true if the specified entity takes damage.
  */
 static _Bool G_TakesDamage(g_edict_t *ent) {
@@ -176,7 +161,7 @@ static void G_BlasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_p
 		if (G_IsStructural(other, surf)) {
 			vec3_t origin;
 
-			VectorMA(self->s.origin, 16.0, plane->normal, origin);
+			VectorMA(self->s.origin, 4.0, plane->normal, origin);
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_BLASTER);
 			gi.WritePosition(origin);
@@ -254,8 +239,6 @@ void G_BulletProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, in
 
 	// send trails and marks
 	if (tr.fraction < 1.0) {
-
-		gi.Print("%s\n", etos(tr.ent));
 
 		if (G_TakesDamage(tr.ent)) { // bleed and damage the enemy
 			G_Damage(tr.ent, ent, ent, dir, tr.end, tr.plane.normal, damage, knockback,
@@ -367,17 +350,12 @@ static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_p
 void G_GrenadeProjectile(g_edict_t *ent, vec3_t const start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback, vec_t damage_radius, uint32_t timer) {
 
-	const vec3_t mins = { -3.0, -3.0, -3.0 };
-	const vec3_t maxs = { 3.0, 3.0, 3.0 };
-
 	vec3_t forward, right, up;
 
 	g_edict_t *projectile = G_Spawn(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
-	VectorCopy(mins, projectile->mins);
-	VectorCopy(maxs, projectile->maxs);
 	VectorAngles(dir, projectile->s.angles);
 
 	AngleVectors(projectile->s.angles, forward, right, up);
@@ -464,16 +442,11 @@ static void G_RocketProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_pl
 void G_RocketProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback, vec_t damage_radius) {
 
-	const vec3_t mins = { -3.0, -3.0, -3.0 };
-	const vec3_t maxs = { 3.0, 3.0, 3.0 };
-
 	g_edict_t *projectile = G_Spawn(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
 	VectorAngles(dir, projectile->s.angles);
-	VectorCopy(mins, projectile->mins);
-	VectorCopy(maxs, projectile->maxs);
 	VectorScale(dir, speed, projectile->locals.velocity);
 	VectorSet(projectile->locals.avelocity, 0.0, 0.0, 600.0);
 
@@ -933,10 +906,15 @@ static void G_BfgProjectile_Think(g_edict_t *self) {
 void G_BfgProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback, vec_t damage_radius) {
 
+	const vec3_t mins = { -8.0, -8.0, -8.0 };
+	const vec3_t maxs = { 8.0, 8.0, 8.0 };
+
 	g_edict_t *projectile = G_Spawn(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
+	VectorCopy(mins, projectile->mins);
+	VectorCopy(maxs, projectile->maxs);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
 	G_PlayerProjectile(projectile, 0.33);

@@ -169,7 +169,8 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker, uint32_t mod)
 
 		if (message) {
 
-			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s%s\n", (friendy_fire ? "^1TEAMKILL^7 " : ""),
+			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s%s\n",
+					(friendy_fire ? "^1TEAMKILL^7 " : ""),
 					self->client->locals.persistent.net_name, message,
 					attacker->client->locals.persistent.net_name, message2);
 
@@ -214,18 +215,26 @@ static void G_ClientCorpse_Think(g_edict_t *self) {
 		if (client->in_use && !client->locals.dead) {
 			self->s.effects |= EF_CORPSE;
 		}
+	} else {
+		if (VectorLength(self->locals.velocity) > 20.0) {
+			self->s.trail = TRAIL_GIB;
+		} else {
+			self->s.trail = TRAIL_NONE;
+		}
 	}
 
 	const uint32_t age = g_level.time - self->locals.timestamp;
 
-	if (age > 20000) {
+	if (age > 13000) {
 		G_FreeEdict(self);
 		return;
 	}
 
-	if (age > 18000 && self->locals.ground_entity) {
-		self->s.origin[2] -= gi.frame_seconds * 8.0;
+	if (age > 10000 && self->locals.ground_entity) {
 		self->locals.take_damage = false;
+
+		self->s.origin[2] -= gi.frame_seconds * 8.0;
+		self->s.effects |= EF_DESPAWN;
 	}
 
 	self->locals.next_think = g_level.time + gi.frame_millis;
@@ -236,8 +245,10 @@ static void G_ClientCorpse_Think(g_edict_t *self) {
  * velocity of the corpse, and bounce when damaged. They eventually sink
  * through the floor and disappear.
  */
-static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute__((unused)),
-		uint32_t mod __attribute__((unused))) {
+static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute__((unused)), uint32_t mod __attribute__((unused))) {
+
+	const vec3_t mins[] = { { -3.0, -3.0, -3.0 }, { -6.0, -6.0, -6.0 }, { -9.0, -9.0, -9.0 } };
+	const vec3_t maxs[] = { { 3.0, 3.0, 3.0 }, { 6.0, 6.0, 6.0 }, { 9.0, 9.0, 9.0 } };
 
 	uint16_t i, count = 3 + Random() % 5;
 
@@ -246,8 +257,8 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute_
 
 		VectorCopy(self->s.origin, ent->s.origin);
 
-		VectorSet(ent->mins, -8.0, -8.0, -8.0);
-		VectorSet(ent->maxs, 8.0, 8.0, 8.0);
+		VectorCopy(mins[i % NUM_GIB_MODELS], ent->mins);
+		VectorCopy(maxs[i % NUM_GIB_MODELS], ent->maxs);
 
 		ent->clip_mask = MASK_DEAD_SOLID;
 		ent->solid = SOLID_BOX;
@@ -262,8 +273,6 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute_
 		ent->locals.velocity[0] += 100.0 + (h * Randomc());
 		ent->locals.velocity[1] += 100.0 + (h * Randomc());
 		ent->locals.velocity[2] += 100.0 + (h * Randomf());
-
-		VectorSet(ent->locals.avelocity, Randomc() * 25.0, Randomc() * 25.0, Randomc() * 25.0);
 
 		ent->locals.dead = true;
 		ent->locals.mass = 40.0;
@@ -320,7 +329,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 	ent->locals.mass = 100.0;
 	ent->locals.move_type = MOVE_TYPE_TOSS;
 	ent->locals.take_damage = true;
-	ent->locals.health = 20;
+	ent->locals.health = 40;
 	ent->locals.Die = G_ClientCorpse_Die;
 	ent->locals.Think = G_ClientCorpse_Think;
 	ent->locals.next_think = g_level.time + gi.frame_millis;

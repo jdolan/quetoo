@@ -72,18 +72,16 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
 	Cg_AnimateClientEntity(ent, &upper, &lower);
 
-	uint32_t effects = s->effects;
-
 	// don't draw ourselves unless third person is set
-	if (IS_SELF(ent) && !(s->effects & EF_CORPSE) && !cg_third_person->value) {
-		effects |= EF_NO_DRAW;
+	if (IS_SELF(ent) && !(e->effects & EF_CORPSE) && !cg_third_person->value) {
+		e->effects |= EF_NO_DRAW;
 
 		// keep our shadow underneath us using the predicted origin
 		lower.origin[0] = cgi.view->origin[0];
 		lower.origin[1] = cgi.view->origin[1];
 	}
 
-	head.effects = upper.effects = lower.effects = effects;
+	head.effects = upper.effects = lower.effects = e->effects;
 
 	upper.parent = cgi.AddEntity(&lower);
 	upper.tag_name = "tag_torso";

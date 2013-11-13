@@ -126,7 +126,7 @@ g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match) {
  * G_FindRadius(origin, radius)
  */
 g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, vec_t rad) {
-	vec3_t eorg;
+	vec3_t delta;
 	int32_t j;
 
 	if (!from)
@@ -143,9 +143,9 @@ g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, vec_t rad) {
 			continue;
 
 		for (j = 0; j < 3; j++)
-			eorg[j] = org[j] - (from->s.origin[j] + (from->mins[j] + from->maxs[j]) * 0.5);
+			delta[j] = org[j] - (from->s.origin[j] + (from->mins[j] + from->maxs[j]) * 0.5);
 
-		if (VectorLength(eorg) > rad)
+		if (VectorLength(delta) > rad)
 			continue;
 
 		return from;
@@ -154,19 +154,18 @@ g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, vec_t rad) {
 	return NULL;
 }
 
+#define MAX_TARGETS	8
+
 /*
  * @brief Searches all active entities for the next targeted one.
  *
  * Searches beginning at the edict after from, or the beginning if NULL
  * NULL will be returned if the end of the list is reached.
- *
  */
-#define MAXCHOICES	8
-
 g_edict_t *G_PickTarget(char *target_name) {
 	g_edict_t *ent = NULL;
 	int32_t num_choices = 0;
-	g_edict_t *choice[MAXCHOICES];
+	g_edict_t *choice[MAX_TARGETS];
 
 	if (!target_name) {
 		gi.Debug("NULL target_name\n");
@@ -178,7 +177,7 @@ g_edict_t *G_PickTarget(char *target_name) {
 		if (!ent)
 			break;
 		choice[num_choices++] = ent;
-		if (num_choices == MAXCHOICES)
+		if (num_choices == MAX_TARGETS)
 			break;
 	}
 
@@ -277,15 +276,16 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
  * @brief
  */
 void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
-	static vec3_t VEC_UP = { 0, -1, 0 };
-	static vec3_t MOVE_DIR_UP = { 0, 0, 1 };
-	static vec3_t VEC_DOWN = { 0, -2, 0 };
-	static vec3_t MOVE_DIR_DOWN = { 0, 0, -1 };
 
-	if (VectorCompare(angles, VEC_UP)) {
-		VectorCopy(MOVE_DIR_UP, move_dir);
-	} else if (VectorCompare(angles, VEC_DOWN)) {
-		VectorCopy(MOVE_DIR_DOWN, move_dir);
+	const vec3_t angles_up = { 0.0, -1.0, 0.0 };
+	const vec3_t dir_up = { 0.0, 0.0, 1.0 };
+	const vec3_t angles_down = { 0.0, -2.0, 0.0 };
+	const vec3_t dir_down = { 0.0, 0.0, -1.0 };
+
+	if (VectorCompare(angles, angles_up)) {
+		VectorCopy(dir_up, move_dir);
+	} else if (VectorCompare(angles, angles_down)) {
+		VectorCopy(dir_down, move_dir);
 	} else {
 		AngleVectors(angles, move_dir, NULL, NULL);
 	}
@@ -324,7 +324,7 @@ void G_InitEdict(g_edict_t *e, const char *class_name) {
  * angles and bad trails.
  */
 g_edict_t *G_Spawn(const char *class_name) {
-	uint32_t i;
+	uint16_t i;
 
 	g_edict_t *e = &g_game.edicts[sv_max_clients->integer + 1];
 	for (i = sv_max_clients->integer + 1; i < ge.num_edicts; i++, e++) {
@@ -658,14 +658,45 @@ int32_t G_ColorByName(const char *s, int32_t def) {
 }
 
 /*
- * @brief
+ * @return True if the specified entity should bleed when damaged.
  */
-_Bool G_IsStationary(g_edict_t *ent) {
+_Bool G_IsMeat(const g_edict_t *ent) {
 
 	if (!ent)
 		return false;
 
+	if (ent->client)
+		return true;
+
+	if (ent->sv_flags & SVF_DEAD_MONSTER)
+		return true;
+
+	return false;
+}
+
+/*
+ * @return True if the specified entity is likely stationary.
+ */
+_Bool G_IsStationary(const g_edict_t *ent) {
+
+	if (!ent || ent->locals.move_type)
+		return false;
+
 	return VectorCompare(vec3_origin, ent->locals.velocity);
+}
+
+/*
+ * @return True if the specified entity and surface appear structural.
+ */
+_Bool G_IsStructural(const g_edict_t *ent, const c_bsp_surface_t *surf) {
+
+	if (G_IsMeat(ent)) // players are obviously not structural
+		return false;
+
+	if (surf && (surf->flags & SURF_SKY)) // nor sky surfaces
+		return false;
+
+	return true;
 }
 
 /*

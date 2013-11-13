@@ -616,15 +616,19 @@ typedef struct r_entity_s {
 	r_material_t *skins[MD3_MAX_MESHES]; // NULL for default skin
 	uint16_t num_skins;
 
-	uint32_t effects; // e.g. EF_ROCKET, EF_WEAPON, ..
+	uint32_t effects; // e.g. EF_NO_DRAW, EF_WEAPON, ..
+
+	vec_t alpha; // alpha blend for e.g. EF_FLICKER
 
 	vec3_t shell; // shell color
-	vec_t alpha; // EF_ALPHA value
 
 	r_lighting_t *lighting; // static lighting information
 } r_entity_t;
 
-#define MAX_ENTITIES		(MAX_EDICTS * 2) // to allow for linked entities
+/*
+ * @brief MAX_EDICTS * 2, to allow for linked entities.
+ */
+#define MAX_ENTITIES (MAX_EDICTS * 2)
 
 typedef void (*MeshModelDrawFunc)(const r_entity_t *e);
 

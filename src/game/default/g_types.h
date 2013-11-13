@@ -193,6 +193,7 @@ typedef enum {
 #define EF_QUAD				(EF_GAME << 3) // green shell
 #define EF_CTF_BLUE			(EF_GAME << 4) // blue shell
 #define EF_CTF_RED			(EF_GAME << 5) // red shell
+#define EF_DESPAWN			(EF_GAME << 6) // translucent
 
 /*
  * @brief Game-specific entity state trails.
@@ -205,6 +206,7 @@ typedef enum {
 	TRAIL_LIGHTNING,
 	TRAIL_BFG,
 	TRAIL_TELEPORTER,
+	TRAIL_GIB,
 } g_entity_trail_t;
 
 /*

@@ -498,7 +498,7 @@ typedef enum {
  */
 #define EF_WEAPON			(1 << 25) // view weapon
 #define EF_ALPHATEST		(1 << 27) // alpha test
-#define EF_BLEND			(1 << 28) // blend
+#define EF_BLEND			(1 << 28) // alpha blend
 #define EF_NO_LIGHTING		(1 << 29) // no lighting (full bright)
 #define EF_NO_SHADOW		(1 << 30) // no shadow
 #define EF_NO_DRAW			(1 << 31) // no draw (but perhaps shadow)

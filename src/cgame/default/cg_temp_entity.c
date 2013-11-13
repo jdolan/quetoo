@@ -191,10 +191,9 @@ static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
  */
 static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	int32_t i, j;
-	cg_particle_t *p;
-	vec_t d;
 
 	for (i = 0; i < count; i++) {
+		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood)))
 			break;
@@ -206,7 +205,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 		p->part.scale = 6.0;
 
-		d = Random() & 31;
+		const vec_t d = Random() & 31;
 		for (j = 0; j < 3; j++) {
 			p->part.org[j] = org[j] + ((Random() & 7) - 4.0) + d * dir[j];
 			p->vel[j] = Randomc() * 20.0;

@@ -53,43 +53,22 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	const entity_state_t *s = &ent->current;
 	e->effects = s->effects;
 
-	// bob items, shift them to randomize the effect in crowded scenes
+	if (s->effects & EF_ROTATE) {
+		e->angles[YAW] = cgi.client->time / 3.4;
+	}
+
 	if (s->effects & EF_BOB) {
-		const vec_t bob = sin((cgi.client->time * 0.005) + e->origin[0] + e->origin[1]);
-		e->origin[2] += 4.0 * bob;
+		e->origin[2] += 4.0 * sin((cgi.client->time * 0.005) + e->origin[0] + e->origin[1]);
 	}
 
-	// calculate angles
-	if (s->effects & EF_ROTATE) { // some bonus items rotate
-		e->angles[0] = 0.0;
-		e->angles[1] = cgi.client->time / 3.4;
-		e->angles[2] = 0.0;
-	}
-
-	// show the chat bubble
 	if (s->effects & EF_INACTIVE) {
 		Cg_InactiveEffect(ent, e->origin);
 	}
 
-	// apply game-specific effects
-	VectorClear(e->shell);
+	if (s->effects & EF_RESPAWN) {
+		const vec3_t color = { 0.5, 0.5, 0.0 };
 
-	if (s->effects & EF_CTF_BLUE) {
-		r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 0.3, 0.3, 1.0 } };
-
-		VectorCopy(e->origin, l.origin);
-		cgi.AddLight(&l);
-
-		VectorScale(l.color, 0.5, e->shell);
-	}
-
-	if (s->effects & EF_CTF_RED) {
-		r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 1.0, 0.3, 0.3 } };
-
-		VectorCopy(e->origin, l.origin);
-		cgi.AddLight(&l);
-
-		VectorScale(l.color, 0.5, e->shell);
+		VectorMA(e->shell, 0.5, color, e->shell);
 	}
 
 	if (s->effects & EF_QUAD) {
@@ -98,10 +77,31 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		VectorCopy(e->origin, l.origin);
 		cgi.AddLight(&l);
 
-		VectorScale(l.color, 0.5, e->shell);
+		VectorMA(e->shell, 0.5, l.color, e->shell);
 	}
 
-	if (s->effects & EF_RESPAWN) {
-		VectorSet(e->shell, 0.5, 0.5, 0.0);
+	if (s->effects & EF_CTF_BLUE) {
+		r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 0.3, 0.3, 1.0 } };
+
+		VectorCopy(e->origin, l.origin);
+		cgi.AddLight(&l);
+
+		VectorMA(e->shell, 0.5, l.color, e->shell);
+	}
+
+	if (s->effects & EF_CTF_RED) {
+		r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 1.0, 0.3, 0.3 } };
+
+		VectorCopy(e->origin, l.origin);
+		cgi.AddLight(&l);
+
+		VectorMA(e->shell, 0.5, l.color, e->shell);
+	}
+
+	VectorNormalize(e->shell);
+
+	if (s->effects & EF_DESPAWN) {
+		e->effects |= EF_BLEND;
+		e->alpha = 0.66;
 	}
 }

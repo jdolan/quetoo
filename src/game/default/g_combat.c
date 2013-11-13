@@ -187,8 +187,6 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 		const vec3_t pos, const vec3_t normal, int16_t damage, int16_t knockback, uint32_t dflags,
 		uint32_t mod) {
 
-	gi.Print("%s d: %d k: %d\n", etos(target), damage, knockback);
-
 	if (!target->locals.take_damage)
 		return;
 
@@ -235,14 +233,14 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 		VectorCopy(dir, ndir);
 		VectorNormalize(ndir);
 
-		// knock the target upwards at least a bit -- it's fun
-		if (ndir[2] >= 0.0) {
-			ndir[2] = MAX(0.2, ndir[2]);
+		// knock the target upwards at least a bit; it's fun
+		if (ndir[2] >= -0.25) {
+			ndir[2] = MAX(0.25, ndir[2]);
 			VectorNormalize(ndir);
 		}
 
 		// ensure the target has valid mass for knockback calculation
-		const vec_t mass = Clamp(target->locals.mass, 20.0, 1000.0);
+		const vec_t mass = Clamp(target->locals.mass, 1.0, 1000.0);
 
 		// rocket jump hack
 		const vec_t scale = (target == attacker ? 1000.0 : 500.0);
@@ -252,6 +250,10 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 
 		if (client) { // make sure the client can leave the ground
 			client->ps.pm_state.flags |= PMF_PUSHED;
+		} else {
+			vec3_t rotate;
+			VectorSet(rotate, Randomc() * knockback, Randomc() * knockback, Randomc() * knockback);
+			VectorMA(target->locals.avelocity, 15.0, rotate, target->locals.avelocity);
 		}
 	}
 
@@ -269,14 +271,13 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 
 	// do the damage
 	if (damage_health && (target->locals.health || target->locals.dead)) {
-		if (client)
-			G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
-		else {
-			// impact effects for things we can hurt which shouldn't bleed
+		if (G_IsStructural(target, NULL)) { // impact things we can hurt but don't bleed
 			if (dflags & DAMAGE_BULLET)
 				G_SpawnDamage(TE_BULLET, pos, normal, damage_health);
 			else
 				G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
+		} else if (G_IsMeat(target)) { // bleed for everything else
+			G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
 		}
 
 		target->locals.health -= damage_health;
