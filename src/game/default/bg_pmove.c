@@ -649,7 +649,7 @@ static void Pm_CheckDuck(void) {
 		// change the bounding box to reflect ducking and jumping
 		pm->maxs[2] = pm->maxs[2] + pm->mins[2] * 0.5;
 	} else {
-		const vec_t target = pm->mins[2] + height * 0.75;
+		const vec_t target = pm->mins[2] + height * 0.9;
 
 		if (pml.view_offset[2] < target) // go up
 			pml.view_offset[2] += pml.time * PM_SPEED_DUCK_STAND;

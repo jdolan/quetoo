@@ -69,7 +69,7 @@
  */
 #define PM_SPEED_AIR			350.0
 #define PM_SPEED_CURRENT		100.0
-#define PM_SPEED_DUCK_STAND		225.0
+#define PM_SPEED_DUCK_STAND		200.0
 #define PM_SPEED_DUCKED			140.0
 #define PM_SPEED_FALL			-540.0
 #define PM_SPEED_FALL_FAR		-720.0
