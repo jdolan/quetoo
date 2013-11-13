@@ -31,6 +31,7 @@
  */
 #define SVF_NO_CLIENT 		(1 << 0) // don't send entity to clients
 #define SVF_DEAD_MONSTER	(1 << 1) // don't clip against corpses
+#define SVF_GAME			(1 << 2) // game may extend from here
 
 /*
  * @brief Used to join adjacent areas.

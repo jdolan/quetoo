@@ -106,6 +106,6 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		}
 
 		e->effects |= EF_BLEND;
-		e->alpha = 1.0 - (cgi.client->time - ent->time) / 3000.0;
+		e->alpha = 1.0 - ((cgi.client->time - ent->time) / 3000.0);
 	}
 }

@@ -209,11 +209,28 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker, uint32_t mod)
  */
 static void G_ClientCorpse_Think(g_edict_t *self) {
 
+	const uint32_t age = g_level.time - self->locals.timestamp;
+
 	if (self->s.model1 == MODEL_CLIENT) {
 		g_edict_t *client = &g_game.edicts[self->s.client + 1];
 
+		// if the client has respawned, become a true corpse
 		if (client->in_use && !client->locals.dead) {
 			self->s.effects |= EF_CORPSE;
+		}
+
+		// and don't re-animate when coming into view for new clients
+		if (age > 2000) {
+			switch (self->s.animation1) {
+				case ANIM_BOTH_DEATH1:
+				case ANIM_BOTH_DEATH2:
+				case ANIM_BOTH_DEATH3:
+					self->s.animation1++;
+					self->s.animation2++;
+					break;
+				default:
+					break;
+			}
 		}
 	} else {
 		if (VectorLength(self->locals.velocity) > 20.0) {
@@ -223,8 +240,7 @@ static void G_ClientCorpse_Think(g_edict_t *self) {
 		}
 	}
 
-	const uint32_t age = g_level.time - self->locals.timestamp;
-
+	// sink into the floor after a few seconds
 	if (age > 13000) {
 		G_FreeEdict(self);
 		return;
@@ -312,8 +328,8 @@ static void G_ClientCorpse(g_edict_t *self) {
 
 	VectorCopy(self->s.origin, ent->s.origin);
 
-	ent->s.model1 = self->s.model1;
 	ent->s.client = self->s.client;
+	ent->s.model1 = self->s.model1;
 
 	const vec_t r = Randomf();
 	if (r < 0.33)
