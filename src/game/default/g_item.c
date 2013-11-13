@@ -648,73 +648,67 @@ static void G_DropItem_Think(g_edict_t *ent) {
  * inventory. That is left to the caller.
  */
 g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
-	vec3_t v, forward;
-	c_trace_t trace;
+	vec3_t forward;
+	c_trace_t tr;
 
-	g_edict_t *dropped = G_Spawn(item->class_name);
-	dropped->owner = ent;
+	g_edict_t *it = G_Spawn(item->class_name);
+	it->owner = ent;
 
-	gi.SetModel(dropped, item->model);
+	VectorScale(ITEM_MINS, ITEM_SCALE, it->mins);
+	VectorScale(ITEM_MAXS, ITEM_SCALE, it->maxs);
 
-	VectorScale(ITEM_MINS, ITEM_SCALE, dropped->mins);
-	VectorScale(ITEM_MAXS, ITEM_SCALE, dropped->maxs);
+	it->solid = SOLID_TRIGGER;
 
-	dropped->solid = SOLID_TRIGGER;
+	// resolve forward direction and project origin
+	if (ent->client && ent->locals.dead) {
+		vec3_t tmp;
 
-	dropped->locals.item = item;
-	dropped->locals.spawn_flags = SF_ITEM_DROPPED;
-	dropped->locals.move_type = MOVE_TYPE_TOSS;
-	dropped->locals.Touch = G_DropItemUntouchable;
-	dropped->s.effects = (item->effects & ~EF_BOB);
+		VectorSet(tmp, 0.0, ent->client->locals.angles[1], 0.0);
+		AngleVectors(tmp, forward, NULL, NULL);
 
-	// FIXME This is disgusting.
-	if (ent->client && ent->locals.health <= 0) { // randomize the direction we toss in
-		VectorSet(v, 0.0, ent->client->locals.angles[1] + Randomc() * 45.0, 0.0);
-		AngleVectors(v, forward, NULL, NULL);
-
-		VectorMA(ent->s.origin, 24.0, forward, dropped->s.origin);
-
-		trace = gi.Trace(ent->s.origin, dropped->s.origin, dropped->mins, dropped->maxs, ent,
-				MASK_PLAYER_SOLID);
-
-		VectorCopy(trace.end, dropped->s.origin);
+		VectorMA(ent->s.origin, 24.0, forward, it->s.origin);
 	} else {
 		AngleVectors(ent->s.angles, forward, NULL, NULL);
-
-		trace = gi.Trace(ent->s.origin, ent->s.origin, dropped->mins, dropped->maxs, ent,
-				MASK_PLAYER_SOLID);
-
-		VectorCopy(ent->s.origin, dropped->s.origin);
+		VectorCopy(ent->s.origin, it->s.origin);
 	}
 
-	if (item->type == ITEM_WEAPON) {
-		const g_item_t *ammo = G_FindItem(item->ammo);
-		if (ammo)
-			dropped->locals.health = ammo->quantity;
-		else
-			dropped->locals.health = 0;
-	}
+	tr = gi.Trace(ent->s.origin, it->s.origin, it->mins, it->maxs, ent, MASK_PLAYER_SOLID);
 
 	// we're in a bad spot, forget it
-	if (trace.start_solid) {
-
+	if (tr.start_solid) {
 		if (item->type == ITEM_FLAG)
-			G_ResetFlag(dropped);
+			G_ResetFlag(it);
 		else
-			G_FreeEdict(dropped);
+			G_FreeEdict(it);
 
 		return NULL;
 	}
 
-	VectorScale(forward, 100.0, dropped->locals.velocity);
-	dropped->locals.velocity[2] = 200.0 + (Randomf() * 150.0);
+	VectorCopy(tr.end, it->s.origin);
 
-	dropped->locals.Think = G_DropItem_Think;
-	dropped->locals.next_think = g_level.time + gi.frame_millis;
+	it->locals.item = item;
+	it->locals.spawn_flags = SF_ITEM_DROPPED;
+	it->locals.move_type = MOVE_TYPE_TOSS;
+	it->locals.Touch = G_DropItemUntouchable;
+	it->s.effects = (item->effects & ~EF_BOB);
 
-	gi.LinkEdict(dropped);
+	gi.SetModel(it, item->model);
 
-	return dropped;
+	if (item->type == ITEM_WEAPON) {
+		const g_item_t *ammo = G_FindItem(item->ammo);
+		if (ammo)
+			it->locals.health = ammo->quantity;
+	}
+
+	VectorScale(forward, 100.0, it->locals.velocity);
+	it->locals.velocity[2] = 300.0 + (Randomf() * 50.0);
+
+	it->locals.Think = G_DropItem_Think;
+	it->locals.next_think = g_level.time + gi.frame_millis;
+
+	gi.LinkEdict(it);
+
+	return it;
 }
 
 /*

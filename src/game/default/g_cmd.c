@@ -397,6 +397,8 @@ static void G_Kill_f(g_edict_t *ent) {
 		return;
 
 	ent->locals.flags &= ~FL_GOD_MODE;
+
+	ent->locals.dead = true;
 	ent->locals.health = 0;
 
 	ent->locals.Die(ent, ent, MOD_SUICIDE);

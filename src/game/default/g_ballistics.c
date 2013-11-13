@@ -906,15 +906,10 @@ static void G_BfgProjectile_Think(g_edict_t *self) {
 void G_BfgProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback, vec_t damage_radius) {
 
-	const vec3_t mins = { -8.0, -8.0, -8.0 };
-	const vec3_t maxs = { 8.0, 8.0, 8.0 };
-
 	g_edict_t *projectile = G_Spawn(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
-	VectorCopy(mins, projectile->mins);
-	VectorCopy(maxs, projectile->maxs);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
 	G_PlayerProjectile(projectile, 0.33);

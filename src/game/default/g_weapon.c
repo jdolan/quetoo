@@ -210,6 +210,11 @@ g_edict_t *G_DropWeapon(g_edict_t *ent, const g_item_t *item) {
  */
 g_edict_t *G_TossWeapon(g_edict_t *ent) {
 
+	const g_item_t *weapon = ent->client->locals.persistent.weapon;
+
+	if (!weapon || !weapon->ammo) // don't drop if not holding
+		return NULL;
+
 	const int16_t ammo = ent->client->locals.persistent.inventory[ent->client->locals.ammo_index];
 
 	if (!ammo) // don't drop when out of ammo

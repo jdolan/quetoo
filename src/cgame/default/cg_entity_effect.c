@@ -50,28 +50,27 @@ void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
  */
 void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
-	const entity_state_t *s = &ent->current;
-	e->effects = s->effects;
+	e->effects = ent->current.effects;
 
-	if (s->effects & EF_ROTATE) {
+	if (e->effects & EF_ROTATE) {
 		e->angles[YAW] = cgi.client->time / 3.4;
 	}
 
-	if (s->effects & EF_BOB) {
+	if (e->effects & EF_BOB) {
 		e->origin[2] += 4.0 * sin((cgi.client->time * 0.005) + e->origin[0] + e->origin[1]);
 	}
 
-	if (s->effects & EF_INACTIVE) {
+	if (e->effects & EF_INACTIVE) {
 		Cg_InactiveEffect(ent, e->origin);
 	}
 
-	if (s->effects & EF_RESPAWN) {
+	if (e->effects & EF_RESPAWN) {
 		const vec3_t color = { 0.5, 0.5, 0.0 };
 
 		VectorMA(e->shell, 0.5, color, e->shell);
 	}
 
-	if (s->effects & EF_QUAD) {
+	if (e->effects & EF_QUAD) {
 		r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 0.3, 0.7, 0.7 } };
 
 		VectorCopy(e->origin, l.origin);
@@ -80,7 +79,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		VectorMA(e->shell, 0.5, l.color, e->shell);
 	}
 
-	if (s->effects & EF_CTF_BLUE) {
+	if (e->effects & EF_CTF_BLUE) {
 		r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 0.3, 0.3, 1.0 } };
 
 		VectorCopy(e->origin, l.origin);
@@ -89,7 +88,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		VectorMA(e->shell, 0.5, l.color, e->shell);
 	}
 
-	if (s->effects & EF_CTF_RED) {
+	if (e->effects & EF_CTF_RED) {
 		r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 1.0, 0.3, 0.3 } };
 
 		VectorCopy(e->origin, l.origin);
@@ -100,8 +99,13 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 	VectorNormalize(e->shell);
 
-	if (s->effects & EF_DESPAWN) {
+	if (e->effects & EF_DESPAWN) {
+
+		if (!(ent->prev.effects & EF_DESPAWN)) {
+			ent->time = cgi.client->time;
+		}
+
 		e->effects |= EF_BLEND;
-		e->alpha = 0.66;
+		e->alpha = 1.0 - (cgi.client->time - ent->time) / 3000.0;
 	}
 }

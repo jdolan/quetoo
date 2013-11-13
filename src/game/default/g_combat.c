@@ -283,6 +283,8 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 		target->locals.health -= damage_health;
 
 		if (target->locals.health <= 0) {
+			target->locals.dead = true;
+
 			if (target->locals.Die) {
 				target->locals.Die(target, attacker, mod);
 			} else {

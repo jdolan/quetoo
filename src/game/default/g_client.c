@@ -329,7 +329,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 	ent->locals.mass = 100.0;
 	ent->locals.move_type = MOVE_TYPE_TOSS;
 	ent->locals.take_damage = true;
-	ent->locals.health = 40;
+	ent->locals.health = 100;
 	ent->locals.Die = G_ClientCorpse_Die;
 	ent->locals.Think = G_ClientCorpse_Think;
 	ent->locals.next_think = g_level.time + gi.frame_millis;
@@ -361,7 +361,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *attacker, uint32_t mod) {
 	if (g_level.ctf && !g_level.warmup) // drop flag in ctf
 		G_TossFlag(self);
 
-	if (self->locals.health <= -20) // gib immediately
+	if (self->locals.health <= -100) // gib immediately
 		G_ClientCorpse_Die(self, attacker, mod);
 	else
 		G_ClientCorpse(self);
@@ -375,7 +375,6 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *attacker, uint32_t mod) {
 
 	self->sv_flags |= SVF_NO_CLIENT;
 
-	self->locals.dead = true;
 	self->class_name = "dead";
 
 	self->s.event = EV_NONE;
@@ -413,7 +412,7 @@ static void G_Give(g_client_t *client, char *it, int16_t quantity) {
 	const uint16_t index = ITEM_INDEX(item);
 
 	if (item->type == ITEM_WEAPON) { // weapons receive quantity as ammo
-		client->locals.persistent.inventory[index] = 1;
+		client->locals.persistent.inventory[index]++;
 
 		if (item->ammo) {
 			const g_item_t *ammo = G_FindItem(item->ammo);
@@ -521,7 +520,7 @@ static void G_InitClientPersistent(g_client_t *client) {
 	}
 	// dm gets the blaster
 	else {
-		G_Give(client, "Blaster", 0);
+		G_Give(client, "Blaster", -1);
 		item = G_FindItem("Blaster");
 	}
 
@@ -1122,7 +1121,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	// set the move type
 	if (ent->locals.move_type == MOVE_TYPE_NO_CLIP)
 		cl->ps.pm_state.type = PM_SPECTATOR;
-	else if (ent->s.model1 != 255 || ent->locals.dead)
+	else if (ent->locals.dead)
 		cl->ps.pm_state.type = PM_DEAD;
 	else
 		cl->ps.pm_state.type = PM_NORMAL;

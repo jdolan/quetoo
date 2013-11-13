@@ -30,7 +30,7 @@ static void Cg_UpdateLighting(cl_entity_t *ent, r_entity_t *e) {
 	// setup the write-through lighting cache
 	e->lighting = &ent->lighting;
 
-	if (ent->current.effects & EF_NO_LIGHTING) {
+	if (ent->current.effects & (EF_NO_LIGHTING | EF_DESPAWN)) {
 		// some entities are never lit
 		e->lighting->state = LIGHTING_READY;
 	} else {
