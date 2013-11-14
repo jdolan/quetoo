@@ -228,7 +228,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 
 	// calculate velocity change due to knockback
 	if (knockback && (target->locals.move_type >= MOVE_TYPE_WALK)) {
-		vec3_t knockback_vel, ndir;
+		vec3_t ndir, knockback_vel, knockback_avel;
 
 		VectorCopy(dir, ndir);
 		VectorNormalize(ndir);
@@ -250,10 +250,11 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 
 		if (client) { // make sure the client can leave the ground
 			client->ps.pm_state.flags |= PMF_PUSHED;
-		} else {
-			vec3_t rotate;
-			VectorSet(rotate, Randomc() * knockback, Randomc() * knockback, Randomc() * knockback);
-			VectorMA(target->locals.avelocity, 15.0, rotate, target->locals.avelocity);
+		} else { // apply angular velocity (rotate)
+			VectorSet(knockback_avel, knockback, knockback, knockback);
+			const vec_t ascale = 100.0 / mass;
+
+			VectorMA(target->locals.avelocity, ascale, knockback_avel, target->locals.avelocity);
 		}
 	}
 

@@ -309,6 +309,8 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute_
 		G_FreeEdict(self);
 }
 
+#define CLIENT_CORPSE_HEALTH 80
+
 /*
  * @brief Spawns a corpse for the specified client. The corpse will eventually
  * sink into the floor and disappear if not over-killed.
@@ -345,7 +347,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 	ent->locals.mass = 100.0;
 	ent->locals.move_type = MOVE_TYPE_TOSS;
 	ent->locals.take_damage = true;
-	ent->locals.health = 100;
+	ent->locals.health = CLIENT_CORPSE_HEALTH;
 	ent->locals.Die = G_ClientCorpse_Die;
 	ent->locals.Think = G_ClientCorpse_Think;
 	ent->locals.next_think = g_level.time + gi.frame_millis;
@@ -377,7 +379,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *attacker, uint32_t mod) {
 	if (g_level.ctf && !g_level.warmup) // drop flag in ctf
 		G_TossFlag(self);
 
-	if (self->locals.health <= -100) // gib immediately
+	if (self->locals.health <= -CLIENT_CORPSE_HEALTH) // gib immediately
 		G_ClientCorpse_Die(self, attacker, mod);
 	else
 		G_ClientCorpse(self);
