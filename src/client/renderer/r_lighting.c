@@ -53,7 +53,6 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 	// resolve all of the light sources that could contribute to this lighting
 	for (i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, l++) {
 		vec3_t dir;
-		vec_t intensity;
 
 		// is the light source within the PVS this frame
 		if (lighting->state == LIGHTING_DIRTY && l->leaf->vis_frame != r_locals.vis_frame)
@@ -61,7 +60,7 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 
 		// is it within range of the entity
 		VectorSubtract(l->origin, lighting->origin, dir);
-		intensity = (l->radius + lighting->radius - VectorNormalize(dir)) / l->radius;
+		const vec_t intensity = (l->radius + lighting->radius - VectorNormalize(dir)) / l->radius;
 
 		if (intensity <= 0.0)
 			continue;
@@ -101,8 +100,7 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 		// sort them by intensity
 		qsort((void *) light_refs, j, sizeof(r_bsp_light_ref_t), R_UpdateBspLightReferences_Compare);
 
-		if (j > MAX_ACTIVE_LIGHTS)
-			j = MAX_ACTIVE_LIGHTS;
+		j = MIN(j, MAX_ACTIVE_LIGHTS);
 
 		// and copy them in
 		memcpy(lighting->bsp_light_refs, light_refs, j * sizeof(r_bsp_light_ref_t));
@@ -176,7 +174,7 @@ void R_UpdateLighting(r_lighting_t *lighting) {
  */
 void R_ApplyLighting(const r_lighting_t *lighting) {
 	const vec3_t up = { 0.0, 0.0, 64.0 };
-	int32_t i, count;
+	uint16_t count;
 
 	count = r_locals.active_light_count;
 
@@ -195,7 +193,7 @@ void R_ApplyLighting(const r_lighting_t *lighting) {
 		glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, LIGHTING_AMBIENT_ATTENUATION);
 		count++;
 
-		i = 0;
+		uint16_t i = 0;
 		while (count < MAX_ACTIVE_LIGHTS) {
 			const r_bsp_light_ref_t *r = &lighting->bsp_light_refs[i];
 

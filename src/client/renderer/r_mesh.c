@@ -233,7 +233,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 
 				R_UseMaterial(NULL, r_mesh_state.material);
 
-				R_EnableLightsByRadius(e->origin);
+				R_EnableLightsForEntity(e);
 
 				R_ApplyLighting(e->lighting);
 #if 0

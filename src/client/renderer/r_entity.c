@@ -147,11 +147,7 @@ void R_RotateForEntity(const r_entity_t *e) {
  * specified entity, translating and rotating it into the entity's model-view.
  */
 void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out) {
-	matrix4x4_t mat;
-
-	Matrix4x4_Invert_Simple(&mat, &e->matrix);
-
-	Matrix4x4_Transform(&mat, in, out);
+	Matrix4x4_Transform(&e->inverse_matrix, in, out);
 }
 
 /*
@@ -159,6 +155,8 @@ void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out) {
  * matrix for the entity in the process.
  */
 static void R_SetMatrixForEntity(r_entity_t *e) {
+
+	vec_t *o = e->origin, *a = e->angles;
 
 	if (e->parent) {
 		vec3_t tmp;
@@ -173,8 +171,8 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 
 		R_ApplyMeshModelConfig(e);
 
-		Matrix4x4_CreateFromQuakeEntity(&e->matrix, e->origin[0], e->origin[1], e->origin[2],
-				e->angles[0], e->angles[1], e->angles[2], e->scale);
+		Matrix4x4_CreateFromQuakeEntity(&e->matrix, o[0], o[1], o[2], a[0], a[1], a[2], e->scale);
+		Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 
 		R_ApplyMeshModelTag(e);
 
@@ -187,8 +185,8 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 		R_ApplyMeshModelConfig(e);
 	}
 
-	Matrix4x4_CreateFromQuakeEntity(&e->matrix, e->origin[0], e->origin[1], e->origin[2],
-			e->angles[0], e->angles[1], e->angles[2], e->scale);
+	Matrix4x4_CreateFromQuakeEntity(&e->matrix, o[0], o[1], o[2], a[0], a[1], a[2], e->scale);
+	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 }
 
 /*

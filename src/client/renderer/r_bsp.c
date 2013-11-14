@@ -158,7 +158,7 @@ void R_DrawBspInlineModel(const r_entity_t *e) {
 		r_bsp_model_org[2] = DotProduct(temp, up);
 	}
 
-	R_ShiftLights(e->origin);
+	R_RotateLightsForEntity(e, e->model->bsp_inline->lights);
 
 	R_RotateForEntity(e);
 
@@ -166,7 +166,7 @@ void R_DrawBspInlineModel(const r_entity_t *e) {
 
 	R_RotateForEntity(NULL);
 
-	R_ShiftLights(vec3_origin);
+	R_RotateLightsForEntity(NULL, e->model->bsp_inline->lights);
 }
 
 /*
@@ -181,7 +181,7 @@ void R_DrawBspLights(void) {
 	const r_bsp_light_t *l = r_model_state.world->bsp->bsp_lights;
 	for (i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, l++) {
 		r_corona_t c;
-		// FIXME draw spheres instead, coronas to be deprecated
+
 		VectorCopy(l->origin, c.origin);
 		c.radius = l->radius * r_draw_bsp_lights->value;
 		c.flicker = 0.0;

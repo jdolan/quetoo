@@ -30,9 +30,9 @@ void R_AddSustainedLight(const r_sustained_light_t *s);
 #ifdef __R_LOCAL_H__
 void R_ResetLights(void);
 void R_MarkLights(void);
-void R_ShiftLights(const vec3_t offset);
+void R_RotateLightsForEntity(const r_entity_t *e, uint64_t mask);
 void R_EnableLights(uint64_t mask);
-void R_EnableLightsByRadius(const vec3_t p);
+void R_EnableLightsForEntity(const r_entity_t *e);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_LIGHT_H__ */
