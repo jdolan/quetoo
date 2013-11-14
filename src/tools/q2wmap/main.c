@@ -470,17 +470,6 @@ int32_t main(int32_t argc, char **argv) {
 			continue;
 		}
 
-		if (!g_strcmp0(Com_Argv(i), "-p") || !g_strcmp0(Com_Argv(i), "-path")) {
-			Fs_AddToSearchPath(Com_Argv(i + 1));
-			continue;
-		}
-
-		if (!g_strcmp0(Com_Argv(i), "-w") || !g_strcmp0(Com_Argv(i), "-wpath")) {
-			Fs_AddToSearchPath(Com_Argv(i + 1));
-			Fs_SetWriteDir(Com_Argv(i + 1));
-			continue;
-		}
-
 		if (!g_strcmp0(Com_Argv(i), "-t") || !g_strcmp0(Com_Argv(i), "-threads")) {
 			Thread_Init(atoi(Com_Argv(i + 1)));
 			Com_Print("Using %u threads\n", Thread_Count());

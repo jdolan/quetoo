@@ -114,15 +114,6 @@ const char *Sys_UserDir(void) {
 }
 
 /*
- * @brief Closes an open game module.
- */
-void Sys_CloseLibrary(void **handle) {
-	if (*handle)
-		dlclose(*handle);
-	*handle = NULL;
-}
-
-/*
  * @brief
  */
 void Sys_OpenLibrary(const char *name, void **handle) {
@@ -147,6 +138,15 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 	}
 
 	Com_Error(ERR_DROP, "Couldn't find %s\n", so_name);
+}
+
+/*
+ * @brief Closes an open game module.
+ */
+void Sys_CloseLibrary(void **handle) {
+	if (*handle)
+		dlclose(*handle);
+	*handle = NULL;
 }
 
 /*

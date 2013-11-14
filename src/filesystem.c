@@ -393,7 +393,8 @@ static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 	StripExtension(Basename(path), match);
 
 	if (!g_list_find_custom(*matches, match, (GCompareFunc) strcmp)) {
-		*matches = g_list_insert_sorted(*matches, Mem_CopyString(match), (GCompareFunc) g_ascii_strcasecmp);
+		*matches = g_list_insert_sorted(*matches, Mem_CopyString(match),
+				(GCompareFunc) g_ascii_strcasecmp);
 	}
 }
 
@@ -638,8 +639,24 @@ void Fs_Init(_Bool auto_load_archives) {
 		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME);
 	}
 
-	// then add a '.quake2world/default' directory in home directory
+	// then add the default game directory in the user's home directory
 	Fs_AddUserSearchPath(DEFAULT_GAME);
+
+	// finally add any paths specified on the command line
+	int32_t i;
+	for (i = 1; i < Com_Argc(); i++) {
+
+		if (!g_strcmp0(Com_Argv(i), "-p") || !g_strcmp0(Com_Argv(i), "-path")) {
+			Fs_AddToSearchPath(Com_Argv(i + 1));
+			continue;
+		}
+
+		if (!g_strcmp0(Com_Argv(i), "-w") || !g_strcmp0(Com_Argv(i), "-wpath")) {
+			Fs_AddToSearchPath(Com_Argv(i + 1));
+			Fs_SetWriteDir(Com_Argv(i + 1));
+			continue;
+		}
+	}
 
 	// these paths will be retained across all game modules
 	fs_state.base_search_paths = PHYSFS_getSearchPath();
