@@ -85,12 +85,18 @@ void RotatePointAroundVector(const vec3_t point, const vec3_t dir, const vec_t d
  * @brief Derives Euler angles for the specified directional vector.
  */
 void VectorAngles(const vec3_t vector, vec3_t angles) {
-	const vec_t forward = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-	vec_t pitch = atan2(vector[2], forward) * 180.0 / M_PI;
-	const vec_t yaw = atan2(vector[1], vector[0]) * 180.0 / M_PI;
 
-	if (pitch < 0.0) {
+	const vec_t forward = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
+
+	vec_t pitch = Degrees(atan2(vector[2], forward));
+	vec_t yaw = Degrees(atan2(vector[1], vector[0]));
+
+	while (pitch < 0.0) {
 		pitch += 360.0;
+	}
+
+	while (yaw < 0.0) {
+		yaw += 360.0;
 	}
 
 	VectorSet(angles, -pitch, yaw, 0.0);
@@ -101,28 +107,31 @@ void VectorAngles(const vec3_t vector, vec3_t angles) {
  */
 void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) {
 	vec_t angle;
-	vec_t sr, sp, sy, cr, cp, cy;
 
-	angle = angles[YAW] * (M_PI * 2.0 / 360.0);
-	sy = sin(angle);
-	cy = cos(angle);
-	angle = angles[PITCH] * (M_PI * 2.0 / 360.0);
-	sp = sin(angle);
-	cp = cos(angle);
-	angle = angles[ROLL] * (M_PI * 2.0 / 360.0);
-	sr = sin(angle);
-	cr = cos(angle);
+	angle = Radians(angles[YAW]);
+	const vec_t sy = sin(angle);
+	const vec_t cy = cos(angle);
+
+	angle = Radians(angles[PITCH]);
+	const vec_t sp = sin(angle);
+	const vec_t cp = cos(angle);
+
+	angle = Radians(angles[ROLL]);
+	const vec_t sr = sin(angle);
+	const vec_t cr = cos(angle);
 
 	if (forward) {
 		forward[0] = cp * cy;
 		forward[1] = cp * sy;
 		forward[2] = -sp;
 	}
+
 	if (right) {
-		right[0] = -1 * sr * sp * cy + -1 * cr * -sy;
-		right[1] = -1 * sr * sp * sy + -1 * cr * cy;
-		right[2] = -1 * sr * cp;
+		right[0] = -1.0 * sr * sp * cy + -1.0 * cr * -sy;
+		right[1] = -1.0 * sr * sp * sy + -1.0 * cr * cy;
+		right[2] = -1.0 * sr * cp;
 	}
+
 	if (up) {
 		up[0] = cr * sp * cy + -sr * -sy;
 		up[1] = cr * sp * sy + -sr * cy;
@@ -203,21 +212,6 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 		tangent[3] = 1.0;
 
 	VectorScale(bitangent, tangent[3], bitangent);
-}
-
-/*
- * @brief
- */
-void ConcatRotations(vec3_t in1[3], vec3_t in2[3], vec3_t out[3]) {
-	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] + in1[0][2] * in2[2][0];
-	out[0][1] = in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] + in1[0][2] * in2[2][1];
-	out[0][2] = in1[0][0] * in2[0][2] + in1[0][1] * in2[1][2] + in1[0][2] * in2[2][2];
-	out[1][0] = in1[1][0] * in2[0][0] + in1[1][1] * in2[1][0] + in1[1][2] * in2[2][0];
-	out[1][1] = in1[1][0] * in2[0][1] + in1[1][1] * in2[1][1] + in1[1][2] * in2[2][1];
-	out[1][2] = in1[1][0] * in2[0][2] + in1[1][1] * in2[1][2] + in1[1][2] * in2[2][2];
-	out[2][0] = in1[2][0] * in2[0][0] + in1[2][1] * in2[1][0] + in1[2][2] * in2[2][0];
-	out[2][1] = in1[2][0] * in2[0][1] + in1[2][1] * in2[1][1] + in1[2][2] * in2[2][1];
-	out[2][2] = in1[2][0] * in2[0][2] + in1[2][1] * in2[1][2] + in1[2][2] * in2[2][2];
 }
 
 /*
@@ -378,19 +372,6 @@ _Bool VectorCompare(const vec3_t v1, const vec3_t v2) {
 		return false;
 
 	return true;
-}
-
-/*
- * @brief Returns true if the first vector is closer to the point of interest, false
- * otherwise.
- */
-_Bool VectorNearer(const vec3_t v1, const vec3_t v2, const vec3_t point) {
-	vec3_t d1, d2;
-
-	VectorSubtract(point, v1, d1);
-	VectorSubtract(point, v2, d2);
-
-	return VectorLength(d1) < VectorLength(d2);
 }
 
 /*
