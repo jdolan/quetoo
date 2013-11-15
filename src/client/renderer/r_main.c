@@ -98,20 +98,24 @@ extern cl_static_t cls;
  * and angles for this frame.
  */
 void R_UpdateFrustum(void) {
-	c_bsp_plane_t *p = r_locals.frustum;
 	int32_t i;
 
 	if (!r_cull->value)
 		return;
 
-	// rotate r_view.forward right by fov_x / 2 degrees
-	RotatePointAroundVector(r_view.forward, r_view.up, -(90.0 - r_view.fov[0] / 2.0), (p++)->normal);
-	// rotate r_view.forward left by fov_x / 2 degrees
-	RotatePointAroundVector(r_view.forward, r_view.up, 90.0 - r_view.fov[0] / 2.0, (p++)->normal);
-	// rotate r_view.forward up by fov_x / 2 degrees
-	RotatePointAroundVector(r_view.forward, r_view.right, 90.0 - r_view.fov[1] / 2.0, (p++)->normal);
-	// rotate r_view.forward down by fov_x / 2 degrees
-	RotatePointAroundVector(r_view.forward, r_view.right, -(90.0 - r_view.fov[1] / 2.0), p->normal);
+	c_bsp_plane_t *p = r_locals.frustum;
+
+	const vec_t fov_x = r_view.fov[0] / 2.0;
+	const vec_t fov_y = r_view.fov[1] / 2.0;
+
+	// rotate r_view.forward right by fov_x degrees
+	RotatePointAroundVector(r_view.forward, r_view.right, -(90.0 - fov_x), (p++)->normal);
+	// rotate r_view.forward left by fov_x degrees
+	RotatePointAroundVector(r_view.forward, r_view.right, 90.0 - fov_x, (p++)->normal);
+	// rotate r_view.forward up by fov_y / 2 degrees
+	RotatePointAroundVector(r_view.forward, r_view.up, 90.0 - fov_y, (p++)->normal);
+	// rotate r_view.forward down by fov_y / 2 degrees
+	RotatePointAroundVector(r_view.forward, r_view.up, -(90.0 - fov_y), p->normal);
 
 	for (i = 0; i < 4; i++) {
 		r_locals.frustum[i].type = PLANE_ANYZ;

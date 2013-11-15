@@ -65,56 +65,20 @@ vec_t Randomc(void) {
  * @brief
  */
 void RotatePointAroundVector(const vec3_t point, const vec3_t dir, const vec_t degrees, vec3_t out) {
-	vec_t m[3][3];
-	vec_t im[3][3];
-	vec_t zrot[3][3];
-	vec_t tmpmat[3][3];
-	vec_t rot[3][3];
-	int32_t i;
-	vec3_t vr, vu, vf;
+	const vec_t u = dir[0], v = dir[1], w = dir[2];
+	const vec_t x = point[0], y = point[1], z = point[2];
 
-	vf[0] = dir[0];
-	vf[1] = dir[1];
-	vf[2] = dir[2];
+	const vec_t ux = u * x, uy = u * y, uz = u * z;
+	const vec_t vx = v * x, vy = v * y, vz = v * z;
+	const vec_t wx = w * x, wy = w * y, wz = w * z;
+	const vec_t uu = u * u, ww = w * w, vv = v * v;
 
-	PerpendicularVector(dir, vr);
-	CrossProduct(vr, vf, vu);
+	const vec_t s = sin(Radians(degrees));
+	const vec_t c = cos(Radians(degrees));
 
-	m[0][0] = vr[0];
-	m[1][0] = vr[1];
-	m[2][0] = vr[2];
-
-	m[0][1] = vu[0];
-	m[1][1] = vu[1];
-	m[2][1] = vu[2];
-
-	m[0][2] = vf[0];
-	m[1][2] = vf[1];
-	m[2][2] = vf[2];
-
-	memcpy(im, m, sizeof(im));
-
-	im[0][1] = m[1][0];
-	im[0][2] = m[2][0];
-	im[1][0] = m[0][1];
-	im[1][2] = m[2][1];
-	im[2][0] = m[0][2];
-	im[2][1] = m[1][2];
-
-	memset(zrot, 0, sizeof(zrot));
-	zrot[0][0] = zrot[1][1] = zrot[2][2] = 1.0F;
-
-	zrot[0][0] = cos(Radians(degrees));
-	zrot[0][1] = sin(Radians(degrees));
-	zrot[1][0] = -sin(Radians(degrees));
-	zrot[1][1] = cos(Radians(degrees));
-
-	ConcatRotations(m, zrot, tmpmat);
-	ConcatRotations(tmpmat, im, rot);
-
-	for (i = 0; i < 3; i++) {
-		out[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
-	}
+	out[0] = u * (ux + vy + wz) + (x * (vv + ww) - u * (vy + wz)) * c + (vz - wy) * s;
+	out[1] = v * (ux + vy + wz) + (y * (uu + ww) - v * (ux + wz)) * c + (wx - uz) * s;
+	out[2] = w * (ux + vy + wz) + (z * (uu + vv) - w * (ux + vy)) * c + (uy - vx) * s;
 }
 
 /*
@@ -642,7 +606,6 @@ void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation
 		ColorNormalize(out, out);
 	}
 }
-
 
 /*
  * @brief Returns the longest common prefix the specified words share.
