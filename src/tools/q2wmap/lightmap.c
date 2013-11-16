@@ -397,8 +397,8 @@ void BuildLights(void) {
 					l->normal[2] = -1.0;
 				} else { // general case
 					l->normal[2] = 0;
-					l->normal[0] = cos(angle / 180.0 * M_PI);
-					l->normal[1] = sin(angle / 180.0 * M_PI);
+					l->normal[0] = cos(Radians(angle));
+					l->normal[1] = sin(Radians(angle));
 				}
 			}
 		}

@@ -31,16 +31,17 @@ static void Cg_UpdateFov(void) {
 	if (!cg_fov->modified && !cgi.view->update)
 		return;
 
-	if (cg_fov->value < 10.0 || cg_fov->value > 179.0)
-		cg_fov->value = 100.0;
+	cg_fov->value = Clamp(cg_fov->value, 10.0, 160.0);
 
-	const vec_t x = cgi.context->width / tan(cg_fov->value / 360.0 * M_PI);
+	cgi.view->fov[0] = cg_fov->value / 2.0;
 
-	const vec_t a = atan(cgi.context->height / x);
+	const vec_t x = cgi.context->width / tan(Radians(cg_fov->value));
 
-	cgi.view->fov[0] = cg_fov->value;
+	const vec_t y = atan2(cgi.context->height, x);
 
-	cgi.view->fov[1] = a * 360.0 / M_PI;
+	const vec_t a = cgi.context->height / (vec_t ) cgi.context->width;
+
+	cgi.view->fov[1] = Degrees(y) * a / 2.0;
 
 	cg_fov->modified = false;
 }

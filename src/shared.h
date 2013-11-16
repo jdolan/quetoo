@@ -44,8 +44,8 @@ extern vec3_t vec3_origin;
 #define VectorNegate(a,b)		(b[0] = -a[0], b[1] = -a[1], b[2] = -a[2])
 #define VectorSet(v, x, y, z)	(v[0] = (x), v[1] = (y), v[2] = (z))
 #define VectorSum(a)			(a[0] + a[1] + a[2])
-#define Radians(d) 				((d) * 0.01745329251) // M_PI / 180.0
-#define Degrees(r)				((r) * 57.2957795131) // 180.0 / M_PI
+#define Radians(d) 				((d) * 0.01745329251) // * M_PI / 180.0
+#define Degrees(r)				((r) * 57.2957795131) // * 180.0 / M_PI
 
 /*
  * @brief Math and trigonometry functions.

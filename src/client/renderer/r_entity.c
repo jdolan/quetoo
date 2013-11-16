@@ -327,13 +327,13 @@ static void R_DrawNullModel(const r_entity_t *e) {
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(0.0, 0.0, -16.0);
 	for (i = 0; i <= 4; i++)
-		glVertex3f(16.0 * cos(i * M_PI / 2.0), 16.0 * sin(i * M_PI / 2.0), 0.0);
+		glVertex3f(16.0 * cos(i * M_PI_2), 16.0 * sin(i * M_PI_2), 0.0);
 	glEnd();
 
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(0.0, 0.0, 16.0);
 	for (i = 4; i >= 0; i--)
-		glVertex3f(16.0 * cos(i * M_PI / 2.0), 16.0 * sin(i * M_PI / 2.0), 0.0);
+		glVertex3f(16.0 * cos(i * M_PI_2), 16.0 * sin(i * M_PI_2), 0.0);
 	glEnd();
 
 	R_RotateForEntity(NULL);

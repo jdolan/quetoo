@@ -24,12 +24,26 @@
 /*
  * @brief
  */
-static const vec3_t base_axis[18] = { { 0, 0, 1 }, { 1, 0, 0 }, { 0, -1, 0 }, // floor
-		{ 0, 0, -1 }, { 1, 0, 0 }, { 0, -1, 0 }, // ceiling
-		{ 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, -1 }, // west wall
-		{ -1, 0, 0 }, { 0, 1, 0 }, { 0, 0, -1 }, // east wall
-		{ 0, 1, 0 }, { 1, 0, 0 }, { 0, 0, -1 }, // south wall
-		{ 0, -1, 0 }, { 1, 0, 0 }, { 0, 0, -1 }, // north wall
+static const vec3_t base_axis[18] = {
+// base texture axis
+		{ 0, 0, 1 },
+		{ 1, 0, 0 },
+		{ 0, -1, 0 }, // floor
+		{ 0, 0, -1 },
+		{ 1, 0, 0 },
+		{ 0, -1, 0 }, // ceiling
+		{ 1, 0, 0 },
+		{ 0, 1, 0 },
+		{ 0, 0, -1 }, // west wall
+		{ -1, 0, 0 },
+		{ 0, 1, 0 },
+		{ 0, 0, -1 }, // east wall
+		{ 0, 1, 0 },
+		{ 1, 0, 0 },
+		{ 0, 0, -1 }, // south wall
+		{ 0, -1, 0 },
+		{ 1, 0, 0 },
+		{ 0, 0, -1 }, // north wall
 		};
 
 static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv) {
@@ -71,7 +85,7 @@ static int32_t FindTexinfo(d_bsp_texinfo_t *tx) {
 		if (strncmp(tc->texture, tx->texture, sizeof(tc->texture)))
 			continue;
 
-		if (memcmp((char *)(tc->vecs), (char *)(tx->vecs), sizeof(tx->vecs)))
+		if (memcmp((char *) (tc->vecs), (char *) (tx->vecs), sizeof(tx->vecs)))
 			continue;
 
 		return i;
@@ -89,8 +103,7 @@ static int32_t FindTexinfo(d_bsp_texinfo_t *tx) {
 /*
  * @brief
  */
-int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt,
-		vec3_t origin) {
+int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3_t origin) {
 	vec3_t vecs[2];
 	vec_t ang, sinv, cosv;
 	vec_t ns, nt;
@@ -128,7 +141,7 @@ int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt,
 		sinv = -1.0;
 		cosv = 0.0;
 	} else {
-		ang = bt->rotate / 180.0 * M_PI;
+		ang = Radians(bt->rotate);
 		sinv = sin(ang);
 		cosv = cos(ang);
 	}

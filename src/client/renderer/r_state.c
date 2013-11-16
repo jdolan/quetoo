@@ -513,16 +513,14 @@ void R_UseMaterial(const r_bsp_surface_t *surf, const r_material_t *material) {
 	R_GetError(material ? material->diffuse->media.name : r_state.active_program->name);
 }
 
-#define NEAR_Z 4
-#define FAR_Z 16384
+#define NEAR_Z 4.0
+#define FAR_Z 16384.0
 
 /*
  * @brief Prepare OpenGL for drawing the 3D scene. Update the view-port definition
  * and load our projection and model-view matrices.
  */
 void R_Setup3D(void) {
-	vec_t xmin, xmax, ymin, ymax;
-	vec_t aspect;
 
 	if (!r_view.width || !r_view.height)
 		return;
@@ -533,13 +531,13 @@ void R_Setup3D(void) {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	aspect = (vec_t) r_view.width / (vec_t) r_view.height;
+	const vec_t aspect = (vec_t) r_view.width / (vec_t) r_view.height;
 
-	ymax = NEAR_Z * tan(r_view.fov[1] * M_PI / 360.0);
-	ymin = -ymax;
+	const vec_t ymax = NEAR_Z * tan(Radians(r_view.fov[1]));
+	const vec_t ymin = -ymax;
 
-	xmin = ymin * aspect;
-	xmax = ymax * aspect;
+	const vec_t xmin = ymin * aspect;
+	const vec_t xmax = ymax * aspect;
 
 	glFrustum(xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
 

@@ -103,8 +103,8 @@ static void Cg_Init(void) {
 			"Pulse the vitals when low");
 	cg_draw_vote = cgi.Cvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
 
-	cg_fov = cgi.Cvar("cg_fov", "100.0", CVAR_ARCHIVE, NULL);
-	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "40.0", CVAR_ARCHIVE, NULL);
+	cg_fov = cgi.Cvar("cg_fov", "110.0", CVAR_ARCHIVE, NULL);
+	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "55.0", CVAR_ARCHIVE, NULL);
 
 	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE,
 			"Activate third person perspective.");
