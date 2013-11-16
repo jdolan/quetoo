@@ -3,6 +3,7 @@ noinst_HEADERS = \
 	ui_credits.h \
 	ui_controls.h \
 	ui_data.h \
+	ui_editor.h \
 	ui_local.h \
 	ui_main.h \
 	ui_player.h \
@@ -18,6 +19,7 @@ libui_la_SOURCES = \
 	ui_credits.c \
 	ui_controls.c \
 	ui_data.c \
+	ui_editor.c \
 	ui_main.c \
 	ui_misc.c \
 	ui_player.c \

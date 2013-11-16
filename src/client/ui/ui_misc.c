@@ -52,7 +52,7 @@ void TW_CALL Ui_CenterBar(void *data) {
 	TwBar *bar = TwGetBarByName(name);
 
 	if (bar) {
-		double size[2], position[2];
+		dvec_t size[2], position[2];
 		TwGetParam(bar, NULL, "size", TW_PARAM_DOUBLE, 2, size);
 
 		position[0] = (r_context.width - size[0]) / 2.0;
@@ -60,8 +60,10 @@ void TW_CALL Ui_CenterBar(void *data) {
 
 		if (position[0] < (r_pixel_t) 0)
 			position[0] = (r_pixel_t) 0;
+
 		if (position[1] < (r_pixel_t) 0)
 			position[1] = (r_pixel_t) 0;
+
 		position[0] = (r_pixel_t) position[0];
 		position[1] = (r_pixel_t) position[1];
 

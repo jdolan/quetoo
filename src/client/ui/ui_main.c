@@ -35,12 +35,16 @@ _Bool Ui_Event(SDL_Event *event) {
 	if (!(handled = TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION))) {
 
 		if (event->key.keysym.sym == SDLK_ESCAPE && event->type == SDL_KEYDOWN) {
-
 			int32_t visible;
-			TwGetParam(ui.root, NULL, "visible", TW_PARAM_INT32, 1, &visible);
+
+			TwBar *bar = cl_editor->value ? ui.editor : ui.root;
+			TwGetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
 
 			if (!visible) {
-				Ui_ShowBar("Quake2World");
+				if (cl_editor->value)
+					Ui_ShowBar("Editor");
+				else
+					Ui_ShowBar("Quake2World");
 				handled = true;
 			}
 		}
@@ -63,7 +67,7 @@ void Ui_Draw(void) {
 		TwWindowSize(w, h);
 		TwDefine("GLOBAL fontresizable=false fontstyle=fixed ");
 
-		if (ui.top) {
+		if (ui.top && ui.top != ui.editor) {
 			Ui_CenterBar((void *) TwGetBarName(ui.top));
 		}
 	}
@@ -112,17 +116,13 @@ static void Ui_Restart_f(void) {
  */
 void Ui_Init(void) {
 
-	const TwEnumVal OffOrOn[] = {
-		{ 0, "Off" },
-		{ 1, "On" }
-	};
+	const TwEnumVal OffOrOn[] = { { 0, "Off" }, { 1, "On" } };
 
 	const TwEnumVal OffLowMediumHigh[] = {
-		{ 0, "Off" },
-		{ 1, "Low" },
-		{ 2, "Medium" },
-		{ 3, "High" }
-	};
+			{ 0, "Off" },
+			{ 1, "Low" },
+			{ 2, "Medium" },
+			{ 3, "High" } };
 
 	memset(&ui, 0, sizeof(ui));
 
@@ -139,6 +139,7 @@ void Ui_Init(void) {
 	ui.player = Ui_Player();
 	ui.system = Ui_System();
 	ui.credits = Ui_Credits();
+	ui.editor = Ui_Editor();
 
 	Ui_ShowBar("Quake2World");
 

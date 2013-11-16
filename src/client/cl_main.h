@@ -28,10 +28,11 @@
 extern cvar_t *cl_async;
 extern cvar_t *cl_chat_sound;
 extern cvar_t *cl_draw_counters;
+extern cvar_t *cl_draw_net_graph;
+extern cvar_t *cl_editor;
 extern cvar_t *cl_ignore;
 extern cvar_t *cl_max_fps;
 extern cvar_t *cl_max_pps;
-extern cvar_t *cl_draw_net_graph;
 extern cvar_t *cl_predict;
 extern cvar_t *cl_team_chat_sound;
 extern cvar_t *cl_timeout;

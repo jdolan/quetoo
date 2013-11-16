@@ -27,6 +27,7 @@
 #include "ui_controls.h"
 #include "ui_credits.h"
 #include "ui_data.h"
+#include "ui_editor.h"
 #include "ui_main.h"
 #include "ui_misc.h"
 #include "ui_player.h"

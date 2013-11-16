@@ -1082,3 +1082,75 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 	Fs_Free(buf);
 }
+
+/*
+ * @brief Comparator for R_SaveMaterials.
+ */
+static gint R_SaveMaterials_Compare(gconstpointer m1, gconstpointer m2) {
+
+	const char *d1 = ((r_material_t *) m1)->diffuse->media.name;
+	const char *d2 = ((r_material_t *) m2)->diffuse->media.name;
+
+	return g_strcmp0(d1, d2);
+}
+
+/*
+ * @brief Saves the materials properties for the current map.
+ */
+void R_SaveMaterials_f(void) {
+	static uint32_t count;
+	char path[MAX_QPATH];
+	file_t *file;
+	uint16_t i;
+
+	if (!r_model_state.world) {
+		Com_Print("No map loaded\n");
+		return;
+	}
+
+	g_snprintf(path, sizeof(path), "materials/%s", Basename(r_model_state.world->media.name));
+	StripExtension(path, path);
+
+	g_strlcat(path, va("-%03d.mat", count++), sizeof(path));
+
+	if (!(file = Fs_OpenWrite(path))) {
+		Com_Warn("Couldn't open %s\n", path);
+		return;
+	}
+
+	GHashTable *materials = g_hash_table_new(g_direct_hash, g_direct_equal);
+
+	const r_bsp_texinfo_t *tex = r_model_state.world->bsp->texinfo;
+	for (i = 0; i < r_model_state.world->bsp->num_texinfo; i++, tex++) {
+		if (tex->material->normalmap) {
+			g_hash_table_replace(materials, tex->material, tex->material);
+		}
+	}
+
+	GList *list = g_list_sort(g_hash_table_get_keys(materials), R_SaveMaterials_Compare);
+
+	GList *e = list;
+	while (e) {
+		const r_material_t *m = (r_material_t *) e->data;
+
+		const char *s = va("{\n"
+			"\tmaterial %s\n"
+			"\tnormalmap %s\n"
+			"\tbump %01.1f\n"
+			"\thardness %01.1f\n"
+			"\tspecular %01.1f\n"
+			"\tparallax %01.1f\n"
+			"}\n", m->diffuse->media.name, m->normalmap->media.name, m->bump, m->hardness,
+				m->specular, m->parallax);
+
+		Fs_Write(file, s, 1, strlen(s));
+		e = e->next;
+	}
+
+	g_list_free(list);
+	g_hash_table_destroy(materials);
+
+	Fs_Close(file);
+
+	Com_Print("Saved materials to %s\n", path);
+}

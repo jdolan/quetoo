@@ -276,8 +276,11 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 			int64_t len = Fs_Load(va("textures/%s.wal", out->name), &buffer);
 			if (len != -1) {
 				d_wal_t *wal = (d_wal_t *) buffer;
+
 				out->material->diffuse->width = LittleLong(wal->width);
 				out->material->diffuse->height = LittleLong(wal->height);
+
+				Fs_Free(buffer);
 			}
 		}
 	}
