@@ -1083,6 +1083,8 @@ void R_LoadMaterials(const r_model_t *mod) {
 	Fs_Free(buf);
 }
 
+#define MAX_SAVE_MATERIALS 1000
+
 /*
  * @brief Comparator for R_SaveMaterials.
  */
@@ -1098,30 +1100,49 @@ static gint R_SaveMaterials_Compare(gconstpointer m1, gconstpointer m2) {
  * @brief Saves the materials properties for the current map.
  */
 void R_SaveMaterials_f(void) {
-	static uint32_t count;
-	char path[MAX_QPATH];
-	file_t *file;
-	uint16_t i;
+	const r_model_t *world = r_model_state.world;
 
-	if (!r_model_state.world) {
+	if (!world) {
 		Com_Print("No map loaded\n");
 		return;
 	}
 
-	g_snprintf(path, sizeof(path), "materials/%s", Basename(r_model_state.world->media.name));
-	StripExtension(path, path);
+	char filename[MAX_QPATH];
+	uint16_t i;
 
-	g_strlcat(path, va("-%03d.mat", count++), sizeof(path));
+	if (Cmd_Argc() == 2) { // write the requested file
+		g_snprintf(filename, sizeof(filename), "materials/%s", Cmd_Argv(1));
 
-	if (!(file = Fs_OpenWrite(path))) {
-		Com_Warn("Couldn't open %s\n", path);
+		if (!g_str_has_suffix(filename, ".mat")) {
+			g_strlcat(filename, ".mat", sizeof(filename));
+		}
+	} else { // or the next available one
+
+		const char *map = Basename(world->media.name);
+
+		for (i = 0; i < MAX_SAVE_MATERIALS; i++) {
+			g_snprintf(filename, sizeof(filename), "materials/%s%03u.mat", map, i);
+
+			if (!Fs_Exists(filename))
+				break;
+		}
+
+		if (i == MAX_SAVE_MATERIALS) {
+			Com_Warn("Failed to create %s\n", filename);
+			return;
+		}
+	}
+
+	file_t *file;
+	if (!(file = Fs_OpenWrite(filename))) {
+		Com_Warn("Failed to write %s\n", filename);
 		return;
 	}
 
 	GHashTable *materials = g_hash_table_new(g_direct_hash, g_direct_equal);
 
-	const r_bsp_texinfo_t *tex = r_model_state.world->bsp->texinfo;
-	for (i = 0; i < r_model_state.world->bsp->num_texinfo; i++, tex++) {
+	const r_bsp_texinfo_t *tex = world->bsp->texinfo;
+	for (i = 0; i < world->bsp->num_texinfo; i++, tex++) {
 		if (tex->material->normalmap) {
 			g_hash_table_insert(materials, tex->material, tex->material);
 		}
@@ -1154,5 +1175,5 @@ void R_SaveMaterials_f(void) {
 
 	Fs_Close(file);
 
-	Com_Print("Saved materials to %s\n", path);
+	Com_Print("Saved %s\n", Basename(filename));
 }
