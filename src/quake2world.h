@@ -53,6 +53,14 @@
 typedef unsigned char byte;
 #endif
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288
+#endif
+
+#ifndef M_PI_2
+#define M_PI_2 1.57079632679489661923132169163975144
+#endif
+
 typedef float vec_t;
 typedef vec_t vec2_t[2];
 typedef vec_t vec3_t[3];
