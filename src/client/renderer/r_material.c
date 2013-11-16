@@ -1123,7 +1123,7 @@ void R_SaveMaterials_f(void) {
 	const r_bsp_texinfo_t *tex = r_model_state.world->bsp->texinfo;
 	for (i = 0; i < r_model_state.world->bsp->num_texinfo; i++, tex++) {
 		if (tex->material->normalmap) {
-			g_hash_table_replace(materials, tex->material, tex->material);
+			g_hash_table_insert(materials, tex->material, tex->material);
 		}
 	}
 
@@ -1133,6 +1133,9 @@ void R_SaveMaterials_f(void) {
 	while (e) {
 		const r_material_t *m = (r_material_t *) e->data;
 
+		const char *diffuse = m->diffuse->media.name + strlen("textures/");
+		const char *normalmap = m->normalmap->media.name + strlen("textures/");
+
 		const char *s = va("{\n"
 			"\tmaterial %s\n"
 			"\tnormalmap %s\n"
@@ -1140,8 +1143,7 @@ void R_SaveMaterials_f(void) {
 			"\thardness %01.1f\n"
 			"\tspecular %01.1f\n"
 			"\tparallax %01.1f\n"
-			"}\n", m->diffuse->media.name, m->normalmap->media.name, m->bump, m->hardness,
-				m->specular, m->parallax);
+			"}\n", diffuse, normalmap, m->bump, m->hardness, m->specular, m->parallax);
 
 		Fs_Write(file, s, 1, strlen(s));
 		e = e->next;

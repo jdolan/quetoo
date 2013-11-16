@@ -132,12 +132,17 @@ static void R_RegisterModel(r_media_t *self) {
 	r_model_t *mod = (r_model_t *) self;
 
 	if (mod->type == MOD_BSP) {
-		const r_bsp_surface_t *s = mod->bsp->surfaces;
 		uint16_t i;
 
-		for (i = 0; i < mod->bsp->num_surfaces; i++, s++) {
-			R_RegisterDependency(self, (r_media_t *) s->texinfo->material);
+		const r_bsp_texinfo_t *t = mod->bsp->texinfo;
 
+		for (i = 0; i < mod->bsp->num_texinfo; i++, t++) {
+			R_RegisterDependency(self, (r_media_t *) t->material);
+		}
+
+		const r_bsp_surface_t *s = mod->bsp->surfaces;
+
+		for (i = 0; i < mod->bsp->num_surfaces; i++, s++) {
 			R_RegisterDependency(self, (r_media_t *) s->lightmap);
 			R_RegisterDependency(self, (r_media_t *) s->deluxemap);
 		}
