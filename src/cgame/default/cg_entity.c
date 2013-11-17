@@ -22,6 +22,25 @@
 #include "cg_local.h"
 
 /*
+ * @return True if the specified entity is bound to the local client.
+ */
+_Bool Cg_IsSelf(const cl_entity_t *ent) {
+
+	if (ent->current.model1 == MODEL_CLIENT || ent->current.effects & EF_BEAM) {
+
+		if (ent->current.client == cgi.client->client_num)
+			return true;
+
+		const int16_t chase = cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS;
+
+		if (ent->current.client == chase)
+			return true;
+	}
+
+	return false;
+}
+
+/*
  * @brief Establishes the write-through lighting cache for the specified entity,
  * marking it as dirty if necessary.
  */
@@ -73,7 +92,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	Cg_AnimateClientEntity(ent, &upper, &lower);
 
 	// don't draw ourselves unless third person is set
-	if (IS_SELF(ent) && !(e->effects & EF_CORPSE) && !cg_third_person->value) {
+	if (Cg_IsSelf(ent) && !(e->effects & EF_CORPSE) && !cg_third_person->value) {
 		e->effects |= EF_NO_DRAW;
 
 		// keep our shadow underneath us using the predicted origin
@@ -224,7 +243,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 
 		Cg_AddClientEntity(ent, &e);
 
-		if (IS_SELF(ent))
+		if (Cg_IsSelf(ent))
 			Cg_AddWeapon(ent, &e);
 
 		return;

@@ -617,7 +617,7 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 	if (s->effects & EF_BEAM) {
 
 		// client is overridden to specify owner of the beam
-		if (IS_SELF(ent) && !cg_third_person->value) {
+		if (Cg_IsSelf(ent) && !cg_third_person->value) {
 			// we own this beam (lightning, grapple, etc..)
 			// project start position in front of view origin
 			VectorCopy(cgi.view->origin, start);

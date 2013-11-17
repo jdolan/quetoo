@@ -25,14 +25,7 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-
-#define IS_SELF(e) ( \
-	e->current.client == cgi.client->client_num || ( \
-		cgi.client->frame.ps.stats[STAT_CHASE] && \
-		e->current.client == cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS \
-	) \
-)
-
+_Bool Cg_IsSelf(const cl_entity_t *ent);
 void Cg_AddEntities(const cl_frame_t *frame);
 #endif /* __CG_ENTITY_H__ */
 

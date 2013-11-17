@@ -25,23 +25,24 @@
  * @brief
  */
 void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
+	cg_particle_t *p;
 
-	if (!IS_SELF(ent) || cg_third_person->value) {
-		cg_particle_t *p;
+	if (Cg_IsSelf(ent) && !cg_third_person->value)
+		return;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_inactive)))
-			return;
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_inactive)))
+		return;
 
-		p->part.color = 11;
+	p->part.color = 11;
 
-		p->part.alpha = 1.0;
-		p->alpha_vel = -9999.0;
+	p->part.alpha = 1.0;
+	p->alpha_vel = -9999.0;
 
-		p->part.scale = 10.0;
+	p->part.scale = 10.0;
 
-		VectorCopy(org, p->part.org);
-		p->part.org[2] += 50.0;
-	}
+	VectorCopy(org, p->part.org);
+	p->part.org[2] += 50.0;
+
 }
 
 /*

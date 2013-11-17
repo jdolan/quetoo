@@ -233,7 +233,9 @@ static void G_ClientCorpse_Think(g_edict_t *self) {
 			}
 		}
 	} else {
-		if (VectorLength(self->locals.velocity) > 20.0) {
+		const vec_t speed = VectorLength(self->locals.velocity);
+
+		if (!(self->s.effects & EF_DESPAWN) && speed > 30.0) {
 			self->s.trail = TRAIL_GIB;
 		} else {
 			self->s.trail = TRAIL_NONE;

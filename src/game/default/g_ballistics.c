@@ -700,7 +700,7 @@ void G_LightningProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
 		projectile->locals.move_type = MOVE_TYPE_THINK;
 		projectile->locals.Think = G_LightningProjectile_Think;
 		projectile->locals.knockback = knockback;
-		projectile->s.client = ent - g_game.edicts; // player number, for client prediction fix
+		projectile->s.client = ent - g_game.edicts - 1; // player number, for client prediction fix
 		projectile->s.effects = EF_BEAM;
 		projectile->s.sound = g_level.media.lightning_fly_sound;
 		projectile->s.trail = TRAIL_LIGHTNING;
