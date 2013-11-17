@@ -565,7 +565,7 @@ static inline GLenum R_ConstByName(const char *c) {
  */
 static int32_t R_LoadStageFrames(r_stage_t *s) {
 	char name[MAX_QPATH];
-	int32_t i, j, k;
+	int32_t i, j;
 
 	if (!s->image) {
 		Com_Warn("Texture not defined in anim stage\n");
@@ -573,10 +573,9 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 	}
 
 	g_strlcpy(name, s->image->media.name, sizeof(name));
+	const size_t len = strlen(name);
 
-	j = strlen(name);
-
-	if ((i = atoi(&name[j - 1])) < 0) {
+	if ((i = strtol(&name[len - 1], NULL, 0)) < 0) {
 		Com_Warn("Texture name does not end in numeric: %s\n", name);
 		return -1;
 	}
@@ -588,15 +587,15 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 	s->anim.frames[0] = s->image;
 
 	// now load the rest
-	name[j - 1] = '\0';
-	for (k = 1, i = i + 1; k < s->anim.num_frames; k++, i++) {
+	name[len - 1] = '\0';
+	for (j = 1, i = i + 1; j < s->anim.num_frames; j++, i++) {
 		char frame[MAX_QPATH];
 
 		g_snprintf(frame, sizeof(frame), "%s%d", name, i);
-		s->anim.frames[k] = R_LoadImage(frame, IT_DIFFUSE);
+		s->anim.frames[j] = R_LoadImage(frame, IT_DIFFUSE);
 
-		if (s->anim.frames[k]->type == IT_NULL) {
-			Com_Warn("Failed to resolve frame: %d: %s\n", k, frame);
+		if (s->anim.frames[j]->type == IT_NULL) {
+			Com_Warn("Failed to resolve frame: %d: %s\n", j, frame);
 			return -1;
 		}
 	}
@@ -638,7 +637,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "envmap")) {
 
 			c = ParseToken(buffer);
-			i = atoi(c);
+			i = strtol(c, NULL, 0);
 
 			if (*c == '#') {
 				s->image = R_LoadImage(++c, IT_ENVMAP);
@@ -684,7 +683,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			for (i = 0; i < 3; i++) {
 
 				c = ParseToken(buffer);
-				s->color[i] = atof(c);
+				s->color[i] = strtod(c, NULL);
 
 				if (s->color[i] < 0.0 || s->color[i] > 1.0) {
 					Com_Warn("Failed to resolve color: %s\n", c);
@@ -699,9 +698,9 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "pulse")) {
 
 			c = ParseToken(buffer);
-			s->pulse.hz = atof(c);
+			s->pulse.hz = strtod(c, NULL);
 
-			if (s->pulse.hz < 0.0) {
+			if (s->pulse.hz == 0.0) {
 				Com_Warn("Failed to resolve frequency: %s\n", c);
 				return -1;
 			}
@@ -713,17 +712,17 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "stretch")) {
 
 			c = ParseToken(buffer);
-			s->stretch.amp = atof(c);
+			s->stretch.amp = strtod(c, NULL);
 
-			if (s->stretch.amp < 0.0) {
+			if (s->stretch.amp == 0.0) {
 				Com_Warn("Failed to resolve amplitude: %s\n", c);
 				return -1;
 			}
 
 			c = ParseToken(buffer);
-			s->stretch.hz = atof(c);
+			s->stretch.hz = strtod(c, NULL);
 
-			if (s->stretch.hz < 0.0) {
+			if (s->stretch.hz == 0.0) {
 				Com_Warn("Failed to resolve frequency: %s\n", c);
 				return -1;
 			}
@@ -735,9 +734,9 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "rotate")) {
 
 			c = ParseToken(buffer);
-			s->rotate.hz = atof(c);
+			s->rotate.hz = strtod(c, NULL);
 
-			if (s->rotate.hz < 0.0) {
+			if (s->rotate.hz == 0.0) {
 				Com_Warn("Failed to resolve rotate: %s\n", c);
 				return -1;
 			}
@@ -749,7 +748,12 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "scroll.s")) {
 
 			c = ParseToken(buffer);
-			s->scroll.s = atof(c);
+			s->scroll.s = strtod(c, NULL);
+
+			if (s->scroll.s == 0.0) {
+				Com_Warn("Failed to resolve scroll.s: %s\n", c);
+				return -1;
+			}
 
 			s->flags |= STAGE_SCROLL_S;
 			continue;
@@ -758,7 +762,12 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "scroll.t")) {
 
 			c = ParseToken(buffer);
-			s->scroll.t = atof(c);
+			s->scroll.t = strtod(c, NULL);
+
+			if (s->scroll.t == 0.0) {
+				Com_Warn("Failed to resolve scroll.t: %s\n", c);
+				return -1;
+			}
 
 			s->flags |= STAGE_SCROLL_T;
 			continue;
@@ -767,7 +776,12 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "scale.s")) {
 
 			c = ParseToken(buffer);
-			s->scale.s = atof(c);
+			s->scale.s = strtod(c, NULL);
+
+			if (s->scale.s == 0.0) {
+				Com_Warn("Failed to resolve scale.s: %s\n", c);
+				return -1;
+			}
 
 			s->flags |= STAGE_SCALE_S;
 			continue;
@@ -776,7 +790,12 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "scale.t")) {
 
 			c = ParseToken(buffer);
-			s->scale.t = atof(c);
+			s->scale.t = strtod(c, NULL);
+
+			if (s->scale.t == 0.0) {
+				Com_Warn("Failed to resolve scale.t: %s\n", c);
+				return -1;
+			}
 
 			s->flags |= STAGE_SCALE_T;
 			continue;
@@ -785,10 +804,10 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "terrain")) {
 
 			c = ParseToken(buffer);
-			s->terrain.floor = atof(c);
+			s->terrain.floor = strtod(c, NULL);
 
 			c = ParseToken(buffer);
-			s->terrain.ceil = atof(c);
+			s->terrain.ceil = strtod(c, NULL);
 
 			if (s->terrain.ceil <= s->terrain.floor) {
 				Com_Warn("Invalid terrain ceiling and floor values for %s\n",
@@ -804,7 +823,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "dirtmap")) {
 
 			c = ParseToken(buffer);
-			s->dirt.intensity = atof(c);
+			s->dirt.intensity = strtod(c, NULL);
 
 			if (s->dirt.intensity <= 0.0 || s->dirt.intensity > 1.0) {
 				Com_Warn("Invalid dirtmap intensity for %s\n",
@@ -819,7 +838,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "anim")) {
 
 			c = ParseToken(buffer);
-			s->anim.num_frames = atoi(c);
+			s->anim.num_frames = strtoul(c, NULL, 0);
 
 			if (s->anim.num_frames < 1) {
 				Com_Warn("Invalid number of anim frames for %s\n",
@@ -828,7 +847,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			}
 
 			c = ParseToken(buffer);
-			s->anim.fps = atof(c);
+			s->anim.fps = strtod(c, NULL);
 
 			if (s->anim.fps < 0.0) {
 				Com_Warn("Invalid anim fps for %s\n",
@@ -850,7 +869,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "flare")) {
 
 			c = ParseToken(buffer);
-			i = atoi(c);
+			i = strtol(c, NULL, 0);
 
 			if (*c == '#') {
 				s->image = R_LoadImage(++c, IT_FLARE);
@@ -1004,7 +1023,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 		if (!g_strcmp0(c, "bump")) {
 
-			m->bump = atof(ParseToken(&buffer));
+			m->bump = strtod(ParseToken(&buffer), NULL);
 
 			if (m->bump < 0.0) {
 				Com_Warn("Invalid bump value for %s\n", m->diffuse->media.name);
@@ -1014,7 +1033,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 		if (!g_strcmp0(c, "parallax")) {
 
-			m->parallax = atof(ParseToken(&buffer));
+			m->parallax = strtod(ParseToken(&buffer), NULL);
 
 			if (m->parallax < 0.0) {
 				Com_Warn("Invalid parallax value for %s\n", m->diffuse->media.name);
@@ -1024,7 +1043,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 		if (!g_strcmp0(c, "hardness")) {
 
-			m->hardness = atof(ParseToken(&buffer));
+			m->hardness = strtod(ParseToken(&buffer), NULL);
 
 			if (m->hardness < 0.0) {
 				Com_Warn("Invalid hardness value for %s\n", m->diffuse->media.name);
@@ -1033,7 +1052,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 		}
 
 		if (!g_strcmp0(c, "specular")) {
-			m->specular = atof(ParseToken(&buffer));
+			m->specular = strtod(ParseToken(&buffer), NULL);
 
 			if (m->specular < 0.0) {
 				Com_Warn("Invalid specular value for %s\n", m->diffuse->media.name);
