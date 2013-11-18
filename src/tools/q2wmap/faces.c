@@ -74,8 +74,8 @@ static int32_t hash_verts[HASH_SIZE * HASH_SIZE]; // a vertex number, or 0 for n
  */
 static int32_t HashVertex(const vec3_t vec) {
 
-	const int32_t x = (4096 + (int32_t) (vec[0] + 0.5)) >> 8;
-	const int32_t y = (4096 + (int32_t) (vec[1] + 0.5)) >> 8;
+	const int32_t x = (4096 + (int32_t) (vec[0] + 0.5)) >> 6;
+	const int32_t y = (4096 + (int32_t) (vec[1] + 0.5)) >> 6;
 
 	if (x < 0 || x >= HASH_SIZE || y < 0 || y >= HASH_SIZE)
 		Com_Error(ERR_FATAL, "Point outside valid range\n");
@@ -269,10 +269,10 @@ static void EmitVertexes_r(node_t *node) {
  */
 static void FindEdgeVertexes(vec3_t v1, vec3_t v2) {
 
-	int32_t x1 = (4096 + (int32_t) (v1[0] + 0.5)) >> 8;
-	int32_t y1 = (4096 + (int32_t) (v1[1] + 0.5)) >> 8;
-	int32_t x2 = (4096 + (int32_t) (v2[0] + 0.5)) >> 8;
-	int32_t y2 = (4096 + (int32_t) (v2[1] + 0.5)) >> 8;
+	int32_t x1 = (4096 + (int32_t) (v1[0] + 0.5)) >> 6;
+	int32_t y1 = (4096 + (int32_t) (v1[1] + 0.5)) >> 6;
+	int32_t x2 = (4096 + (int32_t) (v2[0] + 0.5)) >> 6;
+	int32_t y2 = (4096 + (int32_t) (v2[1] + 0.5)) >> 6;
 
 	int32_t tmp;
 	if (x1 > x2) {
