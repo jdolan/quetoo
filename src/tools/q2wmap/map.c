@@ -34,7 +34,7 @@ static map_brush_texture_t map_brush_textures[MAX_BSP_SIDES];
 int32_t num_map_planes;
 map_plane_t map_planes[MAX_BSP_PLANES];
 
-#define	PLANE_HASHES 8192
+#define	PLANE_HASHES 4096
 static map_plane_t *plane_hash[PLANE_HASHES];
 
 vec3_t map_mins, map_maxs;
