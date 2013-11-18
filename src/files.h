@@ -160,7 +160,7 @@ typedef struct {
 #define MAX_BSP_LEAF_FACES		0x10000
 #define MAX_BSP_LEAF_BRUSHES 	0x10000
 #define MAX_BSP_PORTALS			0x10000
-#define MAX_BSP_EDGES			0x20000
+#define MAX_BSP_EDGES			0x40000
 #define MAX_BSP_FACE_EDGES		0x40000
 #define MAX_BSP_LIGHTING		0x10000000 // increased from Quake2 0x200000
 #define MAX_BSP_LIGHTMAP		(256 * 256) // minimum r_lightmap_block_size
