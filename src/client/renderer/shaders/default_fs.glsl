@@ -37,9 +37,7 @@ const vec3 negHalf = vec3(-0.5);
 vec3 eye;
 
 /*
- * BumpTexcoord
- *
- * Yield the parallax offset for the texture coordinate.
+ * @brief Yield the parallax offset for the texture coordinate.
  */
 vec2 BumpTexcoord(in float height) {
 
@@ -54,29 +52,23 @@ vec2 BumpTexcoord(in float height) {
 }
 
 /*
- * BumpFragment
- *
- * Yield the diffuse modulation from bump-mapping.
+ * @brief Yield the diffuse modulation from bump-mapping.
  */
 vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
+	
+	float diffuse = max(dot(deluxemap, normalmap), 1.0);
 
-	float diffuse = max(dot(deluxemap,
-			vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z)), 0.5);
-
-	float specular = HARDNESS * pow(max(-dot(eye,
-			reflect(deluxemap, normalmap)), 0.0), 8.0 * SPECULAR);
+	float specular = HARDNESS * pow(max(-dot(eye, reflect(deluxemap, normalmap)), 0.0), 8.0 * SPECULAR);
 
 	return diffuse + specular * glossmap;
 }
 
 /*
- * LightFragment
- *
- * Yield the final sample color after factoring in dynamic light sources. 
+ * @brief Yield the final sample color after factoring in dynamic light sources. 
  */
 void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap){
 
-	vec3 light = vec3(-0.1);
+	vec3 light = vec3(0.0);
 
 	/*
 	 * Iterate the hardware light sources, accumulating dynamic lighting for
@@ -111,14 +103,14 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap){
 }
 
 /*
- * FogFragment
+ * @brief Apply fog to the fragment if enabled.
  */
 void FogFragment(void) {
 	gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_Fog.color.rgb, fog);
 }
 
 /*
- * main
+ * @brief Shader entry point.
  */
 void main(void) {
 
@@ -130,8 +122,8 @@ void main(void) {
 	}
 
 	// then resolve any bump mapping
-	vec4 normalmap = vec4(0.0);
-	vec2 offset = vec2(0.0);
+	vec4 normalmap = vec4(normal, 1.0);
+	vec2 parallax = vec2(0.0);
 	vec3 bump = vec3(1.0);
 
 	if (NORMALMAP) {
@@ -143,9 +135,11 @@ void main(void) {
 		}
 
 		normalmap = texture2D(SAMPLER3, gl_TexCoord[0].st);
-		offset = BumpTexcoord(normalmap.w);
 
-		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));
+		parallax = BumpTexcoord(normalmap.w);
+
+		normalmap.xyz = normalize(two * (normalmap.xyz + negHalf));	
+		normalmap.xyz = normalize(vec3(normalmap.x * BUMP, normalmap.y * BUMP, normalmap.z));	
 
 		vec3 glossmap = vec3(1.0);
 
@@ -163,14 +157,11 @@ void main(void) {
 			normalmap.z * normalize(normal)
 		);
 	}
-	else {
-		normalmap.xyz = normal;
-	}
 
 	vec4 diffuse = vec4(1.0);
 
 	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
-		diffuse = texture2D(SAMPLER0, gl_TexCoord[0].st + offset);
+		diffuse = texture2D(SAMPLER0, gl_TexCoord[0].st + parallax);
 
 		// factor in bump mapping
 		diffuse.rgb *= bump;
@@ -179,5 +170,5 @@ void main(void) {
 	// add any dynamic lighting to yield the final fragment color
 	LightFragment(diffuse, lightmap, normalmap.xyz);
 
-	FogFragment(); // and lastly add fog
+	FogFragment(); // and lastly add fog	
 }
