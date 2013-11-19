@@ -32,32 +32,36 @@
  * @param host The host to connect to. See Net_StringToNetaddr.
  */
 int32_t Net_Connect(const char *host, struct timeval *timeout) {
-	struct sockaddr_in addr;
 
 	int32_t sock = Net_Socket(NA_STREAM, NULL, 0);
-
-	memset(&addr, 0, sizeof(addr));
-
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = INADDR_ANY;
-	addr.sin_port = 0;
 
 	struct sockaddr_in to;
 	Net_StringToSockaddr(host, &to);
 
 	if (connect(sock, (const struct sockaddr *) &to, sizeof(to)) == -1) {
 
-		if (Net_GetError() == EINPROGRESS) { // non-blocking sockets do this
-			fd_set fdset;
+		if (Net_GetError() == EINPROGRESS) {
+			fd_set w_set;
 
-			FD_ZERO(&fdset);
-			FD_SET((uint32_t) sock, &fdset);
+			FD_ZERO(&w_set);
+			FD_SET((uint32_t) sock, &w_set);
 
-			if (select(sock + 1, NULL, &fdset, NULL, timeout) < 1) {
-				Com_Error(ERR_DROP, "%s", Net_GetErrorString());
+			if (select(sock + 1, NULL, &w_set, NULL, timeout) < 1) {
+				Com_Error(ERR_DROP, "%s\n", Net_GetErrorString());
+			}
+
+			int32_t error = -1;
+			socklen_t len = sizeof(error);
+
+			if (getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
+				Com_Error(ERR_DROP, "%s\n", Net_GetErrorString());
+			}
+
+			if (error) {
+				Com_Error(ERR_DROP, "%s\n", strerror(error));
 			}
 		} else {
-			Com_Error(ERR_DROP, "%s", Net_GetErrorString());
+			Com_Error(ERR_DROP, "%s\n", Net_GetErrorString());
 		}
 	}
 

@@ -187,15 +187,20 @@ void Net_Sleep(uint32_t msec) {
 }
 
 /*
- * @brief Opens or closes the managed UDP socket for the given net_src_t.
+ * @brief Opens or closes the managed UDP socket for the given net_src_t. The
+ * interface and port are resolved from immutable console variables, optionally
+ * set at the command line.
  */
 void Net_Config(net_src_t source, _Bool up) {
 	int32_t *sock = &net_udp_state.sockets[source];
 
 	if (up) {
+		const cvar_t *net_interface = Cvar_Get("net_interface", "", CVAR_NO_SET, NULL);
+		const cvar_t *net_port = Cvar_Get("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
+
 		if (*sock == 0) {
-			const char *iface = Cvar_GetString("net_interface");
-			const in_port_t port = source == NS_UDP_SERVER ? Cvar_GetValue("net_port") : 0;
+			const char *iface = net_interface->string;
+			const in_port_t port = source == NS_UDP_SERVER ? net_port->integer : 0;
 
 			*sock = Net_Socket(NA_DATAGRAM, iface, port);
 		}

@@ -31,15 +31,9 @@ cvar_t *cl_ignore;
 cvar_t *cl_max_fps;
 cvar_t *cl_max_pps;
 cvar_t *cl_predict;
-cvar_t *cl_show_net_messages;
-cvar_t *cl_show_renderer_stats;
-cvar_t *cl_show_sound_stats;
 cvar_t *cl_team_chat_sound;
 cvar_t *cl_timeout;
 cvar_t *cl_view_size;
-
-cvar_t *rcon_password;
-cvar_t *rcon_address;
 
 // user info
 cvar_t *active;
@@ -49,6 +43,15 @@ cvar_t *name;
 cvar_t *password;
 cvar_t *rate;
 cvar_t *skin;
+
+cvar_t *qport;
+
+cvar_t *rcon_password;
+cvar_t *rcon_address;
+
+cvar_t *cl_show_net_messages;
+cvar_t *cl_show_renderer_stats;
+cvar_t *cl_show_sound_stats;
 
 cl_static_t cls;
 cl_client_t cl;
@@ -70,10 +73,8 @@ static void Cl_SendConnect(void) {
 	if (addr.port == 0) // use default port
 		addr.port = htons(PORT_SERVER);
 
-	const uint8_t qport = (uint8_t) Cvar_GetValue("net_qport"); // has been set by netchan
-
-	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %i \"%s\"\n", PROTOCOL_MAJOR, qport,
-			cls.challenge, Cvar_UserInfo());
+	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %i \"%s\"\n", PROTOCOL_MAJOR,
+			qport->integer, cls.challenge, Cvar_UserInfo());
 
 	cvar_user_info_modified = false;
 }
@@ -374,8 +375,7 @@ static void Cl_ConnectionlessPacket(void) {
 			return;
 		}
 
-		const uint8_t qport = (uint8_t) Cvar_GetValue("net_qport");
-		Netchan_Setup(NS_UDP_CLIENT, &cls.net_chan, &net_from, qport);
+		Netchan_Setup(NS_UDP_CLIENT, &cls.net_chan, &net_from, qport->integer);
 
 		Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
 		Net_WriteString(&cls.net_chan.message, "new");
@@ -506,15 +506,9 @@ static void Cl_InitLocal(void) {
 	cl_max_fps = Cvar_Get("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
 	cl_max_pps = Cvar_Get("cl_max_pps", "0", CVAR_ARCHIVE, NULL);
 	cl_predict = Cvar_Get("cl_predict", "1", 0, "Use client-side prediction to update local view");
-	cl_show_net_messages = Cvar_Get("cl_show_net_messages", "0", CVAR_LO_ONLY, NULL);
-	cl_show_renderer_stats = Cvar_Get("cl_show_renderer_stats", "0", CVAR_LO_ONLY, NULL);
-	cl_show_sound_stats = Cvar_Get("cl_show_sound_stats", "0", CVAR_LO_ONLY, NULL);
 	cl_team_chat_sound = Cvar_Get("cl_team_chat_sound", "misc/teamchat", 0, NULL);
 	cl_timeout = Cvar_Get("cl_timeout", "15.0", 0, NULL);
 	cl_view_size = Cvar_Get("cl_view_size", "100.0", CVAR_ARCHIVE, NULL);
-
-	rcon_password = Cvar_Get("rcon_password", "", 0, NULL);
-	rcon_address = Cvar_Get("rcon_address", "", 0, NULL);
 
 	// user info
 	active = Cvar_Get("active", "1", CVAR_USER_INFO | CVAR_NO_SET, NULL);
@@ -524,6 +518,15 @@ static void Cl_InitLocal(void) {
 	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);
 	rate = Cvar_Get("rate", va("%d", CLIENT_RATE), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	skin = Cvar_Get("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+
+	qport = Cvar_Get("qport", va("%d", Random() & 0xff), 0, NULL);
+
+	rcon_password = Cvar_Get("rcon_password", "", 0, NULL);
+	rcon_address = Cvar_Get("rcon_address", "", 0, NULL);
+
+	cl_show_net_messages = Cvar_Get("cl_show_net_messages", "0", CVAR_LO_ONLY, NULL);
+	cl_show_renderer_stats = Cvar_Get("cl_show_renderer_stats", "0", CVAR_LO_ONLY, NULL);
+	cl_show_sound_stats = Cvar_Get("cl_show_sound_stats", "0", CVAR_LO_ONLY, NULL);
 
 	// register our commands
 	Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);

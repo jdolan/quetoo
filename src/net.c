@@ -163,11 +163,11 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 
 		case NA_STREAM:
 			if ((sock = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
-				Com_Error(ERR_DROP, "socket: %s", Net_GetErrorString());
+				Com_Error(ERR_DROP, "socket: %s\n", Net_GetErrorString());
 			}
 
 			if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const void *) &i, sizeof(i)) == -1) {
-				Com_Error(ERR_DROP, "setsockopt: %s", Net_GetErrorString());
+				Com_Error(ERR_DROP, "setsockopt: %s\n", Net_GetErrorString());
 			}
 			break;
 
@@ -211,12 +211,6 @@ void Net_Init(void) {
 	v = MAKEWORD(2, 2);
 	WSAStartup(v, &d);
 #endif
-
-	Cvar_Get("net_interface", "", CVAR_NO_SET, NULL);
-	Cvar_Get("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
-
-	// assign a small random number for the qport
-	Cvar_Get("net_qport", va("%d", Sys_Milliseconds() & 255), CVAR_NO_SET, NULL);
 
 	net_lo = inet_addr("127.0.0.1");
 }

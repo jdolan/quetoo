@@ -24,7 +24,6 @@
 
 #include "cl_types.h"
 
-// settings and preferences
 extern cvar_t *cl_async;
 extern cvar_t *cl_chat_sound;
 extern cvar_t *cl_draw_counters;
@@ -58,10 +57,10 @@ extern cvar_t *cl_show_net_messages;
 extern cvar_t *cl_show_renderer_stats;
 extern cvar_t *cl_show_sound_stats;
 
+extern cvar_t *qport;
+
 extern cvar_t *rcon_password;
 extern cvar_t *rcon_address;
-
-extern cvar_t *recording;
 
 extern cl_client_t cl;
 extern cl_static_t cls;

@@ -114,14 +114,24 @@ void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *fo
 }
 
 /*
- * @brief Called to open a channel to a remote system.
+ * @brief Called to open a channel to a remote system. If greater than zero,
+ * the specified qport will be used. Otherwise, one is determined at random.
  */
 void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t qport) {
+
 	memset(chan, 0, sizeof(*chan));
 
 	chan->source = source;
 	chan->remote_address = *addr;
-	chan->qport = qport;
+
+	if (qport) {
+		chan->qport = qport;
+	} else {
+		while (!chan->qport) {
+			chan->qport = Random() & 0xff;
+		}
+	}
+
 	chan->last_received = quake2world.time;
 	chan->incoming_sequence = 0;
 	chan->outgoing_sequence = 1;
