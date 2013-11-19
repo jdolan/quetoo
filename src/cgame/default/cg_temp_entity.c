@@ -255,7 +255,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		for (j = 1; j < GIB_STREAM_COUNT; j++) {
 
 			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood)))
-				return;
+				break;
 
 			p->part.color = 232 + (Random() & 7);
 
@@ -276,6 +276,8 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 			p->accel[2] = -PARTICLE_GRAVITY * 2.0;
 		}
 	}
+
+	cgi.PlaySample(org, -1, cg_sample_gib, ATTEN_DEFAULT);
 }
 
 /*

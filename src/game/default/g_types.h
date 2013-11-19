@@ -472,7 +472,10 @@ extern g_game_t g_game;
  * @brief This structure holds references to frequently accessed media.
  */
 typedef struct {
+	uint16_t gib_sound;
+
 	uint16_t gib_models[NUM_GIB_MODELS];
+	uint16_t gib_hit_sounds[NUM_GIB_MODELS];
 
 	uint16_t grenade_model;
 	uint16_t grenade_hit_sound;

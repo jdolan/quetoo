@@ -203,6 +203,27 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker, uint32_t mod)
 }
 
 /*
+ * @brief Play a sloppy sound when impacting the world.
+ */
+static void G_ClientGiblet_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
+		c_bsp_surface_t *surf) {
+
+	if (surf->flags & SURF_SKY) {
+		G_FreeEdict(self);
+	} else {
+		const vec_t speed = VectorLength(self->locals.velocity);
+
+		if (speed > 40.0 && G_IsStructural(other, surf)) {
+
+			if (g_level.time - self->locals.touch_time > 200) {
+				gi.Sound(self, self->locals.noise_index, ATTEN_IDLE);
+				self->locals.touch_time = g_level.time;
+			}
+		}
+	}
+}
+
+/*
  * @brief Set EF_CORPSE once the player has respawned. Sink into the floor
  * after a few seconds, providing a window of time for us to be made into
  * giblets or knocked around. This is called by corpses and giblets alike.
@@ -220,7 +241,7 @@ static void G_ClientCorpse_Think(g_edict_t *self) {
 		}
 
 		// and don't re-animate when coming into view for new clients
-		if (age > 2000) {
+		if (age > 1800) {
 			switch (self->s.animation1) {
 				case ANIM_BOTH_DEATH1:
 				case ANIM_BOTH_DEATH2:
@@ -268,7 +289,7 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute_
 	const vec3_t mins[] = { { -3.0, -3.0, -3.0 }, { -6.0, -6.0, -6.0 }, { -9.0, -9.0, -9.0 } };
 	const vec3_t maxs[] = { { 3.0, 3.0, 3.0 }, { 6.0, 6.0, 6.0 }, { 9.0, 9.0, 9.0 } };
 
-	uint16_t i, count = 3 + Random() % 5;
+	uint16_t i, count = 3 + Random() % 3;
 
 	for (i = 0; i < count; i++) {
 		g_edict_t *ent = G_Spawn(__func__);
@@ -282,22 +303,24 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute_
 		ent->solid = SOLID_BOX;
 		ent->sv_flags = SVF_DEAD_MONSTER;
 
-		ent->s.model1 = g_level.media.gib_models[Random() % NUM_GIB_MODELS];
+		ent->s.model1 = g_level.media.gib_models[i % NUM_GIB_MODELS];
+		ent->locals.noise_index = g_level.media.gib_hit_sounds[i % NUM_GIB_MODELS];
 
 		VectorCopy(self->locals.velocity, ent->locals.velocity);
 
-		const int16_t h = -self->locals.health;
+		const int16_t h = Clamp(-5.0 * self->locals.health, 100, 500);
 
-		ent->locals.velocity[0] += 100.0 + (h * Randomc());
-		ent->locals.velocity[1] += 100.0 + (h * Randomc());
+		ent->locals.velocity[0] += h * Randomc();
+		ent->locals.velocity[1] += h * Randomc();
 		ent->locals.velocity[2] += 100.0 + (h * Randomf());
 
 		ent->locals.dead = true;
-		ent->locals.mass = 40.0;
+		ent->locals.mass = (i % NUM_GIB_MODELS) * 20.0;
 		ent->locals.move_type = MOVE_TYPE_TOSS;
 		ent->locals.next_think = g_level.time + gi.frame_millis;
 		ent->locals.take_damage = true;
 		ent->locals.Think = G_ClientCorpse_Think;
+		ent->locals.Touch = G_ClientGiblet_Touch;
 
 		gi.LinkEdict(ent);
 	}
@@ -346,7 +369,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 	VectorCopy(self->locals.velocity, ent->locals.velocity);
 
 	ent->locals.dead = true;
-	ent->locals.mass = 100.0;
+	ent->locals.mass = self->locals.mass;
 	ent->locals.move_type = MOVE_TYPE_TOSS;
 	ent->locals.take_damage = true;
 	ent->locals.health = CLIENT_CORPSE_HEALTH;

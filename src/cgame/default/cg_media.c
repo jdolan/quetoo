@@ -45,6 +45,7 @@ s_sample_t *cg_sample_footsteps[4];
 s_sample_t *cg_sample_rain;
 s_sample_t *cg_sample_snow;
 s_sample_t *cg_sample_hit;
+s_sample_t *cg_sample_gib;
 
 cg_particles_t *cg_particles_normal;
 cg_particles_t *cg_particles_explosion;
@@ -96,6 +97,7 @@ void Cg_UpdateMedia(void) {
 	cg_sample_rain = cgi.LoadSample("world/rain");
 	cg_sample_snow = cgi.LoadSample("world/snow");
 	cg_sample_hit = cgi.LoadSample("misc/hit");
+	cg_sample_gib = cgi.LoadSample("gibs/common/gib");
 
 	for (i = 0; i < 4; i++) {
 		g_snprintf(name, sizeof(name), "weapons/machinegun/fire_%i", i + 1);
