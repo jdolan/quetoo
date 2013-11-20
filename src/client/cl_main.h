@@ -53,14 +53,14 @@ void Cl_Shutdown(void);
 
 #ifdef __CL_LOCAL_H__
 
-extern cvar_t *cl_show_net_messages;
-extern cvar_t *cl_show_renderer_stats;
-extern cvar_t *cl_show_sound_stats;
-
 extern cvar_t *qport;
 
 extern cvar_t *rcon_password;
 extern cvar_t *rcon_address;
+
+extern cvar_t *cl_show_net_messages;
+extern cvar_t *cl_show_renderer_stats;
+extern cvar_t *cl_show_sound_stats;
 
 extern cl_client_t cl;
 extern cl_static_t cls;
