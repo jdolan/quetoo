@@ -441,18 +441,30 @@ static _Bool MakeBrushWindings(map_brush_t * ob) {
  */
 static void SetImpliedFlags(side_t *side, const char *tex) {
 
-	if (!g_strcmp0(tex, "common/caulk"))
+	if (!g_strcmp0(tex, "common/areaportal")) {
+		side->contents |= CONTENTS_AREA_PORTAL;
 		side->surf |= SURF_NO_DRAW;
-	else if (!g_strcmp0(tex, "common/trigger"))
+	} else if (!g_strcmp0(tex, "common/monsterclip") || !g_strcmp0(text, "common/botclip")) {
+		side->contents |= CONTENTS_MONSTER_CLIP;
+	} else if (!g_strcmp0(tex, "common/caulk")) {
 		side->surf |= SURF_NO_DRAW;
-	else if (!g_strcmp0(tex, "common/sky"))
-		side->surf |= SURF_SKY;
-	else if (!g_strcmp0(tex, "common/hint"))
-		side->surf |= SURF_HINT;
-	else if (!g_strcmp0(tex, "common/clip"))
+	} else if (!g_strcmp0(tex, "common/clip")) {
 		side->contents |= CONTENTS_PLAYER_CLIP;
-	else if (!g_strcmp0(tex, "common/ladder"))
-		side->contents |= CONTENTS_LADDER;
+	} else if (!g_strcmp0(tex, "common/hint")) {
+		side->surf |= SURF_HINT;
+	} else if (!g_strcmp0(tex, "common/ladder")) {
+		side->contents |= CONTENTS_LADDER | CONTENTS_DETAIL | CONTENTS_WINDOW;
+		side->surf |= SURF_NO_DRAW;
+	} else if (!g_strcmp0(tex, "common/origin")) {
+		side->contents |= CONTENTS_ORIGIN;
+	} else if (!g_strcmp0(tex, "common/skip")) {
+		side->surf |= SURF_SKIP;
+	} else if (!g_strcmp0(tex, "common/sky")) {
+		side->surf |= SURF_SKY;
+	} else if (!g_strcmp0(tex, "common/trigger")) {
+		side->contents |= CONTENTS_DETAIL;
+		side->surf |= SURF_NO_DRAW;
+	}
 
 	if (strstr(tex, "lava")) {
 		side->surf |= SURF_WARP;
