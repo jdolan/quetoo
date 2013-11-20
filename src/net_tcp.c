@@ -83,13 +83,16 @@ _Bool Net_SendStream(int32_t sock, const void *data, size_t len) {
 	// and copy the payload
 	Net_WriteData(&buf, data, len);
 
-	ssize_t sent;
-	while ((sent = send(sock, (void *) buf.data, buf.size, 0)) == -1) {
-
-		if (Net_GetError() != EWOULDBLOCK) {
-			Com_Warn("%s\n", Net_GetErrorString());
-			return false;
+	ssize_t sent = 0;
+	while ((size_t) sent < buf.size) {
+		const ssize_t s = send(sock, (void *) buf.data + sent, buf.size - sent, 0);
+		if (s == -1) {
+			if (Net_GetError() != EWOULDBLOCK) {
+				Com_Warn("%s\n", Net_GetErrorString());
+				return false;
+			}
 		}
+		sent += s;
 	}
 
 	return sent == (ssize_t) buf.size;
