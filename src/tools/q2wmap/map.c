@@ -444,7 +444,7 @@ static void SetImpliedFlags(side_t *side, const char *tex) {
 	if (!g_strcmp0(tex, "common/areaportal")) {
 		side->contents |= CONTENTS_AREA_PORTAL;
 		side->surf |= SURF_NO_DRAW;
-	} else if (!g_strcmp0(tex, "common/monsterclip") || !g_strcmp0(text, "common/botclip")) {
+	} else if (!g_strcmp0(tex, "common/monsterclip") || !g_strcmp0(tex, "common/botclip")) {
 		side->contents |= CONTENTS_MONSTER_CLIP;
 	} else if (!g_strcmp0(tex, "common/caulk")) {
 		side->surf |= SURF_NO_DRAW;
