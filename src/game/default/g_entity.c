@@ -379,26 +379,50 @@ static void G_InitEntityTeams(void) {
 static void G_InitMedia(void) {
 	uint16_t i;
 
-	g_level.media.gib_sound = gi.SoundIndex("gibs/common/gib");
+	memset(&g_media, 0, sizeof(g_media));
+
+	g_media.items.jacket_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_jacket"));
+	g_media.items.combat_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_combat"));
+	g_media.items.body_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_body"));
+	g_media.items.quad_damage = ITEM_INDEX(G_FindItemByClassName("item_quad"));
+
+	g_media.models.grenade = gi.ModelIndex("models/objects/grenade/tris");
+	g_media.models.rocket = gi.ModelIndex("models/objects/rocket/tris");
+
+	g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
+	g_media.sounds.grenade_hit = gi.SoundIndex("objects/grenade/hit");
+	g_media.sounds.rocket_fly = gi.SoundIndex("objects/rocket/fly");
+	g_media.sounds.lightning_fly = gi.SoundIndex("weapons/lightning/fly");
+	g_media.sounds.quad_attack = gi.SoundIndex("quad/attack");
+
+	g_media.sounds.teleport = gi.SoundIndex("world/teleport");
+
+	g_media.sounds.water_in = gi.SoundIndex("world/water_in");
+	g_media.sounds.water_out = gi.SoundIndex("world/water_out");
+
+	g_media.sounds.weapon_no_ammo = gi.SoundIndex("weapons/common/no_ammo");
+	g_media.sounds.weapon_switch = gi.SoundIndex("weapons/common/switch");
 
 	for (i = 0; i < NUM_GIB_MODELS; i++) {
-		g_level.media.gib_models[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris.obj", i + 1));
-		g_level.media.gib_hit_sounds[i] = gi.SoundIndex(va("gibs/gib_%i/hit", i + 1));
+		g_media.models.gibs[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris", i + 1));
+		g_media.sounds.gib_hits[i] = gi.SoundIndex(va("gibs/gib_%i/hit", i + 1));
 	}
 
-	g_level.media.grenade_model = gi.ModelIndex("models/objects/grenade/tris.md3");
-	g_level.media.grenade_hit_sound = gi.SoundIndex("objects/grenade/hit");
+	// precache all weapons, even if the map doesn't contain them
+	G_PrecacheItem(G_FindItem("Blaster"));
+	G_PrecacheItem(G_FindItem("Shotgun"));
+	G_PrecacheItem(G_FindItem("Super Shotgun"));
+	G_PrecacheItem(G_FindItem("Machinegun"));
+	G_PrecacheItem(G_FindItem("Grenade Launcher"));
+	G_PrecacheItem(G_FindItem("Rocket Launcher"));
+	G_PrecacheItem(G_FindItem("Hyperblaster"));
+	G_PrecacheItem(G_FindItem("Lightning"));
+	G_PrecacheItem(G_FindItem("Railgun"));
+	G_PrecacheItem(G_FindItem("BFG10K"));
 
-	g_level.media.rocket_model = gi.ModelIndex("models/objects/rocket/tris.md3");
-	g_level.media.rocket_fly_sound = gi.SoundIndex("objects/rocket/fly");
-
-	g_level.media.lightning_fly_sound = gi.SoundIndex("weapons/lightning/fly");
-
-	g_level.media.jacket_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_jacket"));
-	g_level.media.combat_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_combat"));
-	g_level.media.body_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_body"));
-
-	g_level.media.quad_damage = ITEM_INDEX(G_FindItemByClassName("item_quad"));
+	// precache these so that the HUD icons are available
+	G_PrecacheItem(G_FindItem("Medium Health"));
+	G_PrecacheItem(G_FindItem("Body Armor"));
 }
 
 /*
@@ -721,28 +745,6 @@ static void G_worldspawn(g_edict_t *ent) {
 	}
 
 	G_WorldspawnMusic();
-
-	G_PrecacheItem(G_FindItem("Blaster"));
-	G_PrecacheItem(G_FindItem("Shotgun"));
-	G_PrecacheItem(G_FindItem("Shuper Shotgun"));
-	G_PrecacheItem(G_FindItem("Machinegun"));
-	G_PrecacheItem(G_FindItem("Grenade Launcher"));
-	G_PrecacheItem(G_FindItem("Rocket Launcher"));
-	G_PrecacheItem(G_FindItem("Hyperblaster"));
-	G_PrecacheItem(G_FindItem("Lightning"));
-	G_PrecacheItem(G_FindItem("Railgun"));
-	G_PrecacheItem(G_FindItem("BFG10K"));
-
-	// always precache these so that the HUD icons are available
-	G_PrecacheItem(G_FindItem("Medium Health"));
-	G_PrecacheItem(G_FindItem("Body Armor"));
-
-	gi.SoundIndex("world/water_in");
-	gi.SoundIndex("world/water_out");
-
-	gi.SoundIndex("weapons/common/no_ammo");
-	gi.SoundIndex("weapons/common/pickup");
-	gi.SoundIndex("weapons/common/switch");
 
 	gi.ConfigString(CS_VOTE, "");
 	gi.ConfigString(CS_TEAM_GOOD, g_team_good.name);

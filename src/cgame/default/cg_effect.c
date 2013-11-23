@@ -111,7 +111,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 		VectorAdd(org, s->normal, org);
 
 		vec3_t end;
-		VectorSet(end, org[0], org[1], org[2] - 8192.0);
+		VectorSet(end, org[0], org[1], org[2] - MAX_WORLD_DIST);
 
 		c_trace_t trace = cgi.Trace(org, end, NULL, NULL, 0, MASK_SHOT);
 		e->end_z[i] = trace.end[2];

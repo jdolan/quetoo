@@ -78,11 +78,11 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 
 	// if just entered a water volume, play a sound
 	if (!old_water_level && water_level)
-		gi.Sound(ent, gi.SoundIndex("world/water_in"), ATTEN_NORM);
+		gi.Sound(ent, g_media.sounds.water_in, ATTEN_NORM);
 
 	// completely exited the water
 	if (old_water_level && !water_level)
-		gi.Sound(ent, gi.SoundIndex("world/water_out"), ATTEN_NORM);
+		gi.Sound(ent, g_media.sounds.water_out, ATTEN_NORM);
 
 	// head just coming out of water, play a gasp if we were down for a while
 	if (old_water_level == 3 && water_level != 3 && (client->locals.drown_time - g_level.time)
@@ -120,7 +120,7 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 
 			// and apply the damage
 			G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, ent->locals.damage,
-					0, DAMAGE_NO_ARMOR, MOD_WATER);
+					0, DMG_NO_ARMOR, MOD_WATER);
 		}
 	}
 
@@ -132,12 +132,12 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 
 			if (ent->locals.water_type & CONTENTS_LAVA) {
 				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, 2 * water_level,
-						0, DAMAGE_NO_ARMOR, MOD_LAVA);
+						0, DMG_NO_ARMOR, MOD_LAVA);
 			}
 
 			if (ent->locals.water_type & CONTENTS_SLIME) {
 				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, 1 * water_level,
-						0, DAMAGE_NO_ARMOR, MOD_SLIME);
+						0, DMG_NO_ARMOR, MOD_SLIME);
 			}
 		}
 	}

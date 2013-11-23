@@ -30,6 +30,16 @@
 extern vec3_t vec3_origin;
 
 /*
+ * @brief Up (0, 0, 1).
+ */
+extern vec3_t vec3_up;
+
+/*
+ * @brief Down (0, 0, -1).
+ */
+extern vec3_t vec3_down;
+
+/*
  * @brief Math library.
  */
 #define Clamp(x, y, z)			(x < y ? y : x > z ? z : x)
@@ -71,8 +81,8 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
 
 _Bool PlaneCompare(const c_bsp_plane_t *p1, const c_bsp_plane_t *p2);
 byte SignBitsForPlane(const c_bsp_plane_t *plane);
-int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const c_bsp_plane_t *plane);
-
+int32_t BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const c_bsp_plane_t *plane);
+_Bool BoxIntersect(const vec3_t mins0, const vec3_t maxs0, const vec3_t mins1, const vec3_t maxs1);
 void ProjectPointOnPlane(const vec3_t p, const vec3_t normal, vec3_t out);
 void PerpendicularVector(const vec3_t in, vec3_t out);
 void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent,
@@ -91,10 +101,11 @@ extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
  */
 void PackVector(const vec3_t in, int16_t *out);
 void UnpackVector(const int16_t *in, vec3_t out);
-#define PackAngle(x) ((uint16_t)((x) * 65536 / 360.0) & 65535)
+#define PackAngle(x) ((uint16_t)((x) * UINT16_MAX / 360.0) & UINT16_MAX)
 void PackAngles(const vec3_t in, int16_t *out);
-#define UnpackAngle(x) ((x) * (360.0 / 65536.0))
+#define UnpackAngle(x) ((x) * 360.0 / UINT16_MAX)
 void UnpackAngles(const int16_t *in, vec3_t out);
+vec_t ClampAngle(vec_t angle);
 void ClampAngles(vec3_t angles);
 void PackBounds(const vec3_t mins, const vec3_t maxs, uint16_t *out);
 void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs);

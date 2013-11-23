@@ -26,8 +26,6 @@ const vec3_t ITEM_MAXS = { 16.0, 16.0, 16.0 };
 
 #define ITEM_SCALE 1.0
 
-static void G_ItemDropToFloor(g_edict_t *ent);
-
 /*
  * @brief
  */
@@ -90,16 +88,16 @@ const g_item_t *G_ClientArmor(const g_edict_t *ent) {
 	if (ent->client) {
 		const g_client_persistent_t *persistent = &ent->client->locals.persistent;
 
-		if (persistent->inventory[g_level.media.body_armor]) {
-			return &g_items[g_level.media.body_armor];
+		if (persistent->inventory[g_media.items.body_armor]) {
+			return &g_items[g_media.items.body_armor];
 		}
 
-		if (persistent->inventory[g_level.media.combat_armor]) {
-			return &g_items[g_level.media.combat_armor];
+		if (persistent->inventory[g_media.items.combat_armor]) {
+			return &g_items[g_media.items.combat_armor];
 		}
 
-		if (persistent->inventory[g_level.media.jacket_armor]) {
-			return &g_items[g_level.media.jacket_armor];
+		if (persistent->inventory[g_media.items.jacket_armor]) {
+			return &g_items[g_media.items.jacket_armor];
 		}
 	}
 
@@ -167,10 +165,10 @@ static _Bool G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
  */
 static _Bool G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 
-	if (other->client->locals.persistent.inventory[g_level.media.quad_damage])
+	if (other->client->locals.persistent.inventory[g_media.items.quad_damage])
 		return false; // already have it
 
-	other->client->locals.persistent.inventory[g_level.media.quad_damage] = 1;
+	other->client->locals.persistent.inventory[g_media.items.quad_damage] = 1;
 
 	if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
 		other->client->locals.quad_damage_time = ent->locals.next_think;
@@ -189,7 +187,7 @@ static _Bool G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 g_edict_t *G_TossQuadDamage(g_edict_t *ent) {
 	g_edict_t *quad;
 
-	if (!ent->client->locals.persistent.inventory[g_level.media.quad_damage])
+	if (!ent->client->locals.persistent.inventory[g_media.items.quad_damage])
 		return NULL;
 
 	quad = G_DropItem(ent, G_FindItemByClassName("item_quad"));
@@ -198,7 +196,7 @@ g_edict_t *G_TossQuadDamage(g_edict_t *ent) {
 		quad->locals.timestamp = ent->client->locals.quad_damage_time;
 
 	ent->client->locals.quad_damage_time = 0.0;
-	ent->client->locals.persistent.inventory[g_level.media.quad_damage] = 0;
+	ent->client->locals.persistent.inventory[g_media.items.quad_damage] = 0;
 
 	return quad;
 }
@@ -305,9 +303,10 @@ static _Bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
 static _Bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 	int32_t h, max;
 
-	const _Bool always_add = ent->locals.item->tag == HEALTH_SMALL;
-	const _Bool always_pickup = ent->locals.item->tag == HEALTH_SMALL || ent->locals.item->tag
-			== HEALTH_MEGA;
+	const uint16_t tag = ent->locals.item->tag;
+
+	const _Bool always_add = tag == HEALTH_SMALL;
+	const _Bool always_pickup = tag == HEALTH_SMALL || tag == HEALTH_MEGA;
 
 	if (other->locals.health < other->locals.max_health || always_add || always_pickup) {
 
@@ -315,21 +314,19 @@ static _Bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 		max = other->locals.max_health;
 
 		if (always_pickup) { // resolve max
-			if (other->locals.health > 200)
+			if (other->locals.health > other->locals.max_health)
 				max = other->locals.health;
-			else
-				max = 200;
 		} else if (always_add)
-			max = 9999;
+			max = INT16_MAX;
 
 		if (h > max) // and enforce it
 			h = max;
 
 		other->locals.health = other->client->locals.persistent.health = h;
 
-		if (ent->locals.count >= 75) // respawn the item
+		if (tag == HEALTH_MEGA) // respawn the item
 			G_SetItemRespawn(ent, 90000);
-		else if (ent->locals.count >= 50)
+		else if (tag == HEALTH_LARGE)
 			G_SetItemRespawn(ent, 60000);
 		else
 			G_SetItemRespawn(ent, 20000);
@@ -354,7 +351,7 @@ static _Bool G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
 		if (old_armor) {
 			persistent->inventory[ITEM_INDEX(old_armor)] += armor->quantity;
 		} else {
-			persistent->inventory[g_level.media.jacket_armor] = armor->quantity;
+			persistent->inventory[g_media.items.jacket_armor] = armor->quantity;
 		}
 		taken = true;
 	} else {
@@ -607,15 +604,6 @@ static void G_DropItem_Think(g_edict_t *ent) {
 		return;
 	}
 
-	// see if we've landed on a trigger_hurt
-	G_TouchTriggers(ent);
-
-	if (!ent->in_use) // we have
-		return;
-
-	// restore full entity effects (e.g. EF_BOB)
-	ent->s.effects = ent->locals.item->effects;
-
 	// allow anyone to pick it up
 	ent->locals.Touch = G_TouchItem;
 
@@ -636,9 +624,9 @@ static void G_DropItem_Think(g_edict_t *ent) {
 	contents = gi.PointContents(ent->s.origin);
 
 	if (contents & CONTENTS_LAVA) // expire more quickly in lava
-		i *= 300;
+		i /= 5;
 	if (contents & CONTENTS_SLIME) // and slime
-		i *= 500;
+		i /= 2;
 
 	ent->locals.next_think = g_level.time + i;
 }
@@ -690,7 +678,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 	it->locals.spawn_flags = SF_ITEM_DROPPED;
 	it->locals.move_type = MOVE_TYPE_TOSS;
 	it->locals.Touch = G_DropItemUntouchable;
-	it->s.effects = (item->effects & ~EF_BOB);
+	it->s.effects = item->effects;
 
 	gi.SetModel(it, item->model);
 
@@ -740,26 +728,17 @@ static void G_ItemDropToFloor(g_edict_t *ent) {
 	VectorClear(ent->locals.velocity);
 	VectorCopy(ent->s.origin, dest);
 
-	if (!(ent->locals.spawn_flags & SF_ITEM_HOVER)) { // drop to the floor
+	if (!(ent->locals.spawn_flags & SF_ITEM_HOVER)) {
 		ent->locals.move_type = MOVE_TYPE_TOSS;
 
-		// first make an effort to come up out of the floor (broken maps)
+		// make an effort to come up out of the floor (broken maps)
 		tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_SOLID);
 		if (tr.start_solid) {
 			gi.Debug("%s start_solid, correcting..\n", etos(ent));
 			ent->s.origin[2] += 8.0;
 		}
-
-		dest[2] -= 8192.0;
-
-		// then settle down to the floor
-		tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
-
-		VectorCopy(tr.end, ent->s.origin);
-		ent->locals.ground_entity = tr.ent;
 	} else {
 		ent->locals.move_type = MOVE_TYPE_FLY;
-		ent->locals.ground_entity = NULL;
 	}
 
 	tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);

@@ -78,7 +78,7 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
 	UnpackVector(ent->client->ps.pm_state.view_offset, view);
 	VectorAdd(ent->s.origin, view, view);
 
-	VectorMA(view, 8192.0, forward, end);
+	VectorMA(view, MAX_WORLD_DIST, forward, end);
 	tr = gi.Trace(view, end, NULL, NULL, ent, MASK_SHOT);
 
 	VectorSubtract(tr.end, org, forward);
@@ -309,6 +309,8 @@ char *G_CopyString(char *in) {
  */
 void G_InitEdict(g_edict_t *e, const char *class_name) {
 
+	memset(e, 0, sizeof(e));
+
 	e->class_name = class_name;
 	e->in_use = true;
 
@@ -346,13 +348,14 @@ g_edict_t *G_Spawn(const char *class_name) {
  * @brief Marks the edict as free.
  */
 void G_FreeEdict(g_edict_t *ed) {
-	gi.UnlinkEdict(ed); // unlink from world
+
+	gi.UnlinkEdict(ed);
 
 	if ((ed - g_game.edicts) <= sv_max_clients->integer)
 		return;
 
 	memset(ed, 0, sizeof(*ed));
-	ed->class_name = "freed";
+	ed->class_name = "free";
 }
 
 /*
@@ -407,6 +410,26 @@ void G_TouchSolids(g_edict_t *ent) {
 }
 
 /*
+ * @brief Handle water interaction for solids.
+ */
+void G_TouchWater(g_edict_t *ent) {
+
+	const uint8_t old_water_level = ent->locals.water_level;
+
+	c_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_WATER);
+
+	ent->locals.water_type = tr.contents;
+	ent->locals.water_level = ent->locals.water_type ? 1 : 0;
+
+	if (!old_water_level && ent->locals.water_level) {
+		gi.PositionedSound(ent->s.origin, ent, g_media.sounds.water_in, ATTEN_NORM);
+		VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
+	} else if (old_water_level && !ent->locals.water_level) {
+		gi.PositionedSound(ent->s.origin, ent, g_media.sounds.water_out, ATTEN_NORM);
+	}
+}
+
+/*
  * @brief Kills all entities that would touch the proposed new positioning
  * of the entity. The entity should be unlinked before calling this!
  */
@@ -422,8 +445,8 @@ _Bool G_KillBox(g_edict_t *ent) {
 			break;
 
 		// nail it
-		G_Damage(tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin, 999, 0,
-				DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
+		G_Damage(tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin, 999, 0, DMG_NO_GOD,
+				MOD_TELEFRAG);
 
 		// if we didn't kill it, fail
 		if (tr.ent->solid)
@@ -431,6 +454,35 @@ _Bool G_KillBox(g_edict_t *ent) {
 	}
 
 	return true; // all clear
+}
+
+/*
+ * @brief Kills the specified entity via explosion, potentially taking nearby
+ * entities with it.
+ */
+void G_Explode(g_edict_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod) {
+
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
+	gi.WriteByte(TE_EXPLOSION);
+	gi.WritePosition(ent->s.origin);
+	gi.Multicast(ent->s.origin, MULTICAST_PHS);
+
+	G_RadiusDamage(ent, ent, NULL, damage, knockback, radius, mod ? mod : MOD_EXPLOSIVE);
+
+	G_FreeEdict(ent);
+}
+
+/*
+ * @brief Kills the specified entity via gib effect.
+ */
+void G_Gib(g_edict_t *ent) {
+
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
+	gi.WriteByte(TE_GIB);
+	gi.WritePosition(ent->s.origin);
+	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+
+	G_FreeEdict(ent);
 }
 
 /*
@@ -682,7 +734,13 @@ _Bool G_IsStationary(const g_edict_t *ent) {
 	if (!ent || ent->locals.move_type)
 		return false;
 
-	return VectorCompare(vec3_origin, ent->locals.velocity);
+	if (!VectorCompare(vec3_origin, ent->locals.velocity))
+		return false;
+
+	if (!VectorCompare(vec3_origin, ent->locals.avelocity))
+		return false;
+
+	return true;
 }
 
 /*

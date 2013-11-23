@@ -383,9 +383,7 @@ static void Pm_Friction(void) {
 				friction = PM_FRICT_AIR;
 			}
 
-			if (pm->water_level) {
-				friction += PM_FRICT_WATER * pm->water_level;
-			}
+			friction += PM_FRICT_WATER * pm->water_level;
 		}
 	}
 
@@ -1084,7 +1082,7 @@ static void Pm_WalkMove(void) {
 }
 
 /*
- * @brief
+ * @return True if the player is in a valid position, false otherwise.
  */
 static _Bool Pm_GoodPosition(void) {
 	vec3_t pos;
@@ -1158,6 +1156,12 @@ static void Pm_ClampAngles(void) {
 
 	// clamp angles to prevent the player from looking up or down more than 90'
 	ClampAngles(pm->angles);
+
+	if (pm->angles[PITCH] > 90.0 && pm->angles[PITCH] < 270.0) {
+		pm->angles[PITCH] = 90.0;
+	} else if (pm->angles[PITCH] <= 360.0 && pm->angles[PITCH] >= 270.0) {
+		pm->angles[PITCH] -= 360.0;
+	}
 
 	// update the local angles responsible for velocity calculations
 	VectorCopy(pm->angles, angles);

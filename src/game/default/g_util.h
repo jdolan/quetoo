@@ -27,6 +27,8 @@
 #include "g_types.h"
 
 _Bool G_KillBox(g_edict_t *ent);
+void G_Explode(g_edict_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod);
+void G_Gib(g_edict_t *ent);
 void G_ProjectSpawn(g_edict_t *ent);
 void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org);
 g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match);
@@ -54,7 +56,7 @@ void G_InitEdict(g_edict_t *e, const char *class_name);
 void G_FreeEdict(g_edict_t *e);
 void G_TouchTriggers(g_edict_t *ent);
 void G_TouchSolids(g_edict_t *ent);
-c_trace_t G_PushEntity(g_edict_t *ent, vec3_t push);
+void G_TouchWater(g_edict_t *ent);
 char *G_CopyString(char *in);
 
 #endif /* __GAME_LOCAL_H__ */

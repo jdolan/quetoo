@@ -249,7 +249,6 @@ static void G_MoveInfo_Init(g_edict_t *ent, vec3_t dest, void(*Done)(g_edict_t*)
 static void G_MoveInfo_Angular_Done(g_edict_t *ent) {
 
 	VectorClear(ent->locals.avelocity);
-
 	ent->locals.move_info.Done(ent);
 }
 
@@ -328,9 +327,34 @@ static void G_MoveInfo_Angular_Init(g_edict_t *ent, void(*Done)(g_edict_t *)) {
 	}
 }
 
+/*
+ * @brief When a MOVE_TYPE_PUSH or MOVE_TYPE_STOP is blocked, deal with the
+ * obstacle by damaging it.
+ */
+static void G_MoveType_Push_Blocked(g_edict_t *self, g_edict_t *other) {
+
+	const vec_t *dir = self->locals.velocity;
+
+	if (G_IsMeat(other)) {
+		const int16_t dmg = self->locals.damage * 10.0 / gi.frame_rate;
+		G_Damage(other, self, NULL, dir, other->s.origin, vec3_up, dmg, 0, DMG_NO_ARMOR, MOD_CRUSH);
+
+		if (other->in_use && other->locals.dead) {
+			if (!other->client) {
+				G_Gib(other);
+			}
+		}
+	} else {
+		G_Damage(other, self, self, dir, other->s.origin, vec3_up, 999, 0, 0, MOD_CRUSH);
+		if (other->in_use) {
+			G_Explode(other, 60, 60, 80.0, 0);
+		}
+	}
+}
+
 #define PLAT_LOW_TRIGGER	1
 
-static void G_func_plat_GoingDown(g_edict_t *ent);
+static void G_func_plat_GoingDown(g_edict_t *self);
 
 /*
  * @brief
@@ -370,18 +394,18 @@ static void G_func_plat_Bottom(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_func_plat_GoingDown(g_edict_t *ent) {
+static void G_func_plat_GoingDown(g_edict_t *self) {
 
-	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
+	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
 
-		if (ent->locals.move_info.sound_start)
-			gi.Sound(ent, ent->locals.move_info.sound_start, ATTEN_IDLE);
+		if (self->locals.move_info.sound_start)
+			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE);
 
-		ent->s.sound = ent->locals.move_info.sound_middle;
+		self->s.sound = self->locals.move_info.sound_middle;
 	}
 
-	ent->locals.move_info.state = MOVE_STATE_GOING_DOWN;
-	G_MoveInfo_Init(ent, ent->locals.move_info.end_origin, G_func_plat_Bottom);
+	self->locals.move_info.state = MOVE_STATE_GOING_DOWN;
+	G_MoveInfo_Init(self, self->locals.move_info.end_origin, G_func_plat_Bottom);
 }
 
 /*
@@ -406,11 +430,7 @@ static void G_func_plat_GoingUp(g_edict_t *ent) {
  */
 static void G_func_plat_Blocked(g_edict_t *self, g_edict_t *other) {
 
-	if (!other->client)
-		return;
-
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1,
-			0, MOD_CRUSH);
+	G_MoveType_Push_Blocked(self, other);
 
 	if (self->locals.move_info.state == MOVE_STATE_GOING_UP)
 		G_func_plat_GoingDown(self);
@@ -574,13 +594,12 @@ void G_func_plat(g_edict_t *ent) {
 	ent->locals.move_info.sound_end = gi.SoundIndex("world/plat_end");
 }
 
-/*
- * @brief
- */
-static void G_func_rotating_Blocked(g_edict_t *self, g_edict_t *other) {
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1,
-			0, MOD_CRUSH);
-}
+#define ROTATE_START_ON		0x1
+#define ROTATE_REVERSE		0x2
+#define ROTATE_AXIS_X		0x4
+#define ROTATE_AXIS_Y		0x8
+#define ROTATE_TOUCH_PAIN	0x10
+#define ROTATE_TOUCH_STOP	0x20
 
 /*
  * @brief
@@ -588,9 +607,11 @@ static void G_func_rotating_Blocked(g_edict_t *self, g_edict_t *other) {
 static void G_func_rotating_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
 
-	if (!VectorCompare(self->locals.avelocity, vec3_origin)) {
-		G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage,
-				1, 0, MOD_CRUSH);
+	if (self->locals.damage) {
+		if (!VectorCompare(self->locals.avelocity, vec3_origin)) {
+			G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin,
+					self->locals.damage, 1, 0, MOD_CRUSH);
+		}
 	}
 }
 
@@ -606,7 +627,7 @@ static void G_func_rotating_Use(g_edict_t *self, g_edict_t *other __attribute__(
 	} else {
 		self->s.sound = self->locals.move_info.sound_middle;
 		VectorScale(self->locals.move_dir, self->locals.speed, self->locals.avelocity);
-		if (self->locals.spawn_flags & 16)
+		if (self->locals.spawn_flags & ROTATE_TOUCH_PAIN)
 			self->locals.Touch = G_func_rotating_Touch;
 	}
 }
@@ -631,36 +652,35 @@ void G_func_rotating(g_edict_t *ent) {
 
 	ent->solid = SOLID_BSP;
 
-	if (ent->locals.spawn_flags & 32)
+	if (ent->locals.spawn_flags & ROTATE_TOUCH_STOP)
 		ent->locals.move_type = MOVE_TYPE_STOP;
 	else
 		ent->locals.move_type = MOVE_TYPE_PUSH;
 
 	// set the axis of rotation
 	VectorClear(ent->locals.move_dir);
-	if (ent->locals.spawn_flags & 4)
+	if (ent->locals.spawn_flags & ROTATE_AXIS_X)
 		ent->locals.move_dir[2] = 1.0;
-	else if (ent->locals.spawn_flags & 8)
+	else if (ent->locals.spawn_flags & ROTATE_AXIS_Y)
 		ent->locals.move_dir[0] = 1.0;
 	else
 		// Z_AXIS
 		ent->locals.move_dir[1] = 1.0;
 
 	// check for reverse rotation
-	if (ent->locals.spawn_flags & 2)
+	if (ent->locals.spawn_flags & ROTATE_REVERSE)
 		VectorNegate(ent->locals.move_dir, ent->locals.move_dir);
 
 	if (!ent->locals.speed)
-		ent->locals.speed = 100;
+		ent->locals.speed = 100.0;
 
 	if (!ent->locals.damage)
 		ent->locals.damage = 2;
 
 	ent->locals.Use = G_func_rotating_Use;
-	if (ent->locals.damage)
-		ent->locals.Blocked = G_func_rotating_Blocked;
+	ent->locals.Blocked = G_MoveType_Push_Blocked;
 
-	if (ent->locals.spawn_flags & 1)
+	if (ent->locals.spawn_flags & ROTATE_START_ON)
 		ent->locals.Use(ent, NULL, NULL);
 
 	gi.SetModel(ent, ent->model);
@@ -1069,17 +1089,13 @@ static void G_func_door_CreateTrigger(g_edict_t *ent) {
  * @brief
  */
 static void G_func_door_Blocked(g_edict_t *self, g_edict_t *other) {
-	g_edict_t *ent;
 
-	if (!other->client)
-		return;
-
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1,
-			0, MOD_CRUSH);
+	G_MoveType_Push_Blocked(self, other);
 
 	// if a door has a negative wait, it would never come back if blocked,
 	// so let it just squash the object to death real fast
 	if (self->locals.move_info.wait >= 0) {
+		g_edict_t *ent;
 		if (self->locals.move_info.state == MOVE_STATE_GOING_DOWN) {
 			for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain)
 				G_func_door_GoingUp(ent, ent->locals.activator);
@@ -1109,13 +1125,14 @@ static void G_func_door_Die(g_edict_t *self, g_edict_t *attacker, uint32_t mod _
  */
 static void G_func_door_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf __attribute__((unused))) {
+
 	if (!other->client)
 		return;
 
 	if (g_level.time < self->locals.touch_time)
 		return;
 
-	self->locals.touch_time = g_level.time + 5000;
+	self->locals.touch_time = g_level.time + 3000;
 
 	if (self->locals.message && strlen(self->locals.message)) {
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
@@ -1200,7 +1217,6 @@ void G_func_door(g_edict_t *ent) {
 		ent->locals.Die = G_func_door_Die;
 		ent->locals.max_health = ent->locals.health;
 	} else if (ent->locals.target_name && ent->locals.message) {
-		gi.SoundIndex("misc/chat");
 		ent->locals.Touch = G_func_door_Touch;
 	}
 
@@ -1304,7 +1320,7 @@ void G_func_door_rotating(g_edict_t *ent) {
 	}
 
 	if (ent->locals.target_name && ent->locals.message) {
-		gi.SoundIndex("misc/chat.wav");
+		gi.SoundIndex("misc/chat");
 		ent->locals.Touch = G_func_door_Touch;
 	}
 
@@ -1467,24 +1483,6 @@ void G_func_water(g_edict_t *self) {
 #define TRAIN_BLOCK_STOPS	4
 
 static void G_func_train_Next(g_edict_t *self);
-
-/*
- * @brief
- */
-static void G_func_train_Blocked(g_edict_t *self, g_edict_t *other) {
-	if (!other->client)
-		return;
-
-	if (g_level.time < self->locals.touch_time)
-		return;
-
-	if (!self->locals.damage)
-		return;
-
-	self->locals.touch_time = g_level.time + 500;
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1,
-			0, MOD_CRUSH);
-}
 
 /*
  * @brief
@@ -1661,12 +1659,13 @@ void G_func_train(g_edict_t *self) {
 	self->locals.move_type = MOVE_TYPE_PUSH;
 
 	VectorClear(self->s.angles);
-	self->locals.Blocked = G_func_train_Blocked;
+
 	if (self->locals.spawn_flags & TRAIN_BLOCK_STOPS)
 		self->locals.damage = 0;
 	else {
-		if (!self->locals.damage)
+		if (!self->locals.damage) {
 			self->locals.damage = 100;
+		}
 	}
 	self->solid = SOLID_BSP;
 	gi.SetModel(self, self->model);
@@ -1681,6 +1680,7 @@ void G_func_train(g_edict_t *self) {
 	self->locals.move_info.accel = self->locals.move_info.decel = self->locals.move_info.speed;
 
 	self->locals.Use = G_func_train_Use;
+	self->locals.Blocked = G_MoveType_Push_Blocked;
 
 	gi.LinkEdict(self);
 

@@ -266,7 +266,14 @@ static void G_Drop_f(g_edict_t *ent) {
 		return;
 	}
 
+	if (ent->client->locals.persistent.inventory[index] < it->quantity) {
+		gi.ClientPrint(ent, PRINT_HIGH, "Quantity too low: %s\n", s);
+		return;
+	}
+
+	ent->client->locals.persistent.inventory[index] -= it->quantity;
 	ent->client->locals.last_dropped = it;
+
 	it->Drop(ent, it);
 }
 

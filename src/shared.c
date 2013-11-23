@@ -26,6 +26,10 @@
 
 vec3_t vec3_origin = { 0.0, 0.0, 0.0 };
 
+vec3_t vec3_up = { 0.0, 0.0, 1.0 };
+
+vec3_t vec3_down = { 0.0, 0.0, -1.0 };
+
 /*
  * @brief Returns a pseudo-random positive integer.
  *
@@ -238,11 +242,11 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
 
 	for (i = 0; i < 3; i++) {
 
-		if (_to[i] - _from[i] > 180)
-			_to[i] -= 360;
+		if (_to[i] - _from[i] > 180.0)
+			_to[i] -= 360.0;
 
-		if (_to[i] - _from[i] < -180)
-			_to[i] += 360;
+		if (_to[i] - _from[i] < -180.0)
+			_to[i] += 360.0;
 	}
 
 	VectorLerp(_from, _to, frac, out);
@@ -280,15 +284,15 @@ byte SignBitsForPlane(const c_bsp_plane_t *plane) {
  * @brief Returns the sidedness of the given bounding box relative to the specified
  * plane. If the box straddles the plane, this function returns SIDE_BOTH.
  */
-int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const c_bsp_plane_t *p) {
+int32_t BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const c_bsp_plane_t *p) {
 	vec_t dist1, dist2;
 	int32_t sides;
 
 	// axial planes
 	if (AXIAL(p)) {
-		if (p->dist - SIDE_EPSILON <= emins[p->type])
+		if (p->dist - SIDE_EPSILON <= mins[p->type])
 			return SIDE_FRONT;
-		if (p->dist + SIDE_EPSILON >= emaxs[p->type])
+		if (p->dist + SIDE_EPSILON >= maxs[p->type])
 			return SIDE_BACK;
 		return SIDE_BOTH;
 	}
@@ -296,36 +300,36 @@ int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const c_bsp_plane
 	// general case
 	switch (p->sign_bits) {
 		case 0:
-			dist1 = DotProduct(p->normal, emaxs);
-			dist2 = DotProduct(p->normal, emins);
+			dist1 = DotProduct(p->normal, maxs);
+			dist2 = DotProduct(p->normal, mins);
 			break;
 		case 1:
-			dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
-			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
+			dist1 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * maxs[2];
+			dist2 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * mins[2];
 			break;
 		case 2:
-			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
-			dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
+			dist1 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
+			dist2 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
 			break;
 		case 3:
-			dist1 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
-			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
+			dist1 = p->normal[0] * mins[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
+			dist2 = p->normal[0] * maxs[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
 			break;
 		case 4:
-			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
-			dist2 = p->normal[0] * emins[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
+			dist1 = p->normal[0] * maxs[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
+			dist2 = p->normal[0] * mins[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
 			break;
 		case 5:
-			dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emins[2];
-			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emaxs[2];
+			dist1 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
+			dist2 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
 			break;
 		case 6:
-			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] + p->normal[2] * emins[2];
-			dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
+			dist1 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * mins[2];
+			dist2 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * maxs[2];
 			break;
 		case 7:
-			dist1 = DotProduct(p->normal, emins);
-			dist2 = DotProduct(p->normal, emaxs);
+			dist1 = DotProduct(p->normal, mins);
+			dist2 = DotProduct(p->normal, maxs);
 			break;
 		default:
 			dist1 = dist2 = 0.0; // shut up compiler
@@ -342,11 +346,25 @@ int32_t BoxOnPlaneSide(const vec3_t emins, const vec3_t emaxs, const c_bsp_plane
 }
 
 /*
+ * @return True if the specified boxes intersect (overlap), false otherwise.
+ */
+_Bool BoxIntersect(const vec3_t mins0, const vec3_t maxs0, const vec3_t mins1, const vec3_t maxs1) {
+
+	if (mins0[0] >= maxs1[0] || mins0[1] >= maxs1[1] || mins0[2] >= maxs1[2])
+		return false;
+
+	if (maxs0[0] <= mins1[0] || maxs0[1] <= mins1[1] || maxs0[2] <= mins1[2])
+		return false;
+
+	return true;
+}
+
+/*
  * @brief Initializes the specified bounds so that they may be safely calculated.
  */
 void ClearBounds(vec3_t mins, vec3_t maxs) {
-	mins[0] = mins[1] = mins[2] = 99999.0;
-	maxs[0] = maxs[1] = maxs[2] = -99999.0;
+	mins[0] = mins[1] = mins[2] = MAX_WORLD_COORD;
+	maxs[0] = maxs[1] = maxs[2] = MIN_WORLD_COORD;
 }
 
 /*
@@ -467,30 +485,27 @@ void UnpackAngles(const int16_t *in, vec3_t out) {
 }
 
 /*
- * @brief Circularly clamps the specified angles between 0.0 and 360.0. Pitch is
- * clamped to not exceed 90' up or down.
+ * @brief Circular clamp Euler angles between 0.0 and 360.0.
+ */
+vec_t ClampAngle(vec_t angle) {
+
+	while (angle >= 360.0) {
+		angle -= 360.0;
+	}
+	while (angle < 0.0) {
+		angle += 360.0;
+	}
+
+	return angle;
+}
+
+/*
+ * @brief Circularly clamps the specified angles between 0.0 and 360.0.
  */
 void ClampAngles(vec3_t angles) {
-	int32_t i;
-
-	// first wrap all angles to 0.0 - 360.0
-	for (i = 0; i < 3; i++) {
-
-		while (angles[i] > 360.0) {
-			angles[i] -= 360.0;
-		}
-
-		while (angles[i] < 0.0) {
-			angles[i] += 360.0;
-		}
-	}
-
-	// clamp pitch to prevent the player from looking up or down more than 90'
-	if (angles[PITCH] > 90.0 && angles[PITCH] < 270.0) {
-		angles[PITCH] = 90.0;
-	} else if (angles[PITCH] < 360.0 && angles[PITCH] >= 270.0) {
-		angles[PITCH] -= 360.0;
-	}
+	angles[0] = ClampAngle(angles[0]);
+	angles[1] = ClampAngle(angles[1]);
+	angles[2] = ClampAngle(angles[2]);
 }
 
 /*

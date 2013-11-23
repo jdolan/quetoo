@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-#define SKY_DISTANCE 8192
+#define SKY_DISTANCE (MAX_WORLD_COORD * 2)
 
 // clipping matrix
 static const vec3_t r_sky_clip[6] = {

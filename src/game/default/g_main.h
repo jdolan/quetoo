@@ -62,6 +62,7 @@ typedef struct g_map_list_s {
 extern g_map_list_t g_map_list;
 
 extern g_level_t g_level;
+extern g_media_t g_media;
 
 extern g_import_t gi;
 extern g_export_t ge;

@@ -208,7 +208,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker, uint32_t mod)
 static void G_ClientGiblet_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
 		c_bsp_surface_t *surf) {
 
-	if (surf->flags & SURF_SKY) {
+	if (surf && (surf->flags & SURF_SKY)) {
 		G_FreeEdict(self);
 	} else {
 		const vec_t speed = VectorLength(self->locals.velocity);
@@ -271,6 +271,7 @@ static void G_ClientCorpse_Think(g_edict_t *self) {
 
 	if (age > 10000 && self->locals.ground_entity) {
 		self->locals.take_damage = false;
+		self->locals.move_type = MOVE_TYPE_NONE;
 
 		self->s.origin[2] -= gi.frame_seconds * 8.0;
 		self->s.effects |= EF_DESPAWN;
@@ -303,8 +304,8 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute_
 		ent->solid = SOLID_BOX;
 		ent->sv_flags = SVF_DEAD_MONSTER;
 
-		ent->s.model1 = g_level.media.gib_models[i % NUM_GIB_MODELS];
-		ent->locals.noise_index = g_level.media.gib_hit_sounds[i % NUM_GIB_MODELS];
+		ent->s.model1 = g_media.models.gibs[i % NUM_GIB_MODELS];
+		ent->locals.noise_index = g_media.sounds.gib_hits[i % NUM_GIB_MODELS];
 
 		VectorCopy(self->locals.velocity, ent->locals.velocity);
 
@@ -416,7 +417,8 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *attacker, uint32_t mod) {
 
 	self->client->locals.show_scores = true; // show scores
 
-	self->sv_flags |= SVF_NO_CLIENT;
+	self->sv_flags |= (SVF_NO_CLIENT | SVF_DEAD_MONSTER);
+	self->clip_mask = MASK_DEAD_SOLID;
 
 	self->class_name = "dead";
 
@@ -429,7 +431,6 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *attacker, uint32_t mod) {
 	self->s.model4 = 0;
 	self->s.sound = 0;
 
-	self->solid = SOLID_NOT;
 	self->locals.take_damage = false;
 
 	gi.LinkEdict(self);
@@ -1267,7 +1268,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 			vec3_t dir;
 			VectorSet(dir, 0.0, 0.0, 1.0);
 
-			G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage, 0, DAMAGE_NO_ARMOR,
+			G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage, 0, DMG_NO_ARMOR,
 					MOD_FALLING);
 		}
 
@@ -1301,11 +1302,6 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	ent->locals.water_level = pm.water_level;
 	ent->locals.water_type = pm.water_type;
 
-	// and update the link count
-	if (ent->locals.ground_entity) {
-		ent->locals.ground_entity_link_count = ent->locals.ground_entity->link_count;
-	}
-
 	// and finally link them back in to collide with others below
 	gi.LinkEdict(ent);
 
@@ -1330,12 +1326,12 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
  */
 static void G_ClientInventoryThink(g_edict_t *ent) {
 
-	if (ent->client->locals.persistent.inventory[g_level.media.quad_damage]) { // if they have quad
+	if (ent->client->locals.persistent.inventory[g_media.items.quad_damage]) { // if they have quad
 
 		if (ent->client->locals.quad_damage_time < g_level.time) { // expire it
 
 			ent->client->locals.quad_damage_time = 0.0;
-			ent->client->locals.persistent.inventory[g_level.media.quad_damage] = 0;
+			ent->client->locals.persistent.inventory[g_media.items.quad_damage] = 0;
 
 			gi.Sound(ent, gi.SoundIndex("quad/expire"), ATTEN_NORM);
 

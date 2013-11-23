@@ -24,7 +24,7 @@
 
 uint32_t c_peak_windings;
 
-#define	BOGUS_RANGE	8192.0
+#define	BOGUS_RANGE	MAX_WORLD_DIST
 
 static const dvec_t MIN_EPSILON = (FLT_EPSILON * (dvec_t) 0.5);
 

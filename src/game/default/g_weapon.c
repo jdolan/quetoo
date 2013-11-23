@@ -70,8 +70,8 @@ void G_ChangeWeapon(g_edict_t *ent) {
 
 	// resolve ammo
 	if (ent->client->locals.persistent.weapon && ent->client->locals.persistent.weapon->ammo)
-		ent->client->locals.ammo_index
-				= ITEM_INDEX(G_FindItem(ent->client->locals.persistent.weapon->ammo));
+		ent->client->locals.ammo_index = ITEM_INDEX(
+				G_FindItem(ent->client->locals.persistent.weapon->ammo));
 	else
 		ent->client->locals.ammo_index = 0;
 
@@ -87,7 +87,7 @@ void G_ChangeWeapon(g_edict_t *ent) {
 	G_SetAnimation(ent, ANIM_TORSO_DROP, false);
 
 	// play a sound
-	gi.Sound(ent, gi.SoundIndex("weapons/common/switch"), ATTEN_NORM);
+	gi.Sound(ent, g_media.sounds.weapon_switch, ATTEN_NORM);
 }
 
 /*
@@ -262,7 +262,7 @@ static _Bool G_FireWeapon(g_edict_t *ent) {
 	if (ent->client->locals.ammo_index && ammo < ammo_needed) {
 
 		if (g_level.time >= ent->client->locals.pain_time) { // play a click sound
-			gi.Sound(ent, gi.SoundIndex("weapons/common/no_ammo"), ATTEN_NORM);
+			gi.Sound(ent, g_media.sounds.weapon_no_ammo, ATTEN_NORM);
 			ent->client->locals.pain_time = g_level.time + 1000;
 		}
 
@@ -293,10 +293,10 @@ static void G_WeaponFired(g_edict_t *ent, uint32_t interval) {
 	}
 
 	// play a quad damage sound if applicable
-	if (ent->client->locals.persistent.inventory[g_level.media.quad_damage]) {
+	if (ent->client->locals.persistent.inventory[g_media.items.quad_damage]) {
 
 		if (ent->client->locals.quad_attack_time < g_level.time) {
-			gi.Sound(ent, gi.SoundIndex("quad/attack"), ATTEN_NORM);
+			gi.Sound(ent, g_media.sounds.quad_attack, ATTEN_NORM);
 			ent->client->locals.quad_attack_time = g_level.time + 500;
 		}
 	}

@@ -53,7 +53,7 @@ static void Ui_Editor_Think(void) {
 	if (ui_editor.time == cls.real_time)
 		return;
 
-	VectorMA(r_view.origin, 8192.0, r_view.forward, end);
+	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
 
 	c_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_SOLID);
 	if (tr.fraction < 1.0) {

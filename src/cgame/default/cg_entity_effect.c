@@ -58,7 +58,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_BOB) {
-		e->origin[2] += 4.0 * sin((cgi.client->time * 0.005) + e->origin[0] + e->origin[1]);
+		e->origin[2] += 4.0 * sin((cgi.client->time * 0.005) + ent->current.number);
 	}
 
 	if (e->effects & EF_INACTIVE) {

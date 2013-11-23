@@ -410,7 +410,13 @@ typedef struct {
  * safely encode using 16 bit integers (vec_t * 8.0).
  */
 #define MIN_WORLD_COORD		-4096.0
-#define MAX_WORLD_COORD		4096.0
+#define MAX_WORLD_COORD		 4096.0
+
+/*
+ * @brief Therefore, the maximum distance across the world is the
+ * sqrt((2 * 4096.0)^2 + (2 * 4096.0)^2) = 11585.237
+ */
+#define MAX_WORLD_DIST		 11586.0
 
 /*
  * @brief ConfigStrings are a general means of communication from the server to

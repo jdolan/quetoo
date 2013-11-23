@@ -320,9 +320,9 @@ static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_
 		self->locals.timestamp = g_level.time + 100;
 
 	if (self->locals.spawn_flags & 8)
-		dflags = DAMAGE_NO_PROTECTION;
+		dflags = DMG_NO_GOD;
 	else
-		dflags = DAMAGE_NO_ARMOR;
+		dflags = DMG_NO_ARMOR;
 
 	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage,
 			self->locals.damage, dflags, MOD_TRIGGER_HURT);

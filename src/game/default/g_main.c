@@ -25,7 +25,9 @@ g_import_t gi;
 g_export_t ge;
 
 g_game_t g_game;
+
 g_level_t g_level;
+g_media_t g_media;
 
 cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
@@ -226,7 +228,7 @@ static void G_RestartGame(_Bool teamz) {
 	g_team_good.captures = g_team_evil.captures = 0;
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
-	gi.Sound(&g_game.edicts[0], gi.SoundIndex("world/teleport"), ATTEN_NONE);
+	gi.Sound(&g_game.edicts[0], g_media.sounds.teleport, ATTEN_NONE);
 }
 
 /*
@@ -288,8 +290,8 @@ static void G_BeginIntermission(const char *map) {
 	}
 
 	// play a dramatic sound effect
-	gi.PositionedSound(g_level.intermission_origin, g_game.edicts,
-			gi.SoundIndex("weapons/bfg/hit"), ATTEN_NORM);
+	gi.PositionedSound(g_level.intermission_origin, g_game.edicts, g_media.sounds.bfg_hit,
+			ATTEN_NORM);
 
 	// stay on same level if not provided
 	g_level.changemap = map && *map ? map : g_level.name;
@@ -607,7 +609,7 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.edicts[i + 1], false);
 		}
 
-		gi.Sound(&g_game.edicts[0], gi.SoundIndex("world/teleport"), ATTEN_NONE);
+		gi.Sound(&g_game.edicts[0], g_media.sounds.teleport, ATTEN_NONE);
 		gi.BroadcastPrint(PRINT_HIGH, "Match has started\n");
 	}
 
@@ -622,7 +624,7 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.edicts[i + 1], false);
 		}
 
-		gi.Sound(&g_game.edicts[0], gi.SoundIndex("world/teleport"), ATTEN_NONE);
+		gi.Sound(&g_game.edicts[0], g_media.sounds.teleport, ATTEN_NONE);
 		gi.BroadcastPrint(PRINT_HIGH, "Round has started\n");
 	}
 
@@ -844,13 +846,6 @@ static void G_Frame(void) {
 		// update old origin for interpolation
 		if (!(ent->s.effects & EF_BEAM))
 			VectorCopy(ent->s.origin, ent->s.old_origin);
-
-		if (ent->locals.ground_entity) {
-
-			// check for ground entities going away
-			if (ent->locals.ground_entity->link_count != ent->locals.ground_entity_link_count)
-				ent->locals.ground_entity = NULL;
-		}
 
 		if (i > 0 && i <= sv_max_clients->integer)
 			G_ClientBeginFrame(ent);

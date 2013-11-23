@@ -173,11 +173,12 @@ static void Cl_UpdateAngles(const player_state_t *ps, const player_state_t *ops)
 	// and lastly the delta angles
 	UnpackAngles(ops->pm_state.delta_angles, old_angles);
 	UnpackAngles(ps->pm_state.delta_angles, new_angles);
+	//Com_Print("%3.2f\n", new_angles[YAW]);
 
 	VectorCopy(new_angles, angles);
 
 	// check for small delta angles, and interpolate them
-	if (!VectorCompare(new_angles, new_angles)) {
+	if (!VectorCompare(old_angles, new_angles)) {
 
 		VectorSubtract(old_angles, new_angles, angles);
 		vec_t f = VectorLength(angles);
@@ -188,8 +189,6 @@ static void Cl_UpdateAngles(const player_state_t *ps, const player_state_t *ops)
 	}
 
 	VectorAdd(r_view.angles, angles, r_view.angles);
-
-	ClampAngles(r_view.angles);
 
 	if (cl.frame.ps.pm_state.type == PM_DEAD) { // look only on x axis
 		r_view.angles[0] = 0.0;

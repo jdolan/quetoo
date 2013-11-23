@@ -77,7 +77,7 @@ void Net_WriteLong(mem_buf_t *sb, const int32_t c) {
  */
 void Net_WriteString(mem_buf_t *sb, const char *s) {
 	if (!s)
-		Mem_WriteBuffer(sb, "", 1);
+		Mem_WriteBuffer(sb, '\0', 1);
 	else
 		Mem_WriteBuffer(sb, s, strlen(s) + 1);
 }
@@ -93,16 +93,16 @@ void Net_WriteVector(mem_buf_t *sb, const vec_t v) {
  * @brief
  */
 void Net_WritePosition(mem_buf_t *sb, const vec3_t pos) {
-	Net_WriteShort(sb, (int32_t) (pos[0] * 8.0));
-	Net_WriteShort(sb, (int32_t) (pos[1] * 8.0));
-	Net_WriteShort(sb, (int32_t) (pos[2] * 8.0));
+	Net_WriteVector(sb, pos[0]);
+	Net_WriteVector(sb, pos[1]);
+	Net_WriteVector(sb, pos[2]);
 }
 
 /*
  * @brief
  */
 void Net_WriteAngle(mem_buf_t *sb, const vec_t v) {
-	Net_WriteByte(sb, (int32_t) (v * 255.0 / 360.0) & 255);
+	Net_WriteShort(sb, PackAngle(v));
 }
 
 /*
@@ -422,7 +422,7 @@ void Net_ReadPosition(mem_buf_t *sb, vec3_t pos) {
  * @brief
  */
 vec_t Net_ReadAngle(mem_buf_t *sb) {
-	return Net_ReadChar(sb) * (360.0 / 255.0);
+	return UnpackAngle(Net_ReadShort(sb));
 }
 
 /*

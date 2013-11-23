@@ -109,7 +109,7 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(type);
 		gi.WritePosition(pos);
-		gi.WriteDir(normal);
+		gi.WriteDir(normal ? normal : vec3_origin);
 		gi.Multicast(pos, MULTICAST_PVS);
 	}
 }
@@ -123,7 +123,7 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
 static int16_t G_CheckArmor(g_edict_t *ent, const vec3_t pos, const vec3_t normal, int16_t damage,
 		uint32_t dflags) {
 
-	if (dflags & DAMAGE_NO_ARMOR)
+	if (dflags & DMG_NO_ARMOR)
 		return 0;
 
 	if (!ent->client)
@@ -199,7 +199,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 	attacker = attacker ? attacker : g_game.edicts;
 
 	if (attacker->client) {
-		if (attacker->client->locals.persistent.inventory[g_level.media.quad_damage]) {
+		if (attacker->client->locals.persistent.inventory[g_media.items.quad_damage]) {
 			damage *= QUAD_DAMAGE_FACTOR;
 			knockback *= QUAD_KNOCKBACK_FACTOR;
 		}
@@ -261,7 +261,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 	int16_t damage_armor = 0, damage_health = 0;
 
 	// check for god mode protection
-	if ((target->locals.flags & FL_GOD_MODE) && !(dflags & DAMAGE_NO_PROTECTION)) {
+	if ((target->locals.flags & FL_GOD_MODE) && !(dflags & DMG_NO_GOD)) {
 		damage_armor = damage;
 		damage_health = 0;
 		G_SpawnDamage(TE_BLOOD, pos, normal, damage);
@@ -273,7 +273,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 	// do the damage
 	if (damage_health && (target->locals.health || target->locals.dead)) {
 		if (G_IsStructural(target, NULL)) { // impact things we can hurt but don't bleed
-			if (dflags & DAMAGE_BULLET)
+			if (dflags & DMG_BULLET)
 				G_SpawnDamage(TE_BULLET, pos, normal, damage_health);
 			else
 				G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
@@ -355,6 +355,6 @@ void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore
 			continue;
 
 		G_Damage(ent, inflictor, attacker, dir, ent->s.origin, vec3_origin, (int32_t) d,
-				(int32_t) k, DAMAGE_RADIUS, mod);
+				(int32_t) k, DMG_RADIUS, mod);
 	}
 }
