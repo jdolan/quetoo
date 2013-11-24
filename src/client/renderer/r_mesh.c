@@ -367,8 +367,6 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 	const _Bool lighting = r_state.lighting_enabled;
 	const _Bool blend = r_state.blend_enabled;
 
-	const vec4_t color = { 0.0, 0.0, 0.0, r_shadows->value * MESH_SHADOW_ALPHA };
-
 	if (!r_shadows->value)
 		return;
 
@@ -376,9 +374,6 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 		return;
 
 	if (e->effects & EF_NO_SHADOW)
-		return;
-
-	if (e->effects & EF_BLEND)
 		return;
 
 	if (VectorCompare(e->lighting->shadow_origin, vec3_origin))
@@ -391,6 +386,13 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 		R_EnableLighting(NULL, false);
 
 	R_EnableTexture(&texunit_diffuse, false);
+
+	vec_t alpha = r_shadows->value * MESH_SHADOW_ALPHA;
+
+	if (e->effects & EF_BLEND)
+		alpha *= e->alpha;
+
+	vec4_t color = { 0.0, 0.0, 0.0, alpha };
 
 	R_Color(color);
 
