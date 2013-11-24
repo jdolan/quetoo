@@ -192,9 +192,11 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	w.effects = EF_WEAPON | EF_NO_SHADOW;
 
+	VectorSet(w.color, 1.0, 1.0, 1.0);
+
 	if (cg_draw_weapon_alpha->value < 1.0) {
 		w.effects |= EF_BLEND;
-		w.alpha = cg_draw_weapon_alpha->value;
+		w.color[3] = cg_draw_weapon_alpha->value;
 	}
 
 	VectorCopy(self->shell, w.shell);

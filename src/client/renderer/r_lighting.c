@@ -39,11 +39,11 @@ static int32_t R_UpdateBspLightReferences_Compare(const void *l1, const void *l2
  * for the specified structure and returning the number of light sources found.
  * This facilitates directional shading in the fragment program.
  */
-static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
+static uint16_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 	r_bsp_light_ref_t light_refs[LIGHTING_MAX_BSP_LIGHT_REFS];
 	r_bsp_light_ref_t *r;
 	r_bsp_light_t *l;
-	int32_t i, j;
+	uint16_t i, j;
 
 	memset(lighting->bsp_light_refs, 0, sizeof(lighting->bsp_light_refs));
 
@@ -59,7 +59,7 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 			continue;
 
 		// is it within range of the entity
-		VectorSubtract(l->origin, lighting->origin, dir);
+		VectorSubtract(lighting->origin, l->origin, dir);
 		const vec_t intensity = (l->radius + lighting->radius - VectorNormalize(dir)) / l->radius;
 
 		if (intensity <= 0.0)
@@ -87,8 +87,8 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 		r = &light_refs[j++];
 
 		r->bsp_light = l;
-		VectorCopy(dir, r->dir);
 		r->intensity = intensity;
+		VectorScale(dir, r->intensity, r->dir);
 
 		if (j == LIGHTING_MAX_BSP_LIGHT_REFS) {
 			Com_Debug("LIGHTING_MAX_BSP_LIGHT_REFS reached\n");
@@ -114,32 +114,23 @@ static int32_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
  * most relevant static light sources and shadow positioning.
  */
 void R_UpdateLighting(r_lighting_t *lighting) {
-	vec3_t start, end;
-	int32_t i, j;
-
-	VectorCopy(lighting->origin, start);
-	VectorCopy(lighting->origin, end);
+	vec3_t pos;
+	uint16_t i, j;
 
 	VectorCopy(r_bsp_light_state.ambient_light, lighting->color);
+
+	VectorCopy(vec3_down, lighting->dir);
 
 	// resolve the static light sources
 	i = R_UpdateBspLightReferences(lighting);
 
-	// resolve the shadow origin, factoring in light sources
+	// resolve the lighting direction and shading color
 	for (j = 0; j < i; j++) {
 		r_bsp_light_ref_t *r = &lighting->bsp_light_refs[j];
 
 		// only consider light sources above us
 		if (r->bsp_light->origin[2] > lighting->origin[2]) {
-			const vec_t scale = LIGHTING_MAX_SHADOW_DISTANCE * r->intensity;
-			vec3_t dir;
-
-			// and only factor in the X and Y components
-			VectorCopy(r->dir, dir);
-			dir[2] = 0.0;
-
-			// translate the projected end point
-			VectorMA(end, -scale, dir, end);
+			VectorMA(lighting->dir, r->intensity, r->dir, lighting->dir);
 		}
 
 		// factor in the light source color
@@ -148,18 +139,19 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 		}
 	}
 
-	end[2] = start[2] - LIGHTING_MAX_SHADOW_DISTANCE;
+	VectorNormalize(lighting->dir);
 
-	// do the trace
-	c_trace_t tr = Cl_Trace(start, end, NULL, NULL, lighting->number, MASK_SOLID);
+	// trace along the lighting direction
+	VectorMA(lighting->origin, LIGHTING_MAX_SHADOW_DISTANCE, lighting->dir, pos);
 
-	// resolve the shadow origin and direction
-	if (tr.fraction < 1.0) { // hit something
-		VectorCopy(tr.end, lighting->shadow_origin);
-		VectorCopy(tr.plane.normal, lighting->shadow_normal);
-	} else { // clear it
-		VectorClear(lighting->shadow_origin);
-		VectorClear(lighting->shadow_normal);
+	// skipping the entity itself, impacting solids
+	c_trace_t trace = Cl_Trace(lighting->origin, pos, NULL, NULL, lighting->number, MASK_SOLID);
+
+	// resolve the shadow origin
+	if (trace.fraction < 1.0) {
+		VectorCopy(trace.end, lighting->shadow_origin);
+	} else {
+		VectorCopy(vec3_origin, lighting->shadow_origin);
 	}
 
 	lighting->state = LIGHTING_READY; // mark it clean

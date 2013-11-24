@@ -172,33 +172,28 @@ void R_UpdateMeshModelLighting(const r_entity_t *e) {
 }
 
 /*
- * @brief
+ * @brief Sets the shade color for the mesh by modulating any preset color
+ * with static lighting.
  */
 static void R_SetMeshColor_default(const r_entity_t *e) {
 	vec4_t color;
-	vec_t v;
 	int32_t i;
 
-	VectorCopy(e->lighting->color, color);
+	vec_t max = 0.0;
+
+	for (i = 0; i < 3; i++) {
+		color[i] = e->color[i] * e->lighting->color[i];
+		if (color[i] > max)
+			max = color[i];
+	}
+
+	if (max > 1.0) // scale it back to 1.0
+		VectorScale(color, 1.0 / max, color);
 
 	if (e->effects & EF_BLEND)
-		color[3] = Clamp(e->alpha, 0.1, 1.0);
+		color[3] = Clamp(e->color[3], 0.0, 1.0);
 	else
 		color[3] = 1.0;
-
-	if (e->effects & EF_PULSE) {
-		v = sin((r_view.time + e->model->num_verts) * 0.005) * 0.75;
-		VectorScale(color, 1.0 + v, color);
-	}
-
-	v = 0.0;
-	for (i = 0; i < 3; i++) { // find brightest component
-		if (color[i] > v) // keep it
-			v = color[i];
-	}
-
-	if (v > 1.0) // scale it back to 1.0
-		VectorScale(color, 1.0 / v, color);
 
 	R_Color(color);
 }
@@ -290,48 +285,6 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 	R_RotateForEntity(NULL);
 }
 
-#define MESH_SHADOW_SCALE 1.5
-#define MESH_SHADOW_ALPHA 0.15
-
-/*
- * @brief Applies translation, rotation and scale for the shadow of the specified
- * entity. In order to reuse the vertex arrays from the primary rendering
- * pass, the shadow origin must transformed into model-view space.
- */
-static void R_RotateForMeshShadow_default(const r_entity_t *e) {
-	vec3_t origin, offset;
-	vec_t height, threshold, scale;
-
-	if (!e) {
-		glPopMatrix();
-		return;
-	}
-
-	if (e->parent) {
-		VectorSubtract(e->origin, e->parent->origin, offset);
-		VectorAdd(e->lighting->shadow_origin, offset, offset);
-		offset[2] = e->lighting->shadow_origin[2];
-	} else {
-		VectorCopy(e->lighting->shadow_origin, offset);
-	}
-
-	R_TransformForEntity(e, offset, origin);
-
-	height = -origin[2];
-
-	threshold = LIGHTING_MAX_SHADOW_DISTANCE / e->scale;
-
-	scale = MESH_SHADOW_SCALE * (threshold - height) / threshold;
-
-	glPushMatrix();
-
-	glTranslatef(origin[0], origin[1], -height + 1.0);
-
-	glRotatef(-e->angles[PITCH], 0.0, 1.0, 0.0);
-
-	glScalef(scale, scale, 0.0);
-}
-
 /*
  * @brief Draws an animated, colored shell for the specified entity. Rather than
  * re-lerping or re-scaling the entity, the currently bound vertex arrays
@@ -344,7 +297,7 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
 		return;
 
 	VectorCopy(e->shell, color);
-	color[3] = 1.0; // TODO: Might be cool to add a sin() here.
+	color[3] = 1.0 + 0.8 * sin(r_view.time * 0.002);
 
 	R_Color(color);
 
@@ -357,6 +310,60 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
 	R_EnableShell(false);
 
 	R_Color(NULL);
+}
+
+#define MESH_SHADOW_ALPHA 0.15
+
+/*
+ * @brief Sets the shadow color, which is dependent on the entity's alpha blend
+ * and its distance from the shadow origin.
+ */
+static void R_SetMeshShadowColor_default(const r_entity_t *e) {
+	vec3_t delta;
+
+	vec_t alpha = r_shadows->value * MESH_SHADOW_ALPHA;
+
+	if (e->effects & EF_BLEND)
+		alpha *= e->color[3];
+
+	VectorSubtract(e->origin, e->lighting->shadow_origin, delta);
+
+	const vec_t shade = 1.0 - (VectorLength(delta) / LIGHTING_MAX_SHADOW_DISTANCE);
+
+	vec4_t color = { 0.0, 0.0, 0.0, alpha * Clamp(shade, 0.0, 1.0) };
+
+	R_Color(color);
+}
+
+/*
+ * @brief Applies translation, rotation and scale for the shadow of the specified
+ * entity. In order to reuse the vertex arrays from the primary rendering
+ * pass, the shadow origin must transformed into model-view space.
+ */
+static void R_RotateForMeshShadow_default(const r_entity_t *e) {
+	vec3_t origin, dir;
+
+	if (!e) {
+		glPopMatrix();
+		return;
+	}
+
+	R_TransformForEntity(e, e->lighting->shadow_origin, origin);
+
+	R_TransformForEntity(e, e->lighting->dir, dir);
+	VectorNormalize(dir);
+
+	vec_t scale = 1.0 - (origin[2] / LIGHTING_MAX_SHADOW_DISTANCE);
+
+	// TODO: Now what? Need to augment scale using dir.
+
+	glPushMatrix();
+
+	glTranslatef(origin[0], origin[1], origin[2] + 1.0);
+
+	glRotatef(-e->angles[PITCH], 0.0, 1.0, 0.0);
+
+	glScalef(scale, scale, 0.0);
 }
 
 /*
@@ -379,22 +386,12 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 	if (VectorCompare(e->lighting->shadow_origin, vec3_origin))
 		return;
 
-	if (e->lighting->shadow_origin[2] > r_view.origin[2])
-		return;
-
 	if (lighting)
 		R_EnableLighting(NULL, false);
 
 	R_EnableTexture(&texunit_diffuse, false);
 
-	vec_t alpha = r_shadows->value * MESH_SHADOW_ALPHA;
-
-	if (e->effects & EF_BLEND)
-		alpha *= e->alpha;
-
-	vec4_t color = { 0.0, 0.0, 0.0, alpha };
-
-	R_Color(color);
+	R_SetMeshShadowColor_default(e);
 
 	if (!blend)
 		R_EnableBlend(true);

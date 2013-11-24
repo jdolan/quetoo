@@ -582,14 +582,14 @@ typedef struct r_lighting_s {
 	vec3_t origin; // entity origin
 	vec_t radius; // entity radius
 	vec3_t mins, maxs; // entity bounding box in world space
-	vec3_t shadow_origin;
-	vec3_t shadow_normal;
-	vec3_t color;
+	vec3_t dir; // normalized combined lighting direction
+	vec3_t color; // combined lighting color
+	vec3_t shadow_origin; // shadow origin in world coordinates
 	r_bsp_light_ref_t bsp_light_refs[MAX_ACTIVE_LIGHTS]; // light sources
 	r_lighting_state_t state;
 } r_lighting_t;
 
-#define LIGHTING_MAX_SHADOW_DISTANCE 128.0
+#define LIGHTING_MAX_SHADOW_DISTANCE 96.0
 
 /*
  * @brief Entities provide a means to add model instances to the view.
@@ -619,7 +619,7 @@ typedef struct r_entity_s {
 
 	uint32_t effects; // e.g. EF_NO_DRAW, EF_WEAPON, ..
 
-	vec_t alpha; // alpha blend for e.g. EF_FLICKER
+	vec4_t color; // shaded color, e.g. EF_PULSE
 
 	vec3_t shell; // shell color
 

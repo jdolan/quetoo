@@ -159,7 +159,6 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 	vec_t *o = e->origin, *a = e->angles;
 
 	if (e->parent) {
-		vec3_t tmp;
 
 		if (!IS_MESH_MODEL(e->model)) {
 			Com_Warn("Invalid model for linked entity\n");
@@ -173,12 +172,12 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 
 		Matrix4x4_CreateFromQuakeEntity(&e->matrix, o[0], o[1], o[2], a[0], a[1], a[2], e->scale);
 
-		R_ApplyMeshModelTag(e);
-
-		Matrix4x4_ToVectors(&e->matrix, tmp, tmp, tmp, e->origin);
-		VectorCopy(e->parent->angles, e->angles);
+		R_ApplyMeshModelTag(e); // this interpolates and concatenates the tag matrices
 
 		Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
+
+		Matrix4x4_Transform(&e->matrix, vec3_origin, e->origin);
+		VectorCopy(e->parent->angles, e->angles);
 		return;
 	}
 

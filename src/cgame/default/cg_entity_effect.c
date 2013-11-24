@@ -58,7 +58,14 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_BOB) {
-		e->origin[2] += 4.0 * sin((cgi.client->time * 0.005) + ent->current.number);
+		e->origin[2] += 4.0 * sin(cgi.client->time * 0.005 + ent->current.number);
+	}
+
+	if (e->effects & EF_PULSE) {
+		const vec_t v = 0.4 + (cos(cgi.client->time * 0.005 + ent->current.number) + 1.0) * 0.6;
+		VectorSet(e->color, v, v, v);
+	} else {
+		VectorSet(e->color, 1.0, 1.0, 1.0);
 	}
 
 	if (e->effects & EF_INACTIVE) {
@@ -107,6 +114,6 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		}
 
 		e->effects |= EF_BLEND;
-		e->alpha = 1.0 - ((cgi.client->time - ent->time) / 3000.0);
+		e->color[3] = 1.0 - ((cgi.client->time - ent->time) / 3000.0);
 	}
 }
