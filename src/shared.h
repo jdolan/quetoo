@@ -101,10 +101,10 @@ extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
  */
 void PackVector(const vec3_t in, int16_t *out);
 void UnpackVector(const int16_t *in, vec3_t out);
-#define PackAngle(x) ((uint16_t)((x) * UINT16_MAX / 360.0) & UINT16_MAX)
-void PackAngles(const vec3_t in, int16_t *out);
-#define UnpackAngle(x) ((x) * 360.0 / UINT16_MAX)
-void UnpackAngles(const int16_t *in, vec3_t out);
+uint16_t PackAngle(const vec_t a);
+void PackAngles(const vec3_t in, uint16_t *out);
+vec_t UnpackAngle(const uint16_t a);
+void UnpackAngles(const uint16_t *in, vec3_t out);
 vec_t ClampAngle(vec_t angle);
 void ClampAngles(vec3_t angles);
 void PackBounds(const vec3_t mins, const vec3_t maxs, uint16_t *out);

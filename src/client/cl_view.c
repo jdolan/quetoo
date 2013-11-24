@@ -173,17 +173,21 @@ static void Cl_UpdateAngles(const player_state_t *ps, const player_state_t *ops)
 	// and lastly the delta angles
 	UnpackAngles(ops->pm_state.delta_angles, old_angles);
 	UnpackAngles(ps->pm_state.delta_angles, new_angles);
-	//Com_Print("%3.2f\n", new_angles[YAW]);
 
 	VectorCopy(new_angles, angles);
 
 	// check for small delta angles, and interpolate them
 	if (!VectorCompare(old_angles, new_angles)) {
+		int32_t i;
 
-		VectorSubtract(old_angles, new_angles, angles);
-		vec_t f = VectorLength(angles);
+		for (i = 0; i < 3; i++) {
+			const vec_t delta = fabs(new_angles[i] - old_angles[i]);
+			if (delta > 5.0 && delta < 355.0) {
+				break;
+			}
+		}
 
-		if (f < 15.0) {
+		if (i == 3) {
 			AngleLerp(old_angles, new_angles, cl.lerp, angles);
 		}
 	}

@@ -202,7 +202,7 @@ void G_ClientWeaponKick(g_edict_t *ent, const vec_t kick) {
  * weapons may also set the kick value, and we factor that in here as well.
  */
 static void G_ClientKickAngles(g_edict_t *ent) {
-	int16_t *kick_angles = ent->client->ps.pm_state.kick_angles;
+	uint16_t *kick_angles = ent->client->ps.pm_state.kick_angles;
 
 	// spectators and dead clients receive no kick angles
 

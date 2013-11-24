@@ -462,29 +462,6 @@ void UnpackVector(const int16_t *in, vec3_t out) {
 }
 
 /*
- * @brief Packs the specified floating point Euler angles to the int16_t array in out
- * for network transmission.
- */
-void PackAngles(const vec3_t in, int16_t *out) {
-	int32_t i;
-
-	for (i = 0; i < 3; i++) {
-		out[i] = PackAngle(in[i]);
-	}
-}
-
-/*
- * @brief Unpacks the compressed angles to Euler 32 bit floating point in out.
- */
-void UnpackAngles(const int16_t *in, vec3_t out) {
-	int32_t i;
-
-	for (i = 0; i < 3; i++) {
-		out[i] = UnpackAngle(in[i]);
-	}
-}
-
-/*
  * @brief Circular clamp Euler angles between 0.0 and 360.0.
  */
 vec_t ClampAngle(vec_t angle) {
@@ -506,6 +483,44 @@ void ClampAngles(vec3_t angles) {
 	angles[0] = ClampAngle(angles[0]);
 	angles[1] = ClampAngle(angles[1]);
 	angles[2] = ClampAngle(angles[2]);
+}
+
+/*
+ * @brief Packs the Euler angle for network transmission, clamped 0.0 - 360.0.
+ */
+uint16_t PackAngle(const vec_t a) {
+	return (uint16_t) (ClampAngle(a) * UINT16_MAX / 360.0) & UINT16_MAX;
+}
+
+/*
+ * @brief Unpacks the encoded angle to floating point between 0.0 and 360.0.
+ */
+vec_t UnpackAngle(const uint16_t a) {
+	return a * 360.0 / UINT16_MAX;
+}
+
+
+/*
+ * @brief Packs the specified floating point Euler angles to the int16_t array in out
+ * for network transmission.
+ */
+void PackAngles(const vec3_t in, uint16_t *out) {
+	int32_t i;
+
+	for (i = 0; i < 3; i++) {
+		out[i] = PackAngle(in[i]);
+	}
+}
+
+/*
+ * @brief Unpacks the compressed angles to Euler 32 bit floating point in out.
+ */
+void UnpackAngles(const uint16_t *in, vec3_t out) {
+	int32_t i;
+
+	for (i = 0; i < 3; i++) {
+		out[i] = UnpackAngle(in[i]);
+	}
 }
 
 /*

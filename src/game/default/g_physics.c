@@ -255,7 +255,7 @@ static void G_Physics_Push_Rotate(g_edict_t *self, g_edict_t *ent, vec_t yaw) {
 
 			yaw += UnpackAngle(cl->ps.pm_state.delta_angles[YAW]);
 
-			cl->ps.pm_state.delta_angles[YAW] = PackAngle(ClampAngle(yaw));
+			cl->ps.pm_state.delta_angles[YAW] = PackAngle(yaw);
 		} else {
 			ent->s.angles[YAW] += yaw;
 		}

@@ -1154,9 +1154,7 @@ static void Pm_ClampAngles(void) {
 		pm->angles[i] = UnpackAngle(c + k + d);
 	}
 
-	// clamp angles to prevent the player from looking up or down more than 90'
-	ClampAngles(pm->angles);
-
+	// clamp pitch to prevent the player from looking up or down more than 90¼
 	if (pm->angles[PITCH] > 90.0 && pm->angles[PITCH] < 270.0) {
 		pm->angles[PITCH] = 90.0;
 	} else if (pm->angles[PITCH] <= 360.0 && pm->angles[PITCH] >= 270.0) {

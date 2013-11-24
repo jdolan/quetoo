@@ -352,9 +352,9 @@ typedef struct pm_state_s {
 	uint16_t time; // duration for PMF_TIME_* flags
 	int16_t gravity;
 	int16_t view_offset[3]; // add to origin to resolve eyes
-	int16_t view_angles[3]; // base view angles
-	int16_t kick_angles[3]; // offset for kick
-	int16_t delta_angles[3]; // offset for spawns, pushers, etc.
+	uint16_t view_angles[3]; // base view angles
+	uint16_t kick_angles[3]; // offset for kick
+	uint16_t delta_angles[3]; // offset for spawns, pushers, etc.
 } pm_state_t;
 
 // button bits
@@ -365,7 +365,7 @@ typedef struct pm_state_s {
 typedef struct user_cmd_s {
 	uint8_t msec;
 	uint8_t buttons;
-	int16_t angles[3];
+	uint16_t angles[3];
 	int16_t forward, right, up;
 } user_cmd_t;
 
