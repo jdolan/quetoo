@@ -172,12 +172,13 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 		R_ApplyMeshModelConfig(e);
 
 		Matrix4x4_CreateFromQuakeEntity(&e->matrix, o[0], o[1], o[2], a[0], a[1], a[2], e->scale);
-		Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 
 		R_ApplyMeshModelTag(e);
 
 		Matrix4x4_ToVectors(&e->matrix, tmp, tmp, tmp, e->origin);
 		VectorCopy(e->parent->angles, e->angles);
+
+		Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 		return;
 	}
 
