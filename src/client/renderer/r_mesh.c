@@ -340,7 +340,7 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e) {
  * pass, the shadow origin must transformed into model-view space.
  */
 static void R_RotateForMeshShadow_default(const r_entity_t *e) {
-	vec3_t origin, dir, delta;
+	vec3_t origin, delta;
 
 	if (!e) {
 		glPopMatrix();
@@ -349,19 +349,19 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 
 	R_TransformForEntity(e, e->lighting->shadow_origin, origin);
 
-	R_TransformForEntity(e, e->lighting->dir, dir);
-	VectorNormalize(dir);
-
 	VectorSubtract(e->lighting->shadow_origin, e->origin, delta);
 	const vec_t scale = 1.0 + VectorLength(delta) / LIGHTING_MAX_SHADOW_DISTANCE;
+
+	/*const vec_t dot = DotProduct(e->lighting->shadow_normal, e->lighting->dir);
+
+	const vec_t sy = sin(Radians(e->angles[YAW]));
+	const vec_t cy = cos(Radians(e->angles[YAW]));*/
 
 	glPushMatrix();
 
 	glTranslatef(origin[0], origin[1], origin[2] + 1.0);
 
 	glRotatef(-e->angles[PITCH], 0.0, 1.0, 0.0);
-
-	// TODO: Should be able to scale using DotProduct(dir, ..)
 
 	glScalef(scale, scale, 0.0);
 }

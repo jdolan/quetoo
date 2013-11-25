@@ -586,6 +586,7 @@ typedef struct r_lighting_s {
 	vec3_t dir; // normalized combined lighting direction
 	vec3_t color; // combined lighting color
 	vec3_t shadow_origin; // shadow origin in world coordinates
+	vec3_t shadow_normal; // shadow plane normal
 	r_bsp_light_ref_t bsp_light_refs[MAX_ACTIVE_LIGHTS]; // light sources
 	r_lighting_state_t state;
 } r_lighting_t;

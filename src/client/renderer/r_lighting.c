@@ -151,8 +151,10 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 	// resolve the shadow origin
 	if (!trace.start_solid && trace.fraction < 1.0) {
 		VectorCopy(trace.end, lighting->shadow_origin);
+		VectorCopy(trace.plane.normal, lighting->shadow_normal);
 	} else {
 		VectorClear(lighting->shadow_origin);
+		VectorCopy(vec3_up, lighting->shadow_normal);
 	}
 
 	lighting->state = LIGHTING_READY; // mark it clean
