@@ -218,9 +218,9 @@ void R_CullEntities(void *data __attribute__((unused))) {
 
 	for (i = 0, e = r_view.entities; i < r_view.num_entities; i++, e++) {
 
-		R_SetMatrixForEntity(e); // set the transform matrix
-
 		if (!R_CullEntity(e)) { // cull it
+
+			R_SetMatrixForEntity(e); // set the transform matrix
 
 			if (IS_MESH_MODEL(e->model)) {
 				R_UpdateMeshModelLighting(e);

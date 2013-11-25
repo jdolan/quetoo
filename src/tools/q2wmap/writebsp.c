@@ -323,7 +323,7 @@ static void EmitBrushes(void) {
 		for (x = 0; x < 3; x++) {
 			for (s = -1; s <= 1; s += 2) {
 				// add the plane
-				VectorCopy(vec3_origin, normal);
+				VectorClear(normal);
 				normal[x] = (vec_t) s;
 
 				if (s == -1)

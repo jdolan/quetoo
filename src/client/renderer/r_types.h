@@ -567,6 +567,7 @@ typedef struct r_sustained_light_s {
 typedef struct r_bsp_light_ref_s {
 	r_bsp_light_t *bsp_light;
 	vec3_t dir;
+	vec_t light;
 	vec_t intensity;
 } r_bsp_light_ref_t;
 

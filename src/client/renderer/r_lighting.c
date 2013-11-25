@@ -60,9 +60,9 @@ static uint16_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 
 		// is it within range of the entity
 		VectorSubtract(lighting->origin, l->origin, dir);
-		const vec_t intensity = (l->radius + lighting->radius - VectorNormalize(dir)) / l->radius;
+		const vec_t light = l->radius + lighting->radius - VectorNormalize(dir);
 
-		if (intensity <= 0.0)
+		if (light <= 0.0)
 			continue;
 
 		// is it visible to the entity; trace to origin and corners of bounding box
@@ -87,8 +87,9 @@ static uint16_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 		r = &light_refs[j++];
 
 		r->bsp_light = l;
-		r->intensity = intensity;
-		VectorScale(dir, r->intensity, r->dir);
+		r->light = light;
+		r->intensity = light / l->radius;
+		VectorScale(dir, light, r->dir);
 
 		if (j == LIGHTING_MAX_BSP_LIGHT_REFS) {
 			Com_Debug("LIGHTING_MAX_BSP_LIGHT_REFS reached\n");
@@ -114,8 +115,8 @@ static uint16_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
  * most relevant static light sources and shadow positioning.
  */
 void R_UpdateLighting(r_lighting_t *lighting) {
-	vec3_t pos;
 	uint16_t i, j;
+	vec3_t pos;
 
 	VectorCopy(r_bsp_light_state.ambient_light, lighting->color);
 
@@ -130,7 +131,7 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 
 		// only consider light sources above us
 		if (r->bsp_light->origin[2] > lighting->origin[2]) {
-			VectorMA(lighting->dir, r->intensity, r->dir, lighting->dir);
+			VectorMA(lighting->dir, r->light, r->dir, lighting->dir);
 		}
 
 		// factor in the light source color
@@ -141,17 +142,17 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 
 	VectorNormalize(lighting->dir);
 
-	// trace along the lighting direction
+	// cast out on the lighting direction
 	VectorMA(lighting->origin, LIGHTING_MAX_SHADOW_DISTANCE, lighting->dir, pos);
 
 	// skipping the entity itself, impacting solids
 	c_trace_t trace = Cl_Trace(lighting->origin, pos, NULL, NULL, lighting->number, MASK_SOLID);
 
 	// resolve the shadow origin
-	if (trace.fraction < 1.0) {
+	if (!trace.start_solid && trace.fraction < 1.0) {
 		VectorCopy(trace.end, lighting->shadow_origin);
 	} else {
-		VectorCopy(vec3_origin, lighting->shadow_origin);
+		VectorClear(lighting->shadow_origin);
 	}
 
 	lighting->state = LIGHTING_READY; // mark it clean

@@ -204,7 +204,7 @@ static void SetPortalSphere(portal_t * p) {
 	vec_t r, bestr;
 
 	w = p->winding;
-	VectorCopy(vec3_origin, total);
+	VectorClear(total);
 	for (i = 0; i < w->num_points; i++) {
 		VectorAdd(total, w->points[i], total);
 	}

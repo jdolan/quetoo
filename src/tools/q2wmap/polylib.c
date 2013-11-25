@@ -151,7 +151,7 @@ void WindingCenter(const winding_t *w, vec3_t center) {
 	int32_t i;
 	vec_t scale;
 
-	VectorCopy(vec3_origin, center);
+	VectorClear(center);
 	for (i = 0; i < w->num_points; i++)
 		VectorAdd(w->points[i], center, center);
 

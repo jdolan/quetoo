@@ -110,11 +110,10 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 
 	// interpolate the tag over the frames of the parent entity
 
-	const r_md3_tag_t *start = R_GetMeshModelTag(e->parent->model, e->parent->old_frame,
-			e->tag_name);
-	const r_md3_tag_t *end = R_GetMeshModelTag(e->parent->model, e->parent->frame, e->tag_name);
+	const r_md3_tag_t *t1 = R_GetMeshModelTag(e->parent->model, e->parent->old_frame, e->tag_name);
+	const r_md3_tag_t *t2 = R_GetMeshModelTag(e->parent->model, e->parent->frame, e->tag_name);
 
-	if (!start || !end) {
+	if (!t1 || !t2) {
 		return;
 	}
 
@@ -122,7 +121,7 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 
 	Matrix4x4_Concat(&local, &e->parent->matrix, &e->matrix);
 
-	Matrix4x4_Interpolate(&lerped, &end->matrix, &start->matrix, e->parent->back_lerp);
+	Matrix4x4_Interpolate(&lerped, &t2->matrix, &t1->matrix, e->parent->back_lerp);
 	Matrix4x4_Normalize(&normalized, &lerped);
 
 	Matrix4x4_Concat(&e->matrix, &local, &normalized);
@@ -132,7 +131,7 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 }
 
 /*
- * @brief
+ * @return True if the specified entity was frustum-culled and can be skipped.
  */
 _Bool R_CullMeshModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
@@ -328,7 +327,7 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e) {
 
 	VectorSubtract(e->origin, e->lighting->shadow_origin, delta);
 
-	const vec_t shade = 1.0 - (VectorLength(delta) / LIGHTING_MAX_SHADOW_DISTANCE);
+	const vec_t shade = 1.0 - VectorLength(delta) / LIGHTING_MAX_SHADOW_DISTANCE;
 
 	vec4_t color = { 0.0, 0.0, 0.0, alpha * Clamp(shade, 0.0, 1.0) };
 
@@ -341,7 +340,7 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e) {
  * pass, the shadow origin must transformed into model-view space.
  */
 static void R_RotateForMeshShadow_default(const r_entity_t *e) {
-	vec3_t origin, dir;
+	vec3_t origin, dir, delta;
 
 	if (!e) {
 		glPopMatrix();
@@ -353,15 +352,16 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 	R_TransformForEntity(e, e->lighting->dir, dir);
 	VectorNormalize(dir);
 
-	vec_t scale = 1.0 - (origin[2] / LIGHTING_MAX_SHADOW_DISTANCE);
-
-	// TODO: Now what? Need to augment scale using dir.
+	VectorSubtract(e->lighting->shadow_origin, e->origin, delta);
+	const vec_t scale = 1.0 + VectorLength(delta) / LIGHTING_MAX_SHADOW_DISTANCE;
 
 	glPushMatrix();
 
 	glTranslatef(origin[0], origin[1], origin[2] + 1.0);
 
 	glRotatef(-e->angles[PITCH], 0.0, 1.0, 0.0);
+
+	// TODO: Should be able to scale using DotProduct(dir, ..)
 
 	glScalef(scale, scale, 0.0);
 }
