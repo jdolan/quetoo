@@ -548,9 +548,9 @@ void R_Setup3D(void) {
 	glRotatef(-90.0, 1.0, 0.0, 0.0); // put Z going up
 	glRotatef(90.0, 0.0, 0.0, 1.0); // put Z going up
 
-	glRotatef(-r_view.angles[2], 1.0, 0.0, 0.0);
-	glRotatef(-r_view.angles[0], 0.0, 1.0, 0.0);
-	glRotatef(-r_view.angles[1], 0.0, 0.0, 1.0);
+	glRotatef(-r_view.angles[ROLL], 1.0, 0.0, 0.0);
+	glRotatef(-r_view.angles[PITCH], 0.0, 1.0, 0.0);
+	glRotatef(-r_view.angles[YAW], 0.0, 0.0, 1.0);
 
 	glTranslatef(-r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
 

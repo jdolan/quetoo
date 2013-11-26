@@ -788,9 +788,6 @@ typedef struct c_bsp_leaf_data_s {
 } c_bsp_leaf_data_t;
 
 static void Cm_BoxLeafnums_r(int32_t node_num, c_bsp_leaf_data_t *data) {
-	c_bsp_plane_t *plane;
-	c_bsp_node_t *node;
-	int32_t s;
 
 	while (true) {
 		if (node_num < 0) {
@@ -801,9 +798,11 @@ static void Cm_BoxLeafnums_r(int32_t node_num, c_bsp_leaf_data_t *data) {
 			return;
 		}
 
-		node = &c_bsp.nodes[node_num];
-		plane = node->plane;
-		s = BoxOnPlaneSide(data->mins, data->maxs, plane);
+		const c_bsp_node_t *node = &c_bsp.nodes[node_num];
+		const c_bsp_plane_t *plane = node->plane;
+
+		const int32_t s = BoxOnPlaneSide(data->mins, data->maxs, plane);
+
 		if (s == 1)
 			node_num = node->children[0];
 		else if (s == 2)

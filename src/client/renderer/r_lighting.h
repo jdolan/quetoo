@@ -23,6 +23,9 @@
 #define __R_LIGHTING_H__
 
 #ifdef __R_LOCAL_H__
+
+#define LIGHTING_SHADOW_DISTANCE 96.0
+
 void R_UpdateLighting(r_lighting_t *lighting);
 void R_ApplyLighting(const r_lighting_t *lighting);
 #endif /* __R_LOCAL_H__ */

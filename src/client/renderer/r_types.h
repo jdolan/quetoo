@@ -56,7 +56,7 @@ typedef enum {
 	IT_DELUXEMAP = 6,
 	IT_NORMALMAP = 7 + (IT_MASK_MIPMAP),
 	IT_GLOSSMAP = 8,
-	IT_ENVMAP =  9 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_ENVMAP = 9 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_FLARE = 10 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_SKY = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_PIC = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER)
@@ -436,7 +436,11 @@ typedef struct {
 
 // shared structure for all model types
 typedef enum {
-	MOD_BAD, MOD_BSP, MOD_BSP_INLINE, MOD_MD3, MOD_OBJ
+	MOD_BAD,
+	MOD_BSP,
+	MOD_BSP_INLINE,
+	MOD_MD3,
+	MOD_OBJ
 } r_model_type_t;
 
 typedef struct {
@@ -568,11 +572,12 @@ typedef struct r_bsp_light_ref_s {
 	r_bsp_light_t *bsp_light;
 	vec3_t dir;
 	vec_t light;
-	vec_t intensity;
 } r_bsp_light_ref_t;
 
 typedef enum {
-	LIGHTING_INIT, LIGHTING_DIRTY, LIGHTING_READY
+	LIGHTING_INIT,
+	LIGHTING_DIRTY,
+	LIGHTING_READY
 } r_lighting_state_t;
 
 /*
@@ -583,15 +588,13 @@ typedef struct r_lighting_s {
 	vec3_t origin; // entity origin
 	vec_t radius; // entity radius
 	vec3_t mins, maxs; // entity bounding box in world space
-	vec3_t dir; // normalized combined lighting direction
+	vec3_t pos; // the weighted, average lighting position
 	vec3_t color; // combined lighting color
-	vec3_t shadow_origin; // shadow origin in world coordinates
-	vec3_t shadow_normal; // shadow plane normal
+	vec_t light; // total light received
+	c_bsp_plane_t plane; // the ground plane for shadow projection
 	r_bsp_light_ref_t bsp_light_refs[MAX_ACTIVE_LIGHTS]; // light sources
 	r_lighting_state_t state;
 } r_lighting_t;
-
-#define LIGHTING_MAX_SHADOW_DISTANCE 96.0
 
 /*
  * @brief Entities provide a means to add model instances to the view.
@@ -607,6 +610,7 @@ typedef struct r_entity_s {
 
 	matrix4x4_t matrix;
 	matrix4x4_t inverse_matrix;
+
 	_Bool culled;
 
 	const r_model_t *model;
