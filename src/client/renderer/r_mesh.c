@@ -331,7 +331,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 	pos[3] = 1.0;
 
 	R_TransformForEntity(e, e->lighting->plane.normal, normal);
-	normal[3] = e->lighting->plane.dist - e->origin[2] + 1.0;
+	normal[3] = e->lighting->plane.dist - e->origin[2];
 
 	VectorNormalize(normal);
 
@@ -364,7 +364,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 	proj.m[2][3] = 0.0 - pos[3] * normal[2];
 	proj.m[3][3] = dot - pos[3] * normal[3];
 
-	//glMultMatrixf((GLfloat *) proj.m);
+	glMultMatrixf((GLfloat *) proj.m);
 }
 
 /*
