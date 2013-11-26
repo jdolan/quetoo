@@ -330,8 +330,8 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 	R_TransformForEntity(e, e->lighting->pos, pos);
 	pos[3] = 1.0;
 
-	R_TransformForEntity(e, e->lighting->plane.normal, normal);
-	normal[3] = e->lighting->plane.dist - e->origin[2];
+	VectorCopy(e->lighting->plane.normal, normal);
+	normal[3] = -(e->lighting->plane.dist - e->origin[2]);
 
 	VectorNormalize(normal);
 
@@ -341,7 +341,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 
 	const vec_t dot = DotProduct(pos, normal) + pos[3] * normal[3];
 
-	glTranslatef(0.0, 0.0, normal[3]);
+	glTranslatef(0.0, 0.0, -normal[3]);
 
 	glRotatef(-e->angles[PITCH], 0.0, 1.0, 0.0);
 
@@ -413,11 +413,7 @@ static void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableStencilTest(true);
 
-	glDepthRange(0.0, 0.999);
-
 	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
-
-	glDepthRange(0.0, 1.0);
 
 	R_EnableStencilTest(false);
 
