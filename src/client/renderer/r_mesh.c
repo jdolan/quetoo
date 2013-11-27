@@ -254,6 +254,8 @@ static void R_SetMeshState_default(const r_entity_t *e) {
  */
 static void R_ResetMeshState_default(const r_entity_t *e) {
 
+	R_RotateForEntity(NULL);
+
 	if (e->model->mesh->num_frames > 1) {
 		if (texunit_diffuse.enabled) {
 			R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
@@ -262,8 +264,6 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 
 	if (e->effects & EF_WEAPON)
 		glDepthRange(0.0, 1.0);
-
-	R_RotateForEntity(NULL);
 }
 
 /*
@@ -291,143 +291,6 @@ static void R_DrawMeshShell_default(const r_entity_t *e) {
 	R_EnableShell(false);
 
 	R_Color(NULL);
-}
-
-#define MESH_SHADOW_ALPHA 0.15
-
-/*
- * @brief Sets the shadow color, which is dependent on the entity's alpha blend
- * and its distance from the shadow origin.
- */
-static void R_SetMeshShadowColor_default(const r_entity_t *e) {
-
-	vec_t alpha = r_shadows->value * MESH_SHADOW_ALPHA;
-
-	if (e->effects & EF_BLEND)
-		alpha *= e->color[3];
-
-	alpha *= 1.0 - (e->origin[2] - e->lighting->plane.dist) / LIGHTING_SHADOW_DISTANCE;
-
-	vec4_t color = { 0.0, 0.0, 0.0, alpha };
-
-	R_Color(color);
-}
-
-/*
- * @brief Applies translation, rotation and scale for the shadow of the specified
- * entity. In order to reuse the vertex arrays from the primary rendering
- * pass, the light position and ground normal are transformed into model-view space.
- */
-static void R_RotateForMeshShadow_default(const r_entity_t *e) {
-	vec4_t pos, normal;
-	matrix4x4_t proj;
-
-	if (!e) {
-		glPopMatrix();
-		return;
-	}
-
-	R_TransformForEntity(e, e->lighting->pos, pos);
-	pos[3] = 1.0;
-
-	VectorCopy(e->lighting->plane.normal, normal);
-	normal[3] = -(e->lighting->plane.dist - e->origin[2]);
-
-	VectorNormalize(normal);
-
-	//Com_Print("%s %s %s @ %3.2f\n", e->model->media.name, vtos(pos), vtos(normal), normal[3]);
-
-	glPushMatrix();
-
-	const vec_t dot = DotProduct(pos, normal) + pos[3] * normal[3];
-
-	glTranslatef(0.0, 0.0, -normal[3]);
-
-	glRotatef(-e->angles[PITCH], 0.0, 1.0, 0.0);
-
-	glScalef(1.0, 1.0, 0.0);
-
-	proj.m[0][0] = dot - pos[0] * normal[0];
-	proj.m[1][0] = 0.0 - pos[0] * normal[1];
-	proj.m[2][0] = 0.0 - pos[0] * normal[2];
-	proj.m[3][0] = 0.0 - pos[0] * normal[3];
-	proj.m[0][1] = 0.0 - pos[1] * normal[0];
-	proj.m[1][1] = dot - pos[1] * normal[1];
-	proj.m[2][1] = 0.0 - pos[1] * normal[2];
-	proj.m[3][1] = 0.0 - pos[1] * normal[3];
-	proj.m[0][2] = 0.0 - pos[2] * normal[0];
-	proj.m[1][2] = 0.0 - pos[2] * normal[1];
-	proj.m[2][2] = dot - pos[2] * normal[2];
-	proj.m[3][2] = 0.0 - pos[2] * normal[3];
-	proj.m[0][3] = 0.0 - pos[3] * normal[0];
-	proj.m[1][3] = 0.0 - pos[3] * normal[1];
-	proj.m[2][3] = 0.0 - pos[3] * normal[2];
-	proj.m[3][3] = dot - pos[3] * normal[3];
-
-	glMultMatrixf((GLfloat *) proj.m);
-}
-
-/*
- * @brief Re-draws the mesh using the stencil test. Meshes with stale lighting
- * information, or with a lighting point above our view, are not drawn.
- */
-static void R_DrawMeshShadow_default(const r_entity_t *e) {
-
-	const _Bool lighting = r_state.lighting_enabled;
-	const _Bool blend = r_state.blend_enabled;
-
-	if (!r_shadows->value)
-		return;
-
-	if (r_draw_wireframe->value)
-		return;
-
-	if (e->effects & EF_NO_SHADOW)
-		return;
-
-	if (e->lighting->plane.type == PLANE_NONE)
-		return;
-
-#if 0
-	r_corona_t c;
-
-	VectorCopy(e->lighting->pos, c.origin);
-	VectorCopy(e->lighting->color, c.color);
-	c.radius = e->lighting->light;
-	c.flicker = 0.0;
-
-	R_AddCorona(&c);
-#endif
-
-	if (lighting)
-		R_EnableLighting(NULL, false);
-
-	R_EnableTexture(&texunit_diffuse, false);
-
-	R_SetMeshShadowColor_default(e);
-
-	if (!blend)
-		R_EnableBlend(true);
-
-	R_RotateForMeshShadow_default(e);
-
-	R_EnableStencilTest(true);
-
-	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
-
-	R_EnableStencilTest(false);
-
-	R_RotateForMeshShadow_default(NULL);
-
-	if (!blend)
-		R_EnableBlend(false);
-
-	R_EnableTexture(&texunit_diffuse, true);
-
-	R_Color(NULL);
-
-	if (lighting)
-		R_EnableLighting(r_state.default_program, true);
 }
 
 /*

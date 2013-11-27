@@ -271,7 +271,7 @@ void R_DrawBspLeafs(void) {
 
 	glEnable(GL_POLYGON_OFFSET_FILL);
 
-	glPolygonOffset(-2.0, 0.0);
+	glPolygonOffset(-1.0, 1.0);
 
 	const r_bsp_leaf_t *l = r_model_state.world->bsp->leafs;
 	uint16_t i;

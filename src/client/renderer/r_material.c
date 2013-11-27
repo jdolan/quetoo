@@ -390,7 +390,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 			if (!(s->flags & STAGE_DIFFUSE))
 				continue;
 
-			glPolygonOffset(j, 0.0); // increase depth offset for each stage
+			glPolygonOffset(j, 1.0); // increase depth offset for each stage
 
 			R_SetStageState(surf, s);
 
@@ -451,7 +451,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 		if (!(s->flags & STAGE_DIFFUSE))
 			continue;
 
-		glPolygonOffset(j, 0.0); // increase depth offset for each stage
+		glPolygonOffset(j, 1.0); // increase depth offset for each stage
 
 		R_SetStageState(NULL, s);
 
