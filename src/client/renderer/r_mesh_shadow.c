@@ -125,7 +125,7 @@ static void R_SetMeshShadowState_default(const r_entity_t *e) {
 
 	glDisable(GL_DEPTH_TEST);
 
-	R_EnableStencilTest(true, GL_ZERO);
+	R_EnableStencilTest(true, GL_KEEP);
 
 	glStencilFunc(GL_EQUAL, R_STENCIL_REF(&e->lighting->plane), ~0);
 
