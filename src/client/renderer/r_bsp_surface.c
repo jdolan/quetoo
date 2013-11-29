@@ -31,15 +31,15 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		vec4_t color = { 1.0, 1.0, 1.0, 1.0 };
 
 		switch (surf->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
-		case SURF_BLEND_33:
-			color[3] = 0.33;
-			break;
-		case SURF_BLEND_66:
-			color[3] = 0.66;
-			break;
-		default: // both flags mean use the texture's alpha channel
-			color[3] = 1.0;
-			break;
+			case SURF_BLEND_33:
+				color[3] = 0.33;
+				break;
+			case SURF_BLEND_66:
+				color[3] = 0.66;
+				break;
+			default: // both flags mean use the texture's alpha channel
+				color[3] = 1.0;
+				break;
 		}
 
 		R_Color(color);
@@ -62,6 +62,9 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		else
 			R_EnableLights(0);
 	}
+
+	if (r_state.stencil_test_enabled) // write to stencil buffer to clip shadows
+		glStencilFunc(GL_ALWAYS, R_STENCIL_REF(surf->plane), ~0);
 }
 
 /*
@@ -152,7 +155,11 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(r_state.default_program, true);
 
+	R_EnableStencilTest(true, GL_REPLACE);
+
 	R_DrawBspSurfaces_default(surfs);
+
+	R_EnableStencilTest(false, GL_ZERO);
 
 	R_EnableLighting(NULL, false);
 

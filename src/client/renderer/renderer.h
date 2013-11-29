@@ -46,6 +46,7 @@
 #include "r_matrix.h"
 #include "r_media.h"
 #include "r_mesh_model.h"
+#include "r_mesh_shadow.h"
 #include "r_mesh.h"
 #include "r_model.h"
 #include "r_particle.h"

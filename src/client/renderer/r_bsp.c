@@ -271,8 +271,6 @@ void R_DrawBspLeafs(void) {
 
 	glEnable(GL_POLYGON_OFFSET_FILL);
 
-	glPolygonOffset(-1.0, 1.0);
-
 	const r_bsp_leaf_t *l = r_model_state.world->bsp->leafs;
 	uint16_t i;
 
@@ -298,7 +296,6 @@ void R_DrawBspLeafs(void) {
 		}
 	}
 
-	glPolygonOffset(0.0, 0.0);
 	glDisable(GL_POLYGON_OFFSET_FILL);
 
 	R_EnableTexture(&texunit_diffuse, true);

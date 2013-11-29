@@ -102,7 +102,7 @@ void R_BindBuffer(GLenum target, GLenum type, GLuint id);
 void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
 void R_EnableAlphaTest(_Bool enable);
-void R_EnableStencilTest(_Bool enable);
+void R_EnableStencilTest(_Bool enable, GLenum op);
 void R_EnableTexture(r_texunit_t *texunit, _Bool enable);
 void R_EnableColorArray(_Bool enable);
 void R_EnableLighting(r_program_t *program, _Bool enable);

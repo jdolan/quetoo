@@ -256,6 +256,13 @@ typedef struct {
 typedef void (*BspSurfacesDrawFunc)(const r_bsp_surfaces_t *surfs);
 
 /*
+ * @brief Yields a unique-enough stencil value for surfaces in order to perform
+ * a meaningful stencil buffer write. This value can be used in a stencil test
+ * to clip decals and shadows to a surface's geometry.
+ */
+#define R_STENCIL_REF(plane) (((plane)->type + (uint32_t) (plane)->dist) % 0xff)
+
+/*
  * @brief BSP nodes comprise the tree representation of the world. At compile
  * time, the map is divided into convex volumes that fall along brushes
  * (walls). These volumes become nodes. The planes these divisions create
@@ -572,6 +579,7 @@ typedef struct r_bsp_light_ref_s {
 	r_bsp_light_t *bsp_light;
 	vec3_t dir;
 	vec_t light;
+	vec_t shadow;
 } r_bsp_light_ref_t;
 
 typedef enum {
@@ -591,6 +599,7 @@ typedef struct r_lighting_s {
 	vec3_t pos; // the weighted, average lighting position
 	vec3_t color; // combined lighting color
 	vec_t light; // total light received
+	vec_t shadow; // fraction of light to reach shadow plane
 	c_bsp_plane_t plane; // the ground plane for shadow projection
 	r_bsp_light_ref_t bsp_light_refs[MAX_ACTIVE_LIGHTS]; // light sources
 	r_lighting_state_t state;

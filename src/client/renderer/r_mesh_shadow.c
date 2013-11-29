@@ -29,12 +29,14 @@
  */
 static void R_SetMeshShadowColor_default(const r_entity_t *e) {
 
-	vec_t alpha = r_shadows->value * MESH_SHADOW_ALPHA;
+	vec_t alpha = /*e->lighting->shadow */r_shadows->value * MESH_SHADOW_ALPHA;
 
 	if (e->effects & EF_BLEND)
 		alpha *= e->color[3];
 
-	alpha *= 1.0 - (e->origin[2] - e->lighting->plane.dist) / LIGHTING_SHADOW_DISTANCE;
+	while (e->parent) {
+		e = e->parent;
+	}
 
 	vec4_t color = { 0.0, 0.0, 0.0, alpha };
 
@@ -42,37 +44,50 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e) {
 }
 
 /*
- * @brief Applies translation, rotation and scale for the shadow of the specified
- * entity. In order to reuse the vertex arrays from the primary rendering
- * pass, the light position and ground normal are transformed into model-view space.
+ * @brief Applies translation, rotation, and projection (scale) for the entity.
+ * We borrow the standard projection matrix from SGI's cook book, and adjust it
+ * for Quake's negative-distance planes:
+ *
+ * ftp://ftp.sgi.com/opengl/contrib/blythe/advanced99/notes/node192.html
+ *
+ * Light sources are treated as directional rather than point lights so that
+ * they produce smaller shadow projections and thus fewer artifacts.
  */
 static void R_RotateForMeshShadow_default(const r_entity_t *e) {
-	vec4_t pos, normal;
+	vec4_t pos, normal, origin;
 	matrix4x4_t proj;
+	vec_t dot;
 
 	if (!e) {
 		glPopMatrix();
 		return;
 	}
 
+	// transform the lighting position into model space
 	R_TransformForEntity(e, e->lighting->pos, pos);
 	pos[3] = 0.0;
 
+	// along with the impacted plane that we will project onto
 	Matrix4x4_TransformPositivePlane(&e->inverse_matrix, e->lighting->plane.normal[0],
 			e->lighting->plane.normal[1], e->lighting->plane.normal[2], e->lighting->plane.dist,
 			normal);
 
+	// project the shadow origin onto the impacted plane in model space
+	dot = DotProduct(vec3_origin, normal) - normal[3];
+	VectorScale(normal, -dot, origin);
+
 	glPushMatrix();
 
-	glTranslatef(0.0, 0.0, normal[3] + 1.0);
+	glTranslatef(origin[0], origin[1], origin[2]);
 
 	glRotatef(-e->angles[ROLL], 1.0, 0.0, 0.0);
 	glRotatef(-e->angles[PITCH], 0.0, 1.0, 0.0);
 
 	glScalef(1.0, 1.0, 0.0);
 
+	// calculate the projection, accounting for Quake's positive plane equation
 	normal[3] = -normal[3];
-	const vec_t dot = DotProduct(pos, normal) + pos[3] * normal[3];
+	dot = DotProduct(pos, normal) + pos[3] * normal[3];
 
 	proj.m[0][0] = dot - pos[0] * normal[0];
 	proj.m[1][0] = 0.0 - pos[0] * normal[1];
@@ -99,6 +114,8 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
  */
 static void R_SetMeshShadowState_default(const r_entity_t *e) {
 
+	R_EnableLighting(NULL, false);
+
 	R_EnableTexture(&texunit_diffuse, false);
 
 	R_SetMeshShadowColor_default(e);
@@ -106,19 +123,25 @@ static void R_SetMeshShadowState_default(const r_entity_t *e) {
 	if (!(e->effects & EF_BLEND))
 		R_EnableBlend(true);
 
-	R_EnableStencilTest(true);
+	glDisable(GL_DEPTH_TEST);
+
+	R_EnableStencilTest(true, GL_ZERO);
+
+	glStencilFunc(GL_EQUAL, R_STENCIL_REF(&e->lighting->plane), ~0);
 
 	R_RotateForMeshShadow_default(e);
 }
 
 /*
- * @brief
+ * @brief Restores GL state.
  */
 static void R_ResetMeshShadowState_default(const r_entity_t *e) {
 
 	R_RotateForMeshShadow_default(NULL);
 
-	R_EnableStencilTest(false);
+	R_EnableStencilTest(false, GL_ZERO);
+
+	glEnable(GL_DEPTH_TEST);
 
 	if (!(e->effects & EF_BLEND))
 		R_EnableBlend(false);
@@ -126,11 +149,13 @@ static void R_ResetMeshShadowState_default(const r_entity_t *e) {
 	R_Color(NULL);
 
 	R_EnableTexture(&texunit_diffuse, true);
+
+	R_EnableLighting(r_state.default_program, true);
 }
 
 /*
- * @brief Re-draws the mesh using the stencil test. Meshes with stale lighting
- * information, or with a lighting point above our view, are not drawn.
+ * @brief Re-draws the mesh using the stencil test. Meshes with a lighting
+ * position above our view origin, are not drawn.
  */
 void R_DrawMeshShadow_default(const r_entity_t *e) {
 
@@ -143,7 +168,7 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 	if (e->effects & EF_NO_SHADOW)
 		return;
 
-	if (e->lighting->plane.type == PLANE_NONE)
+	if (e->lighting->shadow == 0.0)
 		return;
 
 #if 0

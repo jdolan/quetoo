@@ -97,35 +97,61 @@ static uint16_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 		// sort them by contribution
 		qsort((void *) light_refs, j, sizeof(r_bsp_light_ref_t), R_UpdateBspLightReferences_Compare);
 
+		// take the eight strongest sources
 		j = MIN(j, MAX_ACTIVE_LIGHTS);
+
+		// accumulate the total light value
+		for (i = 0; i < j; i++) {
+			lighting->light += light_refs[i].light;
+		}
 
 		// and copy them in
 		memcpy(lighting->bsp_light_refs, light_refs, j * sizeof(r_bsp_light_ref_t));
-
-		// accumulating the total light value
-		for (i = 0; i < j; i++) {
-			lighting->light += lighting->bsp_light_refs[i].light;
-		}
 	}
 
 	return j;
+}
+
+/*
+ * @brief Resolves the shadow plane and intensity for the specified point.
+ */
+static void R_UpdateShadow(r_lighting_t *lighting) {
+	vec3_t dir, impact;
+
+	// resolve the lighting direction
+	VectorSubtract(lighting->pos, lighting->origin, dir);
+	VectorNormalize(dir);
+
+	// cast out on the lighting direction
+	VectorMA(lighting->origin, -lighting->light, dir, impact);
+
+	// skipping the entity itself, impacting solids
+	c_trace_t trace = Cl_Trace(lighting->origin, impact, NULL, NULL, lighting->number, MASK_SOLID);
+
+	// resolve the shadow plane
+	if (!trace.start_solid && trace.fraction < 1.0) {
+		lighting->shadow = 1.0 - trace.fraction;
+		lighting->plane = trace.plane;
+	} else {
+		lighting->shadow = 0.0;
+		lighting->plane.type = PLANE_NONE;
+	}
 }
 
 #define LIGHTING_AMBIENT_ATTENUATION 96.0
 #define LIGHTING_AMBIENT_DIST 64.0
 
 /*
- * @brief Resolves static lighting information for the specified point, including
- * most relevant static light sources and shadow positioning.
+ * @brief Resolves light source and shadow information for the specified point.
  */
 void R_UpdateLighting(r_lighting_t *lighting) {
 	uint16_t i, j;
-	vec3_t dir, shadow;
 
 	// start by accounting for an ambient light source above the origin
 	VectorCopy(r_bsp_light_state.ambient_light, lighting->color);
 
 	lighting->light = LIGHTING_AMBIENT_ATTENUATION - LIGHTING_AMBIENT_DIST;
+	lighting->shadow = Clamp(lighting->light - lighting->radius, 0.0, HUGE_VALF);
 
 	VectorMA(lighting->origin, LIGHTING_AMBIENT_DIST, vec3_up, lighting->pos);
 
@@ -143,22 +169,8 @@ void R_UpdateLighting(r_lighting_t *lighting) {
 		VectorMA(lighting->color, intensity, r->bsp_light->color, lighting->color);
 	}
 
-	// resolve the lighting direction
-	VectorSubtract(lighting->pos, lighting->origin, dir);
-	VectorNormalize(dir);
-
-	// cast out on the lighting direction
-	VectorMA(lighting->origin, -LIGHTING_SHADOW_DISTANCE, dir, shadow);
-
-	// skipping the entity itself, impacting solids
-	c_trace_t trace = Cl_Trace(lighting->origin, shadow, NULL, NULL, lighting->number, MASK_SOLID);
-
-	// resolve the shadow plane
-	if (!trace.start_solid && trace.fraction < 1.0) {
-		lighting->plane = trace.plane;
-	} else {
-		lighting->plane.type = PLANE_NONE;
-	}
+	// resolve the shadow plane and intensity
+	R_UpdateShadow(lighting);
 
 	lighting->state = LIGHTING_READY; // mark it clean
 }

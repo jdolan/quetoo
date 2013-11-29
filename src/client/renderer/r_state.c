@@ -26,11 +26,7 @@ static cvar_t *r_get_error;
 r_state_t r_state;
 
 const vec_t default_texcoords[] = { // useful for particles, pics, etc..
-	0.0, 0.0,
-	1.0, 0.0,
-	1.0, 1.0,
-	0.0, 1.0
-};
+		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 };
 
 /*
  * @brief Queries OpenGL for any errors and prints them as warnings.
@@ -48,24 +44,24 @@ void R_GetError_(const char *function, const char *msg) {
 			return;
 
 		switch (err) {
-		case GL_INVALID_ENUM:
-			s = "GL_INVALID_ENUM";
-			break;
-		case GL_INVALID_VALUE:
-			s = "GL_INVALID_VALUE";
-			break;
-		case GL_INVALID_OPERATION:
-			s = "GL_INVALID_OPERATION";
-			break;
-		case GL_STACK_OVERFLOW:
-			s = "GL_STACK_OVERFLOW";
-			break;
-		case GL_OUT_OF_MEMORY:
-			s = "GL_OUT_OF_MEMORY";
-			break;
-		default:
-			s = "Unkown error";
-			break;
+			case GL_INVALID_ENUM:
+				s = "GL_INVALID_ENUM";
+				break;
+			case GL_INVALID_VALUE:
+				s = "GL_INVALID_VALUE";
+				break;
+			case GL_INVALID_OPERATION:
+				s = "GL_INVALID_OPERATION";
+				break;
+			case GL_STACK_OVERFLOW:
+				s = "GL_STACK_OVERFLOW";
+				break;
+			case GL_OUT_OF_MEMORY:
+				s = "GL_OUT_OF_MEMORY";
+				break;
+			default:
+				s = "Unkown error";
+				break;
 		}
 
 		Sys_Backtrace();
@@ -193,26 +189,26 @@ void R_BindGlossmapTexture(GLuint texnum) {
 void R_BindArray(GLenum target, GLenum type, GLvoid *array) {
 
 	switch (target) {
-	case GL_VERTEX_ARRAY:
-		if (r_state.ortho)
-			glVertexPointer(2, type, 0, array);
-		else
-			glVertexPointer(3, type, 0, array);
-		break;
-	case GL_TEXTURE_COORD_ARRAY:
-		glTexCoordPointer(2, type, 0, array);
-		break;
-	case GL_COLOR_ARRAY:
-		glColorPointer(4, type, 0, array);
-		break;
-	case GL_NORMAL_ARRAY:
-		glNormalPointer(type, 0, array);
-		break;
-	case GL_TANGENT_ARRAY:
-		R_AttributePointer("TANGENT", 4, array);
-		break;
-	default:
-		break;
+		case GL_VERTEX_ARRAY:
+			if (r_state.ortho)
+				glVertexPointer(2, type, 0, array);
+			else
+				glVertexPointer(3, type, 0, array);
+			break;
+		case GL_TEXTURE_COORD_ARRAY:
+			glTexCoordPointer(2, type, 0, array);
+			break;
+		case GL_COLOR_ARRAY:
+			glColorPointer(4, type, 0, array);
+			break;
+		case GL_NORMAL_ARRAY:
+			glNormalPointer(type, 0, array);
+			break;
+		case GL_TANGENT_ARRAY:
+			R_AttributePointer("TANGENT", 4, array);
+			break;
+		default:
+			break;
 	}
 }
 
@@ -222,26 +218,26 @@ void R_BindArray(GLenum target, GLenum type, GLvoid *array) {
 void R_BindDefaultArray(GLenum target) {
 
 	switch (target) {
-	case GL_VERTEX_ARRAY:
-		if (r_state.ortho)
-			R_BindArray(target, GL_SHORT, r_state.vertex_array_2d);
-		else
-			R_BindArray(target, GL_FLOAT, r_state.vertex_array_3d);
-		break;
-	case GL_TEXTURE_COORD_ARRAY:
-		R_BindArray(target, GL_FLOAT, r_state.active_texunit->texcoord_array);
-		break;
-	case GL_COLOR_ARRAY:
-		R_BindArray(target, GL_FLOAT, r_state.color_array);
-		break;
-	case GL_NORMAL_ARRAY:
-		R_BindArray(target, GL_FLOAT, r_state.normal_array);
-		break;
-	case GL_TANGENT_ARRAY:
-		R_BindArray(target, GL_FLOAT, r_state.tangent_array);
-		break;
-	default:
-		break;
+		case GL_VERTEX_ARRAY:
+			if (r_state.ortho)
+				R_BindArray(target, GL_SHORT, r_state.vertex_array_2d);
+			else
+				R_BindArray(target, GL_FLOAT, r_state.vertex_array_3d);
+			break;
+		case GL_TEXTURE_COORD_ARRAY:
+			R_BindArray(target, GL_FLOAT, r_state.active_texunit->texcoord_array);
+			break;
+		case GL_COLOR_ARRAY:
+			R_BindArray(target, GL_FLOAT, r_state.color_array);
+			break;
+		case GL_NORMAL_ARRAY:
+			R_BindArray(target, GL_FLOAT, r_state.normal_array);
+			break;
+		case GL_TANGENT_ARRAY:
+			R_BindArray(target, GL_FLOAT, r_state.tangent_array);
+			break;
+		default:
+			break;
 	}
 }
 
@@ -316,17 +312,19 @@ void R_EnableAlphaTest(_Bool enable) {
 /*
  * @brief Enables the stencil test for e.g. rendering shadow volumes.
  */
-void R_EnableStencilTest(_Bool enable) {
+void R_EnableStencilTest(_Bool enable, GLenum op) {
 
 	if (r_state.stencil_test_enabled == enable)
 		return;
 
 	r_state.stencil_test_enabled = enable;
 
-	if (enable)
+	if (enable) {
 		glEnable(GL_STENCIL_TEST);
-	else
+		glStencilOp(GL_KEEP, GL_KEEP, op);
+	} else {
 		glDisable(GL_STENCIL_TEST);
+	}
 }
 
 /*
@@ -451,7 +449,6 @@ void R_EnableShell(_Bool enable) {
 
 	if (enable) {
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(-1.0, 1.0);
 
 		R_EnableBlend(true);
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -462,7 +459,6 @@ void R_EnableShell(_Bool enable) {
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		R_EnableBlend(false);
 
-		glPolygonOffset(0.0, 0.0);
 		glDisable(GL_POLYGON_OFFSET_FILL);
 
 		if (r_state.active_program)
@@ -644,9 +640,8 @@ void R_InitState(void) {
 	// alpha test parameters
 	glAlphaFunc(GL_GREATER, 0.25);
 
-	// stencil test parameters
-	glStencilFunc(GL_GEQUAL, 1, 0xff);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+	// polygon offset parameters
+	glPolygonOffset(-1.0, 1.0);
 
 	// fog parameters
 	glFogi(GL_FOG_MODE, GL_LINEAR);

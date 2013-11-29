@@ -398,7 +398,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		}
 	}
 
-	glPolygonOffset(0.0, 0.0);
+	glPolygonOffset(-1.0, 1.0);
 	glDisable(GL_POLYGON_OFFSET_FILL);
 
 	glLoadIdentity();
@@ -458,7 +458,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 		glDrawArrays(GL_TRIANGLES, offset, count);
 	}
 
-	glPolygonOffset(0.0, 0.0);
+	glPolygonOffset(-1.0, 1.0);
 
 	if (!blend)
 		R_EnableBlend(false);

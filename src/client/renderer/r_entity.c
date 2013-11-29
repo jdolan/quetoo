@@ -273,11 +273,7 @@ void R_DrawOpaqueMeshEntities(void) {
 	if (!r_entities.mesh)
 		return;
 
-	R_EnableLighting(r_state.default_program, true);
-
 	R_DrawMeshEntities(r_entities.mesh);
-
-	R_EnableLighting(NULL, false);
 }
 
 /*
@@ -290,11 +286,7 @@ void R_DrawAlphaTestMeshEntities(void) {
 
 	R_EnableAlphaTest(true);
 
-	R_EnableLighting(r_state.default_program, true);
-
 	R_DrawMeshEntities(r_entities.mesh_alpha_test);
-
-	R_EnableLighting(NULL, false);
 
 	R_EnableAlphaTest(false);
 }
@@ -370,6 +362,8 @@ void R_DrawEntities(void) {
 
 	R_DrawBspEntities();
 
+	R_EnableLighting(r_state.default_program, true);
+
 	R_DrawOpaqueMeshEntities();
 
 	R_DrawAlphaTestMeshEntities();
@@ -380,6 +374,8 @@ void R_DrawEntities(void) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		R_EnableTexture(&texunit_diffuse, true);
 	}
+
+	R_EnableLighting(NULL, false);
 
 	R_Color(NULL);
 
