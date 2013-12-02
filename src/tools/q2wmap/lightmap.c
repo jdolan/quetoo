@@ -261,10 +261,10 @@ static int32_t num_lights;
 
 // sunlight, borrowed from ufo2map
 typedef struct sun_s {
-	vec_t intensity;
+	vec_t light;
 	vec3_t color;
 	vec3_t angles; // entity-style angles
-	vec3_t normal; // normalized direction
+	vec3_t dir; // normalized direction
 } sun_t;
 
 static sun_t sun;
@@ -407,10 +407,10 @@ void BuildLights(void) {
 	Com_Verbose("Lighting %i lights\n", num_lights);
 
 	{
-		// sun.intensity parameters come from worldspawn
+		// sun.light parameters come from worldspawn
 		const entity_t *e = &entities[0];
 
-		sun.intensity = FloatForKey(e, "sun_light");
+		sun.light = FloatForKey(e, "sun_light");
 
 		VectorSet(sun.color, 1.0, 1.0, 1.0);
 		color = ValueForKey(e, "sun_color");
@@ -424,11 +424,11 @@ void BuildLights(void) {
 		VectorClear(sun.angles);
 		sscanf(angles, "%f %f", &sun.angles[0], &sun.angles[1]);
 
-		AngleVectors(sun.angles, sun.normal, NULL, NULL);
+		AngleVectors(sun.angles, sun.dir, NULL, NULL);
 
-		if (sun.intensity)
+		if (sun.light)
 			Com_Verbose("Sun defined with light %3.0f, color %0.2f %0.2f %0.2f, "
-				"angles %1.3f %1.3f %1.3f\n", sun.intensity, sun.color[0], sun.color[1],
+				"angles %1.3f %1.3f %1.3f\n", sun.light, sun.color[0], sun.color[1],
 					sun.color[2], sun.angles[0], sun.angles[1], sun.angles[2]);
 
 		// ambient light, also from worldspawn
@@ -471,28 +471,28 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *s
 	vec_t dot, light;
 	c_trace_t trace;
 
-	if (!sun.intensity)
+	if (!sun.light)
 		return;
 
-	dot = DotProduct(sun.normal, normal);
+	dot = DotProduct(sun.dir, normal);
 
 	if (dot <= 0.001)
 		return; // wrong direction
 
-	VectorMA(pos, 2.0 * MAX_WORLD_COORD, sun.normal, delta);
+	VectorMA(pos, MAX_WORLD_DIST, sun.dir, delta);
 
 	Light_Trace(&trace, pos, delta, CONTENTS_SOLID);
 
 	if (trace.fraction < 1.0 && !(trace.surface->flags & SURF_SKY))
 		return; // occluded
 
-	light = sun.intensity * dot * scale;
+	light = sun.light * dot * scale;
 
 	// add some light to it
 	VectorMA(sample, light, sun.color, sample);
 
 	// and accumulate the direction
-	VectorMix(normal, sun.normal, light / sun.intensity, delta);
+	VectorMix(normal, sun.dir, light / sun.light, delta);
 	VectorMA(direction, light * scale, delta, direction);
 }
 

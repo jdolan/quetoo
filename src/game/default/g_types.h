@@ -194,6 +194,7 @@ typedef enum {
 #define EF_CTF_BLUE			(EF_GAME << 4) // blue shell
 #define EF_CTF_RED			(EF_GAME << 5) // red shell
 #define EF_DESPAWN			(EF_GAME << 6) // translucent
+
 /*
  * @brief Game-specific entity state trails.
  */
@@ -291,7 +292,7 @@ typedef enum {
 	AMMO_BOLTS,
 	AMMO_SLUGS,
 	AMMO_NUKES
-}g_ammo_t;
+} g_ammo_t;
 
 /*
  * @brief Armor types.
@@ -302,7 +303,7 @@ typedef enum {
 	ARMOR_COMBAT,
 	ARMOR_BODY,
 	ARMOR_SHARD
-}g_armor_t;
+} g_armor_t;
 
 /*
  * @brief Health types.
@@ -313,7 +314,7 @@ typedef enum {
 	HEALTH_MEDIUM,
 	HEALTH_LARGE,
 	HEALTH_MEGA
-}g_health_t;
+} g_health_t;
 
 /*
  * @brief Move types govern the physics dispatch in G_RunEntity.
@@ -328,7 +329,7 @@ typedef enum {
 	MOVE_TYPE_FLY,
 	MOVE_TYPE_TOSS,
 	// gravity
-}g_move_type_t;
+} g_move_type_t;
 
 /*
  * @brief A synonym for readability; MOVE_TYPE_THINK implies that the entity's
@@ -346,7 +347,7 @@ typedef enum {
 	ITEM_HEALTH,
 	ITEM_POWERUP,
 	ITEM_WEAPON
-}g_item_type_t;
+} g_item_type_t;
 
 /*
  * @brief Items are touchable entities that players visit to acquire inventory.
@@ -374,7 +375,7 @@ typedef struct g_item_s {
 	vec_t priority; // AI priority level
 
 	const char *precaches; // string of all models, sounds, and images this item will use
-}g_item_t;
+} g_item_t;
 
 /*
  * @brief A singleton container used to hold entity information that is set
@@ -403,7 +404,7 @@ typedef struct {
 	int32_t height;
 	char *noise;
 	char *item;
-}g_spawn_temp_t;
+} g_spawn_temp_t;
 
 #define EOFS(x) (ptrdiff_t)&(((g_edict_t *) 0)->x)
 #define LOFS(x) (ptrdiff_t)&(((g_edict_t *) 0)->locals.x)
@@ -417,7 +418,7 @@ typedef enum {
 	MOVE_STATE_GOING_UP,
 	MOVE_STATE_GOING_DOWN,
 	MOVE_STATE_TOP,
-}g_move_state_t;
+} g_move_state_t;
 
 /*
  * @brief Physics parameters and think functions for entities which move.
@@ -449,7 +450,7 @@ typedef struct {
 	vec_t remaining_distance;
 	vec_t decel_distance;
 	void (*Done)(g_edict_t *);
-}g_move_info_t;
+} g_move_info_t;
 
 /*
  * @brief This structure is initialized when the game module is loaded and
@@ -461,7 +462,7 @@ typedef struct {
 	g_client_t *clients; // [sv_max_clients]
 
 	g_spawn_temp_t spawn;
-}g_game_t;
+} g_game_t;
 
 extern g_game_t g_game;
 
@@ -476,14 +477,14 @@ typedef struct {
 		uint16_t combat_armor;
 		uint16_t jacket_armor;
 		uint16_t quad_damage;
-	}items;
+	} items;
 
 	struct {
 		uint16_t gibs[NUM_GIB_MODELS];
 
 		uint16_t grenade;
 		uint16_t rocket;
-	}models;
+	} models;
 
 	struct {
 		uint16_t gib_hits[NUM_GIB_MODELS];
@@ -501,9 +502,9 @@ typedef struct {
 
 		uint16_t weapon_no_ammo;
 		uint16_t weapon_switch;
-	}sounds;
+	} sounds;
 
-}g_media_t;
+} g_media_t;
 
 /*
  * @brief The main structure for all world management. This is cleared at each
@@ -551,7 +552,7 @@ typedef struct {
 	uint32_t vote_time; // time vote started
 
 	g_edict_t *current_entity; // entity running from G_RunFrame
-}g_level_t;
+} g_level_t;
 
 /*
  * @brief Means of death.
@@ -600,7 +601,7 @@ typedef enum {
 	VOTE_NO_OP,
 	VOTE_YES,
 	VOTE_NO
-}g_vote_t;
+} g_vote_t;
 
 /*
  * @brief Team name and team skin changes are throttled.
@@ -617,7 +618,7 @@ typedef struct {
 	int16_t captures;
 	uint32_t name_time;
 	uint32_t skin_time;
-}g_team_t;
+} g_team_t;
 
 /*
  * @brief The default user info string (name and skin).
@@ -669,7 +670,7 @@ typedef struct {
 	uint32_t match_num; // most recent match
 	uint32_t round_num; // most recent arena round
 	int32_t color; // weapon effect colors
-}g_client_persistent_t;
+} g_client_persistent_t;
 
 /*
  * @brief This structure is cleared on each spawn, with the persistent structure
@@ -728,7 +729,7 @@ typedef struct {
 	g_edict_t *old_chase_target; // player we were chasing
 
 	const g_item_t *last_dropped; // last dropped item, used for variable expansion
-}g_client_locals_t;
+} g_client_locals_t;
 
 /*
  * @brief Finally the g_edict_locals structure extends the server stub to
@@ -813,7 +814,7 @@ typedef struct {
 	const g_item_t *item; // for bonus items
 
 	vec3_t map_origin; // where the map says we spawn
-}g_edict_locals_t;
+} g_edict_locals_t;
 
 #include "game/game.h"
 

@@ -152,8 +152,10 @@ _Bool R_CullMeshModel(const r_entity_t *e) {
  */
 void R_UpdateMeshModelLighting(const r_entity_t *e) {
 
-	if (e->lighting->state == LIGHTING_READY)
-		return;
+	if (e->lighting->state == LIGHTING_READY) {
+		if (e->lighting->scale == r_lighting->value)
+			return;
+	}
 
 	if (e->effects & EF_WEAPON)
 		VectorCopy(r_view.origin, e->lighting->origin);
@@ -165,6 +167,8 @@ void R_UpdateMeshModelLighting(const r_entity_t *e) {
 	// calculate scaled bounding box in world space
 	VectorMA(e->lighting->origin, e->scale, e->model->mins, e->lighting->mins);
 	VectorMA(e->lighting->origin, e->scale, e->model->maxs, e->lighting->maxs);
+
+	e->lighting->scale = r_lighting->value;
 
 	//Com_Debug("%s\n", e->model->media.name);
 	R_UpdateLighting(e->lighting);
@@ -182,7 +186,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 		int32_t i;
 
 		for (i = 0; i < 3; i++) {
-			color[i] = e->color[i] * e->lighting->color[i];
+			//FIXME color[i] = e->color[i] * e->lighting->color[i];
 			if (color[i] > max)
 				max = color[i];
 		}
@@ -190,7 +194,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 		if (max > 1.0) // scale it back to 1.0
 			VectorScale(color, 1.0 / max, color);
 	} else {
-		VectorCopy(r_bsp_light_state.ambient_light, color);
+		VectorCopy(r_bsp_light_state.ambient, color);
 	}
 
 	if (e->effects & EF_BLEND)
@@ -413,9 +417,9 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 		R_DrawMeshShell_default(e); // draw any shell effects
 	}
 
-	R_DrawMeshShadow_default(e); // lastly draw the shadow
+	R_ResetMeshState_default(e); // reset state
 
-	R_ResetMeshState_default(e);
+	R_DrawMeshShadow_default(e); // and lastly draw the shadow
 
 	r_view.num_mesh_models++;
 	r_view.num_mesh_tris += e->model->num_verts / 3;

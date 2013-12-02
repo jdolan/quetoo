@@ -21,7 +21,7 @@
 #ifndef __R_MATRIX_H__
 #define __R_MATRIX_H__
 
-//#define MATRIX4x4_OPENGLORIENTATION
+#define MATRIX4x4_OPENGLORIENTATION
 
 typedef struct matrix4x4_s
 {

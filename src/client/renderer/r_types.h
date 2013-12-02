@@ -553,7 +553,7 @@ typedef struct r_model_s {
  * @brief Dynamic light sources expire immediately and must be re-added
  * for each frame they appear.
  */
-typedef struct r_light_s {
+typedef struct {
 	vec3_t origin;
 	vec_t radius;
 	vec3_t color;
@@ -566,22 +566,46 @@ typedef struct r_light_s {
  * @brief Sustains are light flashes which slowly decay over time. These
  * persist over multiple frames.
  */
-typedef struct r_sustained_light_s {
+typedef struct {
 	r_light_t light;
 	uint32_t time;
 	uint32_t sustain;
 } r_sustained_light_t;
 
 /*
+ * @brief Describes the projection of a mesh model onto a BSP plane.
+ */
+typedef struct {
+	vec3_t pos; // light position in world space
+	c_bsp_plane_t plane;
+	vec_t intensity;
+} r_shadow_t;
+
+/*
+ * @brief Describes ambient and sunlight contributions to point lighting.
+ */
+typedef struct {
+	vec_t ambient;
+	vec_t exposure;
+	vec_t diffuse;
+	vec3_t dir;
+	vec3_t color;
+	r_shadow_t shadow;
+} r_illumination_t;
+
+/*
  * @brief A reference to a static BSP light source plus a light level.
  */
-typedef struct r_bsp_light_ref_s {
+typedef struct {
 	r_bsp_light_t *bsp_light;
+	vec_t diffuse;
 	vec3_t dir;
-	vec_t light;
-	vec_t shadow;
+	r_shadow_t shadow;
 } r_bsp_light_ref_t;
 
+/*
+ * @brief Static lighting information is cached on the client entity.
+ */
 typedef enum {
 	LIGHTING_INIT,
 	LIGHTING_DIRTY,
@@ -596,11 +620,8 @@ typedef struct r_lighting_s {
 	vec3_t origin; // entity origin
 	vec_t radius; // entity radius
 	vec3_t mins, maxs; // entity bounding box in world space
-	vec3_t pos; // the weighted, average lighting position
-	vec3_t color; // combined lighting color
-	vec_t light; // total light received
-	vec_t shadow; // fraction of light to reach shadow plane
-	c_bsp_plane_t plane; // the ground plane for shadow projection
+	vec_t scale; // lighting scale (typically r_lighting->value)
+	r_illumination_t illumination; // ambient and sunlight
 	r_bsp_light_ref_t bsp_light_refs[MAX_ACTIVE_LIGHTS]; // light sources
 	r_lighting_state_t state;
 } r_lighting_t;

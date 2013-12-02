@@ -30,6 +30,8 @@ vec3_t vec3_up = { 0.0, 0.0, 1.0 };
 
 vec3_t vec3_down = { 0.0, 0.0, -1.0 };
 
+vec3_t vec3_forward = { 0.0, 1.0, 0.0 };
+
 /*
  * @brief Returns a pseudo-random positive integer.
  *
@@ -92,18 +94,10 @@ void VectorAngles(const vec3_t vector, vec3_t angles) {
 
 	const vec_t forward = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
 
-	vec_t pitch = Degrees(atan2(vector[2], forward));
-	vec_t yaw = Degrees(atan2(vector[1], vector[0]));
+	vec_t pitch = ClampAngle(-Degrees(atan2(vector[2], forward)));
+	vec_t yaw = ClampAngle(Degrees(atan2(vector[1], vector[0])));
 
-	while (pitch < 0.0) {
-		pitch += 360.0;
-	}
-
-	while (yaw < 0.0) {
-		yaw += 360.0;
-	}
-
-	VectorSet(angles, -pitch, yaw, 0.0);
+	VectorSet(angles, pitch, yaw, 0.0);
 }
 
 /*

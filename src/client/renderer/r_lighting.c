@@ -22,16 +22,130 @@
 #include "r_local.h"
 #include "client.h"
 
+/*
+ * @brief The illumination light source is cast far away so that it's shadow
+ * projection almost resembles a directional one.
+ */
+#define LIGHTING_AMBIENT_ATTENUATION 640.0
+#define LIGHTING_AMBIENT_DIST 580.0
+
+/*
+ * @brief Resolves ambient contribution for the specified point.
+ */
+static void R_UpdateIllumination_Ambient(r_lighting_t *lighting) {
+
+	r_illumination_t *il = &lighting->illumination;
+
+	il->ambient = LIGHTING_AMBIENT_ATTENUATION * lighting->scale - LIGHTING_AMBIENT_DIST;
+}
+
+/*
+ * @brief Resolves diffuse (sunlight) contribution for the specified point.
+ */
+static void R_UpdateIllumination_Diffuse(r_lighting_t *lighting) {
+	vec3_t pos;
+
+	const r_sun_t *sun = &r_bsp_light_state.sun;
+
+	if (!sun->diffuse)
+		return;
+
+	r_illumination_t *il = &lighting->illumination;
+
+	const uint16_t skip = lighting->number;
+
+	il-> exposure = 0.0;
+
+	VectorMA(lighting->origin, MAX_WORLD_DIST, sun->dir, pos);
+
+	c_trace_t tr = Cl_Trace(lighting->origin, pos, NULL, NULL, skip, CONTENTS_SOLID);
+	if (tr.fraction < 1.0 && tr.surface->flags & SURF_SKY) {
+		il->exposure += 0.33;
+	}
+
+	VectorMA(lighting->maxs, MAX_WORLD_DIST, sun->dir, pos);
+
+	tr = Cl_Trace(lighting->maxs, pos, NULL, NULL, skip, CONTENTS_SOLID);
+	if (tr.fraction < 1.0 && tr.surface->flags & SURF_SKY) {
+		il->exposure += 0.33;
+	}
+
+	VectorMA(lighting->mins, MAX_WORLD_DIST, sun->dir, pos);
+
+	tr = Cl_Trace(lighting->mins, pos, NULL, NULL, skip, CONTENTS_SOLID);
+	if (tr.fraction < 1.0 && tr.surface->flags & SURF_SKY) {
+		il->exposure += 0.33;
+	}
+
+	il->diffuse = il->exposure * lighting->scale * sun->diffuse;
+}
+
+/*
+ * @brief Trace from the specified lighting point to the world, accounting for
+ * attenuation within the radius of the object. Any impacted planes are saved
+ * to the shadow.
+ */
+static void R_UpdateShadow(r_lighting_t *lighting, const vec3_t dir, vec_t light, r_shadow_t *s) {
+	vec3_t pos;
+
+	const vec_t dist = light - lighting->radius;
+
+	if (dist <= 0.0)
+		return;
+
+	// project outward along the lighting direction
+	VectorMA(lighting->origin, -dist, dir, pos);
+
+	// skipping the entity itself, impacting solids
+	const c_trace_t tr = Cl_Trace(lighting->origin, pos, NULL, NULL, lighting->number, MASK_SOLID);
+
+	// resolve the shadow plane
+	if (!tr.start_solid && tr.fraction < 1.0) {
+		s->intensity = 1.0 - tr.fraction;
+		s->plane = tr.plane;
+	} else {
+		s->intensity = 0.0;
+		s->plane.type = PLANE_NONE;
+	}
+}
+
+/*
+ * @brief Resolves ambient and sunlight contributions, plus the primary shadow,
+ * for the specified point.
+ */
+static void R_UpdateIllumination(r_lighting_t *lighting) {
+
+	r_illumination_t *il = &lighting->illumination;
+
+	R_UpdateIllumination_Ambient(lighting);
+
+	R_UpdateIllumination_Diffuse(lighting);
+
+	const r_sun_t *sun = &r_bsp_light_state.sun;
+
+	VectorMix(vec3_up, sun->dir, il->diffuse / (il->ambient + il->diffuse), il->dir);
+
+	VectorNormalize(il->dir);
+
+	VectorScale(r_bsp_light_state.ambient, lighting->scale, il->color);
+
+	VectorMA(il->color, il->exposure, r_bsp_light_state.sun.color, il->color);
+
+	VectorMA(lighting->origin, LIGHTING_AMBIENT_DIST, il->dir, il->shadow.pos);
+
+	R_UpdateShadow(lighting, il->dir, il->ambient + il->diffuse, &il->shadow);
+}
+
 #define LIGHTING_MAX_BSP_LIGHT_REFS 64
 
 /*
- * @brief A comparator for sorting r_bsp_light_ref_t elements via quick sort.
+ * @brief Qsort comparator for r_bsp_light_ref_t.
  */
-static int32_t R_UpdateBspLightReferences_Compare(const void *l1, const void *l2) {
+static int32_t R_BspLightReference_Compare(const void *l1, const void *l2) {
 	const r_bsp_light_ref_t *_l1 = (r_bsp_light_ref_t *) l1;
 	const r_bsp_light_ref_t *_l2 = (r_bsp_light_ref_t *) l2;
 
-	return (int32_t) (_l2->light - _l1->light);
+	return (int32_t) (_l2->diffuse - _l1->diffuse);
 }
 
 /*
@@ -39,31 +153,36 @@ static int32_t R_UpdateBspLightReferences_Compare(const void *l1, const void *l2
  * for the specified structure and returning the number of light sources found.
  * This facilitates directional shading in the fragment program.
  */
-static uint16_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
+static void R_UpdateBspLightReferences(r_lighting_t *lighting) {
 	r_bsp_light_ref_t light_refs[LIGHTING_MAX_BSP_LIGHT_REFS];
-	uint16_t i, j;
+	uint16_t i, n;
 
-	memset(lighting->bsp_light_refs, 0, sizeof(lighting->bsp_light_refs));
+	r_bsp_light_ref_t *r = lighting->bsp_light_refs;
+
+	memset(r, 0, sizeof(r));
 
 	r_bsp_light_t *l = r_model_state.world->bsp->bsp_lights;
 
 	// resolve all of the light sources that could contribute to this lighting
-	for (i = j = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, l++) {
+	for (i = n = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, l++) {
 		vec3_t dir;
 
 		// is the light source within the PVS this frame
-		if (lighting->state == LIGHTING_DIRTY && l->leaf->vis_frame != r_locals.vis_frame)
-			continue;
+		if (lighting->state == LIGHTING_DIRTY) {
+			if (l->leaf->vis_frame != r_locals.vis_frame)
+				continue;
+		}
 
 		// is it within range of the entity
 		VectorSubtract(l->origin, lighting->origin, dir);
-		const vec_t light = l->radius + lighting->radius - VectorNormalize(dir);
+		const vec_t dist = VectorNormalize(dir);
 
-		if (light <= 0.0)
+		const vec_t diffuse = l->radius * lighting->scale + lighting->radius - dist;
+
+		if (diffuse <= 0.0)
 			continue;
 
 		// is it visible to the entity; trace to origin and corners of bounding box
-
 		const uint16_t skip = lighting->number;
 
 		c_trace_t tr = Cl_Trace(l->origin, lighting->origin, NULL, NULL, skip, CONTENTS_SOLID);
@@ -80,99 +199,48 @@ static uint16_t R_UpdateBspLightReferences(r_lighting_t *lighting) {
 			}
 		}
 
-		// everything checks out, so keep it
-		r_bsp_light_ref_t *r = &light_refs[j++];
+		// everything checks out, so keep it, if it is strong, we may use it
+		light_refs[n].bsp_light = l;
+		VectorCopy(dir, light_refs[n].dir);
+		light_refs[n].diffuse = diffuse;
 
-		r->bsp_light = l;
-		VectorCopy(dir, r->dir);
-		r->light = light;
-
-		if (j == LIGHTING_MAX_BSP_LIGHT_REFS) {
+		if (++n == LIGHTING_MAX_BSP_LIGHT_REFS) {
 			Com_Debug("LIGHTING_MAX_BSP_LIGHT_REFS\n");
 			break;
 		}
 	}
 
-	if (j) {
-		// sort them by contribution
-		qsort((void *) light_refs, j, sizeof(r_bsp_light_ref_t), R_UpdateBspLightReferences_Compare);
+	if (!n) // nothing nearby, we're done
+		return;
 
-		// take the eight strongest sources
-		j = MIN(j, MAX_ACTIVE_LIGHTS);
+	// sort them by contribution
+	qsort((void *) light_refs, n, sizeof(r_bsp_light_ref_t), R_BspLightReference_Compare);
 
-		// accumulate the total light value
-		for (i = 0; i < j; i++) {
-			lighting->light += light_refs[i].light;
-		}
+	// take the eight strongest sources
+	n = MIN(n, MAX_ACTIVE_LIGHTS);
 
-		// and copy them in
-		memcpy(lighting->bsp_light_refs, light_refs, j * sizeof(r_bsp_light_ref_t));
-	}
+	// and copy them in
+	memcpy(r, light_refs, n * sizeof(r_bsp_light_ref_t));
 
-	return j;
-}
-
-/*
- * @brief Resolves the shadow plane and intensity for the specified point.
- */
-static void R_UpdateShadow(r_lighting_t *lighting) {
-	vec3_t dir, impact;
-
-	// resolve the lighting direction
-	VectorSubtract(lighting->pos, lighting->origin, dir);
-	VectorNormalize(dir);
-
-	// cast out on the lighting direction
-	VectorMA(lighting->origin, -lighting->light, dir, impact);
-
-	// skipping the entity itself, impacting solids
-	c_trace_t trace = Cl_Trace(lighting->origin, impact, NULL, NULL, lighting->number, MASK_SOLID);
-
-	// resolve the shadow plane
-	if (!trace.start_solid && trace.fraction < 1.0) {
-		lighting->shadow = 1.0 - trace.fraction;
-		lighting->plane = trace.plane;
-	} else {
-		lighting->shadow = 0.0;
-		lighting->plane.type = PLANE_NONE;
+	// lastly, update their shadows
+	for (i = 0; i < n; i++, r++) {
+		VectorCopy(r->bsp_light->origin, r->shadow.pos);
+		R_UpdateShadow(lighting, r->dir, r->diffuse, &r->shadow);
 	}
 }
-
-#define LIGHTING_AMBIENT_ATTENUATION 96.0
-#define LIGHTING_AMBIENT_DIST 64.0
 
 /*
  * @brief Resolves light source and shadow information for the specified point.
  */
 void R_UpdateLighting(r_lighting_t *lighting) {
-	uint16_t i, j;
 
-	// start by accounting for an ambient light source above the origin
-	VectorCopy(r_bsp_light_state.ambient_light, lighting->color);
-
-	lighting->light = LIGHTING_AMBIENT_ATTENUATION - LIGHTING_AMBIENT_DIST;
-	lighting->shadow = Clamp(lighting->light - lighting->radius, 0.0, HUGE_VALF);
-
-	VectorMA(lighting->origin, LIGHTING_AMBIENT_DIST, vec3_up, lighting->pos);
+	// resolve illumination from ambient and sunlight
+	R_UpdateIllumination(lighting);
 
 	// resolve the static light sources
-	i = R_UpdateBspLightReferences(lighting);
+	R_UpdateBspLightReferences(lighting);
 
-	// resolve the lighting position and shading color
-	for (j = 0; j < i; j++) {
-		r_bsp_light_ref_t *r = &lighting->bsp_light_refs[j];
-
-		const vec_t contrib = r->light / lighting->light;
-		VectorMix(lighting->pos, r->bsp_light->origin, contrib, lighting->pos);
-
-		const vec_t intensity = r->light / r->bsp_light->radius;
-		VectorMA(lighting->color, intensity, r->bsp_light->color, lighting->color);
-	}
-
-	// resolve the shadow plane and intensity
-	R_UpdateShadow(lighting);
-
-	lighting->state = LIGHTING_READY; // mark it clean
+	lighting->state = LIGHTING_READY;
 }
 
 /*
@@ -181,21 +249,18 @@ void R_UpdateLighting(r_lighting_t *lighting) {
  * r_view or r_locals.
  */
 void R_ApplyLighting(const r_lighting_t *lighting) {
-	const vec3_t up = { 0.0, 0.0, 64.0 };
 	uint16_t count;
 
 	count = r_locals.active_light_count;
 
 	if (count < MAX_ACTIVE_LIGHTS) {
-		vec4_t position;
-		vec4_t diffuse;
+		vec4_t position = { 0.0, 0.0, 0.0, 1.0 };
+		vec4_t diffuse = { 0.0, 0.0, 0.0, 1.0 };
 
-		position[3] = diffuse[3] = 1.0;
-
-		VectorAdd(lighting->origin, up, position);
+		VectorMA(lighting->origin, LIGHTING_AMBIENT_DIST, lighting->illumination.dir, position);
 		glLightfv(GL_LIGHT0 + count, GL_POSITION, position);
 
-		VectorScale(r_bsp_light_state.ambient_light, r_lighting->value, diffuse);
+		VectorCopy(lighting->illumination.color, diffuse);
 		glLightfv(GL_LIGHT0 + count, GL_DIFFUSE, diffuse);
 
 		glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, LIGHTING_AMBIENT_ATTENUATION);
@@ -205,7 +270,7 @@ void R_ApplyLighting(const r_lighting_t *lighting) {
 		while (count < MAX_ACTIVE_LIGHTS) {
 			const r_bsp_light_ref_t *r = &lighting->bsp_light_refs[i];
 
-			if (!r->light)
+			if (!r->diffuse)
 				break;
 
 			VectorCopy(r->bsp_light->origin, position);

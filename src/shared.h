@@ -40,6 +40,11 @@ extern vec3_t vec3_up;
 extern vec3_t vec3_down;
 
 /*
+ * @brief Forward (0, 1, 0).
+ */
+extern vec3_t vec3_forward;
+
+/*
  * @brief Math library.
  */
 #define Clamp(x, y, z)			(x < y ? y : x > z ? z : x)

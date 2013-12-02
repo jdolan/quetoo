@@ -231,7 +231,6 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
 
 		case ANIM_TORSO_GESTURE:
 		case ANIM_TORSO_ATTACK1:
-		case ANIM_TORSO_ATTACK2:
 		case ANIM_TORSO_DROP:
 		case ANIM_TORSO_RAISE:
 			return ANIM_TORSO_STAND1;

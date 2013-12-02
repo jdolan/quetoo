@@ -21,15 +21,15 @@
 
 #include "r_local.h"
 
-#define MESH_SHADOW_ALPHA 0.15
+#define MESH_SHADOW_ALPHA 0.66
 
 /*
  * @brief Sets the shadow color, which is dependent on the entity's alpha blend
  * and its distance from the shadow origin.
  */
-static void R_SetMeshShadowColor_default(const r_entity_t *e) {
+static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *s) {
 
-	vec_t alpha = /*e->lighting->shadow */r_shadows->value * MESH_SHADOW_ALPHA;
+	vec_t alpha = s->intensity * r_shadows->value * MESH_SHADOW_ALPHA;
 
 	if (e->effects & EF_BLEND)
 		alpha *= e->color[3];
@@ -44,18 +44,15 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e) {
 }
 
 /*
- * @brief Applies translation, rotation, and projection (scale) for the entity.
- * We borrow the standard projection matrix from SGI's cook book, and adjust it
- * for Quake's negative-distance planes:
+ * @brief Projects the model-view matrix for the given entity onto the shadow
+ * plane. A perspective shear is then applied using the standard planar shadow
+ * deformation from SGI's cookbook, adjusted for Quake's negative planes:
  *
  * ftp://ftp.sgi.com/opengl/contrib/blythe/advanced99/notes/node192.html
- *
- * Light sources are treated as directional rather than point lights so that
- * they produce smaller shadow projections and thus fewer artifacts.
  */
-static void R_RotateForMeshShadow_default(const r_entity_t *e) {
-	vec4_t pos, normal, origin;
-	matrix4x4_t proj;
+static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t *s) {
+	vec4_t pos, normal;
+	matrix4x4_t proj, shear;
 	vec_t dot;
 
 	if (!e) {
@@ -63,101 +60,86 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e) {
 		return;
 	}
 
-	// transform the lighting position into model space
-	R_TransformForEntity(e, e->lighting->pos, pos);
-	pos[3] = 0.0;
+	// project the entity onto the shadow plane
+	vec3_t vx, vy, vz, t;
+	Matrix4x4_ToVectors(&e->matrix, vx, vy, vz, t);
 
-	// along with the impacted plane that we will project onto
-	Matrix4x4_TransformPositivePlane(&e->inverse_matrix, e->lighting->plane.normal[0],
-			e->lighting->plane.normal[1], e->lighting->plane.normal[2], e->lighting->plane.dist,
-			normal);
+	dot = DotProduct(vx, s->plane.normal);
+	VectorMA(vx, -dot, s->plane.normal, vx);
 
-	// project the shadow origin onto the impacted plane in model space
-	dot = DotProduct(vec3_origin, normal) - normal[3];
-	VectorScale(normal, -dot, origin);
+	dot = DotProduct(vy, s->plane.normal);
+	VectorMA(vy, -dot, s->plane.normal, vy);
+
+	dot = DotProduct(vz, s->plane.normal);
+	VectorMA(vz, -dot, s->plane.normal, vz);
+
+	dot = DotProduct(t, s->plane.normal) - s->plane.dist;
+	VectorMA(t, -dot, s->plane.normal, t);
+
+	Matrix4x4_FromVectors(&proj, vx, vy, vz, t);
 
 	glPushMatrix();
 
-	glTranslatef(origin[0], origin[1], origin[2]);
+	glMultMatrixf((GLfloat *) proj.m);
 
-	glRotatef(-e->angles[ROLL], 1.0, 0.0, 0.0);
-	glRotatef(-e->angles[PITCH], 0.0, 1.0, 0.0);
+	// transform the light position and shadow plane into model space
+	Matrix4x4_Transform(&e->inverse_matrix, s->pos, pos);
+	pos[3] = 1.0;
 
-	glScalef(1.0, 1.0, 0.0);
+	const vec_t *n = s->plane.normal;
+	Matrix4x4_TransformPositivePlane(&e->inverse_matrix, n[0], n[1], n[2], s->plane.dist, normal);
 
-	// calculate the projection, accounting for Quake's positive plane equation
+	// calculate shearing, accounting for Quake's positive plane equation
+
 	normal[3] = -normal[3];
 	dot = DotProduct(pos, normal) + pos[3] * normal[3];
 
-	proj.m[0][0] = dot - pos[0] * normal[0];
-	proj.m[1][0] = 0.0 - pos[0] * normal[1];
-	proj.m[2][0] = 0.0 - pos[0] * normal[2];
-	proj.m[3][0] = 0.0 - pos[0] * normal[3];
-	proj.m[0][1] = 0.0 - pos[1] * normal[0];
-	proj.m[1][1] = dot - pos[1] * normal[1];
-	proj.m[2][1] = 0.0 - pos[1] * normal[2];
-	proj.m[3][1] = 0.0 - pos[1] * normal[3];
-	proj.m[0][2] = 0.0 - pos[2] * normal[0];
-	proj.m[1][2] = 0.0 - pos[2] * normal[1];
-	proj.m[2][2] = dot - pos[2] * normal[2];
-	proj.m[3][2] = 0.0 - pos[2] * normal[3];
-	proj.m[0][3] = 0.0 - pos[3] * normal[0];
-	proj.m[1][3] = 0.0 - pos[3] * normal[1];
-	proj.m[2][3] = 0.0 - pos[3] * normal[2];
-	proj.m[3][3] = dot - pos[3] * normal[3];
+	shear.m[0][0] = dot - pos[0] * normal[0];
+	shear.m[1][0] = 0.0 - pos[0] * normal[1];
+	shear.m[2][0] = 0.0 - pos[0] * normal[2];
+	shear.m[3][0] = 0.0 - pos[0] * normal[3];
+	shear.m[0][1] = 0.0 - pos[1] * normal[0];
+	shear.m[1][1] = dot - pos[1] * normal[1];
+	shear.m[2][1] = 0.0 - pos[1] * normal[2];
+	shear.m[3][1] = 0.0 - pos[1] * normal[3];
+	shear.m[0][2] = 0.0 - pos[2] * normal[0];
+	shear.m[1][2] = 0.0 - pos[2] * normal[1];
+	shear.m[2][2] = dot - pos[2] * normal[2];
+	shear.m[3][2] = 0.0 - pos[2] * normal[3];
+	shear.m[0][3] = 0.0 - pos[3] * normal[0];
+	shear.m[1][3] = 0.0 - pos[3] * normal[1];
+	shear.m[2][3] = 0.0 - pos[3] * normal[2];
+	shear.m[3][3] = dot - pos[3] * normal[3];
 
-	glMultMatrixf((GLfloat *) proj.m);
+	glMultMatrixf((GLfloat *) shear.m);
 }
 
 /*
- * @brief Sets GL state to draw the specified entity shadow.
+ * @brief Draws the specified shadow for the given entity. A scissor test is
+ * employed in order to clip shadows to the planes they are cast upon.
  */
-static void R_SetMeshShadowState_default(const r_entity_t *e) {
+static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) {
 
-	R_EnableLighting(NULL, false);
+	if (!s->intensity)
+		return;
 
-	R_EnableTexture(&texunit_diffuse, false);
+	R_SetMeshShadowColor_default(e, s);
 
-	R_SetMeshShadowColor_default(e);
+	R_RotateForMeshShadow_default(e, s);
 
-	if (!(e->effects & EF_BLEND))
-		R_EnableBlend(true);
+	glStencilFunc(GL_EQUAL, R_STENCIL_REF(&s->plane), ~0);
 
-	glDisable(GL_DEPTH_TEST);
+	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
-	R_EnableStencilTest(true, GL_ZERO);
-
-	glStencilFunc(GL_EQUAL, R_STENCIL_REF(&e->lighting->plane), ~0);
-
-	R_RotateForMeshShadow_default(e);
-}
-
-/*
- * @brief Restores GL state.
- */
-static void R_ResetMeshShadowState_default(const r_entity_t *e) {
-
-	R_RotateForMeshShadow_default(NULL);
-
-	R_EnableStencilTest(false, GL_ZERO);
-
-	glEnable(GL_DEPTH_TEST);
-
-	if (!(e->effects & EF_BLEND))
-		R_EnableBlend(false);
-
-	R_Color(NULL);
-
-	R_EnableTexture(&texunit_diffuse, true);
-
-	R_EnableLighting(r_state.default_program, true);
+	R_RotateForMeshShadow_default(NULL, NULL);
 }
 
 /*
  * @brief Re-draws the mesh using the stencil test. Meshes with a lighting
- * position above our view origin, are not drawn.
+ * position above our view origin are not drawn.
  */
 void R_DrawMeshShadow_default(const r_entity_t *e) {
+	r_bsp_light_ref_t *r;
 
 	if (!r_shadows->value)
 		return;
@@ -168,23 +150,33 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 	if (e->effects & EF_NO_SHADOW)
 		return;
 
-	if (e->lighting->shadow == 0.0)
-		return;
+	R_EnableLighting(NULL, false);
 
-#if 0
-	r_corona_t c;
+	if (!(e->effects & EF_BLEND))
+		R_EnableBlend(true);
 
-	VectorCopy(e->lighting->pos, c.origin);
-	VectorCopy(e->lighting->color, c.color);
-	c.radius = e->lighting->light;
-	c.flicker = 0.0;
+	R_EnableTexture(&texunit_diffuse, false);
 
-	R_AddCorona(&c);
-#endif
+	glEnable(GL_POLYGON_OFFSET_FILL);
 
-	R_SetMeshShadowState_default(e);
+	R_EnableStencilTest(true, GL_ZERO);
 
-	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+	for (r = e->lighting->bsp_light_refs; r->diffuse; r++) {
+		R_DrawMeshShadow_default_(e, &r->shadow);
+	}
 
-	R_ResetMeshShadowState_default(e);
+	R_DrawMeshShadow_default_(e, &e->lighting->illumination.shadow);
+
+	R_EnableStencilTest(false, GL_ZERO);
+
+	glDisable(GL_POLYGON_OFFSET_FILL);
+
+	R_EnableTexture(&texunit_diffuse, true);
+
+	if (!(e->effects & EF_BLEND))
+		R_EnableBlend(false);
+
+	R_EnableLighting(r_state.default_program, true);
+
+	R_Color(NULL);
 }

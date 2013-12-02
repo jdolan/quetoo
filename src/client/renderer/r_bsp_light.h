@@ -25,11 +25,17 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-typedef struct {
-	vec3_t ambient_light;
 
-	vec3_t sun_color;
-	vec_t sun_light;
+typedef struct {
+	vec_t diffuse;
+	vec3_t dir;
+	vec3_t color;
+} r_sun_t;
+
+typedef struct {
+	vec3_t ambient;
+
+	r_sun_t sun;
 
 	vec_t brightness;
 	vec_t saturation;
