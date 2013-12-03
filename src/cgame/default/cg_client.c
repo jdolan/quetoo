@@ -20,6 +20,7 @@
  */
 
 #include "cg_local.h"
+#include "game/default/bg_pmove.h"
 
 #define DEFAULT_CLIENT_INFO "newbie\\qforcer/default"
 
@@ -120,6 +121,11 @@ static _Bool Cg_ValidateClient(cl_client_info_t *ci) {
 
 	if (!ci->head_skins[0] || !ci->upper_skins[0] || !ci->lower_skins[0])
 		return false;
+
+	VectorCopy(PM_MINS, ci->lower->mins);
+	VectorCopy(PM_MAXS, ci->lower->maxs);
+
+	ci->lower->radius = (ci->lower->maxs[2] - ci->lower->mins[2]) / 2.0;
 
 	return true;
 }
