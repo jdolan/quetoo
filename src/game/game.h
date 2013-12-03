@@ -34,13 +34,19 @@
 #define SVF_GAME			(1 << 2) // game may extend from here
 
 /*
+ * @brief Filter constants for Sv_AreaEdicts; i.e. gi.AreaEdicts.
+ */
+#define AREA_SOLID			(1 << 0)
+#define AREA_TRIGGERS		(1 << 1)
+
+/*
  * @brief Used to join adjacent areas.
  */
 typedef struct link_s {
 	struct link_s *prev, *next;
 } link_t;
 
-#define MAX_ENT_CLUSTERS 16
+#define MAX_ENT_CLUSTERS	16
 
 /*
  * This is the server's definition of the client and edict structures. The
@@ -193,38 +199,87 @@ typedef struct {
 
 // functions exported by the game subsystem
 typedef struct {
+	/*
+	 * @brief Game API version, in case the game module was compiled for a
+	 * different version than the engine provides.
+	 */
 	uint16_t api_version;
+
+	/*
+	 * @brief Minor protocol version.
+	 */
 	uint16_t protocol;
 
-	// the init function will only be called when a game starts,
-	// not each time a level is loaded. Persistent data for clients
-	// and the server can be allocated in init
+	/*
+	 * @brief Called only when the game module is first loaded. Persistent
+	 * structures for clients and game sate should be allocated here.
+	 */
 	void (*Init)(void);
+
+	/*
+	 * @brief Called when the game module is unloaded.
+	 */
 	void (*Shutdown)(void);
 
-	// each new level entered will cause a call to SpawnEntities
+	/*
+	 * @brief Called at the start of a new level.
+	 */
 	void (*SpawnEntities)(const char *name, const char *entities);
 
+	/*
+	 * @brief Called when a client connects with valid user information.
+	 */
 	_Bool (*ClientConnect)(g_edict_t *ent, char *user_info);
+
+	/*
+	 * @brief Called when a client has fully spawned and should begin thinking.
+	 */
 	void (*ClientBegin)(g_edict_t *ent);
 	void (*ClientUserInfoChanged)(g_edict_t *ent, const char *user_info);
 	void (*ClientDisconnect)(g_edict_t *ent);
+
+	/*
+	 * @brief Called when a client has issued a console command that could not
+	 * be handled by the server directly (e.g. voting).
+	 */
 	void (*ClientCommand)(g_edict_t *ent);
+
+	/*
+	 * @brief Called when a client issues a movement command, which may include
+	 * button actions such as attacking.
+	 */
 	void (*ClientThink)(g_edict_t *ent, user_cmd_t *cmd);
 
+	/*
+	 * @brief Called every gi.frame_seconds to advance game logic.
+	 */
 	void (*Frame)(void);
 
+	/*
+	 * @brief Used to advertise the game name to server browsers.
+	 */
 	const char *(*GameName)(void);
 
-	// global variables shared between game and server
-
-	// The edict array is allocated in the game dll so it
-	// can vary in size from one game to another.
-	//
-	// The size will be fixed when ge->Init() is called
+	/*
+	 * @brief The g_edict_t array, which must be allocated by the game due to
+	 * the opaque nature of g_edict_t.
+	 */
 	struct g_edict_s *edicts;
+
+	/*
+	 * @brief To be set to the size of g_edict_t so that the server can safely
+	 * iterate the edicts array.
+	 */
 	size_t edict_size;
-	uint16_t num_edicts; // current number, <= max_edicts
+
+	/*
+	 * @brief The current number of allocated (in use) g_edict_t.
+	 */
+	uint16_t num_edicts;
+
+	/*
+	 * @brief The total number of allocated g_edict_t (MAX_EDICTS).
+	 */
 	uint16_t max_edicts;
 } g_export_t;
 
