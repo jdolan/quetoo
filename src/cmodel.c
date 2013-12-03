@@ -76,7 +76,7 @@ typedef struct c_bsp_s {
 	uint16_t leaf_brushes[MAX_BSP_LEAF_BRUSHES];
 
 	int32_t num_models;
-	c_model_t models[MAX_BSP_MODELS];
+	c_bsp_model_t models[MAX_BSP_MODELS];
 
 	int32_t num_brushes;
 	c_bsp_brush_t brushes[MAX_BSP_BRUSHES];
@@ -134,7 +134,7 @@ static void Cm_LoadSubmodels(const d_bsp_lump_t *l) {
 	c_bsp.num_models = count;
 
 	for (i = 0; i < count; i++, in++) {
-		c_model_t *out = &c_bsp.models[i];
+		c_bsp_model_t *out = &c_bsp.models[i];
 
 		for (j = 0; j < 3; j++) { // spread the mins / maxs by a pixel
 			out->mins[j] = LittleFloat(in->mins[j]) - 1;
@@ -494,7 +494,7 @@ static void Cm_LoadEntityString(const d_bsp_lump_t *l) {
 /*
  * @brief Loads in the BSP and all submodels for collision detection.
  */
-c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
+c_bsp_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 	d_bsp_header_t header;
 	void *buf;
 	uint32_t i;
@@ -554,7 +554,7 @@ c_model_t *Cm_LoadBsp(const char *name, int32_t *size) {
 /*
  * @brief
  */
-c_model_t *Cm_Model(const char *name) {
+c_bsp_model_t *Cm_Model(const char *name) {
 	int32_t num;
 
 	if (!name || name[0] != '*') {

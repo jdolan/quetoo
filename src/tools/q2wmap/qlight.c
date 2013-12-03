@@ -84,7 +84,7 @@ _Bool Light_PointPVS(const vec3_t org, byte *pvs) {
 
 // we use the c_model_t collision detection facilities for lighting
 static int32_t num_cmodels;
-static c_model_t *cmodels[MAX_BSP_MODELS];
+static c_bsp_model_t *cmodels[MAX_BSP_MODELS];
 
 /*
  * @brief

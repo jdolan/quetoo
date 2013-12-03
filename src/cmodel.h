@@ -25,8 +25,8 @@
 #include "files.h"
 #include "filesystem.h"
 
-c_model_t *Cm_LoadBsp(const char *name, int32_t *map_size);
-c_model_t *Cm_Model(const char *name); // *1, *2, etc
+c_bsp_model_t *Cm_LoadBsp(const char *name, int32_t *map_size);
+c_bsp_model_t *Cm_Model(const char *name); // *1, *2, etc
 
 int32_t Cm_NumClusters(void);
 int32_t Cm_NumModels(void);

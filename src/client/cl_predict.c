@@ -57,7 +57,7 @@ int32_t Cl_PointContents(const vec3_t point) {
 		const entity_state_t *ent = &cl.entity_states[num];
 
 		if (ent->solid == 31) { // clip to bsp submodels
-			const c_model_t *mod = cl.model_clip[ent->model1];
+			const c_bsp_model_t *mod = cl.model_clip[ent->model1];
 			if (!mod) {
 				Com_Warn("Invalid clip model %d", ent->model1);
 				continue;
@@ -105,7 +105,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 		const vec_t *angles;
 		if (ent->solid == SOLID_BSP) {
 
-			const c_model_t *mod = cl.model_clip[ent->model1];
+			const c_bsp_model_t *mod = cl.model_clip[ent->model1];
 			if (!mod) {
 				Com_Warn("Invalid clip model: %d\n", ent->model1);
 				continue;

@@ -48,7 +48,7 @@ static void Sv_GameError(const char *func, const char *fmt, ...) {
  * @brief Also sets mins and maxs for inline bsp models.
  */
 static void Sv_SetModel(g_edict_t *ent, const char *name) {
-	c_model_t *mod;
+	c_bsp_model_t *mod;
 
 	if (!name) {
 		Com_Warn("%d: NULL\n", (int32_t) NUM_FOR_EDICT(ent));

@@ -281,8 +281,9 @@ typedef enum {
 #define SURF_ALPHA_TEST			0x400 // alpha test (grates, foliage, etc..)
 #define SURF_PHONG				0x800 // phong interpolated lighting at compile time
 #define SURF_MATERIAL			0x1000 // retain the geometry, but don't draw diffuse pass
+
 /*
- * @brief Contents masks; OR'ed combinations of CONTENTS_*.
+ * @brief Contents masks: frequently combined contents flags.
  */
 #define MASK_ALL				(-1)
 #define MASK_SOLID				(CONTENTS_SOLID|CONTENTS_WINDOW)
@@ -295,10 +296,33 @@ typedef enum {
 #define MASK_CURRENT			(CONTENTS_CURRENT_0|CONTENTS_CURRENT_90|CONTENTS_CURRENT_180|\
 							 	 	 CONTENTS_CURRENT_270|CONTENTS_CURRENT_UP|CONTENTS_CURRENT_DOWN)
 
-// gi.AreaEdicts() can return a list of either solid or trigger entities
-#define AREA_SOLID				1
-#define AREA_TRIGGERS			2
+/*
+ * @brief Plane side epsilon value.
+ */
+#define	SIDE_EPSILON			0.001
 
+/*
+ * @brief Plane side constants used for BSP recursion.
+ */
+#define	SIDE_FRONT				1
+#define	SIDE_BACK				2
+#define	SIDE_BOTH				3
+#define	SIDE_FACING				4
+
+/*
+ * @brief Plane type constants for axial plane optimizations.
+ */
+#define PLANE_X					0
+#define PLANE_Y					1
+#define PLANE_Z					2
+#define PLANE_ANYX				3
+#define PLANE_ANYY				4
+#define PLANE_ANYZ				5
+#define PLANE_NONE				6
+
+/*
+ * @brief BSP planes are essential to collision detection as well as rendering.
+ */
 typedef struct c_bsp_plane_s {
 	vec3_t normal;
 	vec_t dist;
@@ -306,17 +330,29 @@ typedef struct c_bsp_plane_s {
 	int32_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
 } c_bsp_plane_t;
 
+/*
+ * @brief Returns true if the specified plane is axially aligned.
+ */
+#define AXIAL(p) ((p)->type < PLANE_ANYX)
+
+/*
+ * @brief BSP surfaces describe a material applied to a plane.
+ */
 typedef struct c_bsp_surface_s {
 	char name[32];
 	int32_t flags;
 	int32_t value;
 } c_bsp_surface_t;
 
+/*
+ * @brief Inline BSP models are segments of the collision model that may move.
+ * They are treated as their own sub-trees and recursed separately.
+ */
 typedef struct c_model_s {
 	vec3_t mins, maxs;
 	vec3_t origin; // for sounds or lights
 	int32_t head_node;
-} c_model_t;
+} c_bsp_model_t;
 
 // a trace is returned when a box is swept through the world
 typedef struct c_trace_s {
@@ -325,7 +361,7 @@ typedef struct c_trace_s {
 	vec_t fraction; // time completed, 1.0 = didn't hit anything
 	vec3_t end; // final position
 	c_bsp_plane_t plane; // surface normal at impact
-	c_bsp_surface_t *surface; // surface hit
+	c_bsp_surface_t *surface; // surface hit, NULL for box hits
 	int32_t leaf_num;
 	int32_t contents; // contents on other side of surface hit
 	struct g_edict_s *ent; // not set by Cm_*() functions
@@ -515,6 +551,7 @@ typedef enum {
  * @brief The 16 high bits of the effects mask are not transmitted by the
  * protocol. Rather, they are reserved for the renderer.
  */
+#define EF_CLIENT			(1 << 24) // player model
 #define EF_WEAPON			(1 << 25) // view weapon
 #define EF_ALPHATEST		(1 << 27) // alpha test
 #define EF_BLEND			(1 << 28) // alpha blend
