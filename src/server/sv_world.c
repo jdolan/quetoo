@@ -42,7 +42,7 @@ typedef struct sv_area_node_s {
 #define AREA_NODES	32
 
 // the server's view of the world, by areas
-typedef struct sv_world_s {
+typedef struct {
 
 	sv_area_node_t area_nodes[AREA_NODES];
 	int32_t num_area_nodes;
@@ -55,7 +55,7 @@ typedef struct sv_world_s {
 	int32_t area_type;
 } sv_world_t;
 
-sv_world_t sv_world;
+static sv_world_t sv_world;
 
 /*
  * @brief
@@ -373,7 +373,7 @@ int32_t Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edi
  * testing object's origin to get a point to use with the returned hull.
  */
 static int32_t Sv_HullForEntity(const g_edict_t *ent) {
-	c_model_t *model;
+	c_bsp_model_t *model;
 
 	// decide which clipping hull to use, based on the size
 	if (ent->solid == SOLID_BSP) { // explicit hulls in the BSP model

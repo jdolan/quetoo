@@ -218,28 +218,6 @@ typedef struct {
 	vec3_t normal;
 } d_bsp_normal_t;
 
-// if a brush just barely pokes onto the other side,
-// let it slide by without chopping
-#define	SIDE_EPSILON	0.001
-
-#define	SIDE_FRONT		1
-#define	SIDE_BACK		2
-#define	SIDE_BOTH		3
-#define	SIDE_FACING		4
-
-// 0-2 are axial planes
-#define PLANE_X			0
-#define PLANE_Y			1
-#define PLANE_Z			2
-
-#define AXIAL(p) ((p)->type < PLANE_ANYX)
-
-// 3-5 are non-axial planes snapped to the nearest
-#define PLANE_ANYX		3
-#define PLANE_ANYY		4
-#define PLANE_ANYZ		5
-#define PLANE_NONE		6
-
 // lightmap information is 1/n texture resolution
 #define DEFAULT_LIGHTMAP_SCALE 16
 

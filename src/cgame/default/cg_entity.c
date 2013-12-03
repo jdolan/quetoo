@@ -75,6 +75,17 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		return;
 	}
 
+	e->effects |= EF_CLIENT;
+
+	// don't draw ourselves unless third person is set
+	if (Cg_IsSelf(ent) && !(e->effects & EF_CORPSE) && !cg_third_person->value) {
+		e->effects |= EF_NO_DRAW;
+
+		// keep our shadow underneath us using the predicted origin
+		e->origin[0] = cgi.view->origin[0];
+		e->origin[1] = cgi.view->origin[1];
+	}
+
 	r_entity_t head, upper, lower;
 
 	// copy the specified entity to all body segments
@@ -90,17 +101,6 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	memcpy(lower.skins, ci->lower_skins, sizeof(lower.skins));
 
 	Cg_AnimateClientEntity(ent, &upper, &lower);
-
-	// don't draw ourselves unless third person is set
-	if (Cg_IsSelf(ent) && !(e->effects & EF_CORPSE) && !cg_third_person->value) {
-		e->effects |= EF_NO_DRAW;
-
-		// keep our shadow underneath us using the predicted origin
-		lower.origin[0] = cgi.view->origin[0];
-		lower.origin[1] = cgi.view->origin[1];
-	}
-
-	head.effects = upper.effects = lower.effects = e->effects;
 
 	upper.parent = cgi.AddEntity(&lower);
 	upper.tag_name = "tag_torso";
