@@ -42,8 +42,6 @@ void R_AddCorona(const r_corona_t *c) {
  * @brief
  */
 void R_DrawCoronas(void) {
-	int32_t i, j, k;
-	vec3_t v;
 
 	if (!r_coronas->value)
 		return;
@@ -57,32 +55,32 @@ void R_DrawCoronas(void) {
 
 	R_ResetArrayState();
 
-	R_BlendFunc(GL_ONE, GL_ONE);
+	R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-	for (k = 0; k < r_view.num_coronas; k++) {
-		const r_corona_t *c = &r_view.coronas[k];
+	for (uint16_t i = 0; i < r_view.num_coronas; i++) {
+		const r_corona_t *c = &r_view.coronas[i];
 		const vec_t f = c->radius * c->flicker * sin(0.09 * r_view.time);
-		int32_t num_verts, vert_index;
 
 		// use at least 12 verts, more for larger coronas
-		num_verts = 12 + c->radius / 8;
+		const uint16_t num_verts = Clamp(c->radius / 8.0, 12, 64);
 
 		memcpy(&r_state.color_array[0], c->color, sizeof(vec3_t));
-		r_state.color_array[3] = 1.0f; // set origin color
+		r_state.color_array[3] = r_coronas->value; // set origin color
 
 		// and the corner colors
 		memset(&r_state.color_array[4], 0, num_verts * 2 * sizeof(vec4_t));
 
 		memcpy(&r_state.vertex_array_3d[0], c->origin, sizeof(vec3_t));
-		vert_index = 3; // and the origin
+		uint32_t vert_index = 3; // and the origin
 
-		for (i = num_verts; i >= 0; i--) { // now draw the corners
-			const vec_t a = i / (vec_t) num_verts * M_PI * 2;
+		for (uint16_t j = 0; j <= num_verts; j++) { // now draw the corners
+			const vec_t a = j / (vec_t) num_verts * M_PI * 2;
 
-			for (j = 0; j < 3; j++)
-				v[j] = c->origin[j] + r_view.right[j] * (vec_t) cos(a)
-						* (c->radius + f) + r_view.up[j] * (vec_t) sin(a)
-						* (c->radius + f);
+			vec3_t v;
+			VectorCopy(c->origin, v);
+
+			VectorMA(v, cos(a) * (c->radius + f), r_view.right, v);
+			VectorMA(v, sin(a) * (c->radius + f), r_view.up, v);
 
 			memcpy(&r_state.vertex_array_3d[vert_index], v, sizeof(vec3_t));
 			vert_index += 3;
