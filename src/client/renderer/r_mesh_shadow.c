@@ -146,6 +146,8 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableLighting(NULL, false);
 
+	R_EnableFog(false);
+
 	if (!(e->effects & EF_BLEND))
 		R_EnableBlend(true);
 
@@ -185,6 +187,8 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	if (!(e->effects & EF_BLEND))
 		R_EnableBlend(false);
+
+	R_EnableFog(true);
 
 	R_EnableLighting(r_state.default_program, true);
 
