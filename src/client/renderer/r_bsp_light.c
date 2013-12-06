@@ -38,11 +38,11 @@
  * typically quite large, their surface area coefficient actually scales down.
  */
 
-#define BSP_LIGHT_SUN_SCALE 2.0
-#define BSP_LIGHT_MERGE_THRESHOLD 32.0
+#define BSP_LIGHT_SUN_SCALE 1.0
+#define BSP_LIGHT_MERGE_THRESHOLD 48.0
 #define BSP_LIGHT_SURFACE_RADIUS_SCALE 1.0
 #define BSP_LIGHT_POINT_RADIUS_SCALE 1.0
-#define BSP_LIGHT_COLOR_COMPONENT_MAX 0.9
+#define BSP_LIGHT_COLOR_COMPONENT_MAX 1.0
 
 r_bsp_light_state_t r_bsp_light_state;
 
@@ -143,6 +143,8 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, vec_t radius, vec3_t c
 		return;
 	}
 
+	radius *= r_bsp_light_state.brightness;
+
 	r_bsp_light_t *l = NULL;
 	GList *e = r_bsp_light_state.lights;
 	while (e) {
@@ -180,7 +182,7 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, vec_t radius, vec3_t c
 void R_LoadBspLights(r_bsp_model_t *bsp) {
 	vec3_t org, color;
 	vec_t radius;
-	int32_t i;
+	int16_t i;
 
 	memset(&r_bsp_light_state, 0, sizeof(r_bsp_light_state));
 
@@ -196,13 +198,9 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 
 			VectorMA(surf->center, 1.0, surf->normal, org);
 
-			const vec_t x = Clamp(surf->maxs[0] - surf->mins[0], 1.0, HUGE_VALF);
-			const vec_t y = Clamp(surf->maxs[1] - surf->mins[1], 1.0, HUGE_VALF);
-			const vec_t z = Clamp(surf->maxs[2] - surf->mins[2], 1.0, HUGE_VALF);
+			radius = sqrt(surf->texinfo->light * sqrt(surf->area) * BSP_LIGHT_SURFACE_RADIUS_SCALE);
 
-			radius = sqrt(x * y * z) * BSP_LIGHT_SURFACE_RADIUS_SCALE;
-
-			R_AddBspLight(bsp, org, radius, surf->texinfo->material->diffuse->color);
+			R_AddBspLight(bsp, org, radius, surf->texinfo->emissive);
 		}
 	}
 
@@ -234,6 +232,8 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 			entity = false;
 
 			if (light) { // add it
+				const r_bsp_light_state_t *s = &r_bsp_light_state;
+				ColorFilter(color, color, s->brightness, s->saturation, s->contrast);
 
 				R_AddBspLight(bsp, org, radius * BSP_LIGHT_POINT_RADIUS_SCALE, color);
 
@@ -278,23 +278,8 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	i = 0;
 	GList *e = r_bsp_light_state.lights;
 	while (e) {
-		r_bsp_light_t *l = (r_bsp_light_t *) e->data;
-
-		// normalize the color, scaling back from full brights
-		vec_t max = 0.0;
-		int32_t j;
-
-		for (j = 0; j < 3; j++) {
-			if (l->color[j] > max)
-				max = l->color[j];
-		}
-
-		if (max > BSP_LIGHT_COLOR_COMPONENT_MAX) {
-			VectorScale(l->color, BSP_LIGHT_COLOR_COMPONENT_MAX / max, l->color);
-		}
-
-		// and lastly copy the light into the BSP model
-		bsp->bsp_lights[i++] = *l;
+		// and copy them in
+		bsp->bsp_lights[i++] = *((r_bsp_light_t *) e->data);
 		e = e->next;
 	}
 
@@ -303,4 +288,26 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	r_bsp_light_state.lights = NULL;
 
 	Com_Debug("Loaded %d bsp lights\n", bsp->num_bsp_lights);
+}
+
+/*
+ * @brief Developer tool for viewing static BSP light sources.
+ */
+void R_DrawBspLights(void) {
+	int32_t i;
+
+	if (!r_draw_bsp_lights->value)
+		return;
+
+	const r_bsp_light_t *l = r_model_state.world->bsp->bsp_lights;
+	for (i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, l++) {
+		r_corona_t c;
+
+		VectorCopy(l->origin, c.origin);
+		c.radius = l->radius * r_draw_bsp_lights->value;
+		c.flicker = 0.0;
+		VectorCopy(l->color, c.color);
+
+		R_AddCorona(&c);
+	}
 }

@@ -170,28 +170,6 @@ void R_DrawBspInlineModel(const r_entity_t *e) {
 }
 
 /*
- * @brief Developer tool for viewing static BSP light sources.
- */
-void R_DrawBspLights(void) {
-	int32_t i;
-
-	if (!r_draw_bsp_lights->value)
-		return;
-
-	const r_bsp_light_t *l = r_model_state.world->bsp->bsp_lights;
-	for (i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, l++) {
-		r_corona_t c;
-
-		VectorCopy(l->origin, c.origin);
-		c.radius = l->radius * r_draw_bsp_lights->value;
-		c.flicker = 0.0;
-		VectorCopy(l->color, c.color);
-
-		R_AddCorona(&c);
-	}
-}
-
-/*
  * @brief Developer tool for viewing BSP vertex normals. Only Phong-interpolated
  * surfaces show their normals when r_draw_bsp_normals is 2.
  */

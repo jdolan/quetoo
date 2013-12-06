@@ -31,7 +31,6 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
 _Bool R_CullBspModel(const r_entity_t *e);
 void R_DrawBspInlineModel(const r_entity_t *e);
 void R_DrawBspLeafs(void);
-void R_DrawBspLights(void);
 void R_DrawBspNormals(void);
 void R_MarkBspSurfaces(void);
 void R_UpdateVis(void);

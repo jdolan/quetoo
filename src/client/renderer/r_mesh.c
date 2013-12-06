@@ -153,7 +153,7 @@ _Bool R_CullMeshModel(const r_entity_t *e) {
 void R_UpdateMeshModelLighting(const r_entity_t *e) {
 
 	if (e->lighting->state == LIGHTING_READY) {
-		if (e->lighting->scale == r_lighting->value)
+		if (e->lighting->scale == Clamp(r_lighting->value, 1.0, 4.0))
 			return;
 	}
 
@@ -168,9 +168,9 @@ void R_UpdateMeshModelLighting(const r_entity_t *e) {
 	VectorMA(e->lighting->origin, e->scale, e->model->mins, e->lighting->mins);
 	VectorMA(e->lighting->origin, e->scale, e->model->maxs, e->lighting->maxs);
 
-	e->lighting->scale = r_lighting->value;
+	e->lighting->scale = Clamp(r_lighting->value, 1.0, 4.0);
 
-	//Com_Debug("%s\n", e->model->media.name);
+	// Com_Debug("%s\n", e->model->media.name);
 	R_UpdateLighting(e->lighting);
 }
 
@@ -181,20 +181,24 @@ void R_UpdateMeshModelLighting(const r_entity_t *e) {
 static void R_SetMeshColor_default(const r_entity_t *e) {
 	vec4_t color;
 
-	if (!r_lighting->value) {
-		vec_t max = 0.0;
-		int32_t i;
+	VectorCopy(r_bsp_light_state.ambient, color);
 
-		for (i = 0; i < 3; i++) {
-			//FIXME color[i] = e->color[i] * e->lighting->color[i];
-			if (color[i] > max)
-				max = color[i];
+	if (!r_lighting->value) {
+		const r_illumination_t *il = e->lighting->illuminations;
+
+		for (uint16_t i = 0; i < lengthof(e->lighting->illuminations); i++, il++) {
+
+			if (il->radius == 0.0)
+				break;
+
+			VectorMA(color, il->diffuse / il->radius, il->color, color);
 		}
 
-		if (max > 1.0) // scale it back to 1.0
-			VectorScale(color, 1.0 / max, color);
-	} else {
-		VectorCopy(r_bsp_light_state.ambient, color);
+		ColorNormalize(color, color);
+	}
+
+	for (uint16_t i = 0; i < 3; i++) {
+		color[i] *= e->color[i];
 	}
 
 	if (e->effects & EF_BLEND)

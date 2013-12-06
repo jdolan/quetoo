@@ -298,7 +298,6 @@ void SubdividePatches(void) {
 		if (p && !IsSky(f)) // break it up
 			SubdividePatch(p);
 	}
-
 }
 
 /*

@@ -35,6 +35,11 @@ static r_element_state_t r_element_state;
 
 /*
  * @brief Adds the depth-sorted element to the current frame.
+ *
+ * TODO: Since we have to calculate delta and depth, why not add a DotProduct
+ * with r_view.forward to determine of the element is behind us? We could skip
+ * all particles behind the origin. Also, VectorSum could probably be used in
+ * place of VectorLenght here, to save a sqrt().
  */
 void R_AddElement(const r_element_t *e) {
 	vec3_t delta;
@@ -86,6 +91,16 @@ static void R_AddBspSurfaceElements(void) {
 /*
  * @brief Qsort comparator for render elements. Qsort sorts elements into
  * ascending order, so we return negative values when a is behind b (b - a).
+ *
+ * Example:
+ *
+ * (a) is a particle with depth 255.0.
+ * (b) is a surface with depth 64.0
+ *
+ * 64.0 - 255.0 = -191.0
+ *
+ * Thus (a) is sorted before (b) so that we may render back-to-front by
+ * iterating the sorted array from 0 to length.
  */
 static int R_SortElements_Compare(const void *a, const void *b) {
 	return ((r_element_t *) b)->depth - ((r_element_t *) a)->depth;

@@ -155,11 +155,13 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(r_state.default_program, true);
 
-	R_EnableStencilTest(true, GL_REPLACE);
+	if (r_shadows->value)
+		R_EnableStencilTest(true, GL_REPLACE);
 
 	R_DrawBspSurfaces_default(surfs);
 
-	R_EnableStencilTest(false, GL_ZERO);
+	if (r_shadows->value)
+		R_EnableStencilTest(false, GL_ZERO);
 
 	R_EnableLighting(NULL, false);
 

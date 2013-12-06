@@ -321,6 +321,7 @@ void R_EnableStencilTest(_Bool enable, GLenum op) {
 
 	if (enable) {
 		glEnable(GL_STENCIL_TEST);
+
 		glStencilOp(GL_KEEP, GL_KEEP, op);
 	} else {
 		glDisable(GL_STENCIL_TEST);

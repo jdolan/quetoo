@@ -189,7 +189,6 @@ void R_MarkLights(void) {
 	}
 }
 
-
 /*
  * @brief Rotates the active light sources for the specified entity.
  */

@@ -179,6 +179,8 @@ typedef struct {
 	uint32_t flags;
 	int32_t value;
 	r_material_t *material;
+	vec3_t emissive;
+	vec_t light;
 } r_bsp_texinfo_t;
 
 typedef struct {
@@ -210,6 +212,7 @@ typedef struct {
 	vec3_t maxs;
 	vec3_t center;
 	vec3_t normal;
+	vec_t area;
 
 	vec2_t st_mins;
 	vec2_t st_maxs;
@@ -231,13 +234,17 @@ typedef struct {
 
 /*
  * @brief Surfaces are assigned to arrays based on their render path and then
- * sorted by material to reduce glBindTexture calls.
+ * ordered by material to reduce glBindTexture calls.
  */
 typedef struct {
 	r_bsp_surface_t **surfaces;
 	size_t count;
 } r_bsp_surfaces_t;
 
+/*
+ * @brief The world model maintains master lists of all surfaces, partitioned
+ * by render path and ordered by material.
+ */
 typedef struct {
 	r_bsp_surfaces_t sky;
 	r_bsp_surfaces_t opaque;
@@ -250,9 +257,14 @@ typedef struct {
 	r_bsp_surfaces_t back;
 } r_sorted_bsp_surfaces_t;
 
-#define R_SurfaceToSurfaces(surfs, surf)\
-	(surfs)->surfaces[(surfs)->count++] = surf
+/*
+ * @brief Appends a reference to the specified face to the given surfaces list.
+ */
+#define R_SURFACE_TO_SURFACES(surfs, surf) (surfs)->surfaces[(surfs)->count++] = surf
 
+/*
+ * @brief Function prototype for BSP surfaces draw lists.
+ */
 typedef void (*BspSurfacesDrawFunc)(const r_bsp_surfaces_t *surfs);
 
 /*
@@ -272,7 +284,7 @@ typedef void (*BspSurfacesDrawFunc)(const r_bsp_surfaces_t *surfs);
  * with which a simple recursion can quickly determine:
  *
  *  a. Which nodes are in front of my view vector from my current origin?
- *  b. Which nodes are facing me?
+ *  b. Of those, which nodes are facing me?
  *
  * This is the basis for all collision detection and rendering in Quake.
  */
@@ -576,35 +588,25 @@ typedef struct {
  * @brief Describes the projection of a mesh model onto a BSP plane.
  */
 typedef struct {
-	vec3_t pos; // light position in world space
 	c_bsp_plane_t plane;
 	vec_t intensity;
 } r_shadow_t;
 
 /*
- * @brief Describes ambient and sunlight contributions to point lighting.
+ * @brief Describes alight source contributions to point lighting.
  */
 typedef struct {
-	vec_t ambient;
-	vec_t exposure;
-	vec_t diffuse;
+	vec3_t pos;
 	vec3_t dir;
 	vec3_t color;
+	vec_t radius;
+	vec_t ambient;
+	vec_t diffuse;
 	r_shadow_t shadow;
 } r_illumination_t;
 
 /*
- * @brief A reference to a static BSP light source plus a light level.
- */
-typedef struct {
-	r_bsp_light_t *bsp_light;
-	vec_t diffuse;
-	vec3_t dir;
-	r_shadow_t shadow;
-} r_bsp_light_ref_t;
-
-/*
- * @brief Static lighting information is cached on the client entity.
+ * @brief Static lighting information is cached on the client entity structure.
  */
 typedef enum {
 	LIGHTING_INIT,
@@ -613,17 +615,30 @@ typedef enum {
 } r_lighting_state_t;
 
 /*
- * @brief Provides static lighting information for mesh entities.
+ * @brief Up to 8 illuminations are calculated for each mesh entity. The first
+ * illumination in the structure is reserved for world lighting (ambient and
+ * sunlight). The remaining 7 are populated by both BSP and dynamic light
+ * sources, by order of their contribution.
+ */
+#define MAX_ILLUMINATIONS MAX_ACTIVE_LIGHTS
+#define MAX_BSP_LIGHT_ILLUMINATIONS (MAX_ILLUMINATIONS - 1)
+
+/*
+ * @brief Provides static lighting information for mesh entities. Illuminations
+ * and shadows are maintained in separate arrays because they must be sorted by
+ * different criteria: for illuminations, the light that reaches the entity
+ * defines priority; for shadows, the negative light that reaches the plane on
+ * which the shadow is cast does.
  */
 typedef struct r_lighting_s {
+	r_lighting_state_t state;
 	uint16_t number; // entity number
 	vec3_t origin; // entity origin
 	vec_t radius; // entity radius
 	vec3_t mins, maxs; // entity bounding box in world space
 	vec_t scale; // lighting scale (typically r_lighting->value)
-	r_illumination_t illumination; // ambient and sunlight
-	r_bsp_light_ref_t bsp_light_refs[MAX_ACTIVE_LIGHTS]; // light sources
-	r_lighting_state_t state;
+	r_illumination_t illuminations[MAX_ILLUMINATIONS]; // light sources, ordered by diffuse
+	const r_illumination_t *shadows[MAX_ILLUMINATIONS]; // shadows, ordered by intensity
 } r_lighting_t;
 
 /*

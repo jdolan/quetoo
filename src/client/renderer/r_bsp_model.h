@@ -29,4 +29,3 @@ void R_LoadBspModel(r_model_t *mod, void *buffer);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_BSP_MODEL_H__ */
-

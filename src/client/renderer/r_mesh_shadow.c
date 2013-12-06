@@ -25,18 +25,14 @@
 
 /*
  * @brief Sets the shadow color, which is dependent on the entity's alpha blend
- * and its distance from the shadow origin.
+ * and its distance from the shadow plane.
  */
-static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *s) {
+static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_illumination_t *il) {
 
-	vec_t alpha = s->intensity * r_shadows->value * MESH_SHADOW_ALPHA;
+	vec_t alpha = il->shadow.intensity * r_shadows->value * MESH_SHADOW_ALPHA;
 
 	if (e->effects & EF_BLEND)
 		alpha *= e->color[3];
-
-	while (e->parent) {
-		e = e->parent;
-	}
 
 	vec4_t color = { 0.0, 0.0, 0.0, alpha };
 
@@ -44,13 +40,13 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *
 }
 
 /*
- * @brief Projects the model-view matrix for the given entity onto the shadow
+ * @brief Projects the model view matrix for the given entity onto the shadow
  * plane. A perspective shear is then applied using the standard planar shadow
  * deformation from SGI's cookbook, adjusted for Quake's negative planes:
  *
  * ftp://ftp.sgi.com/opengl/contrib/blythe/advanced99/notes/node192.html
  */
-static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t *s) {
+static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_illumination_t *il) {
 	vec4_t pos, normal;
 	matrix4x4_t proj, shear;
 	vec_t dot;
@@ -60,21 +56,23 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 		return;
 	}
 
+	const c_bsp_plane_t *p = &il->shadow.plane;
+
 	// project the entity onto the shadow plane
 	vec3_t vx, vy, vz, t;
 	Matrix4x4_ToVectors(&e->matrix, vx, vy, vz, t);
 
-	dot = DotProduct(vx, s->plane.normal);
-	VectorMA(vx, -dot, s->plane.normal, vx);
+	dot = DotProduct(vx, p->normal);
+	VectorMA(vx, -dot, p->normal, vx);
 
-	dot = DotProduct(vy, s->plane.normal);
-	VectorMA(vy, -dot, s->plane.normal, vy);
+	dot = DotProduct(vy, p->normal);
+	VectorMA(vy, -dot, p->normal, vy);
 
-	dot = DotProduct(vz, s->plane.normal);
-	VectorMA(vz, -dot, s->plane.normal, vz);
+	dot = DotProduct(vz, p->normal);
+	VectorMA(vz, -dot, p->normal, vz);
 
-	dot = DotProduct(t, s->plane.normal) - s->plane.dist;
-	VectorMA(t, -dot, s->plane.normal, t);
+	dot = DotProduct(t, p->normal) - p->dist;
+	VectorMA(t, -dot, p->normal, t);
 
 	Matrix4x4_FromVectors(&proj, vx, vy, vz, t);
 
@@ -83,14 +81,13 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 	glMultMatrixf((GLfloat *) proj.m);
 
 	// transform the light position and shadow plane into model space
-	Matrix4x4_Transform(&e->inverse_matrix, s->pos, pos);
+	Matrix4x4_Transform(&e->inverse_matrix, il->pos, pos);
 	pos[3] = 1.0;
 
-	const vec_t *n = s->plane.normal;
-	Matrix4x4_TransformPositivePlane(&e->inverse_matrix, n[0], n[1], n[2], s->plane.dist, normal);
+	const vec_t *n = p->normal;
+	Matrix4x4_TransformPositivePlane(&e->inverse_matrix, n[0], n[1], n[2], p->dist, normal);
 
 	// calculate shearing, accounting for Quake's positive plane equation
-
 	normal[3] = -normal[3];
 	dot = DotProduct(pos, normal) + pos[3] * normal[3];
 
@@ -118,16 +115,13 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
  * @brief Draws the specified shadow for the given entity. A scissor test is
  * employed in order to clip shadows to the planes they are cast upon.
  */
-static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) {
+static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_illumination_t *il) {
 
-	if (!s->intensity)
-		return;
+	R_SetMeshShadowColor_default(e, il);
 
-	R_SetMeshShadowColor_default(e, s);
+	R_RotateForMeshShadow_default(e, il);
 
-	R_RotateForMeshShadow_default(e, s);
-
-	glStencilFunc(GL_EQUAL, R_STENCIL_REF(&s->plane), ~0);
+	glStencilFunc(GL_EQUAL, R_STENCIL_REF(&il->shadow.plane), ~0);
 
 	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
@@ -139,7 +133,7 @@ static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) 
  * position above our view origin are not drawn.
  */
 void R_DrawMeshShadow_default(const r_entity_t *e) {
-	r_bsp_light_ref_t *r;
+	uint16_t i;
 
 	if (!r_shadows->value)
 		return;
@@ -161,11 +155,27 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableStencilTest(true, GL_ZERO);
 
-	for (r = e->lighting->bsp_light_refs; r->diffuse; r++) {
-		R_DrawMeshShadow_default_(e, &r->shadow);
-	}
+	const r_illumination_t **il = e->lighting->shadows;
 
-	R_DrawMeshShadow_default_(e, &e->lighting->illumination.shadow);
+	for (i = 0; i < lengthof(e->lighting->shadows); i++, il++) {
+
+		if (*il == NULL)
+			break;
+
+#if 0
+		if (e->effects & EF_CLIENT) {
+			r_corona_t c;
+
+			VectorCopy((*il)->pos, c.origin);
+			VectorCopy((*il)->color, c.color);
+			c.radius = (*il)->radius / 8;
+
+			R_AddCorona(&c);
+		}
+#endif
+
+		R_DrawMeshShadow_default_(e, *il);
+	}
 
 	R_EnableStencilTest(false, GL_ZERO);
 

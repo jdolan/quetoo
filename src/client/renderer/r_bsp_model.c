@@ -269,7 +269,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 		out->material = R_LoadMaterial(va("textures/%s", out->name));
 
-		// Hack to down-scale high-res textures for legacy levels
+		// hack to down-scale high-res textures for legacy levels
 		if (bsp->version == BSP_VERSION) {
 			void *buffer;
 
@@ -283,7 +283,66 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 				Fs_Free(buffer);
 			}
 		}
+
+		// resolve emissive lighting
+		if ((out->flags & SURF_LIGHT) && out->value) {
+			VectorScale(out->material->diffuse->color, out->value, out->emissive);
+			out->light = ColorNormalize(out->emissive, out->emissive);
+		}
 	}
+}
+
+/*
+ * @brief Convenience for resolving r_bsp_vertex_t from surface edges.
+ */
+#define R_BSP_VERTEX(b, e) ((e) >= 0 ? \
+	(&b->vertexes[b->edges[(e)].v[0]]) : (&b->vertexes[b->edges[-(e)].v[1]]) \
+)
+
+/*
+ * @brief Unwinds the surface, iterating all non-collinear vertices.
+ *
+ * @return The next winding point, or NULL if the face is completely unwound.
+ */
+static const vec_t *R_UnwindBspSurface(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf,
+		const vec_t *last) {
+
+	const int32_t *se = &bsp->surface_edges[surf->first_edge];
+	const vec_t *v0 = R_BSP_VERTEX(bsp, *se)->position;
+
+	if (!last)
+		return v0;
+
+	uint16_t i;
+
+	for (i = 0; i < surf->num_edges; i++) {
+		const vec_t *v = R_BSP_VERTEX(bsp, se[i])->position;
+
+		if (VectorCompare(last, v)) {
+			break;
+		}
+	}
+
+	while (i < surf->num_edges - 1) {
+		const vec_t *v1 = R_BSP_VERTEX(bsp, se[(i + 1) % surf->num_edges])->position;
+		const vec_t *v2 = R_BSP_VERTEX(bsp, se[(i + 2) % surf->num_edges])->position;
+
+		vec3_t delta1, delta2;
+
+		VectorSubtract(v1, v0, delta1);
+		VectorSubtract(v2, v0, delta1);
+
+		VectorNormalize(delta1);
+		VectorNormalize(delta2);
+
+		if (DotProduct(delta1, delta2) < 1.0 - SIDE_EPSILON) {
+			return v1;
+		}
+
+		i++;
+	}
+
+	return NULL;
 }
 
 /*
@@ -300,14 +359,10 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	const r_bsp_texinfo_t *tex = surf->texinfo;
 
-	for (i = 0; i < surf->num_edges; i++) {
-		const int32_t e = bsp->surface_edges[surf->first_edge + i];
-		const r_bsp_vertex_t *v;
+	const int32_t *e = &bsp->surface_edges[surf->first_edge];
 
-		if (e >= 0)
-			v = &bsp->vertexes[bsp->edges[e].v[0]];
-		else
-			v = &bsp->vertexes[bsp->edges[-e].v[1]];
+	for (i = 0; i < surf->num_edges; i++, e++) {
+		const r_bsp_vertex_t *v = R_BSP_VERTEX(bsp, *e);
 
 		AddPointToBounds(v->position, surf->mins, surf->maxs); // calculate mins, maxs
 
@@ -321,6 +376,28 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	}
 
 	VectorMix(surf->mins, surf->maxs, 0.5, surf->center); // calculate the center
+
+	if (surf->texinfo->light) { // resolve surface area
+
+		const vec_t *v0 = R_UnwindBspSurface(bsp, surf, NULL);
+		const vec_t *v1 = R_UnwindBspSurface(bsp, surf, v0);
+		const vec_t *v2 = R_UnwindBspSurface(bsp, surf, v1);
+
+		uint16_t tris = 0;
+		while (v1 && v2) {
+			tris++;
+			vec3_t delta1, delta2, cross;
+
+			VectorSubtract(v1, v0, delta1);
+			VectorSubtract(v2, v0, delta2);
+
+			CrossProduct(delta1, delta2, cross);
+			surf->area += 0.5 * VectorLength(cross);
+
+			v1 = v2;
+			v2 = R_UnwindBspSurface(bsp, surf, v1);
+		}
+	}
 
 	// bump the texture coordinate vectors to ensure we don't split samples
 	for (i = 0; i < 2; i++) {
@@ -587,24 +664,13 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  * @param count The current vertex count for the load model.
  */
 static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf, GLuint *count) {
-	uint16_t i;
 
 	surf->index = *count;
-	for (i = 0; i < surf->num_edges; i++) {
 
-		const int32_t index = mod->bsp->surface_edges[surf->first_edge + i];
+	const int32_t *e = &mod->bsp->surface_edges[surf->first_edge];
 
-		const r_bsp_edge_t *edge;
-		r_bsp_vertex_t *vert;
-
-		// vertex
-		if (index > 0) { // negative indices to differentiate which end of the edge
-			edge = &mod->bsp->edges[index];
-			vert = &mod->bsp->vertexes[edge->v[0]];
-		} else {
-			edge = &mod->bsp->edges[-index];
-			vert = &mod->bsp->vertexes[edge->v[1]];
-		}
+	for (uint16_t i = 0; i < surf->num_edges; i++, e++) {
+		const r_bsp_vertex_t *vert = R_BSP_VERTEX(mod->bsp, *e);
 
 		memcpy(&mod->verts[(*count) * 3], vert->position, sizeof(vec3_t));
 
@@ -775,32 +841,32 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 	for (i = 0; i < mod->bsp->num_surfaces; i++, surf++) {
 
 		if (surf->texinfo->flags & SURF_SKY) {
-			R_SurfaceToSurfaces(&sorted->sky, surf);
+			R_SURFACE_TO_SURFACES(&sorted->sky, surf);
 			continue;
 		}
 
 		if (surf->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
 			if (surf->texinfo->flags & SURF_WARP)
-				R_SurfaceToSurfaces(&sorted->blend_warp, surf);
+				R_SURFACE_TO_SURFACES(&sorted->blend_warp, surf);
 			else
-				R_SurfaceToSurfaces(&sorted->blend, surf);
+				R_SURFACE_TO_SURFACES(&sorted->blend, surf);
 		} else {
 			if (surf->texinfo->flags & SURF_WARP)
-				R_SurfaceToSurfaces(&sorted->opaque_warp, surf);
+				R_SURFACE_TO_SURFACES(&sorted->opaque_warp, surf);
 			else if (surf->texinfo->flags & SURF_ALPHA_TEST)
-				R_SurfaceToSurfaces(&sorted->alpha_test, surf);
+				R_SURFACE_TO_SURFACES(&sorted->alpha_test, surf);
 			else
-				R_SurfaceToSurfaces(&sorted->opaque, surf);
+				R_SURFACE_TO_SURFACES(&sorted->opaque, surf);
 		}
 
 		if (surf->texinfo->material->flags & STAGE_DIFFUSE)
-			R_SurfaceToSurfaces(&sorted->material, surf);
+			R_SURFACE_TO_SURFACES(&sorted->material, surf);
 
 		if (surf->texinfo->material->flags & STAGE_FLARE)
-			R_SurfaceToSurfaces(&sorted->flare, surf);
+			R_SURFACE_TO_SURFACES(&sorted->flare, surf);
 
 		if (!(surf->texinfo->flags & SURF_WARP))
-			R_SurfaceToSurfaces(&sorted->back, surf);
+			R_SURFACE_TO_SURFACES(&sorted->back, surf);
 	}
 
 	// now sort them by texture

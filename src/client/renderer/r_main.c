@@ -221,16 +221,15 @@ static void R_RenderMode(const char *mode) {
 	if (!mode || !*mode)
 		return;
 
-	// assign function pointers to different plugins here
+	// assign function pointers to different renderer paths here
 }
 
 /*
  * @brief Clears the frame buffer.
  */
 static void R_Clear(void) {
-	int32_t bits;
 
-	bits = GL_DEPTH_BUFFER_BIT;
+	GLbitfield bits = GL_DEPTH_BUFFER_BIT;
 
 	// clear the stencil bit if shadows are enabled
 	if (r_shadows->value)
