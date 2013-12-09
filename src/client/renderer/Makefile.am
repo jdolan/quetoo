@@ -22,7 +22,6 @@ noinst_HEADERS = \
 	r_local.h \
 	r_main.h \
 	r_material.h \
-	r_matrix.h \
 	r_media.h \
 	r_mesh_model.h \
 	r_mesh_shadow.h \
@@ -61,7 +60,6 @@ librenderer_la_SOURCES = \
 	r_lightmap.c \
 	r_main.c \
 	r_material.c \
-	r_matrix.c \
 	r_media.c \
 	r_mesh_model.c \
 	r_mesh_shadow.c \

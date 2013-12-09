@@ -43,7 +43,6 @@
 #include "r_lightmap.h"
 #include "r_main.h"
 #include "r_material.h"
-#include "r_matrix.h"
 #include "r_media.h"
 #include "r_mesh_model.h"
 #include "r_mesh_shadow.h"

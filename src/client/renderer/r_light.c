@@ -193,7 +193,7 @@ void R_MarkLights(void) {
  * @brief Rotates the active light sources for the specified entity.
  */
 void R_RotateLightsForEntity(const r_entity_t *e, uint64_t mask) {
-	static vec3_t light_origins[MAX_LIGHTS];
+	vec3_t light_origins[MAX_LIGHTS];
 	r_light_t *l;
 	uint16_t i;
 

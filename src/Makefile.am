@@ -18,6 +18,7 @@ noinst_HEADERS = \
 	cvar.h \
 	filesystem.h \
 	image.h \
+	matrix.h \
 	mem.h \
 	mem_buf.h \
 	net.h \
@@ -27,6 +28,7 @@ noinst_HEADERS = \
 	net_udp.h \
 	quake2world.h \
 	shared.h \
+	swap.h \
 	sys.h \
 	thread.h
 
@@ -36,6 +38,7 @@ noinst_LTLIBRARIES = \
 	libconsole.la \
 	libfilesystem.la \
 	libimage.la \
+	libmatrix.la \
 	libmem.la \
 	libnet.la \
 	libshared.la \
@@ -51,7 +54,8 @@ libcmodel_la_CFLAGS = \
 libcmodel_la_LDFLAGS = \
 	-shared
 libcmodel_la_LIBADD = \
-	libfilesystem.la
+	libfilesystem.la \
+	libmatrix.la
 
 libcommon_la_SOURCES = \
 	common.c
@@ -114,6 +118,17 @@ libimage_la_CFLAGS = \
 	-D__LIBTOOL_LIBRARY__=libimage_la
 
 endif
+
+libmatrix_la_SOURCES = \
+	matrix.c
+libmatrix_la_CFLAGS = \
+	@BASE_CFLAGS@ \
+	@GLIB_CFLAGS@
+libmatrix_la_LDFLAGS = \
+	-shared
+libmatrix_la_LIBADD = \
+	@BASE_LIBS@ \
+	@GLIB_LIBS@
 
 libmem_la_SOURCES = \
 	mem.c \

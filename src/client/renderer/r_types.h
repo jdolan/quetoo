@@ -26,8 +26,8 @@
 
 #include "files.h"
 #include "image.h"
+#include "matrix.h"
 #include "thread.h"
-#include "r_matrix.h"
 
 // media handles
 typedef struct r_media_s {

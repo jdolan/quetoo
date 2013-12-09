@@ -24,6 +24,7 @@
 
 #include "files.h"
 #include "filesystem.h"
+#include "matrix.h"
 
 c_bsp_model_t *Cm_LoadBsp(const char *name, int32_t *map_size);
 c_bsp_model_t *Cm_Model(const char *name); // *1, *2, etc

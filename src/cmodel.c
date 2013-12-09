@@ -1291,56 +1291,38 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
 }
 
 /*
- * @brief Handles translation and rotation of the end points for moving and
- * rotating entities.
+ * @brief Collision detection for inline BSP models. Rotates the specified end
+ * points into the model's space, and traces down the relevant subset of the
+ * BSP tree.
  */
 c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
 		const vec3_t maxs, const int32_t head_node, const int32_t contents, const vec3_t origin,
 		const vec3_t angles) {
 
-	c_trace_t trace;
-	vec3_t start_l, end_l;
-	vec3_t a;
-	vec3_t forward, right, up;
-	vec3_t temp;
-	_Bool rotated;
+	vec3_t start0, end0;
+	matrix4x4_t mat, inv;
 
-	// subtract origin offset
-	VectorSubtract(start, origin, start_l);
-	VectorSubtract(end, origin, end_l);
+	const vec_t *o = origin, *a = angles;
+	Matrix4x4_CreateFromQuakeEntity(&mat, o[0], o[1], o[2], a[0], a[1], a[2], 1.0);
 
-	// rotate start and end into the models frame of reference
-	if (head_node != cm_box.head_node && (angles[0] || angles[1] || angles[2]))
-		rotated = true;
-	else
-		rotated = false;
+	Matrix4x4_Invert_Simple(&inv, &mat);
 
-	if (rotated) {
-		AngleVectors(angles, forward, right, up);
-
-		VectorCopy(start_l, temp);
-		start_l[0] = DotProduct(temp, forward);
-		start_l[1] = -DotProduct(temp, right);
-		start_l[2] = DotProduct(temp, up);
-
-		VectorCopy(end_l, temp);
-		end_l[0] = DotProduct(temp, forward);
-		end_l[1] = -DotProduct(temp, right);
-		end_l[2] = DotProduct(temp, up);
-	}
+	Matrix4x4_Transform(&inv, start, start0);
+	Matrix4x4_Transform(&inv, end, end0);
 
 	// sweep the box through the model
-	trace = Cm_BoxTrace(start_l, end_l, mins, maxs, head_node, contents);
+	c_trace_t trace = Cm_BoxTrace(start0, end0, mins, maxs, head_node, contents);
 
-	if (rotated && trace.fraction != 1.0) {
-		// FIXME: figure out how to do this with existing angles
-		VectorNegate(angles, a);
-		AngleVectors(a, forward, right, up);
+	if (trace.fraction < 1.0) {
+		vec4_t plane;
 
-		VectorCopy(trace.plane.normal, temp);
-		trace.plane.normal[0] = DotProduct(temp, forward);
-		trace.plane.normal[1] = -DotProduct(temp, right);
-		trace.plane.normal[2] = DotProduct(temp, up);
+		const c_bsp_plane_t *p = &trace.plane;
+		const vec_t *n = p->normal;
+
+		Matrix4x4_TransformPositivePlane(&mat, n[0], n[1], n[2], p->dist, plane);
+
+		VectorCopy(plane, trace.plane.normal);
+		trace.plane.dist = plane[3];
 	}
 
 	trace.end[0] = start[0] + trace.fraction * (end[0] - start[0]);
