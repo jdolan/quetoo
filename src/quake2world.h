@@ -362,7 +362,6 @@ typedef struct c_trace_s {
 	vec3_t end; // final position
 	c_bsp_plane_t plane; // surface normal at impact
 	c_bsp_surface_t *surface; // surface hit, NULL for box hits
-	int32_t leaf_num;
 	int32_t contents; // contents on other side of surface hit
 	struct g_edict_s *ent; // not set by Cm_*() functions
 } c_trace_t;

@@ -745,16 +745,16 @@ int32_t Cm_HeadnodeForBox(const vec3_t mins, const vec3_t maxs) {
 static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
 
 	while (num >= 0) {
-		vec_t d;
 		c_bsp_node_t *node = c_bsp.nodes + num;
 		c_bsp_plane_t *plane = node->plane;
+		vec_t d;
 
 		if (AXIAL(plane))
 			d = p[plane->type] - plane->dist;
 		else
 			d = DotProduct(plane->normal, p) - plane->dist;
 
-		if (d < 0)
+		if (d < 0.0)
 			num = node->children[1];
 		else
 			num = node->children[0];
@@ -916,18 +916,20 @@ typedef struct {
 /*
  * @brief
  */
-static _Bool Cm_BrushAlreadyTested(int32_t brush_num, c_trace_data_t *data) {
-	int32_t hash = brush_num & 15;
-	_Bool skip = (data->mailbox[hash] == brush_num);
+static _Bool Cm_BrushAlreadyTested(c_trace_data_t *data, const int32_t brush_num) {
+
+	const int32_t hash = brush_num & 15;
+	const _Bool skip = (data->mailbox[hash] == brush_num);
+
 	data->mailbox[hash] = brush_num;
+
 	return skip;
 }
 
 /*
- * @brief Clips the bounded box to all brush sides for the given brush. Returns
- * true if the box was clipped, false otherwise.
+ * @brief Clips the bounded box to all brush sides for the given brush.
  */
-static void Cm_ClipBoxToBrush(c_trace_data_t *data, c_bsp_leaf_t *leaf, c_bsp_brush_t *brush) {
+static void Cm_TraceToBrush(c_trace_data_t *data, const c_bsp_brush_t *brush) {
 
 	if (!brush->num_sides)
 		return;
@@ -946,15 +948,10 @@ static void Cm_ClipBoxToBrush(c_trace_data_t *data, c_bsp_leaf_t *leaf, c_bsp_br
 
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 		const c_bsp_plane_t *plane = side->plane;
-		vec_t dist;
+
+		const vec_t dist = plane->dist - DotProduct(data->offsets[plane->sign_bits], plane->normal);
 
 		// FIXME: special case for axial
-
-		if (data->is_point) { // special point case
-			dist = plane->dist;
-		} else { // general box case
-			dist = plane->dist - DotProduct(data->offsets[plane->sign_bits], plane->normal);
-		}
 
 		const vec_t d1 = DotProduct(data->start, plane->normal) - dist;
 		const vec_t d2 = DotProduct(data->end, plane->normal) - dist;
@@ -986,11 +983,12 @@ static void Cm_ClipBoxToBrush(c_trace_data_t *data, c_bsp_leaf_t *leaf, c_bsp_br
 		}
 	}
 
+	// some sort of collision has occurred
+
 	if (!start_outside) { // original point was inside brush
 		data->trace.start_solid = true;
 		if (!end_outside)
 			data->trace.all_solid = true;
-		data->trace.leaf_num = leaf - c_bsp.leafs;
 	}
 
 	if (enter_fraction < leave_fraction) { // pierced brush
@@ -999,7 +997,6 @@ static void Cm_ClipBoxToBrush(c_trace_data_t *data, c_bsp_leaf_t *leaf, c_bsp_br
 			data->trace.plane = *clip_plane;
 			data->trace.surface = lead_side->surface;
 			data->trace.contents = brush->contents;
-			data->trace.leaf_num = leaf - c_bsp.leafs;
 		}
 	}
 }
@@ -1007,20 +1004,19 @@ static void Cm_ClipBoxToBrush(c_trace_data_t *data, c_bsp_leaf_t *leaf, c_bsp_br
 /*
  * @brief
  */
-static void Cm_TestBoxInBrush(c_trace_data_t *data, c_bsp_brush_t *brush) {
-	int32_t i;
+static void Cm_TestBoxInBrush(c_trace_data_t *data, const c_bsp_brush_t *brush) {
 
 	if (!brush->num_sides)
 		return;
 
 	const c_bsp_brush_side_t *side = &c_bsp.brush_sides[brush->first_brush_side];
 
-	for (i = 0; i < brush->num_sides; i++, side++) {
+	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 		const c_bsp_plane_t *plane = side->plane;
 
-		// FIXME: special case for axial
-
 		const vec_t dist = plane->dist - DotProduct(data->offsets[plane->sign_bits], plane->normal);
+
+		// FIXME: special case for axial
 
 		const vec_t d1 = DotProduct(data->start, plane->normal) - dist;
 
@@ -1039,26 +1035,25 @@ static void Cm_TestBoxInBrush(c_trace_data_t *data, c_bsp_brush_t *brush) {
  * @brief
  */
 static void Cm_TraceToLeaf(int32_t leaf_num, c_trace_data_t *data) {
-	int32_t k;
-	c_bsp_leaf_t *leaf;
 
-	leaf = &c_bsp.leafs[leaf_num];
+	const c_bsp_leaf_t *leaf = &c_bsp.leafs[leaf_num];
 
 	if (!(leaf->contents & data->contents))
 		return;
 
 	// trace line against all brushes in the leaf
-	for (k = 0; k < leaf->num_leaf_brushes; k++) {
-		const int32_t brush_num = c_bsp.leaf_brushes[leaf->first_leaf_brush + k];
-		c_bsp_brush_t *b = &c_bsp.brushes[brush_num];
+	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
+		const int32_t brush_num = c_bsp.leaf_brushes[leaf->first_leaf_brush + i];
 
-		if (Cm_BrushAlreadyTested(brush_num, data))
+		if (Cm_BrushAlreadyTested(data, brush_num))
 			continue; // already checked this brush in another leaf
+
+		const c_bsp_brush_t *b = &c_bsp.brushes[brush_num];
 
 		if (!(b->contents & data->contents))
 			continue;
 
-		Cm_ClipBoxToBrush(data, leaf, b);
+		Cm_TraceToBrush(data, b);
 
 		if (data->trace.all_solid)
 			return;
@@ -1069,20 +1064,20 @@ static void Cm_TraceToLeaf(int32_t leaf_num, c_trace_data_t *data) {
  * @brief
  */
 static void Cm_TestInLeaf(int32_t leaf_num, c_trace_data_t *data) {
-	int32_t k;
-	c_bsp_leaf_t *leaf;
 
-	leaf = &c_bsp.leafs[leaf_num];
+	const c_bsp_leaf_t *leaf = &c_bsp.leafs[leaf_num];
+
 	if (!(leaf->contents & data->contents))
 		return;
 
 	// trace line against all brushes in the leaf
-	for (k = 0; k < leaf->num_leaf_brushes; k++) {
-		const int32_t brush_num = c_bsp.leaf_brushes[leaf->first_leaf_brush + k];
-		c_bsp_brush_t *b = &c_bsp.brushes[brush_num];
+	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
+		const int32_t brush_num = c_bsp.leaf_brushes[leaf->first_leaf_brush + i];
 
-		if (Cm_BrushAlreadyTested(brush_num, data))
+		if (Cm_BrushAlreadyTested(data, brush_num))
 			continue; // already checked this brush in another leaf
+
+		const c_bsp_brush_t *b = &c_bsp.brushes[brush_num];
 
 		if (!(b->contents & data->contents))
 			continue;
@@ -1130,7 +1125,7 @@ static void Cm_RecursiveHullCheck(int32_t num, vec_t p1f, vec_t p2f, const vec3_
 		t1 = DotProduct(plane->normal, p1) - plane->dist;
 		t2 = DotProduct(plane->normal, p2) - plane->dist;
 		if (data->is_point)
-			offset = 0;
+			offset = 0.0;
 		else
 			offset = fabsf(data->extents[0] * plane->normal[0]) + fabsf(
 					data->extents[1] * plane->normal[1]) + fabsf(
@@ -1147,7 +1142,7 @@ static void Cm_RecursiveHullCheck(int32_t num, vec_t p1f, vec_t p2f, const vec3_
 		return;
 	}
 
-	// put the crosspoint DIST_EPSILON pixels on the near side
+	// put the cross point DIST_EPSILON pixels on the near side
 	if (t1 < t2) {
 		const vec_t idist = 1.0 / (t1 - t2);
 		side = 1;
