@@ -904,6 +904,7 @@ typedef struct {
 	vec3_t start, end;
 	vec3_t mins, maxs;
 	vec3_t extents;
+	vec3_t offsets[8];
 
 	c_trace_t trace;
 	int32_t contents;
@@ -962,8 +963,7 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 				else
 					ofs[j] = mins[j];
 			}
-			dist = DotProduct(ofs, plane->normal);
-			dist = plane->dist - dist;
+			dist = plane->dist - DotProduct(ofs, plane->normal);
 		} else { // special point case
 			dist = plane->dist;
 		}
@@ -1021,34 +1021,22 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 /*
  * @brief
  */
-static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, c_trace_t *trace,
-		c_bsp_brush_t *brush) {
-	int32_t i, j;
+static void Cm_TestBoxInBrush(c_trace_data_t *data, c_bsp_brush_t *brush) {
+	int32_t i;
 
 	if (!brush->num_sides)
 		return;
 
-	for (i = 0; i < brush->num_sides; i++) {
-		const c_bsp_brush_side_t *side = &c_bsp.brush_sides[brush->first_brush_side + i];
-		const c_bsp_plane_t *plane = side->plane;
-		vec3_t offset;
+	const c_bsp_brush_side_t *s = &c_bsp.brush_sides[brush->first_brush_side];
+
+	for (i = 0; i < brush->num_sides; i++, s++) {
+		const c_bsp_plane_t *p = s->plane;
 
 		// FIXME: special case for axial
 
-		// general box case
+		const vec_t dist = p->dist - DotProduct(data->offsets[p->sign_bits], p->normal);
 
-		// push the plane out appropriately for mins/maxs
-
-		// FIXME: use sign_bits into 8 way lookup for each mins/maxs
-		for (j = 0; j < 3; j++) {
-			if (plane->normal[j] < 0.0)
-				offset[j] = maxs[j];
-			else
-				offset[j] = mins[j];
-		}
-		const vec_t dist = plane->dist - DotProduct(offset, plane->normal);
-
-		const vec_t d1 = DotProduct(p1, plane->normal) - dist;
+		const vec_t d1 = DotProduct(data->start, p->normal) - dist;
 
 		// if completely in front of face, no intersection
 		if (d1 > 0.0)
@@ -1056,9 +1044,9 @@ static void Cm_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, c_trace_t *tr
 	}
 
 	// inside this brush
-	trace->start_solid = trace->all_solid = true;
-	trace->fraction = 0.0;
-	trace->contents = brush->contents;
+	data->trace.start_solid = data->trace.all_solid = true;
+	data->trace.fraction = 0.0;
+	data->trace.contents = brush->contents;
 }
 
 /*
@@ -1114,7 +1102,7 @@ static void Cm_TestInLeaf(int32_t leaf_num, c_trace_data_t *data) {
 		if (!(b->contents & data->contents))
 			continue;
 
-		Cm_TestBoxInBrush(data->mins, data->maxs, data->start, &data->trace, b);
+		Cm_TestBoxInBrush(data, b);
 
 		if (data->trace.all_solid)
 			return;
@@ -1144,7 +1132,7 @@ static void Cm_RecursiveHullCheck(int32_t num, vec_t p1f, vec_t p2f, const vec3_
 		return;
 	}
 
-	// find the point distances to the seperating plane
+	// find the point distances to the separating plane
 	// and the offset for the size of the box
 	node = c_bsp.nodes + num;
 	plane = node->plane;
@@ -1217,7 +1205,7 @@ static void Cm_RecursiveHullCheck(int32_t num, vec_t p1f, vec_t p2f, const vec3_
 }
 
 /*
- * @brief
+ * @brief Collision detection with world for bounding box and point cases.
  */
 c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 		const int32_t head_node, const int32_t contents) {
@@ -1235,12 +1223,46 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
 	if (!c_bsp.num_nodes) // map not loaded
 		return data.trace;
 
+	// initialize the trace data
 	memset(&data.mailbox, 0xffffffff, sizeof(data.mailbox));
 	data.contents = contents;
 	VectorCopy(start, data.start);
 	VectorCopy(end, data.end);
 	VectorCopy(mins, data.mins);
 	VectorCopy(maxs, data.maxs);
+
+	// offsets allow sign bit lookups for fast plane tests
+	data.offsets[0][0] = mins[0];
+	data.offsets[0][1] = mins[1];
+	data.offsets[0][2] = mins[2];
+
+	data.offsets[1][0] = maxs[0];
+	data.offsets[1][1] = mins[1];
+	data.offsets[1][2] = mins[2];
+
+	data.offsets[2][0] = mins[0];
+	data.offsets[2][1] = maxs[1];
+	data.offsets[2][2] = mins[2];
+
+	data.offsets[3][0] = maxs[0];
+	data.offsets[3][1] = maxs[1];
+	data.offsets[3][2] = mins[2];
+
+	data.offsets[4][0] = mins[0];
+	data.offsets[4][1] = mins[1];
+	data.offsets[4][2] = maxs[2];
+
+	data.offsets[5][0] = maxs[0];
+	data.offsets[5][1] = mins[1];
+	data.offsets[5][2] = maxs[2];
+
+	data.offsets[6][0] = mins[0];
+	data.offsets[6][1] = maxs[1];
+	data.offsets[6][2] = maxs[2];
+
+	data.offsets[7][0] = maxs[0];
+	data.offsets[7][1] = maxs[1];
+	data.offsets[7][2] = maxs[2];
 
 	// check for position test special case
 	if (VectorCompare(start, end)) {
@@ -1263,6 +1285,7 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
 			if (data.trace.all_solid)
 				break;
 		}
+
 		VectorCopy(start, data.trace.end);
 		return data.trace;
 	}
@@ -1287,13 +1310,25 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
 		for (i = 0; i < 3; i++)
 			data.trace.end[i] = start[i] + data.trace.fraction * (end[i] - start[i]);
 	}
+
 	return data.trace;
 }
 
 /*
- * @brief Collision detection for inline BSP models. Rotates the specified end
+ * @brief Collision detection for non-world models. Rotates the specified end
  * points into the model's space, and traces down the relevant subset of the
- * BSP tree.
+ * BSP tree. For inline BSP models, the head node is the root of the model's
+ * subtree. For mesh models, a special reserved box hull and head node are
+ * used.
+ *
+ * @param start The trace start point, in world space.
+ * @param end The trace end point, in world space.
+ * @param mins The trace bounding box mins.
+ * @param maxs The trace bounding box maxs.
+ * @param head_node The BSP head node to recurse down.
+ * @param contents The contents mask to clip to.
+ * @param origin The origin of the entity to be clipped against.
+ * @param angles The angles of the entity to be clipped against.
  */
 c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
 		const vec3_t maxs, const int32_t head_node, const int32_t contents, const vec3_t origin,
@@ -1331,12 +1366,6 @@ c_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec
 
 	return trace;
 }
-
-/*
- *
- * PVS / PHS
- *
- */
 
 /*
  * @brief
