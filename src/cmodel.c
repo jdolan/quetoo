@@ -760,7 +760,7 @@ static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
 			num = node->children[0];
 	}
 
-	c_point_contents++; // optimize counter, TODO: atomic increment for thread-safety
+	c_point_contents++; // optimize counter (not thread safe)
 
 	return -1 - num;
 }
@@ -951,8 +951,6 @@ static void Cm_TraceToBrush(c_trace_data_t *data, const c_bsp_brush_t *brush) {
 
 		const vec_t dist = plane->dist - DotProduct(data->offsets[plane->sign_bits], plane->normal);
 
-		// FIXME: special case for axial
-
 		const vec_t d1 = DotProduct(data->start, plane->normal) - dist;
 		const vec_t d2 = DotProduct(data->end, plane->normal) - dist;
 
@@ -1015,8 +1013,6 @@ static void Cm_TestBoxInBrush(c_trace_data_t *data, const c_bsp_brush_t *brush) 
 		const c_bsp_plane_t *plane = side->plane;
 
 		const vec_t dist = plane->dist - DotProduct(data->offsets[plane->sign_bits], plane->normal);
-
-		// FIXME: special case for axial
 
 		const vec_t d1 = DotProduct(data->start, plane->normal) - dist;
 
@@ -1092,16 +1088,8 @@ static void Cm_TestInLeaf(int32_t leaf_num, c_trace_data_t *data) {
 /*
  * @brief
  */
-static void Cm_RecursiveHullCheck(int32_t num, vec_t p1f, vec_t p2f, const vec3_t p1,
-		const vec3_t p2, c_trace_data_t *data) {
-	const c_bsp_node_t *node;
-	const c_bsp_plane_t *plane;
-	vec_t t1, t2, offset;
-	vec_t frac, frac2;
-	int32_t i;
-	vec3_t mid;
-	int32_t side;
-	vec_t midf;
+static void Cm_TraceToNode(c_trace_data_t *data, int32_t num, vec_t p1f, vec_t p2f,
+		const vec3_t p1, const vec3_t p2) {
 
 	if (data->trace.fraction <= p1f)
 		return; // already hit something nearer
@@ -1114,74 +1102,74 @@ static void Cm_RecursiveHullCheck(int32_t num, vec_t p1f, vec_t p2f, const vec3_
 
 	// find the point distances to the separating plane
 	// and the offset for the size of the box
-	node = c_bsp.nodes + num;
-	plane = node->plane;
+	const c_bsp_node_t *node = c_bsp.nodes + num;
+	const c_bsp_plane_t *plane = node->plane;
 
+	vec_t d1, d2, offset;
 	if (AXIAL(plane)) {
-		t1 = p1[plane->type] - plane->dist;
-		t2 = p2[plane->type] - plane->dist;
+		d1 = p1[plane->type] - plane->dist;
+		d2 = p2[plane->type] - plane->dist;
 		offset = data->extents[plane->type];
 	} else {
-		t1 = DotProduct(plane->normal, p1) - plane->dist;
-		t2 = DotProduct(plane->normal, p2) - plane->dist;
+		d1 = DotProduct(plane->normal, p1) - plane->dist;
+		d2 = DotProduct(plane->normal, p2) - plane->dist;
 		if (data->is_point)
 			offset = 0.0;
 		else
-			offset = fabsf(data->extents[0] * plane->normal[0]) + fabsf(
-					data->extents[1] * plane->normal[1]) + fabsf(
-					data->extents[2] * plane->normal[2]);
+			offset = 2048.0;
 	}
 
 	// see which sides we need to consider
-	if (t1 >= offset && t2 >= offset) {
-		Cm_RecursiveHullCheck(node->children[0], p1f, p2f, p1, p2, data);
+	if (d1 >= offset && d2 >= offset) {
+		Cm_TraceToNode(data, node->children[0], p1f, p2f, p1, p2);
 		return;
 	}
-	if (t1 <= -offset && t2 <= -offset) {
-		Cm_RecursiveHullCheck(node->children[1], p1f, p2f, p1, p2, data);
+	if (d1 <= -offset && d2 <= -offset) {
+		Cm_TraceToNode(data, node->children[1], p1f, p2f, p1, p2);
 		return;
 	}
 
 	// put the cross point DIST_EPSILON pixels on the near side
-	if (t1 < t2) {
-		const vec_t idist = 1.0 / (t1 - t2);
+	int32_t side;
+	vec_t frac1, frac2;
+
+	if (d1 < d2) {
+		const vec_t idist = 1.0 / (d1 - d2);
 		side = 1;
-		frac2 = (t1 + offset + DIST_EPSILON) * idist;
-		frac = (t1 - offset + DIST_EPSILON) * idist;
-	} else if (t1 > t2) {
-		const vec_t idist = 1.0 / (t1 - t2);
+		frac2 = (d1 + offset + DIST_EPSILON) * idist;
+		frac1 = (d1 - offset + DIST_EPSILON) * idist;
+	} else if (d1 > d2) {
+		const vec_t idist = 1.0 / (d1 - d2);
 		side = 0;
-		frac2 = (t1 - offset - DIST_EPSILON) * idist;
-		frac = (t1 + offset + DIST_EPSILON) * idist;
+		frac2 = (d1 - offset - DIST_EPSILON) * idist;
+		frac1 = (d1 + offset + DIST_EPSILON) * idist;
 	} else {
 		side = 0;
-		frac = 1;
-		frac2 = 0;
+		frac1 = 1.0;
+		frac2 = 0.0;
 	}
 
+	vec3_t mid;
+
 	// move up to the node
-	if (frac < 0)
-		frac = 0;
-	if (frac > 1)
-		frac = 1;
+	frac1 = Clamp(frac1, 0.0, 1.0);
 
-	midf = p1f + (p2f - p1f) * frac;
-	for (i = 0; i < 3; i++)
-		mid[i] = p1[i] + frac * (p2[i] - p1[i]);
+	const vec_t midf1 = p1f + (p2f - p1f) * frac1;
 
-	Cm_RecursiveHullCheck(node->children[side], p1f, midf, p1, mid, data);
+	for (int32_t i = 0; i < 3; i++)
+		mid[i] = p1[i] + frac1 * (p2[i] - p1[i]);
+
+	Cm_TraceToNode(data, node->children[side], p1f, midf1, p1, mid);
 
 	// go past the node
-	if (frac2 < 0)
-		frac2 = 0;
-	if (frac2 > 1)
-		frac2 = 1;
+	frac2 = Clamp(frac2, 0.0, 1.0);
 
-	midf = p1f + (p2f - p1f) * frac2;
-	for (i = 0; i < 3; i++)
+	const vec_t midf2 = p1f + (p2f - p1f) * frac2;
+
+	for (int32_t i = 0; i < 3; i++)
 		mid[i] = p1[i] + frac2 * (p2[i] - p1[i]);
 
-	Cm_RecursiveHullCheck(node->children[side ^ 1], midf, p2f, mid, p2, data);
+	Cm_TraceToNode(data, node->children[side ^ 1], midf2, p2f, mid, p2);
 }
 
 /*
@@ -1282,7 +1270,7 @@ c_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, c
 	}
 
 	// general sweeping through world
-	Cm_RecursiveHullCheck(head_node, 0, 1, start, end, &data);
+	Cm_TraceToNode(&data, head_node, 0.0, 1.0, start, end);
 
 	if (data.trace.fraction == 1.0) {
 		VectorCopy(end, data.trace.end);
