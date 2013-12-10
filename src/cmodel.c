@@ -927,9 +927,7 @@ static _Bool Cm_BrushAlreadyTested(int32_t brush_num, c_trace_data_t *data) {
  * @brief Clips the bounded box to all brush sides for the given brush. Returns
  * true if the box was clipped, false otherwise.
  */
-static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_trace_t *trace,
-		c_bsp_leaf_t *leaf, c_bsp_brush_t *brush, _Bool is_point) {
-	int32_t i, j;
+static void Cm_ClipBoxToBrush(c_trace_data_t *data, c_bsp_leaf_t *leaf, c_bsp_brush_t *brush) {
 
 	if (!brush->num_sides)
 		return;
@@ -942,34 +940,24 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 	const c_bsp_plane_t *clip_plane = NULL;
 
 	_Bool end_outside = false, start_outside = false;
-	const c_bsp_brush_side_t *lead_side = NULL;
 
-	for (i = 0; i < brush->num_sides; i++) {
-		const c_bsp_brush_side_t *side = &c_bsp.brush_sides[brush->first_brush_side + i];
+	const c_bsp_brush_side_t *lead_side = NULL;
+	const c_bsp_brush_side_t *side = &c_bsp.brush_sides[brush->first_brush_side];
+
+	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
 		const c_bsp_plane_t *plane = side->plane;
 		vec_t dist;
 
 		// FIXME: special case for axial
 
-		if (!is_point) { // general box case
-			vec3_t ofs;
-
-			// push the plane out appropriately for mins/maxs
-
-			// FIXME: use sign_bits into 8 way lookup for each mins/maxs
-			for (j = 0; j < 3; j++) {
-				if (plane->normal[j] < 0.0)
-					ofs[j] = maxs[j];
-				else
-					ofs[j] = mins[j];
-			}
-			dist = plane->dist - DotProduct(ofs, plane->normal);
-		} else { // special point case
+		if (data->is_point) { // special point case
 			dist = plane->dist;
+		} else { // general box case
+			dist = plane->dist - DotProduct(data->offsets[plane->sign_bits], plane->normal);
 		}
 
-		const vec_t d1 = DotProduct(p1, plane->normal) - dist;
-		const vec_t d2 = DotProduct(p2, plane->normal) - dist;
+		const vec_t d1 = DotProduct(data->start, plane->normal) - dist;
+		const vec_t d2 = DotProduct(data->end, plane->normal) - dist;
 
 		if (d2 > 0.0)
 			end_outside = true; // end point is not in solid
@@ -999,21 +987,19 @@ static void Cm_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2, c_
 	}
 
 	if (!start_outside) { // original point was inside brush
-		trace->start_solid = true;
+		data->trace.start_solid = true;
 		if (!end_outside)
-			trace->all_solid = true;
-		trace->leaf_num = leaf - c_bsp.leafs;
+			data->trace.all_solid = true;
+		data->trace.leaf_num = leaf - c_bsp.leafs;
 	}
 
 	if (enter_fraction < leave_fraction) { // pierced brush
-		if (enter_fraction > -1.0 && enter_fraction < trace->fraction) {
-			if (enter_fraction < 0.0)
-				enter_fraction = 0.0;
-			trace->fraction = enter_fraction;
-			trace->plane = *clip_plane;
-			trace->surface = lead_side->surface;
-			trace->contents = brush->contents;
-			trace->leaf_num = leaf - c_bsp.leafs;
+		if (enter_fraction > -1.0 && enter_fraction < data->trace.fraction) {
+			data->trace.fraction = MAX(0.0, enter_fraction);
+			data->trace.plane = *clip_plane;
+			data->trace.surface = lead_side->surface;
+			data->trace.contents = brush->contents;
+			data->trace.leaf_num = leaf - c_bsp.leafs;
 		}
 	}
 }
@@ -1027,16 +1013,16 @@ static void Cm_TestBoxInBrush(c_trace_data_t *data, c_bsp_brush_t *brush) {
 	if (!brush->num_sides)
 		return;
 
-	const c_bsp_brush_side_t *s = &c_bsp.brush_sides[brush->first_brush_side];
+	const c_bsp_brush_side_t *side = &c_bsp.brush_sides[brush->first_brush_side];
 
-	for (i = 0; i < brush->num_sides; i++, s++) {
-		const c_bsp_plane_t *p = s->plane;
+	for (i = 0; i < brush->num_sides; i++, side++) {
+		const c_bsp_plane_t *plane = side->plane;
 
 		// FIXME: special case for axial
 
-		const vec_t dist = p->dist - DotProduct(data->offsets[p->sign_bits], p->normal);
+		const vec_t dist = plane->dist - DotProduct(data->offsets[plane->sign_bits], plane->normal);
 
-		const vec_t d1 = DotProduct(data->start, p->normal) - dist;
+		const vec_t d1 = DotProduct(data->start, plane->normal) - dist;
 
 		// if completely in front of face, no intersection
 		if (d1 > 0.0)
@@ -1072,8 +1058,7 @@ static void Cm_TraceToLeaf(int32_t leaf_num, c_trace_data_t *data) {
 		if (!(b->contents & data->contents))
 			continue;
 
-		Cm_ClipBoxToBrush(data->mins, data->maxs, data->start, data->end, &data->trace, leaf, b,
-				data->is_point);
+		Cm_ClipBoxToBrush(data, leaf, b);
 
 		if (data->trace.all_solid)
 			return;
