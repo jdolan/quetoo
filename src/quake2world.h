@@ -325,8 +325,9 @@ typedef enum {
 typedef struct {
 	vec3_t normal;
 	vec_t dist;
-	int32_t type; // for fast side tests
-	int32_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
+	uint8_t type; // for fast side tests
+	uint8_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
+	uint16_t ref; // for aligning collision model and rendering
 } cm_bsp_plane_t;
 
 /*

@@ -89,12 +89,14 @@ void Cm_InitBoxHull(void) {
 		VectorClear(plane->normal);
 		plane->normal[i >> 1] = 1.0;
 		plane->sign_bits = SignBitsForPlane(plane);
+		plane->ref = (i * 2) % 255;
 
 		plane = &cm_box.planes[i * 2 + 1];
 		plane->type = PLANE_ANY_X + (i >> 1);
 		VectorClear(plane->normal);
 		plane->normal[i >> 1] = -1.0;
 		plane->sign_bits = SignBitsForPlane(plane);
+		plane->ref = (i * 2 + 1) % 255;
 
 		const int32_t side = i & 1;
 

@@ -155,7 +155,7 @@ static void G_ClientWorldAngles(g_edict_t *ent) {
 	// set roll based on lateral velocity and ground entity
 	const vec_t dot = DotProduct(ent->locals.velocity, ent->client->locals.right);
 
-	ent->s.angles[ROLL] = ent->locals.ground_entity ? dot * 0.025 : dot * 0.005;
+	ent->s.angles[ROLL] = ent->locals.ground_entity ? dot * 0.015 : dot * 0.005;
 
 	// check for footsteps
 	if (ent->locals.ground_entity && ent->locals.move_type == MOVE_TYPE_WALK && !ent->s.event) {

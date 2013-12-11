@@ -268,13 +268,6 @@ typedef struct {
 typedef void (*BspSurfacesDrawFunc)(const r_bsp_surfaces_t *surfs);
 
 /*
- * @brief Yields a unique-enough stencil value for surfaces in order to perform
- * a meaningful stencil buffer write. This value can be used in a stencil test
- * to clip decals and shadows to a surface's geometry.
- */
-#define R_STENCIL_REF(plane) (((plane)->type + (uint32_t) (plane)->dist) % 0xff)
-
-/*
  * @brief BSP nodes comprise the tree representation of the world. At compile
  * time, the map is divided into convex volumes that fall along brushes
  * (walls). These volumes become nodes. The planes these divisions create

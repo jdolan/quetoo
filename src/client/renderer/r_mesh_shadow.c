@@ -121,7 +121,7 @@ static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_illumination_
 
 	R_RotateForMeshShadow_default(e, il);
 
-	glStencilFunc(GL_EQUAL, R_STENCIL_REF(&il->shadow.plane), ~0);
+	glStencilFunc(GL_EQUAL, il->shadow.plane.ref, ~0);
 
 	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
