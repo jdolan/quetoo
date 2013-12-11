@@ -21,7 +21,9 @@
 
 #include <errno.h>
 
-#ifndef _WIN32
+#ifdef _WIN32
+#define ioctl ioctlsocket
+#else
 #include <netdb.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
@@ -33,6 +35,14 @@
 #include "net.h"
 
 in_addr_t net_lo;
+
+int32_t Net_GetError(void) {
+#ifdef _WIN32
+	return WSAGetLastError();
+#else
+	return errno;
+#endif
+}
 
 /*
  * @return A printable error string for the most recent OS-level network error.
@@ -197,6 +207,17 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 	}
 
 	return sock;
+}
+
+/*
+ * @brief
+ */
+void Net_CloseSocket(int32_t sock) {
+#ifdef _WIN32
+	closesocket(sock);
+#else
+	close(sock);
+#endif
 }
 
 /*

@@ -35,6 +35,6 @@ libserver_la_LDFLAGS = \
 
 libserver_la_LIBADD = \
 	../collision/libcmodel.la \
+	../net/libnet.la \
 	../libconsole.la \
-	../libnet.la \
 	../libthread.la

@@ -658,6 +658,7 @@ AC_CONFIG_FILES([
 	src/game/default/Makefile
 	src/main/Makefile
 	src/master/Makefile
+	src/net/Makefile
 	src/server/Makefile
 	src/tests/Makefile
 	src/tools/Makefile

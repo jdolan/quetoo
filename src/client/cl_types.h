@@ -22,6 +22,7 @@
 #ifndef __CL_TYPES_H__
 #define __CL_TYPES_H__
 
+#include "net/net_types.h"
 #include "renderer/r_types.h"
 #include "sound/s_types.h"
 #include "ui/ui_types.h"

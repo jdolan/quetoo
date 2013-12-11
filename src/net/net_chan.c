@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "cvar.h"
 #include "net_chan.h"
 
 /*
@@ -167,9 +168,7 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 
 	// check for message overflow
 	if (chan->message.overflowed) {
-		chan->fatal_error = true;
-		Com_Print("%s: Outgoing message overflow\n", Net_NetaddrToString(&chan->remote_address));
-		return;
+		Com_Error(ERR_DROP, "%s: Overflow\n", Net_NetaddrToString(&chan->remote_address));
 	}
 
 	// check for re-transmission of reliable message

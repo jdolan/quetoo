@@ -1,6 +1,7 @@
 SUBDIRS = \
 	. \
 	collision \
+	net \
 	ai \
 	server \
 	game \
@@ -21,11 +22,6 @@ noinst_HEADERS = \
 	matrix.h \
 	mem.h \
 	mem_buf.h \
-	net.h \
-	net_chan.h \
-	net_message.h \
-	net_tcp.h \
-	net_udp.h \
 	quake2world.h \
 	shared.h \
 	swap.h \
@@ -39,7 +35,6 @@ noinst_LTLIBRARIES = \
 	libimage.la \
 	libmatrix.la \
 	libmem.la \
-	libnet.la \
 	libshared.la \
 	libswap.la \
 	libsys.la \
@@ -131,20 +126,6 @@ libmem_la_LIBADD = \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@ \
 	@SDL_LIBS@
-
-libnet_la_SOURCES = \
-	net.c \
-	net_chan.c \
-	net_message.c \
-	net_tcp.c \
-	net_udp.c
-libnet_la_CFLAGS = \
-	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
-libnet_la_LDFLAGS = \
-	-shared
-libnet_la_LIBADD = \
-	libconsole.la
 
 libshared_la_SOURCES = \
 	shared.c \

@@ -19,11 +19,58 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __NET_CHAN_H__
-#define __NET_CHAN_H__
+#ifndef __NET_TYPES_H__
+#define __NET_TYPES_H__
 
-#include "net_udp.h"
-#include "net_message.h"
+#ifdef _WIN32
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#include <stdint.h>
+typedef uint32_t in_addr_t;
+typedef uint16_t in_port_t;
+
+#undef  EWOULDBLOCK
+#define EWOULDBLOCK  WSAEWOULDBLOCK
+#undef  ECONNREFUSED
+#define ECONNREFUSED WSAECONNREFUSED
+#undef  EINPROGRESS
+#define EINPROGRESS  WSAEINPROGRESS
+
+#else
+
+#include <errno.h>
+#include <netinet/in.h>
+
+#endif
+
+#include "common.h"
+
+/*
+ * @brief Max length of a single packet, due to UDP fragmentation. No single
+ * net message can exceed this length. However, large frames can be split
+ * into multiple messages and sent in series. See Sv_SendClientDatagram.
+ */
+#define MAX_MSG_SIZE 1400
+
+typedef enum {
+	NA_LOOP,
+	NA_BROADCAST,
+	NA_DATAGRAM,
+	NA_STREAM
+} net_addr_type_t;
+
+typedef struct {
+	net_addr_type_t type;
+	in_addr_t addr;
+	in_port_t port;
+} net_addr_t;
+
+typedef enum {
+	NS_UDP_CLIENT,
+	NS_UDP_SERVER
+} net_src_t;
 
 /*
  * @brief The network channel provides a conduit for packet sequencing and
@@ -31,8 +78,6 @@
  * through this interface.
  */
 typedef struct {
-	_Bool fatal_error;
-
 	net_src_t source;
 
 	uint32_t dropped; // between last packet and previous
@@ -63,15 +108,4 @@ typedef struct {
 	byte reliable_buffer[MAX_MSG_SIZE - 16]; // un-acked reliable message
 } net_chan_t;
 
-extern net_addr_t net_from;
-extern mem_buf_t net_message;
-
-void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t qport);
-void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len);
-void Netchan_OutOfBand(int32_t sock, const net_addr_t *addr, const void *data, size_t len);
-void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *format, ...) __attribute__((format(printf, 3, 4)));
-_Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg);
-void Netchan_Init(void);
-void Netchan_Shutdown(void);
-
-#endif /* __NET_CHAN_H__ */
+#endif /* __NET_TYPES_H__ */

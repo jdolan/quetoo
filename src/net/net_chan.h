@@ -19,34 +19,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
+#ifndef __NET_CHAN_H__
+#define __NET_CHAN_H__
 
-#include "collision/cmodel.h"
-#include "console.h"
-#include "filesystem.h"
-#include "cgame/cgame.h"
-#include "net/net_chan.h"
-#include "renderer/renderer.h"
-#include "sound/sound.h"
-#include "thread.h"
-#include "ui/ui.h"
+#include "net_udp.h"
+#include "net_message.h"
 
-#include "cl_cgame.h"
-#include "cl_cmd.h"
-#include "cl_console.h"
-#include "cl_demo.h"
-#include "cl_entity.h"
-#include "cl_http.h"
-#include "cl_input.h"
-#include "cl_keys.h"
-#include "cl_main.h"
-#include "cl_media.h"
-#include "cl_parse.h"
-#include "cl_predict.h"
-#include "cl_screen.h"
-#include "cl_server.h"
-#include "cl_types.h"
-#include "cl_view.h"
+extern net_addr_t net_from;
+extern mem_buf_t net_message;
 
-#endif /* __CLIENT_H__ */
+void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t qport);
+void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len);
+void Netchan_OutOfBand(int32_t sock, const net_addr_t *addr, const void *data, size_t len);
+void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *format, ...) __attribute__((format(printf, 3, 4)));
+_Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg);
+void Netchan_Init(void);
+void Netchan_Shutdown(void);
+
+#endif /* __NET_CHAN_H__ */

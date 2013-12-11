@@ -62,8 +62,8 @@ libclient_la_LIBADD = \
 	sound/libsound.la \
 	ui/libui.la \
 	../collision/libcmodel.la \
+	../net/libnet.la \
 	../libconsole.la \
-	../libnet.la \
 	../libthread.la \
 	@CURL_LIBS@
 	
