@@ -41,7 +41,7 @@ typedef struct {
 	int32_t frame_num;
 
 	char name[MAX_QPATH]; // map name
-	cm_bsp_model_t *models[MAX_BSP_MODELS];
+	cm_bsp_model_t *cm_models[MAX_MODELS];
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 	entity_state_t baselines[MAX_EDICTS];

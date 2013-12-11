@@ -130,7 +130,7 @@ void Sv_InitWorld(void) {
 
 	memset(&sv_world, 0, sizeof(sv_world));
 
-	Sv_CreateAreaNode(0, sv.models[0]->mins, sv.models[0]->maxs);
+	Sv_CreateAreaNode(0, sv.cm_models[0]->mins, sv.cm_models[0]->maxs);
 }
 
 /*
@@ -366,23 +366,19 @@ int32_t Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edi
 }
 
 /*
- * @brief Returns a head_node that can be used for testing or clipping an
- * object of mins/maxs size.
- *
- * Offset is filled in to contain the adjustment that must be added to the
- * testing object's origin to get a point to use with the returned hull.
+ * @brief Prepares the collision model to clip to the specified entity. For
+ * mesh models, the box hull must be set to reflect the bounds of the entity.
  */
 static int32_t Sv_HullForEntity(const g_edict_t *ent) {
-	cm_bsp_model_t *model;
 
 	// decide which clipping hull to use, based on the size
 	if (ent->solid == SOLID_BSP) { // explicit hulls in the BSP model
-		model = sv.models[ent->s.model1];
+		const cm_bsp_model_t *mod = sv.cm_models[ent->s.model1];
 
-		if (!model)
+		if (!mod)
 			Com_Error(ERR_DROP, "SOLID_BSP with no model\n");
 
-		return model->head_node;
+		return mod->head_node;
 	}
 
 	// create a temporary hull from bounding box sizes
@@ -395,15 +391,14 @@ static int32_t Sv_HullForEntity(const g_edict_t *ent) {
  */
 int32_t Sv_PointContents(const vec3_t point) {
 	g_edict_t *touched[MAX_EDICTS];
-	int32_t i, contents, num;
 
 	// get base contents from world
-	contents = Cm_PointContents(point, sv.models[0]->head_node);
+	int32_t contents = Cm_PointContents(point, 0);
 
 	// as well as contents from all intersected entities
-	num = Sv_AreaEdicts(point, point, touched, MAX_EDICTS, AREA_SOLID);
+	const int32_t count = Sv_AreaEdicts(point, point, touched, MAX_EDICTS, AREA_SOLID);
 
-	for (i = 0; i < num; i++) {
+	for (int32_t i = 0; i < count; i++) {
 
 		const g_edict_t *touch = touched[i];
 		const vec_t *angles;

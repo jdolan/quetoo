@@ -46,28 +46,48 @@ _Bool Cl_UsePrediction(void) {
 }
 
 /*
- * @brief
+ * @brief Prepares the collision model to clip to the specified entity. For
+ * mesh models, the box hull must be set to reflect the bounds of the entity.
+ */
+static int32_t Cl_HullForEntity(const entity_state_t *ent) {
+	vec3_t emins, emaxs;
+
+	if (ent->solid == SOLID_BSP) {
+		const cm_bsp_model_t *mod = cl.cm_models[ent->model1];
+
+		if (!mod)
+			Com_Error(ERR_DROP, "SOLID_BSP with no model\n");
+
+		return mod->head_node;
+	}
+
+	UnpackBounds(ent->solid, emins, emaxs);
+	return Cm_SetBoxHull(emins, emaxs);
+}
+
+/*
+ * @brief Yields the contents mask (bitwise OR) for the specified point. The
+ * world model and all solids are checked.
  */
 int32_t Cl_PointContents(const vec3_t point) {
 
-	int32_t i, c = Cm_PointContents(point, 0);
+	int32_t contents = Cm_PointContents(point, 0);
 
-	for (i = 0; i < cl.frame.num_entities; i++) {
+	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
+
 		const int32_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[num];
 
-		if (ent->solid == 31) { // clip to bsp submodels
-			const cm_bsp_model_t *mod = cl.model_clip[ent->model1];
-			if (!mod) {
-				Com_Warn("Invalid clip model %d", ent->model1);
-				continue;
-			}
+		if (ent->solid < SOLID_BOX) // only clip to boxes, missiles and BSP models
+			continue;
 
-			c |= Cm_TransformedPointContents(point, mod->head_node, ent->origin, ent->angles);
-		}
+		const int32_t head_node = Cl_HullForEntity(ent);
+		const vec_t *angles = ent->solid == SOLID_BSP ? ent->angles : vec3_origin;
+
+		contents |= Cm_TransformedPointContents(point, head_node, ent->origin, angles);
 	}
 
-	return c;
+	return contents;
 }
 
 /*
@@ -85,12 +105,14 @@ typedef struct {
  * @brief Clips the specified trace to other solid entities in the frame.
  */
 static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
-	int32_t i;
 
-	// check all other solid models
-	for (i = 0; i < cl.frame.num_entities; i++) {
+	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
+
 		const uint16_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[num];
+
+		if (ent->solid < SOLID_BOX)
+			continue;
 
 		if (ent->number == trace->skip)
 			continue;
@@ -98,39 +120,13 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 		if (ent->number == cl.client_num + 1)
 			continue;
 
-		if (ent->solid == SOLID_NOT)
-			continue;
-
-		int32_t head_node;
-		const vec_t *angles;
-		if (ent->solid == SOLID_BSP) {
-
-			const cm_bsp_model_t *mod = cl.model_clip[ent->model1];
-			if (!mod) {
-				Com_Warn("Invalid clip model: %d\n", ent->model1);
-				continue;
-			}
-
-			if (!mod->head_node) {
-				Com_Debug("No head_node for %d\n", ent->model1);
-				continue;
-			}
-
-			head_node = mod->head_node;
-			angles = ent->angles;
-		} else { // something with an encoded box
-
-			vec3_t emins, emaxs;
-			UnpackBounds(ent->solid, emins, emaxs);
-
-			head_node = Cm_SetBoxHull(emins, emaxs);
-			angles = vec3_origin;
-		}
+		const int32_t head_node = Cl_HullForEntity(ent);
+		const vec_t *angles = ent->solid == SOLID_BSP ? ent->angles : vec3_origin;
 
 		cm_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
 				head_node, trace->contents, ent->origin, angles);
 
-		if (tr.all_solid || tr.start_solid || tr.fraction < trace->trace.fraction) {
+		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
 			trace->trace = tr;
 			trace->trace.ent = (struct g_edict_s *) (intptr_t) ent->number;
 		}
@@ -263,13 +259,13 @@ void Cl_UpdatePrediction(void) {
 		}
 	}
 
-	// load the inline models for prediction as well
-	for (i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
+	// load the BSP models for prediction as well
+	for (i = 1; i < MAX_MODELS; i++) {
 
 		const char *s = cl.config_strings[CS_MODELS + i];
 		if (*s == '*')
-			cl.model_clip[i] = Cm_Model(cl.config_strings[CS_MODELS + i]);
+			cl.cm_models[i] = Cm_Model(cl.config_strings[CS_MODELS + i]);
 		else
-			cl.model_clip[i] = NULL;
+			cl.cm_models[i] = NULL;
 	}
 }

@@ -141,14 +141,13 @@ typedef struct {
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
 #define BSP_VERSION	38
 #define BSP_VERSION_Q2W 69 // haha, 69..
-// upper design bounds
-// planes, leafs, leaf brushes, etc are still bounded by 16 bit limits (UINT16_MAX + 1)
+
+// upper bounds of BSP format
 #define MAX_BSP_MODELS			0x400
 #define MAX_BSP_BRUSHES			0x4000
 #define MAX_BSP_ENTITIES		0x800
 #define MAX_BSP_ENT_STRING		0x40000
 #define MAX_BSP_TEXINFO			0x4000
-
 #define MAX_BSP_AREAS			0x100
 #define MAX_BSP_AREA_PORTALS	0x400
 #define MAX_BSP_PLANES			0x10000
@@ -165,8 +164,8 @@ typedef struct {
 #define MAX_BSP_LIGHTING		0x10000000 // increased from Quake2 0x200000
 #define MAX_BSP_LIGHTMAP		(256 * 256) // minimum r_lightmap_block_size
 #define MAX_BSP_VISIBILITY		0x400000 // increased from Quake2 0x100000
-// key / value pair sizes
 
+// key / value pair sizes
 #define MAX_BSP_ENTITY_KEY		32
 #define MAX_BSP_ENTITY_VALUE	1024
 

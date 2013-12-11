@@ -172,13 +172,13 @@ typedef struct {
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 	uint16_t precache_check;
 
-	// locally derived information from server state
-	r_model_t *model_precache[MAX_MODELS];
-	cm_bsp_model_t *model_clip[MAX_MODELS];
+	// for client side prediction clipping
+	cm_bsp_model_t *cm_models[MAX_MODELS];
 
+	// caches of indexed assets to be referenced by the server
+	r_model_t *model_precache[MAX_MODELS];
 	s_sample_t *sound_precache[MAX_SOUNDS];
 	s_music_t *music_precache[MAX_MUSICS];
-
 	r_image_t *image_precache[MAX_IMAGES];
 
 	cl_client_info_t client_info[MAX_CLIENTS];

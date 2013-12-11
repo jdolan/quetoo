@@ -161,10 +161,10 @@ void Cl_ParseConfigString(void) {
 	if (i > CS_MODELS && i < CS_MODELS + MAX_MODELS) {
 		if (cls.state == CL_ACTIVE) {
 			cl.model_precache[i - CS_MODELS] = R_LoadModel(s);
-			if (cl.config_strings[i][0] == '*') {
-				cl.model_clip[i - CS_MODELS] = Cm_Model(s);
+			if (*s == '*') {
+				cl.cm_models[i - CS_MODELS] = Cm_Model(s);
 			} else {
-				cl.model_clip[i - CS_MODELS] = NULL;
+				cl.cm_models[i - CS_MODELS] = NULL;
 			}
 		}
 	} else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {
