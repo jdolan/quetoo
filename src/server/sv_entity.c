@@ -339,7 +339,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	cluster = Cm_LeafCluster(leaf);
 
 	// calculate the visible areas
-	frame->area_bytes = Cm_WriteAreaBits(frame->area_bits, area);
+	frame->area_bytes = Cm_WriteAreaBits(area, frame->area_bits);
 
 	// grab the current player_state_t
 	frame->ps = cent->client->ps;

@@ -286,7 +286,7 @@ void LoadBSPFile(char *file_name) {
 			sizeof(d_bsp_area_portal_t));
 
 	d_bsp.vis_data_size = CopyLump(BSP_LUMP_VISIBILITY, d_bsp.vis_data, 1);
-	d_bsp.lightmap_data_size = CopyLump(BSP_LUMP_LIGHMAPS, d_bsp.lightmap_data, 1);
+	d_bsp.lightmap_data_size = CopyLump(BSP_LUMP_LIGHTMAPS, d_bsp.lightmap_data, 1);
 	d_bsp.entity_string_len = CopyLump(BSP_LUMP_ENTITIES, d_bsp.entity_string, 1);
 
 	CopyLump(BSP_LUMP_POP, d_bsp.dpop, 1);
@@ -406,7 +406,7 @@ void WriteBSPFile(char *file_name) {
 	AddLump(BSP_LUMP_AREA_PORTALS, d_bsp.area_portals,
 			d_bsp.num_area_portals * sizeof(d_bsp_area_portal_t));
 
-	AddLump(BSP_LUMP_LIGHMAPS, d_bsp.lightmap_data, d_bsp.lightmap_data_size);
+	AddLump(BSP_LUMP_LIGHTMAPS, d_bsp.lightmap_data, d_bsp.lightmap_data_size);
 	AddLump(BSP_LUMP_VISIBILITY, d_bsp.vis_data, d_bsp.vis_data_size);
 	AddLump(BSP_LUMP_ENTITIES, d_bsp.entity_string, d_bsp.entity_string_len);
 	AddLump(BSP_LUMP_POP, d_bsp.dpop, sizeof(d_bsp.dpop));

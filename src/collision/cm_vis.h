@@ -31,7 +31,7 @@ byte *Cm_ClusterPHS(const int32_t cluster);
 void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open);
 _Bool Cm_AreasConnected(const int32_t area1, const int32_t area2);
 
-int32_t Cm_WriteAreaBits(byte *buffer, const int32_t area);
+int32_t Cm_WriteAreaBits(const int32_t area, byte *out);
 _Bool Cm_HeadnodeVisible(const int32_t head_node, const byte *vis);
 
 #ifdef __CM_LOCAL_H__

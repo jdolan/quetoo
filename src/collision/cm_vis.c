@@ -30,12 +30,9 @@ _Bool cm_no_areas;
  * @brief
  */
 static void Cm_DecompressVis(const byte *in, byte *out) {
-	int32_t c;
-	byte *out_p;
-	int32_t row;
 
-	row = (cm_vis->num_clusters + 7) >> 3;
-	out_p = out;
+	int32_t row = (cm_vis->num_clusters + 7) >> 3;
+	byte *out_p = out;
 
 	if (!in || !cm_bsp.num_visibility) { // no vis info, so make all visible
 		while (row) {
@@ -51,7 +48,7 @@ static void Cm_DecompressVis(const byte *in, byte *out) {
 			continue;
 		}
 
-		c = in[1];
+		int32_t c = in[1];
 		in += 2;
 		if ((out_p - out) + c > row) {
 			c = row - (out_p - out);
@@ -93,30 +90,23 @@ byte *Cm_ClusterPHS(const int32_t cluster) {
 }
 
 /*
- *
- * AREA_PORTALS
- *
- */
-
-/*
  * @brief Recurse over the area portals, marking adjacent ones as flooded.
  */
 static void Cm_FloodArea(cm_bsp_area_t *area, int32_t flood_num) {
-	const d_bsp_area_portal_t *p;
-	int32_t i;
 
 	if (area->flood_valid == cm_bsp.flood_valid) {
 		if (area->flood_num == flood_num)
 			return;
-		Com_Error(ERR_DROP, "Reflooded\n");
+
+		Com_Error(ERR_DROP, "Re-flooded\n");
 	}
 
 	area->flood_num = flood_num;
 	area->flood_valid = cm_bsp.flood_valid;
 
-	p = &cm_bsp.area_portals[area->first_area_portal];
+	const d_bsp_area_portal_t *p = &cm_bsp.area_portals[area->first_area_portal];
 
-	for (i = 0; i < area->num_area_portals; i++, p++) {
+	for (int32_t i = 0; i < area->num_area_portals; i++, p++) {
 		if (cm_bsp.portal_open[p->portal_num]) {
 			Cm_FloodArea(&cm_bsp.areas[p->other_area], flood_num);
 		}
@@ -127,21 +117,19 @@ static void Cm_FloodArea(cm_bsp_area_t *area, int32_t flood_num) {
  * @brief
  */
 void Cm_FloodAreas(void) {
-	int32_t i;
 	int32_t flood_num;
 
 	// all current floods are now invalid
 	cm_bsp.flood_valid++;
-	flood_num = 0;
 
 	// area 0 is not used
-	for (i = 1; i < cm_bsp.num_areas; i++) {
+	for (int32_t i = flood_num = 1; i < cm_bsp.num_areas; i++) {
 		cm_bsp_area_t *area = &cm_bsp.areas[i];
 
 		if (area->flood_valid == cm_bsp.flood_valid)
 			continue; // already flooded into
 
-		Cm_FloodArea(area, ++flood_num);
+		Cm_FloodArea(area, flood_num++);
 	}
 }
 
@@ -151,6 +139,7 @@ void Cm_FloodAreas(void) {
  * will return the correct information.
  */
 void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open) {
+
 	if (portal_num > cm_bsp.num_area_portals) {
 		Com_Error(ERR_DROP, "Portal %d > num_area_portals", portal_num);
 	}
@@ -183,19 +172,19 @@ _Bool Cm_AreasConnected(int32_t area1, int32_t area2) {
  *
  * This is used by the client view to cull visibility.
  */
-int32_t Cm_WriteAreaBits(byte *buffer, const int32_t area) {
+int32_t Cm_WriteAreaBits(const int32_t area, byte *out) {
 	int32_t i;
 	const int32_t bytes = (cm_bsp.num_areas + 7) >> 3;
 
 	if (cm_no_areas) { // for debugging, send everything
-		memset(buffer, 0xff, bytes);
+		memset(out, 0xff, bytes);
 	} else {
 		const int32_t flood_num = cm_bsp.areas[area].flood_num;
-		memset(buffer, 0, bytes);
+		memset(out, 0, bytes);
 
 		for (i = 0; i < cm_bsp.num_areas; i++) {
 			if (cm_bsp.areas[i].flood_num == flood_num || !area) {
-				buffer[i >> 3] |= 1 << (i & 7);
+				out[i >> 3] |= 1 << (i & 7);
 			}
 		}
 	}

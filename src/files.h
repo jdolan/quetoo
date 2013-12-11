@@ -181,7 +181,7 @@ typedef struct {
 #define BSP_LUMP_NODES			4
 #define BSP_LUMP_TEXINFO		5
 #define BSP_LUMP_FACES			6
-#define BSP_LUMP_LIGHMAPS		7
+#define BSP_LUMP_LIGHTMAPS		7
 #define BSP_LUMP_LEAFS			8
 #define BSP_LUMP_LEAF_FACES		9
 #define BSP_LUMP_LEAF_BRUSHES	10

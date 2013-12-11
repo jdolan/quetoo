@@ -878,12 +878,12 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
  */
 void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	extern void Cl_LoadProgress(int32_t percent);
-	d_bsp_header_t header;
-	uint32_t i;
 
-	header = *(d_bsp_header_t *) buffer;
-	for (i = 0; i < sizeof(d_bsp_header_t) / sizeof(int32_t); i++)
+	// byte-swap the entire header
+	d_bsp_header_t header = *(d_bsp_header_t *) buffer;
+	for (size_t i = 0; i < sizeof(d_bsp_header_t) / sizeof(int32_t); i++) {
 		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
+	}
 
 	if (header.version != BSP_VERSION && header.version != BSP_VERSION_Q2W) {
 		Com_Error(ERR_DROP, "%s has unsupported version: %d\n", mod->media.name, header.version);
@@ -895,7 +895,6 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	// set the base pointer for lump loading
 	mod_base = (byte *) buffer;
 
-	// load into heap
 	R_LoadBspVertexes(mod->bsp, &header.lumps[BSP_LUMP_VERTEXES]);
 	Cl_LoadProgress(4);
 
@@ -908,7 +907,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspSurfaceEdges(mod->bsp, &header.lumps[BSP_LUMP_FACE_EDGES]);
 	Cl_LoadProgress(12);
 
-	R_LoadBspLightmaps(mod->bsp, &header.lumps[BSP_LUMP_LIGHMAPS]);
+	R_LoadBspLightmaps(mod->bsp, &header.lumps[BSP_LUMP_LIGHTMAPS]);
 	Cl_LoadProgress(16);
 
 	R_LoadBspPlanes(mod->bsp, &header.lumps[BSP_LUMP_PLANES]);

@@ -42,65 +42,75 @@ static cm_box_t cm_box;
 void Cm_InitBoxHull(void) {
 	int32_t i;
 
+	if (cm_bsp.num_planes + 12 > MAX_BSP_PLANES)
+		Com_Error(ERR_DROP, "MAX_BSP_PLANES\n");
+
 	if (cm_bsp.num_nodes + 6 > MAX_BSP_NODES)
 		Com_Error(ERR_DROP, "MAX_BSP_NODES\n");
 
-	if (cm_bsp.num_brushes + 1 > MAX_BSP_BRUSHES)
-		Com_Error(ERR_DROP, "MAX_BSP_BRUSHES\n");
+	if (cm_bsp.num_leafs + 1 > MAX_BSP_LEAFS)
+		Com_Error(ERR_DROP, "MAX_BSP_LEAFS\n");
 
 	if (cm_bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES)
 		Com_Error(ERR_DROP, "MAX_BSP_LEAF_BRUSHES\n");
 
+	if (cm_bsp.num_brushes + 1 > MAX_BSP_BRUSHES)
+		Com_Error(ERR_DROP, "MAX_BSP_BRUSHES\n");
+
 	if (cm_bsp.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES)
 		Com_Error(ERR_DROP, "MAX_BSP_BRUSH_SIDES\n");
 
-	if (cm_bsp.num_planes + 12 > MAX_BSP_PLANES)
-		Com_Error(ERR_DROP, "MAX_BSP_PLANES\n");
-
+	// head node
 	cm_box.head_node = cm_bsp.num_nodes;
+
+	// planes
 	cm_box.planes = &cm_bsp.planes[cm_bsp.num_planes];
 
-	cm_box.brush = &cm_bsp.brushes[cm_bsp.num_brushes];
-	cm_box.brush->num_sides = 6;
-	cm_box.brush->first_brush_side = cm_bsp.num_brush_sides;
-	cm_box.brush->contents = CONTENTS_MONSTER;
-
+	// leaf
 	cm_box.leaf = &cm_bsp.leafs[cm_bsp.num_leafs];
 	cm_box.leaf->contents = CONTENTS_MONSTER;
 	cm_box.leaf->first_leaf_brush = cm_bsp.num_leaf_brushes;
 	cm_box.leaf->num_leaf_brushes = 1;
 
+	// leaf brush
 	cm_bsp.leaf_brushes[cm_bsp.num_leaf_brushes] = cm_bsp.num_brushes;
 
+	// brush
+	cm_box.brush = &cm_bsp.brushes[cm_bsp.num_brushes];
+	cm_box.brush->num_sides = 6;
+	cm_box.brush->first_brush_side = cm_bsp.num_brush_sides;
+	cm_box.brush->contents = CONTENTS_MONSTER;
+
 	for (i = 0; i < 6; i++) {
-		const int32_t side = i & 1;
 
-		// brush sides
-		cm_bsp_brush_side_t *bside = &cm_bsp.brush_sides[cm_bsp.num_brush_sides + i];
-		bside->plane = cm_bsp.planes + (cm_bsp.num_planes + i * 2 + side);
-		bside->surface = &cm_bsp.null_surface;
-
-		// nodes
-		cm_bsp_node_t *node = &cm_bsp.nodes[cm_box.head_node + i];
-		node->plane = cm_bsp.planes + (cm_bsp.num_planes + i * 2);
-		node->children[side] = -1 - cm_bsp.empty_leaf;
-		if (i != 5)
-			node->children[side ^ 1] = cm_box.head_node + i + 1;
-		else
-			node->children[side ^ 1] = -1 - cm_bsp.num_leafs;
-
-		// planes
+		// fill in planes, two per side
 		cm_bsp_plane_t *plane = &cm_box.planes[i * 2];
 		plane->type = i >> 1;
 		plane->sign_bits = 0;
 		VectorClear(plane->normal);
-		plane->normal[i >> 1] = 1;
+		plane->normal[i >> 1] = 1.0;
 
 		plane = &cm_box.planes[i * 2 + 1];
 		plane->type = PLANE_ANY_X + (i >> 1);
 		plane->sign_bits = 0;
 		VectorClear(plane->normal);
-		plane->normal[i >> 1] = -1;
+		plane->normal[i >> 1] = -1.0;
+
+		const int32_t side = i & 1;
+
+		// fill in nodes, one per side
+		cm_bsp_node_t *node = &cm_bsp.nodes[cm_box.head_node + i];
+		node->plane = cm_bsp.planes + (cm_bsp.num_planes + i * 2);
+		node->children[side] = -1 - cm_bsp.empty_leaf;
+		if (i < 5)
+			node->children[side ^ 1] = cm_box.head_node + i + 1;
+		else
+			node->children[side ^ 1] = -1 - cm_bsp.num_leafs;
+
+		// fill in brush sides, one per side
+		cm_bsp_brush_side_t *bside = &cm_bsp.brush_sides[cm_bsp.num_brush_sides + i];
+		bside->plane = cm_bsp.planes + (cm_bsp.num_planes + i * 2 + side);
+		bside->surface = &cm_bsp.null_surface;
 	}
 }
 
@@ -170,14 +180,13 @@ int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
  * @return The contents mask at the specified point.
  */
 int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
-	int32_t l;
 
 	if (!cm_bsp.num_nodes)
 		return 0;
 
-	l = Cm_PointLeafnum(p, head_node);
+	const int32_t leaf_num = Cm_PointLeafnum(p, head_node);
 
-	return cm_bsp.leafs[l].contents;
+	return cm_bsp.leafs[leaf_num].contents;
 }
 
 /*
