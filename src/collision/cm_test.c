@@ -86,15 +86,15 @@ void Cm_InitBoxHull(void) {
 		// fill in planes, two per side
 		cm_bsp_plane_t *plane = &cm_box.planes[i * 2];
 		plane->type = i >> 1;
-		plane->sign_bits = 0;
 		VectorClear(plane->normal);
 		plane->normal[i >> 1] = 1.0;
+		plane->sign_bits = SignBitsForPlane(plane);
 
 		plane = &cm_box.planes[i * 2 + 1];
 		plane->type = PLANE_ANY_X + (i >> 1);
-		plane->sign_bits = 0;
 		VectorClear(plane->normal);
 		plane->normal[i >> 1] = -1.0;
+		plane->sign_bits = SignBitsForPlane(plane);
 
 		const int32_t side = i & 1;
 
