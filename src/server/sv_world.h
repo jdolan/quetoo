@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -31,7 +31,7 @@ void Sv_UnlinkEdict(g_edict_t *ent);
 int32_t Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts,
 		int32_t max_area_edicts, int32_t area_type);
 int32_t Sv_PointContents(const vec3_t p);
-c_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 		const g_edict_t *skip, const int32_t contents);
 
 #endif /* __SV_LOCAL_H__ */

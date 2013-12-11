@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -226,7 +226,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 void Cg_GibEffect(const vec3_t org, int32_t count) {
 	cg_particle_t *p;
 	vec3_t o, v, tmp;
-	c_trace_t tr;
+	cm_trace_t tr;
 	vec_t dist;
 	int32_t i, j;
 

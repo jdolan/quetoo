@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -61,10 +61,10 @@ static int32_t PlaneTypeForNormal(const vec3_t normal) {
 	const vec_t az = fabs(normal[2]);
 
 	if (ax >= ay && ax >= az)
-		return PLANE_ANYX;
+		return PLANE_ANY_X;
 	if (ay >= ax && ay >= az)
-		return PLANE_ANYY;
-	return PLANE_ANYZ;
+		return PLANE_ANY_Y;
+	return PLANE_ANY_Z;
 }
 
 #define	NORMAL_EPSILON	0.00001

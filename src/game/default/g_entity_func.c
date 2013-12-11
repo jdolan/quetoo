@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -452,8 +452,8 @@ static void G_func_plat_Use(g_edict_t *ent, g_edict_t *other __attribute__((unus
 /*
  * @brief
  */
-static void G_func_plat_Touch(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_func_plat_Touch(g_edict_t *ent, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client)
 		return;
@@ -604,8 +604,8 @@ void G_func_plat(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_func_rotating_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_func_rotating_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (self->locals.damage) {
 		if (!VectorCompare(self->locals.avelocity, vec3_origin)) {
@@ -753,8 +753,8 @@ static void G_func_button_Use(g_edict_t *self, g_edict_t *other __attribute__((u
 /*
  * @brief
  */
-static void G_func_button_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_func_button_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client)
 		return;
@@ -994,8 +994,8 @@ static void G_func_door_Use(g_edict_t *self, g_edict_t *other __attribute__((unu
 /*
  * @brief
  */
-static void G_func_door_TouchTrigger(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_func_door_TouchTrigger(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (other->locals.health <= 0)
 		return;
@@ -1123,8 +1123,8 @@ static void G_func_door_Die(g_edict_t *self, g_edict_t *attacker, uint32_t mod _
 /*
  * @brief
  */
-static void G_func_door_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_func_door_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client)
 		return;

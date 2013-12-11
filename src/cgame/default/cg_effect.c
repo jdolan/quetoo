@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -113,7 +113,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 		vec3_t end;
 		VectorSet(end, org[0], org[1], org[2] - MAX_WORLD_DIST);
 
-		c_trace_t trace = cgi.Trace(org, end, NULL, NULL, 0, MASK_SHOT);
+		cm_trace_t trace = cgi.Trace(org, end, NULL, NULL, 0, MASK_SHOT);
 		e->end_z[i] = trace.end[2];
 	}
 

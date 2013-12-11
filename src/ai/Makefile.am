@@ -16,6 +16,9 @@ libai_la_CFLAGS = \
 libai_la_SOURCES = \
 	ai_goal.c \
 	ai_main.c
+
+libai_la_LDFLAGS = \
+	-shared
 	
 libai_la_LIBADD = \
-	../libfilesystem.la
+	../collision/libcmodel.la

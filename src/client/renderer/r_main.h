@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -104,7 +104,7 @@ typedef struct {
 	uint64_t active_light_mask; // a bit mask into r_view.lights
 	uint16_t active_light_count; // a count of active lights
 
-	c_bsp_plane_t frustum[4]; // for box culling
+	cm_bsp_plane_t frustum[4]; // for box culling
 } r_locals_t;
 
 extern r_locals_t r_locals;

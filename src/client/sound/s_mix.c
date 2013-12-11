@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -63,7 +63,7 @@ _Bool S_SpatializeChannel(s_channel_t *ch) {
 	vec_t dist = VectorNormalize(delta) * ch->atten;
 
 	if (dist < SOUND_MAX_DISTANCE) { // check if there's a clear line of sight to the origin
-		c_trace_t tr = Cl_Trace(r_view.origin, ch->org, NULL, NULL, 0, MASK_SHOT);
+		cm_trace_t tr = Cl_Trace(r_view.origin, ch->org, NULL, NULL, 0, MASK_SHOT);
 		if (tr.fraction < 1.0) {
 			dist *= 1.25;
 		}

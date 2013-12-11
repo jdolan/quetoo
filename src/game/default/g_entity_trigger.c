@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -80,8 +80,8 @@ static void G_trigger_multiple_Use(g_edict_t *ent, g_edict_t *other __attribute_
 /*
  * @brief
  */
-static void G_trigger_multiple_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_trigger_multiple_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client) {
 		if (!((self->locals.spawn_flags & SHOOTABLE) && other->solid == SOLID_MISSILE)) {
@@ -214,8 +214,8 @@ void G_trigger_always(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (other->locals.health > 0) {
 
@@ -294,8 +294,8 @@ static void G_trigger_hurt_Use(g_edict_t *self, g_edict_t *other __attribute__((
 /*
  * @brief
  */
-static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+		cm_bsp_surface_t *surf __attribute__((unused))) {
 	int32_t dflags;
 
 	if (!other->locals.take_damage) { // deal with items that land on us
@@ -365,8 +365,8 @@ void G_trigger_hurt(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_trigger_exec_Touch(g_edict_t *self, g_edict_t *other __attribute__((unused)), c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_trigger_exec_Touch(g_edict_t *self, g_edict_t *other __attribute__((unused)), cm_bsp_plane_t *plane __attribute__((unused)),
+		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (self->locals.timestamp > g_level.time)
 		return;

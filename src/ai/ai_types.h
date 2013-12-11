@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -30,7 +30,7 @@ typedef struct {
 } ai_path_t;
 
 typedef struct {
-	c_bsp_plane_t *plane;
+	cm_bsp_plane_t *plane;
 	vec3_t mins;
 	vec3_t maxs;
 	GHashTable *paths;

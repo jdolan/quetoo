@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -48,7 +48,7 @@ static void Sv_GameError(const char *func, const char *fmt, ...) {
  * @brief Also sets mins and maxs for inline bsp models.
  */
 static void Sv_SetModel(g_edict_t *ent, const char *name) {
-	c_bsp_model_t *mod;
+	cm_bsp_model_t *mod;
 
 	if (!name) {
 		Com_Warn("%d: NULL\n", (int32_t) NUM_FOR_EDICT(ent));
@@ -154,12 +154,12 @@ static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
 	int32_t area1, area2;
 	byte *mask;
 
-	leaf_num = Cm_PointLeafnum(p1);
+	leaf_num = Cm_PointLeafnum(p1, 0);
 	cluster = Cm_LeafCluster(leaf_num);
 	area1 = Cm_LeafArea(leaf_num);
 	mask = Cm_ClusterPVS(cluster);
 
-	leaf_num = Cm_PointLeafnum(p2);
+	leaf_num = Cm_PointLeafnum(p2, 0);
 	cluster = Cm_LeafCluster(leaf_num);
 	area2 = Cm_LeafArea(leaf_num);
 
@@ -181,12 +181,12 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 	int32_t area1, area2;
 	byte *mask;
 
-	leaf_num = Cm_PointLeafnum(p1);
+	leaf_num = Cm_PointLeafnum(p1, 0);
 	cluster = Cm_LeafCluster(leaf_num);
 	area1 = Cm_LeafArea(leaf_num);
 	mask = Cm_ClusterPHS(cluster);
 
-	leaf_num = Cm_PointLeafnum(p2);
+	leaf_num = Cm_PointLeafnum(p2, 0);
 	cluster = Cm_LeafCluster(leaf_num);
 	area2 = Cm_LeafArea(leaf_num);
 

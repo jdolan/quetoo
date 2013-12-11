@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -57,7 +57,7 @@ int32_t Cl_PointContents(const vec3_t point) {
 		const entity_state_t *ent = &cl.entity_states[num];
 
 		if (ent->solid == 31) { // clip to bsp submodels
-			const c_bsp_model_t *mod = cl.model_clip[ent->model1];
+			const cm_bsp_model_t *mod = cl.model_clip[ent->model1];
 			if (!mod) {
 				Com_Warn("Invalid clip model %d", ent->model1);
 				continue;
@@ -76,7 +76,7 @@ int32_t Cl_PointContents(const vec3_t point) {
 typedef struct {
 	const vec_t *mins, *maxs;
 	const vec_t *start, *end;
-	c_trace_t trace;
+	cm_trace_t trace;
 	uint16_t skip;
 	int32_t contents;
 } cl_trace_t;
@@ -105,7 +105,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 		const vec_t *angles;
 		if (ent->solid == SOLID_BSP) {
 
-			const c_bsp_model_t *mod = cl.model_clip[ent->model1];
+			const cm_bsp_model_t *mod = cl.model_clip[ent->model1];
 			if (!mod) {
 				Com_Warn("Invalid clip model: %d\n", ent->model1);
 				continue;
@@ -123,11 +123,11 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 			vec3_t emins, emaxs;
 			UnpackBounds(ent->solid, emins, emaxs);
 
-			head_node = Cm_HeadnodeForBox(emins, emaxs);
+			head_node = Cm_SetBoxHull(emins, emaxs);
 			angles = vec3_origin;
 		}
 
-		c_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
+		cm_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
 				head_node, trace->contents, ent->origin, angles);
 
 		if (tr.all_solid || tr.start_solid || tr.fraction < trace->trace.fraction) {
@@ -144,7 +144,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
  * @param skip An optional entity number for which all tests are skipped. Pass
  * 0 for none, because entity 0 is the world, which we always test.
  */
-c_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 		const uint16_t skip, const int32_t contents) {
 
 	cl_trace_t trace;

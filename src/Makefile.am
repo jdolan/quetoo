@@ -1,5 +1,6 @@
 SUBDIRS = \
 	. \
+	collision \
 	ai \
 	server \
 	game \
@@ -12,7 +13,6 @@ SUBDIRS = \
 
 noinst_HEADERS = \
 	cmd.h \
-	cmodel.h \
 	common.h \
 	console.h \
 	cvar.h \
@@ -33,7 +33,6 @@ noinst_HEADERS = \
 	thread.h
 
 noinst_LTLIBRARIES = \
-	libcmodel.la \
 	libcommon.la \
 	libconsole.la \
 	libfilesystem.la \
@@ -45,17 +44,6 @@ noinst_LTLIBRARIES = \
 	libswap.la \
 	libsys.la \
 	libthread.la
-
-libcmodel_la_SOURCES = \
-	cmodel.c
-libcmodel_la_CFLAGS = \
-	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
-libcmodel_la_LDFLAGS = \
-	-shared
-libcmodel_la_LIBADD = \
-	libfilesystem.la \
-	libmatrix.la
 
 libcommon_la_SOURCES = \
 	common.c

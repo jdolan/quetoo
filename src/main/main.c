@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -36,7 +36,6 @@ quake2world_t quake2world;
 static cvar_t *debug;
 cvar_t *dedicated;
 cvar_t *game;
-static cvar_t *show_trace;
 static cvar_t *threads;
 cvar_t *time_demo;
 cvar_t *time_scale;
@@ -153,7 +152,6 @@ static void Init(void) {
 	dedicated = Cvar_Get("dedicated", "1", CVAR_NO_SET, NULL);
 #endif
 	game = Cvar_Get("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
-	show_trace = Cvar_Get("show_trace", "0", 0, "Print trace counts per frame");
 	threads = Cvar_Get("threads", "4", CVAR_ARCHIVE, "Enable or disable multicore processing.");
 	time_demo = Cvar_Get("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
 	time_scale = Cvar_Get("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
@@ -222,14 +220,6 @@ static void Shutdown(const char *msg) {
  * @brief
  */
 static void Frame(const uint32_t msec) {
-	extern int32_t c_traces, c_bsp_brush_traces;
-	extern int32_t c_point_contents;
-
-	if (show_trace->value) {
-		Com_Print("%4i traces (%4i clips), %4i points\n", c_traces, c_bsp_brush_traces,
-				c_point_contents);
-		c_traces = c_bsp_brush_traces = c_point_contents = 0;
-	}
 
 	Cbuf_Execute();
 

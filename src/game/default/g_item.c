@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -529,7 +529,7 @@ static g_edict_t *G_DropFlag(g_edict_t *ent, const g_item_t *item __attribute__(
 /*
  * @brief
  */
-void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)), c_bsp_surface_t *surf __attribute__((unused))) {
+void G_TouchItem(g_edict_t *ent, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)), cm_bsp_surface_t *surf __attribute__((unused))) {
 	_Bool taken;
 
 	if (!other->client)
@@ -583,8 +583,8 @@ void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane __attrib
 /*
  * @brief
  */
-static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane,
-		c_bsp_surface_t *surf) {
+static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other, cm_bsp_plane_t *plane,
+		cm_bsp_surface_t *surf) {
 
 	if (other == ent->owner) // prevent the dropper from picking it right back up
 		return;
@@ -637,7 +637,7 @@ static void G_DropItem_Think(g_edict_t *ent) {
  */
 g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 	vec3_t forward;
-	c_trace_t tr;
+	cm_trace_t tr;
 
 	g_edict_t *it = G_Spawn(item->class_name);
 	it->owner = ent;
@@ -722,7 +722,7 @@ static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)), 
  * properties (Touch, Use, move type, ..).
  */
 static void G_ItemDropToFloor(g_edict_t *ent) {
-	c_trace_t tr;
+	cm_trace_t tr;
 	vec3_t dest;
 
 	VectorClear(ent->locals.velocity);

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -315,56 +315,55 @@ typedef enum {
 #define PLANE_X					0
 #define PLANE_Y					1
 #define PLANE_Z					2
-#define PLANE_ANYX				3
-#define PLANE_ANYY				4
-#define PLANE_ANYZ				5
-#define PLANE_NONE				6
+#define PLANE_ANY_X				3
+#define PLANE_ANY_Y				4
+#define PLANE_ANY_Z				5
 
 /*
  * @brief BSP planes are essential to collision detection as well as rendering.
  */
-typedef struct c_bsp_plane_s {
+typedef struct {
 	vec3_t normal;
 	vec_t dist;
 	int32_t type; // for fast side tests
 	int32_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
-} c_bsp_plane_t;
+} cm_bsp_plane_t;
 
 /*
  * @brief Returns true if the specified plane is axially aligned.
  */
-#define AXIAL(p) ((p)->type < PLANE_ANYX)
+#define AXIAL(p) ((p)->type < PLANE_ANY_X)
 
 /*
  * @brief BSP surfaces describe a material applied to a plane.
  */
-typedef struct c_bsp_surface_s {
+typedef struct {
 	char name[32];
 	int32_t flags;
 	int32_t value;
-} c_bsp_surface_t;
+} cm_bsp_surface_t;
 
 /*
  * @brief Inline BSP models are segments of the collision model that may move.
  * They are treated as their own sub-trees and recursed separately.
  */
-typedef struct c_model_s {
+typedef struct {
 	vec3_t mins, maxs;
 	vec3_t origin; // for sounds or lights
 	int32_t head_node;
-} c_bsp_model_t;
+} cm_bsp_model_t;
 
 // a trace is returned when a box is swept through the world
-typedef struct c_trace_s {
+typedef struct {
 	_Bool all_solid; // if true, plane is not valid
 	_Bool start_solid; // if true, the initial point was in a solid area
 	vec_t fraction; // time completed, 1.0 = didn't hit anything
 	vec3_t end; // final position
-	c_bsp_plane_t plane; // surface normal at impact
-	c_bsp_surface_t *surface; // surface hit, NULL for box hits
+	cm_bsp_plane_t plane; // surface normal at impact
+	cm_bsp_surface_t *surface; // surface hit, NULL for box hits
 	int32_t contents; // contents on other side of surface hit
 	struct g_edict_s *ent; // not set by Cm_*() functions
-} c_trace_t;
+} cm_trace_t;
 
 // pm_state_t is the information necessary for client side movement prediction
 typedef enum {
@@ -430,7 +429,7 @@ typedef struct {
 
 	// collision with the world and solid entities
 	int32_t (*PointContents)(const vec3_t point);
-	c_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs);
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs);
 
 	// print debug messages for development
 	void (*Debug)(const char *msg);

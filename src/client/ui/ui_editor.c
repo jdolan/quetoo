@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -55,7 +55,7 @@ static void Ui_Editor_Think(void) {
 
 	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
 
-	c_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_SOLID);
+	cm_trace_t tr = Cl_Trace(r_view.origin, end, NULL, NULL, 0, MASK_SOLID);
 	if (tr.fraction < 1.0) {
 		ui_editor.material = R_LoadMaterial(va("textures/%s", tr.surface->name));
 		if (!ui_editor.material) {

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -767,7 +767,7 @@ typedef struct {
 	uint32_t next_think;
 	void (*Think)(g_edict_t *self);
 	void (*Blocked)(g_edict_t *self, g_edict_t *other); // move to move_info?
-	void (*Touch)(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
+	void (*Touch)(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf);
 	void (*Use)(g_edict_t *self, g_edict_t *other, g_edict_t *activator);
 	void (*Pain)(g_edict_t *self, g_edict_t *other, int16_t damage, int16_t knockback);
 	void (*Die)(g_edict_t *self, g_edict_t *attacker, uint32_t mod);
@@ -802,8 +802,8 @@ typedef struct {
 	vec_t random;
 
 	g_edict_t *ground_entity;
-	c_bsp_plane_t ground_plane;
-	c_bsp_surface_t *ground_surf;
+	cm_bsp_plane_t ground_plane;
+	cm_bsp_surface_t *ground_surf;
 
 	int32_t water_type;
 	uint8_t old_water_level;

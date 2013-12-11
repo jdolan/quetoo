@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -56,7 +56,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_illuminat
 		return;
 	}
 
-	const c_bsp_plane_t *p = &il->shadow.plane;
+	const cm_bsp_plane_t *p = &il->shadow.plane;
 
 	// project the entity onto the shadow plane
 	vec3_t vx, vy, vz, t;

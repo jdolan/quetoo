@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -53,8 +53,8 @@ typedef struct {
 	vec_t time; // the command milliseconds in seconds
 
 	// ground interactions
-	c_bsp_surface_t *ground_surface;
-	c_bsp_plane_t ground_plane;
+	cm_bsp_surface_t *ground_surface;
+	cm_bsp_plane_t ground_plane;
 	int32_t ground_contents;
 
 } pm_locals_t;
@@ -164,7 +164,7 @@ static _Bool Pm_SlideMove(void) {
 		VectorMA(pml.origin, time, pml.velocity, pos);
 
 		// trace to it
-		c_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
+		cm_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
 		// store a reference to the entity for firing game events
 		Pm_TouchEnt(trace.ent);
@@ -206,7 +206,7 @@ static _Bool Pm_SlideMove(void) {
  */
 static _Bool Pm_StepMove(_Bool up) {
 	vec3_t org, vel, pos;
-	c_trace_t trace;
+	cm_trace_t trace;
 
 	VectorCopy(pml.origin, org);
 	VectorCopy(pml.velocity, vel);
@@ -519,7 +519,7 @@ static void Pm_CategorizePosition(void) {
 		pos[2] -= PM_GROUND_DIST;
 	}
 
-	c_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
+	cm_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
 	pml.ground_plane = trace.plane;
 	pml.ground_surface = trace.surface;
@@ -623,7 +623,7 @@ static void Pm_CheckDuck(void) {
 		if (pm->s.flags & PMF_ON_GROUND && pm->cmd.up < 0) {
 			pm->s.flags |= PMF_DUCKED;
 		} else { // stand up if possible
-			c_trace_t trace = pm->Trace(pml.origin, pml.origin, pm->mins, pm->maxs);
+			cm_trace_t trace = pm->Trace(pml.origin, pml.origin, pm->mins, pm->maxs);
 			if (trace.all_solid) {
 				pm->s.flags |= PMF_DUCKED;
 			}
@@ -755,7 +755,7 @@ static _Bool Pm_CheckLadder(void) {
 	VectorMA(pml.origin, 1.0, forward, pos);
 	pos[2] += pml.view_offset[2];
 
-	const c_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
+	const cm_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
 	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_LADDER)) {
 		pm->s.flags |= PMF_ON_LADDER;
@@ -786,7 +786,7 @@ static _Bool Pm_CheckWaterJump(void) {
 	VectorAdd(pml.origin, pml.view_offset, pos);
 	VectorMA(pos, 24.0, pml.forward, pos);
 
-	c_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
+	cm_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
 	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_SOLID)) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -201,7 +201,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 	reliable = false;
 
 	if (to != MULTICAST_ALL_R && to != MULTICAST_ALL) {
-		leaf_num = Cm_PointLeafnum(origin);
+		leaf_num = Cm_PointLeafnum(origin, 0);
 		area1 = Cm_LeafArea(leaf_num);
 	} else {
 		leaf_num = 0; // just to avoid compiler warnings
@@ -219,7 +219,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 		case MULTICAST_PHS_R:
 			reliable = true; // intentional fallthrough
 		case MULTICAST_PHS:
-			leaf_num = Cm_PointLeafnum(origin);
+			leaf_num = Cm_PointLeafnum(origin, 0);
 			cluster = Cm_LeafCluster(leaf_num);
 			mask = Cm_ClusterPHS(cluster);
 			break;
@@ -227,7 +227,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 		case MULTICAST_PVS_R:
 			reliable = true; // intentional fallthrough
 		case MULTICAST_PVS:
-			leaf_num = Cm_PointLeafnum(origin);
+			leaf_num = Cm_PointLeafnum(origin, 0);
 			cluster = Cm_LeafCluster(leaf_num);
 			mask = Cm_ClusterPVS(cluster);
 			break;
@@ -258,7 +258,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 			VectorAdd(org, pm->view_offset, org);
 			VectorScale(org, 0.125, org);
 
-			leaf_num = Cm_PointLeafnum(org);
+			leaf_num = Cm_PointLeafnum(org, 0);
 			cluster = Cm_LeafCluster(leaf_num);
 			area2 = Cm_LeafArea(leaf_num);
 			if (!Cm_AreasConnected(area1, area2))

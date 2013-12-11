@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -202,7 +202,7 @@ typedef struct {
 	int16_t back_frame; // back-facing renderer frame
 	int16_t light_frame; // dynamic lighting frame
 
-	c_bsp_plane_t *plane;
+	cm_bsp_plane_t *plane;
 	uint16_t flags; // R_SURF flags
 
 	int32_t first_edge; // look up in model->surf_edges, negative numbers
@@ -300,7 +300,7 @@ typedef struct r_bsp_node_s {
 	struct r_model_s *model;
 
 	// node specific
-	c_bsp_plane_t *plane;
+	cm_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
 	uint16_t first_surface;
@@ -469,7 +469,7 @@ typedef struct {
 	r_bsp_inline_model_t *inline_models;
 
 	uint16_t num_planes;
-	c_bsp_plane_t *planes;
+	cm_bsp_plane_t *planes;
 
 	uint16_t num_leafs;
 	r_bsp_leaf_t *leafs;
@@ -588,7 +588,7 @@ typedef struct {
  * @brief Describes the projection of a mesh model onto a BSP plane.
  */
 typedef struct {
-	c_bsp_plane_t plane;
+	cm_bsp_plane_t plane;
 	vec_t intensity;
 } r_shadow_t;
 

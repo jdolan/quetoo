@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -150,7 +150,7 @@ static void Sv_ClearState() {
  * @brief Applies any pending variable changes and clamps ones we really care about.
  */
 static void Sv_UpdateLatchedVars(void) {
-	extern _Bool c_no_areas;
+	extern _Bool cm_no_areas;
 
 	Cvar_UpdateLatched();
 
@@ -158,7 +158,7 @@ static void Sv_UpdateLatchedVars(void) {
 
 	sv_hz->integer = Clamp(sv_hz->integer, SV_HZ_MIN, SV_HZ_MAX);
 
-	c_no_areas = sv_no_areas->integer;
+	cm_no_areas = sv_no_areas->integer;
 }
 
 /*

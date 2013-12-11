@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -25,8 +25,8 @@
 /*
  * @brief
  */
-static void G_misc_teleporter_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_misc_teleporter_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+		cm_bsp_surface_t *surf __attribute__((unused))) {
 	g_edict_t *dest;
 	vec3_t forward, delta_angles;
 

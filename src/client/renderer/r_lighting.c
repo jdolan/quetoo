@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -47,7 +47,7 @@ static void R_UpdateShadow(r_lighting_t *l, r_illumination_t *il) {
 	VectorMA(l->origin, -dist, il->dir, pos);
 
 	// skipping the entity itself, impacting solids
-	const c_trace_t tr = Cl_Trace(l->origin, pos, NULL, NULL, l->number, MASK_SOLID);
+	const cm_trace_t tr = Cl_Trace(l->origin, pos, NULL, NULL, l->number, MASK_SOLID);
 
 	// check if the trace impacted a valid plane
 	if (tr.start_solid || tr.fraction == 1.0)
@@ -87,7 +87,7 @@ static void R_UpdateWorldIllumination(r_lighting_t *l) {
 
 		VectorMA(l->origin, MAX_WORLD_DIST, sun->dir, pos);
 
-		c_trace_t tr = Cl_Trace(l->origin, pos, NULL, NULL, l->number, CONTENTS_SOLID);
+		cm_trace_t tr = Cl_Trace(l->origin, pos, NULL, NULL, l->number, CONTENTS_SOLID);
 		if (tr.fraction < 1.0 && tr.surface->flags & SURF_SKY) {
 			exposure += 0.33;
 		}
@@ -170,7 +170,7 @@ static void R_UpdateBspLightIlluminations(r_lighting_t *l) {
 		vec_t exposure = 0.0;
 
 		// is it visible to the entity; trace to origin and corners of bounding box
-		c_trace_t tr = Cl_Trace(b->origin, l->origin, NULL, NULL, l->number, CONTENTS_SOLID);
+		cm_trace_t tr = Cl_Trace(b->origin, l->origin, NULL, NULL, l->number, CONTENTS_SOLID);
 
 		if (tr.fraction == 1.0)
 			exposure += 0.33;

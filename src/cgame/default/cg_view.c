@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -54,7 +54,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps __attribute__((unused)
 	vec3_t angles, forward, dest;
 	vec3_t mins, maxs;
 	vec_t dist;
-	c_trace_t tr;
+	cm_trace_t tr;
 
 	cgi.client->third_person = cg_third_person->value;
 

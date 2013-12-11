@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -272,7 +272,7 @@ static byte *Sv_ClientPVS(const vec3_t org) {
 		maxs[i] = org[i] + 16.0;
 	}
 
-	count = Cm_BoxLeafnums(mins, maxs, leafs, 64, NULL);
+	count = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
 	if (count < 1) {
 		Com_Error(ERR_DROP, "Bad leaf count\n");
 	}
@@ -334,7 +334,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	for (i = 0; i < 3; i++)
 		org[i] += pm->view_offset[i] * 0.125;
 
-	leaf = Cm_PointLeafnum(org);
+	leaf = Cm_PointLeafnum(org, 0);
 	area = Cm_LeafArea(leaf);
 	cluster = Cm_LeafCluster(leaf);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -48,7 +48,7 @@ g_client_t *G_ClientByName(char *name);
 int32_t G_ColorByName(const char *s, int32_t def);
 _Bool G_IsMeat(const g_edict_t *ent);
 _Bool G_IsStationary(const g_edict_t *ent);
-_Bool G_IsStructural(const g_edict_t *ent, const c_bsp_surface_t *surface);
+_Bool G_IsStructural(const g_edict_t *ent, const cm_bsp_surface_t *surface);
 void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, _Bool restart);
 _Bool G_IsAnimation(g_edict_t *ent, entity_animation_t anim);
 g_edict_t *G_Spawn(const char *class_name);

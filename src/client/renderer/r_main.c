@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006-2011 Quake2World.
  *
@@ -103,7 +103,7 @@ void R_UpdateFrustum(void) {
 	if (!r_cull->value)
 		return;
 
-	c_bsp_plane_t *p = r_locals.frustum;
+	cm_bsp_plane_t *p = r_locals.frustum;
 
 	const vec_t fov_x = r_view.fov[0];
 	const vec_t fov_y = r_view.fov[1];
@@ -118,7 +118,7 @@ void R_UpdateFrustum(void) {
 	RotatePointAroundVector(r_view.forward, r_view.up, -(90.0 - fov_y), p->normal);
 
 	for (i = 0; i < 4; i++) {
-		r_locals.frustum[i].type = PLANE_ANYZ;
+		r_locals.frustum[i].type = PLANE_ANY_Z;
 		r_locals.frustum[i].dist = DotProduct(r_view.origin, r_locals.frustum[i].normal);
 		r_locals.frustum[i].sign_bits = SignBitsForPlane(&r_locals.frustum[i]);
 	}

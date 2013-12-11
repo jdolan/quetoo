@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -173,7 +173,7 @@ typedef struct {
 
 	// locally derived information from server state
 	r_model_t *model_precache[MAX_MODELS];
-	c_bsp_model_t *model_clip[MAX_MODELS];
+	cm_bsp_model_t *model_clip[MAX_MODELS];
 
 	s_sample_t *sound_precache[MAX_SOUNDS];
 	s_music_t *music_precache[MAX_MUSICS];

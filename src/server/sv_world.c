@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -220,7 +220,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 	ent->area_num2 = 0;
 
 	// get all leafs, including solids
-	num_leafs = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, MAX_TOTAL_ENT_LEAFS, &top_node);
+	num_leafs = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, MAX_TOTAL_ENT_LEAFS, &top_node, 0);
 
 	// set areas
 	for (i = 0; i < num_leafs; i++) {
@@ -373,7 +373,7 @@ int32_t Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edi
  * testing object's origin to get a point to use with the returned hull.
  */
 static int32_t Sv_HullForEntity(const g_edict_t *ent) {
-	c_bsp_model_t *model;
+	cm_bsp_model_t *model;
 
 	// decide which clipping hull to use, based on the size
 	if (ent->solid == SOLID_BSP) { // explicit hulls in the BSP model
@@ -386,7 +386,7 @@ static int32_t Sv_HullForEntity(const g_edict_t *ent) {
 	}
 
 	// create a temporary hull from bounding box sizes
-	return Cm_HeadnodeForBox(ent->mins, ent->maxs);
+	return Cm_SetBoxHull(ent->mins, ent->maxs);
 }
 
 /*
@@ -427,7 +427,7 @@ typedef struct {
 	vec3_t box_mins, box_maxs; // enclose the test object along entire move
 	const vec_t *mins, *maxs; // size of the moving object
 	const vec_t *start, *end;
-	c_trace_t trace;
+	cm_trace_t trace;
 	const g_edict_t *skip;
 	int32_t contents;
 } sv_trace_t;
@@ -439,7 +439,7 @@ typedef struct {
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 	g_edict_t *area_edicts[MAX_EDICTS];
 	vec_t *angles;
-	c_trace_t tr;
+	cm_trace_t tr;
 	int32_t i, num, head_node;
 
 	// first resolve the entities found within our desired trace
@@ -521,7 +521,7 @@ static void Sv_TraceBounds(sv_trace_t *trace) {
  * The skipped edict, and edicts owned by him, are explicitly not checked.
  * This prevents players from clipping against their own projectiles, etc.
  */
-c_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
+cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 		const g_edict_t *skip, const int32_t contents) {
 
 	sv_trace_t trace;

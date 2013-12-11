@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -25,7 +25,7 @@
 /*
  * @brief Trace wrapper for Pm_Move.
  */
-static c_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
+static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
 		const vec3_t maxs) {
 	return cgi.Trace(start, end, mins, maxs, 0, MASK_PLAYER_SOLID);
 }

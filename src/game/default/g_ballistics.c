@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -42,7 +42,7 @@ static void G_PlayerProjectile(g_edict_t *ent, const vec_t scale) {
  */
 static _Bool G_ImmediateWall(g_edict_t *ent, g_edict_t *projectile) {
 
-	const c_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->mins,
+	const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->mins,
 			projectile->maxs, ent, MASK_SOLID);
 
 	return tr.fraction < 1.0;
@@ -58,7 +58,7 @@ static _Bool G_TakesDamage(g_edict_t *ent) {
 /*
  * @brief Used to add generic bubble trails to shots.
  */
-static void G_BubbleTrail(const vec3_t start, c_trace_t *tr) {
+static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 	vec3_t dir, pos;
 
 	if (VectorCompare(tr->end, start))
@@ -71,7 +71,7 @@ static void G_BubbleTrail(const vec3_t start, c_trace_t *tr) {
 	if (gi.PointContents(pos) & MASK_WATER)
 		VectorCopy(pos, tr->end);
 	else {
-		const c_trace_t trace = gi.Trace(pos, start, NULL, NULL, tr->ent, MASK_WATER);
+		const cm_trace_t trace = gi.Trace(pos, start, NULL, NULL, tr->ent, MASK_WATER);
 		VectorCopy(trace.end, tr->end);
 	}
 
@@ -118,7 +118,7 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
 /*
  * @brief Used to add impact marks on surfaces hit by bullets.
  */
-static void G_BulletMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf) {
+static void G_BulletMark(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf) {
 
 	if (surf->flags & SURF_ALPHA_TEST)
 		return;
@@ -134,7 +134,7 @@ static void G_BulletMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf
 /*
  * @brief Used to add burn marks on surfaces hit by projectiles.
  */
-static void G_BurnMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf __attribute__((unused)), uint8_t scale) {
+static void G_BurnMark(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf __attribute__((unused)), uint8_t scale) {
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_BURN);
@@ -148,8 +148,8 @@ static void G_BurnMark(vec3_t org, c_bsp_plane_t *plane, c_bsp_surface_t *surf _
 /*
  * @brief
  */
-static void G_BlasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane,
-		c_bsp_surface_t *surf __attribute__((unused))) {
+static void G_BlasterProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane,
+		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (other == self->owner)
 		return;
@@ -223,7 +223,7 @@ void G_BlasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 void G_BulletProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
 		int16_t knockback, uint16_t hspread, uint16_t vspread, uint32_t mod) {
 
-	c_trace_t tr = gi.Trace(ent->s.origin, start, NULL, NULL, ent, MASK_SHOT);
+	cm_trace_t tr = gi.Trace(ent->s.origin, start, NULL, NULL, ent, MASK_SHOT);
 	if (tr.fraction == 1.0) {
 		vec3_t angles, forward, right, up, end;
 
@@ -315,8 +315,8 @@ static void G_GrenadeProjectile_Explode(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf) {
+static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+		cm_bsp_surface_t *surf) {
 
 	if (other == self->owner)
 		return;
@@ -390,8 +390,8 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t const start, const vec3_t dir, i
 /*
  * @brief
  */
-static void G_RocketProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane,
-		c_bsp_surface_t *surf) {
+static void G_RocketProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane,
+		cm_bsp_surface_t *surf) {
 	vec3_t origin;
 
 	if (other == self->owner)
@@ -468,8 +468,8 @@ void G_RocketProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, in
 /*
  * @brief
  */
-static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane,
-		c_bsp_surface_t *surf) {
+static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane,
+		cm_bsp_surface_t *surf) {
 	vec3_t origin;
 	vec3_t v;
 
@@ -604,7 +604,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 	vec3_t forward, right, up;
 	vec3_t start, end;
 	vec3_t water_start;
-	c_trace_t tr;
+	cm_trace_t tr;
 
 	if (G_LightningProjectile_Expire(self)) {
 		self->owner->locals.lightning = NULL;
@@ -732,7 +732,7 @@ void G_RailgunProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 
 	VectorMA(pos, MAX_WORLD_DIST, dir, end);
 
-	c_trace_t tr;
+	cm_trace_t tr;
 	memset(&tr, 0, sizeof(tr));
 
 	g_edict_t *ignore = ent;
@@ -811,8 +811,8 @@ void G_RailgunProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 /*
  * @brief
  */
-static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane,
-		c_bsp_surface_t *surf) {
+static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane,
+		cm_bsp_surface_t *surf) {
 	vec3_t pos;
 
 	if (other == self->owner)

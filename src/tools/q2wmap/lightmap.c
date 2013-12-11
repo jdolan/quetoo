@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -469,7 +469,7 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *s
 
 	vec3_t delta;
 	vec_t dot, light;
-	c_trace_t trace;
+	cm_trace_t trace;
 
 	if (!sun.light)
 		return;
@@ -507,7 +507,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
 	vec3_t delta;
 	vec_t dot, dot2;
 	vec_t dist;
-	c_trace_t trace;
+	cm_trace_t trace;
 	int32_t i;
 
 	// iterate over lights, which are in buckets by cluster

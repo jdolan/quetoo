@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -60,7 +60,7 @@ static _Bool G_RunThink(g_edict_t *ent) {
 /*
  * @brief Two entities have touched, so run their touch functions
  */
-static void G_RunTouch(g_edict_t *ent, c_trace_t *trace) {
+static void G_RunTouch(g_edict_t *ent, cm_trace_t *trace) {
 
 	g_edict_t *other = trace->ent;
 
@@ -439,9 +439,9 @@ static void G_Physics_Push(g_edict_t *ent) {
  * solids along the way. It's possible to be freed through impacting other
  * objects.
  */
-static c_trace_t G_Physics_Fly_Move(g_edict_t *ent) {
+static cm_trace_t G_Physics_Fly_Move(g_edict_t *ent) {
 	vec3_t start, end;
-	c_trace_t trace;
+	cm_trace_t trace;
 
 	VectorCopy(ent->s.origin, start);
 
@@ -481,7 +481,7 @@ static void G_Physics_Fly(g_edict_t *ent) {
 
 	G_AddFlying(ent);
 
-	c_trace_t trace = G_Physics_Fly_Move(ent);
+	cm_trace_t trace = G_Physics_Fly_Move(ent);
 
 	if (!ent->in_use)
 		return;
@@ -499,7 +499,7 @@ static void G_Physics_Toss(g_edict_t *ent) {
 
 	G_AddFriction(ent);
 
-	c_trace_t trace = G_Physics_Fly_Move(ent);
+	cm_trace_t trace = G_Physics_Fly_Move(ent);
 
 	if (!ent->in_use)
 		return;

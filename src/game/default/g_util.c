@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -54,7 +54,7 @@ void G_ProjectSpawn(g_edict_t *ent) {
  * @brief Determines the initial position and directional vectors of a projectile.
  */
 void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org) {
-	c_trace_t tr;
+	cm_trace_t tr;
 	vec3_t view, end;
 
 	// use the client's view angles to project the origin flash
@@ -416,7 +416,7 @@ void G_TouchWater(g_edict_t *ent) {
 
 	const uint8_t old_water_level = ent->locals.water_level;
 
-	c_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_WATER);
+	cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_WATER);
 
 	ent->locals.water_type = tr.contents;
 	ent->locals.water_level = ent->locals.water_type ? 1 : 0;
@@ -434,7 +434,7 @@ void G_TouchWater(g_edict_t *ent) {
  * of the entity. The entity should be unlinked before calling this!
  */
 _Bool G_KillBox(g_edict_t *ent) {
-	c_trace_t tr;
+	cm_trace_t tr;
 
 	// kill all solids that take damage, including corpses for bonus giblets
 	const int32_t mask = MASK_PLAYER_SOLID | CONTENTS_DEAD_MONSTER;
@@ -746,7 +746,7 @@ _Bool G_IsStationary(const g_edict_t *ent) {
 /*
  * @return True if the specified entity and surface appear structural.
  */
-_Bool G_IsStructural(const g_edict_t *ent, const c_bsp_surface_t *surf) {
+_Bool G_IsStructural(const g_edict_t *ent, const cm_bsp_surface_t *surf) {
 
 	if (G_IsMeat(ent)) // players are obviously not structural
 		return false;

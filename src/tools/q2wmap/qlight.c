@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -84,12 +84,12 @@ _Bool Light_PointPVS(const vec3_t org, byte *pvs) {
 
 // we use the c_model_t collision detection facilities for lighting
 static int32_t num_cmodels;
-static c_bsp_model_t *cmodels[MAX_BSP_MODELS];
+static cm_bsp_model_t *cmodels[MAX_BSP_MODELS];
 
 /*
  * @brief
  */
-void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask) {
+void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask) {
 	vec_t frac;
 	int32_t i;
 
@@ -97,7 +97,7 @@ void Light_Trace(c_trace_t *trace, const vec3_t start, const vec3_t end, int32_t
 
 	// and any BSP submodels, too
 	for (i = 0; i < num_cmodels; i++) {
-		const c_trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin,
+		const cm_trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin,
 				cmodels[i]->head_node, mask);
 
 		if (tr.fraction < frac) {

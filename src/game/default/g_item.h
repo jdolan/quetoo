@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -52,7 +52,7 @@ void G_SpawnItem(g_edict_t *ent, const g_item_t *item);
 _Bool G_SetAmmo(g_edict_t *ent, const g_item_t *item, int16_t count);
 g_edict_t *G_TossFlag(g_edict_t *self);
 g_edict_t *G_TossQuadDamage(g_edict_t *self);
-void G_TouchItem(g_edict_t *ent, g_edict_t *other, c_bsp_plane_t *plane, c_bsp_surface_t *surf);
+void G_TouchItem(g_edict_t *ent, g_edict_t *other, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf);
 
 #endif /* __GAME_LOCAL_H__ */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -248,7 +248,7 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
 /*
  * @brief Returns true if the specified planes are equal, false otherwise.
  */
-_Bool PlaneCompare(const c_bsp_plane_t *p1, const c_bsp_plane_t *p2) {
+_Bool PlaneCompare(const cm_bsp_plane_t *p1, const cm_bsp_plane_t *p2) {
 
 	if (VectorCompare(p1->normal, p2->normal)) {
 		return fabs(p1->dist - p2->dist) < 0.1;
@@ -261,7 +261,7 @@ _Bool PlaneCompare(const c_bsp_plane_t *p1, const c_bsp_plane_t *p2) {
  * @brief Returns a bit mask hinting at the sign of each normal vector component. This
  * is used as an optimization for the box-on-plane-side test.
  */
-byte SignBitsForPlane(const c_bsp_plane_t *plane) {
+byte SignBitsForPlane(const cm_bsp_plane_t *plane) {
 	int32_t i;
 	byte bits = 0;
 
@@ -277,7 +277,7 @@ byte SignBitsForPlane(const c_bsp_plane_t *plane) {
  * @brief Returns the sidedness of the given bounding box relative to the specified
  * plane. If the box straddles the plane, this function returns SIDE_BOTH.
  */
-int32_t BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const c_bsp_plane_t *p) {
+int32_t BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *p) {
 	vec_t dist1, dist2;
 	int32_t sides;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -41,7 +41,7 @@ typedef struct {
 	int32_t frame_num;
 
 	char name[MAX_QPATH]; // map name
-	struct c_model_s *models[MAX_BSP_MODELS];
+	cm_bsp_model_t *models[MAX_BSP_MODELS];
 
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 	entity_state_t baselines[MAX_EDICTS];

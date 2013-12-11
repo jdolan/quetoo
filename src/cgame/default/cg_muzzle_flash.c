@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -27,7 +27,7 @@
 static void Cg_EnergyFlash(const entity_state_t *ent, uint8_t color) {
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
-	c_trace_t tr;
+	cm_trace_t tr;
 	vec_t dist;
 
 	// project the flash just in front of the entity
@@ -68,7 +68,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	cg_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
-	c_trace_t tr;
+	cm_trace_t tr;
 	vec_t dist;
 	int32_t j;
 

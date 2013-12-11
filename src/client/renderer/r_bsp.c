@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -92,7 +92,7 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 	surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
 	for (i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
-		const c_bsp_plane_t *plane = surf->plane;
+		const cm_bsp_plane_t *plane = surf->plane;
 		vec_t dot;
 
 		// find which side of the surf we are on
@@ -383,7 +383,7 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp) {
 	if (!bsp)
 		bsp = r_model_state.world->bsp;
 
-	return &bsp->leafs[Cm_PointLeafnum(p)];
+	return &bsp->leafs[Cm_PointLeafnum(p, 0)];
 }
 
 /*

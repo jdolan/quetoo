@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -205,8 +205,8 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker, uint32_t mod)
 /*
  * @brief Play a sloppy sound when impacting the world.
  */
-static void G_ClientGiblet_Touch(g_edict_t *self, g_edict_t *other, c_bsp_plane_t *plane __attribute__((unused)),
-		c_bsp_surface_t *surf) {
+static void G_ClientGiblet_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+		cm_bsp_surface_t *surf) {
 
 	if (surf && (surf->flags & SURF_SKY)) {
 		G_FreeEdict(self);
@@ -1133,7 +1133,7 @@ void G_ClientDisconnect(g_edict_t *ent) {
 /*
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
-static c_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
+static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
 		const vec3_t maxs) {
 	const g_edict_t *self = g_level.current_entity;
 
@@ -1216,7 +1216,7 @@ static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
 	// check for jump
 	if ((pm.s.flags & PMF_JUMPED) && cl->locals.jump_time < g_level.time - 100) {
 		vec3_t angles, forward, point;
-		c_trace_t tr;
+		cm_trace_t tr;
 
 		VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
 		AngleVectors(angles, forward, NULL, NULL);

@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -631,7 +631,7 @@ static void R_LoadBspSurfaceEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  */
 static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	int32_t i, j;
-	c_bsp_plane_t *out;
+	cm_bsp_plane_t *out;
 	const d_bsp_plane_t *in;
 	int32_t count;
 

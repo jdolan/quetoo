@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -22,7 +22,7 @@
 #ifndef __RENDERER_H__
 #define __RENDERER_H__
 
-#include "cmodel.h"
+#include "collision/cmodel.h"
 #include "console.h"
 
 #include "r_array.h"

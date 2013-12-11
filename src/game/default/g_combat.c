@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 1997-2001 Id Software, Inc.
+ * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
  * Copyright(c) 2006 Quake2World.
  *
@@ -45,7 +45,7 @@ _Bool G_OnSameTeam(const g_edict_t *ent1, const g_edict_t *ent2) {
  */
 _Bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
 	vec3_t dest;
-	c_trace_t tr;
+	cm_trace_t tr;
 
 	// BSP sub-models need special checking because their origin is 0,0,0
 	if (targ->locals.move_type == MOVE_TYPE_PUSH) {
