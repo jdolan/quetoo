@@ -75,6 +75,9 @@ int32_t Cl_PointContents(const vec3_t point) {
 
 	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
 
+		// FIXME: To be entirely correct, we should use cl.lerp here and
+		// interpolate the origin and angles.
+
 		const int32_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[num];
 
@@ -110,6 +113,9 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
 		const uint16_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[num];
+
+		// FIXME: To be entirely correct, we should use cl.lerp here and
+		// interpolate the origin and angles.
 
 		if (ent->solid < SOLID_BOX)
 			continue;

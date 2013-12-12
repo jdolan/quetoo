@@ -21,15 +21,15 @@
 
 #include "r_local.h"
 
-#define MESH_SHADOW_ALPHA 0.66
+#define MESH_SHADOW_ALPHA 0.33
 
 /*
  * @brief Sets the shadow color, which is dependent on the entity's alpha blend
  * and its distance from the shadow plane.
  */
-static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_illumination_t *il) {
+static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *s) {
 
-	vec_t alpha = il->shadow.intensity * r_shadows->value * MESH_SHADOW_ALPHA;
+	vec_t alpha = s->intensity * r_shadows->value * MESH_SHADOW_ALPHA;
 
 	if (e->effects & EF_BLEND)
 		alpha *= e->color[3];
@@ -46,7 +46,7 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_illuminati
  *
  * ftp://ftp.sgi.com/opengl/contrib/blythe/advanced99/notes/node192.html
  */
-static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_illumination_t *il) {
+static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t *s) {
 	vec4_t pos, normal;
 	matrix4x4_t proj, shear;
 	vec_t dot;
@@ -56,7 +56,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_illuminat
 		return;
 	}
 
-	const cm_bsp_plane_t *p = &il->shadow.plane;
+	const cm_bsp_plane_t *p = &s->plane;
 
 	// project the entity onto the shadow plane
 	vec3_t vx, vy, vz, t;
@@ -81,7 +81,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_illuminat
 	glMultMatrixf((GLfloat *) proj.m);
 
 	// transform the light position and shadow plane into model space
-	Matrix4x4_Transform(&e->inverse_matrix, il->pos, pos);
+	Matrix4x4_Transform(&e->inverse_matrix, s->illumination->pos, pos);
 	pos[3] = 1.0;
 
 	const vec_t *n = p->normal;
@@ -115,13 +115,13 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_illuminat
  * @brief Draws the specified shadow for the given entity. A scissor test is
  * employed in order to clip shadows to the planes they are cast upon.
  */
-static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_illumination_t *il) {
+static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) {
 
-	R_SetMeshShadowColor_default(e, il);
+	R_SetMeshShadowColor_default(e, s);
 
-	R_RotateForMeshShadow_default(e, il);
+	R_RotateForMeshShadow_default(e, s);
 
-	glStencilFunc(GL_EQUAL, il->shadow.plane.ref, ~0);
+	glStencilFunc(GL_EQUAL, s->plane.num % 0xff, ~0);
 
 	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
@@ -157,26 +157,26 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableStencilTest(true, GL_ZERO);
 
-	const r_illumination_t **il = e->lighting->shadows;
+	const r_shadow_t *s = e->lighting->shadows;
 
-	for (i = 0; i < lengthof(e->lighting->shadows); i++, il++) {
+	for (i = 0; i < lengthof(e->lighting->shadows); i++, s++) {
 
-		if (*il == NULL)
+		if (s->intensity == 0.0)
 			break;
 
 #if 0
 		if (e->effects & EF_CLIENT) {
 			r_corona_t c;
 
-			VectorCopy((*il)->pos, c.origin);
-			VectorCopy((*il)->color, c.color);
-			c.radius = (*il)->radius / 8;
+			VectorCopy(s->illumination->pos, c.origin);
+			VectorCopy(s->illumination->color, c.color);
+			c.radius = s->illumination->radius / 8;
 
 			R_AddCorona(&c);
 		}
 #endif
 
-		R_DrawMeshShadow_default_(e, *il);
+		R_DrawMeshShadow_default_(e, s);
 	}
 
 	R_EnableStencilTest(false, GL_ZERO);

@@ -30,41 +30,6 @@
 #define LIGHTING_AMBIENT_DIST 260.0
 
 /*
- * @brief Trace from the specified lighting point to the world, accounting for
- * attenuation within the radius of the object. Any impacted planes are saved
- * to the shadow.
- */
-static void R_UpdateShadow(r_lighting_t *l, r_illumination_t *il) {
-	vec3_t pos;
-
-	// check if the light exits the entity
-	const vec_t dist = il->ambient + il->diffuse - l->radius;
-
-	if (dist <= 0.0)
-		return;
-
-	// project outward along the lighting direction
-	VectorMA(l->origin, -dist, il->dir, pos);
-
-	// skipping the entity itself, impacting solids
-	const cm_trace_t tr = Cl_Trace(l->origin, pos, NULL, NULL, l->number, MASK_SOLID);
-
-	// check if the trace impacted a valid plane
-	if (tr.start_solid || tr.fraction == 1.0)
-		return;
-
-	const vec_t dot = DotProduct(r_view.origin, tr.plane.normal) - tr.plane.dist;
-
-	// check if the plane faces the view origin
-	if (dot <= 0.0)
-		return;
-
-	// finally, yield the shadow plane
-	il->shadow.intensity = 1.0 - tr.fraction;
-	il->shadow.plane = tr.plane;
-}
-
-/*
  * @brief Populates the first illumination structure with ambient and sunlight.
  */
 static void R_UpdateWorldIllumination(r_lighting_t *l) {
@@ -119,9 +84,6 @@ static void R_UpdateWorldIllumination(r_lighting_t *l) {
 
 	// resolve the light source position
 	VectorMA(l->origin, LIGHTING_AMBIENT_DIST, il->dir, il->pos);
-
-	// update the shadow
-	R_UpdateShadow(l, il);
 }
 
 #define LIGHTING_MAX_BSP_LIGHT_ILLUMINATIONS 128
@@ -209,32 +171,98 @@ static void R_UpdateBspLightIlluminations(r_lighting_t *l) {
 	// sort them by diffuse contribution
 	qsort(illum, n, sizeof(r_illumination_t), R_CompareIlluminationDiffuse);
 
-	// take the N strongest illuminations and update their shadows
-	for (i = 0, n = MIN(n, MAX_BSP_LIGHT_ILLUMINATIONS); i < n; i++) {
-		R_UpdateShadow(l, &illum[i]);
-	}
+	// take the N strongest illuminations
+	n = MIN(n, MAX_BSP_LIGHT_ILLUMINATIONS);
 
-	// finally copy them in
+	// and copy them in
 	memcpy(&l->illuminations[1], illum, n * sizeof(r_illumination_t));
 }
 
 /*
- * @brief Qsort comparator for r_illumination_t *. Orders by shadow intensity,
- * descending.
+ * @brief Qsort comparator for r_shadow_t. Orders by intensity, descending.
  */
-static int32_t R_CompareIlluminationShadow(const void *a, const void *b) {
+static int32_t R_CompareShadowIntensity(const void *a, const void *b) {
 
-	const r_illumination_t *il0 = *(const r_illumination_t **) a;
-	const r_illumination_t *il1 = *(const r_illumination_t **) b;
+	const r_shadow_t *s0 = (const r_shadow_t *) a;
+	const r_shadow_t *s1 = (const r_shadow_t *) b;
 
-	return (int32_t) (1000.0 * (il1->shadow.intensity - il0->shadow.intensity));
+	return (int32_t) (1000.0 * (s1->intensity - s0->intensity));
+}
+
+/*
+ * @brief For each active illumination, trace from the specified lighting point
+ * to the world, from the origin as well as the corners of the bounding box,
+ * accounting for light attenuation within the radius of the object. Cast
+ * shadows on impacted planes.
+ */
+static void R_UpdateShadows(r_lighting_t *l) {
+
+	const r_illumination_t *il = l->illuminations;
+
+	r_shadow_t *s = l->shadows;
+
+	for (uint16_t i = 0; i < lengthof(l->illuminations); i++, il++) {
+
+		if (il->radius == 0.0)
+			break;
+
+		// check if the light exits the entity
+		const vec_t dist = il->ambient + il->diffuse - l->radius;
+
+		if (dist <= 0.0)
+			continue;
+
+		// trace to the origin as well as the bounds
+		const vec_t *points[] = { l->origin, l->mins, l->maxs };
+
+		// trace out of the entity in the lighting direction
+		for (uint16_t j = 0; j < lengthof(points); j++) {
+			vec3_t pos;
+
+			// project the farthest possible shadow impact position
+			VectorMA(points[j], -dist, il->dir, pos);
+
+			// trace, skipping the entity itself, impacting solids
+			const cm_trace_t tr = Cl_Trace(points[j], pos, NULL, NULL, l->number, MASK_SOLID);
+
+			// check if the trace impacted a valid plane
+			if (tr.start_solid || tr.fraction == 1.0)
+				continue;
+
+			const vec_t dot = DotProduct(r_view.origin, tr.plane.normal) - tr.plane.dist;
+
+			// check if the plane faces the view origin
+			if (dot <= 0.0)
+				continue;
+
+			// check if this plane is new to this illumination
+			s = l->shadows;
+			while (s->illumination) {
+				if (s->illumination == il && s->plane.num == tr.plane.num)
+					break;
+				s++;
+			}
+
+			// already counted for this illumination
+			if (s->illumination)
+				continue;
+
+			// finally, yield the shadow plane
+			s->illumination = il;
+			s->plane = tr.plane;
+			s->intensity = 1.0 - tr.fraction;
+
+			s++;
+		}
+	}
+
+	qsort(l->shadows, s - l->shadows, sizeof(r_shadow_t), R_CompareShadowIntensity);
 }
 
 /*
  * @brief Resolves illumination and shadow information for the specified point.
  */
 void R_UpdateLighting(r_lighting_t *l) {
-	uint16_t i, j;
 
 	memset(l->illuminations, 0, sizeof(l->illuminations));
 	memset(l->shadows, 0, sizeof(l->shadows));
@@ -245,19 +273,8 @@ void R_UpdateLighting(r_lighting_t *l) {
 	// resolve the BSP light contributions
 	R_UpdateBspLightIlluminations(l);
 
-	// sort the illuminations by shadow intensity
-	const r_illumination_t *il = l->illuminations;
-
-	for (i = j = 0; i < lengthof(l->illuminations); i++, il++) {
-
-		if (il->radius == 0.0)
-			break;
-
-		if (il->shadow.intensity)
-			l->shadows[j++] = il;
-	}
-
-	qsort(l->shadows, j, sizeof(r_illumination_t *), R_CompareIlluminationShadow);
+	// and resolve all shadows
+	R_UpdateShadows(l);
 
 	l->state = LIGHTING_READY;
 }

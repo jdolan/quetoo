@@ -578,14 +578,6 @@ typedef struct {
 } r_sustained_light_t;
 
 /*
- * @brief Describes the projection of a mesh model onto a BSP plane.
- */
-typedef struct {
-	cm_bsp_plane_t plane;
-	vec_t intensity;
-} r_shadow_t;
-
-/*
  * @brief Describes alight source contributions to point lighting.
  */
 typedef struct {
@@ -595,8 +587,16 @@ typedef struct {
 	vec_t radius;
 	vec_t ambient;
 	vec_t diffuse;
-	r_shadow_t shadow;
 } r_illumination_t;
+
+/*
+ * @brief Describes the projection of a mesh model onto a BSP plane.
+ */
+typedef struct {
+	const r_illumination_t *illumination;
+	cm_bsp_plane_t plane;
+	vec_t intensity;
+} r_shadow_t;
 
 /*
  * @brief Static lighting information is cached on the client entity structure.
@@ -617,6 +617,13 @@ typedef enum {
 #define MAX_BSP_LIGHT_ILLUMINATIONS (MAX_ILLUMINATIONS - 1)
 
 /*
+ * @brief Up to 3 shadows are cast for each illumination. These are populated
+ * by tracing from the illumination position through the lighting origin and
+ * bounds. A shadow is cast for each unique plane hit.
+ */
+#define MAX_SHADOWS (MAX_ILLUMINATIONS * 3)
+
+/*
  * @brief Provides static lighting information for mesh entities. Illuminations
  * and shadows are maintained in separate arrays because they must be sorted by
  * different criteria: for illuminations, the light that reaches the entity
@@ -631,7 +638,7 @@ typedef struct r_lighting_s {
 	vec3_t mins, maxs; // entity bounding box in world space
 	vec_t scale; // lighting scale (typically r_lighting->value)
 	r_illumination_t illuminations[MAX_ILLUMINATIONS]; // light sources, ordered by diffuse
-	const r_illumination_t *shadows[MAX_ILLUMINATIONS]; // shadows, ordered by intensity
+	r_shadow_t shadows[MAX_SHADOWS]; // shadows, ordered by intensity
 } r_lighting_t;
 
 /*
