@@ -582,7 +582,6 @@ typedef struct {
  */
 typedef struct {
 	vec3_t pos;
-	vec3_t dir;
 	vec3_t color;
 	vec_t radius;
 	vec_t ambient;

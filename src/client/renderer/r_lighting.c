@@ -33,7 +33,7 @@
  * @brief Populates the first illumination structure with ambient and sunlight.
  */
 static void R_UpdateWorldIllumination(r_lighting_t *l) {
-	const r_sun_t *sun = &r_bsp_light_state.sun;
+	vec3_t dir;
 
 	r_illumination_t *il = l->illuminations;
 
@@ -41,10 +41,12 @@ static void R_UpdateWorldIllumination(r_lighting_t *l) {
 	il->radius = LIGHTING_AMBIENT_ATTENUATION * l->scale;
 	il->ambient = il->radius - LIGHTING_AMBIENT_DIST;
 
-	VectorCopy(vec3_up, il->dir);
 	VectorScale(r_bsp_light_state.ambient, l->scale, il->color);
 
+	VectorCopy(vec3_up, dir);
+
 	// merge sunlight into the illumination
+	const r_sun_t *sun = &r_bsp_light_state.sun;
 	if (sun->diffuse) {
 		vec3_t pos;
 
@@ -75,18 +77,16 @@ static void R_UpdateWorldIllumination(r_lighting_t *l) {
 			il->diffuse = sun->diffuse * exposure * l->scale;
 			il->radius += il->diffuse;
 
-			VectorMix(il->dir, sun->dir, il->diffuse / (il->ambient + il->diffuse), il->dir);
-			VectorNormalize(il->dir);
+			VectorMix(dir, sun->dir, il->diffuse / (il->ambient + il->diffuse), dir);
+			VectorNormalize(dir);
 
 			VectorMA(il->color, exposure, r_bsp_light_state.sun.color, il->color);
 		}
 	}
 
 	// resolve the light source position
-	VectorMA(l->origin, LIGHTING_AMBIENT_DIST, il->dir, il->pos);
+	VectorMA(l->origin, LIGHTING_AMBIENT_DIST, dir, il->pos);
 }
-
-#define LIGHTING_MAX_BSP_LIGHT_ILLUMINATIONS 128
 
 /*
  * @brief Qsort comparator for r_illumination_t. Orders by diffuse, descending.
@@ -98,6 +98,8 @@ static int32_t R_CompareIlluminationDiffuse(const void *a, const void *b) {
 
 	return (int32_t) (il1->diffuse - il0->diffuse);
 }
+
+#define LIGHTING_MAX_BSP_LIGHT_ILLUMINATIONS 128
 
 /*
  * @brief Resolves the strongest static light sources, populating illuminations
@@ -120,43 +122,38 @@ static void R_UpdateBspLightIlluminations(r_lighting_t *l) {
 				continue;
 		}
 
-		// is it within range of the entity
-		VectorSubtract(b->origin, l->origin, dir);
+		vec_t diffuse = 0.0;
 
-		// accounting for the lighting scale and entity radius
-		const vec_t diffuse = b->radius * l->scale + l->radius - VectorNormalize(dir);
+		const vec_t *points[] = { l->origin, l->mins, l->maxs };
 
-		if (diffuse <= 0.0)
-			continue;
+		// trace to the origin as well as the bounds
+		for (uint16_t j = 0; j < lengthof(points); j++) {
 
-		vec_t exposure = 0.0;
+			// is it within range of the entity
+			VectorSubtract(b->origin, points[j], dir);
 
-		// is it visible to the entity; trace to origin and corners of bounding box
-		cm_trace_t tr = Cl_Trace(b->origin, l->origin, NULL, NULL, l->number, CONTENTS_SOLID);
+			// accounting for the scaled light radius
+			const vec_t d = b->radius * l->scale - VectorNormalize(dir);
 
-		if (tr.fraction == 1.0)
-			exposure += 0.33;
+			if (d <= 0.0)
+				continue;
 
-		tr = Cl_Trace(b->origin, l->mins, NULL, NULL, l->number, CONTENTS_SOLID);
+			// is it visible to the entity
+			const cm_trace_t tr = Cl_Trace(b->origin, points[j], NULL, NULL, l->number, CONTENTS_SOLID);
 
-		if (tr.fraction == 1.0)
-			exposure += 0.33;
+			if (tr.fraction == 1.0)
+				diffuse += d;
+		}
 
-		tr = Cl_Trace(b->origin, l->maxs, NULL, NULL, l->number, CONTENTS_SOLID);
-
-		if (tr.fraction == 1.0)
-			exposure += 0.33;
-
-		if (exposure > 0.0) {
+		if (diffuse > 0.0) {
 			r_illumination_t *il = &illum[n++];
 			memset(il, 0, sizeof(*il));
 
 			VectorCopy(b->origin, il->pos);
-			VectorCopy(dir, il->dir);
-			VectorScale(b->color, exposure, il->color);
+			VectorCopy(b->color, il->color);
 
 			il->radius = b->radius;
-			il->diffuse = diffuse * exposure;
+			il->diffuse = diffuse / lengthof(points);
 
 			if (n == LIGHTING_MAX_BSP_LIGHT_ILLUMINATIONS) {
 				Com_Debug("LIGHTING_MAX_BSP_LIGHT_ILLUMINATIONS\n");
@@ -197,30 +194,29 @@ static int32_t R_CompareShadowIntensity(const void *a, const void *b) {
  */
 static void R_UpdateShadows(r_lighting_t *l) {
 
-	const r_illumination_t *il = l->illuminations;
-
 	r_shadow_t *s = l->shadows;
+
+	const r_illumination_t *il = l->illuminations;
 
 	for (uint16_t i = 0; i < lengthof(l->illuminations); i++, il++) {
 
 		if (il->radius == 0.0)
 			break;
 
-		// check if the light exits the entity
-		const vec_t dist = il->ambient + il->diffuse - l->radius;
-
-		if (dist <= 0.0)
-			continue;
-
-		// trace to the origin as well as the bounds
 		const vec_t *points[] = { l->origin, l->mins, l->maxs };
 
-		// trace out of the entity in the lighting direction
 		for (uint16_t j = 0; j < lengthof(points); j++) {
-			vec3_t pos;
+			vec3_t dir, pos;
+
+			// check if the light exits the entity
+			VectorSubtract(il->pos, points[j], dir);
+			const vec_t dist = il->radius - VectorNormalize(dir);
+
+			if (dist <= 0.0)
+				continue;
 
 			// project the farthest possible shadow impact position
-			VectorMA(points[j], -dist, il->dir, pos);
+			VectorMA(points[j], -dist, dir, pos);
 
 			// trace, skipping the entity itself, impacting solids
 			const cm_trace_t tr = Cl_Trace(points[j], pos, NULL, NULL, l->number, MASK_SOLID);
@@ -235,22 +231,29 @@ static void R_UpdateShadows(r_lighting_t *l) {
 			if (dot <= 0.0)
 				continue;
 
-			// check if this plane is new to this illumination
+			// resolve the intensity of the shadow based on how much light we occlude
+			const vec_t intensity = (1.0 - tr.fraction) * DotProduct(dir, tr.plane.normal);
+
+			// prepare to cast a shadow, search for the plane in previous shadows
 			s = l->shadows;
 			while (s->illumination) {
-				if (s->illumination == il && s->plane.num == tr.plane.num)
+
+				// check if the shadow references the same illumination and plane
+				if (s->illumination == il && s->plane.num == tr.plane.num) {
+					s->intensity = MAX(s->intensity, intensity);
 					break;
+				}
 				s++;
 			}
 
-			// already counted for this illumination
+			// plane already counted for this illumination
 			if (s->illumination)
 				continue;
 
-			// finally, yield the shadow plane
+			// finally, cast the shadow
 			s->illumination = il;
 			s->plane = tr.plane;
-			s->intensity = 1.0 - tr.fraction;
+			s->intensity = intensity;
 
 			s++;
 		}
