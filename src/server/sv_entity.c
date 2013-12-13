@@ -24,7 +24,7 @@
 /*
  * @brief Writes a delta update of an entity_state_t list to the message.
  */
-static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
+static void Sv_WriteEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 	entity_state_t *old_state = NULL, *new_state = NULL;
 	uint32_t old_index, new_index;
 	uint16_t old_num, new_num;
@@ -84,133 +84,13 @@ static void Sv_EmitEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 /*
  * @brief
  */
-static void Sv_WritePlayerstate(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
-	uint16_t pm_state_bits;
-	uint32_t stat_bits;
-	player_state_t *ps, *ops;
-	player_state_t dummy;
-	int32_t i;
+static void Sv_WritePlayerState(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
+	static player_state_t null_state;
 
-	ps = &to->ps;
-
-	if (!from) {
-		memset(&dummy, 0, sizeof(dummy));
-		ops = &dummy;
-	} else {
-		ops = &from->ps;
-	}
-
-	// determine what needs to be sent
-	pm_state_bits = 0;
-
-	if (ps->pm_state.type != ops->pm_state.type)
-		pm_state_bits |= PS_PM_TYPE;
-
-	if (ps->pm_state.origin[0] != ops->pm_state.origin[0] || ps->pm_state.origin[1]
-			!= ops->pm_state.origin[1] || ps->pm_state.origin[2] != ops->pm_state.origin[2])
-		pm_state_bits |= PS_PM_ORIGIN;
-
-	if (ps->pm_state.velocity[0] != ops->pm_state.velocity[0] || ps->pm_state.velocity[1]
-			!= ops->pm_state.velocity[1] || ps->pm_state.velocity[2] != ops->pm_state.velocity[2])
-		pm_state_bits |= PS_PM_VELOCITY;
-
-	if (ps->pm_state.flags != ops->pm_state.flags)
-		pm_state_bits |= PS_PM_FLAGS;
-
-	if (ps->pm_state.time != ops->pm_state.time)
-		pm_state_bits |= PS_PM_TIME;
-
-	if (ps->pm_state.gravity != ops->pm_state.gravity)
-		pm_state_bits |= PS_PM_GRAVITY;
-
-	if (ps->pm_state.view_offset[0] != ops->pm_state.view_offset[0] || ps->pm_state.view_offset[1]
-			!= ops->pm_state.view_offset[1] || ps->pm_state.view_offset[2]
-			!= ops->pm_state.view_offset[2])
-		pm_state_bits |= PS_PM_VIEW_OFFSET;
-
-	if (ps->pm_state.view_angles[0] != ops->pm_state.view_angles[0] || ps->pm_state.view_angles[1]
-			!= ops->pm_state.view_angles[1] || ps->pm_state.view_angles[2]
-			!= ops->pm_state.view_angles[2])
-		pm_state_bits |= PS_PM_VIEW_ANGLES;
-
-	if (ps->pm_state.kick_angles[0] != ops->pm_state.kick_angles[0] || ps->pm_state.kick_angles[1]
-			!= ops->pm_state.kick_angles[1] || ps->pm_state.kick_angles[2]
-			!= ops->pm_state.kick_angles[2])
-		pm_state_bits |= PS_PM_KICK_ANGLES;
-
-	if (ps->pm_state.delta_angles[0] != ops->pm_state.delta_angles[0]
-			|| ps->pm_state.delta_angles[1] != ops->pm_state.delta_angles[1]
-			|| ps->pm_state.delta_angles[2] != ops->pm_state.delta_angles[2])
-		pm_state_bits |= PS_PM_DELTA_ANGLES;
-
-	// write it
-	Net_WriteShort(msg, pm_state_bits);
-
-	// write the pmove_state_t
-	if (pm_state_bits & PS_PM_TYPE)
-		Net_WriteByte(msg, ps->pm_state.type);
-
-	if (pm_state_bits & PS_PM_ORIGIN) {
-		Net_WriteShort(msg, ps->pm_state.origin[0]);
-		Net_WriteShort(msg, ps->pm_state.origin[1]);
-		Net_WriteShort(msg, ps->pm_state.origin[2]);
-	}
-
-	if (pm_state_bits & PS_PM_VELOCITY) {
-		Net_WriteShort(msg, ps->pm_state.velocity[0]);
-		Net_WriteShort(msg, ps->pm_state.velocity[1]);
-		Net_WriteShort(msg, ps->pm_state.velocity[2]);
-	}
-
-	if (pm_state_bits & PS_PM_FLAGS)
-		Net_WriteShort(msg, ps->pm_state.flags);
-
-	if (pm_state_bits & PS_PM_TIME)
-		Net_WriteShort(msg, ps->pm_state.time);
-
-	if (pm_state_bits & PS_PM_GRAVITY)
-		Net_WriteShort(msg, ps->pm_state.gravity);
-
-	if (pm_state_bits & PS_PM_VIEW_OFFSET) {
-		Net_WriteShort(msg, ps->pm_state.view_offset[0]);
-		Net_WriteShort(msg, ps->pm_state.view_offset[1]);
-		Net_WriteShort(msg, ps->pm_state.view_offset[2]);
-	}
-
-	if (pm_state_bits & PS_PM_VIEW_ANGLES) {
-		Net_WriteShort(msg, ps->pm_state.view_angles[0]);
-		Net_WriteShort(msg, ps->pm_state.view_angles[1]);
-		Net_WriteShort(msg, ps->pm_state.view_angles[2]);
-	}
-
-	if (pm_state_bits & PS_PM_KICK_ANGLES) {
-		Net_WriteShort(msg, ps->pm_state.kick_angles[0]);
-		Net_WriteShort(msg, ps->pm_state.kick_angles[1]);
-		Net_WriteShort(msg, ps->pm_state.kick_angles[2]);
-	}
-
-	if (pm_state_bits & PS_PM_DELTA_ANGLES) {
-		Net_WriteShort(msg, ps->pm_state.delta_angles[0]);
-		Net_WriteShort(msg, ps->pm_state.delta_angles[1]);
-		Net_WriteShort(msg, ps->pm_state.delta_angles[2]);
-	}
-
-	// send stats
-	stat_bits = 0;
-
-	for (i = 0; i < MAX_STATS; i++) {
-		if (ps->stats[i] != ops->stats[i]) {
-			stat_bits |= 1 << i;
-		}
-	}
-
-	Net_WriteLong(msg, stat_bits);
-
-	for (i = 0; i < MAX_STATS; i++) {
-		if (stat_bits & (1 << i)) {
-			Net_WriteShort(msg, ps->stats[i]);
-		}
-	}
+	if (from)
+		Net_WriteDeltaPlayerState(msg, &from->ps, &to->ps);
+	else
+		Net_WriteDeltaPlayerState(msg, &null_state, &to->ps);
 }
 
 /*
@@ -248,10 +128,10 @@ void Sv_WriteFrame(sv_client_t *client, mem_buf_t *msg) {
 	Net_WriteData(msg, frame->area_bits, frame->area_bytes);
 
 	// delta encode the playerstate
-	Sv_WritePlayerstate(delta_frame, frame, msg);
+	Sv_WritePlayerState(delta_frame, frame, msg);
 
 	// delta encode the entities
-	Sv_EmitEntities(delta_frame, frame, msg);
+	Sv_WriteEntities(delta_frame, frame, msg);
 }
 
 /*

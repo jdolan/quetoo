@@ -76,36 +76,38 @@
 /*
  * @brief Message writing and reading facilities.
  */
-void Net_WriteData(mem_buf_t *buf, const void *data, size_t len);
-void Net_WriteChar(mem_buf_t *sb, const int32_t c);
-void Net_WriteByte(mem_buf_t *buf, const int32_t c);
-void Net_WriteShort(mem_buf_t *buf, const int32_t c);
-void Net_WriteLong(mem_buf_t *buf, const int32_t c);
-void Net_WriteString(mem_buf_t *buf, const char *s);
-void Net_WriteVector(mem_buf_t *buf, const vec_t f);
-void Net_WritePosition(mem_buf_t *buf, const vec3_t pos);
-void Net_WriteAngle(mem_buf_t *buf, const vec_t f);
-void Net_WriteAngles(mem_buf_t *buf, const vec3_t angles);
-void Net_WriteDir(mem_buf_t *buf, const vec3_t dir);
-void Net_WriteDeltaUserCmd(mem_buf_t *buf, const user_cmd_t *from, const user_cmd_t *to);
-void Net_WriteDeltaEntity(mem_buf_t *buf, const entity_state_t *from, const entity_state_t *to,
-		_Bool force, _Bool newentity);
+void Net_WriteData(mem_buf_t *msg, const void *data, size_t len);
+void Net_WriteChar(mem_buf_t *msg, const int32_t c);
+void Net_WriteByte(mem_buf_t *msg, const int32_t c);
+void Net_WriteShort(mem_buf_t *msg, const int32_t c);
+void Net_WriteLong(mem_buf_t *msg, const int32_t c);
+void Net_WriteString(mem_buf_t *msg, const char *s);
+void Net_WriteVector(mem_buf_t *msg, const vec_t f);
+void Net_WritePosition(mem_buf_t *msg, const vec3_t pos);
+void Net_WriteAngle(mem_buf_t *msg, const vec_t f);
+void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles);
+void Net_WriteDir(mem_buf_t *msg, const vec3_t dir);
+void Net_WriteDeltaUserCmd(mem_buf_t *msg, const user_cmd_t *from, const user_cmd_t *to);
+void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const player_state_t *to);
+void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to,
+		_Bool force, _Bool is_new);
 
-void Net_BeginReading(mem_buf_t *buf);
-void Net_ReadData(mem_buf_t *buf, void *data, size_t len);
-int32_t Net_ReadChar(mem_buf_t *buf);
-int32_t Net_ReadByte(mem_buf_t *buf);
-int32_t Net_ReadShort(mem_buf_t *buf);
-int32_t Net_ReadLong(mem_buf_t *buf);
-char *Net_ReadString(mem_buf_t *buf);
-char *Net_ReadStringLine(mem_buf_t *buf);
-vec_t Net_ReadVector(mem_buf_t *buf);
-void Net_ReadPosition(mem_buf_t *buf, vec3_t pos);
-vec_t Net_ReadAngle(mem_buf_t *buf);
-void Net_ReadAngles(mem_buf_t *buf, vec3_t angles);
-void Net_ReadDir(mem_buf_t *buf, vec3_t vector);
-void Net_ReadDeltaUserCmd(mem_buf_t *buf, const user_cmd_t *from, user_cmd_t *to);
-void Net_ReadDeltaEntity(mem_buf_t *buf, const entity_state_t *from, entity_state_t *to,
+void Net_BeginReading(mem_buf_t *msg);
+void Net_ReadData(mem_buf_t *msg, void *data, size_t len);
+int32_t Net_ReadChar(mem_buf_t *msg);
+int32_t Net_ReadByte(mem_buf_t *msg);
+int32_t Net_ReadShort(mem_buf_t *msg);
+int32_t Net_ReadLong(mem_buf_t *msg);
+char *Net_ReadString(mem_buf_t *msg);
+char *Net_ReadStringLine(mem_buf_t *msg);
+vec_t Net_ReadVector(mem_buf_t *msg);
+void Net_ReadPosition(mem_buf_t *msg, vec3_t pos);
+vec_t Net_ReadAngle(mem_buf_t *msg);
+void Net_ReadAngles(mem_buf_t *msg, vec3_t angles);
+void Net_ReadDir(mem_buf_t *msg, vec3_t vector);
+void Net_ReadDeltaUserCmd(mem_buf_t *msg, const user_cmd_t *from, user_cmd_t *to);
+void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player_state_t *to);
+void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to,
 		uint16_t bits, uint16_t number);
 
 #endif /* __NET_MESSAGE_H__ */

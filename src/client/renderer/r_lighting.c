@@ -133,16 +133,17 @@ static void R_UpdateBspLightIlluminations(r_lighting_t *l) {
 			VectorSubtract(b->origin, points[j], dir);
 
 			// accounting for the scaled light radius
-			const vec_t d = b->radius * l->scale - VectorNormalize(dir);
+			const vec_t diff = b->radius * l->scale - VectorNormalize(dir);
 
-			if (d <= 0.0)
+			if (diff <= 0.0)
 				continue;
 
 			// is it visible to the entity
-			const cm_trace_t tr = Cl_Trace(b->origin, points[j], NULL, NULL, l->number, CONTENTS_SOLID);
+			const cm_trace_t tr = Cl_Trace(b->origin, points[j], NULL, NULL, l->number,
+					CONTENTS_SOLID);
 
 			if (tr.fraction == 1.0)
-				diffuse += d;
+				diffuse += diff;
 		}
 
 		if (diffuse > 0.0) {
@@ -243,6 +244,7 @@ static void R_UpdateShadows(r_lighting_t *l) {
 					s->intensity = MAX(s->intensity, intensity);
 					break;
 				}
+
 				s++;
 			}
 

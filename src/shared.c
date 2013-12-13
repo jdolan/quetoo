@@ -375,17 +375,6 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
 }
 
 /*
- * @brief Returns true if the specified vectors are equal, false otherwise.
- */
-_Bool VectorCompare(const vec3_t v1, const vec3_t v2) {
-
-	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
-		return false;
-
-	return true;
-}
-
-/*
  * @brief Normalizes the specified vector to unit-length, returning the original
  * vector's length.
  */

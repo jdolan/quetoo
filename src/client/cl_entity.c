@@ -22,10 +22,43 @@
 #include "cl_local.h"
 
 /*
- * @brief Parses deltas from the given base and adds the resulting entity
- * to the current frame.
+ * @brief Parse the player_state_t for the current frame from the server, using delta
+ * compression for all fields where possible.
  */
-static void Cl_ParseDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t number,
+static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame) {
+	static player_state_t null_state;
+
+	if (delta_frame)
+		Net_ReadDeltaPlayerState(&net_message, &delta_frame->ps, &frame->ps);
+	else
+		Net_ReadDeltaPlayerState(&net_message, &null_state, &frame->ps);
+
+	if (cl.demo_server) // if playing a demo, force freeze
+		frame->ps.pm_state.type = PM_FREEZE;
+}
+
+/*
+ * @return True if no interpolation for the given entity should be performed.
+ */
+static _Bool Cl_IgnoreDeltaEntity(entity_state_t *from, entity_state_t *to) {
+	vec3_t delta;
+
+	if (from->model1 != to->model1)
+		return true;
+
+	VectorSubtract(from->origin, to->origin, delta);
+
+	if (VectorLength(delta) > 256.0)
+		return true;
+
+	return false;
+}
+
+/*
+ * @brief Reads deltas from the given base and adds the resulting entity to the
+ * current frame.
+ */
+static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t number,
 		uint16_t bits) {
 
 	cl_entity_t *ent = &cl.entities[number];
@@ -37,20 +70,8 @@ static void Cl_ParseDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_
 
 	Net_ReadDeltaEntity(&net_message, from, to, number, bits);
 
-	// some changes will force no interpolation
-	if (from->model1 != to->model1
-			|| from->model2 != to->model2
-			|| from->model3 != to->model3
-			|| from->model4 != to->model4
-			|| fabs(from->origin[0] - to->origin[0]) > 256.0
-			|| fabs(from->origin[1] - to->origin[1]) > 256.0
-			|| fabs(from->origin[2] - to->origin[2]) > 256.0) {
-		ent->frame_num = -1;
-	}
-
-	if (ent->frame_num != cl.frame.frame_num - 1) {
-		// wasn't in last update, so initialize some things
-		// duplicate the current state to avoid interpolation
+	// check to see if the delta was successful and valid
+	if (ent->frame_num != cl.frame.frame_num - 1 || Cl_IgnoreDeltaEntity(from, to)) {
 		ent->prev = *to;
 		VectorCopy(to->old_origin, ent->prev.origin);
 		ent->animation1.time = ent->animation2.time = 0;
@@ -108,7 +129,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   unchanged: %i\n", old_number);
 
-			Cl_ParseDeltaEntity(frame, old_state, old_number, 0);
+			Cl_ReadDeltaEntity(frame, old_state, old_number, 0);
 
 			old_index++;
 
@@ -146,7 +167,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   delta: %i\n", number);
 
-			Cl_ParseDeltaEntity(frame, old_state, number, bits);
+			Cl_ReadDeltaEntity(frame, old_state, number, bits);
 
 			old_index++;
 
@@ -165,7 +186,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   baseline: %i\n", number);
 
-			Cl_ParseDeltaEntity(frame, &cl.entities[number].baseline, number, bits);
+			Cl_ReadDeltaEntity(frame, &cl.entities[number].baseline, number, bits);
 			continue;
 		}
 	}
@@ -176,7 +197,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 		if (cl_show_net_messages->integer == 3)
 			Com_Print("   unchanged: %i\n", old_number);
 
-		Cl_ParseDeltaEntity(frame, old_state, old_number, 0);
+		Cl_ReadDeltaEntity(frame, old_state, old_number, 0);
 
 		old_index++;
 
@@ -187,90 +208,6 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 					& ENTITY_STATE_MASK];
 			old_number = old_state->number;
 		}
-	}
-}
-
-/*
- * @brief Parse the player_state_t for the current frame from the server, using delta
- * compression for all fields where possible.
- */
-static void Cl_ParsePlayerstate(const cl_frame_t *delta_frame, cl_frame_t *frame) {
-	player_state_t *ps;
-	uint16_t pm_state_bits;
-	int32_t i;
-	uint32_t stat_bits;
-
-	ps = &frame->ps;
-
-	// copy old value before delta parsing
-	if (delta_frame)
-		*ps = delta_frame->ps;
-	else
-		// or start clean
-		memset(ps, 0, sizeof(*ps));
-
-	pm_state_bits = Net_ReadShort(&net_message);
-
-	// parse the pm_state_t
-
-	if (pm_state_bits & PS_PM_TYPE)
-		ps->pm_state.type = Net_ReadByte(&net_message);
-
-	if (cl.demo_server)
-		ps->pm_state.type = PM_FREEZE;
-
-	if (pm_state_bits & PS_PM_ORIGIN) {
-		ps->pm_state.origin[0] = Net_ReadShort(&net_message);
-		ps->pm_state.origin[1] = Net_ReadShort(&net_message);
-		ps->pm_state.origin[2] = Net_ReadShort(&net_message);
-	}
-
-	if (pm_state_bits & PS_PM_VELOCITY) {
-		ps->pm_state.velocity[0] = Net_ReadShort(&net_message);
-		ps->pm_state.velocity[1] = Net_ReadShort(&net_message);
-		ps->pm_state.velocity[2] = Net_ReadShort(&net_message);
-	}
-
-	if (pm_state_bits & PS_PM_FLAGS)
-		ps->pm_state.flags = Net_ReadShort(&net_message);
-
-	if (pm_state_bits & PS_PM_TIME)
-		ps->pm_state.time = Net_ReadShort(&net_message);
-
-	if (pm_state_bits & PS_PM_GRAVITY)
-		ps->pm_state.gravity = Net_ReadShort(&net_message);
-
-	if (pm_state_bits & PS_PM_VIEW_OFFSET) {
-		ps->pm_state.view_offset[0] = Net_ReadShort(&net_message);
-		ps->pm_state.view_offset[1] = Net_ReadShort(&net_message);
-		ps->pm_state.view_offset[2] = Net_ReadShort(&net_message);
-	}
-
-	if (pm_state_bits & PS_PM_VIEW_ANGLES) {
-		ps->pm_state.view_angles[0] = Net_ReadShort(&net_message);
-		ps->pm_state.view_angles[1] = Net_ReadShort(&net_message);
-		ps->pm_state.view_angles[2] = Net_ReadShort(&net_message);
-	}
-
-	if (pm_state_bits & PS_PM_KICK_ANGLES) {
-		ps->pm_state.kick_angles[0] = Net_ReadShort(&net_message);
-		ps->pm_state.kick_angles[1] = Net_ReadShort(&net_message);
-		ps->pm_state.kick_angles[2] = Net_ReadShort(&net_message);
-	}
-
-	if (pm_state_bits & PS_PM_DELTA_ANGLES) {
-		ps->pm_state.delta_angles[0] = Net_ReadShort(&net_message);
-		ps->pm_state.delta_angles[1] = Net_ReadShort(&net_message);
-		ps->pm_state.delta_angles[2] = Net_ReadShort(&net_message);
-	}
-
-	// parse stats
-
-	stat_bits = Net_ReadLong(&net_message);
-
-	for (i = 0; i < MAX_STATS; i++) {
-		if (stat_bits & (1 << i))
-			ps->stats[i] = Net_ReadShort(&net_message);
 	}
 }
 
@@ -310,7 +247,7 @@ void Cl_ParseFrame(void) {
 	const size_t len = Net_ReadByte(&net_message); // read area_bits
 	Net_ReadData(&net_message, &cl.frame.area_bits, len);
 
-	Cl_ParsePlayerstate(delta_frame, &cl.frame);
+	Cl_ParsePlayerState(delta_frame, &cl.frame);
 
 	Cl_ParseEntities(delta_frame, &cl.frame);
 

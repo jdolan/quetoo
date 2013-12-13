@@ -24,37 +24,37 @@
 /*
  * @brief
  */
-void Net_WriteData(mem_buf_t *buf, const void *data, size_t len) {
-	Mem_WriteBuffer(buf, data, len);
+void Net_WriteData(mem_buf_t *msg, const void *data, size_t len) {
+	Mem_WriteBuffer(msg, data, len);
 }
 
 /*
  * @brief
  */
-void Net_WriteChar(mem_buf_t *sb, const int32_t c) {
+void Net_WriteChar(mem_buf_t *msg, const int32_t c) {
 	byte *buf;
 
-	buf = Mem_AllocBuffer(sb, sizeof(char));
+	buf = Mem_AllocBuffer(msg, sizeof(char));
 	buf[0] = c;
 }
 
 /*
  * @brief
  */
-void Net_WriteByte(mem_buf_t *sb, const int32_t c) {
+void Net_WriteByte(mem_buf_t *msg, const int32_t c) {
 	byte *buf;
 
-	buf = Mem_AllocBuffer(sb, sizeof(byte));
+	buf = Mem_AllocBuffer(msg, sizeof(byte));
 	buf[0] = c;
 }
 
 /*
  * @brief
  */
-void Net_WriteShort(mem_buf_t *sb, const int32_t c) {
+void Net_WriteShort(mem_buf_t *msg, const int32_t c) {
 	byte *buf;
 
-	buf = Mem_AllocBuffer(sb, sizeof(int16_t));
+	buf = Mem_AllocBuffer(msg, sizeof(int16_t));
 	buf[0] = c & 0xff;
 	buf[1] = c >> 8;
 }
@@ -62,10 +62,10 @@ void Net_WriteShort(mem_buf_t *sb, const int32_t c) {
 /*
  * @brief
  */
-void Net_WriteLong(mem_buf_t *sb, const int32_t c) {
+void Net_WriteLong(mem_buf_t *msg, const int32_t c) {
 	byte *buf;
 
-	buf = Mem_AllocBuffer(sb, sizeof(int32_t));
+	buf = Mem_AllocBuffer(msg, sizeof(int32_t));
 	buf[0] = c & 0xff;
 	buf[1] = (c >> 8) & 0xff;
 	buf[2] = (c >> 16) & 0xff;
@@ -75,49 +75,49 @@ void Net_WriteLong(mem_buf_t *sb, const int32_t c) {
 /*
  * @brief
  */
-void Net_WriteString(mem_buf_t *sb, const char *s) {
+void Net_WriteString(mem_buf_t *msg, const char *s) {
 	if (!s)
-		Mem_WriteBuffer(sb, '\0', 1);
+		Mem_WriteBuffer(msg, '\0', 1);
 	else
-		Mem_WriteBuffer(sb, s, strlen(s) + 1);
+		Mem_WriteBuffer(msg, s, strlen(s) + 1);
 }
 
 /*
  * @brief
  */
-void Net_WriteVector(mem_buf_t *sb, const vec_t v) {
-	Net_WriteShort(sb, (int32_t) (v * 8.0));
+void Net_WriteVector(mem_buf_t *msg, const vec_t v) {
+	Net_WriteShort(msg, (int32_t) (v * 8.0));
 }
 
 /*
  * @brief
  */
-void Net_WritePosition(mem_buf_t *sb, const vec3_t pos) {
-	Net_WriteVector(sb, pos[0]);
-	Net_WriteVector(sb, pos[1]);
-	Net_WriteVector(sb, pos[2]);
+void Net_WritePosition(mem_buf_t *msg, const vec3_t pos) {
+	Net_WriteVector(msg, pos[0]);
+	Net_WriteVector(msg, pos[1]);
+	Net_WriteVector(msg, pos[2]);
 }
 
 /*
  * @brief
  */
-void Net_WriteAngle(mem_buf_t *sb, const vec_t v) {
-	Net_WriteShort(sb, PackAngle(v));
+void Net_WriteAngle(mem_buf_t *msg, const vec_t v) {
+	Net_WriteShort(msg, PackAngle(v));
 }
 
 /*
  * @brief
  */
-void Net_WriteAngles(mem_buf_t *sb, const vec3_t angles) {
-	Net_WriteAngle(sb, angles[0]);
-	Net_WriteAngle(sb, angles[1]);
-	Net_WriteAngle(sb, angles[2]);
+void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles) {
+	Net_WriteAngle(msg, angles[0]);
+	Net_WriteAngle(msg, angles[1]);
+	Net_WriteAngle(msg, angles[2]);
 }
 
 /*
  * @brief
  */
-void Net_WriteDir(mem_buf_t *sb, const vec3_t dir) {
+void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
 	int32_t i, best = 0;
 	vec_t best_d = 0.0;
 
@@ -129,16 +129,16 @@ void Net_WriteDir(mem_buf_t *sb, const vec3_t dir) {
 		}
 	}
 
-	Net_WriteByte(sb, best);
+	Net_WriteByte(msg, best);
 }
 
 /*
  * @brief
  */
-void Net_WriteDeltaUserCmd(mem_buf_t *buf, const user_cmd_t *from, const user_cmd_t *to) {
+void Net_WriteDeltaUserCmd(mem_buf_t *msg, const user_cmd_t *from, const user_cmd_t *to) {
+
 	byte bits = 0;
 
-	// send the movement message
 	if (to->angles[0] != from->angles[0])
 		bits |= CMD_ANGLE1;
 	if (to->angles[1] != from->angles[1])
@@ -156,33 +156,137 @@ void Net_WriteDeltaUserCmd(mem_buf_t *buf, const user_cmd_t *from, const user_cm
 	if (to->buttons != from->buttons)
 		bits |= CMD_BUTTONS;
 
-	Net_WriteByte(buf, bits);
+	Net_WriteByte(msg, bits);
 
 	if (bits & CMD_ANGLE1)
-		Net_WriteShort(buf, to->angles[0]);
+		Net_WriteShort(msg, to->angles[0]);
 	if (bits & CMD_ANGLE2)
-		Net_WriteShort(buf, to->angles[1]);
+		Net_WriteShort(msg, to->angles[1]);
 	if (bits & CMD_ANGLE3)
-		Net_WriteShort(buf, to->angles[2]);
+		Net_WriteShort(msg, to->angles[2]);
 
 	if (bits & CMD_FORWARD)
-		Net_WriteShort(buf, to->forward);
+		Net_WriteShort(msg, to->forward);
 	if (bits & CMD_RIGHT)
-		Net_WriteShort(buf, to->right);
+		Net_WriteShort(msg, to->right);
 	if (bits & CMD_UP)
-		Net_WriteShort(buf, to->up);
+		Net_WriteShort(msg, to->up);
 
 	if (bits & CMD_BUTTONS)
-		Net_WriteByte(buf, to->buttons);
+		Net_WriteByte(msg, to->buttons);
 
-	Net_WriteByte(buf, to->msec);
+	Net_WriteByte(msg, to->msec);
+}
+
+/*
+ * @brief
+ */
+void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const player_state_t *to) {
+
+	uint16_t bits = 0;
+
+	if (to->pm_state.type != from->pm_state.type)
+		bits |= PS_PM_TYPE;
+
+	if (!VectorCompare(to->pm_state.origin, from->pm_state.origin))
+		bits |= PS_PM_ORIGIN;
+
+	if (!VectorCompare(to->pm_state.velocity, from->pm_state.velocity))
+		bits |= PS_PM_VELOCITY;
+
+	if (to->pm_state.flags != from->pm_state.flags)
+		bits |= PS_PM_FLAGS;
+
+	if (to->pm_state.time != from->pm_state.time)
+		bits |= PS_PM_TIME;
+
+	if (to->pm_state.gravity != from->pm_state.gravity)
+		bits |= PS_PM_GRAVITY;
+
+	if (!VectorCompare(to->pm_state.view_offset, from->pm_state.view_offset))
+		bits |= PS_PM_VIEW_OFFSET;
+
+	if (!VectorCompare(to->pm_state.view_angles, from->pm_state.view_angles))
+		bits |= PS_PM_VIEW_ANGLES;
+
+	if (!VectorCompare(to->pm_state.kick_angles, from->pm_state.kick_angles))
+		bits |= PS_PM_KICK_ANGLES;
+
+	if (!VectorCompare(to->pm_state.delta_angles, from->pm_state.delta_angles))
+		bits |= PS_PM_DELTA_ANGLES;
+
+	Net_WriteShort(msg, bits);
+
+	if (bits & PS_PM_TYPE)
+		Net_WriteByte(msg, to->pm_state.type);
+
+	if (bits & PS_PM_ORIGIN) {
+		Net_WriteShort(msg, to->pm_state.origin[0]);
+		Net_WriteShort(msg, to->pm_state.origin[1]);
+		Net_WriteShort(msg, to->pm_state.origin[2]);
+	}
+
+	if (bits & PS_PM_VELOCITY) {
+		Net_WriteShort(msg, to->pm_state.velocity[0]);
+		Net_WriteShort(msg, to->pm_state.velocity[1]);
+		Net_WriteShort(msg, to->pm_state.velocity[2]);
+	}
+
+	if (bits & PS_PM_FLAGS)
+		Net_WriteShort(msg, to->pm_state.flags);
+
+	if (bits & PS_PM_TIME)
+		Net_WriteShort(msg, to->pm_state.time);
+
+	if (bits & PS_PM_GRAVITY)
+		Net_WriteShort(msg, to->pm_state.gravity);
+
+	if (bits & PS_PM_VIEW_OFFSET) {
+		Net_WriteShort(msg, to->pm_state.view_offset[0]);
+		Net_WriteShort(msg, to->pm_state.view_offset[1]);
+		Net_WriteShort(msg, to->pm_state.view_offset[2]);
+	}
+
+	if (bits & PS_PM_VIEW_ANGLES) {
+		Net_WriteShort(msg, to->pm_state.view_angles[0]);
+		Net_WriteShort(msg, to->pm_state.view_angles[1]);
+		Net_WriteShort(msg, to->pm_state.view_angles[2]);
+	}
+
+	if (bits & PS_PM_KICK_ANGLES) {
+		Net_WriteShort(msg, to->pm_state.kick_angles[0]);
+		Net_WriteShort(msg, to->pm_state.kick_angles[1]);
+		Net_WriteShort(msg, to->pm_state.kick_angles[2]);
+	}
+
+	if (bits & PS_PM_DELTA_ANGLES) {
+		Net_WriteShort(msg, to->pm_state.delta_angles[0]);
+		Net_WriteShort(msg, to->pm_state.delta_angles[1]);
+		Net_WriteShort(msg, to->pm_state.delta_angles[2]);
+	}
+
+	uint32_t stat_bits = 0;
+
+	for (int32_t i = 0; i < MAX_STATS; i++) {
+		if (to->stats[i] != from->stats[i]) {
+			stat_bits |= 1 << i;
+		}
+	}
+
+	Net_WriteLong(msg, stat_bits);
+
+	for (int32_t i = 0; i < MAX_STATS; i++) {
+		if (stat_bits & (1 << i)) {
+			Net_WriteShort(msg, to->stats[i]);
+		}
+	}
 }
 
 /*
  * @brief Writes an entity's state changes to a net message. Can delta from
  * either a baseline or a previous packet_entity
  */
-void Net_WriteDeltaEntity(mem_buf_t *buf, const entity_state_t *from, const entity_state_t *to,
+void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to,
 		_Bool force, _Bool is_new) {
 
 	uint16_t bits = 0;
@@ -234,47 +338,47 @@ void Net_WriteDeltaEntity(mem_buf_t *buf, const entity_state_t *from, const enti
 
 	// write the message
 
-	Net_WriteShort(buf, to->number);
-	Net_WriteShort(buf, bits);
+	Net_WriteShort(msg, to->number);
+	Net_WriteShort(msg, bits);
 
 	if (bits & U_ORIGIN)
-		Net_WritePosition(buf, to->origin);
+		Net_WritePosition(msg, to->origin);
 
 	if (bits & U_OLD_ORIGIN)
-		Net_WritePosition(buf, to->old_origin);
+		Net_WritePosition(msg, to->old_origin);
 
 	if (bits & U_ANGLES)
-		Net_WriteAngles(buf, to->angles);
+		Net_WriteAngles(msg, to->angles);
 
 	if (bits & U_ANIMATIONS) {
-		Net_WriteByte(buf, to->animation1);
-		Net_WriteByte(buf, to->animation2);
+		Net_WriteByte(msg, to->animation1);
+		Net_WriteByte(msg, to->animation2);
 	}
 
 	if (bits & U_EVENT)
-		Net_WriteByte(buf, to->event);
+		Net_WriteByte(msg, to->event);
 
 	if (bits & U_EFFECTS)
-		Net_WriteShort(buf, to->effects);
+		Net_WriteShort(msg, to->effects);
 
 	if (bits & U_TRAIL)
-		Net_WriteByte(buf, to->trail);
+		Net_WriteByte(msg, to->trail);
 
 	if (bits & U_MODELS) {
-		Net_WriteByte(buf, to->model1);
-		Net_WriteByte(buf, to->model2);
-		Net_WriteByte(buf, to->model3);
-		Net_WriteByte(buf, to->model4);
+		Net_WriteByte(msg, to->model1);
+		Net_WriteByte(msg, to->model2);
+		Net_WriteByte(msg, to->model3);
+		Net_WriteByte(msg, to->model4);
 	}
 
 	if (bits & U_CLIENT)
-		Net_WriteByte(buf, to->client);
+		Net_WriteByte(msg, to->client);
 
 	if (bits & U_SOUND)
-		Net_WriteByte(buf, to->sound);
+		Net_WriteByte(msg, to->sound);
 
 	if (bits & U_SOLID)
-		Net_WriteShort(buf, to->solid);
+		Net_WriteShort(msg, to->solid);
 }
 
 /*
@@ -287,25 +391,25 @@ void Net_BeginReading(mem_buf_t *msg) {
 /*
  * @brief
  */
-void Net_ReadData(mem_buf_t *sb, void *data, size_t len) {
+void Net_ReadData(mem_buf_t *msg, void *data, size_t len) {
 	size_t i;
 
 	for (i = 0; i < len; i++) {
-		((byte *) data)[i] = Net_ReadByte(sb);
+		((byte *) data)[i] = Net_ReadByte(msg);
 	}
 }
 
 /*
  * @brief Returns -1 if no more characters are available.
  */
-int32_t Net_ReadChar(mem_buf_t *sb) {
+int32_t Net_ReadChar(mem_buf_t *msg) {
 	int32_t c;
 
-	if (sb->read + 1 > sb->size)
+	if (msg->read + 1 > msg->size)
 		c = -1;
 	else
-		c = (signed char) sb->data[sb->read];
-	sb->read++;
+		c = (signed char) msg->data[msg->read];
+	msg->read++;
 
 	return c;
 }
@@ -313,14 +417,14 @@ int32_t Net_ReadChar(mem_buf_t *sb) {
 /*
  * @brief
  */
-int32_t Net_ReadByte(mem_buf_t *sb) {
+int32_t Net_ReadByte(mem_buf_t *msg) {
 	int32_t c;
 
-	if (sb->read + 1 > sb->size)
+	if (msg->read + 1 > msg->size)
 		c = -1;
 	else
-		c = (byte) sb->data[sb->read];
-	sb->read++;
+		c = (byte) msg->data[msg->read];
+	msg->read++;
 
 	return c;
 }
@@ -328,15 +432,15 @@ int32_t Net_ReadByte(mem_buf_t *sb) {
 /*
  * @brief
  */
-int32_t Net_ReadShort(mem_buf_t *sb) {
+int32_t Net_ReadShort(mem_buf_t *msg) {
 	int32_t c;
 
-	if (sb->read + 2 > sb->size)
+	if (msg->read + 2 > msg->size)
 		c = -1;
 	else
-		c = (int16_t) (sb->data[sb->read] + (sb->data[sb->read + 1] << 8));
+		c = (int16_t) (msg->data[msg->read] + (msg->data[msg->read + 1] << 8));
 
-	sb->read += 2;
+	msg->read += 2;
 
 	return c;
 }
@@ -344,16 +448,16 @@ int32_t Net_ReadShort(mem_buf_t *sb) {
 /*
  * @brief
  */
-int32_t Net_ReadLong(mem_buf_t *sb) {
+int32_t Net_ReadLong(mem_buf_t *msg) {
 	int32_t c;
 
-	if (sb->read + 4 > sb->size)
+	if (msg->read + 4 > msg->size)
 		c = -1;
 	else
-		c = sb->data[sb->read] + (sb->data[sb->read + 1] << 8) + (sb->data[sb->read + 2] << 16)
-				+ (sb->data[sb->read + 3] << 24);
+		c = msg->data[msg->read] + (msg->data[msg->read + 1] << 8) + (msg->data[msg->read + 2]
+				<< 16) + (msg->data[msg->read + 3] << 24);
 
-	sb->read += 4;
+	msg->read += 4;
 
 	return c;
 }
@@ -361,14 +465,12 @@ int32_t Net_ReadLong(mem_buf_t *sb) {
 /*
  * @brief
  */
-char *Net_ReadString(mem_buf_t *sb) {
+char *Net_ReadString(mem_buf_t *msg) {
 	static char string[MAX_STRING_CHARS];
-	int32_t c;
-	uint32_t l;
 
-	l = 0;
+	size_t l = 0;
 	do {
-		c = Net_ReadChar(sb);
+		const int32_t c = Net_ReadChar(msg);
 		if (c == -1 || c == 0)
 			break;
 		string[l] = c;
@@ -383,21 +485,19 @@ char *Net_ReadString(mem_buf_t *sb) {
 /*
  * @brief
  */
-char *Net_ReadStringLine(mem_buf_t *sb) {
+char *Net_ReadStringLine(mem_buf_t *msg) {
 	static char string[MAX_STRING_CHARS];
-	int32_t c;
-	uint32_t l;
 
-	l = 0;
+	size_t l = 0;
 	do {
-		c = Net_ReadChar(sb);
+		const int32_t c = Net_ReadChar(msg);
 		if (c == -1 || c == 0 || c == '\n')
 			break;
 		string[l] = c;
 		l++;
 	} while (l < sizeof(string) - 1);
 
-	string[l] = 0;
+	string[l] = '\0';
 
 	return string;
 }
@@ -405,42 +505,41 @@ char *Net_ReadStringLine(mem_buf_t *sb) {
 /*
  * @brief
  */
-vec_t Net_ReadVector(mem_buf_t *sb) {
-	return Net_ReadShort(sb) * (1.0 / 8.0);
+vec_t Net_ReadVector(mem_buf_t *msg) {
+	return Net_ReadShort(msg) * (1.0 / 8.0);
 }
 
 /*
  * @brief
  */
-void Net_ReadPosition(mem_buf_t *sb, vec3_t pos) {
-	pos[0] = Net_ReadVector(sb);
-	pos[1] = Net_ReadVector(sb);
-	pos[2] = Net_ReadVector(sb);
+void Net_ReadPosition(mem_buf_t *msg, vec3_t pos) {
+	pos[0] = Net_ReadVector(msg);
+	pos[1] = Net_ReadVector(msg);
+	pos[2] = Net_ReadVector(msg);
 }
 
 /*
  * @brief
  */
-vec_t Net_ReadAngle(mem_buf_t *sb) {
-	return UnpackAngle(Net_ReadShort(sb));
+vec_t Net_ReadAngle(mem_buf_t *msg) {
+	return UnpackAngle(Net_ReadShort(msg));
 }
 
 /*
  * @brief
  */
-void Net_ReadAngles(mem_buf_t *sb, vec3_t angles) {
-	angles[0] = Net_ReadAngle(sb);
-	angles[1] = Net_ReadAngle(sb);
-	angles[2] = Net_ReadAngle(sb);
+void Net_ReadAngles(mem_buf_t *msg, vec3_t angles) {
+	angles[0] = Net_ReadAngle(msg);
+	angles[1] = Net_ReadAngle(msg);
+	angles[2] = Net_ReadAngle(msg);
 }
 
 /*
  * @brief
  */
-void Net_ReadDir(mem_buf_t *sb, vec3_t dir) {
-	int32_t b;
+void Net_ReadDir(mem_buf_t *msg, vec3_t dir) {
 
-	b = Net_ReadByte(sb);
+	const int32_t b = Net_ReadByte(msg);
 
 	if (b >= NUM_APPROXIMATE_NORMALS) {
 		Com_Error(ERR_DROP, "%d out of range\n", b);
@@ -452,87 +551,145 @@ void Net_ReadDir(mem_buf_t *sb, vec3_t dir) {
 /*
  * @brief
  */
-void Net_ReadDeltaUserCmd(mem_buf_t *sb, const user_cmd_t *from, user_cmd_t *to) {
-	int32_t bits;
+void Net_ReadDeltaUserCmd(mem_buf_t *msg, const user_cmd_t *from, user_cmd_t *to) {
 
 	*to = *from;
 
-	bits = Net_ReadByte(sb);
+	const uint8_t bits = Net_ReadByte(msg);
 
-	// read current angles
 	if (bits & CMD_ANGLE1)
-		to->angles[0] = Net_ReadShort(sb);
+		to->angles[0] = Net_ReadShort(msg);
 	if (bits & CMD_ANGLE2)
-		to->angles[1] = Net_ReadShort(sb);
+		to->angles[1] = Net_ReadShort(msg);
 	if (bits & CMD_ANGLE3)
-		to->angles[2] = Net_ReadShort(sb);
+		to->angles[2] = Net_ReadShort(msg);
 
-	// read movement
 	if (bits & CMD_FORWARD)
-		to->forward = Net_ReadShort(sb);
+		to->forward = Net_ReadShort(msg);
 	if (bits & CMD_RIGHT)
-		to->right = Net_ReadShort(sb);
+		to->right = Net_ReadShort(msg);
 	if (bits & CMD_UP)
-		to->up = Net_ReadShort(sb);
+		to->up = Net_ReadShort(msg);
 
-	// read buttons
 	if (bits & CMD_BUTTONS)
-		to->buttons = Net_ReadByte(sb);
+		to->buttons = Net_ReadByte(msg);
 
-	// read time to run command
-	to->msec = Net_ReadByte(sb);
+	to->msec = Net_ReadByte(msg);
 }
 
 /*
  * @brief
  */
-void Net_ReadDeltaEntity(mem_buf_t *buf, const entity_state_t *from, entity_state_t *to,
+void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player_state_t *to) {
+
+	*to = *from;
+
+	const int32_t bits = Net_ReadShort(msg);
+
+	if (bits & PS_PM_TYPE)
+		to->pm_state.type = Net_ReadByte(msg);
+
+	if (bits & PS_PM_ORIGIN) {
+		to->pm_state.origin[0] = Net_ReadShort(msg);
+		to->pm_state.origin[1] = Net_ReadShort(msg);
+		to->pm_state.origin[2] = Net_ReadShort(msg);
+	}
+
+	if (bits & PS_PM_VELOCITY) {
+		to->pm_state.velocity[0] = Net_ReadShort(msg);
+		to->pm_state.velocity[1] = Net_ReadShort(msg);
+		to->pm_state.velocity[2] = Net_ReadShort(msg);
+	}
+
+	if (bits & PS_PM_FLAGS)
+		to->pm_state.flags = Net_ReadShort(msg);
+
+	if (bits & PS_PM_TIME)
+		to->pm_state.time = Net_ReadShort(msg);
+
+	if (bits & PS_PM_GRAVITY)
+		to->pm_state.gravity = Net_ReadShort(msg);
+
+	if (bits & PS_PM_VIEW_OFFSET) {
+		to->pm_state.view_offset[0] = Net_ReadShort(msg);
+		to->pm_state.view_offset[1] = Net_ReadShort(msg);
+		to->pm_state.view_offset[2] = Net_ReadShort(msg);
+	}
+
+	if (bits & PS_PM_VIEW_ANGLES) {
+		to->pm_state.view_angles[0] = Net_ReadShort(msg);
+		to->pm_state.view_angles[1] = Net_ReadShort(msg);
+		to->pm_state.view_angles[2] = Net_ReadShort(msg);
+	}
+
+	if (bits & PS_PM_KICK_ANGLES) {
+		to->pm_state.kick_angles[0] = Net_ReadShort(msg);
+		to->pm_state.kick_angles[1] = Net_ReadShort(msg);
+		to->pm_state.kick_angles[2] = Net_ReadShort(msg);
+	}
+
+	if (bits & PS_PM_DELTA_ANGLES) {
+		to->pm_state.delta_angles[0] = Net_ReadShort(msg);
+		to->pm_state.delta_angles[1] = Net_ReadShort(msg);
+		to->pm_state.delta_angles[2] = Net_ReadShort(msg);
+	}
+
+	const int32_t stat_bits = Net_ReadLong(msg);
+
+	for (int32_t i = 0; i < MAX_STATS; i++) {
+		if (stat_bits & (1 << i))
+			to->stats[i] = Net_ReadShort(msg);
+	}
+}
+
+/*
+ * @brief
+ */
+void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to,
 		uint16_t number, uint16_t bits) {
 
-	// set everything to the state we are delta'ing from
 	*to = *from;
 
 	to->number = number;
 
 	if (bits & U_ORIGIN)
-		Net_ReadPosition(buf, to->origin);
+		Net_ReadPosition(msg, to->origin);
 
 	if (bits & U_OLD_ORIGIN)
-		Net_ReadPosition(buf, to->old_origin);
+		Net_ReadPosition(msg, to->old_origin);
 
 	if (bits & U_ANGLES)
-		Net_ReadAngles(buf, to->angles);
+		Net_ReadAngles(msg, to->angles);
 
 	if (bits & U_ANIMATIONS) {
-		to->animation1 = Net_ReadByte(buf);
-		to->animation2 = Net_ReadByte(buf);
+		to->animation1 = Net_ReadByte(msg);
+		to->animation2 = Net_ReadByte(msg);
 	}
 
 	if (bits & U_EVENT)
-		to->event = Net_ReadByte(buf);
+		to->event = Net_ReadByte(msg);
 	else
 		to->event = 0;
 
 	if (bits & U_EFFECTS)
-		to->effects = Net_ReadShort(buf);
+		to->effects = Net_ReadShort(msg);
 
 	if (bits & U_TRAIL)
-		to->trail = Net_ReadByte(buf);
+		to->trail = Net_ReadByte(msg);
 
 	if (bits & U_MODELS) {
-		to->model1 = Net_ReadByte(buf);
-		to->model2 = Net_ReadByte(buf);
-		to->model3 = Net_ReadByte(buf);
-		to->model4 = Net_ReadByte(buf);
+		to->model1 = Net_ReadByte(msg);
+		to->model2 = Net_ReadByte(msg);
+		to->model3 = Net_ReadByte(msg);
+		to->model4 = Net_ReadByte(msg);
 	}
 
 	if (bits & U_CLIENT)
-		to->client = Net_ReadByte(buf);
+		to->client = Net_ReadByte(msg);
 
 	if (bits & U_SOUND)
-		to->sound = Net_ReadByte(buf);
+		to->sound = Net_ReadByte(msg);
 
 	if (bits & U_SOLID)
-		to->solid = Net_ReadShort(buf);
+		to->solid = Net_ReadShort(msg);
 }
-

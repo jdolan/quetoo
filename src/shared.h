@@ -49,8 +49,9 @@ extern vec3_t vec3_forward;
  */
 #define Clamp(x, y, z)			(x < y ? y : x > z ? z : x)
 #define DotProduct(x,y)			(x[0] * y[0] + x[1] * y[1] + x[2] * y[2])
-#define VectorSubtract(a,b,c)	(c[0] = a[0] - b[0], c[1] = a[1] - b[1], c[2] = a[2] - b[2])
+#define VectorCompare(a, b)		(a[0] == b[0] && a[1] == b[1] && a[2] == b[2])
 #define VectorAdd(a,b,c)		(c[0] = a[0] + b[0], c[1] = a[1] + b[1], c[2] = a[2] + b[2])
+#define VectorSubtract(a,b,c)	(c[0] = a[0] - b[0], c[1] = a[1] - b[1], c[2] = a[2] - b[2])
 #define VectorScale(a,s,b)		(b[0] = a[0] * (s), b[1] = a[1] * (s), b[2] = a[2] * (s))
 #define VectorCopy(a,b)			((b)[0] = (a)[0], (b)[1] = (a)[1], (b)[2] = (a)[2])
 #define Vector4Copy(a,b)		((b)[0] = (a)[0], (b)[1] = (a)[1], (b)[2] = (a)[2], (b)[3] = (a)[3])
@@ -71,8 +72,7 @@ vec_t Randomc(void); // -1.0 to 1.0
 void ClearBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
 
-_Bool VectorCompare(const vec3_t v1, const vec3_t v2);
-vec_t VectorNormalize(vec3_t v); // returns vector length
+vec_t VectorNormalize(vec3_t v);
 vec_t VectorLength(const vec3_t v);
 void VectorMix(const vec3_t v1, const vec3_t v2, const vec_t mix, vec3_t out);
 void VectorMA(const vec3_t veca, const vec_t scale, const vec3_t vecb, vec3_t vecc);
