@@ -195,6 +195,9 @@ static int32_t R_CompareShadowIntensity(const void *a, const void *b) {
  */
 static void R_UpdateShadows(r_lighting_t *l) {
 
+	if (!r_shadows->value)
+		return;
+
 	r_shadow_t *s = l->shadows;
 
 	const r_illumination_t *il = l->illuminations;
