@@ -106,7 +106,7 @@ static void Cl_UpdateLerp(const cl_frame_t *from) {
  * the client is not viewing a demo, playing in 3rd person mode, or chasing
  * another player.
  */
-static void Cl_UpdateOrigin(const player_state_t *ps, const player_state_t *ops) {
+static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to) {
 
 	if (Cl_UsePrediction()) {
 		int32_t i;
@@ -129,13 +129,13 @@ static void Cl_UpdateOrigin(const player_state_t *ps, const player_state_t *ops)
 		vec3_t old_origin, current_origin, origin;
 		vec3_t old_offset, current_offset, offset;
 
-		UnpackVector(ops->pm_state.origin, old_origin);
-		UnpackVector(ps->pm_state.origin, current_origin);
+		UnpackVector(from->pm_state.origin, old_origin);
+		UnpackVector(to->pm_state.origin, current_origin);
 
 		VectorLerp(old_origin, current_origin, cl.lerp, origin);
 
-		UnpackVector(ops->pm_state.view_offset, old_offset);
-		UnpackVector(ps->pm_state.view_offset, current_offset);
+		UnpackVector(from->pm_state.view_offset, old_offset);
+		UnpackVector(to->pm_state.view_offset, current_offset);
 
 		VectorLerp(old_offset, current_offset, cl.lerp, offset);
 
@@ -150,29 +150,29 @@ static void Cl_UpdateOrigin(const player_state_t *ps, const player_state_t *ops)
  * @brief The angles are typically fetched from input, after factoring in client-side
  * prediction, unless the client is watching a demo or chase camera.
  */
-static void Cl_UpdateAngles(const player_state_t *ps, const player_state_t *ops) {
+static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to) {
 	vec3_t old_angles, new_angles, angles;
 
 	// start with the predicted angles, or interpolate the server states
 	if (Cl_UsePrediction()) {
 		VectorCopy(cl.predicted_state.view_angles, r_view.angles);
 	} else {
-		UnpackAngles(ops->pm_state.view_angles, old_angles);
-		UnpackAngles(ps->pm_state.view_angles, new_angles);
+		UnpackAngles(from->pm_state.view_angles, old_angles);
+		UnpackAngles(to->pm_state.view_angles, new_angles);
 
 		AngleLerp(old_angles, new_angles, cl.lerp, r_view.angles);
 	}
 
 	// add in the kick angles
-	UnpackAngles(ops->pm_state.kick_angles, old_angles);
-	UnpackAngles(ps->pm_state.kick_angles, new_angles);
+	UnpackAngles(from->pm_state.kick_angles, old_angles);
+	UnpackAngles(to->pm_state.kick_angles, new_angles);
 
 	AngleLerp(old_angles, new_angles, cl.lerp, angles);
 	VectorAdd(r_view.angles, angles, r_view.angles);
 
 	// and lastly the delta angles
-	UnpackAngles(ops->pm_state.delta_angles, old_angles);
-	UnpackAngles(ps->pm_state.delta_angles, new_angles);
+	UnpackAngles(from->pm_state.delta_angles, old_angles);
+	UnpackAngles(to->pm_state.delta_angles, new_angles);
 
 	VectorCopy(new_angles, angles);
 
@@ -220,27 +220,11 @@ void Cl_UpdateView(void) {
 
 	Cl_UpdateLerp(prev);
 
-	const player_state_t *ps = &cl.frame.ps;
-	const player_state_t *ops = &prev->ps;
-
-	if (ps != ops) { // see if we've teleported
-		vec3_t org, old_org, delta;
-
-		UnpackVector(ps->pm_state.origin, org);
-		UnpackVector(ops->pm_state.origin, old_org);
-
-		VectorSubtract(org, old_org, delta);
-
-		if (VectorLength(delta) > 256.0) {
-			ops = ps; // don't interpolate
-		}
-	}
-
 	Cl_ClearView();
 
-	Cl_UpdateOrigin(ps, ops);
+	Cl_UpdateOrigin(&prev->ps, &cl.frame.ps);
 
-	Cl_UpdateAngles(ps, ops);
+	Cl_UpdateAngles(&prev->ps, &cl.frame.ps);
 
 	Cl_UpdateViewSize();
 

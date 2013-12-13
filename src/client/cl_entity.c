@@ -22,15 +22,37 @@
 #include "cl_local.h"
 
 /*
+ * @return True if the delta is valid and interpolation should be used.
+ */
+static _Bool Cl_ValidDeltaPlayerState(player_state_t *from, player_state_t *to) {
+	vec3_t new_origin, old_origin, delta;
+
+	UnpackVector(from->pm_state.origin, old_origin);
+	UnpackVector(to->pm_state.origin, new_origin);
+
+	VectorSubtract(old_origin, new_origin, delta);
+
+	if (VectorLength(delta) > 256.0)
+		return false;
+
+	return true;
+}
+
+/*
  * @brief Parse the player_state_t for the current frame from the server, using delta
  * compression for all fields where possible.
  */
-static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame) {
+static void Cl_ParsePlayerState(cl_frame_t *delta_frame, cl_frame_t *frame) {
 	static player_state_t null_state;
 
-	if (delta_frame)
-		Net_ReadDeltaPlayerState(&net_message, &delta_frame->ps, &frame->ps);
-	else
+	if (delta_frame) {
+		if (Cl_ValidDeltaPlayerState(&delta_frame->ps, &frame->ps))
+			Net_ReadDeltaPlayerState(&net_message, &delta_frame->ps, &frame->ps);
+		else {
+			Net_ReadDeltaPlayerState(&net_message, &null_state, &frame->ps);
+			delta_frame->ps = frame->ps;
+		}
+	} else
 		Net_ReadDeltaPlayerState(&net_message, &null_state, &frame->ps);
 
 	if (cl.demo_server) // if playing a demo, force freeze
@@ -38,20 +60,20 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
 }
 
 /*
- * @return True if no interpolation for the given entity should be performed.
+ * @return True if the delta is valid and interpolation should be used.
  */
-static _Bool Cl_IgnoreDeltaEntity(entity_state_t *from, entity_state_t *to) {
+static _Bool Cl_ValidDeltaEntity(entity_state_t *from, entity_state_t *to) {
 	vec3_t delta;
 
 	if (from->model1 != to->model1)
-		return true;
+		return false;
 
 	VectorSubtract(from->origin, to->origin, delta);
 
 	if (VectorLength(delta) > 256.0)
-		return true;
+		return false;
 
-	return false;
+	return true;
 }
 
 /*
@@ -71,7 +93,7 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 	Net_ReadDeltaEntity(&net_message, from, to, number, bits);
 
 	// check to see if the delta was successful and valid
-	if (ent->frame_num != cl.frame.frame_num - 1 || Cl_IgnoreDeltaEntity(from, to)) {
+	if (ent->frame_num != cl.frame.frame_num - 1 || !Cl_ValidDeltaEntity(from, to)) {
 		ent->prev = *to;
 		VectorCopy(to->old_origin, ent->prev.origin);
 		ent->animation1.time = ent->animation2.time = 0;
