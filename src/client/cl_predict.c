@@ -75,19 +75,16 @@ int32_t Cl_PointContents(const vec3_t point) {
 
 	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
 
-		// FIXME: To be entirely correct, we should use cl.lerp here and
-		// interpolate the origin and angles.
+		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		const entity_state_t *s = &cl.entity_states[snum];
 
-		const uint32_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-		const entity_state_t *ent = &cl.entity_states[num];
-
-		if (ent->solid < SOLID_BOX) // only clip to boxes, missiles and BSP models
+		if (s->solid < SOLID_BOX) // only clip to boxes, missiles and BSP models
 			continue;
 
-		const int32_t head_node = Cl_HullForEntity(ent);
-		const vec_t *angles = ent->solid == SOLID_BSP ? ent->angles : vec3_origin;
+		const int32_t head_node = Cl_HullForEntity(s);
+		const cl_entity_t *ent = &cl.entities[s->number];
 
-		contents |= Cm_TransformedPointContents(point, head_node, ent->origin, angles);
+		contents |= Cm_TransformedPointContents(point, head_node, &ent->inverse_matrix);
 	}
 
 	return contents;
@@ -111,30 +108,27 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
 	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
 
-		const uint32_t num = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-		const entity_state_t *ent = &cl.entity_states[num];
+		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		const entity_state_t *s = &cl.entity_states[snum];
 
-		// FIXME: To be entirely correct, we should use cl.lerp here and
-		// interpolate the origin and angles.
-
-		if (ent->solid < SOLID_BOX)
+		if (s->solid < SOLID_BOX)
 			continue;
 
-		if (ent->number == trace->skip)
+		if (s->number == trace->skip)
 			continue;
 
-		if (ent->number == cl.client_num + 1)
+		if (s->number == cl.client_num + 1)
 			continue;
 
-		const int32_t head_node = Cl_HullForEntity(ent);
-		const vec_t *angles = ent->solid == SOLID_BSP ? ent->angles : vec3_origin;
+		const int32_t head_node = Cl_HullForEntity(s);
+		const cl_entity_t *ent = &cl.entities[s->number];
 
 		cm_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
-				head_node, trace->contents, ent->origin, angles);
+				head_node, trace->contents, &ent->matrix, &ent->inverse_matrix);
 
 		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
 			trace->trace = tr;
-			trace->trace.ent = (struct g_edict_s *) (intptr_t) ent->number;
+			trace->trace.ent = (struct g_edict_s *) (intptr_t) s->number;
 
 			if (tr.start_solid)
 				return;

@@ -308,13 +308,17 @@ void Cl_LerpEntities(void) {
 		if (!VectorCompare(ent->origin, ent->current.origin)
 				|| !VectorCompare(ent->angles, ent->current.angles)) {
 
+			// interpolate the origin and angles
 			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
 			AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
 
-			const vec_t *angles = ent->current.solid == SOLID_BSP ? ent->angles : vec3_origin;
+			if (ent->current.solid != SOLID_NOT) {
+				// and for solids, update the clipping matrices
+				const vec_t *angles = ent->current.solid == SOLID_BSP ? ent->angles : vec3_origin;
 
-			Matrix4x4_CreateFromEntity(&ent->matrix, ent->origin, angles, 1.0);
-			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+				Matrix4x4_CreateFromEntity(&ent->matrix, ent->origin, angles, 1.0);
+				Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+			}
 		}
 	}
 }

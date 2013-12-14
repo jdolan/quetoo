@@ -255,6 +255,12 @@ void Sv_LinkEdict(g_edict_t *ent) {
 	// add it to the sector
 	sent->sector = sector;
 	sector->edicts = g_list_prepend(sector->edicts, ent);
+
+	// and update its clipping matrices
+	const vec_t *angles = ent->solid == SOLID_BSP ? ent->s.angles : vec3_origin;
+
+	Matrix4x4_CreateFromEntity(&sent->matrix, ent->s.origin, angles, 1.0);
+	Matrix4x4_Invert_Simple(&sent->inverse_matrix, &sent->matrix);
 }
 
 /*
@@ -377,9 +383,9 @@ int32_t Sv_PointContents(const vec3_t point) {
 		const g_edict_t *ent = edicts[i];
 
 		const int32_t head_node = Sv_HullForEntity(ent);
-		const vec_t *angles = ent->solid == SOLID_BSP ? ent->s.angles : vec3_origin;
+		const sv_entity_t *sent = &sv.entities[NUM_FOR_EDICT(ent)];
 
-		contents |= Cm_TransformedPointContents(point, head_node, ent->s.origin, angles);
+		contents |= Cm_TransformedPointContents(point, head_node, &sent->inverse_matrix);
 	}
 
 	return contents;
@@ -402,10 +408,8 @@ typedef struct {
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 	g_edict_t *e[MAX_EDICTS];
 
-	// first resolve the entities found within our desired trace
 	const size_t len = Sv_AreaEdicts(trace->box_mins, trace->box_maxs, e, lengthof(e), AREA_SOLID);
 
-	// then iterate them, determining if they have any bearing on our trace
 	for (size_t i = 0; i < len; i++) {
 		g_edict_t *ent = e[i];
 
@@ -420,7 +424,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 			if (trace->skip->owner) {
 
 				if (ent == trace->skip->owner)
-					continue; // which is bi-directional (inverse of previous case)
+					continue; // which is bidirectional (inverse of previous case)
 
 				if (ent->owner == trace->skip->owner)
 					continue; // and communitive (we are both owned by the same)
@@ -432,11 +436,10 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 			continue;
 
 		const int32_t head_node = Sv_HullForEntity(ent);
-		const vec_t *angles = ent->solid == SOLID_BSP ? ent->s.angles : vec3_origin;
+		const sv_entity_t *sent = &sv.entities[NUM_FOR_EDICT(ent)];
 
-		// perform the trace against this particular entity
 		cm_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
-				head_node, trace->contents, ent->s.origin, angles);
+				head_node, trace->contents, &sent->matrix, &sent->inverse_matrix);
 
 		// check for a full or partial intersection
 		if (tr.start_solid || tr.fraction < trace->trace.fraction) {

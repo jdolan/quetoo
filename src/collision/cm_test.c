@@ -199,29 +199,15 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
  *
  * @param p The point, in world space.
  * @param head_hode The BSP head node to recurse down.
- * @param origin The origin of the entity to be clipped against.
- * @param angles The angles of the entity to be clipped against.
+ * @param inverse_matrix The inverse matrix of the entity to be tested.
  *
  * @return The contents mask at the specified point.
  */
-int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const vec3_t origin,
-		const vec3_t angles) {
+int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node,
+		const matrix4x4_t *inverse_matrix) {
 	vec3_t p0;
 
-	// subtract origin offset
-	VectorSubtract(p, origin, p0);
-
-	// rotate start and end into the models frame of reference
-	if (head_node != cm_box.head_node && (angles[0] || angles[1] || angles[2])) {
-		vec3_t forward, right, up, temp;
-
-		AngleVectors(angles, forward, right, up);
-
-		VectorCopy(p0, temp);
-		p0[0] = DotProduct(temp, forward);
-		p0[1] = -DotProduct(temp, right);
-		p0[2] = DotProduct(temp, up);
-	}
+	Matrix4x4_Transform(inverse_matrix, p, p0);
 
 	return Cm_PointContents(p0, head_node);
 }

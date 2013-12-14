@@ -432,24 +432,19 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
  * @param maxs The trace bounding box maxs.
  * @param head_node The BSP head node to recurse down.
  * @param contents The contents mask to clip to.
- * @param origin The origin of the entity to be clipped against.
- * @param angles The angles of the entity to be clipped against.
+ * @param matrix The matrix of the entity to be clipped to.
+ * @param inverse_matrix The inverse matrix of the entity to be clipped to.
  *
  * @return The trace.
  */
 cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
-		const vec3_t maxs, const int32_t head_node, const int32_t contents, const vec3_t origin,
-		const vec3_t angles) {
+		const vec3_t maxs, const int32_t head_node, const int32_t contents, const matrix4x4_t *matrix,
+		const matrix4x4_t *inverse_matrix) {
 
 	vec3_t start0, end0;
-	matrix4x4_t mat, inv;
 
-	Matrix4x4_CreateFromEntity(&mat, origin, angles, 1.0);
-
-	Matrix4x4_Invert_Simple(&inv, &mat);
-
-	Matrix4x4_Transform(&inv, start, start0);
-	Matrix4x4_Transform(&inv, end, end0);
+	Matrix4x4_Transform(inverse_matrix, start, start0);
+	Matrix4x4_Transform(inverse_matrix, end, end0);
 
 	// sweep the box through the model
 	cm_trace_t trace = Cm_BoxTrace(start0, end0, mins, maxs, head_node, contents);
@@ -460,7 +455,7 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
 		const cm_bsp_plane_t *p = &trace.plane;
 		const vec_t *n = p->normal;
 
-		Matrix4x4_TransformPositivePlane(&mat, n[0], n[1], n[2], p->dist, plane);
+		Matrix4x4_TransformPositivePlane(matrix, n[0], n[1], n[2], p->dist, plane);
 
 		VectorCopy(plane, trace.plane.normal);
 		trace.plane.dist = plane[3];
