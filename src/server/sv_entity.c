@@ -41,7 +41,7 @@ static void Sv_WriteEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 		if (new_index >= to->num_entities)
 			new_num = 0xffff;
 		else {
-			new_state = &svs.entity_states[(to->first_entity + new_index) % svs.num_entity_states];
+			new_state = &svs.entity_states[(to->entity_state + new_index) % svs.num_entity_states];
 			new_num = new_state->number;
 		}
 
@@ -49,7 +49,7 @@ static void Sv_WriteEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 			old_num = 0xffff;
 		else {
 			old_state
-					= &svs.entity_states[(from->first_entity + old_index) % svs.num_entity_states];
+					= &svs.entity_states[(from->entity_state + old_index) % svs.num_entity_states];
 			old_num = old_state->number;
 		}
 
@@ -185,38 +185,26 @@ static byte *Sv_ClientPVS(const vec3_t org) {
  * copies off the playerstat and area_bits.
  */
 void Sv_BuildClientFrame(sv_client_t *client) {
-	uint32_t e;
-	vec3_t org;
-	g_edict_t *ent;
-	g_edict_t *cent;
-	pm_state_t *pm;
-	sv_frame_t *frame;
-	entity_state_t *state;
+	vec3_t org, off;
 	int32_t i;
-	int32_t area, cluster;
-	int32_t leaf;
-	byte *phs;
-	byte *vis;
 
-	cent = client->edict;
+	g_edict_t *cent = client->edict;
 	if (!cent->client)
 		return; // not in game yet
 
 	// this is the frame we are creating
-	frame = &client->frames[sv.frame_num & PACKET_MASK];
-
-	frame->sent_time = svs.real_time; // save it for ping calc later
+	sv_frame_t *frame = &client->frames[sv.frame_num & PACKET_MASK];
+	frame->sent_time = svs.real_time; // timestamp for ping calculation
 
 	// find the client's PVS
-	pm = &cent->client->ps.pm_state;
+	const pm_state_t *pm = &cent->client->ps.pm_state;
+	UnpackVector(pm->origin, org);
+	UnpackVector(pm->view_offset, off);
+	VectorAdd(org, off, org);
 
-	VectorScale(pm->origin, 0.125, org);
-	for (i = 0; i < 3; i++)
-		org[i] += pm->view_offset[i] * 0.125;
-
-	leaf = Cm_PointLeafnum(org, 0);
-	area = Cm_LeafArea(leaf);
-	cluster = Cm_LeafCluster(leaf);
+	const int32_t leaf = Cm_PointLeafnum(org, 0);
+	const int32_t area = Cm_LeafArea(leaf);
+	const int32_t cluster = Cm_LeafCluster(leaf);
 
 	// calculate the visible areas
 	frame->area_bytes = Cm_WriteAreaBits(area, frame->area_bits);
@@ -225,15 +213,15 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	frame->ps = cent->client->ps;
 
 	// resolve the visibility data
-	vis = Sv_ClientPVS(org);
-	phs = Cm_ClusterPHS(cluster);
+	const byte *pvs = Sv_ClientPVS(org);
+	const byte *phs = Cm_ClusterPHS(cluster);
 
 	// build up the list of relevant entities
 	frame->num_entities = 0;
-	frame->first_entity = svs.next_entity_state;
+	frame->entity_state = svs.next_entity_state;
 
-	for (e = 1; e < svs.game->num_edicts; e++) {
-		ent = EDICT_FOR_NUM(e);
+	for (uint16_t e = 1; e < svs.game->num_edicts; e++) {
+		g_edict_t *ent = EDICT_FOR_NUM(e);
 
 		// ignore entities that are local to the server
 		if (ent->sv_flags & SVF_NO_CLIENT)
@@ -243,42 +231,41 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 		if (!ent->s.event && !ent->s.effects && !ent->s.trail && !ent->s.model1 && !ent->s.sound)
 			continue;
 
-		// ignore if not touching a PVS leaf
+		// ignore entities not in PVS / PHS
 		if (ent != cent) {
-			// check area
-			if (!Cm_AreasConnected(area, ent->area_num)) { // doors can occupy two areas, so
-				// we may need to check another one
-				if (!ent->area_num2 || !Cm_AreasConnected(area, ent->area_num2))
-					continue; // blocked by a door
+			// by first checking area
+			if (!Cm_AreasConnected(area, ent->link.areas[0])) {
+				if (!ent->link.areas[1] || !Cm_AreasConnected(area, ent->link.areas[1]))
+					continue;
 			}
 
-			const byte *vis_data = ent->s.sound || ent->s.event ? phs : vis;
+			const byte *vis = ent->s.sound || ent->s.event ? phs : pvs;
 
-			if (ent->num_clusters == -1) { // too many leafs for individual check, go by head_node
-				if (!Cm_HeadnodeVisible(ent->head_node, vis_data))
+			if (ent->link.num_clusters == -1) { // use head_node
+				if (!Cm_HeadnodeVisible(ent->link.head_node, vis))
 					continue;
-			} else { // check individual leafs
-				for (i = 0; i < ent->num_clusters; i++) {
-					const int32_t c = ent->clusters[i];
-					if (vis_data[c >> 3] & (1 << (c & 7)))
+			} else { // or check individual leafs
+				for (i = 0; i < ent->link.num_clusters; i++) {
+					const int32_t c = ent->link.clusters[i];
+					if (vis[c >> 3] & (1 << (c & 7)))
 						break;
 				}
-				if (i == ent->num_clusters)
+				if (i == ent->link.num_clusters)
 					continue; // not visible
 			}
 		}
 
 		// add it to the circular entity_state_t array
-		state = &svs.entity_states[svs.next_entity_state % svs.num_entity_states];
+		entity_state_t *s = &svs.entity_states[svs.next_entity_state % svs.num_entity_states];
 		if (ent->s.number != e) {
 			Com_Warn("Fixing entity number: %d -> %d\n", ent->s.number, e);
 			ent->s.number = e;
 		}
-		*state = ent->s;
+		*s = ent->s;
 
 		// don't mark our own missiles as solid for prediction
 		if (ent->owner == client->edict)
-			state->solid = 0;
+			s->solid = 0;
 
 		svs.next_entity_state++;
 		frame->num_entities++;

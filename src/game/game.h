@@ -34,19 +34,33 @@
 #define SVF_GAME			(1 << 2) // game may extend from here
 
 /*
- * @brief Filter constants for Sv_AreaEdicts; i.e. gi.AreaEdicts.
+ * @brief Filter bits to Sv_AreaEdicts / gi.AreaEdicts.
  */
-#define AREA_SOLID			(1 << 0)
-#define AREA_TRIGGERS		(1 << 1)
+#define AREA_SOLID			(1 << 0) // SOLID_BSP, SOLID_BOX, SOLID_MISSILE..
+#define AREA_TRIGGER		(1 << 1) // SOLID_TRIGGER
 
 /*
- * @brief Used to join adjacent areas.
+ * @brief The maximum number of clusters an entity may occupy before PVS
+ * culling is skipped for it.
  */
-typedef struct link_s {
-	struct link_s *prev, *next;
-} link_t;
-
 #define MAX_ENT_CLUSTERS	16
+
+/*
+ * @brief A link binds an entity's position to the world for clipping. The
+ * game module has visibility into this structure, but should treat it as
+ * read-only.
+ */
+typedef struct {
+	vec3_t abs_mins, abs_maxs, size;
+
+	int32_t head_node;
+
+	int32_t clusters[MAX_ENT_CLUSTERS];
+	int32_t num_clusters; // if -1, use head_node
+
+	int32_t areas[2];
+	void *sector;
+} g_link_t;
 
 /*
  * This is the server's definition of the client and edict structures. The
@@ -89,18 +103,11 @@ struct g_edict_s {
 
 	uint32_t sv_flags; // SVF_NO_CLIENT, etc
 
-	link_t area; // linked to a division node or leaf
-	uint32_t link_count;
-
-	// the following variables facilitate PVS and PHS culling
-	int32_t num_clusters; // if -1, use head_node instead
-	int32_t clusters[MAX_ENT_CLUSTERS];
-	int32_t head_node; // unused if num_clusters != -1
-	int32_t area_num, area_num2;
+	// the game should treat link members as read-only
+	g_link_t link;
 
 	// the following variables facilitate tracing and basic physics interactions
 	vec3_t mins, maxs;
-	vec3_t abs_mins, abs_maxs, size;
 	solid_t solid;
 	int32_t clip_mask; // e.g. MASK_SHOT, MASK_PLAYER_SOLID, ..
 	g_edict_t *owner; // projectiles are not clipped against their owner
@@ -157,24 +164,44 @@ typedef struct {
 	void (*PositionedSound)(const vec3_t origin, const g_edict_t *ent, const uint16_t index,
 			const uint16_t atten);
 
-	// collision detection
+	/*
+	 * @brief Collision detection.
+	 */
 	int32_t (*PointContents)(const vec3_t point);
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 			const g_edict_t *skip, const int32_t contents);
 
-	// PVS / PHS
+	/*
+	 * @brief PVS and PHS query facilities.
+	 */
 	_Bool (*inPVS)(const vec3_t p1, const vec3_t p2);
 	_Bool (*inPHS)(const vec3_t p1, const vec3_t p2);
+
+	/*
+	 * @brief Area portal management, for doors and other entities that
+	 * manipulate BSP visibility.
+	 */
 	void (*SetAreaPortalState)(int32_t portal_num, _Bool open);
 	_Bool (*AreasConnected)(int32_t area1, int32_t area2);
 
-	// an entity will never be sent to a client or used for collision
-	// if it is not passed to LinkEdict. if the size, position, or
-	// solidity changes, it must be re-linked.
+	/*
+	 * @brief All solid and trigger entities should be linked when they are
+	 * initialized or moved. Linking resolves their absolute bounding box and
+	 * makes them eligible for physics interactions.
+	 */
 	void (*LinkEdict)(g_edict_t *ent);
-	void (*UnlinkEdict)(g_edict_t *ent); // call before removing an interactive edict
-	int32_t (*AreaEdicts)(const vec3_t mins, const vec3_t maxs, g_edict_t **area_edicts,
-			const int32_t max_area_edicts, const int32_t area_type);
+
+	/*
+	 * @brief All linked entities should be unlinked before being freed.
+	 */
+	void (*UnlinkEdict)(g_edict_t *ent);
+
+	/*
+	 * @brief Populates a list of entities occupying the specified bounding
+	 * box, filtered by the given type (AREA_SOLID, AREA_TRIGGER, ..).
+	 */
+	size_t (*AreaEdicts)(const vec3_t mins, const vec3_t maxs, g_edict_t **list, const size_t len,
+			const uint32_t type);
 
 	// network messaging
 	void (*Multicast)(const vec3_t origin, multicast_t to);

@@ -444,8 +444,7 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
 	vec3_t start0, end0;
 	matrix4x4_t mat, inv;
 
-	const vec_t *o = origin, *a = angles;
-	Matrix4x4_CreateFromQuakeEntity(&mat, o[0], o[1], o[2], a[0], a[1], a[2], 1.0);
+	Matrix4x4_CreateFromEntity(&mat, origin, angles, 1.0);
 
 	Matrix4x4_Invert_Simple(&inv, &mat);
 

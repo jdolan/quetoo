@@ -48,8 +48,8 @@ _Bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
 	cm_trace_t tr;
 
 	// BSP sub-models need special checking because their origin is 0,0,0
-	if (targ->locals.move_type == MOVE_TYPE_PUSH) {
-		VectorAdd(targ->abs_mins, targ->abs_maxs, dest);
+	if (targ->solid == SOLID_BSP) {
+		VectorAdd(targ->link.abs_mins, targ->link.abs_maxs, dest);
 		VectorScale(dest, 0.5, dest);
 		tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
 		if (tr.fraction == 1.0)

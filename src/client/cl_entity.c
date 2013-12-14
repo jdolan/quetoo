@@ -101,7 +101,7 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 		ent->prev = ent->current;
 	}
 
-	// finally set the current frame number and entity state
+	// set the current frame number and entity state
 	ent->frame_num = cl.frame.frame_num;
 	ent->current = *to;
 }
@@ -111,14 +111,13 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
  */
 static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	entity_state_t *old_state = NULL;
-	uint32_t old_index;
 	uint16_t old_number;
 
 	frame->entity_state = cl.entity_state;
 	frame->num_entities = 0;
 
 	// delta from the entities present in old_frame
-	old_index = 0;
+	uint32_t old_index = 0;
 
 	if (!delta_frame)
 		old_number = 0xffff;
@@ -291,6 +290,32 @@ void Cl_ParseFrame(void) {
 		}
 
 		Cl_CheckPredictionError();
+	}
+}
+
+/*
+ * @brief Interpolates translation and rotation for all entities within the
+ * current frame. If the entity is at its most recently parsed orientation,
+ * this is a no-op.
+ */
+void Cl_LerpEntities(void) {
+
+	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
+
+		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
+
+		if (!VectorCompare(ent->origin, ent->current.origin)
+				|| !VectorCompare(ent->angles, ent->current.angles)) {
+
+			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
+			AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
+
+			const vec_t *angles = ent->current.solid == SOLID_BSP ? ent->angles : vec3_origin;
+
+			Matrix4x4_CreateFromEntity(&ent->matrix, ent->origin, angles, 1.0);
+			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+		}
 	}
 }
 

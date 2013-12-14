@@ -391,7 +391,7 @@ static void G_trigger_exec_Touch(g_edict_t *self, g_edict_t *other __attribute__
 void G_trigger_exec(g_edict_t *self) {
 
 	if (!self->locals.command && !self->locals.script) {
-		gi.Debug("No command or script at %s", vtos(self->abs_mins));
+		gi.Debug("No command or script at %s", vtos(self->s.origin));
 		G_FreeEdict(self);
 		return;
 	}

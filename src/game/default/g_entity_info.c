@@ -28,8 +28,7 @@
  targetname : The target name of this entity.
 */
 void G_info_notnull(g_edict_t *self) {
-	VectorCopy(self->s.origin, self->abs_mins);
-	VectorCopy(self->s.origin, self->abs_maxs);
+	gi.LinkEdict(self);
 }
 
 /*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)

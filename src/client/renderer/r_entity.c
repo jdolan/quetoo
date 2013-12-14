@@ -156,8 +156,6 @@ void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out) {
  */
 static void R_SetMatrixForEntity(r_entity_t *e) {
 
-	vec_t *o = e->origin, *a = e->angles;
-
 	if (e->parent) {
 		vec3_t forward;
 
@@ -177,7 +175,7 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 
 		R_ApplyMeshModelConfig(e);
 
-		Matrix4x4_CreateFromQuakeEntity(&e->matrix, o[0], o[1], o[2], a[0], a[1], a[2], e->scale);
+		Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
 
 		R_ApplyMeshModelTag(e); // interpolate and concatenate the tag matrix
 
@@ -194,7 +192,7 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 		R_ApplyMeshModelConfig(e);
 	}
 
-	Matrix4x4_CreateFromQuakeEntity(&e->matrix, o[0], o[1], o[2], a[0], a[1], a[2], e->scale);
+	Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
 	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 }
 

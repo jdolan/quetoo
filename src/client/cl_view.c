@@ -228,6 +228,8 @@ void Cl_UpdateView(void) {
 
 	Cl_UpdateViewSize();
 
+	Cl_LerpEntities();
+
 	cls.cgame->UpdateView(&cl.frame);
 
 	// set time

@@ -65,6 +65,12 @@ typedef struct {
 	cl_entity_animation_t animation1; // upper body animation
 	cl_entity_animation_t animation2; // lower body animation
 
+	vec3_t origin; // interpolated origin
+	vec3_t angles; // and angles
+
+	matrix4x4_t matrix; // interpolated translation and rotation
+	matrix4x4_t inverse_matrix; // for box hull collision
+
 	r_lighting_t lighting; // cached static lighting info
 } cl_entity_t;
 

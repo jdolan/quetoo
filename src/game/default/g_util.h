@@ -55,7 +55,6 @@ g_edict_t *G_Spawn(const char *class_name);
 void G_InitEdict(g_edict_t *e, const char *class_name);
 void G_FreeEdict(g_edict_t *e);
 void G_TouchTriggers(g_edict_t *ent);
-void G_TouchSolids(g_edict_t *ent);
 void G_TouchWater(g_edict_t *ent);
 char *G_CopyString(char *in);
 

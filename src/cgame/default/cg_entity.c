@@ -220,10 +220,9 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	memset(&e, 0, sizeof(e));
 	e.scale = 1.0;
 
-	// resolve the origin and angles so that we know where to add effects
-	VectorLerp(ent->prev.origin, ent->current.origin, cgi.client->lerp, e.origin);
-
-	AngleLerp(ent->prev.angles, ent->current.angles, cgi.client->lerp, e.angles);
+	// set the origin and angles so that we know where to add effects
+	VectorCopy(ent->origin, e.origin);
+	VectorCopy(ent->angles, e.angles);
 
 	// update the static lighting cache
 	Cg_UpdateLighting(ent, &e);
@@ -278,7 +277,7 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 	// resolve any models, animations, interpolations, rotations, bobbing, etc..
 	for (i = 0; i < frame->num_entities; i++) {
 
-		const int32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
+		const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *s = &cgi.client->entity_states[snum];
 
 		cl_entity_t *ent = &cgi.client->entities[s->number];

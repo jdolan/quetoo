@@ -359,50 +359,22 @@ void G_FreeEdict(g_edict_t *ed) {
 }
 
 /*
- * @brief
+ * @brief Handle trigger interaction for solids.
  */
 void G_TouchTriggers(g_edict_t *ent) {
-	int32_t i, num;
-	g_edict_t *touch[MAX_EDICTS], *hit;
+	g_edict_t *e[MAX_EDICTS];
 
-	num = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS, AREA_TRIGGERS);
+	const g_link_t *l = &ent->link;
+	const size_t len = gi.AreaEdicts(l->abs_mins, l->abs_maxs, e, lengthof(e), AREA_TRIGGER);
 
-	// be careful, it is possible to have an entity in this
-	// list removed before we get to it (kill-triggered)
-	for (i = 0; i < num; i++) {
+	for (size_t i = 0; i < len; i++) {
+		g_edict_t *trigger = e[i];
 
-		hit = touch[i];
-
-		if (!hit->in_use)
+		if (trigger == ent) // When I Think() about you, I Touch() myself..
 			continue;
 
-		if (!hit->locals.Touch)
-			continue;
-
-		hit->locals.Touch(hit, ent, NULL, NULL);
-	}
-}
-
-/*
- * @brief Call after linking a new trigger in during gameplay
- * to force all entities it covers to immediately touch it
- */
-void G_TouchSolids(g_edict_t *ent) {
-	int32_t i, num;
-	g_edict_t *touch[MAX_EDICTS], *hit;
-
-	num = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, touch, MAX_EDICTS, AREA_SOLID);
-
-	// be careful, it is possible to have an entity in this
-	// list removed before we get to it (kill triggered)
-	for (i = 0; i < num; i++) {
-		hit = touch[i];
-
-		if (!hit->in_use)
-			continue;
-
-		if (ent->locals.Touch)
-			ent->locals.Touch(hit, ent, NULL, NULL);
+		if (trigger->in_use && trigger->locals.Touch)
+			trigger->locals.Touch(trigger, ent, NULL, NULL);
 
 		if (!ent->in_use)
 			break;

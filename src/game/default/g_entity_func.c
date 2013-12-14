@@ -799,6 +799,8 @@ void G_func_button(g_edict_t *ent) {
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
+	gi.LinkEdict(ent);
+
 	if (ent->locals.sounds != 1)
 		ent->locals.move_info.sound_start = gi.SoundIndex("world/switch");
 
@@ -818,8 +820,8 @@ void G_func_button(g_edict_t *ent) {
 	abs_move_dir[0] = fabsf(ent->locals.move_dir[0]);
 	abs_move_dir[1] = fabsf(ent->locals.move_dir[1]);
 	abs_move_dir[2] = fabsf(ent->locals.move_dir[2]);
-	dist = abs_move_dir[0] * ent->size[0] + abs_move_dir[1] * ent->size[1] + abs_move_dir[2]
-			* ent->size[2] - g_game.spawn.lip;
+	dist = abs_move_dir[0] * ent->link.size[0] + abs_move_dir[1] * ent->link.size[1]
+			+ abs_move_dir[2] * ent->link.size[2] - g_game.spawn.lip;
 	VectorMA(ent->locals.pos1, dist, ent->locals.move_dir, ent->locals.pos2);
 
 	ent->locals.Use = G_func_button_Use;
@@ -841,8 +843,6 @@ void G_func_button(g_edict_t *ent) {
 	VectorCopy(ent->s.angles, ent->locals.move_info.start_angles);
 	VectorCopy(ent->locals.pos2, ent->locals.move_info.end_origin);
 	VectorCopy(ent->s.angles, ent->locals.move_info.end_angles);
-
-	gi.LinkEdict(ent);
 }
 
 #define DOOR_START_OPEN		0x1
@@ -1056,12 +1056,12 @@ static void G_func_door_CreateTrigger(g_edict_t *ent) {
 	if (ent->locals.flags & FL_TEAM_SLAVE)
 		return; // only the team leader spawns a trigger
 
-	VectorCopy(ent->abs_mins, mins);
-	VectorCopy(ent->abs_maxs, maxs);
+	VectorCopy(ent->link.abs_mins, mins);
+	VectorCopy(ent->link.abs_maxs, maxs);
 
 	for (trigger = ent->locals.team_chain; trigger; trigger = trigger->locals.team_chain) {
-		AddPointToBounds(trigger->abs_mins, mins, maxs);
-		AddPointToBounds(trigger->abs_maxs, mins, maxs);
+		AddPointToBounds(trigger->link.abs_mins, mins, maxs);
+		AddPointToBounds(trigger->link.abs_maxs, mins, maxs);
 	}
 
 	// expand
@@ -1173,6 +1173,8 @@ void G_func_door(g_edict_t *ent) {
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
+	gi.LinkEdict(ent);
+
 	ent->locals.Blocked = G_func_door_Blocked;
 	ent->locals.Use = G_func_door_Use;
 
@@ -1198,8 +1200,8 @@ void G_func_door(g_edict_t *ent) {
 	abs_move_dir[0] = fabsf(ent->locals.move_dir[0]);
 	abs_move_dir[1] = fabsf(ent->locals.move_dir[1]);
 	abs_move_dir[2] = fabsf(ent->locals.move_dir[2]);
-	ent->locals.move_info.distance = abs_move_dir[0] * ent->size[0] + abs_move_dir[1]
-			* ent->size[1] + abs_move_dir[2] * ent->size[2] - g_game.spawn.lip;
+	ent->locals.move_info.distance = abs_move_dir[0] * ent->link.size[0] + abs_move_dir[1]
+			* ent->link.size[1] + abs_move_dir[2] * ent->link.size[2] - g_game.spawn.lip;
 	VectorMA(ent->locals.pos1, ent->locals.move_info.distance, ent->locals.move_dir,
 			ent->locals.pos2);
 
@@ -1232,8 +1234,6 @@ void G_func_door(g_edict_t *ent) {
 	// to simplify logic elsewhere, make non-teamed doors into a team of one
 	if (!ent->locals.team)
 		ent->locals.team_master = ent;
-
-	gi.LinkEdict(ent);
 
 	ent->locals.next_think = g_level.time + gi.frame_millis;
 	if (ent->locals.health || ent->locals.target_name)
@@ -1435,13 +1435,15 @@ void G_func_water(g_edict_t *self) {
 	self->solid = SOLID_BSP;
 	gi.SetModel(self, self->model);
 
+	gi.LinkEdict(self);
+
 	// calculate second position
 	VectorCopy(self->s.origin, self->locals.pos1);
 	abs_move_dir[0] = fabsf(self->locals.move_dir[0]);
 	abs_move_dir[1] = fabsf(self->locals.move_dir[1]);
 	abs_move_dir[2] = fabsf(self->locals.move_dir[2]);
-	self->locals.move_info.distance = abs_move_dir[0] * self->size[0] + abs_move_dir[1]
-			* self->size[1] + abs_move_dir[2] * self->size[2] - g_game.spawn.lip;
+	self->locals.move_info.distance = abs_move_dir[0] * self->link.size[0] + abs_move_dir[1]
+			* self->link.size[1] + abs_move_dir[2] * self->link.size[2] - g_game.spawn.lip;
 	VectorMA(self->locals.pos1, self->locals.move_info.distance, self->locals.move_dir,
 			self->locals.pos2);
 
@@ -1472,10 +1474,6 @@ void G_func_water(g_edict_t *self) {
 
 	if (self->locals.wait == -1)
 		self->locals.spawn_flags |= DOOR_TOGGLE;
-
-	self->class_name = "func_door";
-
-	gi.LinkEdict(self);
 }
 
 #define TRAIN_START_ON		1
@@ -1690,7 +1688,7 @@ void G_func_train(g_edict_t *self) {
 		self->locals.next_think = g_level.time + gi.frame_millis;
 		self->locals.Think = G_func_train_Find;
 	} else {
-		gi.Debug("No target: %s\n", vtos(self->abs_mins));
+		gi.Debug("No target: %s\n", vtos(self->s.origin));
 	}
 }
 

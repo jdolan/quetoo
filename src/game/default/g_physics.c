@@ -304,7 +304,8 @@ static g_edict_t *G_Physics_Push_Move(g_edict_t *self, vec3_t move, vec3_t amove
 		// determine we're touching the entity at all
 		if (ent->locals.ground_entity != self) {
 
-			if (!BoxIntersect(ent->abs_mins, ent->abs_maxs, self->abs_mins, self->abs_maxs))
+			if (!BoxIntersect(ent->link.abs_mins, ent->link.abs_maxs, self->link.abs_mins,
+					self->link.abs_maxs))
 				continue;
 
 			if (G_GoodPosition(ent))

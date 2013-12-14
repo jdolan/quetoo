@@ -641,7 +641,9 @@ typedef struct r_lighting_s {
 } r_lighting_t;
 
 /*
- * @brief Entities provide a means to add model instances to the view.
+ * @brief Entities provide a means to add model instances to the view. Entity
+ * lighting is cached on the client entity so that it is only recalculated
+ * when an entity moves.
  */
 typedef struct r_entity_s {
 	struct r_entity_s *next; // for draw lists
@@ -681,6 +683,9 @@ typedef struct r_entity_s {
  */
 #define MAX_ENTITIES (MAX_EDICTS * 2)
 
+/*
+ * @brief Function prototype for mesh entity draw lists.
+ */
 typedef void (*MeshModelDrawFunc)(const r_entity_t *e);
 
 typedef enum {
