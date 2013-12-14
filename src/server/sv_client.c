@@ -193,7 +193,7 @@ static void Sv_NextDownload_f(void) {
 	byte buf[MAX_MSG_SIZE];
 	mem_buf_t msg;
 
-	sv_download_t *download = &sv_client->download;
+	sv_client_download_t *download = &sv_client->download;
 
 	if (!download->buffer)
 		return;
@@ -263,7 +263,7 @@ static void Sv_Download_f(void) {
 		return;
 	}
 
-	sv_download_t *download = &sv_client->download;
+	sv_client_download_t *download = &sv_client->download;
 
 	if (download->buffer) { // free last download
 		Fs_Free(download->buffer);

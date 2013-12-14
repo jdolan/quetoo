@@ -21,7 +21,6 @@
 
 #include "sv_local.h"
 
-
 /*
  * @brief The world is divided into evenly sized sectors to aid in entity
  * management. This works like a meta-BSP tree, providing fast searches via
@@ -111,11 +110,13 @@ void Sv_InitWorld(void) {
  */
 void Sv_UnlinkEdict(g_edict_t *ent) {
 
-	if (ent->link.sector) {
-		sv_sector_t *sector = (sv_sector_t *) ent->link.sector;
+	sv_entity_t *sent = &sv.entities[NUM_FOR_EDICT(ent)];
+
+	if (sent->sector) {
+		sv_sector_t *sector = (sv_sector_t *) sent->sector;
 		sector->edicts = g_list_remove(sector->edicts, ent);
 
-		ent->link.sector = NULL;
+		memset(sent, 0, sizeof(*sent));
 	}
 }
 
@@ -141,7 +142,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 		return;
 
 	// set the size
-	VectorSubtract(ent->maxs, ent->mins, ent->link.size);
+	VectorSubtract(ent->maxs, ent->mins, ent->size);
 
 	// encode the size into the entity state for client prediction
 	if (ent->solid == SOLID_BOX && (!ent->sv_flags & SVF_DEAD_MONSTER)) {
@@ -153,7 +154,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 	}
 
 	// set the absolute bounding box
-	if (ent->solid == SOLID_BSP && (ent->s.angles[0] || ent->s.angles[1] || ent->s.angles[2])) { // expand for rotation
+	if (ent->solid == SOLID_BSP && !VectorCompare(ent->s.angles, vec3_origin)) { // expand for rotation
 		vec_t max = 0.0;
 
 		for (i = 0; i < 3; i++) {
@@ -165,51 +166,53 @@ void Sv_LinkEdict(g_edict_t *ent) {
 				max = v;
 		}
 		for (i = 0; i < 3; i++) {
-			ent->link.abs_mins[i] = ent->s.origin[i] - max;
-			ent->link.abs_maxs[i] = ent->s.origin[i] + max;
+			ent->abs_mins[i] = ent->s.origin[i] - max;
+			ent->abs_maxs[i] = ent->s.origin[i] + max;
 		}
 	} else { // normal
-		VectorAdd(ent->s.origin, ent->mins, ent->link.abs_mins);
-		VectorAdd(ent->s.origin, ent->maxs, ent->link.abs_maxs);
+		VectorAdd(ent->s.origin, ent->mins, ent->abs_mins);
+		VectorAdd(ent->s.origin, ent->maxs, ent->abs_maxs);
 	}
 
 	// because movement is clipped an epsilon away from an actual edge,
 	// we must fully check even when bounding boxes don't quite touch
-	ent->link.abs_mins[0] -= 1.0;
-	ent->link.abs_mins[1] -= 1.0;
-	ent->link.abs_mins[2] -= 1.0;
-	ent->link.abs_maxs[0] += 1.0;
-	ent->link.abs_maxs[1] += 1.0;
-	ent->link.abs_maxs[2] += 1.0;
+	ent->abs_mins[0] -= 1.0;
+	ent->abs_mins[1] -= 1.0;
+	ent->abs_mins[2] -= 1.0;
+	ent->abs_maxs[0] += 1.0;
+	ent->abs_maxs[1] += 1.0;
+	ent->abs_maxs[2] += 1.0;
+
+	sv_entity_t *sent = &sv.entities[NUM_FOR_EDICT(ent)];
 
 	// link to PVS leafs
-	ent->link.num_clusters = 0;
-	ent->link.areas[0] = ent->link.areas[1] = 0;
+	sent->num_clusters = 0;
+	sent->areas[0] = sent->areas[1] = 0;
 
 	// get all leafs, including solids
-	const int32_t num_leafs = Cm_BoxLeafnums(ent->link.abs_mins, ent->link.abs_maxs, leafs,
-			lengthof(leafs), &top_node, 0);
+	const int32_t num_leafs = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, lengthof(leafs),
+			&top_node, 0);
 
 	// set areas, allowing entities (doors) to occupy up to two
 	for (i = 0; i < num_leafs; i++) {
 		clusters[i] = Cm_LeafCluster(leafs[i]);
 		const int32_t area = Cm_LeafArea(leafs[i]);
 		if (area) {
-			if (ent->link.areas[0] && ent->link.areas[0] != area) {
-				if (ent->link.areas[1] && ent->link.areas[1] != area && sv.state == SV_LOADING) {
-					Com_Warn("Object touching 3 areas at %s\n", vtos(ent->link.abs_mins));
+			if (sent->areas[0] && sent->areas[0] != area) {
+				if (sent->areas[1] && sent->areas[1] != area && sv.state == SV_LOADING) {
+					Com_Warn("Object touching 3 areas at %s\n", vtos(ent->abs_mins));
 				}
-				ent->link.areas[1] = area;
+				sent->areas[1] = area;
 			} else
-				ent->link.areas[0] = area;
+				sent->areas[0] = area;
 		}
 	}
 
 	if (num_leafs >= MAX_TOTAL_ENT_LEAFS) { // assume we missed some leafs, and mark by head_node
-		ent->link.num_clusters = -1;
-		ent->link.head_node = top_node;
+		sent->num_clusters = -1;
+		sent->head_node = top_node;
 	} else {
-		ent->link.num_clusters = 0;
+		sent->num_clusters = 0;
 		for (i = 0; i < num_leafs; i++) {
 
 			if (clusters[i] == -1)
@@ -220,13 +223,13 @@ void Sv_LinkEdict(g_edict_t *ent) {
 					break;
 
 			if (j == i) {
-				if (ent->link.num_clusters == MAX_ENT_CLUSTERS) { // assume we missed some leafs, and mark by head_node
-					ent->link.num_clusters = -1;
-					ent->link.head_node = top_node;
+				if (sent->num_clusters == MAX_ENT_CLUSTERS) { // assume we missed some leafs, and mark by head_node
+					sent->num_clusters = -1;
+					sent->head_node = top_node;
 					break;
 				}
 
-				ent->link.clusters[ent->link.num_clusters++] = clusters[i];
+				sent->clusters[sent->num_clusters++] = clusters[i];
 			}
 		}
 	}
@@ -241,17 +244,17 @@ void Sv_LinkEdict(g_edict_t *ent) {
 		if (sector->axis == -1)
 			break;
 
-		if (ent->link.abs_mins[sector->axis] > sector->dist)
+		if (ent->abs_mins[sector->axis] > sector->dist)
 			sector = sector->children[0];
-		else if (ent->link.abs_maxs[sector->axis] < sector->dist)
+		else if (ent->abs_maxs[sector->axis] < sector->dist)
 			sector = sector->children[1];
 		else
 			break; // crosses the node
 	}
 
-	// link it in
+	// add it to the sector
+	sent->sector = sector;
 	sector->edicts = g_list_prepend(sector->edicts, ent);
-	ent->link.sector = sector;
 }
 
 /*
@@ -287,9 +290,8 @@ static void Sv_AreaEdicts_r(sv_sector_t *sector) {
 		g_edict_t *ent = (g_edict_t *) e->data;
 
 		if (Sv_AreaEdicts_Filter(ent)) {
-			g_link_t *link = &ent->link;
 
-			if (BoxIntersect(link->abs_mins, link->abs_maxs, sv_world.area_mins, sv_world.area_maxs)) {
+			if (BoxIntersect(ent->abs_mins, ent->abs_maxs, sv_world.area_mins, sv_world.area_maxs)) {
 
 				sv_world.area_edicts[sv_world.num_area_edicts] = ent;
 				sv_world.num_area_edicts++;
@@ -368,22 +370,16 @@ int32_t Sv_PointContents(const vec3_t point) {
 	int32_t contents = Cm_PointContents(point, 0);
 
 	// as well as contents from all intersected entities
-	const int32_t count = Sv_AreaEdicts(point, point, edicts, lengthof(edicts), AREA_SOLID);
+	const size_t len = Sv_AreaEdicts(point, point, edicts, lengthof(edicts), AREA_SOLID);
 
-	for (int32_t i = 0; i < count; i++) {
+	// iterate the area entities, checking each one for an intersection
+	for (size_t i = 0; i < len; i++) {
+		const g_edict_t *ent = edicts[i];
 
-		const g_edict_t *touch = edicts[i];
-		const vec_t *angles;
+		const int32_t head_node = Sv_HullForEntity(ent);
+		const vec_t *angles = ent->solid == SOLID_BSP ? ent->s.angles : vec3_origin;
 
-		// might intersect, so do an exact clip
-		const int32_t head_node = Sv_HullForEntity(touch);
-
-		if (touch->solid == SOLID_BSP) // bsp models can rotate
-			angles = touch->s.angles;
-		else
-			angles = vec3_origin;
-
-		contents |= Cm_TransformedPointContents(point, head_node, touch->s.origin, angles);
+		contents |= Cm_TransformedPointContents(point, head_node, ent->s.origin, angles);
 	}
 
 	return contents;
@@ -404,21 +400,14 @@ typedef struct {
  * of ALL collision and interaction for the server. Tread carefully.
  */
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
-	g_edict_t *area_edicts[MAX_EDICTS];
-	vec_t *angles;
-	cm_trace_t tr;
-	int32_t i, num, head_node;
+	g_edict_t *e[MAX_EDICTS];
 
 	// first resolve the entities found within our desired trace
-	num = Sv_AreaEdicts(trace->box_mins, trace->box_maxs, area_edicts, MAX_EDICTS, AREA_SOLID);
+	const size_t len = Sv_AreaEdicts(trace->box_mins, trace->box_maxs, e, lengthof(e), AREA_SOLID);
 
 	// then iterate them, determining if they have any bearing on our trace
-	for (i = 0; i < num; i++) {
-
-		g_edict_t *ent = area_edicts[i];
-
-		if (ent->solid == SOLID_NOT) // can't actually touch us
-			continue;
+	for (size_t i = 0; i < len; i++) {
+		g_edict_t *ent = e[i];
 
 		if (trace->skip) { // see if we can skip it
 
@@ -438,28 +427,24 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 			}
 		}
 
+		// hack to avoid clipping to corpses and gibs
 		if (!(trace->contents & CONTENTS_DEAD_MONSTER) && (ent->sv_flags & SVF_DEAD_MONSTER))
-			continue; // don't clip against corpses and gibs
+			continue;
 
-		// we couldn't skip it, so trace to it and see if we hit
-		head_node = Sv_HullForEntity(ent);
-
-		if (ent->solid == SOLID_BSP) // bsp entities can rotate
-			angles = ent->s.angles;
-		else
-			angles = vec3_origin;
+		const int32_t head_node = Sv_HullForEntity(ent);
+		const vec_t *angles = ent->solid == SOLID_BSP ? ent->s.angles : vec3_origin;
 
 		// perform the trace against this particular entity
-		tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs, head_node,
-				trace->contents, ent->s.origin, angles);
+		cm_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
+				head_node, trace->contents, ent->s.origin, angles);
 
 		// check for a full or partial intersection
-		if (tr.all_solid || tr.start_solid || tr.fraction < trace->trace.fraction) {
+		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
 
 			trace->trace = tr;
 			trace->trace.ent = ent;
 
-			if (trace->trace.all_solid) // we were actually blocked
+			if (tr.all_solid) // we were actually blocked
 				return;
 		}
 	}

@@ -233,24 +233,26 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
 		// ignore entities not in PVS / PHS
 		if (ent != cent) {
+			const sv_entity_t *sent = &sv.entities[e];
+
 			// by first checking area
-			if (!Cm_AreasConnected(area, ent->link.areas[0])) {
-				if (!ent->link.areas[1] || !Cm_AreasConnected(area, ent->link.areas[1]))
+			if (!Cm_AreasConnected(area, sent->areas[0])) {
+				if (!sent->areas[1] || !Cm_AreasConnected(area, sent->areas[1]))
 					continue;
 			}
 
 			const byte *vis = ent->s.sound || ent->s.event ? phs : pvs;
 
-			if (ent->link.num_clusters == -1) { // use head_node
-				if (!Cm_HeadnodeVisible(ent->link.head_node, vis))
+			if (sent->num_clusters == -1) { // use head_node
+				if (!Cm_HeadnodeVisible(sent->head_node, vis))
 					continue;
 			} else { // or check individual leafs
-				for (i = 0; i < ent->link.num_clusters; i++) {
-					const int32_t c = ent->link.clusters[i];
+				for (i = 0; i < sent->num_clusters; i++) {
+					const int32_t c = sent->clusters[i];
 					if (vis[c >> 3] & (1 << (c & 7)))
 						break;
 				}
-				if (i == ent->link.num_clusters)
+				if (i == sent->num_clusters)
 					continue; // not visible
 			}
 		}

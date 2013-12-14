@@ -52,11 +52,10 @@ _Bool G_IsStructural(const g_edict_t *ent, const cm_bsp_surface_t *surface);
 void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, _Bool restart);
 _Bool G_IsAnimation(g_edict_t *ent, entity_animation_t anim);
 g_edict_t *G_Spawn(const char *class_name);
-void G_InitEdict(g_edict_t *e, const char *class_name);
-void G_FreeEdict(g_edict_t *e);
+void G_InitEdict(g_edict_t *ent, const char *class_name);
+void G_FreeEdict(g_edict_t *ent);
 void G_TouchTriggers(g_edict_t *ent);
 void G_TouchWater(g_edict_t *ent);
-char *G_CopyString(char *in);
 
 #endif /* __GAME_LOCAL_H__ */
 

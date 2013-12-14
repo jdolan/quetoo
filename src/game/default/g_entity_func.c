@@ -820,8 +820,8 @@ void G_func_button(g_edict_t *ent) {
 	abs_move_dir[0] = fabsf(ent->locals.move_dir[0]);
 	abs_move_dir[1] = fabsf(ent->locals.move_dir[1]);
 	abs_move_dir[2] = fabsf(ent->locals.move_dir[2]);
-	dist = abs_move_dir[0] * ent->link.size[0] + abs_move_dir[1] * ent->link.size[1]
-			+ abs_move_dir[2] * ent->link.size[2] - g_game.spawn.lip;
+	dist = abs_move_dir[0] * ent->size[0] + abs_move_dir[1] * ent->size[1] + abs_move_dir[2]
+			* ent->size[2] - g_game.spawn.lip;
 	VectorMA(ent->locals.pos1, dist, ent->locals.move_dir, ent->locals.pos2);
 
 	ent->locals.Use = G_func_button_Use;
@@ -1056,12 +1056,12 @@ static void G_func_door_CreateTrigger(g_edict_t *ent) {
 	if (ent->locals.flags & FL_TEAM_SLAVE)
 		return; // only the team leader spawns a trigger
 
-	VectorCopy(ent->link.abs_mins, mins);
-	VectorCopy(ent->link.abs_maxs, maxs);
+	VectorCopy(ent->abs_mins, mins);
+	VectorCopy(ent->abs_maxs, maxs);
 
 	for (trigger = ent->locals.team_chain; trigger; trigger = trigger->locals.team_chain) {
-		AddPointToBounds(trigger->link.abs_mins, mins, maxs);
-		AddPointToBounds(trigger->link.abs_maxs, mins, maxs);
+		AddPointToBounds(trigger->abs_mins, mins, maxs);
+		AddPointToBounds(trigger->abs_maxs, mins, maxs);
 	}
 
 	// expand
@@ -1200,8 +1200,8 @@ void G_func_door(g_edict_t *ent) {
 	abs_move_dir[0] = fabsf(ent->locals.move_dir[0]);
 	abs_move_dir[1] = fabsf(ent->locals.move_dir[1]);
 	abs_move_dir[2] = fabsf(ent->locals.move_dir[2]);
-	ent->locals.move_info.distance = abs_move_dir[0] * ent->link.size[0] + abs_move_dir[1]
-			* ent->link.size[1] + abs_move_dir[2] * ent->link.size[2] - g_game.spawn.lip;
+	ent->locals.move_info.distance = abs_move_dir[0] * ent->size[0] + abs_move_dir[1]
+			* ent->size[1] + abs_move_dir[2] * ent->size[2] - g_game.spawn.lip;
 	VectorMA(ent->locals.pos1, ent->locals.move_info.distance, ent->locals.move_dir,
 			ent->locals.pos2);
 
@@ -1442,8 +1442,8 @@ void G_func_water(g_edict_t *self) {
 	abs_move_dir[0] = fabsf(self->locals.move_dir[0]);
 	abs_move_dir[1] = fabsf(self->locals.move_dir[1]);
 	abs_move_dir[2] = fabsf(self->locals.move_dir[2]);
-	self->locals.move_info.distance = abs_move_dir[0] * self->link.size[0] + abs_move_dir[1]
-			* self->link.size[1] + abs_move_dir[2] * self->link.size[2] - g_game.spawn.lip;
+	self->locals.move_info.distance = abs_move_dir[0] * self->size[0] + abs_move_dir[1]
+			* self->size[1] + abs_move_dir[2] * self->size[2] - g_game.spawn.lip;
 	VectorMA(self->locals.pos1, self->locals.move_info.distance, self->locals.move_dir,
 			self->locals.pos2);
 

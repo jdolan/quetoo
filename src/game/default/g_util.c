@@ -296,26 +296,15 @@ void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
 /*
  * @brief
  */
-char *G_CopyString(char *in) {
-	char *out;
+void G_InitEdict(g_edict_t *ent, const char *class_name) {
 
-	out = gi.Malloc(strlen(in) + 1, MEM_TAG_GAME_LEVEL);
-	strcpy(out, in);
-	return out;
-}
+	memset(ent, 0, sizeof(ent));
 
-/*
- * @brief
- */
-void G_InitEdict(g_edict_t *e, const char *class_name) {
+	ent->class_name = class_name;
+	ent->in_use = true;
 
-	memset(e, 0, sizeof(e));
-
-	e->class_name = class_name;
-	e->in_use = true;
-
-	e->locals.timestamp = g_level.time;
-	e->s.number = e - g_game.edicts;
+	ent->locals.timestamp = g_level.time;
+	ent->s.number = ent - g_game.edicts;
 }
 
 /*
@@ -347,15 +336,15 @@ g_edict_t *G_Spawn(const char *class_name) {
 /*
  * @brief Marks the edict as free.
  */
-void G_FreeEdict(g_edict_t *ed) {
+void G_FreeEdict(g_edict_t *ent) {
 
-	gi.UnlinkEdict(ed);
+	gi.UnlinkEdict(ent);
 
-	if ((ed - g_game.edicts) <= sv_max_clients->integer)
+	if ((ent - g_game.edicts) <= sv_max_clients->integer)
 		return;
 
-	memset(ed, 0, sizeof(*ed));
-	ed->class_name = "free";
+	memset(ent, 0, sizeof(*ent));
+	ent->class_name = "free";
 }
 
 /*
@@ -364,14 +353,15 @@ void G_FreeEdict(g_edict_t *ed) {
 void G_TouchTriggers(g_edict_t *ent) {
 	g_edict_t *e[MAX_EDICTS];
 
-	const g_link_t *l = &ent->link;
-	const size_t len = gi.AreaEdicts(l->abs_mins, l->abs_maxs, e, lengthof(e), AREA_TRIGGER);
+	const size_t len = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, e, lengthof(e), AREA_TRIGGER);
 
 	for (size_t i = 0; i < len; i++) {
 		g_edict_t *trigger = e[i];
 
 		if (trigger == ent) // When I Think() about you, I Touch() myself..
 			continue;
+
+		gi.Debug("%s touching %s\n", etos(trigger), etos(ent));
 
 		if (trigger->in_use && trigger->locals.Touch)
 			trigger->locals.Touch(trigger, ent, NULL, NULL);
@@ -720,13 +710,15 @@ _Bool G_IsStationary(const g_edict_t *ent) {
  */
 _Bool G_IsStructural(const g_edict_t *ent, const cm_bsp_surface_t *surf) {
 
-	if (G_IsMeat(ent)) // players are obviously not structural
-		return false;
+	if (ent->solid == SOLID_BSP) {
 
-	if (surf && (surf->flags & SURF_SKY)) // nor sky surfaces
-		return false;
+		if (surf->flags & SURF_SKY)
+			return false;
 
-	return true;
+		return true;
+	}
+
+	return false;
 }
 
 /*

@@ -101,7 +101,7 @@ static void G_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, vec
  */
 static _Bool G_GoodPosition(const g_edict_t *ent) {
 
-	const int32_t mask = ent->clip_mask ? ent->clip_mask : MASK_SOLID;
+	const int32_t mask = ent->locals.clip_mask ? ent->locals.clip_mask : MASK_SOLID;
 
 	return !gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask).start_solid;
 }
@@ -304,8 +304,7 @@ static g_edict_t *G_Physics_Push_Move(g_edict_t *self, vec3_t move, vec3_t amove
 		// determine we're touching the entity at all
 		if (ent->locals.ground_entity != self) {
 
-			if (!BoxIntersect(ent->link.abs_mins, ent->link.abs_maxs, self->link.abs_mins,
-					self->link.abs_maxs))
+			if (!BoxIntersect(ent->abs_mins, ent->abs_maxs, self->abs_mins, self->abs_maxs))
 				continue;
 
 			if (G_GoodPosition(ent))
@@ -387,7 +386,8 @@ static g_edict_t *G_Physics_Push_Move(g_edict_t *self, vec3_t move, vec3_t amove
 	g_push_t *p;
 	for (p = g_push_p - 1; p >= g_pushes; p--) {
 		if (p->ent->in_use) {
-			G_TouchTriggers(p->ent);
+			if (p->ent->solid == SOLID_BOX || p->ent->solid == SOLID_MISSILE)
+				G_TouchTriggers(p->ent);
 			G_TouchWater(p->ent);
 		}
 	}
@@ -450,7 +450,7 @@ static cm_trace_t G_Physics_Fly_Move(g_edict_t *ent) {
 
 	VectorMA(ent->s.angles, gi.frame_seconds, ent->locals.avelocity, ent->s.angles);
 
-	const int32_t mask = ent->clip_mask ? ent->clip_mask : MASK_SOLID;
+	const int32_t mask = ent->locals.clip_mask ? ent->locals.clip_mask : MASK_SOLID;
 
 	retry: trace = gi.Trace(start, end, ent->mins, ent->maxs, ent, mask);
 
@@ -468,7 +468,8 @@ static cm_trace_t G_Physics_Fly_Move(g_edict_t *ent) {
 
 	// the move was successful, so touch triggers and water
 	if (ent->in_use) {
-		G_TouchTriggers(ent);
+		if (ent->solid == SOLID_BOX || ent->solid == SOLID_MISSILE)
+			G_TouchTriggers(ent);
 		G_TouchWater(ent);
 	}
 

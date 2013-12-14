@@ -48,7 +48,6 @@ static void Sv_GameError(const char *func, const char *fmt, ...) {
  * @brief Also sets mins and maxs for inline bsp models.
  */
 static void Sv_SetModel(g_edict_t *ent, const char *name) {
-	cm_bsp_model_t *mod;
 
 	if (!name) {
 		Com_Warn("%d: NULL\n", (int32_t) NUM_FOR_EDICT(ent));
@@ -59,7 +58,7 @@ static void Sv_SetModel(g_edict_t *ent, const char *name) {
 
 	// if it is an inline model, get the size information for it
 	if (name[0] == '*') {
-		mod = Cm_Model(name);
+		const cm_bsp_model_t *mod = Cm_Model(name);
 		VectorCopy(mod->mins, ent->mins);
 		VectorCopy(mod->maxs, ent->maxs);
 		Sv_LinkEdict(ent);

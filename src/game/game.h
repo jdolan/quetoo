@@ -39,28 +39,7 @@
 #define AREA_SOLID			(1 << 0) // SOLID_BSP, SOLID_BOX, SOLID_MISSILE..
 #define AREA_TRIGGER		(1 << 1) // SOLID_TRIGGER
 
-/*
- * @brief The maximum number of clusters an entity may occupy before PVS
- * culling is skipped for it.
- */
-#define MAX_ENT_CLUSTERS	16
-
-/*
- * @brief A link binds an entity's position to the world for clipping. The
- * game module has visibility into this structure, but should treat it as
- * read-only.
- */
-typedef struct {
-	vec3_t abs_mins, abs_maxs, size;
-
-	int32_t head_node;
-
-	int32_t clusters[MAX_ENT_CLUSTERS];
-	int32_t num_clusters; // if -1, use head_node
-
-	int32_t areas[2];
-	void *sector;
-} g_link_t;
+#ifndef __GAME_LOCAL_H__
 
 /*
  * This is the server's definition of the client and edict structures. The
@@ -68,8 +47,6 @@ typedef struct {
  * they communicate the actual size of them at runtime through the game export
  * structure.
  */
-
-#ifndef __GAME_LOCAL_H__
 
 typedef struct {
 	void *opaque;
@@ -91,88 +68,206 @@ struct g_client_s {
 	g_client_locals_t locals; // game-local data members
 };
 
+/*
+ * @brief Edicts (or entities) are autonomous units of game interaction, such
+ * as items, moving platforms, giblets and players. The game module and server
+ * share a common base for this structure, but the game is free to extend it
+ * through g_edict_locals_t.
+ */
 struct g_edict_s {
+	/*
+	 * @brief The class name provides basic identification and taxonomy for
+	 * the entity. This is guaranteed to be set through G_Spawn.
+	 */
 	const char *class_name;
+
+	/*
+	 * @brief The model name for an entity (optional). For SOLID_BSP entities,
+	 * this is the inline model name (e.g. "*1").
+	 */
 	const char *model;
 
-	// the entity state is delta-compressed based on what each client last
-	// received for a given entity
+	/*
+	 * @brief The entity state is written by the game module and serialized
+	 * using delta compression by the server.
+	 */
 	entity_state_t s;
+
+	/*
+	 * @brief True if the entity is currently allocated and active.
+	 */
 	_Bool in_use;
+
+	/*
+	 * @brief True if the entity represents an AI-controlled client.
+	 */
 	_Bool ai;
 
-	uint32_t sv_flags; // SVF_NO_CLIENT, etc
+	/*
+	 * @brief Server-specific flags bitmask (e.g. SVF_NO_CLIENT).
+	 */
+	uint32_t sv_flags;
 
-	// the game should treat link members as read-only
-	g_link_t link;
-
-	// the following variables facilitate tracing and basic physics interactions
+	/*
+	 * @brief The entity bounding box, set by the game, defines its relative
+	 * bounds. These are typically populated in the entity's spawn function.
+	 */
 	vec3_t mins, maxs;
-	solid_t solid;
-	int32_t clip_mask; // e.g. MASK_SHOT, MASK_PLAYER_SOLID, ..
-	g_edict_t *owner; // projectiles are not clipped against their owner
 
-	// the client struct, as a pointer, because it is both optional and variable sized
+	/*
+	 * @brief The entity bounding box, set by the server, in world space. These
+	 * are populated by gi.LinkEdict / Sv_LinkEdict.
+	 */
+	vec3_t abs_mins, abs_maxs, size;
+
+	/*
+	 * @brief The solid type for the entity (e.g. SOLID_BOX) defines its
+	 * clipping behavior and interactions with other entities.
+	 */
+	solid_t solid;
+
+	/*
+	 * @brief Sometimes it is useful for an entity to not be clipped against
+	 * the entity that created it (for example, player projectiles).
+	 */
+	g_edict_t *owner;
+
+	/*
+	 * @brief Entities 1 through sv_max_clients->integer will have a valid
+	 * pointer to the variable-sized g_client_t.
+	 */
 	g_client_t *client;
 
+	/*
+	 * @brief The game module can extend the edict structure through this
+	 * opaque field. Therefore, the actual size of g_edict_t is returned to the
+	 * server through ge.edict_size.
+	 */
 	g_edict_locals_t locals; // game-local data members
 };
 
-// functions provided by the main engine
+/*
+ * @brief The game import provides engine functionality and core configuration
+ * such as frame intervals to the game module.
+ */
 typedef struct {
 
-	uint32_t frame_rate; // server frames per second
+	/*
+	 * @brief The server framerate (sv_hz->integer).
+	 */
+	uint32_t frame_rate;
+
+	/*
+	 * @brief The server frame duration in milliseconds.
+	 */
 	uint32_t frame_millis;
-	vec_t frame_seconds; // seconds per frame
+
+	/*
+	 * @brief The server frame duration in seconds.
+	 */
+	vec_t frame_seconds;
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Debug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 	void (*Warn_)(const char *func, const char *fmr, ...) __attribute__((format(printf, 2, 3)));
 	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
-	// zone memory management
+	/*
+	 * @brief Memory management. The game module should use MEM_TAG_GAME and
+	 * MEM_TAG_GAME_LEVEL for any allocations it makes.
+	 */
 	void *(*Malloc)(size_t size, mem_tag_t tag);
 	void *(*LinkMalloc)(size_t size, void *parent);
 	void (*Free)(void *p);
 	void (*FreeTag)(mem_tag_t tag);
 
-	// filesystem interaction
+	/*
+	 * @brief Filesystem interaction.
+	 */
 	int64_t (*LoadFile)(const char *file_name, void **buffer);
 	void (*FreeFile)(void *buffer);
 
-	// console variable and command interaction
+	/*
+	 * @brief Console variable and console command management.
+	 */
 	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
 	cmd_t *(*Cmd)(const char *name, CmdExecuteFunc Execute, uint32_t flags, const char *desc);
 	int32_t (*Argc)(void);
 	const char *(*Argv)(int32_t arg);
 	const char *(*Args)(void);
 
-	// command buffer interaction
+	/*
+	 * @brief Console command buffer interaction.
+	 */
 	void (*AddCommandString)(const char *text);
 
-	// config_strings are used to transmit arbitrary tokens such
-	// as model names, skin names, team names, and weather effects
+	/*
+	 * @brief Configuration strings are used to transmit arbitrary tokens such
+	 * as model names, skin names, team names and weather effects. See CS_GAME.
+	 */
 	void (*ConfigString)(const uint16_t index, const char *string);
 
-	// create config_strings and some internal server state
+	/*
+	 * @brief Returns the configuration string index for the given asset,
+	 * inserting it within the appropriate range if it is not present.
+	 */
 	uint16_t (*ModelIndex)(const char *name);
 	uint16_t (*SoundIndex)(const char *name);
 	uint16_t (*ImageIndex)(const char *name);
 
+	/*
+	 * @brief Set the model of a given entity by name. For inline BSP models,
+	 * the bounding box is also set and the entity linked.
+	 */
 	void (*SetModel)(g_edict_t *ent, const char *name);
+
+	/*
+	 * @brief Sound sample playback dispatch.
+	 *
+	 * @param ent The entity originating the sound.
+	 * @param index The configuration string index of the sound to be played.
+	 * @param atten The sound attenuation constant (e.g. ATTEN_IDLE).
+	 */
 	void (*Sound)(const g_edict_t *ent, const uint16_t index, const uint16_t atten);
+
+	/*
+	 * @brief Sound sample playback dispatch for server-local entities, or
+	 * sounds that do not originate from any specific entity.
+	 *
+	 * @param origin The origin of the sound. Required if ent is NULL.
+	 * @param ent The entity originating the sound (optional).
+	 * @param index The configuration string index of the sound to be played.
+	 * @param atten The sound attenuation constant (e.g. ATTEN_IDLE).
+	 */
 	void (*PositionedSound)(const vec3_t origin, const g_edict_t *ent, const uint16_t index,
 			const uint16_t atten);
 
 	/*
-	 * @brief Collision detection.
+	 * @return The contents mask at the specific point. The point is tested
+	 * against the world as well as all solid entities.
 	 */
 	int32_t (*PointContents)(const vec3_t point);
+
+	/*
+	 * @brief Collision detection. Traces between the two endpoints, impacting
+	 * world and solid entity planes matching the specified contents mask.
+	 *
+	 * @param start The start point.
+	 * @param end The end point.
+	 * @param mins The bounding box mins (optional).
+	 * @param maxs The bounding box maxs (optional).
+	 * @param skip The entity to skip (e.g. self) (optional).
+	 * @param contents The contents mask to intersect with (e.g. MASK_SOLID).
+	 *
+	 * @return The resulting trace. A fraction less than 1.0 indicates that
+	 * the trace intersected a plane.
+	 */
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 			const g_edict_t *skip, const int32_t contents);
 
 	/*
-	 * @brief PVS and PHS query facilities.
+	 * @brief PVS and PHS query facilities, returning true if the two points
+	 * can see or hear each other.
 	 */
 	_Bool (*inPVS)(const vec3_t p1, const vec3_t p2);
 	_Bool (*inPHS)(const vec3_t p1, const vec3_t p2);
@@ -185,25 +280,35 @@ typedef struct {
 	_Bool (*AreasConnected)(int32_t area1, int32_t area2);
 
 	/*
-	 * @brief All solid and trigger entities should be linked when they are
+	 * @brief All solid and trigger entities must be linked when they are
 	 * initialized or moved. Linking resolves their absolute bounding box and
 	 * makes them eligible for physics interactions.
 	 */
 	void (*LinkEdict)(g_edict_t *ent);
 
 	/*
-	 * @brief All linked entities should be unlinked before being freed.
+	 * @brief All entities should be unlinked before being freed.
 	 */
 	void (*UnlinkEdict)(g_edict_t *ent);
 
 	/*
 	 * @brief Populates a list of entities occupying the specified bounding
 	 * box, filtered by the given type (AREA_SOLID, AREA_TRIGGER, ..).
+	 *
+	 * @param mins The area bounds in world space.
+	 * @param maxs The area bounds in world space.
+	 * @param list The list of edicts to populate.
+	 * @param len The maximum number of edicts to return (lengthof(list)).
+	 * @param type The entity type to return (AREA_SOLID, AREA_TRIGGER, ..).
+	 *
+	 * @return The number of entities found.
 	 */
 	size_t (*AreaEdicts)(const vec3_t mins, const vec3_t maxs, g_edict_t **list, const size_t len,
 			const uint32_t type);
 
-	// network messaging
+	/*
+	 * @brief Network messaging facilities.
+	 */
 	void (*Multicast)(const vec3_t origin, multicast_t to);
 	void (*Unicast)(const g_edict_t *ent, const _Bool reliable);
 	void (*WriteData)(const void *data, size_t len);
@@ -218,13 +323,18 @@ typedef struct {
 	void (*WriteAngle)(const vec_t v);
 	void (*WriteAngles)(const vec3_t angles);
 
-	// network console IO
+	/*
+	 * @brief Network console IO.
+	 */
 	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 	void (*ClientPrint)(const g_edict_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 } g_import_t;
 
-// functions exported by the game subsystem
+/*
+ * @brief The game export structure exposes core game module entry points to
+ * the server. The game must populate this structure as part of G_LoadGame.
+ */
 typedef struct {
 	/*
 	 * @brief Game API version, in case the game module was compiled for a

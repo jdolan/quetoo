@@ -22,8 +22,39 @@
 #ifndef __SV_TYPES_H__
 #define __SV_TYPES_H__
 
+#include "game/game.h"
+#include "matrix.h"
+
 #ifdef __SV_LOCAL_H__
 
+/*
+ * @brief The maximum number of clusters an entity may occupy before PVS
+ * culling is skipped and BSP recursion is instead used to resolve its
+ *
+ */
+#define MAX_ENT_CLUSTERS	16
+
+/*
+ * @brief The server-specific view of an entity. An sv_entity_t corresponds to
+ * precisely one g_edict_t, where most general-purpose entity state resides.
+ * This structure is primarily used for entity list management and clipping.
+ */
+typedef struct {
+	int32_t head_node;
+
+	int32_t clusters[MAX_ENT_CLUSTERS];
+	int32_t num_clusters; // if -1, use head_node
+
+	int32_t areas[2];
+	struct sv_sector_s *sector;
+
+	matrix4x4_t matrix;
+	matrix4x4_t inverse_matrix;
+} sv_entity_t;
+
+/*
+ * @brief Server states.
+ */
 typedef enum {
 	SV_UNINITIALIZED, // no level loaded
 	SV_LOADING, // spawning level edicts
@@ -35,7 +66,7 @@ typedef enum {
  * @brief The sv_server_t struct is wiped at each level load.
  */
 typedef struct {
-	sv_state_t state; // precache commands are only valid during load
+	sv_state_t state;
 
 	uint32_t time; // always sv.frame_num * 1000 / sv_packetrate->value
 	int32_t frame_num;
@@ -43,23 +74,20 @@ typedef struct {
 	char name[MAX_QPATH]; // map name
 	cm_bsp_model_t *cm_models[MAX_MODELS];
 
+	// all known and indexed assets, string constants, etc..
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
-	entity_state_t baselines[MAX_EDICTS];
+
+	sv_entity_t entities[MAX_EDICTS]; // the server-local entity structures
+	entity_state_t baselines[MAX_EDICTS]; // g_edict_t baselines
 
 	// the multicast buffer is used to send a message to a set of clients
-	// it is only used to marshall data until Sv_Multicast is called
+	// it is flushed each time Sv_Multicast is called
 	mem_buf_t multicast;
 	byte multicast_buffer[MAX_MSG_SIZE];
 
 	// demo server information
 	file_t *demo_file;
 } sv_server_t;
-
-typedef enum {
-	SV_CLIENT_FREE, // can be used for a new connection
-	SV_CLIENT_CONNECTED, // client is connecting, but has not yet spawned
-	SV_CLIENT_ACTIVE // client is spawned
-} sv_client_state_t;
 
 typedef struct {
 	int32_t area_bytes;
@@ -100,11 +128,14 @@ typedef struct {
 #define CMD_MSEC_ALLOWABLE_DRIFT CMD_MSEC_CHECK_INTERVAL + 150
 #define CMD_MSEC_MAX_DRIFT_ERRORS 10
 
-typedef struct {
-	byte *buffer;
-	int32_t size;
-	int32_t count;
-} sv_download_t;
+/*
+ * @brief Client states.
+ */
+typedef enum {
+	SV_CLIENT_FREE, // can be used for a new connection
+	SV_CLIENT_CONNECTED, // client is connecting, but has not yet spawned
+	SV_CLIENT_ACTIVE // client is spawned
+} sv_client_state_t;
 
 /*
  * The absolute maximum size of a frame (packet entities). Large frames are
@@ -113,6 +144,11 @@ typedef struct {
  */
 #define MAX_FRAME_SIZE 8192
 
+/*
+ * @brief Represents the bounds of an individual client message within the
+ * buffered datagram for a given frame. Datagrams are packetized along message
+ * bounds and transmitted as fragments when necessary.
+ */
 typedef struct {
 	size_t offset;
 	size_t len;
@@ -127,6 +163,17 @@ typedef struct {
 	byte data[MAX_FRAME_SIZE]; // the raw message buffer
 	GList *messages; // message segmentation
 } sv_client_datagram_t;
+
+/*
+ * @brief Each client my download a single file at a time via the game's UDP
+ * protocol. This only serves as a fallback for when HTTP downloading is not
+ * configured or unavailable.
+ */
+typedef struct {
+	byte *buffer;
+	int32_t size;
+	int32_t count;
+} sv_client_download_t;
 
 /*
  * @brief Per-client accounting for protocol flow control and low-level
@@ -160,16 +207,23 @@ typedef struct {
 
 	sv_frame_t frames[PACKET_BACKUP]; // updates can be delta'd from here
 
-	sv_download_t download; // UDP file downloads
+	sv_client_download_t download; // UDP file downloads
 
 	uint32_t last_message; // svs.real_time when packet was last received
 	net_chan_t net_chan;
 } sv_client_t;
 
+/*
+ * @brief Public servers may broadcast their status to as many as 8 master
+ * servers.
+ */
+#define MAX_MASTERS	8
 
-#define MAX_MASTERS	8  // max recipients for heartbeat packets
-// challenges are a request for a connection; a handshake the client receives
-// and must then re-use to acquire a client slot
+/*
+ * @brief Challenges are a request for a connection. The client must receive
+ * and then re-use a valid challenge in order to receive a client slot. This
+ * provides basic protection against simple UDP DoS attacks.
+ */
 typedef struct {
 	net_addr_t addr;
 	uint32_t challenge;
@@ -215,9 +269,19 @@ typedef struct {
 	g_export_t *game;
 } sv_static_t;
 
-// macros for resolving game entities on the server
-#define EDICT_FOR_NUM(n)( (g_edict_t *)((char *) svs.game->edicts + svs.game->edict_size * (n)) )
-#define NUM_FOR_EDICT(e)( ((char *)(e) - (char *) svs.game->edicts) / svs.game->edict_size )
+/*
+ * @brief Yields a pointer to the edict by the given number by negotiating the
+ * edicts array based on the reported size of g_edict_t.
+ *
+ * FIXME: Can these be made prettier with ptrdiff_t / intptr_t?
+ */
+#define EDICT_FOR_NUM(n) ( (g_edict_t *)((byte *) svs.game->edicts + svs.game->edict_size * (n)) )
+
+/*
+ * @brief Yields the entity number (index) for the specified g_edict_t * by
+ * negotiating the edicts array based on the reported size of g_edict_t.
+ */
+#define NUM_FOR_EDICT(e) ( ((byte *)(e) - (byte *) svs.game->edicts) / svs.game->edict_size )
 
 #endif /* __SV_LOCAL_H__ */
 

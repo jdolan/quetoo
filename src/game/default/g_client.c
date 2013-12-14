@@ -300,7 +300,6 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute_
 		VectorCopy(mins[i % NUM_GIB_MODELS], ent->mins);
 		VectorCopy(maxs[i % NUM_GIB_MODELS], ent->maxs);
 
-		ent->clip_mask = MASK_DEAD_SOLID;
 		ent->solid = SOLID_BOX;
 		ent->sv_flags = SVF_DEAD_MONSTER;
 
@@ -315,6 +314,7 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute_
 		ent->locals.velocity[1] += h * Randomc();
 		ent->locals.velocity[2] += 100.0 + (h * Randomf());
 
+		ent->locals.clip_mask = MASK_DEAD_SOLID;
 		ent->locals.dead = true;
 		ent->locals.mass = (i % NUM_GIB_MODELS) * 20.0;
 		ent->locals.move_type = MOVE_TYPE_TOSS;
@@ -350,7 +350,6 @@ static void G_ClientCorpse(g_edict_t *self) {
 
 	ent->maxs[2] = 0.0; // corpses are laying down
 
-	ent->clip_mask = MASK_DEAD_SOLID;
 	ent->solid = SOLID_BOX;
 	ent->sv_flags = SVF_DEAD_MONSTER;
 
@@ -369,6 +368,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 
 	VectorCopy(self->locals.velocity, ent->locals.velocity);
 
+	ent->locals.clip_mask = MASK_DEAD_SOLID;
 	ent->locals.dead = true;
 	ent->locals.mass = self->locals.mass;
 	ent->locals.move_type = MOVE_TYPE_TOSS;
@@ -418,7 +418,6 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *attacker, uint32_t mod) {
 	self->client->locals.show_scores = true; // show scores
 
 	self->sv_flags |= (SVF_NO_CLIENT | SVF_DEAD_MONSTER);
-	self->clip_mask = MASK_DEAD_SOLID;
 
 	self->class_name = "dead";
 
@@ -432,6 +431,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *attacker, uint32_t mod) {
 	self->s.sound = 0;
 
 	self->locals.take_damage = false;
+	self->locals.clip_mask = MASK_DEAD_SOLID;
 
 	gi.LinkEdict(self);
 }
@@ -758,19 +758,19 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 
 	ent->class_name = "client";
 	ent->solid = SOLID_BOX;
-	ent->clip_mask = MASK_PLAYER_SOLID;
 	ent->sv_flags = 0;
 
 	// clear entity values
 	VectorScale(PM_MINS, PM_SCALE, ent->mins);
 	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
 
-	ent->locals.ground_entity = NULL;
-	ent->locals.take_damage = true;
-	ent->locals.move_type = MOVE_TYPE_WALK;
-	ent->locals.mass = 200.0;
+	ent->locals.clip_mask = MASK_PLAYER_SOLID;
 	ent->locals.dead = false;
 	ent->locals.Die = G_ClientDie;
+	ent->locals.ground_entity = NULL;
+	ent->locals.move_type = MOVE_TYPE_WALK;
+	ent->locals.mass = 200.0;
+	ent->locals.take_damage = true;
 	ent->locals.water_level = ent->locals.old_water_level = 0;
 	ent->locals.water_type = 0;
 
