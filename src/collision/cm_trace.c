@@ -320,7 +320,6 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 		const int32_t head_node, const int32_t contents) {
 
 	cm_trace_data_t data;
-	int32_t i;
 
 	// fill in a default trace
 	memset(&data.trace, 0, sizeof(data.trace));
@@ -378,14 +377,14 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 
 		VectorAdd(start, mins, p1);
 		VectorAdd(start, maxs, p2);
-		for (i = 0; i < 3; i++) {
+		for (int32_t i = 0; i < 3; i++) {
 			p1[i] -= 1.0;
 			p2[i] += 1.0;
 		}
 
-		const int32_t count = Cm_BoxLeafnums(p1, p2, leafs, lengthof(leafs), &top_node, head_node);
+		const size_t len = Cm_BoxLeafnums(p1, p2, leafs, lengthof(leafs), &top_node, head_node);
 
-		for (i = 0; i < count; i++) {
+		for (size_t i = 0; i < len; i++) {
 			Cm_TestInLeaf(&data, leafs[i]);
 			if (data.trace.all_solid)
 				break;
@@ -409,11 +408,12 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 	// general sweeping through world
 	Cm_TraceToNode(&data, head_node, 0.0, 1.0, start, end);
 
-	if (data.trace.fraction == 1.0) {
+	if (data.trace.fraction == 0.0) {
+		VectorCopy(start, data.trace.end);
+	} else if (data.trace.fraction == 1.0) {
 		VectorCopy(end, data.trace.end);
 	} else {
-		for (i = 0; i < 3; i++)
-			data.trace.end[i] = start[i] + data.trace.fraction * (end[i] - start[i]);
+		VectorMix(start, end, data.trace.fraction, data.trace.end);
 	}
 
 	return data.trace;
@@ -438,8 +438,8 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
  * @return The trace.
  */
 cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
-		const vec3_t maxs, const int32_t head_node, const int32_t contents, const matrix4x4_t *matrix,
-		const matrix4x4_t *inverse_matrix) {
+		const vec3_t maxs, const int32_t head_node, const int32_t contents,
+		const matrix4x4_t *matrix, const matrix4x4_t *inverse_matrix) {
 
 	vec3_t start0, end0;
 

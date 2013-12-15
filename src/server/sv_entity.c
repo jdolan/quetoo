@@ -141,40 +141,48 @@ void Sv_WriteFrame(sv_client_t *client, mem_buf_t *msg) {
  */
 static byte *Sv_ClientPVS(const vec3_t org) {
 	static byte pvs[MAX_BSP_LEAFS >> 3];
-	int32_t leafs[64];
-	int32_t i, j, count;
-	int32_t longs;
-	byte *src;
+	int32_t leafs[MAX_ENT_LEAFS];
+	int32_t clusters[MAX_ENT_LEAFS];
+	size_t i, j;
 	vec3_t mins, maxs;
 
+	// spread the bounds to account for view offset
 	for (i = 0; i < 3; i++) {
 		mins[i] = org[i] - 16.0;
 		maxs[i] = org[i] + 16.0;
 	}
 
-	count = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
-	if (count < 1) {
-		Com_Error(ERR_DROP, "Bad leaf count\n");
+	const size_t len = Cm_BoxLeafnums(mins, maxs, leafs, lengthof(leafs), NULL, 0);
+	if (len == 0) {
+		Com_Error(ERR_DROP, "Bad leaf count @ %s\n", vtos(org));
 	}
 
-	longs = (Cm_NumClusters() + 31) >> 5;
+	const size_t longs = (Cm_NumClusters() + 31) >> 5;
 
 	// convert leafs to clusters
-	for (i = 0; i < count; i++)
-		leafs[i] = Cm_LeafCluster(leafs[i]);
+	for (i = 0; i < len; i++) {
+		clusters[i] = Cm_LeafCluster(leafs[i]);
+	}
 
-	memcpy(pvs, Cm_ClusterPVS(leafs[0]), longs << 2);
+	// take the first cluster's visibility
+	memcpy(pvs, Cm_ClusterPVS(clusters[0]), longs << 2);
 
-	// or in all the other leaf bits
-	for (i = 1; i < count; i++) {
-		for (j = 0; j < i; j++)
-			if (leafs[i] == leafs[j])
+	// and combine the visibility for all the other clusters
+	for (i = 1; i < len; i++) {
+
+		for (j = 0; j < i; j++) {
+			if (clusters[i] == clusters[j])
 				break;
-		if (j != i)
-			continue; // already have the cluster we want
-		src = Cm_ClusterPVS(leafs[i]);
-		for (j = 0; j < longs; j++)
-			((uint32_t *) pvs)[j] |= ((uint32_t *) src)[j];
+		}
+
+		if (j != i) // already got it
+			continue;
+
+		const byte *vis = Cm_ClusterPVS(clusters[i]);
+
+		for (j = 0; j < longs; j++) {
+			((uint32_t *) pvs)[j] |= ((uint32_t *) vis)[j];
+		}
 	}
 
 	return pvs;
@@ -182,7 +190,7 @@ static byte *Sv_ClientPVS(const vec3_t org) {
 
 /*
  * @brief Decides which entities are going to be visible to the client, and
- * copies off the playerstat and area_bits.
+ * copies off the player state and area_bits.
  */
 void Sv_BuildClientFrame(sv_client_t *client) {
 	vec3_t org, off;
@@ -243,8 +251,8 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
 			const byte *vis = ent->s.sound || ent->s.event ? phs : pvs;
 
-			if (sent->num_clusters == -1) { // use head_node
-				if (!Cm_HeadnodeVisible(sent->head_node, vis))
+			if (sent->num_clusters == -1) { // use top_node
+				if (!Cm_HeadnodeVisible(sent->top_node, vis))
 					continue;
 			} else { // or check individual leafs
 				for (i = 0; i < sent->num_clusters; i++) {

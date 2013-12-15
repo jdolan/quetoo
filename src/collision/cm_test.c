@@ -230,10 +230,9 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 
 	while (true) {
 		if (node_num < 0) {
-			if (data->len >= data->max_len) {
-				return;
+			if (data->len < data->max_len) {
+				data->list[data->len++] = -1 - node_num;
 			}
-			data->list[data->len++] = -1 - node_num;
 			return;
 		}
 
@@ -269,7 +268,7 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
  *
  * @return The number of leafs accumulated to the list.
  */
-int32_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len,
+size_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len,
 		int32_t *top_node, int32_t head_node) {
 
 	cm_box_leafnum_data data;
@@ -285,6 +284,9 @@ int32_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size
 
 	if (top_node)
 		*top_node = data.top_node;
+
+	if (data.len == data.max_len)
+		Com_Debug("max_len reached\n");
 
 	return data.len;
 }

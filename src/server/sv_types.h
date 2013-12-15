@@ -28,11 +28,18 @@
 #ifdef __SV_LOCAL_H__
 
 /*
- * @brief The maximum number of clusters an entity may occupy before PVS
- * culling is skipped and BSP recursion is instead used to resolve its
- *
+ * @brief The practical maximum number of leafs an entity may occupy. If an
+ * entity exceeds this (by having a massive bounding box, for example), it may
+ * fall out of PVS for some valid client positions.
  */
-#define MAX_ENT_CLUSTERS	16
+#define MAX_ENT_LEAFS 128
+
+/*
+ * @brief The maximum number of clusters an entity may occupy. If an entity
+ * exceeds this (by having a massive bounding box, for example), a full BSP
+ * recursion is necessary to determine its visibility (bad).
+ */
+#define MAX_ENT_CLUSTERS 16
 
 /*
  * @brief The server-specific view of an entity. An sv_entity_t corresponds to
@@ -40,10 +47,10 @@
  * This structure is primarily used for entity list management and clipping.
  */
 typedef struct {
-	int32_t head_node;
+	int32_t top_node; // used if MAX_ENT_LEAFS or MAX_ENT_CLUSTERS is exceeded
 
 	int32_t clusters[MAX_ENT_CLUSTERS];
-	int32_t num_clusters; // if -1, use head_node
+	int32_t num_clusters; // if -1, use top_node
 
 	int32_t areas[2];
 	struct sv_sector_s *sector;

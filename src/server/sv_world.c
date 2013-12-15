@@ -120,16 +120,14 @@ void Sv_UnlinkEdict(g_edict_t *ent) {
 	}
 }
 
-#define MAX_TOTAL_ENT_LEAFS 128
-
 /*
  * @brief Called whenever an entity changes origin, mins, maxs, or solid to add it to
  * the clipping hull.
  */
 void Sv_LinkEdict(g_edict_t *ent) {
-	int32_t leafs[MAX_TOTAL_ENT_LEAFS];
-	int32_t clusters[MAX_TOTAL_ENT_LEAFS];
-	int32_t i, j;
+	int32_t leafs[MAX_ENT_LEAFS];
+	int32_t clusters[MAX_ENT_LEAFS];
+	size_t i, j;
 	int32_t top_node;
 
 	if (ent == svs.game->edicts) // never bother with the world
@@ -153,7 +151,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 		ent->s.solid = SOLID_NOT;
 	}
 
-	// set the absolute bounding box
+	// set the absolute bounding box; ensure it is symmetrical
 	if (ent->solid == SOLID_BSP && !VectorCompare(ent->s.angles, vec3_origin)) { // expand for rotation
 		vec_t max = 0.0;
 
@@ -190,11 +188,11 @@ void Sv_LinkEdict(g_edict_t *ent) {
 	sent->areas[0] = sent->areas[1] = 0;
 
 	// get all leafs, including solids
-	const int32_t num_leafs = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, lengthof(leafs),
+	const size_t len = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, lengthof(leafs),
 			&top_node, 0);
 
 	// set areas, allowing entities (doors) to occupy up to two
-	for (i = 0; i < num_leafs; i++) {
+	for (i = 0; i < len; i++) {
 		clusters[i] = Cm_LeafCluster(leafs[i]);
 		const int32_t area = Cm_LeafArea(leafs[i]);
 		if (area) {
@@ -208,12 +206,12 @@ void Sv_LinkEdict(g_edict_t *ent) {
 		}
 	}
 
-	if (num_leafs >= MAX_TOTAL_ENT_LEAFS) { // assume we missed some leafs, and mark by head_node
+	if (len == MAX_ENT_LEAFS) { // use top_node
 		sent->num_clusters = -1;
-		sent->head_node = top_node;
+		sent->top_node = top_node;
 	} else {
 		sent->num_clusters = 0;
-		for (i = 0; i < num_leafs; i++) {
+		for (i = 0; i < len; i++) {
 
 			if (clusters[i] == -1)
 				continue; // not a visible leaf
@@ -223,9 +221,9 @@ void Sv_LinkEdict(g_edict_t *ent) {
 					break;
 
 			if (j == i) {
-				if (sent->num_clusters == MAX_ENT_CLUSTERS) { // assume we missed some leafs, and mark by head_node
+				if (sent->num_clusters == MAX_ENT_CLUSTERS) { // use top_node
 					sent->num_clusters = -1;
-					sent->head_node = top_node;
+					sent->top_node = top_node;
 					break;
 				}
 
@@ -233,6 +231,9 @@ void Sv_LinkEdict(g_edict_t *ent) {
 			}
 		}
 	}
+
+	if (sent->num_clusters == -1)
+		Com_Debug("%s exceeds MAX_ENT_CLUSTERS\n", etos(ent));
 
 	if (ent->solid == SOLID_NOT)
 		return;
