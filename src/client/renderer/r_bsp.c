@@ -62,12 +62,46 @@ _Bool R_CullBspModel(const r_entity_t *e) {
 		VectorAdd(e->origin, e->model->maxs, maxs);
 	}
 
-	e->model->bsp_inline->lights = 0; // reset lights mask each frame
-
 	return R_CullBox(mins, maxs);
 }
 
-#define BACK_PLANE_EPSILON 0.01
+/*
+ * @brief Rotates the frame's light sources into the model's space and recurses
+ * down the model's tree. Surfaces that should receive light are marked so that
+ * the draw routines will enable the lights. This must be called with NULL to
+ * restore light origins after the model has been drawn.
+ */
+void R_RotateLightsForBspInlineModel(const r_entity_t *e) {
+	static vec3_t light_origins[MAX_LIGHTS];
+	static int16_t frame;
+
+	// for each frame, backup the light origins
+	if (frame != r_locals.frame) {
+		for (uint16_t i = 0; i < r_view.num_lights; i++) {
+			VectorCopy(r_view.lights[i].origin, light_origins[i]);
+		}
+		frame = r_locals.frame;
+	}
+
+	// for malformed inline models, simply return
+	if (e && e->model->bsp_inline->head_node == -1)
+		return;
+
+	// for well-formed models, iterate the lights, transforming them into model
+	// space and marking surfaces, or restoring them if the model is NULL
+
+	const r_bsp_node_t *nodes = r_model_state.world->bsp->nodes;
+	r_light_t *l = r_view.lights;
+
+	for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
+		if (e) {
+			R_TransformForEntity(e, light_origins[i], l->origin);
+			R_MarkLight(l, nodes + e->model->bsp_inline->head_node);
+		} else {
+			VectorCopy(light_origins[i], l->origin);
+		}
+	}
+}
 
 /*
  * @brief Draws all BSP surfaces for the specified entity. This is a condensed
@@ -104,7 +138,7 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 		if (surf->flags & R_SURF_SIDE_BACK)
 			dot = -dot;
 
-		if (dot > BACK_PLANE_EPSILON) { // visible, flag for rendering
+		if (dot > SIDE_EPSILON) { // visible, flag for rendering
 			surf->frame = r_locals.frame;
 			surf->back_frame = -1;
 		} else { // back-facing
@@ -158,7 +192,7 @@ void R_DrawBspInlineModel(const r_entity_t *e) {
 		r_bsp_model_org[2] = DotProduct(temp, up);
 	}
 
-	R_RotateLightsForEntity(e, e->model->bsp_inline->lights);
+	R_RotateLightsForBspInlineModel(e);
 
 	R_RotateForEntity(e);
 
@@ -166,7 +200,7 @@ void R_DrawBspInlineModel(const r_entity_t *e) {
 
 	R_RotateForEntity(NULL);
 
-	R_RotateLightsForEntity(NULL, e->model->bsp_inline->lights);
+	R_RotateLightsForBspInlineModel(NULL);
 }
 
 /*
@@ -291,7 +325,7 @@ void R_DrawBspLeafs(void) {
  * Finally, the back-side child node is recursed.
  */
 static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
-	int32_t i, side, side_bit;
+	int32_t side, side_bit;
 	vec_t dot;
 
 	if (node->contents == CONTENTS_SOLID)
@@ -314,7 +348,7 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 
 		r_bsp_surface_t **s = leaf->first_leaf_surface;
 
-		for (i = 0; i < leaf->num_leaf_surfaces; i++, s++) {
+		for (uint16_t i = 0; i < leaf->num_leaf_surfaces; i++, s++) {
 			(*s)->vis_frame = r_locals.vis_frame;
 		}
 
@@ -328,7 +362,7 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	else
 		dot = DotProduct(r_view.origin, node->plane->normal) - node->plane->dist;
 
-	if (dot >= 0.0) {
+	if (dot > SIDE_EPSILON) {
 		side = 0;
 		side_bit = 0;
 	} else {
@@ -342,7 +376,7 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	// prune all marked surfaces to just those which are front-facing
 	r_bsp_surface_t *s = r_model_state.world->bsp->surfaces + node->first_surface;
 
-	for (i = 0; i < node->num_surfaces; i++, s++) {
+	for (uint16_t i = 0; i < node->num_surfaces; i++, s++) {
 
 		if (s->vis_frame == r_locals.vis_frame) { // it's been marked
 

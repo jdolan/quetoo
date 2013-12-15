@@ -166,7 +166,6 @@ typedef struct {
 	vec_t radius;
 	int32_t head_node;
 	uint16_t first_surface, num_surfaces;
-	uint64_t lights; // bit mask of enabled light sources
 } r_bsp_inline_model_t;
 
 typedef struct {
@@ -322,7 +321,7 @@ typedef struct {
 	int16_t area;
 
 	r_bsp_surface_t **first_leaf_surface;
-	int16_t num_leaf_surfaces;
+	uint16_t num_leaf_surfaces;
 } r_bsp_leaf_t;
 
 /*

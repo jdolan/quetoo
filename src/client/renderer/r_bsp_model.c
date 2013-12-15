@@ -568,7 +568,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		const uint16_t f = ((uint16_t) LittleShort(in->first_leaf_face));
 		out->first_leaf_surface = bsp->leaf_surfaces + f;
 
-		out->num_leaf_surfaces = LittleShort(in->num_leaf_faces);
+		out->num_leaf_surfaces = (uint16_t) LittleShort(in->num_leaf_faces);
 	}
 }
 
@@ -576,7 +576,6 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  * @brief
  */
 static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
-	int32_t i;
 	r_bsp_surface_t **out;
 
 	const uint16_t *in = (const void *) (mod_base + l->file_ofs);
@@ -587,7 +586,7 @@ static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	bsp->num_leaf_surfaces = l->file_len / sizeof(*in);
 	bsp->leaf_surfaces = out = Mem_LinkMalloc(bsp->num_leaf_surfaces * sizeof(*out), bsp);
 
-	for (i = 0; i < bsp->num_leaf_surfaces; i++) {
+	for (uint16_t i = 0; i < bsp->num_leaf_surfaces; i++) {
 
 		const uint16_t j = (uint16_t) LittleShort(in[i]);
 
