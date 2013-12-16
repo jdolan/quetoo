@@ -1153,7 +1153,7 @@ static void G_ClientMove_Debug(const char *msg) {
 /*
  * @brief Process the movement command, call Pm_Move and act on the result.
  */
-static void G_ClientMove(g_edict_t *ent, user_cmd_t *cmd) {
+static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 	vec3_t old_velocity, velocity;
 	pm_move_t pm;
 
@@ -1351,7 +1351,7 @@ static void G_ClientInventoryThink(g_edict_t *ent) {
  * @brief This will be called once for each client frame, which will usually be a
  * couple times for each server frame.
  */
-void G_ClientThink(g_edict_t *ent, user_cmd_t *cmd) {
+void G_ClientThink(g_edict_t *ent, pm_cmd_t *cmd) {
 	g_client_t *client;
 	int32_t i;
 

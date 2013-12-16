@@ -192,7 +192,7 @@ typedef struct {
 	char user_info[MAX_USER_INFO_STRING]; // name, skin, etc
 
 	int32_t last_frame; // for delta compression
-	user_cmd_t last_cmd; // for filling in big drops
+	pm_cmd_t last_cmd; // for filling in big drops
 
 	uint32_t cmd_msec; // for sv_enforce_time
 	uint16_t cmd_msec_errors; // maintain how many problems we've seen

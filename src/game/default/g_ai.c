@@ -25,7 +25,7 @@
  * @brief
  */
 static void G_Ai_ClientThink(g_edict_t *self) {
-	user_cmd_t cmd;
+	pm_cmd_t cmd;
 
 	memset(&cmd, 0, sizeof(cmd));
 	cmd.msec = gi.frame_millis;

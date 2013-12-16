@@ -680,7 +680,7 @@ typedef struct {
  * the game module requires.
  */
 typedef struct {
-	user_cmd_t cmd;
+	pm_cmd_t cmd;
 
 	g_client_persistent_t persistent;
 

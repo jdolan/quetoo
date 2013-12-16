@@ -385,7 +385,7 @@ typedef struct {
 	 * @brief Called when a client issues a movement command, which may include
 	 * button actions such as attacking.
 	 */
-	void (*ClientThink)(g_edict_t *ent, user_cmd_t *cmd);
+	void (*ClientThink)(g_edict_t *ent, pm_cmd_t *cmd);
 
 	/*
 	 * @brief Called every gi.frame_seconds to advance game logic.

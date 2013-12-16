@@ -27,7 +27,7 @@
  */
 void Cl_UpdateCmd(void) {
 	static uint32_t last_move;
-	user_cmd_t c;
+	pm_cmd_t c;
 
 	if (cls.state != CL_ACTIVE)
 		return;
@@ -122,12 +122,12 @@ void Cl_SendCmd(void) {
 
 	// send this and the previous two cmds in the message, so
 	// if the last packet was dropped, it can be recovered
-	static user_cmd_t null_cmd;
+	static pm_cmd_t null_cmd;
 
 	cl_cmd_t *cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
 	Net_WriteDeltaUserCmd(&buf, &null_cmd, &cmd->cmd);
 
-	user_cmd_t *old_cmd = &cmd->cmd;
+	pm_cmd_t *old_cmd = &cmd->cmd;
 	cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
 	Net_WriteDeltaUserCmd(&buf, old_cmd, &cmd->cmd);
 

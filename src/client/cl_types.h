@@ -28,7 +28,7 @@
 #include "ui/ui_types.h"
 
 typedef struct {
-	user_cmd_t cmd; // the movement command
+	pm_cmd_t cmd; // the movement command
 	uint32_t time; // simulation time when the command was sent
 	uint32_t real_time; // system time when the command was sent
 } cl_cmd_t;

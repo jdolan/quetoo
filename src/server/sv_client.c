@@ -374,7 +374,7 @@ static void Sv_UserStringCommand(const char *s) {
 /*
  * @brief Account for command time and pass the command to game module.
  */
-static void Sv_ClientThink(sv_client_t *cl, user_cmd_t *cmd) {
+static void Sv_ClientThink(sv_client_t *cl, pm_cmd_t *cmd) {
 
 	cl->cmd_msec += cmd->msec;
 
@@ -388,7 +388,7 @@ static void Sv_ClientThink(sv_client_t *cl, user_cmd_t *cmd) {
  * @brief The current net_message is parsed for the given client.
  */
 void Sv_ParseClientMessage(sv_client_t *cl) {
-	user_cmd_t null_cmd, oldest_cmd, old_cmd, new_cmd;
+	pm_cmd_t null_cmd, oldest_cmd, old_cmd, new_cmd;
 	int32_t net_drop;
 	int32_t strings_issued;
 	int32_t moves_issued;

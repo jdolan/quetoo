@@ -469,7 +469,7 @@ static void Cl_ClampPitch(void) {
  * command to send to the server. This may be called several times for each
  * command that is transmitted if the client is running asynchronously.
  */
-void Cl_Move(user_cmd_t *cmd) {
+void Cl_Move(pm_cmd_t *cmd) {
 
 	if (cmd->msec < 1) // save key states for next move
 		return;

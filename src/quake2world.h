@@ -337,14 +337,14 @@ typedef struct {
 #define BUTTON_WALK			2
 
 /*
- * @brief User movement commands, sent to the server at each client frame.
+ * @brief Player movement commands, sent to the server at each client frame.
  */
 typedef struct {
-	uint8_t msec;
-	uint8_t buttons;
-	uint16_t angles[3];
-	int16_t forward, right, up;
-} user_cmd_t;
+	uint8_t msec; // duration of the command, in milliseconds
+	uint8_t buttons; // bit mask of buttons down
+	uint16_t angles[3]; // the final view angles for this command
+	int16_t forward, right, up; // directional intentions
+} pm_cmd_t;
 
 /*
  * @brief Sound attenuation constants.

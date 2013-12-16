@@ -141,7 +141,7 @@ extern const vec3_t PM_MAXS;
 typedef struct {
 	pm_state_t s; // state (in / out)
 
-	user_cmd_t cmd; // command (in)
+	pm_cmd_t cmd; // command (in)
 
 	uint16_t num_touch; // results (out)
 	struct g_edict_s *touch_ents[PM_MAX_TOUCH_ENTS];
