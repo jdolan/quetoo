@@ -120,7 +120,7 @@ void R_UpdateFrustum(void) {
 	for (i = 0; i < 4; i++) {
 		r_locals.frustum[i].type = PLANE_ANY_Z;
 		r_locals.frustum[i].dist = DotProduct(r_view.origin, r_locals.frustum[i].normal);
-		r_locals.frustum[i].sign_bits = SignBitsForPlane(&r_locals.frustum[i]);
+		r_locals.frustum[i].sign_bits = Cm_SignBitsForPlane(&r_locals.frustum[i]);
 	}
 }
 

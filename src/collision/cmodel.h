@@ -22,6 +22,10 @@
 #ifndef __CMODEL_H__
 #define __CMODEL_H__
 
+#include "files.h"
+#include "filesystem.h"
+#include "matrix.h"
+
 #include "cm_model.h"
 #include "cm_test.h"
 #include "cm_trace.h"

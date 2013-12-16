@@ -130,6 +130,41 @@ extern const vec3_t PM_MAXS;
 #define PMF_TIME_MASK (PMF_TIME_TRICK_JUMP | PMF_TIME_WATER_JUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT)
 
 /*
+ * @brief The maximum number of entities any single player movement can impact.
+ */
+#define PM_MAX_TOUCH_ENTS 32
+
+/*
+ * @brief The player movement structure provides context management between the
+ * game modules and the player movement code.
+ */
+typedef struct {
+	pm_state_t s; // state (in / out)
+
+	user_cmd_t cmd; // command (in)
+
+	uint16_t num_touch; // results (out)
+	struct g_edict_s *touch_ents[PM_MAX_TOUCH_ENTS];
+
+	vec3_t angles; // clamped, and including kick and delta
+	vec3_t mins, maxs; // bounding box size
+
+	struct g_edict_s *ground_entity;
+
+	int32_t water_type;
+	uint8_t water_level;
+
+	vec_t step; // stair interaction
+
+	// collision with the world and solid entities
+	int32_t (*PointContents)(const vec3_t point);
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs);
+
+	// print debug messages for development
+	void (*Debug)(const char *msg);
+} pm_move_t;
+
+/*
  * @brief Performs one discrete movement of the player through the world.
  */
 void Pm_Move(pm_move_t *pm_move);

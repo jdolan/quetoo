@@ -22,7 +22,7 @@
 #ifndef __SHARED_H__
 #define __SHARED_H__
 
-#include "quake2world.h"
+#include "collision/cm_types.h"
 
 /*
  * @brief The origin (0, 0, 0).
@@ -84,9 +84,6 @@ void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out);
 void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out);
 
-_Bool PlaneCompare(const cm_bsp_plane_t *p1, const cm_bsp_plane_t *p2);
-byte SignBitsForPlane(const cm_bsp_plane_t *plane);
-int32_t BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *plane);
 _Bool BoxIntersect(const vec3_t mins0, const vec3_t maxs0, const vec3_t mins1, const vec3_t maxs1);
 void ProjectPointOnPlane(const vec3_t p, const vec3_t normal, vec3_t out);
 void PerpendicularVector(const vec3_t in, vec3_t out);

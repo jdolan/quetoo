@@ -296,77 +296,20 @@ typedef enum {
 #define MASK_CURRENT			(CONTENTS_CURRENT_0|CONTENTS_CURRENT_90|CONTENTS_CURRENT_180|\
 							 	 	 CONTENTS_CURRENT_270|CONTENTS_CURRENT_UP|CONTENTS_CURRENT_DOWN)
 
-/*
- * @brief Plane side epsilon value.
- */
-#define	SIDE_EPSILON			0.001
 
 /*
- * @brief Plane side constants used for BSP recursion.
+ * @brief General player movement and capabilities classification.
  */
-#define	SIDE_FRONT				1
-#define	SIDE_BACK				2
-#define	SIDE_BOTH				3
-#define	SIDE_FACING				4
-
-/*
- * @brief Plane type constants for axial plane optimizations.
- */
-#define PLANE_X					0
-#define PLANE_Y					1
-#define PLANE_Z					2
-#define PLANE_ANY_X				3
-#define PLANE_ANY_Y				4
-#define PLANE_ANY_Z				5
-
-/*
- * @brief BSP planes are essential to collision detection as well as rendering.
- */
-typedef struct {
-	vec3_t normal;
-	vec_t dist;
-	uint16_t type; // for fast side tests
-	uint16_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
-	int32_t num; // for aligning collision model and rendering
-} cm_bsp_plane_t;
-
-/*
- * @brief Returns true if the specified plane is axially aligned.
- */
-#define AXIAL(p) ((p)->type < PLANE_ANY_X)
-
-/*
- * @brief BSP surfaces describe a material applied to a plane.
- */
-typedef struct {
-	char name[32];
-	int32_t flags;
-	int32_t value;
-} cm_bsp_surface_t;
-
-// a trace is returned when a box is swept through the world
-typedef struct {
-	_Bool all_solid; // if true, plane is not valid
-	_Bool start_solid; // if true, the initial point was in a solid area
-	vec_t fraction; // time completed, 1.0 = didn't hit anything
-	vec3_t end; // final position
-	cm_bsp_plane_t plane; // surface normal at impact
-	cm_bsp_surface_t *surface; // surface hit, NULL for box hits
-	int32_t contents; // contents on other side of surface hit
-	struct g_edict_s *ent; // not set by Cm_*() functions
-} cm_trace_t;
-
-// pm_state_t is the information necessary for client side movement prediction
 typedef enum {
-	// can accelerate and turn
-	PM_NORMAL,
-	PM_SPECTATOR,
-	// no acceleration or turning
-	PM_DEAD,
-	PM_FREEZE
+	PM_NORMAL, // walking, jumping, falling, swimming, etc.
+	PM_SPECTATOR, // free-flying movement with acceleration and friction
+	PM_DEAD, // no movement, but the ability to rotate in place
+	PM_FREEZE // no movement at all
 } pm_type_t;
 
-// pm_state_t flags, the game is free to define the rest of these
+/*
+ * @brief Player movement flags. The game is free to define more, to 16 bits.
+ */
 #define PMF_NO_PREDICTION	0x1
 
 /*
@@ -374,12 +317,12 @@ typedef enum {
  * position, orientation, velocity and world interaction state. This should
  * be modified only through invoking Pm_Move.
  */
-typedef struct pm_state_s {
+typedef struct {
 	pm_type_t type;
 	int16_t origin[3];
 	int16_t velocity[3];
-	uint16_t flags; // ducked, jump_held, etc
-	uint16_t time; // duration for PMF_TIME_* flags
+	uint16_t flags; // PMF_NO_PREDICTION, etc..
+	uint16_t time; // duration for temporal PMF_ flags
 	int16_t gravity;
 	int16_t view_offset[3]; // add to origin to resolve eyes
 	uint16_t view_angles[3]; // base view angles
@@ -387,44 +330,21 @@ typedef struct pm_state_s {
 	uint16_t delta_angles[3]; // offset for spawns, pushers, etc.
 } pm_state_t;
 
-// button bits
+/*
+ * @brief Button hits communicated via user_cmd_t.
+ */
 #define BUTTON_ATTACK		1
 #define BUTTON_WALK			2
 
-// user_cmd_t is sent to the server each client frame
-typedef struct user_cmd_s {
+/*
+ * @brief User movement commands, sent to the server at each client frame.
+ */
+typedef struct {
 	uint8_t msec;
 	uint8_t buttons;
 	uint16_t angles[3];
 	int16_t forward, right, up;
 } user_cmd_t;
-
-#define MAX_TOUCH_ENTS 32
-typedef struct {
-	pm_state_t s; // state (in / out)
-
-	user_cmd_t cmd; // command (in)
-
-	uint16_t num_touch; // results (out)
-	struct g_edict_s *touch_ents[MAX_TOUCH_ENTS];
-
-	vec3_t angles; // clamped, and including kick and delta
-	vec3_t mins, maxs; // bounding box size
-
-	struct g_edict_s *ground_entity;
-
-	int32_t water_type;
-	uint8_t water_level;
-
-	vec_t step; // stair interaction
-
-	// collision with the world and solid entities
-	int32_t (*PointContents)(const vec3_t point);
-	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs);
-
-	// print debug messages for development
-	void (*Debug)(const char *msg);
-} pm_move_t;
 
 /*
  * @brief Sound attenuation constants.
@@ -520,7 +440,6 @@ typedef enum {
  */
 typedef enum {
 	EV_NONE,
-	EV_CLIENT_TELEPORT,
 	EV_GAME, // the game may extend from here
 } entity_event_t;
 
@@ -558,9 +477,9 @@ typedef enum {
 } entity_trail_t;
 
 /*
- * Entity bounds are to be handled by the protocol based on their
- * solid field. Box entities encode their bounds into a 16 bit
- * integer. The rest simply send their value.
+ * @brief Entity bounds are to be handled by the protocol based on
+ * entity_state_t.solid. Box entities encode their bounds into a 16 bit
+ * integer. The rest simply send their respective constant.
  */
 typedef enum {
 	SOLID_NOT, // no interaction with other objects
@@ -580,27 +499,20 @@ typedef struct {
 
 	vec3_t origin;
 	vec3_t old_origin; // for interpolating
-
 	vec3_t angles;
 
 	uint8_t animation1, animation2; // animations (running, attacking, ..)
-
 	uint8_t event; // client side events (sounds, blood, ..)
-
 	uint16_t effects; // pulse, bob, rotate, etc..
-
 	uint8_t trail; // particle trails, dynamic lights, etc..
-
 	uint8_t model1, model2, model3, model4; // primary model, linked models
-
 	uint8_t client; // client info index
-
 	uint8_t sound; // looped sounds
 
 	/*
-	 * Encoded bounding box dimensions for mesh entities. This facilitates
+	 * @brief Encoded bounding box dimensions for mesh entities. This enables
 	 * client-sided prediction so that players don't e.g. run through each
-	 * other. See gi.LinkEdict.
+	 * other. See PackBounds.
 	 */
 	uint16_t solid;
 } entity_state_t;
@@ -608,9 +520,10 @@ typedef struct {
 #define MAX_STATS			32
 
 /*
- * Player state structures contain authoritative snapshots of the player's
- * movement, as well as the player's statistics (inventory, health, etc.).
- * The game module is free to define what the stats array actually contains.
+ * @brief Player state structures contain authoritative snapshots of the
+ * player's movement, as well as the player's statistics (inventory, health,
+ * etc.). The game module is free to define what the stats array actually
+ * contains.
  */
 typedef struct player_state_s {
 	pm_state_t pm_state; // movement and contents state
@@ -618,7 +531,7 @@ typedef struct player_state_s {
 } player_state_t;
 
 /*
- * Colored text escape and code definitions.
+ * @brief Colored text escape and code definitions.
  */
 #define COLOR_ESC			'^'
 
@@ -640,18 +553,25 @@ typedef struct player_state_s {
 #define CON_COLOR_CHAT		CON_COLOR_ALT
 #define CON_COLOR_TEAMCHAT	CON_COLOR_YELLOW
 
+/*
+ * @return True if the byte represents a color escape sequence.
+ */
 #define IS_COLOR(c)( \
 	*c == COLOR_ESC && ( \
 		*(c + 1) >= '0' && *(c + 1) <= '7' \
 	) \
 )
 
+/*
+ * @return True if the byte represents a legacy color escape sequence.
+ */
 #define IS_LEGACY_COLOR(c)( \
 	*c == 1 || *c == 2 \
 )
 
-/* returns the amount of elements - not the amount of bytes */
+/*
+ * @return The number of elements, rather than the number of bytes.
+ */
 #define lengthof(x) (sizeof(x) / sizeof(*(x)))
-#define CASSERT(x) extern int32_t ASSERT_COMPILE[((x) != 0) * 2 - 1]
 
 #endif /* __QUAKE2WORLD_H__ */

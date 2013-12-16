@@ -457,7 +457,7 @@ static cm_trace_t G_Physics_Fly_Move(g_edict_t *ent) {
 	VectorCopy(trace.end, ent->s.origin);
 	gi.LinkEdict(ent);
 
-	if (trace.ent && !PlaneCompare(&trace.plane, &ent->locals.ground_plane)) {
+	if (trace.ent && trace.plane.num != ent->locals.ground_plane.num) {
 		G_RunTouch(ent, &trace);
 
 		// if we kill the other entity, retry as if it were never there

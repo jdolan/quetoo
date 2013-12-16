@@ -173,7 +173,8 @@ typedef struct {
  * @brief Game-specific entity events.
  */
 typedef enum {
-	EV_CLIENT_DROWN = EV_GAME,
+	EV_CLIENT_TELEPORT = EV_GAME,
+	EV_CLIENT_DROWN,
 	EV_CLIENT_FALL,
 	EV_CLIENT_FALL_FAR,
 	EV_CLIENT_FOOTSTEP,

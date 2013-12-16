@@ -66,7 +66,7 @@ void Cl_UpdateCmd(void) {
 static void Cl_InitCmd(void) {
 	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
-	memset(cmd, 0, sizeof(user_cmd_t));
+	memset(cmd, 0, sizeof(cl_cmd_t));
 }
 
 /*

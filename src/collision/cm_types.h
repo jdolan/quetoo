@@ -22,9 +22,57 @@
 #ifndef __CM_TYPES_H__
 #define __CM_TYPES_H__
 
-#include "files.h"
-#include "filesystem.h"
-#include "matrix.h"
+#include "quake2world.h"
+
+/*
+ * @brief Plane side epsilon value.
+ */
+#define	SIDE_EPSILON			0.001
+
+/*
+ * @brief Plane side constants used for BSP recursion.
+ */
+#define	SIDE_FRONT				1
+#define	SIDE_BACK				2
+#define	SIDE_BOTH				3
+#define	SIDE_FACING				4
+
+/*
+ * @brief Plane type constants for axial plane optimizations.
+ */
+#define PLANE_X					0
+#define PLANE_Y					1
+#define PLANE_Z					2
+#define PLANE_ANY_X				3
+#define PLANE_ANY_Y				4
+#define PLANE_ANY_Z				5
+
+/*
+ * @brief BSP planes are essential to collision detection as well as rendering.
+ * Quake uses "positive planes," where the plane distances are represented as
+ * negative offsets from the origin.
+ */
+typedef struct {
+	vec3_t normal;
+	vec_t dist;
+	uint16_t type; // for fast side tests
+	uint16_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
+	int32_t num; // for aligning collision model and rendering
+} cm_bsp_plane_t;
+
+/*
+ * @brief Returns true if the specified plane is axially aligned.
+ */
+#define AXIAL(p) ((p)->type < PLANE_ANY_X)
+
+/*
+ * @brief BSP surfaces describe a material applied to a plane.
+ */
+typedef struct {
+	char name[32];
+	int32_t flags;
+	int32_t value;
+} cm_bsp_surface_t;
 
 /*
  * @brief Inline BSP models are segments of the collision model that may move.
@@ -35,6 +83,57 @@ typedef struct {
 	vec3_t origin; // for sounds or lights
 	int32_t head_node;
 } cm_bsp_model_t;
+
+/*
+ * @brief Traces are discrete movements through world space, clipped to the
+ * BSP planes they intersect. This is the basis for all collision detection
+ * within Quake.
+ */
+typedef struct {
+	/*
+	 * @brief If true, the trace started and ended within the same solid.
+	 */
+	_Bool all_solid;
+
+	/*
+	 * @brief If true, the trace started within a solid, but exited it.
+	 */
+	_Bool start_solid;
+
+	/*
+	 * @brief The fraction of the desired distance traveled (0.0 - 1.0). If
+	 * 1.0, no plane was impacted.
+	 */
+	vec_t fraction;
+
+	/*
+	 * @brief The destination position.
+	 */
+	vec3_t end;
+
+	/*
+	 * @brief The impacted plane, or empty. Note that a copy of the plane is
+	 * returned, rather than a pointer. This is because the plane may belong to
+	 * an inline BSP or the box hull of a solid entity, in which case it must
+	 * be transformed by the entity's current position.
+	 */
+	cm_bsp_plane_t plane;
+
+	/*
+	 * @brief The impacted surface, or NULL.
+	 */
+	cm_bsp_surface_t *surface;
+
+	/*
+	 * @brief The contents mask of the impacted brush, or 0.
+	 */
+	int32_t contents;
+
+	/*
+	 * @brief The impacted entity, or NULL.
+	 */
+	struct g_edict_s *ent; // not set by Cm_*() functions
+} cm_trace_t;
 
 #ifdef __CM_LOCAL_H__
 
@@ -69,53 +168,6 @@ typedef struct {
 	int32_t flood_num; // if two areas have equal flood_nums, they are connected
 	int32_t flood_valid;
 } cm_bsp_area_t;
-
-typedef struct {
-	char name[MAX_QPATH];
-	byte *base;
-
-	int32_t entity_string_len;
-	char entity_string[MAX_BSP_ENT_STRING];
-
-	int32_t num_planes;
-	cm_bsp_plane_t planes[MAX_BSP_PLANES + 12]; // extra for box hull
-
-	int32_t num_nodes;
-	cm_bsp_node_t nodes[MAX_BSP_NODES + 6]; // extra for box hull
-
-	int32_t num_surfaces;
-	cm_bsp_surface_t surfaces[MAX_BSP_TEXINFO];
-
-	int32_t num_leafs;
-	cm_bsp_leaf_t leafs[MAX_BSP_LEAFS + 1]; // extra for box hull
-	int32_t empty_leaf, solid_leaf;
-
-	int32_t num_leaf_brushes;
-	uint16_t leaf_brushes[MAX_BSP_LEAF_BRUSHES + 1]; // extra for box hull
-
-	int32_t num_models;
-	cm_bsp_model_t models[MAX_BSP_MODELS];
-
-	int32_t num_brushes;
-	cm_bsp_brush_t brushes[MAX_BSP_BRUSHES + 1]; // extra for box hull
-
-	int32_t num_brush_sides;
-	cm_bsp_brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES + 6]; // extra for box hull
-
-	int32_t num_visibility;
-	byte visibility[MAX_BSP_VISIBILITY];
-
-	int32_t num_areas;
-	cm_bsp_area_t areas[MAX_BSP_AREAS];
-
-	int32_t num_area_portals;
-	d_bsp_area_portal_t area_portals[MAX_BSP_AREA_PORTALS];
-
-	_Bool portal_open[MAX_BSP_AREA_PORTALS];
-	int32_t flood_valid;
-} cm_bsp_t;
-
-typedef d_bsp_vis_t cm_vis_t;
 
 #endif /* __CM_LOCAL_H__ */
 

@@ -69,7 +69,7 @@ static void Cm_LoadBspPlanes(const d_bsp_lump_t *l) {
 
 		out->dist = LittleFloat(in->dist);
 		out->type = LittleLong(in->type);
-		out->sign_bits = SignBitsForPlane(out);
+		out->sign_bits = Cm_SignBitsForPlane(out);
 		out->num = i;
 	}
 }

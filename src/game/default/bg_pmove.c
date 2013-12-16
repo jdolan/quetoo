@@ -126,7 +126,7 @@ static void Pm_TouchEnt(struct g_edict_s *ent) {
 		return;
 	}
 
-	if (pm->num_touch == MAX_TOUCH_ENTS) {
+	if (pm->num_touch == PM_MAX_TOUCH_ENTS) {
 		Pm_Debug("MAX_TOUCH_ENTS\n");
 		return;
 	}
@@ -246,7 +246,7 @@ static _Bool Pm_StepMove(_Bool up) {
 	if (trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL) {
 
 		// check if the floor is new; if so, we've likely stepped
-		if (trace.ent != pm->ground_entity || !PlaneCompare(&trace.plane, &pml.ground_plane)) {
+		if (trace.ent != pm->ground_entity || trace.plane.num != pml.ground_plane.num) {
 
 			// never slow down on Z; this is critical
 			pml.velocity[2] = vel[2];

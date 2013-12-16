@@ -34,7 +34,7 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 		return false;
 
 	for (i = 0; i < 4; i++) {
-		if (BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) != SIDE_BACK)
+		if (Cm_BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) != SIDE_BACK)
 			return false;
 	}
 

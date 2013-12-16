@@ -22,6 +22,86 @@
 #include "cm_local.h"
 
 /*
+ * @return A bit mask hinting at the sign of each normal vector component. This
+ * can be used to optimize plane side tests.
+ */
+int32_t Cm_SignBitsForPlane(const cm_bsp_plane_t *p) {
+	int32_t bits = 0;
+
+	for (int32_t i = 0; i < 3; i++) {
+		if (p->normal[i] < 0)
+			bits |= 1 << i;
+	}
+
+	return bits;
+}
+
+/*
+ * @return The sidedness of the given bounds relative to the specified plane.
+ * If the box straddles the plane, SIDE_BOTH is returned.
+ */
+int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_plane_t *p) {
+	vec_t dist1, dist2;
+
+	// axial planes
+	if (AXIAL(p)) {
+		if (p->dist - SIDE_EPSILON <= mins[p->type])
+			return SIDE_FRONT;
+		if (p->dist + SIDE_EPSILON >= maxs[p->type])
+			return SIDE_BACK;
+		return SIDE_BOTH;
+	}
+
+	// general case
+	switch (p->sign_bits) {
+		case 0:
+			dist1 = DotProduct(p->normal, maxs);
+			dist2 = DotProduct(p->normal, mins);
+			break;
+		case 1:
+			dist1 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * maxs[2];
+			dist2 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * mins[2];
+			break;
+		case 2:
+			dist1 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
+			dist2 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
+			break;
+		case 3:
+			dist1 = p->normal[0] * mins[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
+			dist2 = p->normal[0] * maxs[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
+			break;
+		case 4:
+			dist1 = p->normal[0] * maxs[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
+			dist2 = p->normal[0] * mins[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
+			break;
+		case 5:
+			dist1 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * mins[2];
+			dist2 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * maxs[2];
+			break;
+		case 6:
+			dist1 = p->normal[0] * maxs[0] + p->normal[1] * mins[1] + p->normal[2] * mins[2];
+			dist2 = p->normal[0] * mins[0] + p->normal[1] * maxs[1] + p->normal[2] * maxs[2];
+			break;
+		case 7:
+			dist1 = DotProduct(p->normal, mins);
+			dist2 = DotProduct(p->normal, maxs);
+			break;
+		default:
+			dist1 = dist2 = 0.0; // shut up compiler
+			break;
+	}
+
+	int32_t sides = 0;
+
+	if (dist1 >= p->dist)
+		sides = SIDE_FRONT;
+	if (dist2 < p->dist)
+		sides |= SIDE_BACK;
+
+	return sides;
+}
+
+/*
  * @brief Bounding box to BSP tree structure for box positional testing.
  */
 typedef struct {
@@ -89,14 +169,14 @@ void Cm_InitBoxHull(void) {
 		plane->type = i >> 1;
 		VectorClear(plane->normal);
 		plane->normal[i >> 1] = 1.0;
-		plane->sign_bits = SignBitsForPlane(plane);
+		plane->sign_bits = Cm_SignBitsForPlane(plane);
 		plane->num = cm_bsp.num_planes + i * 2;
 
 		plane = &cm_box.planes[i * 2 + 1];
 		plane->type = PLANE_ANY_X + (i >> 1);
 		VectorClear(plane->normal);
 		plane->normal[i >> 1] = -1.0;
-		plane->sign_bits = SignBitsForPlane(plane);
+		plane->sign_bits = Cm_SignBitsForPlane(plane);
 		plane->num = cm_bsp.num_planes + i * 2 + 1;
 
 		const int32_t side = i & 1;
@@ -240,11 +320,11 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 		const cm_bsp_node_t *node = &cm_bsp.nodes[node_num];
 		const cm_bsp_plane_t *plane = node->plane;
 
-		const int32_t s = BoxOnPlaneSide(data->mins, data->maxs, plane);
+		const int32_t side = Cm_BoxOnPlaneSide(data->mins, data->maxs, plane);
 
-		if (s == 1)
+		if (side == SIDE_FRONT)
 			node_num = node->children[0];
-		else if (s == 2)
+		else if (side == SIDE_BACK)
 			node_num = node->children[1];
 		else { // go down both
 			if (data->top_node == -1)
