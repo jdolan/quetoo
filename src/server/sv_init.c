@@ -249,7 +249,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 	strcpy(sv.config_strings[CS_NAME], server);
 
 	if (state == SV_ACTIVE_DEMO) { // loading a demo
-		sv.cm_models[0] = Cm_LoadBsp(NULL, &map_size);
+		sv.cm_models[0] = Cm_LoadBspModel(NULL, &map_size);
 
 		sv.demo_file = Fs_OpenRead(va("demos/%s.dem", sv.name));
 		svs.spawn_count = 0;
@@ -258,7 +258,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 	} else { // loading a map
 		g_snprintf(sv.config_strings[CS_MODELS], MAX_QPATH, "maps/%s.bsp", sv.name);
 
-		sv.cm_models[0] = Cm_LoadBsp(sv.config_strings[CS_MODELS], &map_size);
+		sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_MODELS], &map_size);
 
 		const char *dir = Fs_RealDir(sv.config_strings[CS_MODELS]);
 		if (g_str_has_suffix(dir, ".zip")) {

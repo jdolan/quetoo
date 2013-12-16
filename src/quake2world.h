@@ -344,16 +344,6 @@ typedef struct {
 	int32_t value;
 } cm_bsp_surface_t;
 
-/*
- * @brief Inline BSP models are segments of the collision model that may move.
- * They are treated as their own sub-trees and recursed separately.
- */
-typedef struct {
-	vec3_t mins, maxs;
-	vec3_t origin; // for sounds or lights
-	int32_t head_node;
-} cm_bsp_model_t;
-
 // a trace is returned when a box is swept through the world
 typedef struct {
 	_Bool all_solid; // if true, plane is not valid

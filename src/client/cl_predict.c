@@ -255,7 +255,7 @@ void Cl_UpdatePrediction(void) {
 		const char *bsp_name = cl.config_strings[CS_MODELS];
 		const int32_t bsp_size = atoi(cl.config_strings[CS_BSP_SIZE]);
 
-		Cm_LoadBsp(bsp_name, &bs);
+		Cm_LoadBspModel(bsp_name, &bs);
 
 		if (bs != bsp_size) {
 			Com_Error(ERR_DROP, "Local map version differs from server: %i != %i\n", bs, bsp_size);

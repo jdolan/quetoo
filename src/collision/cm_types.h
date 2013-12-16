@@ -26,6 +26,16 @@
 #include "filesystem.h"
 #include "matrix.h"
 
+/*
+ * @brief Inline BSP models are segments of the collision model that may move.
+ * They are treated as their own sub-trees and recursed separately.
+ */
+typedef struct {
+	vec3_t mins, maxs;
+	vec3_t origin; // for sounds or lights
+	int32_t head_node;
+} cm_bsp_model_t;
+
 #ifdef __CM_LOCAL_H__
 
 typedef struct {
@@ -50,6 +60,7 @@ typedef struct {
 	int32_t contents;
 	int32_t num_sides;
 	int32_t first_brush_side;
+	vec3_t mins, maxs;
 } cm_bsp_brush_t;
 
 typedef struct {
@@ -102,8 +113,6 @@ typedef struct {
 
 	_Bool portal_open[MAX_BSP_AREA_PORTALS];
 	int32_t flood_valid;
-
-	cm_bsp_surface_t null_surface;
 } cm_bsp_t;
 
 typedef d_bsp_vis_t cm_vis_t;

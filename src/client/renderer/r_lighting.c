@@ -55,21 +55,21 @@ static void R_UpdateWorldIllumination(r_lighting_t *l) {
 		VectorMA(l->origin, MAX_WORLD_DIST, sun->dir, pos);
 
 		cm_trace_t tr = Cl_Trace(l->origin, pos, NULL, NULL, l->number, CONTENTS_SOLID);
-		if (tr.fraction < 1.0 && tr.surface->flags & SURF_SKY) {
+		if (tr.surface && tr.surface->flags & SURF_SKY) {
 			exposure += 0.33;
 		}
 
 		VectorMA(l->maxs, MAX_WORLD_DIST, sun->dir, pos);
 
 		tr = Cl_Trace(l->maxs, pos, NULL, NULL, l->number, CONTENTS_SOLID);
-		if (tr.fraction < 1.0 && tr.surface->flags & SURF_SKY) {
+		if (tr.surface && tr.surface->flags & SURF_SKY) {
 			exposure += 0.33;
 		}
 
 		VectorMA(l->mins, MAX_WORLD_DIST, sun->dir, pos);
 
 		tr = Cl_Trace(l->mins, pos, NULL, NULL, l->number, CONTENTS_SOLID);
-		if (tr.fraction < 1.0 && tr.surface->flags & SURF_SKY) {
+		if (tr.surface && tr.surface->flags & SURF_SKY) {
 			exposure += 0.33;
 		}
 

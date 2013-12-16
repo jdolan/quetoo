@@ -24,7 +24,7 @@
 
 #include "cm_types.h"
 
-cm_bsp_model_t *Cm_LoadBsp(const char *name, int32_t *map_size);
+cm_bsp_model_t *Cm_LoadBspModel(const char *name, int32_t *map_size);
 cm_bsp_model_t *Cm_Model(const char *name); // *1, *2, etc
 
 int32_t Cm_NumClusters(void);

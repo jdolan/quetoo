@@ -117,7 +117,7 @@ static void LightWorld(void) {
 		Com_Error(ERR_FATAL, "Empty map\n");
 
 	// load the map for tracing
-	cmodels[0] = Cm_LoadBsp(bsp_name, &i);
+	cmodels[0] = Cm_LoadBspModel(bsp_name, &i);
 	num_cmodels = Cm_NumModels();
 
 	for (i = 1; i < num_cmodels; i++) {

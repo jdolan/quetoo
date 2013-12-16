@@ -40,6 +40,7 @@ static cm_box_t cm_box;
  * just beyond the parsed size of the map.
  */
 void Cm_InitBoxHull(void) {
+	static cm_bsp_surface_t null_surface;
 	int32_t i;
 
 	if (cm_bsp.num_planes + 12 > MAX_BSP_PLANES)
@@ -112,7 +113,7 @@ void Cm_InitBoxHull(void) {
 		// fill in brush sides, one per side
 		cm_bsp_brush_side_t *bside = &cm_bsp.brush_sides[cm_bsp.num_brush_sides + i];
 		bside->plane = cm_bsp.planes + (cm_bsp.num_planes + i * 2 + side);
-		bside->surface = &cm_bsp.null_surface;
+		bside->surface = &null_surface;
 	}
 }
 

@@ -34,13 +34,14 @@ typedef struct {
 	vec3_t mins, maxs;
 	vec3_t extents;
 	vec3_t offsets[8];
+	vec3_t box_mins, box_maxs;
+
+	int32_t contents;
+	_Bool is_point;
 
 	cm_trace_t trace;
-	int32_t contents;
 
-	_Bool is_point; // optimized case
-
-	int32_t mailbox[16]; // used to avoid multiple intersection tests with brushes
+	int32_t mailbox[32]; // used to avoid multiple intersection tests with brushes
 } cm_trace_data_t;
 
 /*
@@ -48,7 +49,7 @@ typedef struct {
  */
 static _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, const int32_t brush_num) {
 
-	const int32_t hash = brush_num & 15;
+	const int32_t hash = brush_num & 31;
 	const _Bool skip = (data->mailbox[hash] == brush_num);
 
 	data->mailbox[hash] = brush_num;
@@ -62,6 +63,9 @@ static _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, const int32_t brush_nu
 static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
 	if (!brush->num_sides)
+		return;
+
+	if (!BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs))
 		return;
 
 	vec_t enter_fraction = -1.0;
@@ -113,11 +117,12 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 
 	if (!start_outside) { // original point was inside brush
 		data->trace.start_solid = true;
-		if (!end_outside)
+		if (!end_outside) {
 			data->trace.all_solid = true;
-	}
-
-	if (enter_fraction < leave_fraction) { // pierced brush
+			data->trace.fraction = 0.0;
+			data->trace.contents = brush->contents;
+		}
+	} else if (enter_fraction < leave_fraction) { // pierced brush
 		if (enter_fraction > -1.0 && enter_fraction < data->trace.fraction) {
 			data->trace.fraction = MAX(0.0, enter_fraction);
 			data->trace.plane = *clip_plane;
@@ -133,6 +138,9 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
 	if (!brush->num_sides)
+		return;
+
+	if (!BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs))
 		return;
 
 	const cm_bsp_brush_side_t *side = &cm_bsp.brush_sides[brush->first_brush_side];
@@ -320,72 +328,89 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 		const int32_t head_node, const int32_t contents) {
 
 	cm_trace_data_t data;
+	memset(&data, 0, sizeof(data));
 
-	// fill in a default trace
-	memset(&data.trace, 0, sizeof(data.trace));
 	data.trace.fraction = 1.0;
-	data.trace.surface = &cm_bsp.null_surface;
 
-	if (!cm_bsp.num_nodes) // map not loaded
+	if (!cm_bsp.num_nodes) { // map not loaded
 		return data.trace;
+	}
 
-	// initialize the trace data
-	memset(&data.mailbox, 0xffffffff, sizeof(data.mailbox));
-	data.contents = contents;
 	VectorCopy(start, data.start);
 	VectorCopy(end, data.end);
+
 	VectorCopy(mins, data.mins);
 	VectorCopy(maxs, data.maxs);
 
-	// offsets allow sign bit lookups for fast plane tests
-	data.offsets[0][0] = mins[0];
-	data.offsets[0][1] = mins[1];
-	data.offsets[0][2] = mins[2];
+	data.contents = contents;
 
-	data.offsets[1][0] = maxs[0];
-	data.offsets[1][1] = mins[1];
-	data.offsets[1][2] = mins[2];
+	// check for point special case
+	if (VectorCompare(mins, vec3_origin) && VectorCompare(maxs, vec3_origin)) {
+		data.is_point = true;
+	} else {
+		data.is_point = false;
 
-	data.offsets[2][0] = mins[0];
-	data.offsets[2][1] = maxs[1];
-	data.offsets[2][2] = mins[2];
+		// extents allow planes to be shifted to account for the box size
+		data.extents[0] = -mins[0] > maxs[0] ? -mins[0] : maxs[0];
+		data.extents[1] = -mins[1] > maxs[1] ? -mins[1] : maxs[1];
+		data.extents[2] = -mins[2] > maxs[2] ? -mins[2] : maxs[2];
 
-	data.offsets[3][0] = maxs[0];
-	data.offsets[3][1] = maxs[1];
-	data.offsets[3][2] = mins[2];
+		// offsets provide sign bit lookups for fast plane tests
+		data.offsets[0][0] = mins[0];
+		data.offsets[0][1] = mins[1];
+		data.offsets[0][2] = mins[2];
 
-	data.offsets[4][0] = mins[0];
-	data.offsets[4][1] = mins[1];
-	data.offsets[4][2] = maxs[2];
+		data.offsets[1][0] = maxs[0];
+		data.offsets[1][1] = mins[1];
+		data.offsets[1][2] = mins[2];
 
-	data.offsets[5][0] = maxs[0];
-	data.offsets[5][1] = mins[1];
-	data.offsets[5][2] = maxs[2];
+		data.offsets[2][0] = mins[0];
+		data.offsets[2][1] = maxs[1];
+		data.offsets[2][2] = mins[2];
 
-	data.offsets[6][0] = mins[0];
-	data.offsets[6][1] = maxs[1];
-	data.offsets[6][2] = maxs[2];
+		data.offsets[3][0] = maxs[0];
+		data.offsets[3][1] = maxs[1];
+		data.offsets[3][2] = mins[2];
 
-	data.offsets[7][0] = maxs[0];
-	data.offsets[7][1] = maxs[1];
-	data.offsets[7][2] = maxs[2];
+		data.offsets[4][0] = mins[0];
+		data.offsets[4][1] = mins[1];
+		data.offsets[4][2] = maxs[2];
+
+		data.offsets[5][0] = maxs[0];
+		data.offsets[5][1] = mins[1];
+		data.offsets[5][2] = maxs[2];
+
+		data.offsets[6][0] = mins[0];
+		data.offsets[6][1] = maxs[1];
+		data.offsets[6][2] = maxs[2];
+
+		data.offsets[7][0] = maxs[0];
+		data.offsets[7][1] = maxs[1];
+		data.offsets[7][2] = maxs[2];
+	}
+
+	for (int32_t i = 0; i < 3; i++) {
+		if (start[i] < end[i]) {
+			data.box_mins[i] = start[i] + mins[i] - 1.0;
+			data.box_maxs[i] = end[i] + maxs[i] + 1.0;
+		} else {
+			data.box_mins[i] = end[i] + mins[i] - 1.0;
+			data.box_maxs[i] = start[i] + maxs[i] + 1.0;
+		}
+	}
+
+	memset(data.mailbox, 0xff, sizeof(data.mailbox));
 
 	// check for position test special case
 	if (VectorCompare(start, end)) {
-		int32_t leafs[1024], top_node;
-		vec3_t p1, p2;
+		int32_t leafs[1024];
 
-		VectorAdd(start, mins, p1);
-		VectorAdd(start, maxs, p2);
-		for (int32_t i = 0; i < 3; i++) {
-			p1[i] -= 1.0;
-			p2[i] += 1.0;
-		}
-
-		const size_t len = Cm_BoxLeafnums(p1, p2, leafs, lengthof(leafs), &top_node, head_node);
+		const size_t len = Cm_BoxLeafnums(data.box_mins, data.box_maxs, leafs, lengthof(leafs),
+				NULL, head_node);
 
 		for (size_t i = 0; i < len; i++) {
 			Cm_TestInLeaf(&data, leafs[i]);
+
 			if (data.trace.all_solid)
 				break;
 		}
@@ -394,18 +419,6 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 		return data.trace;
 	}
 
-	// check for point special case
-	if (VectorCompare(mins, vec3_origin) && VectorCompare(maxs, vec3_origin)) {
-		data.is_point = true;
-		VectorClear(data.extents);
-	} else {
-		data.is_point = false;
-		data.extents[0] = -mins[0] > maxs[0] ? -mins[0] : maxs[0];
-		data.extents[1] = -mins[1] > maxs[1] ? -mins[1] : maxs[1];
-		data.extents[2] = -mins[2] > maxs[2] ? -mins[2] : maxs[2];
-	}
-
-	// general sweeping through world
 	Cm_TraceToNode(&data, head_node, 0.0, 1.0, start, end);
 
 	if (data.trace.fraction == 0.0) {
