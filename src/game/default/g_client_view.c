@@ -214,6 +214,13 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 	vec3_t kick;
 	UnpackAngles(kick_angles, kick);
 
+	// un-clamp them so that we can work with small signed values near zero
+
+	for (int32_t i = 0; i < 3; i++) {
+		if (kick[i] > 180.0)
+			kick[i] -= 360.0;
+	}
+
 	// add in any event-based feedback
 
 	switch (ent->s.event) {
@@ -236,7 +243,7 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 	kick[PITCH] += forward / 450.0;
 
 	vec_t right = DotProduct(ent->locals.velocity, ent->client->locals.right);
-	kick[ROLL] += right / 350.0;
+	kick[ROLL] += right / 400.0;
 
 	// now interpolate the kick angles towards neutral over time
 
@@ -249,8 +256,7 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 
 	delta = 0.5 + delta * delta * gi.frame_seconds;
 
-	int32_t i;
-	for (i = 0; i < 3; i++) {
+	for (int32_t i = 0; i < 3; i++) {
 
 		// clear angles smaller than our delta to avoid oscillations
 		if (fabs(kick[i]) <= delta) {
@@ -260,7 +266,6 @@ static void G_ClientKickAngles(g_edict_t *ent) {
 		} else {
 			kick[i] += delta;
 		}
-
 	}
 
 	PackAngles(kick, kick_angles);

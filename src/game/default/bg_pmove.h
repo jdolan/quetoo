@@ -139,9 +139,9 @@ extern const vec3_t PM_MAXS;
  * game modules and the player movement code.
  */
 typedef struct {
-	pm_state_t s; // state (in / out)
+	pm_state_t s; // movement state (in / out)
 
-	pm_cmd_t cmd; // command (in)
+	pm_cmd_t cmd; // movement command (in)
 
 	uint16_t num_touch; // results (out)
 	struct g_edict_s *touch_ents[PM_MAX_TOUCH_ENTS];
