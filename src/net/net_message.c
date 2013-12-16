@@ -135,7 +135,7 @@ void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
 /*
  * @brief
  */
-void Net_WriteDeltaUserCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t *to) {
+void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t *to) {
 
 	byte bits = 0;
 
@@ -551,7 +551,7 @@ void Net_ReadDir(mem_buf_t *msg, vec3_t dir) {
 /*
  * @brief
  */
-void Net_ReadDeltaUserCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to) {
+void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to) {
 
 	*to = *from;
 

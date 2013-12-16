@@ -437,9 +437,9 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 				}
 
 				memset(&null_cmd, 0, sizeof(null_cmd));
-				Net_ReadDeltaUserCmd(&net_message, &null_cmd, &oldest_cmd);
-				Net_ReadDeltaUserCmd(&net_message, &oldest_cmd, &old_cmd);
-				Net_ReadDeltaUserCmd(&net_message, &old_cmd, &new_cmd);
+				Net_ReadDeltaMoveCmd(&net_message, &null_cmd, &oldest_cmd);
+				Net_ReadDeltaMoveCmd(&net_message, &oldest_cmd, &old_cmd);
+				Net_ReadDeltaMoveCmd(&net_message, &old_cmd, &new_cmd);
 
 				// don't start delta compression until the client is spawned
 				// TODO: should this be a little higher up?

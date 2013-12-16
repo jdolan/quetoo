@@ -125,15 +125,15 @@ void Cl_SendCmd(void) {
 	static pm_cmd_t null_cmd;
 
 	cl_cmd_t *cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
-	Net_WriteDeltaUserCmd(&buf, &null_cmd, &cmd->cmd);
+	Net_WriteDeltaMoveCmd(&buf, &null_cmd, &cmd->cmd);
 
 	pm_cmd_t *old_cmd = &cmd->cmd;
 	cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
-	Net_WriteDeltaUserCmd(&buf, old_cmd, &cmd->cmd);
+	Net_WriteDeltaMoveCmd(&buf, old_cmd, &cmd->cmd);
 
 	old_cmd = &cmd->cmd;
 	cmd = &cl.cmds[(cls.net_chan.outgoing_sequence) & CMD_MASK];
-	Net_WriteDeltaUserCmd(&buf, old_cmd, &cmd->cmd);
+	Net_WriteDeltaMoveCmd(&buf, old_cmd, &cmd->cmd);
 
 	// deliver the message
 	Netchan_Transmit(&cls.net_chan, buf.data, buf.size);

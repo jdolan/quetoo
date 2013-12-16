@@ -1310,8 +1310,7 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 		G_TouchTriggers(ent);
 
 	// touch other objects
-	int32_t i;
-	for (i = 0; i < pm.num_touch; i++) {
+	for (uint16_t i = 0; i < pm.num_touch; i++) {
 		g_edict_t *other = pm.touch_ents[i];
 
 		if (!other->locals.Touch)
