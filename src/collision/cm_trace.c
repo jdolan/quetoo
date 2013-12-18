@@ -474,9 +474,8 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
 		trace.plane.dist = plane[3];
 	}
 
-	trace.end[0] = start[0] + trace.fraction * (end[0] - start[0]);
-	trace.end[1] = start[1] + trace.fraction * (end[1] - start[1]);
-	trace.end[2] = start[2] + trace.fraction * (end[2] - start[2]);
+	// and calculate the final end point
+	VectorMix(start, end, trace.fraction, trace.end);
 
 	return trace;
 }

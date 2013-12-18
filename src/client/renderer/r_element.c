@@ -35,11 +35,6 @@ static r_element_state_t r_element_state;
 
 /*
  * @brief Adds the depth-sorted element to the current frame.
- *
- * TODO: Since we have to calculate delta and depth, why not add a DotProduct
- * with r_view.forward to determine of the element is behind us? We could skip
- * all particles behind the origin. Also, VectorSum could probably be used in
- * place of VectorLenght here, to save a sqrt().
  */
 void R_AddElement(const r_element_t *e) {
 	vec3_t delta;

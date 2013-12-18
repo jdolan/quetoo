@@ -394,9 +394,9 @@ int32_t Sv_PointContents(const vec3_t point) {
 
 // an entity's movement, with allowed exceptions and other info
 typedef struct {
-	vec3_t box_mins, box_maxs; // enclose the test object along entire move
 	const vec_t *mins, *maxs; // size of the moving object
 	const vec_t *start, *end;
+	vec3_t box_mins, box_maxs; // enclose the test object along entire move
 	cm_trace_t trace;
 	const g_edict_t *skip;
 	int32_t contents;
