@@ -147,7 +147,7 @@ static _Bool G_SnapPosition(g_edict_t *ent) {
 /*
  * @brief Applies gravity, which is dependent on water level.
  */
-static void G_AddGravity(g_edict_t *ent) {
+static void G_Gravity(g_edict_t *ent) {
 	vec_t gravity = g_level.gravity;
 
 	if (ent->locals.water_level) {
@@ -160,7 +160,7 @@ static void G_AddGravity(g_edict_t *ent) {
 /*
  * @brief Handles friction against entity momentum, and based on contents.
  */
-static void G_AddFriction(g_edict_t *ent) {
+static void G_Friction(g_edict_t *ent) {
 
 	const vec_t speed = VectorLength(ent->locals.velocity);
 
@@ -172,7 +172,11 @@ static void G_AddFriction(g_edict_t *ent) {
 	vec_t friction = 0.0;
 
 	if (ent->locals.ground_entity) {
-		friction = PM_FRICT_GROUND; // TODO: factor in SURF_SLICK?
+		if (ent->locals.ground_surf && (ent->locals.ground_surf->flags & SURF_SLICK)) {
+			friction = PM_FRICT_GROUND_SLICK;
+		} else {
+			friction = PM_FRICT_GROUND;
+		}
 	} else {
 		friction = PM_FRICT_AIR;
 	}
@@ -182,18 +186,6 @@ static void G_AddFriction(g_edict_t *ent) {
 	vec_t scale = MAX(0.0, speed - (friction * friction * gi.frame_seconds)) / speed;
 
 	VectorScale(ent->locals.velocity, scale, ent->locals.velocity);
-}
-
-/*
- * @brief Add a bit of randomness to flying object velocity.
- */
-static void G_AddFlying(g_edict_t *ent) {
-	vec3_t right, up;
-
-	AngleVectors(ent->s.angles, NULL, right, up);
-
-	VectorMA(ent->locals.velocity, Randomc() * 5.0, right, ent->locals.velocity);
-	VectorMA(ent->locals.velocity, Randomc() * 5.0, up, ent->locals.velocity);
 }
 
 /*
@@ -481,8 +473,6 @@ static cm_trace_t G_Physics_Fly_Move(g_edict_t *ent) {
  */
 static void G_Physics_Fly(g_edict_t *ent) {
 
-	G_AddFlying(ent);
-
 	cm_trace_t trace = G_Physics_Fly_Move(ent);
 
 	if (!ent->in_use)
@@ -497,9 +487,9 @@ static void G_Physics_Fly(g_edict_t *ent) {
  */
 static void G_Physics_Toss(g_edict_t *ent) {
 
-	G_AddGravity(ent);
+	G_Gravity(ent);
 
-	G_AddFriction(ent);
+	G_Friction(ent);
 
 	cm_trace_t trace = G_Physics_Fly_Move(ent);
 
