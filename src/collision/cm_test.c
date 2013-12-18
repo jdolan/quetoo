@@ -29,7 +29,7 @@ int32_t Cm_SignBitsForPlane(const cm_bsp_plane_t *p) {
 	int32_t bits = 0;
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (p->normal[i] < 0)
+		if (p->normal[i] < 0.0)
 			bits |= 1 << i;
 	}
 

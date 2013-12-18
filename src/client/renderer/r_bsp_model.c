@@ -654,7 +654,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		out->dist = LittleFloat(in->dist);
 		out->type = LittleLong(in->type);
 		out->sign_bits = Cm_SignBitsForPlane(out);
-		out->num = i;
+		out->num = i + 1;
 	}
 }
 
