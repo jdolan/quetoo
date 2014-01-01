@@ -788,7 +788,7 @@ static _Bool Pm_CheckWaterJump(void) {
 
 	cm_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
-	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_SOLID)) {
+	if ((trace.fraction < 1.0) && (trace.contents & MASK_SOLID)) {
 
 		pos[2] += PM_STEP_HEIGHT + pm->maxs[2] - pm->mins[2];
 

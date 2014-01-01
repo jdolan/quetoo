@@ -652,7 +652,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 			G_Damage(tr.ent, self, self->owner, forward, tr.end, tr.plane.normal,
 					self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_LIGHTNING);
 		} else { // or leave a mark
-			if ((tr.contents & CONTENTS_SOLID) && G_IsStructural(tr.ent, tr.surface))
+			if ((tr.contents & MASK_SOLID) && G_IsStructural(tr.ent, tr.surface))
 				G_BurnMark(tr.end, &tr.plane, tr.surface, 8);
 		}
 		self->locals.damage = 0;
