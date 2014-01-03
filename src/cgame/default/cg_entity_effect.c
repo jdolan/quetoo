@@ -79,7 +79,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_QUAD) {
-		r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 0.3, 0.7, 0.7 } };
+		r_light_t l = { { 0.0, 0.0, 0.0 }, { 0.3, 0.7, 0.7 }, 80.0 };
 
 		VectorCopy(e->origin, l.origin);
 		cgi.AddLight(&l);
@@ -88,7 +88,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_BLUE) {
-		r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 0.3, 0.3, 1.0 } };
+		r_light_t l = { { 0.0, 0.0, 0.0 }, { 0.3, 0.3, 1.0 }, 80.0 };
 
 		VectorCopy(e->origin, l.origin);
 		cgi.AddLight(&l);
@@ -97,7 +97,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (e->effects & EF_CTF_RED) {
-		r_light_t l = { { 0.0, 0.0, 0.0 }, 80.0, { 1.0, 0.3, 0.3 } };
+		r_light_t l = { { 0.0, 0.0, 0.0 }, { 1.0, 0.3, 0.3 }, 80.0 };
 
 		VectorCopy(e->origin, l.origin);
 		cgi.AddLight(&l);
@@ -113,7 +113,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 			ent->time = cgi.client->time;
 		}
 
-		e->effects |= EF_BLEND;
+		e->effects |= (EF_BLEND | EF_NO_LIGHTING);
 		e->color[3] = 1.0 - ((cgi.client->time - ent->time) / 3000.0);
 	}
 }

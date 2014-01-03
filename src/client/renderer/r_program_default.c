@@ -25,6 +25,8 @@
 typedef struct {
 	r_attribute_t tangent;
 
+	r_uniform3fv_t ambient;
+
 	r_uniform1i_t diffuse;
 	r_uniform1i_t lightmap;
 	r_uniform1i_t deluxemap;
@@ -56,6 +58,8 @@ void R_InitProgram_default(void) {
 
 	R_ProgramVariable(&p->tangent, R_ATTRIBUTE, "TANGENT");
 
+	R_ProgramVariable(&p->ambient, R_UNIFORM_VECTOR, "AMBIENT");
+
 	R_ProgramVariable(&p->diffuse, R_UNIFORM_INT, "DIFFUSE");
 	R_ProgramVariable(&p->lightmap, R_UNIFORM_INT, "LIGHTMAP");
 	R_ProgramVariable(&p->deluxemap, R_UNIFORM_INT, "DELUXEMAP");
@@ -76,6 +80,8 @@ void R_InitProgram_default(void) {
 	R_ProgramVariable(&p->sampler4, R_SAMPLER_2D, "SAMPLER4");
 
 	R_DisableAttribute(&p->tangent);
+
+	R_ProgramParameter3fv(&p->ambient, vec3_origin);
 
 	R_ProgramParameter1i(&p->lightmap, 0);
 	R_ProgramParameter1i(&p->deluxemap, 0);
@@ -98,8 +104,12 @@ void R_InitProgram_default(void) {
  * @brief
  */
 void R_UseProgram_default(void) {
+	vec3_t ambient;
 
 	r_default_program_t *p = &r_default_program;
+
+	VectorScale(r_bsp_light_state.ambient, r_lighting->value, ambient);
+	R_ProgramParameter3fv(&p->ambient, ambient);
 
 	R_ProgramParameter1i(&p->diffuse, texunit_diffuse.enabled);
 	R_ProgramParameter1i(&p->lightmap, texunit_lightmap.enabled);

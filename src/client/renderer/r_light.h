@@ -32,7 +32,6 @@ void R_ResetLights(void);
 void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node);
 void R_MarkLights(void);
 void R_EnableLights(uint64_t mask);
-void R_EnableLightsForEntity(const r_entity_t *e);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_LIGHT_H__ */

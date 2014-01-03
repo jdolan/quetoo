@@ -94,9 +94,10 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 
 	// check to see if the delta was successful and valid
 	if (ent->frame_num != cl.frame.frame_num - 1 || !Cl_ValidDeltaEntity(from, to)) {
-		ent->prev = *to;
+		ent->prev = *to; // suppress interpolation
 		VectorCopy(to->old_origin, ent->prev.origin);
-		ent->animation1.time = ent->animation2.time = 0;
+		ent->animation1.time = ent->animation2.time = 0; // reset animations
+		ent->lighting.state = LIGHTING_INIT; // and lighting
 	} else { // shuffle the last state to previous
 		ent->prev = ent->current;
 	}
@@ -308,6 +309,9 @@ void Cl_LerpEntities(void) {
 		if (!VectorCompare(ent->origin, ent->current.origin)
 				|| !VectorCompare(ent->angles, ent->current.angles)) {
 
+			// mark the lighting as dirty
+			ent->lighting.state = LIGHTING_DIRTY;
+
 			// interpolate the origin and angles
 			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
 			AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
@@ -332,8 +336,12 @@ void Cl_UpdateEntities(void) {
 		uint16_t i;
 
 		for (i = 0; i < MAX_EDICTS; i++) {
-			cl.entities[i].lighting.state = LIGHTING_INIT;
-			cl.entities[i].lighting.number = i;
+			r_lighting_t *l = &cl.entities[i].lighting;
+
+			memset(l, 0, sizeof(*l));
+
+			l->state = LIGHTING_INIT;
+			l->number = i;
 		}
 	}
 }

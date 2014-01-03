@@ -27,15 +27,13 @@
 #ifdef __R_LOCAL_H__
 
 typedef struct {
-	vec_t diffuse;
-	vec3_t dir;
-	vec3_t color;
-} r_sun_t;
-
-typedef struct {
 	vec3_t ambient;
 
-	r_sun_t sun;
+	struct {
+		vec_t diffuse;
+		vec3_t dir;
+		vec3_t color;
+	} sun;
 
 	vec_t brightness;
 	vec_t saturation;

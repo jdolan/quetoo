@@ -41,28 +41,6 @@ _Bool Cg_IsSelf(const cl_entity_t *ent) {
 }
 
 /*
- * @brief Establishes the write-through lighting cache for the specified entity,
- * marking it as dirty if necessary.
- */
-static void Cg_UpdateLighting(cl_entity_t *ent, r_entity_t *e) {
-
-	// setup the write-through lighting cache
-	e->lighting = &ent->lighting;
-
-	if (ent->current.effects & (EF_NO_LIGHTING | EF_DESPAWN)) {
-		// some entities are never lit
-		e->lighting->state = LIGHTING_READY;
-	} else {
-		// but most are, so update their lighting if appropriate
-		if (e->lighting->state == LIGHTING_READY) {
-			if (!VectorCompare(ent->current.origin, e->origin)) {
-				e->lighting->state = LIGHTING_DIRTY;
-			}
-		}
-	}
-}
-
-/*
  * @brief Adds the numerous render entities which comprise a given client (player)
  * entity: head, upper, lower, weapon, flags, etc.
  */
@@ -218,14 +196,12 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	r_entity_t e;
 
 	memset(&e, 0, sizeof(e));
+	e.lighting = &ent->lighting;
 	e.scale = 1.0;
 
 	// set the origin and angles so that we know where to add effects
 	VectorCopy(ent->origin, e.origin);
 	VectorCopy(ent->angles, e.angles);
-
-	// update the static lighting cache
-	Cg_UpdateLighting(ent, &e);
 
 	// add events
 	Cg_EntityEvent(ent);

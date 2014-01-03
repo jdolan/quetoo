@@ -209,27 +209,3 @@ void R_EnableLights(uint64_t mask) {
 
 	r_locals.active_light_count = count;
 }
-
-/*
- * @brief Enables light sources within range of the specified point. This is
- * used by mesh entities, as they are not addressed with the recursive BSP-related
- * functions above.
- */
-void R_EnableLightsForEntity(const r_entity_t *e) {
-	const r_light_t *l;
-	uint16_t i;
-
-	uint64_t mask = 0;
-
-	for (i = 0, l = r_view.lights; i < r_view.num_lights; i++, l++) {
-		vec3_t delta;
-
-		VectorSubtract(l->origin, e->origin, delta);
-
-		if (VectorLength(delta) < l->radius)
-			mask |= ((uint64_t) (1 << i));
-
-	}
-
-	R_EnableLights(mask);
-}

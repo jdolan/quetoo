@@ -81,7 +81,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 	glMultMatrixf((GLfloat *) proj.m);
 
 	// transform the light position and shadow plane into model space
-	Matrix4x4_Transform(&e->inverse_matrix, s->illumination->pos, pos);
+	Matrix4x4_Transform(&e->inverse_matrix, s->illumination->light.origin, pos);
 	pos[3] = 1.0;
 
 	const vec_t *n = p->normal;
@@ -133,7 +133,6 @@ static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) 
  * position above our view origin are not drawn.
  */
 void R_DrawMeshShadow_default(const r_entity_t *e) {
-	uint16_t i;
 
 	if (!r_shadows->value)
 		return;
@@ -141,7 +140,7 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 	if (r_draw_wireframe->value)
 		return;
 
-	if (e->effects & EF_NO_SHADOW)
+	if (e->effects & (EF_NO_LIGHTING | EF_NO_SHADOW))
 		return;
 
 	R_EnableLighting(NULL, false);
@@ -159,7 +158,7 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	const r_shadow_t *s = e->lighting->shadows;
 
-	for (i = 0; i < lengthof(e->lighting->shadows); i++, s++) {
+	for (uint16_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {
 
 		if (s->intensity == 0.0)
 			break;

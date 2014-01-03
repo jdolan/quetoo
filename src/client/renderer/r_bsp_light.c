@@ -42,7 +42,7 @@
 #define BSP_LIGHT_MERGE_THRESHOLD 48.0
 #define BSP_LIGHT_SURFACE_RADIUS_SCALE 0.4
 #define BSP_LIGHT_POINT_RADIUS_SCALE 1.0
-#define BSP_LIGHT_COLOR_COMPONENT_MAX 1.0
+#define BSP_LIGHT_POINT_DEFAULT_RADIUS 300.0
 
 r_bsp_light_state_t r_bsp_light_state;
 
@@ -136,42 +136,40 @@ static void R_ResolveBspLightParameters(void) {
  * @brief Adds the specified static light source after first ensuring that it
  * can not be merged with any known sources.
  */
-static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, vec_t radius, vec3_t color) {
+static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t origin, vec3_t color, vec_t radius) {
 
 	if (radius <= 0.0) {
 		Com_Debug("Bad radius: %f\n", radius);
 		return;
 	}
 
-	radius *= r_bsp_light_state.brightness;
-
-	r_bsp_light_t *l = NULL;
+	r_bsp_light_t *bl = NULL;
 	GList *e = r_bsp_light_state.lights;
 	while (e) {
 		vec3_t delta;
 
-		l = (r_bsp_light_t *) e->data;
-		VectorSubtract(org, l->origin, delta);
+		bl = (r_bsp_light_t *) e->data;
+		VectorSubtract(origin, bl->light.origin, delta);
 
 		if (VectorLength(delta) <= BSP_LIGHT_MERGE_THRESHOLD) // merge them
 			break;
 
-		l = NULL;
+		bl = NULL;
 		e = e->next;
 	}
 
-	if (!l) { // or allocate a new one
-		l = Mem_LinkMalloc(sizeof(*l), bsp);
-		r_bsp_light_state.lights = g_list_prepend(r_bsp_light_state.lights, l);
+	if (!bl) { // or allocate a new one
+		bl = Mem_LinkMalloc(sizeof(*bl), bsp);
+		r_bsp_light_state.lights = g_list_prepend(r_bsp_light_state.lights, bl);
 
-		VectorCopy(org, l->origin);
-		l->leaf = R_LeafForPoint(l->origin, bsp);
+		VectorCopy(origin, bl->light.origin);
+		bl->leaf = R_LeafForPoint(bl->light.origin, bsp);
 	}
 
-	l->count++;
-	l->radius = ((l->radius * (l->count - 1)) + radius) / l->count;
+	bl->count++;
+	bl->light.radius = ((bl->light.radius * (bl->count - 1)) + radius) / bl->count;
 
-	VectorMix(l->color, color, 1.0 / l->count, l->color);
+	VectorMix(bl->light.color, color, 1.0 / bl->count, bl->light.color);
 }
 
 /*
@@ -180,36 +178,36 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t org, vec_t radius, vec3_t c
  * to their light value (intensity).
  */
 void R_LoadBspLights(r_bsp_model_t *bsp) {
-	vec3_t org, color;
+	vec3_t origin, color;
 	vec_t radius;
-	int16_t i;
 
 	memset(&r_bsp_light_state, 0, sizeof(r_bsp_light_state));
+
+	const r_bsp_light_state_t *s = &r_bsp_light_state;
 
 	R_ResolveBspLightParameters();
 
 	// iterate the world surfaces for surface lights
 	const r_bsp_surface_t *surf = bsp->surfaces;
 
-	for (i = 0; i < bsp->num_surfaces; i++, surf++) {
+	for (uint16_t i = 0; i < bsp->num_surfaces; i++, surf++) {
 
 		// light-emitting surfaces are of course lights
 		if ((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->value) {
-
-			VectorMA(surf->center, 1.0, surf->normal, org);
+			VectorMA(surf->center, 1.0, surf->normal, origin);
 
 			radius = sqrt(surf->texinfo->light * sqrt(surf->area) * BSP_LIGHT_SURFACE_RADIUS_SCALE);
 
-			R_AddBspLight(bsp, org, radius, surf->texinfo->emissive);
+			R_AddBspLight(bsp, origin, surf->texinfo->emissive, radius * s->brightness);
 		}
 	}
 
 	// parse the entity string for point lights
 	const char *ents = Cm_EntityString();
 
-	VectorClear(org);
+	VectorClear(origin);
 
-	radius = 300.0;
+	radius = BSP_LIGHT_POINT_DEFAULT_RADIUS * s->brightness;
 	VectorSet(color, 1.0, 1.0, 1.0);
 
 	char class_name[MAX_QPATH];
@@ -232,12 +230,9 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 			entity = false;
 
 			if (light) { // add it
-				const r_bsp_light_state_t *s = &r_bsp_light_state;
-				ColorFilter(color, color, s->brightness, s->saturation, s->contrast);
+				R_AddBspLight(bsp, origin, color, radius * BSP_LIGHT_POINT_RADIUS_SCALE);
 
-				R_AddBspLight(bsp, org, radius * BSP_LIGHT_POINT_RADIUS_SCALE, color);
-
-				radius = 300.0;
+				radius = BSP_LIGHT_POINT_DEFAULT_RADIUS;
 				VectorSet(color, 1.0, 1.0, 1.0);
 
 				light = false;
@@ -256,30 +251,30 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 		}
 
 		if (!g_strcmp0(c, "origin")) {
-			sscanf(ParseToken(&ents), "%f %f %f", &org[0], &org[1], &org[2]);
+			sscanf(ParseToken(&ents), "%f %f %f", &origin[0], &origin[1], &origin[2]);
 			continue;
 		}
 
 		if (!g_strcmp0(c, "light")) {
-			radius = atof(ParseToken(&ents));
+			radius = atof(ParseToken(&ents)) * s->brightness;
 			continue;
 		}
 
 		if (!g_strcmp0(c, "_color")) {
 			sscanf(ParseToken(&ents), "%f %f %f", &color[0], &color[1], &color[2]);
+			ColorFilter(color, color, s->brightness, s->saturation, s->contrast);
 			continue;
 		}
 	}
 
-	// allocate the lights array
+	// allocate the lights array and copy them in
 	bsp->num_bsp_lights = g_list_length(r_bsp_light_state.lights);
 	bsp->bsp_lights = Mem_LinkMalloc(sizeof(r_bsp_light_t) * bsp->num_bsp_lights, bsp);
 
-	i = 0;
 	GList *e = r_bsp_light_state.lights;
+	r_bsp_light_t *bl = bsp->bsp_lights;
 	while (e) {
-		// and copy them in
-		bsp->bsp_lights[i++] = *((r_bsp_light_t *) e->data);
+		*bl++ = *((r_bsp_light_t *) e->data);
 		e = e->next;
 	}
 
@@ -294,19 +289,18 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
  * @brief Developer tool for viewing static BSP light sources.
  */
 void R_DrawBspLights(void) {
-	int32_t i;
+	uint16_t i;
 
 	if (!r_draw_bsp_lights->value)
 		return;
 
-	const r_bsp_light_t *l = r_model_state.world->bsp->bsp_lights;
-	for (i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, l++) {
-		r_corona_t c;
+	const r_bsp_light_t *bl = r_model_state.world->bsp->bsp_lights;
+	for (i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, bl++) {
+		static r_corona_t c;
 
-		VectorCopy(l->origin, c.origin);
-		c.radius = l->radius * r_draw_bsp_lights->value;
-		c.flicker = 0.0;
-		VectorCopy(l->color, c.color);
+		VectorCopy(bl->light.origin, c.origin);
+		c.radius = bl->light.radius * r_draw_bsp_lights->value;
+		VectorCopy(bl->light.color, c.color);
 
 		R_AddCorona(&c);
 	}

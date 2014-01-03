@@ -344,11 +344,15 @@ typedef struct {
  * @brief BSP light sources.
  */
 typedef struct {
-	vec3_t origin;
-	vec_t radius;
-	vec3_t color;
-	uint16_t count;
 	const r_bsp_leaf_t *leaf;
+	uint16_t count;
+
+	struct {
+		vec3_t origin;
+		vec3_t color;
+		vec_t radius;
+	} light;
+
 } r_bsp_light_t;
 
 // md3 model memory representation
@@ -559,8 +563,8 @@ typedef struct r_model_s {
  */
 typedef struct {
 	vec3_t origin;
-	vec_t radius;
 	vec3_t color;
+	vec_t radius;
 } r_light_t;
 
 #define MAX_LIGHTS			64
@@ -577,13 +581,10 @@ typedef struct {
 } r_sustained_light_t;
 
 /*
- * @brief Describes alight source contributions to point lighting.
+ * @brief Describes a light source contributions to point lighting.
  */
 typedef struct {
-	vec3_t pos;
-	vec3_t color;
-	vec_t radius;
-	vec_t ambient;
+	r_light_t light;
 	vec_t diffuse;
 } r_illumination_t;
 
@@ -612,7 +613,6 @@ typedef enum {
  * sources, by order of their contribution.
  */
 #define MAX_ILLUMINATIONS MAX_ACTIVE_LIGHTS
-#define MAX_BSP_LIGHT_ILLUMINATIONS (MAX_ILLUMINATIONS - 1)
 
 /*
  * @brief Up to 3 shadows are cast for each illumination. These are populated
@@ -622,8 +622,8 @@ typedef enum {
 #define MAX_SHADOWS (MAX_ILLUMINATIONS * 3)
 
 /*
- * @brief Provides static lighting information for mesh entities. Illuminations
- * and shadows are maintained in separate arrays because they must be sorted by
+ * @brief Provides lighting information for mesh entities. Illuminations and
+ * shadows are maintained in separate arrays because they must be sorted by
  * different criteria: for illuminations, the light that reaches the entity
  * defines priority; for shadows, the negative light that reaches the plane on
  * which the shadow is cast does.
@@ -635,6 +635,7 @@ typedef struct r_lighting_s {
 	vec_t radius; // entity radius
 	vec3_t mins, maxs; // entity bounding box in world space
 	vec_t scale; // lighting scale (typically r_lighting->value)
+	uint64_t lights; // dynamic light sources mask
 	r_illumination_t illuminations[MAX_ILLUMINATIONS]; // light sources, ordered by diffuse
 	r_shadow_t shadows[MAX_SHADOWS]; // shadows, ordered by intensity
 } r_lighting_t;

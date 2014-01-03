@@ -7,6 +7,8 @@
 #define LIGHT_CLAMP_MIN 0.0
 #define LIGHT_CLAMP_MAX 4.0
 
+uniform vec3 AMBIENT;
+
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
 uniform bool DELUXEMAP;
@@ -68,7 +70,7 @@ vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
  */
 void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap){
 
-	vec3 light = vec3(0.0);
+	vec3 light = vec3(AMBIENT);
 
 	/*
 	 * Iterate the hardware light sources, accumulating dynamic lighting for

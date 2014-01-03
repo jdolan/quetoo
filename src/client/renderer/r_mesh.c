@@ -152,25 +152,24 @@ _Bool R_CullMeshModel(const r_entity_t *e) {
  */
 void R_UpdateMeshModelLighting(const r_entity_t *e) {
 
-	if (e->lighting->state == LIGHTING_READY) {
-		if (e->lighting->scale == Clamp(r_lighting->value, 1.0, 4.0))
-			return;
+	if (e->effects & EF_NO_LIGHTING)
+		return;
+
+	if (e->lighting->state != LIGHTING_READY) {
+
+		// update the origin and bounds based on the entity
+		if (e->effects & EF_WEAPON)
+			VectorCopy(r_view.origin, e->lighting->origin);
+		else
+			VectorCopy(e->origin, e->lighting->origin);
+
+		e->lighting->radius = e->scale * e->model->radius;
+
+		// calculate scaled bounding box in world space
+		VectorMA(e->lighting->origin, e->scale, e->model->mins, e->lighting->mins);
+		VectorMA(e->lighting->origin, e->scale, e->model->maxs, e->lighting->maxs);
 	}
 
-	if (e->effects & EF_WEAPON)
-		VectorCopy(r_view.origin, e->lighting->origin);
-	else
-		VectorCopy(e->origin, e->lighting->origin);
-
-	e->lighting->radius = e->scale * e->model->radius;
-
-	// calculate scaled bounding box in world space
-	VectorMA(e->lighting->origin, e->scale, e->model->mins, e->lighting->mins);
-	VectorMA(e->lighting->origin, e->scale, e->model->maxs, e->lighting->maxs);
-
-	e->lighting->scale = Clamp(r_lighting->value, 1.0, 4.0);
-
-	// Com_Debug("%s\n", e->model->media.name);
 	R_UpdateLighting(e->lighting);
 }
 
@@ -188,10 +187,10 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 
 		for (uint16_t i = 0; i < lengthof(e->lighting->illuminations); i++, il++) {
 
-			if (il->radius == 0.0)
+			if (il->diffuse == 0.0)
 				break;
 
-			VectorMA(color, il->diffuse / il->radius, il->color, color);
+			VectorMA(color, il->diffuse / il->light.radius, il->light.color, color);
 		}
 
 		ColorNormalize(color, color);
@@ -238,8 +237,6 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 			if (r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)) {
 
 				R_UseMaterial(NULL, r_mesh_state.material);
-
-				R_EnableLightsForEntity(e);
 
 				R_ApplyLighting(e->lighting);
 			}
