@@ -262,7 +262,7 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmaps->scale) + 1;
 	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmaps->scale) + 1;
 
-	if (!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)) {
+	if (!R_AllocLightmapBlock(smax, tmax, &surf->lightmap_s, &surf->lightmap_t)) {
 
 		R_UploadLightmapBlock(bsp); // upload the last block
 
@@ -272,7 +272,7 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 			r_lightmap_state.deluxemap = R_AllocDeluxemap();
 		}
 
-		if (!R_AllocLightmapBlock(smax, tmax, &surf->light_s, &surf->light_t)) {
+		if (!R_AllocLightmapBlock(smax, tmax, &surf->lightmap_s, &surf->lightmap_t)) {
 			Com_Error(ERR_DROP, "Consecutive calls to R_AllocLightmapBlock failed");
 		}
 	}
@@ -281,10 +281,10 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 	surf->deluxemap = r_lightmap_state.deluxemap;
 
 	byte *sout = r_lightmap_state.sample_buffer;
-	sout += (surf->light_t * r_lightmap_state.block_size + surf->light_s) * 3;
+	sout += (surf->lightmap_t * r_lightmap_state.block_size + surf->lightmap_s) * 3;
 
 	byte *dout = r_lightmap_state.direction_buffer;
-	dout += (surf->light_t * r_lightmap_state.block_size + surf->light_s) * 3;
+	dout += (surf->lightmap_t * r_lightmap_state.block_size + surf->lightmap_s) * 3;
 
 	const size_t stride = r_lightmap_state.block_size * 3;
 

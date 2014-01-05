@@ -100,9 +100,7 @@ typedef struct {
 	int16_t back_frame; // back-facing renderer frame
 
 	int16_t light_frame; // dynamic lighting frame
-
-	uint64_t active_light_mask; // a bit mask into r_view.lights
-	uint16_t active_light_count; // a count of active lights
+	uint64_t light_mask; // a bit mask into r_view.lights
 
 	cm_bsp_plane_t frustum[4]; // for box culling
 } r_locals_t;

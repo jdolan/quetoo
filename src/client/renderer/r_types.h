@@ -200,6 +200,7 @@ typedef struct {
 	int16_t frame; // renderer frame
 	int16_t back_frame; // back-facing renderer frame
 	int16_t light_frame; // dynamic lighting frame
+	uint64_t light_mask; // bit mask of dynamic light sources
 
 	cm_bsp_plane_t *plane;
 	uint16_t flags; // R_SURF flags
@@ -224,11 +225,10 @@ typedef struct {
 
 	r_bsp_flare_t *flare;
 
-	r_pixel_t light_s, light_t; // lightmap texcoords
+	r_pixel_t lightmap_s, lightmap_t; // lightmap texture coords
 	r_image_t *lightmap;
 	r_image_t *deluxemap;
 
-	uint64_t lights; // bit mask of enabled light sources
 } r_bsp_surface_t;
 
 /*
@@ -634,8 +634,7 @@ typedef struct r_lighting_s {
 	vec3_t origin; // entity origin
 	vec_t radius; // entity radius
 	vec3_t mins, maxs; // entity bounding box in world space
-	vec_t scale; // lighting scale (typically r_lighting->value)
-	uint64_t lights; // dynamic light sources mask
+	uint64_t light_mask; // dynamic light sources mask
 	r_illumination_t illuminations[MAX_ILLUMINATIONS]; // light sources, ordered by diffuse
 	r_shadow_t shadows[MAX_SHADOWS]; // shadows, ordered by intensity
 } r_lighting_t;

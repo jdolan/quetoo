@@ -695,13 +695,13 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		if (surf->flags & R_SURF_LIGHTMAP) {
 			s = DotProduct(vert->position, sdir) + soff;
 			s -= surf->st_mins[0];
-			s += surf->light_s * mod->bsp->lightmaps->scale;
+			s += surf->lightmap_s * mod->bsp->lightmaps->scale;
 			s += mod->bsp->lightmaps->scale / 2.0;
 			s /= surf->lightmap->width * mod->bsp->lightmaps->scale;
 
 			t = DotProduct(vert->position, tdir) + toff;
 			t -= surf->st_mins[1];
-			t += surf->light_t * mod->bsp->lightmaps->scale;
+			t += surf->lightmap_t * mod->bsp->lightmaps->scale;
 			t += mod->bsp->lightmaps->scale / 2.0;
 			t /= surf->lightmap->height * mod->bsp->lightmaps->scale;
 		}

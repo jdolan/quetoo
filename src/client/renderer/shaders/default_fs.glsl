@@ -7,8 +7,6 @@
 #define LIGHT_CLAMP_MIN 0.0
 #define LIGHT_CLAMP_MAX 4.0
 
-uniform vec3 AMBIENT;
-
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
 uniform bool DELUXEMAP;
@@ -68,15 +66,15 @@ vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
 /*
  * @brief Yield the final sample color after factoring in dynamic light sources. 
  */
-void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap){
+void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 
-	vec3 light = vec3(AMBIENT);
+	vec3 light = vec3(0.0);
 
 	/*
 	 * Iterate the hardware light sources, accumulating dynamic lighting for
 	 * this fragment.  An attenuation of 0.0 means break.
 	 */
-	for(int i = 0; i < gl_MaxLights; i++){
+	for(int i = 0; i < gl_MaxLights; i++) {
 
 		if(gl_LightSource[i].constantAttenuation == 0.0)
 			break;
@@ -88,7 +86,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap){
 
 			float d = dot(normalmap, normalize(delta));
 
-			if(d > 0.0){
+			if(d > 0.0) {
 				dist = 1.0 - dist / gl_LightSource[i].constantAttenuation;
 				light += gl_LightSource[i].diffuse.rgb * d * LIGHT_ATTENUATION;
 			}

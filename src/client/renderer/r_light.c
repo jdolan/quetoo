@@ -34,7 +34,10 @@ void R_AddLight(const r_light_t *l) {
 		return;
 	}
 
-	r_view.lights[r_view.num_lights++] = *l;
+	r_view.lights[r_view.num_lights] = *l;
+	r_view.lights[r_view.num_lights].radius *= r_lighting->value;
+
+	r_view.num_lights++;
 }
 
 /*
@@ -79,7 +82,9 @@ static void R_AddSustainedLights(void) {
 		r_light_t l = s->light;
 
 		const vec_t intensity = (s->sustain - r_view.time) / (vec_t) (s->sustain - s->time);
-		VectorScale(s->light.color, intensity, l.color);
+
+		l.radius *= intensity;
+		VectorScale(l.color, intensity, l.color);
 
 		R_AddLight(&l);
 	}
@@ -91,8 +96,7 @@ static void R_AddSustainedLights(void) {
  */
 void R_ResetLights(void) {
 
-	r_locals.active_light_mask = 0xffffffffffffffff;
-	r_locals.active_light_count = 0;
+	r_locals.light_mask = 0xffffffffffffffff;
 }
 
 /*
@@ -130,10 +134,10 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 
 		if (surf->light_frame != r_locals.light_frame) { // reset it
 			surf->light_frame = r_locals.light_frame;
-			surf->lights = 0;
+			surf->light_mask = 0;
 		}
 
-		surf->lights |= bit; // add this light
+		surf->light_mask |= bit; // add this light
 	}
 
 	// now go down both sides
@@ -168,44 +172,39 @@ void R_MarkLights(void) {
  * is taken to avoid GL state changes whenever possible.
  */
 void R_EnableLights(uint64_t mask) {
-	uint16_t count;
 
-	if (mask == r_locals.active_light_mask) // no change
+	if (mask == r_locals.light_mask) // no change
 		return;
 
-	r_locals.active_light_mask = mask;
-	count = 0;
+	r_locals.light_mask = mask;
+	uint16_t j = 0;
 
 	if (mask) { // enable up to MAX_ACTIVE_LIGHT sources
-		const r_light_t *l;
-		vec4_t position;
-		vec4_t diffuse;
-		uint16_t i;
+		const r_light_t *l = r_view.lights;
 
-		position[3] = diffuse[3] = 1.0;
+		vec4_t position = { 0.0, 0.0, 0.0, 1.0 };
+		vec4_t diffuse = { 0.0, 0.0, 0.0, 1.0 };
 
-		for (i = 0, l = r_view.lights; i < r_view.num_lights; i++, l++) {
+		for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
 
-			if (count == MAX_ACTIVE_LIGHTS)
+			if (j == MAX_ACTIVE_LIGHTS)
 				break;
 
 			const uint64_t bit = ((uint64_t) (1 << i));
 			if (mask & bit) {
 
 				VectorCopy(l->origin, position);
-				glLightfv(GL_LIGHT0 + count, GL_POSITION, position);
+				glLightfv(GL_LIGHT0 + j, GL_POSITION, position);
 
-				VectorScale(l->color, r_lighting->value, diffuse);
-				glLightfv(GL_LIGHT0 + count, GL_DIFFUSE, diffuse);
+				VectorCopy(l->color, diffuse);
+				glLightfv(GL_LIGHT0 + j, GL_DIFFUSE, diffuse);
 
-				glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, l->radius);
-				count++;
+				glLightf(GL_LIGHT0 + j, GL_CONSTANT_ATTENUATION, l->radius);
+				j++;
 			}
 		}
 	}
 
-	if (count < MAX_ACTIVE_LIGHTS) // disable the next light as a stop
-		glLightf(GL_LIGHT0 + count, GL_CONSTANT_ATTENUATION, 0.0);
-
-	r_locals.active_light_count = count;
+	if (j < MAX_ACTIVE_LIGHTS) // disable the next light as a stop
+		glLightf(GL_LIGHT0 + j, GL_CONSTANT_ATTENUATION, 0.0);
 }

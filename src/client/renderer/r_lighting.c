@@ -60,11 +60,18 @@ static void R_AddIllumination(const r_illumination_t *il) {
 static void R_AmbientIllumination(const r_lighting_t *l) {
 	r_illumination_t il;
 
-	VectorMA(l->origin, LIGHTING_AMBIENT_DIST, vec3_up, il.light.origin);
-	VectorCopy(r_bsp_light_state.ambient, il.light.color);
-	il.light.radius = LIGHTING_AMBIENT_RADIUS;
+	vec_t max = 0.15;
 
-	il.diffuse = LIGHTING_AMBIENT_RADIUS - LIGHTING_AMBIENT_DIST;
+	for (uint16_t i = 0; i < 3; i++) {
+		if (r_bsp_light_state.ambient[i] > max)
+			max = r_bsp_light_state.ambient[i];
+	}
+
+
+	VectorMA(l->origin, LIGHTING_AMBIENT_DIST, vec3_up, il.light.origin);
+	VectorScale(r_bsp_light_state.ambient, 1.0 / max, il.light.color);
+	il.light.radius = LIGHTING_AMBIENT_RADIUS * r_lighting->value;
+	il.diffuse = il.light.radius - LIGHTING_AMBIENT_DIST;
 
 	R_AddIllumination(&il);
 }
@@ -103,9 +110,8 @@ static void R_SunIllumination(const r_lighting_t *l) {
 
 	VectorMA(l->origin, LIGHTING_SUN_DIST, r_bsp_light_state.sun.dir, il.light.origin);
 	VectorScale(r_bsp_light_state.sun.color, exposure, il.light.color);
-	il.light.radius = LIGHTING_SUN_RADIUS;
-
-	il.diffuse = LIGHTING_SUN_RADIUS - LIGHTING_SUN_DIST;
+	il.light.radius = LIGHTING_SUN_RADIUS * r_lighting->value;
+	il.diffuse = il.light.radius - LIGHTING_SUN_DIST;
 
 	R_AddIllumination(&il);
 }
@@ -128,8 +134,7 @@ static _Bool R_PositionalIllumination(const r_lighting_t *l, const r_light_t *li
 		// is it within range of the point in question
 		VectorSubtract(light->origin, p[i], dir);
 
-		// accounting for the scaled light radius
-		const vec_t diff = light->radius * l->scale - VectorLength(dir);
+		const vec_t diff = light->radius - VectorLength(dir);
 
 		if (diff <= 0.0)
 			continue;
@@ -174,13 +179,13 @@ static void R_StaticIlluminations(r_lighting_t *l) {
  */
 static void R_DynamicIlluminations(r_lighting_t *l) {
 
-	l->lights = 0;
+	l->light_mask = 0;
 
 	const r_light_t *dl = r_view.lights;
 
 	for (uint16_t i = 0; i < r_view.num_lights; i++, dl++) {
 		if (R_PositionalIllumination(l, dl)) {
-			l->lights |= (uint64_t) (1 << i);
+			l->light_mask |= (uint64_t) (1 << i);
 		}
 	}
 }
@@ -204,12 +209,12 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 
 	r_illuminations.num_illuminations = 0;
 
-	const uint64_t old_lights = l->lights;
+	const uint64_t light_mask = l->light_mask;
 
 	R_DynamicIlluminations(l);
 
 	// if not dirty, and no dynamic lighting, we're done
-	if (l->state == LIGHTING_READY && old_lights == 0 && l->lights == 0)
+	if (l->state == LIGHTING_READY && light_mask == 0 && l->light_mask == 0)
 		return;
 
 	l->state = MIN(l->state, LIGHTING_DIRTY);
@@ -337,13 +342,6 @@ static void R_UpdateShadows(r_lighting_t *l) {
  * @brief Resolves illumination and shadow information for the specified point.
  */
 void R_UpdateLighting(r_lighting_t *l) {
-
-	const vec_t scale = Clamp(r_lighting->value, 1.0, 4.0);
-
-	if (l->scale != scale) {
-		l->state = MIN(l->state, LIGHTING_DIRTY);
-		l->scale = scale;
-	}
 
 	R_UpdateIlluminations(l);
 

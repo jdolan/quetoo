@@ -58,7 +58,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		R_UseMaterial(surf, surf->texinfo->material);
 
 		if (surf->light_frame == r_locals.light_frame) // dynamic light sources
-			R_EnableLights(surf->lights);
+			R_EnableLights(surf->light_mask);
 		else
 			R_EnableLights(0);
 	}

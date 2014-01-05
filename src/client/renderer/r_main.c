@@ -424,8 +424,8 @@ static void R_InitLocal(void) {
 			"Inverts the RGB values of all world textures");
 	r_lightmap_block_size = Cvar_Get("r_lightmap_block_size", "4096", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			NULL);
-	r_lighting = Cvar_Get("r_lighting", "1.0", CVAR_ARCHIVE,
-			"Controls intensity of hardware lighting effects");
+	r_lighting = Cvar_Get("r_lighting", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
+			"Controls intensity of lighting effects");
 	r_line_alpha = Cvar_Get("r_line_alpha", "0.5", CVAR_ARCHIVE, NULL);
 	r_line_width = Cvar_Get("r_line_width", "1.0", CVAR_ARCHIVE, NULL);
 	r_materials = Cvar_Get("r_materials", "1", CVAR_ARCHIVE,
