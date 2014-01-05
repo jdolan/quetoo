@@ -34,7 +34,7 @@ _Bool Ui_Event(SDL_Event *event) {
 
 	if (!(handled = TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION))) {
 
-		if (event->key.keysym.sym == SDLK_ESCAPE && event->type == SDL_KEYDOWN) {
+		if (event->type == SDL_KEYDOWN && event->key.keysym.sym == SDLK_ESCAPE) {
 			int32_t visible;
 
 			TwBar *bar = cl_editor->value ? ui.editor : ui.root;
