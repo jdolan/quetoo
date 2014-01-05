@@ -613,6 +613,9 @@ void R_InitState(void) {
 	R_BindDefaultArray(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
 	// setup texture units
 	const size_t len = MAX_GL_ARRAY_LENGTH * sizeof(vec2_t);
 	for (i = 0; i < MAX_GL_TEXUNITS; i++) {
