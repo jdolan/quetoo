@@ -330,7 +330,7 @@ static const vec_t *R_UnwindBspSurface(const r_bsp_model_t *bsp, const r_bsp_sur
 		vec3_t delta1, delta2;
 
 		VectorSubtract(v1, v0, delta1);
-		VectorSubtract(v2, v0, delta1);
+		VectorSubtract(v2, v0, delta2);
 
 		VectorNormalize(delta1);
 		VectorNormalize(delta2);
