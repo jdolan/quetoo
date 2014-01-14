@@ -51,9 +51,9 @@ function init() {
 
 		linux*)
 			if [ "${TARGET}" == "linux64" ]; then
-				CHROOT="fedora-19-x86_64"
+				CHROOT="fedora-20-x86_64"
 			else
-				CHROOT="fedora-19-i386"
+				CHROOT="fedora-20-i386"
 			fi
 
 			CHROOT_PACKAGES="openssh-clients \
@@ -68,7 +68,8 @@ function init() {
 				ncurses-devel \
 				libxml2-devel \
 				check \
-				check-devel
+				check-devel \
+				clang-analyzer
 				"
 			;;
 
@@ -84,7 +85,7 @@ function init() {
 			CONFIGURE_FLAGS="--host=${HOST} ${CONFIGURE_FLAGS}"
 			MAKE_OPTIONS="HOST=${HOST} ARCH=${ARCH} ${MAKE_OPTIONS}"
 
-			CHROOT="fedora-19-x86_64"
+			CHROOT="fedora-20-x86_64"
 
 			CHROOT_PACKAGES="openssh-clients \
 				rsync \
@@ -97,7 +98,7 @@ function init() {
 				${TARGET}-pkg-config \
 				${TARGET}-pdcurses \
 				${TARGET}-libxml2 \
-				https://raw.github.com/maci0/rpmbuild/master/RPMS/noarch/${TARGET}-physfs-2.0.3-4.fc19.noarch.rpm
+				https://raw.github.com/maci0/rpmbuild/master/RPMS/noarch/${TARGET}-physfs-2.0.3-4.fc20.noarch.rpm
 				"
 			;;
 		*)
