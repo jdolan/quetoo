@@ -827,7 +827,7 @@ void Sv_Frame(const uint32_t msec) {
 	Sv_RunGameFrame();
 
 	// send messages back to the clients that had packets read this frame
-	Sv_SendClientMessages();
+	Sv_SendClientPackets();
 
 	// send a heartbeat to the master if needed
 	Sv_HeartbeatMasters();

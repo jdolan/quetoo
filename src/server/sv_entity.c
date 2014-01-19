@@ -96,7 +96,7 @@ static void Sv_WritePlayerState(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg
 /*
  * @brief
  */
-void Sv_WriteFrame(sv_client_t *client, mem_buf_t *msg) {
+void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
 	sv_frame_t *frame, *delta_frame;
 	int32_t delta_frame_num;
 
@@ -123,11 +123,11 @@ void Sv_WriteFrame(sv_client_t *client, mem_buf_t *msg) {
 	Net_WriteByte(msg, client->surpress_count); // rate dropped packets
 	client->surpress_count = 0;
 
-	// send over the area_bits
+	// send over the area bits
 	Net_WriteByte(msg, frame->area_bytes);
 	Net_WriteData(msg, frame->area_bits, frame->area_bytes);
 
-	// delta encode the playerstate
+	// delta encode the player state
 	Sv_WritePlayerState(delta_frame, frame, msg);
 
 	// delta encode the entities

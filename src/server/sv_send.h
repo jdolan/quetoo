@@ -35,7 +35,7 @@ typedef enum {
 extern char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 
 void Sv_FlushRedirect(int32_t target, const char *buffer);
-void Sv_SendClientMessages(void);
+void Sv_SendClientPackets(void);
 void Sv_Unicast(const g_edict_t *ent, const _Bool reliable);
 void Sv_Multicast(const vec3_t origin, multicast_t to);
 void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint16_t index, const uint16_t atten);

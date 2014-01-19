@@ -141,20 +141,30 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 /*
  * @brief Writes to the specified datagram, noting the offset of the message.
  */
-static void Sv_DatagramMessage(sv_client_datagram_t *datagram, byte *data, size_t len) {
+static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 
 	if (len > MAX_MSG_SIZE) {
 		Com_Error(ERR_DROP, "Single datagram message exceeded MAX_MSG_LEN\n");
 	}
 
-	Mem_WriteBuffer(&datagram->buffer, data, len);
-
 	sv_client_message_t *msg = Mem_Malloc(sizeof(*msg));
 
-	msg->offset = datagram->buffer.size - len;
+	msg->offset = cl->datagram.buffer.size;
 	msg->len = len;
 
-	datagram->messages = g_list_append(datagram->messages, msg);
+	Mem_WriteBuffer(&cl->datagram.buffer, data, len);
+
+	if (cl->datagram.buffer.overflowed) {
+		Com_Warn("Client datagram overflow for %s\n", cl->name);
+
+		msg->offset = 0;
+		cl->datagram.buffer.overflowed = false;
+
+		g_list_free_full(cl->datagram.messages, Mem_Free);
+		cl->datagram.messages = NULL;
+	}
+
+	cl->datagram.messages = g_list_append(cl->datagram.messages, msg);
 }
 
 /*
@@ -175,7 +185,7 @@ void Sv_Unicast(const g_edict_t *ent, const _Bool reliable) {
 		if (reliable) {
 			Mem_WriteBuffer(&cl->net_chan.message, sv.multicast.data, sv.multicast.size);
 		} else {
-			Sv_DatagramMessage(&cl->datagram, sv.multicast.data, sv.multicast.size);
+			Sv_ClientDatagramMessage(cl, sv.multicast.data, sv.multicast.size);
 		}
 	}
 
@@ -191,14 +201,11 @@ void Sv_Unicast(const g_edict_t *ent, const _Bool reliable) {
  * MULTICAST_PHS	send to clients potentially hearable from org
  */
 void Sv_Multicast(const vec3_t origin, multicast_t to) {
-	sv_client_t *client;
-	byte *mask;
 	int32_t leaf_num, cluster;
-	int32_t j;
-	_Bool reliable;
 	int32_t area1, area2;
+	byte *vis;
 
-	reliable = false;
+	_Bool reliable = false;
 
 	if (to != MULTICAST_ALL_R && to != MULTICAST_ALL) {
 		leaf_num = Cm_PointLeafnum(origin, 0);
@@ -210,26 +217,26 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 
 	switch (to) {
 		case MULTICAST_ALL_R:
-			reliable = true; // intentional fallthrough
+			reliable = true; // intentional fall-through
 		case MULTICAST_ALL:
 			leaf_num = 0;
-			mask = NULL;
+			vis = NULL;
 			break;
 
 		case MULTICAST_PHS_R:
-			reliable = true; // intentional fallthrough
+			reliable = true; // intentional fall-through
 		case MULTICAST_PHS:
 			leaf_num = Cm_PointLeafnum(origin, 0);
 			cluster = Cm_LeafCluster(leaf_num);
-			mask = Cm_ClusterPHS(cluster);
+			vis = Cm_ClusterPHS(cluster);
 			break;
 
 		case MULTICAST_PVS_R:
-			reliable = true; // intentional fallthrough
+			reliable = true; // intentional fall-through
 		case MULTICAST_PVS:
 			leaf_num = Cm_PointLeafnum(origin, 0);
 			cluster = Cm_LeafCluster(leaf_num);
-			mask = Cm_ClusterPVS(cluster);
+			vis = Cm_ClusterPVS(cluster);
 			break;
 
 		default:
@@ -239,38 +246,41 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 	}
 
 	// send the data to all relevant clients
-	for (j = 0, client = svs.clients; j < sv_max_clients->integer; j++, client++) {
+	sv_client_t *cl = svs.clients;
+	for (int32_t j = 0; j < sv_max_clients->integer; j++, cl++) {
 
-		if (client->state == SV_CLIENT_FREE)
+		if (cl->state == SV_CLIENT_FREE)
 			continue;
 
-		if (client->state != SV_CLIENT_ACTIVE && !reliable)
+		if (cl->state != SV_CLIENT_ACTIVE && !reliable)
 			continue;
 
-		if (client->edict->ai)
+		if (cl->edict->ai)
 			continue;
 
-		if (mask) {
-			pm_state_t *pm = &client->edict->client->ps.pm_state;
-			vec3_t org;
+		if (vis) {
+			const pm_state_t *pm = &cl->edict->client->ps.pm_state;
+			vec3_t org, off;
 
-			VectorCopy(pm->origin, org);
-			VectorAdd(org, pm->view_offset, org);
-			VectorScale(org, 0.125, org);
+			UnpackVector(pm->origin, org);
+			UnpackVector(pm->view_offset, off);
+			VectorAdd(org, off, org);
 
 			leaf_num = Cm_PointLeafnum(org, 0);
 			cluster = Cm_LeafCluster(leaf_num);
 			area2 = Cm_LeafArea(leaf_num);
+
 			if (!Cm_AreasConnected(area1, area2))
 				continue;
-			if (mask && (!(mask[cluster >> 3] & (1 << (cluster & 7)))))
+
+			if (vis && (!(vis[cluster >> 3] & (1 << (cluster & 7)))))
 				continue;
 		}
 
 		if (reliable) {
-			Mem_WriteBuffer(&client->net_chan.message, sv.multicast.data, sv.multicast.size);
+			Mem_WriteBuffer(&cl->net_chan.message, sv.multicast.data, sv.multicast.size);
 		} else {
-			Sv_DatagramMessage(&client->datagram, sv.multicast.data, sv.multicast.size);
+			Sv_ClientDatagramMessage(cl, sv.multicast.data, sv.multicast.size);
 		}
 	}
 
@@ -351,7 +361,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint
  * @brief
  */
 static void Sv_SendClientDatagram(sv_client_t *cl) {
-	byte buffer[MAX_FRAME_SIZE];
+	byte buffer[MAX_MSG_SIZE];
 	mem_buf_t buf;
 
 	Sv_BuildClientFrame(cl);
@@ -360,31 +370,28 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 	buf.allow_overflow = true;
 
 	// send over all the relevant entity_state_t and the player_state_t
-	Sv_WriteFrame(cl, &buf);
+	Sv_WriteClientFrame(cl, &buf);
 
-	if (buf.size > MAX_MSG_SIZE - 16) {
+	// the frame itself must not exceed the max message size
+	if (buf.overflowed || buf.size > MAX_MSG_SIZE - 16) {
 		Com_Error(ERR_DROP, "Frame exceeds MAX_MSG_SIZE (%u)\n", (uint32_t) buf.size);
 	}
 
-	// packetize the pending datagram buffer
-	if (cl->datagram.buffer.overflowed)
-		Com_Warn("Datagram overflowed for %s\n", cl->name);
-	else {
-		GList *e = cl->datagram.messages;
-		while (e) {
-			sv_client_message_t *msg = (sv_client_message_t *) e->data;
+	// but we can packetize the remaining datagram messages
+	const GList *e = cl->datagram.messages;
+	while (e) {
+		const sv_client_message_t *msg = (sv_client_message_t *) e->data;
 
-			// if we would overflow the packet, flush it first
-			if (buf.size + msg->len > (MAX_MSG_SIZE - 16)) {
-				Com_Debug("Avoiding overflow\n");
+		// if we would overflow the packet, flush it first
+		if (buf.size + msg->len > (MAX_MSG_SIZE - 16)) {
+			Com_Debug("Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
 
-				Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
-				Mem_ClearBuffer(&buf);
-			}
-
-			Mem_WriteBuffer(&buf, cl->datagram.data + msg->offset, msg->len);
-			e = e->next;
+			Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
+			Mem_ClearBuffer(&buf);
 		}
+
+		Mem_WriteBuffer(&buf, cl->datagram.buffer.data + msg->offset, msg->len);
+		e = e->next;
 	}
 
 	// send the pending packet, which may include reliable messages
@@ -402,20 +409,18 @@ static void Sv_DemoCompleted(void) {
 }
 
 /*
- * @brief Returns true if the client is over its current
- * bandwidth estimation and should not be sent another packet
+ * @brief Returns true if the client is over its current bandwidth estimation
+ * and should not be sent another packet.
  */
 static _Bool Sv_RateDrop(sv_client_t *cl) {
-	uint32_t total;
-	uint16_t i;
 
 	// never drop over the loop device
 	if (cl->net_chan.remote_address.type == NA_LOOP)
 		return false;
 
-	total = 0;
+	uint32_t total = 0;
 
-	for (i = 0; i < sv_hz->integer; i++) {
+	for (int32_t i = 0; i < sv_hz->integer; i++) {
 		total += cl->message_size[i];
 	}
 
@@ -431,6 +436,10 @@ static _Bool Sv_RateDrop(sv_client_t *cl) {
 /*
  * @brief Reads the next frame from the current demo file into the specified buffer,
  * returning the size of the frame in bytes.
+ *
+ * FIXME This doesn't work with the new packetized overflow avoidance. Multiple
+ * messages can constitute a frame. We need a mechanism to indicate frame
+ * completion, or we need a timecode in our demos.
  */
 static size_t Sv_GetDemoMessage(byte *buffer) {
 	int32_t size;
@@ -469,10 +478,10 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
 }
 
 /*
- * @brief
+ * @brief Send the frame and all pending datagram messages since the last frame.
  */
-void Sv_SendClientMessages(void) {
-	sv_client_t *cl;
+void Sv_SendClientPackets(void) {
+	sv_client_t * cl;
 	int32_t i;
 
 	if (!svs.initialized)
@@ -484,9 +493,11 @@ void Sv_SendClientMessages(void) {
 		if (cl->state == SV_CLIENT_FREE) // don't bother
 			continue;
 
-		if (cl->net_chan.message.overflowed) { // drop the client
+		// if the client's reliable message overflowed, we must drop them
+		if (cl->net_chan.message.overflowed) {
 			Sv_DropClient(cl);
 			Sv_BroadcastPrint(PRINT_HIGH, "%s overflowed\n", cl->name);
+			continue;
 		}
 
 		if (sv.state == SV_ACTIVE_DEMO) { // send the demo packet
@@ -505,7 +516,10 @@ void Sv_SendClientMessages(void) {
 			// clean up for the next frame
 			Mem_ClearBuffer(&cl->datagram.buffer);
 
-			g_list_free_full(cl->datagram.messages, Mem_Free);
+			if (cl->datagram.messages) {
+				g_list_free_full(cl->datagram.messages, Mem_Free);
+			}
+
 			cl->datagram.messages = NULL;
 
 		} else { // just update reliable if needed
