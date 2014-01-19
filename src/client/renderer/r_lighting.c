@@ -67,7 +67,6 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 			max = r_bsp_light_state.ambient[i];
 	}
 
-
 	VectorMA(l->origin, LIGHTING_AMBIENT_DIST, vec3_up, il.light.origin);
 	VectorScale(r_bsp_light_state.ambient, 1.0 / max, il.light.color);
 	il.light.radius = LIGHTING_AMBIENT_RADIUS * r_lighting->value;
@@ -214,8 +213,10 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 	R_DynamicIlluminations(l);
 
 	// if not dirty, and no dynamic lighting, we're done
-	if (l->state == LIGHTING_READY && light_mask == 0 && l->light_mask == 0)
-		return;
+	if (l->state == LIGHTING_READY) {
+		if (light_mask == 0 && l->light_mask == 0)
+			return;
+	}
 
 	l->state = MIN(l->state, LIGHTING_DIRTY);
 

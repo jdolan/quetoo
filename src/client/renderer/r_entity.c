@@ -221,9 +221,8 @@ static _Bool R_CullEntity(r_entity_t *e) {
  */
 void R_CullEntities(void *data __attribute__((unused))) {
 	r_entity_t *e = r_view.entities;
-	uint16_t i;
 
-	for (i = 0, e = r_view.entities; i < r_view.num_entities; i++, e++) {
+	for (uint16_t i = 0; i < r_view.num_entities; i++, e++) {
 
 		if (!R_CullEntity(e)) { // cull it
 
