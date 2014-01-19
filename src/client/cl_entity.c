@@ -310,7 +310,7 @@ void Cl_LerpEntities(void) {
 				|| !VectorCompare(ent->angles, ent->current.angles)) {
 
 			// mark the lighting as dirty
-			ent->lighting.state = LIGHTING_DIRTY;
+			ent->lighting.state = MIN(ent->lighting.state, LIGHTING_DIRTY);
 
 			// interpolate the origin and angles
 			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
