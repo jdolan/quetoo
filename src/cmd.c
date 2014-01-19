@@ -239,7 +239,7 @@ void Cmd_TokenizeString(const char *text) {
 
 		c = ParseToken(&text);
 
-		if (*c == '\0') { // we're done
+		if (*c == '\0' && !text) { // we're done
 			return;
 		}
 
@@ -576,8 +576,7 @@ void Cmd_Init(void) {
 	Cmd_Add("alias", Cmd_Alias_f, CMD_SYSTEM, NULL);
 	Cmd_Add("wait", Cmd_Wait_f, 0, NULL);
 
-	int32_t i;
-	for (i = 1; i < Com_Argc(); i++) {
+	for (int32_t i = 1; i < Com_Argc(); i++) {
 		const char *c = Com_Argv(i);
 
 		// if we encounter a non-set command, consume until the next + or EOL
