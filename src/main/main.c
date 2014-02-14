@@ -139,11 +139,11 @@ static void Init(void) {
 
 	Mem_Init();
 
-	Fs_Init(true);
-
 	Cmd_Init();
 
 	Cvar_Init();
+
+	Fs_Init(true);
 
 	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
 #ifdef BUILD_CLIENT
