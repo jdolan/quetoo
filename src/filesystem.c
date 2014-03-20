@@ -23,6 +23,7 @@
 #include <physfs.h>
 
 #include "filesystem.h"
+#include "cvar.h"
 
 #define FS_FILE_BUFFER (1024 * 1024 * 2)
 // #define FS_LOAD_DEBUG // track Fs_Load / Fs_Free
@@ -580,6 +581,8 @@ const char *Fs_RealPath(const char *path) {
  */
 void Fs_Init(_Bool auto_load_archives) {
 
+	cvar_t *game = Cvar_Get("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
+
 	memset(&fs_state, 0, sizeof(fs_state_t));
 
 	if (PHYSFS_init(Com_Argv(0)) == 0) {
@@ -600,33 +603,51 @@ void Fs_Init(_Bool auto_load_archives) {
 			*(c + strlen("Quake2World.app")) = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-			strcpy(c + strlen("Quake2World.app"), "/Contents/MacOS/lib/"DEFAULT_GAME);
+			strcpy(c + strlen("Quake2World.app"), va("/Contents/MacOS/lib/quake2world/%s", game->string));
 			Fs_AddToSearchPath(path);
 
-			strcpy(c + strlen("Quake2World.app"), "/Contents/Resources/"DEFAULT_GAME);
+			strcpy(c + strlen("Quake2World.app"), va("/Contents/Resources/quake2world/%s", game->string));
 			Fs_AddToSearchPath(path);
+
+			if (strcmp(game->string, DEFAULT_GAME) != 0)
+                        {
+                                strcpy(c, "/Contents/Resources/"DEFAULT_GAME);
+                                Fs_AddToSearchPath(path);
+                        }
 		}
 #elif __linux__
-		if ((c = strstr(path, "quake2world/bin"))) {
-			*(c + strlen("quake2world")) = '\0';
-			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
+		if ((c = strstr(path, "/bin/quake2world"))) {
+                        *(c) = '\0';
+                        g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-			strcpy(c + strlen("quake2world"), "/lib/"DEFAULT_GAME);
-			Fs_AddToSearchPath(path);
+                        strcpy(c, va("/lib/quake2world/%s", game->string));
+                        Fs_AddToSearchPath(path);
 
-			strcpy(c + strlen("quake2world"), "/share/"DEFAULT_GAME);
-			Fs_AddToSearchPath(path);
-		}
+                        strcpy(c, va("/share/quake2world/%s", game->string));
+                        Fs_AddToSearchPath(path);
+
+                        if (strcmp(game->string, DEFAULT_GAME) != 0)
+                        {
+                                strcpy(c, "/share/quake2world/"DEFAULT_GAME);
+                                Fs_AddToSearchPath(path);
+                        }
+                }
 #elif _WIN32
 		if ((c = strstr(path, "\\bin\\"))) {
 			*c = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-			strcpy(c , "\\lib\\"DEFAULT_GAME);
+			strcpy(c , va("\\lib\\%s", game->string));
 			Fs_AddToSearchPath(path);
 
-			strcpy(c , "\\share\\"DEFAULT_GAME);
+			strcpy(c , va("\\share\\%s", game->string));
 			Fs_AddToSearchPath(path);
+
+			if (strcmp(game->string, DEFAULT_GAME) != 0)
+                        {
+                                strcpy(c, "\\share\\quake2world\\"DEFAULT_GAME);
+                                Fs_AddToSearchPath(path);
+                        }
 		}
 #endif
 	}
@@ -639,8 +660,8 @@ void Fs_Init(_Bool auto_load_archives) {
 		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME);
 	}
 
-	// then add the default game directory in the user's home directory
-	Fs_AddUserSearchPath(DEFAULT_GAME);
+	// then add the game directory in the user's home directory
+	Fs_AddUserSearchPath(game->string);
 
 	// finally add any paths specified on the command line
 	int32_t i;
