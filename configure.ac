@@ -220,7 +220,7 @@ else
 
 	case "$host" in
 		*-apple-*)
-			HOST_ANTTWEAKBAR_CXXFLAGS="-D_MACOSX -I/usr/X11R6/include -ObjC++"
+			HOST_ANTTWEAKBAR_CXXFLAGS="-D_MACOSX -I/usr/X11R6/include -x objective-c++"
 			HOST_ANTTWEAKBAR_CFLAGS="-D_MACOSX -I/usr/X11R6/include"
 			HOST_ANTTWEAKBAR_LIBS="-framework GLUT -framework AppKit"
 			;;
