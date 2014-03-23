@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL/SDL.h>
-
 #include "r_local.h"
 
 r_context_t r_context;

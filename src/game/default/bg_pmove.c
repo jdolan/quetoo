@@ -620,7 +620,7 @@ static void Pm_CheckDuck(void) {
 		pm->s.flags |= PMF_DUCKED;
 	} else {
 		// if on the ground and requesting to crouch, duck
-		if (pm->s.flags & PMF_ON_GROUND && pm->cmd.up < 0) {
+		if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up < 0) {
 			pm->s.flags |= PMF_DUCKED;
 		} else { // stand up if possible
 			cm_trace_t trace = pm->Trace(pml.origin, pml.origin, pm->mins, pm->maxs);
@@ -1154,7 +1154,7 @@ static void Pm_ClampAngles(void) {
 		pm->angles[i] = UnpackAngle(c + k + d);
 	}
 
-	// clamp pitch to prevent the player from looking up or down more than 90¼
+	// clamp pitch to prevent the player from looking up or down more than 90ï¿½
 	if (pm->angles[PITCH] > 90.0 && pm->angles[PITCH] < 270.0) {
 		pm->angles[PITCH] = 90.0;
 	} else if (pm->angles[PITCH] <= 360.0 && pm->angles[PITCH] >= 270.0) {

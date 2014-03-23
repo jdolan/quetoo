@@ -1,6 +1,17 @@
 # Defines which files Git should ignore
 # http://git-scm.com
 *~
+*.dll
+*.exe
+*.la
+*.lo
+*.o
+*.swp
+.deps/
+.dirstamp
+.DS_Store
+.libs/
+.settings/
 aclocal.m4
 autom4te.cache/
 config.guess
@@ -11,24 +22,15 @@ config.status
 config.sub
 configure
 depcomp
-.deps/
-.dirstamp
-*.dll
-.DS_Store
-*.exe
 gmon.out
 install-sh
-*.la
-.libs/
 libtool
-*.lo
 ltmain.sh
 m4/*
 Makefile
 Makefile.in
 missing
 nbproject
-*.o
 src/main/quake2world
 src/master/q2wmaster
 src/tests/*.log
@@ -42,6 +44,5 @@ src/tests/check_r_media
 src/tests/check_thread
 src/tools/q2wmap/q2wmap
 stamp-h1
-*.swp
 target
 test-driver

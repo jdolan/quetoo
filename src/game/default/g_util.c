@@ -298,7 +298,7 @@ void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
  */
 void G_InitEdict(g_edict_t *ent, const char *class_name) {
 
-	memset(ent, 0, sizeof(ent));
+	memset(ent, 0, sizeof(*ent));
 
 	ent->class_name = class_name;
 	ent->in_use = true;

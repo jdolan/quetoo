@@ -23,6 +23,7 @@
 #define __R_TYPES_H__
 
 #include <SDL/SDL_opengl.h>
+#include <SDL/SDL_video.h>
 
 #include "files.h"
 #include "image.h"
