@@ -27,6 +27,7 @@ m4/*
 Makefile
 Makefile.in
 missing
+nbproject
 *.o
 src/main/quake2world
 src/master/q2wmaster
