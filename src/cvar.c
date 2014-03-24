@@ -97,7 +97,7 @@ void Cvar_Enumerate(CvarEnumerateFunc func, void *data) {
 		if (var) {
 			func(var, data);
 		} else {
-			Com_Error(ERR_FATAL, "Missing variable: %s\n", (char *) key->data);
+			Com_Error(ERR_FATAL, "Missing variable: %s\n", (char * ) key->data);
 		}
 		key = key->next;
 	}
@@ -590,6 +590,8 @@ static void Cvar_UserInfo_enumerate(cvar_t *var, void *data) {
 char *Cvar_UserInfo(void) {
 	static char info[MAX_USER_INFO_STRING];
 
+	memset(info, 0, sizeof(info));
+
 	Cvar_Enumerate(Cvar_UserInfo_enumerate, (void *) info);
 
 	return info;
@@ -610,6 +612,8 @@ static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
  */
 char *Cvar_ServerInfo(void) {
 	static char info[MAX_USER_INFO_STRING];
+
+	memset(info, 0, sizeof(info));
 
 	Cvar_Enumerate(Cvar_ServerInfo_enumerate, (void *) info);
 
@@ -645,10 +649,10 @@ void Cvar_Init(void) {
 
 	cvar_state.vars = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
 
-	Cmd_Add("set", Cvar_Set_f, 0, "Create or modify a console variable");
-	Cmd_Add("seta", Cvar_Set_f, 0, "Create an archived console variable");
-	Cmd_Add("sets", Cvar_Set_f, 0, "Create a server-info console variable");
-	Cmd_Add("setu", Cvar_Set_f, 0, "Create a user-info console variable");
+	Cmd_Add("set", Cvar_Set_f, 0, "Set a console variable");
+	Cmd_Add("seta", Cvar_Set_f, 0, "Set an archived console variable");
+	Cmd_Add("sets", Cvar_Set_f, 0, "Set a server-info console variable");
+	Cmd_Add("setu", Cvar_Set_f, 0, "Set a user-info console variable");
 
 	Cmd_Add("toggle", Cvar_Toggle_f, 0, NULL);
 	Cmd_Add("cvar_list", Cvar_List_f, 0, NULL);

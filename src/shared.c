@@ -966,8 +966,6 @@ _Bool ValidateUserInfo(const char *s) {
  */
 void SetUserInfo(char *s, const char *key, const char *value) {
 	char newi[MAX_USER_INFO_STRING], *v;
-	int32_t c;
-	uint32_t max_size = MAX_USER_INFO_STRING;
 
 	if (strstr(key, "\\") || strstr(value, "\\")) {
 		//Com_Print("Can't use keys or values with a \\\n");
@@ -988,13 +986,15 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 		//Com_Print("Keys and values must be < 64 characters\n");
 		return;
 	}
+
 	DeleteUserInfo(s, key);
+
 	if (!value || *value == '\0')
 		return;
 
 	g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
 
-	if (strlen(newi) + strlen(s) > max_size) {
+	if (strlen(newi) + strlen(s) > MAX_USER_INFO_STRING) {
 		//Com_Print("Info string length exceeded\n");
 		return;
 	}
@@ -1003,7 +1003,7 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 	s += strlen(s);
 	v = newi;
 	while (*v) {
-		c = *v++;
+		char c = *v++;
 		c &= 127; // strip high bits
 		if (c >= 32 && c < 127)
 			*s++ = c;
