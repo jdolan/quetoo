@@ -27,7 +27,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-#include <stdint.h>
+#include <inttypes.h>
 typedef uint32_t in_addr_t;
 typedef uint16_t in_port_t;
 
