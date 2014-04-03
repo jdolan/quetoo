@@ -349,8 +349,12 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int
 	int32_t i;
 
 	if (!angles[0][0]) { // initialize our angular velocities
-		for (i = 0; i < NUM_APPROXIMATE_NORMALS * 3; i++)
-			angles[0][i] = (Random() & 255) * 0.01;
+		for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
+			const vec_t x = (Random() & 255) * 0.01;
+			const vec_t y = (Random() & 255) * 0.01;
+			const vec_t z = (Random() & 255) * 0.01;
+			VectorSet(angles[i], x, y, z);
+		}
 	}
 
 	const vec_t ltime = (vec_t) cgi.client->time / 300.0;
