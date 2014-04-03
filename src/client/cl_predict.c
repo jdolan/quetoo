@@ -246,24 +246,24 @@ void Cl_CheckPredictionError(void) {
  * disposal.
  */
 void Cl_UpdatePrediction(void) {
-	int32_t i;
 
 	// ensure the world model is loaded
 	if (!Com_WasInit(Q2W_SERVER) || !Cm_NumModels()) {
-		int32_t bs;
+		int64_t bs;
 
 		const char *bsp_name = cl.config_strings[CS_MODELS];
-		const int32_t bsp_size = atoi(cl.config_strings[CS_BSP_SIZE]);
+		const int64_t bsp_size = strtoll(cl.config_strings[CS_BSP_SIZE], NULL, 10);
 
 		Cm_LoadBspModel(bsp_name, &bs);
 
 		if (bs != bsp_size) {
-			Com_Error(ERR_DROP, "Local map version differs from server: %i != %i\n", bs, bsp_size);
+			Com_Error(ERR_DROP, "Local map version differs from server: "
+					"%lli != %lli\n", bs, bsp_size);
 		}
 	}
 
 	// load the BSP models for prediction as well
-	for (i = 1; i < MAX_MODELS; i++) {
+	for (uint16_t i = 1; i < MAX_MODELS; i++) {
 
 		const char *s = cl.config_strings[CS_MODELS + i];
 		if (*s == '*')

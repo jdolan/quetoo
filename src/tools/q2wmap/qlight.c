@@ -111,16 +111,15 @@ void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_
  * @brief
  */
 static void LightWorld(void) {
-	int32_t i;
 
 	if (d_bsp.num_nodes == 0 || d_bsp.num_faces == 0)
 		Com_Error(ERR_FATAL, "Empty map\n");
 
 	// load the map for tracing
-	cmodels[0] = Cm_LoadBspModel(bsp_name, &i);
+	cmodels[0] = Cm_LoadBspModel(bsp_name, NULL);
 	num_cmodels = Cm_NumModels();
 
-	for (i = 1; i < num_cmodels; i++) {
+	for (int32_t i = 1; i < num_cmodels; i++) {
 		cmodels[i] = Cm_Model(va("*%d", i));
 	}
 

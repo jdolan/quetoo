@@ -21,7 +21,7 @@
 
 #include "cm_local.h"
 
-cm_bsp_t cm_bsp = { { '\0' }, NULL };
+cm_bsp_t cm_bsp;
 cm_vis_t *cm_vis = (cm_vis_t *) &cm_bsp.visibility;
 
 /*
@@ -428,9 +428,9 @@ static void Cm_LoadBspAreaPortals(const d_bsp_lump_t *l) {
 }
 
 /*
- * @brief Loads in the BSP and all submodels for collision detection.
+ * @brief Loads in the BSP and all sub-models for collision detection.
  */
-cm_bsp_model_t *Cm_LoadBspModel(const char *name, int32_t *size) {
+cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	void *buf;
 
 	memset(&cm_bsp, 0, sizeof(cm_bsp));
@@ -438,15 +438,20 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int32_t *size) {
 
 	// if we've been asked to load a demo, just clean up and return
 	if (!name) {
-		*size = 0;
+		if (size) {
+			*size = 0;
+		}
 		return &cm_bsp.models[0];
 	}
 
 	// load the file
-	*size = Fs_Load(name, &buf);
-
-	if (*size == -1) {
+	const int64_t s = Fs_Load(name, &buf);
+	if (s == -1) {
 		Com_Error(ERR_DROP, "Couldn't load %s\n", name);
+	}
+
+	if (size) {
+		*size = s;
 	}
 
 	// byte-swap the entire header

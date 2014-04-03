@@ -876,6 +876,8 @@ void Sv_Init(void) {
 
 	memset(&svs, 0, sizeof(svs));
 
+	Cm_LoadBspModel(NULL, NULL);
+
 	Sv_InitLocal();
 
 	Sv_InitAdmin();

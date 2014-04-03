@@ -243,36 +243,36 @@ static void Sv_InitClients(void) {
  * load the rest.
  */
 static void Sv_LoadMedia(const char *server, sv_state_t state) {
-	int32_t i, map_size;
+	int64_t bsp_size;
 
 	strcpy(sv.name, server);
 	strcpy(sv.config_strings[CS_NAME], server);
 
 	if (state == SV_ACTIVE_DEMO) { // loading a demo
-		sv.cm_models[0] = Cm_LoadBspModel(NULL, &map_size);
+		sv.cm_models[0] = Cm_LoadBspModel(NULL, &bsp_size);
 
 		sv.demo_file = Fs_OpenRead(va("demos/%s.dem", sv.name));
 		svs.spawn_count = 0;
 
 		Com_Print("  Loaded demo %s.\n", sv.name);
 	} else { // loading a map
-		g_snprintf(sv.config_strings[CS_MODELS], MAX_QPATH, "maps/%s.bsp", sv.name);
+		g_snprintf(sv.config_strings[CS_MODELS], MAX_STRING_CHARS, "maps/%s.bsp", sv.name);
 
-		sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_MODELS], &map_size);
+		sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_MODELS], &bsp_size);
 
 		const char *dir = Fs_RealDir(sv.config_strings[CS_MODELS]);
 		if (g_str_has_suffix(dir, ".zip")) {
-			g_strlcpy(sv.config_strings[CS_ZIP], Basename(dir), MAX_QPATH);
+			g_strlcpy(sv.config_strings[CS_ZIP], Basename(dir), MAX_STRING_CHARS);
 		}
 
-		for (i = 1; i < Cm_NumModels(); i++) {
+		for (int32_t i = 1; i < Cm_NumModels(); i++) {
 
 			if (i == MAX_MODELS) {
-				Com_Error(ERR_DROP, "Inline model count exceeds protocol limits\n");
+				Com_Error(ERR_DROP, "Sub-model count exceeds protocol limits\n");
 			}
 
 			char *s = sv.config_strings[CS_MODELS + i];
-			g_snprintf(s, MAX_QPATH, "*%d", i);
+			g_snprintf(s, MAX_STRING_CHARS, "*%d", i);
 
 			sv.cm_models[i] = Cm_Model(s);
 		}
@@ -289,7 +289,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 		 * which will in turn blow out the packet entities in Sv_EmitEntities.
 		 */
 
-		for (i = 0; i < 3; i++) {
+		for (int32_t i = 0; i < 3; i++) {
 			svs.game->Frame();
 		}
 
@@ -297,7 +297,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
 		Com_Print("  Loaded map %s, %d entities.\n", sv.name, svs.game->num_edicts);
 	}
-	g_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_QPATH, "%i", map_size);
+	g_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_STRING_CHARS, "%lli", bsp_size);
 
 	Cvar_FullSet("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NO_SET);
 }
