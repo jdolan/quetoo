@@ -143,7 +143,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 	VectorSubtract(ent->maxs, ent->mins, ent->size);
 
 	// encode the size into the entity state for client prediction
-	if (ent->solid == SOLID_BOX && (!ent->sv_flags & SVF_DEAD_MONSTER)) {
+	if (ent->solid == SOLID_BOX && !(ent->sv_flags & SVF_DEAD_MONSTER)) {
 		PackBounds(ent->mins, ent->maxs, &ent->s.solid);
 	} else if (ent->solid == SOLID_BSP) {
 		ent->s.solid = SOLID_BSP;
