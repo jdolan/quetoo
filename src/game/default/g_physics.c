@@ -39,22 +39,20 @@ static void G_ClampVelocity(g_edict_t *ent) {
 /*
  * @brief Runs thinking code for this frame if necessary
  */
-static _Bool G_RunThink(g_edict_t *ent) {
+static void G_RunThink(g_edict_t *ent) {
 
 	if (ent->locals.next_think == 0)
-		return true;
+		return;
 
 	if (ent->locals.next_think > g_level.time + 1)
-		return true;
+		return;
 
 	ent->locals.next_think = 0;
 
 	if (!ent->locals.Think)
-		gi.Error("%s has no think function\n", ent->class_name);
+		gi.Error("%s has no Think function\n", etos(ent));
 
 	ent->locals.Think(ent);
-
-	return false;
 }
 
 /*
@@ -64,10 +62,10 @@ static void G_RunTouch(g_edict_t *ent, cm_trace_t *trace) {
 
 	g_edict_t *other = trace->ent;
 
-	if (ent->locals.Touch && ent->solid != SOLID_NOT)
+	if (ent->locals.Touch && other->solid != SOLID_NOT)
 		ent->locals.Touch(ent, other, &trace->plane, trace->surface);
 
-	if (other->locals.Touch && other->solid != SOLID_NOT)
+	if (other->locals.Touch && ent->solid != SOLID_NOT)
 		other->locals.Touch(other, ent, NULL, NULL);
 }
 

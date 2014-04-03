@@ -30,76 +30,67 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker, uint32_t mod)
 	const _Bool friendy_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
 	mod &= ~MOD_FRIENDLY_FIRE;
 
-#ifdef HAVE_MYSQL
-	if(!g_level.warmup && mysql != NULL) { // insert to db
-		g_client_t *killer = attacker->client ? attacker->client : self->client;
-
-		g_snprintf(sql, sizeof(sql), "insert into frag values(null, now(), '%s', '%s', '%s', %d)",
-				g_level.name, killer->locals.persistent.sql_name, self->client->locals.persistent.sql_name, mod
-		);
-
-		mysql_query(mysql, sql);
+	if (!g_level.warmup) { // insert to db
+		G_MySQL_ClientObituary(self, attacker, mod);
 	}
-#endif
 
 	char *message = NULL;
 	char *message2 = "";
 
 	switch (mod) {
-	case MOD_SUICIDE:
-		message = "gave up";
-		break;
-	case MOD_FALLING:
-		message = "challenged gravity";
-		break;
-	case MOD_CRUSH:
-		message = "was squished";
-		break;
-	case MOD_WATER:
-		message = "sank like a rock";
-		break;
-	case MOD_SLIME:
-		message = "melted";
-		break;
-	case MOD_LAVA:
-		message = "did a back flip into the lava";
-		break;
-	case MOD_TRIGGER_HURT:
-		message = "was in the wrong place";
-		break;
+		case MOD_SUICIDE:
+			message = "gave up";
+			break;
+		case MOD_FALLING:
+			message = "challenged gravity";
+			break;
+		case MOD_CRUSH:
+			message = "was squished";
+			break;
+		case MOD_WATER:
+			message = "sank like a rock";
+			break;
+		case MOD_SLIME:
+			message = "melted";
+			break;
+		case MOD_LAVA:
+			message = "did a back flip into the lava";
+			break;
+		case MOD_TRIGGER_HURT:
+			message = "was in the wrong place";
+			break;
 	}
 
 	if (attacker == self) {
 		switch (mod) {
-		case MOD_GRENADE_SPLASH:
-			message = "went pop";
-			break;
-		case MOD_ROCKET_SPLASH:
-			message = "needs glasses";
-			break;
-		case MOD_LIGHTNING_DISCHARGE:
-			message = "took a toaster bath";
-			break;
-		case MOD_BFG_BLAST:
-			message = "should have used a smaller gun";
-			break;
-		default:
-			message = "sucks at life";
-			break;
+			case MOD_GRENADE_SPLASH:
+				message = "went pop";
+				break;
+			case MOD_ROCKET_SPLASH:
+				message = "needs glasses";
+				break;
+			case MOD_LIGHTNING_DISCHARGE:
+				message = "took a toaster bath";
+				break;
+			case MOD_BFG_BLAST:
+				message = "should have used a smaller gun";
+				break;
+			default:
+				message = "sucks at life";
+				break;
 		}
 	}
 
 	if (message) { // suicide
-		gi.BroadcastPrint(PRINT_MEDIUM, "%s %s.\n",
-				self->client->locals.persistent.net_name, message);
+		gi.BroadcastPrint(PRINT_MEDIUM, "%s %s.\n", self->client->locals.persistent.net_name,
+				message);
 
 		if (g_level.warmup)
 			return;
 
 		self->client->locals.persistent.score--;
 
-		if ((g_level.teams || g_level.ctf)
-				&& self->client->locals.persistent.team)
+		if ((g_level.teams || g_level.ctf) && self->client->locals.persistent.team)
 			self->client->locals.persistent.team->score--;
 
 		return;
@@ -107,71 +98,70 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker, uint32_t mod)
 
 	if (attacker && attacker->client) {
 		switch (mod) {
-		case MOD_BLASTER:
-			message = "was humilated by";
-			message2 = "'s blaster";
-			break;
-		case MOD_SHOTGUN:
-			message = "was gunned down by";
-			message2 = "'s shotgun";
-			break;
-		case MOD_SUPER_SHOTGUN:
-			message = "was blown away by";
-			message2 = "'s super shotgun";
-			break;
-		case MOD_MACHINEGUN:
-			message = "was perforated by";
-			message2 = "'s machinegun";
-			break;
-		case MOD_GRENADE:
-			message = "was popped by";
-			message2 = "'s grenade";
-			break;
-		case MOD_GRENADE_SPLASH:
-			message = "was shredded by";
-			message2 = "'s shrapnel";
-			break;
-		case MOD_ROCKET:
-			message = "ate";
-			message2 = "'s rocket";
-			break;
-		case MOD_ROCKET_SPLASH:
-			message = "almost dodged";
-			message2 = "'s rocket";
-			break;
-		case MOD_HYPERBLASTER:
-			message = "was melted by";
-			message2 = "'s hyperblaster";
-			break;
-		case MOD_LIGHTNING:
-			message = "was tased by";
-			message2 = "'s lightning";
-			break;
-		case MOD_LIGHTNING_DISCHARGE:
-			message = "was electrocuted by";
-			message2 = "'s discharge";
-			break;
-		case MOD_RAILGUN:
-			message = "was railed by";
-			break;
-		case MOD_BFG_LASER:
-			message = "saw the pretty lights from";
-			message2 = "'s BFG";
-			break;
-		case MOD_BFG_BLAST:
-			message = "was disintegrated by";
-			message2 = "'s BFG blast";
-			break;
-		case MOD_TELEFRAG:
-			message = "tried to invade";
-			message2 = "'s personal space";
-			break;
+			case MOD_BLASTER:
+				message = "was humilated by";
+				message2 = "'s blaster";
+				break;
+			case MOD_SHOTGUN:
+				message = "was gunned down by";
+				message2 = "'s shotgun";
+				break;
+			case MOD_SUPER_SHOTGUN:
+				message = "was blown away by";
+				message2 = "'s super shotgun";
+				break;
+			case MOD_MACHINEGUN:
+				message = "was perforated by";
+				message2 = "'s machinegun";
+				break;
+			case MOD_GRENADE:
+				message = "was popped by";
+				message2 = "'s grenade";
+				break;
+			case MOD_GRENADE_SPLASH:
+				message = "was shredded by";
+				message2 = "'s shrapnel";
+				break;
+			case MOD_ROCKET:
+				message = "ate";
+				message2 = "'s rocket";
+				break;
+			case MOD_ROCKET_SPLASH:
+				message = "almost dodged";
+				message2 = "'s rocket";
+				break;
+			case MOD_HYPERBLASTER:
+				message = "was melted by";
+				message2 = "'s hyperblaster";
+				break;
+			case MOD_LIGHTNING:
+				message = "was tased by";
+				message2 = "'s lightning";
+				break;
+			case MOD_LIGHTNING_DISCHARGE:
+				message = "was electrocuted by";
+				message2 = "'s discharge";
+				break;
+			case MOD_RAILGUN:
+				message = "was railed by";
+				break;
+			case MOD_BFG_LASER:
+				message = "saw the pretty lights from";
+				message2 = "'s BFG";
+				break;
+			case MOD_BFG_BLAST:
+				message = "was disintegrated by";
+				message2 = "'s BFG blast";
+				break;
+			case MOD_TELEFRAG:
+				message = "tried to invade";
+				message2 = "'s personal space";
+				break;
 		}
 
 		if (message) {
 
-			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s%s\n",
-					(friendy_fire ? "^1TEAMKILL^7 " : ""),
+			gi.BroadcastPrint(PRINT_MEDIUM, "%s%s %s %s%s\n", (friendy_fire ? "^1TEAMKILL^7 " : ""),
 					self->client->locals.persistent.net_name, message,
 					attacker->client->locals.persistent.net_name, message2);
 
@@ -179,14 +169,10 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker, uint32_t mod)
 				int16_t a = 0;
 				const g_item_t *armor = G_ClientArmor(attacker);
 				if (armor) {
-					a =
-							attacker->client->locals.persistent.inventory[ITEM_INDEX(
-									armor)];
+					a = attacker->client->locals.persistent.inventory[ITEM_INDEX(armor)];
 				}
-				gi.ClientPrint(self, PRINT_HIGH,
-						"%s had %d health and %d armor\n",
-						attacker->client->locals.persistent.net_name,
-						attacker->locals.health, a);
+				gi.ClientPrint(self, PRINT_HIGH, "%s had %d health and %d armor\n",
+						attacker->client->locals.persistent.net_name, attacker->locals.health, a);
 			}
 
 			if (g_level.warmup)
@@ -197,8 +183,7 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker, uint32_t mod)
 			else
 				attacker->client->locals.persistent.score++;
 
-			if ((g_level.teams || g_level.ctf)
-					&& attacker->client->locals.persistent.team) { // handle team scores too
+			if ((g_level.teams || g_level.ctf) && attacker->client->locals.persistent.team) { // handle team scores too
 				if (friendy_fire)
 					attacker->client->locals.persistent.team->score--;
 				else
@@ -249,14 +234,14 @@ static void G_ClientCorpse_Think(g_edict_t *self) {
 		// and don't re-animate when coming into view for new clients
 		if (age > 1800) {
 			switch (self->s.animation1) {
-			case ANIM_BOTH_DEATH1:
-			case ANIM_BOTH_DEATH2:
-			case ANIM_BOTH_DEATH3:
-				self->s.animation1++;
-				self->s.animation2++;
-				break;
-			default:
-				break;
+				case ANIM_BOTH_DEATH1:
+				case ANIM_BOTH_DEATH2:
+				case ANIM_BOTH_DEATH3:
+					self->s.animation1++;
+					self->s.animation2++;
+					break;
+				default:
+					break;
 			}
 		}
 	} else {
@@ -291,14 +276,11 @@ static void G_ClientCorpse_Think(g_edict_t *self) {
  * velocity of the corpse, and bounce when damaged. They eventually sink
  * through the floor and disappear.
  */
-static void G_ClientCorpse_Die(g_edict_t *self,
-		g_edict_t *attacker __attribute__((unused)),
+static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute__((unused)),
 		uint32_t mod __attribute__((unused))) {
 
-	const vec3_t mins[] = { { -3.0, -3.0, -3.0 }, { -6.0, -6.0, -6.0 }, { -9.0,
-			-9.0, -9.0 } };
-	const vec3_t maxs[] = { { 3.0, 3.0, 3.0 }, { 6.0, 6.0, 6.0 }, { 9.0, 9.0,
-			9.0 } };
+	const vec3_t mins[] = { { -3.0, -3.0, -3.0 }, { -6.0, -6.0, -6.0 }, { -9.0, -9.0, -9.0 } };
+	const vec3_t maxs[] = { { 3.0, 3.0, 3.0 }, { 6.0, 6.0, 6.0 }, { 9.0, 9.0, 9.0 } };
 
 	uint16_t i, count = 3 + Random() % 3;
 
@@ -476,8 +458,7 @@ static void G_Give(g_client_t *client, char *it, int16_t quantity) {
 				if (quantity > -1)
 					client->locals.persistent.inventory[ammo_index] = quantity;
 				else
-					client->locals.persistent.inventory[ammo_index] =
-							ammo->quantity;
+					client->locals.persistent.inventory[ammo_index] = ammo->quantity;
 			}
 		}
 	} else { // while other items receive quantity directly
@@ -619,8 +600,7 @@ static vec_t G_EnemyRangeFromSpot(g_edict_t *ent, g_edict_t *spot) {
 
 		if (g_level.teams || g_level.ctf) { // avoid collision with team mates
 
-			if (player->client->locals.persistent.team
-					== ent->client->locals.persistent.team) {
+			if (player->client->locals.persistent.team == ent->client->locals.persistent.team) {
 				if (dist > 64.0) // if they're far away, ignore them
 					continue;
 			}
@@ -659,8 +639,7 @@ static g_edict_t *G_SelectRandomSpawnPoint(const char *class_name) {
 /*
  * @brief
  */
-static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent,
-		const char *class_name) {
+static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent, const char *class_name) {
 	g_edict_t *spot, *best_spot;
 	vec_t dist, best_dist;
 
@@ -707,8 +686,8 @@ static g_edict_t *G_SelectCaptureSpawnPoint(g_edict_t *ent) {
 	if (!ent->client->locals.persistent.team)
 		return NULL;
 
-	c = ent->client->locals.persistent.team == &g_team_good ?
-			"info_player_team1" : "info_player_team2";
+	c = ent->client->locals.persistent.team == &g_team_good ? "info_player_team1" :
+			"info_player_team2";
 
 	if (g_spawn_farthest->value)
 		return G_SelectFarthestSpawnPoint(ent, c);
@@ -730,15 +709,13 @@ static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles) {
 
 	// and lastly fall back on single player start
 	if (!spot) {
-		while ((spot = G_Find(spot, EOFS(class_name), "info_player_start"))
-				!= NULL) {
+		while ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) != NULL) {
 			if (!spot->locals.target_name) // hopefully without a target
 				break;
 		}
 
 		if (!spot) { // last resort, find any
-			if ((spot = G_Find(spot, EOFS(class_name), "info_player_start"))
-					== NULL)
+			if ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) == NULL)
 				gi.Error("Couldn't find spawn point\n");
 		}
 	}
@@ -884,15 +861,12 @@ void G_ClientRespawn(g_edict_t *ent, _Bool voluntary) {
 
 	// clear scores and match/round on voluntary changes
 	if (ent->client->locals.persistent.spectator && voluntary) {
-		ent->client->locals.persistent.score =
-				ent->client->locals.persistent.captures = 0;
-		ent->client->locals.persistent.match_num =
-				ent->client->locals.persistent.round_num = 0;
+		ent->client->locals.persistent.score = ent->client->locals.persistent.captures = 0;
+		ent->client->locals.persistent.match_num = ent->client->locals.persistent.round_num = 0;
 	}
 
 	ent->client->locals.respawn_time = g_level.time;
-	ent->client->locals.respawn_protection_time = g_level.time
-			+ g_respawn_protection->value * 1000;
+	ent->client->locals.respawn_protection_time = g_level.time + g_respawn_protection->value * 1000;
 
 	if (!voluntary) // don't announce involuntary spectator changes
 		return;
@@ -901,12 +875,10 @@ void G_ClientRespawn(g_edict_t *ent, _Bool voluntary) {
 		gi.BroadcastPrint(PRINT_HIGH, "%s likes to watch\n",
 				ent->client->locals.persistent.net_name);
 	else if (ent->client->locals.persistent.team)
-		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n",
-				ent->client->locals.persistent.net_name,
+		gi.BroadcastPrint(PRINT_HIGH, "%s has joined %s\n", ent->client->locals.persistent.net_name,
 				ent->client->locals.persistent.team->name);
 	else
-		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n",
-				ent->client->locals.persistent.net_name);
+		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", ent->client->locals.persistent.net_name);
 }
 
 /*
@@ -944,8 +916,7 @@ void G_ClientBegin(g_edict_t *ent) {
 	} else {
 		memset(welcome, 0, sizeof(welcome));
 
-		g_snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s",
-				sv_hostname->string);
+		g_snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
 
 		if (*g_motd->string) {
 			char motd[MAX_QPATH];
@@ -954,22 +925,17 @@ void G_ClientBegin(g_edict_t *ent) {
 			strncat(welcome, motd, sizeof(welcome) - strlen(welcome) - 1);
 		}
 
-		strncat(welcome, "\n^2Gameplay is ^1",
-				sizeof(welcome) - strlen(welcome) - 1);
-		strncat(welcome, G_GameplayName(g_level.gameplay),
-				sizeof(welcome) - strlen(welcome) - 1);
+		strncat(welcome, "\n^2Gameplay is ^1", sizeof(welcome) - strlen(welcome) - 1);
+		strncat(welcome, G_GameplayName(g_level.gameplay), sizeof(welcome) - strlen(welcome) - 1);
 
 		if (g_level.teams)
-			strncat(welcome, "\n^2Teams are enabled",
-					sizeof(welcome) - strlen(welcome) - 1);
+			strncat(welcome, "\n^2Teams are enabled", sizeof(welcome) - strlen(welcome) - 1);
 
 		if (g_level.ctf)
-			strncat(welcome, "\n^2CTF is enabled",
-					sizeof(welcome) - strlen(welcome) - 1);
+			strncat(welcome, "\n^2CTF is enabled", sizeof(welcome) - strlen(welcome) - 1);
 
 		if (g_voting->value)
-			strncat(welcome, "\n^2Voting is enabled",
-					sizeof(welcome) - strlen(welcome) - 1);
+			strncat(welcome, "\n^2Voting is enabled", sizeof(welcome) - strlen(welcome) - 1);
 
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(welcome);
@@ -984,31 +950,24 @@ void G_ClientBegin(g_edict_t *ent) {
  * @brief
  */
 void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
-	const char *s;
-	char *c;
 	char name[MAX_NET_NAME];
-	int32_t entity_num, i;
-	_Bool color;
-	g_client_t *cl;
 
 	// check for malformed or illegal info strings
 	if (!ValidateUserInfo(user_info)) {
 		user_info = DEFAULT_USER_INFO;
 	}
 
-	cl = ent->client;
-
 	// set name, use a temp buffer to compute length and crutch up bad names
-	s = GetUserInfo(user_info, "name");
+	const char *s = GetUserInfo(user_info, "name");
 
 	g_strlcpy(name, s, sizeof(name));
 
-	color = false;
-	c = name;
-	i = 0;
+	_Bool color = false;
+	char *c = name;
+	int32_t i = 0;
 
 	// trim to 15 printable chars
-	while (i < 15) {
+	while (i < MAX_NET_NAME_PRINTABLE) {
 
 		if (!*c)
 			break;
@@ -1030,26 +989,15 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	if (color) // reset to white
 		strcat(name, "^7");
 
-	if (strncmp(cl->locals.persistent.net_name, name,
-			sizeof(cl->locals.persistent.net_name))) {
+	g_client_t *cl = ent->client;
+	if (strncmp(cl->locals.persistent.net_name, name, sizeof(cl->locals.persistent.net_name))) {
 
 		if (*cl->locals.persistent.net_name != '\0')
 			gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n",
 					cl->locals.persistent.net_name, name);
 
-		g_strlcpy(cl->locals.persistent.net_name, name,
-				sizeof(cl->locals.persistent.net_name));
+		g_strlcpy(cl->locals.persistent.net_name, name, sizeof(cl->locals.persistent.net_name));
 	}
-
-#ifdef HAVE_MYSQL
-	if(mysql != NULL) { // escape name for safe db insertions
-
-		StripColor(cl->locals.persistent.net_name, name);
-
-		mysql_real_escape_string(mysql, name, cl->locals.persistent.sql_name,
-				sizeof(cl->locals.persistent.sql_name));
-	}
-#endif
 
 	// set skin
 	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) // players must use team_skin to change
@@ -1058,8 +1006,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 		s = GetUserInfo(user_info, "skin");
 
 	if (strlen(s) && !strstr(s, "..")) // something valid-ish was provided
-		g_strlcpy(cl->locals.persistent.skin, s,
-				sizeof(cl->locals.persistent.skin));
+		g_strlcpy(cl->locals.persistent.skin, s, sizeof(cl->locals.persistent.skin));
 	else {
 		g_strlcpy(cl->locals.persistent.skin, "qforcer/default",
 				sizeof(cl->locals.persistent.skin));
@@ -1069,12 +1016,11 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	s = GetUserInfo(user_info, "color");
 	cl->locals.persistent.color = G_ColorByName(s, EFFECT_COLOR_DEFAULT);
 
-	entity_num = ent - g_game.edicts - 1;
+	const uint32_t entity_num = ent - g_game.edicts - 1;
 
 	// combine name and skin into a config_string
 	gi.ConfigString(CS_CLIENTS + entity_num,
-			va("%s\\%s", cl->locals.persistent.net_name,
-					cl->locals.persistent.skin));
+			va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
 
 	// save off the user_info in case we want to check something later
 	g_strlcpy(ent->client->locals.persistent.user_info, user_info,
@@ -1118,8 +1064,7 @@ _Bool G_ClientConnect(g_edict_t *ent, char *user_info) {
 	G_ClientUserInfoChanged(ent, user_info);
 
 	if (sv_max_clients->integer > 1)
-		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n",
-				ent->client->locals.persistent.net_name);
+		gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->locals.persistent.net_name);
 
 	ent->sv_flags = 0; // make sure we start with known default
 	return true;
@@ -1137,8 +1082,7 @@ void G_ClientDisconnect(g_edict_t *ent) {
 	G_TossQuadDamage(ent);
 	G_TossFlag(ent);
 
-	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n",
-			ent->client->locals.persistent.net_name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.persistent.net_name);
 
 	// send effect
 	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
@@ -1165,8 +1109,8 @@ void G_ClientDisconnect(g_edict_t *ent) {
 /*
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
-static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end,
-		const vec3_t mins, const vec3_t maxs) {
+static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
+		const vec3_t maxs) {
 	const g_edict_t *self = g_level.current_entity;
 
 	if (g_level.current_entity->locals.health > 0)
@@ -1237,8 +1181,7 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 	VectorCopy(pm.angles, cl->locals.angles);
 
 	// update the directional vectors based on new view angles
-	AngleVectors(cl->locals.angles, cl->locals.forward, cl->locals.right,
-			cl->locals.up);
+	AngleVectors(cl->locals.angles, cl->locals.forward, cl->locals.right, cl->locals.up);
 
 	// update the horizontal speed scalar based on new velocity
 	VectorCopy(ent->locals.velocity, velocity);
@@ -1247,8 +1190,7 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 	cl->locals.speed = VectorNormalize(velocity);
 
 	// check for jump
-	if ((pm.s.flags & PMF_JUMPED)
-			&& cl->locals.jump_time < g_level.time - 100) {
+	if ((pm.s.flags & PMF_JUMPED) && cl->locals.jump_time < g_level.time - 100) {
 		vec3_t angles, forward, point;
 		cm_trace_t tr;
 
@@ -1259,10 +1201,9 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 
 		// trace towards our jump destination to see if we have room to backflip
 		tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent,
-				MASK_PLAYER_SOLID);
+		MASK_PLAYER_SOLID);
 
-		if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0
-				&& cl->locals.speed > 200.0)
+		if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0)
 			G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
 		else
 			G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
@@ -1274,8 +1215,7 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 		cl->locals.jump_time = g_level.time;
 	}
 	// check for water jump
-	else if ((pm.s.flags & PMF_TIME_WATER_JUMP)
-			&& cl->locals.jump_time < g_level.time - 2000) {
+	else if ((pm.s.flags & PMF_TIME_WATER_JUMP) && cl->locals.jump_time < g_level.time - 2000) {
 
 		G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
@@ -1283,14 +1223,12 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 		cl->locals.jump_time = g_level.time;
 	}
 	// check for landing
-	else if ((pm.s.flags & PMF_TIME_LAND)
-			&& cl->locals.land_time < g_level.time - 1000) {
+	else if ((pm.s.flags & PMF_TIME_LAND) && cl->locals.land_time < g_level.time - 1000) {
 
 		g_entity_event_t event = EV_CLIENT_LAND;
 
 		if (old_velocity[2] <= PM_SPEED_FALL) { // player will take damage
-			int16_t damage = ((int16_t) -((old_velocity[2] - PM_SPEED_FALL)
-					* 0.05));
+			int16_t damage = ((int16_t) -((old_velocity[2] - PM_SPEED_FALL) * 0.05));
 
 			damage >>= ent->locals.water_level; // water breaks the fall
 
@@ -1307,9 +1245,8 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 			vec3_t dir;
 			VectorSet(dir, 0.0, 0.0, 1.0);
 
-			G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage,
-					0, DMG_NO_ARMOR,
-					MOD_FALLING);
+			G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage, 0, DMG_NO_ARMOR,
+			MOD_FALLING);
 		}
 
 		if (G_IsAnimation(ent, ANIM_LEGS_JUMP2))
@@ -1321,8 +1258,7 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 		cl->locals.land_time = g_level.time;
 	}
 	// check for ladder, play a jump animation
-	else if ((pm.s.flags & PMF_ON_LADDER)
-			&& cl->locals.jump_time < g_level.time - 400) {
+	else if ((pm.s.flags & PMF_ON_LADDER) && cl->locals.jump_time < g_level.time - 400) {
 
 		if (fabs(ent->locals.velocity[2]) > 20.0) {
 
@@ -1371,8 +1307,7 @@ static void G_ClientInventoryThink(g_edict_t *ent) {
 		if (ent->client->locals.quad_damage_time < g_level.time) { // expire it
 
 			ent->client->locals.quad_damage_time = 0.0;
-			ent->client->locals.persistent.inventory[g_media.items.quad_damage] =
-					0;
+			ent->client->locals.persistent.inventory[g_media.items.quad_damage] = 0;
 
 			gi.Sound(ent, gi.SoundIndex("quad/expire"), ATTEN_NORM);
 
@@ -1393,14 +1328,13 @@ static void G_ClientInventoryThink(g_edict_t *ent) {
  * couple times for each server frame.
  */
 void G_ClientThink(g_edict_t *ent, pm_cmd_t *cmd) {
-	g_client_t *client;
 	int32_t i;
 
 	if (g_level.intermission_time)
 		return;
 
 	g_level.current_entity = ent;
-	client = ent->client;
+	g_client_t *client = ent->client;
 
 	client->locals.cmd = *cmd;
 
@@ -1427,8 +1361,7 @@ void G_ClientThink(g_edict_t *ent, pm_cmd_t *cmd) {
 
 	client->locals.old_buttons = client->locals.buttons;
 	client->locals.buttons = cmd->buttons;
-	client->locals.latched_buttons |= client->locals.buttons
-			& ~client->locals.old_buttons;
+	client->locals.latched_buttons |= client->locals.buttons & ~client->locals.old_buttons;
 
 	// fire weapon if requested
 	if (client->locals.latched_buttons & BUTTON_ATTACK) {
@@ -1437,8 +1370,7 @@ void G_ClientThink(g_edict_t *ent, pm_cmd_t *cmd) {
 			client->locals.latched_buttons = 0;
 
 			if (client->locals.chase_target) { // toggle chase camera
-				client->locals.chase_target = client->locals.old_chase_target =
-						NULL;
+				client->locals.chase_target = client->locals.old_chase_target = NULL;
 				client->ps.pm_state.flags &= ~PMF_NO_PREDICTION;
 			} else {
 				G_ClientChaseTarget(ent);
@@ -1474,15 +1406,13 @@ void G_ClientBeginFrame(g_edict_t *ent) {
 	client = ent->client;
 
 	// run weapon think if it hasn't been done by a command
-	if (client->locals.weapon_think_time < g_level.time
-			&& !client->locals.persistent.spectator)
+	if (client->locals.weapon_think_time < g_level.time && !client->locals.persistent.spectator)
 		G_ClientWeaponThink(ent);
 
 	if (ent->locals.dead) { // check for respawn conditions
 
 		// rounds mode implies last-man-standing, force to spectator immediately if round underway
-		if (g_level.rounds && g_level.round_time
-				&& g_level.time >= g_level.round_time) {
+		if (g_level.rounds && g_level.round_time && g_level.time >= g_level.round_time) {
 			client->locals.persistent.spectator = true;
 			G_ClientRespawn(ent, false);
 		} else if (g_level.time > client->locals.respawn_time) {

@@ -41,11 +41,6 @@ cvar_t *g_gravity;
 cvar_t *g_match;
 cvar_t *g_max_entities;
 cvar_t *g_motd;
-cvar_t *g_mysql;
-cvar_t *g_mysql_db;
-cvar_t *g_mysql_host;
-cvar_t *g_mysql_password;
-cvar_t *g_mysql_user;
 cvar_t *g_password;
 cvar_t *g_player_projectile;
 cvar_t *g_random_map;
@@ -67,11 +62,6 @@ cvar_t *dedicated;
 g_team_t g_team_good, g_team_evil;
 
 g_map_list_t g_map_list;
-
-#ifdef HAVE_MYSQL
-MYSQL *mysql;
-char sql[512];
-#endif
 
 /*
  * @brief
@@ -1137,11 +1127,6 @@ void G_Init(void) {
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
 	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO,
 			"Message of the day, shown to clients on initial connect");
-	g_mysql = gi.Cvar("g_mysql", "0", 0, NULL);
-	g_mysql_db = gi.Cvar("g_mysql_db", "quake2world", 0, NULL);
-	g_mysql_host = gi.Cvar("g_mysql_host", "localhost", 0, NULL);
-	g_mysql_password = gi.Cvar("g_mysql_password", "", 0, NULL);
-	g_mysql_user = gi.Cvar("g_mysql_user", "quake2world", 0, NULL);
 	g_password = gi.Cvar("g_password", "", CVAR_USER_INFO, "The server password");
 	g_player_projectile = gi.Cvar("g_player_projectile", "1.0", CVAR_SERVER_INFO,
 			"Scales player velocity to projectiles");
@@ -1167,22 +1152,6 @@ void G_Init(void) {
 	sv_hostname = gi.Cvar("sv_hostname", "Quake2World", CVAR_SERVER_INFO, NULL);
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
 
-#ifdef HAVE_MYSQL
-	if(g_mysql->value) { //init database
-
-		mysql = mysql_init(NULL);
-
-		mysql_real_connect(mysql, g_mysql_host->string,
-				g_mysql_user->string, g_mysql_password->string,
-				g_mysql_db->string, 0, NULL, 0
-		);
-
-		if(mysql != NULL)
-		gi.Print("    MySQL connection to %s/%s", g_mysql_host->string,
-				g_mysql_user->string);
-	}
-#endif
-
 	G_ParseMapList("maps.lst");
 
 	// initialize entities and clients for this game
@@ -1194,6 +1163,7 @@ void G_Init(void) {
 	ge.num_edicts = sv_max_clients->integer + 1;
 
 	G_Ai_Init(); // initialize the AI
+	G_MySQL_Init();
 
 	// set these to false to avoid spurious game restarts and alerts on init
 	g_gameplay->modified = g_teams->modified = g_match->modified = g_rounds->modified
@@ -1212,10 +1182,8 @@ void G_Shutdown(void) {
 
 	gi.Print("  Game shutdown...\n");
 
-#ifdef HAVE_MYSQL
-	if(mysql != NULL)
-	mysql_close(mysql); // and db
-#endif
+	G_MySQL_Shutdown();
+	G_Ai_Shutdown();
 
 	gi.FreeTag(MEM_TAG_GAME_LEVEL);
 	gi.FreeTag(MEM_TAG_GAME);

@@ -18,6 +18,7 @@ noinst_HEADERS = \
 	g_item.h \
 	g_local.h \
 	g_main.h \
+	g_mysql.h \
 	g_physics.h \
 	g_types.h \
 	g_util.h \
@@ -60,6 +61,7 @@ game_la_SOURCES = \
 	g_entity.c \
 	g_item.c \
 	g_main.c \
+	g_mysql.c \
 	g_physics.c \
 	g_util.c \
 	g_weapon.c

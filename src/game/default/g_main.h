@@ -81,11 +81,6 @@ extern cvar_t *g_gravity;
 extern cvar_t *g_match;
 extern cvar_t *g_max_entities;
 extern cvar_t *g_motd;
-extern cvar_t *g_mysql;
-extern cvar_t *g_mysql_db;
-extern cvar_t *g_mysql_host;
-extern cvar_t *g_mysql_password;
-extern cvar_t *g_mysql_user;
 extern cvar_t *g_password;
 extern cvar_t *g_player_projectile;
 extern cvar_t *g_random_map;
@@ -105,12 +100,6 @@ extern cvar_t *sv_hostname;
 extern cvar_t *dedicated;
 
 extern g_team_t g_team_good, g_team_evil;
-
-#ifdef HAVE_MYSQL
-#include <mysql.h>
-extern MYSQL *mysql;
-extern char sql[512];
-#endif
 
 void G_Init(void);
 void G_Shutdown(void);

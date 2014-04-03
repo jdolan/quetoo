@@ -28,6 +28,7 @@
 									<listOptionValue builtIn="false" value="/opt/local/include"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/glib-2.0"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/libxml2"/>
+									<listOptionValue builtIn="false" value="/opt/local/include/mysql5/mysql"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1445058895" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -36,6 +37,7 @@
 									<listOptionValue builtIn="false" value="/opt/local/include"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/glib-2.0"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/libxml2"/>
+									<listOptionValue builtIn="false" value="/opt/local/include/mysql5"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.302846094" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>

@@ -632,6 +632,11 @@ typedef struct {
 #define MAX_NET_NAME 64
 
 /*
+ * @brief The maximum printable length of a net name.
+ */
+#define MAX_NET_NAME_PRINTABLE 15
+
+/*
  * @brief This structure contains client data that persists over multiple
  * respawns.
  */
@@ -640,8 +645,7 @@ typedef struct {
 
 	char user_info[MAX_USER_INFO_STRING];
 	char net_name[MAX_NET_NAME];
-	char sql_name[20];
-	char skin[32];
+	char skin[MAX_QPATH];
 	int16_t score;
 	int16_t captures;
 

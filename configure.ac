@@ -18,9 +18,9 @@ AC_SUBST(PROGRAM)
 AC_SUBST(VERSION)
 
 AM_INIT_AUTOMAKE([silent-rules subdir-objects foreign dist-bzip2 dist-zip])
-AM_SILENT_RULES([yes])
 
 AM_MAINTAINER_MODE
+AM_SILENT_RULES([yes])
 
 dnl ---------------
 dnl Check for tools
@@ -307,11 +307,6 @@ AC_SUBST(SDL_CFLAGS)
 AC_SUBST(SDL_LIBS)
 
 dnl -------------------------------
-dnl Check for stdint.h
-dnl -------------------------------
-AC_CHECK_HEADERS([stdint.h])
-
-dnl -------------------------------
 dnl Check for execinfo.h (optional)
 dnl -------------------------------
 
@@ -424,7 +419,7 @@ AC_ARG_WITH(mysql,
 	)
 )
 
-AC_PATH_PROG(MYSQL_CONFIG, mysql_config)
+AC_PATH_PROGS(MYSQL_CONFIG, mysql_config mysql_config5)
 
 if test "x${with_mysql}" != xno -a "x${MYSQL_CONFIG}" != x; then
 	MYSQL_CFLAGS=`$MYSQL_CONFIG --cflags`
