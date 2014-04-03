@@ -60,8 +60,8 @@ static const int32_t vec_to_st[6][3] = {
 // sky structure
 typedef struct {
 	r_image_t *images[6];
-	vec2_t st_mins[6];
-	vec2_t st_maxs[6];
+	vec_t st_mins[2][6];
+	vec_t st_maxs[2][6];
 	vec_t st_min;
 	vec_t st_max;
 	GLuint texcoord_index;
@@ -329,8 +329,8 @@ void R_DrawSkyBox(void) {
 
 	for (i = 0; i < 6; i++) {
 
-		if (r_sky.st_mins[0][i] >= r_sky.st_maxs[0][i] || r_sky.st_mins[1][i]
-				>= r_sky.st_maxs[1][i])
+		if (r_sky.st_mins[0][i] >= r_sky.st_maxs[0][i]
+				|| r_sky.st_mins[1][i] >= r_sky.st_maxs[1][i])
 			continue; // nothing on this plane
 
 		R_BindTexture(r_sky.images[sky_order[i]]->texnum);
