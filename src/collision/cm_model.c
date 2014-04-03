@@ -22,7 +22,7 @@
 #include "cm_local.h"
 
 cm_bsp_t cm_bsp;
-cm_vis_t *cm_vis = (cm_vis_t *) &cm_bsp.visibility;
+cm_vis_t *cm_vis;
 
 /*
  * @brief
@@ -428,7 +428,9 @@ static void Cm_LoadBspAreaPortals(const d_bsp_lump_t *l) {
 }
 
 /*
- * @brief Loads in the BSP and all sub-models for collision detection.
+ * @brief Loads in the BSP and all sub-models for collision detection. This
+ * function can also be used to initialize or clean up the collision model by
+ * invoking with NULL.
  */
 cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	void *buf;
@@ -436,7 +438,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	memset(&cm_bsp, 0, sizeof(cm_bsp));
 	cm_vis = (d_bsp_vis_t *) cm_bsp.visibility;
 
-	// if we've been asked to load a demo, just clean up and return
+	// clean up and return
 	if (!name) {
 		if (size) {
 			*size = 0;
