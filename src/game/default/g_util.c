@@ -25,7 +25,7 @@
 /*
  * @brief
  */
-void G_ProjectSpawn(g_edict_t *ent) {
+void G_InitPlayerSpawn(g_edict_t *ent) {
 	vec3_t mins, maxs, delta, forward;
 
 	// up
@@ -712,7 +712,7 @@ _Bool G_IsStructural(const g_edict_t *ent, const cm_bsp_surface_t *surf) {
 
 	if (ent->solid == SOLID_BSP) {
 
-		if (surf->flags & SURF_SKY)
+		if (surf && (surf->flags & SURF_SKY))
 			return false;
 
 		return true;

@@ -170,7 +170,7 @@ static void G_Friction(g_edict_t *ent) {
 	vec_t friction = 0.0;
 
 	if (ent->locals.ground_entity) {
-		if (ent->locals.ground_surf && (ent->locals.ground_surf->flags & SURF_SLICK)) {
+		if (ent->locals.ground_surface && (ent->locals.ground_surface->flags & SURF_SLICK)) {
 			friction = PM_FRICT_GROUND_SLICK;
 		} else {
 			friction = PM_FRICT_GROUND;
@@ -508,7 +508,7 @@ static void G_Physics_Toss(g_edict_t *ent) {
 
 					ent->locals.ground_entity = trace.ent;
 					ent->locals.ground_plane = trace.plane;
-					ent->locals.ground_surf = trace.surface;
+					ent->locals.ground_surface = trace.surface;
 				}
 
 				VectorClear(ent->locals.velocity);

@@ -134,7 +134,8 @@ static void G_BulletMark(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *su
 /*
  * @brief Used to add burn marks on surfaces hit by projectiles.
  */
-static void G_BurnMark(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf __attribute__((unused)), uint8_t scale) {
+static void G_BurnMark(vec3_t org, cm_bsp_plane_t *plane,
+		cm_bsp_surface_t *surf __attribute__((unused)), uint8_t scale) {
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_BURN);
@@ -306,7 +307,7 @@ static void G_GrenadeProjectile_Explode(g_edict_t *self) {
 	gi.Multicast(origin, MULTICAST_PHS);
 
 	if (G_IsStationary(self->locals.ground_entity)) {
-		G_BurnMark(self->s.origin, &self->locals.ground_plane, self->locals.ground_surf, 20);
+		G_BurnMark(self->s.origin, &self->locals.ground_plane, self->locals.ground_surface, 20);
 	}
 
 	G_FreeEdict(self);
@@ -315,8 +316,8 @@ static void G_GrenadeProjectile_Explode(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
-		cm_bsp_surface_t *surf) {
+static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other,
+		cm_bsp_plane_t *plane __attribute__((unused)), cm_bsp_surface_t *surf) {
 
 	if (other == self->owner)
 		return;
@@ -356,7 +357,8 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t const start, const vec3_t dir, i
 	AngleVectors(projectile->s.angles, forward, right, up);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
-	VectorMA(projectile->locals.velocity, 200.0 + Randomc() * 10.0, up, projectile->locals.velocity);
+	VectorMA(projectile->locals.velocity, 200.0 + Randomc() * 10.0, up,
+			projectile->locals.velocity);
 	VectorMA(projectile->locals.velocity, Randomc() * 30.0, right, projectile->locals.velocity);
 
 	G_PlayerProjectile(projectile, 0.33);
@@ -466,8 +468,8 @@ void G_RocketProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, in
 /*
  * @brief
  */
-static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other,
-		cm_bsp_plane_t *plane, cm_bsp_surface_t *surf) {
+static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane,
+		cm_bsp_surface_t *surf) {
 	vec3_t origin;
 	vec3_t v;
 
@@ -501,8 +503,8 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other,
 			VectorSubtract(self->s.origin, self->owner->s.origin, v);
 
 			if (VectorLength(v) < 32.0) { // hyperblaster climb
-				G_Damage(self->owner, self, self->owner, vec3_origin, self->s.origin,
-						plane->normal, self->locals.damage * 0.06, 0, DMG_ENERGY, MOD_HYPERBLASTER);
+				G_Damage(self->owner, self, self->owner, vec3_origin, self->s.origin, plane->normal,
+						self->locals.damage * 0.06, 0, DMG_ENERGY, MOD_HYPERBLASTER);
 
 				self->owner->locals.velocity[2] += 80.0;
 			}
@@ -570,7 +572,7 @@ static void G_LightningProjectile_Discharge(g_edict_t *self) {
 				d = ent == self ? 999 : 50 * ent->locals.water_level;
 
 				G_Damage(ent, self, self->owner, vec3_origin, ent->s.origin, vec3_origin, d, 100,
-						DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
+				DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
 			}
 		}
 	}
@@ -605,7 +607,6 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 	cm_trace_t tr;
 
 	if (G_LightningProjectile_Expire(self)) {
-		self->owner->locals.lightning = NULL;
 		G_FreeEdict(self);
 		return;
 	}
@@ -619,7 +620,6 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 
 	if (gi.PointContents(start) & MASK_WATER) { // discharge and return
 		G_LightningProjectile_Discharge(self);
-		self->owner->locals.lightning = NULL;
 		G_FreeEdict(self);
 		return;
 	}
@@ -672,7 +672,13 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 void G_LightningProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
 		int16_t knockback) {
 
-	g_edict_t *projectile = ent->locals.lightning;
+	g_edict_t *projectile = NULL;
+
+	while ((projectile = G_Find(NULL, EOFS(class_name), __func__))) {
+		if (projectile->owner == ent) {
+			break;
+		}
+	}
 
 	if (!projectile) { // ensure a valid lightning entity exists
 		projectile = G_Spawn(__func__);
@@ -695,7 +701,6 @@ void G_LightningProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
 		projectile->s.trail = TRAIL_LIGHTNING;
 
 		gi.LinkEdict(projectile);
-		ent->locals.lightning = projectile;
 	}
 
 	// set the damage and think time
@@ -760,7 +765,7 @@ void G_RailgunProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 		// we've hit something, so damage it
 		if ((tr.ent != ent) && G_TakesDamage(tr.ent)) {
 			G_Damage(tr.ent, ent, ent, dir, tr.end, tr.plane.normal, damage, knockback, 0,
-					MOD_RAILGUN);
+			MOD_RAILGUN);
 		}
 
 		VectorCopy(tr.end, pos);

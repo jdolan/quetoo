@@ -29,7 +29,7 @@
 _Bool G_KillBox(g_edict_t *ent);
 void G_Explode(g_edict_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod);
 void G_Gib(g_edict_t *ent);
-void G_ProjectSpawn(g_edict_t *ent);
+void G_InitPlayerSpawn(g_edict_t *ent);
 void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org);
 g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match);
 g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, vec_t rad);

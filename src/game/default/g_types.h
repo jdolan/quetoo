@@ -798,7 +798,6 @@ typedef struct {
 	g_edict_t *activator;
 	g_edict_t *team_chain;
 	g_edict_t *team_master;
-	g_edict_t *lightning;
 
 	uint16_t noise_index;
 	int16_t attenuation;
@@ -810,7 +809,7 @@ typedef struct {
 
 	g_edict_t *ground_entity;
 	cm_bsp_plane_t ground_plane;
-	cm_bsp_surface_t *ground_surf;
+	cm_bsp_surface_t *ground_surface;
 
 	int32_t water_type;
 	uint8_t old_water_level;

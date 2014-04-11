@@ -124,6 +124,6 @@ void G_misc_teleporter(g_edict_t *ent) {
  targetname : The target name of this entity.
  */
 void G_misc_teleporter_dest(g_edict_t *ent) {
-	G_ProjectSpawn(ent);
+	G_InitPlayerSpawn(ent);
 }
 

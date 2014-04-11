@@ -230,7 +230,7 @@ g_edict_t *G_TossWeapon(g_edict_t *ent) {
 	return dropped;
 }
 
-typedef void(*G_FireWeaponFunc)(g_edict_t *ent);
+typedef void (*G_FireWeaponFunc)(g_edict_t *ent);
 
 /*
  * @brief Returns true if the specified client can fire their weapon, false
@@ -288,8 +288,8 @@ static void G_WeaponFired(g_edict_t *ent, uint32_t interval) {
 
 	// and decrease their inventory
 	if (ent->client->locals.ammo_index) {
-		ent->client->locals.persistent.inventory[ent->client->locals.ammo_index]
-				-= ent->client->locals.persistent.weapon->quantity;
+		ent->client->locals.persistent.inventory[ent->client->locals.ammo_index] -=
+				ent->client->locals.persistent.weapon->quantity;
 	}
 
 	// play a quad damage sound if applicable
@@ -502,13 +502,19 @@ void G_FireLightning(g_edict_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		const _Bool muzzle_flash = !ent->locals.lightning;
+		g_edict_t *projectile = NULL;
+
+		while ((projectile = G_Find(NULL, EOFS(class_name), "G_LightningProjectile"))) {
+			if (projectile->owner == ent) {
+				break;
+			}
+		}
 
 		G_InitProjectile(ent, forward, right, up, org);
 
 		G_LightningProjectile(ent, org, forward, 16, 12);
 
-		if (muzzle_flash) {
+		if (projectile == NULL) {
 			G_MuzzleFlash(ent, MZ_LIGHTNING);
 		}
 

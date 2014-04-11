@@ -38,7 +38,7 @@ void G_info_notnull(g_edict_t *self) {
  angle : The angle at which the player will face when spawned.
 */
 void G_info_player_start(g_edict_t *self) {
-	G_ProjectSpawn(self);
+	G_InitPlayerSpawn(self);
 }
 
 /*QUAKED info_player_intermission (1 0 1) (-16 -16 -24) (16 16 32)
@@ -49,7 +49,7 @@ void G_info_player_start(g_edict_t *self) {
  target : The target name of an info_notnull as an alternate way to set the camera angles.
 */
 void G_info_player_intermission(g_edict_t *self) {
-	G_ProjectSpawn(self);
+	G_InitPlayerSpawn(self);
 }
 
 /*QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32)
@@ -59,7 +59,7 @@ void G_info_player_intermission(g_edict_t *self) {
  angle : The angle at which the player will face when spawned.
 */
 void G_info_player_deathmatch(g_edict_t *self) {
-	G_ProjectSpawn(self);
+	G_InitPlayerSpawn(self);
 }
 
 /*QUAKED info_player_team1 (0 0 1) (-16 -16 -24) (16 16 32)
@@ -69,7 +69,7 @@ void G_info_player_deathmatch(g_edict_t *self) {
  angle : The angle at which the player will face when spawned.
 */
 void G_info_player_team1(g_edict_t *self) {
-	G_ProjectSpawn(self);
+	G_InitPlayerSpawn(self);
 }
 
 /*QUAKED info_player_team2 (1 0 0) (-16 -16 -24) (16 16 32)
@@ -79,5 +79,5 @@ void G_info_player_team1(g_edict_t *self) {
  angle : The angle at which the player will face when spawned.
 */
 void G_info_player_team2(g_edict_t *self) {
-	G_ProjectSpawn(self);
+	G_InitPlayerSpawn(self);
 }
