@@ -190,6 +190,8 @@ winding_t *WindingForPlane(const vec3_t normal, const vec_t dist) {
 		case 2:
 			VectorSet(vright, 0.0, -normal[2], normal[1]);
 			break;
+		default:
+			Com_Error(ERR_FATAL, "Bad axis\n");
 	}
 
 	VectorScale(vright, MAX_WORLD_COORD * 8.0, vright);
