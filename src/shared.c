@@ -159,12 +159,12 @@ void ProjectPointOnPlane(const vec3_t p, const vec3_t normal, vec3_t out) {
  * @brief Assumes input vector is normalized.
  */
 void PerpendicularVector(const vec3_t in, vec3_t out) {
-	int32_t i, pos = 0;
+	int32_t pos = 0;
 	vec_t min_elem = 1.0;
 	vec3_t tmp;
 
 	// find the smallest magnitude axially aligned vector
-	for (i = 0; i < 3; i++) {
+	for (int32_t i = 0; i < 3; i++) {
 		if (fabsf(in[i]) < min_elem) {
 			pos = i;
 			min_elem = fabsf(in[i]);
@@ -173,7 +173,7 @@ void PerpendicularVector(const vec3_t in, vec3_t out) {
 	VectorClear(tmp);
 	tmp[pos] = 1.0;
 
-	// project the point onto the plane defined by src
+	// project the point onto the plane
 	ProjectPointOnPlane(tmp, in, out);
 
 	// normalize the result
@@ -215,9 +215,8 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
  * @brief Produces the linear interpolation of the two vectors for the given fraction.
  */
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
-	int32_t i;
 
-	for (i = 0; i < 3; i++)
+	for (int32_t i = 0; i < 3; i++)
 		out[i] = from[i] + frac * (to[i] - from[i]);
 }
 
@@ -227,13 +226,12 @@ void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out
  */
 void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
 	vec3_t _from, _to;
-	int32_t i;
 
 	// copy the vectors to safely clamp this lerp
 	VectorCopy(from, _from);
 	VectorCopy(to, _to);
 
-	for (i = 0; i < 3; i++) {
+	for (int32_t i = 0; i < 3; i++) {
 
 		if (_to[i] - _from[i] > 180.0)
 			_to[i] -= 360.0;
@@ -271,9 +269,8 @@ void ClearBounds(vec3_t mins, vec3_t maxs) {
  * @brief Useful for accumulating a bounding box over a series of points.
  */
 void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
-	int32_t i;
 
-	for (i = 0; i < 3; i++) {
+	for (int32_t i = 0; i < 3; i++) {
 		if (point[i] < mins[i])
 			mins[i] = point[i];
 		if (point[i] > maxs[i])
@@ -286,12 +283,11 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
  * vector's length.
  */
 vec_t VectorNormalize(vec3_t v) {
-	vec_t length, ilength;
 
-	length = sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+	const vec_t length = sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 
 	if (length) {
-		ilength = 1.0 / length;
+		const vec_t ilength = 1.0 / length;
 		v[0] *= ilength;
 		v[1] *= ilength;
 		v[2] *= ilength;
@@ -329,9 +325,8 @@ vec_t VectorLength(const vec3_t v) {
  * @brief Combines a fraction of the second vector with the first.
  */
 void VectorMix(const vec3_t v1, const vec3_t v2, vec_t mix, vec3_t out) {
-	int32_t i;
 
-	for (i = 0; i < 3; i++)
+	for (int32_t i = 0; i < 3; i++)
 		out[i] = v1[i] * (1.0 - mix) + v2[i] * mix;
 }
 
@@ -387,7 +382,6 @@ uint16_t PackAngle(const vec_t a) {
 vec_t UnpackAngle(const uint16_t a) {
 	return a * 360.0 / UINT16_MAX;
 }
-
 
 /*
  * @brief Packs the specified floating point Euler angles to the int16_t array in out
@@ -450,11 +444,10 @@ void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs) {
  */
 vec_t ColorNormalize(const vec3_t in, vec3_t out) {
 	vec_t max = 0.0;
-	int32_t i;
 
 	VectorCopy(in, out);
 
-	for (i = 0; i < 3; i++) { // find the brightest component
+	for (int32_t i = 0; i < 3; i++) { // find the brightest component
 
 		if (out[i] < 0.0) // enforcing positive values
 			out[i] = 0.0;
@@ -474,9 +467,6 @@ vec_t ColorNormalize(const vec3_t in, vec3_t out) {
  */
 void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation, vec_t contrast) {
 	const vec3_t luminosity = { 0.2125, 0.7154, 0.0721 };
-	vec3_t intensity;
-	vec_t d;
-	int32_t i;
 
 	ColorNormalize(in, out);
 
@@ -488,7 +478,7 @@ void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation
 
 	if (contrast != 1.0) { // apply contrast
 
-		for (i = 0; i < 3; i++) {
+		for (int32_t i = 0; i < 3; i++) {
 			out[i] -= 0.5; // normalize to -0.5 through 0.5
 			out[i] *= contrast; // scale
 			out[i] += 0.5;
@@ -498,7 +488,8 @@ void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation
 	}
 
 	if (saturation != 1.0) { // apply saturation
-		d = DotProduct(out, luminosity);
+		const vec_t d = DotProduct(out, luminosity);
+		vec3_t intensity;
 
 		VectorSet(intensity, d, d, d);
 		VectorMix(intensity, out, saturation, out);
@@ -512,14 +503,13 @@ void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation
  */
 char *CommonPrefix(GList *words) {
 	static char common_prefix[MAX_TOKEN_CHARS];
-	size_t i;
 
 	memset(common_prefix, 0, sizeof(common_prefix));
 
 	if (!words)
 		return common_prefix;
 
-	for (i = 0; i < sizeof(common_prefix) - 1; i++) {
+	for (size_t i = 0; i < sizeof(common_prefix) - 1; i++) {
 		GList *e = words;
 		const char c = ((char *) e->data)[i];
 		while (e) {
@@ -677,9 +667,7 @@ _Bool GlobMatch(const char *pattern, const char *text) {
  * @brief Returns the base name for the given file or path.
  */
 const char *Basename(const char *path) {
-	const char *last;
-
-	last = path;
+	const char *last = path;
 	while (*path) {
 		if (*path == '/')
 			last = path + 1;

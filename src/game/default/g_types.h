@@ -638,7 +638,8 @@ typedef struct {
 
 /*
  * @brief This structure contains client data that persists over multiple
- * respawns.
+ * spawns. Part of this is legacy code; "persistence" refers to saved game
+ * state.
  */
 typedef struct {
 	uint32_t first_frame; // g_level.frame_num the client entered the game

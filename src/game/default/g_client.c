@@ -514,10 +514,9 @@ static _Bool G_GiveLevelLocals(g_client_t *client) {
  */
 static void G_InitClientPersistent(g_client_t *client) {
 	const g_item_t *item;
-	int32_t i;
 
 	// clear inventory
-	for (i = 0; i < MAX_ITEMS; i++)
+	for (int32_t i = 0; i < MAX_ITEMS; i++)
 		client->locals.persistent.inventory[i] = 0;
 
 	// set max inventory levels
@@ -766,7 +765,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	ent->locals.water_level = ent->locals.old_water_level = 0;
 	ent->locals.water_type = 0;
 
-	// copy these back once they have been set in locals
+	// copy these back once they have been set in persistence
 	ent->locals.health = ent->client->locals.persistent.health;
 	ent->locals.max_health = ent->client->locals.persistent.max_health;
 
@@ -822,9 +821,9 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 		cl->locals.persistent.ready = false;
 
 		ent->locals.move_type = MOVE_TYPE_NO_CLIP;
+		ent->locals.take_damage = false;
 		ent->solid = SOLID_NOT;
 		ent->sv_flags |= SVF_NO_CLIENT;
-		ent->locals.take_damage = false;
 
 		gi.LinkEdict(ent);
 		return;
@@ -1287,7 +1286,7 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 		G_TouchTriggers(ent);
 
 	// touch other objects
-	for (uint16_t i = 0; i < pm.num_touch; i++) {
+	for (uint16_t i = 0; i < pm.num_touch_ents; i++) {
 		g_edict_t *other = pm.touch_ents[i];
 
 		if (!other->locals.Touch)

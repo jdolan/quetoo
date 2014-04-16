@@ -96,7 +96,6 @@ static void Pm_Debug_(const char *func, const char *fmt, ...) {
  * @brief Slide off of the impacted plane.
  */
 static void Pm_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, vec_t bounce) {
-	int32_t i;
 
 	vec_t backoff = DotProduct(in, normal);
 
@@ -105,7 +104,7 @@ static void Pm_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, ve
 	else
 		backoff /= bounce;
 
-	for (i = 0; i < 3; i++) {
+	for (int32_t i = 0; i < 3; i++) {
 
 		const vec_t change = normal[i] * backoff;
 		out[i] = in[i] - change;
@@ -120,24 +119,23 @@ static void Pm_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, ve
  * detect player -> entity interactions.
  */
 static void Pm_TouchEnt(struct g_edict_s *ent) {
-	int32_t i;
 
 	if (ent == NULL) {
 		return;
 	}
 
-	if (pm->num_touch == PM_MAX_TOUCH_ENTS) {
+	if (pm->num_touch_ents == PM_MAX_TOUCH_ENTS) {
 		Pm_Debug("MAX_TOUCH_ENTS\n");
 		return;
 	}
 
-	for (i = 0; i < pm->num_touch; i++) {
+	for (int32_t i = 0; i < pm->num_touch_ents; i++) {
 		if (pm->touch_ents[i] == ent) {
 			return;
 		}
 	}
 
-	pm->touch_ents[pm->num_touch++] = ent;
+	pm->touch_ents[pm->num_touch_ents++] = ent;
 }
 
 #define MAX_CLIP_PLANES	4
@@ -147,21 +145,21 @@ static void Pm_TouchEnt(struct g_edict_s *ent) {
  * movement command and world state. Returns true if not blocked.
  */
 static _Bool Pm_SlideMove(void) {
-	int32_t i, num_planes = 0;
 
-	vec3_t vel;
-	VectorCopy(pml.velocity, vel);
+	vec3_t vel0;
+	VectorCopy(pml.velocity, vel0);
 
-	vec_t time = pml.time;
+	vec_t time_remaining = pml.time;
+	int32_t num_planes = 0;
 
-	for (i = 0; i < MAX_CLIP_PLANES; i++) {
+	for (int32_t i = 0; i < MAX_CLIP_PLANES; i++) {
 		vec3_t pos;
 
-		if (time <= 0.0) // out of time
+		if (time_remaining <= 0.0) // out of time
 			break;
 
 		// project desired destination
-		VectorMA(pml.origin, time, pml.velocity, pos);
+		VectorMA(pml.origin, time_remaining, pml.velocity, pos);
 
 		// trace to it
 		cm_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
@@ -171,29 +169,26 @@ static _Bool Pm_SlideMove(void) {
 
 		if (trace.all_solid) { // player is trapped in a solid
 			VectorClear(pml.velocity);
-			break;
+			return true;
 		}
 
 		// update the origin
 		VectorCopy(trace.end, pml.origin);
 
-		if (trace.fraction == 1.0) // moved the entire distance
+		if (trace.fraction == 1.0)
 			break;
 
 		// update the movement time remaining
-		time -= (time * trace.fraction);
+		time_remaining -= (time_remaining * trace.fraction);
 
-		// and increase the number of planes intersected
-		num_planes++;
-
-		// now slide along the plane
+		// and lastly, update the velocity by clipping to the plane
 		Pm_ClipVelocity(pml.velocity, trace.plane.normal, pml.velocity, PM_CLIP_BOUNCE);
+		num_planes++;
+	}
 
-		// if we've been deflected backwards, settle to prevent oscillations
-		if (DotProduct(pml.velocity, vel) <= 0.0) {
-			VectorClear(pml.velocity);
-			break;
-		}
+	// if we've been deflected backwards, settle to prevent oscillations
+	if (DotProduct(pml.velocity, vel0) <= 0.0) {
+		VectorClear(pml.velocity);
 	}
 
 	return num_planes == 0;
@@ -430,7 +425,6 @@ static void Pm_Gravity(void) {
  */
 static void Pm_Currents(vec3_t vel) {
 	vec3_t v;
-	vec_t s;
 
 	// add water currents
 	if (pm->water_type & MASK_CURRENT) {
@@ -449,7 +443,7 @@ static void Pm_Currents(vec3_t vel) {
 		if (pm->water_type & CONTENTS_CURRENT_DOWN)
 			v[2] -= 1.0;
 
-		s = PM_SPEED_RUN;
+		vec_t s = PM_SPEED_RUN;
 		if ((pm->water_level == 1) && pm->ground_entity)
 			s = PM_SPEED_WATER;
 
@@ -619,7 +613,7 @@ static void Pm_CheckDuck(void) {
 	if (pm->s.type == PM_DEAD) {
 		pm->s.flags |= PMF_DUCKED;
 	} else {
-		// if on the ground and requesting to crouch, duck
+// if on the ground and requesting to crouch, duck
 		if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up < 0) {
 			pm->s.flags |= PMF_DUCKED;
 		} else { // stand up if possible
@@ -644,7 +638,7 @@ static void Pm_CheckDuck(void) {
 		if (pml.view_offset[2] < target)
 			pml.view_offset[2] = target;
 
-		// change the bounding box to reflect ducking and jumping
+// change the bounding box to reflect ducking and jumping
 		pm->maxs[2] = pm->maxs[2] + pm->mins[2] * 0.5;
 	} else {
 		const vec_t target = pm->mins[2] + height * 0.9;
@@ -797,7 +791,7 @@ static _Bool Pm_CheckWaterJump(void) {
 		if (trace.start_solid)
 			return false;
 
-		// jump out of water
+// jump out of water
 		pml.velocity[2] = PM_SPEED_WATER_JUMP;
 
 		pm->s.flags |= PMF_TIME_WATER_JUMP | PMF_JUMP_HELD;
@@ -845,7 +839,7 @@ static void Pm_LadderMove(void) {
 
 		const vec_t s = PM_SPEED_LADDER * 0.125;
 
-		// limit horizontal speed when on a ladder
+// limit horizontal speed when on a ladder
 		if (vel[0] < -s) {
 			vel[0] = -s;
 		} else if (vel[0] > s) {
@@ -1018,7 +1012,7 @@ static void Pm_WalkMove(void) {
 	int32_t i;
 
 	if (Pm_CheckJump() || Pm_CheckPush()) {
-		// jumped or pushed away
+// jumped or pushed away
 		if (pm->water_level > 1) {
 			Pm_WaterMove();
 		} else {
@@ -1154,7 +1148,7 @@ static void Pm_ClampAngles(void) {
 		pm->angles[i] = UnpackAngle(c + k + d);
 	}
 
-	// clamp pitch to prevent the player from looking up or down more than 90�
+	// clamp pitch to prevent the player from looking up or down more than 90
 	if (pm->angles[PITCH] > 90.0 && pm->angles[PITCH] < 270.0) {
 		pm->angles[PITCH] = 90.0;
 	} else if (pm->angles[PITCH] <= 360.0 && pm->angles[PITCH] >= 270.0) {
@@ -1184,8 +1178,8 @@ static void Pm_SpectatorMove() {
 
 	// user intentions on X/Y/Z
 	for (i = 0; i < 3; i++) {
-		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right + pml.up[i]
-				* pm->cmd.up;
+		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right
+				+ pml.up[i] * pm->cmd.up;
 	}
 
 	speed = VectorNormalize(vel);
@@ -1208,7 +1202,7 @@ static void Pm_Init(void) {
 
 	VectorClear(pm->angles);
 
-	pm->num_touch = 0;
+	pm->num_touch_ents = 0;
 	pm->water_type = pm->water_level = 0;
 
 	pm->step = 0.0;
@@ -1298,7 +1292,7 @@ void Pm_Move(pm_move_t *pm_move) {
 	Pm_CheckLadder();
 
 	if (pm->s.flags & PMF_TIME_TELEPORT) {
-		// pause in place briefly
+// pause in place briefly
 	} else if (pm->s.flags & PMF_TIME_WATER_JUMP) {
 		Pm_WaterJumpMove();
 	} else if (pm->s.flags & PMF_ON_LADDER) {

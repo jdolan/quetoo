@@ -275,10 +275,12 @@ static _Bool Sv_AreaEdicts_Filter(const g_edict_t *ent) {
 		case SOLID_MISSILE:
 			if (sv_world.area_type == AREA_SOLID)
 				return true;
+			break;
 
 		case SOLID_TRIGGER:
 			if (sv_world.area_type == AREA_TRIGGER)
 				return true;
+			break;
 
 		default:
 			break;

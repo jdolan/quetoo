@@ -549,30 +549,29 @@ void G_HyperblasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t d
  * @brief
  */
 static void G_LightningProjectile_Discharge(g_edict_t *self) {
-	g_edict_t *ent;
-	int32_t i, d;
 
-	// find all clients in the same water area and kill them
-	for (i = 0; i < sv_max_clients->integer; i++) {
+	// kill ourselves
+	G_Damage(self->owner, self, self->owner, vec3_origin, self->s.origin, vec3_origin, 9999, 100,
+			DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
 
-		ent = &g_game.edicts[i + 1];
+	g_edict_t *ent = g_game.edicts;
 
-		if (!ent->in_use)
+	// and ruin the pool party for everyone else too
+	for (int32_t i = 0; i < g_max_entities->integer; i++, ent++) {
+
+		if (ent == self->owner)
 			continue;
 
-		if (!ent->locals.take_damage) // dead or spectator
+		if (!G_IsMeat(ent))
 			continue;
 
 		if (gi.inPVS(self->s.origin, ent->s.origin)) {
 
 			if (ent->locals.water_level) {
+				const int16_t dmg = 50 * ent->locals.water_level;
 
-				// we always kill ourselves, we inflict a lot of damage but
-				// we don't necessarily kill everyone else
-				d = ent == self ? 999 : 50 * ent->locals.water_level;
-
-				G_Damage(ent, self, self->owner, vec3_origin, ent->s.origin, vec3_origin, d, 100,
-				DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
+				G_Damage(ent, self, self->owner, vec3_origin, ent->s.origin, vec3_origin, dmg, 100,
+						DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
 			}
 		}
 	}
