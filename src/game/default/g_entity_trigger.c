@@ -70,7 +70,8 @@ static void G_trigger_multiple_Think(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_trigger_multiple_Use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
+static void G_trigger_multiple_Use(g_edict_t *ent, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator) {
 
 	ent->locals.activator = activator;
 
@@ -80,7 +81,8 @@ static void G_trigger_multiple_Use(g_edict_t *ent, g_edict_t *other __attribute_
 /*
  * @brief
  */
-static void G_trigger_multiple_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+static void G_trigger_multiple_Touch(g_edict_t *self, g_edict_t *other,
+		cm_bsp_plane_t *plane __attribute__((unused)),
 		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client) {
@@ -105,7 +107,8 @@ static void G_trigger_multiple_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_p
 /*
  * @brief
  */
-static void G_trigger_multiple_Enable(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
+static void G_trigger_multiple_Enable(g_edict_t *self, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator __attribute__((unused))) {
 	self->solid = SOLID_TRIGGER;
 	self->locals.Use = G_trigger_multiple_Use;
 	gi.LinkEdict(self);
@@ -172,7 +175,8 @@ void G_trigger_once(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_trigger_relay_Use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
+static void G_trigger_relay_Use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator) {
 	G_UseTargets(self, activator);
 }
 
@@ -214,7 +218,8 @@ void G_trigger_always(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other,
+		cm_bsp_plane_t *plane __attribute__((unused)),
 		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (other->locals.health > 0) {
@@ -279,7 +284,8 @@ void G_trigger_push(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_trigger_hurt_Use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
+static void G_trigger_hurt_Use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
+		g_edict_t *activator __attribute__((unused))) {
 
 	if (self->solid == SOLID_NOT)
 		self->solid = SOLID_TRIGGER;
@@ -294,9 +300,9 @@ static void G_trigger_hurt_Use(g_edict_t *self, g_edict_t *other __attribute__((
 /*
  * @brief
  */
-static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other,
+		cm_bsp_plane_t *plane __attribute__((unused)),
 		cm_bsp_surface_t *surf __attribute__((unused))) {
-	int32_t dflags;
 
 	if (!other->locals.take_damage) { // deal with items that land on us
 
@@ -319,13 +325,14 @@ static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane
 	else
 		self->locals.timestamp = g_level.time + 100;
 
+	const int16_t d = self->locals.damage;
+
+	int32_t dflags = DMG_NO_ARMOR;
+
 	if (self->locals.spawn_flags & 8)
 		dflags = DMG_NO_GOD;
-	else
-		dflags = DMG_NO_ARMOR;
 
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage,
-			self->locals.damage, dflags, MOD_TRIGGER_HURT);
+	G_Damage(other, self, NULL, NULL, NULL, NULL, d, d, dflags, MOD_TRIGGER_HURT);
 }
 
 /*QUAKED trigger_hurt (.5 .5 .5) ? start_off toggle ? no_protection slow
@@ -365,7 +372,8 @@ void G_trigger_hurt(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_trigger_exec_Touch(g_edict_t *self, g_edict_t *other __attribute__((unused)), cm_bsp_plane_t *plane __attribute__((unused)),
+static void G_trigger_exec_Touch(g_edict_t *self, g_edict_t *other __attribute__((unused)),
+		cm_bsp_plane_t *plane __attribute__((unused)),
 		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (self->locals.timestamp > g_level.time)

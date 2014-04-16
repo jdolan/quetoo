@@ -166,11 +166,11 @@ static int16_t G_CheckArmor(g_edict_t *ent, const vec3_t pos, const vec3_t norma
  * of the attacker.
  *
  * @param target The target may receive damage.
- * @param inflictor The entity inflicting the damage (projectile).
- * @param attacker The entity taking credit for the damage (client).
- * @param dir The direction of the attack.
- * @param pos The point at which damage is being inflicted.
- * @param normal The normal vector from that point.
+ * @param inflictor The entity inflicting the damage (projectile, optional).
+ * @param attacker The entity taking credit for the damage (client, optional).
+ * @param dir The direction of the attack (optional).
+ * @param pos The point at which damage is being inflicted (optional).
+ * @param normal The normal vector from that point (optional).
  * @param damage The damage to be inflicted.
  * @param knockback Velocity added to target in the direction of the normal.
  * @param dflags Damage flags:
@@ -187,7 +187,7 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 		const vec3_t pos, const vec3_t normal, int16_t damage, int16_t knockback, uint32_t dflags,
 		uint32_t mod) {
 
-	if (!target->locals.take_damage)
+	if (!target || !target->locals.take_damage)
 		return;
 
 	if (target->client) { // respawn protection
@@ -197,6 +197,10 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 
 	inflictor = inflictor ? inflictor : g_game.edicts;
 	attacker = attacker ? attacker : g_game.edicts;
+
+	dir = dir ? dir : vec3_origin;
+	pos = pos ? pos : target->s.origin;
+	normal = normal ? normal : vec3_origin;
 
 	if (attacker->client) {
 		if (attacker->client->locals.persistent.inventory[g_media.items.quad_damage]) {
@@ -354,7 +358,6 @@ void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore
 		if (!G_CanDamage(ent, inflictor))
 			continue;
 
-		G_Damage(ent, inflictor, attacker, dir, ent->s.origin, vec3_origin, (int32_t) d,
-				(int32_t) k, DMG_RADIUS, mod);
+		G_Damage(ent, inflictor, attacker, dir, NULL, NULL, d, k, DMG_RADIUS, mod);
 	}
 }

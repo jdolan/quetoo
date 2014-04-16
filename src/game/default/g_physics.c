@@ -376,10 +376,15 @@ static g_edict_t *G_Physics_Push_Move(g_edict_t *self, vec3_t move, vec3_t amove
 	// the move was successful, so re-link all pushed entities, touch triggers and water
 	for (g_push_t *p = g_push_p - 1; p >= g_pushes; p--) {
 		if (p->ent->in_use) {
-			gi.LinkEdict(p->ent);
+
+			if (p->ent != self) {
+				gi.LinkEdict(p->ent);
+			}
+
 			if (p->ent->solid == SOLID_BOX || p->ent->solid == SOLID_MISSILE) {
 				G_TouchTriggers(p->ent);
 			}
+
 			G_TouchWater(p->ent);
 		}
 	}

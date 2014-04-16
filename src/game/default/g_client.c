@@ -1241,11 +1241,7 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 
 			cl->locals.pain_time = g_level.time; // suppress pain sound
 
-			vec3_t dir;
-			VectorSet(dir, 0.0, 0.0, 1.0);
-
-			G_Damage(ent, NULL, NULL, dir, ent->s.origin, vec3_origin, damage, 0, DMG_NO_ARMOR,
-			MOD_FALLING);
+			G_Damage(ent, NULL, NULL, vec3_up, NULL, NULL, damage, 0, DMG_NO_ARMOR, MOD_FALLING);
 		}
 
 		if (G_IsAnimation(ent, ANIM_LEGS_JUMP2))

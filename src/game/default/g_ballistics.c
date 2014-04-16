@@ -503,7 +503,7 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, cm
 			VectorSubtract(self->s.origin, self->owner->s.origin, v);
 
 			if (VectorLength(v) < 32.0) { // hyperblaster climb
-				G_Damage(self->owner, self, self->owner, vec3_origin, self->s.origin, plane->normal,
+				G_Damage(self->owner, self, self->owner, NULL, self->s.origin, plane->normal,
 						self->locals.damage * 0.06, 0, DMG_ENERGY, MOD_HYPERBLASTER);
 
 				self->owner->locals.velocity[2] += 80.0;
@@ -551,7 +551,7 @@ void G_HyperblasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t d
 static void G_LightningProjectile_Discharge(g_edict_t *self) {
 
 	// kill ourselves
-	G_Damage(self->owner, self, self->owner, vec3_origin, self->s.origin, vec3_origin, 9999, 100,
+	G_Damage(self->owner, self, self->owner, NULL, self->s.origin, NULL, 9999, 100,
 			DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
 
 	g_edict_t *ent = g_game.edicts;
@@ -570,8 +570,8 @@ static void G_LightningProjectile_Discharge(g_edict_t *self) {
 			if (ent->locals.water_level) {
 				const int16_t dmg = 50 * ent->locals.water_level;
 
-				G_Damage(ent, self, self->owner, vec3_origin, ent->s.origin, vec3_origin, dmg, 100,
-						DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
+				G_Damage(ent, self, self->owner, NULL, NULL, NULL, dmg, 100, DMG_NO_ARMOR,
+						MOD_LIGHTNING_DISCHARGE);
 			}
 		}
 	}
@@ -879,7 +879,7 @@ static void G_BfgProjectile_Think(g_edict_t *self) {
 
 		const vec_t f = 1.0 - dist / self->locals.damage_radius;
 
-		G_Damage(ent, self, self->owner, dir, ent->s.origin, normal, frame_damage * f,
+		G_Damage(ent, self, self->owner, dir, NULL, normal, frame_damage * f,
 				frame_knockback * f, DMG_RADIUS, MOD_BFG_LASER);
 
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);

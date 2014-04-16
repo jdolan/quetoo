@@ -85,8 +85,8 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 		gi.Sound(ent, g_media.sounds.water_out, ATTEN_NORM);
 
 	// head just coming out of water, play a gasp if we were down for a while
-	if (old_water_level == 3 && water_level != 3 && (client->locals.drown_time - g_level.time)
-			< 8000) {
+	if (old_water_level == 3 && water_level != 3
+			&& (client->locals.drown_time - g_level.time) < 8000) {
 		vec3_t org;
 
 		VectorAdd(client->ps.pm_state.origin, client->ps.pm_state.view_offset, org);
@@ -119,8 +119,8 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 			client->locals.pain_time = g_level.time;
 
 			// and apply the damage
-			G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, ent->locals.damage,
-					0, DMG_NO_ARMOR, MOD_WATER);
+			G_Damage(ent, NULL, NULL, NULL, NULL, NULL, ent->locals.damage, 0, DMG_NO_ARMOR,
+					MOD_WATER);
 		}
 	}
 
@@ -131,13 +131,13 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
 			client->locals.sizzle_time = g_level.time + 200;
 
 			if (ent->locals.water_type & CONTENTS_LAVA) {
-				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, 2 * water_level,
-						0, DMG_NO_ARMOR, MOD_LAVA);
+				G_Damage(ent, NULL, NULL, NULL, NULL, NULL, 2 * water_level, 0, DMG_NO_ARMOR,
+						MOD_LAVA);
 			}
 
 			if (ent->locals.water_type & CONTENTS_SLIME) {
-				G_Damage(ent, NULL, NULL, vec3_origin, ent->s.origin, vec3_origin, 1 * water_level,
-						0, DMG_NO_ARMOR, MOD_SLIME);
+				G_Damage(ent, NULL, NULL, NULL, NULL, NULL, 1 * water_level, 0, DMG_NO_ARMOR,
+						MOD_SLIME);
 			}
 		}
 	}

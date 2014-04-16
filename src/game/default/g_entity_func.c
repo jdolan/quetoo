@@ -337,7 +337,7 @@ static void G_MoveType_Push_Blocked(g_edict_t *self, g_edict_t *other) {
 
 	if (G_IsMeat(other)) {
 		const int16_t dmg = self->locals.damage * 10.0 / gi.frame_rate;
-		G_Damage(other, self, NULL, dir, other->s.origin, vec3_up, dmg, 0, DMG_NO_ARMOR, MOD_CRUSH);
+		G_Damage(other, self, NULL, dir, NULL, vec3_up, dmg, 0, DMG_NO_ARMOR, MOD_CRUSH);
 
 		if (other->in_use && other->locals.dead) {
 			if (!other->client) {
@@ -345,7 +345,7 @@ static void G_MoveType_Push_Blocked(g_edict_t *self, g_edict_t *other) {
 			}
 		}
 	} else {
-		G_Damage(other, self, self, dir, other->s.origin, vec3_up, 999, 0, 0, MOD_CRUSH);
+		G_Damage(other, self, NULL, dir, NULL, vec3_up, 999, 0, 0, MOD_CRUSH);
 		if (other->in_use) {
 			G_Explode(other, 60, 60, 80.0, 0);
 		}
@@ -609,8 +609,7 @@ static void G_func_rotating_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plan
 
 	if (self->locals.damage) {
 		if (!VectorCompare(self->locals.avelocity, vec3_origin)) {
-			G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin,
-					self->locals.damage, 1, 0, MOD_CRUSH);
+			G_Damage(other, self, NULL, NULL, NULL, NULL, self->locals.damage, 1, 0, MOD_CRUSH);
 		}
 	}
 }
