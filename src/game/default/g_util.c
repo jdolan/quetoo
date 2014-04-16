@@ -376,18 +376,33 @@ void G_TouchTriggers(g_edict_t *ent) {
  */
 void G_TouchWater(g_edict_t *ent) {
 
+	if (ent->client) // player water level is a special case
+		return;
+
+	vec3_t origin, mins, maxs;
+	if (ent->solid == SOLID_BSP) {
+		VectorLerp(ent->abs_mins, ent->abs_maxs, 0.5, origin);
+		VectorSubtract(origin, ent->abs_mins, mins);
+		VectorSubtract(ent->abs_maxs, origin, maxs);
+	} else {
+		VectorCopy(ent->s.origin, origin);
+		VectorCopy(ent->mins, mins);
+		VectorCopy(ent->maxs, maxs);
+	}
+
+	cm_trace_t tr = gi.Trace(origin, origin, mins, maxs, ent, MASK_WATER);
+
 	const uint8_t old_water_level = ent->locals.water_level;
-
-	cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_WATER);
-
 	ent->locals.water_type = tr.contents;
 	ent->locals.water_level = ent->locals.water_type ? 1 : 0;
 
 	if (!old_water_level && ent->locals.water_level) {
-		gi.PositionedSound(ent->s.origin, ent, g_media.sounds.water_in, ATTEN_NORM);
-		VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
+		gi.PositionedSound(origin, ent, g_media.sounds.water_in, ATTEN_IDLE);
+		if (ent->locals.move_type == MOVE_TYPE_TOSS) {
+			VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
+		}
 	} else if (old_water_level && !ent->locals.water_level) {
-		gi.PositionedSound(ent->s.origin, ent, g_media.sounds.water_out, ATTEN_NORM);
+		gi.PositionedSound(origin, ent, g_media.sounds.water_out, ATTEN_IDLE);
 	}
 }
 
@@ -396,19 +411,18 @@ void G_TouchWater(g_edict_t *ent) {
  * of the entity. The entity should be unlinked before calling this!
  */
 _Bool G_KillBox(g_edict_t *ent) {
-	cm_trace_t tr;
 
 	// kill all solids that take damage, including corpses for bonus giblets
 	const int32_t mask = MASK_PLAYER_SOLID | CONTENTS_DEAD_MONSTER;
 
 	while (true) {
-		tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, NULL, mask);
+		cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
+
 		if (!tr.ent)
 			break;
 
 		// nail it
-		G_Damage(tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin, 999, 0, DMG_NO_GOD,
-				MOD_TELEFRAG);
+		G_Damage(tr.ent, ent, NULL, NULL, NULL, NULL, 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
 
 		// if we didn't kill it, fail
 		if (tr.ent->solid)
