@@ -72,10 +72,10 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 	vec_t leave_fraction = 1.0;
 
 	const cm_bsp_plane_t *clip_plane = NULL;
+	const cm_bsp_brush_side_t *clip_side = NULL;
 
 	_Bool end_outside = false, start_outside = false;
 
-	const cm_bsp_brush_side_t *lead_side = NULL;
 	const cm_bsp_brush_side_t *side = &cm_bsp.brush_sides[brush->first_brush_side];
 
 	for (int32_t i = 0; i < brush->num_sides; i++, side++) {
@@ -104,7 +104,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 			if (f > enter_fraction) {
 				enter_fraction = f;
 				clip_plane = plane;
-				lead_side = side;
+				clip_side = side;
 			}
 		} else { // leave
 			const vec_t f = (d1 + DIST_EPSILON) / (d1 - d2);
@@ -126,7 +126,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		if (enter_fraction > -1.0 && enter_fraction < data->trace.fraction) {
 			data->trace.fraction = MAX(0.0, enter_fraction);
 			data->trace.plane = *clip_plane;
-			data->trace.surface = lead_side->surface;
+			data->trace.surface = clip_side->surface;
 			data->trace.contents = brush->contents;
 		}
 	}
@@ -252,9 +252,9 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t 
 		if (data->is_point)
 			offset = 0.0;
 		else
-			offset = fabsf(data->extents[0] * plane->normal[0]) + fabsf(
-					data->extents[1] * plane->normal[1]) + fabsf(
-					data->extents[2] * plane->normal[2]);
+			offset = fabsf(data->extents[0] * plane->normal[0])
+					+ fabsf(data->extents[1] * plane->normal[1])
+					+ fabsf(data->extents[2] * plane->normal[2]);
 	}
 
 	// see which sides we need to consider
@@ -462,7 +462,7 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
 	// sweep the box through the model
 	cm_trace_t trace = Cm_BoxTrace(start0, end0, mins, maxs, head_node, contents);
 
-	if (trace.fraction < 1.0) {
+	if (trace.fraction < 1.0) { // transform the impacted plane
 		vec4_t plane;
 
 		const cm_bsp_plane_t *p = &trace.plane;
@@ -471,11 +471,11 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
 		Matrix4x4_TransformPositivePlane(matrix, n[0], n[1], n[2], p->dist, plane);
 
 		VectorCopy(plane, trace.plane.normal);
-		trace.plane.dist = plane[3];
+		//trace.plane.dist = plane[3];
 	}
 
 	// and calculate the final end point
-	VectorMix(start, end, trace.fraction, trace.end);
+	VectorLerp(start, end, trace.fraction, trace.end);
 
 	return trace;
 }
