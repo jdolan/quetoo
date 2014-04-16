@@ -471,7 +471,7 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const ve
 		Matrix4x4_TransformPositivePlane(matrix, n[0], n[1], n[2], p->dist, plane);
 
 		VectorCopy(plane, trace.plane.normal);
-		//trace.plane.dist = plane[3];
+		trace.plane.dist = plane[3];
 	}
 
 	// and calculate the final end point
