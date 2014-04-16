@@ -234,6 +234,20 @@ static void G_Physics_Push_Impact(g_edict_t *ent) {
 }
 
 /*
+ * @brief
+ */
+static void G_Physics_Push_Revert(const g_push_t *p) {
+
+	VectorCopy(p->origin, p->ent->s.origin);
+	VectorCopy(p->angles, p->ent->s.angles);
+
+	if (p->ent->client) {
+		p->ent->client->ps.pm_state.delta_angles[YAW] = p->delta_yaw;
+		p->ent->client->ps.pm_state.flags &= ~PMF_PUSHED;
+	}
+}
+
+/*
  * @brief When items ride pushers, they rotate along with them. For clients,
  * this requires incrementing their delta angles.
  */
@@ -324,18 +338,15 @@ static g_edict_t *G_Physics_Push_Move(g_edict_t *self, vec3_t move, vec3_t amove
 			// if the move has separated us, finish up by rotating the entity
 			if (G_SnapPosition(ent)) {
 				G_Physics_Push_Rotate(self, ent, amove[YAW]);
-				gi.LinkEdict(ent);
 				continue;
 			}
 
 			// perhaps the rider has been pushed off by the world, that's okay
 			if (ent->locals.ground_entity == self) {
-				VectorCopy(g_push_p->origin, ent->s.origin);
-				VectorCopy(g_push_p->angles, ent->s.angles);
+				G_Physics_Push_Revert(--g_push_p);
 
 				// but in this case, we don't rotate
 				if (G_SnapPosition(ent)) {
-					gi.LinkEdict(ent);
 					continue;
 				}
 			}
@@ -355,29 +366,20 @@ static g_edict_t *G_Physics_Push_Move(g_edict_t *self, vec3_t move, vec3_t amove
 		// if we've reached this point, we were G_MOVE_TYPE_STOP, or we were
 		// blocked: revert any moves we may have made and return our obstacle
 
-		g_push_t *p;
-		for (p = g_push_p - 1; p >= g_pushes; p--) {
-
-			VectorCopy(p->origin, p->ent->s.origin);
-			VectorCopy(p->angles, p->ent->s.angles);
-
-			if (p->ent->client) {
-				p->ent->client->ps.pm_state.delta_angles[YAW] = p->delta_yaw;
-				p->ent->client->ps.pm_state.flags &= ~PMF_PUSHED;
-			}
-
-			gi.LinkEdict(p->ent);
+		while (g_push_p > g_pushes) {
+			G_Physics_Push_Revert(--g_push_p);
 		}
 
 		return ent;
 	}
 
-	// the move was successful, so touch triggers and water
-	g_push_t *p;
-	for (p = g_push_p - 1; p >= g_pushes; p--) {
+	// the move was successful, so re-link all pushed entities, touch triggers and water
+	for (g_push_t *p = g_push_p - 1; p >= g_pushes; p--) {
 		if (p->ent->in_use) {
-			if (p->ent->solid == SOLID_BOX || p->ent->solid == SOLID_MISSILE)
+			gi.LinkEdict(p->ent);
+			if (p->ent->solid == SOLID_BOX || p->ent->solid == SOLID_MISSILE) {
 				G_TouchTriggers(p->ent);
+			}
 			G_TouchWater(p->ent);
 		}
 	}
