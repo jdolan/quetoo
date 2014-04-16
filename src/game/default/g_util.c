@@ -676,10 +676,10 @@ int32_t G_ColorByName(const char *s, int32_t def) {
  */
 _Bool G_IsMeat(const g_edict_t *ent) {
 
-	if (!ent)
+	if (!ent || !ent->in_use)
 		return false;
 
-	if (ent->client)
+	if (ent->client && ent->solid == SOLID_BOX)
 		return true;
 
 	if (ent->sv_flags & SVF_DEAD_MONSTER)
@@ -693,7 +693,10 @@ _Bool G_IsMeat(const g_edict_t *ent) {
  */
 _Bool G_IsStationary(const g_edict_t *ent) {
 
-	if (!ent || ent->locals.move_type)
+	if (!ent || !ent->in_use)
+		return false;
+
+	if (ent->locals.move_type)
 		return false;
 
 	if (!VectorCompare(vec3_origin, ent->locals.velocity))
