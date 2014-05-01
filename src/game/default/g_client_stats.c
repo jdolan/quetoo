@@ -24,7 +24,7 @@
 /*
  * @brief
  */
-void G_ClientToIntermission(g_edict_t *ent) {
+void G_ClientToIntermission(g_entity_t *ent) {
 
 	VectorCopy(g_level.intermission_origin, ent->s.origin);
 
@@ -61,11 +61,11 @@ void G_ClientToIntermission(g_edict_t *ent) {
 /*
  * @brief Write the scores information for the specified client.
  */
-static void G_UpdateScore(const g_edict_t *ent, g_score_t *s) {
+static void G_UpdateScore(const g_entity_t *ent, g_score_t *s) {
 
 	memset(s, 0, sizeof(*s));
 
-	s->client = ent - g_game.edicts - 1;
+	s->client = ent - g_game.entities - 1;
 	s->ping = ent->client->ping < 999 ? ent->client->ping : 999;
 
 	if (ent->client->locals.persistent.spectator) {
@@ -106,7 +106,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
 
 	// assemble the client scores
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		const g_edict_t *e = &g_game.edicts[i + 1];
+		const g_entity_t *e = &g_game.entities[i + 1];
 
 		if (!e->in_use)
 			continue;
@@ -138,7 +138,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
  * @brief Assemble the binary scores data for the client. Scores are sent in
  * chunks to overcome the 1400 byte UDP packet limitation.
  */
-void G_ClientScores(g_edict_t *ent) {
+void G_ClientScores(g_entity_t *ent) {
 	static g_score_t scores[MAX_CLIENTS + 2];
 	static size_t count;
 
@@ -184,7 +184,7 @@ void G_ClientScores(g_edict_t *ent) {
  * @brief Writes the stats array of the player state structure. The client's HUD is
  * largely derived from this information.
  */
-void G_ClientStats(g_edict_t *ent) {
+void G_ClientStats(g_entity_t *ent) {
 	g_client_t *client = ent->client;
 
 	const g_client_persistent_t *persistent = &client->locals.persistent;
@@ -290,14 +290,14 @@ void G_ClientStats(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_ClientSpectatorStats(g_edict_t *ent) {
+void G_ClientSpectatorStats(g_entity_t *ent) {
 	g_client_t *client = ent->client;
 
 	client->ps.stats[STAT_SPECTATOR] = 1;
 
 	// chase camera inherits stats from their chase target
 	if (client->locals.chase_target && client->locals.chase_target->in_use) {
-		client->ps.stats[STAT_CHASE] = CS_CLIENTS + (client->locals.chase_target - g_game.edicts)
+		client->ps.stats[STAT_CHASE] = CS_CLIENTS + (client->locals.chase_target - g_game.entities)
 				- 1;
 
 		// scores are independent of chase camera target

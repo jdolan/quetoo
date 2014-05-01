@@ -79,7 +79,7 @@ static void R_SetVertexArrayState(const r_model_t *mod, uint32_t mask) {
 
 		if (r_bumpmap->value) {
 
-			if (mask & R_ARRAY_TANGENT && mod->tangents)
+			if ((mask & R_ARRAY_TANGENT) && mod->tangents)
 				R_BindArray(GL_TANGENT_ARRAY, GL_FLOAT, mod->tangents);
 		}
 	}

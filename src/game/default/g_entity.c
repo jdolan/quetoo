@@ -23,12 +23,12 @@
 
 typedef struct {
 	char *name;
-	void (*Spawn)(g_edict_t *ent);
-} g_edict_spawn_t;
+	void (*Spawn)(g_entity_t *ent);
+} g_entity_spawn_t;
 
-static void G_worldspawn(g_edict_t *ent);
+static void G_worldspawn(g_entity_t *ent);
 
-static g_edict_spawn_t g_edict_spawns[] = {
+static g_entity_spawn_t g_entity_spawns[] = {
 // entity class names -> spawn functions
 		{ "func_areaportal", G_func_areaportal },
 		{ "func_button", G_func_button },
@@ -72,20 +72,20 @@ static g_edict_spawn_t g_edict_spawns[] = {
 
 		// lastly, these are entities which we intentionally suppress
 
-		{ "func_group", G_FreeEdict },
-		{ "info_null", G_FreeEdict },
-		{ "light", G_FreeEdict },
-		{ "light_spot", G_FreeEdict },
-		{ "misc_emit", G_FreeEdict },
-		{ "misc_model", G_FreeEdict },
+		{ "func_group", G_FreeEntity },
+		{ "info_null", G_FreeEntity },
+		{ "light", G_FreeEntity },
+		{ "light_spot", G_FreeEntity },
+		{ "misc_emit", G_FreeEntity },
+		{ "misc_model", G_FreeEntity },
 
 		{ NULL, NULL } };
 
 /*
  * @brief Finds the spawn function for the entity and calls it.
  */
-static void G_SpawnEntity(g_edict_t *ent) {
-	g_edict_spawn_t *s;
+static void G_SpawnEntity(g_entity_t *ent) {
+	g_entity_spawn_t *s;
 	int32_t i;
 
 	if (!ent->class_name) {
@@ -107,7 +107,7 @@ static void G_SpawnEntity(g_edict_t *ent) {
 	}
 
 	// check normal spawn functions
-	for (s = g_edict_spawns; s->name; s++) {
+	for (s = g_entity_spawns; s->name; s++) {
 		if (!g_strcmp0(s->name, ent->class_name)) { // found it
 			s->Spawn(ent);
 			return;
@@ -219,9 +219,9 @@ static const g_field_t fields[] = {
 		{ 0, 0, 0, 0 } };
 
 /*
- * @brief Takes a key-value pair and sets the binary values in an edict.
+ * @brief Takes a key-value pair and sets the binary values in an entity.
  */
-static void G_ParseField(const char *key, const char *value, g_edict_t *ent) {
+static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
 	const g_field_t *f;
 	byte *b;
 	vec_t v;
@@ -272,11 +272,10 @@ static void G_ParseField(const char *key, const char *value, g_edict_t *ent) {
 }
 
 /*
- * @brief Parses an edict out of the given string, returning the new position
- * in said string. The edict parameter should be a properly initialized
- * free edict.
+ * @brief Parses an entity out of the given string, returning the new position
+ * in said string. The entity should be a properly initialized free entity.
  */
-static const char *G_ParseEntity(const char *data, g_edict_t *ent) {
+static const char *G_ParseEntity(const char *data, g_entity_t *ent) {
 	_Bool init;
 	char key[MAX_QPATH];
 	const char *tok;
@@ -299,10 +298,10 @@ static const char *G_ParseEntity(const char *data, g_edict_t *ent) {
 		// parse value
 		tok = ParseToken(&data);
 		if (!data)
-			gi.Error("EOF in edict definition\n");
+			gi.Error("EOF in entity definition\n");
 
 		if (tok[0] == '}')
-			gi.Error("No edict definition\n");
+			gi.Error("No entity definition\n");
 
 		init = true;
 
@@ -327,13 +326,13 @@ static const char *G_ParseEntity(const char *data, g_edict_t *ent) {
  * All but the last will have the teamchain field set to the next one
  */
 static void G_InitEntityTeams(void) {
-	g_edict_t *e, *e2, *chain;
+	g_entity_t *e, *e2, *chain;
 	uint32_t i, j;
 	int32_t c, c2;
 
 	c = 0;
 	c2 = 0;
-	for (i = 1, e = g_game.edicts + i; i < ge.num_edicts; i++, e++) {
+	for (i = 1, e = g_game.entities + i; i < ge.num_entities; i++, e++) {
 
 		if (!e->in_use)
 			continue;
@@ -349,7 +348,7 @@ static void G_InitEntityTeams(void) {
 		c++;
 		c2++;
 
-		for (j = i + 1, e2 = e + 1; j < ge.num_edicts; j++, e2++) {
+		for (j = i + 1, e2 = e + 1; j < ge.num_entities; j++, e2++) {
 
 			if (!e2->in_use)
 				continue;
@@ -430,7 +429,7 @@ static void G_InitMedia(void) {
  * parsing textual entity definitions out of an ent file.
  */
 void G_SpawnEntities(const char *name, const char *entities) {
-	g_edict_t *ent;
+	g_entity_t *ent;
 	int32_t inhibit;
 	char *com_token;
 	int32_t i;
@@ -438,15 +437,15 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	gi.FreeTag(MEM_TAG_GAME_LEVEL);
 
 	memset(&g_level, 0, sizeof(g_level));
-	memset(g_game.edicts, 0, g_max_entities->value * sizeof(g_game.edicts[0]));
+	memset(g_game.entities, 0, g_max_entities->value * sizeof(g_game.entities[0]));
 
 	g_strlcpy(g_level.name, name, sizeof(g_level.name));
 
 	// set client fields on player ents
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		g_game.edicts[i + 1].client = g_game.clients + i;
+		g_game.entities[i + 1].client = g_game.clients + i;
 	}
-	ge.num_edicts = sv_max_clients->integer + 1;
+	ge.num_entities = sv_max_clients->integer + 1;
 
 	ent = NULL;
 	inhibit = 0;
@@ -463,17 +462,17 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			gi.Error("Found \"%s\" when expecting \"{\"", com_token);
 
 		if (!ent)
-			ent = g_game.edicts;
+			ent = g_game.entities;
 		else
 			ent = G_Spawn(__func__);
 
 		entities = G_ParseEntity(entities, ent);
 
 		// handle legacy spawn flags
-		if (ent != g_game.edicts) {
+		if (ent != g_game.entities) {
 
 			if (ent->locals.spawn_flags & SF_NOT_DEATHMATCH) {
-				G_FreeEdict(ent);
+				G_FreeEntity(ent);
 				inhibit++;
 				continue;
 			}
@@ -564,7 +563,7 @@ static void G_WorldspawnMusic(void) {
  timelimit : The time limit in minutes (default 20).
  give : A comma-delimited item string to give each player on spawn.
  */
-static void G_worldspawn(g_edict_t *ent) {
+static void G_worldspawn(g_entity_t *ent) {
 	uint32_t i;
 	g_map_list_elt_t *map;
 

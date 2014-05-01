@@ -144,12 +144,12 @@ typedef struct {
 	pm_cmd_t cmd; // movement command (in)
 
 	uint16_t num_touch_ents; // results (out)
-	struct g_edict_s *touch_ents[PM_MAX_TOUCH_ENTS];
+	struct g_entity_s *touch_ents[PM_MAX_TOUCH_ENTS];
 
 	vec3_t angles; // clamped, and including kick and delta
 	vec3_t mins, maxs; // bounding box size
 
-	struct g_edict_s *ground_entity;
+	struct g_entity_s *ground_entity;
 
 	int32_t water_type;
 	uint8_t water_level;

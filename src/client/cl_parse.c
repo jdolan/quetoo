@@ -311,7 +311,7 @@ static void Cl_ParseSound(void) {
 	if (flags & S_ENTNUM) { // entity relative
 		ent_num = Net_ReadShort(&net_message);
 
-		if (ent_num > MAX_EDICTS)
+		if (ent_num > MAX_ENTITIES)
 			Com_Error(ERR_DROP, "Bad entity number (%d)\n", ent_num);
 	} else {
 		ent_num = 0;

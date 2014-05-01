@@ -25,10 +25,10 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_target_explosion(g_edict_t *ent);
-void G_target_speaker(g_edict_t *ent);
-void G_target_splash(g_edict_t *ent);
-void G_target_string(g_edict_t *ent);
+void G_target_explosion(g_entity_t *ent);
+void G_target_speaker(g_entity_t *ent);
+void G_target_splash(g_entity_t *ent);
+void G_target_string(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_ENTITY_TARGET_H__ */

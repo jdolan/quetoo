@@ -127,7 +127,7 @@ typedef enum {
 
 /*
  * @brief Temporary entities are positional events that are not explicitly
- * bound to a game entity (g_edict_t). Examples are explosions, certain weapon
+ * bound to a game entity (g_entity_t). Examples are explosions, certain weapon
  * trails and other short-lived effects.
  */
 typedef enum {
@@ -239,14 +239,14 @@ typedef enum {
 
 /*
  * @brief This file will define the game-visible definitions of g_client_t
- * and g_edict_t. They are much larger than the server-visible definitions,
+ * and g_entity_t. They are much larger than the server-visible definitions,
  * which are intentionally truncated stubs.
  */
 typedef struct g_client_s g_client_t;
-typedef struct g_edict_s g_edict_t;
+typedef struct g_entity_s g_entity_t;
 
 /*
- * @brief Spawn flags for g_edict_t are set in the level editor.
+ * @brief Spawn flags for g_entity_t are set in the level editor.
  */
 #define SF_ITEM_TRIGGER			0x00000001
 #define SF_ITEM_NO_TOUCH		0x00000002
@@ -263,14 +263,14 @@ typedef struct g_edict_s g_edict_t;
 #define SF_NOT_COOP				0x00001000
 
 /*
- * @brief These spawn flags are actually set by the game module on edicts that
- * are programmatically instantiated.
+ * @brief These spawn flags are actually set by the game module on entities
+ * that are programmatically instantiated.
  */
 #define SF_ITEM_DROPPED			0x00010000
 #define SF_ITEM_TARGETS_USED	0x00020000
 
 /*
- * @brief Edict flags (g_edict_locals.flags). These again are mostly for
+ * @brief Entity flags (g_entity_locals.flags). These again are mostly for
  * backwards compatibility with Quake II. Team slaves and respawn are
  * still valid.
  */
@@ -356,10 +356,10 @@ typedef enum {
 typedef struct g_item_s {
 	const char *class_name; // spawning name
 
-	_Bool (*Pickup)(g_edict_t *ent, g_edict_t *other);
-	void (*Use)(g_edict_t *ent, const struct g_item_s *item);
-	g_edict_t *(*Drop)(g_edict_t *ent, const struct g_item_s *item);
-	void (*Think)(g_edict_t *ent);
+	_Bool (*Pickup)(g_entity_t *ent, g_entity_t *other);
+	void (*Use)(g_entity_t *ent, const struct g_item_s *item);
+	g_entity_t *(*Drop)(g_entity_t *ent, const struct g_item_s *item);
+	void (*Think)(g_entity_t *ent);
 
 	const char *pickup_sound;
 	const char *model;
@@ -381,7 +381,7 @@ typedef struct g_item_s {
 /*
  * @brief A singleton container used to hold entity information that is set
  * in the editor (and thus the entities string) but that does not map directly
- * to a field in g_edict_t.
+ * to a field in g_entity_t.
  */
 typedef struct {
 	// world vars, we use strings to avoid ambiguity between 0 and unset
@@ -407,8 +407,8 @@ typedef struct {
 	char *item;
 } g_spawn_temp_t;
 
-#define EOFS(x) (ptrdiff_t)&(((g_edict_t *) 0)->x)
-#define LOFS(x) (ptrdiff_t)&(((g_edict_t *) 0)->locals.x)
+#define EOFS(x) (ptrdiff_t)&(((g_entity_t *) 0)->x)
+#define LOFS(x) (ptrdiff_t)&(((g_entity_t *) 0)->locals.x)
 #define SOFS(x) (ptrdiff_t)&(((g_spawn_temp_t *) 0)->x)
 
 /*
@@ -450,7 +450,7 @@ typedef struct {
 	vec_t next_speed;
 	vec_t remaining_distance;
 	vec_t decel_distance;
-	void (*Done)(g_edict_t *);
+	void (*Done)(g_entity_t *);
 } g_move_info_t;
 
 /*
@@ -459,7 +459,7 @@ typedef struct {
  * within this structure so that it may e.g. iterate over entities.
  */
 typedef struct {
-	g_edict_t *edicts; // [g_max_entities]
+	g_entity_t *entities; // [g_max_entities]
 	g_client_t *clients; // [sv_max_clients]
 
 	g_spawn_temp_t spawn;
@@ -552,7 +552,7 @@ typedef struct {
 	uint32_t votes[3]; // current vote count (yes/no/undecided)
 	uint32_t vote_time; // time vote started
 
-	g_edict_t *current_entity; // entity running from G_RunFrame
+	g_entity_t *current_entity; // entity running from G_RunFrame
 } g_level_t;
 
 /*
@@ -731,14 +731,14 @@ typedef struct {
 	uint32_t quad_damage_time; // has quad when time < this
 	uint32_t quad_attack_time; // play attack sound when time > this
 
-	g_edict_t *chase_target; // player we are chasing
-	g_edict_t *old_chase_target; // player we were chasing
+	g_entity_t *chase_target; // player we are chasing
+	g_entity_t *old_chase_target; // player we were chasing
 
 	const g_item_t *last_dropped; // last dropped item, used for variable expansion
 } g_client_locals_t;
 
 /*
- * @brief Finally the g_edict_locals structure extends the server stub to
+ * @brief Finally the g_entity_locals structure extends the server stub to
  * provide all of the state management the game module requires.
  */
 typedef struct {
@@ -761,7 +761,7 @@ typedef struct {
 	char *command;
 	char *script;
 
-	g_edict_t *target_ent;
+	g_entity_t *target_ent;
 
 	vec_t speed, accel, decel;
 	vec3_t move_dir;
@@ -773,12 +773,12 @@ typedef struct {
 	vec_t mass;
 
 	uint32_t next_think;
-	void (*Think)(g_edict_t *self);
-	void (*Blocked)(g_edict_t *self, g_edict_t *other); // move to move_info?
-	void (*Touch)(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf);
-	void (*Use)(g_edict_t *self, g_edict_t *other, g_edict_t *activator);
-	void (*Pain)(g_edict_t *self, g_edict_t *other, int16_t damage, int16_t knockback);
-	void (*Die)(g_edict_t *self, g_edict_t *attacker, uint32_t mod);
+	void (*Think)(g_entity_t *self);
+	void (*Blocked)(g_entity_t *self, g_entity_t *other); // move to move_info?
+	void (*Touch)(g_entity_t *self, g_entity_t *other, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf);
+	void (*Use)(g_entity_t *self, g_entity_t *other, g_entity_t *activator);
+	void (*Pain)(g_entity_t *self, g_entity_t *other, int16_t damage, int16_t knockback);
+	void (*Die)(g_entity_t *self, g_entity_t *attacker, uint32_t mod);
 
 	uint32_t touch_time;
 	uint32_t push_time;
@@ -794,11 +794,11 @@ typedef struct {
 	int16_t sounds; // make this a spawntemp var?
 	int32_t count;
 
-	g_edict_t *chain;
-	g_edict_t *enemy;
-	g_edict_t *activator;
-	g_edict_t *team_chain;
-	g_edict_t *team_master;
+	g_entity_t *chain;
+	g_entity_t *enemy;
+	g_entity_t *activator;
+	g_entity_t *team_chain;
+	g_entity_t *team_master;
 
 	uint16_t noise_index;
 	int16_t attenuation;
@@ -808,7 +808,7 @@ typedef struct {
 	vec_t delay; // before firing targets
 	vec_t random;
 
-	g_edict_t *ground_entity;
+	g_entity_t *ground_entity;
 	cm_bsp_plane_t ground_plane;
 	cm_bsp_surface_t *ground_surface;
 
@@ -821,7 +821,7 @@ typedef struct {
 	const g_item_t *item; // for bonus items
 
 	vec3_t map_origin; // where the map says we spawn
-} g_edict_locals_t;
+} g_entity_locals_t;
 
 #include "game/game.h"
 

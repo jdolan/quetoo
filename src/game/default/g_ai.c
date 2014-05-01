@@ -24,7 +24,7 @@
 /*
  * @brief
  */
-static void G_Ai_ClientThink(g_edict_t *self) {
+static void G_Ai_ClientThink(g_entity_t *self) {
 	pm_cmd_t cmd;
 
 	memset(&cmd, 0, sizeof(cmd));
@@ -38,7 +38,7 @@ static void G_Ai_ClientThink(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_Ai_Spawn(g_edict_t *self) {
+static void G_Ai_Spawn(g_entity_t *self) {
 
 	self->ai = true; // and away we go!
 
@@ -64,7 +64,7 @@ static void G_Ai_Add_f(void) {
 
 	for (i = 0; i < count; i++) {
 
-		g_edict_t *ent = &g_game.edicts[1];
+		g_entity_t *ent = &g_game.entities[1];
 		int32_t j;
 
 		for (j = 1; j <= sv_max_clients->integer; j++, ent++) {

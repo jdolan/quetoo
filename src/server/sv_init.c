@@ -75,12 +75,10 @@ uint16_t Sv_ImageIndex(const char *name) {
  * baseline will be transmitted
  */
 static void Sv_CreateBaseline(void) {
-	g_edict_t *ent;
-	uint32_t i;
 
-	for (i = 1; i < svs.game->num_edicts; i++) {
+	for (int32_t i = 1; i < svs.game->num_entities; i++) {
 
-		ent = EDICT_FOR_NUM(i);
+		g_entity_t *ent = ENTITY_FOR_NUM(i);
 
 		if (!ent->in_use)
 			continue;
@@ -219,13 +217,13 @@ static void Sv_InitClients(void) {
 	}
 
 	// align the game entities with the server's clients
-	for (i = 0; i < sv_max_clients->integer; i++) {
+	for (i = 1; i <= sv_max_clients->integer; i++) {
 
-		g_edict_t *edict = EDICT_FOR_NUM(i + 1);
-		edict->s.number = i + 1;
+		g_entity_t *ent = ENTITY_FOR_NUM(i);
+		ent->s.number = i;
 
 		// assign their edict
-		svs.clients[i].edict = edict;
+		svs.clients[i].entity = ent;
 
 		// reset state of spawned clients back to connected
 		if (svs.clients[i].state > SV_CLIENT_CONNECTED)
@@ -295,7 +293,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
 		Sv_CreateBaseline();
 
-		Com_Print("  Loaded map %s, %d entities.\n", sv.name, svs.game->num_edicts);
+		Com_Print("  Loaded map %s, %d entities.\n", sv.name, svs.game->num_entities);
 	}
 	g_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_STRING_CHARS, "%lli", bsp_size);
 

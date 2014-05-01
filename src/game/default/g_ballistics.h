@@ -25,23 +25,23 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_BlasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
+void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 		int32_t speed, int16_t damage, int16_t knockback);
-void G_BulletProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
+void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 		int16_t damage, int16_t knockback, uint16_t hspread, uint16_t vspread, uint32_t mod);
-void G_ShotgunProjectiles(g_edict_t *ent, const vec3_t start, const vec3_t dir,
+void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 		int16_t damage, int16_t knockback, int32_t hspread, int32_t vspread, int32_t count, uint32_t mod);
-void G_HyperblasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
+void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 		int32_t speed, int16_t damage, int16_t knockback);
-void G_GrenadeProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
+void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 		int32_t speed, int16_t damage, int16_t knockback, vec_t damage_radius, uint32_t timer);
-void G_RocketProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
+void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 		int32_t speed, int16_t damage, int16_t knockback, vec_t damage_radius);
-void G_LightningProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
+void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 		int16_t damage, int16_t knockback);
-void G_RailgunProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
+void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 		int16_t damage, int16_t knockback);
-void G_BfgProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
+void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 		int32_t speed, int16_t damage, int16_t knockback, vec_t damage_radius);
 #endif /* __GAME_LOCAL_H__ */
 

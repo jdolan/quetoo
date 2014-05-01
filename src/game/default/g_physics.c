@@ -27,7 +27,7 @@
 /*
  * @brief
  */
-static void G_ClampVelocity(g_edict_t *ent) {
+static void G_ClampVelocity(g_entity_t *ent) {
 
 	const vec_t speed = VectorLength(ent->locals.velocity);
 
@@ -39,7 +39,7 @@ static void G_ClampVelocity(g_edict_t *ent) {
 /*
  * @brief Runs thinking code for this frame if necessary
  */
-static void G_RunThink(g_edict_t *ent) {
+static void G_RunThink(g_entity_t *ent) {
 
 	if (ent->locals.next_think == 0)
 		return;
@@ -58,9 +58,9 @@ static void G_RunThink(g_edict_t *ent) {
 /*
  * @brief Two entities have touched, so run their touch functions
  */
-static void G_RunTouch(g_edict_t *ent, cm_trace_t *trace) {
+static void G_RunTouch(g_entity_t *ent, cm_trace_t *trace) {
 
-	g_edict_t *other = trace->ent;
+	g_entity_t *other = trace->ent;
 
 	if (ent->locals.Touch && other->solid != SOLID_NOT)
 		ent->locals.Touch(ent, other, &trace->plane, trace->surface);
@@ -97,7 +97,7 @@ static void G_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, vec
 /*
  * @see Pm_GoodPosition.
  */
-static _Bool G_GoodPosition(const g_edict_t *ent) {
+static _Bool G_GoodPosition(const g_entity_t *ent) {
 
 	const int32_t mask = ent->locals.clip_mask ? ent->locals.clip_mask : MASK_SOLID;
 
@@ -107,7 +107,7 @@ static _Bool G_GoodPosition(const g_edict_t *ent) {
 /*
  * @see Pm_SnapPosition.
  */
-static _Bool G_SnapPosition(g_edict_t *ent) {
+static _Bool G_SnapPosition(g_entity_t *ent) {
 	const int16_t jitter_bits[8] = { 0, 4, 1, 2, 3, 5, 6, 7 };
 	int16_t i, sign[3], org[3];
 	vec3_t old_origin;
@@ -145,7 +145,7 @@ static _Bool G_SnapPosition(g_edict_t *ent) {
 /*
  * @brief Applies gravity, which is dependent on water level.
  */
-static void G_Gravity(g_edict_t *ent) {
+static void G_Gravity(g_entity_t *ent) {
 	vec_t gravity = g_level.gravity;
 
 	if (ent->locals.water_level) {
@@ -158,7 +158,7 @@ static void G_Gravity(g_edict_t *ent) {
 /*
  * @brief Handles friction against entity momentum, and based on contents.
  */
-static void G_Friction(g_edict_t *ent) {
+static void G_Friction(g_entity_t *ent) {
 
 	const vec_t speed = VectorLength(ent->locals.velocity);
 
@@ -189,12 +189,12 @@ static void G_Friction(g_edict_t *ent) {
 /*
  * @brief A moving object that doesn't obey physics
  */
-static void G_Physics_NoClip(g_edict_t *ent) {
+static void G_Physics_NoClip(g_entity_t *ent) {
 
 	VectorMA(ent->s.angles, gi.frame_seconds, ent->locals.avelocity, ent->s.angles);
 	VectorMA(ent->s.origin, gi.frame_seconds, ent->locals.velocity, ent->s.origin);
 
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 }
 
 /*
@@ -202,21 +202,21 @@ static void G_Physics_NoClip(g_edict_t *ent) {
  * move needs to be reverted.
  */
 typedef struct {
-	g_edict_t *ent;
+	g_entity_t *ent;
 	vec3_t origin;
 	vec3_t angles;
 	int16_t delta_yaw;
 } g_push_t;
 
-static g_push_t g_pushes[MAX_EDICTS], *g_push_p;
+static g_push_t g_pushes[MAX_ENTITIES], *g_push_p;
 
 /*
  * @brief
  */
-static void G_Physics_Push_Impact(g_edict_t *ent) {
+static void G_Physics_Push_Impact(g_entity_t *ent) {
 
-	if (g_push_p - g_pushes == MAX_EDICTS)
-		gi.Error("MAX_EDICTS\n");
+	if (g_push_p - g_pushes == MAX_ENTITIES)
+		gi.Error("MAX_ENTITIES\n");
 
 	g_push_p->ent = ent;
 
@@ -251,7 +251,7 @@ static void G_Physics_Push_Revert(const g_push_t *p) {
  * @brief When items ride pushers, they rotate along with them. For clients,
  * this requires incrementing their delta angles.
  */
-static void G_Physics_Push_Rotate(g_edict_t *self, g_edict_t *ent, vec_t yaw) {
+static void G_Physics_Push_Rotate(g_entity_t *self, g_entity_t *ent, vec_t yaw) {
 
 	if (ent->locals.ground_entity == self) {
 		if (ent->client) {
@@ -269,7 +269,7 @@ static void G_Physics_Push_Rotate(g_edict_t *self, g_edict_t *ent, vec_t yaw) {
 /*
  * @brief
  */
-static g_edict_t *G_Physics_Push_Move(g_edict_t *self, vec3_t move, vec3_t amove) {
+static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amove) {
 	vec3_t inverse_amove, forward, right, up;
 	int16_t tmp[3];
 	int32_t i;
@@ -286,15 +286,15 @@ static g_edict_t *G_Physics_Push_Move(g_edict_t *self, vec3_t move, vec3_t amove
 	VectorAdd(self->s.origin, move, self->s.origin);
 	VectorAdd(self->s.angles, amove, self->s.angles);
 
-	gi.LinkEdict(self);
+	gi.LinkEntity(self);
 
 	// calculate the angle vectors for rotational movement
 	VectorNegate(amove, inverse_amove);
 	AngleVectors(inverse_amove, forward, right, up);
 
 	// see if any solid entities are inside the final position
-	g_edict_t *ent;
-	for (ent = g_game.edicts + 1, i = 1; i < ge.num_edicts; i++, ent++) {
+	g_entity_t *ent;
+	for (ent = g_game.entities + 1, i = 1; i < ge.num_entities; i++, ent++) {
 
 		if (!ent->in_use)
 			continue;
@@ -378,7 +378,7 @@ static g_edict_t *G_Physics_Push_Move(g_edict_t *self, vec3_t move, vec3_t amove
 		if (p->ent->in_use) {
 
 			if (p->ent != self) {
-				gi.LinkEdict(p->ent);
+				gi.LinkEntity(p->ent);
 			}
 
 			if (p->ent->solid == SOLID_BOX || p->ent->solid == SOLID_MISSILE) {
@@ -396,9 +396,9 @@ static g_edict_t *G_Physics_Push_Move(g_edict_t *self, vec3_t move, vec3_t amove
  * @brief For G_MOVE_TYPE_PUSH, push all box entities intersected while moving.
  * Generally speaking, only inline BSP models are pushers.
  */
-static void G_Physics_Push(g_edict_t *ent) {
+static void G_Physics_Push(g_entity_t *ent) {
 	vec3_t move, amove;
-	g_edict_t *part, *obstacle = NULL;
+	g_entity_t *part, *obstacle = NULL;
 
 	// if not a team captain, so movement will be handled elsewhere
 	if (ent->locals.flags & FL_TEAM_SLAVE)
@@ -437,7 +437,7 @@ static void G_Physics_Push(g_edict_t *ent) {
  * solids along the way. It's possible to be freed through impacting other
  * objects.
  */
-static cm_trace_t G_Physics_Fly_Move(g_edict_t *ent) {
+static cm_trace_t G_Physics_Fly_Move(g_entity_t *ent) {
 	vec3_t start, end;
 	cm_trace_t trace;
 
@@ -452,7 +452,7 @@ static cm_trace_t G_Physics_Fly_Move(g_edict_t *ent) {
 	retry: trace = gi.Trace(start, end, ent->mins, ent->maxs, ent, mask);
 
 	VectorCopy(trace.end, ent->s.origin);
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 
 	if (trace.ent && trace.plane.num != ent->locals.ground_plane.num) {
 		G_RunTouch(ent, &trace);
@@ -476,7 +476,7 @@ static cm_trace_t G_Physics_Fly_Move(g_edict_t *ent) {
 /*
  * @brief Fly through the world, interacting with other solids.
  */
-static void G_Physics_Fly(g_edict_t *ent) {
+static void G_Physics_Fly(g_entity_t *ent) {
 
 	cm_trace_t trace = G_Physics_Fly_Move(ent);
 
@@ -490,7 +490,7 @@ static void G_Physics_Fly(g_edict_t *ent) {
 /*
  * @brief Toss, bounce, and fly movement. When on ground, do nothing.
  */
-static void G_Physics_Toss(g_edict_t *ent) {
+static void G_Physics_Toss(g_entity_t *ent) {
 
 	G_Gravity(ent);
 
@@ -530,7 +530,7 @@ static void G_Physics_Toss(g_edict_t *ent) {
 /*
  * @brief Dispatches thinking and physics routine for the specified entity.
  */
-void G_RunEntity(g_edict_t *ent) {
+void G_RunEntity(g_entity_t *ent) {
 
 	// only team masters are run directly
 	if (ent->locals.flags & FL_TEAM_SLAVE)
@@ -562,10 +562,10 @@ void G_RunEntity(g_edict_t *ent) {
 	}
 
 	// move all team members to the new origin
-	g_edict_t *e = ent->locals.team_chain;
+	g_entity_t *e = ent->locals.team_chain;
 	while (e) {
 		VectorCopy(ent->s.origin, e->s.origin);
-		gi.LinkEdict(e);
+		gi.LinkEntity(e);
 		e = e->locals.team_chain;
 	}
 

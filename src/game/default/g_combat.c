@@ -25,7 +25,7 @@
 /*
  * @brief Returns true if ent1 and ent2 are on the same team.
  */
-_Bool G_OnSameTeam(const g_edict_t *ent1, const g_edict_t *ent2) {
+_Bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2) {
 
 	if (!ent1->client || !ent2->client)
 		return false;
@@ -43,7 +43,7 @@ _Bool G_OnSameTeam(const g_edict_t *ent1, const g_edict_t *ent2) {
  * @brief Returns true if the inflictor can directly damage the target. Used for
  * explosions and melee attacks.
  */
-_Bool G_CanDamage(g_edict_t *targ, g_edict_t *inflictor) {
+_Bool G_CanDamage(g_entity_t *targ, g_entity_t *inflictor) {
 	vec3_t dest;
 	cm_trace_t tr;
 
@@ -120,7 +120,7 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
  * @return The amount of damage absorbed, which is not necessarily the amount
  * of armor consumed.
  */
-static int16_t G_CheckArmor(g_edict_t *ent, const vec3_t pos, const vec3_t normal, int16_t damage,
+static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t normal, int16_t damage,
 		uint32_t dflags) {
 
 	if (dflags & DMG_NO_ARMOR)
@@ -183,7 +183,7 @@ static int16_t G_CheckArmor(g_edict_t *ent, const vec3_t pos, const vec3_t norma
  *
  * @param mod The means of death, used by the obituaries routine.
  */
-void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, const vec3_t dir,
+void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, const vec3_t dir,
 		const vec3_t pos, const vec3_t normal, int16_t damage, int16_t knockback, uint32_t dflags,
 		uint32_t mod) {
 
@@ -195,8 +195,8 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 			return;
 	}
 
-	inflictor = inflictor ? inflictor : g_game.edicts;
-	attacker = attacker ? attacker : g_game.edicts;
+	inflictor = inflictor ? inflictor : g_game.entities;
+	attacker = attacker ? attacker : g_game.entities;
 
 	dir = dir ? dir : vec3_origin;
 	pos = pos ? pos : target->s.origin;
@@ -325,10 +325,10 @@ void G_Damage(g_edict_t *target, g_edict_t *inflictor, g_edict_t *attacker, cons
 /*
  * @brief
  */
-void G_RadiusDamage(g_edict_t *inflictor, g_edict_t *attacker, g_edict_t *ignore, int16_t damage,
+void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ignore, int16_t damage,
 		int16_t knockback, vec_t radius, uint32_t mod) {
 
-	g_edict_t *ent = NULL;
+	g_entity_t *ent = NULL;
 
 	while ((ent = G_FindRadius(ent, inflictor->s.origin, radius)) != NULL) {
 		vec3_t dir;

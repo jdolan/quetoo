@@ -24,7 +24,7 @@
 
 #include "ai_types.h"
 
-ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_edict_t *ent);
+ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_entity_t *ent);
 void Ai_FreeGoals(void);
 
 #ifdef __AI_LOCAL_H__

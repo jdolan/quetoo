@@ -47,10 +47,10 @@ static void Sv_GameError(const char *func, const char *fmt, ...) {
 /*
  * @brief Also sets mins and maxs for inline bsp models.
  */
-static void Sv_SetModel(g_edict_t *ent, const char *name) {
+static void Sv_SetModel(g_entity_t *ent, const char *name) {
 
 	if (!name) {
-		Com_Warn("%d: NULL\n", (int32_t) NUM_FOR_EDICT(ent));
+		Com_Warn("%d: NULL\n", (int32_t) NUM_FOR_ENTITY(ent));
 		return;
 	}
 
@@ -61,7 +61,7 @@ static void Sv_SetModel(g_edict_t *ent, const char *name) {
 		const cm_bsp_model_t *mod = Cm_Model(name);
 		VectorCopy(mod->mins, ent->mins);
 		VectorCopy(mod->maxs, ent->maxs);
-		Sv_LinkEdict(ent);
+		Sv_LinkEntity(ent);
 	}
 }
 
@@ -201,7 +201,7 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 /*
  * @brief
  */
-static void Sv_Sound(const g_edict_t *ent, const uint16_t index, const uint16_t atten) {
+static void Sv_Sound(const g_entity_t *ent, const uint16_t index, const uint16_t atten) {
 
 	if (!ent)
 		return;
@@ -274,9 +274,9 @@ void Sv_InitGame(void) {
 	import.SetAreaPortalState = Cm_SetAreaPortalState;
 	import.AreasConnected = Cm_AreasConnected;
 
-	import.LinkEdict = Sv_LinkEdict;
-	import.UnlinkEdict = Sv_UnlinkEdict;
-	import.AreaEdicts = Sv_AreaEdicts;
+	import.LinkEntity = Sv_LinkEntity;
+	import.UnlinkEntity = Sv_UnlinkEntity;
+	import.BoxEntities = Sv_BoxEntities;
 
 	import.Multicast = Sv_Multicast;
 	import.Unicast = Sv_Unicast;

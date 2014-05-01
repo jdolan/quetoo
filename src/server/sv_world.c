@@ -38,18 +38,18 @@ typedef struct sv_sector_s {
 
 /*
  * @brief The world structure contains all sectors and also the current query
- * context issued to Sv_AreaEdicts.
+ * context issued to Sv_BoxEntities.
  */
 typedef struct {
 	sv_sector_t sectors[SECTOR_NODES];
 	uint16_t num_sectors;
 
-	const vec_t *area_mins, *area_maxs;
+	const vec_t *box_mins, *box_maxs;
 
-	g_edict_t **area_edicts;
+	g_entity_t **box_entities;
+	size_t num_box_entities, max_box_entities;
 
-	size_t num_area_edicts, max_area_edicts;
-	uint32_t area_type; // AREA_SOLID, AREA_TRIGGER, ..
+	uint32_t solid_type; // AREA_SOLID, AREA_TRIGGER, ..
 } sv_world_t;
 
 static sv_world_t sv_world;
@@ -108,9 +108,9 @@ void Sv_InitWorld(void) {
  * @brief Called before moving or freeing an entity to remove it from the clipping
  * hull.
  */
-void Sv_UnlinkEdict(g_edict_t *ent) {
+void Sv_UnlinkEntity(g_entity_t *ent) {
 
-	sv_entity_t *sent = &sv.entities[NUM_FOR_EDICT(ent)];
+	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
 	if (sent->sector) {
 		sv_sector_t *sector = (sv_sector_t *) sent->sector;
@@ -124,17 +124,17 @@ void Sv_UnlinkEdict(g_edict_t *ent) {
  * @brief Called whenever an entity changes origin, mins, maxs, or solid to add it to
  * the clipping hull.
  */
-void Sv_LinkEdict(g_edict_t *ent) {
+void Sv_LinkEntity(g_entity_t *ent) {
 	int32_t leafs[MAX_ENT_LEAFS];
 	int32_t clusters[MAX_ENT_LEAFS];
 	size_t i, j;
 	int32_t top_node;
 
-	if (ent == svs.game->edicts) // never bother with the world
+	if (ent == svs.game->entities) // never bother with the world
 		return;
 
 	// remove it from its current sector
-	Sv_UnlinkEdict(ent);
+	Sv_UnlinkEntity(ent);
 
 	if (!ent->in_use) // and if its free, we're done
 		return;
@@ -181,7 +181,7 @@ void Sv_LinkEdict(g_edict_t *ent) {
 	ent->abs_maxs[1] += 1.0;
 	ent->abs_maxs[2] += 1.0;
 
-	sv_entity_t *sent = &sv.entities[NUM_FOR_EDICT(ent)];
+	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
 	// link to PVS leafs
 	sent->num_clusters = 0;
@@ -267,18 +267,18 @@ void Sv_LinkEdict(g_edict_t *ent) {
 /*
  * @return True if the entity matches the current world filter, false otherwise.
  */
-static _Bool Sv_AreaEdicts_Filter(const g_edict_t *ent) {
+static _Bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
 
 	switch (ent->solid) {
 		case SOLID_BOX:
 		case SOLID_BSP:
 		case SOLID_MISSILE:
-			if (sv_world.area_type == AREA_SOLID)
+			if (sv_world.solid_type == AREA_SOLID)
 				return true;
 			break;
 
 		case SOLID_TRIGGER:
-			if (sv_world.area_type == AREA_TRIGGER)
+			if (sv_world.solid_type == AREA_TRIGGER)
 				return true;
 			break;
 
@@ -292,20 +292,20 @@ static _Bool Sv_AreaEdicts_Filter(const g_edict_t *ent) {
 /*
  * @brief
  */
-static void Sv_AreaEdicts_r(sv_sector_t *sector) {
+static void Sv_BoxEntities_r(sv_sector_t *sector) {
 
 	GList *e = sector->edicts;
 	while (e) {
-		g_edict_t *ent = (g_edict_t *) e->data;
+		g_entity_t *ent = (g_entity_t *) e->data;
 
-		if (Sv_AreaEdicts_Filter(ent)) {
+		if (Sv_BoxEntities_Filter(ent)) {
 
-			if (BoxIntersect(ent->abs_mins, ent->abs_maxs, sv_world.area_mins, sv_world.area_maxs)) {
+			if (BoxIntersect(ent->abs_mins, ent->abs_maxs, sv_world.box_mins, sv_world.box_maxs)) {
 
-				sv_world.area_edicts[sv_world.num_area_edicts] = ent;
-				sv_world.num_area_edicts++;
+				sv_world.box_entities[sv_world.num_box_entities] = ent;
+				sv_world.num_box_entities++;
 
-				if (sv_world.num_area_edicts == sv_world.max_area_edicts) {
+				if (sv_world.num_box_entities == sv_world.max_box_entities) {
 					Com_Warn("sv_world.max_area_edicts reached\n");
 					return;
 				}
@@ -319,40 +319,40 @@ static void Sv_AreaEdicts_r(sv_sector_t *sector) {
 		return; // terminal node
 
 	// recurse down both sides
-	if (sv_world.area_maxs[sector->axis] > sector->dist)
-		Sv_AreaEdicts_r(sector->children[0]);
+	if (sv_world.box_maxs[sector->axis] > sector->dist)
+		Sv_BoxEntities_r(sector->children[0]);
 
-	if (sv_world.area_mins[sector->axis] < sector->dist)
-		Sv_AreaEdicts_r(sector->children[1]);
+	if (sv_world.box_mins[sector->axis] < sector->dist)
+		Sv_BoxEntities_r(sector->children[1]);
 }
 
 /*
- * @brief Fills in a table of edict pointers with those which have bounding boxes
- * that intersect the given area. It is possible for a non-axial bsp model
- * to be returned that doesn't actually intersect the area.
+ * @brief Populates an array of entities with those which have bounding boxes
+ * that intersect the given area. It is possible for a non-axial BSP model to
+ * be returned that doesn't actually intersect the area.
  *
- * Returns the number of entities found.
+ * @return The number of entities found.
  */
-size_t Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **list, const size_t len,
+size_t Sv_BoxEntities(const vec3_t mins, const vec3_t maxs, g_entity_t **list, const size_t len,
 		const uint32_t type) {
 
-	sv_world.area_mins = mins;
-	sv_world.area_maxs = maxs;
-	sv_world.area_edicts = list;
-	sv_world.num_area_edicts = 0;
-	sv_world.max_area_edicts = len;
-	sv_world.area_type = type;
+	sv_world.box_mins = mins;
+	sv_world.box_maxs = maxs;
+	sv_world.box_entities = list;
+	sv_world.num_box_entities = 0;
+	sv_world.max_box_entities = len;
+	sv_world.solid_type = type;
 
-	Sv_AreaEdicts_r(sv_world.sectors);
+	Sv_BoxEntities_r(sv_world.sectors);
 
-	return sv_world.num_area_edicts;
+	return sv_world.num_box_entities;
 }
 
 /*
  * @brief Prepares the collision model to clip to the specified entity. For
  * mesh models, the box hull must be set to reflect the bounds of the entity.
  */
-static int32_t Sv_HullForEntity(const g_edict_t *ent) {
+static int32_t Sv_HullForEntity(const g_entity_t *ent) {
 
 	// decide which clipping hull to use, based on the size
 	if (ent->solid == SOLID_BSP) { // explicit hulls in the BSP model
@@ -370,23 +370,23 @@ static int32_t Sv_HullForEntity(const g_edict_t *ent) {
 
 /*
  * @brief Returns the contents mask for the specified point. This includes world
- * contents as well as contents for any entities this point intersects.
+ * contents as well as contents for any solid entities this point intersects.
  */
 int32_t Sv_PointContents(const vec3_t point) {
-	g_edict_t *edicts[MAX_EDICTS];
+	g_entity_t *entities[MAX_ENTITIES];
 
 	// get base contents from world
 	int32_t contents = Cm_PointContents(point, 0);
 
 	// as well as contents from all intersected entities
-	const size_t len = Sv_AreaEdicts(point, point, edicts, lengthof(edicts), AREA_SOLID);
+	const size_t len = Sv_BoxEntities(point, point, entities, lengthof(entities), AREA_SOLID);
 
 	// iterate the area entities, checking each one for an intersection
 	for (size_t i = 0; i < len; i++) {
-		const g_edict_t *ent = edicts[i];
+		const g_entity_t *ent = entities[i];
 
 		const int32_t head_node = Sv_HullForEntity(ent);
-		const sv_entity_t *sent = &sv.entities[NUM_FOR_EDICT(ent)];
+		const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
 		contents |= Cm_TransformedPointContents(point, head_node, &sent->inverse_matrix);
 	}
@@ -400,7 +400,7 @@ typedef struct {
 	const vec_t *start, *end;
 	vec3_t box_mins, box_maxs; // enclose the test object along entire move
 	cm_trace_t trace;
-	const g_edict_t *skip;
+	const g_entity_t *skip;
 	int32_t contents;
 } sv_trace_t;
 
@@ -409,12 +409,12 @@ typedef struct {
  * of ALL collision and interaction for the server. Tread carefully.
  */
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
-	g_edict_t *e[MAX_EDICTS];
+	g_entity_t *e[MAX_ENTITIES];
 
-	const size_t len = Sv_AreaEdicts(trace->box_mins, trace->box_maxs, e, lengthof(e), AREA_SOLID);
+	const size_t len = Sv_BoxEntities(trace->box_mins, trace->box_maxs, e, lengthof(e), AREA_SOLID);
 
 	for (size_t i = 0; i < len; i++) {
-		g_edict_t *ent = e[i];
+		g_entity_t *ent = e[i];
 
 		if (trace->skip) { // see if we can skip it
 
@@ -439,7 +439,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 			continue;
 
 		const int32_t head_node = Sv_HullForEntity(ent);
-		const sv_entity_t *sent = &sv.entities[NUM_FOR_EDICT(ent)];
+		const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
 		cm_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
 				head_node, trace->contents, &sent->matrix, &sent->inverse_matrix);
@@ -480,7 +480,7 @@ static void Sv_TraceBounds(sv_trace_t *trace) {
  * This prevents players from clipping against their own projectiles, etc.
  */
 cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		const g_edict_t *skip, const int32_t contents) {
+		const g_entity_t *skip, const int32_t contents) {
 
 	sv_trace_t trace;
 
@@ -494,7 +494,7 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	// clip to world
 	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents);
 	if (trace.trace.fraction < 1.0) {
-		trace.trace.ent = svs.game->edicts;
+		trace.trace.ent = svs.game->entities;
 
 		if (trace.trace.start_solid) // blocked entirely
 			return trace.trace;

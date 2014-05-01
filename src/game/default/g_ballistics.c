@@ -26,7 +26,7 @@
  * emit. This is more realistic, but very strange feeling in Quake, so the
  * scale is generally kept quite low.
  */
-static void G_PlayerProjectile(g_edict_t *ent, const vec_t scale) {
+static void G_PlayerProjectile(g_entity_t *ent, const vec_t scale) {
 
 	if (ent->owner) {
 		const vec_t s = scale * g_player_projectile->value;
@@ -40,7 +40,7 @@ static void G_PlayerProjectile(g_edict_t *ent, const vec_t scale) {
  * @brief Returns true if the entity is facing a wall at too close proximity
  * for the specified projectile.
  */
-static _Bool G_ImmediateWall(g_edict_t *ent, g_edict_t *projectile) {
+static _Bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile) {
 
 	const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->mins,
 			projectile->maxs, ent, MASK_SOLID);
@@ -51,7 +51,7 @@ static _Bool G_ImmediateWall(g_edict_t *ent, g_edict_t *projectile) {
 /*
  * @brief Returns true if the specified entity takes damage.
  */
-static _Bool G_TakesDamage(g_edict_t *ent) {
+static _Bool G_TakesDamage(g_entity_t *ent) {
 	return (ent && ent->locals.take_damage);
 }
 
@@ -149,7 +149,7 @@ static void G_BurnMark(vec3_t org, cm_bsp_plane_t *plane,
 /*
  * @brief
  */
-static void G_BlasterProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane,
+static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other, cm_bsp_plane_t *plane,
 		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (other == self->owner)
@@ -172,19 +172,19 @@ static void G_BlasterProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_
 		}
 	}
 
-	G_FreeEdict(self);
+	G_FreeEntity(self);
 }
 
 /*
  * @brief
  */
-void G_BlasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
+void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback) {
 
 	const vec3_t mins = { -1.0, -1.0, -1.0 };
 	const vec3_t maxs = { 1.0, 1.0, 1.0 };
 
-	g_edict_t *projectile = G_Spawn(__func__);
+	g_entity_t *projectile = G_Spawn(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -204,7 +204,7 @@ void G_BlasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 	projectile->locals.knockback = knockback;
 	projectile->locals.move_type = MOVE_TYPE_FLY;
 	projectile->locals.next_think = g_level.time + 8000;
-	projectile->locals.Think = G_FreeEdict;
+	projectile->locals.Think = G_FreeEntity;
 	projectile->locals.Touch = G_BlasterProjectile_Touch;
 	projectile->s.trail = TRAIL_BLASTER;
 
@@ -215,13 +215,13 @@ void G_BlasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 		projectile->s.client = 0;
 	}
 
-	gi.LinkEdict(projectile);
+	gi.LinkEntity(projectile);
 }
 
 /*
  * @brief
  */
-void G_BulletProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
+void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
 		int16_t knockback, uint16_t hspread, uint16_t vspread, uint32_t mod) {
 
 	cm_trace_t tr = gi.Trace(ent->s.origin, start, NULL, NULL, ent, MASK_SHOT);
@@ -260,7 +260,7 @@ void G_BulletProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, in
 /*
  * @brief
  */
-void G_ShotgunProjectiles(g_edict_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
+void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
 		int16_t knockback, int32_t hspread, int32_t vspread, int32_t count, uint32_t mod) {
 	int32_t i;
 
@@ -271,7 +271,7 @@ void G_ShotgunProjectiles(g_edict_t *ent, const vec3_t start, const vec3_t dir, 
 /*
  * @brief
  */
-static void G_GrenadeProjectile_Explode(g_edict_t *self) {
+static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 	vec3_t origin;
 
 	if (self->locals.enemy) { // direct hit
@@ -310,13 +310,13 @@ static void G_GrenadeProjectile_Explode(g_edict_t *self) {
 		G_BurnMark(self->s.origin, &self->locals.ground_plane, self->locals.ground_surface, 20);
 	}
 
-	G_FreeEdict(self);
+	G_FreeEntity(self);
 }
 
 /*
  * @brief
  */
-static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other,
+static void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		cm_bsp_plane_t *plane __attribute__((unused)), cm_bsp_surface_t *surf) {
 
 	if (other == self->owner)
@@ -330,7 +330,7 @@ static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other,
 				self->locals.touch_time = g_level.time;
 			}
 		} else {
-			G_FreeEdict(self);
+			G_FreeEntity(self);
 		}
 
 		return;
@@ -343,12 +343,12 @@ static void G_GrenadeProjectile_Touch(g_edict_t *self, g_edict_t *other,
 /*
  * @brief
  */
-void G_GrenadeProjectile(g_edict_t *ent, vec3_t const start, const vec3_t dir, int32_t speed,
+void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback, vec_t damage_radius, uint32_t timer) {
 
 	vec3_t forward, right, up;
 
-	g_edict_t *projectile = G_Spawn(__func__);
+	g_entity_t *projectile = G_Spawn(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -387,13 +387,13 @@ void G_GrenadeProjectile(g_edict_t *ent, vec3_t const start, const vec3_t dir, i
 	// projectile->s.model1 = gi.ModelIndex(va("models/gibs/gib%02d/tris.obj", (Random() % 3) + 1));
 	// projectile->locals.next_think = 0;
 
-	gi.LinkEdict(projectile);
+	gi.LinkEntity(projectile);
 }
 
 /*
  * @brief
  */
-static void G_RocketProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane,
+static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other, cm_bsp_plane_t *plane,
 		cm_bsp_surface_t *surf) {
 
 	if (other == self->owner)
@@ -427,16 +427,16 @@ static void G_RocketProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_p
 		}
 	}
 
-	G_FreeEdict(self);
+	G_FreeEntity(self);
 }
 
 /*
  * @brief
  */
-void G_RocketProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
+void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback, vec_t damage_radius) {
 
-	g_edict_t *projectile = G_Spawn(__func__);
+	g_entity_t *projectile = G_Spawn(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -456,19 +456,19 @@ void G_RocketProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, in
 	projectile->locals.knockback = knockback;
 	projectile->locals.move_type = MOVE_TYPE_FLY;
 	projectile->locals.next_think = g_level.time + 8000;
-	projectile->locals.Think = G_FreeEdict;
+	projectile->locals.Think = G_FreeEntity;
 	projectile->locals.Touch = G_RocketProjectile_Touch;
 	projectile->s.model1 = g_media.models.rocket;
 	projectile->s.sound = g_media.sounds.rocket_fly;
 	projectile->s.trail = TRAIL_ROCKET;
 
-	gi.LinkEdict(projectile);
+	gi.LinkEntity(projectile);
 }
 
 /*
  * @brief
  */
-static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane,
+static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other, cm_bsp_plane_t *plane,
 		cm_bsp_surface_t *surf) {
 	vec3_t origin;
 	vec3_t v;
@@ -477,7 +477,7 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, cm
 		return;
 
 	if (surf && (surf->flags & SURF_SKY)) {
-		G_FreeEdict(self);
+		G_FreeEntity(self);
 		return;
 	}
 
@@ -511,16 +511,16 @@ static void G_HyperblasterProjectile_Touch(g_edict_t *self, g_edict_t *other, cm
 		}
 	}
 
-	G_FreeEdict(self);
+	G_FreeEntity(self);
 }
 
 /*
  * @brief
  */
-void G_HyperblasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
+void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback) {
 
-	g_edict_t *projectile = G_Spawn(__func__);
+	g_entity_t *projectile = G_Spawn(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -537,24 +537,24 @@ void G_HyperblasterProjectile(g_edict_t *ent, const vec3_t start, const vec3_t d
 	projectile->locals.damage = damage;
 	projectile->locals.knockback = knockback;
 	projectile->locals.move_type = MOVE_TYPE_FLY;
-	projectile->locals.Think = G_FreeEdict;
+	projectile->locals.Think = G_FreeEntity;
 	projectile->locals.next_think = g_level.time + 6000;
 	projectile->locals.Touch = G_HyperblasterProjectile_Touch;
 	projectile->s.trail = TRAIL_HYPERBLASTER;
 
-	gi.LinkEdict(projectile);
+	gi.LinkEntity(projectile);
 }
 
 /*
  * @brief
  */
-static void G_LightningProjectile_Discharge(g_edict_t *self) {
+static void G_LightningProjectile_Discharge(g_entity_t *self) {
 
 	// kill ourselves
 	G_Damage(self->owner, self, self->owner, NULL, self->s.origin, NULL, 9999, 100,
 			DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
 
-	g_edict_t *ent = g_game.edicts;
+	g_entity_t *ent = g_game.entities;
 
 	// and ruin the pool party for everyone else too
 	for (int32_t i = 0; i < g_max_entities->integer; i++, ent++) {
@@ -585,7 +585,7 @@ static void G_LightningProjectile_Discharge(g_edict_t *self) {
 /*
  * @brief
  */
-static _Bool G_LightningProjectile_Expire(g_edict_t *self) {
+static _Bool G_LightningProjectile_Expire(g_entity_t *self) {
 
 	if (self->locals.timestamp < g_level.time - 101)
 		return true;
@@ -599,14 +599,14 @@ static _Bool G_LightningProjectile_Expire(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_LightningProjectile_Think(g_edict_t *self) {
+static void G_LightningProjectile_Think(g_entity_t *self) {
 	vec3_t forward, right, up;
 	vec3_t start, end;
 	vec3_t water_start;
 	cm_trace_t tr;
 
 	if (G_LightningProjectile_Expire(self)) {
-		G_FreeEdict(self);
+		G_FreeEntity(self);
 		return;
 	}
 
@@ -619,7 +619,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 
 	if (gi.PointContents(start) & MASK_WATER) { // discharge and return
 		G_LightningProjectile_Discharge(self);
-		G_FreeEdict(self);
+		G_FreeEntity(self);
 		return;
 	}
 
@@ -633,7 +633,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 		VectorCopy(tr.end, water_start);
 
 		if (!self->locals.water_level) {
-			gi.PositionedSound(water_start, g_game.edicts, g_media.sounds.water_in, ATTEN_NORM);
+			gi.PositionedSound(water_start, g_game.entities, g_media.sounds.water_in, ATTEN_NORM);
 			self->locals.water_level = 1;
 		}
 
@@ -641,7 +641,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 		G_BubbleTrail(water_start, &tr);
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
-			gi.PositionedSound(water_start, g_game.edicts, g_media.sounds.water_out, ATTEN_NORM);
+			gi.PositionedSound(water_start, g_game.entities, g_media.sounds.water_out, ATTEN_NORM);
 			self->locals.water_level = 0;
 		}
 	}
@@ -660,7 +660,7 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 	VectorCopy(start, self->s.origin); // update endpoints
 	VectorCopy(tr.end, self->s.old_origin);
 
-	gi.LinkEdict(self);
+	gi.LinkEntity(self);
 
 	self->locals.next_think = g_level.time + gi.frame_millis;
 }
@@ -668,10 +668,10 @@ static void G_LightningProjectile_Think(g_edict_t *self) {
 /*
  * @brief
  */
-void G_LightningProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
+void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
 		int16_t knockback) {
 
-	g_edict_t *projectile = NULL;
+	g_entity_t *projectile = NULL;
 
 	while ((projectile = G_Find(NULL, EOFS(class_name), __func__))) {
 		if (projectile->owner == ent) {
@@ -694,12 +694,12 @@ void G_LightningProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
 		projectile->locals.move_type = MOVE_TYPE_THINK;
 		projectile->locals.Think = G_LightningProjectile_Think;
 		projectile->locals.knockback = knockback;
-		projectile->s.client = ent - g_game.edicts - 1; // player number, for client prediction fix
+		projectile->s.client = ent - g_game.entities - 1; // player number, for client prediction fix
 		projectile->s.effects = EF_BEAM;
 		projectile->s.sound = g_media.sounds.lightning_fly;
 		projectile->s.trail = TRAIL_LIGHTNING;
 
-		gi.LinkEdict(projectile);
+		gi.LinkEntity(projectile);
 	}
 
 	// set the damage and think time
@@ -711,7 +711,7 @@ void G_LightningProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir,
 /*
  * @brief
  */
-void G_RailgunProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
+void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
 		int16_t knockback) {
 	vec3_t pos, end, water_pos;
 
@@ -737,7 +737,7 @@ void G_RailgunProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 	cm_trace_t tr;
 	memset(&tr, 0, sizeof(tr));
 
-	g_edict_t *ignore = ent;
+	g_entity_t *ignore = ent;
 	while (ignore) {
 		tr = gi.Trace(pos, end, NULL, NULL, ignore, content_mask);
 		if (!tr.ent) {
@@ -750,7 +750,7 @@ void G_RailgunProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 			content_mask &= ~MASK_WATER;
 			water = true;
 
-			gi.PositionedSound(water_pos, g_game.edicts, g_media.sounds.water_in, ATTEN_NORM);
+			gi.PositionedSound(water_pos, g_game.entities, g_media.sounds.water_in, ATTEN_NORM);
 
 			ignore = ent;
 			continue;
@@ -813,7 +813,7 @@ void G_RailgunProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, i
 /*
  * @brief
  */
-static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane,
+static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, cm_bsp_plane_t *plane,
 		cm_bsp_surface_t *surf) {
 	vec3_t pos;
 
@@ -821,7 +821,7 @@ static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plan
 		return;
 
 	if (surf && (surf->flags & SURF_SKY)) {
-		G_FreeEdict(self);
+		G_FreeEntity(self);
 		return;
 	}
 
@@ -849,18 +849,18 @@ static void G_BfgProjectile_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plan
 		G_BurnMark(pos, plane, surf, 30);
 	}
 
-	G_FreeEdict(self);
+	G_FreeEntity(self);
 }
 
 /*
  * @brief
  */
-static void G_BfgProjectile_Think(g_edict_t *self) {
+static void G_BfgProjectile_Think(g_entity_t *self) {
 
 	const int16_t frame_damage = self->locals.damage * gi.frame_seconds;
 	const int16_t frame_knockback = self->locals.knockback * gi.frame_seconds;
 
-	g_edict_t *ent = NULL;
+	g_entity_t *ent = NULL;
 	while ((ent = G_FindRadius(ent, self->s.origin, self->locals.damage_radius)) != NULL) {
 		vec3_t dir, normal;
 
@@ -895,10 +895,10 @@ static void G_BfgProjectile_Think(g_edict_t *self) {
 /*
  * @brief
  */
-void G_BfgProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
+void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback, vec_t damage_radius) {
 
-	g_edict_t *projectile = G_Spawn(__func__);
+	g_entity_t *projectile = G_Spawn(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -921,5 +921,5 @@ void G_BfgProjectile(g_edict_t *ent, const vec3_t start, const vec3_t dir, int32
 	projectile->locals.Touch = G_BfgProjectile_Touch;
 	projectile->s.trail = TRAIL_BFG;
 
-	gi.LinkEdict(projectile);
+	gi.LinkEntity(projectile);
 }

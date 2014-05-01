@@ -112,7 +112,7 @@ typedef struct {
 
 	vec3_t error; // delta from prediction result to server result
 
-	struct g_edict_s *ground_entity;
+	struct g_entity_s *ground_entity;
 
 	uint32_t step_time; // simulation time when step was traversed
 	uint32_t step_interval; // interpolation interval for step
@@ -146,7 +146,7 @@ typedef struct {
 	cl_frame_t frame; // received from server
 	cl_frame_t frames[PACKET_BACKUP]; // for calculating delta compression
 
-	cl_entity_t entities[MAX_EDICTS]; // client entities
+	cl_entity_t entities[MAX_ENTITIES]; // client entities
 
 	entity_state_t entity_states[ENTITY_STATE_BACKUP]; // accumulated each frame
 	uint32_t entity_state; // index (not wrapped) into entity states

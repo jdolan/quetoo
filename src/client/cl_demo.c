@@ -62,7 +62,7 @@ static void Cl_WriteDemoHeader(void) {
 	}
 
 	// and baselines
-	for (i = 0; i < MAX_EDICTS; i++) {
+	for (i = 0; i < lengthof(cl.entities); i++) {
 		entity_state_t *ent = &cl.entities[i].baseline;
 		if (!ent->number)
 			continue;

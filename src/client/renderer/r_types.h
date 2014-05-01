@@ -679,11 +679,6 @@ typedef struct r_entity_s {
 } r_entity_t;
 
 /*
- * @brief MAX_EDICTS * 2, to allow for linked entities.
- */
-#define MAX_ENTITIES (MAX_EDICTS * 2)
-
-/*
  * @brief Function prototype for mesh entity draw lists.
  */
 typedef void (*MeshModelDrawFunc)(const r_entity_t *e);

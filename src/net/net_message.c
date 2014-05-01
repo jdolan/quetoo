@@ -295,8 +295,8 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		Com_Error(ERR_FATAL, "Unset entity number\n");
 	}
 
-	if (to->number >= MAX_EDICTS) {
-		Com_Error(ERR_FATAL, "Entity number >= MAX_EDICTS\n");
+	if (to->number >= MAX_ENTITIES) {
+		Com_Error(ERR_FATAL, "Entity number >= MAX_ENTITIES\n");
 	}
 
 	if (!VectorCompare(to->origin, from->origin))

@@ -45,7 +45,7 @@ typedef enum {
 
 typedef struct {
 	ai_goal_type_t type;
-	g_edict_t *ent;
+	g_entity_t *ent;
 	vec_t priority;
 	ai_node_t *node;
 } ai_goal_t;

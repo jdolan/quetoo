@@ -24,7 +24,7 @@
 /*
  * @brief
  */
-_Bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
+_Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 
 	// add the weapon to inventory
 	const uint16_t index = ITEM_INDEX(ent->locals.item);
@@ -56,7 +56,7 @@ _Bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other) {
 /*
  * @brief The old weapon has been put away, so make the new one current
  */
-void G_ChangeWeapon(g_edict_t *ent) {
+void G_ChangeWeapon(g_entity_t *ent) {
 
 	// change weapon
 	ent->client->locals.persistent.last_weapon = ent->client->locals.persistent.weapon;
@@ -147,7 +147,7 @@ void G_UseBestWeapon(g_client_t *client) {
 /*
  * @brief
  */
-void G_UseWeapon(g_edict_t *ent, const g_item_t *item) {
+void G_UseWeapon(g_entity_t *ent, const g_item_t *item) {
 
 	// see if we're already using it
 	if (item == ent->client->locals.persistent.weapon)
@@ -169,7 +169,7 @@ void G_UseWeapon(g_edict_t *ent, const g_item_t *item) {
 /*
  * @brief Drop the specified weapon if the client has sufficient ammo.
  */
-g_edict_t *G_DropWeapon(g_edict_t *ent, const g_item_t *item) {
+g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item) {
 
 	const uint16_t index = ITEM_INDEX(item);
 
@@ -188,7 +188,7 @@ g_edict_t *G_DropWeapon(g_edict_t *ent, const g_item_t *item) {
 		return NULL;
 	}
 
-	g_edict_t *dropped = G_DropItem(ent, item);
+	g_entity_t *dropped = G_DropItem(ent, item);
 
 	if (dropped) {
 		ent->client->locals.persistent.inventory[index]--;
@@ -208,7 +208,7 @@ g_edict_t *G_DropWeapon(g_edict_t *ent, const g_item_t *item) {
 /*
  * @brief Toss the currently held weapon when dead.
  */
-g_edict_t *G_TossWeapon(g_edict_t *ent) {
+g_entity_t *G_TossWeapon(g_entity_t *ent) {
 
 	const g_item_t *weapon = ent->client->locals.persistent.weapon;
 
@@ -220,7 +220,7 @@ g_edict_t *G_TossWeapon(g_edict_t *ent) {
 	if (!ammo) // don't drop when out of ammo
 		return NULL;
 
-	g_edict_t *dropped = G_DropItem(ent, ent->client->locals.persistent.weapon);
+	g_entity_t *dropped = G_DropItem(ent, ent->client->locals.persistent.weapon);
 
 	if (dropped) {
 		if (dropped->locals.health > ammo)
@@ -230,13 +230,13 @@ g_edict_t *G_TossWeapon(g_edict_t *ent) {
 	return dropped;
 }
 
-typedef void (*G_FireWeaponFunc)(g_edict_t *ent);
+typedef void (*G_FireWeaponFunc)(g_entity_t *ent);
 
 /*
  * @brief Returns true if the specified client can fire their weapon, false
  * otherwise.
  */
-static _Bool G_FireWeapon(g_edict_t *ent) {
+static _Bool G_FireWeapon(g_entity_t *ent) {
 
 	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
 
@@ -278,7 +278,7 @@ static _Bool G_FireWeapon(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_WeaponFired(g_edict_t *ent, uint32_t interval) {
+static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
 
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
@@ -305,7 +305,7 @@ static void G_WeaponFired(g_edict_t *ent, uint32_t interval) {
 /*
  * @brief
  */
-void G_ClientWeaponThink(g_edict_t *ent) {
+void G_ClientWeaponThink(g_entity_t *ent) {
 
 	if (ent->locals.health < 1)
 		return;
@@ -331,10 +331,10 @@ void G_ClientWeaponThink(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_MuzzleFlash(g_edict_t *ent, g_muzzle_flash_t flash) {
+static void G_MuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
 
 	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-	gi.WriteShort(ent - g_game.edicts);
+	gi.WriteShort(ent - g_game.entities);
 	gi.WriteByte(flash);
 
 	if (flash == MZ_BLASTER) {
@@ -347,7 +347,7 @@ static void G_MuzzleFlash(g_edict_t *ent, g_muzzle_flash_t flash) {
 /*
  * @brief
  */
-void G_FireBlaster(g_edict_t *ent) {
+void G_FireBlaster(g_entity_t *ent) {
 
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
@@ -367,7 +367,7 @@ void G_FireBlaster(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_FireShotgun(g_edict_t *ent) {
+void G_FireShotgun(g_entity_t *ent) {
 
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
@@ -387,7 +387,7 @@ void G_FireShotgun(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_FireSuperShotgun(g_edict_t *ent) {
+void G_FireSuperShotgun(g_entity_t *ent) {
 
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
@@ -417,7 +417,7 @@ void G_FireSuperShotgun(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_FireMachinegun(g_edict_t *ent) {
+void G_FireMachinegun(g_entity_t *ent) {
 
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
@@ -437,7 +437,7 @@ void G_FireMachinegun(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_FireGrenadeLauncher(g_edict_t *ent) {
+void G_FireGrenadeLauncher(g_entity_t *ent) {
 
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
@@ -457,7 +457,7 @@ void G_FireGrenadeLauncher(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_FireRocketLauncher(g_edict_t *ent) {
+void G_FireRocketLauncher(g_entity_t *ent) {
 
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
@@ -477,7 +477,7 @@ void G_FireRocketLauncher(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_FireHyperblaster(g_edict_t *ent) {
+void G_FireHyperblaster(g_entity_t *ent) {
 
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
@@ -497,12 +497,12 @@ void G_FireHyperblaster(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_FireLightning(g_edict_t *ent) {
+void G_FireLightning(g_entity_t *ent) {
 
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		g_edict_t *projectile = NULL;
+		g_entity_t *projectile = NULL;
 
 		while ((projectile = G_Find(NULL, EOFS(class_name), "G_LightningProjectile"))) {
 			if (projectile->owner == ent) {
@@ -527,7 +527,7 @@ void G_FireLightning(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_FireRailgun(g_edict_t *ent) {
+void G_FireRailgun(g_entity_t *ent) {
 
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
@@ -549,7 +549,7 @@ void G_FireRailgun(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_FireBfg_(g_edict_t *ent) {
+static void G_FireBfg_(g_entity_t *ent) {
 	vec3_t forward, right, up, org;
 
 	G_InitProjectile(ent->owner, forward, right, up, org);
@@ -562,19 +562,19 @@ static void G_FireBfg_(g_edict_t *ent) {
 
 	G_WeaponFired(ent->owner, 2000);
 
-	ent->locals.Think = G_FreeEdict;
+	ent->locals.Think = G_FreeEntity;
 	ent->locals.next_think = g_level.time + 1;
 }
 
 /*
  * @brief
  */
-void G_FireBfg(g_edict_t *ent) {
+void G_FireBfg(g_entity_t *ent) {
 
 	if (G_FireWeapon(ent)) {
 		ent->client->locals.weapon_fire_time = g_level.time + 1000 + gi.frame_millis;
 
-		g_edict_t *timer = G_Spawn(__func__);
+		g_entity_t *timer = G_Spawn(__func__);
 		timer->owner = ent;
 
 		timer->locals.Think = G_FireBfg_;

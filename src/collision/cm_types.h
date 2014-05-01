@@ -132,7 +132,7 @@ typedef struct {
 	/*
 	 * @brief The impacted entity, or NULL.
 	 */
-	struct g_edict_s *ent; // not set by Cm_*() functions
+	struct g_entity_s *ent; // not set by Cm_*() functions
 } cm_trace_t;
 
 #ifdef __CM_LOCAL_H__

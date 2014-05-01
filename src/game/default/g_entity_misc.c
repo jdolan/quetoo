@@ -25,9 +25,9 @@
 /*
  * @brief
  */
-static void G_misc_teleporter_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
+static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
 		cm_bsp_surface_t *surf __attribute__((unused))) {
-	g_edict_t *dest;
+	g_entity_t *dest;
 	vec3_t forward, delta_angles;
 
 	if (!other->client)
@@ -41,7 +41,7 @@ static void G_misc_teleporter_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_pl
 	}
 
 	// unlink to make sure it can't possibly interfere with G_KillBox
-	gi.UnlinkEdict(other);
+	gi.UnlinkEntity(other);
 
 	VectorCopy(dest->s.origin, other->s.origin);
 	VectorCopy(dest->s.origin, other->s.old_origin);
@@ -71,7 +71,7 @@ static void G_misc_teleporter_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_pl
 
 	G_KillBox(other); // telefrag anyone in our spot
 
-	gi.LinkEdict(other);
+	gi.LinkEntity(other);
 }
 
 /*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16) ? ? no_effects
@@ -82,12 +82,12 @@ static void G_misc_teleporter_Touch(g_edict_t *self, g_edict_t *other, cm_bsp_pl
  ?
  no_effects : Suppress the default teleporter particle effects.
  */
-void G_misc_teleporter(g_edict_t *ent) {
+void G_misc_teleporter(g_entity_t *ent) {
 	vec3_t v;
 
 	if (!ent->locals.target) {
 		gi.Debug("No target specified\n");
-		G_FreeEdict(ent);
+		G_FreeEntity(ent);
 		return;
 	}
 
@@ -113,7 +113,7 @@ void G_misc_teleporter(g_edict_t *ent) {
 
 	ent->locals.Touch = G_misc_teleporter_Touch;
 
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 }
 
 /*QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)
@@ -123,7 +123,7 @@ void G_misc_teleporter(g_edict_t *ent) {
  angle : Direction in which player will look when teleported.
  targetname : The target name of this entity.
  */
-void G_misc_teleporter_dest(g_edict_t *ent) {
+void G_misc_teleporter_dest(g_entity_t *ent) {
 	G_InitPlayerSpawn(ent);
 }
 

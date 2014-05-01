@@ -25,7 +25,7 @@
 /*
  * @brief Inspect all damage received this frame and play a pain sound if appropriate.
  */
-static void G_ClientDamage(g_edict_t *ent) {
+static void G_ClientDamage(g_entity_t *ent) {
 	g_client_t *client;
 
 	client = ent->client;
@@ -63,7 +63,7 @@ static void G_ClientDamage(g_edict_t *ent) {
 /*
  * @brief Handles water entry and exit
  */
-static void G_ClientWaterInteraction(g_edict_t *ent) {
+static void G_ClientWaterInteraction(g_entity_t *ent) {
 	g_client_t *client = ent->client;
 
 	if (ent->locals.move_type == MOVE_TYPE_NO_CLIP) {
@@ -147,7 +147,7 @@ static void G_ClientWaterInteraction(g_edict_t *ent) {
  * @brief Set the angles of the client's world model, after clamping them to sane
  * values.
  */
-static void G_ClientWorldAngles(g_edict_t *ent) {
+static void G_ClientWorldAngles(g_entity_t *ent) {
 
 	ent->s.angles[PITCH] = ent->client->locals.angles[PITCH] / 3.0;
 	ent->s.angles[YAW] = ent->client->locals.angles[YAW];
@@ -172,7 +172,7 @@ static void G_ClientWorldAngles(g_edict_t *ent) {
 /*
  * @brief Adds view kick in the specified direction to the specified client.
  */
-void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const vec_t kick) {
+void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick) {
 	vec3_t old_kick_angles, kick_angles;
 
 	UnpackAngles(ent->client->ps.pm_state.kick_angles, old_kick_angles);
@@ -189,7 +189,7 @@ void G_ClientDamageKick(g_edict_t *ent, const vec3_t dir, const vec_t kick) {
 /*
  * @brief A convenience function for adding view kick from firing weapons.
  */
-void G_ClientWeaponKick(g_edict_t *ent, const vec_t kick) {
+void G_ClientWeaponKick(g_entity_t *ent, const vec_t kick) {
 	vec3_t dir;
 
 	VectorScale(ent->client->locals.forward, -1.0, dir);
@@ -201,7 +201,7 @@ void G_ClientWeaponKick(g_edict_t *ent, const vec_t kick) {
  * @brief Sets the kick value based on recent events such as falling. Firing of
  * weapons may also set the kick value, and we factor that in here as well.
  */
-static void G_ClientKickAngles(g_edict_t *ent) {
+static void G_ClientKickAngles(g_entity_t *ent) {
 	uint16_t *kick_angles = ent->client->ps.pm_state.kick_angles;
 
 	// spectators and dead clients receive no kick angles
@@ -276,7 +276,7 @@ static void G_ClientKickAngles(g_edict_t *ent) {
  * towards the end of each frame, after our ground entity and water level have
  * been resolved.
  */
-static void G_ClientAnimation(g_edict_t *ent) {
+static void G_ClientAnimation(g_entity_t *ent) {
 
 	if (ent->sv_flags & SVF_NO_CLIENT)
 		return;
@@ -351,7 +351,7 @@ static void G_ClientAnimation(g_edict_t *ent) {
 /*
  * @brief Called for each client at the end of the server frame.
  */
-void G_ClientEndFrame(g_edict_t *ent) {
+void G_ClientEndFrame(g_entity_t *ent) {
 
 	g_client_t *client = ent->client;
 
@@ -402,12 +402,12 @@ void G_ClientEndFrame(g_edict_t *ent) {
  */
 void G_EndClientFrames(void) {
 	int32_t i;
-	g_edict_t *ent;
+	g_entity_t *ent;
 
 	// finalize the player_state_t for this frame
 	for (i = 0; i < sv_max_clients->integer; i++) {
 
-		ent = g_game.edicts + 1 + i;
+		ent = g_game.entities + 1 + i;
 
 		if (!ent->in_use || !ent->client)
 			continue;

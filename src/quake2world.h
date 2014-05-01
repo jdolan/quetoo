@@ -92,7 +92,7 @@ typedef dvec_t dvec4_t[4];
  */
 #define MIN_CLIENTS			1 // duh
 #define MAX_CLIENTS			256 // absolute limit
-#define MAX_EDICTS			1024 // must change protocol to increase more
+#define MAX_ENTITIES		1024 // must change protocol to increase more
 #define MAX_MODELS			256 // these are sent over the net as uint8_t
 #define MAX_SOUNDS			256 // so they cannot be blindly increased
 #define MAX_MUSICS			8 // per level
@@ -251,7 +251,7 @@ typedef enum {
 #define CONTENTS_CURRENT_UP		0x400000
 #define CONTENTS_CURRENT_DOWN	0x800000
 
-#define CONTENTS_ORIGIN			0x1000000 // removed during bsp stage
+#define CONTENTS_ORIGIN			0x1000000 // removed during BSP compilation
 #define CONTENTS_MONSTER		0x2000000 // should never be on a brush, only in game
 #define CONTENTS_DEAD_MONSTER	0x4000000
 

@@ -25,7 +25,7 @@
 /*
  * @brief Make a tasteless death announcement.
  */
-static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker, uint32_t mod) {
+static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 	const _Bool friendy_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
 	mod &= ~MOD_FRIENDLY_FIRE;
@@ -196,11 +196,11 @@ static void G_ClientObituary(g_edict_t *self, g_edict_t *attacker, uint32_t mod)
 /*
  * @brief Play a sloppy sound when impacting the world.
  */
-static void G_ClientGiblet_Touch(g_edict_t *self, g_edict_t *other,
+static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
 		cm_bsp_plane_t *plane __attribute__((unused)), cm_bsp_surface_t *surf) {
 
 	if (surf && (surf->flags & SURF_SKY)) {
-		G_FreeEdict(self);
+		G_FreeEntity(self);
 	} else {
 		const vec_t speed = VectorLength(self->locals.velocity);
 
@@ -219,12 +219,12 @@ static void G_ClientGiblet_Touch(g_edict_t *self, g_edict_t *other,
  * after a few seconds, providing a window of time for us to be made into
  * giblets or knocked around. This is called by corpses and giblets alike.
  */
-static void G_ClientCorpse_Think(g_edict_t *self) {
+static void G_ClientCorpse_Think(g_entity_t *self) {
 
 	const uint32_t age = g_level.time - self->locals.timestamp;
 
 	if (self->s.model1 == MODEL_CLIENT) {
-		g_edict_t *client = &g_game.edicts[self->s.client + 1];
+		g_entity_t *client = &g_game.entities[self->s.client + 1];
 
 		// if the client has respawned, become a true corpse
 		if (client->in_use && !client->locals.dead) {
@@ -256,7 +256,7 @@ static void G_ClientCorpse_Think(g_edict_t *self) {
 
 	// sink into the floor after a few seconds
 	if (age > 13000) {
-		G_FreeEdict(self);
+		G_FreeEntity(self);
 		return;
 	}
 
@@ -276,7 +276,7 @@ static void G_ClientCorpse_Think(g_edict_t *self) {
  * velocity of the corpse, and bounce when damaged. They eventually sink
  * through the floor and disappear.
  */
-static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute__((unused)),
+static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribute__((unused)),
 		uint32_t mod __attribute__((unused))) {
 
 	const vec3_t mins[] = { { -3.0, -3.0, -3.0 }, { -6.0, -6.0, -6.0 }, { -9.0, -9.0, -9.0 } };
@@ -285,7 +285,7 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute_
 	uint16_t i, count = 3 + Random() % 3;
 
 	for (i = 0; i < count; i++) {
-		g_edict_t *ent = G_Spawn(__func__);
+		g_entity_t *ent = G_Spawn(__func__);
 
 		VectorCopy(self->s.origin, ent->s.origin);
 
@@ -315,7 +315,7 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute_
 		ent->locals.Think = G_ClientCorpse_Think;
 		ent->locals.Touch = G_ClientGiblet_Touch;
 
-		gi.LinkEdict(ent);
+		gi.LinkEntity(ent);
 	}
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -324,7 +324,7 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute_
 	gi.Multicast(self->s.origin, MULTICAST_PVS);
 
 	if (!self->client) // this can be called immediately by the client
-		G_FreeEdict(self);
+		G_FreeEntity(self);
 }
 
 #define CLIENT_CORPSE_HEALTH 80
@@ -333,9 +333,9 @@ static void G_ClientCorpse_Die(g_edict_t *self, g_edict_t *attacker __attribute_
  * @brief Spawns a corpse for the specified client. The corpse will eventually
  * sink into the floor and disappear if not over-killed.
  */
-static void G_ClientCorpse(g_edict_t *self) {
+static void G_ClientCorpse(g_entity_t *self) {
 
-	g_edict_t *ent = G_Spawn(__func__);
+	g_entity_t *ent = G_Spawn(__func__);
 
 	VectorScale(PM_MINS, PM_SCALE, ent->mins);
 	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
@@ -370,7 +370,7 @@ static void G_ClientCorpse(g_edict_t *self) {
 	ent->locals.Think = G_ClientCorpse_Think;
 	ent->locals.next_think = g_level.time + gi.frame_millis;
 
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 }
 
 /*
@@ -378,7 +378,7 @@ static void G_ClientCorpse(g_edict_t *self) {
  * certain items we're holding and force the client into a temporary spectator
  * state with the scoreboard shown.
  */
-static void G_ClientDie(g_edict_t *self, g_edict_t *attacker, uint32_t mod) {
+static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 	G_ClientObituary(self, attacker, mod);
 
@@ -425,7 +425,7 @@ static void G_ClientDie(g_edict_t *self, g_edict_t *attacker, uint32_t mod) {
 	self->locals.take_damage = false;
 	self->locals.clip_mask = MASK_DEAD_SOLID;
 
-	gi.LinkEdict(self);
+	gi.LinkEntity(self);
 }
 
 /*
@@ -574,8 +574,8 @@ static void G_InitClientPersistent(g_client_t *client) {
 /*
  * @brief Returns the distance to the nearest enemy from the given spot
  */
-static vec_t G_EnemyRangeFromSpot(g_edict_t *ent, g_edict_t *spot) {
-	g_edict_t *player;
+static vec_t G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
+	g_entity_t *player;
 	vec_t dist, best_dist;
 	vec3_t v;
 	int32_t n;
@@ -583,7 +583,7 @@ static vec_t G_EnemyRangeFromSpot(g_edict_t *ent, g_edict_t *spot) {
 	best_dist = 9999999.0;
 
 	for (n = 1; n <= sv_max_clients->integer; n++) {
-		player = &g_game.edicts[n];
+		player = &g_game.entities[n];
 
 		if (!player->in_use)
 			continue;
@@ -615,8 +615,8 @@ static vec_t G_EnemyRangeFromSpot(g_edict_t *ent, g_edict_t *spot) {
 /*
  * @brief
  */
-static g_edict_t *G_SelectRandomSpawnPoint(const char *class_name) {
-	g_edict_t *spot;
+static g_entity_t *G_SelectRandomSpawnPoint(const char *class_name) {
+	g_entity_t *spot;
 	int32_t count = 0;
 
 	spot = NULL;
@@ -638,8 +638,8 @@ static g_edict_t *G_SelectRandomSpawnPoint(const char *class_name) {
 /*
  * @brief
  */
-static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent, const char *class_name) {
-	g_edict_t *spot, *best_spot;
+static g_entity_t *G_SelectFarthestSpawnPoint(g_entity_t *ent, const char *class_name) {
+	g_entity_t *spot, *best_spot;
 	vec_t dist, best_dist;
 
 	spot = best_spot = NULL;
@@ -668,7 +668,7 @@ static g_edict_t *G_SelectFarthestSpawnPoint(g_edict_t *ent, const char *class_n
 /*
  * @brief
  */
-static g_edict_t *G_SelectDeathmatchSpawnPoint(g_edict_t *ent) {
+static g_entity_t *G_SelectDeathmatchSpawnPoint(g_entity_t *ent) {
 
 	if (g_spawn_farthest->value)
 		return G_SelectFarthestSpawnPoint(ent, "info_player_deathmatch");
@@ -679,7 +679,7 @@ static g_edict_t *G_SelectDeathmatchSpawnPoint(g_edict_t *ent) {
 /*
  * @brief
  */
-static g_edict_t *G_SelectCaptureSpawnPoint(g_edict_t *ent) {
+static g_entity_t *G_SelectCaptureSpawnPoint(g_entity_t *ent) {
 	char *c;
 
 	if (!ent->client->locals.persistent.team)
@@ -697,8 +697,8 @@ static g_edict_t *G_SelectCaptureSpawnPoint(g_edict_t *ent) {
 /*
  * @brief Chooses a player start, deathmatch start, etc
  */
-static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles) {
-	g_edict_t *spot = NULL;
+static void G_SelectSpawnPoint(g_entity_t *ent, vec3_t origin, vec3_t angles) {
+	g_entity_t *spot = NULL;
 
 	if (g_level.teams || g_level.ctf) // try teams/ctf spawns first if applicable
 		spot = G_SelectCaptureSpawnPoint(ent);
@@ -727,7 +727,7 @@ static void G_SelectSpawnPoint(g_edict_t *ent, vec3_t origin, vec3_t angles) {
 /*
  * @brief The grunt work of putting the client into the server on [re]spawn.
  */
-static void G_ClientRespawn_(g_edict_t *ent) {
+static void G_ClientRespawn_(g_entity_t *ent) {
 	vec3_t spawn_origin, spawn_angles, old_angles;
 
 	// find a spawn point
@@ -796,7 +796,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	ent->s.model2 = 0;
 	ent->s.model3 = 0;
 	ent->s.model4 = 0;
-	ent->s.client = ent - g_game.edicts - 1;
+	ent->s.client = ent - g_game.entities - 1;
 
 	G_SetAnimation(ent, ANIM_TORSO_STAND1, true);
 	G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
@@ -825,7 +825,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 		ent->solid = SOLID_NOT;
 		ent->sv_flags |= SVF_NO_CLIENT;
 
-		gi.LinkEdict(ent);
+		gi.LinkEntity(ent);
 		return;
 	}
 
@@ -839,11 +839,11 @@ static void G_ClientRespawn_(g_edict_t *ent) {
 	cl->locals.persistent.match_num = g_level.match_num;
 	cl->locals.persistent.round_num = g_level.round_num;
 
-	gi.UnlinkEdict(ent);
+	gi.UnlinkEntity(ent);
 
 	G_KillBox(ent); // telefrag anyone in our spot
 
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 
 	// force the current weapon up
 	cl->locals.new_weapon = cl->locals.persistent.weapon;
@@ -854,7 +854,7 @@ static void G_ClientRespawn_(g_edict_t *ent) {
  * @brief In this case, voluntary means that the client has explicitly requested
  * a respawn by changing their spectator status.
  */
-void G_ClientRespawn(g_edict_t *ent, _Bool voluntary) {
+void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 
 	G_ClientRespawn_(ent);
 
@@ -884,12 +884,12 @@ void G_ClientRespawn(g_edict_t *ent, _Bool voluntary) {
  * @brief Called when a client has finished connecting, and is ready
  * to be placed into the game. This will happen every level load.
  */
-void G_ClientBegin(g_edict_t *ent) {
+void G_ClientBegin(g_entity_t *ent) {
 	char welcome[MAX_STRING_CHARS];
 
-	G_InitEdict(ent, "client");
+	G_InitEntity(ent, "client");
 
-	const int32_t entity_num = ent - g_game.edicts - 1;
+	const int32_t entity_num = ent - g_game.entities - 1;
 	ent->client = g_game.clients + entity_num;
 
 	G_InitClientPersistent(ent->client);
@@ -948,7 +948,7 @@ void G_ClientBegin(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
+void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	char name[MAX_NET_NAME];
 
 	// check for malformed or illegal info strings
@@ -1015,7 +1015,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
 	s = GetUserInfo(user_info, "color");
 	cl->locals.persistent.color = G_ColorByName(s, EFFECT_COLOR_DEFAULT);
 
-	const uint32_t entity_num = ent - g_game.edicts - 1;
+	const uint32_t entity_num = ent - g_game.entities - 1;
 
 	// combine name and skin into a config_string
 	gi.ConfigString(CS_CLIENTS + entity_num,
@@ -1039,7 +1039,7 @@ void G_ClientUserInfoChanged(g_edict_t *ent, const char *user_info) {
  * and eventually get to G_Begin()
  * Changing levels will NOT cause this to be called again.
  */
-_Bool G_ClientConnect(g_edict_t *ent, char *user_info) {
+_Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 
 	// check password
 	if (strlen(g_password->string) && !ent->ai) {
@@ -1050,7 +1050,7 @@ _Bool G_ClientConnect(g_edict_t *ent, char *user_info) {
 	}
 
 	// they can connect
-	ent->client = g_game.clients + (ent - g_game.edicts - 1);
+	ent->client = g_game.clients + (ent - g_game.entities - 1);
 
 	// clean up locals things which are not reset on spawns
 	ent->client->locals.persistent.score = 0;
@@ -1072,7 +1072,7 @@ _Bool G_ClientConnect(g_edict_t *ent, char *user_info) {
 /*
  * @brief Called when a player drops from the server. Not be called between levels.
  */
-void G_ClientDisconnect(g_edict_t *ent) {
+void G_ClientDisconnect(g_entity_t *ent) {
 	int32_t entity_num;
 
 	if (!ent->client)
@@ -1089,7 +1089,7 @@ void G_ClientDisconnect(g_edict_t *ent) {
 	gi.WriteByte(MZ_LOGOUT);
 	gi.Multicast(ent->s.origin, MULTICAST_ALL);
 
-	gi.UnlinkEdict(ent);
+	gi.UnlinkEntity(ent);
 
 	ent->class_name = "disconnected";
 	ent->in_use = false;
@@ -1097,11 +1097,11 @@ void G_ClientDisconnect(g_edict_t *ent) {
 	ent->sv_flags = SVF_NO_CLIENT;
 
 	memset(&ent->s, 0, sizeof(ent->s));
-	ent->s.number = ent - g_game.edicts;
+	ent->s.number = ent - g_game.entities;
 
 	memset(ent->client, 0, sizeof(g_client_t));
 
-	entity_num = ent - g_game.edicts - 1;
+	entity_num = ent - g_game.entities - 1;
 	gi.ConfigString(CS_CLIENTS + entity_num, "");
 }
 
@@ -1110,7 +1110,7 @@ void G_ClientDisconnect(g_edict_t *ent) {
  */
 static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
 		const vec3_t maxs) {
-	const g_edict_t *self = g_level.current_entity;
+	const g_entity_t *self = g_level.current_entity;
 
 	if (g_level.current_entity->locals.health > 0)
 		return gi.Trace(start, end, mins, maxs, self, MASK_PLAYER_SOLID);
@@ -1128,7 +1128,7 @@ static void G_ClientMove_Debug(const char *msg) {
 /*
  * @brief Process the movement command, call Pm_Move and act on the result.
  */
-static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
+static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	vec3_t old_velocity, velocity;
 	pm_move_t pm;
 
@@ -1275,7 +1275,7 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 	ent->locals.water_type = pm.water_type;
 
 	// and finally link them back in to collide with others below
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 
 	// touch jump pads, hurt brushes, etc..
 	if (ent->locals.move_type != MOVE_TYPE_NO_CLIP && ent->locals.health > 0)
@@ -1283,7 +1283,7 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 
 	// touch other objects
 	for (uint16_t i = 0; i < pm.num_touch_ents; i++) {
-		g_edict_t *other = pm.touch_ents[i];
+		g_entity_t *other = pm.touch_ents[i];
 
 		if (!other->locals.Touch)
 			continue;
@@ -1295,7 +1295,7 @@ static void G_ClientMove(g_edict_t *ent, pm_cmd_t *cmd) {
 /*
  * @brief Expire any items which are time-sensitive.
  */
-static void G_ClientInventoryThink(g_edict_t *ent) {
+static void G_ClientInventoryThink(g_entity_t *ent) {
 
 	if (ent->client->locals.persistent.inventory[g_media.items.quad_damage]) { // if they have quad
 
@@ -1322,7 +1322,7 @@ static void G_ClientInventoryThink(g_edict_t *ent) {
  * @brief This will be called once for each client frame, which will usually be a
  * couple times for each server frame.
  */
-void G_ClientThink(g_edict_t *ent, pm_cmd_t *cmd) {
+void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 	int32_t i;
 
 	if (g_level.intermission_time)
@@ -1340,7 +1340,7 @@ void G_ClientThink(g_edict_t *ent, pm_cmd_t *cmd) {
 		if (!client->locals.chase_target->in_use
 				|| client->locals.chase_target->client->locals.persistent.spectator) {
 
-			g_edict_t *other = client->locals.chase_target;
+			g_entity_t *other = client->locals.chase_target;
 
 			G_ClientChaseNext(ent);
 
@@ -1378,7 +1378,7 @@ void G_ClientThink(g_edict_t *ent, pm_cmd_t *cmd) {
 	// update chase camera if being followed
 	for (i = 1; i <= sv_max_clients->integer; i++) {
 
-		g_edict_t *other = g_game.edicts + i;
+		g_entity_t *other = g_game.entities + i;
 
 		if (other->in_use && other->client->locals.chase_target == ent) {
 			G_ClientChaseThink(other);
@@ -1392,7 +1392,7 @@ void G_ClientThink(g_edict_t *ent, pm_cmd_t *cmd) {
  * @brief This will be called once for each server frame, before running
  * any other entities in the world.
  */
-void G_ClientBeginFrame(g_edict_t *ent) {
+void G_ClientBeginFrame(g_entity_t *ent) {
 	g_client_t *client;
 
 	if (g_level.intermission_time)

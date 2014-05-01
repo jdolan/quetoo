@@ -62,8 +62,8 @@ static r_entity_t **R_EntityList(const r_entity_t *e) {
 const r_entity_t *R_AddEntity(const r_entity_t *ent) {
 	r_entity_t *e, *in, **ents;
 
-	if (r_view.num_entities == MAX_ENTITIES) {
-		Com_Warn("MAX_ENTITIES reached\n");
+	if (r_view.num_entities == lengthof(r_view.entities)) {
+		Com_Warn("MAX_ENTITIES exceeded\n");
 		return NULL;
 	}
 

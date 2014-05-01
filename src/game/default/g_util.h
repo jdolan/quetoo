@@ -26,36 +26,36 @@
 
 #include "g_types.h"
 
-_Bool G_KillBox(g_edict_t *ent);
-void G_Explode(g_edict_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod);
-void G_Gib(g_edict_t *ent);
-void G_InitPlayerSpawn(g_edict_t *ent);
-void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org);
-g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match);
-g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, vec_t rad);
-g_edict_t *G_PickTarget(char *target_name);
-void G_UseTargets(g_edict_t *ent, g_edict_t *activator);
+_Bool G_KillBox(g_entity_t *ent);
+void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod);
+void G_Gib(g_entity_t *ent);
+void G_InitPlayerSpawn(g_entity_t *ent);
+void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org);
+g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match);
+g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad);
+g_entity_t *G_PickTarget(char *target_name);
+void G_UseTargets(g_entity_t *ent, g_entity_t *activator);
 void G_SetMoveDir(vec3_t angles, vec3_t movedir);
 char *G_GameplayName(int32_t g);
 g_gameplay_t G_GameplayByName(const char *c);
 g_team_t *G_TeamByName(const char *c);
 g_team_t *G_OtherTeam(g_team_t *t);
-g_team_t *G_TeamForFlag(g_edict_t *ent);
-g_edict_t *G_FlagForTeam(g_team_t *t);
+g_team_t *G_TeamForFlag(g_entity_t *ent);
+g_entity_t *G_FlagForTeam(g_team_t *t);
 uint32_t G_EffectForTeam(g_team_t *t);
 g_team_t *G_SmallestTeam(void);
 g_client_t *G_ClientByName(char *name);
 int32_t G_ColorByName(const char *s, int32_t def);
-_Bool G_IsMeat(const g_edict_t *ent);
-_Bool G_IsStationary(const g_edict_t *ent);
-_Bool G_IsStructural(const g_edict_t *ent, const cm_bsp_surface_t *surface);
-void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, _Bool restart);
-_Bool G_IsAnimation(g_edict_t *ent, entity_animation_t anim);
-g_edict_t *G_Spawn(const char *class_name);
-void G_InitEdict(g_edict_t *ent, const char *class_name);
-void G_FreeEdict(g_edict_t *ent);
-void G_TouchTriggers(g_edict_t *ent);
-void G_TouchWater(g_edict_t *ent);
+_Bool G_IsMeat(const g_entity_t *ent);
+_Bool G_IsStationary(const g_entity_t *ent);
+_Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_surface_t *surface);
+void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, _Bool restart);
+_Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim);
+g_entity_t *G_Spawn(const char *class_name);
+void G_InitEntity(g_entity_t *ent, const char *class_name);
+void G_FreeEntity(g_entity_t *ent);
+void G_TouchTriggers(g_entity_t *ent);
+void G_TouchWater(g_entity_t *ent);
 
 #endif /* __GAME_LOCAL_H__ */
 

@@ -25,23 +25,23 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_ChangeWeapon(g_edict_t *ent);
-_Bool G_PickupWeapon(g_edict_t *ent, g_edict_t *other);
+void G_ChangeWeapon(g_entity_t *ent);
+_Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other);
 void G_UseBestWeapon(g_client_t *client);
-void G_UseWeapon(g_edict_t *ent, const g_item_t *item);
-g_edict_t *G_DropWeapon(g_edict_t *ent, const g_item_t *item);
-g_edict_t *G_TossWeapon(g_edict_t *ent);
-void G_FireBlaster(g_edict_t *ent);
-void G_FireShotgun(g_edict_t *ent);
-void G_FireSuperShotgun(g_edict_t *ent);
-void G_FireMachinegun(g_edict_t *ent);
-void G_FireHyperblaster(g_edict_t *ent);
-void G_FireRocketLauncher(g_edict_t *ent);
-void G_FireGrenadeLauncher(g_edict_t *ent);
-void G_FireLightning(g_edict_t *ent);
-void G_FireRailgun(g_edict_t *ent);
-void G_FireBfg(g_edict_t *ent);
-void G_ClientWeaponThink(g_edict_t *ent);
+void G_UseWeapon(g_entity_t *ent, const g_item_t *item);
+g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item);
+g_entity_t *G_TossWeapon(g_entity_t *ent);
+void G_FireBlaster(g_entity_t *ent);
+void G_FireShotgun(g_entity_t *ent);
+void G_FireSuperShotgun(g_entity_t *ent);
+void G_FireMachinegun(g_entity_t *ent);
+void G_FireHyperblaster(g_entity_t *ent);
+void G_FireRocketLauncher(g_entity_t *ent);
+void G_FireGrenadeLauncher(g_entity_t *ent);
+void G_FireLightning(g_entity_t *ent);
+void G_FireRailgun(g_entity_t *ent);
+void G_FireBfg(g_entity_t *ent);
+void G_ClientWeaponThink(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_WEAPON_H__ */

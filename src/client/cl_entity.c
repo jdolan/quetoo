@@ -135,7 +135,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	while (true) {
 		const uint16_t number = Net_ReadShort(&net_message);
 
-		if (number >= MAX_EDICTS)
+		if (number >= MAX_ENTITIES)
 			Com_Error(ERR_DROP, "Bad number: %i\n", number);
 
 		if (net_message.read > net_message.size)
@@ -335,7 +335,7 @@ void Cl_UpdateEntities(void) {
 	if (r_view.update) {
 		uint16_t i;
 
-		for (i = 0; i < MAX_EDICTS; i++) {
+		for (i = 0; i < lengthof(cl.entities); i++) {
 			r_lighting_t *l = &cl.entities[i].lighting;
 
 			memset(l, 0, sizeof(*l));

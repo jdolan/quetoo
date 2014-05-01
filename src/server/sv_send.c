@@ -47,13 +47,13 @@ void Sv_FlushRedirect(int32_t target, const char *buffer) {
 /*
  * @brief Sends text across to be displayed if the level filter passes.
  */
-void Sv_ClientPrint(const g_edict_t *ent, const int32_t level, const char *fmt, ...) {
+void Sv_ClientPrint(const g_entity_t *ent, const int32_t level, const char *fmt, ...) {
 	sv_client_t * cl;
 	va_list args;
 	char string[MAX_STRING_CHARS];
 	int32_t n;
 
-	n = NUM_FOR_EDICT(ent);
+	n = NUM_FOR_ENTITY(ent);
 	if (n < 1 || n > sv_max_clients->integer) {
 		Com_Warn("Issued to non-client %d\n", n);
 		return;
@@ -170,11 +170,11 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 /*
  * @brief Sends the contents of the mutlicast buffer to a single client
  */
-void Sv_Unicast(const g_edict_t *ent, const _Bool reliable) {
+void Sv_Unicast(const g_entity_t *ent, const _Bool reliable) {
 
 	if (ent && !ent->ai) {
 
-		const uint16_t n = NUM_FOR_EDICT(ent);
+		const uint16_t n = NUM_FOR_ENTITY(ent);
 		if (n < 1 || n > sv_max_clients->integer) {
 			Com_Warn("Non-client: %s\n", etos(ent));
 			return;
@@ -217,14 +217,16 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 
 	switch (to) {
 		case MULTICAST_ALL_R:
-			reliable = true; // intentional fall-through
+			reliable = true;
+			/* no break */
 		case MULTICAST_ALL:
 			leaf_num = 0;
 			vis = NULL;
 			break;
 
 		case MULTICAST_PHS_R:
-			reliable = true; // intentional fall-through
+			reliable = true;
+			/* no break */
 		case MULTICAST_PHS:
 			leaf_num = Cm_PointLeafnum(origin, 0);
 			cluster = Cm_LeafCluster(leaf_num);
@@ -232,7 +234,8 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 			break;
 
 		case MULTICAST_PVS_R:
-			reliable = true; // intentional fall-through
+			reliable = true;
+			/* no break */
 		case MULTICAST_PVS:
 			leaf_num = Cm_PointLeafnum(origin, 0);
 			cluster = Cm_LeafCluster(leaf_num);
@@ -255,11 +258,11 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 		if (cl->state != SV_CLIENT_ACTIVE && !reliable)
 			continue;
 
-		if (cl->edict->ai)
+		if (cl->entity->ai)
 			continue;
 
 		if (vis) {
-			const pm_state_t *pm = &cl->edict->client->ps.pm_state;
+			const pm_state_t *pm = &cl->entity->client->ps.pm_state;
 			vec3_t org, off;
 
 			UnpackVector(pm->origin, org);
@@ -294,7 +297,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
  * If origin is NULL, the origin is determined from the entity origin
  * or the midpoint of the entity box for BSP sub-models.
  */
-void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint16_t index,
+void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uint16_t index,
 		const uint16_t atten) {
 	uint32_t flags;
 	uint16_t at;
@@ -317,7 +320,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint
 	if ((entity->sv_flags & SVF_NO_CLIENT) || (entity->solid == SOLID_BSP) || origin)
 		flags |= S_ORIGIN;
 
-	if (!(entity->sv_flags & SVF_NO_CLIENT) && NUM_FOR_EDICT(entity))
+	if (!(entity->sv_flags & SVF_NO_CLIENT) && NUM_FOR_ENTITY(entity))
 		flags |= S_ENTNUM;
 
 	// use the entity origin unless it is a bsp model or explicitly specified
@@ -340,7 +343,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_edict_t *entity, const uint
 		Net_WriteByte(&sv.multicast, at);
 
 	if (flags & S_ENTNUM)
-		Net_WriteShort(&sv.multicast, NUM_FOR_EDICT(entity));
+		Net_WriteShort(&sv.multicast, NUM_FOR_ENTITY(entity));
 
 	if (flags & S_ORIGIN)
 		Net_WritePosition(&sv.multicast, org);

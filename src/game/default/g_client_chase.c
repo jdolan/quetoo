@@ -24,10 +24,10 @@
 /*
  * @brief
  */
-void G_ClientChaseThink(g_edict_t *ent) {
+void G_ClientChaseThink(g_entity_t *ent) {
 	vec3_t new_delta;
 
-	g_edict_t *targ = ent->client->locals.chase_target;
+	g_entity_t *targ = ent->client->locals.chase_target;
 
 	// calculate delta angles if switching targets
 	if (targ != ent->client->locals.old_chase_target) {
@@ -65,27 +65,27 @@ void G_ClientChaseThink(g_edict_t *ent) {
 	// disable client prediction
 	ent->client->ps.pm_state.flags |= PMF_NO_PREDICTION;
 
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 }
 
 /*
  * @brief
  */
-void G_ClientChaseNext(g_edict_t *ent) {
+void G_ClientChaseNext(g_entity_t *ent) {
 	int32_t i;
-	g_edict_t *e;
+	g_entity_t *e;
 
 	if (!ent->client->locals.chase_target)
 		return;
 
-	i = ent->client->locals.chase_target - g_game.edicts;
+	i = ent->client->locals.chase_target - g_game.entities;
 	do {
 		i++;
 
 		if (i > sv_max_clients->integer)
 			i = 1;
 
-		e = g_game.edicts + i;
+		e = g_game.entities + i;
 
 		if (!e->in_use)
 			continue;
@@ -101,21 +101,21 @@ void G_ClientChaseNext(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_ClientChasePrevious(g_edict_t *ent) {
+void G_ClientChasePrevious(g_entity_t *ent) {
 	int32_t i;
-	g_edict_t *e;
+	g_entity_t *e;
 
 	if (!ent->client->locals.chase_target)
 		return;
 
-	i = ent->client->locals.chase_target - g_game.edicts;
+	i = ent->client->locals.chase_target - g_game.entities;
 	do {
 		i--;
 
 		if (i < 1)
 			i = sv_max_clients->integer;
 
-		e = g_game.edicts + i;
+		e = g_game.entities + i;
 
 		if (!e->in_use)
 			continue;
@@ -131,12 +131,12 @@ void G_ClientChasePrevious(g_edict_t *ent) {
 /*
  * @brief Finds the first available chase target and assigns it to the specified ent.
  */
-void G_ClientChaseTarget(g_edict_t *ent) {
+void G_ClientChaseTarget(g_entity_t *ent) {
 	int32_t i;
-	g_edict_t *other;
+	g_entity_t *other;
 
 	for (i = 1; i <= sv_max_clients->integer; i++) {
-		other = g_game.edicts + i;
+		other = g_game.entities + i;
 		if (other->in_use && !other->client->locals.persistent.spectator) {
 			ent->client->locals.chase_target = other;
 			G_ClientChaseThink(ent);

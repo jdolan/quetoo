@@ -26,7 +26,6 @@ sv_static_t svs; // persistent server info
 sv_server_t sv; // per-level server info
 
 sv_client_t *sv_client; // current client
-g_edict_t *sv_player; // current client edict
 
 cvar_t *sv_download_url;
 cvar_t *sv_enforce_time;
@@ -45,7 +44,7 @@ cvar_t *sv_udp_download;
  * or crashing.
  */
 void Sv_DropClient(sv_client_t *cl) {
-	g_edict_t *ent;
+	g_entity_t *ent;
 
 	Mem_ClearBuffer(&cl->net_chan.message);
 	Mem_ClearBuffer(&cl->datagram.buffer);
@@ -57,7 +56,7 @@ void Sv_DropClient(sv_client_t *cl) {
 	if (cl->state > SV_CLIENT_FREE) { // send the disconnect
 
 		if (cl->state == SV_CLIENT_ACTIVE) { // after informing the game module
-			svs.game->ClientDisconnect(cl->edict);
+			svs.game->ClientDisconnect(cl->entity);
 		}
 
 		Net_WriteByte(&cl->net_chan.message, SV_CMD_DISCONNECT);
@@ -68,11 +67,11 @@ void Sv_DropClient(sv_client_t *cl) {
 		Fs_Free(cl->download.buffer);
 	}
 
-	ent = cl->edict;
+	ent = cl->entity;
 
 	memset(cl, 0, sizeof(*cl));
 
-	cl->edict = ent;
+	cl->entity = ent;
 	cl->last_frame = -1;
 }
 
@@ -92,7 +91,7 @@ static const char *Sv_StatusString(void) {
 
 		if (cl->state == SV_CLIENT_CONNECTED || cl->state == SV_CLIENT_ACTIVE) {
 			char player[MAX_TOKEN_CHARS];
-			const uint32_t ping = cl->edict->client->ping;
+			const uint32_t ping = cl->entity->client->ping;
 
 			g_snprintf(player, sizeof(player), "%d %u \"%s\"\n", i, ping, cl->name);
 			const size_t player_len = strlen(player);
@@ -134,7 +133,7 @@ static void Sv_Info_f(void) {
 	const int32_t p = atoi(Cmd_Argv(1));
 	if (p != PROTOCOL_MAJOR) {
 		g_snprintf(string, sizeof(string), "%s: Wrong protocol: %d != %d", sv_hostname->string, p,
-				PROTOCOL_MAJOR);
+		PROTOCOL_MAJOR);
 	} else {
 		int32_t i, count = 0;
 
@@ -212,7 +211,7 @@ static void Sv_Connect_f(void) {
 	// resolve protocol
 	if (version != PROTOCOL_MAJOR) {
 		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n",
-				PROTOCOL_MAJOR);
+		PROTOCOL_MAJOR);
 		return;
 	}
 
@@ -290,7 +289,7 @@ static void Sv_Connect_f(void) {
 	// otherwise, treat as a fresh connect to a new slot
 	if (!client) {
 		for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
-			if (cl->state == SV_CLIENT_FREE && !cl->edict->ai) { // we have a free one
+			if (cl->state == SV_CLIENT_FREE && !cl->entity->ai) { // we have a free one
 				client = cl;
 				break;
 			}
@@ -305,7 +304,7 @@ static void Sv_Connect_f(void) {
 	}
 
 	// give the game a chance to reject this connection or modify the user_info
-	if (!(svs.game->ClientConnect(client->edict, user_info))) {
+	if (!(svs.game->ClientConnect(client->entity, user_info))) {
 		const char *rejmsg = GetUserInfo(user_info, "rejmsg");
 
 		if (strlen(rejmsg)) {
@@ -448,9 +447,9 @@ static void Sv_UpdatePings(void) {
 		}
 
 		if (!count)
-			cl->edict->client->ping = 0;
+			cl->entity->client->ping = 0;
 		else
-			cl->edict->client->ping = total / count;
+			cl->entity->client->ping = total / count;
 	}
 }
 
@@ -592,14 +591,12 @@ static void Sv_CheckTimeouts(void) {
  * @brief Resets entity flags and other state which should only last one frame.
  */
 static void Sv_ResetEntities(void) {
-	uint32_t i;
 
 	if (sv.state != SV_ACTIVE_GAME)
 		return;
 
-	for (i = 0; i < svs.game->num_edicts; i++) {
-
-		g_edict_t *edict = EDICT_FOR_NUM(i);
+	for (int32_t i = 0; i < svs.game->num_entities; i++) {
+		g_entity_t *edict = ENTITY_FOR_NUM(i);
 
 		// events only last for a single message
 		edict->s.event = 0;
@@ -715,7 +712,7 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
 	if (msg && *msg != '\0')
 		g_snprintf(buf, sizeof(buf), ": %s", msg);
 
-	Sv_ClientPrint(cl->edict, PRINT_HIGH, "You were kicked%s\n", buf);
+	Sv_ClientPrint(cl->entity, PRINT_HIGH, "You were kicked%s\n", buf);
 
 	Sv_DropClient(cl);
 
@@ -758,7 +755,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 	}
 
 	// call game code to allow overrides
-	svs.game->ClientUserInfoChanged(cl->edict, cl->user_info);
+	svs.game->ClientUserInfoChanged(cl->entity, cl->user_info);
 
 	// name for C code, mask off high bit
 	g_strlcpy(cl->name, GetUserInfo(cl->user_info, "name"), sizeof(cl->name));

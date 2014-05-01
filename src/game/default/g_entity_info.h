@@ -25,12 +25,12 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_info_player_deathmatch(g_edict_t *ent);
-void G_info_player_intermission(g_edict_t *ent);
-void G_info_notnull(g_edict_t *self);
-void G_info_player_start(g_edict_t *ent);
-void G_info_player_team1(g_edict_t *ent);
-void G_info_player_team2(g_edict_t *ent);
+void G_info_player_deathmatch(g_entity_t *ent);
+void G_info_player_intermission(g_entity_t *ent);
+void G_info_notnull(g_entity_t *self);
+void G_info_player_start(g_entity_t *ent);
+void G_info_player_team1(g_entity_t *ent);
+void G_info_player_team2(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_ENTITY_INFO_H__ */

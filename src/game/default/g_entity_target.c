@@ -24,7 +24,7 @@
 /*
  * @brief
  */
-static void G_target_speaker_Use(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
+static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other __attribute__((unused)), g_entity_t *activator __attribute__((unused))) {
 
 	if (ent->locals.spawn_flags & 3) { // looping sound toggles
 		if (ent->s.sound)
@@ -51,7 +51,7 @@ static void G_target_speaker_Use(g_edict_t *ent, g_edict_t *other __attribute__(
  -------- NOTES --------
  For ambient sounds, use misc_emit. It is much more efficient.
  */
-void G_target_speaker(g_edict_t *ent) {
+void G_target_speaker(g_entity_t *ent) {
 	char buffer[MAX_QPATH];
 
 	if (!g_game.spawn.noise) {
@@ -79,13 +79,13 @@ void G_target_speaker(g_edict_t *ent) {
 
 	// must link the entity so we get areas and clusters so
 	// the server can determine who to send updates to
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 }
 
 /*
  * @brief
  */
-static void G_target_explosion_Explode(g_edict_t *self) {
+static void G_target_explosion_Explode(g_entity_t *self) {
 	vec_t save;
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -105,7 +105,7 @@ static void G_target_explosion_Explode(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_target_explosion_Use(g_edict_t *self, g_edict_t *other __attribute__((unused)), g_edict_t *activator) {
+static void G_target_explosion_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)), g_entity_t *activator) {
 	self->locals.activator = activator;
 
 	if (!self->locals.delay) {
@@ -126,7 +126,7 @@ static void G_target_explosion_Use(g_edict_t *self, g_edict_t *other __attribute
  -------- NOTES --------
  A standard rocket damage value would be 120.
  */
-void G_target_explosion(g_edict_t *ent) {
+void G_target_explosion(g_entity_t *ent) {
 	ent->locals.Use = G_target_explosion_Use;
 	ent->sv_flags = SVF_NO_CLIENT;
 }
@@ -134,7 +134,7 @@ void G_target_explosion(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_target_splash_Think(g_edict_t *self) {
+static void G_target_splash_Think(g_entity_t *self) {
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_SPARKS);
@@ -152,7 +152,7 @@ static void G_target_splash_Think(g_edict_t *self) {
  -------- NOTES --------
  This entity remains in place for legacy reasons. New maps should use misc_emit.
  */
-void G_target_splash(g_edict_t *self) {
+void G_target_splash(g_entity_t *self) {
 
 	G_SetMoveDir(self->s.angles, self->locals.move_dir);
 
@@ -160,7 +160,7 @@ void G_target_splash(g_edict_t *self) {
 	self->locals.Think = G_target_splash_Think;
 	self->locals.next_think = g_level.time + (Randomf() * 3000);
 
-	gi.LinkEdict(self);
+	gi.LinkEntity(self);
 }
 
 /*QUAKED target_string (0 0 1) (-8 -8 -8) (8 8 8)
@@ -169,7 +169,7 @@ void G_target_splash(g_edict_t *self) {
  message : The message to display.
  targetname : The target name of this entity.
  */
-void G_target_string(g_edict_t *self) {
+void G_target_string(g_entity_t *self) {
 
 	if (!self->locals.message)
 		self->locals.message = "";

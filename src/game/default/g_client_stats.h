@@ -25,11 +25,11 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_ClientScores(g_edict_t *client);
-void G_ClientSpectatorStats(g_edict_t *ent);
-void G_ClientStats(g_edict_t *ent);
-void G_ClientTeamsScoreboard(g_edict_t *client);
-void G_ClientToIntermission(g_edict_t *client);
+void G_ClientScores(g_entity_t *client);
+void G_ClientSpectatorStats(g_entity_t *ent);
+void G_ClientStats(g_entity_t *ent);
+void G_ClientTeamsScoreboard(g_entity_t *client);
+void G_ClientToIntermission(g_entity_t *client);
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_CLIENT_STATS_H__ */

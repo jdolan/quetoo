@@ -24,12 +24,12 @@
 /*
  * @brief Give items to a client
  */
-static void G_Give_f(g_edict_t *ent) {
+static void G_Give_f(g_entity_t *ent) {
 	const g_item_t *it;
 	int32_t index, quantity;
 	uint32_t i;
 	_Bool give_all;
-	g_edict_t *it_ent;
+	g_entity_t *it_ent;
 
 	if (sv_max_clients->integer > 1 && !g_cheats->value) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Cheats are disabled\n");
@@ -131,14 +131,14 @@ static void G_Give_f(g_edict_t *ent) {
 		G_TouchItem(it_ent, ent, NULL, NULL);
 
 		if (it_ent->in_use)
-			G_FreeEdict(it_ent);
+			G_FreeEntity(it_ent);
 	}
 }
 
 /*
  * @brief
  */
-static void G_God_f(g_edict_t *ent) {
+static void G_God_f(g_entity_t *ent) {
 	char *msg;
 
 	if (sv_max_clients->integer > 1 && !g_cheats->value) {
@@ -158,14 +158,14 @@ static void G_God_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_NextMap_f(g_edict_t *ent __attribute__((unused))) {
+static void G_NextMap_f(g_entity_t *ent __attribute__((unused))) {
 	gi.AddCommandString(va("map %s\n", G_SelectNextMap()));
 }
 
 /*
  * @brief
  */
-static void G_NoClip_f(g_edict_t *ent) {
+static void G_NoClip_f(g_entity_t *ent) {
 	char *msg;
 
 	if (sv_max_clients->integer > 1 && !g_cheats->value) {
@@ -187,7 +187,7 @@ static void G_NoClip_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_Wave_f(g_edict_t *ent) {
+static void G_Wave_f(g_entity_t *ent) {
 
 	if (ent->sv_flags & SVF_NO_CLIENT)
 		return;
@@ -198,7 +198,7 @@ static void G_Wave_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_Use_f(g_edict_t *ent) {
+static void G_Use_f(g_entity_t *ent) {
 
 	if (ent->locals.dead)
 		return;
@@ -226,8 +226,8 @@ static void G_Use_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_Drop_f(g_edict_t *ent) {
-	g_edict_t *f;
+static void G_Drop_f(g_entity_t *ent) {
+	g_entity_t *f;
 	const g_item_t *it;
 
 	// we don't drop in instagib or arena
@@ -280,7 +280,7 @@ static void G_Drop_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_WeaponPrevious_f(g_edict_t *ent) {
+static void G_WeaponPrevious_f(g_entity_t *ent) {
 	int32_t i;
 
 	g_client_t *cl = ent->client;
@@ -323,7 +323,7 @@ static void G_WeaponPrevious_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_WeaponNext_f(g_edict_t *ent) {
+static void G_WeaponNext_f(g_entity_t *ent) {
 	int32_t i;
 
 	g_client_t *cl = ent->client;
@@ -366,7 +366,7 @@ static void G_WeaponNext_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_WeaponLast_f(g_edict_t *ent) {
+static void G_WeaponLast_f(g_entity_t *ent) {
 
 	g_client_t *cl = ent->client;
 
@@ -392,7 +392,7 @@ static void G_WeaponLast_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_Kill_f(g_edict_t *ent) {
+static void G_Kill_f(g_entity_t *ent) {
 
 	if ((g_level.time - ent->client->locals.respawn_time) < 1000)
 		return;
@@ -414,7 +414,7 @@ static void G_Kill_f(g_edict_t *ent) {
 /*
  * @brief This is the client-specific sibling to Cvar_VariableString.
  */
-static const char *G_ExpandVariable(g_edict_t *ent, char v) {
+static const char *G_ExpandVariable(g_entity_t *ent, char v) {
 	int32_t i;
 
 	switch (v) {
@@ -440,7 +440,7 @@ static const char *G_ExpandVariable(g_edict_t *ent, char v) {
 /*
  * @brief
  */
-static char *G_ExpandVariables(g_edict_t *ent, const char *text) {
+static char *G_ExpandVariables(g_entity_t *ent, const char *text) {
 	static char expanded[MAX_STRING_CHARS];
 	int32_t i, j, len;
 
@@ -467,7 +467,7 @@ static char *G_ExpandVariables(g_edict_t *ent, const char *text) {
 /*
  * @brief
  */
-static void G_Say_f(g_edict_t *ent) {
+static void G_Say_f(g_entity_t *ent) {
 	char text[MAX_STRING_CHARS];
 	char temp[MAX_STRING_CHARS];
 	int32_t i;
@@ -527,7 +527,7 @@ static void G_Say_f(g_edict_t *ent) {
 	g_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->locals.persistent.net_name, color, s);
 
 	for (i = 1; i <= sv_max_clients->integer; i++) { // print to clients
-		const g_edict_t *other = &g_game.edicts[i];
+		const g_entity_t *other = &g_game.entities[i];
 
 		if (!other->in_use)
 			continue;
@@ -549,16 +549,16 @@ static void G_Say_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_PlayerList_f(g_edict_t *ent) {
+static void G_PlayerList_f(g_entity_t *ent) {
 	int32_t i, seconds;
 	char st[80];
 	char text[1400];
-	g_edict_t *e2;
+	g_entity_t *e2;
 
 	memset(text, 0, sizeof(text));
 
 	// connect time, ping, score, name
-	for (i = 0, e2 = g_game.edicts + 1; i < sv_max_clients->integer; i++, e2++) {
+	for (i = 0, e2 = g_game.entities + 1; i < sv_max_clients->integer; i++, e2++) {
 
 		if (!e2->in_use)
 			continue;
@@ -605,7 +605,7 @@ static const char *vote_cmds[] = {
  * true if the command received help and may therefore be ignored, false
  * otherwise.
  */
-static _Bool Vote_Help(g_edict_t *ent) {
+static _Bool Vote_Help(g_entity_t *ent) {
 	size_t i, j, len;
 	char msg[1024];
 
@@ -698,7 +698,7 @@ static _Bool Vote_Help(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_Vote_f(g_edict_t *ent) {
+static void G_Vote_f(g_entity_t *ent) {
 	char vote[64];
 	uint32_t i;
 
@@ -766,7 +766,7 @@ static void G_Vote_f(g_edict_t *ent) {
 /*
  * @brief Returns true if the client's team was changed, false otherwise.
  */
-_Bool G_AddClientToTeam(g_edict_t *ent, const char *team_name) {
+_Bool G_AddClientToTeam(g_entity_t *ent, const char *team_name) {
 	g_team_t *team;
 
 	if (g_level.match_time && g_level.match_time <= g_level.time) {
@@ -798,7 +798,7 @@ _Bool G_AddClientToTeam(g_edict_t *ent, const char *team_name) {
 /*
  * @brief
  */
-static void G_AddClientToRound(g_edict_t *ent) {
+static void G_AddClientToRound(g_entity_t *ent) {
 	int32_t score; // keep score across rounds
 
 	if (g_level.round_time && g_level.round_time <= g_level.time) {
@@ -824,7 +824,7 @@ static void G_AddClientToRound(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_Team_f(g_edict_t *ent) {
+static void G_Team_f(g_entity_t *ent) {
 
 	if ((g_level.teams || g_level.ctf) && gi.Argc() != 2) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <%s|%s>\n", gi.Argv(0), g_team_good.name,
@@ -851,7 +851,7 @@ static void G_Team_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_Teamname_f(g_edict_t *ent) {
+static void G_Teamname_f(g_entity_t *ent) {
 	int32_t cs;
 	g_team_t *t;
 
@@ -889,7 +889,7 @@ static void G_Teamname_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_Teamskin_f(g_edict_t *ent) {
+static void G_Teamskin_f(g_entity_t *ent) {
 	int32_t i;
 	g_client_t *cl;
 	g_team_t *t;
@@ -949,7 +949,7 @@ static void G_Teamskin_f(g_edict_t *ent) {
 /*
  * @brief If match is enabled, all clients must issue ready for game to start.
  */
-static void G_Ready_f(g_edict_t *ent) {
+static void G_Ready_f(g_entity_t *ent) {
 	int32_t i, g, e, clients;
 	g_client_t *cl;
 
@@ -975,7 +975,7 @@ static void G_Ready_f(g_edict_t *ent) {
 	for (i = 0; i < sv_max_clients->integer; i++) { // is everyone ready?
 		cl = g_game.clients + i;
 
-		if (!g_game.edicts[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use)
 			continue;
 
 		if (cl->locals.persistent.spectator)
@@ -1013,7 +1013,7 @@ static void G_Ready_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_Unready_f(g_edict_t *ent) {
+static void G_Unready_f(g_entity_t *ent) {
 
 	if (!g_level.match) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Match is disabled\n");
@@ -1042,7 +1042,7 @@ static void G_Unready_f(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_Spectate_f(g_edict_t *ent) {
+static void G_Spectate_f(g_entity_t *ent) {
 	_Bool spectator;
 
 	// prevent spectator spamming
@@ -1085,14 +1085,14 @@ static void G_Spectate_f(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_Score_f(g_edict_t *ent) {
+void G_Score_f(g_entity_t *ent) {
 	ent->client->locals.show_scores = !ent->client->locals.show_scores;
 }
 
 /*
  * @brief
  */
-void G_ClientCommand(g_edict_t *ent) {
+void G_ClientCommand(g_entity_t *ent) {
 
 	if (!ent->client)
 		return; // not fully in game yet

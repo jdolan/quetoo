@@ -30,7 +30,7 @@ static ai_goal_state_t ai_goal_state;
 /*
  * @brief Utility function for instantiating ai_goal_t.
  */
-ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_edict_t *ent) {
+ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_entity_t *ent) {
 	ai_goal_t *goal = Mem_TagMalloc(sizeof(*goal), MEM_TAG_AI);
 
 	goal->type = type;

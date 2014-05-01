@@ -25,7 +25,7 @@
 /*
  * @brief
  */
-void G_InitPlayerSpawn(g_edict_t *ent) {
+void G_InitPlayerSpawn(g_entity_t *ent) {
 	vec3_t mins, maxs, delta, forward;
 
 	// up
@@ -53,7 +53,7 @@ void G_InitPlayerSpawn(g_edict_t *ent) {
 /*
  * @brief Determines the initial position and directional vectors of a projectile.
  */
-void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org) {
+void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org) {
 	cm_trace_t tr;
 	vec3_t view, end;
 
@@ -92,22 +92,22 @@ void G_InitProjectile(g_edict_t *ent, vec3_t forward, vec3_t right, vec3_t up, v
  * @brief Searches all active entities for the next one that holds the matching string
  * at field offset (use the ELOFS() macro) in the structure.
  *
- * Searches beginning at the edict after from, or the beginning if NULL
+ * Searches beginning at the entity after from, or the beginning if NULL
  * NULL will be returned if the end of the list is reached.
  *
  * Example:
  *   G_Find(NULL, EOFS(class_name), "info_player_deathmatch");
  *
  */
-g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match) {
+g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
 	char *s;
 
 	if (!from)
-		from = g_game.edicts;
+		from = g_game.entities;
 	else
 		from++;
 
-	for (; from < &g_game.edicts[ge.num_edicts]; from++) {
+	for (; from < &g_game.entities[ge.num_entities]; from++) {
 		if (!from->in_use)
 			continue;
 		s = *(char **) ((byte *) from + field);
@@ -125,16 +125,16 @@ g_edict_t *G_Find(g_edict_t *from, ptrdiff_t field, const char *match) {
  *
  * G_FindRadius(origin, radius)
  */
-g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, vec_t rad) {
+g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad) {
 	vec3_t delta;
 	int32_t j;
 
 	if (!from)
-		from = g_game.edicts;
+		from = g_game.entities;
 	else
 		from++;
 
-	for (; from < &g_game.edicts[ge.num_edicts]; from++) {
+	for (; from < &g_game.entities[ge.num_entities]; from++) {
 
 		if (!from->in_use)
 			continue;
@@ -159,13 +159,12 @@ g_edict_t *G_FindRadius(g_edict_t *from, vec3_t org, vec_t rad) {
 /*
  * @brief Searches all active entities for the next targeted one.
  *
- * Searches beginning at the edict after from, or the beginning if NULL
+ * Searches beginning at the entity after from, or the beginning if NULL
  * NULL will be returned if the end of the list is reached.
  */
-g_edict_t *G_PickTarget(char *target_name) {
-	g_edict_t *ent = NULL;
-	int32_t num_choices = 0;
-	g_edict_t *choice[MAX_TARGETS];
+g_entity_t *G_PickTarget(char *target_name) {
+	g_entity_t *choice[MAX_TARGETS];
+	size_t num_choices = 0;
 
 	if (!target_name) {
 		gi.Debug("NULL target_name\n");
@@ -173,10 +172,14 @@ g_edict_t *G_PickTarget(char *target_name) {
 	}
 
 	while (true) {
-		ent = G_Find(ent, LOFS(target_name), target_name);
+
+		g_entity_t *ent = G_Find(ent, LOFS(target_name), target_name);
+
 		if (!ent)
 			break;
+
 		choice[num_choices++] = ent;
+
 		if (num_choices == MAX_TARGETS)
 			break;
 	}
@@ -192,9 +195,9 @@ g_edict_t *G_PickTarget(char *target_name) {
 /*
  * @brief
  */
-static void G_UseTargets_Delay(g_edict_t *ent) {
+static void G_UseTargets_Delay(g_entity_t *ent) {
 	G_UseTargets(ent, ent->locals.activator);
-	G_FreeEdict(ent);
+	G_FreeEntity(ent);
 }
 
 /*
@@ -202,8 +205,8 @@ static void G_UseTargets_Delay(g_edict_t *ent) {
  * use functions. Set their activator to our activator. Print our message,
  * if set, to the activator.
  */
-void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
-	g_edict_t *t;
+void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
+	g_entity_t *t;
 
 	// check for a delay
 	if (ent->locals.delay) {
@@ -236,7 +239,7 @@ void G_UseTargets(g_edict_t *ent, g_edict_t *activator) {
 	if (ent->locals.kill_target) {
 		t = NULL;
 		while ((t = G_Find(t, LOFS(target_name), ent->locals.kill_target))) {
-			G_FreeEdict(t);
+			G_FreeEntity(t);
 			if (!ent->in_use) {
 				gi.Debug("%s was removed while using kill_targets\n", etos(ent));
 				return;
@@ -296,7 +299,7 @@ void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
 /*
  * @brief
  */
-void G_InitEdict(g_edict_t *ent, const char *class_name) {
+void G_InitEntity(g_entity_t *ent, const char *class_name) {
 
 	memset(ent, 0, sizeof(*ent));
 
@@ -304,7 +307,7 @@ void G_InitEdict(g_edict_t *ent, const char *class_name) {
 	ent->in_use = true;
 
 	ent->locals.timestamp = g_level.time;
-	ent->s.number = ent - g_game.edicts;
+	ent->s.number = ent - g_game.entities;
 }
 
 /*
@@ -314,13 +317,13 @@ void G_InitEdict(g_edict_t *ent, const char *class_name) {
  * instead of being removed and recreated, which can cause interpolated
  * angles and bad trails.
  */
-g_edict_t *G_Spawn(const char *class_name) {
+g_entity_t *G_Spawn(const char *class_name) {
 	uint16_t i;
 
-	g_edict_t *e = &g_game.edicts[sv_max_clients->integer + 1];
-	for (i = sv_max_clients->integer + 1; i < ge.num_edicts; i++, e++) {
+	g_entity_t *e = &g_game.entities[sv_max_clients->integer + 1];
+	for (i = sv_max_clients->integer + 1; i < ge.num_entities; i++, e++) {
 		if (!e->in_use) {
-			G_InitEdict(e, class_name);
+			G_InitEntity(e, class_name);
 			return e;
 		}
 	}
@@ -328,19 +331,19 @@ g_edict_t *G_Spawn(const char *class_name) {
 	if (i >= g_max_entities->value)
 		gi.Error("No free edicts for %s\n", class_name);
 
-	ge.num_edicts++;
-	G_InitEdict(e, class_name);
+	ge.num_entities++;
+	G_InitEntity(e, class_name);
 	return e;
 }
 
 /*
  * @brief Marks the edict as free.
  */
-void G_FreeEdict(g_edict_t *ent) {
+void G_FreeEntity(g_entity_t *ent) {
 
-	gi.UnlinkEdict(ent);
+	gi.UnlinkEntity(ent);
 
-	if ((ent - g_game.edicts) <= sv_max_clients->integer)
+	if ((ent - g_game.entities) <= sv_max_clients->integer)
 		return;
 
 	memset(ent, 0, sizeof(*ent));
@@ -350,13 +353,13 @@ void G_FreeEdict(g_edict_t *ent) {
 /*
  * @brief Handle trigger interaction for solids.
  */
-void G_TouchTriggers(g_edict_t *ent) {
-	g_edict_t *e[MAX_EDICTS];
+void G_TouchTriggers(g_entity_t *ent) {
+	g_entity_t *e[MAX_ENTITIES];
 
-	const size_t len = gi.AreaEdicts(ent->abs_mins, ent->abs_maxs, e, lengthof(e), AREA_TRIGGER);
+	const size_t len = gi.BoxEntities(ent->abs_mins, ent->abs_maxs, e, lengthof(e), AREA_TRIGGER);
 
 	for (size_t i = 0; i < len; i++) {
-		g_edict_t *trigger = e[i];
+		g_entity_t *trigger = e[i];
 
 		if (trigger == ent) // When I Think() about you, I Touch() myself..
 			continue;
@@ -374,7 +377,7 @@ void G_TouchTriggers(g_edict_t *ent) {
 /*
  * @brief Handle water interaction for solids.
  */
-void G_TouchWater(g_edict_t *ent) {
+void G_TouchWater(g_entity_t *ent) {
 
 	if (ent->client) // player water level is a special case
 		return;
@@ -410,7 +413,7 @@ void G_TouchWater(g_edict_t *ent) {
  * @brief Kills all entities that would touch the proposed new positioning
  * of the entity. The entity should be unlinked before calling this!
  */
-_Bool G_KillBox(g_edict_t *ent) {
+_Bool G_KillBox(g_entity_t *ent) {
 
 	// kill all solids that take damage, including corpses for bonus giblets
 	const int32_t mask = MASK_PLAYER_SOLID | CONTENTS_DEAD_MONSTER;
@@ -436,7 +439,7 @@ _Bool G_KillBox(g_edict_t *ent) {
  * @brief Kills the specified entity via explosion, potentially taking nearby
  * entities with it.
  */
-void G_Explode(g_edict_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod) {
+void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod) {
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
@@ -445,20 +448,20 @@ void G_Explode(g_edict_t *ent, int16_t damage, int16_t knockback, vec_t radius, 
 
 	G_RadiusDamage(ent, ent, NULL, damage, knockback, radius, mod ? mod : MOD_EXPLOSIVE);
 
-	G_FreeEdict(ent);
+	G_FreeEntity(ent);
 }
 
 /*
  * @brief Kills the specified entity via gib effect.
  */
-void G_Gib(g_edict_t *ent) {
+void G_Gib(g_entity_t *ent) {
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_GIB);
 	gi.WritePosition(ent->s.origin);
 	gi.Multicast(ent->s.origin, MULTICAST_PVS);
 
-	G_FreeEdict(ent);
+	G_FreeEntity(ent);
 }
 
 /*
@@ -518,7 +521,7 @@ g_team_t *G_TeamByName(const char *c) {
 /*
  * @brief
  */
-g_team_t *G_TeamForFlag(g_edict_t *ent) {
+g_team_t *G_TeamForFlag(g_entity_t *ent) {
 
 	if (!g_level.ctf)
 		return NULL;
@@ -538,8 +541,8 @@ g_team_t *G_TeamForFlag(g_edict_t *ent) {
 /*
  * @brief
  */
-g_edict_t *G_FlagForTeam(g_team_t *t) {
-	g_edict_t *ent;
+g_entity_t *G_FlagForTeam(g_team_t *t) {
+	g_entity_t *ent;
 	char class_name[32];
 	uint32_t i;
 
@@ -555,9 +558,9 @@ g_edict_t *G_FlagForTeam(g_team_t *t) {
 	}
 
 	i = sv_max_clients->integer + 1;
-	while (i < ge.num_edicts) {
+	while (i < ge.num_entities) {
 
-		ent = &ge.edicts[i++];
+		ent = &ge.entities[i++];
 
 		if (!ent->locals.item || ent->locals.item->type != ITEM_FLAG)
 			continue;
@@ -612,10 +615,10 @@ g_team_t *G_SmallestTeam(void) {
 	g = e = 0;
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.edicts[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use)
 			continue;
 
-		cl = g_game.edicts[i + 1].client;
+		cl = g_game.entities[i + 1].client;
 
 		if (cl->locals.persistent.team == &g_team_good)
 			g++;
@@ -640,10 +643,10 @@ g_client_t *G_ClientByName(char *name) {
 	min = 9999;
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.edicts[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use)
 			continue;
 
-		cl = g_game.edicts[i + 1].client;
+		cl = g_game.entities[i + 1].client;
 		if ((j = g_strcmp0(name, cl->locals.persistent.net_name)) < min) {
 			ret = cl;
 			min = j;
@@ -688,7 +691,7 @@ int32_t G_ColorByName(const char *s, int32_t def) {
 /*
  * @return True if the specified entity should bleed when damaged.
  */
-_Bool G_IsMeat(const g_edict_t *ent) {
+_Bool G_IsMeat(const g_entity_t *ent) {
 
 	if (!ent || !ent->in_use)
 		return false;
@@ -705,7 +708,7 @@ _Bool G_IsMeat(const g_edict_t *ent) {
 /*
  * @return True if the specified entity is likely stationary.
  */
-_Bool G_IsStationary(const g_edict_t *ent) {
+_Bool G_IsStationary(const g_entity_t *ent) {
 
 	if (!ent || !ent->in_use)
 		return false;
@@ -725,7 +728,7 @@ _Bool G_IsStationary(const g_edict_t *ent) {
 /*
  * @return True if the specified entity and surface appear structural.
  */
-_Bool G_IsStructural(const g_edict_t *ent, const cm_bsp_surface_t *surf) {
+_Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_surface_t *surf) {
 
 	if (ent->solid == SOLID_BSP) {
 
@@ -757,7 +760,7 @@ static void G_SetAnimation_(byte *dest, entity_animation_t anim, _Bool restart) 
  * @brief Assigns the specified animation to the correct member(s) on the specified
  * entity. If requested, the current animation will be restarted.
  */
-void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, _Bool restart) {
+void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, _Bool restart) {
 
 	// certain sequences go to both torso and leg animations
 
@@ -785,7 +788,7 @@ void G_SetAnimation(g_edict_t *ent, entity_animation_t anim, _Bool restart) {
 /*
  * @brief Returns true if the entity is currently using the specified animation.
  */
-_Bool G_IsAnimation(g_edict_t *ent, entity_animation_t anim) {
+_Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
 	byte a;
 
 	if (anim < ANIM_LEGS_WALK)

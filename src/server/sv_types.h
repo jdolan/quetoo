@@ -43,7 +43,7 @@
 
 /*
  * @brief The server-specific view of an entity. An sv_entity_t corresponds to
- * precisely one g_edict_t, where most general-purpose entity state resides.
+ * precisely one g_entity_t, where most general-purpose entity state resides.
  * This structure is primarily used for entity list management and clipping.
  */
 typedef struct {
@@ -84,8 +84,8 @@ typedef struct {
 	// all known and indexed assets, string constants, etc..
 	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 
-	sv_entity_t entities[MAX_EDICTS]; // the server-local entity structures
-	entity_state_t baselines[MAX_EDICTS]; // g_edict_t baselines
+	sv_entity_t entities[MAX_ENTITIES]; // the server-local entity structures
+	entity_state_t baselines[MAX_ENTITIES]; // g_entity_t baselines
 
 	// the multicast buffer is used to send a message to a set of clients
 	// it is flushed each time Sv_Multicast is called
@@ -203,7 +203,7 @@ typedef struct {
 	uint32_t rate;
 	uint32_t surpress_count; // number of messages rate suppressed
 
-	g_edict_t *edict; // EDICT_FOR_NUM(client_num + 1)
+	g_entity_t *entity; // the g_entity_t for this client
 	char name[32]; // extracted from user_info, high bits masked
 	int32_t message_level; // for filtering printed messages
 
@@ -278,17 +278,17 @@ typedef struct {
 
 /*
  * @brief Yields a pointer to the edict by the given number by negotiating the
- * edicts array based on the reported size of g_edict_t.
+ * edicts array based on the reported size of g_entity_t.
  *
  * FIXME: Can these be made prettier with ptrdiff_t / intptr_t?
  */
-#define EDICT_FOR_NUM(n) ( (g_edict_t *)((byte *) svs.game->edicts + svs.game->edict_size * (n)) )
+#define ENTITY_FOR_NUM(n) ( (g_entity_t *)((byte *) svs.game->entities + svs.game->entity_size * (n)) )
 
 /*
- * @brief Yields the entity number (index) for the specified g_edict_t * by
- * negotiating the edicts array based on the reported size of g_edict_t.
+ * @brief Yields the entity number (index) for the specified g_entity_t * by
+ * negotiating the edicts array based on the reported size of g_entity_t.
  */
-#define NUM_FOR_EDICT(e) ( ((byte *)(e) - (byte *) svs.game->edicts) / svs.game->edict_size )
+#define NUM_FOR_ENTITY(e) ( ((byte *)(e) - (byte *) svs.game->entities) / svs.game->entity_size )
 
 #endif /* __SV_LOCAL_H__ */
 

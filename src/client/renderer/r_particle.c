@@ -28,7 +28,7 @@
 void R_AddParticle(const r_particle_t *p) {
 	static r_element_t e;
 
-	if (r_view.num_particles >= MAX_PARTICLES)
+	if (r_view.num_particles == lengthof(r_view.particles))
 		return;
 
 	if (p->type != PARTICLE_BEAM) {

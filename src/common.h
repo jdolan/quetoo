@@ -68,7 +68,7 @@
 
 /*
  * @brief Both the client and the server retain multiple snapshots of each
- * g_edict_t's state (entity_state_t) in order to calculate delta compression.
+ * g_entity_t's state (entity_state_t) in order to calculate delta compression.
  */
 #define PACKET_BACKUP		32
 #define PACKET_MASK			(PACKET_BACKUP - 1)

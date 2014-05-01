@@ -75,7 +75,7 @@ static void Sv_Heartbeat_f(void) {
 }
 
 /*
- * @brief Sets sv_client and sv_player to the player with idnum Cmd_Argv(1)
+ * @brief Sets sv_client and sv_player to the player identified by Cmd_Argv(1).
  */
 static _Bool Sv_SetPlayer(void) {
 	sv_client_t * cl;
@@ -95,7 +95,6 @@ static _Bool Sv_SetPlayer(void) {
 		}
 
 		sv_client = &svs.clients[idnum];
-		sv_player = sv_client->edict;
 		if (!sv_client->state) {
 			Com_Print("Client %i is not active\n", idnum);
 			return false;
@@ -111,7 +110,6 @@ static _Bool Sv_SetPlayer(void) {
 
 		if (!g_strcmp0(cl->name, s)) {
 			sv_client = cl;
-			sv_player = sv_client->edict;
 			return true;
 		}
 	}
@@ -196,7 +194,7 @@ static void Sv_Status_f(void) {
 		if (cl->state == SV_CLIENT_CONNECTED)
 			Com_Print("CNCT ");
 		else {
-			ping = cl->edict->client->ping < 9999 ? cl->edict->client->ping : 9999;
+			ping = cl->entity->client->ping < 9999 ? cl->entity->client->ping : 9999;
 			Com_Print("%4i ", ping);
 		}
 
@@ -230,8 +228,8 @@ static void Sv_ListEntities_f(void) {
 		return;
 	}
 
-	for (i = 0; i < svs.game->num_edicts; i++) {
-		const g_edict_t *e = EDICT_FOR_NUM(i);
+	for (i = 0; i < svs.game->num_entities; i++) {
+		const g_entity_t *e = ENTITY_FOR_NUM(i);
 
 		if (Cmd_Argc() > 1) {
 			if (!GlobMatch(Cmd_Argv(1), e->class_name)) {
@@ -272,7 +270,7 @@ static void Sv_Say_f(void) {
 		if (client->state != SV_CLIENT_ACTIVE)
 			continue;
 
-		Sv_ClientPrint(client->edict, PRINT_CHAT, "^1console^%d: %s\n", CON_COLOR_CHAT, s);
+		Sv_ClientPrint(client->entity, PRINT_CHAT, "^1console^%d: %s\n", CON_COLOR_CHAT, s);
 	}
 
 	Com_Print("^1console^%d: %s\n", CON_COLOR_CHAT, s);
@@ -307,7 +305,7 @@ static void Sv_Tell_f(void) {
 	if (sv_client->state != SV_CLIENT_ACTIVE)
 		return;
 
-	Sv_ClientPrint(sv_client->edict, PRINT_CHAT, "^1console^%d: %s\n", CON_COLOR_TEAMCHAT, s);
+	Sv_ClientPrint(sv_client->entity, PRINT_CHAT, "^1console^%d: %s\n", CON_COLOR_TEAMCHAT, s);
 	Com_Print("^1console^%d: %s\n", CON_COLOR_TEAMCHAT, s);
 }
 

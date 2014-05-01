@@ -26,13 +26,13 @@
 
 #ifdef __SV_LOCAL_H__
 void Sv_InitWorld(void);
-void Sv_LinkEdict(g_edict_t *ent);
-void Sv_UnlinkEdict(g_edict_t *ent);
-size_t Sv_AreaEdicts(const vec3_t mins, const vec3_t maxs, g_edict_t **list, const size_t len,
+void Sv_LinkEntity(g_entity_t *ent);
+void Sv_UnlinkEntity(g_entity_t *ent);
+size_t Sv_BoxEntities(const vec3_t mins, const vec3_t maxs, g_entity_t **list, const size_t len,
 		const uint32_t type);
 int32_t Sv_PointContents(const vec3_t p);
 cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		const g_edict_t *skip, const int32_t contents);
+		const g_entity_t *skip, const int32_t contents);
 
 #endif /* __SV_LOCAL_H__ */
 

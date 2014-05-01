@@ -135,7 +135,7 @@ static void Sv_Baselines_f(void) {
 	memset(&null_state, 0, sizeof(null_state));
 
 	// write a packet full of data
-	while (sv_client->net_chan.message.size < (MAX_MSG_SIZE >> 1) && start < MAX_EDICTS) {
+	while (sv_client->net_chan.message.size < (MAX_MSG_SIZE >> 1) && start < MAX_ENTITIES) {
 		base = &sv.baselines[start];
 		if (base->model1 || base->sound || base->effects) {
 			Net_WriteByte(&sv_client->net_chan.message, SV_CMD_BASELINE);
@@ -145,7 +145,7 @@ static void Sv_Baselines_f(void) {
 	}
 
 	// send next command
-	if (start == MAX_EDICTS) {
+	if (start == MAX_ENTITIES) {
 		Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
 		Net_WriteString(&sv_client->net_chan.message, va("precache %i\n", svs.spawn_count));
 	} else {
@@ -181,7 +181,7 @@ static void Sv_Begin_f(void) {
 	sv_client->state = SV_CLIENT_ACTIVE;
 
 	// call the game begin function
-	svs.game->ClientBegin(sv_player);
+	svs.game->ClientBegin(sv_client->entity);
 
 	Cbuf_InsertFromDefer();
 }
@@ -285,7 +285,8 @@ static void Sv_Download_f(void) {
 	if (Cmd_Argc() > 2) {
 		download->count = strtol(Cmd_Argv(2), NULL, 0);
 		if (download->count < 0 || download->count > download->size) {
-			Com_Warn("Invalid offset (%d) from %s\n", download->count, Sv_NetaddrToString(sv_client));
+			Com_Warn("Invalid offset (%d) from %s\n", download->count,
+					Sv_NetaddrToString(sv_client));
 			download->count = download->size;
 		}
 	}
@@ -308,7 +309,7 @@ static void Sv_Info_f_enumerate(cvar_t *var, void *data) {
 	sv_client_t *client = (sv_client_t *) data;
 
 	if (var->flags & CVAR_SERVER_INFO) {
-		Sv_ClientPrint(client->edict, PRINT_MEDIUM, "%s %s\n", var->name, var->string);
+		Sv_ClientPrint(client->entity, PRINT_MEDIUM, "%s %s\n", var->name, var->string);
 	}
 }
 
@@ -367,7 +368,7 @@ static void Sv_UserStringCommand(const char *s) {
 
 	if (!c->name) { // unmatched command
 		if (sv.state == SV_ACTIVE_GAME) // maybe the game knows what to do with it
-			svs.game->ClientCommand(sv_player);
+			svs.game->ClientCommand(sv_client->entity);
 	}
 }
 
@@ -378,7 +379,7 @@ static void Sv_ClientThink(sv_client_t *cl, pm_cmd_t *cmd) {
 
 	cl->cmd_msec += cmd->msec;
 
-	svs.game->ClientThink(cl->edict, cmd);
+	svs.game->ClientThink(cl->entity, cmd);
 }
 
 #define CMD_MAX_MOVES 1
@@ -388,16 +389,10 @@ static void Sv_ClientThink(sv_client_t *cl, pm_cmd_t *cmd) {
  * @brief The current net_message is parsed for the given client.
  */
 void Sv_ParseClientMessage(sv_client_t *cl) {
-	pm_cmd_t null_cmd, oldest_cmd, old_cmd, new_cmd;
-	int32_t net_drop;
 	int32_t strings_issued;
 	int32_t moves_issued;
-	int32_t last_frame;
-	int32_t c;
-	char *s;
 
 	sv_client = cl;
-	sv_player = sv_client->edict;
 
 	// allow a finite number of moves and strings
 	moves_issued = strings_issued = 0;
@@ -410,7 +405,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 			return;
 		}
 
-		c = Net_ReadByte(&net_message);
+		const int32_t c = Net_ReadByte(&net_message);
 		if (c == -1)
 			break;
 
@@ -422,21 +417,22 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 				break;
 
 			case CL_CMD_MOVE:
+
 				if (++moves_issued > CMD_MAX_MOVES) {
 					return; // someone is trying to cheat
 				}
 
-				last_frame = Net_ReadLong(&net_message);
+				const int32_t last_frame = Net_ReadLong(&net_message);
 				if (last_frame != cl->last_frame) {
 					cl->last_frame = last_frame;
 					if (cl->last_frame > -1) {
-						cl->frame_latency[cl->last_frame & (SV_CLIENT_LATENCY_COUNT - 1)]
-								= svs.real_time
-										- cl->frames[cl->last_frame & PACKET_MASK].sent_time;
+						cl->frame_latency[cl->last_frame & (SV_CLIENT_LATENCY_COUNT - 1)] =
+								svs.real_time - cl->frames[cl->last_frame & PACKET_MASK].sent_time;
 					}
 				}
 
-				memset(&null_cmd, 0, sizeof(null_cmd));
+				static pm_cmd_t null_cmd;
+				pm_cmd_t oldest_cmd, old_cmd, new_cmd;
 				Net_ReadDeltaMoveCmd(&net_message, &null_cmd, &oldest_cmd);
 				Net_ReadDeltaMoveCmd(&net_message, &oldest_cmd, &old_cmd);
 				Net_ReadDeltaMoveCmd(&net_message, &old_cmd, &new_cmd);
@@ -448,7 +444,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 					break;
 				}
 
-				net_drop = cl->net_chan.dropped;
+				uint32_t net_drop = cl->net_chan.dropped;
 				if (net_drop < 20) {
 					while (net_drop > 2) {
 						Sv_ClientThink(cl, &cl->last_cmd);
@@ -464,19 +460,19 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 				break;
 
 			case CL_CMD_STRING:
-				s = Net_ReadString(&net_message);
 
 				// malicious users may try using too many string commands
-				if (++strings_issued < CMD_MAX_STRINGS)
-					Sv_UserStringCommand(s);
-				else {
+				if (++strings_issued == CMD_MAX_STRINGS) {
 					Com_Warn("CMD_MAX_STRINGS exceeded for %s\n", Sv_NetaddrToString(cl));
 					Sv_KickClient(cl, "Too many commands.");
 					return;
 				}
 
+				Sv_UserStringCommand(Net_ReadString(&net_message));
+
 				if (cl->state == SV_CLIENT_FREE)
 					return; // disconnect command
+
 				break;
 
 			default:

@@ -28,7 +28,7 @@
 /*
  * @brief
  */
-static void G_Trigger_Init(g_edict_t *self) {
+static void G_Trigger_Init(g_entity_t *self) {
 
 	if (!VectorCompare(self->s.angles, vec3_origin))
 		G_SetMoveDir(self->s.angles, self->locals.move_dir);
@@ -42,14 +42,14 @@ static void G_Trigger_Init(g_edict_t *self) {
 /*
  * @brief The wait time has passed, so set back up for another activation
  */
-static void G_trigger_multiple_Wait(g_edict_t *ent) {
+static void G_trigger_multiple_Wait(g_entity_t *ent) {
 	ent->locals.next_think = 0;
 }
 
 /*
  * @brief
  */
-static void G_trigger_multiple_Think(g_edict_t *ent) {
+static void G_trigger_multiple_Think(g_entity_t *ent) {
 
 	if (ent->locals.next_think)
 		return; // already been triggered
@@ -63,15 +63,15 @@ static void G_trigger_multiple_Think(g_edict_t *ent) {
 		// called while looping through area links...
 		ent->locals.Touch = NULL;
 		ent->locals.next_think = g_level.time + gi.frame_millis;
-		ent->locals.Think = G_FreeEdict;
+		ent->locals.Think = G_FreeEntity;
 	}
 }
 
 /*
  * @brief
  */
-static void G_trigger_multiple_Use(g_edict_t *ent, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator) {
+static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other __attribute__((unused)),
+		g_entity_t *activator) {
 
 	ent->locals.activator = activator;
 
@@ -81,7 +81,7 @@ static void G_trigger_multiple_Use(g_edict_t *ent, g_edict_t *other __attribute_
 /*
  * @brief
  */
-static void G_trigger_multiple_Touch(g_edict_t *self, g_edict_t *other,
+static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
 		cm_bsp_plane_t *plane __attribute__((unused)),
 		cm_bsp_surface_t *surf __attribute__((unused))) {
 
@@ -107,11 +107,11 @@ static void G_trigger_multiple_Touch(g_edict_t *self, g_edict_t *other,
 /*
  * @brief
  */
-static void G_trigger_multiple_Enable(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator __attribute__((unused))) {
+static void G_trigger_multiple_Enable(g_entity_t *self, g_entity_t *other __attribute__((unused)),
+		g_entity_t *activator __attribute__((unused))) {
 	self->solid = SOLID_TRIGGER;
 	self->locals.Use = G_trigger_multiple_Use;
-	gi.LinkEdict(self);
+	gi.LinkEntity(self);
 }
 
 /*QUAKED trigger_multiple (.5 .5 .5) ? triggered
@@ -129,7 +129,7 @@ static void G_trigger_multiple_Enable(g_edict_t *self, g_edict_t *other __attrib
  triggered : If set, this trigger must be targeted before it will activate.
  shootable : If set, this trigger will fire when projectiles touch it.
  */
-void G_trigger_multiple(g_edict_t *ent) {
+void G_trigger_multiple(g_entity_t *ent) {
 
 	ent->locals.noise_index = gi.SoundIndex("misc/chat");
 
@@ -151,7 +151,7 @@ void G_trigger_multiple(g_edict_t *ent) {
 		G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
 
 	gi.SetModel(ent, ent->model);
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 }
 
 /*QUAKED trigger_once (.5 .5 .5) ? triggered
@@ -167,7 +167,7 @@ void G_trigger_multiple(g_edict_t *ent) {
  -------- Spawn flags --------
  triggered : If set, this trigger must be targeted before it will activate.
  */
-void G_trigger_once(g_edict_t *ent) {
+void G_trigger_once(g_entity_t *ent) {
 	ent->locals.wait = -1;
 	G_trigger_multiple(ent);
 }
@@ -175,8 +175,8 @@ void G_trigger_once(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_trigger_relay_Use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator) {
+static void G_trigger_relay_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
+		g_entity_t *activator) {
 	G_UseTargets(self, activator);
 }
 
@@ -190,7 +190,7 @@ static void G_trigger_relay_Use(g_edict_t *self, g_edict_t *other __attribute__(
  killtarget : The name of the entity or team to kill on activation.
  targetname : The target name of this entity.
  */
-void G_trigger_relay(g_edict_t *self) {
+void G_trigger_relay(g_entity_t *self) {
 	self->locals.Use = G_trigger_relay_Use;
 }
 
@@ -203,7 +203,7 @@ void G_trigger_relay(g_edict_t *self) {
  target : The name of the entity or team to use on activation.
  kill_target : The name of the entity or team to kill on activation.
  */
-void G_trigger_always(g_edict_t *ent) {
+void G_trigger_always(g_entity_t *ent) {
 
 	// we must have some delay to make sure our use targets are present
 	if (ent->locals.delay < 0.2)
@@ -218,7 +218,7 @@ void G_trigger_always(g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other,
+static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
 		cm_bsp_plane_t *plane __attribute__((unused)),
 		cm_bsp_surface_t *surf __attribute__((unused))) {
 
@@ -236,15 +236,15 @@ static void G_trigger_push_Touch(g_edict_t *self, g_edict_t *other,
 	}
 
 	if (self->locals.spawn_flags & PUSH_ONCE)
-		G_FreeEdict(self);
+		G_FreeEntity(self);
 }
 
 /*
  * @brief Creates an effect trail for the specified entity.
  */
-static void G_trigger_push_Effect(g_edict_t *self) {
+static void G_trigger_push_Effect(g_entity_t *self) {
 
-	g_edict_t *ent = G_Spawn(__func__);
+	g_entity_t *ent = G_Spawn(__func__);
 
 	VectorAdd(self->mins, self->maxs, ent->s.origin);
 	VectorScale(ent->s.origin, 0.5, ent->s.origin);
@@ -252,7 +252,7 @@ static void G_trigger_push_Effect(g_edict_t *self) {
 	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->s.trail = TRAIL_TELEPORTER;
 
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 }
 
 /*QUAKED trigger_push (.5 .5 .5) ? push_once push_effects
@@ -266,7 +266,7 @@ static void G_trigger_push_Effect(g_edict_t *self) {
  push_once : If set, the pusher is freed after it is used once.
  push_effects : If set, emit particle effects to indicate that a pusher is here.
  */
-void G_trigger_push(g_edict_t *self) {
+void G_trigger_push(g_entity_t *self) {
 
 	G_Trigger_Init(self);
 
@@ -275,7 +275,7 @@ void G_trigger_push(g_edict_t *self) {
 	if (!self->locals.speed)
 		self->locals.speed = 100;
 
-	gi.LinkEdict(self);
+	gi.LinkEntity(self);
 
 	if (self->locals.spawn_flags & PUSH_EFFECT)
 		G_trigger_push_Effect(self);
@@ -284,14 +284,14 @@ void G_trigger_push(g_edict_t *self) {
 /*
  * @brief
  */
-static void G_trigger_hurt_Use(g_edict_t *self, g_edict_t *other __attribute__((unused)),
-		g_edict_t *activator __attribute__((unused))) {
+static void G_trigger_hurt_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
+		g_entity_t *activator __attribute__((unused))) {
 
 	if (self->solid == SOLID_NOT)
 		self->solid = SOLID_TRIGGER;
 	else
 		self->solid = SOLID_NOT;
-	gi.LinkEdict(self);
+	gi.LinkEntity(self);
 
 	if (!(self->locals.spawn_flags & 2))
 		self->locals.Use = NULL;
@@ -300,7 +300,7 @@ static void G_trigger_hurt_Use(g_edict_t *self, g_edict_t *other __attribute__((
 /*
  * @brief
  */
-static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other,
+static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
 		cm_bsp_plane_t *plane __attribute__((unused)),
 		cm_bsp_surface_t *surf __attribute__((unused))) {
 
@@ -310,7 +310,7 @@ static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other,
 			if (other->locals.item->type == ITEM_FLAG)
 				G_ResetFlag(other);
 			else
-				G_FreeEdict(other);
+				G_FreeEntity(other);
 		}
 
 		gi.Debug("%s\n", other->class_name);
@@ -349,7 +349,7 @@ static void G_trigger_hurt_Touch(g_edict_t *self, g_edict_t *other,
  no_protection : If set, armor will not be used to absorb damage inflicted by this entity.
  slow : Decreases the damage rate to once per second.
  */
-void G_trigger_hurt(g_edict_t *self) {
+void G_trigger_hurt(g_entity_t *self) {
 
 	G_Trigger_Init(self);
 
@@ -366,13 +366,13 @@ void G_trigger_hurt(g_edict_t *self) {
 	if (self->locals.spawn_flags & 2)
 		self->locals.Use = G_trigger_hurt_Use;
 
-	gi.LinkEdict(self);
+	gi.LinkEntity(self);
 }
 
 /*
  * @brief
  */
-static void G_trigger_exec_Touch(g_edict_t *self, g_edict_t *other __attribute__((unused)),
+static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other __attribute__((unused)),
 		cm_bsp_plane_t *plane __attribute__((unused)),
 		cm_bsp_surface_t *surf __attribute__((unused))) {
 
@@ -396,11 +396,11 @@ static void G_trigger_exec_Touch(g_edict_t *self, g_edict_t *other __attribute__
  script : The script file (.cfg) to execute.
  delay : The delay in seconds between activation and execution of the commands.
  */
-void G_trigger_exec(g_edict_t *self) {
+void G_trigger_exec(g_entity_t *self) {
 
 	if (!self->locals.command && !self->locals.script) {
 		gi.Debug("No command or script at %s", vtos(self->s.origin));
-		G_FreeEdict(self);
+		G_FreeEntity(self);
 		return;
 	}
 
@@ -408,5 +408,5 @@ void G_trigger_exec(g_edict_t *self) {
 
 	self->locals.Touch = G_trigger_exec_Touch;
 
-	gi.LinkEdict(self);
+	gi.LinkEntity(self);
 }

@@ -89,10 +89,10 @@ void G_ResetVote(void) {
 
 	for (i = 0; i < sv_max_clients->integer; i++) { //reset vote flags
 
-		if (!g_game.edicts[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use)
 			continue;
 
-		g_game.edicts[i + 1].client->locals.persistent.vote = VOTE_NO_OP;
+		g_game.entities[i + 1].client->locals.persistent.vote = VOTE_NO_OP;
 	}
 
 	gi.ConfigString(CS_VOTE, NULL);
@@ -107,12 +107,12 @@ void G_ResetVote(void) {
  * @brief Reset all items in the level based on gameplay, ctf, etc.
  */
 static void G_ResetItems(void) {
-	g_edict_t *ent;
+	g_entity_t *ent;
 	uint32_t i;
 
-	for (i = 1; i < ge.num_edicts; i++) { // reset items
+	for (i = 1; i < ge.num_entities; i++) { // reset items
 
-		ent = &g_game.edicts[i];
+		ent = &g_game.entities[i];
 
 		if (!ent->in_use)
 			continue;
@@ -121,7 +121,7 @@ static void G_ResetItems(void) {
 			continue;
 
 		if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // free dropped ones
-			G_FreeEdict(ent);
+			G_FreeEntity(ent);
 			continue;
 		}
 
@@ -158,7 +158,7 @@ static void G_ResetItems(void) {
  */
 static void G_RestartGame(_Bool teamz) {
 	int32_t i;
-	g_edict_t *ent;
+	g_entity_t *ent;
 	g_client_t *cl;
 
 	if (g_level.match_time)
@@ -169,10 +169,10 @@ static void G_RestartGame(_Bool teamz) {
 
 	for (i = 0; i < sv_max_clients->integer; i++) { // reset clients
 
-		if (!g_game.edicts[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use)
 			continue;
 
-		ent = &g_game.edicts[i + 1];
+		ent = &g_game.entities[i + 1];
 		cl = ent->client;
 
 		cl->locals.persistent.ready = false; // back to warmup
@@ -218,7 +218,7 @@ static void G_RestartGame(_Bool teamz) {
 	g_team_good.captures = g_team_evil.captures = 0;
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
-	gi.Sound(&g_game.edicts[0], g_media.sounds.teleport, ATTEN_NONE);
+	gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE);
 }
 
 /*
@@ -238,7 +238,7 @@ static void G_MuteClient(char *name, _Bool mute) {
  */
 static void G_BeginIntermission(const char *map) {
 	int32_t i;
-	g_edict_t *ent, *client;
+	g_entity_t *ent, *client;
 
 	if (g_level.intermission_time)
 		return; // already activated
@@ -248,7 +248,7 @@ static void G_BeginIntermission(const char *map) {
 	// respawn any dead clients
 	for (i = 0; i < sv_max_clients->integer; i++) {
 
-		client = g_game.edicts + 1 + i;
+		client = g_game.entities + 1 + i;
 
 		if (!client->in_use)
 			continue;
@@ -271,7 +271,7 @@ static void G_BeginIntermission(const char *map) {
 	// move all clients to the intermission point
 	for (i = 0; i < sv_max_clients->integer; i++) {
 
-		client = g_game.edicts + 1 + i;
+		client = g_game.entities + 1 + i;
 
 		if (!client->in_use)
 			continue;
@@ -280,7 +280,7 @@ static void G_BeginIntermission(const char *map) {
 	}
 
 	// play a dramatic sound effect
-	gi.PositionedSound(g_level.intermission_origin, g_game.edicts, g_media.sounds.bfg_hit,
+	gi.PositionedSound(g_level.intermission_origin, g_game.entities, g_media.sounds.bfg_hit,
 			ATTEN_NORM);
 
 	// stay on same level if not provided
@@ -306,7 +306,7 @@ static void G_CheckVote(void) {
 	}
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.edicts[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use)
 			continue;
 		count++;
 	}
@@ -356,10 +356,10 @@ static void G_CheckRoundStart(void) {
 	clients = g = e = 0;
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.edicts[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use)
 			continue;
 
-		cl = g_game.edicts[i + 1].client;
+		cl = g_game.entities[i + 1].client;
 
 		if (cl->locals.persistent.spectator)
 			continue;
@@ -393,7 +393,7 @@ static void G_CheckRoundStart(void) {
  */
 static void G_CheckRoundLimit() {
 	int32_t i;
-	g_edict_t *ent;
+	g_entity_t *ent;
 	g_client_t *cl;
 
 	if (g_level.round_num >= (uint32_t) g_level.round_limit) { // enforce round_limit
@@ -404,10 +404,10 @@ static void G_CheckRoundLimit() {
 
 	// or attempt to re-join previously active players
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.edicts[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use)
 			continue;
 
-		ent = &g_game.edicts[i + 1];
+		ent = &g_game.entities[i + 1];
 		cl = ent->client;
 
 		if (cl->locals.persistent.round_num != g_level.round_num)
@@ -432,7 +432,7 @@ static void G_CheckRoundLimit() {
 static void G_CheckRoundEnd(void) {
 	uint32_t i, g, e, clients;
 	int32_t j;
-	g_edict_t *winner;
+	g_entity_t *winner;
 	g_client_t *cl;
 
 	if (!g_level.rounds)
@@ -444,15 +444,15 @@ static void G_CheckRoundEnd(void) {
 	winner = NULL;
 	g = e = clients = 0;
 	for (j = 0; j < sv_max_clients->integer; j++) {
-		if (!g_game.edicts[j + 1].in_use)
+		if (!g_game.entities[j + 1].in_use)
 			continue;
 
-		cl = g_game.edicts[j + 1].client;
+		cl = g_game.entities[j + 1].client;
 
 		if (cl->locals.persistent.spectator) // true spectator, or dead
 			continue;
 
-		winner = &g_game.edicts[j + 1];
+		winner = &g_game.entities[j + 1];
 
 		if (g_level.teams)
 			cl->locals.persistent.team == &g_team_good ? g++ : e++;
@@ -474,21 +474,21 @@ static void G_CheckRoundEnd(void) {
 		return;
 
 	// allow enemy projectiles to expire before declaring a winner
-	for (i = 0; i < ge.num_edicts; i++) {
-		if (!g_game.edicts[i + 1].in_use)
+	for (i = 0; i < ge.num_entities; i++) {
+		if (!g_game.entities[i + 1].in_use)
 			continue;
 
-		if (!g_game.edicts[i + 1].owner)
+		if (!g_game.entities[i + 1].owner)
 			continue;
 
-		if (!(cl = g_game.edicts[i + 1].owner->client))
+		if (!(cl = g_game.entities[i + 1].owner->client))
 			continue;
 
 		if (g_level.teams || g_level.ctf) {
 			if (cl->locals.persistent.team != winner->client->locals.persistent.team)
 				return;
 		} else {
-			if (g_game.edicts[i + 1].owner != winner)
+			if (g_game.entities[i + 1].owner != winner)
 				return;
 		}
 	}
@@ -520,10 +520,10 @@ static void G_CheckMatchEnd(void) {
 
 	g = e = clients = 0;
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.edicts[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use)
 			continue;
 
-		cl = g_game.edicts[i + 1].client;
+		cl = g_game.entities[i + 1].client;
 
 		if (cl->locals.persistent.spectator)
 			continue;
@@ -594,12 +594,12 @@ static void G_CheckRules(void) {
 		g_level.time_limit = (g_time_limit->value * 60 * 1000) + g_level.time;
 
 		for (i = 0; i < sv_max_clients->integer; i++) {
-			if (!g_game.edicts[i + 1].in_use)
+			if (!g_game.entities[i + 1].in_use)
 				continue;
-			G_ClientRespawn(&g_game.edicts[i + 1], false);
+			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		gi.Sound(&g_game.edicts[0], g_media.sounds.teleport, ATTEN_NONE);
+		gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE);
 		gi.BroadcastPrint(PRINT_HIGH, "Match has started\n");
 	}
 
@@ -609,12 +609,12 @@ static void G_CheckRules(void) {
 		g_level.warmup = false;
 
 		for (i = 0; i < sv_max_clients->integer; i++) {
-			if (!g_game.edicts[i + 1].in_use)
+			if (!g_game.entities[i + 1].in_use)
 				continue;
-			G_ClientRespawn(&g_game.edicts[i + 1], false);
+			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		gi.Sound(&g_game.edicts[0], g_media.sounds.teleport, ATTEN_NONE);
+		gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE);
 		gi.BroadcastPrint(PRINT_HIGH, "Round has started\n");
 	}
 
@@ -663,7 +663,7 @@ static void G_CheckRules(void) {
 		} else { // or individual scores
 			for (i = 0; i < sv_max_clients->integer; i++) {
 				cl = g_game.clients + i;
-				if (!g_game.edicts[i + 1].in_use)
+				if (!g_game.entities[i + 1].in_use)
 					continue;
 
 				if (cl->locals.persistent.score >= g_level.frag_limit) {
@@ -810,7 +810,7 @@ static void G_ExitLevel(void) {
  */
 static void G_Frame(void) {
 	int32_t i;
-	g_edict_t *ent;
+	g_entity_t *ent;
 
 	g_level.frame_num++;
 	g_level.time = g_level.frame_num * gi.frame_millis;
@@ -825,8 +825,8 @@ static void G_Frame(void) {
 
 	// treat each object in turn
 	// even the world gets a chance to think
-	ent = &g_game.edicts[0];
-	for (i = 0; i < ge.num_edicts; i++, ent++) {
+	ent = &g_game.entities[0];
+	for (i = 0; i < ge.num_entities; i++, ent++) {
 
 		if (!ent->in_use)
 			continue;
@@ -1155,12 +1155,12 @@ void G_Init(void) {
 	G_ParseMapList("maps.lst");
 
 	// initialize entities and clients for this game
-	g_game.edicts = gi.Malloc(g_max_entities->integer * sizeof(g_edict_t), MEM_TAG_GAME);
+	g_game.entities = gi.Malloc(g_max_entities->integer * sizeof(g_entity_t), MEM_TAG_GAME);
 	g_game.clients = gi.Malloc(sv_max_clients->integer * sizeof(g_client_t), MEM_TAG_GAME);
 
-	ge.edicts = g_game.edicts;
-	ge.max_edicts = g_max_entities->integer;
-	ge.num_edicts = sv_max_clients->integer + 1;
+	ge.entities = g_game.entities;
+	ge.max_entities = g_max_entities->integer;
+	ge.num_entities = sv_max_clients->integer + 1;
 
 	G_Ai_Init(); // initialize the AI
 	G_MySQL_Init();
@@ -1220,7 +1220,7 @@ g_export_t *G_LoadGame(g_import_t *import) {
 
 	ge.GameName = G_GameName;
 
-	ge.edict_size = sizeof(g_edict_t);
+	ge.entity_size = sizeof(g_entity_t);
 
 	return &ge;
 }

@@ -56,7 +56,7 @@ static void G_MySQL_Query(const char *fmt __attribute__((unused)), ...) {
 /*
  * @return The MySQL-escaped name for the given entity.
  */
-const char *G_MySQL_EdictName(const g_edict_t *ent __attribute__((unused))) {
+const char *G_MySQL_EntityName(const g_entity_t *ent __attribute__((unused))) {
 #ifdef HAVE_MYSQL
 
 	char name[MAX_NET_NAME];
@@ -90,8 +90,8 @@ const char *G_MySQL_EdictName(const g_edict_t *ent __attribute__((unused))) {
 /*
  * @brief Record a frag to MySQL.
  */
-void G_MySQL_ClientObituary(const g_edict_t *self __attribute__((unused)),
-		const g_edict_t *attacker __attribute__((unused)),
+void G_MySQL_ClientObituary(const g_entity_t *self __attribute__((unused)),
+		const g_entity_t *attacker __attribute__((unused)),
 		const uint32_t mod __attribute__((unused))) {
 
 #if HAVE_MYSQL
@@ -101,8 +101,8 @@ void G_MySQL_ClientObituary(const g_edict_t *self __attribute__((unused)),
 		return;
 	}
 
-	const char *fraggee = G_MySQL_EdictName(self);
-	const char *fragger = G_MySQL_EdictName(attacker);
+	const char *fraggee = G_MySQL_EntityName(self);
+	const char *fragger = G_MySQL_EntityName(attacker);
 
 	g_snprintf(query, sizeof(query), "INSERT INTO `frag` VALUES(NULL, NOW(), '%s', '%s', '%s', %d)",
 			g_level.name, fragger, fraggee, mod);

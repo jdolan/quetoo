@@ -83,7 +83,7 @@ const g_item_t *G_FindItem(const char *name) {
  * will never return the shard armor, because shards are added to the currently
  * held armor type, or to jacket armor if no armor is held.
  */
-const g_item_t *G_ClientArmor(const g_edict_t *ent) {
+const g_item_t *G_ClientArmor(const g_entity_t *ent) {
 
 	if (ent->client) {
 		const g_client_persistent_t *persistent = &ent->client->locals.persistent;
@@ -107,10 +107,10 @@ const g_item_t *G_ClientArmor(const g_edict_t *ent) {
 /*
  * @brief
  */
-static void G_ItemRespawn(g_edict_t *ent) {
+static void G_ItemRespawn(g_entity_t *ent) {
 
 	if (ent->locals.team) { // pick a random member from the team
-		g_edict_t *master = ent->locals.team_master;
+		g_entity_t *master = ent->locals.team_master;
 
 		int32_t count, choice;
 
@@ -126,7 +126,7 @@ static void G_ItemRespawn(g_edict_t *ent) {
 	ent->sv_flags &= ~SVF_NO_CLIENT;
 	ent->solid = SOLID_TRIGGER;
 
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 
 	// send an effect
 	ent->s.event = EV_ITEM_RESPAWN;
@@ -135,7 +135,7 @@ static void G_ItemRespawn(g_edict_t *ent) {
 /*
  * @brief
  */
-void G_SetItemRespawn(g_edict_t *ent, uint32_t delay) {
+void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
 
 	ent->locals.flags |= FL_RESPAWN;
 	ent->sv_flags |= SVF_NO_CLIENT;
@@ -143,13 +143,13 @@ void G_SetItemRespawn(g_edict_t *ent, uint32_t delay) {
 	ent->locals.next_think = g_level.time + delay;
 	ent->locals.Think = G_ItemRespawn;
 
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 }
 
 /*
  * @brief
  */
-static _Bool G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
+static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
 
 	if (other->locals.health < other->locals.max_health)
 		other->locals.health = other->locals.max_health;
@@ -163,7 +163,7 @@ static _Bool G_PickupAdrenaline(g_edict_t *ent, g_edict_t *other) {
 /*
  * @brief
  */
-static _Bool G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
+static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 
 	if (other->client->locals.persistent.inventory[g_media.items.quad_damage])
 		return false; // already have it
@@ -184,8 +184,8 @@ static _Bool G_PickupQuadDamage(g_edict_t *ent, g_edict_t *other) {
 /*
  * @brief
  */
-g_edict_t *G_TossQuadDamage(g_edict_t *ent) {
-	g_edict_t *quad;
+g_entity_t *G_TossQuadDamage(g_entity_t *ent) {
+	g_entity_t *quad;
 
 	if (!ent->client->locals.persistent.inventory[g_media.items.quad_damage])
 		return NULL;
@@ -204,7 +204,7 @@ g_edict_t *G_TossQuadDamage(g_edict_t *ent) {
 /*
  * @brief
  */
-_Bool G_AddAmmo(g_edict_t *ent, const g_item_t *item, int16_t count) {
+_Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	uint16_t index;
 	int16_t max;
 
@@ -242,7 +242,7 @@ _Bool G_AddAmmo(g_edict_t *ent, const g_item_t *item, int16_t count) {
 /*
  * @brief
  */
-_Bool G_SetAmmo(g_edict_t *ent, const g_item_t *item, int16_t count) {
+_Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	uint16_t index;
 	int16_t max;
 
@@ -280,7 +280,7 @@ _Bool G_SetAmmo(g_edict_t *ent, const g_item_t *item, int16_t count) {
 /*
  * @brief
  */
-static _Bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
+static _Bool G_PickupAmmo(g_entity_t *ent, g_entity_t *other) {
 	int32_t count;
 
 	if (ent->locals.count)
@@ -300,7 +300,7 @@ static _Bool G_PickupAmmo(g_edict_t *ent, g_edict_t *other) {
 /*
  * @brief
  */
-static _Bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
+static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 	int32_t h, max;
 
 	const uint16_t tag = ent->locals.item->tag;
@@ -340,7 +340,7 @@ static _Bool G_PickupHealth(g_edict_t *ent, g_edict_t *other) {
 /*
  * @brief
  */
-static _Bool G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
+static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	const g_item_t *armor = ent->locals.item;
 
 	g_client_persistent_t *persistent = &other->client->locals.persistent;
@@ -385,9 +385,9 @@ static _Bool G_PickupArmor(g_edict_t *ent, g_edict_t *other) {
 /*
  * @brief A dropped flag has been idle for 30 seconds, return it.
  */
-void G_ResetFlag(g_edict_t *ent) {
+void G_ResetFlag(g_entity_t *ent) {
 	g_team_t *t;
-	g_edict_t *f;
+	g_entity_t *f;
 
 	if (!(t = G_TeamForFlag(ent)))
 		return;
@@ -402,16 +402,16 @@ void G_ResetFlag(g_edict_t *ent) {
 
 	gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned\n", t->name);
 
-	G_FreeEdict(ent);
+	G_FreeEntity(ent);
 }
 
 /*
  * @brief Return own flag, or capture on it if enemy's flag is in inventory.
  * Take the enemy's flag.
  */
-static _Bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
+static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	g_team_t *t, *ot;
-	g_edict_t *f, *of;
+	g_entity_t *f, *of;
 	int32_t index;
 
 	if (!other->client->locals.persistent.team)
@@ -492,9 +492,9 @@ static _Bool G_PickupFlag(g_edict_t *ent, g_edict_t *other) {
 /*
  * @brief
  */
-g_edict_t *G_TossFlag(g_edict_t *ent) {
+g_entity_t *G_TossFlag(g_entity_t *ent) {
 	g_team_t *ot;
-	g_edict_t *of;
+	g_entity_t *of;
 	int32_t index;
 
 	if (!(ot = G_OtherTeam(ent->client->locals.persistent.team)))
@@ -522,14 +522,14 @@ g_edict_t *G_TossFlag(g_edict_t *ent) {
 /*
  * @brief
  */
-static g_edict_t *G_DropFlag(g_edict_t *ent, const g_item_t *item __attribute__((unused))) {
+static g_entity_t *G_DropFlag(g_entity_t *ent, const g_item_t *item __attribute__((unused))) {
 	return G_TossFlag(ent);
 }
 
 /*
  * @brief
  */
-void G_TouchItem(g_edict_t *ent, g_edict_t *other, cm_bsp_plane_t *plane __attribute__((unused)), cm_bsp_surface_t *surf __attribute__((unused))) {
+void G_TouchItem(g_entity_t *ent, g_entity_t *other, cm_bsp_plane_t *plane __attribute__((unused)), cm_bsp_surface_t *surf __attribute__((unused))) {
 	_Bool taken;
 
 	if (!other->client)
@@ -575,7 +575,7 @@ void G_TouchItem(g_edict_t *ent, g_edict_t *other, cm_bsp_plane_t *plane __attri
 		if (ent->locals.flags & FL_RESPAWN)
 			ent->locals.flags &= ~FL_RESPAWN;
 		else
-			G_FreeEdict(ent);
+			G_FreeEntity(ent);
 	} else if (ent->locals.item->type == ITEM_FLAG) // if a flag has been taken, hide it
 		ent->sv_flags |= SVF_NO_CLIENT;
 }
@@ -583,7 +583,7 @@ void G_TouchItem(g_edict_t *ent, g_edict_t *other, cm_bsp_plane_t *plane __attri
 /*
  * @brief
  */
-static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other, cm_bsp_plane_t *plane,
+static void G_DropItemUntouchable(g_entity_t *ent, g_entity_t *other, cm_bsp_plane_t *plane,
 		cm_bsp_surface_t *surf) {
 
 	if (other == ent->owner) // prevent the dropper from picking it right back up
@@ -595,7 +595,7 @@ static void G_DropItemUntouchable(g_edict_t *ent, g_edict_t *other, cm_bsp_plane
 /*
  * @brief
  */
-static void G_DropItem_Think(g_edict_t *ent) {
+static void G_DropItem_Think(g_entity_t *ent) {
 	int32_t contents;
 	uint32_t i;
 
@@ -613,7 +613,7 @@ static void G_DropItem_Think(g_edict_t *ent) {
 		ent->locals.Think = G_ResetFlag;
 	else
 		// everything else just gets freed
-		ent->locals.Think = G_FreeEdict;
+		ent->locals.Think = G_FreeEntity;
 
 	if (ent->locals.item->type == ITEM_POWERUP) // expire from last touch
 		i = ent->locals.timestamp - g_level.time;
@@ -635,11 +635,11 @@ static void G_DropItem_Think(g_edict_t *ent) {
  * @brief Handles the mechanics of dropping items, but does not adjust the client's
  * inventory. That is left to the caller.
  */
-g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
+g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	vec3_t forward;
 	cm_trace_t tr;
 
-	g_edict_t *it = G_Spawn(item->class_name);
+	g_entity_t *it = G_Spawn(item->class_name);
 	it->owner = ent;
 
 	VectorScale(ITEM_MINS, ITEM_SCALE, it->mins);
@@ -667,7 +667,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 		if (item->type == ITEM_FLAG)
 			G_ResetFlag(it);
 		else
-			G_FreeEdict(it);
+			G_FreeEntity(it);
 
 		return NULL;
 	}
@@ -694,7 +694,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 	it->locals.Think = G_DropItem_Think;
 	it->locals.next_think = g_level.time + gi.frame_millis;
 
-	gi.LinkEdict(it);
+	gi.LinkEntity(it);
 
 	return it;
 }
@@ -702,7 +702,7 @@ g_edict_t *G_DropItem(g_edict_t *ent, const g_item_t *item) {
 /*
  * @brief
  */
-static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)), g_edict_t *activator __attribute__((unused))) {
+static void G_UseItem(g_entity_t *ent, g_entity_t *other __attribute__((unused)), g_entity_t *activator __attribute__((unused))) {
 	ent->sv_flags &= ~SVF_NO_CLIENT;
 	ent->locals.Use = NULL;
 
@@ -714,14 +714,14 @@ static void G_UseItem(g_edict_t *ent, g_edict_t *other __attribute__((unused)), 
 		ent->locals.Touch = G_TouchItem;
 	}
 
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 }
 
 /*
  * @brief Drops the specified item to the floor and sets up interaction
  * properties (Touch, Use, move type, ..).
  */
-static void G_ItemDropToFloor(g_edict_t *ent) {
+static void G_ItemDropToFloor(g_entity_t *ent) {
 	cm_trace_t tr;
 	vec3_t dest;
 
@@ -744,7 +744,7 @@ static void G_ItemDropToFloor(g_edict_t *ent) {
 	tr = gi.Trace(ent->s.origin, dest, ent->mins, ent->maxs, ent, MASK_SOLID);
 	if (tr.start_solid) {
 		gi.Warn("%s start_solid\n", etos(ent));
-		G_FreeEdict(ent);
+		G_FreeEntity(ent);
 		return;
 	}
 
@@ -789,7 +789,7 @@ static void G_ItemDropToFloor(g_edict_t *ent) {
 		}
 	}
 
-	gi.LinkEdict(ent);
+	gi.LinkEntity(ent);
 }
 
 /*
@@ -858,7 +858,7 @@ void G_PrecacheItem(const g_item_t *it) {
  * Items can't be immediately dropped to floor, because they might
  * be on an entity that hasn't spawned yet.
  */
-void G_SpawnItem(g_edict_t *ent, const g_item_t *item) {
+void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 
 	ent->locals.item = item;
 	G_PrecacheItem(ent->locals.item);

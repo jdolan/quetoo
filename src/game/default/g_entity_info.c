@@ -27,8 +27,8 @@
  -------- Keys --------
  targetname : The target name of this entity.
 */
-void G_info_notnull(g_edict_t *self) {
-	gi.LinkEdict(self);
+void G_info_notnull(g_entity_t *self) {
+	gi.LinkEntity(self);
 }
 
 /*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
@@ -37,7 +37,7 @@ void G_info_notnull(g_edict_t *self) {
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
 */
-void G_info_player_start(g_edict_t *self) {
+void G_info_player_start(g_entity_t *self) {
 	G_InitPlayerSpawn(self);
 }
 
@@ -48,7 +48,7 @@ void G_info_player_start(g_edict_t *self) {
  angles : The "pitch yaw roll" angles for the camera (e.g. 20 270 0).
  target : The target name of an info_notnull as an alternate way to set the camera angles.
 */
-void G_info_player_intermission(g_edict_t *self) {
+void G_info_player_intermission(g_entity_t *self) {
 	G_InitPlayerSpawn(self);
 }
 
@@ -58,7 +58,7 @@ void G_info_player_intermission(g_edict_t *self) {
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
 */
-void G_info_player_deathmatch(g_edict_t *self) {
+void G_info_player_deathmatch(g_entity_t *self) {
 	G_InitPlayerSpawn(self);
 }
 
@@ -68,7 +68,7 @@ void G_info_player_deathmatch(g_edict_t *self) {
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
 */
-void G_info_player_team1(g_edict_t *self) {
+void G_info_player_team1(g_entity_t *self) {
 	G_InitPlayerSpawn(self);
 }
 
@@ -78,6 +78,6 @@ void G_info_player_team1(g_edict_t *self) {
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
 */
-void G_info_player_team2(g_edict_t *self) {
+void G_info_player_team2(g_entity_t *self) {
 	G_InitPlayerSpawn(self);
 }

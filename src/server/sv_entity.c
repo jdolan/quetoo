@@ -196,7 +196,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	vec3_t org, off;
 	int32_t i;
 
-	g_edict_t *cent = client->edict;
+	g_entity_t *cent = client->entity;
 	if (!cent->client)
 		return; // not in game yet
 
@@ -228,8 +228,8 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	frame->num_entities = 0;
 	frame->entity_state = svs.next_entity_state;
 
-	for (uint16_t e = 1; e < svs.game->num_edicts; e++) {
-		g_edict_t *ent = EDICT_FOR_NUM(e);
+	for (uint16_t e = 1; e < svs.game->num_entities; e++) {
+		g_entity_t *ent = ENTITY_FOR_NUM(e);
 
 		// ignore entities that are local to the server
 		if (ent->sv_flags & SVF_NO_CLIENT)
@@ -274,7 +274,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 		*s = ent->s;
 
 		// don't mark our own missiles as solid for prediction
-		if (ent->owner == client->edict)
+		if (ent->owner == client->entity)
 			s->solid = 0;
 
 		svs.next_entity_state++;

@@ -118,7 +118,7 @@ static void Pm_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, ve
  * @brief Mark the specified entity as touched. This enables the game module to
  * detect player -> entity interactions.
  */
-static void Pm_TouchEnt(struct g_edict_s *ent) {
+static void Pm_TouchEnt(struct g_entity_s *ent) {
 
 	if (ent == NULL) {
 		return;

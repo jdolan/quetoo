@@ -27,14 +27,14 @@
 #define GAME_API_VERSION 1
 
 /*
- * @brief Server flags for g_edict_t.
+ * @brief Server flags for g_entity_t.
  */
 #define SVF_NO_CLIENT 		(1 << 0) // don't send entity to clients
 #define SVF_DEAD_MONSTER	(1 << 1) // don't clip against corpses
 #define SVF_GAME			(1 << 2) // game may extend from here
 
 /*
- * @brief Filter bits to Sv_AreaEdicts / gi.AreaEdicts.
+ * @brief Filter bits to Sv_BoxEntities / gi.BoxEntities.
  */
 #define AREA_SOLID			(1 << 0) // SOLID_BSP, SOLID_BOX, SOLID_MISSILE..
 #define AREA_TRIGGER		(1 << 1) // SOLID_TRIGGER
@@ -54,10 +54,10 @@ typedef struct {
 
 typedef struct {
 	void *opaque;
-} g_edict_locals_t;
+} g_entity_locals_t;
 
 typedef struct g_client_s g_client_t;
-typedef struct g_edict_s g_edict_t;
+typedef struct g_entity_s g_entity_t;
 
 #endif /* __GAME_LOCAL_H__ */
 
@@ -69,12 +69,12 @@ struct g_client_s {
 };
 
 /*
- * @brief Edicts (or entities) are autonomous units of game interaction, such
+ * @brief Entitys (or entities) are autonomous units of game interaction, such
  * as items, moving platforms, giblets and players. The game module and server
  * share a common base for this structure, but the game is free to extend it
- * through g_edict_locals_t.
+ * through g_entity_locals_t.
  */
-struct g_edict_s {
+struct g_entity_s {
 	/*
 	 * @brief The class name provides basic identification and taxonomy for
 	 * the entity. This is guaranteed to be set through G_Spawn.
@@ -116,7 +116,7 @@ struct g_edict_s {
 
 	/*
 	 * @brief The entity bounding box, set by the server, in world space. These
-	 * are populated by gi.LinkEdict / Sv_LinkEdict.
+	 * are populated by gi.LinkEntity / Sv_LinkEntity.
 	 */
 	vec3_t abs_mins, abs_maxs, size;
 
@@ -130,7 +130,7 @@ struct g_edict_s {
 	 * @brief Sometimes it is useful for an entity to not be clipped against
 	 * the entity that created it (for example, player projectiles).
 	 */
-	g_edict_t *owner;
+	g_entity_t *owner;
 
 	/*
 	 * @brief Entities 1 through sv_max_clients->integer will have a valid
@@ -140,10 +140,10 @@ struct g_edict_s {
 
 	/*
 	 * @brief The game module can extend the edict structure through this
-	 * opaque field. Therefore, the actual size of g_edict_t is returned to the
+	 * opaque field. Therefore, the actual size of g_entity_t is returned to the
 	 * server through ge.edict_size.
 	 */
-	g_edict_locals_t locals; // game-local data members
+	g_entity_locals_t locals; // game-local data members
 };
 
 /*
@@ -219,7 +219,7 @@ typedef struct {
 	 * @brief Set the model of a given entity by name. For inline BSP models,
 	 * the bounding box is also set and the entity linked.
 	 */
-	void (*SetModel)(g_edict_t *ent, const char *name);
+	void (*SetModel)(g_entity_t *ent, const char *name);
 
 	/*
 	 * @brief Sound sample playback dispatch.
@@ -228,7 +228,7 @@ typedef struct {
 	 * @param index The configuration string index of the sound to be played.
 	 * @param atten The sound attenuation constant (e.g. ATTEN_IDLE).
 	 */
-	void (*Sound)(const g_edict_t *ent, const uint16_t index, const uint16_t atten);
+	void (*Sound)(const g_entity_t *ent, const uint16_t index, const uint16_t atten);
 
 	/*
 	 * @brief Sound sample playback dispatch for server-local entities, or
@@ -239,7 +239,7 @@ typedef struct {
 	 * @param index The configuration string index of the sound to be played.
 	 * @param atten The sound attenuation constant (e.g. ATTEN_IDLE).
 	 */
-	void (*PositionedSound)(const vec3_t origin, const g_edict_t *ent, const uint16_t index,
+	void (*PositionedSound)(const vec3_t origin, const g_entity_t *ent, const uint16_t index,
 			const uint16_t atten);
 
 	/*
@@ -263,7 +263,7 @@ typedef struct {
 	 * the trace intersected a plane.
 	 */
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-			const g_edict_t *skip, const int32_t contents);
+			const g_entity_t *skip, const int32_t contents);
 
 	/*
 	 * @brief PVS and PHS query facilities, returning true if the two points
@@ -284,12 +284,12 @@ typedef struct {
 	 * initialized or moved. Linking resolves their absolute bounding box and
 	 * makes them eligible for physics interactions.
 	 */
-	void (*LinkEdict)(g_edict_t *ent);
+	void (*LinkEntity)(g_entity_t *ent);
 
 	/*
 	 * @brief All entities should be unlinked before being freed.
 	 */
-	void (*UnlinkEdict)(g_edict_t *ent);
+	void (*UnlinkEntity)(g_entity_t *ent);
 
 	/*
 	 * @brief Populates a list of entities occupying the specified bounding
@@ -303,14 +303,14 @@ typedef struct {
 	 *
 	 * @return The number of entities found.
 	 */
-	size_t (*AreaEdicts)(const vec3_t mins, const vec3_t maxs, g_edict_t **list, const size_t len,
+	size_t (*BoxEntities)(const vec3_t mins, const vec3_t maxs, g_entity_t **list, const size_t len,
 			const uint32_t type);
 
 	/*
 	 * @brief Network messaging facilities.
 	 */
 	void (*Multicast)(const vec3_t origin, multicast_t to);
-	void (*Unicast)(const g_edict_t *ent, const _Bool reliable);
+	void (*Unicast)(const g_entity_t *ent, const _Bool reliable);
 	void (*WriteData)(const void *data, size_t len);
 	void (*WriteChar)(const int32_t c);
 	void (*WriteByte)(const int32_t c);
@@ -327,7 +327,7 @@ typedef struct {
 	 * @brief Network console IO.
 	 */
 	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-	void (*ClientPrint)(const g_edict_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+	void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 } g_import_t;
 
@@ -366,26 +366,26 @@ typedef struct {
 	/*
 	 * @brief Called when a client connects with valid user information.
 	 */
-	_Bool (*ClientConnect)(g_edict_t *ent, char *user_info);
+	_Bool (*ClientConnect)(g_entity_t *ent, char *user_info);
 
 	/*
 	 * @brief Called when a client has fully spawned and should begin thinking.
 	 */
-	void (*ClientBegin)(g_edict_t *ent);
-	void (*ClientUserInfoChanged)(g_edict_t *ent, const char *user_info);
-	void (*ClientDisconnect)(g_edict_t *ent);
+	void (*ClientBegin)(g_entity_t *ent);
+	void (*ClientUserInfoChanged)(g_entity_t *ent, const char *user_info);
+	void (*ClientDisconnect)(g_entity_t *ent);
 
 	/*
 	 * @brief Called when a client has issued a console command that could not
 	 * be handled by the server directly (e.g. voting).
 	 */
-	void (*ClientCommand)(g_edict_t *ent);
+	void (*ClientCommand)(g_entity_t *ent);
 
 	/*
 	 * @brief Called when a client issues a movement command, which may include
 	 * button actions such as attacking.
 	 */
-	void (*ClientThink)(g_edict_t *ent, pm_cmd_t *cmd);
+	void (*ClientThink)(g_entity_t *ent, pm_cmd_t *cmd);
 
 	/*
 	 * @brief Called every gi.frame_seconds to advance game logic.
@@ -398,26 +398,26 @@ typedef struct {
 	const char *(*GameName)(void);
 
 	/*
-	 * @brief The g_edict_t array, which must be allocated by the game due to
-	 * the opaque nature of g_edict_t.
+	 * @brief The g_entity_t array, which must be allocated by the game due to
+	 * the opaque nature of g_entity_t.
 	 */
-	struct g_edict_s *edicts;
+	struct g_entity_s *entities;
 
 	/*
-	 * @brief To be set to the size of g_edict_t so that the server can safely
-	 * iterate the edicts array.
+	 * @brief To be set to the size of g_entity_t so that the server can safely
+	 * iterate the entities array.
 	 */
-	size_t edict_size;
+	size_t entity_size;
 
 	/*
-	 * @brief The current number of allocated (in use) g_edict_t.
+	 * @brief The current number of allocated (in use) g_entity_t.
 	 */
-	uint16_t num_edicts;
+	uint16_t num_entities;
 
 	/*
-	 * @brief The total number of allocated g_edict_t (MAX_EDICTS).
+	 * @brief The total number of allocated g_entity_t (MAX_ENTITIES).
 	 */
-	uint16_t max_edicts;
+	uint16_t max_entities;
 } g_export_t;
 
 #endif /* __GAME_H__ */
