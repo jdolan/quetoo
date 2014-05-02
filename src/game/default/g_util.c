@@ -171,9 +171,10 @@ g_entity_t *G_PickTarget(char *target_name) {
 		return NULL;
 	}
 
+	g_entity_t *ent = NULL;
 	while (true) {
 
-		g_entity_t *ent = G_Find(ent, LOFS(target_name), target_name);
+		ent = G_Find(ent, LOFS(target_name), target_name);
 
 		if (!ent)
 			break;
