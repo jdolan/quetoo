@@ -6039,7 +6039,7 @@ bool CTwBar::MouseButton(ETwMouseButtonID _Button, bool _Pressed, int _X, int _Y
     	if (m_EditInPlace.m_Active && m_EditInPlace.m_Var->m_Type == TW_TYPE_BIND) {
     	    if (_Pressed) {
     	        stringstream s;
-    	        s << _Button + 322; // SDLK_MOUSE1 is 323
+    	        s << _Button + 322; // SDL_SCANCODE_MOUSE1 is 323
     	        m_EditInPlace.m_String = s.str();
     	        EditInPlaceEnd(true);
     	        NotUpToDate();
@@ -6517,7 +6517,7 @@ bool CTwBar::MouseWheel(int _Pos, int _PrevPos, int _MouseX, int _MouseY)
     if (!m_IsMinimized) {
         if (m_EditInPlace.m_Active && m_EditInPlace.m_Var->m_Type == TW_TYPE_BIND) {
             stringstream s;
-            s << (_Pos > _PrevPos ? 327 : 326); // SDLK_MOUSE1 is 323
+            s << (_Pos > _PrevPos ? 327 : 326); // SDL_SCANCODE_MOUSE1 is 323
             m_EditInPlace.m_String = s.str();
             EditInPlaceEnd(true);
             NotUpToDate();

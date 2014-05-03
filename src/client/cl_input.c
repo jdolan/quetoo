@@ -40,8 +40,7 @@ static cvar_t *m_yaw;
 #define MAX_KEY_QUEUE 64
 
 typedef struct {
-	SDL_Keycode key;
-	uint16_t unicode;
+	SDL_Scancode key;
 	_Bool down;
 } cl_key_queue_t;
 
@@ -50,13 +49,10 @@ static cl_key_queue_t cl_key_queue[MAX_KEY_QUEUE];
 static int32_t cl_key_queue_head = 0;
 static int32_t cl_key_queue_tail = 0;
 
-#define EVENT_ENQUEUE(keyNum, keyUnicode, keyDown) \
-	if(keyNum > 0){ \
-		cl_key_queue[cl_key_queue_head].key = (SDL_Keycode) (keyNum); \
-		cl_key_queue[cl_key_queue_head].unicode = (uint16_t) (keyUnicode); \
-		cl_key_queue[cl_key_queue_head].down = (_Bool) (keyDown); \
-		cl_key_queue_head = (cl_key_queue_head + 1) & (MAX_KEY_QUEUE - 1); \
-	}
+#define EVENT_ENQUEUE(scancode, is_down) \
+	cl_key_queue[cl_key_queue_head].key = (SDL_Scancode) scancode; \
+	cl_key_queue[cl_key_queue_head].down = (_Bool) is_down; \
+	cl_key_queue_head = (cl_key_queue_head + 1) & (MAX_KEY_QUEUE - 1);
 
 /*
  * KEY BUTTONS
@@ -76,7 +72,7 @@ static int32_t cl_key_queue_tail = 0;
  */
 
 typedef struct {
-	SDL_Keycode down[2]; // keys holding it down
+	SDL_Scancode down[2]; // keys holding it down
 	uint32_t down_time; // msec timestamp
 	uint32_t msec; // msec down this frame
 	byte state;
@@ -100,13 +96,13 @@ static cl_button_t cl_buttons[12];
  * @brief
  */
 static void Cl_KeyDown(cl_button_t *b) {
-	SDL_Keycode k;
+	SDL_Scancode k;
 
 	const char *c = Cmd_Argv(1);
 	if (c[0])
 		k = atoi(c);
 	else
-		k = SDLK_MLAST; // typed manually at the console for continuous down
+		k = SDL_NUM_SCANCODES; // typed manually at the console for continuous down
 
 	if (k == b->down[0] || k == b->down[1])
 		return; // repeating key
@@ -136,15 +132,13 @@ static void Cl_KeyDown(cl_button_t *b) {
  * @brief
  */
 static void Cl_KeyUp(cl_button_t *b) {
-	SDL_Keycode k;
 
-	const char *c = Cmd_Argv(1);
-	if (c[0])
-		k = atoi(c);
-	else { // typed manually at the console, assume for un-sticking, so clear all
+	if (Cmd_Argc() < 2) { // typed manually at the console, assume for un-sticking, so clear all
 		b->down[0] = b->down[1] = 0;
 		return;
 	}
+
+	const SDL_Scancode k = atoi(Cmd_Argv(1));
 
 	if (b->down[0] == k)
 		b->down[0] = 0;
@@ -161,9 +155,9 @@ static void Cl_KeyUp(cl_button_t *b) {
 
 	// save timestamp
 	const char *t = Cmd_Argv(2);
-	const uint32_t uptime = atoi(t);
-	if (uptime)
-		b->msec += uptime - b->down_time;
+	const uint32_t up_time = atoi(t);
+	if (up_time)
+		b->msec += up_time - b->down_time;
 	else
 		b->msec += 10;
 
@@ -278,13 +272,13 @@ static void Cl_HandleEvent(SDL_Event *event) {
 	switch (event->type) {
 		case SDL_MOUSEBUTTONUP:
 		case SDL_MOUSEBUTTONDOWN:
-			b = SDLK_MOUSE1 + (event->button.button - 1) % 8;
-			EVENT_ENQUEUE(b, b, (event->type == SDL_MOUSEBUTTONDOWN))
+			b = SDL_SCANCODE_MOUSE1 + (event->button.button - 1) % 8;
+			EVENT_ENQUEUE(b, (event->type == SDL_MOUSEBUTTONDOWN));
 			break;
 
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
-			EVENT_ENQUEUE(event->key.keysym.sym, event->key.keysym.sym, (event->type == SDL_KEYDOWN))
+			EVENT_ENQUEUE(event->key.keysym.scancode, (event->type == SDL_KEYDOWN))
 			break;
 
 		case SDL_QUIT:
@@ -365,10 +359,10 @@ void Cl_HandleEvents(void) {
 		const cl_key_dest_t dest = cls.key_state.dest;
 		cls.key_state.dest = prev_key_dest;
 
-		for (SDL_Keycode i = SDLK_UNKNOWN; i < (SDL_Keycode) SDLK_MLAST; i++) {
-			if (cls.key_state.down[i]) {
-				if (cls.key_state.binds[i] && cls.key_state.binds[i][0] == '+') {
-					Cl_KeyEvent(i, i, false, cls.real_time);
+		for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
+			if (cls.key_state.down[k]) {
+				if (cls.key_state.binds[k] && cls.key_state.binds[k][0] == '+') {
+					Cl_KeyEvent(k, false, cls.real_time);
 				}
 			}
 		}
@@ -422,7 +416,7 @@ void Cl_HandleEvents(void) {
 	while (cl_key_queue_head != cl_key_queue_tail) { // then check for keys
 		cl_key_queue_t *k = &cl_key_queue[cl_key_queue_tail];
 
-		Cl_KeyEvent(k->key, k->unicode, k->down, cls.real_time);
+		Cl_KeyEvent(k->key, k->down, cls.real_time);
 
 		cl_key_queue_tail = (cl_key_queue_tail + 1) & (MAX_KEY_QUEUE - 1);
 	}

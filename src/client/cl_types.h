@@ -207,15 +207,14 @@ typedef enum {
 #define KEY_LINE_SIZE 256
 
 typedef enum {
-	SDLK_MOUSE1 = (SDLK_SLEEP + 1),
-	SDLK_MOUSE2,
-	SDLK_MOUSE3,
-	SDLK_MOUSE4,
-	SDLK_MOUSE5,
-	SDLK_MOUSE6,
-	SDLK_MOUSE7,
-	SDLK_MOUSE8,
-	SDLK_MLAST
+	SDL_SCANCODE_MOUSE1 = (SDL_SCANCODE_APP2 + 1),
+	SDL_SCANCODE_MOUSE2,
+	SDL_SCANCODE_MOUSE3,
+	SDL_SCANCODE_MOUSE4,
+	SDL_SCANCODE_MOUSE5,
+	SDL_SCANCODE_MOUSE6,
+	SDL_SCANCODE_MOUSE7,
+	SDL_SCANCODE_MOUSE8
 } SDL_Button;
 
 typedef struct {
@@ -230,8 +229,8 @@ typedef struct {
 	uint32_t edit_line;
 	uint32_t history_line;
 
-	char *binds[SDLK_MLAST];
-	_Bool down[SDLK_MLAST];
+	char *binds[SDL_NUM_SCANCODES];
+	_Bool down[SDL_NUM_SCANCODES];
 } cl_key_state_t;
 
 typedef struct {

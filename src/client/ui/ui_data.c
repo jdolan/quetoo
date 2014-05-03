@@ -130,7 +130,7 @@ static void TW_CALL Ui_BindGet(void *value, void *data) {
 	char *s = (char *) value;
 	*s = 0;
 
-	for (SDL_Keycode i = SDLK_UNKNOWN; i < (SDL_Keycode) SDLK_MLAST; i++) {
+	for (SDL_Scancode i = SDL_SCANCODE_UNKNOWN; i < (SDL_Scancode) SDL_NUM_SCANCODES; i++) {
 		if (binds[i] && !g_ascii_strcasecmp(bind, binds[i])) {
 			strcat(s, va(strlen(s) ? ", %s" : "%s", Cl_KeyName(i)));
 		}
