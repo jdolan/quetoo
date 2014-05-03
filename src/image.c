@@ -62,27 +62,6 @@ static _Bool img_palette_initialized;
 #define BMASK 0x00ff0000
 #define AMASK 0xff000000
 
-static SDL_PixelFormat img_pixel_format = {
-// default pixel format all images are converted to
-		NULL, // palette
-		32, // bits
-		4, // bytes
-		0, // rloss
-		0, // gloss
-		0, // bloss
-		0, // aloss
-		0, // rshift
-		8, // gshift
-		16, // bshift
-		24, // ashift
-		RMASK, // rmask
-		GMASK, // gmask
-		BMASK, // bmask
-		AMASK, // amask
-		0, // colorkey
-		1 // alpha
-		};
-
 // image formats, tried in this order
 static const char *img_formats[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
 
@@ -178,7 +157,7 @@ _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf)
 			if ((s = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
 
 				if (!g_str_has_prefix(path, IMG_PALETTE)) {
-					*surf = SDL_ConvertSurface(s, &img_pixel_format, 0);
+					*surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA8888, 0);
 					SDL_FreeSurface(s);
 				} else {
 					*surf = s;
@@ -197,19 +176,16 @@ _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf)
  */
 void Img_InitPalette(void) {
 	SDL_Surface *surf;
-	byte r, g, b;
-	uint32_t v;
-	int32_t i;
 
 	if (!Img_LoadTypedImage(IMG_PALETTE, "pcx", &surf))
 		return;
 
-	for (i = 0; i < IMG_PALETTE_SIZE; i++) {
-		r = surf->format->palette->colors[i].r;
-		g = surf->format->palette->colors[i].g;
-		b = surf->format->palette->colors[i].b;
+	for (size_t i = 0; i < IMG_PALETTE_SIZE; i++) {
+		const byte r = surf->format->palette->colors[i].r;
+		const byte g = surf->format->palette->colors[i].g;
+		const byte b = surf->format->palette->colors[i].b;
 
-		v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
+		const uint32_t v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
 		img_palette[i] = LittleLong(v);
 	}
 

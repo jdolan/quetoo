@@ -126,12 +126,11 @@ static void TW_CALL Ui_BindSet(const void *value, void *data) {
 static void TW_CALL Ui_BindGet(void *value, void *data) {
 	char **binds = cls.key_state.binds;
 	char *bind = (char *) data;
-	SDLKey i;
 
 	char *s = (char *) value;
 	*s = 0;
 
-	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++) {
+	for (SDL_Keycode i = SDLK_UNKNOWN; i < (SDL_Keycode) SDLK_MLAST; i++) {
 		if (binds[i] && !g_ascii_strcasecmp(bind, binds[i])) {
 			strcat(s, va(strlen(s) ? ", %s" : "%s", Cl_KeyName(i)));
 		}

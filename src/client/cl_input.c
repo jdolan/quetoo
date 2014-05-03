@@ -40,7 +40,7 @@ static cvar_t *m_yaw;
 #define MAX_KEY_QUEUE 64
 
 typedef struct {
-	SDLKey key;
+	SDL_Keycode key;
 	uint16_t unicode;
 	_Bool down;
 } cl_key_queue_t;
@@ -52,7 +52,7 @@ static int32_t cl_key_queue_tail = 0;
 
 #define EVENT_ENQUEUE(keyNum, keyUnicode, keyDown) \
 	if(keyNum > 0){ \
-		cl_key_queue[cl_key_queue_head].key = (SDLKey) (keyNum); \
+		cl_key_queue[cl_key_queue_head].key = (SDL_Keycode) (keyNum); \
 		cl_key_queue[cl_key_queue_head].unicode = (uint16_t) (keyUnicode); \
 		cl_key_queue[cl_key_queue_head].down = (_Bool) (keyDown); \
 		cl_key_queue_head = (cl_key_queue_head + 1) & (MAX_KEY_QUEUE - 1); \
@@ -76,7 +76,7 @@ static int32_t cl_key_queue_tail = 0;
  */
 
 typedef struct {
-	SDLKey down[2]; // keys holding it down
+	SDL_Keycode down[2]; // keys holding it down
 	uint32_t down_time; // msec timestamp
 	uint32_t msec; // msec down this frame
 	byte state;
@@ -100,7 +100,7 @@ static cl_button_t cl_buttons[12];
  * @brief
  */
 static void Cl_KeyDown(cl_button_t *b) {
-	SDLKey k;
+	SDL_Keycode k;
 
 	const char *c = Cmd_Argv(1);
 	if (c[0])
@@ -136,7 +136,7 @@ static void Cl_KeyDown(cl_button_t *b) {
  * @brief
  */
 static void Cl_KeyUp(cl_button_t *b) {
-	SDLKey k;
+	SDL_Keycode k;
 
 	const char *c = Cmd_Argv(1);
 	if (c[0])
@@ -268,7 +268,7 @@ static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
  * @brief
  */
 static void Cl_HandleEvent(SDL_Event *event) {
-	SDLButton b;
+	SDL_Button b;
 
 	if (cls.key_state.dest == KEY_UI) { // let the menus handle events
 		if (Ui_Event(event))
@@ -284,17 +284,19 @@ static void Cl_HandleEvent(SDL_Event *event) {
 
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
-			EVENT_ENQUEUE(event->key.keysym.sym, event->key.keysym.unicode, (event->type == SDL_KEYDOWN))
+			EVENT_ENQUEUE(event->key.keysym.sym, event->key.keysym.sym, (event->type == SDL_KEYDOWN))
 			break;
 
 		case SDL_QUIT:
 			Cmd_ExecuteString("quit");
 			break;
 
-		case SDL_VIDEORESIZE:
-			Cvar_SetValue("r_windowed_width", event->resize.w);
-			Cvar_SetValue("r_windowed_height", event->resize.h);
-			Cbuf_AddText("r_restart\n");
+		case SDL_WINDOWEVENT:
+			if (event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+				Cvar_SetValue("r_windowed_width", event->window.data1);
+				Cvar_SetValue("r_windowed_height", event->window.data2);
+				Cbuf_AddText("r_restart\n");
+			}
 			break;
 	}
 }
@@ -339,7 +341,7 @@ static void Cl_MouseMove(int32_t mx, int32_t my) {
 
 	if (cls.key_state.dest != KEY_UI && cls.mouse_state.grabbed) {
 		// warp the cursor back to the center of the screen
-		SDL_WarpMouse(r_context.width / 2, r_context.height / 2);
+		SDL_WarpMouseInWindow(r_context.window, r_context.width / 2, r_context.height / 2);
 	}
 }
 
@@ -354,19 +356,6 @@ void Cl_HandleEvents(void) {
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 		return;
 
-	// set key repeat based on key destination
-	if (cls.key_state.dest == KEY_GAME) {
-		if (cls.key_state.repeat) {
-			SDL_EnableKeyRepeat(0, 0);
-			cls.key_state.repeat = false;
-		}
-	} else {
-		if (!cls.key_state.repeat) {
-			SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-			cls.key_state.repeat = true;
-		}
-	}
-
 	// ignore mouse position after SDL re-grabs mouse, or after the menu is closed
 	// http://bugzilla.libsdl.org/show_bug.cgi?id=341
 	_Bool invalid_mouse_state = false;
@@ -376,9 +365,7 @@ void Cl_HandleEvents(void) {
 		const cl_key_dest_t dest = cls.key_state.dest;
 		cls.key_state.dest = prev_key_dest;
 
-		SDLKey i;
-
-		for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++) {
+		for (SDL_Keycode i = SDLK_UNKNOWN; i < (SDL_Keycode) SDLK_MLAST; i++) {
 			if (cls.key_state.down[i]) {
 				if (cls.key_state.binds[i] && cls.key_state.binds[i][0] == '+') {
 					Cl_KeyEvent(i, i, false, cls.real_time);
@@ -412,12 +399,12 @@ void Cl_HandleEvents(void) {
 
 	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI || !m_grab->integer) {
 		if (!r_context.fullscreen) { // allow cursor to move outside window
-			SDL_WM_GrabInput(SDL_GRAB_OFF);
+			SDL_SetWindowGrab(r_context.window, false);
 			cls.mouse_state.grabbed = false;
 		}
 	} else {
 		if (!cls.mouse_state.grabbed) { // grab it for everything else
-			SDL_WM_GrabInput(SDL_GRAB_ON);
+			SDL_SetWindowGrab(r_context.window, true);
 			cls.mouse_state.grabbed = true;
 			invalid_mouse_state = true;
 		}

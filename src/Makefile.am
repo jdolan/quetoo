@@ -45,7 +45,7 @@ libcommon_la_SOURCES = \
 libcommon_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL2_CFLAGS@
 libcommon_la_LDFLAGS = \
 	-shared
 libcommon_la_LIBADD = \
@@ -87,7 +87,7 @@ libimage_la_SOURCES = \
 libimage_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL2_CFLAGS@
 libimage_la_LDFLAGS = \
 	-shared
 libimage_la_LIBADD = \
@@ -119,13 +119,13 @@ libmem_la_SOURCES = \
 libmem_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL2_CFLAGS@
 libmem_la_LDFLAGS = \
 	-shared
 libmem_la_LIBADD = \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@ \
-	@SDL_LIBS@
+	@SDL2_LIBS@
 
 libshared_la_SOURCES = \
 	shared.c \
@@ -162,7 +162,7 @@ libthread_la_SOURCES = \
 libthread_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL2_CFLAGS@
 libthread_la_LDFLAGS = \
 	-shared
 libthread_la_LIBADD = \

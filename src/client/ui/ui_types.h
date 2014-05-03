@@ -22,7 +22,7 @@
 #ifndef __UI_TYPES_H__
 #define __UI_TYPES_H__
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #include "client/client.h"
 

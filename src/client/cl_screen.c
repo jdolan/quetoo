@@ -259,7 +259,7 @@ static void Cl_DrawCursor(void) {
 	if (cls.key_state.dest != KEY_UI && cls.mouse_state.grabbed)
 		return;
 
-	if (!(SDL_GetAppState() & SDL_APPMOUSEFOCUS))
+	if (!(SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_INPUT_FOCUS))
 		return;
 
 	R_DrawCursor(cls.mouse_state.x, cls.mouse_state.y);

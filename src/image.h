@@ -26,7 +26,7 @@
 #include "filesystem.h"
 
 #ifdef BUILD_CLIENT
-#include <SDL/SDL_image.h>
+#include <SDL2/SDL_image.h>
 
 // 8 bit palette for .wal images and particles
 #define IMG_PALETTE_SIZE 256

@@ -8,7 +8,7 @@ quake2world_CFLAGS = \
 	-I.. \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL2_CFLAGS@
 
 quake2world_LDADD = \
 	../client/libclient.la \

@@ -207,7 +207,7 @@ typedef enum {
 #define KEY_LINE_SIZE 256
 
 typedef enum {
-	SDLK_MOUSE1 = SDLK_LAST,
+	SDLK_MOUSE1 = (SDLK_SLEEP + 1),
 	SDLK_MOUSE2,
 	SDLK_MOUSE3,
 	SDLK_MOUSE4,
@@ -216,7 +216,7 @@ typedef enum {
 	SDLK_MOUSE7,
 	SDLK_MOUSE8,
 	SDLK_MLAST
-} SDLButton;
+} SDL_Button;
 
 typedef struct {
 	cl_key_dest_t dest;

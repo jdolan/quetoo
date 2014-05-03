@@ -75,7 +75,7 @@ static void Thread_Init_(uint16_t num_threads) {
 		for (i = 0; i < thread_pool.num_threads; i++, t++) {
 			t->cond = SDL_CreateCond();
 			t->mutex = SDL_CreateMutex();
-			t->thread = SDL_CreateThread(Thread_Run, t);
+			t->thread = SDL_CreateThread(Thread_Run, __func__, t);
 		}
 	}
 }

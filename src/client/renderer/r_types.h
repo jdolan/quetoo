@@ -22,8 +22,8 @@
 #ifndef __R_TYPES_H__
 #define __R_TYPES_H__
 
-#include <SDL/SDL_opengl.h>
-#include <SDL/SDL_video.h>
+#include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_video.h>
 
 #include "files.h"
 #include "image.h"
@@ -750,8 +750,8 @@ typedef struct {
  * @brief Allows alternate renderer plugins to be dropped in.
  */
 typedef enum {
-	RENDER_MODE_DEFAULT
-} r_render_mode_t;
+	R_PLUGIN_DEFAULT
+} r_plugin_t;
 
 #define MAX_CORONAS 		1024
 
@@ -784,7 +784,7 @@ typedef struct {
 
 	byte *area_bits; // if not NULL, only areas with set bits will be drawn
 
-	r_render_mode_t render_mode; // active renderer plugin
+	r_plugin_t plugin; // active renderer plugin
 
 	byte weather; // weather effects
 	vec4_t fog_color;
@@ -829,6 +829,9 @@ typedef struct {
  * @brief OpenGL context information.
  */
 typedef struct {
+	SDL_Window *window;
+	SDL_GLContext *context;
+
 	r_pixel_t width, height;
 
 	_Bool fullscreen;

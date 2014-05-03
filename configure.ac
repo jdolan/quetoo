@@ -168,7 +168,7 @@ if test "x${with_client}" = xno; then
 	dnl The server needs SDL core for threading
 	dnl ---------------------------------------
 
-	PKG_CHECK_MODULES([SDL], [sdl >= 1.2.12])
+	PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0])
 	
 else
 	AC_MSG_RESULT(yes)
@@ -177,10 +177,10 @@ else
 	AC_DEFINE(BUILD_CLIENT, 1, [Define to 1 to build a client.])
 
 	dnl ------------------------------------------
-	dnl Check for SDL, SDL_image, SDL_mixer
+	dnl Check for SDL2, SDL2_image, SDL2_mixer
 	dnl ------------------------------------------
 
-	PKG_CHECK_MODULES([SDL], [sdl >= 1.2.12 SDL_image SDL_mixer])
+	PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image SDL2_mixer])
 
 	dnl -----------------------------------
 	dnl Sort out OpenGL an flags and libraries
@@ -239,10 +239,10 @@ else
 	AC_SUBST(HOST_ANTTWEAKBAR_CFLAGS)
 	AC_SUBST(HOST_ANTTWEAKBAR_LIBS)
 
-	ANTTWEAKBAR_CXXFLAGS="$ANTTWEAKBAR_CXXFLAGS $HOST_ANTTWEAKBAR_CXXFLAGS"
+	ANTTWEAKBAR_CXXFLAGS="-fno-strict-aliasing $ANTTWEAKBAR_CXXFLAGS $HOST_ANTTWEAKBAR_CXXFLAGS"
 	AC_SUBST(ANTTWEAKBAR_CXXFLAGS)
 
-	ANTTWEAKBAR_CFLAGS="$ANTTWEAKBAR_CFLAGS $HOST_ANTTWEAKBAR_CFLAGS"
+	ANTTWEAKBAR_CFLAGS="-fno-strict-aliasing $ANTTWEAKBAR_CFLAGS $HOST_ANTTWEAKBAR_CFLAGS"
 	AC_SUBST(ANTTWEAKBAR_CFLAGS)
 
 	ANTTWEAKBAR_LIBS="$ANTTWEAKBAR_LIBS $HOST_ANTTWEAKBAR_LIBS"
@@ -303,8 +303,8 @@ fi
 AM_CONDITIONAL([BUILD_CLIENT], [test "x$BUILD_CLIENT" = "xyes"])
 AM_CONDITIONAL([BUILD_TOOLS], [test "x$TOOL_DIRS" != "x"])
 
-AC_SUBST(SDL_CFLAGS)
-AC_SUBST(SDL_LIBS)
+AC_SUBST(SDL2_CFLAGS)
+AC_SUBST(SDL2_LIBS)
 
 dnl -------------------------------
 dnl Check for execinfo.h (optional)

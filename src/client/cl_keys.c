@@ -31,7 +31,7 @@ static char **cl_key_names;
  * @brief Execute any system-level binds, regardless of key state. This enables e.g.
  * toggling of the console, toggling fullscreen, etc.
  */
-static _Bool Cl_KeySystem(SDLKey key, uint16_t unicode __attribute__((unused)), _Bool down, uint32_t time __attribute__((unused))) {
+static _Bool Cl_KeySystem(SDL_Keycode key, uint16_t unicode __attribute__((unused)), _Bool down, uint32_t time __attribute__((unused))) {
 
 	if (!down) { // don't care
 		return false;
@@ -90,7 +90,7 @@ static _Bool Cl_KeySystem(SDLKey key, uint16_t unicode __attribute__((unused)), 
 /*
  * @brief Interactive line editing and console scrollback.
  */
-static void Cl_KeyConsole(SDLKey key, uint16_t unicode, _Bool down, uint32_t time __attribute__((unused))) {
+static void Cl_KeyConsole(SDL_Keycode key, uint16_t unicode, _Bool down, uint32_t time __attribute__((unused))) {
 	size_t i;
 
 	if (!down) // don't care
@@ -212,14 +212,14 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, _Bool down, uint32_t tim
 		return;
 	}
 
-	if (key == SDLK_PAGEUP || key == (SDLKey) SDLK_MOUSE4) {
+	if (key == SDLK_PAGEUP || key == (SDL_Keycode) SDLK_MOUSE4) {
 		cl_console.scroll += CON_SCROLL;
 		if (cl_console.scroll > cl_console.last_line)
 			cl_console.scroll = cl_console.last_line;
 		return;
 	}
 
-	if (key == SDLK_PAGEDOWN || key == (SDLKey) SDLK_MOUSE5) {
+	if (key == SDLK_PAGEDOWN || key == (SDL_Keycode) SDLK_MOUSE5) {
 		cl_console.scroll -= CON_SCROLL;
 		if (cl_console.scroll < 0)
 			cl_console.scroll = 0;
@@ -281,7 +281,7 @@ static void Cl_KeyConsole(SDLKey key, uint16_t unicode, _Bool down, uint32_t tim
 /*
  * @brief
  */
-static void Cl_KeyGame(SDLKey key, uint16_t unicode __attribute__((unused)), _Bool down, uint32_t time) {
+static void Cl_KeyGame(SDL_Keycode key, uint16_t unicode __attribute__((unused)), _Bool down, uint32_t time) {
 	char cmd[MAX_STRING_CHARS];
 
 	const char *kb = ks->binds[key];
@@ -309,7 +309,7 @@ static void Cl_KeyGame(SDLKey key, uint16_t unicode __attribute__((unused)), _Bo
 /*
  * @brief
  */
-static void Cl_KeyMessage(SDLKey key, uint16_t unicode, _Bool down, uint32_t time __attribute__((unused))) {
+static void Cl_KeyMessage(SDL_Keycode key, uint16_t unicode, _Bool down, uint32_t time __attribute__((unused))) {
 
 	if (!down) // don't care
 		return;
@@ -351,9 +351,9 @@ static void Cl_KeyMessage(SDLKey key, uint16_t unicode, _Bool down, uint32_t tim
 /*
  * @brief Returns the name of the specified key.
  */
-const char *Cl_KeyName(SDLKey key) {
+const char *Cl_KeyName(SDL_Keycode key) {
 
-	if (key == SDLK_UNKNOWN || key >= (SDLKey) SDLK_MLAST) {
+	if (key == SDLK_UNKNOWN || key >= (SDL_Keycode) SDLK_MLAST) {
 		return va("<unknown %d>", key);
 	}
 
@@ -363,13 +363,12 @@ const char *Cl_KeyName(SDLKey key) {
 /*
  * @brief Returns the number for the specified key name.
  */
-SDLKey Cl_Key(const char *name) {
-	SDLKey i;
+SDL_Keycode Cl_Key(const char *name) {
 
 	if (!name || !name[0])
-		return (SDLKey) SDLK_MLAST;
+		return  SDLK_MLAST;
 
-	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++) {
+	for (SDL_Keycode i = SDLK_UNKNOWN; i < (SDL_Keycode) SDLK_MLAST; i++) {
 		if (!g_ascii_strcasecmp(name, cl_key_names[i]))
 			return i;
 	}
@@ -380,9 +379,9 @@ SDLKey Cl_Key(const char *name) {
 /*
  * @brief Binds the specified key to the given command.
  */
-void Cl_Bind(SDLKey key, const char *binding) {
+void Cl_Bind(SDL_Keycode key, const char *binding) {
 
-	if (key == SDLK_UNKNOWN || key >= (SDLKey) SDLK_MLAST)
+	if (key == SDLK_UNKNOWN || key >= (SDL_Keycode) SDLK_MLAST)
 		return;
 
 	// free the old binding
@@ -420,9 +419,8 @@ static void Cl_Unbind_f(void) {
  * @brief
  */
 static void Cl_UnbindAll_f(void) {
-	SDLKey i;
 
-	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++)
+	for (SDL_Keycode i = SDLK_UNKNOWN; i < (SDL_Keycode) SDLK_MLAST; i++)
 		if (ks->binds[i])
 			Cl_Bind(i, "");
 }
@@ -439,9 +437,9 @@ static void Cl_Bind_f(void) {
 		return;
 	}
 
-	const SDLKey k = Cl_Key(Cmd_Argv(1));
+	const SDL_Keycode k = Cl_Key(Cmd_Argv(1));
 
-	if (k == (SDLKey) SDLK_MLAST) {
+	if (k == (SDL_Keycode) SDLK_MLAST) {
 		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
 		return;
 	}
@@ -475,9 +473,8 @@ static void Cl_Bind_f(void) {
  * @brief Writes lines containing "bind key value"
  */
 void Cl_WriteBindings(file_t *f) {
-	SDLKey i;
 
-	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++) {
+	for (SDL_Keycode i = SDLK_UNKNOWN; i < (SDL_Keycode) SDLK_MLAST; i++) {
 		if (ks->binds[i] && ks->binds[i][0])
 			Fs_Print(f, "bind \"%s\" \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
 	}
@@ -487,9 +484,8 @@ void Cl_WriteBindings(file_t *f) {
  * @brief
  */
 static void Cl_BindList_f(void) {
-	SDLKey i;
 
-	for (i = SDLK_FIRST; i < (SDLKey) SDLK_MLAST; i++)
+	for (SDL_Keycode i = SDLK_UNKNOWN; i < (SDL_Keycode) SDLK_MLAST; i++)
 		if (ks->binds[i] && ks->binds[i][0])
 			Com_Print("\"%s\" \"%s\"\n", Cl_KeyName(i), ks->binds[i]);
 }
@@ -499,14 +495,13 @@ static void Cl_BindList_f(void) {
  */
 static void Cl_WriteHistory(void) {
 	file_t *f;
-	uint32_t i;
 
 	if (!(f = Fs_OpenWrite("history"))) {
 		Com_Warn("Couldn't write history\n");
 		return;
 	}
 
-	for (i = (ks->edit_line + 1) % KEY_HISTORY_SIZE; i != ks->edit_line; i = (i + 1)
+	for (uint32_t i = (ks->edit_line + 1) % KEY_HISTORY_SIZE; i != ks->edit_line; i = (i + 1)
 			% KEY_HISTORY_SIZE) {
 		if (ks->lines[i][1]) {
 			Fs_Print(f, "%s\n", ks->lines[i] + 1);
@@ -542,15 +537,13 @@ static void Cl_ReadHistory(void) {
  * @brief
  */
 void Cl_InitKeys(void) {
-	uint16_t i;
-	SDLKey k;
 
 	cl_key_names = Mem_TagMalloc(SDLK_MLAST * sizeof(char *), MEM_TAG_CLIENT);
 
-	for (k = SDLK_FIRST; k < SDLK_LAST; k++) {
+	for (SDL_Keycode k = SDLK_UNKNOWN; k < SDLK_MOUSE1; k++) {
 		cl_key_names[k] = Mem_Link(Mem_CopyString(SDL_GetKeyName(k)), cl_key_names);
 	}
-	for (k = SDLK_MOUSE1; k < (SDLKey) SDLK_MLAST; k++) {
+	for (SDL_Keycode k = SDLK_MOUSE1; k < SDLK_MLAST; k++) {
 		cl_key_names[k] = Mem_Link(Mem_CopyString(va("mouse %d", k - SDLK_MOUSE1 + 1)), cl_key_names);
 	}
 
@@ -558,7 +551,7 @@ void Cl_InitKeys(void) {
 
 	ks->insert = 1;
 
-	for (i = 0; i < KEY_HISTORY_SIZE; i++) {
+	for (uint16_t i = 0; i < KEY_HISTORY_SIZE; i++) {
 		ks->lines[i][0] = ']';
 		ks->lines[i][1] = '\0';
 	}
@@ -591,7 +584,7 @@ void Cl_ShutdownKeys(void) {
 /*
  * @brief
  */
-void Cl_KeyEvent(SDLKey key, uint16_t unicode, _Bool down, uint32_t time) {
+void Cl_KeyEvent(SDL_Keycode key, uint16_t unicode, _Bool down, uint32_t time) {
 
 	// check for system commands first, swallowing such events
 	if (Cl_KeySystem(key, unicode, down, time)) {

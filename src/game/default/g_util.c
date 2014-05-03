@@ -357,7 +357,7 @@ void G_FreeEntity(g_entity_t *ent) {
 void G_TouchTriggers(g_entity_t *ent) {
 	g_entity_t *e[MAX_ENTITIES];
 
-	const size_t len = gi.BoxEntities(ent->abs_mins, ent->abs_maxs, e, lengthof(e), AREA_TRIGGER);
+	const size_t len = gi.BoxEntities(ent->abs_mins, ent->abs_maxs, e, lengthof(e), BOX_TRIGGER);
 
 	for (size_t i = 0; i < len; i++) {
 		g_entity_t *trigger = e[i];

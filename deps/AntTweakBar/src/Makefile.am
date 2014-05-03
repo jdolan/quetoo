@@ -6,8 +6,6 @@ if BUILD_CLIENT
 noinst_HEADERS = \
 	AntPerfTimer.h \
 	LoadOGL.h \
-	MiniSDL12.h \
-	MiniSDL13.h \
 	TwBar.h \
 	TwColors.h \
 	TwFonts.h \
@@ -22,32 +20,29 @@ libanttweakbar_la_SOURCES = \
 	TwBar.cpp \
 	TwColors.cpp \
 	TwEventSDL.c \
-	TwEventSDL12.c \
-	TwEventSDL13.c \
 	TwFonts.cpp \
 	TwMgr.cpp \
-	TwOpenGL.cpp \
-	TwPrecomp.cpp
+	TwOpenGL.cpp
 
 libanttweakbar_la_CXXFLAGS = \
 	-I../include \
 	@BASE_CXXFLAGS@ \
 	@ANTTWEAKBAR_CXXFLAGS@ \
 	@OPENGL_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL2_CFLAGS@
 
 libanttweakbar_la_CFLAGS = \
 	-I../include \
 	@BASE_CFLAGS@ \
 	@ANTTWEAKBAR_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL2_CFLAGS@
 
 libanttweakbar_la_LIBADD = \
 	@BASE_LIBS@ \
 	@ANTTWEAKBAR_LIBS@ \
 	@OPENGL_LIBS@ \
-	@SDL_LIBS@ \
+	@SDL2_LIBS@ \
 	-lstdc++
 
 else

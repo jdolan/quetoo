@@ -43,7 +43,7 @@ q2wmap_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL_CFLAGS@ \
+	@SDL2_CFLAGS@ \
 	@XML_CFLAGS@
 
 q2wmap_LDADD = \
@@ -54,5 +54,5 @@ q2wmap_LDADD = \
 	../../libthread.la \
 	@CURSES_LIBS@ \
 	@JPEG_LIBS@ \
-	@SDL_LIBS@ \
+	@SDL2_LIBS@ \
 	@XML_LIBS@

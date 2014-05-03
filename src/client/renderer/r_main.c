@@ -67,7 +67,7 @@ cvar_t *r_monochrome;
 cvar_t *r_multisample;
 cvar_t *r_parallax;
 cvar_t *r_programs;
-cvar_t *r_render_mode;
+cvar_t *r_render_plugin;
 cvar_t *r_saturation;
 cvar_t *r_screenshot_quality;
 cvar_t *r_shadows;
@@ -203,11 +203,11 @@ void R_DrawView(void) {
 
 /*
  * @brief Assigns surface and entity rendering function pointers for the
- * r_render_mode plugin framework.
+ * r_render_plugin plugin framework.
  */
-static void R_RenderMode(const char *mode) {
+static void R_RenderPlugin(const char *plugin) {
 
-	r_view.render_mode = RENDER_MODE_DEFAULT;
+	r_view.plugin = R_PLUGIN_DEFAULT;
 
 	R_DrawOpaqueBspSurfaces = R_DrawOpaqueBspSurfaces_default;
 	R_DrawOpaqueWarpBspSurfaces = R_DrawOpaqueWarpBspSurfaces_default;
@@ -218,7 +218,7 @@ static void R_RenderMode(const char *mode) {
 
 	R_DrawMeshModel = R_DrawMeshModel_default;
 
-	if (!mode || !*mode)
+	if (!plugin || !*plugin)
 		return;
 
 	// assign function pointers to different renderer paths here
@@ -260,10 +260,10 @@ void R_BeginFrame(void) {
 		r_draw_buffer->modified = false;
 	}
 
-	// render mode stuff
-	if (r_render_mode->modified) {
-		R_RenderMode(r_render_mode->string);
-		r_render_mode->modified = false;
+	// render plugin stuff
+	if (r_render_plugin->modified) {
+		R_RenderPlugin(r_render_plugin->string);
+		r_render_plugin->modified = false;
 	}
 
 	R_Clear();
@@ -283,7 +283,7 @@ void R_EndFrame(void) {
 		}
 	}
 
-	SDL_GL_SwapBuffers(); // swap buffers
+	SDL_GL_SwapWindow(r_context.window);
 }
 
 /*
@@ -293,7 +293,7 @@ void R_InitView(void) {
 
 	memset(&r_view, 0, sizeof(r_view));
 
-	R_RenderMode(r_render_mode->string);
+	R_RenderPlugin(r_render_plugin->string);
 
 	memset(&r_locals, 0, sizeof(r_locals));
 }
@@ -358,7 +358,7 @@ void R_Restart_f(void) {
 
 	R_LoadMedia();
 
-	r_render_mode->modified = true;
+	r_render_plugin->modified = true;
 
 	r_view.update = true;
 
@@ -439,7 +439,7 @@ static void R_InitLocal(void) {
 	r_parallax = Cvar_Get("r_parallax", "1.0", CVAR_ARCHIVE,
 			"Controls the intensity of parallax mapping effects");
 	r_programs = Cvar_Get("r_programs", "1", CVAR_ARCHIVE, "Controls GLSL shaders");
-	r_render_mode = Cvar_Get("r_render_mode", "default", CVAR_ARCHIVE,
+	r_render_plugin = Cvar_Get("r_render_plugin", "default", CVAR_ARCHIVE,
 			"Specifies the active renderer plugin (default or pro)");
 	r_saturation = Cvar_Get("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls texture saturation");

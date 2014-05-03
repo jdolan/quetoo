@@ -32,7 +32,7 @@ libui_la_CFLAGS = \
 	@ANTTWEAKBAR_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL2_CFLAGS@
 
 libui_la_LDFLAGS = \
 	-shared
