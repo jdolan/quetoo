@@ -29,7 +29,7 @@ extern cl_static_t cls;
 /*
  * @brief Handles input events, returning true if the event was swallowed by TwBar.
  */
-_Bool Ui_Event(SDL_Event *event) {
+_Bool Ui_HandleEvent(const SDL_Event *event) {
 	_Bool handled;
 
 	if (!(handled = TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION))) {

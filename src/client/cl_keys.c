@@ -31,13 +31,13 @@ static char **cl_key_names;
  * @brief Execute any system-level binds, regardless of key state. This enables e.g.
  * toggling of the console, toggling fullscreen, etc.
  */
-static _Bool Cl_KeySystem(SDL_Scancode key, _Bool down, uint32_t time __attribute__((unused))) {
+static _Bool Cl_KeySystem(const SDL_Event *event) {
 
-	if (!down) { // don't care
+	if (event->type == SDL_KEYUP) { // don't care
 		return false;
 	}
 
-	if (SDL_GetKeyFromScancode(key) == SDLK_ESCAPE) { // escape can cancel a few things
+	if (event->key.keysym.sym == SDLK_ESCAPE) { // escape can cancel a few things
 
 		// connecting to a server
 		if (cls.state == CL_CONNECTING || cls.state == CL_CONNECTED) {
@@ -73,6 +73,7 @@ static _Bool Cl_KeySystem(SDL_Scancode key, _Bool down, uint32_t time __attribut
 
 	// for everything other than ESC, check for system-level command binds
 
+	SDL_Scancode key = event->key.keysym.scancode;
 	if (ks->binds[key]) {
 		cmd_t *cmd;
 
@@ -90,16 +91,14 @@ static _Bool Cl_KeySystem(SDL_Scancode key, _Bool down, uint32_t time __attribut
 /*
  * @brief Interactive line editing and console scrollback.
  */
-static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribute__((unused))) {
+static void Cl_KeyConsole(const SDL_Event *event) {
 	size_t i;
 
-	if (!down) // don't care
+	if (event->type == SDL_KEYUP) // don't care
 		return;
 
-	const SDL_Keycode sym = SDL_GetKeyFromScancode(key);
-
 	// submit buffer on enter
-	if (sym == SDLK_RETURN || sym == SDLK_KP_ENTER) {
+	if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER) {
 
 		if (ks->lines[ks->edit_line][1] == '\\' || ks->lines[ks->edit_line][1] == '/')
 			Cbuf_AddText(ks->lines[ks->edit_line] + 2); // skip the /
@@ -123,7 +122,7 @@ static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribut
 		return;
 	}
 
-	if (sym == SDLK_TAB) { // command completion
+	if (event->key.keysym.sym == SDLK_TAB) { // command completion
 		// ignore the leading bracket in the input string
 		ks->pos--;
 		Con_CompleteCommand(ks->lines[ks->edit_line] + 1, &ks->pos, KEY_LINE_SIZE - 1);
@@ -131,7 +130,7 @@ static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribut
 		return;
 	}
 
-	if (sym == SDLK_BACKSPACE) { // delete char before cursor
+	if (event->key.keysym.sym == SDLK_BACKSPACE) { // delete char before cursor
 		if (ks->pos > 1) {
 			strcpy(ks->lines[ks->edit_line] + ks->pos - 1, ks->lines[ks->edit_line] + ks->pos);
 			ks->pos--;
@@ -139,18 +138,18 @@ static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribut
 		return;
 	}
 
-	if (sym == SDLK_DELETE) { // delete char on cursor
+	if (event->key.keysym.sym == SDLK_DELETE) { // delete char on cursor
 		if (ks->pos < strlen(ks->lines[ks->edit_line]))
 			strcpy(ks->lines[ks->edit_line] + ks->pos, ks->lines[ks->edit_line] + ks->pos + 1);
 		return;
 	}
 
-	if (sym == SDLK_INSERT) { // toggle insert mode
+	if (event->key.keysym.sym == SDLK_INSERT) { // toggle insert mode
 		ks->insert ^= 1;
 		return;
 	}
 
-	if (sym == SDLK_LEFT) { // move cursor left
+	if (event->key.keysym.sym == SDLK_LEFT) { // move cursor left
 		if (SDL_GetModState() & KMOD_CTRL) { // by a whole word
 			while (ks->pos > 1 && ks->lines[ks->edit_line][ks->pos - 1] == ' ')
 				ks->pos--; // get off current word
@@ -164,7 +163,7 @@ static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribut
 		return;
 	}
 
-	if (sym == SDLK_RIGHT) { // move cursor right
+	if (event->key.keysym.sym == SDLK_RIGHT) { // move cursor right
 		i = strlen(ks->lines[ks->edit_line]);
 
 		if (i == ks->pos)
@@ -184,7 +183,7 @@ static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribut
 		return;
 	}
 
-	if (sym == SDLK_UP) { // iterate history back
+	if (event->key.keysym.sym == SDLK_UP) { // iterate history back
 		do {
 			ks->history_line = (ks->history_line + KEY_HISTORY_SIZE - 1) % KEY_HISTORY_SIZE;
 		} while (ks->history_line != ks->edit_line && !ks->lines[ks->history_line][1]);
@@ -197,7 +196,7 @@ static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribut
 		return;
 	}
 
-	if (sym == SDLK_DOWN) { // iterate history forward
+	if (event->key.keysym.sym == SDLK_DOWN) { // iterate history forward
 		if (ks->history_line == ks->edit_line)
 			return;
 		do {
@@ -214,14 +213,16 @@ static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribut
 		return;
 	}
 
-	if (sym == SDLK_PAGEUP || key == SDL_SCANCODE_MOUSE4) {
+	if (event->key.keysym.sym == SDLK_PAGEUP
+			|| event->key.keysym.scancode == (SDL_Scancode) SDL_SCANCODE_MOUSE4) {
 		cl_console.scroll += CON_SCROLL;
 		if (cl_console.scroll > cl_console.last_line)
 			cl_console.scroll = cl_console.last_line;
 		return;
 	}
 
-	if (sym == SDLK_PAGEDOWN || key == SDL_SCANCODE_MOUSE5) {
+	if (event->key.keysym.sym == SDLK_PAGEDOWN
+			|| event->key.keysym.scancode == (SDL_Scancode) SDL_SCANCODE_MOUSE5) {
 		cl_console.scroll -= CON_SCROLL;
 		if (cl_console.scroll < 0)
 			cl_console.scroll = 0;
@@ -229,12 +230,12 @@ static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribut
 	}
 
 	// Ctrl-A jumps to the beginning of the line
-	if (sym == SDLK_a && (SDL_GetModState() & KMOD_CTRL)) {
+	if (event->key.keysym.sym == SDLK_a && (SDL_GetModState() & KMOD_CTRL)) {
 		ks->pos = 1;
 		return;
 	}
 
-	if (sym == SDLK_HOME) { // go to the start of line
+	if (event->key.keysym.sym == SDLK_HOME) { // go to the start of line
 		if (SDL_GetModState() & KMOD_CTRL) // go to the start of the console
 			cl_console.scroll = cl_console.last_line;
 		else
@@ -243,12 +244,12 @@ static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribut
 	}
 
 	// Ctrl-E jumps to the end of the line
-	if (sym == SDLK_e && (SDL_GetModState() & KMOD_CTRL)) {
+	if (event->key.keysym.sym == SDLK_e && (SDL_GetModState() & KMOD_CTRL)) {
 		ks->pos = strlen(ks->lines[ks->edit_line]);
 		return;
 	}
 
-	if (sym == SDLK_END) { // go to the end of line
+	if (event->key.keysym.sym == SDLK_END) { // go to the end of line
 		if (SDL_GetModState() & KMOD_CTRL) // go to the end of the console
 			cl_console.scroll = 0;
 		else
@@ -260,23 +261,25 @@ static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribut
 /*
  * @brief
  */
-static void Cl_KeyGame(SDL_Scancode key, _Bool down, uint32_t time) {
+static void Cl_KeyGame(const SDL_Event *event) {
 	char cmd[MAX_STRING_CHARS];
 
-	const char *kb = ks->binds[key];
-	if (!kb)
+	const SDL_Scancode key = event->key.keysym.scancode;
+	const char *bind = ks->binds[key];
+
+	if (!bind)
 		return;
 
 	cmd[0] = '\0';
 
-	if (kb[0] == '+') { // button commands add key and time as a param
-		if (down)
-			g_snprintf(cmd, sizeof(cmd), "%s %i %i\n", kb, key, time);
+	if (bind[0] == '+') { // button commands add key and time as a param
+		if (event->type == SDL_KEYDOWN)
+			g_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cls.real_time);
 		else
-			g_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", kb + 1, key, time);
+			g_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cls.real_time);
 	} else {
-		if (down) {
-			g_snprintf(cmd, sizeof(cmd), "%s\n", kb);
+		if (event->type == SDL_KEYDOWN) {
+			g_snprintf(cmd, sizeof(cmd), "%s\n", bind);
 		}
 	}
 
@@ -288,15 +291,13 @@ static void Cl_KeyGame(SDL_Scancode key, _Bool down, uint32_t time) {
 /*
  * @brief
  */
-static void Cl_KeyMessage(SDL_Scancode key, _Bool down, uint32_t time __attribute__((unused))) {
+static void Cl_KeyMessage(const SDL_Event *event) {
 
-	if (!down) // don't care
+	if (event->type == SDL_KEYUP) // don't care
 		return;
 
-	const SDL_Keycode sym = SDL_GetKeyFromScancode(key);
-
-	if (sym == SDLK_RETURN || sym == SDLK_KP_ENTER) {
-		if (*cls.chat_state.buffer) {
+	if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER) {
+		if (strlen(cls.chat_state.buffer)) {
 			if (cls.chat_state.team)
 				Cbuf_AddText("say_team \"");
 			else
@@ -306,15 +307,15 @@ static void Cl_KeyMessage(SDL_Scancode key, _Bool down, uint32_t time __attribut
 		}
 
 		ks->dest = KEY_GAME;
-		cls.chat_state.buffer[0] = 0;
+		cls.chat_state.buffer[0] = '\0';
 		cls.chat_state.len = 0;
 		return;
 	}
 
-	if (sym == SDLK_BACKSPACE) {
+	if (event->key.keysym.sym == SDLK_BACKSPACE) {
 		if (cls.chat_state.len) {
 			cls.chat_state.len--;
-			cls.chat_state.buffer[cls.chat_state.len] = 0;
+			cls.chat_state.buffer[cls.chat_state.len] = '\0';
 		}
 		return;
 	}
@@ -365,6 +366,9 @@ void Cl_Bind(SDL_Scancode key, const char *binding) {
 		ks->binds[key] = NULL;
 	}
 
+	if (!binding)
+		return;
+
 	// allocate for new binding and copy it in
 	ks->binds[key] = Mem_TagMalloc(strlen(binding) + 1, MEM_TAG_CLIENT);
 	strcpy(ks->binds[key], binding);
@@ -387,7 +391,7 @@ static void Cl_Unbind_f(void) {
 		return;
 	}
 
-	Cl_Bind(k, "");
+	Cl_Bind(k, NULL);
 }
 
 /*
@@ -397,7 +401,7 @@ static void Cl_UnbindAll_f(void) {
 
 	for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
 		if (ks->binds[k]) {
-			Cl_Bind(k, "");
+			Cl_Bind(k, NULL);
 		}
 	}
 }
@@ -520,7 +524,7 @@ void Cl_InitKeys(void) {
 
 	cl_key_names = Mem_TagMalloc(SDL_NUM_SCANCODES * sizeof(char *), MEM_TAG_CLIENT);
 
-	for (SDL_Scancode k = SDLK_UNKNOWN; k < SDL_SCANCODE_MOUSE1; k++) {
+	for (SDL_Scancode k = SDLK_UNKNOWN; k <= SDL_SCANCODE_APP2; k++) {
 		cl_key_names[k] = Mem_Link(Mem_CopyString(SDL_GetScancodeName(k)), cl_key_names);
 	}
 
@@ -531,7 +535,7 @@ void Cl_InitKeys(void) {
 
 	memset(ks, 0, sizeof(cl_key_state_t));
 
-	ks->insert = 1;
+	ks->insert = true;
 
 	for (uint16_t i = 0; i < KEY_HISTORY_SIZE; i++) {
 		ks->lines[i][0] = ']';
@@ -566,31 +570,24 @@ void Cl_ShutdownKeys(void) {
 /*
  * @brief
  */
-void Cl_KeyEvent(SDL_Scancode key, _Bool down, uint32_t time) {
-
-	if (key < SDL_SCANCODE_UNKNOWN || key >= SDL_NUM_SCANCODES) {
-		return;
-	}
+void Cl_KeyEvent(const SDL_Event *event) {
 
 	// check for system commands first, swallowing such events
-	if (Cl_KeySystem(key, down, time)) {
+	if (Cl_KeySystem(event)) {
 		return;
 	}
 
-	ks->down[key] = down;
+	ks->down[event->key.keysym.scancode] = event->type == SDL_KEYDOWN;
 
 	switch (ks->dest) {
 		case KEY_GAME:
-			Cl_KeyGame(key, down, time);
-			break;
-		case KEY_UI:
-			// handled by Ui_Event, called from Cl_HandleEvent
+			Cl_KeyGame(event);
 			break;
 		case KEY_CHAT:
-			Cl_KeyMessage(key, down, time);
+			Cl_KeyMessage(event);
 			break;
 		case KEY_CONSOLE:
-			Cl_KeyConsole(key, down, time);
+			Cl_KeyConsole(event);
 			break;
 
 		default:
@@ -609,7 +606,7 @@ void Cl_KeyEvent(SDL_Scancode key, _Bool down, uint32_t time) {
  * @brief Clears the current input line.
  */
 void Cl_ClearTyping(void) {
-	ks->lines[ks->edit_line][1] = 0;
+	ks->lines[ks->edit_line][1] = '\0';
 	ks->pos = 1;
 }
 

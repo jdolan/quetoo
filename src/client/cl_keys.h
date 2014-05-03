@@ -29,7 +29,7 @@ void Cl_Bind(SDL_Scancode key, const char *binding);
 
 #ifdef __CL_LOCAL_H__
 
-void Cl_KeyEvent(SDL_Scancode key, _Bool down, unsigned time);
+void Cl_KeyEvent(const SDL_Event *event);
 char *Cl_EditLine(void);
 void Cl_WriteBindings(file_t *f);
 void Cl_InitKeys(void);

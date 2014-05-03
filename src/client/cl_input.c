@@ -243,7 +243,7 @@ static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 /*
  * @brief
  */
-static void Cl_TextEvent(SDL_Event *event) {
+static void Cl_TextEvent(const SDL_Event *event) {
 	size_t i;
 
 	if (cls.key_state.dest == KEY_CONSOLE) {
@@ -266,24 +266,27 @@ static void Cl_TextEvent(SDL_Event *event) {
 /*
  * @brief
  */
-static void Cl_HandleEvent(SDL_Event *event) {
-	SDL_Scancode b;
+static void Cl_HandleEvent(const SDL_Event *event) {
+	SDL_Event e;
 
 	if (cls.key_state.dest == KEY_UI) { // let the menus handle events
-		if (Ui_Event(event))
+		if (Ui_HandleEvent(event))
 			return;
 	}
 
 	switch (event->type) {
 		case SDL_MOUSEBUTTONUP:
 		case SDL_MOUSEBUTTONDOWN:
-			b = SDL_SCANCODE_MOUSE1 + (event->button.button - 1) % 8;
-			Cl_KeyEvent(b, event->type == SDL_MOUSEBUTTONDOWN, cls.real_time);
+			memset(&e, 0, sizeof(e));
+			e.type = event->type == SDL_MOUSEBUTTONUP ? SDL_KEYUP : SDL_KEYDOWN;
+			e.key.keysym.scancode = SDL_SCANCODE_MOUSE1 + ((event->button.button - 1) % 8);
+			e.key.keysym.sym = SDL_GetKeyFromScancode(e.key.keysym.scancode);
+			Cl_KeyEvent(&e);
 			break;
 
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
-			Cl_KeyEvent(event->key.keysym.scancode, event->type == SDL_KEYDOWN, cls.real_time);
+			Cl_KeyEvent(event);
 			break;
 
 		case SDL_TEXTINPUT:
@@ -295,10 +298,12 @@ static void Cl_HandleEvent(SDL_Event *event) {
 			break;
 
 		case SDL_WINDOWEVENT:
-			if (event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-				Cvar_SetValue("r_windowed_width", event->window.data1);
-				Cvar_SetValue("r_windowed_height", event->window.data2);
-				Cbuf_AddText("r_restart\n");
+			if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
+				if (!r_context.fullscreen) {
+					Cvar_SetValue("r_windowed_width", event->window.data1);
+					Cvar_SetValue("r_windowed_height", event->window.data2);
+					Cbuf_AddText("r_restart\n");
+				}
 			}
 			break;
 	}
@@ -366,10 +371,17 @@ void Cl_HandleEvents(void) {
 		const cl_key_dest_t dest = cls.key_state.dest;
 		cls.key_state.dest = prev_key_dest;
 
+		SDL_Event e;
+		memset(&e, 0, sizeof(e));
+
+		e.type = SDL_KEYUP;
+
 		for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
 			if (cls.key_state.down[k]) {
 				if (cls.key_state.binds[k] && cls.key_state.binds[k][0] == '+') {
-					Cl_KeyEvent(k, false, cls.real_time);
+					e.key.keysym.scancode = k;
+					e.key.keysym.sym = SDL_GetKeyFromScancode(k);
+					Cl_KeyEvent(&e);
 				}
 			}
 		}

@@ -130,7 +130,7 @@ void R_ShutdownContext(void) {
 
 	if (r_context.window) {
 		SDL_DestroyWindow(r_context.window);
-		r_context.context = NULL;
+		r_context.window = NULL;
 	}
 
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)
