@@ -159,7 +159,7 @@ static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribut
 			return;
 		}
 
-		if (ks->pos > 1) //or just a char
+		if (ks->pos > 1) // or just a char
 			ks->pos--;
 		return;
 	}
@@ -255,29 +255,6 @@ static void Cl_KeyConsole(SDL_Scancode key, _Bool down, uint32_t time __attribut
 			ks->pos = strlen(ks->lines[ks->edit_line]);
 		return;
 	}
-
-	if (sym < 32 || sym > 127)
-		return; // non printable
-
-	if (ks->pos < KEY_LINE_SIZE - 1) {
-
-		if (ks->insert) { // can't do strcpy to move string to right
-			i = strlen(ks->lines[ks->edit_line]) - 1;
-
-			if (i == 254)
-				i--;
-
-			for (; i >= ks->pos; i--)
-				ks->lines[ks->edit_line][i + 1] = ks->lines[ks->edit_line][i];
-		}
-
-		i = ks->lines[ks->edit_line][ks->pos];
-		ks->lines[ks->edit_line][ks->pos] = sym;
-		ks->pos++;
-
-		if (!i) // only null terminate if at the end
-			ks->lines[ks->edit_line][ks->pos] = 0;
-	}
 }
 
 /*
@@ -341,15 +318,6 @@ static void Cl_KeyMessage(SDL_Scancode key, _Bool down, uint32_t time __attribut
 		}
 		return;
 	}
-
-	if (sym < 32 || sym > 127)
-		return; // non printable
-
-	if (cls.chat_state.len == sizeof(cls.chat_state.buffer) - 1)
-		return; // full
-
-	cls.chat_state.buffer[cls.chat_state.len++] = sym;
-	cls.chat_state.buffer[cls.chat_state.len] = 0;
 }
 
 /*

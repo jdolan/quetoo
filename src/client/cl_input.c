@@ -36,24 +36,6 @@ cvar_t *m_sensitivity_zoom;
 cvar_t *m_sensitivity;
 static cvar_t *m_yaw;
 
-// key strokes queued per frame, power of 2
-#define MAX_KEY_QUEUE 64
-
-typedef struct {
-	SDL_Scancode key;
-	_Bool down;
-} cl_key_queue_t;
-
-static cl_key_queue_t cl_key_queue[MAX_KEY_QUEUE];
-
-static int32_t cl_key_queue_head = 0;
-static int32_t cl_key_queue_tail = 0;
-
-#define EVENT_ENQUEUE(scancode, is_down) \
-	cl_key_queue[cl_key_queue_head].key = (SDL_Scancode) scancode; \
-	cl_key_queue[cl_key_queue_head].down = (_Bool) is_down; \
-	cl_key_queue_head = (cl_key_queue_head + 1) & (MAX_KEY_QUEUE - 1);
-
 /*
  * KEY BUTTONS
  *
@@ -72,7 +54,7 @@ static int32_t cl_key_queue_tail = 0;
  */
 
 typedef struct {
-	SDL_Scancode down[2]; // keys holding it down
+	SDL_Scancode keys[2]; // keys holding it down
 	uint32_t down_time; // msec timestamp
 	uint32_t msec; // msec down this frame
 	byte state;
@@ -104,13 +86,13 @@ static void Cl_KeyDown(cl_button_t *b) {
 	else
 		k = SDL_NUM_SCANCODES; // typed manually at the console for continuous down
 
-	if (k == b->down[0] || k == b->down[1])
+	if (k == b->keys[0] || k == b->keys[1])
 		return; // repeating key
 
-	if (!b->down[0])
-		b->down[0] = k;
-	else if (!b->down[1])
-		b->down[1] = k;
+	if (b->keys[0] == SDL_SCANCODE_UNKNOWN)
+		b->keys[0] = k;
+	else if (b->keys[1] == SDL_SCANCODE_UNKNOWN)
+		b->keys[1] = k;
 	else {
 		Com_Debug("3 keys down for button\n");
 		return;
@@ -119,7 +101,7 @@ static void Cl_KeyDown(cl_button_t *b) {
 	if (b->state & 1)
 		return; // still down
 
-	// save timestamp
+	// save the down time so that we can calculate fractional time later
 	const char *t = Cmd_Argv(2);
 	b->down_time = atoi(t);
 	if (!b->down_time)
@@ -134,20 +116,20 @@ static void Cl_KeyDown(cl_button_t *b) {
 static void Cl_KeyUp(cl_button_t *b) {
 
 	if (Cmd_Argc() < 2) { // typed manually at the console, assume for un-sticking, so clear all
-		b->down[0] = b->down[1] = 0;
+		b->keys[0] = b->keys[1] = 0;
 		return;
 	}
 
 	const SDL_Scancode k = atoi(Cmd_Argv(1));
 
-	if (b->down[0] == k)
-		b->down[0] = 0;
-	else if (b->down[1] == k)
-		b->down[1] = 0;
+	if (b->keys[0] == k)
+		b->keys[0] = SDL_SCANCODE_UNKNOWN;
+	else if (b->keys[1] == k)
+		b->keys[1] = SDL_SCANCODE_UNKNOWN;
 	else
 		return; // key up without corresponding down
 
-	if (b->down[0] || b->down[1])
+	if (b->keys[0] || b->keys[1])
 		return; // some other key is still holding it down
 
 	if (!(b->state & 1))
@@ -261,8 +243,31 @@ static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 /*
  * @brief
  */
+static void Cl_TextEvent(SDL_Event *event) {
+	size_t i;
+
+	if (cls.key_state.dest == KEY_CONSOLE) {
+		cl_key_state_t *ks = &cls.key_state;
+
+		// FIXME: Handle insert
+
+		i = g_strlcat(ks->lines[ks->edit_line], event->text.text, sizeof(ks->lines[0]));
+		ks->pos = MIN(i, sizeof(ks->lines[0]));
+	}
+
+	if (cls.key_state.dest == KEY_CHAT) {
+		cl_chat_state_t *cs = &cls.chat_state;
+
+		i = g_strlcat(cs->buffer, event->text.text, sizeof(cs->buffer));
+		cs->len = MIN(i, sizeof(cs->buffer) - 1);
+	}
+}
+
+/*
+ * @brief
+ */
 static void Cl_HandleEvent(SDL_Event *event) {
-	SDL_Button b;
+	SDL_Scancode b;
 
 	if (cls.key_state.dest == KEY_UI) { // let the menus handle events
 		if (Ui_Event(event))
@@ -273,12 +278,16 @@ static void Cl_HandleEvent(SDL_Event *event) {
 		case SDL_MOUSEBUTTONUP:
 		case SDL_MOUSEBUTTONDOWN:
 			b = SDL_SCANCODE_MOUSE1 + (event->button.button - 1) % 8;
-			EVENT_ENQUEUE(b, (event->type == SDL_MOUSEBUTTONDOWN));
+			Cl_KeyEvent(b, event->type == SDL_MOUSEBUTTONDOWN, cls.real_time);
 			break;
 
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
-			EVENT_ENQUEUE(event->key.keysym.scancode, (event->type == SDL_KEYDOWN))
+			Cl_KeyEvent(event->key.keysym.scancode, event->type == SDL_KEYDOWN, cls.real_time);
+			break;
+
+		case SDL_TEXTINPUT:
+			Cl_TextEvent(event);
 			break;
 
 		case SDL_QUIT:
@@ -344,14 +353,12 @@ static void Cl_MouseMove(int32_t mx, int32_t my) {
  */
 void Cl_HandleEvents(void) {
 	static cl_key_dest_t prev_key_dest;
-	SDL_Event event;
 	int32_t mx, my;
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 		return;
 
 	// ignore mouse position after SDL re-grabs mouse, or after the menu is closed
-	// http://bugzilla.libsdl.org/show_bug.cgi?id=341
 	_Bool invalid_mouse_state = false;
 
 	// send key-up events to previous destination before handling new events
@@ -377,6 +384,7 @@ void Cl_HandleEvents(void) {
 
 	// handle new key events
 	while (true) {
+		SDL_Event event;
 
 		memset(&event, 0, sizeof(event));
 
@@ -393,8 +401,10 @@ void Cl_HandleEvents(void) {
 
 	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI || !m_grab->integer) {
 		if (!r_context.fullscreen) { // allow cursor to move outside window
-			SDL_SetWindowGrab(r_context.window, false);
-			cls.mouse_state.grabbed = false;
+			if (cls.mouse_state.grabbed) {
+				SDL_SetWindowGrab(r_context.window, false);
+				cls.mouse_state.grabbed = false;
+			}
 		}
 	} else {
 		if (!cls.mouse_state.grabbed) { // grab it for everything else
@@ -412,14 +422,6 @@ void Cl_HandleEvents(void) {
 	}
 
 	Cl_MouseMove(mx, my);
-
-	while (cl_key_queue_head != cl_key_queue_tail) { // then check for keys
-		cl_key_queue_t *k = &cl_key_queue[cl_key_queue_tail];
-
-		Cl_KeyEvent(k->key, k->down, cls.real_time);
-
-		cl_key_queue_tail = (cl_key_queue_tail + 1) & (MAX_KEY_QUEUE - 1);
-	}
 }
 
 /*
@@ -482,16 +484,16 @@ void Cl_Move(pm_cmd_t *cmd) {
 
 	// set any button hits that occurred since last frame
 	if (in_attack.state & 3)
-		cmd->buttons |= BUTTON_ATTACK;
+	cmd->buttons |= BUTTON_ATTACK;
 
 	in_attack.state &= ~2;
 
 	if (cl_run->value) { // run by default, walk on speed toggle
 		if (in_speed.state & 1)
-			cmd->buttons |= BUTTON_WALK;
+		cmd->buttons |= BUTTON_WALK;
 	} else { // walk by default, run on speed toggle
 		if (!(in_speed.state & 1))
-			cmd->buttons |= BUTTON_WALK;
+		cmd->buttons |= BUTTON_WALK;
 	}
 }
 
@@ -499,12 +501,6 @@ void Cl_Move(pm_cmd_t *cmd) {
  * @brief
  */
 void Cl_ClearInput(void) {
-
-	memset(cl_key_queue, 0, sizeof(cl_key_queue));
-
-	cl_key_queue_head = 0;
-	cl_key_queue_tail = 0;
-
 	memset(cl_buttons, 0, sizeof(cl_buttons));
 }
 

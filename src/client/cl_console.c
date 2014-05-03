@@ -181,8 +181,6 @@ void Cl_DrawNotify(void) {
 
 	if (cls.key_state.dest == KEY_CHAT) {
 		uint16_t skip;
-		size_t len;
-		char *s;
 
 		if (cls.chat_state.team) {
 			color = CON_COLOR_TEAMCHAT;
@@ -196,8 +194,7 @@ void Cl_DrawNotify(void) {
 
 		R_DrawChar((skip - 2) * cw, y, ':', color);
 
-		s = cls.chat_state.buffer;
-		len = R_DrawString(skip * cw, y, s, color);
+		const size_t len = R_DrawString(skip * cw, y, cls.chat_state.buffer, color);
 
 		if ((uint32_t) (cls.real_time >> 8) & 1) // draw the cursor
 			R_DrawChar((len + skip) * cw, y, CON_CURSOR_CHAR, color);

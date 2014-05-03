@@ -65,7 +65,7 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
 
-	uint32_t flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
+	uint32_t flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /*| SDL_WINDOW_ALLOW_HIGHDPI*/;
 
 	if (r_fullscreen->integer) {
 		w = r_width->integer > 0 ? r_width->integer : 0;
@@ -79,7 +79,8 @@ void R_InitContext(void) {
 		flags |= SDL_WINDOW_RESIZABLE;
 	}
 
-	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, 0, 0, w, h, flags)) == NULL) {
+	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, SDL_WINDOWPOS_CENTERED,
+			SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
