@@ -369,12 +369,15 @@ const char *Cl_KeyName(SDL_Scancode key) {
  */
 SDL_Scancode Cl_Key(const char *name) {
 
-	if (!name || !name[0])
+	if (!name || !name[0]) {
 		return SDL_NUM_SCANCODES;
+	}
 
 	for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
-		if (!g_ascii_strcasecmp(name, cl_key_names[k]))
-			return k;
+		if (cl_key_names[k]) {
+			if (!g_ascii_strcasecmp(name, cl_key_names[k]))
+				return k;
+		}
 	}
 
 	return SDL_NUM_SCANCODES;
@@ -550,7 +553,7 @@ void Cl_InitKeys(void) {
 	cl_key_names = Mem_TagMalloc(SDL_NUM_SCANCODES * sizeof(char *), MEM_TAG_CLIENT);
 
 	for (SDL_Scancode k = SDLK_UNKNOWN; k < SDL_SCANCODE_MOUSE1; k++) {
-		cl_key_names[k] = Mem_Link(Mem_CopyString(SDL_GetKeyName(k)), cl_key_names);
+		cl_key_names[k] = Mem_Link(Mem_CopyString(SDL_GetScancodeName(k)), cl_key_names);
 	}
 
 	for (SDL_Button b = SDL_SCANCODE_MOUSE1; b <= SDL_SCANCODE_MOUSE8; b++) {
