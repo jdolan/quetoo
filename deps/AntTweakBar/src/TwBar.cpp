@@ -6039,7 +6039,7 @@ bool CTwBar::MouseButton(ETwMouseButtonID _Button, bool _Pressed, int _X, int _Y
     	if (m_EditInPlace.m_Active && m_EditInPlace.m_Var->m_Type == TW_TYPE_BIND) {
     	    if (_Pressed) {
     	        stringstream s;
-    	        s << _Button + 322; // SDL_SCANCODE_MOUSE1 is 323
+    	        s << (_Button + 284 + (1 << 30)); // SDLK_MOUSE1 is 285 + (1 << 30)
     	        m_EditInPlace.m_String = s.str();
     	        EditInPlaceEnd(true);
     	        NotUpToDate();
@@ -6517,7 +6517,11 @@ bool CTwBar::MouseWheel(int _Pos, int _PrevPos, int _MouseX, int _MouseY)
     if (!m_IsMinimized) {
         if (m_EditInPlace.m_Active && m_EditInPlace.m_Var->m_Type == TW_TYPE_BIND) {
             stringstream s;
-            s << (_Pos > _PrevPos ? 327 : 326); // SDL_SCANCODE_MOUSE1 is 323
+            if (_Pos > _PrevPos) {
+                s << (289 + (1 << 30)); // SDLK_MOUSE5
+            } else {
+                s << (288 + (1 << 30)); // SDLK_MOUSE4
+            }
             m_EditInPlace.m_String = s.str();
             EditInPlaceEnd(true);
             NotUpToDate();
@@ -6614,55 +6618,8 @@ bool CTwBar::KeyPressed(int _Key, int _Modifiers)
     if( !m_UpToDate )
         Update();
 
-    if( _Key>0 && _Key<TW_KEY_LAST )
+    if( /*_Key>0 && _Key<TW_KEY_LAST*/ true)
     {
-        /* cf TranslateKey in TwMgr.cpp
-        // CTRL special cases
-        if( (_Modifiers&TW_KMOD_CTRL) && !(_Modifiers&TW_KMOD_ALT || _Modifiers&TW_KMOD_META) && _Key>0 && _Key<32 )
-            _Key += 'a'-1;
-
-        // PAD translation (for SDL keysym)
-        if( _Key>=256 && _Key<=272 ) // 256=SDLK_KP0 ... 272=SDLK_KP_EQUALS
-        {
-            bool Num = ((_Modifiers&TW_KMOD_SHIFT) && !(_Modifiers&0x1000)) || (!(_Modifiers&TW_KMOD_SHIFT) && (_Modifiers&0x1000)); // 0x1000 is SDL's KMOD_NUM
-            _Modifiers &= ~TW_KMOD_SHIFT;   // remove shift modifier
-            if( _Key==266 )          // SDLK_KP_PERIOD
-                _Key = Num ? '.' : TW_KEY_DELETE;
-            else if( _Key==267 )     // SDLK_KP_DIVIDE
-                _Key = '/';
-            else if( _Key==268 )     // SDLK_KP_MULTIPLY
-                _Key = '*';
-            else if( _Key==269 )     // SDLK_KP_MINUS
-                _Key = '-';
-            else if( _Key==270 )     // SDLK_KP_PLUS
-                _Key = '+';
-            else if( _Key==271 )     // SDLK_KP_ENTER
-                _Key = TW_KEY_RETURN;
-            else if( _Key==272 )     // SDLK_KP_EQUALS
-                _Key = '=';
-            else if( Num )           // num SDLK_KP0..9
-                _Key += '0' - 256;
-            else if( _Key==256 )     // non-num SDLK_KP01
-                _Key = TW_KEY_INSERT;
-            else if( _Key==257 )     // non-num SDLK_KP1
-                _Key = TW_KEY_END;
-            else if( _Key==258 )     // non-num SDLK_KP2
-                _Key = TW_KEY_DOWN;
-            else if( _Key==259 )     // non-num SDLK_KP3
-                _Key = TW_KEY_PAGE_DOWN;
-            else if( _Key==260 )     // non-num SDLK_KP4
-                _Key = TW_KEY_LEFT;
-            else if( _Key==262 )     // non-num SDLK_KP6
-                _Key = TW_KEY_RIGHT;
-            else if( _Key==263 )     // non-num SDLK_KP7
-                _Key = TW_KEY_HOME;
-            else if( _Key==264 )     // non-num SDLK_KP8
-                _Key = TW_KEY_UP;
-            else if( _Key==265 )     // non-num SDLK_KP9
-                _Key = TW_KEY_PAGE_UP;
-        }
-        */
-
         /*
         string Str;
         TwGetKeyString(&Str, _Key, _Modifiers);

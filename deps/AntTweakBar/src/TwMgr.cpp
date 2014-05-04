@@ -220,7 +220,7 @@ void ANT_CALL CColorExt::CopyVarFromExtCB(void *_VarValue, const void *_ExtValue
             ext->m_HasAlpha = false;
 
         // Synchronize HLS and RGB
-        if( _ExtMemberIndex>=0 && _ExtMemberIndex<=2 )
+        if( /*_ExtMemberIndex>=0 &&*/ _ExtMemberIndex<=2 )
             ext->RGB2HLS();
         else if( _ExtMemberIndex>=3 && _ExtMemberIndex<=5 )
             ext->HLS2RGB();
@@ -4864,7 +4864,7 @@ TwType ANT_CALL TwDefineEnum(const char *_Name, const TwEnumVal *_EnumValues, un
             }
     if( enumIndex==g_TwMgr->m_Enums.size() )
         g_TwMgr->m_Enums.push_back(CTwMgr::CEnum());
-    assert( enumIndex>=0 && enumIndex<g_TwMgr->m_Enums.size() );
+    assert( /*enumIndex>=0 &&*/ enumIndex<g_TwMgr->m_Enums.size() );
     CTwMgr::CEnum& e = g_TwMgr->m_Enums[enumIndex];
     if( _Name!=NULL && strlen(_Name)>0 )
         e.m_Name = _Name;
@@ -4925,7 +4925,7 @@ void ANT_CALL CTwMgr::CStruct::DefaultSummary(char *_SummaryString, size_t _Summ
     size_t structIndex = (size_t)(_ClientData);
     if(    g_TwMgr && _SummaryString && _SummaryMaxLength>2
         && varGroup && static_cast<const CTwVar *>(varGroup)->IsGroup()
-        && structIndex>=0 && structIndex<=g_TwMgr->m_Structs.size() )
+        /*&& structIndex>=0*/ && structIndex<=g_TwMgr->m_Structs.size() )
     {
         // return g_TwMgr->m_Structs[structIndex].m_Name.c_str();
         CTwMgr::CStruct& s = g_TwMgr->m_Structs[structIndex];
@@ -5112,7 +5112,7 @@ bool TwGetKeyCode(int *_Code, int *_Modif, const char *_String)
     bool Ok = true;
     *_Modif = TW_KMOD_NONE;
     *_Code = 0;
-    size_t Start = strlen(_String)-1;
+    int Start = strlen(_String)-1;
     if( Start<0 )
         return false;
     while( Start>0 && _String[Start-1]!='+' )
@@ -5120,7 +5120,7 @@ bool TwGetKeyCode(int *_Code, int *_Modif, const char *_String)
     while( _String[Start]==' ' || _String[Start]=='\t' )
         ++Start;
     char *CodeStr = _strdup(_String+Start);
-    for( size_t i=strlen(CodeStr)-1; i>=0; ++i )
+    for( int i=strlen(CodeStr)-1; i>=0; ++i )
         if( CodeStr[i]==' ' || CodeStr[i]=='\t' )
             CodeStr[i] = '\0';
         else
@@ -5543,65 +5543,6 @@ int ANT_CALL TwMouseWheel(int _Pos)
 
 //  ---------------------------------------------------------------------------
 
-static int TranslateKey(int _Key, int _Modifiers)
-{
-    // CTRL special cases
-    //if( (_Modifiers&TW_KMOD_CTRL) && !(_Modifiers&TW_KMOD_ALT || _Modifiers&TW_KMOD_META) && _Key>0 && _Key<32 )
-    //  _Key += 'a'-1;
-    if( (_Modifiers&TW_KMOD_CTRL) )
-    {
-        if( _Key>='a' && _Key<='z' && ( ((_Modifiers&0x2000) && !(_Modifiers&TW_KMOD_SHIFT)) || (!(_Modifiers&0x2000) && (_Modifiers&TW_KMOD_SHIFT)) )) // 0x2000 is SDL's KMOD_CAPS
-            _Key += 'A'-'a';
-        else if ( _Key>='A' && _Key<='Z' && ( ((_Modifiers&0x2000) && (_Modifiers&TW_KMOD_SHIFT)) || (!(_Modifiers&0x2000) && !(_Modifiers&TW_KMOD_SHIFT)) )) // 0x2000 is SDL's KMOD_CAPS
-            _Key += 'a'-'A';
-    }
-
-    // PAD translation (for SDL keysym)
-    if( _Key>=256 && _Key<=272 ) // 256=SDLK_KP0 ... 272=SDLK_KP_EQUALS
-    {
-        //bool Num = ((_Modifiers&TW_KMOD_SHIFT) && !(_Modifiers&0x1000)) || (!(_Modifiers&TW_KMOD_SHIFT) && (_Modifiers&0x1000)); // 0x1000 is SDL's KMOD_NUM
-        //_Modifiers &= ~TW_KMOD_SHIFT; // remove shift modifier
-        bool Num = (!(_Modifiers&TW_KMOD_SHIFT) && (_Modifiers&0x1000)); // 0x1000 is SDL's KMOD_NUM
-        if( _Key==266 )          // SDLK_KP_PERIOD
-            _Key = Num ? '.' : TW_KEY_DELETE;
-        else if( _Key==267 )     // SDLK_KP_DIVIDE
-            _Key = '/';
-        else if( _Key==268 )     // SDLK_KP_MULTIPLY
-            _Key = '*';
-        else if( _Key==269 )     // SDLK_KP_MINUS
-            _Key = '-';
-        else if( _Key==270 )     // SDLK_KP_PLUS
-            _Key = '+';
-        else if( _Key==271 )     // SDLK_KP_ENTER
-            _Key = TW_KEY_RETURN;
-        else if( _Key==272 )     // SDLK_KP_EQUALS
-            _Key = '=';
-        else if( Num )           // num SDLK_KP0..9
-            _Key += '0' - 256;
-        else if( _Key==256 )     // non-num SDLK_KP01
-            _Key = TW_KEY_INSERT;
-        else if( _Key==257 )     // non-num SDLK_KP1
-            _Key = TW_KEY_END;
-        else if( _Key==258 )     // non-num SDLK_KP2
-            _Key = TW_KEY_DOWN;
-        else if( _Key==259 )     // non-num SDLK_KP3
-            _Key = TW_KEY_PAGE_DOWN;
-        else if( _Key==260 )     // non-num SDLK_KP4
-            _Key = TW_KEY_LEFT;
-        else if( _Key==262 )     // non-num SDLK_KP6
-            _Key = TW_KEY_RIGHT;
-        else if( _Key==263 )     // non-num SDLK_KP7
-            _Key = TW_KEY_HOME;
-        else if( _Key==264 )     // non-num SDLK_KP8
-            _Key = TW_KEY_UP;
-        else if( _Key==265 )     // non-num SDLK_KP9
-            _Key = TW_KEY_PAGE_UP;
-    }
-    return _Key;
-}
-
-//  ---------------------------------------------------------------------------
-
 static int KeyPressed(int _Key, int _Modifiers, bool _TestOnly)
 {
     CTwFPU fpu; // force fpu precision
@@ -5641,25 +5582,12 @@ static int KeyPressed(int _Key, int _Modifiers, bool _TestOnly)
     //sprintf(s, "twkeypressed k=%d m=%x\n", _Key, _Modifiers);
     //OutputDebugString(s);
 
-    _Key = TranslateKey(_Key, _Modifiers);
-    if( _Key>' ' && _Key<256 ) // don't test SHIFT if _Key is a common key
-        _Modifiers &= ~TW_KMOD_SHIFT;
-    // complete partial modifiers comming from SDL
-    if( _Modifiers & TW_KMOD_SHIFT )
-        _Modifiers |= TW_KMOD_SHIFT;
-    if( _Modifiers & TW_KMOD_CTRL )
-        _Modifiers |= TW_KMOD_CTRL;
-    if( _Modifiers & TW_KMOD_ALT )
-        _Modifiers |= TW_KMOD_ALT;
-    if( _Modifiers & TW_KMOD_META )
-        _Modifiers |= TW_KMOD_META;
-
     bool Handled = false;
     CTwBar *Bar = NULL;
     CTwBar *PopupBar = g_TwMgr->m_PopupBar;
     //int Order = 0;
     int i;
-    if( _Key>0 && _Key<TW_KEY_LAST )
+    if( /*_Key>0 && _Key<TW_KEY_LAST*/true )
     {
         // First send it to bar which includes the mouse pointer
         int MouseX = g_TwMgr->m_LastMouseX;
@@ -6369,8 +6297,8 @@ CTwMgr::CCursor CTwMgr::PixmapCursor(int _CurIdx)
     for (y=0;y<32;y++) {
         for (x=0;x<32;x++) {
             //printf("%d",g_CurMask[_CurIdx][x+y*32]);
-            data[(x>>2) + y*8] |= (unsigned char)(g_CurPict[_CurIdx][x+y*32] << 2*(3-(x&3))+1); //turn whiteon
-            data[(x>>2) + y*8] |= (unsigned char)(g_CurMask[_CurIdx][x+y*32] << 2*(3-(x&3))); //turn the alpha all the way up
+            data[(x>>2) + y*8] |= (unsigned char)(g_CurPict[_CurIdx][x+y*32] << (2*(3-(x&3))+1)); //turn whiteon
+            data[(x>>2) + y*8] |= (unsigned char)(g_CurMask[_CurIdx][x+y*32] << (2*(3-(x&3)))); //turn the alpha all the way up
         }
         //printf("\n");
     }

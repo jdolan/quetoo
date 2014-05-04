@@ -291,7 +291,7 @@ static void Cl_KeyGame(const SDL_Event *event) {
 /*
  * @brief
  */
-static void Cl_KeyMessage(const SDL_Event *event) {
+static void Cl_KeyChat(const SDL_Event *event) {
 
 	if (event->type == SDL_KEYUP) // don't care
 		return;
@@ -525,11 +525,14 @@ void Cl_InitKeys(void) {
 	cl_key_names = Mem_TagMalloc(SDL_NUM_SCANCODES * sizeof(char *), MEM_TAG_CLIENT);
 
 	for (SDL_Scancode k = SDLK_UNKNOWN; k <= SDL_SCANCODE_APP2; k++) {
-		cl_key_names[k] = Mem_Link(Mem_CopyString(SDL_GetScancodeName(k)), cl_key_names);
+		const char *name = SDL_GetScancodeName(k);
+		if (strlen(name)) {
+			cl_key_names[k] = Mem_Link(Mem_CopyString(name), cl_key_names);
+		}
 	}
 
-	for (SDL_Button b = SDL_SCANCODE_MOUSE1; b <= SDL_SCANCODE_MOUSE8; b++) {
-		const char *name = va("mouse %d", b - SDL_SCANCODE_MOUSE1 + 1);
+	for (SDL_Buttoncode b = SDL_SCANCODE_MOUSE1; b <= SDL_SCANCODE_MOUSE8; b++) {
+		const char *name = va("Mouse %d", b - SDL_SCANCODE_MOUSE1 + 1);
 		cl_key_names[b] = Mem_Link(Mem_CopyString(name), cl_key_names);
 	}
 
@@ -583,8 +586,10 @@ void Cl_KeyEvent(const SDL_Event *event) {
 		case KEY_GAME:
 			Cl_KeyGame(event);
 			break;
+		case KEY_UI:
+			break;
 		case KEY_CHAT:
-			Cl_KeyMessage(event);
+			Cl_KeyChat(event);
 			break;
 		case KEY_CONSOLE:
 			Cl_KeyConsole(event);

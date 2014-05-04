@@ -19,7 +19,7 @@ libanttweakbar_la_SOURCES = \
 	LoadOGL.cpp \
 	TwBar.cpp \
 	TwColors.cpp \
-	TwEventSDL.c \
+	TwEventSDL2.c \
 	TwFonts.cpp \
 	TwMgr.cpp \
 	TwOpenGL.cpp

@@ -219,6 +219,7 @@ typedef enum ETwKeyModifier
     TW_KMOD_ALT         = 0x0100,
     TW_KMOD_META        = 0x0c00
 } TwKeyModifier;
+
 typedef enum EKeySpecial
 {
     TW_KEY_BACKSPACE    = '\b',

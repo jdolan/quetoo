@@ -280,7 +280,7 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 			memset(&e, 0, sizeof(e));
 			e.type = event->type == SDL_MOUSEBUTTONUP ? SDL_KEYUP : SDL_KEYDOWN;
 			e.key.keysym.scancode = SDL_SCANCODE_MOUSE1 + ((event->button.button - 1) % 8);
-			e.key.keysym.sym = SDL_GetKeyFromScancode(e.key.keysym.scancode);
+			e.key.keysym.sym = SDLK_MOUSE1 + ((event->button.button - 1) % 8);
 			Cl_KeyEvent(&e);
 			break;
 
@@ -380,7 +380,6 @@ void Cl_HandleEvents(void) {
 			if (cls.key_state.down[k]) {
 				if (cls.key_state.binds[k] && cls.key_state.binds[k][0] == '+') {
 					e.key.keysym.scancode = k;
-					e.key.keysym.sym = SDL_GetKeyFromScancode(k);
 					Cl_KeyEvent(&e);
 				}
 			}
