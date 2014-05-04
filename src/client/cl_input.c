@@ -241,25 +241,41 @@ static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 }
 
 /*
+ * @brief Inserts source into destination at the specified offset, without
+ * exceeding the specified length.
+ *
+ * @return The number of chars inserted.
+ */
+static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs, const size_t len) {
+	char tmp[MAX_STRING_CHARS];
+
+	const size_t l = strlen(dest);
+
+	g_strlcpy(tmp, dest + ofs, sizeof(tmp));
+	dest[ofs] = '\0';
+
+	size_t i = g_strlcat(dest, src, len);
+	if (i < len) {
+		i = g_strlcat(dest, tmp, len);
+	}
+
+	return strlen(dest) - l;
+}
+
+/*
  * @brief
  */
 static void Cl_TextEvent(const SDL_Event *event) {
-	size_t i;
+	const char *src = event->text.text;
 
 	if (cls.key_state.dest == KEY_CONSOLE) {
-		cl_key_state_t *ks = &cls.key_state;
-
-		// FIXME: Handle insert
-
-		i = g_strlcat(ks->lines[ks->edit_line], event->text.text, sizeof(ks->lines[0]));
-		ks->pos = MIN(i, sizeof(ks->lines[0]));
+		cl_key_state_t *s = &cls.key_state;
+		s->pos += Cl_TextEvent_Insert(s->lines[s->edit_line], src, s->pos, sizeof(s->lines[0]));
 	}
 
 	if (cls.key_state.dest == KEY_CHAT) {
-		cl_chat_state_t *cs = &cls.chat_state;
-
-		i = g_strlcat(cs->buffer, event->text.text, sizeof(cs->buffer));
-		cs->len = MIN(i, sizeof(cs->buffer) - 1);
+		cl_chat_state_t *s = &cls.chat_state;
+		s->len += Cl_TextEvent_Insert(s->buffer, src, s->len, sizeof(s->buffer));
 	}
 }
 
