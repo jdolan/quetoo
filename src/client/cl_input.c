@@ -241,6 +241,52 @@ static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 }
 
 /*
+ * @brief
+ */
+static void Cl_MouseMotionEvent(const SDL_Event *event) {
+
+	const int32_t mx = event->motion.x;
+	const int32_t my = event->motion.y;
+
+	if (m_sensitivity->modified) { // clamp sensitivity
+		m_sensitivity->value = Clamp(m_sensitivity->value, 0.1, 20.0);
+		m_sensitivity->modified = false;
+	}
+
+	if (m_interpolate->value) { // interpolate movements
+		cls.mouse_state.x = (mx + cls.mouse_state.old_x) * 0.5;
+		cls.mouse_state.y = (my + cls.mouse_state.old_y) * 0.5;
+	} else {
+		cls.mouse_state.x = mx;
+		cls.mouse_state.y = my;
+	}
+
+	cls.mouse_state.old_x = mx;
+	cls.mouse_state.old_y = my;
+
+	// for active, connected players, add it to their move
+	if (cls.key_state.dest == KEY_GAME) {
+		if (cls.state == CL_ACTIVE) {
+
+			cls.mouse_state.x -= r_context.width / 2; // first normalize to center
+			cls.mouse_state.y -= r_context.height / 2;
+
+			cls.mouse_state.x *= m_sensitivity->value; // then amplify
+			cls.mouse_state.y *= m_sensitivity->value;
+
+			if (m_invert->value) // and finally invert
+				cls.mouse_state.y = -cls.mouse_state.y;
+
+			// add horizontal and vertical movement
+			cl.angles[YAW] -= m_yaw->value * cls.mouse_state.x;
+			cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
+		}
+
+		SDL_WarpMouseInWindow(r_context.window, r_context.width / 2, r_context.height / 2);
+	}
+}
+
+/*
  * @brief Inserts source into destination at the specified offset, without
  * exceeding the specified length.
  *
@@ -291,6 +337,12 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 	}
 
 	switch (event->type) {
+
+		case SDL_KEYDOWN:
+		case SDL_KEYUP:
+			Cl_KeyEvent(event);
+			break;
+
 		case SDL_MOUSEBUTTONUP:
 		case SDL_MOUSEBUTTONDOWN:
 			memset(&e, 0, sizeof(e));
@@ -300,9 +352,8 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 			Cl_KeyEvent(&e);
 			break;
 
-		case SDL_KEYDOWN:
-		case SDL_KEYUP:
-			Cl_KeyEvent(event);
+		case SDL_MOUSEMOTION:
+			Cl_MouseMotionEvent(event);
 			break;
 
 		case SDL_TEXTINPUT:
@@ -328,86 +379,61 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 /*
  * @brief
  */
-static void Cl_MouseMove(int32_t mx, int32_t my) {
-
-	if (m_sensitivity->modified) { // clamp sensitivity
-		m_sensitivity->value = Clamp(m_sensitivity->value, 0.1, 20.0);
-		m_sensitivity->modified = false;
-	}
-
-	if (m_interpolate->value) { // interpolate movements
-		cls.mouse_state.x = (mx + cls.mouse_state.old_x) * 0.5;
-		cls.mouse_state.y = (my + cls.mouse_state.old_y) * 0.5;
-	} else {
-		cls.mouse_state.x = mx;
-		cls.mouse_state.y = my;
-	}
-
-	cls.mouse_state.old_x = mx;
-	cls.mouse_state.old_y = my;
-
-	// for active, connected players, add it to their move
-	if (cls.state == CL_ACTIVE && cls.key_state.dest == KEY_GAME) {
-
-		cls.mouse_state.x -= r_context.width / 2; // first normalize to center
-		cls.mouse_state.y -= r_context.height / 2;
-
-		cls.mouse_state.x *= m_sensitivity->value; // then amplify
-		cls.mouse_state.y *= m_sensitivity->value;
-
-		if (m_invert->value) // and finally invert
-			cls.mouse_state.y = -cls.mouse_state.y;
-
-		// add horizontal and vertical movement
-		cl.angles[YAW] -= m_yaw->value * cls.mouse_state.x;
-		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
-	}
-
-	if (cls.key_state.dest != KEY_UI && cls.mouse_state.grabbed) {
-		// warp the cursor back to the center of the screen
-		SDL_WarpMouseInWindow(r_context.window, r_context.width / 2, r_context.height / 2);
-	}
-}
-
-/*
- * @brief
- */
 void Cl_HandleEvents(void) {
 	static cl_key_dest_t prev_key_dest;
-	int32_t mx, my;
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 		return;
 
-	// ignore mouse position after SDL re-grabs mouse, or after the menu is closed
-	_Bool invalid_mouse_state = false;
+	if (cls.key_state.dest != prev_key_dest) {
 
-	// send key-up events to previous destination before handling new events
-	if (prev_key_dest != cls.key_state.dest) {
-		const cl_key_dest_t dest = cls.key_state.dest;
-		cls.key_state.dest = prev_key_dest;
+		// send key-up events when leaving the game
+		if (prev_key_dest == KEY_GAME) {
+			const cl_key_dest_t dest = cls.key_state.dest;
+			cls.key_state.dest = prev_key_dest;
 
-		SDL_Event e;
-		memset(&e, 0, sizeof(e));
+			SDL_Event e;
+			memset(&e, 0, sizeof(e));
 
-		e.type = SDL_KEYUP;
+			e.type = SDL_KEYUP;
 
-		for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
-			if (cls.key_state.down[k]) {
-				if (cls.key_state.binds[k] && cls.key_state.binds[k][0] == '+') {
-					e.key.keysym.scancode = k;
-					Cl_KeyEvent(&e);
+			for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
+				if (cls.key_state.down[k]) {
+					if (cls.key_state.binds[k] && cls.key_state.binds[k][0] == '+') {
+						e.key.keysym.scancode = k;
+						Cl_KeyEvent(&e);
+					}
 				}
 			}
+
+			cls.key_state.dest = dest;
+		} else { // warp the mouse when returning to the game
+			SDL_WarpMouseInWindow(r_context.window, r_context.width / 2, r_context.height / 2);
 		}
 
-		if (prev_key_dest == KEY_UI)
-			invalid_mouse_state = true;
-
-		cls.key_state.dest = dest;
+		prev_key_dest = cls.key_state.dest;
 	}
 
-	prev_key_dest = cls.key_state.dest;
+	// force a mouse grab when changing video modes
+	if (r_view.update) {
+		cls.mouse_state.grabbed = false;
+	}
+
+	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI || !m_grab->integer) {
+		if (!r_context.fullscreen) { // allow cursor to move outside window
+			if (cls.mouse_state.grabbed) {
+				SDL_ShowCursor(true);
+				SDL_SetWindowGrab(r_context.window, false);
+				cls.mouse_state.grabbed = false;
+			}
+		}
+	} else {
+		if (!cls.mouse_state.grabbed) { // grab it for everything else
+			SDL_ShowCursor(false);
+			SDL_SetWindowGrab(r_context.window, true);
+			cls.mouse_state.grabbed = true;
+		}
+	}
 
 	// handle new key events
 	while (true) {
@@ -420,35 +446,6 @@ void Cl_HandleEvents(void) {
 		else
 			break;
 	}
-
-	// force a mouse grab when changing video modes
-	if (r_view.update) {
-		cls.mouse_state.grabbed = false;
-	}
-
-	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI || !m_grab->integer) {
-		if (!r_context.fullscreen) { // allow cursor to move outside window
-			if (cls.mouse_state.grabbed) {
-				SDL_SetWindowGrab(r_context.window, false);
-				cls.mouse_state.grabbed = false;
-			}
-		}
-	} else {
-		if (!cls.mouse_state.grabbed) { // grab it for everything else
-			SDL_SetWindowGrab(r_context.window, true);
-			cls.mouse_state.grabbed = true;
-			invalid_mouse_state = true;
-		}
-	}
-
-	SDL_GetMouseState(&mx, &my);
-
-	if (invalid_mouse_state) {
-		mx = r_context.width / 2;
-		my = r_context.height / 2;
-	}
-
-	Cl_MouseMove(mx, my);
 }
 
 /*

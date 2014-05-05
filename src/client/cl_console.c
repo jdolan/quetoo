@@ -28,8 +28,8 @@
 
 console_t cl_console;
 
-static cvar_t *cl_notify_time;
 static cvar_t *cl_console_alpha;
+static cvar_t *cl_notify_time;
 
 /*
  * @brief
@@ -111,8 +111,8 @@ void Cl_InitConsole(void) {
 
 	Cl_ClearNotify();
 
-	cl_notify_time = Cvar_Get("cl_notify_time", "3", CVAR_ARCHIVE, NULL);
 	cl_console_alpha = Cvar_Get("cl_console_alpha", "0.3", CVAR_ARCHIVE, NULL);
+	cl_notify_time = Cvar_Get("cl_notify_time", "3", CVAR_ARCHIVE, NULL);
 
 	Cmd_Add("toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
 	Cmd_Add("message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");
@@ -229,8 +229,8 @@ void Cl_DrawConsole(void) {
 	// draw the text
 	lines = cl_console.height;
 	y = 0;
-	for (line = cl_console.last_line - cl_console.scroll - lines; line < cl_console.last_line
-			- cl_console.scroll; line++) {
+	for (line = cl_console.last_line - cl_console.scroll - lines;
+			line < cl_console.last_line - cl_console.scroll; line++) {
 
 		if (line >= 0 && cl_console.line_start[line][0] != '\0') {
 			R_DrawBytes(0, y, cl_console.line_start[line],

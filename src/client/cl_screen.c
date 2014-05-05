@@ -252,20 +252,6 @@ static void Cl_DrawCounters(void) {
 }
 
 /*
- * @brief
- */
-static void Cl_DrawCursor(void) {
-
-	if (cls.key_state.dest != KEY_UI && cls.mouse_state.grabbed)
-		return;
-
-	if (!(SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_INPUT_FOCUS))
-		return;
-
-	R_DrawCursor(cls.mouse_state.x, cls.mouse_state.y);
-}
-
-/*
  * @brief This is called every frame, and can also be called explicitly to flush
  * text to the screen.
  */
@@ -306,8 +292,6 @@ void Cl_UpdateScreen(void) {
 	R_Draw2D(); // draw all 2D geometry for the frame
 
 	Ui_Draw();
-
-	Cl_DrawCursor();
 
 	R_EndFrame();
 }

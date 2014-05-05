@@ -25,7 +25,7 @@
 #include "cmd.h"
 #include "cvar.h"
 
-#define CON_TEXT_SIZE 32768
+#define CON_TEXT_SIZE (1024 * 1024)
 #define CON_MAX_LINES 1024
 #define CON_NUM_NOTIFY 4
 #define CON_SCROLL 5

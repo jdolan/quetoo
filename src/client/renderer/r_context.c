@@ -112,9 +112,6 @@ void R_InitContext(void) {
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &r_context.depth_bits);
 	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &r_context.double_buffer);
 
-	// don't show SDL cursor because the game will draw one
-	SDL_ShowCursor(false);
-
 	R_SetIcon();
 }
 

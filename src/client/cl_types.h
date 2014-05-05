@@ -204,7 +204,7 @@ typedef enum {
 } cl_key_dest_t;
 
 #define KEY_HISTORY_SIZE 64
-#define KEY_LINE_SIZE 256
+#define KEY_LINE_SIZE 512
 
 typedef enum {
 	SDL_SCANCODE_MOUSE1 = (SDL_SCANCODE_APP2 + 1),
