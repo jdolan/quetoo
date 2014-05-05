@@ -217,10 +217,10 @@ static void Sv_InitClients(void) {
 	}
 
 	// align the game entities with the server's clients
-	for (i = 1; i <= sv_max_clients->integer; i++) {
+	for (i = 0; i < sv_max_clients->integer; i++) {
 
-		g_entity_t *ent = ENTITY_FOR_NUM(i);
-		ent->s.number = i;
+		g_entity_t *ent = ENTITY_FOR_NUM(i + 1);
+		ent->s.number = NUM_FOR_ENTITY(ent);
 
 		// assign their edict
 		svs.clients[i].entity = ent;
