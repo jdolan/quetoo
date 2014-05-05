@@ -407,7 +407,8 @@ void Cl_HandleEvents(void) {
 			}
 
 			cls.key_state.dest = dest;
-		} else { // warp the mouse when returning to the game
+		} else if (cls.key_state.dest == KEY_GAME) {
+			// warp the mouse when returning to the game
 			SDL_WarpMouseInWindow(r_context.window, r_context.width / 2, r_context.height / 2);
 		}
 
