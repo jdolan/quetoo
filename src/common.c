@@ -89,6 +89,7 @@ void Com_Debug_(const char *func, const char *fmt, ...) {
 		quake2world.Debug((const char *) msg);
 	} else {
 		fputs(msg, stdout);
+		fflush(stdout);
 	}
 }
 
@@ -125,6 +126,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 		quake2world.Error(err, (const char *) msg);
 	} else {
 		fprintf(stderr, "%s", msg);
+		fflush(stderr);
 		exit(err);
 	}
 }
@@ -153,6 +155,7 @@ void Com_Print(const char *fmt, ...) {
 		quake2world.Print((const char *) msg);
 	} else {
 		fputs(msg, stdout);
+		fflush(stdout);
 	}
 }
 
@@ -180,6 +183,7 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
 		quake2world.Warn((const char *) msg);
 	} else {
 		fprintf(stderr, "WARNING: %s", msg);
+		fflush(stderr);
 	}
 }
 
@@ -198,6 +202,7 @@ void Com_Verbose(const char *fmt, ...) {
 		quake2world.Verbose((const char *) msg);
 	} else {
 		fputs(msg, stdout);
+		fflush(stdout);
 	}
 }
 
