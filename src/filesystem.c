@@ -480,6 +480,8 @@ void Fs_SetGame(const char *dir) {
 		return;
 	}
 
+	Com_Debug("Setting game: %s\n", dir);
+
 	// iterate the current search path, removing those which are not base paths
 	char **paths = PHYSFS_getSearchPath();
 	char **path = paths;
