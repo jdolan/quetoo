@@ -77,7 +77,8 @@ void S_RegisterMedia(s_media_t *media) {
 			g_hash_table_insert(s_media_state.media, media->name, media);
 		}
 
-		s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media->name, S_RegisterMedia_Compare);
+		s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media->name,
+				S_RegisterMedia_Compare);
 
 		// re-seed the media to retain it
 		media->seed = s_media_state.seed;
@@ -134,6 +135,8 @@ static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data) {
 		}
 	}
 
+	Com_Debug("Freeing %s\b", media->name);
+
 	// ask the implementation to clean up
 	if (media->Free) {
 		media->Free(media);
@@ -172,6 +175,8 @@ void S_InitMedia(void) {
 	memset(&s_media_state, 0, sizeof(s_media_state));
 
 	s_media_state.media = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
+
+	S_BeginLoading();
 }
 
 /*
