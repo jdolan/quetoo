@@ -167,7 +167,7 @@ struct CTwMgr
         TwCopyVarFromExtCallback    m_CopyVarFromExtCallback;
         TwCopyVarToExtCallback      m_CopyVarToExtCallback;
         void *                      m_ExtClientData;
-        CStruct() : m_IsExt(false), m_StructExtInitCallback(NULL), m_CopyVarFromExtCallback(NULL), m_CopyVarToExtCallback(NULL), m_ExtClientData(NULL) {}
+        CStruct() : m_Size(0), m_SummaryCallback(NULL), m_SummaryClientData(NULL), m_IsExt(false), m_ClientStructSize(0), m_StructExtInitCallback(NULL), m_CopyVarFromExtCallback(NULL), m_CopyVarToExtCallback(NULL), m_ExtClientData(NULL) {}
         static void ANT_CALL        DefaultSummary(char *_SummaryString, size_t _SummaryMaxLength, const void *_Value, void *_ClientData);
         static void *               s_PassProxyAsClientData;
     };

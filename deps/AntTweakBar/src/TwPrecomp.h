@@ -44,7 +44,7 @@
 #   pragma warning(pop)
 #endif
 
-#if defined(_UNIX)
+#if defined(_UNIX) || defined(__linux__)
 #   define ANT_UNIX
 #   include <X11/cursorfont.h>
 #   define GLX_GLXEXT_LEGACY
@@ -59,7 +59,7 @@
 #   undef _WINDOWS
 #   undef ANT_WINDOWS
 #   undef ANT_OSX
-#elif defined(_MACOSX)
+#elif defined(_MACOSX) || defined(__APPLE__)
 #   define ANT_OSX
 #   include <unistd.h>
 #   include <Foundation/Foundation.h>
