@@ -649,8 +649,7 @@ void Cvar_Init(void) {
 	Cmd_Add("toggle", Cvar_Toggle_f, 0, NULL);
 	Cmd_Add("cvar_list", Cvar_List_f, 0, NULL);
 
-	int32_t i;
-	for (i = 1; i < Com_Argc(); i++) {
+	for (int32_t i = 1; i < Com_Argc(); i++) {
 		const char *s = Com_Argv(i);
 
 		if (!strncmp(s, "+set", 4)) {
