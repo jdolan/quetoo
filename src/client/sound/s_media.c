@@ -135,7 +135,7 @@ static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data) {
 		}
 	}
 
-	Com_Debug("Freeing %s\b", media->name);
+	Com_Debug("Freeing %s\n", media->name);
 
 	// ask the implementation to clean up
 	if (media->Free) {
