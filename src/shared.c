@@ -765,13 +765,13 @@ char *va(const char *format, ...) {
  */
 char *vtos(const vec3_t v) {
 	static uint32_t index;
-	static char str[8][32];
+	static char str[8][MAX_QPATH];
 	char *s;
 
 	// use an array so that multiple vtos won't collide
 	s = str[index++ % 8];
 
-	g_snprintf(s, 32, "(%04.2f %04.2f %04.2f)", v[0], v[1], v[2]);
+	g_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v[0], v[1], v[2]);
 
 	return s;
 }
