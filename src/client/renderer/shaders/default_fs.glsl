@@ -1,4 +1,8 @@
-// default fragment shader
+/*
+ * @brief Default fragment shader.
+ */
+
+#version 120
 
 // linear + quadratic attenuation
 #define LIGHT_ATTENUATION (4.0 * dist + 8.0 * dist * dist)

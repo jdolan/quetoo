@@ -46,7 +46,7 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *
  *
  * ftp://ftp.sgi.com/opengl/contrib/blythe/advanced99/notes/node192.html
  */
-static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t *s) {
+static void R_RotateForMeshShadow_default(const r_entity_t *e, r_shadow_t *s) {
 	vec4_t pos, normal;
 	matrix4x4_t proj, shear;
 	vec_t dot;
@@ -109,21 +109,28 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 	shear.m[3][3] = dot - pos[3] * normal[3];
 
 	glMultMatrixf((GLfloat *) shear.m);
+
+	//Matrix4x4_Concat(&s->matrix, &shear, &proj);
+	Matrix4x4_Copy(&s->matrix, &proj);
 }
 
 /*
  * @brief Draws the specified shadow for the given entity. A scissor test is
  * employed in order to clip shadows to the planes they are cast upon.
  */
-static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) {
+static void R_DrawMeshShadow_default_(const r_entity_t *e, r_shadow_t *s) {
 
 	R_SetMeshShadowColor_default(e, s);
 
 	R_RotateForMeshShadow_default(e, s);
 
+	R_EnableShadow(r_state.shadow_program, true);
+
 	glStencilFunc(GL_EQUAL, (s->plane.num % 0xfe) + 1, ~0);
 
 	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+
+	R_EnableShadow(NULL, false);
 
 	R_RotateForMeshShadow_default(NULL, NULL);
 }
@@ -156,7 +163,7 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableStencilTest(true, GL_ZERO);
 
-	const r_shadow_t *s = e->lighting->shadows;
+	r_shadow_t *s = e->lighting->shadows;
 
 	for (uint16_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {
 
@@ -175,8 +182,14 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 		}
 #endif
 
+		r_view.current_shadow = s;
+
 		R_DrawMeshShadow_default_(e, s);
 	}
+
+	r_view.current_shadow = NULL;
+
+	R_EnableShadow(NULL, false);
 
 	R_EnableStencilTest(false, GL_ZERO);
 

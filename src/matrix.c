@@ -20,7 +20,7 @@
 
 #include "matrix.h"
 
-const matrix4x4_t identitymatrix =
+const matrix4x4_t matrix4x4_identity =
 {
 	{
 		{1, 0, 0, 0},

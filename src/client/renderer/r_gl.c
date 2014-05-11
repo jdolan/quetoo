@@ -31,8 +31,8 @@ void (APIENTRY *qglBufferData)(GLenum target, GLsizei size, const GLvoid *data, 
 
 void (APIENTRY *qglEnableVertexAttribArray)(GLuint index);
 void (APIENTRY *qglDisableVertexAttribArray)(GLuint index);
-void (APIENTRY *qglVertexAttribPointer)(GLuint index, GLint size, GLenum type,
-		GLboolean normalized, GLsizei stride, const GLvoid *pointer);
+void (APIENTRY *qglVertexAttribPointer)(GLuint index, GLint size, GLenum type, GLboolean normalized,
+		GLsizei stride, const GLvoid *pointer);
 
 GLuint (APIENTRY *qglCreateShader)(GLenum type);
 void (APIENTRY *qglDeleteShader)(GLuint id);
@@ -53,6 +53,8 @@ void (APIENTRY *qglUniform1i)(GLint location, GLint i);
 void (APIENTRY *qglUniform1f)(GLint location, GLfloat f);
 void (APIENTRY *qglUniform3fv)(GLint location, int32_t count, GLfloat *f);
 void (APIENTRY *qglUniform4fv)(GLint location, int32_t count, GLfloat *f);
+void (APIENTRY *qglUniformMatrix4fv)(GLint location, GLsizei count, GLboolean transpose,
+		const GLfloat *value);
 GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
 
 /*
@@ -115,6 +117,7 @@ void R_InitGlExtensions(void) {
 		qglUniform1f = SDL_GL_GetProcAddress("glUniform1f");
 		qglUniform3fv = SDL_GL_GetProcAddress("glUniform3fv");
 		qglUniform4fv = SDL_GL_GetProcAddress("glUniform4fv");
+		qglUniformMatrix4fv = SDL_GL_GetProcAddress("glUniformMatrix4fv");
 		qglGetAttribLocation = SDL_GL_GetProcAddress("glGetAttribLocation");
 
 		// vertex attribute arrays

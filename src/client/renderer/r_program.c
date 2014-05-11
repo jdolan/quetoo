@@ -24,7 +24,7 @@
 /*
  * @brief
  */
-void R_UseProgram(r_program_t *prog) {
+void R_UseProgram(const r_program_t *prog) {
 
 	if (!qglUseProgram || r_state.active_program == prog)
 		return;
@@ -46,7 +46,7 @@ void R_UseProgram(r_program_t *prog) {
 /*
  * @brief
  */
-void R_ProgramVariable(r_variable_t *variable, GLenum type, const char *name) {
+void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *name) {
 
 	memset(variable, 0, sizeof(*variable));
 	variable->location = -1;
@@ -57,12 +57,12 @@ void R_ProgramVariable(r_variable_t *variable, GLenum type, const char *name) {
 	}
 
 	switch (type) {
-	case R_ATTRIBUTE:
-		variable->location = qglGetAttribLocation(r_state.active_program->id, name);
-		break;
-	default:
-		variable->location = qglGetUniformLocation(r_state.active_program->id, name);
-		break;
+		case R_ATTRIBUTE:
+			variable->location = qglGetAttribLocation(r_state.active_program->id, name);
+			break;
+		default:
+			variable->location = qglGetUniformLocation(r_state.active_program->id, name);
+			break;
 	}
 
 	if (variable->location == -1) {
@@ -79,7 +79,7 @@ void R_ProgramVariable(r_variable_t *variable, GLenum type, const char *name) {
 /*
  * R_ProgramParameter1i
  */
-void R_ProgramParameter1i(r_uniform1i_t *variable, GLint value) {
+void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
 
 	if (!variable || variable->location == -1) {
 		Com_Warn("NULL or invalid variable\n");
@@ -89,8 +89,8 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, GLint value) {
 	if (variable->value.i == value)
 		return;
 
-	qglUniform1i(variable->location, value);
 	variable->value.i = value;
+	qglUniform1i(variable->location, variable->value.i);
 
 	R_GetError(variable->name);
 }
@@ -98,7 +98,7 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, GLint value) {
 /*
  * R_ProgramParameter1f
  */
-void R_ProgramParameter1f(r_uniform1f_t *variable, GLfloat value) {
+void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
 
 	if (!variable || variable->location == -1) {
 		Com_Warn("NULL or invalid variable\n");
@@ -108,8 +108,8 @@ void R_ProgramParameter1f(r_uniform1f_t *variable, GLfloat value) {
 	if (variable->value.f == value)
 		return;
 
-	qglUniform1f(variable->location, value);
 	variable->value.f = value;
+	qglUniform1f(variable->location, variable->value.f);
 
 	R_GetError(variable->name);
 }
@@ -117,7 +117,7 @@ void R_ProgramParameter1f(r_uniform1f_t *variable, GLfloat value) {
 /*
  * R_ProgramParameter3fv
  */
-void R_ProgramParameter3fv(r_uniform3fv_t *variable, GLfloat *value) {
+void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
 
 	if (!variable || variable->location == -1) {
 		Com_Warn("NULL or invalid variable\n");
@@ -127,16 +127,36 @@ void R_ProgramParameter3fv(r_uniform3fv_t *variable, GLfloat *value) {
 	if (VectorCompare(variable->value.vec3, value))
 		return;
 
-	qglUniform3fv(variable->location, 1, value);
 	VectorCopy(value, variable->value.vec3);
+	qglUniform3fv(variable->location, 1, variable->value.vec3);
 
 	R_GetError(variable->name);
 }
 
 /*
+ * R_ProgramParameterMatrix4fv
+ */
+void R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value) {
+
+	if (!variable || variable->location == -1) {
+		Com_Warn("NULL or invalid variable\n");
+		return;
+	}
+
+	if (memcmp(&variable->value.mat4, value, sizeof(variable->value.mat4)) == 0)
+		return;
+
+	memcpy(&variable->value.mat4, value, sizeof(variable->value.mat4));
+	qglUniformMatrix4fv(variable->location, 1, false, (GLfloat *) variable->value.mat4.m);
+
+	R_GetError(variable->name);
+}
+
+
+/*
  * @brief
  */
-void R_AttributePointer(const char *name, GLuint size, GLvoid *array) {
+void R_AttributePointer(const char *name, GLuint size, const GLvoid *array) {
 	r_attribute_t attribute;
 
 	R_ProgramVariable(&attribute, R_ATTRIBUTE, name);
@@ -296,7 +316,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 /*
  * @brief
  */
-static r_program_t *R_LoadProgram(const char *name, void(*Init)(void)) {
+static r_program_t *R_LoadProgram(const char *name, void (*Init)(void)) {
 	r_program_t *prog;
 	char log[MAX_STRING_CHARS];
 	uint32_t e;
@@ -371,6 +391,11 @@ void R_InitPrograms(void) {
 		r_state.default_program->Use = R_UseProgram_default;
 		r_state.default_program->UseMaterial = R_UseMaterial_default;
 		r_state.default_program->arrays_mask = 0xff;
+	}
+
+	if ((r_state.shadow_program = R_LoadProgram("shadow", R_InitProgram_shadow))) {
+		r_state.shadow_program->Use = R_UseProgram_shadow;
+		r_state.shadow_program->arrays_mask = R_ARRAY_VERTEX;
 	}
 
 	if ((r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp))) {

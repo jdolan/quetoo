@@ -101,6 +101,8 @@ extern void (APIENTRY *qglUniform1i)(GLint location, GLint i);
 extern void (APIENTRY *qglUniform1f)(GLint location, GLfloat f);
 extern void (APIENTRY *qglUniform3fv)(GLint location, int32_t count, GLfloat *f);
 extern void (APIENTRY *qglUniform4fv)(GLint location, int32_t count, GLfloat *f);
+extern void (APIENTRY *qglUniformMatrix4fv)(GLint location, GLsizei count, GLboolean transpose,
+		const GLfloat *value);
 extern GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
 
 void R_EnforceGlVersion(void);

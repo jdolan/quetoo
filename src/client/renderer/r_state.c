@@ -96,8 +96,8 @@ void R_SelectTexture(r_texunit_t *texunit) {
 
 	qglActiveTexture(texunit->texture);
 
-	if (texunit == &texunit_diffuse || texunit == &texunit_lightmap)
-		qglClientActiveTexture(texunit->texture);
+	if (texunit == &texunit_diffuse|| texunit == &texunit_lightmap)
+	qglClientActiveTexture(texunit->texture);
 }
 
 /*
@@ -121,7 +121,7 @@ void R_BindTexture(GLuint texnum) {
 void R_BindLightmapTexture(GLuint texnum) {
 
 	if (texnum == texunit_lightmap.texnum)
-		return;
+	return;
 
 	R_SelectTexture(&texunit_lightmap);
 
@@ -138,7 +138,7 @@ void R_BindLightmapTexture(GLuint texnum) {
 void R_BindDeluxemapTexture(GLuint texnum) {
 
 	if (texnum == texunit_deluxemap.texnum)
-		return;
+	return;
 
 	R_SelectTexture(&texunit_deluxemap);
 
@@ -155,7 +155,7 @@ void R_BindDeluxemapTexture(GLuint texnum) {
 void R_BindNormalmapTexture(GLuint texnum) {
 
 	if (texnum == texunit_normalmap.texnum)
-		return;
+	return;
 
 	R_SelectTexture(&texunit_normalmap);
 
@@ -172,7 +172,7 @@ void R_BindNormalmapTexture(GLuint texnum) {
 void R_BindGlossmapTexture(GLuint texnum) {
 
 	if (texnum == texunit_glossmap.texnum)
-		return;
+	return;
 
 	R_SelectTexture(&texunit_glossmap);
 
@@ -375,7 +375,7 @@ void R_EnableColorArray(_Bool enable) {
  * should be called after any texture units which will be active for lighting
  * have been enabled.
  */
-void R_EnableLighting(r_program_t *program, _Bool enable) {
+void R_EnableLighting(const r_program_t *program, _Bool enable) {
 
 	if (!r_programs->value)
 		return;
@@ -404,9 +404,33 @@ void R_EnableLighting(r_program_t *program, _Bool enable) {
 }
 
 /*
+ * @brief Enables alpha-blended, stencil-test shadows.
+ */
+void R_EnableShadow(const r_program_t *program, _Bool enable) {
+
+	if (!r_programs->value)
+		return;
+
+	if (enable && (!program || !program->id))
+		return;
+
+	if (!r_shadows->value || r_state.shadow_enabled == enable)
+		return;
+
+	r_state.shadow_enabled = enable;
+
+	if (enable)
+		R_UseProgram(program);
+	else
+		R_UseProgram(NULL);
+
+	R_GetError(NULL);
+}
+
+/*
  * @brief Enables the warp shader for drawing liquids and other effects.
  */
-void R_EnableWarp(r_program_t *program, _Bool enable) {
+void R_EnableWarp(const r_program_t *program, _Bool enable) {
 
 	if (!r_programs->value)
 		return;
@@ -632,7 +656,7 @@ void R_InitState(void) {
 				R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
 
 				if (texunit == &texunit_lightmap)
-					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 				R_EnableTexture(texunit, false);
 			}

@@ -31,7 +31,7 @@ typedef struct matrix4x4_s
 }
 matrix4x4_t;
 
-extern const matrix4x4_t identitymatrix;
+extern const matrix4x4_t matrix4x4_identity;
 
 // functions for manipulating 4x4 matrices
 
