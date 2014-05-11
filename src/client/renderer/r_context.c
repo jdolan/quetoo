@@ -26,7 +26,7 @@ r_context_t r_context;
 /*
  * @brief
  */
-static void R_SetIcon(void) {
+static void R_SetWindowIcon(void) {
 	SDL_Surface *surf;
 
 	if (!Img_LoadImage("pics/icon", &surf))
@@ -68,19 +68,28 @@ void R_InitContext(void) {
 	uint32_t flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /*| SDL_WINDOW_ALLOW_HIGHDPI*/;
 
 	if (r_fullscreen->integer) {
-		w = r_width->integer > 0 ? r_width->integer : 0;
-		h = r_height->integer > 0 ? r_height->integer : 0;
+		w = MAX(0, r_width->integer);
+		h = MAX(0, r_height->integer);
 
-		flags |= SDL_WINDOW_FULLSCREEN;
+		if (r_width->integer == 0 && r_height->integer == 0) {
+			SDL_DisplayMode best;
+			SDL_GetDesktopDisplayMode(0, &best);
+
+			w = best.w;
+			h = best.h;
+		}
+		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 	} else {
-		w = r_windowed_width->integer > 0 ? r_windowed_width->integer : 0;
-		h = r_windowed_height->integer > 0 ? r_windowed_height->integer : 0;
+		w = MAX(0, r_windowed_width->integer);
+		h = MAX(0, r_windowed_height->integer);
 
 		flags |= SDL_WINDOW_RESIZABLE;
 	}
 
+	Com_Print("  Trying %dx%d..\n", w, h);
+
 	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, SDL_WINDOWPOS_CENTERED,
-			SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
+	SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
@@ -96,23 +105,19 @@ void R_InitContext(void) {
 		Com_Warn("Failed to set gamma %1.1f: %s\n", r_gamma->value, SDL_GetError());
 	}
 
-	SDL_GetWindowSize(r_context.window, &w, &h);
+	SDL_GL_GetDrawableSize(r_context.window, &w, &h);
 
 	r_context.width = w;
 	r_context.height = h;
 
-	r_context.fullscreen = r_fullscreen->integer;
+	SDL_GetWindowSize(r_context.window, &w, &h);
 
-	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r_context.red_bits);
-	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &r_context.green_bits);
-	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &r_context.blue_bits);
-	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &r_context.alpha_bits);
+	r_context.window_width = w;
+	r_context.window_height = h;
 
-	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &r_context.stencil_bits);
-	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &r_context.depth_bits);
-	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &r_context.double_buffer);
+	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
 
-	R_SetIcon();
+	R_SetWindowIcon();
 }
 
 /*

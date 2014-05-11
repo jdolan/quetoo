@@ -523,11 +523,7 @@ void R_Init(void) {
 
 	R_InitView();
 
-	Com_Print(
-			"Video initialized %dx%dx%dbpp %s\n",
-			r_context.width,
-			r_context.height,
-			(r_context.red_bits + r_context.green_bits + r_context.blue_bits + r_context.alpha_bits),
+	Com_Print("Video initialized %dx%d %s\n", r_context.width, r_context.height,
 			(r_context.fullscreen ? "fullscreen" : "windowed"));
 }
 

@@ -17,38 +17,39 @@
 #include <SDL2/SDL.h>
 #include <AntTweakBar.h>
 
-#ifdef  __cplusplus
-extern "C" {int TW_CALL TwSetLastError(const char *staticErrorMessage);}
-#else
-int TW_CALL TwSetLastError(const char *staticErrorMessage);
-#endif  // __cplusplus
+typedef struct {
+	int width, height;
+	int window_width, window_height;
+} TwSDLState;
 
-//  TwEventSDL returns zero if msg has not been handled or the SDL version 
-//  is not supported, and a non-zero value if it has been handled by the 
-//  AntTweakBar library.
-int TW_CALL TwEventSDL(const void *sdlEvent, unsigned char majorVersion, unsigned char minorVersion) {
+static TwSDLState SDLState;
 
-	if (majorVersion < 2) {
-		static char msg[128];
-		snprintf(msg, sizeof(msg), "Unsupported SDL version: %d.%d", majorVersion, minorVersion);
-		TwSetLastError(msg);
-		return 0;
-	}
+/*
+ * @brief Handle libSDL2 events for AntTweakBar.
+ * @param sdlEvent The SDL_Event pointer, cast to (void *).
+ * @return 0 if the event was not swallowed, non-zero otherwise.
+ */
+int TW_CALL TwEventSDL(const void *sdlEvent, unsigned char majorVersion __attribute__((unused)),
+		unsigned char minorVersion __attribute__((unused))) {
 
 	const SDL_Event *event = (const SDL_Event *) sdlEvent;
 
 	if (event == NULL)
 		return 0;
 
-	int handled = 0, key = 0, mod = 0;
+	int handled = 0;
 
 	switch (event->type) {
+
 		case SDL_TEXTINPUT:
 			for (size_t i = 0; i < strlen(event->text.text); i++) {
 				handled += TwKeyPressed(event->text.text[i], TW_KMOD_NONE);
 			}
 			break;
-		case SDL_KEYDOWN:
+
+		case SDL_KEYDOWN: {
+			int key = 0, mod = 0;
+
 			switch (event->key.keysym.sym) {
 				case SDLK_BACKSPACE:
 					key = TW_KEY_BACKSPACE;
@@ -153,15 +154,24 @@ int TW_CALL TwEventSDL(const void *sdlEvent, unsigned char majorVersion, unsigne
 
 			if (key != 0)
 				handled = TwKeyPressed(key, mod);
+		}
+			break;
 
-			break;
 		case SDL_MOUSEMOTION:
-			handled = TwMouseMotion(event->motion.x, event->motion.y);
+			if (SDLState.width && SDLState.height) {
+				const int mx = event->motion.x * (SDLState.width / SDLState.window_width);
+				const int my = event->motion.y * (SDLState.height / SDLState.window_height);
+
+				handled = TwMouseMotion(mx, my);
+			}
 			break;
+
 		case SDL_MOUSEBUTTONUP:
+			handled = TwMouseButton(TW_MOUSE_RELEASED, (TwMouseButtonID) event->button.button);
+			break;
+
 		case SDL_MOUSEBUTTONDOWN:
-			if (event->type == SDL_MOUSEBUTTONDOWN
-					&& (event->button.button == 4 || event->button.button == 5)) {
+			if (event->button.button == 4 || event->button.button == 5) {
 				static int s_WheelPos = 0;
 				if (event->button.button == 4)
 					++s_WheelPos;
@@ -169,14 +179,23 @@ int TW_CALL TwEventSDL(const void *sdlEvent, unsigned char majorVersion, unsigne
 					--s_WheelPos;
 				handled = TwMouseWheel(s_WheelPos);
 			} else {
-				handled = TwMouseButton(
-						(event->type == SDL_MOUSEBUTTONUP) ? TW_MOUSE_RELEASED : TW_MOUSE_PRESSED,
-						(TwMouseButtonID) event->button.button);
+				handled = TwMouseButton(TW_MOUSE_PRESSED, (TwMouseButtonID) event->button.button);
 			}
 			break;
+
 		case SDL_WINDOWEVENT:
-			if (event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-				TwWindowSize(event->window.data1, event->window.data2);
+			switch (event->window.event) {
+
+				case SDL_WINDOWEVENT_SHOWN:
+				case SDL_WINDOWEVENT_SIZE_CHANGED: {
+					SDL_Window *window = SDL_GetWindowFromID(event->window.windowID);
+					SDL_GL_GetDrawableSize(window, &SDLState.width, &SDLState.height);
+
+					TwWindowSize(SDLState.width, SDLState.height);
+
+					SDL_GetWindowSize(window, &SDLState.window_width, &SDLState.window_height);
+				}
+					break;
 			}
 			break;
 	}

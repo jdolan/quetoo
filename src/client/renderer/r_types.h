@@ -596,6 +596,7 @@ typedef struct {
 	const r_illumination_t *illumination;
 	cm_bsp_plane_t plane;
 	vec_t intensity;
+	matrix4x4_t matrix; // the shearing matrix for planar projection
 } r_shadow_t;
 
 /*
@@ -806,6 +807,7 @@ typedef struct {
 	thread_t *thread; // client thread which populates view
 
 	const r_entity_t *current_entity; // entity being rendered
+	const r_shadow_t *current_shadow; // shadow being rendered
 
 	// counters, reset each frame
 
@@ -832,12 +834,20 @@ typedef struct {
 	SDL_Window *window;
 	SDL_GLContext *context;
 
+	/*
+	 * @brief Window size in actual pixels.
+	 */
 	r_pixel_t width, height;
 
-	_Bool fullscreen;
+	/*
+	 * @brief Window size as reported by SDL_GetWindowSize (High-DPI compatibility).
+	 */
+	r_pixel_t window_width, window_height;
 
-	int32_t red_bits, green_bits, blue_bits, alpha_bits;
-	int32_t stencil_bits, depth_bits, double_buffer;
+	/*
+	 * @brief True if fullscreen, false if windowed.
+	 */
+	_Bool fullscreen;
 } r_context_t;
 
 #endif /* __R_TYPES_H__ */

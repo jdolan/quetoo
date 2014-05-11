@@ -245,6 +245,9 @@ static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
  */
 static void Cl_MouseMotionEvent(const SDL_Event *event) {
 
+	if (cls.key_state.dest != KEY_GAME)
+		return;
+
 	const int32_t mx = event->motion.x;
 	const int32_t my = event->motion.y;
 
@@ -264,26 +267,26 @@ static void Cl_MouseMotionEvent(const SDL_Event *event) {
 	cls.mouse_state.old_x = mx;
 	cls.mouse_state.old_y = my;
 
-	// for active, connected players, add it to their move
-	if (cls.key_state.dest == KEY_GAME) {
-		if (cls.state == CL_ACTIVE) {
+	const r_pixel_t cx = r_context.window_width * 0.5;
+	const r_pixel_t cy = r_context.window_height * 0.5;
 
-			cls.mouse_state.x -= r_context.width / 2; // first normalize to center
-			cls.mouse_state.y -= r_context.height / 2;
+	if (cls.state == CL_ACTIVE) {
 
-			cls.mouse_state.x *= m_sensitivity->value; // then amplify
-			cls.mouse_state.y *= m_sensitivity->value;
+		cls.mouse_state.x -= cx; // first normalize to center
+		cls.mouse_state.y -= cy;
 
-			if (m_invert->value) // and finally invert
-				cls.mouse_state.y = -cls.mouse_state.y;
+		cls.mouse_state.x *= m_sensitivity->value; // then amplify
+		cls.mouse_state.y *= m_sensitivity->value;
 
-			// add horizontal and vertical movement
-			cl.angles[YAW] -= m_yaw->value * cls.mouse_state.x;
-			cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
-		}
+		if (m_invert->value) // and finally invert
+			cls.mouse_state.y = -cls.mouse_state.y;
 
-		SDL_WarpMouseInWindow(r_context.window, r_context.width / 2, r_context.height / 2);
+		// add horizontal and vertical movement
+		cl.angles[YAW] -= m_yaw->value * cls.mouse_state.x;
+		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
 	}
+
+	SDL_WarpMouseInWindow(r_context.window, cx, cy);
 }
 
 /*
@@ -331,10 +334,8 @@ static void Cl_TextEvent(const SDL_Event *event) {
 static void Cl_HandleEvent(const SDL_Event *event) {
 	SDL_Event e;
 
-	if (cls.key_state.dest == KEY_UI) { // let the menus handle events
-		if (Ui_HandleEvent(event))
-			return;
-	}
+	if (Ui_HandleEvent(event))
+		return;
 
 	switch (event->type) {
 
@@ -389,6 +390,7 @@ void Cl_HandleEvents(void) {
 
 		// send key-up events when leaving the game
 		if (prev_key_dest == KEY_GAME) {
+
 			const cl_key_dest_t dest = cls.key_state.dest;
 			cls.key_state.dest = prev_key_dest;
 
@@ -407,9 +409,12 @@ void Cl_HandleEvents(void) {
 			}
 
 			cls.key_state.dest = dest;
-		} else if (cls.key_state.dest == KEY_GAME) {
-			// warp the mouse when returning to the game
-			SDL_WarpMouseInWindow(r_context.window, r_context.width / 2, r_context.height / 2);
+		} else if (cls.key_state.dest == KEY_GAME) { // warp the mouse when returning to the game
+
+			const r_pixel_t cx = r_context.window_width * 0.5;
+			const r_pixel_t cy = r_context.window_height * 0.5;
+
+			SDL_WarpMouseInWindow(r_context.window, cx, cy);
 		}
 
 		prev_key_dest = cls.key_state.dest;
