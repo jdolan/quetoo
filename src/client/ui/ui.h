@@ -22,6 +22,9 @@
 #ifndef __UI_H__
 #define __UI_H__
 
+#ifndef TW_STATIC
+#define TW_STATIC
+#endif
 #include "deps/AntTweakBar/include/AntTweakBar.h"
 
 #include "ui_controls.h"
