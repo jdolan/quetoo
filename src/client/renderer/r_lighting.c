@@ -99,7 +99,7 @@ static void R_SunIllumination(const r_lighting_t *l) {
 
 		const cm_trace_t tr = Cl_Trace(p[i], pos, NULL, NULL, l->number, CONTENTS_SOLID);
 
-		if (tr.surface && tr.surface->flags & SURF_SKY) {
+		if (tr.surface && (tr.surface->flags & SURF_SKY)) {
 			exposure += (1.0 / lengthof(p));
 		}
 	}

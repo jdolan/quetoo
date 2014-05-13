@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 //
 //  @file       TwBar.cpp
-//  @author     Philippe Decaudin - http://www.antisphere.com
+//  @author     Philippe Decaudin
 //  @license    This file is part of the AntTweakBar library.
 //              For conditions of distribution and use, see License.txt
 //
@@ -3800,7 +3800,7 @@ void CTwBar::UpdateColors()
 
     m_ColShortcutText = lightText ? 0xffffb060 : 0xff802000;
     m_ColShortcutBg = lightText ? Color32FromARGBf(0.4f*a, 0.2f, 0.2f, 0.2f) : Color32FromARGBf(0.4f*a, 0.8f, 0.8f, 0.8f);
-    m_ColInfoText = lightText ? Color32FromARGBf(1.0f, 0.7f, 0.7f, 0.7f) : Color32FromARGBf(1.0f, 0.3f, 0.3f, 0.3f);
+    m_ColInfoText = Color32FromARGBf(1.0f, 0.5f, 0.5f, 0.5f);
 
     m_ColRoto = lightText ? Color32FromARGBf(0.8f, 0.85f, 0.85f, 0.85f) : Color32FromARGBf(0.8f, 0.1f, 0.1f, 0.1f);
     m_ColRotoVal = Color32FromARGBf(1, 1.0f, 0.2f, 0.2f);
@@ -4315,6 +4315,9 @@ void CTwBar::Update()
     assert(m_UpToDate==false);
     assert(m_Font);
     ITwGraph *Gr = g_TwMgr->m_Graph;
+
+    if( g_TwMgr->m_WndWidth<=0 || g_TwMgr->m_WndHeight<=0 )
+        return; // graphic window is not ready
 
     bool DoEndDraw = false;
     if( !Gr->IsDrawing() )
@@ -4929,7 +4932,7 @@ void CTwBar::Draw(int _DrawPart)
             {
                 int y0 = m_PosY + m_VarY0 + m_HighlightedLine*(m_Font->m_CharHeight+m_LineSep);
                 Gr->DrawRect(m_PosX+LevelSpace+6+LevelSpace*m_HierTags[m_HighlightedLine].m_Level, y0+1, m_PosX+m_VarX2, y0+m_Font->m_CharHeight-1+m_LineSep-1, m_ColHighBg0, m_ColHighBg0, m_ColHighBg1, m_ColHighBg1);
-                int eps = (g_TwMgr->m_GraphAPI==TW_OPENGL /*|| g_TwMgr->m_GraphAPI==TW_OPENGL_CORE*/) ? 1 : 0;
+                int eps = (g_TwMgr->m_GraphAPI==TW_OPENGL || g_TwMgr->m_GraphAPI==TW_OPENGL_CORE) ? 1 : 0;
                 if( !m_EditInPlace.m_Active )
                     Gr->DrawLine(m_PosX+LevelSpace+6+LevelSpace*m_HierTags[m_HighlightedLine].m_Level, y0+m_Font->m_CharHeight+m_LineSep-1+eps, m_PosX+m_VarX2, y0+m_Font->m_CharHeight+m_LineSep-1+eps, m_ColUnderline);
             }
@@ -4990,7 +4993,7 @@ void CTwBar::Draw(int _DrawPart)
                         // draw color value
                         if( Grp->m_Vars.size()>0 && Grp->m_Vars[0]!=NULL && !Grp->m_Vars[0]->IsGroup() )
                             static_cast<CTwVarAtom *>(Grp->m_Vars[0])->ValueToDouble(); // force ext update
-                        int ydecal = (g_TwMgr->m_GraphAPI==TW_OPENGL /*|| g_TwMgr->m_GraphAPI==TW_OPENGL_CORE*/) ? 1 : 0;
+                        int ydecal = (g_TwMgr->m_GraphAPI==TW_OPENGL || g_TwMgr->m_GraphAPI==TW_OPENGL_CORE) ? 1 : 0;
                         const int checker = 8;
                         for( int c=0; c<checker; ++c )
                             Gr->DrawRect(m_PosX+m_VarX1+(c*(m_VarX2-m_VarX1))/checker, yh+1+ydecal+((c%2)*(m_Font->m_CharHeight-2))/2, m_PosX+m_VarX1-1+((c+1)*(m_VarX2-m_VarX1))/checker, yh+ydecal+(((c%2)+1)*(m_Font->m_CharHeight-2))/2, 0xffffffff);
@@ -5282,9 +5285,9 @@ void CTwBar::Draw(int _DrawPart)
                 {
                     if( g_TwMgr->m_InfoBuildText )
                     {
-                        string Info = "> AntTweakBar";
+                        string Info = "atb ";
                         char Ver[64];
-                        sprintf(Ver, " (v%d.%02d)", TW_VERSION/100, TW_VERSION%100);
+                        sprintf(Ver, " %d.%02d", TW_VERSION/100, TW_VERSION%100);
                         Info += Ver;
                         ClampText(Info, m_Font, m_Width-2*m_Font->m_CharHeight);
                         g_TwMgr->m_Graph->BuildText(g_TwMgr->m_InfoTextObj, &Info, NULL, NULL, 1, g_TwMgr->m_HelpBar->m_Font, 0, 0);
@@ -6010,7 +6013,8 @@ static void ANT_CALL PopupCallback(void *_ClientData)
             Bar->HaveFocus(true);
             Bar->NotUpToDate();
         }
-        TwDeleteBar(g_TwMgr->m_PopupBar);
+        if( g_TwMgr->m_PopupBar!=NULL ) // check again because it might have been destroyed by an enum callback
+            TwDeleteBar(g_TwMgr->m_PopupBar);
         g_TwMgr->m_PopupBar = NULL;
     }
 }
@@ -6033,23 +6037,24 @@ bool CTwBar::MouseButton(ETwMouseButtonID _Button, bool _Pressed, int _X, int _Y
     {
     	/* Quake2World key bindings */
     	if (m_EditInPlace.m_Active && m_EditInPlace.m_Var->m_Type == TW_TYPE_BIND) {
-			if (_Pressed) {
-				stringstream s;
-				s << _Button + 322; // SDLK_MOUSE1 is 323
-				m_EditInPlace.m_String = s.str();
-				EditInPlaceEnd(true);
-				NotUpToDate();
-				return true;
-			}
-		}
-    	/* End Quake2World key bindings */
+    	    if (_Pressed) {
+    	        stringstream s;
+    	        s << (_Button + 284 + (1 << 30)); // SDLK_MOUSE1 is 285 + (1 << 30)
+    	        m_EditInPlace.m_String = s.str();
+    	        EditInPlaceEnd(true);
+    	        NotUpToDate();
+    	        return true;
+    	    }
+    	}
+        /* End Quake2World key bindings */
 
         Handled = (_X>=m_PosX && _X<m_PosX+m_Width && _Y>=m_PosY && _Y<m_PosY+m_Height);
         if( _Button==TW_MOUSE_LEFT && m_HighlightedLine>=0 && m_HighlightedLine<(int)m_HierTags.size() && m_HierTags[m_HighlightedLine].m_Var )
         {
+            bool OnFocus = (m_HighlightedLine==(_Y-m_PosY-m_VarY0)/(m_Font->m_CharHeight+m_LineSep) && Handled);
             if( m_HierTags[m_HighlightedLine].m_Var->IsGroup() )
             {
-                if( _Pressed && !g_TwMgr->m_IsRepeatingMousePressed )
+                if( _Pressed && !g_TwMgr->m_IsRepeatingMousePressed && OnFocus )
                 {
                     CTwVarGroup *Grp = static_cast<CTwVarGroup *>(m_HierTags[m_HighlightedLine].m_Var);
                     Grp->m_Open = !Grp->m_Open;
@@ -6082,14 +6087,14 @@ bool CTwBar::MouseButton(ETwMouseButtonID _Button, bool _Pressed, int _X, int _Y
                 if( !Var->m_NoSlider && !Var->m_ReadOnly && m_HighlightRotoBtn )
                 {
                     // begin rotoslider
-                    if( _X>m_PosX+m_VarX1 )
+                    if( _X>m_PosX+m_VarX1 && OnFocus )
                         RotoOnLButtonDown(m_PosX+m_VarX2-(1*IncrBtnWidth(m_Font->m_CharHeight))/2, _Y);
                     else
                         RotoOnLButtonDown(_X, _Y);
                     m_MouseDrag = true;
                     m_MouseDragVar = true;
                 }
-                else if( (Var->m_Type==TW_TYPE_BOOL8 || Var->m_Type==TW_TYPE_BOOL16 || Var->m_Type==TW_TYPE_BOOL32 || Var->m_Type==TW_TYPE_BOOLCPP) && !Var->m_ReadOnly )
+                else if( (Var->m_Type==TW_TYPE_BOOL8 || Var->m_Type==TW_TYPE_BOOL16 || Var->m_Type==TW_TYPE_BOOL32 || Var->m_Type==TW_TYPE_BOOLCPP) && !Var->m_ReadOnly && OnFocus )
                 {
                     Var->Increment(1);
                     //m_HighlightClickBtn = true;
@@ -6105,7 +6110,7 @@ bool CTwBar::MouseButton(ETwMouseButtonID _Button, bool _Pressed, int _X, int _Y
                     m_MouseDrag = false;
                 }
                 //else if( (Var->m_Type==TW_TYPE_ENUM8 || Var->m_Type==TW_TYPE_ENUM16 || Var->m_Type==TW_TYPE_ENUM32) && !Var->m_ReadOnly )
-                else if( IsEnumType(Var->m_Type) && !Var->m_ReadOnly && !g_TwMgr->m_IsRepeatingMousePressed )
+                else if( IsEnumType(Var->m_Type) && !Var->m_ReadOnly && !g_TwMgr->m_IsRepeatingMousePressed && OnFocus )
                 {
                     m_MouseDragVar = false;
                     m_MouseDrag = false;
@@ -6430,7 +6435,7 @@ bool CTwBar::MouseButton(ETwMouseButtonID _Button, bool _Pressed, int _X, int _Y
         else if( m_IsHelpBar && _Pressed && !g_TwMgr->m_IsRepeatingMousePressed && _X>=m_PosX+m_VarX0 && _X<m_PosX+m_Width-m_Font->m_CharHeight && _Y>m_PosY+m_Height-m_Font->m_CharHeight && _Y<m_PosY+m_Height )
         {
             /*
-            const char *WebPage = "http://www.antisphere.com/Wiki/tools:anttweakbar";
+            const char *WebPage = "http://";
             #if defined ANT_WINDOWS
                 ShellExecute(NULL, "open", WebPage, NULL, NULL, SW_SHOWNORMAL);
             #elif defined ANT_UNIX
@@ -6509,15 +6514,19 @@ bool CTwBar::MouseButton(ETwMouseButtonID _Button, bool _Pressed, int _X, int _Y
 bool CTwBar::MouseWheel(int _Pos, int _PrevPos, int _MouseX, int _MouseY)
 {
 	/* Quake2World key bindings */
-	if (!m_IsMinimized) {
-		if (m_EditInPlace.m_Active && m_EditInPlace.m_Var->m_Type == TW_TYPE_BIND) {
-			stringstream s;
-			s << (_Pos > _PrevPos ? 327 : 326); // SDLK_MOUSE1 is 323
-			m_EditInPlace.m_String = s.str();
-			EditInPlaceEnd(true);
-			NotUpToDate();
-			return true;
-		}
+    if (!m_IsMinimized) {
+        if (m_EditInPlace.m_Active && m_EditInPlace.m_Var->m_Type == TW_TYPE_BIND) {
+            stringstream s;
+            if (_Pos > _PrevPos) {
+                s << (289 + (1 << 30)); // SDLK_MOUSE5
+            } else {
+                s << (288 + (1 << 30)); // SDLK_MOUSE4
+            }
+            m_EditInPlace.m_String = s.str();
+            EditInPlaceEnd(true);
+            NotUpToDate();
+            return true;
+	    }
 	}
 	/* End Quake2World key bindings */
 
@@ -6609,55 +6618,8 @@ bool CTwBar::KeyPressed(int _Key, int _Modifiers)
     if( !m_UpToDate )
         Update();
 
-    if( _Key>0 && _Key<TW_KEY_LAST )
+    if( /*_Key>0 && _Key<TW_KEY_LAST*/ true)
     {
-        /* cf TranslateKey in TwMgr.cpp
-        // CTRL special cases
-        if( (_Modifiers&TW_KMOD_CTRL) && !(_Modifiers&TW_KMOD_ALT || _Modifiers&TW_KMOD_META) && _Key>0 && _Key<32 )
-            _Key += 'a'-1;
-
-        // PAD translation (for SDL keysym)
-        if( _Key>=256 && _Key<=272 ) // 256=SDLK_KP0 ... 272=SDLK_KP_EQUALS
-        {
-            bool Num = ((_Modifiers&TW_KMOD_SHIFT) && !(_Modifiers&0x1000)) || (!(_Modifiers&TW_KMOD_SHIFT) && (_Modifiers&0x1000)); // 0x1000 is SDL's KMOD_NUM
-            _Modifiers &= ~TW_KMOD_SHIFT;   // remove shift modifier
-            if( _Key==266 )          // SDLK_KP_PERIOD
-                _Key = Num ? '.' : TW_KEY_DELETE;
-            else if( _Key==267 )     // SDLK_KP_DIVIDE
-                _Key = '/';
-            else if( _Key==268 )     // SDLK_KP_MULTIPLY
-                _Key = '*';
-            else if( _Key==269 )     // SDLK_KP_MINUS
-                _Key = '-';
-            else if( _Key==270 )     // SDLK_KP_PLUS
-                _Key = '+';
-            else if( _Key==271 )     // SDLK_KP_ENTER
-                _Key = TW_KEY_RETURN;
-            else if( _Key==272 )     // SDLK_KP_EQUALS
-                _Key = '=';
-            else if( Num )           // num SDLK_KP0..9
-                _Key += '0' - 256;
-            else if( _Key==256 )     // non-num SDLK_KP01
-                _Key = TW_KEY_INSERT;
-            else if( _Key==257 )     // non-num SDLK_KP1
-                _Key = TW_KEY_END;
-            else if( _Key==258 )     // non-num SDLK_KP2
-                _Key = TW_KEY_DOWN;
-            else if( _Key==259 )     // non-num SDLK_KP3
-                _Key = TW_KEY_PAGE_DOWN;
-            else if( _Key==260 )     // non-num SDLK_KP4
-                _Key = TW_KEY_LEFT;
-            else if( _Key==262 )     // non-num SDLK_KP6
-                _Key = TW_KEY_RIGHT;
-            else if( _Key==263 )     // non-num SDLK_KP7
-                _Key = TW_KEY_HOME;
-            else if( _Key==264 )     // non-num SDLK_KP8
-                _Key = TW_KEY_UP;
-            else if( _Key==265 )     // non-num SDLK_KP9
-                _Key = TW_KEY_PAGE_UP;
-        }
-        */
-
         /*
         string Str;
         TwGetKeyString(&Str, _Key, _Modifiers);
@@ -7545,14 +7507,14 @@ bool CTwBar::EditInPlaceKeyPressed(int _Key, int _Modifiers)
 
     /* Quake2World key bindings */
     if (m_EditInPlace.m_Var->m_Type == TW_TYPE_BIND) {
-    	if (_Key != TW_KEY_ESCAPE) {
-			stringstream s;
-			s << _Key;
-			m_EditInPlace.m_String = s.str();
-			EditInPlaceEnd(true);
-			NotUpToDate();
-			return Handled;
-    	}
+        if (_Key != TW_KEY_ESCAPE) {
+            stringstream s;
+            s << _Key;
+            m_EditInPlace.m_String = s.str();
+            EditInPlaceEnd(true);
+            NotUpToDate();
+            return Handled;
+        }
     }
     /* End Quake2World key bindings */
 

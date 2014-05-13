@@ -40,12 +40,14 @@ typedef struct r_shader_s {
 #define R_UNIFORM_INT 		0x2
 #define R_UNIFORM_FLOAT		0x4
 #define R_UNIFORM_VECTOR	0x8
-#define R_SAMPLER_2D		0x10
+#define R_UNIFORM_MATRIX	0x10
+#define R_SAMPLER_2D		0x20
 
 typedef union r_variable_value_u {
 	GLint i;
 	GLfloat f;
 	vec3_t vec3;
+	matrix4x4_t mat4;
 } r_variable_value_t;
 
 typedef struct r_variable_s {
@@ -59,6 +61,7 @@ typedef r_variable_t r_attribute_t;
 typedef r_variable_t r_uniform1i_t;
 typedef r_variable_t r_uniform1f_t;
 typedef r_variable_t r_uniform3fv_t;
+typedef r_variable_t r_uniform_matrix4fv_t;
 typedef r_variable_t r_sampler2d_t;
 
 #define MAX_PROGRAM_VARIABLES 32
@@ -77,12 +80,13 @@ typedef struct r_program_s {
 
 #define MAX_PROGRAMS 8
 
-void R_UseProgram(r_program_t *prog);
-void R_ProgramVariable(r_variable_t *variable, GLenum type, const char *name);
-void R_ProgramParameter1i(r_uniform1i_t *variable, GLint value);
-void R_ProgramParameter1f(r_uniform1f_t *variable, GLfloat value);
-void R_ProgramParameter3fv(r_uniform3fv_t *variable, GLfloat *value);
-void R_AttributePointer(const char *name, GLuint size, GLvoid *array);
+void R_UseProgram(const r_program_t *prog);
+void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *name);
+void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value);
+void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value);
+void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value);
+void R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value);
+void R_AttributePointer(const char *name, GLuint size, const GLvoid *array);
 void R_EnableAttribute(r_attribute_t *attribute);
 void R_DisableAttribute(r_attribute_t *attribute);
 void R_ShutdownPrograms(void);

@@ -52,7 +52,7 @@ libclient_la_CFLAGS = \
 	@CURL_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL2_CFLAGS@
 
 libclient_la_LDFLAGS = \
 	-shared

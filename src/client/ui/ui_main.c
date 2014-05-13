@@ -27,14 +27,13 @@ ui_t ui;
 extern cl_static_t cls;
 
 /*
- * @brief Handles input events, returning true if the event was swallowed by TwBar.
+ * @brief Activates the menu system when ESC is pressed.
  */
-_Bool Ui_Event(SDL_Event *event) {
-	_Bool handled;
+static _Bool Ui_HandleKeyEvent(const SDL_Event *event) {
 
-	if (!(handled = TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION))) {
+	switch (event->key.keysym.sym) {
 
-		if (event->type == SDL_KEYDOWN && event->key.keysym.sym == SDLK_ESCAPE) {
+		case SDLK_ESCAPE: {
 			int32_t visible;
 
 			TwBar *bar = cl_editor->value ? ui.editor : ui.root;
@@ -45,32 +44,67 @@ _Bool Ui_Event(SDL_Event *event) {
 					Ui_ShowBar("Editor");
 				else
 					Ui_ShowBar("Quake2World");
-				handled = true;
+
+				return true;
 			}
+		}
+			break;
+	}
+
+	return false;
+}
+
+/*
+ * @brief Informs AntTweakBar of window events.
+ */
+static _Bool Ui_HandleWindowEvent(const SDL_Event *event) {
+
+	switch (event->window.event) {
+
+		case SDL_WINDOWEVENT_SHOWN:
+		case SDL_WINDOWEVENT_SIZE_CHANGED:
+
+			TwDefine("GLOBAL fontresizable=false fontstyle=fixed ");
+
+			if (ui.top && ui.top != ui.editor) {
+				Ui_CenterBar((void *) TwGetBarName(ui.top));
+			}
+
+			break;
+
+	}
+
+	return false;
+}
+
+/*
+ * @brief Handles input events to the user interface, returning true if the
+ * event was swallowed. While in focus, AntTweakBar receives all events. While
+ * not in focus, we still pass SDL_WINDOWEVENTs to it.
+ */
+_Bool Ui_HandleEvent(const SDL_Event *event) {
+
+	if (cls.key_state.dest == KEY_UI || event->type == SDL_WINDOWEVENT) {
+
+		if (TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION))
+			return true;
+
+		switch (event->type) {
+			case SDL_KEYDOWN:
+				return Ui_HandleKeyEvent(event);
+
+			case SDL_WINDOWEVENT:
+				return Ui_HandleWindowEvent(event);
 		}
 	}
 
-	return handled;
+	return false;
 }
 
 /*
  * @brief Draws any active TwBar components.
  */
 void Ui_Draw(void) {
-	static int32_t w, h;
-
-	if (w != r_context.width || h != r_context.height || r_view.update) {
-
-		w = r_context.width;
-		h = r_context.height;
-
-		TwWindowSize(w, h);
-		TwDefine("GLOBAL fontresizable=false fontstyle=fixed ");
-
-		if (ui.top && ui.top != ui.editor) {
-			Ui_CenterBar((void *) TwGetBarName(ui.top));
-		}
-	}
 
 	if (cls.key_state.dest != KEY_UI)
 		return;

@@ -72,7 +72,7 @@ static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mi
 
 		if ((*rw = SDL_RWFromMem(*buffer, len))) {
 
-			if ((*music = Mix_LoadMUS_RW(*rw))) {
+			if ((*music = Mix_LoadMUS_RW(*rw, false))) {
 				Com_Debug("Loaded %s\n", name);
 			} else {
 				Com_Warn("Failed to load %s: %s\n", name, Mix_GetError());

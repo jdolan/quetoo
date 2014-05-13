@@ -19,29 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __UI_H__
-#define __UI_H__
+#ifndef __R_PROGRAM_SHADOW_H__
+#define __R_PROGRAM_SHADOW_H__
 
-#if __APPLE__
-#define _MACOSX
-#elif __linux__
-#define _UNIX
-#elif _WIN32
-#define _WINDOWS
-#define TW_STATIC
-#endif
+#include "r_types.h"
 
-#include "deps/AntTweakBar/include/AntTweakBar.h"
+#ifdef __R_LOCAL_H__
+void R_InitProgram_shadow(void);
+void R_UseProgram_shadow(void);
+#endif /* __R_LOCAL_H__ */
 
-#include "ui_controls.h"
-#include "ui_credits.h"
-#include "ui_data.h"
-#include "ui_editor.h"
-#include "ui_main.h"
-#include "ui_misc.h"
-#include "ui_player.h"
-#include "ui_servers.h"
-#include "ui_system.h"
-#include "ui_types.h"
-
-#endif /* __UI_H__ */
+#endif /* __R_PROGRAM_SHADOW_H__ */

@@ -22,7 +22,6 @@
 #ifndef __S_LOCAL_H__
 #define __S_LOCAL_H__
 
-#include <SDL/SDL_mixer.h>
 #include "sound.h"
 
 #endif /* __S_LOCAL_H__ */

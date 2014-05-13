@@ -832,7 +832,7 @@ void Sv_Frame(const uint32_t msec) {
 	// clear entity flags, etc for next frame
 	Sv_ResetEntities();
 
-#ifdef HAVE_CURSES
+#if HAVE_CURSES
 	Curses_Frame(msec);
 #endif
 }

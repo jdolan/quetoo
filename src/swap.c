@@ -21,7 +21,7 @@
 
 #include "swap.h"
 
-#include <SDL/SDL_byteorder.h>
+#include <SDL2/SDL_endian.h>
 
 /*
  * @brief

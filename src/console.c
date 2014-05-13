@@ -23,7 +23,7 @@
 
 static console_data_t console_data;
 
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 extern console_t cl_console;
 
 extern void Cl_UpdateNotify(int32_t last_line);
@@ -140,7 +140,7 @@ void Con_Resize(console_t *con, uint16_t width, uint16_t height) {
 	con->last_line = 0;
 	Con_Update(con, console_data.text);
 
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 	if (!dedicated->value) {
 		// clear client notification timings
 		if (con == &cl_console)
@@ -156,14 +156,14 @@ static void Con_Clear_f(void) {
 	memset(console_data.text, 0, sizeof(console_data.text));
 	console_data.insert = console_data.text;
 
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 	if (!dedicated->value) {
 		// update the index for the client console
 		cl_console.last_line = 0;
 		Con_Update(&cl_console, console_data.insert);
 	}
 #endif
-#ifdef HAVE_CURSES
+#if HAVE_CURSES
 	// update the index for the server console
 	sv_console.last_line = 0;
 	Con_Update(&sv_console, console_data.insert);
@@ -305,14 +305,14 @@ void Con_Print(const char *text) {
 		memcpy(console_data.text, console_data.text + (sizeof(console_data.text) >> 1), sizeof(console_data.text) >> 1);
 		memset(console_data.text + (sizeof(console_data.text) >> 1) ,0 , sizeof(console_data.text) >> 1);
 		console_data.insert -= sizeof(console_data.text) >> 1;
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 		if (!dedicated->value) {
 			// update the index for the client console
 			cl_console.last_line = 0;
 			Con_Update(&cl_console, console_data.text);
 		}
 #endif
-#ifdef HAVE_CURSES
+#if HAVE_CURSES
 		// update the index for the server console
 		sv_console.last_line = 0;
 		Con_Update(&sv_console, console_data.text);
@@ -322,7 +322,7 @@ void Con_Print(const char *text) {
 	// copy the text into the console buffer
 	strcpy(console_data.insert, text);
 
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 	if (!dedicated->value) {
 		const int32_t last_line = cl_console.last_line;
 
@@ -334,14 +334,14 @@ void Con_Print(const char *text) {
 	}
 #endif
 
-#ifdef HAVE_CURSES
+#if HAVE_CURSES
 	// update the index for the server console
 	Con_Update(&sv_console, console_data.insert);
 #endif
 
 	console_data.insert += strlen(text);
 
-#ifdef HAVE_CURSES
+#if HAVE_CURSES
 	if (!con_curses->value) {
 		// print output to stdout
 		Con_PrintStdout(text);
@@ -418,7 +418,7 @@ _Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len) {
  */
 void Con_Init(void) {
 
-#ifdef _WIN32
+#if _WIN32
 	if (dedicated->value) {
 		if (AllocConsole()) {
 			freopen("CONIN$", "r", stdin);
@@ -434,7 +434,7 @@ void Con_Init(void) {
 	con_ansi = Cvar_Get("con_ansi", "1", CVAR_ARCHIVE, NULL);
 #endif
 
-#ifdef HAVE_CURSES
+#if HAVE_CURSES
 	Curses_Init();
 #endif
 
@@ -450,11 +450,11 @@ void Con_Shutdown(void) {
 	Cmd_Remove("clear");
 	Cmd_Remove("dump");
 
-#ifdef HAVE_CURSES
+#if HAVE_CURSES
 	Curses_Shutdown();
 #endif
 
-#ifdef _WIN32
+#if _WIN32
 	if (dedicated->value) {
 		FreeConsole();
 	}

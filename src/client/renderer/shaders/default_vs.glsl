@@ -1,4 +1,8 @@
-// default vertex shader
+/*
+ * @brief Default vertex shader.
+ */
+
+#version 120
 
 uniform bool DIFFUSE;
 uniform bool NORMALMAP;

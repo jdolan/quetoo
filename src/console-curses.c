@@ -21,7 +21,7 @@
 
 #include "console.h"
 
-#ifdef HAVE_CURSES
+#if HAVE_CURSES
 
 #include <signal.h>
 #include <curses.h>

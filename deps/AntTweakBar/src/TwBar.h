@@ -2,7 +2,7 @@
 //
 //  @file       TwBar.h
 //  @brief      Tweak bar and var classes.
-//  @author     Philippe Decaudin - http://www.antisphere.com
+//  @author     Philippe Decaudin
 //  @license    This file is part of the AntTweakBar library.
 //              For conditions of distribution and use, see License.txt
 //
@@ -346,7 +346,7 @@ protected:
     struct  CPoint 
     {
         int                 x, y;
-                            CPoint() {}
+                            CPoint() { x = y = 0;}
                             CPoint(int _X, int _Y):x(_X), y(_Y) {}
         const CPoint        operator+ (const CPoint& p) const { return CPoint(x+p.x, y+p.y); }
         const CPoint        operator- (const CPoint& p) const { return CPoint(x-p.x, y-p.y); }

@@ -29,7 +29,6 @@ static void Cl_WriteDemoHeader(void) {
 	static entity_state_t null_state;
 	mem_buf_t msg;
 	byte buffer[MAX_MSG_SIZE];
-	int32_t i, len;
 
 	// write out messages to hold the startup information
 	Mem_InitBuffer(&msg, buffer, sizeof(buffer));
@@ -46,10 +45,10 @@ static void Cl_WriteDemoHeader(void) {
 	Net_WriteString(&msg, cl.config_strings[CS_NAME]);
 
 	// and config_strings
-	for (i = 0; i < MAX_CONFIG_STRINGS; i++) {
+	for (size_t i = 0; i < MAX_CONFIG_STRINGS; i++) {
 		if (*cl.config_strings[i] != '\0') {
 			if (msg.size + strlen(cl.config_strings[i]) + 32 > msg.max_size) { // write it out
-				len = LittleLong(msg.size);
+				const int32_t len = LittleLong(msg.size);
 				Fs_Write(cls.demo_file, &len, sizeof(len), 1);
 				Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 				msg.size = 0;
@@ -62,13 +61,13 @@ static void Cl_WriteDemoHeader(void) {
 	}
 
 	// and baselines
-	for (i = 0; i < lengthof(cl.entities); i++) {
+	for (size_t i = 0; i < lengthof(cl.entities); i++) {
 		entity_state_t *ent = &cl.entities[i].baseline;
 		if (!ent->number)
 			continue;
 
 		if (msg.size + 64 > msg.max_size) { // write it out
-			len = LittleLong(msg.size);
+			const int32_t len = LittleLong(msg.size);
 			Fs_Write(cls.demo_file, &len, sizeof(len), 1);
 			Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 			msg.size = 0;
@@ -83,7 +82,7 @@ static void Cl_WriteDemoHeader(void) {
 
 	// write it to the demo file
 
-	len = LittleLong(msg.size);
+	const int32_t len = LittleLong(msg.size);
 	Fs_Write(cls.demo_file, &len, sizeof(len), 1);
 	Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 

@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 //
 //  @file       TwMgr.cpp
-//  @author     Philippe Decaudin - http://www.antisphere.com
+//  @author     Philippe Decaudin
 //  @license    This file is part of the AntTweakBar library.
 //              For conditions of distribution and use, see License.txt
 //
@@ -41,6 +41,7 @@ int g_InitWndWidth = -1;
 int g_InitWndHeight = -1;
 TwCopyCDStringToClient  g_InitCopyCDStringToClient = NULL;
 TwCopyStdStringToClient g_InitCopyStdStringToClient = NULL;
+float g_FontScaling = 1.0f;
 
 // multi-windows
 const int TW_MASTER_WINDOW_ID = 0;
@@ -219,7 +220,7 @@ void ANT_CALL CColorExt::CopyVarFromExtCB(void *_VarValue, const void *_ExtValue
             ext->m_HasAlpha = false;
 
         // Synchronize HLS and RGB
-        if( _ExtMemberIndex>=0 && _ExtMemberIndex<=2 )
+        if( /*_ExtMemberIndex>=0 &&*/ _ExtMemberIndex<=2 )
             ext->RGB2HLS();
         else if( _ExtMemberIndex>=3 && _ExtMemberIndex<=5 )
             ext->HLS2RGB();
@@ -734,7 +735,7 @@ void ANT_CALL CQuaternionExt::SummaryCB(char *_SummaryString, size_t _SummaryMax
     if( ext )
     {
         if( ext->m_AAMode )
-            _snprintf(_SummaryString, _SummaryMaxLength, "V={%.2f,%.2f,%.2f} A=%.0f°", ext->Vx, ext->Vy, ext->Vz, ext->Angle);
+            _snprintf(_SummaryString, _SummaryMaxLength, "V={%.2f,%.2f,%.2f} A=%.0f%c", ext->Vx, ext->Vy, ext->Vz, ext->Angle, 176);
         else if( ext->m_IsDir )
         {
             //float d[] = {1, 0, 0};
@@ -1624,12 +1625,12 @@ void CQuaternionExt::MouseLeaveCB(void *structExtValue, void *clientData, TwBar 
 //  ---------------------------------------------------------------------------
 //  Convertion between VC++ Debug/Release std::string
 //  (Needed because VC++ adds some extra info to std::string in Debug mode!)
-//  And resolve binary std::string incompatibility between VS2008- and VS2010+
+//  And resolve binary std::string incompatibility between VS2010 and other VS versions
 //  ---------------------------------------------------------------------------
 
 #ifdef _MSC_VER
-// VS2008 and lower store the string allocator pointer at the beginning
-// VS2010 and higher store the string allocator pointer at the end
+// VS2010 store the string allocator pointer at the end
+// VS2008 VS2012 and others store the string allocator pointer at the beginning
 static void FixVS2010StdStringLibToClient(void *strPtr)
 {
     char *ptr = (char *)strPtr;
@@ -1783,9 +1784,10 @@ static int TwCreateGraph(ETwGraphAPI _GraphAPI)
             }
         #endif // ANT_WINDOWS
         break;*/
-    default:
-    	break;
+        default:
+            break;
     }
+
 
     if( g_TwMgr->m_Graph==NULL )
     {
@@ -1917,7 +1919,7 @@ int ANT_CALL TwInit(ETwGraphAPI _GraphAPI, void *_Device)
     g_Wnds[TW_MASTER_WINDOW_ID] = g_TwMasterMgr;
     g_TwMgr = g_TwMasterMgr;
 
-    TwGenerateDefaultFonts();
+    TwGenerateDefaultFonts(g_FontScaling);
     g_TwMgr->m_CurrentFont = g_DefaultNormalFont;
 
     int Res = TwCreateGraph(_GraphAPI);
@@ -2078,7 +2080,7 @@ int ANT_CALL TwDraw()
         return 0;
 
     // Create cursors
-    /*#if defined(ANT_WINDOWS) || defined(ANT_OSX)
+    #if defined(ANT_WINDOWS) || defined(ANT_OSX)
         if( !g_TwMgr->m_CursorsCreated )
             g_TwMgr->CreateCursors();
     #elif defined(ANT_UNIX)
@@ -2088,7 +2090,7 @@ int ANT_CALL TwDraw()
             g_TwMgr->m_CurrentXWindow = glXGetCurrentDrawable();
         if( g_TwMgr->m_CurrentXDisplay && !g_TwMgr->m_CursorsCreated )
             g_TwMgr->CreateCursors();
-    #endif*/
+    #endif
 
     // Autorepeat TW_MOUSE_PRESSED
     double CurrTime = g_TwMgr->m_Timer.GetTime();
@@ -2109,6 +2111,7 @@ int ANT_CALL TwDraw()
         {
             g_TwMgr->m_IsRepeatingMousePressed = true;
             g_TwMgr->m_LastMousePressedTime = g_TwMgr->m_Timer.GetTime();
+            TwMouseMotion(g_TwMgr->m_LastMouseX,g_TwMgr->m_LastMouseY);
             TwMouseButton(TW_MOUSE_PRESSED, g_TwMgr->m_LastMousePressedButtonID);
         }
     }
@@ -3356,7 +3359,7 @@ TwState ANT_CALL TwGetBarState(const TwBar *_Bar)
 
 //  ---------------------------------------------------------------------------
 
-const char * ANT_CALL TwGetBarName(TwBar *_Bar)
+const char * ANT_CALL TwGetBarName(const TwBar *_Bar)
 {
     if( g_TwMgr==NULL )
     {
@@ -4460,7 +4463,6 @@ int ParseToken(string& _Token, const char *_Def, int& Line, int& Column, bool _K
     }
     // read token
     int QuoteLine=0, QuoteColumn=0;
-    const char *QuoteCur;
     char Quote = 0;
     bool AddChar;
     bool LineJustIncremented = false;
@@ -4474,7 +4476,6 @@ int ParseToken(string& _Token, const char *_Def, int& Line, int& Column, bool _K
             Quote = *Cur;
             QuoteLine = Line;
             QuoteColumn = Column;
-            QuoteCur = Cur;
             AddChar = _KeepQuotes;
         }
         else if ( Quote!=0 && *Cur==Quote )
@@ -4641,6 +4642,33 @@ static inline std::string ErrorPosition(bool _MultiLine, int _Line, int _Column)
 int ANT_CALL TwDefine(const char *_Def)
 {
     CTwFPU fpu; // force fpu precision
+
+    // hack to scale fonts artificially (for retina display for instance)
+    if( g_TwMgr==NULL && _Def!=NULL )
+    {
+        size_t l = strlen(_Def);
+        const char *eq = strchr(_Def, '=');
+        if( eq!=NULL && eq!=_Def && l>0 && l<512 )
+        {
+            char *a = new char[l+1];
+            char *b = new char[l+1];
+            if( sscanf(_Def, "%s%s", a, b)==2 && strcmp(a, "GLOBAL")==0 )
+            {
+                if( strchr(b, '=') != NULL )
+                    *strchr(b, '=') = '\0';
+                double scal = 1.0;
+                if( _stricmp(b, "fontscaling")==0 && sscanf(eq+1, "%lf", &scal)==1 && scal>0 )
+                {
+                    g_FontScaling = (float)scal;
+                    delete[] a;
+                    delete[] b;
+                    return 1;
+                }
+            }
+            delete[] a;
+            delete[] b;
+        }
+    }
 
     if( g_TwMgr==NULL )
     {
@@ -4836,7 +4864,7 @@ TwType ANT_CALL TwDefineEnum(const char *_Name, const TwEnumVal *_EnumValues, un
             }
     if( enumIndex==g_TwMgr->m_Enums.size() )
         g_TwMgr->m_Enums.push_back(CTwMgr::CEnum());
-    assert( enumIndex>=0 && enumIndex<g_TwMgr->m_Enums.size() );
+    assert( /*enumIndex>=0 &&*/ enumIndex<g_TwMgr->m_Enums.size() );
     CTwMgr::CEnum& e = g_TwMgr->m_Enums[enumIndex];
     if( _Name!=NULL && strlen(_Name)>0 )
         e.m_Name = _Name;
@@ -4897,7 +4925,7 @@ void ANT_CALL CTwMgr::CStruct::DefaultSummary(char *_SummaryString, size_t _Summ
     size_t structIndex = (size_t)(_ClientData);
     if(    g_TwMgr && _SummaryString && _SummaryMaxLength>2
         && varGroup && static_cast<const CTwVar *>(varGroup)->IsGroup()
-        && structIndex>=0 && structIndex<=g_TwMgr->m_Structs.size() )
+        /*&& structIndex>=0*/ && structIndex<=g_TwMgr->m_Structs.size() )
     {
         // return g_TwMgr->m_Structs[structIndex].m_Name.c_str();
         CTwMgr::CStruct& s = g_TwMgr->m_Structs[structIndex];
@@ -5084,7 +5112,7 @@ bool TwGetKeyCode(int *_Code, int *_Modif, const char *_String)
     bool Ok = true;
     *_Modif = TW_KMOD_NONE;
     *_Code = 0;
-    size_t Start = strlen(_String)-1;
+    int Start = strlen(_String)-1;
     if( Start<0 )
         return false;
     while( Start>0 && _String[Start-1]!='+' )
@@ -5092,7 +5120,7 @@ bool TwGetKeyCode(int *_Code, int *_Modif, const char *_String)
     while( _String[Start]==' ' || _String[Start]=='\t' )
         ++Start;
     char *CodeStr = _strdup(_String+Start);
-    for( size_t i=strlen(CodeStr)-1; i>=0; ++i )
+    for( int i=strlen(CodeStr)-1; i>=0; ++i )
         if( CodeStr[i]==' ' || CodeStr[i]=='\t' )
             CodeStr[i] = '\0';
         else
@@ -5515,65 +5543,6 @@ int ANT_CALL TwMouseWheel(int _Pos)
 
 //  ---------------------------------------------------------------------------
 
-static int TranslateKey(int _Key, int _Modifiers)
-{
-    // CTRL special cases
-    //if( (_Modifiers&TW_KMOD_CTRL) && !(_Modifiers&TW_KMOD_ALT || _Modifiers&TW_KMOD_META) && _Key>0 && _Key<32 )
-    //  _Key += 'a'-1;
-    if( (_Modifiers&TW_KMOD_CTRL) )
-    {
-        if( _Key>='a' && _Key<='z' && ( ((_Modifiers&0x2000) && !(_Modifiers&TW_KMOD_SHIFT)) || (!(_Modifiers&0x2000) && (_Modifiers&TW_KMOD_SHIFT)) )) // 0x2000 is SDL's KMOD_CAPS
-            _Key += 'A'-'a';
-        else if ( _Key>='A' && _Key<='Z' && ( ((_Modifiers&0x2000) && (_Modifiers&TW_KMOD_SHIFT)) || (!(_Modifiers&0x2000) && !(_Modifiers&TW_KMOD_SHIFT)) )) // 0x2000 is SDL's KMOD_CAPS
-            _Key += 'a'-'A';
-    }
-
-    // PAD translation (for SDL keysym)
-    if( _Key>=256 && _Key<=272 ) // 256=SDLK_KP0 ... 272=SDLK_KP_EQUALS
-    {
-        //bool Num = ((_Modifiers&TW_KMOD_SHIFT) && !(_Modifiers&0x1000)) || (!(_Modifiers&TW_KMOD_SHIFT) && (_Modifiers&0x1000)); // 0x1000 is SDL's KMOD_NUM
-        //_Modifiers &= ~TW_KMOD_SHIFT; // remove shift modifier
-        bool Num = (!(_Modifiers&TW_KMOD_SHIFT) && (_Modifiers&0x1000)); // 0x1000 is SDL's KMOD_NUM
-        if( _Key==266 )          // SDLK_KP_PERIOD
-            _Key = Num ? '.' : TW_KEY_DELETE;
-        else if( _Key==267 )     // SDLK_KP_DIVIDE
-            _Key = '/';
-        else if( _Key==268 )     // SDLK_KP_MULTIPLY
-            _Key = '*';
-        else if( _Key==269 )     // SDLK_KP_MINUS
-            _Key = '-';
-        else if( _Key==270 )     // SDLK_KP_PLUS
-            _Key = '+';
-        else if( _Key==271 )     // SDLK_KP_ENTER
-            _Key = TW_KEY_RETURN;
-        else if( _Key==272 )     // SDLK_KP_EQUALS
-            _Key = '=';
-        else if( Num )           // num SDLK_KP0..9
-            _Key += '0' - 256;
-        else if( _Key==256 )     // non-num SDLK_KP01
-            _Key = TW_KEY_INSERT;
-        else if( _Key==257 )     // non-num SDLK_KP1
-            _Key = TW_KEY_END;
-        else if( _Key==258 )     // non-num SDLK_KP2
-            _Key = TW_KEY_DOWN;
-        else if( _Key==259 )     // non-num SDLK_KP3
-            _Key = TW_KEY_PAGE_DOWN;
-        else if( _Key==260 )     // non-num SDLK_KP4
-            _Key = TW_KEY_LEFT;
-        else if( _Key==262 )     // non-num SDLK_KP6
-            _Key = TW_KEY_RIGHT;
-        else if( _Key==263 )     // non-num SDLK_KP7
-            _Key = TW_KEY_HOME;
-        else if( _Key==264 )     // non-num SDLK_KP8
-            _Key = TW_KEY_UP;
-        else if( _Key==265 )     // non-num SDLK_KP9
-            _Key = TW_KEY_PAGE_UP;
-    }
-    return _Key;
-}
-
-//  ---------------------------------------------------------------------------
-
 static int KeyPressed(int _Key, int _Modifiers, bool _TestOnly)
 {
     CTwFPU fpu; // force fpu precision
@@ -5613,25 +5582,12 @@ static int KeyPressed(int _Key, int _Modifiers, bool _TestOnly)
     //sprintf(s, "twkeypressed k=%d m=%x\n", _Key, _Modifiers);
     //OutputDebugString(s);
 
-    _Key = TranslateKey(_Key, _Modifiers);
-    if( _Key>' ' && _Key<256 ) // don't test SHIFT if _Key is a common key
-        _Modifiers &= ~TW_KMOD_SHIFT;
-    // complete partial modifiers comming from SDL
-    if( _Modifiers & TW_KMOD_SHIFT )
-        _Modifiers |= TW_KMOD_SHIFT;
-    if( _Modifiers & TW_KMOD_CTRL )
-        _Modifiers |= TW_KMOD_CTRL;
-    if( _Modifiers & TW_KMOD_ALT )
-        _Modifiers |= TW_KMOD_ALT;
-    if( _Modifiers & TW_KMOD_META )
-        _Modifiers |= TW_KMOD_META;
-
     bool Handled = false;
     CTwBar *Bar = NULL;
     CTwBar *PopupBar = g_TwMgr->m_PopupBar;
     //int Order = 0;
     int i;
-    if( _Key>0 && _Key<TW_KEY_LAST )
+    if( /*_Key>0 && _Key<TW_KEY_LAST*/true )
     {
         // First send it to bar which includes the mouse pointer
         int MouseX = g_TwMgr->m_LastMouseX;
@@ -6341,8 +6297,8 @@ CTwMgr::CCursor CTwMgr::PixmapCursor(int _CurIdx)
     for (y=0;y<32;y++) {
         for (x=0;x<32;x++) {
             //printf("%d",g_CurMask[_CurIdx][x+y*32]);
-            data[(x>>2) + y*8] |= (unsigned char)(g_CurPict[_CurIdx][x+y*32] << 2*(3-(x&3))+1); //turn whiteon
-            data[(x>>2) + y*8] |= (unsigned char)(g_CurMask[_CurIdx][x+y*32] << 2*(3-(x&3))); //turn the alpha all the way up
+            data[(x>>2) + y*8] |= (unsigned char)(g_CurPict[_CurIdx][x+y*32] << (2*(3-(x&3))+1)); //turn whiteon
+            data[(x>>2) + y*8] |= (unsigned char)(g_CurMask[_CurIdx][x+y*32] << (2*(3-(x&3)))); //turn the alpha all the way up
         }
         //printf("\n");
     }

@@ -58,7 +58,7 @@ static int32_t c_tryedges;
 static vec3_t edge_dir;
 static vec3_t edge_start;
 
-static int32_t num_edge_verts;
+static uint32_t num_edge_verts;
 static int32_t edge_verts[MAX_BSP_VERTS];
 
 int32_t subdivide_size = 1024;
@@ -301,7 +301,6 @@ static void FindEdgeVertexes(vec3_t v1, vec3_t v2) {
  * @brief Can be recursively reentered
  */
 static void TestEdge(vec_t start, vec_t end, int32_t p1, int32_t p2, int32_t startvert) {
-	int32_t k;
 	vec_t dist;
 	vec3_t delta;
 	vec3_t exact;
@@ -314,7 +313,7 @@ static void TestEdge(vec_t start, vec_t end, int32_t p1, int32_t p2, int32_t sta
 		return; // degenerate edge
 	}
 
-	for (k = startvert; k < num_edge_verts; k++) {
+	for (uint32_t k = startvert; k < num_edge_verts; k++) {
 		const int32_t j = edge_verts[k];
 		if (j == p1 || j == p2)
 			continue;
@@ -729,7 +728,7 @@ static int32_t c_nodefaces;
 /*
  * @brief
  */
-static face_t *FaceFromPortal(portal_t * p, int32_t pside) {
+static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 	face_t *f;
 	side_t *side;
 

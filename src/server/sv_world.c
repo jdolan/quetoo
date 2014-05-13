@@ -49,7 +49,7 @@ typedef struct {
 	g_entity_t **box_entities;
 	size_t num_box_entities, max_box_entities;
 
-	uint32_t solid_type; // AREA_SOLID, AREA_TRIGGER, ..
+	uint32_t box_type; // BOX_SOLID, BOX_TRIGGER, ..
 } sv_world_t;
 
 static sv_world_t sv_world;
@@ -273,12 +273,12 @@ static _Bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
 		case SOLID_BOX:
 		case SOLID_BSP:
 		case SOLID_MISSILE:
-			if (sv_world.solid_type == AREA_SOLID)
+			if (sv_world.box_type == BOX_SOLID)
 				return true;
 			break;
 
 		case SOLID_TRIGGER:
-			if (sv_world.solid_type == AREA_TRIGGER)
+			if (sv_world.box_type == BOX_TRIGGER)
 				return true;
 			break;
 
@@ -341,7 +341,7 @@ size_t Sv_BoxEntities(const vec3_t mins, const vec3_t maxs, g_entity_t **list, c
 	sv_world.box_entities = list;
 	sv_world.num_box_entities = 0;
 	sv_world.max_box_entities = len;
-	sv_world.solid_type = type;
+	sv_world.box_type = type;
 
 	Sv_BoxEntities_r(sv_world.sectors);
 
@@ -379,7 +379,7 @@ int32_t Sv_PointContents(const vec3_t point) {
 	int32_t contents = Cm_PointContents(point, 0);
 
 	// as well as contents from all intersected entities
-	const size_t len = Sv_BoxEntities(point, point, entities, lengthof(entities), AREA_SOLID);
+	const size_t len = Sv_BoxEntities(point, point, entities, lengthof(entities), BOX_SOLID);
 
 	// iterate the area entities, checking each one for an intersection
 	for (size_t i = 0; i < len; i++) {
@@ -411,7 +411,7 @@ typedef struct {
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 	g_entity_t *e[MAX_ENTITIES];
 
-	const size_t len = Sv_BoxEntities(trace->box_mins, trace->box_maxs, e, lengthof(e), AREA_SOLID);
+	const size_t len = Sv_BoxEntities(trace->box_mins, trace->box_maxs, e, lengthof(e), BOX_SOLID);
 
 	for (size_t i = 0; i < len; i++) {
 		g_entity_t *ent = e[i];

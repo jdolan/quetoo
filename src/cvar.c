@@ -176,9 +176,9 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 	var->name = Mem_Link(Mem_CopyString(name), var);
 	var->default_value = Mem_Link(Mem_CopyString(value), var);
 	var->string = Mem_Link(Mem_CopyString(value), var);
+	var->value = strtof(var->string, NULL);
+	var->integer = strtol(var->string, NULL, 0);
 	var->modified = true;
-	var->value = atof(var->string);
-	var->integer = atoi(var->string);
 	var->flags = flags;
 
 	if (description) {
@@ -255,8 +255,9 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 				if (var->string)
 					Mem_Free(var->string);
 				var->string = Mem_Link(Mem_CopyString(value), var);
-				var->value = atof(var->string);
-				var->integer = atoi(var->string);
+				var->value = strtof(var->string, NULL);
+				var->integer = strtol(var->string, NULL, 0);
+				var->modified = true;
 			}
 			return var;
 		}
@@ -282,8 +283,8 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 	Mem_Free(var->string);
 
 	var->string = Mem_Link(Mem_CopyString(value), var);
-	var->value = atof(var->string);
-	var->integer = atoi(var->string);
+	var->value = strtof(var->string, NULL);
+	var->integer = strtol(var->string, NULL, 0);
 
 	var->modified = true;
 
@@ -321,10 +322,9 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 	Mem_Free(var->string);
 
 	var->string = Mem_Link(Mem_CopyString(value), var);
-	var->value = atof(var->string);
-	var->integer = atoi(var->string);
+	var->value = strtof(var->string, NULL);
+	var->integer = strtol(var->string, NULL, 0);
 	var->flags = flags;
-
 	var->modified = true;
 
 	return var;
@@ -418,17 +418,9 @@ void Cvar_UpdateLatched_enumerate(cvar_t *var, void *data __attribute__((unused)
 
 		var->string = var->latched_string;
 		var->latched_string = NULL;
-		var->value = atof(var->string);
-		var->integer = atoi(var->string);
-
-		if (!g_strcmp0(var->name, "game")) {
-			Fs_SetGame(var->string);
-
-			if (Fs_Exists("autoexec.cfg")) {
-				Cbuf_AddText("exec autoexec.cfg\n");
-				Cbuf_Execute();
-			}
-		}
+		var->value = strtof(var->string, NULL);
+		var->integer = strtol(var->string, NULL, 0);
+		var->modified = true;
 	}
 }
 
@@ -657,8 +649,7 @@ void Cvar_Init(void) {
 	Cmd_Add("toggle", Cvar_Toggle_f, 0, NULL);
 	Cmd_Add("cvar_list", Cvar_List_f, 0, NULL);
 
-	int32_t i;
-	for (i = 1; i < Com_Argc(); i++) {
+	for (int32_t i = 1; i < Com_Argc(); i++) {
 		const char *s = Com_Argv(i);
 
 		if (!strncmp(s, "+set", 4)) {

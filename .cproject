@@ -30,6 +30,9 @@
 									<listOptionValue builtIn="false" value="/opt/local/include/libxml2"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/mysql5/mysql"/>
 								</option>
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.138567324" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="ANT_OSX=1"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1445058895" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp.1428325040" name="GCC C++ Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp">
@@ -38,6 +41,9 @@
 									<listOptionValue builtIn="false" value="/opt/local/include/glib-2.0"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/libxml2"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/mysql5"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.96659756" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="ANT_OSX=1"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.302846094" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -66,4 +72,5 @@
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

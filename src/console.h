@@ -25,7 +25,7 @@
 #include "cmd.h"
 #include "cvar.h"
 
-#define CON_TEXT_SIZE 32768
+#define CON_TEXT_SIZE (1024 * 1024)
 #define CON_MAX_LINES 1024
 #define CON_NUM_NOTIFY 4
 #define CON_SCROLL 5
@@ -62,7 +62,7 @@ void Con_Print(const char *text);
 void Con_Resize(console_t *con, uint16_t width, uint16_t height);
 _Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len);
 
-#ifdef HAVE_CURSES
+#if HAVE_CURSES
 
 // structures for the server console
 extern console_t sv_console;

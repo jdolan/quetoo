@@ -26,13 +26,13 @@ r_context_t r_context;
 /*
  * @brief
  */
-static void R_SetIcon(void) {
+static void R_SetWindowIcon(void) {
 	SDL_Surface *surf;
 
 	if (!Img_LoadImage("pics/icon", &surf))
 		return;
 
-	SDL_WM_SetIcon(surf, NULL);
+	SDL_SetWindowIcon(r_context.window, surf);
 
 	SDL_FreeSurface(surf);
 }
@@ -41,9 +41,9 @@ static void R_SetIcon(void) {
  * @brief Initialize the OpenGL context, returning true on success, false on failure.
  */
 void R_InitContext(void) {
-	r_pixel_t w, h;
-	uint32_t flags;
-	SDL_Surface *surface;
+	int32_t w, h;
+
+	memset(&r_context, 0, sizeof(r_context));
 
 	if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
 		if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
@@ -65,64 +65,76 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
 
-	const int32_t i = Clamp(r_swap_interval->integer, 0, 2);
-
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, i);
-
-	const vec_t g = Clamp(r_gamma->value, 0.1, 3.0);
-
-	SDL_SetGamma(g, g, g);
-
-	flags = SDL_OPENGL;
+	uint32_t flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /*| SDL_WINDOW_ALLOW_HIGHDPI*/;
 
 	if (r_fullscreen->integer) {
-		w = r_width->integer > 0 ? r_width->integer : 0;
-		h = r_height->integer > 0 ? r_height->integer : 0;
+		w = MAX(0, r_width->integer);
+		h = MAX(0, r_height->integer);
 
-		flags |= SDL_FULLSCREEN;
+		if (r_width->integer == 0 && r_height->integer == 0) {
+			SDL_DisplayMode best;
+			SDL_GetDesktopDisplayMode(0, &best);
+
+			w = best.w;
+			h = best.h;
+		}
+		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 	} else {
-		w = r_windowed_width->integer > 0 ? r_windowed_width->integer : 0;
-		h = r_windowed_height->integer > 0 ? r_windowed_height->integer : 0;
+		w = MAX(0, r_windowed_width->integer);
+		h = MAX(0, r_windowed_height->integer);
 
-		flags |= SDL_RESIZABLE;
+		flags |= SDL_WINDOW_RESIZABLE;
 	}
 
-	if ((surface = SDL_SetVideoMode(w, h, 0, flags)) == NULL) {
-		if (r_context.width && r_context.height) {
-			Com_Warn("Failed to set video mode: %s\n", SDL_GetError());
-			return;
-		}
+	Com_Print("  Trying %dx%d..\n", w, h);
+
+	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, SDL_WINDOWPOS_CENTERED,
+	SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
-	r_context.width = surface->w;
-	r_context.height = surface->h;
+	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
+		Com_Error(ERR_FATAL, "Failed to create GL context: %s\n", SDL_GetError());
+	}
 
-	r_context.fullscreen = r_fullscreen->integer;
+	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
+		Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());
+	}
 
-	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r_context.red_bits);
-	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &r_context.green_bits);
-	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &r_context.blue_bits);
-	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &r_context.alpha_bits);
+	if (SDL_SetWindowBrightness(r_context.window, r_gamma->value) == -1) {
+		Com_Warn("Failed to set gamma %1.1f: %s\n", r_gamma->value, SDL_GetError());
+	}
 
-	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &r_context.stencil_bits);
-	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &r_context.depth_bits);
-	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &r_context.double_buffer);
+	SDL_GL_GetDrawableSize(r_context.window, &w, &h);
 
-	SDL_WM_SetCaption("Quake2World", "Quake2World");
+	r_context.width = w;
+	r_context.height = h;
 
-	// don't show SDL cursor because the game will draw one
-	SDL_ShowCursor(false);
+	SDL_GetWindowSize(r_context.window, &w, &h);
 
-	SDL_EnableUNICODE(1);
+	r_context.window_width = w;
+	r_context.window_height = h;
 
-	R_SetIcon();
+	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
+
+	R_SetWindowIcon();
 }
 
 /*
  * @brief
  */
 void R_ShutdownContext(void) {
+
+	if (r_context.context) {
+		SDL_GL_DeleteContext(r_context.context);
+		r_context.context = NULL;
+	}
+
+	if (r_context.window) {
+		SDL_DestroyWindow(r_context.window);
+		r_context.window = NULL;
+	}
+
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)
 		SDL_Quit();
 	else

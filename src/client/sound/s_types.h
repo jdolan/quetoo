@@ -22,7 +22,7 @@
 #ifndef __S_TYPES_H__
 #define __S_TYPES_H__
 
-#include <SDL/SDL_mixer.h>
+#include <SDL2/SDL_mixer.h>
 
 #include "common.h"
 #include "sys.h"

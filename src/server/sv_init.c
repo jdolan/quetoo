@@ -189,7 +189,6 @@ static void Sv_ShutdownClients(void) {
  * we refresh the game module
  */
 static void Sv_InitClients(void) {
-	int32_t i;
 
 	if (!svs.initialized || Cvar_PendingLatched()) {
 
@@ -217,7 +216,7 @@ static void Sv_InitClients(void) {
 	}
 
 	// align the game entities with the server's clients
-	for (i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
 		g_entity_t *ent = ENTITY_FOR_NUM(i + 1);
 		ent->s.number = NUM_FOR_ENTITY(ent);
@@ -307,7 +306,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
  * client sees the reconnect message immediately.
  */
 void Sv_InitServer(const char *server, sv_state_t state) {
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 	extern void Cl_Disconnect(void);
 #endif
 	char path[MAX_QPATH];
@@ -330,7 +329,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 	// inform any connected clients to reconnect to us
 	Sv_ShutdownMessage("Server restarting...\n", true);
 
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 	// disconnect any local client, they'll immediately reconnect
 	Cl_Disconnect();
 #endif

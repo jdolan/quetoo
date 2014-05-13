@@ -168,7 +168,7 @@ if test "x${with_client}" = xno; then
 	dnl The server needs SDL core for threading
 	dnl ---------------------------------------
 
-	PKG_CHECK_MODULES([SDL], [sdl >= 1.2.12])
+	PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0])
 	
 else
 	AC_MSG_RESULT(yes)
@@ -177,10 +177,10 @@ else
 	AC_DEFINE(BUILD_CLIENT, 1, [Define to 1 to build a client.])
 
 	dnl ------------------------------------------
-	dnl Check for SDL, SDL_image, SDL_mixer
+	dnl Check for SDL2, SDL2_image, SDL2_mixer
 	dnl ------------------------------------------
 
-	PKG_CHECK_MODULES([SDL], [sdl >= 1.2.12 SDL_image SDL_mixer])
+	PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image SDL2_mixer])
 
 	dnl -----------------------------------
 	dnl Sort out OpenGL an flags and libraries
@@ -225,8 +225,8 @@ else
 			HOST_ANTTWEAKBAR_LIBS="-framework GLUT -framework AppKit"
 			;;
 		*-*-mingw*)
-			HOST_ANTTWEAKBAR_CXXFLAGS="-D_WINDOWS -fpermissive"
-			HOST_ANTTWEAKBAR_CFLAGS="-D_WINDOWS"
+			HOST_ANTTWEAKBAR_CXXFLAGS="-D_WINDOWS -DTW_STATIC -fpermissive"
+			HOST_ANTTWEAKBAR_CFLAGS="-D_WINDOWS -DTW_STATIC"
 			;;
 		*)
 			HOST_ANTTWEAKBAR_CXXFLAGS="-D_UNIX -I/usr/X11R6/include"
@@ -239,10 +239,10 @@ else
 	AC_SUBST(HOST_ANTTWEAKBAR_CFLAGS)
 	AC_SUBST(HOST_ANTTWEAKBAR_LIBS)
 
-	ANTTWEAKBAR_CXXFLAGS="$ANTTWEAKBAR_CXXFLAGS $HOST_ANTTWEAKBAR_CXXFLAGS"
+	ANTTWEAKBAR_CXXFLAGS="-fno-strict-aliasing $ANTTWEAKBAR_CXXFLAGS $HOST_ANTTWEAKBAR_CXXFLAGS"
 	AC_SUBST(ANTTWEAKBAR_CXXFLAGS)
 
-	ANTTWEAKBAR_CFLAGS="$ANTTWEAKBAR_CFLAGS $HOST_ANTTWEAKBAR_CFLAGS"
+	ANTTWEAKBAR_CFLAGS="-fno-strict-aliasing $ANTTWEAKBAR_CFLAGS $HOST_ANTTWEAKBAR_CFLAGS"
 	AC_SUBST(ANTTWEAKBAR_CFLAGS)
 
 	ANTTWEAKBAR_LIBS="$ANTTWEAKBAR_LIBS $HOST_ANTTWEAKBAR_LIBS"
@@ -303,8 +303,8 @@ fi
 AM_CONDITIONAL([BUILD_CLIENT], [test "x$BUILD_CLIENT" = "xyes"])
 AM_CONDITIONAL([BUILD_TOOLS], [test "x$TOOL_DIRS" != "x"])
 
-AC_SUBST(SDL_CFLAGS)
-AC_SUBST(SDL_LIBS)
+AC_SUBST(SDL2_CFLAGS)
+AC_SUBST(SDL2_LIBS)
 
 dnl -------------------------------
 dnl Check for execinfo.h (optional)
@@ -354,7 +354,7 @@ if test "x${with_curses}" != xno; then
 	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(ncurses, initscr,
 			HAVE_CURSES=ncurses
-			AC_DEFINE(HAVE_CURSES, "ncurses",
+			AC_DEFINE(HAVE_CURSES, 1,
 					[Define to value if you have a curses compatible library.])
 			CURSES_LIBS="$CURSES_LIBS -lncurses",
 			HAVE_CURSES=maybe
@@ -368,7 +368,7 @@ if test "x${with_curses}" != xno; then
 	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(pdcurses, initscr,
 			HAVE_CURSES=pdcurses
-			AC_DEFINE(HAVE_CURSES, "pdcurses",
+			AC_DEFINE(HAVE_CURSES, 1,
 					[Define to value if you have a curses compatible library.])
 			CURSES_LIBS="$CURSES_LIBS -lpdcurses",
 			HAVE_CURSES=maybe
@@ -382,7 +382,7 @@ if test "x${with_curses}" != xno; then
 	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(curses, initscr,
 			HAVE_CURSES=curses
-			AC_DEFINE(HAVE_CURSES, "curses",
+			AC_DEFINE(HAVE_CURSES, 1,
 					[Define to value if you have a curses library.])
 			CURSES_LIBS="$CURSES_LIBS -lcurses",
 			HAVE_CURSES=no

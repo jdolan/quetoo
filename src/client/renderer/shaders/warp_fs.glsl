@@ -1,4 +1,8 @@
-// warp fragment shader
+/*
+ * @brief Warp fragment shader.
+ */
+
+#version 120
 
 uniform vec3 OFFSET;
 

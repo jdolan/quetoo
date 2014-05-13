@@ -82,7 +82,11 @@ static const char *DEFAULT_BINDS =
 	"set m_sensitivity $s;"
 	"\"\n"
 
+#if __APPLE__
+	"bind \"left option\" +ZOOM\n"
+#else
 	"bind \"left alt\" +ZOOM\n"
+#endif
 
 	// screenshots alias for mappers
 	"alias SCREENSHOTS \""

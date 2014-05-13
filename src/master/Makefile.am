@@ -19,6 +19,6 @@ q2wmaster_LDADD = \
 q2wmaster_static: q2wmaster-main.o
 	libtool link gcc -all-static -o q2wmaster \
 		q2wmaster-main.o ../libfilesystem.la \
-		@GLIB_LIBS@ -lrt @PHYSFS_LIBS@ @SDL_LIBS@ -lpthread
+		@GLIB_LIBS@ -lrt @PHYSFS_LIBS@ @SDL2_LIBS@ -lpthread
 
 endif

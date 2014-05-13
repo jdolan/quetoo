@@ -36,8 +36,8 @@
 /*
  * @brief Filter bits to Sv_BoxEntities / gi.BoxEntities.
  */
-#define AREA_SOLID			(1 << 0) // SOLID_BSP, SOLID_BOX, SOLID_MISSILE..
-#define AREA_TRIGGER		(1 << 1) // SOLID_TRIGGER
+#define BOX_SOLID			(1 << 0) // SOLID_BSP, SOLID_BOX, SOLID_MISSILE..
+#define BOX_TRIGGER			(1 << 1) // SOLID_TRIGGER
 
 #ifndef __GAME_LOCAL_H__
 
@@ -293,13 +293,13 @@ typedef struct {
 
 	/*
 	 * @brief Populates a list of entities occupying the specified bounding
-	 * box, filtered by the given type (AREA_SOLID, AREA_TRIGGER, ..).
+	 * box, filtered by the given type (BOX_SOLID, BOX_TRIGGER, ..).
 	 *
 	 * @param mins The area bounds in world space.
 	 * @param maxs The area bounds in world space.
 	 * @param list The list of edicts to populate.
 	 * @param len The maximum number of edicts to return (lengthof(list)).
-	 * @param type The entity type to return (AREA_SOLID, AREA_TRIGGER, ..).
+	 * @param type The entity type to return (BOX_SOLID, BOX_TRIGGER, ..).
 	 *
 	 * @return The number of entities found.
 	 */

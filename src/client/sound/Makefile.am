@@ -24,14 +24,14 @@ libsound_la_CFLAGS = \
 	-I.. -I../.. \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL_CFLAGS@
+	@SDL2_CFLAGS@
 
 libsound_la_LDFLAGS = \
 	-shared
 
 libsound_la_LIBADD = \
 	../../libshared.la \
-	@SDL_LIBS@
+	@SDL2_LIBS@
 
 else
 

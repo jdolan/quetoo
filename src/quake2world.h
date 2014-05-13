@@ -26,7 +26,7 @@
 
 // to support the gnuc __attribute__ command
 #if defined __ICC || !defined __GNUC__
-#  define __attribute__(x)  /*NOTHING*/
+#define __attribute__(x)  /*NOTHING*/
 #endif
 
 #include <glib.h>
@@ -38,7 +38,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef _WIN32
+#if _WIN32
 #undef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -161,14 +161,14 @@ typedef enum {
  */
 typedef struct cvar_s {
 	const char *name;
-	const char *description;
 	const char *default_value;
 	char *string;
 	char *latched_string; // for CVAR_LATCH vars
-	uint32_t flags;
-	_Bool modified; // set each time the cvar is changed
 	vec_t value;
 	int32_t integer;
+	uint32_t flags;
+	const char *description;
+	_Bool modified; // set each time the cvar is changed
 } cvar_t;
 
 typedef void (*CmdExecuteFunc)(void);
@@ -295,7 +295,6 @@ typedef enum {
 #define MASK_SHOT				(CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_WINDOW|CONTENTS_DEAD_MONSTER)
 #define MASK_CURRENT			(CONTENTS_CURRENT_0|CONTENTS_CURRENT_90|CONTENTS_CURRENT_180|\
 							 	 	 CONTENTS_CURRENT_270|CONTENTS_CURRENT_UP|CONTENTS_CURRENT_DOWN)
-
 
 /*
  * @brief General player movement and capabilities classification.

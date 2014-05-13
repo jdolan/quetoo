@@ -100,7 +100,8 @@ void R_RegisterMedia(r_media_t *media) {
 			g_hash_table_insert(r_media_state.media, media->name, media);
 		}
 
-		r_media_state.keys = g_list_insert_sorted(r_media_state.keys, media->name, R_RegisterMedia_Compare);
+		r_media_state.keys = g_list_insert_sorted(r_media_state.keys, media->name,
+				R_RegisterMedia_Compare);
 
 		// re-seed the media to retain it
 		media->seed = r_media_state.seed;
@@ -210,6 +211,8 @@ void R_InitMedia(void) {
 	memset(&r_media_state, 0, sizeof(r_media_state));
 
 	r_media_state.media = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
+
+	R_BeginLoading();
 }
 
 /*

@@ -120,8 +120,10 @@ static void SwapBSPFile(_Bool todisk) {
 
 	// texinfos
 	for (i = 0; i < d_bsp.num_texinfo; i++) {
-		for (j = 0; j < 8; j++)
+		for (j = 0; j < 4; j++) {
 			d_bsp.texinfo[i].vecs[0][j] = LittleFloat(d_bsp.texinfo[i].vecs[0][j]);
+			d_bsp.texinfo[i].vecs[1][j] = LittleFloat(d_bsp.texinfo[i].vecs[1][j]);
+		}
 		d_bsp.texinfo[i].flags = LittleLong(d_bsp.texinfo[i].flags);
 		d_bsp.texinfo[i].value = LittleLong(d_bsp.texinfo[i].value);
 		d_bsp.texinfo[i].next_texinfo = LittleLong(d_bsp.texinfo[i].next_texinfo);

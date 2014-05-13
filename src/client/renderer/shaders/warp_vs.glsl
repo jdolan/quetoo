@@ -1,4 +1,8 @@
-// warp vertex shader
+/*
+ * @brief Warp vertex shader.
+ */
+
+#version 120
 
 varying float fog;
 

@@ -65,8 +65,9 @@ typedef struct r_state_s {
 	r_shader_t shaders[MAX_SHADERS];
 	r_program_t programs[MAX_PROGRAMS];
 	r_program_t *default_program;
+	r_program_t *shadow_program;
 	r_program_t *warp_program;
-	r_program_t *active_program;
+	const r_program_t *active_program;
 
 	r_material_t *active_material;
 
@@ -74,6 +75,7 @@ typedef struct r_state_s {
 	_Bool alpha_test_enabled;
 	_Bool stencil_test_enabled;
 	_Bool lighting_enabled;
+	_Bool shadow_enabled;
 	_Bool warp_enabled;
 	_Bool shell_enabled;
 	_Bool fog_enabled;
@@ -105,8 +107,9 @@ void R_EnableAlphaTest(_Bool enable);
 void R_EnableStencilTest(_Bool enable, GLenum op);
 void R_EnableTexture(r_texunit_t *texunit, _Bool enable);
 void R_EnableColorArray(_Bool enable);
-void R_EnableLighting(r_program_t *program, _Bool enable);
-void R_EnableWarp(r_program_t *program, _Bool enable);
+void R_EnableLighting(const r_program_t *program, _Bool enable);
+void R_EnableShadow(const r_program_t *program, _Bool enable);
+void R_EnableWarp(const r_program_t *program, _Bool enable);
 void R_EnableShell(_Bool enable);
 void R_EnableFog(_Bool enable);
 void R_UseMaterial(const r_bsp_surface_t *surf, const r_material_t *material);

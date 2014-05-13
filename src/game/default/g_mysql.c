@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-#ifdef HAVE_MYSQL
+#if HAVE_MYSQL
 #include <mysql.h>
 
 typedef struct {
@@ -36,7 +36,7 @@ static g_mysql_state_t g_mysql_state;
  */
 static void G_MySQL_Query(const char *fmt, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));
 static void G_MySQL_Query(const char *fmt __attribute__((unused)), ...) {
-#ifdef HAVE_MYSQL
+#if HAVE_MYSQL
 	va_list args;
 	char query[MAX_STRING_CHARS];
 
@@ -57,7 +57,7 @@ static void G_MySQL_Query(const char *fmt __attribute__((unused)), ...) {
  * @return The MySQL-escaped name for the given entity.
  */
 const char *G_MySQL_EntityName(const g_entity_t *ent __attribute__((unused))) {
-#ifdef HAVE_MYSQL
+#if HAVE_MYSQL
 
 	char name[MAX_NET_NAME];
 	static char escaped[MAX_NET_NAME];
@@ -115,7 +115,7 @@ void G_MySQL_ClientObituary(const g_entity_t *self __attribute__((unused)),
  * @brief Initializes a connection MySQL (if available, and compiled).
  */
 void G_MySQL_Init(void) {
-#ifdef HAVE_MYSQL
+#if HAVE_MYSQL
 
 	memset(&g_mysql_state, 0, sizeof(g_mysql_state));
 
@@ -143,7 +143,7 @@ void G_MySQL_Init(void) {
  * @brief Shutdown MySQL.
  */
 void G_MySQL_Shutdown(void) {
-#ifdef HAVE_MYSQL
+#if HAVE_MYSQL
 
 	if (g_mysql_state.mysql) {
 		mysql_shutdown(g_mysql_state.mysql, SHUTDOWN_DEFAULT);

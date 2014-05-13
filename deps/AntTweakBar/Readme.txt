@@ -1,15 +1,12 @@
---- AntTweakBar development library ---
+Under Windows, it is not necessary to rebuild AntTweakBar since a precompiled
+version is provided in the lib directory. But if you want to recompile it,
+you can use the provided Visual Studio solution. You'd also need the DirectX 
+SDK (http://msdn.microsoft.com/directx) and the path to the DirectX shader 
+compiler fxc.exe (included in the DirectX SDK) must be listed in the VC++ 
+directories.
 
+To build the library on Linux, open a terminal, go in the src directory and
+type make
 
-AntTweakBar is a small and easy-to-use C/C++ library that allows programmers
-to quickly add a light and intuitive GUI into OpenGL and DirectX based 
-graphic programs to interactively tweak parameters.
-
-This package includes the development version of the AntTweakBar library 
-for Windows, GNU/Linux and OSX, and some program examples (sources + binaries).
-
-For installation and documentation please refer to:
-http://www.antisphere.com/Wiki/tools:anttweakbar
-
-
-Philippe Decaudin - http://www.antisphere.com
+To build the library on MacOSX, open a terminal, go in the src directory and
+type make -f Makefile.osx

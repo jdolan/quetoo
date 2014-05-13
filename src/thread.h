@@ -22,13 +22,13 @@
 #ifndef __THREAD_H__
 #define __THREAD_H__
 
-#include <SDL/SDL_thread.h>
+#include <SDL2/SDL_thread.h>
 
 #include "mem.h"
 
 #define MAX_THREADS 128
 
-typedef enum thread_status_e {
+typedef enum {
 	THREAD_IDLE,
 	THREAD_RUNNING,
 	THREAD_WAIT
@@ -36,7 +36,7 @@ typedef enum thread_status_e {
 
 typedef void (*ThreadRunFunc)(void *data);
 
-typedef struct thread_s {
+typedef struct {
 	SDL_Thread *thread;
 	SDL_cond *cond;
 	SDL_mutex *mutex;

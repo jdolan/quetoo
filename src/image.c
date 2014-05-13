@@ -21,7 +21,7 @@
 
 #include "image.h"
 
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 
 /*
  * Work-around for conflicts between windows.h and jpeglib.h.
@@ -36,20 +36,20 @@
  * @see http://www.asmail.be/msg0054688232.html
  */
 
-#if defined(_WIN32)
+#if _WIN32
 typedef byte boolean;
 #define HAVE_BOOLEAN
 #endif
 
-# if defined(_WIN32) && defined(ADDRESS_TAG_BIT) && !defined(XMD_H)
-#  define XMD_H
-#  define VTK_JPEG_XMD_H
-# endif
-# include <jpeglib.h>
-# if defined(VTK_JPEG_XMD_H)
-#  undef VTK_JPEG_XMD_H
-#  undef XMD_H
-# endif
+#if _WIN32 && defined(ADDRESS_TAG_BIT) && !defined(XMD_H)
+#define XMD_H
+#define VTK_JPEG_XMD_H
+#endif
+#include <jpeglib.h>
+#if defined(VTK_JPEG_XMD_H)
+#undef VTK_JPEG_XMD_H
+#undef XMD_H
+#endif
 
 #define IMG_PALETTE "pics/colormap"
 
@@ -62,46 +62,8 @@ static _Bool img_palette_initialized;
 #define BMASK 0x00ff0000
 #define AMASK 0xff000000
 
-static SDL_PixelFormat img_pixel_format = {
-// default pixel format all images are converted to
-		NULL, // palette
-		32, // bits
-		4, // bytes
-		0, // rloss
-		0, // gloss
-		0, // bloss
-		0, // aloss
-		0, // rshift
-		8, // gshift
-		16, // bshift
-		24, // ashift
-		RMASK, // rmask
-		GMASK, // gmask
-		BMASK, // bmask
-		AMASK, // amask
-		0, // colorkey
-		1 // alpha
-		};
-
 // image formats, tried in this order
 static const char *img_formats[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
-
-/*
- * @brief Loads the specified image from the game filesystem and populates
- * the provided SDL_Surface. Image formats are tried in the order they appear
- * in TYPES.
- */
-_Bool Img_LoadImage(const char *name, SDL_Surface **surf) {
-	int32_t i;
-
-	i = 0;
-	while (img_formats[i]) {
-		if (Img_LoadTypedImage(name, img_formats[i++], surf))
-			return true;
-	}
-
-	return false;
-}
 
 /*
  * @brief A helper which mangles a .wal file into an SDL_Surface suitable for
@@ -109,8 +71,6 @@ _Bool Img_LoadImage(const char *name, SDL_Surface **surf) {
  */
 static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	void *buf;
-	uint32_t i;
-	byte *b;
 
 	*surf = NULL;
 
@@ -130,9 +90,8 @@ static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	size_t size = wal->width * wal->height;
 	uint32_t *p = (uint32_t *) malloc(size * sizeof(uint32_t));
 
-	b = (byte *) wal + wal->offsets[0];
-
-	for (i = 0; i < size; i++) { // convert to 32bpp RGBA via palette
+	const byte *b = (byte *) wal + wal->offsets[0];
+	for (size_t i = 0; i < size; i++) { // convert to 32bpp RGBA via palette
 		if (b[i] == 255) // transparent
 			p[i] = 0;
 		else
@@ -142,8 +101,8 @@ static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	Fs_Free(buf);
 
 	// create the RGBA surface
-	if ((*surf = SDL_CreateRGBSurfaceFrom(p, wal->width, wal->height, 32, 0, RMASK, GMASK, BMASK,
-			AMASK))) {
+	if ((*surf = SDL_CreateRGBSurfaceFrom(p, wal->width, wal->height, 32, 0,
+			RMASK, GMASK, BMASK, AMASK))) {
 
 		// trick SDL into freeing the pixel data with the surface
 		(*surf)->flags &= ~SDL_PREALLOC;
@@ -156,7 +115,7 @@ static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
  * @brief Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
  */
-_Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
+static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf) {
 	char path[MAX_QPATH];
 	void *buf;
 	int64_t len;
@@ -178,7 +137,7 @@ _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf)
 			if ((s = IMG_LoadTyped_RW(rw, 0, (char *) type))) {
 
 				if (!g_str_has_prefix(path, IMG_PALETTE)) {
-					*surf = SDL_ConvertSurface(s, &img_pixel_format, 0);
+					*surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_ABGR8888, 0);
 					SDL_FreeSurface(s);
 				} else {
 					*surf = s;
@@ -193,27 +152,40 @@ _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface **surf)
 }
 
 /*
+ * @brief Loads the specified image from the game filesystem and populates
+ * the provided SDL_Surface. Image formats are tried in the order they appear
+ * in TYPES.
+ */
+_Bool Img_LoadImage(const char *name, SDL_Surface **surf) {
+
+	int32_t i = 0;
+	while (img_formats[i]) {
+		if (Img_LoadTypedImage(name, img_formats[i++], surf))
+			return true;
+	}
+
+	return false;
+}
+
+/*
  * @brief Initializes the 8bit color palette required for .wal texture loading.
  */
 void Img_InitPalette(void) {
 	SDL_Surface *surf;
-	byte r, g, b;
-	uint32_t v;
-	int32_t i;
 
 	if (!Img_LoadTypedImage(IMG_PALETTE, "pcx", &surf))
 		return;
 
-	for (i = 0; i < IMG_PALETTE_SIZE; i++) {
-		r = surf->format->palette->colors[i].r;
-		g = surf->format->palette->colors[i].g;
-		b = surf->format->palette->colors[i].b;
+	for (size_t i = 0; i < lengthof(img_palette); i++) {
+		const byte r = surf->format->palette->colors[i].r;
+		const byte g = surf->format->palette->colors[i].g;
+		const byte b = surf->format->palette->colors[i].b;
 
-		v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
+		const uint32_t v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
 		img_palette[i] = LittleLong(v);
 	}
 
-	img_palette[IMG_PALETTE_SIZE - 1] &= LittleLong(0xffffff); // 255 is transparent
+	img_palette[lengthof(img_palette) - 1] &= LittleLong(0xffffff); // 255 is transparent
 
 	SDL_FreeSurface(surf);
 
@@ -224,12 +196,11 @@ void Img_InitPalette(void) {
  * @brief Returns RGB components of the specified color in the specified result array.
  */
 void Img_ColorFromPalette(uint8_t c, vec_t *res) {
-	uint32_t color;
 
 	if (!img_palette_initialized) // lazy-load palette if necessary
 		Img_InitPalette();
 
-	color = img_palette[c];
+	const uint32_t color = img_palette[c];
 
 	res[0] = (color >> 0 & 255) / 255.0;
 	res[1] = (color >> 8 & 255) / 255.0;

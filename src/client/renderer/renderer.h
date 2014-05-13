@@ -51,6 +51,7 @@
 #include "r_particle.h"
 #include "r_program.h"
 #include "r_program_default.h"
+#include "r_program_shadow.h"
 #include "r_program_warp.h"
 #include "r_sky.h"
 #include "r_state.h"
