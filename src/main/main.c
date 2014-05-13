@@ -23,7 +23,7 @@
 #include <signal.h>
 
 #include "config.h"
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 #include "client/client.h"
 extern cl_static_t cls;
 #endif
@@ -73,7 +73,7 @@ static void Error(err_t err, const char *msg) {
 		case ERR_DROP:
 			Sv_ShutdownServer(msg);
 
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 			Cl_Disconnect();
 			if (err == ERR_NONE) {
 				cls.key_state.dest = KEY_UI;
@@ -147,7 +147,7 @@ static void Init(void) {
 
 	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
 
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, NULL);
 #else
 	dedicated = Cvar_Get("dedicated", "1", CVAR_NO_SET, NULL);
@@ -176,7 +176,7 @@ static void Init(void) {
 
 	Sv_Init();
 
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 	Cl_Init();
 #endif
 
@@ -201,7 +201,7 @@ static void Shutdown(const char *msg) {
 
 	Sv_Shutdown(msg);
 
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 	Cl_Shutdown();
 #endif
 
@@ -248,7 +248,7 @@ static void Frame(const uint32_t msec) {
 
 	Sv_Frame(msec);
 
-#ifdef BUILD_CLIENT
+#if BUILD_CLIENT
 	Cl_Frame(msec);
 #endif
 }

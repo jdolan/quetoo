@@ -23,8 +23,8 @@
 
 // these are the variables defined in the GLSL shader
 typedef struct r_shadow_program_s {
-	r_uniform3fv_t light_pos;
 	r_uniform_matrix4fv_t model_matrix;
+	r_uniform_matrix4fv_t shadow_matrix;
 } r_shadow_program_t;
 
 static r_shadow_program_t r_shadow_program;
@@ -35,11 +35,11 @@ static r_shadow_program_t r_shadow_program;
 void R_InitProgram_shadow(void) {
 	r_shadow_program_t *p = &r_shadow_program;
 
-	R_ProgramVariable(&p->light_pos, R_UNIFORM_VECTOR, "LIGHT_POS");
 	R_ProgramVariable(&p->model_matrix, R_UNIFORM_MATRIX, "MODEL_MATRIX");
+	R_ProgramVariable(&p->shadow_matrix, R_UNIFORM_MATRIX, "SHADOW_MATRIX");
 
-	R_ProgramParameter3fv(&p->light_pos, vec3_origin);
 	R_ProgramParameterMatrix4fv(&p->model_matrix, (GLfloat *) matrix4x4_identity.m);
+	R_ProgramParameterMatrix4fv(&p->shadow_matrix, (GLfloat *) matrix4x4_identity.m);
 }
 
 /*
@@ -48,24 +48,9 @@ void R_InitProgram_shadow(void) {
 void R_UseProgram_shadow(void) {
 	r_shadow_program_t *p = &r_shadow_program;
 
-	if (!r_view.current_shadow) {
-		Com_Warn("r_view.current_shadow is NULL");
+	if (!r_view.current_entity || !r_view.current_shadow)
 		return;
-	}
 
-	R_ProgramParameter3fv(&p->light_pos, r_view.current_shadow->illumination->light.origin);
-	R_ProgramParameterMatrix4fv(&p->model_matrix, (GLfloat *) r_view.current_shadow->matrix.m);
-
-	const r_entity_t *e = r_view.current_entity;
-	if (strstr(e->model->media.name, "players")) {
-		vec3_t out;
-		Matrix4x4_Transform(&r_view.current_shadow->matrix, r_state.vertex_array_3d, out);
-
-		vec3_t delta;
-		VectorSubtract(out, r_view.current_shadow->illumination->light.origin, delta);
-		const vec_t dist = VectorLength(delta);
-
-		Com_Print("(%s -> %s) - %s = %f\n", vtos(r_state.vertex_array_3d), vtos(out),
-				vtos(r_view.current_shadow->illumination->light.origin), dist);
-	}
+	R_ProgramParameterMatrix4fv(&p->model_matrix, (GLfloat *) r_view.current_entity->matrix.m);
+	R_ProgramParameterMatrix4fv(&p->shadow_matrix, (GLfloat *) r_view.current_shadow->matrix.m);
 }

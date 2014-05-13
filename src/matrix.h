@@ -23,7 +23,7 @@
 
 #include "quake2world.h"
 
-#define MATRIX4x4_OPENGLORIENTATION
+#define MATRIX4x4_OPENGLORIENTATION true
 
 typedef struct matrix4x4_s
 {

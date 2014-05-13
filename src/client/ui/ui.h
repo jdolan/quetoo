@@ -22,9 +22,15 @@
 #ifndef __UI_H__
 #define __UI_H__
 
-#ifndef TW_STATIC
+#if __APPLE__
+#define _MACOSX
+#elif __linux__
+#define _UNIX
+#elif _WIN32
+#define _WINDOWS
 #define TW_STATIC
 #endif
+
 #include "deps/AntTweakBar/include/AntTweakBar.h"
 
 #include "ui_controls.h"

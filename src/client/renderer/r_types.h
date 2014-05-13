@@ -596,7 +596,7 @@ typedef struct {
 	const r_illumination_t *illumination;
 	cm_bsp_plane_t plane;
 	vec_t intensity;
-	matrix4x4_t matrix; // the shearing matrix for planar projection
+	matrix4x4_t matrix;
 } r_shadow_t;
 
 /*

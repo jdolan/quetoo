@@ -25,7 +25,7 @@
 #include <signal.h>
 #include <sys/time.h>
 
-#ifdef _WIN32
+#if _WIN32
 #define RTLD_NOW 0
 #define dlopen(file_name, mode) LoadLibrary(file_name)
 #define dlerror() "Windows.. go figure."
@@ -36,11 +36,11 @@
 #include <dlfcn.h>
 #endif
 
-#ifdef __APPLE__
+#if __APPLE__
 #include <mach-o/dyld.h>
 #endif
 
-#ifdef HAVE_EXECINFO
+#if HAVE_EXECINFO
 #include <execinfo.h>
 #define MAX_BACKTRACE_SYMBOLS 50
 #endif
@@ -66,7 +66,7 @@ uint32_t Sys_Milliseconds(void) {
 const char *Sys_ExecutablePath(void) {
 	static char path[MAX_OSPATH];
 
-#ifdef __APPLE__
+#if __APPLE__
 	uint32_t i = sizeof(path);
 
 	if (_NSGetExecutablePath(path, &i) > -1) {
@@ -105,7 +105,7 @@ const char *Sys_UserDir(void) {
 	static char user_dir[MAX_OSPATH];
 	const char *home = g_get_home_dir();
 
-#ifdef _WIN32
+#if _WIN32
 	g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quake2World", home);
 #else
 	g_snprintf(user_dir, sizeof(user_dir), "%s/.quake2world", home);
@@ -119,7 +119,7 @@ const char *Sys_UserDir(void) {
 void Sys_OpenLibrary(const char *name, void **handle) {
 	*handle = NULL;
 
-#ifdef _WIN32
+#if _WIN32
 	char *so_name = va("%s.dll", name);
 #else
 	char *so_name = va("%s.so", name);
@@ -179,7 +179,7 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
  * @brief On platforms supporting it, print a backtrace.
  */
 void Sys_Backtrace(void) {
-#ifdef HAVE_EXECINFO
+#if HAVE_EXECINFO
 	void *symbols[MAX_BACKTRACE_SYMBOLS];
 	int32_t i;
 

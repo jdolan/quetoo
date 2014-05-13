@@ -29,7 +29,6 @@ libui_la_SOURCES = \
 libui_la_CFLAGS = \
 	-I.. -I../.. \
 	@BASE_CFLAGS@ \
-	@ANTTWEAKBAR_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL2_CFLAGS@

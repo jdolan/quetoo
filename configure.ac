@@ -354,7 +354,7 @@ if test "x${with_curses}" != xno; then
 	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(ncurses, initscr,
 			HAVE_CURSES=ncurses
-			AC_DEFINE(HAVE_CURSES, "ncurses",
+			AC_DEFINE(HAVE_CURSES, 1,
 					[Define to value if you have a curses compatible library.])
 			CURSES_LIBS="$CURSES_LIBS -lncurses",
 			HAVE_CURSES=maybe
@@ -368,7 +368,7 @@ if test "x${with_curses}" != xno; then
 	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(pdcurses, initscr,
 			HAVE_CURSES=pdcurses
-			AC_DEFINE(HAVE_CURSES, "pdcurses",
+			AC_DEFINE(HAVE_CURSES, 1,
 					[Define to value if you have a curses compatible library.])
 			CURSES_LIBS="$CURSES_LIBS -lpdcurses",
 			HAVE_CURSES=maybe
@@ -382,7 +382,7 @@ if test "x${with_curses}" != xno; then
 	if test "${HAVE_CURSES}" = maybe; then
 		AC_CHECK_LIB(curses, initscr,
 			HAVE_CURSES=curses
-			AC_DEFINE(HAVE_CURSES, "curses",
+			AC_DEFINE(HAVE_CURSES, 1,
 					[Define to value if you have a curses library.])
 			CURSES_LIBS="$CURSES_LIBS -lcurses",
 			HAVE_CURSES=no

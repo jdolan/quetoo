@@ -151,7 +151,7 @@ static void Warn(const char *msg) {
  */
 static void Init(void) {
 
-#ifdef _WIN32
+#if _WIN32
 	if (AllocConsole()) {
 		freopen("CONIN$", "r", stdin);
 		freopen("CONOUT$", "w", stdout);
@@ -185,7 +185,7 @@ static void Shutdown(const char *msg) {
 
 	Mem_Shutdown();
 
-#ifdef _WIN32
+#if _WIN32
 	if (!is_monitor) {
 		puts("\nPress any key to close..\n");
 		getchar();
@@ -199,9 +199,8 @@ static void Shutdown(const char *msg) {
  * @brief
  */
 static void Check_BSP_Options(int32_t argc) {
-	int32_t i;
 
-	for (i = argc; i < Com_Argc(); i++) {
+	for (int32_t i = argc; i < Com_Argc(); i++) {
 		if (!g_strcmp0(Com_Argv(i), "-noweld")) {
 			Com_Verbose("noweld = true\n");
 			noweld = true;
@@ -278,9 +277,8 @@ static void Check_BSP_Options(int32_t argc) {
  * @brief
  */
 static void Check_VIS_Options(int32_t argc) {
-	int32_t i;
 
-	for (i = argc; i < Com_Argc(); i++) {
+	for (int32_t i = argc; i < Com_Argc(); i++) {
 		if (!g_strcmp0(Com_Argv(i), "-fast")) {
 			Com_Verbose("fastvis = true\n");
 			fastvis = true;
@@ -296,9 +294,8 @@ static void Check_VIS_Options(int32_t argc) {
  * @brief
  */
 static void Check_LIGHT_Options(int32_t argc) {
-	int32_t i;
 
-	for (i = argc; i < Com_Argc(); i++) {
+	for (int32_t i = argc; i < Com_Argc(); i++) {
 		if (!g_strcmp0(Com_Argv(i), "-extra")) {
 			extra_samples = true;
 			Com_Verbose("extra samples = true\n");

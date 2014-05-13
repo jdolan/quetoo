@@ -82,7 +82,7 @@ static const char *DEFAULT_BINDS =
 	"set m_sensitivity $s;"
 	"\"\n"
 
-#ifdef __APPLE__
+#if __APPLE__
 	"bind \"left option\" +ZOOM\n"
 #else
 	"bind \"left alt\" +ZOOM\n"

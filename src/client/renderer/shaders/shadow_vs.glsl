@@ -5,14 +5,16 @@
 #version 120
 
 uniform mat4 MODEL_MATRIX;
+uniform mat4 SHADOW_MATRIX;
 
-varying vec3 point;
+varying vec3 points[2];
 
 /*
  * ShadowVertex
  */
 void ShadowVertex(void) {
-	point = vec3(MODEL_MATRIX * gl_Vertex);
+	points[0] = vec3(MODEL_MATRIX * gl_Vertex);
+	points[1] = vec3(SHADOW_MATRIX * gl_Vertex);
 }
 
 /*

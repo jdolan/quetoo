@@ -110,7 +110,6 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, r_shadow_t *s) {
 
 	glMultMatrixf((GLfloat *) shear.m);
 
-	//Matrix4x4_Concat(&s->matrix, &shear, &proj);
 	Matrix4x4_Copy(&s->matrix, &proj);
 }
 

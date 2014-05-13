@@ -22,7 +22,7 @@
 #ifndef __NET_TYPES_H__
 #define __NET_TYPES_H__
 
-#ifdef _WIN32
+#if _WIN32
 
 #include <winsock2.h>
 #include <ws2tcpip.h>

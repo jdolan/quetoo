@@ -592,7 +592,7 @@ void Fs_Init(_Bool auto_load_archives) {
 
 		Com_Debug("Resolved executable path: %s\n", path);
 
-#ifdef __APPLE__
+#if __APPLE__
 		if ((c = strstr(path, "Quake2World.app"))) {
 			*(c + strlen("Quake2World.app")) = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));

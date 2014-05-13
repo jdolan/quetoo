@@ -145,11 +145,11 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data) {
 
 	// if we failed to allocate a thread, run the function in this thread
 	if (i == thread_pool.num_threads) {
-		if (thread_pool.num_threads) {
 #if 0
+		if (thread_pool.num_threads) {
 			printf("No threads available for %s\n", name);
-#endif
 		}
+#endif
 		t = NULL;
 		run(data);
 	}

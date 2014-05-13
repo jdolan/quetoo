@@ -23,7 +23,7 @@
 #include "net/net_tcp.h"
 #include "net/net_message.h"
 
-#ifdef _WIN32
+#if _WIN32
 #define LIBXML_STATIC
 #endif
 

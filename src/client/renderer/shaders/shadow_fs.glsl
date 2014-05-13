@@ -4,17 +4,17 @@
 
 #version 120
 
-#define SHADOW_ATTENUATION 192.0
+#define SHADOW_ATTENUATION 96.0
 
-uniform vec3 LIGHT_POS;
+uniform float INTENSITY;
 
-varying vec3 point;
+varying vec3 points[2];
 
 /*
  * ShadowFragment
  */
 void ShadowFragment(void) {
-	float attenuation = length(point - LIGHT_POS) / SHADOW_ATTENUATION;
+	float attenuation = length(points[1] - points[0]) / SHADOW_ATTENUATION;
 	gl_FragColor.a *= 1.0 - clamp(attenuation, 0.0, 1.0);
 }
 
