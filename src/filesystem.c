@@ -605,13 +605,13 @@ void Fs_Init(_Bool auto_load_archives) {
 		}
 #elif __linux__
 		if ((c = strstr(path, "/bin/quake2world"))) {
-			*c = '\0';
+			*(c + strlen("quake2world")) = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-			strcpy(c, "/lib/"DEFAULT_GAME);
+			strcpy(c + strlen("quake2world"), "/lib/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 
-			strcpy(c, "/share/"DEFAULT_GAME);
+			strcpy(c + strlen("quake2world"), "/share/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 		}
 #elif _WIN32
