@@ -53,7 +53,7 @@ int32_t Net_Connect(const char *host, struct timeval *timeout) {
 			int32_t error = -1;
 			socklen_t len = sizeof(error);
 
-			if (getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
+			if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *) &error, &len) < 0) {
 				Com_Error(ERR_DROP, "%s\n", Net_GetErrorString());
 			}
 

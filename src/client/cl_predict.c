@@ -258,7 +258,7 @@ void Cl_UpdatePrediction(void) {
 
 		if (bs != bsp_size) {
 			Com_Error(ERR_DROP, "Local map version differs from server: "
-					"%lli != %lli\n", bs, bsp_size);
+					"%" PRId64 " != %" PRId64 "\n", bs, bsp_size);
 		}
 	}
 
