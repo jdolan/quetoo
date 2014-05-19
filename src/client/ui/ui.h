@@ -22,11 +22,11 @@
 #ifndef __UI_H__
 #define __UI_H__
 
-#if __APPLE__
+#if defined(__APPLE__)
 #define _MACOSX
-#elif __linux__
+#elif defined(__linux__)
 #define _UNIX
-#elif _WIN32
+#elif defined(_WIN32)
 #define _WINDOWS
 #define TW_STATIC
 #endif

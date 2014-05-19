@@ -25,7 +25,7 @@
 #include "config.h"
 
 // to support the gnuc __attribute__ command
-#if defined __ICC || !defined __GNUC__
+#if defined(__ICC) || !defined(__GNUC__)
 #define __attribute__(x)  /*NOTHING*/
 #endif
 
@@ -38,7 +38,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#if _WIN32
+#if defined(_WIN32)
 #undef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

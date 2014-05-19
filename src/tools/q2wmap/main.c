@@ -151,7 +151,7 @@ static void Warn(const char *msg) {
  */
 static void Init(void) {
 
-#if _WIN32
+#if defined(_WIN32)
 	if (AllocConsole()) {
 		freopen("CONIN$", "r", stdin);
 		freopen("CONOUT$", "w", stdout);
@@ -185,7 +185,7 @@ static void Shutdown(const char *msg) {
 
 	Mem_Shutdown();
 
-#if _WIN32
+#if defined(_WIN32)
 	if (!is_monitor) {
 		puts("\nPress any key to close..\n");
 		getchar();

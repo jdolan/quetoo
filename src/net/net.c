@@ -21,7 +21,7 @@
 
 #include <errno.h>
 
-#if _WIN32
+#if defined(_WIN32)
 #define ioctl ioctlsocket
 #else
 #include <netdb.h>
@@ -37,7 +37,7 @@
 in_addr_t net_lo;
 
 int32_t Net_GetError(void) {
-#if _WIN32
+#if defined(_WIN32)
 	return WSAGetLastError();
 #else
 	return errno;
@@ -213,7 +213,7 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
  * @brief
  */
 void Net_CloseSocket(int32_t sock) {
-#if _WIN32
+#if defined(_WIN32)
 	closesocket(sock);
 #else
 	close(sock);
@@ -225,7 +225,7 @@ void Net_CloseSocket(int32_t sock) {
  */
 void Net_Init(void) {
 
-#if _WIN32
+#if defined(_WIN32)
 	WORD v;
 	WSADATA d;
 
@@ -241,7 +241,7 @@ void Net_Init(void) {
  */
 void Net_Shutdown(void) {
 
-#if _WIN32
+#if defined(_WIN32)
 	WSACleanup();
 #endif
 

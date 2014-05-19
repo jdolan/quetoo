@@ -36,12 +36,12 @@
  * @see http://www.asmail.be/msg0054688232.html
  */
 
-#if _WIN32
+#if defined(_WIN32)
 typedef byte boolean;
 #define HAVE_BOOLEAN
 #endif
 
-#if _WIN32 && defined(ADDRESS_TAG_BIT) && !defined(XMD_H)
+#if defined(_WIN32) && defined(ADDRESS_TAG_BIT) && !defined(XMD_H)
 #define XMD_H
 #define VTK_JPEG_XMD_H
 #endif

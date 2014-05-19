@@ -25,7 +25,7 @@
 #include <signal.h>
 #include <sys/time.h>
 
-#if _WIN32
+#if defined(_WIN32)
 #define RTLD_NOW 0
 #define dlopen(file_name, mode) LoadLibrary(file_name)
 #define dlerror() "Windows.. go figure."
@@ -36,7 +36,7 @@
 #include <dlfcn.h>
 #endif
 
-#if __APPLE__
+#if defined(__APPLE__)
 #include <mach-o/dyld.h>
 #endif
 
@@ -66,20 +66,20 @@ uint32_t Sys_Milliseconds(void) {
 const char *Sys_ExecutablePath(void) {
 	static char path[MAX_OSPATH];
 
-#if __APPLE__
+#if defined(__APPLE__)
 	uint32_t i = sizeof(path);
 
 	if (_NSGetExecutablePath(path, &i) > -1) {
 		return path;
 	}
 
-#elif __linux__
+#elif defined(__linux__)
 
 	if (readlink(va("/proc/%d/exe", getpid()), path, sizeof(path)) > -1) {
 		return path;
 	}
 
-#elif _WIN32
+#elif defined(_WIN32)
 
 	if (GetModuleFileName(0, path, sizeof(path))) {
 		return path;
@@ -105,7 +105,7 @@ const char *Sys_UserDir(void) {
 	static char user_dir[MAX_OSPATH];
 	const char *home = g_get_home_dir();
 
-#if _WIN32
+#if defined(_WIN32)
 	g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quake2World", home);
 #else
 	g_snprintf(user_dir, sizeof(user_dir), "%s/.quake2world", home);
@@ -119,7 +119,7 @@ const char *Sys_UserDir(void) {
 void Sys_OpenLibrary(const char *name, void **handle) {
 	*handle = NULL;
 
-#if _WIN32
+#if defined(_WIN32)
 	char *so_name = va("%s.dll", name);
 #else
 	char *so_name = va("%s.so", name);

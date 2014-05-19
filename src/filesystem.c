@@ -592,7 +592,7 @@ void Fs_Init(_Bool auto_load_archives) {
 
 		Com_Debug("Resolved executable path: %s\n", path);
 
-#if __APPLE__
+#if defined(__APPLE__)
 		if ((c = strstr(path, "Quake2World.app"))) {
 			*(c + strlen("Quake2World.app")) = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
@@ -603,7 +603,7 @@ void Fs_Init(_Bool auto_load_archives) {
 			strcpy(c + strlen("Quake2World.app"), "/Contents/Resources/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 		}
-#elif __linux__
+#elif defined(__linux__)
 		if ((c = strstr(path, "quake2world/bin"))) {
 			*(c + strlen("quake2world")) = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
@@ -614,7 +614,7 @@ void Fs_Init(_Bool auto_load_archives) {
 			strcpy(c + strlen("quake2world"), "/share/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 		}
-#elif _WIN32
+#elif defined(_WIN32)
 		if ((c = strstr(path, "\\bin\\"))) {
 			*c = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));

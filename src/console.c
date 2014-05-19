@@ -418,7 +418,7 @@ _Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len) {
  */
 void Con_Init(void) {
 
-#if _WIN32
+#if defined(_WIN32)
 	if (dedicated->value) {
 		if (AllocConsole()) {
 			freopen("CONIN$", "r", stdin);
@@ -454,7 +454,7 @@ void Con_Shutdown(void) {
 	Curses_Shutdown();
 #endif
 
-#if _WIN32
+#if defined(_WIN32)
 	if (dedicated->value) {
 		FreeConsole();
 	}
