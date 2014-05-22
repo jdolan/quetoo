@@ -56,6 +56,9 @@ test -d "${search_path}" || {
 
 echo "Bundling .dll files for ${exe} in ${dir}.."
 
+# Clean up ${dir} bedore copying .dll files
+rm -f $(find . -type f | egrep -v "cyg|rsy")
+
 #
 # Resolve dependencies recursively, copying them from the search path to dir.
 #
