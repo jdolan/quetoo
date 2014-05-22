@@ -30,17 +30,24 @@ test -x "${objdump}" || {
 
 shift $((OPTIND-1))
 
-exe="${1}"
-test -x "${exe}" || {
-	echo "${exe} is not an executable" >&2
-	exit 3
-}
+exes="${@}"
+for exe in ${exes}; do
+	test -e "${exe}" || {
+		echo "${exe} is not an executable" >&2
+		exit 3
+	}
 
-dir=$(dirname "${exe}")
-test -w "${dir}" || {
-	echo "${dir} is not writable" >&2
-	exit 3
-}
+	dir=$(dirname "${exe}")
+	test -w "${dir}" || {
+		echo "${dir} is not writable" >&2
+		exit 3
+	}
+
+	# Clean up ${dir} bedore copying .dll files
+	pushd ${dir}
+	rm -f $(find . -type f | egrep -v "cygwin|*.exe")
+	popd
+done
 
 tmp=$(mktemp -d /tmp/dllbundler-XXXXXX)
 test -w "${tmp}" || {
@@ -54,12 +61,6 @@ test -d "${search_path}" || {
 	exit 5
 }
 
-echo "Bundling .dll files for ${exe} in ${dir}.."
-
-# Clean up ${dir} bedore copying .dll files
-pushd ${dir}
-rm -f $(find . -type f | egrep -v "cygwin|*.exe")
-popd
 
 #
 # Resolve dependencies recursively, copying them from the search path to dir.
@@ -84,6 +85,10 @@ function bundle_recursively(){
 	done
 }
 
-bundle_recursively "${exe}"
+for exe in ${exes}; do
+    dir=$(dirname "${exe}")
+    echo "Bundling .dll files for ${exe} in ${dir}.."
+	bundle_recursively "${exe}"
+done
 
 rm -rf "${tmp}"
