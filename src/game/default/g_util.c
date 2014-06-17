@@ -498,7 +498,7 @@ g_gameplay_t G_GameplayByName(const char *c) {
 		gameplay = GAME_ARENA;
 	}
 
-	free(lower);
+	g_free(lower);
 	return gameplay;
 }
 
