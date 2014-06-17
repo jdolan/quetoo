@@ -26,8 +26,7 @@ install: pre-install
 	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 
 install-lib: install
-	./dllbundler.sh -h $(HOST) $(BINDIR)/quake2world.exe
-	./dllbundler.sh -h $(HOST) $(BINDIR)/q2wmap.exe
+	./dllbundler.sh -h $(HOST) $(BINDIR)/quake2world.exe $(BINDIR)/q2wmap.exe
 
 install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
