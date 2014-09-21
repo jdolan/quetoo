@@ -444,30 +444,30 @@ _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
 	return r_locals.vis_data_phs[c >> 3] & (1 << (c & 7));
 }
 
-/*
- * @brief Returns the cluster of any opaque contents transitions the view origin is
- * currently spanning. This allows us to bit-wise-OR in the PVS data from
- * another cluster. Returns -1 if no transition is taking place.
- */
-static int16_t R_CrossingContents(void) {
-	const r_bsp_leaf_t *leaf;
-	vec3_t org;
+#define R_CROSSING_CONTENTS_DIST 16.0
 
+/*
+ * @brief Returns the cluster of any opaque contents transitions the view
+ * origin is currently spanning. This allows us to bit-wise-OR in the PVS and
+ * PHS data from another cluster. Returns -1 if no transition is taking place.
+ */
+static int16_t R_CrossingContents(int32_t contents) {
+
+	vec3_t org;
 	VectorCopy(r_view.origin, org);
 
-	org[2] -= 16.0;
-	leaf = R_LeafForPoint(org, NULL);
+	if (contents) {
+		org[2] += R_CROSSING_CONTENTS_DIST;
+	} else {
+		org[2] -= R_CROSSING_CONTENTS_DIST;
+	}
 
-	if (!(leaf->contents & CONTENTS_SOLID) && leaf->cluster != r_locals.cluster)
+	const r_bsp_leaf_t *leaf = R_LeafForPoint(org, NULL);
+
+	if (!(leaf->contents & CONTENTS_SOLID) && leaf->contents != contents)
 		return leaf->cluster;
 
-	org[2] += 32.0;
-	leaf = R_LeafForPoint(org, NULL);
-
-	if (!(leaf->contents & CONTENTS_SOLID) && leaf->cluster != r_locals.cluster)
-		return leaf->cluster;
-
-	return (int16_t) -1;
+	return -1;
 }
 
 /*
@@ -477,19 +477,30 @@ static int16_t R_CrossingContents(void) {
  * dot-product test in order to be marked as visible for the current frame.
  */
 void R_UpdateVis(void) {
-	int16_t cluster;
-	int32_t i;
+	static int16_t old_clusters[2];
+	int16_t clusters[2];
 
 	if (r_lock_vis->value)
 		return;
 
-	// resolve current cluster
-	r_locals.cluster = R_LeafForPoint(r_view.origin, NULL)->cluster;
+	clusters[0] = clusters[1] = -1;
 
-	if (!r_no_vis->value && (r_locals.old_cluster == r_locals.cluster))
-		return;
+	// resolve current leaf and derive the PVS clusters
+	if (!r_no_vis->value && r_model_state.world->bsp->num_clusters) {
 
-	r_locals.old_cluster = r_locals.cluster;
+		const r_bsp_leaf_t *leaf = R_LeafForPoint(r_view.origin, NULL);
+		if (leaf->cluster != -1) {
+
+			clusters[0] = leaf->cluster;
+			clusters[1] = R_CrossingContents(leaf->contents);
+
+			// if we have the same, valid PVS as the last frame, we're done
+			if (memcmp(clusters, old_clusters, sizeof(clusters)) == 0)
+				return;
+		}
+	}
+
+	memcpy(old_clusters, clusters, sizeof(old_clusters));
 
 	r_locals.vis_frame++;
 
@@ -497,15 +508,15 @@ void R_UpdateVis(void) {
 		r_locals.vis_frame = 0;
 
 	// if we have no vis, mark everything and return
-	if (r_no_vis->value || !r_model_state.world->bsp->num_clusters || r_locals.cluster == -1) {
+	if (clusters[0] == -1) {
 
 		memset(r_locals.vis_data_pvs, 0xff, sizeof(r_locals.vis_data_pvs));
 		memset(r_locals.vis_data_phs, 0xff, sizeof(r_locals.vis_data_phs));
 
-		for (i = 0; i < r_model_state.world->bsp->num_leafs; i++)
+		for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++)
 			r_model_state.world->bsp->leafs[i].vis_frame = r_locals.vis_frame;
 
-		for (i = 0; i < r_model_state.world->bsp->num_nodes; i++)
+		for (uint16_t i = 0; i < r_model_state.world->bsp->num_nodes; i++)
 			r_model_state.world->bsp->nodes[i].vis_frame = r_locals.vis_frame;
 
 		r_view.num_bsp_clusters = r_model_state.world->bsp->num_clusters;
@@ -514,21 +525,25 @@ void R_UpdateVis(void) {
 		return;
 	}
 
-	// resolve pvs for the current cluster
-	const byte *pvs = Cm_ClusterPVS(r_locals.cluster);
+	// resolve PVS for the current cluster
+	const byte *pvs = Cm_ClusterPVS(clusters[0]);
 	memcpy(r_locals.vis_data_pvs, pvs, sizeof(r_locals.vis_data_pvs));
 
-	// check above or below the origin in case we are crossing opaque contents
-	if ((cluster = R_CrossingContents()) != -1) {
-		pvs = Cm_ClusterPVS(cluster);
+	// resolve PHS for the current cluster
+	const byte *phs = Cm_ClusterPHS(clusters[0]);
+	memcpy(r_locals.vis_data_phs, phs, sizeof(r_locals.vis_data_phs));
 
-		for (i = 0; i < MAX_BSP_LEAFS >> 3; i++) {
+	// if we crossed contents, merge in the other cluster's PVS and PHS data
+	if (clusters[1] != -1) {
+
+		pvs = Cm_ClusterPVS(clusters[1]);
+		phs = Cm_ClusterPHS(clusters[1]);
+
+		for (uint16_t i = 0; i < MAX_BSP_LEAFS >> 3; i++) {
 			r_locals.vis_data_pvs[i] |= pvs[i];
+			r_locals.vis_data_phs[i] |= phs[i];
 		}
 	}
-
-	const byte *phs = Cm_ClusterPHS(r_locals.cluster);
-	memcpy(r_locals.vis_data_phs, phs, sizeof(r_locals.vis_data_phs));
 
 	// recurse up the BSP from the visible leafs, marking a path via the nodes
 	const r_bsp_leaf_t *leaf = r_model_state.world->bsp->leafs;
@@ -536,7 +551,7 @@ void R_UpdateVis(void) {
 	r_view.num_bsp_leafs = 0;
 	r_view.num_bsp_clusters = 0;
 
-	for (i = 0; i < r_model_state.world->bsp->num_leafs; i++, leaf++) {
+	for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, leaf++) {
 
 		if (!R_LeafVisible(leaf))
 			continue;
