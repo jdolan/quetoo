@@ -30,6 +30,7 @@
 #define PM_ACCEL_AIR			1.66
 #define PM_ACCEL_GROUND			10.0
 #define PM_ACCEL_GROUND_SLICK	4.375
+#define PM_ACCEL_LADDER			16.0
 #define PM_ACCEL_SPECTATOR		3.0
 #define PM_ACCEL_WATER			4.0
 
@@ -49,7 +50,7 @@
 #define PM_FRICT_AIR			0.45
 #define PM_FRICT_GROUND			6.0
 #define PM_FRICT_GROUND_SLICK	2.0
-#define PM_FRICT_LADDER			10.0
+#define PM_FRICT_LADDER			5.0
 #define PM_FRICT_SPECTATOR		2.5
 #define PM_FRICT_WATER			1.0
 

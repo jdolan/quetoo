@@ -544,7 +544,7 @@ static void Pm_CategorizePosition(void) {
 					}
 				}
 			} else { // soft landings with upward momentum grant trick jumps
-				if (trick_jump && !(pml.ground_contents & CONTENTS_LADDER)) {
+				if (trick_jump) {
 					pm->s.flags |= PMF_TIME_TRICK_JUMP;
 					pm->s.time = 32;
 				}
@@ -740,6 +740,9 @@ static _Bool Pm_CheckLadder(void) {
 	if (pm->s.flags & PMF_TIME_MASK)
 		return false;
 
+	if (pm->cmd.forward < 0)
+		return false;
+
 	// check for ladder
 	VectorCopy(pml.forward, forward);
 	forward[2] = 0.0;
@@ -747,12 +750,15 @@ static _Bool Pm_CheckLadder(void) {
 	VectorNormalize(forward);
 
 	VectorMA(pml.origin, 1.0, forward, pos);
-	pos[2] += pml.view_offset[2];
 
 	const cm_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
 	if ((trace.fraction < 1.0) && (trace.contents & CONTENTS_LADDER)) {
 		pm->s.flags |= PMF_ON_LADDER;
+
+		pm->ground_entity = NULL;
+		pm->s.flags &= ~PMF_ON_GROUND;
+
 		return true;
 	}
 
@@ -820,17 +826,21 @@ static _Bool Pm_CheckWaterJump(void) {
  */
 static void Pm_LadderMove(void) {
 	vec3_t vel, dir;
-	int32_t i;
 
 	Pm_Debug("%s\n", vtos(pml.origin));
 
 	Pm_Friction();
 
 	// user intentions in X/Y
-	for (i = 0; i < 3; i++) {
+	for (int i = 0; i < 2; i++) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
 	}
 
+	const vec_t s = PM_SPEED_LADDER * 0.125;
+
+	// limit horizontal speed when on a ladder
+	vel[0] = Clamp(vel[0], -s, s);
+	vel[1] = Clamp(vel[1], -s, s);
 	vel[2] = 0.0;
 
 	// handle Z intentions differently
@@ -847,21 +857,6 @@ static void Pm_LadderMove(void) {
 		} else {
 			vel[2] = 0.0;
 		}
-
-		const vec_t s = PM_SPEED_LADDER * 0.125;
-
-// limit horizontal speed when on a ladder
-		if (vel[0] < -s) {
-			vel[0] = -s;
-		} else if (vel[0] > s) {
-			vel[0] = s;
-		}
-
-		if (vel[1] < -s) {
-			vel[1] = -s;
-		} else if (vel[1] > s) {
-			vel[1] = s;
-		}
 	}
 
 	if (pm->cmd.up > 0) { // avoid jumps when exiting ladders
@@ -872,9 +867,10 @@ static void Pm_LadderMove(void) {
 
 	VectorCopy(vel, dir);
 	vec_t speed = VectorNormalize(dir);
+
 	speed = Clamp(speed, 0.0, PM_SPEED_LADDER);
 
-	Pm_Accelerate(dir, speed, PM_ACCEL_GROUND);
+	Pm_Accelerate(dir, speed, PM_ACCEL_LADDER);
 
 	Pm_StepSlideMove();
 }
@@ -918,7 +914,6 @@ static void Pm_WaterJumpMove(void) {
 static void Pm_WaterMove(void) {
 	vec3_t vel, dir;
 	vec_t speed;
-	int32_t i;
 
 	if (Pm_CheckWaterJump()) {
 		Pm_WaterJumpMove();
@@ -945,7 +940,7 @@ static void Pm_WaterMove(void) {
 	}
 
 	// user intentions on X/Y
-	for (i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
 	}
 
@@ -970,8 +965,7 @@ static void Pm_WaterMove(void) {
 	VectorCopy(vel, dir);
 	speed = VectorNormalize(dir);
 
-	if (speed > PM_SPEED_WATER)
-		speed = PM_SPEED_WATER;
+	speed = Clamp(speed, 0, PM_SPEED_WATER);
 
 	Pm_Accelerate(dir, speed, PM_ACCEL_WATER);
 
@@ -1303,7 +1297,7 @@ void Pm_Move(pm_move_t *pm_move) {
 	Pm_CheckLadder();
 
 	if (pm->s.flags & PMF_TIME_TELEPORT) {
-// pause in place briefly
+		// pause in place briefly
 	} else if (pm->s.flags & PMF_TIME_WATER_JUMP) {
 		Pm_WaterJumpMove();
 	} else if (pm->s.flags & PMF_ON_LADDER) {
