@@ -783,14 +783,13 @@ static _Bool Pm_CheckWaterJump(void) {
 	if (pm->cmd.up < 1 && pm->cmd.forward < 1)
 		return false;
 
-	VectorAdd(pml.origin, pml.view_offset, pos);
-	VectorMA(pos, 16.0, pml.forward, pos);
+	VectorMA(pml.origin, 16.0, pml.forward, pos);
 
 	cm_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
 	if ((trace.fraction < 1.0) && (trace.contents & MASK_SOLID)) {
 
-		pos[2] += PM_STEP_HEIGHT + pm->maxs[2] + pm->mins[2];
+		pos[2] += PM_STEP_HEIGHT + pm->maxs[2] - pm->mins[2];
 
 		trace = pm->Trace(pos, pos, pm->mins, pm->maxs);
 

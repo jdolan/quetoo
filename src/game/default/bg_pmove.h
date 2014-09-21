@@ -83,7 +83,7 @@
 #define PM_SPEED_UP				0.1
 #define PM_SPEED_TRICK_JUMP		45.0
 #define PM_SPEED_WATER			100.0
-#define PM_SPEED_WATER_JUMP		450.0
+#define PM_SPEED_WATER_JUMP		420.0
 #define PM_SPEED_WATER_SINK		-30.0
 
 /*
