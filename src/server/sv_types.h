@@ -39,7 +39,7 @@
  * exceeds this (by having a massive bounding box, for example), a full BSP
  * recursion is necessary to determine its visibility (bad).
  */
-#define MAX_ENT_CLUSTERS 16
+#define MAX_ENT_CLUSTERS 32
 
 /*
  * @brief The server-specific view of an entity. An sv_entity_t corresponds to
