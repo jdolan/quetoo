@@ -1186,8 +1186,6 @@ void G_func_door(g_entity_t *ent) {
 	ent->solid = SOLID_BSP;
 	gi.SetModel(ent, ent->model);
 
-	gi.LinkEntity(ent);
-
 	ent->locals.Blocked = G_func_door_Blocked;
 	ent->locals.Use = G_func_door_Use;
 
@@ -1224,6 +1222,8 @@ void G_func_door(g_entity_t *ent) {
 		VectorCopy(ent->locals.pos1, ent->locals.pos2);
 		VectorCopy(ent->s.origin, ent->locals.pos1);
 	}
+
+	gi.LinkEntity(ent);
 
 	ent->locals.move_info.state = MOVE_STATE_BOTTOM;
 
