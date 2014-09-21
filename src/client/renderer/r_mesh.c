@@ -244,6 +244,8 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 			R_UseMaterial(NULL, NULL);
 		}
 	} else {
+		R_Color(NULL);
+
 		R_UseMaterial(NULL, NULL);
 	}
 

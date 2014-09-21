@@ -82,7 +82,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	vec3_t view, verts[4];
 	vec3_t right, up, up_right, down_right;
 
-	if (!r_flares->value)
+	if (!r_flares->value || r_draw_wireframe->value)
 		return;
 
 	if (!surfs->count)

@@ -361,12 +361,12 @@ static void R_DrawNullEntities(void) {
  */
 void R_DrawEntities(void) {
 
+	R_DrawBspEntities();
+
 	if (r_draw_wireframe->value) {
 		R_EnableTexture(&texunit_diffuse, false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
-
-	R_DrawBspEntities();
 
 	R_EnableLighting(r_state.default_program, true);
 
