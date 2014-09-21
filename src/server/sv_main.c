@@ -78,7 +78,7 @@ void Sv_DropClient(sv_client_t *cl) {
 /*
  * @brief Returns a string fit for heartbeats and status replies.
  */
-static const char *Sv_StatusString(void) {
+const char *Sv_StatusString(void) {
 	static char status[MAX_MSG_SIZE - 16];
 	int32_t i;
 
@@ -622,73 +622,6 @@ static void Sv_RunGameFrame(void) {
 	}
 }
 
-/*
- * @brief
- */
-static void Sv_InitMasters(void) {
-
-	memset(&svs.masters, 0, sizeof(svs.masters));
-
-	// set default master server
-	Net_StringToNetaddr(IP_MASTER, &svs.masters[0]);
-	svs.masters[0].port = htons(PORT_MASTER);
-}
-
-#define HEARTBEAT_SECONDS 300
-
-/*
- * @brief Sends heartbeat messages to master servers every 300s.
- */
-static void Sv_HeartbeatMasters(void) {
-	const char *string;
-	int32_t i;
-
-	if (!dedicated->value)
-		return; // only dedicated servers report to masters
-
-	if (!sv_public->value)
-		return; // a private dedicated game
-
-	if (!svs.initialized) // we're not up yet
-		return;
-
-	if (svs.next_heartbeat > svs.real_time)
-		return; // not time to send yet
-
-	svs.next_heartbeat = svs.real_time + HEARTBEAT_SECONDS * 1000;
-
-	// send the same string that we would give for a status command
-	string = Sv_StatusString();
-
-	// send to each master server
-	for (i = 0; i < MAX_MASTERS; i++) {
-		if (svs.masters[i].port) {
-			Com_Print("Sending heartbeat to %s\n", Net_NetaddrToString(&svs.masters[i]));
-			Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "heartbeat\n%s", string);
-		}
-	}
-}
-
-/*
- * @brief Informs master servers that this server is halting.
- */
-static void Sv_ShutdownMasters(void) {
-	int32_t i;
-
-	if (!dedicated->value)
-		return; // only dedicated servers send heartbeats
-
-	if (!sv_public->value)
-		return; // a private dedicated game
-
-	// send to group master
-	for (i = 0; i < MAX_MASTERS; i++) {
-		if (svs.masters[i].port) {
-			Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(&svs.masters[i]));
-			Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "shutdown");
-		}
-	}
-}
 
 /*
  * @brief
@@ -880,10 +813,6 @@ void Sv_Init(void) {
 	Sv_InitAdmin();
 
 	Sv_InitMasters();
-
-	net_message.size = 0;
-
-	Net_Config(NS_UDP_SERVER, true);
 }
 
 /*
@@ -892,12 +821,6 @@ void Sv_Init(void) {
 void Sv_Shutdown(const char *msg) {
 
 	Sv_ShutdownServer(msg);
-
-	Sv_ShutdownMasters();
-
-	Net_Config(NS_UDP_SERVER, false);
-
-	net_message.size = 0;
 
 	memset(&svs, 0, sizeof(svs));
 

@@ -35,6 +35,7 @@
 #include "sv_game.h"
 #include "sv_init.h"
 #include "sv_main.h"
+#include "sv_master.h"
 #include "sv_send.h"
 #include "sv_types.h"
 #include "sv_world.h"

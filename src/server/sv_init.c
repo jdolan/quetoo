@@ -339,6 +339,8 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
 	Com_Print("Server initialization...\n");
 
+	Net_Config(NS_UDP_SERVER, true);
+
 	Mem_InitBuffer(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
 
 	// initialize the clients, loading the game module if we need it
@@ -369,7 +371,11 @@ void Sv_ShutdownServer(const char *msg) {
 
 	Sv_ShutdownClients();
 
+	Sv_ShutdownMasters();
+
 	Sv_ClearState();
+
+	Net_Config(NS_UDP_SERVER, false);
 
 	Com_Print("Server down\n");
 

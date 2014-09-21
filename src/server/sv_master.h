@@ -19,41 +19,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __SV_MAIN_H__
-#define __SV_MAIN_H__
+#ifndef __SV_MASTER_H__
+#define __SV_MASTER_H__
 
 #include "sv_types.h"
 
-void Sv_Init(void);
-void Sv_Shutdown(const char *msg);
-void Sv_Frame(const uint32_t msec);
-
 #ifdef __SV_LOCAL_H__
-// cvars
-extern cvar_t *sv_download_url;
-extern cvar_t *sv_enforce_time;
-extern cvar_t *sv_hostname;
-extern cvar_t *sv_hz;
-extern cvar_t *sv_max_clients;
-extern cvar_t *sv_no_areas;
-extern cvar_t *sv_public;
-extern cvar_t *sv_rcon_password;
-extern cvar_t *sv_timeout;
-extern cvar_t *sv_udp_download;
 
-// per-level and static server structures
-extern sv_server_t sv;
-extern sv_static_t svs;
-
-// current client / player edict
-extern sv_client_t *sv_client;
-extern g_entity_t *sv_player;
-
-const char *Sv_StatusString(void);
-const char *Sv_NetaddrToString(const sv_client_t *cl);
-void Sv_KickClient(sv_client_t *cl, const char *msg);
-void Sv_DropClient(sv_client_t *cl);
-void Sv_UserInfoChanged(sv_client_t *cl);
+void Sv_HeartbeatMasters(void);
+void Sv_InitMasters(void);
+void Sv_ShutdownMasters(void);
 
 #endif /* __SV_LOCAL_H__ */
 
