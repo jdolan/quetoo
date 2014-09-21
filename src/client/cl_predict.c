@@ -229,15 +229,18 @@ void Cl_CheckPredictionError(void) {
 	UnpackVector(d, delta); // convert back to floating point
 
 	const vec_t error = VectorLength(delta);
-
-	if (error > 256.0) { // assume a teleport or something
-		VectorClear(cl.predicted_state.error);
-	} else { // save the prediction error for interpolation
-		VectorCopy(delta, cl.predicted_state.error);
+	if (error) {
 
 		if (error > 1.0) {
 			Com_Debug("%s\n", vtos(delta));
+
+			if (error > 256.0) { // do not interpolate
+				VectorClear(delta);
+			}
 		}
+
+		VectorCopy(delta, cl.predicted_state.error);
+		VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_state.origins[frame]);
 	}
 }
 

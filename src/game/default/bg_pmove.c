@@ -832,7 +832,7 @@ static void Pm_LadderMove(void) {
 	Pm_Friction();
 
 	// user intentions in X/Y
-	for (int i = 0; i < 2; i++) {
+	for (int32_t i = 0; i < 2; i++) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
 	}
 
@@ -940,7 +940,7 @@ static void Pm_WaterMove(void) {
 	}
 
 	// user intentions on X/Y
-	for (int i = 0; i < 3; i++) {
+	for (int32_t i = 0; i < 3; i++) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
 	}
 
@@ -1213,10 +1213,9 @@ static void Pm_Init(void) {
 	pm->step = 0.0;
 
 	// reset flags that we test each move
-	pm->s.flags &= ~(PMF_DUCKED | PMF_JUMPED);
-	pm->s.flags &= ~(PMF_ON_GROUND | PMF_ON_STAIRS | PMF_ON_LADDER);
-	pm->s.flags &= ~(PMF_UNDER_WATER);
 	pm->s.flags &= ~(PMF_NO_PREDICTION);
+	pm->s.flags &= ~(PMF_ON_GROUND | PMF_ON_STAIRS | PMF_ON_LADDER);
+	pm->s.flags &= ~(PMF_DUCKED | PMF_JUMPED | PMF_UNDER_WATER);
 
 	if (pm->cmd.up < 1) { // jump key released
 		pm->s.flags &= ~PMF_JUMP_HELD;

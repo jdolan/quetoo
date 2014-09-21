@@ -24,7 +24,7 @@
 /*
  * @return True if the delta is valid and interpolation should be used.
  */
-static _Bool Cl_ValidDeltaPlayerState(player_state_t *from, player_state_t *to) {
+static _Bool Cl_ValidDeltaPlayerState(const player_state_t *from, const player_state_t *to) {
 	vec3_t new_origin, old_origin, delta;
 
 	UnpackVector(from->pm_state.origin, old_origin);
@@ -42,7 +42,7 @@ static _Bool Cl_ValidDeltaPlayerState(player_state_t *from, player_state_t *to) 
  * @brief Parse the player_state_t for the current frame from the server, using delta
  * compression for all fields where possible.
  */
-static void Cl_ParsePlayerState(cl_frame_t *delta_frame, cl_frame_t *frame) {
+static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	static player_state_t null_state;
 
 	if (delta_frame) {
@@ -50,7 +50,6 @@ static void Cl_ParsePlayerState(cl_frame_t *delta_frame, cl_frame_t *frame) {
 			Net_ReadDeltaPlayerState(&net_message, &delta_frame->ps, &frame->ps);
 		else {
 			Net_ReadDeltaPlayerState(&net_message, &null_state, &frame->ps);
-			delta_frame->ps = frame->ps;
 		}
 	} else
 		Net_ReadDeltaPlayerState(&net_message, &null_state, &frame->ps);
@@ -62,7 +61,7 @@ static void Cl_ParsePlayerState(cl_frame_t *delta_frame, cl_frame_t *frame) {
 /*
  * @return True if the delta is valid and interpolation should be used.
  */
-static _Bool Cl_ValidDeltaEntity(entity_state_t *from, entity_state_t *to) {
+static _Bool Cl_ValidDeltaEntity(const entity_state_t *from, const entity_state_t *to) {
 	vec3_t delta;
 
 	if (from->model1 != to->model1)

@@ -109,10 +109,9 @@ static void Cl_UpdateLerp(const cl_frame_t *from) {
 static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to) {
 
 	if (Cl_UsePrediction()) {
-		int32_t i;
 
 		// use client sided prediction
-		for (i = 0; i < 3; i++) {
+		for (int32_t i = 0; i < 3; i++) {
 			r_view.origin[i] = cl.predicted_state.origin[i] + cl.predicted_state.view_offset[i];
 			r_view.origin[i] -= (1.0 - cl.lerp) * cl.predicted_state.error[i];
 		}
