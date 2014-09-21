@@ -184,6 +184,7 @@ static void Init(void) {
 
 	// execute any +commands specified on the command line
 	Cbuf_InsertFromDefer();
+	Cbuf_Execute();
 
 	// dedicated server, nothing specified, use Edge
 	if (dedicated->value && !Com_WasInit(Q2W_SERVER)) {
