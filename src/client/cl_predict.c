@@ -230,7 +230,6 @@ void Cl_CheckPredictionError(void) {
 
 	const vec_t error = VectorLength(delta);
 	if (error) {
-
 		if (error > 1.0) {
 			Com_Debug("%s\n", vtos(delta));
 
@@ -238,10 +237,10 @@ void Cl_CheckPredictionError(void) {
 				VectorClear(delta);
 			}
 		}
-
-		VectorCopy(delta, cl.predicted_state.error);
-		VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_state.origins[frame]);
 	}
+
+	VectorCopy(delta, cl.predicted_state.error);
+	VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_state.origins[frame]);
 }
 
 /*
