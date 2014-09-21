@@ -3,10 +3,9 @@ AC_PREREQ([2.68])
 AC_INIT([quake2world],[0.1.0],[jay@jaydolan.com])
 AC_USE_SYSTEM_EXTENSIONS
 
-AC_CONFIG_AUX_DIR(.)
+AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR(m4)
 AC_CONFIG_SRCDIR(src/shared.c)
-AC_CONFIG_HEADERS(config.h)
 
 AC_CANONICAL_TARGET
 AC_DEFINE_UNQUOTED(BUILD_HOST,
@@ -17,18 +16,16 @@ AC_DEFINE_UNQUOTED(BUILD_HOST,
 AC_SUBST(PROGRAM)
 AC_SUBST(VERSION)
 
-AM_INIT_AUTOMAKE([silent-rules subdir-objects foreign dist-bzip2 dist-zip])
-
-AM_MAINTAINER_MODE
+AM_INIT_AUTOMAKE([subdir-objects foreign])
 AM_SILENT_RULES([yes])
 
 dnl ---------------
 dnl Check for tools
 dnl ---------------
 
+AC_PROG_CC_STDC
 AC_PROG_CXX
-AC_PROG_CC
-LT_INIT
+AC_PROG_LIBTOOL
 
 dnl ---------------
 dnl Check host type
@@ -103,7 +100,7 @@ AC_SUBST(CPPFLAGS)
 CXXFLAGS="-pipe $CXXFLAGS $HOST_CXXFLAGS"
 AC_SUBST(CXXFLAGS)
 
-CFLAGS="-std=c99 -pipe $CFLAGS $HOST_CFLAGS"
+CFLAGS="-pipe $CFLAGS $HOST_CFLAGS"
 AC_SUBST(CFLAGS)
 
 SO_CFLAGS="$SO_CFLAGS $HOST_SO_CFLAGS"
