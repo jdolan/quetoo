@@ -766,7 +766,7 @@ static _Bool Pm_CheckLadder(void) {
  * @return True if a water jump has occurred, false otherwise.
  */
 static _Bool Pm_CheckWaterJump(void) {
-	vec3_t pos;
+	vec3_t pos, pos2;
 
 	if (pm->s.flags & PMF_TIME_WATER_JUMP)
 		return false;
@@ -778,20 +778,31 @@ static _Bool Pm_CheckWaterJump(void) {
 		return false;
 
 	VectorAdd(pml.origin, pml.view_offset, pos);
-	VectorMA(pos, 24.0, pml.forward, pos);
+	VectorMA(pos, 16.0, pml.forward, pos);
 
 	cm_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
 	if ((trace.fraction < 1.0) && (trace.contents & MASK_SOLID)) {
 
-		pos[2] += PM_STEP_HEIGHT + pm->maxs[2] - pm->mins[2];
+		pos[2] += PM_STEP_HEIGHT + pm->maxs[2] + pm->mins[2];
 
 		trace = pm->Trace(pos, pos, pm->mins, pm->maxs);
 
-		if (trace.start_solid)
+		if (trace.start_solid) {
+			Pm_Debug("Can't exit water: blocked\n");
 			return false;
+		}
 
-// jump out of water
+		VectorSet(pos2, pos[0], pos[1], pml.origin[2]);
+
+		trace = pm->Trace(pos, pos2, pm->mins, pm->maxs);
+
+		if (!(trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL)) {
+			Pm_Debug("Can't exit water: not a step\n");
+			return false;
+		}
+
+		// jump out of water
 		pml.velocity[2] = PM_SPEED_WATER_JUMP;
 
 		pm->s.flags |= PMF_TIME_WATER_JUMP | PMF_JUMP_HELD;
