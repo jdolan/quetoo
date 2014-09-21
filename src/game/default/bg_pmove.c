@@ -368,17 +368,19 @@ static void Pm_Friction(void) {
 		if (pm->s.flags & PMF_ON_LADDER) {
 			friction = PM_FRICT_LADDER;
 		} else {
-			if (pm->s.flags & PMF_ON_GROUND) {
-				if (pml.ground_surface && (pml.ground_surface->flags & SURF_SLICK)) {
-					friction = PM_FRICT_GROUND_SLICK;
-				} else {
-					friction = PM_FRICT_GROUND;
-				}
+			if (pm->water_level > 1) {
+				friction = PM_FRICT_WATER;
 			} else {
-				friction = PM_FRICT_AIR;
+				if (pm->s.flags & PMF_ON_GROUND) {
+					if (pml.ground_surface && (pml.ground_surface->flags & SURF_SLICK)) {
+						friction = PM_FRICT_GROUND_SLICK;
+					} else {
+						friction = PM_FRICT_GROUND;
+					}
+				} else {
+					friction = PM_FRICT_AIR;
+				}
 			}
-
-			friction += PM_FRICT_WATER * pm->water_level;
 		}
 	}
 
@@ -677,6 +679,11 @@ static _Bool Pm_CheckJump(void) {
 	// finally, do the jump
 	vec_t jump = PM_SPEED_JUMP;
 
+	// factoring in water level
+	if (pm->water_level > 1) {
+		jump *= PM_SPEED_JUMP_MOD_WATER;
+	}
+
 	// adding the double jump if eligible
 	if (pm->s.flags & PMF_TIME_TRICK_JUMP) {
 		jump += PM_SPEED_TRICK_JUMP;
@@ -687,13 +694,6 @@ static _Bool Pm_CheckJump(void) {
 		Pm_Debug("Trick jump: %d\n", pm->cmd.up);
 	} else {
 		Pm_Debug("Jump: %d\n", pm->cmd.up);
-	}
-
-	if (pm->water_level > 1) {
-		jump *= 0.66;
-		if (pm->water_level > 2) {
-			jump *= 0.66;
-		}
 	}
 
 	if (pml.velocity[2] < 0.0) {
@@ -921,13 +921,11 @@ static void Pm_WaterMove(void) {
 
 	// Pm_Debug("%s\n", vtos(pml.origin));
 
-	Pm_Friction();
-
-	// slow down if we've hit the water at a high velocity
+	// apply friction, slowing rapidly when first entering the water
 	VectorCopy(pml.velocity, vel);
 	speed = VectorLength(vel);
 
-	if (speed > PM_SPEED_WATER) { // use additional friction rather than a hard clamp
+	for (int32_t i = speed / PM_SPEED_WATER; i >= 0; i--) {
 		Pm_Friction();
 	}
 
@@ -938,12 +936,12 @@ static void Pm_WaterMove(void) {
 		}
 	}
 
-	// user intentions on X/Y
+	// user intentions on X/Y/Z
 	for (int32_t i = 0; i < 3; i++) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
 	}
 
-	// handle Z independently
+	// add explicit Z
 	vel[2] += pm->cmd.up;
 
 	// disable water skiing
@@ -1016,7 +1014,7 @@ static void Pm_WalkMove(void) {
 	int32_t i;
 
 	if (Pm_CheckJump() || Pm_CheckPush()) {
-// jumped or pushed away
+		// jumped or pushed away
 		if (pm->water_level > 1) {
 			Pm_WaterMove();
 		} else {
@@ -1050,13 +1048,18 @@ static void Pm_WalkMove(void) {
 	speed = VectorNormalize(dir);
 
 	// clamp to max speed
-	max_speed = (pm->s.flags & PMF_DUCKED) ? PM_SPEED_DUCKED : PM_SPEED_RUN;
+	if (pm->water_level > 1) {
+		max_speed = PM_SPEED_WATER;
+	} else if (pm->s.flags & PMF_DUCKED) {
+		max_speed = PM_SPEED_DUCKED;
+	} else {
+		max_speed = PM_SPEED_RUN;
+	}
 
-	// accounting for water level
-	max_speed = (pm->water_level > 1) ? max_speed / (pm->water_level * 0.66) : max_speed;
-
-	// and accounting for speed modulus
-	max_speed = (pm->cmd.buttons & BUTTON_WALK) ? max_speed * 0.66 : max_speed;
+	// accounting for walk modulus
+	if (pm->cmd.buttons & BUTTON_WALK) {
+		max_speed = max_speed * PM_SPEED_MOD_WALK;
+	}
 
 	// clamp the speed to max speed
 	speed = Clamp(speed, 0.0, max_speed);

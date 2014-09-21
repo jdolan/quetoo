@@ -32,7 +32,7 @@
 #define PM_ACCEL_GROUND_SLICK	4.375
 #define PM_ACCEL_LADDER			16.0
 #define PM_ACCEL_SPECTATOR		3.0
-#define PM_ACCEL_WATER			4.0
+#define PM_ACCEL_WATER			2.8
 
 /*
  * @brief Bounce constant when clipping against solids.
@@ -52,12 +52,12 @@
 #define PM_FRICT_GROUND_SLICK	2.0
 #define PM_FRICT_LADDER			5.0
 #define PM_FRICT_SPECTATOR		2.5
-#define PM_FRICT_WATER			1.0
+#define PM_FRICT_WATER			2.0
 
 /*
  * @brief Water gravity constant.
  */
-#define PM_GRAVITY_WATER		0.55
+#define PM_GRAVITY_WATER		0.33
 
 /*
  * @brief Distances traced when seeking ground.
@@ -84,7 +84,17 @@
 #define PM_SPEED_TRICK_JUMP		45.0
 #define PM_SPEED_WATER			100.0
 #define PM_SPEED_WATER_JUMP		420.0
-#define PM_SPEED_WATER_SINK		-30.0
+#define PM_SPEED_WATER_SINK		-16.0
+
+/*
+ * @brief The walk modifier slows all user-controlled speeds.
+ */
+#define PM_SPEED_MOD_WALK		0.66
+
+/*
+ * @brief Water reduces jumping ability.
+ */
+#define PM_SPEED_JUMP_MOD_WATER	0.66
 
 /*
  * @brief The vertical distance afforded in step climbing.
