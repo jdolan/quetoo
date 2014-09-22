@@ -157,15 +157,13 @@ static byte *Sv_ClientPVS(const vec3_t org) {
 		Com_Error(ERR_DROP, "Bad leaf count @ %s\n", vtos(org));
 	}
 
-	const size_t longs = (Cm_NumClusters() + 31) >> 5;
-
 	// convert leafs to clusters
 	for (i = 0; i < len; i++) {
 		clusters[i] = Cm_LeafCluster(leafs[i]);
 	}
 
 	// take the first cluster's visibility
-	memcpy(pvs, Cm_ClusterPVS(clusters[0]), longs << 2);
+	memcpy(pvs, Cm_ClusterPVS(clusters[0]), sizeof(pvs));
 
 	// and combine the visibility for all the other clusters
 	for (i = 1; i < len; i++) {
@@ -180,7 +178,7 @@ static byte *Sv_ClientPVS(const vec3_t org) {
 
 		const byte *vis = Cm_ClusterPVS(clusters[i]);
 
-		for (j = 0; j < longs; j++) {
+		for (j = 0; j < sizeof(pvs) / sizeof(uint32_t); j++) {
 			((uint32_t *) pvs)[j] |= ((uint32_t *) vis)[j];
 		}
 	}
@@ -204,6 +202,9 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	sv_frame_t *frame = &client->frames[sv.frame_num & PACKET_MASK];
 	frame->sent_time = svs.real_time; // timestamp for ping calculation
 
+	// grab the current player_state_t
+	frame->ps = cent->client->ps;
+
 	// find the client's PVS
 	const pm_state_t *pm = &cent->client->ps.pm_state;
 	UnpackVector(pm->origin, org);
@@ -216,9 +217,6 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
 	// calculate the visible areas
 	frame->area_bytes = Cm_WriteAreaBits(area, frame->area_bits);
-
-	// grab the current player_state_t
-	frame->ps = cent->client->ps;
 
 	// resolve the visibility data
 	const byte *pvs = Sv_ClientPVS(org);

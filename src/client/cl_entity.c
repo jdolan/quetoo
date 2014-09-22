@@ -236,7 +236,6 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
  * @brief
  */
 void Cl_ParseFrame(void) {
-	cl_frame_t *delta_frame;
 
 	cl.frame.frame_num = Net_ReadLong(&net_message);
 
@@ -248,18 +247,18 @@ void Cl_ParseFrame(void) {
 		Com_Print("   frame:%i  delta:%i\n", cl.frame.frame_num, cl.frame.delta_frame_num);
 
 	if (cl.frame.delta_frame_num <= 0) { // uncompressed frame
-		delta_frame = NULL;
+		cl.delta_frame = NULL;
 		cl.frame.valid = true;
 	} else { // delta compressed frame
-		delta_frame = &cl.frames[cl.frame.delta_frame_num & PACKET_MASK];
+		cl.delta_frame = &cl.frames[cl.frame.delta_frame_num & PACKET_MASK];
 
-		if (!delta_frame->valid)
+		if (!cl.delta_frame->valid)
 			Com_Error(ERR_DROP, "Delta from invalid frame\n");
 
-		if (delta_frame->frame_num != cl.frame.delta_frame_num)
+		if (cl.delta_frame->frame_num != cl.frame.delta_frame_num)
 			Com_Error(ERR_DROP, "Delta frame too old\n");
 
-		else if (cl.entity_state - delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP)
+		else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP)
 			Com_Error(ERR_DROP, "Delta parse_entities too old\n");
 
 		cl.frame.valid = true;
@@ -268,9 +267,9 @@ void Cl_ParseFrame(void) {
 	const size_t len = Net_ReadByte(&net_message); // read area_bits
 	Net_ReadData(&net_message, &cl.frame.area_bits, len);
 
-	Cl_ParsePlayerState(delta_frame, &cl.frame);
+	Cl_ParsePlayerState(cl.delta_frame, &cl.frame);
 
-	Cl_ParseEntities(delta_frame, &cl.frame);
+	Cl_ParseEntities(cl.delta_frame, &cl.frame);
 
 	// set the simulation time for the frame
 	cl.frame.time = cl.frame.frame_num * 1000 / cl.server_hz;
@@ -294,11 +293,50 @@ void Cl_ParseFrame(void) {
 }
 
 /*
+ * @brief Updates the interpolation fraction for the current client frame.
+ * Because the client typically runs at a higher framerate than the server, we
+ * use linear interpolation between the last 2 server frames. We aim to reach
+ * the current server time just as a new packet arrives.
+ */
+static void Cl_UpdateLerp(void) {
+
+	if (cl.delta_frame == NULL || time_demo->value) {
+		cl.time = cl.frame.time;
+		cl.lerp = 1.0;
+		return;
+	}
+
+	if (cl.time > cl.frame.time) {
+		// Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
+		cl.time = cl.frame.time;
+		cl.lerp = 1.0;
+	} else if (cl.time < cl.delta_frame->time) {
+		// Com_Debug("Low clamp: %dms\n", from->time - cl.time);
+		cl.time = cl.delta_frame->time;
+		cl.lerp = 0.0;
+	} else {
+		const uint32_t delta = cl.time - cl.delta_frame->time;
+		const uint32_t interval = cl.frame.time - cl.delta_frame->time;
+
+		if (interval == 0) {
+			Com_Debug("Bad clamp\n");
+			cl.time = cl.frame.time;
+			cl.lerp = 1.0;
+			return;
+		}
+
+		cl.lerp = delta / (vec_t) interval;
+	}
+}
+
+/*
  * @brief Interpolates translation and rotation for all entities within the
  * current frame. If the entity is at its most recently parsed orientation,
  * this is a no-op.
  */
-void Cl_LerpEntities(void) {
+void Cl_Interpolate(void) {
+
+	Cl_UpdateLerp();
 
 	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
 

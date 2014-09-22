@@ -645,6 +645,9 @@ void Cl_Frame(const uint32_t msec) {
 		// fetch updates from server
 		Cl_ReadPackets();
 
+		// and interpolate them
+		Cl_Interpolate();
+
 		// fetch input from user
 		Cl_HandleEvents();
 

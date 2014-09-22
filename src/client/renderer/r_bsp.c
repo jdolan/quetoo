@@ -539,7 +539,7 @@ void R_UpdateVis(void) {
 		pvs = Cm_ClusterPVS(clusters[1]);
 		phs = Cm_ClusterPHS(clusters[1]);
 
-		for (uint16_t i = 0; i < MAX_BSP_LEAFS >> 3; i++) {
+		for (size_t i = 0; i < sizeof(r_locals.vis_data_pvs); i++) {
 			r_locals.vis_data_pvs[i] |= pvs[i];
 			r_locals.vis_data_phs[i] |= phs[i];
 		}

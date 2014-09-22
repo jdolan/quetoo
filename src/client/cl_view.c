@@ -65,43 +65,6 @@ static void Cl_UpdateViewSize(void) {
 }
 
 /*
- * @brief Updates the interpolation fraction for the current client frame.
- * Because the client typically runs at a higher framerate than the server, we
- * use linear interpolation between the last 2 server frames. We aim to reach
- * the current server time just as a new packet arrives.
- */
-static void Cl_UpdateLerp(const cl_frame_t *from) {
-
-	if (time_demo->value) {
-		cl.time = cl.frame.time;
-		cl.lerp = 1.0;
-		return;
-	}
-
-	if (cl.time > cl.frame.time) {
-		// Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
-		cl.time = cl.frame.time;
-		cl.lerp = 1.0;
-	} else if (cl.time < from->time) {
-		// Com_Debug("Low clamp: %dms\n", from->time - cl.time);
-		cl.time = from->time;
-		cl.lerp = 0.0;
-	} else {
-		const uint32_t delta = cl.time - from->time;
-		const uint32_t interval = cl.frame.time - from->time;
-
-		if (interval == 0) {
-			Com_Debug("Bad clamp\n");
-			cl.time = cl.frame.time;
-			cl.lerp = 1.0;
-			return;
-		}
-
-		cl.lerp = delta / (vec_t) interval;
-	}
-}
-
-/*
  * @brief The origin is typically calculated using client sided prediction, provided
  * the client is not viewing a demo, playing in 3rd person mode, or chasing
  * another player.
@@ -204,30 +167,22 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 
 /*
  * @brief Updates the r_view_t for the renderer. Origin, angles, etc are calculated.
- * Scene population is then delegated to the client game.
+ * Scene population is then delegated (asynchronously) to the client game.
  */
 void Cl_UpdateView(void) {
 
 	if (!cl.frame.valid && !r_view.update)
 		return; // not a valid frame, and no forced update
 
-	// find the previous frame to interpolate from
-	cl_frame_t *prev = &cl.frames[(cl.frame.frame_num - 1) & PACKET_MASK];
-
-	if (prev->frame_num != cl.frame.frame_num - 1 || !prev->valid)
-		prev = &cl.frame; // previous frame was dropped or invalid
-
-	Cl_UpdateLerp(prev);
-
 	Cl_ClearView();
 
-	Cl_UpdateOrigin(&prev->ps, &cl.frame.ps);
+	const player_state_t *from = cl.delta_frame ? &cl.delta_frame->ps : &cl.frame.ps;
 
-	Cl_UpdateAngles(&prev->ps, &cl.frame.ps);
+	Cl_UpdateOrigin(from, &cl.frame.ps);
+
+	Cl_UpdateAngles(from, &cl.frame.ps);
 
 	Cl_UpdateViewSize();
-
-	Cl_LerpEntities();
 
 	cls.cgame->UpdateView(&cl.frame);
 

@@ -615,7 +615,7 @@ static void Pm_CheckDuck(void) {
 	if (pm->s.type == PM_DEAD) {
 		pm->s.flags |= PMF_DUCKED;
 	} else {
-// if on the ground and requesting to crouch, duck
+		// if on the ground and requesting to crouch, duck
 		if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up < 0) {
 			pm->s.flags |= PMF_DUCKED;
 		} else { // stand up if possible
@@ -640,7 +640,7 @@ static void Pm_CheckDuck(void) {
 		if (pml.view_offset[2] < target)
 			pml.view_offset[2] = target;
 
-// change the bounding box to reflect ducking and jumping
+		// change the bounding box to reflect ducking and jumping
 		pm->maxs[2] = pm->maxs[2] + pm->mins[2] * 0.5;
 	} else {
 		const vec_t target = pm->mins[2] + height * 0.9;

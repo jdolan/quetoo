@@ -58,7 +58,7 @@ void Cg_PredictMovement(const GList *cmds) {
 
 	const GList *e = cmds;
 
-	// run frames
+	// run the commands
 	while (e) {
 		const cl_cmd_t *cmd = (cl_cmd_t *) e->data;
 
@@ -90,4 +90,3 @@ void Cg_PredictMovement(const GList *cmds) {
 
 	cgi.client->predicted_state.ground_entity = pm.ground_entity;
 }
-
