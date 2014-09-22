@@ -1449,8 +1449,6 @@ void G_func_water(g_entity_t *self) {
 	self->solid = SOLID_BSP;
 	gi.SetModel(self, self->model);
 
-	gi.LinkEntity(self);
-
 	// calculate second position
 	VectorCopy(self->s.origin, self->locals.pos1);
 	abs_move_dir[0] = fabsf(self->locals.move_dir[0]);
@@ -1477,8 +1475,8 @@ void G_func_water(g_entity_t *self) {
 
 	if (!self->locals.speed)
 		self->locals.speed = 25;
-	self->locals.move_info.accel = self->locals.move_info.decel = self->locals.move_info.speed =
-			self->locals.speed;
+	self->locals.move_info.accel = self->locals.move_info.decel =
+			self->locals.move_info.speed = self->locals.speed;
 
 	if (!self->locals.wait)
 		self->locals.wait = -1;
@@ -1488,6 +1486,10 @@ void G_func_water(g_entity_t *self) {
 
 	if (self->locals.wait == -1)
 		self->locals.spawn_flags |= DOOR_TOGGLE;
+
+	self->class_name = "func_door";
+
+	gi.LinkEntity(self);
 }
 
 #define TRAIN_START_ON		1
