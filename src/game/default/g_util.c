@@ -212,7 +212,7 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 	// check for a delay
 	if (ent->locals.delay) {
 		// create a temp object to fire at a later time
-		t = G_Spawn(__func__);
+		t = G_AllocEntity(__func__);
 		t->locals.next_think = g_level.time + ent->locals.delay * 1000;
 		t->locals.Think = G_UseTargets_Delay;
 		t->locals.activator = activator;
@@ -312,13 +312,9 @@ void G_InitEntity(g_entity_t *ent, const char *class_name) {
 }
 
 /*
- * @brief Either finds a free edict, or allocates a new one.
- * Try to avoid reusing an entity that was recently freed, because it
- * can cause the client to think the entity morphed into something else
- * instead of being removed and recreated, which can cause interpolated
- * angles and bad trails.
+ * @brief Allocates an entity for use.
  */
-g_entity_t *G_Spawn(const char *class_name) {
+g_entity_t *G_AllocEntity(const char *class_name) {
 	uint16_t i;
 
 	g_entity_t *e = &g_game.entities[sv_max_clients->integer + 1];
@@ -330,7 +326,7 @@ g_entity_t *G_Spawn(const char *class_name) {
 	}
 
 	if (i >= g_max_entities->value)
-		gi.Error("No free edicts for %s\n", class_name);
+		gi.Error("No free entities for %s\n", class_name);
 
 	ge.num_entities++;
 	G_InitEntity(e, class_name);
@@ -338,7 +334,7 @@ g_entity_t *G_Spawn(const char *class_name) {
 }
 
 /*
- * @brief Marks the edict as free.
+ * @brief Frees the specified entity.
  */
 void G_FreeEntity(g_entity_t *ent) {
 

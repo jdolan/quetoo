@@ -125,7 +125,7 @@ static void G_Give_f(g_entity_t *ent) {
 		else
 			ent->client->locals.persistent.inventory[index] += it->quantity;
 	} else { // or spawn and touch whatever they asked for
-		it_ent = G_Spawn(it->class_name);
+		it_ent = G_AllocEntity(it->class_name);
 
 		G_SpawnItem(it_ent, it);
 		G_TouchItem(it_ent, ent, NULL, NULL);
@@ -231,7 +231,7 @@ static void G_Drop_f(g_entity_t *ent) {
 	const g_item_t *it;
 
 	// we don't drop in instagib or arena
-	if (g_level.gameplay > 1)
+	if (g_level.gameplay)
 		return;
 
 	if (ent->locals.dead)

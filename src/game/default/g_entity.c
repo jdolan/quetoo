@@ -322,16 +322,14 @@ static const char *G_ParseEntity(const char *data, g_entity_t *ent) {
 /*
  * @brief Chain together all entities with a matching team field.
  *
- * All but the first will have the FL_TEAMSLAVE flag set.
- * All but the last will have the teamchain field set to the next one
+ * All but the first will have the FL_TEAM_SLAVE flag set.
+ * All but the last will have the team_chain field set to the next one.
  */
 static void G_InitEntityTeams(void) {
-	g_entity_t *e, *e2, *chain;
-	uint32_t i, j;
-	int32_t c, c2;
+	g_entity_t *e, *e2;
+	uint16_t i, j;
 
-	c = 0;
-	c2 = 0;
+	uint16_t teams = 0, team_entities = 0;
 	for (i = 1, e = g_game.entities + i; i < ge.num_entities; i++, e++) {
 
 		if (!e->in_use)
@@ -343,10 +341,11 @@ static void G_InitEntityTeams(void) {
 		if (e->locals.flags & FL_TEAM_SLAVE)
 			continue;
 
-		chain = e;
+		g_entity_t *chain = e;
 		e->locals.team_master = e;
-		c++;
-		c2++;
+
+		teams++;
+		team_entities++;
 
 		for (j = i + 1, e2 = e + 1; j < ge.num_entities; j++, e2++) {
 
@@ -360,16 +359,19 @@ static void G_InitEntityTeams(void) {
 				continue;
 
 			if (!g_strcmp0(e->locals.team, e2->locals.team)) {
-				c2++;
-				chain->locals.team_chain = e2;
+
 				e2->locals.team_master = e;
-				chain = e2;
 				e2->locals.flags |= FL_TEAM_SLAVE;
+
+				chain->locals.team_chain = e2;
+				chain = e2;
+
+				team_entities++;
 			}
 		}
 	}
 
-	gi.Debug("%i teams with %i entities\n", c, c2);
+	gi.Debug("%i teams with %i entities\n", teams, team_entities);
 }
 
 /*
@@ -429,42 +431,38 @@ static void G_InitMedia(void) {
  * parsing textual entity definitions out of an ent file.
  */
 void G_SpawnEntities(const char *name, const char *entities) {
-	g_entity_t *ent;
-	int32_t inhibit;
-	char *com_token;
-	int32_t i;
+
+	g_strlcpy(g_level.name, name, sizeof(g_level.name));
 
 	gi.FreeTag(MEM_TAG_GAME_LEVEL);
 
 	memset(&g_level, 0, sizeof(g_level));
-	memset(g_game.entities, 0, g_max_entities->value * sizeof(g_game.entities[0]));
+	memset(g_game.entities, 0, g_max_entities->value * sizeof(g_entity_t));
 
-	g_strlcpy(g_level.name, name, sizeof(g_level.name));
-
-	// set client fields on player ents
-	for (i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 		g_game.entities[i + 1].client = g_game.clients + i;
 	}
+
 	ge.num_entities = sv_max_clients->integer + 1;
 
-	ent = NULL;
-	inhibit = 0;
+	g_entity_t *ent = NULL;
+	uint16_t inhibit = 0;
 
-	// parse ents
+	// parse the entity definition string
 	while (true) {
-		// parse the opening brace
-		com_token = ParseToken(&entities);
+
+		const char *tok = ParseToken(&entities);
 
 		if (!entities)
 			break;
 
-		if (com_token[0] != '{')
-			gi.Error("Found \"%s\" when expecting \"{\"", com_token);
+		if (tok[0] != '{')
+			gi.Error("Found \"%s\" when expecting \"{\"", tok);
 
-		if (!ent)
+		if (ent == NULL)
 			ent = g_game.entities;
 		else
-			ent = G_Spawn(__func__);
+			ent = G_AllocEntity(__func__);
 
 		entities = G_ParseEntity(entities, ent);
 
@@ -481,27 +479,20 @@ void G_SpawnEntities(const char *name, const char *entities) {
 			ent->locals.spawn_flags &= ~(SF_NOT_EASY | SF_NOT_MEDIUM | SF_NOT_HARD | SF_NOT_COOP);
 		}
 
-		// retain the map-specified origin for respawns
-		VectorCopy(ent->s.origin, ent->locals.map_origin);
-
 		G_SpawnEntity(ent);
-
-		if (g_level.gameplay > 1 && ent->locals.item) { // now that we've spawned them, hide them
-			ent->sv_flags |= SVF_NO_CLIENT;
-			ent->solid = SOLID_NOT;
-			ent->locals.next_think = 0;
-		}
 	}
 
 	gi.Debug("%i entities inhibited\n", inhibit);
 
 	G_InitEntityTeams();
 
-	G_InitMedia();
+	G_ResetItems();
 
 	G_ResetTeams();
 
 	G_ResetVote();
+
+	G_InitMedia();
 }
 
 /*

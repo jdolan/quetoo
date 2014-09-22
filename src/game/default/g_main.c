@@ -104,15 +104,13 @@ void G_ResetVote(void) {
 }
 
 /*
- * @brief Reset all items in the level based on gameplay, ctf, etc.
+ * @brief Reset all items in the level based on gameplay, CTF, etc.
  */
-static void G_ResetItems(void) {
-	g_entity_t *ent;
-	uint32_t i;
+void G_ResetItems(void) {
 
-	for (i = 1; i < ge.num_entities; i++) { // reset items
+	for (uint16_t i = 1; i < ge.num_entities; i++) { // reset items
 
-		ent = &g_game.entities[i];
+		g_entity_t *ent = &g_game.entities[i];
 
 		if (!ent->in_use)
 			continue;
@@ -125,29 +123,7 @@ static void G_ResetItems(void) {
 			continue;
 		}
 
-		if (ent->locals.item->type == ITEM_FLAG) { // flags only appear for ctf
-
-			if (g_level.ctf) {
-				ent->sv_flags &= ~SVF_NO_CLIENT;
-				ent->solid = SOLID_TRIGGER;
-				ent->locals.next_think = g_level.time + 200;
-			} else {
-				ent->sv_flags |= SVF_NO_CLIENT;
-				ent->solid = SOLID_NOT;
-				ent->locals.next_think = 0;
-			}
-		} else { // everything else honors gameplay
-
-			if (g_level.gameplay > 1) { // hide items
-				ent->sv_flags |= SVF_NO_CLIENT;
-				ent->solid = SOLID_NOT;
-				ent->locals.next_think = 0;
-			} else { // or unhide them
-				ent->sv_flags &= ~SVF_NO_CLIENT;
-				ent->solid = SOLID_TRIGGER;
-				ent->locals.next_think = g_level.time + 2000 * gi.frame_millis;
-			}
-		}
+		G_ResetItem(ent);
 	}
 }
 
@@ -574,9 +550,7 @@ static char *G_FormatTime(uint32_t time) {
  * @brief
  */
 static void G_CheckRules(void) {
-	uint32_t time;
 	int32_t i;
-	g_client_t *cl;
 
 	if (g_level.intermission_time)
 		return;
@@ -619,7 +593,7 @@ static void G_CheckRules(void) {
 	}
 
 	// check time limit and resolve CS_TIME
-	time = g_level.time;
+	uint32_t time = g_level.time;
 
 	if (g_level.rounds) {
 		if (g_level.round_time > g_level.time) // round about to start, show pre-game countdown
@@ -662,7 +636,7 @@ static void G_CheckRules(void) {
 			}
 		} else { // or individual scores
 			for (i = 0; i < sv_max_clients->integer; i++) {
-				cl = g_game.clients + i;
+				g_client_t *cl = g_game.clients + i;
 				if (!g_game.entities[i + 1].in_use)
 					continue;
 
@@ -809,8 +783,6 @@ static void G_ExitLevel(void) {
  * Nothing would happen in Quake land if this weren't called.
  */
 static void G_Frame(void) {
-	int32_t i;
-	g_entity_t *ent;
 
 	g_level.frame_num++;
 	g_level.time = g_level.frame_num * gi.frame_millis;
@@ -825,8 +797,8 @@ static void G_Frame(void) {
 
 	// treat each object in turn
 	// even the world gets a chance to think
-	ent = &g_game.entities[0];
-	for (i = 0; i < ge.num_entities; i++, ent++) {
+	g_entity_t *ent = &g_game.entities[0];
+	for (uint16_t i = 0; i < ge.num_entities; i++, ent++) {
 
 		if (!ent->in_use)
 			continue;
@@ -834,13 +806,15 @@ static void G_Frame(void) {
 		g_level.current_entity = ent;
 
 		// update old origin for interpolation
-		if (!(ent->s.effects & EF_BEAM))
+		if (!(ent->s.effects & EF_BEAM)) {
 			VectorCopy(ent->s.origin, ent->s.old_origin);
+		}
 
-		if (i > 0 && i <= sv_max_clients->integer)
+		if (ent->client) {
 			G_ClientBeginFrame(ent);
-		else
+		} else {
 			G_RunEntity(ent);
+		}
 	}
 
 	// see if a vote has passed

@@ -109,18 +109,12 @@ const g_item_t *G_ClientArmor(const g_entity_t *ent) {
  */
 static void G_ItemRespawn(g_entity_t *ent) {
 
-	if (ent->locals.team) { // pick a random member from the team
-		g_entity_t *master = ent->locals.team_master;
-
-		int32_t count, choice;
-
-		for (count = 0, ent = master; ent; ent = ent->locals.chain, count++)
-			;
-
-		choice = Random() % count;
-
-		for (count = 0, ent = master; count < choice; ent = ent->locals.chain, count++)
-			;
+	if (ent->locals.team) {
+		if (ent->locals.team_chain) {
+			ent = ent->locals.team_chain;
+		} else {
+			ent = ent->locals.team_master;
+		}
 	}
 
 	ent->sv_flags &= ~SVF_NO_CLIENT;
@@ -137,11 +131,11 @@ static void G_ItemRespawn(g_entity_t *ent) {
  */
 void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
 
-	ent->locals.flags |= FL_RESPAWN;
-	ent->sv_flags |= SVF_NO_CLIENT;
-	ent->solid = SOLID_NOT;
 	ent->locals.next_think = g_level.time + delay;
 	ent->locals.Think = G_ItemRespawn;
+
+	ent->solid = SOLID_NOT;
+	ent->sv_flags |= SVF_NO_CLIENT;
 
 	gi.LinkEntity(ent);
 }
@@ -385,7 +379,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 /*
  * @brief A dropped flag has been idle for 30 seconds, return it.
  */
-void G_ResetFlag(g_entity_t *ent) {
+void G_ResetDroppedFlag(g_entity_t *ent) {
 	g_team_t *t;
 	g_entity_t *f;
 
@@ -397,6 +391,8 @@ void G_ResetFlag(g_entity_t *ent) {
 
 	f->sv_flags &= ~SVF_NO_CLIENT;
 	f->s.event = EV_ITEM_RESPAWN;
+
+	gi.LinkEntity(f);
 
 	gi.Sound(ent, gi.SoundIndex("ctf/return"), ATTEN_NONE);
 
@@ -433,7 +429,11 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 		if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // return it if necessary
 
-			f->sv_flags &= ~SVF_NO_CLIENT; // and toggle the static one
+			f->solid = SOLID_TRIGGER;
+			f->sv_flags &= ~SVF_NO_CLIENT;
+
+			gi.LinkEntity(f);
+
 			f->s.event = EV_ITEM_RESPAWN;
 
 			gi.Sound(other, gi.SoundIndex("ctf/return"), ATTEN_NONE);
@@ -451,7 +451,11 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 			other->s.effects &= ~G_EffectForTeam(ot);
 			other->s.model3 = 0;
 
+			of->solid = SOLID_TRIGGER;
 			of->sv_flags &= ~SVF_NO_CLIENT; // reset the other flag
+
+			gi.LinkEntity(of);
+
 			of->s.event = EV_ITEM_RESPAWN;
 
 			gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTEN_NONE);
@@ -469,11 +473,13 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 		return false;
 	}
 
-	// enemy's flag
-	if (ent->sv_flags & SVF_NO_CLIENT) // already taken
-		return false;
+	// it's enemy's flag, so take it
 
-	// take it
+	f->solid = SOLID_NOT;
+	f->sv_flags |= SVF_NO_CLIENT;
+
+	gi.LinkEntity(f);
+
 	index = ITEM_INDEX(f->locals.item);
 	other->client->locals.persistent.inventory[index] = 1;
 
@@ -495,7 +501,6 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 g_entity_t *G_TossFlag(g_entity_t *ent) {
 	g_team_t *ot;
 	g_entity_t *of;
-	int32_t index;
 
 	if (!(ot = G_OtherTeam(ent->client->locals.persistent.team)))
 		return NULL;
@@ -503,7 +508,7 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 	if (!(of = G_FlagForTeam(ot)))
 		return NULL;
 
-	index = ITEM_INDEX(of->locals.item);
+	const int32_t index = ITEM_INDEX(of->locals.item);
 
 	if (!ent->client->locals.persistent.inventory[index])
 		return NULL;
@@ -568,16 +573,11 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, cm_bsp_plane_t *plane __att
 		ent->locals.spawn_flags |= SF_ITEM_TARGETS_USED;
 	}
 
-	if (!taken)
-		return;
-
-	if (ent->locals.spawn_flags & SF_ITEM_DROPPED) {
-		if (ent->locals.flags & FL_RESPAWN)
-			ent->locals.flags &= ~FL_RESPAWN;
-		else
+	if (taken) {
+		if (ent->locals.spawn_flags & SF_ITEM_DROPPED) {
 			G_FreeEntity(ent);
-	} else if (ent->locals.item->type == ITEM_FLAG) // if a flag has been taken, hide it
-		ent->sv_flags |= SVF_NO_CLIENT;
+		}
+	}
 }
 
 /*
@@ -610,7 +610,7 @@ static void G_DropItem_Think(g_entity_t *ent) {
 	// setup the next think function and time
 
 	if (ent->locals.item->type == ITEM_FLAG) // flags go back to base
-		ent->locals.Think = G_ResetFlag;
+		ent->locals.Think = G_ResetDroppedFlag;
 	else
 		// everything else just gets freed
 		ent->locals.Think = G_FreeEntity;
@@ -639,7 +639,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	vec3_t forward;
 	cm_trace_t tr;
 
-	g_entity_t *it = G_Spawn(item->class_name);
+	g_entity_t *it = G_AllocEntity(item->class_name);
 	it->owner = ent;
 
 	VectorScale(ITEM_MINS, ITEM_SCALE, it->mins);
@@ -665,7 +665,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	// we're in a bad spot, forget it
 	if (tr.start_solid) {
 		if (item->type == ITEM_FLAG)
-			G_ResetFlag(it);
+			G_ResetDroppedFlag(it);
 		else
 			G_FreeEntity(it);
 
@@ -675,7 +675,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	VectorCopy(tr.end, it->s.origin);
 
 	it->locals.item = item;
-	it->locals.spawn_flags = SF_ITEM_DROPPED;
+	it->locals.spawn_flags |= SF_ITEM_DROPPED;
 	it->locals.move_type = MOVE_TYPE_TOSS;
 	it->locals.Touch = G_DropItemUntouchable;
 	it->s.effects = item->effects;
@@ -703,6 +703,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
  * @brief
  */
 static void G_UseItem(g_entity_t *ent, g_entity_t *other __attribute__((unused)), g_entity_t *activator __attribute__((unused))) {
+
 	ent->sv_flags &= ~SVF_NO_CLIENT;
 	ent->locals.Use = NULL;
 
@@ -712,6 +713,41 @@ static void G_UseItem(g_entity_t *ent, g_entity_t *other __attribute__((unused))
 	} else {
 		ent->solid = SOLID_TRIGGER;
 		ent->locals.Touch = G_TouchItem;
+	}
+
+	gi.LinkEntity(ent);
+}
+
+/*
+ * @brief Reset the item's interaction state based on the current game state.
+ */
+void G_ResetItem(g_entity_t *ent) {
+
+	ent->solid = SOLID_TRIGGER;
+	ent->sv_flags &= ~SVF_NO_CLIENT;
+	ent->locals.Touch = G_TouchItem;
+
+	if (ent->locals.item->type == ITEM_FLAG) {
+		if (g_level.ctf == false) {
+			ent->sv_flags |= SVF_NO_CLIENT;
+			ent->solid = SOLID_NOT;
+		}
+	}
+
+	if (ent->locals.spawn_flags & SF_ITEM_TRIGGER) {
+		ent->sv_flags |= SVF_NO_CLIENT;
+		ent->solid = SOLID_NOT;
+		ent->locals.Use = G_UseItem;
+	}
+
+	if (ent->locals.spawn_flags & SF_ITEM_NO_TOUCH) {
+		ent->solid = SOLID_BOX;
+		ent->locals.Touch = NULL;
+	}
+
+	if (g_level.gameplay || (ent->locals.flags & FL_TEAM_SLAVE)) {
+		ent->sv_flags |= SVF_NO_CLIENT;
+		ent->solid = SOLID_NOT;
 	}
 
 	gi.LinkEntity(ent);
@@ -748,48 +784,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 		return;
 	}
 
-	// now setup interactions with other entities
-	ent->solid = SOLID_TRIGGER;
-	ent->locals.Touch = G_TouchItem;
-
-	// teamed items alternate respawns
-	if (ent->locals.team) {
-
-		ent->locals.flags &= ~FL_TEAM_SLAVE;
-		ent->locals.chain = ent->locals.team_chain;
-		ent->locals.team_chain = NULL;
-
-		ent->sv_flags |= SVF_NO_CLIENT;
-		ent->solid = SOLID_NOT;
-
-		if (ent == ent->locals.team_master) {
-			ent->locals.next_think = g_level.time + gi.frame_millis;
-			ent->locals.Think = G_ItemRespawn;
-		}
-	}
-
-	// untouchable items should simply block movement
-	if (ent->locals.spawn_flags & SF_ITEM_NO_TOUCH) {
-		ent->solid = SOLID_BOX;
-		ent->locals.Touch = NULL;
-	}
-
-	// triggered items must be targeted to become visible
-	if (ent->locals.spawn_flags & SF_ITEM_TRIGGER) {
-		ent->sv_flags |= SVF_NO_CLIENT;
-		ent->solid = SOLID_NOT;
-		ent->locals.Use = G_UseItem;
-	}
-
-	// CTF items are hidden unless CTF is enabled
-	if (!g_level.ctf) {
-		if (g_str_has_prefix(ent->class_name, "item_flag_team")) {
-			ent->sv_flags |= SVF_NO_CLIENT;
-			ent->solid = SOLID_NOT;
-		}
-	}
-
-	gi.LinkEntity(ent);
+	G_ResetItem(ent);
 }
 
 /*

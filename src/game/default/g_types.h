@@ -271,14 +271,13 @@ typedef struct g_entity_s g_entity_t;
 
 /*
  * @brief Entity flags (g_entity_locals.flags). These again are mostly for
- * backwards compatibility with Quake II. Team slaves and respawn are
+ * backwards compatibility with Quake II.
  * still valid.
  */
 #define FL_FLY					0x00000001
 #define FL_SWIM					0x00000002  // implied immunity to drowning
 #define FL_GOD_MODE				0x00000004
 #define FL_TEAM_SLAVE			0x00000008  // not the first on the team
-#define FL_RESPAWN				0x80000000
 
 /*
  * @brief Ammunition types.
@@ -794,7 +793,6 @@ typedef struct {
 	int16_t sounds; // make this a spawntemp var?
 	int32_t count;
 
-	g_entity_t *chain;
 	g_entity_t *enemy;
 	g_entity_t *activator;
 	g_entity_t *team_chain;
@@ -820,7 +818,6 @@ typedef struct {
 
 	const g_item_t *item; // for bonus items
 
-	vec3_t map_origin; // where the map says we spawn
 } g_entity_locals_t;
 
 #include "game/game.h"

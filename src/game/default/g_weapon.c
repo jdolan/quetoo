@@ -574,7 +574,7 @@ void G_FireBfg(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		ent->client->locals.weapon_fire_time = g_level.time + 1000 + gi.frame_millis;
 
-		g_entity_t *timer = G_Spawn(__func__);
+		g_entity_t *timer = G_AllocEntity(__func__);
 		timer->owner = ent;
 
 		timer->locals.Think = G_FireBfg_;

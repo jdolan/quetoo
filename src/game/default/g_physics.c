@@ -400,7 +400,7 @@ static void G_Physics_Push(g_entity_t *ent) {
 	vec3_t move, amove;
 	g_entity_t *part, *obstacle = NULL;
 
-	// if not a team captain, so movement will be handled elsewhere
+	// for teamed entities, the master must initiate all moves
 	if (ent->locals.flags & FL_TEAM_SLAVE)
 		return;
 
@@ -531,10 +531,6 @@ static void G_Physics_Toss(g_entity_t *ent) {
  * @brief Dispatches thinking and physics routine for the specified entity.
  */
 void G_RunEntity(g_entity_t *ent) {
-
-	// only team masters are run directly
-	if (ent->locals.flags & FL_TEAM_SLAVE)
-		return;
 
 	G_ClampVelocity(ent);
 

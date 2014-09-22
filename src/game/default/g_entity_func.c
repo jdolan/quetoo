@@ -232,8 +232,8 @@ static void G_MoveInfo_Init(g_entity_t *ent, vec3_t dest, void (*Done)(g_entity_
 	move->Done = Done;
 
 	if (move->speed == move->accel && move->speed == move->decel) { // constant
-		if (g_level.current_entity
-				== ((ent->locals.flags & FL_TEAM_SLAVE) ? ent->locals.team_master : ent)) {
+		const g_entity_t *master = (ent->locals.flags & FL_TEAM_SLAVE) ? ent->locals.team_master : ent;
+		if (g_level.current_entity == master) {
 			G_MoveInfo_Constant(ent);
 		} else {
 			ent->locals.next_think = g_level.time + gi.frame_millis;
@@ -482,7 +482,7 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent) {
 	vec3_t tmin, tmax;
 
 	// middle trigger
-	trigger = G_Spawn(__func__);
+	trigger = G_AllocEntity(__func__);
 	trigger->locals.Touch = G_func_plat_Touch;
 	trigger->locals.move_type = MOVE_TYPE_NONE;
 	trigger->solid = SOLID_TRIGGER;
@@ -1081,7 +1081,7 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
 	maxs[0] += 60;
 	maxs[1] += 60;
 
-	trigger = G_Spawn(__func__);
+	trigger = G_AllocEntity(__func__);
 	VectorCopy(mins, trigger->mins);
 	VectorCopy(maxs, trigger->maxs);
 	trigger->owner = ent;

@@ -32,6 +32,7 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,13 +45,8 @@
 #include <windows.h>
 #endif
 
-#ifndef true
-#define true 1
-#define false 0
-#endif
-
 #ifndef byte
-typedef unsigned char byte;
+typedef uint8_t byte;
 #endif
 
 #ifndef M_PI

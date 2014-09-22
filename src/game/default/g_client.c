@@ -285,7 +285,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribut
 	uint16_t i, count = 3 + Random() % 3;
 
 	for (i = 0; i < count; i++) {
-		g_entity_t *ent = G_Spawn(__func__);
+		g_entity_t *ent = G_AllocEntity(__func__);
 
 		VectorCopy(self->s.origin, ent->s.origin);
 
@@ -335,7 +335,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribut
  */
 static void G_ClientCorpse(g_entity_t *self) {
 
-	g_entity_t *ent = G_Spawn(__func__);
+	g_entity_t *ent = G_AllocEntity(__func__);
 
 	VectorScale(PM_MINS, PM_SCALE, ent->mins);
 	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);

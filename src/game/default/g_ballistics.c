@@ -184,7 +184,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	const vec3_t mins = { -1.0, -1.0, -1.0 };
 	const vec3_t maxs = { 1.0, 1.0, 1.0 };
 
-	g_entity_t *projectile = G_Spawn(__func__);
+	g_entity_t *projectile = G_AllocEntity(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -348,7 +348,7 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 
 	vec3_t forward, right, up;
 
-	g_entity_t *projectile = G_Spawn(__func__);
+	g_entity_t *projectile = G_AllocEntity(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -436,7 +436,7 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other, cm_bsp
 void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback, vec_t damage_radius) {
 
-	g_entity_t *projectile = G_Spawn(__func__);
+	g_entity_t *projectile = G_AllocEntity(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -520,7 +520,7 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other, 
 void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback) {
 
-	g_entity_t *projectile = G_Spawn(__func__);
+	g_entity_t *projectile = G_AllocEntity(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -680,7 +680,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 	}
 
 	if (!projectile) { // ensure a valid lightning entity exists
-		projectile = G_Spawn(__func__);
+		projectile = G_AllocEntity(__func__);
 
 		VectorCopy(start, projectile->s.origin);
 		VectorMA(start, 800.0, dir, projectile->s.old_origin);
@@ -898,7 +898,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback, vec_t damage_radius) {
 
-	g_entity_t *projectile = G_Spawn(__func__);
+	g_entity_t *projectile = G_AllocEntity(__func__);
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);

@@ -244,7 +244,7 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
  */
 static void G_trigger_push_Effect(g_entity_t *self) {
 
-	g_entity_t *ent = G_Spawn(__func__);
+	g_entity_t *ent = G_AllocEntity(__func__);
 
 	VectorAdd(self->mins, self->maxs, ent->s.origin);
 	VectorScale(ent->s.origin, 0.5, ent->s.origin);
@@ -308,7 +308,7 @@ static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
 
 		if (other->locals.item) {
 			if (other->locals.item->type == ITEM_FLAG)
-				G_ResetFlag(other);
+				G_ResetDroppedFlag(other);
 			else
 				G_FreeEntity(other);
 		}
