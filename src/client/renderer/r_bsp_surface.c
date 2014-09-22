@@ -32,10 +32,10 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 
 		switch (surf->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
 			case SURF_BLEND_33:
-				color[3] = 0.33;
+				color[3] = 0.40;
 				break;
 			case SURF_BLEND_66:
-				color[3] = 0.66;
+				color[3] = 0.80;
 				break;
 			default: // both flags mean use the texture's alpha channel
 				color[3] = 1.0;
