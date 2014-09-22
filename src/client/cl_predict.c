@@ -189,6 +189,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 void Cl_PredictMovement(void) {
 
 	if (Cl_UsePrediction()) {
+
 		const uint32_t current = cls.net_chan.outgoing_sequence;
 		uint32_t ack = cls.net_chan.incoming_acknowledged;
 
@@ -211,8 +212,8 @@ void Cl_PredictMovement(void) {
 }
 
 /*
- * @brief Checks for client side prediction errors. Problems here mean that
- * Pm_Move or the protocol are not functioning correctly.
+ * @brief Checks for client side prediction errors. Problems here can indicate
+ * that Pm_Move or the protocol are not functioning correctly.
  */
 void Cl_CheckPredictionError(void) {
 	int16_t d[3];

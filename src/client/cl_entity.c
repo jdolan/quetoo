@@ -343,8 +343,10 @@ void Cl_Interpolate(void) {
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
 
-		if (!VectorCompare(ent->origin, ent->current.origin)
-				|| !VectorCompare(ent->angles, ent->current.angles)) {
+		// interpolate movements, bringing the entity inline with the frame
+
+		if (!VectorCompare(ent->origin, ent->current.origin) ||
+				!VectorCompare(ent->angles, ent->current.angles)) {
 
 			// mark the lighting as dirty
 			ent->lighting.state = MIN(ent->lighting.state, LIGHTING_DIRTY);
@@ -352,12 +354,19 @@ void Cl_Interpolate(void) {
 			// interpolate the origin and angles
 			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
 			AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
+		}
 
-			if (ent->current.solid != SOLID_NOT) {
-				// and for solids, update the clipping matrices
-				const vec_t *angles = ent->current.solid == SOLID_BSP ? ent->angles : vec3_origin;
+		// and update clipping matrices, snapping the entity to the frame
 
-				Matrix4x4_CreateFromEntity(&ent->matrix, ent->origin, angles, 1.0);
+		if (!VectorCompare(ent->current.origin, ent->prev.origin) ||
+				!VectorCompare(ent->current.angles, ent->prev.angles)) {
+
+			const uint16_t solid = ent->current.solid;
+			if (solid != SOLID_NOT) {
+
+				const vec_t *angles = solid == SOLID_BSP ? ent->current.angles : vec3_origin;
+
+				Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.0);
 				Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
 			}
 		}
