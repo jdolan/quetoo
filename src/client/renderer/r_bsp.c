@@ -477,6 +477,7 @@ static int16_t R_CrossingContents(int32_t contents) {
  * dot-product test in order to be marked as visible for the current frame.
  */
 void R_UpdateVis(void) {
+	static uint32_t last_vis_time;
 	static int16_t old_clusters[2];
 	int16_t clusters[2];
 
@@ -484,6 +485,12 @@ void R_UpdateVis(void) {
 		return;
 
 	clusters[0] = clusters[1] = -1;
+
+	if (r_view.time < last_vis_time) {
+		old_clusters[0] = old_clusters[1] = -1;
+	}
+
+	last_vis_time = r_view.time;
 
 	// resolve current leaf and derive the PVS clusters
 	if (!r_no_vis->value && r_model_state.world->bsp->num_clusters) {
