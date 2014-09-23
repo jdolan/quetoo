@@ -729,7 +729,7 @@ _Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_surface_t *surf) {
 
 	if (ent->solid == SOLID_BSP) {
 
-		if (surf && (surf->flags & SURF_SKY))
+		if (!surf || (surf->flags & SURF_SKY))
 			return false;
 
 		return true;
