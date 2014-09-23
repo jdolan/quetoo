@@ -791,7 +791,10 @@ _Bool G_AddClientToTeam(g_entity_t *ent, const char *team_name) {
 	ent->client->locals.persistent.spectator = false;
 	ent->client->locals.persistent.ready = false;
 
-	G_ClientUserInfoChanged(ent, ent->client->locals.persistent.user_info);
+	char *user_info = g_strdup(ent->client->locals.persistent.user_info);
+	G_ClientUserInfoChanged(ent, user_info);
+	g_free(user_info);
+
 	return true;
 }
 

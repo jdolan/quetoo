@@ -1015,10 +1015,8 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	s = GetUserInfo(user_info, "color");
 	cl->locals.persistent.color = G_ColorByName(s, EFFECT_COLOR_DEFAULT);
 
-	const uint32_t entity_num = ent - g_game.entities - 1;
-
 	// combine name and skin into a config_string
-	gi.ConfigString(CS_CLIENTS + entity_num,
+	gi.ConfigString(CS_CLIENTS + (cl - g_game.clients),
 			va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
 
 	// save off the user_info in case we want to check something later

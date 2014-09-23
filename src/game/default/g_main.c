@@ -133,9 +133,6 @@ void G_ResetItems(void) {
  * to ready again. Teams are only reset when teamz is true.
  */
 static void G_RestartGame(_Bool teamz) {
-	int32_t i;
-	g_entity_t *ent;
-	g_client_t *cl;
 
 	if (g_level.match_time)
 		g_level.match_num++;
@@ -143,13 +140,13 @@ static void G_RestartGame(_Bool teamz) {
 	if (g_level.round_time)
 		g_level.round_num++;
 
-	for (i = 0; i < sv_max_clients->integer; i++) { // reset clients
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) { // reset clients
 
 		if (!g_game.entities[i + 1].in_use)
 			continue;
 
-		ent = &g_game.entities[i + 1];
-		cl = ent->client;
+		g_entity_t *ent = &g_game.entities[i + 1];
+		g_client_t *cl = ent->client;
 
 		cl->locals.persistent.ready = false; // back to warmup
 		cl->locals.persistent.score = 0;
