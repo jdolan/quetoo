@@ -390,7 +390,7 @@ void G_TouchWater(g_entity_t *ent) {
 		VectorCopy(ent->maxs, maxs);
 	}
 
-	cm_trace_t tr = gi.Trace(origin, origin, mins, maxs, ent, MASK_WATER);
+	cm_trace_t tr = gi.Trace(origin, origin, mins, maxs, ent, MASK_LIQUID);
 
 	const uint8_t old_water_level = ent->locals.water_level;
 	ent->locals.water_type = tr.contents;

@@ -55,7 +55,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, uint8_t color) {
 
 	cgi.AddSustainedLight(&s);
 
-	if (cgi.PointContents(ent->origin) & MASK_WATER) {
+	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
 		VectorMA(ent->origin, 40.0, forward, org2);
 		Cg_BubbleTrail(org, org2, 10.0);
 	}
@@ -97,7 +97,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 
 	cgi.AddSustainedLight(&s);
 
-	if (cgi.PointContents(ent->origin) & MASK_WATER) {
+	if (cgi.PointContents(ent->origin) & MASK_LIQUID) {
 		VectorMA(ent->origin, 40.0, forward, org2);
 		Cg_BubbleTrail(org, org2, 10.0);
 		return;

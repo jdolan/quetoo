@@ -762,8 +762,8 @@ typedef enum {
 #define WEATHER_FOG 		4
 #define WEATHER_PRECIP_MASK	(WEATHER_RAIN | WEATHER_SNOW)
 
-#define FOG_START			300.0
-#define FOG_END				2500.0
+#define FOG_START			64.0
+#define FOG_END				2048.0
 
 /*
  * @brief Provides read-write visibility and scene management to the client.

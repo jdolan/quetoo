@@ -68,10 +68,10 @@ static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 	VectorNormalize(dir);
 	VectorMA(tr->end, -2, dir, pos);
 
-	if (gi.PointContents(pos) & MASK_WATER)
+	if (gi.PointContents(pos) & MASK_LIQUID)
 		VectorCopy(pos, tr->end);
 	else {
-		const cm_trace_t trace = gi.Trace(pos, start, NULL, NULL, tr->ent, MASK_WATER);
+		const cm_trace_t trace = gi.Trace(pos, start, NULL, NULL, tr->ent, MASK_LIQUID);
 		VectorCopy(trace.end, tr->end);
 	}
 
@@ -252,7 +252,7 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 
 		G_Tracer(start, tr.end);
 
-		if ((gi.PointContents(start) & MASK_WATER) || (gi.PointContents(tr.end) & MASK_WATER))
+		if ((gi.PointContents(start) & MASK_LIQUID) || (gi.PointContents(tr.end) & MASK_LIQUID))
 			G_BubbleTrail(start, &tr);
 	}
 }
@@ -617,7 +617,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	if (G_ImmediateWall(self->owner, self)) // resolve start
 		VectorCopy(self->owner->s.origin, start);
 
-	if (gi.PointContents(start) & MASK_WATER) { // discharge and return
+	if (gi.PointContents(start) & MASK_LIQUID) { // discharge and return
 		G_LightningProjectile_Discharge(self);
 		G_FreeEntity(self);
 		return;
@@ -627,9 +627,9 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	VectorMA(end, 10.0 * sin(g_level.time / 4.0), up, end);
 	VectorMA(end, 10.0 * Randomc(), right, end);
 
-	tr = gi.Trace(start, end, NULL, NULL, self, MASK_SHOT | MASK_WATER);
+	tr = gi.Trace(start, end, NULL, NULL, self, MASK_SHOT | MASK_LIQUID);
 
-	if (tr.contents & MASK_WATER) { // entered water, play sound, leave trail
+	if (tr.contents & MASK_LIQUID) { // entered water, play sound, leave trail
 		VectorCopy(tr.end, water_start);
 
 		if (!self->locals.water_level) {
@@ -721,15 +721,15 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		VectorCopy(ent->s.origin, pos);
 	}
 
-	int32_t content_mask = MASK_SHOT | MASK_WATER;
-	_Bool water = false;
+	int32_t content_mask = MASK_SHOT | MASK_LIQUID;
+	_Bool liquid = false;
 
 	// are we starting in water?
-	if (gi.PointContents(pos) & MASK_WATER) {
+	if (gi.PointContents(pos) & MASK_LIQUID) {
 		VectorCopy(pos, water_pos);
 
-		content_mask &= ~MASK_WATER;
-		water = true;
+		content_mask &= ~MASK_LIQUID;
+		liquid = true;
 	}
 
 	VectorMA(pos, MAX_WORLD_DIST, dir, end);
@@ -744,11 +744,11 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 			break;
 		}
 
-		if ((tr.contents & MASK_WATER) && !water) {
+		if ((tr.contents & MASK_LIQUID) && !liquid) {
 			VectorCopy(tr.end, water_pos);
 
-			content_mask &= ~MASK_WATER;
-			water = true;
+			content_mask &= ~MASK_LIQUID;
+			liquid = true;
 
 			gi.PositionedSound(water_pos, g_game.entities, g_media.sounds.water_in, ATTEN_NORM);
 

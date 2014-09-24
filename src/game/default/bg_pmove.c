@@ -576,7 +576,7 @@ static void Pm_CategorizePosition(void) {
 	pos[2] = pml.origin[2] + pm->mins[2] + PM_GROUND_DIST;
 
 	int32_t contents = pm->PointContents(pos);
-	if (contents & MASK_WATER) {
+	if (contents & MASK_LIQUID) {
 
 		pm->water_type = contents;
 		pm->water_level = 1;
@@ -585,7 +585,7 @@ static void Pm_CategorizePosition(void) {
 
 		contents = pm->PointContents(pos);
 
-		if (contents & MASK_WATER) {
+		if (contents & MASK_LIQUID) {
 
 			pm->water_type |= contents;
 			pm->water_level = 2;
@@ -594,7 +594,7 @@ static void Pm_CategorizePosition(void) {
 
 			contents = pm->PointContents(pos);
 
-			if (contents & MASK_WATER) {
+			if (contents & MASK_LIQUID) {
 				pm->water_type |= contents;
 				pm->water_level = 3;
 
@@ -813,7 +813,6 @@ static _Bool Pm_CheckWaterJump(void) {
 		pm->s.flags |= PMF_TIME_WATER_JUMP | PMF_JUMP_HELD;
 		pm->s.time = 2000;
 
-		Pm_Debug("%s\n", vtos(pml.origin));
 		return true;
 	}
 
@@ -826,7 +825,7 @@ static _Bool Pm_CheckWaterJump(void) {
 static void Pm_LadderMove(void) {
 	vec3_t vel, dir;
 
-	Pm_Debug("%s\n", vtos(pml.origin));
+	// Pm_Debug("%s\n", vtos(pml.origin));
 
 	Pm_Friction();
 
@@ -880,7 +879,7 @@ static void Pm_LadderMove(void) {
 static void Pm_WaterJumpMove(void) {
 	vec3_t forward;
 
-	Pm_Debug("%s\n", vtos(pml.origin));
+	// Pm_Debug("%s\n", vtos(pml.origin));
 
 	Pm_Friction();
 
@@ -945,16 +944,17 @@ static void Pm_WaterMove(void) {
 	vel[2] += pm->cmd.up;
 
 	// disable water skiing
-	if (pm->water_level == 2 && pml.velocity[2] >= 0.0 && vel[2] > 0.0) {
+	if (pm->water_level == 2) {
 		vec3_t view;
 
 		VectorAdd(pml.origin, pml.view_offset, view);
 		view[2] -= 4.0;
 
-		if (!(pm->PointContents(view) & CONTENTS_WATER)) {
-			pml.velocity[2] = 0.0;
-			vel[2] = 0.0;
+		if (!(pm->PointContents(view) & MASK_LIQUID)) {
+			pml.velocity[2] = MIN(pml.velocity[2], 0.0);
+			vel[2] = MIN(vel[2], 0.0);
 		}
+
 	}
 
 	Pm_Currents(vel);
@@ -1028,9 +1028,6 @@ static void Pm_WalkMove(void) {
 	Pm_ClipVelocity(pml.velocity, pml.ground_plane.normal, pml.velocity, PM_CLIP_BOUNCE);
 
 	Pm_Friction();
-
-	pml.forward[2] = 0.0;
-	pml.right[2] = 0.0;
 
 	Pm_ClipVelocity(pml.forward, pml.ground_plane.normal, pml.forward, PM_CLIP_BOUNCE);
 	Pm_ClipVelocity(pml.right, pml.ground_plane.normal, pml.right, PM_CLIP_BOUNCE);
@@ -1140,13 +1137,12 @@ static _Bool Pm_SnapPosition(void) {
  */
 static void Pm_ClampAngles(void) {
 	vec3_t angles;
-	int32_t i;
 
 	// copy the command angles into the outgoing state
 	VectorCopy(pm->cmd.angles, pm->s.view_angles);
 
 	// circularly clamp the angles with kick and deltas
-	for (i = 0; i < 3; i++) {
+	for (int32_t i = 0; i < 3; i++) {
 
 		const int16_t c = pm->cmd.angles[i];
 		const int16_t k = pm->s.kick_angles[i];
@@ -1162,12 +1158,12 @@ static void Pm_ClampAngles(void) {
 		pm->angles[PITCH] -= 360.0;
 	}
 
-	// update the local angles responsible for velocity calculations
+	// calculate the angles responsible for this movement
 	VectorCopy(pm->angles, angles);
 
-	// for most movements, kill pitch to keep the player moving forward
-	if (pm->water_level < 3 && !(pm->s.flags & PMF_ON_LADDER) && pm->s.type != PM_SPECTATOR)
+	if ((pm->s.flags & PMF_ON_GROUND) && pm->water_level < 3) {
 		angles[PITCH] = 0.0;
+	}
 
 	// finally calculate the directional vectors for this move
 	AngleVectors(angles, pml.forward, pml.right, pml.up);
@@ -1294,7 +1290,7 @@ void Pm_Move(pm_move_t *pm_move) {
 	// check for ducking
 	Pm_CheckDuck();
 
-	// set ladder interaction, valid for all other states
+	// check for ladders
 	Pm_CheckLadder();
 
 	if (pm->s.flags & PMF_TIME_TELEPORT) {

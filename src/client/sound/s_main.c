@@ -110,7 +110,7 @@ void S_Frame(void) {
 			S_PlaySample(NULL, ent->number, cl.sound_precache[ent->sound], ATTEN_NORM);
 	}
 
-	if (r_view.contents & MASK_WATER) { // add under water sample
+	if (r_view.contents & MASK_LIQUID) { // add under water sample
 		S_LoopSample(r_view.origin, S_LoadSample("world/under_water"));
 	}
 

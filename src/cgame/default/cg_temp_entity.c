@@ -231,7 +231,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 	int32_t i, j;
 
 	// if a player has died underwater, emit some bubbles
-	if (cgi.PointContents(org) & MASK_WATER) {
+	if (cgi.PointContents(org) & MASK_LIQUID) {
 		VectorCopy(org, tmp);
 		tmp[2] += 64.0;
 
@@ -346,7 +346,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		VectorCopy(org, p->part.org);
 	}
 
-	if (!(cgi.PointContents(org) & MASK_WATER)) {
+	if (!(cgi.PointContents(org) & MASK_LIQUID)) {
 
 		if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
 
@@ -547,7 +547,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 		VectorMA(p->part.org, sin(i * 0.1) * 6.0, up, p->part.org);
 
 		// check for bubble trail
-		if (i % 24 == 0 && (cgi.PointContents(point) & MASK_WATER)) {
+		if (i % 24 == 0 && (cgi.PointContents(point) & MASK_LIQUID)) {
 			Cg_BubbleTrail(point, p->part.org, 16.0);
 		}
 

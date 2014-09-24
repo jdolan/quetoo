@@ -581,7 +581,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	// and finally, determine supplementary blend based on view origin conents
 	const int32_t contents = cgi.view->contents;
 
-	if (al < 0.3 * cg_draw_blend->value && (contents & MASK_WATER)) {
+	if (al < 0.3 * cg_draw_blend->value && (contents & MASK_LIQUID)) {
 		if (al < 0.15 * cg_draw_blend->value) { // don't override damage or pickup blend
 			if (contents & CONTENTS_LAVA)
 				color = 71;

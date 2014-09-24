@@ -34,7 +34,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		ent->time = cgi.client->time + 32;
 	}
 
-	if (cgi.PointContents(end) & MASK_WATER) {
+	if (cgi.PointContents(end) & MASK_LIQUID) {
 		Cg_BubbleTrail(start, end, 24.0);
 		return;
 	}
@@ -74,7 +74,7 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		ent->time = cgi.client->time + 16;
 	}
 
-	if (cgi.PointContents(end) & MASK_WATER) {
+	if (cgi.PointContents(end) & MASK_LIQUID) {
 		Cg_BubbleTrail(start, end, 10.0);
 		return;
 	}
@@ -121,7 +121,7 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 	vec3_t end;
 	VectorAdd(org, vel, end);
 
-	if (cgi.PointContents(org) & MASK_WATER) {
+	if (cgi.PointContents(org) & MASK_LIQUID) {
 		Cg_BubbleTrail(org, end, 10.0);
 		return;
 	}
@@ -166,7 +166,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 	for (i = 0.0; i < len; i += delta) {
 		VectorAdd(move, vec, move);
 
-		if (!(cgi.PointContents(move) & MASK_WATER))
+		if (!(cgi.PointContents(move) & MASK_LIQUID))
 			continue;
 
 		cg_particle_t *p;
@@ -210,7 +210,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 		step = 0.5;
 
-		if (cgi.PointContents(end) & MASK_WATER) {
+		if (cgi.PointContents(end) & MASK_LIQUID) {
 			Cg_BubbleTrail(start, end, 12.0);
 			step = 1.5;
 		}
@@ -278,7 +278,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 	if (ent->time < cgi.client->time) {
 
-		if (cgi.PointContents(end) & MASK_WATER) {
+		if (cgi.PointContents(end) & MASK_LIQUID) {
 			Cg_BubbleTrail(start, end, 24.0);
 		}
 
@@ -403,7 +403,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int
 
 	ent->time = cgi.client->time + 16;
 
-	if (cgi.PointContents(org) & MASK_WATER)
+	if (cgi.PointContents(org) & MASK_LIQUID)
 		Cg_BubbleTrail(ent->prev.origin, ent->current.origin, radius / 4.0);
 }
 
@@ -573,7 +573,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 		ent->time = cgi.client->time + 16;
 	}
 
-	if (cgi.PointContents(end) & MASK_WATER) {
+	if (cgi.PointContents(end) & MASK_LIQUID) {
 		Cg_BubbleTrail(start, end, 8.0);
 		return;
 	}
