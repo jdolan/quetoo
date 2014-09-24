@@ -1175,15 +1175,16 @@ static void Pm_ClampAngles(void) {
 static void Pm_SpectatorMove() {
 	vec3_t vel;
 	vec_t speed;
-	int32_t i;
 
 	Pm_Friction();
 
 	// user intentions on X/Y/Z
-	for (i = 0; i < 3; i++) {
-		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right
-				+ pml.up[i] * pm->cmd.up;
+	for (int32_t i = 0; i < 3; i++) {
+		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
 	}
+
+	// add explicit Z
+	vel[2] += pm->cmd.up;
 
 	speed = VectorNormalize(vel);
 	speed = Clamp(speed, 0.0, PM_SPEED_SPECTATOR);
