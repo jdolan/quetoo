@@ -1161,7 +1161,7 @@ static void Pm_ClampAngles(void) {
 	// calculate the angles responsible for this movement
 	VectorCopy(pm->angles, angles);
 
-	if ((pm->s.flags & PMF_ON_GROUND) && pm->water_level < 3) {
+	if (pm->s.flags & PMF_ON_GROUND) {
 		angles[PITCH] = 0.0;
 	}
 
