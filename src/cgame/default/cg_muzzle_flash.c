@@ -107,10 +107,10 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 		return;
 
 	p->part.blend = GL_ONE;
-	p->part.color = Random() & 7;
+	cgi.ColorFromPalette(Random() & 7, p->part.color);
+	p->part.color[3] = 0.8;
 
-	p->part.alpha = 0.8;
-	p->alpha_vel = -1.0;
+	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0);
 
 	p->part.scale = 4.0;
 	p->scale_vel = 24.0;

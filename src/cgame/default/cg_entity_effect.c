@@ -33,10 +33,8 @@ void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_inactive)))
 		return;
 
-	p->part.color = 11;
-
-	p->part.alpha = 1.0;
-	p->alpha_vel = -9999.0;
+	cgi.ColorFromPalette(11, p->part.color);
+	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -9999.0);
 
 	p->part.scale = 10.0;
 
@@ -46,8 +44,7 @@ void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 }
 
 /*
- * @brief Processes the specified entity's effects mask, augmenting the given renderer
- * entity and adding additional effects such as particle trails to the view.
+ * @brief Processes the entity's effects mask, augmenting the renderer entity.
  */
 void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 

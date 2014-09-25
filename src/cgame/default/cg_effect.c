@@ -167,9 +167,11 @@ void Cg_LoadEffects(void) {
  * added is dependent on the size of the surface associated with the emitter.
  */
 static void Cg_AddWeather_(const cg_weather_emit_t *e) {
-	int32_t i;
 
-	for (i = 0; i < e->num_origins; i++) {
+	vec3_t color;
+	cgi.ColorFromPalette(8, color);
+
+	for (int32_t i = 0; i < e->num_origins; i++) {
 		cg_particles_t *ps;
 		cg_particle_t *p;
 		int32_t j;
@@ -196,8 +198,9 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 		}
 
 		if (cgi.view->weather & WEATHER_RAIN) {
-			p->part.color = 8;
-			p->part.alpha = 0.4;
+			VectorCopy(color, p->part.color);
+			p->part.color[3] = 0.4;
+			p->color_vel[3] = 0.0;
 			p->part.scale = 6.0;
 			// randomize the velocity and acceleration
 			for (j = 0; j < 2; j++) {
@@ -206,9 +209,9 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			}
 			p->vel[2] = -800.0;
 		} else {
-			p->part.color = 8;
-			p->part.alpha = 0.6;
-			p->alpha_vel = Randomf() * -1.0;
+			VectorCopy(color, p->part.color);
+			p->part.color[3] = 0.6;
+			p->color_vel[3] = Randomf() * -1.0;
 			p->part.scale = 1.5;
 			// randomize the velocity and acceleration
 			for (j = 0; j < 2; j++) {

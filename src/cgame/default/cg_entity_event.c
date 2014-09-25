@@ -25,19 +25,18 @@
  * @brief
  */
 static void Cg_ItemRespawnEffect(const vec3_t org) {
-	cg_particle_t *p;
-	r_sustained_light_t s;
-	int32_t i;
 
-	for (i = 0; i < 64; i++) {
+	vec3_t color;
+	cgi.ColorFromPalette(110, color);
+
+	for (int32_t i = 0; i < 64; i++) {
+		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
 			break;
 
-		p->part.color = 110; // white
-
-		p->part.alpha = 1.0;
-		p->alpha_vel = -1.5 + Randomf() * 0.5;
+		VectorCopy(color, p->part.color);
+		Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -1.5 + Randomf() * 0.5);
 
 		p->part.scale = 1.0;
 		p->scale_vel = 3.0;
@@ -54,6 +53,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
 	}
 
+	r_sustained_light_t s;
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
 	VectorSet(s.light.color, 0.9, 0.9, 0.9);
@@ -66,19 +66,18 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
  * @brief
  */
 static void Cg_ItemPickupEffect(const vec3_t org) {
-	cg_particle_t *p;
-	r_sustained_light_t s;
-	int32_t i;
 
-	for (i = 0; i < 32; i++) {
+	vec3_t color;
+	cgi.ColorFromPalette(110, color);
+
+	for (int32_t i = 0; i < 32; i++) {
+		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
 			break;
 
-		p->part.color = 110; // white
-
-		p->part.alpha = 1.0;
-		p->alpha_vel = -1.5 + Randomf() * 0.5;
+		VectorCopy(color, p->part.color);
+		Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -1.5 + Randomf() * 0.5);
 
 		p->part.scale = 1.0;
 		p->scale_vel = 3.0;
@@ -95,6 +94,7 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 		p->accel[2] = PARTICLE_GRAVITY * 0.2;
 	}
 
+	r_sustained_light_t s;
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
 	VectorSet(s.light.color, 0.9, 1.0, 1.0);

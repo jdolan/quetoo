@@ -47,20 +47,22 @@ extern vec3_t vec3_forward;
 /*
  * @brief Math library.
  */
-#define Clamp(x, y, z)			(x < y ? y : x > z ? z : x)
-#define DotProduct(x,y)			(x[0] * y[0] + x[1] * y[1] + x[2] * y[2])
-#define VectorCompare(a, b)		(a[0] == b[0] && a[1] == b[1] && a[2] == b[2])
-#define VectorAdd(a,b,c)		(c[0] = a[0] + b[0], c[1] = a[1] + b[1], c[2] = a[2] + b[2])
-#define VectorSubtract(a,b,c)	(c[0] = a[0] - b[0], c[1] = a[1] - b[1], c[2] = a[2] - b[2])
-#define VectorScale(a,s,b)		(b[0] = a[0] * (s), b[1] = a[1] * (s), b[2] = a[2] * (s))
-#define VectorCopy(a,b)			((b)[0] = (a)[0], (b)[1] = (a)[1], (b)[2] = (a)[2])
-#define Vector4Copy(a,b)		((b)[0] = (a)[0], (b)[1] = (a)[1], (b)[2] = (a)[2], (b)[3] = (a)[3])
-#define VectorClear(a)			(a[0] = a[1] = a[2] = 0.0)
-#define VectorNegate(a,b)		(b[0] = -a[0], b[1] = -a[1], b[2] = -a[2])
-#define VectorSet(v, x, y, z)	(v[0] = (x), v[1] = (y), v[2] = (z))
-#define VectorSum(a)			(a[0] + a[1] + a[2])
-#define Radians(d) 				((d) * 0.01745329251) // * M_PI / 180.0
-#define Degrees(r)				((r) * 57.2957795131) // * 180.0 / M_PI
+#define Clamp(x, y, z)				(x < y ? y : x > z ? z : x)
+#define DotProduct(x, y)			(x[0] * y[0] + x[1] * y[1] + x[2] * y[2])
+#define VectorCompare(a, b)			(a[0] == b[0] && a[1] == b[1] && a[2] == b[2])
+#define VectorAdd(a,b,c)			(c[0] = a[0] + b[0], c[1] = a[1] + b[1], c[2] = a[2] + b[2])
+#define VectorSubtract(a, b, c)		(c[0] = a[0] - b[0], c[1] = a[1] - b[1], c[2] = a[2] - b[2])
+#define VectorScale(a, s, b)		(b[0] = a[0] * (s), b[1] = a[1] * (s), b[2] = a[2] * (s))
+#define VectorCopy(a, b)			((b)[0] = (a)[0], (b)[1] = (a)[1], (b)[2] = (a)[2])
+#define Vector4Copy(a, b)			((b)[0] = (a)[0], (b)[1] = (a)[1], (b)[2] = (a)[2], (b)[3] = (a)[3])
+#define VectorClear(a)				(a[0] = a[1] = a[2] = 0.0)
+#define Vector4Clear(a)				(a[0] = a[1] = a[2] = a[3] = 0.0)
+#define VectorNegate(a, b)			(b[0] = -a[0], b[1] = -a[1], b[2] = -a[2])
+#define VectorSet(v, x, y, z)		(v[0] = (x), v[1] = (y), v[2] = (z))
+#define Vector4Set(v, x, y, z, w) 	(v[0] = (x), v[1] = (y), v[2] = (z), v[3] = (w))
+#define VectorSum(a)				(a[0] + a[1] + a[2])
+#define Radians(d) 					((d) * 0.01745329251) // * M_PI / 180.0
+#define Degrees(r)					((r) * 57.2957795131) // * 180.0 / M_PI
 
 /*
  * @brief Math and trigonometry functions.

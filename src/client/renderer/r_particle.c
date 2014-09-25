@@ -174,11 +174,12 @@ static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
  * @brief Generates vertex colors for the specified particle.
  */
 static void R_ParticleColor(const r_particle_t *p, GLubyte *out) {
-	int32_t i;
 
-	for (i = 0; i < 4; i++) {
-		memcpy(out, &img_palette[p->color], 4);
-		out[3] = Clamp(p->alpha * 255, 0, 255);
+	for (int32_t i = 0; i < 4; i++) {
+		out[0] = Clamp(p->color[0] * 255, 0, 255);
+		out[1] = Clamp(p->color[1] * 255, 0, 255);
+		out[2] = Clamp(p->color[2] * 255, 0, 255);
+		out[3] = Clamp(p->color[3] * 255, 0, 255);
 		out += 4;
 	}
 }

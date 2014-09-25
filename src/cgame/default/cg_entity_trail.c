@@ -42,11 +42,10 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke)))
 		return;
 
-	p->part.blend = GL_ONE;
-	p->part.color = 32 + (Random() & 7);
+	cgi.ColorFromPalette(32 + (Random() & 7), p->part.color);
+	p->part.color[3] = 1.5;
 
-	p->part.alpha = 1.5;
-	p->alpha_vel = -1.0 / (1.0 + Randomf());
+	Vector4Set(p->color_vel, -1.0, -1.0, -1.0, -1.0 / (1.0 + Randomf()));
 
 	p->part.scale = 2.0;
 	p->scale_vel = 10 + 25.0 * Randomf();
@@ -82,10 +81,10 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_flame)))
 		return;
 
-	p->part.color = 220 + (Random() & 7);
+	cgi.ColorFromPalette(220 + (Random() & 7), p->part.color);
+	p->part.color[3] = 0.75;
 
-	p->part.alpha = 0.75;
-	p->alpha_vel = -1.0 / (2 + Randomf() * 0.3);
+	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (2 + Randomf() * 0.3));
 
 	p->part.scale = 10.0 + Randomc();
 
@@ -99,7 +98,7 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	// make static flames rise
 	if (ent) {
 		if (VectorCompare(ent->current.origin, ent->current.old_origin)) {
-			p->alpha_vel *= 0.65;
+			p->color_vel[3] *= 0.65;
 			p->accel[2] = 20.0;
 		}
 	}
@@ -129,10 +128,10 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam)))
 		return;
 
-	p->part.color = 6 + (Random() & 7);
+	cgi.ColorFromPalette(6 + (Random() & 7), p->part.color);
+	p->part.color[3] = 0.3;
 
-	p->part.alpha = 0.3;
-	p->alpha_vel = -1.0 / (5.0 + Randomf() * 0.5);
+	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (5.0 + Randomf() * 0.5));
 
 	p->part.scale = 8.0;
 	p->scale_vel = 20.0;
@@ -152,18 +151,16 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
  */
 void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 	vec3_t vec, move;
-	vec_t i, len, delta;
-	int32_t j;
 
 	VectorCopy(start, move);
 	VectorSubtract(end, start, vec);
-	len = VectorNormalize(vec);
+	const vec_t len = VectorNormalize(vec);
 
-	delta = 16.0 / density;
+	const vec_t delta = 16.0 / density;
 	VectorScale(vec, delta, vec);
 	VectorSubtract(move, vec, move);
 
-	for (i = 0.0; i < len; i += delta) {
+	for (vec_t i = 0.0; i < len; i += delta) {
 		VectorAdd(move, vec, move);
 
 		if (!(cgi.PointContents(move) & MASK_LIQUID))
@@ -174,15 +171,13 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble)))
 			return;
 
-		p->part.color = 6 + (Random() & 3);
-
-		p->part.alpha = 1.0;
-		p->alpha_vel = -0.2 - Randomf() * 0.2;
+		cgi.ColorFromPalette(6 + (Random() & 3), p->part.color);
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -0.2 - Randomf() * 0.2);
 
 		p->part.scale = 1.0;
 		p->scale_vel = -0.4 - Randomf() * 0.2;
 
-		for (j = 0; j < 3; j++) {
+		for (int32_t j = 0; j < 3; j++) {
 			p->part.org[j] = move[j] + Randomc() * 2.0;
 			p->vel[j] = Randomc() * 5.0;
 		}
@@ -196,9 +191,6 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
  * @brief
  */
 static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	r_corona_t c;
-	r_light_t l;
-	vec3_t color;
 	int32_t i;
 
 	const uint8_t col = ent->current.client ? ent->current.client : EFFECT_COLOR_ORANGE;
@@ -226,20 +218,19 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 				break;
 			}
 
-			p->part.color = col + (Random() & 5);
-
-			p->part.alpha = 0.8;
-			p->alpha_vel = -3.0 + Randomc() * 0.5;
+			cgi.ColorFromPalette(col + (Random() & 5), p->part.color);
+			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -5.0 + Randomc());
 
 			p->part.scale = 1.5;
-			p->scale_vel = 1.0 + Randomc() * 0.5;
+			p->scale_vel = 5.0 + Randomc() * 1.0;
 
 			VectorMA(start, d, delta, p->part.org);
 			VectorScale(delta, 400.0, p->vel);
 
 			for (i = 0; i < 3; i++) {
 				p->part.org[i] += Randomc() * 0.5;
-				p->vel[i] += Randomc() * 5.0;
+				p->vel[i] += Randomc() * 7.0;
+				p->accel[i] = Randomc() * 30.0;
 			}
 
 			d += step;
@@ -248,6 +239,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		ent->time = cgi.client->time + 16;
 	}
 
+	vec3_t color;
 	cgi.ColorFromPalette(col, color);
 
 	VectorScale(color, 3.0, color);
@@ -257,15 +249,17 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			color[i] = 1.0;
 	}
 
+	r_corona_t c;
 	VectorCopy(end, c.origin);
 	c.radius = 3.0;
-	c.flicker = 0.5;
+	c.flicker = 0.66;
 	VectorCopy(color, c.color);
 
 	cgi.AddCorona(&c);
 
+	r_light_t l;
 	VectorCopy(end, l.origin);
-	l.radius = 75.0;
+	l.radius = 75.0 + (10.0 * Randomc());
 	VectorCopy(color, l.color);
 
 	cgi.AddLight(&l);
@@ -290,8 +284,6 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
  * @brief
  */
 static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	r_corona_t c;
-	r_light_t l;
 
 	const uint32_t old_time = ent->time;
 
@@ -312,21 +304,22 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
 				break;
 
-			p->part.color = 0xe0 + (Random() & 7);
+			cgi.ColorFromPalette(0xe0 + (Random() & 7), p->part.color);
+			p->part.color[3] = 0.5 + Randomc() * 0.25;
 
-			p->part.alpha = 0.5 + Randomc() * 0.25;
-			p->alpha_vel = -1.0 + 0.25 * Randomc();
+			Vector4Set(p->color_vel, 1.0, 1.0, 0.0, -1.0 + 0.25 * Randomc());
 
 			VectorMA(start, d, delta, p->part.org);
 
 			p->vel[0] = 32.0 * Randomc();
 			p->vel[1] = 32.0 * Randomc();
-			p->vel[2] = -PARTICLE_GRAVITY * 0.25 * Randomf();
+			p->vel[2] = -PARTICLE_GRAVITY * 0.33 * Randomf();
 
 			d += 2.0;
 		}
 	}
 
+	r_corona_t c;
 	VectorCopy(end, c.origin);
 	c.radius = 3.0;
 	c.flicker = 0.25;
@@ -334,6 +327,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 	cgi.AddCorona(&c);
 
+	r_light_t l;
 	VectorCopy(end, l.origin);
 	l.radius = 150.0;
 	VectorSet(l.color, 0.8, 0.4, 0.2);
@@ -378,23 +372,22 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int
 
 		vec_t dist = sin(ltime + i) * radius;
 
-		p->part.alpha = 1.0;
-		p->alpha_vel = -100.0;
-
 		p->part.scale = 0.5 + (0.05 * radius);
 
 		int32_t j;
 		for (j = 0; j < 3; j++) {
-			// project the origin outward, adding in angular velocity
+			// project the origin outward and forward
 			p->part.org[j] = org[j] + (approximate_normals[i][j] * dist) + forward[j] * radius;
 		}
 
 		vec3_t delta;
 		VectorSubtract(p->part.org, org, delta);
 		dist = VectorLength(delta) / (3.0 * radius);
-		p->part.color = color + dist * 7.0;
 
-		p->vel[0] = p->vel[1] = p->vel[2] = 2.0 * Randomc();
+		cgi.ColorFromPalette(color + dist * 7.0, p->part.color);
+		Vector4Set(p->color_vel, -dist * 100.0, -dist * 100.0, -dist * 100.0, -100.0);
+
+		VectorScale(delta, 100.0, p->accel);
 	}
 
 	// add a bubble trail if appropriate
@@ -434,7 +427,6 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, const vec3_t org) {
  * @brief
  */
 static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	cg_particle_t *p;
 	r_light_t l;
 	vec3_t dir, delta, pos, vel;
 	vec_t dist, offset;
@@ -461,14 +453,13 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 
 	i = 0;
 	while (dist > 0.0) {
+		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_lightning)))
 			return;
 
-		p->part.color = 12 + (Random() & 3);
-
-		p->part.alpha = 1.0;
-		p->alpha_vel = -9999.0;
+		cgi.ColorFromPalette(12 + (Random() & 3), p->part.color);
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -9999.0);
 
 		p->part.scale = 8.0;
 
@@ -507,11 +498,10 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
  * @brief
  */
 static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
-	r_corona_t c;
-	r_light_t l;
 
 	Cg_EnergyTrail(ent, org, 48.0, 206);
 
+	r_corona_t c;
 	VectorCopy(org, c.origin);
 	c.radius = 48.0;
 	c.flicker = 0.05;
@@ -519,6 +509,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 
 	cgi.AddCorona(&c);
 
+	r_light_t l;
 	VectorCopy(org, l.origin);
 	l.radius = 200.0;
 	VectorSet(l.color, 0.4, 1.0, 0.4);
@@ -530,7 +521,6 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
  * @brief
  */
 void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
-	int32_t i;
 
 	if (ent) { // honor a slightly randomized time interval
 
@@ -542,16 +532,14 @@ void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
 		ent->time = cgi.client->time + 1000 + (2000 * Randomf());
 	}
 
-	for (i = 0; i < 4; i++) {
+	for (int32_t i = 0; i < 4; i++) {
 		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_teleporter)))
 			return;
 
-		p->part.color = 216;
-
-		p->part.alpha = 1.0;
-		p->alpha_vel = -1.8;
+		cgi.ColorFromPalette(216, p->part.color);
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.8);
 
 		p->part.scale = 16.0;
 		p->scale_vel = 24.0;
@@ -590,10 +578,8 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 
 		VectorMA(end, dist, move, p->part.org);
 
-		p->part.color = 232 + (Random() & 7);
-
-		p->part.alpha = 1.0;
-		p->alpha_vel = -1.0 / (0.5 + Randomf() * 0.3);
+		cgi.ColorFromPalette(232 + (Random() & 7), p->part.color);
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (0.5 + Randomf() * 0.3));
 
 		p->part.scale = 3.0;
 

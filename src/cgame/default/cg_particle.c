@@ -105,7 +105,7 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
 	memset(p, 0, sizeof(cg_particle_t));
 
 	p->part.blend = GL_ONE;
-	p->part.alpha = 1.0;
+	Vector4Set(p->part.color, 1.0, 1.0, 1.0, 1.0);
 	p->part.scale = 1.0;
 
 	Cg_PushParticle(p, &cg_free_particles);
@@ -171,11 +171,16 @@ void Cg_AddParticles(void) {
 			// update any particles allocated in previous frames
 			if (p->time != cgi.client->time) {
 
-				p->part.alpha += delta * p->alpha_vel;
+				// apply color velocity
+				for (i = 0; i < 4; i++) {
+					p->part.color[i] += delta * p->color_vel[i];
+				}
+
+				// and scale velocity
 				p->part.scale += delta * p->scale_vel;
 
 				// free up particles that have disappeared
-				if (p->part.alpha <= 0.0 || p->part.scale <= 0.0) {
+				if (p->part.color[3] <= 0.0 || p->part.scale <= 0.0) {
 					p = Cg_FreeParticle(p, &ps->particles);
 					continue;
 				}

@@ -31,7 +31,7 @@ typedef struct cg_particle_s {
 	r_particle_t part; // the r_particle_t to add to the view
 	vec3_t vel;
 	vec3_t accel;
-	vec_t alpha_vel;
+	vec4_t color_vel;
 	vec_t scale_vel;
 	vec_t end_z; // weather particles are freed at this Z
 	uint32_t time; // client time when allocated

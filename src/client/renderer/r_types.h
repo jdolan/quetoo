@@ -701,8 +701,7 @@ typedef struct r_particle_s {
 	r_particle_type_t type;
 	const r_image_t *image;
 	GLenum blend;
-	byte color;
-	vec_t alpha;
+	vec4_t color;
 	vec_t scale;
 	vec_t scroll_s;
 	vec_t scroll_t;
