@@ -153,7 +153,7 @@ typedef struct {
 	entity_state_t entity_states[ENTITY_STATE_BACKUP]; // accumulated each frame
 	uint32_t entity_state; // index (not wrapped) into entity states
 
-	uint16_t client_num; // our client number, which is our entity number + 1
+	uint16_t client_num; // our client number, which is our entity number - 1
 
 	uint32_t surpress_count; // number of messages rate suppressed
 

@@ -361,7 +361,7 @@ void Cg_AddEmits(void) {
 
 		// first add emits which fire every frame
 
-		if (e->flags & EMIT_LIGHT && !e->hz)
+		if ((e->flags & EMIT_LIGHT) && !e->hz)
 			cgi.AddLight(Cg_EmitLight(e));
 
 		if ((e->flags & EMIT_SOUND) && e->loop)
