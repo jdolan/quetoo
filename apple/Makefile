@@ -13,7 +13,7 @@ RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-apple/$(ARCH)
 RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
 DIST = $(TARGET)/Quake2World-BETA-$(ARCH).dmg
 VOLUME_NAME = "Quake2World BETA $(ARCH)"
-HTTP_REPOSITORY = quake2world.net:/var/www/quake2world/files
+HTTP_REPOSITORY = quake2world.net:/var/www/quake2world.net/files
 HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
 all: install-lib

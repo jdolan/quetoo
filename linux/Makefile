@@ -12,7 +12,7 @@ REMOTE_USER = $(shell whoami)
 RSYNC_REPOSITORY = quake2world.net:/opt/rsync/$(ARTIFACT)-linux/$(ARCH)
 RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
 DIST = $(TARGET)/$(ARTIFACT)-BETA-$(ARCH).tar.gz
-HTTP_REPOSITORY = quake2world.net:/var/www/quake2world/files
+HTTP_REPOSITORY = quake2world.net:/var/www/quake2world.net/files
 HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
 all: install-lib

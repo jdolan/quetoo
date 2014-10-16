@@ -37,12 +37,12 @@ function BUILD
 	if [ $? != "0" ];then
 		echo "Build error"
 		sync
-    	./_rsync_retry.sh -vrzhP --timeout=120 --delete --inplace --rsh='ssh'  _build-"$CURRENT_ARCH".log maci@quake2world.net:/var/www/quake2world/files/
+    	./_rsync_retry.sh -vrzhP --timeout=120 --delete --inplace --rsh='ssh'  _build-"$CURRENT_ARCH".log maci@quake2world.net:/var/www/quake2world.net/files/
 		mailsend.exe -d quake2world.net -smtp quake2world.net -t quake2world-dev@quake2world.net -f q2wbuild@quake2world.net -sub "Build FAILED $CURRENT_ARCH-svn$CURRENT_REVISION" +cc +bc -a "_build-$CURRENT_ARCH.log,text/plain"
 	else
 		echo "Build succeeded"
 		sync
-    	./_rsync_retry.sh -vrzhP --timeout=120 --delete --inplace --rsh='ssh'  _build-"$CURRENT_ARCH".log maci@quake2world.net:/var/www/quake2world/files/
+    	./_rsync_retry.sh -vrzhP --timeout=120 --delete --inplace --rsh='ssh'  _build-"$CURRENT_ARCH".log maci@quake2world.net:/var/www/quake2world.net/files/
 		rm _build-"$CURRENT_ARCH".log
 	fi
 	

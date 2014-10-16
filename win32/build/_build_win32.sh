@@ -93,5 +93,5 @@ zip -9 -x quake2world/quake2world.exe quake2world/q2wmap.exe quake2world/pak.exe
 cd ${START}
 
 ../_rsync_retry.sh -vrzhP --timeout=120 --chmod="u=rwx,go=rx" -p --delete --inplace --rsh='ssh' dist/quake2world/* maci@quake2world.net:/opt/rsync/quake2world-win32/${CURRENT_ARCH}
-../_rsync_retry.sh -vrzhP --timeout=120 --delete --inplace --rsh='ssh' quake2world-BETA-${CURRENT_ARCH}.zip maci@quake2world.net:/var/www/quake2world/files/quake2world-BETA-${CURRENT_ARCH}.zip
-../_rsync_retry.sh -vrzhP --timeout=120 --delete --inplace --rsh='ssh' dist/quake2world/Update.exe maci@quake2world.net:/var/www/quake2world/files/Update.exe
+../_rsync_retry.sh -vrzhP --timeout=120 --delete --inplace --rsh='ssh' quake2world-BETA-${CURRENT_ARCH}.zip maci@quake2world.net:/var/www/quake2world.net/files/quake2world-BETA-${CURRENT_ARCH}.zip
+../_rsync_retry.sh -vrzhP --timeout=120 --delete --inplace --rsh='ssh' dist/quake2world/Update.exe maci@quake2world.net:/var/www/quake2world.net/files/Update.exe
