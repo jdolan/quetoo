@@ -379,9 +379,8 @@ void Cl_Interpolate(void) {
 void Cl_UpdateEntities(void) {
 
 	if (r_view.update) {
-		uint16_t i;
 
-		for (i = 0; i < lengthof(cl.entities); i++) {
+		for (size_t i = 0; i < lengthof(cl.entities); i++) {
 			r_lighting_t *l = &cl.entities[i].lighting;
 
 			memset(l, 0, sizeof(*l));

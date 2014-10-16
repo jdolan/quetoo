@@ -477,7 +477,7 @@ static int16_t R_CrossingContents(int32_t contents) {
  * dot-product test in order to be marked as visible for the current frame.
  */
 void R_UpdateVis(void) {
-	static uint32_t last_vis_time;
+	static uint32_t last_vis_time = UINT32_MAX;
 	static int16_t old_clusters[2];
 	int16_t clusters[2];
 
