@@ -109,7 +109,7 @@ void R_UseProgram_default(void) {
 /*
  * @brief
  */
-void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_material_t *material) {
+void R_UseMaterial_default(const r_material_t *material) {
 
 	r_default_program_t *p = &r_default_program;
 
@@ -122,15 +122,10 @@ void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_material_t *mate
 	R_EnableAttribute(&p->tangent);
 
 	// first deal with the surface
-	if (surf) {
-		R_BindDeluxemapTexture(surf->deluxemap->texnum);
+	if (texunit_lightmap.enabled)
 		R_ProgramParameter1i(&p->deluxemap, 1);
-	} else
+	else
 		R_ProgramParameter1i(&p->deluxemap, 0);
-
-	// then the material
-	if (r_state.active_material == material)
-		return;
 
 	R_BindNormalmapTexture(material->normalmap->texnum);
 	R_ProgramParameter1i(&p->normalmap, 1);

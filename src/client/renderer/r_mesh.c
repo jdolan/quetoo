@@ -236,17 +236,17 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 			// hardware lighting
 			if (r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)) {
 
-				R_UseMaterial(NULL, r_mesh_state.material);
+				R_UseMaterial(r_mesh_state.material);
 
 				R_ApplyLighting(e->lighting);
 			}
 		} else {
-			R_UseMaterial(NULL, NULL);
+			R_UseMaterial(NULL);
 		}
 	} else {
 		R_Color(NULL);
 
-		R_UseMaterial(NULL, NULL);
+		R_UseMaterial(NULL);
 	}
 
 	if (e->effects & EF_WEAPON) // prevent weapon from poking into walls
@@ -364,9 +364,9 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
  */
 static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 	r_md3_mesh_t *mesh = md3->meshes;
-	int32_t i, offset = 0;
+	uint32_t offset = 0;
 
-	for (i = 0; i < md3->num_meshes; i++, mesh++) {
+	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (!r_draw_wireframe->value) {
 			if (i > 0) { // update the diffuse state for the current mesh
@@ -374,7 +374,7 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 
 				R_BindTexture(r_mesh_state.material->diffuse->texnum);
 
-				R_UseMaterial(NULL, r_mesh_state.material);
+				R_UseMaterial(r_mesh_state.material);
 			}
 		}
 

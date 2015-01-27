@@ -88,8 +88,9 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 			R_EnableLighting(r_state.default_program, true);
 
 			if (r_state.lighting_enabled) {
+				R_BindDeluxemapTexture(surf->deluxemap->texnum);
 
-				R_UseMaterial(surf, stage->material);
+				R_UseMaterial(stage->material);
 
 				if (surf->light_frame == r_locals.light_frame) // dynamic light sources
 					R_EnableLights(surf->light_mask);
@@ -271,22 +272,19 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// for terrain, enable the color array
-	if (stage->flags & (STAGE_TERRAIN | STAGE_DIRTMAP))
+	if (stage->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
 		R_EnableColorArray(true);
-	else {
+	} else {
 		R_EnableColorArray(false);
 
 		// resolve the shade color
-
-		if (stage->flags & STAGE_COLOR) // explicit
+		if (stage->flags & STAGE_COLOR) { // explicit
 			VectorCopy(stage->color, color);
-
-		else if (stage->flags & STAGE_ENVMAP) // implicit
+		} else if (stage->flags & STAGE_ENVMAP) { // implicit
 			VectorCopy(surf->texinfo->material->diffuse->color, color);
-
-		else
-			// default
+		} else {
 			VectorSet(color, 1.0, 1.0, 1.0);
+		}
 
 		// modulate the alpha value for pulses
 		if (stage->flags & STAGE_PULSE) {
@@ -414,7 +412,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLights(0);
 
-	R_UseMaterial(NULL, NULL);
+	R_UseMaterial(NULL);
 
 	R_EnableLighting(NULL, false);
 

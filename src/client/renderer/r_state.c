@@ -520,16 +520,21 @@ void R_EnableFog(_Bool enable) {
 }
 
 /*
- * @brief Setup the GLSL shaders for the specified surface and primary material. If no
- * shader is bound, this function simply returns.
+ * @brief Setup the GLSL program for the specified material. If no program is
+ * bound, this function simply returns.
  */
-void R_UseMaterial(const r_bsp_surface_t *surf, const r_material_t *material) {
+void R_UseMaterial(const r_material_t *material) {
 
 	if (!r_state.active_program)
 		return;
 
+	if (r_state.active_material == material)
+		return;
+
+	r_state.active_material = material;
+
 	if (r_state.active_program->UseMaterial)
-		r_state.active_program->UseMaterial(surf, material);
+		r_state.active_program->UseMaterial(material);
 
 	R_GetError(material ? material->diffuse->media.name : r_state.active_program->name);
 }

@@ -75,7 +75,7 @@ typedef struct r_program_s {
 	uint32_t arrays_mask;
 	void (*Init)(void);
 	void (*Use)(void);
-	void (*UseMaterial)(const r_bsp_surface_t *surf, const r_material_t *material);
+	void (*UseMaterial)(const r_material_t *material);
 } r_program_t;
 
 #define MAX_PROGRAMS 8

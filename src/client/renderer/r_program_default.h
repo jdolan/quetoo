@@ -27,7 +27,7 @@
 #ifdef __R_LOCAL_H__
 void R_InitProgram_default(void);
 void R_UseProgram_default(void);
-void R_UseMaterial_default(const r_bsp_surface_t *surf, const r_material_t *material);
+void R_UseMaterial_default(const r_material_t *material);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PROGRAM_DEFAULT_H__ */

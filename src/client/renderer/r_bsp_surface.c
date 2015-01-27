@@ -54,8 +54,9 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		R_BindLightmapTexture(surf->lightmap->texnum);
 
 	if (r_state.lighting_enabled) { // hardware lighting
+		R_BindDeluxemapTexture(surf->deluxemap->texnum);
 
-		R_UseMaterial(surf, surf->texinfo->material);
+		R_UseMaterial(surf->texinfo->material);
 
 		if (surf->light_frame == r_locals.light_frame) // dynamic light sources
 			R_EnableLights(surf->light_mask);
@@ -102,7 +103,7 @@ static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	// reset state
 	if (r_state.lighting_enabled) {
 
-		R_UseMaterial(NULL, NULL);
+		R_UseMaterial(NULL);
 
 		R_EnableLights(0);
 	}
