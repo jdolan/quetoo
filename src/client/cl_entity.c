@@ -93,8 +93,11 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 
 	// check to see if the delta was successful and valid
 	if (ent->frame_num != cl.frame.frame_num - 1 || !Cl_ValidDeltaEntity(from, to)) {
-		ent->prev = *to; // suppress interpolation
+		ent->is_new = true; // suppress interpolation
+
+		ent->prev = *to; // copy the current state to the previous
 		VectorCopy(to->old_origin, ent->prev.origin);
+
 		ent->animation1.time = ent->animation2.time = 0; // reset animations
 		ent->lighting.state = LIGHTING_INIT; // and lighting
 	} else { // shuffle the last state to previous
@@ -348,9 +351,6 @@ void Cl_Interpolate(void) {
 		if (!VectorCompare(ent->origin, ent->current.origin) ||
 				!VectorCompare(ent->angles, ent->current.angles)) {
 
-			// mark the lighting as dirty
-			ent->lighting.state = MIN(ent->lighting.state, LIGHTING_DIRTY);
-
 			// interpolate the origin and angles
 			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
 			AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
@@ -358,8 +358,11 @@ void Cl_Interpolate(void) {
 
 		// and update clipping matrices, snapping the entity to the frame
 
-		if (!VectorCompare(ent->current.origin, ent->prev.origin) ||
+		if (ent->is_new || !VectorCompare(ent->current.origin, ent->prev.origin) ||
 				!VectorCompare(ent->current.angles, ent->prev.angles)) {
+
+			// mark the lighting as dirty
+			ent->lighting.state = MIN(ent->lighting.state, LIGHTING_DIRTY);
 
 			const uint16_t solid = ent->current.solid;
 			if (solid != SOLID_NOT) {
@@ -369,6 +372,8 @@ void Cl_Interpolate(void) {
 				Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.0);
 				Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
 			}
+
+			ent->is_new = false;
 		}
 	}
 }

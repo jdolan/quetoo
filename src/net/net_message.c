@@ -77,7 +77,7 @@ void Net_WriteLong(mem_buf_t *msg, const int32_t c) {
  */
 void Net_WriteString(mem_buf_t *msg, const char *s) {
 	if (!s)
-		Mem_WriteBuffer(msg, '\0', 1);
+		Mem_WriteBuffer(msg, "", 1);
 	else
 		Mem_WriteBuffer(msg, s, strlen(s) + 1);
 }

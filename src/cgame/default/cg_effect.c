@@ -259,8 +259,8 @@ static void Cg_AddWeather(void) {
 	}
 }
 
-/**
- * Cg_AddEffects
+/*
+ * @brief
  */
 void Cg_AddEffects() {
 	Cg_AddWeather();

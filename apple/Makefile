@@ -20,7 +20,7 @@ all: install-lib
 
 pre-install:
 	install -d $(INSTALL)
-	cp -r Quake2World/* $(INSTALL)
+	cp -R Quake2World/* $(INSTALL)
 	find $(INSTALL) -name .turd -delete
 	./set-icon.sh icon.icns $(INSTALL)
 
@@ -40,7 +40,7 @@ install-lib: install
 	-d $(LIBDIR) -of -p @executable_path/lib
 
 install-data:
-	cp -r $(DATA)/target/* $(DATADIR)
+	cp -R $(DATA)/target/* $(DATADIR)
 
 release:
 	rsync -rzhP --delete $(BINDIR) $(RSYNC_TARGET)
