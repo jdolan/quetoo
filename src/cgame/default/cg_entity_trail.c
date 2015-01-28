@@ -97,7 +97,7 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	// make static flames rise
 	if (ent) {
-		if (VectorCompare(ent->current.origin, ent->current.old_origin)) {
+		if (VectorCompare(ent->current.origin, ent->prev.origin)) {
 			p->color_vel[3] *= 0.65;
 			p->accel[2] = 20.0;
 		}
