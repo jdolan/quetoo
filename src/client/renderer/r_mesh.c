@@ -182,7 +182,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 
 	VectorCopy(r_bsp_light_state.ambient, color);
 
-	if (!r_lighting->value) {
+	if (!r_lighting->value || !r_programs->value) {
 		const r_illumination_t *il = e->lighting->illuminations;
 
 		for (uint16_t i = 0; i < lengthof(e->lighting->illuminations); i++, il++) {
