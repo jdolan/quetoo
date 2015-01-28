@@ -39,9 +39,7 @@ static r_array_state_t r_array_state;
  * bindings are up to date.
  */
 static int32_t R_ArraysMask(void) {
-	uint32_t mask;
-
-	mask = R_ARRAY_VERTEX;
+	uint32_t mask = R_ARRAY_VERTEX;
 
 	if (r_state.color_array_enabled)
 		mask |= R_ARRAY_COLOR;
@@ -148,7 +146,6 @@ static void R_SetVertexBufferState(const r_model_t *mod, uint32_t mask) {
  * @brief
  */
 void R_SetArrayState(const r_model_t *mod) {
-	uint32_t arrays, mask;
 
 	if (r_vertex_buffers->modified) { // force a full re-bind
 		r_array_state.model = NULL;
@@ -157,7 +154,7 @@ void R_SetArrayState(const r_model_t *mod) {
 
 	r_vertex_buffers->modified = false;
 
-	mask = 0xffff, arrays = R_ArraysMask(); // resolve the desired arrays mask
+	uint32_t mask = 0xffff, arrays = R_ArraysMask(); // resolve the desired arrays mask
 
 	if (r_array_state.model == mod) { // try to save some binds
 
@@ -187,21 +184,21 @@ void R_SetArrayState(const r_model_t *mod) {
  * @brief
  */
 void R_ResetArrayState(void) {
-	uint32_t arrays, mask;
 
-	mask = 0xffff, arrays = R_ArraysMask(); // resolve the desired arrays mask
+	uint32_t mask = 0xffff, arrays = R_ArraysMask(); // resolve the desired arrays mask
 
 	if (r_array_state.model == NULL) {
-		const int32_t xor = r_array_state.arrays ^ arrays;
+		const uint32_t xor = r_array_state.arrays ^ arrays;
 
 		if (!xor) // no changes, we're done
 			return;
 
 		// resolve what's left to turn on
 		mask = arrays & xor;
-	} else
-		// vbo
-		R_BindBuffer(0, 0, 0);
+	}
+
+	// reset vbo
+	R_BindBuffer(0, 0, 0);
 
 	// vertex array
 	if (mask & R_ARRAY_VERTEX)
