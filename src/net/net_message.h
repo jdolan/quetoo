@@ -54,7 +54,7 @@
  * written or read for delta compression from one snapshot to the next.
  */
 #define U_ORIGIN				0x1
-#define U_ORIGIN2				0x2 // beams
+#define U_TERMINATION			0x2 // beams
 #define U_ANGLES				0x4
 #define U_ANIMATIONS			0x8 // animation frames
 #define U_EVENT					0x10 // single-frame events

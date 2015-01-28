@@ -95,9 +95,6 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 	if (ent->frame_num != cl.frame.frame_num - 1 || !Cl_ValidDeltaEntity(from, to)) {
 		ent->is_new = true; // suppress interpolation
 		ent->prev = *to; // copy the current state to the previous
-
-		ent->animation1.time = ent->animation2.time = 0; // reset animations
-		ent->lighting.state = LIGHTING_INIT; // and lighting
 	} else { // shuffle the last state to previous
 		ent->prev = ent->current;
 	}
@@ -344,31 +341,35 @@ void Cl_Interpolate(void) {
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
 
-		// interpolate movements, bringing the entity inline with the frame
+		const _Bool translated = !VectorCompare(ent->prev.origin, ent->current.origin);
+		const _Bool rotated = !VectorCompare(ent->prev.angles, ent->current.angles);
 
-		if (!VectorCompare(ent->origin, ent->current.origin) ||
-				!VectorCompare(ent->angles, ent->current.angles)) {
+		// interpolate movements, bringing the entity inline with the current frame
+		if (ent->is_new || translated || rotated) {
 
-			// interpolate the origin and angles
+			// interpolate the origin, termination and angles
 			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
+			VectorLerp(ent->prev.termination, ent->current.termination, cl.lerp, ent->termination);
 			AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
-		}
 
-		// and update clipping matrices, snapping the entity to the frame
+			// and update clipping matrices, snapping the entity to the frame
+			if (ent->current.solid) {
+				if (ent->current.solid == SOLID_BSP) {
+					Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, ent->current.angles, 1.0);
+					Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+				} else { // box models
+					if (translated) {
+						Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, vec3_origin, 1.0);
+						Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
 
-		if (ent->is_new || !VectorCompare(ent->current.origin, ent->prev.origin) ||
-				!VectorCompare(ent->current.angles, ent->prev.angles)) {
+						// mark the lighting as dirty
+						ent->lighting.state = LIGHTING_DIRTY;
+					}
+				}
+			}
 
-			// mark the lighting as dirty
-			ent->lighting.state = MIN(ent->lighting.state, LIGHTING_DIRTY);
-
-			const uint16_t solid = ent->current.solid;
-			if (solid != SOLID_NOT) {
-
-				const vec_t *angles = solid == SOLID_BSP ? ent->current.angles : vec3_origin;
-
-				Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, angles, 1.0);
-				Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+			if (ent->is_new) {
+				ent->animation1.time = ent->animation2.time = 0;
 			}
 
 			ent->is_new = false;
@@ -388,7 +389,7 @@ void Cl_UpdateEntities(void) {
 
 			memset(l, 0, sizeof(*l));
 
-			l->state = LIGHTING_INIT;
+			l->state = LIGHTING_DIRTY;
 			l->number = i;
 		}
 	}

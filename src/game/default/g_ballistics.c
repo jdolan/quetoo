@@ -657,7 +657,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	}
 
 	VectorCopy(start, self->s.origin); // update end points
-	VectorCopy(tr.end, self->s.origin2);
+	VectorCopy(tr.end, self->s.termination);
 
 	gi.LinkEntity(self);
 
@@ -686,7 +686,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 		if (G_ImmediateWall(ent, projectile))
 			VectorCopy(ent->s.origin, projectile->s.origin);
 
-		VectorMA(start, 800.0, dir, projectile->s.origin2);
+		VectorMA(start, 800.0, dir, projectile->s.termination);
 
 		projectile->owner = ent;
 		projectile->solid = SOLID_NOT;

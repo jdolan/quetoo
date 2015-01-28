@@ -201,45 +201,39 @@ void Sv_Unicast(const g_entity_t *ent, const _Bool reliable) {
  * MULTICAST_PHS	send to clients potentially hearable from org
  */
 void Sv_Multicast(const vec3_t origin, multicast_t to) {
-	int32_t leaf_num, cluster;
-	int32_t area1, area2;
-	byte *vis;
+	byte vis[MAX_BSP_LEAFS >> 3];
+	int32_t area;
 
 	_Bool reliable = false;
-
-	if (to != MULTICAST_ALL_R && to != MULTICAST_ALL) {
-		leaf_num = Cm_PointLeafnum(origin, 0);
-		area1 = Cm_LeafArea(leaf_num);
-	} else {
-		leaf_num = 0; // just to avoid compiler warnings
-		area1 = 0;
-	}
 
 	switch (to) {
 		case MULTICAST_ALL_R:
 			reliable = true;
 			/* no break */
 		case MULTICAST_ALL:
-			leaf_num = 0;
-			vis = NULL;
 			break;
 
 		case MULTICAST_PHS_R:
 			reliable = true;
 			/* no break */
-		case MULTICAST_PHS:
-			leaf_num = Cm_PointLeafnum(origin, 0);
-			cluster = Cm_LeafCluster(leaf_num);
-			vis = Cm_ClusterPHS(cluster);
+		case MULTICAST_PHS: {
+			const int32_t leaf = Cm_PointLeafnum(origin, 0);
+			const int32_t cluster = Cm_LeafCluster(leaf);
+			Cm_ClusterPHS(cluster, vis);
+			area = Cm_LeafArea(leaf);
+		}
+
 			break;
 
 		case MULTICAST_PVS_R:
 			reliable = true;
 			/* no break */
-		case MULTICAST_PVS:
-			leaf_num = Cm_PointLeafnum(origin, 0);
-			cluster = Cm_LeafCluster(leaf_num);
-			vis = Cm_ClusterPVS(cluster);
+		case MULTICAST_PVS: {
+			const int32_t leaf = Cm_PointLeafnum(origin, 0);
+			const int32_t cluster = Cm_LeafCluster(leaf);
+			Cm_ClusterPVS(cluster, vis);
+			area = Cm_LeafArea(leaf);
+		}
 			break;
 
 		default:
@@ -261,7 +255,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 		if (cl->entity->ai)
 			continue;
 
-		if (vis) {
+		if (to != MULTICAST_ALL && to != MULTICAST_ALL_R) {
 			const pm_state_t *pm = &cl->entity->client->ps.pm_state;
 			vec3_t org, off;
 
@@ -269,13 +263,13 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 			UnpackVector(pm->view_offset, off);
 			VectorAdd(org, off, org);
 
-			leaf_num = Cm_PointLeafnum(org, 0);
-			cluster = Cm_LeafCluster(leaf_num);
-			area2 = Cm_LeafArea(leaf_num);
+			const int32_t leaf = Cm_PointLeafnum(org, 0);
 
-			if (!Cm_AreasConnected(area1, area2))
+			const int32_t client_area = Cm_LeafArea(leaf);
+			if (!Cm_AreasConnected(area, client_area))
 				continue;
 
+			const int32_t cluster = Cm_LeafCluster(leaf);
 			if (vis && (!(vis[cluster >> 3] & (1 << (cluster & 7)))))
 				continue;
 		}

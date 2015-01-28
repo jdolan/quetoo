@@ -68,6 +68,7 @@ typedef struct {
 	cl_entity_animation_t animation2; // lower body animation
 
 	vec3_t origin; // interpolated origin
+	vec3_t termination; // and termination
 	vec3_t angles; // and angles
 
 	matrix4x4_t matrix; // interpolated translation and rotation

@@ -168,8 +168,6 @@ void R_UpdateMeshModelLighting(const r_entity_t *e) {
 		// calculate scaled bounding box in world space
 		VectorMA(e->lighting->origin, e->scale, e->model->mins, e->lighting->mins);
 		VectorMA(e->lighting->origin, e->scale, e->model->maxs, e->lighting->maxs);
-	} else {
-		Com_Debug("%s\n", e->model->media.name);
 	}
 
 	R_UpdateLighting(e->lighting);
@@ -380,11 +378,11 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 			}
 		}
 
-		glDrawArrays(GL_TRIANGLES, offset, mesh->num_verts);
+		glDrawArrays(GL_TRIANGLES, offset, mesh->num_tris * 3);
 
-		R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_verts);
+		R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_tris * 3);
 
-		offset += mesh->num_verts;
+		offset += mesh->num_tris * 3;
 	}
 }
 

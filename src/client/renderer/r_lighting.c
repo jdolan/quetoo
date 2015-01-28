@@ -159,14 +159,20 @@ static _Bool R_PositionalIllumination(const r_lighting_t *l, const r_light_t *li
  * @brief Adds illuminations for static (BSP) light sources.
  */
 static void R_StaticIlluminations(r_lighting_t *l) {
+	byte pvs[MAX_BSP_LEAFS >> 3];
+
+	const r_bsp_leaf_t *leaf = R_LeafForPoint(l->origin, NULL);
+	Cm_ClusterPVS(leaf->cluster, pvs);
 
 	const r_bsp_light_t *bl = r_model_state.world->bsp->bsp_lights;
 
 	for (uint16_t i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, bl++) {
 
-		if (l->state == LIGHTING_DIRTY) {
-			if (bl->leaf->vis_frame != r_locals.vis_frame)
+		const int16_t cluster = bl->leaf->cluster;
+		if (cluster != -1) {
+			if ((pvs[cluster >> 3] & (1 << (cluster & 7))) == 0) {
 				continue;
+			}
 		}
 
 		R_PositionalIllumination(l, (const r_light_t *) &(bl->light));
@@ -217,8 +223,6 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 		if (prev_light_mask == 0 && l->light_mask == 0)
 			return;
 	}
-
-	l->state = MIN(l->state, LIGHTING_DIRTY);
 
 	memset(l->illuminations, 0, sizeof(l->illuminations));
 

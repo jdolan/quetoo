@@ -145,55 +145,54 @@ static void Sv_WriteAngles(const vec3_t angles) {
 }
 
 /*
- * @brief Also checks portal_areas so that doors block sight
+ * @brief Also checks areas so that doors block sight.
  */
 static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
-	int32_t leaf_num;
-	int32_t cluster;
-	int32_t area1, area2;
-	byte *mask;
+	byte pvs[MAX_BSP_LEAFS >> 3];
 
-	leaf_num = Cm_PointLeafnum(p1, 0);
-	cluster = Cm_LeafCluster(leaf_num);
-	area1 = Cm_LeafArea(leaf_num);
-	mask = Cm_ClusterPVS(cluster);
+	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
+	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
 
-	leaf_num = Cm_PointLeafnum(p2, 0);
-	cluster = Cm_LeafCluster(leaf_num);
-	area2 = Cm_LeafArea(leaf_num);
-
-	if (mask && (!(mask[cluster >> 3] & (1 << (cluster & 7)))))
-		return false;
+	const int32_t area1 = Cm_LeafArea(leaf1);
+	const int32_t area2 = Cm_LeafArea(leaf2);
 
 	if (!Cm_AreasConnected(area1, area2))
 		return false; // a door blocks sight
+
+	const int32_t cluster1 = Cm_LeafCluster(leaf1);
+	const int32_t cluster2 = Cm_LeafCluster(leaf2);
+
+	Cm_ClusterPVS(cluster1, pvs);
+
+	if ((pvs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0)
+		return false;
 
 	return true;
 }
 
 /*
- * @brief Also checks portal_areas so that doors block sound
+ * @brief Also checks areas so that doors block sound.
  */
 static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
-	int32_t leaf_num;
-	int32_t cluster;
-	int32_t area1, area2;
-	byte *mask;
+	byte phs[MAX_BSP_LEAFS >> 3];
 
-	leaf_num = Cm_PointLeafnum(p1, 0);
-	cluster = Cm_LeafCluster(leaf_num);
-	area1 = Cm_LeafArea(leaf_num);
-	mask = Cm_ClusterPHS(cluster);
+	const int32_t leaf1 = Cm_PointLeafnum(p1, 0);
 
-	leaf_num = Cm_PointLeafnum(p2, 0);
-	cluster = Cm_LeafCluster(leaf_num);
-	area2 = Cm_LeafArea(leaf_num);
+	const int32_t leaf2 = Cm_PointLeafnum(p2, 0);
 
-	if (mask && (!(mask[cluster >> 3] & (1 << (cluster & 7)))))
-		return false; // more than one bounce away
+	const int32_t area1 = Cm_LeafArea(leaf1);
+	const int32_t area2 = Cm_LeafArea(leaf2);
 
 	if (!Cm_AreasConnected(area1, area2))
 		return false; // a door blocks hearing
+
+	const int32_t cluster1 = Cm_LeafCluster(leaf1);
+	const int32_t cluster2 = Cm_LeafCluster(leaf2);
+
+	Cm_ClusterPHS(cluster1, phs);
+
+	if ((phs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0)
+		return false;
 
 	return true;
 }

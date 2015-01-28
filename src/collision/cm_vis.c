@@ -24,69 +24,71 @@
 /*
  * @brief If true, BSP area culling is skipped.
  */
-_Bool cm_no_areas;
+_Bool cm_no_areas = false;
 
 /*
  * @brief
  */
 static void Cm_DecompressVis(const byte *in, byte *out) {
 
-	int32_t row = (cm_vis->num_clusters + 7) >> 3;
+	const int32_t row = (cm_vis->num_clusters + 7) >> 3;
 	byte *out_p = out;
 
 	if (!in || !cm_bsp.num_visibility) { // no vis info, so make all visible
-		while (row) {
+		for (int32_t i = 0; i < row; i++) {
 			*out_p++ = 0xff;
-			row--;
 		}
-		return;
+	} else {
+		do {
+			if (*in) {
+				*out_p++ = *in++;
+				continue;
+			}
+
+			int32_t c = in[1];
+			in += 2;
+			if ((out_p - out) + c > row) {
+				c = row - (out_p - out);
+				Com_Warn("Overrun\n");
+			}
+			while (c) {
+				*out_p++ = 0;
+				c--;
+			}
+		} while (out_p - out < row);
 	}
+}
 
-	do {
-		if (*in) {
-			*out_p++ = *in++;
-			continue;
-		}
+/*
+ * @brief
+ *
+ * @remark `pvs` must be at least `MAX_BSP_LEAFS >> 3` in length.
+ */
+size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
 
-		int32_t c = in[1];
-		in += 2;
-		if ((out_p - out) + c > row) {
-			c = row - (out_p - out);
-			Com_Warn("Overrun\n");
-		}
-		while (c) {
-			*out_p++ = 0;
-			c--;
-		}
-	} while (out_p - out < row);
+	const size_t len = (cm_vis->num_clusters + 7) >> 3;
+
+	if (cluster == -1)
+		memset(pvs, 0, len);
+	else
+		Cm_DecompressVis(cm_bsp.visibility + cm_vis->bit_offsets[cluster][DVIS_PVS], pvs);
+
+	return len;
 }
 
 /*
  * @brief
  */
-byte *Cm_ClusterPVS(const int32_t cluster) {
-	static byte pvs_row[MAX_BSP_LEAFS / 8];
+size_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
+
+	const size_t len = (cm_vis->num_clusters + 7) >> 3;
 
 	if (cluster == -1)
-		memset(pvs_row, 0, (cm_vis->num_clusters + 7) >> 3);
+		memset(phs, 0, len);
 	else
-		Cm_DecompressVis(cm_bsp.visibility + cm_vis->bit_offsets[cluster][DVIS_PVS], pvs_row);
+		Cm_DecompressVis(cm_bsp.visibility + cm_vis->bit_offsets[cluster][DVIS_PHS], phs);
 
-	return pvs_row;
-}
-
-/*
- * @brief
- */
-byte *Cm_ClusterPHS(const int32_t cluster) {
-	static byte phs_row[MAX_BSP_LEAFS / 8];
-
-	if (cluster == -1)
-		memset(phs_row, 0, (cm_vis->num_clusters + 7) >> 3);
-	else
-		Cm_DecompressVis(cm_bsp.visibility + cm_vis->bit_offsets[cluster][DVIS_PHS], phs_row);
-
-	return phs_row;
+	return len;
 }
 
 /*
@@ -173,7 +175,7 @@ _Bool Cm_AreasConnected(int32_t area1, int32_t area2) {
  * This is used by the client view to cull visibility.
  */
 int32_t Cm_WriteAreaBits(const int32_t area, byte *out) {
-	int32_t i;
+
 	const int32_t bytes = (cm_bsp.num_areas + 7) >> 3;
 
 	if (cm_no_areas) { // for debugging, send everything
@@ -182,7 +184,7 @@ int32_t Cm_WriteAreaBits(const int32_t area, byte *out) {
 		const int32_t flood_num = cm_bsp.areas[area].flood_num;
 		memset(out, 0, bytes);
 
-		for (i = 0; i < cm_bsp.num_areas; i++) {
+		for (int32_t i = 0; i < cm_bsp.num_areas; i++) {
 			if (cm_bsp.areas[i].flood_num == flood_num || !area) {
 				out[i >> 3] |= 1 << (i & 7);
 			}

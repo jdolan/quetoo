@@ -606,7 +606,6 @@ typedef struct {
  * @brief Static lighting information is cached on the client entity structure.
  */
 typedef enum {
-	LIGHTING_INIT,
 	LIGHTING_DIRTY,
 	LIGHTING_READY
 } r_lighting_state_t;
@@ -656,6 +655,7 @@ typedef struct r_entity_s {
 	const char *tag_name;
 
 	vec3_t origin;
+	vec3_t termination;
 	vec3_t angles;
 
 	matrix4x4_t matrix;

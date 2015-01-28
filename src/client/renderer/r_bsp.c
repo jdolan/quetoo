@@ -533,18 +533,17 @@ void R_UpdateVis(void) {
 	}
 
 	// resolve PVS for the current cluster
-	const byte *pvs = Cm_ClusterPVS(clusters[0]);
-	memcpy(r_locals.vis_data_pvs, pvs, sizeof(r_locals.vis_data_pvs));
+	Cm_ClusterPVS(clusters[0], r_locals.vis_data_pvs);
 
 	// resolve PHS for the current cluster
-	const byte *phs = Cm_ClusterPHS(clusters[0]);
-	memcpy(r_locals.vis_data_phs, phs, sizeof(r_locals.vis_data_phs));
+	Cm_ClusterPHS(clusters[0], r_locals.vis_data_phs);
 
 	// if we crossed contents, merge in the other cluster's PVS and PHS data
-	if (clusters[1] != -1) {
+	if (clusters[1] != -1 && clusters[1] != clusters[0]) {
+		byte pvs[MAX_BSP_LEAFS >> 3], phs[MAX_BSP_LEAFS >> 3];
 
-		pvs = Cm_ClusterPVS(clusters[1]);
-		phs = Cm_ClusterPHS(clusters[1]);
+		Cm_ClusterPVS(clusters[1], pvs);
+		Cm_ClusterPHS(clusters[1], phs);
 
 		for (size_t i = 0; i < sizeof(r_locals.vis_data_pvs); i++) {
 			r_locals.vis_data_pvs[i] |= pvs[i];
