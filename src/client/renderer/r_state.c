@@ -121,7 +121,7 @@ void R_BindTexture(GLuint texnum) {
 void R_BindLightmapTexture(GLuint texnum) {
 
 	if (texnum == texunit_lightmap.texnum)
-	return;
+		return;
 
 	R_SelectTexture(&texunit_lightmap);
 
@@ -138,7 +138,7 @@ void R_BindLightmapTexture(GLuint texnum) {
 void R_BindDeluxemapTexture(GLuint texnum) {
 
 	if (texnum == texunit_deluxemap.texnum)
-	return;
+		return;
 
 	R_SelectTexture(&texunit_deluxemap);
 
@@ -155,7 +155,7 @@ void R_BindDeluxemapTexture(GLuint texnum) {
 void R_BindNormalmapTexture(GLuint texnum) {
 
 	if (texnum == texunit_normalmap.texnum)
-	return;
+		return;
 
 	R_SelectTexture(&texunit_normalmap);
 
@@ -172,7 +172,7 @@ void R_BindNormalmapTexture(GLuint texnum) {
 void R_BindGlossmapTexture(GLuint texnum) {
 
 	if (texnum == texunit_glossmap.texnum)
-	return;
+		return;
 
 	R_SelectTexture(&texunit_glossmap);
 

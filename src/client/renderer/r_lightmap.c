@@ -73,13 +73,10 @@ static r_image_t *R_AllocLightmap_(r_image_type_t type) {
 /*
  * @brief
  */
-static void R_UploadLightmapBlock(r_bsp_model_t *bsp) {
+static void R_UploadLightmapBlock(r_bsp_model_t *bsp __attribute__((unused))) {
 
 	R_UploadImage(r_lightmap_state.lightmap, GL_RGB, r_lightmap_state.sample_buffer);
-
-	if (bsp->version == BSP_VERSION_Q2W) { // upload deluxe block as well
-		R_UploadImage(r_lightmap_state.deluxemap, GL_RGB, r_lightmap_state.direction_buffer);
-	}
+	R_UploadImage(r_lightmap_state.deluxemap, GL_RGB, r_lightmap_state.direction_buffer);
 
 	// clear the allocation block and buffers
 	memset(r_lightmap_state.allocated, 0, r_lightmap_state.block_size * sizeof(r_pixel_t));
@@ -126,15 +123,14 @@ static _Bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixe
  */
 static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *sout,
 		byte *dout, size_t stride) {
-	int32_t i, j;
 
 	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmaps->scale) + 1;
 	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmaps->scale) + 1;
 
 	stride -= (smax * 3);
 
-	for (i = 0; i < tmax; i++, sout += stride, dout += stride) {
-		for (j = 0; j < smax; j++) {
+	for (r_pixel_t i = 0; i < tmax; i++, sout += stride, dout += stride) {
+		for (r_pixel_t j = 0; j < smax; j++) {
 
 			sout[0] = 255;
 			sout[1] = 255;
@@ -142,13 +138,11 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
 
 			sout += 3;
 
-			if (bsp->version == BSP_VERSION_Q2W) {
-				dout[0] = 127;
-				dout[1] = 127;
-				dout[2] = 255;
+			dout[0] = 127;
+			dout[1] = 127;
+			dout[2] = 255;
 
-				dout += 3;
-			}
+			dout += 3;
 		}
 	}
 }
@@ -179,8 +173,6 @@ static void R_FilterLightmap(r_pixel_t width, r_pixel_t height, byte *lightmap) 
  */
 static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf, const byte *in,
 		byte *lout, byte *dout, size_t stride) {
-	byte *lightmap, *lm, *deluxemap, *dm;
-	size_t i;
 
 	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmaps->scale) + 1;
 	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmaps->scale) + 1;
@@ -188,18 +180,14 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 	const size_t size = smax * tmax;
 	stride -= (smax * 3);
 
-	lightmap = (byte *) Mem_TagMalloc(size * 3, MEM_TAG_RENDERER);
-	lm = lightmap;
+	byte *lightmap = (byte *) Mem_TagMalloc(size * 3, MEM_TAG_RENDERER);
+	byte *lm = lightmap;
 
-	deluxemap = dm = NULL;
-
-	if (bsp->version == BSP_VERSION_Q2W) {
-		deluxemap = (byte *) Mem_TagMalloc(size * 3, MEM_TAG_RENDERER);
-		dm = deluxemap;
-	}
+	byte *deluxemap = (byte *) Mem_TagMalloc(size * 3, MEM_TAG_RENDERER);
+	byte *dm = deluxemap;
 
 	// convert the raw lightmap samples to RGBA for softening
-	for (i = 0; i < size; i++) {
+	for (size_t i = 0; i < size; i++) {
 		*lm++ = *in++;
 		*lm++ = *in++;
 		*lm++ = *in++;
@@ -209,6 +197,10 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 			*dm++ = *in++;
 			*dm++ = *in++;
 			*dm++ = *in++;
+		} else {
+			*dm++ = 127;
+			*dm++ = 127;
+			*dm++ = 255;
 		}
 	}
 
@@ -218,33 +210,24 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 	// the lightmap is uploaded to the card via the strided block
 
 	lm = lightmap;
+	dm = deluxemap;
 
-	if (bsp->version == BSP_VERSION_Q2W) {
-		dm = deluxemap;
-	}
+	for (r_pixel_t t = 0; t < tmax; t++, lout += stride, dout += stride) {
+		for (r_pixel_t s = 0; s < smax; s++) {
 
-	r_pixel_t s, t;
-	for (t = 0; t < tmax; t++, lout += stride, dout += stride) {
-		for (s = 0; s < smax; s++) {
-
-			// copy the lightmap to the strided block
+			// copy the lightmap and deluxemap to the strided block
 			*lout++ = *lm++;
 			*lout++ = *lm++;
 			*lout++ = *lm++;
 
-			// and the deluxemap for maps which include it
-			if (bsp->version == BSP_VERSION_Q2W) {
-				*dout++ = *dm++;
-				*dout++ = *dm++;
-				*dout++ = *dm++;
-			}
+			*dout++ = *dm++;
+			*dout++ = *dm++;
+			*dout++ = *dm++;
 		}
 	}
 
 	Mem_Free(lightmap);
-
-	if (bsp->version == BSP_VERSION_Q2W)
-		Mem_Free(deluxemap);
+	Mem_Free(deluxemap);
 }
 
 /*
@@ -267,10 +250,7 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 		R_UploadLightmapBlock(bsp); // upload the last block
 
 		r_lightmap_state.lightmap = R_AllocLightmap();
-
-		if (bsp->version == BSP_VERSION_Q2W) {
-			r_lightmap_state.deluxemap = R_AllocDeluxemap();
-		}
+		r_lightmap_state.deluxemap = R_AllocDeluxemap();
 
 		if (!R_AllocLightmapBlock(smax, tmax, &surf->lightmap_s, &surf->lightmap_t)) {
 			Com_Error(ERR_DROP, "Consecutive calls to R_AllocLightmapBlock failed");
@@ -297,7 +277,7 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 /*
  * @brief
  */
-void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp) {
+void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp __attribute__((unused))) {
 	int32_t max;
 
 	// users can tune lightmap size for their card
@@ -317,13 +297,9 @@ void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 	r_lightmap_state.sample_buffer = Mem_TagMalloc(bs * bs * sizeof(uint32_t), MEM_TAG_RENDERER);
 	r_lightmap_state.direction_buffer = Mem_TagMalloc(bs * bs * sizeof(uint32_t), MEM_TAG_RENDERER);
 
-	// generate the initial texture for lightmap data
+	// generate the initial textures for lightmap data
 	r_lightmap_state.lightmap = R_AllocLightmap();
-
-	// and, if applicable, deluxemaps too
-	if (bsp->version == BSP_VERSION_Q2W) {
-		r_lightmap_state.deluxemap = R_AllocDeluxemap();
-	}
+	r_lightmap_state.deluxemap = R_AllocDeluxemap();
 }
 
 /*

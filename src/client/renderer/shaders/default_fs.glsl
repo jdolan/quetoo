@@ -13,7 +13,6 @@
 
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
-uniform bool DELUXEMAP;
 uniform bool NORMALMAP;
 uniform bool GLOSSMAP;
 
@@ -120,6 +119,7 @@ void main(void) {
 
 	// first resolve the flat shading
 	vec3 lightmap = gl_Color.rgb;
+    vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
 		lightmap = texture2D(SAMPLER1, gl_TexCoord[1].st).rgb;
@@ -131,12 +131,8 @@ void main(void) {
 	vec3 bump = vec3(1.0);
 
 	if (NORMALMAP) {
-		vec3 deluxemap = vec3(0.0, 0.0, 1.0);
-
-		if (DELUXEMAP) {
-			deluxemap = texture2D(SAMPLER2, gl_TexCoord[1].st).rgb;
-			deluxemap = normalize(two * (deluxemap + negHalf));
-		}
+		deluxemap = texture2D(SAMPLER2, gl_TexCoord[1].st).rgb;
+        deluxemap = normalize(two * (deluxemap + negHalf));
 
 		normalmap = texture2D(SAMPLER3, gl_TexCoord[0].st);
 

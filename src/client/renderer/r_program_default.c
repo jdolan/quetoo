@@ -27,7 +27,6 @@ typedef struct {
 
 	r_uniform1i_t diffuse;
 	r_uniform1i_t lightmap;
-	r_uniform1i_t deluxemap;
 	r_uniform1i_t normalmap;
 	r_uniform1i_t glossmap;
 
@@ -58,7 +57,6 @@ void R_InitProgram_default(void) {
 
 	R_ProgramVariable(&p->diffuse, R_UNIFORM_INT, "DIFFUSE");
 	R_ProgramVariable(&p->lightmap, R_UNIFORM_INT, "LIGHTMAP");
-	R_ProgramVariable(&p->deluxemap, R_UNIFORM_INT, "DELUXEMAP");
 	R_ProgramVariable(&p->normalmap, R_UNIFORM_INT, "NORMALMAP");
 	R_ProgramVariable(&p->glossmap, R_UNIFORM_INT, "GLOSSMAP");
 
@@ -78,7 +76,6 @@ void R_InitProgram_default(void) {
 	R_DisableAttribute(&p->tangent);
 
 	R_ProgramParameter1i(&p->lightmap, 0);
-	R_ProgramParameter1i(&p->deluxemap, 0);
 	R_ProgramParameter1i(&p->normalmap, 0);
 	R_ProgramParameter1i(&p->glossmap, 0);
 
@@ -103,7 +100,6 @@ void R_UseProgram_default(void) {
 
 	R_ProgramParameter1i(&p->diffuse, texunit_diffuse.enabled);
 	R_ProgramParameter1i(&p->lightmap, texunit_lightmap.enabled);
-	R_ProgramParameter1i(&p->deluxemap, texunit_lightmap.enabled);
 }
 
 /*
@@ -120,11 +116,6 @@ void R_UseMaterial_default(const r_material_t *material) {
 	}
 
 	R_EnableAttribute(&p->tangent);
-
-	if (texunit_lightmap.enabled)
-		R_ProgramParameter1i(&p->deluxemap, 1);
-	else
-		R_ProgramParameter1i(&p->deluxemap, 0);
 
 	R_BindNormalmapTexture(material->normalmap->texnum);
 	R_ProgramParameter1i(&p->normalmap, 1);
