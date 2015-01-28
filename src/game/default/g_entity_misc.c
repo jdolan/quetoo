@@ -44,8 +44,7 @@ static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other, cm_bsp_
 	gi.UnlinkEntity(other);
 
 	VectorCopy(dest->s.origin, other->s.origin);
-	VectorCopy(dest->s.origin, other->s.old_origin);
-	other->s.origin[2] += 10.0;
+	other->s.origin[2] += 8.0;
 
 	// overwrite velocity and hold them in place briefly
 	other->client->ps.pm_state.flags &= ~PMF_TIME_MASK;

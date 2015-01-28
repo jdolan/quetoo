@@ -89,7 +89,6 @@ static void Sv_CreateBaseline(void) {
 		ent->s.number = i;
 
 		// take current state as baseline
-		VectorCopy(ent->s.origin, ent->s.old_origin);
 		sv.baselines[i] = ent->s;
 	}
 }

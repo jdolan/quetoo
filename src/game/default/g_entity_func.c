@@ -1564,7 +1564,6 @@ static void G_func_train_Next(g_entity_t *self) {
 		}
 		first = false;
 		VectorSubtract(ent->s.origin, self->mins, self->s.origin);
-		VectorCopy(self->s.origin, self->s.old_origin);
 		self->s.event = EV_CLIENT_TELEPORT;
 		gi.LinkEntity(self);
 		goto again;

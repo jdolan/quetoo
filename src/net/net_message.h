@@ -54,7 +54,7 @@
  * written or read for delta compression from one snapshot to the next.
  */
 #define U_ORIGIN				0x1
-#define U_OLD_ORIGIN			0x2 // used by lightning
+#define U_ORIGIN2				0x2 // beams
 #define U_ANGLES				0x4
 #define U_ANIMATIONS			0x8 // animation frames
 #define U_EVENT					0x10 // single-frame events
@@ -89,8 +89,7 @@ void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles);
 void Net_WriteDir(mem_buf_t *msg, const vec3_t dir);
 void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t *to);
 void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const player_state_t *to);
-void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to,
-		_Bool force, _Bool is_new);
+void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to, _Bool force);
 
 void Net_BeginReading(mem_buf_t *msg);
 void Net_ReadData(mem_buf_t *msg, void *data, size_t len);

@@ -802,7 +802,6 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
 	VectorCopy(spawn_origin, ent->s.origin);
-	VectorCopy(ent->s.origin, ent->s.old_origin);
 
 	// set the delta angle of the spawn point
 	VectorSubtract(spawn_angles, old_angles, old_angles);

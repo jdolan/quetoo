@@ -493,7 +493,7 @@ typedef struct {
 	uint16_t number; // edict index
 
 	vec3_t origin;
-	vec3_t old_origin; // for interpolating
+	vec3_t origin2; // beams (lightning, grapple, lasers, ..)
 	vec3_t angles;
 
 	uint8_t animation1, animation2; // animations (running, attacking, ..)

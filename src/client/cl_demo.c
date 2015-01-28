@@ -74,7 +74,7 @@ static void Cl_WriteDemoHeader(void) {
 		}
 
 		Net_WriteByte(&msg, SV_CMD_BASELINE);
-		Net_WriteDeltaEntity(&msg, &null_state, &cl.entities[i].baseline, true, true);
+		Net_WriteDeltaEntity(&msg, &null_state, &cl.entities[i].baseline, true);
 	}
 
 	Net_WriteByte(&msg, SV_CMD_CBUF_TEXT);

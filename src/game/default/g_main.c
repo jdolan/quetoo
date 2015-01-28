@@ -802,11 +802,6 @@ static void G_Frame(void) {
 
 		g_level.current_entity = ent;
 
-		// update old origin for interpolation
-		if (!(ent->s.effects & EF_BEAM)) {
-			VectorCopy(ent->s.origin, ent->s.old_origin);
-		}
-
 		if (ent->client) {
 			G_ClientBeginFrame(ent);
 		} else {

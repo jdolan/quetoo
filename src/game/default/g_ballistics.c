@@ -357,8 +357,7 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 	AngleVectors(projectile->s.angles, forward, right, up);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
-	VectorMA(projectile->locals.velocity, 200.0 + Randomc() * 10.0, up,
-			projectile->locals.velocity);
+	VectorMA(projectile->locals.velocity, 200.0 + Randomc() * 10.0, up, projectile->locals.velocity);
 	VectorMA(projectile->locals.velocity, Randomc() * 30.0, right, projectile->locals.velocity);
 
 	G_PlayerProjectile(projectile, 0.33);
@@ -657,8 +656,8 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		self->locals.damage = 0;
 	}
 
-	VectorCopy(start, self->s.origin); // update endpoints
-	VectorCopy(tr.end, self->s.old_origin);
+	VectorCopy(start, self->s.origin); // update end points
+	VectorCopy(tr.end, self->s.origin2);
 
 	gi.LinkEntity(self);
 
@@ -683,10 +682,11 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 		projectile = G_AllocEntity(__func__);
 
 		VectorCopy(start, projectile->s.origin);
-		VectorMA(start, 800.0, dir, projectile->s.old_origin);
 
 		if (G_ImmediateWall(ent, projectile))
 			VectorCopy(ent->s.origin, projectile->s.origin);
+
+		VectorMA(start, 800.0, dir, projectile->s.origin2);
 
 		projectile->owner = ent;
 		projectile->solid = SOLID_NOT;

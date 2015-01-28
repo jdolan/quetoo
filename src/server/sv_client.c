@@ -139,7 +139,7 @@ static void Sv_Baselines_f(void) {
 		base = &sv.baselines[start];
 		if (base->model1 || base->sound || base->effects) {
 			Net_WriteByte(&sv_client->net_chan.message, SV_CMD_BASELINE);
-			Net_WriteDeltaEntity(&sv_client->net_chan.message, &null_state, base, true, true);
+			Net_WriteDeltaEntity(&sv_client->net_chan.message, &null_state, base, true);
 		}
 		start++;
 	}

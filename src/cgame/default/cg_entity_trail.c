@@ -618,7 +618,7 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 			start[2] -= 8.0;
 		}
 
-		VectorLerp(ent->prev.old_origin, ent->current.old_origin, cgi.client->lerp, end);
+		VectorLerp(ent->prev.origin2, ent->current.origin2, cgi.client->lerp, end);
 	} else {
 		VectorCopy(e->origin, end);
 	}

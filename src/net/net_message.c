@@ -287,7 +287,7 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
  * either a baseline or a previous packet_entity
  */
 void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to,
-		_Bool force, _Bool is_new) {
+		_Bool force) {
 
 	uint16_t bits = 0;
 
@@ -302,8 +302,8 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 	if (!VectorCompare(to->origin, from->origin))
 		bits |= U_ORIGIN;
 
-	if (is_new || !VectorCompare(from->old_origin, to->old_origin))
-		bits |= U_OLD_ORIGIN;
+	if (!VectorCompare(from->origin2, to->origin2))
+		bits |= U_ORIGIN2;
 
 	if (!VectorCompare(to->angles, from->angles))
 		bits |= U_ANGLES;
@@ -344,8 +344,8 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 	if (bits & U_ORIGIN)
 		Net_WritePosition(msg, to->origin);
 
-	if (bits & U_OLD_ORIGIN)
-		Net_WritePosition(msg, to->old_origin);
+	if (bits & U_ORIGIN2)
+		Net_WritePosition(msg, to->origin2);
 
 	if (bits & U_ANGLES)
 		Net_WriteAngles(msg, to->angles);
@@ -655,8 +655,8 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 	if (bits & U_ORIGIN)
 		Net_ReadPosition(msg, to->origin);
 
-	if (bits & U_OLD_ORIGIN)
-		Net_ReadPosition(msg, to->old_origin);
+	if (bits & U_ORIGIN2)
+		Net_ReadPosition(msg, to->origin2);
 
 	if (bits & U_ANGLES)
 		Net_ReadAngles(msg, to->angles);

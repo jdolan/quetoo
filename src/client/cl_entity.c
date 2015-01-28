@@ -94,9 +94,7 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 	// check to see if the delta was successful and valid
 	if (ent->frame_num != cl.frame.frame_num - 1 || !Cl_ValidDeltaEntity(from, to)) {
 		ent->is_new = true; // suppress interpolation
-
 		ent->prev = *to; // copy the current state to the previous
-		VectorCopy(to->old_origin, ent->prev.origin);
 
 		ent->animation1.time = ent->animation2.time = 0; // reset animations
 		ent->lighting.state = LIGHTING_INIT; // and lighting
