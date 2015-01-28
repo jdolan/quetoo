@@ -442,9 +442,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	glMatrixMode(GL_TEXTURE); // some stages will manipulate texcoords
 
 	const r_stage_t *s = m->stages;
-	vec_t j;
-
-	for (j = -1.0; s; s = s->next, j--) {
+	for (vec_t j = -1.0; s; s = s->next, j--) {
 
 		if (!(s->flags & STAGE_DIFFUSE))
 			continue;

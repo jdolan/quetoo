@@ -121,7 +121,6 @@ void R_UseMaterial_default(const r_material_t *material) {
 
 	R_EnableAttribute(&p->tangent);
 
-	// first deal with the surface
 	if (texunit_lightmap.enabled)
 		R_ProgramParameter1i(&p->deluxemap, 1);
 	else

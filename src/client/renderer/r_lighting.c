@@ -208,13 +208,13 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 
 	r_illuminations.num_illuminations = 0;
 
-	const uint64_t light_mask = l->light_mask;
+	const uint64_t prev_light_mask = l->light_mask;
 
 	R_DynamicIlluminations(l);
 
 	// if not dirty, and no dynamic lighting, we're done
 	if (l->state == LIGHTING_READY) {
-		if (light_mask == 0 && l->light_mask == 0)
+		if (prev_light_mask == 0 && l->light_mask == 0)
 			return;
 	}
 
