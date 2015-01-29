@@ -128,18 +128,15 @@ const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *m
  * @brief Applies translation, rotation, and scale for the specified entity.
  */
 void R_RotateForEntity(const r_entity_t *e) {
-	GLfloat mat[16];
 
 	if (!e) {
 		glPopMatrix();
 		return;
 	}
 
-	Matrix4x4_ToArrayFloatGL(&e->matrix, mat);
-
 	glPushMatrix();
 
-	glMultMatrixf(mat);
+	glMultMatrixf((GLfloat *) e->matrix.m);
 }
 
 /*
