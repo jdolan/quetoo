@@ -54,8 +54,6 @@ typedef struct {
 } cl_entity_animation_t;
 
 typedef struct {
-	_Bool is_new; // the entity is new, do not interpolate it
-
 	entity_state_t baseline; // delta from this if not from a previous frame
 	entity_state_t current;
 	entity_state_t prev; // will always be valid, but might just be a copy of current

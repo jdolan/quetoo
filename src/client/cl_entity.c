@@ -93,8 +93,8 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 
 	// check to see if the delta was successful and valid
 	if (ent->frame_num != cl.frame.frame_num - 1 || !Cl_ValidDeltaEntity(from, to)) {
-		ent->is_new = true; // suppress interpolation
 		ent->prev = *to; // copy the current state to the previous
+		ent->animation1.time = ent->animation2.time = 0;
 	} else { // shuffle the last state to previous
 		ent->prev = ent->current;
 	}
@@ -102,32 +102,47 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 	// set the current frame number and entity state
 	ent->frame_num = cl.frame.frame_num;
 	ent->current = *to;
+
+	// update clipping matrices, snapping the entity to the frame
+	if (ent->current.solid) {
+		if (ent->current.solid == SOLID_BSP) {
+			if (bits & (U_ORIGIN | U_ANGLES)) {
+				Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, ent->current.angles, 1.0);
+				Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+			}
+		} else { // bounding-box entities
+			if (bits & U_ORIGIN) {
+				Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, vec3_origin, 1.0);
+				Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+			}
+		}
+	}
+
+	// mark the lighting cache as dirty
+	if (bits & U_ORIGIN) {
+		ent->lighting.state = LIGHTING_DIRTY;
+	}
 }
 
 /*
  * @brief An svc_packetentities has just been parsed, deal with the rest of the data stream.
  */
 static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
-	entity_state_t *old_state = NULL;
-	uint16_t old_number;
 
 	frame->entity_state = cl.entity_state;
 	frame->num_entities = 0;
 
-	// delta from the entities present in old_frame
-	uint32_t old_index = 0;
+	entity_state_t *state = NULL;
+	uint16_t delta_number;
 
-	if (!delta_frame)
-		old_number = 0xffff;
-	else {
-		if (old_index >= delta_frame->num_entities)
-			old_number = 0xffff;
-		else {
-			old_state = &cl.entity_states[(delta_frame->entity_state + old_index)
-					& ENTITY_STATE_MASK];
-			old_number = old_state->number;
-		}
+	if (delta_frame == NULL || delta_frame->num_entities == 0) {
+		delta_number = UINT16_MAX;
+	} else {
+		state = &cl.entity_states[delta_frame->entity_state & ENTITY_STATE_MASK];
+		delta_number = state->number;
 	}
+
+	uint32_t index = 0;
 
 	while (true) {
 		const uint16_t number = Net_ReadShort(&net_message);
@@ -138,94 +153,95 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 		if (net_message.read > net_message.size)
 			Com_Error(ERR_DROP, "End of message\n");
 
-		if (!number)
+		if (!number) // done
 			break;
 
-		const uint16_t bits = Net_ReadShort(&net_message);
-
-		while (old_number < number) { // one or more entities from old_frame are unchanged
+		// before dealing with the new entity, copy unchanged entities into the frame
+		while (delta_number < number) {
 
 			if (cl_show_net_messages->integer == 3)
-				Com_Print("   unchanged: %i\n", old_number);
+				Com_Print("   unchanged: %i\n", delta_number);
 
-			Cl_ReadDeltaEntity(frame, old_state, old_number, 0);
+			Cl_ReadDeltaEntity(frame, state, delta_number, 0);
 
-			old_index++;
+			index++;
 
-			if (old_index >= delta_frame->num_entities)
-				old_number = 0xffff;
-			else {
-				old_state = &cl.entity_states[(delta_frame->entity_state + old_index)
-						& ENTITY_STATE_MASK];
-				old_number = old_state->number;
+			if (index >= delta_frame->num_entities) {
+				delta_number = UINT16_MAX;
+			} else {
+				state = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
+				delta_number = state->number;
 			}
 		}
 
-		if (bits & U_REMOVE) { // the entity present in the old_frame, and is not in the current frame
+		// now deal with the new entity
+		const uint16_t bits = Net_ReadShort(&net_message);
+
+		if (bits & U_REMOVE) { // remove it, no delta
 
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   remove: %i\n", number);
 
-			if (old_number != number)
-				Com_Warn("U_REMOVE: %u != %u\n", old_number, number);
+			if (delta_number != number)
+				Com_Warn("U_REMOVE: %u != %u\n", delta_number, number);
 
-			old_index++;
+			index++;
 
-			if (old_index >= delta_frame->num_entities)
-				old_number = 0xffff;
-			else {
-				old_state = &cl.entity_states[(delta_frame->entity_state + old_index)
-						& ENTITY_STATE_MASK];
-				old_number = old_state->number;
+			if (index >= delta_frame->num_entities) {
+				delta_number = UINT16_MAX;
+			} else {
+				state = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
+				delta_number = state->number;
 			}
+
 			continue;
 		}
 
-		if (old_number == number) { // delta from previous state
+		if (delta_number == number) { // delta from previous state
 
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   delta: %i\n", number);
 
-			Cl_ReadDeltaEntity(frame, old_state, number, bits);
+			Cl_ReadDeltaEntity(frame, state, number, bits);
 
-			old_index++;
+			index++;
 
-			if (old_index >= delta_frame->num_entities)
-				old_number = 0xffff;
-			else {
-				old_state = &cl.entity_states[(delta_frame->entity_state + old_index)
-						& ENTITY_STATE_MASK];
-				old_number = old_state->number;
+			if (index >= delta_frame->num_entities) {
+				delta_number = UINT16_MAX;
+			} else {
+				state = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
+				delta_number = state->number;
 			}
+
 			continue;
 		}
 
-		if (old_number > number) { // delta from baseline
+		if (delta_number > number) { // delta from baseline
 
 			if (cl_show_net_messages->integer == 3)
 				Com_Print("   baseline: %i\n", number);
 
 			Cl_ReadDeltaEntity(frame, &cl.entities[number].baseline, number, bits);
+
 			continue;
 		}
 	}
 
 	// any remaining entities in the old frame are copied over
-	while (old_number != 0xffff) { // one or more entities from the old packet are unchanged
+	while (delta_number != UINT16_MAX) { // one or more entities from the old packet are unchanged
 
 		if (cl_show_net_messages->integer == 3)
-			Com_Print("   unchanged: %i\n", old_number);
+			Com_Print("   unchanged: %i\n", delta_number);
 
-		Cl_ReadDeltaEntity(frame, old_state, old_number, 0);
+		Cl_ReadDeltaEntity(frame, state, delta_number, 0);
 
-		old_index++;
+		index++;
 
-		if (old_index >= delta_frame->num_entities)
-			old_number = 0xffff;
-		else {
-			old_state = &cl.entity_states[(delta_frame->entity_state + old_index)
-					& ENTITY_STATE_MASK];
-			old_number = old_state->number;
+		if (index >= delta_frame->num_entities) {
+			delta_number = UINT16_MAX;
+		} else {
+			state = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
+			delta_number = state->number;
 		}
 	}
 }
@@ -256,7 +272,8 @@ void Cl_ParseFrame(void) {
 		if (cl.delta_frame->frame_num != cl.frame.delta_frame_num)
 			Com_Error(ERR_DROP, "Delta frame too old\n");
 
-		else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP)
+		else if (cl.entity_state
+				- cl.delta_frame->entity_state> ENTITY_STATE_BACKUP - PACKET_BACKUP)
 			Com_Error(ERR_DROP, "Delta parse_entities too old\n");
 
 		cl.frame.valid = true;
@@ -328,9 +345,7 @@ static void Cl_UpdateLerp(void) {
 }
 
 /*
- * @brief Interpolates translation and rotation for all entities within the
- * current frame. If the entity is at its most recently parsed orientation,
- * this is a no-op.
+ * @brief Interpolates all entities in the current frame.
  */
 void Cl_Interpolate(void) {
 
@@ -341,38 +356,22 @@ void Cl_Interpolate(void) {
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
 
-		const _Bool translated = !VectorCompare(ent->prev.origin, ent->current.origin);
-		const _Bool rotated = !VectorCompare(ent->prev.angles, ent->current.angles);
-
-		// interpolate movements, bringing the entity inline with the current frame
-		if (ent->is_new || translated || rotated) {
-
-			// interpolate the origin, termination and angles
+		if (!VectorCompare(ent->prev.origin, ent->current.origin)) {
 			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
+		} else {
+			VectorCopy(ent->current.origin, ent->origin);
+		}
+
+		if (!VectorCompare(ent->prev.termination, ent->current.termination)) {
 			VectorLerp(ent->prev.termination, ent->current.termination, cl.lerp, ent->termination);
+		} else {
+			VectorCopy(ent->current.termination, ent->termination);
+		}
+
+		if (!VectorCompare(ent->prev.angles, ent->current.angles)) {
 			AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
-
-			// and update clipping matrices, snapping the entity to the frame
-			if (ent->current.solid) {
-				if (ent->current.solid == SOLID_BSP) {
-					Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, ent->current.angles, 1.0);
-					Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
-				} else { // box models
-					if (translated) {
-						Matrix4x4_CreateFromEntity(&ent->matrix, ent->current.origin, vec3_origin, 1.0);
-						Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
-
-						// mark the lighting as dirty
-						ent->lighting.state = LIGHTING_DIRTY;
-					}
-				}
-			}
-
-			if (ent->is_new) {
-				ent->animation1.time = ent->animation2.time = 0;
-			}
-
-			ent->is_new = false;
+		} else {
+			VectorCopy(ent->current.angles, ent->angles);
 		}
 	}
 }
@@ -385,12 +384,12 @@ void Cl_UpdateEntities(void) {
 	if (r_view.update) {
 
 		for (size_t i = 0; i < lengthof(cl.entities); i++) {
-			r_lighting_t *l = &cl.entities[i].lighting;
+			r_lighting_t *lighting = &cl.entities[i].lighting;
 
-			memset(l, 0, sizeof(*l));
+			memset(lighting, 0, sizeof(*lighting));
 
-			l->state = LIGHTING_DIRTY;
-			l->number = i;
+			lighting->state = LIGHTING_DIRTY;
+			lighting->number = i;
 		}
 	}
 }
