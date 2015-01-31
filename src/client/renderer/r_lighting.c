@@ -184,15 +184,21 @@ static void R_StaticIlluminations(r_lighting_t *l) {
  */
 static void R_DynamicIlluminations(r_lighting_t *l) {
 
-	l->light_mask = 0;
-
+	uint64_t light_mask = 0;
 	const r_light_t *dl = r_view.lights;
 
 	for (uint16_t i = 0; i < r_view.num_lights; i++, dl++) {
 		if (R_PositionalIllumination(l, dl)) {
-			l->light_mask |= (uint64_t) (1 << i);
+			light_mask |= (uint64_t) (1 << i);
 		}
 	}
+
+	if (!light_mask && !l->light_mask) {
+		return;
+	}
+
+	l->light_mask = light_mask;
+	l->state = LIGHTING_DIRTY;
 }
 
 /*
@@ -214,15 +220,11 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 
 	r_illuminations.num_illuminations = 0;
 
-	const uint64_t prev_light_mask = l->light_mask;
-
 	R_DynamicIlluminations(l);
 
 	// if not dirty, and no dynamic lighting, we're done
-	if (l->state == LIGHTING_READY) {
-		if (prev_light_mask == 0 && l->light_mask == 0)
-			return;
-	}
+	if (l->state == LIGHTING_READY)
+		return;
 
 	memset(l->illuminations, 0, sizeof(l->illuminations));
 
