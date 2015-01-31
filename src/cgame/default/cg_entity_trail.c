@@ -618,7 +618,7 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 			start[2] -= 8.0;
 		}
 
-		VectorCopy(e->termination, end);
+		VectorCopy(ent->termination, end);
 	} else {
 		VectorCopy(e->origin, end);
 	}
