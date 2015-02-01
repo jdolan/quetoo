@@ -140,9 +140,20 @@ static void Cl_ParseBaseline(void) {
 	const uint16_t number = Net_ReadShort(&net_message);
 	const uint16_t bits = Net_ReadShort(&net_message);
 
-	entity_state_t *state = &cl.entities[number].baseline;
+	cl_entity_t *ent = &cl.entities[number];
 
-	Net_ReadDeltaEntity(&net_message, &null_state, state, number, bits);
+	Net_ReadDeltaEntity(&net_message, &null_state, &ent->baseline, number, bits);
+
+	// initialize clipping matrices
+	if (ent->baseline.solid) {
+		if (ent->baseline.solid == SOLID_BSP) {
+			Matrix4x4_CreateFromEntity(&ent->matrix, ent->baseline.origin, ent->baseline.angles, 1.0);
+			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+		} else { // bounding-box entities
+			Matrix4x4_CreateFromEntity(&ent->matrix, ent->baseline.origin, vec3_origin, 1.0);
+			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
+		}
+	}
 }
 
 /*
