@@ -307,12 +307,6 @@ static void R_UpdateShadows(r_lighting_t *l) {
 			if (tr.start_solid || tr.fraction == 1.0)
 				continue;
 
-			const vec_t dot = DotProduct(r_view.origin, tr.plane.normal) - tr.plane.dist;
-
-			// check if the plane faces the view origin
-			if (dot <= 0.0)
-				continue;
-
 			// resolve the intensity of the shadow based on how much light we occlude
 			const vec_t intensity = (1.0 - tr.fraction) * DotProduct(dir, tr.plane.normal);
 
