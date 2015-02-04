@@ -77,19 +77,19 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 	 * Iterate the hardware light sources, accumulating dynamic lighting for
 	 * this fragment.  An attenuation of 0.0 means break.
 	 */
-	for(int i = 0; i < gl_MaxLights; i++) {
+	for (int i = 0; i < gl_MaxLights; i++) {
 
-		if(gl_LightSource[i].constantAttenuation == 0.0)
+		if (gl_LightSource[i].constantAttenuation == 0.0)
 			break;
 
 		vec3 delta = gl_LightSource[i].position.xyz - point;
+		
 		float dist = length(delta);
-
-		if(dist < gl_LightSource[i].constantAttenuation){
+		if (dist < gl_LightSource[i].constantAttenuation) {
 
 			float d = dot(normalmap, normalize(delta));
-
-			if(d > 0.0) {
+			if (d > 0.0) {
+			
 				dist = 1.0 - dist / gl_LightSource[i].constantAttenuation;
 				light += gl_LightSource[i].diffuse.rgb * d * LIGHT_ATTENUATION;
 			}
@@ -119,7 +119,7 @@ void main(void) {
 
 	// first resolve the flat shading
 	vec3 lightmap = gl_Color.rgb;
-    vec3 deluxemap = vec3(0.0, 0.0, 1.0);
+	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
 		lightmap = texture2D(SAMPLER1, gl_TexCoord[1].st).rgb;
@@ -132,7 +132,7 @@ void main(void) {
 
 	if (NORMALMAP) {
 		deluxemap = texture2D(SAMPLER2, gl_TexCoord[1].st).rgb;
-        deluxemap = normalize(two * (deluxemap + negHalf));
+		deluxemap = normalize(two * (deluxemap + negHalf));
 
 		normalmap = texture2D(SAMPLER3, gl_TexCoord[0].st);
 
