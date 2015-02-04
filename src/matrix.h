@@ -164,6 +164,8 @@ void Matrix4x4_Transform3x3 (const matrix4x4_t *in, const vec_t v[3], vec_t out[
 void Matrix4x4_TransformPositivePlane (const matrix4x4_t *in, vec_t x, vec_t y, vec_t z, vec_t d, vec_t *o);
 // transforms a standard plane (A*x+B*y+C*z+D=0) through a rotation or translation matrix
 void Matrix4x4_TransformStandardPlane (const matrix4x4_t *in, vec_t x, vec_t y, vec_t z, vec_t d, vec_t *o);
+// transforms a Quake plane through a rotation or translation matrix
+void Matrix4x4_TransformQuakePlane(const matrix4x4_t *in, const vec3_t n, vec_t d, vec4_t out);
 
 // ease of use functions
 // immediately applies a Translate to the matrix

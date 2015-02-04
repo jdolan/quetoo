@@ -1619,6 +1619,11 @@ void Matrix4x4_TransformStandardPlane(const matrix4x4_t *in, vec_t x, vec_t y, v
 #endif
 }
 
+void Matrix4x4_TransformQuakePlane(const matrix4x4_t *in, const vec3_t n, vec_t d, vec4_t out)
+{
+	Matrix4x4_TransformPositivePlane(in, n[0], n[1], n[2], d, out);
+}
+
 /*
 void Matrix4x4_SimpleUntransform (const matrix4x4_t *in, const vec_t v[3], vec_t out[3])
 {
