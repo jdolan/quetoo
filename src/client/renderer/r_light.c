@@ -96,7 +96,7 @@ static void R_AddSustainedLights(void) {
  */
 void R_ResetLights(void) {
 
-	r_locals.light_mask = 0xffffffffffffffff;
+	r_locals.light_mask = UINT64_MAX;
 }
 
 /*
