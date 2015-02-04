@@ -21,6 +21,7 @@
 
 #include "r_local.h"
 
+#define MESH_SHADOW_LIMIT 300.0
 #define MESH_SHADOW_ALPHA 0.33
 
 /*
@@ -29,26 +30,26 @@
  */
 static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *s) {
 
-	vec_t alpha = s->intensity * r_shadows->value * MESH_SHADOW_ALPHA;
+	vec_t alpha;
+	//if (r_programs->value) {
+		alpha = MESH_SHADOW_ALPHA;
+	//} else {
+		//alpha = s->shadow / MESH_SHADOW_LIMIT * MESH_SHADOW_ALPHA;
+	//}
 
 	if (e->effects & EF_BLEND)
 		alpha *= e->color[3];
 
-	vec4_t color = { 0.0, 0.0, 0.0, alpha };
+	vec4_t color = { 0.0, 0.0, 0.0, alpha * r_shadows->value };
 
 	R_Color(color);
 }
 
 /*
- * @brief Projects the model view matrix for the given entity onto the shadow
- * plane. A perspective shear is then applied using the standard planar shadow
- * deformation from SGI's cookbook, adjusted for Quake's negative planes:
- *
- * ftp://ftp.sgi.com/opengl/contrib/blythe/advanced99/notes/node192.html
+ * @brief Projects the model view matrix for the entity onto the shadow plane.
  */
 static void R_RotateForMeshShadow_default(const r_entity_t *e, r_shadow_t *s) {
-	vec4_t pos, normal;
-	matrix4x4_t proj, shear;
+	matrix4x4_t proj;
 	vec_t dot;
 
 	if (!e) {
@@ -79,38 +80,6 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, r_shadow_t *s) {
 	glPushMatrix();
 
 	glMultMatrixf((GLfloat *) proj.m);
-
-	// transform the light position and shadow plane into model space
-	Matrix4x4_Transform(&e->inverse_matrix, s->illumination->light.origin, pos);
-	pos[3] = 1.0;
-
-	const vec_t *n = p->normal;
-	Matrix4x4_TransformPositivePlane(&e->inverse_matrix, n[0], n[1], n[2], p->dist, normal);
-
-	// calculate shearing, accounting for Quake's positive plane equation
-	normal[3] = -normal[3];
-	dot = DotProduct(pos, normal) + pos[3] * normal[3];
-
-	shear.m[0][0] = dot - pos[0] * normal[0];
-	shear.m[1][0] = 0.0 - pos[0] * normal[1];
-	shear.m[2][0] = 0.0 - pos[0] * normal[2];
-	shear.m[3][0] = 0.0 - pos[0] * normal[3];
-	shear.m[0][1] = 0.0 - pos[1] * normal[0];
-	shear.m[1][1] = dot - pos[1] * normal[1];
-	shear.m[2][1] = 0.0 - pos[1] * normal[2];
-	shear.m[3][1] = 0.0 - pos[1] * normal[3];
-	shear.m[0][2] = 0.0 - pos[2] * normal[0];
-	shear.m[1][2] = 0.0 - pos[2] * normal[1];
-	shear.m[2][2] = dot - pos[2] * normal[2];
-	shear.m[3][2] = 0.0 - pos[2] * normal[3];
-	shear.m[0][3] = 0.0 - pos[3] * normal[0];
-	shear.m[1][3] = 0.0 - pos[3] * normal[1];
-	shear.m[2][3] = 0.0 - pos[3] * normal[2];
-	shear.m[3][3] = dot - pos[3] * normal[3];
-
-	glMultMatrixf((GLfloat *) shear.m);
-
-	Matrix4x4_Copy(&s->matrix, &proj);
 }
 
 /*
@@ -125,7 +94,7 @@ static void R_DrawMeshShadow_default_(const r_entity_t *e, r_shadow_t *s) {
 
 	R_EnableShadow(r_state.shadow_program, true);
 
-	glStencilFunc(GL_EQUAL, (s->plane.num % 0xfe) + 1, ~0);
+	glStencilFunc(GL_EQUAL, (s->plane.num % 0xff) + 1, ~0);
 
 	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
@@ -166,7 +135,7 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	for (uint16_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {
 
-		if (s->intensity == 0.0)
+		if (s->shadow == 0.0)
 			break;
 
 #if 0

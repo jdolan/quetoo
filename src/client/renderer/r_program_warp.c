@@ -37,7 +37,7 @@ static r_warp_program_t r_warp_program;
 void R_InitProgram_warp(void) {
 	r_warp_program_t *p = &r_warp_program;
 
-	R_ProgramVariable(&p->offset, R_UNIFORM_VECTOR, "OFFSET");
+	R_ProgramVariable(&p->offset, R_UNIFORM_VEC3, "OFFSET");
 
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0");
 	R_ProgramVariable(&p->sampler1, R_SAMPLER_2D, "SAMPLER1");

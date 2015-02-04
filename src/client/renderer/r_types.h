@@ -598,8 +598,7 @@ typedef struct {
 typedef struct {
 	const r_illumination_t *illumination;
 	cm_bsp_plane_t plane;
-	vec_t intensity;
-	matrix4x4_t matrix;
+	vec_t shadow;
 } r_shadow_t;
 
 /*
@@ -779,6 +778,9 @@ typedef struct {
 	vec3_t forward;
 	vec3_t right;
 	vec3_t up;
+
+	matrix4x4_t matrix; // the view matrix
+	matrix4x4_t inverse_matrix;
 
 	uint32_t contents; // view origin contents mask
 	vec_t bob;

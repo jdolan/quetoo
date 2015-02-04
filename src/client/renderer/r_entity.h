@@ -30,7 +30,6 @@ const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *m
 
 #ifdef __R_LOCAL_H__
 void R_RotateForEntity(const r_entity_t *e);
-void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out);
 void R_CullEntities(void *data);
 void R_DrawBspEntities(void);
 void R_DrawOpaqueMeshEntities(void);

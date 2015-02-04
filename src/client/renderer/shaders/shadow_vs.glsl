@@ -4,27 +4,27 @@
 
 #version 120
 
-uniform mat4 MODEL_MATRIX;
-uniform mat4 SHADOW_MATRIX;
+uniform mat4 MATRIX;
+uniform vec4 LIGHT;
 
-varying vec3 points[2];
+varying vec4 point;
 
 /*
- * ShadowVertex
+ * @brief
  */
-void ShadowVertex(void) {
-	points[0] = vec3(MODEL_MATRIX * gl_Vertex);
-	points[1] = vec3(SHADOW_MATRIX * gl_Vertex);
+void ShadowVertex() {
+	
+	point = gl_ModelViewMatrix * MATRIX * gl_Vertex;	
 }
 
 /*
- * main
+ * @brief Program entry point.
  */
 void main(void) {
-
+	
 	// mvp transform into clip space
-	gl_Position = ftransform();
-
+	gl_Position = gl_ModelViewProjectionMatrix * MATRIX * gl_Vertex;
+	
 	// and primary color
 	gl_FrontColor = gl_Color;
 	

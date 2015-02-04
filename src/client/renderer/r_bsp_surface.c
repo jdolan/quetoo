@@ -25,7 +25,6 @@
  * @brief
  */
 static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
-	r_image_t *diffuse;
 
 	if (r_state.blend_enabled) { // alpha blend
 		vec4_t color = { 1.0, 1.0, 1.0, 1.0 };
@@ -45,10 +44,8 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		R_Color(color);
 	}
 
-	diffuse = surf->texinfo->material->diffuse;
-
 	if (texunit_diffuse.enabled) // diffuse texture
-		R_BindTexture(diffuse->texnum);
+		R_BindTexture(surf->texinfo->material->diffuse->texnum);
 
 	if (texunit_lightmap.enabled) // lightmap texture
 		R_BindLightmapTexture(surf->lightmap->texnum);
@@ -65,7 +62,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 	}
 
 	if (r_state.stencil_test_enabled) // write to stencil buffer to clip shadows
-		glStencilFunc(GL_ALWAYS, (surf->plane->num % 0xfe) + 1, ~0);
+		glStencilFunc(GL_ALWAYS, (surf->plane->num % 0xff) + 1, ~0);
 }
 
 /*
@@ -170,6 +167,21 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	if (r_draw_bsp_lightmaps->value)
 		R_EnableTexture(&texunit_diffuse, true);
+
+#if 0
+	if (r_clear->value) {
+		byte data[r_context.width * r_context.height];
+
+		glReadPixels(0, 0, r_context.width, r_context.height, GL_UNSIGNED_BYTE, GL_STENCIL_INDEX, data);
+
+		FILE *f = fopen("/tmp/q2w.pgm", "w");
+		fprintf(f, "P5 %d %d 255\n", r_context.width, r_context.height);
+		for (r_pixel_t i = 0; i < r_context.height; i++) {
+			fwrite(&data[i * r_context.width], r_context.width, 1, f);
+		}
+		fclose(f);
+	}
+#endif
 }
 
 /*

@@ -77,7 +77,7 @@ void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *na
 }
 
 /*
- * R_ProgramParameter1i
+ * @brief
  */
 void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
 
@@ -96,7 +96,7 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
 }
 
 /*
- * R_ProgramParameter1f
+ * @brief
  */
 void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
 
@@ -115,7 +115,7 @@ void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
 }
 
 /*
- * R_ProgramParameter3fv
+ * @brief
  */
 void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
 
@@ -134,7 +134,26 @@ void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
 }
 
 /*
- * R_ProgramParameterMatrix4fv
+ * @brief
+ */
+void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
+
+	if (!variable || variable->location == -1) {
+		Com_Warn("NULL or invalid variable\n");
+		return;
+	}
+
+	if (Vector4Compare(variable->value.vec4, value))
+		return;
+
+	Vector4Copy(value, variable->value.vec4);
+	qglUniform4fv(variable->location, 1, variable->value.vec4);
+
+	R_GetError(variable->name);
+}
+
+/*
+ * @brief
  */
 void R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value) {
 

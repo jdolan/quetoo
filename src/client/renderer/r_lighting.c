@@ -37,6 +37,34 @@ typedef struct {
 static r_illuminations_t r_illuminations;
 
 /*
+ * @brief The impact points used to resolve illuminations.
+ */
+static vec3_t r_lighting_points[12];
+
+/*
+ * @brief Calculates the impact points for the given r_lighting_t.
+ */
+static void R_LightingPoints(const r_lighting_t *l) {
+	vec3_t *p = r_lighting_points;
+
+	VectorSet(p[0], l->mins[0], l->mins[1], l->mins[2]);
+	VectorSet(p[1], l->mins[0], l->mins[1], l->origin[2]);
+	VectorSet(p[2], l->mins[0], l->mins[1], l->maxs[2]);
+
+	VectorSet(p[3], l->mins[0], l->maxs[1], l->mins[2]);
+	VectorSet(p[4], l->mins[0], l->maxs[1], l->origin[2]);
+	VectorSet(p[5], l->mins[0], l->maxs[1], l->maxs[2]);
+
+	VectorSet(p[6], l->maxs[0], l->maxs[1], l->mins[2]);
+	VectorSet(p[7], l->maxs[0], l->maxs[1], l->origin[2]);
+	VectorSet(p[8], l->maxs[0], l->maxs[1], l->maxs[2]);
+
+	VectorSet(p[9], l->maxs[0], l->mins[1], l->mins[2]);
+	VectorSet(p[10], l->maxs[0], l->mins[1], l->origin[2]);
+	VectorSet(p[11], l->maxs[0], l->mins[1], l->maxs[2]);
+}
+
+/*
  * @brief Adds an illumination with the given parameters.
  */
 static void R_AddIllumination(const r_illumination_t *il) {
@@ -69,8 +97,9 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 
 	VectorMA(l->origin, LIGHTING_AMBIENT_DIST, vec3_up, il.light.origin);
 	VectorScale(r_bsp_light_state.ambient, 1.0 / max, il.light.color);
+
 	il.light.radius = LIGHTING_AMBIENT_RADIUS * r_lighting->value;
-	il.diffuse = il.light.radius - LIGHTING_AMBIENT_DIST;
+	il.diffuse = il.light.radius - LIGHTING_AMBIENT_DIST + l->radius;
 
 	R_AddIllumination(&il);
 }
@@ -88,11 +117,11 @@ static void R_SunIllumination(const r_lighting_t *l) {
 	if (!r_bsp_light_state.sun.diffuse)
 		return;
 
-	const vec_t *p[] = { l->origin, l->mins, l->maxs };
+	const vec3_t *p = r_lighting_points;
 
 	vec_t exposure = 0.0;
 
-	for (uint16_t i = 0; i < lengthof(p); i++) {
+	for (uint16_t i = 0; i < lengthof(r_lighting_points); i++) {
 		vec3_t pos;
 
 		VectorMA(p[i], MAX_WORLD_DIST, r_bsp_light_state.sun.dir, pos);
@@ -100,7 +129,7 @@ static void R_SunIllumination(const r_lighting_t *l) {
 		const cm_trace_t tr = Cl_Trace(p[i], pos, NULL, NULL, l->number, CONTENTS_SOLID);
 
 		if (tr.surface && (tr.surface->flags & SURF_SKY)) {
-			exposure += (1.0 / lengthof(p));
+			exposure += (1.0 / lengthof(r_lighting_points));
 		}
 	}
 
@@ -109,6 +138,7 @@ static void R_SunIllumination(const r_lighting_t *l) {
 
 	VectorMA(l->origin, LIGHTING_SUN_DIST, r_bsp_light_state.sun.dir, il.light.origin);
 	VectorScale(r_bsp_light_state.sun.color, exposure, il.light.color);
+
 	il.light.radius = LIGHTING_SUN_RADIUS * r_lighting->value;
 	il.diffuse = il.light.radius - LIGHTING_SUN_DIST;
 
@@ -122,12 +152,12 @@ static void R_SunIllumination(const r_lighting_t *l) {
 static _Bool R_PositionalIllumination(const r_lighting_t *l, const r_light_t *light) {
 	r_illumination_t il;
 
-	const vec_t *p[] = { l->origin, l->mins, l->maxs };
+	const vec3_t *p = r_lighting_points;
 
 	vec_t diffuse = 0.0;
 
 	// trace to the origin as well as the bounds
-	for (uint16_t i = 0; i < lengthof(p); i++) {
+	for (uint16_t i = 0; i < lengthof(r_lighting_points); i++) {
 		vec3_t dir;
 
 		// is it within range of the point in question
@@ -149,7 +179,7 @@ static _Bool R_PositionalIllumination(const r_lighting_t *l, const r_light_t *li
 		return false;
 
 	il.light = *light;
-	il.diffuse = diffuse / lengthof(p);
+	il.diffuse = diffuse / lengthof(r_lighting_points);
 
 	R_AddIllumination(&il);
 	return true;
@@ -220,6 +250,8 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 
 	r_illuminations.num_illuminations = 0;
 
+	R_LightingPoints(l);
+
 	R_DynamicIlluminations(l);
 
 	// if not dirty, and no dynamic lighting, we're done
@@ -255,7 +287,7 @@ static int32_t R_CompareShadow(const void *a, const void *b) {
 	const r_shadow_t *s0 = (const r_shadow_t *) a;
 	const r_shadow_t *s1 = (const r_shadow_t *) b;
 
-	return (int32_t) (1000.0 * (s1->intensity - s0->intensity));
+	return (int32_t) (s1->shadow - s0->shadow);
 }
 
 /*
@@ -275,8 +307,7 @@ static void R_UpdateShadows(r_lighting_t *l) {
 
 	// otherwise, refresh all shadow information based on the new illuminations
 	memset(l->shadows, 0, sizeof(l->shadows));
-
-	r_shadow_t *s = l->shadows;
+	uint16_t num_shadows = 0;
 
 	const r_illumination_t *il = l->illuminations;
 
@@ -285,20 +316,19 @@ static void R_UpdateShadows(r_lighting_t *l) {
 		if (il->diffuse == 0.0)
 			break;
 
-		const vec_t *p[] = { l->origin, l->mins, l->maxs };
+		const vec3_t *p = r_lighting_points;
 
-		for (uint16_t j = 0; j < lengthof(p); j++) {
+		for (uint16_t j = 0; j < lengthof(r_lighting_points); j++) {
 			vec3_t dir, pos;
 
 			// check if the light exits the entity
 			VectorSubtract(il->light.origin, p[j], dir);
-			const vec_t dist = il->light.radius - VectorNormalize(dir);
 
-			if (dist <= 0.0)
+			if (il->light.radius <= VectorNormalize(dir))
 				continue;
 
 			// project the farthest possible shadow impact position
-			VectorMA(p[j], -dist, dir, pos);
+			VectorMA(il->light.origin, -il->light.radius, dir, pos);
 
 			// trace, skipping the entity itself, impacting solids
 			const cm_trace_t tr = Cl_Trace(p[j], pos, NULL, NULL, l->number, MASK_SOLID);
@@ -307,16 +337,13 @@ static void R_UpdateShadows(r_lighting_t *l) {
 			if (tr.start_solid || tr.fraction == 1.0)
 				continue;
 
-			// resolve the intensity of the shadow based on how much light we occlude
-			const vec_t intensity = (1.0 - tr.fraction) * DotProduct(dir, tr.plane.normal);
-
 			// prepare to cast a shadow, search for the plane in previous shadows
-			s = l->shadows;
+			r_shadow_t *s = l->shadows;
 			while (s->illumination) {
 
 				// check if the shadow references the same illumination and plane
 				if (s->illumination == il && s->plane.num == tr.plane.num) {
-					s->intensity = MAX(s->intensity, intensity);
+					s->shadow = MAX(s->shadow, il->diffuse);
 					break;
 				}
 
@@ -330,13 +357,13 @@ static void R_UpdateShadows(r_lighting_t *l) {
 			// finally, cast the shadow
 			s->illumination = il;
 			s->plane = tr.plane;
-			s->intensity = intensity;
+			s->shadow = il->diffuse;
 
-			s++;
+			num_shadows++;
 		}
 	}
 
-	qsort(l->shadows, s - l->shadows, sizeof(r_shadow_t), R_CompareShadow);
+	qsort(l->shadows, num_shadows, sizeof(r_shadow_t), R_CompareShadow);
 }
 
 /*

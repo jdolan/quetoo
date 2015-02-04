@@ -140,14 +140,6 @@ void R_RotateForEntity(const r_entity_t *e) {
 }
 
 /*
- * @brief Transforms a point by the inverse of the world-model matrix for the
- * specified entity, translating and rotating it into the entity's model-view.
- */
-void R_TransformForEntity(const r_entity_t *e, const vec3_t in, vec3_t out) {
-	Matrix4x4_Transform(&e->inverse_matrix, in, out);
-}
-
-/*
  * @brief Applies any configuration and tag alignment, populating the model-view
  * matrix for the entity in the process.
  */

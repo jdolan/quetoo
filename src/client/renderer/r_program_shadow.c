@@ -23,8 +23,9 @@
 
 // these are the variables defined in the GLSL shader
 typedef struct r_shadow_program_s {
-	r_uniform_matrix4fv_t model_matrix;
-	r_uniform_matrix4fv_t shadow_matrix;
+	r_uniform_matrix4fv_t matrix;
+	r_uniform4fv_t light;
+	r_uniform4fv_t plane;
 } r_shadow_program_t;
 
 static r_shadow_program_t r_shadow_program;
@@ -34,16 +35,23 @@ static r_shadow_program_t r_shadow_program;
  */
 void R_InitProgram_shadow(void) {
 	r_shadow_program_t *p = &r_shadow_program;
+	const vec4_t light = { 0.0, 0.0, 0.0, 1.0 };
+	const vec4_t plane = { 0.0, 0.0, 1.0, 0.0 };
 
-	R_ProgramVariable(&p->model_matrix, R_UNIFORM_MATRIX, "MODEL_MATRIX");
-	R_ProgramVariable(&p->shadow_matrix, R_UNIFORM_MATRIX, "SHADOW_MATRIX");
+	R_ProgramVariable(&p->matrix, R_UNIFORM_MAT4, "MATRIX");
+	R_ProgramVariable(&p->light, R_UNIFORM_VEC4, "LIGHT");
+	R_ProgramVariable(&p->plane, R_UNIFORM_VEC4, "PLANE");
 
-	R_ProgramParameterMatrix4fv(&p->model_matrix, (GLfloat *) matrix4x4_identity.m);
-	R_ProgramParameterMatrix4fv(&p->shadow_matrix, (GLfloat *) matrix4x4_identity.m);
+	R_ProgramParameterMatrix4fv(&p->matrix, (GLfloat *) matrix4x4_identity.m);
+	R_ProgramParameter4fv(&p->light, light);
+	R_ProgramParameter4fv(&p->plane, plane);
 }
 
 /*
- * @brief
+ * @brief Calculates a perspective shearing matrix for the current shadow and
+ * uploads it as a uniform variable to the shader.
+ *
+ * ftp://ftp.sgi.com/opengl/contrib/blythe/advanced99/notes/node192.html
  */
 void R_UseProgram_shadow(void) {
 	r_shadow_program_t *p = &r_shadow_program;
@@ -51,6 +59,48 @@ void R_UseProgram_shadow(void) {
 	if (!r_view.current_entity || !r_view.current_shadow)
 		return;
 
-	R_ProgramParameterMatrix4fv(&p->model_matrix, (GLfloat *) r_view.current_entity->matrix.m);
-	R_ProgramParameterMatrix4fv(&p->shadow_matrix, (GLfloat *) r_view.current_shadow->matrix.m);
+	const r_entity_t *e = r_view.current_entity;
+	const r_shadow_t *s = r_view.current_shadow;
+
+	// transform the light position and shadow plane into model space
+	vec4_t light, plane;
+
+	Matrix4x4_Transform(&e->inverse_matrix, s->illumination->light.origin, light);
+	light[3] = 1.0;
+
+	Matrix4x4_TransformQuakePlane(&e->inverse_matrix, s->plane.normal, s->plane.dist, plane);
+	plane[3] = -plane[3];
+
+	// calculate the perspective-shearing matrix
+	const vec_t dot = DotProduct(light, plane) + light[3] * plane[3];
+
+	matrix4x4_t matrix;
+	matrix.m[0][0] = dot - light[0] * plane[0];
+	matrix.m[1][0] = 0.0 - light[0] * plane[1];
+	matrix.m[2][0] = 0.0 - light[0] * plane[2];
+	matrix.m[3][0] = 0.0 - light[0] * plane[3];
+	matrix.m[0][1] = 0.0 - light[1] * plane[0];
+	matrix.m[1][1] = dot - light[1] * plane[1];
+	matrix.m[2][1] = 0.0 - light[1] * plane[2];
+	matrix.m[3][1] = 0.0 - light[1] * plane[3];
+	matrix.m[0][2] = 0.0 - light[2] * plane[0];
+	matrix.m[1][2] = 0.0 - light[2] * plane[1];
+	matrix.m[2][2] = dot - light[2] * plane[2];
+	matrix.m[3][2] = 0.0 - light[2] * plane[3];
+	matrix.m[0][3] = 0.0 - light[3] * plane[0];
+	matrix.m[1][3] = 0.0 - light[3] * plane[1];
+	matrix.m[2][3] = 0.0 - light[3] * plane[2];
+	matrix.m[3][3] = dot - light[3] * plane[3];
+
+	R_ProgramParameterMatrix4fv(&p->matrix, (GLfloat *) matrix.m);
+
+	Matrix4x4_Transform(&r_view.matrix, s->illumination->light.origin, light);
+	light[3] = s->illumination->light.radius;
+
+	R_ProgramParameter4fv(&p->light, light);
+
+	Matrix4x4_TransformQuakePlane(&r_view.matrix, s->plane.normal, s->plane.dist, plane);
+	plane[3] = -plane[3];
+
+	R_ProgramParameter4fv(&p->plane, plane);
 }

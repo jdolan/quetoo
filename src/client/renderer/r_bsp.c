@@ -95,7 +95,7 @@ void R_RotateLightsForBspInlineModel(const r_entity_t *e) {
 
 	for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
 		if (e) {
-			R_TransformForEntity(e, light_origins[i], l->origin);
+			Matrix4x4_Transform(&e->inverse_matrix, light_origins[i], l->origin);
 			R_MarkLight(l, nodes + e->model->bsp_inline->head_node);
 		} else {
 			VectorCopy(light_origins[i], l->origin);

@@ -27,7 +27,7 @@
 #ifdef __R_LOCAL_H__
 
 // glsl vertex and fragment shaders
-typedef struct r_shader_s {
+typedef struct {
 	GLenum type;
 	GLuint id;
 	char name[MAX_QPATH];
@@ -39,18 +39,20 @@ typedef struct r_shader_s {
 #define R_ATTRIBUTE 		0x1
 #define R_UNIFORM_INT 		0x2
 #define R_UNIFORM_FLOAT		0x4
-#define R_UNIFORM_VECTOR	0x8
-#define R_UNIFORM_MATRIX	0x10
-#define R_SAMPLER_2D		0x20
+#define R_UNIFORM_VEC3		0x10
+#define R_UNIFORM_VEC4		0x20
+#define R_UNIFORM_MAT4		0x40
+#define R_SAMPLER_2D		0x80
 
-typedef union r_variable_value_u {
+typedef union {
 	GLint i;
 	GLfloat f;
 	vec3_t vec3;
+	vec4_t vec4;
 	matrix4x4_t mat4;
 } r_variable_value_t;
 
-typedef struct r_variable_s {
+typedef struct {
 	GLenum type;
 	char name[MAX_QPATH];
 	GLint location;
@@ -61,13 +63,14 @@ typedef r_variable_t r_attribute_t;
 typedef r_variable_t r_uniform1i_t;
 typedef r_variable_t r_uniform1f_t;
 typedef r_variable_t r_uniform3fv_t;
+typedef r_variable_t r_uniform4fv_t;
 typedef r_variable_t r_uniform_matrix4fv_t;
 typedef r_variable_t r_sampler2d_t;
 
 #define MAX_PROGRAM_VARIABLES 32
 
 // and glsl programs
-typedef struct r_program_s {
+typedef struct {
 	GLuint id;
 	char name[MAX_QPATH];
 	r_shader_t *v;
@@ -85,6 +88,7 @@ void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *na
 void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value);
 void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value);
 void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value);
+void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value);
 void R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value);
 void R_AttributePointer(const char *name, GLuint size, const GLvoid *array);
 void R_EnableAttribute(r_attribute_t *attribute);

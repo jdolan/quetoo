@@ -4,22 +4,32 @@
 
 #version 120
 
-#define SHADOW_ATTENUATION 96.0
+uniform vec4 LIGHT;
+uniform vec4 PLANE;
 
-uniform float INTENSITY;
-
-varying vec3 points[2];
+varying vec4 point;
 
 /*
- * ShadowFragment
+ * @brief
  */
 void ShadowFragment(void) {
-	float attenuation = length(points[1] - points[0]) / SHADOW_ATTENUATION;
-	gl_FragColor.a *= 1.0 - clamp(attenuation, 0.0, 1.0);
+	
+	vec3 delta = LIGHT.xyz - (point.xyz / point.w);
+	
+	float dist = length(delta);
+	if (dist < LIGHT.w) {
+	
+		float s = (LIGHT.w - dist) / LIGHT.w;
+		float d = dot(PLANE.xyz, normalize(delta));
+		
+		gl_FragColor.a = min(s /** d*/, gl_Color.a);
+	} else {
+		discard;
+	}
 }
 
 /*
- * main
+ * @brief Program entry point.
  */
 void main(void) {
 
@@ -27,3 +37,4 @@ void main(void) {
 
 	ShadowFragment();
 }
+
