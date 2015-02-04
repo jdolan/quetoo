@@ -109,7 +109,9 @@ void R_UseMaterial_default(const r_material_t *material) {
 
 	r_default_program_t *p = &r_default_program;
 
-	if (!material || !material->normalmap || !r_bumpmap->value) {
+	if (!material || !material->normalmap ||
+			!r_bumpmap->value || r_draw_bsp_lightmaps->value) {
+
 		R_DisableAttribute(&p->tangent);
 		R_ProgramParameter1i(&p->normalmap, 0);
 		return;
