@@ -358,18 +358,21 @@ void Cl_Interpolate(void) {
 
 		if (!VectorCompare(ent->prev.origin, ent->current.origin)) {
 			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
+			ent->lighting.state = LIGHTING_DIRTY;
 		} else {
 			VectorCopy(ent->current.origin, ent->origin);
 		}
 
 		if (!VectorCompare(ent->prev.termination, ent->current.termination)) {
 			VectorLerp(ent->prev.termination, ent->current.termination, cl.lerp, ent->termination);
+			ent->lighting.state = LIGHTING_DIRTY;
 		} else {
 			VectorCopy(ent->current.termination, ent->termination);
 		}
 
 		if (!VectorCompare(ent->prev.angles, ent->current.angles)) {
 			AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
+			ent->lighting.state = LIGHTING_DIRTY;
 		} else {
 			VectorCopy(ent->current.angles, ent->angles);
 		}
