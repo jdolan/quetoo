@@ -304,32 +304,23 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  *
  * @return The next winding point, or NULL if the face is completely unwound.
  */
-static const vec_t *R_UnwindBspSurface(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf,
-		const vec_t *last) {
+static const r_bsp_vertex_t *R_UnwindBspSurface(const r_bsp_model_t *bsp,
+		const r_bsp_surface_t *surf, uint16_t *index) {
 
-	const int32_t *se = &bsp->surface_edges[surf->first_edge];
-	const vec_t *v0 = R_BSP_VERTEX(bsp, *se)->position;
+	const int32_t *edges = &bsp->surface_edges[surf->first_edge];
 
-	if (!last)
-		return v0;
+	const r_bsp_vertex_t *v0 = R_BSP_VERTEX(bsp, edges[*index]);
+	while (*index < surf->num_edges - 1) {
 
-	uint16_t i;
-	for (i = 0; i < surf->num_edges; i++) {
-		const vec_t *v = R_BSP_VERTEX(bsp, se[i])->position;
+		const r_bsp_vertex_t *v1 = R_BSP_VERTEX(bsp, edges[(*index + 1) % surf->num_edges]);
+		const r_bsp_vertex_t *v2 = R_BSP_VERTEX(bsp, edges[(*index + 2) % surf->num_edges]);
 
-		if (VectorCompare(last, v)) {
-			break;
-		}
-	}
-
-	while (i < surf->num_edges - 1) {
-		const vec_t *v1 = R_BSP_VERTEX(bsp, se[(i + 1) % surf->num_edges])->position;
-		const vec_t *v2 = R_BSP_VERTEX(bsp, se[(i + 2) % surf->num_edges])->position;
+		*index = *index + 1;
 
 		vec3_t delta1, delta2;
 
-		VectorSubtract(v1, v0, delta1);
-		VectorSubtract(v2, v0, delta2);
+		VectorSubtract(v1->position, v0->position, delta1);
+		VectorSubtract(v2->position, v0->position, delta2);
 
 		VectorNormalize(delta1);
 		VectorNormalize(delta2);
@@ -337,8 +328,6 @@ static const vec_t *R_UnwindBspSurface(const r_bsp_model_t *bsp, const r_bsp_sur
 		if (DotProduct(delta1, delta2) < 1.0 - SIDE_EPSILON) {
 			return v1;
 		}
-
-		i++;
 	}
 
 	return NULL;
@@ -377,23 +366,25 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	if (surf->texinfo->light) { // resolve surface area
 
-		const vec_t *v0 = R_UnwindBspSurface(bsp, surf, NULL);
-		const vec_t *v1 = R_UnwindBspSurface(bsp, surf, v0);
-		const vec_t *v2 = R_UnwindBspSurface(bsp, surf, v1);
+		uint16_t vert = 0;
+
+		const r_bsp_vertex_t *v0 = R_UnwindBspSurface(bsp, surf, &vert);
+		const r_bsp_vertex_t *v1 = R_UnwindBspSurface(bsp, surf, &vert);
+		const r_bsp_vertex_t *v2 = R_UnwindBspSurface(bsp, surf, &vert);
 
 		uint16_t tris = 0;
 		while (v1 && v2) {
 			tris++;
 			vec3_t delta1, delta2, cross;
 
-			VectorSubtract(v1, v0, delta1);
-			VectorSubtract(v2, v0, delta2);
+			VectorSubtract(v1->position, v0->position, delta1);
+			VectorSubtract(v2->position, v0->position, delta2);
 
 			CrossProduct(delta1, delta2, cross);
 			surf->area += 0.5 * VectorLength(cross);
 
 			v1 = v2;
-			v2 = R_UnwindBspSurface(bsp, surf, v1);
+			v2 = R_UnwindBspSurface(bsp, surf, &vert);
 		}
 	}
 
