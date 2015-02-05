@@ -79,12 +79,11 @@ static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
  * @brief
  */
 static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
-	size_t i;
 
 	R_SetArrayState(r_model_state.world);
 
 	// draw the surfaces
-	for (i = 0; i < surfs->count; i++) {
+	for (size_t i = 0; i < surfs->count; i++) {
 
 		if (surfs->surfaces[i]->texinfo->flags & SURF_MATERIAL)
 			continue;
@@ -112,7 +111,6 @@ static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
  * @brief
  */
 static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
-	size_t i;
 
 	R_EnableTexture(&texunit_diffuse, false);
 
@@ -120,7 +118,7 @@ static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	for (i = 0; i < surfs->count; i++) {
+	for (size_t i = 0; i < surfs->count; i++) {
 
 		if (surfs->surfaces[i]->frame != r_locals.frame)
 			continue;
@@ -159,7 +157,7 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_DrawBspSurfaces_default(surfs);
 
 	if (r_shadows->value)
-		R_EnableStencilTest(false, GL_ZERO);
+		R_EnableStencilTest(false, GL_KEEP);
 
 	R_EnableLighting(NULL, false);
 
@@ -175,9 +173,12 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		glReadPixels(0, 0, r_context.width, r_context.height, GL_UNSIGNED_BYTE, GL_STENCIL_INDEX, data);
 
 		FILE *f = fopen("/tmp/q2w.pgm", "w");
-		fprintf(f, "P5 %d %d 255\n", r_context.width, r_context.height);
+		fprintf(f, "P2 %d %d 255\n", r_context.width, r_context.height);
 		for (r_pixel_t i = 0; i < r_context.height; i++) {
-			fwrite(&data[i * r_context.width], r_context.width, 1, f);
+			for (r_pixel_t j = 0; j < r_context.width; j++) {
+				fprintf(f, "%03d ", data[i * r_context.width + j]);
+			}
+			fprintf(f, "\n");
 		}
 		fclose(f);
 	}

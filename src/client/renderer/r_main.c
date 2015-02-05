@@ -199,6 +199,17 @@ void R_DrawView(void) {
 	R_EnableBlend(false);
 
 	R_ResetArrayState();
+
+#if 0
+	vec3_t tmp;
+	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, tmp);
+
+	cm_trace_t tr = Cl_Trace(r_view.origin, tmp, NULL, NULL, cl.client_num + 1, MASK_SOLID);
+	if (tr.fraction > 0.0 && tr.fraction < 1.0) {
+		Com_Print("%d (%d): %s\n", tr.plane.num, (tr.plane.num % 0xff) + 1, tr.surface->name);
+	}
+
+#endif
 }
 
 /*

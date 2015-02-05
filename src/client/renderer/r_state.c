@@ -628,7 +628,6 @@ void R_Setup2D(void) {
  * appropriate defaults.
  */
 void R_InitState(void) {
-	int32_t i;
 
 	r_get_error = Cvar_Get("r_get_error", "0", 0, NULL);
 
@@ -646,12 +645,10 @@ void R_InitState(void) {
 	R_BindDefaultArray(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
 	// setup texture units
 	const size_t len = MAX_GL_ARRAY_LENGTH * sizeof(vec2_t);
-	for (i = 0; i < MAX_GL_TEXUNITS; i++) {
+
+	for (int32_t i = 0; i < MAX_GL_TEXUNITS; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
 		if (i < r_config.max_teximage_units) {
@@ -665,7 +662,7 @@ void R_InitState(void) {
 				R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
 
 				if (texunit == &texunit_lightmap)
-				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 				R_EnableTexture(texunit, false);
 			}

@@ -193,7 +193,7 @@ typedef struct {
 } r_bsp_flare_t;
 
 // r_bsp_surface_t flags
-#define R_SURF_SIDE_BACK	1
+#define R_SURF_PLANE_BACK	1
 #define R_SURF_LIGHTMAP		2
 
 typedef struct {

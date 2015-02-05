@@ -57,7 +57,7 @@ typedef struct {
 	vec_t dist;
 	uint16_t type; // for fast side tests
 	uint16_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
-	int32_t num; // for aligning collision model and rendering
+	uint16_t num; // for aligning collision model and rendering
 } cm_bsp_plane_t;
 
 /*

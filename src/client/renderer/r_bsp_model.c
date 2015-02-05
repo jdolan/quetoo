@@ -441,7 +441,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		// and sidedness
 		const int16_t side = LittleShort(in->side);
 		if (side) {
-			out->flags |= R_SURF_SIDE_BACK;
+			out->flags |= R_SURF_PLANE_BACK;
 			VectorNegate(out->plane->normal, out->normal);
 		} else
 			VectorCopy(out->plane->normal, out->normal);

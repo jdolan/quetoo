@@ -135,7 +135,7 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 		else
 			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
 
-		if (surf->flags & R_SURF_SIDE_BACK)
+		if (surf->flags & R_SURF_PLANE_BACK)
 			dot = -dot;
 
 		if (dot > SIDE_EPSILON) { // visible, flag for rendering
@@ -263,16 +263,16 @@ void R_DrawBspNormals(void) {
  * @brief Developer tool for viewing BSP leafs and clusters.
  */
 void R_DrawBspLeafs(void) {
-	const vec4_t leaf_colors[] = {
-	// assign each leaf a color
-			{ 0.2, 0.2, 0.2, 0.4 },
-			{ 0.8, 0.2, 0.2, 0.4 },
-			{ 0.2, 0.8, 0.2, 0.4 },
-			{ 0.2, 0.2, 0.8, 0.4 },
-			{ 0.8, 0.8, 0.2, 0.4 },
-			{ 0.2, 0.8, 0.8, 0.4 },
-			{ 0.8, 0.2, 0.8, 0.4 },
-			{ 0.8, 0.8, 0.8, 0.4 } };
+	const vec4_t leaf_colors[] = { // assign each leaf a color
+		{ 0.2, 0.2, 0.2, 0.4 },
+		{ 0.8, 0.2, 0.2, 0.4 },
+		{ 0.2, 0.8, 0.2, 0.4 },
+		{ 0.2, 0.2, 0.8, 0.4 },
+		{ 0.8, 0.8, 0.2, 0.4 },
+		{ 0.2, 0.8, 0.8, 0.4 },
+		{ 0.8, 0.2, 0.8, 0.4 },
+		{ 0.8, 0.8, 0.8, 0.4 }
+	};
 
 	if (!r_draw_bsp_leafs->value)
 		return;
@@ -284,9 +284,8 @@ void R_DrawBspLeafs(void) {
 	glEnable(GL_POLYGON_OFFSET_FILL);
 
 	const r_bsp_leaf_t *l = r_model_state.world->bsp->leafs;
-	uint16_t i;
 
-	for (i = 0; i < r_model_state.world->bsp->num_leafs; i++, l++) {
+	for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, l++) {
 
 		if (l->vis_frame != r_locals.vis_frame)
 			continue;
@@ -297,9 +296,8 @@ void R_DrawBspLeafs(void) {
 			R_Color(leaf_colors[i % lengthof(leaf_colors)]);
 
 		r_bsp_surface_t **s = l->first_leaf_surface;
-		uint16_t j;
 
-		for (j = 0; j < l->num_leaf_surfaces; j++, s++) {
+		for (uint16_t j = 0; j < l->num_leaf_surfaces; j++, s++) {
 
 			if ((*s)->vis_frame != r_locals.vis_frame)
 				continue;
@@ -367,7 +365,7 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 		side_bit = 0;
 	} else {
 		side = 1;
-		side_bit = R_SURF_SIDE_BACK;
+		side_bit = R_SURF_PLANE_BACK;
 	}
 
 	// recurse down the children, front side first
@@ -380,7 +378,7 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 
 		if (s->vis_frame == r_locals.vis_frame) { // it's been marked
 
-			if ((s->flags & R_SURF_SIDE_BACK) != side_bit) { // but back-facing
+			if ((s->flags & R_SURF_PLANE_BACK) != side_bit) { // but back-facing
 				s->frame = -1;
 				s->back_frame = r_locals.frame;
 			} else { // draw it

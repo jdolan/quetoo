@@ -157,7 +157,7 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	r_view.current_shadow = NULL;
 
-	R_EnableStencilTest(false, GL_ZERO);
+	R_EnableStencilTest(false, GL_KEEP);
 
 	glDisable(GL_POLYGON_OFFSET_FILL);
 
