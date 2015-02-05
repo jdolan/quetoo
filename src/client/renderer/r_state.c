@@ -286,9 +286,11 @@ void R_EnableBlend(_Bool enable) {
 
 	if (enable) {
 		glEnable(GL_BLEND);
+
 		glDepthMask(GL_FALSE);
 	} else {
 		glDisable(GL_BLEND);
+
 		glDepthMask(GL_TRUE);
 	}
 }
@@ -312,7 +314,7 @@ void R_EnableAlphaTest(_Bool enable) {
 /*
  * @brief Enables the stencil test for e.g. rendering shadow volumes.
  */
-void R_EnableStencilTest(_Bool enable, GLenum op) {
+void R_EnableStencilTest(GLenum pass, _Bool enable) {
 
 	if (r_state.stencil_test_enabled == enable)
 		return;
@@ -322,10 +324,30 @@ void R_EnableStencilTest(_Bool enable, GLenum op) {
 	if (enable) {
 		glEnable(GL_STENCIL_TEST);
 
-		glStencilOp(GL_KEEP, GL_KEEP, op);
+		glStencilOp(GL_KEEP, GL_KEEP, pass);
 	} else {
+		glStencilOp(GL_KEEP, GL_KEEP, pass);
+
 		glDisable(GL_STENCIL_TEST);
 	}
+}
+
+/*
+ * @brief Enables polygon offset fill for decals, etc.
+ */
+void R_EnablePolygonOffset(GLenum mode, _Bool enable) {
+
+	if (r_state.polygon_offset_enabled == enable)
+		return;
+
+	r_state.polygon_offset_enabled = enable;
+
+	if (enable)
+		glEnable(mode);
+	else
+		glDisable(mode);
+
+	glPolygonOffset(-1.0, 1.0);
 }
 
 /*
@@ -473,10 +495,11 @@ void R_EnableShell(_Bool enable) {
 		R_ProgramVariable(&offset, R_UNIFORM_FLOAT, "OFFSET");
 
 	if (enable) {
-		glEnable(GL_POLYGON_OFFSET_FILL);
 
 		R_EnableBlend(true);
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+		R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
 
 		if (r_state.active_program)
 			R_ProgramParameter1f(&offset, r_view.time * 0.00033);
@@ -484,7 +507,7 @@ void R_EnableShell(_Bool enable) {
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		R_EnableBlend(false);
 
-		glDisable(GL_POLYGON_OFFSET_FILL);
+		R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
 
 		if (r_state.active_program)
 			R_ProgramParameter1f(&offset, 0.0);

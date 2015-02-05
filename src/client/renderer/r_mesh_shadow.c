@@ -127,9 +127,9 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableTexture(&texunit_diffuse, false);
 
-	glEnable(GL_POLYGON_OFFSET_FILL);
+	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
 
-	R_EnableStencilTest(true, GL_ZERO);
+	R_EnableStencilTest(GL_ZERO, true);
 
 	r_shadow_t *s = e->lighting->shadows;
 
@@ -157,9 +157,9 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	r_view.current_shadow = NULL;
 
-	R_EnableStencilTest(false, GL_KEEP);
+	R_EnableStencilTest(GL_KEEP, false);
 
-	glDisable(GL_POLYGON_OFFSET_FILL);
+	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
 
 	R_EnableTexture(&texunit_diffuse, true);
 

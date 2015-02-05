@@ -366,7 +366,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(&texunit_lightmap, false);
 
-	glEnable(GL_POLYGON_OFFSET_FILL); // all stages use depth offset
+	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
 
 	glMatrixMode(GL_TEXTURE); // some stages will manipulate texcoords
 
@@ -396,8 +396,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		}
 	}
 
-	glPolygonOffset(-1.0, 1.0);
-	glDisable(GL_POLYGON_OFFSET_FILL);
+	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
 
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
@@ -437,7 +436,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	if (!blend)
 		R_EnableBlend(true);
 
-	glEnable(GL_POLYGON_OFFSET_FILL); // all stages use depth offset
+	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
 
 	glMatrixMode(GL_TEXTURE); // some stages will manipulate texcoords
 
@@ -454,7 +453,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 		glDrawArrays(GL_TRIANGLES, offset, count);
 	}
 
-	glPolygonOffset(-1.0, 1.0);
+	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
 
 	if (!blend)
 		R_EnableBlend(false);

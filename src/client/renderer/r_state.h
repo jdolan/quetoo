@@ -73,6 +73,7 @@ typedef struct r_state_s {
 	_Bool color_array_enabled;
 	_Bool alpha_test_enabled;
 	_Bool stencil_test_enabled;
+	_Bool polygon_offset_enabled;
 	_Bool lighting_enabled;
 	_Bool shadow_enabled;
 	_Bool warp_enabled;
@@ -103,7 +104,8 @@ void R_BindBuffer(GLenum target, GLenum type, GLuint id);
 void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
 void R_EnableAlphaTest(_Bool enable);
-void R_EnableStencilTest(_Bool enable, GLenum op);
+void R_EnableStencilTest(GLenum pass, _Bool enable);
+void R_EnablePolygonOffset(GLenum mode, _Bool enable);
 void R_EnableTexture(r_texunit_t *texunit, _Bool enable);
 void R_EnableColorArray(_Bool enable);
 void R_EnableLighting(const r_program_t *program, _Bool enable);
