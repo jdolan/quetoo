@@ -21,7 +21,8 @@
 
 #include "r_local.h"
 
-#define MESH_SHADOW_LIMIT 300.0
+#define MESH_SHADOW_MIN 30.0
+#define MESH_SHADOW_MAX 300.0
 #define MESH_SHADOW_ALPHA 0.33
 
 /*
@@ -30,12 +31,12 @@
  */
 static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *s) {
 
-	vec_t alpha;
-	//if (r_programs->value) {
-		alpha = MESH_SHADOW_ALPHA;
-	//} else {
-		//alpha = s->shadow / MESH_SHADOW_LIMIT * MESH_SHADOW_ALPHA;
-	//}
+	vec_t alpha = MESH_SHADOW_ALPHA;
+
+	if (!r_programs->value) {
+		const vec_t shadow = Clamp(s->shadow, MESH_SHADOW_MIN, MESH_SHADOW_MAX);
+		alpha *= shadow / MESH_SHADOW_MAX;
+	}
 
 	if (e->effects & EF_BLEND)
 		alpha *= e->color[3];

@@ -39,7 +39,7 @@ static r_illuminations_t r_illuminations;
 /*
  * @brief The impact points used to resolve illuminations.
  */
-static vec3_t r_lighting_points[12];
+static vec3_t r_lighting_points[9];
 
 /*
  * @brief Calculates the impact points for the given r_lighting_t.
@@ -47,6 +47,7 @@ static vec3_t r_lighting_points[12];
 static void R_LightingPoints(const r_lighting_t *l) {
 	vec3_t *p = r_lighting_points;
 
+	/*
 	VectorSet(p[0], l->mins[0], l->mins[1], l->mins[2]);
 	VectorSet(p[1], l->mins[0], l->mins[1], l->origin[2]);
 	VectorSet(p[2], l->mins[0], l->mins[1], l->maxs[2]);
@@ -62,6 +63,21 @@ static void R_LightingPoints(const r_lighting_t *l) {
 	VectorSet(p[9], l->maxs[0], l->mins[1], l->mins[2]);
 	VectorSet(p[10], l->maxs[0], l->mins[1], l->origin[2]);
 	VectorSet(p[11], l->maxs[0], l->mins[1], l->maxs[2]);
+	*/
+
+	VectorSet(p[0], l->mins[0], l->mins[1], l->mins[2]);
+	VectorSet(p[1], l->mins[0], l->mins[1], l->maxs[2]);
+
+	VectorSet(p[2], l->mins[0], l->maxs[1], l->mins[2]);
+	VectorSet(p[3], l->mins[0], l->maxs[1], l->maxs[2]);
+
+	VectorSet(p[4], l->maxs[0], l->maxs[1], l->mins[2]);
+	VectorSet(p[5], l->maxs[0], l->maxs[1], l->maxs[2]);
+
+	VectorSet(p[6], l->maxs[0], l->mins[1], l->mins[2]);
+	VectorSet(p[7], l->maxs[0], l->mins[1], l->maxs[2]);
+
+	VectorSet(p[8], l->origin[0], l->origin[1], l->origin[2]);
 }
 
 /*
@@ -99,7 +115,7 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 	VectorScale(r_bsp_light_state.ambient, 1.0 / max, il.light.color);
 
 	il.light.radius = LIGHTING_AMBIENT_RADIUS * r_lighting->value;
-	il.diffuse = il.light.radius - LIGHTING_AMBIENT_DIST + l->radius;
+	il.diffuse = il.light.radius - LIGHTING_AMBIENT_DIST;
 
 	R_AddIllumination(&il);
 }
@@ -357,6 +373,8 @@ static void R_UpdateShadows(r_lighting_t *l) {
 			// finally, cast the shadow
 			s->illumination = il;
 			s->plane = tr.plane;
+
+			// resolve its intensity
 			s->shadow = il->diffuse;
 
 			num_shadows++;
