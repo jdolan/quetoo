@@ -209,7 +209,6 @@ void R_DrawBspInlineModel(const r_entity_t *e) {
  */
 void R_DrawBspNormals(void) {
 	const vec4_t red = { 1.0, 0.0, 0.0, 1.0 };
-	int32_t i, j, k;
 
 	if (!r_draw_bsp_normals->value)
 		return;
@@ -220,9 +219,9 @@ void R_DrawBspNormals(void) {
 
 	R_Color(red);
 
-	k = 0;
+	int32_t k = 0;
 	const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces;
-	for (i = 0; i < r_model_state.world->bsp->num_surfaces; i++, surf++) {
+	for (uint16_t i = 0; i < r_model_state.world->bsp->num_surfaces; i++, surf++) {
 
 		if (surf->vis_frame != r_locals.vis_frame)
 			continue; // not visible
@@ -238,7 +237,7 @@ void R_DrawBspNormals(void) {
 			k = 0;
 		}
 
-		for (j = 0; j < surf->num_edges; j++) {
+		for (uint16_t j = 0; j < surf->num_edges; j++) {
 			vec3_t end;
 
 			const GLfloat *vertex = &r_model_state.world->verts[(surf->index + j) * 3];
