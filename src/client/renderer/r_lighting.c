@@ -337,10 +337,6 @@ static void R_UpdateShadows(r_lighting_t *l) {
 			if (tr.start_solid || tr.fraction == 1.0)
 				continue;
 
-			// this is the most evil thing on the planet
-			if (tr.plane.num % 2 == 1)
-				tr.plane.num--;
-
 			// prepare to cast a shadow, search for the plane in previous shadows
 			r_shadow_t *s = l->shadows;
 			while (s->illumination) {
