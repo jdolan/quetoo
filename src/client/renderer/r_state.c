@@ -321,15 +321,12 @@ void R_EnableStencilTest(GLenum pass, _Bool enable) {
 
 	r_state.stencil_test_enabled = enable;
 
-	if (enable) {
+	if (enable)
 		glEnable(GL_STENCIL_TEST);
-
-		glStencilOp(GL_KEEP, GL_KEEP, pass);
-	} else {
-		glStencilOp(GL_KEEP, GL_KEEP, pass);
-
+	else
 		glDisable(GL_STENCIL_TEST);
-	}
+
+	glStencilOp(GL_KEEP, GL_KEEP, pass);
 }
 
 /*
