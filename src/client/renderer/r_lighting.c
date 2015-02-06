@@ -331,11 +331,15 @@ static void R_UpdateShadows(r_lighting_t *l) {
 			VectorMA(il->light.origin, -il->light.radius, dir, pos);
 
 			// trace, skipping the entity itself, impacting solids
-			const cm_trace_t tr = Cl_Trace(p[j], pos, NULL, NULL, l->number, MASK_SOLID);
+			cm_trace_t tr = Cl_Trace(p[j], pos, NULL, NULL, l->number, MASK_SOLID);
 
 			// check if the trace impacted a valid plane
 			if (tr.start_solid || tr.fraction == 1.0)
 				continue;
+
+			// this is the most evil thing on the planet
+			if (tr.plane.num % 2 == 1)
+				tr.plane.num--;
 
 			// prepare to cast a shadow, search for the plane in previous shadows
 			r_shadow_t *s = l->shadows;
