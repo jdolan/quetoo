@@ -137,7 +137,7 @@ static void R_SunIllumination(const r_lighting_t *l) {
 
 	vec_t exposure = 0.0;
 
-	for (uint16_t i = 0; i < lengthof(r_lighting_points); i++) {
+	for (size_t i = 0; i < lengthof(r_lighting_points); i++) {
 		vec3_t pos;
 
 		VectorMA(p[i], MAX_WORLD_DIST, r_bsp_light_state.sun.dir, pos);
@@ -173,7 +173,7 @@ static _Bool R_PositionalIllumination(const r_lighting_t *l, const r_light_t *li
 	vec_t diffuse = 0.0;
 
 	// trace to the origin as well as the bounds
-	for (uint16_t i = 0; i < lengthof(r_lighting_points); i++) {
+	for (size_t i = 0; i < lengthof(r_lighting_points); i++) {
 		vec3_t dir;
 
 		// is it within range of the point in question
@@ -327,14 +327,14 @@ static void R_UpdateShadows(r_lighting_t *l) {
 
 	const r_illumination_t *il = l->illuminations;
 
-	for (uint16_t i = 0; i < lengthof(l->illuminations); i++, il++) {
+	for (size_t i = 0; i < lengthof(l->illuminations); i++, il++) {
 
 		if (il->diffuse == 0.0)
 			break;
 
 		const vec3_t *p = r_lighting_points;
 
-		for (uint16_t j = 0; j < lengthof(r_lighting_points); j++) {
+		for (size_t j = 0; j < lengthof(r_lighting_points); j++) {
 			vec3_t dir, pos;
 
 			// check if the light exits the entity
@@ -353,13 +353,19 @@ static void R_UpdateShadows(r_lighting_t *l) {
 			if (tr.start_solid || tr.fraction == 1.0)
 				continue;
 
-			// prepare to cast a shadow, search for the plane in previous shadows
+			// calculate the distance from the light source to the plane
+			const vec_t dist = DotProduct(il->light.origin, tr.plane.normal) - tr.plane.dist;
+
+			// and resolve the shadow intensity
+			const vec_t shadow = il->light.radius - dist;
+
+			// search for the plane in previous shadows
 			r_shadow_t *s = l->shadows;
 			while (s->illumination) {
 
 				// check if the shadow references the same illumination and plane
 				if (s->illumination == il && s->plane.num == tr.plane.num) {
-					s->shadow = MAX(s->shadow, il->diffuse);
+					s->shadow = MAX(s->shadow, shadow);
 					break;
 				}
 
@@ -373,9 +379,7 @@ static void R_UpdateShadows(r_lighting_t *l) {
 			// finally, cast the shadow
 			s->illumination = il;
 			s->plane = tr.plane;
-
-			// resolve its intensity
-			s->shadow = il->diffuse;
+			s->shadow = shadow;
 
 			num_shadows++;
 		}

@@ -22,7 +22,7 @@ void ShadowFragment(void) {
 		float s = (LIGHT.w - dist) / LIGHT.w;
 		float d = dot(PLANE.xyz, normalize(delta));
 		
-		gl_FragColor.a = min(s /** d*/, gl_Color.a);
+		gl_FragColor.a = s * d * gl_Color.a;
 	} else {
 		discard;
 	}

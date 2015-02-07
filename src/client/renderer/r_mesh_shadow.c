@@ -128,13 +128,14 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableTexture(&texunit_diffuse, false);
 
-	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
+	//R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
+	glDepthRange(0.0, 0.999999);
 
 	R_EnableStencilTest(GL_ZERO, true);
 
 	r_shadow_t *s = e->lighting->shadows;
 
-	for (uint16_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {
+	for (size_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {
 
 		if (s->shadow == 0.0)
 			break;
@@ -143,9 +144,9 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 		if (e->effects & EF_CLIENT) {
 			r_corona_t c;
 
-			VectorCopy(s->illumination->pos, c.origin);
-			VectorCopy(s->illumination->color, c.color);
-			c.radius = s->illumination->radius / 8;
+			VectorCopy(s->illumination->light.origin, c.origin);
+			VectorCopy(s->illumination->light.color, c.color);
+			c.radius = s->illumination->light.radius / 8;
 
 			R_AddCorona(&c);
 		}
@@ -160,7 +161,8 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableStencilTest(GL_KEEP, false);
 
-	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
+	//R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
+	glDepthRange(0.0, 1.0);
 
 	R_EnableTexture(&texunit_diffuse, true);
 
