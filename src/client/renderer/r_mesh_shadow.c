@@ -21,8 +21,6 @@
 
 #include "r_local.h"
 
-#define MESH_SHADOW_MIN 30.0
-#define MESH_SHADOW_MAX 300.0
 #define MESH_SHADOW_ALPHA 0.33
 
 /*
@@ -31,12 +29,7 @@
  */
 static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *s) {
 
-	vec_t alpha = MESH_SHADOW_ALPHA;
-
-	if (!r_programs->value) {
-		const vec_t shadow = Clamp(s->shadow, MESH_SHADOW_MIN, MESH_SHADOW_MAX);
-		alpha *= shadow / MESH_SHADOW_MAX;
-	}
+	vec_t alpha = MESH_SHADOW_ALPHA * s->shadow / s->illumination->diffuse;
 
 	if (e->effects & EF_BLEND)
 		alpha *= e->color[3];
@@ -128,8 +121,7 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableTexture(&texunit_diffuse, false);
 
-	//R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
-	glDepthRange(0.0, 0.999999);
+	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
 
 	R_EnableStencilTest(GL_ZERO, true);
 
@@ -161,8 +153,7 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	R_EnableStencilTest(GL_KEEP, false);
 
-	//R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
-	glDepthRange(0.0, 1.0);
+	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
 
 	R_EnableTexture(&texunit_diffuse, true);
 

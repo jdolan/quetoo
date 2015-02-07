@@ -93,8 +93,8 @@ static void R_AddIllumination(const r_illumination_t *il) {
 	r_illuminations.illuminations[r_illuminations.num_illuminations++] = *il;
 }
 
-#define LIGHTING_AMBIENT_RADIUS 300.0
-#define LIGHTING_AMBIENT_DIST 260.0
+#define LIGHTING_AMBIENT_RADIUS 400.0
+#define LIGHTING_AMBIENT_DIST 320.0
 
 /*
  * @brief Adds an illumination for ambient lighting. This weak illumination
@@ -120,7 +120,7 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 	R_AddIllumination(&il);
 }
 
-#define LIGHTING_SUN_RADIUS 320.0
+#define LIGHTING_SUN_RADIUS 360.0
 #define LIGHTING_SUN_DIST 260.0
 
 /*
@@ -353,11 +353,17 @@ static void R_UpdateShadows(r_lighting_t *l) {
 			if (tr.start_solid || tr.fraction == 1.0)
 				continue;
 
+			// for fixed-function renderer, skip non-floor shadows
+			if (!r_programs->value || !r_lighting->value) {
+				if (tr.plane.normal[2] < 0.7)
+					continue;
+			}
+
 			// calculate the distance from the light source to the plane
 			const vec_t dist = DotProduct(il->light.origin, tr.plane.normal) - tr.plane.dist;
 
 			// and resolve the shadow intensity
-			const vec_t shadow = il->light.radius - dist;
+			const vec_t shadow = MAX(il->light.radius - dist, il->diffuse);
 
 			// search for the plane in previous shadows
 			r_shadow_t *s = l->shadows;
