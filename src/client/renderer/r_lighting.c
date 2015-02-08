@@ -405,33 +405,3 @@ void R_UpdateLighting(r_lighting_t *l) {
 
 	l->state = LIGHTING_READY;
 }
-
-/*
- * @brief Populates hardware light sources with illumination information.
- */
-void R_ApplyLighting(const r_lighting_t *l) {
-
-	vec4_t position = { 0.0, 0.0, 0.0, 1.0 };
-	vec4_t diffuse = { 0.0, 0.0, 0.0, 1.0 };
-
-	uint16_t i = 0;
-	while (i < MAX_ACTIVE_LIGHTS) {
-
-		const r_illumination_t *il = &l->illuminations[i];
-
-		if (il->diffuse == 0.0)
-			break;
-
-		VectorCopy(il->light.origin, position);
-		glLightfv(GL_LIGHT0 + i, GL_POSITION, position);
-
-		VectorCopy(il->light.color, diffuse);
-		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, diffuse);
-
-		glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, il->light.radius);
-		i++;
-	}
-
-	if (i < MAX_ACTIVE_LIGHTS) // disable the next light as a stop
-		glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, 0.0);
-}

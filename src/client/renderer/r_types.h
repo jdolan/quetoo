@@ -420,37 +420,30 @@ typedef struct {
 } r_md3_t;
 
 typedef struct {
-	uint16_t vert;
-	uint16_t normal;
-	uint16_t texcoord;
-} r_obj_vert_t;
+	uint16_t indices[3];
+	vec_t *point;
+	vec_t *texcoords;
+	vec_t *normal;
+	vec_t *tangent;
+} r_obj_vertex_t;
 
 typedef struct {
-	r_obj_vert_t verts[3];
-} r_obj_tri_t;
+	uint16_t indices[3];
+} r_obj_triangle_t;
 
 /*
  * brief Object (OBJ) model in-memory representation.
  */
 typedef struct {
-	uint16_t num_verts;
-	uint16_t num_verts_parsed;
-	vec_t *verts;
+	GList *points;
+	GList *texcoords;
+	GList *normals;
+	GList *faces;
 
-	uint16_t num_normals;
-	uint16_t num_normals_parsed;
-	vec_t *normals;
+	GList *verts;
+	GList *tris;
 
-	uint16_t num_tangents;
-	vec_t *tangents;
-
-	uint16_t num_texcoords;
-	uint16_t num_texcoords_parsed;
-	vec_t *texcoords;
-
-	uint16_t num_tris;
-	uint16_t num_tris_parsed;
-	r_obj_tri_t *tris;
+	GList *tangents;
 } r_obj_t;
 
 // shared structure for all model types

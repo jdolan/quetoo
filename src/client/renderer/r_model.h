@@ -35,7 +35,6 @@ typedef struct {
 
 extern r_model_state_t r_model_state;
 
-void R_AllocVertexArrays(r_model_t *mod);
 void R_InitModels(void);
 
 #endif /* __R_LOCAL_H__ */

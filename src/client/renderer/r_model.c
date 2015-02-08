@@ -29,58 +29,11 @@ typedef struct {
 	void (*Load)(r_model_t *mod, void *buffer);
 } r_model_format_t;
 
-static const r_model_format_t r_model_formats[] = {
-// supported model formats
-		{ ".obj", MOD_OBJ, R_LoadObjModel },
-		{ ".md3", MOD_MD3, R_LoadMd3Model },
-		{ ".bsp", MOD_BSP, R_LoadBspModel } };
-
-/*
- * @brief Allocates client-side vertex arrays for the specified r_model_t.
- */
-void R_AllocVertexArrays(r_model_t *mod) {
-	uint16_t i, j;
-
-	mod->num_verts = 0;
-
-	// first resolve the vertex count
-	if (mod->type == MOD_BSP) {
-		const r_bsp_leaf_t *leaf = mod->bsp->leafs;
-		for (i = 0; i < mod->bsp->num_leafs; i++, leaf++) {
-
-			r_bsp_surface_t **s = leaf->first_leaf_surface;
-			for (j = 0; j < leaf->num_leaf_surfaces; j++, s++) {
-				mod->num_verts += (*s)->num_edges;
-			}
-		}
-	} else if (mod->type == MOD_MD3) {
-		const r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
-		const r_md3_mesh_t *mesh = md3->meshes;
-
-		for (i = 0; i < md3->num_meshes; i++, mesh++) {
-			mod->num_verts += mesh->num_tris * 3;
-		}
-	} else if (mod->type == MOD_OBJ) {
-		const r_obj_t *obj = (r_obj_t *) mod->mesh->data;
-		mod->num_verts = obj->num_tris * 3;
-	}
-
-	// allocate the arrays, static models get verts, normals and tangents
-	if (mod->bsp || mod->mesh->num_frames == 1) {
-		mod->verts = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
-		mod->normals = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
-		mod->tangents = Mem_LinkMalloc(mod->num_verts * sizeof(vec4_t), mod);
-	}
-
-	// all models get texcoords
-	mod->texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
-
-	if (mod->type != MOD_BSP)
-		return;
-
-	// and BSP models get lightmap texcoords
-	mod->lightmap_texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
-}
+static const r_model_format_t r_model_formats[] = { // supported model formats
+	{ ".obj", MOD_OBJ, R_LoadObjModel },
+	{ ".md3", MOD_MD3, R_LoadMd3Model },
+	{ ".bsp", MOD_BSP, R_LoadBspModel }
+};
 
 /*
  * @brief Allocates and populates static VBO's for the specified r_model_t.
@@ -114,7 +67,7 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 	qglBindBuffer(GL_ARRAY_BUFFER, mod->tangent_buffer);
 	qglBufferData(GL_ARRAY_BUFFER, t, mod->tangents, GL_STATIC_DRAW);
 
-	if (mod->type == MOD_BSP) { // including lightmap texcords for bsp
+	if (mod->lightmap_texcoords) {
 		qglGenBuffers(1, &mod->lightmap_texcoord_buffer);
 		qglBindBuffer(GL_ARRAY_BUFFER, mod->lightmap_texcoord_buffer);
 		qglBufferData(GL_ARRAY_BUFFER, st, mod->lightmap_texcoords, GL_STATIC_DRAW);

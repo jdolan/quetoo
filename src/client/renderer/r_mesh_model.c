@@ -280,62 +280,76 @@ static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 
 /*
  * @brief Loads and populates vertex array data for the specified MD3 model.
+ *
+ * @remark Static MD3 meshes receive vertex, normal and tangent arrays in
+ * addition to texture coordinate arrays. Animated models receive only texture
+ * coordinates, because they must be interpolated at each frame.
  */
 static void R_LoadMd3VertexArrays(r_model_t *mod) {
-	r_md3_t *md3;
-	d_md3_frame_t *frame;
-	r_md3_mesh_t *mesh;
-	r_md3_vertex_t *v;
-	d_md3_texcoord_t *texcoords;
-	int32_t i, j, vert_index, tangent_index, texcoord_index;
-	uint32_t *tri;
 
-	R_AllocVertexArrays(mod); // allocate the arrays
+	const r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
+	const r_md3_mesh_t *mesh = md3->meshes;
 
-	md3 = (r_md3_t *) mod->mesh->data;
+	mod->num_verts = 0;
 
-	frame = md3->frames;
+	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
+		mod->num_verts += mesh->num_tris * 3;
+	}
 
-	vert_index = tangent_index = texcoord_index = 0;
+	if (mod->mesh->num_frames == 1) {
+		mod->verts = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
+		mod->normals = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
+		mod->tangents = Mem_LinkMalloc(mod->num_verts * sizeof(vec4_t), mod);
+	}
 
-	for (i = 0, mesh = md3->meshes; i < md3->num_meshes; i++, mesh++) { // iterate the meshes
+	mod->texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
 
-		v = mesh->verts;
+	vec_t *vout = mod->verts;
+	vec_t *sout = mod->texcoords;
+	vec_t *nout = mod->normals;
+	vec_t *tout = mod->tangents;
+
+	const d_md3_frame_t *frame = md3->frames;
+
+	mesh = md3->meshes;
+	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) { // iterate the meshes
+
+		const r_md3_vertex_t *v = mesh->verts;
 
 		if (mod->mesh->num_frames == 1) { // for static models, build the verts and normals
-			for (j = 0; j < mesh->num_verts; j++, v++) {
+			for (uint16_t j = 0; j < mesh->num_verts; j++, v++) {
 				VectorAdd(frame->translate, v->point, r_mesh_state.vertexes[j]);
 				VectorCopy(v->normal, r_mesh_state.normals[j]);
 				Vector4Copy(v->tangent, r_mesh_state.tangents[j]);
 			}
 		}
 
-		tri = mesh->tris;
-		texcoords = mesh->coords;
+		uint32_t *tri = mesh->tris;
+		const d_md3_texcoord_t *texcoords = mesh->coords;
 
-		for (j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the arrays
+		for (uint16_t j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the arrays
 
 			if (mod->mesh->num_frames == 1) {
-				VectorCopy(r_mesh_state.vertexes[tri[0]], (&mod->verts[vert_index + 0]));
-				VectorCopy(r_mesh_state.vertexes[tri[1]], (&mod->verts[vert_index + 3]));
-				VectorCopy(r_mesh_state.vertexes[tri[2]], (&mod->verts[vert_index + 6]));
+				VectorCopy(r_mesh_state.vertexes[tri[0]], vout + 0);
+				VectorCopy(r_mesh_state.vertexes[tri[1]], vout + 3);
+				VectorCopy(r_mesh_state.vertexes[tri[2]], vout + 6);
+				vout += 9;
 
-				VectorCopy(r_mesh_state.normals[tri[0]], (&mod->normals[vert_index + 0]));
-				VectorCopy(r_mesh_state.normals[tri[1]], (&mod->normals[vert_index + 3]));
-				VectorCopy(r_mesh_state.normals[tri[2]], (&mod->normals[vert_index + 6]));
+				VectorCopy(r_mesh_state.normals[tri[0]], nout + 0);
+				VectorCopy(r_mesh_state.normals[tri[1]], nout + 3);
+				VectorCopy(r_mesh_state.normals[tri[2]], nout + 6);
+				nout += 9;
 
-				Vector4Copy(r_mesh_state.tangents[tri[0]], (&mod->tangents[vert_index + 0]));
-				Vector4Copy(r_mesh_state.tangents[tri[1]], (&mod->tangents[vert_index + 4]));
-				Vector4Copy(r_mesh_state.tangents[tri[2]], (&mod->tangents[vert_index + 8]));
+				Vector4Copy(r_mesh_state.tangents[tri[0]], tout + 0);
+				Vector4Copy(r_mesh_state.tangents[tri[1]], tout + 4);
+				Vector4Copy(r_mesh_state.tangents[tri[2]], tout + 8);
+				tout += 12;
 			}
 
-			memcpy(&mod->texcoords[texcoord_index + 0], &texcoords[tri[0]], sizeof(vec2_t));
-			memcpy(&mod->texcoords[texcoord_index + 2], &texcoords[tri[1]], sizeof(vec2_t));
-			memcpy(&mod->texcoords[texcoord_index + 4], &texcoords[tri[2]], sizeof(vec2_t));
-
-			vert_index += 9;
-			tangent_index += 12;
-			texcoord_index += 6;
+			Vector2Copy(texcoords[tri[0]].st, sout + 0);
+			Vector2Copy(texcoords[tri[1]].st, sout + 2);
+			Vector2Copy(texcoords[tri[2]].st, sout + 4);
+			sout += 6;
 		}
 	}
 }
@@ -538,355 +552,318 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 }
 
 /*
- * @brief http://www.terathon.com/code/tangent.html
+ * @brief Parses a line of an Object file, allocating primitives accordingly.
  */
-static void R_LoadObjModelTangents(r_obj_t *obj) {
-	vec3_t *tan1, *tan2;
-	r_obj_tri_t *tri;
-	int32_t i, j;
+static void R_LoadObjLine(r_model_t *mod, r_obj_t *obj, const char *line) {
 
-	tan1 = (vec3_t *) Mem_Malloc(obj->num_verts * sizeof(vec3_t));
-	tan2 = (vec3_t *) Mem_Malloc(obj->num_verts * sizeof(vec3_t));
+	if (g_str_has_prefix(line, "v ")) { // vertex
 
-	tri = obj->tris;
+		vec_t *v = g_new(vec_t, 3);
 
-	// resolve the texture directional vectors
+		if (sscanf(line + 2, "%f %f %f", &v[0], &v[2], &v[1]) != 3)
+			Com_Error(ERR_DROP, "Malformed vertex for %s: %s\n", mod->media.name, line);
 
-	for (i = 0; i < obj->num_tris; i++, tri++) {
-		vec3_t sdir, tdir;
+		AddPointToBounds(v, mod->mins, mod->maxs);
 
-		const int32_t i1 = tri->verts[0].vert - 1;
-		const int32_t i2 = tri->verts[1].vert - 1;
-		const int32_t i3 = tri->verts[2].vert - 1;
+		obj->points = g_list_append(obj->points, v);
 
-		const vec_t *v1 = &obj->verts[i1 * 3];
-		const vec_t *v2 = &obj->verts[i2 * 3];
-		const vec_t *v3 = &obj->verts[i3 * 3];
+	} else if (g_str_has_prefix(line, "vt ")) { // texcoord
 
-		const int32_t j1 = tri->verts[0].texcoord - 1;
-		const int32_t j2 = tri->verts[1].texcoord - 1;
-		const int32_t j3 = tri->verts[2].texcoord - 1;
+		vec_t *vt = g_new(vec_t, 2);
 
-		const vec_t *w1 = &obj->texcoords[j1 * 2];
-		const vec_t *w2 = &obj->texcoords[j2 * 2];
-		const vec_t *w3 = &obj->texcoords[j3 * 2];
+		if (sscanf(line + 3, "%f %f", &vt[0], &vt[1]) != 2)
+			Com_Error(ERR_DROP, "Malformed texcoord for %s: %s\n", mod->media.name, line);
 
-		vec_t x1 = v2[0] - v1[0];
-		vec_t x2 = v3[0] - v1[0];
-		vec_t y1 = v2[1] - v1[1];
-		vec_t y2 = v3[1] - v1[1];
-		vec_t z1 = v2[2] - v1[2];
-		vec_t z2 = v3[2] - v1[2];
+		vt[1] = -vt[1];
 
-		vec_t s1 = w2[0] - w1[0];
-		vec_t s2 = w3[0] - w1[0];
-		vec_t t1 = w2[1] - w1[1];
-		vec_t t2 = w3[1] - w1[1];
+		obj->texcoords = g_list_append(obj->texcoords, vt);
 
-		vec_t r = 1.0 / (s1 * t2 - s2 * t1);
+	} else if (g_str_has_prefix(line, "vn ")) { // normal
 
-		VectorSet(sdir,
-				(t2 * x1 - t1 * x2),
-				(t2 * y1 - t1 * y2),
-				(t2 * z1 - t1 * z2)
-		);
+		vec_t *vn = g_new(vec_t, 3);
 
-		VectorScale(sdir, r, sdir);
+		if (sscanf(line + 3, "%f %f %f", &vn[0], &vn[2], &vn[1]) != 3)
+			Com_Error(ERR_DROP, "Malformed normal for %s: %s\n", mod->media.name, line);
 
-		VectorSet(tdir,
-				(s1 * x2 - s2 * x1),
-				(s1 * y2 - s2 * y1),
-				(s1 * z2 - s2 * z1)
-		);
+		VectorNormalize(vn);
 
-		VectorScale(tdir, r, tdir);
+		obj->normals = g_list_append(obj->normals, vn);
 
-		VectorAdd(tan1[i1], sdir, tan1[i1]);
-		VectorAdd(tan1[i2], sdir, tan1[i2]);
-		VectorAdd(tan1[i3], sdir, tan1[i3]);
+	} else if (g_str_has_prefix(line, "f ")) { // face
 
-		VectorAdd(tan2[i1], tdir, tan2[i1]);
-		VectorAdd(tan2[i2], tdir, tan2[i2]);
-		VectorAdd(tan2[i3], tdir, tan2[i3]);
-	}
+		GList *face = NULL;
 
-	// calculate the tangents
+		const char *c = line + 2;
+		while (*c) {
 
-	tri = obj->tris;
+			uint16_t *i = g_new(uint16_t, 3);
+			int32_t n;
 
-	for (i = 0; i < obj->num_tris; i++, tri++) {
+			if (sscanf(c, "%hu/%hu/%hu%n", &i[0], &i[1], &i[2], &n) != 3)
+				Com_Error(ERR_DROP, "Malformed face for %s: %s\n", mod->media.name, line);
 
-		const r_obj_vert_t *v = tri->verts;
+			i[0]--; // switch to zero-index
+			i[1]--;
+			i[2]--;
 
-		for (j = 0; j < 3; j++, v++) { // each vert
-			vec3_t bitangent;
-
-			const vec_t *normal = &obj->normals[(v->normal - 1) * 3];
-			vec_t *tangent = &obj->tangents[(v->vert - 1) * 4];
-
-			TangentVectors(normal, tan1[v->vert - 1], tan2[v->vert - 1], tangent, bitangent);
-		}
-	}
-
-	Mem_Free(tan1);
-	Mem_Free(tan2);
-}
-
-/*
- * @brief
- */
-static void R_LoadObjModelVertexArrays(r_model_t *mod) {
-	const r_obj_t *obj;
-	const r_obj_tri_t *t;
-	int32_t i, j, vert_index, tangent_index, texcoord_index;
-
-	R_AllocVertexArrays(mod);
-
-	obj = (r_obj_t *) mod->mesh->data;
-
-	vert_index = tangent_index = texcoord_index = 0;
-
-	t = obj->tris;
-
-	for (i = 0; i < obj->num_tris; i++, t++) { // build the arrays
-
-		const r_obj_vert_t *v = t->verts;
-
-		for (j = 0; j < 3; j++, v++) { // each vert
-
-			VectorCopy((&obj->verts[(v->vert - 1) * 3]),
-					(&mod->verts[vert_index + j * 3]));
-
-			Vector4Copy((&obj->tangents[(v->vert - 1) * 4]),
-					(&mod->tangents[tangent_index + j * 4]));
-
-			if (v->normal) {
-				VectorCopy((&obj->normals[(v->normal - 1) * 3]),
-						(&mod->normals[vert_index + j * 3]));
-			}
-
-			if (v->texcoord) {
-				memcpy(&mod->texcoords[texcoord_index + j * 2],
-						&obj->texcoords[(v->texcoord - 1) * 2], sizeof(vec2_t));
-			}
+			face = g_list_append(face, i);
+			c += n;
 		}
 
-		vert_index += 9;
-		tangent_index += 12;
-		texcoord_index += 6;
-	}
-}
+		if (g_list_length(face) < 3)
+			Com_Error(ERR_DROP, "Malformed face for %s: %s\n", mod->media.name, line);
 
-/*
- * @brief Triangulation of arbitrary polygons. Assembles count tris on the model
- * from the specified array of verts. All tris will share the first vert.
- */
-static void R_LoadObjModelTris(r_obj_t *obj, const r_obj_vert_t *verts, int32_t count) {
-	int32_t i;
-
-	if (!obj->tris)
-		return;
-
-	for (i = 0; i < count; i++) { // walk around the polygon
-
-		const int32_t v0 = 0;
-		const int32_t v1 = 1 + i;
-		const int32_t v2 = 2 + i;
-
-		r_obj_tri_t *t = &obj->tris[obj->num_tris_parsed + i];
-
-		t->verts[0] = verts[v0];
-		t->verts[1] = verts[v1];
-		t->verts[2] = verts[v2];
-	}
-}
-
-#define MAX_OBJ_FACE_VERTS 128
-
-/*
- * @brief Each line consists of 3 or more vertex definitions, e.g.
- *
- *   57/13/31 58/14/32 59/15/33 21/15/19
- *
- * Tokenize the line with Com_Parse, and parse each vertex definition.
- * Faces with more than 3 vertices must be broken down into triangles.
- *
- * Returns the number of triangles produced for the specified line.
- */
-static int32_t R_LoadObjModelFace(const r_model_t *mod, r_obj_t *obj, const char *line) {
-	r_obj_vert_t *v, verts[MAX_OBJ_FACE_VERTS];
-	const char *d;
-	char *e, tok[32];
-	int32_t i, tris;
-
-	memset(verts, 0, sizeof(verts));
-	i = 0;
-
-	while (true) {
-
-		const char *c = ParseToken(&line);
-
-		if (*c == '\0') // done
-			break;
-
-		if (i == MAX_OBJ_FACE_VERTS) {
-			Com_Error(ERR_DROP, "%s has too many vertexes\n", mod->media.name);
-		}
-
-		if (!obj->tris) { // simply count verts
-			i++;
-			continue;
-		}
-
-		d = c;
-		v = &verts[i++];
-
-		memset(tok, 0, sizeof(tok));
-		e = tok;
-
-		while (*d) { // parse the vertex definition
-
-			if (*d == '/') { // index delimiter, parse the token
-
-				if (!v->vert)
-					v->vert = atoi(tok);
-
-				else if (!v->texcoord)
-					v->texcoord = atoi(tok);
-
-				else if (!v->normal)
-					v->normal = atoi(tok);
-
-				memset(tok, 0, sizeof(tok));
-				e = tok;
-
-				d++;
-				continue;
-			}
-
-			*e++ = *d++;
-		}
-
-		// parse whatever is left in the token
-
-		if (!v->vert)
-			v->vert = atoi(tok);
-
-		else if (!v->texcoord)
-			v->texcoord = atoi(tok);
-
-		else if (!v->normal)
-			v->normal = atoi(tok);
-	}
-
-	tris = i - 2; // number of triangles from parsed verts
-
-	if (tris < 1)
-		Com_Error(ERR_DROP, "%s has too few vertexes\n", mod->media.name);
-
-	R_LoadObjModelTris(obj, verts, tris); // break verts up into tris
-
-	return tris;
-}
-
-/*
- * @brief Parse the object file line. If the structures have been allocated,
- * populate them. Otherwise simply accumulate counts.
- */
-static void R_LoadObjModelLine(const r_model_t *mod, r_obj_t *obj, const char *line) {
-
-	if (!line || !line[0]) // don't bother
-		return;
-
-	if (!strncmp(line, "v ", 2)) { // vertex
-
-		if (obj->verts) { // parse it
-			vec_t *f = obj->verts + obj->num_verts_parsed * 3;
-
-			if (sscanf(line + 2, "%f %f %f", &f[0], &f[2], &f[1]) != 3)
-				Com_Error(ERR_DROP, "Malformed vertex for %s: %s\n", mod->media.name, line);
-
-			obj->num_verts_parsed++;
-		} else
-			// or just count it
-			obj->num_verts++;
-	} else if (!strncmp(line, "vn ", 3)) { // normal
-
-		if (obj->normals) { // parse it
-			vec_t *f = obj->normals + obj->num_normals_parsed * 3;
-
-			if (sscanf(line + 3, "%f %f %f", &f[0], &f[1], &f[2]) != 3)
-				Com_Error(ERR_DROP, "Malformed normal for %s: %s\n", mod->media.name, line);
-
-			obj->num_normals_parsed++;
-		} else
-			// or just count it
-			obj->num_normals++;
-
-	} else if (!strncmp(line, "vt ", 3)) { // texcoord
-
-		if (obj->texcoords) { // parse it
-			vec_t *f = obj->texcoords + obj->num_texcoords_parsed * 2;
-
-			if (sscanf(line + 3, "%f %f", &f[0], &f[1]) != 2)
-				Com_Error(ERR_DROP, "Malformed texcoord for %s: %s\n", mod->media.name, line);
-
-			f[1] = -f[1];
-			obj->num_texcoords_parsed++;
-		} else
-			// or just count it
-			obj->num_texcoords++;
-	} else if (!strncmp(line, "f ", 2)) { // face
-
-		if (obj->tris) // parse it
-			obj->num_tris_parsed += R_LoadObjModelFace(mod, obj, line + 2);
-		else
-			// or just count it
-			obj->num_tris += R_LoadObjModelFace(mod, obj, line + 2);
+		obj->faces = g_list_append(obj->faces, face);
 	}
 
 	// else we just ignore it
 }
 
 /*
- * @brief Drives the actual parsing of the object file. The file is read twice:
- * once to acquire primitive counts, and a second time to load them.
+ * @brief Parses the Object primitives from the ASCII text in `buffer`.
  */
-static void R_LoadObjModel_(r_model_t *mod, r_obj_t *obj, const void *buffer) {
+static void R_LoadObjPrimitives(r_model_t *mod, r_obj_t *obj, const void *buffer) {
 	char line[MAX_STRING_CHARS];
-	const char *c;
-	_Bool comment;
-	int32_t i;
 
-	c = buffer;
-	comment = false;
-	i = 0;
+	memset(line, 0, sizeof(line));
+	char *l = line;
 
-	memset(&line, 0, sizeof(line));
+	const char *c = buffer;
 
-	while (*c) {
+	while (true) {
+		switch (*c) {
 
-		if (*c == '#') {
-			comment = true;
-			c++;
-			continue;
+			case '\r':
+			case '\n':
+			case '\0':
+				l = g_strstrip(line);
+				R_LoadObjLine(mod, obj, l);
+
+				if (*c == '\0')
+					goto done;
+
+				memset(line, 0, sizeof(line));
+				l = line;
+
+				c++;
+				break;
+
+			default:
+				*l++ = *c++;
+				break;
+		}
+	}
+
+done:
+	Com_Debug("%s: %u faces\n", mod->media.name, g_list_length(obj->faces));
+}
+
+/*
+ * @brief Resolves the the vertex described by `indices`, allocating a new
+ * vertex if `indices` is unique to the model.
+ */
+static uint16_t R_LoadObjVertex(r_model_t *mod, r_obj_t *obj, const uint16_t *indices) {
+
+	GList *vert = obj->verts;
+	const uint16_t len = g_list_length(obj->verts);
+
+	for (uint16_t i = 0; i < len; i++, vert = vert->next) {
+		const r_obj_vertex_t *v = vert->data;
+
+		if (memcmp(v->indices, indices, sizeof(v->indices)) == 0) {
+			return i;
+		}
+	}
+
+	r_obj_vertex_t *v = g_new(r_obj_vertex_t, 1);
+	memcpy(v->indices, indices, sizeof(v->indices));
+
+	v->point = g_list_nth_data(obj->points, indices[0]);
+	v->texcoords = g_list_nth_data(obj->texcoords, indices[1]);
+	v->normal = g_list_nth_data(obj->normals, indices[2]);
+	v->tangent = NULL;
+
+	if (!v->point || !v->texcoords || !v->normal) {
+		Com_Error(ERR_DROP, "Invalid face indices for %s: %hu/%hu/%hu\n", mod->media.name,
+				indices[0], indices[1], indices[2]);
+	}
+
+	obj->verts = g_list_append(obj->verts, v);
+	return len;
+}
+
+/*
+ * @brief Iterates the faces of `obj`, converting polygons to `r_obj_triangle_t`.
+ */
+static void R_LoadObjTriangles(r_model_t *mod, r_obj_t *obj) {
+
+	GList *face = obj->faces;
+	while (face) {
+
+		GList *verts = face->data;
+		const size_t len = g_list_length(verts);
+
+		const uint16_t *indices = g_list_nth_data(verts, 0);
+		const uint16_t v0 = R_LoadObjVertex(mod, obj, indices);
+
+		// iterate the face, converting polygons into triangles
+
+		for (size_t i = 1; i < len - 1; i++) {
+
+			r_obj_triangle_t *tri = g_new(r_obj_triangle_t, 1);
+			tri->indices[0] = v0;
+
+			indices = g_list_nth_data(verts, i);
+			tri->indices[1] = R_LoadObjVertex(mod, obj, indices);
+
+			indices = g_list_nth_data(verts, i + 1);
+			tri->indices[2] = R_LoadObjVertex(mod, obj, indices);
+
+			obj->tris = g_list_append(obj->tris, tri);
 		}
 
-		if (*c == '\r' || *c == '\n') { // end of line
+		g_list_free_full(verts, g_free);
+		face->data = NULL;
 
-			if (i && !comment)
-				R_LoadObjModelLine(mod, obj, g_strstrip(line));
+		face = face->next;
+	}
 
-			c++;
-			comment = false;
-			i = 0;
+	Com_Debug("%s: %u tris\n", mod->media.name, g_list_length(obj->tris));
+}
 
-			memset(&line, 0, sizeof(line));
+/*
+ * @brief Calculate tangent vectors for the given Object model.
+ *
+ * http://www.terathon.com/code/tangent.html
+ */
+static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
 
-			continue;
-		}
+	const size_t num_verts = g_list_length(obj->verts);
 
-		line[i++] = *c++;
+	vec3_t *tan1 = Mem_Malloc(num_verts * sizeof(vec3_t));
+	vec3_t *tan2 = Mem_Malloc(num_verts * sizeof(vec3_t));
+
+	const GList *tris = obj->tris;
+	while (tris) {
+
+		const r_obj_triangle_t *tri = tris->data;
+
+		const r_obj_vertex_t *vert0 = g_list_nth_data(obj->verts, tri->indices[0]);
+		const r_obj_vertex_t *vert1 = g_list_nth_data(obj->verts, tri->indices[1]);
+		const r_obj_vertex_t *vert2 = g_list_nth_data(obj->verts, tri->indices[2]);
+
+		// accumulate the tangent vectors
+
+		vec_t x1 = vert1->point[0] - vert0->point[0];
+		vec_t x2 = vert2->point[0] - vert0->point[0];
+		vec_t y1 = vert1->point[1] - vert0->point[1];
+		vec_t y2 = vert2->point[1] - vert0->point[1];
+		vec_t z1 = vert1->point[2] - vert0->point[2];
+		vec_t z2 = vert2->point[2] - vert0->point[2];
+
+		vec_t s1 = vert1->texcoords[0] - vert0->texcoords[0];
+		vec_t s2 = vert2->texcoords[0] - vert0->texcoords[0];
+		vec_t t1 = vert1->texcoords[1] - vert0->texcoords[1];
+		vec_t t2 = vert2->texcoords[1] - vert2->texcoords[1];
+
+		vec_t r = 1.0 / (s1 * t2 - s2 * t1);
+
+		vec3_t sdir;
+		VectorSet(sdir,
+			(t2 * x1 - t1 * x2),
+			(t2 * y1 - t1 * y2),
+			(t2 * z1 - t1 * z2)
+		);
+
+		VectorScale(sdir, r, sdir);
+
+		vec3_t tdir;
+		VectorSet(tdir,
+			(s1 * x2 - s2 * x1),
+			(s1 * y2 - s2 * y1),
+			(s1 * z2 - s2 * z1)
+		);
+
+		VectorScale(tdir, r, tdir);
+
+		const uint16_t i0 = tri->indices[0];
+		const uint16_t i1 = tri->indices[1];
+		const uint16_t i2 = tri->indices[2];
+
+		VectorAdd(tan1[i0], sdir, tan1[i0]);
+		VectorAdd(tan1[i1], sdir, tan1[i1]);
+		VectorAdd(tan1[i2], sdir, tan1[i2]);
+
+		VectorAdd(tan2[i0], tdir, tan2[i0]);
+		VectorAdd(tan2[i1], tdir, tan2[i1]);
+		VectorAdd(tan2[i2], tdir, tan2[i2]);
+
+		tris = tris->next;
+	}
+
+	GList *vert = obj->verts;
+	while (vert) {
+		r_obj_vertex_t *v = vert->data;
+
+		vec_t *tangent = v->tangent = g_new(vec_t, 4);
+		vec3_t bitangent;
+
+		TangentVectors(v->normal, tan1[v->indices[0]], tan2[v->indices[0]], tangent, bitangent);
+
+		obj->tangents = g_list_append(obj->tangents, tangent);
+		vert = vert->next;
+	}
+
+	Mem_Free(tan1);
+	Mem_Free(tan2);
+
+	Com_Debug("%s: %u tangents\n", mod->media.name, g_list_length(obj->tangents));
+}
+
+/*
+ * @brief Populates the vertex arrays of `mod` with triangle data from `obj`.
+ */
+static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
+
+	mod->num_verts = g_list_length(obj->tris) * 3;
+
+	vec_t *vout = mod->verts = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
+	vec_t *sout = mod->texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
+	vec_t *nout = mod->normals = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
+	vec_t *tout = mod->tangents = Mem_LinkMalloc(mod->num_verts * sizeof(vec4_t), mod);
+
+	const GList *tris = obj->tris;
+	while (tris) {
+
+		const r_obj_triangle_t *tri = tris->data;
+
+		const r_obj_vertex_t *vert0 = g_list_nth_data(obj->verts, tri->indices[0]);
+		const r_obj_vertex_t *vert1 = g_list_nth_data(obj->verts, tri->indices[1]);
+		const r_obj_vertex_t *vert2 = g_list_nth_data(obj->verts, tri->indices[2]);
+
+		// copy the triangle data to the model
+
+		VectorCopy(vert0->point, vout + 0);
+		VectorCopy(vert1->point, vout + 3);
+		VectorCopy(vert2->point, vout + 6);
+		vout += 9;
+
+		Vector2Copy(vert0->texcoords, sout + 0);
+		Vector2Copy(vert1->texcoords, sout + 2);
+		Vector2Copy(vert2->texcoords, sout + 4);
+		sout += 6;
+
+		VectorCopy(vert0->normal, nout + 0);
+		VectorCopy(vert1->normal, nout + 3);
+		VectorCopy(vert2->normal, nout + 6);
+		nout += 9;
+
+		Vector4Copy(vert0->tangent, tout + 0);
+		Vector4Copy(vert1->tangent, tout + 4);
+		Vector4Copy(vert2->tangent, tout + 8);
+		tout += 12;
+
+		tris = tris->next;
 	}
 }
 
@@ -895,39 +872,26 @@ static void R_LoadObjModel_(r_model_t *mod, r_obj_t *obj, const void *buffer) {
  */
 void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	r_obj_t *obj;
-	const vec_t *v;
-	int32_t i;
 
 	mod->mesh = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
 	mod->mesh->data = obj = Mem_LinkMalloc(sizeof(r_obj_t), mod->mesh);
 
-	R_LoadObjModel_(mod, obj, buffer); // resolve counts
-
-	if (!obj->num_verts) {
-		Com_Error(ERR_DROP, "Failed to resolve vertex data: %s\n", mod->media.name);
-	}
-
 	mod->mesh->num_frames = 1;
-
-	// allocate the arrays
-	obj->verts = Mem_LinkMalloc(obj->num_verts * sizeof(vec_t) * 3, mod->mesh);
-	obj->normals = Mem_LinkMalloc(obj->num_normals * sizeof(vec_t) * 3, mod->mesh);
-	obj->texcoords = Mem_LinkMalloc(obj->num_texcoords * sizeof(vec_t) * 2, mod->mesh);
-	obj->tris = Mem_LinkMalloc(obj->num_tris * sizeof(r_obj_tri_t), mod->mesh);
-
-	// including the tangents
-	obj->tangents = Mem_LinkMalloc(obj->num_verts * sizeof(vec_t) * 4, mod->mesh);
-
-	R_LoadObjModel_(mod, obj, buffer); // load it
-
-	R_LoadObjModelTangents(obj);
 
 	ClearBounds(mod->mins, mod->maxs);
 
-	v = obj->verts;
-	for (i = 0; i < obj->num_verts; i++, v += 3) { // resolve mins/maxs
-		AddPointToBounds(v, mod->mins, mod->maxs);
+	// parse the file, loading primitives
+	R_LoadObjPrimitives(mod, obj, buffer);
+
+	if (g_list_length(obj->faces) == 0) {
+		Com_Error(ERR_DROP, "Failed to load .obj: %s\n", mod->media.name);
 	}
+
+	// convert to triangles, discarding faces
+	R_LoadObjTriangles(mod, obj);
+
+	// calculate tangents
+	R_LoadObjTangents(mod, obj);
 
 	// load the material
 	R_LoadMeshMaterial(mod);
@@ -936,6 +900,21 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	R_LoadMeshConfigs(mod);
 
 	// and finally the arrays
-	R_LoadObjModelVertexArrays(mod);
+	R_LoadObjVertexArrays(mod, obj);
+
+	g_list_free_full(obj->points, g_free);
+	obj->points = NULL;
+
+	g_list_free_full(obj->texcoords, g_free);
+	obj->texcoords = NULL;
+
+	g_list_free_full(obj->normals, g_free);
+	obj->normals = NULL;
+
+	g_list_free_full(obj->faces, g_free);
+	obj->faces = NULL;
+
+	g_list_free_full(obj->tangents, g_free);
+	obj->tangents = NULL;
 }
 

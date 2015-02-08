@@ -722,11 +722,26 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
  */
 static void R_LoadBspVertexArrays(r_model_t *mod) {
 
-	R_AllocVertexArrays(mod);
+	mod->num_verts = 0;
+
+	const r_bsp_leaf_t *leaf = mod->bsp->leafs;
+	for (uint16_t i = 0; i < mod->bsp->num_leafs; i++, leaf++) {
+
+		r_bsp_surface_t **s = leaf->first_leaf_surface;
+		for (uint16_t j = 0; j < leaf->num_leaf_surfaces; j++, s++) {
+			mod->num_verts += (*s)->num_edges;
+		}
+	}
+
+	mod->verts = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
+	mod->texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
+	mod->lightmap_texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
+	mod->normals = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
+	mod->tangents = Mem_LinkMalloc(mod->num_verts * sizeof(vec4_t), mod);
 
 	GLuint count = 0;
 
-	const r_bsp_leaf_t *leaf = mod->bsp->leafs;
+	leaf = mod->bsp->leafs;
 	for (uint16_t i = 0; i < mod->bsp->num_leafs; i++, leaf++) {
 
 		r_bsp_surface_t **s = leaf->first_leaf_surface;

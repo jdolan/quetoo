@@ -209,6 +209,35 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 }
 
 /*
+ * @brief Populates hardware light sources with illumination information.
+ */
+static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
+
+	vec4_t position = { 0.0, 0.0, 0.0, 1.0 };
+	vec4_t diffuse = { 0.0, 0.0, 0.0, 1.0 };
+
+	uint16_t i;
+	for (i = 0; i < MAX_ACTIVE_LIGHTS; i++) {
+
+		const r_illumination_t *il = &e->lighting->illuminations[i];
+
+		if (il->diffuse == 0.0)
+			break;
+
+		VectorCopy(il->light.origin, position);
+		glLightfv(GL_LIGHT0 + i, GL_POSITION, position);
+
+		VectorCopy(il->light.color, diffuse);
+		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, diffuse);
+
+		glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, il->light.radius);
+	}
+
+	if (i < MAX_ACTIVE_LIGHTS) // disable the next light as a stop
+		glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, 0.0);
+}
+
+/*
  * @brief Sets GL state to draw the specified entity.
  */
 static void R_SetMeshState_default(const r_entity_t *e) {
@@ -238,7 +267,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 
 				R_UseMaterial(r_mesh_state.material);
 
-				R_ApplyLighting(e->lighting);
+				R_ApplyMeshModelLighting_default(e);
 			}
 		} else {
 			R_UseMaterial(NULL);
