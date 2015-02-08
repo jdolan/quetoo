@@ -428,7 +428,7 @@ typedef struct {
 } r_obj_vertex_t;
 
 typedef struct {
-	uint16_t indices[3];
+	r_obj_vertex_t *verts[3];
 } r_obj_triangle_t;
 
 /*
@@ -438,7 +438,6 @@ typedef struct {
 	GList *points;
 	GList *texcoords;
 	GList *normals;
-	GList *faces;
 
 	GList *verts;
 	GList *tris;
