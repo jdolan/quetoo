@@ -26,11 +26,11 @@
  */
 void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
-	int32_t j;
 
 	if (ent) { // trails should be framerate independent
 		if (ent->time > cgi.client->time)
 			return;
+
 		ent->time = cgi.client->time + 32;
 	}
 
@@ -42,17 +42,17 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke)))
 		return;
 
-	cgi.ColorFromPalette(32 + (Random() & 7), p->part.color);
-	p->part.color[3] = 1.5;
+	cgi.ColorFromPalette(4 + (Random() & 7), p->part.color);
+	p->part.color[3] = 1.0;
 
 	Vector4Set(p->color_vel, -1.0, -1.0, -1.0, -1.0 / (1.0 + Randomf()));
 
-	p->part.scale = 2.0;
+	p->part.scale = 1.0;
 	p->scale_vel = 10 + 25.0 * Randomf();
 
 	p->part.roll = Randomc() * 100.0;
 
-	for (j = 0; j < 3; j++) {
+	for (int32_t j = 0; j < 3; j++) {
 		p->part.org[j] = end[j];
 		p->vel[j] = Randomc();
 	}
@@ -252,7 +252,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	r_corona_t c;
 	VectorCopy(end, c.origin);
 	c.radius = 3.0;
-	c.flicker = 0.66;
+	c.flicker = 0.125;
 	VectorCopy(color, c.color);
 
 	cgi.AddCorona(&c);
@@ -270,14 +270,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
  */
 static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	if (ent->time < cgi.client->time) {
-
-		if (cgi.PointContents(end) & MASK_LIQUID) {
-			Cg_BubbleTrail(start, end, 24.0);
-		}
-
-		ent->time = cgi.client->time + 16;
-	}
+	Cg_SmokeTrail(ent, start, end);
 }
 
 /*
@@ -285,52 +278,54 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
  */
 static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	const uint32_t old_time = ent->time;
+	const uint32_t time = ent->time;
 
 	Cg_SmokeTrail(ent, start, end);
 
-	if (old_time != ent->time) { // time to add new particles
+	if (time < ent->time) { // time to add new particles
 		vec3_t delta;
-		vec_t d;
 
 		VectorSubtract(end, start, delta);
 		const vec_t dist = VectorNormalize(delta);
 
-		d = 0.0;
-
+		vec_t d = 0.0;
 		while (d < dist) {
 			cg_particle_t *p;
 
 			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
 				break;
 
-			cgi.ColorFromPalette(0xe0 + (Random() & 7), p->part.color);
-			p->part.color[3] = 0.5 + Randomc() * 0.25;
+			cgi.ColorFromPalette(EFFECT_COLOR_ORANGE + (Random() & 5), p->part.color);
+			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -5.0 + Randomc());
 
-			Vector4Set(p->color_vel, 1.0, 1.0, 0.0, -1.0 + 0.25 * Randomc());
+			p->part.scale = 3.0;
+			p->scale_vel = 5.0 + Randomc() * 1.0;
 
 			VectorMA(start, d, delta, p->part.org);
+			VectorScale(delta, 400.0, p->vel);
 
-			p->vel[0] = 32.0 * Randomc();
-			p->vel[1] = 32.0 * Randomc();
-			p->vel[2] = -PARTICLE_GRAVITY * 0.33 * Randomf();
+			for (int32_t i = 0; i < 3; i++) {
+				p->part.org[i] += Randomc() * 0.5;
+				p->vel[i] += Randomc() * 7.0;
+				p->accel[i] = Randomc() * 30.0;
+			}
 
-			d += 2.0;
+			d += 1.0;
 		}
 	}
 
 	r_corona_t c;
 	VectorCopy(end, c.origin);
 	c.radius = 3.0;
-	c.flicker = 0.25;
-	VectorSet(c.color, 0.8, 0.4, 0.2);
+	c.flicker = 0.125;
+	VectorSet(c.color, 0.8, 0.6, 0.2);
 
 	cgi.AddCorona(&c);
 
 	r_light_t l;
 	VectorCopy(end, l.origin);
 	l.radius = 150.0;
-	VectorSet(l.color, 0.8, 0.4, 0.2);
+	VectorSet(l.color, 0.8, 0.6, 0.2);
 
 	cgi.AddLight(&l);
 }
