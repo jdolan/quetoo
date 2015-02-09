@@ -111,7 +111,7 @@ static void Cg_WeaponKick(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 	const vec3_t drop_raise_angles = { 25.0, -35.0, 2.0 };
 
 	const vec3_t kick_offset = { -4.0, 0.0, 1.0 };
-	const vec3_t kick_angles = { -8.0, 0.0, 0.0 };
+	const vec3_t kick_angles = { -4.0, 1.0, 0.0 };
 
 	VectorSet(offset, cg_draw_weapon_x->value, cg_draw_weapon_y->value, cg_draw_weapon_z->value);
 	VectorClear(angles);
@@ -123,8 +123,8 @@ static void Cg_WeaponKick(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 		VectorMA(offset, 1.0 - ent->animation1.fraction, drop_raise_offset, offset);
 		VectorScale(drop_raise_angles, 1.0 - ent->animation1.fraction, angles);
 	} else if (ent->animation1.animation == ANIM_TORSO_ATTACK1) {
-		VectorMA(offset, 1.0 - ent->animation1.fraction, kick_offset, offset);
-		VectorScale(kick_angles, 1.0 - ent->animation1.fraction, angles);
+		VectorMA(offset, 1.0 - sqrt(ent->animation1.fraction), kick_offset, offset);
+		VectorScale(kick_angles, 1.0 - sqrt(ent->animation1.fraction), angles);
 	}
 
 	VectorScale(offset, cg_bob->value, offset);
