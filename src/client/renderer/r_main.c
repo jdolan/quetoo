@@ -192,9 +192,9 @@ void R_DrawView(void) {
 
 	R_EnableFog(false);
 
-	R_DrawCoronas();
-
 	R_DrawDeveloperTools();
+
+	R_DrawCoronas();
 
 	R_EnableBlend(false);
 

@@ -292,13 +292,18 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
  * @brief Developer tool for viewing static BSP light sources.
  */
 void R_DrawBspLights(void) {
-	uint16_t i;
 
 	if (!r_draw_bsp_lights->value)
 		return;
 
 	const r_bsp_light_t *bl = r_model_state.world->bsp->bsp_lights;
-	for (i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, bl++) {
+	for (uint16_t i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, bl++) {
+
+		const r_bsp_leaf_t *l = R_LeafForPoint(bl->light.origin, NULL);
+		if (l->vis_frame != r_locals.vis_frame) {
+			continue;
+		}
+
 		static r_corona_t c;
 
 		VectorCopy(bl->light.origin, c.origin);

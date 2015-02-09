@@ -58,6 +58,7 @@ void R_DrawCoronas(void) {
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 	for (uint16_t i = 0; i < r_view.num_coronas; i++) {
+
 		const r_corona_t *c = &r_view.coronas[i];
 		const vec_t f = c->radius * c->flicker * sin(0.09 * r_view.time);
 
