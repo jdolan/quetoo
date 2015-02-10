@@ -236,6 +236,36 @@ static void R_FreeImage(r_media_t *media) {
 	glDeleteTextures(1, &((r_image_t *) media)->texnum);
 }
 
+static void R_LoadHeightmap(const char *name, const SDL_Surface *surf) {
+	char heightmap[MAX_QPATH];
+
+	g_strlcpy(heightmap, name, sizeof(heightmap));
+	char *c = strrchr(heightmap, '_');
+	if (c) {
+		*c = '\0';
+	}
+
+	SDL_Surface *hsurf;
+	if (Img_LoadImage(va("%s_h", heightmap), &hsurf)) {
+
+		if (hsurf->w == surf->w && hsurf->h == surf->h) {
+			Com_Debug("Merging heightmap %s\n", heightmap);
+
+			byte *in = hsurf->pixels;
+			byte *out = surf->pixels;
+
+			const size_t len = surf->w * surf->h;
+			for (size_t i = 0; i < len; i++, in += 4, out += 4) {
+				out[3] = (in[0] + in[1] + in[2]) / 3.0;
+			}
+		} else {
+			Com_Warn("Incorrect heightmap resolution for %s\n", name);
+		}
+
+		SDL_FreeSurface(hsurf);
+	}
+}
+
 /*
  * @brief Loads the image by the specified name.
  */
@@ -261,6 +291,10 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 			image->width = surf->w;
 			image->height = surf->h;
 			image->type = type;
+
+			if (image->type == IT_NORMALMAP) {
+				R_LoadHeightmap(name, surf);
+			}
 
 			if (image->type & IT_MASK_FILTER) {
 				R_FilterImage(image, GL_RGBA, surf->pixels);

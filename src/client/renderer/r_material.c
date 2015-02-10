@@ -504,6 +504,10 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 	}
 
 	StripExtension(diffuse, base);
+
+	if (g_str_has_suffix(base, "_d"))
+		base[strlen(base) - 2] = '\0';
+
 	g_snprintf(key, sizeof(key), "%s_mat", base);
 
 	if (!(mat = (r_material_t *) R_FindMedia(key))) {
@@ -512,9 +516,17 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 		mat->media.Register = R_RegisterMaterial;
 
 		mat->diffuse = R_LoadImage(base, IT_DIFFUSE);
+		if (mat->diffuse->type == IT_NULL) {
+			mat->diffuse = R_LoadImage(va("%s_d", base), IT_DIFFUSE);
+		}
 
 		mat->normalmap = R_LoadImage(va("%s_nm", base), IT_NORMALMAP);
-		mat->normalmap = (mat->normalmap->type == IT_NULL ? NULL : mat->normalmap);
+		if (mat->normalmap->type == IT_NULL) {
+			mat->normalmap = R_LoadImage(va("%s_local", base), IT_NORMALMAP);
+			if (mat->normalmap->type == IT_NULL) {
+				mat->normalmap = NULL;
+			}
+		}
 
 		mat->glossmap = R_LoadImage(va("%s_s", base), IT_GLOSSMAP);
 		mat->glossmap = (mat->glossmap->type == IT_NULL ? NULL : mat->glossmap);
