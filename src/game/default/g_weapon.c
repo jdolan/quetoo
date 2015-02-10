@@ -444,7 +444,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org);
 
-		G_GrenadeProjectile(ent, org, forward, 700, 120, 120, 185.0, 2500);
+		G_GrenadeProjectile(ent, org, forward, 640, 120, 120, 185.0, 2500);
 
 		G_MuzzleFlash(ent, MZ_GRENADE);
 
@@ -464,7 +464,7 @@ void G_FireRocketLauncher(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org);
 
-		G_RocketProjectile(ent, org, forward, 900, 120, 120, 150.0);
+		G_RocketProjectile(ent, org, forward, 960, 120, 120, 150.0);
 
 		G_MuzzleFlash(ent, MZ_ROCKET);
 
@@ -554,7 +554,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 
 	G_InitProjectile(ent->owner, forward, right, up, org);
 
-	G_BfgProjectile(ent->owner, org, forward, 600, 180, 140, 512.0);
+	G_BfgProjectile(ent->owner, org, forward, 720, 180, 140, 512.0);
 
 	G_MuzzleFlash(ent->owner, MZ_BFG);
 

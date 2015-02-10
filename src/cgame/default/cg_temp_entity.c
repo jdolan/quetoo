@@ -336,7 +336,6 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
  * @brief
  */
 static void Cg_ExplosionEffect(const vec3_t org) {
-	int32_t j;
 	cg_particle_t *p;
 	r_sustained_light_t s;
 
@@ -370,23 +369,21 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			VectorCopy(org, p->part.org);
 			p->part.org[2] += 10;
 
-			for (j = 0; j < 3; j++) {
-				p->vel[j] = Randomc();
-			}
+			VectorSet(p->vel, Randomc(), Randomc(), Randomc());
 
-			p->accel[2] = 20;
+			p->accel[2] = 20.0;
 		}
 	}
 
-	for (j = 0; j < 128; j++) {
+	for (int32_t i = 0; i < 128; i++) {
 
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
 			break;
 
 		cgi.ColorFromPalette(0xe0 + (Random() & 7), p->part.color);
-		p->part.color[3] = 0.5 + Randomc() * 0.25;
+		p->part.color[3] = 0.66 + Randomc() * 0.125;
 
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 + 0.25 * Randomc());
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.5 + 0.25 * Randomc());
 
 		p->part.scale = 2.0;
 
@@ -394,9 +391,9 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		p->part.org[1] = org[1] + (Random() % 32) - 16.0;
 		p->part.org[2] = org[2] + (Random() % 32) - 16.0;
 
-		p->vel[0] = (Random() % 512) - 256;
-		p->vel[1] = (Random() % 512) - 256;
-		p->vel[2] = (Random() % 512) - 256;
+		p->vel[0] = Randomc() * 800.0;
+		p->vel[1] = Randomc() * 800.0;
+		p->vel[2] = Randomc() * 800.0;
 
 		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY);
 	}
@@ -644,22 +641,20 @@ static void Cg_BfgEffect(const vec3_t org) {
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
 			break;
 
-		cgi.ColorFromPalette(200 + Random() % 3, p->part.color);
-		p->part.color[3] = 0.5 + Randomc() * 0.25;
+		cgi.ColorFromPalette(206, p->part.color);
+		Vector4Set(p->color_vel, 1.0, 2.0, 0.0, -1.0 + 0.25 * Randomc());
 
-		Vector4Set(p->color_vel, 1.0, 2.0, 1.0, -1.0 + 0.25 * Randomc());
-
-		p->part.scale = 4.0;
+		p->part.scale = 2.0;
 
 		p->part.org[0] = org[0] + (Random() % 48) - 24;
 		p->part.org[1] = org[1] + (Random() % 48) - 24;
 		p->part.org[2] = org[2] + (Random() % 48) - 24;
 
-		p->vel[0] = (Random() % 768) - 384;
-		p->vel[1] = (Random() % 768) - 384;
-		p->vel[2] = (Random() % 768) - 384;
+		p->vel[0] = (Random() % 512) - 256;
+		p->vel[1] = (Random() % 512) - 256;
+		p->vel[2] = (Random() % 512) - 256;
 
-		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY);
+		VectorSet(p->accel, 0.0, 0.0, -3.0 * PARTICLE_GRAVITY);
 	}
 
 	VectorCopy(org, s.light.origin);

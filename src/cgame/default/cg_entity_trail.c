@@ -31,6 +31,10 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		if (ent->time > cgi.client->time)
 			return;
 
+		// don't emit smoke trails for static entities (grenades on the floor)
+		if (VectorCompare(ent->current.origin, ent->prev.origin))
+			return;
+
 		ent->time = cgi.client->time + 16;
 	}
 
@@ -55,7 +59,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		p->vel[j] = Randomc();
 	}
 
-	p->accel[2] = 5.0;
+	p->accel[2] = 10.0;
 }
 
 /*
@@ -289,25 +293,20 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		while (d < dist) {
 			cg_particle_t *p;
 
-			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
+			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_flame)))
 				break;
 
 			cgi.ColorFromPalette(EFFECT_COLOR_ORANGE + (Random() & 5), p->part.color);
-			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -8.0 + Randomc());
+			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -4.0);
 
-			p->part.scale = 2.0;
-			p->scale_vel = 8.0 + Randomc() * 1.0;
+			p->part.scale = 4.0;
+			p->scale_vel = -6.0;
 
 			VectorMA(start, d, delta, p->part.org);
-			VectorScale(delta, 400.0, p->vel);
+			VectorScale(delta, 800.0, p->vel);
+			VectorScale(delta, -1200.0, p->accel);
 
-			for (int32_t i = 0; i < 3; i++) {
-				p->part.org[i] += Randomc() * 0.5;
-				p->vel[i] += Randomc() * 7.0;
-				p->accel[i] = Randomc() * 30.0;
-			}
-
-			d += 0.5;
+			d += 1.0;
 		}
 	}
 
@@ -493,17 +492,24 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 
 	Cg_EnergyTrail(ent, org, 48.0, 206);
 
-	r_corona_t c;
-	VectorCopy(org, c.origin);
-	c.radius = 48.0;
-	c.flicker = 0.05;
-	VectorSet(c.color, 0.4, 1.0, 0.4);
+	const vec_t mod = sin(cgi.client->time >> 5);
 
-	cgi.AddCorona(&c);
+	cg_particle_t *p;
+	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
+
+		cgi.ColorFromPalette(206, p->part.color);
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -4.0);
+
+		p->part.scale = 48.0 + 12.0 * mod;
+
+		p->part.roll = Randomc() * 100.0;
+
+		VectorCopy(org, p->part.org);
+	}
 
 	r_light_t l;
 	VectorCopy(org, l.origin);
-	l.radius = 200.0;
+	l.radius = 160.0 + 48.0 * mod;
 	VectorSet(l.color, 0.4, 1.0, 0.4);
 
 	cgi.AddLight(&l);
