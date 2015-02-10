@@ -476,7 +476,7 @@ static void R_RegisterMaterial(r_media_t *self) {
 
 	R_RegisterDependency(self, (r_media_t *) mat->diffuse);
 	R_RegisterDependency(self, (r_media_t *) mat->normalmap);
-	R_RegisterDependency(self, (r_media_t *) mat->glossmap);
+	R_RegisterDependency(self, (r_media_t *) mat->specularmap);
 
 	r_stage_t *s = mat->stages;
 	while (s) {
@@ -528,8 +528,8 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 			}
 		}
 
-		mat->glossmap = R_LoadImage(va("%s_s", base), IT_GLOSSMAP);
-		mat->glossmap = (mat->glossmap->type == IT_NULL ? NULL : mat->glossmap);
+		mat->specularmap = R_LoadImage(va("%s_s", base), IT_SPECULARMAP);
+		mat->specularmap = (mat->specularmap->type == IT_NULL ? NULL : mat->specularmap);
 
 		mat->bump = DEFAULT_BUMP;
 		mat->hardness = DEFAULT_HARDNESS;
@@ -1014,17 +1014,17 @@ void R_LoadMaterials(const r_model_t *mod) {
 			}
 		}
 
-		if (!g_strcmp0(c, "glossmap") && r_programs->value && r_bumpmap->value) {
+		if (!g_strcmp0(c, "specularmap") && r_programs->value && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
-				m->glossmap = R_LoadImage(++c, IT_GLOSSMAP);
+				m->specularmap = R_LoadImage(++c, IT_SPECULARMAP);
 			} else {
-				m->glossmap = R_LoadImage(va("textures/%s", c), IT_GLOSSMAP);
+				m->specularmap = R_LoadImage(va("textures/%s", c), IT_SPECULARMAP);
 			}
 
-			if (m->glossmap->type == IT_NULL) {
-				Com_Warn("Failed to resolve glossmap: %s\n", c);
-				m->glossmap = NULL;
+			if (m->specularmap->type == IT_NULL) {
+				Com_Warn("Failed to resolve specularmap: %s\n", c);
+				m->specularmap = NULL;
 			}
 		}
 

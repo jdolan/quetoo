@@ -124,7 +124,7 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	const uint32_t num_bind_diffuse = r_view.num_bind_texture - r_view.num_bind_lightmap
-			- r_view.num_bind_deluxemap - r_view.num_bind_normalmap - r_view.num_bind_glossmap;
+			- r_view.num_bind_deluxemap - r_view.num_bind_normalmap - r_view.num_bind_specularmap;
 
 	R_DrawString(0, y, va("%d diffuse", num_bind_diffuse), CON_COLOR_GREEN);
 	y += ch;
@@ -138,7 +138,7 @@ static void Cl_DrawRendererStats(void) {
 	R_DrawString(0, y, va("%d normalmap", r_view.num_bind_normalmap), CON_COLOR_GREEN);
 	y += ch;
 
-	R_DrawString(0, y, va("%d glossmap", r_view.num_bind_glossmap), CON_COLOR_GREEN);
+	R_DrawString(0, y, va("%d specularmap", r_view.num_bind_specularmap), CON_COLOR_GREEN);
 	y += ch;
 
 	y += ch;

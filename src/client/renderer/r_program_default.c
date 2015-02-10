@@ -122,8 +122,8 @@ void R_UseMaterial_default(const r_material_t *material) {
 	R_BindNormalmapTexture(material->normalmap->texnum);
 	R_ProgramParameter1i(&p->normalmap, 1);
 
-	if (material->glossmap) {
-		R_BindGlossmapTexture(material->glossmap->texnum);
+	if (material->specularmap) {
+		R_BindSpecularmapTexture(material->specularmap->texnum);
 		R_ProgramParameter1i(&p->glossmap, 1);
 	} else
 		R_ProgramParameter1i(&p->glossmap, 0);

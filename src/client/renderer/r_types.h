@@ -56,7 +56,7 @@ typedef enum {
 	IT_LIGHTMAP = 5 + (IT_MASK_FILTER),
 	IT_DELUXEMAP = 6,
 	IT_NORMALMAP = 7 + (IT_MASK_MIPMAP),
-	IT_GLOSSMAP = 8,
+	IT_SPECULARMAP = 8,
 	IT_ENVMAP = 9 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_FLARE = 10 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_SKY = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
@@ -144,7 +144,7 @@ typedef struct r_material_s {
 	r_media_t media;
 	r_image_t *diffuse;
 	r_image_t *normalmap;
-	r_image_t *glossmap;
+	r_image_t *specularmap;
 	uint32_t flags;
 	uint32_t time;
 	vec_t bump;
@@ -811,7 +811,7 @@ typedef struct {
 	uint32_t num_bind_lightmap;
 	uint32_t num_bind_deluxemap;
 	uint32_t num_bind_normalmap;
-	uint32_t num_bind_glossmap;
+	uint32_t num_bind_specularmap;
 
 	uint32_t num_bsp_clusters;
 	uint32_t num_bsp_leafs;

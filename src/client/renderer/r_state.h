@@ -88,7 +88,7 @@ extern r_state_t r_state;
 #define texunit_lightmap		r_state.texunits[1]
 #define texunit_deluxemap		r_state.texunits[2]
 #define texunit_normalmap		r_state.texunits[3]
-#define texunit_glossmap		r_state.texunits[4]
+#define texunit_specularmap		r_state.texunits[4]
 
 #define R_GetError(msg) R_GetError_(__func__, msg)
 void R_GetError_(const char *function, const char *msg);
@@ -97,7 +97,7 @@ void R_BindTexture(GLuint texnum);
 void R_BindLightmapTexture(GLuint texnum);
 void R_BindDeluxemapTexture(GLuint texnum);
 void R_BindNormalmapTexture(GLuint texnum);
-void R_BindGlossmapTexture(GLuint texnum);
+void R_BindSpecularmapTexture(GLuint texnum);
 void R_BindArray(GLenum target, GLenum type, GLvoid *array);
 void R_BindDefaultArray(GLenum target);
 void R_BindBuffer(GLenum target, GLenum type, GLuint id);

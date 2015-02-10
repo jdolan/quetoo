@@ -32,7 +32,7 @@ static void Cl_ClearView(void) {
 
 	// reset counters
 	r_view.num_bind_texture = r_view.num_bind_lightmap = r_view.num_bind_deluxemap = 0;
-	r_view.num_bind_normalmap = r_view.num_bind_glossmap = 0;
+	r_view.num_bind_normalmap = r_view.num_bind_specularmap = 0;
 
 	r_view.num_bsp_surfaces = 0;
 

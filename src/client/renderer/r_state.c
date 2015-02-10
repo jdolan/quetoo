@@ -169,18 +169,18 @@ void R_BindNormalmapTexture(GLuint texnum) {
 /*
  * @brief Binds the specified texture for the glossmap texture unit.
  */
-void R_BindGlossmapTexture(GLuint texnum) {
+void R_BindSpecularmapTexture(GLuint texnum) {
 
-	if (texnum == texunit_glossmap.texnum)
+	if (texnum == texunit_specularmap.texnum)
 		return;
 
-	R_SelectTexture(&texunit_glossmap);
+	R_SelectTexture(&texunit_specularmap);
 
 	R_BindTexture(texnum);
 
 	R_SelectTexture(&texunit_diffuse);
 
-	r_view.num_bind_glossmap++;
+	r_view.num_bind_specularmap++;
 }
 
 /*
