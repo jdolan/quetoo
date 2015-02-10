@@ -143,6 +143,19 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		p->accel[2] = -3.0 * PARTICLE_GRAVITY;
 	}
 
+	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
+
+		cgi.ColorFromPalette(7 + (Random() & 7), p->part.color);
+		Vector4Set(p->color_vel, -1.0, -1.0, -1.0, -1.0 / (1.0 + Randomf()));
+
+		p->scale_vel = 10.0 + 25.0 * Randomf();
+
+		VectorCopy(org, p->part.org);
+		VectorScale(vec3_up, 10.0, p->vel);
+
+		p->accel[2] = 5.0;
+	}
+
 	VectorAdd(org, dir, s.light.origin);
 	s.light.radius = 20.0;
 	VectorSet(s.light.color, 0.5, 0.3, 0.2);

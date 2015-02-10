@@ -31,7 +31,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		if (ent->time > cgi.client->time)
 			return;
 
-		ent->time = cgi.client->time + 32;
+		ent->time = cgi.client->time + 16;
 	}
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
@@ -42,9 +42,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke)))
 		return;
 
-	cgi.ColorFromPalette(4 + (Random() & 7), p->part.color);
-	p->part.color[3] = 1.0;
-
+	cgi.ColorFromPalette(7 + (Random() & 7), p->part.color);
 	Vector4Set(p->color_vel, -1.0, -1.0, -1.0, -1.0 / (1.0 + Randomf()));
 
 	p->part.scale = 1.0;
@@ -191,7 +189,6 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
  * @brief
  */
 static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-	int32_t i;
 
 	const uint8_t col = ent->current.client ? ent->current.client : EFFECT_COLOR_ORANGE;
 
@@ -219,7 +216,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			}
 
 			cgi.ColorFromPalette(col + (Random() & 5), p->part.color);
-			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -5.0 + Randomc());
+			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -10.0 + Randomc());
 
 			p->part.scale = 1.5;
 			p->scale_vel = 5.0 + Randomc() * 1.0;
@@ -227,7 +224,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			VectorMA(start, d, delta, p->part.org);
 			VectorScale(delta, 400.0, p->vel);
 
-			for (i = 0; i < 3; i++) {
+			for (int32_t i = 0; i < 3; i++) {
 				p->part.org[i] += Randomc() * 0.5;
 				p->vel[i] += Randomc() * 7.0;
 				p->accel[i] = Randomc() * 30.0;
@@ -244,7 +241,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 	VectorScale(color, 3.0, color);
 
-	for (i = 0; i < 3; i++) {
+	for (int32_t i = 0; i < 3; i++) {
 		if (color[i] > 1.0)
 			color[i] = 1.0;
 	}
@@ -296,10 +293,10 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 				break;
 
 			cgi.ColorFromPalette(EFFECT_COLOR_ORANGE + (Random() & 5), p->part.color);
-			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -5.0 + Randomc());
+			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -8.0 + Randomc());
 
-			p->part.scale = 3.0;
-			p->scale_vel = 5.0 + Randomc() * 1.0;
+			p->part.scale = 2.0;
+			p->scale_vel = 8.0 + Randomc() * 1.0;
 
 			VectorMA(start, d, delta, p->part.org);
 			VectorScale(delta, 400.0, p->vel);
@@ -310,7 +307,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 				p->accel[i] = Randomc() * 30.0;
 			}
 
-			d += 1.0;
+			d += 0.5;
 		}
 	}
 
@@ -454,7 +451,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			return;
 
 		cgi.ColorFromPalette(12 + (Random() & 3), p->part.color);
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -9999.0);
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -100.0);
 
 		p->part.scale = 8.0;
 
