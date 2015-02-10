@@ -400,7 +400,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 200.0;
-	VectorSet(s.light.color, 0.8, 0.6, 0.2);
+	VectorSet(s.light.color, 0.8, 0.4, 0.2);
 	s.sustain = 1000;
 
 	cgi.AddSustainedLight(&s);

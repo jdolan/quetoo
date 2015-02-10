@@ -220,19 +220,14 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			}
 
 			cgi.ColorFromPalette(col + (Random() & 5), p->part.color);
-			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -10.0 + Randomc());
+			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -6.0 + Randomc());
 
-			p->part.scale = 1.5;
-			p->scale_vel = 5.0 + Randomc() * 1.0;
+			p->part.scale = 3.0;
+			p->scale_vel = -4.0;
 
 			VectorMA(start, d, delta, p->part.org);
-			VectorScale(delta, 400.0, p->vel);
-
-			for (int32_t i = 0; i < 3; i++) {
-				p->part.org[i] += Randomc() * 0.5;
-				p->vel[i] += Randomc() * 7.0;
-				p->accel[i] = Randomc() * 30.0;
-			}
+			VectorScale(delta, 600.0, p->vel);
+			VectorScale(delta, -600.0, p->accel);
 
 			d += step;
 		}
@@ -314,14 +309,14 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	VectorCopy(end, c.origin);
 	c.radius = 3.0;
 	c.flicker = 0.125;
-	VectorSet(c.color, 0.8, 0.6, 0.2);
+	VectorSet(c.color, 0.8, 0.4, 0.2);
 
 	cgi.AddCorona(&c);
 
 	r_light_t l;
 	VectorCopy(end, l.origin);
 	l.radius = 150.0;
-	VectorSet(l.color, 0.8, 0.6, 0.2);
+	VectorSet(l.color, 0.8, 0.4, 0.2);
 
 	cgi.AddLight(&l);
 }
@@ -518,17 +513,14 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 /*
  * @brief
  */
-void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
+static void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
 
-	if (ent) { // honor a slightly randomized time interval
+	if (ent->time > cgi.client->time)
+		return;
 
-		if (ent->time > cgi.client->time)
-			return;
+	cgi.PlaySample(NULL, ent->current.number, cg_sample_respawn, ATTEN_IDLE);
 
-		cgi.PlaySample(NULL, ent->current.number, cg_sample_respawn, ATTEN_IDLE);
-
-		ent->time = cgi.client->time + 1000 + (2000 * Randomf());
-	}
+	ent->time = cgi.client->time + 1000 + (2000 * Randomf());
 
 	for (int32_t i = 0; i < 4; i++) {
 		cg_particle_t *p;
@@ -543,8 +535,8 @@ void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
 		p->scale_vel = 24.0;
 
 		VectorCopy(org, p->part.org);
-		p->part.org[2] -= (6 * i);
-		p->vel[2] = 140;
+		p->part.org[2] -= (6.0 * i);
+		p->vel[2] = 140.0;
 	}
 }
 

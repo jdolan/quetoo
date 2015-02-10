@@ -107,7 +107,44 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
  * @brief
  */
 static void Cg_TeleporterEffect(const vec3_t org) {
-	Cg_TeleporterTrail(NULL, org);
+
+	vec3_t color;
+	cgi.ColorFromPalette(110, color);
+
+	for (int32_t i = 0; i < 64; i++) {
+		cg_particle_t *p;
+
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+			break;
+
+		VectorCopy(color, p->part.color);
+		Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -1.5 + Randomf() * 0.5);
+
+		p->part.scale = 1.0;
+		p->scale_vel = 3.0;
+
+		p->part.org[0] = org[0] + Randomc() * 16.0;
+		p->part.org[1] = org[1] + Randomc() * 16.0;
+		p->part.org[2] = org[2] + 8.0 + Randomf() * 24.0;
+
+		p->vel[0] = Randomc() * 24.0;
+		p->vel[1] = Randomc() * 24.0;
+		p->vel[2] = Randomf() * 64.0;
+
+		p->accel[0] = p->accel[1] = 0;
+		p->accel[2] = -PARTICLE_GRAVITY * 0.1;
+	}
+
+	r_sustained_light_t s;
+	VectorCopy(org, s.light.origin);
+	s.light.radius = 120.0;
+	VectorSet(s.light.color, 0.9, 0.9, 0.9);
+	s.sustain = 1000;
+
+	cgi.AddSustainedLight(&s);
+
+	cgi.PlaySample(org, 0, cg_sample_respawn, ATTEN_IDLE);
+
 }
 
 /*
