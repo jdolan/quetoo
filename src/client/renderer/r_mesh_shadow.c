@@ -40,9 +40,10 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *
 }
 
 /*
- * @brief Projects the model view matrix for the entity onto the shadow plane.
+ * @brief Projects the model view matrix for the entity onto the shadow plane,
+ * and concatenates it to the current model view matrix.
  */
-static void R_RotateForMeshShadow_default(const r_entity_t *e, r_shadow_t *s) {
+static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t *s) {
 	matrix4x4_t proj;
 	vec_t dot;
 
@@ -77,56 +78,57 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, r_shadow_t *s) {
 }
 
 /*
- * @brief Draws the specified shadow for the given entity. A scissor test is
- * employed in order to clip shadows to the planes they are cast upon.
+ * @brief Sets renderer state for the given entity and shadow.
  */
-static void R_DrawMeshShadow_default_(const r_entity_t *e, r_shadow_t *s) {
+static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *s) {
 
 	R_SetMeshShadowColor_default(e, s);
 
 	R_RotateForMeshShadow_default(e, s);
 
-	R_EnableShadow(r_state.shadow_program, true);
+	// TODO: This is a hack, but we don't want to toggle the program
+	// just to re-calculate the shadow matrix. Figure out a clean way
+	// to make this happen.
+	R_UseProgram_shadow();
 
 	glStencilFunc(GL_EQUAL, (s->plane.num % 0xff) + 1, ~0);
+}
 
-	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
-
-	R_EnableShadow(NULL, false);
+/*
+ * @brief Restores renderer state for the given entity and shadow.
+ */
+static void R_ResetMeshShadowState_default(const r_entity_t *e __attribute__((unused)),
+		const r_shadow_t *s __attribute__((unused))) {
 
 	R_RotateForMeshShadow_default(NULL, NULL);
 }
 
 /*
- * @brief Re-draws the mesh using the stencil test. Meshes with a lighting
- * position above our view origin are not drawn.
+ * @brief Draws the shadow `s` for the specified entity `e`.
+ */
+static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) {
+
+	R_SetMeshShadowState_default(e, s);
+
+	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+
+	R_ResetMeshShadowState_default(e, s);
+}
+
+/*
+ * @brief Draws all shadows for the specified entity.
  */
 void R_DrawMeshShadow_default(const r_entity_t *e) {
 
-	if (!r_shadows->value)
-		return;
+	if (e->model->mesh->num_frames == 1) {
+		R_SetArrayState(e->model);
+	} else {
+		R_ResetArrayState();
 
-	if (r_draw_wireframe->value)
-		return;
-
-	if (e->effects & (EF_NO_LIGHTING | EF_NO_SHADOW))
-		return;
-
-	R_EnableLighting(NULL, false);
-
-	R_EnableFog(false);
-
-	if (!(e->effects & EF_BLEND))
-		R_EnableBlend(true);
-
-	R_EnableTexture(&texunit_diffuse, false);
-
-	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
-
-	R_EnableStencilTest(GL_ZERO, true);
+		R_InterpolateMeshModel(e);
+	}
 
 	r_shadow_t *s = e->lighting->shadows;
-
 	for (size_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {
 
 		if (s->shadow == 0.0)
@@ -150,19 +152,50 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 	}
 
 	r_view.current_shadow = NULL;
+}
+
+/*
+ * @brief Draws all mesh model shadows for the current frame.
+ */
+void R_DrawMeshShadows_default(const r_entities_t *ents) {
+
+	if (!r_shadows->value)
+		return;
+
+	if (r_draw_wireframe->value)
+		return;
+
+	R_EnableTexture(&texunit_diffuse, false);
+
+	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
+
+	R_EnableShadow(r_state.shadow_program, true);
+
+	R_EnableStencilTest(GL_ZERO, true);
+
+	for (size_t i = 0; i < ents->count; i++) {
+		const r_entity_t *e = ents->entities[i];
+
+		if (e->effects & EF_NO_DRAW)
+			continue;
+
+		if (e->effects & (EF_NO_LIGHTING | EF_NO_SHADOW))
+			continue;
+
+		r_view.current_entity = e;
+
+		R_DrawMeshShadow_default(e);
+	}
+
+	r_view.current_entity = NULL;
+
+	R_EnableShadow(NULL, false);
 
 	R_EnableStencilTest(GL_KEEP, false);
 
 	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
 
 	R_EnableTexture(&texunit_diffuse, true);
-
-	if (!(e->effects & EF_BLEND))
-		R_EnableBlend(false);
-
-	R_EnableFog(true);
-
-	R_EnableLighting(r_state.default_program, true);
 
 	R_Color(NULL);
 }

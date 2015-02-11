@@ -5,5 +5,7 @@ shaders_DATA = \
 	default_vs.glsl \
 	shadow_fs.glsl \
 	shadow_vs.glsl \
+	shell_fs.glsl \
+	shell_vs.glsl \
 	warp_fs.glsl \
 	warp_vs.glsl

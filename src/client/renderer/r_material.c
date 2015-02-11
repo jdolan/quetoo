@@ -61,7 +61,7 @@ static void R_UpdateMaterial(r_material_t *m) {
 					s->anim.dtime = r_view.time + (1000 / s->anim.fps);
 					s->image = s->anim.frames[++s->anim.dframe % s->anim.num_frames];
 				}
-			} else {
+			} else if (r_view.current_entity) {
 				s->image = s->anim.frames[r_view.current_entity->frame % s->anim.num_frames];
 			}
 		}
@@ -344,7 +344,6 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
  * state after all surface stages have been rendered.
  */
 void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
-	uint32_t i;
 
 	if (!r_materials->value || r_draw_wireframe->value)
 		return;
@@ -370,7 +369,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	glMatrixMode(GL_TEXTURE); // some stages will manipulate texcoords
 
-	for (i = 0; i < surfs->count; i++) {
+	for (uint32_t i = 0; i < surfs->count; i++) {
 		vec_t j = -1.0;
 
 		r_bsp_surface_t *surf = surfs->surfaces[i];
@@ -382,8 +381,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 		R_UpdateMaterial(m);
 
-		const r_stage_t *s;
-		for (s = m->stages; s; s = s->next, j--) {
+		for (const r_stage_t *s = m->stages; s; s = s->next, j--) {
 
 			if (!(s->flags & STAGE_DIFFUSE))
 				continue;

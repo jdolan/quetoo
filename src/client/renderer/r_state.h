@@ -66,9 +66,14 @@ typedef struct r_state_s {
 	r_program_t programs[MAX_PROGRAMS];
 	r_program_t *default_program;
 	r_program_t *shadow_program;
+	r_program_t *shell_program;
 	r_program_t *warp_program;
+
 	const r_program_t *active_program;
 	const r_material_t *active_material;
+	const r_entity_t *active_entity; // entity being rendered
+	const r_shadow_t *active_shadow; // shadow being rendered
+
 
 	_Bool color_array_enabled;
 	_Bool alpha_test_enabled;
@@ -111,7 +116,7 @@ void R_EnableColorArray(_Bool enable);
 void R_EnableLighting(const r_program_t *program, _Bool enable);
 void R_EnableShadow(const r_program_t *program, _Bool enable);
 void R_EnableWarp(const r_program_t *program, _Bool enable);
-void R_EnableShell(_Bool enable);
+void R_EnableShell(const r_program_t *program, _Bool enable);
 void R_EnableFog(_Bool enable);
 void R_UseMaterial(const r_material_t *material);
 void R_InitState(void);

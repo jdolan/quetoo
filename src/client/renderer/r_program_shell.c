@@ -19,21 +19,35 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_BSP_H__
-#define __R_BSP_H__
+#include "r_local.h"
 
-const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp);
-_Bool R_LeafVisible(const r_bsp_leaf_t *leaf);
-_Bool R_LeafHearable(const r_bsp_leaf_t *leaf);
+// these are the variables defined in the GLSL shader
+typedef struct r_shell_program_s {
+	r_uniform1f_t offset;
 
-#ifdef __R_LOCAL_H__
-_Bool R_CullBox(const vec3_t mins, const vec3_t maxs);
-_Bool R_CullBspInlineModel(const r_entity_t *e);
-void R_DrawBspInlineModels(const r_entities_t *ents);
-void R_DrawBspLeafs(void);
-void R_DrawBspNormals(void);
-void R_MarkBspSurfaces(void);
-void R_UpdateVis(void);
-#endif /* __R_LOCAL_H__ */
+	r_sampler2d_t sampler0;
+	r_sampler2d_t sampler1;
+} r_shell_program_t;
 
-#endif /* __R_BSP_H__ */
+static r_shell_program_t r_shell_program;
+
+/*
+ * @brief
+ */
+void R_InitProgram_shell(void) {
+	r_shell_program_t *p = &r_shell_program;
+
+	R_ProgramVariable(&p->offset, R_UNIFORM_FLOAT, "OFFSET");
+	R_ProgramParameter1f(&p->offset, 0.0);
+
+	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0");
+	R_ProgramParameter1i(&p->sampler0, 0);
+}
+
+/*
+ * @brief
+ */
+void R_UseProgram_shell(void) {
+
+	R_ProgramParameter1f(&r_shell_program.offset, r_view.time * 0.00025);
+}

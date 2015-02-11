@@ -7,8 +7,6 @@
 uniform bool DIFFUSE;
 uniform bool NORMALMAP;
 
-uniform float OFFSET;
-
 varying vec3 point;
 varying vec3 normal;
 varying vec3 tangent;
@@ -19,10 +17,8 @@ varying float fog;
 attribute vec4 TANGENT;
 
 /*
- * LightVertex
- *
- * Transform the point, normal and tangent vectors, passing them through to
- * the fragment shader for per-pixel lighting.
+ * @brief Transform the point, normal and tangent vectors, passing them through
+ * to the fragment shader for per-pixel lighting.
  */
 void LightVertex(void) {
 
@@ -36,9 +32,7 @@ void LightVertex(void) {
 }
 
 /*
- * FogVertex
- *
- * Calculate the interpolated fog value for the vertex.
+ * @brief Calculate the interpolated fog value for the vertex.
  */
 void FogVertex(void) {
 	fog = (gl_Position.z - gl_Fog.start) / (gl_Fog.end - gl_Fog.start);
@@ -46,7 +40,7 @@ void FogVertex(void) {
 }
 
 /*
- * main
+ * @brief Shader entry point.
  */
 void main(void) {
 
@@ -54,7 +48,7 @@ void main(void) {
 	gl_Position = ftransform();
 
 	if (DIFFUSE) { // pass texcoords through
-		gl_TexCoord[0] = gl_MultiTexCoord0 + OFFSET;
+		gl_TexCoord[0] = gl_MultiTexCoord0;
 		gl_TexCoord[1] = gl_MultiTexCoord1;
 	}
 

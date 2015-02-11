@@ -25,7 +25,7 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_DrawMeshShadow_default(const r_entity_t *e);
+void R_DrawMeshShadows_default(const r_entities_t *ents);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_MESH_SHADOW_H__ */

@@ -640,7 +640,6 @@ typedef struct r_lighting_s {
  * when an entity moves.
  */
 typedef struct r_entity_s {
-	struct r_entity_s *next; // for draw lists
 
 	const struct r_entity_s *parent; // for linked models
 	const char *tag_name;
@@ -651,8 +650,6 @@ typedef struct r_entity_s {
 
 	matrix4x4_t matrix;
 	matrix4x4_t inverse_matrix;
-
-	_Bool culled;
 
 	const r_model_t *model;
 
@@ -674,9 +671,31 @@ typedef struct r_entity_s {
 } r_entity_t;
 
 /*
+ * @brief Entity draw lists.
+ */
+typedef struct {
+	const r_entity_t *entities[MAX_ENTITIES];
+	size_t count;
+} r_entities_t;
+
+/*
+ * @brief The view maintains lists of entities, sorted by render path.
+ */
+typedef struct {
+	r_entities_t bsp_inline_entities;
+	r_entities_t mesh_entities;
+	r_entities_t null_entities;
+} r_sorted_entities_t;
+
+/*
+ * @brief Appends a reference to the specified entity to the given entities list.
+ */
+#define R_ENTITY_TO_ENTITIES(ents, ent) (ents)->entities[(ents)->count++] = ent
+
+/*
  * @brief Function prototype for mesh entity draw lists.
  */
-typedef void (*MeshModelDrawFunc)(const r_entity_t *e);
+typedef void (*MeshModelsDrawFunc)(const r_entities_t *ents);
 
 typedef enum {
 	PARTICLE_NORMAL,

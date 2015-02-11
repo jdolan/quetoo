@@ -79,6 +79,8 @@ typedef struct {
 	void (*Init)(void);
 	void (*Use)(void);
 	void (*UseMaterial)(const r_material_t *material);
+	void (*UseEntity)(const r_entity_t *e);
+	void (*UseShadow)(const r_shadow_t *s);
 } r_program_t;
 
 #define MAX_PROGRAMS 8

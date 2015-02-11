@@ -174,6 +174,75 @@ void R_UpdateMeshModelLighting(const r_entity_t *e) {
 }
 
 /*
+ * @brief Interpolate the animation for the give entity, writing primitives to
+ * the default vertex arrays. This must be called at each frame for animated
+ * entities.
+ */
+void R_InterpolateMeshModel(const r_entity_t *e) {
+
+	const r_md3_t *md3 = (r_md3_t *) e->model->mesh->data;
+	const d_md3_frame_t *frame, *old_frame;
+
+	if (e->frame >= e->model->mesh->num_frames) {
+		Com_Warn("%s: no such frame %d\n", e->model->media.name, e->frame);
+		frame = &md3->frames[0];
+	} else {
+		frame = &md3->frames[e->frame];
+	}
+
+	if (e->old_frame >= e->model->mesh->num_frames) {
+		Com_Warn("%s: no such old_frame %d\n", e->model->media.name, e->old_frame);
+		old_frame = &md3->frames[0];
+	} else {
+		old_frame = &md3->frames[e->old_frame];
+	}
+
+	vec3_t trans;
+	for (int32_t i = 0; i < 3; i++) // calculate the translation
+		trans[i] = e->back_lerp * old_frame->translate[i] + e->lerp * frame->translate[i];
+
+	GLuint vert_index = 0;
+
+	const r_md3_mesh_t *mesh = md3->meshes;
+	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) { // iterate the meshes
+
+		const r_md3_vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
+		const r_md3_vertex_t *ov = mesh->verts + e->old_frame * mesh->num_verts;
+
+		const uint32_t *tri = mesh->tris;
+
+		for (uint16_t j = 0; j < mesh->num_verts; j++, v++, ov++) { // interpolate the vertexes
+			VectorSet(r_mesh_state.vertexes[j],
+					trans[0] + ov->point[0] * e->back_lerp + v->point[0] * e->lerp,
+					trans[1] + ov->point[1] * e->back_lerp + v->point[1] * e->lerp,
+					trans[2] + ov->point[2] * e->back_lerp + v->point[2] * e->lerp);
+
+			if (r_state.lighting_enabled) { // and the normals
+				VectorSet(r_mesh_state.normals[j],
+						v->normal[0] + (ov->normal[0] - v->normal[0]) * e->back_lerp,
+						v->normal[1] + (ov->normal[1] - v->normal[1]) * e->back_lerp,
+						v->normal[2] + (ov->normal[2] - v->normal[2]) * e->back_lerp);
+			}
+		}
+
+		for (uint16_t j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the triangles
+
+			VectorCopy(r_mesh_state.vertexes[tri[0]], (&r_state.vertex_array_3d[vert_index + 0]));
+			VectorCopy(r_mesh_state.vertexes[tri[1]], (&r_state.vertex_array_3d[vert_index + 3]));
+			VectorCopy(r_mesh_state.vertexes[tri[2]], (&r_state.vertex_array_3d[vert_index + 6]));
+
+			if (r_state.lighting_enabled) { // normal vectors for lighting
+				VectorCopy(r_mesh_state.normals[tri[0]], (&r_state.normal_array[vert_index + 0]));
+				VectorCopy(r_mesh_state.normals[tri[1]], (&r_state.normal_array[vert_index + 3]));
+				VectorCopy(r_mesh_state.normals[tri[2]], (&r_state.normal_array[vert_index + 6]));
+			}
+
+			vert_index += 9;
+		}
+	}
+}
+
+/*
  * @brief Sets the shade color for the mesh by modulating any preset color
  * with static lighting.
  */
@@ -196,7 +265,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 		ColorNormalize(color, color);
 	}
 
-	for (uint16_t i = 0; i < 3; i++) {
+	for (int32_t i = 0; i < 3; i++) {
 		color[i] *= e->color[i];
 	}
 
@@ -238,7 +307,7 @@ static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
 }
 
 /*
- * @brief Sets GL state to draw the specified entity.
+ * @brief Sets renderer state for the specified entity.
  */
 static void R_SetMeshState_default(const r_entity_t *e) {
 
@@ -247,30 +316,29 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	} else { // or use the default arrays
 		R_ResetArrayState();
 
-		// but take advantage of static texture coordinate arrays
-		if (texunit_diffuse.enabled) {
-			R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
-		}
+		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
+
+		R_InterpolateMeshModel(e);
 	}
 
 	if (!r_draw_wireframe->value) {
 
-		if (!(e->effects & EF_NO_DRAW)) { // setup state for diffuse render
-			r_mesh_state.material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
+		r_mesh_state.material = e->skins[0] ?: e->model->mesh->material;
 
-			R_BindTexture(r_mesh_state.material->diffuse->texnum);
+		R_BindTexture(r_mesh_state.material->diffuse->texnum);
 
-			R_SetMeshColor_default(e);
+		R_SetMeshColor_default(e);
 
-			// hardware lighting
-			if (r_state.lighting_enabled && !(e->effects & EF_NO_LIGHTING)) {
+		if (e->effects & EF_ALPHATEST)
+			R_EnableAlphaTest(true);
 
-				R_UseMaterial(r_mesh_state.material);
+		if (e->effects & EF_BLEND)
+			R_EnableBlend(true);
 
-				R_ApplyMeshModelLighting_default(e);
-			}
-		} else {
-			R_UseMaterial(NULL);
+		if ((e->effects & EF_NO_LIGHTING) == 0 && r_state.lighting_enabled) {
+			R_UseMaterial(r_mesh_state.material);
+
+			R_ApplyMeshModelLighting_default(e);
 		}
 	} else {
 		R_Color(NULL);
@@ -278,112 +346,31 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 		R_UseMaterial(NULL);
 	}
 
-	if (e->effects & EF_WEAPON) // prevent weapon from poking into walls
+	if (e->effects & EF_WEAPON)
 		glDepthRange(0.0, 0.3);
 
-	// now rotate and translate to the ent's origin
 	R_RotateForEntity(e);
 }
 
 /*
- * @brief
+ * @brief Restores renderer state for the given entity.
  */
 static void R_ResetMeshState_default(const r_entity_t *e) {
 
 	R_RotateForEntity(NULL);
 
+	if (e->effects & EF_WEAPON)
+		glDepthRange(0.0, 1.0);
+
+	if (e->effects & EF_BLEND)
+		R_EnableBlend(false);
+
+	if (e->effects & EF_ALPHATEST)
+		R_EnableAlphaTest(false);
+
 	if (e->model->mesh->num_frames > 1) {
 		if (texunit_diffuse.enabled) {
 			R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
-		}
-	}
-
-	if (e->effects & EF_WEAPON)
-		glDepthRange(0.0, 1.0);
-}
-
-/*
- * @brief Draws an animated, colored shell for the specified entity. Rather than
- * re-lerping or re-scaling the entity, the currently bound vertex arrays
- * are simply re-drawn using a small depth offset.
- */
-static void R_DrawMeshShell_default(const r_entity_t *e) {
-	vec4_t color;
-
-	if (VectorCompare(e->shell, vec3_origin))
-		return;
-
-	VectorCopy(e->shell, color);
-	color[3] = 1.0 + 0.8 * sin(r_view.time * 0.002);
-
-	R_Color(color);
-
-	R_BindTexture(r_image_state.shell->texnum);
-
-	R_EnableShell(true);
-
-	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
-
-	R_EnableShell(false);
-
-	R_Color(NULL);
-}
-
-/*
- * @brief
- */
-static void R_InterpolateMeshModel_default(const r_entity_t *e) {
-	const r_md3_t *md3;
-	const d_md3_frame_t *frame, *old_frame;
-	const r_md3_mesh_t *mesh;
-	vec3_t trans;
-	int32_t vert_index;
-	int32_t i, j;
-
-	md3 = (r_md3_t *) e->model->mesh->data;
-
-	frame = &md3->frames[e->frame];
-	old_frame = &md3->frames[e->old_frame];
-
-	vert_index = 0;
-
-	for (i = 0; i < 3; i++) // calculate the translation
-		trans[i] = e->back_lerp * old_frame->translate[i] + e->lerp * frame->translate[i];
-
-	for (i = 0, mesh = md3->meshes; i < md3->num_meshes; i++, mesh++) { // iterate the meshes
-
-		const r_md3_vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
-		const r_md3_vertex_t *ov = mesh->verts + e->old_frame * mesh->num_verts;
-
-		const uint32_t *tri = mesh->tris;
-
-		for (j = 0; j < mesh->num_verts; j++, v++, ov++) { // interpolate the vertexes
-			VectorSet(r_mesh_state.vertexes[j],
-					trans[0] + ov->point[0] * e->back_lerp + v->point[0] * e->lerp,
-					trans[1] + ov->point[1] * e->back_lerp + v->point[1] * e->lerp,
-					trans[2] + ov->point[2] * e->back_lerp + v->point[2] * e->lerp);
-
-			if (r_state.lighting_enabled) { // and the normals
-				VectorSet(r_mesh_state.normals[j],
-						v->normal[0] + (ov->normal[0] - v->normal[0]) * e->back_lerp,
-						v->normal[1] + (ov->normal[1] - v->normal[1]) * e->back_lerp,
-						v->normal[2] + (ov->normal[2] - v->normal[2]) * e->back_lerp);
-			}
-		}
-
-		for (j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the triangles
-
-			VectorCopy(r_mesh_state.vertexes[tri[0]], (&r_state.vertex_array_3d[vert_index + 0]));
-			VectorCopy(r_mesh_state.vertexes[tri[1]], (&r_state.vertex_array_3d[vert_index + 3]));
-			VectorCopy(r_mesh_state.vertexes[tri[2]], (&r_state.vertex_array_3d[vert_index + 6]));
-
-			if (r_state.lighting_enabled) { // normal vectors for lighting
-				VectorCopy(r_mesh_state.normals[tri[0]], (&r_state.normal_array[vert_index + 0]));
-				VectorCopy(r_mesh_state.normals[tri[1]], (&r_state.normal_array[vert_index + 3]));
-				VectorCopy(r_mesh_state.normals[tri[2]], (&r_state.normal_array[vert_index + 6]));
-			}
-
-			vert_index += 9;
 		}
 	}
 }
@@ -392,14 +379,14 @@ static void R_InterpolateMeshModel_default(const r_entity_t *e) {
  * @brief Draw the diffuse pass of each mesh segment for the specified model.
  */
 static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
-	r_md3_mesh_t *mesh = md3->meshes;
 	uint32_t offset = 0;
 
+	const r_md3_mesh_t *mesh = md3->meshes;
 	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
 
 		if (!r_draw_wireframe->value) {
 			if (i > 0) { // update the diffuse state for the current mesh
-				r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
+				r_mesh_state.material = e->skins[i] ?: e->model->mesh->material;
 
 				R_BindTexture(r_mesh_state.material->diffuse->texnum);
 
@@ -416,43 +403,68 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 }
 
 /*
- * @brief
+ * @brief Draws the mesh model for the given entity.
  */
 void R_DrawMeshModel_default(const r_entity_t *e) {
 
-	if (e->frame >= e->model->mesh->num_frames) {
-		Com_Warn("%s: no such frame %d\n", e->model->media.name, e->frame);
-		return;
-	}
-
-	if (e->old_frame >= e->model->mesh->num_frames) {
-		Com_Warn("%s: no such old_frame %d\n", e->model->media.name, e->old_frame);
-		return;
-	}
-
 	R_SetMeshState_default(e);
 
-	if (e->model->mesh->num_frames > 1) { // interpolate frames
-		R_InterpolateMeshModel_default(e);
-	}
+	if (e->model->type == MOD_MD3) {
+		R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->data);
+	} else {
+		glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
-	if (!(e->effects & EF_NO_DRAW)) { // draw the model
-
-		if (e->model->type == MOD_MD3) {
-			R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->data);
-		} else {
-			glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
-
-			R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_verts);
-		}
-
-		R_DrawMeshShell_default(e); // draw any shell effects
+		R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_verts);
 	}
 
 	R_ResetMeshState_default(e); // reset state
 
-	R_DrawMeshShadow_default(e); // and lastly draw the shadow
-
 	r_view.num_mesh_models++;
 	r_view.num_mesh_tris += e->model->num_verts / 3;
+}
+
+/*
+ * @brief Draws all mesh models for the current frame.
+ */
+void R_DrawMeshModels_default(const r_entities_t *ents) {
+
+	R_EnableLighting(r_state.default_program, true);
+
+	if (r_draw_wireframe->value) {
+		R_EnableTexture(&texunit_diffuse, false);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+
+	for (size_t i = 0; i < ents->count; i++) {
+		const r_entity_t *e = ents->entities[i];
+
+		if (e->effects & EF_NO_DRAW)
+			continue;
+
+		r_view.current_entity = e;
+
+		R_DrawMeshModel_default(e);
+	}
+
+	r_view.current_entity = NULL;
+
+	if (r_draw_wireframe->value) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		R_EnableTexture(&texunit_diffuse, true);
+	}
+
+	R_EnableLighting(NULL, false);
+
+	R_EnableFog(false);
+
+	R_EnableBlend(true);
+
+	R_DrawMeshShadows_default(ents);
+
+	R_DrawMeshShells_default(ents);
+
+	R_EnableBlend(false);
+
+	R_EnableFog(true);
+
 }

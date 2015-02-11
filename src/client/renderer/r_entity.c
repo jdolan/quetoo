@@ -21,78 +21,22 @@
 
 #include "r_local.h"
 
-// entities are chained together by type to reduce state changes
-typedef struct r_entities_s {
-	r_entity_t *bsp;
-	r_entity_t *mesh;
-	r_entity_t *mesh_alpha_test;
-	r_entity_t *mesh_blend;
-	r_entity_t *null;
-} r_entities_t;
-
-r_entities_t r_entities;
+static r_sorted_entities_t r_sorted_entities;
 
 /*
- * @brief Returns the appropriate entity list for the specified entity.
- */
-static r_entity_t **R_EntityList(const r_entity_t *e) {
-
-	if (!e->model)
-		return &r_entities.null;
-
-	if (IS_BSP_INLINE_MODEL(e->model))
-		return &r_entities.bsp;
-
-	// mesh models
-
-	if (e->effects & EF_ALPHATEST)
-		return &r_entities.mesh_alpha_test;
-
-	if (e->effects & EF_BLEND)
-		return &r_entities.mesh_blend;
-
-	return &r_entities.mesh;
-}
-
-/*
- * @brief Copies the specified entity into the view structure and inserts it
- * into the appropriate sorted chain. The sorted chains allow for object
- * instancing.
+ * @brief Adds an entity to the view.
  */
 const r_entity_t *R_AddEntity(const r_entity_t *ent) {
-	r_entity_t *e, *in, **ents;
 
 	if (r_view.num_entities == lengthof(r_view.entities)) {
 		Com_Warn("MAX_ENTITIES exceeded\n");
 		return NULL;
 	}
 
-	// copy in to renderer array
-	e = &r_view.entities[r_view.num_entities++];
-	*e = *ent;
+	// copy to view array
+	r_view.entities[r_view.num_entities] = *ent;
 
-	// and insert into the sorted draw list
-	ents = R_EntityList(e);
-	in = *ents;
-
-	while (in) {
-
-		if (in->model == e->model) {
-			e->next = in->next;
-			in->next = e;
-			break;
-		}
-
-		in = in->next;
-	}
-
-	// push to the head if necessary
-	if (!in) {
-		e->next = *ents;
-		*ents = e;
-	}
-
-	return e;
+	return &r_view.entities[r_view.num_entities++];
 }
 
 /*
@@ -186,126 +130,60 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 }
 
 /*
- * @brief Dispatches the appropriate sub-routine for frustum-culling the entity.
- *
- * @return True if the entity is culled (fails frustum test), false otherwise.
+ * @brief Qsort comparator for R_CullEntities.
  */
-static _Bool R_CullEntity(r_entity_t *e) {
+static int32_t R_CullEntities_compare(const void *a, const void *b) {
 
-	if (!e->model) {
-		e->culled = false;
-	} else if (IS_BSP_INLINE_MODEL(e->model)) {
-		e->culled = R_CullBspModel(e);
-	} else { // mesh model
-		e->culled = R_CullMeshModel(e);
-	}
+	const r_entity_t *e1 = *((const r_entity_t **) a);
+	const r_entity_t *e2 = *((const r_entity_t **) b);
 
-	return e->culled;
+	return strcmp(e1->model->media.name, e2->model->media.name);
 }
 
 /*
  * @brief Performs a frustum-cull of all entities. This is performed in a separate
- * thread while the renderer draws the world. Entities which pass a frustum
+ * thread while the renderer draws the world. Mesh entities which pass a frustum
  * cull will also have their lighting information updated.
  */
 void R_CullEntities(void *data __attribute__((unused))) {
-	r_entity_t *e = r_view.entities;
 
+	r_entity_t *e = r_view.entities;
 	for (uint16_t i = 0; i < r_view.num_entities; i++, e++) {
 
-		if (!R_CullEntity(e)) { // cull it
+		r_entities_t *ents = &r_sorted_entities.null_entities;
 
-			R_SetMatrixForEntity(e); // set the transform matrix
+		if (IS_BSP_INLINE_MODEL(e->model)) {
 
-			if (IS_MESH_MODEL(e->model)) {
-				R_UpdateMeshModelLighting(e);
-			}
+			if (R_CullBspInlineModel(e))
+				continue;
+
+			ents = &r_sorted_entities.bsp_inline_entities;
 		}
-	}
-}
+		else if (IS_MESH_MODEL(e->model)) {
 
-/*
- * @brief
- */
-void R_DrawBspEntities() {
+			if (R_CullMeshModel(e))
+				continue;
 
-	const r_entity_t *e = r_entities.bsp;
+			R_UpdateMeshModelLighting(e);
 
-	while (e) {
-		if (!e->culled) {
-			r_view.current_entity = e;
-			R_DrawBspInlineModel(e);
+			ents = &r_sorted_entities.mesh_entities;
 		}
-		e = e->next;
+
+		R_ENTITY_TO_ENTITIES(ents, e); // append to the appropriate draw list
+
+		R_SetMatrixForEntity(e); // set the transform matrix
 	}
 
-	r_view.current_entity = NULL;
-}
+	// sort the mesh entities list by model to allow object instancing
 
-/*
- * @brief
- */
-static void R_DrawMeshEntities(r_entity_t *ents) {
-
-	const r_entity_t *e = ents;
-
-	while (e) {
-		if (!e->culled) {
-			r_view.current_entity = e;
-			R_DrawMeshModel(e);
-		}
-		e = e->next;
-	}
-
-	r_view.current_entity = NULL;
-}
-
-/*
- * @brief
- */
-void R_DrawOpaqueMeshEntities(void) {
-
-	if (!r_entities.mesh)
-		return;
-
-	R_DrawMeshEntities(r_entities.mesh);
-}
-
-/*
- * @brief
- */
-void R_DrawAlphaTestMeshEntities(void) {
-
-	if (!r_entities.mesh_alpha_test)
-		return;
-
-	R_EnableAlphaTest(true);
-
-	R_DrawMeshEntities(r_entities.mesh_alpha_test);
-
-	R_EnableAlphaTest(false);
-}
-
-/*
- * @brief
- */
-static void R_DrawBlendMeshEntities(void) {
-
-	if (!r_entities.mesh_blend)
-		return;
-
-	R_EnableBlend(true);
-
-	R_DrawMeshEntities(r_entities.mesh_blend);
-
-	R_EnableBlend(false);
+	r_entities_t *mesh = &r_sorted_entities.mesh_entities;
+	qsort(mesh, mesh->count, sizeof(r_entity_t *), R_CullEntities_compare);
 }
 
 /*
  * @brief Draws a place-holder "white diamond" prism for the specified entity.
  */
 static void R_DrawNullModel(const r_entity_t *e) {
-	int32_t i;
 
 	R_EnableTexture(&texunit_diffuse, false);
 
@@ -313,13 +191,13 @@ static void R_DrawNullModel(const r_entity_t *e) {
 
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(0.0, 0.0, -16.0);
-	for (i = 0; i <= 4; i++)
+	for (int32_t i = 0; i <= 4; i++)
 		glVertex3f(16.0 * cos(i * M_PI_2), 16.0 * sin(i * M_PI_2), 0.0);
 	glEnd();
 
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(0.0, 0.0, 16.0);
-	for (i = 4; i >= 0; i--)
+	for (int32_t i = 4; i >= 0; i--)
 		glVertex3f(16.0 * cos(i * M_PI_2), 16.0 * sin(i * M_PI_2), 0.0);
 	glEnd();
 
@@ -329,20 +207,22 @@ static void R_DrawNullModel(const r_entity_t *e) {
 }
 
 /*
- * @brief
+ * @brief Draws all entities added to the view but missing a model.
  */
-static void R_DrawNullEntities(void) {
-	const r_entity_t *e;
+static void R_DrawNullModels(const r_entities_t *ents) {
 
-	if (!r_entities.null)
-		return;
+	for (size_t i = 0; i < ents->count; i++) {
+		const r_entity_t *e = ents->entities[i];
 
-	e = r_entities.null;
+		if (e->effects & EF_NO_DRAW)
+			continue;
 
-	while (e) {
+		r_view.current_entity = e;
+
 		R_DrawNullModel(e);
-		e = e->next;
 	}
+
+	r_view.current_entity = NULL;
 }
 
 /*
@@ -350,32 +230,13 @@ static void R_DrawNullEntities(void) {
  */
 void R_DrawEntities(void) {
 
-	R_DrawBspEntities();
+	R_DrawBspInlineModels(&r_sorted_entities.bsp_inline_entities);
 
-	if (r_draw_wireframe->value) {
-		R_EnableTexture(&texunit_diffuse, false);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
+	R_DrawMeshModels(&r_sorted_entities.mesh_entities);
 
-	R_EnableLighting(r_state.default_program, true);
+	R_DrawNullModels(&r_sorted_entities.null_entities);
 
-	R_DrawOpaqueMeshEntities();
-
-	R_DrawAlphaTestMeshEntities();
-
-	R_DrawBlendMeshEntities();
-
-	if (r_draw_wireframe->value) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		R_EnableTexture(&texunit_diffuse, true);
-	}
-
-	R_EnableLighting(NULL, false);
-
-	R_Color(NULL);
-
-	R_DrawNullEntities();
-
-	// clear draw lists for next frame
-	memset(&r_entities, 0, sizeof(r_entities));
+	r_sorted_entities.bsp_inline_entities.count = 0;
+	r_sorted_entities.mesh_entities.count = 0;
+	r_sorted_entities.null_entities.count = 0;
 }

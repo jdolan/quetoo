@@ -102,7 +102,8 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		VectorMA(e->shell, 0.5, l.color, e->shell);
 	}
 
-	VectorNormalize(e->shell);
+	if (VectorNormalize(e->shell) > 0.0)
+		e->effects |= EF_SHELL;
 
 	if (e->effects & EF_DESPAWN) {
 

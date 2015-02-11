@@ -177,6 +177,7 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 		w.color[3] = cg_draw_weapon_alpha->value;
 	}
 
+	w.effects |= self->effects & EF_SHELL;
 	VectorCopy(self->shell, w.shell);
 
 	w.model = cgi.client->model_precache[ps->stats[STAT_WEAPON]];

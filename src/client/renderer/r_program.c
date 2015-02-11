@@ -400,7 +400,6 @@ void R_InitPrograms(void) {
 		return;
 
 	memset(r_state.shaders, 0, sizeof(r_state.shaders));
-
 	memset(r_state.programs, 0, sizeof(r_state.programs));
 
 	if (!r_programs->value)
@@ -415,6 +414,11 @@ void R_InitPrograms(void) {
 	if ((r_state.shadow_program = R_LoadProgram("shadow", R_InitProgram_shadow))) {
 		r_state.shadow_program->Use = R_UseProgram_shadow;
 		r_state.shadow_program->arrays_mask = R_ARRAY_VERTEX;
+	}
+
+	if ((r_state.shell_program = R_LoadProgram("shell", R_InitProgram_shell))) {
+		r_state.shell_program->Use = R_UseProgram_shell;
+		r_state.shell_program->arrays_mask = R_ARRAY_VERTEX | R_ARRAY_TEX_DIFFUSE;
 	}
 
 	if ((r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp))) {

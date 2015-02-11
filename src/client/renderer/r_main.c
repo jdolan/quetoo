@@ -71,6 +71,7 @@ cvar_t *r_render_plugin;
 cvar_t *r_saturation;
 cvar_t *r_screenshot_quality;
 cvar_t *r_shadows;
+cvar_t *r_shell;
 cvar_t *r_specular;
 cvar_t *r_swap_interval;
 cvar_t *r_texture_mode;
@@ -88,7 +89,7 @@ BspSurfacesDrawFunc R_DrawBlendBspSurfaces;
 BspSurfacesDrawFunc R_DrawBlendWarpBspSurfaces;
 BspSurfacesDrawFunc R_DrawBackBspSurfaces;
 
-MeshModelDrawFunc R_DrawMeshModel;
+MeshModelsDrawFunc R_DrawMeshModels;
 
 extern cl_client_t cl;
 extern cl_static_t cls;
@@ -227,7 +228,7 @@ static void R_RenderPlugin(const char *plugin) {
 	R_DrawBlendWarpBspSurfaces = R_DrawBlendWarpBspSurfaces_default;
 	R_DrawBackBspSurfaces = R_DrawBackBspSurfaces_default;
 
-	R_DrawMeshModel = R_DrawMeshModel_default;
+	R_DrawMeshModels = R_DrawMeshModels_default;
 
 	if (!plugin || !*plugin)
 		return;
@@ -458,6 +459,8 @@ static void R_InitLocal(void) {
 			"Screenshot image quality (JPEG compression 0 - 100)");
 	r_shadows = Cvar_Get("r_shadows", "1", CVAR_ARCHIVE,
 			"Controls the rendering of mesh model shadows");
+	r_shell = Cvar_Get("r_shell", "1", CVAR_ARCHIVE,
+			"Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specular = Cvar_Get("r_specular", "1.0", CVAR_ARCHIVE,
 			"Controls the specularity of bump-mapping effects");
 	r_swap_interval = Cvar_Get("r_swap_interval", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,

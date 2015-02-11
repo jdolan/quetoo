@@ -45,7 +45,7 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
  * @brief Returns true if the specified entity is completely culled by the view
  * frustum, false otherwise.
  */
-_Bool R_CullBspModel(const r_entity_t *e) {
+_Bool R_CullBspInlineModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 	int32_t i;
 
@@ -176,7 +176,7 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
  * @brief Draws the BSP model for the specified entity, taking translation and
  * rotation into account.
  */
-void R_DrawBspInlineModel(const r_entity_t *e) {
+static void R_DrawBspInlineModel(const r_entity_t *e) {
 
 	// set the relative origin, accounting for rotation if necessary
 	VectorSubtract(r_view.origin, e->origin, r_bsp_model_org);
@@ -201,6 +201,25 @@ void R_DrawBspInlineModel(const r_entity_t *e) {
 	R_RotateForEntity(NULL);
 
 	R_RotateLightsForBspInlineModel(NULL);
+}
+
+/*
+ * @brief
+ */
+void R_DrawBspInlineModels(const r_entities_t *ents) {
+
+	for (size_t i = 0; i < ents->count; i++) {
+		const r_entity_t *e = ents->entities[i];
+
+		if (e->effects & EF_NO_DRAW)
+			continue;
+
+		r_view.current_entity = e;
+
+		R_DrawBspInlineModel(e);
+	}
+
+	r_view.current_entity = NULL;
 }
 
 /*

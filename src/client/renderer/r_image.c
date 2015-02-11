@@ -28,14 +28,14 @@ typedef struct {
 	GLenum minimize, maximize;
 } r_texture_mode_t;
 
-static r_texture_mode_t r_texture_modes[] = {
-// specifies mipmapping (texture quality)
-		{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
-		{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
-		{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
-		{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
-		{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
-		{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR } };
+static r_texture_mode_t r_texture_modes[] = { // specifies mipmapping (texture quality)
+	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST },
+	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR },
+	{ "GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST },
+	{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR },
+	{ "GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST },
+	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
+};
 
 /*
  * @brief Sets the texture parameters for mipmapping and anisotropy.
@@ -364,7 +364,7 @@ static void R_InitWarpImage(void) {
  * @brief Initializes the mesh shell image.
  */
 static void R_InitShellImage() {
-	r_image_state.shell = R_LoadImage("envmaps/envmap_2", IT_PROGRAM);
+	r_image_state.shell = R_LoadImage("envmaps/envmap_3", IT_PROGRAM);
 }
 
 /*

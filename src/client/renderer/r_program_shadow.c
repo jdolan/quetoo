@@ -35,6 +35,7 @@ static r_shadow_program_t r_shadow_program;
  */
 void R_InitProgram_shadow(void) {
 	r_shadow_program_t *p = &r_shadow_program;
+
 	const vec4_t light = { 0.0, 0.0, 0.0, 1.0 };
 	const vec4_t plane = { 0.0, 0.0, 1.0, 0.0 };
 

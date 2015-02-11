@@ -480,34 +480,29 @@ void R_EnableWarp(const r_program_t *program, _Bool enable) {
 /*
  * @brief
  */
-void R_EnableShell(_Bool enable) {
-	r_uniform1f_t offset;
+void R_EnableShell(const r_program_t *program, _Bool enable) {
 
-	if (enable == r_state.shell_enabled)
+	if (!r_programs->value)
+		return;
+
+	if (enable && (!program || !program->id))
+		return;
+
+	if (!r_shell->value || r_state.shell_enabled == enable)
 		return;
 
 	r_state.shell_enabled = enable;
 
-	if (r_state.active_program)
-		R_ProgramVariable(&offset, R_UNIFORM_FLOAT, "OFFSET");
-
 	if (enable) {
-
-		R_EnableBlend(true);
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-		R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
+		R_BindTexture(r_image_state.shell->texnum);
 
-		if (r_state.active_program)
-			R_ProgramParameter1f(&offset, r_view.time * 0.00033);
+		R_UseProgram(program);
 	} else {
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		R_EnableBlend(false);
 
-		R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
-
-		if (r_state.active_program)
-			R_ProgramParameter1f(&offset, 0.0);
+		R_UseProgram(NULL);
 	}
 
 	R_GetError(NULL);

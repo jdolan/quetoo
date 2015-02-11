@@ -52,6 +52,7 @@ extern cvar_t *r_render_plugin;
 extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_quality;
 extern cvar_t *r_shadows;
+extern cvar_t *r_shell;
 extern cvar_t *r_specular;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_texture_mode;
@@ -126,7 +127,7 @@ extern BspSurfacesDrawFunc R_DrawBlendBspSurfaces;
 extern BspSurfacesDrawFunc R_DrawBlendWarpBspSurfaces;
 extern BspSurfacesDrawFunc R_DrawBackBspSurfaces;
 
-extern MeshModelDrawFunc R_DrawMeshModel;
+extern MeshModelsDrawFunc R_DrawMeshModels;
 
 #endif /* __R_LOCAL_H__ */
 
