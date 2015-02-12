@@ -30,6 +30,7 @@ void G_func_button(g_entity_t *ent);
 void G_func_conveyor(g_entity_t *self);
 void G_func_door(g_entity_t *ent);
 void G_func_door_rotating(g_entity_t *ent);
+void G_func_door_secret(g_entity_t *ent);
 void G_func_killbox(g_entity_t *ent);
 void G_func_plat(g_entity_t *ent);
 void G_func_rotating(g_entity_t *ent);

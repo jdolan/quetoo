@@ -35,6 +35,7 @@ static g_entity_spawn_t g_entity_spawns[] = {
 		{ "func_conveyor", G_func_conveyor },
 		{ "func_door", G_func_door },
 		{ "func_door_rotating", G_func_door_rotating },
+		{ "func_door_secret", G_func_door_secret },
 		{ "func_plat", G_func_plat },
 		{ "func_rotating", G_func_rotating },
 		{ "func_timer", G_func_timer },

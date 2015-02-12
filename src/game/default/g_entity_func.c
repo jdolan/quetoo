@@ -1122,6 +1122,7 @@ static void G_func_door_Blocked(g_entity_t *self, g_entity_t *other) {
  */
 static void G_func_door_Die(g_entity_t *self, g_entity_t *attacker,
 		uint32_t mod __attribute__((unused))) {
+
 	g_entity_t *ent;
 
 	for (ent = self->locals.team_master; ent; ent = ent->locals.team_chain) {
@@ -1361,11 +1362,184 @@ void G_func_door_rotating(g_entity_t *ent) {
 		ent->locals.Think = G_func_door_CreateTrigger;
 }
 
+/*QUAKED func_door_secret (0 .5 .8) ? always_shoot 1st_left 1st_down
+ A secret door which opens when shot, or when targeted. The door first slides
+ back, and then to the side.
+
+ -------- Keys --------
+ angle : The angle at which the door opens.
+ message : An optional string printed when the door is first touched.
+ health : If set, door must take damage to open.
+ speed : The speed with which the door opens (default 100).
+ wait : wait before returning (3 default, -1 = never return).
+ lip : The lip remaining at end of move (default 8 units).
+ dmg : The damage inflicted on players who block the door as it closes (default 2).
+ targetname : The target name of this entity if it is to be triggered.
+
+ -------- Spawn flags --------
+always_shoot : The door will open when shot, even if it is targeted.
+first_left : The door will first slide to the left.
+first_down : The door will first slide down.
+*/
+
+#define SECRET_ALWAYS_SHOOT		1
+#define SECRET_FIRST_LEFT		2
+#define SECRET_FIRST_DOWN		4
+
+static void G_func_door_secret_Move1(g_entity_t *self);
+static void G_func_door_secret_Move2(g_entity_t *self);
+static void G_func_door_secret_Move3(g_entity_t *self);
+static void G_func_door_secret_Move4(g_entity_t *self);
+static void G_func_door_secret_Move5(g_entity_t *self);
+static void G_func_door_secret_Move6(g_entity_t *self);
+static void G_func_door_secret_Done(g_entity_t *self);
+
+static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
+		g_entity_t *activator __attribute__((unused))) {
+
+	// make sure we're not already moving
+	if (!VectorCompare(self->s.origin, vec3_origin))
+		return;
+
+	G_MoveInfo_Init(self, self->locals.pos1, G_func_door_secret_Move1);
+	G_func_door_UseAreaPortals(self, true);
+}
+
+static void G_func_door_secret_Move1(g_entity_t *self) {
+
+	self->locals.next_think = g_level.time + 1000;
+	self->locals.Think = G_func_door_secret_Move2;
+}
+
+static void G_func_door_secret_Move2(g_entity_t *self) {
+
+	G_MoveInfo_Init(self, self->locals.pos2, G_func_door_secret_Move3);
+}
+
+static void G_func_door_secret_Move3(g_entity_t *self) {
+
+	if (self->locals.wait == -1.0)
+		return;
+
+	self->locals.next_think = g_level.time + self->locals.wait * 1000;
+	self->locals.Think = G_func_door_secret_Move4;
+}
+
+static void G_func_door_secret_Move4(g_entity_t *self) {
+
+	G_MoveInfo_Init(self, self->locals.pos1, G_func_door_secret_Move5);
+}
+
+static void G_func_door_secret_Move5(g_entity_t *self) {
+
+	self->locals.next_think = g_level.time + 1000;
+	self->locals.Think = G_func_door_secret_Move6;
+}
+
+static void G_func_door_secret_Move6(g_entity_t *self) {
+
+	G_MoveInfo_Init(self, vec3_origin, G_func_door_secret_Done);
+}
+
+static void G_func_door_secret_Done(g_entity_t *self) {
+
+	if (!(self->locals.target_name) || (self->locals.spawn_flags & SECRET_ALWAYS_SHOOT)) {
+		self->locals.dead = true;
+		self->locals.take_damage = true;
+	}
+
+	G_func_door_UseAreaPortals(self, false);
+}
+
+static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {
+
+	if (!other->client)
+		return;
+
+	if (g_level.time < self->locals.touch_time)
+		return;
+
+	self->locals.touch_time = g_level.time + 500;
+
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1,
+			0, MOD_CRUSH);
+}
+
+static void G_func_door_secret_Die(g_entity_t *self, g_entity_t *attacker,
+		uint32_t mod __attribute__((unused))) {
+
+	self->locals.take_damage = false;
+	G_func_door_secret_Use(self, attacker, attacker);
+}
+
+void G_func_door_secret(g_entity_t *ent) {
+	vec3_t forward, right, up;
+
+	ent->locals.move_info.sound_start = gi.SoundIndex("world/door_start");
+	ent->locals.move_info.sound_end = gi.SoundIndex("world/door_end");
+
+	ent->locals.move_type = MOVE_TYPE_PUSH;
+	ent->solid = SOLID_BSP;
+	gi.SetModel(ent, ent->model);
+
+	ent->locals.Blocked = G_func_door_secret_Blocked;
+	ent->locals.Use = G_func_door_secret_Use;
+
+	if (!(ent->locals.target_name) || (ent->locals.spawn_flags & SECRET_ALWAYS_SHOOT)) {
+		ent->locals.dead = true;
+		ent->locals.take_damage = true;
+		ent->locals.Die = G_func_door_secret_Die;
+	}
+
+	if (!ent->locals.damage)
+		ent->locals.damage = 2;
+
+	if (!ent->locals.wait)
+		ent->locals.wait = 5.0;
+
+	ent->locals.move_info.accel = ent->locals.move_info.decel = ent->locals.move_info.speed = 50.0;
+
+	// calculate positions
+	AngleVectors(ent->s.angles, forward, right, up);
+	VectorClear(ent->s.angles);
+
+	const vec_t side = 1.0 - (ent->locals.spawn_flags & SECRET_FIRST_LEFT);
+
+	const vec_t length = fabsf(DotProduct(forward, ent->size));
+
+	vec_t width;
+	if (ent->locals.spawn_flags & SECRET_FIRST_DOWN)
+		width = fabsf(DotProduct(up, ent->size));
+	else
+		width = fabsf(DotProduct(right, ent->size));
+
+	if (ent->locals.spawn_flags & SECRET_FIRST_DOWN)
+		VectorMA(ent->s.origin, -1.0 * width, up, ent->locals.pos1);
+	else
+		VectorMA(ent->s.origin, side * width, right, ent->locals.pos1);
+
+	VectorMA(ent->locals.pos1, length, forward, ent->locals.pos2);
+
+	if (ent->locals.health) {
+		ent->locals.take_damage = true;
+		ent->locals.Die = G_func_door_Die;
+		ent->locals.max_health = ent->locals.health;
+	} else if (ent->locals.target_name && ent->locals.message) {
+		gi.SoundIndex("misc/chat");
+		ent->locals.Touch = G_func_door_Touch;
+	}
+
+	ent->class_name = "func_door";
+
+	gi.LinkEntity(ent);
+}
+
 /*
  * @brief
  */
 static void G_func_wall_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
 		g_entity_t *activator __attribute__((unused))) {
+
 	if (self->solid == SOLID_NOT) {
 		self->solid = SOLID_BSP;
 		self->sv_flags &= ~SVF_NO_CLIENT;
