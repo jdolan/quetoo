@@ -176,9 +176,6 @@ void R_DrawMeshShadows_default(const r_entities_t *ents) {
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
 
-		if (e->effects & EF_NO_DRAW)
-			continue;
-
 		if (e->effects & (EF_NO_LIGHTING | EF_NO_SHADOW))
 			continue;
 
