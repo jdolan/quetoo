@@ -139,7 +139,7 @@ _Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 
 	a->addr = saddr.sin_addr.s_addr;
 
-	if (a->addr == net_lo) {
+	if (g_strcmp0(s, "localhost") == 0) {
 		a->port = 0;
 		a->type = NA_LOOP;
 	} else {
