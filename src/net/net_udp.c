@@ -196,6 +196,7 @@ void Net_Config(net_src_t source, _Bool up) {
 	int32_t *sock = &net_udp_state.sockets[source];
 
 	if (up) {
+
 		const cvar_t *net_interface = Cvar_Get("net_interface", "", CVAR_NO_SET, NULL);
 		const cvar_t *net_port = Cvar_Get("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
 
