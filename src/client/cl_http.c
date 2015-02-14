@@ -65,7 +65,6 @@ void Cl_HttpDownload_Complete() {
 	cls.download.http = false;
 
 	if (cl_http_state.success) {
-		cls.download.name[0] = '\0';
 
 		// add new archives to search paths
 		if (Fs_Rename(cls.download.tempname, cls.download.name)) {
@@ -75,6 +74,8 @@ void Cl_HttpDownload_Complete() {
 		} else {
 			Com_Error(ERR_DROP, "Failed to rename %s\n", cls.download.name);
 		}
+
+		cls.download.name[0] = '\0';
 
 		// we were disconnected while downloading, so reconnect
 		Cl_Reconnect_f();
