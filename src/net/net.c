@@ -103,32 +103,29 @@ const char *Net_NetaddrToString(const net_addr_t *a) {
  * 192.246.40.70:28000
  */
 _Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr) {
-	char *colon;
-	char copy[128];
 
 	memset(saddr, 0, sizeof(*saddr));
-	saddr->sin_family = AF_INET;
 
-	g_strlcpy(copy, s, sizeof(copy));
-
-	// strip off a trailing :port if present
-	for (colon = copy; *colon; colon++) {
-		if (*colon == ':') {
-			*colon = '\0';
-			saddr->sin_port = htons((int16_t) atoi(colon + 1));
-		}
+	char *node = g_strdup(s);
+	char *service = strchr(node, ':');
+	if (service) {
+		*service++ = '\0';
 	}
 
-	if (copy[0] >= '0' && copy[0] <= '9') {
-		*(in_addr_t *) &saddr->sin_addr = inet_addr(copy);
-	} else {
-		struct hostent *h;
-		if (!(h = gethostbyname(copy)))
-			return false;
-		*(in_addr_t *) &saddr->sin_addr = *(in_addr_t *) h->h_addr_list[0];
+	const struct addrinfo hints = {
+		.ai_family = AF_INET,
+		.ai_socktype = SOCK_DGRAM,
+		.ai_flags = AI_NUMERICSERV,
+	};
+
+	struct addrinfo *info;
+	if (getaddrinfo(node, service, &hints, &info) == 0) {
+		*saddr = *(struct sockaddr_in *) info->ai_addr;
 	}
 
-	return true;
+	g_free(node);
+
+	return saddr->sin_addr.s_addr != 0;
 }
 
 /*
@@ -142,8 +139,7 @@ _Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 
 	a->addr = saddr.sin_addr.s_addr;
 
-	if (a->addr == net_lo) {
-		a->port = 0;
+	if (a->addr == net_lo && a->port == 0) {
 		a->type = NA_LOOP;
 	} else {
 		a->port = saddr.sin_port;
