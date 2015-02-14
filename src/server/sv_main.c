@@ -168,7 +168,7 @@ static void Sv_GetChallenge_f(void) {
 	uint32_t oldest_time;
 
 	oldest = 0;
-	oldest_time = 0x7fffffff;
+	oldest_time = UINT32_MAX;
 
 	// see if we already have a challenge for this ip
 	for (i = 0; i < MAX_CHALLENGES; i++) {
@@ -182,9 +182,8 @@ static void Sv_GetChallenge_f(void) {
 		}
 	}
 
-	if (i == MAX_CHALLENGES) {
-		// overwrite the oldest
-		svs.challenges[oldest].challenge = Random() & 0x7fff;
+	if (i == MAX_CHALLENGES) { // overwrite the oldest
+		svs.challenges[oldest].challenge = Random();
 		svs.challenges[oldest].addr = net_from;
 		svs.challenges[oldest].time = quake2world.time;
 		i = oldest;
@@ -261,6 +260,7 @@ static void Sv_Connect_f(void) {
 		}
 	}
 	if (i == MAX_CHALLENGES) {
+		Com_Print("Connection without challenge from %s\n", Net_NetaddrToString(addr));
 		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nNo challenge for address\n");
 		return;
 	}

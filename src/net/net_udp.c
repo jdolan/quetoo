@@ -62,7 +62,6 @@ static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_bu
 	buf->size = loop->messages[i].size;
 
 	from->type = NA_LOOP;
-
 	from->addr = net_lo;
 	from->port = 0;
 

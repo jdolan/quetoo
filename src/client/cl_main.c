@@ -73,7 +73,7 @@ static void Cl_SendConnect(void) {
 	if (addr.port == 0) // use default port
 		addr.port = htons(PORT_SERVER);
 
-	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %i \"%s\"\n", PROTOCOL_MAJOR,
+	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %u \"%s\"\n", PROTOCOL_MAJOR,
 			qport->integer, cls.challenge, Cvar_UserInfo());
 
 	cvar_user_info_modified = false;
@@ -420,7 +420,7 @@ static void Cl_ConnectionlessPacket(void) {
 			Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&net_from));
 			return;
 		}
-		cls.challenge = atoi(Cmd_Argv(1));
+		cls.challenge = strtoul(Cmd_Argv(1), NULL, 10);
 		Cl_SendConnect();
 		return;
 	}

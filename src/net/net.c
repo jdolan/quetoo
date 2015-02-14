@@ -139,7 +139,8 @@ _Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 
 	a->addr = saddr.sin_addr.s_addr;
 
-	if (a->addr == net_lo && a->port == 0) {
+	if (a->addr == net_lo) {
+		a->port = 0;
 		a->type = NA_LOOP;
 	} else {
 		a->port = saddr.sin_port;
