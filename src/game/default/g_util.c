@@ -66,13 +66,13 @@ void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, 
 	VectorCopy(tr.end, pos);
 
 	// resolve the projectile origin
-	VectorCopy(ent->s.origin, org);
-	if ((ent->client->ps.pm_state.flags & PMF_DUCKED) == 0) {
-		org[2] += PM_MAXS[2] / 2.0;
-	}
+	VectorMA(view, 24.0, ent->client->locals.forward, org);
 
-	AngleVectors(ent->s.angles, forward, NULL, NULL);
-	VectorMA(org, 24.0, forward, org);
+	if ((ent->client->ps.pm_state.flags & PMF_DUCKED)) {
+		VectorMA(org, -4.0, ent->client->locals.up, org);
+	} else {
+		VectorMA(org, -16.0, ent->client->locals.up, org);
+	}
 
 	// if the projected origin is invalid, use the entity's origin
 	if (gi.PointContents(org) & MASK_CLIP_PROJECTILE)
