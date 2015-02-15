@@ -24,11 +24,6 @@
 
 #include "net_types.h"
 
-// mingw craps out without this
-#ifndef AI_NUMERICSERV
-#define AI_NUMERICSERV  0x0010
-#endif
-
 extern in_addr_t net_lo;
 
 int32_t Net_GetError(void);
