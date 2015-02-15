@@ -599,13 +599,9 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 		// client is overridden to specify owner of the beam
 		if (Cg_IsSelf(ent) && !cg_third_person->value) {
 			// we own this beam (lightning, grapple, etc..)
-			// project start position in front of view origin
+			// project start position below the view origin
 			VectorCopy(cgi.view->origin, start);
-
-			VectorMA(start, 22.0, cgi.view->forward, start);
-			VectorMA(start, 6.0, cgi.view->right, start);
-
-			start[2] -= 8.0;
+			start[2] -= 12.0;
 		}
 
 		VectorCopy(ent->termination, end);

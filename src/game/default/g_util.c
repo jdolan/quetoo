@@ -54,38 +54,38 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
  * @brief Determines the initial position and directional vectors of a projectile.
  */
 void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org) {
-	cm_trace_t tr;
-	vec3_t view, end;
+	vec3_t view, pos;
 
-	// use the client's view angles to project the origin flash
-	VectorCopy(ent->client->locals.forward, forward);
-	VectorCopy(ent->client->locals.right, right);
-	VectorCopy(ent->client->locals.up, up);
-	VectorCopy(ent->s.origin, org);
-
-	const vec_t up_offset = ent->client->ps.pm_state.flags & PMF_DUCKED ? 0.0 : 14.0;
-	const vec_t up_scale = (30.0 - fabs(ent->s.angles[0])) / 30.0;
-
-	VectorMA(org, up_offset * up_scale, up, org);
-	VectorMA(org, 8.0, right, org);
-	VectorMA(org, 28.0, forward, org);
-
-	// check that we're at a valid origin
-	if (gi.PointContents(org) & MASK_PLAYER_SOLID)
-		return;
-
-	// correct the destination of the shot for the offset produced above
+	// resolve the projectile destination
 	UnpackVector(ent->client->ps.pm_state.view_offset, view);
 	VectorAdd(ent->s.origin, view, view);
 
-	VectorMA(view, MAX_WORLD_DIST, forward, end);
-	tr = gi.Trace(view, end, NULL, NULL, ent, MASK_SHOT);
+	VectorMA(view, MAX_WORLD_DIST, ent->client->locals.forward, pos);
+	const cm_trace_t tr = gi.Trace(view, pos, NULL, NULL, ent, MASK_SHOT);
 
-	VectorSubtract(tr.end, org, forward);
+	VectorCopy(tr.end, pos);
+
+	// resolve the projectile origin
+	VectorCopy(ent->s.origin, org);
+	if ((ent->client->ps.pm_state.flags & PMF_DUCKED) == 0) {
+		org[2] += PM_MAXS[2] / 2.0;
+	}
+
+	AngleVectors(ent->s.angles, forward, NULL, NULL);
+	VectorMA(org, 24.0, forward, org);
+
+	// if the projected origin is invalid, use the entity's origin
+	if (gi.PointContents(org) & MASK_PLAYER_SOLID)
+		VectorCopy(ent->s.origin, org);
+
+	// return the projectile's directional vectors
+	VectorSubtract(pos, org, forward);
 	VectorNormalize(forward);
 
-	VectorAngles(forward, view);
-	AngleVectors(view, NULL, right, up);
+	if (right || up) {
+		VectorAngles(forward, view);
+		AngleVectors(view, NULL, right, up);
+	}
 }
 
 /*
