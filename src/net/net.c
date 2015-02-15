@@ -106,17 +106,17 @@ _Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr) {
 
 	memset(saddr, 0, sizeof(*saddr));
 
-	struct addrinfo hints = {
+	char *node = g_strdup(s);
+
+	char *service = strchr(node, ':');
+	if (service) {
+		*service++ = '\0';
+	}
+
+	const struct addrinfo hints = {
 		.ai_family = AF_INET,
 		.ai_socktype = SOCK_DGRAM,
 	};
-
-	char *node = g_strdup(s);
-	char *service = strchr(node, ':');
-	if (service) {
-		hints.ai_flags |= AI_NUMERICSERV;
-		*service++ = '\0';
-	}
 
 	struct addrinfo *info;
 	if (getaddrinfo(node, service, &hints, &info) == 0) {
