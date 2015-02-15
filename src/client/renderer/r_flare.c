@@ -122,7 +122,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 			if (r_view.time - f->time > 500) // reset old flares
 				f->alpha = 0;
 
-			cm_trace_t tr = Cl_Trace(r_view.origin, f->origin, NULL, NULL, 0, MASK_SHOT);
+			cm_trace_t tr = Cl_Trace(r_view.origin, f->origin, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
 
 			f->alpha += (tr.fraction == 1.0) ? 0.03 : -0.15; // ramp
 			f->alpha = Clamp(f->alpha, 0.0, 1.0); // clamp

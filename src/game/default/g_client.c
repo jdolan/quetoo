@@ -306,7 +306,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribut
 		ent->locals.velocity[1] += h * Randomc();
 		ent->locals.velocity[2] += 100.0 + (h * Randomf());
 
-		ent->locals.clip_mask = MASK_DEAD_SOLID;
+		ent->locals.clip_mask = MASK_CLIP_CORPSE;
 		ent->locals.dead = true;
 		ent->locals.mass = (i % NUM_GIB_MODELS) * 20.0;
 		ent->locals.move_type = MOVE_TYPE_TOSS;
@@ -360,7 +360,7 @@ static void G_ClientCorpse(g_entity_t *self) {
 
 	VectorCopy(self->locals.velocity, ent->locals.velocity);
 
-	ent->locals.clip_mask = MASK_DEAD_SOLID;
+	ent->locals.clip_mask = MASK_CLIP_CORPSE;
 	ent->locals.dead = true;
 	ent->locals.mass = self->locals.mass;
 	ent->locals.move_type = MOVE_TYPE_TOSS;
@@ -423,7 +423,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	self->s.sound = 0;
 
 	self->locals.take_damage = false;
-	self->locals.clip_mask = MASK_DEAD_SOLID;
+	self->locals.clip_mask = MASK_CLIP_CORPSE;
 
 	gi.LinkEntity(self);
 }
@@ -755,7 +755,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	VectorScale(PM_MINS, PM_SCALE, ent->mins);
 	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
 
-	ent->locals.clip_mask = MASK_PLAYER_SOLID;
+	ent->locals.clip_mask = MASK_CLIP_PLAYER;
 	ent->locals.dead = false;
 	ent->locals.Die = G_ClientDie;
 	ent->locals.ground_entity = NULL;
@@ -1110,9 +1110,9 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
 	const g_entity_t *self = g_level.current_entity;
 
 	if (g_level.current_entity->locals.health > 0)
-		return gi.Trace(start, end, mins, maxs, self, MASK_PLAYER_SOLID);
+		return gi.Trace(start, end, mins, maxs, self, MASK_CLIP_PLAYER);
 	else
-		return gi.Trace(start, end, mins, maxs, self, MASK_DEAD_SOLID);
+		return gi.Trace(start, end, mins, maxs, self, MASK_CLIP_CORPSE);
 }
 
 /*
@@ -1196,8 +1196,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 		VectorMA(ent->s.origin, cl->locals.speed * 0.4, velocity, point);
 
 		// trace towards our jump destination to see if we have room to backflip
-		tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent,
-		MASK_PLAYER_SOLID);
+		tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, MASK_CLIP_PLAYER);
 
 		if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0)
 			G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);

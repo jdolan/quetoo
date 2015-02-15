@@ -747,7 +747,7 @@ typedef struct {
 	g_move_type_t move_type;
 	g_move_info_t move_info;
 
-	int32_t clip_mask; // e.g. MASK_SHOT, MASK_PLAYER_SOLID, ..
+	int32_t clip_mask; // e.g. MASK_CLIP_PROJECTILE, MASK_PLAYER_SOLID, ..
 
 	uint32_t timestamp;
 

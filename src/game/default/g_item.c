@@ -660,7 +660,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 		VectorCopy(ent->s.origin, it->s.origin);
 	}
 
-	tr = gi.Trace(ent->s.origin, it->s.origin, it->mins, it->maxs, ent, MASK_PLAYER_SOLID);
+	tr = gi.Trace(ent->s.origin, it->s.origin, it->mins, it->maxs, ent, MASK_CLIP_PLAYER);
 
 	// we're in a bad spot, forget it
 	if (tr.start_solid) {

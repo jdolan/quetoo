@@ -61,7 +61,7 @@ void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, 
 	VectorAdd(ent->s.origin, view, view);
 
 	VectorMA(view, MAX_WORLD_DIST, ent->client->locals.forward, pos);
-	const cm_trace_t tr = gi.Trace(view, pos, NULL, NULL, ent, MASK_SHOT);
+	const cm_trace_t tr = gi.Trace(view, pos, NULL, NULL, ent, MASK_CLIP_PROJECTILE);
 
 	VectorCopy(tr.end, pos);
 
@@ -75,7 +75,7 @@ void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, 
 	VectorMA(org, 24.0, forward, org);
 
 	// if the projected origin is invalid, use the entity's origin
-	if (gi.PointContents(org) & MASK_PLAYER_SOLID)
+	if (gi.PointContents(org) & MASK_CLIP_PROJECTILE)
 		VectorCopy(ent->s.origin, org);
 
 	// return the projectile's directional vectors
@@ -413,10 +413,8 @@ void G_TouchWater(g_entity_t *ent) {
 _Bool G_KillBox(g_entity_t *ent) {
 
 	// kill all solids that take damage, including corpses for bonus giblets
-	const int32_t mask = MASK_PLAYER_SOLID | CONTENTS_DEAD_MONSTER;
-
 	while (true) {
-		cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
+		cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_MEAT);
 
 		if (!tr.ent)
 			break;

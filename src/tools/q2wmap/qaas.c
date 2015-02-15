@@ -56,7 +56,7 @@ static void CreateAASNodes(void) {
 static _Bool PruneAASNodes_isNavigable(const d_bsp_leaf_t *leaf) {
 	uint16_t i;
 
-	if ((leaf->contents & MASK_PLAYER_SOLID) == 0) {
+	if ((leaf->contents & MASK_CLIP_PLAYER) == 0) {
 		return false;
 	}
 
@@ -65,7 +65,7 @@ static _Bool PruneAASNodes_isNavigable(const d_bsp_leaf_t *leaf) {
 	for (i = 0; i < leaf->num_leaf_brushes; i++, lb++) {
 		const d_bsp_brush_t *brush = &d_bsp.brushes[*lb];
 
-		if (brush->contents & MASK_PLAYER_SOLID) {
+		if (brush->contents & MASK_CLIP_PLAYER) {
 			const d_bsp_brush_side_t *bs = &d_bsp.brush_sides[brush->first_side];
 			int32_t j;
 

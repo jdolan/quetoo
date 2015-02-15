@@ -35,7 +35,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, uint8_t color) {
 	VectorMA(ent->origin, 30.0, forward, org);
 	VectorMA(org, 6.0, right, org);
 
-	tr = cgi.Trace(ent->origin, org, NULL, NULL, 0, MASK_SHOT);
+	tr = cgi.Trace(ent->origin, org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		VectorSubtract(ent->origin, tr.end, org);
@@ -77,7 +77,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	VectorMA(ent->origin, 30.0, forward, org);
 	VectorMA(org, 6.0, right, org);
 
-	tr = cgi.Trace(ent->origin, org, NULL, NULL, 0, MASK_SHOT);
+	tr = cgi.Trace(ent->origin, org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		VectorSubtract(ent->origin, tr.end, org);

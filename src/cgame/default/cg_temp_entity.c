@@ -259,7 +259,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		dist = GIB_STREAM_DIST;
 		VectorMA(o, dist, v, tmp);
 
-		tr = cgi.Trace(o, tmp, NULL, NULL, 0, MASK_SHOT);
+		tr = cgi.Trace(o, tmp, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
 		dist = GIB_STREAM_DIST * tr.fraction;
 
 		for (j = 1; j < GIB_STREAM_COUNT; j++) {

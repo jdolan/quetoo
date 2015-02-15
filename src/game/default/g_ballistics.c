@@ -199,7 +199,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
 	projectile->solid = SOLID_MISSILE;
-	projectile->locals.clip_mask = MASK_SHOT;
+	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.knockback = knockback;
 	projectile->locals.move_type = MOVE_TYPE_FLY;
@@ -224,7 +224,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
 		int16_t knockback, uint16_t hspread, uint16_t vspread, uint32_t mod) {
 
-	cm_trace_t tr = gi.Trace(ent->s.origin, start, NULL, NULL, ent, MASK_SHOT);
+	cm_trace_t tr = gi.Trace(ent->s.origin, start, NULL, NULL, ent, MASK_CLIP_PROJECTILE);
 	if (tr.fraction == 1.0) {
 		vec3_t angles, forward, right, up, end;
 
@@ -235,7 +235,7 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 		VectorMA(end, Randomc() * hspread, right, end);
 		VectorMA(end, Randomc() * vspread, up, end);
 
-		tr = gi.Trace(start, end, NULL, NULL, ent, MASK_SHOT);
+		tr = gi.Trace(start, end, NULL, NULL, ent, MASK_CLIP_PROJECTILE);
 	}
 
 	// send trails and marks
@@ -369,7 +369,7 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 	projectile->locals.avelocity[0] = -300.0 + 10 * Randomc();
 	projectile->locals.avelocity[1] = 50.0 * Randomc();
 	projectile->locals.avelocity[2] = 25.0 * Randomc();
-	projectile->locals.clip_mask = MASK_SHOT;
+	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
 	projectile->locals.knockback = knockback;
@@ -449,7 +449,7 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
 	projectile->solid = SOLID_MISSILE;
-	projectile->locals.clip_mask = MASK_SHOT;
+	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
 	projectile->locals.knockback = knockback;
@@ -532,7 +532,7 @@ void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t 
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
 	projectile->solid = SOLID_MISSILE;
-	projectile->locals.clip_mask = MASK_SHOT;
+	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.knockback = knockback;
 	projectile->locals.move_type = MOVE_TYPE_FLY;
@@ -626,7 +626,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	VectorMA(end, 10.0 * sin(g_level.time / 4.0), up, end);
 	VectorMA(end, 10.0 * Randomc(), right, end);
 
-	tr = gi.Trace(start, end, NULL, NULL, self, MASK_SHOT | MASK_LIQUID);
+	tr = gi.Trace(start, end, NULL, NULL, self, MASK_CLIP_PROJECTILE | MASK_LIQUID);
 
 	if (tr.contents & MASK_LIQUID) { // entered water, play sound, leave trail
 		VectorCopy(tr.end, water_start);
@@ -636,7 +636,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 			self->locals.water_level = 1;
 		}
 
-		tr = gi.Trace(water_start, end, NULL, NULL, self, MASK_SHOT);
+		tr = gi.Trace(water_start, end, NULL, NULL, self, MASK_CLIP_PROJECTILE);
 		G_BubbleTrail(water_start, &tr);
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
@@ -690,7 +690,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 
 		projectile->owner = ent;
 		projectile->solid = SOLID_NOT;
-		projectile->locals.clip_mask = MASK_SHOT;
+		projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 		projectile->locals.move_type = MOVE_TYPE_THINK;
 		projectile->locals.Think = G_LightningProjectile_Think;
 		projectile->locals.knockback = knockback;
@@ -717,11 +717,11 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
 	VectorCopy(start, pos);
 
-	if (gi.Trace(ent->s.origin, pos, NULL, NULL, ent, MASK_SHOT).fraction < 1.0) {
+	if (gi.Trace(ent->s.origin, pos, NULL, NULL, ent, MASK_CLIP_PROJECTILE).fraction < 1.0) {
 		VectorCopy(ent->s.origin, pos);
 	}
 
-	int32_t content_mask = MASK_SHOT | MASK_LIQUID;
+	int32_t content_mask = MASK_CLIP_PROJECTILE | MASK_LIQUID;
 	_Bool liquid = false;
 
 	// are we starting in water?
@@ -911,7 +911,7 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 	}
 
 	projectile->solid = SOLID_MISSILE;
-	projectile->locals.clip_mask = MASK_SHOT;
+	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
 	projectile->locals.knockback = knockback;
