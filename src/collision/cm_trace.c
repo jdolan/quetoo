@@ -22,7 +22,7 @@
 #include "cm_local.h"
 
 /*
- * @brief (1.0 / 32.0) epsilon to keep floating point happy.
+ * @brief Plane side epsilon (1.0 / 32.0) to keep floating point happy.
  */
 #define DIST_EPSILON 0.03125
 
@@ -41,7 +41,7 @@ typedef struct {
 
 	cm_trace_t trace;
 
-	int32_t mailbox[32]; // used to avoid multiple intersection tests with brushes
+	int32_t brushes[32]; // used to avoid multiple intersection tests with brushes
 } cm_trace_data_t;
 
 /*
@@ -50,9 +50,9 @@ typedef struct {
 static _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, const int32_t brush_num) {
 
 	const int32_t hash = brush_num & 31;
-	const _Bool skip = (data->mailbox[hash] == brush_num);
+	const _Bool skip = (data->brushes[hash] == brush_num);
 
-	data->mailbox[hash] = brush_num;
+	data->brushes[hash] = brush_num;
 
 	return skip;
 }
@@ -91,16 +91,18 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		if (d1 > 0.0)
 			start_outside = true;
 
-		// if completely in front of face, no intersection
+		// if completely in front of face, no intersection with entire brush
 		if (d1 > 0.0 && d2 >= d1)
 			return;
 
+		// if completely behind plane, no intersection
 		if (d1 <= 0.0 && d2 <= 0.0)
 			continue;
 
 		// crosses face
 		if (d1 > d2) { // enter
 			const vec_t f = (d1 - DIST_EPSILON) / (d1 - d2);
+
 			if (f > enter_fraction) {
 				enter_fraction = f;
 				clip_plane = plane;
@@ -108,6 +110,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 			}
 		} else { // leave
 			const vec_t f = (d1 + DIST_EPSILON) / (d1 - d2);
+
 			if (f < leave_fraction)
 				leave_fraction = f;
 		}
@@ -172,6 +175,9 @@ static void Cm_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 
 	if (!(leaf->contents & data->contents))
 		return;
+
+	// reset the brushes cache for this leaf
+	memset(data->brushes, 0xff, sizeof(data->brushes));
 
 	// trace line against all brushes in the leaf
 	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
@@ -294,8 +300,7 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t 
 
 	const vec_t midf1 = p1f + (p2f - p1f) * frac1;
 
-	for (int32_t i = 0; i < 3; i++)
-		mid[i] = p1[i] + frac1 * (p2[i] - p1[i]);
+	VectorLerp(p1, p2, frac1, mid);
 
 	Cm_TraceToNode(data, node->children[side], p1f, midf1, p1, mid);
 
@@ -304,8 +309,7 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t 
 
 	const vec_t midf2 = p1f + (p2f - p1f) * frac2;
 
-	for (int32_t i = 0; i < 3; i++)
-		mid[i] = p1[i] + frac2 * (p2[i] - p1[i]);
+	VectorLerp(p1, p2, frac2, mid);
 
 	Cm_TraceToNode(data, node->children[side ^ 1], midf2, p2f, mid, p2);
 }
@@ -327,7 +331,7 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t 
 cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 		const int32_t head_node, const int32_t contents) {
 
-	cm_trace_data_t data;
+	static __thread cm_trace_data_t data;
 	memset(&data, 0, sizeof(data));
 
 	data.trace.fraction = 1.0;
@@ -399,8 +403,6 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 		}
 	}
 
-	memset(data.mailbox, 0xff, sizeof(data.mailbox));
-
 	// check for position test special case
 	if (VectorCompare(start, end)) {
 		int32_t leafs[1024];
@@ -426,7 +428,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 	} else if (data.trace.fraction == 1.0) {
 		VectorCopy(end, data.trace.end);
 	} else {
-		VectorMix(start, end, data.trace.fraction, data.trace.end);
+		VectorLerp(start, end, data.trace.fraction, data.trace.end);
 	}
 
 	return data.trace;
