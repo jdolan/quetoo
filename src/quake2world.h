@@ -29,6 +29,7 @@
 #define __attribute__(x)  /*NOTHING*/
 #endif
 
+#include <assert.h>
 #include <glib.h>
 #include <inttypes.h>
 #include <math.h>
