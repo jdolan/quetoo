@@ -99,7 +99,7 @@ static void G_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, vec
  */
 static _Bool G_GoodPosition(const g_entity_t *ent) {
 
-	const int32_t mask = ent->locals.clip_mask ? ent->locals.clip_mask : MASK_SOLID;
+	const int32_t mask = ent->locals.clip_mask ?: MASK_SOLID;
 
 	return !gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask).start_solid;
 }
@@ -447,7 +447,7 @@ static cm_trace_t G_Physics_Fly_Move(g_entity_t *ent) {
 
 	VectorMA(ent->s.angles, gi.frame_seconds, ent->locals.avelocity, ent->s.angles);
 
-	const int32_t mask = ent->locals.clip_mask ? ent->locals.clip_mask : MASK_SOLID;
+	const int32_t mask = ent->locals.clip_mask ?: MASK_SOLID;
 
 	retry: trace = gi.Trace(start, end, ent->mins, ent->maxs, ent, mask);
 
