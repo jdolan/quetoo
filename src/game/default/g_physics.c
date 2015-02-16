@@ -381,7 +381,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 				gi.LinkEntity(p->ent);
 			}
 
-			if (p->ent->solid == SOLID_BOX || p->ent->solid == SOLID_MISSILE) {
+			if (p->ent->solid == SOLID_BOX || p->ent->solid == SOLID_PROJECTILE) {
 				G_TouchTriggers(p->ent);
 			}
 
@@ -465,7 +465,7 @@ static cm_trace_t G_Physics_Fly_Move(g_entity_t *ent) {
 
 	// the move was successful, so touch triggers and water
 	if (ent->in_use) {
-		if (ent->solid == SOLID_BOX || ent->solid == SOLID_MISSILE)
+		if (ent->solid == SOLID_BOX || ent->solid == SOLID_PROJECTILE)
 			G_TouchTriggers(ent);
 		G_TouchWater(ent);
 	}

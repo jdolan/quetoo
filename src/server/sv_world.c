@@ -270,7 +270,7 @@ static _Bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
 	switch (ent->solid) {
 		case SOLID_BOX:
 		case SOLID_BSP:
-		case SOLID_MISSILE:
+		case SOLID_PROJECTILE:
 			if (sv_world.box_type == BOX_SOLID)
 				return true;
 			break;

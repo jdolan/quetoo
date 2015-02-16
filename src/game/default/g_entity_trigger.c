@@ -86,7 +86,7 @@ static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
 		cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client) {
-		if (!((self->locals.spawn_flags & SHOOTABLE) && other->solid == SOLID_MISSILE)) {
+		if (!((self->locals.spawn_flags & SHOOTABLE) && other->solid == SOLID_PROJECTILE)) {
 			return;
 		}
 	}

@@ -36,7 +36,7 @@
 /*
  * @brief Filter bits to Sv_BoxEntities / gi.BoxEntities.
  */
-#define BOX_SOLID			(1 << 0) // SOLID_BSP, SOLID_BOX, SOLID_MISSILE..
+#define BOX_SOLID			(1 << 0) // SOLID_BSP, SOLID_BOX, SOLID_PROJECTILE..
 #define BOX_TRIGGER			(1 << 1) // SOLID_TRIGGER
 
 #ifndef __GAME_LOCAL_H__
