@@ -30,7 +30,7 @@
 									<listOptionValue builtIn="false" value="/opt/local/include"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/glib-2.0"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/libxml2"/>
-									<listOptionValue builtIn="false" value="/opt/local/include/mysql5/mysql"/>
+									<listOptionValue builtIn="false" value="/opt/local/include/mysql56/mysql"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.138567324" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="ANT_OSX=1"/>
