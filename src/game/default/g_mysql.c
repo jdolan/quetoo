@@ -95,7 +95,6 @@ void G_MySQL_ClientObituary(const g_entity_t *self __attribute__((unused)),
 		const uint32_t mod __attribute__((unused))) {
 
 #if HAVE_MYSQL
-	char query[MAX_STRING_CHARS];
 
 	if (!g_mysql_state.mysql) {
 		return;
@@ -104,10 +103,8 @@ void G_MySQL_ClientObituary(const g_entity_t *self __attribute__((unused)),
 	const char *fraggee = G_MySQL_EntityName(self);
 	const char *fragger = G_MySQL_EntityName(attacker);
 
-	g_snprintf(query, sizeof(query), "INSERT INTO `frag` VALUES(NULL, NOW(), '%s', '%s', '%s', %d)",
+	G_MySQL_Query("INSERT INTO `frag` VALUES(NULL, NOW(), '%s', '%s', '%s', %d)",
 			g_level.name, fragger, fraggee, mod);
-
-	G_MySQL_Query(query);
 #endif
 }
 
