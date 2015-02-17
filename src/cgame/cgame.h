@@ -122,6 +122,9 @@ typedef struct cg_import_s {
 	void (*BindFont)(const char *name, r_pixel_t *cw, r_pixel_t *ch);
 	r_pixel_t (*StringWidth)(const char *s);
 	size_t (*DrawString)(r_pixel_t x, r_pixel_t y, const char *s, int32_t color);
+
+	// Command Buffer
+	void (*Cbuf)(const char *s);
 } cg_import_t;
 
 // exposed to the engine by the client game
