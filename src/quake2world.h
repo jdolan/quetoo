@@ -479,9 +479,9 @@ typedef enum {
  */
 typedef enum {
 	SOLID_NOT, // no interaction with other objects
-	SOLID_TRIGGER, // only touch when inside, after moving
 	SOLID_BOX, // touch on edge
-	SOLID_PROJECTILE, // touch on edge
+	SOLID_DEAD, // touch on edge, but don't clip player movement
+	SOLID_TRIGGER, // only touch when inside, after moving
 	SOLID_BSP = 31, // BSP clip, touch on edge
 } solid_t;
 

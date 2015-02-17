@@ -48,9 +48,11 @@ _Bool Cl_UsePrediction(void) {
 /*
  * @brief Prepares the collision model to clip to the specified entity. For
  * mesh models, the box hull must be set to reflect the bounds of the entity.
+ *
+ * @remark The server only informs us of `SOLID_BSP` and `SOLID_BOX`. Everything
+ * else is `SOLID_NOT` to the client.
  */
 static int32_t Cl_HullForEntity(const entity_state_t *ent) {
-	vec3_t emins, emaxs;
 
 	if (ent->solid == SOLID_BSP) {
 		const cm_bsp_model_t *mod = cl.cm_models[ent->model1];
@@ -61,8 +63,13 @@ static int32_t Cl_HullForEntity(const entity_state_t *ent) {
 		return mod->head_node;
 	}
 
+	vec3_t emins, emaxs;
 	UnpackBounds(ent->solid, emins, emaxs);
-	return Cm_SetBoxHull(emins, emaxs);
+
+	if (ent->client)
+		return Cm_SetBoxHull(emins, emaxs, CONTENTS_MONSTER);
+	else
+		return Cm_SetBoxHull(emins, emaxs, CONTENTS_SOLID);
 }
 
 /*
@@ -78,7 +85,7 @@ int32_t Cl_PointContents(const vec3_t point) {
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *s = &cl.entity_states[snum];
 
-		if (s->solid < SOLID_BOX) // only clip to boxes, missiles and BSP models
+		if (s->solid == SOLID_NOT) // only clip to solids
 			continue;
 
 		const int32_t head_node = Cl_HullForEntity(s);

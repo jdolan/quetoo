@@ -691,10 +691,10 @@ _Bool G_IsMeat(const g_entity_t *ent) {
 	if (!ent || !ent->in_use)
 		return false;
 
-	if (ent->client && ent->solid == SOLID_BOX)
+	if (ent->solid == SOLID_BOX && ent->client)
 		return true;
 
-	if (ent->sv_flags & SVF_DEAD_MONSTER)
+	if (ent->solid == SOLID_DEAD)
 		return true;
 
 	return false;

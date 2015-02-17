@@ -254,18 +254,26 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 		}
 	}
 
-	// sink into the floor after a few seconds
 	if (age > 13000) {
 		G_FreeEntity(self);
 		return;
 	}
 
-	if (age > 10000 && self->locals.ground_entity) {
-		self->locals.take_damage = false;
-		self->locals.move_type = MOVE_TYPE_NONE;
+	// sink into the floor after a few seconds
+	if (age > 10000) {
 
-		self->s.origin[2] -= gi.frame_seconds * 8.0;
 		self->s.effects |= EF_DESPAWN;
+
+		self->locals.move_type = MOVE_TYPE_NONE;
+		self->locals.take_damage = false;
+
+		self->solid = SOLID_NOT;
+
+		if (self->locals.ground_entity) {
+			self->s.origin[2] -= gi.frame_seconds * 8.0;
+		}
+
+		gi.LinkEntity(self);
 	}
 
 	self->locals.next_think = g_level.time + gi.frame_millis;
@@ -292,8 +300,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribut
 		VectorCopy(mins[i % NUM_GIB_MODELS], ent->mins);
 		VectorCopy(maxs[i % NUM_GIB_MODELS], ent->maxs);
 
-		ent->solid = SOLID_BOX;
-		ent->sv_flags = SVF_DEAD_MONSTER;
+		ent->solid = SOLID_DEAD;
 
 		ent->s.model1 = g_media.models.gibs[i % NUM_GIB_MODELS];
 		ent->locals.noise_index = g_media.sounds.gib_hits[i % NUM_GIB_MODELS];
@@ -342,8 +349,7 @@ static void G_ClientCorpse(g_entity_t *self) {
 
 	ent->maxs[2] = 0.0; // corpses are laying down
 
-	ent->solid = SOLID_BOX;
-	ent->sv_flags = SVF_DEAD_MONSTER;
+	ent->solid = SOLID_DEAD;
 
 	VectorCopy(self->s.origin, ent->s.origin);
 
@@ -409,7 +415,8 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 	self->client->locals.show_scores = true; // show scores
 
-	self->sv_flags |= (SVF_NO_CLIENT | SVF_DEAD_MONSTER);
+	self->solid = SOLID_NOT;
+	self->sv_flags |= SVF_NO_CLIENT;
 
 	self->class_name = "dead";
 
@@ -423,7 +430,6 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	self->s.sound = 0;
 
 	self->locals.take_damage = false;
-	self->locals.clip_mask = MASK_CLIP_CORPSE;
 
 	gi.LinkEntity(self);
 }

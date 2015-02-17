@@ -121,7 +121,6 @@ static cm_box_t cm_box;
  */
 void Cm_InitBoxHull(void) {
 	static cm_bsp_surface_t null_surface;
-	int32_t i;
 
 	if (cm_bsp.num_planes + 12 > MAX_BSP_PLANES)
 		Com_Error(ERR_DROP, "MAX_BSP_PLANES\n");
@@ -162,7 +161,7 @@ void Cm_InitBoxHull(void) {
 	cm_box.brush->first_brush_side = cm_bsp.num_brush_sides;
 	cm_box.brush->contents = CONTENTS_MONSTER;
 
-	for (i = 0; i < 6; i++) {
+	for (int32_t i = 0; i < 6; i++) {
 
 		// fill in planes, two per side
 		cm_bsp_plane_t *plane = &cm_box.planes[i * 2];
@@ -201,7 +200,7 @@ void Cm_InitBoxHull(void) {
  * @brief Initializes the box hull for the specified bounds, returning the
  * head node for the resulting box hull tree.
  */
-int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs) {
+int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t contents) {
 
 	cm_box.planes[0].dist = maxs[0];
 	cm_box.planes[1].dist = -maxs[0];
@@ -215,6 +214,8 @@ int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs) {
 	cm_box.planes[9].dist = -maxs[2];
 	cm_box.planes[10].dist = mins[2];
 	cm_box.planes[11].dist = -mins[2];
+
+	cm_box.leaf->contents = cm_box.brush->contents = contents;
 
 	return cm_box.head_node;
 }

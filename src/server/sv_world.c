@@ -30,7 +30,7 @@ typedef struct sv_sector_s {
 	int32_t axis; // -1 = leaf
 	vec_t dist;
 	struct sv_sector_s *children[2];
-	GList *edicts;
+	GList *entities;
 } sv_sector_t;
 
 #define SECTOR_DEPTH	4
@@ -96,7 +96,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, vec3_t mins, vec3_t maxs) {
 void Sv_InitWorld(void) {
 
 	for (uint16_t i = 0; i < sv_world.num_sectors; i++) {
-		g_list_free(sv_world.sectors[i].edicts);
+		g_list_free(sv_world.sectors[i].entities);
 	}
 
 	memset(&sv_world, 0, sizeof(sv_world));
@@ -114,7 +114,7 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
 
 	if (sent->sector) {
 		sv_sector_t *sector = (sv_sector_t *) sent->sector;
-		sector->edicts = g_list_remove(sector->edicts, ent);
+		sector->entities = g_list_remove(sector->entities, ent);
 
 		memset(sent, 0, sizeof(*sent));
 	}
@@ -143,7 +143,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	VectorSubtract(ent->maxs, ent->mins, ent->size);
 
 	// encode the size into the entity state for client prediction
-	if (ent->solid == SOLID_BOX && !(ent->sv_flags & SVF_DEAD_MONSTER)) {
+	if (ent->solid == SOLID_BOX) {
 		PackBounds(ent->mins, ent->maxs, &ent->s.solid);
 	} else if (ent->solid == SOLID_BSP) {
 		ent->s.solid = SOLID_BSP;
@@ -253,7 +253,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 
 	// add it to the sector
 	sent->sector = sector;
-	sector->edicts = g_list_prepend(sector->edicts, ent);
+	sector->entities = g_list_prepend(sector->entities, ent);
 
 	// and update its clipping matrices
 	const vec_t *angles = ent->solid == SOLID_BSP ? ent->s.angles : vec3_origin;
@@ -269,8 +269,8 @@ static _Bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
 
 	switch (ent->solid) {
 		case SOLID_BOX:
+		case SOLID_DEAD:
 		case SOLID_BSP:
-		case SOLID_PROJECTILE:
 			if (sv_world.box_type == BOX_SOLID)
 				return true;
 			break;
@@ -292,7 +292,7 @@ static _Bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
  */
 static void Sv_BoxEntities_r(sv_sector_t *sector) {
 
-	GList *e = sector->edicts;
+	GList *e = sector->entities;
 	while (e) {
 		g_entity_t *ent = (g_entity_t *) e->data;
 
@@ -304,7 +304,7 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
 				sv_world.num_box_entities++;
 
 				if (sv_world.num_box_entities == sv_world.max_box_entities) {
-					Com_Warn("sv_world.max_area_edicts reached\n");
+					Com_Warn("sv_world.max_box_entities reached\n");
 					return;
 				}
 			}
@@ -352,8 +352,7 @@ size_t Sv_BoxEntities(const vec3_t mins, const vec3_t maxs, g_entity_t **list, c
  */
 static int32_t Sv_HullForEntity(const g_entity_t *ent) {
 
-	// decide which clipping hull to use, based on the size
-	if (ent->solid == SOLID_BSP) { // explicit hulls in the BSP model
+	if (ent->solid == SOLID_BSP) {
 		const cm_bsp_model_t *mod = sv.cm_models[ent->s.model1];
 
 		if (!mod)
@@ -362,8 +361,18 @@ static int32_t Sv_HullForEntity(const g_entity_t *ent) {
 		return mod->head_node;
 	}
 
-	// create a temporary hull from bounding box sizes
-	return Cm_SetBoxHull(ent->mins, ent->maxs);
+	if (ent->solid == SOLID_BOX) {
+
+		if (ent->client)
+			return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_MONSTER);
+
+		return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_SOLID);
+	}
+
+	if (ent->solid == SOLID_DEAD)
+		return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_DEAD_MONSTER);
+
+	return -1;
 }
 
 /*
@@ -428,13 +437,9 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 					continue; // which is bidirectional (inverse of previous case)
 
 				if (ent->owner == trace->skip->owner)
-					continue; // and communitive (we are both owned by the same)
+					continue; // and commutative (we are both owned by the same)
 			}
 		}
-
-		// hack to avoid clipping to corpses and gibs
-		if (!(trace->contents & CONTENTS_DEAD_MONSTER) && (ent->sv_flags & SVF_DEAD_MONSTER))
-			continue;
 
 		const int32_t head_node = Sv_HullForEntity(ent);
 		const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];

@@ -30,13 +30,12 @@
  * @brief Server flags for g_entity_t.
  */
 #define SVF_NO_CLIENT 		(1 << 0) // don't send entity to clients
-#define SVF_DEAD_MONSTER	(1 << 1) // don't clip against corpses
-#define SVF_GAME			(1 << 2) // game may extend from here
+#define SVF_GAME			(1 << 1) // game may extend from here
 
 /*
  * @brief Filter bits to Sv_BoxEntities / gi.BoxEntities.
  */
-#define BOX_SOLID			(1 << 0) // SOLID_BSP, SOLID_BOX, SOLID_PROJECTILE..
+#define BOX_SOLID			(1 << 0) // SOLID_BSP, SOLID_BOX, SOLID_BOX..
 #define BOX_TRIGGER			(1 << 1) // SOLID_TRIGGER
 
 #ifndef __GAME_LOCAL_H__

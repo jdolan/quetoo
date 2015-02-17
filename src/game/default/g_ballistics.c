@@ -198,7 +198,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
-	projectile->solid = SOLID_PROJECTILE;
+	projectile->solid = SOLID_BOX;
 	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.knockback = knockback;
@@ -365,7 +365,7 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
-	projectile->solid = SOLID_PROJECTILE;
+	projectile->solid = SOLID_BOX;
 	projectile->locals.avelocity[0] = -300.0 + 10 * Randomc();
 	projectile->locals.avelocity[1] = 50.0 * Randomc();
 	projectile->locals.avelocity[2] = 25.0 * Randomc();
@@ -448,7 +448,7 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
-	projectile->solid = SOLID_PROJECTILE;
+	projectile->solid = SOLID_BOX;
 	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
@@ -531,7 +531,7 @@ void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t 
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
-	projectile->solid = SOLID_PROJECTILE;
+	projectile->solid = SOLID_BOX;
 	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.knockback = knockback;
@@ -910,7 +910,7 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 		VectorCopy(ent->s.origin, projectile->s.origin);
 	}
 
-	projectile->solid = SOLID_PROJECTILE;
+	projectile->solid = SOLID_BOX;
 	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
