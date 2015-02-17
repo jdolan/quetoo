@@ -197,6 +197,8 @@ void Cl_InitCgame(void) {
 	import.StringWidth = R_StringWidth;
 	import.DrawString = R_DrawString;
 
+	import.Cbuf = Cbuf_AddText;
+
 	cls.cgame = Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
 
 	if (!cls.cgame) {
