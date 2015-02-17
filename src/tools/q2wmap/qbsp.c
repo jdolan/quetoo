@@ -22,7 +22,7 @@
 #include "q2wmap.h"
 #include "qbsp.h"
 
-vec_t microvolume = 1.0;
+vec_t microvolume = 0.125;
 _Bool noprune = false;
 _Bool nodetail = false;
 _Bool fulldetail = false;
