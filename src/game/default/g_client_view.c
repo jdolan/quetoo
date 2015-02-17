@@ -74,8 +74,6 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	const uint8_t water_level = ent->locals.water_level;
 	const uint8_t old_water_level = ent->locals.old_water_level;
 
-	ent->locals.old_water_level = water_level;
-
 	// if just entered a water volume, play a sound
 	if (!old_water_level && water_level)
 		gi.Sound(ent, g_media.sounds.water_in, ATTEN_NORM);
@@ -141,6 +139,8 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 			}
 		}
 	}
+
+	ent->locals.old_water_level = water_level;
 }
 
 /*

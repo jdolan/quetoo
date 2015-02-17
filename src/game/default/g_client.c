@@ -231,7 +231,7 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 			self->s.effects |= EF_CORPSE;
 		}
 
-		// and don't re-animate when coming into view for new clients
+		// don't re-animate when coming into view for new clients
 		if (age > 1800) {
 			switch (self->s.animation1) {
 				case ANIM_BOTH_DEATH1:
@@ -242,6 +242,18 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 					break;
 				default:
 					break;
+			}
+		}
+
+		if (age > 6000) {
+			const int16_t dmg = self->locals.health;
+
+			if (self->locals.water_type & CONTENTS_LAVA) {
+				G_Damage(self, NULL, NULL, NULL, NULL, NULL, dmg, 0, DMG_NO_ARMOR, MOD_LAVA);
+			}
+
+			if (self->locals.water_type & CONTENTS_SLIME) {
+				G_Damage(self, NULL, NULL, NULL, NULL, NULL, dmg, 0, DMG_NO_ARMOR, MOD_SLIME);
 			}
 		}
 	} else {
@@ -1231,7 +1243,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 		if (old_velocity[2] <= PM_SPEED_FALL) { // player will take damage
 			int16_t damage = ((int16_t) -((old_velocity[2] - PM_SPEED_FALL) * 0.05));
 
-			damage >>= ent->locals.water_level; // water breaks the fall
+			damage >>= pm.water_level; // water breaks the fall
 
 			if (damage < 1)
 				damage = 1;
