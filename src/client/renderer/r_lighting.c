@@ -310,6 +310,70 @@ static int32_t R_CompareShadow(const void *a, const void *b) {
 }
 
 /*
+ * @brief Cast shadows for an individual illumination.
+ */
+static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
+
+	const vec3_t *p = r_lighting_points;
+
+	for (size_t j = 0; j < lengthof(r_lighting_points); j++) {
+		vec3_t dir, pos;
+
+		// check if the light exits the entity
+		VectorSubtract(il->light.origin, p[j], dir);
+
+		if (il->light.radius <= VectorNormalize(dir))
+			continue;
+
+		// project the farthest possible shadow impact position
+		VectorMA(il->light.origin, -il->light.radius, dir, pos);
+
+		// trace, skipping the entity itself, impacting solids
+		cm_trace_t tr = Cl_Trace(p[j], pos, NULL, NULL, l->number, MASK_SOLID);
+
+		// check if the trace impacted a valid plane
+		if (tr.start_solid || tr.fraction == 1.0)
+			continue;
+
+		// for fixed-function render path, skip non-floor shadows
+		if (!r_programs->value || !r_lighting->value) {
+			if (tr.plane.normal[2] < 0.7)
+				continue;
+		}
+
+		// calculate the distance from the light source to the plane
+		const vec_t dist = DotProduct(il->light.origin, tr.plane.normal) - tr.plane.dist;
+
+		// and resolve the shadow intensity
+		const vec_t shadow = MAX(il->light.radius - dist, il->diffuse);
+
+		// search for the plane in previous shadows
+		r_shadow_t *s = l->shadows;
+		while (s->illumination) {
+
+			if (s->illumination == il && s->plane.num == tr.plane.num) {
+				s->shadow = MAX(s->shadow, shadow);
+				break;
+			}
+
+			if (s - l->shadows == lengthof(l->shadows)) {
+				Com_Debug("Entity %u @ %s: MAX_SHADOWS\n", l->number, vtos(l->origin));
+				return;
+			}
+
+			s++;
+		}
+
+		if (s->illumination) // already got it
+			continue;
+
+		s->illumination = il;
+		s->plane = tr.plane;
+		s->shadow = shadow;
+	}
+}
+
+/*
  * @brief For each active illumination, trace from the specified lighting point
  * to the world, from the origin as well as the corners of the bounding box,
  * accounting for light attenuation within the radius of the object. Cast
@@ -326,75 +390,17 @@ static void R_UpdateShadows(r_lighting_t *l) {
 
 	// otherwise, refresh all shadow information based on the new illuminations
 	memset(l->shadows, 0, sizeof(l->shadows));
-	uint16_t num_shadows = 0;
 
 	const r_illumination_t *il = l->illuminations;
-
 	for (size_t i = 0; i < lengthof(l->illuminations); i++, il++) {
 
 		if (il->diffuse == 0.0)
 			break;
 
-		const vec3_t *p = r_lighting_points;
-
-		for (size_t j = 0; j < lengthof(r_lighting_points); j++) {
-			vec3_t dir, pos;
-
-			// check if the light exits the entity
-			VectorSubtract(il->light.origin, p[j], dir);
-
-			if (il->light.radius <= VectorNormalize(dir))
-				continue;
-
-			// project the farthest possible shadow impact position
-			VectorMA(il->light.origin, -il->light.radius, dir, pos);
-
-			// trace, skipping the entity itself, impacting solids
-			cm_trace_t tr = Cl_Trace(p[j], pos, NULL, NULL, l->number, MASK_SOLID);
-
-			// check if the trace impacted a valid plane
-			if (tr.start_solid || tr.fraction == 1.0)
-				continue;
-
-			// for fixed-function renderer, skip non-floor shadows
-			if (!r_programs->value || !r_lighting->value) {
-				if (tr.plane.normal[2] < 0.7)
-					continue;
-			}
-
-			// calculate the distance from the light source to the plane
-			const vec_t dist = DotProduct(il->light.origin, tr.plane.normal) - tr.plane.dist;
-
-			// and resolve the shadow intensity
-			const vec_t shadow = MAX(il->light.radius - dist, il->diffuse);
-
-			// search for the plane in previous shadows
-			r_shadow_t *s = l->shadows;
-			while (s->illumination) {
-
-				// check if the shadow references the same illumination and plane
-				if (s->illumination == il && s->plane.num == tr.plane.num) {
-					s->shadow = MAX(s->shadow, shadow);
-					break;
-				}
-
-				s++;
-			}
-
-			// plane already counted for this illumination
-			if (s->illumination)
-				continue;
-
-			// finally, cast the shadow
-			s->illumination = il;
-			s->plane = tr.plane;
-			s->shadow = shadow;
-
-			num_shadows++;
-		}
+		R_CastShadows(l, il);
 	}
 
-	qsort(l->shadows, num_shadows, sizeof(r_shadow_t), R_CompareShadow);
+	qsort(l->shadows, lengthof(l->shadows), sizeof(r_shadow_t), R_CompareShadow);
 }
 
 /*
