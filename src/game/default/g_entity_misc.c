@@ -25,8 +25,10 @@
 /*
  * @brief
  */
-static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other, cm_bsp_plane_t *plane __attribute__((unused)),
-		cm_bsp_surface_t *surf __attribute__((unused))) {
+static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
+		const cm_bsp_plane_t *plane __attribute__((unused)),
+		const cm_bsp_surface_t *surf __attribute__((unused))) {
+
 	g_entity_t *dest;
 	vec3_t forward, delta_angles;
 

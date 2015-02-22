@@ -66,12 +66,12 @@ void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, 
 	VectorCopy(tr.end, pos);
 
 	// resolve the projectile origin
-	VectorMA(view, 24.0, ent->client->locals.forward, org);
+	VectorMA(view, 16.0, ent->client->locals.forward, org);
 
 	if ((ent->client->ps.pm_state.flags & PMF_DUCKED)) {
 		VectorMA(org, -4.0, ent->client->locals.up, org);
 	} else {
-		VectorMA(org, -16.0, ent->client->locals.up, org);
+		VectorMA(org, -8.0, ent->client->locals.up, org);
 	}
 
 	// if the projected origin is invalid, use the entity's origin
@@ -345,65 +345,6 @@ void G_FreeEntity(g_entity_t *ent) {
 
 	memset(ent, 0, sizeof(*ent));
 	ent->class_name = "free";
-}
-
-/*
- * @brief Handle trigger interaction for solids.
- */
-void G_TouchTriggers(g_entity_t *ent) {
-	g_entity_t *e[MAX_ENTITIES];
-
-	const size_t len = gi.BoxEntities(ent->abs_mins, ent->abs_maxs, e, lengthof(e), BOX_TRIGGER);
-
-	for (size_t i = 0; i < len; i++) {
-		g_entity_t *trigger = e[i];
-
-		if (trigger == ent) // When I Think() about you, I Touch() myself..
-			continue;
-
-		gi.Debug("%s touching %s\n", etos(trigger), etos(ent));
-
-		if (trigger->in_use && trigger->locals.Touch)
-			trigger->locals.Touch(trigger, ent, NULL, NULL);
-
-		if (!ent->in_use)
-			break;
-	}
-}
-
-/*
- * @brief Handle water interaction for solids.
- */
-void G_TouchWater(g_entity_t *ent) {
-
-	if (ent->client) // player water level is a special case
-		return;
-
-	vec3_t origin, mins, maxs;
-	if (ent->solid == SOLID_BSP) {
-		VectorLerp(ent->abs_mins, ent->abs_maxs, 0.5, origin);
-		VectorSubtract(origin, ent->abs_mins, mins);
-		VectorSubtract(ent->abs_maxs, origin, maxs);
-	} else {
-		VectorCopy(ent->s.origin, origin);
-		VectorCopy(ent->mins, mins);
-		VectorCopy(ent->maxs, maxs);
-	}
-
-	cm_trace_t tr = gi.Trace(origin, origin, mins, maxs, ent, MASK_LIQUID);
-
-	const uint8_t old_water_level = ent->locals.water_level;
-	ent->locals.water_type = tr.contents;
-	ent->locals.water_level = ent->locals.water_type ? 1 : 0;
-
-	if (!old_water_level && ent->locals.water_level) {
-		gi.PositionedSound(origin, ent, g_media.sounds.water_in, ATTEN_IDLE);
-		if (ent->locals.move_type == MOVE_TYPE_TOSS) {
-			VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
-		}
-	} else if (old_water_level && !ent->locals.water_level) {
-		gi.PositionedSound(origin, ent, g_media.sounds.water_out, ATTEN_IDLE);
-	}
 }
 
 /*
@@ -721,17 +662,30 @@ _Bool G_IsStationary(const g_entity_t *ent) {
 }
 
 /*
- * @return True if the specified entity and surface appear structural.
+ * @return True if the specified entity and surface are structural.
  */
 _Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_surface_t *surf) {
 
-	if (ent->solid == SOLID_BSP) {
+	if (ent) {
+		if (ent->solid == SOLID_BSP) {
 
-		if (!surf || (surf->flags & SURF_SKY))
-			return false;
+			if (!surf || (surf->flags & SURF_SKY))
+				return false;
 
-		return true;
+			return true;
+		}
 	}
+
+	return false;
+}
+
+/*
+ * @return True if the specified entity and surface are sky.
+ */
+_Bool G_IsSky(const cm_bsp_surface_t *surf) {
+
+	if (surf && (surf->flags & SURF_SKY))
+		return true;
 
 	return false;
 }

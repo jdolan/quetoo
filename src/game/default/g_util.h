@@ -49,13 +49,12 @@ int32_t G_ColorByName(const char *s, int32_t def);
 _Bool G_IsMeat(const g_entity_t *ent);
 _Bool G_IsStationary(const g_entity_t *ent);
 _Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_surface_t *surface);
+_Bool G_IsSky(const cm_bsp_surface_t *surface);
 void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, _Bool restart);
 _Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim);
 g_entity_t *G_AllocEntity(const char *class_name);
 void G_InitEntity(g_entity_t *ent, const char *class_name);
 void G_FreeEntity(g_entity_t *ent);
-void G_TouchTriggers(g_entity_t *ent);
-void G_TouchWater(g_entity_t *ent);
 
 #endif /* __GAME_LOCAL_H__ */
 

@@ -285,7 +285,6 @@ typedef enum {
 #define MASK_ALL				(-1)
 #define MASK_SOLID				(CONTENTS_SOLID | CONTENTS_WINDOW)
 #define MASK_LIQUID				(CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME)
-#define MASK_CURRENT			(CONTENTS_CURRENT_0 | CONTENTS_CURRENT_90 | CONTENTS_CURRENT_180 | CONTENTS_CURRENT_270 | CONTENTS_CURRENT_UP | CONTENTS_CURRENT_DOWN)
 #define MASK_MEAT				(CONTENTS_MONSTER | CONTENTS_DEAD_MONSTER)
 #define MASK_CLIP_CORPSE		(MASK_SOLID | CONTENTS_PLAYER_CLIP)
 #define MASK_CLIP_PLAYER		(MASK_CLIP_CORPSE | CONTENTS_MONSTER)
@@ -479,10 +478,10 @@ typedef enum {
  */
 typedef enum {
 	SOLID_NOT, // no interaction with other objects
-	SOLID_BOX, // touch on edge
-	SOLID_DEAD, // touch on edge, but don't clip player movement
-	SOLID_TRIGGER, // only touch when inside, after moving
-	SOLID_BSP = 31, // BSP clip, touch on edge
+	SOLID_TRIGGER, // occupy
+	SOLID_DEAD, // collide, never clip player
+	SOLID_BOX, // collide and clip other solids
+	SOLID_BSP = 31, // collide and clip against rotated bounds
 } solid_t;
 
 /*

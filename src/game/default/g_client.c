@@ -197,13 +197,12 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
  * @brief Play a sloppy sound when impacting the world.
  */
 static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
-		cm_bsp_plane_t *plane __attribute__((unused)), cm_bsp_surface_t *surf) {
+		const cm_bsp_plane_t *plane __attribute__((unused)), const cm_bsp_surface_t *surf) {
 
 	if (surf && (surf->flags & SURF_SKY)) {
 		G_FreeEntity(self);
 	} else {
 		const vec_t speed = VectorLength(self->locals.velocity);
-
 		if (speed > 40.0 && G_IsStructural(other, surf)) {
 
 			if (g_level.time - self->locals.touch_time > 200) {
@@ -328,7 +327,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribut
 		ent->locals.clip_mask = MASK_CLIP_CORPSE;
 		ent->locals.dead = true;
 		ent->locals.mass = (i % NUM_GIB_MODELS) * 20.0;
-		ent->locals.move_type = MOVE_TYPE_TOSS;
+		ent->locals.move_type = MOVE_TYPE_BOUNCE;
 		ent->locals.next_think = g_level.time + gi.frame_millis;
 		ent->locals.take_damage = true;
 		ent->locals.Think = G_ClientCorpse_Think;
@@ -381,7 +380,7 @@ static void G_ClientCorpse(g_entity_t *self) {
 	ent->locals.clip_mask = MASK_CLIP_CORPSE;
 	ent->locals.dead = true;
 	ent->locals.mass = self->locals.mass;
-	ent->locals.move_type = MOVE_TYPE_TOSS;
+	ent->locals.move_type = MOVE_TYPE_BOUNCE;
 	ent->locals.take_damage = true;
 	ent->locals.health = CLIENT_CORPSE_HEALTH;
 	ent->locals.Die = G_ClientCorpse_Die;
@@ -1291,11 +1290,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	// and finally link them back in to collide with others below
 	gi.LinkEntity(ent);
 
-	// touch jump pads, hurt brushes, etc..
-	if (ent->locals.move_type != MOVE_TYPE_NO_CLIP && ent->locals.health > 0)
-		G_TouchTriggers(ent);
-
-	// touch other objects
+	// touch every object we collided with objects
 	for (uint16_t i = 0; i < pm.num_touch_ents; i++) {
 		g_entity_t *other = pm.touch_ents[i];
 
@@ -1304,6 +1299,8 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 		other->locals.Touch(other, ent, NULL, NULL);
 	}
+
+	G_TouchOccupy(ent);
 }
 
 /*
@@ -1407,31 +1404,30 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
  * any other entities in the world.
  */
 void G_ClientBeginFrame(g_entity_t *ent) {
-	g_client_t *client;
 
 	if (g_level.intermission_time)
 		return;
 
-	client = ent->client;
+	g_client_t *cl = ent->client;
 
 	// run weapon think if it hasn't been done by a command
-	if (client->locals.weapon_think_time < g_level.time && !client->locals.persistent.spectator)
+	if (cl->locals.weapon_think_time < g_level.time && !cl->locals.persistent.spectator)
 		G_ClientWeaponThink(ent);
 
 	if (ent->locals.dead) { // check for respawn conditions
 
 		// rounds mode implies last-man-standing, force to spectator immediately if round underway
 		if (g_level.rounds && g_level.round_time && g_level.time >= g_level.round_time) {
-			client->locals.persistent.spectator = true;
+			cl->locals.persistent.spectator = true;
 			G_ClientRespawn(ent, false);
-		} else if (g_level.time > client->locals.respawn_time) {
+		} else if (g_level.time > cl->locals.respawn_time) {
 
 			// all other respawns require a click from the player
-			if (client->locals.latched_buttons & BUTTON_ATTACK) {
+			if (cl->locals.latched_buttons & BUTTON_ATTACK) {
 				G_ClientRespawn(ent, false);
 			}
 		}
 	}
 
-	client->locals.latched_buttons = 0;
+	cl->locals.latched_buttons = 0;
 }

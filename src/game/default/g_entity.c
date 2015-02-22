@@ -556,16 +556,15 @@ static void G_WorldspawnMusic(void) {
  give : A comma-delimited item string to give each player on spawn.
  */
 static void G_worldspawn(g_entity_t *ent) {
-	uint32_t i;
 	g_map_list_elt_t *map;
 
-	ent->locals.move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;
+	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->in_use = true; // since the world doesn't use G_Spawn()
 	ent->s.model1 = 0; // world model is always index 1
 
 	map = NULL; // resolve the maps.lst entry for this level
-	for (i = 0; i < g_map_list.count; i++) {
+	for (uint32_t i = 0; i < g_map_list.count; i++) {
 		if (!g_strcmp0(g_level.name, g_map_list.maps[i].name)) {
 			map = &g_map_list.maps[i];
 			break;

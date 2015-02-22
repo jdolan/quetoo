@@ -35,8 +35,10 @@
 /*
  * @brief Filter bits to Sv_BoxEntities / gi.BoxEntities.
  */
-#define BOX_SOLID			(1 << 0) // SOLID_BSP, SOLID_BOX, SOLID_BOX..
-#define BOX_TRIGGER			(1 << 1) // SOLID_TRIGGER
+#define BOX_COLLIDE			(1 << 0) // SOLID_DEAD, SOLID_BOX, SOLID_BSP, ..
+#define BOX_OCCUPY			(1 << 1) // SOLID_TRIGGER, ..
+
+#define BOX_ALL				(BOX_COLLIDE | BOX_OCCUPY)
 
 #ifndef __GAME_LOCAL_H__
 

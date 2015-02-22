@@ -457,8 +457,8 @@ static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other __attribute__((un
  * @brief
  */
 static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other,
-		cm_bsp_plane_t *plane __attribute__((unused)),
-		cm_bsp_surface_t *surf __attribute__((unused))) {
+		const cm_bsp_plane_t *plane __attribute__((unused)),
+		const cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client)
 		return;
@@ -540,7 +540,7 @@ void G_func_plat(g_entity_t *ent) {
 	ent->locals.Blocked = G_func_plat_Blocked;
 
 	if (!ent->locals.speed)
-		ent->locals.speed = 200;
+		ent->locals.speed = 200.0;
 	ent->locals.speed *= 0.5;
 
 	if (!ent->locals.accel)
@@ -610,8 +610,8 @@ void G_func_plat(g_entity_t *ent) {
  * @brief
  */
 static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other,
-		cm_bsp_plane_t *plane __attribute__((unused)),
-		cm_bsp_surface_t *surf __attribute__((unused))) {
+		const cm_bsp_plane_t *plane __attribute__((unused)),
+		const cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (self->locals.damage) {
 		if (!VectorCompare(self->locals.avelocity, vec3_origin)) {
@@ -761,8 +761,8 @@ static void G_func_button_Use(g_entity_t *self, g_entity_t *other __attribute__(
  * @brief
  */
 static void G_func_button_Touch(g_entity_t *self, g_entity_t *other,
-		cm_bsp_plane_t *plane __attribute__((unused)),
-		cm_bsp_surface_t *surf __attribute__((unused))) {
+		const cm_bsp_plane_t *plane __attribute__((unused)),
+		const cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client)
 		return;
@@ -1005,8 +1005,8 @@ static void G_func_door_Use(g_entity_t *self, g_entity_t *other __attribute__((u
  * @brief
  */
 static void G_func_door_TouchTrigger(g_entity_t *self, g_entity_t *other,
-		cm_bsp_plane_t *plane __attribute__((unused)),
-		cm_bsp_surface_t *surf __attribute__((unused))) {
+		const cm_bsp_plane_t *plane __attribute__((unused)),
+		const cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (other->locals.health <= 0)
 		return;
@@ -1137,8 +1137,8 @@ static void G_func_door_Die(g_entity_t *self, g_entity_t *attacker,
  * @brief
  */
 static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
-		cm_bsp_plane_t *plane __attribute__((unused)),
-		cm_bsp_surface_t *surf __attribute__((unused))) {
+		const cm_bsp_plane_t *plane __attribute__((unused)),
+		const cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client)
 		return;

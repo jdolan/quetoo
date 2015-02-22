@@ -82,8 +82,8 @@ static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other __attribut
  * @brief
  */
 static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
-		cm_bsp_plane_t *plane __attribute__((unused)),
-		cm_bsp_surface_t *surf __attribute__((unused))) {
+		const cm_bsp_plane_t *plane __attribute__((unused)),
+		const cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->client) {
 		const _Bool isProjectile = other->owner && other->owner->client;
@@ -220,10 +220,10 @@ void G_trigger_always(g_entity_t *ent) {
  * @brief
  */
 static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
-		cm_bsp_plane_t *plane __attribute__((unused)),
-		cm_bsp_surface_t *surf __attribute__((unused))) {
+		const cm_bsp_plane_t *plane __attribute__((unused)),
+		const cm_bsp_surface_t *surf __attribute__((unused))) {
 
-	if (other->locals.health > 0) {
+	if (other->locals.move_type == MOVE_TYPE_WALK || other->locals.move_type == MOVE_TYPE_BOUNCE) {
 
 		VectorScale(self->locals.move_dir, self->locals.speed * 10.0, other->locals.velocity);
 		if (other->client) {
@@ -302,8 +302,8 @@ static void G_trigger_hurt_Use(g_entity_t *self, g_entity_t *other __attribute__
  * @brief
  */
 static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
-		cm_bsp_plane_t *plane __attribute__((unused)),
-		cm_bsp_surface_t *surf __attribute__((unused))) {
+		const cm_bsp_plane_t *plane __attribute__((unused)),
+		const cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (!other->locals.take_damage) { // deal with items that land on us
 
@@ -314,7 +314,7 @@ static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
 				G_FreeEntity(other);
 		}
 
-		gi.Debug("%s\n", other->class_name);
+		gi.Debug("%s\n", etos(other));
 		return;
 	}
 
@@ -374,8 +374,8 @@ void G_trigger_hurt(g_entity_t *self) {
  * @brief
  */
 static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other __attribute__((unused)),
-		cm_bsp_plane_t *plane __attribute__((unused)),
-		cm_bsp_surface_t *surf __attribute__((unused))) {
+		const cm_bsp_plane_t *plane __attribute__((unused)),
+		const cm_bsp_surface_t *surf __attribute__((unused))) {
 
 	if (self->locals.timestamp > g_level.time)
 		return;

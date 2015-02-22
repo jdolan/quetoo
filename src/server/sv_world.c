@@ -172,8 +172,8 @@ void Sv_LinkEntity(g_entity_t *ent) {
 		VectorAdd(ent->s.origin, ent->maxs, ent->abs_maxs);
 	}
 
-	// because movement is clipped an epsilon away from an actual edge,
-	// we must fully check even when bounding boxes don't quite touch
+	// spread the bounds to ensure that any rounding to the network
+	// protocol precision doesn't conflict with collision detection
 	ent->abs_mins[0] -= 1.0;
 	ent->abs_mins[1] -= 1.0;
 	ent->abs_mins[2] -= 1.0;
@@ -268,19 +268,19 @@ void Sv_LinkEntity(g_entity_t *ent) {
 static _Bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
 
 	switch (ent->solid) {
-		case SOLID_BOX:
-		case SOLID_DEAD:
-		case SOLID_BSP:
-			if (sv_world.box_type == BOX_SOLID)
-				return true;
-			break;
-
 		case SOLID_TRIGGER:
-			if (sv_world.box_type == BOX_TRIGGER)
+			if (sv_world.box_type & BOX_OCCUPY)
 				return true;
 			break;
 
-		default:
+		case SOLID_DEAD:
+		case SOLID_BOX:
+		case SOLID_BSP:
+			if (sv_world.box_type & BOX_COLLIDE)
+				return true;
+			break;
+
+		case SOLID_NOT:
 			break;
 	}
 
@@ -386,7 +386,7 @@ int32_t Sv_PointContents(const vec3_t point) {
 	int32_t contents = Cm_PointContents(point, 0);
 
 	// as well as contents from all intersected entities
-	const size_t len = Sv_BoxEntities(point, point, entities, lengthof(entities), BOX_SOLID);
+	const size_t len = Sv_BoxEntities(point, point, entities, lengthof(entities), BOX_COLLIDE);
 
 	// iterate the area entities, checking each one for an intersection
 	for (size_t i = 0; i < len; i++) {
@@ -418,7 +418,7 @@ typedef struct {
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 	g_entity_t *e[MAX_ENTITIES];
 
-	const size_t len = Sv_BoxEntities(trace->box_mins, trace->box_maxs, e, lengthof(e), BOX_SOLID);
+	const size_t len = Sv_BoxEntities(trace->box_mins, trace->box_maxs, e, lengthof(e), BOX_COLLIDE);
 
 	for (size_t i = 0; i < len; i++) {
 		g_entity_t *ent = e[i];

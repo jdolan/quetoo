@@ -20,6 +20,7 @@
  */
 
 #include "g_local.h"
+#include "bg_pmove.h"
 
 const vec3_t ITEM_MINS = { -16.0, -16.0, -16.0 };
 const vec3_t ITEM_MAXS = { 16.0, 16.0, 16.0 };
@@ -534,13 +535,19 @@ static g_entity_t *G_DropFlag(g_entity_t *ent, const g_item_t *item __attribute_
 /*
  * @brief
  */
-void G_TouchItem(g_entity_t *ent, g_entity_t *other, cm_bsp_plane_t *plane __attribute__((unused)), cm_bsp_surface_t *surf __attribute__((unused))) {
-	_Bool taken;
+void G_TouchItem(g_entity_t *ent, g_entity_t *other,
+		const cm_bsp_plane_t *plane __attribute__((unused)),
+		const cm_bsp_surface_t *surf __attribute__((unused))) {
+
+	if (other == ent->owner) {
+		if (ent->locals.ground_entity == NULL)
+			return;
+	}
 
 	if (!other->client)
 		return;
 
-	if (other->locals.health < 1)
+	if (other->locals.dead)
 		return; // dead people can't pickup
 
 	if (!ent->locals.item->Pickup)
@@ -549,7 +556,8 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, cm_bsp_plane_t *plane __att
 	if (g_level.warmup)
 		return; // warmup mode
 
-	if ((taken = ent->locals.item->Pickup(ent, other))) {
+	const _Bool pickup = ent->locals.item->Pickup(ent, other);
+	if (pickup) {
 		// show icon and name on status bar
 		uint16_t icon = gi.ImageIndex(ent->locals.item->icon);
 
@@ -573,7 +581,7 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, cm_bsp_plane_t *plane __att
 		ent->locals.spawn_flags |= SF_ITEM_TARGETS_USED;
 	}
 
-	if (taken) {
+	if (pickup) {
 		if (ent->locals.spawn_flags & SF_ITEM_DROPPED) {
 			G_FreeEntity(ent);
 		}
@@ -583,52 +591,33 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, cm_bsp_plane_t *plane __att
 /*
  * @brief
  */
-static void G_DropItemUntouchable(g_entity_t *ent, g_entity_t *other, cm_bsp_plane_t *plane,
-		cm_bsp_surface_t *surf) {
-
-	if (other == ent->owner) // prevent the dropper from picking it right back up
-		return;
-
-	G_TouchItem(ent, other, plane, surf);
-}
-
-/*
- * @brief
- */
 static void G_DropItem_Think(g_entity_t *ent) {
-	int32_t contents;
-	uint32_t i;
 
-	if (!ent->locals.ground_entity) { // keep falling in valid space
+	// continue to think as we drop to the floor
+	if (ent->locals.ground_entity) {
+
+		if (ent->locals.item->type == ITEM_FLAG) // flags go back to base
+			ent->locals.Think = G_ResetDroppedFlag;
+		else // everything else just gets freed
+			ent->locals.Think = G_FreeEntity;
+
+		uint32_t expiration;
+		if (ent->locals.item->type == ITEM_POWERUP) // expire from last touch
+			expiration = ent->locals.timestamp - g_level.time;
+		else // general case
+			expiration = 30000;
+
+		const int32_t contents = gi.PointContents(ent->s.origin);
+
+		if (contents & CONTENTS_LAVA) // expire more quickly in lava
+			expiration /= 5;
+		if (contents & CONTENTS_SLIME) // and slime
+			expiration /= 2;
+
+		ent->locals.next_think = g_level.time + expiration;
+	} else {
 		ent->locals.next_think = g_level.time + gi.frame_millis;
-		return;
 	}
-
-	// allow anyone to pick it up
-	ent->locals.Touch = G_TouchItem;
-
-	// setup the next think function and time
-
-	if (ent->locals.item->type == ITEM_FLAG) // flags go back to base
-		ent->locals.Think = G_ResetDroppedFlag;
-	else
-		// everything else just gets freed
-		ent->locals.Think = G_FreeEntity;
-
-	if (ent->locals.item->type == ITEM_POWERUP) // expire from last touch
-		i = ent->locals.timestamp - g_level.time;
-	else
-		// general case
-		i = 30000;
-
-	contents = gi.PointContents(ent->s.origin);
-
-	if (contents & CONTENTS_LAVA) // expire more quickly in lava
-		i /= 5;
-	if (contents & CONTENTS_SLIME) // and slime
-		i /= 2;
-
-	ent->locals.next_think = g_level.time + i;
 }
 
 /*
@@ -676,8 +665,8 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 
 	it->locals.item = item;
 	it->locals.spawn_flags |= SF_ITEM_DROPPED;
-	it->locals.move_type = MOVE_TYPE_TOSS;
-	it->locals.Touch = G_DropItemUntouchable;
+	it->locals.move_type = MOVE_TYPE_BOUNCE;
+	it->locals.Touch = G_TouchItem;
 	it->s.effects = item->effects;
 
 	gi.SetModel(it, item->model);
@@ -765,7 +754,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 	VectorCopy(ent->s.origin, dest);
 
 	if (!(ent->locals.spawn_flags & SF_ITEM_HOVER)) {
-		ent->locals.move_type = MOVE_TYPE_TOSS;
+		ent->locals.move_type = MOVE_TYPE_BOUNCE;
 
 		// make an effort to come up out of the floor (broken maps)
 		tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_SOLID);
@@ -872,7 +861,7 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 	if (ent->locals.item->type == ITEM_WEAPON) {
 		const g_item_t *ammo = G_FindItem(ent->locals.item->ammo);
 		if (ammo)
-			ent->locals.health = ammo->quantity; // TODO use "count"?
+			ent->locals.health = ammo->quantity;
 		else
 			ent->locals.health = 0;
 	}

@@ -321,14 +321,13 @@ typedef enum {
  */
 typedef enum {
 	MOVE_TYPE_NONE, // never moves
-	MOVE_TYPE_NO_CLIP, // origin and angles change with no interaction
+	MOVE_TYPE_NO_CLIP, // never interacts
 	MOVE_TYPE_PUSH, // no clip to world, push on box contact
 	MOVE_TYPE_STOP, // no clip to world, stops on box contact
 
-	MOVE_TYPE_WALK, // gravity
-	MOVE_TYPE_FLY,
-	MOVE_TYPE_TOSS,
-	// gravity
+	MOVE_TYPE_WALK, // use Pm_Move, not G_Move
+	MOVE_TYPE_FLY, // clip to world and boxes, no gravity
+	MOVE_TYPE_BOUNCE // clip to world and boxes, gravity, bounce
 } g_move_type_t;
 
 /*
@@ -774,7 +773,7 @@ typedef struct {
 	uint32_t next_think;
 	void (*Think)(g_entity_t *self);
 	void (*Blocked)(g_entity_t *self, g_entity_t *other); // move to move_info?
-	void (*Touch)(g_entity_t *self, g_entity_t *other, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf);
+	void (*Touch)(g_entity_t *self, g_entity_t *other, const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf);
 	void (*Use)(g_entity_t *self, g_entity_t *other, g_entity_t *activator);
 	void (*Pain)(g_entity_t *self, g_entity_t *other, int16_t damage, int16_t knockback);
 	void (*Die)(g_entity_t *self, g_entity_t *attacker, uint32_t mod);
@@ -809,6 +808,7 @@ typedef struct {
 	g_entity_t *ground_entity;
 	cm_bsp_plane_t ground_plane;
 	cm_bsp_surface_t *ground_surface;
+	int32_t ground_contents;
 
 	int32_t water_type;
 	uint8_t old_water_level;

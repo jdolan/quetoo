@@ -134,8 +134,8 @@ static void G_BulletMark(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *su
 /*
  * @brief Used to add burn marks on surfaces hit by projectiles.
  */
-static void G_BurnMark(vec3_t org, cm_bsp_plane_t *plane,
-		cm_bsp_surface_t *surf __attribute__((unused)), uint8_t scale) {
+static void G_BurnMark(vec3_t org, const cm_bsp_plane_t *plane,
+		const cm_bsp_surface_t *surf __attribute__((unused)), uint8_t scale) {
 
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_BURN);
@@ -149,16 +149,20 @@ static void G_BurnMark(vec3_t org, cm_bsp_plane_t *plane,
 /*
  * @brief
  */
-static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other, cm_bsp_plane_t *plane,
-		cm_bsp_surface_t *surf __attribute__((unused))) {
+static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
+		const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf) {
 
 	if (other == self->owner)
 		return;
 
-	if (G_TakesDamage(other)) { // damage what we hit
+	if (other->solid < SOLID_DEAD)
+		return;
+
+	if (!G_IsSky(surf)) {
+
 		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
 				self->locals.damage, self->locals.knockback, 0, MOD_BLASTER);
-	} else {
+
 		if (G_IsStructural(other, surf)) {
 			vec3_t origin;
 
@@ -236,21 +240,17 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 		VectorMA(end, Randomc() * vspread, up, end);
 
 		tr = gi.Trace(start, end, NULL, NULL, ent, MASK_CLIP_PROJECTILE);
-	}
-
-	// send trails and marks
-	if (tr.fraction < 1.0) {
-
-		if (G_TakesDamage(tr.ent)) { // bleed and damage the enemy
-			G_Damage(tr.ent, ent, ent, dir, tr.end, tr.plane.normal, damage, knockback, DMG_BULLET,
-					mod);
-		} else { // leave an impact mark on the wall
-			if (G_IsStructural(tr.ent, tr.surface)) {
-				G_BulletMark(tr.end, &tr.plane, tr.surface);
-			}
-		}
 
 		G_Tracer(start, tr.end);
+	}
+
+	if (tr.fraction < 1.0) {
+
+		G_Damage(tr.ent, ent, ent, dir, tr.end, tr.plane.normal, damage, knockback, DMG_BULLET, mod);
+
+		if (G_IsStructural(tr.ent, tr.surface)) {
+			G_BulletMark(tr.end, &tr.plane, tr.surface);
+		}
 
 		if ((gi.PointContents(start) & MASK_LIQUID) || (gi.PointContents(tr.end) & MASK_LIQUID))
 			G_BubbleTrail(start, &tr);
@@ -296,8 +296,12 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 	G_RadiusDamage(self, self->owner, self->locals.enemy, self->locals.damage,
 			self->locals.knockback, self->locals.damage_radius, MOD_GRENADE_SPLASH);
 
-	if (G_IsStationary(self->locals.ground_entity))
-		VectorMA(self->s.origin, 16.0, self->locals.ground_plane.normal, origin);
+	const g_entity_t *ent = self->locals.ground_entity;
+	const cm_bsp_plane_t *plane = &self->locals.ground_plane;
+	const cm_bsp_surface_t *surf = self->locals.ground_surface;
+
+	if (ent)
+		VectorMA(self->s.origin, 16.0, plane->normal, origin);
 	else
 		VectorCopy(self->s.origin, origin);
 
@@ -306,8 +310,10 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 	gi.WritePosition(origin);
 	gi.Multicast(origin, MULTICAST_PHS);
 
-	if (G_IsStationary(self->locals.ground_entity)) {
-		G_BurnMark(self->s.origin, &self->locals.ground_plane, self->locals.ground_surface, 20);
+	if (ent) {
+		if (G_IsStructural(ent, surf) && G_IsStationary(ent)) {
+			G_BurnMark(self->s.origin, plane, surf, 20);
+		}
 	}
 
 	G_FreeEntity(self);
@@ -317,19 +323,24 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
  * @brief
  */
 static void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
-		cm_bsp_plane_t *plane __attribute__((unused)), cm_bsp_surface_t *surf) {
+		const cm_bsp_plane_t *plane __attribute__((unused)), const cm_bsp_surface_t *surf) {
 
 	if (other == self->owner)
+		return;
+
+	if (other->solid < SOLID_DEAD)
 		return;
 
 	if (!G_TakesDamage(other)) { // bounce off of structural solids
 
 		if (G_IsStructural(other, surf)) {
 			if (g_level.time - self->locals.touch_time > 200) {
-				gi.Sound(self, g_media.sounds.grenade_hit, ATTEN_NORM);
-				self->locals.touch_time = g_level.time;
+				if (VectorLength(self->locals.velocity) > 40.0) {
+					gi.Sound(self, g_media.sounds.grenade_hit, ATTEN_NORM);
+					self->locals.touch_time = g_level.time;
+				}
 			}
-		} else {
+		} else if (G_IsSky(surf)) {
 			G_FreeEntity(self);
 		}
 
@@ -358,7 +369,7 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 	VectorScale(dir, speed, projectile->locals.velocity);
 
 	VectorMA(projectile->locals.velocity, 200.0 + Randomc() * 10.0, up, projectile->locals.velocity);
-	VectorMA(projectile->locals.velocity, Randomc() * 30.0, right, projectile->locals.velocity);
+	VectorMA(projectile->locals.velocity, Randomc() * 10.0, right, projectile->locals.velocity);
 
 	G_PlayerProjectile(projectile, 0.33);
 
@@ -373,7 +384,7 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
 	projectile->locals.knockback = knockback;
-	projectile->locals.move_type = MOVE_TYPE_TOSS;
+	projectile->locals.move_type = MOVE_TYPE_BOUNCE;
 	projectile->locals.next_think = g_level.time + timer;
 	projectile->locals.take_damage = true;
 	projectile->locals.Think = G_GrenadeProjectile_Explode;
@@ -392,37 +403,40 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 /*
  * @brief
  */
-static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other, cm_bsp_plane_t *plane,
-		cm_bsp_surface_t *surf) {
+static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
+		const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf) {
 
 	if (other == self->owner)
 		return;
 
-	if (G_TakesDamage(other)) {
-		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
-				self->locals.damage, self->locals.knockback, 0, MOD_ROCKET);
-	}
+	if (other->solid < SOLID_DEAD)
+		return;
 
-	if (G_IsStructural(other, surf) || G_IsMeat(other)) {
-		vec3_t origin;
+	if (!G_IsSky(surf)) {
 
-		if (plane && surf)
-			VectorMA(self->s.origin, 16.0, plane->normal, origin);
-		else
-			VectorCopy(self->s.origin, origin);
+		if (G_IsStructural(other, surf) || G_IsMeat(other)) {
 
-		gi.WriteByte(SV_CMD_TEMP_ENTITY);
-		gi.WriteByte(TE_EXPLOSION);
-		gi.WritePosition(origin);
-		gi.Multicast(origin, MULTICAST_PHS);
+			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
+					self->locals.damage, self->locals.knockback, 0, MOD_ROCKET);
 
-		// hurt anything else nearby
-		G_RadiusDamage(self, self->owner, other, self->locals.damage, self->locals.knockback,
-				self->locals.damage_radius, MOD_ROCKET_SPLASH);
+			G_RadiusDamage(self, self->owner, other, self->locals.damage, self->locals.knockback,
+					self->locals.damage_radius, MOD_ROCKET_SPLASH);
 
-		if (G_IsStructural(other, surf)) { // leave a burn mark
-			VectorMA(self->s.origin, 2.0, plane->normal, origin);
-			G_BurnMark(origin, plane, surf, 20);
+			vec3_t origin;
+			if (G_IsStructural(other, surf))
+				VectorMA(self->s.origin, 16.0, plane->normal, origin);
+			else
+				VectorCopy(self->s.origin, origin);
+
+			gi.WriteByte(SV_CMD_TEMP_ENTITY);
+			gi.WriteByte(TE_EXPLOSION);
+			gi.WritePosition(origin);
+			gi.Multicast(origin, MULTICAST_PHS);
+
+			if (G_IsStructural(other, surf) && G_IsStationary(other)) {
+				VectorMA(self->s.origin, 2.0, plane->normal, origin);
+				G_BurnMark(origin, plane, surf, 20);
+			}
 		}
 	}
 
@@ -467,45 +481,50 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 /*
  * @brief
  */
-static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other, cm_bsp_plane_t *plane,
-		cm_bsp_surface_t *surf) {
-	vec3_t origin;
-	vec3_t v;
+static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
+		const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf) {
 
 	if (other == self->owner)
 		return;
 
-	if (surf && (surf->flags & SURF_SKY)) {
-		G_FreeEntity(self);
+	if (other->solid < SOLID_DEAD)
 		return;
-	}
 
-	// calculate position for the explosion entity
-	if (plane && surf)
-		VectorMA(self->s.origin, 16.0, plane->normal, origin);
-	else
-		VectorCopy(self->s.origin, origin);
+	if (!G_IsSky(surf)) {
 
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_HYPERBLASTER);
-	gi.WritePosition(origin);
-	gi.Multicast(origin, MULTICAST_PHS);
+		if (G_IsStructural(other, surf) || G_IsMeat(other)) {
 
-	if (other->locals.take_damage) {
-		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
-				self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_HYPERBLASTER);
-	} else {
-		if (G_IsStructural(other, surf)) { // leave a burn mark
-			VectorMA(self->s.origin, 2.0, plane->normal, origin);
-			G_BurnMark(origin, plane, surf, 10);
+			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
+					self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_HYPERBLASTER);
 
-			VectorSubtract(self->s.origin, self->owner->s.origin, v);
+			vec3_t origin;
+			if (G_IsStructural(other, surf)) {
+				VectorMA(self->s.origin, 16.0, plane->normal, origin);
+			} else if (G_IsMeat(other)) {
+				VectorCopy(self->s.origin, origin);
+			}
 
-			if (VectorLength(v) < 32.0) { // hyperblaster climb
-				G_Damage(self->owner, self, self->owner, NULL, self->s.origin, plane->normal,
-						self->locals.damage * 0.06, 0, DMG_ENERGY, MOD_HYPERBLASTER);
+			gi.WriteByte(SV_CMD_TEMP_ENTITY);
+			gi.WriteByte(TE_HYPERBLASTER);
+			gi.WritePosition(origin);
+			gi.Multicast(origin, MULTICAST_PHS);
 
-				self->owner->locals.velocity[2] += 80.0;
+			if (G_IsStructural(other, surf)) {
+
+				vec3_t v;
+				VectorSubtract(self->s.origin, self->owner->s.origin, v);
+
+				if (VectorLength(v) < 32.0) { // hyperblaster climb
+					G_Damage(self->owner, self, self->owner, NULL, self->s.origin, plane->normal,
+							self->locals.damage * 0.06, 0, DMG_ENERGY, MOD_HYPERBLASTER);
+
+					self->owner->locals.velocity[2] += 80.0;
+				}
+
+				if (G_IsStationary(other)) {
+					VectorMA(self->s.origin, 2.0, plane->normal, origin);
+					G_BurnMark(origin, plane, surf, 10);
+				}
 			}
 		}
 	}
@@ -650,8 +669,10 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 			G_Damage(tr.ent, self, self->owner, forward, tr.end, tr.plane.normal,
 					self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_LIGHTNING);
 		} else { // or leave a mark
-			if ((tr.contents & MASK_SOLID) && G_IsStructural(tr.ent, tr.surface))
-				G_BurnMark(tr.end, &tr.plane, tr.surface, 8);
+			if (tr.contents & MASK_SOLID) {
+				if (G_IsStructural(tr.ent, tr.surface) && G_IsStationary(tr.ent))
+					G_BurnMark(tr.end, &tr.plane, tr.surface, 8);
+			}
 		}
 		self->locals.damage = 0;
 	}
@@ -804,7 +825,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	}
 
 	// calculate position of burn mark
-	if (G_IsStructural(tr.ent, tr.surface)) {
+	if (G_IsStructural(tr.ent, tr.surface) && G_IsStationary(tr.ent)) {
 		VectorMA(tr.end, -1.0, dir, tr.end);
 		G_BurnMark(tr.end, &tr.plane, tr.surface, 12);
 	}
@@ -813,40 +834,44 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 /*
  * @brief
  */
-static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, cm_bsp_plane_t *plane,
-		cm_bsp_surface_t *surf) {
+static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_bsp_plane_t *plane,
+		const cm_bsp_surface_t *surf) {
+
 	vec3_t pos;
 
 	if (other == self->owner)
 		return;
 
-	if (surf && (surf->flags & SURF_SKY)) {
-		G_FreeEntity(self);
+	if (other->solid < SOLID_DEAD)
 		return;
-	}
 
-	// calculate position for the explosion entity
-	if (plane && surf)
-		VectorMA(self->s.origin, 16.0, plane->normal, pos);
-	else
-		VectorCopy(self->s.origin, pos);
+	if (!G_IsSky(surf)) {
 
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_BFG);
-	gi.WritePosition(pos);
-	gi.Multicast(pos, MULTICAST_PHS);
+		if (G_IsStructural(other, surf) || G_IsMeat(other)) {
 
-	if (other->locals.take_damage) // hurt what we hit
-		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
-				self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_BFG_BLAST);
+			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
+					self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_BFG_BLAST);
 
-	// and anything nearby too
-	G_RadiusDamage(self, self->owner, other, self->locals.damage, self->locals.knockback,
-			self->locals.damage_radius, MOD_BFG_BLAST);
+			G_RadiusDamage(self, self->owner, other, self->locals.damage, self->locals.knockback,
+					self->locals.damage_radius, MOD_BFG_BLAST);
 
-	if (G_IsStructural(other, surf)) { // leave a burn mark
-		VectorMA(self->s.origin, 2.0, plane->normal, pos);
-		G_BurnMark(pos, plane, surf, 30);
+			vec3_t origin;
+			if (G_IsStructural(other, surf))
+				VectorMA(self->s.origin, 16.0, plane->normal, origin);
+			else
+				VectorCopy(self->s.origin, origin);
+
+			gi.WriteByte(SV_CMD_TEMP_ENTITY);
+			gi.WriteByte(TE_BFG);
+			gi.WritePosition(origin);
+			gi.Multicast(origin, MULTICAST_PHS);
+
+			if (G_IsStructural(other, surf) && G_IsStationary(other)) {
+
+				VectorMA(self->s.origin, 2.0, plane->normal, pos);
+				G_BurnMark(pos, plane, surf, 30);
+			}
+		}
 	}
 
 	G_FreeEntity(self);

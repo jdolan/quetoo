@@ -53,7 +53,7 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item);
 _Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);
 g_entity_t *G_TossFlag(g_entity_t *self);
 g_entity_t *G_TossQuadDamage(g_entity_t *self);
-void G_TouchItem(g_entity_t *ent, g_entity_t *other, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf);
+void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_bsp_plane_t *plane, const cm_bsp_surface_t *surf);
 
 #endif /* __GAME_LOCAL_H__ */
 

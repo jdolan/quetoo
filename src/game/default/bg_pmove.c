@@ -426,51 +426,43 @@ static void Pm_Gravity(void) {
  * @brief
  */
 static void Pm_Currents(vec3_t vel) {
-	vec3_t v;
+	vec3_t current;
+
+	VectorClear(current);
 
 	// add water currents
-	if (pm->water_type & MASK_CURRENT) {
-		VectorClear(v);
-
+	if (pm->water_level) {
 		if (pm->water_type & CONTENTS_CURRENT_0)
-			v[0] += 1.0;
+			current[0] += 1.0;
 		if (pm->water_type & CONTENTS_CURRENT_90)
-			v[1] += 1.0;
+			current[1] += 1.0;
 		if (pm->water_type & CONTENTS_CURRENT_180)
-			v[0] -= 1.0;
+			current[0] -= 1.0;
 		if (pm->water_type & CONTENTS_CURRENT_270)
-			v[1] -= 1.0;
+			current[1] -= 1.0;
 		if (pm->water_type & CONTENTS_CURRENT_UP)
-			v[2] += 1.0;
+			current[2] += 1.0;
 		if (pm->water_type & CONTENTS_CURRENT_DOWN)
-			v[2] -= 1.0;
-
-		vec_t s = PM_SPEED_RUN;
-		if ((pm->water_level == 1) && pm->ground_entity)
-			s = PM_SPEED_WATER;
-
-		VectorMA(vel, s, v, vel);
+			current[2] -= 1.0;
 	}
 
 	// add conveyer belt velocities
 	if (pm->ground_entity) {
-		VectorClear(v);
-
 		if (pml.ground_contents & CONTENTS_CURRENT_0)
-			v[0] += 1.0;
+			current[0] += 1.0;
 		if (pml.ground_contents & CONTENTS_CURRENT_90)
-			v[1] += 1.0;
+			current[1] += 1.0;
 		if (pml.ground_contents & CONTENTS_CURRENT_180)
-			v[0] -= 1.0;
+			current[0] -= 1.0;
 		if (pml.ground_contents & CONTENTS_CURRENT_270)
-			v[1] -= 1.0;
+			current[1] -= 1.0;
 		if (pml.ground_contents & CONTENTS_CURRENT_UP)
-			v[2] += 1.0;
+			current[2] += 1.0;
 		if (pml.ground_contents & CONTENTS_CURRENT_DOWN)
-			v[2] -= 1.0;
-
-		VectorMA(vel, PM_SPEED_CURRENT, v, vel);
+			current[2] -= 1.0;
 	}
+
+	VectorMA(vel, PM_SPEED_CURRENT, current, vel);
 }
 
 /*
@@ -1262,7 +1254,9 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	Pm_InitLocal();
 
-	Pm_SnapPosition();
+	if (!Pm_SnapPosition()) {
+		Pm_Debug("Failed to snap initial position: %s\n", vtos(pml.origin));
+	}
 
 	if (pm->s.type == PM_SPECTATOR) { // fly around without world interaction
 
@@ -1317,11 +1311,9 @@ void Pm_Move(pm_move_t *pm_move) {
 	}
 
 	if (!Pm_SnapPosition()) { // finalize the move, revert it if necessary
-
-		Pm_Debug("Failed to snap to final position: %s\n", vtos(pml.origin));
+		Pm_Debug("Failed to snap final position: %s\n", vtos(pml.origin));
 
 		PackVector(pml.previous_origin, pm->s.origin);
-
 		VectorClear(pm->s.velocity);
 	}
 }
