@@ -197,23 +197,22 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	const uint8_t col = ent->current.client ? ent->current.client : EFFECT_COLOR_ORANGE;
 
 	if (ent->time < cgi.client->time) {
-		cg_particle_t *p;
 		vec3_t delta;
-		vec_t d, dist, step;
 
-		step = 0.5;
+		vec_t step = 0.5;
 
 		if (cgi.PointContents(end) & MASK_LIQUID) {
 			Cg_BubbleTrail(start, end, 12.0);
 			step = 1.5;
 		}
 
-		d = 0.0;
+		vec_t d = 0.0;
 
 		VectorSubtract(end, start, delta);
-		dist = VectorNormalize(delta);
+		const vec_t dist = VectorNormalize(delta);
 
 		while (d < dist) {
+			cg_particle_t *p;
 
 			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
 				break;
@@ -227,7 +226,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 			VectorMA(start, d, delta, p->part.org);
 			VectorScale(delta, 600.0, p->vel);
-			VectorScale(delta, -600.0, p->accel);
+			VectorScale(delta, -800.0, p->accel);
 
 			d += step;
 		}
@@ -255,7 +254,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 	r_light_t l;
 	VectorCopy(end, l.origin);
-	l.radius = 75.0 + (10.0 * Randomc());
+	l.radius = 75.0;
 	VectorCopy(color, l.color);
 
 	cgi.AddLight(&l);
