@@ -206,7 +206,7 @@ static void G_Friction(g_entity_t *ent) {
 		vel[2] = 0.0;
 	}
 
-	const vec_t speed = VectorLength(ent->locals.velocity);
+	const vec_t speed = VectorLength(vel);
 
 	if (speed < 1.0) {
 		VectorClear(ent->locals.velocity);
@@ -277,9 +277,7 @@ static void G_Gravity(g_entity_t *ent) {
  * @see Pm_Currents
  */
 static void G_Currents(g_entity_t *ent) {
-	vec3_t vel, current;
-
-	VectorCopy(ent->locals.velocity, vel);
+	vec3_t current;
 
 	VectorClear(current);
 
