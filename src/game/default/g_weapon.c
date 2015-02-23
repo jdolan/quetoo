@@ -54,43 +54,6 @@ _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 }
 
 /*
- * @brief The old weapon has been put away, so make the new one current
- */
-void G_ChangeWeapon(g_entity_t *ent) {
-
-	// change weapon
-	ent->client->locals.persistent.last_weapon = ent->client->locals.persistent.weapon;
-	ent->client->locals.persistent.weapon = ent->client->locals.new_weapon;
-	ent->client->locals.new_weapon = NULL;
-
-	// update weapon state
-	if (ent->client->locals.weapon_fire_time < g_level.time + 400) {
-		ent->client->locals.weapon_fire_time = g_level.time + 400;
-	}
-
-	// resolve ammo
-	if (ent->client->locals.persistent.weapon && ent->client->locals.persistent.weapon->ammo)
-		ent->client->locals.ammo_index = ITEM_INDEX(
-				G_FindItem(ent->client->locals.persistent.weapon->ammo));
-	else
-		ent->client->locals.ammo_index = 0;
-
-	// set visible model
-	if (ent->client->locals.persistent.weapon)
-		ent->s.model2 = gi.ModelIndex(ent->client->locals.persistent.weapon->model);
-	else
-		ent->s.model2 = 0;
-
-	if (ent->locals.health < 1)
-		return;
-
-	G_SetAnimation(ent, ANIM_TORSO_DROP, false);
-
-	// play a sound
-	gi.Sound(ent, g_media.sounds.weapon_switch, ATTEN_NORM);
-}
-
-/*
  * @brief
  */
 void G_UseBestWeapon(g_client_t *client) {
@@ -164,6 +127,7 @@ void G_UseWeapon(g_entity_t *ent, const g_item_t *item) {
 
 	// change to this weapon when down
 	ent->client->locals.new_weapon = item;
+	G_ChangeWeapon(ent);
 }
 
 /*
@@ -245,7 +209,7 @@ static _Bool G_FireWeapon(g_entity_t *ent) {
 
 	ent->client->locals.latched_buttons &= ~BUTTON_ATTACK;
 
-	// use small epsilon for low frame_num rates
+	// use small epsilon for low server frame rates
 	if (ent->client->locals.weapon_fire_time > g_level.time + 1)
 		return false;
 
@@ -305,22 +269,54 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
 /*
  * @brief
  */
+void G_ChangeWeapon(g_entity_t *ent) {
+
+	ent->client->locals.weapon_change_time = g_level.time;
+	ent->client->locals.weapon_fire_time = g_level.time + 500;
+
+	if (ent->locals.dead)
+		return;
+
+	G_SetAnimation(ent, ANIM_TORSO_DROP, false);
+
+	gi.Sound(ent, g_media.sounds.weapon_switch, ATTEN_NORM);
+}
+
+/*
+ * @brief
+ */
 void G_ClientWeaponThink(g_entity_t *ent) {
 
-	if (ent->locals.health < 1)
+	if (ent->locals.dead)
 		return;
 
 	ent->client->locals.weapon_think_time = g_level.time;
 
-	if (ent->client->locals.new_weapon) {
-		G_ChangeWeapon(ent);
-		return;
-	}
+	if (ent->client->locals.new_weapon) { // changing weapons
 
-	// see if we should raise the weapon
-	if (ent->client->locals.weapon_fire_time >= g_level.time) {
-		if (G_IsAnimation(ent, ANIM_TORSO_DROP))
+		uint32_t delta = g_level.time - ent->client->locals.weapon_change_time;
+
+		if (delta >= 200) {
+
+			ent->client->locals.persistent.last_weapon = ent->client->locals.persistent.weapon;
+			ent->client->locals.persistent.weapon = ent->client->locals.new_weapon;
+			ent->client->locals.new_weapon = NULL;
+
+		} else if (delta >= 100) {
+
 			G_SetAnimation(ent, ANIM_TORSO_RAISE, false);
+
+			ent->client->locals.ammo_index = 0;
+			ent->s.model2 = 0;
+
+			const g_item_t *weapon = ent->client->locals.new_weapon;
+			if (weapon) {
+				if (weapon->ammo) {
+					ent->client->locals.ammo_index = ITEM_INDEX(G_FindItem(weapon->ammo));
+				}
+				ent->s.model2 = gi.ModelIndex(weapon->model);
+			}
+		}
 	}
 
 	// call active weapon fire routine

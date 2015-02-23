@@ -698,6 +698,7 @@ typedef struct {
 
 	uint32_t weapon_think_time; // time when the weapon think was called
 	uint32_t weapon_fire_time; // can fire when time > this
+	uint32_t weapon_change_time; // time when weapon was changed
 	const g_item_t *new_weapon;
 
 	int16_t damage_armor; // damage absorbed by armor

@@ -350,6 +350,10 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribut
 /*
  * @brief Spawns a corpse for the specified client. The corpse will eventually
  * sink into the floor and disappear if not over-killed.
+ *
+ * TODO: This is incorrect. The client should initiate the animations and
+ * remain SOLID_DEAD until the player respawns. At that point, the corpse
+ * should take over.
  */
 static void G_ClientCorpse(g_entity_t *self) {
 
@@ -585,7 +589,6 @@ static void G_InitClientPersistent(g_client_t *client) {
 
 	// clean up weapon state
 	client->locals.persistent.last_weapon = NULL;
-	client->locals.new_weapon = NULL;
 }
 
 /*
@@ -788,7 +791,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 
 	VectorClear(ent->locals.velocity);
 	if (!ent->client->locals.persistent.spectator) {
-		ent->locals.velocity[2] = 200.0;
+		ent->locals.velocity[2] = PM_SPEED_JUMP;
 	}
 	PackVector(ent->locals.velocity, cl->ps.pm_state.velocity);
 
@@ -855,15 +858,14 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	cl->locals.persistent.match_num = g_level.match_num;
 	cl->locals.persistent.round_num = g_level.round_num;
 
+	// briefly disable firing of the weapon, as we've likely clicked to respawn
+	cl->locals.weapon_fire_time = g_level.time + 250;
+
 	gi.UnlinkEntity(ent);
 
-	G_KillBox(ent); // telefrag anyone in our spot
+	G_KillBox(ent); // kill anyone in our spot
 
 	gi.LinkEntity(ent);
-
-	// force the current weapon up
-	cl->locals.new_weapon = cl->locals.persistent.weapon;
-	G_ChangeWeapon(ent);
 }
 
 /*
