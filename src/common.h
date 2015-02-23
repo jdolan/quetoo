@@ -49,7 +49,7 @@
  *
  * @see src/master/main.c
  */
-#define IP_MASTER 			"67.228.69.114" // tastyspleen.net
+#define HOST_MASTER 		"quake2world.net"
 
 /*
  * @brief Default port for the master server.

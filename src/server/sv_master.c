@@ -64,7 +64,7 @@ void Sv_InitMasters(void) {
 	memset(&svs.masters, 0, sizeof(svs.masters));
 
 	// set default master server
-	Net_StringToNetaddr(IP_MASTER, &svs.masters[0]);
+	Net_StringToNetaddr(HOST_MASTER, &svs.masters[0]);
 	svs.masters[0].port = htons(PORT_MASTER);
 }
 

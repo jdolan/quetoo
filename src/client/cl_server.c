@@ -177,8 +177,8 @@ static void Cl_SendBroadcast(void) {
 void Cl_Servers_f(void) {
 	net_addr_t addr;
 
-	if (!Net_StringToNetaddr(IP_MASTER, &addr)) {
-		Com_Print("Failed to resolve %s\n", IP_MASTER);
+	if (!Net_StringToNetaddr(HOST_MASTER, &addr)) {
+		Com_Print("Failed to resolve %s\n", HOST_MASTER);
 		return;
 	}
 
