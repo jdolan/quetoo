@@ -748,15 +748,15 @@ static void G_SelectSpawnPoint(g_entity_t *ent, vec3_t origin, vec3_t angles) {
  * @brief The grunt work of putting the client into the server on [re]spawn.
  */
 static void G_ClientRespawn_(g_entity_t *ent) {
-	vec3_t spawn_origin, spawn_angles, old_angles;
-
-	// find a spawn point
-	G_SelectSpawnPoint(ent, spawn_origin, spawn_angles);
+	vec3_t old_angles, spawn_angles;
 
 	g_client_t *cl = ent->client;
 
 	// retain last angles for delta
-	VectorCopy(ent->client->locals.cmd_angles, old_angles);
+	VectorCopy(cl->locals.cmd_angles, old_angles);
+
+	// find a spawn point
+	G_SelectSpawnPoint(ent, ent->s.origin, spawn_angles);
 
 	// reset inventory, health, etc
 	G_InitClientPersistent(cl);
@@ -790,23 +790,26 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	ent->locals.max_health = ent->client->locals.persistent.max_health;
 
 	VectorClear(ent->locals.velocity);
+	VectorClear(ent->s.angles);
+
 	if (!ent->client->locals.persistent.spectator) {
-		ent->locals.velocity[2] = PM_SPEED_JUMP;
+		ent->s.origin[2] += PM_GROUND_DIST;
+		ent->locals.velocity[2] = PM_SPEED_JUMP * 0.66;
 	}
-	PackVector(ent->locals.velocity, cl->ps.pm_state.velocity);
 
 	cl->locals.land_time = g_level.time;
 
 	// clear player state values
 	memset(&cl->ps, 0, sizeof(cl->ps));
 
-	PackVector(spawn_origin, cl->ps.pm_state.origin);
+	PackVector(ent->s.origin, cl->ps.pm_state.origin);
+	PackVector(ent->locals.velocity, cl->ps.pm_state.velocity);
 
 	if (cl->locals.persistent.spectator) {
 		VectorClear(cl->ps.pm_state.view_offset);
 	} else { // project eyes to top-front of head
 		vec3_t offset;
-		VectorSet(offset, 0.0, 0.0, (ent->maxs[2] - ent->mins[2]) * 0.75);
+		VectorSet(offset, 0.0, 0.0, (ent->maxs[2] - ent->mins[2]) * 0.9);
 		PackVector(offset, cl->ps.pm_state.view_offset);
 	}
 
@@ -821,15 +824,9 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	G_SetAnimation(ent, ANIM_TORSO_STAND1, true);
 	G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
-	VectorCopy(spawn_origin, ent->s.origin);
-
 	// set the delta angle of the spawn point
 	VectorSubtract(spawn_angles, old_angles, old_angles);
 	PackAngles(old_angles, cl->ps.pm_state.delta_angles);
-
-	VectorClear(cl->locals.cmd_angles);
-	VectorClear(cl->locals.angles);
-	VectorClear(ent->s.angles);
 
 	// spawn a spectator
 	if (cl->locals.persistent.spectator) {
