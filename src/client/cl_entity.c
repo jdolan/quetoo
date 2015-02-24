@@ -22,36 +22,15 @@
 #include "cl_local.h"
 
 /*
- * @return True if the delta is valid and interpolation should be used.
- */
-static _Bool Cl_ValidDeltaPlayerState(const player_state_t *from, const player_state_t *to) {
-	vec3_t new_origin, old_origin, delta;
-
-	UnpackVector(from->pm_state.origin, old_origin);
-	UnpackVector(to->pm_state.origin, new_origin);
-
-	VectorSubtract(old_origin, new_origin, delta);
-
-	if (VectorLength(delta) > 256.0)
-		return false;
-
-	return true;
-}
-
-/*
  * @brief Parse the player_state_t for the current frame from the server, using delta
  * compression for all fields where possible.
  */
 static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	static player_state_t null_state;
 
-	if (delta_frame) {
-		if (Cl_ValidDeltaPlayerState(&delta_frame->ps, &frame->ps))
-			Net_ReadDeltaPlayerState(&net_message, &delta_frame->ps, &frame->ps);
-		else {
-			Net_ReadDeltaPlayerState(&net_message, &null_state, &frame->ps);
-		}
-	} else
+	if (delta_frame && delta_frame->valid)
+		Net_ReadDeltaPlayerState(&net_message, &delta_frame->ps, &frame->ps);
+	else
 		Net_ReadDeltaPlayerState(&net_message, &null_state, &frame->ps);
 
 	if (cl.demo_server) // if playing a demo, force freeze
@@ -272,8 +251,7 @@ void Cl_ParseFrame(void) {
 		if (cl.delta_frame->frame_num != cl.frame.delta_frame_num)
 			Com_Error(ERR_DROP, "Delta frame too old\n");
 
-		else if (cl.entity_state
-				- cl.delta_frame->entity_state> ENTITY_STATE_BACKUP - PACKET_BACKUP)
+		else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP)
 			Com_Error(ERR_DROP, "Delta parse_entities too old\n");
 
 		cl.frame.valid = true;

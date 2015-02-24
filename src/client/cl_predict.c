@@ -226,6 +226,8 @@ void Cl_CheckPredictionError(void) {
 	int16_t d[3];
 	vec3_t delta;
 
+	VectorClear(cl.predicted_state.error);
+
 	if (!Cl_UsePrediction())
 		return;
 
