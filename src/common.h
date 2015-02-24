@@ -49,7 +49,7 @@
  *
  * @see src/master/main.c
  */
-#define HOST_MASTER 		"quake2world.net"
+#define HOST_MASTER 		"master.quake2world.net"
 
 /*
  * @brief Default port for the master server.
