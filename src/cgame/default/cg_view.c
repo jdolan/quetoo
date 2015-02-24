@@ -56,15 +56,15 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps __attribute__((unused)
 	vec_t dist;
 	cm_trace_t tr;
 
-	cgi.client->third_person = cg_third_person->value;
+	cgi.client->third_person = cg_third_person->integer;
 
 	if (!cg_third_person->value)
 		return;
 
 	VectorCopy(cgi.view->angles, angles);
 
-	if (cg_third_person->value < 0.0) // in front of the player
-		angles[1] += 180.0;
+	if (cg_third_person->value < 0.0) // to the side (for debugging)
+		angles[1] += 90.0;
 
 	AngleVectors(angles, forward, NULL, NULL);
 
@@ -82,7 +82,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps __attribute__((unused)
 	// clip it to the world
 	VectorSet(mins, -5.0, -5.0, -5.0);
 	VectorSet(maxs, 5.0, 5.0, 5.0);
-	tr = cgi.Trace(cgi.view->origin, dest, mins, maxs, 0, MASK_CLIP_PROJECTILE);
+	tr = cgi.Trace(cgi.view->origin, dest, mins, maxs, 0, MASK_CLIP_PLAYER);
 	VectorCopy(tr.end, cgi.view->origin);
 
 	// adjust view angles to compensate for height offset
