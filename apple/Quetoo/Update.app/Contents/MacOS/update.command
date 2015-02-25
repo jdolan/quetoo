@@ -1,21 +1,21 @@
 #!/bin/bash
 
-QUAKE2WORLD_HOME=$(dirname "$0")
-QUAKE2WORLD_HOME=${QUAKE2WORLD_HOME/Update.app*/Quake2World.app}
+QUETOO_HOME=$(dirname "$0")
+QUETOO_HOME=${QUETOO_HOME/Update.app*/Quetoo.app}
 
-test -w "${QUAKE2WORLD_HOME}" || {
-	echo "${QUAKE2WORLD_HOME} is not writable" >&2
+test -w "${QUETOO_HOME}" || {
+	echo "${QUETOO_HOME} is not writable" >&2
 	exit 1
 }
 
 ARCH=$(uname -m)
 
 echo
-echo "Updating ${QUAKE2WORLD_HOME} for ${ARCH}.."
+echo "Updating ${QUETOO_HOME} for ${ARCH}.."
 echo
 
-APPLE=rsync://quake2world.net/quake2world-apple/${ARCH}/
-rsync -rLzhP --delete "${APPLE}" ${QUAKE2WORLD_HOME}/Contents || exit 2
+APPLE=rsync://quetoo.org/quetoo-apple/${ARCH}/
+rsync -rLzhP --delete "${APPLE}" ${QUETOO_HOME}/Contents || exit 2
 
 echo
 echo "Update complete."
