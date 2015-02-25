@@ -273,10 +273,15 @@ static void Cl_KeyGame(const SDL_Event *event) {
 	cmd[0] = '\0';
 
 	if (bind[0] == '+') { // button commands add key and time as a param
-		if (event->type == SDL_KEYDOWN)
-			g_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cls.real_time);
-		else
-			g_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cls.real_time);
+		if (event->type == SDL_KEYDOWN) {
+			if (ks->down[key] == false) {
+				g_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cls.real_time);
+			}
+		} else {
+			if (ks->down[key] == true) {
+				g_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cls.real_time);
+			}
+		}
 	} else {
 		if (event->type == SDL_KEYDOWN) {
 			g_snprintf(cmd, sizeof(cmd), "%s\n", bind);
@@ -580,8 +585,6 @@ void Cl_KeyEvent(const SDL_Event *event) {
 		return;
 	}
 
-	ks->down[event->key.keysym.scancode] = event->type == SDL_KEYDOWN;
-
 	switch (ks->dest) {
 		case KEY_GAME:
 			Cl_KeyGame(event);
@@ -599,6 +602,8 @@ void Cl_KeyEvent(const SDL_Event *event) {
 			Com_Debug("Bad cl_key_dest: %d\n", ks->dest);
 			break;
 	}
+
+	ks->down[event->key.keysym.scancode] = event->type == SDL_KEYDOWN;
 
 	if (ks->dest == KEY_GAME && !(active->integer)) {
 		Cvar_FullSet("active", "1", CVAR_USER_INFO | CVAR_NO_SET);
