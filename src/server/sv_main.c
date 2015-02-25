@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -185,7 +185,7 @@ static void Sv_GetChallenge_f(void) {
 	if (i == MAX_CHALLENGES) { // overwrite the oldest
 		svs.challenges[oldest].challenge = Random();
 		svs.challenges[oldest].addr = net_from;
-		svs.challenges[oldest].time = quake2world.time;
+		svs.challenges[oldest].time = quetoo.time;
 		i = oldest;
 	}
 
@@ -776,7 +776,7 @@ static void Sv_InitLocal(void) {
 	sv_download_url = Cvar_Get("sv_download_url", "", CVAR_SERVER_INFO, NULL);
 	sv_enforce_time = Cvar_Get("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, NULL);
 
-	sv_hostname = Cvar_Get("sv_hostname", "Quake2World", CVAR_SERVER_INFO | CVAR_ARCHIVE, NULL);
+	sv_hostname = Cvar_Get("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, NULL);
 	sv_hz = Cvar_Get("sv_hz", va("%d", SV_HZ), CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 
 	sv_no_areas = Cvar_Get("sv_no_areas", "0", CVAR_LATCH, "Disable server-side area management\n");
@@ -796,7 +796,7 @@ static void Sv_InitLocal(void) {
 }
 
 /*
- * @brief Only called at Quake2World startup, not for each game.
+ * @brief Only called at Quetoo startup, not for each game.
  */
 void Sv_Init(void) {
 

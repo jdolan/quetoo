@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -74,7 +74,7 @@ void R_Screenshot_f(void) {
 
 	// find a file name to save it to
 	for (i = last_screenshot; i < MAX_SCREENSHOTS; i++) {
-		g_snprintf(filename, sizeof(filename), "screenshots/quake2world%03u.jpg", i);
+		g_snprintf(filename, sizeof(filename), "screenshots/quetoo%03u.jpg", i);
 
 		if (!Fs_Exists(filename))
 			break; // file doesn't exist

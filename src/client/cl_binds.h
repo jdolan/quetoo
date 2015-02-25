@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -117,7 +117,7 @@ static const char *DEFAULT_BINDS =
 	"bind f12 r_screenshot\n"
 
 	// now execute the "default" configuration file
-	"exec quake2world.cfg\n"
+	"exec quetoo.cfg\n"
 
 	// and "default" autoexec.cfg
 	"exec autoexec.cfg\n";

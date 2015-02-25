@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -54,7 +54,7 @@ void Cl_RequestNextDownload(void) {
 
 	// we're good to go, lock and load (literally)
 
-	Com_InitSubsystem(Q2W_CLIENT);
+	Com_InitSubsystem(QUETOO_CLIENT);
 	Cvar_ResetLocal();
 
 	Cl_LoadMedia();

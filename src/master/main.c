@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 2002 r1ch.net.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@
 
 #include "filesystem.h"
 
-quake2world_t quake2world;
+quetoo_t quetoo;
 
 typedef struct ms_server_s {
 	struct sockaddr_in addr;
@@ -346,15 +346,15 @@ static void Shutdown(const char *msg) {
  */
 int32_t main(int32_t argc, char **argv) {
 
-	printf("Quake2World Master Server %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+	printf("Quetoo Master Server %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 
-	memset(&quake2world, 0, sizeof(quake2world));
+	memset(&quetoo, 0, sizeof(quetoo));
 
-	quake2world.Debug = Debug;
-	quake2world.Verbose = Verbose;
+	quetoo.Debug = Debug;
+	quetoo.Verbose = Verbose;
 
-	quake2world.Init = Init;
-	quake2world.Shutdown = Shutdown;
+	quetoo.Init = Init;
+	quetoo.Shutdown = Shutdown;
 
 	signal(SIGINT, Sys_Signal);
 	signal(SIGQUIT, Sys_Signal);

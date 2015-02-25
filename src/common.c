@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -85,8 +85,8 @@ void Com_Debug_(const char *func, const char *fmt, ...) {
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
-	if (quake2world.Debug) {
-		quake2world.Debug((const char *) msg);
+	if (quetoo.Debug) {
+		quetoo.Debug((const char *) msg);
 	} else {
 		fputs(msg, stdout);
 		fflush(stdout);
@@ -122,8 +122,8 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
-	if (quake2world.Error) {
-		quake2world.Error(err, (const char *) msg);
+	if (quetoo.Error) {
+		quetoo.Error(err, (const char *) msg);
 	} else {
 		fprintf(stderr, "%s", msg);
 		fflush(stderr);
@@ -151,8 +151,8 @@ void Com_Print(const char *fmt, ...) {
 		return;
 	}
 
-	if (quake2world.Print) {
-		quake2world.Print((const char *) msg);
+	if (quetoo.Print) {
+		quetoo.Print((const char *) msg);
 	} else {
 		fputs(msg, stdout);
 		fflush(stdout);
@@ -179,8 +179,8 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
-	if (quake2world.Warn) {
-		quake2world.Warn((const char *) msg);
+	if (quetoo.Warn) {
+		quetoo.Warn((const char *) msg);
 	} else {
 		fprintf(stderr, "WARNING: %s", msg);
 		fflush(stderr);
@@ -198,8 +198,8 @@ void Com_Verbose(const char *fmt, ...) {
 	vsnprintf(msg, sizeof(msg), fmt, args);
 	va_end(args);
 
-	if (quake2world.Verbose) {
-		quake2world.Verbose((const char *) msg);
+	if (quetoo.Verbose) {
+		quetoo.Verbose((const char *) msg);
 	} else {
 		fputs(msg, stdout);
 		fflush(stdout);
@@ -213,13 +213,13 @@ void Com_Verbose(const char *fmt, ...) {
  */
 void Com_Init(int32_t argc, char **argv) {
 
-	quake2world.argc = argc;
-	quake2world.argv = argv;
+	quetoo.argc = argc;
+	quetoo.argv = argv;
 
 	//putenv("G_SLICE=always-malloc");
 
-	if (quake2world.Init) {
-		quake2world.Init();
+	if (quetoo.Init) {
+		quetoo.Init();
 	}
 }
 
@@ -238,8 +238,8 @@ void Com_Shutdown(const char *fmt, ...) {
 	vsnprintf(msg, sizeof(msg), fmt, args);
 	va_end(args);
 
-	if (quake2world.Shutdown) {
-		quake2world.Shutdown(msg);
+	if (quetoo.Shutdown) {
+		quetoo.Shutdown(msg);
 	} else {
 		Com_Print("%s", msg);
 	}
@@ -251,21 +251,21 @@ void Com_Shutdown(const char *fmt, ...) {
  * @brief
  */
 uint32_t Com_WasInit(uint32_t s) {
-	return quake2world.subsystems & s;
+	return quetoo.subsystems & s;
 }
 
 /*
  * @brief
  */
 void Com_InitSubsystem(uint32_t s) {
-	quake2world.subsystems |= s;
+	quetoo.subsystems |= s;
 }
 
 /*
  * @brief
  */
 void Com_QuitSubsystem(uint32_t s) {
-	quake2world.subsystems &= ~s;
+	quetoo.subsystems &= ~s;
 }
 
 
@@ -274,7 +274,7 @@ void Com_QuitSubsystem(uint32_t s) {
  * @brief Returns the command line argument count.
  */
 int32_t Com_Argc(void) {
-	return quake2world.argc;
+	return quetoo.argc;
 }
 
 /*
@@ -283,7 +283,7 @@ int32_t Com_Argc(void) {
 char *Com_Argv(int32_t arg) {
 	if (arg < 0 || arg >= Com_Argc())
 		return "";
-	return quake2world.argv[arg];
+	return quetoo.argv[arg];
 }
 
 /*

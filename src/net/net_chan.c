@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -133,7 +133,7 @@ void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t
 		}
 	}
 
-	chan->last_received = quake2world.time;
+	chan->last_received = quetoo.time;
 	chan->incoming_sequence = 0;
 	chan->outgoing_sequence = 1;
 
@@ -190,7 +190,7 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 	const uint32_t w2 = (chan->incoming_sequence & ~(1 << 31)) | (chan->reliable_incoming << 31);
 
 	chan->outgoing_sequence++;
-	chan->last_sent = quake2world.time;
+	chan->last_sent = quetoo.time;
 
 	Net_WriteLong(&send, w1);
 	Net_WriteLong(&send, w2);
@@ -288,7 +288,7 @@ _Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
 	}
 
 	// the message can now be read from the current message pointer
-	chan->last_received = quake2world.time;
+	chan->last_received = quetoo.time;
 
 	return true;
 }

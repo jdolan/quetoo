@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -193,7 +193,7 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 		*lm++ = *in++;
 
 		// read in directional samples for per-pixel lighting as well
-		if (bsp->version == BSP_VERSION_Q2W) {
+		if (bsp->version == BSP_VERSION_QUETOO) {
 			*dm++ = *in++;
 			*dm++ = *in++;
 			*dm++ = *in++;

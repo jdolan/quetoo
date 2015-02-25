@@ -1,0 +1,79 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#ifndef __QLIGHT_H__
+#define __QLIGHT_H__
+
+#include "bspfile.h"
+#include "polylib.h"
+#include "collision/cmodel.h"
+
+typedef enum {
+    LIGHT_POINT,
+    LIGHT_SPOT,
+    LIGHT_FACE,
+} light_type_t;
+
+typedef struct patch_s {
+	d_bsp_face_t *face;
+	winding_t *winding;
+
+	vec3_t origin;
+	vec3_t normal;
+
+	vec_t area;
+	vec3_t light;  // emissive surface light
+
+	struct patch_s *next;  // next in face
+} patch_t;
+
+extern patch_t *face_patches[MAX_BSP_FACES];
+extern vec3_t face_offset[MAX_BSP_FACES];  // for rotating bmodels
+
+extern vec_t brightness;
+extern vec_t saturation;
+extern vec_t contrast;
+
+extern vec_t surface_scale;
+extern vec_t entity_scale;
+
+extern vec3_t ambient;
+
+extern _Bool extra_samples;
+
+// lightmap.c
+void BuildLights(void);
+void BuildVertexNormals(void);
+void BuildFacelights(int32_t facenum);
+void FinalLightFace(int32_t facenum);
+
+// patches.c
+void CalcTextureReflectivity(void);
+void BuildPatches(void);
+void SubdividePatches(void);
+void FreePatches(void);
+
+// qlight.c
+_Bool Light_PointPVS(const vec3_t org, byte *pvs);
+int32_t Light_PointLeafnum(const vec3_t point);
+void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask);
+
+#endif /* __QLIGHT_H__ */

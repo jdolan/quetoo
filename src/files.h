@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -128,19 +128,19 @@ typedef struct {
 } d_md3_t;
 
 /*
- * @brief .bsp file format. Quake2World supports idTech2 BSP as well as an
+ * @brief .bsp file format. Quetoo supports idTech2 BSP as well as an
  * extended version containing per-pixel lighting information (deluxemaps) and
  * vertex normals (BSP_LUMP_NORMALS).
  *
  * Some of the arbitrary limits set in Quake2 have been increased to support
  * larger or more complex levels (i.e. visibility and lightmap lumps).
  *
- * Quake2World BSP identifies itself with BSP_VERSION_Q2W.
+ * Quetoo BSP identifies itself with BSP_VERSION_QUETOO.
  */
 
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
 #define BSP_VERSION	38
-#define BSP_VERSION_Q2W 69 // haha, 69..
+#define BSP_VERSION_QUETOO 69 // haha, 69..
 
 // upper bounds of BSP format
 #define MAX_BSP_MODELS			0x400

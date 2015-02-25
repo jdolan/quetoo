@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>quake2world</name>
+	<name>quetoo</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -26,7 +26,7 @@
 	</natures>
 	<filteredResources>
 		<filter>
-			<id>1422456187933</id>
+			<id>0</id>
 			<name></name>
 			<type>26</type>
 			<matcher>
@@ -35,7 +35,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1422456187936</id>
+			<id>0</id>
 			<name></name>
 			<type>26</type>
 			<matcher>
@@ -44,7 +44,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1422456187939</id>
+			<id>0</id>
 			<name></name>
 			<type>26</type>
 			<matcher>

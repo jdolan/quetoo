@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -593,25 +593,25 @@ void Fs_Init(_Bool auto_load_archives) {
 		Com_Debug("Resolved executable path: %s\n", path);
 
 #if defined(__APPLE__)
-		if ((c = strstr(path, "Quake2World.app"))) {
-			*(c + strlen("Quake2World.app")) = '\0';
+		if ((c = strstr(path, "Quetoo.app"))) {
+			*(c + strlen("Quetoo.app")) = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-			strcpy(c + strlen("Quake2World.app"), "/Contents/MacOS/lib/"DEFAULT_GAME);
+			strcpy(c + strlen("Quetoo.app"), "/Contents/MacOS/lib/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 
-			strcpy(c + strlen("Quake2World.app"), "/Contents/Resources/"DEFAULT_GAME);
+			strcpy(c + strlen("Quetoo.app"), "/Contents/Resources/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 		}
 #elif defined(__linux__)
-		if ((c = strstr(path, "quake2world/bin"))) {
-			*(c + strlen("quake2world")) = '\0';
+		if ((c = strstr(path, "quetoo/bin"))) {
+			*(c + strlen("quetoo")) = '\0';
 			g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-			strcpy(c + strlen("quake2world"), "/lib/"DEFAULT_GAME);
+			strcpy(c + strlen("quetoo"), "/lib/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 
-			strcpy(c + strlen("quake2world"), "/share/"DEFAULT_GAME);
+			strcpy(c + strlen("quetoo"), "/share/"DEFAULT_GAME);
 			Fs_AddToSearchPath(path);
 		}
 #elif defined(_WIN32)

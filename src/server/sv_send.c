@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -520,7 +520,7 @@ void Sv_SendClientPackets(void) {
 			cl->datagram.messages = NULL;
 
 		} else { // just update reliable if needed
-			if (cl->net_chan.message.size || quake2world.time - cl->net_chan.last_sent > 1000)
+			if (cl->net_chan.message.size || quetoo.time - cl->net_chan.last_sent > 1000)
 				Netchan_Transmit(&cl->net_chan, NULL, 0);
 		}
 	}

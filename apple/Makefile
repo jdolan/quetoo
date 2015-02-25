@@ -1,40 +1,40 @@
-# Makefile for Quake2World.app, requires http://macdylibbundler.sourceforge.net/
+# Makefile for Quetoo.app, requires http://macdylibbundler.sourceforge.net/
 
 ARCH = $(shell uname -m)
-DATA = ../../quake2world-data
+DATA = ../../quetoo-data
 TARGET = target
-INSTALL = $(TARGET)/Quake2World
-QUAKE2WORLD = $(INSTALL)/Quake2World.app
-BINDIR = $(QUAKE2WORLD)/Contents/MacOS
-LIBDIR = $(QUAKE2WORLD)/Contents/MacOS/lib
-DATADIR = $(QUAKE2WORLD)/Contents/Resources
+INSTALL = $(TARGET)/Quetoo
+QUETOO = $(INSTALL)/Quetoo.app
+BINDIR = $(QUETOO)/Contents/MacOS
+LIBDIR = $(QUETOO)/Contents/MacOS/lib
+DATADIR = $(QUETOO)/Contents/Resources
 REMOTE_USER = $(shell whoami)
-RSYNC_REPOSITORY = quake2world.net:/opt/rsync/quake2world-apple/$(ARCH)
+RSYNC_REPOSITORY = quetoo.net:/opt/rsync/quetoo-apple/$(ARCH)
 RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
-DIST = $(TARGET)/Quake2World-BETA-$(ARCH).dmg
-VOLUME_NAME = "Quake2World BETA $(ARCH)"
-HTTP_REPOSITORY = quake2world.net:/var/www/quake2world.net/files
+DIST = $(TARGET)/Quetoo-BETA-$(ARCH).dmg
+VOLUME_NAME = "Quetoo BETA $(ARCH)"
+HTTP_REPOSITORY = quetoo.org:/var/www/quetoo.org/files
 HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
 all: install-lib
 
 pre-install:
 	install -d $(INSTALL)
-	cp -R Quake2World/* $(INSTALL)
+	cp -R Quetoo/* $(INSTALL)
 	find $(INSTALL) -name .turd -delete
 	./set-icon.sh icon.icns $(INSTALL)
 
 install: pre-install
-	ln -f -s Contents/MacOS $(QUAKE2WORLD)/bin
-	ln -f -s Contents/MacOS/lib $(QUAKE2WORLD)/lib
-	ln -f -s Contents/Resources $(QUAKE2WORLD)/share
-	make -C .. DESTDIR=$(realpath $(QUAKE2WORLD)) install
-	rm -f $(QUAKE2WORLD)/bin $(QUAKE2WORLD)/lib $(QUAKE2WORLD)/share
+	ln -f -s Contents/MacOS $(QUETOO)/bin
+	ln -f -s Contents/MacOS/lib $(QUETOO)/lib
+	ln -f -s Contents/Resources $(QUETOO)/share
+	make -C .. DESTDIR=$(realpath $(QUETOO)) install
+	rm -f $(QUETOO)/bin $(QUETOO)/lib $(QUETOO)/share
 
 install-lib: install
 	dylibbundler -b \
-		-x $(BINDIR)/q2wmap \
-		-x $(BINDIR)/quake2world \
+		-x $(BINDIR)/quemap \
+		-x $(BINDIR)/quetoo \
 		-x $(LIBDIR)/default/cgame.so \
 		-x $(LIBDIR)/default/game.so \
 	-d $(LIBDIR) -of -p @executable_path/lib

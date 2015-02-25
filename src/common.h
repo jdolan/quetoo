@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -49,7 +49,7 @@
  *
  * @see src/master/main.c
  */
-#define HOST_MASTER 		"master.quake2world.net"
+#define HOST_MASTER 		"master.quetoo.net"
 
 /*
  * @brief Default port for the master server.
@@ -131,11 +131,11 @@ void Com_Init(int32_t argc, char **argv);
 void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn));
 
 // subsystems
-#define Q2W_SERVER		0x1
-#define Q2W_GAME		0x2
-#define Q2W_CLIENT		0x4
-#define Q2W_CGAME		0x8
-#define Q2W_Q2WMAP		0x10
+#define QUETOO_SERVER		0x1
+#define QUETOO_GAME		0x2
+#define QUETOO_CLIENT		0x4
+#define QUETOO_CGAME		0x8
+#define QUETOO_QUETOOMAP		0x10
 
 // global engine struct
 typedef struct {
@@ -153,9 +153,9 @@ typedef struct {
 
 	void (*Init)(void);
 	void (*Shutdown)(const char *msg);
-} quake2world_t;
+} quetoo_t;
 
-extern quake2world_t quake2world;
+extern quetoo_t quetoo;
 
 uint32_t Com_WasInit(uint32_t s);
 void Com_InitSubsystem(uint32_t s);

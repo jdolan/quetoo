@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -230,7 +230,7 @@ static void Cl_DrawCounters(void) {
 		g_snprintf(pps, sizeof(pps), "%4upps", cl.packet_counter * 5);
 		g_snprintf(bps, sizeof(bps), "%4ubps", cl.byte_counter * 5);
 
-		last_draw_time = quake2world.time;
+		last_draw_time = quetoo.time;
 
 		cl.frame_counter = 0;
 		cl.packet_counter = 0;

@@ -1,4 +1,4 @@
-# Common functions for all Quake2World / Jenkins build scripts
+# Common functions for all Quetoo / Jenkins build scripts
 #
 # This file is meant to be included from a platform-specific script. That
 # script should implement a "build" function before including this file.
@@ -16,7 +16,7 @@ MAKE_TARGETS="all ${MAKE_TARGETS}"
 #
 # Parse common command line arguments and resolve the branch and target. The
 # branch and target are specified by the 2nd and 3rd tokens of the Jenkins job
-# name. For example, for the job named "quake2world-master-mingw32", the branch
+# name. For example, for the job named "quetoo-master-mingw32", the branch
 # is "master" and the target is "mingw32".
 #
 function init() {

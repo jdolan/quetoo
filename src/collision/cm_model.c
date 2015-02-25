@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -462,7 +462,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 	}
 
-	if (header.version != BSP_VERSION && header.version != BSP_VERSION_Q2W) {
+	if (header.version != BSP_VERSION && header.version != BSP_VERSION_QUETOO) {
 		Com_Error(ERR_DROP, "%s has unsupported version: %d\n", name, header.version);
 	}
 

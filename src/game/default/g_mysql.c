@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -122,8 +122,8 @@ void G_MySQL_Init(void) {
 		g_mysql_state.mysql = mysql_init(NULL);
 
 		const char *host = gi.Cvar("g_mysql_host", "localhost", 0, NULL)->string;
-		const char *db = gi.Cvar("g_mysql_db", "quake2world", 0, NULL)->string;
-		const char *user = gi.Cvar("g_mysql_user", "quake2world", 0, NULL)->string;
+		const char *db = gi.Cvar("g_mysql_db", "quetoo", 0, NULL)->string;
+		const char *user = gi.Cvar("g_mysql_user", "quetoo", 0, NULL)->string;
 		const char *pass = gi.Cvar("g_mysql_password", "", 0, NULL)->string;
 
 		if (mysql_real_connect(g_mysql_state.mysql, host, user, pass, db, 0, NULL, 0)) {

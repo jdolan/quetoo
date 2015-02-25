@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -137,7 +137,7 @@ static void Sv_ClearState() {
 	}
 
 	memset(&sv, 0, sizeof(sv));
-	Com_QuitSubsystem(Q2W_SERVER);
+	Com_QuitSubsystem(QUETOO_SERVER);
 
 	svs.real_time = 0;
 	svs.next_heartbeat = 0;
@@ -350,7 +350,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 	sv.state = state;
 
 	Com_Print("Server initialized\n");
-	Com_InitSubsystem(Q2W_SERVER);
+	Com_InitSubsystem(QUETOO_SERVER);
 
 	svs.initialized = true;
 }

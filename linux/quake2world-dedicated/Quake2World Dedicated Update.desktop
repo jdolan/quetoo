@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=Quake2World Dedicated BETA Update
-Comment=Web updater for Quake2World Dedicated BETA.
-Exec="%QUAKE2WORLD_HOME%/bin/update.sh"
-Icon="%QUAKE2WORLD_HOME%/share/default/icons/update.png"
-Terminal=true
-Type=Application
-Categories=Games;
-StartupNotify=true

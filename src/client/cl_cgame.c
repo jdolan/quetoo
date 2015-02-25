@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -212,7 +212,7 @@ void Cl_InitCgame(void) {
 	cls.cgame->Init();
 
 	Com_Print("Client initialized\n");
-	Com_InitSubsystem(Q2W_CGAME);
+	Com_InitSubsystem(QUETOO_CGAME);
 }
 
 /*
@@ -234,7 +234,7 @@ void Cl_ShutdownCgame(void) {
 	Mem_FreeTag(MEM_TAG_CGAME);
 
 	Com_Print("Client game down\n");
-	Com_QuitSubsystem(Q2W_CGAME);
+	Com_QuitSubsystem(QUETOO_CGAME);
 
 	Sys_CloseLibrary(&cgame_handle);
 }

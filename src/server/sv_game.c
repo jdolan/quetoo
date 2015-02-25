@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -308,7 +308,7 @@ void Sv_InitGame(void) {
 	svs.game->Init();
 
 	Com_Print("Game initialized, starting...\n");
-	Com_InitSubsystem(Q2W_GAME);
+	Com_InitSubsystem(QUETOO_GAME);
 }
 
 /*
@@ -332,7 +332,7 @@ void Sv_ShutdownGame(void) {
 	Mem_FreeTag(MEM_TAG_GAME);
 
 	Com_Print("Game down\n");
-	Com_QuitSubsystem(Q2W_GAME);
+	Com_QuitSubsystem(QUETOO_GAME);
 
 	Sys_CloseLibrary(&game_handle);
 }

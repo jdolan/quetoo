@@ -1,18 +1,18 @@
-# Makefile for Quake2World Linux distributable
+# Makefile for Quetoo Linux distributable
 
 ARCH = $(shell uname -m)
-DATA = ../../quake2world-data
-ARTIFACT = quake2world
+DATA = ../../quetoo-data
+ARTIFACT = quetoo
 TARGET = target
 INSTALL = $(TARGET)/$(ARTIFACT)
 LIBDIR = $(INSTALL)/lib
 BINDIR = $(INSTALL)/bin
 DATADIR = $(INSTALL)/share
 REMOTE_USER = $(shell whoami)
-RSYNC_REPOSITORY = quake2world.net:/opt/rsync/$(ARTIFACT)-linux/$(ARCH)
+RSYNC_REPOSITORY = quetoo.org:/opt/rsync/$(ARTIFACT)-linux/$(ARCH)
 RSYNC_TARGET = $(REMOTE_USER)@$(RSYNC_REPOSITORY)
 DIST = $(TARGET)/$(ARTIFACT)-BETA-$(ARCH).tar.gz
-HTTP_REPOSITORY = quake2world.net:/var/www/quake2world.net/files
+HTTP_REPOSITORY = quetoo.org:/var/www/quetoo.org/files
 HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
 all: install-lib
@@ -26,7 +26,7 @@ install: pre-install
 	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 
 install-lib: install
-	./sobundler.sh -d $(LIBDIR) $(BINDIR)/quake2world
+	./sobundler.sh -d $(LIBDIR) $(BINDIR)/quetoo
 
 install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
