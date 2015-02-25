@@ -39,19 +39,19 @@ static void G_Give_f(g_entity_t *ent) {
 	const char *name = gi.Args();
 
 	if (gi.Argc() == 3) {
-		quantity = atoi(gi.Argv(2));
+		quantity = strtoul(gi.Argv(2), NULL, 10);
 
 		if (quantity > 9999)
 			quantity = 9999;
 	} else
 		quantity = 9999;
 
-	if (g_strcmp0(name, "all") == 0)
+	if (g_ascii_strcasecmp(name, "all") == 0)
 		give_all = true;
 	else
 		give_all = false;
 
-	if (give_all || g_strcmp0(gi.Argv(1), "health") == 0) {
+	if (give_all || g_ascii_strcasecmp(gi.Argv(1), "health") == 0) {
 		if (gi.Argc() == 3)
 			ent->locals.health = quantity;
 		else
@@ -60,33 +60,33 @@ static void G_Give_f(g_entity_t *ent) {
 			return;
 	}
 
-	if (give_all || g_strcmp0(name, "armor") == 0) {
+	if (give_all || g_ascii_strcasecmp(name, "armor") == 0) {
 		for (i = 0; i < g_num_items; i++) {
 			it = g_items + i;
 			if (!it->Pickup)
 				continue;
 			if (it->type != ITEM_ARMOR)
 				continue;
-			ent->client->locals.persistent.inventory[i] = it->quantity;
+			ent->client->locals.inventory[i] = it->quantity;
 		}
 		if (!give_all)
 			return;
 	}
 
-	if (give_all || g_strcmp0(name, "weapons") == 0) {
+	if (give_all || g_ascii_strcasecmp(name, "weapons") == 0) {
 		for (i = 0; i < g_num_items; i++) {
 			it = g_items + i;
 			if (!it->Pickup)
 				continue;
 			if (it->type != ITEM_WEAPON)
 				continue;
-			ent->client->locals.persistent.inventory[i] += 1;
+			ent->client->locals.inventory[i] += 1;
 		}
 		if (!give_all)
 			return;
 	}
 
-	if (give_all || g_strcmp0(name, "ammo") == 0) {
+	if (give_all || g_ascii_strcasecmp(name, "ammo") == 0) {
 		for (i = 0; i < g_num_items; i++) {
 			it = g_items + i;
 			if (!it->Pickup)
@@ -121,9 +121,9 @@ static void G_Give_f(g_entity_t *ent) {
 		index = ITEM_INDEX(it);
 
 		if (gi.Argc() == 3)
-			ent->client->locals.persistent.inventory[index] = quantity;
+			ent->client->locals.inventory[index] = quantity;
 		else
-			ent->client->locals.persistent.inventory[index] += it->quantity;
+			ent->client->locals.inventory[index] += it->quantity;
 	} else { // or spawn and touch whatever they asked for
 		it_ent = G_AllocEntity(it->class_name);
 
@@ -215,7 +215,7 @@ static void G_Use_f(g_entity_t *ent) {
 	}
 
 	const uint16_t index = ITEM_INDEX(it);
-	if (!ent->client->locals.persistent.inventory[index]) {
+	if (!ent->client->locals.inventory[index]) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
 	}
@@ -261,17 +261,17 @@ static void G_Drop_f(g_entity_t *ent) {
 
 	const uint16_t index = ITEM_INDEX(it);
 
-	if (!ent->client->locals.persistent.inventory[index]) {
+	if (!ent->client->locals.inventory[index]) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
 	}
 
-	if (ent->client->locals.persistent.inventory[index] < it->quantity) {
+	if (ent->client->locals.inventory[index] < it->quantity) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Quantity too low: %s\n", s);
 		return;
 	}
 
-	ent->client->locals.persistent.inventory[index] -= it->quantity;
+	ent->client->locals.inventory[index] -= it->quantity;
 	ent->client->locals.last_dropped = it;
 
 	it->Drop(ent, it);
@@ -281,7 +281,6 @@ static void G_Drop_f(g_entity_t *ent) {
  * @brief
  */
 static void G_WeaponPrevious_f(g_entity_t *ent) {
-	int32_t i;
 
 	g_client_t *cl = ent->client;
 
@@ -293,16 +292,16 @@ static void G_WeaponPrevious_f(g_entity_t *ent) {
 		return;
 	}
 
-	if (!cl->locals.persistent.weapon)
+	if (!cl->locals.weapon)
 		return;
 
-	const uint16_t selected_weapon = ITEM_INDEX(cl->locals.persistent.weapon);
+	const uint16_t selected_weapon = ITEM_INDEX(cl->locals.weapon);
 
 	// scan for the next valid one
-	for (i = 1; i <= MAX_ITEMS; i++) {
-		const uint16_t index = (selected_weapon + i) % MAX_ITEMS;
+	for (int32_t i = 1; i <= MAX_ITEMS; i++) {
+		const uint16_t index = (selected_weapon + MAX_ITEMS - i) % MAX_ITEMS;
 
-		if (!cl->locals.persistent.inventory[index])
+		if (!cl->locals.inventory[index])
 			continue;
 
 		const g_item_t *it = &g_items[index];
@@ -315,7 +314,7 @@ static void G_WeaponPrevious_f(g_entity_t *ent) {
 
 		it->Use(ent, it);
 
-		if (cl->locals.persistent.weapon == it)
+		if (cl->locals.next_weapon == it)
 			return; // successful
 	}
 }
@@ -324,7 +323,6 @@ static void G_WeaponPrevious_f(g_entity_t *ent) {
  * @brief
  */
 static void G_WeaponNext_f(g_entity_t *ent) {
-	int32_t i;
 
 	g_client_t *cl = ent->client;
 
@@ -336,16 +334,16 @@ static void G_WeaponNext_f(g_entity_t *ent) {
 		return;
 	}
 
-	if (!cl->locals.persistent.weapon)
+	if (!cl->locals.weapon)
 		return;
 
-	const uint16_t selected_weapon = ITEM_INDEX(cl->locals.persistent.weapon);
+	const uint16_t selected_weapon = ITEM_INDEX(cl->locals.weapon);
 
-	// scan  for the next valid one
-	for (i = 1; i <= MAX_ITEMS; i++) {
-		const uint16_t index = (selected_weapon + MAX_ITEMS - i) % MAX_ITEMS;
+	// scan for the next valid one
+	for (int32_t i = 1; i <= MAX_ITEMS; i++) {
+		const uint16_t index = (selected_weapon + i) % MAX_ITEMS;
 
-		if (!cl->locals.persistent.inventory[index])
+		if (!cl->locals.inventory[index])
 			continue;
 
 		const g_item_t *it = &g_items[index];
@@ -358,7 +356,7 @@ static void G_WeaponNext_f(g_entity_t *ent) {
 
 		it->Use(ent, it);
 
-		if (cl->locals.persistent.weapon == it)
+		if (cl->locals.next_weapon == it)
 			return; // successful
 	}
 }
@@ -370,12 +368,12 @@ static void G_WeaponLast_f(g_entity_t *ent) {
 
 	g_client_t *cl = ent->client;
 
-	if (!cl->locals.persistent.weapon || !cl->locals.persistent.last_weapon)
+	if (!cl->locals.weapon || !cl->locals.prev_weapon)
 		return;
 
-	const uint16_t index = ITEM_INDEX(cl->locals.persistent.last_weapon);
+	const uint16_t index = ITEM_INDEX(cl->locals.prev_weapon);
 
-	if (!cl->locals.persistent.inventory[index])
+	if (!cl->locals.inventory[index])
 		return;
 
 	const g_item_t *it = &g_items[index];

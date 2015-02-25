@@ -148,7 +148,7 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 		return;
 
 	if (ps->stats[STAT_HEALTH] <= 0)
-		return; // deadz0r
+		return; // dead
 
 	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE])
 		return; // spectating

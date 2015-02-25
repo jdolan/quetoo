@@ -134,7 +134,7 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 	if (!armor)
 		return 0;
 
-	const int16_t quantity = ent->client->locals.persistent.inventory[ITEM_INDEX(armor)];
+	const int16_t quantity = ent->client->locals.inventory[ITEM_INDEX(armor)];
 
 	vec_t protection = 0.0;
 
@@ -151,7 +151,7 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 	}
 
 	const int16_t saved = Clamp(protection * damage, 0, quantity);
-	ent->client->locals.persistent.inventory[ITEM_INDEX(armor)] -= saved;
+	ent->client->locals.inventory[ITEM_INDEX(armor)] -= saved;
 
 	G_SpawnDamage(TE_BLOOD, pos, normal, saved);
 
@@ -203,7 +203,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 	normal = normal ? normal : vec3_origin;
 
 	if (attacker->client) {
-		if (attacker->client->locals.persistent.inventory[g_media.items.quad_damage]) {
+		if (attacker->client->locals.inventory[g_media.items.quad_damage]) {
 			damage *= QUAD_DAMAGE_FACTOR;
 			knockback *= QUAD_KNOCKBACK_FACTOR;
 		}

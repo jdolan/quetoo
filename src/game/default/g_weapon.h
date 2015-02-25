@@ -25,9 +25,8 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_ChangeWeapon(g_entity_t *ent);
 _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other);
-void G_UseBestWeapon(g_client_t *client);
+void G_UseBestWeapon(g_entity_t *ent);
 void G_UseWeapon(g_entity_t *ent, const g_item_t *item);
 g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item);
 g_entity_t *G_TossWeapon(g_entity_t *ent);

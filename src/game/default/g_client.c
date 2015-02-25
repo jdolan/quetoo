@@ -169,7 +169,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				int16_t a = 0;
 				const g_item_t *armor = G_ClientArmor(attacker);
 				if (armor) {
-					a = attacker->client->locals.persistent.inventory[ITEM_INDEX(armor)];
+					a = attacker->client->locals.inventory[ITEM_INDEX(armor)];
 				}
 				gi.ClientPrint(self, PRINT_HIGH, "%s had %d health and %d armor\n",
 						attacker->client->locals.persistent.net_name, attacker->locals.health, a);
@@ -409,9 +409,6 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 			G_TossWeapon(self);
 	}
 
-	self->client->locals.new_weapon = NULL; // reset weapon state
-	G_ChangeWeapon(self);
-
 	if (g_level.gameplay == GAME_DEATHMATCH && !g_level.warmup) // drop quad
 		G_TossQuadDamage(self);
 
@@ -454,10 +451,10 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
  * specified quantity of ammo, while health and armor are set to
  * the specified quantity.
  */
-static void G_Give(g_client_t *client, char *it, int16_t quantity) {
+static void G_Give(g_entity_t *ent, char *it, int16_t quantity) {
 
 	if (!g_ascii_strcasecmp(it, "Health")) {
-		client->locals.persistent.health = quantity;
+		ent->locals.health = quantity;
 		return;
 	}
 
@@ -469,7 +466,7 @@ static void G_Give(g_client_t *client, char *it, int16_t quantity) {
 	const uint16_t index = ITEM_INDEX(item);
 
 	if (item->type == ITEM_WEAPON) { // weapons receive quantity as ammo
-		client->locals.persistent.inventory[index]++;
+		ent->client->locals.inventory[index]++;
 
 		if (item->ammo) {
 			const g_item_t *ammo = G_FindItem(item->ammo);
@@ -477,23 +474,23 @@ static void G_Give(g_client_t *client, char *it, int16_t quantity) {
 				const uint16_t ammo_index = ITEM_INDEX(ammo);
 
 				if (quantity > -1)
-					client->locals.persistent.inventory[ammo_index] = quantity;
+					ent->client->locals.inventory[ammo_index] = quantity;
 				else
-					client->locals.persistent.inventory[ammo_index] = ammo->quantity;
+					ent->client->locals.inventory[ammo_index] = ammo->quantity;
 			}
 		}
 	} else { // while other items receive quantity directly
 		if (quantity > -1)
-			client->locals.persistent.inventory[index] = quantity;
+			ent->client->locals.inventory[index] = quantity;
 		else
-			client->locals.persistent.inventory[index] = item->quantity;
+			ent->client->locals.inventory[index] = item->quantity;
 	}
 }
 
-/**
- * G_GiveLevelLocals
+/*
+ * @brief
  */
-static _Bool G_GiveLevelLocals(g_client_t *client) {
+static _Bool G_GiveLevelLocals(g_entity_t *ent) {
 	char buf[512], *it, *q;
 	int32_t quantity;
 
@@ -521,7 +518,7 @@ static _Bool G_GiveLevelLocals(g_client_t *client) {
 			} else
 				quantity = -1;
 
-			G_Give(client, it, quantity);
+			G_Give(ent, it, quantity);
 		}
 
 		it = strtok(NULL, ",");
@@ -533,93 +530,81 @@ static _Bool G_GiveLevelLocals(g_client_t *client) {
 /*
  * @brief
  */
-static void G_InitClientPersistent(g_client_t *client) {
+static void G_InitClientInventory(g_entity_t *ent) {
 	const g_item_t *item;
 
-	// clear inventory
-	for (int32_t i = 0; i < MAX_ITEMS; i++)
-		client->locals.persistent.inventory[i] = 0;
-
 	// set max inventory levels
-	client->locals.persistent.health = 100;
-	client->locals.persistent.max_health = 100;
-
-	client->locals.persistent.max_shells = 80;
-	client->locals.persistent.max_bullets = 200;
-	client->locals.persistent.max_grenades = 50;
-	client->locals.persistent.max_rockets = 50;
-	client->locals.persistent.max_cells = 200;
-	client->locals.persistent.max_bolts = 100;
-	client->locals.persistent.max_slugs = 50;
-	client->locals.persistent.max_nukes = 10;
+	ent->client->locals.max_shells = 80;
+	ent->client->locals.max_bullets = 200;
+	ent->client->locals.max_grenades = 50;
+	ent->client->locals.max_rockets = 50;
+	ent->client->locals.max_cells = 200;
+	ent->client->locals.max_bolts = 100;
+	ent->client->locals.max_slugs = 50;
+	ent->client->locals.max_nukes = 10;
 
 	// instagib gets railgun and slugs, both in normal mode and warmup
 	if (g_level.gameplay == GAME_INSTAGIB) {
-		G_Give(client, "Railgun", 1000);
+		G_Give(ent, "Railgun", 1000);
 		item = G_FindItem("Railgun");
 	}
 	// arena or dm warmup yields all weapons, health, etc..
 	else if ((g_level.gameplay == GAME_ARENA) || g_level.warmup) {
-		G_Give(client, "Railgun", 50);
-		G_Give(client, "Lightning", 200);
-		G_Give(client, "Hyperblaster", 200);
-		G_Give(client, "Rocket Launcher", 50);
-		G_Give(client, "Grenade Launcher", 50);
-		G_Give(client, "Machinegun", 200);
-		G_Give(client, "Super Shotgun", 80);
-		G_Give(client, "Shotgun", 80);
-		G_Give(client, "Blaster", 0);
+		G_Give(ent, "Railgun", 50);
+		G_Give(ent, "Lightning", 200);
+		G_Give(ent, "Hyperblaster", 200);
+		G_Give(ent, "Rocket Launcher", 50);
+		G_Give(ent, "Grenade Launcher", 50);
+		G_Give(ent, "Machinegun", 200);
+		G_Give(ent, "Super Shotgun", 80);
+		G_Give(ent, "Shotgun", 80);
+		G_Give(ent, "Blaster", 0);
 
-		G_Give(client, "Body Armor", -1);
+		G_Give(ent, "Body Armor", -1);
 
 		item = G_FindItem("Rocket Launcher");
 	}
 	// dm gets the blaster
 	else {
-		G_Give(client, "Blaster", -1);
+		G_Give(ent, "Blaster", -1);
 		item = G_FindItem("Blaster");
 	}
 
-	if (G_GiveLevelLocals(client)) { // use the best weapon we were given by level
-		G_UseBestWeapon(client);
-		client->locals.persistent.weapon = client->locals.new_weapon;
-	} else
-		// or use best given by gameplay
-		client->locals.persistent.weapon = item;
-
-	// clean up weapon state
-	client->locals.persistent.last_weapon = NULL;
+	// use the best weapon given by the level
+	if (G_GiveLevelLocals(ent)) {
+		G_UseBestWeapon(ent);
+	} else { // or the one given by the gameplay type above
+		G_UseWeapon(ent, item);
+	}
 }
 
 /*
- * @brief Returns the distance to the nearest enemy from the given spot
+ * @brief Returns the distance to the nearest enemy from the given spot.
  */
 static vec_t G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
-	g_entity_t *player;
 	vec_t dist, best_dist;
 	vec3_t v;
-	int32_t n;
 
 	best_dist = 9999999.0;
 
-	for (n = 1; n <= sv_max_clients->integer; n++) {
-		player = &g_game.entities[n];
+	for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
+		const g_entity_t *other = &g_game.entities[i];
 
-		if (!player->in_use)
+		if (!other->in_use)
 			continue;
 
-		if (player->locals.health <= 0)
+		if (other->locals.health <= 0)
 			continue;
 
-		if (player->client->locals.persistent.spectator)
+		if (other->client->locals.persistent.spectator)
 			continue;
 
-		VectorSubtract(spot->s.origin, player->s.origin, v);
+		VectorSubtract(spot->s.origin, other->s.origin, v);
 		dist = VectorLength(v);
 
 		if (g_level.teams || g_level.ctf) { // avoid collision with team mates
 
-			if (player->client->locals.persistent.team == ent->client->locals.persistent.team) {
+			if (other->client->locals.persistent.team == ent->client->locals.persistent.team) {
 				if (dist > 64.0) // if they're far away, ignore them
 					continue;
 			}
@@ -699,168 +684,145 @@ static g_entity_t *G_SelectDeathmatchSpawnPoint(g_entity_t *ent) {
 /*
  * @brief
  */
-static g_entity_t *G_SelectCaptureSpawnPoint(g_entity_t *ent) {
-	char *c;
+static g_entity_t *G_SelectTeamSpawnPoint(g_entity_t *ent) {
 
 	if (!ent->client->locals.persistent.team)
 		return NULL;
 
-	c = ent->client->locals.persistent.team == &g_team_good ? "info_player_team1" :
-			"info_player_team2";
+	const char *class_name = ent->client->locals.persistent.team == &g_team_good ?
+			"info_player_team1" : "info_player_team2";
 
 	if (g_spawn_farthest->value)
-		return G_SelectFarthestSpawnPoint(ent, c);
+		return G_SelectFarthestSpawnPoint(ent, class_name);
 
-	return G_SelectRandomSpawnPoint(c);
+	return G_SelectRandomSpawnPoint(class_name);
 }
 
 /*
- * @brief Chooses a player start, deathmatch start, etc
+ * @brief Selects the most appropriate spawn point for the given client.
  */
-static void G_SelectSpawnPoint(g_entity_t *ent, vec3_t origin, vec3_t angles) {
-	g_entity_t *spot = NULL;
+static g_entity_t *G_SelectSpawnPoint(g_entity_t *ent) {
+	g_entity_t *spawn = NULL;
 
-	if (g_level.teams || g_level.ctf) // try teams/ctf spawns first if applicable
-		spot = G_SelectCaptureSpawnPoint(ent);
+	if (g_level.teams || g_level.ctf) // try team spawns first if applicable
+		spawn = G_SelectTeamSpawnPoint(ent);
 
-	if (!spot) // fall back on dm spawns (e.g ctf games on dm maps)
-		spot = G_SelectDeathmatchSpawnPoint(ent);
+	if (spawn == NULL) // fall back on DM spawns (e.g CTF games on DM maps)
+		spawn = G_SelectDeathmatchSpawnPoint(ent);
 
 	// and lastly fall back on single player start
-	if (!spot) {
-		while ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) != NULL) {
-			if (!spot->locals.target_name) // hopefully without a target
+	if (spawn == NULL) {
+		while ((spawn = G_Find(spawn, EOFS(class_name), "info_player_start")) != NULL) {
+			if (spawn->locals.target_name == NULL) // hopefully without a target
 				break;
 		}
 
-		if (!spot) { // last resort, find any
-			if ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) == NULL)
+		if (spawn == NULL) { // last resort, find any
+			if ((spawn = G_Find(spawn, EOFS(class_name), "info_player_start")) == NULL)
 				gi.Error("Couldn't find spawn point\n");
 		}
 	}
 
-	VectorCopy(spot->s.origin, origin);
-	origin[2] += 12;
-	VectorCopy(spot->s.angles, angles);
+	return spawn;
 }
 
 /*
  * @brief The grunt work of putting the client into the server on [re]spawn.
  */
 static void G_ClientRespawn_(g_entity_t *ent) {
-	vec3_t old_angles, spawn_angles;
-
-	g_client_t *cl = ent->client;
-
-	// retain last angles for delta
-	VectorCopy(cl->locals.cmd_angles, old_angles);
-
-	// find a spawn point
-	G_SelectSpawnPoint(ent, ent->s.origin, spawn_angles);
-
-	// reset inventory, health, etc
-	G_InitClientPersistent(cl);
-
-	// clear everything but the persistent structure
-	g_client_persistent_t persistent = cl->locals.persistent;
-
-	memset(cl, 0, sizeof(*cl));
-	cl->locals.persistent = persistent;
-
-	ent->class_name = "client";
-	ent->solid = SOLID_BOX;
-	ent->sv_flags = 0;
-
-	// clear entity values
-	VectorScale(PM_MINS, PM_SCALE, ent->mins);
-	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
-
-	ent->locals.clip_mask = MASK_CLIP_PLAYER;
-	ent->locals.dead = false;
-	ent->locals.Die = G_ClientDie;
-	ent->locals.ground_entity = NULL;
-	ent->locals.move_type = MOVE_TYPE_WALK;
-	ent->locals.mass = 200.0;
-	ent->locals.take_damage = true;
-	ent->locals.water_level = ent->locals.old_water_level = 0;
-	ent->locals.water_type = 0;
-
-	// copy these back once they have been set in persistence
-	ent->locals.health = ent->client->locals.persistent.health;
-	ent->locals.max_health = ent->client->locals.persistent.max_health;
-
-	VectorClear(ent->locals.velocity);
-	VectorClear(ent->s.angles);
-
-	if (!ent->client->locals.persistent.spectator) {
-		ent->s.origin[2] += PM_GROUND_DIST;
-		ent->locals.velocity[2] = PM_SPEED_JUMP * 0.66;
-	}
-
-	cl->locals.land_time = g_level.time;
-
-	// clear player state values
-	memset(&cl->ps, 0, sizeof(cl->ps));
-
-	PackVector(ent->s.origin, cl->ps.pm_state.origin);
-	PackVector(ent->locals.velocity, cl->ps.pm_state.velocity);
-
-	if (cl->locals.persistent.spectator) {
-		VectorClear(cl->ps.pm_state.view_offset);
-	} else { // project eyes to top-front of head
-		vec3_t offset;
-		VectorSet(offset, 0.0, 0.0, (ent->maxs[2] - ent->mins[2]) * 0.9);
-		PackVector(offset, cl->ps.pm_state.view_offset);
-	}
-
-	// clear entity state values
-	ent->s.effects = 0;
-	ent->s.model1 = MODEL_CLIENT; // use the client info model
-	ent->s.model2 = 0;
-	ent->s.model3 = 0;
-	ent->s.model4 = 0;
-	ent->s.client = ent - g_game.entities - 1;
-
-	G_SetAnimation(ent, ANIM_TORSO_STAND1, true);
-	G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
-
-	// set the delta angle of the spawn point
-	VectorSubtract(spawn_angles, old_angles, old_angles);
-	PackAngles(old_angles, cl->ps.pm_state.delta_angles);
-
-	// spawn a spectator
-	if (cl->locals.persistent.spectator) {
-		cl->locals.chase_target = NULL;
-
-		cl->locals.persistent.weapon = NULL;
-		cl->locals.persistent.team = NULL;
-		cl->locals.persistent.ready = false;
-
-		ent->locals.move_type = MOVE_TYPE_NO_CLIP;
-		ent->locals.take_damage = false;
-		ent->solid = SOLID_NOT;
-		ent->sv_flags |= SVF_NO_CLIENT;
-
-		gi.LinkEntity(ent);
-		return;
-	}
-
-	// or spawn a player
-	ent->s.event = EV_CLIENT_TELEPORT;
-
-	// hold in place briefly
-	cl->ps.pm_state.flags = PMF_TIME_TELEPORT;
-	cl->ps.pm_state.time = 20;
-
-	cl->locals.persistent.match_num = g_level.match_num;
-	cl->locals.persistent.round_num = g_level.round_num;
-
-	// briefly disable firing of the weapon, as we've likely clicked to respawn
-	cl->locals.weapon_fire_time = g_level.time + 250;
+	vec3_t cmd_angles, delta_angles;
 
 	gi.UnlinkEntity(ent);
 
-	G_KillBox(ent); // kill anyone in our spot
+	// retain the persistent structure
+	g_client_persistent_t persistent = ent->client->locals.persistent;
+
+	// and the last angles for calculating delta to spawn point
+	VectorCopy(ent->client->locals.cmd_angles, cmd_angles);
+
+	// clear the client and restore the persistent state
+	memset(ent->client, 0, sizeof(*ent->client));
+	ent->client->locals.persistent = persistent;
+
+	// find a spawn point
+	const g_entity_t *spawn = G_SelectSpawnPoint(ent);
+
+	// move to the spawn origin
+	VectorCopy(spawn->s.origin, ent->s.origin);
+	ent->s.origin[2] += PM_STEP_HEIGHT;
+
+	// and calculate delta angles
+	VectorClear(ent->s.angles);
+	VectorSubtract(spawn->s.angles, cmd_angles, delta_angles);
+
+	// pack the new origin and delta angles into the player state
+	PackVector(ent->s.origin, ent->client->ps.pm_state.origin);
+	PackAngles(delta_angles, ent->client->ps.pm_state.delta_angles);
+
+	ent->s.effects = 0;
+	ent->s.model1 = 0;
+	ent->s.model2 = 0;
+	ent->s.model3 = 0;
+	ent->s.model4 = 0;
+
+	if (ent->client->locals.persistent.spectator) { // spawn a spectator
+		ent->class_name = "spectator";
+
+		VectorClear(ent->mins);
+		VectorClear(ent->maxs);
+
+		ent->solid = SOLID_NOT;
+		ent->sv_flags = SVF_NO_CLIENT;
+
+		ent->locals.move_type = MOVE_TYPE_NO_CLIP;
+		ent->locals.dead = true;
+		ent->locals.take_damage = false;
+
+		ent->client->locals.chase_target = NULL;
+		ent->client->locals.weapon = NULL;
+
+		ent->client->locals.persistent.team = NULL;
+		ent->client->locals.persistent.ready = false;
+	}
+	else { // spawn an active client
+		ent->class_name = "client";
+
+		ent->solid = SOLID_BOX;
+		ent->sv_flags = 0;
+
+		VectorScale(PM_MINS, PM_SCALE, ent->mins);
+		VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
+
+		ent->s.model1 = MODEL_CLIENT;
+		ent->s.client = ent - g_game.entities - 1;
+		ent->s.event = EV_CLIENT_TELEPORT;
+
+		G_SetAnimation(ent, ANIM_TORSO_STAND1, true);
+		G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
+
+		ent->locals.clip_mask = MASK_CLIP_PLAYER;
+		ent->locals.dead = false;
+		ent->locals.Die = G_ClientDie;
+		ent->locals.ground_entity = NULL;
+		ent->locals.health = ent->locals.max_health = 100;
+		ent->locals.move_type = MOVE_TYPE_WALK;
+		ent->locals.mass = 200.0;
+		ent->locals.take_damage = true;
+		ent->locals.water_level = ent->locals.old_water_level = 0;
+		ent->locals.water_type = 0;
+
+		// hold in place briefly
+		ent->client->ps.pm_state.flags = PMF_TIME_TELEPORT;
+		ent->client->ps.pm_state.time = 20;
+
+		// setup inventory, max health, weapon, etc
+		G_InitClientInventory(ent);
+
+		// briefly disable firing, since we likely just clicked to respawn
+		ent->client->locals.weapon_fire_time = g_level.time + 250;
+
+		G_KillBox(ent); // kill anyone in our spot
+	}
 
 	gi.LinkEntity(ent);
 }
@@ -877,6 +839,9 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 	if (ent->client->locals.persistent.spectator && voluntary) {
 		ent->client->locals.persistent.score = ent->client->locals.persistent.captures = 0;
 		ent->client->locals.persistent.match_num = ent->client->locals.persistent.round_num = 0;
+	} else {
+		ent->client->locals.persistent.match_num = g_level.match_num;
+		ent->client->locals.persistent.round_num = g_level.round_num;
 	}
 
 	ent->client->locals.respawn_time = g_level.time;
@@ -907,8 +872,6 @@ void G_ClientBegin(g_entity_t *ent) {
 	const int32_t entity_num = ent - g_game.entities - 1;
 	ent->client = g_game.clients + entity_num;
 
-	G_InitClientPersistent(ent->client);
-
 	VectorClear(ent->client->locals.cmd_angles);
 	ent->client->locals.persistent.first_frame = g_level.frame_num;
 
@@ -928,8 +891,6 @@ void G_ClientBegin(g_entity_t *ent) {
 	if (g_level.intermission_time) {
 		G_ClientToIntermission(ent);
 	} else {
-		memset(welcome, 0, sizeof(welcome));
-
 		g_snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
 
 		if (*g_motd->string) {
@@ -970,6 +931,8 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	if (!ValidateUserInfo(user_info)) {
 		user_info = DEFAULT_USER_INFO;
 	}
+
+	gi.Debug("%s\n", user_info);
 
 	// set name, use a temp buffer to compute length and crutch up bad names
 	const char *s = GetUserInfo(user_info, "name");
@@ -1123,12 +1086,14 @@ void G_ClientDisconnect(g_entity_t *ent) {
  */
 static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
 		const vec3_t maxs) {
+
 	const g_entity_t *self = g_level.current_entity;
 
-	if (g_level.current_entity->locals.health > 0)
-		return gi.Trace(start, end, mins, maxs, self, MASK_CLIP_PLAYER);
-	else
+	if (self->locals.dead)
 		return gi.Trace(start, end, mins, maxs, self, MASK_CLIP_CORPSE);
+	else
+		return gi.Trace(start, end, mins, maxs, self, MASK_CLIP_PLAYER);
+
 }
 
 /*
@@ -1307,12 +1272,12 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
  */
 static void G_ClientInventoryThink(g_entity_t *ent) {
 
-	if (ent->client->locals.persistent.inventory[g_media.items.quad_damage]) { // if they have quad
+	if (ent->client->locals.inventory[g_media.items.quad_damage]) { // if they have quad
 
 		if (ent->client->locals.quad_damage_time < g_level.time) { // expire it
 
 			ent->client->locals.quad_damage_time = 0.0;
-			ent->client->locals.persistent.inventory[g_media.items.quad_damage] = 0;
+			ent->client->locals.inventory[g_media.items.quad_damage] = 0;
 
 			gi.Sound(ent, gi.SoundIndex("quad/expire"), ATTEN_NORM);
 
@@ -1333,7 +1298,6 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
  * couple times for each server frame.
  */
 void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
-	int32_t i;
 
 	if (g_level.intermission_time)
 		return;
@@ -1385,8 +1349,10 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 		}
 	}
 
+	G_ClientInventoryThink(ent);
+
 	// update chase camera if being followed
-	for (i = 1; i <= sv_max_clients->integer; i++) {
+	for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
 
 		g_entity_t *other = g_game.entities + i;
 
@@ -1394,8 +1360,6 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 			G_ClientChaseThink(other);
 		}
 	}
-
-	G_ClientInventoryThink(ent);
 }
 
 /*
@@ -1410,7 +1374,7 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 	g_client_t *cl = ent->client;
 
 	// run weapon think if it hasn't been done by a command
-	if (cl->locals.weapon_think_time < g_level.time && !cl->locals.persistent.spectator)
+	if (cl->locals.weapon_think_time < g_level.time)
 		G_ClientWeaponThink(ent);
 
 	if (ent->locals.dead) { // check for respawn conditions

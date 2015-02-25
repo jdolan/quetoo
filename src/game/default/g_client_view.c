@@ -401,13 +401,11 @@ void G_ClientEndFrame(g_entity_t *ent) {
  * @brief
  */
 void G_EndClientFrames(void) {
-	int32_t i;
-	g_entity_t *ent;
 
 	// finalize the player_state_t for this frame
-	for (i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
-		ent = g_game.entities + 1 + i;
+		g_entity_t *ent = g_game.entities + 1 + i;
 
 		if (!ent->in_use || !ent->client)
 			continue;

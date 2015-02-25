@@ -50,9 +50,8 @@ void G_ClientToIntermission(g_entity_t *ent) {
 	ent->client->locals.show_scores = true;
 
 	// hide the HUD
-	g_client_persistent_t *persistent = &ent->client->locals.persistent;
-	memset(persistent->inventory, 0, sizeof(persistent->inventory));
-	persistent->weapon = NULL;
+	memset(ent->client->locals.inventory, 0, sizeof(ent->client->locals.inventory));
+	ent->client->locals.weapon = NULL;
 
 	ent->client->locals.ammo_index = 0;
 	ent->client->locals.pickup_msg_time = 0;
@@ -187,13 +186,11 @@ void G_ClientScores(g_entity_t *ent) {
 void G_ClientStats(g_entity_t *ent) {
 	g_client_t *client = ent->client;
 
-	const g_client_persistent_t *persistent = &client->locals.persistent;
-
 	// ammo
 	if (client->locals.ammo_index) {
 		const g_item_t *ammo = &g_items[client->locals.ammo_index];
 		client->ps.stats[STAT_AMMO_ICON] = gi.ImageIndex(ammo->icon);
-		client->ps.stats[STAT_AMMO] = persistent->inventory[client->locals.ammo_index];
+		client->ps.stats[STAT_AMMO] = client->locals.inventory[client->locals.ammo_index];
 		client->ps.stats[STAT_AMMO_LOW] = ammo->quantity;
 	} else {
 		client->ps.stats[STAT_AMMO_ICON] = 0;
@@ -210,14 +207,14 @@ void G_ClientStats(g_entity_t *ent) {
 		else
 			client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_jacketarmor");
 
-		client->ps.stats[STAT_ARMOR] = persistent->inventory[ITEM_INDEX(armor)];
+		client->ps.stats[STAT_ARMOR] = client->locals.inventory[ITEM_INDEX(armor)];
 	} else {
 		client->ps.stats[STAT_ARMOR_ICON] = 0;
 		client->ps.stats[STAT_ARMOR] = 0;
 	}
 
 	// captures
-	client->ps.stats[STAT_CAPTURES] = persistent->captures;
+	client->ps.stats[STAT_CAPTURES] = client->locals.persistent.captures;
 
 	// damage received and inflicted
 	client->ps.stats[STAT_DAMAGE_ARMOR] = client->locals.damage_armor;
@@ -225,10 +222,10 @@ void G_ClientStats(g_entity_t *ent) {
 	client->ps.stats[STAT_DAMAGE_INFLICT] = client->locals.damage_inflicted;
 
 	// frags
-	client->ps.stats[STAT_FRAGS] = persistent->score;
+	client->ps.stats[STAT_FRAGS] = client->locals.persistent.score;
 
 	// health
-	if (persistent->spectator || ent->locals.dead) {
+	if (client->locals.persistent.spectator || ent->locals.dead) {
 		client->ps.stats[STAT_HEALTH_ICON] = 0;
 		client->ps.stats[STAT_HEALTH] = 0;
 	} else {
@@ -245,7 +242,7 @@ void G_ClientStats(g_entity_t *ent) {
 	// ready
 	client->ps.stats[STAT_READY] = 0;
 	if (g_level.match && g_level.match_time)
-		client->ps.stats[STAT_READY] = persistent->ready;
+		client->ps.stats[STAT_READY] = client->locals.persistent.ready;
 
 	// rounds
 	if (g_level.rounds)
@@ -256,8 +253,8 @@ void G_ClientStats(g_entity_t *ent) {
 	if (g_level.intermission_time || client->locals.show_scores)
 		client->ps.stats[STAT_SCORES] |= 1;
 
-	if ((g_level.teams || g_level.ctf) && persistent->team) { // send team_name
-		if (persistent->team == &g_team_good)
+	if ((g_level.teams || g_level.ctf) && client->locals.persistent.team) { // send team_name
+		if (client->locals.persistent.team == &g_team_good)
 			client->ps.stats[STAT_TEAM] = CS_TEAM_GOOD;
 		else
 			client->ps.stats[STAT_TEAM] = CS_TEAM_EVIL;
@@ -277,14 +274,13 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_VOTE] = 0;
 
 	// weapon
-	if (persistent->weapon) {
-		client->ps.stats[STAT_WEAPON_ICON] = gi.ImageIndex(persistent->weapon->icon);
-		client->ps.stats[STAT_WEAPON] = gi.ModelIndex(persistent->weapon->model);
+	if (client->locals.weapon) {
+		client->ps.stats[STAT_WEAPON_ICON] = gi.ImageIndex(client->locals.weapon->icon);
+		client->ps.stats[STAT_WEAPON] = gi.ModelIndex(client->locals.weapon->model);
 	} else {
 		client->ps.stats[STAT_WEAPON_ICON] = 0;
 		client->ps.stats[STAT_WEAPON] = 0;
 	}
-
 }
 
 /*

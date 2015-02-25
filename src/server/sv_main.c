@@ -595,7 +595,7 @@ static void Sv_ResetEntities(void) {
 	if (sv.state != SV_ACTIVE_GAME)
 		return;
 
-	for (int32_t i = 0; i < svs.game->num_entities; i++) {
+	for (uint16_t i = 0; i < svs.game->num_entities; i++) {
 		g_entity_t *edict = ENTITY_FOR_NUM(i);
 
 		// events only last for a single message
@@ -699,18 +699,14 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 	// rate command
 	val = GetUserInfo(cl->user_info, "rate");
 	if (*val != '\0') {
-		cl->rate = atoi(val);
-
-		if (cl->rate > CLIENT_RATE_MAX)
-			cl->rate = CLIENT_RATE_MAX;
-		else if (cl->rate < CLIENT_RATE_MIN)
-			cl->rate = CLIENT_RATE_MIN;
+		cl->rate = strtoul(val, NULL, 10);
+		cl->rate = Clamp(cl->rate, CLIENT_RATE_MIN, CLIENT_RATE_MAX);
 	}
 
 	// limit the print messages the client receives
 	val = GetUserInfo(cl->user_info, "message_level");
 	if (*val != '\0') {
-		cl->message_level = atoi(val);
+		cl->message_level = strtoul(val, NULL, 10);
 	}
 }
 

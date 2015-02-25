@@ -228,7 +228,7 @@ static void Cl_ParseDownload(void) {
 
 	if (percent != 100) {
 		Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-		Net_WriteString(&cls.net_chan.message, "nextdl");
+		Net_WriteString(&cls.net_chan.message, "next_download");
 	} else {
 		Fs_Close(cls.download.file);
 		cls.download.file = NULL;

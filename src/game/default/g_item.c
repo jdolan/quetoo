@@ -87,17 +87,16 @@ const g_item_t *G_FindItem(const char *name) {
 const g_item_t *G_ClientArmor(const g_entity_t *ent) {
 
 	if (ent->client) {
-		const g_client_persistent_t *persistent = &ent->client->locals.persistent;
 
-		if (persistent->inventory[g_media.items.body_armor]) {
+		if (ent->client->locals.inventory[g_media.items.body_armor]) {
 			return &g_items[g_media.items.body_armor];
 		}
 
-		if (persistent->inventory[g_media.items.combat_armor]) {
+		if (ent->client->locals.inventory[g_media.items.combat_armor]) {
 			return &g_items[g_media.items.combat_armor];
 		}
 
-		if (persistent->inventory[g_media.items.jacket_armor]) {
+		if (ent->client->locals.inventory[g_media.items.jacket_armor]) {
 			return &g_items[g_media.items.jacket_armor];
 		}
 	}
@@ -160,10 +159,10 @@ static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
  */
 static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 
-	if (other->client->locals.persistent.inventory[g_media.items.quad_damage])
+	if (other->client->locals.inventory[g_media.items.quad_damage])
 		return false; // already have it
 
-	other->client->locals.persistent.inventory[g_media.items.quad_damage] = 1;
+	other->client->locals.inventory[g_media.items.quad_damage] = 1;
 
 	if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
 		other->client->locals.quad_damage_time = ent->locals.next_think;
@@ -182,7 +181,7 @@ static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 g_entity_t *G_TossQuadDamage(g_entity_t *ent) {
 	g_entity_t *quad;
 
-	if (!ent->client->locals.persistent.inventory[g_media.items.quad_damage])
+	if (!ent->client->locals.inventory[g_media.items.quad_damage])
 		return NULL;
 
 	quad = G_DropItem(ent, G_FindItemByClassName("item_quad"));
@@ -191,7 +190,7 @@ g_entity_t *G_TossQuadDamage(g_entity_t *ent) {
 		quad->locals.timestamp = ent->client->locals.quad_damage_time;
 
 	ent->client->locals.quad_damage_time = 0.0;
-	ent->client->locals.persistent.inventory[g_media.items.quad_damage] = 0;
+	ent->client->locals.inventory[g_media.items.quad_damage] = 0;
 
 	return quad;
 }
@@ -204,32 +203,32 @@ _Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	int16_t max;
 
 	if (item->tag == AMMO_SHELLS)
-		max = ent->client->locals.persistent.max_shells;
+		max = ent->client->locals.max_shells;
 	else if (item->tag == AMMO_BULLETS)
-		max = ent->client->locals.persistent.max_bullets;
+		max = ent->client->locals.max_bullets;
 	else if (item->tag == AMMO_GRENADES)
-		max = ent->client->locals.persistent.max_grenades;
+		max = ent->client->locals.max_grenades;
 	else if (item->tag == AMMO_ROCKETS)
-		max = ent->client->locals.persistent.max_rockets;
+		max = ent->client->locals.max_rockets;
 	else if (item->tag == AMMO_CELLS)
-		max = ent->client->locals.persistent.max_cells;
+		max = ent->client->locals.max_cells;
 	else if (item->tag == AMMO_BOLTS)
-		max = ent->client->locals.persistent.max_bolts;
+		max = ent->client->locals.max_bolts;
 	else if (item->tag == AMMO_SLUGS)
-		max = ent->client->locals.persistent.max_slugs;
+		max = ent->client->locals.max_slugs;
 	else if (item->tag == AMMO_NUKES)
-		max = ent->client->locals.persistent.max_nukes;
+		max = ent->client->locals.max_nukes;
 	else
 		return false;
 
 	index = ITEM_INDEX(item);
 
-	ent->client->locals.persistent.inventory[index] += count;
+	ent->client->locals.inventory[index] += count;
 
-	if (ent->client->locals.persistent.inventory[index] > max)
-		ent->client->locals.persistent.inventory[index] = max;
-	else if (ent->client->locals.persistent.inventory[index] < 0)
-		ent->client->locals.persistent.inventory[index] = 0;
+	if (ent->client->locals.inventory[index] > max)
+		ent->client->locals.inventory[index] = max;
+	else if (ent->client->locals.inventory[index] < 0)
+		ent->client->locals.inventory[index] = 0;
 
 	return true;
 }
@@ -242,32 +241,32 @@ _Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	int16_t max;
 
 	if (item->tag == AMMO_SHELLS)
-		max = ent->client->locals.persistent.max_shells;
+		max = ent->client->locals.max_shells;
 	else if (item->tag == AMMO_BULLETS)
-		max = ent->client->locals.persistent.max_bullets;
+		max = ent->client->locals.max_bullets;
 	else if (item->tag == AMMO_GRENADES)
-		max = ent->client->locals.persistent.max_grenades;
+		max = ent->client->locals.max_grenades;
 	else if (item->tag == AMMO_ROCKETS)
-		max = ent->client->locals.persistent.max_rockets;
+		max = ent->client->locals.max_rockets;
 	else if (item->tag == AMMO_CELLS)
-		max = ent->client->locals.persistent.max_cells;
+		max = ent->client->locals.max_cells;
 	else if (item->tag == AMMO_BOLTS)
-		max = ent->client->locals.persistent.max_bolts;
+		max = ent->client->locals.max_bolts;
 	else if (item->tag == AMMO_SLUGS)
-		max = ent->client->locals.persistent.max_slugs;
+		max = ent->client->locals.max_slugs;
 	else if (item->tag == AMMO_NUKES)
-		max = ent->client->locals.persistent.max_nukes;
+		max = ent->client->locals.max_nukes;
 	else
 		return false;
 
 	index = ITEM_INDEX(item);
 
-	ent->client->locals.persistent.inventory[index] = count;
+	ent->client->locals.inventory[index] = count;
 
-	if (ent->client->locals.persistent.inventory[index] > max)
-		ent->client->locals.persistent.inventory[index] = max;
-	else if (ent->client->locals.persistent.inventory[index] < 0)
-		ent->client->locals.persistent.inventory[index] = 0;
+	if (ent->client->locals.inventory[index] > max)
+		ent->client->locals.inventory[index] = max;
+	else if (ent->client->locals.inventory[index] < 0)
+		ent->client->locals.inventory[index] = 0;
 
 	return true;
 }
@@ -317,7 +316,7 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 		if (h > max) // and enforce it
 			h = max;
 
-		other->locals.health = other->client->locals.persistent.health = h;
+		other->locals.health = h;
 
 		if (tag == HEALTH_MEGA) // respawn the item
 			G_SetItemRespawn(ent, 90000);
@@ -338,20 +337,18 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	const g_item_t *armor = ent->locals.item;
 
-	g_client_persistent_t *persistent = &other->client->locals.persistent;
-
 	_Bool taken = false;
 	if (armor->tag == ARMOR_SHARD) { // take it, ignoring cap
 		const g_item_t *old_armor = G_ClientArmor(other);
 		if (old_armor) {
-			persistent->inventory[ITEM_INDEX(old_armor)] += armor->quantity;
+			other->client->locals.inventory[ITEM_INDEX(old_armor)] += armor->quantity;
 		} else {
-			persistent->inventory[g_media.items.jacket_armor] = armor->quantity;
+			other->client->locals.inventory[g_media.items.jacket_armor] = armor->quantity;
 		}
 		taken = true;
 	} else {
-		if (persistent->inventory[ITEM_INDEX(armor)] < armor->quantity) {
-			persistent->inventory[ITEM_INDEX(armor)] = armor->quantity;
+		if (other->client->locals.inventory[ITEM_INDEX(armor)] < armor->quantity) {
+			other->client->locals.inventory[ITEM_INDEX(armor)] = armor->quantity;
 			taken = true;
 		}
 	}
@@ -446,9 +443,9 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 		}
 
 		index = ITEM_INDEX(of->locals.item);
-		if (other->client->locals.persistent.inventory[index]) { // capture
+		if (other->client->locals.inventory[index]) { // capture
 
-			other->client->locals.persistent.inventory[index] = 0;
+			other->client->locals.inventory[index] = 0;
 			other->s.effects &= ~G_EffectForTeam(ot);
 			other->s.model3 = 0;
 
@@ -482,7 +479,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	gi.LinkEntity(f);
 
 	index = ITEM_INDEX(f->locals.item);
-	other->client->locals.persistent.inventory[index] = 1;
+	other->client->locals.inventory[index] = 1;
 
 	// link the flag model to the player
 	other->s.model3 = gi.ModelIndex(f->locals.item->model);
@@ -511,10 +508,10 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 
 	const int32_t index = ITEM_INDEX(of->locals.item);
 
-	if (!ent->client->locals.persistent.inventory[index])
+	if (!ent->client->locals.inventory[index])
 		return NULL;
 
-	ent->client->locals.persistent.inventory[index] = 0;
+	ent->client->locals.inventory[index] = 0;
 
 	ent->s.model3 = 0;
 	ent->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);

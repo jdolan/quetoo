@@ -645,35 +645,19 @@ typedef struct {
 	char user_info[MAX_USER_INFO_STRING];
 	char net_name[MAX_NET_NAME];
 	char skin[MAX_QPATH];
+
+	g_team_t *team; // current team (good/evil)
+	int32_t color; // weapon effect colors
+
 	int16_t score;
 	int16_t captures;
-
-	int16_t health;
-	int16_t max_health;
-
-	int16_t inventory[MAX_ITEMS];
-
-	// ammo capacities
-	int16_t max_shells;
-	int16_t max_bullets;
-	int16_t max_grenades;
-	int16_t max_rockets;
-	int16_t max_cells;
-	int16_t max_bolts;
-	int16_t max_slugs;
-	int16_t max_nukes;
-
-	const g_item_t *weapon;
-	const g_item_t *last_weapon;
 
 	_Bool spectator; // client is a spectator
 	_Bool ready; // ready
 
-	g_team_t *team; // current team (good/evil)
 	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match
 	uint32_t round_num; // most recent arena round
-	int32_t color; // weapon effect colors
 } g_client_persistent_t;
 
 /*
@@ -690,6 +674,21 @@ typedef struct {
 	_Bool show_scores; // sets layout bit mask in player state
 	uint32_t scores_time; // eligible for scores when time > this
 
+	int16_t inventory[MAX_ITEMS];
+
+	int16_t max_shells;
+	int16_t max_bullets;
+	int16_t max_grenades;
+	int16_t max_rockets;
+	int16_t max_cells;
+	int16_t max_bolts;
+	int16_t max_slugs;
+	int16_t max_nukes;
+
+	const g_item_t *weapon;
+	const g_item_t *prev_weapon;
+	const g_item_t *next_weapon;
+
 	uint16_t ammo_index;
 
 	uint32_t buttons;
@@ -699,7 +698,6 @@ typedef struct {
 	uint32_t weapon_think_time; // time when the weapon think was called
 	uint32_t weapon_fire_time; // can fire when time > this
 	uint32_t weapon_change_time; // time when weapon was changed
-	const g_item_t *new_weapon;
 
 	int16_t damage_armor; // damage absorbed by armor
 	int16_t damage_health; // damage taken out of health

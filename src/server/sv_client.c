@@ -331,17 +331,17 @@ typedef struct sv_user_string_cmd_s {
 	void (*func)(void);
 } sv_user_string_cmd_t;
 
-sv_user_string_cmd_t sv_user_string_cmds[] = {
-// mapping command names to their functions
-		{ "new", Sv_New_f },
-		{ "config_strings", Sv_ConfigStrings_f },
-		{ "baselines", Sv_Baselines_f },
-		{ "begin", Sv_Begin_f },
-		{ "disconnect", Sv_Disconnect_f },
-		{ "info", Sv_Info_f },
-		{ "download", Sv_Download_f },
-		{ "nextdl", Sv_NextDownload_f },
-		{ NULL, NULL } };
+sv_user_string_cmd_t sv_user_string_cmds[] = { // mapping command names to their functions
+	{ "new", Sv_New_f },
+	{ "config_strings", Sv_ConfigStrings_f },
+	{ "baselines", Sv_Baselines_f },
+	{ "begin", Sv_Begin_f },
+	{ "disconnect", Sv_Disconnect_f },
+	{ "info", Sv_Info_f },
+	{ "download", Sv_Download_f },
+	{ "next_download", Sv_NextDownload_f },
+	{ NULL, NULL }
+};
 
 /*
  * @brief Invoke the specified user string command. If we don't have a function for
