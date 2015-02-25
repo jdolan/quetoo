@@ -49,7 +49,7 @@
  *
  * @see src/master/main.c
  */
-#define HOST_MASTER 		"master.quetoo.net"
+#define HOST_MASTER 		"master.quetoo.org"
 
 /*
  * @brief Default port for the master server.

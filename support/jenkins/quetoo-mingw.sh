@@ -4,7 +4,7 @@
 # Build entry point for MinGW cross-compile via chroot.
 #
 function build() {
-	/usr/bin/mock -r ${CHROOT} --cwd /tmp/quake2world --chroot "
+	/usr/bin/mock -r ${CHROOT} --cwd /tmp/quetoo --chroot "
 		set -e
 		export PATH=/usr/${HOST}/sys-root/mingw/bin:${PATH}
 		autoreconf -i

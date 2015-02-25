@@ -4,7 +4,7 @@
 # Build entry point for GNU / Linux via chroot.
 #
 function build() {
-	/usr/bin/mock -r ${CHROOT} --cwd /tmp/quake2world --chroot "
+	/usr/bin/mock -r ${CHROOT} --cwd /tmp/quetoo --chroot "
 		set -e
 		autoreconf -i
 		./configure ${CONFIGURE_FLAGS}

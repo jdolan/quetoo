@@ -125,7 +125,7 @@ function create_chroot() {
 		/usr/bin/mock -r ${CHROOT} --init
 		/usr/bin/mock -r ${CHROOT} --install ${CHROOT_PACKAGES}
 		/usr/bin/mock -r ${CHROOT} --copyin ~/.ssh "/root/.ssh"
-		/usr/bin/mock -r ${CHROOT} --copyin ${WORKSPACE} "/tmp/quake2world"
+		/usr/bin/mock -r ${CHROOT} --copyin ${WORKSPACE} "/tmp/quetoo"
 	} || return 0
 }
 

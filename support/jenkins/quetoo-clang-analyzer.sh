@@ -6,7 +6,7 @@
 CONFIGURE_FLAGS='--with-tests --with-master'
 
 function build() {
-	/usr/bin/mock -r ${CHROOT} --cwd /tmp/quake2world --chroot "
+	/usr/bin/mock -r ${CHROOT} --cwd /tmp/quetoo --chroot "
 		set -e
 		autoreconf -i
 		scan-build --use-analyzer=/usr/bin/clang ./configure ${CONFIGURE_FLAGS}
@@ -17,7 +17,7 @@ function build() {
 	cd ${WORKSPACE}
     tar czf ${BUILD_TAG}.tgz ${BUILD_TAG}
     echo '
-    <html><head><title>${BUILD_TAG} results</title></head><frameset rows="100%"><frame src="http://ci.quake2world.net/job/${JOB_NAME}/ws/${BUILD_TAG}/index.html"></frameset></html>' > ${WORKSPACE}/results.html
+    <html><head><title>${BUILD_TAG} results</title></head><frameset rows="100%"><frame src="http://ci.quetoo.org/job/${JOB_NAME}/ws/${BUILD_TAG}/index.html"></frameset></html>' > ${WORKSPACE}/results.html
 }
 
 source $(dirname $0)/common.sh
