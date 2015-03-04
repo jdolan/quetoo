@@ -1051,15 +1051,22 @@ const char *G_SelectNextMap(void) {
  */
 const char *G_GameName(void) {
 	static char name[64];
+	const uint8_t size = sizeof(name);
 
-	sprintf(name, "%s", G_GameplayName(g_level.gameplay));
+	g_strlcpy(name, G_GameplayName(g_level.gameplay), size);
 
+	// teams are implied for capture the flag
 	if (g_level.ctf) {
-		strcat(name, " / CTF");
+		g_strlcat(name, " CTF", size);
 	} else if (g_level.teams) {
-		strcat(name, " / TDM");
+		g_strlcpy(name, va("Team %s", name), size);
 	}
 
+	if (g_level.rounds) {
+		g_strlcat(name, " | Rounds", size);
+	} else if (g_level.match) {
+		g_strlcat(name, " | Matches", size);
+	}
 	return name;
 }
 
