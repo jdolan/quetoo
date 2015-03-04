@@ -1063,9 +1063,9 @@ const char *G_GameName(void) {
 	}
 
 	if (g_level.rounds) {
-		g_strlcat(name, " / Rounds", size);
+		g_strlcat(name, " | Rounds", size);
 	} else if (g_level.match) {
-		g_strlcat(name, " / Matches", size);
+		g_strlcat(name, " | Matches", size);
 	}
 	return name;
 }
