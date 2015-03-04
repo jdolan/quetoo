@@ -1051,7 +1051,7 @@ const char *G_SelectNextMap(void) {
  */
 const char *G_GameName(void) {
 	static char name[64];
-	const uint8_t size = sizeof(name);
+	const size_t size = sizeof(name);
 
 	g_strlcpy(name, G_GameplayName(g_level.gameplay), size);
 
