@@ -1050,24 +1050,24 @@ const char *G_SelectNextMap(void) {
  * @brief Returns the game name advertised by the server in info strings.
  */
 const char *G_GameName(void) {
-        static char name[64];
+	static char name[64];
 	uint8_t size = sizeof(name);
 
-        g_strlcpy(name, G_GameplayName(g_level.gameplay), size);
+	g_strlcpy(name, G_GameplayName(g_level.gameplay), size);
 
 	// teams are implied for capture the flag
-        if (g_level.ctf) {
-                g_strlcat(name, " CTF", size);
-        } else if (g_level.teams) {
-                g_strlcpy(name, va("Team %s", name), size);
-        }
-
-        if (g_level.rounds) {
-                g_strlcat(name, " / Rounds", size);
-        } else if (g_level.match) {
-                g_strlcat(name, " / Matches", size);
+	if (g_level.ctf) {
+		g_strlcat(name, " CTF", size);
+	} else if (g_level.teams) {
+		g_strlcpy(name, va("Team %s", name), size);
 	}
-        return name;
+
+	if (g_level.rounds) {
+		g_strlcat(name, " / Rounds", size);
+	} else if (g_level.match) {
+		g_strlcat(name, " / Matches", size);
+	}
+	return name;
 }
 
 /*
