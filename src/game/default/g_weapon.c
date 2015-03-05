@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quetoo.
+ * Copyright(c) 2006 Quake2World.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -447,6 +447,107 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_WeaponFired(ent, 75);
 	}
+}
+
+/*
+ * @brief
+ */
+void G_FireGrenade(g_entity_t *ent) {
+	const static uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
+	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
+
+	_Bool holding = G_CheckGrenadeHold(ent);
+	
+	if (!(buttons & BUTTON_ATTACK) && !holding)
+		return;
+
+	//ent->client->locals.latched_buttons &= ~BUTTON_ATTACK;
+	//static uint32_t count = 0;
+	//gi.Print("FIRE %d!!!\n", count);
+	//count++;
+	
+	gi.Print("fire!\n");
+	// use small epsilon for low server frame rates
+	if (ent->client->locals.weapon_fire_time > g_level.time + 1)
+		return;
+
+	int16_t ammo;
+	if (ent->client->locals.ammo_index)
+		ammo = ent->client->locals.inventory[ent->client->locals.ammo_index];
+	else
+		ammo = 0;
+
+	// override quantity needed from g_item_t since nades are both ammo and weapon
+	const uint16_t ammo_needed = 1;
+	
+	// if the client does not have enough ammo, change weapons
+	if (ent->client->locals.ammo_index && ammo < ammo_needed) {
+	
+		if (g_level.time >= ent->client->locals.pain_time) { // play a click sound
+			gi.Sound(ent, g_media.sounds.weapon_no_ammo, ATTEN_NORM);
+			ent->client->locals.pain_time = g_level.time + 1000;
+		}
+
+		G_UseBestWeapon(ent);
+		return;
+	}
+	
+	vec3_t forward, right, up, org;
+
+	G_InitProjectile(ent, forward, right, up, org);
+
+	G_GrenadeProjectile(ent, org, forward, 640, 120, 120, 185.0, 2500);
+
+	//G_MuzzleFlash(ent, MZ_GRENADE);
+
+	//G_ClientWeaponKick(ent, 0.225);
+
+	//G_WeaponFired(ent, 1000);
+	// set the attack animation
+	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
+
+	// push the next fire time out by the interval (2 secs)
+	ent->client->locals.weapon_fire_time = g_level.time + 2000;
+
+	// and decrease their inventory
+	if (ent->client->locals.ammo_index) {
+		ent->client->locals.inventory[ent->client->locals.ammo_index] -= ammo_needed;
+	}
+
+	// play a quad damage sound if applicable
+	if (ent->client->locals.inventory[g_media.items.quad_damage]) {
+
+		if (ent->client->locals.quad_attack_time < g_level.time) {
+			gi.Sound(ent, g_media.sounds.quad_attack, ATTEN_NORM);
+			ent->client->locals.quad_attack_time = g_level.time + 500;
+		}
+	}
+}
+
+_Bool G_CheckGrenadeHold(g_entity_t *ent)
+{
+	_Bool current_hold = ent->client->locals.latched_buttons & BUTTON_ATTACK;
+	_Bool old_hold  = ent->client->locals.old_buttons & BUTTON_ATTACK;
+	
+	// just pulled the pin
+	if (!ent->client->locals.grenade_hold_time && current_hold)
+	{
+		ent->client->locals.grenade_hold_time = g_level.time;
+		return true;
+	}
+	// already pulled the pin and holding it
+	else if (ent->client->locals.grenade_hold_time && current_hold)
+	{
+		return true;
+	}
+	// pin pulled, was holding, let go
+	else if (ent->client->locals.grenade_hold_time && old_hold && !current_hold)
+	{
+		
+		return false;
+	}
+	
+	return false;
 }
 
 /*

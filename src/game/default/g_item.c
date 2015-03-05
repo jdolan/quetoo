@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quetoo.
+ * Copyright(c) 2006 Quake2World.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1400,9 +1400,9 @@ const g_item_t g_items[] = {
 {
 		"ammo_grenades",
 		G_PickupAmmo,
-		NULL,
+		G_UseWeapon,
 		G_DropItem,
-		NULL,
+		G_FireGrenade,
 		"ammo/common/pickup.wav",
 		"models/ammo/grenades/tris.md3",
 		EF_ROTATE | EF_BOB | EF_PULSE,
@@ -1410,7 +1410,7 @@ const g_item_t g_items[] = {
 		"Grenades",
 		10,
 		"grenades",
-		ITEM_AMMO,
+		ITEM_AMMO | ITEM_WEAPON,
 		AMMO_GRENADES,
 		0.15,
 		"" },

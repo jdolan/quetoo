@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quetoo.
+ * Copyright(c) 2006 Quake2World.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +24,8 @@
 
 #include "g_types.h"
 
+#define GRENADE_LIFESPAN (3 * 1000)
+
 #ifdef __GAME_LOCAL_H__
 _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other);
 void G_UseBestWeapon(g_entity_t *ent);
@@ -36,11 +38,13 @@ void G_FireSuperShotgun(g_entity_t *ent);
 void G_FireMachinegun(g_entity_t *ent);
 void G_FireHyperblaster(g_entity_t *ent);
 void G_FireRocketLauncher(g_entity_t *ent);
+void G_FireGrenade(g_entity_t *ent);
 void G_FireGrenadeLauncher(g_entity_t *ent);
 void G_FireLightning(g_entity_t *ent);
 void G_FireRailgun(g_entity_t *ent);
 void G_FireBfg(g_entity_t *ent);
 void G_ClientWeaponThink(g_entity_t *ent);
+_Bool G_CheckGrenadeHold(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_WEAPON_H__ */
