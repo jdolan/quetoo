@@ -453,20 +453,31 @@ void G_FireMachinegun(g_entity_t *ent) {
  * @brief
  */
 void G_FireGrenade(g_entity_t *ent) {
-	const static uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
-	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
-
-	_Bool holding = G_CheckGrenadeHold(ent);
+	static const uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
 	
-	if (!(buttons & BUTTON_ATTACK) && !holding)
+	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
+	
+	if (!(buttons & BUTTON_ATTACK) && !ent->client->locals.grenade_hold_time)
 		return;
 
-	//ent->client->locals.latched_buttons &= ~BUTTON_ATTACK;
+	_Bool holding = G_CheckGrenadeHold(ent, buttons);
 	//static uint32_t count = 0;
 	//gi.Print("FIRE %d!!!\n", count);
 	//count++;
 	
-	gi.Print("fire!\n");
+	//ent->client->locals.latched_buttons &= ~BUTTON_ATTACK;
+	
+	if (holding)
+	{
+		return;
+	}
+	
+	if (!holding && ent->client->locals.grenade_hold_time)
+	{
+		gi.Print("Throwing!\n");
+	}
+	
+	//gi.Print("fire!\n");
 	// use small epsilon for low server frame rates
 	if (ent->client->locals.weapon_fire_time > g_level.time + 1)
 		return;
@@ -522,12 +533,14 @@ void G_FireGrenade(g_entity_t *ent) {
 			ent->client->locals.quad_attack_time = g_level.time + 500;
 		}
 	}
+	
+	ent->client->locals.grenade_hold_time = 0;
 }
 
-_Bool G_CheckGrenadeHold(g_entity_t *ent)
+_Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
 {
-	_Bool current_hold = ent->client->locals.latched_buttons & BUTTON_ATTACK;
-	_Bool old_hold  = ent->client->locals.old_buttons & BUTTON_ATTACK;
+	_Bool current_hold = buttons & BUTTON_ATTACK;
+	//_Bool old_hold  = ent->client->locals.old_buttons & BUTTON_ATTACK;
 	
 	// just pulled the pin
 	if (!ent->client->locals.grenade_hold_time && current_hold)
@@ -541,11 +554,11 @@ _Bool G_CheckGrenadeHold(g_entity_t *ent)
 		return true;
 	}
 	// pin pulled, was holding, let go
-	else if (ent->client->locals.grenade_hold_time && old_hold && !current_hold)
-	{
+	//else if (ent->client->locals.grenade_hold_time && old_hold && !current_hold)
+	//{
 		
-		return false;
-	}
+	//	return false;
+	//}
 	
 	return false;
 }
