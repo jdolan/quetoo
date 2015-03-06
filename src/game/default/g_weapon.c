@@ -454,6 +454,7 @@ void G_FireMachinegun(g_entity_t *ent) {
  */
 void G_FireGrenade(g_entity_t *ent) {
 	static const uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
+	vec_t throw_speed = 500.0;
 	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
 	
 	if (!(buttons & BUTTON_ATTACK) && !ent->client->locals.grenade_hold_time)
@@ -486,17 +487,33 @@ void G_FireGrenade(g_entity_t *ent) {
 	
 	vec3_t forward, right, up, org;
 	
+	// are we holding onto a primed grenade?
 	_Bool holding = G_CheckGrenadeHold(ent, buttons);
 	
+	// how long have we been holding it?
 	uint32_t hold_time = g_level.time - ent->client->locals.grenade_hold_time;
 	
+	// continue holding if time allows
 	if (holding && (int32_t)(nade_time - hold_time) > 0)
 	{
 		return;
 	}
 	
+	// figure out how fast/far to throw_speed
+	throw_speed *= (vec_t) hold_time / 1000;
+	throw_speed = (throw_speed < 200) ? 200 : throw_speed;
+	
 	G_InitProjectile(ent, forward, right, up, org);
-	G_GrenadeProjectile(ent, org, forward, 640, 120, 120, 185.0, nade_time-hold_time);
+	G_GrenadeProjectile(
+		ent, 					// the nade
+		org, 					// starting point
+		forward, 				// direction
+		(uint32_t)throw_speed, 	// how fast does it fly
+		120, 					// damage dealt
+		120, 					// knockback
+		185.0, 					// blast radius 
+		nade_time-hold_time		// time before explode (next think)
+	);
 
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
@@ -521,6 +538,10 @@ void G_FireGrenade(g_entity_t *ent) {
 	ent->client->locals.grenade_hold_time = 0;
 }
 
+/*
+ * @brief Checks button status and hold time to determine if we're still holding
+ * a primed grenade
+ */
 _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
 {
 	_Bool current_hold = buttons & BUTTON_ATTACK;
