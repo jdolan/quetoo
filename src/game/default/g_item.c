@@ -1413,7 +1413,7 @@ const g_item_t g_items[] = {
 		ITEM_AMMO | ITEM_WEAPON,
 		AMMO_GRENADES,
 		0.15,
-		"" },
+		"weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang1.ogg" },
 
 /*QUAKED ammo_rockets (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Rockets for the Rocket Launcher.

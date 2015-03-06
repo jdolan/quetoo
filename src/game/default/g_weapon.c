@@ -496,6 +496,11 @@ void G_FireGrenade(g_entity_t *ent) {
 	// continue holding if time allows
 	if (holding && (int32_t)(nade_time - hold_time) > 0)
 	{
+		// play the timer sound if we're holding
+		if ((g_level.frame_num - ent->client->locals.grenade_hold_frame) % gi.frame_rate == 0)
+		{
+			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang1.ogg"), ATTEN_NORM);
+		}
 		return;
 	}
 	
@@ -514,7 +519,11 @@ void G_FireGrenade(g_entity_t *ent) {
 		185.0, 					// blast radius 
 		nade_time-hold_time		// time before explode (next think)
 	);
-
+		
+	// play the sound if we throw it
+	if (!holding)
+		gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_throw.wav"), ATTEN_NORM);
+	
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
@@ -550,6 +559,7 @@ _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
 	if (!ent->client->locals.grenade_hold_time && current_hold)
 	{
 		ent->client->locals.grenade_hold_time = g_level.time;
+		ent->client->locals.grenade_hold_frame = g_level.frame_num;
 		return true;
 	}
 	// already pulled the pin and holding it
