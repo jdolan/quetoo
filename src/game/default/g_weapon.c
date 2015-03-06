@@ -490,21 +490,12 @@ void G_FireGrenade(g_entity_t *ent) {
 	
 	uint32_t hold_time = g_level.time - ent->client->locals.grenade_hold_time;
 	
-	// blow it up without throwing
-	if ((int32_t)(nade_time - hold_time) < 0)
-	{
-		holding = false;
-		G_InitProjectile(ent, forward, right, up, org);
-		G_GrenadeProjectile(ent, org, forward, 640, 120, 120, 185.0, 0);
-	}
-	
-	if (holding)
+	if (holding && (int32_t)(nade_time - hold_time) > 0)
 	{
 		return;
 	}
 	
 	G_InitProjectile(ent, forward, right, up, org);
-
 	G_GrenadeProjectile(ent, org, forward, 640, 120, 120, 185.0, nade_time-hold_time);
 
 	// set the attack animation
@@ -533,7 +524,6 @@ void G_FireGrenade(g_entity_t *ent) {
 _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
 {
 	_Bool current_hold = buttons & BUTTON_ATTACK;
-	//_Bool old_hold  = ent->client->locals.old_buttons & BUTTON_ATTACK;
 	
 	// just pulled the pin
 	if (!ent->client->locals.grenade_hold_time && current_hold)
@@ -546,12 +536,6 @@ _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
 	{
 		return true;
 	}
-	// pin pulled, was holding, let go
-	//else if (ent->client->locals.grenade_hold_time && old_hold && !current_hold)
-	//{
-		
-	//	return false;
-	//}
 	
 	return false;
 }
