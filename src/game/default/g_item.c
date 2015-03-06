@@ -1406,7 +1406,7 @@ const g_item_t g_items[] = {
 		"ammo/common/pickup.wav",
 		"models/ammo/grenades/tris.md3",
 		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/a_grenades",
+		"pics/a_handgrenades2",
 		"Grenades",
 		10,
 		"grenades",

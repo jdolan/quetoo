@@ -496,7 +496,7 @@ void G_FireGrenade(g_entity_t *ent) {
 	// continue holding if time allows
 	if (holding && (int32_t)(nade_time - hold_time) > 0)
 	{
-		// play the timer sound if we're holding
+		// play the timer sound if we're holding every second
 		if ((g_level.frame_num - ent->client->locals.grenade_hold_frame) % gi.frame_rate == 0)
 		{
 			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang1.ogg"), ATTEN_NORM);
@@ -545,6 +545,7 @@ void G_FireGrenade(g_entity_t *ent) {
 	}
 	
 	ent->client->locals.grenade_hold_time = 0;
+	ent->client->locals.grenade_hold_frame = 0;
 }
 
 /*
