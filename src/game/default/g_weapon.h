@@ -24,8 +24,6 @@
 
 #include "g_types.h"
 
-#define GRENADE_LIFESPAN (3 * 1000)
-
 #ifdef __GAME_LOCAL_H__
 _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other);
 void G_UseBestWeapon(g_entity_t *ent);

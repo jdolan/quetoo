@@ -453,12 +453,14 @@ void G_FireMachinegun(g_entity_t *ent) {
  * @brief
  */
 void G_FireGrenade(g_entity_t *ent) {
-	static const uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
-	vec_t throw_speed = 500.0;
+
 	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
 	
 	if (!(buttons & BUTTON_ATTACK) && !ent->client->locals.grenade_hold_time)
 		return;
+	
+	static const uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
+	vec_t throw_speed = 500.0;
 	
 	// use small epsilon for low server frame rates
 	if (ent->client->locals.weapon_fire_time > g_level.time + 1)
@@ -485,8 +487,6 @@ void G_FireGrenade(g_entity_t *ent) {
 		return;
 	}
 	
-	vec3_t forward, right, up, org;
-	
 	// are we holding onto a primed grenade?
 	_Bool holding = G_CheckGrenadeHold(ent, buttons);
 	
@@ -504,9 +504,11 @@ void G_FireGrenade(g_entity_t *ent) {
 		return;
 	}
 	
-	// figure out how fast/far to throw_speed
+	// figure out how fast/far to throw
 	throw_speed *= (vec_t) hold_time / 1000;
 	throw_speed = (throw_speed < 200) ? 200 : throw_speed;
+	
+	vec3_t forward, right, up, org;
 	
 	G_InitProjectile(ent, forward, right, up, org);
 	G_GrenadeProjectile(
@@ -521,8 +523,7 @@ void G_FireGrenade(g_entity_t *ent) {
 	);
 		
 	// play the sound if we throw it
-	if (!holding)
-		gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_throw.wav"), ATTEN_NORM);
+	gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_throw.wav"), ATTEN_NORM);
 	
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
