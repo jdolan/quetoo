@@ -454,30 +454,11 @@ void G_FireMachinegun(g_entity_t *ent) {
  */
 void G_FireGrenade(g_entity_t *ent) {
 	static const uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
-	
 	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
 	
 	if (!(buttons & BUTTON_ATTACK) && !ent->client->locals.grenade_hold_time)
 		return;
-
-	_Bool holding = G_CheckGrenadeHold(ent, buttons);
-	//static uint32_t count = 0;
-	//gi.Print("FIRE %d!!!\n", count);
-	//count++;
 	
-	//ent->client->locals.latched_buttons &= ~BUTTON_ATTACK;
-	
-	if (holding)
-	{
-		return;
-	}
-	
-	if (!holding && ent->client->locals.grenade_hold_time)
-	{
-		gi.Print("Throwing!\n");
-	}
-	
-	//gi.Print("fire!\n");
 	// use small epsilon for low server frame rates
 	if (ent->client->locals.weapon_fire_time > g_level.time + 1)
 		return;
@@ -504,16 +485,28 @@ void G_FireGrenade(g_entity_t *ent) {
 	}
 	
 	vec3_t forward, right, up, org;
-
+	
+	_Bool holding = G_CheckGrenadeHold(ent, buttons);
+	
+	uint32_t hold_time = g_level.time - ent->client->locals.grenade_hold_time;
+	
+	// blow it up without throwing
+	if ((int32_t)(nade_time - hold_time) < 0)
+	{
+		holding = false;
+		G_InitProjectile(ent, forward, right, up, org);
+		G_GrenadeProjectile(ent, org, forward, 640, 120, 120, 185.0, 0);
+	}
+	
+	if (holding)
+	{
+		return;
+	}
+	
 	G_InitProjectile(ent, forward, right, up, org);
 
-	G_GrenadeProjectile(ent, org, forward, 640, 120, 120, 185.0, 2500);
+	G_GrenadeProjectile(ent, org, forward, 640, 120, 120, 185.0, nade_time-hold_time);
 
-	//G_MuzzleFlash(ent, MZ_GRENADE);
-
-	//G_ClientWeaponKick(ent, 0.225);
-
-	//G_WeaponFired(ent, 1000);
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
