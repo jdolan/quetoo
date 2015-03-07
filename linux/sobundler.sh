@@ -42,7 +42,6 @@ SKIP='
 	libGL.so*
 	libm.so*
 	libnsl.so*
-	libpcre.so*
 	libpthread.so*
 	libresolv.so*
 	librt.so*
