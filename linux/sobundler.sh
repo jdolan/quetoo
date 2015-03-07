@@ -37,12 +37,9 @@ echo "Bundling .so files for ${exe} in ${dir}.."
 echo
 
 SKIP='
-	libc.so*
 	libdl.so*
 	libGL.so*
-	libm.so*
 	libnsl.so*
-	libpthread.so*
 	libresolv.so*
 	librt.so*
 	libuuid.so*
