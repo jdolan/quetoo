@@ -19,20 +19,55 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_CONSOLE_H__
-#define __CL_CONSOLE_H__
+#include "sv_local.h"
 
-#include "cl_types.h"
+static console_t sv_console;
 
-#ifdef __CL_LOCAL_H__
-extern console_t cl_console;
+/*
+ * @brief
+ */
+void Sv_DrawConsole(void) {
 
-void Cl_DrawConsole(void);
-void Cl_DrawNotify(void);
-void Cl_ToggleConsole_f(void);
-void Cl_InitConsole(void);
-void Cl_ShutdownConsole(void);
-#endif /* __CL_LOCAL_H__ */
+	Sv_DrawConsole_Curses();
+}
 
-#endif /* __CL_CONSOLE_H__ */
+/*
+ * @brief
+ */
+void Sv_InitConsole(void) {
 
+#if defined(_WIN32)
+	if (dedicated->value) {
+		if (AllocConsole()) {
+			freopen("CONIN$", "r", stdin);
+			freopen("CONOUT$", "w", stdout);
+			freopen("CONERR$", "w", stderr);
+		} else {
+			Com_Warn("Failed to allocate console: %u\n", (uint32_t) GetLastError());
+		}
+	}
+#endif
+
+	memset(&sv_console, 0, sizeof(sv_console));
+
+#if HAVE_CURSES
+	Sv_InitConsole_Curses();
+#else
+	Sv_InitConsole_Stdout();
+#endif
+}
+
+/*
+ * @brief
+ */
+void Sv_ShutdownConsole(void) {
+#if HAVE_CURSES
+	Curses_Shutdown();
+#endif
+
+#if defined(_WIN32)
+	if (dedicated->value) {
+		FreeConsole();
+	}
+#endif
+}

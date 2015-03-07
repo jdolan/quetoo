@@ -54,11 +54,9 @@ libcommon_la_LIBADD = \
 libconsole_la_SOURCES = \
 	cmd.c \
 	console.c \
-	console-curses.c \
 	cvar.c
 libconsole_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@
 libconsole_la_LDFLAGS = \
 	-shared

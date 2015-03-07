@@ -23,10 +23,8 @@
 #include <signal.h>
 
 #include "config.h"
-#if BUILD_CLIENT
 #include "client/client.h"
 extern cl_static_t cls;
-#endif
 #include "server/server.h"
 
 jmp_buf environment;
@@ -73,14 +71,12 @@ static void Error(err_t err, const char *msg) {
 		case ERR_DROP:
 			Sv_ShutdownServer(msg);
 
-#if BUILD_CLIENT
 			Cl_Disconnect();
 			if (err == ERR_NONE) {
 				cls.key_state.dest = KEY_UI;
 			} else {
 				cls.key_state.dest = KEY_CONSOLE;
 			}
-#endif
 
 			longjmp(environment, 0);
 			break;
@@ -147,11 +143,10 @@ static void Init(void) {
 
 	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
 
-#if BUILD_CLIENT
-	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, NULL);
-#else
-	dedicated = Cvar_Get("dedicated", "1", CVAR_NO_SET, NULL);
-#endif
+	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
+	if (g_str_has_suffix(Sys_ExecutablePath(), "-dediated")) {
+		Cvar_ForceSet("dedicated", "1");
+	}
 
 	game = Cvar_Get("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
 	game->modified = g_strcmp0(game->string, DEFAULT_GAME);
@@ -176,9 +171,7 @@ static void Init(void) {
 
 	Sv_Init();
 
-#if BUILD_CLIENT
 	Cl_Init();
-#endif
 
 	Com_Print("Quetoo %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
 
@@ -202,9 +195,7 @@ static void Shutdown(const char *msg) {
 
 	Sv_Shutdown(msg);
 
-#if BUILD_CLIENT
 	Cl_Shutdown();
-#endif
 
 	Netchan_Shutdown();
 
@@ -249,9 +240,7 @@ static void Frame(const uint32_t msec) {
 
 	Sv_Frame(msec);
 
-#if BUILD_CLIENT
 	Cl_Frame(msec);
-#endif
 }
 
 /*

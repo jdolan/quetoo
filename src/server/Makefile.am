@@ -2,6 +2,8 @@ noinst_HEADERS = \
 	server.h \
 	sv_admin.h \
 	sv_client.h \
+	sv_console.h \
+	sv_console-curses.h \
 	sv_entity.h \
 	sv_game.h \
 	sv_init.h \
@@ -18,6 +20,8 @@ noinst_LTLIBRARIES = \
 libserver_la_SOURCES = \
 	sv_admin.c \
 	sv_client.c \
+	sv_console.c \
+	sv_console-curses.c \
 	sv_entity.c \
 	sv_game.c \
 	sv_init.c \

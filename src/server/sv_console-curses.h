@@ -19,20 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CL_CONSOLE_H__
-#define __CL_CONSOLE_H__
+#include "sv_types.h"
 
-#include "cl_types.h"
+#ifndef __SV_CONSOLE_CURSES_H__
+#define __SV_CONSOLE_CURSES_H__
 
-#ifdef __CL_LOCAL_H__
-extern console_t cl_console;
+#if HAVE_CURSES
 
-void Cl_DrawConsole(void);
-void Cl_DrawNotify(void);
-void Cl_ToggleConsole_f(void);
-void Cl_InitConsole(void);
-void Cl_ShutdownConsole(void);
-#endif /* __CL_LOCAL_H__ */
+void Sv_DrawConsole_Curses(void);
+void Sv_InitConsole_Curses(void);
+void Sv_ShutdownConsole_Curses(void);
 
-#endif /* __CL_CONSOLE_H__ */
+#endif /* HAVE_CURSES */
+
+#endif /* __SV_CONSOLE_CURSES_H__ */
 

@@ -167,12 +167,10 @@ void Curses_Refresh(void) {
 /*
  * @brief Draw everything
  */
-static void Curses_Draw(void) {
+static void Sv_DrawConsole_Curses(void) {
+	static uint32_t last_time;
 
-	if (!sv_console.initialized)
-		return;
-
-	const uint32_t timeout = Clamp(con_timeout->integer, 20, 1000);
+	const uint32_t time = Sys_Milliseconds();
 
 	if (curses_last_update > timeout && curses_redraw) {
 		if ((curses_redraw & 2) == 2) {
@@ -185,7 +183,7 @@ static void Curses_Draw(void) {
 			Curses_DrawInput();
 		}
 
-		wrefresh(stdwin);
+		refresh();
 
 		curses_redraw = 0;
 		curses_last_update = 0;
@@ -216,13 +214,9 @@ static void Curses_Resize(int32_t sig __attribute__((unused))) {
  * @brief Handle curses input and redraw if necessary
  */
 void Curses_Frame(uint32_t msec) {
-	int32_t key;
 	char buf[CURSES_LINESIZE];
 
-	if (!sv_console.initialized)
-		return;
-
-	key = wgetch(stdwin);
+	const int32_t key = wgetch(stdwin);
 
 	while (key != ERR) {
 		if (key == KEY_BACKSPACE || key == 8 || key == 127) {
@@ -338,17 +332,9 @@ void Curses_Frame(uint32_t msec) {
 /*
  * @brief Initialize the curses console
  */
-void Curses_Init(void) {
+void Sv_InitConsole_Curses(void) {
 
-	memset(&sv_console, 0, sizeof(sv_console));
-
-	if (dedicated->value) {
-		con_curses = Cvar_Get("con_curses", "1", CVAR_NO_SET, NULL);
-	} else {
-		con_curses = Cvar_Get("con_curses", "0", CVAR_NO_SET, NULL);
-	}
-
-	con_timeout = Cvar_Get("con_timeout", "20", CVAR_ARCHIVE, NULL);
+#if HAVE_CURSES
 
 	if (!con_curses->value)
 		return;
@@ -360,11 +346,8 @@ void Curses_Init(void) {
 	nodelay(stdwin, TRUE); // non-blocking input
 	curs_set(1); // enable the cursor
 
-	sv_console.scroll = 0;
-
 	if (has_colors() == TRUE) {
-		start_color();
-		// this is ncurses-specific
+		start_color(); // this is ncurses-specific
 		use_default_colors();
 		// COLOR_PAIR(0) is terminal default
 		init_pair(1, COLOR_RED, -1);
@@ -375,9 +358,6 @@ void Curses_Init(void) {
 		init_pair(6, COLOR_MAGENTA, -1);
 		init_pair(7, -1, -1);
 	}
-
-	// fill up the version string
-	g_snprintf(version_string, sizeof(version_string), " Quetoo %s ", VERSION);
 
 	// clear the input box
 	input_pos = 0;
@@ -391,19 +371,15 @@ void Curses_Init(void) {
 
 	refresh();
 
-	curses_last_update = con_timeout->value * 2;
-
-	sv_console.initialized = true;
-
-	Curses_Draw();
+#endif
 }
 
 /*
  * @brief Shutdown the curses console
  */
-void Curses_Shutdown(void) {
+void Sv_ShutdownConsole_Curses(void) {
 
-	if (sv_console.initialized) {
+	if (sv_console.width || sv_console.height) {
 		endwin();
 	}
 }

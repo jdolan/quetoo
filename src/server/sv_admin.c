@@ -251,7 +251,7 @@ static void Sv_Say_f(void) {
 	if (Cmd_Argc() < 2)
 		return;
 
-	StripColor(Cmd_Args(), text);
+	StripColors(Cmd_Args(), text);
 	if (!strlen(text)) {
 		return;
 	}
@@ -289,7 +289,7 @@ static void Sv_Tell_f(void) {
 		return;
 
 	const char *msg = Cmd_Args() + strlen(Cmd_Argv(1)) + 1;
-	StripColor(msg, text);
+	StripColors(msg, text);
 	if (!strlen(text)) {
 		return;
 	}

@@ -508,7 +508,7 @@ static void G_Say_f(g_entity_t *ent) {
 	}
 
 	// suppress empty messages
-	StripColor(s, temp);
+	StripColors(s, temp);
 	if (!strlen(temp)) {
 		return;
 	}

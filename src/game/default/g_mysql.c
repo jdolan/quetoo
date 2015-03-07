@@ -74,7 +74,7 @@ const char *G_MySQL_EntityName(const g_entity_t *ent __attribute__((unused))) {
 		return ent->class_name;
 	}
 
-	StripColor(ent->client->locals.persistent.net_name, name);
+	StripColors(ent->client->locals.persistent.net_name, name);
 
 	if (ent->ai) {
 		g_strlcat(name, " [robot]", sizeof(name));

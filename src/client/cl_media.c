@@ -76,6 +76,29 @@ void Cl_LoadProgress(uint16_t percent) {
 	Cl_UpdateScreen();
 }
 
+
+/**
+ * @brief Draws the loading screen.
+ *
+ * TODO: Map-specific and generic loading backgrounds.
+ */
+void Cl_DrawLoading(void) {
+
+	if (!cls.loading)
+		return;
+
+	printf("Loading... %2d%%\n", cls.loading);
+
+	if (cls.download.file) {
+		char dl[MAX_PRINT_MSG];
+
+		const int32_t kb = (int32_t) Fs_Tell(cls.download.file) / 1024;
+
+		g_snprintf(dl, sizeof(dl), "%s [%s] %dKB ", cls.download.name,
+				(cls.download.http ? "HTTP" : "UDP"), kb);
+	}
+}
+
 /*
  * @brief Load all game media through the relevant subsystems. This is called when
  * spawning into a server. For incremental reloads on subsystem restarts,

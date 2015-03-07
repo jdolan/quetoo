@@ -709,7 +709,7 @@ void StripExtension(const char *in, char *out) {
 /*
  * @brief Strips color escape sequences from the specified input string.
  */
-void StripColor(const char *in, char *out) {
+void StripColors(const char *in, char *out) {
 
 	while (*in) {
 
@@ -729,13 +729,38 @@ void StripColor(const char *in, char *out) {
 }
 
 /*
+ * @brief Returns the length of s in printable characters.
+ */
+size_t StrColorLen(const char *s) {
+
+	size_t len = 0;
+
+	while (*s) {
+		if (IS_COLOR(s)) {
+			s += 2;
+			continue;
+		}
+
+		if (IS_LEGACY_COLOR(s)) {
+			s++;
+			continue;
+		}
+
+		s++;
+		len++;
+	}
+
+	return len;
+}
+
+/*
  * @brief Performs a color- and case-insensitive string comparison.
  */
 int32_t StrColorCmp(const char *s1, const char *s2) {
 	char string1[MAX_STRING_CHARS], string2[MAX_STRING_CHARS];
 
-	StripColor(s1, string1);
-	StripColor(s2, string2);
+	StripColors(s1, string1);
+	StripColors(s2, string2);
 
 	return g_ascii_strcasecmp(string1, string2);
 }

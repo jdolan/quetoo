@@ -305,9 +305,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
  * client sees the reconnect message immediately.
  */
 void Sv_InitServer(const char *server, sv_state_t state) {
-#if BUILD_CLIENT
-	extern void Cl_Disconnect(void);
-#endif
+
 	char path[MAX_QPATH];
 
 	Com_Debug("Sv_InitServer: %s (%d)\n", server, state);
@@ -328,10 +326,8 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 	// inform any connected clients to reconnect to us
 	Sv_ShutdownMessage("Server restarting...\n", true);
 
-#if BUILD_CLIENT
 	// disconnect any local client, they'll immediately reconnect
 	Cl_Disconnect();
-#endif
 
 	// clear the sv_server_t structure
 	Sv_ClearState();

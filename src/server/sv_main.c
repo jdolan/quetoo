@@ -761,9 +761,8 @@ void Sv_Frame(const uint32_t msec) {
 	// clear entity flags, etc for next frame
 	Sv_ResetEntities();
 
-#if HAVE_CURSES
-	Curses_Frame(msec);
-#endif
+	// redraw the console
+	Sv_DrawConsole();
 }
 
 /*

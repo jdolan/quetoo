@@ -275,8 +275,6 @@ void Cl_UpdateScreen(void) {
 
 			Cl_DrawCounters();
 
-			Cl_DrawNotify();
-
 			Cl_DrawRendererStats();
 
 			Cl_DrawSoundStats();
@@ -287,7 +285,11 @@ void Cl_UpdateScreen(void) {
 		R_Setup2D();
 	}
 
-	Cl_DrawConsole();
+	if (cls.loading) {
+		Cl_DrawLoading();
+	} else {
+		Cl_DrawConsole();
+	}
 
 	R_Draw2D(); // draw all 2D geometry for the frame
 

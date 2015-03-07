@@ -25,56 +25,99 @@
 #include "cmd.h"
 #include "cvar.h"
 
-#define CON_TEXT_SIZE (1024 * 1024)
-#define CON_MAX_LINES 1024
 #define CON_NUM_NOTIFY 4
 #define CON_SCROLL 5
 #define CON_CURSOR_CHAR 0x0b
 
-// common console structures
+/*
+ * @brief A console string.
+ */
 typedef struct {
-	// console data
-	char text[CON_TEXT_SIZE]; // buffer to hold the console data
-	char *insert; // where to add new text
-} console_data_t;
 
+	/*
+	 * @brief The null-terminated C string.
+	 */
+	const char *chars;
+
+	/*
+	 * @brief The length of this string in bytes.
+	 */
+	size_t size;
+
+	/*
+	 * @brief The length of this string in printable characters.
+	 */
+	size_t length;
+
+	/*
+	 * @brief The timestamp.
+	 */
+	uint32_t timestamp;
+
+} console_string_t;
+
+/*
+ * @brief The maximum number of characters to buffer.
+ */
+#define CON_MAX_SIZE (1024 * 1024)
+
+/*
+ * @brief The console state.
+ */
 typedef struct {
-	_Bool initialized;
-	// console dimensions
-	uint16_t width; // console printable width in characters
-	uint16_t height; // console printable height in characters
+	/*
+	 * @brief The console strings.
+	 */
+	GList *strings;
 
-	// console index
-	int32_t line_color[CON_MAX_LINES]; // text color at the start of the line
-	char *line_start[CON_MAX_LINES]; // an index to word-wrapped line starts
-	int32_t last_line; // last line of the console
+	/*
+	 * @brief The length of the console strings in characters.
+	 */
+	size_t size;
 
-	int32_t scroll; // scroll position
+	/*
+	 * @brief A lock for coordinating thread access to the console.
+	 */
+	SDL_mutex *lock;
 
-	vec_t notify_times[CON_NUM_NOTIFY]; // cls.real_time time the line was generated
-// for transparent notify lines
+} console_state_t;
+
+extern console_state_t console_state;
+
+/*
+ * @brief The console structure.
+ */
+typedef struct {
+
+	/*
+	 * @brief Console width in characters.
+	 */
+	uint16_t width;
+
+	/*
+	 * @brief Console height in characters.
+	 */
+	uint16_t height;
+
+	/*
+	 * @brief The scroll offset in lines.
+	 */
+	uint16_t scroll;
+
+	/*
+	 * @brief An optional print callback.
+	 */
+	void (*Print)(console_string_t *str);
+
 } console_t;
 
-// common console functions
 void Con_Init(void);
 void Con_Shutdown(void);
-void Con_Print(const char *text);
-void Con_Resize(console_t *con, uint16_t width, uint16_t height);
+void Con_AddConsole(const console_t *console);
+void Con_RemoveConsole(const console_t *console);
+void Con_Print(const char *chars);
+size_t Con_Wrap(const char *chars, size_t line_width, const char **lines, size_t max_lines);
+size_t Con_Tail(const console_t *console, const char **lines, size_t max_lines);
 _Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len);
-
-#if HAVE_CURSES
-
-// structures for the server console
-extern console_t sv_console;
-
-extern cvar_t *con_curses;
-extern cvar_t *con_timeout;
-
-void Curses_Init(void);
-void Curses_Shutdown(void);
-void Curses_Frame(uint32_t msec);
-void Curses_Refresh(void);
-
-#endif /* HAVE_CURSES */
 
 #endif /* __CONSOLE_H__ */

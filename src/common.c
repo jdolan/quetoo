@@ -125,7 +125,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	if (quetoo.Error) {
 		quetoo.Error(err, (const char *) msg);
 	} else {
-		fprintf(stderr, "%s", msg);
+		fputs(msg, stderr);
 		fflush(stderr);
 		exit(err);
 	}
