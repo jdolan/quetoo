@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 
 #include "tests.h"
 
-quake2world_t quake2world;
+quetoo_t quetoo;
 
 /**
  * @brief Runs the specified suite, returning the number of tests that failed.
@@ -42,7 +42,7 @@ int32_t Test_Run(Suite *suite) {
  */
 void Test_Init(int32_t argc, char **argv) {
 
-	memset(&quake2world, 0, sizeof(quake2world));
+	memset(&quetoo, 0, sizeof(quetoo));
 
 	Com_Init(argc, argv);
 }

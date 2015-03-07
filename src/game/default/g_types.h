@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -254,7 +254,7 @@ typedef struct g_entity_s g_entity_t;
 
 /*
  * @brief These are legacy spawn flags from Quake II. We maintain these simply
- * for backwards compatibility with old levels. They do nothing in Q2W.
+ * for backwards compatibility with old levels. They do nothing in QUETOO.
  */
 #define SF_NOT_EASY				0x00000100
 #define SF_NOT_MEDIUM			0x00000200

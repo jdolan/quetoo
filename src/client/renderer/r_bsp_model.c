@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -884,7 +884,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 		((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 	}
 
-	if (header.version != BSP_VERSION && header.version != BSP_VERSION_Q2W) {
+	if (header.version != BSP_VERSION && header.version != BSP_VERSION_QUETOO) {
 		Com_Error(ERR_DROP, "%s has unsupported version: %d\n", mod->media.name, header.version);
 	}
 
@@ -897,7 +897,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspVertexes(mod->bsp, &header.lumps[BSP_LUMP_VERTEXES]);
 	Cl_LoadProgress(4);
 
-	if (header.version == BSP_VERSION_Q2W) // enhanced format
+	if (header.version == BSP_VERSION_QUETOO) // enhanced format
 		R_LoadBspNormals(mod->bsp, &header.lumps[BSP_LUMP_NORMALS]);
 
 	R_LoadBspEdges(mod->bsp, &header.lumps[BSP_LUMP_EDGES]);

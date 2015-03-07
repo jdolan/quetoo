@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1122,7 +1122,7 @@ void G_Init(void) {
 			"Weapon respawn interval in seconds");
 
 	sv_max_clients = gi.Cvar("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
-	sv_hostname = gi.Cvar("sv_hostname", "Quake2World", CVAR_SERVER_INFO, NULL);
+	sv_hostname = gi.Cvar("sv_hostname", "Quetoo", CVAR_SERVER_INFO, NULL);
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
 
 	G_ParseMapList("maps.lst");

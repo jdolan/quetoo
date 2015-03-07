@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Quetoo BETA Update
+Comment=Web updater for Quetoo BETA.
+Exec="%QUETOO_HOME%/bin/update.sh"
+Icon="%QUETOO_HOME%/share/default/icons/update.png"
+Terminal=true
+Type=Application
+Categories=Games;
+StartupNotify=true

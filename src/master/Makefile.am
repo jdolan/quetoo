@@ -1,24 +1,24 @@
 if BUILD_MASTER
 
 bin_PROGRAMS = \
-	q2wmaster
+	quetoo-master
 
-q2wmaster_SOURCES = \
+quetoo_master_SOURCES = \
 	main.c
 
-q2wmaster_CFLAGS = \
+quetoo_master_CFLAGS = \
 	-I.. \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 
-q2wmaster_LDADD = \
+quetoo_master_LDADD = \
 	../libfilesystem.la
 
 # Build a statically linked master server on Linux
 
-q2wmaster_static: q2wmaster-main.o
-	libtool link gcc -all-static -o q2wmaster \
-		q2wmaster-main.o ../libfilesystem.la \
+quetoo-master-static: quetoo_master-main.o
+	libtool link gcc -all-static -o quetoo-master \
+		quetoo_master-main.o ../libfilesystem.la \
 		@GLIB_LIBS@ -lrt @PHYSFS_LIBS@ @SDL2_LIBS@ -lpthread
 
 endif

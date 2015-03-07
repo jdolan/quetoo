@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -377,7 +377,7 @@ void Curses_Init(void) {
 	}
 
 	// fill up the version string
-	g_snprintf(version_string, sizeof(version_string), " Quake2World %s ", VERSION);
+	g_snprintf(version_string, sizeof(version_string), " Quetoo %s ", VERSION);
 
 	// clear the input box
 	input_pos = 0;

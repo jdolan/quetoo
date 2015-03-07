@@ -1,6 +1,6 @@
 AC_PREREQ([2.68])
 
-AC_INIT([quake2world],[0.1.0],[jay@jaydolan.com])
+AC_INIT([quetoo],[0.1.0],[jay@jaydolan.com])
 AC_USE_SYSTEM_EXTENSIONS
 
 AC_CONFIG_HEADERS(config.h)
@@ -267,11 +267,11 @@ else
 
 	AC_MSG_CHECKING(which tools to build)
 
-	TOOLS="q2wmap"
+	TOOLS="quemap"
 	TOOL_DIRS="$TOOLS"
 
 	AC_ARG_WITH(tools,
-		AS_HELP_STRING([--with-tools='q2wmap ...'],
+		AS_HELP_STRING([--with-tools='quemap ...'],
 			[build specified tools]
 		)
 	)
@@ -287,7 +287,7 @@ else
 	AC_MSG_RESULT($TOOLS)
 	AC_SUBST(TOOL_DIRS)
 	
-	echo "${TOOLS}" | grep -q q2wmap && {
+	echo "${TOOLS}" | grep -q quemap && {
 	
 		dnl -----------------
 		dnl Check for libxml2
@@ -654,13 +654,13 @@ AC_CONFIG_FILES([
 	src/server/Makefile
 	src/tests/Makefile
 	src/tools/Makefile
-	src/tools/q2wmap/Makefile
+	src/tools/quemap/Makefile
 ])
 
 AC_OUTPUT
 
 AC_MSG_RESULT([
-Quake2World $VERSION: Automatic configuration OK.
+Quetoo $VERSION: Automatic configuration OK.
 
   Configuration summary:
     Platform: .......... $host
@@ -687,6 +687,6 @@ Quake2World $VERSION: Automatic configuration OK.
     Libraries: ......... $PKGLIBDIR
     Data: .............. $PKGDATADIR
 
-Type 'make' to build Quake2World.  Type 'make install' to install it.
+Type 'make' to build Quetoo.  Type 'make install' to install it.
 Type 'make rsync-data' to install or update the game data.
 ])

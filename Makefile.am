@@ -5,7 +5,7 @@ SUBDIRS = \
 	src
 
 RSYNC_REPOSITORY = \
-	rsync://quake2world.net/quake2world
+	rsync://quetoo.org/quetoo
 
 rsync-data:
 	mkdir -p $(DESTDIR)@PKGDATADIR@

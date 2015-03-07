@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@
 #ifndef __SYS_H__
 #define __SYS_H__
 
-#include "quake2world.h"
+#include "quetoo.h"
 
 uint32_t Sys_Milliseconds(void);
 

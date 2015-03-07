@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -216,7 +216,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 
 		// command line variables retain their value through initialization
 		if (var->flags & CVAR_CLI) {
-			if (!Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER)) {
+			if (!Com_WasInit(QUETOO_CLIENT) && !Com_WasInit(QUETOO_SERVER)) {
 				Com_Debug("%s: retaining value \"%s\" from command line\n", name, var->string);
 				return var;
 			}
@@ -225,7 +225,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 		// local-only variables can not be modified when in multiplayer mode
 		if (var->flags & CVAR_LO_ONLY) {
 			const int32_t clients = Cvar_GetValue("sv_max_clients");
-			if (clients > 1 || (Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER))) {
+			if (clients > 1 || (Com_WasInit(QUETOO_CLIENT) && !Com_WasInit(QUETOO_SERVER))) {
 				Com_Print("%s is only available offline.\n", name);
 				return var;
 			}
@@ -248,7 +248,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 					return var;
 			}
 
-			if (Com_WasInit(Q2W_SERVER)) {
+			if (Com_WasInit(QUETOO_SERVER)) {
 				Com_Print("%s will be changed for next game.\n", name);
 				var->latched_string = Mem_Link(Mem_CopyString(value), var);
 			} else {
@@ -382,7 +382,7 @@ void Cvar_ResetLocal(void) {
 
 	const int32_t clients = Cvar_GetValue("sv_max_clients");
 
-	if (clients > 1 || (Com_WasInit(Q2W_CLIENT) && !Com_WasInit(Q2W_SERVER))) {
+	if (clients > 1 || (Com_WasInit(QUETOO_CLIENT) && !Com_WasInit(QUETOO_SERVER))) {
 		Cvar_Enumerate(Cvar_ResetLocal_enumerate, NULL);
 	}
 }

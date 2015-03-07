@@ -1,15 +1,15 @@
 bin_PROGRAMS = \
-	quake2world
+	quetoo
 
-quake2world_SOURCES = \
+quetoo_SOURCES = \
 	main.c
 
-quake2world_CFLAGS = \
+quetoo_CFLAGS = \
 	-I.. \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@SDL2_CFLAGS@
 
-quake2world_LDADD = \
+quetoo_LDADD = \
 	../client/libclient.la \
 	../server/libserver.la

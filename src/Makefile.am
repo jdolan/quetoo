@@ -22,7 +22,7 @@ noinst_HEADERS = \
 	matrix.h \
 	mem.h \
 	mem_buf.h \
-	quake2world.h \
+	quetoo.h \
 	shared.h \
 	swap.h \
 	sys.h \

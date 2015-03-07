@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@
 #ifndef __SWAP_H__
 #define __SWAP_H__
 
-#include "quake2world.h"
+#include "quetoo.h"
 
 extern int16_t BigShort(int16_t s);
 extern int16_t LittleShort(int16_t s);

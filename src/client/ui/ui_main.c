@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,7 +43,7 @@ static _Bool Ui_HandleKeyEvent(const SDL_Event *event) {
 				if (cl_editor->value)
 					Ui_ShowBar("Editor");
 				else
-					Ui_ShowBar("Quake2World");
+					Ui_ShowBar("Quetoo");
 
 				return true;
 			}
@@ -116,7 +116,7 @@ void Ui_Draw(void) {
  * @brief Defines the root TwBar.
  */
 static TwBar *Ui_Root(void) {
-	TwBar *bar = TwNewBar("Quake2World");
+	TwBar *bar = TwNewBar("Quetoo");
 
 	TwAddButton(bar, "Servers", Ui_ShowBar, "Servers", NULL);
 	TwAddButton(bar, "Controls", Ui_ShowBar, "Controls", NULL);
@@ -128,9 +128,9 @@ static TwBar *Ui_Root(void) {
 
 	TwAddButton(bar, "Quit", Ui_Command, "quit\n", NULL);
 
-	TwDefine("Quake2World size='240 150' alpha=200 iconifiable=false");
+	TwDefine("Quetoo size='240 150' alpha=200 iconifiable=false");
 
-	Ui_ShowBar("Quake2World");
+	Ui_ShowBar("Quetoo");
 
 	return bar;
 }
@@ -175,7 +175,7 @@ void Ui_Init(void) {
 	ui.credits = Ui_Credits();
 	ui.editor = Ui_Editor();
 
-	Ui_ShowBar("Quake2World");
+	Ui_ShowBar("Quetoo");
 
 	Cmd_Add("ui_restart", Ui_Restart_f, CMD_UI, "Restarts the menus subsystem");
 }

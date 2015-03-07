@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -252,7 +252,7 @@ char *Mem_CopyString(const char *in) {
 
 /*
  * @brief Initializes the managed memory subsystem. This should be one of the first
- * subsystems initialized by Quake2World.
+ * subsystems initialized by Quetoo.
  */
 void Mem_Init(void) {
 
@@ -265,7 +265,7 @@ void Mem_Init(void) {
 
 /*
  * @brief Shuts down the managed memory subsystem. This should be one of the last
- * subsystems brought down by Quake2World.
+ * subsystems brought down by Quetoo.
  */
 void Mem_Shutdown(void) {
 

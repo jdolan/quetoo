@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -106,9 +106,9 @@ const char *Sys_UserDir(void) {
 	const char *home = g_get_home_dir();
 
 #if defined(_WIN32)
-	g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quake2World", home);
+	g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quetoo", home);
 #else
-	g_snprintf(user_dir, sizeof(user_dir), "%s/.quake2world", home);
+	g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", home);
 #endif
 	return user_dir;
 }

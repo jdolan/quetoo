@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -257,7 +257,7 @@ void Cl_CheckPredictionError(void) {
 void Cl_UpdatePrediction(void) {
 
 	// ensure the world model is loaded
-	if (!Com_WasInit(Q2W_SERVER) || !Cm_NumModels()) {
+	if (!Com_WasInit(QUETOO_SERVER) || !Cm_NumModels()) {
 		int64_t bs;
 
 		const char *bsp_name = cl.config_strings[CS_MODELS];

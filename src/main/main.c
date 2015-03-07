@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@ extern cl_static_t cls;
 
 jmp_buf environment;
 
-quake2world_t quake2world;
+quetoo_t quetoo;
 
 static cvar_t *debug;
 cvar_t *dedicated;
@@ -99,7 +99,7 @@ static void Error(err_t err, const char *msg) {
  */
 static void Print(const char *msg) {
 
-	if (quake2world.time) {
+	if (quetoo.time) {
 		Con_Print(msg);
 	} else {
 		printf("%s", msg);
@@ -161,16 +161,16 @@ static void Init(void) {
 	time_scale = Cvar_Get("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
 	verbose = Cvar_Get("verbose", "0", 0, "Print verbose debugging information");
 
-	const char *s = va("Quake2World %s %s %s", VERSION, __DATE__, BUILD_HOST);
+	const char *s = va("Quetoo %s %s %s", VERSION, __DATE__, BUILD_HOST);
 	Cvar_Get("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
 	Thread_Init(threads->integer);
 	threads->modified = false;
 
 	Con_Init();
-	quake2world.time = Sys_Milliseconds();
+	quetoo.time = Sys_Milliseconds();
 
-	Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quake2World");
+	Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
 
 	Netchan_Init();
 
@@ -180,14 +180,14 @@ static void Init(void) {
 	Cl_Init();
 #endif
 
-	Com_Print("Quake2World %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
+	Com_Print("Quetoo %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
 
 	// execute any +commands specified on the command line
 	Cbuf_InsertFromDefer();
 	Cbuf_Execute();
 
 	// dedicated server, nothing specified, use Edge
-	if (dedicated->value && !Com_WasInit(Q2W_SERVER)) {
+	if (dedicated->value && !Com_WasInit(QUETOO_SERVER)) {
 		Cbuf_AddText("map edge\n");
 		Cbuf_Execute();
 	}
@@ -211,7 +211,7 @@ static void Shutdown(const char *msg) {
 	Thread_Shutdown();
 
 	Con_Shutdown();
-	quake2world.time = 0; // short-circuit Print
+	quetoo.time = 0; // short-circuit Print
 
 	Cvar_Shutdown();
 
@@ -261,21 +261,21 @@ int32_t main(int32_t argc, char **argv) {
 	static uint32_t old_time;
 	uint32_t msec;
 
-	printf("Quake2World %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
+	printf("Quetoo %s %s %s\n", VERSION, __DATE__, BUILD_HOST);
 
-	memset(&quake2world, 0, sizeof(quake2world));
+	memset(&quetoo, 0, sizeof(quetoo));
 
 	if (setjmp(environment))
 		Com_Error(ERR_FATAL, "Error during initialization.");
 
-	quake2world.Debug = Debug;
-	quake2world.Error = Error;
-	quake2world.Print = Print;
-	quake2world.Verbose = Verbose;
-	quake2world.Warn = Warn;
+	quetoo.Debug = Debug;
+	quetoo.Error = Error;
+	quetoo.Print = Print;
+	quetoo.Verbose = Verbose;
+	quetoo.Warn = Warn;
 
-	quake2world.Init = Init;
-	quake2world.Shutdown = Shutdown;
+	quetoo.Init = Init;
+	quetoo.Shutdown = Shutdown;
 
 	signal(SIGINT, Sys_Signal);
 	signal(SIGILL, Sys_Signal);
@@ -305,13 +305,13 @@ int32_t main(int32_t argc, char **argv) {
 		}
 
 		do {
-			quake2world.time = Sys_Milliseconds();
-			msec = (quake2world.time - old_time) * time_scale->value;
+			quetoo.time = Sys_Milliseconds();
+			msec = (quetoo.time - old_time) * time_scale->value;
 		} while (msec < 1);
 
 		Frame(msec);
 
-		old_time = quake2world.time;
+		old_time = quetoo.time;
 	}
 
 	return 0;
