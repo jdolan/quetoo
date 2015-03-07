@@ -32,14 +32,14 @@ install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -rzhP --delete $(INSTALL)/*.* $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
+	rsync -rzhP --delete $(INSTALL)/*.* $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
 
 dist:
 	rm -f Quetoo; ln -s $(INSTALL)
 	zip -9 -r $(DIST) Quetoo
 
 dist-release:
-	rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" -rzhP $(DIST) $(HTTP_TARGET)
+	rsync -rzhP $(DIST) $(HTTP_TARGET)
 
 clean:
 	rm -rf $(TARGET)/*
