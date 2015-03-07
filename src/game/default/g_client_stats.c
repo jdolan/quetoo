@@ -189,7 +189,8 @@ void G_ClientStats(g_entity_t *ent) {
 	// ammo
 	if (client->locals.ammo_index) {
 		const g_item_t *ammo = &g_items[client->locals.ammo_index];
-		client->ps.stats[STAT_AMMO_ICON] = gi.ImageIndex(ammo->icon);
+		const g_item_t *weap = client->locals.weapon;
+		client->ps.stats[STAT_AMMO_ICON] = gi.ImageIndex(weap->icon);
 		client->ps.stats[STAT_AMMO] = client->locals.inventory[client->locals.ammo_index];
 		client->ps.stats[STAT_AMMO_LOW] = ammo->quantity;
 	} else {
