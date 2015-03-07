@@ -406,13 +406,13 @@ void G_Gib(g_entity_t *ent) {
 char *G_GameplayName(int32_t g) {
 	switch (g) {
 		case GAME_DEATHMATCH:
-			return "DEATHMATCH";
+			return "DM";
 		case GAME_INSTAGIB:
-			return "INSTAGIB";
+			return "Instagib";
 		case GAME_ARENA:
-			return "ARENA";
+			return "Arena";
 		default:
-			return "DEATHMATCH";
+			return "DM";
 	}
 }
 
