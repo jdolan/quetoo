@@ -112,8 +112,8 @@ const char *Sys_UserDir(void) {
 #if defined(_WIN32)
 	wchar_t wc_user_dir[MAX_OSPATH];
 	if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, (LPSTR)wc_user_dir) == S_OK) {
-		wcstombs(user_dir, wc_user_dir, sizeof(user_dir) - 1);
-		g_strlcat(user_dir, "\\My Games\\Quetoo", sizeof(user_dir));
+		//wcstombs(user_dir, wc_user_dir, sizeof(user_dir) - 1); //leaves user_dir empty
+		g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", wc_user_dir);
 	} else {
 		Com_Warn("Failed to resolve user directory, guessing..\n");
 		g_snprintf(user_dir, sizeof(user_dir), "%s\\My Documents\\My Games\\Quetoo", home);
