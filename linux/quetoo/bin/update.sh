@@ -14,7 +14,7 @@ echo
 echo "Updating $QUETOO_HOME for ${ARCH}.."
 echo
 
-LINUX=rsync://quetoo.org/quetoo-dedicated-linux/${ARCH}/
+LINUX=rsync://quetoo.org/quetoo-linux/${ARCH}/
 rsync -rLzhP --delete "${LINUX}" "${QUETOO_HOME}" || exit 2
 
 # Ensure that the .desktop entries are in working order
