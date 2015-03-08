@@ -67,7 +67,7 @@ for dep in $(ldd "${1}" | sed -rn 's:.* => ([^ ]+) .*:\1:p' | sort); do
 	}
 done
 
-install `ldd /usr/bin/file | grep ld- | sed s:\(.*::` "${dir}/../bin"
+install $(ldd "${exe}" | grep ld- | sed s:\(.*::) "${dir}/../bin"
 
 echo
 echo "The following libraries were intentionally skipped:${nl}${skipped}"
