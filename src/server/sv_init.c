@@ -257,7 +257,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 		sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_MODELS], &bsp_size);
 
 		const char *dir = Fs_RealDir(sv.config_strings[CS_MODELS]);
-		if (g_str_has_suffix(dir, ".zip")) {
+		if (g_str_has_suffix(dir, ".pk3")) {
 			g_strlcpy(sv.config_strings[CS_ZIP], Basename(dir), MAX_STRING_CHARS);
 		}
 

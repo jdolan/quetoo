@@ -68,7 +68,7 @@ void Cl_HttpDownload_Complete() {
 
 		// add new archives to search paths
 		if (Fs_Rename(cls.download.tempname, cls.download.name)) {
-			if (strstr(cls.download.name, ".zip")) {
+			if (strstr(cls.download.name, ".pk3")) {
 				Fs_AddToSearchPath(cls.download.name);
 			}
 		} else {
