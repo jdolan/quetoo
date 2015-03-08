@@ -99,14 +99,24 @@ const char *Sys_Username(void) {
 }
 
 /*
- * @brief Returns the current user's home directory.
+ * @brief Returns the current user's Quetoo directory.
+ *
+ * @remark On Windows, this is `\My Documents\My Games\Quetoo`. On POSIX
+ * platforms, it's `~/.quetoo`.
  */
 const char *Sys_UserDir(void) {
-	static char user_dir[MAX_OSPATH];
+	static char user_dir[MAX_OSPATH]; // for wchar_t on Windows
 	const char *home = g_get_home_dir();
 
 #if defined(_WIN32)
-	g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quetoo", home);
+	wchar_t wc_user_dir[MAX_OSPATH];
+	if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, wc_user_dir) == S_OK) {
+		wcstombs(user_dir, wc_user_dir, sizeof(user_dir) - 1);
+		g_strlcat(user_dir, "\\My Games\\Quetoo", sizeof(user_dir));
+	} else {
+		Com_Warn("Failed to resolve user directory, guessing..\n");
+		g_snprintf(user_dir, sizeof(user_dir), "%s\\My Documents\\My Games\Quetoo", home);
+	}
 #else
 	g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", home);
 #endif
