@@ -116,7 +116,7 @@ const char *Sys_UserDir(void) {
 		g_strlcat(user_dir, "\\My Games\\Quetoo", sizeof(user_dir));
 	} else {
 		Com_Warn("Failed to resolve user directory, guessing..\n");
-		g_snprintf(user_dir, sizeof(user_dir), "%s\\My Documents\\My Games\Quetoo", home);
+		g_snprintf(user_dir, sizeof(user_dir), "%s\\My Documents\\My Games\\Quetoo", home);
 	}
 #else
 	g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", home);
