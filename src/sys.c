@@ -26,6 +26,7 @@
 #include <sys/time.h>
 
 #if defined(_WIN32)
+#include <shlobj.h>
 #define RTLD_NOW 0
 #define dlopen(file_name, mode) LoadLibrary(file_name)
 #define dlerror() "Windows.. go figure."
@@ -110,7 +111,7 @@ const char *Sys_UserDir(void) {
 
 #if defined(_WIN32)
 	wchar_t wc_user_dir[MAX_OSPATH];
-	if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, wc_user_dir) == S_OK) {
+	if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, (LPSTR)wc_user_dir) == S_OK) {
 		wcstombs(user_dir, wc_user_dir, sizeof(user_dir) - 1);
 		g_strlcat(user_dir, "\\My Games\\Quetoo", sizeof(user_dir));
 	} else {
