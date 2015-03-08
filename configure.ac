@@ -608,8 +608,8 @@ if test "x${prefix}" = "x/"; then
 	eval PKGDATADIR="/share"
 else
 	eval BINDIR="$prefix/bin"
-	eval PKGLIBDIR="$prefix/lib/$PACKAGE"
-	eval PKGDATADIR="$prefix/share/$PACKAGE"
+	eval PKGLIBDIR="$prefix/lib"
+	eval PKGDATADIR="$prefix/share"
 fi
 
 AC_DEFINE_UNQUOTED(PKGLIBDIR, "$PKGLIBDIR",
