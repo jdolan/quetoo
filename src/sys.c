@@ -122,7 +122,6 @@ const char *Sys_UserDir(void) {
 		}
 	} else {
 		g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", home);
-		Com_Warn("Failed to resolve user directory, guessing: %s\n", user_dir);
 	}
 #else
 	g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", home);
