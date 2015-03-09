@@ -30,8 +30,14 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 		ent->client->locals.weapon = item;
 
 		if (item) {
-			ent->s.model2 = gi.ModelIndex(item->model);
-
+		
+			// special case since grenades are ammo and weapon
+			if (g_strcmp0(item->class_name, "ammo_grenades") == 0){
+				ent->s.model2 = g_media.models.grenade;
+			} else {
+				ent->s.model2 = gi.ModelIndex(item->model);
+			}
+			
 			if (item->ammo) {
 				ent->client->locals.ammo_index = ITEM_INDEX(G_FindItem(item->ammo));
 			} else {
