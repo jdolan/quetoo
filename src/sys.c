@@ -112,11 +112,17 @@ const char *Sys_UserDir(void) {
 #if defined(_WIN32)
 	wchar_t wc_user_dir[MAX_OSPATH];
 	if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, (LPSTR)wc_user_dir) == S_OK) {
-		//wcstombs(user_dir, wc_user_dir, sizeof(user_dir) - 1); //leaves user_dir empty
-		g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", wc_user_dir);
+		
+		// throws an "Illegal byte sequence" error on Win7x64. According to some
+		// research that could mean the src string is just not in a wide format
+		if (wcstombs(user_dir, wc_user_dir, sizeof(user_dir) - 1) == (size_t)-1) {
+			g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", (char *)wc_user_dir);
+		} else {
+			g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", user_dir);
+		}
 	} else {
-		Com_Warn("Failed to resolve user directory, guessing..\n");
-		g_snprintf(user_dir, sizeof(user_dir), "%s\\My Documents\\My Games\\Quetoo", home);
+		g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", home);
+		Com_Warn("Failed to resolve user directory, guessing: %s\n", user_dir);
 	}
 #else
 	g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", home);
