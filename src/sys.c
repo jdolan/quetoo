@@ -111,7 +111,7 @@ const char *Sys_UserDir(void) {
 
 	memset(user_dir, 0, sizeof(user_dir));
 
-#if 1 //defined(_WIN32)
+#if defined(_WIN32)
 
 	/*
 	 * Seriously, fuck Windows so hard. Anyone who thinks Windows is a well-
