@@ -139,7 +139,7 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 	if (Fs_Exists(so_name)) {
 		char path[MAX_OSPATH];
 
-		g_snprintf(path, sizeof(path), "%s/%s", Fs_RealDir(so_name), so_name);
+		g_snprintf(path, sizeof(path), "%s%c%s", Fs_RealDir(so_name), G_DIR_SEPARATOR, so_name);
 		Com_Print("Trying %s...\n", path);
 
 		if ((*handle = dlopen(path, RTLD_NOW)))
