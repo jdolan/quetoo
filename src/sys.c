@@ -121,7 +121,7 @@ const char *Sys_UserDir(void) {
 			g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", user_dir);
 		}
 	} else {
-		g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", home);
+		g_snprintf(user_dir, sizeof(user_dir), "%s\\My Documents\\My Games\\Quetoo", home);
 	}
 #else
 	g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", home);
