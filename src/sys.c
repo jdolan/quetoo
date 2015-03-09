@@ -141,7 +141,7 @@ const char *Sys_UserDir(void) {
 			const DWORD flags = 0x8000 | 0x1000; // create | no_alias
 
 			PWSTR *path;
-			if (GetKnownFolderPath(qSavedGames, flags, NULL, &path) == S_OK) {
+			if (GetKnownFolderPath(SavedGames, flags, NULL, &path) == S_OK) {
 				wcstombs(user_dir, path, sizeof(user_dir) - 1);
 				g_strlcat(user_dir, "\\Quetoo", sizeof(user_dir));
 				free(path);
