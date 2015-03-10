@@ -122,6 +122,8 @@ void G_UseBestWeapon(g_entity_t *ent) {
 		item = G_FindItem("rocket launcher");
 	} else if (G_HasItem(ent, "grenade launcher", 1) && G_HasItem(ent, "grenades", 1)) {
 		item = G_FindItem("grenade launcher");
+	} else if (G_HasItem(ent, "grenades", 1)) {
+		item = G_FindItem("grenades");
 	} else if (G_HasItem(ent, "machinegun", 1) && G_HasItem(ent, "bullets", 1)) {
 		item = G_FindItem("machinegun");
 	} else if (G_HasItem(ent, "super shotgun", 1) && G_HasItem(ent, "shells", 2)) {
