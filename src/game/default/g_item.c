@@ -1406,14 +1406,14 @@ const g_item_t g_items[] = {
 		"ammo/common/pickup.wav",
 		"models/ammo/grenades/tris.md3",
 		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/a_handgrenades2",
+		"pics/a_handgrenades",
 		"Grenades",
 		10,
 		"grenades",
 		ITEM_AMMO | ITEM_WEAPON,
 		AMMO_GRENADES,
 		0.15,
-		"weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang1.ogg" },
+		"weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang.ogg" },
 
 /*QUAKED ammo_rockets (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Rockets for the Rocket Launcher.

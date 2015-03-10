@@ -506,7 +506,7 @@ void G_FireGrenade(g_entity_t *ent) {
 		// play the timer sound if we're holding every second
 		if ((g_level.frame_num - ent->client->locals.grenade_hold_frame) % gi.frame_rate == 0)
 		{
-			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang1.ogg"), ATTEN_NORM);
+			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang.ogg"), ATTEN_NORM);
 		}
 		return;
 	}
