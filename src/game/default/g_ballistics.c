@@ -419,8 +419,8 @@ static void G_HandGrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		const cm_bsp_plane_t *plane __attribute__((unused)), const cm_bsp_surface_t *surf) {
 
 	// you can't trip on your own nade (that would suck)
-	if (other == self->owner)
-		return;
+	//if (other == self->owner)
+	//	return;
 
 	if (other->solid < SOLID_DEAD)
 		return;

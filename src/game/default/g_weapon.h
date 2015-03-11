@@ -36,7 +36,7 @@ void G_FireSuperShotgun(g_entity_t *ent);
 void G_FireMachinegun(g_entity_t *ent);
 void G_FireHyperblaster(g_entity_t *ent);
 void G_FireRocketLauncher(g_entity_t *ent);
-void G_FireGrenade(g_entity_t *ent);
+void G_FireHandGrenade(g_entity_t *ent);
 void G_FireGrenadeLauncher(g_entity_t *ent);
 void G_FireLightning(g_entity_t *ent);
 void G_FireRailgun(g_entity_t *ent);

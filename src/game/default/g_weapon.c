@@ -461,7 +461,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 /*
  * @brief
  */
-void G_FireGrenade(g_entity_t *ent) {
+void G_FireHandGrenade(g_entity_t *ent) {
 
 	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
 	
@@ -469,7 +469,7 @@ void G_FireGrenade(g_entity_t *ent) {
 		return;
 	
 	static const uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
-	vec_t throw_speed = 500.0;		// min value
+	vec_t throw_speed = 500.0; // minimum
 	
 	// use small epsilon for low server frame rates
 	if (ent->client->locals.weapon_fire_time > g_level.time + 1)
@@ -481,7 +481,7 @@ void G_FireGrenade(g_entity_t *ent) {
 	else
 		ammo = 0;
 
-	// override quantity needed from g_item_t since nades are both ammo and weapon
+	// override quantity needed from g_item_t since grenades are both ammo and weapon
 	const uint16_t ammo_needed = 1;
 	
 	// if the client does not have enough ammo, change weapons
@@ -503,11 +503,11 @@ void G_FireGrenade(g_entity_t *ent) {
 	uint32_t hold_time = g_level.time - ent->client->locals.grenade_hold_time;
 	
 	// continue holding if time allows
-	if (holding && (int32_t)(nade_time - hold_time) > 0)
-	{
-		// play the timer sound if we're holding every second
-		if ((g_level.frame_num - ent->client->locals.grenade_hold_frame) % gi.frame_rate == 0)
-		{
+	if (holding && (int32_t)(nade_time - hold_time) > 0) {
+	
+		// play the timer sound if we're holding once every second
+		if ((g_level.frame_num - ent->client->locals.grenade_hold_frame) % gi.frame_rate == 0) {
+		
 			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang.ogg"), ATTEN_NORM);
 		}
 		return;
@@ -543,7 +543,7 @@ void G_FireGrenade(g_entity_t *ent) {
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
 	// push the next fire time out by the interval (2 secs)
-	ent->client->locals.weapon_fire_time = g_level.time + 2000;
+	ent->client->locals.weapon_fire_time = g_level.time + (2 * 1000);
 
 	// and decrease their inventory
 	if (ent->client->locals.ammo_index) {
