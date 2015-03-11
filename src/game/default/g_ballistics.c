@@ -326,8 +326,9 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
 	vec3_t origin;
 	uint32_t mod = 0; 
-
+	
 	if (self->locals.enemy) { // direct hit
+	
 		vec_t d, k, dist;
 		vec3_t v, dir;
 
@@ -345,11 +346,9 @@ static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
 				(int16_t) d, (int16_t) k, DMG_RADIUS, MOD_HANDGRENADE_HIT);
 	}
 	
-	gi.Print("holdtime: %s\n", self->owner->client->locals.grenade_hold_time);
-	// never let it go (always null, not sure why)
-	if (self->owner->client->locals.grenade_hold_time) {
+	// they never tossed it
+	if (self->locals.held_grenade) {
 		mod = MOD_HANDGRENADE_KAMIKAZE;
-		gi.Print("kamikaze\n");
 	} else {
 		mod = MOD_HANDGRENADE_SPLASH;
 	}
@@ -442,8 +441,9 @@ static void G_HandGrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		return;
 	}
 
+
 	self->locals.enemy = other;
-	G_GrenadeProjectile_Explode(self);
+	G_HandGrenadeProjectile_Explode(self);
 }
 
 /*
@@ -498,7 +498,7 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 // tossing a hand grenade
 void G_HandGrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback, vec_t damage_radius, uint32_t timer) {
-
+	
 	vec3_t forward, right, up;
 	
 	// create the nade entity and link it to the thrower
@@ -513,13 +513,17 @@ void G_HandGrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t d
 
 	VectorMA(projectile->locals.velocity, 200.0 + Randomc() * 10.0, up, projectile->locals.velocity);
 	VectorMA(projectile->locals.velocity, Randomc() * 10.0, right, projectile->locals.velocity);
-
+	
 	// add some of the player's velocity to the projectile
 	G_PlayerProjectile(projectile, 0.33);
 
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
+	// if client is holding it, let the nade know it's being held
+	if (ent->client->locals.grenade_hold_time)
+		projectile->locals.held_grenade = true;
+	
 	projectile->solid = SOLID_BOX;
 	projectile->locals.avelocity[0] = -300.0 + 10 * Randomc();
 	projectile->locals.avelocity[1] = 50.0 * Randomc();

@@ -824,6 +824,7 @@ typedef struct {
 
 	const g_item_t *item; // for bonus items
 
+	_Bool held_grenade;	// is this entity a nade that is being held currently?
 } g_entity_locals_t;
 
 #include "game/game.h"
