@@ -320,11 +320,106 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 }
 
 /*
+ * @brief mostly a copy of the grenade launcher version but with different
+ * means of death messages
+ */
+static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
+	vec3_t origin;
+	uint32_t mod = 0; 
+
+	if (self->locals.enemy) { // direct hit
+		vec_t d, k, dist;
+		vec3_t v, dir;
+
+		VectorAdd(self->locals.enemy->mins, self->locals.enemy->maxs, v);
+		VectorMA(self->locals.enemy->s.origin, 0.5, v, v);
+		VectorSubtract(self->s.origin, v, v);
+
+		dist = VectorLength(v);
+		d = self->locals.damage - 0.5 * dist;
+		k = self->locals.knockback - 0.5 * dist;
+
+		VectorSubtract(self->locals.enemy->s.origin, self->s.origin, dir);
+
+		G_Damage(self->locals.enemy, self, self->owner, dir, self->s.origin, vec3_origin,
+				(int16_t) d, (int16_t) k, DMG_RADIUS, MOD_HANDGRENADE_HIT);
+	}
+	
+	gi.Print("holdtime: %s\n", self->owner->client->locals.grenade_hold_time);
+	// never let it go (always null, not sure why)
+	if (self->owner->client->locals.grenade_hold_time) {
+		mod = MOD_HANDGRENADE_KAMIKAZE;
+		gi.Print("kamikaze\n");
+	} else {
+		mod = MOD_HANDGRENADE_SPLASH;
+	}
+	
+	// hurt anything else nearby
+	G_RadiusDamage(self, self->owner, self->locals.enemy, self->locals.damage,
+			self->locals.knockback, self->locals.damage_radius, mod);
+
+	const g_entity_t *ent = self->locals.ground_entity;
+	const cm_bsp_plane_t *plane = &self->locals.ground_plane;
+	const cm_bsp_surface_t *surf = self->locals.ground_surface;
+
+	if (ent)
+		VectorMA(self->s.origin, 16.0, plane->normal, origin);
+	else
+		VectorCopy(self->s.origin, origin);
+
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
+	gi.WriteByte(TE_EXPLOSION);
+	gi.WritePosition(origin);
+	gi.Multicast(origin, MULTICAST_PHS);
+
+	if (ent) {
+		if (G_IsStructural(ent, surf) && G_IsStationary(ent)) {
+			G_BurnMark(self->s.origin, plane, surf, 20);
+		}
+	}
+
+	G_FreeEntity(self);
+}
+
+/*
  * @brief
  */
 static void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		const cm_bsp_plane_t *plane __attribute__((unused)), const cm_bsp_surface_t *surf) {
 
+	if (other == self->owner)
+		return;
+
+	if (other->solid < SOLID_DEAD)
+		return;
+
+	if (!G_TakesDamage(other)) { // bounce off of structural solids
+
+		if (G_IsStructural(other, surf)) {
+			if (g_level.time - self->locals.touch_time > 200) {
+				if (VectorLength(self->locals.velocity) > 40.0) {
+					gi.Sound(self, g_media.sounds.grenade_hit, ATTEN_NORM);
+					self->locals.touch_time = g_level.time;
+				}
+			}
+		} else if (G_IsSky(surf)) {
+			G_FreeEntity(self);
+		}
+
+		return;
+	}
+
+	self->locals.enemy = other;
+	G_GrenadeProjectile_Explode(self);
+}
+
+/*
+ * @brief
+ */
+static void G_HandGrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
+		const cm_bsp_plane_t *plane __attribute__((unused)), const cm_bsp_surface_t *surf) {
+
+	// you can't trip on your own nade (that would suck)
 	if (other == self->owner)
 		return;
 
@@ -400,6 +495,50 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 	gi.LinkEntity(projectile);
 }
 
+// tossing a hand grenade
+void G_HandGrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, int32_t speed,
+		int16_t damage, int16_t knockback, vec_t damage_radius, uint32_t timer) {
+
+	vec3_t forward, right, up;
+	
+	// create the nade entity and link it to the thrower
+	g_entity_t *projectile = G_AllocEntity(__func__);
+	projectile->owner = ent;
+
+	VectorCopy(start, projectile->s.origin);
+	VectorAngles(dir, projectile->s.angles);
+
+	AngleVectors(projectile->s.angles, forward, right, up);
+	VectorScale(dir, speed, projectile->locals.velocity);
+
+	VectorMA(projectile->locals.velocity, 200.0 + Randomc() * 10.0, up, projectile->locals.velocity);
+	VectorMA(projectile->locals.velocity, Randomc() * 10.0, right, projectile->locals.velocity);
+
+	// add some of the player's velocity to the projectile
+	G_PlayerProjectile(projectile, 0.33);
+
+	if (G_ImmediateWall(ent, projectile))
+		VectorCopy(ent->s.origin, projectile->s.origin);
+
+	projectile->solid = SOLID_BOX;
+	projectile->locals.avelocity[0] = -300.0 + 10 * Randomc();
+	projectile->locals.avelocity[1] = 50.0 * Randomc();
+	projectile->locals.avelocity[2] = 25.0 * Randomc();
+	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	projectile->locals.damage = damage;
+	projectile->locals.damage_radius = damage_radius;
+	projectile->locals.knockback = knockback;
+	projectile->locals.move_type = MOVE_TYPE_BOUNCE;
+	projectile->locals.next_think = g_level.time + timer;
+	projectile->locals.take_damage = true;
+	projectile->locals.Think = G_HandGrenadeProjectile_Explode;
+	projectile->locals.Touch = G_HandGrenadeProjectile_Touch;
+	projectile->locals.touch_time = g_level.time;
+	projectile->s.trail = TRAIL_GRENADE;
+	projectile->s.model1 = g_media.models.grenade;
+
+	gi.LinkEntity(projectile);
+}
 /*
  * @brief
  */

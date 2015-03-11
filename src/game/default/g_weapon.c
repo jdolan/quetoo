@@ -469,7 +469,7 @@ void G_FireGrenade(g_entity_t *ent) {
 		return;
 	
 	static const uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
-	vec_t throw_speed = 500.0;
+	vec_t throw_speed = 500.0;		// min value
 	
 	// use small epsilon for low server frame rates
 	if (ent->client->locals.weapon_fire_time > g_level.time + 1)
@@ -513,15 +513,20 @@ void G_FireGrenade(g_entity_t *ent) {
 		return;
 	}
 	
+	// to tell if it went off in player's hand or not
+	if (!holding) {
+		ent->client->locals.grenade_hold_time = 0;
+	}
+		
 	// figure out how fast/far to throw
 	throw_speed *= (vec_t) hold_time / 1000;
-	throw_speed = (throw_speed < 200) ? 200 : throw_speed;
+	throw_speed = Clamp(throw_speed, 500, 1200);
 	
 	vec3_t forward, right, up, org;
 	
 	G_InitProjectile(ent, forward, right, up, org);
-	G_GrenadeProjectile(
-		ent, 					// the nade
+	G_HandGrenadeProjectile(
+		ent, 					// the thrower
 		org, 					// starting point
 		forward, 				// direction
 		(uint32_t)throw_speed, 	// how fast does it fly
