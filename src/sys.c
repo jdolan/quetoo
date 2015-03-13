@@ -125,12 +125,16 @@ const char *Sys_UserDir(void) {
 	 * Die.
 	 */
 
-	void *shfolder = dlopen("shfolder.dll", RTLD_NOW);
+	HMODULE shfolder = dlopen("shfolder.dll", RTLD_NOW);
 	if (shfolder) {
 		typedef HRESULT (*GetKnownFolderPathFunc)(GUID rfid, DWORD flags, HANDLE token, PWSTR *path);
 
+		Com_Print("opened shfolder.dll\n");
+
 		GetKnownFolderPathFunc GetKnownFolderPath = dlsym(shfolder, "SHGetKnownFolderPath");
 		if (GetKnownFolderPath) {
+
+			Com_Print("resolved SHGetKnownFolderPath\n");
 
 			const GUID SavedGames = {
 				0x4C5C32FF, 0xBB9D, 0x43b0, {
@@ -142,6 +146,9 @@ const char *Sys_UserDir(void) {
 
 			PWSTR *path;
 			if (GetKnownFolderPath(SavedGames, flags, NULL, &path) == S_OK) {
+
+				Com_Print("resolved Saved Games\n");
+
 				wcstombs(user_dir, path, sizeof(user_dir) - 1);
 				g_strlcat(user_dir, "\\Quetoo", sizeof(user_dir));
 				free(path);
@@ -152,6 +159,8 @@ const char *Sys_UserDir(void) {
 	}
 
 	if (strlen(user_dir) == 0) {
+
+		Com_Print("falling back on SHGetFolderPath\n");
 
 		if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, user_dir) == S_OK) {
 			g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quetoo", user_dir);
