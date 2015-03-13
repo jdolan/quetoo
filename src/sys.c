@@ -125,13 +125,13 @@ const char *Sys_UserDir(void) {
 	 * Die.
 	 */
 
-	HMODULE shfolder = dlopen("shfolder.dll", RTLD_NOW);
-	if (shfolder) {
+	HMODULE shell32 = dlopen("shell32.dll", RTLD_NOW);
+	if (shell32) {
 		typedef HRESULT (*GetKnownFolderPathFunc)(GUID rfid, DWORD flags, HANDLE token, PWSTR *path);
 
-		Com_Print("opened shfolder.dll\n");
+		Com_Print("opened shell32.dll\n");
 
-		GetKnownFolderPathFunc GetKnownFolderPath = dlsym(shfolder, "SHGetKnownFolderPath");
+		GetKnownFolderPathFunc GetKnownFolderPath = dlsym(shell32, "SHGetKnownFolderPath");
 		if (GetKnownFolderPath) {
 
 			Com_Print("resolved SHGetKnownFolderPath\n");
@@ -151,11 +151,11 @@ const char *Sys_UserDir(void) {
 
 				wcstombs(user_dir, path, sizeof(user_dir) - 1);
 				g_strlcat(user_dir, "\\Quetoo", sizeof(user_dir));
-				free(path);
+				CoTaskMemFree(path);
 			}
 		}
 
-		dlclose(shfolder);
+		dlclose(shell32);
 	}
 
 	if (strlen(user_dir) == 0) {
