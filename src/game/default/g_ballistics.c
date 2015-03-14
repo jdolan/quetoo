@@ -315,7 +315,9 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 			G_BurnMark(self->s.origin, plane, surf, 20);
 		}
 	}
-
+	
+	// attempt to stop the sound playing...doesnt work
+	self->s.sound = 0;
 	G_FreeEntity(self);
 }
 
@@ -419,8 +421,8 @@ static void G_HandGrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		const cm_bsp_plane_t *plane __attribute__((unused)), const cm_bsp_surface_t *surf) {
 
 	// you can't trip on your own nade (that would suck)
-	//if (other == self->owner)
-	//	return;
+	if (other == self->owner)
+		return;
 
 	if (other->solid < SOLID_DEAD)
 		return;
@@ -540,6 +542,7 @@ void G_HandGrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t d
 	projectile->locals.touch_time = g_level.time;
 	projectile->s.trail = TRAIL_GRENADE;
 	projectile->s.model1 = g_media.models.grenade;
+	projectile->s.sound = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
 
 	gi.LinkEntity(projectile);
 }
