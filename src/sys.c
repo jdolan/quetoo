@@ -27,6 +27,7 @@
 
 #if defined(_WIN32)
 #include <shlobj.h>
+
 #define RTLD_NOW 0
 #define dlopen(file_name, mode) LoadLibrary(file_name)
 #define dlerror() "Windows.. go figure."
@@ -106,26 +107,73 @@ const char *Sys_Username(void) {
  * platforms, it's `~/.quetoo`.
  */
 const char *Sys_UserDir(void) {
-	static char user_dir[MAX_OSPATH]; // for wchar_t on Windows
-	const char *home = g_get_home_dir();
+	static char user_dir[MAX_OSPATH];
+
+	memset(user_dir, 0, sizeof(user_dir));
 
 #if defined(_WIN32)
-	wchar_t wc_user_dir[MAX_OSPATH];
-	if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, (LPSTR)wc_user_dir) == S_OK) {
-		
-		// throws an "Illegal byte sequence" error on Win7x64. According to some
-		// research that could mean the src string is just not in a wide format
-		if (wcstombs(user_dir, wc_user_dir, sizeof(user_dir) - 1) == (size_t)-1) {
-			g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", (char *)wc_user_dir);
-		} else {
-			g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", user_dir);
+
+	/*
+	 * Seriously, fuck Windows so hard. Anyone who thinks Windows is a well-
+	 * designed platform should not be allowed to write software. Ever.
+	 *
+	 * First, we try SHGetKnownFolderPath for Vista and later. This will put
+	 * Quetoo's per-user data in %USERPROFILE%\\Saved Games\\Quetoo.
+	 *
+	 * For XP and 2000 (really?), fall back on My Documents\\My Games\\Quetoo.
+	 *
+	 * Die.
+	 */
+
+	HMODULE shell32 = dlopen("shell32.dll", RTLD_NOW);
+	if (shell32) {
+		typedef HRESULT (*GetKnownFolderPathFunc)(GUID rfid, DWORD flags, HANDLE token, PWSTR *path);
+
+		Com_Print("opened shell32.dll\n");
+
+		GetKnownFolderPathFunc GetKnownFolderPath = dlsym(shell32, "SHGetKnownFolderPath");
+		if (GetKnownFolderPath) {
+
+			Com_Print("resolved SHGetKnownFolderPath\n");
+
+			const GUID SavedGames = {
+				0x4C5C32FF, 0xBB9D, 0x43b0, {
+					0xB5, 0xB4, 0x2D, 0x72, 0xE5, 0x4E, 0xAA, 0xA4
+				}
+			};
+
+			const DWORD flags = 0x8000 | 0x1000; // create | no_alias
+
+			PWSTR *path;
+			if (GetKnownFolderPath(SavedGames, flags, NULL, &path) == S_OK) {
+
+				Com_Print("resolved Saved Games\n");
+
+				wcstombs(user_dir, path, sizeof(user_dir) - 1);
+				g_strlcat(user_dir, "\\Quetoo", sizeof(user_dir));
+				CoTaskMemFree(path);
+			}
 		}
-	} else {
-		g_snprintf(user_dir, sizeof(user_dir), "%s\\My Documents\\My Games\\Quetoo", home);
+
+		dlclose(shell32);
 	}
+
+	if (strlen(user_dir) == 0) {
+
+		Com_Print("falling back on SHGetFolderPath\n");
+
+		if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, user_dir) == S_OK) {
+			g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quetoo", user_dir);
+		} else {
+			g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", g_get_home_dir());
+		}
+	}
+
 #else
-	g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", home);
+	// for the rest of the world, this is pretty fucking simple
+	g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", g_get_home_dir());
 #endif
+
 	return user_dir;
 }
 
