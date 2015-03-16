@@ -40,7 +40,7 @@ typedef struct fs_state_s {
 	 * application. On Windows, this will always be set. On Mac and Linux, it
 	 * is set for the .app and .tgz distributables.
 	 */
-	char base_dir[MAX_OSPATH];
+	char base_dir[MAX_OS_PATH];
 
 	/*
 	 * @brief The base search paths (all those present after invoking Fs_Init).
@@ -382,7 +382,7 @@ void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
  */
 static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 	GList **matches = (GList **) data;
-	char match[MAX_OSPATH];
+	char match[MAX_OS_PATH];
 
 	StripExtension(Basename(path), match);
 
@@ -451,7 +451,7 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
  * process. This is where all files produced by the game are written to.
  */
 static void Fs_AddUserSearchPath(const char *dir) {
-	char path[MAX_OSPATH];
+	char path[MAX_OS_PATH];
 
 	g_snprintf(path, sizeof(path), "%s"G_DIR_SEPARATOR_S"%s", Sys_UserDir(), dir);
 
@@ -550,7 +550,7 @@ const char *Fs_RealDir(const char *filename) {
  * @brief Returns the real path name of the specified file or directory.
  */
 const char *Fs_RealPath(const char *path) {
-	static char real_path[MAX_OSPATH];
+	static char real_path[MAX_OS_PATH];
 
 	g_snprintf(real_path, sizeof(real_path), "%s%s", Fs_WriteDir(), G_DIR_SEPARATOR_S);
 

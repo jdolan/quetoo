@@ -37,20 +37,14 @@ echo "Bundling .so files for ${exe} in ${dir}.."
 echo
 
 SKIP='
-	libc.so*
-	libdl.so*
 	libGL.so*
-	libm.so*
 	libnsl.so*
-	libpcre.so*
-	libpthread.so*
 	libresolv.so*
 	librt.so*
 	libuuid.so*
 	libwrap.so*
 	libX11.so*
 	libXext.so*
-	libz.so*
 '
 
 nl=$'\n'
@@ -72,6 +66,8 @@ for dep in $(ldd "${1}" | sed -rn 's:.* => ([^ ]+) .*:\1:p' | sort); do
 		install "${dep}" "${dir}"
 	}
 done
+
+install $(ldd "${exe}" | grep ld- | sed s:\(.*::) "${dir}/../bin"
 
 echo
 echo "The following libraries were intentionally skipped:${nl}${skipped}"

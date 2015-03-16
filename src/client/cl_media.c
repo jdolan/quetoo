@@ -23,7 +23,7 @@
 
 /*
  * @brief Entry point for file downloads, or "precache" from server. Attempt to
- * download .zip and .bsp from server. Zip is preferred. Once all precache
+ * download .pk3 and .bsp from server. Archive is preferred. Once all precache
  * checks are completed, we load media and ask the server to begin sending
  * us frames.
  */

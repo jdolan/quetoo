@@ -235,7 +235,7 @@ static void Cl_ParseDownload(void) {
 
 		// add new archives to the search path
 		if (Fs_Rename(cls.download.tempname, cls.download.name)) {
-			if (strstr(cls.download.name, ".zip")) {
+			if (strstr(cls.download.name, ".pk3")) {
 				Fs_AddToSearchPath(cls.download.name);
 			}
 		} else {

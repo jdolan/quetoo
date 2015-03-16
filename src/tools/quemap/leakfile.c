@@ -28,7 +28,7 @@
 void LeakFile(tree_t *tree) {
 	vec3_t mid;
 	file_t *leakfile;
-	char file_name[MAX_OSPATH];
+	char file_name[MAX_OS_PATH];
 	node_t *node;
 	int32_t count;
 

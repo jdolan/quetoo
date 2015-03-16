@@ -26,6 +26,7 @@
 #include <sys/time.h>
 
 #if defined(_WIN32)
+#include <shlobj.h>
 #define RTLD_NOW 0
 #define dlopen(file_name, mode) LoadLibrary(file_name)
 #define dlerror() "Windows.. go figure."
@@ -64,7 +65,7 @@ uint32_t Sys_Milliseconds(void) {
  * @return The current executable path (argv[0]).
  */
 const char *Sys_ExecutablePath(void) {
-	static char path[MAX_OSPATH];
+	static char path[MAX_OS_PATH];
 
 #if defined(__APPLE__)
 	uint32_t i = sizeof(path);
@@ -99,17 +100,22 @@ const char *Sys_Username(void) {
 }
 
 /*
- * @brief Returns the current user's home directory.
+ * @brief Returns the current user's Quetoo directory.
+ *
+ * @remark On Windows, this is `\My Documents\My Games\Quetoo`. On POSIX
+ * platforms, it's `~/.quetoo`.
  */
 const char *Sys_UserDir(void) {
-	static char user_dir[MAX_OSPATH];
-	const char *home = g_get_home_dir();
+	static char user_dir[MAX_OS_PATH];
 
 #if defined(_WIN32)
-	g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quetoo", home);
+	const char *my_documents = g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS);
+	g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quetoo", my_documents);
 #else
+	const char *home = g_get_home_dir();
 	g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", home);
 #endif
+
 	return user_dir;
 }
 
@@ -126,9 +132,9 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 #endif
 
 	if (Fs_Exists(so_name)) {
-		char path[MAX_OSPATH];
+		char path[MAX_OS_PATH];
 
-		g_snprintf(path, sizeof(path), "%s/%s", Fs_RealDir(so_name), so_name);
+		g_snprintf(path, sizeof(path), "%s%c%s", Fs_RealDir(so_name), G_DIR_SEPARATOR, so_name);
 		Com_Print("Trying %s...\n", path);
 
 		if ((*handle = dlopen(path, RTLD_NOW)))

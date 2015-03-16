@@ -418,7 +418,7 @@ static void CalcPHS(void) {
  * @brief
  */
 int32_t VIS_Main(void) {
-	char portal_file[MAX_OSPATH];
+	char portal_file[MAX_OS_PATH];
 
 	Com_Print("\n----- VIS -----\n\n");
 

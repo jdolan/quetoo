@@ -335,7 +335,7 @@ void Cl_Reconnect_f(void) {
 	if (cls.server_name[0] != '\0') {
 
 		if (cls.state >= CL_CONNECTING) {
-			char server_name[MAX_OSPATH];
+			char server_name[MAX_OS_PATH];
 
 			g_strlcpy(server_name, cls.server_name, sizeof(server_name));
 
