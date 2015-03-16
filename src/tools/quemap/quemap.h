@@ -34,9 +34,9 @@ int32_t AAS_Main(void);
 int32_t MAT_Main(void);
 int32_t ZIP_Main(void);
 
-extern char map_name[MAX_OSPATH];
-extern char bsp_name[MAX_OSPATH];
-extern char outbase[MAX_OSPATH];
+extern char map_name[MAX_OS_PATH];
+extern char bsp_name[MAX_OS_PATH];
+extern char outbase[MAX_OS_PATH];
 
 extern _Bool verbose;
 extern _Bool debug;

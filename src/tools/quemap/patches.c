@@ -28,7 +28,7 @@ static vec3_t texture_reflectivity[MAX_BSP_TEXINFO];
  * @brief
  */
 void CalcTextureReflectivity(void) {
-	char path[MAX_OSPATH];
+	char path[MAX_OS_PATH];
 	int32_t i, j, texels;
 	uint32_t color[3];
 	SDL_Surface *surf;

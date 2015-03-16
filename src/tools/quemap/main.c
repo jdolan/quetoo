@@ -25,9 +25,9 @@
 
 quetoo_t quetoo;
 
-char map_name[MAX_OSPATH];
-char bsp_name[MAX_OSPATH];
-char outbase[MAX_OSPATH];
+char map_name[MAX_OS_PATH];
+char bsp_name[MAX_OS_PATH];
+char outbase[MAX_OS_PATH];
 
 _Bool verbose = false;
 _Bool debug = false;

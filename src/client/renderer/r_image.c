@@ -69,7 +69,7 @@ static void R_TextureMode(void) {
  */
 void R_Screenshot_f(void) {
 	static uint16_t last_screenshot;
-	char filename[MAX_OSPATH];
+	char filename[MAX_OS_PATH];
 	uint16_t i;
 
 	// find a file name to save it to

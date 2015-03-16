@@ -179,7 +179,7 @@ static void SaveClusters_r(node_t * node) {
  * @brief
  */
 void WritePortalFile(tree_t *tree) {
-	char filename[MAX_OSPATH];
+	char filename[MAX_OS_PATH];
 	node_t *head_node;
 
 	Com_Verbose("--- WritePortalFile ---\n");

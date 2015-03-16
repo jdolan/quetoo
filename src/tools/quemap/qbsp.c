@@ -285,7 +285,7 @@ static void ProcessModels(void) {
  * @brief
  */
 int32_t BSP_Main(void) {
-	char base[MAX_OSPATH];
+	char base[MAX_OS_PATH];
 
 	Com_Print("\n----- BSP -----\n\n");
 

@@ -65,7 +65,7 @@ uint32_t Sys_Milliseconds(void) {
  * @return The current executable path (argv[0]).
  */
 const char *Sys_ExecutablePath(void) {
-	static char path[MAX_OSPATH];
+	static char path[MAX_OS_PATH];
 
 #if defined(__APPLE__)
 	uint32_t i = sizeof(path);
@@ -106,26 +106,16 @@ const char *Sys_Username(void) {
  * platforms, it's `~/.quetoo`.
  */
 const char *Sys_UserDir(void) {
-	static char user_dir[MAX_OSPATH]; // for wchar_t on Windows
-	const char *home = g_get_home_dir();
+	static char user_dir[MAX_OS_PATH];
 
 #if defined(_WIN32)
-	wchar_t wc_user_dir[MAX_OSPATH];
-	if (SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, (LPSTR)wc_user_dir) == S_OK) {
-		
-		// throws an "Illegal byte sequence" error on Win7x64. According to some
-		// research that could mean the src string is just not in a wide format
-		if (wcstombs(user_dir, wc_user_dir, sizeof(user_dir) - 1) == (size_t)-1) {
-			g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", (char *)wc_user_dir);
-		} else {
-			g_snprintf(user_dir, sizeof(user_dir), "%s\\Quetoo", user_dir);
-		}
-	} else {
-		g_snprintf(user_dir, sizeof(user_dir), "%s\\My Documents\\My Games\\Quetoo", home);
-	}
+	const char *my_documents = g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS);
+	g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quetoo", my_documents);
 #else
+	const char *home = g_get_home_dir();
 	g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", home);
 #endif
+
 	return user_dir;
 }
 
@@ -142,7 +132,7 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 #endif
 
 	if (Fs_Exists(so_name)) {
-		char path[MAX_OSPATH];
+		char path[MAX_OS_PATH];
 
 		g_snprintf(path, sizeof(path), "%s%c%s", Fs_RealDir(so_name), G_DIR_SEPARATOR, so_name);
 		Com_Print("Trying %s...\n", path);
