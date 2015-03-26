@@ -726,6 +726,7 @@ typedef struct {
 	uint32_t grenade_time; // pin is pulled, will explode when time > this
 	uint32_t grenade_hold_time; // time client started holding a primed grenade
 	uint32_t grenade_hold_frame; // the frame number we pulled the pin
+	g_entity_t *held_grenade; // the grenade we're holding onto
 
 	uint32_t pickup_msg_time; // display message until time > this
 

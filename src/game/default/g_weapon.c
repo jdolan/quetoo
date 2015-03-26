@@ -465,6 +465,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 
 	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
 	
+	// didn't touch fire button or holding a grenade
 	if (!(buttons & BUTTON_ATTACK) && !ent->client->locals.grenade_hold_time)
 		return;
 	
@@ -526,7 +527,8 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	
 	G_InitProjectile(ent, forward, right, up, org);
 	G_HandGrenadeProjectile(
-		ent, 					// the thrower
+		ent, 					// player
+		ent->client->locals.held_grenade,	// the grenade
 		org, 					// starting point
 		forward, 				// direction
 		(uint32_t)throw_speed, 	// how fast does it fly
@@ -574,6 +576,7 @@ _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
 	// just pulled the pin
 	if (!ent->client->locals.grenade_hold_time && current_hold)
 	{
+		G_PullGrenadePin(ent);
 		ent->client->locals.grenade_hold_time = g_level.time;
 		ent->client->locals.grenade_hold_frame = g_level.frame_num;
 		return true;
@@ -587,6 +590,25 @@ _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
 	return false;
 }
 
+/*
+ *  Create a grenade entity that will follow the player 
+ *  while playing the ticking sound
+ */
+void G_PullGrenadePin(g_entity_t *ent) {
+	gi.Print("pulling the pin!!\n");
+	g_entity_t *nade = G_AllocEntity(__func__);
+	ent->client->locals.held_grenade = nade;
+	nade->owner = ent;
+	nade->solid = SOLID_BOX;
+	nade->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	nade->locals.move_type = MOVE_TYPE_BOUNCE;
+	nade->locals.Touch = G_HandGrenadeProjectile_Touch;
+	nade->locals.touch_time = g_level.time;
+	nade->s.trail = TRAIL_GRENADE;
+	nade->s.model1 = g_media.models.grenade;
+	nade->s.sound = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
+	gi.LinkEntity(nade);
+}
 /*
  * @brief
  */

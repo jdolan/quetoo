@@ -498,14 +498,14 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 }
 
 // tossing a hand grenade
-void G_HandGrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, int32_t speed,
+void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t const start, const vec3_t dir, int32_t speed,
 		int16_t damage, int16_t knockback, vec_t damage_radius, uint32_t timer) {
 	
 	vec3_t forward, right, up;
 	
 	// create the nade entity and link it to the thrower
-	g_entity_t *projectile = G_AllocEntity(__func__);
-	projectile->owner = ent;
+	//g_entity_t *projectile = G_AllocEntity(__func__);
+	//projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
 	VectorAngles(dir, projectile->s.angles);
@@ -526,25 +526,25 @@ void G_HandGrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t d
 	if (ent->client->locals.grenade_hold_time)
 		projectile->locals.held_grenade = true;
 	
-	projectile->solid = SOLID_BOX;
+	//projectile->solid = SOLID_BOX;
 	projectile->locals.avelocity[0] = -300.0 + 10 * Randomc();
 	projectile->locals.avelocity[1] = 50.0 * Randomc();
 	projectile->locals.avelocity[2] = 25.0 * Randomc();
-	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	//projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	projectile->locals.damage = damage;
 	projectile->locals.damage_radius = damage_radius;
 	projectile->locals.knockback = knockback;
-	projectile->locals.move_type = MOVE_TYPE_BOUNCE;
+	//projectile->locals.move_type = MOVE_TYPE_BOUNCE;
 	projectile->locals.next_think = g_level.time + timer;
 	projectile->locals.take_damage = true;
 	projectile->locals.Think = G_HandGrenadeProjectile_Explode;
-	projectile->locals.Touch = G_HandGrenadeProjectile_Touch;
-	projectile->locals.touch_time = g_level.time;
-	projectile->s.trail = TRAIL_GRENADE;
-	projectile->s.model1 = g_media.models.grenade;
-	projectile->s.sound = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
+	//projectile->locals.Touch = G_HandGrenadeProjectile_Touch;
+	//projectile->locals.touch_time = g_level.time;
+	//projectile->s.trail = TRAIL_GRENADE;
+	//projectile->s.model1 = g_media.models.grenade;
+	//projectile->s.sound = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
 
-	gi.LinkEntity(projectile);
+	//gi.LinkEntity(projectile);
 }
 /*
  * @brief

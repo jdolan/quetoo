@@ -43,6 +43,7 @@ void G_FireRailgun(g_entity_t *ent);
 void G_FireBfg(g_entity_t *ent);
 void G_ClientWeaponThink(g_entity_t *ent);
 _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons);
+void G_PullGrenadePin(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_WEAPON_H__ */
