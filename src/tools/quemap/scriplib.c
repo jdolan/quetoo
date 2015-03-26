@@ -26,7 +26,7 @@
  */
 
 typedef struct {
-	char file_name[MAX_OSPATH];
+	char file_name[MAX_OS_PATH];
 	char *buffer, *script_p, *end_p;
 	int32_t line;
 } script_t;

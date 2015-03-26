@@ -303,7 +303,7 @@ static void AddLocation(void) {
  * @brief
  */
 static void AddDocumentation(void) {
-	char base[MAX_OSPATH];
+	char base[MAX_OS_PATH];
 
 	StripExtension(Basename(bsp_name), base);
 	AddAsset(va("docs/map-%s.txt", base), false);
@@ -313,8 +313,8 @@ static void AddDocumentation(void) {
  * @brief Returns a suitable .pk3 filename name for the current bsp name
  */
 static char *GetZipFilename(void) {
-	char base[MAX_OSPATH];
-	static char zipfile[MAX_OSPATH];
+	char base[MAX_OS_PATH];
+	static char zipfile[MAX_OS_PATH];
 
 	StripExtension(Basename(bsp_name), base);
 

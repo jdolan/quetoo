@@ -262,8 +262,8 @@ typedef struct {
 typedef struct {
 	_Bool http;
 	file_t *file;
-	char tempname[MAX_OSPATH];
-	char name[MAX_OSPATH];
+	char tempname[MAX_OS_PATH];
+	char name[MAX_OS_PATH];
 } cl_download_t;
 
 // server information, for finding network games
@@ -305,7 +305,7 @@ typedef struct {
 	uint32_t render_delta; // milliseconds since last renderer frame
 
 	// connection information
-	char server_name[MAX_OSPATH]; // name of server to connect to
+	char server_name[MAX_OS_PATH]; // name of server to connect to
 	uint32_t connect_time; // for connection retransmits
 
 	net_chan_t net_chan; // network channel
@@ -315,10 +315,10 @@ typedef struct {
 
 	uint16_t loading; // loading percentage indicator
 
-	char download_url[MAX_OSPATH]; // for http downloads
+	char download_url[MAX_OS_PATH]; // for http downloads
 	cl_download_t download; // current download (udp or http)
 
-	char demo_filename[MAX_OSPATH];
+	char demo_filename[MAX_OS_PATH];
 	file_t *demo_file;
 
 	GList *servers; // list of cl_server_info_t from all sources

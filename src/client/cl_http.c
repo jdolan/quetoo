@@ -28,7 +28,7 @@ typedef struct {
 	CURLM *curlm;
 	CURL *curl;
 
-	char url[MAX_OSPATH];
+	char url[MAX_OS_PATH];
 
 	long status;
 
@@ -68,7 +68,7 @@ void Cl_HttpDownload_Complete() {
 
 		// add new archives to search paths
 		if (Fs_Rename(cls.download.tempname, cls.download.name)) {
-			if (strstr(cls.download.name, ".zip")) {
+			if (strstr(cls.download.name, ".pk3")) {
 				Fs_AddToSearchPath(cls.download.name);
 			}
 		} else {
@@ -124,7 +124,7 @@ _Bool Cl_HttpDownload(void) {
 	cl_http_state.status = 0;
 
 	char *url = cl_http_state.url, *game = Cvar_GetString("game");
-	g_snprintf(url, MAX_OSPATH, "%s/%s/%s", cls.download_url, game, cls.download.name);
+	g_snprintf(url, MAX_OS_PATH, "%s/%s/%s", cls.download_url, game, cls.download.name);
 
 	// set handle to default state
 	curl_easy_reset(cl_http_state.curl);
