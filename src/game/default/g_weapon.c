@@ -608,6 +608,7 @@ void G_PullGrenadePin(g_entity_t *ent) {
 	nade->s.model1 = g_media.models.grenade;
 	nade->s.sound = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
 	gi.LinkEntity(nade);
+	gi.Print("Entity Linked\n");
 }
 /*
  * @brief

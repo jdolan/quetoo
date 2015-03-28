@@ -328,7 +328,7 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
 	vec3_t origin;
 	uint32_t mod = 0; 
-	
+
 	if (self->locals.enemy) { // direct hit
 	
 		vec_t d, k, dist;
@@ -388,6 +388,7 @@ static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
 static void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		const cm_bsp_plane_t *plane __attribute__((unused)), const cm_bsp_surface_t *surf) {
 
+	
 	if (other == self->owner)
 		return;
 
@@ -417,7 +418,7 @@ static void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 /*
  * @brief
  */
-static void G_HandGrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
+void G_HandGrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		const cm_bsp_plane_t *plane __attribute__((unused)), const cm_bsp_surface_t *surf) {
 
 	// you can't trip on your own nade (that would suck)
