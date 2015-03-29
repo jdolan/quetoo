@@ -497,7 +497,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 		return;
 	}
 	
-	// are we holding onto a primed grenade?
+	// are we holding a primed grenade?
 	_Bool holding = G_CheckGrenadeHold(ent, buttons);
 	
 	// how long have we been holding it?
@@ -527,14 +527,14 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	
 	G_InitProjectile(ent, forward, right, up, org);
 	G_HandGrenadeProjectile(
-		ent, 					// player
+		ent,					// player
 		ent->client->locals.held_grenade,	// the grenade
-		org, 					// starting point
-		forward, 				// direction
-		(uint32_t)throw_speed, 	// how fast does it fly
-		120, 					// damage dealt
-		120, 					// knockback
-		185.0, 					// blast radius 
+		org,					// starting point
+		forward,				// direction
+		(uint32_t)throw_speed,	// how fast does it fly
+		120,					// damage dealt
+		120,					// knockback
+		185.0,					// blast radius 
 		nade_time-hold_time		// time before explode (next think)
 	);
 		
@@ -595,20 +595,19 @@ _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
  *  while playing the ticking sound
  */
 void G_PullGrenadePin(g_entity_t *ent) {
-	gi.Print("pulling the pin!!\n");
 	g_entity_t *nade = G_AllocEntity(__func__);
 	ent->client->locals.held_grenade = nade;
 	nade->owner = ent;
 	nade->solid = SOLID_BOX;
 	nade->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	nade->locals.move_type = MOVE_TYPE_BOUNCE;
+	nade->locals.take_damage = true;
 	nade->locals.Touch = G_HandGrenadeProjectile_Touch;
 	nade->locals.touch_time = g_level.time;
 	nade->s.trail = TRAIL_GRENADE;
 	nade->s.model1 = g_media.models.grenade;
 	nade->s.sound = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
 	gi.LinkEntity(nade);
-	gi.Print("Entity Linked\n");
 }
 /*
  * @brief
