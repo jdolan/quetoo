@@ -316,8 +316,6 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 		}
 	}
 	
-	// attempt to stop the sound playing...doesnt work
-	self->s.sound = 0;
 	G_FreeEntity(self);
 }
 
@@ -385,8 +383,8 @@ static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
 /*
  * @brief
  */
-static void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
-		const cm_bsp_plane_t *plane __attribute__((unused)), const cm_bsp_surface_t *surf) {
+void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
+	const cm_bsp_plane_t *plane __attribute__((unused)), const cm_bsp_surface_t *surf) {
 
 	
 	if (other == self->owner)
@@ -412,41 +410,10 @@ static void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 	}
 
 	self->locals.enemy = other;
-	G_GrenadeProjectile_Explode(self);
-}
-
-/*
- * @brief
- */
-void G_HandGrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
-		const cm_bsp_plane_t *plane __attribute__((unused)), const cm_bsp_surface_t *surf) {
-
-	// you can't trip on your own nade (that would suck)
-	if (other == self->owner)
-		return;
-
-	if (other->solid < SOLID_DEAD)
-		return;
-
-	if (!G_TakesDamage(other)) { // bounce off of structural solids
-
-		if (G_IsStructural(other, surf)) {
-			if (g_level.time - self->locals.touch_time > 200) {
-				if (VectorLength(self->locals.velocity) > 40.0) {
-					gi.Sound(self, g_media.sounds.grenade_hit, ATTEN_NORM);
-					self->locals.touch_time = g_level.time;
-				}
-			}
-		} else if (G_IsSky(surf)) {
-			G_FreeEntity(self);
-		}
-
-		return;
-	}
-
-
-	self->locals.enemy = other;
-	G_HandGrenadeProjectile_Explode(self);
+	if (g_strcmp0(self->class_name, "ammo_grenades") == 0)
+		G_HandGrenadeProjectile_Explode(self);
+	else
+		G_GrenadeProjectile_Explode(self);
 }
 
 /*
@@ -499,13 +466,11 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 }
 
 // tossing a hand grenade
-void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t const start, const vec3_t dir, int32_t speed, int16_t damage, int16_t knockback, vec_t damage_radius, uint32_t timer) {
+void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, 
+	vec3_t const start, const vec3_t dir, int32_t speed, int16_t damage, 
+	int16_t knockback, vec_t damage_radius, uint32_t timer) {
 	
 	vec3_t forward, right, up;
-	
-	// create the nade entity and link it to the thrower
-	//g_entity_t *projectile = G_AllocEntity(__func__);
-	//projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
 	VectorAngles(dir, projectile->s.angles);
@@ -513,8 +478,19 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t con
 	AngleVectors(projectile->s.angles, forward, right, up);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
-	VectorMA(projectile->locals.velocity, 200.0 + Randomc() * 10.0, up, projectile->locals.velocity);
-	VectorMA(projectile->locals.velocity, Randomc() * 10.0, right, projectile->locals.velocity);
+	VectorMA(
+		projectile->locals.velocity, 
+		200.0 + Randomc() * 10.0, 
+		up, 
+		projectile->locals.velocity
+	);
+	
+	VectorMA(
+		projectile->locals.velocity, 
+		Randomc() * 10.0, 
+		right, 
+		projectile->locals.velocity
+	);
 	
 	// add some of the player's velocity to the projectile
 	G_PlayerProjectile(projectile, 0.33);

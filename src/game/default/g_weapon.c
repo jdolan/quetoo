@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quake2World.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -459,6 +459,51 @@ void G_FireMachinegun(g_entity_t *ent) {
 }
 
 /*
+ *  Create a grenade entity that will follow the player 
+ *  while playing the ticking sound
+ */
+static void G_PullGrenadePin(g_entity_t *ent) {
+	g_entity_t *nade = G_AllocEntity(__func__);
+	ent->client->locals.held_grenade = nade;
+	nade->owner = ent;
+	nade->solid = SOLID_BOX;
+	nade->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	nade->locals.move_type = MOVE_TYPE_BOUNCE;
+	nade->locals.take_damage = true;
+	nade->locals.Touch = G_GrenadeProjectile_Touch;
+	nade->locals.touch_time = g_level.time;
+	nade->s.trail = TRAIL_GRENADE;
+	nade->s.model1 = g_media.models.grenade;
+	nade->s.sound = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
+	gi.LinkEntity(nade);
+}
+
+/*
+ * @brief Checks button status and hold time to determine if we're still holding
+ * a primed grenade
+ */
+static _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
+{
+	_Bool current_hold = buttons & BUTTON_ATTACK;
+	
+	// just pulled the pin
+	if (!ent->client->locals.grenade_hold_time && current_hold)
+	{
+		G_PullGrenadePin(ent);
+		ent->client->locals.grenade_hold_time = g_level.time;
+		ent->client->locals.grenade_hold_frame = g_level.frame_num;
+		return true;
+	}
+	// already pulled the pin and holding it
+	else if (ent->client->locals.grenade_hold_time && current_hold)
+	{
+		return true;
+	}
+	
+	return false;
+}
+
+/*
  * @brief
  */
 void G_FireHandGrenade(g_entity_t *ent) {
@@ -469,7 +514,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	if (!(buttons & BUTTON_ATTACK) && !ent->client->locals.grenade_hold_time)
 		return;
 	
-	static const uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
+	const uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
 	vec_t throw_speed = 500.0; // minimum
 	
 	// use small epsilon for low server frame rates
@@ -565,50 +610,6 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	ent->client->locals.grenade_hold_frame = 0;
 }
 
-/*
- * @brief Checks button status and hold time to determine if we're still holding
- * a primed grenade
- */
-_Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
-{
-	_Bool current_hold = buttons & BUTTON_ATTACK;
-	
-	// just pulled the pin
-	if (!ent->client->locals.grenade_hold_time && current_hold)
-	{
-		G_PullGrenadePin(ent);
-		ent->client->locals.grenade_hold_time = g_level.time;
-		ent->client->locals.grenade_hold_frame = g_level.frame_num;
-		return true;
-	}
-	// already pulled the pin and holding it
-	else if (ent->client->locals.grenade_hold_time && current_hold)
-	{
-		return true;
-	}
-	
-	return false;
-}
-
-/*
- *  Create a grenade entity that will follow the player 
- *  while playing the ticking sound
- */
-void G_PullGrenadePin(g_entity_t *ent) {
-	g_entity_t *nade = G_AllocEntity(__func__);
-	ent->client->locals.held_grenade = nade;
-	nade->owner = ent;
-	nade->solid = SOLID_BOX;
-	nade->locals.clip_mask = MASK_CLIP_PROJECTILE;
-	nade->locals.move_type = MOVE_TYPE_BOUNCE;
-	nade->locals.take_damage = true;
-	nade->locals.Touch = G_HandGrenadeProjectile_Touch;
-	nade->locals.touch_time = g_level.time;
-	nade->s.trail = TRAIL_GRENADE;
-	nade->s.model1 = g_media.models.grenade;
-	nade->s.sound = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
-	gi.LinkEntity(nade);
-}
 /*
  * @brief
  */
