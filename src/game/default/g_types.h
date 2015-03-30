@@ -580,6 +580,10 @@ typedef struct {
 #define MOD_SUICIDE					21
 #define MOD_EXPLOSIVE				22
 #define MOD_TRIGGER_HURT			23
+#define MOD_HANDGRENADE_HIT			24
+#define MOD_HANDGRENADE_SPLASH		25
+#define MOD_HANDGRENADE_SUICIDE		26
+#define MOD_HANDGRENADE_KAMIKAZE	27
 #define MOD_FRIENDLY_FIRE			0x8000000
 
 /*
@@ -719,6 +723,10 @@ typedef struct {
 	uint32_t footstep_time; // play a footstep when time > this
 	uint32_t animation1_time; // eligible for animation update when time > this
 	uint32_t animation2_time; // eligible for animation update when time > this
+	uint32_t grenade_time; // pin is pulled, will explode when time > this
+	uint32_t grenade_hold_time; // time client started holding a primed grenade
+	uint32_t grenade_hold_frame; // the frame number we pulled the pin
+	g_entity_t *held_grenade; // the grenade we're holding onto
 
 	uint32_t pickup_msg_time; // display message until time > this
 
@@ -817,6 +825,7 @@ typedef struct {
 
 	const g_item_t *item; // for bonus items
 
+	_Bool held_grenade;	// is this entity a nade that is being held currently?
 } g_entity_locals_t;
 
 #include "game/game.h"

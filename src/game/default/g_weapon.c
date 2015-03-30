@@ -30,8 +30,9 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 		ent->client->locals.weapon = item;
 
 		if (item) {
+			
 			ent->s.model2 = gi.ModelIndex(item->model);
-
+			
 			if (item->ammo) {
 				ent->client->locals.ammo_index = ITEM_INDEX(G_FindItem(item->ammo));
 			} else {
@@ -121,6 +122,8 @@ void G_UseBestWeapon(g_entity_t *ent) {
 		item = G_FindItem("rocket launcher");
 	} else if (G_HasItem(ent, "grenade launcher", 1) && G_HasItem(ent, "grenades", 1)) {
 		item = G_FindItem("grenade launcher");
+	} else if (G_HasItem(ent, "grenades", 1)) {
+		item = G_FindItem("grenades");
 	} else if (G_HasItem(ent, "machinegun", 1) && G_HasItem(ent, "bullets", 1)) {
 		item = G_FindItem("machinegun");
 	} else if (G_HasItem(ent, "super shotgun", 1) && G_HasItem(ent, "shells", 2)) {
@@ -316,7 +319,13 @@ void G_ClientWeaponThink(g_entity_t *ent) {
 
 				const g_item_t *item = ent->client->locals.weapon;
 				if (item) {
-					ent->s.model2 = gi.ModelIndex(item->model);
+					
+					// special case for grenades since they're ammo and weapon
+					if (g_strcmp0(item->class_name, "ammo_grenades") == 0) {
+						ent->s.model2 = g_media.models.grenade;
+					} else {
+						ent->s.model2 = gi.ModelIndex(item->model);
+					}
 
 					if (item->ammo) {
 						ent->client->locals.ammo_index = ITEM_INDEX(G_FindItem(item->ammo));
@@ -447,6 +456,158 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_WeaponFired(ent, 75);
 	}
+}
+
+/*
+ *  Create a grenade entity that will follow the player 
+ *  while playing the ticking sound
+ */
+static void G_PullGrenadePin(g_entity_t *ent) {
+	g_entity_t *nade = G_AllocEntity(__func__);
+	ent->client->locals.held_grenade = nade;
+	nade->owner = ent;
+	nade->solid = SOLID_BOX;
+	nade->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	nade->locals.move_type = MOVE_TYPE_BOUNCE;
+	nade->locals.take_damage = true;
+	nade->locals.Touch = G_GrenadeProjectile_Touch;
+	nade->locals.touch_time = g_level.time;
+	nade->s.trail = TRAIL_GRENADE;
+	nade->s.model1 = g_media.models.grenade;
+	nade->s.sound = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
+	gi.LinkEntity(nade);
+}
+
+/*
+ * @brief Checks button status and hold time to determine if we're still holding
+ * a primed grenade
+ */
+static _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
+{
+	_Bool current_hold = buttons & BUTTON_ATTACK;
+	
+	// just pulled the pin
+	if (!ent->client->locals.grenade_hold_time && current_hold)
+	{
+		G_PullGrenadePin(ent);
+		ent->client->locals.grenade_hold_time = g_level.time;
+		ent->client->locals.grenade_hold_frame = g_level.frame_num;
+		return true;
+	}
+	// already pulled the pin and holding it
+	else if (ent->client->locals.grenade_hold_time && current_hold)
+	{
+		return true;
+	}
+	
+	return false;
+}
+
+/*
+ * @brief
+ */
+void G_FireHandGrenade(g_entity_t *ent) {
+
+	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
+	
+	// didn't touch fire button or holding a grenade
+	if (!(buttons & BUTTON_ATTACK) && !ent->client->locals.grenade_hold_time)
+		return;
+	
+	const uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
+	vec_t throw_speed = 500.0; // minimum
+	
+	// use small epsilon for low server frame rates
+	if (ent->client->locals.weapon_fire_time > g_level.time + 1)
+		return;
+
+	int16_t ammo;
+	if (ent->client->locals.ammo_index)
+		ammo = ent->client->locals.inventory[ent->client->locals.ammo_index];
+	else
+		ammo = 0;
+
+	// override quantity needed from g_item_t since grenades are both ammo and weapon
+	const uint16_t ammo_needed = 1;
+	
+	// if the client does not have enough ammo, change weapons
+	if (ent->client->locals.ammo_index && ammo < ammo_needed) {
+	
+		if (g_level.time >= ent->client->locals.pain_time) { // play a click sound
+			gi.Sound(ent, g_media.sounds.weapon_no_ammo, ATTEN_NORM);
+			ent->client->locals.pain_time = g_level.time + 1000;
+		}
+
+		G_UseBestWeapon(ent);
+		return;
+	}
+	
+	// are we holding a primed grenade?
+	_Bool holding = G_CheckGrenadeHold(ent, buttons);
+	
+	// how long have we been holding it?
+	uint32_t hold_time = g_level.time - ent->client->locals.grenade_hold_time;
+	
+	// continue holding if time allows
+	if (holding && (int32_t)(nade_time - hold_time) > 0) {
+	
+		// play the timer sound if we're holding once every second
+		if ((g_level.frame_num - ent->client->locals.grenade_hold_frame) % gi.frame_rate == 0) {
+		
+			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang.ogg"), ATTEN_NORM);
+		}
+		return;
+	}
+	
+	// to tell if it went off in player's hand or not
+	if (!holding) {
+		ent->client->locals.grenade_hold_time = 0;
+	}
+		
+	// figure out how fast/far to throw
+	throw_speed *= (vec_t) hold_time / 1000;
+	throw_speed = Clamp(throw_speed, 500, 1200);
+	
+	vec3_t forward, right, up, org;
+	
+	G_InitProjectile(ent, forward, right, up, org);
+	G_HandGrenadeProjectile(
+		ent,					// player
+		ent->client->locals.held_grenade,	// the grenade
+		org,					// starting point
+		forward,				// direction
+		(uint32_t)throw_speed,	// how fast does it fly
+		120,					// damage dealt
+		120,					// knockback
+		185.0,					// blast radius 
+		nade_time-hold_time		// time before explode (next think)
+	);
+		
+	// play the sound if we throw it
+	gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_throw.wav"), ATTEN_NORM);
+	
+	// set the attack animation
+	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
+
+	// push the next fire time out by the interval (2 secs)
+	ent->client->locals.weapon_fire_time = g_level.time + (2 * 1000);
+
+	// and decrease their inventory
+	if (ent->client->locals.ammo_index) {
+		ent->client->locals.inventory[ent->client->locals.ammo_index] -= ammo_needed;
+	}
+
+	// play a quad damage sound if applicable
+	if (ent->client->locals.inventory[g_media.items.quad_damage]) {
+
+		if (ent->client->locals.quad_attack_time < g_level.time) {
+			gi.Sound(ent, g_media.sounds.quad_attack, ATTEN_NORM);
+			ent->client->locals.quad_attack_time = g_level.time + 500;
+		}
+	}
+	
+	ent->client->locals.grenade_hold_time = 0;
+	ent->client->locals.grenade_hold_frame = 0;
 }
 
 /*
