@@ -1,4 +1,6 @@
 # Quetoo BETA
+
+[![Join the chat at https://gitter.im/jdolan/quetoo](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jdolan/quetoo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ![Quetoo BETA](http://farm8.staticflickr.com/7052/6840396962_e01802d3f9_c.jpg)
 
 ## Overview
