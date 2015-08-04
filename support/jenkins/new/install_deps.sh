@@ -6,7 +6,8 @@ libjpeg-turbo-devel zlib-devel ncurses-devel libxml2-devel libxml2
 
 dnf -y install SDL2-devel.i686 SDL2_image-devel.i686 \
 SDL2_mixer-devel.i686 libcurl-devel.i686 physfs-devel.i686 glib2-devel.i686 \
-libjpeg-turbo-devel.i686 zlib-devel.i686 ncurses-devel.i686 libxml2-devel.i686 libxml2.i686
+libjpeg-turbo-devel.i686 zlib-devel.i686 ncurses-devel.i686 libxml2-devel.i686 \
+libxml2.i686 glibc-devel.i686 libX11-devel.i686 libXext-devel.i686 mesa-libGL-devel.i686
 
 dnf -y install mingw64-SDL2 mingw64-SDL2_image mingw64-SDL2_mixer \
 mingw64-curl mingw64-physfs mingw64-glib2 mingw64-libjpeg-turbo \
