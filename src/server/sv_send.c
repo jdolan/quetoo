@@ -211,6 +211,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 			reliable = true;
 			/* no break */
 		case MULTICAST_ALL:
+			memset(vis, 1, sizeof(vis));
 			break;
 
 		case MULTICAST_PHS_R:
@@ -270,7 +271,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 				continue;
 
 			const int32_t cluster = Cm_LeafCluster(leaf);
-			if (vis && (!(vis[cluster >> 3] & (1 << (cluster & 7)))))
+			if (!(vis[cluster >> 3] & (1 << (cluster & 7))))
 				continue;
 		}
 
