@@ -188,17 +188,16 @@ static void Cl_Print(const console_string_t *str) {
  */
 void Cl_ToggleConsole_f(void) {
 
-	if (cls.state != CL_ACTIVE)
-		return;
-
 	if (cls.key_state.dest == KEY_CONSOLE) {
 
-		if (cls.state == CL_ACTIVE)
+		if (cls.state == CL_ACTIVE) {
 			cls.key_state.dest = KEY_GAME;
-		else
+		} else {
 			cls.key_state.dest = KEY_UI;
-	} else
+		}
+	} else {
 		cls.key_state.dest = KEY_CONSOLE;
+	}
 }
 
 static void Cl_MessageMode(_Bool team) {
