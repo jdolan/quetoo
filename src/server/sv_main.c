@@ -350,12 +350,24 @@ static _Bool Sv_RconAuthenticate(void) {
 	return true;
 }
 
+static char sv_rcon_buffer[MAX_PRINT_MSG];
+
+/*
+ * @brief Console appender for remote console.
+ */
+static void Sv_Rcon_Print(const console_string_t *str) {
+
+	g_strlcat(sv_rcon_buffer, str->chars, sizeof(sv_rcon_buffer));
+}
+
 /*
  * @brief A client issued an rcon command. Shift down the remaining args and
  * redirect all output to the invoking client.
  */
 static void Sv_Rcon_f(void) {
+
 	const _Bool auth = Sv_RconAuthenticate();
+
 	const char *addr = Net_NetaddrToString(&net_from);
 
 	// first print to the server console
@@ -365,25 +377,29 @@ static void Sv_Rcon_f(void) {
 		Com_Print("Bad rcon from %s:\n%s\n", addr, net_message.data + 4);
 
 	// then redirect the remaining output back to the client
-	Com_BeginRedirect(RD_PACKET, sv_outputbuf, SV_OUTPUTBUF_LENGTH, Sv_FlushRedirect);
+
+	console_t rcon = { .Append = Sv_Rcon_Print };
+	sv_rcon_buffer[0] = '\0';
+
+	Con_AddConsole(&rcon);
 
 	if (auth) {
-		char remaining[MAX_STRING_CHARS];
-		int32_t i;
+		char cmd[MAX_STRING_CHARS];
+		cmd[0] = '\0';
 
-		remaining[0] = 0;
-
-		for (i = 2; i < Cmd_Argc(); i++) {
-			strcat(remaining, Cmd_Argv(i));
-			strcat(remaining, " ");
+		for (int32_t i = 2; i < Cmd_Argc(); i++) {
+			g_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
+			g_strlcat(cmd, " ", sizeof(cmd));
 		}
 
-		Cmd_ExecuteString(remaining);
+		Cmd_ExecuteString(cmd);
 	} else {
 		Com_Print("Bad rcon_password\n");
 	}
 
-	Com_EndRedirect();
+	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "print\n%s", sv_rcon_buffer);
+
+	Con_RemoveConsole(&rcon);
 }
 
 /*
@@ -803,6 +819,8 @@ void Sv_Init(void) {
 
 	Cm_LoadBspModel(NULL, NULL);
 
+	Sv_InitConsole();
+
 	Sv_InitLocal();
 
 	Sv_InitAdmin();
@@ -816,6 +834,8 @@ void Sv_Init(void) {
 void Sv_Shutdown(const char *msg) {
 
 	Sv_ShutdownServer(msg);
+
+	Sv_ShutdownConsole();
 
 	memset(&svs, 0, sizeof(svs));
 

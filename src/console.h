@@ -22,11 +22,11 @@
 #ifndef __CONSOLE_H__
 #define __CONSOLE_H__
 
+#include <SDL2/SDL_mutex.h>
+
 #include "cmd.h"
 #include "cvar.h"
 
-#define CON_NUM_NOTIFY 4
-#define CON_SCROLL 5
 #define CON_CURSOR_CHAR 0x0b
 
 /*
@@ -35,12 +35,17 @@
 typedef struct {
 
 	/*
-	 * @brief The null-terminated C string.
+	 * @brief The print level (e.g. PRINT_HIGH).
 	 */
-	const char *chars;
+	uint32_t level;
 
 	/*
-	 * @brief The length of this string in bytes.
+	 * @brief The null-terminated C string.
+	 */
+	char *chars;
+
+	/*
+	 * @brief The size of this string in bytes.
 	 */
 	size_t size;
 
@@ -71,9 +76,19 @@ typedef struct {
 	GList *strings;
 
 	/*
+	 * @brief The length of `strings`.
+	 */
+	size_t len;
+
+	/*
 	 * @brief The length of the console strings in characters.
 	 */
 	size_t size;
+
+	/*
+	 * @brief The configured consoles.
+	 */
+	GList *consoles;
 
 	/*
 	 * @brief A lock for coordinating thread access to the console.
@@ -83,6 +98,55 @@ typedef struct {
 } console_state_t;
 
 extern console_state_t console_state;
+
+/*
+ * @brief The maximum number of lines to buffer for console input history.
+ */
+#define CON_HISTORY_SIZE 64
+
+typedef enum {
+	CON_HISTORY_PREV = 1,
+	CON_HISTORY_NEXT
+} console_history_nav_t;
+
+/*
+ * @brief The console history structure.
+ */
+typedef struct {
+
+	/*
+	 * @brief The circular buffer of history strings.
+	 */
+	char strings[CON_HISTORY_SIZE][MAX_PRINT_MSG];
+
+	/*
+	 * @brief The always-increasing, un-clamped insert index.
+	 */
+	size_t index;
+
+	/*
+	 * @brief The circularly clamped history position for up-scrolling.
+	 */
+	size_t pos;
+
+} console_history_t;
+
+/*
+ * @brief The console input structure.
+ */
+typedef struct {
+
+	/*
+	 * @brief The input buffer.
+	 */
+	char buffer[MAX_PRINT_MSG];
+
+	/*
+	 * @brief The cursor offset into `buffer`.
+	 */
+	size_t pos;
+
+} console_input_t;
 
 /*
  * @brief The console structure.
@@ -105,19 +169,43 @@ typedef struct {
 	uint16_t scroll;
 
 	/*
+	 * @brief The minimum timestamp for tail operations.
+	 */
+	uint32_t whence;
+
+	/*
+	 * @brief The level mask for tail operations.
+	 */
+	uint32_t level;
+
+	/*
+	 * @brief The history structure.
+	 */
+	console_history_t history;
+
+	/*
+	 * @brief The input structure.
+	 */
+	console_input_t input;
+
+	/*
 	 * @brief An optional print callback.
 	 */
-	void (*Print)(console_string_t *str);
+	void (*Append)(const console_string_t *str);
 
 } console_t;
 
-void Con_Init(void);
-void Con_Shutdown(void);
+void Con_Append(int32_t level, const char *string);
+size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_lines);
+size_t Con_Tail(const console_t *console, char **lines, size_t max_lines);
+void Con_NavigateHistory(console_t *console, console_history_nav_t nav);
+void Con_ReadHistory(console_t *console, file_t *file);
+void Con_WriteHistory(const console_t *console, file_t *file);
+_Bool Con_CompleteInput(console_t *console);
+void Con_SubmitInput(console_t *console);
 void Con_AddConsole(const console_t *console);
 void Con_RemoveConsole(const console_t *console);
-void Con_Print(const char *chars);
-size_t Con_Wrap(const char *chars, size_t line_width, const char **lines, size_t max_lines);
-size_t Con_Tail(const console_t *console, const char **lines, size_t max_lines);
-_Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len);
+void Con_Init(void);
+void Con_Shutdown(void);
 
 #endif /* __CONSOLE_H__ */

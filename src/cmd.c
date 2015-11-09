@@ -52,9 +52,8 @@ static cmd_state_t cmd_state;
  * @brief Adds command text at the end of the buffer
  */
 void Cbuf_AddText(const char *text) {
-	int32_t l;
 
-	l = strlen(text);
+	const size_t l = strlen(text);
 
 	if (cmd_state.buf.size + l >= cmd_state.buf.max_size) {
 		Com_Warn("Overflow\n");

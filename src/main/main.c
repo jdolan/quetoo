@@ -24,10 +24,11 @@
 
 #include "config.h"
 #include "client/client.h"
-extern cl_static_t cls;
 #include "server/server.h"
 
-jmp_buf environment;
+extern cl_static_t cls;
+
+static jmp_buf state;
 
 quetoo_t quetoo;
 
@@ -51,10 +52,9 @@ static void Warn(const char *msg);
  */
 static void Debug(const char *msg) {
 
-	if (debug && !debug->integer)
-		return;
-
-	Print(msg);
+	if (debug && debug->integer) {
+		Print(msg);
+	}
 }
 
 /*
@@ -63,7 +63,7 @@ static void Debug(const char *msg) {
  */
 static void Error(err_t err, const char *msg) {
 
-	Com_Print("^1%s\n", msg);
+	Print(va("^1%s\n", msg));
 
 	switch (err) {
 		case ERR_NONE:
@@ -78,7 +78,7 @@ static void Error(err_t err, const char *msg) {
 				cls.key_state.dest = KEY_CONSOLE;
 			}
 
-			longjmp(environment, 0);
+			longjmp(state, 0);
 			break;
 
 		case ERR_FATAL:
@@ -95,8 +95,8 @@ static void Error(err_t err, const char *msg) {
  */
 static void Print(const char *msg) {
 
-	if (quetoo.time) {
-		Con_Print(msg);
+	if (console_state.lock) {
+		Con_Append(PRINT_HIGH, msg);
 	} else {
 		printf("%s", msg);
 	}
@@ -107,17 +107,17 @@ static void Print(const char *msg) {
  */
 static void Verbose(const char *msg) {
 
-	if (verbose && !verbose->integer) {
-		return;
+	if (verbose && verbose->integer) {
+		Print(msg);
 	}
 
-	Print(msg);
 }
 
 /*
  * @brief Prints the specified message with a colored accent.
  */
 static void Warn(const char *msg) {
+
 	Print(va("^3%s", msg));
 }
 
@@ -125,6 +125,7 @@ static void Warn(const char *msg) {
  * @brief
  */
 static void Quit_f(void) {
+
 	Com_Shutdown("Server quit\n");
 }
 
@@ -163,7 +164,6 @@ static void Init(void) {
 	threads->modified = false;
 
 	Con_Init();
-	quetoo.time = Sys_Milliseconds();
 
 	Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
 
@@ -254,8 +254,10 @@ int32_t main(int32_t argc, char **argv) {
 
 	memset(&quetoo, 0, sizeof(quetoo));
 
-	if (setjmp(environment))
+	if (setjmp(state))
 		Com_Error(ERR_FATAL, "Error during initialization.");
+
+	quetoo.time = Sys_Milliseconds();
 
 	quetoo.Debug = Debug;
 	quetoo.Error = Error;
@@ -281,7 +283,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	while (true) { // this is our main loop
 
-		if (setjmp(environment)) { // an ERR_DROP or ERR_NONE was thrown
+		if (setjmp(state)) { // an ERR_DROP or ERR_NONE was thrown
 			Com_Debug("Error detected, recovering..\n");
 			continue;
 		}

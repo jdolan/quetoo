@@ -25,7 +25,6 @@
 #include "files.h"
 #include "filesystem.h"
 
-#if BUILD_CLIENT
 #include <SDL2/SDL_image.h>
 
 #define IMG_PALETTE_SIZE 256
@@ -56,5 +55,4 @@ void Img_ColorFromPalette(uint8_t c, vec_t *res);
  */
 _Bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality);
 
-#endif /* BUILD_CLIENT */
 #endif /*__IMAGE_H__*/

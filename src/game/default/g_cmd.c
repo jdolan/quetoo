@@ -533,7 +533,7 @@ static void G_Say_f(g_entity_t *ent) {
 		if (team) {
 			if (!G_OnSameTeam(ent, other))
 				continue;
-			gi.ClientPrint(other, PRINT_TEAMCHAT, "%s", text);
+			gi.ClientPrint(other, PRINT_TEAM_CHAT, "%s", text);
 		} else {
 			gi.ClientPrint(other, PRINT_CHAT, "%s", text);
 		}

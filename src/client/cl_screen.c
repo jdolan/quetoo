@@ -259,7 +259,7 @@ void Cl_UpdateScreen(void) {
 
 	R_BeginFrame();
 
-	if (cls.state == CL_ACTIVE && !cls.loading) {
+	if (cls.state == CL_ACTIVE) {
 
 		Cl_UpdateView();
 
@@ -268,30 +268,30 @@ void Cl_UpdateScreen(void) {
 		R_DrawView();
 
 		R_Setup2D();
-
-		if (cls.key_state.dest != KEY_CONSOLE && cls.key_state.dest != KEY_UI) {
-
-			Cl_DrawNetGraph();
-
-			Cl_DrawCounters();
-
-			Cl_DrawRendererStats();
-
-			Cl_DrawSoundStats();
-
-			cls.cgame->DrawFrame(&cl.frame);
-		}
 	} else {
 		R_Setup2D();
+
+		if (cls.state == CL_LOADING) {
+			Cl_DrawLoading();
+		}
 	}
 
-	if (cls.loading) {
-		Cl_DrawLoading();
-	} else {
-		Cl_DrawConsole();
+	switch (cls.key_state.dest) {
+		case KEY_CONSOLE:
+			Cl_DrawConsole();
+			break;
+		default:
+			Cl_DrawChat();
+			Cl_DrawNotify();
+			Cl_DrawNetGraph();
+			Cl_DrawCounters();
+			Cl_DrawRendererStats();
+			Cl_DrawSoundStats();
+			cls.cgame->DrawFrame(&cl.frame);
+			break;
 	}
 
-	R_Draw2D(); // draw all 2D geometry for the frame
+	R_Draw2D();
 
 	Ui_Draw();
 

@@ -92,169 +92,142 @@ static _Bool Cl_KeySystem(const SDL_Event *event) {
  * @brief Interactive line editing and console scrollback.
  */
 static void Cl_KeyConsole(const SDL_Event *event) {
-	size_t i;
 
 	if (event->type == SDL_KEYUP) // don't care
 		return;
 
-	// submit buffer on enter
-	if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER) {
+	console_input_t *in = &cl_console.input;
 
-		if (ks->lines[ks->edit_line][1] == '\\' || ks->lines[ks->edit_line][1] == '/')
-			Cbuf_AddText(ks->lines[ks->edit_line] + 2); // skip the /
-		else
-			Cbuf_AddText(ks->lines[ks->edit_line] + 1); // valid command
+	SDL_Keycode key = event->key.keysym.sym;
 
-		Cbuf_AddText("\n");
-		Com_Print("%s\n", ks->lines[ks->edit_line]);
-
-		ks->edit_line = (ks->edit_line + 1) % KEY_HISTORY_SIZE;
-		ks->history_line = ks->edit_line;
-
-		memset(ks->lines[ks->edit_line], 0, sizeof(ks->lines[0]));
-
-		ks->lines[ks->edit_line][0] = ']';
-		ks->pos = 1;
-
-		if (cls.state == CL_DISCONNECTED) // force an update, because the command
-			Cl_UpdateScreen(); // may take some time
-
-		return;
+	// convert mouse button events to key events
+	switch ((uint32_t) event->key.keysym.scancode) {
+		case SDL_SCANCODE_MOUSE4:
+			key = SDLK_MOUSE4;
+			break;
+		case SDL_SCANCODE_MOUSE5:
+			key = SDLK_MOUSE5;
+			break;
+		default:
+			break;
 	}
 
-	if (event->key.keysym.sym == SDLK_TAB) { // command completion
-		// ignore the leading bracket in the input string
-		ks->pos--;
-		Con_CompleteCommand(ks->lines[ks->edit_line] + 1, &ks->pos, KEY_LINE_SIZE - 1);
-		ks->pos++;
-		return;
-	}
+	switch (key) {
 
-	if (event->key.keysym.sym == SDLK_BACKSPACE) { // delete char before cursor
-		if (ks->pos > 1) {
-			strcpy(ks->lines[ks->edit_line] + ks->pos - 1, ks->lines[ks->edit_line] + ks->pos);
-			ks->pos--;
-		}
-		return;
-	}
+		case SDLK_RETURN:
+		case SDLK_KP_ENTER:
+			Con_SubmitInput(&cl_console);
+			break;
 
-	if (event->key.keysym.sym == SDLK_DELETE) { // delete char on cursor
-		if (ks->pos < strlen(ks->lines[ks->edit_line]))
-			strcpy(ks->lines[ks->edit_line] + ks->pos, ks->lines[ks->edit_line] + ks->pos + 1);
-		return;
-	}
+		case SDLK_TAB:
+		case SDLK_KP_TAB:
+			Con_CompleteInput(&cl_console);
+			break;
 
-	if (event->key.keysym.sym == SDLK_INSERT) { // toggle insert mode
-		ks->insert ^= 1;
-		return;
-	}
+		case SDLK_BACKSPACE:
+		case SDLK_KP_BACKSPACE:
+			if (in->pos > 1) {
+				char *c = in->buffer + in->pos - 1;
+				while (*c) {
+					*c = *(c + 1); c++;
+				}
+				in->pos--;
+			}
+			break;
 
-	if (event->key.keysym.sym == SDLK_LEFT) { // move cursor left
-		if (SDL_GetModState() & KMOD_CTRL) { // by a whole word
-			while (ks->pos > 1 && ks->lines[ks->edit_line][ks->pos - 1] == ' ')
-				ks->pos--; // get off current word
-			while (ks->pos > 1 && ks->lines[ks->edit_line][ks->pos - 1] != ' ')
-				ks->pos--; // and behind previous word
-			return;
-		}
+		case SDLK_DELETE:
+			if (in->pos < strlen(in->buffer)) {
+				char *c = in->buffer + in->pos;
+				while (*c) {
+					*c = *(c + 1); c++;
+				}
+			}
+			break;
 
-		if (ks->pos > 1) // or just a char
-			ks->pos--;
-		return;
-	}
+		case SDLK_UP:
+			Con_NavigateHistory(&cl_console, CON_HISTORY_PREV);
+			break;
 
-	if (event->key.keysym.sym == SDLK_RIGHT) { // move cursor right
-		i = strlen(ks->lines[ks->edit_line]);
+		case SDLK_DOWN:
+			Con_NavigateHistory(&cl_console, CON_HISTORY_NEXT);
+			break;
 
-		if (i == ks->pos)
-			return; // no character to get
+		case SDLK_LEFT:
+			if (SDL_GetModState() & KMOD_CTRL) { // move one word left
+				while (in->pos > 0 && in->buffer[in->pos] == ' ')
+					in->pos--; // off current word
+				while (in->pos > 0 && in->buffer[in->pos] != ' ')
+					in->pos--; // and behind previous word
+			} else if (in->pos > 0) {
+				in->pos--;
+			}
+			break;
 
-		if (SDL_GetModState() & KMOD_CTRL) { // by a whole word
-			while (ks->pos < i && ks->lines[ks->edit_line][ks->pos + 1] == ' ')
-				ks->pos++; // get off current word
-			while (ks->pos < i && ks->lines[ks->edit_line][ks->pos + 1] != ' ')
-				ks->pos++; // and in front of next word
-			if (ks->pos < i) // all the way in front
-				ks->pos++;
-			return;
-		}
+		case SDLK_RIGHT:
+			if (SDL_GetModState() & KMOD_CTRL) { // move one word right
+				const size_t len = strlen(in->buffer);
+				while (in->pos < len && in->buffer[in->pos] == ' ')
+					in->pos++; // off current word
+				while (in->pos < len && in->buffer[in->pos] != ' ')
+					in->pos++; // and in front of next word
+				if (in->pos < len) // all the way in front
+					in->pos++;
+			} else if (in->pos < strlen(in->buffer)) {
+				in->pos++;
+			}
+			break;
 
-		ks->pos++; // or just a char
-		return;
-	}
+		case SDLK_PAGEUP:
+		case SDLK_MOUSE4:
+			if (cl_console.scroll < console_state.len) {
+				cl_console.scroll++;
+			} else {
+				cl_console.scroll = console_state.len;
+			}
+			break;
 
-	if (event->key.keysym.sym == SDLK_UP) { // iterate history back
-		do {
-			ks->history_line = (ks->history_line + KEY_HISTORY_SIZE - 1) % KEY_HISTORY_SIZE;
-		} while (ks->history_line != ks->edit_line && !ks->lines[ks->history_line][1]);
+		case SDLK_PAGEDOWN:
+		case SDLK_MOUSE5:
+			if (cl_console.scroll > 0) {
+				cl_console.scroll--;
+			} else {
+				cl_console.scroll = 0;
+			}
+			break;
 
-		if (ks->history_line == ks->edit_line)
-			ks->history_line = (ks->edit_line + 1) % KEY_HISTORY_SIZE;
+		case SDLK_HOME:
+			if (SDL_GetModState() & KMOD_CTRL) {
+				cl_console.scroll = console_state.len;
+			} else {
+				in->pos = 0;
+			}
+			break;
+		case SDLK_END:
+			if (SDL_GetModState() & KMOD_CTRL) { // go to the end of the console
+				cl_console.scroll = 0;
+			} else {
+				in->pos = strlen(in->buffer);
+			}
+			break;
 
-		strcpy(ks->lines[ks->edit_line], ks->lines[ks->history_line]);
-		ks->pos = strlen(ks->lines[ks->edit_line]);
-		return;
-	}
+		case SDLK_a:
+			if (SDL_GetModState() & KMOD_CTRL) {
+				in->pos = 0;
+			}
+			break;
+		case SDLK_e:
+			if (SDL_GetModState() & KMOD_CTRL) {
+				in->pos = strlen(in->buffer);
+			}
+			break;
+		case SDLK_c:
+			if (SDL_GetModState() & KMOD_CTRL) {
+				in->buffer[0] = '\0';
+			}
+			break;
 
-	if (event->key.keysym.sym == SDLK_DOWN) { // iterate history forward
-		if (ks->history_line == ks->edit_line)
-			return;
-		do {
-			ks->history_line = (ks->history_line + 1) % KEY_HISTORY_SIZE;
-		} while (ks->history_line != ks->edit_line && !ks->lines[ks->history_line][1]);
-
-		if (ks->history_line == ks->edit_line) {
-			strcpy(ks->lines[ks->edit_line], "]");
-			ks->pos = 1;
-		} else {
-			strcpy(ks->lines[ks->edit_line], ks->lines[ks->history_line]);
-			ks->pos = strlen(ks->lines[ks->edit_line]);
-		}
-		return;
-	}
-
-	if (event->key.keysym.sym == SDLK_PAGEUP
-			|| event->key.keysym.scancode == (SDL_Scancode) SDL_SCANCODE_MOUSE4) {
-		cl_console.scroll += CON_SCROLL;
-		if (cl_console.scroll > cl_console.last_line)
-			cl_console.scroll = cl_console.last_line;
-		return;
-	}
-
-	if (event->key.keysym.sym == SDLK_PAGEDOWN
-			|| event->key.keysym.scancode == (SDL_Scancode) SDL_SCANCODE_MOUSE5) {
-		cl_console.scroll -= CON_SCROLL;
-		if (cl_console.scroll < 0)
-			cl_console.scroll = 0;
-		return;
-	}
-
-	// Ctrl-A jumps to the beginning of the line
-	if (event->key.keysym.sym == SDLK_a && (SDL_GetModState() & KMOD_CTRL)) {
-		ks->pos = 1;
-		return;
-	}
-
-	if (event->key.keysym.sym == SDLK_HOME) { // go to the start of line
-		if (SDL_GetModState() & KMOD_CTRL) // go to the start of the console
-			cl_console.scroll = cl_console.last_line;
-		else
-			ks->pos = 1;
-		return;
-	}
-
-	// Ctrl-E jumps to the end of the line
-	if (event->key.keysym.sym == SDLK_e && (SDL_GetModState() & KMOD_CTRL)) {
-		ks->pos = strlen(ks->lines[ks->edit_line]);
-		return;
-	}
-
-	if (event->key.keysym.sym == SDLK_END) { // go to the end of line
-		if (SDL_GetModState() & KMOD_CTRL) // go to the end of the console
-			cl_console.scroll = 0;
-		else
-			ks->pos = strlen(ks->lines[ks->edit_line]);
-		return;
+		default:
+			break;
 	}
 }
 
@@ -301,28 +274,37 @@ static void Cl_KeyChat(const SDL_Event *event) {
 	if (event->type == SDL_KEYUP) // don't care
 		return;
 
-	if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER) {
-		if (strlen(cls.chat_state.buffer)) {
-			if (cls.chat_state.team)
-				Cbuf_AddText("say_team \"");
-			else
-				Cbuf_AddText("say \"");
-			Cbuf_AddText(cls.chat_state.buffer);
-			Cbuf_AddText("\"");
-		}
+	console_input_t *in = &cl_chat_console.input;
 
-		ks->dest = KEY_GAME;
-		cls.chat_state.buffer[0] = '\0';
-		cls.chat_state.len = 0;
-		return;
-	}
+	switch (event->key.keysym.sym) {
 
-	if (event->key.keysym.sym == SDLK_BACKSPACE) {
-		if (cls.chat_state.len) {
-			cls.chat_state.len--;
-			cls.chat_state.buffer[cls.chat_state.len] = '\0';
-		}
-		return;
+		case SDLK_RETURN:
+		case SDLK_KP_ENTER:
+			Con_SubmitInput(&cl_chat_console);
+			ks->dest = KEY_GAME;
+			break;
+
+		case SDLK_BACKSPACE:
+		case SDLK_KP_BACKSPACE:
+			if (in->pos > 1) {
+				char *c = in->buffer + in->pos - 1;
+				while (*c) {
+					*c = *(c + 1); c++;
+				}
+				in->pos--;
+			}
+			break;
+
+		case SDLK_DELETE:
+			if (in->pos < strlen(in->buffer)) {
+				char *c = in->buffer + in->pos;
+				while (*c) {
+					*c = *(c + 1); c++;
+				}
+			}
+			break;
+		default:
+			break;
 	}
 }
 
@@ -479,47 +461,6 @@ static void Cl_BindList_f(void) {
 	}
 }
 
-/*
- * @brief
- */
-static void Cl_WriteHistory(void) {
-	file_t *f;
-
-	if (!(f = Fs_OpenWrite("history"))) {
-		Com_Warn("Couldn't write history\n");
-		return;
-	}
-
-	for (uint32_t i = (ks->edit_line + 1) % KEY_HISTORY_SIZE; i != ks->edit_line;
-			i = (i + 1) % KEY_HISTORY_SIZE) {
-		if (ks->lines[i][1]) {
-			Fs_Print(f, "%s\n", ks->lines[i] + 1);
-		}
-	}
-
-	Fs_Close(f);
-}
-
-/*
- * @brief
- */
-static void Cl_ReadHistory(void) {
-	char line[KEY_LINE_SIZE];
-
-	file_t *f;
-	if (!(f = Fs_OpenRead("history")))
-		return;
-
-	while (Fs_ReadLine(f, line, sizeof(line))) {
-		g_strlcpy(&ks->lines[ks->edit_line][1], line, KEY_LINE_SIZE - 1);
-		ks->edit_line = (ks->edit_line + 1) % KEY_HISTORY_SIZE;
-		ks->history_line = ks->edit_line;
-		ks->lines[ks->edit_line][1] = '\0';
-	}
-
-	Fs_Close(f);
-}
-
 #include "cl_binds.h"
 
 /*
@@ -543,18 +484,6 @@ void Cl_InitKeys(void) {
 
 	memset(ks, 0, sizeof(cl_key_state_t));
 
-	ks->insert = true;
-
-	for (uint16_t i = 0; i < KEY_HISTORY_SIZE; i++) {
-		ks->lines[i][0] = ']';
-		ks->lines[i][1] = '\0';
-	}
-
-	ks->pos = 1;
-	ks->edit_line = ks->history_line = 0;
-
-	Cl_ReadHistory();
-
 	// register our functions
 	Cmd_Add("bind", Cl_Bind_f, CMD_CLIENT, NULL);
 	Cmd_Add("unbind", Cl_Unbind_f, CMD_CLIENT, NULL);
@@ -569,8 +498,6 @@ void Cl_InitKeys(void) {
  * @brief
  */
 void Cl_ShutdownKeys(void) {
-
-	Cl_WriteHistory();
 
 	Mem_Free(cl_key_names);
 }
@@ -610,19 +537,4 @@ void Cl_KeyEvent(const SDL_Event *event) {
 	} else if (ks->dest != KEY_GAME && active->integer) {
 		Cvar_FullSet("active", "0", CVAR_USER_INFO | CVAR_NO_SET);
 	}
-}
-
-/*
- * @brief Clears the current input line.
- */
-void Cl_ClearTyping(void) {
-	ks->lines[ks->edit_line][1] = '\0';
-	ks->pos = 1;
-}
-
-/*
- * @brief Returns the current input line.
- */
-char *Cl_EditLine(void) {
-	return ks->lines[ks->edit_line];
 }

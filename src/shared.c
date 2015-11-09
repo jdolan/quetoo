@@ -742,7 +742,7 @@ size_t StrColorLen(const char *s) {
 		}
 
 		if (IS_LEGACY_COLOR(s)) {
-			s++;
+			s += 1;
 			continue;
 		}
 
@@ -804,46 +804,46 @@ char *vtos(const vec3_t v) {
 /*
  * @brief Parse a token out of a string. Tokens are delimited by white space, and
  * may be grouped by quotation marks.
+ *
+ * @return The next token in `data_p`, or NULL if the end of
  */
-char *ParseToken(const char **data_p) {
+char *ParseToken(const char **in) {
 	static char token[MAX_TOKEN_CHARS];
-	int32_t c;
-	int32_t len;
-	const char *data;
 
-	data = *data_p;
-	len = 0;
-	token[0] = '\0';
-
-	if (!data) {
-		*data_p = NULL;
+	if (!*in) {
 		return "";
 	}
 
+	memset(&token, 0, sizeof(token));
+
+	const char *s = *in;
+	size_t len = 0;
+	char c;
+
 	// skip whitespace
-	skipwhite: while ((c = *data) <= ' ') {
+	skipwhite: while ((c = *s) <= ' ') {
 		if (c == '\0') {
-			*data_p = NULL;
+			*in = NULL;
 			return "";
 		}
-		data++;
+		s++;
 	}
 
 	// skip // comments
-	if (c == '/' && data[1] == '/') {
-		while (*data && *data != '\n')
-			data++;
+	if (c == '/' && s[1] == '/') {
+		while (*s && *s != '\n')
+			s++;
 		goto skipwhite;
 	}
 
 	// handle quoted strings specially
 	if (c == '\"') {
-		data++;
+		s++;
 		while (true) {
-			c = *data++;
+			c = *s++;
 			if (c == '\"' || !c) {
 				token[len] = '\0';
-				*data_p = data;
+				*in = s;
 				return token;
 			}
 			if (len < MAX_TOKEN_CHARS) {
@@ -859,8 +859,8 @@ char *ParseToken(const char **data_p) {
 			token[len] = c;
 			len++;
 		}
-		data++;
-		c = *data;
+		s++;
+		c = *s;
 	} while (c > 32);
 
 	if (len == MAX_TOKEN_CHARS) {
@@ -868,7 +868,7 @@ char *ParseToken(const char **data_p) {
 	}
 	token[len] = '\0';
 
-	*data_p = data;
+	*in = s;
 	return token;
 }
 

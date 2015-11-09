@@ -315,17 +315,19 @@ static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs,
  * @brief
  */
 static void Cl_TextEvent(const SDL_Event *event) {
-	const char *src = event->text.text;
+	console_input_t *in;
 
 	if (cls.key_state.dest == KEY_CONSOLE) {
-		cl_key_state_t *s = &cls.key_state;
-		s->pos += Cl_TextEvent_Insert(s->lines[s->edit_line], src, s->pos, sizeof(s->lines[0]));
+		in = &cl_console.input;
+	} else if (cls.key_state.dest == KEY_CHAT) {
+		in = &cl_chat_console.input;
+	} else {
+		return;
 	}
 
-	if (cls.key_state.dest == KEY_CHAT) {
-		cl_chat_state_t *s = &cls.chat_state;
-		s->len += Cl_TextEvent_Insert(s->buffer, src, s->len, sizeof(s->buffer));
-	}
+	const char *src = event->text.text;
+
+	in->pos += Cl_TextEvent_Insert(in->buffer, src, in->pos, sizeof(in->buffer));
 }
 
 /*

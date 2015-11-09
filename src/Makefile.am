@@ -68,8 +68,7 @@ libfilesystem_la_SOURCES = \
 	filesystem.c
 libfilesystem_la_CFLAGS = \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
-	@PHYSFS_CFLAGS@
+	@GLIB_CFLAGS@
 libfilesystem_la_LDFLAGS = \
 	-shared
 libfilesystem_la_LIBADD = \
@@ -77,8 +76,6 @@ libfilesystem_la_LIBADD = \
 	libswap.la \
 	libsys.la \
 	@PHYSFS_LIBS@
-
-if BUILD_CLIENT
 
 libimage_la_SOURCES = \
 	image.c
@@ -90,15 +87,6 @@ libimage_la_LDFLAGS = \
 	-shared
 libimage_la_LIBADD = \
 	libfilesystem.la
-
-else
-
-libimage_la_SOURCES = \
-	null.c
-libimage_la_CFLAGS = \
-	-D__LIBTOOL_LIBRARY__=libimage_la
-
-endif
 
 libmatrix_la_SOURCES = \
 	matrix.c

@@ -746,6 +746,8 @@ void Cl_Shutdown(void) {
 
 	Cl_ShutdownKeys();
 
+	Cl_ShutdownConsole();
+
 	Ui_Shutdown();
 
 	S_Shutdown();

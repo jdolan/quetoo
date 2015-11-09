@@ -305,6 +305,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
  * client sees the reconnect message immediately.
  */
 void Sv_InitServer(const char *server, sv_state_t state) {
+	extern void Cl_Disconnect(void);
 
 	char path[MAX_QPATH];
 

@@ -26,9 +26,11 @@
 
 #ifdef __CL_LOCAL_H__
 extern console_t cl_console;
+extern console_t cl_chat_console;
 
 void Cl_DrawConsole(void);
 void Cl_DrawNotify(void);
+void Cl_DrawChat(void);
 void Cl_ToggleConsole_f(void);
 void Cl_InitConsole(void);
 void Cl_ShutdownConsole(void);

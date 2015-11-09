@@ -11,8 +11,6 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = \
 	libsound.la
 
-if BUILD_CLIENT
-
 libsound_la_SOURCES = \
 	s_main.c \
 	s_media.c \
@@ -32,13 +30,3 @@ libsound_la_LDFLAGS = \
 libsound_la_LIBADD = \
 	../../libshared.la \
 	@SDL2_LIBS@
-
-else
-
-libsound_la_SOURCES = \
-	../../null.c
-	
-libsound_la_CFLAGS = \
-	-D__LIBTOOL_LIBRARY__=libsound_la
-
-endif

@@ -21,8 +21,6 @@
 
 #include "image.h"
 
-#if BUILD_CLIENT
-
 /*
  * Work-around for conflicts between windows.h and jpeglib.h.
  *
@@ -254,5 +252,3 @@ _Bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t heigh
 	fclose(f);
 	return true;
 }
-
-#endif /* BUILD_CLIENT */

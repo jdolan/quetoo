@@ -76,7 +76,6 @@ void Cl_LoadProgress(uint16_t percent) {
 	Cl_UpdateScreen();
 }
 
-
 /**
  * @brief Draws the loading screen.
  *
@@ -84,19 +83,21 @@ void Cl_LoadProgress(uint16_t percent) {
  */
 void Cl_DrawLoading(void) {
 
-	if (!cls.loading)
-		return;
+	R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
 
-	printf("Loading... %2d%%\n", cls.loading);
-
-	if (cls.download.file) {
-		char dl[MAX_PRINT_MSG];
-
+	char *msg;
+	if (cls.loading) {
+		msg = va("Loading... %2d%%\n", cls.loading);
+	} else if (cls.download.file) {
 		const int32_t kb = (int32_t) Fs_Tell(cls.download.file) / 1024;
+		const char *proto = cls.download.http ? "HTTP" : "UDP";
 
-		g_snprintf(dl, sizeof(dl), "%s [%s] %dKB ", cls.download.name,
-				(cls.download.http ? "HTTP" : "UDP"), kb);
+		msg = va("Downloading %s [%s] %dKB ", cls.download.name, proto, kb);
 	}
+
+	r_pixel_t cw, ch;
+	R_BindFont("small", &cw, &ch);
+
 }
 
 /*
@@ -118,7 +119,7 @@ void Cl_LoadMedia(void) {
 
 	cls.cgame->UpdateMedia();
 
-	Cl_ClearNotify();
+	//Cl_ClearNotify();
 
 	cls.key_state.dest = KEY_GAME;
 

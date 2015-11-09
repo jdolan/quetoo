@@ -195,19 +195,16 @@ typedef enum {
 	CL_DISCONNECTED, // not talking to a server
 	CL_CONNECTING, // sending request packets to the server
 	CL_CONNECTED, // netchan_t established, waiting for svc_server_data
-	CL_ACTIVE
-// game views should be displayed
+	CL_LOADING, // loading media
+	CL_ACTIVE // game views should be displayed
 } cl_state_t;
 
 typedef enum {
-	KEY_GAME,
 	KEY_UI,
 	KEY_CONSOLE,
+	KEY_GAME,
 	KEY_CHAT
 } cl_key_dest_t;
-
-#define KEY_HISTORY_SIZE 64
-#define KEY_LINE_SIZE 512
 
 typedef enum {
 	SDL_SCANCODE_MOUSE1 = (SDL_SCANCODE_APP2 + 1),
@@ -234,30 +231,19 @@ enum {
 typedef struct {
 	cl_key_dest_t dest;
 
-	char lines[KEY_HISTORY_SIZE][KEY_LINE_SIZE];
-	uint16_t pos;
-
-	_Bool insert;
-	_Bool repeat;
-
-	uint32_t edit_line;
-	uint32_t history_line;
-
 	char *binds[SDL_NUM_SCANCODES];
 	_Bool down[SDL_NUM_SCANCODES];
 } cl_key_state_t;
+
+typedef struct {
+	_Bool team_chat;
+} cl_chat_state_t;
 
 typedef struct {
 	vec_t x, y;
 	vec_t old_x, old_y;
 	_Bool grabbed;
 } cl_mouse_state_t;
-
-typedef struct {
-	char buffer[KEY_LINE_SIZE];
-	size_t len;
-	_Bool team;
-} cl_chat_state_t;
 
 typedef struct {
 	_Bool http;

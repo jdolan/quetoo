@@ -121,7 +121,7 @@ dnl --------------
 PKG_CHECK_MODULES([CURL], [libcurl])
 
 dnl -----------------
-dnl Check for ncurses
+dnl Check for curses
 dnl -----------------
 
 PKG_CHECK_MODULES([CURSES], [ncurses >= 5.0])
@@ -130,6 +130,12 @@ dnl --------------
 dnl Check for GLib
 dnl --------------
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.0.0])
+
+dnl -----------------
+dnl Check for libxml2
+dnl -----------------
+
+PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4)
 
 dnl --------------------------------------
 dnl Check for SDL2, SDL2_image, SDL2_mixer
@@ -156,8 +162,6 @@ AC_CHECK_HEADER(physfs.h,
 	[AC_MSG_ERROR([Could not find physfs.h, please install PhysFS])]
 )
 AC_SUBST(PHYSFS_LIBS)
-
-CPPFLAGS="$save_CPPFLAGS"
 
 dnl -----------------------------------
 dnl Sort out OpenGL an flags and libraries
@@ -225,40 +229,6 @@ AC_SUBST(ANTTWEAKBAR_CFLAGS)
 ANTTWEAKBAR_LIBS="$ANTTWEAKBAR_LIBS $HOST_ANTTWEAKBAR_LIBS"
 AC_SUBST(ANTTWEAKBAR_LIBS)
 
-dnl --------------------------
-dnl Check which tools to build
-dnl --------------------------
-
-AC_MSG_CHECKING(which tools to build)
-
-TOOLS="quetoo-map"
-TOOL_DIRS="$TOOLS"
-
-AC_ARG_WITH(tools,
-	AS_HELP_STRING([--with-tools='quetoo-map ...'],
-		[build specified tools]
-	)
-)
-
-if test "x${with_tools}" = xno; then
-	TOOLS="no"
-	TOOL_DIRS=""
-elif test "x${with_tools}" != x; then
-	TOOLS="${with_tools}"
-	TOOL_DIRS="${with_tools}"
-fi
-
-AC_MSG_RESULT($TOOLS)
-AC_SUBST(TOOL_DIRS)
-
-echo "${TOOLS}" | grep -q quetoo-map && {
-
-	dnl -----------------
-	dnl Check for libxml2
-	dnl -----------------
-	
-	PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4)
-}
 
 dnl -------------------------------
 dnl Check for execinfo.h (optional)
@@ -309,6 +279,7 @@ dnl ---------------------------------
 AC_MSG_CHECKING(which game modules to build)
 
 GAME_MODULES="default"
+
 AC_ARG_WITH(games,
     AS_HELP_STRING([--with-games='default ...'],
 		[build specified game modules]
@@ -318,8 +289,30 @@ AC_ARG_WITH(games,
 if test "x${with_games}" != x; then
     GAME_MODULES="${with_games}"
 fi
+
 AC_SUBST(GAME_MODULES)
 AC_MSG_RESULT($GAME_MODULES)
+
+dnl --------------------------
+dnl Check which tools to build
+dnl --------------------------
+
+AC_MSG_CHECKING(which tools to build)
+
+TOOLS="quemap"
+
+AC_ARG_WITH(tools,
+	AS_HELP_STRING([--with-tools='quemap ...'],
+		[build specified tools]
+	)
+)
+
+if test "x${with_tools}" = x; then
+	TOOLS="${with_tools}"
+fi
+
+AC_SUBST(TOOLS)
+AC_MSG_RESULT($TOOLS)
 
 dnl ------------------------------------
 dnl Check whether to build master server
@@ -536,14 +529,12 @@ Quetoo $VERSION: Automatic configuration OK.
     Libraries: ......... $BASE_LIBS
     Linking: ........... $BASE_LDFLAGS
 
-    Client: ............ $BUILD_CLIENT
     Game modules: ...... $GAME_MODULES
-    Tools: ............. ${TOOLS:-None}
+    Tools: ............. $TOOLS
     Master server: ..... $BUILD_MASTER
     Unit tests: ........ $BUILD_TESTS
 
     Options:
-      curses: .......... $HAVE_CURSES
       MySQL: ........... $HAVE_MYSQL
 
   Installation directories:
