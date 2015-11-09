@@ -268,27 +268,29 @@ void Cl_UpdateScreen(void) {
 		R_DrawView();
 
 		R_Setup2D();
+
+		switch (cls.key_state.dest) {
+			case KEY_CONSOLE:
+				Cl_DrawConsole();
+				break;
+			default:
+				Cl_DrawChat();
+				Cl_DrawNotify();
+				Cl_DrawNetGraph();
+				Cl_DrawCounters();
+				Cl_DrawRendererStats();
+				Cl_DrawSoundStats();
+				cls.cgame->DrawFrame(&cl.frame);
+				break;
+		}
 	} else {
 		R_Setup2D();
 
 		if (cls.state == CL_LOADING) {
 			Cl_DrawLoading();
-		}
-	}
-
-	switch (cls.key_state.dest) {
-		case KEY_CONSOLE:
+		} else if (cls.key_state.dest == KEY_CONSOLE) {
 			Cl_DrawConsole();
-			break;
-		default:
-			Cl_DrawChat();
-			Cl_DrawNotify();
-			Cl_DrawNetGraph();
-			Cl_DrawCounters();
-			Cl_DrawRendererStats();
-			Cl_DrawSoundStats();
-			cls.cgame->DrawFrame(&cl.frame);
-			break;
+		}
 	}
 
 	R_Draw2D();
