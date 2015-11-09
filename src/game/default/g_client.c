@@ -66,6 +66,12 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 			case MOD_GRENADE_SPLASH:
 				message = "went pop";
 				break;
+			case MOD_HANDGRENADE_KAMIKAZE:
+				message = "lost count";
+				break;
+			case MOD_HANDGRENADE_SPLASH:
+				message = "has no hair left";
+				break;
 			case MOD_ROCKET_SPLASH:
 				message = "needs glasses";
 				break;
@@ -120,6 +126,18 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 			case MOD_GRENADE_SPLASH:
 				message = "was shredded by";
 				message2 = "'s shrapnel";
+				break;
+			case MOD_HANDGRENADE_HIT:
+				message = "caught";
+				message2 = "'s handgrenade";
+				break;
+			case MOD_HANDGRENADE_SPLASH:
+				message = "felt the burn from";
+				message2 = "'s handgrenade";
+				break;
+			case MOD_HANDGRENADE_KAMIKAZE:
+				message = "felt";
+				message2 = "'s pain";
 				break;
 			case MOD_ROCKET:
 				message = "ate";

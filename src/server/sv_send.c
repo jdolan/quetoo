@@ -184,6 +184,8 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 			reliable = true;
 			/* no break */
 		case MULTICAST_ALL:
+			memset(vis, 1, sizeof(vis));
+			area = 0;			
 			break;
 
 		case MULTICAST_PHS_R:
