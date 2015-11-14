@@ -64,18 +64,16 @@ void Cbuf_AddText(const char *text) {
 }
 
 /*
- * @brief Adds command text immediately after the current command
- * Adds a \n to the text.
+ * @brief Inserts command text at the beginning of the buffer.
  */
 void Cbuf_InsertText(const char *text) {
-	char *temp;
-	int32_t temp_len;
+	void *temp;
 
 	// copy off any commands still remaining in the exec buffer
-	temp_len = cmd_state.buf.size;
-	if (temp_len) {
-		temp = Mem_Malloc(temp_len);
-		memcpy(temp, cmd_state.buf.data, temp_len);
+	const size_t size = cmd_state.buf.size;
+	if (size) {
+		temp = Mem_Malloc(size);
+		memcpy(temp, cmd_state.buf.data, size);
 		Mem_ClearBuffer(&cmd_state.buf);
 	} else
 		temp = NULL; // shut up compiler
@@ -84,8 +82,8 @@ void Cbuf_InsertText(const char *text) {
 	Cbuf_AddText(text);
 
 	// add the copied off data
-	if (temp_len) {
-		Mem_WriteBuffer(&cmd_state.buf, temp, temp_len);
+	if (size) {
+		Mem_WriteBuffer(&cmd_state.buf, temp, size);
 		Mem_Free(temp);
 	}
 }
@@ -425,7 +423,7 @@ void Cmd_ExecuteString(const char *text) {
 			if (++cmd_state.alias_loop_count == MAX_ALIAS_LOOP_COUNT) {
 				Com_Warn("ALIAS_LOOP_COUNT reached\n");
 			} else {
-				Cbuf_InsertText(cmd->commands);
+				Cbuf_AddText(cmd->commands);
 			}
 		} else if (!Cvar_GetValue("dedicated") && Cmd_ForwardToServer) {
 			Cmd_ForwardToServer();
