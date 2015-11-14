@@ -72,7 +72,7 @@ static void Sv_HandleEvents(void) {
 				break;
 
 			case KEY_BACKSPACE:
-				if (in->pos > 1) {
+				if (in->pos > 0) {
 					char *c = in->buffer + in->pos - 1;
 					while (*c) {
 						*c = *(c + 1); c++;

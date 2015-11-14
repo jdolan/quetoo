@@ -126,7 +126,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 
 		case SDLK_BACKSPACE:
 		case SDLK_KP_BACKSPACE:
-			if (in->pos > 1) {
+			if (in->pos > 0) {
 				char *c = in->buffer + in->pos - 1;
 				while (*c) {
 					*c = *(c + 1); c++;
@@ -223,6 +223,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 		case SDLK_c:
 			if (SDL_GetModState() & KMOD_CTRL) {
 				in->buffer[0] = '\0';
+				in->pos = 0;
 			}
 			break;
 
