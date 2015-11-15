@@ -257,6 +257,7 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
 
 	int32_t back = console->scroll + max_lines;
 
+	GList *start = console_state.strings;
 	GList *list = g_list_last(console_state.strings);
 	while (list) {
 		const console_string_t *str = list->data;
@@ -275,19 +276,20 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
 			}
 		}
 
+		start = list;
 		list = list->prev;
 	}
 
 	size_t count = 0;
 
-	while (list) {
-		const console_string_t *str = list->data;
+	while (start) {
+		const console_string_t *str = start->data;
 
 		if (Con_Filter(console, str)) {
 			count += Con_Wrap(str->chars, console->width, lines + count, max_lines - count);
 		}
 
-		list = list->next;
+		start = start->next;
 	}
 
 	return count;
