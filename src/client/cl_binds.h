@@ -23,8 +23,8 @@
 #define __CL_BINDS_H__
 
 static const char *DEFAULT_BINDS =
-	"bind ` toggle_console\n"
-	"bind f8 toggle_console\n"
+	"bind ` cl_toggle_console\n"
+	"bind f8 cl_toggle_console\n"
 	"bind 1 use blaster\n"
 	"bind 2 use shotgun\n"
 	"bind 3 use super shotgun\n"
@@ -36,8 +36,8 @@ static const char *DEFAULT_BINDS =
 	"bind 9 use railgun\n"
 	"bind 0 use bfg10k\n"
 
-	"bind - view_size_down\n"
-	"bind = view_size_up\n"
+	"bind - cl_view_size_down\n"
+	"bind = c_view_size_up\n"
 
 	"bind w +forward\n"
 	"bind a +move_left\n"
@@ -51,8 +51,8 @@ static const char *DEFAULT_BINDS =
 	"bind \"left shift\" +speed\n"
 
 	"bind x score\n"
-	"bind t message_mode\n"
-	"bind y message_mode_2\n"
+	"bind t cl_message_mode\n"
+	"bind y cl_message_mode_2\n"
 
 	"bind \"mouse 1\" +attack\n"
 	"bind \"mouse 2\" +move_up\n"

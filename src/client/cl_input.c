@@ -315,6 +315,7 @@ static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs,
  * @brief
  */
 static void Cl_TextEvent(const SDL_Event *event) {
+
 	console_input_t *in;
 
 	if (cls.key_state.dest == KEY_CONSOLE) {
@@ -334,7 +335,6 @@ static void Cl_TextEvent(const SDL_Event *event) {
  * @brief
  */
 static void Cl_HandleEvent(const SDL_Event *event) {
-	SDL_Event e;
 
 	if (Ui_HandleEvent(event))
 		return;
@@ -347,12 +347,14 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 			break;
 
 		case SDL_MOUSEBUTTONUP:
-		case SDL_MOUSEBUTTONDOWN:
+		case SDL_MOUSEBUTTONDOWN: {
+			SDL_Event e;
 			memset(&e, 0, sizeof(e));
 			e.type = event->type == SDL_MOUSEBUTTONUP ? SDL_KEYUP : SDL_KEYDOWN;
 			e.key.keysym.scancode = SDL_SCANCODE_MOUSE1 + ((event->button.button - 1) % 8);
 			e.key.keysym.sym = SDLK_MOUSE1 + ((event->button.button - 1) % 8);
 			Cl_KeyEvent(&e);
+		}
 			break;
 
 		case SDL_MOUSEMOTION:
@@ -383,44 +385,9 @@ static void Cl_HandleEvent(const SDL_Event *event) {
  * @brief
  */
 void Cl_HandleEvents(void) {
-	static cl_key_dest_t prev_key_dest;
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 		return;
-
-	if (cls.key_state.dest != prev_key_dest) {
-
-		// send key-up events when leaving the game
-		if (prev_key_dest == KEY_GAME) {
-
-			const cl_key_dest_t dest = cls.key_state.dest;
-			cls.key_state.dest = prev_key_dest;
-
-			SDL_Event e;
-			memset(&e, 0, sizeof(e));
-
-			e.type = SDL_KEYUP;
-
-			for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
-				if (cls.key_state.down[k]) {
-					if (cls.key_state.binds[k] && cls.key_state.binds[k][0] == '+') {
-						e.key.keysym.scancode = k;
-						Cl_KeyEvent(&e);
-					}
-				}
-			}
-
-			cls.key_state.dest = dest;
-		} else if (cls.key_state.dest == KEY_GAME) { // warp the mouse when returning to the game
-
-			const r_pixel_t cx = r_context.window_width * 0.5;
-			const r_pixel_t cy = r_context.window_height * 0.5;
-
-			SDL_WarpMouseInWindow(r_context.window, cx, cy);
-		}
-
-		prev_key_dest = cls.key_state.dest;
-	}
 
 	// force a mouse grab when changing video modes
 	if (r_view.update) {
@@ -533,7 +500,10 @@ void Cl_Move(pm_cmd_t *cmd) {
  * @brief
  */
 void Cl_ClearInput(void) {
+
 	memset(cl_buttons, 0, sizeof(cl_buttons));
+
+	SDL_StopTextInput();
 }
 
 /*

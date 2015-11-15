@@ -121,7 +121,7 @@ void Cl_LoadMedia(void) {
 
 	//Cl_ClearNotify();
 
-	cls.key_state.dest = KEY_GAME;
+	Cl_SetKeyDest(KEY_GAME);
 
 	cls.loading = 0;
 }

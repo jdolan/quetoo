@@ -159,6 +159,16 @@ static void Cl_ParseBaseline(void) {
 /*
  * @brief
  */
+static void Cl_ParseCbufText(void) {
+
+	const char *text = Net_ReadString(&net_message);
+
+	Cbuf_AddText(text);
+}
+
+/*
+ * @brief
+ */
 void Cl_ParseConfigString(void) {
 	const uint16_t i = (uint16_t) Net_ReadShort(&net_message);
 
@@ -256,7 +266,8 @@ static void Cl_ParseServerData(void) {
 	Cl_ClearState();
 
 	cls.state = CL_CONNECTED;
-	cls.key_state.dest = KEY_CONSOLE;
+
+	Cl_SetKeyDest(KEY_CONSOLE);
 
 	// parse protocol version number
 	const uint16_t major = Net_ReadShort(&net_message);
@@ -312,9 +323,10 @@ static void Cl_ParsePrint(void) {
 		// check to see if we should ignore the message
 		if (*cl_ignore->string) {
 
-			char patterns[MAX_STRING_CHARS], *p = patterns;
+			char patterns[MAX_STRING_CHARS];
 			g_strlcpy(patterns, cl_ignore->string, sizeof(patterns));
 
+			const char *p = patterns;
 			while (true) {
 				const char *pattern = ParseToken(&p);
 				if (pattern == NULL)
@@ -398,8 +410,6 @@ static void Cl_ShowNet(const char *s) {
  */
 void Cl_ParseServerMessage(void) {
 	int32_t cmd, old_cmd;
-	char *s;
-	int32_t i;
 
 	if (cl_show_net_messages->integer == 1)
 		Com_Print("%u ", (uint32_t) net_message.size);
@@ -433,8 +443,7 @@ void Cl_ParseServerMessage(void) {
 				break;
 
 			case SV_CMD_CBUF_TEXT:
-				s = Net_ReadString(&net_message);
-				Cbuf_AddText(s);
+				Cl_ParseCbufText();
 				break;
 
 			case SV_CMD_CONFIG_STRING:

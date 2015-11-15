@@ -43,7 +43,6 @@ static void Cl_ClearView(void) {
  * @brief
  */
 static void Cl_UpdateViewSize(void) {
-	int32_t size;
 
 	if (!cl_view_size->modified && !r_view.update)
 		return;
@@ -53,7 +52,7 @@ static void Cl_UpdateViewSize(void) {
 	if (cl_view_size->value > 100.0)
 		Cvar_Set("cl_view_size", "100.0");
 
-	size = cl_view_size->value;
+	const int32_t size = cl_view_size->value;
 
 	r_view.width = r_context.width * size / 100.0;
 	r_view.height = r_context.height * size / 100.0;
@@ -214,6 +213,6 @@ static void Cl_ViewSizeDown_f(void) {
  * @brief
  */
 void Cl_InitView(void) {
-	Cmd_Add("view_size_up", Cl_ViewSizeUp_f, CMD_CLIENT, NULL);
-	Cmd_Add("view_size_down", Cl_ViewSizeDown_f, CMD_CLIENT, NULL);
+	Cmd_Add("cl_view_size_up", Cl_ViewSizeUp_f, CMD_CLIENT, NULL);
+	Cmd_Add("cl_view_size_down", Cl_ViewSizeDown_f, CMD_CLIENT, NULL);
 }

@@ -62,6 +62,7 @@ static void Debug(const char *msg) {
  * recover, or we may shut the entire engine down and exit.
  */
 static void Error(err_t err, const char *msg) {
+	extern void Cl_SetKeyDest(cl_key_dest_t dest);
 
 	Print(va("^1%s\n", msg));
 
@@ -70,13 +71,7 @@ static void Error(err_t err, const char *msg) {
 		case ERR_PRINT:
 		case ERR_DROP:
 			Sv_ShutdownServer(msg);
-
 			Cl_Disconnect();
-			if (err == ERR_NONE) {
-				cls.key_state.dest = KEY_UI;
-			} else {
-				cls.key_state.dest = KEY_CONSOLE;
-			}
 
 			longjmp(state, 0);
 			break;

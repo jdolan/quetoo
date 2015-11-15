@@ -295,8 +295,8 @@ void Cl_Disconnect(void) {
 		Cl_Stop_f();
 	}
 
-	// stop download
-	if (cls.download.file) {
+
+	if (cls.download.file) { // stop download
 
 		if (cls.download.http) // clean up http downloads
 			Cl_HttpDownload_Complete();
@@ -309,7 +309,7 @@ void Cl_Disconnect(void) {
 
 	memset(cls.server_name, 0, sizeof(cls.server_name));
 
-	cls.key_state.dest = KEY_UI;
+	Cl_SetKeyDest(KEY_CONSOLE);
 }
 
 /*
@@ -723,7 +723,7 @@ void Cl_Init(void) {
 
 	Cl_InitCgame();
 
-	cls.key_state.dest = KEY_UI;
+	Cl_SetKeyDest(KEY_UI);
 }
 
 /*

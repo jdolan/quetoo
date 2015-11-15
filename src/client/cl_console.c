@@ -171,7 +171,7 @@ void Cl_DrawChat(void) {
 		const size_t len = R_DrawString(2 * cw, y, in->buffer, color);
 
 		if ((uint32_t) (cls.real_time >> 8) & 1) // draw the cursor
-			R_DrawChar((2 + in->pos) * cw, y, CON_CURSOR_CHAR, color);
+			R_DrawChar((len + in->pos) * cw, y, CON_CURSOR_CHAR, color);
 	}
 }
 
@@ -189,28 +189,24 @@ static void Cl_Print(const console_string_t *str) {
 void Cl_ToggleConsole_f(void) {
 
 	if (cls.key_state.dest == KEY_CONSOLE) {
-
 		if (cls.state == CL_ACTIVE) {
-			cls.key_state.dest = KEY_GAME;
+			Cl_SetKeyDest(KEY_GAME);
 		} else {
-			cls.key_state.dest = KEY_UI;
+			Cl_SetKeyDest(KEY_UI);
 		}
 	} else {
-		cls.key_state.dest = KEY_CONSOLE;
+		Cl_SetKeyDest(KEY_CONSOLE);
 	}
 }
 
 static void Cl_MessageMode(_Bool team) {
 
 	console_input_t *in = &cl_chat_console.input;
-
 	memset(in, 0, sizeof(*in));
-
-	g_strlcpy(in->buffer, team ? "say_team " : "say ", sizeof(in->buffer));
 
 	cls.chat_state.team_chat = team;
 
-	cls.key_state.dest = KEY_CHAT;
+	Cl_SetKeyDest(KEY_CHAT);
 }
 
 /*
@@ -222,7 +218,7 @@ static void Cl_MessageMode_f(void) {
 }
 
 /*
- * Cl_MessageMode2_f
+ * @brief
  */
 static void Cl_MessageMode2_f(void) {
 
@@ -260,9 +256,9 @@ void Cl_InitConsole(void) {
 	cl_chat_lines = Cvar_Get("cl_chat_lines", "3", CVAR_ARCHIVE, NULL);
 	cl_chat_time = Cvar_Get("cl_chat_time", "10.0", CVAR_ARCHIVE, NULL);
 
-	Cmd_Add("toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
-	Cmd_Add("message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");
-	Cmd_Add("message_mode_2", Cl_MessageMode2_f, CMD_CLIENT, "Activate team chat");
+	Cmd_Add("cl_toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
+	Cmd_Add("cl_message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");
+	Cmd_Add("cl_message_mode_2", Cl_MessageMode2_f, CMD_CLIENT, "Activate team chat");
 
 	Com_Print("Client console initialized\n");
 }
