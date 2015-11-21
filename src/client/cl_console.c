@@ -52,7 +52,7 @@ static void Cl_DrawConsole_Buffer(void) {
 	char *lines[cl_console.height];
 	const size_t count = Con_Tail(&cl_console, lines, cl_console.height);
 
-	r_pixel_t y = 0;
+	r_pixel_t y = (cl_console.height - count) * ch;
 
 	for (size_t i = 0; i < count; i++) {
 		R_DrawString(0, y, lines[i], CON_COLOR_DEFAULT);
