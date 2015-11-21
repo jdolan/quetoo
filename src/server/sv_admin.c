@@ -203,7 +203,7 @@ static void Sv_Status_f(void) {
 		for (j = 0; j < l; j++)
 			Com_Print(" ");
 
-		Com_Print("%7i ", svs.real_time - cl->last_message);
+		Com_Print("%7i ", quetoo.time - cl->last_message);
 
 		s = Net_NetaddrToString(&(cl->net_chan.remote_address));
 		Com_Print("%s", s);

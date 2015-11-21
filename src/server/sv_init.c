@@ -139,7 +139,6 @@ static void Sv_ClearState() {
 	memset(&sv, 0, sizeof(sv));
 	Com_QuitSubsystem(QUETOO_SERVER);
 
-	svs.real_time = 0;
 	svs.next_heartbeat = 0;
 }
 
@@ -229,7 +228,7 @@ static void Sv_InitClients(void) {
 
 		// invalidate last frame to force a baseline
 		svs.clients[i].last_frame = -1;
-		svs.clients[i].last_message = svs.real_time;
+		svs.clients[i].last_message = quetoo.time;
 	}
 }
 
