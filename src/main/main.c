@@ -26,8 +26,6 @@
 #include "client/client.h"
 #include "server/server.h"
 
-extern cl_static_t cls;
-
 static jmp_buf state;
 
 quetoo_t quetoo;
