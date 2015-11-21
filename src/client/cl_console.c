@@ -114,6 +114,7 @@ void Cl_DrawNotify(void) {
 	console_t con = {
 		.width = r_context.width / cw,
 		.height = Clamp(cl_notify_lines->integer, 1, 12),
+		.level = ~PRINT_ECHO,
 	};
 
 	if (quetoo.time > cl_notify_time->value * 1000) {
