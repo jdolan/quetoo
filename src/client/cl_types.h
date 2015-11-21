@@ -159,7 +159,7 @@ typedef struct {
 	uint32_t surpress_count; // number of messages rate suppressed
 
 	uint32_t time; // this is the server time value that the client
-	// is rendering at. always <= cls.real_time due to latency
+	// is rendering at. always <= quetoo.time due to latency
 
 	vec_t lerp; // linear interpolation between frames
 
@@ -284,8 +284,6 @@ typedef struct {
 	cl_mouse_state_t mouse_state;
 
 	cl_chat_state_t chat_state;
-
-	uint32_t real_time; // always increasing, no clamping, etc
 
 	uint32_t packet_delta; // milliseconds since last outgoing packet
 	uint32_t render_delta; // milliseconds since last renderer frame

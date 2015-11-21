@@ -102,7 +102,7 @@ static void Cl_CheckForResend(void) {
 		return;
 
 	// don't flood connection packets
-	if (cls.connect_time && (cls.real_time - cls.connect_time < 3000))
+	if (cls.connect_time && (quetoo.time - cls.connect_time < 3000))
 		return;
 
 	net_addr_t addr;
@@ -116,7 +116,7 @@ static void Cl_CheckForResend(void) {
 	if (addr.port == 0)
 		addr.port = htons(PORT_SERVER);
 
-	cls.connect_time = cls.real_time; // for retransmit requests
+	cls.connect_time = quetoo.time; // for retransmit requests
 
 	const char *s = Net_NetaddrToString(&addr);
 	if (g_strcmp0(cls.server_name, s)) {
@@ -281,7 +281,7 @@ void Cl_Disconnect(void) {
 
 	if (time_demo->value) { // summarize time_demo results
 
-		const vec_t s = (cls.real_time - cl.time_demo_start) / 1000.0;
+		const vec_t s = (quetoo.time - cl.time_demo_start) / 1000.0;
 
 		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
 				cl.time_demo_frames / s);
@@ -470,7 +470,7 @@ static void Cl_ReadPackets(void) {
 	// check timeout
 	if (cls.state >= CL_CONNECTED) {
 
-		const uint32_t ttl = cls.real_time - cls.net_chan.last_received;
+		const uint32_t ttl = quetoo.time - cls.net_chan.last_received;
 		if (ttl > cl_timeout->value * 1000) {
 
 			Com_Print("%s: Timed out.\n", Net_NetaddrToString(&net_from));
@@ -577,9 +577,6 @@ void Cl_Frame(const uint32_t msec) {
 	if (dedicated->value)
 		return;
 
-	// update time reference
-	cls.real_time = quetoo.time;
-
 	// increment the server time as well
 	cl.time += msec;
 
@@ -605,7 +602,7 @@ void Cl_Frame(const uint32_t msec) {
 	if (time_demo->value) { // accumulate timed demo statistics
 
 		if (!cl.time_demo_start)
-			cl.time_demo_start = cls.real_time;
+			cl.time_demo_start = quetoo.time;
 
 		cl.time_demo_frames++;
 	} else { // check frame rate cap conditions

@@ -105,7 +105,7 @@ static void Cl_KeyDown(cl_button_t *b) {
 	const char *t = Cmd_Argv(2);
 	b->down_time = atoi(t);
 	if (!b->down_time)
-		b->down_time = cls.real_time;
+		b->down_time = quetoo.time;
 
 	b->state |= 1;
 }
@@ -231,8 +231,8 @@ static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 	key->msec = 0;
 
 	if (key->state) { // still down, reset downtime for next frame
-		msec += cls.real_time - key->down_time;
-		key->down_time = cls.real_time;
+		msec += quetoo.time - key->down_time;
+		key->down_time = quetoo.time;
 	}
 
 	const vec_t frac = (msec * 1000.0) / (cmd_msec * 1000.0);

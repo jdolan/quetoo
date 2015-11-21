@@ -35,11 +35,11 @@ void Cl_UpdateCmd(void) {
 	memset(&c, 0, sizeof(c));
 
 	// determine the interval for just this move
-	c.msec = Clamp((cls.real_time - last_move) * time_scale->value, 1, 255);
+	c.msec = Clamp((quetoo.time - last_move) * time_scale->value, 1, 255);
 
 	// get movement from input devices
 	Cl_Move(&c);
-	last_move = cls.real_time;
+	last_move = quetoo.time;
 
 	// now update the pending command
 	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
@@ -56,7 +56,7 @@ void Cl_UpdateCmd(void) {
 
 	// store timestamps for netgraph and prediction calculations
 	cmd->time = cl.time;
-	cmd->real_time = cls.real_time;
+	cmd->real_time = quetoo.time;
 }
 
 /*
@@ -92,7 +92,7 @@ void Cl_SendCmd(void) {
 
 	if (cls.state == CL_CONNECTED) {
 		// send any reliable messages and / or don't timeout
-		if (cls.net_chan.message.size || cls.real_time - cls.net_chan.last_sent > 1000)
+		if (cls.net_chan.message.size || quetoo.time - cls.net_chan.last_sent > 1000)
 			Netchan_Transmit(&cls.net_chan, NULL, 0);
 		return;
 	}

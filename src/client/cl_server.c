@@ -101,7 +101,7 @@ void Cl_ParseServerInfo(void) {
 	server->name[sizeof(server->name) - 1] = '\0';
 	server->gameplay[sizeof(server->name) - 1] = '\0';
 
-	server->ping = Clamp(cls.real_time - server->ping_time, 1, 999);
+	server->ping = Clamp(quetoo.time - server->ping_time, 1, 999);
 
 	Ui_NewServer();
 }
@@ -135,7 +135,7 @@ void Cl_Ping_f(void) {
 		server->source = SERVER_SOURCE_USER;
 	}
 
-	server->ping_time = cls.real_time;
+	server->ping_time = quetoo.time;
 	server->ping = 0;
 
 	Com_Print("Pinging %s\n", Net_NetaddrToString(&server->addr));
@@ -168,7 +168,7 @@ static void Cl_SendBroadcast(void) {
 
 	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "info %i", PROTOCOL_MAJOR);
 
-	cls.broadcast_time = cls.real_time;
+	cls.broadcast_time = quetoo.time;
 }
 
 /*
@@ -245,7 +245,7 @@ void Cl_ParseServers(void) {
 		server = (cl_server_info_t *) e->data;
 
 		if (server->source == SERVER_SOURCE_INTERNET) {
-			server->ping_time = cls.real_time;
+			server->ping_time = quetoo.time;
 			server->ping = 0;
 
 			Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "info %i", PROTOCOL_MAJOR);

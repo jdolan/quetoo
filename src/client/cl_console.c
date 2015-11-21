@@ -114,7 +114,7 @@ void Cl_DrawNotify(void) {
 	console_t con = {
 		.width = r_context.width / cw,
 		.height = Clamp(cl_notify_lines->integer, 1, 12),
-		.whence = cls.real_time - cl_notify_time->value * 1000
+		.whence = quetoo.time - cl_notify_time->value * 1000
 	};
 
 	char *lines[con.height];
@@ -165,7 +165,7 @@ void Cl_DrawChat(void) {
 
 		const size_t len = R_DrawString(2 * cw, y, in->buffer, color);
 
-		if ((uint32_t) (cls.real_time >> 8) & 1) // draw the cursor
+		if ((uint32_t) (quetoo.time >> 8) & 1) // draw the cursor
 			R_DrawChar((len + in->pos) * cw, y, CON_CURSOR_CHAR, color);
 	}
 }
