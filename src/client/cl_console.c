@@ -40,11 +40,11 @@ static void Cl_DrawConsole_Buffer(void) {
 
 	if (cls.state == CL_ACTIVE) {
 		height = r_context.height * 0.5;
+		R_DrawFill(0, 0, r_context.width, height, 7, 0.3);
 	} else {
 		height = r_context.height;
+		R_DrawFill(0, 0, r_context.width, height, 0, 1.0);
 	}
-
-	R_DrawFill(0, 0, r_context.width, height, 0, 1.0);
 
 	cl_console.width = r_context.width / cw;
 	cl_console.height = (height / ch) - 1;
@@ -65,35 +65,30 @@ static void Cl_DrawConsole_Buffer(void) {
  * @brief The input line scrolls horizontally if typing goes beyond the right edge
  */
 static void Cl_DrawConsole_Input(void) {
-	char input[MAX_PRINT_MSG];
-	r_pixel_t ch;
+	r_pixel_t cw, ch;
 
-	R_BindFont("small", NULL, &ch);
+	R_BindFont("small", &cw, &ch);
 
-	g_snprintf(input, sizeof(input), "] %s", cl_console.input.buffer);
-	size_t j = strlen(input);
+	r_pixel_t x = 1, y = cl_console.height * ch;
 
-	// add the cursor
-	if ((uint32_t) (cls.real_time >> 8) & 1) {
-		input[cl_console.input.pos + 2] = CON_CURSOR_CHAR;
-		if (j == cl_console.input.pos + 2)
-			j++;
+	// draw the prompt
+	R_DrawChar(0, y, ']', CON_COLOR_ALT);
+
+	// and the buffer, scrolling horizontally if appropriate
+	const char *s = cl_console.input.buffer;
+	if (cl_console.input.pos >= cl_console.width) {
+		s += 2 + cl_console.input.pos - cl_console.width;
 	}
 
-	// fill out remainder with spaces
-	for (size_t i = j; i < sizeof(input); i++)
-		input[i] = ' ';
+	while (*s) {
+		R_DrawChar(x * cw, y, *s, CON_COLOR_DEFAULT);
 
-	input[sizeof(input) - 1] = '\0';
+		s++;
+		x++;
+	}
 
-	// horizontal scrolling
-	const char *text = input;
-
-	if (cl_console.input.pos >= cl_console.width)
-		text += 1 + cl_console.input.pos - cl_console.width;
-
-	// draw it
-	R_DrawBytes(0, cl_console.height * ch, text, cl_console.width, CON_COLOR_DEFAULT);
+	// and lastly cursor
+	R_DrawChar(x * cw, y, 0x0b, CON_COLOR_DEFAULT);
 }
 
 /*
