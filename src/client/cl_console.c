@@ -76,7 +76,7 @@ static void Cl_DrawConsole_Input(void) {
 
 	// and the buffer, scrolling horizontally if appropriate
 	const char *s = cl_console.input.buffer;
-	if (cl_console.input.pos >= cl_console.width) {
+	if (cl_console.input.pos > cl_console.width - 2) {
 		s += 2 + cl_console.input.pos - cl_console.width;
 	}
 
