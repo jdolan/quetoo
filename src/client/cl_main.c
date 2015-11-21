@@ -102,7 +102,7 @@ static void Cl_CheckForResend(void) {
 		return;
 
 	// don't flood connection packets
-	if (cls.connect_time && (quetoo.time - cls.connect_time < 3000))
+	if (cls.connect_time && (quetoo.time - cls.connect_time < 1000))
 		return;
 
 	net_addr_t addr;
@@ -294,7 +294,6 @@ void Cl_Disconnect(void) {
 	if (cls.demo_file) { // stop demo recording
 		Cl_Stop_f();
 	}
-
 
 	if (cls.download.file) { // stop download
 

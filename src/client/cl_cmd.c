@@ -54,9 +54,9 @@ void Cl_UpdateCmd(void) {
 	cmd->cmd.right += c.right;
 	cmd->cmd.up += c.up;
 
-	// store timestamps for netgraph and prediction calculations
+	// store timestamp for netgraph and prediction calculations
 	cmd->time = cl.time;
-	cmd->real_time = quetoo.time;
+	cmd->timestamp = quetoo.time;
 }
 
 /*
