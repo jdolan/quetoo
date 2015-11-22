@@ -716,29 +716,28 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
  * @brief
  */
 void Sv_Frame(const uint32_t msec) {
-	static uint32_t delta;
 
 	// if server is not active, do nothing
 	if (!svs.initialized)
 		return;
 
-	// get packets from clients
+	// read any pending packets from clients
 	Sv_ReadPackets();
 
-	// keep the game module's time in sync with reality
+	// keep simulation time in sync with reality
 	if (!time_demo->value){
 
 		const uint32_t frame_millis = 1000 / svs.frame_rate;
 
-		delta += msec;
+		svs.frame_delta += msec;
 
-		 if (delta < frame_millis) {
-			Net_Sleep(frame_millis - delta);
+		 if (svs.frame_delta < frame_millis) {
+			Net_Sleep(frame_millis - svs.frame_delta);
 			return;
 		}
 	}
 
-	delta = 0;
+	svs.frame_delta = 0;
 
 	// check timeouts
 	Sv_CheckTimeouts();

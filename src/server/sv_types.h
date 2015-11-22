@@ -254,6 +254,7 @@ typedef struct {
 	uint32_t spawn_count; // incremented each level start, used to check late spawns
 
 	uint16_t frame_rate; // configurable server frame rate (sv_hz)
+	uint32_t frame_delta;
 
 	sv_client_t *clients; // server-side client structures
 

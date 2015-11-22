@@ -99,8 +99,7 @@
 	)
 
 typedef enum {
-	ERR_NONE,
-	ERR_PRINT,
+	ERR_PRINT = 1,
 	ERR_WARN,
 	ERR_FATAL, // program must exit
 	ERR_DROP // don't fully shit pants, but drop to console

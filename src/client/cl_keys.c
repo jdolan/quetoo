@@ -23,8 +23,6 @@
 
 #include "cl_local.h"
 
-//static cl_key_state_t *ks = &cls.key_state;
-
 static char **cl_key_names;
 
 /**
@@ -32,9 +30,8 @@ static char **cl_key_names;
  */
 void Cl_SetKeyDest(cl_key_dest_t dest) {
 
-	if (dest == cls.key_state.dest) {
+	if (dest == cls.key_state.dest)
 		return;
-	}
 
 	// send key-up events when leaving the game
 	if (cls.key_state.dest == KEY_GAME) {
@@ -48,7 +45,6 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 				}
 			}
 		}
-
 	}
 
 	switch (dest) {
@@ -86,7 +82,7 @@ static _Bool Cl_KeySystem(const SDL_Event *event) {
 
 		// connecting to a server
 		if (cls.state == CL_CONNECTING || cls.state == CL_CONNECTED) {
-			Com_Error(ERR_NONE, "Connection aborted by user\n");
+			Com_Error(ERR_DROP, "Connection aborted by user\n");
 		}
 
 		// message mode

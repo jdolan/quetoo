@@ -184,9 +184,9 @@ static void Sv_ShutdownClients(void) {
 /*
  * @brief Reloads svs.clients, svs.client_entities, the game programs, etc. Because
  * we must allocate clients and edicts based on sizes the game module requests,
- * we refresh the game module
+ * we refresh the game module.
  */
-static void Sv_InitClients(void) {
+static void Sv_InitEntities(void) {
 
 	if (!svs.initialized || Cvar_PendingLatched()) {
 
@@ -201,8 +201,7 @@ static void Sv_InitClients(void) {
 
 		// and the entity states array
 		svs.num_entity_states = sv_max_clients->integer * PACKET_BACKUP * MAX_PACKET_ENTITIES;
-		svs.entity_states = Mem_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states,
-				MEM_TAG_SERVER);
+		svs.entity_states = Mem_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states, MEM_TAG_SERVER);
 
 		svs.frame_rate = sv_hz->integer;
 
@@ -212,8 +211,14 @@ static void Sv_InitClients(void) {
 	} else {
 		svs.spawn_count++;
 	}
+}
 
-	// align the game entities with the server's clients
+/*
+ * @brief Prepares the client slots for loading a new level. Connected clients are
+ * carried over.
+ */
+static void Sv_InitClients(void) {
+
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
 		g_entity_t *ent = ENTITY_FOR_NUM(i + 1);
@@ -306,13 +311,13 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 void Sv_InitServer(const char *server, sv_state_t state) {
 	extern void Cl_Disconnect(void);
 
-	char path[MAX_QPATH];
-
 	Com_Debug("Sv_InitServer: %s (%d)\n", server, state);
 
 	Cbuf_CopyToDefer();
 
 	// ensure that the requested map or demo exists
+	char path[MAX_QPATH];
+
 	if (state == SV_ACTIVE_DEMO)
 		g_snprintf(path, sizeof(path), "demos/%s.dem", server);
 	else
@@ -338,7 +343,9 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
 	Mem_InitBuffer(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
 
-	// initialize the clients, loading the game module if we need it
+	// initialize entities, reloading the game module if necessary
+	Sv_InitEntities();
+
 	Sv_InitClients();
 
 	// load the map or demo and related media

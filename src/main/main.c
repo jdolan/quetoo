@@ -26,7 +26,7 @@
 #include "client/client.h"
 #include "server/server.h"
 
-static jmp_buf state;
+static jmp_buf env;
 
 quetoo_t quetoo;
 
@@ -60,18 +60,14 @@ static void Debug(const char *msg) {
  * recover, or we may shut the entire engine down and exit.
  */
 static void Error(err_t err, const char *msg) {
-	extern void Cl_SetKeyDest(cl_key_dest_t dest);
 
 	Print(va("^1%s\n", msg));
 
 	switch (err) {
-		case ERR_NONE:
-		case ERR_PRINT:
 		case ERR_DROP:
 			Sv_ShutdownServer(msg);
 			Cl_Disconnect();
-
-			longjmp(state, 0);
+			longjmp(env, err);
 			break;
 
 		case ERR_FATAL:
@@ -247,9 +243,6 @@ int32_t main(int32_t argc, char **argv) {
 
 	memset(&quetoo, 0, sizeof(quetoo));
 
-	if (setjmp(state))
-		Com_Error(ERR_FATAL, "Error during initialization.");
-
 	quetoo.time = Sys_Milliseconds();
 
 	quetoo.Debug = Debug;
@@ -276,16 +269,13 @@ int32_t main(int32_t argc, char **argv) {
 
 	while (true) { // this is our main loop
 
-		if (setjmp(state)) { // an ERR_DROP or ERR_NONE was thrown
+		if (setjmp(env)) { // an ERR_DROP was thrown
 			Com_Debug("Error detected, recovering..\n");
 			continue;
 		}
 
 		if (time_scale->modified) {
-			if (time_scale->value < 0.1)
-				time_scale->value = 0.1;
-			else if (time_scale->value > 3.0)
-				time_scale->value = 3.0;
+			time_scale->value = Clamp(time_scale->value, 0.1, 3.0);
 		}
 
 		do {

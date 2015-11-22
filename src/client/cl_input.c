@@ -502,8 +502,6 @@ void Cl_Move(pm_cmd_t *cmd) {
 void Cl_ClearInput(void) {
 
 	memset(cl_buttons, 0, sizeof(cl_buttons));
-
-	SDL_StopTextInput();
 }
 
 /*
