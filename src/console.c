@@ -269,8 +269,8 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
 
 			back -= Con_Wrap(str->chars, console->width, NULL, 0);
 
-			if (back <= 0) {
-				if (back < 0)
+			if (back < 0) {
+				if (back < -1)
 					list = list->next;
 				break;
 			}
