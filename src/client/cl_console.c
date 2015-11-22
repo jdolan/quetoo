@@ -74,7 +74,7 @@ static void Cl_DrawConsole_Input(void) {
 	// draw the prompt
 	R_DrawChar(0, y, ']', CON_COLOR_ALT);
 
-	// and the buffer, scrolling horizontally if appropriate
+	// and the input buffer, scrolling horizontally if appropriate
 	const char *s = cl_console.input.buffer;
 	if (cl_console.input.pos > cl_console.width - 2) {
 		s += 2 + cl_console.input.pos - cl_console.width;
@@ -143,7 +143,7 @@ void Cl_DrawChat(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	r_pixel_t y = r_view.y + r_view.height * 0.66;
+	r_pixel_t x = 1, y = r_view.y + r_view.height * 0.66;
 
 	cl_chat_console.width = r_context.width / cw / 3;
 	cl_chat_console.height = Clamp(cl_chat_lines->integer, 0, 8);
@@ -161,16 +161,27 @@ void Cl_DrawChat(void) {
 	}
 
 	if (cls.key_state.dest == KEY_CHAT) {
-		const console_input_t *in = &cl_chat_console.input;
 
 		const int32_t color = cls.chat_state.team_chat ? CON_COLOR_TEAMCHAT : CON_COLOR_CHAT;
 
+		// draw the prompt
 		R_DrawChar(0, y, ']', color);
 
-		const size_t len = R_DrawString(2 * cw, y, in->buffer, color);
+		// and the input, scrolling horizontally if appropriate
+		const char *s = cl_chat_console.input.buffer;
+		if (cl_chat_console.input.pos > cl_chat_console.width - 2) {
+			s += 2 + cl_chat_console.input.pos - cl_chat_console.width;
+		}
 
-		if ((uint32_t) (quetoo.time >> 8) & 1) // draw the cursor
-			R_DrawChar((len + in->pos) * cw, y, CON_CURSOR_CHAR, color);
+		while (*s) {
+			R_DrawChar(x * cw, y, *s, CON_COLOR_DEFAULT);
+
+			s++;
+			x++;
+		}
+
+		// and lastly cursor
+		R_DrawChar(x * cw, y, 0x0b, CON_COLOR_DEFAULT);
 	}
 }
 

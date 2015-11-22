@@ -322,9 +322,18 @@ static void Cl_KeyChat(const SDL_Event *event) {
 	switch (event->key.keysym.sym) {
 
 		case SDLK_RETURN:
-		case SDLK_KP_ENTER:
+		case SDLK_KP_ENTER: {
+			const char *in;
+			if (cls.chat_state.team_chat) {
+				in = va("say_team %s", cl_chat_console.input.buffer);
+			} else {
+				in = va("say %s", cl_chat_console.input.buffer);
+			}
+			strncpy(cl_chat_console.input.buffer, in, sizeof(cl_chat_console.input.buffer));
 			Con_SubmitInput(&cl_chat_console);
-			cls.key_state.dest = KEY_GAME;
+
+			Cl_SetKeyDest(KEY_GAME);
+		}
 			break;
 
 		case SDLK_BACKSPACE:
