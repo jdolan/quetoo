@@ -875,7 +875,7 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
  * @brief
  */
 void R_LoadBspModel(r_model_t *mod, void *buffer) {
-	extern void Cl_LoadProgress(int32_t percent);
+	extern void Cl_LoadingProgress(uint16_t percent, const char *file);
 
 	// byte-swap the entire header
 	d_bsp_header_t header = *(d_bsp_header_t *) buffer;
@@ -895,46 +895,46 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	r_bsp_base = (byte *) buffer;
 
 	R_LoadBspVertexes(mod->bsp, &header.lumps[BSP_LUMP_VERTEXES]);
-	Cl_LoadProgress(4);
+	Cl_LoadingProgress(4, "vertices");
 
 	if (header.version == BSP_VERSION_QUETOO) // enhanced format
 		R_LoadBspNormals(mod->bsp, &header.lumps[BSP_LUMP_NORMALS]);
 
 	R_LoadBspEdges(mod->bsp, &header.lumps[BSP_LUMP_EDGES]);
-	Cl_LoadProgress(8);
+	Cl_LoadingProgress(8, "edges");
 
 	R_LoadBspSurfaceEdges(mod->bsp, &header.lumps[BSP_LUMP_FACE_EDGES]);
-	Cl_LoadProgress(12);
+	Cl_LoadingProgress(12, "surface edges");
 
 	R_LoadBspLightmaps(mod->bsp, &header.lumps[BSP_LUMP_LIGHTMAPS]);
-	Cl_LoadProgress(16);
+	Cl_LoadingProgress(16, "lightmaps");
 
 	R_LoadBspPlanes(mod->bsp, &header.lumps[BSP_LUMP_PLANES]);
-	Cl_LoadProgress(20);
+	Cl_LoadingProgress(20, "planes");
 
 	R_LoadBspTexinfo(mod->bsp, &header.lumps[BSP_LUMP_TEXINFO]);
-	Cl_LoadProgress(24);
+	Cl_LoadingProgress(24, "texinfo");
 
 	R_LoadBspSurfaces(mod->bsp, &header.lumps[BSP_LUMP_FACES]);
-	Cl_LoadProgress(28);
+	Cl_LoadingProgress(28, "faces");
 
 	R_LoadBspLeafSurfaces(mod->bsp, &header.lumps[BSP_LUMP_LEAF_FACES]);
-	Cl_LoadProgress(32);
+	Cl_LoadingProgress(32, "leaf faces");
 
 	R_LoadBspLeafs(mod->bsp, &header.lumps[BSP_LUMP_LEAFS]);
-	Cl_LoadProgress(36);
+	Cl_LoadingProgress(36, "leafs");
 
 	R_LoadBspNodes(mod->bsp, &header.lumps[BSP_LUMP_NODES]);
-	Cl_LoadProgress(40);
+	Cl_LoadingProgress(40, "nodes");
 
 	R_LoadBspClusters(mod->bsp, &header.lumps[BSP_LUMP_VISIBILITY]);
-	Cl_LoadProgress(44);
+	Cl_LoadingProgress(44, "clusters");
 
 	R_LoadBspInlineModels(mod->bsp, &header.lumps[BSP_LUMP_MODELS]);
-	Cl_LoadProgress(48);
+	Cl_LoadingProgress(48, "inline models");
 
 	R_LoadBspLights(mod->bsp);
-	Cl_LoadProgress(50);
+	Cl_LoadingProgress(50, "lights");
 
 	Com_Debug("!================================\n");
 	Com_Debug("!R_LoadBspModel: %s\n", mod->media.name);
@@ -951,13 +951,13 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug("!================================\n");
 
 	R_SetupBspInlineModels(mod);
-	Cl_LoadProgress(52);
+	Cl_LoadingProgress(52, "inline models");
 
 	R_LoadBspVertexArrays(mod);
-	Cl_LoadProgress(54);
+	Cl_LoadingProgress(54, "vertex arrays");
 
 	R_LoadBspSurfacesArrays(mod);
-	Cl_LoadProgress(58);
+	Cl_LoadingProgress(58, "sorted surfaces");
 
 	R_InitElements(mod->bsp);
 }

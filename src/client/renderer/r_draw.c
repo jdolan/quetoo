@@ -92,6 +92,23 @@ typedef struct r_draw_s {
 
 r_draw_t r_draw;
 
+/**
+ * @return An `r_color_t` from the given parameters.
+ */
+r_color_t R_MakeColor(byte r, byte g, byte b, byte a) {
+
+	r_color_t color = {
+		.bytes = {
+			.r = r,
+			.g = g,
+			.b = b,
+			.a = a,
+		}
+	};
+
+	return color;
+}
+
 /*
  * @brief
  */

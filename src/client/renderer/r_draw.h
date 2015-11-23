@@ -24,6 +24,7 @@
 
 #include "r_types.h"
 
+r_color_t R_MakeColor(byte r, byte g, byte b, byte a);
 void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image);
 void R_DrawCursor(r_pixel_t x, r_pixel_t y);
 void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch);

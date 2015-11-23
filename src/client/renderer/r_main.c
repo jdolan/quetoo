@@ -252,7 +252,7 @@ static void R_Clear(void) {
 		bits |= GL_COLOR_BUFFER_BIT;
 
 	// or if the client is not fully loaded
-	if (cls.state != CL_ACTIVE || cls.loading)
+	if (cls.state != CL_ACTIVE)
 		bits |= GL_COLOR_BUFFER_BIT;
 
 	glClear(bits);
@@ -287,7 +287,7 @@ void R_BeginFrame(void) {
  */
 void R_EndFrame(void) {
 
-	if (cls.state == CL_ACTIVE && !cls.loading) {
+	if (cls.state == CL_ACTIVE) {
 
 		if (r_view.update) {
 			r_view.update = false;
@@ -314,7 +314,6 @@ void R_InitView(void) {
  * @brief Loads all media for the renderer subsystem.
  */
 void R_LoadMedia(void) {
-	uint32_t i;
 
 	if (!cl.config_strings[CS_MODELS][0]) {
 		return; // no map specified
@@ -324,30 +323,36 @@ void R_LoadMedia(void) {
 
 	R_BeginLoading();
 
-	Cl_LoadProgress(1);
+	Cl_LoadingProgress(1, cl.config_strings[CS_MODELS]);
 
 	R_LoadModel(cl.config_strings[CS_MODELS]); // load the world
-	Cl_LoadProgress(60);
+
+	Cl_LoadingProgress(60, "world");
 
 	// load all other models
-	for (i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
+	for (uint32_t i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
 
 		cl.model_precache[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
 
 		if (i <= 30) // bump loading progress
-			Cl_LoadProgress(60 + (i / 3));
+			Cl_LoadingProgress(60 + (i / 3), cl.config_strings[CS_MODELS + i]);
 	}
-	Cl_LoadProgress(70);
+
+	Cl_LoadingProgress(70, "models");
 
 	// load all known images
-	for (i = 0; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
+	for (uint32_t i = 0; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
 		cl.image_precache[i] = R_LoadImage(cl.config_strings[CS_IMAGES + i], IT_PIC);
 	}
-	Cl_LoadProgress(75);
+
+	Cl_LoadingProgress(75, "images");
 
 	// sky environment map
 	R_SetSky(cl.config_strings[CS_SKY]);
-	Cl_LoadProgress(77);
+
+	Cl_LoadingProgress(77, "sky");
+
+	r_render_plugin->modified = true;
 
 	r_view.update = true;
 }
@@ -359,22 +364,16 @@ void R_LoadMedia(void) {
  */
 void R_Restart_f(void) {
 
-	if (cls.loading)
+	if (cls.state == CL_LOADING)
 		return;
 
 	R_Shutdown();
 
 	R_Init();
 
-	cls.loading = 1;
+	cls.state = CL_LOADING;
 
 	R_LoadMedia();
-
-	r_render_plugin->modified = true;
-
-	r_view.update = true;
-
-	cls.loading = 0;
 }
 
 /*

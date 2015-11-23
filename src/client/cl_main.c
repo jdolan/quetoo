@@ -241,10 +241,7 @@ void Cl_ClearState(void) {
 }
 
 /*
- * @brief Sends the disconnect command to the server (several times). This is used
- * when the client actually wishes to disconnect or quit, or when an HTTP
- * download has begun. This way, the client does not waste a server slot
- * (or just timeout) while downloading a level.
+ * @brief Sends the disconnect command to the server.
  */
 void Cl_SendDisconnect(void) {
 	byte final[16];
@@ -264,7 +261,6 @@ void Cl_SendDisconnect(void) {
 
 	cls.broadcast_time = 0;
 	cls.connect_time = 0;
-	cls.loading = 0;
 	cls.packet_delta = 9999;
 	cls.state = CL_DISCONNECTED;
 }

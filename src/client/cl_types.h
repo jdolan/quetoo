@@ -271,6 +271,12 @@ typedef struct {
 	uint16_t ping; // server latency
 } cl_server_info_t;
 
+typedef struct {
+	uint16_t percent;
+	const char *status;
+	r_image_t *background;
+} cl_loading_t;
+
 /*
  * @brief The cl_static_t structure is persistent for the execution of the
  * game. It is only cleared when Cl_Init is called. It is not exposed to the
@@ -297,7 +303,7 @@ typedef struct {
 	uint32_t challenge; // from the server to use for connecting
 	uint32_t spawn_count;
 
-	uint16_t loading; // loading percentage indicator
+	cl_loading_t loading; // loading status
 
 	char download_url[MAX_OS_PATH]; // for http downloads
 	cl_download_t download; // current download (udp or http)

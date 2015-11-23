@@ -67,37 +67,94 @@ void Cl_RequestNextDownload(void) {
  * @brief Update the loading progress, handle events and update the screen.
  * This should be called periodically while loading media.
  */
-void Cl_LoadProgress(uint16_t percent) {
+void Cl_LoadingProgress(uint16_t percent, const char *status) {
 
-	cls.loading = percent;
+	if (percent <= 1) {
+		char path[MAX_QPATH];
+
+		g_snprintf(path, sizeof(path), "mapshots/%s", Basename(cl.config_strings[CS_MODELS]));
+		StripExtension(path, path);
+
+		cls.loading.background = R_LoadImage(path, IT_PIC);
+
+		if (cls.loading.background->type == IT_NULL) {
+			cls.loading.background = NULL;
+		} else {
+			Com_Debug("Using %s\n", path);
+		}
+	}
+
+	cls.loading.percent = percent;
+	cls.loading.status = status;
 
 	Cl_HandleEvents();
 
 	Cl_UpdateScreen();
 }
 
-/**
- * @brief Draws the loading screen.
- *
- * TODO: Map-specific and generic loading backgrounds.
- */
-void Cl_DrawLoading(void) {
+void Cl_DrawDownload(void) {
+	r_pixel_t cw, ch;
+
+	R_BindFont("small", &cw, &ch);
 
 	R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
 
-	char *msg;
-	if (cls.loading) {
-		msg = va("Loading... %2d%%\n", cls.loading);
-	} else if (cls.download.file) {
-		const int32_t kb = (int32_t) Fs_Tell(cls.download.file) / 1024;
-		const char *proto = cls.download.http ? "HTTP" : "UDP";
+	const int32_t kb = (int32_t) Fs_Tell(cls.download.file) / 1024;
+	const char *proto = cls.download.http ? "HTTP" : "UDP";
 
-		msg = va("Downloading %s [%s] %dKB ", cls.download.name, proto, kb);
+	const char *status = va("Downloading %s [%s] %dKB ", cls.download.name, proto, kb);
+
+	const r_pixel_t x = (r_context.width - R_StringWidth(status)) / 2;
+	const r_pixel_t y = r_context.height / 2;
+
+	R_DrawString(x, y, status, CON_COLOR_DEFAULT);
+
+	R_BindFont(NULL, NULL, NULL);
+}
+
+/**
+ * @brief Draws the loading screen.
+ */
+void Cl_DrawLoading(void) {
+	r_pixel_t cw, ch;
+
+	// draw the background
+	if (cls.loading.background) {
+		R_DrawImage(0, 0, (vec_t) r_context.width / cls.loading.background->width, cls.loading.background);
+	} else {
+		R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
 	}
 
-	r_pixel_t cw, ch;
+	// then the progress bar and percentage
+	R_BindFont("medium", &cw, &ch);
+
+	const r_color_t bg = R_MakeColor(24, 128, 24, 48);
+	const r_color_t fg = R_MakeColor(48, 255, 48, 128);
+
+	const r_pixel_t x = r_context.width * 0.25;
+	const r_pixel_t y = r_context.height * 0.66;
+
+	const r_pixel_t w = r_context.width * 0.5;
+
+	R_DrawFill(x, y - 2, w, ch + 4, bg.c, -1.0);
+	R_DrawFill(x + 1, y - 1, (w - 2) * (cls.loading.percent / 100.0), ch + 2, fg.c, -1.0);
+
+	const char *percent = va("%2d%%", cls.loading.percent);
+	const r_pixel_t px = (r_context.width - R_StringWidth(percent)) / 2;
+
+	R_DrawString(px, y, percent, CON_COLOR_DEFAULT);
+
+	// and finally the status detail
 	R_BindFont("small", &cw, &ch);
 
+	const char *status = va("Loading %s..", cls.loading.status);
+
+	const r_pixel_t sx = (r_context.width - R_StringWidth(status)) / 2;
+	const r_pixel_t sy = y + 48;
+
+	R_DrawString(sx, sy, status, CON_COLOR_DEFAULT);
+
+	R_BindFont(NULL, NULL, NULL);
 }
 
 /*
@@ -107,7 +164,7 @@ void Cl_DrawLoading(void) {
  */
 void Cl_LoadMedia(void) {
 
-	cls.loading = 1;
+	cls.state = CL_LOADING;
 
 	Cl_UpdatePrediction();
 
@@ -115,15 +172,17 @@ void Cl_LoadMedia(void) {
 
 	S_LoadMedia();
 
+	Cl_LoadingProgress(88, "entities");
+
 	Cl_UpdateEntities();
+
+	Cl_LoadingProgress(95, "effects");
 
 	cls.cgame->UpdateMedia();
 
-	//Cl_ClearNotify();
+	Cl_LoadingProgress(100, "ready");
 
 	Cl_SetKeyDest(KEY_GAME);
-
-	cls.loading = 0;
 }
 
 /*
@@ -131,16 +190,12 @@ void Cl_LoadMedia(void) {
  */
 void Cl_UpdateMedia(void) {
 
-	if ((r_view.update || s_env.update) && (cls.state == CL_ACTIVE && !cls.loading)) {
+	if ((r_view.update || s_env.update) && cls.state == CL_ACTIVE) {
 
 		Com_Debug("%s %s\n", r_view.update ? "view" : "", s_env.update ? "sound" : "");
-
-		cls.loading = 1;
 
 		Cl_UpdateEntities();
 
 		cls.cgame->UpdateMedia();
-
-		cls.loading = 0;
 	}
 }
