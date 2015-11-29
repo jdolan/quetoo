@@ -63,25 +63,57 @@ void Cl_RequestNextDownload(void) {
 	Net_WriteString(&cls.net_chan.message, va("begin %i\n", cls.spawn_count));
 }
 
+
+/**
+ * @brief Fs_Enumerate function for Cl_LoadingBackground.
+ */
+static void Cl_LoadingBackground_enumerate(const char *path, void *data) {
+	GList **list = (GList **) data;
+
+	if (g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".png")) {
+		*list = g_list_append(*list, g_strdup(path));
+	}
+}
+
+/**
+ * @return The loading screen background image, preferably map-specific.
+ */
+static r_image_t *Cl_LoadingBackground() {
+	r_image_t *image = NULL;
+
+	char map[MAX_QPATH];
+	StripExtension(cl.config_strings[CS_MODELS], map);
+
+	GList *list = NULL;
+	Fs_Enumerate(va("mapshots/%s/*", Basename(map)), Cl_LoadingBackground_enumerate, (void *) &list);
+
+	const size_t len = g_list_length(list);
+	if (len > 0) {
+		const char *path = g_list_nth_data(list, rand() % len);
+
+		image = R_LoadImage(path, IT_PIC);
+
+		if (image->type == IT_NULL) {
+			Com_Warn("Invalid loading background: %s\n", path);
+			image = NULL;
+		} else {
+			Com_Debug("Loading background %s\n", path);
+		}
+	}
+
+	g_list_free_full(list, g_free);
+
+	return image;
+}
+
 /*
  * @brief Update the loading progress, handle events and update the screen.
  * This should be called periodically while loading media.
  */
 void Cl_LoadingProgress(uint16_t percent, const char *status) {
 
-	if (percent <= 1) {
-		char path[MAX_QPATH];
-
-		g_snprintf(path, sizeof(path), "mapshots/%s", Basename(cl.config_strings[CS_MODELS]));
-		StripExtension(path, path);
-
-		cls.loading.background = R_LoadImage(path, IT_PIC);
-
-		if (cls.loading.background->type == IT_NULL) {
-			cls.loading.background = NULL;
-		} else {
-			Com_Debug("Using %s\n", path);
-		}
+	if (percent == 0) {
+		cls.loading.background = Cl_LoadingBackground();
 	}
 
 	cls.loading.percent = percent;
