@@ -307,7 +307,7 @@ AC_ARG_WITH(tools,
 	)
 )
 
-if test "x${with_tools}" = x; then
+if test "x${with_tools}" != x; then
 	TOOLS="${with_tools}"
 fi
 
