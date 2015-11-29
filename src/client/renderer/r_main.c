@@ -364,16 +364,22 @@ void R_LoadMedia(void) {
  */
 void R_Restart_f(void) {
 
-	if (cls.state == CL_LOADING)
+	if (cls.state == CL_LOADING) {
 		return;
+	}
 
 	R_Shutdown();
 
 	R_Init();
 
+	cl_state_t state = cls.state;
 	cls.state = CL_LOADING;
 
 	R_LoadMedia();
+
+	if (cls.state == CL_LOADING) {
+		cls.state = state;
+	}
 }
 
 /*
