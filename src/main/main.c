@@ -134,7 +134,7 @@ static void Init(void) {
 	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
 
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
-	if (g_str_has_suffix(Sys_ExecutablePath(), "-dediated")) {
+	if (strstr(Sys_ExecutablePath(), "-dedicated")) {
 		Cvar_ForceSet("dedicated", "1");
 	}
 
