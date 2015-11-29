@@ -24,14 +24,9 @@
 
 #include "sv_local.h"
 
-#define CON_DIRTY_BACKGROUND	(1 << 0)
-#define CON_DIRTY_BUFFER		(1 << 1)
-#define CON_DIRTY_INPUT			(1 << 2)
-#define CON_DIRTY_ALL			0xff
-
 typedef struct {
 	WINDOW *window;
-	uint32_t dirty;
+	_Bool dirty;
 } sv_console_state_t;
 
 static sv_console_state_t sv_console_state;
@@ -43,9 +38,8 @@ static console_t sv_console;
  */
 static void Sv_Print(const console_string_t *str __attribute__((unused))) {
 
-	sv_console_state.dirty |= CON_DIRTY_BUFFER;
+	sv_console_state.dirty = true;
 }
-
 
 /*
  * @brief Handle curses input and redraw if necessary
@@ -57,7 +51,7 @@ static void Sv_HandleEvents(void) {
 	int32_t key;
 	while ((key = wgetch(sv_console_state.window)) != ERR) {
 
-		sv_console_state.dirty |= CON_DIRTY_BACKGROUND;
+		sv_console_state.dirty = true;
 
 		switch (key) {
 
@@ -71,6 +65,7 @@ static void Sv_HandleEvents(void) {
 				Con_CompleteInput(&sv_console);
 				break;
 
+			case 127: // OS X backspace
 			case KEY_BACKSPACE:
 				if (in->pos > 0) {
 					char *c = in->buffer + in->pos - 1;
@@ -99,7 +94,7 @@ static void Sv_HandleEvents(void) {
 				break;
 
 			case KEY_LEFT:
-				if (in->pos > 1) {
+				if (in->pos > 0) {
 					in->pos--;
 				}
 				break;
@@ -111,7 +106,6 @@ static void Sv_HandleEvents(void) {
 				break;
 
 			case KEY_PPAGE:
-				sv_console_state.dirty |= CON_DIRTY_BUFFER;
 				if (sv_console.scroll < console_state.len) {
 					sv_console.scroll++;
 				} else {
@@ -120,7 +114,6 @@ static void Sv_HandleEvents(void) {
 				break;
 
 			case KEY_NPAGE:
-				sv_console_state.dirty |= CON_DIRTY_BUFFER;
 				if (sv_console.scroll > 0) {
 					sv_console.scroll--;
 				} else {
@@ -137,10 +130,12 @@ static void Sv_HandleEvents(void) {
 
 			default:
 				if (isascii(key)) {
-					const size_t len = strlen(in->buffer);
-					if (len < sizeof(in->buffer) - 1) {
-						in->buffer[len] = key;
-						in->buffer[len + 1] = '\0';
+					if (strlen(in->buffer) < sizeof(in->buffer) - 1) {
+						char *c = in->buffer + in->pos;
+						while (*c) {
+							*(c + 1) = *c; c++;
+						}
+						in->buffer[in->pos++] = key;
 					}
 				}
 				break;
@@ -174,10 +169,10 @@ static void Sv_DrawConsole_Background(void) {
 	bkgdset(' ');
 	clear();
 
-	box(sv_console_state.window, ACS_VLINE, ACS_HLINE);
+	border(0, 0, 0, ' ', 0, 0, 0, 0);
 
 	Sv_DrawConsole_Color(CON_COLOR_ALT);
-	mvaddstr(0, 2, va("Quetoo %s", VERSION));
+	mvaddstr(0, 2, va("Quetoo Dedicated %s", VERSION));
 }
 
 /*
@@ -185,17 +180,17 @@ static void Sv_DrawConsole_Background(void) {
  */
 static void Sv_DrawConsole_Buffer(void) {
 
-	size_t row = LINES - 1;
-
 	Sv_DrawConsole_Color(CON_COLOR_DEFAULT);
 
 	char *lines[sv_console.height];
 	const size_t count = Con_Tail(&sv_console, lines, sv_console.height);
 
+	size_t row = sv_console.height;
+
 	for (size_t i = 0; i < count; i++) {
 		char *line = lines[count - i - 1];
-
 		char *s = line;
+
 		size_t col = 1;
 		while (*s) {
 			if (IS_LEGACY_COLOR(s)) {
@@ -250,21 +245,13 @@ void Sv_DrawConsole(void) {
 		sv_console.width = COLS - 2;
 		sv_console.height = LINES - 2;
 
-		if (sv_console_state.dirty & CON_DIRTY_BACKGROUND) {
-			Sv_DrawConsole_Background();
-		}
-
-		if (sv_console_state.dirty & CON_DIRTY_BUFFER) {
-			Sv_DrawConsole_Buffer();
-		}
-
-		if (sv_console_state.dirty & CON_DIRTY_INPUT) {
-			Sv_DrawConsole_Input();
-		}
+		Sv_DrawConsole_Background();
+		Sv_DrawConsole_Buffer();
+		Sv_DrawConsole_Input();
 
 		refresh();
 
-		sv_console_state.dirty = 0;
+		sv_console_state.dirty = false;
 	}
 }
 
@@ -276,9 +263,7 @@ static void Sv_ResizeConsole(int32_t sig __attribute__((unused))) {
 
 	endwin();
 
-	refresh();
-
-	sv_console_state.dirty = CON_DIRTY_ALL;
+	sv_console_state.dirty = true;
 
 	Sv_DrawConsole();
 }
@@ -305,6 +290,7 @@ void Sv_InitConsole(void) {
 	memset(&sv_console_state, 0, sizeof(sv_console_state));
 
 	sv_console_state.window = initscr();
+	sv_console_state.dirty = true;
 
 	cbreak();
 	noecho();
@@ -327,8 +313,6 @@ void Sv_InitConsole(void) {
 #ifdef SIGWINCH
 	signal(SIGWINCH, Sv_ResizeConsole);
 #endif
-
-	refresh();
 
 	memset(&sv_console, 0, sizeof(sv_console));
 
@@ -354,6 +338,8 @@ void Sv_ShutdownConsole(void) {
 
 	if (!dedicated->value)
 		return;
+
+	endwin();
 
 	Con_RemoveConsole(&sv_console);
 

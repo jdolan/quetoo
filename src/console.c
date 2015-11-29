@@ -164,7 +164,7 @@ void Con_Append(int32_t level, const char *string) {
 			const console_t *console = list->data;
 
 			if (console->Append) {
-				if (!Con_Filter(console, str)) {
+				if (Con_Filter(console, str)) {
 					console->Append(str);
 				}
 			}
