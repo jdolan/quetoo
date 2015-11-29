@@ -21,47 +21,33 @@
 
 #include "common.h"
 
-// console redirection (e.g. rcon)
-typedef struct redirect_s {
-	int32_t target;
-
-	char *buffer;
-	size_t size;
-
-	RedirectFlush Flush;
-} redirect_t;
-
-static redirect_t redirect;
-
 /*
- * @brief
+ * @brief Print a debug statement. If the format begins with '!', the function
+ * name is omitted.
  */
-void Com_BeginRedirect(int32_t target, char *buffer, size_t size, RedirectFlush Flush) {
+void Com_Trace_(const char *func, const char *fmt, ...) {
+	char msg[MAX_PRINT_MSG];
 
-	if (!target || !buffer || !size || !Flush) {
-		Com_Error(ERR_FATAL, "Invalid redirect\n");
+	if (fmt[0] != '!') {
+		g_snprintf(msg, sizeof(msg), "%s: ", func);
+	} else {
+		msg[0] = '\0';
+		fmt++;
 	}
 
-	redirect.target = target;
-	redirect.buffer = buffer;
-	redirect.size = size;
-	redirect.Flush = Flush;
+	const size_t len = strlen(msg);
+	va_list args;
 
-	*redirect.buffer = '\0';
-}
+	va_start(args, fmt);
+	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
+	va_end(args);
 
-/*
- * @brief
- */
-void Com_EndRedirect(void) {
-
-	if (!redirect.target || !redirect.buffer || !redirect.size || !redirect.Flush) {
-		Com_Error(ERR_FATAL, "Invalid redirect\n");
+	if (quetoo.Debug) {
+		quetoo.Debug((const char *) msg);
+	} else {
+		fputs(msg, stdout);
+		fflush(stdout);
 	}
-
-	redirect.Flush(redirect.target, redirect.buffer);
-
-	memset(&redirect, 0, sizeof(redirect));
 }
 
 /*
@@ -79,8 +65,8 @@ void Com_Debug_(const char *func, const char *fmt, ...) {
 	}
 
 	const size_t len = strlen(msg);
-	va_list args;
 
+	va_list args;
 	va_start(args, fmt);
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
@@ -125,7 +111,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	if (quetoo.Error) {
 		quetoo.Error(err, (const char *) msg);
 	} else {
-		fprintf(stderr, "%s", msg);
+		fputs(msg, stderr);
 		fflush(stderr);
 		exit(err);
 	}
@@ -141,15 +127,6 @@ void Com_Print(const char *fmt, ...) {
 	va_start(args, fmt);
 	vsnprintf(msg, sizeof(msg), fmt, args);
 	va_end(args);
-
-	if (redirect.target) { // handle redirection (rcon)
-		if ((strlen(msg) + strlen(redirect.buffer)) > (redirect.size - 1)) {
-			redirect.Flush(redirect.target, redirect.buffer);
-			*redirect.buffer = '\0';
-		}
-		g_strlcat(redirect.buffer, msg, redirect.size);
-		return;
-	}
 
 	if (quetoo.Print) {
 		quetoo.Print((const char *) msg);

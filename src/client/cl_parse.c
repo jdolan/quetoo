@@ -21,7 +21,7 @@
 
 #include "cl_local.h"
 
-static char *sv_cmd_names[256] = {
+static char *sv_cmd_names[32] = {
 		"SV_CMD_BAD",
 		"SV_CMD_BASELINE",
 		"SV_CMD_CBUF_TEXT",
@@ -61,15 +61,15 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 
 	strncpy(cls.download.name, filename, sizeof(cls.download.name));
 
-	// udp downloads to a temp name, and only renames when done
+	// UDP downloads to a temp name, and only renames when done
 	StripExtension(cls.download.name, cls.download.tempname);
 	g_strlcat(cls.download.tempname, ".tmp", sizeof(cls.download.tempname));
 
-	// attempt an http download if available
+	// attempt an HTTP download if available
 	if (cls.download_url[0] && Cl_HttpDownload())
 		return false;
 
-	// check to see if we already have a tmp for this file, if so, try to resume
+	// check to see if we already have a temp for this file, if so, try to resume
 	// open the file if not opened yet
 
 	if (Fs_Exists(cls.download.tempname)) { // a temp file exists, resume download
@@ -154,6 +154,16 @@ static void Cl_ParseBaseline(void) {
 			Matrix4x4_Invert_Simple(&ent->inverse_matrix, &ent->matrix);
 		}
 	}
+}
+
+/*
+ * @brief
+ */
+static void Cl_ParseCbufText(void) {
+
+	const char *text = Net_ReadString(&net_message);
+
+	Cbuf_AddText(text);
 }
 
 /*
@@ -256,7 +266,8 @@ static void Cl_ParseServerData(void) {
 	Cl_ClearState();
 
 	cls.state = CL_CONNECTED;
-	cls.key_state.dest = KEY_CONSOLE;
+
+	Cl_SetKeyDest(KEY_CONSOLE);
 
 	// parse protocol version number
 	const uint16_t major = Net_ReadShort(&net_message);
@@ -298,6 +309,51 @@ static void Cl_ParseServerData(void) {
 	Com_Print("%c%s\n", 2, str);
 }
 
+/**
+ * @brief Parses an incoming SVC_PRINT message.
+ */
+static void Cl_ParsePrint(void) {
+
+	const byte level = Net_ReadByte(&net_message);
+	const char *string = Net_ReadString(&net_message);
+
+	// the server shouldn't have sent us anything below our level anyway
+	if (level >= message_level->integer) {
+
+		// check to see if we should ignore the message
+		if (*cl_ignore->string) {
+
+			char patterns[MAX_STRING_CHARS];
+			g_strlcpy(patterns, cl_ignore->string, sizeof(patterns));
+
+			const char *p = patterns;
+			while (true) {
+				const char *pattern = ParseToken(&p);
+				if (pattern == NULL)
+					break;
+
+				if (GlobMatch(pattern, string)) {
+					return;
+				}
+			}
+		}
+
+		switch (level) {
+			case PRINT_CHAT:
+			case PRINT_TEAM_CHAT:
+				if (level == PRINT_CHAT && *cl_chat_sound->string)
+					S_StartLocalSample(cl_chat_sound->string);
+				else if (level == PRINT_TEAM_CHAT && *cl_team_chat_sound->string)
+					S_StartLocalSample(cl_team_chat_sound->string);
+				break;
+			default:
+				break;
+		}
+
+		Con_Append(level, string);
+	}
+}
+
 /*
  * @brief
  */
@@ -307,9 +363,8 @@ static void Cl_ParseSound(void) {
 	uint16_t index;
 	uint16_t ent_num;
 	int32_t atten;
-	int32_t flags;
 
-	flags = Net_ReadByte(&net_message);
+	const byte flags = Net_ReadByte(&net_message);
 
 	if ((index = Net_ReadByte(&net_message)) > MAX_SOUNDS)
 		Com_Error(ERR_DROP, "Bad index (%d)\n", index);
@@ -345,24 +400,6 @@ static void Cl_ParseSound(void) {
 /*
  * @brief
  */
-static _Bool Cl_IgnoreChatMessage(const char *msg) {
-
-	const char *s = strtok(cl_ignore->string, " ");
-
-	if (*cl_ignore->string == '\0')
-		return false; // nothing currently filtered
-
-	while (s) {
-		if (strstr(msg, s))
-			return true;
-		s = strtok(NULL, " ");
-	}
-	return false; // msg is okay
-}
-
-/*
- * @brief
- */
 static void Cl_ShowNet(const char *s) {
 	if (cl_show_net_messages->integer >= 2)
 		Com_Print("%3u: %s\n", (uint32_t) (net_message.read - 1), s);
@@ -373,8 +410,6 @@ static void Cl_ShowNet(const char *s) {
  */
 void Cl_ParseServerMessage(void) {
 	int32_t cmd, old_cmd;
-	char *s;
-	int32_t i;
 
 	if (cl_show_net_messages->integer == 1)
 		Com_Print("%u ", (uint32_t) net_message.size);
@@ -408,8 +443,7 @@ void Cl_ParseServerMessage(void) {
 				break;
 
 			case SV_CMD_CBUF_TEXT:
-				s = Net_ReadString(&net_message);
-				Cbuf_AddText(s);
+				Cl_ParseCbufText();
 				break;
 
 			case SV_CMD_CONFIG_STRING:
@@ -429,20 +463,7 @@ void Cl_ParseServerMessage(void) {
 				break;
 
 			case SV_CMD_PRINT:
-				i = Net_ReadByte(&net_message);
-				s = Net_ReadString(&net_message);
-				if (i == PRINT_CHAT) {
-					if (Cl_IgnoreChatMessage(s)) // filter /ignore'd chatters
-						break;
-					if (*cl_chat_sound->string) // trigger chat sound
-						S_StartLocalSample(cl_chat_sound->string);
-				} else if (i == PRINT_TEAMCHAT) {
-					if (Cl_IgnoreChatMessage(s)) // filter /ignore'd chatters
-						break;
-					if (*cl_team_chat_sound->string) // trigger chat sound
-						S_StartLocalSample(cl_team_chat_sound->string);
-				}
-				Com_Print("%s", s);
+				Cl_ParsePrint();
 				break;
 
 			case SV_CMD_RECONNECT:

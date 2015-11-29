@@ -329,7 +329,7 @@ static void Sv_Connect_f(void) {
 	Mem_InitBuffer(&client->datagram.buffer, client->datagram.data, sizeof(client->datagram.data));
 	client->datagram.buffer.allow_overflow = true;
 
-	client->last_message = svs.real_time; // don't timeout
+	client->last_message = quetoo.time;
 
 	client->state = SV_CLIENT_CONNECTED;
 }
@@ -350,12 +350,24 @@ static _Bool Sv_RconAuthenticate(void) {
 	return true;
 }
 
+static char sv_rcon_buffer[MAX_PRINT_MSG];
+
+/*
+ * @brief Console appender for remote console.
+ */
+static void Sv_Rcon_Print(const console_string_t *str) {
+
+	g_strlcat(sv_rcon_buffer, str->chars, sizeof(sv_rcon_buffer));
+}
+
 /*
  * @brief A client issued an rcon command. Shift down the remaining args and
  * redirect all output to the invoking client.
  */
 static void Sv_Rcon_f(void) {
+
 	const _Bool auth = Sv_RconAuthenticate();
+
 	const char *addr = Net_NetaddrToString(&net_from);
 
 	// first print to the server console
@@ -365,25 +377,29 @@ static void Sv_Rcon_f(void) {
 		Com_Print("Bad rcon from %s:\n%s\n", addr, net_message.data + 4);
 
 	// then redirect the remaining output back to the client
-	Com_BeginRedirect(RD_PACKET, sv_outputbuf, SV_OUTPUTBUF_LENGTH, Sv_FlushRedirect);
+
+	console_t rcon = { .Append = Sv_Rcon_Print };
+	sv_rcon_buffer[0] = '\0';
+
+	Con_AddConsole(&rcon);
 
 	if (auth) {
-		char remaining[MAX_STRING_CHARS];
-		int32_t i;
+		char cmd[MAX_STRING_CHARS];
+		cmd[0] = '\0';
 
-		remaining[0] = 0;
-
-		for (i = 2; i < Cmd_Argc(); i++) {
-			strcat(remaining, Cmd_Argv(i));
-			strcat(remaining, " ");
+		for (int32_t i = 2; i < Cmd_Argc(); i++) {
+			g_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
+			g_strlcat(cmd, " ", sizeof(cmd));
 		}
 
-		Cmd_ExecuteString(remaining);
+		Cmd_ExecuteString(cmd);
 	} else {
 		Com_Print("Bad rcon_password\n");
 	}
 
-	Com_EndRedirect();
+	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "print\n%s", sv_rcon_buffer);
+
+	Con_RemoveConsole(&rcon);
 }
 
 /*
@@ -460,22 +476,17 @@ static void Sv_UpdatePings(void) {
  * over the next interval, assume they are trying to cheat.
  */
 static void Sv_CheckCommandTimes(void) {
-	static uint32_t last_check_time = -9999;
-	int32_t i;
-
-	if (svs.real_time < last_check_time) { // wrap around from last level
-		last_check_time = -9999;
-	}
+	static uint32_t last_check_time;
 
 	// see if its time to check the movements
-	if (svs.real_time - last_check_time < CMD_MSEC_CHECK_INTERVAL) {
+	if (quetoo.time - last_check_time < CMD_MSEC_CHECK_INTERVAL) {
 		return;
 	}
 
-	last_check_time = svs.real_time;
+	last_check_time = quetoo.time;
 
 	// inspect each client, ensuring they are reasonably in sync with us
-	for (i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 		sv_client_t *cl = &svs.clients[i];
 
 		if (cl->state < SV_CLIENT_ACTIVE) {
@@ -510,9 +521,6 @@ static void Sv_CheckCommandTimes(void) {
  * @brief
  */
 static void Sv_ReadPackets(void) {
-	int32_t i;
-	sv_client_t * cl;
-	byte qport;
 
 	while (Net_ReceiveDatagram(NS_UDP_SERVER, &net_from, &net_message)) {
 
@@ -529,10 +537,11 @@ static void Sv_ReadPackets(void) {
 		Net_ReadLong(&net_message); // sequence number
 		Net_ReadLong(&net_message); // sequence number
 
-		qport = Net_ReadByte(&net_message) & 0xff;
+		const byte qport = Net_ReadByte(&net_message) & 0xff;
 
 		// check for packets from connected clients
-		for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
+		sv_client_t * cl = svs.clients;
+		for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
 			if (cl->state == SV_CLIENT_FREE)
 				continue;
@@ -544,13 +553,13 @@ static void Sv_ReadPackets(void) {
 				continue;
 
 			if (cl->net_chan.remote_address.port != net_from.port) {
-				Com_Warn("Fixing up a translated port\n");
 				cl->net_chan.remote_address.port = net_from.port;
+				Com_Warn("Fixed translated port for %s\n", Net_NetaddrToString(&net_from));
 			}
 
 			// this is a valid, sequenced packet, so process it
 			if (Netchan_Process(&cl->net_chan, &net_message)) {
-				cl->last_message = svs.real_time; // nudge timeout
+				cl->last_message = quetoo.time; // nudge timeout
 				Sv_ParseClientMessage(cl);
 			}
 
@@ -564,23 +573,21 @@ static void Sv_ReadPackets(void) {
  * @brief
  */
 static void Sv_CheckTimeouts(void) {
-	sv_client_t * cl;
-	int32_t i;
 
-	const uint32_t timeout = svs.real_time - 1000 * sv_timeout->value;
+	const uint32_t timeout = 1000 * sv_timeout->value;
 
-	if (timeout > svs.real_time) {
-		// the server is just starting, don't bother
+	if (timeout > quetoo.time)
 		return;
-	}
 
-	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
+	const uint32_t whence = quetoo.time - timeout;
+
+	sv_client_t *cl = svs.clients;
+	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
 		if (cl->state == SV_CLIENT_FREE)
 			continue;
 
-		// enforce timeouts by dropping the client
-		if (cl->last_message < timeout) {
+		if (cl->last_message < whence) {
 			Sv_BroadcastPrint(PRINT_HIGH, "%s timed out\n", cl->name);
 			Sv_DropClient(cl);
 		}
@@ -611,11 +618,6 @@ static void Sv_RunGameFrame(void) {
 
 	sv.frame_num++;
 	sv.time = sv.frame_num * 1000 / svs.frame_rate;
-
-	if (sv.time < svs.real_time) {
-		Com_Debug("Sv_RunGameFrame: High clamp: %dms\n", svs.real_time - sv.time);
-		svs.real_time = sv.time;
-	}
 
 	if (sv.state == SV_ACTIVE_GAME) {
 		svs.game->Frame();
@@ -719,35 +721,32 @@ void Sv_Frame(const uint32_t msec) {
 	if (!svs.initialized)
 		return;
 
-	// update time reference
-	svs.real_time += msec;
-
-	// check timeouts
-	Sv_CheckTimeouts();
-
-	// get packets from clients
+	// read any pending packets from clients
 	Sv_ReadPackets();
 
-	const uint32_t frame_millis = 1000 / svs.frame_rate;
+	// keep simulation time in sync with reality
+	if (!time_demo->value){
 
-	// keep the game module's time in sync with reality
-	if (!time_demo->value && svs.real_time < sv.time) {
+		const uint32_t frame_millis = 1000 / svs.frame_rate;
 
-		// if the server has fallen far behind the game, try to catch up
-		if (sv.time - svs.real_time > frame_millis) {
-			Com_Debug("Sv_Frame: Low clamp: %dms.\n", (sv.time - svs.real_time - frame_millis));
-			svs.real_time = sv.time - frame_millis;
-		} else { // wait until its time to run the next frame
-			Net_Sleep(sv.time - svs.real_time);
+		svs.frame_delta += msec;
+
+		 if (svs.frame_delta < frame_millis) {
+			Net_Sleep(frame_millis - svs.frame_delta);
 			return;
 		}
 	}
 
+	svs.frame_delta = 0;
+
+	// check timeouts
+	Sv_CheckTimeouts();
+
+	// check command times for attempted cheating
+	Sv_CheckCommandTimes();
+
 	// update ping based on the last known frame from all clients
 	Sv_UpdatePings();
-
-	// give the clients some timeslices
-	Sv_CheckCommandTimes();
 
 	// let everything in the world think and move
 	Sv_RunGameFrame();
@@ -761,9 +760,8 @@ void Sv_Frame(const uint32_t msec) {
 	// clear entity flags, etc for next frame
 	Sv_ResetEntities();
 
-#if HAVE_CURSES
-	Curses_Frame(msec);
-#endif
+	// redraw the console
+	Sv_DrawConsole();
 }
 
 /*
@@ -804,6 +802,8 @@ void Sv_Init(void) {
 
 	Cm_LoadBspModel(NULL, NULL);
 
+	Sv_InitConsole();
+
 	Sv_InitLocal();
 
 	Sv_InitAdmin();
@@ -817,6 +817,8 @@ void Sv_Init(void) {
 void Sv_Shutdown(const char *msg) {
 
 	Sv_ShutdownServer(msg);
+
+	Sv_ShutdownConsole();
 
 	memset(&svs, 0, sizeof(svs));
 

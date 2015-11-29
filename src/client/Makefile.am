@@ -25,9 +25,8 @@ noinst_HEADERS = \
 	client.h
 
 noinst_LTLIBRARIES = \
-	libclient.la
-
-if BUILD_CLIENT
+	libclient.la \
+	libclient_null.la
 
 libclient_la_SOURCES = \
 	cl_cgame.c \
@@ -66,13 +65,17 @@ libclient_la_LIBADD = \
 	../libconsole.la \
 	../libthread.la \
 	@CURL_LIBS@
-	
-else
 
-libclient_la_SOURCES = \
-	../null.c
-	
-libclient_la_CFLAGS = \
-	-D__LIBTOOL_LIBRARY__=libclient_la
+libclient_null_la_SOURCES = \
+	cl_null.c
 
-endif
+libclient_null_la_CFLAGS = \
+	-I.. \
+	@BASE_CFLAGS@ \
+	@CURL_CFLAGS@ \
+	@GLIB_CFLAGS@ \
+	@OPENGL_CFLAGS@ \
+	@SDL2_CFLAGS@
+
+libclient_null_la_LDFLAGS = \
+	-shared

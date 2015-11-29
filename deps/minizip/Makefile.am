@@ -1,4 +1,3 @@
-if BUILD_TOOLS
 
 noinst_LTLIBRARIES = \
 	libminizip.la
@@ -16,5 +15,3 @@ libminizip_la_CFLAGS = \
 	@BASE_CFLAGS@
 libminizip_la_LIBADD = \
 	-lz
-
-endif

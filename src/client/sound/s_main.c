@@ -62,11 +62,9 @@ void S_Frame(void) {
 		return;
 	}
 
-	if (!cls.loading) {
-		if (s_env.update) {
-			s_env.update = false;
-			S_FreeMedia();
-		}
+	if (s_env.update) {
+		s_env.update = false;
+		S_FreeMedia();
 	}
 
 	if (s_reverse->modified) { // update reverse stereo
@@ -130,7 +128,6 @@ void S_Frame(void) {
  */
 void S_LoadMedia(void) {
 	extern cl_client_t cl;
-	uint32_t i;
 
 	if (!s_env.initialized)
 		return; // sound disabled
@@ -143,9 +140,9 @@ void S_LoadMedia(void) {
 
 	S_BeginLoading();
 
-	Cl_LoadProgress(80);
+	Cl_LoadingProgress(80, "sounds");
 
-	for (i = 0; i < MAX_SOUNDS; i++) {
+	for (uint32_t i = 0; i < MAX_SOUNDS; i++) {
 
 		if (!cl.config_strings[CS_SOUNDS + i][0])
 			break;
@@ -153,7 +150,7 @@ void S_LoadMedia(void) {
 		cl.sound_precache[i] = S_LoadSample(cl.config_strings[CS_SOUNDS + i]);
 	}
 
-	for (i = 0; i < MAX_MUSICS; i++) {
+	for (uint32_t i = 0; i < MAX_MUSICS; i++) {
 
 		if (!cl.config_strings[CS_MUSICS + i][0])
 			break;
@@ -163,7 +160,7 @@ void S_LoadMedia(void) {
 
 	S_NextTrack_f();
 
-	Cl_LoadProgress(85);
+	Cl_LoadingProgress(85, "music");
 
 	s_env.update = true;
 }
@@ -193,18 +190,16 @@ static void S_Stop_f(void) {
  */
 static void S_Restart_f(void) {
 
-	if (cls.loading)
+	if (cls.state == CL_LOADING)
 		return;
 
 	S_Shutdown();
 
 	S_Init();
 
-	cls.loading = 1;
+	cls.state = CL_LOADING;
 
 	S_LoadMedia();
-
-	cls.loading = 0;
 }
 
 /*

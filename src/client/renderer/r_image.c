@@ -236,6 +236,14 @@ static void R_FreeImage(r_media_t *media) {
 	glDeleteTextures(1, &((r_image_t *) media)->texnum);
 }
 
+/**
+ * @brief Merges a heightmap texture, if found, into the alpha channel of the
+ * given normalmap surface. This is to handle loading of Quake4 texture sets
+ * like Q4Power.
+ *
+ * @param name The diffuse name.
+ * @param surf The normalmap surface.
+ */
 static void R_LoadHeightmap(const char *name, const SDL_Surface *surf) {
 	char heightmap[MAX_QPATH];
 

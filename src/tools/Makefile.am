@@ -1,2 +1,2 @@
 SUBDIRS = \
-	@TOOL_DIRS@
+	@TOOLS@

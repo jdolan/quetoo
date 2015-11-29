@@ -21,338 +21,346 @@
 
 #include "console.h"
 
-static console_data_t console_data;
+#include <signal.h>
 
-#if BUILD_CLIENT
-extern console_t cl_console;
-
-extern void Cl_UpdateNotify(int32_t last_line);
-extern void Cl_ClearNotify(void);
-#endif
-
-static cvar_t *con_ansi;
+console_state_t console_state;
 
 /*
- * @brief Update a console index struct, start parsing at pos
+ * @brief Allocates a new `console_string_t`.
  */
-static void Con_Update(console_t *con, char *pos) {
-	char *wordstart;
-	int32_t linelen;
-	int32_t wordlen;
-	int32_t i;
-	int32_t curcolor;
+static console_string_t *Con_AllocString(int32_t level, const char *string) {
 
-	linelen = 0;
-	wordlen = 0;
-	curcolor = CON_COLOR_DEFAULT;
-	con->line_start[con->last_line] = pos;
-	con->line_color[con->last_line] = curcolor;
-
-	if (con->width < 1)
-		return;
-
-	/* FIXME color at line_start is off by one line */
-	wordstart = pos;
-	while (*pos) {
-		if (*pos == '\n') {
-			while (wordlen > con->width && con->last_line < CON_MAX_LINES - 2) {
-				// force wordsplit
-				con->last_line++;
-				con->line_start[con->last_line] = wordstart;
-				con->line_color[con->last_line] = curcolor;
-				wordstart = wordstart + (size_t) con->width;
-				wordlen -= con->width;
-			}
-			if (linelen + wordlen > con->width) {
-				// force linebreak
-				con->last_line++;
-				con->line_start[con->last_line] = wordstart;
-				con->line_color[con->last_line] = curcolor;
-			}
-			con->last_line++;
-			con->line_start[con->last_line] = pos + 1;
-			curcolor = CON_COLOR_DEFAULT;
-			con->line_color[con->last_line] = curcolor;
-			linelen = 0;
-			wordlen = 0;
-			wordstart = pos + 1;
-		} else if (*pos == ' ') {
-			if (linelen + wordlen > con->width) {
-				while (wordlen > con->width && con->last_line < CON_MAX_LINES - 2) {
-					// force wordsplit
-					con->last_line++;
-					con->line_start[con->last_line] = wordstart;
-					con->line_color[con->last_line] = curcolor;
-					wordstart = wordstart + (size_t) con->width;
-					wordlen -= con->width;
-				}
-				// force linebreak
-				con->last_line++;
-				con->line_start[con->last_line] = wordstart;
-				con->line_color[con->last_line] = curcolor;
-				linelen = wordlen + 1;
-				wordlen = 0;
-				wordstart = pos + 1;
-			} else {
-				linelen += wordlen + 1;
-				wordlen = 0;
-				wordstart = pos + 1;
-			}
-		} else if (IS_COLOR(pos)) {
-			curcolor = (int32_t) *(pos + 1) - '0';
-			pos++;
-		} else if (IS_LEGACY_COLOR(pos)) {
-			curcolor = CON_COLOR_ALT;
-		} else {
-			wordlen++;
-		}
-		pos++;
-
-		// handle line overflow
-		if (con->last_line >= CON_MAX_LINES - 4) {
-			for (i = 0; i < CON_MAX_LINES - (CON_MAX_LINES >> 2); i++) {
-				con->line_start[i] = con->line_start[i + (CON_MAX_LINES >> 2)];
-				con->line_color[i] = con->line_color[i + (CON_MAX_LINES >> 2)];
-			}
-			con->last_line -= CON_MAX_LINES >> 2;
-		}
+	console_string_t *str = g_new0(console_string_t, 1);
+	if (str == NULL) {
+		raise(SIGABRT);
 	}
 
-	// sentinel
-	con->line_start[con->last_line + 1] = pos;
+	str->level = level;
+	str->chars = g_strdup(string ?: "");
+	if (str->chars == NULL) {
+		raise(SIGABRT);
+	}
+
+	str->size = strlen(str->chars);
+	str->length = StrColorLen(str->chars);
+
+	str->timestamp = Sys_Milliseconds();
+
+	return str;
 }
 
 /*
- * @brief Change the width of an index, parse the console data structure if needed
+ * @brief Frees the specified console_str_t.
  */
-void Con_Resize(console_t *con, uint16_t width, uint16_t height) {
-	if (!console_data.insert)
-		return;
+static void Con_FreeString(console_string_t *str) {
 
-	if (con->height != height)
-		con->height = height;
-
-	if (con->width == width)
-		return;
-
-	// update the requested index
-	con->width = width;
-	con->last_line = 0;
-	Con_Update(con, console_data.text);
-
-#if BUILD_CLIENT
-	if (!dedicated->value) {
-		// clear client notification timings
-		if (con == &cl_console)
-			Cl_ClearNotify();
+	if (str) {
+		g_free(str->chars);
+		g_free(str);
 	}
-#endif
 }
 
 /*
- * @brief Clear the console data buffer
+ * @brief Frees all console_str_t.
+ */
+static void Con_FreeStrings(void) {
+
+	g_list_free_full(console_state.strings, (GDestroyNotify) Con_FreeString);
+
+	console_state.strings = NULL;
+	console_state.size = 0;
+}
+
+/*
+ * @brief Clears the console buffer.
  */
 static void Con_Clear_f(void) {
-	memset(console_data.text, 0, sizeof(console_data.text));
-	console_data.insert = console_data.text;
 
-#if BUILD_CLIENT
-	if (!dedicated->value) {
-		// update the index for the client console
-		cl_console.last_line = 0;
-		Con_Update(&cl_console, console_data.insert);
-	}
-#endif
-#if HAVE_CURSES
-	// update the index for the server console
-	sv_console.last_line = 0;
-	Con_Update(&sv_console, console_data.insert);
-	// redraw the server console
-	Curses_Refresh();
-#endif
+	Con_FreeStrings();
 }
 
 /*
- * @brief Save the console contents to a file
+ * @brief Save the console buffer to a file.
  */
 static void Con_Dump_f(void) {
-	file_t *file;
-	char *pos;
 
 	if (Cmd_Argc() != 2) {
 		Com_Print("Usage: %s <file_name>\n", Cmd_Argv(0));
 		return;
 	}
 
+	file_t *file;
 	if (!(file = Fs_OpenWrite(Cmd_Argv(1)))) {
 		Com_Warn("Couldn't open %s\n", Cmd_Argv(1));
 	} else {
-		pos = console_data.text;
-		while (pos < console_data.insert) {
-			if (IS_COLOR(pos)) {
-				pos++;
-			} else if (!IS_LEGACY_COLOR(pos)) {
-				if (Fs_Write(file, pos, 1, 1) != 1) {
-					Com_Warn("Failed to write console dump\n");
+		SDL_LockMutex(console_state.lock);
+
+		const GList *list = console_state.strings;
+		while (list) {
+			const char *c = ((console_string_t *) list->data)->chars;
+			while (*c) {
+				if (IS_COLOR(c)) {
+					c++;
+				} else if (!IS_LEGACY_COLOR(c)) {
+					if (Fs_Write(file, c, 1, 1) != 1) {
+						Com_Warn("Failed to dump console\n");
+						break;
+					}
+				}
+				c++;
+			}
+		}
+
+		SDL_UnlockMutex(console_state.lock);
+
+		Fs_Close(file);
+		Com_Print("Dumped console to %s.\n", Cmd_Argv(1));
+	}
+}
+
+/**
+ * @return True if `str` passes the console's filter, false otherwise.
+ */
+static _Bool Con_Filter(const console_t *console, const console_string_t *str) {
+
+	if (console->level) {
+		return console->level & str->level;
+	}
+
+	return true;
+}
+
+/*
+ * @brief Append a message to the console data buffer.
+ */
+void Con_Append(int32_t level, const char *string) {
+
+	console_string_t *str = Con_AllocString(level, string);
+
+	SDL_LockMutex(console_state.lock);
+
+	console_state.strings = g_list_append(console_state.strings, str);
+	console_state.size += str->size;
+
+	while (console_state.size > CON_MAX_SIZE) {
+		GList *first = g_list_first(console_state.strings);
+		str = first->data;
+
+		console_state.strings = g_list_remove_link(console_state.strings, first);
+		console_state.size -= str->size;
+
+		g_list_free_full(first, (GDestroyNotify) Con_FreeString);
+	}
+
+	console_state.len = g_list_length(console_state.strings);
+
+	SDL_UnlockMutex(console_state.lock);
+
+	if (console_state.consoles) {
+
+		// iterate the configured consoles and append the new string
+
+		for (GList *list = console_state.consoles; list; list = list->next) {
+			const console_t *console = list->data;
+
+			if (console->Append) {
+				if (Con_Filter(console, str)) {
+					console->Append(str);
+				}
+			}
+		}
+	} else {
+		char stripped[MAX_PRINT_MSG];
+		StripColors(string, stripped);
+		puts(stripped);
+	}
+}
+
+/**
+ * @brief Wraps the specified string for the given line width.
+ *
+ * @param chars The null-terminated C string.
+ * @param line_width The desired line width.
+ * @param lines The output to store the line offsets.
+ * @param max_lines The maximum number of line offsets to store.
+ *
+ * @return The number of line offsets.
+ *
+ * @remark If `lines` is `NULL`, this function simply counts the number of
+ * wrapped lines in `chars`.
+ */
+size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_lines) {
+
+	size_t count = 0;
+
+	const char *line = chars;
+	while (*line) {
+
+		size_t width = 0;
+
+		const char *c = line;
+		while (*c && width < line_width) {
+
+			if (*c == '\n') {
+				break;
+			}
+
+			if (IS_COLOR(c)) {
+				c += 2;
+			} else if (IS_LEGACY_COLOR(c)) {
+				c += 1;
+			} else {
+				c++;
+				width++;
+			}
+		}
+
+		const char *eol = c;
+
+		if (width == line_width) {
+			while (!isspace(*eol)) {
+				if (eol == line) {
+					eol = c;
 					break;
 				}
+				eol--;
 			}
-			pos++;
 		}
-		Fs_Close(file);
-		Com_Print("Dumped console text to %s.\n", Cmd_Argv(1));
+
+		if (lines) {
+			if (count < max_lines) {
+				lines[count] = g_strndup(line, eol - line);
+			} else {
+				break;
+			}
+		}
+
+		line = eol + 1;
+		count++;
 	}
+
+	return count;
+}
+
+/**
+ * @brief Tails the console, returning as many as `max_lines` in `lines.
+ *
+ * @param console The console to tail.
+ * @param lines The output to store line offsets.
+ * @param max_lines The maximum number of line offsets to store.
+ *
+ * @return The number of line offsets.
+ */
+size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
+
+	assert(console);
+
+	int32_t back = console->scroll + max_lines;
+
+	GList *start = NULL;
+	GList *list = g_list_last(console_state.strings);
+	while (list) {
+		const console_string_t *str = list->data;
+
+		if (str->timestamp < console->whence)
+			break;
+
+		if (Con_Filter(console, str)) {
+
+			back -= Con_Wrap(str->chars, console->width, NULL, 0);
+
+			if (back < 0) {
+				if (back < -1)
+					list = list->next;
+				break;
+			}
+		}
+
+		start = list;
+		list = list->prev;
+	}
+
+	size_t count = 0;
+
+	while (start) {
+		const console_string_t *str = start->data;
+
+		if (Con_Filter(console, str)) {
+			count += Con_Wrap(str->chars, console->width, lines + count, max_lines - count);
+		}
+
+		start = start->next;
+	}
+
+	return count;
 }
 
 /*
- * @brief Print a color-coded string to stdout, optionally removing colors.
+ * @brief Navigate history, copying the history line to the input buffer.
  */
-static void Con_PrintStdout(const char *text) {
-	char buf[MAX_PRINT_MSG];
-	int32_t bold, color;
-	uint32_t i;
+void Con_NavigateHistory(console_t *console, console_history_nav_t nav) {
 
-	// start the string with foreground color
-	memset(buf, 0, sizeof(buf));
-	if (con_ansi->value) {
-		strcpy(buf, "\033[0;39m");
-		i = 7;
-	} else {
-		i = 0;
+	assert(console);
+
+	console_history_t *hist = &console->history;
+
+	size_t p;
+	switch (nav) {
+		case CON_HISTORY_PREV:
+			p = (hist->pos - 1) % CON_HISTORY_SIZE;
+			break;
+		case CON_HISTORY_NEXT:
+			p = (hist->pos + 1) % CON_HISTORY_SIZE;
+			break;
 	}
 
-	while (*text && i < sizeof(buf) - 8) {
+	if (strlen(hist->strings[p])) {
+		console_input_t *in = &console->input;
 
-		if (IS_LEGACY_COLOR(text)) {
-			if (con_ansi->value) {
-				strcpy(&buf[i], "\033[0;32m");
-				i += 7;
-			}
-			text++;
-			continue;
-		}
+		g_strlcpy(in->buffer, hist->strings[p], sizeof(in->buffer));
+		in->pos = strlen(in->buffer);
 
-		if (IS_COLOR(text)) {
-			if (con_ansi->value) {
-				bold = 0;
-				color = 39;
-				switch (*(text + 1)) {
-					case '0': // black is mapped to bold
-						bold = 1;
-						break;
-					case '1': // red
-						color = 31;
-						break;
-					case '2': // green
-						color = 32;
-						break;
-					case '3': // yellow
-						bold = 1;
-						color = 33;
-						break;
-					case '4': // blue
-						color = 34;
-						break;
-					case '5': // cyan
-						color = 36;
-						break;
-					case '6': // magenta
-						color = 35;
-						break;
-					case '7': // white is mapped to foreground color
-						color = 39;
-						break;
-					default:
-						break;
-				}
-				g_snprintf(&buf[i], 8, "\033[%d;%dm", bold, color);
-				i += 7;
-			}
-			text += 2;
-			continue;
-		}
-
-		if (*text == '\n' && con_ansi->value) {
-			strcat(buf, "\033[0;39m");
-			i += 7;
-		}
-
-		buf[i++] = *text;
-		text++;
+		hist->pos = p;
 	}
-
-	if (con_ansi->value) // restore foreground color
-		strcat(buf, "\033[0;39m");
-
-	// print to stdout
-	if (buf[0] != '\0')
-		fputs(buf, stdout);
 }
 
-/*
- * @brief Print a message to the console data buffer
+/**
+ * @brief Reads the history log from file into the console's history.
  */
-void Con_Print(const char *text) {
+void Con_ReadHistory(console_t *console, file_t *file) {
+	char str[MAX_PRINT_MSG];
 
-	// this can get called before the console is initialized
-	if (!console_data.insert) {
-		memset(console_data.text, 0, sizeof(console_data.text));
-		console_data.insert = console_data.text;
+	assert(console);
+	assert(file);
+
+	console_history_t *hist = &console->history;
+
+	while (Fs_ReadLine(file, str, sizeof(str))) {
+		g_strlcpy(hist->strings[hist->index++ % CON_HISTORY_SIZE], str, sizeof(str));
 	}
 
-	// prevent overflow, text should still have a reasonable size
-	if (console_data.insert + strlen(text) >= console_data.text + sizeof(console_data.text) - 1) {
-		memcpy(console_data.text, console_data.text + (sizeof(console_data.text) >> 1), sizeof(console_data.text) >> 1);
-		memset(console_data.text + (sizeof(console_data.text) >> 1) ,0 , sizeof(console_data.text) >> 1);
-		console_data.insert -= sizeof(console_data.text) >> 1;
-#if BUILD_CLIENT
-		if (!dedicated->value) {
-			// update the index for the client console
-			cl_console.last_line = 0;
-			Con_Update(&cl_console, console_data.text);
+	hist->pos = hist->index;
+}
+
+/**
+ * @brief Writes the history buffer of the first configured console to file.
+ */
+void Con_WriteHistory(const console_t *console, file_t *file) {
+
+	assert(console);
+	assert(file);
+
+	const console_history_t *hist = &console->history;
+
+	for (size_t i = 1; i <= CON_HISTORY_SIZE; i++) {
+
+		const char *str = hist->strings[(hist->index + i) % CON_HISTORY_SIZE];
+		if (*str) {
+			Fs_Print(file, "%s\n", str);
+		} else {
+			break;
 		}
-#endif
-#if HAVE_CURSES
-		// update the index for the server console
-		sv_console.last_line = 0;
-		Con_Update(&sv_console, console_data.text);
-#endif
 	}
-
-	// copy the text into the console buffer
-	strcpy(console_data.insert, text);
-
-#if BUILD_CLIENT
-	if (!dedicated->value) {
-		const int32_t last_line = cl_console.last_line;
-
-		// update the index for the client console
-		Con_Update(&cl_console, console_data.insert);
-
-		// update client message notification times
-		Cl_UpdateNotify(last_line);
-	}
-#endif
-
-#if HAVE_CURSES
-	// update the index for the server console
-	Con_Update(&sv_console, console_data.insert);
-#endif
-
-	console_data.insert += strlen(text);
-
-#if HAVE_CURSES
-	if (!con_curses->value) {
-		// print output to stdout
-		Con_PrintStdout(text);
-	} else {
-		// Redraw the server console
-		Curses_Refresh();
-	}
-#else
-	// print output to stdout
-	Con_PrintStdout(text);
-#endif
 }
 
 /*
@@ -362,11 +370,11 @@ void Con_Print(const char *text) {
  * append it. If multiple matches are found, append the longest possible
  * common prefix they all share.
  */
-_Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len) {
+_Bool Con_CompleteInput(console_t *console) {
 	const char *pattern, *match;
 	GList *matches = NULL;
 
-	char *partial = input;
+	char *partial = console->input.buffer;
 	if (*partial == '\\' || *partial == '/')
 		partial++;
 
@@ -404,12 +412,67 @@ _Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len) {
 	else
 		match = CommonPrefix(matches);
 
-	g_snprintf(partial, len - (partial - input), "%s", match);
-	(*pos) = strlen(input);
+	const size_t len = sizeof(console->input.buffer) - 1;
+	g_snprintf(partial, len - (partial - console->input.buffer), "%s", match);
+	console->input.pos = strlen(console->input.buffer);
 
 	g_list_free_full(matches, Mem_Free);
 
 	return true;
+}
+
+/*
+ * @brief Handle buffered input for the specified console, submitting it to the
+ * command subsystem, appending it to all configured consoles, and resetting the
+ * input state.
+ */
+void Con_SubmitInput(console_t *console) {
+
+	if (*console->input.buffer) {
+
+		const size_t h = console->history.index++ % CON_HISTORY_SIZE;
+		g_strlcpy(console->history.strings[h], console->input.buffer, MAX_PRINT_MSG);
+
+		console->history.pos = console->history.index;
+
+		if (!g_str_has_suffix(console->input.buffer, "\n")) {
+			g_strlcat(console->input.buffer, "\n", sizeof(console->input.buffer));
+		}
+
+		const char *cmd = console->input.buffer;
+		if (*cmd == '\\' || *cmd == '/') {
+			cmd++;
+		}
+
+		Cbuf_AddText(cmd);
+		Con_Append(PRINT_ECHO, cmd);
+
+		memset(&console->input, 0, sizeof(console->input));
+	}
+}
+
+/*
+ * @brief Adds the given console to the configured consoles.
+ */
+void Con_AddConsole(const console_t *console) {
+
+	SDL_LockMutex(console_state.lock);
+
+	console_state.consoles = g_list_append(console_state.consoles, (gpointer) console);
+
+	SDL_UnlockMutex(console_state.lock);
+}
+
+/*
+ * @brief Removes the given console from the configured consoles.
+ */
+void Con_RemoveConsole(const console_t *console) {
+
+	SDL_LockMutex(console_state.lock);
+
+	console_state.consoles = g_list_remove(console_state.consoles, (gpointer) console);
+
+	SDL_UnlockMutex(console_state.lock);
 }
 
 /*
@@ -418,25 +481,9 @@ _Bool Con_CompleteCommand(char *input, uint16_t *pos, uint16_t len) {
  */
 void Con_Init(void) {
 
-#if defined(_WIN32)
-	if (dedicated->value) {
-		if (AllocConsole()) {
-			freopen("CONIN$", "r", stdin);
-			freopen("CONOUT$", "w", stdout);
-			freopen("CONERR$", "w", stderr);
-		} else {
-			Com_Warn("Failed to allocate console: %u\n", (uint32_t) GetLastError());
-		}
-	}
+	memset(&console_state, 0, sizeof(console_state));
 
-	con_ansi = Cvar_Get("con_ansi", "0", CVAR_NO_SET, NULL);
-#else
-	con_ansi = Cvar_Get("con_ansi", "1", CVAR_ARCHIVE, NULL);
-#endif
-
-#if HAVE_CURSES
-	Curses_Init();
-#endif
+	console_state.lock = SDL_CreateMutex();
 
 	Cmd_Add("clear", Con_Clear_f, 0, NULL);
 	Cmd_Add("dump", Con_Dump_f, 0, NULL);
@@ -450,13 +497,9 @@ void Con_Shutdown(void) {
 	Cmd_Remove("clear");
 	Cmd_Remove("dump");
 
-#if HAVE_CURSES
-	Curses_Shutdown();
-#endif
+	Con_FreeStrings();
 
-#if defined(_WIN32)
-	if (dedicated->value) {
-		FreeConsole();
-	}
-#endif
+	g_list_free(console_state.consoles);
+
+	SDL_DestroyMutex(console_state.lock);
 }

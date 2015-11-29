@@ -1,8 +1,6 @@
 noinst_LTLIBRARIES = \
 	libanttweakbar.la
 
-if BUILD_CLIENT
-
 noinst_HEADERS = \
 	AntPerfTimer.h \
 	LoadOGL.h \
@@ -44,14 +42,3 @@ libanttweakbar_la_LIBADD = \
 	@OPENGL_LIBS@ \
 	@SDL2_LIBS@ \
 	-lstdc++
-
-else
-
-libanttweakbar_la_SOURCES = \
-	../../../src/null.c
-
-libanttweakbar_la_CFLAGS = \
-	-D__LIBTOOL_LIBRARY__=libanttweakbar_la
-
-endif
-

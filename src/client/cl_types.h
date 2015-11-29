@@ -30,7 +30,7 @@
 typedef struct {
 	pm_cmd_t cmd; // the movement command
 	uint32_t time; // simulation time when the command was sent
-	uint32_t real_time; // system time when the command was sent
+	uint32_t timestamp; // system time when the command was sent
 } cl_cmd_t;
 
 typedef struct {
@@ -159,7 +159,7 @@ typedef struct {
 	uint32_t surpress_count; // number of messages rate suppressed
 
 	uint32_t time; // this is the server time value that the client
-	// is rendering at. always <= cls.real_time due to latency
+	// is rendering at. always <= quetoo.time due to latency
 
 	vec_t lerp; // linear interpolation between frames
 
@@ -195,19 +195,16 @@ typedef enum {
 	CL_DISCONNECTED, // not talking to a server
 	CL_CONNECTING, // sending request packets to the server
 	CL_CONNECTED, // netchan_t established, waiting for svc_server_data
-	CL_ACTIVE
-// game views should be displayed
+	CL_LOADING, // loading media
+	CL_ACTIVE // game views should be displayed
 } cl_state_t;
 
 typedef enum {
-	KEY_GAME,
 	KEY_UI,
 	KEY_CONSOLE,
+	KEY_GAME,
 	KEY_CHAT
 } cl_key_dest_t;
-
-#define KEY_HISTORY_SIZE 64
-#define KEY_LINE_SIZE 512
 
 typedef enum {
 	SDL_SCANCODE_MOUSE1 = (SDL_SCANCODE_APP2 + 1),
@@ -234,30 +231,19 @@ enum {
 typedef struct {
 	cl_key_dest_t dest;
 
-	char lines[KEY_HISTORY_SIZE][KEY_LINE_SIZE];
-	uint16_t pos;
-
-	_Bool insert;
-	_Bool repeat;
-
-	uint32_t edit_line;
-	uint32_t history_line;
-
 	char *binds[SDL_NUM_SCANCODES];
 	_Bool down[SDL_NUM_SCANCODES];
 } cl_key_state_t;
+
+typedef struct {
+	_Bool team_chat;
+} cl_chat_state_t;
 
 typedef struct {
 	vec_t x, y;
 	vec_t old_x, old_y;
 	_Bool grabbed;
 } cl_mouse_state_t;
-
-typedef struct {
-	char buffer[KEY_LINE_SIZE];
-	size_t len;
-	_Bool team;
-} cl_chat_state_t;
 
 typedef struct {
 	_Bool http;
@@ -285,6 +271,12 @@ typedef struct {
 	uint16_t ping; // server latency
 } cl_server_info_t;
 
+typedef struct {
+	uint16_t percent;
+	const char *status;
+	r_image_t *background;
+} cl_loading_t;
+
 /*
  * @brief The cl_static_t structure is persistent for the execution of the
  * game. It is only cleared when Cl_Init is called. It is not exposed to the
@@ -299,8 +291,6 @@ typedef struct {
 
 	cl_chat_state_t chat_state;
 
-	uint32_t real_time; // always increasing, no clamping, etc
-
 	uint32_t packet_delta; // milliseconds since last outgoing packet
 	uint32_t render_delta; // milliseconds since last renderer frame
 
@@ -313,7 +303,7 @@ typedef struct {
 	uint32_t challenge; // from the server to use for connecting
 	uint32_t spawn_count;
 
-	uint16_t loading; // loading percentage indicator
+	cl_loading_t loading; // loading status
 
 	char download_url[MAX_OS_PATH]; // for http downloads
 	cl_download_t download; // current download (udp or http)

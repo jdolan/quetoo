@@ -30,6 +30,7 @@
 #include "thread.h"
 
 #include "sv_admin.h"
+#include "sv_console.h"
 #include "sv_client.h"
 #include "sv_entity.h"
 #include "sv_game.h"

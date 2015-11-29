@@ -42,6 +42,14 @@ typedef struct r_media_s {
 
 typedef int16_t r_pixel_t;
 
+// 32 bit RGBA colors
+typedef union {
+	struct {
+		byte r, g, b, a;
+	} bytes;
+	uint32_t c;
+} r_color_t;
+
 // high bits OR'ed with image types
 #define IT_MASK_MIPMAP 128
 #define IT_MASK_FILTER 256

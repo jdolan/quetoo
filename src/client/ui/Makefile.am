@@ -13,8 +13,6 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = \
 	libui.la
 
-if BUILD_CLIENT
-
 libui_la_SOURCES = \
 	ui_credits.c \
 	ui_controls.c \
@@ -39,13 +37,3 @@ libui_la_LDFLAGS = \
 libui_la_LIBADD = \
 	../../../deps/AntTweakBar/src/libanttweakbar.la \
 	../../libcommon.la
-
-else
-
-libui_la_SOURCES = \
-	../../null.c
-	
-libui_la_CFLAGS = \
-	-D__LIBTOOL_LIBRARY__=libui_la
-
-endif

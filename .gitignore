@@ -32,6 +32,7 @@ Makefile.in
 missing
 nbproject
 src/main/quetoo
+src/main/quetoo-dedicated
 src/master/quetoo-master
 src/tests/*.log
 src/tests/*.trs

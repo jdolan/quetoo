@@ -21,29 +21,6 @@
 
 #include "sv_local.h"
 
-char sv_outputbuf[SV_OUTPUTBUF_LENGTH];
-
-/*
- * @brief Handles Com_Print output redirection, allowing the server to send output
- * from any command to a connected client or even a foreign one.
- */
-void Sv_FlushRedirect(int32_t target, const char *buffer) {
-
-	switch (target) {
-		case RD_PACKET:
-			Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "print\n%s", buffer);
-			break;
-		case RD_CLIENT:
-			Net_WriteByte(&sv_client->net_chan.message, SV_CMD_PRINT);
-			Net_WriteByte(&sv_client->net_chan.message, PRINT_HIGH);
-			Net_WriteString(&sv_client->net_chan.message, buffer);
-			break;
-		default:
-			Com_Debug("Sv_FlushRedirect: %d\n", target);
-			break;
-	}
-}
-
 /*
  * @brief Sends text across to be displayed if the level filter passes.
  */
@@ -195,10 +172,6 @@ void Sv_Unicast(const g_entity_t *ent, const _Bool reliable) {
 /*
  * @brief Sends the contents of sv.multicast to a subset of the clients,
  * then clears sv.multicast.
- *
- * MULTICAST_ALL	same as broadcast (origin can be NULL)
- * MULTICAST_PVS	send to clients potentially visible from org
- * MULTICAST_PHS	send to clients potentially hearable from org
  */
 void Sv_Multicast(const vec3_t origin, multicast_t to) {
 	byte vis[MAX_BSP_LEAFS >> 3];

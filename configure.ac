@@ -115,193 +115,120 @@ AM_CONDITIONAL([WINDOWS], [test "x$HOST_NAME" = "xWINDOWS"])
 AM_CONDITIONAL([LINUX], [test "x$HOST_NAME" = "xLINUX"])
 
 dnl --------------
+dnl Check for cURL
+dnl --------------
+
+PKG_CHECK_MODULES([CURL], [libcurl])
+
+dnl -----------------
+dnl Check for curses
+dnl -----------------
+
+PKG_CHECK_MODULES([CURSES], [ncurses >= 5.0])
+
+dnl --------------
 dnl Check for GLib
 dnl --------------
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.0.0])
 
-dnl ----------------
-dnl Check for PHYSFS
-dnl ----------------
+dnl -----------------
+dnl Check for libxml2
+dnl -----------------
 
-AC_ARG_WITH(physfs,
-	AS_HELP_STRING([--with-physfs=DIR],
-		[use alternate location of PhysFS]
-	)
+PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4)
+
+dnl --------------------------------------
+dnl Check for SDL2, SDL2_image, SDL2_mixer
+dnl --------------------------------------
+
+PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image SDL2_mixer])
+
+dnl --------------
+dnl Check for JPEG
+dnl --------------
+
+AC_CHECK_HEADER(jpeglib.h,
+	JPEG_LIBS="-ljpeg",
+	[AC_MSG_ERROR([Could not find jpeglib.h, please install libjpeg])]
 )
+AC_SUBST(JPEG_LIBS)
 
-if test "x${with_physfs}" != x; then
-	PHYSFS_CFLAGS="$PHYSFS_CFLAGS -I${with_physfs}/include"
-	PHYSFS_LIBS="$PHYSFS_LDFLAGS -L${with_physfs}/lib"
-fi
-
-save_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS $PHYSFS_CFLAGS"
+dnl -------------------
+dnl Check for PhysicsFS
+dnl -------------------
 
 AC_CHECK_HEADER(physfs.h,
-	PHYSFS_LIBS="$PHYSFS_LIBS -lphysfs -lz",
+	PHYSFS_LIBS="-lphysfs -lz",
 	[AC_MSG_ERROR([Could not find physfs.h, please install PhysFS])]
 )
-AC_SUBST(PHYSFS_CFLAGS)
 AC_SUBST(PHYSFS_LIBS)
 
-CPPFLAGS="$save_CPPFLAGS"
+dnl -----------------------------------
+dnl Sort out OpenGL an flags and libraries
+dnl -----------------------------------
 
-dnl -----------------------------
-dnl Check whether to build client
-dnl -----------------------------
+HOST_OPENGL_CFLAGS=""
+HOST_OPENGL_LIBS=""
 
-BUILD_CLIENT=no
+case "$host" in
+	*-apple-*)
+		HOST_OPENGL_LIBS="-framework OpenGL"
+		;;
+	*-mingw*)
+		HOST_OPENGL_LIBS="-lopengl32"
+		;;
+	*)
+		HOST_OPENGL_LIBS="-lGL"
+		;;
+esac
 
-AC_ARG_WITH(client,
-	AS_HELP_STRING([--without-client], [build a dedicated server])
-)
+AC_SUBST(HOST_OPENGL_CFLAGS)
+AC_SUBST(HOST_OPENGL_LIBS)
 
-AC_MSG_CHECKING(whether to build client)
+OPENGL_CFLAGS="$OPENGL_CFLAGS $HOST_OPENGL_CFLAGS"
+AC_SUBST(OPENGL_CFLAGS)
 
-if test "x${with_client}" = xno; then
-    AC_MSG_RESULT(no)
-    
-    dnl ---------------------------------------
-	dnl The server needs SDL core for threading
-	dnl ---------------------------------------
+OPENGL_LIBS="$OPENGL_LIBS $HOST_OPENGL_LIBS"
+AC_SUBST(OPENGL_LIBS)
 
-	PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0])
-	
-else
-	AC_MSG_RESULT(yes)
-	BUILD_CLIENT=yes
+dnl ----------------------------------------
+dnl Sort out AntTweakBar flags and libraries
+dnl ----------------------------------------
 
-	AC_DEFINE(BUILD_CLIENT, 1, [Define to 1 to build a client.])
+HOST_ANTTWEAKBAR_CXXFLAGS=""
+HOST_ANTTWEAKBAR_CFLAGS=""
+HOST_ANTTWEAKBAR_LIBS=""
 
-	dnl ------------------------------------------
-	dnl Check for SDL2, SDL2_image, SDL2_mixer
-	dnl ------------------------------------------
+case "$host" in
+	*-apple-*)
+		HOST_ANTTWEAKBAR_CXXFLAGS="-D_MACOSX -I/usr/X11R6/include -x objective-c++"
+		HOST_ANTTWEAKBAR_CFLAGS="-D_MACOSX -I/usr/X11R6/include"
+		HOST_ANTTWEAKBAR_LIBS="-framework GLUT -framework AppKit"
+		;;
+	*-*-mingw*)
+		HOST_ANTTWEAKBAR_CXXFLAGS="-D_WINDOWS -DTW_STATIC -fpermissive"
+		HOST_ANTTWEAKBAR_CFLAGS="-D_WINDOWS -DTW_STATIC"
+		;;
+	*)
+		HOST_ANTTWEAKBAR_CXXFLAGS="-D_UNIX -I/usr/X11R6/include"
+		HOST_ANTTWEAKBAR_CFLAGS="-D_UNIX -I/usr/X11R6/include"
+		HOST_ANTTWEAKBAR_LIBS="-lX11 -lXext"
+		;;
+esac
 
-	PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image SDL2_mixer])
+AC_SUBST(HOST_ANTTWEAKBAR_CXXFLAGS)
+AC_SUBST(HOST_ANTTWEAKBAR_CFLAGS)
+AC_SUBST(HOST_ANTTWEAKBAR_LIBS)
 
-	dnl -----------------------------------
-	dnl Sort out OpenGL an flags and libraries
-	dnl -----------------------------------
+ANTTWEAKBAR_CXXFLAGS="-fno-strict-aliasing $ANTTWEAKBAR_CXXFLAGS $HOST_ANTTWEAKBAR_CXXFLAGS"
+AC_SUBST(ANTTWEAKBAR_CXXFLAGS)
 
-	HOST_OPENGL_CFLAGS=""
-	HOST_OPENGL_LIBS=""
+ANTTWEAKBAR_CFLAGS="-fno-strict-aliasing $ANTTWEAKBAR_CFLAGS $HOST_ANTTWEAKBAR_CFLAGS"
+AC_SUBST(ANTTWEAKBAR_CFLAGS)
 
-	case "$host" in
-		*-apple-*)
-			HOST_OPENGL_LIBS="-framework OpenGL"
-			;;
-		*-mingw*)
-			HOST_OPENGL_LIBS="-lopengl32"
-			;;
-		*)
-			HOST_OPENGL_LIBS="-lGL"
-			;;
-	esac
+ANTTWEAKBAR_LIBS="$ANTTWEAKBAR_LIBS $HOST_ANTTWEAKBAR_LIBS"
+AC_SUBST(ANTTWEAKBAR_LIBS)
 
-	AC_SUBST(HOST_OPENGL_CFLAGS)
-	AC_SUBST(HOST_OPENGL_LIBS)
-
-	OPENGL_CFLAGS="$OPENGL_CFLAGS $HOST_OPENGL_CFLAGS"
-	AC_SUBST(OPENGL_CFLAGS)
-
-	OPENGL_LIBS="$OPENGL_LIBS $HOST_OPENGL_LIBS"
-	AC_SUBST(OPENGL_LIBS)
-
-	dnl ----------------------------------------
-	dnl Sort out AntTweakBar flags and libraries
-	dnl ----------------------------------------
-
-	HOST_ANTTWEAKBAR_CXXFLAGS=""
-	HOST_ANTTWEAKBAR_CFLAGS=""
-	HOST_ANTTWEAKBAR_LIBS=""
-
-	case "$host" in
-		*-apple-*)
-			HOST_ANTTWEAKBAR_CXXFLAGS="-D_MACOSX -I/usr/X11R6/include -x objective-c++"
-			HOST_ANTTWEAKBAR_CFLAGS="-D_MACOSX -I/usr/X11R6/include"
-			HOST_ANTTWEAKBAR_LIBS="-framework GLUT -framework AppKit"
-			;;
-		*-*-mingw*)
-			HOST_ANTTWEAKBAR_CXXFLAGS="-D_WINDOWS -DTW_STATIC -fpermissive"
-			HOST_ANTTWEAKBAR_CFLAGS="-D_WINDOWS -DTW_STATIC"
-			;;
-		*)
-			HOST_ANTTWEAKBAR_CXXFLAGS="-D_UNIX -I/usr/X11R6/include"
-			HOST_ANTTWEAKBAR_CFLAGS="-D_UNIX -I/usr/X11R6/include"
-			HOST_ANTTWEAKBAR_LIBS="-lX11 -lXext"
-			;;
-	esac
-
-	AC_SUBST(HOST_ANTTWEAKBAR_CXXFLAGS)
-	AC_SUBST(HOST_ANTTWEAKBAR_CFLAGS)
-	AC_SUBST(HOST_ANTTWEAKBAR_LIBS)
-
-	ANTTWEAKBAR_CXXFLAGS="-fno-strict-aliasing $ANTTWEAKBAR_CXXFLAGS $HOST_ANTTWEAKBAR_CXXFLAGS"
-	AC_SUBST(ANTTWEAKBAR_CXXFLAGS)
-
-	ANTTWEAKBAR_CFLAGS="-fno-strict-aliasing $ANTTWEAKBAR_CFLAGS $HOST_ANTTWEAKBAR_CFLAGS"
-	AC_SUBST(ANTTWEAKBAR_CFLAGS)
-
-	ANTTWEAKBAR_LIBS="$ANTTWEAKBAR_LIBS $HOST_ANTTWEAKBAR_LIBS"
-	AC_SUBST(ANTTWEAKBAR_LIBS)
-
-	dnl --------------
-	dnl Check for cURL
-	dnl --------------
-
-	PKG_CHECK_MODULES([CURL], [libcurl])
-
-	dnl --------------
-	dnl Check for JPEG
-	dnl --------------
-
-	AC_CHECK_HEADER(jpeglib.h,
-		JPEG_LIBS="-ljpeg",
-		[AC_MSG_ERROR([Could not find jpeglib.h, please install libjpeg])]
-	)
-	AC_SUBST(JPEG_LIBS)
-
-	dnl --------------------------
-	dnl Check which tools to build
-	dnl --------------------------
-
-	AC_MSG_CHECKING(which tools to build)
-
-	TOOLS="quemap"
-	TOOL_DIRS="$TOOLS"
-
-	AC_ARG_WITH(tools,
-		AS_HELP_STRING([--with-tools='quemap ...'],
-			[build specified tools]
-		)
-	)
-
-	if test "x${with_tools}" = xno; then
-		TOOLS="no"
-		TOOL_DIRS=""
-	elif test "x${with_tools}" != x; then
-		TOOLS="${with_tools}"
-		TOOL_DIRS="${with_tools}"
-	fi
-
-	AC_MSG_RESULT($TOOLS)
-	AC_SUBST(TOOL_DIRS)
-	
-	echo "${TOOLS}" | grep -q quemap && {
-	
-		dnl -----------------
-		dnl Check for libxml2
-		dnl -----------------
-		
-		PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4)
-	}
-fi
-
-AM_CONDITIONAL([BUILD_CLIENT], [test "x$BUILD_CLIENT" = "xyes"])
-AM_CONDITIONAL([BUILD_TOOLS], [test "x$TOOL_DIRS" != "x"])
-
-AC_SUBST(SDL2_CFLAGS)
-AC_SUBST(SDL2_LIBS)
 
 dnl -------------------------------
 dnl Check for execinfo.h (optional)
@@ -312,98 +239,6 @@ AC_CHECK_HEADER(execinfo.h,
 	[Define to 1 if you have the <execinfo.h> header file.]),
 )
 
-dnl ---------------------------
-dnl Check for curses (optional)
-dnl ---------------------------
-
-HAVE_CURSES=no
-
-AC_ARG_WITH(curses,
-	AS_HELP_STRING([--with-curses(=DIR)],
-		[use curses (optionally, found in DIR)]
-	)
-)
-
-if test "x${with_curses}" != xno; then
-	if test "x${with_curses}" != xyes; then
-		CURSES_CFLAGS="$CURSES_CFLAGS -I${with_curses}/include"
-		CURSES_LDFLAGS="$CURSES_LDFLAGS -L${with_curses}/lib"
-	fi
-	save_CPPFLAGS="$CPPFLAGS"
-	save_LDFLAGS="$LDFLAGS"
-
-	CPPFLAGS="$CPPFLAGS $CURSES_CFLAGS"
-	LDFLAGS="$LDFLAGS $CURSES_LDFLAGS"
-
-	dnl -----------------------
-	dnl Check for curses header
-	dnl -----------------------
-
-	AC_CHECK_HEADER(curses.h,
-		HAVE_CURSES=maybe,
-		HAVE_CURSES=no
-	)
-
-	dnl -----------------
-	dnl Check for ncurses
-	dnl -----------------
-
-	if test "${HAVE_CURSES}" = maybe; then
-		AC_CHECK_LIB(ncurses, initscr,
-			HAVE_CURSES=ncurses
-			AC_DEFINE(HAVE_CURSES, 1,
-					[Define to value if you have a curses compatible library.])
-			CURSES_LIBS="$CURSES_LIBS -lncurses",
-			HAVE_CURSES=maybe
-		)
-	fi
-
-	dnl ------------------
-	dnl Check for pdcurses
-	dnl ------------------
-
-	if test "${HAVE_CURSES}" = maybe; then
-		AC_CHECK_LIB(pdcurses, initscr,
-			HAVE_CURSES=pdcurses
-			AC_DEFINE(HAVE_CURSES, 1,
-					[Define to value if you have a curses compatible library.])
-			CURSES_LIBS="$CURSES_LIBS -lpdcurses",
-			HAVE_CURSES=maybe
-		)
-	fi
-
-	dnl ------------------------
-	dnl Check for generic curses
-	dnl ------------------------
-
-	if test "${HAVE_CURSES}" = maybe; then
-		AC_CHECK_LIB(curses, initscr,
-			HAVE_CURSES=curses
-			AC_DEFINE(HAVE_CURSES, 1,
-					[Define to value if you have a curses library.])
-			CURSES_LIBS="$CURSES_LIBS -lcurses",
-			HAVE_CURSES=no
-		)
-	fi
-
-	dnl --------------------------------------------
-	dnl For dedicated servers, curses is recommended
-	dnl --------------------------------------------
-
-	if test "${HAVE_CURSES}" = no -a "${with_client}" = no; then
-		AC_MSG_ERROR([Could not find curses, which is strongly recommended for dedicated servers.
-		You should install curses, or ./configure --without-curses to ignore this error.
-		])
-	fi
-
-	CPPFLAGS="$save_CPPFLAGS"
-	LDFLAGS="$save_LDFLAGS"
-fi
-
-AC_SUBST(CURSES_CFLAGS)
-AC_SUBST(CURSES_LDFLAGS)
-AC_SUBST(CURSES_LIBS)
-
 dnl --------------------------
 dnl Check for MySQL (optional)
 dnl --------------------------
@@ -412,7 +247,7 @@ HAVE_MYSQL=no
 
 AC_ARG_WITH(mysql,
 	AS_HELP_STRING([--with-mysql],
-		[use mysql (relies on mysql_config)]
+		[use MySQL (relies on mysql_config)]
 	)
 )
 
@@ -444,6 +279,7 @@ dnl ---------------------------------
 AC_MSG_CHECKING(which game modules to build)
 
 GAME_MODULES="default"
+
 AC_ARG_WITH(games,
     AS_HELP_STRING([--with-games='default ...'],
 		[build specified game modules]
@@ -453,8 +289,30 @@ AC_ARG_WITH(games,
 if test "x${with_games}" != x; then
     GAME_MODULES="${with_games}"
 fi
+
 AC_SUBST(GAME_MODULES)
 AC_MSG_RESULT($GAME_MODULES)
+
+dnl --------------------------
+dnl Check which tools to build
+dnl --------------------------
+
+AC_MSG_CHECKING(which tools to build)
+
+TOOLS="quemap"
+
+AC_ARG_WITH(tools,
+	AS_HELP_STRING([--with-tools='quemap ...'],
+		[build specified tools]
+	)
+)
+
+if test "x${with_tools}" != x; then
+	TOOLS="${with_tools}"
+fi
+
+AC_SUBST(TOOLS)
+AC_MSG_RESULT($TOOLS)
 
 dnl ------------------------------------
 dnl Check whether to build master server
@@ -671,14 +529,12 @@ Quetoo $VERSION: Automatic configuration OK.
     Libraries: ......... $BASE_LIBS
     Linking: ........... $BASE_LDFLAGS
 
-    Client: ............ $BUILD_CLIENT
     Game modules: ...... $GAME_MODULES
-    Tools: ............. ${TOOLS:-None}
+    Tools: ............. $TOOLS
     Master server: ..... $BUILD_MASTER
     Unit tests: ........ $BUILD_TESTS
 
     Options:
-      curses: .......... $HAVE_CURSES
       MySQL: ........... $HAVE_MYSQL
 
   Installation directories:

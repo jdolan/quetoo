@@ -42,8 +42,6 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = \
 	librenderer.la
 
-if BUILD_CLIENT
-
 librenderer_la_SOURCES = \
 	r_array.c \
 	r_bsp_light.c \
@@ -92,13 +90,3 @@ librenderer_la_LIBADD = \
 	../../libimage.la \
 	@JPEG_LIBS@ \
 	@OPENGL_LIBS@
-
-else
-
-librenderer_la_SOURCES = \
-	../../null.c
-	
-librenderer_la_CFLAGS = \
-	-D__LIBTOOL_LIBRARY__=librenderer_la
-	
-endif

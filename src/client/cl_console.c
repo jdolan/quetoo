@@ -19,60 +19,204 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-/*
- * cl_console.c
- * Drawing functions for the client console
- */
-
 #include "cl_local.h"
 
 console_t cl_console;
+console_t cl_chat_console;
 
-static cvar_t *cl_console_alpha;
+static cvar_t *cl_notify_lines;
 static cvar_t *cl_notify_time;
+
+static cvar_t *cl_chat_lines;
+static cvar_t *cl_chat_time;
+
+/**
+ * @brief
+ */
+static void Cl_DrawConsole_Buffer(void) {
+	r_pixel_t cw, ch, height;
+
+	R_BindFont("small", &cw, &ch);
+
+	if (cls.state == CL_ACTIVE) {
+		height = r_context.height * 0.5;
+		R_DrawFill(0, 0, r_context.width, height, 7, 0.3);
+	} else {
+		height = r_context.height;
+		R_DrawFill(0, 0, r_context.width, height, 0, 1.0);
+	}
+
+	cl_console.width = r_context.width / cw;
+	cl_console.height = (height / ch) - 1;
+
+	char *lines[cl_console.height];
+	const size_t count = Con_Tail(&cl_console, lines, cl_console.height);
+
+	r_pixel_t y = (cl_console.height - count) * ch;
+
+	for (size_t i = 0; i < count; i++) {
+		R_DrawString(0, y, lines[i], CON_COLOR_DEFAULT);
+		g_free(lines[i]);
+		y += ch;
+	}
+}
+
+/*
+ * @brief The input line scrolls horizontally if typing goes beyond the right edge
+ */
+static void Cl_DrawConsole_Input(void) {
+	r_pixel_t cw, ch;
+
+	R_BindFont("small", &cw, &ch);
+
+	r_pixel_t x = 1, y = cl_console.height * ch;
+
+	// draw the prompt
+	R_DrawChar(0, y, ']', CON_COLOR_ALT);
+
+	// and the input buffer, scrolling horizontally if appropriate
+	const char *s = cl_console.input.buffer;
+	if (cl_console.input.pos > cl_console.width - 2) {
+		s += 2 + cl_console.input.pos - cl_console.width;
+	}
+
+	while (*s) {
+		R_DrawChar(x * cw, y, *s, CON_COLOR_DEFAULT);
+
+		s++;
+		x++;
+	}
+
+	// and lastly cursor
+	R_DrawChar(x * cw, y, 0x0b, CON_COLOR_DEFAULT);
+}
+
+/*
+ * @brief
+ */
+void Cl_DrawConsole(void) {
+
+	Cl_DrawConsole_Buffer();
+
+	Cl_DrawConsole_Input();
+
+	R_BindFont(NULL, NULL, NULL);
+}
+
+/**
+ * @brief Draws the last few lines of output transparently over the game top
+ */
+void Cl_DrawNotify(void) {
+	r_pixel_t cw, ch;
+
+	R_BindFont("small", &cw, &ch);
+
+	console_t con = {
+		.width = r_context.width / cw,
+		.height = Clamp(cl_notify_lines->integer, 1, 12),
+		.level = ~PRINT_ECHO,
+	};
+
+	if (quetoo.time > cl_notify_time->value * 1000) {
+		con.whence = quetoo.time - cl_notify_time->value * 1000;
+	}
+
+	char *lines[con.height];
+	const size_t count = Con_Tail(&con, lines, con.height);
+
+	r_pixel_t y = 0;
+
+	for (size_t i = 0; i < count; i++) {
+		R_DrawString(0, y, lines[i], CON_COLOR_DEFAULT);
+		g_free(lines[i]);
+		y += ch;
+	}
+
+	R_BindFont(NULL, NULL, NULL);
+}
+
+/**
+ * @brief Draws the chat history and, optionally, the chat input string.
+ */
+void Cl_DrawChat(void) {
+	r_pixel_t cw, ch;
+
+	R_BindFont("small", &cw, &ch);
+
+	r_pixel_t x = 1, y = r_view.y + r_view.height * 0.66;
+
+	cl_chat_console.width = r_context.width / cw / 3;
+	cl_chat_console.height = Clamp(cl_chat_lines->integer, 0, 8);
+
+	if (cl_chat_console.height) {
+
+		char *lines[cl_chat_console.height];
+		const size_t count = Con_Tail(&cl_chat_console, lines, cl_chat_console.height);
+
+		for (size_t i = 0; i < count; i++) {
+			R_DrawString(0, y, lines[i], CON_COLOR_DEFAULT);
+			g_free(lines[i]);
+			y += ch;
+		}
+	}
+
+	if (cls.key_state.dest == KEY_CHAT) {
+
+		const int32_t color = cls.chat_state.team_chat ? CON_COLOR_TEAMCHAT : CON_COLOR_CHAT;
+
+		// draw the prompt
+		R_DrawChar(0, y, ']', color);
+
+		// and the input, scrolling horizontally if appropriate
+		const char *s = cl_chat_console.input.buffer;
+		if (cl_chat_console.input.pos > cl_chat_console.width - 2) {
+			s += 2 + cl_chat_console.input.pos - cl_chat_console.width;
+		}
+
+		while (*s) {
+			R_DrawChar(x * cw, y, *s, CON_COLOR_DEFAULT);
+
+			s++;
+			x++;
+		}
+
+		// and lastly cursor
+		R_DrawChar(x * cw, y, 0x0b, CON_COLOR_DEFAULT);
+	}
+}
+
+/*
+ * @brief
+ */
+static void Cl_Print(const console_string_t *str) {
+
+	puts(str->chars);
+}
 
 /*
  * @brief
  */
 void Cl_ToggleConsole_f(void) {
 
-	if (cls.state == CL_CONNECTING || cls.state == CL_CONNECTED) {
-		// wait until we've loaded
-		return;
-	}
-
-	Cl_ClearTyping();
-
-	Cl_ClearNotify();
-
 	if (cls.key_state.dest == KEY_CONSOLE) {
-
-		if (cls.state == CL_ACTIVE)
-			cls.key_state.dest = KEY_GAME;
-		else
-			cls.key_state.dest = KEY_UI;
-	} else
-		cls.key_state.dest = KEY_CONSOLE;
+		if (cls.state == CL_ACTIVE) {
+			Cl_SetKeyDest(KEY_GAME);
+		} else {
+			Cl_SetKeyDest(KEY_UI);
+		}
+	} else {
+		Cl_SetKeyDest(KEY_CONSOLE);
+	}
 }
 
-/*
- * @brief Update client message notification times.
- */
-void Cl_UpdateNotify(int32_t last_line) {
-	int32_t i;
+static void Cl_MessageMode(_Bool team) {
 
-	for (i = last_line; i < cl_console.last_line; i++)
-		cl_console.notify_times[i % CON_NUM_NOTIFY] = cls.real_time;
-}
+	console_input_t *in = &cl_chat_console.input;
+	memset(in, 0, sizeof(*in));
 
-/*
- * @brief Clear client message notification times.
- */
-void Cl_ClearNotify(void) {
-	int32_t i;
+	cls.chat_state.team_chat = team;
 
-	for (i = 0; i < CON_NUM_NOTIFY; i++)
-		cl_console.notify_times[i] = 0;
+	Cl_SetKeyDest(KEY_CHAT);
 }
 
 /*
@@ -80,23 +224,15 @@ void Cl_ClearNotify(void) {
  */
 static void Cl_MessageMode_f(void) {
 
-	memset(&cls.chat_state, 0, sizeof(cl_chat_state_t));
-
-	cls.chat_state.team = false;
-
-	cls.key_state.dest = KEY_CHAT;
+	Cl_MessageMode(false);
 }
 
 /*
- * Cl_MessageMode2_f
+ * @brief
  */
 static void Cl_MessageMode2_f(void) {
 
-	memset(&cls.chat_state, 0, sizeof(cl_chat_state_t));
-
-	cls.chat_state.team = true;
-
-	cls.key_state.dest = KEY_CHAT;
+	Cl_MessageMode(true);
 }
 
 /*
@@ -104,159 +240,54 @@ static void Cl_MessageMode2_f(void) {
  */
 void Cl_InitConsole(void) {
 
-	memset(&cl_console, 0, sizeof(console_t));
+	memset(&cl_console, 0, sizeof(cl_console));
 
-	// the last line of the console is reserved for input
-	Con_Resize(&cl_console, r_context.width >> 4, (r_context.height >> 5) - 1);
+	cl_console.Append = Cl_Print;
 
-	Cl_ClearNotify();
+	Con_AddConsole(&cl_console);
 
-	cl_console_alpha = Cvar_Get("cl_console_alpha", "0.3", CVAR_ARCHIVE, NULL);
-	cl_notify_time = Cvar_Get("cl_notify_time", "3", CVAR_ARCHIVE, NULL);
+	file_t *file = Fs_OpenRead("history");
+	if (file) {
+		Con_ReadHistory(&cl_console, file);
+		Fs_Close(file);
+	} else {
+		Com_Debug("Couldn't read history");
+	}
 
-	Cmd_Add("toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
-	Cmd_Add("message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");
-	Cmd_Add("message_mode_2", Cl_MessageMode2_f, CMD_CLIENT, "Activate team chat");
+	memset(&cl_chat_console, 0, sizeof(cl_chat_console));
+	cl_chat_console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
 
-	Com_Print("Console initialized\n");
+	cl_notify_lines = Cvar_Get("cl_console_notify_lines", "3", CVAR_ARCHIVE, NULL);
+	cl_notify_time = Cvar_Get("cl_notify_time", "3.0", CVAR_ARCHIVE, NULL);
+
+	cl_chat_lines = Cvar_Get("cl_chat_lines", "3", CVAR_ARCHIVE, NULL);
+	cl_chat_time = Cvar_Get("cl_chat_time", "10.0", CVAR_ARCHIVE, NULL);
+
+	Cmd_Add("cl_toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
+	Cmd_Add("cl_message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");
+	Cmd_Add("cl_message_mode_2", Cl_MessageMode2_f, CMD_CLIENT, "Activate team chat");
+
+	Com_Print("Client console initialized\n");
 }
 
 /*
- * @brief The input line scrolls horizontally if typing goes beyond the right edge
+ * @brief Shuts down the client console.
  */
-static void Cl_DrawInput(void) {
-	char edit_line_copy[KEY_LINE_SIZE], *text;
-	r_pixel_t ch;
-	size_t i, y;
+void Cl_ShutdownConsole(void) {
 
-	R_BindFont("small", NULL, &ch);
+	Con_RemoveConsole(&cl_console);
 
-	text = strcpy(edit_line_copy, Cl_EditLine());
-	y = strlen(text);
-
-	// add the cursor frame
-	if ((uint32_t) (cls.real_time >> 8) & 1) {
-		text[cls.key_state.pos] = CON_CURSOR_CHAR;
-		if (y == cls.key_state.pos)
-			y++;
+	file_t *file = Fs_OpenWrite("history");
+	if (file) {
+		Con_WriteHistory(&cl_console, file);
+		Fs_Close(file);
+	} else {
+		Com_Warn("Couldn't write history\n");
 	}
 
-	// fill out remainder with spaces
-	for (i = y; i < KEY_LINE_SIZE; i++)
-		text[i] = ' ';
+	Cmd_Remove("toggle_console");
+	Cmd_Remove("message_mode");
+	Cmd_Remove("message_mode_2");
 
-	// prestep if horizontally scrolling
-	if (cls.key_state.pos >= cl_console.width)
-		text += 1 + cls.key_state.pos - cl_console.width;
-
-	// draw it
-	R_DrawBytes(0, cl_console.height * ch, text, cl_console.width, CON_COLOR_DEFAULT);
-}
-
-/*
- * @brief Draws the last few lines of output transparently over the game top
- */
-void Cl_DrawNotify(void) {
-	r_pixel_t y, cw, ch;
-	int32_t i, color;
-
-	if (cls.state != CL_ACTIVE)
-		return;
-
-	R_BindFont("small", &cw, &ch);
-
-	y = 0;
-
-	for (i = cl_console.last_line - CON_NUM_NOTIFY; i < cl_console.last_line; i++) {
-		if (i < 0)
-			continue;
-		if (cl_console.notify_times[i % CON_NUM_NOTIFY] + cl_notify_time->value * 1000
-				> cls.real_time) {
-			R_DrawBytes(0, y, cl_console.line_start[i],
-					cl_console.line_start[i + 1] - cl_console.line_start[i],
-					cl_console.line_color[i]);
-			y += ch;
-		}
-	}
-
-	if (cls.key_state.dest == KEY_CHAT) {
-		uint16_t skip;
-
-		if (cls.chat_state.team) {
-			color = CON_COLOR_TEAMCHAT;
-			R_DrawString(0, y, "say_team", CON_COLOR_DEFAULT);
-			skip = 10;
-		} else {
-			color = CON_COLOR_CHAT;
-			R_DrawString(0, y, "say", CON_COLOR_DEFAULT);
-			skip = 5;
-		}
-
-		R_DrawChar((skip - 2) * cw, y, ':', color);
-
-		const size_t len = R_DrawString(skip * cw, y, cls.chat_state.buffer, color);
-
-		if ((uint32_t) (cls.real_time >> 8) & 1) // draw the cursor
-			R_DrawChar((len + skip) * cw, y, CON_CURSOR_CHAR, color);
-	}
-
-	R_BindFont(NULL, NULL, NULL);
-}
-
-/*
- * @brief
- */
-void Cl_DrawConsole(void) {
-	int32_t line;
-	int32_t lines;
-	int32_t kb;
-	r_pixel_t y, cw, ch;
-	char dl[MAX_STRING_CHARS];
-
-	if (cls.key_state.dest != KEY_CONSOLE)
-		return;
-
-	R_BindFont("small", &cw, &ch);
-
-	Con_Resize(&cl_console, r_context.width / cw, (r_context.height / ch) - 1);
-
-	// draw a background
-	if (cls.state == CL_ACTIVE)
-		R_DrawFill(0, 0, r_context.width, r_context.height, 5, cl_console_alpha->value);
-	else
-		R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
-
-	// draw the text
-	lines = cl_console.height;
-	y = 0;
-	for (line = cl_console.last_line - cl_console.scroll - lines;
-			line < cl_console.last_line - cl_console.scroll; line++) {
-
-		if (line >= 0 && cl_console.line_start[line][0] != '\0') {
-			R_DrawBytes(0, y, cl_console.line_start[line],
-					cl_console.line_start[line + 1] - cl_console.line_start[line],
-					cl_console.line_color[line]);
-		}
-		y += ch;
-	}
-
-	// draw the loading string or the input prompt
-
-	if (cls.state >= CL_CONNECTED && cls.loading) { // draw loading progress
-		g_snprintf(dl, sizeof(dl), "Loading... %2d%%", cls.loading);
-
-		R_DrawString(0, cl_console.height * ch, dl, CON_COLOR_INFO);
-	} else if (cls.download.file) { // draw download progress
-
-		kb = (int32_t) Fs_Tell(cls.download.file) / 1024;
-
-		g_snprintf(dl, sizeof(dl), "%s [%s] %dKB ", cls.download.name,
-				(cls.download.http ? "HTTP" : "UDP"), kb);
-
-		R_DrawString(0, cl_console.height * ch, dl, CON_COLOR_INFO);
-	} else { // draw the input prompt, user text, and cursor if desired
-		Cl_DrawInput();
-	}
-
-	R_BindFont(NULL, NULL, NULL);
+	Com_Print("Client console shutdown\n");
 }

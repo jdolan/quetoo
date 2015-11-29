@@ -224,7 +224,7 @@ void Sv_InitGame(void) {
 	g_import_t import;
 
 	if (svs.game) {
-		Sv_ShutdownGame();
+		Com_Error(ERR_FATAL, "Game already loaded");
 	}
 
 	Com_Print("Game initialization...\n");

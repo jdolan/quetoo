@@ -23,13 +23,10 @@
 #include <signal.h>
 
 #include "config.h"
-#if BUILD_CLIENT
 #include "client/client.h"
-extern cl_static_t cls;
-#endif
 #include "server/server.h"
 
-jmp_buf environment;
+static jmp_buf env;
 
 quetoo_t quetoo;
 
@@ -53,10 +50,9 @@ static void Warn(const char *msg);
  */
 static void Debug(const char *msg) {
 
-	if (debug && !debug->integer)
-		return;
-
-	Print(msg);
+	if (debug && debug->integer) {
+		Print(msg);
+	}
 }
 
 /*
@@ -65,24 +61,13 @@ static void Debug(const char *msg) {
  */
 static void Error(err_t err, const char *msg) {
 
-	Com_Print("^1%s\n", msg);
+	Print(va("^1%s\n", msg));
 
 	switch (err) {
-		case ERR_NONE:
-		case ERR_PRINT:
 		case ERR_DROP:
 			Sv_ShutdownServer(msg);
-
-#if BUILD_CLIENT
 			Cl_Disconnect();
-			if (err == ERR_NONE) {
-				cls.key_state.dest = KEY_UI;
-			} else {
-				cls.key_state.dest = KEY_CONSOLE;
-			}
-#endif
-
-			longjmp(environment, 0);
+			longjmp(env, err);
 			break;
 
 		case ERR_FATAL:
@@ -99,8 +84,8 @@ static void Error(err_t err, const char *msg) {
  */
 static void Print(const char *msg) {
 
-	if (quetoo.time) {
-		Con_Print(msg);
+	if (console_state.lock) {
+		Con_Append(PRINT_HIGH, msg);
 	} else {
 		printf("%s", msg);
 	}
@@ -111,17 +96,17 @@ static void Print(const char *msg) {
  */
 static void Verbose(const char *msg) {
 
-	if (verbose && !verbose->integer) {
-		return;
+	if (verbose && verbose->integer) {
+		Print(msg);
 	}
 
-	Print(msg);
 }
 
 /*
  * @brief Prints the specified message with a colored accent.
  */
 static void Warn(const char *msg) {
+
 	Print(va("^3%s", msg));
 }
 
@@ -129,6 +114,7 @@ static void Warn(const char *msg) {
  * @brief
  */
 static void Quit_f(void) {
+
 	Com_Shutdown("Server quit\n");
 }
 
@@ -147,11 +133,10 @@ static void Init(void) {
 
 	debug = Cvar_Get("debug", "0", 0, "Print debugging information");
 
-#if BUILD_CLIENT
-	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, NULL);
-#else
-	dedicated = Cvar_Get("dedicated", "1", CVAR_NO_SET, NULL);
-#endif
+	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
+	if (strstr(Sys_ExecutablePath(), "-dedicated")) {
+		Cvar_ForceSet("dedicated", "1");
+	}
 
 	game = Cvar_Get("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
 	game->modified = g_strcmp0(game->string, DEFAULT_GAME);
@@ -168,7 +153,6 @@ static void Init(void) {
 	threads->modified = false;
 
 	Con_Init();
-	quetoo.time = Sys_Milliseconds();
 
 	Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
 
@@ -176,9 +160,7 @@ static void Init(void) {
 
 	Sv_Init();
 
-#if BUILD_CLIENT
 	Cl_Init();
-#endif
 
 	Com_Print("Quetoo %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
 
@@ -202,9 +184,7 @@ static void Shutdown(const char *msg) {
 
 	Sv_Shutdown(msg);
 
-#if BUILD_CLIENT
 	Cl_Shutdown();
-#endif
 
 	Netchan_Shutdown();
 
@@ -249,9 +229,7 @@ static void Frame(const uint32_t msec) {
 
 	Sv_Frame(msec);
 
-#if BUILD_CLIENT
 	Cl_Frame(msec);
-#endif
 }
 
 /*
@@ -265,8 +243,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	memset(&quetoo, 0, sizeof(quetoo));
 
-	if (setjmp(environment))
-		Com_Error(ERR_FATAL, "Error during initialization.");
+	quetoo.time = Sys_Milliseconds();
 
 	quetoo.Debug = Debug;
 	quetoo.Error = Error;
@@ -292,16 +269,13 @@ int32_t main(int32_t argc, char **argv) {
 
 	while (true) { // this is our main loop
 
-		if (setjmp(environment)) { // an ERR_DROP or ERR_NONE was thrown
+		if (setjmp(env)) { // an ERR_DROP was thrown
 			Com_Debug("Error detected, recovering..\n");
 			continue;
 		}
 
 		if (time_scale->modified) {
-			if (time_scale->value < 0.1)
-				time_scale->value = 0.1;
-			else if (time_scale->value > 3.0)
-				time_scale->value = 3.0;
+			time_scale->value = Clamp(time_scale->value, 0.1, 3.0);
 		}
 
 		do {

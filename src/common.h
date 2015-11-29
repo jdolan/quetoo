@@ -41,7 +41,7 @@
  * of core net messages or serialized data types change. The game and client
  * game maintain PROTOCOL_MINOR as well.
  */
-#define PROTOCOL_MAJOR		1010
+#define PROTOCOL_MAJOR		1011
 
 /*
  * @brief The IP address of the master server, where the authoritative list of
@@ -99,12 +99,10 @@
 	)
 
 typedef enum {
-	ERR_NONE,
-	ERR_PRINT,
+	ERR_PRINT = 1,
 	ERR_WARN,
 	ERR_FATAL, // program must exit
-	ERR_DROP
-// don't fully shit pants, but drop to console
+	ERR_DROP // don't fully shit pants, but drop to console
 } err_t;
 
 int32_t Com_Argc(void);
@@ -117,11 +115,12 @@ typedef void (*RedirectFlush)(int32_t target, const char *buffer);
 void Com_BeginRedirect(int32_t target, char *buffer, size_t size, RedirectFlush flush);
 void Com_EndRedirect(void);
 
-void Com_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-void Com_Error_(const char *func, err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Warn_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+void Com_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void Com_Warn_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void Com_Error_(const char *func, err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
 
 #define Com_Debug(...) Com_Debug_(__func__, __VA_ARGS__)
 #define Com_Error(...) Com_Error_(__func__, __VA_ARGS__)
@@ -132,12 +131,14 @@ void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn));
 
 // subsystems
 #define QUETOO_SERVER		0x1
-#define QUETOO_GAME		0x2
+#define QUETOO_GAME			0x2
 #define QUETOO_CLIENT		0x4
 #define QUETOO_CGAME		0x8
-#define QUETOO_QUETOOMAP		0x10
+#define QUETOO_MAPTOOL		0x10
 
-// global engine struct
+/*
+ * @brief Global engine structure.
+ */
 typedef struct {
 	int32_t argc;
 	char **argv;

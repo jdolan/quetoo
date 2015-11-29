@@ -50,7 +50,7 @@ static void Ui_Editor_Think(void) {
 	if (cls.state != CL_ACTIVE)
 		return;
 
-	if (ui_editor.time == cls.real_time)
+	if (ui_editor.time == quetoo.time)
 		return;
 
 	VectorMA(r_view.origin, MAX_WORLD_DIST, r_view.forward, end);
@@ -65,7 +65,7 @@ static void Ui_Editor_Think(void) {
 		ui_editor.material = NULL;
 	}
 
-	ui_editor.time = cls.real_time;
+	ui_editor.time = quetoo.time;
 }
 
 /*

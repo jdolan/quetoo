@@ -102,7 +102,7 @@ static void Cl_CheckForResend(void) {
 		return;
 
 	// don't flood connection packets
-	if (cls.connect_time && (cls.real_time - cls.connect_time < 3000))
+	if (cls.connect_time && (quetoo.time - cls.connect_time < 1000))
 		return;
 
 	net_addr_t addr;
@@ -116,7 +116,7 @@ static void Cl_CheckForResend(void) {
 	if (addr.port == 0)
 		addr.port = htons(PORT_SERVER);
 
-	cls.connect_time = cls.real_time; // for retransmit requests
+	cls.connect_time = quetoo.time; // for retransmit requests
 
 	const char *s = Net_NetaddrToString(&addr);
 	if (g_strcmp0(cls.server_name, s)) {
@@ -241,10 +241,7 @@ void Cl_ClearState(void) {
 }
 
 /*
- * @brief Sends the disconnect command to the server (several times). This is used
- * when the client actually wishes to disconnect or quit, or when an HTTP
- * download has begun. This way, the client does not waste a server slot
- * (or just timeout) while downloading a level.
+ * @brief Sends the disconnect command to the server.
  */
 void Cl_SendDisconnect(void) {
 	byte final[16];
@@ -257,15 +254,13 @@ void Cl_SendDisconnect(void) {
 	// send a disconnect message to the server
 	final[0] = CL_CMD_STRING;
 	strcpy((char *) final + 1, "disconnect");
-	Netchan_Transmit(&cls.net_chan, final, strlen((char *) final));
-	Netchan_Transmit(&cls.net_chan, final, strlen((char *) final));
+
 	Netchan_Transmit(&cls.net_chan, final, strlen((char *) final));
 
 	Cl_ClearState();
 
 	cls.broadcast_time = 0;
 	cls.connect_time = 0;
-	cls.loading = 0;
 	cls.packet_delta = 9999;
 	cls.state = CL_DISCONNECTED;
 }
@@ -281,7 +276,7 @@ void Cl_Disconnect(void) {
 
 	if (time_demo->value) { // summarize time_demo results
 
-		const vec_t s = (cls.real_time - cl.time_demo_start) / 1000.0;
+		const vec_t s = (quetoo.time - cl.time_demo_start) / 1000.0;
 
 		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
 				cl.time_demo_frames / s);
@@ -295,8 +290,7 @@ void Cl_Disconnect(void) {
 		Cl_Stop_f();
 	}
 
-	// stop download
-	if (cls.download.file) {
+	if (cls.download.file) { // stop download
 
 		if (cls.download.http) // clean up http downloads
 			Cl_HttpDownload_Complete();
@@ -309,7 +303,7 @@ void Cl_Disconnect(void) {
 
 	memset(cls.server_name, 0, sizeof(cls.server_name));
 
-	cls.key_state.dest = KEY_UI;
+	Cl_SetKeyDest(KEY_CONSOLE);
 }
 
 /*
@@ -470,7 +464,7 @@ static void Cl_ReadPackets(void) {
 	// check timeout
 	if (cls.state >= CL_CONNECTED) {
 
-		const uint32_t ttl = cls.real_time - cls.net_chan.last_received;
+		const uint32_t ttl = quetoo.time - cls.net_chan.last_received;
 		if (ttl > cl_timeout->value * 1000) {
 
 			Com_Print("%s: Timed out.\n", Net_NetaddrToString(&net_from));
@@ -577,9 +571,6 @@ void Cl_Frame(const uint32_t msec) {
 	if (dedicated->value)
 		return;
 
-	// update time reference
-	cls.real_time = quetoo.time;
-
 	// increment the server time as well
 	cl.time += msec;
 
@@ -605,7 +596,7 @@ void Cl_Frame(const uint32_t msec) {
 	if (time_demo->value) { // accumulate timed demo statistics
 
 		if (!cl.time_demo_start)
-			cl.time_demo_start = cls.real_time;
+			cl.time_demo_start = quetoo.time;
 
 		cl.time_demo_frames++;
 	} else { // check frame rate cap conditions
@@ -723,7 +714,7 @@ void Cl_Init(void) {
 
 	Cl_InitCgame();
 
-	cls.key_state.dest = KEY_UI;
+	Cl_SetKeyDest(KEY_UI);
 }
 
 /*
@@ -745,6 +736,8 @@ void Cl_Shutdown(void) {
 	Cl_FreeServers();
 
 	Cl_ShutdownKeys();
+
+	Cl_ShutdownConsole();
 
 	Ui_Shutdown();
 

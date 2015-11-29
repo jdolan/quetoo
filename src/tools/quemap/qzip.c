@@ -303,10 +303,30 @@ static void AddLocation(void) {
  * @brief
  */
 static void AddDocumentation(void) {
-	char base[MAX_OS_PATH];
+	char base[MAX_QPATH];
 
 	StripExtension(Basename(bsp_name), base);
 	AddAsset(va("docs/map-%s.txt", base), false);
+}
+
+/*
+ * @brief
+ */
+static void AddMapshots_enumerate(const char *path, void *data __attribute__((unused))) {
+
+	if (g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".png")) {
+		AddAsset(path, false);
+	}
+}
+
+/*
+ * @brief
+ */
+static void AddMapshots(void) {
+	char base[MAX_QPATH];
+
+	StripExtension(Basename(bsp_name), base);
+	Fs_Enumerate(va("mapshots/%s/*", base), AddMapshots_enumerate, NULL);
 }
 
 /*
@@ -420,9 +440,10 @@ int32_t ZIP_Main(void) {
 		}
 	}
 
-	// add location and docs
+	// add location, docs and mapshots
 	AddLocation();
 	AddDocumentation();
+	AddMapshots();
 
 	// and of course the bsp and map
 	AddAsset(bsp_name, true);

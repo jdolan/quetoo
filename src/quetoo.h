@@ -100,11 +100,12 @@ typedef dvec_t dvec4_t[4];
 /*
  * @brief Print message levels, for filtering.
  */
-#define PRINT_LOW			0 // pickup messages
-#define PRINT_MEDIUM		1 // death messages
-#define PRINT_HIGH			2 // critical messages
-#define PRINT_CHAT			3 // chat messages
-#define PRINT_TEAMCHAT		4 // teamchat messages
+#define PRINT_LOW			0x1
+#define PRINT_MEDIUM		0x2
+#define PRINT_HIGH			0x4
+#define PRINT_CHAT			0x8
+#define PRINT_TEAM_CHAT		0x10
+#define PRINT_ECHO			0x20
 
 /*
  * @brief Console command flags.

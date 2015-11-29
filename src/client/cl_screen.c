@@ -71,7 +71,7 @@ void Cl_AddNetGraph(void) {
 
 	// see what the latency was on this packet
 	const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
-	const uint32_t ping = cls.real_time - cl.cmds[frame].real_time;
+	const uint32_t ping = quetoo.time - cl.cmds[frame].timestamp;
 
 	Cl_NetGraph(ping / 300.0, 0xd0); // 300ms is lagged out
 }
@@ -220,7 +220,7 @@ static void Cl_DrawCounters(void) {
 
 	cl.frame_counter++;
 
-	if (cls.real_time - last_draw_time >= 200) {
+	if (quetoo.time - last_draw_time >= 200) {
 
 		UnpackVector(cl.frame.ps.pm_state.velocity, velocity);
 		velocity[2] = 0.0;
@@ -259,7 +259,7 @@ void Cl_UpdateScreen(void) {
 
 	R_BeginFrame();
 
-	if (cls.state == CL_ACTIVE && !cls.loading) {
+	if (cls.state == CL_ACTIVE) {
 
 		Cl_UpdateView();
 
@@ -269,27 +269,31 @@ void Cl_UpdateScreen(void) {
 
 		R_Setup2D();
 
-		if (cls.key_state.dest != KEY_CONSOLE && cls.key_state.dest != KEY_UI) {
-
-			Cl_DrawNetGraph();
-
-			Cl_DrawCounters();
-
-			Cl_DrawNotify();
-
-			Cl_DrawRendererStats();
-
-			Cl_DrawSoundStats();
-
-			cls.cgame->DrawFrame(&cl.frame);
+		switch (cls.key_state.dest) {
+			case KEY_CONSOLE:
+				Cl_DrawConsole();
+				break;
+			default:
+				Cl_DrawChat();
+				Cl_DrawNotify();
+				Cl_DrawNetGraph();
+				Cl_DrawCounters();
+				Cl_DrawRendererStats();
+				Cl_DrawSoundStats();
+				cls.cgame->DrawFrame(&cl.frame);
+				break;
 		}
 	} else {
 		R_Setup2D();
+
+		if (cls.state == CL_LOADING) {
+			Cl_DrawLoading();
+		} else if (cls.key_state.dest == KEY_CONSOLE) {
+			Cl_DrawConsole();
+		}
 	}
 
-	Cl_DrawConsole();
-
-	R_Draw2D(); // draw all 2D geometry for the frame
+	R_Draw2D();
 
 	Ui_Draw();
 

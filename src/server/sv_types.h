@@ -216,7 +216,7 @@ typedef struct {
 
 	sv_client_download_t download; // UDP file downloads
 
-	uint32_t last_message; // svs.real_time when packet was last received
+	uint32_t last_message; // quetoo.time when packet was last received
 	net_chan_t net_chan;
 } sv_client_t;
 
@@ -250,11 +250,11 @@ typedef struct {
  */
 typedef struct {
 	_Bool initialized; // sv_init has completed
-	uint32_t real_time; // always increasing, no clamping, etc
 
 	uint32_t spawn_count; // incremented each level start, used to check late spawns
 
 	uint16_t frame_rate; // configurable server frame rate (sv_hz)
+	uint32_t frame_delta;
 
 	sv_client_t *clients; // server-side client structures
 

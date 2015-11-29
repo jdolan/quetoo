@@ -30,7 +30,7 @@ static void Sv_New_f(void) {
 	Com_Debug("%s\n", Sv_NetaddrToString(sv_client));
 
 	if (sv_client->state != SV_CLIENT_CONNECTED) {
-		Com_Warn("%s already spawned\n", Sv_NetaddrToString(sv_client));
+		Com_Warn("%s issued new from %d\n", Sv_NetaddrToString(sv_client), sv_client->state);
 		return;
 	}
 
@@ -427,7 +427,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 					cl->last_frame = last_frame;
 					if (cl->last_frame > -1) {
 						cl->frame_latency[cl->last_frame & (SV_CLIENT_LATENCY_COUNT - 1)] =
-								svs.real_time - cl->frames[cl->last_frame & PACKET_MASK].sent_time;
+								quetoo.time - cl->frames[cl->last_frame & PACKET_MASK].sent_time;
 					}
 				}
 

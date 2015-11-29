@@ -92,6 +92,23 @@ typedef struct r_draw_s {
 
 r_draw_t r_draw;
 
+/**
+ * @return An `r_color_t` from the given parameters.
+ */
+r_color_t R_MakeColor(byte r, byte g, byte b, byte a) {
+
+	r_color_t color = {
+		.bytes = {
+			.r = r,
+			.g = g,
+			.b = b,
+			.a = a,
+		}
+	};
+
+	return color;
+}
+
 /*
  * @brief
  */
@@ -161,18 +178,14 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
  * on the currently bound font. Color escapes are omitted.
  */
 r_pixel_t R_StringWidth(const char *s) {
-	char stripped[MAX_STRING_CHARS];
-
-	StripColor(s, stripped);
-
-	return strlen(stripped) * r_draw.font->char_width;
+	return StrColorLen(s) * r_draw.font->char_width;
 }
 
 /*
  * @brief
  */
 size_t R_DrawString(r_pixel_t x, r_pixel_t y, const char *s, int32_t color) {
-	return R_DrawSizedString(x, y, s, 999, 999, color);
+	return R_DrawSizedString(x, y, s, UINT16_MAX, UINT16_MAX, color);
 }
 
 /*
