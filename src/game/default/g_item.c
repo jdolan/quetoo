@@ -1410,7 +1410,7 @@ const g_item_t g_items[] = {
 		"Grenades",
 		10,
 		"grenades",
-		ITEM_AMMO | ITEM_WEAPON,
+		ITEM_AMMO,
 		AMMO_GRENADES,
 		0.15,
 		"weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang.ogg weapons/handgrenades/hg_tick.ogg" },

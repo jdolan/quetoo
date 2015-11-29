@@ -620,7 +620,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org);
 
-		G_GrenadeProjectile(ent, org, forward, 640, 120, 120, 185.0, 2500);
+		G_GrenadeProjectile(ent, org, forward, 720, 120, 120, 185.0, 2500);
 
 		G_MuzzleFlash(ent, MZ_GRENADE);
 

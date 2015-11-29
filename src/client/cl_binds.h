@@ -35,6 +35,7 @@ static const char *DEFAULT_BINDS =
 	"bind 8 use lightning\n"
 	"bind 9 use railgun\n"
 	"bind 0 use bfg10k\n"
+	"bind g use grenades\n"
 
 	"bind - cl_view_size_down\n"
 	"bind = c_view_size_up\n"
@@ -87,6 +88,13 @@ static const char *DEFAULT_BINDS =
 #else
 	"bind \"left alt\" +ZOOM\n"
 #endif
+
+	// spam alias for pros
+	"alias SPAM \""
+	"use hyperblaster;"
+	"use lightning;"
+	"bind f SPAM"
+	"\"\n"
 
 	// screenshots alias for mappers
 	"alias SCREENSHOTS \""
