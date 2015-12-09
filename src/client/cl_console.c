@@ -189,8 +189,10 @@ void Cl_DrawChat(void) {
  * @brief
  */
 static void Cl_Print(const console_string_t *str) {
+	char stripped[MAX_PRINT_MSG];
 
-	puts(str->chars);
+	StripColors(str->chars, stripped);
+	fputs(stripped, stdout);
 }
 
 /*

@@ -587,8 +587,8 @@ void Cl_Frame(const uint32_t msec) {
 
 	if (cl_max_pps->modified) {
 
-		if (cl_max_pps->value > 0.0 && cl_max_pps->value < 20.0)
-			cl_max_pps->value = 20.0;
+		if (cl_max_pps->value > 0.0 && cl_max_pps->value < 30.0)
+			cl_max_pps->value = 30.0;
 
 		cl_max_pps->modified = false;
 	}
@@ -616,11 +616,11 @@ void Cl_Frame(const uint32_t msec) {
 		}
 	}
 
-	if (!cl_async->value) // run synchronous
+	if (!cl_async->value) // run synchronously
 		packet_frame = render_frame;
 
 	if (!render_frame || cls.packet_delta < 8)
-		packet_frame = false; // enforce a soft cap of 120pps
+		packet_frame = false; // enforce a soft cap of 125pps
 
 	if (cls.state == CL_CONNECTED && cls.packet_delta < 16)
 		packet_frame = false; // don't flood the server while downloading

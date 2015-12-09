@@ -171,8 +171,9 @@ void Con_Append(int32_t level, const char *string) {
 		}
 	} else {
 		char stripped[MAX_PRINT_MSG];
+
 		StripColors(string, stripped);
-		puts(stripped);
+		fputs(stripped, stdout);
 	}
 }
 
