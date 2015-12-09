@@ -88,7 +88,7 @@ static void Cl_DrawConsole_Input(void) {
 	}
 
 	// and lastly cursor
-	R_DrawChar(x * cw, y, 0x0b, CON_COLOR_DEFAULT);
+	R_DrawChar((cl_console.input.pos + 1) * cw, y, 0x0b, CON_COLOR_DEFAULT);
 }
 
 /*
