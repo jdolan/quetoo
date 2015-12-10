@@ -293,9 +293,8 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
  * @brief
  */
 static void R_DrawChars(void) {
-	uint16_t i;
 
-	for (i = 0; i < r_draw.num_fonts; i++) {
+	for (uint16_t i = 0; i < r_draw.num_fonts; i++) {
 		r_char_arrays_t *chars = &r_draw.char_arrays[i];
 
 		if (!chars->vert_index)

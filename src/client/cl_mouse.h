@@ -19,35 +19,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
+#ifndef __CL_MOUSE_H__
+#define __CL_MOUSE_H__
 
-#include "collision/cmodel.h"
-#include "console.h"
-#include "filesystem.h"
-#include "cgame/cgame.h"
-#include "net/net_chan.h"
-#include "renderer/renderer.h"
-#include "sound/sound.h"
-#include "thread.h"
-#include "ui/ui.h"
-
-#include "cl_cgame.h"
-#include "cl_cmd.h"
-#include "cl_console.h"
-#include "cl_demo.h"
-#include "cl_entity.h"
-#include "cl_http.h"
-#include "cl_input.h"
-#include "cl_keys.h"
-#include "cl_main.h"
-#include "cl_media.h"
-#include "cl_mouse.h"
-#include "cl_parse.h"
-#include "cl_predict.h"
-#include "cl_screen.h"
-#include "cl_server.h"
 #include "cl_types.h"
-#include "cl_view.h"
 
-#endif /* __CLIENT_H__ */
+#ifdef __CL_LOCAL_H__
+
+void Cl_MouseButtonEvent(const SDL_Event *event);
+void Cl_MouseWheelEvent(const SDL_Event *event);
+void Cl_MouseMotionEvent(const SDL_Event *event);
+
+#endif /* __CL_LOCAL_H__ */
+
+#endif /* __CL_MOUSE_H__ */

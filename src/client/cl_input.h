@@ -25,6 +25,14 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
+
+extern cvar_t *m_sensitivity;
+extern cvar_t *m_sensitivity_zoom;
+extern cvar_t *m_interpolate;
+extern cvar_t *m_invert;
+extern cvar_t *m_pitch;
+extern cvar_t *m_yaw;
+
 void Cl_ClearInput(void);
 void Cl_InitInput(void);
 void Cl_HandleEvents(void);

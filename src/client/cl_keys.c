@@ -140,20 +140,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 
 	console_input_t *in = &cl_console.input;
 
-	SDL_Keycode key = event->key.keysym.sym;
-
-	// convert mouse button events to key events
-	switch ((uint32_t) event->key.keysym.scancode) {
-		case SDL_SCANCODE_MOUSE4:
-			key = SDLK_MOUSE4;
-			break;
-		case SDL_SCANCODE_MOUSE5:
-			key = SDLK_MOUSE5;
-			break;
-		default:
-			break;
-	}
-
+	const SDL_Keycode key = event->key.keysym.sym;
 	switch (key) {
 
 		case SDLK_RETURN:
@@ -220,36 +207,27 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 			break;
 
 		case SDLK_PAGEUP:
-		case SDLK_MOUSE4:
-			if (cl_console.scroll < console_state.len) {
-				cl_console.scroll++;
+			if (cl_console.scroll + cl_console.height < console_state.len) {
+				cl_console.scroll += cl_console.height;
 			} else {
 				cl_console.scroll = console_state.len;
 			}
 			break;
 
 		case SDLK_PAGEDOWN:
-		case SDLK_MOUSE5:
-			if (cl_console.scroll > 0) {
-				cl_console.scroll--;
+			if (cl_console.scroll > cl_console.height) {
+				cl_console.scroll -= cl_console.height;
 			} else {
 				cl_console.scroll = 0;
 			}
 			break;
 
 		case SDLK_HOME:
-			if (SDL_GetModState() & KMOD_CTRL) {
-				cl_console.scroll = console_state.len;
-			} else {
-				in->pos = 0;
-			}
+			cl_console.scroll = console_state.len;
 			break;
+
 		case SDLK_END:
-			if (SDL_GetModState() & KMOD_CTRL) { // go to the end of the console
-				cl_console.scroll = 0;
-			} else {
-				in->pos = strlen(in->buffer);
-			}
+			cl_console.scroll = 0;
 			break;
 
 		case SDLK_a:

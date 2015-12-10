@@ -28,13 +28,13 @@ static cvar_t *cl_right_speed;
 static cvar_t *cl_up_speed;
 static cvar_t *cl_yaw_speed;
 
-static cvar_t *m_grab;
 cvar_t *m_interpolate;
 cvar_t *m_invert;
-static cvar_t *m_pitch;
-cvar_t *m_sensitivity_zoom;
 cvar_t *m_sensitivity;
-static cvar_t *m_yaw;
+cvar_t *m_sensitivity_zoom;
+cvar_t *m_pitch;
+cvar_t *m_yaw;
+static cvar_t *m_grab;
 
 /*
  * KEY BUTTONS
@@ -240,54 +240,6 @@ static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 	return Clamp(frac, 0.0, 1.0);
 }
 
-/*
- * @brief
- */
-static void Cl_MouseMotionEvent(const SDL_Event *event) {
-
-	if (cls.key_state.dest != KEY_GAME)
-		return;
-
-	const int32_t mx = event->motion.x;
-	const int32_t my = event->motion.y;
-
-	if (m_sensitivity->modified) { // clamp sensitivity
-		m_sensitivity->value = Clamp(m_sensitivity->value, 0.1, 20.0);
-		m_sensitivity->modified = false;
-	}
-
-	if (m_interpolate->value) { // interpolate movements
-		cls.mouse_state.x = (mx + cls.mouse_state.old_x) * 0.5;
-		cls.mouse_state.y = (my + cls.mouse_state.old_y) * 0.5;
-	} else {
-		cls.mouse_state.x = mx;
-		cls.mouse_state.y = my;
-	}
-
-	cls.mouse_state.old_x = mx;
-	cls.mouse_state.old_y = my;
-
-	const r_pixel_t cx = r_context.window_width * 0.5;
-	const r_pixel_t cy = r_context.window_height * 0.5;
-
-	if (cls.state == CL_ACTIVE) {
-
-		cls.mouse_state.x -= cx; // first normalize to center
-		cls.mouse_state.y -= cy;
-
-		cls.mouse_state.x *= m_sensitivity->value; // then amplify
-		cls.mouse_state.y *= m_sensitivity->value;
-
-		if (m_invert->value) // and finally invert
-			cls.mouse_state.y = -cls.mouse_state.y;
-
-		// add horizontal and vertical movement
-		cl.angles[YAW] -= m_yaw->value * cls.mouse_state.x;
-		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
-	}
-
-	SDL_WarpMouseInWindow(r_context.window, cx, cy);
-}
 
 /*
  * @brief Inserts source into destination at the specified offset, without
@@ -347,14 +299,12 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 			break;
 
 		case SDL_MOUSEBUTTONUP:
-		case SDL_MOUSEBUTTONDOWN: {
-			SDL_Event e;
-			memset(&e, 0, sizeof(e));
-			e.type = event->type == SDL_MOUSEBUTTONUP ? SDL_KEYUP : SDL_KEYDOWN;
-			e.key.keysym.scancode = SDL_SCANCODE_MOUSE1 + ((event->button.button - 1) % 8);
-			e.key.keysym.sym = SDLK_MOUSE1 + ((event->button.button - 1) % 8);
-			Cl_KeyEvent(&e);
-		}
+		case SDL_MOUSEBUTTONDOWN:
+			Cl_MouseButtonEvent(event);
+			break;
+
+		case SDL_MOUSEWHEEL:
+			Cl_MouseWheelEvent(event);
 			break;
 
 		case SDL_MOUSEMOTION:
@@ -542,13 +492,13 @@ void Cl_InitInput(void) {
 	cl_up_speed = Cvar_Get("cl_up_speed", "100.0", 0, NULL);
 	cl_yaw_speed = Cvar_Get("cl_yaw_speed", "0.2", 0, NULL);
 
-	m_grab = Cvar_Get("m_grab", "1", 0, NULL);
+	m_sensitivity = Cvar_Get("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
+	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
 	m_interpolate = Cvar_Get("m_interpolate", "0", CVAR_ARCHIVE, NULL);
 	m_invert = Cvar_Get("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
 	m_pitch = Cvar_Get("m_pitch", "0.022", 0, NULL);
-	m_sensitivity = Cvar_Get("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
-	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0, NULL);
+	m_grab = Cvar_Get("m_grab", "1", 0, NULL);
 
 	Cl_ClearInput();
 
