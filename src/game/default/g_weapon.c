@@ -680,7 +680,7 @@ void G_FireLightning(g_entity_t *ent) {
 
 		g_entity_t *projectile = NULL;
 
-		while ((projectile = G_Find(NULL, EOFS(class_name), "G_LightningProjectile"))) {
+		while ((projectile = G_Find(projectile, EOFS(class_name), "G_LightningProjectile"))) {
 			if (projectile->owner == ent) {
 				break;
 			}
