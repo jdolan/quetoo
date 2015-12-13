@@ -433,7 +433,7 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 	AngleVectors(projectile->s.angles, forward, right, up);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
-	VectorMA(projectile->locals.velocity, 200.0 + Randomc() * 10.0, up, projectile->locals.velocity);
+	VectorMA(projectile->locals.velocity, 100.0 + Randomc() * 10.0, up, projectile->locals.velocity);
 	VectorMA(projectile->locals.velocity, Randomc() * 10.0, right, projectile->locals.velocity);
 
 	G_PlayerProjectile(projectile, 0.33);
