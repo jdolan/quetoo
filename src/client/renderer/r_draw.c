@@ -22,7 +22,7 @@
 #include "r_local.h"
 #include "client.h"
 
-#define MAX_CHARS 8192  // per font
+#define MAX_CHARS 16384  // per font
 // characters are batched per frame and drawn in one shot
 // accumulate coordinates and colors as vertex arrays
 typedef struct r_char_arrays_s {
