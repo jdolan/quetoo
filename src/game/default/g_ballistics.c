@@ -779,13 +779,13 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		if (G_TakesDamage(tr.ent)) { // try to damage what we hit
 			G_Damage(tr.ent, self, self->owner, forward, tr.end, tr.plane.normal,
 					self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_LIGHTNING);
+			self->locals.damage = 0;
 		} else { // or leave a mark
 			if (tr.contents & MASK_SOLID) {
 				if (G_IsStructural(tr.ent, tr.surface) && G_IsStationary(tr.ent))
 					G_BurnMark(tr.end, &tr.plane, tr.surface, 8);
 			}
 		}
-		self->locals.damage = 0;
 	}
 
 	VectorCopy(start, self->s.origin); // update end points
@@ -804,7 +804,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 
 	g_entity_t *projectile = NULL;
 
-	while ((projectile = G_Find(NULL, EOFS(class_name), __func__))) {
+	while ((projectile = G_Find(projectile, EOFS(class_name), __func__))) {
 		if (projectile->owner == ent) {
 			break;
 		}
