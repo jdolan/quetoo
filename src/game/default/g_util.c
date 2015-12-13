@@ -66,17 +66,22 @@ void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, 
 	VectorCopy(tr.end, pos);
 
 	// resolve the projectile origin
-	VectorMA(view, 16.0, ent->client->locals.forward, org);
+	vec3_t ent_forward, ent_up;
+	AngleVectors(ent->s.angles, ent_forward, NULL, ent_up);
+
+	VectorMA(view, 12.0, ent_forward, org);
 
 	if ((ent->client->ps.pm_state.flags & PMF_DUCKED)) {
-		VectorMA(org, -4.0, ent->client->locals.up, org);
+		VectorMA(org, -6.0, ent_up, org);
 	} else {
-		VectorMA(org, -8.0, ent->client->locals.up, org);
+		VectorMA(org, -12.0, ent_up, org);
 	}
 
 	// if the projected origin is invalid, use the entity's origin
-	if (gi.PointContents(org) & MASK_CLIP_PROJECTILE)
+	if (gi.Trace(org, org, NULL, NULL, ent, MASK_CLIP_PROJECTILE).start_solid) {
 		VectorCopy(ent->s.origin, org);
+		gi.Print("Doh\n");
+	}
 
 	// return the projectile's directional vectors
 	VectorSubtract(pos, org, forward);
