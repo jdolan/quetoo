@@ -20,6 +20,7 @@
  */
 
 #include "cg_local.h"
+#include "game/default/bg_pmove.h"
 
 /*
  * @brief
@@ -599,8 +600,14 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 		if (Cg_IsSelf(ent) && !cg_third_person->value) {
 			// we own this beam (lightning, grapple, etc..)
 			// project start position below the view origin
-			VectorCopy(cgi.view->origin, start);
-			start[2] -= 12.0;
+
+			VectorMA(cgi.view->origin, 8.0, cgi.view->forward, start);
+
+			if (cgi.client->frame.ps.pm_state.flags & PMF_DUCKED) {
+				VectorMA(start, -6.0, cgi.view->up, start);
+			} else {
+				VectorMA(start, -12.0, cgi.view->up, start);
+			}
 		}
 
 		VectorCopy(ent->termination, end);
