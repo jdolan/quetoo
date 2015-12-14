@@ -161,10 +161,6 @@ static _Bool Pm_SlideMove(void) {
 		// project desired destination
 		VectorMA(pml.origin, time_remaining, pml.velocity, pos);
 
-		if (pm->s.flags & PMF_ON_GROUND) {
-			VectorMA(pos, pml.time, vec3_down, pos);
-		}
-
 		// trace to it
 		cm_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
