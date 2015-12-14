@@ -161,6 +161,10 @@ static _Bool Pm_SlideMove(void) {
 		// project desired destination
 		VectorMA(pml.origin, time_remaining, pml.velocity, pos);
 
+		if (pm->s.flags & PMF_ON_GROUND) {
+			VectorMA(pos, pml.time, vec3_down, pos);
+		}
+
 		// trace to it
 		cm_trace_t trace = pm->Trace(pml.origin, pos, pm->mins, pm->maxs);
 
@@ -1003,7 +1007,6 @@ static void Pm_AirMove(void) {
 static void Pm_WalkMove(void) {
 	vec_t speed, max_speed, accel;
 	vec3_t vel, dir;
-	int32_t i;
 
 	if (Pm_CheckJump() || Pm_CheckPush()) {
 		// jumped or pushed away
@@ -1017,9 +1020,10 @@ static void Pm_WalkMove(void) {
 
 	// Pm_Debug("%s\n", vtos(pml.origin));
 
-	Pm_ClipVelocity(pml.velocity, pml.ground_plane.normal, pml.velocity, PM_CLIP_BOUNCE);
-
 	Pm_Friction();
+
+	pml.forward[2] = 0.0;
+	pml.right[2] = 0.0;
 
 	Pm_ClipVelocity(pml.forward, pml.ground_plane.normal, pml.forward, PM_CLIP_BOUNCE);
 	Pm_ClipVelocity(pml.right, pml.ground_plane.normal, pml.right, PM_CLIP_BOUNCE);
@@ -1027,7 +1031,7 @@ static void Pm_WalkMove(void) {
 	VectorNormalize(pml.forward);
 	VectorNormalize(pml.right);
 
-	for (i = 0; i < 3; i++) {
+	for (int32_t i = 0; i < 3; i++) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
 	}
 
@@ -1068,7 +1072,10 @@ static void Pm_WalkMove(void) {
 	VectorNormalize(pml.velocity);
 	VectorScale(pml.velocity, speed, pml.velocity);
 
-	Pm_StepSlideMove();
+	// and finally, step if moving in X/Y
+	if (pml.velocity[0] || pml.velocity[1]) {
+		Pm_StepSlideMove();
+	}
 }
 
 /*
