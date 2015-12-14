@@ -68,6 +68,7 @@ static void Con_FreeStrings(void) {
 	g_list_free_full(console_state.strings, (GDestroyNotify) Con_FreeString);
 
 	console_state.strings = NULL;
+	console_state.len = 0;
 	console_state.size = 0;
 }
 
@@ -135,6 +136,8 @@ static _Bool Con_Filter(const console_t *console, const console_string_t *str) {
  */
 void Con_Append(int32_t level, const char *string) {
 
+	assert(string);
+
 	console_string_t *str = Con_AllocString(level, string);
 
 	SDL_LockMutex(console_state.lock);
@@ -170,7 +173,7 @@ void Con_Append(int32_t level, const char *string) {
 			}
 		}
 	} else {
-		char stripped[MAX_PRINT_MSG];
+		char stripped[strlen(string + 1)];
 
 		StripColors(string, stripped);
 		fputs(stripped, stdout);
