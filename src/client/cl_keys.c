@@ -247,6 +247,20 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 			}
 			break;
 
+		case SDLK_v:
+			if ((SDL_GetModState() & KMOD_CLIPBOARD) && SDL_HasClipboardText()) {
+				char *tail = g_strdup(in->buffer + in->pos);
+				in->buffer[in->pos] = '\0';
+
+				const char *text = SDL_GetClipboardText();
+				g_strlcat(in->buffer, text, sizeof(in->buffer));
+				g_strlcat(in->buffer, tail, sizeof(in->buffer));
+				g_free(tail);
+
+				in->pos = MIN(in->pos + strlen(text), sizeof(in->buffer) - 1);
+			}
+			break;
+
 		default:
 			break;
 	}

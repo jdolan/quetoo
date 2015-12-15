@@ -228,6 +228,12 @@ enum {
 	SDLK_MOUSE8 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_MOUSE8)
 };
 
+#if defined(__APPLE__)
+#define KMOD_CLIPBOARD KMOD_GUI
+#else
+#define KMOD_CLIPBOARD KMOD_CTRL
+#endif
+
 typedef struct {
 	cl_key_dest_t dest;
 
