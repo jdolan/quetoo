@@ -303,11 +303,11 @@ static void Cl_UpdateLerp(void) {
 	const uint32_t frame_millis = 1000.0 / cl.server_hz;
 
 	if (cl.time > cl.frame.time) {
-		Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
+		// Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
 		cl.time = cl.frame.time;
 		cl.lerp = 1.0;
 	} else if (cl.time < cl.frame.time - frame_millis) {
-		Com_Debug("Low clamp: %dms\n", (cl.frame.time - frame_millis) - cl.time);
+		// Com_Debug("Low clamp: %dms\n", (cl.frame.time - frame_millis) - cl.time);
 		cl.time = cl.frame.time - frame_millis;
 		cl.lerp = 0.0;
 	} else {

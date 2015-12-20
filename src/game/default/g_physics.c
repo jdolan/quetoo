@@ -409,6 +409,8 @@ static void G_Physics_Push_Revert(const g_push_t *p) {
 		p->ent->client->ps.pm_state.delta_angles[YAW] = p->delta_yaw;
 		p->ent->client->ps.pm_state.flags &= ~PMF_PUSHED;
 	}
+
+	gi.LinkEntity(p->ent);
 }
 
 /*
@@ -556,8 +558,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
  * Generally speaking, only inline BSP models are pushers.
  */
 static void G_Physics_Push(g_entity_t *ent) {
-	vec3_t move, amove;
-	g_entity_t *part, *obstacle = NULL;
+	g_entity_t *obstacle = NULL;
 
 	// for teamed entities, the master must initiate all moves
 	if (ent->locals.flags & FL_TEAM_SLAVE)
@@ -567,9 +568,11 @@ static void G_Physics_Push(g_entity_t *ent) {
 	g_push_p = g_pushes;
 
 	// make sure all team slaves can move before committing any moves
-	for (part = ent; part; part = part->locals.team_chain) {
+	for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
 		if (!VectorCompare(part->locals.velocity, vec3_origin) ||
 				!VectorCompare(part->locals.avelocity, vec3_origin)) { // object is moving
+
+			vec3_t move, amove;
 
 			VectorScale(part->locals.velocity, gi.frame_seconds, move);
 			VectorScale(part->locals.avelocity, gi.frame_seconds, amove);
@@ -580,12 +583,12 @@ static void G_Physics_Push(g_entity_t *ent) {
 	}
 
 	if (obstacle) { // blocked, let's try again next frame
-		for (part = ent; part; part = part->locals.team_chain) {
+		for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
 			if (part->locals.next_think)
 				part->locals.next_think += gi.frame_millis;
 		}
 	} else { // the move succeeded, so call all think functions
-		for (part = ent; part; part = part->locals.team_chain) {
+		for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
 			G_RunThink(part);
 		}
 	}
