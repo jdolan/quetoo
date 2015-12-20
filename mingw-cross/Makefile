@@ -26,7 +26,10 @@ install: pre-install
 	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 
 install-lib: install
-	./dllbundler.sh -h $(HOST) $(BINDIR)/quetoo.exe $(BINDIR)/quemap.exe
+	./dllbundler.sh -h $(HOST) \
+		$(BINDIR)/quetoo.exe \
+		$(BINDIR)/quetoo-dedicated.exe \
+		$(BINDIR)/quemap.exe
 
 install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
