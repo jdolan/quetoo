@@ -459,7 +459,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 	AngleVectors(inverse_amove, forward, right, up);
 
 	// see if any solid entities are inside the final position
-	const size_t len = gi.BoxEntities(self->abs_mins, self->abs_maxs, ents, lengthof(ents), BOX_COLLIDE);
+	const size_t len = gi.BoxEntities(self->abs_mins, self->abs_maxs, ents, lengthof(ents), BOX_ALL);
 	for (size_t i = 0; i < len; i++) {
 
 		g_entity_t *ent = ents[i];
