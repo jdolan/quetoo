@@ -124,7 +124,9 @@ dnl -----------------
 dnl Check for curses
 dnl -----------------
 
-PKG_CHECK_MODULES([CURSES], [ncurses >= 5.0])
+PKG_CHECK_MODULES([CURSES], [ncurses >= 5.0],, [
+	PKG_CHECK_MODULES([CURSES], [pdcurses >= 3.4])
+])
 
 dnl --------------
 dnl Check for GLib
