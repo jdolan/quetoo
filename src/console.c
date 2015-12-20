@@ -506,4 +506,5 @@ void Con_Shutdown(void) {
 	g_list_free(console_state.consoles);
 
 	SDL_DestroyMutex(console_state.lock);
+	console_state.lock = NULL;
 }

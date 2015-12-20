@@ -726,23 +726,23 @@ void Cl_Shutdown(void) {
 
 	Cl_Disconnect();
 
-	Cl_ShutdownCgame();
-
 	Cl_ShutdownHttp();
 
-	Cl_WriteConfiguration();
-
-	Cl_FreeServers();
-
-	Cl_ShutdownKeys();
-
-	Cl_ShutdownConsole();
+	Cl_ShutdownCgame();
 
 	Ui_Shutdown();
 
 	S_Shutdown();
 
 	R_Shutdown();
+
+	Cl_FreeServers();
+
+	Cl_WriteConfiguration();
+
+	Cl_ShutdownKeys();
+
+	Cl_ShutdownConsole();
 
 	Cmd_RemoveAll(CMD_CLIENT);
 
