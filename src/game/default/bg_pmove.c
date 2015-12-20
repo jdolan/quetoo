@@ -354,7 +354,8 @@ static void Pm_Friction(void) {
 	const vec_t speed = VectorLength(vel);
 
 	if (speed < 1.0) {
-		VectorClear(pml.velocity);
+		pml.velocity[0] = 0.0;
+		pml.velocity[1] = 0.0;
 		return;
 	}
 
@@ -967,7 +968,6 @@ static void Pm_WaterMove(void) {
 static void Pm_AirMove(void) {
 	vec3_t vel, dir;
 	vec_t speed;
-	int32_t i;
 
 	// Pm_Debug("%s\n", vtos(pml.velocity));
 
@@ -981,7 +981,7 @@ static void Pm_AirMove(void) {
 	VectorNormalize(pml.forward);
 	VectorNormalize(pml.right);
 
-	for (i = 0; i < 2; i++) {
+	for (int32_t i = 0; i < 2; i++) {
 		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
 	}
 

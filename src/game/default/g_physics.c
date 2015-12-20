@@ -474,8 +474,9 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 			continue;
 
 		// if the entity is in a good position and not riding us, we can skip them
-		if (G_GoodPosition(ent) && ent->locals.ground_entity != self)
+		if (G_GoodPosition(ent) && ent->locals.ground_entity != self) {
 			continue;
+		}
 
 		// if we are a pusher, or someone is riding us, try to move them
 		if ((self->locals.move_type == MOVE_TYPE_PUSH) || (ent->locals.ground_entity == self)) {
