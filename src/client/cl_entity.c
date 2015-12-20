@@ -58,8 +58,7 @@ static _Bool Cl_ValidDeltaEntity(const entity_state_t *from, const entity_state_
  * @brief Reads deltas from the given base and adds the resulting entity to the
  * current frame.
  */
-static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t number,
-		uint16_t bits) {
+static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t number, uint16_t bits) {
 
 	cl_entity_t *ent = &cl.entities[number];
 
@@ -230,6 +229,8 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
  */
 void Cl_ParseFrame(void) {
 
+	memset(&cl.frame, 0, sizeof(cl.frame));
+
 	cl.frame.frame_num = Net_ReadLong(&net_message);
 
 	cl.frame.delta_frame_num = Net_ReadLong(&net_message);
@@ -252,7 +253,7 @@ void Cl_ParseFrame(void) {
 			Com_Error(ERR_DROP, "Delta frame too old\n");
 
 		else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP)
-			Com_Error(ERR_DROP, "Delta parse_entities too old\n");
+			Com_Error(ERR_DROP, "Delta entity state too old\n");
 
 		cl.frame.valid = true;
 	}
@@ -265,7 +266,7 @@ void Cl_ParseFrame(void) {
 	Cl_ParseEntities(cl.delta_frame, &cl.frame);
 
 	// set the simulation time for the frame
-	cl.frame.time = cl.frame.frame_num * 1000 / cl.server_hz;
+	cl.frame.time = cl.frame.frame_num * (1000 / cl.server_hz);
 
 	// save the frame off in the backup array for later delta comparisons
 	cl.frames[cl.frame.frame_num & PACKET_MASK] = cl.frame;
@@ -299,26 +300,18 @@ static void Cl_UpdateLerp(void) {
 		return;
 	}
 
+	const uint32_t frame_millis = 1000.0 / cl.server_hz;
+
 	if (cl.time > cl.frame.time) {
-		// Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
+		Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
 		cl.time = cl.frame.time;
 		cl.lerp = 1.0;
-	} else if (cl.time < cl.delta_frame->time) {
-		// Com_Debug("Low clamp: %dms\n", from->time - cl.time);
-		cl.time = cl.delta_frame->time;
+	} else if (cl.time < cl.frame.time - frame_millis) {
+		Com_Debug("Low clamp: %dms\n", (cl.frame.time - frame_millis) - cl.time);
+		cl.time = cl.frame.time - frame_millis;
 		cl.lerp = 0.0;
 	} else {
-		const uint32_t delta = cl.time - cl.delta_frame->time;
-		const uint32_t interval = cl.frame.time - cl.delta_frame->time;
-
-		if (interval == 0) {
-			Com_Debug("Bad clamp\n");
-			cl.time = cl.frame.time;
-			cl.lerp = 1.0;
-			return;
-		}
-
-		cl.lerp = delta / (vec_t) interval;
+		cl.lerp = 1.0 - (cl.frame.time - cl.time) / (vec_t) frame_millis;
 	}
 }
 

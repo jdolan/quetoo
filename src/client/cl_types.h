@@ -158,8 +158,7 @@ typedef struct {
 
 	uint32_t surpress_count; // number of messages rate suppressed
 
-	uint32_t time; // this is the server time value that the client
-	// is rendering at. always <= quetoo.time due to latency
+	uint32_t time; // server time that the client is rendering at
 
 	vec_t lerp; // linear interpolation between frames
 

@@ -175,7 +175,8 @@ void Cl_UpdateView(void) {
 
 	Cl_ClearView();
 
-	const player_state_t *from = cl.delta_frame ? &cl.delta_frame->ps : &cl.frame.ps;
+	const cl_frame_t *frame = &cl.frames[(cl.frame.frame_num - 1) & PACKET_MASK];
+	const player_state_t *from = frame->frame_num == cl.frame.frame_num - 1 ? &frame->ps : &cl.frame.ps;
 
 	Cl_UpdateOrigin(from, &cl.frame.ps);
 

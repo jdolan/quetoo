@@ -566,12 +566,11 @@ static void Cl_WriteConfiguration(void) {
  */
 void Cl_Frame(const uint32_t msec) {
 	_Bool packet_frame = true, render_frame = true;
-	uint32_t ms;
 
 	if (dedicated->value)
 		return;
 
-	// increment the server time as well
+	// increment the server time
 	cl.time += msec;
 
 	cls.packet_delta += msec;
@@ -602,14 +601,14 @@ void Cl_Frame(const uint32_t msec) {
 	} else { // check frame rate cap conditions
 
 		if (cl_max_fps->value > 0.0) { // cap render frame rate
-			ms = 1000.0 * time_scale->value / cl_max_fps->value;
+			const uint32_t ms = 1000.0 * time_scale->value / cl_max_fps->value;
 
 			if (cls.render_delta < ms)
 				render_frame = false;
 		}
 
 		if (cl_max_pps->value > 0.0) { // cap net frame rate
-			ms = 1000.0 * time_scale->value / cl_max_pps->value;
+			const uint32_t ms = 1000.0 * time_scale->value / cl_max_pps->value;
 
 			if (cls.packet_delta < ms)
 				packet_frame = false;
@@ -619,10 +618,10 @@ void Cl_Frame(const uint32_t msec) {
 	if (!cl_async->value) // run synchronously
 		packet_frame = render_frame;
 
-	if (!render_frame || cls.packet_delta < 8)
+	if (!render_frame || cls.packet_delta < (1000 / 125))
 		packet_frame = false; // enforce a soft cap of 125pps
 
-	if (cls.state == CL_CONNECTED && cls.packet_delta < 16)
+	if (cls.state == CL_CONNECTED && cls.packet_delta < (1000 / 60))
 		packet_frame = false; // don't flood the server while downloading
 
 	if (cls.state <= CL_DISCONNECTED && !Com_WasInit(QUETOO_SERVER)) {
