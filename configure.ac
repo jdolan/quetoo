@@ -125,7 +125,10 @@ dnl Check for curses
 dnl -----------------
 
 PKG_CHECK_MODULES([CURSES], [ncurses >= 5.0],, [
-	PKG_CHECK_MODULES([CURSES], [pdcurses >= 3.4])
+	AC_CHECK_HEADER(curses.h,
+		CURSES_LIBS="-lpdcurses",
+		[AC_MSG_ERROR([Could not find curses.h, please install curses])]
+	)
 ])
 
 dnl --------------
