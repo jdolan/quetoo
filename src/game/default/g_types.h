@@ -442,6 +442,7 @@ typedef struct {
 
 	// state data
 	g_move_state_t state;
+	vec3_t dest;
 	vec3_t dir;
 	vec_t current_speed;
 	vec_t move_speed;

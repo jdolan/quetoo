@@ -50,6 +50,7 @@ void G_func_areaportal(g_entity_t *ent) {
  */
 static void G_MoveInfo_Done(g_entity_t *ent) {
 
+	VectorCopy(ent->locals.move_info.dest, ent->s.origin);
 	VectorClear(ent->locals.velocity);
 
 	ent->locals.move_info.Done(ent);
@@ -59,14 +60,14 @@ static void G_MoveInfo_Done(g_entity_t *ent) {
  * @brief
  */
 static void G_MoveInfo_End(g_entity_t *ent) {
+	g_move_info_t *move = &ent->locals.move_info;
 
-	if (ent->locals.move_info.remaining_distance == 0.0) {
+	if (move->remaining_distance == 0.0) {
 		G_MoveInfo_Done(ent);
 		return;
 	}
 
-	VectorScale(ent->locals.move_info.dir,
-			ent->locals.move_info.remaining_distance / gi.frame_seconds, ent->locals.velocity);
+	VectorScale(move->dir, move->remaining_distance / gi.frame_seconds, ent->locals.velocity);
 
 	ent->locals.Think = G_MoveInfo_Done;
 	ent->locals.next_think = g_level.time + gi.frame_millis;
@@ -226,6 +227,7 @@ static void G_MoveInfo_Init(g_entity_t *ent, vec3_t dest, void (*Done)(g_entity_
 
 	VectorClear(ent->locals.velocity);
 
+	VectorCopy(dest, move->dest);
 	VectorSubtract(dest, ent->s.origin, move->dir);
 	move->remaining_distance = VectorNormalize(move->dir);
 
