@@ -408,14 +408,24 @@ int32_t ZIP_Main(void) {
 
 	LoadBSPFile(bsp_name);
 
-	// add the textures, normalmaps and glossmaps
+	// add the textures, normalmaps, specular maps, ..
 	for (i = 0; i < d_bsp.num_texinfo; i++) {
+		char base[MAX_QPATH];
+
 		AddImage(va("textures/%s", d_bsp.texinfo[i].texture), true);
-		AddImage(va("textures/%s_nm", d_bsp.texinfo[i].texture), false);
-		AddImage(va("textures/%s_norm", d_bsp.texinfo[i].texture), false);
-		AddImage(va("textures/%s_local", d_bsp.texinfo[i].texture), false);
-		AddImage(va("textures%s_s", d_bsp.texinfo[i].texture), false);
-		AddImage(va("textures%s_gloss", d_bsp.texinfo[i].texture), false);
+
+		g_strlcpy(base, d_bsp.texinfo[i].texture, sizeof(base));
+
+		if (g_str_has_suffix(base, "_d")) {
+			base[strlen(base) - 2] = '\0';
+		}
+
+		AddImage(va("textures/%s_nm", base), false);
+		AddImage(va("textures/%s_norm", base), false);
+		AddImage(va("textures/%s_local", base), false);
+		AddImage(va("textures/%s_h", base), false);
+		AddImage(va("textures%s_s", base), false);
+		AddImage(va("textures%s_gloss", base), false);
 	}
 
 	// and the materials

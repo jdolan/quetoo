@@ -518,16 +518,29 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 			mat->diffuse = R_LoadImage(va("%s_d", base), IT_DIFFUSE);
 		}
 
-		mat->normalmap = R_LoadImage(va("%s_nm", base), IT_NORMALMAP);
-		if (mat->normalmap->type == IT_NULL) {
-			mat->normalmap = R_LoadImage(va("%s_local", base), IT_NORMALMAP);
+		if (mat->diffuse) {
+
+			mat->normalmap = R_LoadImage(va("%s_nm", base), IT_NORMALMAP);
 			if (mat->normalmap->type == IT_NULL) {
-				mat->normalmap = NULL;
+				mat->normalmap = R_LoadImage(va("%s_norm", base), IT_NORMALMAP);
+				if (mat->normalmap->type == IT_NULL) {
+					mat->normalmap = R_LoadImage(va("%s_local", base), IT_NORMALMAP);
+					if (mat->normalmap->type == IT_NULL) {
+						mat->normalmap = NULL;
+					}
+				}
+			}
+
+			if (mat->normalmap) {
+				mat->specularmap = R_LoadImage(va("%s_s", base), IT_SPECULARMAP);
+				if (mat->specularmap->type == IT_NULL) {
+					mat->specularmap = R_LoadImage(va("%s_gloss", base), IT_SPECULARMAP);
+					if (mat->specularmap->type == IT_NULL) {
+						mat->specularmap = NULL;
+					}
+				}
 			}
 		}
-
-		mat->specularmap = R_LoadImage(va("%s_s", base), IT_SPECULARMAP);
-		mat->specularmap = (mat->specularmap->type == IT_NULL ? NULL : mat->specularmap);
 
 		mat->bump = DEFAULT_BUMP;
 		mat->hardness = DEFAULT_HARDNESS;
