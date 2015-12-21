@@ -1404,7 +1404,16 @@ static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other __attribu
 		return;
 
 	G_MoveInfo_Init(self, self->locals.pos1, G_func_door_secret_Move1);
+
 	G_func_door_UseAreaPortals(self, true);
+
+	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
+
+		if (self->locals.move_info.sound_start)
+			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE);
+
+		self->s.sound = self->locals.move_info.sound_middle;
+	}
 }
 
 static void G_func_door_secret_Move1(g_entity_t *self) {
@@ -1423,11 +1432,27 @@ static void G_func_door_secret_Move3(g_entity_t *self) {
 	if (self->locals.wait == -1.0)
 		return;
 
+	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
+
+		if (self->locals.move_info.sound_end)
+			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE);
+
+		self->s.sound = 0;
+	}
+
 	self->locals.next_think = g_level.time + self->locals.wait * 1000;
 	self->locals.Think = G_func_door_secret_Move4;
 }
 
 static void G_func_door_secret_Move4(g_entity_t *self) {
+
+	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
+
+		if (self->locals.move_info.sound_start)
+			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE);
+
+		self->s.sound = self->locals.move_info.sound_middle;
+	}
 
 	G_MoveInfo_Init(self, self->locals.pos1, G_func_door_secret_Move5);
 }
@@ -1450,6 +1475,14 @@ static void G_func_door_secret_Done(g_entity_t *self) {
 		self->locals.take_damage = true;
 	}
 
+	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
+
+		if (self->locals.move_info.sound_end)
+			gi.Sound(self, self->locals.move_info.sound_end, ATTEN_IDLE);
+
+		self->s.sound = 0;
+	}
+
 	G_func_door_UseAreaPortals(self, false);
 }
 
@@ -1463,12 +1496,10 @@ static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {
 
 	self->locals.touch_time = g_level.time + 500;
 
-	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1,
-			0, MOD_CRUSH);
+	G_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->locals.damage, 1, 0, MOD_CRUSH);
 }
 
-static void G_func_door_secret_Die(g_entity_t *self, g_entity_t *attacker,
-		uint32_t mod __attribute__((unused))) {
+static void G_func_door_secret_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod __attribute__((unused))) {
 
 	self->locals.take_damage = false;
 	G_func_door_secret_Use(self, attacker, attacker);
@@ -1478,6 +1509,7 @@ void G_func_door_secret(g_entity_t *ent) {
 	vec3_t forward, right, up;
 
 	ent->locals.move_info.sound_start = gi.SoundIndex("world/door_start");
+	ent->locals.move_info.sound_middle = gi.SoundIndex("world/door_middle");
 	ent->locals.move_info.sound_end = gi.SoundIndex("world/door_end");
 
 	ent->locals.move_type = MOVE_TYPE_PUSH;
