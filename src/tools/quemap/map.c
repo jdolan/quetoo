@@ -467,17 +467,14 @@ static void SetImpliedFlags(side_t *side, const char *tex) {
 	}
 
 	if (strstr(tex, "lava")) {
-		side->surf |= SURF_WARP;
 		side->contents |= CONTENTS_LAVA;
 	}
 
 	if (strstr(tex, "slime")) {
-		side->surf |= SURF_WARP;
 		side->contents |= CONTENTS_SLIME;
 	}
 
 	if (strstr(tex, "water")) {
-		side->surf |= SURF_WARP;
 		side->contents |= CONTENTS_WATER;
 	}
 }

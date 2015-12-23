@@ -491,17 +491,55 @@ static void R_RegisterMaterial(r_media_t *self) {
 }
 
 /*
+ * @brief
+ */
+static void R_LoadNormalmap(r_material_t *mat, const char *base) {
+	const char *suffix[] = { "_nm", "_norm", "_local", "_bump" };
+
+	for (size_t i = 0; i < lengthof(suffix); i++) {
+		mat->normalmap = R_LoadImage(va("%s%s", base, suffix[i]), IT_NORMALMAP);
+		if (mat->normalmap->type == IT_NORMALMAP) {
+			break;
+		}
+	}
+
+	if (mat->normalmap->type == IT_NULL) {
+		mat->normalmap = NULL;
+	}
+}
+
+/*
+ * @brief
+ */
+static void R_LoadSpecularmap(r_material_t *mat, const char *base) {
+	const char *suffix[] = { "_s", "_gloss", "_spec" };
+
+	for (size_t i = 0; i < lengthof(suffix); i++) {
+		mat->specularmap = R_LoadImage(va("%s%s", base, suffix[i]), IT_SPECULARMAP);
+		if (mat->specularmap->type == IT_SPECULARMAP) {
+			break;
+		}
+	}
+
+	if (mat->specularmap->type == IT_NULL) {
+		mat->specularmap = NULL;
+	}
+}
+
+/*
  * @brief Loads the r_material_t with the specified diffuse texture.
  */
 r_material_t *R_LoadMaterial(const char *diffuse) {
 	r_material_t *mat;
-	char base[MAX_QPATH], key[MAX_QPATH];
+	char name[MAX_QPATH], base[MAX_QPATH], key[MAX_QPATH];
 
 	if (!diffuse || !diffuse[0]) {
 		Com_Error(ERR_DROP, "NULL diffuse name\n");
 	}
 
-	StripExtension(diffuse, base);
+	StripExtension(diffuse, name);
+
+	g_strlcpy(base, name, sizeof(base));
 
 	if (g_str_has_suffix(base, "_d"))
 		base[strlen(base) - 2] = '\0';
@@ -513,32 +551,11 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 
 		mat->media.Register = R_RegisterMaterial;
 
-		mat->diffuse = R_LoadImage(base, IT_DIFFUSE);
-		if (mat->diffuse->type == IT_NULL) {
-			mat->diffuse = R_LoadImage(va("%s_d", base), IT_DIFFUSE);
-		}
-
-		if (mat->diffuse) {
-
-			mat->normalmap = R_LoadImage(va("%s_nm", base), IT_NORMALMAP);
-			if (mat->normalmap->type == IT_NULL) {
-				mat->normalmap = R_LoadImage(va("%s_norm", base), IT_NORMALMAP);
-				if (mat->normalmap->type == IT_NULL) {
-					mat->normalmap = R_LoadImage(va("%s_local", base), IT_NORMALMAP);
-					if (mat->normalmap->type == IT_NULL) {
-						mat->normalmap = NULL;
-					}
-				}
-			}
-
+		mat->diffuse = R_LoadImage(name, IT_DIFFUSE);
+		if (mat->diffuse->type == IT_DIFFUSE) {
+			R_LoadNormalmap(mat, base);
 			if (mat->normalmap) {
-				mat->specularmap = R_LoadImage(va("%s_s", base), IT_SPECULARMAP);
-				if (mat->specularmap->type == IT_NULL) {
-					mat->specularmap = R_LoadImage(va("%s_gloss", base), IT_SPECULARMAP);
-					if (mat->specularmap->type == IT_NULL) {
-						mat->specularmap = NULL;
-					}
-				}
+				R_LoadSpecularmap(mat, base);
 			}
 		}
 

@@ -420,12 +420,14 @@ int32_t ZIP_Main(void) {
 			base[strlen(base) - 2] = '\0';
 		}
 
+		AddImage(va("textures/%s_bump", base), false);
 		AddImage(va("textures/%s_nm", base), false);
 		AddImage(va("textures/%s_norm", base), false);
 		AddImage(va("textures/%s_local", base), false);
 		AddImage(va("textures/%s_h", base), false);
-		AddImage(va("textures%s_s", base), false);
-		AddImage(va("textures%s_gloss", base), false);
+		AddImage(va("textures/%s_gloss", base), false);
+		AddImage(va("textures/%s_s", base), false);
+		AddImage(va("textures/%s_spec", base), false);
 	}
 
 	// and the materials
