@@ -454,7 +454,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 0.125);
 
-		G_WeaponFired(ent, 75);
+		G_WeaponFired(ent, 50);
 	}
 }
 
@@ -620,7 +620,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 
 		G_InitProjectile(ent, forward, right, up, org);
 
-		G_GrenadeProjectile(ent, org, forward, 800, 120, 120, 185.0, 2500);
+		G_GrenadeProjectile(ent, org, forward, 900, 120, 120, 185.0, 2500);
 
 		G_MuzzleFlash(ent, MZ_GRENADE);
 
