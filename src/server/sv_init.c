@@ -51,7 +51,7 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, _Bo
 		Net_WriteByte(&sv.multicast, SV_CMD_CONFIG_STRING);
 		Net_WriteShort(&sv.multicast, start + i);
 		Net_WriteString(&sv.multicast, name);
-		Sv_Multicast(vec3_origin, MULTICAST_ALL_R);
+		Sv_Multicast(NULL, MULTICAST_ALL_R, NULL);
 	}
 
 	return i;

@@ -172,7 +172,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	cgi.DrawImage(x, y, is, info->icon);
 
 	// flag carrier icon
-	if (atoi(cgi.ConfigString(CS_CTF)) && s->flags & SCORE_CTF_FLAG) {
+	if (atoi(cgi.ConfigString(CS_CTF)) && (s->flags & SCORE_CTF_FLAG)) {
 		const int32_t team = (s->flags & SCORE_TEAM_GOOD) ? 1 : 2;
 		const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IT_PIC);
 		cgi.DrawImage(x, y, 0.33, flag);

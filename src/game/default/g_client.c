@@ -356,7 +356,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribut
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_GIB);
 	gi.WritePosition(self->s.origin);
-	gi.Multicast(self->s.origin, MULTICAST_PVS);
+	gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
 
 	if (!self->client) // this can be called immediately by the client
 		G_FreeEntity(self);
@@ -1081,7 +1081,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
 	gi.WriteShort(ent->s.number);
 	gi.WriteByte(MZ_LOGOUT);
-	gi.Multicast(ent->s.origin, MULTICAST_ALL);
+	gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);
 
 	gi.UnlinkEntity(ent);
 

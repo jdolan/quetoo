@@ -23,7 +23,6 @@
 #include "client.h"
 
 extern cl_client_t cl;
-extern cl_static_t cls;
 
 /*
  * @brief

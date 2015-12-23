@@ -82,7 +82,7 @@ static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 	gi.WriteByte(TE_BUBBLES);
 	gi.WritePosition(start);
 	gi.WritePosition(tr->end);
-	gi.Multicast(pos, MULTICAST_PHS);
+	gi.Multicast(pos, MULTICAST_PHS, NULL);
 }
 
 /*
@@ -104,14 +104,14 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
 	gi.WriteByte(TE_TRACER);
 	gi.WritePosition(mid);
 	gi.WritePosition(end);
-	gi.Multicast(start, MULTICAST_PHS);
+	gi.Multicast(start, MULTICAST_PHS, NULL);
 
 	if (!gi.inPHS(start, end)) { // send to both PHS's
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(TE_TRACER);
 		gi.WritePosition(mid);
 		gi.WritePosition(end);
-		gi.Multicast(end, MULTICAST_PHS);
+		gi.Multicast(end, MULTICAST_PHS, NULL);
 	}
 }
 
@@ -128,7 +128,7 @@ static void G_BulletMark(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *su
 	gi.WritePosition(org);
 	gi.WriteDir(plane->normal);
 
-	gi.Multicast(org, MULTICAST_PHS);
+	gi.Multicast(org, MULTICAST_PHS, NULL);
 }
 
 /*
@@ -143,7 +143,7 @@ static void G_BurnMark(vec3_t org, const cm_bsp_plane_t *plane,
 	gi.WriteDir(plane->normal);
 	gi.WriteByte(scale);
 
-	gi.Multicast(org, MULTICAST_PHS);
+	gi.Multicast(org, MULTICAST_PHS, NULL);
 }
 
 /*
@@ -172,7 +172,7 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			gi.WritePosition(origin);
 			gi.WritePosition(plane->normal);
 			gi.WriteByte(self->s.client);
-			gi.Multicast(origin, MULTICAST_PHS);
+			gi.Multicast(origin, MULTICAST_PHS, NULL);
 		}
 	}
 
@@ -308,7 +308,7 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
 	gi.WritePosition(origin);
-	gi.Multicast(origin, MULTICAST_PHS);
+	gi.Multicast(origin, MULTICAST_PHS, NULL);
 
 	if (ent) {
 		if (G_IsStructural(ent, surf) && G_IsStationary(ent)) {
@@ -369,7 +369,7 @@ static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
 	gi.WritePosition(origin);
-	gi.Multicast(origin, MULTICAST_PHS);
+	gi.Multicast(origin, MULTICAST_PHS, NULL);
 
 	if (ent) {
 		if (G_IsStructural(ent, surf) && G_IsStationary(ent)) {
@@ -542,7 +542,7 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_EXPLOSION);
 			gi.WritePosition(origin);
-			gi.Multicast(origin, MULTICAST_PHS);
+			gi.Multicast(origin, MULTICAST_PHS, NULL);
 
 			if (G_IsStructural(other, surf) && G_IsStationary(other)) {
 				VectorMA(self->s.origin, 2.0, plane->normal, origin);
@@ -618,7 +618,7 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_HYPERBLASTER);
 			gi.WritePosition(origin);
-			gi.Multicast(origin, MULTICAST_PHS);
+			gi.Multicast(origin, MULTICAST_PHS, NULL);
 
 			if (G_IsStructural(other, surf)) {
 
@@ -922,7 +922,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	gi.WriteLong(tr.surface->flags);
 	gi.WriteByte(color);
 
-	gi.Multicast(start, MULTICAST_PHS);
+	gi.Multicast(start, MULTICAST_PHS, NULL);
 
 	if (!gi.inPHS(start, tr.end)) { // send to both PHS's
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -932,7 +932,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		gi.WriteLong(tr.surface->flags);
 		gi.WriteByte(color);
 
-		gi.Multicast(tr.end, MULTICAST_PHS);
+		gi.Multicast(tr.end, MULTICAST_PHS, NULL);
 	}
 
 	// calculate position of burn mark
@@ -975,7 +975,7 @@ static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_
 			gi.WriteByte(SV_CMD_TEMP_ENTITY);
 			gi.WriteByte(TE_BFG);
 			gi.WritePosition(origin);
-			gi.Multicast(origin, MULTICAST_PHS);
+			gi.Multicast(origin, MULTICAST_PHS, NULL);
 
 			if (G_IsStructural(other, surf) && G_IsStationary(other)) {
 
@@ -1022,7 +1022,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 		gi.WriteByte(TE_BFG_LASER);
 		gi.WritePosition(self->s.origin);
 		gi.WritePosition(ent->s.origin);
-		gi.Multicast(self->s.origin, MULTICAST_PVS);
+		gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
 	}
 
 	self->locals.next_think = g_level.time + gi.frame_millis;

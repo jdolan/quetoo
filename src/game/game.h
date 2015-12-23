@@ -43,11 +43,14 @@
 #ifndef __GAME_LOCAL_H__
 
 /*
- * This is the server's definition of the client and edict structures. The
+ * @brief This is the server's definition of the client and edict structures. The
  * game module is free to add additional members to these structures, provided
  * they communicate the actual size of them at runtime through the game export
  * structure.
  */
+
+typedef struct g_client_s g_client_t;
+typedef struct g_entity_s g_entity_t;
 
 typedef struct {
 	void *opaque;
@@ -56,9 +59,6 @@ typedef struct {
 typedef struct {
 	void *opaque;
 } g_entity_locals_t;
-
-typedef struct g_client_s g_client_t;
-typedef struct g_entity_s g_entity_t;
 
 #endif /* __GAME_LOCAL_H__ */
 
@@ -146,6 +146,8 @@ struct g_entity_s {
 	 */
 	g_entity_locals_t locals; // game-local data members
 };
+
+typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
 
 /*
  * @brief The game import provides engine functionality and core configuration
@@ -310,7 +312,7 @@ typedef struct {
 	/*
 	 * @brief Network messaging facilities.
 	 */
-	void (*Multicast)(const vec3_t origin, multicast_t to);
+	void (*Multicast)(const vec3_t org, multicast_t to, EntityFilterFunc filter);
 	void (*Unicast)(const g_entity_t *ent, const _Bool reliable);
 	void (*WriteData)(const void *data, size_t len);
 	void (*WriteChar)(const int32_t c);

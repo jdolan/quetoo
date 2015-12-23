@@ -112,7 +112,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 
 	Net_WriteByte(&sv.multicast, SV_CMD_CBUF_TEXT);
 	Net_WriteString(&sv.multicast, string);
-	Sv_Multicast(NULL, MULTICAST_ALL_R);
+	Sv_Multicast(NULL, MULTICAST_ALL_R, NULL);
 }
 
 /*
@@ -173,9 +173,11 @@ void Sv_Unicast(const g_entity_t *ent, const _Bool reliable) {
  * @brief Sends the contents of sv.multicast to a subset of the clients,
  * then clears sv.multicast.
  */
-void Sv_Multicast(const vec3_t origin, multicast_t to) {
+void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) {
 	byte vis[MAX_BSP_LEAFS >> 3];
 	int32_t area;
+
+	origin = origin ?: vec3_origin;
 
 	_Bool reliable = false;
 
@@ -249,6 +251,12 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 				continue;
 		}
 
+		if (filter) { // allow the game module to filter the recipients
+			if (!filter(cl->entity)) {
+				continue;
+			}
+		}
+
 		if (reliable) {
 			Mem_WriteBuffer(&cl->net_chan.message, sv.multicast.data, sv.multicast.size);
 		} else {
@@ -318,9 +326,9 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uin
 		Net_WritePosition(&sv.multicast, org);
 
 	if (atten != ATTEN_NONE)
-		Sv_Multicast(org, MULTICAST_PHS);
+		Sv_Multicast(org, MULTICAST_PHS, NULL);
 	else
-		Sv_Multicast(org, MULTICAST_ALL);
+		Sv_Multicast(org, MULTICAST_ALL, NULL);
 }
 
 /*

@@ -110,7 +110,7 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
 		gi.WriteByte(type);
 		gi.WritePosition(pos);
 		gi.WriteDir(normal ? normal : vec3_origin);
-		gi.Multicast(pos, MULTICAST_PVS);
+		gi.Multicast(pos, MULTICAST_PVS, NULL);
 	}
 }
 

@@ -91,7 +91,7 @@ static void G_target_explosion_Explode(g_entity_t *self) {
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
 	gi.WritePosition(self->s.origin);
-	gi.Multicast(self->s.origin, MULTICAST_PHS);
+	gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
 
 	G_RadiusDamage(self, self->locals.activator, NULL, self->locals.damage, self->locals.damage,
 			self->locals.damage + 40, MOD_EXPLOSIVE);
@@ -140,7 +140,7 @@ static void G_target_splash_Think(g_entity_t *self) {
 	gi.WriteByte(TE_SPARKS);
 	gi.WritePosition(self->s.origin);
 	gi.WriteDir(self->locals.move_dir);
-	gi.Multicast(self->s.origin, MULTICAST_PVS);
+	gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
 
 	self->locals.next_think = g_level.time + (Randomf() * 3000);
 }

@@ -365,7 +365,7 @@ static void G_MuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
 		gi.WriteByte(ent->client ? ent->client->locals.persistent.color : 0);
 	}
 
-	gi.Multicast(ent->s.origin, MULTICAST_PHS);
+	gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);
 }
 
 /*

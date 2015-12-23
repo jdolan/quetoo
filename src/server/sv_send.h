@@ -27,7 +27,7 @@
 #ifdef __SV_LOCAL_H__
 void Sv_SendClientPackets(void);
 void Sv_Unicast(const g_entity_t *ent, const _Bool reliable);
-void Sv_Multicast(const vec3_t origin, multicast_t to);
+void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter);
 void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uint16_t index, const uint16_t atten);
 void Sv_ClientPrint(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));

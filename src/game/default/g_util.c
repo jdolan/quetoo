@@ -385,7 +385,7 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius,
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_EXPLOSION);
 	gi.WritePosition(ent->s.origin);
-	gi.Multicast(ent->s.origin, MULTICAST_PHS);
+	gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);
 
 	G_RadiusDamage(ent, ent, NULL, damage, knockback, radius, mod ? mod : MOD_EXPLOSIVE);
 
@@ -400,7 +400,7 @@ void G_Gib(g_entity_t *ent) {
 	gi.WriteByte(SV_CMD_TEMP_ENTITY);
 	gi.WriteByte(TE_GIB);
 	gi.WritePosition(ent->s.origin);
-	gi.Multicast(ent->s.origin, MULTICAST_PVS);
+	gi.Multicast(ent->s.origin, MULTICAST_PVS, NULL);
 
 	G_FreeEntity(ent);
 }
