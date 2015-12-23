@@ -384,7 +384,7 @@ void G_FireBlaster(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 0.08);
 
-		G_WeaponFired(ent, 500);
+		G_WeaponFired(ent, 400);
 	}
 }
 
@@ -402,9 +402,9 @@ void G_FireShotgun(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_SHOTGUN);
 
-		G_ClientWeaponKick(ent, 0.15);
+		G_ClientWeaponKick(ent, 0.12);
 
-		G_WeaponFired(ent, 800);
+		G_WeaponFired(ent, 500);
 	}
 }
 
@@ -432,9 +432,9 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_SSHOTGUN);
 
-		G_ClientWeaponKick(ent, 0.2);
+		G_ClientWeaponKick(ent, 0.16);
 
-		G_WeaponFired(ent, 1000);
+		G_WeaponFired(ent, 800);
 	}
 }
 
@@ -454,7 +454,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 0.125);
 
-		G_WeaponFired(ent, 50);
+		G_WeaponFired(ent, 40);
 	}
 }
 
@@ -624,7 +624,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_GRENADE);
 
-		G_ClientWeaponKick(ent, 0.225);
+		G_ClientWeaponKick(ent, 0.2);
 
 		G_WeaponFired(ent, 1000);
 	}
@@ -644,7 +644,7 @@ void G_FireRocketLauncher(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_ROCKET);
 
-		G_ClientWeaponKick(ent, 0.275);
+		G_ClientWeaponKick(ent, 0.25);
 
 		G_WeaponFired(ent, 1000);
 	}
@@ -734,7 +734,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 
 	G_MuzzleFlash(ent->owner, MZ_BFG);
 
-	G_ClientWeaponKick(ent->owner, 0.5);
+	G_ClientWeaponKick(ent->owner, 1.0);
 
 	G_WeaponFired(ent->owner, 2000);
 

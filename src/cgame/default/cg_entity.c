@@ -110,8 +110,8 @@ static void Cg_WeaponKick(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 	const vec3_t drop_raise_offset = { -4.0, -4.0, -4.0 };
 	const vec3_t drop_raise_angles = { 25.0, -35.0, 2.0 };
 
-	const vec3_t kick_offset = { -4.0, 0.0, 1.0 };
-	const vec3_t kick_angles = { -4.0, 1.0, 0.0 };
+	const vec3_t kick_offset = { -4.0, 0.0, 0.0 };
+	const vec3_t kick_angles = { -2.0, 0.0, 0.0 };
 
 	VectorSet(offset, cg_draw_weapon_x->value, cg_draw_weapon_y->value, cg_draw_weapon_z->value);
 	VectorClear(angles);
