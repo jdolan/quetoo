@@ -153,8 +153,7 @@ static void G_MapList_Parse(const char *filename) {
 			 "capture_limit: %ud\n"
 			 "time_limit: %f\n"
 			 "give: %s\n"
-			 "music: %s\n"
-			 "weight: %f\n",
+			 "music: %s\n",
 			 map->name, map->title, map->sky, map->weather, map->gravity,
 			 map->gameplay, map->teams, map->ctf, map->match, map->rounds,
 			 map->frag_limit, map->round_limit, map->capture_limit,
