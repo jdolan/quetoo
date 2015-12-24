@@ -47,13 +47,22 @@ function skip_lib() {
 	return 0
 }
 
-
 libs=$(ldd $@ | grep ' => ' | sed -rn 's:.* => ([^ ]+) .*:\1:p' | sort -u)
 
-for lib in $libs; do
+skipped=""
+
+for lib in ${libs}; do
 	if skip_lib "${lib}"; then
 		echo "Installing ${lib} in ${dir}.."
 		install "${lib}" "${dir}"
+	else
+		skipped="${skipped} ${lib}"
 	fi
 done
 
+echo
+echo "The following libraries were skipped:"
+
+for skip in ${skipped}; do
+	echo " ${skip}"
+done
