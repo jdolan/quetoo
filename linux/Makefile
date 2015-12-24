@@ -27,9 +27,9 @@ install: pre-install
 
 install-lib: install
 	./sobundler.sh -d $(LIBDIR) \
-		$(BINDIR)/quemap \
-		$(BINDIR)/quetoo \
-		$(BINDIR)/quetoo-dedicated
+		../src/main//quetoo \
+		../src/main/quetoo-dedicated \
+		../src/tools/quemap/quemap
 
 install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
