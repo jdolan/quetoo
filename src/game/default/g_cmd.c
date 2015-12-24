@@ -158,13 +158,6 @@ static void G_God_f(g_entity_t *ent) {
 /*
  * @brief
  */
-static void G_NextMap_f(g_entity_t *ent __attribute__((unused))) {
-	gi.AddCommandString(va("map %s\n", G_SelectNextMap()));
-}
-
-/*
- * @brief
- */
 static void G_NoClip_f(g_entity_t *ent) {
 	char *msg;
 
@@ -603,9 +596,9 @@ static const char *vote_cmds[] = {
  * true if the command received help and may therefore be ignored, false
  * otherwise.
  */
-static _Bool Vote_Help(g_entity_t *ent) {
-	size_t i, j, len;
-	char msg[1024];
+static _Bool G_VoteHelp(g_entity_t *ent) {
+	char msg[MAX_STRING_CHARS];
+	size_t i;
 
 	if (!g_level.vote_time) { // check for yes/no
 		if (gi.Argc() == 1 && (!g_strcmp0(gi.Argv(0), "yes") || !g_strcmp0(gi.Argv(0), "no"))) {
@@ -652,27 +645,16 @@ static _Bool Vote_Help(g_entity_t *ent) {
 	// command-specific help for some commands
 	if (gi.Argc() == 2 && !g_strcmp0(gi.Argv(1), "map")) { // list available maps
 
-		if (!g_map_list.count) { // no maps in maplist
+		if (!g_map_list) { // no maps in maplist
 			gi.ClientPrint(ent, PRINT_HIGH, "Map voting is not available\n");
 			return true;
 		}
 
 		strcat(msg, "\nAvailable maps:\n\n");
 
-		j = 0;
-		for (i = 0; i < g_map_list.count; i++) {
-			len = strlen(g_map_list.maps[i].name) + 3;
-			len += strlen(g_map_list.maps[i].title) + 2;
-
-			if (j + len > sizeof(msg)) // don't overrun msg
-				break;
-
-			strcat(msg, "  ");
-			strcat(msg, g_map_list.maps[i].name);
-			strcat(msg, " ");
-			strcat(msg, g_map_list.maps[i].title);
-			strcat(msg, "\n");
-			j += len;
+		for (GList *list = g_map_list; list; list = list->next) {
+			const g_map_list_map_t *elt = list->data;
+			g_strlcat(msg, va("  ^2%s^7 %s\n", elt->name, elt->title), sizeof(msg));
 		}
 
 		gi.ClientPrint(ent, PRINT_HIGH, "%s", msg);
@@ -698,7 +680,6 @@ static _Bool Vote_Help(g_entity_t *ent) {
  */
 static void G_Vote_f(g_entity_t *ent) {
 	char vote[64];
-	uint32_t i;
 
 	if (!g_voting->value) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Voting is not allowed");
@@ -732,16 +713,12 @@ static void G_Vote_f(g_entity_t *ent) {
 		return;
 	}
 
-	if (Vote_Help(ent)) // vote command got help, ignore it
+	if (G_VoteHelp(ent)) // vote command got help, ignore it
 		return;
 
 	if (!g_strcmp0(gi.Argv(1), "map")) { // ensure map is in map list
-		for (i = 0; i < g_map_list.count; i++) {
-			if (!g_strcmp0(gi.Argv(2), g_map_list.maps[i].name))
-				break; // found it
-		}
 
-		if (i == g_map_list.count) { // inform client if it is not
+		if (G_MapList_Find(gi.Argv(2)) == NULL) { // inform client if it is not
 			gi.ClientPrint(ent, PRINT_HIGH, "Map \"%s\" is not available\n", gi.Argv(2));
 			return;
 		}
@@ -1135,8 +1112,6 @@ void G_ClientCommand(g_entity_t *ent) {
 		G_Give_f(ent);
 	else if (g_strcmp0(cmd, "god") == 0)
 		G_God_f(ent);
-	else if (g_strcmp0(cmd, "next_map") == 0)
-		G_NextMap_f(ent);
 	else if (g_strcmp0(cmd, "no_clip") == 0)
 		G_NoClip_f(ent);
 	else if (g_strcmp0(cmd, "wave") == 0)

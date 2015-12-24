@@ -433,11 +433,12 @@ static void G_InitMedia(void) {
  */
 void G_SpawnEntities(const char *name, const char *entities) {
 
-	g_strlcpy(g_level.name, name, sizeof(g_level.name));
-
 	gi.FreeTag(MEM_TAG_GAME_LEVEL);
 
 	memset(&g_level, 0, sizeof(g_level));
+
+	g_strlcpy(g_level.name, name, sizeof(g_level.name));
+
 	memset(g_game.entities, 0, g_max_entities->value * sizeof(g_entity_t));
 
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
@@ -556,20 +557,13 @@ static void G_WorldspawnMusic(void) {
  give : A comma-delimited item string to give each player on spawn.
  */
 static void G_worldspawn(g_entity_t *ent) {
-	g_map_list_elt_t *map;
 
 	ent->solid = SOLID_BSP;
 	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->in_use = true; // since the world doesn't use G_Spawn()
 	ent->s.model1 = 0; // world model is always index 1
 
-	map = NULL; // resolve the maps.lst entry for this level
-	for (uint32_t i = 0; i < g_map_list.count; i++) {
-		if (!g_strcmp0(g_level.name, g_map_list.maps[i].name)) {
-			map = &g_map_list.maps[i];
-			break;
-		}
-	}
+	const g_map_list_map_t *map = G_MapList_Find(g_level.name);
 
 	if (ent->locals.message && *ent->locals.message)
 		g_strlcpy(g_level.title, ent->locals.message, sizeof(g_level.title));

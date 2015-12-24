@@ -89,6 +89,7 @@ typedef dvec_t dvec4_t[4];
  */
 #define MIN_CLIENTS			1 // duh
 #define MAX_CLIENTS			256 // absolute limit
+#define MIN_ENTITIES		128 // necessary for even the simplest game
 #define MAX_ENTITIES		1024 // must change protocol to increase more
 #define MAX_MODELS			256 // these are sent over the net as uint8_t
 #define MAX_SOUNDS			256 // so they cannot be blindly increased

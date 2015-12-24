@@ -61,8 +61,6 @@ cvar_t *dedicated;
 
 g_team_t g_team_good, g_team_evil;
 
-g_map_list_t g_map_list;
-
 /*
  * @brief
  */
@@ -210,8 +208,6 @@ static void G_MuteClient(char *name, _Bool mute) {
  * @brief
  */
 static void G_BeginIntermission(const char *map) {
-	int32_t i;
-	g_entity_t *ent, *client;
 
 	if (g_level.intermission_time)
 		return; // already activated
@@ -219,9 +215,9 @@ static void G_BeginIntermission(const char *map) {
 	g_level.intermission_time = g_level.time;
 
 	// respawn any dead clients
-	for (i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
-		client = g_game.entities + 1 + i;
+		g_entity_t *client = g_game.entities + 1 + i;
 
 		if (!client->in_use)
 			continue;
@@ -231,7 +227,7 @@ static void G_BeginIntermission(const char *map) {
 	}
 
 	// find an intermission spot
-	ent = G_Find(NULL, EOFS(class_name), "info_player_intermission");
+	g_entity_t *ent = G_Find(NULL, EOFS(class_name), "info_player_intermission");
 	if (!ent) { // map does not have an intermission point
 		ent = G_Find(NULL, EOFS(class_name), "info_player_start");
 		if (!ent)
@@ -242,9 +238,9 @@ static void G_BeginIntermission(const char *map) {
 	VectorCopy(ent->s.angles, g_level.intermission_angle);
 
 	// move all clients to the intermission point
-	for (i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
-		client = g_game.entities + 1 + i;
+		g_entity_t *client = g_game.entities + 1 + i;
 
 		if (!client->in_use)
 			continue;
@@ -253,11 +249,23 @@ static void G_BeginIntermission(const char *map) {
 	}
 
 	// play a dramatic sound effect
-	gi.PositionedSound(g_level.intermission_origin, g_game.entities, g_media.sounds.bfg_hit,
-			ATTEN_NORM);
+	gi.PositionedSound(g_level.intermission_origin, g_game.entities, g_media.sounds.bfg_hit, ATTEN_NORM);
 
 	// stay on same level if not provided
-	g_level.changemap = map && *map ? map : g_level.name;
+	g_level.changemap = map ?: g_level.name;
+}
+
+/*
+ * @brief The time limit, frag limit, etc.. has been exceeded.
+ */
+static void G_EndLevel(void) {
+
+	const g_map_list_map_t *map = G_MapList_Next();
+	if (map) {
+		G_BeginIntermission(map->name);
+	} else {
+		G_BeginIntermission(NULL);
+	}
 }
 
 /*
@@ -290,6 +298,8 @@ static void G_CheckVote(void) {
 
 		if (!strncmp(g_level.vote_cmd, "map ", 4)) { // special case for map
 			G_BeginIntermission(g_level.vote_cmd + 4);
+		} else if (!g_strcmp0(g_level.vote_cmd, "next_map")) { // and next_map
+			G_EndLevel();
 		} else if (!g_strcmp0(g_level.vote_cmd, "restart")) { // and restart
 			G_RestartGame(false);
 		} else if (!strncmp(g_level.vote_cmd, "mute ", 5)) { // and mute
@@ -306,12 +316,7 @@ static void G_CheckVote(void) {
 	}
 }
 
-/*
- * @brief The time limit, frag limit, etc.. has been exceeded.
- */
-static void G_EndLevel(void) {
-	G_BeginIntermission(G_SelectNextMap());
-}
+
 
 /*
  * @brief
@@ -829,224 +834,6 @@ static void G_Frame(void) {
 }
 
 /*
- * @brief
- */
-static void G_InitMapList(void) {
-	int32_t i;
-
-	memset(&g_map_list, 0, sizeof(g_map_list));
-
-	for (i = 0; i < MAX_MAP_LIST_ELTS; i++) {
-		g_map_list_elt_t *map = &g_map_list.maps[i];
-		map->gravity = -1;
-		map->gameplay = 0;
-		map->teams = map->ctf = map->match = -1;
-		map->frag_limit = map->round_limit = map->capture_limit = -1;
-		map->time_limit = -1;
-		map->weight = 1.0;
-	}
-}
-
-/*
- * @brief Populates a g_map_list_t from a text file. See default/maps.lst
- */
-static void G_ParseMapList(const char *file_name) {
-	void *buf;
-	const char *buffer;
-	uint32_t i, j, k, l;
-	const char *c;
-	_Bool map;
-	g_map_list_elt_t *elt;
-
-	G_InitMapList();
-
-	if (gi.LoadFile(file_name, &buf) == -1) {
-		gi.Print("Couldn't open %s\n", file_name);
-		return;
-	}
-
-	buffer = (char *) buf;
-
-	i = 0;
-	map = false;
-	while (true) {
-
-		c = ParseToken(&buffer);
-
-		if (*c == '\0')
-			break;
-
-		if (*c == '{')
-			map = true;
-
-		if (!map) // skip any whitespace between maps
-			continue;
-
-		elt = &g_map_list.maps[i];
-
-		if (!g_strcmp0(c, "name")) {
-			g_strlcpy(elt->name, ParseToken(&buffer), sizeof(elt->name));
-			continue;
-		}
-
-		if (!g_strcmp0(c, "title")) {
-			g_strlcpy(elt->title, ParseToken(&buffer), sizeof(elt->title));
-			continue;
-		}
-
-		if (!g_strcmp0(c, "sky")) {
-			g_strlcpy(elt->sky, ParseToken(&buffer), sizeof(elt->sky));
-			continue;
-		}
-
-		if (!g_strcmp0(c, "weather")) {
-			g_strlcpy(elt->weather, ParseToken(&buffer), sizeof(elt->weather));
-			continue;
-		}
-
-		if (!g_strcmp0(c, "gravity")) {
-			elt->gravity = atoi(ParseToken(&buffer));
-			continue;
-		}
-
-		if (!g_strcmp0(c, "gameplay")) {
-			elt->gameplay = G_GameplayByName(ParseToken(&buffer));
-			continue;
-		}
-
-		if (!g_strcmp0(c, "teams")) {
-			elt->teams = strtoul(ParseToken(&buffer), NULL, 0);
-			continue;
-		}
-
-		if (!g_strcmp0(c, "ctf")) {
-			elt->ctf = strtoul(ParseToken(&buffer), NULL, 0);
-			continue;
-		}
-
-		if (!g_strcmp0(c, "match")) {
-			elt->match = strtoul(ParseToken(&buffer), NULL, 0);
-			continue;
-		}
-
-		if (!g_strcmp0(c, "rounds")) {
-			elt->rounds = strtoul(ParseToken(&buffer), NULL, 0);
-			continue;
-		}
-
-		if (!g_strcmp0(c, "frag_limit")) {
-			elt->frag_limit = strtoul(ParseToken(&buffer), NULL, 0);
-			continue;
-		}
-
-		if (!g_strcmp0(c, "round_limit")) {
-			elt->round_limit = strtoul(ParseToken(&buffer), NULL, 0);
-			continue;
-		}
-
-		if (!g_strcmp0(c, "capture_limit")) {
-			elt->capture_limit = strtoul(ParseToken(&buffer), NULL, 0);
-			continue;
-		}
-
-		if (!g_strcmp0(c, "time_limit")) {
-			elt->time_limit = atof(ParseToken(&buffer));
-			continue;
-		}
-
-		if (!g_strcmp0(c, "give")) {
-			g_strlcpy(elt->give, ParseToken(&buffer), sizeof(elt->give));
-			continue;
-		}
-
-		if (!g_strcmp0(c, "music")) {
-			g_strlcpy(elt->music, ParseToken(&buffer), sizeof(elt->music));
-			continue;
-		}
-
-		if (!g_strcmp0(c, "weight")) {
-			elt->weight = atof(ParseToken(&buffer));
-			continue;
-		}
-
-		if (*c == '}') { // close it out
-			map = false;
-
-			/*printf("Loaded map %s:\n"
-			 "title: %s\n"
-			 "sky: %s\n"
-			 "weather: %s\n"
-			 "gravity: %d\n"
-			 "gameplay: %ud\n"
-			 "teams: %ud\n"
-			 "ctf: %ud\n"
-			 "match: %ud\n"
-			 "rounds: %ud\n"
-			 "frag_limit: %ud\n"
-			 "round_limit: %ud\n"
-			 "capture_limit: %ud\n"
-			 "time_limit: %f\n"
-			 "give: %s\n"
-			 "music: %s\n"
-			 "weight: %f\n",
-			 map->name, map->title, map->sky, map->weather, map->gravity,
-			 map->gameplay, map->teams, map->ctf, map->match, map->rounds,
-			 map->frag_limit, map->round_limit, map->capture_limit,
-			 map->time_limit, map->give, map->music, map->weight);*/
-
-			// accumulate total weight
-			g_map_list.total_weight += elt->weight;
-
-			if (++i == MAX_MAP_LIST_ELTS)
-				break;
-		}
-	}
-
-	g_map_list.count = i;
-	g_map_list.index = 0;
-
-	gi.FreeFile(buf);
-
-	// thou shall not divide by zero
-	if (!g_map_list.total_weight)
-		g_map_list.total_weight = 1.0;
-
-	// compute the weighted index list
-	for (i = 0, l = 0; i < g_map_list.count; i++) {
-
-		elt = &g_map_list.maps[i];
-		k = (elt->weight / g_map_list.total_weight) * MAP_LIST_WEIGHT;
-
-		for (j = 0; j < k; j++)
-			g_map_list.weighted_index[l++] = i;
-	}
-}
-
-/*
- * @brief
- */
-const char *G_SelectNextMap(void) {
-	uint32_t i = 0;
-	if (g_map_list.count > 0) {
-		if (g_random_map->value) { // random weighted selection
-			g_map_list.index = g_map_list.weighted_index[Random() % MAP_LIST_WEIGHT];
-		} else { // incremental, so long as weight is not 0
-			i = g_map_list.index;
-			while (true) {
-				g_map_list.index = (g_map_list.index + 1) % g_map_list.count;
-				if (!g_map_list.maps[g_map_list.index].weight)
-					continue;
-				if (g_map_list.index == i) // wrapped around, all weights were 0
-					break;
-				break;
-			}
-		}
-		return g_map_list.maps[g_map_list.index].name;
-	}
-	return g_level.name;
-}
-
-/*
  * @brief Returns the game name advertised by the server in info strings.
  */
 const char *G_GameName(void) {
@@ -1082,50 +869,37 @@ void G_Init(void) {
 	gi.Cvar("game_name", GAME_NAME, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 	gi.Cvar("game_date", __DATE__, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
-	g_ammo_respawn_time = gi.Cvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO,
-			"Ammo respawn interval in seconds");
-	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO,
-			"Automatically assigns players to teams");
-	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO,
-			"The capture limit per level");
+	g_ammo_respawn_time = gi.Cvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds");
+	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO, "Automatically assigns players to teams");
+	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level");
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
 	g_frag_limit = gi.Cvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level");
 	g_friendly_fire = gi.Cvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Enables friendly fire");
-	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVER_INFO,
-			"Selects deathmatch, arena, or instagib combat");
+	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVER_INFO, "Selects deathmatch, arena, or instagib combat");
 	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
-	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO,
-			"Enables match play requiring players to ready");
+	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
-	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO,
-			"Message of the day, shown to clients on initial connect");
+	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");
 	g_password = gi.Cvar("g_password", "", CVAR_USER_INFO, "The server password");
-	g_player_projectile = gi.Cvar("g_player_projectile", "1.0", CVAR_SERVER_INFO,
-			"Scales player velocity to projectiles");
+	g_player_projectile = gi.Cvar("g_player_projectile", "1.0", CVAR_SERVER_INFO, "Scales player velocity to projectiles");
 	g_random_map = gi.Cvar("g_random_map", "0", 0, "Enables map shuffling");
-	g_respawn_protection = gi.Cvar("g_respawn_protection", "0.0", 0,
-			"Respawn protection in seconds");
-	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO,
-			"The number of rounds to run per level");
-	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO,
-			"Enables rounds-based play, where last player standing wins");
+	g_respawn_protection = gi.Cvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds");
+	g_round_limit = gi.Cvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level");
+	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins");
 	g_show_attacker_stats = gi.Cvar("g_show_attacker_stats", "1", CVAR_SERVER_INFO, NULL);
 	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "1", CVAR_SERVER_INFO, NULL);
-	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO,
-			"If enabled, spectators can only talk to other spectators");
+	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators");
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
-	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO,
-			"The time limit per level in minutes");
+	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes");
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
-	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO,
-			"Weapon respawn interval in seconds");
+	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
 
 	sv_max_clients = gi.Cvar("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	sv_hostname = gi.Cvar("sv_hostname", "Quetoo", CVAR_SERVER_INFO, NULL);
+
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
 
-	G_ParseMapList("maps.lst");
 
 	// initialize entities and clients for this game
 	g_game.entities = gi.Malloc(g_max_entities->integer * sizeof(g_entity_t), MEM_TAG_GAME);
@@ -1136,6 +910,7 @@ void G_Init(void) {
 	ge.num_entities = sv_max_clients->integer + 1;
 
 	G_Ai_Init(); // initialize the AI
+	G_MapList_Init();
 	G_MySQL_Init();
 
 	// set these to false to avoid spurious game restarts and alerts on init
@@ -1156,6 +931,7 @@ void G_Shutdown(void) {
 	gi.Print("  Game shutdown...\n");
 
 	G_MySQL_Shutdown();
+	G_MapList_Shutdown();
 	G_Ai_Shutdown();
 
 	gi.FreeTag(MEM_TAG_GAME_LEVEL);

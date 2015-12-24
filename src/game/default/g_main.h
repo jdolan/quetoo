@@ -26,48 +26,13 @@
 
 #ifdef __GAME_LOCAL_H__
 
-// FIXME: Use GList for this; this is terrible.
-#define MAX_MAP_LIST_ELTS 64
-#define MAP_LIST_WEIGHT 16384
-
-typedef struct g_map_list_elt_s {
-	char name[32];
-	char title[128];
-	char sky[32];
-	char weather[64];
-	int32_t gravity;
-	int32_t gameplay;
-	int32_t teams;
-	int32_t ctf;
-	int32_t match;
-	int32_t rounds;
-	int32_t frag_limit;
-	int32_t round_limit;
-	int32_t capture_limit;
-	vec_t time_limit;
-	char give[MAX_STRING_CHARS];
-	char music[MAX_STRING_CHARS];
-	vec_t weight;
-} g_map_list_elt_t;
-
-typedef struct g_map_list_s {
-	g_map_list_elt_t maps[MAX_MAP_LIST_ELTS];
-	uint32_t count, index;
-
-	// weighted random selection
-	uint32_t weighted_index[MAP_LIST_WEIGHT];
-	vec_t total_weight;
-} g_map_list_t;
-
-extern g_map_list_t g_map_list;
-
 extern g_level_t g_level;
 extern g_media_t g_media;
 
 extern g_import_t gi;
 extern g_export_t ge;
 
-extern uint32_t means_of_death;
+extern uint32_t g_means_of_death;
 
 extern cvar_t *g_ammo_respawn_time;
 extern cvar_t *g_auto_join;
@@ -107,7 +72,6 @@ void G_ResetItems(void);
 void G_ResetTeams(void);
 void G_ResetVote(void);
 g_export_t *G_LoadGame(g_import_t *import);
-const char *G_SelectNextMap(void);
 
 #endif /* __GAME_LOCAL_H__ */
 

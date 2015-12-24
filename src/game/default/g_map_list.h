@@ -19,38 +19,40 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __GAME_LOCAL_H__
-#define __GAME_LOCAL_H__
+#ifndef __GAME_MAP_LIST_H__
+#define __GAME_MAP_LIST_H__
 
-// this is the game name that we advertise to clients
-#define GAME_NAME "default"
-
-#define Debug(...) Debug_(__func__, __VA_ARGS__)
-#define Warn(...) Warn_(__func__, __VA_ARGS__)
-#define Error(...) Error_(__func__, __VA_ARGS__)
-
-#include "g_ai.h"
-#include "g_ai_goal.h"
-#include "g_ballistics.h"
-#include "g_client_chase.h"
-#include "g_client_stats.h"
-#include "g_client_view.h"
-#include "g_client.h"
-#include "g_cmd.h"
-#include "g_combat.h"
-#include "g_entity_func.h"
-#include "g_entity_info.h"
-#include "g_entity_misc.h"
-#include "g_entity_target.h"
-#include "g_entity_trigger.h"
-#include "g_entity.h"
-#include "g_item.h"
-#include "g_main.h"
-#include "g_map_list.h"
-#include "g_mysql.h"
-#include "g_physics.h"
 #include "g_types.h"
-#include "g_util.h"
-#include "g_weapon.h"
+
+#ifdef __GAME_LOCAL_H__
+
+typedef struct {
+	char name[32];
+	char title[128];
+	char sky[32];
+	char weather[64];
+	int32_t gravity;
+	int32_t gameplay;
+	int32_t teams;
+	int32_t ctf;
+	int32_t match;
+	int32_t rounds;
+	int32_t frag_limit;
+	int32_t round_limit;
+	int32_t capture_limit;
+	vec_t time_limit;
+	char give[MAX_STRING_CHARS];
+	char music[MAX_STRING_CHARS];
+} g_map_list_map_t;
+
+extern GList *g_map_list;
+
+const g_map_list_map_t *G_MapList_Find(const char *name);
+const g_map_list_map_t *G_MapList_Next(void);
+
+void G_MapList_Init(void);
+void G_MapList_Shutdown(void);
 
 #endif /* __GAME_LOCAL_H__ */
+
+#endif /* __GAME_MAP_LIST_H__ */
