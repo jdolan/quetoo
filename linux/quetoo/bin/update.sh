@@ -24,6 +24,7 @@ sed -i "s:%QUETOO_HOME%:${QUETOO_HOME}:g" \
 
 chmod +x "${QUETOO_HOME}/Quetoo.desktop" \
 	"${QUETOO_HOME}/Quetoo Update.desktop"
+
 echo
 echo "Update complete."
 echo

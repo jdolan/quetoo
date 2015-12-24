@@ -1,9 +1,19 @@
 #!/bin/bash
 #
-# Scans an executable for runtime dependencies and copies them to the desired
-# output directory. This script relies on the output of `ldd`, and only copies
-# dependencies from /usr/*.
+# Scans executables for runtime dependencies and copies them to the desired
+# output directory. This script relies on the output of `ldd`.
 #
+
+SKIP='
+	libc.so*
+	libdl.so*
+	libGL.so*
+	libm.so*
+	libpthread.so*
+	libresolv.so*
+	librt.so*
+	libstdc++.so*
+'
 
 while getopts "d:" opt; do
 	case "${opt}" in
@@ -19,57 +29,31 @@ done
 
 shift $((OPTIND-1))
 
-exe="${1}"
-test -x "${exe}" || {
-	echo "${exe} is not an executable" >&2
-	exit 2
-}
+test "${dir}" || dir=$(dirname "${1}")
 
-test "${dir}" || dir=$(dirname "${exe}")
-
-test -w "${dir}" || {
-	echo "${dir} is not writable" >&2
-	exit 3
-}
-
-echo
-echo "Bundling .so files for ${exe} in ${dir}.."
-echo
-
-SKIP='
-	libGL.so*
-	libnsl.so*
-	libresolv.so*
-	librt.so*
-	libuuid.so*
-	libwrap.so*
-	libX11.so*
-	libXext.so*
-'
-
-nl=$'\n'
-
-for dep in $(ldd "${1}" | sed -rn 's:.* => ([^ ]+) .*:\1:p' | sort); do
-	soname=$(basename "${dep}")
+#
+# Returns 1 if the specified library should be skipped, 0 otherwise.
+#
+function skip_lib() {
 	
-	unset skip
-	for s in ${SKIP}; do
-		if [[ ${soname} = ${s} ]]; then
-			skip=true
-			skipped="${skipped}${nl} ${soname} @ ${dep}"
-			break
+	soname=$(basename "${1}")
+	
+	for skip in ${SKIP}; do
+		if [[ ${soname} = ${skip} ]]; then
+			return 1
 		fi
 	done
-	
-	test "${skip}" || {
-		echo "Installing ${dep} in ${dir}.."
-		install "${dep}" "${dir}"
-	}
+
+	return 0
+}
+
+
+libs=$(ldd $@ | grep ' => ' | sed -rn 's:.* => ([^ ]+) .*:\1:p' | sort -u)
+
+for lib in $libs; do
+	if skip_lib "${lib}"; then
+		echo "Installing ${lib} in ${dir}.."
+		install "${lib}" "${dir}"
+	fi
 done
-
-install $(ldd "${exe}" | grep ld- | sed s:\(.*::) "${dir}/../bin"
-
-echo
-echo "The following libraries were intentionally skipped:${nl}${skipped}"
-echo
 

@@ -26,7 +26,10 @@ install: pre-install
 	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 
 install-lib: install
-	./sobundler.sh -d $(LIBDIR) $(BINDIR)/quetoo
+	./sobundler.sh -d $(LIBDIR) \
+		$(BINDIR)/quemap \
+		$(BINDIR)/quetoo \
+		$(BINDIR)/quetoo-dedicated
 
 install-data:
 	cp -r $(DATA)/target/* $(DATADIR)

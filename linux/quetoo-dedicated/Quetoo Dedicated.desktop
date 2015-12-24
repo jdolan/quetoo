@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=Quetoo Dedicated BETA
-Comment=Pwning nubz one rail slug at a time.
-Exec="%QUETOO_HOME%/bin/run.sh"
-Icon="%QUETOO_HOME%/share/default/icons/quetoo.png"
-Terminal=true
-Type=Application
-Categories=Games;
-StartupNotify=true
