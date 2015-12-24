@@ -136,6 +136,7 @@ static void Init(void) {
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
 	if (strstr(Sys_ExecutablePath(), "-dedicated")) {
 		Cvar_ForceSet("dedicated", "1");
+		Cvar_ForceSet("threads", "0");
 	}
 
 	game = Cvar_Get("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
