@@ -27,6 +27,12 @@ AC_PROG_CC_STDC
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 
+dnl --------------------
+dnl Check for pkg-config
+dnl --------------------
+
+PKG_PROG_PKG_CONFIG
+
 dnl ---------------
 dnl Check host type
 dnl ---------------
