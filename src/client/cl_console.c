@@ -209,6 +209,8 @@ void Cl_ToggleConsole_f(void) {
 	} else {
 		Cl_SetKeyDest(KEY_CONSOLE);
 	}
+
+	memset(&cl_console.input, 0, sizeof(cl_console.input));
 }
 
 static void Cl_MessageMode(_Bool team) {
