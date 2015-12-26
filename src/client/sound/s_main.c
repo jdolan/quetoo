@@ -48,8 +48,6 @@ static void S_Stop(void) {
  * media is freed here.
  */
 void S_Frame(void) {
-	s_channel_t *ch;
-	int32_t i, j;
 
 	if (!s_env.initialized)
 		return;
@@ -73,9 +71,8 @@ void S_Frame(void) {
 	}
 
 	// update spatialization for current sounds
-	ch = s_env.channels;
-
-	for (i = 0; i < MAX_CHANNELS; i++, ch++) {
+	s_channel_t *ch = s_env.channels;
+	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
 
 		if (!ch->sample)
 			continue;
@@ -91,7 +88,7 @@ void S_Frame(void) {
 	}
 
 	// add new dynamic sounds
-	for (i = 0; i < cl.frame.num_entities; i++) {
+	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[snum];
@@ -99,13 +96,20 @@ void S_Frame(void) {
 		if (!ent->sound)
 			continue;
 
-		for (j = 0; j < MAX_CHANNELS; j++) {
-			if (s_env.channels[j].ent_num == ent->number)
-				break;
+		s_sample_t *sample = cl.sound_precache[ent->sound];
+		int32_t j;
+
+		ch = s_env.channels;
+		for (j = 0; j < MAX_CHANNELS; j++, ch++) {
+			if (ch->ent_num == ent->number) {
+				if (ch->sample == sample) {
+					break;
+				}
+			}
 		}
 
 		if (j == MAX_CHANNELS)
-			S_PlaySample(NULL, ent->number, cl.sound_precache[ent->sound], ATTEN_NORM);
+			S_PlaySample(NULL, ent->number, sample, ATTEN_NORM);
 	}
 
 	if (r_view.contents & MASK_LIQUID) { // add under water sample
@@ -117,7 +121,7 @@ void S_Frame(void) {
 	ch = s_env.channels;
 	s_env.num_active_channels = 0;
 
-	for (i = 0; i < MAX_CHANNELS; i++, ch++) {
+	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
 		if (ch->sample)
 			s_env.num_active_channels++;
 	}
