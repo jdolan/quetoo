@@ -126,69 +126,58 @@ static void G_MoveInfo_UpdateAcceleration(g_move_info_t *move) {
 /*
  * @brief Applies any acceleration / deceleration based on the distance remaining.
  */
-static void G_MoveInfo_Accelerate(g_move_info_t *move_info) {
+static void G_MoveInfo_Accelerate(g_move_info_t *move) {
 
 	// are we decelerating?
-	if (move_info->remaining_distance <= move_info->decel_distance) {
-		if (move_info->remaining_distance < move_info->decel_distance) {
-			if (move_info->next_speed) {
-				move_info->current_speed = move_info->next_speed;
-				move_info->next_speed = 0;
+	if (move->remaining_distance <= move->decel_distance) {
+		if (move->remaining_distance < move->decel_distance) {
+			if (move->next_speed) {
+				move->current_speed = move->next_speed;
+				move->next_speed = 0.0;
 				return;
 			}
-			if (move_info->current_speed > move_info->decel)
-				move_info->current_speed -= move_info->decel;
+			if (move->current_speed > move->decel)
+				move->current_speed -= move->decel;
 		}
-		return;
 	}
 
 	// are we at full speed and need to start decelerating during this move?
-	if (move_info->current_speed == move_info->move_speed)
-		if ((move_info->remaining_distance - move_info->current_speed)
-				< move_info->decel_distance) {
-			vec_t p1_distance;
-			vec_t p2_distance;
-			vec_t distance;
+	else if (move->current_speed == move->move_speed) {
+		if ((move->remaining_distance - move->current_speed) < move->decel_distance) {
 
-			p1_distance = move_info->remaining_distance - move_info->decel_distance;
-			p2_distance = move_info->move_speed * (1.0 - (p1_distance / move_info->move_speed));
-			distance = p1_distance + p2_distance;
-			move_info->current_speed = move_info->move_speed;
-			move_info->next_speed = move_info->move_speed
-					- move_info->decel * (p2_distance / distance);
-			return;
+			const vec_t p1_distance = move->remaining_distance - move->decel_distance;
+			const vec_t p2_distance = move->move_speed * (1.0 - (p1_distance / move->move_speed));
+			const vec_t distance = p1_distance + p2_distance;
+
+			move->current_speed = move->move_speed;
+			move->next_speed = move->move_speed - move->decel * (p2_distance / distance);
 		}
+	}
 
 	// are we accelerating?
-	if (move_info->current_speed < move_info->speed) {
-		vec_t old_speed;
-		vec_t p1_distance;
-		vec_t p1_speed;
-		vec_t p2_distance;
-		vec_t distance;
+	else if (move->current_speed < move->speed) {
 
-		old_speed = move_info->current_speed;
+		const vec_t old_speed = move->current_speed;
 
 		// figure simple acceleration up to move_speed
-		move_info->current_speed += move_info->accel;
-		if (move_info->current_speed > move_info->speed)
-			move_info->current_speed = move_info->speed;
+		move->current_speed += move->accel;
+		if (move->current_speed > move->speed)
+			move->current_speed = move->speed;
 
 		// are we accelerating throughout this entire move?
-		if ((move_info->remaining_distance - move_info->current_speed) >= move_info->decel_distance)
+		if ((move->remaining_distance - move->current_speed) >= move->decel_distance)
 			return;
 
 		// during this move we will accelerate from current_speed to move_speed
 		// and cross over the decel_distance; figure the average speed for the
 		// entire move
-		p1_distance = move_info->remaining_distance - move_info->decel_distance;
-		p1_speed = (old_speed + move_info->move_speed) / 2.0;
-		p2_distance = move_info->move_speed * (1.0 - (p1_distance / p1_speed));
-		distance = p1_distance + p2_distance;
-		move_info->current_speed = (p1_speed * (p1_distance / distance))
-				+ (move_info->move_speed * (p2_distance / distance));
-		move_info->next_speed = move_info->move_speed - move_info->decel * (p2_distance / distance);
-		return;
+		const vec_t p1_distance = move->remaining_distance - move->decel_distance;
+		const vec_t p1_speed = (old_speed + move->move_speed) / 2.0;
+		const vec_t p2_distance = move->move_speed * (1.0 - (p1_distance / p1_speed));
+		const vec_t distance = p1_distance + p2_distance;
+
+		move->current_speed = (p1_speed * (p1_distance / distance)) + (move->move_speed * (p2_distance / distance));
+		move->next_speed = move->move_speed - move->decel * (p2_distance / distance);
 	}
 }
 
@@ -213,6 +202,7 @@ static void G_MoveInfo_Accelerative(g_entity_t *ent) {
 	}
 
 	VectorScale(move->dir, move->current_speed * gi.frame_rate, ent->locals.velocity);
+
 	ent->locals.next_think = g_level.time + gi.frame_millis;
 	ent->locals.Think = G_MoveInfo_Accelerative;
 }
@@ -226,6 +216,7 @@ static void G_MoveInfo_Init(g_entity_t *ent, vec3_t dest, void (*Done)(g_entity_
 	g_move_info_t *move = &ent->locals.move_info;
 
 	VectorClear(ent->locals.velocity);
+	move->current_speed = 0;
 
 	VectorCopy(dest, move->dest);
 	VectorSubtract(dest, ent->s.origin, move->dir);
@@ -242,7 +233,6 @@ static void G_MoveInfo_Init(g_entity_t *ent, vec3_t dest, void (*Done)(g_entity_
 			ent->locals.Think = G_MoveInfo_Constant;
 		}
 	} else { // accelerative
-		move->current_speed = 0;
 		ent->locals.Think = G_MoveInfo_Accelerative;
 		ent->locals.next_think = g_level.time + gi.frame_millis;
 	}
