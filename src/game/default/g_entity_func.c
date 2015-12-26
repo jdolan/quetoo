@@ -50,7 +50,6 @@ void G_func_areaportal(g_entity_t *ent) {
  */
 static void G_MoveInfo_Done(g_entity_t *ent) {
 
-	VectorCopy(ent->locals.move_info.dest, ent->s.origin);
 	VectorClear(ent->locals.velocity);
 
 	ent->locals.move_info.Done(ent);
@@ -61,6 +60,10 @@ static void G_MoveInfo_Done(g_entity_t *ent) {
  */
 static void G_MoveInfo_End(g_entity_t *ent) {
 	g_move_info_t *move = &ent->locals.move_info;
+	vec3_t delta;
+
+	VectorSubtract(move->dest, ent->s.origin, delta);
+	move->remaining_distance = VectorLength(delta);
 
 	if (move->remaining_distance == 0.0) {
 		G_MoveInfo_Done(ent);
@@ -86,15 +89,13 @@ static void G_MoveInfo_Constant(g_entity_t *ent) {
 	}
 
 	VectorScale(move->dir, move->speed, ent->locals.velocity);
-	const vec_t frames = floor((move->remaining_distance / move->speed) / gi.frame_seconds);
-
-	move->remaining_distance -= frames * move->speed * gi.frame_seconds;
+	const vec_t frames = floorf((move->remaining_distance / move->speed) / gi.frame_seconds);
 
 	ent->locals.next_think = g_level.time + (frames * gi.frame_millis);
 	ent->locals.Think = G_MoveInfo_End;
 }
 
-#define AccelerationDistance(target, rate) (target * ((target / rate) + 1) / 2)
+#define AccelerationDistance(speed, accel) (speed * ((speed / accel) + 1.0) / 2.0)
 
 /*
  * @brief Updates the acceleration parameters for the specified move. This determines
@@ -112,10 +113,10 @@ static void G_MoveInfo_UpdateAcceleration(g_move_info_t *move) {
 	const vec_t accel_dist = AccelerationDistance(move->speed, move->accel);
 	vec_t decel_dist = AccelerationDistance(move->speed, move->decel);
 
-	if ((move->remaining_distance - accel_dist - decel_dist) < 0) {
+	if ((move->remaining_distance - accel_dist - decel_dist) < 0.0) {
 		const vec_t v = (move->accel + move->decel) / (move->accel * move->decel);
 
-		move->move_speed = (-2 + sqrt(4 - 4 * v * (-2 * move->remaining_distance))) / (2 * v);
+		move->move_speed = (-2.0 + sqrt(4.0 - 4.0 * v * (-2.0 * move->remaining_distance))) / (2.0 * v);
 
 		decel_dist = AccelerationDistance(move->move_speed, move->decel);
 	}
@@ -187,10 +188,12 @@ static void G_MoveInfo_Accelerate(g_move_info_t *move) {
  */
 static void G_MoveInfo_Accelerative(g_entity_t *ent) {
 	g_move_info_t *move = &ent->locals.move_info;
+	vec3_t delta;
 
-	move->remaining_distance -= move->current_speed;
+	VectorSubtract(move->dest, ent->s.origin, delta);
+	move->remaining_distance = VectorLength(delta);
 
-	if (move->current_speed == 0) // starting or blocked
+	if (move->current_speed == 0.0) // starting or blocked
 		G_MoveInfo_UpdateAcceleration(&ent->locals.move_info);
 
 	G_MoveInfo_Accelerate(&ent->locals.move_info);
