@@ -136,13 +136,16 @@ static void Init(void) {
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
 	if (strstr(Sys_ExecutablePath(), "-dedicated")) {
 		Cvar_ForceSet("dedicated", "1");
+	}
+
+	if (dedicated->value) {
 		Cvar_ForceSet("threads", "0");
 	}
 
 	game = Cvar_Get("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
 	game->modified = g_strcmp0(game->string, DEFAULT_GAME);
 
-	threads = Cvar_Get("threads", "4", CVAR_ARCHIVE, "Enable or disable multicore processing.");
+	threads = Cvar_Get("threads", "4", CVAR_ARCHIVE, "Enable or disable threads");
 	time_demo = Cvar_Get("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
 	time_scale = Cvar_Get("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
 	verbose = Cvar_Get("verbose", "0", 0, "Print verbose debugging information");
