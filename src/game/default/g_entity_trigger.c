@@ -117,7 +117,7 @@ static void G_trigger_multiple_Enable(g_entity_t *self, g_entity_t *other __attr
 	gi.LinkEntity(self);
 }
 
-/*QUAKED trigger_multiple (.5 .5 .5) ? triggered
+/*QUAKED trigger_multiple (.5 .5 .5) ? triggered shootable
  Triggers multiple targets at fixed intervals.
 
  -------- Keys --------
@@ -138,6 +138,7 @@ void G_trigger_multiple(g_entity_t *ent) {
 
 	if (!ent->locals.wait)
 		ent->locals.wait = 0.2;
+
 	ent->locals.Touch = G_trigger_multiple_Touch;
 	ent->locals.move_type = MOVE_TYPE_NONE;
 	ent->sv_flags |= SVF_NO_CLIENT;
