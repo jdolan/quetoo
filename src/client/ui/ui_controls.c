@@ -55,17 +55,18 @@ TwBar *Ui_Controls(void) {
 	Ui_Bind(bar, "Lightning", "use lightning", "group=Weapons");
 	Ui_Bind(bar, "Railgun", "use railgun", "group=Weapons");
 	Ui_Bind(bar, "BFG-10K", "use bfg10k", "group=Weapons");
+	Ui_Bind(bar, "Hand grenades", "use grenades", "group=Weapons");
 
 	Ui_Bind(bar, "Next weapon", "weapon_next", "group=Combat");
 	Ui_Bind(bar, "Previous weapon", "weapon_previous", "group=Combat");
 	Ui_Bind(bar, "Attack", "+attack", "group=Combat");
 	Ui_Bind(bar, "Zoom", "+ZOOM", "group=Combat");
 
-	Ui_Bind(bar, "Talk", "message_mode", "group=Communication");
-	Ui_Bind(bar, "Talk to team", "message_mode_2", "group=Communication");
+	Ui_Bind(bar, "Talk", "cl_message_mode", "group=Communication");
+	Ui_Bind(bar, "Talk to team", "cl_message_mode_2", "group=Communication");
 	Ui_Bind(bar, "Show scores", "score", "group=Communication");
 
-	Ui_Bind(bar, "Toggle console", "toggle_console", "group=System");
+	Ui_Bind(bar, "Toggle console", "cl_toggle_console", "group=System");
 	Ui_Bind(bar, "Toggle fullscreen", "r_toggle_fullscreen", "group=System");
 	Ui_Bind(bar, "Take screenshot", "r_screenshot", "group=System");
 

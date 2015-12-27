@@ -289,9 +289,9 @@ void Cl_ShutdownConsole(void) {
 		Com_Warn("Couldn't write history\n");
 	}
 
-	Cmd_Remove("toggle_console");
-	Cmd_Remove("message_mode");
-	Cmd_Remove("message_mode_2");
+	Cmd_Remove("cl_toggle_console");
+	Cmd_Remove("cl_message_mode");
+	Cmd_Remove("cl_message_mode_2");
 
 	Com_Print("Client console shutdown\n");
 }
