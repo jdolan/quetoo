@@ -87,7 +87,9 @@ static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
 
 	if (!other->client) {
 		const _Bool isProjectile = other->owner && other->owner->client;
-		if (isProjectile && (self->locals.spawn_flags & SHOOTABLE) == 0) {
+		if (isProjectile && (self->locals.spawn_flags & SHOOTABLE)) {
+			// we're a shootable trigger, and we've been shot
+		} else {
 			return;
 		}
 	}

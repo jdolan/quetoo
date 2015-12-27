@@ -262,9 +262,8 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
  */
 void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
 		int16_t knockback, int32_t hspread, int32_t vspread, int32_t count, uint32_t mod) {
-	int32_t i;
 
-	for (i = 0; i < count; i++)
+	for (int32_t i = 0; i < count; i++)
 		G_BulletProjectile(ent, start, dir, damage, knockback, hspread, vspread, mod);
 }
 
@@ -762,7 +761,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		VectorCopy(tr.end, water_start);
 
 		if (!self->locals.water_level) {
-			gi.PositionedSound(water_start, g_game.entities, g_media.sounds.water_in, ATTEN_NORM);
+			gi.PositionedSound(water_start, NULL, g_media.sounds.water_in, ATTEN_NORM);
 			self->locals.water_level = 1;
 		}
 
@@ -770,7 +769,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		G_BubbleTrail(water_start, &tr);
 	} else {
 		if (self->locals.water_level) { // exited water, play sound, no trail
-			gi.PositionedSound(water_start, g_game.entities, g_media.sounds.water_out, ATTEN_NORM);
+			gi.PositionedSound(water_start, NULL, g_media.sounds.water_out, ATTEN_NORM);
 			self->locals.water_level = 0;
 		}
 	}
@@ -882,7 +881,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 			content_mask &= ~MASK_LIQUID;
 			liquid = true;
 
-			gi.PositionedSound(water_pos, g_game.entities, g_media.sounds.water_in, ATTEN_NORM);
+			gi.PositionedSound(water_pos, NULL, g_media.sounds.water_in, ATTEN_NORM);
 
 			ignore = ent;
 			continue;

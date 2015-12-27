@@ -208,6 +208,7 @@ typedef enum {
 	TRAIL_BFG,
 	TRAIL_TELEPORTER,
 	TRAIL_GIB,
+	TRAIL_FIREBALL
 } g_entity_trail_t;
 
 /*
@@ -585,6 +586,7 @@ typedef struct {
 #define MOD_HANDGRENADE_SPLASH		25
 #define MOD_HANDGRENADE_SUICIDE		26
 #define MOD_HANDGRENADE_KAMIKAZE	27
+#define MOD_FIREBALL				28
 #define MOD_FRIENDLY_FIRE			0x8000000
 
 /*

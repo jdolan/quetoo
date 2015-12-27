@@ -52,6 +52,7 @@ static g_entity_spawn_t g_entity_spawns[] = {
 
 		{ "misc_teleporter", G_misc_teleporter },
 		{ "misc_teleporter_dest", G_misc_teleporter_dest },
+		{ "misc_fireball", G_misc_fireball },
 
 		{ "path_corner", G_info_notnull },
 

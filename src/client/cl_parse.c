@@ -374,7 +374,7 @@ static void Cl_ParseSound(void) {
 	else
 		atten = ATTEN_DEFAULT;
 
-	if (flags & S_ENTNUM) { // entity relative
+	if (flags & S_ENTITY) { // entity relative
 		ent_num = Net_ReadShort(&net_message);
 
 		if (ent_num > MAX_ENTITIES)

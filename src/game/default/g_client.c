@@ -39,22 +39,25 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
 	switch (mod) {
 		case MOD_SUICIDE:
-			message = "gave up";
+			message = "suicides";
 			break;
 		case MOD_FALLING:
-			message = "challenged gravity";
+			message = "cratered";
 			break;
 		case MOD_CRUSH:
 			message = "was squished";
 			break;
 		case MOD_WATER:
-			message = "sank like a rock";
+			message = "sleeps with the fishes";
 			break;
 		case MOD_SLIME:
 			message = "melted";
 			break;
 		case MOD_LAVA:
 			message = "did a back flip into the lava";
+			break;
+		case MOD_FIREBALL:
+			message = "tasted the lava rainbow";
 			break;
 		case MOD_TRIGGER_HURT:
 			message = "was in the wrong place";
@@ -67,13 +70,13 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				message = "went pop";
 				break;
 			case MOD_HANDGRENADE_KAMIKAZE:
-				message = "lost count";
+				message = "tried to put the pin back in";
 				break;
 			case MOD_HANDGRENADE_SPLASH:
 				message = "has no hair left";
 				break;
 			case MOD_ROCKET_SPLASH:
-				message = "needs glasses";
+				message = "blew up";
 				break;
 			case MOD_LIGHTNING_DISCHARGE:
 				message = "took a toaster bath";
@@ -104,7 +107,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 	if (attacker && attacker->client) {
 		switch (mod) {
 			case MOD_BLASTER:
-				message = "was humilated by";
+				message = "was humiliated by";
 				message2 = "'s blaster";
 				break;
 			case MOD_SHOTGUN:
@@ -152,11 +155,11 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				message2 = "'s hyperblaster";
 				break;
 			case MOD_LIGHTNING:
-				message = "was tased by";
+				message = "got a charge out of";
 				message2 = "'s lightning";
 				break;
 			case MOD_LIGHTNING_DISCHARGE:
-				message = "was electrocuted by";
+				message = "was shocked by";
 				message2 = "'s discharge";
 				break;
 			case MOD_RAILGUN:

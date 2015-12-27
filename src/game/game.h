@@ -237,8 +237,8 @@ typedef struct {
 	 * @brief Sound sample playback dispatch for server-local entities, or
 	 * sounds that do not originate from any specific entity.
 	 *
-	 * @param origin The origin of the sound. Required if ent is NULL.
-	 * @param ent The entity originating the sound (optional).
+	 * @param origin The origin of the sound.
+	 * @param ent The entity originating the sound.
 	 * @param index The configuration string index of the sound to be played.
 	 * @param atten The sound attenuation constant (e.g. ATTEN_IDLE).
 	 */

@@ -583,6 +583,32 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 }
 
 /*
+ * @brief
+ */
+static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+	const vec3_t color = { 0.9, 0.3, 0.1 };
+
+	if (cgi.PointContents(end) & MASK_LIQUID)
+		return;
+
+	r_light_t l;
+	VectorCopy(end, l.origin);
+	VectorCopy(color, l.color);
+	l.radius = 85.0;
+
+	if (ent->current.effects & EF_DESPAWN) {
+		const vec_t decay = Clamp((cgi.client->time - ent->time) / 1000.0, 0.0, 1.0);
+		l.radius *= (1.0 - decay);
+	} else {
+		Cg_SmokeTrail(ent, start, end);
+		ent->time = cgi.client->time;
+		Cg_FlameTrail(ent, start, end);
+	}
+
+	cgi.AddLight(&l);
+}
+
+/*
  * @brief Apply unique trails to entities between their previous packet origin
  * and their current interpolated origin. Beam trails are a special case: the
  * old origin field is overridden to specify the endpoint of the beam.
@@ -641,6 +667,9 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 			break;
 		case TRAIL_GIB:
 			Cg_GibTrail(ent, start, end);
+			break;
+		case TRAIL_FIREBALL:
+			Cg_FireballTrail(ent, start, end);
 			break;
 		default:
 			break;

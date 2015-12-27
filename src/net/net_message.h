@@ -71,7 +71,7 @@
  */
 #define S_ATTEN					0x1
 #define S_ORIGIN				0x2
-#define S_ENTNUM				0x4
+#define S_ENTITY				0x4
 
 /*
  * @brief Message writing and reading facilities.

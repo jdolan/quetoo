@@ -686,13 +686,13 @@ void G_FireLightning(g_entity_t *ent) {
 			}
 		}
 
-		G_InitProjectile(ent, forward, right, up, org);
-
-		G_LightningProjectile(ent, org, forward, 16, 12);
-
 		if (projectile == NULL) {
 			G_MuzzleFlash(ent, MZ_LIGHTNING);
 		}
+
+		G_InitProjectile(ent, forward, right, up, org);
+
+		G_LightningProjectile(ent, org, forward, 16, 12);
 
 		G_ClientWeaponKick(ent, 0.15);
 

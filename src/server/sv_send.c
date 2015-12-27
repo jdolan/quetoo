@@ -274,16 +274,11 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
  * If origin is NULL, the origin is determined from the entity origin
  * or the midpoint of the entity box for BSP sub-models.
  */
-void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uint16_t index,
-		const uint16_t atten) {
-	uint32_t flags;
-	uint16_t at;
-	int32_t i;
-	vec3_t org;
+void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uint16_t index, const uint16_t atten) {
 
-	flags = 0;
+	uint32_t flags = 0;
 
-	at = atten;
+	uint16_t at = atten;
 	if (at > ATTEN_STATIC) {
 		Com_Warn("Bad attenuation %d\n", at);
 		at = ATTEN_DEFAULT;
@@ -292,20 +287,26 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uin
 	if (at != ATTEN_DEFAULT)
 		flags |= S_ATTEN;
 
-	// the client doesn't know that bsp models have weird origins
-	// the origin can also be explicitly set
-	if ((entity->sv_flags & SVF_NO_CLIENT) || (entity->solid == SOLID_BSP) || origin)
+	if (origin)
 		flags |= S_ORIGIN;
 
-	if (!(entity->sv_flags & SVF_NO_CLIENT) && NUM_FOR_ENTITY(entity))
-		flags |= S_ENTNUM;
+	if (entity) {
+		// inline BSP models have relative origins, so always send the absolute origin
+		if ((entity->sv_flags & SVF_NO_CLIENT) || (entity->solid == SOLID_BSP)) {
+			flags |= S_ORIGIN;
+		}
 
-	// use the entity origin unless it is a bsp model or explicitly specified
+		// if the client knows about the entity, send it
+		if (!(entity->sv_flags & SVF_NO_CLIENT))
+			flags |= S_ENTITY;
+	}
+
+	vec3_t org;
 	if (origin)
 		VectorCopy(origin, org);
 	else {
 		if (entity->solid == SOLID_BSP) {
-			for (i = 0; i < 3; i++)
+			for (int32_t i = 0; i < 3; i++)
 				org[i] = entity->s.origin[i] + 0.5 * (entity->mins[i] + entity->maxs[i]);
 		} else {
 			VectorCopy(entity->s.origin, org);
@@ -319,7 +320,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uin
 	if (flags & S_ATTEN)
 		Net_WriteByte(&sv.multicast, at);
 
-	if (flags & S_ENTNUM)
+	if (flags & S_ENTITY)
 		Net_WriteShort(&sv.multicast, NUM_FOR_ENTITY(entity));
 
 	if (flags & S_ORIGIN)

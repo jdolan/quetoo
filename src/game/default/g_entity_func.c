@@ -1947,7 +1947,7 @@ static void G_func_timer_Use(g_entity_t *self, g_entity_t *other __attribute__((
 
  -------- Keys --------
  wait : Delay in seconds between each triggering of all targets (default 1).
- random : Random time variance in seconds added or subtracted from "wait" delay (default 0).
+ random : Random time variance in seconds added to "wait" delay (default 0).
  delay :  Additional delay before the first firing when start_on (default 0).
  targetname : The target name of this entity if it is to be triggered.
 

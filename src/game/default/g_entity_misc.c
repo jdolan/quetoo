@@ -128,3 +128,121 @@ void G_misc_teleporter_dest(g_entity_t *ent) {
 	G_InitPlayerSpawn(ent);
 }
 
+/*
+ * @brief
+ */
+static void G_misc_fireball_Think(g_entity_t *self) {
+
+	if (self->locals.ground_entity) {
+		self->solid = SOLID_NOT;
+
+		self->s.effects = EF_DESPAWN;
+
+		self->locals.move_type = MOVE_TYPE_NO_CLIP;
+		self->locals.velocity[2] = -8.0;
+
+		self->locals.Think = G_FreeEntity;
+		self->locals.next_think = g_level.time + 3000;
+
+		gi.LinkEntity(self);
+	} else {
+		G_FreeEntity(self);
+	}
+}
+
+/*
+ * @brief
+ */
+static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other,
+		const cm_bsp_plane_t *plane __attribute__((unused)),
+		const cm_bsp_surface_t *surf __attribute__((unused))) {
+
+	if (g_level.time - self->locals.touch_time > 500) {
+		self->locals.touch_time = g_level.time;
+
+		G_Damage(other, self, NULL, self->locals.velocity, self->s.origin, NULL, self->locals.damage, self->locals.damage, 0, MOD_FIREBALL);
+	}
+}
+
+/*
+ * @brief
+ */
+static void G_misc_fireball_Fly(g_entity_t *self) {
+	static uint32_t count;
+
+	g_entity_t *ent = G_AllocEntity(__func__);
+
+	VectorCopy(self->s.origin, ent->s.origin);
+
+	VectorSet(ent->mins, -3.0, -3.0, -3.0);
+	VectorSet(ent->maxs, 3.0, 3.0, 3.0);
+
+	AngleVectors(self->s.angles, ent->locals.velocity, NULL, NULL);
+	VectorScale(ent->locals.velocity, self->locals.speed, ent->locals.velocity);
+
+	for (int32_t i = 0; i < 3; i++) {
+		ent->locals.velocity[i] += Randomc() * 30.0;
+	}
+
+	VectorSet(ent->locals.avelocity, Randomc() * 10.0, Randomc() * 10.0, Randomc() * 20.0);
+
+	ent->s.trail = TRAIL_FIREBALL;
+
+	ent->solid = SOLID_TRIGGER;
+	ent->locals.move_type = MOVE_TYPE_BOUNCE;
+
+	gi.SetModel(ent, "models/gibs/gib_1/tris");
+	ent->locals.damage = self->locals.damage;
+
+	ent->locals.Touch = G_misc_fireball_Touch;
+
+	ent->locals.Think = G_misc_fireball_Think;
+	ent->locals.next_think = g_level.time + 3000;
+
+	gi.LinkEntity(ent);
+
+	gi.Sound(ent, gi.SoundIndex(va("world/lava_%d", (count++ % 4) + 1)), ATTEN_IDLE);
+
+	self->locals.next_think = g_level.time + (self->locals.wait * 1000.0) + (self->locals.random * Randomc() * 1000);
+}
+
+/*QUAKED misc_fireball (1 0.3 0.1) (-6 -6 -6) (6 6 6)
+ Spawns an intermittent fireball that damages players. These are typically used above lava traps for ambiance.
+
+ -------- Keys --------
+ angles : The angles at which the fireball will fly (default randomized).
+ dmg : The damage inflicted to entities that touch the fireball (default 4).
+ random : Random time variance in seconds added to "wait" delay (default 0.5 * wait).
+ speed : The speed at which the fireball will fly (default 600.0).
+ wait : The interval in seconds between fireball emissions (default 5.0).
+ */
+void G_misc_fireball(g_entity_t *self) {
+
+	for (int32_t i = 1; i < 5; i++) {
+		gi.SoundIndex(va("world/lava_%d", i));
+	}
+
+	if (VectorCompare(self->s.angles, vec3_origin)) {
+		VectorSet(self->s.angles, -90.0, 0.0, 0.0);
+	}
+
+	if (self->locals.damage == 0) {
+		self->locals.damage = 4;
+	}
+
+	if (self->locals.speed == 0.0) {
+		self->locals.speed = 600.0;
+	}
+
+	if (self->locals.wait == 0.0) {
+		self->locals.wait = 5.0;
+	}
+
+	if (self->locals.random == 0.0) {
+		self->locals.random = self->locals.wait * 0.5;
+	}
+
+	self->locals.Think = G_misc_fireball_Fly;
+	self->locals.next_think = g_level.time + (Randomf() * 1000);
+}
+
