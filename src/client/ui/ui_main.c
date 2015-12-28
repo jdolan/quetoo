@@ -71,7 +71,6 @@ static _Bool Ui_HandleWindowEvent(const SDL_Event *event) {
 			}
 
 			break;
-
 	}
 
 	return false;

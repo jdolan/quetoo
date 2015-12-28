@@ -121,12 +121,12 @@ void TW_CALL Ui_Command(void *data) {
  */
 static void TW_CALL Ui_BindSet(const void *value, void *data) {
 
-	const int32_t i = strtol((const char *) value, NULL, 0);
+	const int32_t raw = strtol((const char *) value, NULL, 0);
 
-	SDL_Keycode sym = i;
+	SDL_Keycode sym = raw;
 	SDL_Scancode key = SDL_SCANCODE_UNKNOWN;
 
-	switch (i) {
+	switch (raw) {
 		case TW_KEY_BACKSPACE:
 			sym = SDLK_BACKSPACE;
 			break;
@@ -191,7 +191,7 @@ static void TW_CALL Ui_BindSet(const void *value, void *data) {
 		case TW_KEY_F10:
 		case TW_KEY_F11:
 		case TW_KEY_F12:
-			sym = i - TW_KEY_F1 + SDLK_F1;
+			sym = raw - TW_KEY_F1 + SDLK_F1;
 			break;
 
 		case SDLK_MOUSE1:
@@ -202,11 +202,11 @@ static void TW_CALL Ui_BindSet(const void *value, void *data) {
 		case SDLK_MOUSE6:
 		case SDLK_MOUSE7:
 		case SDLK_MOUSE8:
-			key = i & ~SDLK_SCANCODE_MASK;
+			key = raw & ~SDLK_SCANCODE_MASK;
 			break;
 
 		default:
-			sym = i;
+			sym = raw;
 			break;
 	}
 
@@ -216,8 +216,25 @@ static void TW_CALL Ui_BindSet(const void *value, void *data) {
 			return;
 	}
 
-	Com_Debug("raw %d -> keysym %d -> scancode %d\n", i, sym, key);
-	Cl_Bind(key, (char *) data);
+	Com_Debug("raw %d -> keysym %d -> scancode %d\n", raw, sym, key);
+
+	_Bool did_unbind = false;
+
+	if (sym == SDLK_BACKSPACE || sym == SDLK_DELETE) {
+		char **binds = cls.key_state.binds;
+		char *bind = (char *) data;
+
+		for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
+			if (binds[k] && !g_ascii_strcasecmp(bind, binds[k])) {
+				Cl_Bind(k, NULL);
+				did_unbind = true;
+			}
+		}
+	}
+
+	if (did_unbind == false) {
+		Cl_Bind(key, (char *) data);
+	}
 }
 
 /*
