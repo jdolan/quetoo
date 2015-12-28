@@ -308,6 +308,8 @@ void R_InitView(void) {
 	R_RenderPlugin(r_render_plugin->string);
 
 	memset(&r_locals, 0, sizeof(r_locals));
+
+	r_locals.clusters[0] = r_locals.clusters[1] = -1;
 }
 
 /*
