@@ -51,7 +51,6 @@ static const char *DEFAULT_BINDS =
 	"bind home center_view\n"
 	"bind \"left shift\" +speed\n"
 
-	"bind x score\n"
 	"bind t cl_message_mode\n"
 	"bind y cl_message_mode_2\n"
 

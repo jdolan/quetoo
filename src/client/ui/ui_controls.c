@@ -64,7 +64,7 @@ TwBar *Ui_Controls(void) {
 
 	Ui_Bind(bar, "Talk", "cl_message_mode", "group=Communication");
 	Ui_Bind(bar, "Talk to team", "cl_message_mode_2", "group=Communication");
-	Ui_Bind(bar, "Show scores", "score", "group=Communication");
+	Ui_Bind(bar, "Show scores", "+SCORE", "group=Communication");
 
 	Ui_Bind(bar, "Toggle console", "cl_toggle_console", "group=System");
 	Ui_Bind(bar, "Toggle fullscreen", "r_toggle_fullscreen", "group=System");
