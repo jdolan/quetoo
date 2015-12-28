@@ -201,7 +201,9 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 
 	gi.LinkEntity(ent);
 
-	gi.Sound(ent, gi.SoundIndex(va("world/lava_%d", (count++ % 4) + 1)), ATTEN_IDLE);
+	if (Randomf() < 0.33) {
+		gi.Sound(ent, gi.SoundIndex(va("world/lava_%d", (count++ % 3) + 1)), ATTEN_IDLE);
+	}
 
 	self->locals.next_think = g_level.time + (self->locals.wait * 1000.0) + (self->locals.random * Randomc() * 1000);
 }
@@ -218,7 +220,7 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
  */
 void G_misc_fireball(g_entity_t *self) {
 
-	for (int32_t i = 1; i < 5; i++) {
+	for (int32_t i = 1; i < 4; i++) {
 		gi.SoundIndex(va("world/lava_%d", i));
 	}
 
