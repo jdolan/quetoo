@@ -277,7 +277,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 
 	const uint32_t frame_time = 1000 / anim->hz;
 	const uint32_t animation_time = anim->num_frames * frame_time;
-	const uint32_t elapsed_time = cgi.client->time - a->time;
+	const uint32_t elapsed_time = cgi.client->systime - a->time;
 	uint16_t frame = elapsed_time / frame_time;
 
 	if (elapsed_time >= animation_time) { // to loop, or not to loop
@@ -293,7 +293,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 			}
 
 			a->animation = next; // or move into the next animation
-			a->time = cgi.client->time;
+			a->time = cgi.client->systime;
 
 			Cg_AnimateClientEntity_(md3, a, e);
 			return;
@@ -329,7 +329,7 @@ void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower
 	if (e->current.animation1 != e->prev.animation1 || !e->animation1.time) {
 		//cgi.Debug("Torso: %d -> %d\n", e->current.animation1, e->prev.animation1);
 		e->animation1.animation = e->current.animation1 & ~ANIM_TOGGLE_BIT;
-		e->animation1.time = cgi.client->time;
+		e->animation1.time = cgi.client->systime;
 	}
 
 	Cg_AnimateClientEntity_(md3, &e->animation1, upper);
@@ -338,7 +338,7 @@ void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower
 	if (e->current.animation2 != e->prev.animation2 || !e->animation2.time) {
 		//cgi.Debug("Legs: %d -> %d\n", e->current.animation2, e->prev.animation2);
 		e->animation2.animation = e->current.animation2 & ~ANIM_TOGGLE_BIT;
-		e->animation2.time = cgi.client->time;
+		e->animation2.time = cgi.client->systime;
 	}
 
 	Cg_AnimateClientEntity_(md3, &e->animation2, lower);

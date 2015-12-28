@@ -86,7 +86,7 @@ cg_particle_t *Cg_AllocParticle(const uint16_t type, cg_particles_t *particles) 
 
 	Cg_PushParticle(p, &particles->particles);
 
-	p->time = cgi.client->time;
+	p->time = cgi.client->systime;
 
 	return p;
 }
@@ -150,18 +150,17 @@ void Cg_FreeParticles(void) {
  */
 void Cg_AddParticles(void) {
 	static uint32_t last_particle_time;
-	int32_t i;
 
 	if (!cg_add_particles->value)
 		return;
 
-	if (last_particle_time > cgi.client->time)
+	if (last_particle_time > cgi.client->systime)
 		last_particle_time = 0;
 
-	const vec_t delta = (cgi.client->time - last_particle_time) * 0.001;
+	const vec_t delta = (cgi.client->systime - last_particle_time) * 0.001;
 	const vec_t delta_squared = delta * delta;
 
-	last_particle_time = cgi.client->time;
+	last_particle_time = cgi.client->systime;
 
 	cg_particles_t *ps = cg_active_particles;
 	while (ps) {
@@ -169,10 +168,10 @@ void Cg_AddParticles(void) {
 		cg_particle_t *p = ps->particles;
 		while (p) {
 			// update any particles allocated in previous frames
-			if (p->time != cgi.client->time) {
+			if (p->time != cgi.client->systime) {
 
 				// apply color velocity
-				for (i = 0; i < 4; i++) {
+				for (int32_t i = 0; i < 4; i++) {
 					p->part.color[i] += delta * p->color_vel[i];
 				}
 
@@ -185,7 +184,7 @@ void Cg_AddParticles(void) {
 					continue;
 				}
 
-				for (i = 0; i < 3; i++) { // update origin, end, and acceleration
+				for (int32_t i = 0; i < 3; i++) { // update origin, end, and acceleration
 					p->part.org[i] += p->vel[i] * delta + p->accel[i] * delta_squared;
 					p->part.end[i] += p->vel[i] * delta + p->accel[i] * delta_squared;
 

@@ -573,6 +573,9 @@ void Cl_Frame(const uint32_t msec) {
 	// increment the server time
 	cl.time += msec;
 
+	// and copy the system time for the client game module
+	cl.systime = quetoo.time;
+
 	cls.packet_delta += msec;
 	cls.render_delta += msec;
 

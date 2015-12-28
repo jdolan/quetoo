@@ -244,10 +244,10 @@ static void Cg_AddWeather(void) {
 
 	cgi.LoopSample(cgi.view->origin, s);
 
-	if (cgi.client->time - cg_weather_state.time < 100)
+	if (cgi.client->systime - cg_weather_state.time < 100)
 		return;
 
-	cg_weather_state.time = cgi.client->time;
+	cg_weather_state.time = cgi.client->systime;
 
 	const cg_weather_emit_t *e = cg_weather_state.emits;
 

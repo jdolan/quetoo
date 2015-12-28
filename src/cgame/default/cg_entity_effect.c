@@ -51,15 +51,15 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	e->effects = ent->current.effects;
 
 	if (e->effects & EF_ROTATE) {
-		e->angles[YAW] = cgi.client->time / 3.4;
+		e->angles[YAW] = cgi.client->systime / M_PI;
 	}
 
 	if (e->effects & EF_BOB) {
-		e->origin[2] += 4.0 * sin(cgi.client->time * 0.005 + ent->current.number);
+		e->origin[2] += 4.0 * sin(cgi.client->systime * 0.005 + ent->current.number);
 	}
 
 	if (e->effects & EF_PULSE) {
-		const vec_t v = 0.4 + (cos(cgi.client->time * 0.005 + ent->current.number) + 1.0) * 0.6;
+		const vec_t v = 0.4 + (cos(cgi.client->systime * 0.005 + ent->current.number) + 1.0) * 0.6;
 		VectorSet(e->color, v, v, v);
 	} else {
 		VectorSet(e->color, 1.0, 1.0, 1.0);
@@ -108,11 +108,11 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	if (e->effects & EF_DESPAWN) {
 
 		if (!(ent->prev.effects & EF_DESPAWN)) {
-			ent->time = cgi.client->time;
+			ent->time = cgi.client->systime;
 		}
 
 		e->effects |= (EF_BLEND | EF_NO_LIGHTING);
-		e->color[3] = 1.0 - ((cgi.client->time - ent->time) / 3000.0);
+		e->color[3] = 1.0 - ((cgi.client->systime - ent->time) / 3000.0);
 	}
 
 	if (ent->current.trail == TRAIL_ROCKET) {

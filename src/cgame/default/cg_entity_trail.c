@@ -29,14 +29,14 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 
 	if (ent) { // trails should be framerate independent
-		if (ent->time > cgi.client->time)
+		if (ent->time > cgi.client->systime)
 			return;
 
 		// don't emit smoke trails for static entities (grenades on the floor)
 		if (VectorCompare(ent->current.origin, ent->prev.origin))
 			return;
 
-		ent->time = cgi.client->time + 16;
+		ent->time = cgi.client->systime + 16;
 	}
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
@@ -71,9 +71,9 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	int32_t j;
 
 	if (ent) { // trails should be framerate independent
-		if (ent->time > cgi.client->time)
+		if (ent->time > cgi.client->systime)
 			return;
-		ent->time = cgi.client->time + 16;
+		ent->time = cgi.client->systime + 16;
 	}
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
@@ -115,9 +115,9 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 	int32_t i;
 
 	if (ent) { // trails should be framerate independent
-		if (ent->time > cgi.client->time)
+		if (ent->time > cgi.client->systime)
 			return;
-		ent->time = cgi.client->time + 16;
+		ent->time = cgi.client->systime + 16;
 	}
 
 	vec3_t end;
@@ -197,7 +197,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 	const uint8_t col = ent->current.client ? ent->current.client : EFFECT_COLOR_ORANGE;
 
-	if (ent->time < cgi.client->time) {
+	if (ent->time < cgi.client->systime) {
 		vec3_t delta;
 
 		vec_t step = 0.5;
@@ -232,7 +232,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			d += step;
 		}
 
-		ent->time = cgi.client->time + 16;
+		ent->time = cgi.client->systime + 16;
 	}
 
 	vec3_t color;
@@ -337,7 +337,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int
 		}
 	}
 
-	const vec_t ltime = (vec_t) cgi.client->time / 300.0;
+	const vec_t ltime = (vec_t) cgi.client->systime / 300.0;
 
 	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
 		cg_particle_t *p;
@@ -377,10 +377,10 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int
 	}
 
 	// add a bubble trail if appropriate
-	if (ent->time > cgi.client->time)
+	if (ent->time > cgi.client->systime)
 		return;
 
-	ent->time = cgi.client->time + 16;
+	ent->time = cgi.client->systime + 16;
 
 	if (cgi.PointContents(org) & MASK_LIQUID)
 		Cg_BubbleTrail(ent->prev.origin, ent->current.origin, radius / 4.0);
@@ -487,7 +487,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 
 	Cg_EnergyTrail(ent, org, 48.0, 206);
 
-	const vec_t mod = sin(cgi.client->time >> 5);
+	const vec_t mod = sin(cgi.client->systime >> 5);
 
 	cg_particle_t *p;
 	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
@@ -515,12 +515,12 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
  */
 static void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
 
-	if (ent->time > cgi.client->time)
+	if (ent->time > cgi.client->systime)
 		return;
 
 	cgi.PlaySample(NULL, ent->current.number, cg_sample_respawn, ATTEN_IDLE);
 
-	ent->time = cgi.client->time + 1000 + (2000 * Randomf());
+	ent->time = cgi.client->systime + 1000 + (2000 * Randomf());
 
 	for (int32_t i = 0; i < 4; i++) {
 		cg_particle_t *p;
@@ -546,9 +546,9 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
 static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	if (ent) {
-		if (ent->time > cgi.client->time)
+		if (ent->time > cgi.client->systime)
 			return;
-		ent->time = cgi.client->time + 16;
+		ent->time = cgi.client->systime + 16;
 	}
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
@@ -597,11 +597,11 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 	l.radius = 85.0;
 
 	if (ent->current.effects & EF_DESPAWN) {
-		const vec_t decay = Clamp((cgi.client->time - ent->time) / 1000.0, 0.0, 1.0);
+		const vec_t decay = Clamp((cgi.client->systime - ent->time) / 1000.0, 0.0, 1.0);
 		l.radius *= (1.0 - decay);
 	} else {
 		Cg_SmokeTrail(ent, start, end);
-		ent->time = cgi.client->time;
+		ent->time = cgi.client->systime;
 		Cg_FlameTrail(ent, start, end);
 	}
 
