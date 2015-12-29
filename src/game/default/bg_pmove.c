@@ -489,6 +489,36 @@ static _Bool Pm_CheckTrickJump(void) {
 }
 
 /*
+ * @brief Shift around the current origin to find a valid position.
+ */
+static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
+	vec3_t pos;
+
+	Pm_Debug("all solid %s", vtos(pm->s.origin));
+
+	for (int32_t i = -1; i <= 1; i++) {
+		for (int32_t j = -1; j <= 1; j++) {
+			for (int32_t k = -1; k <= 1; k++) {
+				VectorCopy(pm->s.origin, pos);
+				pos[0] += i;
+				pos[1] += j;
+				pos[2] += k;
+				cm_trace_t tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
+				if (!tr.all_solid ) {
+					VectorCopy(pos, pm->s.origin);
+					pos[2] -= PM_GROUND_DIST;
+
+					return pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
+				}
+			}
+		}
+	}
+
+	Pm_Debug("still solid %s\n", vtos(pm->s.origin));
+	return *trace;
+}
+
+/*
  * @brief Determine state for the current position. This involves resolving the
  * ground entity, water level, and water type.
  */
@@ -507,6 +537,9 @@ static void Pm_CategorizePosition(void) {
 	}
 
 	cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
+	if (trace.all_solid) {
+		trace = Pm_CorrectPosition(&trace);
+	}
 
 	pml.ground_plane = trace.plane;
 	pml.ground_surface = trace.surface;
