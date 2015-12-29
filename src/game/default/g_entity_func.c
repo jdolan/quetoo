@@ -140,8 +140,10 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 			move->decel_frames = decel_distance / avg_speed * gi.frame_rate;
 		}
 
-		vec_t const_distance = (distance - (accel_distance + decel_distance));
-		move->const_frames = const_distance / move->speed * gi.frame_rate;
+		const vec_t const_distance = (distance - (accel_distance + decel_distance));
+		const vec_t const_time = const_distance / move->speed;
+
+		move->const_frames = const_time * gi.frame_rate;
 	}
 
 	// accelerate
