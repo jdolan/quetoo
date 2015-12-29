@@ -87,18 +87,15 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 		}
 
 	} else { // just use interpolated values from frame
-		vec3_t old_origin, current_origin, origin;
-		vec3_t old_offset, current_offset, offset;
+		vec3_t origin;
+		vec3_t from_offset, to_offset, offset;
 
-		UnpackVector(from->pm_state.origin, old_origin);
-		UnpackVector(to->pm_state.origin, current_origin);
+		VectorLerp(from->pm_state.origin, to->pm_state.origin, cl.lerp, origin);
 
-		VectorLerp(old_origin, current_origin, cl.lerp, origin);
+		UnpackVector(from->pm_state.view_offset, from_offset);
+		UnpackVector(to->pm_state.view_offset, to_offset);
 
-		UnpackVector(from->pm_state.view_offset, old_offset);
-		UnpackVector(to->pm_state.view_offset, current_offset);
-
-		VectorLerp(old_offset, current_offset, cl.lerp, offset);
+		VectorLerp(from_offset, to_offset, cl.lerp, offset);
 
 		VectorAdd(origin, offset, r_view.origin);
 	}

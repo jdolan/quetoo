@@ -276,7 +276,7 @@ void Cl_ParseFrame(void) {
 		if (cls.state != CL_ACTIVE) {
 			cls.state = CL_ACTIVE;
 
-			UnpackVector(cl.frame.ps.pm_state.origin, cl.predicted_state.origin);
+			VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_state.origin);
 
 			UnpackVector(cl.frame.ps.pm_state.view_offset, cl.predicted_state.view_offset);
 			UnpackAngles(cl.frame.ps.pm_state.view_angles, cl.predicted_state.view_angles);

@@ -116,44 +116,6 @@ static _Bool G_GoodPosition(const g_entity_t *ent) {
 	return !gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask).start_solid;
 }
 
-/*
- * @see Pm_SnapPosition.
- */
-static _Bool G_SnapPosition(g_entity_t *ent) {
-	const int16_t jitter_bits[8] = { 0, 4, 1, 2, 3, 5, 6, 7 };
-	int16_t i, sign[3], org[3];
-	vec3_t old_origin;
-	size_t j;
-
-	VectorCopy(ent->s.origin, old_origin);
-
-	// snap the origin, but be prepared to try nearby locations
-	for (i = 0; i < 3; i++) {
-		sign[i] = ent->s.origin[i] >= 0.0 ? 1 : -1;
-	}
-
-	// try all combinations, bumping the position away from the origin
-	for (j = 0; j < lengthof(jitter_bits); j++) {
-		const int16_t bit = jitter_bits[j];
-
-		PackVector(ent->s.origin, org);
-
-		for (i = 0; i < 3; i++) {
-			if (bit & (1 << i))
-				org[i] += sign[i];
-		}
-
-		UnpackVector(org, ent->s.origin);
-
-		if (G_GoodPosition(ent)) {
-			return true;
-		}
-	}
-
-	VectorCopy(old_origin, ent->s.origin);
-	return false;
-}
-
 #define MAX_SPEED 2400.0
 
 /*
@@ -438,21 +400,12 @@ static void G_Physics_Push_Rotate(g_entity_t *self, g_entity_t *ent, vec_t yaw) 
 static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amove) {
 	vec3_t inverse_amove, forward, right, up;
 	g_entity_t *ents[MAX_ENTITIES];
-	int16_t tmp[3];
 
 	G_Physics_Push_Impact(self);
-
-	PackVector(move, tmp);
-	UnpackVector(tmp, move);
-
-	PackVector(amove, tmp);
-	UnpackVector(tmp, amove);
 
 	// move the pusher to it's intended position
 	VectorAdd(self->s.origin, move, self->s.origin);
 	VectorAdd(self->s.angles, amove, self->s.angles);
-
-	G_SnapPosition(self);
 
 	gi.LinkEntity(self);
 
@@ -501,7 +454,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 			VectorAdd(ent->s.origin, delta, ent->s.origin);
 
 			// if the move has separated us, finish up by rotating the entity
-			if (G_SnapPosition(ent)) {
+			if (G_GoodPosition(ent)) {
 				G_Physics_Push_Rotate(self, ent, amove[YAW]);
 				continue;
 			}
@@ -511,7 +464,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 				G_Physics_Push_Revert(--g_push_p);
 
 				// but in this case, we don't rotate
-				if (G_SnapPosition(ent)) {
+				if (G_GoodPosition(ent)) {
 					continue;
 				}
 			}
@@ -665,7 +618,7 @@ static void G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 		}
 	}
 
-	if (G_SnapPosition(ent)) {
+	if (G_GoodPosition(ent)) {
 		gi.LinkEntity(ent);
 		return;
 	}

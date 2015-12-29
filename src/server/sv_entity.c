@@ -203,9 +203,8 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
 	// find the client's PVS
 	const pm_state_t *pm = &cent->client->ps.pm_state;
-	UnpackVector(pm->origin, org);
 	UnpackVector(pm->view_offset, off);
-	VectorAdd(org, off, org);
+	VectorAdd(pm->origin, off, org);
 
 	const int32_t leaf = Cm_PointLeafnum(org, 0);
 	const int32_t area = Cm_LeafArea(leaf);

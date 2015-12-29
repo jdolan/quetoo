@@ -27,8 +27,7 @@
 void G_ClientToIntermission(g_entity_t *ent) {
 
 	VectorCopy(g_level.intermission_origin, ent->s.origin);
-
-	PackVector(g_level.intermission_origin, ent->client->ps.pm_state.origin);
+	VectorCopy(g_level.intermission_origin, ent->client->ps.pm_state.origin);
 
 	VectorClear(ent->client->ps.pm_state.view_angles);
 	PackAngles(g_level.intermission_angle, ent->client->ps.pm_state.delta_angles);

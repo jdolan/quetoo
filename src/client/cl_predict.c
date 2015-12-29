@@ -223,7 +223,6 @@ void Cl_PredictMovement(void) {
  * that Pm_Move or the protocol are not functioning correctly.
  */
 void Cl_CheckPredictionError(void) {
-	int16_t d[3];
 	vec3_t delta;
 
 	VectorClear(cl.predicted_state.error);
@@ -235,8 +234,7 @@ void Cl_CheckPredictionError(void) {
 	const uint32_t frame = (cls.net_chan.incoming_acknowledged & CMD_MASK);
 
 	// compare what the server returned with what we had predicted it to be
-	VectorSubtract(cl.frame.ps.pm_state.origin, cl.predicted_state.origins[frame], d);
-	UnpackVector(d, delta); // convert back to floating point
+	VectorSubtract(cl.frame.ps.pm_state.origin, cl.predicted_state.origins[frame], delta);
 
 	const vec_t error = VectorLength(delta);
 	if (error > 1.0) {

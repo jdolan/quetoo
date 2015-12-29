@@ -315,8 +315,8 @@ typedef enum {
  */
 typedef struct {
 	pm_type_t type;
-	int16_t origin[3];
-	int16_t velocity[3];
+	vec3_t origin;
+	vec3_t velocity;
 	uint16_t flags; // PMF_NO_PREDICTION, etc..
 	uint16_t time; // duration for temporal PMF_ flags
 	int16_t gravity;
