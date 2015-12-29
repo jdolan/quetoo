@@ -446,9 +446,9 @@ typedef struct {
 	vec3_t dest;
 	vec3_t dir;
 	vec_t current_speed;
-	vec_t remaining_distance;
-	vec_t accel_distance;
-	vec_t decel_distance;
+	int32_t const_frames; // number of frames move will use move->speed
+	int32_t accel_frames; // number of frames move will accelerate
+	int32_t decel_frames; // number of frames move will decelerate
 	void (*Done)(g_entity_t *);
 } g_move_info_t;
 

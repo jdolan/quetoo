@@ -62,15 +62,17 @@ static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
  */
 static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
 	g_move_info_t *move = &ent->locals.move_info;
+	vec3_t delta;
 
-	if (move->remaining_distance == 0.0) {
+	VectorSubtract(move->dest, ent->s.origin, delta);
+	const vec_t distance = VectorNormalize(delta);
+
+	if (distance == 0.0 || DotProduct(delta, move->dir) < 0.0) {
 		G_MoveInfo_Linear_Done(ent);
 		return;
 	}
 
-	gi.Print("%s %s %3.2f\n", __func__, etos(ent), move->remaining_distance);
-
-	VectorScale(move->dir, move->remaining_distance / gi.frame_seconds, ent->locals.velocity);
+	VectorScale(delta, distance / gi.frame_seconds, ent->locals.velocity);
 
 	ent->locals.Think = G_MoveInfo_Linear_Done;
 	ent->locals.next_think = g_level.time + gi.frame_millis;
@@ -82,18 +84,21 @@ static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
  */
 static void G_MoveInfo_Linear_Constant(g_entity_t *ent) {
 	g_move_info_t *move = &ent->locals.move_info;
+	vec3_t delta;
 
-	if ((move->speed * gi.frame_seconds) >= move->remaining_distance) {
+	VectorSubtract(move->dest, ent->s.origin, delta);
+	const vec_t distance = VectorLength(delta);
+
+	if ((move->speed * gi.frame_seconds) >= distance) {
 		G_MoveInfo_Linear_Final(ent);
 		return;
 	}
 
 	VectorScale(move->dir, move->speed, ent->locals.velocity);
 
-	const uint32_t move_time = (move->remaining_distance / move->speed) * 1000;
-	move->remaining_distance -= move->speed * (move_time / 1000.0);
+	move->const_frames = distance / move->speed * gi.frame_rate;
 
-	ent->locals.next_think = g_level.time + move_time - gi.frame_millis;
+	ent->locals.next_think = g_level.time + move->const_frames * gi.frame_millis;
 	ent->locals.Think = G_MoveInfo_Linear_Final;
 }
 
@@ -103,53 +108,70 @@ static void G_MoveInfo_Linear_Constant(g_entity_t *ent) {
  */
 static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 	g_move_info_t *move = &ent->locals.move_info;
-	vec3_t delta;
-
-	VectorSubtract(move->dest, ent->s.origin, delta);
-	move->remaining_distance = VectorLength(delta);
 
 	if (move->current_speed == 0.0) { // starting or restarting after being blocked
+		vec3_t delta;
 
-		const vec_t accel_speed = move->speed * 0.5;
+		// http://www.ajdesigner.com/constantacceleration/cavelocitya.php
+
+		VectorSubtract(move->dest, ent->s.origin, delta);
+		const vec_t distance = VectorLength(delta);
+
 		const vec_t accel_time = move->speed / move->accel;
-		move->accel_distance = accel_speed * accel_time;
-
-		const vec_t decel_speed = move->speed * 0.5;
 		const vec_t decel_time = move->speed / move->decel;
-		move->decel_distance = decel_speed * decel_time;
 
-		const vec_t accel_decel_distance = move->accel_distance + move->decel_distance;
-		if (accel_decel_distance > move->remaining_distance) {
+		move->accel_frames = accel_time * gi.frame_rate;
+		move->decel_frames = decel_time * gi.frame_rate;
 
-			const vec_t scale = move->remaining_distance / accel_decel_distance;
+		const vec_t avg_speed = move->speed * 0.5;
 
-			move->accel_distance *= scale;
-			move->decel_distance *= scale;
+		vec_t accel_distance = avg_speed * accel_time;
+		vec_t decel_distance = avg_speed * decel_time;
+
+		if (accel_distance + decel_distance > distance) {
+			gi.Debug("Clamping acceleration for %s\n", etos(ent));
+
+			const vec_t scale = distance / (accel_distance + decel_distance);
+
+			accel_distance *= scale;
+			decel_distance *= scale;
+
+			move->accel_frames = accel_distance / avg_speed * gi.frame_rate;
+			move->decel_frames = decel_distance / avg_speed * gi.frame_rate;
 		}
+
+		vec_t const_distance = (distance - (accel_distance + decel_distance));
+		move->const_frames = const_distance / move->speed * gi.frame_rate;
 	}
 
 	// accelerate
-	if (move->distance - move->remaining_distance < move->accel_distance) {
+	if (move->accel_frames) {
 		move->current_speed += move->accel * gi.frame_seconds;
 		if (move->current_speed > move->speed) {
 			move->current_speed = move->speed;
 		}
+		move->accel_frames--;
 	}
 
-	// or decelerate
-	else if (move->remaining_distance < move->decel_distance) {
-		move->current_speed -= move->decel * gi.frame_seconds;
-		if (move->current_speed < 0.0) {
-			move->current_speed = 0.0;
-
-			G_MoveInfo_Linear_Final(ent);
-			return;
-		}
-	}
-
-	// or maintain speed
-	else {
+	// maintain speed
+	else if (move->const_frames) {
 		move->current_speed = move->speed;
+		move->const_frames--;
+	}
+
+	// decelerate
+	else if (move->decel_frames) {
+		move->current_speed -= move->decel * gi.frame_seconds;
+		if (move->current_speed <= sqrt(move->speed)) {
+			move->current_speed = sqrt(move->speed);
+		}
+		move->decel_frames--;
+	}
+
+	// done
+	else {
+		G_MoveInfo_Linear_Final(ent);
+		return;
 	}
 
 	VectorScale(move->dir, move->current_speed, ent->locals.velocity);
@@ -171,7 +193,7 @@ static void G_MoveInfo_Linear_Init(g_entity_t *ent, vec3_t dest, void (*Done)(g_
 
 	VectorCopy(dest, move->dest);
 	VectorSubtract(dest, ent->s.origin, move->dir);
-	move->distance = move->remaining_distance = VectorNormalize(move->dir);
+	VectorNormalize(move->dir);
 
 	move->Done = Done;
 
@@ -475,6 +497,7 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent) {
 void G_func_plat(g_entity_t *ent) {
 
 	VectorClear(ent->s.angles);
+
 	ent->solid = SOLID_BSP;
 	ent->locals.move_type = MOVE_TYPE_PUSH;
 
@@ -486,7 +509,7 @@ void G_func_plat(g_entity_t *ent) {
 		ent->locals.speed = 200.0;
 
 	if (!ent->locals.accel)
-		ent->locals.accel = ent->locals.speed;
+		ent->locals.accel = ent->locals.speed * 2.0;
 
 	if (!ent->locals.decel)
 		ent->locals.decel = ent->locals.accel;
@@ -777,8 +800,6 @@ void G_func_button(g_entity_t *ent) {
 	ent->locals.move_info.state = MOVE_STATE_BOTTOM;
 
 	ent->locals.move_info.speed = ent->locals.speed;
-	ent->locals.move_info.accel = ent->locals.accel;
-	ent->locals.move_info.decel = ent->locals.decel;
 	ent->locals.move_info.wait = ent->locals.wait;
 	VectorCopy(ent->locals.pos1, ent->locals.move_info.start_origin);
 	VectorCopy(ent->s.angles, ent->locals.move_info.start_angles);
@@ -866,7 +887,7 @@ static void G_func_door_GoingDown(g_entity_t *self) {
 	}
 
 	self->locals.move_info.state = MOVE_STATE_GOING_DOWN;
-	if (!g_strcmp0(self->class_name, "func_door")) {
+	if (g_strcmp0(self->class_name, "func_door_rotating")) {
 		G_MoveInfo_Linear_Init(self, self->locals.move_info.start_origin, G_func_door_Bottom);
 	} else { // rotating
 		G_MoveInfo_Angular_Init(self, G_func_door_Bottom);
@@ -892,7 +913,7 @@ static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
 		self->s.sound = self->locals.move_info.sound_middle;
 	}
 	self->locals.move_info.state = MOVE_STATE_GOING_UP;
-	if (!g_strcmp0(self->class_name, "func_door")) {
+	if (g_strcmp0(self->class_name, "func_door_rotating")) {
 		G_MoveInfo_Linear_Init(self, self->locals.move_info.end_origin, G_func_door_Top);
 	} else { // rotating
 		G_MoveInfo_Angular_Init(self, G_func_door_Top);
@@ -1123,19 +1144,20 @@ void G_func_door(g_entity_t *ent) {
 	ent->locals.Use = G_func_door_Use;
 
 	if (!ent->locals.speed)
-		ent->locals.speed = 100.0;
-
-	ent->locals.speed *= 2.0;
+		ent->locals.speed = 200.0;
 
 	if (!ent->locals.accel)
-		ent->locals.accel = ent->locals.speed;
+		ent->locals.accel = ent->locals.speed * 2.0;
+
 	if (!ent->locals.decel)
-		ent->locals.decel = ent->locals.speed;
+		ent->locals.decel = ent->locals.accel;
 
 	if (!ent->locals.wait)
 		ent->locals.wait = 3.0;
+
 	if (!g_game.spawn.lip)
 		g_game.spawn.lip = 8.0;
+
 	if (!ent->locals.damage)
 		ent->locals.damage = 2;
 
@@ -1461,7 +1483,10 @@ void G_func_door_secret(g_entity_t *ent) {
 	if (!ent->locals.wait)
 		ent->locals.wait = 5.0;
 
-	ent->locals.move_info.accel = ent->locals.move_info.decel = ent->locals.move_info.speed = 50.0;
+	if (!ent->locals.speed)
+		ent->locals.speed = 50.0;
+
+	ent->locals.move_info.speed = ent->locals.speed;
 
 	// calculate positions
 	AngleVectors(ent->s.angles, forward, right, up);
@@ -1492,8 +1517,6 @@ void G_func_door_secret(g_entity_t *ent) {
 		gi.SoundIndex("misc/chat");
 		ent->locals.Touch = G_func_door_Touch;
 	}
-
-	ent->class_name = "func_door";
 
 	gi.LinkEntity(ent);
 }
@@ -1612,20 +1635,19 @@ void G_func_water(g_entity_t *self) {
 	self->locals.move_info.state = MOVE_STATE_BOTTOM;
 
 	if (!self->locals.speed)
-		self->locals.speed = 25;
-	self->locals.move_info.accel = self->locals.move_info.decel =
-			self->locals.move_info.speed = self->locals.speed;
+		self->locals.speed = 25.0;
+
+	self->locals.move_info.speed = self->locals.speed;
 
 	if (!self->locals.wait)
 		self->locals.wait = -1;
+
 	self->locals.move_info.wait = self->locals.wait;
 
 	self->locals.Use = G_func_door_Use;
 
 	if (self->locals.wait == -1)
 		self->locals.spawn_flags |= DOOR_TOGGLE;
-
-	self->class_name = "func_door";
 
 	gi.LinkEntity(self);
 }
@@ -1640,6 +1662,7 @@ static void G_func_train_Next(g_entity_t *self);
  * @brief
  */
 static void G_func_train_Wait(g_entity_t *self) {
+
 	if (self->locals.target_ent->locals.path_target) {
 		g_entity_t *ent = self->locals.target_ent;
 		char *savetarget = ent->locals.target;
@@ -1656,8 +1679,7 @@ static void G_func_train_Wait(g_entity_t *self) {
 		if (self->locals.move_info.wait > 0) {
 			self->locals.next_think = g_level.time + (self->locals.move_info.wait * 1000);
 			self->locals.Think = G_func_train_Next;
-		} else if (self->locals.spawn_flags & TRAIN_TOGGLE) // && wait < 0
-		{
+		} else if (self->locals.spawn_flags & TRAIN_TOGGLE) {
 			G_func_train_Next(self);
 			self->locals.spawn_flags &= ~TRAIN_START_ON;
 			VectorClear(self->locals.velocity);
