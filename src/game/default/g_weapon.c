@@ -454,7 +454,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 0.125);
 
-		G_WeaponFired(ent, 40);
+		G_WeaponFired(ent, 48);
 	}
 }
 

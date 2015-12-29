@@ -119,7 +119,7 @@ typedef struct {
 	uint32_t step_interval; // interpolation interval for step
 	vec_t step; // step height (up or down)
 
-	int16_t origins[CMD_BACKUP][3]; // for debugging against the server
+	vec3_t origins[CMD_BACKUP]; // for debugging against the server
 } cl_predicted_state_t;
 
 /*

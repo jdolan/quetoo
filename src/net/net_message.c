@@ -86,7 +86,7 @@ void Net_WriteString(mem_buf_t *msg, const char *s) {
  * @brief
  */
 void Net_WriteVector(mem_buf_t *msg, const vec_t v) {
-	Net_WriteShort(msg, (int32_t) (v * 8.0));
+	Net_WriteLong(msg, *(int32_t *) &v);
 }
 
 /*
@@ -220,17 +220,11 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 	if (bits & PS_PM_TYPE)
 		Net_WriteByte(msg, to->pm_state.type);
 
-	if (bits & PS_PM_ORIGIN) {
-		Net_WriteShort(msg, to->pm_state.origin[0]);
-		Net_WriteShort(msg, to->pm_state.origin[1]);
-		Net_WriteShort(msg, to->pm_state.origin[2]);
-	}
+	if (bits & PS_PM_ORIGIN)
+		Net_WritePosition(msg, to->pm_state.origin);
 
-	if (bits & PS_PM_VELOCITY) {
-		Net_WriteShort(msg, to->pm_state.velocity[0]);
-		Net_WriteShort(msg, to->pm_state.velocity[1]);
-		Net_WriteShort(msg, to->pm_state.velocity[2]);
-	}
+	if (bits & PS_PM_VELOCITY)
+		Net_WritePosition(msg, to->pm_state.velocity);
 
 	if (bits & PS_PM_FLAGS)
 		Net_WriteShort(msg, to->pm_state.flags);
@@ -506,7 +500,14 @@ char *Net_ReadStringLine(mem_buf_t *msg) {
  * @brief
  */
 vec_t Net_ReadVector(mem_buf_t *msg) {
-	return Net_ReadShort(msg) * (1.0 / 8.0);
+
+	union {
+		int32_t i;
+		vec_t v;
+	} vec;
+
+	vec.i = Net_ReadLong(msg);
+	return vec.v;
 }
 
 /*
@@ -589,17 +590,11 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 	if (bits & PS_PM_TYPE)
 		to->pm_state.type = Net_ReadByte(msg);
 
-	if (bits & PS_PM_ORIGIN) {
-		to->pm_state.origin[0] = Net_ReadShort(msg);
-		to->pm_state.origin[1] = Net_ReadShort(msg);
-		to->pm_state.origin[2] = Net_ReadShort(msg);
-	}
+	if (bits & PS_PM_ORIGIN)
+		Net_ReadPosition(msg, to->pm_state.origin);
 
-	if (bits & PS_PM_VELOCITY) {
-		to->pm_state.velocity[0] = Net_ReadShort(msg);
-		to->pm_state.velocity[1] = Net_ReadShort(msg);
-		to->pm_state.velocity[2] = Net_ReadShort(msg);
-	}
+	if (bits & PS_PM_VELOCITY)
+		Net_ReadPosition(msg, to->pm_state.velocity);
 
 	if (bits & PS_PM_FLAGS)
 		to->pm_state.flags = Net_ReadShort(msg);

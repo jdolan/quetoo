@@ -361,8 +361,8 @@ void G_ClientEndFrame(g_entity_t *ent) {
 	//
 	// If it wasn't updated here, the view position would lag a frame
 	// behind the body position when pushed -- "sinking into plats"
-	PackVector(ent->s.origin, client->ps.pm_state.origin);
-	PackVector(ent->locals.velocity, client->ps.pm_state.velocity);
+	VectorCopy(ent->s.origin, client->ps.pm_state.origin);
+	VectorCopy(ent->locals.velocity, client->ps.pm_state.velocity);
 
 	// If in intermission, just set stats and scores and return
 	if (g_level.intermission_time) {

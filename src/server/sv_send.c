@@ -236,9 +236,8 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 			const pm_state_t *pm = &cl->entity->client->ps.pm_state;
 			vec3_t org, off;
 
-			UnpackVector(pm->origin, org);
 			UnpackVector(pm->view_offset, off);
-			VectorAdd(org, off, org);
+			VectorAdd(pm->origin, off, org);
 
 			const int32_t leaf = Cm_PointLeafnum(org, 0);
 

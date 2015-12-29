@@ -776,7 +776,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	VectorSubtract(spawn->s.angles, cmd_angles, delta_angles);
 
 	// pack the new origin and delta angles into the player state
-	PackVector(ent->s.origin, ent->client->ps.pm_state.origin);
+	VectorCopy(ent->s.origin, ent->client->ps.pm_state.origin);
 	PackAngles(delta_angles, ent->client->ps.pm_state.delta_angles);
 
 	ent->s.effects = 0;
@@ -1150,8 +1150,8 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	memset(&pm, 0, sizeof(pm));
 	pm.s = cl->ps.pm_state;
 
-	PackVector(ent->s.origin, pm.s.origin);
-	PackVector(ent->locals.velocity, pm.s.velocity);
+	VectorCopy(ent->s.origin, pm.s.origin);
+	VectorCopy(ent->locals.velocity, pm.s.velocity);
 
 	pm.cmd = *cmd;
 	pm.ground_entity = ent->locals.ground_entity;
@@ -1169,8 +1169,8 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	VectorCopy(ent->locals.velocity, old_velocity);
 
-	UnpackVector(pm.s.origin, ent->s.origin);
-	UnpackVector(pm.s.velocity, ent->locals.velocity);
+	VectorCopy(pm.s.origin, ent->s.origin);
+	VectorCopy(pm.s.velocity, ent->locals.velocity);
 
 	VectorCopy(pm.mins, ent->mins);
 	VectorCopy(pm.maxs, ent->maxs);
