@@ -446,9 +446,8 @@ typedef struct {
 	vec3_t dest;
 	vec3_t dir;
 	vec_t current_speed;
-	vec_t move_speed;
-	vec_t next_speed;
 	vec_t remaining_distance;
+	vec_t accel_distance;
 	vec_t decel_distance;
 	void (*Done)(g_entity_t *);
 } g_move_info_t;
