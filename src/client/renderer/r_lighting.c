@@ -401,17 +401,17 @@ static void R_UpdateShadows(r_lighting_t *l) {
 			break;
 
 		switch (il->type) {
-		case ILLUM_AMBIENT:
-			break;
-		case ILLUM_SUN:
-			if (r_shadows->integer < 2)
-				continue;
-			break;
-		case ILLUM_STATIC:
-		case ILLUM_DYNAMIC:
-			if (r_shadows->integer < 3)
-				continue;
-			break;
+			case ILLUM_AMBIENT:
+				break;
+			case ILLUM_SUN:
+				if (r_shadows->integer < 2)
+					continue;
+				break;
+			case ILLUM_STATIC:
+			case ILLUM_DYNAMIC:
+				if (r_shadows->integer < 3)
+					continue;
+				break;
 		}
 
 		R_CastShadows(l, il);

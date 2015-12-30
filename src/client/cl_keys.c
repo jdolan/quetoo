@@ -81,8 +81,15 @@ static _Bool Cl_KeySystem(const SDL_Event *event) {
 	if (event->key.keysym.sym == SDLK_ESCAPE) { // escape can cancel a few things
 
 		// connecting to a server
-		if (cls.state == CL_CONNECTING || cls.state == CL_CONNECTED) {
-			Com_Error(ERR_DROP, "Connection aborted by user\n");
+		switch (cls.state) {
+			case CL_CONNECTING:
+			case CL_CONNECTED:
+				Com_Error(ERR_DROP, "Connection aborted by user\n");
+				break;
+			case CL_LOADING:
+				return false;
+			default:
+				break;
 		}
 
 		// message mode
