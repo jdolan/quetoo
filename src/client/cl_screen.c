@@ -21,8 +21,8 @@
 
 #include "cl_local.h"
 
-#define NET_GRAPH_HEIGHT 64
-#define NET_GRAPH_WIDTH 128
+#define NET_GRAPH_HEIGHT 48
+#define NET_GRAPH_WIDTH 256
 #define NET_GRAPH_Y 0
 
 // net graph samples
@@ -206,7 +206,7 @@ static void Cl_DrawSoundStats(void) {
  */
 static void Cl_DrawCounters(void) {
 	static vec3_t velocity;
-	static char bps[8], pps[8], fps[8], spd[8];
+	static char pps[8], fps[8], spd[8];
 	static int32_t last_draw_time;
 	r_pixel_t cw, ch;
 
@@ -216,7 +216,7 @@ static void Cl_DrawCounters(void) {
 	R_BindFont("small", &cw, &ch);
 
 	const r_pixel_t x = r_context.width - 7 * cw;
-	r_pixel_t y = r_context.height - 4 * ch;
+	r_pixel_t y = r_context.height - 3 * ch;
 
 	cl.frame_counter++;
 
@@ -228,13 +228,11 @@ static void Cl_DrawCounters(void) {
 		g_snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));
 		g_snprintf(fps, sizeof(fps), "%4ufps", cl.frame_counter * 5);
 		g_snprintf(pps, sizeof(pps), "%4upps", cl.packet_counter * 5);
-		g_snprintf(bps, sizeof(bps), "%4ubps", cl.byte_counter * 5);
 
 		last_draw_time = quetoo.time;
 
 		cl.frame_counter = 0;
 		cl.packet_counter = 0;
-		cl.byte_counter = 0;
 	}
 
 	R_DrawString(x, y, spd, CON_COLOR_DEFAULT);
@@ -245,8 +243,6 @@ static void Cl_DrawCounters(void) {
 
 	R_DrawString(x, y, pps, CON_COLOR_DEFAULT);
 	y += ch;
-
-	R_DrawString(x, y, bps, CON_COLOR_DEFAULT);
 
 	R_BindFont(NULL, NULL, NULL);
 }

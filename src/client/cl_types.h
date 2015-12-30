@@ -139,7 +139,6 @@ typedef struct {
 
 	uint32_t frame_counter;
 	uint32_t packet_counter;
-	uint32_t byte_counter;
 
 	cl_cmd_t cmds[CMD_BACKUP]; // each message will send several old cmds
 	cl_predicted_state_t predicted_state; // client side prediction output

@@ -416,7 +416,6 @@ void Cl_ParseServerMessage(void) {
 	else if (cl_show_net_messages->integer >= 2)
 		Com_Print("------------------\n");
 
-	cl.byte_counter += net_message.size;
 	cmd = 0;
 
 	// parse the message
