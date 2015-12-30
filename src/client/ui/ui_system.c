@@ -46,20 +46,21 @@ TwBar *Ui_System(void) {
 	TwAddSeparator(bar, NULL, "group=Video");
 
 	Ui_CvarEnum(bar, "Shaders", r_programs, ui.OffOrOn, "group=Video");
+	Ui_CvarEnum(bar, "Shadows", r_shadows, ui.OffLowMediumHigh, "group=Video");
 	Ui_CvarEnum(bar, "Anisotropy", r_anisotropy, ui.OffOrOn, "group=Video");
 	Ui_CvarEnum(bar, "Anti-aliasing", r_multisample, ui.OffLowMediumHigh, "group=Video");
 
 	TwAddSeparator(bar, NULL, "group=Video");
 
 	Ui_CvarEnum(bar, "Vertical sync", r_swap_interval, ui.OffOrOn, "group=Video");
-	Ui_CvarInteger(bar, "Framerate", cl_max_fps, "min=0 max=240 step=5 group=Video");
+	Ui_CvarInteger(bar, "Framerate", cl_max_fps, "min=0 max=250 step=5 group=Video");
 
 	Ui_CvarDecimal(bar, "Volume", s_volume, "min=0.0 max=1.0 step=0.1 group=Audio");
 	Ui_CvarDecimal(bar, "Music volume", s_music_volume, "min=0.0 max=1.0 step=0.1 group=Audio");
 
 	TwAddSeparator(bar, NULL, NULL);
 
-	TwAddButton(bar, "Apply", Ui_Command, "r_restart; s_restart", NULL);
+	TwAddButton(bar, "Apply", Ui_Command, "r_restart; s_restart;", NULL);
 
 	TwDefine("System size='400 420' alpha=200 iconifiable=false valueswidth=100 visible=false");
 

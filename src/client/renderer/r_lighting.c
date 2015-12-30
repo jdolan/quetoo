@@ -117,6 +117,7 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 	VectorMA(l->origin, LIGHTING_AMBIENT_DIST, vec3_up, il.light.origin);
 	VectorScale(r_bsp_light_state.ambient, 1.0 / max, il.light.color);
 
+	il.type = ILLUM_AMBIENT;
 	il.light.radius = LIGHTING_AMBIENT_RADIUS * r_lighting->value;
 	il.diffuse = il.light.radius - LIGHTING_AMBIENT_DIST;
 
@@ -158,6 +159,7 @@ static void R_SunIllumination(const r_lighting_t *l) {
 	VectorMA(l->origin, LIGHTING_SUN_DIST, r_bsp_light_state.sun.dir, il.light.origin);
 	VectorScale(r_bsp_light_state.sun.color, exposure, il.light.color);
 
+	il.type = ILLUM_SUN;
 	il.light.radius = LIGHTING_SUN_RADIUS * r_lighting->value;
 	il.diffuse = il.light.radius - LIGHTING_SUN_DIST;
 
@@ -168,7 +170,7 @@ static void R_SunIllumination(const r_lighting_t *l) {
  * @brief Adds an illumination for the positional light source, if the given
  * point is within range and not occluded.
  */
-static _Bool R_PositionalIllumination(const r_lighting_t *l, const r_light_t *light) {
+static _Bool R_PositionalIllumination(const r_lighting_t *l, r_illumination_type_t type, const r_light_t *light) {
 	r_illumination_t il;
 
 	const vec3_t *p = r_lighting_points;
@@ -197,6 +199,7 @@ static _Bool R_PositionalIllumination(const r_lighting_t *l, const r_light_t *li
 	if (diffuse == 0.0)
 		return false;
 
+	il.type = type;
 	il.light = *light;
 	il.diffuse = diffuse / lengthof(r_lighting_points);
 
@@ -224,7 +227,7 @@ static void R_StaticIlluminations(r_lighting_t *l) {
 			}
 		}
 
-		R_PositionalIllumination(l, (const r_light_t *) &(bl->light));
+		R_PositionalIllumination(l, ILLUM_STATIC, (const r_light_t *) &(bl->light));
 	}
 }
 
@@ -237,7 +240,7 @@ static void R_DynamicIlluminations(r_lighting_t *l) {
 	const r_light_t *dl = r_view.lights;
 
 	for (uint16_t i = 0; i < r_view.num_lights; i++, dl++) {
-		if (R_PositionalIllumination(l, dl)) {
+		if (R_PositionalIllumination(l, ILLUM_DYNAMIC, dl)) {
 			light_mask |= (uint64_t) (1 << i);
 		}
 	}
@@ -396,6 +399,20 @@ static void R_UpdateShadows(r_lighting_t *l) {
 
 		if (il->diffuse == 0.0)
 			break;
+
+		switch (il->type) {
+		case ILLUM_AMBIENT:
+			break;
+		case ILLUM_SUN:
+			if (r_shadows->integer < 2)
+				continue;
+			break;
+		case ILLUM_STATIC:
+		case ILLUM_DYNAMIC:
+			if (r_shadows->integer < 3)
+				continue;
+			break;
+		}
 
 		R_CastShadows(l, il);
 	}

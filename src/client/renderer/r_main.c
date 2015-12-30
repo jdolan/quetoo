@@ -375,13 +375,13 @@ void R_Restart_f(void) {
 	R_Init();
 
 	cl_state_t state = cls.state;
-	cls.state = CL_LOADING;
+
+	if (cls.state == CL_ACTIVE)
+		cls.state = CL_LOADING;
 
 	R_LoadMedia();
 
-	if (cls.state == CL_LOADING) {
-		cls.state = state;
-	}
+	cls.state = state;
 }
 
 /*
@@ -464,7 +464,7 @@ static void R_InitLocal(void) {
 			"Controls texture saturation");
 	r_screenshot_quality = Cvar_Get("r_screenshot_quality", "95", CVAR_ARCHIVE,
 			"Screenshot image quality (JPEG compression 0 - 100)");
-	r_shadows = Cvar_Get("r_shadows", "1", CVAR_ARCHIVE,
+	r_shadows = Cvar_Get("r_shadows", "7", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls the rendering of mesh model shadows");
 	r_shell = Cvar_Get("r_shell", "1", CVAR_ARCHIVE,
 			"Controls mesh shell effect (e.g. Quad Damage shell)");

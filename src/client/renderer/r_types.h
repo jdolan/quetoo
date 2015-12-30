@@ -584,10 +584,18 @@ typedef struct {
 	uint32_t sustain;
 } r_sustained_light_t;
 
+typedef enum {
+	ILLUM_AMBIENT = 0x1,
+	ILLUM_SUN     = 0x2,
+	ILLUM_STATIC  = 0x4,
+	ILLUM_DYNAMIC = 0x8
+} r_illumination_type_t;
+
 /*
  * @brief Describes a light source contributions to point lighting.
  */
 typedef struct {
+	r_illumination_type_t type;
 	r_light_t light;
 	vec_t diffuse;
 } r_illumination_t;
