@@ -201,9 +201,14 @@ static void S_Restart_f(void) {
 
 	S_Init();
 
-	cls.state = CL_LOADING;
+	cl_state_t state = cls.state;
+
+	if (cls.state == CL_ACTIVE)
+		cls.state = CL_LOADING;
 
 	S_LoadMedia();
+
+	cls.state = state;
 }
 
 /*
