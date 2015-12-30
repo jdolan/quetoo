@@ -1220,7 +1220,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 		cl->locals.jump_time = g_level.time;
 	}
 	// check for landing
-	else if ((pm.s.flags & PMF_TIME_LAND) && cl->locals.land_time < g_level.time - 1000) {
+	else if ((pm.s.flags & PMF_TIME_LAND) && cl->locals.land_time < g_level.time - 800) {
 
 		g_entity_event_t event = EV_CLIENT_LAND;
 

@@ -560,13 +560,13 @@ static void Pm_CategorizePosition(void) {
 			// hard landings disable jumping briefly
 			if (pml.previous_velocity[2] <= PM_SPEED_LAND) {
 				pm->s.flags |= PMF_TIME_LAND;
-				pm->s.time = 32;
+				pm->s.time = 1;
 
 				if (pml.previous_velocity[2] <= PM_SPEED_FALL) {
-					pm->s.time = 512;
+					pm->s.time = 400;
 
 					if (pml.previous_velocity[2] <= PM_SPEED_FALL_FAR) {
-						pm->s.time = 1024;
+						pm->s.time = 800;
 					}
 				}
 			} else { // soft landings with upward momentum grant trick jumps
