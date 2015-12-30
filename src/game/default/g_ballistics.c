@@ -22,9 +22,7 @@
 #include "g_local.h"
 
 /*
- * @brief Adds a fraction of the player's velocity to any projectiles they
- * emit. This is more realistic, but very strange feeling in Quake, so the
- * scale is generally kept quite low.
+ * @brief Adds a fraction of the player's velocity to the given projectile.
  */
 static void G_PlayerProjectile(g_entity_t *ent, const vec_t scale) {
 
@@ -197,7 +195,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	VectorAngles(dir, projectile->s.angles);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
-	G_PlayerProjectile(projectile, 0.25);
+//	G_PlayerProjectile(projectile, 0.25);
 
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
@@ -567,7 +565,7 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 	VectorScale(dir, speed, projectile->locals.velocity);
 	VectorSet(projectile->locals.avelocity, 0.0, 0.0, 600.0);
 
-	G_PlayerProjectile(projectile, 0.125);
+//	G_PlayerProjectile(projectile, 0.125);
 
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
@@ -655,7 +653,7 @@ void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t 
 	VectorAngles(dir, projectile->s.angles);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
-	G_PlayerProjectile(projectile, 0.25);
+//	G_PlayerProjectile(projectile, 0.25);
 
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
@@ -1039,7 +1037,7 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 	VectorCopy(start, projectile->s.origin);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
-	G_PlayerProjectile(projectile, 0.33);
+//	G_PlayerProjectile(projectile, 0.33);
 
 	if (G_ImmediateWall(ent, projectile)) {
 		VectorCopy(ent->s.origin, projectile->s.origin);
