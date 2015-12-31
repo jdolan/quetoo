@@ -22,14 +22,25 @@ pre-install:
 	cp -r $(ARTIFACT)/* $(INSTALL)
 	find $(INSTALL) -name .turd -delete
 
-install: pre-install
+configure:
+	cd .. ; ./configure \
+		LDFLAGS='-Wl,-rpath=XORIGIN/../lib' \
+		--build=$(ARCH)-pc-linux \
+		--host=$(ARCH)-pc-linux \
+		--prefix=/ \
+		--with-master
+	
+compile: configure
+	make -C .. all
+
+install: pre-install compile
 	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 
 install-lib: install
 	./sobundler.sh -d $(LIBDIR) \
-		../src/main//quetoo \
-		../src/main/quetoo-dedicated \
-		../src/tools/quemap/quemap
+		$(BINDIR)/quetoo \
+		$(BINDIR)/quetoo-dedicated \
+		$(BINDIR)/quemap
 
 install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
@@ -46,5 +57,5 @@ dist-release:
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all pre-install install install-lib install-data release dist dist-release clean
+.PHONY: all pre-install configure compile install install-lib install-data release dist dist-release clean
 

@@ -32,7 +32,7 @@ shift $((OPTIND-1))
 test "${dir}" || dir=$(dirname "${1}")
 
 #
-# Returns 1 if the specified library should be skipped, 0 otherwise.
+# Returns 0 if the specified library should be skipped, 1 otherwise.
 #
 function skip_lib() {
 	
@@ -40,11 +40,11 @@ function skip_lib() {
 	
 	for skip in ${SKIP}; do
 		if [[ ${soname} = ${skip} ]]; then
-			return 1
+			return 0
 		fi
 	done
 
-	return 0
+	return 1
 }
 
 libs=$(ldd $@ | grep ' => ' | sed -rn 's:.* => ([^ ]+) .*:\1:p' | sort -u)
@@ -53,11 +53,12 @@ skipped=""
 
 for lib in ${libs}; do
 	if skip_lib "${lib}"; then
-		echo "Installing ${lib} in ${dir}.."
-		install "${lib}" "${dir}"
-	else
 		skipped="${skipped} ${lib}"
+		continue
 	fi
+	
+	echo "Installing ${lib} in ${dir}.."
+	install "${lib}" "${dir}"
 done
 
 echo
@@ -65,4 +66,11 @@ echo "The following libraries were skipped:"
 
 for skip in ${skipped}; do
 	echo " ${skip}"
+done
+
+echo
+
+for exe in $@; do
+	echo "Rewriting RPATH for ${exe}.."
+	chrpath -r '$ORIGIN/../lib' ${exe}
 done
