@@ -1,6 +1,6 @@
 # Makefile for Quetoo.app, requires http://macdylibbundler.sourceforge.net/
 
-ARCH = $(shell uname -m)
+ARCH = x86_64
 DATA = ../../quetoo-data
 TARGET = target
 INSTALL = $(TARGET)/Quetoo
@@ -18,13 +18,19 @@ HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
 all: install-lib
 
+configure:
+	cd .. ; ./configure --prefix=/
+	
+compile: configure
+	make -C .. all
+
 pre-install:
 	install -d $(INSTALL)
 	cp -R Quetoo/* $(INSTALL)
 	find $(INSTALL) -name .turd -delete
 	./set-icon.sh icon.icns $(INSTALL)
 
-install: pre-install
+install: compile pre-install
 	ln -f -s Contents/MacOS $(QUETOO)/bin
 	ln -f -s Contents/MacOS/lib $(QUETOO)/lib
 	ln -f -s Contents/Resources $(QUETOO)/share
@@ -56,5 +62,5 @@ dist-release:
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all pre-install install install-lib install-data release dist dist-release clean
+.PHONY: all configure compile pre-install install install-lib install-data release dist dist-release clean
 
