@@ -33,7 +33,7 @@ void Cl_Disconnect(void) {
 /*
  * @brief
  */
-void Cl_Frame(const uint32_t msec) {
+void Cl_Frame(const uint32_t msec __attribute__((unused))) {
 
 }
 
