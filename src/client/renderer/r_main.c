@@ -255,6 +255,10 @@ static void R_Clear(void) {
 	if (cls.state != CL_ACTIVE)
 		bits |= GL_COLOR_BUFFER_BIT;
 
+	// of if the client is no-clipping around the world
+	if (cl.frame.ps.pm_state.type == PM_SPECTATOR)
+		bits |= GL_COLOR_BUFFER_BIT;
+
 	glClear(bits);
 }
 
