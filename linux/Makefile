@@ -1,6 +1,7 @@
 # Makefile for Quetoo Linux distributable
 
-ARCH = $(shell uname -m)
+HOST = x86_64-pc-linux
+ARCH = x86_64
 DATA = ../../quetoo-data
 ARTIFACT = quetoo
 TARGET = target
@@ -17,23 +18,18 @@ HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
 all: install-lib
 
+configure:
+	cd .. ; ./configure LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --host=$(HOST) --prefix=/ --with-master
+	
+compile: configure
+	make -C .. all
+
 pre-install:
 	install -d $(INSTALL)
 	cp -r $(ARTIFACT)/* $(INSTALL)
 	find $(INSTALL) -name .turd -delete
 
-configure:
-	cd .. ; ./configure \
-		LDFLAGS='-Wl,-rpath=XORIGIN/../lib' \
-		--build=$(ARCH)-pc-linux \
-		--host=$(ARCH)-pc-linux \
-		--prefix=/ \
-		--with-master
-	
-compile: configure
-	make -C .. all
-
-install: pre-install compile
+install: compile pre-install
 	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 
 install-lib: install
@@ -57,5 +53,5 @@ dist-release:
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all pre-install configure compile install install-lib install-data release dist dist-release clean
+.PHONY: all configure compile pre-install install install-lib install-data release dist dist-release clean
 

@@ -1,7 +1,8 @@
 # Makefile for Quetoo Windows distributable.
+# export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:${PATH}
 
-HOST = i686-pc-mingw32
-ARCH = i686
+HOST = x86_64-w64-mingw32
+ARCH = x86_64
 DATA = ../../quetoo-data
 TARGET = target
 INSTALL = $(TARGET)/Quetoo
@@ -17,12 +18,18 @@ HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
 all: install-lib
 
+configure:
+	cd .. ; ./configure --host=$(HOST) --prefix=/
+	
+compile: configure
+	make -C .. all
+
 pre-install:
 	install -d $(INSTALL)
 	cp -r Quetoo-$(ARCH)/* $(INSTALL)
 	find $(INSTALL) -name .turd -delete
 
-install: pre-install
+install: compile pre-install
 	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 
 install-lib: install
@@ -47,5 +54,5 @@ dist-release:
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all pre-install install install-lib install-data release dist dist-release clean
+.PHONY: all configure compile pre-install install install-lib install-data release dist dist-release clean
 
