@@ -21,6 +21,11 @@
 
 #include "net_message.h"
 
+typedef union {
+	int32_t i;
+	vec_t v;
+} net_vec_t;
+
 /*
  * @brief
  */
@@ -86,7 +91,12 @@ void Net_WriteString(mem_buf_t *msg, const char *s) {
  * @brief
  */
 void Net_WriteVector(mem_buf_t *msg, const vec_t v) {
-	Net_WriteLong(msg, *(int32_t *) &v);
+
+	const net_vec_t vec = {
+		.v = v
+	};
+
+	Net_WriteLong(msg, vec.i);
 }
 
 /*
@@ -501,12 +511,10 @@ char *Net_ReadStringLine(mem_buf_t *msg) {
  */
 vec_t Net_ReadVector(mem_buf_t *msg) {
 
-	union {
-		int32_t i;
-		vec_t v;
-	} vec;
+	const net_vec_t vec = {
+		.i = Net_ReadLong(msg)
+	};
 
-	vec.i = Net_ReadLong(msg);
 	return vec.v;
 }
 
