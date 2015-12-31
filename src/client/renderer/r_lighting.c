@@ -137,7 +137,7 @@ static void R_SunIllumination(const r_lighting_t *l) {
 	if (!r_bsp_light_state.sun.diffuse)
 		return;
 
-	const vec3_t *p = r_lighting_points;
+	const vec3_t *p = (const vec3_t *) r_lighting_points;
 
 	vec_t exposure = 0.0;
 
@@ -173,7 +173,7 @@ static void R_SunIllumination(const r_lighting_t *l) {
 static _Bool R_PositionalIllumination(const r_lighting_t *l, r_illumination_type_t type, const r_light_t *light) {
 	r_illumination_t il;
 
-	const vec3_t *p = r_lighting_points;
+	const vec3_t *p = (const vec3_t *) r_lighting_points;
 
 	vec_t diffuse = 0.0;
 
@@ -317,7 +317,7 @@ static int32_t R_CompareShadow(const void *a, const void *b) {
  */
 static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 
-	const vec3_t *p = r_lighting_points;
+	const vec3_t *p = (const vec3_t *) r_lighting_points;
 
 	for (size_t j = 0; j < lengthof(r_lighting_points); j++) {
 		vec3_t dir, pos;
