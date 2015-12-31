@@ -29,6 +29,9 @@
 const vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
 const vec3_t PM_MAXS = { 16.0, 16.0, 32.0 };
 
+const vec3_t PM_DEAD_MINS = { -16.0, -16.0, -24.0 };
+const vec3_t PM_DEAD_MAXS = { 16.0, 16.0, 8.0 };
+
 const vec3_t PM_GIBLET_MINS = { -9.0, -9.0, -9.0 };
 const vec3_t PM_GIBLET_MAXS = { 9.0, 9.0, 9.0 };
 
@@ -637,18 +640,10 @@ static void Pm_CategorizePosition(void) {
  */
 static void Pm_CheckDuck(void) {
 
-	const vec_t height = pm->maxs[2] - pm->mins[2];
-
 	if (pm->s.type == PM_DEAD) {
-
-		if (pm->s.flags & PMF_GIBLET) {
-			VectorClear(pml.view_offset);
-		} else {
-			pm->maxs[2] = pm->mins[2] + height * 0.25;
-			pml.view_offset[2] = pm->mins[2] + height * 0.15;
-		}
-
+		pml.view_offset[2] = 0.0;
 	} else {
+
 		if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up < 0) {
 			pm->s.flags |= PMF_DUCKED;
 		} else {
@@ -657,6 +652,8 @@ static void Pm_CheckDuck(void) {
 				pm->s.flags |= PMF_DUCKED;
 			}
 		}
+
+		const vec_t height = pm->maxs[2] - pm->mins[2];
 
 		if (pm->s.flags & PMF_DUCKED) { // ducked, reduce height
 			vec_t target = pm->mins[2] + height * 0.5;
@@ -1181,10 +1178,17 @@ static void Pm_SpectatorMove() {
 static void Pm_Init(void) {
 
 	// set the default bounding box
-	if (pm->s.flags & PMF_GIBLET) {
-		VectorCopy(PM_GIBLET_MINS, pm->mins);
-		VectorCopy(PM_GIBLET_MAXS, pm->maxs);
-	} else {
+	if (pm->s.type == PM_DEAD) {
+
+		if (pm->s.flags & PMF_GIBLET) {
+			VectorCopy(PM_GIBLET_MINS, pm->mins);
+			VectorCopy(PM_GIBLET_MAXS, pm->maxs);
+		} else {
+			VectorScale(PM_DEAD_MINS, PM_SCALE, pm->mins);
+			VectorScale(PM_DEAD_MAXS, PM_SCALE, pm->maxs);
+		}
+	}
+	else {
 		VectorScale(PM_MINS, PM_SCALE, pm->mins);
 		VectorScale(PM_MAXS, PM_SCALE, pm->maxs);
 	}
