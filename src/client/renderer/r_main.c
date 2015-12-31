@@ -374,10 +374,11 @@ void R_Restart_f(void) {
 
 	R_Init();
 
-	cl_state_t state = cls.state;
+	const cl_state_t state = cls.state;
 
-	if (cls.state == CL_ACTIVE)
+	if (cls.state == CL_ACTIVE) {
 		cls.state = CL_LOADING;
+	}
 
 	R_LoadMedia();
 
@@ -555,6 +556,8 @@ void R_Init(void) {
 void R_Shutdown(void) {
 
 	Cmd_RemoveAll(CMD_RENDERER);
+
+	R_ShutdownMedia();
 
 	R_ShutdownPrograms();
 

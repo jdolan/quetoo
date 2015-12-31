@@ -201,10 +201,11 @@ static void S_Restart_f(void) {
 
 	S_Init();
 
-	cl_state_t state = cls.state;
+	const cl_state_t state = cls.state;
 
-	if (cls.state == CL_ACTIVE)
+	if (cls.state == CL_ACTIVE) {
 		cls.state = CL_LOADING;
+	}
 
 	S_LoadMedia();
 

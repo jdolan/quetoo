@@ -97,7 +97,7 @@ static r_image_t *Cl_LoadingBackground() {
 			Com_Warn("Invalid loading background: %s\n", path);
 			image = NULL;
 		} else {
-			Com_Debug("Loading background %s\n", path);
+			Com_Debug("Loading background %s (%s)\n", image->media.name, path);
 		}
 	}
 
@@ -124,6 +124,9 @@ void Cl_LoadingProgress(uint16_t percent, const char *status) {
 	Cl_UpdateScreen();
 }
 
+/*
+ * @brief
+ */
 void Cl_DrawDownload(void) {
 	r_pixel_t cw, ch;
 
@@ -144,7 +147,7 @@ void Cl_DrawDownload(void) {
 	R_BindFont(NULL, NULL, NULL);
 }
 
-/**
+/*
  * @brief Draws the loading screen.
  */
 void Cl_DrawLoading(void) {
