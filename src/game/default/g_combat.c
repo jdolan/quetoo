@@ -252,13 +252,16 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 		VectorScale(ndir, scale * knockback / mass, knockback_vel);
 		VectorAdd(target->locals.velocity, knockback_vel, target->locals.velocity);
 
-		if (client) { // make sure the client can leave the ground
-			client->ps.pm_state.flags |= PMF_PUSHED;
-		} else { // apply angular velocity (rotate)
+		// apply angular velocity (rotate)
+		if (client == NULL || (client->ps.pm_state.flags & PMF_GIBLET)) {
 			VectorSet(knockback_avel, knockback, knockback, knockback);
 			const vec_t ascale = 100.0 / mass;
 
 			VectorMA(target->locals.avelocity, ascale, knockback_avel, target->locals.avelocity);
+		}
+
+		if (client) { // make sure the client can leave the ground
+			client->ps.pm_state.flags |= PMF_PUSHED;
 		}
 	}
 
@@ -273,6 +276,8 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 		damage_armor = G_CheckArmor(target, pos, normal, damage, dflags);
 		damage_health = damage - damage_armor;
 	}
+
+	const _Bool was_dead = target->locals.dead;
 
 	// do the damage
 	if (damage_health && (target->locals.health || target->locals.dead)) {
@@ -299,6 +304,10 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 		}
 	}
 
+	// if the target was already dead, we're done
+	if (was_dead)
+		return;
+
 	// invoke the pain callback
 	if ((damage_health || knockback) && target->locals.Pain)
 		target->locals.Pain(target, attacker, damage_health, knockback);
@@ -317,7 +326,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 		G_ClientDamageKick(target, dir, kick);
 
 		if (attacker->client && attacker->client != client) {
-			attacker->client->locals.damage_inflicted += damage_health;
+			attacker->client->locals.damage_inflicted += damage_health + damage_armor;
 		}
 	}
 }

@@ -134,6 +134,7 @@ extern const vec3_t PM_MAXS;
 #define PMF_TIME_WATER_JUMP		0x400 // time before control
 #define PMF_TIME_LAND			0x800 // time before jump eligible
 #define PMF_TIME_TELEPORT		0x1000 // time frozen in place
+#define PMF_GIBLET				0x2000 // player is a giblet
 
 /*
  * @brief The mask of pm_state_t.flags affecting pm_state_t.time.

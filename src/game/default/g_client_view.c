@@ -82,43 +82,44 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	if (old_water_level && !water_level)
 		gi.Sound(ent, g_media.sounds.water_out, ATTEN_NORM);
 
-	// head just coming out of water, play a gasp if we were down for a while
-	if (old_water_level == 3 && water_level != 3
-			&& (client->locals.drown_time - g_level.time) < 8000) {
-		vec3_t org;
+	if (ent->locals.dead == false) { // if we're alive, we can drown
 
-		VectorAdd(client->ps.pm_state.origin, client->ps.pm_state.view_offset, org);
-		VectorScale(org, 0.125, org);
+		// head just coming out of water, play a gasp if we were down for a while
+		if (old_water_level == 3 && water_level != 3 && (client->locals.drown_time - g_level.time) < 8000) {
+			vec3_t org;
 
-		gi.PositionedSound(org, ent, gi.SoundIndex("*gasp_1"), ATTEN_NORM);
-	}
+			VectorAdd(client->ps.pm_state.origin, client->ps.pm_state.view_offset, org);
+			VectorScale(org, 0.125, org);
 
-	// check for drowning
-	if (water_level != 3) { // take some air, push out drown time
-		client->locals.drown_time = g_level.time + 12000;
-		ent->locals.damage = 0;
-	} else { // we're under water
-		if (client->locals.drown_time < g_level.time && ent->locals.health > 0) {
-			client->locals.drown_time = g_level.time + 1000;
+			gi.PositionedSound(org, ent, gi.SoundIndex("*gasp_1"), ATTEN_NORM);
+		}
 
-			// take more damage the longer under water
-			ent->locals.damage += 2;
+		// check for drowning
+		if (water_level != 3) { // take some air, push out drown time
+			client->locals.drown_time = g_level.time + 12000;
+			ent->locals.damage = 0;
+		} else { // we're under water
+			if (client->locals.drown_time < g_level.time && ent->locals.health > 0) {
+				client->locals.drown_time = g_level.time + 1000;
 
-			if (ent->locals.damage > 15)
-				ent->locals.damage = 15;
+				// take more damage the longer under water
+				ent->locals.damage += 2;
 
-			// play a gurp sound instead of a normal pain sound
-			if (ent->locals.health <= ent->locals.damage)
-				ent->s.event = EV_CLIENT_DROWN;
-			else
-				ent->s.event = EV_CLIENT_GURP;
+				if (ent->locals.damage > 15)
+					ent->locals.damage = 15;
 
-			// suppress normal pain sound
-			client->locals.pain_time = g_level.time;
+				// play a gurp sound instead of a normal pain sound
+				if (ent->locals.health <= ent->locals.damage)
+					ent->s.event = EV_CLIENT_DROWN;
+				else
+					ent->s.event = EV_CLIENT_GURP;
 
-			// and apply the damage
-			G_Damage(ent, NULL, NULL, NULL, NULL, NULL, ent->locals.damage, 0, DMG_NO_ARMOR,
-					MOD_WATER);
+				// suppress normal pain sound
+				client->locals.pain_time = g_level.time;
+
+				// and apply the damage
+				G_Damage(ent, NULL, NULL, NULL, NULL, NULL, ent->locals.damage, 0, DMG_NO_ARMOR, MOD_WATER);
+			}
 		}
 	}
 
@@ -148,6 +149,9 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
  * values.
  */
 static void G_ClientWorldAngles(g_entity_t *ent) {
+
+	if (ent->locals.dead) // just lay there like a lump
+		return;
 
 	ent->s.angles[PITCH] = ent->client->locals.angles[PITCH] / 3.0;
 	ent->s.angles[YAW] = ent->client->locals.angles[YAW];
@@ -278,8 +282,25 @@ static void G_ClientKickAngles(g_entity_t *ent) {
  */
 static void G_ClientAnimation(g_entity_t *ent) {
 
-	if (ent->sv_flags & SVF_NO_CLIENT)
+	if (ent->s.model1 != MODEL_CLIENT)
 		return;
+
+	// corpses animate to their final resting place
+
+	if (ent->solid == SOLID_DEAD) {
+		if (g_level.time >= ent->client->locals.respawn_time) {
+			switch (ent->s.animation1) {
+				case ANIM_BOTH_DEATH1:
+				case ANIM_BOTH_DEATH2:
+				case ANIM_BOTH_DEATH3:
+					G_SetAnimation(ent, ent->s.animation1 + 1, false);
+					break;
+				default:
+					break;
+			}
+		}
+		return;
+	}
 
 	// no-clippers do not animate
 

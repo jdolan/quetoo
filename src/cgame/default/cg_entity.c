@@ -26,6 +26,9 @@
  */
 _Bool Cg_IsSelf(const cl_entity_t *ent) {
 
+	if (ent->current.number == cgi.client->client_num + 1)
+		return true;
+
 	if (ent->current.model1 == MODEL_CLIENT || (ent->current.effects & EF_BEAM)) {
 
 		if (ent->current.client == cgi.client->client_num)
@@ -56,12 +59,16 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	e->effects |= EF_CLIENT;
 
 	// don't draw ourselves unless third person is set
-	if (Cg_IsSelf(ent) && !(e->effects & EF_CORPSE) && !cg_third_person->value) {
-		e->effects |= EF_NO_DRAW;
+	if (Cg_IsSelf(ent) && !cg_third_person->value) {
 
-		// keep our shadow underneath us using the predicted origin
-		e->origin[0] = cgi.view->origin[0];
-		e->origin[1] = cgi.view->origin[1];
+		// corpses pass the "self" test (of course)
+		if (!(e->effects & EF_CORPSE)) {
+			e->effects |= EF_NO_DRAW;
+
+			// keep our shadow underneath us using the predicted origin
+			e->origin[0] = cgi.view->origin[0];
+			e->origin[1] = cgi.view->origin[1];
+		}
 	}
 
 	r_entity_t head, upper, lower;
@@ -226,6 +233,10 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 
 		return;
 	}
+
+	// don't draw our own giblet
+	if (Cg_IsSelf(ent) && !cg_third_person->value)
+		e.effects |= EF_NO_DRAW;
 
 	// assign the model
 	e.model = cgi.client->model_precache[ent->current.model1];
