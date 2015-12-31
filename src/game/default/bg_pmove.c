@@ -29,6 +29,9 @@
 const vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
 const vec3_t PM_MAXS = { 16.0, 16.0, 32.0 };
 
+const vec3_t PM_GIBLET_MINS = { -9.0, -9.0, -9.0 };
+const vec3_t PM_GIBLET_MAXS = { 9.0, 9.0, 9.0 };
+
 static pm_move_t *pm;
 
 /*
@@ -637,43 +640,44 @@ static void Pm_CheckDuck(void) {
 	const vec_t height = pm->maxs[2] - pm->mins[2];
 
 	if (pm->s.type == PM_DEAD) {
-		pm->s.flags |= PMF_DUCKED;
+
+		if (pm->s.flags & PMF_GIBLET) {
+			VectorClear(pml.view_offset);
+		} else {
+			pm->maxs[2] = pm->mins[2] + height * 0.25;
+			pml.view_offset[2] = pm->mins[2] + height * 0.15;
+		}
+
 	} else {
-		// if on the ground and requesting to crouch, duck
 		if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up < 0) {
 			pm->s.flags |= PMF_DUCKED;
-		} else { // stand up if possible
+		} else {
 			cm_trace_t trace = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
 			if (trace.all_solid) {
 				pm->s.flags |= PMF_DUCKED;
 			}
 		}
-	}
 
-	if (pm->s.flags & PMF_DUCKED) { // ducked, reduce height
-		vec_t target = pm->mins[2];
+		if (pm->s.flags & PMF_DUCKED) { // ducked, reduce height
+			vec_t target = pm->mins[2] + height * 0.5;
 
-		if (pm->s.type == PM_DEAD)
-			target += height * 0.15;
-		else
-			target += height * 0.5;
+			if (pml.view_offset[2] > target) // go down
+				pml.view_offset[2] -= pml.time * PM_SPEED_DUCK_STAND;
 
-		if (pml.view_offset[2] > target) // go down
-			pml.view_offset[2] -= pml.time * PM_SPEED_DUCK_STAND;
+			if (pml.view_offset[2] < target)
+				pml.view_offset[2] = target;
 
-		if (pml.view_offset[2] < target)
-			pml.view_offset[2] = target;
+			// change the bounding box to reflect ducking
+			pm->maxs[2] = pm->maxs[2] + pm->mins[2] * 0.5;
+		} else {
+			const vec_t target = pm->mins[2] + height * 0.9;
 
-		// change the bounding box to reflect ducking and jumping
-		pm->maxs[2] = pm->maxs[2] + pm->mins[2] * 0.5;
-	} else {
-		const vec_t target = pm->mins[2] + height * 0.9;
+			if (pml.view_offset[2] < target) // go up
+				pml.view_offset[2] += pml.time * PM_SPEED_DUCK_STAND;
 
-		if (pml.view_offset[2] < target) // go up
-			pml.view_offset[2] += pml.time * PM_SPEED_DUCK_STAND;
-
-		if (pml.view_offset[2] > target)
-			pml.view_offset[2] = target;
+			if (pml.view_offset[2] > target)
+				pml.view_offset[2] = target;
+		}
 	}
 
 	PackVector(pml.view_offset, pm->s.view_offset);
@@ -1176,8 +1180,14 @@ static void Pm_SpectatorMove() {
  */
 static void Pm_Init(void) {
 
-	VectorScale(PM_MINS, PM_SCALE, pm->mins);
-	VectorScale(PM_MAXS, PM_SCALE, pm->maxs);
+	// set the default bounding box
+	if (pm->s.flags & PMF_GIBLET) {
+		VectorCopy(PM_GIBLET_MINS, pm->mins);
+		VectorCopy(PM_GIBLET_MAXS, pm->maxs);
+	} else {
+		VectorScale(PM_MINS, PM_SCALE, pm->mins);
+		VectorScale(PM_MAXS, PM_SCALE, pm->maxs);
+	}
 
 	VectorClear(pm->angles);
 

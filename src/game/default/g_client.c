@@ -234,8 +234,7 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
 }
 
 /*
- * @brief Set EF_CORPSE once the player has respawned. Sink into the floor
- * after a few seconds, providing a window of time for us to be made into
+ * @brief Sink into the floor after a few seconds, providing a window of time for us to be made into
  * giblets or knocked around. This is called by corpses and giblets alike.
  */
 static void G_ClientCorpse_Think(g_entity_t *self) {
@@ -243,27 +242,6 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 	const uint32_t age = g_level.time - self->locals.timestamp;
 
 	if (self->s.model1 == MODEL_CLIENT) {
-		g_entity_t *client = &g_game.entities[self->s.client + 1];
-
-		// if the client has respawned, become a true corpse
-		if (client->in_use && !client->locals.dead) {
-			self->s.effects |= EF_CORPSE;
-		}
-
-		// don't re-animate when coming into view for new clients
-		if (age > 1800) {
-			switch (self->s.animation1) {
-				case ANIM_BOTH_DEATH1:
-				case ANIM_BOTH_DEATH2:
-				case ANIM_BOTH_DEATH3:
-					self->s.animation1++;
-					self->s.animation2++;
-					break;
-				default:
-					break;
-			}
-		}
-
 		if (age > 6000) {
 			const int16_t dmg = self->locals.health;
 
@@ -346,7 +324,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribut
 
 		ent->locals.clip_mask = MASK_CLIP_CORPSE;
 		ent->locals.dead = true;
-		ent->locals.mass = (i % NUM_GIB_MODELS) * 20.0;
+		ent->locals.mass = ((i % NUM_GIB_MODELS) + 1) * 20.0;
 		ent->locals.move_type = MOVE_TYPE_BOUNCE;
 		ent->locals.next_think = g_level.time + gi.frame_millis;
 		ent->locals.take_damage = true;
@@ -361,43 +339,62 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribut
 	gi.WritePosition(self->s.origin);
 	gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
 
-	if (!self->client) // this can be called immediately by the client
+	if (self->client) {
+		VectorCopy(mins[2], self->mins);
+		VectorCopy(maxs[2], self->maxs);
+
+		const int16_t h = Clamp(-5.0 * self->locals.health, 100, 500);
+
+		self->locals.velocity[0] += h * Randomc();
+		self->locals.velocity[1] += h * Randomc();
+		self->locals.velocity[2] += 100.0 + (h * Randomf());
+
+		self->locals.Die = NULL;
+
+		self->client->ps.pm_state.flags |= PMF_GIBLET;
+
+		self->s.model1 = g_media.models.gibs[2];
+
+		self->locals.mass = 20.0;
+
+		gi.LinkEntity(self);
+	} else {
 		G_FreeEntity(self);
+	}
 }
 
-#define CLIENT_CORPSE_HEALTH 80
-
 /*
- * @brief Spawns a corpse for the specified client. The corpse will eventually
- * sink into the floor and disappear if not over-killed.
- *
- * TODO: This is incorrect. The client should initiate the animations and
- * remain SOLID_DEAD until the player respawns. At that point, the corpse
- * should take over.
+ * @brief Spawns a corpse for the specified client. The corpse will eventually sink into the floor
+ * and disappear if not over-killed.
  */
 static void G_ClientCorpse(g_entity_t *self) {
 
+	if (self->sv_flags & SVF_NO_CLIENT)
+		return;
+
+	if (self->locals.dead == false)
+		return;
+
+	if (self->s.model1 == 0)
+		return;
+
 	g_entity_t *ent = G_AllocEntity(__func__);
-
-	VectorScale(PM_MINS, PM_SCALE, ent->mins);
-	VectorScale(PM_MAXS, PM_SCALE, ent->maxs);
-
-	ent->maxs[2] = 0.0; // corpses are laying down
 
 	ent->solid = SOLID_DEAD;
 
 	VectorCopy(self->s.origin, ent->s.origin);
+	VectorCopy(self->s.angles, ent->s.angles);
+
+	VectorCopy(self->mins, ent->mins);
+	VectorCopy(self->maxs, ent->maxs);
 
 	ent->s.client = self->s.client;
 	ent->s.model1 = self->s.model1;
 
-	const vec_t r = Randomf();
-	if (r < 0.33)
-		G_SetAnimation(ent, ANIM_BOTH_DEATH1, true);
-	else if (r < 0.66)
-		G_SetAnimation(ent, ANIM_BOTH_DEATH2, true);
-	else
-		G_SetAnimation(ent, ANIM_BOTH_DEATH3, true);
+	ent->s.animation1 = self->s.animation1;
+	ent->s.animation2 = self->s.animation2;
+
+	ent->s.effects = EF_CORPSE;
 
 	VectorCopy(self->locals.velocity, ent->locals.velocity);
 
@@ -406,13 +403,15 @@ static void G_ClientCorpse(g_entity_t *self) {
 	ent->locals.mass = self->locals.mass;
 	ent->locals.move_type = MOVE_TYPE_BOUNCE;
 	ent->locals.take_damage = true;
-	ent->locals.health = CLIENT_CORPSE_HEALTH;
-	ent->locals.Die = G_ClientCorpse_Die;
+	ent->locals.health = self->locals.health;
+	ent->locals.Die = ent->locals.health > 0 ? G_ClientCorpse_Die : NULL;
 	ent->locals.Think = G_ClientCorpse_Think;
 	ent->locals.next_think = g_level.time + gi.frame_millis;
 
 	gi.LinkEntity(ent);
 }
+
+#define CLIENT_CORPSE_HEALTH 80
 
 /*
  * @brief A client's health is less than or equal to zero. Render death effects, drop
@@ -423,45 +422,50 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 	G_ClientObituary(self, attacker, mod);
 
-	if (g_level.gameplay == GAME_DEATHMATCH && !g_level.warmup) { // drop weapon
-
-		if (mod != MOD_TRIGGER_HURT) // but not if killed in the void
+	if (g_level.warmup == false) {
+		if (g_level.gameplay == GAME_DEATHMATCH && mod != MOD_TRIGGER_HURT) {
 			G_TossWeapon(self);
+			G_TossQuadDamage(self);
+		}
+
+		if (g_level.ctf) {
+			G_TossFlag(self);
+		}
 	}
 
-	if (g_level.gameplay == GAME_DEATHMATCH && !g_level.warmup) // drop quad
-		G_TossQuadDamage(self);
-
-	if (g_level.ctf && !g_level.warmup) // drop flag in ctf
-		G_TossFlag(self);
-
-	if (self->locals.health <= -CLIENT_CORPSE_HEALTH) // gib immediately
+	if (self->locals.health <= -CLIENT_CORPSE_HEALTH) {
 		G_ClientCorpse_Die(self, attacker, mod);
-	else
-		G_ClientCorpse(self);
+	} else {
+		gi.Sound(self, gi.SoundIndex("*death_1"), ATTEN_NORM);
 
-	gi.Sound(self, gi.SoundIndex("*death_1"), ATTEN_NORM);
+		const vec_t r = Randomf();
+		if (r < 0.33)
+			G_SetAnimation(self, ANIM_BOTH_DEATH1, true);
+		else if (r < 0.66)
+			G_SetAnimation(self, ANIM_BOTH_DEATH2, true);
+		else
+			G_SetAnimation(self, ANIM_BOTH_DEATH3, true);
 
-	self->client->locals.respawn_time = g_level.time + 1000;
-	self->client->ps.pm_state.type = PM_DEAD;
+		self->maxs[2] = 0.0; // corpses are laying down
 
-	self->client->locals.show_scores = true; // show scores
+		self->locals.health = CLIENT_CORPSE_HEALTH;
+		self->locals.Die = G_ClientCorpse_Die;
+	}
 
-	self->solid = SOLID_NOT;
-	self->sv_flags |= SVF_NO_CLIENT;
-
-	self->class_name = "dead";
+	self->solid = SOLID_DEAD;
 
 	self->s.event = EV_NONE;
 	self->s.effects = EF_NONE;
 	self->s.trail = TRAIL_NONE;
-	self->s.model1 = 0;
 	self->s.model2 = 0;
 	self->s.model3 = 0;
 	self->s.model4 = 0;
 	self->s.sound = 0;
 
-	self->locals.take_damage = false;
+	self->locals.take_damage = true;
+
+	self->client->locals.respawn_time = g_level.time + 1800; // respawn after death animation finishes
+	self->client->locals.show_scores = true;
 
 	gi.LinkEntity(self);
 }
@@ -753,6 +757,9 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	vec3_t cmd_angles, delta_angles;
 
 	gi.UnlinkEntity(ent);
+
+	// leave a corpse in our place if applicable
+	G_ClientCorpse(ent);
 
 	// retain the persistent structure
 	g_client_persistent_t persistent = ent->client->locals.persistent;
@@ -1137,12 +1144,13 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	UnpackAngles(cmd->angles, cl->locals.cmd_angles);
 
 	// set the move type
-	if (ent->locals.move_type == MOVE_TYPE_NO_CLIP)
+	if (ent->locals.move_type == MOVE_TYPE_NO_CLIP) {
 		cl->ps.pm_state.type = PM_SPECTATOR;
-	else if (ent->locals.dead)
+	} else if (ent->locals.dead) {
 		cl->ps.pm_state.type = PM_DEAD;
-	else
+	} else {
 		cl->ps.pm_state.type = PM_NORMAL;
+	}
 
 	// copy the current gravity in
 	cl->ps.pm_state.gravity = g_level.gravity;
@@ -1184,87 +1192,89 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	// update the horizontal speed scalar based on new velocity
 	VectorCopy(ent->locals.velocity, velocity);
 	velocity[2] = 0.0;
-
 	cl->locals.speed = VectorNormalize(velocity);
 
-	// check for jump
-	if ((pm.s.flags & PMF_JUMPED) && cl->locals.jump_time < g_level.time - 100) {
-		vec3_t angles, forward, point;
-		cm_trace_t tr;
+	// blend animations for live players
+	if (ent->locals.dead == false) {
 
-		VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
-		AngleVectors(angles, forward, NULL, NULL);
+		if (pm.s.flags & PMF_JUMPED) {
+			if (g_level.time - 100 > cl->locals.jump_time) {
+				vec3_t angles, forward, point;
+				cm_trace_t tr;
 
-		VectorMA(ent->s.origin, cl->locals.speed * 0.4, velocity, point);
+				VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
+				AngleVectors(angles, forward, NULL, NULL);
 
-		// trace towards our jump destination to see if we have room to backflip
-		tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, MASK_CLIP_PLAYER);
+				VectorMA(ent->s.origin, cl->locals.speed * 0.4, velocity, point);
 
-		if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0)
-			G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
-		else
-			G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
+				// trace towards our jump destination to see if we have room to backflip
+				tr = gi.Trace(ent->s.origin, point, ent->mins, ent->maxs, ent, MASK_CLIP_PLAYER);
 
-		if (pm.water_level < 3) {
-			ent->s.event = EV_CLIENT_JUMP;
+				if (DotProduct(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0)
+					G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
+				else
+					G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
+
+				if (pm.water_level < 3) {
+					ent->s.event = EV_CLIENT_JUMP;
+				}
+
+				cl->locals.jump_time = g_level.time;
+			}
+		} else if (pm.s.flags & PMF_TIME_WATER_JUMP) {
+			if (g_level.time - 2000 > cl->locals.jump_time) {
+
+				G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
+
+				ent->s.event = EV_CLIENT_JUMP;
+				cl->locals.jump_time = g_level.time;
+			}
+		} else if (pm.s.flags & PMF_TIME_LAND) {
+			if (g_level.time - 800 > cl->locals.land_time) {
+				g_entity_event_t event = EV_CLIENT_LAND;
+
+				if (old_velocity[2] <= PM_SPEED_FALL) { // player will take damage
+					int16_t damage = ((int16_t) -((old_velocity[2] - PM_SPEED_FALL) * 0.05));
+
+					damage >>= pm.water_level; // water breaks the fall
+
+					if (damage < 1)
+						damage = 1;
+
+					if (old_velocity[2] <= PM_SPEED_FALL_FAR)
+						event = EV_CLIENT_FALL_FAR;
+					else
+						event = EV_CLIENT_FALL;
+
+					cl->locals.pain_time = g_level.time; // suppress pain sound
+
+					G_Damage(ent, NULL, NULL, vec3_up, NULL, NULL, damage, 0, DMG_NO_ARMOR, MOD_FALLING);
+				}
+
+				if (G_IsAnimation(ent, ANIM_LEGS_JUMP2))
+					G_SetAnimation(ent, ANIM_LEGS_LAND2, true);
+				else
+					G_SetAnimation(ent, ANIM_LEGS_LAND1, true);
+
+				ent->s.event = event;
+				cl->locals.land_time = g_level.time;
+			}
+		} else if (pm.s.flags & PMF_ON_LADDER) {
+			if (g_level.time - 400 > cl->locals.jump_time) {
+				if (fabs(ent->locals.velocity[2]) > 20.0) {
+
+					G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
+
+					ent->s.event = EV_CLIENT_JUMP;
+					cl->locals.jump_time = g_level.time;
+				}
+			}
 		}
 
-		cl->locals.jump_time = g_level.time;
-	}
-	// check for water jump
-	else if ((pm.s.flags & PMF_TIME_WATER_JUMP) && cl->locals.jump_time < g_level.time - 2000) {
-
-		G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
-
-		ent->s.event = EV_CLIENT_JUMP;
-		cl->locals.jump_time = g_level.time;
-	}
-	// check for landing
-	else if ((pm.s.flags & PMF_TIME_LAND) && cl->locals.land_time < g_level.time - 800) {
-
-		g_entity_event_t event = EV_CLIENT_LAND;
-
-		if (old_velocity[2] <= PM_SPEED_FALL) { // player will take damage
-			int16_t damage = ((int16_t) -((old_velocity[2] - PM_SPEED_FALL) * 0.05));
-
-			damage >>= pm.water_level; // water breaks the fall
-
-			if (damage < 1)
-				damage = 1;
-
-			if (old_velocity[2] <= PM_SPEED_FALL_FAR)
-				event = EV_CLIENT_FALL_FAR;
-			else
-				event = EV_CLIENT_FALL;
-
-			cl->locals.pain_time = g_level.time; // suppress pain sound
-
-			G_Damage(ent, NULL, NULL, vec3_up, NULL, NULL, damage, 0, DMG_NO_ARMOR, MOD_FALLING);
+		// detect hitting the ground to help with animation blending
+		if (pm.ground_entity && !ent->locals.ground_entity) {
+			cl->locals.ground_time = g_level.time;
 		}
-
-		if (G_IsAnimation(ent, ANIM_LEGS_JUMP2))
-			G_SetAnimation(ent, ANIM_LEGS_LAND2, true);
-		else
-			G_SetAnimation(ent, ANIM_LEGS_LAND1, true);
-
-		ent->s.event = event;
-		cl->locals.land_time = g_level.time;
-	}
-	// check for ladder, play a jump animation
-	else if ((pm.s.flags & PMF_ON_LADDER) && cl->locals.jump_time < g_level.time - 400) {
-
-		if (fabs(ent->locals.velocity[2]) > 20.0) {
-
-			G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
-
-			ent->s.event = EV_CLIENT_JUMP;
-			cl->locals.jump_time = g_level.time;
-		}
-	}
-
-	// detect hitting the ground to help with animation blending
-	if (pm.ground_entity && !ent->locals.ground_entity) {
-		cl->locals.ground_time = g_level.time;
 	}
 
 	// copy ground and water state back into entity
@@ -1324,48 +1334,47 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 		return;
 
 	g_level.current_entity = ent;
-	g_client_t *client = ent->client;
+	g_client_t *cl = ent->client;
 
-	client->locals.cmd = *cmd;
+	if (cl->locals.chase_target) { // ensure chase is valid
 
-	if (client->locals.chase_target) { // ensure chase is valid
+		cl->ps.pm_state.flags |= PMF_NO_PREDICTION;
 
-		client->ps.pm_state.flags |= PMF_NO_PREDICTION;
+		if (!cl->locals.chase_target->in_use
+				|| cl->locals.chase_target->client->locals.persistent.spectator) {
 
-		if (!client->locals.chase_target->in_use
-				|| client->locals.chase_target->client->locals.persistent.spectator) {
-
-			g_entity_t *other = client->locals.chase_target;
+			g_entity_t *other = cl->locals.chase_target;
 
 			G_ClientChaseNext(ent);
 
-			if (client->locals.chase_target == other) { // no one to chase
-				client->locals.chase_target = NULL;
+			if (cl->locals.chase_target == other) { // no one to chase
+				cl->locals.chase_target = NULL;
 			}
 		}
 	}
 
-	if (!client->locals.chase_target) { // move through the world
+	if (!cl->locals.chase_target) { // move through the world
 		G_ClientMove(ent, cmd);
 	}
 
-	client->locals.old_buttons = client->locals.buttons;
-	client->locals.buttons = cmd->buttons;
-	client->locals.latched_buttons |= client->locals.buttons & ~client->locals.old_buttons;
+	cl->locals.cmd = *cmd;
+	cl->locals.old_buttons = cl->locals.buttons;
+	cl->locals.buttons = cmd->buttons;
+	cl->locals.latched_buttons |= cl->locals.buttons & ~cl->locals.old_buttons;
 
 	// fire weapon if requested
-	if (client->locals.latched_buttons & BUTTON_ATTACK) {
-		if (client->locals.persistent.spectator) {
+	if (cl->locals.latched_buttons & BUTTON_ATTACK) {
+		if (cl->locals.persistent.spectator) {
 
-			client->locals.latched_buttons = 0;
+			cl->locals.latched_buttons = 0;
 
-			if (client->locals.chase_target) { // toggle chase camera
-				client->locals.chase_target = client->locals.old_chase_target = NULL;
-				client->ps.pm_state.flags &= ~PMF_NO_PREDICTION;
+			if (cl->locals.chase_target) { // toggle chase camera
+				cl->locals.chase_target = cl->locals.old_chase_target = NULL;
+				cl->ps.pm_state.flags &= ~PMF_NO_PREDICTION;
 			} else {
 				G_ClientChaseTarget(ent);
 			}
-		} else if (client->locals.weapon_think_time < g_level.time) {
+		} else if (cl->locals.weapon_think_time < g_level.time) {
 			G_ClientWeaponThink(ent);
 		}
 	}
@@ -1398,7 +1407,7 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 	if (cl->locals.weapon_think_time < g_level.time)
 		G_ClientWeaponThink(ent);
 
-	if (ent->locals.dead) { // check for respawn conditions
+	if (ent->locals.dead) {
 
 		// rounds mode implies last-man-standing, force to spectator immediately if round underway
 		if (g_level.rounds && g_level.round_time && g_level.time >= g_level.round_time) {
