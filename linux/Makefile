@@ -1,7 +1,7 @@
 # Makefile for Quetoo Linux distributable
 
-HOST = x86_64-pc-linux
 ARCH = x86_64
+HOST = $(ARCH)-pc-linux
 DATA = ../../quetoo-data
 ARTIFACT = quetoo
 TARGET = target
@@ -19,7 +19,11 @@ HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 all: install-lib
 
 configure:
-	cd .. ; ./configure LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --host=$(HOST) --prefix=/ --with-master
+	cd .. ; ./configure \
+		LDFLAGS='-Wl,-rpath=XORIGIN/../lib' \
+		--host=$(HOST) \
+		--prefix=/ \
+		--with-master
 	
 compile: configure
 	make -C .. all

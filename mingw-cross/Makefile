@@ -1,8 +1,8 @@
 # Makefile for Quetoo Windows distributable.
 # export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/bin:${PATH}
 
-HOST = x86_64-w64-mingw32
 ARCH = x86_64
+HOST = $(ARCH)-w64-mingw32
 DATA = ../../quetoo-data
 TARGET = target
 INSTALL = $(TARGET)/Quetoo
