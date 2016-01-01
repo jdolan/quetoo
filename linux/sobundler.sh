@@ -12,7 +12,6 @@ SKIP='
 	libpthread.so*
 	libresolv.so*
 	librt.so*
-	libstdc++.so*
 '
 
 while getopts "d:" opt; do
