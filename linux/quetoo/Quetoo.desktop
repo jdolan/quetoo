@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Quetoo BETA
 Comment=Pwning nubz one rail slug at a time.
-Exec="%QUETOO_HOME%/bin/run.sh"
+Exec="%QUETOO_HOME%/bin/quetoo"
 Icon="%QUETOO_HOME%/share/default/icons/quetoo.png"
 Terminal=false
 Type=Application
