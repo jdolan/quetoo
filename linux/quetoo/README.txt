@@ -11,8 +11,8 @@ content will be downloaded.
 You should run ./bin/update.sh regularly, as the game is constantly being added
 to and improved.
 
-Once ./bin/update.sh completes, you may run ./bin/quetoo. You can also
-make a custom application launcher for Quetoo to place it in your Desktop
-menus. An icon is provided in this folder.
+Once ./bin/update.sh completes, you may run ./bin/quetoo. You can also link
+the .desktop items for Quetoo and Quetoo Update to the appropriate location(s)
+for your distribution and desktop environment.
 
 Questions or comments? Please join us in #quetoo on irc.freenode.net.
