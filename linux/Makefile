@@ -40,6 +40,7 @@ install-lib: install
 	./sobundler.sh -d $(LIBDIR) \
 		$(BINDIR)/quetoo \
 		$(BINDIR)/quetoo-dedicated \
+		$(BINDIR)/quetoo-master \
 		$(BINDIR)/quemap
 
 install-data:
