@@ -41,6 +41,7 @@ install-lib: install
 	dylibbundler -b \
 		-x $(BINDIR)/quemap \
 		-x $(BINDIR)/quetoo \
+		-x $(BINDIR)/quetoo-dedicated \
 		-x $(LIBDIR)/default/cgame.so \
 		-x $(LIBDIR)/default/game.so \
 	-d $(LIBDIR) -of -p @executable_path/lib

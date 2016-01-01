@@ -15,7 +15,7 @@ echo "Updating ${QUETOO_HOME} for ${ARCH}.."
 echo
 
 APPLE=rsync://quetoo.org/quetoo-apple/${ARCH}/
-rsync -rLzhP --delete "${APPLE}" ${QUETOO_HOME}/Contents || exit 2
+rsync -rLzhP --delete --skip-compress=pk3 --stats "${APPLE}" ${QUETOO_HOME}/Contents || exit 2
 
 echo
 echo "Update complete."
