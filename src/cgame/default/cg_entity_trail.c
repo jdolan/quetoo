@@ -200,11 +200,11 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	if (ent->time < cgi.client->systime) {
 		vec3_t delta;
 
-		vec_t step = 0.5;
+		vec_t step = 1.5;
 
 		if (cgi.PointContents(end) & MASK_LIQUID) {
 			Cg_BubbleTrail(start, end, 12.0);
-			step = 1.5;
+			step = 2.0;
 		}
 
 		vec_t d = 0.0;
@@ -220,9 +220,9 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			}
 
 			cgi.ColorFromPalette(col + (Random() & 5), p->part.color);
-			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -6.0 + Randomc());
+			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -3.0 + Randomc());
 
-			p->part.scale = 3.0;
+			p->part.scale = 2.0;
 			p->scale_vel = -4.0;
 
 			VectorMA(start, d, delta, p->part.org);
@@ -292,7 +292,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 				break;
 
 			cgi.ColorFromPalette(EFFECT_COLOR_ORANGE + (Random() & 5), p->part.color);
-			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -4.0);
+			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -2.0);
 
 			p->part.scale = 4.0;
 			p->scale_vel = -6.0;
