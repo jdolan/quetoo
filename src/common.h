@@ -84,7 +84,7 @@
  * bandwidth saturation point in order to maintain some level of connectivity.
  */
 #define CLIENT_RATE_MIN		8192
-#define CLIENT_RATE_MAX		32768
+#define CLIENT_RATE_MAX		65536
 
 /*
  * @brief Default client bandwidth rate threshold.
