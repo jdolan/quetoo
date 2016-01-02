@@ -19,7 +19,7 @@ HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 all: install-lib
 
 configure:
-	cd .. ; ./configure --host=$(HOST) --prefix=/
+	cd .. ; autoreconf -i; ./configure --host=$(HOST) --prefix=/
 	
 compile: configure
 	make -C .. all

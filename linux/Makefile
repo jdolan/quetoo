@@ -19,7 +19,7 @@ HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 all: install-lib
 
 configure:
-	cd .. ; ./configure \
+	cd .. ; autoreconf -i; ./configure \
 		LDFLAGS='-Wl,-rpath=XORIGIN/../lib' \
 		--host=$(HOST) \
 		--prefix=/ \
