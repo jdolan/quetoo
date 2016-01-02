@@ -195,6 +195,7 @@ typedef enum {
 #define EF_CTF_BLUE			(EF_GAME << 4) // blue shell
 #define EF_CTF_RED			(EF_GAME << 5) // red shell
 #define EF_DESPAWN			(EF_GAME << 6) // translucent
+#define EF_LIGHT			(EF_GAME << 7) // colored light
 
 /*
  * @brief Game-specific entity state trails.
@@ -404,6 +405,7 @@ typedef struct {
 	int32_t height;
 	char *noise;
 	char *item;
+	char *colors;
 } g_spawn_temp_t;
 
 #define EOFS(x) (ptrdiff_t)&(((g_entity_t *) 0)->x)
@@ -809,7 +811,8 @@ typedef struct {
 	uint16_t noise_index;
 	int16_t attenuation;
 
-	// timing variables
+	int16_t colors[2];
+
 	vec_t wait;
 	vec_t delay; // before firing targets
 	vec_t random;

@@ -28,60 +28,59 @@ typedef struct {
 
 static void G_worldspawn(g_entity_t *ent);
 
-static g_entity_spawn_t g_entity_spawns[] = {
-// entity class names -> spawn functions
-		{ "func_areaportal", G_func_areaportal },
-		{ "func_button", G_func_button },
-		{ "func_conveyor", G_func_conveyor },
-		{ "func_door", G_func_door },
-		{ "func_door_rotating", G_func_door_rotating },
-		{ "func_door_secret", G_func_door_secret },
-		{ "func_plat", G_func_plat },
-		{ "func_rotating", G_func_rotating },
-		{ "func_timer", G_func_timer },
-		{ "func_train", G_func_train },
-		{ "func_wall", G_func_wall },
-		{ "func_water", G_func_water },
+static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn functions
+	{ "func_areaportal", G_func_areaportal },
+	{ "func_button", G_func_button },
+	{ "func_conveyor", G_func_conveyor },
+	{ "func_door", G_func_door },
+	{ "func_door_rotating", G_func_door_rotating },
+	{ "func_door_secret", G_func_door_secret },
+	{ "func_plat", G_func_plat },
+	{ "func_rotating", G_func_rotating },
+	{ "func_timer", G_func_timer },
+	{ "func_train", G_func_train },
+	{ "func_wall", G_func_wall },
+	{ "func_water", G_func_water },
 
-		{ "info_notnull", G_info_notnull },
-		{ "info_player_intermission", G_info_player_intermission },
-		{ "info_player_deathmatch", G_info_player_deathmatch },
-		{ "info_player_start", G_info_player_start },
-		{ "info_player_team1", G_info_player_team1 },
-		{ "info_player_team2", G_info_player_team2 },
+	{ "info_notnull", G_info_notnull },
+	{ "info_player_intermission", G_info_player_intermission },
+	{ "info_player_deathmatch", G_info_player_deathmatch },
+	{ "info_player_start", G_info_player_start },
+	{ "info_player_team1", G_info_player_team1 },
+	{ "info_player_team2", G_info_player_team2 },
 
-		{ "misc_teleporter", G_misc_teleporter },
-		{ "misc_teleporter_dest", G_misc_teleporter_dest },
-		{ "misc_fireball", G_misc_fireball },
+	{ "misc_teleporter", G_misc_teleporter },
+	{ "misc_teleporter_dest", G_misc_teleporter_dest },
+	{ "misc_fireball", G_misc_fireball },
 
-		{ "path_corner", G_info_notnull },
+	{ "path_corner", G_info_notnull },
 
-		{ "target_explosion", G_target_explosion },
-		{ "target_speaker", G_target_speaker },
-		{ "target_splash", G_target_splash },
-		{ "target_string", G_target_string },
+	{ "target_light", G_target_light },
+	{ "target_speaker", G_target_speaker },
+	{ "target_string", G_target_string },
 
-		{ "trigger_always", G_trigger_always },
-		{ "trigger_exec", G_trigger_exec },
-		{ "trigger_hurt", G_trigger_hurt },
-		{ "trigger_multiple", G_trigger_multiple },
-		{ "trigger_once", G_trigger_once },
-		{ "trigger_push", G_trigger_push },
-		{ "trigger_relay", G_trigger_relay },
-		{ "trigger_teleporter", G_misc_teleporter },
+	{ "trigger_always", G_trigger_always },
+	{ "trigger_exec", G_trigger_exec },
+	{ "trigger_hurt", G_trigger_hurt },
+	{ "trigger_multiple", G_trigger_multiple },
+	{ "trigger_once", G_trigger_once },
+	{ "trigger_push", G_trigger_push },
+	{ "trigger_relay", G_trigger_relay },
+	{ "trigger_teleporter", G_misc_teleporter },
 
-		{ "worldspawn", G_worldspawn },
+	{ "worldspawn", G_worldspawn },
 
-		// lastly, these are entities which we intentionally suppress
+	// lastly, these are entities which we intentionally suppress
 
-		{ "func_group", G_FreeEntity },
-		{ "info_null", G_FreeEntity },
-		{ "light", G_FreeEntity },
-		{ "light_spot", G_FreeEntity },
-		{ "misc_emit", G_FreeEntity },
-		{ "misc_model", G_FreeEntity },
+	{ "func_group", G_FreeEntity },
+	{ "info_null", G_FreeEntity },
+	{ "light", G_FreeEntity },
+	{ "light_spot", G_FreeEntity },
+	{ "misc_emit", G_FreeEntity },
+	{ "misc_model", G_FreeEntity },
 
-		{ NULL, NULL } };
+	{ NULL, NULL }
+};
 
 /*
  * @brief Finds the spawn function for the entity and calls it.
@@ -167,58 +166,59 @@ typedef struct g_field_s {
 } g_field_t;
 
 static const g_field_t fields[] = {
-// notice the hack for area portals, which used to be the overloaded "style" field in legacy levels
-		{ "classname", EOFS(class_name), F_STRING, 0 },
-		{ "model", EOFS(model), F_STRING, 0 },
-		{ "spawnflags", LOFS(spawn_flags), F_INT, 0 },
-		{ "speed", LOFS(speed), F_FLOAT, 0 },
-		{ "accel", LOFS(accel), F_FLOAT, 0 },
-		{ "decel", LOFS(decel), F_FLOAT, 0 },
-		{ "target", LOFS(target), F_STRING, 0 },
-		{ "targetname", LOFS(target_name), F_STRING, 0 },
-		{ "pathtarget", LOFS(path_target), F_STRING, 0 },
-		{ "killtarget", LOFS(kill_target), F_STRING, 0 },
-		{ "message", LOFS(message), F_STRING, 0 },
-		{ "team", LOFS(team), F_STRING, 0 },
-		{ "command", LOFS(command), F_STRING, 0 },
-		{ "script", LOFS(script), F_STRING, 0 },
-		{ "wait", LOFS(wait), F_FLOAT, 0 },
-		{ "delay", LOFS(delay), F_FLOAT, 0 },
-		{ "random", LOFS(random), F_FLOAT, 0 },
-		{ "style", LOFS(area_portal), F_INT, 0 },
-		{ "areaportal", LOFS(area_portal), F_INT, 0 },
-		{ "count", LOFS(count), F_INT, 0 },
-		{ "health", LOFS(health), F_SHORT, 0 },
-		{ "sounds", LOFS(sounds), F_SHORT, 0 },
-		{ "dmg", LOFS(damage), F_SHORT, 0 },
-		{ "mass", LOFS(mass), F_FLOAT, 0 },
-		{ "attenuation", LOFS(attenuation), F_SHORT, 0 },
-		{ "origin", EOFS(s.origin), F_VECTOR, 0 },
-		{ "angles", EOFS(s.angles), F_VECTOR, 0 },
-		{ "angle", EOFS(s.angles), F_ANGLE, 0 },
+	{ "classname", EOFS(class_name), F_STRING, 0 },
+	{ "model", EOFS(model), F_STRING, 0 },
+	{ "spawnflags", LOFS(spawn_flags), F_INT, 0 },
+	{ "speed", LOFS(speed), F_FLOAT, 0 },
+	{ "accel", LOFS(accel), F_FLOAT, 0 },
+	{ "decel", LOFS(decel), F_FLOAT, 0 },
+	{ "target", LOFS(target), F_STRING, 0 },
+	{ "targetname", LOFS(target_name), F_STRING, 0 },
+	{ "pathtarget", LOFS(path_target), F_STRING, 0 },
+	{ "killtarget", LOFS(kill_target), F_STRING, 0 },
+	{ "message", LOFS(message), F_STRING, 0 },
+	{ "team", LOFS(team), F_STRING, 0 },
+	{ "command", LOFS(command), F_STRING, 0 },
+	{ "script", LOFS(script), F_STRING, 0 },
+	{ "wait", LOFS(wait), F_FLOAT, 0 },
+	{ "delay", LOFS(delay), F_FLOAT, 0 },
+	{ "random", LOFS(random), F_FLOAT, 0 },
+	{ "style", LOFS(area_portal), F_INT, 0 }, // HACK, this was always overloaded
+	{ "areaportal", LOFS(area_portal), F_INT, 0 },
+	{ "count", LOFS(count), F_INT, 0 },
+	{ "health", LOFS(health), F_SHORT, 0 },
+	{ "sounds", LOFS(sounds), F_SHORT, 0 },
+	{ "dmg", LOFS(damage), F_SHORT, 0 },
+	{ "mass", LOFS(mass), F_FLOAT, 0 },
+	{ "attenuation", LOFS(attenuation), F_SHORT, 0 },
+	{ "origin", EOFS(s.origin), F_VECTOR, 0 },
+	{ "angles", EOFS(s.angles), F_VECTOR, 0 },
+	{ "angle", EOFS(s.angles), F_ANGLE, 0 },
 
-		// temp spawn vars -- only valid when the spawn function is called
-		{ "lip", SOFS(lip), F_INT, FFL_SPAWN_TEMP },
-		{ "distance", SOFS(distance), F_INT, FFL_SPAWN_TEMP },
-		{ "height", SOFS(height), F_INT, FFL_SPAWN_TEMP },
-		{ "noise", SOFS(noise), F_STRING, FFL_SPAWN_TEMP },
-		{ "item", SOFS(item), F_STRING, FFL_SPAWN_TEMP },
+	// temp spawn vars -- only valid when the spawn function is called
+	{ "lip", SOFS(lip), F_INT, FFL_SPAWN_TEMP },
+	{ "distance", SOFS(distance), F_INT, FFL_SPAWN_TEMP },
+	{ "height", SOFS(height), F_INT, FFL_SPAWN_TEMP },
+	{ "noise", SOFS(noise), F_STRING, FFL_SPAWN_TEMP },
+	{ "item", SOFS(item), F_STRING, FFL_SPAWN_TEMP },
+	{ "colors", SOFS(colors), F_STRING, FFL_SPAWN_TEMP },
 
-		// world vars, we use strings to differentiate between 0 and unset
-		{ "sky", SOFS(sky), F_STRING, FFL_SPAWN_TEMP },
-		{ "weather", SOFS(weather), F_STRING, FFL_SPAWN_TEMP },
-		{ "gravity", SOFS(gravity), F_STRING, FFL_SPAWN_TEMP },
-		{ "gameplay", SOFS(gameplay), F_STRING, FFL_SPAWN_TEMP },
-		{ "teams", SOFS(teams), F_STRING, FFL_SPAWN_TEMP },
-		{ "ctf", SOFS(ctf), F_STRING, FFL_SPAWN_TEMP },
-		{ "match", SOFS(match), F_STRING, FFL_SPAWN_TEMP },
-		{ "frag_limit", SOFS(frag_limit), F_STRING, FFL_SPAWN_TEMP },
-		{ "round_limit", SOFS(round_limit), F_STRING, FFL_SPAWN_TEMP },
-		{ "capture_limit", SOFS(capture_limit), F_STRING, FFL_SPAWN_TEMP },
-		{ "time_limit", SOFS(time_limit), F_STRING, FFL_SPAWN_TEMP },
-		{ "give", SOFS(give), F_STRING, FFL_SPAWN_TEMP },
+	// world vars, we use strings to differentiate between 0 and unset
+	{ "sky", SOFS(sky), F_STRING, FFL_SPAWN_TEMP },
+	{ "weather", SOFS(weather), F_STRING, FFL_SPAWN_TEMP },
+	{ "gravity", SOFS(gravity), F_STRING, FFL_SPAWN_TEMP },
+	{ "gameplay", SOFS(gameplay), F_STRING, FFL_SPAWN_TEMP },
+	{ "teams", SOFS(teams), F_STRING, FFL_SPAWN_TEMP },
+	{ "ctf", SOFS(ctf), F_STRING, FFL_SPAWN_TEMP },
+	{ "match", SOFS(match), F_STRING, FFL_SPAWN_TEMP },
+	{ "frag_limit", SOFS(frag_limit), F_STRING, FFL_SPAWN_TEMP },
+	{ "round_limit", SOFS(round_limit), F_STRING, FFL_SPAWN_TEMP },
+	{ "capture_limit", SOFS(capture_limit), F_STRING, FFL_SPAWN_TEMP },
+	{ "time_limit", SOFS(time_limit), F_STRING, FFL_SPAWN_TEMP },
+	{ "give", SOFS(give), F_STRING, FFL_SPAWN_TEMP },
 
-		{ 0, 0, 0, 0 } };
+	{ 0, 0, 0, 0 }
+};
 
 /*
  * @brief Takes a key-value pair and sets the binary values in an entity.

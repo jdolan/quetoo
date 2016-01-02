@@ -21,36 +21,149 @@
 
 #include "g_local.h"
 
+#define LIGHT_START_ON 1
+#define LIGHT_TOGGLE 2
+
+/*
+ * @brief
+ */
+static void G_target_light_Toggle(g_entity_t *self) {
+
+	if ((self->s.effects & EF_LIGHT) == 0) {
+		self->s.client = self->locals.colors[0];
+		self->s.effects |= EF_LIGHT;
+	} else {
+		self->s.client = 0;
+		self->s.effects &= ~EF_LIGHT;
+	}
+}
+
+/*
+ * @brief Cycles through state and colors for the given light entity.
+ */
+static void G_target_light_Cycle(g_entity_t *self) {
+
+	if ((self->s.effects & EF_LIGHT) == 0) {
+		G_target_light_Toggle(self);
+	} else {
+		if (self->s.client == self->locals.colors[0]) {
+			if (self->locals.colors[1]) {
+				self->s.client = self->locals.colors[1];
+			} else if (self->locals.spawn_flags & LIGHT_TOGGLE) {
+				G_target_light_Toggle(self);
+			}
+		} else {
+			if (self->locals.spawn_flags & LIGHT_TOGGLE) {
+				G_target_light_Toggle(self);
+			} else {
+				self->s.client = self->locals.colors[0];
+			}
+		}
+	}
+}
+
+/*
+ * @brief
+ */
+static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *activator) {
+
+	if (self->locals.delay) {
+		self->locals.Think = G_target_light_Cycle;
+		self->locals.next_think = g_level.time + self->locals.delay * 1000.0;
+	} else {
+		G_target_light_Cycle(self);
+	}
+
+	if (self->locals.wait) {
+		self->locals.Think = G_target_light_Cycle;
+		self->locals.next_think = g_level.time + (self->locals.delay + self->locals.wait) * 1000.0;
+	}
+}
+
+/*QUAKED target_light (0 1 0) (-8 -8 -8) (8 8 8) start_on toggle
+ Emits a user-defined light when used. Lights can cycle between two colors,
+ and also be toggled on and off.
+
+ -------- Keys --------
+ colors : The color(s) to cycle through (1 - 255 paletted, "red", "green", etc..)
+ delay : The delay before activating, in seconds (default 0).
+ dmg : The radius of the light in units.
+ targetname : The target name of this entity.
+ wait : If specified, an additional cycle will fire after this interval.
+
+ -------- Spawn flags --------
+ start_on : The light starts on, with the first configured color.
+ toggle : The light will include an off state in its cycle.
+
+ -------- Notes --------
+ Use this entity to add switched lights (toggle). Use the wait key to synchronize
+ color cycles with other entities.
+*/
+void G_target_light(g_entity_t *self) {
+
+	char *c = strchr(g_game.spawn.colors, ' ');
+	if (c) {
+		self->locals.colors[1] = G_ColorByName(c + 1, 0);
+		*c = '\0';
+	}
+
+	if (!self->locals.damage) {
+		self->locals.damage = 300;
+	}
+
+	self->locals.colors[0] = G_ColorByName(g_game.spawn.colors, EFFECT_COLOR_WHITE);
+	self->s.termination[0] = self->locals.damage; // radius
+
+	self->locals.Use = G_target_light_Use;
+
+	if (self->locals.spawn_flags & LIGHT_START_ON) {
+		G_target_light_Cycle(self);
+	}
+
+	gi.LinkEntity(self);
+}
+
+#define SPEAKER_LOOP_ON 1
+#define SPEAKER_LOOP_OFF 2
+
+#define SPEAKER_LOOP (SPEAKER_LOOP_ON | SPEAKER_LOOP_OFF)
+
 /*
  * @brief
  */
 static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other __attribute__((unused)), g_entity_t *activator __attribute__((unused))) {
 
-	if (ent->locals.spawn_flags & 3) { // looping sound toggles
-		if (ent->s.sound)
-			ent->s.sound = 0; // turn it off
-		else
-			ent->s.sound = ent->locals.noise_index; // start it
-	} else { // normal sound
-		// use a positioned_sound, because this entity won't normally be
-		// sent to any clients because it is invisible
+	if (ent->locals.spawn_flags & SPEAKER_LOOP) { // looping sound toggles
+		if (ent->s.sound) {
+			ent->s.sound = 0;
+		} else {
+			ent->s.sound = ent->locals.noise_index;
+		}
+	} else { // intermittent sound
 		gi.PositionedSound(ent->s.origin, ent, ent->locals.noise_index, ent->locals.attenuation);
 	}
 }
 
-/*QUAKED target_speaker (1 0 0) (-8 -8 -8) (8 8 8) LOOP_ON LOOP_OFF
+/*QUAKED target_speaker (1 0 0) (-8 -8 -8) (8 8 8) loop_on loop_off
  Plays a sound each time it is used, or in loop if requested.
- -------- KEYS --------
+
+ -------- Keys --------
  noise : The name of the sample to play, e.g. voices/haunting.
  attenuation : The attenuation level; higher levels drop off more quickly (default 1):
- __-1 : No attenuation, send the sound to the entire level.
- ___1 : Normal attenuation, hearable to all those in PHS of entity.
- ___2 : Idle attenuation, hearable only by those near to entity.
- ___3 : Static attenuation, hearable only by those very close to entity.
+   -1 : No attenuation, send the sound to the entire level.
+    1 : Normal attenuation, hearable to all those in PHS of entity.
+    2 : Idle attenuation, hearable only by those near to entity.
+    3 : Static attenuation, hearable only by those very close to entity.
  targetname : The target name of this entity.
- -------- NOTES --------
- For ambient sounds, use misc_emit. It is much more efficient.
- */
+
+ -------- Spawn flags --------
+ loop_on : The sound can be toggled, and will play in loop until used.
+ loop_off : The sound can be toggled, and will begin playing when used.
+
+ -------- Notes --------
+ Use this entity only when a sound must be triggered by another entity. For
+ all other ambient sounds, use misc_emit.
+*/
 void G_target_speaker(g_entity_t *ent) {
 	char buffer[MAX_QPATH];
 
@@ -72,7 +185,7 @@ void G_target_speaker(g_entity_t *ent) {
 		ent->locals.attenuation = ATTEN_NONE;
 
 	// check for looping sound
-	if (ent->locals.spawn_flags & 1)
+	if (ent->locals.spawn_flags & SPEAKER_LOOP_ON)
 		ent->s.sound = ent->locals.noise_index;
 
 	ent->locals.Use = G_target_speaker_Use;
@@ -80,87 +193,6 @@ void G_target_speaker(g_entity_t *ent) {
 	// must link the entity so we get areas and clusters so
 	// the server can determine who to send updates to
 	gi.LinkEntity(ent);
-}
-
-/*
- * @brief
- */
-static void G_target_explosion_Explode(g_entity_t *self) {
-	vec_t save;
-
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_EXPLOSION);
-	gi.WritePosition(self->s.origin);
-	gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
-
-	G_RadiusDamage(self, self->locals.activator, NULL, self->locals.damage, self->locals.damage,
-			self->locals.damage + 40, MOD_EXPLOSIVE);
-
-	save = self->locals.delay;
-	self->locals.delay = 0;
-	G_UseTargets(self, self->locals.activator);
-	self->locals.delay = save;
-}
-
-/*
- * @brief
- */
-static void G_target_explosion_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)), g_entity_t *activator) {
-	self->locals.activator = activator;
-
-	if (!self->locals.delay) {
-		G_target_explosion_Explode(self);
-		return;
-	}
-
-	self->locals.Think = G_target_explosion_Explode;
-	self->locals.next_think = g_level.time + self->locals.delay * 1000;
-}
-
-/*QUAKED target_explosion (1 0 0) (-8 -8 -8) (8 8 8)
- Spawns an explosion when used.
- -------- KEYS --------
- delay : Delay in seconds before explosion is issued after being triggered (default 0).
- dmg : Damage inflicted on players near explosion (default 0).
- targetname : The target name of this entity.
- -------- NOTES --------
- A standard rocket damage value would be 120.
- */
-void G_target_explosion(g_entity_t *ent) {
-	ent->locals.Use = G_target_explosion_Use;
-	ent->sv_flags = SVF_NO_CLIENT;
-}
-
-/*
- * @brief
- */
-static void G_target_splash_Think(g_entity_t *self) {
-
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_SPARKS);
-	gi.WritePosition(self->s.origin);
-	gi.WriteDir(self->locals.move_dir);
-	gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
-
-	self->locals.next_think = g_level.time + (Randomf() * 3000);
-}
-
-/*QUAKED target_splash (1 0 0) (-8 -8 -8) (8 8 8)
- Spawns a particle splash effect when used.
- -------- KEYS --------
- angles : The angles at which to emit particles (e.g. 0 225 0).
- -------- NOTES --------
- This entity remains in place for legacy reasons. New maps should use misc_emit.
- */
-void G_target_splash(g_entity_t *self) {
-
-	G_SetMoveDir(self->s.angles, self->locals.move_dir);
-
-	self->solid = SOLID_NOT;
-	self->locals.Think = G_target_splash_Think;
-	self->locals.next_think = g_level.time + (Randomf() * 3000);
-
-	gi.LinkEntity(self);
 }
 
 /*QUAKED target_string (0 0 1) (-8 -8 -8) (8 8 8)

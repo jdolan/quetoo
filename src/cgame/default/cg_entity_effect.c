@@ -115,6 +115,16 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		e->color[3] = 1.0 - ((cgi.client->systime - ent->time) / 3000.0);
 	}
 
+	if (e->effects & EF_LIGHT) {
+		r_light_t l;
+
+		VectorCopy(e->origin, l.origin);
+		cgi.ColorFromPalette(ent->current.client, l.color);
+		l.radius = ent->current.termination[0];
+
+		cgi.AddLight(&l);
+	}
+
 	if (ent->current.trail == TRAIL_ROCKET) {
 		e->effects |= EF_NO_SHADOW;
 	}
