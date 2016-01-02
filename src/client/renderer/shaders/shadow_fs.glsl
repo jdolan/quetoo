@@ -9,6 +9,8 @@ uniform vec4 PLANE;
 
 varying vec4 point;
 
+varying float fog;
+
 /*
  * @brief
  */
@@ -29,6 +31,13 @@ void ShadowFragment(void) {
 }
 
 /*
+ * @brief
+ */
+void FogFragment(void) {
+    gl_FragColor.a = mix(gl_FragColor.a, 0.0, fog);
+}
+
+/*
  * @brief Program entry point.
  */
 void main(void) {
@@ -36,5 +45,7 @@ void main(void) {
 	gl_FragColor = gl_Color;
 
 	ShadowFragment();
+    
+    FogFragment();
 }
 

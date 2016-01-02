@@ -455,8 +455,6 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 
 	R_EnableLighting(NULL, false);
 
-	R_EnableFog(false);
-
 	R_EnableBlend(true);
 
 	R_DrawMeshShadows_default(ents);
@@ -464,7 +462,4 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 	R_DrawMeshShells_default(ents);
 
 	R_EnableBlend(false);
-
-	R_EnableFog(true);
-
 }

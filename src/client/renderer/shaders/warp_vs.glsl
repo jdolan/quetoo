@@ -7,7 +7,7 @@
 varying float fog;
 
 /*
- * FogVertex
+ * @brief
  */
 void FogVertex(void) {
 	fog = (gl_Position.z - gl_Fog.start) / (gl_Fog.end - gl_Fog.start);
@@ -15,7 +15,7 @@ void FogVertex(void) {
 }
 
 /*
- * main
+ * @brief Program entry point.
  */
 void main(void) {
 

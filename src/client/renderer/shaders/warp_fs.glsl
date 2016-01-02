@@ -12,14 +12,14 @@ uniform sampler2D SAMPLER1;
 varying float fog;
 
 /*
- * FogFragment
+ * @brief
  */
 void FogFragment(void) {
 	gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_Fog.color.rgb, fog);
 }
 
 /*
- * main
+ * @brief Program entry point.
  */
 void main(void) {
 
