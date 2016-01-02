@@ -1286,16 +1286,19 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	gi.LinkEntity(ent);
 
 	// touch every object we collided with objects
-	for (uint16_t i = 0; i < pm.num_touch_ents; i++) {
-		g_entity_t *other = pm.touch_ents[i];
+	if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
 
-		if (!other->locals.Touch)
-			continue;
+		for (uint16_t i = 0; i < pm.num_touch_ents; i++) {
+			g_entity_t *other = pm.touch_ents[i];
 
-		other->locals.Touch(other, ent, NULL, NULL);
+			if (!other->locals.Touch)
+				continue;
+
+			other->locals.Touch(other, ent, NULL, NULL);
+		}
+
+		G_TouchOccupy(ent);
 	}
-
-	G_TouchOccupy(ent);
 }
 
 /*

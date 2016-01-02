@@ -297,14 +297,14 @@ void G_TouchOccupy(g_entity_t *ent) {
 	const size_t len = gi.BoxEntities(ent->abs_mins, ent->abs_maxs, ents, lengthof(ents), BOX_OCCUPY);
 	for (size_t i = 0; i < len; i++) {
 
-		g_entity_t *trigger = ents[i];
+		g_entity_t *occupied = ents[i];
 
-		if (trigger == ent)
+		if (occupied == ent)
 			continue;
 
-		if (trigger->locals.Touch) {
-			gi.Debug("%s touching %s\n", etos(trigger), etos(ent));
-			trigger->locals.Touch(trigger, ent, NULL, NULL);
+		if (occupied->locals.Touch) {
+			gi.Debug("%s touching %s\n", etos(occupied), etos(ent));
+			occupied->locals.Touch(occupied, ent, NULL, NULL);
 		}
 
 		if (!ent->in_use)
