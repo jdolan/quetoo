@@ -264,7 +264,7 @@ static _Bool Pm_StepMove(_Bool up) {
 			if (step >= PM_STOP_EPSILON) {
 				pm->step = pm->s.origin[2] - org[2];
 
-				if (step >= 4.0) {
+				if (step >= 2.0) {
 					pm->s.flags |= PMF_ON_STAIRS;
 					Pm_Debug("Step %2.1f\n", pm->step);
 				}
