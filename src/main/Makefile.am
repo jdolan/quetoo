@@ -28,7 +28,7 @@ quetoo_dedicated_LDADD = \
 	../client/libclient_null.la \
 	../server/libserver.la
 
-#if _WIN32
+if WINDOWS
 
 .rc.o:
 	@WINDRES@ $^ -o $@
@@ -36,4 +36,4 @@ quetoo_dedicated_LDADD = \
 quetoo_SOURCES += \
 	quetoo-icon.rc
 
-#endif
+endif

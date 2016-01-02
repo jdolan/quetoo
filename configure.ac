@@ -72,14 +72,13 @@ case "$host" in
 		HOST_NAME="WINDOWS"
 		HOST_LIBS="-lws2_32 -lole32 -lstdc++"
 		DEFAULT_PREFIX="/"
+		AC_MSG_RESULT(windows)
 		AC_PATH_PROGS([WINDRES],
-			[windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres]
+			[windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres],
 		)
 		if test "x$WINDRES" = "x"; then
 			AC_MSG_ERROR([Could not find windres, please install windres])
 		fi
-		AC_SUBST(WINDRES)
-		AC_MSG_RESULT(windows)
 		;;
 	*)
 		HOST_NAME="LINUX"
