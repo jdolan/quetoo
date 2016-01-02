@@ -52,7 +52,7 @@ typedef uint16_t in_port_t;
  * net message can exceed this length. However, large frames can be split
  * into multiple messages and sent in series. See Sv_SendClientDatagram.
  */
-#define MAX_MSG_SIZE 1400
+#define MAX_MSG_SIZE 16384
 
 typedef enum {
 	NA_LOOP,

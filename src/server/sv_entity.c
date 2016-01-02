@@ -258,7 +258,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 			}
 		}
 
-		// add it to the circular entity_state_t array
+		// copy it to the circular entity_state_t array
 		entity_state_t *s = &svs.entity_states[svs.next_entity_state % svs.num_entity_states];
 		if (ent->s.number != e) {
 			Com_Warn("Fixing entity number: %d -> %d\n", ent->s.number, e);

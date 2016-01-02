@@ -263,13 +263,13 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 		}
 	}
 
-	if (age > 13000) {
+	if (age > 33000) {
 		G_FreeEntity(self);
 		return;
 	}
 
 	// sink into the floor after a few seconds
-	if (age > 10000) {
+	if (age > 30000) {
 
 		self->s.effects |= EF_DESPAWN;
 
@@ -359,7 +359,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribut
 
 		gi.LinkEntity(self);
 	} else {
-		G_FreeEntity(self);
+		//G_FreeEntity(self);
 	}
 }
 
