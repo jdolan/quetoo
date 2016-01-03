@@ -165,7 +165,7 @@ typedef struct {
  */
 typedef struct {
 	mem_buf_t buffer; // the managed size buffer
-	byte data[MAX_MSG_SIZE]; // the raw message buffer
+	byte data[MAX_DATAGRAM_SIZE]; // the raw message buffer
 	GList *messages; // message segmentation
 } sv_client_datagram_t;
 
