@@ -76,7 +76,7 @@
 /*
  * @brief The maximum number of entities to be referenced in a single message.
  */
-#define MAX_PACKET_ENTITIES	64
+#define MAX_PACKET_ENTITIES	128
 
 /*
  * @brief Client bandwidth throttling thresholds, in bytes per second. Clients
