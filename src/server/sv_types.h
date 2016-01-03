@@ -197,7 +197,7 @@ typedef struct {
 
 	uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT]; // used to calculate ping
 
-	uint32_t message_size[SV_HZ_MAX]; // used to rate drop packets
+	uint32_t frame_size[SV_HZ_MAX]; // used to rate drop packets
 	uint32_t rate;
 	uint32_t surpress_count; // number of messages rate suppressed
 

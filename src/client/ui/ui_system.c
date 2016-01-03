@@ -58,11 +58,25 @@ TwBar *Ui_System(void) {
 	Ui_CvarDecimal(bar, "Volume", s_volume, "min=0.0 max=1.0 step=0.1 group=Audio");
 	Ui_CvarDecimal(bar, "Music volume", s_music_volume, "min=0.0 max=1.0 step=0.1 group=Audio");
 
+	TwAddSeparator(bar, NULL, "group=Network");
+
+	static TwType Rate;
+	if (!Rate) {
+		const TwEnumVal RateEnum[] = {
+			{ 16384, "DSL" },
+			{ 131072, "Cable" },
+			{ 0, "LAN" },
+		};
+		Rate = TwDefineEnum("Rate", RateEnum, lengthof(RateEnum));
+	}
+
+	Ui_CvarEnum(bar, "Connection", rate, Rate, "group=Network");
+
 	TwAddSeparator(bar, NULL, NULL);
 
 	TwAddButton(bar, "Apply", Ui_Command, "r_restart; s_restart;", NULL);
 
-	TwDefine("System size='400 420' alpha=200 iconifiable=false valueswidth=100 visible=false");
+	TwDefine("System size='400 460' alpha=200 iconifiable=false valueswidth=100 visible=false");
 
 	return bar;
 }

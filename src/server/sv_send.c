@@ -357,6 +357,9 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 		Com_Error(ERR_DROP, "Frame exceeds MAX_MSG_SIZE (%u)\n", (uint32_t) buf.size);
 	}
 
+	// accumulate the total size for rate throttling
+	size_t frame_size = 0;
+
 	// but we can packetize the remaining datagram messages
 	const GList *e = cl->datagram.messages;
 	while (e) {
@@ -367,6 +370,8 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 			Com_Debug("Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
 
 			Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
+			frame_size += buf.size;
+
 			Mem_ClearBuffer(&buf);
 		}
 
@@ -376,9 +381,10 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 
 	// send the pending packet, which may include reliable messages
 	Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
+	frame_size += buf.size;
 
 	// record the total size for rate estimation
-	cl->message_size[sv.frame_num % sv_hz->integer] = cl->datagram.buffer.size;
+	cl->frame_size[sv.frame_num % sv_hz->integer] = frame_size;
 }
 
 /*
@@ -394,20 +400,23 @@ static void Sv_DemoCompleted(void) {
  */
 static _Bool Sv_RateDrop(sv_client_t *cl) {
 
-	// never drop over the loop device
+	if (sv.frame_num < sv_hz->integer)
+		return false;
+
+	if (cl->rate == 0)
+		return false;
+
 	if (cl->net_chan.remote_address.type == NA_LOOP)
 		return false;
 
-	uint32_t total = 0;
+	size_t total = 0;
 
 	for (int32_t i = 0; i < sv_hz->integer; i++) {
-		total += cl->message_size[i];
-	}
-
-	if (total > cl->rate) {
-		cl->surpress_count++;
-		cl->message_size[sv.frame_num % sv_hz->integer] = 0;
-		return true;
+		total += cl->frame_size[(sv.frame_num - i) % sv_hz->integer];
+		if (total > cl->rate) {
+			cl->surpress_count++;
+			return true;
+		}
 	}
 
 	return false;
@@ -489,7 +498,9 @@ void Sv_SendClientPackets(void) {
 			}
 		} else if (cl->state == SV_CLIENT_ACTIVE) { // send the game packet
 
-			if (!Sv_RateDrop(cl)) { // enforce rate throttle
+			if (Sv_RateDrop(cl)) { // enforce rate throttle
+				cl->frame_size[sv.frame_num % sv_hz->integer] = 0;
+			} else {
 				Sv_SendClientDatagram(cl);
 			}
 
