@@ -16,7 +16,9 @@ DIST = $(TARGET)/$(ARTIFACT)-BETA-$(ARCH).tar.gz
 HTTP_REPOSITORY = quetoo.org:/var/www/quetoo.org/files
 HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
-all: install-lib
+all: clean install-lib dist
+
+all-data: clean install-lib install-data dist
 
 configure:
 	cd .. ; autoreconf -i; ./configure \
@@ -58,5 +60,5 @@ dist-release:
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all configure compile pre-install install install-lib install-data release dist dist-release clean
+.PHONY: all all-data configure compile pre-install install install-lib install-data release dist dist-release clean
 
