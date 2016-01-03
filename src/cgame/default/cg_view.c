@@ -117,11 +117,12 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	}
 
 	const _Bool ducked = ps->pm_state.flags & PMF_DUCKED;
+	const vec_t max_speed = ducked ? PM_SPEED_DUCKED : PM_SPEED_AIR;
 
 	VectorCopy(ps->pm_state.velocity, velocity);
 	velocity[2] = 0.0;
 
-	vec_t speed = VectorLength(velocity) / (ducked ? PM_SPEED_DUCKED : PM_SPEED_AIR);
+	vec_t speed = VectorLength(velocity) / (max_speed * 2.0);
 	speed = Clamp(speed, 0.0, 1.0);
 
 	vec_t ftime = Clamp(cgi.view->time - vtime, 1, 1000);
