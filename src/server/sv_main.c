@@ -661,9 +661,6 @@ const char *Sv_NetaddrToString(const sv_client_t *cl) {
 	return Net_NetaddrToString(&cl->net_chan.remote_address);
 }
 
-#define MIN_RATE 8000
-#define DEFAULT_RATE 20000
-
 /*
  * @brief Enforces safe user_info data before passing onto game module.
  */
@@ -702,7 +699,9 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 	val = GetUserInfo(cl->user_info, "rate");
 	if (*val != '\0') {
 		cl->rate = strtoul(val, NULL, 10);
-		cl->rate = Clamp(cl->rate, CLIENT_RATE_MIN, CLIENT_RATE_MAX);
+		if (cl->rate > 0 && cl->rate < CLIENT_RATE_MIN) {
+			cl->rate = CLIENT_RATE_MIN;
+		}
 	}
 
 	// limit the print messages the client receives

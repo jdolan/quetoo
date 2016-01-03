@@ -145,11 +145,9 @@ typedef enum {
 } sv_client_state_t;
 
 /*
- * The absolute maximum size of a frame (packet entities). Large frames are
- * buffered and packetized for network transmission in smaller envelopes. See
- * MAX_MSG_SIZE.
+ * @brief The maximum size of a client's datagram buffer.
  */
-#define MAX_FRAME_SIZE 8192
+#define MAX_DATAGRAM_SIZE (MAX_MSG_SIZE * 4)
 
 /*
  * @brief Represents the bounds of an individual client message within the
@@ -167,7 +165,7 @@ typedef struct {
  */
 typedef struct {
 	mem_buf_t buffer; // the managed size buffer
-	byte data[MAX_FRAME_SIZE]; // the raw message buffer
+	byte data[MAX_DATAGRAM_SIZE]; // the raw message buffer
 	GList *messages; // message segmentation
 } sv_client_datagram_t;
 
@@ -199,7 +197,7 @@ typedef struct {
 
 	uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT]; // used to calculate ping
 
-	uint32_t message_size[SV_HZ_MAX]; // used to rate drop packets
+	uint32_t frame_size[SV_HZ_MAX]; // used to rate drop packets
 	uint32_t rate;
 	uint32_t surpress_count; // number of messages rate suppressed
 

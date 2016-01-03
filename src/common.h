@@ -41,7 +41,7 @@
  * of core net messages or serialized data types change. The game and client
  * game maintain PROTOCOL_MINOR as well.
  */
-#define PROTOCOL_MAJOR		1012
+#define PROTOCOL_MAJOR		1013
 
 /*
  * @brief The IP address of the master server, where the authoritative list of
@@ -76,20 +76,15 @@
 /*
  * @brief The maximum number of entities to be referenced in a single message.
  */
-#define MAX_PACKET_ENTITIES	64
+#define MAX_PACKET_ENTITIES	128
 
 /*
  * @brief Client bandwidth throttling thresholds, in bytes per second. Clients
  * may actually request that the server drops messages for them above a certain
  * bandwidth saturation point in order to maintain some level of connectivity.
+ * However, they must accept at least 8KB/s.
  */
 #define CLIENT_RATE_MIN		8192
-#define CLIENT_RATE_MAX		32768
-
-/*
- * @brief Default client bandwidth rate threshold.
- */
-#define CLIENT_RATE			16384
 
 /*
  * Disallow dangerous downloads for both the client and server.

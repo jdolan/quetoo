@@ -48,11 +48,11 @@ typedef uint16_t in_port_t;
 #include "common.h"
 
 /*
- * @brief Max length of a single packet, due to UDP fragmentation. No single
- * net message can exceed this length. However, large frames can be split
- * into multiple messages and sent in series. See Sv_SendClientDatagram.
+ * @brief Max length of a single packet. No individual message can exceed
+ * this length. However, large server frames can be split into multiple
+ * messages and sent in series. See Sv_SendClientDatagram.
  */
-#define MAX_MSG_SIZE 1400
+#define MAX_MSG_SIZE 16384
 
 typedef enum {
 	NA_LOOP,

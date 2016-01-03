@@ -70,7 +70,7 @@ TwBar *Ui_Controls(void) {
 	Ui_Bind(bar, "Toggle fullscreen", "r_toggle_fullscreen", "group=System");
 	Ui_Bind(bar, "Take screenshot", "r_screenshot", "group=System");
 
-	TwDefine("Controls size='400 610' alpha=200 iconifiable=false valueswidth=180 visible=false");
+	TwDefine("Controls size='400 630' alpha=200 iconifiable=false valueswidth=180 visible=false");
 
 	return bar;
 }

@@ -510,7 +510,7 @@ static void Cl_InitLocal(void) {
 	message_level = Cvar_Get("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	name = Cvar_Get("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);
-	rate = Cvar_Get("rate", va("%d", CLIENT_RATE), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	rate = Cvar_Get("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	skin = Cvar_Get("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 
 	qport = Cvar_Get("qport", va("%d", Random() & 0xff), 0, NULL);
