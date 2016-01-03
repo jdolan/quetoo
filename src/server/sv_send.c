@@ -124,10 +124,12 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 		Com_Error(ERR_DROP, "Single datagram message exceeded MAX_MSG_LEN\n");
 	}
 
-	sv_client_message_t *msg = Mem_Malloc(sizeof(*msg));
+	sv_client_message_t *msg = g_malloc0(sizeof(*msg));
 
 	msg->offset = cl->datagram.buffer.size;
 	msg->len = len;
+
+	cl->datagram.messages = g_list_append(cl->datagram.messages, msg);
 
 	Mem_WriteBuffer(&cl->datagram.buffer, data, len);
 
@@ -137,11 +139,9 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 		msg->offset = 0;
 		cl->datagram.buffer.overflowed = false;
 
-		g_list_free_full(cl->datagram.messages, Mem_Free);
+		g_list_free_full(cl->datagram.messages, g_free);
 		cl->datagram.messages = NULL;
 	}
-
-	cl->datagram.messages = g_list_append(cl->datagram.messages, msg);
 }
 
 /*
@@ -332,12 +332,6 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uin
 }
 
 /*
- *
- * FRAME UPDATES
- *
- */
-
-/*
  * @brief
  */
 static void Sv_SendClientDatagram(sv_client_t *cl) {
@@ -349,18 +343,19 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 	Mem_InitBuffer(&buf, buffer, sizeof(buffer));
 	buf.allow_overflow = true;
 
+	// accumulate the total size for rate throttling
+	size_t frame_size = 0;
+
 	// send over all the relevant entity_state_t and the player_state_t
 	Sv_WriteClientFrame(cl, &buf);
 
-	// the frame itself must not exceed the max message size
+	// the frame itself (player state and delta entities) must fit into a single message,
+	// since it is parsed as a single command by the client
 	if (buf.overflowed || buf.size > MAX_MSG_SIZE - 16) {
 		Com_Error(ERR_DROP, "Frame exceeds MAX_MSG_SIZE (%u)\n", (uint32_t) buf.size);
 	}
 
-	// accumulate the total size for rate throttling
-	size_t frame_size = 0;
-
-	// but we can packetize the remaining datagram messages
+	// but we can packetize the remaining datagram messages, which are parsed individually
 	const GList *e = cl->datagram.messages;
 	while (e) {
 		const sv_client_message_t *msg = (sv_client_message_t *) e->data;
@@ -508,7 +503,7 @@ void Sv_SendClientPackets(void) {
 			Mem_ClearBuffer(&cl->datagram.buffer);
 
 			if (cl->datagram.messages) {
-				g_list_free_full(cl->datagram.messages, Mem_Free);
+				g_list_free_full(cl->datagram.messages, g_free);
 			}
 
 			cl->datagram.messages = NULL;
