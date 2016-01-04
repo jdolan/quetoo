@@ -142,7 +142,7 @@ static void Pm_TouchEnt(struct g_entity_s *ent) {
 	pm->touch_ents[pm->num_touch_ents++] = ent;
 }
 
-#define MAX_CLIP_PLANES	4
+#define MAX_CLIP_PLANES	5
 
 /*
  * @brief Calculates a new origin, velocity, and contact entities based on the
@@ -191,7 +191,7 @@ static _Bool Pm_SlideMove(void) {
 	}
 
 	// if we've been deflected backwards, settle to prevent oscillations
-	if (DotProduct(pm->s.velocity, vel0) <= 0.0) {
+	if (num_planes > 2 || DotProduct(pm->s.velocity, vel0) < PM_STOP_EPSILON) {
 		VectorClear(pm->s.velocity);
 	}
 
@@ -199,147 +199,81 @@ static _Bool Pm_SlideMove(void) {
 }
 
 /*
- * @brief Performs the step portion of step-slide-move.
- *
- * @return True if the step was successful, false otherwise.
- */
-static _Bool Pm_StepMove(_Bool up) {
-	vec3_t org, vel, pos;
-	cm_trace_t trace;
-
-	VectorCopy(pm->s.origin, org);
-	VectorCopy(pm->s.velocity, vel);
-
-	if (up) { // try sliding from a higher position
-
-		// check if the upward position is available
-		VectorCopy(pm->s.origin, pos);
-		pos[2] += PM_STEP_HEIGHT;
-
-		// reaching even higher if trying to climb out of the water
-		if (pm->s.flags & PMF_TIME_WATER_JUMP) {
-			pos[2] += PM_STEP_HEIGHT;
-		}
-
-		trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
-
-		if (trace.all_solid) { // it's not
-			Pm_Debug("Can't step up: %s\n", vtos(pm->s.origin));
-			return false;
-		}
-
-		// an upward position is available, try to slide from there
-		VectorCopy(trace.end, pm->s.origin);
-
-		Pm_SlideMove(); // slide from the higher position
-	}
-
-	// if stepping down, or if we've just stepped up, settle to the floor
-	VectorCopy(pm->s.origin, pos);
-	pos[2] -= (PM_STEP_HEIGHT + PM_GROUND_DIST);
-
-	// by tracing down to it
-	trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
-
-	// check if the floor was found
-	if (trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL) {
-
-		// check if the floor is new; if so, we've likely stepped
-		if (trace.ent != pm->ground_entity || trace.plane.num != pml.ground_plane.num) {
-
-			// never slow down on Z; this is critical
-			pm->s.velocity[2] = vel[2];
-
-			// Quake2 trick jumping secret sauce
-			if (up && pm->s.velocity[2] >= PM_SPEED_UP) {
-				pm->s.origin[2] = MAX(org[2] + PM_STEP_HEIGHT, pm->s.origin[2]);
-			} else {
-				pm->s.origin[2] = trace.end[2];
-				Pm_ClipVelocity(pm->s.velocity, trace.plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
-			}
-
-			// calculate the step so that the client may interpolate
-			const vec_t step = fabs(pm->s.origin[2] - org[2]);
-
-			if (step >= PM_STOP_EPSILON) {
-				pm->step = pm->s.origin[2] - org[2];
-
-				if (step >= 2.0) {
-					pm->s.flags |= PMF_ON_STAIRS;
-					Pm_Debug("Step %2.1f\n", pm->step);
-				}
-
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-/*
  * @brief
  */
 static void Pm_StepSlideMove(void) {
 	vec3_t org, vel;
+	vec3_t down, up;
 
 	// save our initial position and velocity to step from
 	VectorCopy(pm->s.origin, org);
 	VectorCopy(pm->s.velocity, vel);
 
-	// if something blocked us, try to step over it
-	if (!Pm_SlideMove() && !(pm->s.flags & PMF_ON_LADDER)) {
-		vec3_t org0, vel0;
+	if (Pm_SlideMove()) { // we weren't blocked, we're done
 
-		// save the initial results in case stepping up fails
-		VectorCopy(pm->s.origin, org0);
-		VectorCopy(pm->s.velocity, vel0);
+		// but first, try to step down to remain on the ground
+//		if ((pm->s.flags & PMF_ON_GROUND) && !(pm->s.flags & PMF_TIME_TRICK_JUMP)) {
+//
+//			if (pm->s.velocity[2] < PM_SPEED_UP) {
+//
+//				VectorMA(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, vec3_down, down);
+//				cm_trace_t trace = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
+//				if (!trace.all_solid) {
+//					VectorCopy(trace.end, pm->s.origin);
+//
+//					pm->step = pm->s.origin[2] - org[2];
+//					if (pm->step <= -4.0) {
+//						pm->s.flags |= PMF_ON_STAIRS;
+//					}
+//				}
+//			}
+//		}
 
-		// and step with the original position and velocity
-		VectorCopy(org, pm->s.origin);
-		VectorCopy(vel, pm->s.velocity);
-
-		// if the step succeeds, select the more productive of the two moves
-		if (Pm_StepMove(true)) {
-			vec3_t delta0, delta1;
-
-			VectorSubtract(org0, org, delta0);
-			VectorSubtract(pm->s.origin, org, delta1);
-
-			delta0[2] = delta1[2] = 0.0;
-
-			// if the step wasn't productive, revert it
-			if (VectorLength(delta0) > VectorLength(delta1)) {
-				Pm_Debug("Reverting step %2.1f\n", pm->step);
-
-				VectorCopy(org0, pm->s.origin);
-				VectorCopy(vel0, pm->s.velocity);
-
-				pm->s.flags &= ~PMF_ON_STAIRS;
-				pm->step = 0.0;
-			}
-		} else {
-			VectorCopy(org0, pm->s.origin);
-			VectorCopy(vel0, pm->s.velocity);
-		}
+		return;
 	}
 
-	// try to step down to remain on the ground
-	if ((pm->s.flags & PMF_ON_GROUND) && !(pm->s.flags & PMF_TIME_TRICK_JUMP)) {
+	if (pm->s.flags & PMF_ON_LADDER) { // we're on a ladder, we're done
+		return;
+	}
 
-		// but only if we're not already climbing up
-		if (pm->step < PM_STOP_EPSILON && pm->s.velocity[2] < PM_SPEED_UP) {
-			vec3_t org0, vel0;
+	// don't step up if we still have upward velocity, and there's no ground
 
-			// save these initial results in case stepping down fails
-			VectorCopy(pm->s.origin, org0);
-			VectorCopy(pm->s.velocity, vel0);
+	VectorMA(org, PM_STEP_HEIGHT + PM_GROUND_DIST, vec3_down, down);
+	cm_trace_t trace = pm->Trace(org, down, pm->mins, pm->maxs);
+	if (pm->s.velocity[2] > PM_SPEED_UP && (trace.ent == NULL || trace.plane.normal[2] < PM_STEP_NORMAL)) {
+		return;
+	}
 
-			if (!Pm_StepMove(false)) {
-				VectorCopy(org0, pm->s.origin);
-				VectorCopy(vel0, pm->s.velocity);
-			}
-		}
+	// try to step up
+
+	VectorMA(org, PM_STEP_HEIGHT, vec3_up, up);
+	trace = pm->Trace(org, up, pm->mins, pm->maxs);
+	if (trace.all_solid) {
+		return;
+	}
+
+	VectorCopy(trace.end, pm->s.origin);
+	VectorCopy(vel, pm->s.velocity);
+
+	Pm_SlideMove();
+
+	// settle to the new ground
+
+	VectorMA(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, vec3_down, down);
+	trace = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
+	if (!trace.all_solid) {
+		VectorCopy(trace.end, pm->s.origin);
+	}
+
+	if (trace.fraction < 1.0) {
+		Pm_ClipVelocity(pm->s.velocity, trace.plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
+	}
+
+	pm->step = pm->s.origin[2] - org[2];
+	if (pm->step >= 4.0) {
+		pm->s.flags |= PMF_ON_STAIRS;
+	} else {
+		pm->step = 0.0;
 	}
 }
 
@@ -525,11 +459,17 @@ static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
 }
 
 /*
- * @brief Determine state for the current position. This involves resolving the
- * ground entity, water level, and water type.
+ * @brief Checks for ground interaction, enabling trick jumping and dealing with landings.
  */
-static void Pm_CategorizePosition(void) {
+static void Pm_CheckGround(void) {
 	vec3_t pos;
+
+	// if we've just jumped, then we are implicitly no longer on the ground
+	if (pm->s.flags & PMF_JUMPED) {
+		pm->s.flags &= ~PMF_ON_GROUND;
+		pm->ground_entity = NULL;
+		return;
+	}
 
 	// seek ground eagerly if the player wishes to trick jump
 	const _Bool trick_jump = Pm_CheckTrickJump();
@@ -598,8 +538,14 @@ static void Pm_CategorizePosition(void) {
 
 	// always touch the entity, even if we couldn't stand on it
 	Pm_TouchEnt(trace.ent);
+}
 
-	// get water level, accounting for ducking
+/*
+ * @brief Checks for water interaction, accounting for player ducking, etc.
+ */
+static void Pm_CheckWater(void) {
+	vec3_t pos;
+
 	pm->water_level = pm->water_type = 0;
 
 	VectorCopy(pm->s.origin, pos);
@@ -687,10 +633,6 @@ static void Pm_CheckDuck(void) {
  */
 static _Bool Pm_CheckJump(void) {
 
-	// not on ground yet
-	if (!(pm->s.flags & PMF_ON_GROUND))
-		return false;
-
 	// must wait for landing damage to subside
 	if (pm->s.flags & PMF_TIME_LAND)
 		return false;
@@ -711,7 +653,7 @@ static _Bool Pm_CheckJump(void) {
 		jump *= PM_SPEED_JUMP_MOD_WATER;
 	}
 
-	// adding the double jump if eligible
+	// adding the trick jump if eligible
 	if (pm->s.flags & PMF_TIME_TRICK_JUMP) {
 		jump += PM_SPEED_TRICK_JUMP;
 
@@ -731,10 +673,6 @@ static _Bool Pm_CheckJump(void) {
 
 	// indicate that jump is currently held
 	pm->s.flags |= (PMF_JUMPED | PMF_JUMP_HELD);
-
-	// clear the ground indicators
-	pm->s.flags &= ~PMF_ON_GROUND;
-	pm->ground_entity = NULL;
 
 	return true;
 }
@@ -1150,7 +1088,6 @@ static void Pm_ClampAngles(void) {
  */
 static void Pm_SpectatorMove() {
 	vec3_t vel;
-	vec_t speed;
 
 	Pm_Friction();
 
@@ -1162,7 +1099,7 @@ static void Pm_SpectatorMove() {
 	// add explicit Z
 	vel[2] += pm->cmd.up;
 
-	speed = VectorNormalize(vel);
+	vec_t speed = VectorNormalize(vel);
 	speed = Clamp(speed, 0.0, PM_SPEED_SPECTATOR);
 
 	// accelerate
@@ -1249,30 +1186,29 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	Pm_InitLocal();
 
-	if (pm->s.type == PM_SPECTATOR) { // fly around without world interaction
+	Pm_ClampAngles();
 
-		Pm_ClampAngles();
-
-		Pm_SpectatorMove();
-
+	if (pm->s.type == PM_FREEZE) { // no movement
 		return;
 	}
 
-	if (pm->s.type == PM_DEAD || pm->s.type == PM_FREEZE) { // no control
-		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
-
-		if (pm->s.type == PM_FREEZE) // no movement
-			return;
+	if (pm->s.type == PM_SPECTATOR) { // no interaction
+		Pm_SpectatorMove();
+		return;
 	}
 
-	// set ground_entity, water_type, and water_level
-	Pm_CategorizePosition();
-
-	// clamp angles based on current position
-	Pm_ClampAngles();
+	if (pm->s.type == PM_DEAD) { // no control
+		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
+	}
 
 	// check for ducking
 	Pm_CheckDuck();
+
+	// check for water level, water type
+	Pm_CheckWater();
+
+	// check for ground
+	Pm_CheckGround();
 
 	// check for ladders
 	Pm_CheckLadder();
@@ -1292,7 +1228,9 @@ void Pm_Move(pm_move_t *pm_move) {
 	}
 
 	// set ground_entity, water_type, and water_level for final spot
-	Pm_CategorizePosition();
+	Pm_CheckGround();
+
+	Pm_CheckWater();
 
 	// touching the ground terminates being pushed
 	if (pm->s.flags & PMF_ON_GROUND) {

@@ -276,7 +276,7 @@ void Cl_Disconnect(void) {
 
 	if (time_demo->value) { // summarize time_demo results
 
-		const vec_t s = (quetoo.time - cl.time_demo_start) / 1000.0;
+		const vec_t s = (cl.systime - cl.time_demo_start) / 1000.0;
 
 		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
 				cl.time_demo_frames / s);
@@ -565,7 +565,6 @@ static void Cl_WriteConfiguration(void) {
  * @brief
  */
 void Cl_Frame(const uint32_t msec) {
-	_Bool packet_frame = true, render_frame = true;
 
 	if (dedicated->value)
 		return;
@@ -580,55 +579,41 @@ void Cl_Frame(const uint32_t msec) {
 	cls.render_delta += msec;
 
 	if (cl_max_fps->modified) { // ensure frame caps are sane
-
-		if (cl_max_fps->value > 0.0 && cl_max_fps->value < 30.0)
-			cl_max_fps->value = 30.0;
-
+		if (cl_max_fps->value > 0.0) {
+			cl_max_fps->value = Clamp(cl_max_fps->value, 30.0, 1000.0);
+		}
 		cl_max_fps->modified = false;
 	}
 
 	if (cl_max_pps->modified) {
-
-		if (cl_max_pps->value > 0.0 && cl_max_pps->value < 30.0)
-			cl_max_pps->value = 30.0;
-
+		if (cl_max_pps->value > 0.0) {
+			cl_max_pps->value = Clamp(cl_max_pps->value, 30.0, 1000.0);
+		}
 		cl_max_pps->modified = false;
 	}
 
+	_Bool packet_frame = true, render_frame = true;
+
 	if (time_demo->value) { // accumulate timed demo statistics
-
-		if (!cl.time_demo_start)
-			cl.time_demo_start = quetoo.time;
-
+		if (!cl.time_demo_start) {
+			cl.time_demo_start = cl.systime;
+		}
 		cl.time_demo_frames++;
 	} else { // check frame rate cap conditions
 
 		if (cl_max_fps->value > 0.0) { // cap render frame rate
 			const uint32_t ms = 1000.0 * time_scale->value / cl_max_fps->value;
-
-			if (cls.render_delta < ms)
+			if (cls.render_delta < ms) {
 				render_frame = false;
+			}
 		}
 
 		if (cl_max_pps->value > 0.0) { // cap net frame rate
 			const uint32_t ms = 1000.0 * time_scale->value / cl_max_pps->value;
-
-			if (cls.packet_delta < ms)
+			if (cls.packet_delta < ms) {
 				packet_frame = false;
+			}
 		}
-	}
-
-	if (!cl_async->value) // run synchronously
-		packet_frame = render_frame;
-
-	if (!render_frame || cls.packet_delta < (1000 / 125))
-		packet_frame = false; // enforce a soft cap of 125pps
-
-	if (cls.state == CL_CONNECTED && cls.packet_delta < (1000 / 60))
-		packet_frame = false; // don't flood the server while downloading
-
-	if (cls.state <= CL_DISCONNECTED && !Com_WasInit(QUETOO_SERVER)) {
-		usleep(16000); // idle at console
 	}
 
 	if (render_frame) {
@@ -657,19 +642,25 @@ void Cl_Frame(const uint32_t msec) {
 		S_Frame();
 
 		cls.render_delta = 0;
-	}
 
-	if (packet_frame || cvar_user_info_modified) {
-		// send command to the server
-		Cl_SendCmd();
+		if (packet_frame || cl_async->integer == 0) {
 
-		// resend a connection request if necessary
-		Cl_CheckForResend();
+			// send command to the server
+			Cl_SendCmd();
 
-		// run http downloads
-		Cl_HttpThink();
+			// resend a connection request if necessary
+			Cl_CheckForResend();
 
-		cls.packet_delta = 0;
+			// run http downloads
+			Cl_HttpThink();
+
+			cls.packet_delta = 0;
+		}
+
+		// enforce a cap of 60fps while idle or connecting
+		if (cls.state < CL_LOADING && !Com_WasInit(QUETOO_SERVER)) {
+			usleep(16000);
+		}
 	}
 }
 
