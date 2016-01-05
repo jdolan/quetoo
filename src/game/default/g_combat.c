@@ -137,9 +137,12 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 	const int16_t quantity = ent->client->locals.inventory[ITEM_INDEX(armor)];
 
 	vec_t protection = 0.0;
-	vec_t waste = 0.0;
+	vec_t waste = 1.0;
 
-	switch (armor->tag) {
+	// energy weaps cut through armor more
+	int16_t type = (dflags & DMG_ENERGY) ? armor->tag-1 : armor->tag;
+
+	switch (type) {
 		case ARMOR_BODY:
 			protection = 0.75;
 			waste = 0.65;
