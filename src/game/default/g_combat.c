@@ -137,21 +137,25 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 	const int16_t quantity = ent->client->locals.inventory[ITEM_INDEX(armor)];
 
 	vec_t protection = 0.0;
+	vec_t waste = 0.0;
 
 	switch (armor->tag) {
 		case ARMOR_BODY:
-			protection = 1.0;
+			protection = 0.75;
+			waste = 0.65;
 			break;
 		case ARMOR_COMBAT:
 			protection = 0.66;
+			waste = 0.75;
 			break;
 		case ARMOR_JACKET:
-			protection = 0.5;
+			protection = 0.33;
+			waste = 0.85;
 			break;
 	}
 
 	const int16_t saved = Clamp(protection * damage, 0, quantity);
-	ent->client->locals.inventory[ITEM_INDEX(armor)] -= saved;
+	ent->client->locals.inventory[ITEM_INDEX(armor)] -= (saved * waste);
 
 	G_SpawnDamage(TE_BLOOD, pos, normal, saved);
 
