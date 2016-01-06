@@ -704,10 +704,6 @@ typedef struct {
 	int16_t max_slugs;
 	int16_t max_nukes;
 
-	int16_t max_body_armor;
-	int16_t max_combat_armor;
-	int16_t max_jacket_armor;
-
 	const g_item_t *weapon;
 	const g_item_t *prev_weapon;
 	const g_item_t *next_weapon;
