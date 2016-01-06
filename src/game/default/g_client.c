@@ -567,6 +567,11 @@ static void G_InitClientInventory(g_entity_t *ent) {
 	ent->client->locals.max_slugs = 50;
 	ent->client->locals.max_nukes = 10;
 
+	// set armor maxes
+	ent->client->locals.max_body_armor = 200;
+	ent->client->locals.max_combat_armor = 100;
+	ent->client->locals.max_jacket_armor = 50;
+
 	// instagib gets railgun and slugs, both in normal mode and warmup
 	if (g_level.gameplay == GAME_INSTAGIB) {
 		G_Give(ent, "Railgun", 1000);

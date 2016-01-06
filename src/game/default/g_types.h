@@ -379,6 +379,17 @@ typedef struct g_item_s {
 } g_item_t;
 
 /*
+ * @brief Have to keep track of armor attributes somewhere
+ */
+typedef struct {
+    int     base_count;
+    int     max_count;
+    float   normal_protection;
+    float   energy_protection;
+    int     armor;
+} g_armor_info_t;
+
+/*
  * @brief A singleton container used to hold entity information that is set
  * in the editor (and thus the entities string) but that does not map directly
  * to a field in g_entity_t.
@@ -692,6 +703,10 @@ typedef struct {
 	int16_t max_bolts;
 	int16_t max_slugs;
 	int16_t max_nukes;
+
+	int16_t max_body_armor;
+	int16_t max_combat_armor;
+	int16_t max_jacket_armor;
 
 	const g_item_t *weapon;
 	const g_item_t *prev_weapon;

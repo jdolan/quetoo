@@ -25,6 +25,10 @@
 const vec3_t ITEM_MINS = { -16.0, -16.0, -16.0 };
 const vec3_t ITEM_MAXS = { 16.0, 16.0, 16.0 };
 
+const g_armor_info_t bodyarmor_info = { 100, 200, 0.8, 0.6, ARMOR_BODY };
+const g_armor_info_t combatarmor_info = { 50, 100, 0.6, 0.3, ARMOR_COMBAT };
+const g_armor_info_t jacketarmor_info = { 25, 50, 0.3, 0.0, ARMOR_JACKET };
+
 #define ITEM_SCALE 1.0
 
 /*
@@ -332,29 +336,76 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 }
 
 /*
+ * @brief Get the g_armor_info_t for the supplied item
+ */
+const g_armor_info_t *G_GetArmorInfo(const g_item_t *armor) {
+	if (!armor)
+		return NULL;
+
+	switch (armor->tag) {
+		case ARMOR_BODY:
+			return &bodyarmor_info;
+			break;
+		case ARMOR_COMBAT:
+			return &combatarmor_info;
+			break;
+		case ARMOR_JACKET:
+			return &jacketarmor_info;
+			break;
+		default:
+			return NULL;
+	}
+}
+
+/*
  * @brief
  */
 static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
-	const g_item_t *armor = ent->locals.item;
+	const g_item_t *new_armor = ent->locals.item;
+	const g_item_t *current_armor = G_ClientArmor(other);
+
+	const g_armor_info_t *new_info = G_GetArmorInfo(new_armor);
+	const g_armor_info_t *current_info = G_GetArmorInfo(current_armor);
+	
+	vec_t salvage;
+	int16_t salvage_count;
+	int16_t new_count;
 
 	_Bool taken = false;
-	if (armor->tag == ARMOR_SHARD) { // take it, ignoring cap
-		const g_item_t *old_armor = G_ClientArmor(other);
-		if (old_armor) {
-			other->client->locals.inventory[ITEM_INDEX(old_armor)] += armor->quantity;
+
+	if (new_armor->tag == ARMOR_SHARD) { // take it, ignoring cap
+		if (current_armor) {
+			other->client->locals.inventory[ITEM_INDEX(current_armor)] += new_armor->quantity;
 		} else {
-			other->client->locals.inventory[g_media.items.jacket_armor] = armor->quantity;
+			other->client->locals.inventory[g_media.items.jacket_armor] = new_armor->quantity;
 		}
 		taken = true;
+	} else if (!current_armor) {
+		other->client->locals.inventory[ITEM_INDEX(new_armor)] = new_armor->quantity;
+		taken = true;
 	} else {
-		if (other->client->locals.inventory[ITEM_INDEX(armor)] < armor->quantity) {
-			other->client->locals.inventory[ITEM_INDEX(armor)] = armor->quantity;
-			taken = true;
+		if (new_info->normal_protection > current_info->normal_protection) {
+			salvage = current_info->normal_protection / new_info->normal_protection;
+			salvage_count = salvage * other->client->locals.inventory[ITEM_INDEX(current_armor)];
+			new_count = salvage_count + new_armor->quantity;
+			new_count = Clamp(new_count, 0, new_info->max_count);
+			other->client->locals.inventory[ITEM_INDEX(new_armor)] = new_count;
+			other->client->locals.inventory[ITEM_INDEX(current_armor)] = 0;
+			taken = true;	
+		} else {
+			salvage = new_info->normal_protection / current_info->normal_protection;
+                        salvage_count = salvage * new_armor->quantity;
+                        new_count = salvage_count + other->client->locals.inventory[ITEM_INDEX(current_armor)];
+			new_count = Clamp(new_count, 0, current_info->max_count);
+			if (other->client->locals.inventory[ITEM_INDEX(current_armor)] >= new_count)
+				return false;
+                        other->client->locals.inventory[ITEM_INDEX(current_armor)] = new_count;
+                        taken = true;
 		}
 	}
 
 	if (taken && !(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
-		switch (armor->tag) {
+		switch (new_armor->tag) {
 			case ARMOR_SHARD:
 				G_SetItemRespawn(ent, 20000);
 				break;
@@ -366,7 +417,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 				G_SetItemRespawn(ent, 90000);
 				break;
 			default:
-				gi.Debug("Invalid armor tag: %d\n", armor->tag);
+				gi.Debug("Invalid armor tag: %d\n", new_armor->tag);
 				break;
 		}
 	}
@@ -893,7 +944,7 @@ const g_item_t g_items[] = {
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"pics/i_bodyarmor",
 		"Body Armor",
-		200,
+		100,
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_BODY,
@@ -925,7 +976,7 @@ const g_item_t g_items[] = {
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"pics/i_combatarmor",
 		"Combat Armor",
-		100,
+		50,
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_COMBAT,
@@ -957,7 +1008,7 @@ const g_item_t g_items[] = {
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"pics/i_jacketarmor",
 		"Jacket Armor",
-		50,
+		25,
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_JACKET,

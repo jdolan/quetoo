@@ -130,35 +130,21 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 		return 0;
 
 	const g_item_t *armor = G_ClientArmor(ent);
+	const g_armor_info_t *armor_info = G_GetArmorInfo(armor); 
 
 	if (!armor)
 		return 0;
 
 	const int16_t quantity = ent->client->locals.inventory[ITEM_INDEX(armor)];
+	int16_t saved;
 
-	vec_t protection = 0.0;
-	vec_t burnrate = 1.0;
+	
+	if (dflags & DMG_ENERGY)
+		saved = Clamp(damage * armor_info->energy_protection, 0, quantity);
+	else
+		saved = Clamp(damage * armor_info->normal_protection, 0, quantity);	
 
-	// energy weaps cut through armor more
-	const int16_t type = (dflags & DMG_ENERGY) ? armor->tag-1 : armor->tag;
-
-	switch (type) {
-		case ARMOR_BODY:
-			protection = 0.75;
-			burnrate = 1.35;
-			break;
-		case ARMOR_COMBAT:
-			protection = 0.66;
-			burnrate = 1.25;
-			break;
-		case ARMOR_JACKET:
-			protection = 0.33;
-			burnrate = 1.15;
-			break;
-	}
-
-	const int16_t saved = Clamp(protection * damage, 0, quantity);
-	ent->client->locals.inventory[ITEM_INDEX(armor)] -= (saved / burnrate);
+	ent->client->locals.inventory[ITEM_INDEX(armor)] -= saved;
 
 	G_SpawnDamage(TE_BLOOD, pos, normal, saved);
 
