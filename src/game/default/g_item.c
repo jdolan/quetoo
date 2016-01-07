@@ -393,21 +393,21 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 			other->client->locals.inventory[ITEM_INDEX(new_armor)] = new_count;
 			other->client->locals.inventory[ITEM_INDEX(current_armor)] = 0;
-			taken = true;	
+			taken = true;
 		} else {
 			// same, in reverse since we picked up weaker armor than we had
 			salvage = new_info->normal_protection / current_info->normal_protection;
-                        salvage_count = salvage * new_armor->quantity;
+			salvage_count = salvage * new_armor->quantity;
 
-                        new_count = salvage_count + other->client->locals.inventory[ITEM_INDEX(current_armor)];
+			new_count = salvage_count + other->client->locals.inventory[ITEM_INDEX(current_armor)];
 			new_count = Clamp(new_count, 0, current_info->max_count);
-			
+
 			// we're full, don't pick it up
 			if (other->client->locals.inventory[ITEM_INDEX(current_armor)] >= new_count)
 				return false;
 
-                        other->client->locals.inventory[ITEM_INDEX(current_armor)] = new_count;
-                        taken = true;
+			other->client->locals.inventory[ITEM_INDEX(current_armor)] = new_count;
+			taken = true;
 		}
 	}
 
