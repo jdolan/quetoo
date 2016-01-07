@@ -25,9 +25,16 @@
 const vec3_t ITEM_MINS = { -16.0, -16.0, -16.0 };
 const vec3_t ITEM_MAXS = { 16.0, 16.0, 16.0 };
 
-const g_armor_info_t bodyarmor_info = { 100, 200, 0.8, 0.6, ARMOR_BODY };
-const g_armor_info_t combatarmor_info = { 50, 100, 0.6, 0.3, ARMOR_COMBAT };
-const g_armor_info_t jacketarmor_info = { 25, 50, 0.3, 0.0, ARMOR_JACKET };
+g_armor_info_t armor_info[] = {
+	{ 100, 200, 0.8, 0.6, ARMOR_BODY },
+	{ 50, 100, 0.6, 0.3, ARMOR_COMBAT },
+	{ 25, 50, 0.3, 0.0, ARMOR_JACKET }
+};
+
+// move this somewhere
+//armor_info[0] = { 100, 200, 0.8, 0.6, ARMOR_BODY };
+//armor_info[1] = { 50, 100, 0.6, 0.3, ARMOR_COMBAT };
+//armor_info[2] = { 25, 50, 0.3, 0.0, ARMOR_JACKET };
 
 #define ITEM_SCALE 1.0
 
@@ -338,34 +345,31 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 /*
  * @brief Get the g_armor_info_t for the supplied item
  */
-const g_armor_info_t *G_GetArmorInfo(const g_item_t *armor) {
+const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
+
 	if (!armor)
 		return NULL;
 
-	switch (armor->tag) {
-		case ARMOR_BODY:
-			return &bodyarmor_info;
-			break;
-		case ARMOR_COMBAT:
-			return &combatarmor_info;
-			break;
-		case ARMOR_JACKET:
-			return &jacketarmor_info;
-			break;
-		default:
-			return NULL;
+	for (uint8_t i=0; i<sizeof(armor_info); i++) {
+		if (armor->tag == armor_info[i].armor) {
+			
+			return &armor_info[i];
+		}
 	}
+
+	return NULL;
 }
 
 /*
  * @brief
  */
 static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
+
 	const g_item_t *new_armor = ent->locals.item;
 	const g_item_t *current_armor = G_ClientArmor(other);
 
-	const g_armor_info_t *new_info = G_GetArmorInfo(new_armor);
-	const g_armor_info_t *current_info = G_GetArmorInfo(current_armor);
+	const g_armor_info_t *new_info = G_ArmorInfo(new_armor);
+	const g_armor_info_t *current_info = G_ArmorInfo(current_armor);
 	
 	vec_t salvage;
 	int16_t salvage_count;
@@ -380,25 +384,35 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 			other->client->locals.inventory[g_media.items.jacket_armor] = new_armor->quantity;
 		}
 		taken = true;
-	} else if (!current_armor) {
+	} else if (!current_armor) { // no current armor, take it
 		other->client->locals.inventory[ITEM_INDEX(new_armor)] = new_armor->quantity;
 		taken = true;
 	} else {
+		// we picked up stronger armor than we currently had
 		if (new_info->normal_protection > current_info->normal_protection) {
+
+			// get the ratio between the new and old armor to add a portion to
+			// new armor pickup. Ganked from q2pro (thanks skuller) 
 			salvage = current_info->normal_protection / new_info->normal_protection;
 			salvage_count = salvage * other->client->locals.inventory[ITEM_INDEX(current_armor)];
-			new_count = salvage_count + new_armor->quantity;
-			new_count = Clamp(new_count, 0, new_info->max_count);
+
+			new_count = Clamp(salvage_count + new_armor->quantity, 0, new_info->max_count);
+
 			other->client->locals.inventory[ITEM_INDEX(new_armor)] = new_count;
 			other->client->locals.inventory[ITEM_INDEX(current_armor)] = 0;
 			taken = true;	
 		} else {
+			// same, in reverse since we picked up weaker armor than we had
 			salvage = new_info->normal_protection / current_info->normal_protection;
                         salvage_count = salvage * new_armor->quantity;
+
                         new_count = salvage_count + other->client->locals.inventory[ITEM_INDEX(current_armor)];
 			new_count = Clamp(new_count, 0, current_info->max_count);
+			
+			// we're full, don't pick it up
 			if (other->client->locals.inventory[ITEM_INDEX(current_armor)] >= new_count)
 				return false;
+
                         other->client->locals.inventory[ITEM_INDEX(current_armor)] = new_count;
                         taken = true;
 		}

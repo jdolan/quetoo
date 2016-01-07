@@ -130,7 +130,7 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 		return 0;
 
 	const g_item_t *armor = G_ClientArmor(ent);
-	const g_armor_info_t *armor_info = G_GetArmorInfo(armor); 
+	const g_armor_info_t *armor_info = G_ArmorInfo(armor); 
 
 	if (!armor)
 		return 0;
