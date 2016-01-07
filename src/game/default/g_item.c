@@ -31,11 +31,6 @@ g_armor_info_t armor_info[] = {
 	{ 25, 50, 0.3, 0.0, ARMOR_JACKET }
 };
 
-// move this somewhere
-//armor_info[0] = { 100, 200, 0.8, 0.6, ARMOR_BODY };
-//armor_info[1] = { 50, 100, 0.6, 0.3, ARMOR_COMBAT };
-//armor_info[2] = { 25, 50, 0.3, 0.0, ARMOR_JACKET };
-
 #define ITEM_SCALE 1.0
 
 /*
