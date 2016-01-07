@@ -45,6 +45,7 @@ const g_item_t *G_FindItem(const char *name);
 const g_item_t *G_FindItemByClassName(const char *class_name);
 const g_item_t *G_ItemByIndex(uint16_t index);
 const g_item_t *G_ClientArmor(const g_entity_t *ent);
+const g_armor_info_t *G_ArmorInfo(const g_item_t *armor);
 void G_PrecacheItem(const g_item_t *it);
 void G_ResetDroppedFlag(g_entity_t *ent);
 void G_ResetItem(g_entity_t *ent);

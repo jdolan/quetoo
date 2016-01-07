@@ -308,6 +308,17 @@ typedef enum {
 } g_armor_t;
 
 /*
+ * @brief Armor attributes.
+ */
+typedef struct {
+	g_armor_t tag;
+	int16_t base_count;
+	int16_t max_count;
+	vec_t normal_protection;
+	vec_t energy_protection;
+} g_armor_info_t;
+
+/*
  * @brief Health types.
  */
 typedef enum {
