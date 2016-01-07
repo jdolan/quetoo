@@ -25,12 +25,6 @@
 const vec3_t ITEM_MINS = { -16.0, -16.0, -16.0 };
 const vec3_t ITEM_MAXS = { 16.0, 16.0, 16.0 };
 
-g_armor_info_t armor_info[] = {
-	{ 100, 200, 0.8, 0.6, ARMOR_BODY },
-	{ 50, 100, 0.6, 0.3, ARMOR_COMBAT },
-	{ 25, 50, 0.3, 0.0, ARMOR_JACKET }
-};
-
 #define ITEM_SCALE 1.0
 
 /*
@@ -338,16 +332,20 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 }
 
 /*
- * @brief Get the g_armor_info_t for the supplied item
+ * @return The g_armor_info_t for the specified item.
  */
 const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
+	static const g_armor_info_t armor_info[] = {
+		{ ARMOR_BODY, 100, 200, 0.8, 0.6 },
+		{ ARMOR_COMBAT, 50, 100, 0.6, 0.3 },
+		{ ARMOR_JACKET, 25, 50, 0.3, 0.0 }
+	};
 
 	if (!armor)
 		return NULL;
 
-	for (uint8_t i=0; i<sizeof(armor_info); i++) {
-		if (armor->tag == armor_info[i].armor) {
-			
+	for (size_t i = 0; i < lengthof(armor_info); i++) {
+		if (armor->tag == armor_info[i].tag) {
 			return &armor_info[i];
 		}
 	}

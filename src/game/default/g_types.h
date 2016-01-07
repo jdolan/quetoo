@@ -308,6 +308,17 @@ typedef enum {
 } g_armor_t;
 
 /*
+ * @brief Armor attributes.
+ */
+typedef struct {
+	g_armor_t tag;
+	int16_t base_count;
+	int16_t max_count;
+	vec_t normal_protection;
+	vec_t energy_protection;
+} g_armor_info_t;
+
+/*
  * @brief Health types.
  */
 typedef enum {
@@ -377,17 +388,6 @@ typedef struct g_item_s {
 
 	const char *precaches; // string of all models, sounds, and images this item will use
 } g_item_t;
-
-/*
- * @brief Have to keep track of armor attributes somewhere
- */
-typedef struct {
-    int     base_count;
-    int     max_count;
-    float   normal_protection;
-    float   energy_protection;
-    int     armor;
-} g_armor_info_t;
 
 /*
  * @brief A singleton container used to hold entity information that is set
