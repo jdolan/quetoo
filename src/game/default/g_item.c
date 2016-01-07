@@ -364,10 +364,6 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	const g_armor_info_t *new_info = G_ArmorInfo(new_armor);
 	const g_armor_info_t *current_info = G_ArmorInfo(current_armor);
 	
-	vec_t salvage;
-	int16_t salvage_count;
-	int16_t new_count;
-
 	_Bool taken = false;
 
 	if (new_armor->tag == ARMOR_SHARD) { // take it, ignoring cap
@@ -386,28 +382,27 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 			// get the ratio between the new and old armor to add a portion to
 			// new armor pickup. Ganked from q2pro (thanks skuller) 
-			salvage = current_info->normal_protection / new_info->normal_protection;
-			salvage_count = salvage * other->client->locals.inventory[ITEM_INDEX(current_armor)];
+			const vec_t salvage = current_info->normal_protection / new_info->normal_protection;
+			const int16_t salvage_count = salvage * other->client->locals.inventory[ITEM_INDEX(current_armor)];
 
-			new_count = Clamp(salvage_count + new_armor->quantity, 0, new_info->max_count);
+			const int16_t new_count = Clamp(salvage_count + new_armor->quantity, 0, new_info->max_count);
 
 			other->client->locals.inventory[ITEM_INDEX(new_armor)] = new_count;
 			other->client->locals.inventory[ITEM_INDEX(current_armor)] = 0;
 			taken = true;
 		} else {
-			// same, in reverse since we picked up weaker armor than we had
-			salvage = new_info->normal_protection / current_info->normal_protection;
-			salvage_count = salvage * new_armor->quantity;
+			// we picked up the same, or weaker
+			const vec_t salvage = new_info->normal_protection / current_info->normal_protection;
+			const int16_t salvage_count = salvage * new_armor->quantity;
 
-			new_count = salvage_count + other->client->locals.inventory[ITEM_INDEX(current_armor)];
+			int16_t new_count = salvage_count + other->client->locals.inventory[ITEM_INDEX(current_armor)];
 			new_count = Clamp(new_count, 0, current_info->max_count);
 
-			// we're full, don't pick it up
-			if (other->client->locals.inventory[ITEM_INDEX(current_armor)] >= new_count)
-				return false;
-
-			other->client->locals.inventory[ITEM_INDEX(current_armor)] = new_count;
-			taken = true;
+			// take it
+			if (other->client->locals.inventory[ITEM_INDEX(current_armor)] < new_count) {
+				other->client->locals.inventory[ITEM_INDEX(current_armor)] = new_count;
+				taken = true;
+			}
 		}
 	}
 
