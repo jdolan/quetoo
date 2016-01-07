@@ -332,29 +332,82 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 }
 
 /*
+ * @return The g_armor_info_t for the specified item.
+ */
+const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
+	static const g_armor_info_t armor_info[] = {
+		{ ARMOR_BODY, 100, 200, 0.8, 0.6 },
+		{ ARMOR_COMBAT, 50, 100, 0.6, 0.3 },
+		{ ARMOR_JACKET, 25, 50, 0.3, 0.0 }
+	};
+
+	if (!armor)
+		return NULL;
+
+	for (size_t i = 0; i < lengthof(armor_info); i++) {
+		if (armor->tag == armor_info[i].tag) {
+			return &armor_info[i];
+		}
+	}
+
+	return NULL;
+}
+
+/*
  * @brief
  */
 static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
-	const g_item_t *armor = ent->locals.item;
 
+	const g_item_t *new_armor = ent->locals.item;
+	const g_item_t *current_armor = G_ClientArmor(other);
+
+	const g_armor_info_t *new_info = G_ArmorInfo(new_armor);
+	const g_armor_info_t *current_info = G_ArmorInfo(current_armor);
+	
 	_Bool taken = false;
-	if (armor->tag == ARMOR_SHARD) { // take it, ignoring cap
-		const g_item_t *old_armor = G_ClientArmor(other);
-		if (old_armor) {
-			other->client->locals.inventory[ITEM_INDEX(old_armor)] += armor->quantity;
+
+	if (new_armor->tag == ARMOR_SHARD) { // take it, ignoring cap
+		if (current_armor) {
+			other->client->locals.inventory[ITEM_INDEX(current_armor)] += new_armor->quantity;
 		} else {
-			other->client->locals.inventory[g_media.items.jacket_armor] = armor->quantity;
+			other->client->locals.inventory[g_media.items.jacket_armor] = new_armor->quantity;
 		}
 		taken = true;
+	} else if (!current_armor) { // no current armor, take it
+		other->client->locals.inventory[ITEM_INDEX(new_armor)] = new_armor->quantity;
+		taken = true;
 	} else {
-		if (other->client->locals.inventory[ITEM_INDEX(armor)] < armor->quantity) {
-			other->client->locals.inventory[ITEM_INDEX(armor)] = armor->quantity;
+		// we picked up stronger armor than we currently had
+		if (new_info->normal_protection > current_info->normal_protection) {
+
+			// get the ratio between the new and old armor to add a portion to
+			// new armor pickup. Ganked from q2pro (thanks skuller) 
+			const vec_t salvage = current_info->normal_protection / new_info->normal_protection;
+			const int16_t salvage_count = salvage * other->client->locals.inventory[ITEM_INDEX(current_armor)];
+
+			const int16_t new_count = Clamp(salvage_count + new_armor->quantity, 0, new_info->max_count);
+
+			other->client->locals.inventory[ITEM_INDEX(new_armor)] = new_count;
+			other->client->locals.inventory[ITEM_INDEX(current_armor)] = 0;
 			taken = true;
+		} else {
+			// we picked up the same, or weaker
+			const vec_t salvage = new_info->normal_protection / current_info->normal_protection;
+			const int16_t salvage_count = salvage * new_armor->quantity;
+
+			int16_t new_count = salvage_count + other->client->locals.inventory[ITEM_INDEX(current_armor)];
+			new_count = Clamp(new_count, 0, current_info->max_count);
+
+			// take it
+			if (other->client->locals.inventory[ITEM_INDEX(current_armor)] < new_count) {
+				other->client->locals.inventory[ITEM_INDEX(current_armor)] = new_count;
+				taken = true;
+			}
 		}
 	}
 
 	if (taken && !(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
-		switch (armor->tag) {
+		switch (new_armor->tag) {
 			case ARMOR_SHARD:
 				G_SetItemRespawn(ent, 20000);
 				break;
@@ -366,7 +419,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 				G_SetItemRespawn(ent, 90000);
 				break;
 			default:
-				gi.Debug("Invalid armor tag: %d\n", armor->tag);
+				gi.Debug("Invalid armor tag: %d\n", new_armor->tag);
 				break;
 		}
 	}
@@ -893,7 +946,7 @@ const g_item_t g_items[] = {
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"pics/i_bodyarmor",
 		"Body Armor",
-		200,
+		100,
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_BODY,
@@ -925,7 +978,7 @@ const g_item_t g_items[] = {
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"pics/i_combatarmor",
 		"Combat Armor",
-		100,
+		50,
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_COMBAT,
@@ -957,7 +1010,7 @@ const g_item_t g_items[] = {
 		EF_ROTATE | EF_BOB | EF_PULSE,
 		"pics/i_jacketarmor",
 		"Jacket Armor",
-		50,
+		25,
 		NULL,
 		ITEM_ARMOR,
 		ARMOR_JACKET,

@@ -159,7 +159,7 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 	if (!G_IsSky(surf)) {
 
 		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, plane->normal,
-				self->locals.damage, self->locals.knockback, 0, MOD_BLASTER);
+				self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_BLASTER);
 
 		if (G_IsStructural(other, surf)) {
 			vec3_t origin;
