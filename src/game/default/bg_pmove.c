@@ -333,13 +333,8 @@ static void Pm_StepSlideMove(void) {
 			const cm_trace_t step_down = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
 			if (Pm_StepMove(&step_down)) {
 
-				VectorCopy(step_down.end, pm->s.origin);
-
 				// Quake2 trick jump secret sauce
-				if (vel0[2] >= PM_SPEED_UP) {
-					pm->s.origin[2] = MAX(org1[2], org2[2]);
-					pm->s.velocity[2] = MAX(vel0[2], vel2[2]);
-				} else {
+				if (vel0[2] < PM_SPEED_UP) {
 					VectorCopy(step_down.end, pm->s.origin);
 					Pm_ClipVelocity(pm->s.velocity, step_down.plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
 				}
@@ -751,6 +746,10 @@ static _Bool Pm_CheckJump(void) {
 
 	// indicate that jump is currently held
 	pm->s.flags |= (PMF_JUMPED | PMF_JUMP_HELD);
+
+	// clear the ground indicators
+	pm->s.flags &= ~PMF_ON_GROUND;
+	pm->ground_entity = NULL;
 
 	return true;
 }
