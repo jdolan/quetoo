@@ -200,6 +200,9 @@ static void Cl_Print(const console_string_t *str) {
  */
 void Cl_ToggleConsole_f(void) {
 
+	if (cls.state == CL_LOADING)
+		return;
+
 	if (cls.key_state.dest == KEY_CONSOLE) {
 		if (cls.state == CL_ACTIVE) {
 			Cl_SetKeyDest(KEY_GAME);
