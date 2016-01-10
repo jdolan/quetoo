@@ -243,26 +243,21 @@ static _Bool Pm_StepMove(_Bool step_up) {
 		if (trace.ent != pm->ground_entity || trace.plane.num != pml.ground_plane.num) {
 
 			// Quake2 trick jumping secret sauce
-			if (step_up && vel[2] >= PM_SPEED_UP) {
-				//pm->s.origin[2] = org1[2];
-			} else {
+			if (vel[2] < PM_SPEED_UP) {
 				pm->s.origin[2] = trace.end[2];
 				Pm_ClipVelocity(pm->s.velocity, trace.plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
 			}
 
 			// calculate the step so that the client may interpolate
-			const vec_t step = fabs(pm->s.origin[2] - org[2]);
-
-			if (step >= PM_STOP_EPSILON) {
-				pm->step = pm->s.origin[2] - org[2];
-
-				if (step >= 2.0) {
-					pm->s.flags |= PMF_ON_STAIRS;
-					Pm_Debug("Step %2.1f\n", pm->step);
-				}
-
-				return true;
+			pm->step = pm->s.origin[2] - org[2];
+			if (fabs(pm->step) >= 4.0) {
+				pm->s.flags |= PMF_ON_STAIRS;
+				Pm_Debug("Step %2.1f\n", pm->step);
+			} else {
+				pm->step = 0.0;
 			}
+
+			return true;
 		}
 	}
 
@@ -517,10 +512,9 @@ static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
 }
 
 /*
- * @brief Determine state for the current position. This involves resolving the
- * ground entity, water level, and water type.
+ * @brief Checks for ground interaction, enabling trick jumping and dealing with landings.
  */
-static void Pm_CategorizePosition(void) {
+static void Pm_CheckGround(void) {
 	vec3_t pos;
 
 	// seek ground eagerly if the player wishes to trick jump
@@ -590,8 +584,14 @@ static void Pm_CategorizePosition(void) {
 
 	// always touch the entity, even if we couldn't stand on it
 	Pm_TouchEnt(trace.ent);
+}
 
-	// get water level, accounting for ducking
+/*
+ * @brief Checks for water interaction, accounting for player ducking, etc.
+ */
+static void Pm_CheckWater(void) {
+	vec3_t pos;
+
 	pm->water_level = pm->water_type = 0;
 
 	VectorCopy(pm->s.origin, pos);
@@ -636,7 +636,7 @@ static void Pm_CheckDuck(void) {
 		pml.view_offset[2] = 0.0;
 	} else {
 
-		if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up < 0) {
+		if (pm->cmd.up < 0) {
 			pm->s.flags |= PMF_DUCKED;
 		} else {
 			cm_trace_t trace = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
@@ -679,10 +679,6 @@ static void Pm_CheckDuck(void) {
  */
 static _Bool Pm_CheckJump(void) {
 
-	// not on ground yet
-	if (!(pm->s.flags & PMF_ON_GROUND))
-		return false;
-
 	// must wait for landing damage to subside
 	if (pm->s.flags & PMF_TIME_LAND)
 		return false;
@@ -703,7 +699,7 @@ static _Bool Pm_CheckJump(void) {
 		jump *= PM_SPEED_JUMP_MOD_WATER;
 	}
 
-	// adding the double jump if eligible
+	// adding the trick jump if eligible
 	if (pm->s.flags & PMF_TIME_TRICK_JUMP) {
 		jump += PM_SPEED_TRICK_JUMP;
 
@@ -753,16 +749,12 @@ static _Bool Pm_CheckPush(void) {
  *
  * @return True if the player is on a ladder, false otherwise.
  */
-static _Bool Pm_CheckLadder(void) {
+static void Pm_CheckLadder(void) {
 	vec3_t forward, pos;
 
 	if (pm->s.flags & PMF_TIME_MASK)
-		return false;
+		return;
 
-	if (pm->cmd.forward < 0)
-		return false;
-
-	// check for ladder
 	VectorCopy(pml.forward, forward);
 	forward[2] = 0.0;
 
@@ -777,11 +769,7 @@ static _Bool Pm_CheckLadder(void) {
 
 		pm->ground_entity = NULL;
 		pm->s.flags &= ~PMF_ON_GROUND;
-
-		return true;
 	}
-
-	return false;
 }
 
 /*
@@ -1073,7 +1061,7 @@ static void Pm_WalkMove(void) {
 
 	// accounting for walk modulus
 	if (pm->cmd.buttons & BUTTON_WALK) {
-		max_speed = max_speed * PM_SPEED_MOD_WALK;
+		max_speed *= PM_SPEED_MOD_WALK;
 	}
 
 	// clamp the speed to max speed
@@ -1241,30 +1229,29 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	Pm_InitLocal();
 
-	if (pm->s.type == PM_SPECTATOR) { // fly around without world interaction
+	Pm_ClampAngles();
 
-		Pm_ClampAngles();
-
-		Pm_SpectatorMove();
-
+	if (pm->s.type == PM_FREEZE) { // no movement
 		return;
 	}
 
-	if (pm->s.type == PM_DEAD || pm->s.type == PM_FREEZE) { // no control
-		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
-
-		if (pm->s.type == PM_FREEZE) // no movement
-			return;
+	if (pm->s.type == PM_SPECTATOR) { // no interaction
+		Pm_SpectatorMove();
+		return;
 	}
 
-	// set ground_entity, water_type, and water_level
-	Pm_CategorizePosition();
-
-	// clamp angles based on current position
-	Pm_ClampAngles();
+	if (pm->s.type == PM_DEAD) { // no control
+		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
+	}
 
 	// check for ducking
 	Pm_CheckDuck();
+
+	// check for water level, water type
+	Pm_CheckWater();
+
+	// check for ground
+	Pm_CheckGround();
 
 	// check for ladders
 	Pm_CheckLadder();
@@ -1283,8 +1270,11 @@ void Pm_Move(pm_move_t *pm_move) {
 		Pm_AirMove();
 	}
 
-	// set ground_entity, water_type, and water_level for final spot
-	Pm_CategorizePosition();
+	// check for ground at new spot
+	Pm_CheckGround();
+
+	// check for water level, water type at new spot
+	Pm_CheckWater();
 
 	// touching the ground terminates being pushed
 	if (pm->s.flags & PMF_ON_GROUND) {
