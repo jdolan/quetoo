@@ -191,7 +191,7 @@ static _Bool Pm_SlideMove(void) {
 	}
 
 	// if we've been deflected backwards, settle to prevent oscillations
-	if (DotProduct(pm->s.velocity, vel0) <= 0.0) {
+	if (num_planes > 2 || DotProduct(pm->s.velocity, vel0) <= 0.0) {
 		VectorClear(pm->s.velocity);
 	}
 
