@@ -66,6 +66,11 @@
 #define PM_GROUND_DIST_TRICK	16.0
 
 /*
+ * @brief If set, use Quake3 step-slide movement.
+ */
+#define PM_QUAKE3 0
+
+/*
  * @brief Speed constants; intended velocities are clipped to these.
  */
 #define PM_SPEED_AIR			350.0
@@ -151,22 +156,22 @@ extern const vec3_t PM_MAXS;
  * game modules and the player movement code.
  */
 typedef struct {
-	pm_state_t s; // movement state (in / out)
-
 	pm_cmd_t cmd; // movement command (in)
 
-	uint16_t num_touch_ents; // results (out)
-	struct g_entity_s *touch_ents[PM_MAX_TOUCH_ENTS];
+	pm_state_t s; // movement state (in / out)
 
-	vec3_t angles; // clamped, and including kick and delta
-	vec3_t mins, maxs; // bounding box size
+	struct g_entity_s *touch_ents[PM_MAX_TOUCH_ENTS]; // entities touched (out)
+	uint16_t num_touch_ents;
 
-	struct g_entity_s *ground_entity;
+	vec3_t angles; // clamped, and including kick and delta (out)
+	vec3_t mins, maxs; // bounding box size (out)
 
-	int32_t water_type;
+	struct g_entity_s *ground_entity; // (out)
+
+	int32_t water_type; // water type and level (out)
 	uint8_t water_level;
 
-	vec_t step; // stair interaction
+	vec_t step; // traversed step height (out)
 
 	// collision with the world and solid entities
 	int32_t (*PointContents)(const vec3_t point);
