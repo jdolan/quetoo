@@ -122,7 +122,7 @@ static void Pm_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, ve
  * @brief Mark the specified entity as touched. This enables the game module to
  * detect player -> entity interactions.
  */
-static void Pm_TouchEnt(struct g_entity_s *ent) {
+static void Pm_TouchEntity(struct g_entity_s *ent) {
 
 	if (ent == NULL) {
 		return;
@@ -166,28 +166,34 @@ static _Bool Pm_SlideMove(void) {
 		VectorMA(pm->s.origin, time_remaining, pm->s.velocity, pos);
 
 		// trace to it
-		cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
+		const cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 
 		// store a reference to the entity for firing game events
-		Pm_TouchEnt(trace.ent);
+		Pm_TouchEntity(trace.ent);
 
-		if (trace.all_solid) { // player is trapped in a solid
+		// if the player is trapped in a solid, don't build up Z
+		if (trace.all_solid) {
 			pm->s.velocity[2] = 0.0;
 			return true;
 		}
 
-		// update the origin
-		VectorCopy(trace.end, pm->s.origin);
+		// if the trace succeeded, move some distance
+		if (trace.fraction > 0.0) {
 
-		if (trace.fraction == 1.0)
-			break;
+			VectorCopy(trace.end, pm->s.origin);
+
+			// if the trace didn't hit anything, we're done
+			if (trace.fraction == 1.0)
+				break;
+		}
+
+		// clip velocity to the impacted plane
+		// note that we do this even when the trace didn't actually yield a move
+		Pm_ClipVelocity(pm->s.velocity, trace.plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
+		num_planes++;
 
 		// update the movement time remaining
 		time_remaining -= (time_remaining * trace.fraction);
-
-		// and lastly, update the velocity by clipping to the plane
-		Pm_ClipVelocity(pm->s.velocity, trace.plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
-		num_planes++;
 	}
 
 	// settle to prevent oscillations in creases
@@ -281,7 +287,7 @@ static void Pm_StepSlideMove(void) {
 	// set the step for interpolation
 
 	pm->step = pm->s.origin[2] - org[2];
-	if (pm->step >= 4.0) {
+	if (fabs(pm->step >= 4.0)) {
 		pm->s.flags |= PMF_ON_STAIRS;
 	} else {
 		pm->step = 0.0;
@@ -334,7 +340,7 @@ static void Pm_StepSlideMove(void) {
 			if (Pm_StepMove(&step_down)) {
 
 				// Quake2 trick jump secret sauce
-				if (vel0[2] < PM_SPEED_UP) {
+				if ((pm->s.flags & PMF_ON_GROUND) || vel0[2] < PM_SPEED_UP) {
 					VectorCopy(step_down.end, pm->s.origin);
 					Pm_ClipVelocity(pm->s.velocity, step_down.plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
 				}
@@ -610,7 +616,7 @@ static void Pm_CheckGround(void) {
 	}
 
 	// always touch the entity, even if we couldn't stand on it
-	Pm_TouchEnt(trace.ent);
+	Pm_TouchEntity(trace.ent);
 }
 
 /*
