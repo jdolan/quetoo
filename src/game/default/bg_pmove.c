@@ -191,7 +191,7 @@ static _Bool Pm_SlideMove(void) {
 	}
 
 	// if we've been deflected backwards, settle to prevent oscillations
-	if (num_planes > 2 || DotProduct(pm->s.velocity, vel0) <= 0.0) {
+	if (DotProduct(pm->s.velocity, vel0) <= 0.0) {
 		VectorClear(pm->s.velocity);
 	}
 
@@ -215,11 +215,6 @@ static _Bool Pm_StepMove(_Bool up) {
 		// check if the upward position is available
 		VectorCopy(pm->s.origin, pos);
 		pos[2] += PM_STEP_HEIGHT;
-
-		// reaching even higher if trying to climb out of the water
-		if (pm->s.flags & PMF_TIME_WATER_JUMP) {
-			pos[2] += PM_STEP_HEIGHT;
-		}
 
 		trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 
