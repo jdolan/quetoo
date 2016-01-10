@@ -1296,9 +1296,10 @@ void Pm_Move(pm_move_t *pm_move) {
 		Pm_AirMove();
 	}
 
-	// set ground_entity, water_type, and water_level for final spot
+	// check for ground at new spot
 	Pm_CheckGround();
 
+	// check for water level, water type at new spot
 	Pm_CheckWater();
 
 	// touching the ground terminates being pushed
