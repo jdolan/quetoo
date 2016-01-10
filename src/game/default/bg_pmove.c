@@ -203,14 +203,14 @@ static _Bool Pm_SlideMove(void) {
  *
  * @return True if the step was successful, false otherwise.
  */
-static _Bool Pm_StepMove(_Bool up) {
+static _Bool Pm_StepMove(_Bool step_up) {
 	vec3_t org, vel, pos;
 	cm_trace_t trace;
 
 	VectorCopy(pm->s.origin, org);
 	VectorCopy(pm->s.velocity, vel);
 
-	if (up) { // try sliding from a higher position
+	if (step_up) { // try sliding from a higher position
 
 		// check if the upward position is available
 		VectorCopy(pm->s.origin, pos);
@@ -242,12 +242,9 @@ static _Bool Pm_StepMove(_Bool up) {
 		// check if the floor is new; if so, we've likely stepped
 		if (trace.ent != pm->ground_entity || trace.plane.num != pml.ground_plane.num) {
 
-			// never slow down on Z; this is critical
-			//pm->s.velocity[2] = vel[2];
-
 			// Quake2 trick jumping secret sauce
-			if (up && pm->s.velocity[2] >= PM_SPEED_UP) {
-				pm->s.origin[2] = MAX(org[2] + PM_STEP_HEIGHT, pm->s.origin[2]);
+			if (step_up && vel[2] >= PM_SPEED_UP) {
+				//pm->s.origin[2] = org1[2];
 			} else {
 				pm->s.origin[2] = trace.end[2];
 				Pm_ClipVelocity(pm->s.velocity, trace.plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
