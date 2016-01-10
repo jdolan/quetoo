@@ -47,7 +47,7 @@
 /*
  * @brief Friction constants.
  */
-#define PM_FRICT_AIR			0.45
+#define PM_FRICT_AIR			0.375
 #define PM_FRICT_GROUND			6.0
 #define PM_FRICT_GROUND_SLICK	2.0
 #define PM_FRICT_LADDER			5.0
@@ -79,14 +79,14 @@
 #define PM_SPEED_DUCKED			140.0
 #define PM_SPEED_FALL			-600.0
 #define PM_SPEED_FALL_FAR		-800.0
-#define PM_SPEED_JUMP			262.5
+#define PM_SPEED_JUMP			250.0
 #define PM_SPEED_LADDER			125.0
 #define PM_SPEED_LAND			-300.0
 #define PM_SPEED_RUN			300.0
 #define PM_SPEED_SPECTATOR		350.0
 #define PM_SPEED_STOP			100.0
 #define PM_SPEED_UP				0.1
-#define PM_SPEED_TRICK_JUMP		45.0
+#define PM_SPEED_TRICK_JUMP		55.0
 #define PM_SPEED_WATER			118.0
 #define PM_SPEED_WATER_JUMP		420.0
 #define PM_SPEED_WATER_SINK		-16.0

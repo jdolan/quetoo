@@ -149,6 +149,7 @@ static void Pm_TouchEntity(struct g_entity_s *ent) {
  * movement command and world state. Returns true if not blocked.
  */
 static _Bool Pm_SlideMove(void) {
+	vec3_t planes[MAX_CLIP_PLANES];
 
 	vec3_t vel0;
 	VectorCopy(pm->s.velocity, vel0);
@@ -156,7 +157,7 @@ static _Bool Pm_SlideMove(void) {
 	vec_t time_remaining = pml.time;
 	int32_t num_planes = 0;
 
-	for (int32_t i = 0; i < MAX_CLIP_PLANES; i++) {
+	for (int32_t bump = 0; bump < MAX_CLIP_PLANES; bump++) {
 		vec3_t pos;
 
 		if (time_remaining <= 0.0) // out of time
@@ -185,48 +186,110 @@ static _Bool Pm_SlideMove(void) {
 			// if the trace didn't hit anything, we're done
 			if (trace.fraction == 1.0)
 				break;
+
+			// update the movement time remaining
+			time_remaining -= (time_remaining * trace.fraction);
 		}
 
-		// clip velocity to the impacted plane
-		// note that we do this even when the trace didn't actually yield a move
-		Pm_ClipVelocity(pm->s.velocity, trace.plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
+		// record the impacted plane
+		VectorCopy(trace.plane.normal, planes[num_planes]);
 		num_planes++;
 
-		// update the movement time remaining
-		time_remaining -= (time_remaining * trace.fraction);
-	}
+		// and modify velocity, clipping to all impacted planes
+		for (int32_t i = 0; i < num_planes; i++) {
+			vec3_t vel;
 
-	// settle to prevent oscillations in creases
-	if (num_planes > 2 || DotProduct(pm->s.velocity, vel0) < PM_STOP_EPSILON) {
-		VectorClear(pm->s.velocity);
+			if (DotProduct(pm->s.velocity, planes[i]) >= 0.0) {
+				continue;
+			}
+
+			// slide along the plane
+			Pm_ClipVelocity(pm->s.velocity, planes[i], vel, PM_CLIP_BOUNCE);
+
+			// see if there is a second plane that the new move enters
+			for (int32_t j = 0; j < num_planes; j++) {
+				vec3_t cross;
+
+				if (j == i) {
+					continue;
+				}
+
+				if (DotProduct(vel, planes[j]) >= 0.0) {
+					continue;
+				}
+
+				// try clipping the move to the plane
+				Pm_ClipVelocity(vel, planes[j], vel, PM_CLIP_BOUNCE);
+
+				// see if it goes back into the first clip plane
+				if (DotProduct(vel, planes[i] ) >= 0.0) {
+					continue;
+				}
+
+				// slide the original velocity along the crease
+				CrossProduct(planes[i], planes[j], cross);
+				VectorNormalize(cross);
+
+				const vec_t scale = DotProduct(cross, pm->s.velocity);
+				VectorScale(cross, scale, vel);
+
+				// see if there is a third plane the the new move enters
+				for (int32_t k = 0; k < num_planes; k++) {
+					if (k == i || k == j) {
+						continue;
+					}
+					if ( DotProduct( vel, planes[k] ) >= 0.1) {
+						continue;		// move doesn't interact with the plane
+					}
+
+					// stop dead at a triple plane interaction
+					VectorClear(pm->s.velocity);
+					return true;
+				}
+			}
+
+			// if we have fixed all interactions, try another move
+			VectorCopy(vel, pm->s.velocity);
+			break;
+		}
 	}
 
 	return num_planes == 0;
 }
 
 /*
- * @brief
+ * @return True if the downward trace yielded a step, false otherwise.
  */
-static _Bool Pm_StepMove(const cm_trace_t *trace) {
+static _Bool Pm_CheckStep(const cm_trace_t *trace) {
 
 	if (!trace->all_solid) {
 		if (trace->ent && trace->plane.normal[2] >= PM_STEP_NORMAL) {
 			if (trace->ent != pm->ground_entity || trace->plane.num != pml.ground_plane.num) {
-
-				pm->step = trace->end[2] - pml.previous_origin[2];
-				if (fabs(pm->step) >= 4.0) {
-					Pm_Debug("step %3.2f\n", pm->step);
-					pm->s.flags |= PMF_ON_STAIRS;
-				} else {
-					pm->step = 0.0;
-				}
-
 				return true;
 			}
 		}
 	}
 
 	return false;
+}
+
+/*
+ * @brief
+ */
+static void Pm_StepDown(const cm_trace_t *trace) {
+
+	VectorCopy(trace->end, pm->s.origin);
+	pm->s.origin[2] += PM_STOP_EPSILON;
+
+	Pm_ClipVelocity(pm->s.velocity, trace->plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
+
+	pm->step = pm->s.origin[2] - pml.previous_origin[2];
+	if (fabs(pm->step) >= 4.0) {
+		Pm_Debug("step %3.2f\n", pm->step);
+		pm->s.flags |= PMF_ON_STAIRS;
+	} else {
+		pm->step = 0.0;
+	}
 }
 
 /*
@@ -287,7 +350,7 @@ static void Pm_StepSlideMove(void) {
 	// set the step for interpolation
 
 	pm->step = pm->s.origin[2] - org[2];
-	if (fabs(pm->step >= 4.0)) {
+	if (fabs(pm->step) >= 4.0) {
 		pm->s.flags |= PMF_ON_STAIRS;
 	} else {
 		pm->step = 0.0;
@@ -297,61 +360,62 @@ static void Pm_StepSlideMove(void) {
 
 	vec3_t org0, vel0;
 	vec3_t org1, vel1;
-	vec3_t org2, vel2;
 	vec3_t down, up;
 
 	VectorCopy(pm->s.origin, org0);
 	VectorCopy(pm->s.velocity, vel0);
 
+	// attempt to move; if nothing blocks us, we're done
 	if (Pm_SlideMove()) {
 
-		// if we weren't blocked, attempt to step down to remain on ground
+		// attempt to step down to remain on ground
 		if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up == 0) {
 
 			VectorMA(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, vec3_down, down);
 			const cm_trace_t step_down = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
-			if (Pm_StepMove(&step_down)) {
-				VectorCopy(step_down.end, pm->s.origin);
-				Pm_ClipVelocity(pm->s.velocity, step_down.plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
-			}
-		}
-	} else {
 
-		// we were blocked, so try to step over the obstacle
-		VectorCopy(pm->s.origin, org1);
-		VectorCopy(pm->s.velocity, vel1);
-
-		VectorMA(pml.previous_origin, PM_STEP_HEIGHT, vec3_up, up);
-		const cm_trace_t step_up = pm->Trace(pml.previous_origin, up, pm->mins, pm->maxs);
-		if (!step_up.all_solid) {
-
-			// step from the higher position, with the original velocity
-			VectorCopy(step_up.end, pm->s.origin);
-			VectorCopy(vel0, pm->s.velocity);
-
-			Pm_SlideMove();
-
-			VectorCopy(pm->s.origin, org2);
-			VectorCopy(pm->s.velocity, vel2);
-
-			// settle to the new ground, keeping the step if and only if it was successful
-			VectorMA(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, vec3_down, down);
-			const cm_trace_t step_down = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
-			if (Pm_StepMove(&step_down)) {
-
-				// Quake2 trick jump secret sauce
-				if ((pm->s.flags & PMF_ON_GROUND) || vel0[2] < PM_SPEED_UP) {
-					VectorCopy(step_down.end, pm->s.origin);
-					Pm_ClipVelocity(pm->s.velocity, step_down.plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
-				}
-
-				return;
+			if (Pm_CheckStep(&step_down)) {
+				Pm_StepDown(&step_down);
 			}
 		}
 
-		VectorCopy(org1, pm->s.origin);
-		VectorCopy(vel1, pm->s.velocity);
+		return;
 	}
+
+	// we were blocked, so try to step over the obstacle
+
+	VectorCopy(pm->s.origin, org1);
+	VectorCopy(pm->s.velocity, vel1);
+
+	VectorMA(org0, PM_STEP_HEIGHT, vec3_up, up);
+	const cm_trace_t step_up = pm->Trace(org0, up, pm->mins, pm->maxs);
+	if (!step_up.all_solid) {
+
+		// step from the higher position, with the original velocity
+		VectorCopy(step_up.end, pm->s.origin);
+		VectorCopy(vel0, pm->s.velocity);
+
+		Pm_SlideMove();
+
+		// settle to the new ground, keeping the step if and only if it was successful
+		VectorMA(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, vec3_down, down);
+		const cm_trace_t step_down = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
+
+		if (Pm_CheckStep(&step_down)) {
+			// Quake2 trick jump secret sauce
+			if ((pm->s.flags & PMF_ON_GROUND) || vel0[2] < PM_SPEED_UP) {
+				Pm_StepDown(&step_down);
+			} else {
+				pm->step = pm->s.origin[2] - pml.previous_origin[2];
+				pm->s.flags |= PMF_ON_STAIRS;
+			}
+
+			return;
+		}
+	}
+
+	VectorCopy(org1, pm->s.origin);
+	VectorCopy(vel1, pm->s.velocity);
 
 #endif
 }
@@ -607,7 +671,7 @@ static void Pm_CheckGround(void) {
 
 		// and sink down to it if not trick jumping
 		if (!(pm->s.flags & PMF_TIME_TRICK_JUMP)) {
-			pm->s.origin[2] = trace.end[2] + PM_STOP_EPSILON;
+			Pm_StepDown(&trace);
 		}
 	} else {
 		pm->s.flags &= ~PMF_ON_GROUND;
