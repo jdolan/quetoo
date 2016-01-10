@@ -142,7 +142,7 @@ static void Pm_TouchEnt(struct g_entity_s *ent) {
 	pm->touch_ents[pm->num_touch_ents++] = ent;
 }
 
-#define MAX_CLIP_PLANES	4
+#define MAX_CLIP_PLANES	5
 
 /*
  * @brief Calculates a new origin, velocity, and contact entities based on the
@@ -172,7 +172,7 @@ static _Bool Pm_SlideMove(void) {
 		Pm_TouchEnt(trace.ent);
 
 		if (trace.all_solid) { // player is trapped in a solid
-			VectorClear(pm->s.velocity);
+			pm->s.velocity[2] = 0.0;
 			return true;
 		}
 
