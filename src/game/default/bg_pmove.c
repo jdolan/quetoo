@@ -243,7 +243,7 @@ static _Bool Pm_StepMove(_Bool up) {
 		if (trace.ent != pm->ground_entity || trace.plane.num != pml.ground_plane.num) {
 
 			// never slow down on Z; this is critical
-			pm->s.velocity[2] = vel[2];
+			//pm->s.velocity[2] = vel[2];
 
 			// Quake2 trick jumping secret sauce
 			if (up && pm->s.velocity[2] >= PM_SPEED_UP) {
