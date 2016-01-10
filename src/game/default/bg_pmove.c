@@ -545,7 +545,6 @@ static void Pm_CheckGround(void) {
 
 	// seek ground eagerly if the player wishes to trick jump
 	const _Bool trick_jump = Pm_CheckTrickJump();
-
 	if (trick_jump) {
 		VectorMA(pm->s.origin, pml.time, pm->s.velocity, pos);
 		pos[2] -= PM_GROUND_DIST_TRICK;
