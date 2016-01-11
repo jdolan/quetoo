@@ -106,13 +106,8 @@ void Com_InitArgv(int32_t argc, char **argv);
 
 void Com_PrintInfo(const char *s);
 
-typedef void (*RedirectFlush)(int32_t target, const char *buffer);
-void Com_BeginRedirect(int32_t target, char *buffer, size_t size, RedirectFlush flush);
-void Com_EndRedirect(void);
-
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-
 void Com_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Com_Warn_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Com_Error_(const char *func, err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));

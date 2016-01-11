@@ -276,7 +276,7 @@ void Cl_Disconnect(void) {
 
 	if (time_demo->value) { // summarize time_demo results
 
-		const vec_t s = (quetoo.time - cl.time_demo_start) / 1000.0;
+		const vec_t s = (cl.systime - cl.time_demo_start) / 1000.0;
 
 		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
 				cl.time_demo_frames / s);

@@ -149,13 +149,17 @@ static void Ui_Restart_f(void) {
  */
 void Ui_Init(void) {
 
-	const TwEnumVal OffOrOn[] = { { 0, "Off" }, { 1, "On" } };
+	const TwEnumVal OffOrOn[] = {
+		{ 0, "Off" },
+		{ 1, "On" }
+	};
 
 	const TwEnumVal OffLowMediumHigh[] = {
-			{ 0, "Off" },
-			{ 1, "Low" },
-			{ 2, "Medium" },
-			{ 3, "High" } };
+		{ 0, "Off" },
+		{ 1, "Low" },
+		{ 2, "Medium" },
+		{ 3, "High" }
+	};
 
 	memset(&ui, 0, sizeof(ui));
 
