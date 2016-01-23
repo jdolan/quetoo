@@ -29,16 +29,14 @@ typedef struct {
 }g_mysql_state_t;
 
 static g_mysql_state_t g_mysql_state;
-#endif
 
 /*
  * @brief Execute a MySQL query string.
  */
-static void G_MySQL_Query(const char *fmt, ...) __attribute__((unused)) __attribute__((format(printf, 1, 2)));
-static void G_MySQL_Query(const char *fmt __attribute__((unused)), ...) {
-#if HAVE_MYSQL
-	va_list args;
+static void G_MySQL_Query(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+static void G_MySQL_Query(const char *fmt, ...) {
 	char query[MAX_STRING_CHARS];
+	va_list args;
 
 	va_start(args, fmt);
 	vsnprintf(query, sizeof(query), fmt, args);
@@ -50,15 +48,12 @@ static void G_MySQL_Query(const char *fmt __attribute__((unused)), ...) {
 	} else {
 		gi.Debug("%s", query);
 	}
-#endif
 }
 
 /*
  * @return The MySQL-escaped name for the given entity.
  */
-const char *G_MySQL_EntityName(const g_entity_t *ent __attribute__((unused))) {
-#if HAVE_MYSQL
-
+static const char *G_MySQL_EntityName(const g_entity_t *ent) {
 	char name[MAX_NET_NAME];
 	static char escaped[MAX_NET_NAME];
 
@@ -77,23 +72,19 @@ const char *G_MySQL_EntityName(const g_entity_t *ent __attribute__((unused))) {
 	StripColors(ent->client->locals.persistent.net_name, name);
 
 	if (ent->ai) {
-		g_strlcat(name, " [robot]", sizeof(name));
+		g_strlcat(name, " [bot]", sizeof(name));
 	}
 
 	mysql_real_escape_string(g_mysql_state.mysql, name, escaped, sizeof(escaped));
 	return escaped;
-#else
-	return NULL;
-#endif
 }
 
-/*
- * @brief Record a frag to MySQL.
- */
-void G_MySQL_ClientObituary(const g_entity_t *self __attribute__((unused)),
-		const g_entity_t *attacker __attribute__((unused)),
-		const uint32_t mod __attribute__((unused))) {
+#endif
 
+/*
+ * @brief Records a frag to MySQL.
+ */
+void G_MySQL_ClientObituary(const g_entity_t *self, const g_entity_t *attacker, const uint32_t mod) {
 #if HAVE_MYSQL
 
 	if (!g_mysql_state.mysql) {

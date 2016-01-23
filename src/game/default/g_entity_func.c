@@ -324,7 +324,7 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 
 #define PLAT_LOW_TRIGGER	1
 
-static void G_func_plat_GoingDown(g_entity_t *self);
+static void G_func_plat_GoingDown(g_entity_t *ent);
 
 /*
  * @brief
@@ -364,18 +364,18 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 /*
  * @brief
  */
-static void G_func_plat_GoingDown(g_entity_t *self) {
+static void G_func_plat_GoingDown(g_entity_t *ent) {
 
-	if (!(self->locals.flags & FL_TEAM_SLAVE)) {
+	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 
-		if (self->locals.move_info.sound_start)
-			gi.Sound(self, self->locals.move_info.sound_start, ATTEN_IDLE);
+		if (ent->locals.move_info.sound_start)
+			gi.Sound(ent, ent->locals.move_info.sound_start, ATTEN_IDLE);
 
-		self->s.sound = self->locals.move_info.sound_middle;
+		ent->s.sound = ent->locals.move_info.sound_middle;
 	}
 
-	self->locals.move_info.state = MOVE_STATE_GOING_DOWN;
-	G_MoveInfo_Linear_Init(self, self->locals.move_info.end_origin, G_func_plat_Bottom);
+	ent->locals.move_info.state = MOVE_STATE_GOING_DOWN;
+	G_MoveInfo_Linear_Init(ent, ent->locals.move_info.end_origin, G_func_plat_Bottom);
 }
 
 /*
