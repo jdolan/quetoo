@@ -15,7 +15,7 @@
 //  ---------------------------------------------------------------------------
 
 #include <SDL2/SDL.h>
-#include <AntTweakBar.h>
+#include "AntTweakBar.h"
 
 typedef struct {
 	int width, height;

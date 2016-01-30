@@ -9,9 +9,11 @@ noinst_HEADERS = \
 libminizip_la_SOURCES = \
 	ioapi.c \
 	zip.c
+
 libminizip_la_CFLAGS = \
 	-DNOCRYPT \
 	-DUSE_FILE32API \
 	@BASE_CFLAGS@
+
 libminizip_la_LIBADD = \
 	-lz
