@@ -162,7 +162,6 @@
 		CE12D8421C5C70C500CD0B13 /* libSDL2_mixer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D83F1C5C70C500CD0B13 /* libSDL2_mixer.a */; };
 		CE12D8431C5C70C500CD0B13 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8401C5C70C500CD0B13 /* libSDL2.a */; };
 		CE12D8451C5C70F200CD0B13 /* libphysfs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8441C5C70F200CD0B13 /* libphysfs.a */; };
-		CE12D8471C5C70F700CD0B13 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8461C5C70F700CD0B13 /* Foundation.framework */; };
 		CE12D84A1C5C71B000CD0B13 /* libncurses.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8491C5C71B000CD0B13 /* libncurses.a */; };
 		CE12D8551C5C746C00CD0B13 /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8541C5C746C00CD0B13 /* libjpeg.a */; };
 		CE12D8651C5C786100CD0B13 /* LoadOGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE12D4BA1C5C58C300CD0B13 /* LoadOGL.cpp */; };
@@ -176,7 +175,49 @@
 		CE12D86D1C5C788100CD0B13 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8171C5C614600CD0B13 /* GLUT.framework */; };
 		CE12D86E1C5C788700CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE12D86F1C5C79B500CD0B13 /* libAntTweakBar.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D85A1C5C780600CD0B13 /* libAntTweakBar.a */; };
-		CE12D87A1C5CF54200CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
+		CE12D87F1C5CF86600CD0B13 /* ai_goal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5531C5C58C300CD0B13 /* ai_goal.c */; };
+		CE12D8801C5CF86600CD0B13 /* ai_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5561C5C58C300CD0B13 /* ai_main.c */; };
+		CE12D8BF1C5CF86600CD0B13 /* cm_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D62A1C5C58C300CD0B13 /* cm_model.c */; };
+		CE12D8C01C5CF86600CD0B13 /* cm_test.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D62C1C5C58C300CD0B13 /* cm_test.c */; };
+		CE12D8C11C5CF86600CD0B13 /* cm_trace.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D62E1C5C58C300CD0B13 /* cm_trace.c */; };
+		CE12D8C21C5CF86600CD0B13 /* cm_vis.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6311C5C58C300CD0B13 /* cm_vis.c */; };
+		CE12D8C31C5CF86600CD0B13 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
+		CE12D8C41C5CF86600CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
+		CE12D8C51C5CF86600CD0B13 /* net.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6901C5C58C300CD0B13 /* net.c */; };
+		CE12D8C61C5CF86600CD0B13 /* net_chan.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6921C5C58C300CD0B13 /* net_chan.c */; };
+		CE12D8C71C5CF86600CD0B13 /* net_message.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6941C5C58C300CD0B13 /* net_message.c */; };
+		CE12D8C81C5CF86600CD0B13 /* net_tcp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6961C5C58C300CD0B13 /* net_tcp.c */; };
+		CE12D8C91C5CF86600CD0B13 /* net_udp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6991C5C58C300CD0B13 /* net_udp.c */; };
+		CE12D8CA1C5CF86600CD0B13 /* sv_admin.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A11C5C58C300CD0B13 /* sv_admin.c */; };
+		CE12D8CB1C5CF86600CD0B13 /* sv_client.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A31C5C58C300CD0B13 /* sv_client.c */; };
+		CE12D8CC1C5CF86600CD0B13 /* sv_console.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A51C5C58C300CD0B13 /* sv_console.c */; };
+		CE12D8CD1C5CF86600CD0B13 /* sv_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A71C5C58C300CD0B13 /* sv_entity.c */; };
+		CE12D8CE1C5CF86600CD0B13 /* sv_game.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A91C5C58C300CD0B13 /* sv_game.c */; };
+		CE12D8CF1C5CF86600CD0B13 /* sv_init.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6AB1C5C58C300CD0B13 /* sv_init.c */; };
+		CE12D8D01C5CF86600CD0B13 /* sv_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6AE1C5C58C300CD0B13 /* sv_main.c */; };
+		CE12D8D11C5CF86600CD0B13 /* sv_master.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B01C5C58C300CD0B13 /* sv_master.c */; };
+		CE12D8D21C5CF86600CD0B13 /* sv_send.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B21C5C58C300CD0B13 /* sv_send.c */; };
+		CE12D8D31C5CF86600CD0B13 /* sv_world.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B51C5C58C300CD0B13 /* sv_world.c */; };
+		CE12D8D41C5CF86600CD0B13 /* cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6261C5C58C300CD0B13 /* cmd.c */; };
+		CE12D8D51C5CF86600CD0B13 /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6361C5C58C300CD0B13 /* common.c */; };
+		CE12D8D61C5CF86600CD0B13 /* console.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6381C5C58C300CD0B13 /* console.c */; };
+		CE12D8D71C5CF86600CD0B13 /* cvar.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D63A1C5C58C300CD0B13 /* cvar.c */; };
+		CE12D8D81C5CF86600CD0B13 /* filesystem.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D63D1C5C58C300CD0B13 /* filesystem.c */; };
+		CE12D8DA1C5CF86600CD0B13 /* matrix.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6871C5C58C300CD0B13 /* matrix.c */; };
+		CE12D8DB1C5CF86600CD0B13 /* mem.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6891C5C58C300CD0B13 /* mem.c */; };
+		CE12D8DC1C5CF86600CD0B13 /* mem_buf.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D68B1C5C58C300CD0B13 /* mem_buf.c */; };
+		CE12D8DD1C5CF86600CD0B13 /* shared-anorms.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B71C5C58C300CD0B13 /* shared-anorms.c */; };
+		CE12D8DE1C5CF86600CD0B13 /* shared.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B81C5C58C300CD0B13 /* shared.c */; };
+		CE12D8DF1C5CF86600CD0B13 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6BA1C5C58C300CD0B13 /* swap.c */; };
+		CE12D8E01C5CF86600CD0B13 /* sys.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6BC1C5C58C300CD0B13 /* sys.c */; };
+		CE12D8E11C5CF86600CD0B13 /* thread.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DE1C5C58C300CD0B13 /* thread.c */; };
+		CE12D8E71C5CF86600CD0B13 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		CE12D8E91C5CF86600CD0B13 /* libglib-2.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8281C5C69DE00CD0B13 /* libglib-2.0.a */; };
+		CE12D8EB1C5CF86600CD0B13 /* libncurses.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8491C5C71B000CD0B13 /* libncurses.a */; };
+		CE12D8EC1C5CF86600CD0B13 /* libphysfs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8441C5C70F200CD0B13 /* libphysfs.a */; };
+		CE12D8EF1C5CF86600CD0B13 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8401C5C70C500CD0B13 /* libSDL2.a */; };
+		CE12D8F51C5CF8B300CD0B13 /* cl_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D59D1C5C58C300CD0B13 /* cl_null.c */; };
+		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -187,10 +228,33 @@
 			remoteGlobalIDString = CE12D8101C5C5EF000CD0B13;
 			remoteInfo = minizip;
 		};
+		CE12D87D1C5CF86600CD0B13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE12D8101C5C5EF000CD0B13;
+			remoteInfo = minizip;
+		};
+		CE12D8F61C5CF8C900CD0B13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE12D8591C5C780600CD0B13;
+			remoteInfo = AntTweakBar;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		CE12D7331C5C5B9300CD0B13 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		CE12D8F01C5CF86600CD0B13 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -740,10 +804,10 @@
 		CE12D83F1C5C70C500CD0B13 /* libSDL2_mixer.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2_mixer.a; path = /opt/local/lib/libSDL2_mixer.a; sourceTree = "<absolute>"; };
 		CE12D8401C5C70C500CD0B13 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = /opt/local/lib/libSDL2.a; sourceTree = "<absolute>"; };
 		CE12D8441C5C70F200CD0B13 /* libphysfs.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libphysfs.a; path = /opt/local/lib/libphysfs.a; sourceTree = "<absolute>"; };
-		CE12D8461C5C70F700CD0B13 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		CE12D8491C5C71B000CD0B13 /* libncurses.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libncurses.a; path = /opt/local/lib/libncurses.a; sourceTree = "<absolute>"; };
 		CE12D8541C5C746C00CD0B13 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = /opt/local/lib/libjpeg.a; sourceTree = "<absolute>"; };
 		CE12D85A1C5C780600CD0B13 /* libAntTweakBar.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAntTweakBar.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-dedicated"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -751,8 +815,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE12D87A1C5CF54200CD0B13 /* AppKit.framework in Frameworks */,
-				CE12D8471C5C70F700CD0B13 /* Foundation.framework in Frameworks */,
+				CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */,
 				CE12D82E1C5C6EAD00CD0B13 /* OpenGL.framework in Frameworks */,
 				CE12D86F1C5C79B500CD0B13 /* libAntTweakBar.a in Frameworks */,
 				CE12D82C1C5C6EA000CD0B13 /* libminizip.a in Frameworks */,
@@ -797,6 +860,18 @@
 				CE12D86E1C5C788700CD0B13 /* AppKit.framework in Frameworks */,
 				CE12D86D1C5C788100CD0B13 /* GLUT.framework in Frameworks */,
 				CE12D86C1C5C787C00CD0B13 /* OpenGL.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE12D8E21C5CF86600CD0B13 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE12D8E71C5CF86600CD0B13 /* libminizip.a in Frameworks */,
+				CE12D8E91C5CF86600CD0B13 /* libglib-2.0.a in Frameworks */,
+				CE12D8EB1C5CF86600CD0B13 /* libncurses.a in Frameworks */,
+				CE12D8EC1C5CF86600CD0B13 /* libphysfs.a in Frameworks */,
+				CE12D8EF1C5CF86600CD0B13 /* libSDL2.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1804,6 +1879,7 @@
 				CE12D7EB1C5C5DF900CD0B13 /* libcgame.dylib */,
 				CE12D8111C5C5EF000CD0B13 /* libminizip.a */,
 				CE12D85A1C5C780600CD0B13 /* libAntTweakBar.a */,
+				CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1832,7 +1908,6 @@
 			isa = PBXGroup;
 			children = (
 				CE12D8191C5C614B00CD0B13 /* AppKit.framework */,
-				CE12D8461C5C70F700CD0B13 /* Foundation.framework */,
 				CE12D8171C5C614600CD0B13 /* GLUT.framework */,
 				CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */,
 			);
@@ -1884,6 +1959,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CE12D8F71C5CF8C900CD0B13 /* PBXTargetDependency */,
 				CE12D81F1C5C638000CD0B13 /* PBXTargetDependency */,
 			);
 			name = quetoo;
@@ -1959,6 +2035,24 @@
 			productReference = CE12D85A1C5C780600CD0B13 /* libAntTweakBar.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		CE12D87B1C5CF86600CD0B13 /* quetoo-dedicated */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE12D8F11C5CF86600CD0B13 /* Build configuration list for PBXNativeTarget "quetoo-dedicated" */;
+			buildPhases = (
+				CE12D87E1C5CF86600CD0B13 /* Sources */,
+				CE12D8E21C5CF86600CD0B13 /* Frameworks */,
+				CE12D8F01C5CF86600CD0B13 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CE12D87C1C5CF86600CD0B13 /* PBXTargetDependency */,
+			);
+			name = "quetoo-dedicated";
+			productName = quetoo;
+			productReference = CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -1997,6 +2091,7 @@
 			projectRoot = "";
 			targets = (
 				CE12D7341C5C5B9300CD0B13 /* quetoo */,
+				CE12D87B1C5CF86600CD0B13 /* quetoo-dedicated */,
 				CE12D7CC1C5C5D5C00CD0B13 /* game */,
 				CE12D7EA1C5C5DF900CD0B13 /* cgame */,
 				CE12D8591C5C780600CD0B13 /* AntTweakBar */,
@@ -2193,6 +2288,50 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE12D87E1C5CF86600CD0B13 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE12D8F51C5CF8B300CD0B13 /* cl_null.c in Sources */,
+				CE12D87F1C5CF86600CD0B13 /* ai_goal.c in Sources */,
+				CE12D8801C5CF86600CD0B13 /* ai_main.c in Sources */,
+				CE12D8BF1C5CF86600CD0B13 /* cm_model.c in Sources */,
+				CE12D8C01C5CF86600CD0B13 /* cm_test.c in Sources */,
+				CE12D8C11C5CF86600CD0B13 /* cm_trace.c in Sources */,
+				CE12D8C21C5CF86600CD0B13 /* cm_vis.c in Sources */,
+				CE12D8C31C5CF86600CD0B13 /* bg_pmove.c in Sources */,
+				CE12D8C41C5CF86600CD0B13 /* main.c in Sources */,
+				CE12D8C51C5CF86600CD0B13 /* net.c in Sources */,
+				CE12D8C61C5CF86600CD0B13 /* net_chan.c in Sources */,
+				CE12D8C71C5CF86600CD0B13 /* net_message.c in Sources */,
+				CE12D8C81C5CF86600CD0B13 /* net_tcp.c in Sources */,
+				CE12D8C91C5CF86600CD0B13 /* net_udp.c in Sources */,
+				CE12D8CA1C5CF86600CD0B13 /* sv_admin.c in Sources */,
+				CE12D8CB1C5CF86600CD0B13 /* sv_client.c in Sources */,
+				CE12D8CC1C5CF86600CD0B13 /* sv_console.c in Sources */,
+				CE12D8CD1C5CF86600CD0B13 /* sv_entity.c in Sources */,
+				CE12D8CE1C5CF86600CD0B13 /* sv_game.c in Sources */,
+				CE12D8CF1C5CF86600CD0B13 /* sv_init.c in Sources */,
+				CE12D8D01C5CF86600CD0B13 /* sv_main.c in Sources */,
+				CE12D8D11C5CF86600CD0B13 /* sv_master.c in Sources */,
+				CE12D8D21C5CF86600CD0B13 /* sv_send.c in Sources */,
+				CE12D8D31C5CF86600CD0B13 /* sv_world.c in Sources */,
+				CE12D8D41C5CF86600CD0B13 /* cmd.c in Sources */,
+				CE12D8D51C5CF86600CD0B13 /* common.c in Sources */,
+				CE12D8D61C5CF86600CD0B13 /* console.c in Sources */,
+				CE12D8D71C5CF86600CD0B13 /* cvar.c in Sources */,
+				CE12D8D81C5CF86600CD0B13 /* filesystem.c in Sources */,
+				CE12D8DA1C5CF86600CD0B13 /* matrix.c in Sources */,
+				CE12D8DB1C5CF86600CD0B13 /* mem.c in Sources */,
+				CE12D8DC1C5CF86600CD0B13 /* mem_buf.c in Sources */,
+				CE12D8DD1C5CF86600CD0B13 /* shared-anorms.c in Sources */,
+				CE12D8DE1C5CF86600CD0B13 /* shared.c in Sources */,
+				CE12D8DF1C5CF86600CD0B13 /* swap.c in Sources */,
+				CE12D8E01C5CF86600CD0B13 /* sys.c in Sources */,
+				CE12D8E11C5CF86600CD0B13 /* thread.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -2200,6 +2339,16 @@
 			isa = PBXTargetDependency;
 			target = CE12D8101C5C5EF000CD0B13 /* minizip */;
 			targetProxy = CE12D81E1C5C638000CD0B13 /* PBXContainerItemProxy */;
+		};
+		CE12D87C1C5CF86600CD0B13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE12D8101C5C5EF000CD0B13 /* minizip */;
+			targetProxy = CE12D87D1C5CF86600CD0B13 /* PBXContainerItemProxy */;
+		};
+		CE12D8F71C5CF8C900CD0B13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE12D8591C5C780600CD0B13 /* AntTweakBar */;
+			targetProxy = CE12D8F61C5CF8C900CD0B13 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2257,25 +2406,12 @@
 					"$(inherited)",
 				);
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				HEADER_SEARCH_PATHS = (
-					/opt/local/include,
-					"/opt/local/include/glib-2.0",
-					"/opt/local/lib/glib-2.0/include",
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/local/lib,
-				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
-				OTHER_CFLAGS = (
-					"-D_DARWIN_C_SOURCE",
-					"-I$(SRCROOT)",
-					"-I$(SRCROOT)/src",
-				);
+				OTHER_CFLAGS = "-D_DARWIN_C_SOURCE";
 				OTHER_LDFLAGS = "-lstdc++";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USE_HEADERMAP = NO;
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/**";
 			};
 			name = Debug;
 		};
@@ -2292,25 +2428,12 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				HEADER_SEARCH_PATHS = (
-					/opt/local/include,
-					"/opt/local/include/glib-2.0",
-					"/opt/local/lib/glib-2.0/include",
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/local/lib,
-				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_CFLAGS = (
-					"-D_DARWIN_C_SOURCE",
-					"-I$(SRCROOT)",
-					"-I$(SRCROOT)/src",
-				);
+				OTHER_CFLAGS = "-D_DARWIN_C_SOURCE";
 				OTHER_LDFLAGS = "-lstdc++";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USE_HEADERMAP = NO;
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/**";
 			};
 			name = Release;
 		};
@@ -2336,10 +2459,6 @@
 					"$(inherited)",
 				);
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/local/lib,
-				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OTHER_CFLAGS = (
@@ -2366,10 +2485,6 @@
 				EXECUTABLE_PREFIX = lib;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/local/lib,
-				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = (
@@ -2402,10 +2517,6 @@
 					"$(inherited)",
 				);
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/local/lib,
-				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OTHER_CFLAGS = (
@@ -2432,10 +2543,6 @@
 				EXECUTABLE_PREFIX = lib;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/local/lib,
-				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = (
@@ -2558,6 +2665,56 @@
 			};
 			name = Release;
 		};
+		CE12D8F21C5CF86600CD0B13 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				OTHER_CFLAGS = "-D_DARWIN_C_SOURCE";
+				OTHER_LDFLAGS = "-lstdc++";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/**";
+			};
+			name = Debug;
+		};
+		CE12D8F31C5CF86600CD0B13 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CFLAGS = "-D_DARWIN_C_SOURCE";
+				OTHER_LDFLAGS = "-lstdc++";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/**";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2609,6 +2766,15 @@
 				CE12D8641C5C780600CD0B13 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+		};
+		CE12D8F11C5CF86600CD0B13 /* Build configuration list for PBXNativeTarget "quetoo-dedicated" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE12D8F21C5CF86600CD0B13 /* Debug */,
+				CE12D8F31C5CF86600CD0B13 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
