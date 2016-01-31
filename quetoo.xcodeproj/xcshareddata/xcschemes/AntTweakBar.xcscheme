@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE12D8591C5C780600CD0B13"
-               BuildableName = "libAntTweakBar.a"
+               BuildableName = "libAntTweakBar.dylib"
                BlueprintName = "AntTweakBar"
                ReferencedContainer = "container:quetoo.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE12D8591C5C780600CD0B13"
-            BuildableName = "libAntTweakBar.a"
+            BuildableName = "libAntTweakBar.dylib"
             BlueprintName = "AntTweakBar"
             ReferencedContainer = "container:quetoo.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE12D8591C5C780600CD0B13"
-            BuildableName = "libAntTweakBar.a"
+            BuildableName = "libAntTweakBar.dylib"
             BlueprintName = "AntTweakBar"
             ReferencedContainer = "container:quetoo.xcodeproj">
          </BuildableReference>
