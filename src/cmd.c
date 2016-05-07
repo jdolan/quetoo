@@ -455,7 +455,6 @@ static void Cmd_Alias_f_enumerate(cmd_t *cmd, void *data __attribute__((unused))
  */
 static void Cmd_Alias_f(void) {
 	char cmd[MAX_STRING_CHARS];
-	int32_t i;
 
 	if (Cmd_Argc() == 1) {
 		Cmd_Enumerate(Cmd_Alias_f_enumerate, NULL);
@@ -478,7 +477,7 @@ static void Cmd_Alias_f(void) {
 	}
 
 	cmd[0] = '\0';
-	for (i = 2; i < Cmd_Argc(); i++) {
+	for (int32_t i = 2; i < Cmd_Argc(); i++) {
 		g_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
 		if (i != (Cmd_Argc() - 1)) {
 			g_strlcat(cmd, " ", sizeof(cmd));

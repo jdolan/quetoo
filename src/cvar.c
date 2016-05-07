@@ -112,10 +112,10 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
 	GList **matches = (GList **) data;
 
 	if (GlobMatch(cvar_complete_pattern, var->name)) {
-		Com_Print("^2%s^7 is \"%s\"\n", var->name, var->string);
+		Com_Print("^2%s^7 is \"^3%s^7\"\n", var->name, var->string);
 
 		if (var->description)
-			Com_Print("\t%s\n", var->description);
+			Com_Print("\t^2%s^7\n", var->description);
 
 		*matches = g_list_prepend(*matches, Mem_CopyString(var->name));
 	}
@@ -530,33 +530,49 @@ static void Cvar_Toggle_f(void) {
  * @brief Enumeration helper for Cvar_List_f.
  */
 static void Cvar_List_f_enumerate(cvar_t *var, void *data __attribute__((unused))) {
-
+	GList *modifiers = NULL;
+	
 	if (var->flags & CVAR_ARCHIVE)
-		Com_Print("*");
-	else
-		Com_Print(" ");
+		modifiers = g_list_append(modifiers, "^2archived^7");
 
 	if (var->flags & CVAR_USER_INFO)
-		Com_Print("U");
-	else
-		Com_Print(" ");
+		modifiers = g_list_append(modifiers, "^4userinfo^7");
 
 	if (var->flags & CVAR_SERVER_INFO)
-		Com_Print("S");
-	else
-		Com_Print(" ");
+		modifiers = g_list_append(modifiers, "^5serverinfo");
 
+	if (var->flags & CVAR_LO_ONLY)
+		modifiers = g_list_append(modifiers, "^1developer^7");
+	
 	if (var->flags & CVAR_NO_SET)
-		Com_Print("-");
-	else if (var->flags & CVAR_LATCH)
-		Com_Print("L");
-	else
-		Com_Print(" ");
+		modifiers = g_list_append(modifiers, "^3readonly^7");
+	
+	if (var->flags & CVAR_LATCH) {
+		modifiers = g_list_append(modifiers, "^6latched^7");
+	}
+	
+	char str[MAX_STRING_CHARS];
+	g_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
+	
+	if (modifiers) {
+		g_strlcat(str, " (", sizeof(str));
+		
+		const size_t len = g_list_length(modifiers);
+		for (size_t i = 0; i < len; i++) {
+			if (i) {
+				g_strlcat(str, ", ", sizeof(str));
+			}
+			g_strlcat(str, (char *) g_list_nth_data(modifiers, i), sizeof(str));
+		}
+		
+		g_strlcat(str, ")", sizeof(str));
+		g_list_free(modifiers);
+	}
 
-	Com_Print(" %s \"%s\"\n", var->name, var->string);
+	Com_Print("%s\n", str);
 
 	if (var->description)
-		Com_Print("   ^2%s\n", var->description);
+		Com_Print("\t^2%s^7\n", var->description);
 }
 
 /*
