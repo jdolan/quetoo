@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CE12D7CC1C5C5D5C00CD0B13"
-               BuildableName = "libgame.dylib"
-               BlueprintName = "game"
+               BlueprintIdentifier = "CE80FF581C5E494E00A21A51"
+               BuildableName = "libclient-null.dylib"
+               BlueprintName = "client-null"
                ReferencedContainer = "container:quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,9 +45,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE12D7CC1C5C5D5C00CD0B13"
-            BuildableName = "libgame.dylib"
-            BlueprintName = "game"
+            BlueprintIdentifier = "CE80FF581C5E494E00A21A51"
+            BuildableName = "libclient-null.dylib"
+            BlueprintName = "client-null"
             ReferencedContainer = "container:quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -63,9 +63,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE12D7CC1C5C5D5C00CD0B13"
-            BuildableName = "libgame.dylib"
-            BlueprintName = "game"
+            BlueprintIdentifier = "CE80FF581C5E494E00A21A51"
+            BuildableName = "libclient-null.dylib"
+            BlueprintName = "client-null"
             ReferencedContainer = "container:quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
