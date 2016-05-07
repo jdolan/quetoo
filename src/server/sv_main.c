@@ -588,7 +588,7 @@ static void Sv_CheckTimeouts(void) {
 			continue;
 
 		if (cl->last_message < whence) {
-			Sv_BroadcastPrint(PRINT_HIGH, "%s timed out\n", cl->name);
+			Sv_BroadcastPrint(PRINT_MEDIUM, "%s timed out\n", cl->name);
 			Sv_DropClient(cl);
 		}
 	}
@@ -651,7 +651,7 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
 
 	Sv_DropClient(cl);
 
-	Sv_BroadcastPrint(PRINT_HIGH, "%s was kicked%s\n", name, buf);
+	Sv_BroadcastPrint(PRINT_MEDIUM, "%s was kicked%s\n", name, buf);
 }
 
 /*

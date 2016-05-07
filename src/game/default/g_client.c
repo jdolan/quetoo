@@ -91,7 +91,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 	}
 
 	if (message) { // suicide
-		gi.BroadcastPrint(PRINT_LOW, "%s %s.\n", self->client->locals.persistent.net_name, message);
+		gi.BroadcastPrint(PRINT_HIGH, "%s %s.\n", self->client->locals.persistent.net_name, message);
 
 		if (g_level.warmup)
 			return;
@@ -181,7 +181,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
 		if (message) {
 
-			gi.BroadcastPrint(PRINT_LOW, "%s%s %s %s%s\n", (friendy_fire ? "^1TEAMKILL^7 " : ""),
+			gi.BroadcastPrint(PRINT_HIGH, "%s%s %s %s%s\n", (friendy_fire ? "^1TEAMKILL^7 " : ""),
 					self->client->locals.persistent.net_name, message,
 					attacker->client->locals.persistent.net_name, message2);
 
@@ -191,7 +191,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 				if (armor) {
 					a = attacker->client->locals.inventory[ITEM_INDEX(armor)];
 				}
-				gi.ClientPrint(self, PRINT_HIGH, "%s had %d health and %d armor\n",
+				gi.ClientPrint(self, PRINT_MEDIUM, "%s had %d health and %d armor\n",
 						attacker->client->locals.persistent.net_name, attacker->locals.health, a);
 			}
 
@@ -997,7 +997,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	if (strncmp(cl->locals.persistent.net_name, name, sizeof(cl->locals.persistent.net_name))) {
 
 		if (*cl->locals.persistent.net_name != '\0') {
-			gi.BroadcastPrint(PRINT_LOW, "%s changed name to %s\n", cl->locals.persistent.net_name,
+			gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->locals.persistent.net_name,
 					name);
 		}
 

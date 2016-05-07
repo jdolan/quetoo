@@ -480,7 +480,7 @@ void Sv_SendClientPackets(void) {
 		// if the client's reliable message overflowed, we must drop them
 		if (cl->net_chan.message.overflowed) {
 			Sv_DropClient(cl);
-			Sv_BroadcastPrint(PRINT_HIGH, "%s overflowed\n", cl->name);
+			Sv_BroadcastPrint(PRINT_MEDIUM, "%s overflowed\n", cl->name);
 			continue;
 		}
 
