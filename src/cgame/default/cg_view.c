@@ -62,9 +62,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps __attribute__((unused)
 		return;
 
 	VectorCopy(cgi.view->angles, angles);
-
-	if (cg_third_person->value < 0.0) // to the side (for debugging)
-		angles[1] += 90.0;
+	angles[YAW] += cg_third_person_yaw->value;
 
 	AngleVectors(angles, forward, NULL, NULL);
 

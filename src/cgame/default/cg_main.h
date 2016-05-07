@@ -53,6 +53,7 @@ extern cvar_t *cg_draw_vote;
 extern cvar_t *cg_fov;
 extern cvar_t *cg_fov_zoom;
 extern cvar_t *cg_third_person;
+extern cvar_t *cg_third_person_yaw;
 
 extern cg_import_t cgi;
 

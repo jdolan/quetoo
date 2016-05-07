@@ -48,6 +48,7 @@ cvar_t *cg_draw_vote;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
 cvar_t *cg_third_person;
+cvar_t *cg_third_person_yaw;
 
 cg_import_t cgi;
 
@@ -108,6 +109,8 @@ static void Cg_Init(void) {
 
 	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE,
 			"Activate third person perspective.");
+	cg_third_person_yaw = cgi.Cvar("cg_third_person_yaw", "0.0", CVAR_ARCHIVE,
+			"Yaw offset for third person perspective.");
 
 	// add forward to server commands for tab completion
 
