@@ -675,13 +675,6 @@ void Cl_Init(void) {
 
 	cls.state = CL_DISCONNECTED;
 
-	// initialize SDL
-	if (SDL_WasInit(SDL_INIT_AUDIO | SDL_INIT_VIDEO) == 0) {
-		if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO) < 0) {
-			Com_Error(ERR_FATAL, "%s\n", SDL_GetError());
-		}
-	}
-
 	Cl_InitConsole();
 
 	Cl_InitLocal();
