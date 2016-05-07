@@ -24,11 +24,14 @@
 console_t cl_console;
 console_t cl_chat_console;
 
-static cvar_t *cl_notify_lines;
-static cvar_t *cl_notify_time;
+static cvar_t *cl_draw_chat;
+static cvar_t *cl_draw_notify;
 
 static cvar_t *cl_chat_lines;
 static cvar_t *cl_chat_time;
+
+static cvar_t *cl_notify_lines;
+static cvar_t *cl_notify_time;
 
 /**
  * @brief
@@ -108,17 +111,21 @@ void Cl_DrawConsole(void) {
  */
 void Cl_DrawNotify(void) {
 	r_pixel_t cw, ch;
+	
+	if (!cl_draw_notify->value) {
+		return;
+	}
 
 	R_BindFont("small", &cw, &ch);
 
 	console_t con = {
 		.width = r_context.width / cw,
 		.height = Clamp(cl_notify_lines->integer, 1, 12),
-		.level = ~PRINT_ECHO,
+		.level = (PRINT_MEDIUM | PRINT_HIGH),
 	};
 
-	if (quetoo.time > cl_notify_time->value * 1000) {
-		con.whence = quetoo.time - cl_notify_time->value * 1000;
+	if (cl.systime > cl_notify_time->value * 1000) {
+		con.whence = cl.systime - cl_notify_time->value * 1000;
 	}
 
 	char *lines[con.height];
@@ -144,11 +151,15 @@ void Cl_DrawChat(void) {
 	R_BindFont("small", &cw, &ch);
 
 	r_pixel_t x = 1, y = r_view.y + r_view.height * 0.66;
-
+	
 	cl_chat_console.width = r_context.width / cw / 3;
 	cl_chat_console.height = Clamp(cl_chat_lines->integer, 0, 8);
-
-	if (cl_chat_console.height) {
+	
+	if (cl_draw_chat->value && cl_chat_console.height) {
+		
+		if (cl.systime > cl_chat_time->value * 1000) {
+			cl_chat_console.whence = cl.systime - cl_chat_time->value * 1000;
+		}
 
 		char *lines[cl_chat_console.height];
 		const size_t count = Con_Tail(&cl_chat_console, lines, cl_chat_console.height);
@@ -263,6 +274,9 @@ void Cl_InitConsole(void) {
 
 	memset(&cl_chat_console, 0, sizeof(cl_chat_console));
 	cl_chat_console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
+	
+	cl_draw_chat = Cvar_Get("cl_draw_chat", "1", 0, "Draw recent chat messages");
+	cl_draw_notify = Cvar_Get("cl_draw_notify", "1", 0, "Draw recent console activity");
 
 	cl_notify_lines = Cvar_Get("cl_console_notify_lines", "3", CVAR_ARCHIVE, NULL);
 	cl_notify_time = Cvar_Get("cl_notify_time", "3.0", CVAR_ARCHIVE, NULL);
