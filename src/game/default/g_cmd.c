@@ -757,11 +757,16 @@ _Bool G_AddClientToTeam(g_entity_t *ent, const char *team_name) {
 	if (ent->client->locals.persistent.team == team)
 		return false;
 
+	if (g_level.gameplay == GAME_DUEL && G_TeamSize(team) > 0) {
+		gi.ClientPrint(ent, PRINT_HIGH, "Only 1 player per team allowed in Duel mode\n");
+		return false;
+	}
+	
 	if (!ent->client->locals.persistent.spectator) { // changing teams
 		G_TossQuadDamage(ent);
 		G_TossFlag(ent);
 	}
-
+	
 	ent->client->locals.persistent.team = team;
 	ent->client->locals.persistent.spectator = false;
 	ent->client->locals.persistent.ready = false;

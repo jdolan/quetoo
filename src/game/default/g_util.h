@@ -43,6 +43,7 @@ g_team_t *G_OtherTeam(g_team_t *t);
 g_team_t *G_TeamForFlag(g_entity_t *ent);
 g_entity_t *G_FlagForTeam(g_team_t *t);
 uint32_t G_EffectForTeam(g_team_t *t);
+size_t G_TeamSize(g_team_t *team);
 g_team_t *G_SmallestTeam(void);
 g_client_t *G_ClientByName(char *name);
 int32_t G_ColorByName(const char *s, int32_t def);
