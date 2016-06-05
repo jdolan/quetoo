@@ -416,6 +416,8 @@ char *G_GameplayName(int32_t g) {
 			return "Instagib";
 		case GAME_ARENA:
 			return "Arena";
+		case GAME_DUEL:
+			return "Duel";
 		default:
 			return "DM";
 	}
@@ -436,6 +438,8 @@ g_gameplay_t G_GameplayByName(const char *c) {
 		gameplay = GAME_INSTAGIB;
 	} else if (g_str_has_prefix(g_strchug(lower), "arena")) {
 		gameplay = GAME_ARENA;
+	} else if (g_str_has_prefix(g_strchug(lower), "duel")) {
+		gameplay = GAME_DUEL;
 	}
 
 	g_free(lower);

@@ -663,7 +663,7 @@ static _Bool G_VoteHelp(g_entity_t *ent) {
 
 	if (gi.Argc() == 2 && !g_strcmp0(gi.Argv(1), "g_gameplay")) { // list gameplay modes
 		gi.ClientPrint(ent, PRINT_HIGH, "\nAvailable gameplay modes:\n\n"
-			"  DEATHMATCH\n  INSTAGIB\n  ARENA\n");
+			"  DEATHMATCH\n  INSTAGIB\n  ARENA\n  DUEL\n");
 		return true;
 	}
 

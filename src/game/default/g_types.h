@@ -55,7 +55,8 @@ typedef enum {
 typedef enum {
 	GAME_DEATHMATCH,
 	GAME_INSTAGIB,
-	GAME_ARENA
+	GAME_ARENA,
+	GAME_DUEL
 } g_gameplay_t;
 
 /*
