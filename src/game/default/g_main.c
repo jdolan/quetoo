@@ -683,13 +683,18 @@ static void G_CheckRules(void) {
 	if (g_teams->modified) { // reset teams, scores
 		g_teams->modified = false;
 
-		g_level.teams = g_teams->integer;
-		gi.ConfigString(CS_TEAMS, va("%d", g_level.teams));
+		// teams are required for duel
+		if (g_level.gameplay == GAME_DUEL){
+			gi.Print("Teams required for DUEL gameplay, can't be changed\n");
+		} else {
+			g_level.teams = g_teams->integer;
+			gi.ConfigString(CS_TEAMS, va("%d", g_level.teams));
 
-		gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n",
-				g_level.teams ? "enabled" : "disabled");
+			gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n",
+					g_level.teams ? "enabled" : "disabled");
 
-		restart = true;
+			restart = true;
+		}
 	}
 
 	if (g_ctf->modified) { // reset teams, scores
@@ -847,16 +852,17 @@ const char *G_GameName(void) {
 
 	g_strlcpy(name, G_GameplayName(g_level.gameplay), size);
 
-	// teams are implied for capture the flag
+	// teams are implied for capture the flag and duel
 	if (g_level.ctf) {
 		g_strlcat(name, " CTF", size);
-	} else if (g_level.teams) {
+	} else if (g_level.teams && g_level.gameplay != GAME_DUEL) {
 		g_strlcpy(name, va("Team %s", name), size);
 	}
 
+	// matches are implied for duel mode
 	if (g_level.rounds) {
 		g_strlcat(name, " | Rounds", size);
-	} else if (g_level.match) {
+	} else if (g_level.match && g_level.gameplay != GAME_DUEL) {
 		g_strlcat(name, " | Matches", size);
 	}
 	return name;
@@ -881,7 +887,7 @@ void G_Init(void) {
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
 	g_frag_limit = gi.Cvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level");
 	g_friendly_fire = gi.Cvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Enables friendly fire");
-	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVER_INFO, "Selects deathmatch, arena, or instagib combat");
+	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat");
 	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);

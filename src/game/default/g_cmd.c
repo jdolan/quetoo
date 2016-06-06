@@ -666,6 +666,20 @@ static _Bool G_VoteHelp(g_entity_t *ent) {
 			"  DEATHMATCH\n  INSTAGIB\n  ARENA\n  DUEL\n");
 		return true;
 	}
+	
+	// matches are required for duel mode
+	if (g_level.gameplay == GAME_DUEL && !g_strcmp0(gi.Argv(1), "g_match")) {
+		gi.ClientPrint(ent, PRINT_HIGH, 
+			"Match mode is required for DUEL gameplay, setting cannot be changed\n");
+		return true;
+	}
+	
+	// teams are required for duel mode
+	if (g_level.gameplay == GAME_DUEL && !g_strcmp0(gi.Argv(1), "g_teams")) {
+		gi.ClientPrint(ent, PRINT_HIGH, 
+			"Teams are required for DUEL gameplay, setting cannot be changed\n");
+		return true;
+	}
 
 	if (gi.Argc() == 2) { // general catch for invalid commands
 		gi.ClientPrint(ent, PRINT_HIGH, "Usage: %s <command args>\n", gi.Argv(0));

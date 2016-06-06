@@ -531,7 +531,7 @@ typedef struct {
 	char title[MAX_STRING_CHARS]; // the descriptive name (Stress Fractures, etc)
 	char name[MAX_QPATH]; // the server name (fractures, etc)
 	int16_t gravity; // defaults to 800
-	g_gameplay_t gameplay; // DEATHMATCH, INSTAGIB, ARENA
+	g_gameplay_t gameplay; // DEATHMATCH, INSTAGIB, ARENA, DUEL
 	_Bool teams;
 	_Bool ctf;
 	_Bool match;
