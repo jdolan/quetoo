@@ -966,7 +966,8 @@ static void G_Ready_f(g_entity_t *ent) {
 	}
 
 	ent->client->locals.persistent.ready = true;
-
+	gi.BroadcastPrint(PRINT_HIGH, "%s is ready\n", ent->client->locals.persistent.net_name);
+	
 	clients = g = e = 0;
 
 	for (i = 0; i < sv_max_clients->integer; i++) { // is everyone ready?
@@ -1033,6 +1034,9 @@ static void G_Unready_f(g_entity_t *ent) {
 	}
 
 	ent->client->locals.persistent.ready = false;
+	gi.BroadcastPrint(PRINT_HIGH, "%s is having second thoughts...\n", 
+		ent->client->locals.persistent.net_name);
+		
 	g_level.start_match = false;
 }
 
