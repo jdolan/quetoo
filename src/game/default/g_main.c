@@ -553,6 +553,7 @@ static char *G_FormatTime(uint32_t time) {
  */
 static void G_CheckRules(void) {
 	int32_t i;
+	_Bool restart = false;
 
 	if (g_level.intermission_time)
 		return;
@@ -667,7 +668,7 @@ static void G_CheckRules(void) {
 		g_level.gameplay = G_GameplayByName(g_gameplay->string);
 		gi.ConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
-		G_RestartGame(false); // reset all clients
+		restart = true;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n",
 				G_GameplayName(g_level.gameplay));
@@ -688,7 +689,7 @@ static void G_CheckRules(void) {
 		gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n",
 				g_level.teams ? "enabled" : "disabled");
 
-		G_RestartGame(true);
+		restart = true;
 	}
 
 	if (g_ctf->modified) { // reset teams, scores
@@ -699,7 +700,7 @@ static void G_CheckRules(void) {
 
 		gi.BroadcastPrint(PRINT_HIGH, "CTF has been %s\n", g_level.ctf ? "enabled" : "disabled");
 
-		G_RestartGame(true);
+		restart = true;
 	}
 
 	if (g_match->modified) { // reset scores
@@ -712,7 +713,7 @@ static void G_CheckRules(void) {
 
 		gi.BroadcastPrint(PRINT_HIGH, "Match has been %s\n", g_level.match ? "enabled" : "disabled");
 
-		G_RestartGame(false);
+		restart = true;
 	}
 
 	if (g_rounds->modified) { // reset scores
@@ -726,7 +727,7 @@ static void G_CheckRules(void) {
 		gi.BroadcastPrint(PRINT_HIGH, "Rounds have been %s\n",
 				g_level.rounds ? "enabled" : "disabled");
 
-		G_RestartGame(false);
+		restart = true;
 	}
 
 	if (g_cheats->modified) { // notify when cheats changes
@@ -763,6 +764,10 @@ static void G_CheckRules(void) {
 		g_level.time_limit = g_time_limit->value * 60 * 1000;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n", g_time_limit->value);
+	}
+	
+	if (restart) {
+		G_RestartGame(true);	// reset all clients
 	}
 }
 
