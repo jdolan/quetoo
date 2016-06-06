@@ -914,10 +914,9 @@ void G_Init(void) {
 	G_MySQL_Init();
 
 	// set these to false to avoid spurious game restarts and alerts on init
-	g_gameplay->modified = g_teams->modified = g_match->modified = g_rounds->modified
-			= g_ctf->modified = g_cheats->modified = g_frag_limit->modified
-					= g_round_limit->modified = g_capture_limit->modified = g_time_limit->modified
-							= false;
+	g_gameplay->modified = g_ctf->modified = g_cheats->modified = 
+		g_frag_limit->modified = g_round_limit->modified = g_capture_limit->modified = 
+			g_time_limit->modified = false;
 
 	gi.Print("  Game initialized\n");
 }
