@@ -558,6 +558,7 @@ static char *G_FormatTime(uint32_t time) {
 static void G_CheckRules(void) {
 	int32_t i;
 	_Bool restart = false;
+	static int8_t warmup_count = 10;	// maybe make warmup time a cvar?
 
 	if (g_level.intermission_time)
 		return;
@@ -568,7 +569,18 @@ static void G_CheckRules(void) {
 	// arena mode, no round, or countdown underway
 	g_level.warmup |= g_level.rounds && (!g_level.round_time || g_level.round_time > g_level.time);
 
+	// show warmup countdown
+	if (g_level.time < g_level.match_time && g_level.frame_num % gi.frame_rate == 0){
+		gi.BroadcastPrint(PRINT_HIGH, "%d\n", warmup_count);
+		if (warmup_count == 7){
+			// fire countdown sound (once I make it)
+		}
+		warmup_count--;
+	}
+	
 	if (g_level.start_match && g_level.time >= g_level.match_time) {
+		warmup_count = 10;	// reset count
+		
 		// players have readied, begin match
 		g_level.start_match = false;
 		g_level.warmup = false;
