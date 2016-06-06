@@ -775,3 +775,11 @@ _Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
 	return (a & ~ANIM_TOGGLE_BIT) == anim;
 }
 
+/*
+ * @brief forcefully suggest client adds given command to its console buffer
+ */
+void G_ClientStuff(g_entity_t *ent, const char *s){
+	gi.WriteByte(SV_CMD_CBUF_TEXT);
+	gi.WriteString(s);
+	gi.Unicast(ent, true);
+}

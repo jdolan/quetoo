@@ -36,6 +36,8 @@ cvar_t *g_cheats;
 cvar_t *g_ctf;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
+cvar_t *g_force_demo;
+cvar_t *g_force_screenshot;
 cvar_t *g_gameplay;
 cvar_t *g_gravity;
 cvar_t *g_match;
@@ -900,6 +902,8 @@ void G_Init(void) {
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
 	g_frag_limit = gi.Cvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level");
 	g_friendly_fire = gi.Cvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Enables friendly fire");
+	g_force_demo = gi.Cvar("g_force_demo", "0", CVAR_SERVER_INFO, "Force all players to record a demo");
+	g_force_screenshot = gi.Cvar("g_force_screenshot", "0", CVAR_SERVER_INFO, "Force all players to take a screenshot");
 	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat");
 	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");

@@ -56,6 +56,7 @@ _Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim);
 g_entity_t *G_AllocEntity(const char *class_name);
 void G_InitEntity(g_entity_t *ent, const char *class_name);
 void G_FreeEntity(g_entity_t *ent);
+void G_ClientStuff(g_entity_t *ent, const char *s);
 
 #endif /* __GAME_LOCAL_H__ */
 
