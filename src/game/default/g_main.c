@@ -672,6 +672,13 @@ static void G_CheckRules(void) {
 
 		gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n",
 				G_GameplayName(g_level.gameplay));
+				
+		// force required cvars for DUEL mode
+		if (g_level.gameplay == GAME_DUEL && g_teams->integer == 0)
+			gi.AddCommandString("set g_teams 1\n");
+			
+		if (g_level.gameplay == GAME_DUEL && g_match->integer == 0)
+			gi.AddCommandString("set g_match 1\n");
 	}
 
 	if (g_gravity->modified) { // set gravity, G_ClientMove will read it
@@ -684,8 +691,9 @@ static void G_CheckRules(void) {
 		g_teams->modified = false;
 
 		// teams are required for duel
-		if (g_level.gameplay == GAME_DUEL){
-			gi.Print("Teams required for DUEL gameplay, can't be changed\n");
+		if (g_level.gameplay == GAME_DUEL && g_teams->integer == 0){
+			gi.Print("Teams can't be disabled in DUEL mode, enabling...\n");
+			gi.AddCommandString("set g_teams 1\n");
 		} else {
 			g_level.teams = g_teams->integer;
 			gi.ConfigString(CS_TEAMS, va("%d", g_level.teams));
@@ -710,15 +718,20 @@ static void G_CheckRules(void) {
 
 	if (g_match->modified) { // reset scores
 		g_match->modified = false;
+		
+		if (g_level.gameplay == GAME_DUEL && g_match->integer == 0){
+			gi.Print("Matchs can't be disabled in DUEL mode, enabling...\n");
+			gi.AddCommandString("set g_match 1\n");
+		} else {
+			g_level.match = g_match->integer;
+			gi.ConfigString(CS_MATCH, va("%d", g_level.match));
 
-		g_level.match = g_match->integer;
-		gi.ConfigString(CS_MATCH, va("%d", g_level.match));
+			g_level.warmup = g_level.match; // toggle warmup
 
-		g_level.warmup = g_level.match; // toggle warmup
+			gi.BroadcastPrint(PRINT_HIGH, "Match has been %s\n", g_level.match ? "enabled" : "disabled");
 
-		gi.BroadcastPrint(PRINT_HIGH, "Match has been %s\n", g_level.match ? "enabled" : "disabled");
-
-		restart = true;
+			restart = true;
+		}
 	}
 
 	if (g_rounds->modified) { // reset scores
