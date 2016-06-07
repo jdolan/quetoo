@@ -60,6 +60,7 @@ extern cvar_t *g_spectator_chat;
 extern cvar_t *g_teams;
 extern cvar_t *g_time_limit;
 extern cvar_t *g_voting;
+extern cvar_t *g_warmup_time;
 extern cvar_t *g_weapon_respawn_time;
 
 extern cvar_t *sv_max_clients;

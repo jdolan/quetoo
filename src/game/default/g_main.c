@@ -55,6 +55,7 @@ cvar_t *g_show_attacker_stats;
 cvar_t *g_teams;
 cvar_t *g_time_limit;
 cvar_t *g_voting;
+cvar_t *g_warmup_time;
 cvar_t *g_weapon_respawn_time;
 
 cvar_t *sv_max_clients;
@@ -558,7 +559,6 @@ static char *G_FormatTime(uint32_t time) {
 static void G_CheckRules(void) {
 	int32_t i;
 	_Bool restart = false;
-	static int8_t warmup_count = 10;	// maybe make warmup time a cvar?
 
 	if (g_level.intermission_time)
 		return;
@@ -568,18 +568,8 @@ static void G_CheckRules(void) {
 
 	// arena mode, no round, or countdown underway
 	g_level.warmup |= g_level.rounds && (!g_level.round_time || g_level.round_time > g_level.time);
-
-	// show warmup countdown
-	if (g_level.time < g_level.match_time && g_level.frame_num % gi.frame_rate == 0){
-		gi.BroadcastPrint(PRINT_HIGH, "%d\n", warmup_count);
-		if (warmup_count == 7){
-			// fire countdown sound (once I make it)
-		}
-		warmup_count--;
-	}
 	
 	if (g_level.start_match && g_level.time >= g_level.match_time) {
-		warmup_count = 10;	// reset count
 		
 		// players have readied, begin match
 		g_level.start_match = false;
@@ -642,8 +632,23 @@ static void G_CheckRules(void) {
 		time = g_level.time_limit - g_level.time; // count down
 	}
 
-	if (g_level.frame_num % gi.frame_rate == 0) // send time updates once per second
-		gi.ConfigString(CS_TIME, g_level.warmup ? "Warmup" : G_FormatTime(time));
+	// timing
+	if (g_level.frame_num % gi.frame_rate == 0){ // send time updates once per second
+	
+		if (time < g_level.match_time){	// match mode, everyone ready, show countdown
+			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_level.match_time - g_level.time)));
+			
+			if (g_level.match_time - g_level.time <= 5000){
+				gi.BroadcastPrint(PRINT_HIGH, "%s\n", G_FormatTime(g_level.match_time - g_level.time));
+			}
+			
+		} else if (g_level.warmup && g_level.match && !g_level.start_match) {	// not everyone ready yet
+			gi.ConfigString(CS_TIME, va("Warmup %s",G_FormatTime(g_time_limit->integer * 60 * 1000)));
+			
+		} else { 
+			gi.ConfigString(CS_TIME, G_FormatTime(time));
+		}
+	}
 
 	if (!g_level.ctf && g_level.frag_limit) { // check frag_limit
 
@@ -935,6 +940,7 @@ void G_Init(void) {
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
 	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes");
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
+	g_warmup_time = gi.Cvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds");
 	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
 
 	sv_max_clients = gi.Cvar("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
