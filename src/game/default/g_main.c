@@ -557,7 +557,7 @@ static char *G_FormatTime(uint32_t time) {
  * @brief
  */
 static void G_CheckRules(void) {
-	int32_t i;
+	int32_t i, j;
 	_Bool restart = false;
 
 	if (g_level.intermission_time)
@@ -635,11 +635,14 @@ static void G_CheckRules(void) {
 	// timing
 	if (g_level.frame_num % gi.frame_rate == 0){ // send time updates once per second
 	
+		j = (g_level.match_time - g_level.time) / 1000 % 60;
+		
 		if (time < g_level.match_time){	// match mode, everyone ready, show countdown
 			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_level.match_time - g_level.time)));
 			
-			if (g_level.match_time - g_level.time <= 5000){
-				gi.BroadcastPrint(PRINT_HIGH, "%s\n", G_FormatTime(g_level.match_time - g_level.time));
+			if (j <= 5){
+				G_TeamCenterPrint(&g_team_good, "%s\n", (!j) ? "Fight!" : va("%d", j));
+				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));	
 			}
 			
 		} else if (g_level.warmup && g_level.match && !g_level.start_match) {	// not everyone ready yet
