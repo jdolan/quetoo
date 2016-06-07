@@ -783,3 +783,31 @@ void G_ClientStuff(g_entity_t *ent, const char *s){
 	gi.WriteString(s);
 	gi.Unicast(ent, true);
 }
+
+/*
+ * @brief Send a centerprint to everyone on the supplied team
+ */
+void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...){
+	char string[MAX_STRING_CHARS];
+	va_list args;
+	g_entity_t *ent;
+	
+	va_start(args, fmt);
+	vsprintf(string, fmt, args);
+	va_end(args);
+	
+	// look through all players
+	for (int32_t i = 0; i < sv_max_clients->integer; i++){
+		if (!g_game.entities[i + 1].in_use)
+			continue;
+		
+		ent = &g_game.entities[i + 1];
+		
+		// member of supplied team? send it
+		if (ent->client->locals.persistent.team == team){
+			gi.WriteByte(SV_CMD_CENTER_PRINT);
+			gi.WriteString(string);
+			gi.Unicast(ent, false);
+		}
+	}
+}
