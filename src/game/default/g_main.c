@@ -640,7 +640,12 @@ static void G_CheckRules(void) {
 		if (time < g_level.match_time){	// match mode, everyone ready, show countdown
 			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_level.match_time - g_level.time)));
 			
-			if (j <= 5){
+			if (j <= 5) {
+			
+				if (j > 0) {
+					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE);
+				}
+				
 				G_TeamCenterPrint(&g_team_good, "%s\n", (!j) ? "Fight!" : va("%d", j));
 				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));	
 			}

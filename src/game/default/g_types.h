@@ -516,6 +516,8 @@ typedef struct {
 
 		uint16_t weapon_no_ammo;
 		uint16_t weapon_switch;
+		
+		uint16_t countdown[11];
 	} sounds;
 
 } g_media_t;
