@@ -635,9 +635,9 @@ static void G_CheckRules(void) {
 	// timing
 	if (g_level.frame_num % gi.frame_rate == 0){ // send time updates once per second
 	
-		j = (g_level.match_time - g_level.time) / 1000 % 60;
-		
 		if (time < g_level.match_time){	// match mode, everyone ready, show countdown
+		
+			j = (g_level.match_time - g_level.time) / 1000 % 60;
 			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_level.match_time - g_level.time)));
 			
 			if (j <= 5) {
