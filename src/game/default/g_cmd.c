@@ -1023,7 +1023,7 @@ static void G_Unready_f(g_entity_t *ent) {
 		return;
 	}
 
-	if (g_level.match_time) {
+	if (!g_level.warmup && g_level.match_time <= g_level.time) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Match has started\n");
 		return;
 	}
@@ -1034,10 +1034,13 @@ static void G_Unready_f(g_entity_t *ent) {
 	}
 
 	ent->client->locals.persistent.ready = false;
-	gi.BroadcastPrint(PRINT_HIGH, "%s is having second thoughts...\n", 
-		ent->client->locals.persistent.net_name);
+	gi.BroadcastPrint(PRINT_HIGH, "%s is having second thoughts...%s\n", 
+		ent->client->locals.persistent.net_name,
+		(g_level.start_match) ? "countdown aborted" : ""
+	);
 		
 	g_level.start_match = false;
+	g_level.match_time = 0;
 }
 
 /*
