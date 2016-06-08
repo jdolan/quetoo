@@ -54,6 +54,7 @@ cvar_t *g_spectator_chat;
 cvar_t *g_show_attacker_stats;
 cvar_t *g_teams;
 cvar_t *g_time_limit;
+cvar_t *g_timeout_time;
 cvar_t *g_voting;
 cvar_t *g_warmup_time;
 cvar_t *g_weapon_respawn_time;
@@ -559,7 +560,7 @@ static char *G_FormatTime(uint32_t time) {
  * @brief
  */
 static void G_CheckRules(void) {
-	int32_t i, j;
+	int32_t i;
 	_Bool restart = false;
 
 	if (g_level.intermission_time)
@@ -604,62 +605,7 @@ static void G_CheckRules(void) {
 		gi.BroadcastPrint(PRINT_HIGH, "Round has started\n");
 	}
 
-	// check time limit and resolve CS_TIME
-	uint32_t time = g_level.time;
-
-	if (g_level.rounds) {
-		if (g_level.round_time > g_level.time) // round about to start, show pre-game countdown
-			time = g_level.round_time - g_level.time;
-		else if (g_level.round_time)
-			time = g_level.time - g_level.round_time; // round started, count up
-		else
-			time = 0;
-	} else if (g_level.match) {
-		if (g_level.match_time > g_level.time) // match about to start, show pre-game countdown
-			time = g_level.match_time - g_level.time;
-		else if (g_level.match_time) {
-			if (g_level.time_limit) // count down to time_limit
-				time = g_level.time_limit - g_level.time;
-			else
-				time = g_level.time - g_level.match_time; // count up
-		} else
-			time = 0;
-	}
-
-	if (g_level.time_limit) { // check time_limit
-		if (time >= g_level.time_limit) {
-			gi.BroadcastPrint(PRINT_HIGH, "Time limit hit\n");
-			G_EndLevel();
-			return;
-		}
-		time = g_level.time_limit - g_level.time; // count down
-	}
-
-	// timing
-	if (g_level.frame_num % gi.frame_rate == 0){ // send time updates once per second
-	
-		if (g_level.match_status & MSTAT_COUNTDOWN){	// match mode, everyone ready, show countdown
-		
-			j = (g_level.match_time - g_level.time) / 1000 % 60;
-			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_level.match_time - g_level.time)));
-			
-			if (j <= 5) {
-			
-				if (j > 0) {
-					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE);
-				}
-				
-				G_TeamCenterPrint(&g_team_good, "%s\n", (!j) ? "Fight!" : va("%d", j));
-				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));	
-			}
-			
-		} else if (g_level.match && g_level.match_status == MSTAT_WARMUP) {	// not everyone ready yet
-			gi.ConfigString(CS_TIME, va("Warmup %s",G_FormatTime(g_time_limit->integer * 60 * 1000)));
-			
-		} else { 
-			gi.ConfigString(CS_TIME, G_FormatTime(time));
-		}
-	}
+	G_RunTimers();
 
 	if (!g_level.ctf && g_level.frag_limit) { // check frag_limit
 
@@ -842,19 +788,19 @@ static void G_ExitLevel(void) {
  */
 static void G_Frame(void) {
 
-	if (!(g_level.match_status & MSTAT_TIMEOUT)) {
-	
-		g_level.frame_num++;
-		g_level.time = g_level.frame_num * gi.frame_millis;
+	g_level.frame_num++;
+	g_level.time = g_level.frame_num * gi.frame_millis;
 
-		// check for level change after running intermission
-		if (g_level.intermission_time) {
-			if (g_level.time > g_level.intermission_time + INTERMISSION) {
-				G_ExitLevel();
-				return;
-			}
+	// check for level change after running intermission
+	if (g_level.intermission_time) {
+		if (g_level.time > g_level.intermission_time + INTERMISSION) {
+			G_ExitLevel();
+			return;
 		}
-
+	}
+		
+	if (!TIMEOUT) {
+	
 		// treat each object in turn
 		// even the world gets a chance to think
 		g_entity_t *ent = &g_game.entities[0];
@@ -888,11 +834,8 @@ static void G_Frame(void) {
 	// see if an arena round should end
 	G_CheckRoundEnd();
 
-	if (!(g_level.match_status & MSTAT_TIMEOUT)) {
-	
-		// build the player_state_t structures for all players
-		G_EndClientFrames();
-	}
+	// build the player_state_t structures for all players
+	G_EndClientFrames();
 }
 
 /*
@@ -957,6 +900,7 @@ void G_Init(void) {
 	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators");
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
 	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes");
+	g_timeout_time = gi.Cvar("g_timeout_time", "120", CVAR_SERVER_INFO, "Length in seconds of a timeout");
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
 	g_warmup_time = gi.Cvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds");
 	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
@@ -1003,6 +947,120 @@ void G_Shutdown(void) {
 	gi.FreeTag(MEM_TAG_GAME);
 }
 
+void G_CallTimeOut(g_entity_t *ent) {
+
+	g_level.match_status |= MSTAT_TIMEOUT;
+	g_level.timeout_caller = ent;
+	g_level.timeout_time = g_level.time + (g_timeout_time->integer * 1000);
+	g_level.timeout_frame = g_level.frame_num;
+	
+	// lock players
+	for (int32_t i = 1; i < sv_max_clients->integer; i++) {
+		if (g_game.entities[i].client->locals.persistent.team){
+			g_game.entities[i].client->ps.pm_state.type = PM_FREEZE;
+		}
+	}
+	
+	gi.BroadcastPrint(PRINT_HIGH, "%s called a timeout, play with resume in %s\n", 
+		ent->client->locals.persistent.net_name, G_FormatTime(g_timeout_time->integer * 1000));
+}
+
+void G_CallTimeIn(void) {
+	
+	g_level.frame_num = g_level.timeout_frame; // where we were before timeout
+	
+	// unlock players
+	for (int32_t i = 1; i < sv_max_clients->integer; i++) {
+		if (g_game.entities[i].client->locals.persistent.team){
+			g_game.entities[i].client->ps.pm_state.type = PM_NORMAL;
+		}
+	}
+	
+	g_level.match_status = MSTAT_PLAYING;
+	g_level.timeout_caller = NULL;
+	g_level.timeout_time = 0;
+	g_level.timeout_frame = 0;
+	
+	//gi.BroadcastPrint(PRINT_HIGH, "%s resumed the match\n", ent->client->locals.persistent.net_name);
+}
+
+/*
+ * Timer based stuff for the game (clock, countdowns, timeouts, etc)
+ */
+void G_RunTimers(void) {
+	uint32_t j;
+	uint32_t time = g_level.time;
+	
+	if (g_level.rounds) {
+		if (g_level.round_time > g_level.time) // round about to start, show pre-game countdown
+			time = g_level.round_time - g_level.time;
+		else if (g_level.round_time)
+			time = g_level.time - g_level.round_time; // round started, count up
+		else
+			time = 0;
+	} else if (g_level.match) {
+		if (g_level.match_time > g_level.time) // match about to start, show pre-game countdown
+			time = g_level.match_time - g_level.time;
+		else if (g_level.match_time) {
+			if (g_level.time_limit) // count down to time_limit
+				time = g_level.time_limit - g_level.time;
+			else
+				time = g_level.time - g_level.match_time; // count up
+		} else
+			time = 0;
+	}
+
+	if (g_level.time_limit) { // check time_limit
+		if (time >= g_level.time_limit) {
+			gi.BroadcastPrint(PRINT_HIGH, "Time limit hit\n");
+			G_EndLevel();
+			return;
+		}
+		time = g_level.time_limit - g_level.time; // count down
+	}
+	
+	if (g_level.frame_num % gi.frame_rate == 0){ // send time updates once per second
+		
+		if (COUNTDOWN && !PLAYING){	// match mode, everyone ready, show countdown
+		
+			j = (g_level.match_time - g_level.time) / 1000 % 60;
+			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_level.match_time - g_level.time)));
+			
+			if (j <= 5) {
+			
+				if (j > 0) {
+					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE);
+				}
+				
+				G_TeamCenterPrint(&g_team_good, "%s\n", (!j) ? "Fight!" : va("%d", j));
+				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));	
+			}
+			
+		} else if (g_level.match && WARMUP) {	// not everyone ready yet
+			gi.ConfigString(CS_TIME, va("Warmup %s",G_FormatTime(g_time_limit->integer * 60 * 1000)));
+			
+		} else if (TIMEOUT) {	// mid match, player called timeout
+			j = (g_level.timeout_time - g_level.time) / 1000;
+			gi.ConfigString(CS_TIME, va("Timeout %s",
+				G_FormatTime(g_level.timeout_time - g_level.time))
+			);
+			
+			if (j <= 10) {
+			
+				if (j > 0) {
+					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE);
+				} else {
+					G_CallTimeIn();
+				}
+				
+				G_TeamCenterPrint(&g_team_good, "%s\n", (!j) ? "Fight!" : va("%d", j));
+				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));	
+			}
+		} else { 
+			gi.ConfigString(CS_TIME, G_FormatTime(time));
+		}
+	}
+}
 /*
  * @brief This is the entry point responsible for aligning the server and game module.
  * The server resolves this symbol upon successfully loading the game library,

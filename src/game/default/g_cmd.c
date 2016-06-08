@@ -1102,13 +1102,14 @@ void G_Timein_f(g_entity_t *ent) {
 	if (!(g_level.match_status & MSTAT_TIMEOUT)) {
 		return;
 	}
-	gi.BroadcastPrint(PRINT_HIGH, "match_status: %d\n", g_level.match_status);
-	g_level.match_status = MSTAT_PLAYING;
-	g_level.timeout_caller = NULL;
-	g_level.timeout_time = 0;
 	
-	gi.BroadcastPrint(PRINT_HIGH, "%s resumed the match\n", ent->client->locals.persistent.net_name);
-	gi.BroadcastPrint(PRINT_HIGH, "match_status: %d\n", g_level.match_status);
+	gi.BroadcastPrint(PRINT_HIGH, "%s resumed the game, get ready\n", 
+		ent->client->locals.persistent.net_name);
+	
+	// assuming there is more than 10 seconds left in TO, move clock to 10 sec
+	if (g_level.timeout_time - g_level.time > 10000) {
+		g_level.timeout_time = g_level.time + 10000;
+	}
 }
 
 /*
@@ -1120,26 +1121,17 @@ void G_Timeout_f(g_entity_t *ent) {
 		return;
 	}
 	
-	if (!(g_level.match_status & MSTAT_PLAYING)) {
+	if (!PLAYING) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Match isn't started, can't timeout yet\n");
 		return;
 	}
 	
-	if (g_level.match_status & MSTAT_TIMEOUT && 
-			(g_level.timeout_caller == ent || ent->client->locals.persistent.admin)) {
+	if (TIMEOUT && (g_level.timeout_caller == ent || ent->client->locals.persistent.admin)) {
 		G_Timein_f(ent);
 		return;
 	}
 	
-	gi.BroadcastPrint(PRINT_HIGH, "match_status: %d\n", g_level.match_status);
-	g_level.match_status |= MSTAT_TIMEOUT;
-	g_level.timeout_caller = ent;
-	g_level.timeout_time = g_level.time + (2 * 1000 * 60);
-	
-	gi.BroadcastPrint(PRINT_HIGH, "%s called a timeout, play with resume in %s\n", 
-		ent->client->locals.persistent.net_name, "FIXMELATER");
-		
-	gi.BroadcastPrint(PRINT_HIGH, "match_status: %d\n", g_level.match_status);
+	G_CallTimeOut(ent);	
 }
 
 /*

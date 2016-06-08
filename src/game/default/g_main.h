@@ -26,6 +26,11 @@
 
 #ifdef __GAME_LOCAL_H__
 
+#define PLAYING (g_level.match_status & MSTAT_PLAYING)
+#define TIMEOUT (g_level.match_status & MSTAT_TIMEOUT)
+#define COUNTDOWN (g_level.match_status & MSTAT_COUNTDOWN)
+#define WARMUP (g_level.match_status & MSTAT_WARMUP)
+
 extern g_level_t g_level;
 extern g_media_t g_media;
 
@@ -59,6 +64,7 @@ extern cvar_t *g_spawn_farthest;
 extern cvar_t *g_spectator_chat;
 extern cvar_t *g_teams;
 extern cvar_t *g_time_limit;
+extern cvar_t *g_timeout_time;
 extern cvar_t *g_voting;
 extern cvar_t *g_warmup_time;
 extern cvar_t *g_weapon_respawn_time;
@@ -74,6 +80,10 @@ void G_Shutdown(void);
 void G_ResetItems(void);
 void G_ResetTeams(void);
 void G_ResetVote(void);
+void G_CallTimeOut(g_entity_t *ent);
+void G_CallTimeIn(void);
+void G_RunTimers(void);
+
 g_export_t *G_LoadGame(g_import_t *import);
 
 #endif /* __GAME_LOCAL_H__ */

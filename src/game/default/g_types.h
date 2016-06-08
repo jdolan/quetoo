@@ -579,6 +579,7 @@ typedef struct {
 	uint32_t match_status;	// (bitmask) are we playing, in warmup, in timeout?
 	g_entity_t *timeout_caller; // who called it?
 	uint32_t timeout_time;
+	uint32_t timeout_frame;
 } g_level_t;
 
 /*
