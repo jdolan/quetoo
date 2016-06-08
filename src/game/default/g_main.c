@@ -265,6 +265,8 @@ static void G_EndLevel(void) {
 	
 	const g_map_list_map_t *map = G_MapList_Next();
 	
+	g_level.match_status = 0;
+	
 	// always stay on the same map when in match mode
 	if (map && !g_level.match) {
 		G_BeginIntermission(map->name);
@@ -575,6 +577,7 @@ static void G_CheckRules(void) {
 		g_level.start_match = false;
 		g_level.warmup = false;
 		g_level.time_limit = (g_time_limit->value * 60 * 1000) + g_level.time;
+		g_level.match_status = MSTAT_PLAYING;
 
 		for (i = 0; i < sv_max_clients->integer; i++) {
 			if (!g_game.entities[i + 1].in_use)
@@ -635,7 +638,7 @@ static void G_CheckRules(void) {
 	// timing
 	if (g_level.frame_num % gi.frame_rate == 0){ // send time updates once per second
 	
-		if (time < g_level.match_time){	// match mode, everyone ready, show countdown
+		if (g_level.match_status & MSTAT_COUNTDOWN){	// match mode, everyone ready, show countdown
 		
 			j = (g_level.match_time - g_level.time) / 1000 % 60;
 			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_level.match_time - g_level.time)));
@@ -650,7 +653,7 @@ static void G_CheckRules(void) {
 				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));	
 			}
 			
-		} else if (g_level.warmup && g_level.match && !g_level.start_match) {	// not everyone ready yet
+		} else if (g_level.match && g_level.match_status == MSTAT_WARMUP) {	// not everyone ready yet
 			gi.ConfigString(CS_TIME, va("Warmup %s",G_FormatTime(g_time_limit->integer * 60 * 1000)));
 			
 		} else { 
@@ -756,6 +759,7 @@ static void G_CheckRules(void) {
 			gi.ConfigString(CS_MATCH, va("%d", g_level.match));
 
 			g_level.warmup = g_level.match; // toggle warmup
+			g_level.match_status = MSTAT_WARMUP;
 
 			gi.BroadcastPrint(PRINT_HIGH, "Match has been %s\n", g_level.match ? "enabled" : "disabled");
 
@@ -838,31 +842,34 @@ static void G_ExitLevel(void) {
  */
 static void G_Frame(void) {
 
-	g_level.frame_num++;
-	g_level.time = g_level.frame_num * gi.frame_millis;
+	if (!(g_level.match_status & MSTAT_TIMEOUT)) {
+	
+		g_level.frame_num++;
+		g_level.time = g_level.frame_num * gi.frame_millis;
 
-	// check for level change after running intermission
-	if (g_level.intermission_time) {
-		if (g_level.time > g_level.intermission_time + INTERMISSION) {
-			G_ExitLevel();
-			return;
+		// check for level change after running intermission
+		if (g_level.intermission_time) {
+			if (g_level.time > g_level.intermission_time + INTERMISSION) {
+				G_ExitLevel();
+				return;
+			}
 		}
-	}
 
-	// treat each object in turn
-	// even the world gets a chance to think
-	g_entity_t *ent = &g_game.entities[0];
-	for (uint16_t i = 0; i < ge.num_entities; i++, ent++) {
+		// treat each object in turn
+		// even the world gets a chance to think
+		g_entity_t *ent = &g_game.entities[0];
+		for (uint16_t i = 0; i < ge.num_entities; i++, ent++) {
 
-		if (!ent->in_use)
-			continue;
+			if (!ent->in_use)
+				continue;
 
-		g_level.current_entity = ent;
+			g_level.current_entity = ent;
 
-		if (ent->client) {
-			G_ClientBeginFrame(ent);
-		} else {
-			G_RunEntity(ent);
+			if (ent->client) {
+				G_ClientBeginFrame(ent);
+			} else {
+				G_RunEntity(ent);
+			}
 		}
 	}
 
@@ -881,8 +888,11 @@ static void G_Frame(void) {
 	// see if an arena round should end
 	G_CheckRoundEnd();
 
-	// build the player_state_t structures for all players
-	G_EndClientFrames();
+	if (!(g_level.match_status & MSTAT_TIMEOUT)) {
+	
+		// build the player_state_t structures for all players
+		G_EndClientFrames();
+	}
 }
 
 /*

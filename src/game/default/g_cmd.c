@@ -1006,6 +1006,7 @@ static void G_Ready_f(g_entity_t *ent) {
 	g_level.match_time = g_level.time + (g_warmup_time->integer * 1000);
 
 	g_level.start_match = true;
+	g_level.match_status = MSTAT_COUNTDOWN;
 }
 
 /*
@@ -1041,6 +1042,7 @@ static void G_Unready_f(g_entity_t *ent) {
 		
 	g_level.start_match = false;
 	g_level.match_time = 0;
+	g_level.match_status = MSTAT_WARMUP;
 }
 
 /*
@@ -1091,6 +1093,53 @@ static void G_Spectate_f(g_entity_t *ent) {
  */
 void G_Score_f(g_entity_t *ent) {
 	ent->client->locals.show_scores = !ent->client->locals.show_scores;
+}
+
+/*
+ * @brief resumes the current match
+ */
+void G_Timein_f(g_entity_t *ent) {
+	if (!(g_level.match_status & MSTAT_TIMEOUT)) {
+		return;
+	}
+	gi.BroadcastPrint(PRINT_HIGH, "match_status: %d\n", g_level.match_status);
+	g_level.match_status = MSTAT_PLAYING;
+	g_level.timeout_caller = NULL;
+	g_level.timeout_time = 0;
+	
+	gi.BroadcastPrint(PRINT_HIGH, "%s resumed the match\n", ent->client->locals.persistent.net_name);
+	gi.BroadcastPrint(PRINT_HIGH, "match_status: %d\n", g_level.match_status);
+}
+
+/*
+ * @brief pause the current match, allow for limited commands during
+ */
+void G_Timeout_f(g_entity_t *ent) {
+	if (!ent->client->locals.persistent.team && !ent->client->locals.persistent.admin) {
+		gi.ClientPrint(ent, PRINT_HIGH, "Only team players can call a timeout\n");
+		return;
+	}
+	
+	if (!(g_level.match_status & MSTAT_PLAYING)) {
+		gi.ClientPrint(ent, PRINT_HIGH, "Match isn't started, can't timeout yet\n");
+		return;
+	}
+	
+	if (g_level.match_status & MSTAT_TIMEOUT && 
+			(g_level.timeout_caller == ent || ent->client->locals.persistent.admin)) {
+		G_Timein_f(ent);
+		return;
+	}
+	
+	gi.BroadcastPrint(PRINT_HIGH, "match_status: %d\n", g_level.match_status);
+	g_level.match_status |= MSTAT_TIMEOUT;
+	g_level.timeout_caller = ent;
+	g_level.timeout_time = g_level.time + (2 * 1000 * 60);
+	
+	gi.BroadcastPrint(PRINT_HIGH, "%s called a timeout, play with resume in %s\n", 
+		ent->client->locals.persistent.net_name, "FIXMELATER");
+		
+	gi.BroadcastPrint(PRINT_HIGH, "match_status: %d\n", g_level.match_status);
 }
 
 /*
@@ -1156,6 +1205,8 @@ void G_ClientCommand(g_entity_t *ent) {
 		G_Vote_f(ent);
 	else if (g_strcmp0(cmd, "yes") == 0 || g_strcmp0(cmd, "no") == 0)
 		G_Vote_f(ent);
+	else if (g_strcmp0(cmd, "timeout") == 0 || g_strcmp0(cmd, "time") == 0)
+		G_Timeout_f(ent);
 	else
 		// anything that doesn't match a command will be a chat
 		G_Say_f(ent);

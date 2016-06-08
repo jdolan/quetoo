@@ -1336,6 +1336,9 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	if (g_level.intermission_time)
 		return;
+	
+	if (g_level.match_status & MSTAT_TIMEOUT)
+		return;
 
 	g_level.current_entity = ent;
 	g_client_t *cl = ent->client;

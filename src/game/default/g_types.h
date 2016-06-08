@@ -482,6 +482,13 @@ extern g_game_t g_game;
 
 #define NUM_GIB_MODELS 3
 
+// for match status bitmasking
+#define MSTAT_WARMUP		0
+#define MSTAT_PLAYING		1<<0
+#define MSTAT_TIMEOUT		1<<1
+#define MSTAT_COUNTDOWN		1<<2
+
+
 /*
  * @brief This structure holds references to frequently accessed media.
  */
@@ -568,6 +575,10 @@ typedef struct {
 	uint32_t vote_time; // time vote started
 
 	g_entity_t *current_entity; // entity running from G_RunFrame
+	
+	uint32_t match_status;	// (bitmask) are we playing, in warmup, in timeout?
+	g_entity_t *timeout_caller; // who called it?
+	uint32_t timeout_time;
 } g_level_t;
 
 /*
@@ -674,6 +685,7 @@ typedef struct {
 	int16_t score;
 	int16_t captures;
 
+	_Bool admin; // client is special?
 	_Bool spectator; // client is a spectator
 	_Bool ready; // ready
 
