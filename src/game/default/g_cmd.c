@@ -944,6 +944,42 @@ static void G_Teamskin_f(g_entity_t *ent) {
 }
 
 /*
+ * @brief
+ */
+static void G_Unready_f(g_entity_t *ent) {
+
+	if (!g_level.match) {
+		gi.ClientPrint(ent, PRINT_HIGH, "Match is disabled\n");
+		return;
+	}
+
+	if (ent->client->locals.persistent.spectator) {
+		gi.ClientPrint(ent, PRINT_HIGH, "You're a spectator\n");
+		return;
+	}
+
+	if (!g_level.warmup && g_level.match_time <= g_level.time) {
+		gi.ClientPrint(ent, PRINT_HIGH, "Match has started\n");
+		return;
+	}
+
+	if (!ent->client->locals.persistent.ready) {
+		gi.ClientPrint(ent, PRINT_HIGH, "You are not ready\n");
+		return;
+	}
+
+	ent->client->locals.persistent.ready = false;
+	gi.BroadcastPrint(PRINT_HIGH, "%s is having second thoughts...%s\n", 
+		ent->client->locals.persistent.net_name,
+		(g_level.start_match) ? "countdown aborted" : ""
+	);
+		
+	g_level.start_match = false;
+	g_level.match_time = 0;
+	g_level.match_status = MSTAT_WARMUP;
+}
+
+/*
  * @brief If match is enabled, all clients must issue ready for game to start.
  */
 static void G_Ready_f(g_entity_t *ent) {
@@ -961,7 +997,7 @@ static void G_Ready_f(g_entity_t *ent) {
 	}
 
 	if (ent->client->locals.persistent.ready) {
-		gi.ClientPrint(ent, PRINT_HIGH, "You're already ready\n");
+		G_Unready_f(ent);
 		return;
 	}
 
@@ -1007,42 +1043,6 @@ static void G_Ready_f(g_entity_t *ent) {
 
 	g_level.start_match = true;
 	g_level.match_status = MSTAT_COUNTDOWN;
-}
-
-/*
- * @brief
- */
-static void G_Unready_f(g_entity_t *ent) {
-
-	if (!g_level.match) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Match is disabled\n");
-		return;
-	}
-
-	if (ent->client->locals.persistent.spectator) {
-		gi.ClientPrint(ent, PRINT_HIGH, "You're a spectator\n");
-		return;
-	}
-
-	if (!g_level.warmup && g_level.match_time <= g_level.time) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Match has started\n");
-		return;
-	}
-
-	if (!ent->client->locals.persistent.ready) {
-		gi.ClientPrint(ent, PRINT_HIGH, "You are not ready\n");
-		return;
-	}
-
-	ent->client->locals.persistent.ready = false;
-	gi.BroadcastPrint(PRINT_HIGH, "%s is having second thoughts...%s\n", 
-		ent->client->locals.persistent.net_name,
-		(g_level.start_match) ? "countdown aborted" : ""
-	);
-		
-	g_level.start_match = false;
-	g_level.match_time = 0;
-	g_level.match_status = MSTAT_WARMUP;
 }
 
 /*
