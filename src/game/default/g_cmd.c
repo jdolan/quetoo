@@ -1116,13 +1116,14 @@ void G_Timein_f(g_entity_t *ent) {
  * @brief pause the current match, allow for limited commands during
  */
 void G_Timeout_f(g_entity_t *ent) {
-	if (!ent->client->locals.persistent.team && !ent->client->locals.persistent.admin) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Only team players can call a timeout\n");
+	
+	if (!PLAYING) {
+		gi.ClientPrint(ent, PRINT_HIGH, "No match in progress...\n");
 		return;
 	}
 	
-	if (!PLAYING) {
-		gi.ClientPrint(ent, PRINT_HIGH, "Match isn't started, can't timeout yet\n");
+	if (!ent->client->locals.persistent.team && !ent->client->locals.persistent.admin) {
+		gi.ClientPrint(ent, PRINT_HIGH, "Only players can pause the match...\n");
 		return;
 	}
 	
@@ -1197,7 +1198,7 @@ void G_ClientCommand(g_entity_t *ent) {
 		G_Vote_f(ent);
 	else if (g_strcmp0(cmd, "yes") == 0 || g_strcmp0(cmd, "no") == 0)
 		G_Vote_f(ent);
-	else if (g_strcmp0(cmd, "timeout") == 0 || g_strcmp0(cmd, "time") == 0)
+	else if (g_strcmp0(cmd, "timeout") == 0 || g_strcmp0(cmd, "timein") == 0 || g_strcmp0(cmd, "time") == 0)
 		G_Timeout_f(ent);
 	else
 		// anything that doesn't match a command will be a chat

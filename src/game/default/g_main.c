@@ -800,7 +800,6 @@ static void G_Frame(void) {
 	}
 		
 	if (!TIMEOUT) {
-	
 		// treat each object in turn
 		// even the world gets a chance to think
 		g_entity_t *ent = &g_game.entities[0];
@@ -956,7 +955,7 @@ void G_CallTimeOut(g_entity_t *ent) {
 	
 	// lock players
 	for (int32_t i = 1; i < sv_max_clients->integer; i++) {
-		if (g_game.entities[i].client->locals.persistent.team){
+		if (g_game.entities[i].client->locals.persistent.team) {
 			g_game.entities[i].client->ps.pm_state.type = PM_FREEZE;
 		}
 	}
@@ -971,7 +970,7 @@ void G_CallTimeIn(void) {
 	
 	// unlock players
 	for (int32_t i = 1; i < sv_max_clients->integer; i++) {
-		if (g_game.entities[i].client->locals.persistent.team){
+		if (g_game.entities[i].client->locals.persistent.team) {
 			g_game.entities[i].client->ps.pm_state.type = PM_NORMAL;
 		}
 	}
@@ -980,8 +979,6 @@ void G_CallTimeIn(void) {
 	g_level.timeout_caller = NULL;
 	g_level.timeout_time = 0;
 	g_level.timeout_frame = 0;
-	
-	//gi.BroadcastPrint(PRINT_HIGH, "%s resumed the match\n", ent->client->locals.persistent.net_name);
 }
 
 /*
@@ -1019,9 +1016,9 @@ void G_RunTimers(void) {
 		time = g_level.time_limit - g_level.time; // count down
 	}
 	
-	if (g_level.frame_num % gi.frame_rate == 0){ // send time updates once per second
+	if (g_level.frame_num % gi.frame_rate == 0) { // send time updates once per second
 		
-		if (COUNTDOWN && !PLAYING){	// match mode, everyone ready, show countdown
+		if (COUNTDOWN && !PLAYING) {	// match mode, everyone ready, show countdown
 		
 			j = (g_level.match_time - g_level.time) / 1000 % 60;
 			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_level.match_time - g_level.time)));
@@ -1061,6 +1058,7 @@ void G_RunTimers(void) {
 		}
 	}
 }
+
 /*
  * @brief This is the entry point responsible for aligning the server and game module.
  * The server resolves this symbol upon successfully loading the game library,
