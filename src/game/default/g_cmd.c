@@ -556,9 +556,11 @@ static void G_PlayerList_f(g_entity_t *ent) {
 
 		seconds = (g_level.frame_num - e2->client->locals.persistent.first_frame) / gi.frame_rate;
 
-		g_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n", (seconds / 60), (seconds % 60),
+		g_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s %s\n", (seconds / 60), (seconds % 60),
 				e2->client->ping, e2->client->locals.persistent.score,
-				e2->client->locals.persistent.net_name, e2->client->locals.persistent.skin);
+				e2->client->locals.persistent.net_name, 
+				(e2->client->locals.persistent.admin) ? "(admin)" : "",
+				e2->client->locals.persistent.skin);
 
 		if (strlen(text) + strlen(st) > sizeof(text) - 200) {
 			sprintf(text + strlen(text), "And more...\n");
@@ -711,11 +713,20 @@ static void G_Vote_f(g_entity_t *ent) {
 			gi.ClientPrint(ent, PRINT_HIGH, "You've already voted\n");
 			return;
 		}
-		if (g_strcmp0(vote, "yes") == 0)
+		if (g_strcmp0(vote, "yes") == 0) {
+			if (ent->client->locals.persistent.admin) {
+				g_level.votes[VOTE_YES] = 100; // admin vote wins immediately
+				return;
+			}
 			ent->client->locals.persistent.vote = VOTE_YES;
-		else if (g_strcmp0(vote, "no") == 0)
+		} else if (g_strcmp0(vote, "no") == 0) {
+			if (ent->client->locals.persistent.admin) {
+				gi.BroadcastPrint(PRINT_HIGH, "An admin voted 'no', vote failed.\n");
+				G_ResetVote();
+				return;
+			}
 			ent->client->locals.persistent.vote = VOTE_NO;
-		else { // only yes and no are valid during a vote
+		} else { // only yes and no are valid during a vote
 			gi.ClientPrint(ent, PRINT_HIGH, "A vote \"%s\" is already in progress\n",
 					g_level.vote_cmd);
 			return;
@@ -743,6 +754,10 @@ static void G_Vote_f(g_entity_t *ent) {
 
 	ent->client->locals.persistent.vote = VOTE_YES; // client has implicitly voted
 	g_level.votes[VOTE_YES] = 1;
+	
+	if (ent->client->locals.persistent.admin) {
+		g_level.votes[VOTE_YES] = 100;	// admin votes always succeed...
+	}
 
 	gi.ConfigString(CS_VOTE, g_level.vote_cmd); // send to layout
 
@@ -1099,9 +1114,6 @@ void G_Score_f(g_entity_t *ent) {
  * @brief resumes the current match
  */
 void G_Timein_f(g_entity_t *ent) {
-	if (!(g_level.match_status & MSTAT_TIMEOUT)) {
-		return;
-	}
 	
 	gi.BroadcastPrint(PRINT_HIGH, "%s resumed the game, get ready\n", 
 		ent->client->locals.persistent.net_name);
@@ -1127,14 +1139,44 @@ void G_Timeout_f(g_entity_t *ent) {
 		return;
 	}
 	
+	if (!TIMEOUT) {
+		G_CallTimeOut(ent);
+		return;
+	}
+	
 	if (TIMEOUT && (g_level.timeout_caller == ent || ent->client->locals.persistent.admin)) {
 		G_Timein_f(ent);
 		return;
 	}
-	
-	G_CallTimeOut(ent);	
 }
 
+static void G_Admin_f(g_entity_t *ent) {
+	
+	if (strlen(g_admin_password->string) == 0) {	// blank password (default) disabled
+		gi.ClientPrint(ent, PRINT_HIGH, "Admin features disabled\n");
+		return;
+	}
+	
+	if (gi.Argc() < 2) {	// no arguments supplied, show help
+		if (!ent->client->locals.persistent.admin) {
+			gi.ClientPrint(ent, PRINT_HIGH, "Usage: admin <password>\n");
+		} else {
+			gi.ClientPrint(ent, PRINT_HIGH, "Commands with admin overrides:\n");
+			gi.ClientPrint(ent, PRINT_HIGH, "vote, time/timeout, timein, kick, remove \n");
+		}
+		return;
+	}
+	
+	if (!ent->client->locals.persistent.admin) {	// not yet an admin, assuming auth
+		if (g_strcmp0(gi.Argv(1), g_admin_password->string) == 0){
+			ent->client->locals.persistent.admin = true;
+			gi.BroadcastPrint(PRINT_HIGH, "%s became an admin\n", ent->client->locals.persistent.net_name);
+		} else {
+			gi.ClientPrint(ent, PRINT_HIGH, "Invalid admin password\n");
+		}
+		return;
+	} 
+}
 /*
  * @brief
  */
@@ -1157,10 +1199,35 @@ void G_ClientCommand(g_entity_t *ent) {
 	// most commands can not be executed during intermission
 	if (g_level.intermission_time)
 		return;
-
-	if (g_strcmp0(cmd, "score") == 0)
+		
+	// these commands are allowed in a timeout
+	if (g_strcmp0(cmd, "score") == 0) {
 		G_Score_f(ent);
-	else if (g_strcmp0(cmd, "spectate") == 0)
+		return;
+		
+	} else if (g_strcmp0(cmd, "vote") == 0) { // maybe
+		G_Vote_f(ent);
+		return;
+		
+	} else if (g_strcmp0(cmd, "yes") == 0 || g_strcmp0(cmd, "no") == 0) {
+		G_Vote_f(ent);
+		return;
+		
+	} else if (g_strcmp0(cmd, "timeout") == 0 || g_strcmp0(cmd, "timein") == 0 || g_strcmp0(cmd, "time") == 0) {
+		G_Timeout_f(ent);
+		return;
+		
+	} else if (g_strcmp0(cmd, "admin") == 0) {
+		G_Admin_f(ent);
+		return;
+	}
+	
+	if (TIMEOUT) {
+		gi.ClientPrint(ent, PRINT_HIGH, "'%s' not allowed during a timeout\n", cmd);
+		return;
+	}
+	
+	if (g_strcmp0(cmd, "spectate") == 0)
 		G_Spectate_f(ent);
 	else if (g_strcmp0(cmd, "team") == 0 || g_strcmp0(cmd, "join") == 0)
 		G_Team_f(ent);
@@ -1194,12 +1261,7 @@ void G_ClientCommand(g_entity_t *ent) {
 		G_Kill_f(ent);
 	else if (g_strcmp0(cmd, "player_list") == 0)
 		G_PlayerList_f(ent);
-	else if (g_strcmp0(cmd, "vote") == 0)
-		G_Vote_f(ent);
-	else if (g_strcmp0(cmd, "yes") == 0 || g_strcmp0(cmd, "no") == 0)
-		G_Vote_f(ent);
-	else if (g_strcmp0(cmd, "timeout") == 0 || g_strcmp0(cmd, "timein") == 0 || g_strcmp0(cmd, "time") == 0)
-		G_Timeout_f(ent);
+	
 	else
 		// anything that doesn't match a command will be a chat
 		G_Say_f(ent);
