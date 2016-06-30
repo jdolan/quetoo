@@ -1053,6 +1053,8 @@ static void G_Ready_f(g_entity_t *ent) {
 		return;
 	}
 
+	g_warmup_time->integer = Clamp(g_warmup_time->integer, 0, 30);
+
 	gi.BroadcastPrint(PRINT_HIGH, "Match starting in %d seconds...\n", g_warmup_time->integer);
 	g_level.match_time = g_level.time + (g_warmup_time->integer * 1000);
 
