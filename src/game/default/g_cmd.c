@@ -715,7 +715,7 @@ static void G_Vote_f(g_entity_t *ent) {
 		}
 		if (g_strcmp0(vote, "yes") == 0) {
 			if (ent->client->locals.persistent.admin) {
-				g_level.votes[VOTE_YES] = 100; // admin vote wins immediately
+				g_level.votes[VOTE_YES] = sv_max_clients->integer; // admin vote wins immediately
 				return;
 			}
 			ent->client->locals.persistent.vote = VOTE_YES;
