@@ -411,7 +411,7 @@ static void G_InitMedia(void) {
 		g_media.sounds.gib_hits[i] = gi.SoundIndex(va("gibs/gib_%i/hit", i + 1));
 	}
 
-	for (i = 1; i < (sizeof(g_media.sounds.countdown) / sizeof(g_media.sounds.countdown[0])); i++) {
+	for (i = 1; i < lengthof(g_media.sounds.countdown); i++) {
 		g_media.sounds.countdown[i] = gi.SoundIndex(va("world/countdown_%d", i));
 	}
 	
