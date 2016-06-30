@@ -800,7 +800,7 @@ static void G_Frame(void) {
 		}
 	}
 		
-	if (!TIMEOUT) {
+	if (!G_TIMEOUT) {
 		// treat each object in turn
 		// even the world gets a chance to think
 		g_entity_t *ent = &g_game.entities[0];
@@ -1020,7 +1020,7 @@ void G_RunTimers(void) {
 	
 	if (g_level.frame_num % gi.frame_rate == 0) { // send time updates once per second
 		
-		if (COUNTDOWN && !PLAYING) {	// match mode, everyone ready, show countdown
+		if (G_COUNTDOWN && !G_PLAYING) {	// match mode, everyone ready, show countdown
 		
 			j = (g_level.match_time - g_level.time) / 1000 % 60;
 			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_level.match_time - g_level.time)));
@@ -1035,10 +1035,10 @@ void G_RunTimers(void) {
 				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));	
 			}
 			
-		} else if (g_level.match && WARMUP) {	// not everyone ready yet
+		} else if (g_level.match && G_WARMUP) {	// not everyone ready yet
 			gi.ConfigString(CS_TIME, va("Warmup %s",G_FormatTime(g_time_limit->integer * 60 * 1000)));
 			
-		} else if (TIMEOUT) {	// mid match, player called timeout
+		} else if (G_TIMEOUT) {	// mid match, player called timeout
 			j = (g_level.timeout_time - g_level.time) / 1000;
 			gi.ConfigString(CS_TIME, va("Timeout %s",
 				G_FormatTime(g_level.timeout_time - g_level.time))

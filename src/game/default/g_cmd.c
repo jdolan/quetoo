@@ -1131,7 +1131,7 @@ void G_Timein_f(g_entity_t *ent) {
  */
 void G_Timeout_f(g_entity_t *ent) {
 	
-	if (!PLAYING) {
+	if (!G_PLAYING) {
 		gi.ClientPrint(ent, PRINT_HIGH, "No match in progress...\n");
 		return;
 	}
@@ -1141,12 +1141,12 @@ void G_Timeout_f(g_entity_t *ent) {
 		return;
 	}
 	
-	if (!TIMEOUT) {
+	if (!G_TIMEOUT) {
 		G_CallTimeOut(ent);
 		return;
 	}
 	
-	if (TIMEOUT && (g_level.timeout_caller == ent || ent->client->locals.persistent.admin)) {
+	if (G_TIMEOUT && (g_level.timeout_caller == ent || ent->client->locals.persistent.admin)) {
 		G_Timein_f(ent);
 		return;
 	}
@@ -1224,7 +1224,7 @@ void G_ClientCommand(g_entity_t *ent) {
 		return;
 	}
 	
-	if (TIMEOUT) {
+	if (G_TIMEOUT) {
 		gi.ClientPrint(ent, PRINT_HIGH, "'%s' not allowed during a timeout\n", cmd);
 		return;
 	}

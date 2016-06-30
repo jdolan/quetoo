@@ -26,10 +26,10 @@
 
 #ifdef __GAME_LOCAL_H__
 
-#define PLAYING (g_level.match_status & MSTAT_PLAYING)
-#define TIMEOUT (g_level.match_status & MSTAT_TIMEOUT)
-#define COUNTDOWN (g_level.match_status & MSTAT_COUNTDOWN)
-#define WARMUP (g_level.match_status & MSTAT_WARMUP)
+#define G_PLAYING (g_level.match_status & MSTAT_PLAYING)
+#define G_TIMEOUT (g_level.match_status & MSTAT_TIMEOUT)
+#define G_COUNTDOWN (g_level.match_status & MSTAT_COUNTDOWN)
+#define G_WARMUP (g_level.match_status & MSTAT_WARMUP)
 
 extern g_level_t g_level;
 extern g_media_t g_media;
