@@ -554,14 +554,13 @@ g_team_t *G_OtherTeam(g_team_t *t) {
  *	Return the number of players on the given team.
  */
 size_t G_TeamSize(g_team_t *team) {
-	g_client_t *cl;
 	size_t count = 0;
 	
 	for (int32_t i = 0; i < sv_max_clients->integer; i++){
 		if (!g_game.entities[i + 1].in_use)
 			continue;
 			
-		cl = g_game.entities[i + 1].client;
+		const g_client_t *cl = g_game.entities[i + 1].client;
 		if (cl->locals.persistent.team == team)
 			count++;
 	}
@@ -790,7 +789,7 @@ void G_ClientStuff(g_entity_t *ent, const char *s){
 void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...){
 	char string[MAX_STRING_CHARS];
 	va_list args;
-	g_entity_t *ent;
+	const g_entity_t *ent;
 	
 	va_start(args, fmt);
 	vsprintf(string, fmt, args);
