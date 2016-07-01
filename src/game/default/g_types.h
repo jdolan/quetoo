@@ -525,6 +525,8 @@ typedef struct {
 		uint16_t weapon_switch;
 		
 		uint16_t countdown[11];
+
+		uint16_t roar;
 	} sounds;
 
 } g_media_t;
