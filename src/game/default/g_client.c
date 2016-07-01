@@ -943,6 +943,10 @@ void G_ClientBegin(g_entity_t *ent) {
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(welcome);
 		gi.Unicast(ent, true);
+
+		if (G_TIMEOUT) {	// joined during a match timeout
+			ent->client->ps.pm_state.type = PM_FREEZE;
+		}
 	}
 
 	// make sure all view stuff is valid
