@@ -651,13 +651,20 @@ static void G_CheckRules(void) {
 
 		gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n",
 				G_GameplayName(g_level.gameplay));
-				
-		// force required cvars for DUEL mode
-		if (g_level.gameplay == GAME_DUEL && g_teams->integer == 0)
-			gi.AddCommandString("set g_teams 1\n");
-			
-		if (g_level.gameplay == GAME_DUEL && g_match->integer == 0)
-			gi.AddCommandString("set g_match 1\n");
+
+		if (g_level.gameplay == GAME_DUEL) {
+
+			// force all requirements for DUEL mode in a single server restart
+			if (g_teams->integer == 0) {
+				g_teams->integer = 1;
+				g_teams->modified = true;
+			}
+
+			if (g_match->integer == 0) {
+				g_match->integer = 1;
+				g_match->modified = true;
+			}
+		}
 	}
 
 	if (g_gravity->modified) { // set gravity, G_ClientMove will read it
