@@ -901,7 +901,7 @@ void G_Init(void) {
 	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators");
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
 	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes");
-	g_timeout_time = gi.Cvar("g_timeout_time", "120", CVAR_SERVER_INFO, "Length in seconds of a timeout");
+	g_timeout_time = gi.Cvar("g_timeout_time", "120", CVAR_SERVER_INFO, "Length in seconds of a timeout, 0 = disabled");
 	g_voting = gi.Cvar("g_voting", "1", CVAR_SERVER_INFO, "Activates voting");
 	g_warmup_time = gi.Cvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds, up to 30");
 	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
@@ -949,17 +949,20 @@ void G_Shutdown(void) {
 }
 
 void G_CallTimeOut(g_entity_t *ent) {
-
+	
+	if (g_timeout_time->integer == 0) {
+		gi.ClientPrint(ent, PRINT_HIGH, "Timeouts are disabled\n");
+		return;
+	}
+	
 	g_level.match_status |= MSTAT_TIMEOUT;
 	g_level.timeout_caller = ent;
 	g_level.timeout_time = g_level.time + (g_timeout_time->integer * 1000);
 	g_level.timeout_frame = g_level.frame_num;
 	
-	// lock players
+	// lock everyone in place
 	for (int32_t i = 1; i < sv_max_clients->integer; i++) {
-		if (g_game.entities[i].client->locals.persistent.team) {
-			g_game.entities[i].client->ps.pm_state.type = PM_FREEZE;
-		}
+		g_game.entities[i].client->ps.pm_state.type = PM_FREEZE;
 	}
 	
 	gi.BroadcastPrint(PRINT_HIGH, "%s called a timeout, play with resume in %s\n", 
@@ -970,11 +973,9 @@ void G_CallTimeIn(void) {
 	
 	g_level.frame_num = g_level.timeout_frame; // where we were before timeout
 	
-	// unlock players
+	// unlock everyone
 	for (int32_t i = 1; i < sv_max_clients->integer; i++) {
-		if (g_game.entities[i].client->locals.persistent.team) {
-			g_game.entities[i].client->ps.pm_state.type = PM_NORMAL;
-		}
+		g_game.entities[i].client->ps.pm_state.type = PM_NORMAL;
 	}
 	
 	g_level.match_status = MSTAT_PLAYING;
