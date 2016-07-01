@@ -177,7 +177,7 @@ static void G_RestartGame(_Bool teamz) {
 		if (g_level.teams || g_level.ctf) {
 
 			if (!cl->locals.persistent.team) {
-				if (g_auto_join->value)
+				if (g_auto_join->value && g_level.gameplay != GAME_DUEL)
 					G_AddClientToTeam(ent, G_SmallestTeam()->name);
 				else
 					cl->locals.persistent.spectator = true;
@@ -884,7 +884,7 @@ void G_Init(void) {
 
 	g_admin_password = gi.Cvar("g_admin_password", "", CVAR_LATCH, "Password to authenticate as an admin");
 	g_ammo_respawn_time = gi.Cvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds");
-	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO, "Automatically assigns players to teams");
+	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO, "Automatically assigns players to teams , ignored for duel mode");
 	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level");
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
