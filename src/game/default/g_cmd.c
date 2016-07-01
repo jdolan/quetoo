@@ -752,19 +752,18 @@ static void G_Vote_f(g_entity_t *ent) {
 	g_strlcpy(g_level.vote_cmd, vote, sizeof(g_level.vote_cmd));
 	g_level.vote_time = g_level.time;
 
-	ent->client->locals.persistent.vote = VOTE_YES; // client has implicitly voted
-	g_level.votes[VOTE_YES] = 1;
-	
-	if (ent->client->locals.persistent.admin) {
-		g_level.votes[VOTE_YES] = 100;	// admin votes always succeed...
+	if (!ent->client->locals.persistent.admin) {	// wait to cast vote if admin
+		ent->client->locals.persistent.vote = VOTE_YES; // client has implicitly voted
+		g_level.votes[VOTE_YES] = 1;
 	}
 
 	gi.ConfigString(CS_VOTE, g_level.vote_cmd); // send to layout
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s has called a vote:\n"
 		"  %s\n"
-		"To vote, press F1 for yes or F2 for no\n", ent->client->locals.persistent.net_name,
-			g_level.vote_cmd);
+		"Type vote yes or vote no in the console\n", 
+		ent->client->locals.persistent.net_name, g_level.vote_cmd
+	);
 }
 
 /*
