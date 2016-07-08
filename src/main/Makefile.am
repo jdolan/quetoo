@@ -36,4 +36,7 @@ if WINDOWS
 quetoo_SOURCES += \
 	quetoo-icon.rc
 
+quetoo_dedicated_SOURCES += \
+	quetoo-dedicated-icon.rc
+
 endif

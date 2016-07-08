@@ -56,3 +56,13 @@ quemap_LDADD = \
 	@JPEG_LIBS@ \
 	@SDL2_LIBS@ \
 	@XML_LIBS@
+
+if WINDOWS
+
+.rc.o:
+	@WINDRES@ $^ -o $@
+
+quemap_SOURCES += \
+	quemap-icon.rc
+
+endif

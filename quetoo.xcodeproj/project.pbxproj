@@ -1215,6 +1215,10 @@
 		CE80FF6A1C5E494E00A21A51 /* libclient-null.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libclient-null.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FF7F1C5E49C400A21A51 /* libserver.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libserver.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libncurses.6.dylib; path = /opt/local/lib/libncurses.6.dylib; sourceTree = "<absolute>"; };
+		CE92B3A91D2FF72200E9153A /* quemap-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quemap-icon.rc"; sourceTree = "<group>"; };
+		CE92B3AA1D2FF77800E9153A /* quemap.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = quemap.ico; sourceTree = "<group>"; };
+		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
+		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -2143,6 +2147,8 @@
 			isa = PBXGroup;
 			children = (
 				CE12D67A1C5C58C300CD0B13 /* main.c */,
+				CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */,
+				CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */,
 				CE12D67D1C5C58C300CD0B13 /* quetoo-icon.rc */,
 				CE12D67E1C5C58C300CD0B13 /* quetoo.ico */,
 				CE12D67B1C5C58C300CD0B13 /* Makefile.am */,
@@ -2271,6 +2277,8 @@
 				CE12D6FD1C5C58C300CD0B13 /* qlight.h */,
 				CE12D6FE1C5C58C300CD0B13 /* qmat.c */,
 				CE12D6FF1C5C58C300CD0B13 /* quemap.h */,
+				CE92B3A91D2FF72200E9153A /* quemap-icon.rc */,
+				CE92B3AA1D2FF77800E9153A /* quemap.ico */,
 				CE12D7001C5C58C300CD0B13 /* qvis.c */,
 				CE12D7011C5C58C300CD0B13 /* qvis.h */,
 				CE12D7021C5C58C300CD0B13 /* qzip.c */,
