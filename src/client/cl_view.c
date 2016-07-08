@@ -184,7 +184,7 @@ void Cl_UpdateView(void) {
 	cls.cgame->UpdateView(&cl.frame);
 
 	// set time
-	r_view.time = cl.time;
+	r_view.time = cl.systime;
 
 	// set area bits to mark visible leafs
 	r_view.area_bits = cl.frame.area_bits;
