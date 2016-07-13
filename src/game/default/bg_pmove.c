@@ -1112,7 +1112,7 @@ static void Pm_AirMove(void) {
  */
 static void Pm_WalkMove(void) {
 	vec_t speed, max_speed, accel;
-	vec3_t vel, dir;
+	vec3_t angles, vel, dir;
 
 	if (Pm_CheckJump() || Pm_CheckPush()) {
 		// jumped or pushed away
@@ -1127,10 +1127,13 @@ static void Pm_WalkMove(void) {
 //	Pm_Debug("%s\n", vtos(pm->s.origin));
 
 	Pm_Friction();
-
-	pml.forward[2] = 0.0;
-	pml.right[2] = 0.0;
-
+	
+	// project the desired movement into the X/Y plane
+	VectorCopy(pm->angles, angles);
+	angles[PITCH] = 0.0;
+	
+	AngleVectors(angles, pml.forward, pml.right, NULL);
+	
 	Pm_ClipVelocity(pml.forward, pml.ground_plane.normal, pml.forward, PM_CLIP_BOUNCE);
 	Pm_ClipVelocity(pml.right, pml.ground_plane.normal, pml.right, PM_CLIP_BOUNCE);
 
@@ -1188,7 +1191,6 @@ static void Pm_WalkMove(void) {
  * @brief
  */
 static void Pm_ClampAngles(void) {
-	vec3_t angles;
 
 	// copy the command angles into the outgoing state
 	VectorCopy(pm->cmd.angles, pm->s.view_angles);
@@ -1210,15 +1212,8 @@ static void Pm_ClampAngles(void) {
 		pm->angles[PITCH] -= 360.0;
 	}
 
-	// calculate the angles responsible for this movement
-	VectorCopy(pm->angles, angles);
-
-	if (pm->s.flags & PMF_ON_GROUND) {
-		angles[PITCH] = 0.0;
-	}
-
-	// finally calculate the directional vectors for this move
-	AngleVectors(angles, pml.forward, pml.right, pml.up);
+	// calculate the directional vectors for this move
+	AngleVectors(pm->angles, pml.forward, pml.right, pml.up);
 }
 
 /*
