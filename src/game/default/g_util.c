@@ -416,6 +416,8 @@ char *G_GameplayName(int32_t g) {
 			return "Instagib";
 		case GAME_ARENA:
 			return "Arena";
+		case GAME_DUEL:
+			return "Duel";
 		default:
 			return "DM";
 	}
@@ -436,6 +438,8 @@ g_gameplay_t G_GameplayByName(const char *c) {
 		gameplay = GAME_INSTAGIB;
 	} else if (g_str_has_prefix(g_strchug(lower), "arena")) {
 		gameplay = GAME_ARENA;
+	} else if (g_str_has_prefix(g_strchug(lower), "duel")) {
+		gameplay = GAME_DUEL;
 	}
 
 	g_free(lower);
@@ -546,6 +550,23 @@ g_team_t *G_OtherTeam(g_team_t *t) {
 	return NULL;
 }
 
+/*
+ *	Return the number of players on the given team.
+ */
+size_t G_TeamSize(g_team_t *team) {
+	size_t count = 0;
+	
+	for (int32_t i = 0; i < sv_max_clients->integer; i++){
+		if (!g_game.entities[i + 1].in_use)
+			continue;
+			
+		const g_client_t *cl = g_game.entities[i + 1].client;
+		if (cl->locals.persistent.team == team)
+			count++;
+	}
+	return count;
+}
+ 
 /*
  * @brief
  */
@@ -753,3 +774,39 @@ _Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
 	return (a & ~ANIM_TOGGLE_BIT) == anim;
 }
 
+/*
+ * @brief forcefully suggest client adds given command to its console buffer
+ */
+void G_ClientStuff(g_entity_t *ent, const char *s){
+	gi.WriteByte(SV_CMD_CBUF_TEXT);
+	gi.WriteString(s);
+	gi.Unicast(ent, true);
+}
+
+/*
+ * @brief Send a centerprint to everyone on the supplied team
+ */
+void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...){
+	char string[MAX_STRING_CHARS];
+	va_list args;
+	const g_entity_t *ent;
+	
+	va_start(args, fmt);
+	vsprintf(string, fmt, args);
+	va_end(args);
+	
+	// look through all players
+	for (int32_t i = 0; i < sv_max_clients->integer; i++){
+		if (!g_game.entities[i + 1].in_use)
+			continue;
+		
+		ent = &g_game.entities[i + 1];
+		
+		// member of supplied team? send it
+		if (ent->client->locals.persistent.team == team){
+			gi.WriteByte(SV_CMD_CENTER_PRINT);
+			gi.WriteString(string);
+			gi.Unicast(ent, false);
+		}
+	}
+}

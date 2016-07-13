@@ -411,6 +411,13 @@ static void G_InitMedia(void) {
 		g_media.sounds.gib_hits[i] = gi.SoundIndex(va("gibs/gib_%i/hit", i + 1));
 	}
 
+	for (i = 1; i < lengthof(g_media.sounds.countdown); i++) {
+		g_media.sounds.countdown[i] = gi.SoundIndex(va("world/countdown_%d", i));
+	}
+	
+	g_media.sounds.roar = gi.SoundIndex("world/ominous_bwah");
+	
+	
 	// precache all weapons, even if the map doesn't contain them
 	G_PrecacheItem(G_FindItem("Blaster"));
 	G_PrecacheItem(G_FindItem("Shotgun"));

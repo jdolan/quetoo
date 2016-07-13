@@ -55,7 +55,8 @@ typedef enum {
 typedef enum {
 	GAME_DEATHMATCH,
 	GAME_INSTAGIB,
-	GAME_ARENA
+	GAME_ARENA,
+	GAME_DUEL
 } g_gameplay_t;
 
 /*
@@ -481,6 +482,13 @@ extern g_game_t g_game;
 
 #define NUM_GIB_MODELS 3
 
+// for match status bitmasking
+#define MSTAT_WARMUP		0
+#define MSTAT_PLAYING		1<<0
+#define MSTAT_TIMEOUT		1<<1
+#define MSTAT_COUNTDOWN		1<<2
+
+
 /*
  * @brief This structure holds references to frequently accessed media.
  */
@@ -515,6 +523,10 @@ typedef struct {
 
 		uint16_t weapon_no_ammo;
 		uint16_t weapon_switch;
+		
+		uint16_t countdown[11];
+
+		uint16_t roar;
 	} sounds;
 
 } g_media_t;
@@ -530,7 +542,7 @@ typedef struct {
 	char title[MAX_STRING_CHARS]; // the descriptive name (Stress Fractures, etc)
 	char name[MAX_QPATH]; // the server name (fractures, etc)
 	int16_t gravity; // defaults to 800
-	g_gameplay_t gameplay; // DEATHMATCH, INSTAGIB, ARENA
+	g_gameplay_t gameplay; // DEATHMATCH, INSTAGIB, ARENA, DUEL
 	_Bool teams;
 	_Bool ctf;
 	_Bool match;
@@ -565,6 +577,11 @@ typedef struct {
 	uint32_t vote_time; // time vote started
 
 	g_entity_t *current_entity; // entity running from G_RunFrame
+	
+	uint32_t match_status;	// (bitmask) are we playing, in warmup, in timeout?
+	g_entity_t *timeout_caller; // who called it?
+	uint32_t timeout_time;
+	uint32_t timeout_frame;
 } g_level_t;
 
 /*
@@ -671,6 +688,7 @@ typedef struct {
 	int16_t score;
 	int16_t captures;
 
+	_Bool admin; // client is special?
 	_Bool spectator; // client is a spectator
 	_Bool ready; // ready
 

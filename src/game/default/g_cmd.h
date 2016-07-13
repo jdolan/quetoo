@@ -28,6 +28,10 @@
 _Bool G_AddClientToTeam(g_entity_t *ent, const char *team_name);
 void G_ClientCommand(g_entity_t *ent);
 void G_Score_f(g_entity_t *ent);
+void G_Timeout_f(g_entity_t *ent);
+void G_Stuffall_Sv_f(void);
+void G_Mute_Sv_f(void);
+
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_COMMANDS_H__ */

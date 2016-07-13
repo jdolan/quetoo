@@ -43,6 +43,7 @@ g_team_t *G_OtherTeam(g_team_t *t);
 g_team_t *G_TeamForFlag(g_entity_t *ent);
 g_entity_t *G_FlagForTeam(g_team_t *t);
 uint32_t G_EffectForTeam(g_team_t *t);
+size_t G_TeamSize(g_team_t *team);
 g_team_t *G_SmallestTeam(void);
 g_client_t *G_ClientByName(char *name);
 int32_t G_ColorByName(const char *s, int32_t def);
@@ -55,6 +56,8 @@ _Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim);
 g_entity_t *G_AllocEntity(const char *class_name);
 void G_InitEntity(g_entity_t *ent, const char *class_name);
 void G_FreeEntity(g_entity_t *ent);
+void G_ClientStuff(g_entity_t *ent, const char *s);
+void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...);
 
 #endif /* __GAME_LOCAL_H__ */
 

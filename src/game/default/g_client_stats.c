@@ -54,6 +54,11 @@ void G_ClientToIntermission(g_entity_t *ent) {
 
 	ent->client->locals.ammo_index = 0;
 	ent->client->locals.pickup_msg_time = 0;
+	
+	// take a screenshot if we're supposed to
+	if (g_force_screenshot->integer == 1){
+		G_ClientStuff(ent, "r_screenshot\n");
+	}
 }
 
 /*

@@ -570,6 +570,7 @@ static void G_InitClientInventory(g_entity_t *ent) {
 	// instagib gets railgun and slugs, both in normal mode and warmup
 	if (g_level.gameplay == GAME_INSTAGIB) {
 		G_Give(ent, "Railgun", 1000);
+		G_Give(ent, "Grenades", 50);
 		item = G_FindItem("Railgun");
 	}
 	// arena or dm warmup yields all weapons, health, etc..
@@ -942,6 +943,10 @@ void G_ClientBegin(g_entity_t *ent) {
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(welcome);
 		gi.Unicast(ent, true);
+
+		if (G_TIMEOUT) {	// joined during a match timeout
+			ent->client->ps.pm_state.type = PM_FREEZE;
+		}
 	}
 
 	// make sure all view stuff is valid
@@ -1334,6 +1339,9 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	if (g_level.intermission_time)
+		return;
+	
+	if (g_level.match_status & MSTAT_TIMEOUT)
 		return;
 
 	g_level.current_entity = ent;
