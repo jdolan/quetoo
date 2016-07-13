@@ -200,7 +200,7 @@ static void G_RestartGame(_Bool teamz) {
 /*
  * @brief
  */
-static void G_MuteClient(char *name, _Bool mute) {
+void G_MuteClient(char *name, _Bool mute) {
 	g_client_t *cl;
 
 	if (!(cl = G_ClientByName(name)))
@@ -935,6 +935,10 @@ void G_Init(void) {
 	g_gameplay->modified = g_ctf->modified = g_cheats->modified = 
 		g_frag_limit->modified = g_round_limit->modified = g_capture_limit->modified = 
 			g_time_limit->modified = false;
+	
+	// add game-specific server console commands
+	gi.Cmd("mute", G_Mute_Sv_f, 0, "Prevent a client from talking");
+	gi.Cmd("unmute", G_Mute_Sv_f, 0, "Allow a muted client to talk again");
 
 	gi.Print("  Game initialized\n");
 }

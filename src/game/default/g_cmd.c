@@ -403,6 +403,48 @@ static void G_Kill_f(g_entity_t *ent) {
 }
 
 /*
+ * @brief Server console command - force a command on all connected clients
+ */
+void G_Stuffall_Sv_f(void) {
+
+	if (gi.Argc() < 2)
+		return;
+
+	const char *cmd = gi.Args();
+
+	gi.Print("Sending \'%s\' to all clients\n", cmd);
+
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+		g_entity_t *ent = &g_game.entities[i + 1];
+		if (!g_game.entities[i + 1].in_use)
+			continue;
+
+		G_ClientStuff(ent, cmd);
+	}
+}
+
+/*
+ * @brief Server console command for muting players by name (toggles)
+ */
+void G_Mute_Sv_f(void) {
+	if (gi.Argc() < 2)
+		return;
+
+	g_client_t *cl = G_ClientByName(va("%s",gi.Argv(2)));
+
+	if (!cl)
+		return;
+
+	if (cl->locals.muted) {
+		cl->locals.muted = false;
+		gi.Print(" %s is now unmuted\n", cl->locals.persistent.net_name);
+	} else {
+		cl->locals.muted = true;
+		gi.Print(" %s is now muted\n", cl->locals.persistent.net_name);
+	}
+}
+
+/*
  * @brief This is the client-specific sibling to Cvar_VariableString.
  */
 static const char *G_ExpandVariable(g_entity_t *ent, char v) {
@@ -1173,7 +1215,7 @@ static void G_Admin_f(g_entity_t *ent) {
 			gi.ClientPrint(ent, PRINT_HIGH, "Usage: admin <password>\n");
 		} else {
 			gi.ClientPrint(ent, PRINT_HIGH, "Commands with admin overrides:\n");
-			gi.ClientPrint(ent, PRINT_HIGH, "vote, time/timeout, timein, kick, remove \n");
+			gi.ClientPrint(ent, PRINT_HIGH, "vote, time/timeout/timein, kick, remove, mute, timelimit \n");
 		}
 		return;
 	}
@@ -1186,7 +1228,13 @@ static void G_Admin_f(g_entity_t *ent) {
 			gi.ClientPrint(ent, PRINT_HIGH, "Invalid admin password\n");
 		}
 		return;
-	} 
+	}
+
+	if (gi.Argc() > 2) {
+		if (g_strcmp0(gi.Argv(2), "mute") == 0) {
+			G_MuteClient(va("%s", gi.Argv(3)), true);
+		}
+	}
 }
 /*
  * @brief
