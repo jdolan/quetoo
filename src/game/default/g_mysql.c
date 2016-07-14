@@ -26,7 +26,7 @@
 
 typedef struct {
 	MYSQL *mysql;
-}g_mysql_state_t;
+} g_mysql_state_t;
 
 static g_mysql_state_t g_mysql_state;
 
