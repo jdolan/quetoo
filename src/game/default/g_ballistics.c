@@ -195,8 +195,6 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	VectorAngles(dir, projectile->s.angles);
 	VectorScale(dir, speed, projectile->locals.velocity);
 
-//	G_PlayerProjectile(projectile, 0.25);
-
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
@@ -565,8 +563,6 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 	VectorScale(dir, speed, projectile->locals.velocity);
 	VectorSet(projectile->locals.avelocity, 0.0, 0.0, 600.0);
 
-//	G_PlayerProjectile(projectile, 0.125);
-
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
 
@@ -652,8 +648,6 @@ void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t 
 	VectorCopy(start, projectile->s.origin);
 	VectorAngles(dir, projectile->s.angles);
 	VectorScale(dir, speed, projectile->locals.velocity);
-
-//	G_PlayerProjectile(projectile, 0.25);
 
 	if (G_ImmediateWall(ent, projectile))
 		VectorCopy(ent->s.origin, projectile->s.origin);
@@ -1036,8 +1030,6 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 
 	VectorCopy(start, projectile->s.origin);
 	VectorScale(dir, speed, projectile->locals.velocity);
-
-//	G_PlayerProjectile(projectile, 0.33);
 
 	if (G_ImmediateWall(ent, projectile)) {
 		VectorCopy(ent->s.origin, projectile->s.origin);
