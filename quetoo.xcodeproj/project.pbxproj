@@ -447,6 +447,7 @@
 		CEA029E91C5E558100341079 /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
 		CEA029EC1C5E558100341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA029F71C5E55C100341079 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6831C5C58C300CD0B13 /* main.c */; };
+		CEC986941D3835420002B714 /* libmysqlclient.18.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC986931D3835420002B714 /* libmysqlclient.18.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1220,6 +1221,7 @@
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = ../../../../opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1247,6 +1249,7 @@
 			files = (
 				CE80FDD61C5E3D9700A21A51 /* libshared.dylib in Frameworks */,
 				CE12D8241C5C69A800CD0B13 /* libglib-2.0.0.dylib in Frameworks */,
+				CEC986941D3835420002B714 /* libmysqlclient.18.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2457,6 +2460,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CEC986931D3835420002B714 /* libmysqlclient.18.dylib */,
 				CE12D8191C5C614B00CD0B13 /* AppKit.framework */,
 				CE12D8171C5C614600CD0B13 /* GLUT.framework */,
 				CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */,
@@ -3065,12 +3069,12 @@
 				CE80FED21C5E45EC00A21A51 /* client */,
 				CE80FF581C5E494E00A21A51 /* client-null */,
 				CE80FF6D1C5E49C400A21A51 /* server */,
-				CE12D7341C5C5B9300CD0B13 /* quetoo */,
-				CE12D87B1C5CF86600CD0B13 /* quetoo-dedicated */,
 				CE12D7CC1C5C5D5C00CD0B13 /* game */,
 				CE12D7EA1C5C5DF900CD0B13 /* cgame */,
-				CE80FD861C5E3B6F00A21A51 /* quemap */,
+				CE12D7341C5C5B9300CD0B13 /* quetoo */,
+				CE12D87B1C5CF86600CD0B13 /* quetoo-dedicated */,
 				CEA029C51C5E558100341079 /* quetoo-master */,
+				CE80FD861C5E3B6F00A21A51 /* quemap */,
 				CEA029B31C5E545B00341079 /* Quetoo */,
 			);
 		};
@@ -3505,9 +3509,13 @@
 				HEADER_SEARCH_PATHS = (
 					/opt/local/include,
 					"/opt/local/include/glib-2.0",
+					/opt/local/include/mysql56/mysql,
 					"/opt/local/lib/glib-2.0/include",
 				);
-				LIBRARY_SEARCH_PATHS = /opt/local/lib;
+				LIBRARY_SEARCH_PATHS = (
+					/opt/local/lib,
+					/opt/local/lib/mysql56/mysql,
+				);
 				ONLY_ACTIVE_ARCH = YES;
 			};
 			name = Debug;
@@ -3521,9 +3529,13 @@
 				HEADER_SEARCH_PATHS = (
 					/opt/local/include,
 					"/opt/local/include/glib-2.0",
+					/opt/local/include/mysql56/mysql,
 					"/opt/local/lib/glib-2.0/include",
 				);
-				LIBRARY_SEARCH_PATHS = /opt/local/lib;
+				LIBRARY_SEARCH_PATHS = (
+					/opt/local/lib,
+					/opt/local/lib/mysql56/mysql,
+				);
 				ONLY_ACTIVE_ARCH = YES;
 			};
 			name = Release;
@@ -3606,6 +3618,10 @@
 					"$(inherited)",
 				);
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib/mysql56/mysql,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OTHER_CFLAGS = (
@@ -3632,6 +3648,10 @@
 				EXECUTABLE_PREFIX = lib;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib/mysql56/mysql,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = (
