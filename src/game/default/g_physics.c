@@ -23,10 +23,10 @@
 #include "bg_pmove.h"
 
 /*
- * @see Pm_CategorizePosition
+ * @see Pm_CheckGround
  */
-static void G_CategorizePosition(g_entity_t *ent) {
-	vec3_t pos, mins, maxs;
+static void G_CheckGround(g_entity_t *ent) {
+	vec3_t pos;
 
 	if (ent->locals.move_type == MOVE_TYPE_WALK)
 		return;
@@ -56,10 +56,17 @@ static void G_CategorizePosition(g_entity_t *ent) {
 	} else {
 		ent->locals.ground_entity = NULL;
 	}
+}
+
+static void G_CheckWater(g_entity_t *ent) {
+	vec3_t pos, mins, maxs;
+	
+	if (ent->locals.move_type == MOVE_TYPE_WALK)
+		return;
 
 	// check for water interaction
 	const uint8_t old_water_level = ent->locals.water_level;
-
+	
 	if (ent->solid == SOLID_BSP) {
 		VectorLerp(ent->abs_mins, ent->abs_maxs, 0.5, pos);
 		VectorSubtract(pos, ent->abs_mins, mins);
@@ -69,12 +76,12 @@ static void G_CategorizePosition(g_entity_t *ent) {
 		VectorCopy(ent->mins, mins);
 		VectorCopy(ent->maxs, maxs);
 	}
-
+	
 	cm_trace_t tr = gi.Trace(pos, pos, mins, maxs, ent, MASK_LIQUID);
-
+	
 	ent->locals.water_type = tr.contents;
 	ent->locals.water_level = ent->locals.water_type ? 1 : 0;
-
+	
 	if (!old_water_level && ent->locals.water_level) {
 		gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_IDLE);
 		if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
@@ -103,8 +110,6 @@ static void G_RunThink(g_entity_t *ent) {
 
 	ent->locals.Think(ent);
 }
-
-
 
 /*
  * @see Pm_GoodPosition.
@@ -303,7 +308,7 @@ void G_TouchOccupy(g_entity_t *ent) {
 			continue;
 
 		if (occupied->locals.Touch) {
-			gi.Debug("%s touching %s\n", etos(occupied), etos(ent));
+			gi.Debug("%s occupying %s\n", etos(ent), etos(occupied));
 			occupied->locals.Touch(occupied, ent, NULL, NULL);
 		}
 
@@ -496,10 +501,12 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 		if (p->ent->in_use) {
 
 			gi.LinkEntity(p->ent);
-
-			G_CategorizePosition(p->ent);
-
+			
 			G_TouchOccupy(p->ent);
+
+			G_CheckGround(p->ent);
+			
+			G_CheckWater(p->ent);
 		}
 	}
 
@@ -567,8 +574,11 @@ static void G_Physics_Fly_Impact(g_entity_t *ent, const cm_trace_t *trace, const
 
 	if (!ent->in_use || !trace->ent->in_use)
 		return;
-
-	// both entities remain, so clip them to each other
+	
+	if (ent->solid < SOLID_DEAD || trace->ent->solid < SOLID_DEAD)
+		return;
+	
+	// both entities remain, so clip the weaker solid to the other
 
 	G_ClipVelocity(ent->locals.velocity, trace->plane.normal, ent->locals.velocity, bounce);
 }
@@ -639,7 +649,9 @@ static void G_Physics_Fly(g_entity_t *ent) {
 
 	G_TouchOccupy(ent);
 
-	G_CategorizePosition(ent);
+	G_CheckGround(ent);
+	
+	G_CheckWater(ent);
 }
 
 /*
@@ -657,7 +669,9 @@ static void G_Physics_Toss(g_entity_t *ent) {
 
 	G_TouchOccupy(ent);
 
-	G_CategorizePosition(ent);
+	G_CheckGround(ent);
+	
+	G_CheckWater(ent);
 }
 
 /*
