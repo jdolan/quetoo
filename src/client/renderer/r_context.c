@@ -88,8 +88,7 @@ void R_InitContext(void) {
 
 	Com_Print("  Trying %dx%d..\n", w, h);
 
-	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, SDL_WINDOWPOS_CENTERED,
-	SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
+	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
@@ -105,12 +104,12 @@ void R_InitContext(void) {
 		Com_Warn("Failed to set gamma %1.1f: %s\n", r_gamma->value, SDL_GetError());
 	}
 
-	SDL_GL_GetDrawableSize(r_context.window, &w, &h);
+//	SDL_GL_GetDrawableSize(r_context.window, &w, &h);
 
 	r_context.width = w;
 	r_context.height = h;
 
-	SDL_GetWindowSize(r_context.window, &w, &h);
+//	SDL_GetWindowSize(r_context.window, &w, &h);
 
 	r_context.window_width = w;
 	r_context.window_height = h;
