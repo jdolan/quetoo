@@ -21,7 +21,7 @@
 
 #include "bg_pmove.h"
 
-/*
+/**
  * @brief PM_MINS and PM_MAXS are the default bounding box, scaled by PM_SCALE
  * in Pm_Init. They are referenced in a few other places e.g. to create effects
  * at a certain body position on the player model.
@@ -37,7 +37,7 @@ const vec3_t PM_GIBLET_MAXS = { 9.0, 9.0, 9.0 };
 
 static pm_move_t *pm;
 
-/*
+/**
  * @brief A structure containing full floating point precision copies of all
  * movement variables. This is initialized with the player's last movement
  * at each call to PM_Move (this is obviously not thread-safe).
@@ -65,7 +65,7 @@ typedef struct {
 
 static pm_locals_t pml;
 
-/*
+/**
  * @brief Handle printing of debugging messages for development.
  */
 static void Pm_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
@@ -96,7 +96,7 @@ static void Pm_Debug_(const char *func, const char *fmt, ...) {
 
 #define Pm_Debug(...) Pm_Debug_(__func__, __VA_ARGS__)
 
-/*
+/**
  * @brief Slide off of the impacted plane.
  */
 static void Pm_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, vec_t bounce) {
@@ -118,7 +118,7 @@ static void Pm_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, ve
 	}
 }
 
-/*
+/**
  * @brief Mark the specified entity as touched. This enables the game module to
  * detect player -> entity interactions.
  */
@@ -144,7 +144,7 @@ static void Pm_TouchEntity(struct g_entity_s *ent) {
 
 #define MAX_CLIP_PLANES	5
 
-/*
+/**
  * @brief Calculates a new origin, velocity, and contact entities based on the
  * movement command and world state. Returns true if not blocked.
  */
@@ -257,7 +257,7 @@ static _Bool Pm_SlideMove(void) {
 	return num_planes == 0;
 }
 
-/*
+/**
  * @return True if the downward trace yielded a step, false otherwise.
  */
 static _Bool Pm_CheckStep(const cm_trace_t *trace) {
@@ -273,7 +273,7 @@ static _Bool Pm_CheckStep(const cm_trace_t *trace) {
 	return false;
 }
 
-/*
+/**
  * @brief
  */
 static void Pm_StepDown(const cm_trace_t *trace) {
@@ -292,7 +292,7 @@ static void Pm_StepDown(const cm_trace_t *trace) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Pm_StepSlideMove(void) {
@@ -420,7 +420,7 @@ static void Pm_StepSlideMove(void) {
 #endif
 }
 
-/*
+/**
  * @brief Handles friction against user intentions, and based on contents.
  */
 static void Pm_Friction(void) {
@@ -472,7 +472,7 @@ static void Pm_Friction(void) {
 	VectorScale(pm->s.velocity, scale, pm->s.velocity);
 }
 
-/*
+/**
  * @brief Handles user intended acceleration.
  */
 static void Pm_Accelerate(vec3_t dir, vec_t speed, vec_t accel) {
@@ -491,7 +491,7 @@ static void Pm_Accelerate(vec3_t dir, vec_t speed, vec_t accel) {
 	VectorMA(pm->s.velocity, accel_speed, dir, pm->s.velocity);
 }
 
-/*
+/**
  * @brief Applies gravity to the current movement.
  */
 static void Pm_Gravity(void) {
@@ -504,7 +504,7 @@ static void Pm_Gravity(void) {
 	pm->s.velocity[2] -= gravity * pml.time;
 }
 
-/*
+/**
  * @brief
  */
 static void Pm_Currents(vec3_t vel) {
@@ -547,7 +547,7 @@ static void Pm_Currents(vec3_t vel) {
 	VectorMA(vel, PM_SPEED_CURRENT, current, vel);
 }
 
-/*
+/**
  * @return True if the player will be eligible for trick jumping should they
  * impact the ground on this frame, false otherwise.
  */
@@ -571,7 +571,7 @@ static _Bool Pm_CheckTrickJump(void) {
 	return true;
 }
 
-/*
+/**
  * @brief Shift around the current origin to find a valid position.
  */
 static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
@@ -601,7 +601,7 @@ static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
 	return *trace;
 }
 
-/*
+/**
  * @brief Checks for ground interaction, enabling trick jumping and dealing with landings.
  */
 static void Pm_CheckGround(void) {
@@ -682,7 +682,7 @@ static void Pm_CheckGround(void) {
 	Pm_TouchEntity(trace.ent);
 }
 
-/*
+/**
  * @brief Checks for water interaction, accounting for player ducking, etc.
  */
 static void Pm_CheckWater(void) {
@@ -722,7 +722,7 @@ static void Pm_CheckWater(void) {
 	}
 }
 
-/*
+/**
  * @brief Handles ducking, adjusting both the player's bounding box and view
  * offset accordingly. Players must be on the ground in order to duck.
  */
@@ -768,7 +768,7 @@ static void Pm_CheckDuck(void) {
 	PackVector(pml.view_offset, pm->s.view_offset);
 }
 
-/*
+/**
  * @brief Check for jumping and trick jumping.
  *
  * @return True if a jump occurs, false otherwise.
@@ -823,7 +823,7 @@ static _Bool Pm_CheckJump(void) {
 	return true;
 }
 
-/*
+/**
  * @brief Check for push interactions.
  *
  * @return True if the player was pushed by an entity, false otherwise.
@@ -840,7 +840,7 @@ static _Bool Pm_CheckPush(void) {
 	return true;
 }
 
-/*
+/**
  * @brief Check for ladder interaction.
  *
  * @return True if the player is on a ladder, false otherwise.
@@ -868,7 +868,7 @@ static void Pm_CheckLadder(void) {
 	}
 }
 
-/*
+/**
  * @brief Checks for water exit. The player may exit the water when they can
  * see a usable step out of the water.
  *
@@ -922,7 +922,7 @@ static _Bool Pm_CheckWaterJump(void) {
 	return false;
 }
 
-/*
+/**
  * @brief
  */
 static void Pm_LadderMove(void) {
@@ -976,7 +976,7 @@ static void Pm_LadderMove(void) {
 	Pm_StepSlideMove();
 }
 
-/*
+/**
  * @brief
  */
 static void Pm_WaterJumpMove(void) {
@@ -1009,7 +1009,7 @@ static void Pm_WaterJumpMove(void) {
 	Pm_StepSlideMove();
 }
 
-/*
+/**
  * @brief
  */
 static void Pm_WaterMove(void) {
@@ -1072,7 +1072,7 @@ static void Pm_WaterMove(void) {
 	Pm_StepSlideMove();
 }
 
-/*
+/**
  * @brief
  */
 static void Pm_AirMove(void) {
@@ -1107,7 +1107,7 @@ static void Pm_AirMove(void) {
 	Pm_StepSlideMove();
 }
 
-/*
+/**
  * @brief Called for movements where player is on ground, regardless of water level.
  */
 static void Pm_WalkMove(void) {
@@ -1187,7 +1187,7 @@ static void Pm_WalkMove(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Pm_ClampAngles(void) {
@@ -1216,7 +1216,7 @@ static void Pm_ClampAngles(void) {
 	AngleVectors(pm->angles, pml.forward, pml.right, pml.up);
 }
 
-/*
+/**
  * @brief
  */
 static void Pm_SpectatorMove() {
@@ -1242,7 +1242,7 @@ static void Pm_SpectatorMove() {
 	VectorMA(pm->s.origin, pml.time, pm->s.velocity, pm->s.origin);
 }
 
-/*
+/**
  * @brief
  */
 static void Pm_Init(void) {
@@ -1290,7 +1290,7 @@ static void Pm_Init(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Pm_InitLocal(void) {
@@ -1308,7 +1308,7 @@ static void Pm_InitLocal(void) {
 	pml.time = pm->cmd.msec * 0.001;
 }
 
-/*
+/**
  * @brief Called by the game and the client game to update the player's
  * authoritative or predicted movement state, respectively.
  */

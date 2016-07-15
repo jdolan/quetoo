@@ -28,7 +28,7 @@ _Bool nosort = false;
 
 static int32_t visibility_count;
 
-/*
+/**
  * @brief
  */
 static void PlaneFromWinding(const winding_t *w, plane_t *plane) {
@@ -42,7 +42,7 @@ static void PlaneFromWinding(const winding_t *w, plane_t *plane) {
 	plane->dist = DotProduct(w->points[0], plane->normal);
 }
 
-/*
+/**
  * @brief
  */
 static winding_t *NewWinding(uint16_t points) {
@@ -58,7 +58,7 @@ static winding_t *NewWinding(uint16_t points) {
 	return w;
 }
 
-/*
+/**
  * @brief
  */
 static int32_t SortPortals_Compare(const void *a, const void *b) {
@@ -69,7 +69,7 @@ static int32_t SortPortals_Compare(const void *a, const void *b) {
 	return 1;
 }
 
-/*
+/**
  * @brief Sorts the portals from the least complex, so the later ones can reuse
  * the earlier information.
  */
@@ -85,7 +85,7 @@ static void SortPortals(void) {
 	qsort(map_vis.sorted_portals, map_vis.num_portals * 2, sizeof(portal_t *), SortPortals_Compare);
 }
 
-/*
+/**
  * @brief
  */
 static size_t LeafVectorFromPortalVector(byte *portalbits, byte *leafbits) {
@@ -103,7 +103,7 @@ static size_t LeafVectorFromPortalVector(byte *portalbits, byte *leafbits) {
 	return CountBits(leafbits, map_vis.portal_clusters);
 }
 
-/*
+/**
  * @brief Merges the portal visibility for a leaf.
  */
 static void ClusterMerge(uint32_t leaf_num) {
@@ -164,7 +164,7 @@ static void ClusterMerge(uint32_t leaf_num) {
 	memcpy(dest, compressed, i);
 }
 
-/*
+/**
  * @brief
  */
 static void CalcVis(void) {
@@ -194,7 +194,7 @@ static void CalcVis(void) {
 		Com_Print("Average clusters visible: 0\n");
 }
 
-/*
+/**
  * @brief
  */
 static void SetPortalSphere(portal_t * p) {
@@ -223,7 +223,7 @@ static void SetPortalSphere(portal_t * p) {
 	p->radius = bestr;
 }
 
-/*
+/**
  * @brief
  */
 static void LoadPortals(const char *filename) {
@@ -355,7 +355,7 @@ static void LoadPortals(const char *filename) {
 	Fs_Free(buffer);
 }
 
-/*
+/**
  * @brief Calculate the PHS (Potentially Hearable Set)
  * by ORing together all the PVS visible from a leaf
  */
@@ -414,7 +414,7 @@ static void CalcPHS(void) {
 		Com_Print("Average clusters hearable: 0\n");
 }
 
-/*
+/**
  * @brief
  */
 int32_t VIS_Main(void) {

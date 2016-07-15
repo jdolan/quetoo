@@ -46,7 +46,7 @@
 
 r_bsp_light_state_t r_bsp_light_state;
 
-/*
+/**
  * @brief Resolves ambient light, brightness, and contrast levels from Worldspawn.
  */
 static void R_ResolveBspLightParameters(void) {
@@ -132,7 +132,7 @@ static void R_ResolveBspLightParameters(void) {
 	Com_Debug("Scaled sun color: %s\n", vtos(r_bsp_light_state.sun.color));
 }
 
-/*
+/**
  * @brief Adds the specified static light source after first ensuring that it
  * can not be merged with any known sources.
  */
@@ -175,7 +175,7 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t origin, vec3_t color, vec_t
 	VectorMix(bl->light.color, color, 1.0 / bl->count, bl->light.color);
 }
 
-/*
+/**
  * @brief Parse the entity string and resolve all static light sources. Sources which
  * are very close to each other are merged. Their colors are blended according
  * to their light value (intensity).
@@ -288,7 +288,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	Com_Debug("Loaded %d bsp lights\n", bsp->num_bsp_lights);
 }
 
-/*
+/**
  * @brief Developer tool for viewing static BSP light sources.
  */
 void R_DrawBspLights(void) {

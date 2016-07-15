@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 
-/*
+/**
  * @brief
  */
 void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
@@ -43,7 +43,7 @@ void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 
 }
 
-/*
+/**
  * @brief Processes the entity's effects mask, augmenting the renderer entity.
  */
 void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {

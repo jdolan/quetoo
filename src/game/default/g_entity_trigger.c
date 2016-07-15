@@ -25,7 +25,7 @@
 #define TRIGGERED 0x1
 #define SHOOTABLE 0x2
 
-/*
+/**
  * @brief
  */
 static void G_Trigger_Init(g_entity_t *self) {
@@ -39,14 +39,14 @@ static void G_Trigger_Init(g_entity_t *self) {
 	self->sv_flags = SVF_NO_CLIENT;
 }
 
-/*
+/**
  * @brief The wait time has passed, so set back up for another activation
  */
 static void G_trigger_multiple_Wait(g_entity_t *ent) {
 	ent->locals.next_think = 0;
 }
 
-/*
+/**
  * @brief
  */
 static void G_trigger_multiple_Think(g_entity_t *ent) {
@@ -67,7 +67,7 @@ static void G_trigger_multiple_Think(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other __attribute__((unused)),
@@ -78,7 +78,7 @@ static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other __attribut
 	G_trigger_multiple_Think(ent);
 }
 
-/*
+/**
  * @brief
  */
 static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
@@ -107,7 +107,7 @@ static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
 	G_trigger_multiple_Think(self);
 }
 
-/*
+/**
  * @brief
  */
 static void G_trigger_multiple_Enable(g_entity_t *self, g_entity_t *other __attribute__((unused)),
@@ -176,7 +176,7 @@ void G_trigger_once(g_entity_t *ent) {
 	G_trigger_multiple(ent);
 }
 
-/*
+/**
  * @brief
  */
 static void G_trigger_relay_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
@@ -219,7 +219,7 @@ void G_trigger_always(g_entity_t *ent) {
 #define PUSH_ONCE 1
 #define PUSH_EFFECT 2
 
-/*
+/**
  * @brief
  */
 static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
@@ -243,7 +243,7 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
 		G_FreeEntity(self);
 }
 
-/*
+/**
  * @brief Creates an effect trail for the specified entity.
  */
 static void G_trigger_push_Effect(g_entity_t *self) {
@@ -285,7 +285,7 @@ void G_trigger_push(g_entity_t *self) {
 		G_trigger_push_Effect(self);
 }
 
-/*
+/**
  * @brief
  */
 static void G_trigger_hurt_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
@@ -301,7 +301,7 @@ static void G_trigger_hurt_Use(g_entity_t *self, g_entity_t *other __attribute__
 		self->locals.Use = NULL;
 }
 
-/*
+/**
  * @brief
  */
 static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
@@ -373,7 +373,7 @@ void G_trigger_hurt(g_entity_t *self) {
 	gi.LinkEntity(self);
 }
 
-/*
+/**
  * @brief
  */
 static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other __attribute__((unused)),

@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-/*
+/**
  * @brief
  */
 static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
@@ -61,7 +61,7 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 	gi.Sound(ent, g_media.sounds.weapon_switch, ATTEN_NORM);
 }
 
-/*
+/**
  * @brief
  */
 _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
@@ -93,7 +93,7 @@ _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 	return true;
 }
 
-/*
+/**
  * @return True if the client has both weapon and ammo, false otherwise.
  */
 static _Bool G_HasItem(const g_entity_t *ent, const char *item, const int16_t quantity) {
@@ -103,7 +103,7 @@ static _Bool G_HasItem(const g_entity_t *ent, const char *item, const int16_t qu
 	return ent->client->locals.inventory[it] >= quantity;
 }
 
-/*
+/**
  * @brief
  */
 void G_UseBestWeapon(g_entity_t *ent) {
@@ -137,7 +137,7 @@ void G_UseBestWeapon(g_entity_t *ent) {
 	G_ChangeWeapon(ent, item);
 }
 
-/*
+/**
  * @brief
  */
 void G_UseWeapon(g_entity_t *ent, const g_item_t *item) {
@@ -159,7 +159,7 @@ void G_UseWeapon(g_entity_t *ent, const g_item_t *item) {
 	G_ChangeWeapon(ent, item);
 }
 
-/*
+/**
  * @brief Drop the specified weapon if the client has sufficient ammo.
  */
 g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item) {
@@ -199,7 +199,7 @@ g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item) {
 	return dropped;
 }
 
-/*
+/**
  * @brief Toss the currently held weapon when dead.
  */
 g_entity_t *G_TossWeapon(g_entity_t *ent) {
@@ -226,7 +226,7 @@ g_entity_t *G_TossWeapon(g_entity_t *ent) {
 
 typedef void (*G_FireWeaponFunc)(g_entity_t *ent);
 
-/*
+/**
  * @brief Returns true if the specified client can fire their weapon, false
  * otherwise.
  */
@@ -268,7 +268,7 @@ static _Bool G_FireWeapon(g_entity_t *ent) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
@@ -295,7 +295,7 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_ClientWeaponThink(g_entity_t *ent) {
@@ -352,7 +352,7 @@ void G_ClientWeaponThink(g_entity_t *ent) {
 		ent->client->locals.weapon->Think(ent);
 }
 
-/*
+/**
  * @brief
  */
 static void G_MuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
@@ -368,7 +368,7 @@ static void G_MuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
 	gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);
 }
 
-/*
+/**
  * @brief
  */
 void G_FireBlaster(g_entity_t *ent) {
@@ -388,7 +388,7 @@ void G_FireBlaster(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_FireShotgun(g_entity_t *ent) {
@@ -408,7 +408,7 @@ void G_FireShotgun(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_FireSuperShotgun(g_entity_t *ent) {
@@ -438,7 +438,7 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_FireMachinegun(g_entity_t *ent) {
@@ -478,7 +478,7 @@ static void G_PullGrenadePin(g_entity_t *ent) {
 	gi.LinkEntity(nade);
 }
 
-/*
+/**
  * @brief Checks button status and hold time to determine if we're still holding
  * a primed grenade
  */
@@ -503,7 +503,7 @@ static _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
 	return false;
 }
 
-/*
+/**
  * @brief
  */
 void G_FireHandGrenade(g_entity_t *ent) {
@@ -610,7 +610,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	ent->client->locals.grenade_hold_frame = 0;
 }
 
-/*
+/**
  * @brief
  */
 void G_FireGrenadeLauncher(g_entity_t *ent) {
@@ -630,7 +630,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_FireRocketLauncher(g_entity_t *ent) {
@@ -650,7 +650,7 @@ void G_FireRocketLauncher(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_FireHyperblaster(g_entity_t *ent) {
@@ -670,7 +670,7 @@ void G_FireHyperblaster(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_FireLightning(g_entity_t *ent) {
@@ -700,7 +700,7 @@ void G_FireLightning(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_FireRailgun(g_entity_t *ent) {
@@ -722,7 +722,7 @@ void G_FireRailgun(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_FireBfg_(g_entity_t *ent) {
@@ -742,7 +742,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 	ent->locals.next_think = g_level.time + 1;
 }
 
-/*
+/**
  * @brief
  */
 void G_FireBfg(g_entity_t *ent) {

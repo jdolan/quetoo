@@ -31,7 +31,7 @@ vec3_t vec3_down = { 0.0, 0.0, -1.0 };
 
 vec3_t vec3_forward = { 0.0, 1.0, 0.0 };
 
-/*
+/**
  * @brief Returns a pseudo-random positive integer.
  *
  * Uses a Linear Congruence Generator, values kindly borrowed from glibc.
@@ -52,21 +52,21 @@ int32_t Random(void) {
 	return state & 0x7fffffff;
 }
 
-/*
+/**
  * @brief Returns a pseudo-random vec_t between 0.0 and 1.0.
  */
 vec_t Randomf(void) {
 	return (Random()) * (1.0 / 0x7fffffff);
 }
 
-/*
+/**
  * @brief Returns a pseudo-random vec_t between -1.0 and 1.0.
  */
 vec_t Randomc(void) {
 	return (Random()) * (2.0 / 0x7fffffff) - 1.0;
 }
 
-/*
+/**
  * @brief
  */
 void RotatePointAroundVector(const vec3_t point, const vec3_t dir, const vec_t degrees, vec3_t out) {
@@ -86,7 +86,7 @@ void RotatePointAroundVector(const vec3_t point, const vec3_t dir, const vec_t d
 	out[2] = w * (ux + vy + wz) + (z * (uu + vv) - w * (ux + vy)) * c + (uy - vx) * s;
 }
 
-/*
+/**
  * @brief Derives Euler angles for the specified directional vector.
  */
 void VectorAngles(const vec3_t vector, vec3_t angles) {
@@ -99,7 +99,7 @@ void VectorAngles(const vec3_t vector, vec3_t angles) {
 	VectorSet(angles, pitch, yaw, 0.0);
 }
 
-/*
+/**
  * @brief Produces the forward, right and up directional vectors for the given angles.
  */
 void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) {
@@ -136,7 +136,7 @@ void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) 
 	}
 }
 
-/*
+/**
  * @brief
  */
 void ProjectPointOnPlane(const vec3_t p, const vec3_t normal, vec3_t out) {
@@ -155,7 +155,7 @@ void ProjectPointOnPlane(const vec3_t p, const vec3_t normal, vec3_t out) {
 	out[2] = p[2] - d * n[2];
 }
 
-/*
+/**
  * @brief Assumes input vector is normalized.
  */
 void PerpendicularVector(const vec3_t in, vec3_t out) {
@@ -180,7 +180,7 @@ void PerpendicularVector(const vec3_t in, vec3_t out) {
 	VectorNormalize(out);
 }
 
-/*
+/**
  * @brief Projects the normalized directional vectors on to the normal's plane.
  * The fourth component of the resulting tangent vector represents sidedness.
  */
@@ -211,7 +211,7 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 	VectorScale(bitangent, tangent[3], bitangent);
 }
 
-/*
+/**
  * @brief Produces the linear interpolation of the two vectors for the given fraction.
  */
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
@@ -220,7 +220,7 @@ void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out
 		out[i] = from[i] + frac * (to[i] - from[i]);
 }
 
-/*
+/**
  * @brief Produces the linear interpolation of the two angles for the given fraction.
  * Care is taken to keep the values between -180.0 and 180.0.
  */
@@ -243,7 +243,7 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
 	VectorLerp(_from, _to, frac, out);
 }
 
-/*
+/**
  * @return True if the specified boxes intersect (overlap), false otherwise.
  */
 _Bool BoxIntersect(const vec3_t mins0, const vec3_t maxs0, const vec3_t mins1, const vec3_t maxs1) {
@@ -257,7 +257,7 @@ _Bool BoxIntersect(const vec3_t mins0, const vec3_t maxs0, const vec3_t mins1, c
 	return true;
 }
 
-/*
+/**
  * @brief Initializes the specified bounds so that they may be safely calculated.
  */
 void ClearBounds(vec3_t mins, vec3_t maxs) {
@@ -265,7 +265,7 @@ void ClearBounds(vec3_t mins, vec3_t maxs) {
 	maxs[0] = maxs[1] = maxs[2] = MIN_WORLD_COORD;
 }
 
-/*
+/**
  * @brief Useful for accumulating a bounding box over a series of points.
  */
 void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
@@ -278,7 +278,7 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
 	}
 }
 
-/*
+/**
  * @brief Normalizes the specified vector to unit-length, returning the original
  * vector's length.
  */
@@ -296,7 +296,7 @@ vec_t VectorNormalize(vec3_t v) {
 	return length;
 }
 
-/*
+/**
  * @brief Scales vecb and adds it to veca to produce vecc. Useful for projection.
  */
 void VectorMA(const vec3_t veca, const vec_t scale, const vec3_t vecb, vec3_t vecc) {
@@ -305,7 +305,7 @@ void VectorMA(const vec3_t veca, const vec_t scale, const vec3_t vecb, vec3_t ve
 	vecc[2] = veca[2] + scale * vecb[2];
 }
 
-/*
+/**
  * @brief Calculates the cross-product of the specified vectors.
  */
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross) {
@@ -314,14 +314,14 @@ void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross) {
 	cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
 }
 
-/*
+/**
  * @brief Returns the length of the specified vector.
  */
 vec_t VectorLength(const vec3_t v) {
 	return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 }
 
-/*
+/**
  * @brief Combines a fraction of the second vector with the first.
  */
 void VectorMix(const vec3_t v1, const vec3_t v2, vec_t mix, vec3_t out) {
@@ -330,7 +330,7 @@ void VectorMix(const vec3_t v1, const vec3_t v2, vec_t mix, vec3_t out) {
 		out[i] = v1[i] * (1.0 - mix) + v2[i] * mix;
 }
 
-/*
+/**
  * @brief Packs the specified floating point vector to the int16_t array in out
  * for network transmission.
  */
@@ -338,14 +338,14 @@ void PackVector(const vec3_t in, int16_t *out) {
 	VectorScale(in, 8.0, out);
 }
 
-/*
+/**
  * @brief Unpacks the compressed vector to 32 bit floating point in out.
  */
 void UnpackVector(const int16_t *in, vec3_t out) {
 	VectorScale(in, 0.125, out);
 }
 
-/*
+/**
  * @brief Circular clamp Euler angles between 0.0 and 360.0.
  */
 vec_t ClampAngle(vec_t angle) {
@@ -360,7 +360,7 @@ vec_t ClampAngle(vec_t angle) {
 	return angle;
 }
 
-/*
+/**
  * @brief Circularly clamps the specified angles between 0.0 and 360.0.
  */
 void ClampAngles(vec3_t angles) {
@@ -369,21 +369,21 @@ void ClampAngles(vec3_t angles) {
 	angles[2] = ClampAngle(angles[2]);
 }
 
-/*
+/**
  * @brief Packs the Euler angle for network transmission, clamped 0.0 - 360.0.
  */
 uint16_t PackAngle(const vec_t a) {
 	return (uint16_t) (ClampAngle(a) * UINT16_MAX / 360.0) & UINT16_MAX;
 }
 
-/*
+/**
  * @brief Unpacks the encoded angle to floating point between 0.0 and 360.0.
  */
 vec_t UnpackAngle(const uint16_t a) {
 	return a * 360.0 / UINT16_MAX;
 }
 
-/*
+/**
  * @brief Packs the specified floating point Euler angles to the int16_t array in out
  * for network transmission.
  */
@@ -395,7 +395,7 @@ void PackAngles(const vec3_t in, uint16_t *out) {
 	}
 }
 
-/*
+/**
  * @brief Unpacks the compressed angles to Euler 32 bit floating point in out.
  */
 void UnpackAngles(const uint16_t *in, vec3_t out) {
@@ -406,7 +406,7 @@ void UnpackAngles(const uint16_t *in, vec3_t out) {
 	}
 }
 
-/*
+/**
  * @brief Packs the specified bounding box to a limited precision integer
  * representation. Bits 0-5 represent X/Y, scaled down by a factor of 0.125.
  * Bits 5-10 contain the Z-mins, and 10-15 contain the Z-maxs.
@@ -425,7 +425,7 @@ void PackBounds(const vec3_t mins, const vec3_t maxs, uint16_t *out) {
 	*out = (zu << 10) | (zd << 5) | xy;
 }
 
-/*
+/**
  * @brief Unpacks the specified bounding box to mins and maxs.
  */
 void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs) {
@@ -438,7 +438,7 @@ void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs) {
 	VectorSet(maxs, xy, xy, zu);
 }
 
-/*
+/**
  * @brief Clamps the components of the specified vector to 1.0, scaling the vector
  * down if necessary.
  */
@@ -462,7 +462,7 @@ vec_t ColorNormalize(const vec3_t in, vec3_t out) {
 	return max;
 }
 
-/*
+/**
  * @brief Applies brightness, saturation and contrast to the specified input color.
  */
 void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation, vec_t contrast) {
@@ -498,7 +498,7 @@ void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation
 	}
 }
 
-/*
+/**
  * @brief Returns the longest common prefix the specified words share.
  */
 char *CommonPrefix(GList *words) {
@@ -526,7 +526,7 @@ char *CommonPrefix(GList *words) {
 	return common_prefix;
 }
 
-/*
+/**
  * @brief Handles wildcard suffixes for GlobMatch.
  */
 static _Bool GlobMatchStar(const char *pattern, const char *text) {
@@ -555,7 +555,7 @@ static _Bool GlobMatchStar(const char *pattern, const char *text) {
 	return false;
 }
 
-/*
+/**
  * @brief Matches the pattern against specified text, returning true if the pattern
  * matches, false otherwise.
  *
@@ -663,7 +663,7 @@ _Bool GlobMatch(const char *pattern, const char *text) {
 	return *t == '\0';
 }
 
-/*
+/**
  * @brief Returns the base name for the given file or path.
  */
 const char *Basename(const char *path) {
@@ -676,7 +676,7 @@ const char *Basename(const char *path) {
 	return last;
 }
 
-/*
+/**
  * @brief Returns the directory name for the given file or path name.
  */
 void Dirname(const char *in, char *out) {
@@ -694,7 +694,7 @@ void Dirname(const char *in, char *out) {
 	*out = '\0';
 }
 
-/*
+/**
  * @brief Removes any file extension(s) from the specified input string.
  */
 void StripExtension(const char *in, char *out) {
@@ -706,7 +706,7 @@ void StripExtension(const char *in, char *out) {
 	*out = '\0';
 }
 
-/*
+/**
  * @brief Strips color escape sequences from the specified input string.
  */
 void StripColors(const char *in, char *out) {
@@ -728,7 +728,7 @@ void StripColors(const char *in, char *out) {
 	*out = '\0';
 }
 
-/*
+/**
  * @brief Returns the length of s in printable characters.
  */
 size_t StrColorLen(const char *s) {
@@ -753,7 +753,7 @@ size_t StrColorLen(const char *s) {
 	return len;
 }
 
-/*
+/**
  * @brief Performs a color- and case-insensitive string comparison.
  */
 int32_t StrColorCmp(const char *s1, const char *s2) {
@@ -765,7 +765,7 @@ int32_t StrColorCmp(const char *s1, const char *s2) {
 	return g_ascii_strcasecmp(string1, string2);
 }
 
-/*
+/**
  * @brief A shorthand g_snprintf into a statically allocated buffer. Several
  * buffers are maintained internally so that nested va()'s are safe within
  * reasonable limits. This function is not thread safe.
@@ -785,7 +785,7 @@ char *va(const char *format, ...) {
 	return string;
 }
 
-/*
+/**
  * @brief A convenience function for printing vectors.
  */
 char *vtos(const vec3_t v) {
@@ -801,7 +801,7 @@ char *vtos(const vec3_t v) {
 	return s;
 }
 
-/*
+/**
  * @brief Parse a token out of a string. Tokens are delimited by white space, and
  * may be grouped by quotation marks.
  *
@@ -872,7 +872,7 @@ char *ParseToken(const char **in) {
 	return token;
 }
 
-/*
+/**
  * @brief Searches the string for the given key and returns the associated value,
  * or an empty string.
  */
@@ -916,7 +916,7 @@ char *GetUserInfo(const char *s, const char *key) {
 	return "";
 }
 
-/*
+/**
  * @brief
  */
 void DeleteUserInfo(char *s, const char *key) {
@@ -960,7 +960,7 @@ void DeleteUserInfo(char *s, const char *key) {
 	}
 }
 
-/*
+/**
  * @brief Returns true if the specified user-info string appears valid, false
  * otherwise.
  */
@@ -974,7 +974,7 @@ _Bool ValidateUserInfo(const char *s) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 void SetUserInfo(char *s, const char *key, const char *value) {

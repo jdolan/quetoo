@@ -21,7 +21,7 @@
 
 #include "sv_local.h"
 
-/*
+/**
  * @brief
  */
 static void Sv_SetMaster_f(void) {
@@ -67,14 +67,14 @@ static void Sv_SetMaster_f(void) {
 	svs.next_heartbeat = 0;
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_Heartbeat_f(void) {
 	svs.next_heartbeat = 0;
 }
 
-/*
+/**
  * @brief Sets sv_client and sv_player to the player identified by Cmd_Argv(1).
  */
 static _Bool Sv_SetPlayer(void) {
@@ -118,7 +118,7 @@ static _Bool Sv_SetPlayer(void) {
 	return false;
 }
 
-/*
+/**
  * @brief Starts playback of the specified demo file.
  */
 static void Sv_Demo_f(void) {
@@ -132,7 +132,7 @@ static void Sv_Demo_f(void) {
 	Sv_InitServer(Cmd_Argv(1), SV_ACTIVE_DEMO);
 }
 
-/*
+/**
  * @brief Creates a server for the specified map.
  */
 static void Sv_Map_f(void) {
@@ -146,7 +146,7 @@ static void Sv_Map_f(void) {
 	Sv_InitServer(Cmd_Argv(1), SV_ACTIVE_GAME);
 }
 
-/*
+/**
  * @brief Kick a user off of the server
  */
 static void Sv_Kick_f(void) {
@@ -167,7 +167,7 @@ static void Sv_Kick_f(void) {
 	Sv_KickClient(sv_client, NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_Status_f(void) {
@@ -217,7 +217,7 @@ static void Sv_Status_f(void) {
 	}
 }
 
-/*
+/**
  * @brief Lists all entities currently in use.
  */
 static void Sv_ListEntities_f(void) {
@@ -241,7 +241,7 @@ static void Sv_ListEntities_f(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_Say_f(void) {
@@ -276,7 +276,7 @@ static void Sv_Say_f(void) {
 	Com_Print("^1console^%d: %s\n", CON_COLOR_CHAT, s);
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_Tell_f(void) {
@@ -309,7 +309,7 @@ static void Sv_Tell_f(void) {
 	Com_Print("^1console^%d: %s\n", CON_COLOR_TEAMCHAT, s);
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_ServerInfo_f(void) {
@@ -323,7 +323,7 @@ static void Sv_ServerInfo_f(void) {
 	Com_PrintInfo(Cvar_ServerInfo());
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_UserInfo_f(void) {
@@ -344,7 +344,7 @@ static void Sv_UserInfo_f(void) {
 	Com_PrintInfo(sv_client->user_info);
 }
 
-/*
+/**
  * @brief Force a client-side command. Only available for dedicated servers.
  *  Ex: /stuff <clientid/name> command args
  */
@@ -371,7 +371,7 @@ static void Sv_Stuff_f(void) {
 	Net_WriteString(&sv_client->net_chan.message, va("%s\n", text));
 }
 
-/*
+/**
  * @brief
  */
 void Sv_InitAdmin(void) {

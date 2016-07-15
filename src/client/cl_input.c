@@ -74,7 +74,7 @@ static cl_button_t cl_buttons[12];
 #define in_up cl_buttons[10]
 #define in_down cl_buttons[11]
 
-/*
+/**
  * @brief
  */
 static void Cl_KeyDown(cl_button_t *b) {
@@ -110,7 +110,7 @@ static void Cl_KeyDown(cl_button_t *b) {
 	b->state |= 1;
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_KeyUp(cl_button_t *b) {
@@ -222,7 +222,7 @@ static void Cl_CenterView_f(void) {
 	cl.angles[PITCH] = 0;
 }
 
-/*
+/**
  * @brief Returns the fraction of the command interval for which the key was down.
  */
 static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
@@ -241,7 +241,7 @@ static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 }
 
 
-/*
+/**
  * @brief Inserts source into destination at the specified offset, without
  * exceeding the specified length.
  *
@@ -263,7 +263,7 @@ static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs,
 	return strlen(dest) - l;
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_TextEvent(const SDL_Event *event) {
@@ -283,7 +283,7 @@ static void Cl_TextEvent(const SDL_Event *event) {
 	in->pos += Cl_TextEvent_Insert(in->buffer, src, in->pos, sizeof(in->buffer));
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_HandleEvent(const SDL_Event *event) {
@@ -331,7 +331,7 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Cl_HandleEvents(void) {
@@ -373,7 +373,7 @@ void Cl_HandleEvents(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_ClampPitch(void) {
@@ -396,7 +396,7 @@ static void Cl_ClampPitch(void) {
 		cl.angles[PITCH] = -89.0 - pitch;
 }
 
-/*
+/**
  * @brief Accumulate this frame's movement-related inputs and assemble a movement
  * command to send to the server. This may be called several times for each
  * command that is transmitted if the client is running asynchronously.
@@ -446,7 +446,7 @@ void Cl_Move(pm_cmd_t *cmd) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Cl_ClearInput(void) {
@@ -454,7 +454,7 @@ void Cl_ClearInput(void) {
 	memset(cl_buttons, 0, sizeof(cl_buttons));
 }
 
-/*
+/**
  * @brief
  */
 void Cl_InitInput(void) {

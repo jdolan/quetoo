@@ -57,7 +57,7 @@ void (APIENTRY *qglUniformMatrix4fv)(GLint location, GLsizei count, GLboolean tr
 		const GLfloat *value);
 GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
 
-/*
+/**
  * @brief
  */
 void R_EnforceGlVersion(void) {
@@ -75,7 +75,7 @@ void R_EnforceGlVersion(void) {
 	Com_Error(ERR_FATAL, "OpenGL version %s is less than 1.3\n", s);
 }
 
-/*
+/**
  * @brief
  */
 void R_InitGlExtensions(void) {

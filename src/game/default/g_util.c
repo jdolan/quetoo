@@ -22,7 +22,7 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
-/*
+/**
  * @brief
  */
 void G_InitPlayerSpawn(g_entity_t *ent) {
@@ -50,7 +50,7 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 	VectorMA(ent->s.origin, fwd, forward, ent->s.origin);
 }
 
-/*
+/**
  * @brief Determines the initial position and directional vectors of a projectile.
  */
 void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org) {
@@ -92,7 +92,7 @@ void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, 
 	}
 }
 
-/*
+/**
  * @brief Searches all active entities for the next one that holds the matching string
  * at field offset (use the ELOFS() macro) in the structure.
  *
@@ -124,7 +124,7 @@ g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
 	return NULL;
 }
 
-/*
+/**
  * @brief Returns entities that have origins within a spherical area
  *
  * G_FindRadius(origin, radius)
@@ -160,7 +160,7 @@ g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad) {
 
 #define MAX_TARGETS	8
 
-/*
+/**
  * @brief Searches all active entities for the next targeted one.
  *
  * Searches beginning at the entity after from, or the beginning if NULL
@@ -197,7 +197,7 @@ g_entity_t *G_PickTarget(char *target_name) {
 	return choice[Random() % num_choices];
 }
 
-/*
+/**
  * @brief
  */
 static void G_UseTargets_Delay(g_entity_t *ent) {
@@ -205,7 +205,7 @@ static void G_UseTargets_Delay(g_entity_t *ent) {
 	G_FreeEntity(ent);
 }
 
-/*
+/**
  * @brief Search for all entities that the specified entity targets, and call their
  * use functions. Set their activator to our activator. Print our message,
  * if set, to the activator.
@@ -280,7 +280,7 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
@@ -301,7 +301,7 @@ void G_SetMoveDir(vec3_t angles, vec3_t move_dir) {
 	VectorClear(angles);
 }
 
-/*
+/**
  * @brief
  */
 void G_InitEntity(g_entity_t *ent, const char *class_name) {
@@ -315,7 +315,7 @@ void G_InitEntity(g_entity_t *ent, const char *class_name) {
 	ent->s.number = ent - g_game.entities;
 }
 
-/*
+/**
  * @brief Allocates an entity for use.
  */
 g_entity_t *G_AllocEntity(const char *class_name) {
@@ -337,7 +337,7 @@ g_entity_t *G_AllocEntity(const char *class_name) {
 	return e;
 }
 
-/*
+/**
  * @brief Frees the specified entity.
  */
 void G_FreeEntity(g_entity_t *ent) {
@@ -351,7 +351,7 @@ void G_FreeEntity(g_entity_t *ent) {
 	ent->class_name = "free";
 }
 
-/*
+/**
  * @brief Kills all entities that would touch the proposed new positioning
  * of the entity. The entity should be unlinked before calling this!
  */
@@ -375,7 +375,7 @@ _Bool G_KillBox(g_entity_t *ent) {
 	return true; // all clear
 }
 
-/*
+/**
  * @brief Kills the specified entity via explosion, potentially taking nearby
  * entities with it.
  */
@@ -391,7 +391,7 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius,
 	G_FreeEntity(ent);
 }
 
-/*
+/**
  * @brief Kills the specified entity via gib effect.
  */
 void G_Gib(g_entity_t *ent) {
@@ -404,7 +404,7 @@ void G_Gib(g_entity_t *ent) {
 	G_FreeEntity(ent);
 }
 
-/*
+/**
  * @brief
  */
 char *G_GameplayName(int32_t g) {
@@ -422,7 +422,7 @@ char *G_GameplayName(int32_t g) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 g_gameplay_t G_GameplayByName(const char *c) {
@@ -445,7 +445,7 @@ g_gameplay_t G_GameplayByName(const char *c) {
 	return gameplay;
 }
 
-/*
+/**
  * @brief
  */
 g_team_t *G_TeamByName(const char *c) {
@@ -462,7 +462,7 @@ g_team_t *G_TeamByName(const char *c) {
 	return NULL;
 }
 
-/*
+/**
  * @brief
  */
 g_team_t *G_TeamForFlag(g_entity_t *ent) {
@@ -482,7 +482,7 @@ g_team_t *G_TeamForFlag(g_entity_t *ent) {
 	return NULL;
 }
 
-/*
+/**
  * @brief
  */
 g_entity_t *G_FlagForTeam(g_team_t *t) {
@@ -521,7 +521,7 @@ g_entity_t *G_FlagForTeam(g_team_t *t) {
 	return NULL;
 }
 
-/*
+/**
  * @brief
  */
 uint32_t G_EffectForTeam(g_team_t *t) {
@@ -532,7 +532,7 @@ uint32_t G_EffectForTeam(g_team_t *t) {
 	return (t == &g_team_good ? EF_CTF_BLUE : EF_CTF_RED);
 }
 
-/*
+/**
  * @brief
  */
 g_team_t *G_OtherTeam(g_team_t *t) {
@@ -566,7 +566,7 @@ size_t G_TeamSize(g_team_t *team) {
 	return count;
 }
  
-/*
+/**
  * @brief
  */
 g_team_t *G_SmallestTeam(void) {
@@ -590,7 +590,7 @@ g_team_t *G_SmallestTeam(void) {
 	return g < e ? &g_team_good : &g_team_evil;
 }
 
-/*
+/**
  * @brief
  */
 g_client_t *G_ClientByName(char *name) {
@@ -617,7 +617,7 @@ g_client_t *G_ClientByName(char *name) {
 	return ret;
 }
 
-/*
+/**
  * @brief
  */
 int32_t G_ColorByName(const char *s, int32_t def) {
@@ -649,7 +649,7 @@ int32_t G_ColorByName(const char *s, int32_t def) {
 	return def;
 }
 
-/*
+/**
  * @return True if the specified entity should bleed when damaged.
  */
 _Bool G_IsMeat(const g_entity_t *ent) {
@@ -666,7 +666,7 @@ _Bool G_IsMeat(const g_entity_t *ent) {
 	return false;
 }
 
-/*
+/**
  * @return True if the specified entity is likely stationary.
  */
 _Bool G_IsStationary(const g_entity_t *ent) {
@@ -686,7 +686,7 @@ _Bool G_IsStationary(const g_entity_t *ent) {
 	return true;
 }
 
-/*
+/**
  * @return True if the specified entity and surface are structural.
  */
 _Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_surface_t *surf) {
@@ -704,7 +704,7 @@ _Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_surface_t *surf) {
 	return false;
 }
 
-/*
+/**
  * @return True if the specified entity and surface are sky.
  */
 _Bool G_IsSky(const cm_bsp_surface_t *surf) {
@@ -715,7 +715,7 @@ _Bool G_IsSky(const cm_bsp_surface_t *surf) {
 	return false;
 }
 
-/*
+/**
  * @brief Writes the specified animation byte, toggling the high bit to restart the
  * sequence if desired and necessary.
  */
@@ -730,7 +730,7 @@ static void G_SetAnimation_(byte *dest, entity_animation_t anim, _Bool restart) 
 	*dest = anim;
 }
 
-/*
+/**
  * @brief Assigns the specified animation to the correct member(s) on the specified
  * entity. If requested, the current animation will be restarted.
  */
@@ -759,7 +759,7 @@ void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, _Bool restart) {
 	}
 }
 
-/*
+/**
  * @brief Returns true if the entity is currently using the specified animation.
  */
 _Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
@@ -773,7 +773,7 @@ _Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
 	return (a & ~ANIM_TOGGLE_BIT) == anim;
 }
 
-/*
+/**
  * @brief forcefully suggest client adds given command to its console buffer
  */
 void G_ClientStuff(g_entity_t *ent, const char *s){
@@ -782,7 +782,7 @@ void G_ClientStuff(g_entity_t *ent, const char *s){
 	gi.Unicast(ent, true);
 }
 
-/*
+/**
  * @brief Send a centerprint to everyone on the supplied team
  */
 void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...){

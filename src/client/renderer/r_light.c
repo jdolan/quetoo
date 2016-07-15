@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-/*
+/**
  * @brief
  */
 void R_AddLight(const r_light_t *l) {
@@ -40,7 +40,7 @@ void R_AddLight(const r_light_t *l) {
 	r_view.num_lights++;
 }
 
-/*
+/**
  * @brief
  */
 void R_AddSustainedLight(const r_sustained_light_t *s) {
@@ -64,7 +64,7 @@ void R_AddSustainedLight(const r_sustained_light_t *s) {
 	r_view.sustained_lights[i].sustain = r_view.time + s->sustain;
 }
 
-/*
+/**
  * @brief
  */
 static void R_AddSustainedLights(void) {
@@ -90,7 +90,7 @@ static void R_AddSustainedLights(void) {
 	}
 }
 
-/*
+/**
  * @brief Resets hardware light source state. Note that this is accomplished purely
  * client-side. Our internal accounting lets us avoid GL state changes.
  */
@@ -99,7 +99,7 @@ void R_ResetLights(void) {
 	r_locals.light_mask = UINT64_MAX;
 }
 
-/*
+/**
  * @brief Recursively populates light source bit masks for world surfaces.
  */
 void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
@@ -145,7 +145,7 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 	R_MarkLight(l, node->children[1]);
 }
 
-/*
+/**
  * @brief Recurses the world, populating the light source bit masks of surfaces
  * that receive light.
  */
@@ -167,7 +167,7 @@ void R_MarkLights(void) {
 	}
 }
 
-/*
+/**
  * @brief Enables the light sources indicated by the specified bit mask. Care
  * is taken to avoid GL state changes whenever possible.
  */

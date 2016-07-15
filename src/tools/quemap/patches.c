@@ -24,7 +24,7 @@
 
 static vec3_t texture_reflectivity[MAX_BSP_TEXINFO];
 
-/*
+/**
  * @brief
  */
 void CalcTextureReflectivity(void) {
@@ -80,7 +80,7 @@ void CalcTextureReflectivity(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static inline _Bool HasLight(const d_bsp_face_t *f) {
@@ -90,7 +90,7 @@ static inline _Bool HasLight(const d_bsp_face_t *f) {
 	return (tex->flags & SURF_LIGHT) && tex->value;
 }
 
-/*
+/**
  * @brief
  */
 static inline _Bool IsSky(const d_bsp_face_t * f) {
@@ -100,7 +100,7 @@ static inline _Bool IsSky(const d_bsp_face_t * f) {
 	return tex->flags & SURF_SKY;
 }
 
-/*
+/**
  * @brief
  */
 static inline void EmissiveLight(patch_t *patch) {
@@ -113,7 +113,7 @@ static inline void EmissiveLight(patch_t *patch) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void BuildPatch(int32_t fn, winding_t *w) {
@@ -148,7 +148,7 @@ static void BuildPatch(int32_t fn, winding_t *w) {
 	EmissiveLight(patch); // surface light
 }
 
-/*
+/**
  * @brief
  */
 static entity_t *EntityForModel(int32_t num) {
@@ -169,7 +169,7 @@ static entity_t *EntityForModel(int32_t num) {
 	return &entities[0];
 }
 
-/*
+/**
  * @brief Create surface fragments for light-emitting surfaces so that light sources
  * may be computed along them.
  */
@@ -210,7 +210,7 @@ void BuildPatches(void) {
 
 #define PATCH_SUBDIVIDE 64
 
-/*
+/**
  * @brief
  */
 static void FinishSubdividePatch(patch_t *patch, patch_t *newp) {
@@ -240,7 +240,7 @@ static void FinishSubdividePatch(patch_t *patch, patch_t *newp) {
 	VectorMA(newp->origin, 2.0, newp->normal, newp->origin);
 }
 
-/*
+/**
  * @brief
  */
 static void SubdividePatch(patch_t *patch) {
@@ -284,7 +284,7 @@ static void SubdividePatch(patch_t *patch) {
 	SubdividePatch(newp);
 }
 
-/*
+/**
  * @brief Iterate all of the head face patches, subdividing them as necessary.
  */
 void SubdividePatches(void) {
@@ -300,7 +300,7 @@ void SubdividePatches(void) {
 	}
 }
 
-/*
+/**
  * @brief After light sources have been created, patches may be freed.
  */
 void FreePatches(void) {

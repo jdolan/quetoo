@@ -31,7 +31,7 @@ extern const uint16_t g_num_items;
 
 #define ITEM_INDEX(x) ((x) - g_items)
 
-/*
+/**
  * @brief Item bounding box scaling.
  */
 #define ITEM_SCALE 1.0

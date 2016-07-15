@@ -24,7 +24,7 @@
 cm_bsp_t cm_bsp;
 cm_vis_t *cm_vis;
 
-/*
+/**
  * @brief
  */
 static void Cm_LoadEntityString(const d_bsp_lump_t *l) {
@@ -38,7 +38,7 @@ static void Cm_LoadEntityString(const d_bsp_lump_t *l) {
 	memcpy(cm_bsp.entity_string, cm_bsp.base + l->file_ofs, l->file_len);
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_LoadBspPlanes(const d_bsp_lump_t *l) {
@@ -74,7 +74,7 @@ static void Cm_LoadBspPlanes(const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_LoadBspNodes(const d_bsp_lump_t *l) {
@@ -108,7 +108,7 @@ static void Cm_LoadBspNodes(const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_LoadBspSurfaces(const d_bsp_lump_t *l) {
@@ -138,7 +138,7 @@ static void Cm_LoadBspSurfaces(const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_LoadBspLeafs(const d_bsp_lump_t *l) {
@@ -187,7 +187,7 @@ static void Cm_LoadBspLeafs(const d_bsp_lump_t *l) {
 		Com_Error(ERR_DROP, "Map does not have an empty leaf\n");
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_LoadBspLeafBrushes(const d_bsp_lump_t *l) {
@@ -215,7 +215,7 @@ static void Cm_LoadBspLeafBrushes(const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_LoadBspInlineModels(const d_bsp_lump_t *l) {
@@ -250,7 +250,7 @@ static void Cm_LoadBspInlineModels(const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_LoadBspBrushes(const d_bsp_lump_t *l) {
@@ -280,7 +280,7 @@ static void Cm_LoadBspBrushes(const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_LoadBspBrushSides(const d_bsp_lump_t *l) {
@@ -319,7 +319,7 @@ static void Cm_LoadBspBrushSides(const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief Sets brush bounds for fast trace tests.
  */
 static void Cm_SetupBspBrushes(void) {
@@ -338,7 +338,7 @@ static void Cm_SetupBspBrushes(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_LoadBspVisibility(const d_bsp_lump_t *l) {
@@ -367,7 +367,7 @@ static void Cm_LoadBspVisibility(const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_LoadBspAreas(const d_bsp_lump_t *l) {
@@ -398,7 +398,7 @@ static void Cm_LoadBspAreas(const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_LoadBspAreaPortals(const d_bsp_lump_t *l) {
@@ -427,7 +427,7 @@ static void Cm_LoadBspAreaPortals(const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief Loads in the BSP and all sub-models for collision detection. This
  * function can also be used to initialize or clean up the collision model by
  * invoking with NULL.
@@ -495,7 +495,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 	return &cm_bsp.models[0];
 }
 
-/*
+/**
  * @brief
  */
 cm_bsp_model_t *Cm_Model(const char *name) {
@@ -513,28 +513,28 @@ cm_bsp_model_t *Cm_Model(const char *name) {
 	return &cm_bsp.models[num];
 }
 
-/*
+/**
  * @brief
  */
 int32_t Cm_NumClusters(void) {
 	return cm_vis->num_clusters;
 }
 
-/*
+/**
  * @brief
  */
 int32_t Cm_NumModels(void) {
 	return cm_bsp.num_models;
 }
 
-/*
+/**
  * @brief
  */
 const char *Cm_EntityString(void) {
 	return cm_bsp.entity_string;
 }
 
-/*
+/**
  * @brief Parses values from the worldspawn entity definition.
  */
 const char *Cm_WorldspawnValue(const char *key) {
@@ -552,7 +552,7 @@ const char *Cm_WorldspawnValue(const char *key) {
 	return v;
 }
 
-/*
+/**
  * @brief
  */
 int32_t Cm_LeafContents(const int32_t leaf_num) {
@@ -564,7 +564,7 @@ int32_t Cm_LeafContents(const int32_t leaf_num) {
 	return cm_bsp.leafs[leaf_num].contents;
 }
 
-/*
+/**
  * @brief
  */
 int32_t Cm_LeafCluster(const int32_t leaf_num) {
@@ -576,7 +576,7 @@ int32_t Cm_LeafCluster(const int32_t leaf_num) {
 	return cm_bsp.leafs[leaf_num].cluster;
 }
 
-/*
+/**
  * @brief
  */
 int32_t Cm_LeafArea(const int32_t leaf_num) {

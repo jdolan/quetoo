@@ -58,7 +58,7 @@ typedef struct fs_state_s {
 
 static fs_state_t fs_state;
 
-/*
+/**
  * @brief Closes the file.
  *
  * @return True on successful flush and close, false otherwise.
@@ -67,42 +67,42 @@ _Bool Fs_Close(file_t *file) {
 	return PHYSFS_close((PHYSFS_File *) file) ? true : false;
 }
 
-/*
+/**
  * @return True if the end of the file has been reached, false otherwise.
  */
 _Bool Fs_Eof(file_t *file) {
 	return PHYSFS_eof((PHYSFS_File *) file) ? true : false;
 }
 
-/*
+/**
  * @return True if the specified filename exists on the search path.
  */
 _Bool Fs_Exists(const char *filename) {
 	return PHYSFS_exists(filename) ? true : false;
 }
 
-/*
+/**
  * @return True if the file flushed successfully, false otherwise.
  */
 _Bool Fs_Flush(file_t *file) {
 	return PHYSFS_flush((PHYSFS_File *) file) ? true : false;
 }
 
-/*
+/**
  * @return The last error message resulting from filesystem operations.
  */
 const char *Fs_LastError(void) {
 	return PHYSFS_getLastError();
 }
 
-/*
+/**
  * @brief Creates the specified directory (and any ancestors) in Fs_WriteDir.
  */
 _Bool Fs_Mkdir(const char *dir) {
 	return PHYSFS_mkdir(dir) ? true : false;
 }
 
-/*
+/**
  * @brief Opens the specified file for appending.
  */
 file_t *Fs_OpenAppend(const char *filename) {
@@ -121,7 +121,7 @@ file_t *Fs_OpenAppend(const char *filename) {
 	return (file_t *) file;
 }
 
-/*
+/**
  * @brief Opens the specified file for reading.
  */
 file_t *Fs_OpenRead(const char *filename) {
@@ -136,7 +136,7 @@ file_t *Fs_OpenRead(const char *filename) {
 	return (file_t *) file;
 }
 
-/*
+/**
  * @brief Opens the specified file for writing.
  */
 file_t *Fs_OpenWrite(const char *filename) {
@@ -155,7 +155,7 @@ file_t *Fs_OpenWrite(const char *filename) {
 	return (file_t *) file;
 }
 
-/*
+/**
  * @brief Prints the specified formatted string to the given file.
  *
  * @return The number of characters written, or -1 on failure.
@@ -171,7 +171,7 @@ int64_t Fs_Print(file_t *file, const char *fmt, ...) {
 	return Fs_Write(file, string, 1, strlen(string));
 }
 
-/*
+/**
  * @brief Reads from the specified file.
  *
  * @return The number of objects read, or -1 on failure.
@@ -180,7 +180,7 @@ int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
 	return PHYSFS_read((PHYSFS_File *) file, buffer, size, count);
 }
 
-/*
+/**
  * @brief Reads a line from the specified file. The newline character is
  * omitted from the returned, NULL-terminated string.
  *
@@ -206,21 +206,21 @@ _Bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
 	return i ? true : false;
 }
 
-/*
+/**
  * @brief Seeks to the specified offset.
  */
 _Bool Fs_Seek(file_t *file, size_t offset) {
 	return PHYSFS_seek((PHYSFS_File *) file, offset) ? true : false;
 }
 
-/*
+/**
  * @return The current file offset.
  */
 int64_t Fs_Tell(file_t *file) {
 	return PHYSFS_tell((PHYSFS_File *) file);
 }
 
-/*
+/**
  * @brief Writes to the specified file.
  *
  * @return The number of objects read, or -1 on failure.
@@ -229,7 +229,7 @@ int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count) {
 	return PHYSFS_write((PHYSFS_File *) file, buffer, size, count);
 }
 
-/*
+/**
  * @brief Loads the specified file into the given buffer, which is automatically
  * allocated if non-NULL. Returns the file length, or -1 if it is unable to be
  * read. Be sure to free the buffer when finished with Fs_Free.
@@ -301,7 +301,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 	return len;
 }
 
-/*
+/**
  * @brief Frees the specified buffer allocated by Fs_LoadFile.
  */
 void Fs_Free(void *buffer) {
@@ -314,7 +314,7 @@ void Fs_Free(void *buffer) {
 	}
 }
 
-/*
+/**
  * @brief Renames the specified source to the given destination.
  */
 _Bool Fs_Rename(const char *source, const char *dest) {
@@ -326,7 +326,7 @@ _Bool Fs_Rename(const char *source, const char *dest) {
 	return rename(src, dst) == 0;
 }
 
-/*
+/**
  * @brief Unlinks (deletes) the specified file.
  */
 _Bool Fs_Unlink(const char *filename) {
@@ -346,7 +346,7 @@ typedef struct {
 
 static fs_enumerate_t fs_enumerate;
 
-/*
+/**
  * @brief Enumeration helper for Fs_Enumerate.
  */
 static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
@@ -359,7 +359,7 @@ static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
 	}
 }
 
-/*
+/**
  * @brief Enumerates files in the specified directory, calling the given function.
  */
 void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
@@ -377,7 +377,7 @@ void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
 	PHYSFS_enumerateFilesCallback(fs_enumerate.dir, Fs_Enumerate_, data);
 }
 
-/*
+/**
  * @brief GHFunc for Fs_CompleteFile.
  */
 static void Fs_CompleteFile_enumerate(const char *path, void *data) {
@@ -392,7 +392,7 @@ static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Console completion for file names.
  */
 void Fs_CompleteFile(const char *pattern, GList **matches) {
@@ -408,7 +408,7 @@ void Fs_CompleteFile(const char *pattern, GList **matches) {
 
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
 
-/*
+/**
  * @brief Adds the directory to the search path, conditionally loading all
  * archives within it.
  */
@@ -434,7 +434,7 @@ void Fs_AddToSearchPath(const char *dir) {
 	}
 }
 
-/*
+/**
  * @brief Enumeration helper for Fs_AddToSearchPath. Adds all archive files for
  * the newly added filesystem mount point.
  */
@@ -446,7 +446,7 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Adds the user-specific search path, setting the write dir in the
  * process. This is where all files produced by the game are written to.
  */
@@ -465,7 +465,7 @@ static void Fs_AddUserSearchPath(const char *dir) {
 	Fs_SetWriteDir(path);
 }
 
-/*
+/**
  * @brief Sets the game path to a relative directory.
  */
 void Fs_SetGame(const char *dir) {
@@ -509,7 +509,7 @@ void Fs_SetGame(const char *dir) {
 	Fs_AddUserSearchPath(dir);
 }
 
-/*
+/**
  * @brief Sets the [user-specific] target directory for writing files.
  */
 void Fs_SetWriteDir(const char *dir) {
@@ -532,21 +532,21 @@ void Fs_SetWriteDir(const char *dir) {
 	}
 }
 
-/*
+/**
  * @brief Called to find where to write a file (demos, screenshots, etc)
  */
 const char *Fs_WriteDir(void) {
 	return PHYSFS_getWriteDir();
 }
 
-/*
+/**
  * @brief Returns the real directory name of the specified file.
  */
 const char *Fs_RealDir(const char *filename) {
 	return PHYSFS_getRealDir(filename);
 }
 
-/*
+/**
  * @brief Returns the real path name of the specified file or directory.
  */
 const char *Fs_RealPath(const char *path) {
@@ -571,7 +571,7 @@ const char *Fs_RealPath(const char *path) {
 	return real_path;
 }
 
-/*
+/**
  * @brief Initializes the file subsystem.
  */
 void Fs_Init(_Bool auto_load_archives) {
@@ -661,14 +661,14 @@ void Fs_Init(_Bool auto_load_archives) {
 	fs_state.loaded_files = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, Mem_Free);
 }
 
-/*
+/**
  * @brief Prints the names of loaded (i.e. yet-to-be-freed) files.
  */
 static void Fs_LoadedFiles_(gpointer key, gpointer value, gpointer data __attribute__((unused))) {
 	Com_Print("Fs_PrintLoadedFiles: %s @ %p\n", (char *) value, key);
 }
 
-/*
+/**
  * @brief Shuts down the filesystem.
  */
 void Fs_Shutdown(void) {

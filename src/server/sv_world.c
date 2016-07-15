@@ -21,7 +21,7 @@
 
 #include "sv_local.h"
 
-/*
+/**
  * @brief The world is divided into evenly sized sectors to aid in entity
  * management. This works like a meta-BSP tree, providing fast searches via
  * recursion to find entities within an arbitrary box.
@@ -36,7 +36,7 @@ typedef struct sv_sector_s {
 #define SECTOR_DEPTH	4
 #define SECTOR_NODES	32
 
-/*
+/**
  * @brief The world structure contains all sectors and also the current query
  * context issued to Sv_BoxEntities.
  */
@@ -54,7 +54,7 @@ typedef struct {
 
 static sv_world_t sv_world;
 
-/*
+/**
  * @brief Builds a uniformly subdivided tree for the given world size.
  */
 static sv_sector_t *Sv_CreateSector(int32_t depth, vec3_t mins, vec3_t maxs) {
@@ -89,7 +89,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, vec3_t mins, vec3_t maxs) {
 	return sector;
 }
 
-/*
+/**
  * @brief Resolve our area nodes for a newly loaded level. This is called prior to
  * linking any entities.
  */
@@ -104,7 +104,7 @@ void Sv_InitWorld(void) {
 	Sv_CreateSector(0, sv.cm_models[0]->mins, sv.cm_models[0]->maxs);
 }
 
-/*
+/**
  * @brief Called before moving or freeing an entity to remove it from the clipping
  * hull.
  */
@@ -120,7 +120,7 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief Called whenever an entity changes origin, mins, maxs, or solid to add it to
  * the clipping hull.
  */
@@ -262,7 +262,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	Matrix4x4_Invert_Simple(&sent->inverse_matrix, &sent->matrix);
 }
 
-/*
+/**
  * @return True if the entity matches the current world filter, false otherwise.
  */
 static _Bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
@@ -287,7 +287,7 @@ static _Bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
 	return false;
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_BoxEntities_r(sv_sector_t *sector) {
@@ -324,7 +324,7 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
 		Sv_BoxEntities_r(sector->children[1]);
 }
 
-/*
+/**
  * @brief Populates an array of entities with those which have bounding boxes
  * that intersect the given area. It is possible for a non-axial BSP model to
  * be returned that doesn't actually intersect the area.
@@ -346,7 +346,7 @@ size_t Sv_BoxEntities(const vec3_t mins, const vec3_t maxs, g_entity_t **list, c
 	return sv_world.num_box_entities;
 }
 
-/*
+/**
  * @brief Prepares the collision model to clip to the specified entity. For
  * mesh models, the box hull must be set to reflect the bounds of the entity.
  */
@@ -375,7 +375,7 @@ static int32_t Sv_HullForEntity(const g_entity_t *ent) {
 	return -1;
 }
 
-/*
+/**
  * @brief Returns the contents mask for the specified point. This includes world
  * contents as well as contents for any solid entities this point intersects.
  */
@@ -411,7 +411,7 @@ typedef struct {
 	int32_t contents;
 } sv_trace_t;
 
-/*
+/**
  * @brief Clips the specified trace to other entities in its area. This is the basis
  * of ALL collision and interaction for the server. Tread carefully.
  */
@@ -467,7 +467,7 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_TraceBounds(sv_trace_t *trace) {
@@ -484,7 +484,7 @@ static void Sv_TraceBounds(sv_trace_t *trace) {
 	}
 }
 
-/*
+/**
  * @brief Moves the given box volume through the world from start to end.
  *
  * The skipped edict, and edicts owned by him, are explicitly not checked.

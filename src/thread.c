@@ -32,7 +32,7 @@ static thread_pool_t thread_pool;
 
 cvar_t *threads;
 
-/*
+/**
  * @brief Wrap the user's function in our own for introspection.
  */
 static int32_t Thread_Run(void *data) {
@@ -59,7 +59,7 @@ static int32_t Thread_Run(void *data) {
 	return 0;
 }
 
-/*
+/**
  * @brief Initializes the threads backing the thread pool.
  */
 static void Thread_Init_(uint16_t num_threads) {
@@ -101,7 +101,7 @@ static void Thread_Shutdown_(void) {
 	}
 }
 
-/*
+/**
  * @brief Creates a new thread to run the specified function. Callers must use
  * Thread_Wait on the returned handle to release the thread when finished.
  */
@@ -157,7 +157,7 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data) {
 	return t;
 }
 
-/*
+/**
  * @brief Wait for the specified thread to complete.
  */
 void Thread_Wait(thread_t *t) {
@@ -172,14 +172,14 @@ void Thread_Wait(thread_t *t) {
 	t->status = THREAD_IDLE;
 }
 
-/*
+/**
  * @brief Returns the number of threads in the pool.
  */
 uint16_t Thread_Count(void) {
 	return thread_pool.num_threads;
 }
 
-/*
+/**
  * @brief Initializes the thread pool.
  */
 void Thread_Init(uint16_t num_threads) {
@@ -191,7 +191,7 @@ void Thread_Init(uint16_t num_threads) {
 	Thread_Init_(num_threads);
 }
 
-/*
+/**
  * @brief Shuts down the thread pool.
  */
 void Thread_Shutdown(void) {

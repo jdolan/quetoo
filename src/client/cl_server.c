@@ -21,7 +21,7 @@
 
 #include "cl_local.h"
 
-/*
+/**
  * @brief
  */
 static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
@@ -37,7 +37,7 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 	return s;
 }
 
-/*
+/**
  * @brief
  */
 static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
@@ -55,7 +55,7 @@ static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
 	return NULL;
 }
 
-/*
+/**
  * @brief
  */
 void Cl_FreeServers(void) {
@@ -65,7 +65,7 @@ void Cl_FreeServers(void) {
 	cls.servers = NULL;
 }
 
-/*
+/**
  * @brief
  */
 void Cl_ParseServerInfo(void) {
@@ -106,7 +106,7 @@ void Cl_ParseServerInfo(void) {
 	Ui_NewServer();
 }
 
-/*
+/**
  * @brief
  */
 void Cl_Ping_f(void) {
@@ -143,7 +143,7 @@ void Cl_Ping_f(void) {
 	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "info %i", PROTOCOL_MAJOR);
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_SendBroadcast(void) {
@@ -171,7 +171,7 @@ static void Cl_SendBroadcast(void) {
 	cls.broadcast_time = quetoo.time;
 }
 
-/*
+/**
  * @brief
  */
 void Cl_Servers_f(void) {
@@ -192,7 +192,7 @@ void Cl_Servers_f(void) {
 	Cl_SendBroadcast();
 }
 
-/*
+/**
  * @brief
  */
 void Cl_ParseServers(void) {
@@ -255,7 +255,7 @@ void Cl_ParseServers(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Cl_Servers_List_f(void) {

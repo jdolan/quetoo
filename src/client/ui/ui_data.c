@@ -24,7 +24,7 @@
 
 extern cl_static_t cls;
 
-/*
+/**
  * @brief Callback setting a cvar_t's string.
  */
 static void TW_CALL Ui_CvarSetString(const void *value, void *data) {
@@ -34,7 +34,7 @@ static void TW_CALL Ui_CvarSetString(const void *value, void *data) {
 	Cvar_Set(var->name, val);
 }
 
-/*
+/**
  * @brief Callback exposing a cvar_t's string.
  */
 static void TW_CALL Ui_CvarGetString(void *value, void *data) {
@@ -44,14 +44,14 @@ static void TW_CALL Ui_CvarGetString(void *value, void *data) {
 	strcpy(val, var->string);
 }
 
-/*
+/**
  * @brief Exposes a cvar_t as a text input accepting strings.
  */
 void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var, const char *def) {
 	TwAddVarCB(bar, name, TW_TYPE_CSSTRING(128), Ui_CvarSetString, Ui_CvarGetString, var, def);
 }
 
-/*
+/**
  * @brief Callback setting a cvar_t's integer.
  */
 static void TW_CALL Ui_CvarSetInteger(const void *value, void *data) {
@@ -60,7 +60,7 @@ static void TW_CALL Ui_CvarSetInteger(const void *value, void *data) {
 	Cvar_Set(var->name, va("%d", *(int32_t *) value));
 }
 
-/*
+/**
  * @brief Callback exposing a cvar_t's integer.
  */
 static void TW_CALL Ui_CvarGetInteger(void *value, void *data) {
@@ -68,21 +68,21 @@ static void TW_CALL Ui_CvarGetInteger(void *value, void *data) {
 	*(int32_t *) value = var->integer;
 }
 
-/*
+/**
  * @brief Exposes a cvar_t as a text input accepting integers.
  */
 void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def) {
 	TwAddVarCB(bar, name, TW_TYPE_INT32, Ui_CvarSetInteger, Ui_CvarGetInteger, var, def);
 }
 
-/*
+/**
  * @brief Exposes a cvar_t as a select input with predefined numeric values.
  */
 void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType en, const char *def) {
 	TwAddVarCB(bar, name, en, Ui_CvarSetInteger, Ui_CvarGetInteger, var, def);
 }
 
-/*
+/**
  * @brief Callback setting a cvar_t's value.
  */
 static void TW_CALL Ui_CvarSetValue(const void *value, void *data) {
@@ -91,7 +91,7 @@ static void TW_CALL Ui_CvarSetValue(const void *value, void *data) {
 	Cvar_Set(var->name, va("%f", *(vec_t *) value));
 }
 
-/*
+/**
  * @brief Callback exposing a cvar_t's value.
  */
 static void TW_CALL Ui_CvarGetValue(void *value, void *data) {
@@ -99,21 +99,21 @@ static void TW_CALL Ui_CvarGetValue(void *value, void *data) {
 	*(vec_t *) value = var->value;
 }
 
-/*
+/**
  * @brief Exposes a cvar_t as a text input accepting decimals.
  */
 void Ui_CvarDecimal(TwBar *bar, const char *name, cvar_t *var, const char *def) {
 	TwAddVarCB(bar, name, TW_TYPE_FLOAT, Ui_CvarSetValue, Ui_CvarGetValue, var, def);
 }
 
-/*
+/**
  * @brief Stuffs the specified text onto the command buffer.
  */
 void TW_CALL Ui_Command(void *data) {
 	Cbuf_AddText((const char *) data);
 }
 
-/*
+/**
  * @brief Binds the key specified in value to the command specified in data.
  * Because key binding bars are text-based, the key codes are serialized as
  * strings (e.g. "97" for 'a'). We also have to reverse-translate for
@@ -237,7 +237,7 @@ static void TW_CALL Ui_BindSet(const void *value, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Copies the key names for the bind specified in data to value.
  */
 static void TW_CALL Ui_BindGet(void *value, void *data) {
@@ -254,7 +254,7 @@ static void TW_CALL Ui_BindGet(void *value, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Exposes a key binding via the specified TwBar.
  */
 void Ui_Bind(TwBar *bar, const char *name, const char *bind, const char *def) {

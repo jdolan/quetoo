@@ -43,7 +43,7 @@ vec_t contrast = 1.0;
 vec_t surface_scale = 0.4;
 vec_t entity_scale = 1.0;
 
-/*
+/**
  * @brief
  */
 int32_t Light_PointLeafnum(const vec3_t point) {
@@ -63,7 +63,7 @@ int32_t Light_PointLeafnum(const vec3_t point) {
 	return -nodenum - 1;
 }
 
-/*
+/**
  * @brief
  */
 _Bool Light_PointPVS(const vec3_t org, byte *pvs) {
@@ -86,7 +86,7 @@ _Bool Light_PointPVS(const vec3_t org, byte *pvs) {
 static int32_t num_cmodels;
 static cm_bsp_model_t *cmodels[MAX_BSP_MODELS];
 
-/*
+/**
  * @brief
  */
 void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_t mask) {
@@ -107,7 +107,7 @@ void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void LightWorld(void) {
@@ -146,7 +146,7 @@ static void LightWorld(void) {
 	RunThreadsOn(d_bsp.num_faces, true, FinalLightFace);
 }
 
-/*
+/**
  * @brief
  */
 int32_t LIGHT_Main(void) {

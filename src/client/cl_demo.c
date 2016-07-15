@@ -21,7 +21,7 @@
 
 #include "cl_local.h"
 
-/*
+/**
  * @brief Writes server_data, config_strings, and baselines once a non-delta
  * compressed frame arrives from the server.
  */
@@ -90,7 +90,7 @@ static void Cl_WriteDemoHeader(void) {
 	// the rest of the demo file will be individual frames
 }
 
-/*
+/**
  * @brief Dumps the current net message, prefixed by the length.
  */
 void Cl_WriteDemoMessage(void) {
@@ -113,7 +113,7 @@ void Cl_WriteDemoMessage(void) {
 	Fs_Write(cls.demo_file, net_message.data + 8, len, 1);
 }
 
-/*
+/**
  * @brief Stop recording a demo
  */
 void Cl_Stop_f(void) {
@@ -132,7 +132,7 @@ void Cl_Stop_f(void) {
 	Com_Print("Stopped demo\n");
 }
 
-/*
+/**
  * @brief record <demo name>
  *
  * Begin recording a demo from the current frame until `stop` is issued.
@@ -167,7 +167,7 @@ void Cl_Record_f(void) {
 
 #define DEMO_PLAYBACK_STEP 1
 
-/*
+/**
  * @brief Adjusts time scale by delta, clamping to reasonable limits.
  */
 static void Cl_AdjustDemoPlayback(vec_t delta) {
@@ -182,14 +182,14 @@ static void Cl_AdjustDemoPlayback(vec_t delta) {
 	Com_Print("Demo playback rate %d%%\n", (int32_t) (time_scale->value * 100));
 }
 
-/*
+/**
  * @brief
  */
 void Cl_FastForward_f(void) {
 	Cl_AdjustDemoPlayback(DEMO_PLAYBACK_STEP);
 }
 
-/*
+/**
  * @brief
  */
 void Cl_SlowMotion_f(void) {

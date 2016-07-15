@@ -23,7 +23,7 @@
 
 static r_sorted_entities_t r_sorted_entities;
 
-/*
+/**
  * @brief Adds an entity to the view.
  */
 const r_entity_t *R_AddEntity(const r_entity_t *ent) {
@@ -39,7 +39,7 @@ const r_entity_t *R_AddEntity(const r_entity_t *ent) {
 	return &r_view.entities[r_view.num_entities++];
 }
 
-/*
+/**
  * @brief Binds a linked model to its parent, and copies it into the view structure.
  */
 const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
@@ -68,7 +68,7 @@ const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *m
 	return R_AddEntity(&ent);
 }
 
-/*
+/**
  * @brief Applies translation, rotation, and scale for the specified entity.
  */
 void R_RotateForEntity(const r_entity_t *e) {
@@ -83,7 +83,7 @@ void R_RotateForEntity(const r_entity_t *e) {
 	glMultMatrixf((GLfloat *) e->matrix.m);
 }
 
-/*
+/**
  * @brief Applies any configuration and tag alignment, populating the model-view
  * matrix for the entity in the process.
  */
@@ -129,7 +129,7 @@ static void R_SetMatrixForEntity(r_entity_t *e) {
 	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 }
 
-/*
+/**
  * @brief Qsort comparator for R_CullEntities.
  */
 static int32_t R_CullEntities_compare(const void *a, const void *b) {
@@ -140,7 +140,7 @@ static int32_t R_CullEntities_compare(const void *a, const void *b) {
 	return strcmp(e1->model->media.name, e2->model->media.name);
 }
 
-/*
+/**
  * @brief Performs a frustum-cull of all entities. This is performed in a separate
  * thread while the renderer draws the world. Mesh entities which pass a frustum
  * cull will also have their lighting information updated.
@@ -180,7 +180,7 @@ void R_CullEntities(void *data __attribute__((unused))) {
 	qsort(mesh, mesh->count, sizeof(r_entity_t *), R_CullEntities_compare);
 }
 
-/*
+/**
  * @brief Draws a place-holder "white diamond" prism for the specified entity.
  */
 static void R_DrawNullModel(const r_entity_t *e) {
@@ -206,7 +206,7 @@ static void R_DrawNullModel(const r_entity_t *e) {
 	R_EnableTexture(&texunit_diffuse, true);
 }
 
-/*
+/**
  * @brief Draws all entities added to the view but missing a model.
  */
 static void R_DrawNullModels(const r_entities_t *ents) {
@@ -225,7 +225,7 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 	r_view.current_entity = NULL;
 }
 
-/*
+/**
  * @brief Primary entry point for drawing all entities.
  */
 void R_DrawEntities(void) {

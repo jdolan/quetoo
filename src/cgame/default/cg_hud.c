@@ -57,7 +57,7 @@ typedef struct cg_center_print_s {
 
 static cg_center_print_t center_print;
 
-/*
+/**
  * @brief Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
  */
 static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const vec_t scale,
@@ -71,7 +71,7 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const vec_t scale,
 	cgi.DrawImage(x, y, scale, cgi.client->image_precache[icon]);
 }
 
-/*
+/**
  * @brief Draws the vital numeric and icon, flashing on low quantities.
  */
 static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, int16_t med,
@@ -103,7 +103,7 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 	cgi.Color(NULL);
 }
 
-/*
+/**
  * @brief Draws health, ammo and armor numerics and icons.
  */
 static void Cg_DrawVitals(const player_state_t *ps) {
@@ -147,7 +147,7 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 	cgi.BindFont(NULL, NULL, NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawPickup(const player_state_t *ps) {
@@ -176,7 +176,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawFrags(const player_state_t *ps) {
@@ -206,7 +206,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 	cgi.BindFont(NULL, NULL, NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawCaptures(const player_state_t *ps) {
@@ -239,7 +239,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 	cgi.BindFont(NULL, NULL, NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawSpectator(const player_state_t *ps) {
@@ -256,7 +256,7 @@ static void Cg_DrawSpectator(const player_state_t *ps) {
 	cgi.DrawString(x, y, "Spectating", CON_COLOR_GREEN);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawChase(const player_state_t *ps) {
@@ -288,7 +288,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
 	cgi.BindFont(NULL, NULL, NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawVote(const player_state_t *ps) {
@@ -313,7 +313,7 @@ static void Cg_DrawVote(const player_state_t *ps) {
 	cgi.BindFont(NULL, NULL, NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawTime(const player_state_t *ps) {
@@ -339,7 +339,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
 	cgi.BindFont(NULL, NULL, NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawReady(const player_state_t *ps) {
@@ -358,7 +358,7 @@ static void Cg_DrawReady(const player_state_t *ps) {
 	cgi.BindFont(NULL, NULL, NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawTeam(const player_state_t *ps) {
@@ -387,7 +387,7 @@ static void Cg_DrawTeam(const player_state_t *ps) {
 	cgi.DrawFill(x, y, cgi.view->width, 64, color, 0.15);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawCrosshair(const player_state_t *ps) {
@@ -482,7 +482,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	cgi.Color(NULL);
 }
 
-/*
+/**
  * @brief
  */
 void Cg_ParseCenterPrint(void) {
@@ -512,7 +512,7 @@ void Cg_ParseCenterPrint(void) {
 	center_print.time = cgi.client->systime + 3000;
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawCenterPrint(const player_state_t *ps) {
@@ -537,7 +537,7 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
 	}
 }
 
-/*
+/**
  * @brief Draw a full-screen blend effect based on world interaction.
  */
 static void Cg_DrawBlend(const player_state_t *ps) {
@@ -599,7 +599,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawDamageInflicted(const player_state_t *ps) {
@@ -623,7 +623,7 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 	}
 }
 
-/*
+/**
  * @brief Draws the HUD for the current frame.
  */
 void Cg_DrawHud(const player_state_t *ps) {

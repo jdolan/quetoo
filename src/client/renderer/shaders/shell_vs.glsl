@@ -1,4 +1,4 @@
-/*
+/**
  * @brief Shell vertex shader.
  */
 
@@ -6,7 +6,7 @@
 
 uniform float OFFSET;
 
-/*
+/**
  * @brief Shader entry point.
  */
 void main(void) {

@@ -24,7 +24,7 @@
 
 extern cl_client_t cl;
 
-/*
+/**
  * @brief
  */
 static int32_t S_AllocChannel(void) {
@@ -38,7 +38,7 @@ static int32_t S_AllocChannel(void) {
 	return -1;
 }
 
-/*
+/**
  * @brief
  */
 void S_FreeChannel(int32_t c) {
@@ -47,7 +47,7 @@ void S_FreeChannel(int32_t c) {
 
 #define SOUND_MAX_DISTANCE 2048.0
 
-/*
+/**
  * @brief Set distance and stereo panning for the specified channel.
  */
 _Bool S_SpatializeChannel(s_channel_t *ch) {
@@ -80,7 +80,7 @@ _Bool S_SpatializeChannel(s_channel_t *ch) {
 	return ch->dist < 255;
 }
 
-/*
+/**
  * @brief
  */
 void S_PlaySample(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_t atten) {
@@ -119,7 +119,7 @@ void S_PlaySample(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_
 	}
 }
 
-/*
+/**
  * @brief
  */
 void S_LoopSample(const vec3_t org, s_sample_t *sample) {
@@ -173,7 +173,7 @@ void S_LoopSample(const vec3_t org, s_sample_t *sample) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void S_StartLocalSample(const char *name) {

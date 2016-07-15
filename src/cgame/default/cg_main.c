@@ -52,7 +52,7 @@ cvar_t *cg_third_person_yaw;
 
 cg_import_t cgi;
 
-/*
+/**
  * @brief Called when the client first comes up or switches game directories. Client
  * game modules should bootstrap any globals they require here.
  */
@@ -143,7 +143,7 @@ static void Cg_Init(void) {
 	cgi.Print("  Client game initialized\n");
 }
 
-/*
+/**
  * @brief Called when switching game directories or quitting.
  */
 static void Cg_Shutdown(void) {
@@ -154,7 +154,7 @@ static void Cg_Shutdown(void) {
 	cgi.FreeTag(MEM_TAG_CGAME);
 }
 
-/*
+/**
  * @brief Parse a single server command, returning true on success.
  */
 static _Bool Cg_ParseMessage(int32_t cmd) {
@@ -183,7 +183,7 @@ static _Bool Cg_ParseMessage(int32_t cmd) {
 	return false;
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawFrame(const cl_frame_t *frame) {
@@ -193,14 +193,14 @@ static void Cg_DrawFrame(const cl_frame_t *frame) {
 	Cg_DrawScores(&frame->ps);
 }
 
-/*
+/**
  * @brief Clear any state that should not persist over multiple server connections.
  */
 static void Cg_ClearState(void) {
 
 }
 
-/*
+/**
  * @brief An updated configuration string has just been received from the server.
  * Refresh related variables and media that aren't managed by the engine.
  */
@@ -218,7 +218,7 @@ static void Cg_UpdateConfigString(uint16_t i) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 cg_export_t *Cg_LoadCgame(cg_import_t *import) {

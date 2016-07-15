@@ -33,7 +33,7 @@ cvar_t *s_volume;
 extern cl_client_t cl;
 extern cl_static_t cls;
 
-/*
+/**
  * @brief
  */
 static void S_Stop(void) {
@@ -43,7 +43,7 @@ static void S_Stop(void) {
 	memset(s_env.channels, 0, sizeof(s_env.channels));
 }
 
-/*
+/**
  * @brief Adds a single frame of audio. Also, if a loading cycle has completed,
  * media is freed here.
  */
@@ -127,7 +127,7 @@ void S_Frame(void) {
 	}
 }
 
-/*
+/**
  * @brief Loads all media for the sound subsystem.
  */
 void S_LoadMedia(void) {
@@ -169,7 +169,7 @@ void S_LoadMedia(void) {
 	s_env.update = true;
 }
 
-/*
+/**
  * @brief
  */
 static void S_Play_f(void) {
@@ -182,14 +182,14 @@ static void S_Play_f(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void S_Stop_f(void) {
 	S_Stop();
 }
 
-/*
+/**
  * @brief
  */
 static void S_Restart_f(void) {
@@ -212,7 +212,7 @@ static void S_Restart_f(void) {
 	cls.state = state;
 }
 
-/*
+/**
  * @brief Initializes variables and commands for the sound subsystem.
  */
 static void S_InitLocal(void) {
@@ -231,7 +231,7 @@ static void S_InitLocal(void) {
 	Cmd_Add("s_stop", S_Stop_f, CMD_SOUND, NULL);
 }
 
-/*
+/**
  * @brief Initializes the sound subsystem.
  */
 void S_Init(void) {
@@ -282,7 +282,7 @@ void S_Init(void) {
 	S_InitMusic();
 }
 
-/*
+/**
  * @brief
  */
 void S_Shutdown(void) {

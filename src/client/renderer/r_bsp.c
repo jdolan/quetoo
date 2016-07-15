@@ -23,7 +23,7 @@
 
 static vec3_t r_bsp_model_org; // relative to r_view.origin
 
-/*
+/**
  * @brief Returns true if the specified bounding box is completely culled by the
  * view frustum, false otherwise.
  */
@@ -41,7 +41,7 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 	return true;
 }
 
-/*
+/**
  * @brief Returns true if the specified entity is completely culled by the view
  * frustum, false otherwise.
  */
@@ -65,7 +65,7 @@ _Bool R_CullBspInlineModel(const r_entity_t *e) {
 	return R_CullBox(mins, maxs);
 }
 
-/*
+/**
  * @brief Rotates the frame's light sources into the model's space and recurses
  * down the model's tree. Surfaces that should receive light are marked so that
  * the draw routines will enable the lights. This must be called with NULL to
@@ -103,7 +103,7 @@ void R_RotateLightsForBspInlineModel(const r_entity_t *e) {
 	}
 }
 
-/*
+/**
  * @brief Draws all BSP surfaces for the specified entity. This is a condensed
  * version of the world drawing routine that relies on setting the visibility
  * counters to -2 to safely iterate the sorted surfaces arrays.
@@ -172,7 +172,7 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 	r_locals.frame = f; // undo the swap
 }
 
-/*
+/**
  * @brief Draws the BSP model for the specified entity, taking translation and
  * rotation into account.
  */
@@ -203,7 +203,7 @@ static void R_DrawBspInlineModel(const r_entity_t *e) {
 	R_RotateLightsForBspInlineModel(NULL);
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawBspInlineModels(const r_entities_t *ents) {
@@ -222,7 +222,7 @@ void R_DrawBspInlineModels(const r_entities_t *ents) {
 	r_view.current_entity = NULL;
 }
 
-/*
+/**
  * @brief Developer tool for viewing BSP vertex normals. Only Phong-interpolated
  * surfaces show their normals when r_draw_bsp_normals is 2.
  */
@@ -277,7 +277,7 @@ void R_DrawBspNormals(void) {
 	R_Color(NULL);
 }
 
-/*
+/**
  * @brief Developer tool for viewing BSP leafs and clusters.
  */
 void R_DrawBspLeafs(void) {
@@ -331,7 +331,7 @@ void R_DrawBspLeafs(void) {
 	R_Color(NULL);
 }
 
-/*
+/**
  * @brief Top-down BSP node recursion. Nodes identified as within the PVS by
  * R_MarkLeafs are first frustum-culled; those which fail immediately
  * return.
@@ -410,7 +410,7 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	R_MarkBspSurfaces_(node->children[!side]);
 }
 
-/*
+/**
  * @brief Entry point for BSP recursion and surface-level visibility test.
  */
 void R_MarkBspSurfaces(void) {
@@ -425,7 +425,7 @@ void R_MarkBspSurfaces(void) {
 	R_MarkBspSurfaces_(r_model_state.world->bsp->nodes);
 }
 
-/*
+/**
  * @brief Returns the leaf for the specified point.
  */
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp) {
@@ -436,7 +436,7 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp) {
 	return &bsp->leafs[Cm_PointLeafnum(p, 0)];
 }
 
-/*
+/**
  * @brief Returns true if the specified leaf is in the PVS for the current frame.
  */
 _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
@@ -448,7 +448,7 @@ _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
 	return r_locals.vis_data_pvs[c >> 3] & (1 << (c & 7));
 }
 
-/*
+/**
  * @brief Returns true if the specified leaf is in the PHS for the current frame.
  */
 _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
@@ -462,7 +462,7 @@ _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
 
 #define R_CROSSING_CONTENTS_DIST 16.0
 
-/*
+/**
  * @brief Returns the cluster of any opaque contents transitions the view
  * origin is currently spanning. This allows us to bit-wise-OR in the PVS and
  * PHS data from another cluster. Returns -1 if no transition is taking place.
@@ -486,7 +486,7 @@ static int16_t R_CrossingContents(int32_t contents) {
 	return -1;
 }
 
-/*
+/**
  * @brief Mark the leafs that are in the PVS for the current cluster, creating the
  * recursion path for R_MarkSurfaces. Leafs marked for the current cluster
  * will still be frustum-culled, and surfaces therein must still pass a

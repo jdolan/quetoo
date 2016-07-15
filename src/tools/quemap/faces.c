@@ -69,7 +69,7 @@ static int32_t vertex_chain[MAX_BSP_VERTS]; // the next vertex in a hash chain
 static int32_t hash_verts[HASH_SIZE * HASH_SIZE]; // a vertex number, or 0 for no verts
 
 
-/*
+/**
  * @brief
  */
 static int32_t HashVertex(const vec3_t vec) {
@@ -83,7 +83,7 @@ static int32_t HashVertex(const vec3_t vec) {
 	return y * HASH_SIZE + x;
 }
 
-/*
+/**
  * @brief Snaps the vertex to integer coordinates if it is already very close,
  * then hashes it and searches for an existing vertex to reuse.
  */
@@ -137,7 +137,7 @@ static int32_t FindVertex(const vec3_t in) {
 
 static int32_t c_faces;
 
-/*
+/**
  * @brief
  */
 static face_t *AllocFace(void) {
@@ -149,7 +149,7 @@ static face_t *AllocFace(void) {
 	return f;
 }
 
-/*
+/**
  * @brief
  */
 static face_t *NewFaceFromFace(const face_t *f) {
@@ -163,7 +163,7 @@ static face_t *NewFaceFromFace(const face_t *f) {
 	return newf;
 }
 
-/*
+/**
  * @brief
  */
 void FreeFace(face_t *f) {
@@ -173,7 +173,7 @@ void FreeFace(face_t *f) {
 	c_faces--;
 }
 
-/*
+/**
  * @brief The faces vertexes have been added to the superverts[] array,
  * and there may be more there than can be held in a face (MAXEDGES).
  *
@@ -217,7 +217,7 @@ static void FaceFromSuperverts(node_t *node, face_t *f, int32_t base) {
 		f->vertexnums[i] = superverts[(i + base) % num_superverts];
 }
 
-/*
+/**
  * @brief
  */
 static void EmitFaceVertexes(node_t *node, face_t *f) {
@@ -246,7 +246,7 @@ static void EmitFaceVertexes(node_t *node, face_t *f) {
 	FaceFromSuperverts(node, f, 0);
 }
 
-/*
+/**
  * @brief
  */
 static void EmitVertexes_r(node_t *node) {
@@ -264,7 +264,7 @@ static void EmitVertexes_r(node_t *node) {
 		EmitVertexes_r(node->children[i]);
 }
 
-/*
+/**
  * @brief Forced a dumb check of everything
  */
 static void FindEdgeVertexes(vec3_t v1, vec3_t v2) {
@@ -297,7 +297,7 @@ static void FindEdgeVertexes(vec3_t v1, vec3_t v2) {
 	}
 }
 
-/*
+/**
  * @brief Can be recursively reentered
  */
 static void TestEdge(vec_t start, vec_t end, int32_t p1, int32_t p2, int32_t startvert) {
@@ -346,7 +346,7 @@ static void TestEdge(vec_t start, vec_t end, int32_t p1, int32_t p2, int32_t sta
 	num_superverts++;
 }
 
-/*
+/**
  * @brief
  */
 static void FixFaceEdges(node_t *node, face_t *f) {
@@ -402,7 +402,7 @@ static void FixFaceEdges(node_t *node, face_t *f) {
 	FaceFromSuperverts(node, f, base);
 }
 
-/*
+/**
  * @brief
  */
 static void FixEdges_r(node_t *node) {
@@ -419,7 +419,7 @@ static void FixEdges_r(node_t *node) {
 		FixEdges_r(node->children[i]);
 }
 
-/*
+/**
  * @brief
  */
 void FixTjuncs(node_t *head_node) {
@@ -489,7 +489,7 @@ int32_t GetEdge2(int32_t v1, int32_t v2, face_t * f) {
 
 #define	CONTINUOUS_EPSILON	0.001
 
-/*
+/**
  * @brief If two polygons share a common edge and the edges that meet at the
  * common points are both inside the other polygons, merge them
  *
@@ -579,7 +579,7 @@ static winding_t *TryMergeWinding(winding_t * f1, winding_t * f2, const vec3_t p
 	return newf;
 }
 
-/*
+/**
  * @brief If two polygons share a common edge and the edges that meet at the
  * common points are both inside the other polygons, merge them
  *
@@ -613,7 +613,7 @@ static face_t *TryMerge(face_t * f1, face_t * f2, const vec3_t planenormal) {
 	return newf;
 }
 
-/*
+/**
  * @brief
  */
 static void MergeNodeFaces(node_t * node) {
@@ -645,7 +645,7 @@ static void MergeNodeFaces(node_t * node) {
 	}
 }
 
-/*
+/**
  * @brief Chop up faces that are larger than we want in the surface cache
  */
 static void SubdivideFace(node_t *node, face_t * f) {
@@ -712,7 +712,7 @@ static void SubdivideFace(node_t *node, face_t * f) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void SubdivideNodeFaces(node_t * node) {
@@ -725,7 +725,7 @@ static void SubdivideNodeFaces(node_t * node) {
 
 static int32_t c_nodefaces;
 
-/*
+/**
  * @brief
  */
 static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
@@ -760,7 +760,7 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 	return f;
 }
 
-/*
+/**
  * @brief If a portal will make a visible face, mark the side that originally created it.
  *
  *   solid / empty : solid
@@ -802,7 +802,7 @@ static void MakeFaces_r(node_t * node) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void MakeFaces(node_t * node) {

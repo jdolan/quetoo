@@ -43,7 +43,7 @@ typedef struct {
 
 static net_udp_state_t net_udp_state;
 
-/*
+/**
  * @brief
  */
 static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
@@ -68,7 +68,7 @@ static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_bu
 	return true;
 }
 
-/*
+/**
  * @brief Receive a datagram on the specified socket, populating the from
  * address with the sender.
  */
@@ -119,7 +119,7 @@ _Bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 static _Bool Net_SendDatagram_Loop(net_src_t source, const void *data, size_t len) {
@@ -134,7 +134,7 @@ static _Bool Net_SendDatagram_Loop(net_src_t source, const void *data, size_t le
 	return true;
 }
 
-/*
+/**
  * @brief Send a datagram to the specified address.
  */
 _Bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data, size_t len) {
@@ -164,7 +164,7 @@ _Bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data,
 	return true;
 }
 
-/*
+/**
  * @brief Sleeps for msec or until the server socket is ready.
  */
 void Net_Sleep(uint32_t msec) {
@@ -186,7 +186,7 @@ void Net_Sleep(uint32_t msec) {
 	select(sock + 1, &fdset, NULL, NULL, &timeout);
 }
 
-/*
+/**
  * @brief Opens or closes the managed UDP socket for the given net_src_t. The
  * interface and port are resolved from immutable console variables, optionally
  * set at the command line.

@@ -44,7 +44,7 @@ typedef struct {
 
 static r_default_program_t r_default_program;
 
-/*
+/**
  * @brief
  */
 void R_InitProgram_default(void) {
@@ -87,7 +87,7 @@ void R_InitProgram_default(void) {
 	R_ProgramParameter1i(&p->sampler4, 4);
 }
 
-/*
+/**
  * @brief
  */
 void R_UseProgram_default(void) {
@@ -98,7 +98,7 @@ void R_UseProgram_default(void) {
 	R_ProgramParameter1i(&p->lightmap, texunit_lightmap.enabled);
 }
 
-/*
+/**
  * @brief
  */
 void R_UseMaterial_default(const r_material_t *material) {

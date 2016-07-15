@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 
-/*
+/**
  * @return True if the specified entity is bound to the local client.
  */
 _Bool Cg_IsSelf(const cl_entity_t *ent) {
@@ -43,7 +43,7 @@ _Bool Cg_IsSelf(const cl_entity_t *ent) {
 	return false;
 }
 
-/*
+/**
  * @brief Adds the numerous render entities which comprise a given client (player)
  * entity: head, upper, lower, weapon, flags, etc.
  */
@@ -109,7 +109,7 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		cgi.Warn("Unsupported model_index4\n");
 }
 
-/*
+/**
  * @brief Calculates a kick offset and angles based on our player's animation state.
  */
 static void Cg_WeaponKick(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
@@ -138,7 +138,7 @@ static void Cg_WeaponKick(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 	VectorScale(angles, cg_bob->value, angles);
 }
 
-/*
+/**
  * @brief Adds the first-person weapon model to the view.
  */
 static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
@@ -197,7 +197,7 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 	cgi.AddEntity(&w);
 }
 
-/*
+/**
  * @brief Adds the specified client entity to the view.
  */
 static void Cg_AddEntity(cl_entity_t *ent) {
@@ -248,7 +248,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	cgi.AddEntity(&e);
 }
 
-/*
+/**
  * @brief Iterate all entities in the current frame, adding models, particles,
  * lights, and anything else associated with them.
  *

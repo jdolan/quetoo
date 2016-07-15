@@ -22,7 +22,7 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
-/*
+/**
  * @see Pm_CheckGround
  */
 static void G_CheckGround(g_entity_t *ent) {
@@ -94,7 +94,7 @@ static void G_CheckWater(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief Runs thinking code for this frame if necessary
  */
 static void G_RunThink(g_entity_t *ent) {
@@ -113,7 +113,7 @@ static void G_RunThink(g_entity_t *ent) {
 	ent->locals.Think(ent);
 }
 
-/*
+/**
  * @return True if the entitiy is in a valid position, false otherwise.
  */
 static _Bool G_GoodPosition(const g_entity_t *ent) {
@@ -125,7 +125,7 @@ static _Bool G_GoodPosition(const g_entity_t *ent) {
 
 #define MAX_SPEED 2400.0
 
-/*
+/**
  * @brief
  */
 static void G_ClampVelocity(g_entity_t *ent) {
@@ -139,7 +139,7 @@ static void G_ClampVelocity(g_entity_t *ent) {
 
 #define STOP_EPSILON PM_STOP_EPSILON
 
-/*
+/**
  * @brief Slide off of the impacted plane.
  */
 static void G_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, vec_t bounce) {
@@ -163,7 +163,7 @@ static void G_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, vec
 
 #define SPEED_STOP 150.0
 
-/*
+/**
  * @see Pm_Friction
  */
 static void G_Friction(g_entity_t *ent) {
@@ -205,7 +205,7 @@ static void G_Friction(g_entity_t *ent) {
 	VectorScale(ent->locals.avelocity, scale, ent->locals.avelocity);
 }
 
-/*
+/**
  * @see Pm_Accelerate
  */
 static void G_Accelerate(g_entity_t *ent, vec3_t dir, vec_t speed, vec_t accel) {
@@ -226,7 +226,7 @@ static void G_Accelerate(g_entity_t *ent, vec3_t dir, vec_t speed, vec_t accel) 
 	VectorMA(ent->locals.velocity, accel_speed, dir, ent->locals.velocity);
 }
 
-/*
+/**
  * @see Pm_Gravity
  */
 static void G_Gravity(g_entity_t *ent) {
@@ -242,7 +242,7 @@ static void G_Gravity(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @see Pm_Currents
  */
 static void G_Currents(g_entity_t *ent) {
@@ -292,7 +292,7 @@ static void G_Currents(g_entity_t *ent) {
 	G_Accelerate(ent, current, speed, PM_ACCEL_GROUND);
 }
 
-/*
+/**
  * @brief Interact with `BOX_OCCUPY` objects after moving.
  */
 void G_TouchOccupy(g_entity_t *ent) {
@@ -319,7 +319,7 @@ void G_TouchOccupy(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief A moving object that doesn't obey physics
  */
 static void G_Physics_NoClip(g_entity_t *ent) {
@@ -330,7 +330,7 @@ static void G_Physics_NoClip(g_entity_t *ent) {
 	gi.LinkEntity(ent);
 }
 
-/*
+/**
  * @brief Maintain a record of all pushed entities for each move, in case that
  * move needs to be reverted.
  */
@@ -343,7 +343,7 @@ typedef struct {
 
 static g_push_t g_pushes[MAX_ENTITIES], *g_push_p;
 
-/*
+/**
  * @brief
  */
 static void G_Physics_Push_Impact(g_entity_t *ent) {
@@ -366,7 +366,7 @@ static void G_Physics_Push_Impact(g_entity_t *ent) {
 	g_push_p++;
 }
 
-/*
+/**
  * @brief
  */
 static void G_Physics_Push_Revert(const g_push_t *p) {
@@ -382,7 +382,7 @@ static void G_Physics_Push_Revert(const g_push_t *p) {
 	gi.LinkEntity(p->ent);
 }
 
-/*
+/**
  * @brief When items ride pushers, they rotate along with them. For clients,
  * this requires incrementing their delta angles.
  */
@@ -401,7 +401,7 @@ static void G_Physics_Push_Rotate(g_entity_t *self, g_entity_t *ent, vec_t yaw) 
 	}
 }
 
-/*
+/**
  * @brief
  */
 static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amove) {
@@ -518,7 +518,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 	return NULL;
 }
 
-/*
+/**
  * @brief For G_MOVE_TYPE_PUSH, push all box entities intersected while moving.
  * Generally speaking, only inline BSP models are pushers.
  */
@@ -563,7 +563,7 @@ static void G_Physics_Push(g_entity_t *ent) {
 static g_entity_t *g_touch_ents[MAX_CLIP_PLANES];
 static int32_t g_num_touch_ents;
 
-/*
+/**
  * @brief Runs the `Touch` functions of each object.
  */
 static void G_Physics_Fly_Impact(g_entity_t *ent, const cm_trace_t *trace, const vec_t bounce) {
@@ -602,7 +602,7 @@ static void G_Physics_Fly_Impact(g_entity_t *ent, const cm_trace_t *trace, const
 }
 
 
-/*
+/**
  * @see Pm_StepSlideMove
  */
 static void G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
@@ -656,7 +656,7 @@ static void G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 	gi.LinkEntity(ent);
 }
 
-/*
+/**
  * @brief Fly through the world, interacting with other solids.
  */
 static void G_Physics_Fly(g_entity_t *ent) {
@@ -670,7 +670,7 @@ static void G_Physics_Fly(g_entity_t *ent) {
 	G_TouchOccupy(ent);
 }
 
-/*
+/**
  * @brief Bounce movement. When on ground, do nothing.
  */
 static void G_Physics_Bounce(g_entity_t *ent) {
@@ -693,7 +693,7 @@ static void G_Physics_Bounce(g_entity_t *ent) {
 	G_TouchOccupy(ent);
 }
 
-/*
+/**
  * @brief Dispatches thinking and physics routines for the specified entity.
  */
 void G_RunEntity(g_entity_t *ent) {

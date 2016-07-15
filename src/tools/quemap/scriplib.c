@@ -39,7 +39,7 @@ static int32_t scriptline;
 char token[MAXTOKEN];
 static _Bool endofscript;
 
-/*
+/**
  * @brief
  */
 static void AddScriptToStack(const char *file_name) {
@@ -64,7 +64,7 @@ static void AddScriptToStack(const char *file_name) {
 	script->end_p = script->buffer + size;
 }
 
-/*
+/**
  * @brief
  */
 void LoadScriptFile(const char *file_name) {
@@ -74,7 +74,7 @@ void LoadScriptFile(const char *file_name) {
 	endofscript = false;
 }
 
-/*
+/**
  * @brief
  */
 void ParseFromMemory(char *buffer, int32_t size) {
@@ -92,7 +92,7 @@ void ParseFromMemory(char *buffer, int32_t size) {
 	endofscript = false;
 }
 
-/*
+/**
  * @brief
  */
 static _Bool EndOfScript(_Bool crossline) {
@@ -115,7 +115,7 @@ static _Bool EndOfScript(_Bool crossline) {
 	return GetToken(crossline);
 }
 
-/*
+/**
  * @brief
  */
 _Bool GetToken(_Bool crossline) {
@@ -197,7 +197,7 @@ _Bool GetToken(_Bool crossline) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 _Bool TokenAvailable(void) {

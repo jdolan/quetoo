@@ -68,7 +68,7 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 	cls.key_state.dest = dest;
 }
 
-/*
+/**
  * @brief Execute any system-level binds, regardless of key state. This enables e.g.
  * toggling of the console, toggling fullscreen, etc.
  */
@@ -137,7 +137,7 @@ static _Bool Cl_KeySystem(const SDL_Event *event) {
 	return false;
 }
 
-/*
+/**
  * @brief Interactive line editing and console scrollback.
  */
 static void Cl_KeyConsole(const SDL_Event *event) {
@@ -273,7 +273,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_KeyGame(const SDL_Event *event) {
@@ -308,7 +308,7 @@ static void Cl_KeyGame(const SDL_Event *event) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_KeyChat(const SDL_Event *event) {
@@ -359,7 +359,7 @@ static void Cl_KeyChat(const SDL_Event *event) {
 	}
 }
 
-/*
+/**
  * @brief Returns the name of the specified key.
  */
 const char *Cl_KeyName(SDL_Scancode key) {
@@ -371,7 +371,7 @@ const char *Cl_KeyName(SDL_Scancode key) {
 	return cl_key_names[key];
 }
 
-/*
+/**
  * @brief Returns the number for the specified key name.
  */
 SDL_Scancode Cl_Key(const char *name) {
@@ -390,7 +390,7 @@ SDL_Scancode Cl_Key(const char *name) {
 	return SDL_NUM_SCANCODES;
 }
 
-/*
+/**
  * @brief Binds the specified key to the given command.
  */
 void Cl_Bind(SDL_Scancode key, const char *binding) {
@@ -412,7 +412,7 @@ void Cl_Bind(SDL_Scancode key, const char *binding) {
 	strcpy(cls.key_state.binds[key], binding);
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_Unbind_f(void) {
@@ -432,7 +432,7 @@ static void Cl_Unbind_f(void) {
 	Cl_Bind(k, NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_UnbindAll_f(void) {
@@ -444,7 +444,7 @@ static void Cl_UnbindAll_f(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_Bind_f(void) {
@@ -488,7 +488,7 @@ static void Cl_Bind_f(void) {
 	Cl_Bind(k, cmd);
 }
 
-/*
+/**
  * @brief Writes lines containing "bind key value"
  */
 void Cl_WriteBindings(file_t *f) {
@@ -500,7 +500,7 @@ void Cl_WriteBindings(file_t *f) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_BindList_f(void) {
@@ -514,7 +514,7 @@ static void Cl_BindList_f(void) {
 
 #include "cl_binds.h"
 
-/*
+/**
  * @brief
  */
 void Cl_InitKeys(void) {
@@ -545,7 +545,7 @@ void Cl_InitKeys(void) {
 	Cbuf_Execute();
 }
 
-/*
+/**
  * @brief
  */
 void Cl_ShutdownKeys(void) {
@@ -553,7 +553,7 @@ void Cl_ShutdownKeys(void) {
 	Mem_Free(cl_key_names);
 }
 
-/*
+/**
  * @brief
  */
 void Cl_KeyEvent(const SDL_Event *event) {

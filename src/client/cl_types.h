@@ -93,7 +93,7 @@ typedef struct {
 	r_image_t *icon; // for the scoreboard
 } cl_client_info_t;
 
-/*
+/**
  * @brief A circular buffer of recently sent user_cmd_t is maintained so that
  * we can always re-send the last 2 commands to counter packet loss, and so
  * that client-side prediction can verify its accuracy.
@@ -101,7 +101,7 @@ typedef struct {
 #define CMD_BACKUP 64
 #define CMD_MASK (CMD_BACKUP - 1)
 
-/*
+/**
  * @brief Client side prediction output, produced by running sent but
  * unacknowledged user_cmd_t's through the player movement code locally.
  */
@@ -122,14 +122,14 @@ typedef struct {
 	vec3_t origins[CMD_BACKUP]; // for debugging against the server
 } cl_predicted_state_t;
 
-/*
+/**
  * @brief We accumulate a large circular buffer of entity states for each
  * entity in order to calculate delta compression.
  */
 #define ENTITY_STATE_BACKUP (PACKET_BACKUP * MAX_PACKET_ENTITIES)
 #define ENTITY_STATE_MASK (ENTITY_STATE_BACKUP - 1)
 
-/*
+/**
  * @brief The client structure is cleared at each level load, and is exposed to
  * the client game module to provide access to media and other client state.
  */
@@ -282,7 +282,7 @@ typedef struct {
 	r_image_t *background;
 } cl_loading_t;
 
-/*
+/**
  * @brief The cl_static_t structure is persistent for the execution of the
  * game. It is only cleared when Cl_Init is called. It is not exposed to the
  * client game module, but is (rarely) visible to other subsystems (renderer).

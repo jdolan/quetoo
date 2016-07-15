@@ -21,7 +21,7 @@
 
 #include "sv_local.h"
 
-/*
+/**
  * @brief Abort the server with a game error, always emitting ERR_DROP.
  */
 static void Sv_GameError(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
@@ -44,7 +44,7 @@ static void Sv_GameError(const char *func, const char *fmt, ...) {
 	Com_Error(ERR_DROP, "!Game error: %s\n", msg);
 }
 
-/*
+/**
  * @brief Also sets mins and maxs for inline bsp models.
  */
 static void Sv_SetModel(g_entity_t *ent, const char *name) {
@@ -65,7 +65,7 @@ static void Sv_SetModel(g_entity_t *ent, const char *name) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_ConfigString(const uint16_t index, const char *val) {
@@ -144,7 +144,7 @@ static void Sv_WriteAngles(const vec3_t angles) {
 	Net_WriteAngles(&sv.multicast, angles);
 }
 
-/*
+/**
  * @brief Also checks areas so that doors block sight.
  */
 static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
@@ -170,7 +170,7 @@ static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
 	return true;
 }
 
-/*
+/**
  * @brief Also checks areas so that doors block sound.
  */
 static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
@@ -197,7 +197,7 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_Sound(const g_entity_t *ent, const uint16_t index, const uint16_t atten) {
@@ -210,7 +210,7 @@ static void Sv_Sound(const g_entity_t *ent, const uint16_t index, const uint16_t
 
 static void *game_handle;
 
-/*
+/**
  * @brief Initializes the game module by exposing a subset of server functionality
  * through function pointers. In return, the game module allocates memory for
  * entities and returns a few pointers of its own.
@@ -311,7 +311,7 @@ void Sv_InitGame(void) {
 	Com_InitSubsystem(QUETOO_GAME);
 }
 
-/*
+/**
  * @brief Called when either the entire server is being killed, or it is changing to a
  * different game directory.
  */

@@ -22,7 +22,7 @@
 #include "tests.h"
 #include "filesystem.h"
 
-/*
+/**
  * @brief Setup fixture.
  */
 void setup(void) {
@@ -32,7 +32,7 @@ void setup(void) {
 	Fs_Init(true);
 }
 
-/*
+/**
  * @brief Teardown fixture.
  */
 void teardown(void) {
@@ -87,7 +87,7 @@ START_TEST(check_Fs_LoadFile)
 
 	}END_TEST
 
-/*
+/**
  * @brief Test entry point.
  */
 int32_t main(int32_t argc, char **argv) {

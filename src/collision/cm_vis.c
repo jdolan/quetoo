@@ -21,12 +21,12 @@
 
 #include "cm_local.h"
 
-/*
+/**
  * @brief If true, BSP area culling is skipped.
  */
 _Bool cm_no_areas = false;
 
-/*
+/**
  * @brief
  */
 static void Cm_DecompressVis(const byte *in, byte *out) {
@@ -59,7 +59,7 @@ static void Cm_DecompressVis(const byte *in, byte *out) {
 	}
 }
 
-/*
+/**
  * @brief
  *
  * @remark `pvs` must be at least `MAX_BSP_LEAFS >> 3` in length.
@@ -76,7 +76,7 @@ size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
 	return len;
 }
 
-/*
+/**
  * @brief
  */
 size_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
@@ -91,7 +91,7 @@ size_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
 	return len;
 }
 
-/*
+/**
  * @brief Recurse over the area portals, marking adjacent ones as flooded.
  */
 static void Cm_FloodArea(cm_bsp_area_t *area, int32_t flood_num) {
@@ -115,7 +115,7 @@ static void Cm_FloodArea(cm_bsp_area_t *area, int32_t flood_num) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Cm_FloodAreas(void) {
@@ -135,7 +135,7 @@ void Cm_FloodAreas(void) {
 	}
 }
 
-/*
+/**
  * @brief Sets the state of the specified area portal and re-floods all area
  * connections, updating their flood counts such that Cm_WriteAreaBits
  * will return the correct information.
@@ -150,7 +150,7 @@ void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open) {
 	Cm_FloodAreas();
 }
 
-/*
+/**
  * @brief Returns true if the specified areas are connected.
  */
 _Bool Cm_AreasConnected(int32_t area1, int32_t area2) {
@@ -168,7 +168,7 @@ _Bool Cm_AreasConnected(int32_t area1, int32_t area2) {
 	return false;
 }
 
-/*
+/**
  * @brief Writes a bit vector of all the areas that are in the same flood as the
  * specified area. Returns the length of the bit vector in bytes.
  *
@@ -194,7 +194,7 @@ int32_t Cm_WriteAreaBits(const int32_t area, byte *out) {
 	return bytes;
 }
 
-/*
+/**
  * @brief Returns true if any leaf under head_node has a cluster that
  * is potentially visible.
  */

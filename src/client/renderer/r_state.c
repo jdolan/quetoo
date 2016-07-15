@@ -28,7 +28,7 @@ r_state_t r_state;
 const vec_t default_texcoords[] = { // useful for particles, pics, etc..
 		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 };
 
-/*
+/**
  * @brief Queries OpenGL for any errors and prints them as warnings.
  */
 void R_GetError_(const char *function, const char *msg) {
@@ -70,7 +70,7 @@ void R_GetError_(const char *function, const char *msg) {
 	}
 }
 
-/*
+/**
  * @brief Sets the current color. Pass NULL to reset to default.
  */
 void R_Color(const vec4_t color) {
@@ -83,7 +83,7 @@ void R_Color(const vec4_t color) {
 	}
 }
 
-/*
+/**
  * @brief Set the active texture unit. If the diffuse or lightmap texture units are
  * selected, set the client state to allow binding of texture coordinates.
  */
@@ -100,7 +100,7 @@ void R_SelectTexture(r_texunit_t *texunit) {
 	qglClientActiveTexture(texunit->texture);
 }
 
-/*
+/**
  * @brief Binds the specified texture for the active texture unit.
  */
 void R_BindTexture(GLuint texnum) {
@@ -115,7 +115,7 @@ void R_BindTexture(GLuint texnum) {
 	r_view.num_bind_texture++;
 }
 
-/*
+/**
  * @brief Binds the specified texture for the lightmap texture unit.
  */
 void R_BindLightmapTexture(GLuint texnum) {
@@ -132,7 +132,7 @@ void R_BindLightmapTexture(GLuint texnum) {
 	r_view.num_bind_lightmap++;
 }
 
-/*
+/**
  * @brief Binds the specified texture for the deluxemap texture unit.
  */
 void R_BindDeluxemapTexture(GLuint texnum) {
@@ -149,7 +149,7 @@ void R_BindDeluxemapTexture(GLuint texnum) {
 	r_view.num_bind_deluxemap++;
 }
 
-/*
+/**
  * @brief Binds the specified texture for the normalmap texture unit.
  */
 void R_BindNormalmapTexture(GLuint texnum) {
@@ -166,7 +166,7 @@ void R_BindNormalmapTexture(GLuint texnum) {
 	r_view.num_bind_normalmap++;
 }
 
-/*
+/**
  * @brief Binds the specified texture for the glossmap texture unit.
  */
 void R_BindSpecularmapTexture(GLuint texnum) {
@@ -183,7 +183,7 @@ void R_BindSpecularmapTexture(GLuint texnum) {
 	r_view.num_bind_specularmap++;
 }
 
-/*
+/**
  * @brief Binds the specified array for the given target.
  */
 void R_BindArray(GLenum target, GLenum type, GLvoid *array) {
@@ -212,7 +212,7 @@ void R_BindArray(GLenum target, GLenum type, GLvoid *array) {
 	}
 }
 
-/*
+/**
  * @brief Binds the appropriate shared vertex array to the specified target.
  */
 void R_BindDefaultArray(GLenum target) {
@@ -241,7 +241,7 @@ void R_BindDefaultArray(GLenum target) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void R_BindBuffer(GLenum target, GLenum type, GLuint id) {
@@ -260,7 +260,7 @@ void R_BindBuffer(GLenum target, GLenum type, GLuint id) {
 	R_GetError(NULL);
 }
 
-/*
+/**
  * @brief
  */
 void R_BlendFunc(GLenum src, GLenum dest) {
@@ -274,7 +274,7 @@ void R_BlendFunc(GLenum src, GLenum dest) {
 	glBlendFunc(src, dest);
 }
 
-/*
+/**
  * @brief
  */
 void R_EnableBlend(_Bool enable) {
@@ -295,7 +295,7 @@ void R_EnableBlend(_Bool enable) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void R_EnableAlphaTest(_Bool enable) {
@@ -311,7 +311,7 @@ void R_EnableAlphaTest(_Bool enable) {
 		glDisable(GL_ALPHA_TEST);
 }
 
-/*
+/**
  * @brief Enables the stencil test for e.g. rendering shadow volumes.
  */
 void R_EnableStencilTest(GLenum pass, _Bool enable) {
@@ -329,7 +329,7 @@ void R_EnableStencilTest(GLenum pass, _Bool enable) {
 	glStencilOp(GL_KEEP, GL_KEEP, pass);
 }
 
-/*
+/**
  * @brief Enables polygon offset fill for decals, etc.
  */
 void R_EnablePolygonOffset(GLenum mode, _Bool enable) {
@@ -347,7 +347,7 @@ void R_EnablePolygonOffset(GLenum mode, _Bool enable) {
 	glPolygonOffset(-1.0, 1.0);
 }
 
-/*
+/**
  * @brief Enable the specified texture unit for multi-texture operations. This is not
  * necessary for texture units only accessed by GLSL shaders.
  */
@@ -373,7 +373,7 @@ void R_EnableTexture(r_texunit_t *texunit, _Bool enable) {
 	R_SelectTexture(&texunit_diffuse);
 }
 
-/*
+/**
  * @brief
  */
 void R_EnableColorArray(_Bool enable) {
@@ -389,7 +389,7 @@ void R_EnableColorArray(_Bool enable) {
 		glDisableClientState(GL_COLOR_ARRAY);
 }
 
-/*
+/**
  * @brief Enables hardware-accelerated lighting with the specified program. This
  * should be called after any texture units which will be active for lighting
  * have been enabled.
@@ -422,7 +422,7 @@ void R_EnableLighting(const r_program_t *program, _Bool enable) {
 	R_GetError(NULL);
 }
 
-/*
+/**
  * @brief Enables alpha-blended, stencil-test shadows.
  */
 void R_EnableShadow(const r_program_t *program, _Bool enable) {
@@ -446,7 +446,7 @@ void R_EnableShadow(const r_program_t *program, _Bool enable) {
 	R_GetError(NULL);
 }
 
-/*
+/**
  * @brief Enables the warp shader for drawing liquids and other effects.
  */
 void R_EnableWarp(const r_program_t *program, _Bool enable) {
@@ -477,7 +477,7 @@ void R_EnableWarp(const r_program_t *program, _Bool enable) {
 	R_GetError(NULL);
 }
 
-/*
+/**
  * @brief
  */
 void R_EnableShell(const r_program_t *program, _Bool enable) {
@@ -508,7 +508,7 @@ void R_EnableShell(const r_program_t *program, _Bool enable) {
 	R_GetError(NULL);
 }
 
-/*
+/**
  * @brief
  */
 void R_EnableFog(_Bool enable) {
@@ -534,7 +534,7 @@ void R_EnableFog(_Bool enable) {
 	}
 }
 
-/*
+/**
  * @brief Setup the GLSL program for the specified material. If no program is
  * bound, this function simply returns.
  */
@@ -557,7 +557,7 @@ void R_UseMaterial(const r_material_t *material) {
 #define NEAR_Z 4.0
 #define FAR_Z 16384.0
 
-/*
+/**
  * @brief Prepare OpenGL for drawing the 3D scene. Update the view-port definition
  * and load our projection and model-view matrices.
  */
@@ -609,7 +609,7 @@ void R_Setup3D(void) {
 	glEnable(GL_DEPTH_TEST);
 }
 
-/*
+/**
  * @brief Prepare OpenGL for drawing the 2D overlay. Update the view-port definition
  * and reset the project and model-view matrices.
  */
@@ -638,7 +638,7 @@ void R_Setup2D(void) {
 	glDisable(GL_DEPTH_TEST);
 }
 
-/*
+/**
  * @brief Initializes the OpenGL state cache and sets OpenGL state parameters to
  * appropriate defaults.
  */
@@ -704,7 +704,7 @@ void R_InitState(void) {
 	R_GetError(NULL);
 }
 
-/*
+/**
  * @brief
  */
 void R_ShutdownState(void) {

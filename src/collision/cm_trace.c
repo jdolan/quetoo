@@ -21,12 +21,12 @@
 
 #include "cm_local.h"
 
-/*
+/**
  * @brief Plane side epsilon (1.0 / 32.0) to keep floating point happy.
  */
 #define DIST_EPSILON 0.03125
 
-/*
+/**
  * @brief Box trace data encapsulation and context management.
  */
 typedef struct {
@@ -44,7 +44,7 @@ typedef struct {
 	int32_t brushes[32]; // used to avoid multiple intersection tests with brushes
 } cm_trace_data_t;
 
-/*
+/**
  * @brief
  */
 static _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, const int32_t brush_num) {
@@ -57,7 +57,7 @@ static _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, const int32_t brush_nu
 	return skip;
 }
 
-/*
+/**
  * @brief Clips the bounded box to all brush sides for the given brush.
  */
 static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
@@ -135,7 +135,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
@@ -166,7 +166,7 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 	data->trace.contents = brush->contents;
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
@@ -198,7 +198,7 @@ static void Cm_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
@@ -227,7 +227,7 @@ static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t p2f,
@@ -314,7 +314,7 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t 
 	Cm_TraceToNode(data, node->children[side ^ 1], midf2, p2f, mid, p2);
 }
 
-/*
+/**
  * @brief Primary collision detection entry point. This function recurses down
  * the BSP tree from the specified head node, clipping the desired movement to
  * brushes that match the specified contents mask.
@@ -434,7 +434,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 	return data.trace;
 }
 
-/*
+/**
  * @brief Collision detection for non-world models. Rotates the specified end
  * points into the model's space, and traces down the relevant subset of the
  * BSP tree. For inline BSP models, the head node is the root of the model's

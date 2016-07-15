@@ -21,7 +21,7 @@
 
 #include "cl_local.h"
 
-/*
+/**
  * @brief Parse the player_state_t for the current frame from the server, using delta
  * compression for all fields where possible.
  */
@@ -37,7 +37,7 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
 		frame->ps.pm_state.type = PM_FREEZE;
 }
 
-/*
+/**
  * @return True if the delta is valid and interpolation should be used.
  */
 static _Bool Cl_ValidDeltaEntity(const entity_state_t *from, const entity_state_t *to) {
@@ -54,7 +54,7 @@ static _Bool Cl_ValidDeltaEntity(const entity_state_t *from, const entity_state_
 	return true;
 }
 
-/*
+/**
  * @brief Reads deltas from the given base and adds the resulting entity to the
  * current frame.
  */
@@ -102,7 +102,7 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 	}
 }
 
-/*
+/**
  * @brief An svc_packetentities has just been parsed, deal with the rest of the data stream.
  */
 static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
@@ -224,7 +224,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Cl_ParseFrame(void) {
@@ -286,7 +286,7 @@ void Cl_ParseFrame(void) {
 	}
 }
 
-/*
+/**
  * @brief Updates the interpolation fraction for the current client frame.
  * Because the client typically runs at a higher framerate than the server, we
  * use linear interpolation between the last 2 server frames. We aim to reach
@@ -315,7 +315,7 @@ static void Cl_UpdateLerp(void) {
 	}
 }
 
-/*
+/**
  * @brief Interpolates all entities in the current frame.
  */
 void Cl_Interpolate(void) {
@@ -350,7 +350,7 @@ void Cl_Interpolate(void) {
 	}
 }
 
-/*
+/**
  * @brief Invalidate lighting caches on media load.
  */
 void Cl_UpdateEntities(void) {

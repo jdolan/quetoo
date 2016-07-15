@@ -27,7 +27,7 @@ typedef struct {
 
 static ai_goal_state_t ai_goal_state;
 
-/*
+/**
  * @brief Utility function for instantiating ai_goal_t.
  */
 ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_entity_t *ent) {
@@ -42,7 +42,7 @@ ai_goal_t *Ai_AllocGoal(const ai_goal_type_t type, g_entity_t *ent) {
 	return goal;
 }
 
-/*
+/**
  * @brief GDestroyNotify for ai_goal_t.
  */
 static void Ai_FreeGoal(gpointer data) {
@@ -51,7 +51,7 @@ static void Ai_FreeGoal(gpointer data) {
 	Mem_Free(goal);
 }
 
-/*
+/**
  * @brief Frees all ai_goal_t.
  */
 void Ai_FreeGoals(void) {

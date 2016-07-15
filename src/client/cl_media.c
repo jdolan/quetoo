@@ -21,7 +21,7 @@
 
 #include "cl_local.h"
 
-/*
+/**
  * @brief Entry point for file downloads, or "precache" from server. Attempt to
  * download .pk3 and .bsp from server. Archive is preferred. Once all precache
  * checks are completed, we load media and ask the server to begin sending
@@ -106,7 +106,7 @@ static r_image_t *Cl_LoadingBackground() {
 	return image;
 }
 
-/*
+/**
  * @brief Update the loading progress, handle events and update the screen.
  * This should be called periodically while loading media.
  */
@@ -124,7 +124,7 @@ void Cl_LoadingProgress(uint16_t percent, const char *status) {
 	Cl_UpdateScreen();
 }
 
-/*
+/**
  * @brief
  */
 void Cl_DrawDownload(void) {
@@ -147,7 +147,7 @@ void Cl_DrawDownload(void) {
 	R_BindFont(NULL, NULL, NULL);
 }
 
-/*
+/**
  * @brief Draws the loading screen.
  */
 void Cl_DrawLoading(void) {
@@ -198,7 +198,7 @@ void Cl_DrawLoading(void) {
 	R_BindFont(NULL, NULL, NULL);
 }
 
-/*
+/**
  * @brief Load all game media through the relevant subsystems. This is called when
  * spawning into a server. For incremental reloads on subsystem restarts,
  * see Cl_UpdateMedia.
@@ -226,7 +226,7 @@ void Cl_LoadMedia(void) {
 	Cl_SetKeyDest(KEY_GAME);
 }
 
-/*
+/**
  * @brief Reload stale media references on subsystem restarts.
  */
 void Cl_UpdateMedia(void) {

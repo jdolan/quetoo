@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-/*
+/**
  * @brief Resolves the skin for the specified model. By default, we simply load
  * "skin.tga" in the model's directory.
  */
@@ -34,7 +34,7 @@ static void R_LoadMeshMaterial(r_model_t *mod) {
 	mod->mesh->material = R_LoadMaterial(skin);
 }
 
-/*
+/**
  * @brief Parses animation.cfg, loading the frame specifications for the given model.
  */
 static void R_LoadMd3Animations(r_model_t *mod) {
@@ -122,7 +122,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 	Com_Debug("Loaded %d animations: %s\n", md3->num_animations, mod->media.name);
 }
 
-/*
+/**
  * @brief Loads the specified r_mesh_config_t from the file at path.
  */
 static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
@@ -166,7 +166,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 	Fs_Free(buf);
 }
 
-/*
+/**
  * @brief Loads all r_mesh_config_t for the specified r_model_t. These allow
  * models to be positioned and scaled relative to their own origins, which is
  * useful because artists contribute models in almost arbitrary dimensions at
@@ -193,7 +193,7 @@ static void R_LoadMeshConfigs(r_model_t *mod) {
 	R_LoadMeshConfig(mod->mesh->link_config, va("%slink.cfg", path));
 }
 
-/*
+/**
  * @brief Calculates tangent vectors for each MD3 vertex for per-pixel
  * lighting. See http://www.terathon.com/code/tangent.html.
  */
@@ -278,7 +278,7 @@ static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 	Mem_Free(tan2);
 }
 
-/*
+/**
  * @brief Loads and populates vertex array data for the specified MD3 model.
  *
  * @remark Static MD3 meshes receive vertex, normal and tangent arrays in
@@ -354,7 +354,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	}
 }
 
-/*
+/**
  * @brief Loads the d_md3_t contents of buffer to the specified model.
  */
 void R_LoadMd3Model(r_model_t *mod, void *buffer) {
@@ -551,7 +551,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 			out_md3->num_meshes, out_md3->num_frames, out_md3->num_tags, mod->num_verts);
 }
 
-/*
+/**
  * @brief Resolves the the vertex described by `indices`, allocating a new
  * vertex if `indices` is unique to the model.
  *
@@ -586,7 +586,7 @@ static r_obj_vertex_t *R_ObjVertexForIndices(r_model_t *mod, r_obj_t *obj, const
 	return v;
 }
 
-/*
+/**
  * @brief Parses a line of an Object file, allocating primitives accordingly.
  */
 static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
@@ -664,7 +664,7 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 	// else we just ignore it
 }
 
-/*
+/**
  * @brief Parses the Object primitives from the ASCII text in `buffer`.
  */
 static void R_LoadObjPrimitives(r_model_t *mod, r_obj_t *obj, const void *buffer) {
@@ -703,7 +703,7 @@ done:
 	Com_Debug("%s: %u tris\n", mod->media.name, g_list_length(obj->tris));
 }
 
-/*
+/**
  * @brief Calculate tangent vectors for the given Object model.
  *
  * http://www.terathon.com/code/tangent.html
@@ -801,7 +801,7 @@ static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
 	Com_Debug("%s: %u tangents\n", mod->media.name, g_list_length(obj->tangents));
 }
 
-/*
+/**
  * @brief Populates the vertex arrays of `mod` with triangle data from `obj`.
  */
 static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
@@ -843,7 +843,7 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void R_LoadObjModel(r_model_t *mod, void *buffer) {

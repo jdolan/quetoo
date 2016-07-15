@@ -37,7 +37,7 @@ static r_texture_mode_t r_texture_modes[] = { // specifies mipmapping (texture q
 	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR }
 };
 
-/*
+/**
  * @brief Sets the texture parameters for mipmapping and anisotropy.
  */
 static void R_TextureMode(void) {
@@ -64,7 +64,7 @@ static void R_TextureMode(void) {
 
 #define MAX_SCREENSHOTS 1000
 
-/*
+/**
  * @brief Captures a screenshot, writing it to the user's directory.
  */
 void R_Screenshot_f(void) {
@@ -105,7 +105,7 @@ void R_Screenshot_f(void) {
 	Mem_Free(buffer);
 }
 
-/*
+/**
  * @brief Applies brightness, contrast and saturation to the specified image
  * while optionally computing the average color. Also handles image inversion
  * and monochrome. This is all munged into one function for performance.
@@ -179,7 +179,7 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 	}
 }
 
-/*
+/**
  * @brief Uploads the specified image to the OpenGL implementation. Images that
  * do not have a GL texture reserved (which is most diffuse textures) will have
  * one generated for them. This flexibility allows for explicitly managed
@@ -216,7 +216,7 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 	R_GetError(image->media.name);
 }
 
-/*
+/**
  * @brief Retain event listener for images.
  */
 static _Bool R_RetainImage(r_media_t *self) {
@@ -229,7 +229,7 @@ static _Bool R_RetainImage(r_media_t *self) {
 	return false;
 }
 
-/*
+/**
  * @brief Free event listener for images.
  */
 static void R_FreeImage(r_media_t *media) {
@@ -274,7 +274,7 @@ static void R_LoadHeightmap(const char *name, const SDL_Surface *surf) {
 	}
 }
 
-/*
+/**
  * @brief Loads the image by the specified name.
  */
 r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
@@ -320,7 +320,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 	return image;
 }
 
-/*
+/**
  * @brief Initializes the null (default) image, used when the desired texture
  * is not available.
  */
@@ -341,7 +341,7 @@ static void R_InitNullImage(void) {
 
 #define WARP_SIZE 16
 
-/*
+/**
  * @brief Initializes the warp texture, used by r_program_warp.c.
  */
 static void R_InitWarpImage(void) {
@@ -368,14 +368,14 @@ static void R_InitWarpImage(void) {
 	R_UploadImage(r_image_state.warp, GL_RGBA, (byte *) data);
 }
 
-/*
+/**
  * @brief Initializes the mesh shell image.
  */
 static void R_InitShellImage() {
 	r_image_state.shell = R_LoadImage("envmaps/envmap_3", IT_PROGRAM);
 }
 
-/*
+/**
  * @brief Initializes the images facilities, which includes generation of
  */
 void R_InitImages(void) {

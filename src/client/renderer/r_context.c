@@ -23,7 +23,7 @@
 
 r_context_t r_context;
 
-/*
+/**
  * @brief
  */
 static void R_SetWindowIcon(void) {
@@ -37,7 +37,7 @@ static void R_SetWindowIcon(void) {
 	SDL_FreeSurface(surf);
 }
 
-/*
+/**
  * @brief Initialize the OpenGL context, returning true on success, false on failure.
  */
 void R_InitContext(void) {
@@ -120,7 +120,7 @@ void R_InitContext(void) {
 	R_SetWindowIcon();
 }
 
-/*
+/**
  * @brief
  */
 void R_ShutdownContext(void) {

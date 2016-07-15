@@ -24,12 +24,12 @@
 
 #include "quetoo.h"
 
-/*
+/**
  * @brief Plane side epsilon value.
  */
 #define	SIDE_EPSILON			0.001
 
-/*
+/**
  * @brief Plane side constants used for BSP recursion.
  */
 #define	SIDE_FRONT				1
@@ -37,7 +37,7 @@
 #define	SIDE_BOTH				3
 #define	SIDE_FACING				4
 
-/*
+/**
  * @brief Plane type constants for axial plane optimizations.
  */
 #define PLANE_X					0
@@ -47,7 +47,7 @@
 #define PLANE_ANY_Y				4
 #define PLANE_ANY_Z				5
 
-/*
+/**
  * @brief BSP planes are essential to collision detection as well as rendering.
  * Quake uses "positive planes," where the plane distances are represented as
  * negative offsets from the origin.
@@ -60,12 +60,12 @@ typedef struct {
 	uint16_t num; // for aligning collision model and rendering
 } cm_bsp_plane_t;
 
-/*
+/**
  * @brief Returns true if the specified plane is axially aligned.
  */
 #define AXIAL(p) ((p)->type < PLANE_ANY_X)
 
-/*
+/**
  * @brief BSP surfaces describe a material applied to a plane.
  */
 typedef struct {
@@ -74,7 +74,7 @@ typedef struct {
 	int32_t value;
 } cm_bsp_surface_t;
 
-/*
+/**
  * @brief Inline BSP models are segments of the collision model that may move.
  * They are treated as their own sub-trees and recursed separately.
  */
@@ -84,7 +84,7 @@ typedef struct {
 	int32_t head_node;
 } cm_bsp_model_t;
 
-/*
+/**
  * @brief Traces are discrete movements through world space, clipped to the
  * BSP planes they intersect. This is the basis for all collision detection
  * within Quake.

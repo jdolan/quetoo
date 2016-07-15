@@ -71,7 +71,7 @@ typedef enum {
 	IT_PIC = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER)
 } r_image_type_t;
 
-/*
+/**
  * @brief Images are referenced by materials, models, entities, particles, etc.
  */
 typedef struct {
@@ -240,7 +240,7 @@ typedef struct {
 
 } r_bsp_surface_t;
 
-/*
+/**
  * @brief Surfaces are assigned to arrays based on their render path and then
  * ordered by material to reduce glBindTexture calls.
  */
@@ -249,7 +249,7 @@ typedef struct {
 	size_t count;
 } r_bsp_surfaces_t;
 
-/*
+/**
  * @brief The world model maintains master lists of all surfaces, partitioned
  * by render path and ordered by material.
  */
@@ -265,17 +265,17 @@ typedef struct {
 	r_bsp_surfaces_t back;
 } r_sorted_bsp_surfaces_t;
 
-/*
+/**
  * @brief Appends a reference to the specified face to the given surfaces list.
  */
 #define R_SURFACE_TO_SURFACES(surfs, surf) (surfs)->surfaces[(surfs)->count++] = surf
 
-/*
+/**
  * @brief Function prototype for BSP surfaces draw lists.
  */
 typedef void (*BspSurfacesDrawFunc)(const r_bsp_surfaces_t *surfs);
 
-/*
+/**
  * @brief BSP nodes comprise the tree representation of the world. At compile
  * time, the map is divided into convex volumes that fall along brushes
  * (walls). These volumes become nodes. The planes these divisions create
@@ -308,7 +308,7 @@ typedef struct r_bsp_node_s {
 	uint16_t num_surfaces;
 } r_bsp_node_t;
 
-/*
+/**
  * @brief BSP leafs terminate the branches of the BSP tree and provide grouping
  * for surfaces. If a leaf is found to be in the potentially visible set (PVS)
  * for a given frame, then all surfaces associated to that leaf are flagged for
@@ -333,14 +333,14 @@ typedef struct {
 	uint16_t num_leaf_surfaces;
 } r_bsp_leaf_t;
 
-/*
+/**
  * @brief
  */
 typedef struct {
 	int16_t vis_frame; // PVS eligibility
 } r_bsp_cluster_t;
 
-/*
+/**
  * @brief BSP lightmap parameters.
  */
 typedef struct {
@@ -349,7 +349,7 @@ typedef struct {
 	byte *data;
 } r_bsp_lightmaps_t;
 
-/*
+/**
  * @brief BSP light sources.
  */
 typedef struct {
@@ -403,7 +403,7 @@ typedef struct {
 	uint16_t hz;
 } r_md3_animation_t;
 
-/*
+/**
  * @brief Quake3 (MD3) model in-memory representation.
  */
 typedef struct {
@@ -507,7 +507,7 @@ typedef struct {
 	r_sorted_bsp_surfaces_t *sorted_surfaces;
 } r_bsp_model_t;
 
-/*
+/**
  * @brief Provides load-time normalization of mesh models.
  */
 typedef struct {
@@ -529,7 +529,7 @@ typedef struct {
 	void *data; // raw model data (r_md3_t, r_obj_t, ..)
 } r_mesh_model_t;
 
-/*
+/**
  * @brief Models represent a subset of the BSP or an OBJ / MD3 mesh.
  */
 typedef struct r_model_s {
@@ -561,7 +561,7 @@ typedef struct r_model_s {
 #define IS_MESH_MODEL(m) (m && m->mesh)
 #define IS_BSP_INLINE_MODEL(m) (m && m->bsp_inline)
 
-/*
+/**
  * @brief Dynamic light sources expire immediately and must be re-added
  * for each frame they appear.
  */
@@ -574,7 +574,7 @@ typedef struct {
 #define MAX_LIGHTS			64
 #define MAX_ACTIVE_LIGHTS	8
 
-/*
+/**
  * @brief Sustains are light flashes which slowly decay over time. These
  * persist over multiple frames.
  */
@@ -591,7 +591,7 @@ typedef enum {
 	ILLUM_DYNAMIC = 0x8
 } r_illumination_type_t;
 
-/*
+/**
  * @brief Describes a light source contributions to point lighting.
  */
 typedef struct {
@@ -600,7 +600,7 @@ typedef struct {
 	vec_t diffuse;
 } r_illumination_t;
 
-/*
+/**
  * @brief Describes the projection of a mesh model onto a BSP plane.
  */
 typedef struct {
@@ -609,7 +609,7 @@ typedef struct {
 	vec_t shadow;
 } r_shadow_t;
 
-/*
+/**
  * @brief Static lighting information is cached on the client entity structure.
  */
 typedef enum {
@@ -617,7 +617,7 @@ typedef enum {
 	LIGHTING_READY
 } r_lighting_state_t;
 
-/*
+/**
  * @brief Up to 8 illuminations are calculated for each mesh entity. The first
  * illumination in the structure is reserved for world lighting (ambient and
  * sunlight). The remaining 7 are populated by both BSP and dynamic light
@@ -625,14 +625,14 @@ typedef enum {
  */
 #define MAX_ILLUMINATIONS MAX_ACTIVE_LIGHTS
 
-/*
+/**
  * @brief Up to 3 shadows are cast for each illumination. These are populated
  * by tracing from the illumination position through the lighting origin and
  * bounds. A shadow is cast for each unique plane hit.
  */
 #define MAX_SHADOWS (MAX_ILLUMINATIONS * 3)
 
-/*
+/**
  * @brief Provides lighting information for mesh entities. Illuminations and
  * shadows are maintained in separate arrays because they must be sorted by
  * different criteria: for illuminations, the light that reaches the entity
@@ -650,7 +650,7 @@ typedef struct r_lighting_s {
 	r_shadow_t shadows[MAX_SHADOWS]; // shadows, ordered by intensity
 } r_lighting_t;
 
-/*
+/**
  * @brief Entities provide a means to add model instances to the view. Entity
  * lighting is cached on the client entity so that it is only recalculated
  * when an entity moves.
@@ -686,7 +686,7 @@ typedef struct r_entity_s {
 	r_lighting_t *lighting; // static lighting information
 } r_entity_t;
 
-/*
+/**
  * @brief Entity draw lists.
  */
 typedef struct {
@@ -694,7 +694,7 @@ typedef struct {
 	size_t count;
 } r_entities_t;
 
-/*
+/**
  * @brief The view maintains lists of entities, sorted by render path.
  */
 typedef struct {
@@ -703,12 +703,12 @@ typedef struct {
 	r_entities_t null_entities;
 } r_sorted_entities_t;
 
-/*
+/**
  * @brief Appends a reference to the specified entity to the given entities list.
  */
 #define R_ENTITY_TO_ENTITIES(ents, ent) (ents)->entities[(ents)->count++] = ent
 
-/*
+/**
  * @brief Function prototype for mesh entity draw lists.
  */
 typedef void (*MeshModelsDrawFunc)(const r_entities_t *ents);
@@ -723,7 +723,7 @@ typedef enum {
 	PARTICLE_SPLASH
 } r_particle_type_t;
 
-/*
+/**
  * @brief Particles are alpha-blended, textured quads.
  */
 typedef struct r_particle_s {
@@ -742,7 +742,7 @@ typedef struct r_particle_s {
 
 #define MAX_PARTICLES		16384
 
-/*
+/**
  * @brief Coronas are soft, alpha-blended, rounded sprites.
  */
 typedef struct {
@@ -752,7 +752,7 @@ typedef struct {
 	vec3_t color;
 } r_corona_t;
 
-/*
+/**
  * @brief Renderer element types.
  */
 typedef enum {
@@ -763,7 +763,7 @@ typedef enum {
 	ELEMENT_PARTICLE
 } r_element_type_t;
 
-/*
+/**
  * @brief Element abstraction to allow sorting of mixed draw lists,
  * asynchronous rendering via commands, etc.
  */
@@ -775,7 +775,7 @@ typedef struct {
 	void *data;
 } r_element_t;
 
-/*
+/**
  * @brief Allows alternate renderer plugins to be dropped in.
  */
 typedef enum {
@@ -793,7 +793,7 @@ typedef enum {
 #define FOG_START			128.0
 #define FOG_END				2048.0
 
-/*
+/**
  * @brief Provides read-write visibility and scene management to the client.
  */
 typedef struct {
@@ -858,7 +858,7 @@ typedef struct {
 	_Bool update; // inform the client of state changes
 } r_view_t;
 
-/*
+/**
  * @brief OpenGL context information.
  */
 typedef struct {

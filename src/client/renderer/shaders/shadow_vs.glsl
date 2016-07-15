@@ -1,4 +1,4 @@
-/*
+/**
  * @brief Planar shadows vertex shader.
  */
 
@@ -11,14 +11,14 @@ varying vec4 point;
 
 varying float fog;
 
-/*
+/**
  * @brief
  */
 void ShadowVertex() {
 	point = gl_ModelViewMatrix * MATRIX * gl_Vertex;	
 }
 
-/*
+/**
  * @brief
  */
 void FogVertex(void) {
@@ -26,7 +26,7 @@ void FogVertex(void) {
     fog = clamp(fog, 0.0, 1.0) * gl_Fog.density;
 }
 
-/*
+/**
  * @brief Program entry point.
  */
 void main(void) {

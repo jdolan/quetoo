@@ -25,7 +25,7 @@
 d_bsp_t d_bsp;
 d_bsp_vis_t *d_vis = (d_bsp_vis_t *) d_bsp.vis_data;
 
-/*
+/**
  * @brief
  */
 int32_t CompressVis(const byte *vis, byte *dest) {
@@ -55,7 +55,7 @@ int32_t CompressVis(const byte *vis, byte *dest) {
 	return dest_p - dest;
 }
 
-/*
+/**
  * @brief
  */
 void DecompressVis(const byte *in, byte *decompressed) {
@@ -83,7 +83,7 @@ void DecompressVis(const byte *in, byte *decompressed) {
 	} while (out - decompressed < row);
 }
 
-/*
+/**
  * @brief Byte swaps all data in a bsp file.
  */
 static void SwapBSPFile(_Bool todisk) {
@@ -239,7 +239,7 @@ static int32_t CopyLump(int32_t lump, void *dest, int32_t size) {
 	return length / size;
 }
 
-/*
+/**
  * @brief
  */
 void LoadBSPFile(char *file_name) {
@@ -302,7 +302,7 @@ void LoadBSPFile(char *file_name) {
 		PrintBSPFileSizes();
 }
 
-/*
+/**
  * @brief Only loads the texinfo lump, so we can scan for textures.
  */
 void LoadBSPFileTexinfo(char *file_name) {
@@ -344,7 +344,7 @@ void LoadBSPFileTexinfo(char *file_name) {
 
 static file_t *fp;
 
-/*
+/**
  * @brief
  */
 static void AddLump(int32_t lump_num, void *data, int32_t len) {
@@ -358,7 +358,7 @@ static void AddLump(int32_t lump_num, void *data, int32_t len) {
 	Fs_Write(fp, data, 1, (len + 3) & ~3);
 }
 
-/*
+/**
  * @brief Swaps the bsp file in place, so it should not be referenced again
  */
 void WriteBSPFile(char *file_name) {
@@ -421,7 +421,7 @@ void WriteBSPFile(char *file_name) {
 	Fs_Close(fp);
 }
 
-/*
+/**
  * @brief Dumps info about current file
  */
 void PrintBSPFileSizes(void) {
@@ -483,7 +483,7 @@ void PrintBSPFileSizes(void) {
 uint16_t num_entities;
 entity_t entities[MAX_BSP_ENTITIES];
 
-/*
+/**
  * @brief
  */
 static void StripTrailing(char *e) {
@@ -496,7 +496,7 @@ static void StripTrailing(char *e) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 epair_t *ParseEpair(void) {
@@ -519,7 +519,7 @@ epair_t *ParseEpair(void) {
 	return e;
 }
 
-/*
+/**
  * @brief
  */
 static _Bool ParseEntity(void) {
@@ -551,7 +551,7 @@ static _Bool ParseEntity(void) {
 	return true;
 }
 
-/*
+/**
  * @brief Parses the d_bsp.entity_string string into entities
  */
 void ParseEntities(void) {
@@ -571,7 +571,7 @@ void ParseEntities(void) {
 	}
 }
 
-/*
+/**
  * @brief Generates the entdata string from all the entities
  */
 void UnparseEntities(void) {

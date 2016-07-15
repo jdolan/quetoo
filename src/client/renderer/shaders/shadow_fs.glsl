@@ -1,4 +1,4 @@
-/*
+/**
  * @brief Planar shadows fragment shader.
  */
 
@@ -11,7 +11,7 @@ varying vec4 point;
 
 varying float fog;
 
-/*
+/**
  * @brief
  */
 void ShadowFragment(void) {
@@ -30,14 +30,14 @@ void ShadowFragment(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void FogFragment(void) {
     gl_FragColor.a = mix(gl_FragColor.a, 0.0, fog);
 }
 
-/*
+/**
  * @brief Program entry point.
  */
 void main(void) {

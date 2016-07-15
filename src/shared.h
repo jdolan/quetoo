@@ -24,27 +24,27 @@
 
 #include "collision/cm_types.h"
 
-/*
+/**
  * @brief The origin (0, 0, 0).
  */
 extern vec3_t vec3_origin;
 
-/*
+/**
  * @brief Up (0, 0, 1).
  */
 extern vec3_t vec3_up;
 
-/*
+/**
  * @brief Down (0, 0, -1).
  */
 extern vec3_t vec3_down;
 
-/*
+/**
  * @brief Forward (0, 1, 0).
  */
 extern vec3_t vec3_forward;
 
-/*
+/**
  * @brief Math library.
  */
 #define Clamp(x, y, z)				(x < y ? y : x > z ? z : x)
@@ -66,7 +66,7 @@ extern vec3_t vec3_forward;
 #define Radians(d) 					((d) * 0.01745329251) // * M_PI / 180.0
 #define Degrees(r)					((r) * 57.2957795131) // * 180.0 / M_PI
 
-/*
+/**
  * @brief Math and trigonometry functions.
  */
 int32_t Random(void); // 0 to (2^32)-1
@@ -95,14 +95,14 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 		vec3_t bitangent);
 void RotatePointAroundVector(const vec3_t p, const vec3_t dir, const vec_t degrees, vec3_t out);
 
-/*
+/**
  * @brief A table of approximate normal vectors is used to save bandwidth when
  * transmitting entity angles, which would otherwise require 12 bytes.
  */
 #define NUM_APPROXIMATE_NORMALS 162
 extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
 
-/*
+/**
  * @brief Serialization helpers.
  */
 void PackVector(const vec3_t in, int16_t *out);
@@ -116,13 +116,13 @@ void ClampAngles(vec3_t angles);
 void PackBounds(const vec3_t mins, const vec3_t maxs, uint16_t *out);
 void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs);
 
-/*
+/**
  * @brief Color manipulating.
  */
 vec_t ColorNormalize(const vec3_t in, vec3_t out);
 void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation, vec_t contrast);
 
-/*
+/**
  * @brief String manipulation functions.
  */
 _Bool GlobMatch(const char *pattern, const char *text);

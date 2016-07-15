@@ -210,7 +210,7 @@ void RemovePortalFromNode(portal_t * portal, node_t * l) {
 	}
 }
 
-/*
+/**
  * @brief The created portals will face the global outside_node
  */
 #define	SIDESPACE	8
@@ -303,7 +303,7 @@ static winding_t *BaseWindingForNode(const node_t * node) {
 	return w;
 }
 
-/*
+/**
  * @brief create the new portal by taking the full plane winding for the cutting plane
  * and clipping it by all of parents of this node
  */
@@ -456,7 +456,7 @@ static void CalcNodeBounds(node_t * node) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void MakeTreePortals_r(node_t * node) {
@@ -483,7 +483,7 @@ static void MakeTreePortals_r(node_t * node) {
 	MakeTreePortals_r(node->children[1]);
 }
 
-/*
+/**
  * @brief
  */
 void MakeTreePortals(tree_t * tree) {
@@ -497,7 +497,7 @@ void MakeTreePortals(tree_t * tree) {
  *
  */
 
-/*
+/**
  * @brief
  */
 static void FloodPortals_r(node_t * node, int32_t dist) {
@@ -519,7 +519,7 @@ static void FloodPortals_r(node_t * node, int32_t dist) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static _Bool PlaceOccupant(node_t * head_node, vec3_t origin, entity_t * occupant) {
@@ -545,7 +545,7 @@ static _Bool PlaceOccupant(node_t * head_node, vec3_t origin, entity_t * occupan
 	return true;
 }
 
-/*
+/**
  * @brief Marks all nodes that can be reached by entites
  */
 _Bool FloodEntities(tree_t *tree) {
@@ -608,7 +608,7 @@ _Bool FloodEntities(tree_t *tree) {
 
 static int32_t c_areas;
 
-/*
+/**
  * @brief
  */
 static void FloodAreas_r(node_t * node) {
@@ -723,7 +723,7 @@ static void SetAreaPortalAreas_r(node_t *node) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void EmitAreaPortals(void) {
@@ -763,7 +763,7 @@ void EmitAreaPortals(void) {
 	Com_Verbose("%5i num_area_portals\n", d_bsp.num_area_portals);
 }
 
-/*
+/**
  * @brief Mark each leaf with an area, bounded by CONTENTS_AREA_PORTAL
  */
 void FloodAreas(tree_t *tree) {

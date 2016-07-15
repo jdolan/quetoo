@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-/*
+/**
  * @brief
  */
 void R_UseProgram(const r_program_t *prog) {
@@ -43,7 +43,7 @@ void R_UseProgram(const r_program_t *prog) {
 	R_GetError(NULL);
 }
 
-/*
+/**
  * @brief
  */
 void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *name) {
@@ -76,7 +76,7 @@ void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *na
 	memset(&variable->value, 0xff, sizeof(variable->value));
 }
 
-/*
+/**
  * @brief
  */
 void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
@@ -95,7 +95,7 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
 	R_GetError(variable->name);
 }
 
-/*
+/**
  * @brief
  */
 void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
@@ -114,7 +114,7 @@ void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
 	R_GetError(variable->name);
 }
 
-/*
+/**
  * @brief
  */
 void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
@@ -133,7 +133,7 @@ void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
 	R_GetError(variable->name);
 }
 
-/*
+/**
  * @brief
  */
 void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
@@ -152,7 +152,7 @@ void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
 	R_GetError(variable->name);
 }
 
-/*
+/**
  * @brief
  */
 void R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value) {
@@ -172,7 +172,7 @@ void R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat 
 }
 
 
-/*
+/**
  * @brief
  */
 void R_AttributePointer(const char *name, GLuint size, const GLvoid *array) {
@@ -185,7 +185,7 @@ void R_AttributePointer(const char *name, GLuint size, const GLvoid *array) {
 	R_GetError(name);
 }
 
-/*
+/**
  * @brief
  */
 void R_EnableAttribute(r_attribute_t *attribute) {
@@ -203,7 +203,7 @@ void R_EnableAttribute(r_attribute_t *attribute) {
 	R_GetError(attribute->name);
 }
 
-/*
+/**
  * @brief
  */
 void R_DisableAttribute(r_attribute_t *attribute) {
@@ -221,7 +221,7 @@ void R_DisableAttribute(r_attribute_t *attribute) {
 	R_GetError(attribute->name);
 }
 
-/*
+/**
  * @brief
  */
 static void R_ShutdownShader(r_shader_t *sh) {
@@ -230,7 +230,7 @@ static void R_ShutdownShader(r_shader_t *sh) {
 	memset(sh, 0, sizeof(r_shader_t));
 }
 
-/*
+/**
  * @brief
  */
 static void R_ShutdownProgram(r_program_t *prog) {
@@ -247,7 +247,7 @@ static void R_ShutdownProgram(r_program_t *prog) {
 	memset(prog, 0, sizeof(r_program_t));
 }
 
-/*
+/**
  * @brief
  */
 void R_ShutdownPrograms(void) {
@@ -267,7 +267,7 @@ void R_ShutdownPrograms(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static r_shader_t *R_LoadShader(GLenum type, const char *name) {
@@ -332,7 +332,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	return sh;
 }
 
-/*
+/**
  * @brief
  */
 static r_program_t *R_LoadProgram(const char *name, void (*Init)(void)) {
@@ -391,7 +391,7 @@ static r_program_t *R_LoadProgram(const char *name, void (*Init)(void)) {
 	return prog;
 }
 
-/*
+/**
  * @brief
  */
 void R_InitPrograms(void) {

@@ -22,7 +22,7 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
-/*
+/**
  * @brief
  */
 static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
@@ -128,7 +128,7 @@ void G_misc_teleporter_dest(g_entity_t *ent) {
 	G_InitPlayerSpawn(ent);
 }
 
-/*
+/**
  * @brief
  */
 static void G_misc_fireball_Think(g_entity_t *self) {
@@ -150,7 +150,7 @@ static void G_misc_fireball_Think(g_entity_t *self) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other,
@@ -164,7 +164,7 @@ static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other,
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_misc_fireball_Fly(g_entity_t *self) {

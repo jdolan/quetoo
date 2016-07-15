@@ -40,7 +40,7 @@ typedef struct {
 
 static ui_editor_t ui_editor;
 
-/*
+/**
  * @brief Trace from the view origin to resolve the material to edit.
  */
 static void Ui_Editor_Think(void) {
@@ -68,7 +68,7 @@ static void Ui_Editor_Think(void) {
 	ui_editor.time = quetoo.time;
 }
 
-/*
+/**
  * @brief Callback setting an editor field.
  */
 static void TW_CALL Ui_Editor_SetValue(const void *value, void *data) {
@@ -102,7 +102,7 @@ static void TW_CALL Ui_Editor_SetValue(const void *value, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Callback exposing an editor field.
  */
 static void TW_CALL Ui_Editor_GetValue(void *value, void *data) {
@@ -146,7 +146,7 @@ static void TW_CALL Ui_Editor_GetValue(void *value, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Exposes a material property as a text input accepting floating point.
  */
 void Ui_EditorField(TwBar *bar, ui_editor_field_t field, const char *name, const char *def) {
@@ -172,7 +172,7 @@ void Ui_EditorField(TwBar *bar, ui_editor_field_t field, const char *name, const
 	}
 }
 
-/*
+/**
  * @brief
  */
 TwBar *Ui_Editor(void) {

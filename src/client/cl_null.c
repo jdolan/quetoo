@@ -23,21 +23,21 @@
 
 cl_static_t cls;
 
-/*
+/**
  * @brief
  */
 void Cl_Disconnect(void) {
 
 }
 
-/*
+/**
  * @brief
  */
 void Cl_Frame(const uint32_t msec __attribute__((unused))) {
 
 }
 
-/*
+/**
  * @brief
  */
 void Cl_Init(void) {
@@ -45,7 +45,7 @@ void Cl_Init(void) {
 	memset(&cls, 0, sizeof(cls));
 }
 
-/*
+/**
  * @brief
  */
 void Cl_Shutdown(void) {

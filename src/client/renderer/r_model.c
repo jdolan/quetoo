@@ -35,7 +35,7 @@ static const r_model_format_t r_model_formats[] = { // supported model formats
 	{ ".bsp", MOD_BSP, R_LoadBspModel }
 };
 
-/*
+/**
  * @brief Allocates and populates static VBO's for the specified r_model_t.
  */
 static void R_LoadVertexBuffers(r_model_t *mod) {
@@ -78,7 +78,7 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 	R_GetError(mod->media.name);
 }
 
-/*
+/**
  * @brief Register event listener for models.
  */
 static void R_RegisterModel(r_media_t *self) {
@@ -108,7 +108,7 @@ static void R_RegisterModel(r_media_t *self) {
 	}
 }
 
-/*
+/**
  * @brief Free event listener for models.
  */
 static void R_FreeModel(r_media_t *self) {
@@ -132,7 +132,7 @@ static void R_FreeModel(r_media_t *self) {
 	R_GetError(mod->media.name);
 }
 
-/*
+/**
  * @brief Loads the model by the specified name.
  */
 r_model_t *R_LoadModel(const char *name) {
@@ -205,14 +205,14 @@ r_model_t *R_LoadModel(const char *name) {
 	return mod;
 }
 
-/*
+/**
  * @brief Returns the currently loaded world model (BSP).
  */
 r_model_t *R_WorldModel(void) {
 	return r_model_state.world;
 }
 
-/*
+/**
  * @brief Initializes the model facilities.
  */
 void R_InitModels(void) {

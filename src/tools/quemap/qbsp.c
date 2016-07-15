@@ -45,7 +45,7 @@ int32_t entity_num;
 
 static node_t *block_nodes[10][10];
 
-/*
+/**
  * @brief
  */
 static node_t *BlockTree(int32_t xl, int32_t yl, int32_t xh, int32_t yh) {
@@ -90,7 +90,7 @@ static node_t *BlockTree(int32_t xl, int32_t yl, int32_t xh, int32_t yh) {
 	return node;
 }
 
-/*
+/**
  * @brief
  */
 static int32_t brush_start, brush_end;
@@ -135,7 +135,7 @@ static void ProcessBlock_Thread(int32_t blocknum) {
 	block_nodes[xblock + 5][yblock + 5] = tree->head_node;
 }
 
-/*
+/**
  * @brief
  */
 static void ProcessWorldModel(void) {
@@ -230,7 +230,7 @@ static void ProcessWorldModel(void) {
 	FreeTree(tree);
 }
 
-/*
+/**
  * @brief
  */
 static void ProcessSubModel(void) {
@@ -259,7 +259,7 @@ static void ProcessSubModel(void) {
 	FreeTree(tree);
 }
 
-/*
+/**
  * @brief
  */
 static void ProcessModels(void) {
@@ -281,7 +281,7 @@ static void ProcessModels(void) {
 	EndBSPFile();
 }
 
-/*
+/**
  * @brief
  */
 int32_t BSP_Main(void) {

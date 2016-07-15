@@ -68,14 +68,14 @@ typedef dvec_t dvec2_t[2];
 typedef dvec_t dvec3_t[3];
 typedef dvec_t dvec4_t[4];
 
-/*
+/**
  * @brief Indices for angle vectors.
  */
 #define PITCH				0 // up / down
 #define YAW					1 // left / right
 #define ROLL				2 // tilt / lean
 
-/*
+/**
  * @brief String length constants.
  */
 #define MAX_STRING_CHARS	1024 // max length of a string passed to Cmd_TokenizeString
@@ -84,7 +84,7 @@ typedef dvec_t dvec4_t[4];
 #define MAX_QPATH			64 // max length of a Quake game path
 #define MAX_OS_PATH			260 // max length of a system path
 
-/*
+/**
  * @brief Protocol limits.
  */
 #define MIN_CLIENTS			1 // duh
@@ -98,7 +98,7 @@ typedef dvec_t dvec4_t[4];
 #define MAX_ITEMS			64 // pickup items
 #define MAX_GENERAL			256 // general config strings
 
-/*
+/**
  * @brief Print message levels, for filtering.
  */
 #define PRINT_LOW			0x1
@@ -108,7 +108,7 @@ typedef dvec_t dvec4_t[4];
 #define PRINT_TEAM_CHAT		0x10
 #define PRINT_ECHO			0x20
 
-/*
+/**
  * @brief Console command flags.
  */
 #define CMD_SYSTEM			0x1 // always execute, even if not connected
@@ -120,7 +120,7 @@ typedef dvec_t dvec4_t[4];
 #define CMD_UI				0x40 // added by user interface
 #define CMD_CGAME			0x80 // added by client game module
 
-/*
+/**
  * @brief Console variable flags.
  */
 #define CVAR_CLI			0x1 // will retain value through initialization
@@ -137,7 +137,7 @@ typedef dvec_t dvec4_t[4];
 #define CVAR_R_MASK			(CVAR_R_CONTEXT | CVAR_R_MEDIA)
 #define CVAR_S_MASK 		(CVAR_S_DEVICE | CVAR_S_MEDIA)
 
-/*
+/**
  * @brief Managed memory tags allow freeing of subsystem memory in batch.
  */
 typedef enum {
@@ -155,7 +155,7 @@ typedef enum {
 	MEM_TAG_ALL = -1
 } mem_tag_t;
 
-/*
+/**
  * @brief Console variables hold mutable scalars and strings.
  */
 typedef struct cvar_s {
@@ -172,7 +172,7 @@ typedef struct cvar_s {
 
 typedef void (*CmdExecuteFunc)(void);
 
-/*
+/**
  * @brief Console commands provide a scripting environment for users.
  */
 typedef struct cmd_s {
@@ -183,7 +183,7 @@ typedef struct cmd_s {
 	uint32_t flags;
 } cmd_t;
 
-/*
+/**
  * @brief Server multicast scope for entities and events.
  */
 typedef enum {
@@ -195,7 +195,7 @@ typedef enum {
 	MULTICAST_PVS_R
 } multicast_t;
 
-/*
+/**
  * @brief Server protocol commands. The game and client game module are free
  * to implement custom commands as well (8 bits).
  */
@@ -214,7 +214,7 @@ typedef enum {
 	SV_CMD_CGAME, // the game may extend from here
 } sv_packet_cmd_t;
 
-/*
+/**
  * @brief Client protocol commands. The game and client game module are free
  * to implement custom commands as well (8 bits).
  */
@@ -258,13 +258,13 @@ typedef enum {
 #define CONTENTS_TRANSLUCENT	0x10000000 // auto set if any surface has trans
 #define CONTENTS_LADDER			0x20000000
 
-/*
+/**
  * @brief Leafs will have some combination of the above flags; nodes will
  * always be -1.
  */
 #define CONTENTS_NODE			-1
 
-/*
+/**
  * @brief c_bsp_surface_t.flags.
  */
 #define SURF_LIGHT				0x1 // value will hold the light strength
@@ -281,7 +281,7 @@ typedef enum {
 #define SURF_PHONG				0x800 // phong interpolated lighting at compile time
 #define SURF_MATERIAL			0x1000 // retain the geometry, but don't draw diffuse pass
 
-/*
+/**
  * @brief Contents masks: frequently combined contents flags.
  */
 #define MASK_ALL				(-1)
@@ -293,7 +293,7 @@ typedef enum {
 #define MASK_CLIP_MONSTER		(MASK_CLIP_PLAYER | CONTENTS_MONSTER_CLIP)
 #define MASK_CLIP_PROJECTILE	(MASK_SOLID | MASK_MEAT)
 
-/*
+/**
  * @brief General player movement and capabilities classification.
  */
 typedef enum {
@@ -303,12 +303,12 @@ typedef enum {
 	PM_FREEZE // no movement at all
 } pm_type_t;
 
-/*
+/**
  * @brief Player movement flags. The game is free to define more, to 16 bits.
  */
 #define PMF_NO_PREDICTION	0x1
 
-/*
+/**
  * @brief The player movement state contains quantized snapshots of player
  * position, orientation, velocity and world interaction state. This should
  * be modified only through invoking Pm_Move.
@@ -326,13 +326,13 @@ typedef struct {
 	uint16_t delta_angles[3]; // offset for spawns, pushers, etc.
 } pm_state_t;
 
-/*
+/**
  * @brief Button hits communicated via user_cmd_t.
  */
 #define BUTTON_ATTACK		1
 #define BUTTON_WALK			2
 
-/*
+/**
  * @brief Player movement commands, sent to the server at each client frame.
  */
 typedef struct {
@@ -342,7 +342,7 @@ typedef struct {
 	int16_t forward, right, up; // directional intentions
 } pm_cmd_t;
 
-/*
+/**
  * @brief Sound attenuation constants.
  */
 #define ATTEN_NONE  		0 // full volume the entire level
@@ -351,20 +351,20 @@ typedef struct {
 #define ATTEN_STATIC  		3 // high exponential decay
 #define ATTEN_DEFAULT		ATTEN_NORM
 
-/*
+/**
  * @brief The absolute world bounds is +/- 4096. This is the largest box we can
  * safely encode using 16 bit integers (vec_t * 8.0).
  */
 #define MIN_WORLD_COORD		-4096.0
 #define MAX_WORLD_COORD		 4096.0
 
-/*
+/**
  * @brief Therefore, the maximum distance across the world is the
  * sqrt((2 * 4096.0)^2 + (2 * 4096.0)^2) = 11585.237
  */
 #define MAX_WORLD_DIST		 11586.0
 
-/*
+/**
  * @brief ConfigStrings are a general means of communication from the server to
  * all connected clients. Each ConfigString can be at most MAX_STRING_CHARS in
  * length. The game module is free to populate CS_GENERAL - MAX_CONFIG_STRINGS.
@@ -384,7 +384,7 @@ typedef struct {
 
 #define MAX_CONFIG_STRINGS	(CS_GENERAL + MAX_GENERAL)
 
-/*
+/**
  * @brief Entity animation sequences (player animations) are dictated by the
  * game module but are run (interpolated) by the client game.
  */
@@ -424,12 +424,12 @@ typedef enum {
 	ANIM_LEGS_TURN
 } entity_animation_t;
 
-/*
+/**
  * @brief Restarts the current animation sequence.
  */
 #define ANIM_TOGGLE_BIT 0x80
 
-/*
+/**
  * @brief Entity events are instantaneous, transpiring at an entity's origin
  * for precisely one frame. The game module can define custom events as well
  * (8 bits).
@@ -439,7 +439,7 @@ typedef enum {
 	EV_GAME, // the game may extend from here
 } entity_event_t;
 
-/*
+/**
  * @brief Entity state effects are a bit mask used to combine common effects
  * such as rotating, bobbing, and pulsing. The game module may define custom
  * effects, up to 16 bits.
@@ -451,7 +451,7 @@ typedef enum {
 #define EF_INACTIVE			(1 << 3) // inactive icon for when input is not going to game
 #define EF_GAME				(1 << 4) // the game may extend from here
 
-/*
+/**
  * @brief The 16 high bits of the effects mask are not transmitted by the
  * protocol. Rather, they are reserved for the renderer.
  */
@@ -464,7 +464,7 @@ typedef enum {
 #define EF_NO_SHADOW		(1 << 30) // no shadow
 #define EF_NO_DRAW			(1 << 31) // no draw (but perhaps shadow)
 
-/*
+/**
  * @brief Entity trails are used to apply unique trail effects to entities
  * (typically projectiles).
  */
@@ -473,7 +473,7 @@ typedef enum {
 	TRAIL_GAME, // the game may extend from here
 } entity_trail_t;
 
-/*
+/**
  * @brief Entity bounds are to be handled by the protocol based on
  * entity_state_t.solid. Box entities encode their bounds into a 16 bit
  * integer. The rest simply send their respective constant.
@@ -516,7 +516,7 @@ typedef struct {
 
 #define MAX_STATS			32
 
-/*
+/**
  * @brief Player state structures contain authoritative snapshots of the
  * player's movement, as well as the player's statistics (inventory, health,
  * etc.). The game module is free to define what the stats array actually
@@ -527,7 +527,7 @@ typedef struct player_state_s {
 	int16_t stats[MAX_STATS]; // status bar updates
 } player_state_t;
 
-/*
+/**
  * @brief Colored text escape and code definitions.
  */
 #define COLOR_ESC			'^'
@@ -550,7 +550,7 @@ typedef struct player_state_s {
 #define CON_COLOR_CHAT		CON_COLOR_ALT
 #define CON_COLOR_TEAMCHAT	CON_COLOR_YELLOW
 
-/*
+/**
  * @return True if the byte represents a color escape sequence.
  */
 #define IS_COLOR(c)( \
@@ -559,14 +559,14 @@ typedef struct player_state_s {
 	) \
 )
 
-/*
+/**
  * @return True if the byte represents a legacy color escape sequence.
  */
 #define IS_LEGACY_COLOR(c)( \
 	*c == 1 || *c == 2 \
 )
 
-/*
+/**
  * @return The number of elements, rather than the number of bytes.
  */
 #define lengthof(x) (sizeof(x) / sizeof(*(x)))

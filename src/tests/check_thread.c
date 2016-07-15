@@ -28,7 +28,7 @@ typedef struct {
 
 static critical_section_t cs;
 
-/*
+/**
  * @brief Setup fixture.
  */
 void setup(void) {
@@ -40,7 +40,7 @@ void setup(void) {
 	memset(&cs, 0, sizeof(cs));
 }
 
-/*
+/**
  * @brief Teardown fixture.
  */
 void teardown(void) {
@@ -50,14 +50,14 @@ void teardown(void) {
 	Mem_Shutdown();
 }
 
-/*
+/**
  * @brief Populates the critical section.
  */
 static void produce(void *data __attribute__((unused))) {
 	cs.ready = true; // set the CS to ready
 }
 
-/*
+/**
  * @brief Consumes the critical section.
  */
 static void consume(void *data) {
@@ -81,7 +81,7 @@ START_TEST(check_Thread_Wait)
 
 	}END_TEST
 
-/*
+/**
  * @brief Test entry point.
  */
 int32_t main(int32_t argc, char **argv) {

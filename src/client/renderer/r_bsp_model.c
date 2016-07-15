@@ -27,7 +27,7 @@
  */
 static const byte *r_bsp_base;
 
-/*
+/**
  * @brief Loads the lightmap and deluxemap information into memory so that it
  * may be parsed into GL textures for r_bsp_surface_t. This memory is actually
  * freed once all surfaces are fully loaded.
@@ -56,7 +56,7 @@ static void R_LoadBspLightmaps(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief Loads all r_bsp_cluster_t for the specified BSP model. Note that
  * no information is actually loaded at this point. Rather, space for the
  * clusters is allocated, to be utilized by the PVS algorithm.
@@ -73,7 +73,7 @@ static void R_LoadBspClusters(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	bsp->clusters = Mem_LinkMalloc(bsp->num_clusters * sizeof(r_bsp_cluster_t), bsp);
 }
 
-/*
+/**
  * @brief Loads all r_bsp_vertex_t for the specified BSP model.
  */
 static void R_LoadBspVertexes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
@@ -95,7 +95,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief Populates r_bsp_vertex_t normals for the specified BSP model. Vertex
  * normals are packed in a separate lump to maintain compatibility with legacy
  * Quake2 levels.
@@ -122,7 +122,7 @@ static void R_LoadBspNormals(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief Returns an approximate radius from the specified bounding box.
  */
 static vec_t R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
@@ -135,7 +135,7 @@ static vec_t R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
 	return VectorLength(corner);
 }
 
-/*
+/**
  * @brief Loads all r_bsp_inline_model_t for the specified BSP model. These are
  * later registered as first-class r_model_t's in R_SetupBspInlineModels.
  */
@@ -174,7 +174,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief Recurses the specified sub-model nodes, assigning the model so that it can
  * be quickly resolved during traces and dynamic light processing.
  */
@@ -189,7 +189,7 @@ static void R_SetupBspInlineModel(r_bsp_node_t *node, r_model_t *model) {
 	R_SetupBspInlineModel(node->children[1], model);
 }
 
-/*
+/**
  * @brief The inline models have been loaded into memory, but are not yet
  * represented as r_model_t. Convert them, and take ownership of their nodes.
  */
@@ -219,7 +219,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 	}
 }
 
-/*
+/**
  * @brief Loads all r_bsp_edge_t for the specified BSP model.
  */
 static void R_LoadBspEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
@@ -240,7 +240,7 @@ static void R_LoadBspEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief Loads all r_bsp_texinfo_t for the specified BSP model. Texinfo's
  * are shared by one or more r_bsp_surface_t.
  */
@@ -292,14 +292,14 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief Convenience for resolving r_bsp_vertex_t from surface edges.
  */
 #define R_BSP_VERTEX(b, e) ((e) >= 0 ? \
 	(&b->vertexes[b->edges[(e)].v[0]]) : (&b->vertexes[b->edges[-(e)].v[1]]) \
 )
 
-/*
+/**
  * @brief Unwinds the surface, iterating all non-collinear vertices.
  *
  * @return The next winding point, or NULL if the face is completely unwound.
@@ -333,7 +333,7 @@ static const r_bsp_vertex_t *R_UnwindBspSurface(const r_bsp_model_t *bsp,
 	return NULL;
 }
 
-/*
+/**
  * @brief Resolves the surface bounding box and lightmap texture coordinates.
  */
 static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
@@ -402,7 +402,7 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	}
 }
 
-/*
+/**
  * @brief Loads all r_bsp_surface_t for the specified BSP model. Lightmap and
  * deluxemap creation is driven by this function.
  */
@@ -470,7 +470,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief Recurses the BSP tree, setting the parent field on each node. The
  * recursion stops at leafs. This is used by the PVS algorithm to mark a path
  * to the BSP leaf in which the view origin resides.
@@ -486,7 +486,7 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent) {
 	R_SetupBspNode(node->children[1], node);
 }
 
-/*
+/**
  * @brief Loads all r_bsp_node_t for the specified BSP model.
  */
 static void R_LoadBspNodes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
@@ -528,7 +528,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	R_SetupBspNode(bsp->nodes, NULL); // sets nodes and leafs
 }
 
-/*
+/**
  * @brief Loads all r_bsp_leaf_t for the specified BSP model.
  */
 static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
@@ -562,7 +562,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
@@ -589,7 +589,7 @@ static void R_LoadBspLeafSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void R_LoadBspSurfaceEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
@@ -615,7 +615,7 @@ static void R_LoadBspSurfaceEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		out[i] = LittleLong(in[i]);
 }
 
-/*
+/**
  * @brief
  */
 static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
@@ -645,7 +645,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
-/*
+/**
  * @brief Writes vertex data for the given surface to the load model's arrays.
  *
  * @param count The current vertex count for the load model.
@@ -717,7 +717,7 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 	}
 }
 
-/*
+/**
  * @brief Generates vertex primitives for the world model by iterating leafs.
  */
 static void R_LoadBspVertexArrays(r_model_t *mod) {
@@ -752,7 +752,7 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 	}
 }
 
-/*
+/**
  * @brief Qsort comparator for R_SortBspSurfaceArrays.
  */
 static int R_SortBspSurfacesArrays_Compare(const void *s1, const void *s2) {
@@ -763,7 +763,7 @@ static int R_SortBspSurfacesArrays_Compare(const void *s1, const void *s2) {
 	return g_strcmp0(t1->name, t2->name);
 }
 
-/*
+/**
  * @brief Reorders all surfaces arrays for the world model, grouping the surface
  * pointers by texture. This dramatically reduces glBindTexture calls.
  */
@@ -779,7 +779,7 @@ static void R_SortBspSurfacesArrays(r_bsp_model_t *bsp) {
 	}
 }
 
-/*
+/**
  * @brief Allocate, populate and sort the surfaces arrays for the world model.
  */
 static void R_LoadBspSurfacesArrays(r_model_t *mod) {
@@ -871,7 +871,7 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 	R_SortBspSurfacesArrays(mod->bsp);
 }
 
-/*
+/**
  * @brief
  */
 void R_LoadBspModel(r_model_t *mod, void *buffer) {

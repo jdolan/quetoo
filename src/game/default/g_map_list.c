@@ -23,7 +23,7 @@
 
 GList *g_map_list;
 
-/*
+/**
  * @brief Populates g_map_list from a text file. See default/maps.lst
  */
 static void G_MapList_Parse(const char *filename) {
@@ -168,7 +168,7 @@ static void G_MapList_Parse(const char *filename) {
 	gi.FreeFile(buf);
 }
 
-/*
+/**
  * @brief
  */
 const g_map_list_map_t *G_MapList_Find(const char *name) {
@@ -183,7 +183,7 @@ const g_map_list_map_t *G_MapList_Find(const char *name) {
 	return NULL;
 }
 
-/*
+/**
  * @brief
  */
 const g_map_list_map_t *G_MapList_Next(void) {
@@ -217,7 +217,7 @@ static void G_NextMap_f(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_MapList_Init(void) {
@@ -229,7 +229,7 @@ void G_MapList_Init(void) {
 	gi.Cmd("g_next_map", G_NextMap_f, CMD_GAME, "Advances the server to the next map");
 }
 
-/*
+/**
  * @brief
  */
 void G_MapList_Shutdown(void) {

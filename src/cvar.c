@@ -31,7 +31,7 @@ static cvar_state_t cvar_state;
 
 _Bool cvar_user_info_modified;
 
-/*
+/**
  * @return True if the specified string appears to be a valid "info" string.
  */
 static _Bool Cvar_InfoValidate(const char *s) {
@@ -46,7 +46,7 @@ static _Bool Cvar_InfoValidate(const char *s) {
 	return true;
 }
 
-/*
+/**
  * @return The variable by the specified name, or NULL.
  */
 static cvar_t *Cvar_Get_(const char *name) {
@@ -58,7 +58,7 @@ static cvar_t *Cvar_Get_(const char *name) {
 	return NULL;
 }
 
-/*
+/**
  * @return The numeric value for the specified variable, or 0.
  */
 vec_t Cvar_GetValue(const char *name) {
@@ -72,7 +72,7 @@ vec_t Cvar_GetValue(const char *name) {
 	return atof(var->string);
 }
 
-/*
+/**
  * @return The string for the specified variable, or the empty string.
  */
 char *Cvar_GetString(const char *name) {
@@ -86,7 +86,7 @@ char *Cvar_GetString(const char *name) {
 	return var->string;
 }
 
-/*
+/**
  * @brief Enumerates all known variables with the given function.
  */
 void Cvar_Enumerate(CvarEnumerateFunc func, void *data) {
@@ -105,7 +105,7 @@ void Cvar_Enumerate(CvarEnumerateFunc func, void *data) {
 
 static const char *cvar_complete_pattern;
 
-/*
+/**
  * @brief Enumeration helper for Cvar_CompleteVar.
  */
 static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
@@ -121,7 +121,7 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Console completion for console variables.
  */
 void Cvar_CompleteVar(const char *pattern, GList **matches) {
@@ -129,7 +129,7 @@ void Cvar_CompleteVar(const char *pattern, GList **matches) {
 	Cvar_Enumerate(Cvar_CompleteVar_enumerate, (void *) matches);
 }
 
-/*
+/**
  * @brief If the variable already exists, the value will not be modified. The
  * default value, flags, and description will, however, be updated. This way,
  * variables set at the command line can receive their meta data through the
@@ -193,7 +193,7 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 	return var;
 }
 
-/*
+/**
  * @brief
  */
 static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
@@ -291,21 +291,21 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 	return var;
 }
 
-/*
+/**
  * @brief
  */
 cvar_t *Cvar_ForceSet(const char *name, const char *value) {
 	return Cvar_Set_(name, value, true);
 }
 
-/*
+/**
  * @brief
  */
 cvar_t *Cvar_Set(const char *name, const char *value) {
 	return Cvar_Set_(name, value, false);
 }
 
-/*
+/**
  * @brief
  */
 cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
@@ -330,7 +330,7 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 	return var;
 }
 
-/*
+/**
  * @brief
  */
 void Cvar_SetValue(const char *name, vec_t value) {
@@ -344,7 +344,7 @@ void Cvar_SetValue(const char *name, vec_t value) {
 	Cvar_Set(name, val);
 }
 
-/*
+/**
  * @brief
  */
 void Cvar_Toggle(const char *name) {
@@ -363,7 +363,7 @@ void Cvar_Toggle(const char *name) {
 		Cvar_SetValue(name, 1.0);
 }
 
-/*
+/**
  * @brief Enumeration helper for Cvar_ResetLocal.
  */
 void Cvar_ResetLocal_enumerate(cvar_t *var, void *data __attribute__((unused))) {
@@ -375,7 +375,7 @@ void Cvar_ResetLocal_enumerate(cvar_t *var, void *data __attribute__((unused))) 
 	}
 }
 
-/*
+/**
  * @brief Reset CVAR_LO_ONLY to their default values.
  */
 void Cvar_ResetLocal(void) {
@@ -387,7 +387,7 @@ void Cvar_ResetLocal(void) {
 	}
 }
 
-/*
+/**
  * @brief Enumeration helper for Cvar_PendingLatched.
  */
 static void Cvar_PendingLatched_enumerate(cvar_t *var, void *data) {
@@ -397,7 +397,7 @@ static void Cvar_PendingLatched_enumerate(cvar_t *var, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Returns true if there are any CVAR_LATCH variables pending.
  */
 _Bool Cvar_PendingLatched(void) {
@@ -408,7 +408,7 @@ _Bool Cvar_PendingLatched(void) {
 	return pending;
 }
 
-/*
+/**
  * @brief Enumeration helper for Cvar_UpdateLatched.
  */
 void Cvar_UpdateLatched_enumerate(cvar_t *var, void *data __attribute__((unused))) {
@@ -424,7 +424,7 @@ void Cvar_UpdateLatched_enumerate(cvar_t *var, void *data __attribute__((unused)
 	}
 }
 
-/*
+/**
  * @brief Apply any pending latched changes.
  */
 void Cvar_UpdateLatched(void) {
@@ -433,7 +433,7 @@ void Cvar_UpdateLatched(void) {
 
 static _Bool cvar_pending;
 
-/*
+/**
  * @brief Enumeration helper for Cvar_Pending.
  */
 static void Cvar_Pending_enumerate(cvar_t *var, void *data) {
@@ -444,7 +444,7 @@ static void Cvar_Pending_enumerate(cvar_t *var, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Returns true if any variables whose flags match the specified mask are pending.
  */
 _Bool Cvar_Pending(uint32_t flags) {
@@ -455,7 +455,7 @@ _Bool Cvar_Pending(uint32_t flags) {
 	return cvar_pending;
 }
 
-/*
+/**
  * @brief Enumeration helper for Cvar_ClearAll.
  */
 static void Cvar_ClearAll_enumerate(cvar_t *var, void *data) {
@@ -466,14 +466,14 @@ static void Cvar_ClearAll_enumerate(cvar_t *var, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Clears the modified flag on all variables matching the specified mask.
  */
 void Cvar_ClearAll(uint32_t flags) {
 	Cvar_Enumerate(Cvar_ClearAll_enumerate, (void *) &flags);
 }
 
-/*
+/**
  * @brief Handles variable inspection and changing from the console
  */
 _Bool Cvar_Command(void) {
@@ -494,7 +494,7 @@ _Bool Cvar_Command(void) {
 	return true;
 }
 
-/*
+/**
  * @brief Allows setting and defining of arbitrary cvars from console
  */
 static void Cvar_Set_f(void) {
@@ -515,7 +515,7 @@ static void Cvar_Set_f(void) {
 	}
 }
 
-/*
+/**
  * @brief Allows toggling of arbitrary cvars from console.
  */
 static void Cvar_Toggle_f(void) {
@@ -526,7 +526,7 @@ static void Cvar_Toggle_f(void) {
 	Cvar_Toggle(Cmd_Argv(1));
 }
 
-/*
+/**
  * @brief Enumeration helper for Cvar_List_f.
  */
 static void Cvar_List_f_enumerate(cvar_t *var, void *data __attribute__((unused))) {
@@ -575,14 +575,14 @@ static void Cvar_List_f_enumerate(cvar_t *var, void *data __attribute__((unused)
 		Com_Print("\t^2%s^7\n", var->description);
 }
 
-/*
+/**
  * @brief Lists all known console variables.
  */
 static void Cvar_List_f(void) {
 	Cvar_Enumerate(Cvar_List_f_enumerate, NULL);
 }
 
-/*
+/**
  * @brief Enumeration helper for Cvar_Userinfo.
  */
 static void Cvar_UserInfo_enumerate(cvar_t *var, void *data) {
@@ -592,7 +592,7 @@ static void Cvar_UserInfo_enumerate(cvar_t *var, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Returns an info string containing all the CVAR_USER_INFO cvars.
  */
 char *Cvar_UserInfo(void) {
@@ -605,7 +605,7 @@ char *Cvar_UserInfo(void) {
 	return info;
 }
 
-/*
+/**
  * @brief Enumeration helper for Cvar_ServerInfo.
  */
 static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
@@ -615,7 +615,7 @@ static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
 	}
 }
 
-/*
+/**
  * @return An info string containing all the CVAR_SERVER_INFO cvars.
  */
 char *Cvar_ServerInfo(void) {
@@ -628,7 +628,7 @@ char *Cvar_ServerInfo(void) {
 	return info;
 }
 
-/*
+/**
  * @brief Enumeration helper for Cl_WriteVariables.
  */
 static void Cvar_WriteVariables_enumerate(cvar_t *var, void *data) {
@@ -638,7 +638,7 @@ static void Cvar_WriteVariables_enumerate(cvar_t *var, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Writes all variables to the specified file.
  */
 void Cvar_WriteAll(file_t *f) {
@@ -683,7 +683,7 @@ void Cvar_Init(void) {
 	}
 }
 
-/*
+/**
  * @brief Shuts down the console variable subsystem.
  */
 void Cvar_Shutdown(void) {

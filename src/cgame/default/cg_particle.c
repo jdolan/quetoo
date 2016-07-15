@@ -26,7 +26,7 @@ static cg_particles_t *cg_active_particles; // list of active particles, by imag
 
 static cg_particle_t cg_particles[MAX_PARTICLES];
 
-/*
+/**
  * @brief Pushes the particle onto the head of specified list.
  */
 static void Cg_PushParticle(cg_particle_t *p, cg_particle_t **list) {
@@ -41,7 +41,7 @@ static void Cg_PushParticle(cg_particle_t *p, cg_particle_t **list) {
 	*list = p;
 }
 
-/*
+/**
  * @brief Pops the particle from the specified list, repairing the list if it
  * becomes broken.
  */
@@ -62,7 +62,7 @@ static void Cg_PopParticle(cg_particle_t *p, cg_particle_t **list) {
 	p->prev = p->next = NULL;
 }
 
-/*
+/**
  * @brief Allocates a free particle with the specified type and image.
  */
 cg_particle_t *Cg_AllocParticle(const uint16_t type, cg_particles_t *particles) {
@@ -91,7 +91,7 @@ cg_particle_t *Cg_AllocParticle(const uint16_t type, cg_particles_t *particles) 
 	return p;
 }
 
-/*
+/**
  * @brief Frees the specified particle, returning the particle it was pointing
  * to as a convenience for continued iteration.
  */
@@ -113,7 +113,7 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
 	return next;
 }
 
-/*
+/**
  * @brief Allocates a particles chain for the specified image.
  */
 cg_particles_t *Cg_AllocParticles(const r_image_t *image) {
@@ -128,7 +128,7 @@ cg_particles_t *Cg_AllocParticles(const r_image_t *image) {
 	return particles;
 }
 
-/*
+/**
  * @brief Frees all particles, returning them to the eligible list.
  */
 void Cg_FreeParticles(void) {
@@ -144,7 +144,7 @@ void Cg_FreeParticles(void) {
 	}
 }
 
-/*
+/**
  * @brief Adds all particles that are active for this frame to the view.
  * Particles that fade or shrink beyond visibility are freed.
  */

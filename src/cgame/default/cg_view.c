@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-/*
+/**
  * @brief Update the field of view, which affects the view port as well as the culling
  * frustum.
  */
@@ -46,7 +46,7 @@ static void Cg_UpdateFov(void) {
 	cg_fov->modified = false;
 }
 
-/*
+/**
  * @brief Update the third person offset, if any. This is used as a client-side
  * option, or as the default chase camera view.
  */
@@ -92,7 +92,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps __attribute__((unused)
 	AngleVectors(cgi.view->angles, cgi.view->forward, cgi.view->right, cgi.view->up);
 }
 
-/*
+/**
  * @brief Calculate the view bob. This is done using a running time counter and a
  * simple sin function. The player's speed, as well as whether or not they
  * are on the ground, determine the bob frequency and amplitude.
@@ -140,7 +140,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	VectorMA(cgi.view->origin, cgi.view->bob, cgi.view->up, cgi.view->origin);
 }
 
-/*
+/**
  * @brief Updates the view for the renderer. The camera origin, bob effect, and field
  * of view are each augmented here. Other modifications can be made at your own
  * risk. This is called once per frame by the engine to finalize the view so
@@ -155,7 +155,7 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 	Cg_UpdateBob(&frame->ps);
 }
 
-/*
+/**
  * @brief Processes all entities, particles, emits, etc.. adding them to the view.
  * This is called once per frame by the engine, after Cg_UpdateView, and is run
  * in a separate thread while the renderer begins drawing the world.

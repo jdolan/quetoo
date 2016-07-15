@@ -25,7 +25,7 @@
 #include "../master/main.c"
 #undef main
 
-/*
+/**
  * @brief Setup fixture.
  */
 void setup(void) {
@@ -35,7 +35,7 @@ void setup(void) {
 	Fs_Init(false);
 }
 
-/*
+/**
  * @brief Teardown fixture.
  */
 void teardown(void) {
@@ -104,7 +104,7 @@ START_TEST(check_Ms_BlacklistServer)
 
 	}END_TEST
 
-/*
+/**
  * @brief Test entry point.
  */
 int32_t main(int32_t argc, char **argv) {

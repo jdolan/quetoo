@@ -1,4 +1,4 @@
-/*
+/**
  * @brief Shell fragment shader.
  */
 
@@ -6,7 +6,7 @@
 
 uniform sampler2D SAMPLER0;
 
-/*
+/**
  * @brief Shader entry point.
  */
 void main(void) {

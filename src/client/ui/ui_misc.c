@@ -21,7 +21,7 @@
 
 #include "ui_local.h"
 
-/*
+/**
  * @brief Displays the TwBar specified by name in data, hiding all others.
  */
 void TW_CALL Ui_ShowBar(void *data) {
@@ -44,7 +44,7 @@ void TW_CALL Ui_ShowBar(void *data) {
 	Ui_CenterBar((void *) name);
 }
 
-/*
+/**
  * @brief Centers the TwBar by the specified name.
  */
 void TW_CALL Ui_CenterBar(void *data) {

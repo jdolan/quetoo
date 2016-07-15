@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-/*
+/**
  * @brief
  */
 static void G_Ai_ClientThink(g_entity_t *self) {
@@ -35,7 +35,7 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 	self->locals.next_think = g_level.time + gi.frame_millis;
 }
 
-/*
+/**
  * @brief
  */
 static void G_Ai_Spawn(g_entity_t *self) {
@@ -52,7 +52,7 @@ static void G_Ai_Spawn(g_entity_t *self) {
 
 }
 
-/*
+/**
  * @brief
  */
 static void G_Ai_Add_f(void) {
@@ -81,7 +81,7 @@ static void G_Ai_Add_f(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_Ai_Init(void) {
@@ -89,7 +89,7 @@ void G_Ai_Init(void) {
 	gi.Cmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
 }
 
-/*
+/**
  * @brief
  */
 void G_Ai_Shutdown(void) {

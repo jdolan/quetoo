@@ -22,7 +22,7 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
-/*
+/**
  * @brief Inspect all damage received this frame and play a pain sound if appropriate.
  */
 static void G_ClientDamage(g_entity_t *ent) {
@@ -60,7 +60,7 @@ static void G_ClientDamage(g_entity_t *ent) {
 	client->locals.damage_inflicted = 0;
 }
 
-/*
+/**
  * @brief Handles water entry and exit
  */
 static void G_ClientWaterInteraction(g_entity_t *ent) {
@@ -144,7 +144,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	ent->locals.old_water_level = water_level;
 }
 
-/*
+/**
  * @brief Set the angles of the client's world model, after clamping them to sane
  * values.
  */
@@ -173,7 +173,7 @@ static void G_ClientWorldAngles(g_entity_t *ent) {
 
 #define KICK_SCALE 15.0
 
-/*
+/**
  * @brief Adds view kick in the specified direction to the specified client.
  */
 void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick) {
@@ -190,7 +190,7 @@ void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick) {
 	PackAngles(kick_angles, ent->client->ps.pm_state.kick_angles);
 }
 
-/*
+/**
  * @brief A convenience function for adding view kick from firing weapons.
  */
 void G_ClientWeaponKick(g_entity_t *ent, const vec_t kick) {
@@ -201,7 +201,7 @@ void G_ClientWeaponKick(g_entity_t *ent, const vec_t kick) {
 	G_ClientDamageKick(ent, dir, kick);
 }
 
-/*
+/**
  * @brief Sets the kick value based on recent events such as falling. Firing of
  * weapons may also set the kick value, and we factor that in here as well.
  */
@@ -275,7 +275,7 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 	PackAngles(kick, kick_angles);
 }
 
-/*
+/**
  * @brief Sets the animation sequences for the specified entity. This is called
  * towards the end of each frame, after our ground entity and water level have
  * been resolved.
@@ -369,7 +369,7 @@ static void G_ClientAnimation(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief Called for each client at the end of the server frame.
  */
 void G_ClientEndFrame(g_entity_t *ent) {
@@ -418,7 +418,7 @@ void G_ClientEndFrame(g_entity_t *ent) {
 		G_ClientScores(ent);
 }
 
-/*
+/**
  * @brief
  */
 void G_EndClientFrames(void) {

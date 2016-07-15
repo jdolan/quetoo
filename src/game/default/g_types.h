@@ -24,13 +24,13 @@
 
 #include "shared.h"
 
-/*
+/**
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
 #define PROTOCOL_MINOR 1006
 
-/*
+/**
  * @brief Game-specific server protocol commands. These are parsed directly by
  * the client game module.
  */
@@ -41,7 +41,7 @@ typedef enum {
 	SV_CMD_TEMP_ENTITY
 } g_sv_packet_cmd_t;
 
-/*
+/**
  * @brief Game-specific client protocol commands. These are parsed directly by
  * the game module.
  */
@@ -49,7 +49,7 @@ typedef enum {
 	CL_CMD_EXAMPLE
 } g_cl_packet_cmd_t;
 
-/*
+/**
  * @brief Game modes. These are selected via g_gameplay.
  */
 typedef enum {
@@ -59,7 +59,7 @@ typedef enum {
 	GAME_DUEL
 } g_gameplay_t;
 
-/*
+/**
  * @brief ConfigStrings that are local to the game module.
  */
 #define CS_GAMEPLAY			(CS_GENERAL + 0) // gameplay string
@@ -72,7 +72,7 @@ typedef enum {
 #define CS_TIME				(CS_GENERAL + 7) // level or match timer
 #define CS_ROUND			(CS_GENERAL + 8) // round number
 #define CS_VOTE				(CS_GENERAL + 9) // vote string\yes count\no count
-/*
+/**
  * @brief Player state statistics (inventory, score, etc).
  */
 typedef enum {
@@ -102,12 +102,12 @@ typedef enum {
 	STAT_WEAPON_ICON
 } g_stat_t;
 
-/*
+/**
  * @brief Forces a statistic field to be re-sent, even if the value has not changed.
  */
 #define STAT_TOGGLE_BIT		0x8000
 
-/*
+/**
  * @brief Muzzle flashes are bound to the entity that created them. This allows
  * the protocol to forego sending the origin and angles for the effect, as they
  * can be inferred from the referenced entity.
@@ -126,7 +126,7 @@ typedef enum {
 	MZ_LOGOUT,
 } g_muzzle_flash_t;
 
-/*
+/**
  * @brief Temporary entities are positional events that are not explicitly
  * bound to a game entity (g_entity_t). Examples are explosions, certain weapon
  * trails and other short-lived effects.
@@ -148,7 +148,7 @@ typedef enum {
 	TE_GIB
 } g_temp_entity_t;
 
-/*
+/**
  * @brief Player scores are transmitted as binary to the client game module.
  */
 typedef struct {
@@ -160,7 +160,7 @@ typedef struct {
 	uint8_t flags;
 } g_score_t;
 
-/*
+/**
  * @brief Player scores flags.
  */
 #define SCORE_TEAM_GOOD		(1 << 0)
@@ -170,7 +170,7 @@ typedef struct {
 #define SCORE_SPECTATOR		(1 << 4)
 #define SCORE_AGGREGATE		(1 << 5)
 
-/*
+/**
  * @brief Game-specific entity events.
  */
 typedef enum {
@@ -186,7 +186,7 @@ typedef enum {
 	EV_ITEM_PICKUP,
 } g_entity_event_t;
 
-/*
+/**
  * @brief Game-specific entity state effects.
  */
 #define EF_BEAM				(EF_GAME << 0) // overloads old_origin for endpoint
@@ -198,7 +198,7 @@ typedef enum {
 #define EF_DESPAWN			(EF_GAME << 6) // translucent
 #define EF_LIGHT			(EF_GAME << 7) // colored light
 
-/*
+/**
  * @brief Game-specific entity state trails.
  */
 typedef enum {
@@ -213,7 +213,7 @@ typedef enum {
 	TRAIL_FIREBALL
 } g_entity_trail_t;
 
-/*
+/**
  * @brief Effect colors for particle trails and dynamic light flashes.
  */
 #define EFFECT_COLOR_RED 232
@@ -226,13 +226,13 @@ typedef enum {
 #define EFFECT_COLOR_PURPLE 187
 #define EFFECT_COLOR_DEFAULT 0
 
-/*
+/**
  * @brief Scoreboard background colors.
  */
 #define TEAM_COLOR_GOOD 243
 #define TEAM_COLOR_EVIL 242
 
-/*
+/**
  * @brief Entity state model number to indicate that the entity is a client.
  * When this is set, the model should be resolved from CS_CLIENTS.
  */
@@ -240,7 +240,7 @@ typedef enum {
 
 #ifdef __GAME_LOCAL_H__
 
-/*
+/**
  * @brief This file will define the game-visible definitions of g_client_t
  * and g_entity_t. They are much larger than the server-visible definitions,
  * which are intentionally truncated stubs.
@@ -248,14 +248,14 @@ typedef enum {
 typedef struct g_client_s g_client_t;
 typedef struct g_entity_s g_entity_t;
 
-/*
+/**
  * @brief Spawn flags for g_entity_t are set in the level editor.
  */
 #define SF_ITEM_TRIGGER			0x00000001
 #define SF_ITEM_NO_TOUCH		0x00000002
 #define SF_ITEM_HOVER			0x00000004
 
-/*
+/**
  * @brief These are legacy spawn flags from Quake II. We maintain these simply
  * for backwards compatibility with old levels. They do nothing in QUETOO.
  */
@@ -265,14 +265,14 @@ typedef struct g_entity_s g_entity_t;
 #define SF_NOT_DEATHMATCH		0x00000800
 #define SF_NOT_COOP				0x00001000
 
-/*
+/**
  * @brief These spawn flags are actually set by the game module on entities
  * that are programmatically instantiated.
  */
 #define SF_ITEM_DROPPED			0x00010000
 #define SF_ITEM_TARGETS_USED	0x00020000
 
-/*
+/**
  * @brief Entity flags (g_entity_locals.flags). These again are mostly for
  * backwards compatibility with Quake II.
  * still valid.
@@ -282,7 +282,7 @@ typedef struct g_entity_s g_entity_t;
 #define FL_GOD_MODE				0x00000004
 #define FL_TEAM_SLAVE			0x00000008  // not the first on the team
 
-/*
+/**
  * @brief Ammunition types.
  */
 typedef enum {
@@ -297,7 +297,7 @@ typedef enum {
 	AMMO_NUKES
 } g_ammo_t;
 
-/*
+/**
  * @brief Armor types.
  */
 typedef enum {
@@ -308,7 +308,7 @@ typedef enum {
 	ARMOR_SHARD
 } g_armor_t;
 
-/*
+/**
  * @brief Armor attributes.
  */
 typedef struct {
@@ -319,7 +319,7 @@ typedef struct {
 	vec_t energy_protection;
 } g_armor_info_t;
 
-/*
+/**
  * @brief Health types.
  */
 typedef enum {
@@ -330,7 +330,7 @@ typedef enum {
 	HEALTH_MEGA
 } g_health_t;
 
-/*
+/**
  * @brief Move types govern the physics dispatch in G_RunEntity.
  */
 typedef enum {
@@ -344,13 +344,13 @@ typedef enum {
 	MOVE_TYPE_BOUNCE // clip to world and boxes, gravity, bounce
 } g_move_type_t;
 
-/*
+/**
  * @brief A synonym for readability; MOVE_TYPE_THINK implies that the entity's
  * Think function will update its origin and handle other interactions.
  */
 #define MOVE_TYPE_THINK MOVE_TYPE_NONE
 
-/*
+/**
  * @brief Item types.
  */
 typedef enum {
@@ -362,7 +362,7 @@ typedef enum {
 	ITEM_WEAPON
 } g_item_type_t;
 
-/*
+/**
  * @brief Items are touchable entities that players visit to acquire inventory.
  */
 typedef struct g_item_s {
@@ -390,7 +390,7 @@ typedef struct g_item_s {
 	const char *precaches; // string of all models, sounds, and images this item will use
 } g_item_t;
 
-/*
+/**
  * @brief A singleton container used to hold entity information that is set
  * in the editor (and thus the entities string) but that does not map directly
  * to a field in g_entity_t.
@@ -424,7 +424,7 @@ typedef struct {
 #define LOFS(x) (ptrdiff_t)&(((g_entity_t *) 0)->locals.x)
 #define SOFS(x) (ptrdiff_t)&(((g_spawn_temp_t *) 0)->x)
 
-/*
+/**
  * @brief Movement states.
  */
 typedef enum {
@@ -434,7 +434,7 @@ typedef enum {
 	MOVE_STATE_TOP,
 } g_move_state_t;
 
-/*
+/**
  * @brief Physics parameters and think functions for entities which move.
  */
 typedef struct {
@@ -466,7 +466,7 @@ typedef struct {
 	void (*Done)(g_entity_t *);
 } g_move_info_t;
 
-/*
+/**
  * @brief This structure is initialized when the game module is loaded and
  * remains in tact until it is unloaded. The server receives the pointers
  * within this structure so that it may e.g. iterate over entities.
@@ -489,7 +489,7 @@ extern g_game_t g_game;
 #define MSTAT_COUNTDOWN		1<<2
 
 
-/*
+/**
  * @brief This structure holds references to frequently accessed media.
  */
 typedef struct {
@@ -531,7 +531,7 @@ typedef struct {
 
 } g_media_t;
 
-/*
+/**
  * @brief The main structure for all world management. This is cleared at each
  * level load.
  */
@@ -584,7 +584,7 @@ typedef struct {
 	uint32_t timeout_frame;
 } g_level_t;
 
-/*
+/**
  * @brief Means of death.
  */
 #define MOD_UNKNOWN					0
@@ -618,7 +618,7 @@ typedef struct {
 #define MOD_FIREBALL				28
 #define MOD_FRIENDLY_FIRE			0x8000000
 
-/*
+/**
  * @brief Damage flags. These can be and often are combined.
  */
 #define DMG_RADIUS		0x1  // damage was indirect
@@ -626,7 +626,7 @@ typedef struct {
 #define DMG_BULLET		0x4  // damage is from a bullet
 #define DMG_NO_ARMOR	0x8  // armor does not protect from this damage
 #define DMG_NO_GOD		0x10  // armor and god mode have no effect
-/*
+/**
  * @brief Voting constants.
  */
 #define MAX_VOTE_TIME 60000
@@ -638,12 +638,12 @@ typedef enum {
 	VOTE_NO
 } g_vote_t;
 
-/*
+/**
  * @brief Team name and team skin changes are throttled.
  */
 #define TEAM_CHANGE_TIME 5000
 
-/*
+/**
  * @brief There are two teams in the default game module.
  */
 typedef struct {
@@ -655,22 +655,22 @@ typedef struct {
 	uint32_t skin_time;
 } g_team_t;
 
-/*
+/**
  * @brief The default user info string (name and skin).
  */
 #define DEFAULT_USER_INFO "\\name\\newbie\\skin\\qforcer/default"
 
-/*
+/**
  * @brief The full length of a net name, in bytes (including non-printables).
  */
 #define MAX_NET_NAME 64
 
-/*
+/**
  * @brief The maximum printable length of a net name.
  */
 #define MAX_NET_NAME_PRINTABLE 15
 
-/*
+/**
  * @brief This structure contains client data that persists over multiple
  * spawns. Part of this is legacy code; "persistence" refers to saved game
  * state.
@@ -697,7 +697,7 @@ typedef struct {
 	uint32_t round_num; // most recent arena round
 } g_client_persistent_t;
 
-/*
+/**
  * @brief This structure is cleared on each spawn, with the persistent structure
  * explicitly copied over to preserve team membership, etc. This structure
  * extends the server-visible definition to provide all of the state management
@@ -775,7 +775,7 @@ typedef struct {
 	const g_item_t *last_dropped; // last dropped item, used for variable expansion
 } g_client_locals_t;
 
-/*
+/**
  * @brief Finally the g_entity_locals structure extends the server stub to
  * provide all of the state management the game module requires.
  */

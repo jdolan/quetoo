@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-/*
+/**
  * @brief
  */
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) {
@@ -65,7 +65,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 	cgi.PlaySample(org, 0, cg_sample_blaster_hit, ATTEN_NORM);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
@@ -91,7 +91,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 	VectorScale(p->vel, v < 1000.0 ? v : 1000.0, p->vel);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
@@ -172,7 +172,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
@@ -197,7 +197,7 @@ static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
 	VectorAdd(org, dir, p->part.org);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
@@ -230,7 +230,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 #define GIB_STREAM_DIST 180.0
 #define GIB_STREAM_COUNT 24
 
-/*
+/**
  * @brief
  */
 void Cg_GibEffect(const vec3_t org, int32_t count) {
@@ -289,7 +289,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 	cgi.PlaySample(org, -1, cg_sample_gib, ATTEN_DEFAULT);
 }
 
-/*
+/**
  * @brief
  */
 void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
@@ -332,7 +332,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	cgi.PlaySample(org, -1, cg_sample_sparks, ATTEN_STATIC);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_ExplosionEffect(const vec3_t org) {
@@ -408,7 +408,7 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	cgi.PlaySample(org, -1, cg_sample_explosion, ATTEN_NORM);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_HyperblasterEffect(const vec3_t org) {
@@ -442,7 +442,7 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 	cgi.PlaySample(org, -1, cg_sample_hyperblaster_hit, ATTEN_NORM);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_LightningEffect(const vec3_t org) {
@@ -470,7 +470,7 @@ static void Cg_LightningEffect(const vec3_t org) {
 	cgi.PlaySample(org, -1, cg_sample_lightning_discharge, ATTEN_NORM);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, int32_t color) {
@@ -585,7 +585,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 	cgi.AddSustainedLight(&s);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
@@ -612,7 +612,7 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 	cgi.AddLight(&l);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_BfgEffect(const vec3_t org) {
@@ -667,7 +667,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 	cgi.PlaySample(org, -1, cg_sample_bfg_hit, ATTEN_NORM);
 }
 
-/*
+/**
  * @brief
  */
 void Cg_ParseTempEntity(void) {

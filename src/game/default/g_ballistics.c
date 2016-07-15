@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-/*
+/**
  * @brief Adds a fraction of the player's velocity to the given projectile.
  */
 static void G_PlayerProjectile(g_entity_t *ent, const vec_t scale) {
@@ -34,7 +34,7 @@ static void G_PlayerProjectile(g_entity_t *ent, const vec_t scale) {
 	}
 }
 
-/*
+/**
  * @brief Returns true if the entity is facing a wall at too close proximity
  * for the specified projectile.
  */
@@ -46,14 +46,14 @@ static _Bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile) {
 	return tr.fraction < 1.0;
 }
 
-/*
+/**
  * @brief Returns true if the specified entity takes damage.
  */
 static _Bool G_TakesDamage(g_entity_t *ent) {
 	return (ent && ent->locals.take_damage);
 }
 
-/*
+/**
  * @brief Used to add generic bubble trails to shots.
  */
 static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
@@ -83,7 +83,7 @@ static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr) {
 	gi.Multicast(pos, MULTICAST_PHS, NULL);
 }
 
-/*
+/**
  * @brief Used to add tracer trails to bullet shots.
  */
 static void G_Tracer(const vec3_t start, const vec3_t end) {
@@ -113,7 +113,7 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
 	}
 }
 
-/*
+/**
  * @brief Used to add impact marks on surfaces hit by bullets.
  */
 static void G_BulletMark(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *surf) {
@@ -129,7 +129,7 @@ static void G_BulletMark(vec3_t org, cm_bsp_plane_t *plane, cm_bsp_surface_t *su
 	gi.Multicast(org, MULTICAST_PHS, NULL);
 }
 
-/*
+/**
  * @brief Used to add burn marks on surfaces hit by projectiles.
  */
 static void G_BurnMark(vec3_t org, const cm_bsp_plane_t *plane,
@@ -144,7 +144,7 @@ static void G_BurnMark(vec3_t org, const cm_bsp_plane_t *plane,
 	gi.Multicast(org, MULTICAST_PHS, NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
@@ -177,7 +177,7 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 	G_FreeEntity(self);
 }
 
-/*
+/**
  * @brief
  */
 void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
@@ -218,7 +218,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	gi.LinkEntity(projectile);
 }
 
-/*
+/**
  * @brief
  */
 void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
@@ -253,7 +253,7 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
@@ -263,7 +263,7 @@ void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 		G_BulletProjectile(ent, start, dir, damage, knockback, hspread, vspread, mod);
 }
 
-/*
+/**
  * @brief
  */
 static void G_GrenadeProjectile_Explode(g_entity_t *self) {
@@ -314,7 +314,7 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
 	G_FreeEntity(self);
 }
 
-/*
+/**
  * @brief mostly a copy of the grenade launcher version but with different
  * means of death messages
  */
@@ -375,7 +375,7 @@ static void G_HandGrenadeProjectile_Explode(g_entity_t *self) {
 	G_FreeEntity(self);
 }
 
-/*
+/**
  * @brief
  */
 void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
@@ -411,7 +411,7 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other,
 		G_GrenadeProjectile_Explode(self);
 }
 
-/*
+/**
  * @brief
  */
 void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, int32_t speed,
@@ -506,7 +506,7 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 	projectile->locals.next_think = g_level.time + timer;
 	projectile->locals.Think = G_HandGrenadeProjectile_Explode;
 }
-/*
+/**
  * @brief
  */
 static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
@@ -549,7 +549,7 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 	G_FreeEntity(self);
 }
 
-/*
+/**
  * @brief
  */
 void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
@@ -582,7 +582,7 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 	gi.LinkEntity(projectile);
 }
 
-/*
+/**
  * @brief
  */
 static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
@@ -636,7 +636,7 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 	G_FreeEntity(self);
 }
 
-/*
+/**
  * @brief
  */
 void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
@@ -665,7 +665,7 @@ void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t 
 	gi.LinkEntity(projectile);
 }
 
-/*
+/**
  * @brief
  */
 static void G_LightningProjectile_Discharge(g_entity_t *self) {
@@ -702,7 +702,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
 	gi.WritePosition(self->s.origin);
 }
 
-/*
+/**
  * @brief
  */
 static _Bool G_LightningProjectile_Expire(g_entity_t *self) {
@@ -716,7 +716,7 @@ static _Bool G_LightningProjectile_Expire(g_entity_t *self) {
 	return false;
 }
 
-/*
+/**
  * @brief
  */
 static void G_LightningProjectile_Think(g_entity_t *self) {
@@ -787,7 +787,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	self->locals.next_think = g_level.time + gi.frame_millis;
 }
 
-/*
+/**
  * @brief
  */
 void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
@@ -831,7 +831,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 	projectile->locals.timestamp = g_level.time;
 }
 
-/*
+/**
  * @brief
  */
 void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int16_t damage,
@@ -933,7 +933,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_bsp_plane_t *plane,
@@ -979,7 +979,7 @@ static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_
 	G_FreeEntity(self);
 }
 
-/*
+/**
  * @brief
  */
 static void G_BfgProjectile_Think(g_entity_t *self) {
@@ -1019,7 +1019,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 	self->locals.next_think = g_level.time + gi.frame_millis;
 }
 
-/*
+/**
  * @brief
  */
 void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,

@@ -30,7 +30,7 @@ typedef struct {
 
 static g_mysql_state_t g_mysql_state;
 
-/*
+/**
  * @brief Execute a MySQL query string.
  */
 static void G_MySQL_Query(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
@@ -50,7 +50,7 @@ static void G_MySQL_Query(const char *fmt, ...) {
 	}
 }
 
-/*
+/**
  * @return The MySQL-escaped name for the given entity.
  */
 static const char *G_MySQL_EntityName(const g_entity_t *ent) {
@@ -81,7 +81,7 @@ static const char *G_MySQL_EntityName(const g_entity_t *ent) {
 
 #endif
 
-/*
+/**
  * @brief Records a frag to MySQL.
  */
 void G_MySQL_ClientObituary(const g_entity_t *self, const g_entity_t *attacker, const uint32_t mod) {
@@ -99,7 +99,7 @@ void G_MySQL_ClientObituary(const g_entity_t *self, const g_entity_t *attacker, 
 #endif
 }
 
-/*
+/**
  * @brief Initializes a connection MySQL (if available, and compiled).
  */
 void G_MySQL_Init(void) {
@@ -127,7 +127,7 @@ void G_MySQL_Init(void) {
 #endif
 }
 
-/*
+/**
  * @brief Shutdown MySQL.
  */
 void G_MySQL_Shutdown(void) {

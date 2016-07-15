@@ -28,7 +28,7 @@ uint32_t c_peak_windings;
 
 static const dvec_t MIN_EPSILON = (FLT_EPSILON * (dvec_t) 0.5);
 
-/*
+/**
  * @brief
  */
 winding_t *AllocWinding(int32_t points) {
@@ -45,7 +45,7 @@ winding_t *AllocWinding(int32_t points) {
 	return Mem_Malloc(sizeof(int32_t) + sizeof(vec3_t) * points);
 }
 
-/*
+/**
  * @brief
  */
 void FreeWinding(winding_t *w) {
@@ -56,7 +56,7 @@ void FreeWinding(winding_t *w) {
 	Mem_Free(w);
 }
 
-/*
+/**
  * @brief
  */
 void RemoveColinearPoints(winding_t *w) {
@@ -93,7 +93,7 @@ void RemoveColinearPoints(winding_t *w) {
 	memcpy(w->points, p, nump * sizeof(p[0]));
 }
 
-/*
+/**
  * @brief
  */
 void WindingPlane(const winding_t *w, vec3_t normal, vec_t *dist) {
@@ -106,7 +106,7 @@ void WindingPlane(const winding_t *w, vec3_t normal, vec_t *dist) {
 	*dist = DotProduct(w->points[0], normal);
 }
 
-/*
+/**
  * @brief
  */
 vec_t WindingArea(const winding_t *w) {
@@ -124,7 +124,7 @@ vec_t WindingArea(const winding_t *w) {
 	return total;
 }
 
-/*
+/**
  * @brief
  */
 void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs) {
@@ -144,7 +144,7 @@ void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void WindingCenter(const winding_t *w, vec3_t center) {
@@ -159,7 +159,7 @@ void WindingCenter(const winding_t *w, vec3_t center) {
 	VectorScale(center, scale, center);
 }
 
-/*
+/**
  * @brief Create a massive polygon for the specified plane. This will be used
  * as the basis for all clipping operations against the plane. Double precision
  * is used to produce very accurate results; this is an improvement over the
@@ -225,7 +225,7 @@ winding_t *WindingForPlane(const vec3_t normal, const vec_t dist) {
 	return w;
 }
 
-/*
+/**
  * @brief
  */
 winding_t *WindingForFace(const d_bsp_face_t * f) {
@@ -253,7 +253,7 @@ winding_t *WindingForFace(const d_bsp_face_t * f) {
 	return w;
 }
 
-/*
+/**
  * @brief
  */
 winding_t *CopyWinding(const winding_t *w) {
@@ -266,7 +266,7 @@ winding_t *CopyWinding(const winding_t *w) {
 	return c;
 }
 
-/*
+/**
  * @brief
  */
 winding_t *ReverseWinding(winding_t *w) {
@@ -281,7 +281,7 @@ winding_t *ReverseWinding(winding_t *w) {
 	return c;
 }
 
-/*
+/**
  * @brief
  */
 void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t epsilon,
@@ -384,7 +384,7 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t ep
 		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n");
 }
 
-/*
+/**
  * @brief
  */
 void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist,

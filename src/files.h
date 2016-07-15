@@ -24,7 +24,7 @@
 
 #include "shared.h"
 
-/*
+/**
  * @brief Quake2 .wal legacy texture format.
  */
 typedef struct {
@@ -38,7 +38,7 @@ typedef struct {
 	int32_t value;
 } d_wal_t;
 
-/*
+/**
  * @brief Quake3 .md3 model format.
  */
 #define MD3_HEADER			(('3'<<24)+('P'<<16)+('D'<<8)+'I')
@@ -127,7 +127,7 @@ typedef struct {
 	int32_t ofs_end;
 } d_md3_t;
 
-/*
+/**
  * @brief .bsp file format. Quetoo supports idTech2 BSP as well as an
  * extended version containing per-pixel lighting information (deluxemaps) and
  * vertex normals (BSP_LUMP_NORMALS).
@@ -313,7 +313,7 @@ typedef struct {
 	int32_t first_area_portal;
 } d_bsp_area_t;
 
-/*
+/**
  * @brief .aas format. Under heavy construction.
  */
 

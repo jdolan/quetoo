@@ -23,7 +23,7 @@
 
 #define MESH_SHADOW_ALPHA 0.33
 
-/*
+/**
  * @brief Sets the shadow color, which is dependent on the entity's alpha blend
  * and its distance from the shadow plane.
  */
@@ -39,7 +39,7 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *
 	R_Color(color);
 }
 
-/*
+/**
  * @brief Projects the model view matrix for the entity onto the shadow plane,
  * and concatenates it to the current model view matrix.
  */
@@ -77,7 +77,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 	glMultMatrixf((GLfloat *) proj.m);
 }
 
-/*
+/**
  * @brief Sets renderer state for the given entity and shadow.
  */
 static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *s) {
@@ -94,7 +94,7 @@ static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *
 	glStencilFunc(GL_EQUAL, (s->plane.num % 0xff) + 1, ~0);
 }
 
-/*
+/**
  * @brief Restores renderer state for the given entity and shadow.
  */
 static void R_ResetMeshShadowState_default(const r_entity_t *e __attribute__((unused)),
@@ -103,7 +103,7 @@ static void R_ResetMeshShadowState_default(const r_entity_t *e __attribute__((un
 	R_RotateForMeshShadow_default(NULL, NULL);
 }
 
-/*
+/**
  * @brief Draws the shadow `s` for the specified entity `e`.
  */
 static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) {
@@ -115,7 +115,7 @@ static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) 
 	R_ResetMeshShadowState_default(e, s);
 }
 
-/*
+/**
  * @brief Draws all shadows for the specified entity.
  */
 void R_DrawMeshShadow_default(const r_entity_t *e) {
@@ -154,7 +154,7 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 	r_view.current_shadow = NULL;
 }
 
-/*
+/**
  * @brief Draws all mesh model shadows for the current frame.
  */
 void R_DrawMeshShadows_default(const r_entities_t *ents) {

@@ -21,7 +21,7 @@
 
 #include "cl_local.h"
 
-/*
+/**
  * @brief Clears all volatile view members so that a new scene may be populated.
  */
 static void Cl_ClearView(void) {
@@ -39,7 +39,7 @@ static void Cl_ClearView(void) {
 	r_view.num_mesh_models = r_view.num_mesh_tris = 0;
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_UpdateViewSize(void) {
@@ -63,7 +63,7 @@ static void Cl_UpdateViewSize(void) {
 	cl_view_size->modified = false;
 }
 
-/*
+/**
  * @brief The origin is typically calculated using client sided prediction, provided
  * the client is not viewing a demo, playing in 3rd person mode, or chasing
  * another player.
@@ -104,7 +104,7 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 	r_view.contents = Cl_PointContents(r_view.origin);
 }
 
-/*
+/**
  * @brief The angles are typically fetched from input, after factoring in client-side
  * prediction, unless the client is watching a demo or chase camera.
  */
@@ -161,7 +161,7 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 	AngleVectors(r_view.angles, r_view.forward, r_view.right, r_view.up);
 }
 
-/*
+/**
  * @brief Updates the r_view_t for the renderer. Origin, angles, etc are calculated.
  * Scene population is then delegated (asynchronously) to the client game.
  */
@@ -193,21 +193,21 @@ void Cl_UpdateView(void) {
 	r_view.thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateView, &cl.frame);
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_ViewSizeUp_f(void) {
 	Cvar_SetValue("cl_view_size", cl_view_size->integer + 10);
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_ViewSizeDown_f(void) {
 	Cvar_SetValue("cl_view_size", cl_view_size->integer - 10);
 }
 
-/*
+/**
  * @brief
  */
 void Cl_InitView(void) {

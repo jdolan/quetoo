@@ -82,7 +82,7 @@ static g_entity_spawn_t g_entity_spawns[] = { // entity class names -> spawn fun
 	{ NULL, NULL }
 };
 
-/*
+/**
  * @brief Finds the spawn function for the entity and calls it.
  */
 static void G_SpawnEntity(g_entity_t *ent) {
@@ -118,7 +118,7 @@ static void G_SpawnEntity(g_entity_t *ent) {
 	gi.Debug("%s doesn't have a spawn function\n", ent->class_name);
 }
 
-/*
+/**
  * @brief
  */
 static char *G_NewString(const char *string) {
@@ -220,7 +220,7 @@ static const g_field_t fields[] = {
 	{ 0, 0, 0, 0 }
 };
 
-/*
+/**
  * @brief Takes a key-value pair and sets the binary values in an entity.
  */
 static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
@@ -273,7 +273,7 @@ static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
 	//gi.Debug("%s is not a field\n", key);
 }
 
-/*
+/**
  * @brief Parses an entity out of the given string, returning the new position
  * in said string. The entity should be a properly initialized free entity.
  */
@@ -321,7 +321,7 @@ static const char *G_ParseEntity(const char *data, g_entity_t *ent) {
 	return data;
 }
 
-/*
+/**
  * @brief Chain together all entities with a matching team field.
  *
  * All but the first will have the FL_TEAM_SLAVE flag set.
@@ -376,7 +376,7 @@ static void G_InitEntityTeams(void) {
 	gi.Debug("%i teams with %i entities\n", teams, team_entities);
 }
 
-/*
+/**
  * @brief Resolves references to frequently accessed media.
  */
 static void G_InitMedia(void) {
@@ -435,7 +435,7 @@ static void G_InitMedia(void) {
 	G_PrecacheItem(G_FindItem("Body Armor"));
 }
 
-/*
+/**
  * @brief Creates a server's entity / program execution context by
  * parsing textual entity definitions out of an ent file.
  */
@@ -505,7 +505,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	G_InitMedia();
 }
 
-/*
+/**
  * @brief
  */
 static void G_WorldspawnMusic(void) {

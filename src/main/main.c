@@ -45,7 +45,7 @@ static void Shutdown(const char *msg);
 static void Verbose(const char *msg);
 static void Warn(const char *msg);
 
-/*
+/**
  * @brief Filters debugging output to when the `debug` cvar is set.
  */
 static void Debug(const char *msg) {
@@ -55,7 +55,7 @@ static void Debug(const char *msg) {
 	}
 }
 
-/*
+/**
  * @brief Callback for subsystem failures. Depending on the severity, we may try to
  * recover, or we may shut the entire engine down and exit.
  */
@@ -79,7 +79,7 @@ static void Error(err_t err, const char *msg) {
 	}
 }
 
-/*
+/**
  * @brief Delegates all printing to the console.
  */
 static void Print(const char *msg) {
@@ -91,7 +91,7 @@ static void Print(const char *msg) {
 	}
 }
 
-/*
+/**
  * @brief Filters verbose output to when the `verbose` cvar is set.
  */
 static void Verbose(const char *msg) {
@@ -102,7 +102,7 @@ static void Verbose(const char *msg) {
 
 }
 
-/*
+/**
  * @brief Prints the specified message with a colored accent.
  */
 static void Warn(const char *msg) {
@@ -110,7 +110,7 @@ static void Warn(const char *msg) {
 	Print(va("^3%s", msg));
 }
 
-/*
+/**
  * @brief
  */
 static void Quit_f(void) {
@@ -118,7 +118,7 @@ static void Quit_f(void) {
 	Com_Shutdown("Server quit\n");
 }
 
-/*
+/**
  * @brief
  */
 static void Init(void) {
@@ -179,7 +179,7 @@ static void Init(void) {
 	}
 }
 
-/*
+/**
  * @brief Cleans up all game engine subsystems.
  */
 static void Shutdown(const char *msg) {
@@ -206,7 +206,7 @@ static void Shutdown(const char *msg) {
 	Mem_Shutdown();
 }
 
-/*
+/**
  * @brief
  */
 static void Frame(const uint32_t msec) {
@@ -236,7 +236,7 @@ static void Frame(const uint32_t msec) {
 	Cl_Frame(msec);
 }
 
-/*
+/**
  * @brief The entry point of the program.
  */
 int32_t main(int32_t argc, char **argv) {

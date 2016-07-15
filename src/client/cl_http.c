@@ -40,7 +40,7 @@ typedef struct {
 
 static cl_http_state_t cl_http_state;
 
-/*
+/**
  * @brief cURL HTTP receive handler.
  */
 static size_t Cl_HttpDownload_Receive(void *buffer, size_t size, size_t count, void *p __attribute__((unused))) {
@@ -48,7 +48,7 @@ static size_t Cl_HttpDownload_Receive(void *buffer, size_t size, size_t count, v
 	return i > 0 ? (size_t) i : 0;
 }
 
-/*
+/**
  * @brief If a download is currently taking place, clean it up. This is called
  * both to finalize completed downloads as well as abort incomplete ones.
  */
@@ -99,7 +99,7 @@ void Cl_HttpDownload_Complete() {
 	cl_http_state.ready = true;
 }
 
-/*
+/**
  * @brief Queue up an HTTP download. The URL is resolved from cls.download_url and
  * the current game. We use cURL's multi interface, even tho we only ever
  * perform one download at a time, because it is non-blocking.
@@ -143,7 +143,7 @@ _Bool Cl_HttpDownload(void) {
 	return true;
 }
 
-/*
+/**
  * @brief Process the pending download by giving cURL some time to think.
  * Poll it for feedback on the transfer to determine what action to take.
  * If a transfer fails, stuff a string cmd to download it via UDP. Since
@@ -196,7 +196,7 @@ void Cl_HttpThink(void) {
 	}
 }
 
-/*
+/**
  * @brief Initializes the HTTP subsystem.
  */
 void Cl_InitHttp(void) {
@@ -213,7 +213,7 @@ void Cl_InitHttp(void) {
 
 }
 
-/*
+/**
  * @brief Shuts down the HTTP subsystem.
  */
 void Cl_ShutdownHttp(void) {

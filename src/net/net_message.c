@@ -26,14 +26,14 @@ typedef union {
 	vec_t v;
 } net_vec_t;
 
-/*
+/**
  * @brief
  */
 void Net_WriteData(mem_buf_t *msg, const void *data, size_t len) {
 	Mem_WriteBuffer(msg, data, len);
 }
 
-/*
+/**
  * @brief
  */
 void Net_WriteChar(mem_buf_t *msg, const int32_t c) {
@@ -43,7 +43,7 @@ void Net_WriteChar(mem_buf_t *msg, const int32_t c) {
 	buf[0] = c;
 }
 
-/*
+/**
  * @brief
  */
 void Net_WriteByte(mem_buf_t *msg, const int32_t c) {
@@ -53,7 +53,7 @@ void Net_WriteByte(mem_buf_t *msg, const int32_t c) {
 	buf[0] = c;
 }
 
-/*
+/**
  * @brief
  */
 void Net_WriteShort(mem_buf_t *msg, const int32_t c) {
@@ -64,7 +64,7 @@ void Net_WriteShort(mem_buf_t *msg, const int32_t c) {
 	buf[1] = c >> 8;
 }
 
-/*
+/**
  * @brief
  */
 void Net_WriteLong(mem_buf_t *msg, const int32_t c) {
@@ -77,7 +77,7 @@ void Net_WriteLong(mem_buf_t *msg, const int32_t c) {
 	buf[3] = c >> 24;
 }
 
-/*
+/**
  * @brief
  */
 void Net_WriteString(mem_buf_t *msg, const char *s) {
@@ -87,7 +87,7 @@ void Net_WriteString(mem_buf_t *msg, const char *s) {
 		Mem_WriteBuffer(msg, s, strlen(s) + 1);
 }
 
-/*
+/**
  * @brief
  */
 void Net_WriteVector(mem_buf_t *msg, const vec_t v) {
@@ -99,7 +99,7 @@ void Net_WriteVector(mem_buf_t *msg, const vec_t v) {
 	Net_WriteLong(msg, vec.i);
 }
 
-/*
+/**
  * @brief
  */
 void Net_WritePosition(mem_buf_t *msg, const vec3_t pos) {
@@ -108,14 +108,14 @@ void Net_WritePosition(mem_buf_t *msg, const vec3_t pos) {
 	Net_WriteVector(msg, pos[2]);
 }
 
-/*
+/**
  * @brief
  */
 void Net_WriteAngle(mem_buf_t *msg, const vec_t v) {
 	Net_WriteShort(msg, PackAngle(v));
 }
 
-/*
+/**
  * @brief
  */
 void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles) {
@@ -124,7 +124,7 @@ void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles) {
 	Net_WriteAngle(msg, angles[2]);
 }
 
-/*
+/**
  * @brief
  */
 void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
@@ -142,7 +142,7 @@ void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
 	Net_WriteByte(msg, best);
 }
 
-/*
+/**
  * @brief
  */
 void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t *to) {
@@ -188,7 +188,7 @@ void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t 
 	Net_WriteByte(msg, to->msec);
 }
 
-/*
+/**
  * @brief
  */
 void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const player_state_t *to) {
@@ -286,7 +286,7 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 	}
 }
 
-/*
+/**
  * @brief Writes an entity's state changes to a net message. Can delta from
  * either a baseline or a previous packet_entity
  */
@@ -385,14 +385,14 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		Net_WriteShort(msg, to->solid);
 }
 
-/*
+/**
  * @brief
  */
 void Net_BeginReading(mem_buf_t *msg) {
 	msg->read = 0;
 }
 
-/*
+/**
  * @brief
  */
 void Net_ReadData(mem_buf_t *msg, void *data, size_t len) {
@@ -403,7 +403,7 @@ void Net_ReadData(mem_buf_t *msg, void *data, size_t len) {
 	}
 }
 
-/*
+/**
  * @brief Returns -1 if no more characters are available.
  */
 int32_t Net_ReadChar(mem_buf_t *msg) {
@@ -418,7 +418,7 @@ int32_t Net_ReadChar(mem_buf_t *msg) {
 	return c;
 }
 
-/*
+/**
  * @brief
  */
 int32_t Net_ReadByte(mem_buf_t *msg) {
@@ -433,7 +433,7 @@ int32_t Net_ReadByte(mem_buf_t *msg) {
 	return c;
 }
 
-/*
+/**
  * @brief
  */
 int32_t Net_ReadShort(mem_buf_t *msg) {
@@ -449,7 +449,7 @@ int32_t Net_ReadShort(mem_buf_t *msg) {
 	return c;
 }
 
-/*
+/**
  * @brief
  */
 int32_t Net_ReadLong(mem_buf_t *msg) {
@@ -466,7 +466,7 @@ int32_t Net_ReadLong(mem_buf_t *msg) {
 	return c;
 }
 
-/*
+/**
  * @brief
  */
 char *Net_ReadString(mem_buf_t *msg) {
@@ -486,7 +486,7 @@ char *Net_ReadString(mem_buf_t *msg) {
 	return string;
 }
 
-/*
+/**
  * @brief
  */
 char *Net_ReadStringLine(mem_buf_t *msg) {
@@ -506,7 +506,7 @@ char *Net_ReadStringLine(mem_buf_t *msg) {
 	return string;
 }
 
-/*
+/**
  * @brief
  */
 vec_t Net_ReadVector(mem_buf_t *msg) {
@@ -518,7 +518,7 @@ vec_t Net_ReadVector(mem_buf_t *msg) {
 	return vec.v;
 }
 
-/*
+/**
  * @brief
  */
 void Net_ReadPosition(mem_buf_t *msg, vec3_t pos) {
@@ -527,14 +527,14 @@ void Net_ReadPosition(mem_buf_t *msg, vec3_t pos) {
 	pos[2] = Net_ReadVector(msg);
 }
 
-/*
+/**
  * @brief
  */
 vec_t Net_ReadAngle(mem_buf_t *msg) {
 	return UnpackAngle(Net_ReadShort(msg));
 }
 
-/*
+/**
  * @brief
  */
 void Net_ReadAngles(mem_buf_t *msg, vec3_t angles) {
@@ -543,7 +543,7 @@ void Net_ReadAngles(mem_buf_t *msg, vec3_t angles) {
 	angles[2] = Net_ReadAngle(msg);
 }
 
-/*
+/**
  * @brief
  */
 void Net_ReadDir(mem_buf_t *msg, vec3_t dir) {
@@ -557,7 +557,7 @@ void Net_ReadDir(mem_buf_t *msg, vec3_t dir) {
 	VectorCopy(approximate_normals[b], dir);
 }
 
-/*
+/**
  * @brief
  */
 void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to) {
@@ -586,7 +586,7 @@ void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to) {
 	to->msec = Net_ReadByte(msg);
 }
 
-/*
+/**
  * @brief
  */
 void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player_state_t *to) {
@@ -645,7 +645,7 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to,

@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 
-/*
+/**
  * @brief
  */
 static void Cg_EnergyFlash(const entity_state_t *ent, uint8_t color) {
@@ -61,7 +61,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, uint8_t color) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_SmokeFlash(const entity_state_t *ent) {
@@ -127,14 +127,14 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	p->accel[2] = 5.0;
 }
 
-/*
+/**
  * @brief FIXME: This should be a tentity instead; would make more sense.
  */
 static void Cg_LogoutFlash(const vec3_t org) {
 	Cg_GibEffect(org, 12);
 }
 
-/*
+/**
  * @brief
  */
 void Cg_ParseMuzzleFlash(void) {

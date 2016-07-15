@@ -23,7 +23,7 @@
 
 static GList *materials;
 
-/*
+/**
  * @brief
  */
 static void AddMaterial(const char *name) {
@@ -36,7 +36,7 @@ static void AddMaterial(const char *name) {
 	}
 }
 
-/*
+/**
  * @brief Loads the specified BSP file, resolves all materials referenced by it,
  * and generates a "stub" materials file.
  */

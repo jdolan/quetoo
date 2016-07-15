@@ -46,7 +46,7 @@
 #define MAX_BACKTRACE_SYMBOLS 50
 #endif
 
-/*
+/**
  * @return Milliseconds since Quake execution began.
  */
 uint32_t Sys_Milliseconds(void) {
@@ -61,7 +61,7 @@ uint32_t Sys_Milliseconds(void) {
 	return (time.tv_sec - base) * 1000 + time.tv_usec / 1000;
 }
 
-/*
+/**
  * @return The current executable path (argv[0]).
  */
 const char *Sys_ExecutablePath(void) {
@@ -92,14 +92,14 @@ const char *Sys_ExecutablePath(void) {
 	return NULL;
 }
 
-/*
+/**
  * @return The current user's name.
  */
 const char *Sys_Username(void) {
 	return g_get_user_name();
 }
 
-/*
+/**
  * @brief Returns the current user's Quetoo directory.
  *
  * @remark On Windows, this is `\My Documents\My Games\Quetoo`. On POSIX
@@ -119,7 +119,7 @@ const char *Sys_UserDir(void) {
 	return user_dir;
 }
 
-/*
+/**
  * @brief
  */
 void Sys_OpenLibrary(const char *name, void **handle) {
@@ -146,7 +146,7 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 	Com_Error(ERR_DROP, "Couldn't find %s\n", so_name);
 }
 
-/*
+/**
  * @brief Closes an open game module.
  */
 void Sys_CloseLibrary(void **handle) {
@@ -155,7 +155,7 @@ void Sys_CloseLibrary(void **handle) {
 	*handle = NULL;
 }
 
-/*
+/**
  * @brief Opens and loads the specified shared library. The function identified by
  * entry_point is resolved and invoked with the specified parameters, its
  * return value returned by this function.
@@ -181,7 +181,7 @@ void *Sys_LoadLibrary(const char *name, void **handle, const char *entry_point, 
 	return EntryPoint(params);
 }
 
-/*
+/**
  * @brief On platforms supporting it, print a backtrace.
  */
 void Sys_Backtrace(void) {
@@ -196,7 +196,7 @@ void Sys_Backtrace(void) {
 #endif
 }
 
-/*
+/**
  * @brief Catch kernel interrupts and dispatch the appropriate exit routine.
  */
 void Sys_Signal(int32_t s) {

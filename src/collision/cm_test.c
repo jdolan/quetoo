@@ -21,7 +21,7 @@
 
 #include "cm_local.h"
 
-/*
+/**
  * @return A bit mask hinting at the sign of each normal vector component. This
  * can be used to optimize plane side tests.
  */
@@ -36,7 +36,7 @@ int32_t Cm_SignBitsForPlane(const cm_bsp_plane_t *p) {
 	return bits;
 }
 
-/*
+/**
  * @return The sidedness of the given bounds relative to the specified plane.
  * If the box straddles the plane, SIDE_BOTH is returned.
  */
@@ -101,7 +101,7 @@ int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_pla
 	return sides;
 }
 
-/*
+/**
  * @brief Bounding box to BSP tree structure for box positional testing.
  */
 typedef struct {
@@ -113,7 +113,7 @@ typedef struct {
 
 static cm_box_t cm_box;
 
-/*
+/**
  * @brief Appends a brush (6 nodes, 12 planes) opaquely to the primary BSP
  * structure to represent the bounding box used for Cm_BoxLeafnums. This brush
  * is never tested by the rest of the collision detection code, as it resides
@@ -196,7 +196,7 @@ void Cm_InitBoxHull(void) {
 	}
 }
 
-/*
+/**
  * @brief Initializes the box hull for the specified bounds, returning the
  * head node for the resulting box hull tree.
  */
@@ -220,7 +220,7 @@ int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t conten
 	return cm_box.head_node;
 }
 
-/*
+/**
  * @brief
  */
 static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
@@ -244,7 +244,7 @@ static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
 	return -1 - num;
 }
 
-/*
+/**
  * @return The leaf number containing the specified point.
  */
 int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
@@ -255,7 +255,7 @@ int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
 	return Cm_PointLeafnum_r(p, head_node);
 }
 
-/*
+/**
  * @brief Contents check against the world model.
  *
  * @param p The point to check.
@@ -273,7 +273,7 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
 	return cm_bsp.leafs[leaf_num].contents;
 }
 
-/*
+/**
  * @brief Contents check for non-world models. Rotates and translates the point
  * into the model's space, and recurses the BSP tree. For inline BSP models,
  * the head node is the root of the model's subtree. For mesh models, a special
@@ -294,7 +294,7 @@ int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node,
 	return Cm_PointContents(p0, head_node);
 }
 
-/*
+/**
  * @brief Data binding structure for box to leaf tests.
  */
 typedef struct {
@@ -304,7 +304,7 @@ typedef struct {
 	int32_t top_node;
 } cm_box_leafnum_data;
 
-/*
+/**
  * @brief Recurse the BSP tree from the specified node, accumulating leafs the
  * given box occupies in the data structure.
  */
@@ -336,7 +336,7 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 	}
 }
 
-/*
+/**
  * @brief Populates the list of leafs the specified bounding box touches. If
  * top_node is not NULL, it will contain the top node of the BSP tree that
  * fully contains the box.

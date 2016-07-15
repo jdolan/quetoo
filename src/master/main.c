@@ -44,7 +44,7 @@ static int32_t ms_sock;
 static _Bool verbose;
 static _Bool debug;
 
-/*
+/**
  * @brief Shorthand for printing Internet addresses.
  */
 static const char *atos(const struct sockaddr_in *addr) {
@@ -53,7 +53,7 @@ static const char *atos(const struct sockaddr_in *addr) {
 
 #define stos(s) (atos(&s->addr))
 
-/*
+/**
  * @brief Returns the server for the specified address, or NULL.
  */
 static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
@@ -73,7 +73,7 @@ static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
 	return NULL;
 }
 
-/*
+/**
  * @brief Removes the specified server.
  */
 static void Ms_DropServer(ms_server_t *server) {
@@ -83,7 +83,7 @@ static void Ms_DropServer(ms_server_t *server) {
 	Mem_Free(server);
 }
 
-/*
+/**
  * @brief Returns true if the specified server has been blacklisted, false otherwise.
  * The format of the blacklist file is one-IP-per-line, with wildcards. Ex:
  *
@@ -128,7 +128,7 @@ static _Bool Ms_BlacklistServer(struct sockaddr_in *from) {
 	return blacklisted;
 }
 
-/*
+/**
  * @brief Adds the specified server to the master.
  */
 static void Ms_AddServer(struct sockaddr_in *from) {
@@ -155,7 +155,7 @@ static void Ms_AddServer(struct sockaddr_in *from) {
 	sendto(ms_sock, "\xFF\xFF\xFF\xFF" "ack", 7, 0, (struct sockaddr *) from, sizeof(*from));
 }
 
-/*
+/**
  * @brief Removes the specified server.
  */
 static void Ms_RemoveServer(struct sockaddr_in *from) {
@@ -170,7 +170,7 @@ static void Ms_RemoveServer(struct sockaddr_in *from) {
 	Ms_DropServer(server);
 }
 
-/*
+/**
  * @brief
  */
 static void Ms_Frame(void) {
@@ -202,7 +202,7 @@ static void Ms_Frame(void) {
 	}
 }
 
-/*
+/**
  * @brief Send the servers list to the specified client address.
  */
 static void Ms_GetServers(struct sockaddr_in *from) {
@@ -232,7 +232,7 @@ static void Ms_GetServers(struct sockaddr_in *from) {
 		Com_Verbose("Sent %d servers to %s\n", i, atos(from));
 }
 
-/*
+/**
  * @brief Acknowledge the server from the specified address.
  */
 static void Ms_Ack(struct sockaddr_in *from) {
@@ -249,7 +249,7 @@ static void Ms_Ack(struct sockaddr_in *from) {
 	}
 }
 
-/*
+/**
  * @brief Accept a "heartbeat" from the specified server address.
  */
 static void Ms_Heartbeat(struct sockaddr_in *from) {
@@ -267,7 +267,7 @@ static void Ms_Heartbeat(struct sockaddr_in *from) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
@@ -295,7 +295,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 	}
 }
 
-/*
+/**
  * @brief Com_Debug implementation.
  */
 static void Debug(const char *msg) {
@@ -305,7 +305,7 @@ static void Debug(const char *msg) {
 	}
 }
 
-/*
+/**
  * @brief Com_Verbose implementation.
  */
 static void Verbose(const char *msg) {
@@ -315,7 +315,7 @@ static void Verbose(const char *msg) {
 	}
 }
 
-/*
+/**
  * @brief Com_Init implementation.
  */
 static void Init(void) {
@@ -325,7 +325,7 @@ static void Init(void) {
 	Fs_Init(false);
 }
 
-/*
+/**
  * @brief Com_Shutdown implementation.
  */
 static void Shutdown(const char *msg) {
@@ -341,7 +341,7 @@ static void Shutdown(const char *msg) {
 	Mem_Shutdown();
 }
 
-/*
+/**
  * @brief
  */
 int32_t main(int32_t argc, char **argv) {

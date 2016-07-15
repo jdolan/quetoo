@@ -26,7 +26,7 @@
 #include "net_tcp.h"
 #include "net_message.h"
 
-/*
+/**
  * @brief Establishes a TCP connection to the specified host.
  *
  * @param host The host to connect to. See Net_StringToNetaddr.
@@ -68,7 +68,7 @@ int32_t Net_Connect(const char *host, struct timeval *timeout) {
 	return sock;
 }
 
-/*
+/**
  * @brief Send data to the specified TCP stream.
  */
 _Bool Net_SendStream(int32_t sock, const void *data, size_t len) {
@@ -98,7 +98,7 @@ _Bool Net_SendStream(int32_t sock, const void *data, size_t len) {
 	return sent == (ssize_t) buf.size;
 }
 
-/*
+/**
  * @brief Receive data from the specified TCP stream.
  */
 _Bool Net_ReceiveStream(int32_t sock, mem_buf_t *buf) {

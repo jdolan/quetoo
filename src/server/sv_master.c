@@ -23,7 +23,7 @@
 
 #define HEARTBEAT_SECONDS 300
 
-/*
+/**
  * @brief Sends heartbeat messages to master servers every 300s.
  */
 void Sv_HeartbeatMasters(void) {
@@ -56,7 +56,7 @@ void Sv_HeartbeatMasters(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Sv_InitMasters(void) {
@@ -68,7 +68,7 @@ void Sv_InitMasters(void) {
 	svs.masters[0].port = htons(PORT_MASTER);
 }
 
-/*
+/**
  * @brief Informs master servers that this server is halting.
  */
 void Sv_ShutdownMasters(void) {

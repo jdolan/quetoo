@@ -23,7 +23,7 @@
 
 #define UPDATE_THRESHOLD 16
 
-/*
+/**
  * @brief Materials "think" every few milliseconds to advance animations.
  */
 static void R_UpdateMaterial(r_material_t *m) {
@@ -68,7 +68,7 @@ static void R_UpdateMaterial(r_material_t *m) {
 	}
 }
 
-/*
+/**
  * @brief Manages state for stages supporting static, dynamic, and per-pixel lighting.
  */
 static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage) {
@@ -107,7 +107,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	}
 }
 
-/*
+/**
  * @brief Generates a single vertex for the specified stage.
  */
 static void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *stage, const vec3_t in,
@@ -117,7 +117,7 @@ static void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *stage, c
 	VectorCopy(in, out);
 }
 
-/*
+/**
  * @brief Manages texture matrix manipulations for stages supporting rotations,
  * scrolls, and stretches (rotate, translate, scale).
  */
@@ -169,7 +169,7 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 	identity = false;
 }
 
-/*
+/**
  * @brief Generates a single texture coordinate for the specified stage and vertex.
  */
 static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const vec2_t in,
@@ -209,7 +209,7 @@ static const vec_t dirtmap[NUM_DIRTMAP_ENTRIES] = {
 		0.5,
 		0.3 };
 
-/*
+/**
  * @brief Generates a single color for the specified stage and vertex.
  */
 static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t color) {
@@ -249,7 +249,7 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t c
 	}
 }
 
-/*
+/**
  * @brief Manages all state for the specified surface and stage. The surface will be
  * NULL in the case of mesh stages.
  */
@@ -299,7 +299,7 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	}
 }
 
-/*
+/**
  * @brief Render the specified stage for the surface. Resolve vertex attributes via
  * helper functions, outputting to the default vertex arrays.
  */
@@ -337,7 +337,7 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 	glDrawArrays(GL_POLYGON, 0, i);
 }
 
-/*
+/**
  * @brief Iterates the specified surfaces list, updating materials as they are
  * encountered, and rendering all visible stages. State is lazily managed
  * throughout the iteration, so there is a concerted effort to restore the
@@ -416,7 +416,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_Color(NULL);
 }
 
-/*
+/**
  * @brief Re-draws the currently bound arrays from the given offset to count after
  * setting GL state for the stage.
  */
@@ -466,7 +466,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	R_EnableColorArray(false);
 }
 
-/*
+/**
  * @brief Register event listener for materials.
  */
 static void R_RegisterMaterial(r_media_t *self) {
@@ -490,7 +490,7 @@ static void R_RegisterMaterial(r_media_t *self) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void R_LoadNormalmap(r_material_t *mat, const char *base) {
@@ -508,7 +508,7 @@ static void R_LoadNormalmap(r_material_t *mat, const char *base) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void R_LoadSpecularmap(r_material_t *mat, const char *base) {
@@ -526,7 +526,7 @@ static void R_LoadSpecularmap(r_material_t *mat, const char *base) {
 	}
 }
 
-/*
+/**
  * @brief Loads the r_material_t with the specified diffuse texture.
  */
 r_material_t *R_LoadMaterial(const char *diffuse) {
@@ -570,7 +570,7 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 	return mat;
 }
 
-/*
+/**
  * @brief
  */
 static inline GLenum R_ConstByName(const char *c) {
@@ -595,7 +595,7 @@ static inline GLenum R_ConstByName(const char *c) {
 	return GL_INVALID_ENUM;
 }
 
-/*
+/**
  * @brief
  */
 static int32_t R_LoadStageFrames(r_stage_t *s) {
@@ -638,7 +638,7 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 	return 0;
 }
 
-/*
+/**
  * @brief
  */
 static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
@@ -967,7 +967,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 	return -1;
 }
 
-/*
+/**
  * @brief Loads all materials for the specified model. This is accomplished by
  * parsing the material definitions in ${model_name}.mat for mesh models, and
  * materials/${model_name}.mat for BSP models.
@@ -1139,7 +1139,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 #define MAX_SAVE_MATERIALS 1000
 
-/*
+/**
  * @brief Comparator for R_SaveMaterials.
  */
 static gint R_SaveMaterials_Compare(gconstpointer m1, gconstpointer m2) {
@@ -1150,7 +1150,7 @@ static gint R_SaveMaterials_Compare(gconstpointer m1, gconstpointer m2) {
 	return g_strcmp0(d1, d2);
 }
 
-/*
+/**
  * @brief Saves the materials properties for the current map.
  */
 void R_SaveMaterials_f(void) {

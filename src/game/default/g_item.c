@@ -27,7 +27,7 @@ const vec3_t ITEM_MAXS = { 16.0, 16.0, 16.0 };
 
 #define ITEM_SCALE 1.0
 
-/*
+/**
  * @brief
  */
 const g_item_t *G_ItemByIndex(uint16_t index) {
@@ -38,7 +38,7 @@ const g_item_t *G_ItemByIndex(uint16_t index) {
 	return &g_items[index];
 }
 
-/*
+/**
  * @brief
  */
 const g_item_t *G_FindItemByClassName(const char *class_name) {
@@ -57,7 +57,7 @@ const g_item_t *G_FindItemByClassName(const char *class_name) {
 	return NULL;
 }
 
-/*
+/**
  * @brief
  */
 const g_item_t *G_FindItem(const char *name) {
@@ -79,7 +79,7 @@ const g_item_t *G_FindItem(const char *name) {
 	return NULL;
 }
 
-/*
+/**
  * @return The strongest armor item held by the specified client, or NULL. This
  * will never return the shard armor, because shards are added to the currently
  * held armor type, or to jacket armor if no armor is held.
@@ -104,7 +104,7 @@ const g_item_t *G_ClientArmor(const g_entity_t *ent) {
 	return NULL;
 }
 
-/*
+/**
  * @brief
  */
 static void G_ItemRespawn(g_entity_t *ent) {
@@ -126,7 +126,7 @@ static void G_ItemRespawn(g_entity_t *ent) {
 	ent->s.event = EV_ITEM_RESPAWN;
 }
 
-/*
+/**
  * @brief
  */
 void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
@@ -140,7 +140,7 @@ void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
 	gi.LinkEntity(ent);
 }
 
-/*
+/**
  * @brief
  */
 static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
@@ -154,7 +154,7 @@ static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
@@ -175,7 +175,7 @@ static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 g_entity_t *G_TossQuadDamage(g_entity_t *ent) {
@@ -195,7 +195,7 @@ g_entity_t *G_TossQuadDamage(g_entity_t *ent) {
 	return quad;
 }
 
-/*
+/**
  * @brief
  */
 _Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
@@ -233,7 +233,7 @@ _Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 _Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
@@ -271,7 +271,7 @@ _Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 static _Bool G_PickupAmmo(g_entity_t *ent, g_entity_t *other) {
@@ -291,7 +291,7 @@ static _Bool G_PickupAmmo(g_entity_t *ent, g_entity_t *other) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
@@ -331,7 +331,7 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 	return false;
 }
 
-/*
+/**
  * @return The g_armor_info_t for the specified item.
  */
 const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
@@ -353,7 +353,7 @@ const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
 	return NULL;
 }
 
-/*
+/**
  * @brief
  */
 static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
@@ -427,7 +427,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	return taken;
 }
 
-/*
+/**
  * @brief A dropped flag has been idle for 30 seconds, return it.
  */
 void G_ResetDroppedFlag(g_entity_t *ent) {
@@ -452,7 +452,7 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 	G_FreeEntity(ent);
 }
 
-/*
+/**
  * @brief Return own flag, or capture on it if enemy's flag is in inventory.
  * Take the enemy's flag.
  */
@@ -546,7 +546,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 g_entity_t *G_TossFlag(g_entity_t *ent) {
@@ -575,14 +575,14 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 	return G_DropItem(ent, of->locals.item);
 }
 
-/*
+/**
  * @brief
  */
 static g_entity_t *G_DropFlag(g_entity_t *ent, const g_item_t *item __attribute__((unused))) {
 	return G_TossFlag(ent);
 }
 
-/*
+/**
  * @brief
  */
 void G_TouchItem(g_entity_t *ent, g_entity_t *other,
@@ -638,7 +638,7 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other,
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_DropItem_Think(g_entity_t *ent) {
@@ -670,7 +670,7 @@ static void G_DropItem_Think(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief Handles the mechanics of dropping items, but does not adjust the client's
  * inventory. That is left to the caller.
  */
@@ -738,7 +738,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	return it;
 }
 
-/*
+/**
  * @brief
  */
 static void G_UseItem(g_entity_t *ent, g_entity_t *other __attribute__((unused)), g_entity_t *activator __attribute__((unused))) {
@@ -757,7 +757,7 @@ static void G_UseItem(g_entity_t *ent, g_entity_t *other __attribute__((unused))
 	gi.LinkEntity(ent);
 }
 
-/*
+/**
  * @brief Reset the item's interaction state based on the current game state.
  */
 void G_ResetItem(g_entity_t *ent) {
@@ -794,7 +794,7 @@ void G_ResetItem(g_entity_t *ent) {
 	gi.LinkEntity(ent);
 }
 
-/*
+/**
  * @brief Drops the specified item to the floor and sets up interaction
  * properties (Touch, Use, move type, ..).
  */
@@ -828,7 +828,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 	G_ResetItem(ent);
 }
 
-/*
+/**
  * @brief Precaches all data needed for a given item.
  * This will be called for each item spawned in a level,
  * and for each item in each client's inventory.
@@ -888,7 +888,7 @@ void G_PrecacheItem(const g_item_t *it) {
 	}
 }
 
-/*
+/**
  * @brief Sets the clipping size and plants the object on the floor.
  *
  * Items can't be immediately dropped to floor, because they might

@@ -21,7 +21,7 @@
 
 #include "cl_local.h"
 
-/*
+/**
  * @brief Returns true if client side prediction should be used. The actual
  * movement is handled by the client game.
  */
@@ -45,7 +45,7 @@ _Bool Cl_UsePrediction(void) {
 	return true;
 }
 
-/*
+/**
  * @brief Prepares the collision model to clip to the specified entity. For
  * mesh models, the box hull must be set to reflect the bounds of the entity.
  *
@@ -72,7 +72,7 @@ static int32_t Cl_HullForEntity(const entity_state_t *ent) {
 		return Cm_SetBoxHull(emins, emaxs, CONTENTS_SOLID);
 }
 
-/*
+/**
  * @brief Yields the contents mask (bitwise OR) for the specified point. The
  * world model and all solids are checked.
  */
@@ -97,7 +97,7 @@ int32_t Cl_PointContents(const vec3_t point) {
 	return contents;
 }
 
-/*
+/**
  * @brief A structure facilitating clipping to SOLID_BOX entities.
  */
 typedef struct {
@@ -108,7 +108,7 @@ typedef struct {
 	int32_t contents;
 } cl_trace_t;
 
-/*
+/**
  * @brief Clips the specified trace to other solid entities in the frame.
  */
 static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
@@ -143,7 +143,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 	}
 }
 
-/*
+/**
  * @brief Client-side collision model tracing. This is the reciprocal of
  * Sv_Trace.
  *
@@ -184,7 +184,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, con
 	return trace.trace;
 }
 
-/*
+/**
  * @brief Entry point for client-side prediction. For each server frame, run
  * the player movement code with the user commands we've sent to the server
  * but have not yet received acknowledgment for. Store the resulting move so
@@ -218,7 +218,7 @@ void Cl_PredictMovement(void) {
 	}
 }
 
-/*
+/**
  * @brief Checks for client side prediction errors. Problems here can indicate
  * that Pm_Move or the protocol are not functioning correctly.
  */
@@ -248,7 +248,7 @@ void Cl_CheckPredictionError(void) {
 	VectorCopy(delta, cl.predicted_state.error);
 }
 
-/*
+/**
  * @brief Ensures client-side prediction has the current collision model at its
  * disposal.
  */

@@ -63,7 +63,7 @@ static _Bool img_palette_initialized;
 // image formats, tried in this order
 static const char *img_formats[] = { "tga", "png", "jpg", "wal", "pcx", NULL };
 
-/*
+/**
  * @brief A helper which mangles a .wal file into an SDL_Surface suitable for
  * OpenGL uploads and other basic manipulations.
  */
@@ -109,7 +109,7 @@ static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 	return *surf != NULL;
 }
 
-/*
+/**
  * @brief Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface.
  */
@@ -149,7 +149,7 @@ static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface 
 	return *surf != NULL;
 }
 
-/*
+/**
  * @brief Loads the specified image from the game filesystem and populates
  * the provided SDL_Surface. Image formats are tried in the order they appear
  * in TYPES.
@@ -165,7 +165,7 @@ _Bool Img_LoadImage(const char *name, SDL_Surface **surf) {
 	return false;
 }
 
-/*
+/**
  * @brief Initializes the 8bit color palette required for .wal texture loading.
  */
 void Img_InitPalette(void) {
@@ -190,7 +190,7 @@ void Img_InitPalette(void) {
 	img_palette_initialized = true;
 }
 
-/*
+/**
  * @brief Returns RGB components of the specified color in the specified result array.
  */
 void Img_ColorFromPalette(uint8_t c, vec_t *res) {
@@ -205,7 +205,7 @@ void Img_ColorFromPalette(uint8_t c, vec_t *res) {
 	res[2] = (color >> 16 & 255) / 255.0;
 }
 
-/*
+/**
  * @brief Write pixel data to a JPEG file.
  */
 _Bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality) {

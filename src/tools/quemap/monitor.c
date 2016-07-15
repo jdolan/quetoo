@@ -44,7 +44,7 @@ static GList *mon_backlog; // nodes created before a connection was established
 #define xmlString(s) ((const xmlChar *) s)
 #define xmlStringf(...) xmlString(va(__VA_ARGS__))
 
-/*
+/**
  * @brief Sends the specified (XML) string to the stream.
  */
 static void Mon_SendString(const xmlChar *string) {
@@ -64,7 +64,7 @@ static void Mon_SendString(const xmlChar *string) {
 	}
 }
 
-/*
+/**
  * @brief Sends the specified XML node to the stream.
  */
 static void Mon_SendXML(xmlNodePtr node) {
@@ -88,7 +88,7 @@ static void Mon_SendXML(xmlNodePtr node) {
 	}
 }
 
-/*
+/**
  * @brief Sends a message to GtkRadiant. Note that Com_Print, Com_Warn and
  * friends will route through this so that stdout and stderr are duplicated to
  * GtkRadiant.
@@ -102,7 +102,7 @@ void Mon_SendMessage(err_t err, const char *msg) {
 	Mon_SendXML(message);
 }
 
-/*
+/**
  * @brief Routes all XML-originating messages (Mon_Send* below) to the
  * appropriate stdio routines, escaping them to avoid infinite loops.
  */
@@ -122,7 +122,7 @@ static void Mon_Stdio(err_t err, const char *msg) {
 	}
 }
 
-/*
+/**
  * @brief Sends a brush selection to GtkRadiant.
  */
 void Mon_SendSelect_(const char *func, err_t err, uint16_t e, uint16_t b, const char *msg) {
@@ -140,7 +140,7 @@ void Mon_SendSelect_(const char *func, err_t err, uint16_t e, uint16_t b, const 
 	Mon_Stdio(err, va("%s: Entity %u, Brush %u: %s", func, e, b, msg));
 }
 
-/*
+/**
  * @brief Sends a positional vector to GtkRadiant.
  */
 void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg) {
@@ -158,7 +158,7 @@ void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg
 	Mon_Stdio(err, va("%s: Point %s: %s", func, vtos(p), msg));
 }
 
-/*
+/**
  * @brief Sends a winding to GtkRadiant.
  */
 void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n, const char *msg) {
@@ -181,7 +181,7 @@ void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n,
 	Mon_Stdio(err, va("%s: Winding at %s: %s", func, vtos(p[0]), msg));
 }
 
-/*
+/**
  * @brief Initialize BSP monitoring facilities (XML over TCP).
  */
 _Bool Mon_Init(const char *host) {
@@ -222,7 +222,7 @@ _Bool Mon_Init(const char *host) {
 	return false;
 }
 
-/*
+/**
  * @brief Shuts down BSP monitoring facilities.
  */
 void Mon_Shutdown(const char *msg) {

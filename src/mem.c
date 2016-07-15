@@ -43,7 +43,7 @@ typedef struct {
 
 static mem_state_t mem_state;
 
-/*
+/**
  * @brief Throws a fatal error if the specified memory block is non-NULL but
  * not owned by the memory subsystem.
  */
@@ -62,7 +62,7 @@ static mem_block_t *Mem_CheckMagic(void *p) {
 	return b;
 }
 
-/*
+/**
  * @brief Recursively frees linked managed memory.
  */
 static void Mem_Free_(mem_block_t *b) {
@@ -78,7 +78,7 @@ static void Mem_Free_(mem_block_t *b) {
 	free(b);
 }
 
-/*
+/**
  * @brief Free an allocation of managed memory. Any child objects are
  * automatically freed as well.
  */
@@ -98,7 +98,7 @@ void Mem_Free(void *p) {
 	SDL_mutexV(mem_state.lock);
 }
 
-/*
+/**
  * @brief Free all managed items allocated with the specified tag.
  */
 void Mem_FreeTag(mem_tag_t tag) {
@@ -121,7 +121,7 @@ void Mem_FreeTag(mem_tag_t tag) {
 	SDL_mutexV(mem_state.lock);
 }
 
-/*
+/**
  * @brief Performs the grunt work of allocating a mem_block_t and inserting it
  * into the managed memory structures. Note that parent should be a pointer to
  * a previously allocated structure, and not to a mem_block_t.
@@ -165,7 +165,7 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 	return (void *) (b + 1);
 }
 
-/*
+/**
  * @brief Allocates a block of managed memory with the specified tag.
  *
  * @param size The number of bytes to allocate.
@@ -178,7 +178,7 @@ void *Mem_TagMalloc(size_t size, mem_tag_t tag) {
 	return Mem_Malloc_(size, tag, NULL);
 }
 
-/*
+/**
  * @brief Allocates a block of managed memory with the specified parent.
  *
  * @param size The number of bytes to allocate.
@@ -192,7 +192,7 @@ void *Mem_LinkMalloc(size_t size, void *parent) {
 	return Mem_Malloc_(size, MEM_TAG_DEFAULT, parent);
 }
 
-/*
+/**
  * @brief Allocates a block of managed memory. All managed memory is freed when
  * the game exits, but may be explicitly freed with Mem_Free.
  *
@@ -202,7 +202,7 @@ void *Mem_Malloc(size_t size) {
 	return Mem_Malloc_(size, MEM_TAG_DEFAULT, NULL);
 }
 
-/*
+/**
  * @brief Links the specified child to the given parent. The child will
  * subsequently be freed with the parent.
  *
@@ -231,14 +231,14 @@ void *Mem_Link(void *child, void *parent) {
 	return child;
 }
 
-/*
+/**
  * @return The current size (user bytes) of the zone allocation pool.
  */
 size_t Mem_Size(void) {
 	return mem_state.size;
 }
 
-/*
+/**
  * @brief Allocates and returns a copy of the specified string.
  */
 char *Mem_CopyString(const char *in) {
@@ -250,7 +250,7 @@ char *Mem_CopyString(const char *in) {
 	return out;
 }
 
-/*
+/**
  * @brief Initializes the managed memory subsystem. This should be one of the first
  * subsystems initialized by Quetoo.
  */
@@ -263,7 +263,7 @@ void Mem_Init(void) {
 	mem_state.lock = SDL_CreateMutex();
 }
 
-/*
+/**
  * @brief Shuts down the managed memory subsystem. This should be one of the last
  * subsystems brought down by Quetoo.
  */

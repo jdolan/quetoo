@@ -21,7 +21,7 @@
 
 #include "sv_local.h"
 
-/*
+/**
  * @brief Writes a delta update of an entity_state_t list to the message.
  */
 static void Sv_WriteEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
@@ -80,7 +80,7 @@ static void Sv_WriteEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 	Net_WriteShort(msg, 0); // end of entities
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_WritePlayerState(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
@@ -92,7 +92,7 @@ static void Sv_WritePlayerState(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg
 		Net_WriteDeltaPlayerState(msg, &null_state, &to->ps);
 }
 
-/*
+/**
  * @brief
  */
 void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
@@ -133,7 +133,7 @@ void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
 	Sv_WriteEntities(delta_frame, frame, msg);
 }
 
-/*
+/**
  * @brief Resolve the visibility data for the bounding box around the client. The
  * bounding box provides some leniency because the client's actual view origin
  * is likely slightly different than what we think it is.
@@ -183,7 +183,7 @@ static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
 	}
 }
 
-/*
+/**
  * @brief Decides which entities are going to be visible to the client, and
  * copies off the player state and area_bits.
  */

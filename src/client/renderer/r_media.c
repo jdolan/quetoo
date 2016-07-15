@@ -29,7 +29,7 @@ typedef struct {
 
 static r_media_state_t r_media_state;
 
-/*
+/**
  * @brief Prints information about all currently loaded media to the console.
  */
 void R_ListMedia_f(void) {
@@ -46,7 +46,7 @@ void R_ListMedia_f(void) {
 	}
 }
 
-/*
+/**
  * @brief Establishes a dependency from the specified dependent to the given
  * dependency. Dependencies in use by registered media are never freed.
  */
@@ -68,7 +68,7 @@ void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 	}
 }
 
-/*
+/**
  * @brief GCompareFunc for R_RegisterMedia. Sorts media by name.
  */
 static int32_t R_RegisterMedia_Compare(gconstpointer name1, gconstpointer name2) {
@@ -77,7 +77,7 @@ static int32_t R_RegisterMedia_Compare(gconstpointer name1, gconstpointer name2)
 
 static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data);
 
-/*
+/**
  * @brief Inserts the specified media into the shared table, re-registering all
  * of its dependencies as well.
  */
@@ -120,7 +120,7 @@ void R_RegisterMedia(r_media_t *media) {
 	}
 }
 
-/*
+/**
  * @brief Resolves the specified media if it is already known. The returned
  * media is re-registered for convenience.
  *
@@ -136,7 +136,7 @@ r_media_t *R_FindMedia(const char *name) {
 	return media;
 }
 
-/*
+/**
  * @brief Returns a newly allocated r_media_t with the specified name.
  *
  * @param size_t size The number of bytes to allocate for the media.
@@ -156,7 +156,7 @@ r_media_t *R_AllocMedia(const char *name, size_t size) {
 	return media;
 }
 
-/*
+/**
  * @brief GHRFunc for freeing media. If data is non-NULL, then the media is
  * always freed. Otherwise, only media with stale seed values and no explicit
  * retainment are released.
@@ -183,14 +183,14 @@ static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data) {
 	return true;
 }
 
-/*
+/**
  * @brief Frees any media that has a stale seed and is not explicitly retained.
  */
 void R_FreeMedia(void) {
 	g_hash_table_foreach_remove(r_media_state.media, R_FreeMedia_, NULL);
 }
 
-/*
+/**
  * @brief Prepares the media subsystem for loading.
  */
 void R_BeginLoading(void) {
@@ -203,7 +203,7 @@ void R_BeginLoading(void) {
 	r_media_state.seed = s;
 }
 
-/*
+/**
  * @brief Initializes the media pool.
  */
 void R_InitMedia(void) {
@@ -215,7 +215,7 @@ void R_InitMedia(void) {
 	R_BeginLoading();
 }
 
-/*
+/**
  * @brief Shuts down the media pool.
  */
 void R_ShutdownMedia(void) {

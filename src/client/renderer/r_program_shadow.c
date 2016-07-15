@@ -30,7 +30,7 @@ typedef struct r_shadow_program_s {
 
 static r_shadow_program_t r_shadow_program;
 
-/*
+/**
  * @brief
  */
 void R_InitProgram_shadow(void) {
@@ -48,7 +48,7 @@ void R_InitProgram_shadow(void) {
 	R_ProgramParameter4fv(&p->plane, plane);
 }
 
-/*
+/**
  * @brief Calculates a perspective shearing matrix for the current shadow and
  * uploads it as a uniform variable to the shader.
  *

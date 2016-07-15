@@ -21,14 +21,14 @@
 
 #include "ai_local.h"
 
-/*
+/**
  * @brief Initializes the AI subsystem.
  */
 void Ai_Init(void) {
 
 }
 
-/*
+/**
  * @brief Shuts down the AI subsystem.
  */
 void Ai_Shutdown(void) {

@@ -1,4 +1,4 @@
-/*
+/**
  * @brief Warp vertex shader.
  */
 
@@ -6,7 +6,7 @@
 
 varying float fog;
 
-/*
+/**
  * @brief
  */
 void FogVertex(void) {
@@ -14,7 +14,7 @@ void FogVertex(void) {
 	fog = clamp(fog, 0.0, 1.0) * gl_Fog.density;
 }
 
-/*
+/**
  * @brief Program entry point.
  */
 void main(void) {

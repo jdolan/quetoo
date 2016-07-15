@@ -21,7 +21,7 @@
 
 #include "qbsp.h"
 
-/*
+/**
  * @brief
  */
 void FreeTreePortals_r(node_t * node) {
@@ -44,7 +44,7 @@ void FreeTreePortals_r(node_t * node) {
 	node->portals = NULL;
 }
 
-/*
+/**
  * @brief
  */
 void FreeTree_r(node_t *node) {
@@ -71,7 +71,7 @@ void FreeTree_r(node_t *node) {
 	FreeNode(node);
 }
 
-/*
+/**
  * @brief
  */
 void FreeTree(tree_t * tree) {
@@ -91,7 +91,7 @@ void FreeTree(tree_t * tree) {
 
 int32_t c_pruned;
 
-/*
+/**
  * @brief
  */
 void PruneNodes_r(node_t * node) {

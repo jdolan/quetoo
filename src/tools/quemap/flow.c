@@ -77,7 +77,7 @@ static void FreeStackWinding(const winding_t * w, pstack_t * stack) {
 	stack->freewindings[i] = 1;
 }
 
-/*
+/**
  * @brief
  */
 static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack, plane_t *split) {
@@ -433,7 +433,7 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread, pstack_t
 	}
 }
 
-/*
+/**
  * @brief Generates the vis bit vector.
  */
 void FinalVis(int32_t portal_num) {
@@ -468,7 +468,7 @@ void FinalVis(int32_t portal_num) {
 			(int32_t) (p - map_vis.portals), (int32_t) c_might, (int32_t) c_can, data.c_chains);
 }
 
-/*
+/**
  * @brief
  */
 static void SimpleFlood(portal_t *srcportal, int32_t leaf_num) {
@@ -494,7 +494,7 @@ static void SimpleFlood(portal_t *srcportal, int32_t leaf_num) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void BaseVis(int32_t portal_num) {

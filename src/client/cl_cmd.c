@@ -21,7 +21,7 @@
 
 #include "cl_local.h"
 
-/*
+/**
  * @brief Accumulates all movement for the current packet frame in a command. This
  * may be called multiple times per packet frame.
  */
@@ -59,7 +59,7 @@ void Cl_UpdateCmd(void) {
 	cmd->timestamp = quetoo.time;
 }
 
-/*
+/**
  * @brief Initializes the next outgoing command so that it may accumulate movement
  * over the next packet frame.
  */
@@ -69,7 +69,7 @@ static void Cl_InitCmd(void) {
 	memset(cmd, 0, sizeof(cl_cmd_t));
 }
 
-/*
+/**
  * @brief Calculate the true command duration and clamp it so that it may be sent.
  */
 static void Cl_FinalizeCmd(void) {
@@ -79,7 +79,7 @@ static void Cl_FinalizeCmd(void) {
 	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->cmd.msec, cmd->cmd.forward, cmd->cmd.right, cmd->cmd.up);
 }
 
-/*
+/**
  * @brief Pumps the command cycle, sending the most recently gathered movement
  * to the server.
  */

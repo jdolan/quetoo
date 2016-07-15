@@ -21,7 +21,7 @@
 
 #include "sv_local.h"
 
-/*
+/**
  * @brief Sends text across to be displayed if the level filter passes.
  */
 void Sv_ClientPrint(const g_entity_t *ent, const int32_t level, const char *fmt, ...) {
@@ -57,7 +57,7 @@ void Sv_ClientPrint(const g_entity_t *ent, const int32_t level, const char *fmt,
 	Net_WriteString(&cl->net_chan.message, string);
 }
 
-/*
+/**
  * @brief Sends text to all active clients over their unreliable channels.
  */
 void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) {
@@ -96,7 +96,7 @@ void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) {
 	}
 }
 
-/*
+/**
  * @brief Sends text to all active clients
  */
 void Sv_BroadcastCommand(const char *fmt, ...) {
@@ -115,7 +115,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 	Sv_Multicast(NULL, MULTICAST_ALL_R, NULL);
 }
 
-/*
+/**
  * @brief Writes to the specified datagram, noting the offset of the message.
  */
 static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
@@ -144,7 +144,7 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 	}
 }
 
-/*
+/**
  * @brief Sends the contents of the mutlicast buffer to a single client
  */
 void Sv_Unicast(const g_entity_t *ent, const _Bool reliable) {
@@ -169,7 +169,7 @@ void Sv_Unicast(const g_entity_t *ent, const _Bool reliable) {
 	Mem_ClearBuffer(&sv.multicast);
 }
 
-/*
+/**
  * @brief Sends the contents of sv.multicast to a subset of the clients,
  * then clears sv.multicast.
  */
@@ -266,7 +266,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 	Mem_ClearBuffer(&sv.multicast);
 }
 
-/*
+/**
  * @brief An attenuation of 0 will play full volume everywhere in the level.
  * Larger attenuation will drop off (max 4 attenuation).
  *
@@ -331,7 +331,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uin
 		Sv_Multicast(org, MULTICAST_ALL, NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_SendClientDatagram(sv_client_t *cl) {
@@ -382,14 +382,14 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 	cl->frame_size[sv.frame_num % sv_hz->integer] = frame_size;
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_DemoCompleted(void) {
 	Sv_ShutdownServer("Demo complete\n");
 }
 
-/*
+/**
  * @brief Returns true if the client is over its current bandwidth estimation
  * and should not be sent another packet.
  */
@@ -417,7 +417,7 @@ static _Bool Sv_RateDrop(sv_client_t *cl) {
 	return false;
 }
 
-/*
+/**
  * @brief Reads the next frame from the current demo file into the specified buffer,
  * returning the size of the frame in bytes.
  *
@@ -461,7 +461,7 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
 	return size;
 }
 
-/*
+/**
  * @brief Send the frame and all pending datagram messages since the last frame.
  */
 void Sv_SendClientPackets(void) {

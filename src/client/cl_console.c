@@ -64,7 +64,7 @@ static void Cl_DrawConsole_Buffer(void) {
 	}
 }
 
-/*
+/**
  * @brief The input line scrolls horizontally if typing goes beyond the right edge
  */
 static void Cl_DrawConsole_Input(void) {
@@ -94,7 +94,7 @@ static void Cl_DrawConsole_Input(void) {
 	R_DrawChar((cl_console.input.pos + 1) * cw, y, 0x0b, CON_COLOR_DEFAULT);
 }
 
-/*
+/**
  * @brief
  */
 void Cl_DrawConsole(void) {
@@ -196,7 +196,7 @@ void Cl_DrawChat(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_Print(const console_string_t *str) {
@@ -206,7 +206,7 @@ static void Cl_Print(const console_string_t *str) {
 	fputs(stripped, stdout);
 }
 
-/*
+/**
  * @brief
  */
 void Cl_ToggleConsole_f(void) {
@@ -237,7 +237,7 @@ static void Cl_MessageMode(_Bool team) {
 	Cl_SetKeyDest(KEY_CHAT);
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_MessageMode_f(void) {
@@ -245,7 +245,7 @@ static void Cl_MessageMode_f(void) {
 	Cl_MessageMode(false);
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_MessageMode2_f(void) {
@@ -253,7 +253,7 @@ static void Cl_MessageMode2_f(void) {
 	Cl_MessageMode(true);
 }
 
-/*
+/**
  * @brief Initializes the client console.
  */
 void Cl_InitConsole(void) {
@@ -291,7 +291,7 @@ void Cl_InitConsole(void) {
 	Com_Print("Client console initialized\n");
 }
 
-/*
+/**
  * @brief Shuts down the client console.
  */
 void Cl_ShutdownConsole(void) {

@@ -24,7 +24,7 @@
 
 #include "common.h"
 
-/*
+/**
  * @brief Delta compression flags for pm_state_t.
  */
 #define PS_PM_TYPE				0x1
@@ -38,7 +38,7 @@
 #define PS_PM_KICK_ANGLES		0x100
 #define PS_PM_DELTA_ANGLES		0x200
 
-/*
+/**
  * @brief Delta compression flags for user_cmd_t.
  */
 #define CMD_ANGLE1 				0x1
@@ -49,7 +49,7 @@
 #define CMD_UP					0x20
 #define CMD_BUTTONS				0x40
 
-/*
+/**
  * @brief These flags indicate which fields in a given entity_state_t must be
  * written or read for delta compression from one snapshot to the next.
  */
@@ -66,14 +66,14 @@
 #define U_SOLID					0x400 // encoded bounding box
 #define U_REMOVE				0x800 // remove this entity, don't add it
 
-/*
+/**
  * @brief These flags indicate which fields a given sound packet will contain.
  */
 #define S_ATTEN					0x1
 #define S_ORIGIN				0x2
 #define S_ENTITY				0x4
 
-/*
+/**
  * @brief Message writing and reading facilities.
  */
 void Net_WriteData(mem_buf_t *msg, const void *data, size_t len);

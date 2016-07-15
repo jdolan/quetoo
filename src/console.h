@@ -29,7 +29,7 @@
 
 #define CON_CURSOR_CHAR 0x0b
 
-/*
+/**
  * @brief A console string.
  */
 typedef struct {
@@ -61,12 +61,12 @@ typedef struct {
 
 } console_string_t;
 
-/*
+/**
  * @brief The maximum number of characters to buffer.
  */
 #define CON_MAX_SIZE (1024 * 1024)
 
-/*
+/**
  * @brief The console state.
  */
 typedef struct {
@@ -99,7 +99,7 @@ typedef struct {
 
 extern console_state_t console_state;
 
-/*
+/**
  * @brief The maximum number of lines to buffer for console input history.
  */
 #define CON_HISTORY_SIZE 64
@@ -109,7 +109,7 @@ typedef enum {
 	CON_HISTORY_NEXT
 } console_history_nav_t;
 
-/*
+/**
  * @brief The console history structure.
  */
 typedef struct {
@@ -131,7 +131,7 @@ typedef struct {
 
 } console_history_t;
 
-/*
+/**
  * @brief The console input structure.
  */
 typedef struct {
@@ -148,7 +148,7 @@ typedef struct {
 
 } console_input_t;
 
-/*
+/**
  * @brief The console structure.
  */
 typedef struct {

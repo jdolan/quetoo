@@ -1,4 +1,4 @@
-/*
+/**
  * @brief Default vertex shader.
  */
 
@@ -16,7 +16,7 @@ varying float fog;
 
 attribute vec4 TANGENT;
 
-/*
+/**
  * @brief Transform the point, normal and tangent vectors, passing them through
  * to the fragment shader for per-pixel lighting.
  */
@@ -31,7 +31,7 @@ void LightVertex(void) {
 	}
 }
 
-/*
+/**
  * @brief Calculate the interpolated fog value for the vertex.
  */
 void FogVertex(void) {
@@ -39,7 +39,7 @@ void FogVertex(void) {
 	fog = clamp(fog, 0.0, 1.0) * gl_Fog.density;
 }
 
-/*
+/**
  * @brief Shader entry point.
  */
 void main(void) {

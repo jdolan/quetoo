@@ -65,7 +65,7 @@ typedef struct cl_emit_s {
 static cg_emit_t cg_emits[MAX_EMITS];
 static uint16_t cg_num_emits;
 
-/*
+/**
  * @brief Parse misc_emits from the bsp after it has been loaded. This must
  * be called after Cm_LoadMap, once per pre-cache routine.
  */
@@ -307,7 +307,7 @@ void Cg_LoadEmits(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static r_light_t *Cg_EmitLight(cg_emit_t *e) {
@@ -320,7 +320,7 @@ static r_light_t *Cg_EmitLight(cg_emit_t *e) {
 	return &l;
 }
 
-/*
+/**
  * @brief Perform PVS and PHS filtering, returning a copy of the specified emit with
  * the correct flags stripped away for this frame.
  */
@@ -343,7 +343,7 @@ cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
 	return &em;
 }
 
-/*
+/**
  * @brief
  */
 void Cg_AddEmits(void) {

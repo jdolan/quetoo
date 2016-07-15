@@ -24,7 +24,7 @@
 
 extern cl_static_t cls;
 
-/*
+/**
  * @brief Callback which connects to the server specified in data.
  */
 static TW_CALL void Ui_Servers_Connect(void *data) {
@@ -33,14 +33,14 @@ static TW_CALL void Ui_Servers_Connect(void *data) {
 	Cbuf_AddText(va("connect %s\n", Net_NetaddrToString(&s->addr)));
 }
 
-/*
+/**
  * @brief Callback to refresh the servers list.
  */
 static TW_CALL void Ui_Servers_Refresh(void *data __attribute__((unused))) {
 	Cl_Servers_f();
 }
 
-/*
+/**
  * @brief A new server status message has just been parsed. Rebuild the servers menu.
  */
 void Ui_NewServer(void) {
@@ -82,7 +82,7 @@ void Ui_NewServer(void) {
 	TwAddButton(bar, "Refresh", Ui_Servers_Refresh, bar, NULL);
 }
 
-/*
+/**
  * @brief
  */
 TwBar *Ui_Servers(void) {

@@ -38,7 +38,7 @@ cvar_t *sv_rcon_password; // password for remote server commands
 cvar_t *sv_timeout;
 cvar_t *sv_udp_download;
 
-/*
+/**
  * @brief Called when the player is totally leaving the server, either willingly
  * or unwillingly. This is NOT called if the entire server is quitting
  * or crashing.
@@ -75,7 +75,7 @@ void Sv_DropClient(sv_client_t *cl) {
 	cl->last_frame = -1;
 }
 
-/*
+/**
  * @brief Returns a string fit for heartbeats and status replies.
  */
 const char *Sv_StatusString(void) {
@@ -107,21 +107,21 @@ const char *Sv_StatusString(void) {
 	return status;
 }
 
-/*
+/**
  * @brief Responds with all the info that qplug or qspy can see.
  */
 static void Sv_Status_f(void) {
 	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "print\n%s", Sv_StatusString());
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_Ack_f(void) {
 	Com_Print("Ping acknowledge from %s\n", Net_NetaddrToString(&net_from));
 }
 
-/*
+/**
  * @brief Responds with brief info for broadcast scans.
  */
 static void Sv_Info_f(void) {
@@ -149,14 +149,14 @@ static void Sv_Info_f(void) {
 	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "info\n%s", string);
 }
 
-/*
+/**
  * @brief Just responds with an acknowledgment.
  */
 static void Sv_Ping_f(void) {
 	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "ack");
 }
 
-/*
+/**
  * @brief Returns a challenge number that can be used in a subsequent client_connect
  * command.
  *
@@ -193,7 +193,7 @@ static void Sv_GetChallenge_f(void) {
 	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "challenge %i", svs.challenges[i].challenge);
 }
 
-/*
+/**
  * @brief A connection request that did not come from the master.
  */
 static void Sv_Connect_f(void) {
@@ -334,7 +334,7 @@ static void Sv_Connect_f(void) {
 	client->state = SV_CLIENT_CONNECTED;
 }
 
-/*
+/**
  * @brief
  */
 static _Bool Sv_RconAuthenticate(void) {
@@ -352,7 +352,7 @@ static _Bool Sv_RconAuthenticate(void) {
 
 static char sv_rcon_buffer[MAX_PRINT_MSG];
 
-/*
+/**
  * @brief Console appender for remote console.
  */
 static void Sv_Rcon_Print(const console_string_t *str) {
@@ -360,7 +360,7 @@ static void Sv_Rcon_Print(const console_string_t *str) {
 	g_strlcat(sv_rcon_buffer, str->chars, sizeof(sv_rcon_buffer));
 }
 
-/*
+/**
  * @brief A client issued an rcon command. Shift down the remaining args and
  * redirect all output to the invoking client.
  */
@@ -402,7 +402,7 @@ static void Sv_Rcon_f(void) {
 	Con_RemoveConsole(&rcon);
 }
 
-/*
+/**
  * @brief A connection-less packet has four leading 0xff bytes to distinguish
  * it from a game channel. Clients that are in the game can still send these,
  * and they will be handled here.
@@ -439,7 +439,7 @@ static void Sv_ConnectionlessPacket(void) {
 		Com_Print("Bad connectionless packet from %s:\n%s\n", a, s);
 }
 
-/*
+/**
  * @brief Updates the "ping" times for all spawned clients.
  */
 static void Sv_UpdatePings(void) {
@@ -469,7 +469,7 @@ static void Sv_UpdatePings(void) {
 	}
 }
 
-/*
+/**
  * @brief Once per second, gives all clients an allotment of 1000 milliseconds
  * for their movement commands which will be decremented as we receive
  * new information from them. If they drift by a significant margin
@@ -517,7 +517,7 @@ static void Sv_CheckCommandTimes(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_ReadPackets(void) {
@@ -569,7 +569,7 @@ static void Sv_ReadPackets(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_CheckTimeouts(void) {
@@ -594,7 +594,7 @@ static void Sv_CheckTimeouts(void) {
 	}
 }
 
-/*
+/**
  * @brief Resets entity flags and other state which should only last one frame.
  */
 static void Sv_ResetEntities(void) {
@@ -610,7 +610,7 @@ static void Sv_ResetEntities(void) {
 	}
 }
 
-/*
+/**
  * @brief Updates the game module's time and runs its frame function once per
  * server frame.
  */
@@ -625,7 +625,7 @@ static void Sv_RunGameFrame(void) {
 }
 
 
-/*
+/**
  * @brief
  */
 void Sv_KickClient(sv_client_t *cl, const char *msg) {
@@ -654,14 +654,14 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
 	Sv_BroadcastPrint(PRINT_MEDIUM, "%s was kicked%s\n", name, buf);
 }
 
-/*
+/**
  * @brief A convenience function for printing out client addresses.
  */
 const char *Sv_NetaddrToString(const sv_client_t *cl) {
 	return Net_NetaddrToString(&cl->net_chan.remote_address);
 }
 
-/*
+/**
  * @brief Enforces safe user_info data before passing onto game module.
  */
 void Sv_UserInfoChanged(sv_client_t *cl) {
@@ -711,7 +711,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Sv_Frame(const uint32_t msec) {
@@ -763,7 +763,7 @@ void Sv_Frame(const uint32_t msec) {
 	Sv_DrawConsole();
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_InitLocal(void) {
@@ -792,7 +792,7 @@ static void Sv_InitLocal(void) {
 	Cvar_Get("sv_protocol", va("%i", PROTOCOL_MAJOR), CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 }
 
-/*
+/**
  * @brief Only called at Quetoo startup, not for each game.
  */
 void Sv_Init(void) {
@@ -810,7 +810,7 @@ void Sv_Init(void) {
 	Sv_InitMasters();
 }
 
-/*
+/**
  * @brief Called when server is shutting down due to error or an explicit `quit`.
  */
 void Sv_Shutdown(const char *msg) {

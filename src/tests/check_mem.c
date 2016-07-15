@@ -22,14 +22,14 @@
 #include "tests.h"
 #include "mem.h"
 
-/*
+/**
  * @brief Setup fixture.
  */
 void setup(void) {
 	Mem_Init();
 }
 
-/*
+/**
  * @brief Teardown fixture.
  */
 void teardown(void) {
@@ -72,7 +72,7 @@ START_TEST(check_Mem_CopyString)
 		ck_assert(Mem_Size() == 0);
 	}END_TEST
 
-/*
+/**
  * @brief Test entry point.
  */
 int32_t main(int32_t argc, char **argv) {

@@ -22,7 +22,7 @@
 #include "r_local.h"
 #include "client.h"
 
-/*
+/**
  * @brief Allocates an initializes the flare for the specified surface, if one
  * should be applied. The flare is linked to the provided BSP model and will
  * be freed automatically.
@@ -70,7 +70,7 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	surf->flare->image = s->image;
 }
 
-/*
+/**
  * @brief Flares are batched by their texture. Usually, this means one draw operation
  * for all flares in view. Flare visibility is calculated every few millis, and
  * flare alpha is ramped up or down depending on the results of the visibility

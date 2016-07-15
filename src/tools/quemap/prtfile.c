@@ -34,7 +34,7 @@ static file_t *prtfile;
 int32_t num_visclusters; /* clusters the player can be in */
 int32_t num_visportals;
 
-/*
+/**
  * @brief
  */
 static void WriteFloat(file_t *f, vec_t v) {
@@ -46,7 +46,7 @@ static void WriteFloat(file_t *f, vec_t v) {
 		Fs_Print(f, "%f ", v);
 }
 
-/*
+/**
  * @brief
  */
 static void WritePortalFile_r(node_t *node) {
@@ -98,7 +98,7 @@ static void WritePortalFile_r(node_t *node) {
 
 }
 
-/*
+/**
  * @brief All of the leafs under node will have the same cluster
  */
 static void FillLeafNumbers_r(node_t * node, int32_t num) {
@@ -114,7 +114,7 @@ static void FillLeafNumbers_r(node_t * node, int32_t num) {
 	FillLeafNumbers_r(node->children[1], num);
 }
 
-/*
+/**
  * @brief
  */
 static void NumberLeafs_r(node_t * node) {
@@ -149,7 +149,7 @@ static void NumberLeafs_r(node_t * node) {
 
 }
 
-/*
+/**
  * @brief
  */
 static void CreateVisPortals_r(node_t * node) {
@@ -175,7 +175,7 @@ static void SaveClusters_r(node_t * node) {
 	SaveClusters_r(node->children[1]);
 }
 
-/*
+/**
  * @brief
  */
 void WritePortalFile(tree_t *tree) {

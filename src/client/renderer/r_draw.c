@@ -109,7 +109,7 @@ r_color_t R_MakeColor(byte r, byte g, byte b, byte a) {
 	return color;
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) {
@@ -133,7 +133,7 @@ void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) 
 	glDrawArrays(GL_QUADS, 0, 4);
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawCursor(r_pixel_t x, r_pixel_t y) {
@@ -144,7 +144,7 @@ void R_DrawCursor(r_pixel_t x, r_pixel_t y) {
 	R_DrawImage(x, y, 1.0, r_draw.cursor);
 }
 
-/*
+/**
  * @brief Binds the specified font, returning the character width and height.
  */
 void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
@@ -173,7 +173,7 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 		*ch = r_draw.font->char_height;
 }
 
-/*
+/**
  * @brief Return the width of the specified string in pixels. This will vary based
  * on the currently bound font. Color escapes are omitted.
  */
@@ -181,21 +181,21 @@ r_pixel_t R_StringWidth(const char *s) {
 	return StrColorLen(s) * r_draw.font->char_width;
 }
 
-/*
+/**
  * @brief
  */
 size_t R_DrawString(r_pixel_t x, r_pixel_t y, const char *s, int32_t color) {
 	return R_DrawSizedString(x, y, s, UINT16_MAX, UINT16_MAX, color);
 }
 
-/*
+/**
  * @brief
  */
 size_t R_DrawBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, int32_t color) {
 	return R_DrawSizedString(x, y, s, size, size, color);
 }
 
-/*
+/**
  * @brief Draws at most len chars or size bytes of the specified string. Color escape
  * sequences are not visible chars. Returns the number of chars drawn.
  */
@@ -231,7 +231,7 @@ size_t R_DrawSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, si
 	return i;
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
@@ -289,7 +289,7 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 	chars->vert_index += 8;
 }
 
-/*
+/**
  * @brief
  */
 static void R_DrawChars(void) {
@@ -327,7 +327,7 @@ static void R_DrawChars(void) {
 	R_Color(NULL);
 }
 
-/*
+/**
  * @brief The color can be specified as an index into the palette with positive alpha
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
@@ -370,7 +370,7 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 	r_draw.fill_arrays.vert_index += 8;
 }
 
-/*
+/**
  * @brief
  */
 static void R_DrawFills(void) {
@@ -399,7 +399,7 @@ static void R_DrawFills(void) {
 	r_draw.fill_arrays.vert_index = r_draw.fill_arrays.color_index = 0;
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t c, vec_t a) {
@@ -433,7 +433,7 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 	r_draw.line_arrays.vert_index += 4;
 }
 
-/*
+/**
  * @brief
  */
 static void R_DrawLines(void) {
@@ -462,7 +462,7 @@ static void R_DrawLines(void) {
 	r_draw.line_arrays.vert_index = r_draw.line_arrays.color_index = 0;
 }
 
-/*
+/**
  * @brief Draw all 2D geometry accumulated for the current frame.
  */
 void R_Draw2D(void) {
@@ -474,7 +474,7 @@ void R_Draw2D(void) {
 	R_DrawChars();
 }
 
-/*
+/**
  * @brief Initializes the specified bitmap font. The layout of the font is square,
  * 2^n (e.g. 256x256, 512x512), and 8 rows by 16 columns. See below:
  *
@@ -505,7 +505,7 @@ static void R_InitFont(char *name) {
 	Com_Debug("%s (%dx%d)\n", font->name, font->char_width, font->char_height);
 }
 
-/*
+/**
  * @brief
  */
 void R_InitDraw(void) {

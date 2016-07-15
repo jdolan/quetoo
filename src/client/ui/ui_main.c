@@ -26,7 +26,7 @@ ui_t ui;
 
 extern cl_static_t cls;
 
-/*
+/**
  * @brief Activates the menu system when ESC is pressed.
  */
 static _Bool Ui_HandleKeyEvent(const SDL_Event *event) {
@@ -54,7 +54,7 @@ static _Bool Ui_HandleKeyEvent(const SDL_Event *event) {
 	return false;
 }
 
-/*
+/**
  * @brief Informs AntTweakBar of window events.
  */
 static _Bool Ui_HandleWindowEvent(const SDL_Event *event) {
@@ -76,7 +76,7 @@ static _Bool Ui_HandleWindowEvent(const SDL_Event *event) {
 	return false;
 }
 
-/*
+/**
  * @brief Handles input events to the user interface, returning true if the
  * event was swallowed. While in focus, AntTweakBar receives all events. While
  * not in focus, we still pass SDL_WINDOWEVENTs to it.
@@ -100,7 +100,7 @@ _Bool Ui_HandleEvent(const SDL_Event *event) {
 	return false;
 }
 
-/*
+/**
  * @brief Draws any active TwBar components.
  */
 void Ui_Draw(void) {
@@ -111,7 +111,7 @@ void Ui_Draw(void) {
 	TwDraw();
 }
 
-/*
+/**
  * @brief Defines the root TwBar.
  */
 static TwBar *Ui_Root(void) {
@@ -134,7 +134,7 @@ static TwBar *Ui_Root(void) {
 	return bar;
 }
 
-/*
+/**
  * @brief
  */
 static void Ui_Restart_f(void) {
@@ -144,7 +144,7 @@ static void Ui_Restart_f(void) {
 	Ui_Init();
 }
 
-/*
+/**
  * @brief
  */
 void Ui_Init(void) {
@@ -183,7 +183,7 @@ void Ui_Init(void) {
 	Cmd_Add("ui_restart", Ui_Restart_f, CMD_UI, "Restarts the menus subsystem");
 }
 
-/*
+/**
  * @brief
  */
 void Ui_Shutdown(void) {

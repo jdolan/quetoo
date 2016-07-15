@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 
-/*
+/**
  * @brief
  */
 static void Cg_ItemRespawnEffect(const vec3_t org) {
@@ -62,7 +62,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 	cgi.AddSustainedLight(&s);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_ItemPickupEffect(const vec3_t org) {
@@ -103,7 +103,7 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 	cgi.AddSustainedLight(&s);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_TeleporterEffect(const vec3_t org) {
@@ -147,7 +147,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 
 }
 
-/*
+/**
  * @brief A player is gasping for air under water.
  */
 static void Cg_GurpEffect(cl_entity_t *ent) {
@@ -164,7 +164,7 @@ static void Cg_GurpEffect(cl_entity_t *ent) {
 	Cg_BubbleTrail(start, end, 32.0);
 }
 
-/*
+/**
  * @brief A player has drowned.
  */
 static void Cg_DrownEffect(cl_entity_t *ent) {
@@ -181,7 +181,7 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
 	Cg_BubbleTrail(start, end, 32.0);
 }
 
-/*
+/**
  * @brief Process any event set on the given entity. These are only valid for a single
  * frame, so we reset the event flag after processing it.
  */

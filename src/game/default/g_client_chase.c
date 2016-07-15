@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-/*
+/**
  * @brief
  */
 void G_ClientChaseThink(g_entity_t *ent) {
@@ -68,7 +68,7 @@ void G_ClientChaseThink(g_entity_t *ent) {
 	gi.LinkEntity(ent);
 }
 
-/*
+/**
  * @brief
  */
 void G_ClientChaseNext(g_entity_t *ent) {
@@ -98,7 +98,7 @@ void G_ClientChaseNext(g_entity_t *ent) {
 	ent->client->locals.chase_target = e;
 }
 
-/*
+/**
  * @brief
  */
 void G_ClientChasePrevious(g_entity_t *ent) {
@@ -128,7 +128,7 @@ void G_ClientChasePrevious(g_entity_t *ent) {
 	ent->client->locals.chase_target = e;
 }
 
-/*
+/**
  * @brief Finds the first available chase target and assigns it to the specified ent.
  */
 void G_ClientChaseTarget(g_entity_t *ent) {

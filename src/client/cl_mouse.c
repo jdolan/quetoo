@@ -21,7 +21,7 @@
 
 #include "cl_local.h"
 
-/*
+/**
  * @brief
  */
 void Cl_MouseButtonEvent(const SDL_Event *event) {
@@ -35,7 +35,7 @@ void Cl_MouseButtonEvent(const SDL_Event *event) {
 	Cl_KeyEvent(&e);
 }
 
-/*
+/**
  * @brief
  */
 void Cl_MouseWheelEvent(const SDL_Event *event) {
@@ -74,7 +74,7 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Cl_MouseMotionEvent(const SDL_Event *event) {

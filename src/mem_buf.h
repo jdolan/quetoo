@@ -24,7 +24,7 @@
 
 #include "quetoo.h"
 
-/*
+/**
  * @brief A fixed-sized buffer, used for accumulating e.g. net messages.
  */
 typedef struct {

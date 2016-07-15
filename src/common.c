@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-/*
+/**
  * @brief Print a debug statement. If the format begins with '!', the function
  * name is omitted.
  */
@@ -50,7 +50,7 @@ void Com_Trace_(const char *func, const char *fmt, ...) {
 	}
 }
 
-/*
+/**
  * @brief Print a debug statement. If the format begins with '!', the function
  * name is omitted.
  */
@@ -79,7 +79,7 @@ void Com_Debug_(const char *func, const char *fmt, ...) {
 	}
 }
 
-/*
+/**
  * @brief An error condition has occurred. This function does not return.
  */
 void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
@@ -117,7 +117,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Com_Print(const char *fmt, ...) {
@@ -136,7 +136,7 @@ void Com_Print(const char *fmt, ...) {
 	}
 }
 
-/*
+/**
  * @brief Prints a warning message.
  */
 void Com_Warn_(const char *func, const char *fmt, ...) {
@@ -164,7 +164,7 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Com_Verbose(const char *fmt, ...) {
@@ -183,7 +183,7 @@ void Com_Verbose(const char *fmt, ...) {
 	}
 }
 
-/*
+/**
  * @brief Initializes the global arguments list and dispatches to an underlying
  * implementation, if provided. Should be called shortly after program
  * execution begins.
@@ -200,7 +200,7 @@ void Com_Init(int32_t argc, char **argv) {
 	}
 }
 
-/*
+/**
  * @brief Program exit point under normal circumstances. Dispatches to a
  * specialized implementation, if provided, or simply prints the message and
  * exits. This function does not return.
@@ -224,21 +224,21 @@ void Com_Shutdown(const char *fmt, ...) {
 	exit(0);
 }
 
-/*
+/**
  * @brief
  */
 uint32_t Com_WasInit(uint32_t s) {
 	return quetoo.subsystems & s;
 }
 
-/*
+/**
  * @brief
  */
 void Com_InitSubsystem(uint32_t s) {
 	quetoo.subsystems |= s;
 }
 
-/*
+/**
  * @brief
  */
 void Com_QuitSubsystem(uint32_t s) {
@@ -247,14 +247,14 @@ void Com_QuitSubsystem(uint32_t s) {
 
 
 
-/*
+/**
  * @brief Returns the command line argument count.
  */
 int32_t Com_Argc(void) {
 	return quetoo.argc;
 }
 
-/*
+/**
  * @brief Returns the command line argument at the specified index.
  */
 char *Com_Argv(int32_t arg) {
@@ -263,7 +263,7 @@ char *Com_Argv(int32_t arg) {
 	return quetoo.argv[arg];
 }
 
-/*
+/**
  * @brief
  */
 void Com_PrintInfo(const char *s) {

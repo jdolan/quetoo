@@ -31,7 +31,7 @@ typedef struct r_shell_program_s {
 
 static r_shell_program_t r_shell_program;
 
-/*
+/**
  * @brief
  */
 void R_InitProgram_shell(void) {
@@ -44,7 +44,7 @@ void R_InitProgram_shell(void) {
 	R_ProgramParameter1i(&p->sampler0, 0);
 }
 
-/*
+/**
  * @brief
  */
 void R_UseProgram_shell(void) {

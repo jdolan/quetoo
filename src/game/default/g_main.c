@@ -66,7 +66,7 @@ cvar_t *dedicated;
 
 g_team_t g_team_good, g_team_evil;
 
-/*
+/**
  * @brief
  */
 void G_ResetTeams(void) {
@@ -84,7 +84,7 @@ void G_ResetTeams(void) {
 	g_strlcpy(g_team_evil.skin, "qforcer/red", sizeof(g_team_evil.skin));
 }
 
-/*
+/**
  * @brief
  */
 void G_ResetVote(void) {
@@ -106,7 +106,7 @@ void G_ResetVote(void) {
 	g_level.vote_time = 0;
 }
 
-/*
+/**
  * @brief Reset all items in the level based on gameplay, CTF, etc.
  */
 void G_ResetItems(void) {
@@ -130,7 +130,7 @@ void G_ResetItems(void) {
 	}
 }
 
-/*
+/**
  * @brief For normal games, this just means reset scores and respawn.
  * For match games, this means cancel the match and force everyone
  * to ready again. Teams are only reset when teamz is true.
@@ -197,7 +197,7 @@ static void G_RestartGame(_Bool teamz) {
 	gi.Sound(&g_game.entities[0], g_media.sounds.teleport, ATTEN_NONE);
 }
 
-/*
+/**
  * @brief
  */
 void G_MuteClient(char *name, _Bool mute) {
@@ -209,7 +209,7 @@ void G_MuteClient(char *name, _Bool mute) {
 	cl->locals.muted = mute;
 }
 
-/*
+/**
  * @brief
  */
 static void G_BeginIntermission(const char *map) {
@@ -260,7 +260,7 @@ static void G_BeginIntermission(const char *map) {
 	g_level.changemap = map ?: g_level.name;
 }
 
-/*
+/**
  * @brief The time limit, frag limit, etc.. has been exceeded.
  */
 static void G_EndLevel(void) {
@@ -277,7 +277,7 @@ static void G_EndLevel(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_CheckVote(void) {
@@ -327,7 +327,7 @@ static void G_CheckVote(void) {
 
 
 
-/*
+/**
  * @brief
  */
 static void G_CheckRoundStart(void) {
@@ -375,7 +375,7 @@ static void G_CheckRoundStart(void) {
 	g_level.start_round = true;
 }
 
-/*
+/**
  * @brief
  */
 static void G_CheckRoundLimit() {
@@ -413,7 +413,7 @@ static void G_CheckRoundLimit() {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_CheckRoundEnd(void) {
@@ -492,7 +492,7 @@ static void G_CheckRoundEnd(void) {
 	G_CheckRoundLimit();
 }
 
-/*
+/**
  * @brief
  */
 static void G_CheckMatchEnd(void) {
@@ -534,7 +534,7 @@ static void G_CheckMatchEnd(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static char *G_FormatTime(uint32_t time) {
@@ -557,7 +557,7 @@ static char *G_FormatTime(uint32_t time) {
 	return formatted_time;
 }
 
-/*
+/**
  * @brief
  */
 static void G_CheckRules(void) {
@@ -776,7 +776,7 @@ static void G_CheckRules(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_ExitLevel(void) {
@@ -790,7 +790,7 @@ static void G_ExitLevel(void) {
 }
 
 #define INTERMISSION (10.0 * 1000) // intermission duration
-/*
+/**
  * @brief The main game module "think" function, called once per server frame.
  * Nothing would happen in Quake land if this weren't called.
  */
@@ -845,7 +845,7 @@ static void G_Frame(void) {
 	G_EndClientFrames();
 }
 
-/*
+/**
  * @brief Returns the game name advertised by the server in info strings.
  */
 const char *G_GameName(void) {
@@ -870,7 +870,7 @@ const char *G_GameName(void) {
 	return name;
 }
 
-/*
+/**
  * @brief This will be called when the game module is first loaded.
  */
 void G_Init(void) {
@@ -943,7 +943,7 @@ void G_Init(void) {
 	gi.Print("  Game initialized\n");
 }
 
-/*
+/**
  * @brief Shuts down the game module. This is called when the game is unloaded
  * (complements G_Init).
  */
@@ -1073,7 +1073,7 @@ void G_RunTimers(void) {
 	}
 }
 
-/*
+/**
  * @brief This is the entry point responsible for aligning the server and game module.
  * The server resolves this symbol upon successfully loading the game library,
  * and invokes it. We're responsible for copying the import structure so that

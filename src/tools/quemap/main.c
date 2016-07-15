@@ -70,7 +70,7 @@ extern vec_t entity_scale;
 
 static void Print(const char *msg);
 
-/*
+/**
  * @brief
  */
 static void Debug(const char *msg) {
@@ -83,7 +83,7 @@ static void Debug(const char *msg) {
 
 static void Shutdown(const char *msg);
 
-/*
+/**
  * @brief
  */
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
@@ -99,7 +99,7 @@ static void Error(err_t err __attribute__((unused)), const char *msg) {
 	exit(err);
 }
 
-/*
+/**
  * @brief Print to stdout and, if not escaped, to the monitor socket.
  */
 static void Print(const char *msg) {
@@ -116,7 +116,7 @@ static void Print(const char *msg) {
 	}
 }
 
-/*
+/**
  * @brief Print a verbose message to stdout and, unless escaped, to the monitor
  * socket.
  */
@@ -128,7 +128,7 @@ static void Verbose(const char *msg) {
 	Print(msg);
 }
 
-/*
+/**
  * @brief Print a warning message to stdout and, if not escaped, to the monitor
  * socket.
  */
@@ -146,7 +146,7 @@ static void Warn(const char *msg) {
 	}
 }
 
-/*
+/**
  * @brief Initializes subsystems quemap relies on.
  */
 static void Init(void) {
@@ -170,7 +170,7 @@ static void Init(void) {
 	Com_Print("Quetoo Map %s %s %s initialized\n", VERSION, __DATE__, BUILD_HOST);
 }
 
-/*
+/**
  * @brief Shuts down subsystems.
  */
 static void Shutdown(const char *msg) {
@@ -195,7 +195,7 @@ static void Shutdown(const char *msg) {
 #endif
 }
 
-/*
+/**
  * @brief
  */
 static void Check_BSP_Options(int32_t argc) {
@@ -273,7 +273,7 @@ static void Check_BSP_Options(int32_t argc) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Check_VIS_Options(int32_t argc) {
@@ -290,7 +290,7 @@ static void Check_VIS_Options(int32_t argc) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Check_LIGHT_Options(int32_t argc) {
@@ -324,25 +324,25 @@ static void Check_LIGHT_Options(int32_t argc) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Check_AAS_Options(int32_t argc __attribute__((unused))) {
 }
 
-/*
+/**
  * @brief
  */
 static void Check_ZIP_Options(int32_t argc __attribute__((unused))) {
 }
 
-/*
+/**
  * @brief
  */
 static void Check_MAT_Options(int32_t argc __attribute__((unused))) {
 }
 
-/*
+/**
  * @brief
  */
 static void PrintHelpMessage(void) {
@@ -406,7 +406,7 @@ static void PrintHelpMessage(void) {
 	Com_Print("\n");
 }
 
-/*
+/**
  * @brief
  */
 int32_t main(int32_t argc, char **argv) {

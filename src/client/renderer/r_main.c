@@ -94,7 +94,7 @@ MeshModelsDrawFunc R_DrawMeshModels;
 extern cl_client_t cl;
 extern cl_static_t cls;
 
-/*
+/**
  * @brief Updates the clipping planes for the view frustum based on the origin
  * and angles for this frame.
  */
@@ -125,7 +125,7 @@ void R_UpdateFrustum(void) {
 	}
 }
 
-/*
+/**
  * @brief Draws all developer tools towards the end of the frame.
  */
 static void R_DrawDeveloperTools(void) {
@@ -137,7 +137,7 @@ static void R_DrawDeveloperTools(void) {
 	R_DrawBspLeafs();
 }
 
-/*
+/**
  * @brief Main entry point for drawing the scene (world and entities).
  */
 void R_DrawView(void) {
@@ -213,7 +213,7 @@ void R_DrawView(void) {
 #endif
 }
 
-/*
+/**
  * @brief Assigns surface and entity rendering function pointers for the
  * r_render_plugin plugin framework.
  */
@@ -236,7 +236,7 @@ static void R_RenderPlugin(const char *plugin) {
 	// assign function pointers to different renderer paths here
 }
 
-/*
+/**
  * @brief Clears the frame buffer.
  */
 static void R_Clear(void) {
@@ -262,7 +262,7 @@ static void R_Clear(void) {
 	glClear(bits);
 }
 
-/*
+/**
  * @brief
  */
 void R_BeginFrame(void) {
@@ -285,7 +285,7 @@ void R_BeginFrame(void) {
 	R_Clear();
 }
 
-/*
+/**
  * @brief Called at the end of each video frame to swap buffers. Also, if the
  * loading cycle has completed, media is freed here.
  */
@@ -302,7 +302,7 @@ void R_EndFrame(void) {
 	SDL_GL_SwapWindow(r_context.window);
 }
 
-/*
+/**
  * @brief Initializes the view and locals structures so that loading may begin.
  */
 void R_InitView(void) {
@@ -316,7 +316,7 @@ void R_InitView(void) {
 	r_locals.clusters[0] = r_locals.clusters[1] = -1;
 }
 
-/*
+/**
  * @brief Loads all media for the renderer subsystem.
  */
 void R_LoadMedia(void) {
@@ -363,7 +363,7 @@ void R_LoadMedia(void) {
 	r_view.update = true;
 }
 
-/*
+/**
  * @brief Restarts the renderer subsystem. The OpenGL context is discarded and
  * recreated. All media is reloaded. Other subsystems can elect to refresh
  * their media references by inspecting r_view.update.
@@ -389,7 +389,7 @@ void R_Restart_f(void) {
 	cls.state = state;
 }
 
-/*
+/**
  * @brief Toggles fullscreen vs windowed mode.
  */
 static void R_ToggleFullscreen_f(void) {
@@ -399,7 +399,7 @@ static void R_ToggleFullscreen_f(void) {
 	R_Restart_f();
 }
 
-/*
+/**
  * @brief Initializes console variables and commands for the renderer.
  */
 static void R_InitLocal(void) {
@@ -498,7 +498,7 @@ static void R_InitLocal(void) {
 	Cmd_Add("r_restart", R_Restart_f, CMD_RENDERER, "Restart the rendering subsystem");
 }
 
-/*
+/**
  * @brief Populates the GL config structure by querying the implementation.
  */
 static void R_InitConfig(void) {
@@ -518,7 +518,7 @@ static void R_InitConfig(void) {
 	Com_Print("  Version:  ^2%s^7\n", r_config.version_string);
 }
 
-/*
+/**
  * @brief Creates the OpenGL context and initializes all GL state.
  */
 void R_Init(void) {
@@ -553,7 +553,7 @@ void R_Init(void) {
 			(r_context.fullscreen ? "fullscreen" : "windowed"));
 }
 
-/*
+/**
  * @brief Shuts down the renderer, freeing all resources belonging to it,
  * including the GL context.
  */

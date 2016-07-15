@@ -34,7 +34,7 @@ static char *sv_cmd_names[32] = {
 		"SV_CMD_SERVER_DATA",
 		"SV_CMD_SOUND" };
 
-/*
+/**
  * @brief Returns true if the file exists, otherwise it attempts to start a download
  * from the server.
  */
@@ -100,7 +100,7 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 	return false;
 }
 
-/*
+/**
  * @brief Manually request a download from the server.
  */
 void Cl_Download_f(void) {
@@ -113,7 +113,7 @@ void Cl_Download_f(void) {
 	Cl_CheckOrDownloadFile(Cmd_Argv(1));
 }
 
-/*
+/**
  * @brief The server sends this command just after server_data. Hang onto the spawn
  * count and check for the media we'll need to enter the game.
  */
@@ -131,7 +131,7 @@ void Cl_Precache_f(void) {
 	Cl_RequestNextDownload();
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_ParseBaseline(void) {
@@ -156,7 +156,7 @@ static void Cl_ParseBaseline(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_ParseCbufText(void) {
@@ -166,7 +166,7 @@ static void Cl_ParseCbufText(void) {
 	Cbuf_AddText(text);
 }
 
-/*
+/**
  * @brief
  */
 void Cl_ParseConfigString(void) {
@@ -201,7 +201,7 @@ void Cl_ParseConfigString(void) {
 	cls.cgame->UpdateConfigString(i);
 }
 
-/*
+/**
  * @brief A download message has been received from the server.
  */
 static void Cl_ParseDownload(void) {
@@ -257,7 +257,7 @@ static void Cl_ParseDownload(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_ParseServerData(void) {
@@ -354,7 +354,7 @@ static void Cl_ParsePrint(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_ParseSound(void) {
@@ -397,7 +397,7 @@ static void Cl_ParseSound(void) {
 	S_PlaySample(org, ent_num, cl.sound_precache[index], atten);
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_ShowNet(const char *s) {
@@ -405,7 +405,7 @@ static void Cl_ShowNet(const char *s) {
 		Com_Print("%3u: %s\n", (uint32_t) (net_message.read - 1), s);
 }
 
-/*
+/**
  * @brief
  */
 void Cl_ParseServerMessage(void) {

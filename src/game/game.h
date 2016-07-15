@@ -26,13 +26,13 @@
 
 #define GAME_API_VERSION 1
 
-/*
+/**
  * @brief Server flags for g_entity_t.
  */
 #define SVF_NO_CLIENT 		(1 << 0) // don't send entity to clients
 #define SVF_GAME			(1 << 1) // game may extend from here
 
-/*
+/**
  * @brief Filter bits to Sv_BoxEntities / gi.BoxEntities.
  */
 #define BOX_COLLIDE			(1 << 0) // SOLID_DEAD, SOLID_BOX, SOLID_BSP, ..
@@ -42,7 +42,7 @@
 
 #ifndef __GAME_LOCAL_H__
 
-/*
+/**
  * @brief This is the server's definition of the client and edict structures. The
  * game module is free to add additional members to these structures, provided
  * they communicate the actual size of them at runtime through the game export
@@ -69,7 +69,7 @@ struct g_client_s {
 	g_client_locals_t locals; // game-local data members
 };
 
-/*
+/**
  * @brief Entitys (or entities) are autonomous units of game interaction, such
  * as items, moving platforms, giblets and players. The game module and server
  * share a common base for this structure, but the game is free to extend it
@@ -149,7 +149,7 @@ struct g_entity_s {
 
 typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
 
-/*
+/**
  * @brief The game import provides engine functionality and core configuration
  * such as frame intervals to the game module.
  */
@@ -334,7 +334,7 @@ typedef struct {
 
 } g_import_t;
 
-/*
+/**
  * @brief The game export structure exposes core game module entry points to
  * the server. The game must populate this structure as part of G_LoadGame.
  */

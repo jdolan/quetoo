@@ -27,21 +27,21 @@
 
 #ifdef __SV_LOCAL_H__
 
-/*
+/**
  * @brief The practical maximum number of leafs an entity may occupy. If an
  * entity exceeds this (by having a massive bounding box, for example), it may
  * fall out of PVS for some valid client positions.
  */
 #define MAX_ENT_LEAFS 128
 
-/*
+/**
  * @brief The maximum number of clusters an entity may occupy. If an entity
  * exceeds this (by having a massive bounding box, for example), a full BSP
  * recursion is necessary to determine its visibility (bad).
  */
 #define MAX_ENT_CLUSTERS 32
 
-/*
+/**
  * @brief The server-specific view of an entity. An sv_entity_t corresponds to
  * precisely one g_entity_t, where most general-purpose entity state resides.
  * This structure is primarily used for entity list management and clipping.
@@ -59,7 +59,7 @@ typedef struct {
 	matrix4x4_t inverse_matrix;
 } sv_entity_t;
 
-/*
+/**
  * @brief Server states.
  */
 typedef enum {
@@ -69,7 +69,7 @@ typedef enum {
 	SV_ACTIVE_DEMO
 } sv_state_t;
 
-/*
+/**
  * @brief The sv_server_t struct is wiped at each level load.
  */
 typedef struct {
@@ -105,28 +105,28 @@ typedef struct {
 	uint32_t sent_time; // for ping calculations
 } sv_frame_t;
 
-/*
+/**
  * @brief The server runs at fixed-interval frames at a configurable rate.
  */
 #define SV_HZ_MIN 10
 #define SV_HZ_MAX 120
 
-/*
+/**
  * @brief The default server frame rate.
  */
 #define SV_HZ 30
 
-/*
+/**
  * @brief Clients are dropped after 60 seconds without receiving a packet.
  */
 #define SV_TIMEOUT 60
 
-/*
+/**
  * @brief Frame latency accounting, used to estimate ping.
  */
 #define SV_CLIENT_LATENCY_COUNT 16
 
-/*
+/**
  * @brief User movement command duration is inspected regularly to ensure that
  * they are not cheating. If their movement is too far out of sync with the
  * server's clock, we take notice and eventually kick them.
@@ -135,7 +135,7 @@ typedef struct {
 #define CMD_MSEC_ALLOWABLE_DRIFT CMD_MSEC_CHECK_INTERVAL + 150
 #define CMD_MSEC_MAX_DRIFT_ERRORS 10
 
-/*
+/**
  * @brief Client states.
  */
 typedef enum {
@@ -144,12 +144,12 @@ typedef enum {
 	SV_CLIENT_ACTIVE // client is spawned
 } sv_client_state_t;
 
-/*
+/**
  * @brief The maximum size of a client's datagram buffer.
  */
 #define MAX_DATAGRAM_SIZE (MAX_MSG_SIZE * 4)
 
-/*
+/**
  * @brief Represents the bounds of an individual client message within the
  * buffered datagram for a given frame. Datagrams are packetized along message
  * bounds and transmitted as fragments when necessary.
@@ -159,7 +159,7 @@ typedef struct {
 	size_t len;
 } sv_client_message_t;
 
-/*
+/**
  * @brief A datagram structure that maintains individual message offsets so
  * that it may be safely fragmented for delivery.
  */
@@ -169,7 +169,7 @@ typedef struct {
 	GList *messages; // message segmentation
 } sv_client_datagram_t;
 
-/*
+/**
  * @brief Each client my download a single file at a time via the game's UDP
  * protocol. This only serves as a fallback for when HTTP downloading is not
  * configured or unavailable.
@@ -180,7 +180,7 @@ typedef struct {
 	int32_t count;
 } sv_client_download_t;
 
-/*
+/**
  * @brief Per-client accounting for protocol flow control and low-level
  * connection state management.
  */
@@ -218,13 +218,13 @@ typedef struct {
 	net_chan_t net_chan;
 } sv_client_t;
 
-/*
+/**
  * @brief Public servers may broadcast their status to as many as 8 master
  * servers.
  */
 #define MAX_MASTERS	8
 
-/*
+/**
  * @brief Challenges are a request for a connection. The client must receive
  * and then re-use a valid challenge in order to receive a client slot. This
  * provides basic protection against simple UDP DoS attacks.
@@ -235,13 +235,13 @@ typedef struct {
 	uint32_t time;
 } sv_challenge_t;
 
-/*
+/**
  * @brief MAX_CHALLENGES is large to prevent a denial of service attack that
  * could cycle all of them out before legitimate users connected.
  */
 #define MAX_CHALLENGES 1024
 
-/*
+/**
  * @brief The sv_static_t structure is persistent for the execution of the
  * game. It is only cleared when Sv_Init is called. It is not exposed to the
  * game module.
@@ -274,7 +274,7 @@ typedef struct {
 	g_export_t *game;
 } sv_static_t;
 
-/*
+/**
  * @brief Yields a pointer to the edict by the given number by negotiating the
  * edicts array based on the reported size of g_entity_t.
  *
@@ -282,7 +282,7 @@ typedef struct {
  */
 #define ENTITY_FOR_NUM(n) ( (g_entity_t *)((byte *) svs.game->entities + svs.game->entity_size * (n)) )
 
-/*
+/**
  * @brief Yields the entity number (index) for the specified g_entity_t * by
  * negotiating the edicts array based on the reported size of g_entity_t.
  */

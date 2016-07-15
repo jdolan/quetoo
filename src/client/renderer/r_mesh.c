@@ -23,7 +23,7 @@
 
 r_mesh_state_t r_mesh_state;
 
-/*
+/**
  * @brief Applies any client-side transformations specified by the model's world or
  * view configuration structure.
  */
@@ -69,7 +69,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 	e->effects |= c->flags;
 }
 
-/*
+/**
  * @brief Returns the desired tag structure, or NULL.
  */
 static const r_md3_tag_t *R_GetMeshModelTag(const r_model_t *mod, int32_t frame, const char *name) {
@@ -93,7 +93,7 @@ static const r_md3_tag_t *R_GetMeshModelTag(const r_model_t *mod, int32_t frame,
 	return NULL;
 }
 
-/*
+/**
  * @brief Applies transformation and rotation for the specified linked entity.
  */
 void R_ApplyMeshModelTag(r_entity_t *e) {
@@ -130,7 +130,7 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 	//		e->matrix.m[0][3], e->matrix.m[1][3], e->matrix.m[2][3]);
 }
 
-/*
+/**
  * @return True if the specified entity was frustum-culled and can be skipped.
  */
 _Bool R_CullMeshModel(const r_entity_t *e) {
@@ -147,7 +147,7 @@ _Bool R_CullMeshModel(const r_entity_t *e) {
 	return R_CullBox(mins, maxs);
 }
 
-/*
+/**
  * @brief Updates static lighting information for the specified mesh entity.
  */
 void R_UpdateMeshModelLighting(const r_entity_t *e) {
@@ -173,7 +173,7 @@ void R_UpdateMeshModelLighting(const r_entity_t *e) {
 	R_UpdateLighting(e->lighting);
 }
 
-/*
+/**
  * @brief Interpolate the animation for the give entity, writing primitives to
  * the default vertex arrays. This must be called at each frame for animated
  * entities.
@@ -242,7 +242,7 @@ void R_InterpolateMeshModel(const r_entity_t *e) {
 	}
 }
 
-/*
+/**
  * @brief Sets the shade color for the mesh by modulating any preset color
  * with static lighting.
  */
@@ -277,7 +277,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 	R_Color(color);
 }
 
-/*
+/**
  * @brief Populates hardware light sources with illumination information.
  */
 static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
@@ -306,7 +306,7 @@ static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
 		glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, 0.0);
 }
 
-/*
+/**
  * @brief Sets renderer state for the specified entity.
  */
 static void R_SetMeshState_default(const r_entity_t *e) {
@@ -352,7 +352,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	R_RotateForEntity(e);
 }
 
-/*
+/**
  * @brief Restores renderer state for the given entity.
  */
 static void R_ResetMeshState_default(const r_entity_t *e) {
@@ -375,7 +375,7 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 	}
 }
 
-/*
+/**
  * @brief Draw the diffuse pass of each mesh segment for the specified model.
  */
 static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
@@ -402,7 +402,7 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 	}
 }
 
-/*
+/**
  * @brief Draws the mesh model for the given entity.
  */
 void R_DrawMeshModel_default(const r_entity_t *e) {
@@ -423,7 +423,7 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 	r_view.num_mesh_tris += e->model->num_verts / 3;
 }
 
-/*
+/**
  * @brief Draws all mesh models for the current frame.
  */
 void R_DrawMeshModels_default(const r_entities_t *ents) {

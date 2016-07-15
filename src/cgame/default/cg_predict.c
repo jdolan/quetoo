@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-/*
+/**
  * @brief Trace wrapper for Pm_Move.
  */
 static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
@@ -30,14 +30,14 @@ static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end,
 	return cgi.Trace(start, end, mins, maxs, 0, MASK_CLIP_PLAYER);
 }
 
-/*
+/**
  * @brief Debug messages for Pm_Move.
  */
 static void Cg_PredictMovement_Debug(const char *msg) {
 	cgi.Debug("!Client: %u %s", cgi.client->time, msg);
 }
 
-/*
+/**
  * @brief Run recent movement commands through the player movement code
  * locally, storing the resulting origin and angles so that they may be
  * interpolated to by Cl_UpdateView.

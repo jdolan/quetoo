@@ -52,7 +52,7 @@ typedef struct face_extents_s {
 
 static face_extents_t face_extents[MAX_BSP_FACES];
 
-/*
+/**
  * @brief Populates face_extents for all d_bsp_face_t, prior to light creation.
  * This is done so that sample positions may be nudged outward along
  * the face normal and towards the face center to help with traces.
@@ -108,7 +108,7 @@ static void BuildFaceExtents(void) {
 	}
 }
 
-/*
+/**
  * @brief Fills in l->texmins[] and l->texsize[], l->exactmins[] and l->exactmaxs[]
  */
 static void CalcLightinfoExtents(light_info_t *l) {
@@ -143,7 +143,7 @@ static void CalcLightinfoExtents(light_info_t *l) {
 	}
 }
 
-/*
+/**
  * @brief Fills in tex_org, world_to_tex. and tex_to_world
  */
 static void CalcLightinfoVectors(light_info_t *l) {
@@ -205,7 +205,7 @@ static void CalcLightinfoVectors(light_info_t *l) {
 	l->sample_points = Mem_Malloc(l->num_sample_points * sizeof(vec3_t));
 }
 
-/*
+/**
  * @brief For each texture aligned grid point, back project onto the plane
  * to get the world xyz value of the sample point
  */
@@ -269,7 +269,7 @@ typedef struct sun_s {
 
 static sun_t sun;
 
-/*
+/**
  * @brief
  */
 static entity_t *FindTargetEntity(const char *target) {
@@ -287,7 +287,7 @@ static entity_t *FindTargetEntity(const char *target) {
 #define ANGLE_UP	-1.0
 #define ANGLE_DOWN	-2.0
 
-/*
+/**
  * @brief
  */
 void BuildLights(void) {
@@ -460,7 +460,7 @@ void BuildLights(void) {
 	}
 }
 
-/*
+/**
  * @brief A follow-up to GatherSampleLight, simply trace along the sun normal, adding
  * sunlight when a sky surface is struck.
  */
@@ -496,7 +496,7 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *s
 	VectorMA(direction, light * scale, delta, direction);
 }
 
-/*
+/**
  * @brief Iterate over all light sources for the sample position's PVS, accumulating
  * light and directional information to the specified pointers.
  */
@@ -572,7 +572,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
 
 #define SAMPLE_NUDGE 0.25
 
-/*
+/**
  * @brief Move the incoming sample position towards the surface center and along the
  * surface normal to reduce false-positive traces. Test the PVS at the new
  * position, returning true if the new point is valid, false otherwise.
@@ -595,7 +595,7 @@ static _Bool NudgeSamplePosition(const vec3_t in, const vec3_t normal, const vec
 
 #define MAX_VERT_FACES 256
 
-/*
+/**
  * @brief Populate faces with indexes of all Phong-shaded d_bsp_face_t's
  * referencing the specified vertex. The number of d_bsp_face_t's referencing
  * the vertex is returned in nfaces.
@@ -627,7 +627,7 @@ static void FacesWithVert(int32_t vert, int32_t *faces, int32_t *nfaces) {
 	*nfaces = k;
 }
 
-/*
+/**
  * @brief Calculate per-vertex (instead of per-plane) normal vectors. This is done by
  * finding all of the faces which share a given vertex, and calculating a weighted
  * average of their normals.
@@ -672,7 +672,7 @@ void BuildVertexNormals(void) {
 	}
 }
 
-/*
+/**
  * @brief For Phong-shaded samples, calculate the interpolated normal vector using
  * linear interpolation between the nearest and farthest vertexes.
  */
@@ -728,7 +728,7 @@ static const vec_t sampleofs[MAX_SAMPLES][2] = {
 		{ 0.125, 0.125 },
 		{ -0.125, 0.125 } };
 
-/*
+/**
  * @brief
  */
 void BuildFacelights(int32_t face_num) {
@@ -863,7 +863,7 @@ void BuildFacelights(int32_t face_num) {
 	}
 }
 
-/*
+/**
  * @brief Add the indirect lighting on top of the direct lighting and save into
  * final map format.
  */

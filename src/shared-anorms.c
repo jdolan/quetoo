@@ -21,7 +21,7 @@
 
 #include "shared.h"
 
-/*
+/**
  * @brief Directional vectors for over-the-wire approximations.
  */
 const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS] = {

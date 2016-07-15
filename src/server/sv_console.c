@@ -33,7 +33,7 @@ static sv_console_state_t sv_console_state;
 
 static console_t sv_console;
 
-/*
+/**
  * @brief Console append callback.
  */
 static void Sv_Print(const console_string_t *str __attribute__((unused))) {
@@ -41,7 +41,7 @@ static void Sv_Print(const console_string_t *str __attribute__((unused))) {
 	sv_console_state.dirty = true;
 }
 
-/*
+/**
  * @brief Handle curses input and redraw if necessary
  */
 static void Sv_HandleEvents(void) {
@@ -143,7 +143,7 @@ static void Sv_HandleEvents(void) {
 	}
 }
 
-/*
+/**
  * @brief Set the curses drawing color
  */
 static void Sv_DrawConsole_Color(int32_t color) {
@@ -159,7 +159,7 @@ static void Sv_DrawConsole_Color(int32_t color) {
 		attroff(A_BOLD);
 }
 
-/*
+/**
  * @brief Clear and draw background objects
  */
 static void Sv_DrawConsole_Background(void) {
@@ -175,7 +175,7 @@ static void Sv_DrawConsole_Background(void) {
 	mvaddstr(0, 2, va("Quetoo Dedicated %s", VERSION));
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_DrawConsole_Buffer(void) {
@@ -211,7 +211,7 @@ static void Sv_DrawConsole_Buffer(void) {
 	Sv_DrawConsole_Color(CON_COLOR_DEFAULT);
 }
 
-/*
+/**
  * @brief Draws the input buffer.
  */
 static void Sv_DrawConsole_Input(void) {
@@ -233,7 +233,7 @@ static void Sv_DrawConsole_Input(void) {
 	wmove(sv_console_state.window, LINES - 1, pos + 2);
 }
 
-/*
+/**
  * @brief Draw everything
  */
 void Sv_DrawConsole(void) {
@@ -256,7 +256,7 @@ void Sv_DrawConsole(void) {
 }
 
 #ifdef SIGWINCH
-/*
+/**
  * @brief Window resize signal handler
  */
 static void Sv_ResizeConsole(int32_t sig __attribute__((unused))) {
@@ -269,7 +269,7 @@ static void Sv_ResizeConsole(int32_t sig __attribute__((unused))) {
 }
 #endif
 
-/*
+/**
  * @brief
  */
 void Sv_InitConsole(void) {
@@ -331,7 +331,7 @@ void Sv_InitConsole(void) {
 	Com_Print("Server console initialized\n");
 }
 
-/*
+/**
  * @brief
  */
 void Sv_ShutdownConsole(void) {

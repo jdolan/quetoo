@@ -81,7 +81,7 @@ net_addr_t net_from;
 mem_buf_t net_message;
 static byte net_message_buffer[MAX_MSG_SIZE];
 
-/*
+/**
  * @brief Sends an out-of-band datagram
  */
 void Netchan_OutOfBand(int32_t sock, const net_addr_t *addr, const void *data, size_t len) {
@@ -98,7 +98,7 @@ void Netchan_OutOfBand(int32_t sock, const net_addr_t *addr, const void *data, s
 	Net_SendDatagram(sock, addr, send.data, send.size);
 }
 
-/*
+/**
  * @brief Sends a text message in an out-of-band datagram
  */
 void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *format, ...) {
@@ -114,7 +114,7 @@ void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *fo
 	Netchan_OutOfBand(sock, addr, (const void *) string, strlen(string));
 }
 
-/*
+/**
  * @brief Called to open a channel to a remote system. If greater than zero,
  * the specified qport will be used. Otherwise, one is determined at random.
  */
@@ -141,7 +141,7 @@ void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t
 	chan->message.allow_overflow = true;
 }
 
-/*
+/**
  * @return True if reliable data must be transmitted this frame, false
  * otherwise.
  */
@@ -156,7 +156,7 @@ static _Bool Netchan_CheckRetransmit(net_chan_t *chan) {
 	return false;
 }
 
-/*
+/**
  * @brief Tries to send an unreliable message to a connection, and handles the
  * transmission / retransmission of the reliable messages.
  *
@@ -225,7 +225,7 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 	}
 }
 
-/*
+/**
  * @brief Called when the current net_message is from remote_address
  * modifies net_message so that it points to the packet payload
  */
@@ -293,7 +293,7 @@ _Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 void Netchan_Init(void) {
@@ -306,7 +306,7 @@ void Netchan_Init(void) {
 	Mem_InitBuffer(&net_message, net_message_buffer, sizeof(net_message_buffer));
 }
 
-/*
+/**
  * @brief
  */
 void Netchan_Shutdown(void) {

@@ -70,7 +70,7 @@ typedef struct {
 
 static r_sky_t r_sky;
 
-/*
+/**
  * @brief
  */
 static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
@@ -148,7 +148,7 @@ static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
 #define ON_EPSILON		0.1 // point on plane side epsilon
 #define MAX_CLIP_VERTS	64
 
-/*
+/**
  * @brief
  */
 static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
@@ -232,7 +232,7 @@ static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
 	R_ClipSkySurface(newc[1], newv[1][0], stage + 1);
 }
 
-/*
+/**
  * @brief
  */
 static void R_AddSkySurface(const r_bsp_surface_t *surf) {
@@ -253,7 +253,7 @@ static void R_AddSkySurface(const r_bsp_surface_t *surf) {
 	R_ClipSkySurface(surf->num_edges, verts[0], 0);
 }
 
-/*
+/**
  * @brief
  */
 void R_ClearSkyBox(void) {
@@ -265,7 +265,7 @@ void R_ClearSkyBox(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void R_MakeSkyVec(vec_t s, vec_t t, int32_t axis) {
@@ -296,7 +296,7 @@ static void R_MakeSkyVec(vec_t s, vec_t t, int32_t axis) {
 	texunit_diffuse.texcoord_array[r_sky.texcoord_index++] = t;
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawSkyBox(void) {
@@ -350,7 +350,7 @@ void R_DrawSkyBox(void) {
 	glPopMatrix();
 }
 
-/*
+/**
  * @brief Sets the sky to the specified environment map.
  */
 void R_SetSky(const char *name) {
@@ -376,7 +376,7 @@ void R_SetSky(const char *name) {
 	r_sky.st_max = (r_sky.images[0]->width - 1.0) / (vec_t) r_sky.images[0]->width;
 }
 
-/*
+/**
  * @brief
  */
 void R_Sky_f(void) {

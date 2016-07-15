@@ -40,14 +40,14 @@ typedef struct {
 
 static r_lightmap_state_t r_lightmap_state;
 
-/*
+/**
  * @brief The source of my misery for about 3 weeks.
  */
 static void R_FreeLightmap(r_media_t *media) {
 	glDeleteTextures(1, &((r_image_t *) media)->texnum);
 }
 
-/*
+/**
  * @brief Allocates a new lightmap (or deluxemap) image handle.
  */
 static r_image_t *R_AllocLightmap_(r_image_type_t type) {
@@ -70,7 +70,7 @@ static r_image_t *R_AllocLightmap_(r_image_type_t type) {
 #define R_AllocLightmap() R_AllocLightmap_(IT_LIGHTMAP)
 #define R_AllocDeluxemap() R_AllocLightmap_(IT_DELUXEMAP)
 
-/*
+/**
  * @brief
  */
 static void R_UploadLightmapBlock(r_bsp_model_t *bsp __attribute__((unused))) {
@@ -84,7 +84,7 @@ static void R_UploadLightmapBlock(r_bsp_model_t *bsp __attribute__((unused))) {
 	memset(r_lightmap_state.direction_buffer, 0, r_lightmap_state.block_size * r_lightmap_state.block_size * 3);
 }
 
-/*
+/**
  * @brief
  */
 static _Bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixel_t *y) {
@@ -118,7 +118,7 @@ static _Bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixe
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *sout,
@@ -147,7 +147,7 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
 	}
 }
 
-/*
+/**
  * @brief Apply brightness, saturation and contrast to the lightmap.
  */
 static void R_FilterLightmap(r_pixel_t width, r_pixel_t height, byte *lightmap) {
@@ -163,7 +163,7 @@ static void R_FilterLightmap(r_pixel_t width, r_pixel_t height, byte *lightmap) 
 	R_FilterImage(&image, GL_RGB, lightmap);
 }
 
-/*
+/**
  * @brief Consume raw lightmap and deluxemap RGB/XYZ data from the surface samples,
  * writing processed lightmap and deluxemap RGB to the specified destinations.
  *
@@ -230,7 +230,7 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 	Mem_Free(deluxemap);
 }
 
-/*
+/**
  * @brief Creates the lightmap and deluxemap for the specified surface. The GL
  * textures to which the lightmap and deluxemap are written is stored on the
  * surface.
@@ -274,7 +274,7 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 		R_BuildDefaultLightmap(bsp, surf, sout, dout, stride);
 }
 
-/*
+/**
  * @brief
  */
 void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp __attribute__((unused))) {
@@ -302,7 +302,7 @@ void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp __attribute__((unused))) {
 	r_lightmap_state.deluxemap = R_AllocDeluxemap();
 }
 
-/*
+/**
  * @brief
  */
 void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {

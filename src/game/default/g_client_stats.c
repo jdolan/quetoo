@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-/*
+/**
  * @brief
  */
 void G_ClientToIntermission(g_entity_t *ent) {
@@ -61,7 +61,7 @@ void G_ClientToIntermission(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief Write the scores information for the specified client.
  */
 static void G_UpdateScore(const g_entity_t *ent, g_score_t *s) {
@@ -100,7 +100,7 @@ static void G_UpdateScore(const g_entity_t *ent, g_score_t *s) {
 	s->captures = ent->client->locals.persistent.captures;
 }
 
-/*
+/**
  * @brief Returns the number of scores written to the buffer.
  */
 static size_t G_UpdateScores(g_score_t *scores) {
@@ -137,7 +137,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
 	return (size_t) (s - scores);
 }
 
-/*
+/**
  * @brief Assemble the binary scores data for the client. Scores are sent in
  * chunks to overcome the 1400 byte UDP packet limitation.
  */
@@ -183,7 +183,7 @@ void G_ClientScores(g_entity_t *ent) {
 	gi.Unicast(ent, false);
 }
 
-/*
+/**
  * @brief Writes the stats array of the player state structure. The client's HUD is
  * largely derived from this information.
  */
@@ -288,7 +288,7 @@ void G_ClientStats(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void G_ClientSpectatorStats(g_entity_t *ent) {

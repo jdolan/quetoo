@@ -26,24 +26,24 @@
 #include "mem.h"
 #include "mem_buf.h"
 
-/*
+/**
  * @brief The default game / cgame module name.
  */
 #define DEFAULT_GAME "default"
 
-/*
+/**
  * @brief The max length of any given output message (stdio).
  */
 #define MAX_PRINT_MSG		2048
 
-/*
+/**
  * @brief Quake net protocol version; this must be changed when the structure
  * of core net messages or serialized data types change. The game and client
  * game maintain PROTOCOL_MINOR as well.
  */
 #define PROTOCOL_MAJOR		1013
 
-/*
+/**
  * @brief The IP address of the master server, where the authoritative list of
  * game servers is maintained.
  *
@@ -51,34 +51,34 @@
  */
 #define HOST_MASTER 		"master.quetoo.org"
 
-/*
+/**
  * @brief Default port for the master server.
  */
 #define PORT_MASTER			1996
 
-/*
+/**
  * @brief Default port for the client.
  */
 #define PORT_CLIENT			1997
 
-/*
+/**
  * @brief Default port for game server.
  */
 #define PORT_SERVER			1998
 
-/*
+/**
  * @brief Both the client and the server retain multiple snapshots of each
  * g_entity_t's state (entity_state_t) in order to calculate delta compression.
  */
 #define PACKET_BACKUP		32
 #define PACKET_MASK			(PACKET_BACKUP - 1)
 
-/*
+/**
  * @brief The maximum number of entities to be referenced in a single message.
  */
 #define MAX_PACKET_ENTITIES	128
 
-/*
+/**
  * @brief Client bandwidth throttling thresholds, in bytes per second. Clients
  * may actually request that the server drops messages for them above a certain
  * bandwidth saturation point in order to maintain some level of connectivity.
@@ -126,7 +126,7 @@ void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn));
 #define QUETOO_CGAME		0x8
 #define QUETOO_MAPTOOL		0x10
 
-/*
+/**
  * @brief Global engine structure.
  */
 typedef struct {

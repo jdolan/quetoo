@@ -31,7 +31,7 @@ typedef struct qzip_s {
 
 static qzip_t qzip;
 
-/*
+/**
  * @brief Adds the specified asset, assuming the given name is a valid
  * filename.
  */
@@ -48,7 +48,7 @@ static void AddAsset(const char *name, _Bool required) {
 	}
 }
 
-/*
+/**
  * @brief Adds the specified asset to the resources list.
  *
  * @return True if the asset was found, false otherwise.
@@ -78,7 +78,7 @@ static _Bool ResolveAsset(const char *name, const char **extensions) {
 	return false;
 }
 
-/*
+/**
  * @brief Attempts to add the specified sound in any available format.
  */
 static void AddSound(const char *sound) {
@@ -89,7 +89,7 @@ static void AddSound(const char *sound) {
 	}
 }
 
-/*
+/**
  * @brief Attempts to add the specified image in any available format. If required,
  * a warning will be issued should we fail to resolve the specified image.
  */
@@ -103,7 +103,7 @@ static void AddImage(const char *image, _Bool required) {
 	}
 }
 
-/*
+/**
  * @brief Adds the sky environment map.
  */
 static void AddSky(char *sky) {
@@ -118,7 +118,7 @@ static void AddSky(char *sky) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void AddAnimation(char *name, int32_t count) {
@@ -138,7 +138,7 @@ static void AddAnimation(char *name, int32_t count) {
 	}
 }
 
-/*
+/**
  * @brief Adds all resources specified by the materials file, and the materials
  * file itself.
  *
@@ -256,7 +256,7 @@ static void AddMaterials(const char *path) {
 	Fs_Free(buffer);
 }
 
-/*
+/**
  * @brief Attempts to add the specified mesh model.
  */
 static void AddModel(char *model) {
@@ -287,7 +287,7 @@ static void AddModel(char *model) {
 	AddMaterials(path);
 }
 
-/*
+/**
  * @brief
  */
 static void AddLocation(void) {
@@ -299,7 +299,7 @@ static void AddLocation(void) {
 	AddAsset(loc, false);
 }
 
-/*
+/**
  * @brief
  */
 static void AddDocumentation(void) {
@@ -309,7 +309,7 @@ static void AddDocumentation(void) {
 	AddAsset(va("docs/map-%s.txt", base), false);
 }
 
-/*
+/**
  * @brief
  */
 static void AddMapshots_enumerate(const char *path, void *data __attribute__((unused))) {
@@ -319,7 +319,7 @@ static void AddMapshots_enumerate(const char *path, void *data __attribute__((un
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void AddMapshots(void) {
@@ -329,7 +329,7 @@ static void AddMapshots(void) {
 	Fs_Enumerate(va("mapshots/%s/*", base), AddMapshots_enumerate, NULL);
 }
 
-/*
+/**
  * @brief Returns a suitable .pk3 filename name for the current bsp name
  */
 static char *GetZipFilename(void) {
@@ -345,7 +345,7 @@ static char *GetZipFilename(void) {
 
 #define ZIP_BUFFER_SIZE 1024 * 1024 * 2
 
-/*
+/**
  * @brief Adds the specified resource to the .pk3 archive.
  */
 static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
@@ -389,7 +389,7 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
 	return success;
 }
 
-/*
+/**
  * @brief Loads the specified BSP file, resolves all resources referenced by it,
  * and generates a new zip archive for the project. This is a very inefficient
  * but straightforward implementation.

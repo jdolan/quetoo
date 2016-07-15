@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-/*
+/**
  * @brief
  */
 static void G_func_areaportal_Use(g_entity_t *ent, g_entity_t *other __attribute__((unused)),
@@ -45,7 +45,7 @@ void G_func_areaportal(g_entity_t *ent) {
 	ent->locals.count = 0; // always start closed;
 }
 
-/*
+/**
  * @brief
  */
 static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
@@ -57,7 +57,7 @@ static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
 	ent->locals.move_info.Done(ent);
 }
 
-/*
+/**
  * @brief
  */
 static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
@@ -78,7 +78,7 @@ static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
 	ent->locals.next_think = g_level.time + gi.frame_millis;
 }
 
-/*
+/**
  * @brief Starts a move with constant velocity. The entity will think again when it
  * has reached its destination.
  */
@@ -102,7 +102,7 @@ static void G_MoveInfo_Linear_Constant(g_entity_t *ent) {
 	ent->locals.Think = G_MoveInfo_Linear_Final;
 }
 
-/*
+/**
  * @brief Sets up a non-constant move, i.e. one that will accelerate near the beginning
  * and decelerate towards the end.
  */
@@ -182,7 +182,7 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 	ent->locals.Think = G_MoveInfo_Linear_Accelerate;
 }
 
-/*
+/**
  * @brief Sets up movement for the specified entity. Both constant and
  * accelerative movements are initiated through this function. Animations are
  * also kicked off here.
@@ -213,7 +213,7 @@ static void G_MoveInfo_Linear_Init(g_entity_t *ent, vec3_t dest, void (*Done)(g_
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_MoveInfo_Angular_Done(g_entity_t *ent) {
@@ -222,7 +222,7 @@ static void G_MoveInfo_Angular_Done(g_entity_t *ent) {
 	ent->locals.move_info.Done(ent);
 }
 
-/*
+/**
  * @brief
  */
 static void G_MoveInfo_Angular_Final(g_entity_t *ent) {
@@ -245,7 +245,7 @@ static void G_MoveInfo_Angular_Final(g_entity_t *ent) {
 	ent->locals.next_think = g_level.time + gi.frame_millis;
 }
 
-/*
+/**
  * @brief
  */
 static void G_MoveInfo_Angular_Begin(g_entity_t *ent) {
@@ -279,7 +279,7 @@ static void G_MoveInfo_Angular_Begin(g_entity_t *ent) {
 	ent->locals.Think = G_MoveInfo_Angular_Final;
 }
 
-/*
+/**
  * @brief
  */
 static void G_MoveInfo_Angular_Init(g_entity_t *ent, void (*Done)(g_entity_t *)) {
@@ -297,7 +297,7 @@ static void G_MoveInfo_Angular_Init(g_entity_t *ent, void (*Done)(g_entity_t *))
 	}
 }
 
-/*
+/**
  * @brief When a MOVE_TYPE_PUSH or MOVE_TYPE_STOP is blocked, deal with the
  * obstacle by damaging it.
  */
@@ -326,7 +326,7 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 
 static void G_func_plat_GoingDown(g_entity_t *ent);
 
-/*
+/**
  * @brief
  */
 static void G_func_plat_Top(g_entity_t *ent) {
@@ -345,7 +345,7 @@ static void G_func_plat_Top(g_entity_t *ent) {
 	ent->locals.next_think = g_level.time + 3000;
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_plat_Bottom(g_entity_t *ent) {
@@ -361,7 +361,7 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 	ent->locals.move_info.state = MOVE_STATE_BOTTOM;
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_plat_GoingDown(g_entity_t *ent) {
@@ -378,7 +378,7 @@ static void G_func_plat_GoingDown(g_entity_t *ent) {
 	G_MoveInfo_Linear_Init(ent, ent->locals.move_info.end_origin, G_func_plat_Bottom);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_plat_GoingUp(g_entity_t *ent) {
@@ -395,7 +395,7 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 	G_MoveInfo_Linear_Init(ent, ent->locals.move_info.start_origin, G_func_plat_Top);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_plat_Blocked(g_entity_t *self, g_entity_t *other) {
@@ -408,7 +408,7 @@ static void G_func_plat_Blocked(g_entity_t *self, g_entity_t *other) {
 		G_func_plat_GoingUp(self);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other __attribute__((unused)),
@@ -420,7 +420,7 @@ static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other __attribute__((un
 	G_func_plat_GoingDown(ent);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other,
@@ -441,7 +441,7 @@ static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other,
 		ent->locals.next_think = g_level.time + 1000; // the player is still on the plat, so delay going down
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_plat_CreateTrigger(g_entity_t *ent) {
@@ -566,7 +566,7 @@ void G_func_plat(g_entity_t *ent) {
 #define ROTATE_TOUCH_PAIN	0x10
 #define ROTATE_TOUCH_STOP	0x20
 
-/*
+/**
  * @brief
  */
 static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other,
@@ -580,7 +580,7 @@ static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other,
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_rotating_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
@@ -653,14 +653,14 @@ void G_func_rotating(g_entity_t *ent) {
 	gi.LinkEntity(ent);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_button_Done(g_entity_t *self) {
 	self->locals.move_info.state = MOVE_STATE_BOTTOM;
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_button_Reset(g_entity_t *self) {
@@ -674,7 +674,7 @@ static void G_func_button_Reset(g_entity_t *self) {
 		self->locals.take_damage = true;
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_button_Wait(g_entity_t *self) {
@@ -690,7 +690,7 @@ static void G_func_button_Wait(g_entity_t *self) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_button_Activate(g_entity_t *self) {
@@ -707,7 +707,7 @@ static void G_func_button_Activate(g_entity_t *self) {
 	G_MoveInfo_Linear_Init(self, move->end_origin, G_func_button_Wait);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_button_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
@@ -717,7 +717,7 @@ static void G_func_button_Use(g_entity_t *self, g_entity_t *other __attribute__(
 	G_func_button_Activate(self);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_button_Touch(g_entity_t *self, g_entity_t *other,
@@ -734,7 +734,7 @@ static void G_func_button_Touch(g_entity_t *self, g_entity_t *other,
 	G_func_button_Activate(self);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_button_Die(g_entity_t *self, g_entity_t *attacker,
@@ -815,7 +815,7 @@ void G_func_button(g_entity_t *ent) {
 #define DOOR_X_AXIS			0x8
 #define DOOR_Y_AXIS			0x10
 
-/*
+/**
  * @brief
  */
 static void G_func_door_UseAreaPortals(g_entity_t *self, _Bool open) {
@@ -833,7 +833,7 @@ static void G_func_door_UseAreaPortals(g_entity_t *self, _Bool open) {
 
 static void G_func_door_GoingDown(g_entity_t *self);
 
-/*
+/**
  * @brief
  */
 static void G_func_door_Top(g_entity_t *self) {
@@ -857,7 +857,7 @@ static void G_func_door_Top(g_entity_t *self) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_door_Bottom(g_entity_t *self) {
@@ -874,7 +874,7 @@ static void G_func_door_Bottom(g_entity_t *self) {
 	G_func_door_UseAreaPortals(self, false);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_door_GoingDown(g_entity_t *self) {
@@ -896,7 +896,7 @@ static void G_func_door_GoingDown(g_entity_t *self) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
@@ -925,7 +925,7 @@ static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
 	G_func_door_UseAreaPortals(self, true);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_door_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
@@ -956,7 +956,7 @@ static void G_func_door_Use(g_entity_t *self, g_entity_t *other __attribute__((u
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_door_TouchTrigger(g_entity_t *self, g_entity_t *other,
@@ -977,7 +977,7 @@ static void G_func_door_TouchTrigger(g_entity_t *self, g_entity_t *other,
 	G_func_door_Use(self->owner, other, other);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_door_CalculateMove(g_entity_t *self) {
@@ -1012,7 +1012,7 @@ static void G_func_door_CalculateMove(g_entity_t *self) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_door_CreateTrigger(g_entity_t *ent) {
@@ -1051,7 +1051,7 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
 	G_func_door_CalculateMove(ent);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_door_Blocked(g_entity_t *self, g_entity_t *other) {
@@ -1072,7 +1072,7 @@ static void G_func_door_Blocked(g_entity_t *self, g_entity_t *other) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_door_Die(g_entity_t *self, g_entity_t *attacker,
@@ -1088,7 +1088,7 @@ static void G_func_door_Die(g_entity_t *self, g_entity_t *attacker,
 	G_func_door_Use(self->locals.team_master, attacker, attacker);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
@@ -1523,7 +1523,7 @@ void G_func_door_secret(g_entity_t *ent) {
 	gi.LinkEntity(ent);
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_wall_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
@@ -1660,7 +1660,7 @@ void G_func_water(g_entity_t *self) {
 
 static void G_func_train_Next(g_entity_t *self);
 
-/*
+/**
  * @brief
  */
 static void G_func_train_Wait(g_entity_t *self) {
@@ -1698,7 +1698,7 @@ static void G_func_train_Wait(g_entity_t *self) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_train_Next(g_entity_t *self) {
@@ -1748,7 +1748,7 @@ static void G_func_train_Next(g_entity_t *self) {
 	self->locals.spawn_flags |= TRAIN_START_ON;
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_train_Resume(g_entity_t *self) {
@@ -1765,7 +1765,7 @@ static void G_func_train_Resume(g_entity_t *self) {
 	self->locals.spawn_flags |= TRAIN_START_ON;
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_train_Find(g_entity_t *self) {
@@ -1796,7 +1796,7 @@ static void G_func_train_Find(g_entity_t *self) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_train_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
@@ -1869,7 +1869,7 @@ void G_func_train(g_entity_t *self) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_timer_Think(g_entity_t *self) {
@@ -1882,7 +1882,7 @@ static void G_func_timer_Think(g_entity_t *self) {
 	self->locals.next_think = g_level.time + wait + rand;
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_timer_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
@@ -1941,7 +1941,7 @@ void G_func_timer(g_entity_t *self) {
 	self->sv_flags = SVF_NO_CLIENT;
 }
 
-/*
+/**
  * @brief
  */
 static void G_func_conveyor_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),

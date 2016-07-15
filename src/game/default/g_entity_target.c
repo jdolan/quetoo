@@ -24,7 +24,7 @@
 #define LIGHT_START_ON 1
 #define LIGHT_TOGGLE 2
 
-/*
+/**
  * @brief
  */
 static void G_target_light_Toggle(g_entity_t *self) {
@@ -38,7 +38,7 @@ static void G_target_light_Toggle(g_entity_t *self) {
 	}
 }
 
-/*
+/**
  * @brief Cycles through state and colors for the given light entity.
  */
 static void G_target_light_Cycle(g_entity_t *self) {
@@ -62,7 +62,7 @@ static void G_target_light_Cycle(g_entity_t *self) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *activator) {
@@ -128,7 +128,7 @@ void G_target_light(g_entity_t *self) {
 
 #define SPEAKER_LOOP (SPEAKER_LOOP_ON | SPEAKER_LOOP_OFF)
 
-/*
+/**
  * @brief
  */
 static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other __attribute__((unused)), g_entity_t *activator __attribute__((unused))) {

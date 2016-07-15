@@ -31,7 +31,7 @@ typedef struct r_warp_program_s {
 
 static r_warp_program_t r_warp_program;
 
-/*
+/**
  * @brief
  */
 void R_InitProgram_warp(void) {
@@ -48,7 +48,7 @@ void R_InitProgram_warp(void) {
 	R_ProgramParameter1i(&p->sampler1, 1);
 }
 
-/*
+/**
  * @brief
  */
 void R_UseProgram_warp(void) {

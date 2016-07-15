@@ -21,7 +21,7 @@
 
 #include "sv_local.h"
 
-/*
+/**
  * @brief Sends the first message from the server to a connected client.
  * This will be sent on the initial connection and upon each server load.
  */
@@ -59,7 +59,7 @@ static void Sv_New_f(void) {
 	Net_WriteString(&sv_client->net_chan.message, va("config_strings %i 0\n", svs.spawn_count));
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_ConfigStrings_f(void) {
@@ -108,7 +108,7 @@ static void Sv_ConfigStrings_f(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_Baselines_f(void) {
@@ -155,7 +155,7 @@ static void Sv_Baselines_f(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_Begin_f(void) {
@@ -186,7 +186,7 @@ static void Sv_Begin_f(void) {
 	Cbuf_InsertFromDefer();
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_NextDownload_f(void) {
@@ -221,7 +221,7 @@ static void Sv_NextDownload_f(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Sv_Download_f(void) {
@@ -295,14 +295,14 @@ static void Sv_Download_f(void) {
 	Com_Debug("Downloading %s to %s\n", filename, sv_client->name);
 }
 
-/*
+/**
  * @brief The client is going to disconnect, so remove the connection immediately
  */
 static void Sv_Disconnect_f(void) {
 	Sv_DropClient(sv_client);
 }
 
-/*
+/**
  * @brief Enumeration helper for Sv_Info_f.
  */
 static void Sv_Info_f_enumerate(cvar_t *var, void *data) {
@@ -313,7 +313,7 @@ static void Sv_Info_f_enumerate(cvar_t *var, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Dumps the serverinfo info string
  */
 static void Sv_Info_f(void) {
@@ -343,7 +343,7 @@ sv_user_string_cmd_t sv_user_string_cmds[] = { // mapping command names to their
 	{ NULL, NULL }
 };
 
-/*
+/**
  * @brief Invoke the specified user string command. If we don't have a function for
  * it, pass it off to the game module.
  */
@@ -372,7 +372,7 @@ static void Sv_UserStringCommand(const char *s) {
 	}
 }
 
-/*
+/**
  * @brief Account for command time and pass the command to game module.
  */
 static void Sv_ClientThink(sv_client_t *cl, pm_cmd_t *cmd) {
@@ -385,7 +385,7 @@ static void Sv_ClientThink(sv_client_t *cl, pm_cmd_t *cmd) {
 #define CMD_MAX_MOVES 1
 #define CMD_MAX_STRINGS 8
 
-/*
+/**
  * @brief The current net_message is parsed for the given client.
  */
 void Sv_ParseClientMessage(sv_client_t *cl) {

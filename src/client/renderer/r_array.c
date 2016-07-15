@@ -33,7 +33,7 @@ typedef struct r_array_state_s {
 
 static r_array_state_t r_array_state;
 
-/*
+/**
  * @brief Returns a bitmask representing the arrays which should be enabled according
  * to r_state. This function is consulted to determine whether or not array
  * bindings are up to date.
@@ -60,7 +60,7 @@ static int32_t R_ArraysMask(void) {
 	return mask;
 }
 
-/*
+/**
  * @brief
  */
 static void R_SetVertexArrayState(const r_model_t *mod, uint32_t mask) {
@@ -101,7 +101,7 @@ static void R_SetVertexArrayState(const r_model_t *mod, uint32_t mask) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void R_SetVertexBufferState(const r_model_t *mod, uint32_t mask) {
@@ -142,7 +142,7 @@ static void R_SetVertexBufferState(const r_model_t *mod, uint32_t mask) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void R_SetArrayState(const r_model_t *mod) {
@@ -180,7 +180,7 @@ void R_SetArrayState(const r_model_t *mod) {
 	r_array_state.arrays = arrays;
 }
 
-/*
+/**
  * @brief
  */
 void R_ResetArrayState(void) {

@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-/*
+/**
  * @brief
  */
 void R_AddCorona(const r_corona_t *c) {
@@ -38,7 +38,7 @@ void R_AddCorona(const r_corona_t *c) {
 	r_view.coronas[r_view.num_coronas++] = *c;
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawCoronas(void) {

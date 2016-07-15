@@ -26,7 +26,7 @@ extern cl_client_t cl;
 
 static const char *SAMPLE_TYPES[] = { ".ogg", ".wav", NULL };
 
-/*
+/**
  * @brief
  */
 static void S_LoadSampleChunk(s_sample_t *sample) {
@@ -85,7 +85,7 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 	}
 }
 
-/*
+/**
  * @brief Free event listener for s_sample_t.
  */
 static void S_FreeSample(s_media_t *self) {
@@ -96,7 +96,7 @@ static void S_FreeSample(s_media_t *self) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 s_sample_t *S_LoadSample(const char *name) {
@@ -125,7 +125,7 @@ s_sample_t *S_LoadSample(const char *name) {
 	return sample;
 }
 
-/*
+/**
  * @brief Registers and returns a new sample, aliasing the chunk provided by
  * the specified sample.
  */
@@ -140,7 +140,7 @@ static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
 	return s;
 }
 
-/*
+/**
  * @brief
  */
 s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {

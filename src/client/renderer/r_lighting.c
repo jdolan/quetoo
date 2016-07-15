@@ -24,7 +24,7 @@
 
 #define LIGHTING_MAX_ILLUMINATIONS 128
 
-/*
+/**
  * @brief Provides a working area for gathering and sorting illuminations.
  * For a given point, all contributing illuminations are first resolved and
  * then sorted by contribution.
@@ -36,12 +36,12 @@ typedef struct {
 
 static r_illuminations_t r_illuminations;
 
-/*
+/**
  * @brief The impact points used to resolve illuminations.
  */
 static vec3_t r_lighting_points[13];
 
-/*
+/**
  * @brief Calculates the impact points for the given r_lighting_t.
  */
 static void R_LightingPoints(const r_lighting_t *l) {
@@ -83,7 +83,7 @@ static void R_LightingPoints(const r_lighting_t *l) {
 	*/
 }
 
-/*
+/**
  * @brief Adds an illumination with the given parameters.
  */
 static void R_AddIllumination(const r_illumination_t *il) {
@@ -99,7 +99,7 @@ static void R_AddIllumination(const r_illumination_t *il) {
 #define LIGHTING_AMBIENT_RADIUS 400.0
 #define LIGHTING_AMBIENT_DIST 320.0
 
-/*
+/**
  * @brief Adds an illumination for ambient lighting. This weak illumination
  * is positioned far above the lighting point so that it's shadow projection
  * appears directional.
@@ -127,7 +127,7 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 #define LIGHTING_SUN_RADIUS 360.0
 #define LIGHTING_SUN_DIST 260.0
 
-/*
+/**
  * @brief Adds an illumination for sun lighting. Traces to the lighting bounds
  * determine sun exposure, which scales the applied sun color.
  */
@@ -166,7 +166,7 @@ static void R_SunIllumination(const r_lighting_t *l) {
 	R_AddIllumination(&il);
 }
 
-/*
+/**
  * @brief Adds an illumination for the positional light source, if the given
  * point is within range and not occluded.
  */
@@ -207,7 +207,7 @@ static _Bool R_PositionalIllumination(const r_lighting_t *l, r_illumination_type
 	return true;
 }
 
-/*
+/**
  * @brief Adds illuminations for static (BSP) light sources.
  */
 static void R_StaticIlluminations(r_lighting_t *l) {
@@ -231,7 +231,7 @@ static void R_StaticIlluminations(r_lighting_t *l) {
 	}
 }
 
-/*
+/**
  * @brief Resolves dynamic light source illuminations for the specified point.
  */
 static void R_DynamicIlluminations(r_lighting_t *l) {
@@ -253,7 +253,7 @@ static void R_DynamicIlluminations(r_lighting_t *l) {
 	l->state = LIGHTING_DIRTY;
 }
 
-/*
+/**
  * @brief Qsort comparator for r_illumination_t. Orders by light, descending.
  */
 static int32_t R_CompareIllumination(const void *a, const void *b) {
@@ -264,7 +264,7 @@ static int32_t R_CompareIllumination(const void *a, const void *b) {
 	return (int32_t) (il1->diffuse - il0->diffuse);
 }
 
-/*
+/**
  * @brief Updates illuminations for the specified point. If not dirty, and no
  * dynamic illuminations are active, the previous illuminations are retained.
  */
@@ -301,7 +301,7 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 	memcpy(l->illuminations, il, n * sizeof(r_illumination_t));
 }
 
-/*
+/**
  * @brief Qsort comparator for r_shadow_t. Orders by intensity, descending.
  */
 static int32_t R_CompareShadow(const void *a, const void *b) {
@@ -312,7 +312,7 @@ static int32_t R_CompareShadow(const void *a, const void *b) {
 	return (int32_t) (s1->shadow - s0->shadow);
 }
 
-/*
+/**
  * @brief Cast shadows for an individual illumination.
  */
 static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
@@ -376,7 +376,7 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 	}
 }
 
-/*
+/**
  * @brief For each active illumination, trace from the specified lighting point
  * to the world, from the origin as well as the corners of the bounding box,
  * accounting for light attenuation within the radius of the object. Cast
@@ -420,7 +420,7 @@ static void R_UpdateShadows(r_lighting_t *l) {
 	qsort(l->shadows, lengthof(l->shadows), sizeof(r_shadow_t), R_CompareShadow);
 }
 
-/*
+/**
  * @brief Resolves illumination and shadow information for the specified point.
  */
 void R_UpdateLighting(r_lighting_t *l) {

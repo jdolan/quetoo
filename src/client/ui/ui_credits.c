@@ -21,7 +21,7 @@
 
 #include "ui_local.h"
 
-/*
+/**
  * @brief
  */
 TwBar *Ui_Credits(void) {

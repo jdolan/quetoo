@@ -24,7 +24,7 @@
 
 #define DEFAULT_CLIENT_INFO "newbie\\qforcer/default"
 
-/*
+/**
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
  * our skin paths start with players/, not models/players/.
  */
@@ -56,7 +56,7 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_md3_t *md3, char *li
 	}
 }
 
-/*
+/**
  * @brief Parses the appropriate .skin file, resolving skins for each mesh
  * within the model. If a skin can not be resolved for any mesh, the entire
  * skins array is invalidated so that the default will be loaded.
@@ -111,7 +111,7 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const
 	cgi.FreeFile(buffer);
 }
 
-/*
+/**
  * @brief Ensures that models and skins were resolved for the specified client info.
  */
 static _Bool Cg_ValidateClient(cl_client_info_t *ci) {
@@ -130,7 +130,7 @@ static _Bool Cg_ValidateClient(cl_client_info_t *ci) {
 	return true;
 }
 
-/*
+/**
  * @brief Resolves the player name, model and skins for the specified user info string.
  * If validation fails, we fall back on the DEFAULT_CLIENT_INFO constant.
  */
@@ -205,7 +205,7 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	}
 }
 
-/*
+/**
  * @brief Load all client info strings from the server.
  */
 void Cg_LoadClients(void) {
@@ -224,7 +224,7 @@ void Cg_LoadClients(void) {
 	}
 }
 
-/*
+/**
  * @brief Returns the next animation to advance to, defaulting to a no-op.
  */
 static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
@@ -252,7 +252,7 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
 	}
 }
 
-/*
+/**
  * @brief Resolve the frames and interpolation fractions for the specified animation
  * and entity. If a non-looping animation has completed, proceed to the next
  * animation in the sequence.
@@ -318,7 +318,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 	e->back_lerp = 1.0 - a->lerp;
 }
 
-/*
+/**
  * @brief Runs the animation sequences for the specified entity, setting the frame
  * indexes and interpolation fractions for the specified renderer entities.
  */

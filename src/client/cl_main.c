@@ -56,7 +56,7 @@ cvar_t *cl_show_sound_stats;
 cl_static_t cls;
 cl_client_t cl;
 
-/*
+/**
  * @brief We have gotten a challenge from the server, so try and connect.
  */
 static void Cl_SendConnect(void) {
@@ -79,7 +79,7 @@ static void Cl_SendConnect(void) {
 	cvar_user_info_modified = false;
 }
 
-/*
+/**
  * @brief Re-send a connect message if the last one has timed out.
  */
 static void Cl_CheckForResend(void) {
@@ -128,7 +128,7 @@ static void Cl_CheckForResend(void) {
 	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "get_challenge\n");
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_Connect_f(void) {
@@ -151,7 +151,7 @@ static void Cl_Connect_f(void) {
 	cls.connect_time = 0; // fire immediately
 }
 
-/*
+/**
  * @brief Send the rest of the command line over as an unconnected command.
  */
 static void Cl_Rcon_f(void) {
@@ -201,7 +201,7 @@ static void Cl_Rcon_f(void) {
 	Net_SendDatagram(NS_UDP_CLIENT, &to, message, strlen(message) + 1);
 }
 
-/*
+/**
  * @brief Client implementation of Cmd_ForwardToServer. Any commands not recognized
  * locally by the client will be sent to the server. Some will undergo parameter
  * expansion so that players can use macros for locations, weapons, etc.
@@ -222,7 +222,7 @@ static void Cl_ForwardCmdToServer(void) {
 	//Com_Debug("Forwarding '%s %s'\n", cmd, args);
 }
 
-/*
+/**
  * @brief
  */
 void Cl_ClearState(void) {
@@ -240,7 +240,7 @@ void Cl_ClearState(void) {
 	Mem_ClearBuffer(&cls.net_chan.message);
 }
 
-/*
+/**
  * @brief Sends the disconnect command to the server.
  */
 void Cl_SendDisconnect(void) {
@@ -265,7 +265,7 @@ void Cl_SendDisconnect(void) {
 	cls.state = CL_DISCONNECTED;
 }
 
-/*
+/**
  * @brief Sends a disconnect message to the current server, stops any pending
  * demo recording, and updates cls.state so that we drop to console.
  */
@@ -306,7 +306,7 @@ void Cl_Disconnect(void) {
 	Cl_SetKeyDest(KEY_CONSOLE);
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_Disconnect_f(void) {
@@ -318,7 +318,7 @@ static void Cl_Disconnect_f(void) {
 	Cl_Disconnect();
 }
 
-/*
+/**
  * @brief
  */
 void Cl_Reconnect_f(void) {
@@ -345,7 +345,7 @@ void Cl_Reconnect_f(void) {
 	}
 }
 
-/*
+/**
  * @brief Responses to broadcasts, etc
  */
 static void Cl_ConnectionlessPacket(void) {
@@ -422,7 +422,7 @@ static void Cl_ConnectionlessPacket(void) {
 	Com_Warn("Unknown command: %s from %s\n", c, Net_NetaddrToString(&net_from));
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_ReadPackets(void) {
@@ -473,7 +473,7 @@ static void Cl_ReadPackets(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static const char *Cl_Username(void) {
@@ -485,7 +485,7 @@ static const char *Cl_Username(void) {
 	return username;
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_InitLocal(void) {
@@ -541,7 +541,7 @@ static void Cl_InitLocal(void) {
 	Cmd_ForwardToServer = Cl_ForwardCmdToServer;
 }
 
-/*
+/**
  * @brief Writes key bindings and archived cvars to quetoo.cfg.
  */
 static void Cl_WriteConfiguration(void) {
@@ -561,7 +561,7 @@ static void Cl_WriteConfiguration(void) {
 	Fs_Close(f);
 }
 
-/*
+/**
  * @brief
  */
 void Cl_Frame(const uint32_t msec) {
@@ -663,7 +663,7 @@ void Cl_Frame(const uint32_t msec) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Cl_Init(void) {
@@ -702,7 +702,7 @@ void Cl_Init(void) {
 	Cl_SetKeyDest(KEY_UI);
 }
 
-/*
+/**
  * @brief
  */
 void Cl_Shutdown(void) {

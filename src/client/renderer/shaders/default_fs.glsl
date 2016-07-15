@@ -1,4 +1,4 @@
-/*
+/**
  * @brief Default fragment shader.
  */
 
@@ -39,7 +39,7 @@ const vec3 negHalf = vec3(-0.5);
 
 vec3 eye;
 
-/*
+/**
  * @brief Yield the parallax offset for the texture coordinate.
  */
 vec2 BumpTexcoord(in float height) {
@@ -54,7 +54,7 @@ vec2 BumpTexcoord(in float height) {
 	return vec2(height * 0.04 - 0.02) * PARALLAX * eye.xy;
 }
 
-/*
+/**
  * @brief Yield the diffuse modulation from bump-mapping.
  */
 vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
@@ -66,7 +66,7 @@ vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
 	return diffuse + specular * glossmap;
 }
 
-/*
+/**
  * @brief Yield the final sample color after factoring in dynamic light sources. 
  */
 void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
@@ -105,14 +105,14 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 	gl_FragColor.a = diffuse.a * gl_Color.a;
 }
 
-/*
+/**
  * @brief Apply fog to the fragment if enabled.
  */
 void FogFragment(void) {
 	gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_Fog.color.rgb, fog);
 }
 
-/*
+/**
  * @brief Shader entry point.
  */
 void main(void) {

@@ -34,7 +34,7 @@ typedef struct {
 static net_graph_sample_t net_graph_samples[NET_GRAPH_WIDTH];
 static int32_t num_net_graph_samples;
 
-/*
+/**
  * @brief Accumulates a net graph sample.
  */
 static void Cl_NetGraph(vec_t value, int32_t color) {
@@ -51,7 +51,7 @@ static void Cl_NetGraph(vec_t value, int32_t color) {
 		num_net_graph_samples = 0;
 }
 
-/*
+/**
  * @brief Accumulates net graph samples for the current frame. Dropped or
  * suppressed packets are recorded as peak samples, and packet latency is
  * recorded over a range of 0-300ms.
@@ -76,7 +76,7 @@ void Cl_AddNetGraph(void) {
 	Cl_NetGraph(ping / 300.0, 0xd0); // 300ms is lagged out
 }
 
-/*
+/**
  * @brief Provides a real-time visual representation of latency and packet loss
  * via a small graph drawn on screen.
  */
@@ -106,7 +106,7 @@ static void Cl_DrawNetGraph(void) {
 	}
 }
 
-/*
+/**
  * @brief Draws counters and performance information about the renderer.
  */
 static void Cl_DrawRendererStats(void) {
@@ -179,7 +179,7 @@ static void Cl_DrawRendererStats(void) {
 	R_BindFont(NULL, NULL, NULL);
 }
 
-/*
+/**
  * @brief Draws counters and performance information about the sound subsystem.
  */
 static void Cl_DrawSoundStats(void) {
@@ -201,7 +201,7 @@ static void Cl_DrawSoundStats(void) {
 	R_BindFont(NULL, NULL, NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void Cl_DrawCounters(void) {
@@ -247,7 +247,7 @@ static void Cl_DrawCounters(void) {
 	R_BindFont(NULL, NULL, NULL);
 }
 
-/*
+/**
  * @brief This is called every frame, and can also be called explicitly to flush
  * text to the screen.
  */

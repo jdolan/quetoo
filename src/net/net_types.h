@@ -47,7 +47,7 @@ typedef uint16_t in_port_t;
 
 #include "common.h"
 
-/*
+/**
  * @brief Max length of a single packet. No individual message can exceed
  * this length. However, large server frames can be split into multiple
  * messages and sent in series. See Sv_SendClientDatagram.
@@ -72,7 +72,7 @@ typedef enum {
 	NS_UDP_SERVER
 } net_src_t;
 
-/*
+/**
  * @brief The network channel provides a conduit for packet sequencing and
  * optional reliable message delivery. The client and server speak explicitly
  * through this interface.

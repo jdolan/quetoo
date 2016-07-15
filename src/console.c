@@ -25,7 +25,7 @@
 
 console_state_t console_state;
 
-/*
+/**
  * @brief Allocates a new `console_string_t`.
  */
 static console_string_t *Con_AllocString(int32_t level, const char *string) {
@@ -49,7 +49,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 	return str;
 }
 
-/*
+/**
  * @brief Frees the specified console_str_t.
  */
 static void Con_FreeString(console_string_t *str) {
@@ -60,7 +60,7 @@ static void Con_FreeString(console_string_t *str) {
 	}
 }
 
-/*
+/**
  * @brief Frees all console_str_t.
  */
 static void Con_FreeStrings(void) {
@@ -72,7 +72,7 @@ static void Con_FreeStrings(void) {
 	console_state.size = 0;
 }
 
-/*
+/**
  * @brief Clears the console buffer.
  */
 static void Con_Clear_f(void) {
@@ -80,7 +80,7 @@ static void Con_Clear_f(void) {
 	Con_FreeStrings();
 }
 
-/*
+/**
  * @brief Save the console buffer to a file.
  */
 static void Con_Dump_f(void) {
@@ -131,7 +131,7 @@ static _Bool Con_Filter(const console_t *console, const console_string_t *str) {
 	return true;
 }
 
-/*
+/**
  * @brief Append a message to the console data buffer.
  */
 void Con_Append(int32_t level, const char *string) {
@@ -299,7 +299,7 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
 	return count;
 }
 
-/*
+/**
  * @brief Navigate history, copying the history line to the input buffer.
  */
 void Con_NavigateHistory(console_t *console, console_history_nav_t nav) {
@@ -367,7 +367,7 @@ void Con_WriteHistory(const console_t *console, file_t *file) {
 	}
 }
 
-/*
+/**
  * @brief Tab completion. Query various subsystems for potential
  * matches, and append an appropriate string to the input buffer. If no
  * matches are found, do nothing. If only one match is found, simply
@@ -425,7 +425,7 @@ _Bool Con_CompleteInput(console_t *console) {
 	return true;
 }
 
-/*
+/**
  * @brief Handle buffered input for the specified console, submitting it to the
  * command subsystem, appending it to all configured consoles, and resetting the
  * input state.
@@ -455,7 +455,7 @@ void Con_SubmitInput(console_t *console) {
 	}
 }
 
-/*
+/**
  * @brief Adds the given console to the configured consoles.
  */
 void Con_AddConsole(const console_t *console) {
@@ -467,7 +467,7 @@ void Con_AddConsole(const console_t *console) {
 	SDL_UnlockMutex(console_state.lock);
 }
 
-/*
+/**
  * @brief Removes the given console from the configured consoles.
  */
 void Con_RemoveConsole(const console_t *console) {
@@ -479,7 +479,7 @@ void Con_RemoveConsole(const console_t *console) {
 	SDL_UnlockMutex(console_state.lock);
 }
 
-/*
+/**
  * @brief Initialize the console subsystem. For Windows environments running
  * servers, we explicitly allocate a console and redirect stdio to and from it.
  */
@@ -493,7 +493,7 @@ void Con_Init(void) {
 	Cmd_Add("dump", Con_Dump_f, 0, NULL);
 }
 
-/*
+/**
  * @brief Shutdown the console subsystem
  */
 void Con_Shutdown(void) {

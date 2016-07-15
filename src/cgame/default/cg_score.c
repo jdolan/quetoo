@@ -35,7 +35,7 @@ typedef struct {
 
 static cg_score_state_t cg_score_state;
 
-/*
+/**
  * @brief A comparator for sorting player_score_t.
  */
 static int32_t Cg_ParseScores_Compare(const void *a, const void *b) {
@@ -49,7 +49,7 @@ static int32_t Cg_ParseScores_Compare(const void *a, const void *b) {
 	return s2 - s1;
 }
 
-/*
+/**
  * @brief Parses score data from the server. The scores are sent as binary.
  * If teams play or CTF is enabled, the last two scores in the packet will
  * contain the team scores.
@@ -108,7 +108,7 @@ void Cg_ParseScores(void) {
 			Cg_ParseScores_Compare);
 }
 
-/*
+/**
  * @brief Returns the vertical screen coordinate where scores should be drawn.
  */
 static r_pixel_t Cg_DrawScoresHeader(void) {
@@ -159,7 +159,7 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 	return y;
 }
 
-/*
+/**
  * @brief
  */
 static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
@@ -225,7 +225,7 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawTeamScores(const r_pixel_t start_y) {
@@ -293,7 +293,7 @@ static void Cg_DrawTeamScores(const r_pixel_t start_y) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_DrawDmScores(const r_pixel_t start_y) {
@@ -324,7 +324,7 @@ static void Cg_DrawDmScores(const r_pixel_t start_y) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Cg_DrawScores(const player_state_t *ps) {

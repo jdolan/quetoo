@@ -37,7 +37,7 @@ typedef struct {
 
 static cg_weather_state_t cg_weather_state;
 
-/*
+/**
  * @brief Parses CS_WEATHER for weather and fog parameters, e.g. "rain fog 0.8 0.75 0.65".
  */
 void Cg_ResolveWeather(const char *weather) {
@@ -76,7 +76,7 @@ void Cg_ResolveWeather(const char *weather) {
 	}
 }
 
-/*
+/**
  * @brief Creates an emitter for the given surface. The number of origins for the
  * emitter depends on the area of the surface.
  */
@@ -124,7 +124,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 	cgi.Debug("%s: %d origins\n", vtos(s->center), e->num_origins);
 }
 
-/*
+/**
  * @brief Iterates the world surfaces, generating weather emitters from sky brushes.
  * Valid weather origins and z-depths are resolved and cached.
  */
@@ -155,14 +155,14 @@ void Cg_LoadWeather(void) {
 	cgi.Debug("%d emits\n", j);
 }
 
-/*
+/**
  * @brief Loads all resources required by client-side effects such as weather.
  */
 void Cg_LoadEffects(void) {
 	Cg_LoadWeather();
 }
 
-/*
+/**
  * @brief Adds weather particles for the specified emitter. The number of particles
  * added is dependent on the size of the surface associated with the emitter.
  */
@@ -223,7 +223,7 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 	}
 }
 
-/*
+/**
  * @brief Adds particles and issues ambient loop sounds for weather effects.
  */
 static void Cg_AddWeather(void) {
@@ -259,7 +259,7 @@ static void Cg_AddWeather(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Cg_AddEffects() {

@@ -44,14 +44,14 @@ int32_t Net_GetError(void) {
 #endif
 }
 
-/*
+/**
  * @return A printable error string for the most recent OS-level network error.
  */
 const char *Net_GetErrorString(void) {
 	return strerror(Net_GetError());
 }
 
-/*
+/**
  * @brief Initializes the specified sockaddr_in according to the net_addr_t.
  */
 void Net_NetAddrToSockaddr(const net_addr_t *a, struct sockaddr_in *s) {
@@ -68,21 +68,21 @@ void Net_NetAddrToSockaddr(const net_addr_t *a, struct sockaddr_in *s) {
 	s->sin_port = a->port;
 }
 
-/*
+/**
  * @return True if the addresses share the same base and port.
  */
 _Bool Net_CompareNetaddr(const net_addr_t *a, const net_addr_t *b) {
 	return a->addr == b->addr && a->port == b->port;
 }
 
-/*
+/**
  * @return True if the addresses share the same type and base.
  */
 _Bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b) {
 	return a->type == b->type && a->addr == b->addr;
 }
 
-/*
+/**
  * @brief
  */
 const char *Net_NetaddrToString(const net_addr_t *a) {
@@ -93,7 +93,7 @@ const char *Net_NetaddrToString(const net_addr_t *a) {
 	return s;
 }
 
-/*
+/**
  * @brief Resolve internet hostnames to sockaddr. Examples:
  *
  * localhost
@@ -128,7 +128,7 @@ _Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr) {
 	return saddr->sin_addr.s_addr != 0;
 }
 
-/*
+/**
  * @brief Parses the hostname and port into the specified net_addr_t.
  */
 _Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
@@ -150,7 +150,7 @@ _Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 	return true;
 }
 
-/*
+/**
  * @brief Creates and binds a new network socket for the specified protocol.
  */
 int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
@@ -206,7 +206,7 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 	return sock;
 }
 
-/*
+/**
  * @brief
  */
 void Net_CloseSocket(int32_t sock) {
@@ -217,7 +217,7 @@ void Net_CloseSocket(int32_t sock) {
 #endif
 }
 
-/*
+/**
  * @brief
  */
 void Net_Init(void) {
@@ -233,7 +233,7 @@ void Net_Init(void) {
 	net_lo = inet_addr("127.0.0.1");
 }
 
-/*
+/**
  * @brief
  */
 void Net_Shutdown(void) {

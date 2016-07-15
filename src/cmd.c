@@ -48,7 +48,7 @@ static cmd_state_t cmd_state;
 
 #define MAX_ALIAS_LOOP_COUNT 8
 
-/*
+/**
  * @brief Adds command text at the end of the buffer
  */
 void Cbuf_AddText(const char *text) {
@@ -63,7 +63,7 @@ void Cbuf_AddText(const char *text) {
 	Mem_WriteBuffer(&cmd_state.buf, text, l);
 }
 
-/*
+/**
  * @brief Inserts command text at the beginning of the buffer.
  */
 void Cbuf_InsertText(const char *text) {
@@ -88,7 +88,7 @@ void Cbuf_InsertText(const char *text) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Cbuf_CopyToDefer(void) {
@@ -100,7 +100,7 @@ void Cbuf_CopyToDefer(void) {
 	cmd_state.buf.size = 0;
 }
 
-/*
+/**
  * @brief
  */
 void Cbuf_InsertFromDefer(void) {
@@ -110,7 +110,7 @@ void Cbuf_InsertFromDefer(void) {
 	memset(cmd_state.buffers[1], 0, sizeof(cmd_state.buffers[1]));
 }
 
-/*
+/**
  * @brief Executes the pending command buffer.
  */
 void Cbuf_Execute(void) {
@@ -166,14 +166,14 @@ void Cbuf_Execute(void) {
 	}
 }
 
-/*
+/**
  * @return The command argument count.
  */
 int32_t Cmd_Argc(void) {
 	return cmd_state.args.argc;
 }
 
-/*
+/**
  * @return The command argument at the specified index.
  */
 const char *Cmd_Argv(int32_t arg) {
@@ -182,14 +182,14 @@ const char *Cmd_Argv(int32_t arg) {
 	return cmd_state.args.argv[arg];
 }
 
-/*
+/**
  * @return A single string containing all command arguments.
  */
 const char *Cmd_Args(void) {
 	return cmd_state.args.args;
 }
 
-/*
+/**
  * @brief Parses the given string into command line tokens.
  */
 void Cmd_TokenizeString(const char *text) {
@@ -250,7 +250,7 @@ void Cmd_TokenizeString(const char *text) {
 	}
 }
 
-/*
+/**
  * @return The command by the specified name, or NULL.
  */
 cmd_t *Cmd_Get(const char *name) {
@@ -262,7 +262,7 @@ cmd_t *Cmd_Get(const char *name) {
 	return NULL;
 }
 
-/*
+/**
  * @brief Enumerates all known commands with the given function.
  */
 void Cmd_Enumerate(CmdEnumerateFunc func, void *data) {
@@ -279,7 +279,7 @@ void Cmd_Enumerate(CmdEnumerateFunc func, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Adds the specified command, bound to the given function.
  */
 cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
@@ -314,7 +314,7 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 	return cmd;
 }
 
-/*
+/**
  * @brief Adds the specified alias command, bound to the given commands string.
  */
 static cmd_t *Cmd_Alias(const char *name, const char *commands) {
@@ -343,14 +343,14 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 	return cmd;
 }
 
-/*
+/**
  * @brief Removes the specified command.
  */
 void Cmd_Remove(const char *name) {
 	g_hash_table_remove(cmd_state.commands, name);
 }
 
-/*
+/**
  * @brief GHRFunc for Cmd_RemoveAll.
  */
 static gboolean Cmd_RemoveAll_(gpointer key, gpointer value, gpointer data) {
@@ -365,7 +365,7 @@ static gboolean Cmd_RemoveAll_(gpointer key, gpointer value, gpointer data) {
 	return false;
 }
 
-/*
+/**
  * @brief Removes all commands which match the specified flags mask.
  */
 void Cmd_RemoveAll(uint32_t flags) {
@@ -374,7 +374,7 @@ void Cmd_RemoveAll(uint32_t flags) {
 
 static const char *cmd_complete_pattern;
 
-/*
+/**
  * @brief Enumeration helper for Cmd_CompleteCommand.
  */
 static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
@@ -396,7 +396,7 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
 	}
 }
 
-/*
+/**
  * @brief Console completion for commands and aliases.
  */
 void Cmd_CompleteCommand(const char *pattern, GList **matches) {
@@ -404,7 +404,7 @@ void Cmd_CompleteCommand(const char *pattern, GList **matches) {
 	Cmd_Enumerate(Cmd_CompleteCommand_enumerate, (void *) matches);
 }
 
-/*
+/**
  * @brief A complete command line has been parsed, so try to execute it
  */
 void Cmd_ExecuteString(const char *text) {
@@ -440,7 +440,7 @@ void Cmd_ExecuteString(const char *text) {
 		Cmd_ForwardToServer();
 }
 
-/*
+/**
  * @brief Enumeration helper for Cmd_Alias_f.
  */
 static void Cmd_Alias_f_enumerate(cmd_t *cmd, void *data __attribute__((unused))) {
@@ -450,7 +450,7 @@ static void Cmd_Alias_f_enumerate(cmd_t *cmd, void *data __attribute__((unused))
 	}
 }
 
-/*
+/**
  * @brief Creates a new command that executes a command string (possibly ; seperated)
  */
 static void Cmd_Alias_f(void) {
@@ -488,7 +488,7 @@ static void Cmd_Alias_f(void) {
 	Cmd_Alias(Cmd_Argv(1), cmd);
 }
 
-/*
+/**
  * @brief Enumeration helper for Cmd_List_f.
  */
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data __attribute__((unused))) {
@@ -502,14 +502,14 @@ static void Cmd_List_f_enumerate(cmd_t *cmd, void *data __attribute__((unused)))
 	}
 }
 
-/*
+/**
  * @brief Lists all known commands at the console.
  */
 static void Cmd_List_f(void) {
 	Cmd_Enumerate(Cmd_List_f_enumerate, NULL);
 }
 
-/*
+/**
  * @brief Executes the specified script file (e.g autoexec.cfg).
  */
 static void Cmd_Exec_f(void) {
@@ -535,7 +535,7 @@ static void Cmd_Exec_f(void) {
 	Fs_Free(buffer);
 }
 
-/*
+/**
  * @brief Prints the remaining command arguments to the console.
  */
 static void Cmd_Echo_f(void) {
@@ -547,7 +547,7 @@ static void Cmd_Echo_f(void) {
 	Com_Print("\n");
 }
 
-/*
+/**
  * @brief Causes execution of the remainder of the command buffer to be delayed until
  * next frame. This allows commands like: bind g "+attack; wait; -attack;"
  */
@@ -555,7 +555,7 @@ static void Cmd_Wait_f(void) {
 	cmd_state.wait = true;
 }
 
-/*
+/**
  * @brief Initializes the command subsystem.
  */
 void Cmd_Init(void) {
@@ -598,7 +598,7 @@ void Cmd_Init(void) {
 	// Com_Debug("Deferred buffer: %s", cmd_state.buffers[1]);
 }
 
-/*
+/**
  * @brief Shuts down the command subsystem.
  */
 void Cmd_Shutdown(void) {

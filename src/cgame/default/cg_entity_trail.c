@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-/*
+/**
  * @brief
  */
 void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
@@ -63,7 +63,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	p->accel[2] = 10.0;
 }
 
-/*
+/**
  * @brief
  */
 void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
@@ -107,7 +107,7 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
@@ -149,7 +149,7 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
@@ -190,7 +190,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
@@ -261,7 +261,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	cgi.AddLight(&l);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
@@ -269,7 +269,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	Cg_SmokeTrail(ent, start, end);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
@@ -321,7 +321,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	cgi.AddLight(&l);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int32_t color) {
@@ -386,7 +386,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int
 		Cg_BubbleTrail(ent->prev.origin, ent->current.origin, radius / 4.0);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_HyperblasterTrail(cl_entity_t *ent, const vec3_t org) {
@@ -409,7 +409,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, const vec3_t org) {
 	cgi.AddLight(&l);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
@@ -480,7 +480,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	cgi.AddLight(&l);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
@@ -510,7 +510,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 	cgi.AddLight(&l);
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
@@ -540,7 +540,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
@@ -582,7 +582,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
@@ -608,7 +608,7 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 	cgi.AddLight(&l);
 }
 
-/*
+/**
  * @brief Apply unique trails to entities between their previous packet origin
  * and their current interpolated origin. Beam trails are a special case: the
  * old origin field is overridden to specify the endpoint of the beam.

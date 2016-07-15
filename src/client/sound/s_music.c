@@ -30,7 +30,7 @@ typedef struct s_music_state_s {
 
 static s_music_state_t s_music_state;
 
-/*
+/**
  * @brief Retain event listener for s_music_t.
  */
 static _Bool S_RetainMusic(s_media_t *self) {
@@ -39,7 +39,7 @@ static _Bool S_RetainMusic(s_media_t *self) {
 	return GlobMatch("track*", music->media.name);
 }
 
-/*
+/**
  * @brief Free event listener for s_music_t.
  */
 static void S_FreeMusic(s_media_t *self) {
@@ -56,7 +56,7 @@ static void S_FreeMusic(s_media_t *self) {
 	}
 }
 
-/*
+/**
  * @brief Handles the actual loading of .ogg music files.
  */
 static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mix_Music **music) {
@@ -89,7 +89,7 @@ static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mi
 	return *music != NULL;
 }
 
-/*
+/**
  * @brief Clears the musics playlist so that it may be rebuilt.
  */
 void S_ClearPlaylist(void) {
@@ -99,7 +99,7 @@ void S_ClearPlaylist(void) {
 	s_music_state.playlist = NULL;
 }
 
-/*
+/**
  * @brief Loads the music by the specified name.
  */
 s_music_t *S_LoadMusic(const char *name) {
@@ -138,7 +138,7 @@ s_music_t *S_LoadMusic(const char *name) {
 	return music;
 }
 
-/*
+/**
  * @brief Stops music playback.
  */
 static void S_StopMusic(void) {
@@ -148,7 +148,7 @@ static void S_StopMusic(void) {
 	s_music_state.current_music = NULL;
 }
 
-/*
+/**
  * @brief Begins playback of the specified s_music_t.
  */
 static void S_PlayMusic(s_music_t *music) {
@@ -158,7 +158,7 @@ static void S_PlayMusic(s_music_t *music) {
 	s_music_state.current_music = music;
 }
 
-/*
+/**
  * @brief Returns the next track in the configured playlist.
  */
 static s_music_t *S_NextMusic(void) {
@@ -179,7 +179,7 @@ static s_music_t *S_NextMusic(void) {
 	return s_music_state.default_music;
 }
 
-/*
+/**
  * @brief Ensures music playback continues by selecting a new track when one
  * completes.
  */
@@ -209,7 +209,7 @@ void S_FrameMusic(void) {
 		S_NextTrack_f();
 }
 
-/*
+/**
  * @brief Plays the next track in the configured playlist.
  */
 void S_NextTrack_f(void) {
@@ -227,7 +227,7 @@ void S_NextTrack_f(void) {
 	}
 }
 
-/*
+/**
  * @brief Initializes the music state, loading the default track.
  */
 void S_InitMusic(void) {
@@ -237,7 +237,7 @@ void S_InitMusic(void) {
 	s_music_state.default_music = S_LoadMusic("track3");
 }
 
-/*
+/**
  * @brief Shuts down music playback.
  */
 void S_ShutdownMusic(void) {

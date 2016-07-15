@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-/*
+/**
  * @brief Give items to a client
  */
 static void G_Give_f(g_entity_t *ent) {
@@ -135,7 +135,7 @@ static void G_Give_f(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_God_f(g_entity_t *ent) {
@@ -155,7 +155,7 @@ static void G_God_f(g_entity_t *ent) {
 	gi.ClientPrint(ent, PRINT_HIGH, "%s", msg);
 }
 
-/*
+/**
  * @brief
  */
 static void G_NoClip_f(g_entity_t *ent) {
@@ -177,7 +177,7 @@ static void G_NoClip_f(g_entity_t *ent) {
 	gi.ClientPrint(ent, PRINT_HIGH, "%s", msg);
 }
 
-/*
+/**
  * @brief
  */
 static void G_Wave_f(g_entity_t *ent) {
@@ -188,7 +188,7 @@ static void G_Wave_f(g_entity_t *ent) {
 	G_SetAnimation(ent, ANIM_TORSO_GESTURE, true);
 }
 
-/*
+/**
  * @brief
  */
 static void G_Use_f(g_entity_t *ent) {
@@ -216,7 +216,7 @@ static void G_Use_f(g_entity_t *ent) {
 	it->Use(ent, it);
 }
 
-/*
+/**
  * @brief
  */
 static void G_Drop_f(g_entity_t *ent) {
@@ -270,7 +270,7 @@ static void G_Drop_f(g_entity_t *ent) {
 	it->Drop(ent, it);
 }
 
-/*
+/**
  * @brief
  */
 static void G_WeaponPrevious_f(g_entity_t *ent) {
@@ -312,7 +312,7 @@ static void G_WeaponPrevious_f(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_WeaponNext_f(g_entity_t *ent) {
@@ -354,7 +354,7 @@ static void G_WeaponNext_f(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_WeaponLast_f(g_entity_t *ent) {
@@ -380,7 +380,7 @@ static void G_WeaponLast_f(g_entity_t *ent) {
 	it->Use(ent, it);
 }
 
-/*
+/**
  * @brief
  */
 static void G_Kill_f(g_entity_t *ent) {
@@ -402,7 +402,7 @@ static void G_Kill_f(g_entity_t *ent) {
 	ent->locals.Die(ent, ent, MOD_SUICIDE);
 }
 
-/*
+/**
  * @brief Server console command - force a command on all connected clients
  */
 void G_Stuffall_Sv_f(void) {
@@ -423,7 +423,7 @@ void G_Stuffall_Sv_f(void) {
 	}
 }
 
-/*
+/**
  * @brief Server console command for muting players by name (toggles)
  */
 void G_Mute_Sv_f(void) {
@@ -444,7 +444,7 @@ void G_Mute_Sv_f(void) {
 	}
 }
 
-/*
+/**
  * @brief This is the client-specific sibling to Cvar_VariableString.
  */
 static const char *G_ExpandVariable(g_entity_t *ent, char v) {
@@ -470,7 +470,7 @@ static const char *G_ExpandVariable(g_entity_t *ent, char v) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static char *G_ExpandVariables(g_entity_t *ent, const char *text) {
@@ -497,7 +497,7 @@ static char *G_ExpandVariables(g_entity_t *ent, const char *text) {
 	return expanded;
 }
 
-/*
+/**
  * @brief
  */
 static void G_Say_f(g_entity_t *ent) {
@@ -579,7 +579,7 @@ static void G_Say_f(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void G_PlayerList_f(g_entity_t *ent) {
@@ -635,7 +635,7 @@ static const char *vote_cmds[] = {
 		"unmute",
 		NULL };
 
-/*
+/**
  * @brief Inspects the vote command and issues help if applicable. Returns
  * true if the command received help and may therefore be ignored, false
  * otherwise.
@@ -733,7 +733,7 @@ static _Bool G_VoteHelp(g_entity_t *ent) {
 	return false;
 }
 
-/*
+/**
  * @brief
  */
 static void G_Vote_f(g_entity_t *ent) {
@@ -808,7 +808,7 @@ static void G_Vote_f(g_entity_t *ent) {
 	);
 }
 
-/*
+/**
  * @brief Returns true if the client's team was changed, false otherwise.
  */
 _Bool G_AddClientToTeam(g_entity_t *ent, const char *team_name) {
@@ -848,7 +848,7 @@ _Bool G_AddClientToTeam(g_entity_t *ent, const char *team_name) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 static void G_AddClientToRound(g_entity_t *ent) {
@@ -874,7 +874,7 @@ static void G_AddClientToRound(g_entity_t *ent) {
 	ent->client->locals.persistent.score = score; // lastly restore score
 }
 
-/*
+/**
  * @brief
  */
 static void G_Team_f(g_entity_t *ent) {
@@ -901,7 +901,7 @@ static void G_Team_f(g_entity_t *ent) {
 	G_ClientRespawn(ent, true);
 }
 
-/*
+/**
  * @brief
  */
 static void G_Teamname_f(g_entity_t *ent) {
@@ -939,7 +939,7 @@ static void G_Teamname_f(g_entity_t *ent) {
 			ent->client->locals.persistent.net_name, t->name);
 }
 
-/*
+/**
  * @brief
  */
 static void G_Teamskin_f(g_entity_t *ent) {
@@ -999,7 +999,7 @@ static void G_Teamskin_f(g_entity_t *ent) {
 			ent->client->locals.persistent.net_name, t->skin);
 }
 
-/*
+/**
  * @brief
  */
 static void G_Unready_f(g_entity_t *ent) {
@@ -1035,7 +1035,7 @@ static void G_Unready_f(g_entity_t *ent) {
 	g_level.match_status = MSTAT_WARMUP;
 }
 
-/*
+/**
  * @brief If match is enabled, all clients must issue ready for game to start.
  */
 static void G_Ready_f(g_entity_t *ent) {
@@ -1103,7 +1103,7 @@ static void G_Ready_f(g_entity_t *ent) {
 	g_level.match_status = MSTAT_COUNTDOWN;
 }
 
-/*
+/**
  * @brief
  */
 static void G_Toggleready_f(g_entity_t *ent) {
@@ -1113,7 +1113,7 @@ static void G_Toggleready_f(g_entity_t *ent) {
 		G_Ready_f(ent);
 }
 
-/*
+/**
  * @brief
  */
 static void G_Spectate_f(g_entity_t *ent) {
@@ -1156,14 +1156,14 @@ static void G_Spectate_f(g_entity_t *ent) {
 	G_ClientRespawn(ent, true);
 }
 
-/*
+/**
  * @brief
  */
 void G_Score_f(g_entity_t *ent) {
 	ent->client->locals.show_scores = !ent->client->locals.show_scores;
 }
 
-/*
+/**
  * @brief resumes the current match
  */
 void G_Timein_f(g_entity_t *ent) {
@@ -1177,7 +1177,7 @@ void G_Timein_f(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief pause the current match, allow for limited commands during
  */
 void G_Timeout_f(g_entity_t *ent) {
@@ -1236,7 +1236,7 @@ static void G_Admin_f(g_entity_t *ent) {
 		}
 	}
 }
-/*
+/**
  * @brief
  */
 void G_ClientCommand(g_entity_t *ent) {

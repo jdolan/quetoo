@@ -26,7 +26,7 @@ uint16_t num_threads;
 semaphores_t semaphores;
 thread_work_t thread_work;
 
-/*
+/**
  * @brief Initializes the shared semaphores that threads will touch.
  */
 void Sem_Init(void) {
@@ -42,7 +42,7 @@ void Sem_Init(void) {
 	semaphores.removed_points = SDL_CreateSemaphore(0);
 }
 
-/*
+/**
  * @brief Shuts down shared semaphores, releasing any resources they hold.
  */
 void Sem_Shutdown(void) {
@@ -56,7 +56,7 @@ void Sem_Shutdown(void) {
 	SDL_DestroySemaphore(semaphores.removed_points);
 }
 
-/*
+/**
  * @brief Return an iteration of work, updating progress when appropriate.
  */
 static int32_t GetThreadWork(void) {
@@ -91,7 +91,7 @@ static int32_t GetThreadWork(void) {
 // generic function pointer to actual work to be done
 static ThreadWorkFunc WorkFunction;
 
-/*
+/**
  * @brief Shared work entry point by all threads. Retrieve and perform
  * chunks of work iteratively until work is finished.
  */
@@ -108,7 +108,7 @@ static void ThreadWork(void *p __attribute__((unused))) {
 
 SDL_mutex *lock = NULL;
 
-/*
+/**
  * @brief
  */
 void ThreadLock(void) {
@@ -119,7 +119,7 @@ void ThreadLock(void) {
 	SDL_mutexP(lock);
 }
 
-/*
+/**
  * @brief
  */
 void ThreadUnlock(void) {
@@ -130,7 +130,7 @@ void ThreadUnlock(void) {
 	SDL_mutexV(lock);
 }
 
-/*
+/**
  * @brief
  */
 static void RunThreads(void) {
@@ -154,7 +154,7 @@ static void RunThreads(void) {
 	lock = NULL;
 }
 
-/*
+/**
  * @brief Entry point for all thread work requests.
  */
 void RunThreadsOn(int32_t work_count, _Bool progress, ThreadWorkFunc func) {

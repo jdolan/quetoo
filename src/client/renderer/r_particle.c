@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-/*
+/**
  * @brief Copies the specified particle into the view structure, provided it
  * passes a basic visibility test.
  */
@@ -47,7 +47,7 @@ void R_AddParticle(const r_particle_t *p) {
 	R_AddElement(&e);
 }
 
-/*
+/**
  * @brief Pools commonly used angular vectors for particle calculations and
  * accumulates particle primitives each frame.
  */
@@ -64,7 +64,7 @@ typedef struct {
 
 static r_particle_state_t r_particle_state;
 
-/*
+/**
  * @brief Generates the vertex coordinates for the specified particle.
  */
 static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
@@ -143,7 +143,7 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 	VectorSubtract(p->org, up_right, verts[3]);
 }
 
-/*
+/**
  * @brief Generates texture coordinates for the specified particle.
  */
 static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
@@ -170,7 +170,7 @@ static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
 	out[7] = 1.0 + t;
 }
 
-/*
+/**
  * @brief Generates vertex colors for the specified particle.
  */
 static void R_ParticleColor(const r_particle_t *p, GLubyte *out) {
@@ -184,7 +184,7 @@ static void R_ParticleColor(const r_particle_t *p, GLubyte *out) {
 	}
 }
 
-/*
+/**
  * @brief Updates the shared angular vectors required for particle generation.
  */
 static void R_UpdateParticleState(void) {
@@ -203,7 +203,7 @@ static void R_UpdateParticleState(void) {
 	AngleVectors(v, NULL, r_particle_state.splash_right[1], r_particle_state.splash_up[1]);
 }
 
-/*
+/**
  * @brief Generates primitives for the specified particle elements. Each
  * particle's index into the shared array is written to the element's data
  * field.
@@ -227,7 +227,7 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 	}
 }
 
-/*
+/**
  * @brief Draws all particles for the current frame.
  */
 void R_DrawParticles(const r_element_t *e, const size_t count) {

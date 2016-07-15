@@ -31,7 +31,7 @@ typedef struct {
 
 static d_aas_t d_aas;
 
-/*
+/**
  * @brief Create the initial AAS nodes, which are just partial copies of the
  * BSP nodes. We'll prune these to remove leafs which are not navigable.
  */
@@ -49,7 +49,7 @@ static void CreateAASNodes(void) {
 	}
 }
 
-/*
+/**
  * @brief Returns true if the specified leaf is navigable (has an upward-facing
  * solid plane), false otherwise.
  */
@@ -82,7 +82,7 @@ static _Bool PruneAASNodes_isNavigable(const d_bsp_leaf_t *leaf) {
 	return false;
 }
 
-/*
+/**
  * @brief Recurse the AAS node tree, pruning leafs which are not navigable.
  */
 static void PruneAASNodes_(d_aas_node_t *node) {
@@ -115,14 +115,14 @@ static void PruneAASNodes_(d_aas_node_t *node) {
 	PruneAASNodes_(&d_aas.nodes[c]);
 }
 
-/*
+/**
  * @brief Entry point for recursive AAS node pruning.
  */
 static void PruneAASNodes(void) {
 	PruneAASNodes_(d_aas.nodes);
 }
 
-/*
+/**
  * @brief Byte-swap all fields of the AAS file to LE.
  */
 static void SwapAASFile(void) {
@@ -138,7 +138,7 @@ static void SwapAASFile(void) {
 	}
 }
 
-/*
+/**
  * @brief Writes the specified lump to the AAS file.
  */
 static void WriteLump(file_t *f, d_bsp_lump_t *lump, void *data, size_t len) {
@@ -149,7 +149,7 @@ static void WriteLump(file_t *f, d_bsp_lump_t *lump, void *data, size_t len) {
 	Fs_Write(f, data, 1, (len + 3) & ~3);
 }
 
-/*
+/**
  * @brief
  */
 void WriteAASFile(void) {
@@ -186,7 +186,7 @@ void WriteAASFile(void) {
 	Fs_Close(f);
 }
 
-/*
+/**
  * @brief Generates ${bsp_name}.aas for AI navigation.
  */
 int32_t AAS_Main(void) {

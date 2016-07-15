@@ -22,7 +22,7 @@
 #include "g_local.h"
 #include "ai/ai.h"
 
-/*
+/**
  * @brief Allocs a g_ai_node_t for the specified item entity.
  */
 static ai_goal_t *G_Ai_AllocGoal_Item(g_entity_t *ent) {
@@ -33,7 +33,7 @@ static ai_goal_t *G_Ai_AllocGoal_Item(g_entity_t *ent) {
 	return goal;*/return NULL;
 }
 
-/*
+/**
  * @brief Allocs a g_ai_node_t for the specified player spawn entity.
  */
 static ai_goal_t *G_Ai_AllocGoal_Spawn(g_entity_t *ent) {
@@ -41,7 +41,7 @@ static ai_goal_t *G_Ai_AllocGoal_Spawn(g_entity_t *ent) {
 	return NULL;
 }
 
-/*
+/**
  * @brief Allocs the node list and path table for the current level.
  */
 void G_Ai_AllocGoals(void) {

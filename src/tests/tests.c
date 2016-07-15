@@ -37,7 +37,7 @@ int32_t Test_Run(Suite *suite) {
 	return failed;
 }
 
-/*
+/**
  * @brief Initializes testing facilities.
  */
 void Test_Init(int32_t argc, char **argv) {
@@ -47,7 +47,7 @@ void Test_Init(int32_t argc, char **argv) {
 	Com_Init(argc, argv);
 }
 
-/*
+/**
  * @brief Shuts down testing facilities.
  */
 void Test_Shutdown(void) {

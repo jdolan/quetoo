@@ -33,7 +33,7 @@ typedef struct {
 
 static r_element_state_t r_element_state;
 
-/*
+/**
  * @brief Adds the depth-sorted element to the current frame.
  */
 void R_AddElement(const r_element_t *e) {
@@ -54,7 +54,7 @@ void R_AddElement(const r_element_t *e) {
 	el->depth = VectorLength(delta);
 }
 
-/*
+/**
  * @brief Adds elements for the specified blended surfaces lists.
  */
 static void R_AddBspSurfaceElements(void) {
@@ -83,7 +83,7 @@ static void R_AddBspSurfaceElements(void) {
 	}
 }
 
-/*
+/**
  * @brief Qsort comparator for render elements. Qsort sorts elements into
  * ascending order, so we return negative values when a is behind b (b - a).
  *
@@ -101,7 +101,7 @@ static int R_SortElements_Compare(const void *a, const void *b) {
 	return ((r_element_t *) b)->depth - ((r_element_t *) a)->depth;
 }
 
-/*
+/**
  * @brief Sorts the specified elements array by their distance from the view.
  * Elements are sorted farthest-first so that they are rendered back-to-front.
  */
@@ -109,7 +109,7 @@ static void R_SortElements_(r_element_t *e, const size_t count) {
 	qsort(e, count, sizeof(r_element_t), R_SortElements_Compare);
 }
 
-/*
+/**
  * @brief Sorts the draw elements for the current frame. Once elements are
  * sorted, particles for the current frame are also updated.
  */
@@ -125,7 +125,7 @@ void R_SortElements(void *data __attribute__((unused))) {
 	R_UpdateParticles(r_element_state.elements, r_element_state.count);
 }
 
-/*
+/**
  * @brief Populates an r_bsp_surfaces_t with the specified elements.
  */
 static void R_DrawBspSurfaceElements(const r_element_t *e, const size_t count, BspSurfacesDrawFunc func) {
@@ -141,7 +141,7 @@ static void R_DrawBspSurfaceElements(const r_element_t *e, const size_t count, B
 	func(surfs);
 }
 
-/*
+/**
  * @brief Draws the specified subset of elements. The type
  */
 static void R_DrawElements_(const r_element_t *e, const size_t count) {
@@ -167,7 +167,7 @@ static void R_DrawElements_(const r_element_t *e, const size_t count) {
 	}
 }
 
-/*
+/**
  * @brief Draws all elements for the current frame. It is expected that the
  * elements are already depth-sorted. See above.
  */
@@ -209,7 +209,7 @@ void R_DrawElements(void) {
 	r_element_state.count = 0;
 }
 
-/*
+/**
  * @brief Initializes the elements pool, which is allocated based on the
  * geometry of the current level.
  */

@@ -64,7 +64,7 @@ cg_particles_t *cg_particles_spark;
 cg_particles_t *cg_particles_inactive;
 cg_particles_t *cg_particles_bullet[3];
 
-/*
+/**
  * @brief Updates all media references for the client game.
  */
 void Cg_UpdateMedia(void) {

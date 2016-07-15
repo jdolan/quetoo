@@ -29,7 +29,7 @@ typedef struct {
 
 static s_media_state_t s_media_state;
 
-/*
+/**
  * @brief Prints information about all currently loaded media to the console.
  */
 void S_ListMedia_f(void) {
@@ -46,7 +46,7 @@ void S_ListMedia_f(void) {
 	}
 }
 
-/*
+/**
  * @brief GCompareFunc for S_RegisterMedia. Sorts media by name.
  */
 static int32_t S_RegisterMedia_Compare(gconstpointer name1, gconstpointer name2) {
@@ -55,7 +55,7 @@ static int32_t S_RegisterMedia_Compare(gconstpointer name1, gconstpointer name2)
 
 static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data);
 
-/*
+/**
  * @brief Inserts the specified media into the shared table.
  */
 void S_RegisterMedia(s_media_t *media) {
@@ -85,7 +85,7 @@ void S_RegisterMedia(s_media_t *media) {
 	}
 }
 
-/*
+/**
  * @brief Resolves the specified media if it is already known. The returned
  * media is re-registered for convenience.
  *
@@ -101,7 +101,7 @@ s_media_t *S_FindMedia(const char *name) {
 	return media;
 }
 
-/*
+/**
  * @brief Returns a newly allocated s_media_t with the specified name.
  *
  * @param size_t size The number of bytes to allocate for the media.
@@ -121,7 +121,7 @@ s_media_t *S_AllocMedia(const char *name, size_t size) {
 	return media;
 }
 
-/*
+/**
  * @brief GHRFunc for freeing media. If data is non-NULL, then the media is
  * always freed. Otherwise, only media with stale seed values and no explicit
  * retainment are released.
@@ -147,14 +147,14 @@ static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data) {
 	return true;
 }
 
-/*
+/**
  * @brief Frees any media that has a stale seed and is not explicitly retained.
  */
 void S_FreeMedia(void) {
 	g_hash_table_foreach_remove(s_media_state.media, S_FreeMedia_, NULL);
 }
 
-/*
+/**
  * @brief Prepares the media subsystem for loading.
  */
 void S_BeginLoading(void) {
@@ -167,7 +167,7 @@ void S_BeginLoading(void) {
 	s_media_state.seed = s;
 }
 
-/*
+/**
  * @brief Initializes the media pool.
  */
 void S_InitMedia(void) {
@@ -179,7 +179,7 @@ void S_InitMedia(void) {
 	S_BeginLoading();
 }
 
-/*
+/**
  * @brief Shuts down the media pool.
  */
 void S_ShutdownMedia(void) {

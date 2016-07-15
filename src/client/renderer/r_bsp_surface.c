@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-/*
+/**
  * @brief
  */
 static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
@@ -65,7 +65,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		glStencilFunc(GL_ALWAYS, (surf->plane->num % 0xff) + 1, ~0);
 }
 
-/*
+/**
  * @brief
  */
 static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
@@ -75,7 +75,7 @@ static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
 	r_view.num_bsp_surfaces++;
 }
 
-/*
+/**
  * @brief
  */
 static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
@@ -107,7 +107,7 @@ static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_Color(NULL);
 }
 
-/*
+/**
  * @brief
  */
 static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
@@ -131,7 +131,7 @@ static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 	R_EnableTexture(&texunit_diffuse, true);
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
@@ -185,7 +185,7 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 #endif
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawOpaqueWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
@@ -205,7 +205,7 @@ void R_DrawOpaqueWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_EnableWarp(NULL, false);
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
@@ -233,7 +233,7 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_EnableAlphaTest(false);
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
@@ -265,7 +265,7 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		R_EnableTexture(&texunit_diffuse, true);
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
@@ -285,7 +285,7 @@ void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	R_EnableWarp(NULL, false);
 }
 
-/*
+/**
  * @brief
  */
 void R_DrawBackBspSurfaces_default(const r_bsp_surfaces_t *surfs __attribute__((unused))) {

@@ -1,4 +1,4 @@
-/*
+/**
  * @brief Warp fragment shader.
  */
 
@@ -11,14 +11,14 @@ uniform sampler2D SAMPLER1;
 
 varying float fog;
 
-/*
+/**
  * @brief
  */
 void FogFragment(void) {
 	gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_Fog.color.rgb, fog);
 }
 
-/*
+/**
  * @brief Program entry point.
  */
 void main(void) {

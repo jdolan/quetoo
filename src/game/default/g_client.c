@@ -22,7 +22,7 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
-/*
+/**
  * @brief Make a tasteless death announcement.
  */
 static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
@@ -213,7 +213,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 	}
 }
 
-/*
+/**
  * @brief Play a sloppy sound when impacting the world.
  */
 static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
@@ -233,7 +233,7 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other,
 	}
 }
 
-/*
+/**
  * @brief Sink into the floor after a few seconds, providing a window of time for us to be made into
  * giblets or knocked around. This is called by corpses and giblets alike.
  */
@@ -288,7 +288,7 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 	self->locals.next_think = g_level.time + gi.frame_millis;
 }
 
-/*
+/**
  * @brief Corpses explode into giblets when killed. Giblets receive the
  * velocity of the corpse, and bounce when damaged. They eventually sink
  * through the floor and disappear.
@@ -363,7 +363,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribut
 	}
 }
 
-/*
+/**
  * @brief Spawns a corpse for the specified client. The corpse will eventually sink into the floor
  * and disappear if not over-killed.
  */
@@ -413,7 +413,7 @@ static void G_ClientCorpse(g_entity_t *self) {
 
 #define CLIENT_CORPSE_HEALTH 80
 
-/*
+/**
  * @brief A client's health is less than or equal to zero. Render death effects, drop
  * certain items we're holding and force the client into a temporary spectator
  * state with the scoreboard shown.
@@ -470,7 +470,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	gi.LinkEntity(self);
 }
 
-/*
+/**
  * @brief Stocks client's inventory with specified item. Weapons receive
  * specified quantity of ammo, while health and armor are set to
  * the specified quantity.
@@ -511,7 +511,7 @@ static void G_Give(g_entity_t *ent, char *it, int16_t quantity) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static _Bool G_GiveLevelLocals(g_entity_t *ent) {
@@ -551,7 +551,7 @@ static _Bool G_GiveLevelLocals(g_entity_t *ent) {
 	return true;
 }
 
-/*
+/**
  * @brief
  */
 static void G_InitClientInventory(g_entity_t *ent) {
@@ -603,7 +603,7 @@ static void G_InitClientInventory(g_entity_t *ent) {
 	}
 }
 
-/*
+/**
  * @brief Returns the distance to the nearest enemy from the given spot.
  */
 static vec_t G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
@@ -642,7 +642,7 @@ static vec_t G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
 	return best_dist;
 }
 
-/*
+/**
  * @brief
  */
 static g_entity_t *G_SelectRandomSpawnPoint(const char *class_name) {
@@ -665,7 +665,7 @@ static g_entity_t *G_SelectRandomSpawnPoint(const char *class_name) {
 	return spot;
 }
 
-/*
+/**
  * @brief
  */
 static g_entity_t *G_SelectFarthestSpawnPoint(g_entity_t *ent, const char *class_name) {
@@ -695,7 +695,7 @@ static g_entity_t *G_SelectFarthestSpawnPoint(g_entity_t *ent, const char *class
 	return spot;
 }
 
-/*
+/**
  * @brief
  */
 static g_entity_t *G_SelectDeathmatchSpawnPoint(g_entity_t *ent) {
@@ -706,7 +706,7 @@ static g_entity_t *G_SelectDeathmatchSpawnPoint(g_entity_t *ent) {
 	return G_SelectRandomSpawnPoint("info_player_deathmatch");
 }
 
-/*
+/**
  * @brief
  */
 static g_entity_t *G_SelectTeamSpawnPoint(g_entity_t *ent) {
@@ -723,7 +723,7 @@ static g_entity_t *G_SelectTeamSpawnPoint(g_entity_t *ent) {
 	return G_SelectRandomSpawnPoint(class_name);
 }
 
-/*
+/**
  * @brief Selects the most appropriate spawn point for the given client.
  */
 static g_entity_t *G_SelectSpawnPoint(g_entity_t *ent) {
@@ -751,7 +751,7 @@ static g_entity_t *G_SelectSpawnPoint(g_entity_t *ent) {
 	return spawn;
 }
 
-/*
+/**
  * @brief The grunt work of putting the client into the server on [re]spawn.
  */
 static void G_ClientRespawn_(g_entity_t *ent) {
@@ -855,7 +855,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	gi.LinkEntity(ent);
 }
 
-/*
+/**
  * @brief In this case, voluntary means that the client has explicitly requested
  * a respawn by changing their spectator status.
  */
@@ -888,7 +888,7 @@ void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
 		gi.BroadcastPrint(PRINT_HIGH, "%s wants some\n", ent->client->locals.persistent.net_name);
 }
 
-/*
+/**
  * @brief Called when a client has finished connecting, and is ready
  * to be placed into the game. This will happen every level load.
  */
@@ -953,7 +953,7 @@ void G_ClientBegin(g_entity_t *ent) {
 	G_ClientEndFrame(ent);
 }
 
-/*
+/**
  * @brief
  */
 void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
@@ -1041,7 +1041,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 		ent->s.effects &= ~(EF_INACTIVE);
 }
 
-/*
+/**
  * @brief Called when a player begins connecting to the server.
  * The game can refuse entrance to a client by returning false.
  * If the client is allowed, the connection process will continue
@@ -1078,7 +1078,7 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 	return true;
 }
 
-/*
+/**
  * @brief Called when a player drops from the server. Not be called between levels.
  */
 void G_ClientDisconnect(g_entity_t *ent) {
@@ -1114,7 +1114,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 	gi.ConfigString(CS_CLIENTS + entity_num, "");
 }
 
-/*
+/**
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
 static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const vec3_t mins,
@@ -1129,14 +1129,14 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
 
 }
 
-/*
+/**
  * @brief Debug messages for Pm_Move.
  */
 static void G_ClientMove_Debug(const char *msg) {
 	gi.Debug("!Server: %u %s", g_level.time, msg);
 }
 
-/*
+/**
  * @brief Process the movement command, call Pm_Move and act on the result.
  */
 static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
@@ -1306,7 +1306,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	}
 }
 
-/*
+/**
  * @brief Expire any items which are time-sensitive.
  */
 static void G_ClientInventoryThink(g_entity_t *ent) {
@@ -1332,7 +1332,7 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 		ent->s.effects &= ~EF_RESPAWN;
 }
 
-/*
+/**
  * @brief This will be called once for each client frame, which will usually be a
  * couple times for each server frame.
  */
@@ -1403,7 +1403,7 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 	}
 }
 
-/*
+/**
  * @brief This will be called once for each server frame, before running
  * any other entities in the world.
  */

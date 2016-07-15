@@ -23,7 +23,7 @@
 
 static void *cgame_handle;
 
-/*
+/**
  * @brief Abort the server with a game error. This wraps Com_Error, always
  * emitting ERR_DROP.
  */
@@ -95,7 +95,7 @@ static void Cl_ReadAngles(vec3_t angles) {
 	Net_ReadAngles(&net_message, angles);
 }
 
-/*
+/**
  * @brief
  */
 static char *Cl_ConfigString(uint16_t index) {
@@ -108,7 +108,7 @@ static char *Cl_ConfigString(uint16_t index) {
 	return cl.config_strings[index];
 }
 
-/*
+/**
  * @brief Initializes the client game subsystem
  */
 void Cl_InitCgame(void) {
@@ -215,7 +215,7 @@ void Cl_InitCgame(void) {
 	Com_InitSubsystem(QUETOO_CGAME);
 }
 
-/*
+/**
  * @brief Shuts down the client game subsystem.
  */
 void Cl_ShutdownCgame(void) {

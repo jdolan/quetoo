@@ -24,7 +24,7 @@
 int32_t c_nofaces;
 int32_t c_facenodes;
 
-/*
+/**
  * @brief There is no opportunity to discard planes, because all of the original
  * brushes will be saved in the map.
  */
@@ -43,7 +43,7 @@ static void EmitPlanes(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f) {
@@ -79,7 +79,7 @@ static void EmitLeafFace(d_bsp_leaf_t *leaf_p, face_t *f) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void EmitLeaf(node_t *node) {
@@ -147,7 +147,7 @@ static void EmitLeaf(node_t *node) {
 	leaf_p->num_leaf_faces = d_bsp.num_leaf_faces - leaf_p->first_leaf_face;
 }
 
-/*
+/**
  * @brief
  */
 static void EmitFace(face_t *f) {
@@ -193,7 +193,7 @@ static void EmitFace(face_t *f) {
 	df->light_ofs = -1;
 }
 
-/*
+/**
  * @brief
  */
 static int32_t EmitDrawNode_r(node_t * node) {
@@ -245,7 +245,7 @@ static int32_t EmitDrawNode_r(node_t * node) {
 	return n - d_bsp.nodes;
 }
 
-/*
+/**
  * @brief
  */
 void WriteBSP(node_t *head_node) {
@@ -265,7 +265,7 @@ void WriteBSP(node_t *head_node) {
 	Com_Verbose("%5i faces\n", d_bsp.num_faces - old_faces);
 }
 
-/*
+/**
  * @brief
  */
 void SetModelNumbers(void) {
@@ -284,7 +284,7 @@ void SetModelNumbers(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 static void EmitBrushes(void) {
@@ -352,7 +352,7 @@ static void EmitBrushes(void) {
 	}
 }
 
-/*
+/**
  * @brief
  */
 void BeginBSPFile(void) {
@@ -369,7 +369,7 @@ void BeginBSPFile(void) {
 	d_bsp.leafs[0].contents = CONTENTS_SOLID;
 }
 
-/*
+/**
  * @brief
  */
 void EndBSPFile(void) {
@@ -388,7 +388,7 @@ void EndBSPFile(void) {
 	WriteBSPFile(bsp_name);
 }
 
-/*
+/**
  * @brief
  */
 extern int32_t first_bsp_model_edge;
@@ -427,7 +427,7 @@ void BeginModel(void) {
 	VectorCopy(maxs, mod->maxs);
 }
 
-/*
+/**
  * @brief
  */
 void EndModel(void) {

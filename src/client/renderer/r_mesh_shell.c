@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-/*
+/**
  * @brief Sets the active shell color for the given entity.
  */
 static void R_SetMeshShellColor_default(const r_entity_t *e) {
@@ -32,7 +32,7 @@ static void R_SetMeshShellColor_default(const r_entity_t *e) {
 	R_Color(color);
 }
 
-/*
+/**
  * @brief Sets renderer state for the given entity.
  */
 static void R_SetMeshShellState_default(const r_entity_t *e) {
@@ -59,7 +59,7 @@ static void R_SetMeshShellState_default(const r_entity_t *e) {
 	}
 }
 
-/*
+/**
  * @brief Restores renderer state for the given entity.
  */
 static void R_ResetMeshShellState_default(const r_entity_t *e) {
@@ -70,7 +70,7 @@ static void R_ResetMeshShellState_default(const r_entity_t *e) {
 	R_RotateForEntity(NULL);
 }
 
-/*
+/**
  * @brief Draws an animated, colored shell for the specified entity.
  */
 void R_DrawMeshShell_default(const r_entity_t *e) {
@@ -82,7 +82,7 @@ void R_DrawMeshShell_default(const r_entity_t *e) {
 	R_ResetMeshShellState_default(e);
 }
 
-/*
+/**
  * @brief Draws all mesh model shells for the current frame.
  */
 void R_DrawMeshShells_default(const r_entities_t *ents) {
