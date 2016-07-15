@@ -439,6 +439,14 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 				if (ent->owner == trace->skip->owner)
 					continue; // and commutative (we are both owned by the same)
 			}
+			
+			// triggers only clip to the world (while other entities can occupy triggers)
+			if (trace->skip->solid == SOLID_TRIGGER) {
+				
+				if (ent->solid != SOLID_BSP) {
+					continue;
+				}
+			}
 		}
 
 		const int32_t head_node = Sv_HullForEntity(ent);

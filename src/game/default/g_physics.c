@@ -36,6 +36,8 @@ static void G_CheckGround(g_entity_t *ent) {
 
 		VectorCopy(ent->s.origin, pos);
 		pos[2] -= PM_GROUND_DIST;
+		
+		// TODO: Use ent->locals.clip_mask?
 
 		cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, MASK_SOLID);
 
@@ -112,7 +114,7 @@ static void G_RunThink(g_entity_t *ent) {
 }
 
 /*
- * @see Pm_GoodPosition.
+ * @return True if the entitiy is in a valid position, false otherwise.
  */
 static _Bool G_GoodPosition(const g_entity_t *ent) {
 
@@ -457,18 +459,21 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 			VectorSubtract(rotate, translate, delta);
 
 			VectorAdd(ent->s.origin, delta, ent->s.origin);
-
+			
 			// if the move has separated us, finish up by rotating the entity
 			if (G_GoodPosition(ent)) {
 				G_Physics_Push_Rotate(self, ent, amove[YAW]);
 				continue;
 			}
 
-			// perhaps the rider has been pushed off by the world, that's okay
 			if (ent->locals.ground_entity == self) {
+				
+				// an entity riding us may have been pushed off of us by the world, so try
+				// it's original position, which may now be valid
+				
 				G_Physics_Push_Revert(--g_push_p);
 
-				// but in this case, we don't rotate
+				// but in this case, don't rotate
 				if (G_GoodPosition(ent)) {
 					continue;
 				}
@@ -502,11 +507,11 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 
 			gi.LinkEntity(p->ent);
 			
-			G_TouchOccupy(p->ent);
-
 			G_CheckGround(p->ent);
 			
 			G_CheckWater(p->ent);
+			
+			G_TouchOccupy(p->ent);
 		}
 	}
 
@@ -628,7 +633,7 @@ static void G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 
 		time_remaining -= time;
 
-		if (trace.ent) {
+		if (trace.ent && trace.ent->solid > SOLID_TRIGGER) {
 
 			G_Physics_Fly_Impact(ent, &trace, bounce);
 
@@ -637,17 +642,18 @@ static void G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 			}
 		}
 	}
-
-	if (G_GoodPosition(ent)) {
-		gi.LinkEntity(ent);
-		return;
+	
+	if (!G_GoodPosition(ent)) {
+		gi.Debug("reverting %s\n", etos(ent));
+		
+		VectorCopy(origin, ent->s.origin);
+		VectorCopy(angles, ent->s.angles);
+		
+		VectorClear(ent->locals.velocity);
+		VectorClear(ent->locals.avelocity);
 	}
-
-	VectorCopy(origin, ent->s.origin);
-	VectorCopy(angles, ent->s.angles);
-
-	VectorClear(ent->locals.velocity);
-	VectorClear(ent->locals.avelocity);
+	
+	gi.LinkEntity(ent);
 }
 
 /*
@@ -657,31 +663,34 @@ static void G_Physics_Fly(g_entity_t *ent) {
 
 	G_Physics_Fly_Move(ent, 1.0);
 
-	G_TouchOccupy(ent);
-
 	G_CheckGround(ent);
 	
 	G_CheckWater(ent);
+	
+	G_TouchOccupy(ent);
 }
 
 /*
- * @brief Toss, bounce, and fly movement. When on ground, do nothing.
+ * @brief Bounce movement. When on ground, do nothing.
  */
-static void G_Physics_Toss(g_entity_t *ent) {
+static void G_Physics_Bounce(g_entity_t *ent) {
+	
+	if (ent->locals.ground_entity == NULL || VectorCompare(ent->locals.velocity, vec3_origin) == false) {
 
-	G_Friction(ent);
-
-	G_Gravity(ent);
-
-	G_Currents(ent);
-
-	G_Physics_Fly_Move(ent, 1.33);
-
-	G_TouchOccupy(ent);
+		G_Friction(ent);
+		
+		G_Gravity(ent);
+		
+		G_Currents(ent);
+		
+		G_Physics_Fly_Move(ent, 1.33);
+	}
 
 	G_CheckGround(ent);
 	
 	G_CheckWater(ent);
+	
+	G_TouchOccupy(ent);
 }
 
 /*
@@ -707,7 +716,7 @@ void G_RunEntity(g_entity_t *ent) {
 			G_Physics_Fly(ent);
 			break;
 		case MOVE_TYPE_BOUNCE:
-			G_Physics_Toss(ent);
+			G_Physics_Bounce(ent);
 			break;
 		default:
 			gi.Error("Bad move type %i\n", ent->locals.move_type);

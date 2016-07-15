@@ -80,7 +80,6 @@ void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, 
 	// if the projected origin is invalid, use the entity's origin
 	if (gi.Trace(org, org, NULL, NULL, ent, MASK_CLIP_PROJECTILE).start_solid) {
 		VectorCopy(ent->s.origin, org);
-		gi.Print("Doh\n");
 	}
 
 	// return the projectile's directional vectors
