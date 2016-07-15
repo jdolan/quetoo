@@ -107,7 +107,7 @@ static void Cg_Init(void) {
 	cg_fov = cgi.Cvar("cg_fov", "110.0", CVAR_ARCHIVE, NULL);
 	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "55.0", CVAR_ARCHIVE, NULL);
 
-	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE,
+	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_LO_ONLY,
 			"Activate third person perspective.");
 	cg_third_person_yaw = cgi.Cvar("cg_third_person_yaw", "0.0", CVAR_ARCHIVE,
 			"Yaw offset for third person perspective.");
