@@ -29,7 +29,7 @@ r_context_t r_context;
 static void R_SetWindowIcon(void) {
 	SDL_Surface *surf;
 
-	if (!Img_LoadImage("pics/icon", &surf))
+	if (!Img_LoadImage("icons/quetoo", &surf))
 		return;
 
 	SDL_SetWindowIcon(r_context.window, surf);
