@@ -554,11 +554,27 @@ static void G_Physics_Push(g_entity_t *ent) {
 	}
 }
 
+#define MAX_CLIP_PLANES 4
+static g_entity_t *g_touch_ents[MAX_CLIP_PLANES];
+static int32_t g_num_touch_ents;
+
 /*
  * @brief Runs the `Touch` functions of each object.
  */
 static void G_Physics_Fly_Impact(g_entity_t *ent, const cm_trace_t *trace, const vec_t bounce) {
+	
+	// ensure that we only impact an entity once per frame
 
+	for (int32_t i = 0; i < g_num_touch_ents; i++) {
+		if (g_touch_ents[i] == trace->ent) {
+			return;
+		}
+	}
+	
+	g_touch_ents[g_num_touch_ents++] = trace->ent;
+	
+	// run the interaction
+	
 	if (ent->locals.Touch) {
 		gi.Debug("%s touching %s\n", etos(ent), etos(trace->ent));
 		ent->locals.Touch(ent, trace->ent, &trace->plane, trace->surface);
@@ -575,15 +591,11 @@ static void G_Physics_Fly_Impact(g_entity_t *ent, const cm_trace_t *trace, const
 	if (!ent->in_use || !trace->ent->in_use)
 		return;
 	
-	if (ent->solid < SOLID_DEAD || trace->ent->solid < SOLID_DEAD)
-		return;
-	
-	// both entities remain, so clip the weaker solid to the other
+	// both entities remain, so clip them to each other
 
 	G_ClipVelocity(ent->locals.velocity, trace->plane.normal, ent->locals.velocity, bounce);
 }
 
-#define MAX_CLIP_PLANES 4
 
 /*
  * @see Pm_StepSlideMove
@@ -598,6 +610,7 @@ static void G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 
 	vec_t time_remaining = gi.frame_seconds;
 
+	g_num_touch_ents = 0;
 	for (int32_t i = 0; i < MAX_CLIP_PLANES; i++) {
 		vec3_t pos;
 
@@ -619,10 +632,7 @@ static void G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 
 			G_Physics_Fly_Impact(ent, &trace, bounce);
 
-			if (ent->in_use) {
-				if (!trace.ent->in_use)
-					continue;
-			} else {
+			if (!ent->in_use) {
 				return;
 			}
 		}
