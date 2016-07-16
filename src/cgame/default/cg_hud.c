@@ -600,7 +600,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Plays the hit sound if the player inflicted damage this frame.
  */
 static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 
