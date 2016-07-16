@@ -1,7 +1,3 @@
-[![Stories in Ready](https://badge.waffle.io/jdolan/quetoo.png?label=ready&title=Ready)](https://waffle.io/jdolan/quetoo)
-[![Build Status](http://ci.quetoo.org/job/quetoo-linux-x86_64/badge/icon)](http://ci.quetoo.org/job/quetoo-linux-x86_64/)
-[![Join the chat at https://gitter.im/jdolan/quetoo](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jdolan/quetoo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 # Quetoo BETA
 
 ![Quetoo BETA](http://farm8.staticflickr.com/7052/6840396962_e01802d3f9_c.jpg)
