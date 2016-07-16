@@ -342,6 +342,10 @@ size_t Sv_BoxEntities(const vec3_t mins, const vec3_t maxs, g_entity_t **list, c
 	sv_world.box_type = type;
 
 	Sv_BoxEntities_r(sv_world.sectors);
+	
+	sv_world.box_mins = vec3_origin;
+	sv_world.box_maxs = vec3_origin;
+	sv_world.box_entities = NULL;
 
 	return sv_world.num_box_entities;
 }
