@@ -1,3 +1,5 @@
+[![Build Status](http://ci.quetoo.org/buildStatus/icon?job=Quetoo-Linux-x86_64)](http://ci.quetoo.org/job/Quetoo-Linux-x86_64/)
+
 # Quetoo BETA
 
 ![Quetoo BETA](http://farm8.staticflickr.com/7052/6840396962_e01802d3f9_c.jpg)
