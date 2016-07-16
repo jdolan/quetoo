@@ -273,7 +273,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
  * If origin is NULL, the origin is determined from the entity origin
  * or the midpoint of the entity box for BSP sub-models.
  */
-void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uint16_t index, const uint16_t atten) {
+void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16_t index, const uint16_t atten) {
 
 	uint32_t flags = 0;
 
@@ -289,14 +289,14 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uin
 	if (origin)
 		flags |= S_ORIGIN;
 
-	if (entity) {
+	if (ent) {
 		// inline BSP models have relative origins, so always send the absolute origin
-		if ((entity->sv_flags & SVF_NO_CLIENT) || (entity->solid == SOLID_BSP)) {
+		if ((ent->sv_flags & SVF_NO_CLIENT) || (ent->solid == SOLID_BSP)) {
 			flags |= S_ORIGIN;
 		}
 
 		// if the client knows about the entity, send it
-		if (!(entity->sv_flags & SVF_NO_CLIENT))
+		if (!(ent->sv_flags & SVF_NO_CLIENT))
 			flags |= S_ENTITY;
 	}
 
@@ -304,11 +304,11 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uin
 	if (origin)
 		VectorCopy(origin, org);
 	else {
-		if (entity->solid == SOLID_BSP) {
+		if (ent->solid == SOLID_BSP) {
 			for (int32_t i = 0; i < 3; i++)
-				org[i] = entity->s.origin[i] + 0.5 * (entity->mins[i] + entity->maxs[i]);
+				org[i] = ent->s.origin[i] + 0.5 * (ent->mins[i] + ent->maxs[i]);
 		} else {
-			VectorCopy(entity->s.origin, org);
+			VectorCopy(ent->s.origin, org);
 		}
 	}
 
@@ -320,7 +320,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *entity, const uin
 		Net_WriteByte(&sv.multicast, at);
 
 	if (flags & S_ENTITY)
-		Net_WriteShort(&sv.multicast, NUM_FOR_ENTITY(entity));
+		Net_WriteShort(&sv.multicast, NUM_FOR_ENTITY(ent));
 
 	if (flags & S_ORIGIN)
 		Net_WritePosition(&sv.multicast, org);
