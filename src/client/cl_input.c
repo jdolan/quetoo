@@ -486,11 +486,11 @@ void Cl_InitInput(void) {
 	Cmd_Add("-attack", Cl_Attack_up_f, CMD_CLIENT, NULL);
 
 	cl_run = Cvar_Get("cl_run", "1", CVAR_ARCHIVE, NULL);
-	cl_forward_speed = Cvar_Get("cl_forward_speed", "100.0", 0, NULL);
+	cl_forward_speed = Cvar_Get("cl_forward_speed", "300.0", 0, NULL);
 	cl_pitch_speed = Cvar_Get("cl_pitch_speed", "0.15", 0, NULL);
-	cl_right_speed = Cvar_Get("cl_right_speed", "100.0", 0, NULL);
-	cl_up_speed = Cvar_Get("cl_up_speed", "100.0", 0, NULL);
-	cl_yaw_speed = Cvar_Get("cl_yaw_speed", "0.2", 0, NULL);
+	cl_right_speed = Cvar_Get("cl_right_speed", "300.0", 0, NULL);
+	cl_up_speed = Cvar_Get("cl_up_speed", "300.0", 0, NULL);
+	cl_yaw_speed = Cvar_Get("cl_yaw_speed", "0.15", 0, NULL);
 
 	m_sensitivity = Cvar_Get("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
 	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
