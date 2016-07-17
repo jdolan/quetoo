@@ -65,12 +65,13 @@ typedef struct {
 
 static pm_locals_t pml;
 
+#if PM_DEBUG
+
 /**
  * @brief Handle printing of debugging messages for development.
  */
 static void Pm_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 static void Pm_Debug_(const char *func, const char *fmt, ...) {
-#if PM_DEBUG
 	char msg[MAX_STRING_CHARS];
 
 	g_snprintf(msg, sizeof(msg), "%s: ", func);
@@ -87,14 +88,12 @@ static void Pm_Debug_(const char *func, const char *fmt, ...) {
 	} else {
 		fputs(msg, stdout);
 	}
-#else
-	if (func || fmt) {
-		// silence compiler warnings
-	}
-#endif
 }
 
 #define Pm_Debug(...) Pm_Debug_(__func__, __VA_ARGS__)
+#else
+#define Pm_Debug(...)
+#endif
 
 /**
  * @brief Slide off of the impacted plane.
@@ -222,7 +221,7 @@ static _Bool Pm_SlideMove(void) {
 				Pm_ClipVelocity(vel, planes[j], vel, PM_CLIP_BOUNCE);
 
 				// see if it goes back into the first clip plane
-				if (DotProduct(vel, planes[i] ) >= 0.0) {
+				if (DotProduct(vel, planes[i]) >= 0.0) {
 					continue;
 				}
 
@@ -235,11 +234,13 @@ static _Bool Pm_SlideMove(void) {
 
 				// see if there is a third plane the the new move enters
 				for (int32_t k = 0; k < num_planes; k++) {
+
 					if (k == i || k == j) {
 						continue;
 					}
-					if ( DotProduct( vel, planes[k] ) >= 0.1) {
-						continue;		// move doesn't interact with the plane
+
+					if (DotProduct(vel, planes[k]) >= 0.0) {
+						continue;
 					}
 
 					// stop dead at a triple plane interaction
@@ -252,6 +253,11 @@ static _Bool Pm_SlideMove(void) {
 			VectorCopy(vel, pm->s.velocity);
 			break;
 		}
+	}
+
+	// if we were deflected backwards, clear the velocity
+	if (DotProduct(vel0, pm->s.velocity) <= 0.0) {
+		VectorClear(pm->s.velocity);
 	}
 
 	return num_planes == 0;
@@ -583,9 +589,9 @@ static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
 		for (int32_t j = -1; j <= 1; j++) {
 			for (int32_t k = -1; k <= 1; k++) {
 				VectorCopy(pm->s.origin, pos);
-				pos[0] += i;
-				pos[1] += j;
-				pos[2] += k;
+				pos[0] += i * PM_NUDGE_DIST;
+				pos[1] += j * PM_NUDGE_DIST;
+				pos[2] += k * PM_NUDGE_DIST;
 				cm_trace_t tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
 				if (!tr.all_solid ) {
 					VectorCopy(pos, pm->s.origin);

@@ -117,6 +117,11 @@
 #define PM_STOP_EPSILON			0.1
 
 /**
+ * @brief Invalid player positions are nudged to find a valid position.
+ */
+#define PM_NUDGE_DIST			0.1
+
+/**
  * @brief Player bounding box scaling. VectorScale(PM_MINS, PM_SCALE, mins)..
  */
 #define PM_SCALE 1.0

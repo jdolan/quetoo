@@ -28,7 +28,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1006
+#define PROTOCOL_MINOR 1007
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
