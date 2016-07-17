@@ -629,7 +629,7 @@ void Cl_Frame(const uint32_t msec) {
 		Cl_HandleEvents();
 
 		// and add it to the current command
-		Cl_UpdateCmd();
+		packet_frame |= Cl_UpdateCmd();
 
 		// predict all unacknowledged movements
 		Cl_PredictMovement();

@@ -24,22 +24,25 @@
 /**
  * @brief Accumulates all movement for the current packet frame in a command. This
  * may be called multiple times per packet frame.
+ *
+ * @return True if the command should be dispatched immediately, false if it's safe
+ * safe to defer.
  */
-void Cl_UpdateCmd(void) {
+_Bool Cl_UpdateCmd(void) {
 	static uint32_t last_move;
-	pm_cmd_t c;
 
 	if (cls.state != CL_ACTIVE)
-		return;
+		return false;
 
+	pm_cmd_t c;
 	memset(&c, 0, sizeof(c));
 
 	// determine the interval for just this move
-	c.msec = Clamp((quetoo.time - last_move) * time_scale->value, 1, 255);
+	c.msec = Clamp((cl.systime - last_move) * time_scale->value, 1, 255);
 
 	// get movement from input devices
 	Cl_Move(&c);
-	last_move = quetoo.time;
+	last_move = cl.systime;
 
 	// now update the pending command
 	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
@@ -56,7 +59,10 @@ void Cl_UpdateCmd(void) {
 
 	// store timestamp for netgraph and prediction calculations
 	cmd->time = cl.time;
-	cmd->timestamp = quetoo.time;
+	cmd->timestamp = cl.systime;
+	
+	// if the client wishes to fire or jump, send the command immediately
+	return c.buttons & BUTTON_ATTACK || c.up;
 }
 
 /**
@@ -76,6 +82,7 @@ static void Cl_FinalizeCmd(void) {
 	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
 	cmd->cmd.msec = Clamp(cls.packet_delta, 1, 255);
+	
 	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->cmd.msec, cmd->cmd.forward, cmd->cmd.right, cmd->cmd.up);
 }
 

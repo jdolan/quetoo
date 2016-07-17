@@ -25,7 +25,7 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
-void Cl_UpdateCmd(void);
+_Bool Cl_UpdateCmd(void);
 void Cl_SendCmd(void);
 #endif /* __CL_LOCAL_H__ */
 
