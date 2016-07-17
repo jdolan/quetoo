@@ -45,7 +45,7 @@ void S_FreeChannel(int32_t c) {
 	memset(&s_env.channels[c], 0, sizeof(s_env.channels[0]));
 }
 
-#define SOUND_MAX_DISTANCE 2048.0
+#define SOUND_MAX_DISTANCE 1536.0
 
 /**
  * @brief Set distance and stereo panning for the specified channel.
@@ -54,30 +54,22 @@ _Bool S_SpatializeChannel(s_channel_t *ch) {
 	vec3_t delta;
 
 	if (ch->ent_num != -1) { // update the channel origin
-		const entity_state_t *ent = &cl.entities[ch->ent_num].current;
+		const cl_entity_t *ent = &cl.entities[ch->ent_num];
 		VectorCopy(ent->origin, ch->org);
 	}
 
 	VectorSubtract(ch->org, r_view.origin, delta);
-	vec_t dist = VectorNormalize(delta) * ch->atten;
+	const vec_t dist = VectorNormalize(delta) * ch->atten;
+	const vec_t frac = dist / SOUND_MAX_DISTANCE;
 
-	if (dist < SOUND_MAX_DISTANCE) { // check if there's a clear line of sight to the origin
-		cm_trace_t tr = Cl_Trace(r_view.origin, ch->org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
-		if (tr.fraction < 1.0) {
-			dist *= 1.25;
-		}
-	}
-
-	dist = (dist * 255.0) / SOUND_MAX_DISTANCE;
-
-	ch->dist = (uint8_t) Clamp(dist, 0.0, 255.0);
+	ch->dist = (uint8_t) (Clamp(frac * 255.0, 0.0, 255.0));
 
 	const vec_t dot = DotProduct(r_view.right, delta);
 	const vec_t angle = acos(dot) * 180.0 / M_PI - 90.0;
 
 	ch->angle = (int16_t) (360.0 - angle) % 360;
 
-	return ch->dist < 255;
+	return frac < 1.0;
 }
 
 /**
@@ -119,6 +111,8 @@ void S_PlaySample(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_
 	}
 }
 
+#define SOUND_LOOP_GROUP_DISTANCE 128.0
+
 /**
  * @brief
  */
@@ -134,16 +128,16 @@ void S_LoopSample(const vec3_t org, s_sample_t *sample) {
 
 	for (i = 0; i < MAX_CHANNELS; i++) { // find existing loop sound
 
-		if (s_env.channels[i].ent_num != -1)
-			continue;
+		if (s_env.channels[i].ent_num == -1) {
 
-		if (s_env.channels[i].sample == sample) {
+			if (s_env.channels[i].sample == sample) {
 
-			VectorSubtract(s_env.channels[i].org, org, delta);
+				VectorSubtract(s_env.channels[i].org, org, delta);
 
-			if (VectorLength(delta) < 512.0) {
-				ch = &s_env.channels[i];
-				break;
+				if (VectorLength(delta) < SOUND_LOOP_GROUP_DISTANCE) {
+					ch = &s_env.channels[i];
+					break;
+				}
 			}
 		}
 	}
