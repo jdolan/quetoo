@@ -577,7 +577,7 @@ static _Bool Pm_CheckTrickJump(void) {
 static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
 	vec3_t pos;
 
-	Pm_Debug("all solid %s", vtos(pm->s.origin));
+	Pm_Debug("all solid %s\n", vtos(pm->s.origin));
 
 	for (int32_t i = -1; i <= 1; i++) {
 		for (int32_t j = -1; j <= 1; j++) {
