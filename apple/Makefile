@@ -36,7 +36,7 @@ install: compile pre-install
 	ln -f -s Contents/MacOS $(QUETOO)/bin
 	ln -f -s Contents/MacOS/lib $(QUETOO)/lib
 	ln -f -s Contents/Resources $(QUETOO)/share
-	make -C .. DESTDIR="$(realpath $(QUETOO))" install
+	make -C .. DESTDIR=$(realpath $(QUETOO)) install
 	rm -f $(QUETOO)/bin $(QUETOO)/lib $(QUETOO)/share
 
 install-lib: install

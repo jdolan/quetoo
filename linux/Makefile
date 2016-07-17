@@ -36,7 +36,7 @@ pre-install:
 	find $(INSTALL) -name .turd -delete
 
 install: compile pre-install
-	make -C .. DESTDIR="$(realpath $(INSTALL))" install
+	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 
 install-lib: install
 	./sobundler.sh -d $(LIBDIR) \
