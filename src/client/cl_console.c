@@ -57,8 +57,10 @@ static void Cl_DrawConsole_Buffer(void) {
 
 	r_pixel_t y = (cl_console.height - count) * ch;
 
+	int32_t color = CON_COLOR_DEFAULT;
 	for (size_t i = 0; i < count; i++) {
-		R_DrawString(0, y, lines[i], CON_COLOR_DEFAULT);
+		R_DrawString(0, y, lines[i], color);
+		color = StrrColor(lines[i]);
 		g_free(lines[i]);
 		y += ch;
 	}
@@ -133,8 +135,10 @@ void Cl_DrawNotify(void) {
 
 	r_pixel_t y = 0;
 
+	int32_t color = CON_COLOR_DEFAULT;
 	for (size_t i = 0; i < count; i++) {
-		R_DrawString(0, y, lines[i], CON_COLOR_DEFAULT);
+		R_DrawString(0, y, lines[i], color);
+		color = StrrColor(lines[i]);
 		g_free(lines[i]);
 		y += ch;
 	}
@@ -164,8 +168,10 @@ void Cl_DrawChat(void) {
 		char *lines[cl_chat_console.height];
 		const size_t count = Con_Tail(&cl_chat_console, lines, cl_chat_console.height);
 
+		int32_t color = CON_COLOR_DEFAULT;
 		for (size_t i = 0; i < count; i++) {
-			R_DrawString(0, y, lines[i], CON_COLOR_DEFAULT);
+			R_DrawString(0, y, lines[i], color);
+			color = StrrColor(lines[i]);
 			g_free(lines[i]);
 			y += ch;
 		}

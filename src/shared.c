@@ -766,6 +766,44 @@ int32_t StrColorCmp(const char *s1, const char *s2) {
 }
 
 /**
+ * @return The first color sequence in s.
+ */
+int32_t StrColor(const char *s) {
+	
+	const char *c = s;
+	while (*c) {
+		if (IS_COLOR(c)) {
+			return *(c + 1) - '0';
+		} else if (IS_LEGACY_COLOR(c)) {
+			return CON_COLOR_ALT;
+		}
+		c++;
+	}
+	
+	return CON_COLOR_DEFAULT;
+}
+
+/**
+ * @return The last occurrence of a color escape sequence in s.
+ */
+int32_t StrrColor(const char *s) {
+	
+	if (strlen(s)) {
+		const char *c = s + strlen(s) - 1;
+		while (c > s) {
+			if (IS_COLOR(c)) {
+				return *(c + 1) - '0';
+			} else if (IS_LEGACY_COLOR(c)) {
+				return CON_COLOR_ALT;
+			}
+			c--;
+		}
+	}
+	
+	return CON_COLOR_DEFAULT;
+}
+
+/**
  * @brief A shorthand g_snprintf into a statically allocated buffer. Several
  * buffers are maintained internally so that nested va()'s are safe within
  * reasonable limits. This function is not thread safe.

@@ -180,16 +180,17 @@ static void Sv_DrawConsole_Background(void) {
  */
 static void Sv_DrawConsole_Buffer(void) {
 
-	Sv_DrawConsole_Color(CON_COLOR_DEFAULT);
-
 	char *lines[sv_console.height];
 	const size_t count = Con_Tail(&sv_console, lines, sv_console.height);
 
 	size_t row = sv_console.height;
 
 	for (size_t i = 0; i < count; i++) {
-		char *line = lines[count - i - 1];
+		const int32_t j = count - i - 1;
+		char *line = lines[j];
 		char *s = line;
+		
+		Sv_DrawConsole_Color(j ? StrrColor(lines[j - 1]) : CON_COLOR_DEFAULT);
 
 		size_t col = 1;
 		while (*s) {
