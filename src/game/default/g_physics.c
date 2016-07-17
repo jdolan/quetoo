@@ -560,23 +560,28 @@ static void G_Physics_Push(g_entity_t *ent) {
 }
 
 #define MAX_CLIP_PLANES 4
-static g_entity_t *g_touch_ents[MAX_CLIP_PLANES];
-static int32_t g_num_touch_ents;
+
+typedef struct {
+	g_entity_t *entities[MAX_CLIP_PLANES];
+	int32_t num_entities;
+} g_touch_t;
+
+static g_touch_t g_touch;
 
 /**
  * @brief Runs the `Touch` functions of each object.
  */
-static void G_Physics_Fly_Impact(g_entity_t *ent, const cm_trace_t *trace, const vec_t bounce) {
+static void G_TouchEntity(g_entity_t *ent, const cm_trace_t *trace) {
 	
 	// ensure that we only impact an entity once per frame
 
-	for (int32_t i = 0; i < g_num_touch_ents; i++) {
-		if (g_touch_ents[i] == trace->ent) {
+	for (int32_t i = 0; i < g_touch.num_entities; i++) {
+		if (g_touch.entities[i] == trace->ent) {
 			return;
 		}
 	}
 	
-	g_touch_ents[g_num_touch_ents++] = trace->ent;
+	g_touch.entities[g_touch.num_entities++] = trace->ent;
 	
 	// run the interaction
 	
@@ -585,28 +590,23 @@ static void G_Physics_Fly_Impact(g_entity_t *ent, const cm_trace_t *trace, const
 		ent->locals.Touch(ent, trace->ent, &trace->plane, trace->surface);
 	}
 
-	if (!ent->in_use || !trace->ent->in_use)
-		return;
-
-	if (trace->ent->locals.Touch) {
-		gi.Debug("%s touching %s\n", etos(trace->ent), etos(ent));
-		trace->ent->locals.Touch(trace->ent, ent, NULL, NULL);
+	if (ent->in_use && trace->ent->in_use) {
+		
+		if (trace->ent->locals.Touch) {
+			gi.Debug("%s touching %s\n", etos(trace->ent), etos(ent));
+			trace->ent->locals.Touch(trace->ent, ent, NULL, NULL);
+		}
 	}
-
-	if (!ent->in_use || !trace->ent->in_use)
-		return;
-	
-	// both entities remain, so clip them to each other
-
-	G_ClipVelocity(ent->locals.velocity, trace->plane.normal, ent->locals.velocity, bounce);
 }
 
-
 /**
- * @see Pm_StepSlideMove
+ * @see Pm_SlideMove
  */
-static void G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
+static _Bool G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
+	vec3_t planes[MAX_CLIP_PLANES];
 	vec3_t origin, angles;
+	
+	memset(&g_touch, 0, sizeof(g_touch));
 
 	VectorCopy(ent->s.origin, origin);
 	VectorCopy(ent->s.angles, angles);
@@ -614,8 +614,8 @@ static void G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 	const int32_t mask = ent->locals.clip_mask ?: MASK_SOLID;
 
 	vec_t time_remaining = gi.frame_seconds;
+	int32_t num_planes = 0;
 
-	g_num_touch_ents = 0;
 	for (int32_t i = 0; i < MAX_CLIP_PLANES; i++) {
 		vec3_t pos;
 
@@ -624,7 +624,7 @@ static void G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 
 		VectorMA(ent->s.origin, time_remaining, ent->locals.velocity, pos);
 
-		cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, mask);
+		const cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, mask);
 
 		const vec_t time = trace.fraction * time_remaining;
 
@@ -635,10 +635,78 @@ static void G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 
 		if (trace.ent && trace.ent->solid > SOLID_TRIGGER) {
 
-			G_Physics_Fly_Impact(ent, &trace, bounce);
+			G_TouchEntity(ent, &trace);
 
 			if (!ent->in_use) {
-				return;
+				return true;
+			}
+			
+			if (!trace.ent->in_use) {
+				continue;
+			}
+			
+			// if both entities remain, clip this entity to the trace entity
+			
+			VectorCopy(trace.plane.normal, planes[num_planes]);
+			num_planes++;
+			
+			for (int32_t i = 0; i < num_planes; i++) {
+				vec3_t vel;
+
+				if (DotProduct(ent->locals.velocity, planes[i]) >= 0.0) {
+					continue;
+				}
+				
+				// slide along the plane
+				G_ClipVelocity(ent->locals.velocity, planes[i], vel, bounce);
+				
+				// see if there is a second plane that the new move enters
+				for (int32_t j = 0; j < num_planes; j++) {
+					vec3_t cross;
+					
+					if (j == i) {
+						continue;
+					}
+					
+					if (DotProduct(vel, planes[j]) >= 0.0) {
+						continue;
+					}
+					
+					// try clipping the move to the plane
+					G_ClipVelocity(vel, planes[j], vel, PM_CLIP_BOUNCE);
+					
+					// see if it goes back into the first clip plane
+					if (DotProduct(vel, planes[i]) >= 0.0) {
+						continue;
+					}
+					
+					// slide the original velocity along the crease
+					CrossProduct(planes[i], planes[j], cross);
+					VectorNormalize(cross);
+					
+					const vec_t scale = DotProduct(cross, ent->locals.velocity);
+					VectorScale(cross, scale, vel);
+					
+					// see if there is a third plane the the new move enters
+					for (int32_t k = 0; k < num_planes; k++) {
+						
+						if (k == i || k == j) {
+							continue;
+						}
+						
+						if (DotProduct(vel, planes[k]) >= 0.0) {
+							continue;
+						}
+						
+						// stop dead at a triple plane interaction
+						VectorClear(ent->locals.velocity);
+						return true;
+					}
+				}
+				
+				// if we have fixed all interactions, try another move
+				VectorCopy(vel, ent->locals.velocity);
+				break;
 			}
 		}
 	}
@@ -654,6 +722,8 @@ static void G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 	}
 	
 	gi.LinkEntity(ent);
+	
+	return num_planes == 0;
 }
 
 /**
