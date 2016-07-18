@@ -255,6 +255,12 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 				j = i;
 			}
 
+			if (p->type == PARTICLE_ROLL) {
+				glDepthRange(0.0, 0.999);
+			} else {
+				glDepthRange(0.0, 1.0);
+			}
+
 			R_BindTexture(p->image->texnum);
 			R_BlendFunc(GL_SRC_ALPHA, p->blend);
 		}
@@ -263,6 +269,9 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	if (i > j) { // draw any remaining particles
 		glDrawArrays(GL_QUADS, (base + j) * 4, (i - j) * 4);
 	}
+
+	// restore depth range
+	glDepthRange(0.0, 1.0);
 
 	// restore array pointers
 	R_BindDefaultArray(GL_VERTEX_ARRAY);
