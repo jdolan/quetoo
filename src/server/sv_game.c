@@ -235,7 +235,7 @@ void Sv_InitGame(void) {
 	import.frame_millis = 1000 / svs.frame_rate;
 	import.frame_seconds = 1.0 / svs.frame_rate;
 
-	g_strlcpy(import.write_dir, Fs_WriteDir(), MAX_QPATH);  
+	g_strlcpy(import.write_dir, Fs_WriteDir(), MAX_OS_PATH);  
 
 	import.Print = Com_Print;
 	import.Debug_ = Com_Debug_;

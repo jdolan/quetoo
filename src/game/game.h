@@ -173,7 +173,7 @@ typedef struct {
 	/*
  	 * @brief The game's write directory
  	 */
-	char write_dir[MAX_QPATH];
+	char write_dir[MAX_OS_PATH];
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 	void (*Debug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
