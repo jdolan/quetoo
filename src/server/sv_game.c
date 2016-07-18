@@ -247,6 +247,7 @@ void Sv_InitGame(void) {
 
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;
+	import.WritePath = Fs_WriteDir;
 
 	import.Cvar = Cvar_Get;
 	import.Cmd = Cmd_Add;

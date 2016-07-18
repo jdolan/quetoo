@@ -189,6 +189,7 @@ typedef struct {
 	 */
 	int64_t (*LoadFile)(const char *file_name, void **buffer);
 	void (*FreeFile)(void *buffer);
+	const char *(*WritePath)(void);
 
 	/*
 	 * @brief Console variable and console command management.
