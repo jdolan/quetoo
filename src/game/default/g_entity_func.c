@@ -555,7 +555,10 @@ void G_func_plat(g_entity_t *ent) {
 	VectorCopy(ent->s.angles, ent->locals.move_info.end_angles);
 
 	ent->locals.move_info.sound_start = gi.SoundIndex("world/plat_start");
-	ent->locals.move_info.sound_middle = gi.SoundIndex("world/plat_mid");
+
+	// Github issue #133: This sound does not loop correctly. Disabling for now
+	// ent->locals.move_info.sound_middle = gi.SoundIndex("world/plat_mid");
+
 	ent->locals.move_info.sound_end = gi.SoundIndex("world/plat_end");
 }
 
