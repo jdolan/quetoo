@@ -28,7 +28,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1007
+#define PROTOCOL_MINOR 1008
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -182,6 +182,7 @@ typedef enum {
 	EV_CLIENT_GURP,
 	EV_CLIENT_JUMP,
 	EV_CLIENT_LAND,
+	EV_CLIENT_SIZZLE,
 	EV_ITEM_RESPAWN,
 	EV_ITEM_PICKUP,
 } g_entity_event_t;

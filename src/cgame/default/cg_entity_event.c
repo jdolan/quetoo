@@ -212,6 +212,9 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 		cgi.PlaySample(NULL, s->number, cgi.LoadSample(va("*jump_%d", Random() % 5 + 1)),
 				ATTEN_NORM);
 		break;
+	case EV_CLIENT_SIZZLE:
+		cgi.PlaySample(NULL, s->number, cgi.LoadSample("*sizzle_1"), ATTEN_NORM);
+		break;
 	case EV_CLIENT_TELEPORT:
 		cgi.PlaySample(NULL, s->number, cg_sample_teleport, ATTEN_IDLE);
 		Cg_TeleporterEffect(s->origin);

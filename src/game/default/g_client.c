@@ -1220,7 +1220,8 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				else
 					G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
-				if (pm.water_level < 3) {
+				// landing events take priority over jump events
+				if (pm.water_level < 3 && ent->s.event != EV_CLIENT_LAND) {
 					ent->s.event = EV_CLIENT_JUMP;
 				}
 

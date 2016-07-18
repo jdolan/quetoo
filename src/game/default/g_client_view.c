@@ -105,8 +105,8 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 				// take more damage the longer under water
 				ent->locals.damage += 2;
 
-				if (ent->locals.damage > 15)
-					ent->locals.damage = 15;
+				if (ent->locals.damage > 12)
+					ent->locals.damage = 12;
 
 				// play a gurp sound instead of a normal pain sound
 				if (ent->locals.health <= ent->locals.damage)
@@ -125,17 +125,25 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 
 	// check for sizzle damage
 	if (water_level && (ent->locals.water_type & (CONTENTS_LAVA | CONTENTS_SLIME))) {
-		if (client->locals.sizzle_time <= g_level.time && ent->locals.health > 0) {
+		if (client->locals.sizzle_time <= g_level.time) {
+			client->locals.sizzle_time = g_level.time + 1000;
 
-			client->locals.sizzle_time = g_level.time + 200;
+			if (ent->locals.dead == false && ent->locals.water_type & CONTENTS_LAVA) {
+
+				// play a sizzle sound instead of a normal pain sound
+				ent->s.event = EV_CLIENT_SIZZLE;
+
+				// suppress normal pain sound
+				client->locals.pain_time = g_level.time;
+			}
 
 			if (ent->locals.water_type & CONTENTS_LAVA) {
-				G_Damage(ent, NULL, NULL, NULL, NULL, NULL, 2 * water_level, 0, DMG_NO_ARMOR,
+				G_Damage(ent, NULL, NULL, NULL, NULL, NULL, 12 * water_level, 0, DMG_NO_ARMOR,
 						MOD_LAVA);
 			}
 
 			if (ent->locals.water_type & CONTENTS_SLIME) {
-				G_Damage(ent, NULL, NULL, NULL, NULL, NULL, 1 * water_level, 0, DMG_NO_ARMOR,
+				G_Damage(ent, NULL, NULL, NULL, NULL, NULL, 6 * water_level, 0, DMG_NO_ARMOR,
 						MOD_SLIME);
 			}
 		}
