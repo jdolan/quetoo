@@ -12,7 +12,7 @@
 
 ## Features
 
- * Deathmatch, Capture, Instagib, and Rocket Arena gameplay modes
+ * Deathmatch, Capture, Instagib, Duel and Rocket Arena gameplay modes
  * Teams Play and Match Mode support
  * High quality remakes of id Software's legendary _Quake II_ deathmatch levels, as well as originals
  * Original sounds and game music by <a href="http://rolandshaw.wordpress.com/">Roland Shaw</a>
@@ -24,7 +24,7 @@ Preview releases of _Quetoo_ for all platforms are available for download on the
 
 ## Compiling
 
-Compilation of _Quetoo_ is only recommended for users running GNU/Linux or MacOS X. Windows users should consider using our cross-compiled snapshots. For more information, see [Installation and Maintenance](http://quetoo.org/books/documentation/installation-and-maintenance).
+Compilation of _Quetoo_ is only recommended for users running GNU/Linux or Mac OS X. Windows users should consider using our cross-compiled snapshots. For more information, see [Installation and Maintenance](http://quetoo.org/books/documentation/installation-and-maintenance).
 
 Quetoo builds with GNU Autotools. To build it, run the following:
 
