@@ -22,18 +22,121 @@
 #include "ui_local.h"
 
 /**
+ * @brief A NULL-terminated array of TwEnumVal for available display modes.
+ */
+static TwEnumVal *Ui_DisplayModes(void) {
+
+	const int32_t display = SDL_GetWindowDisplayIndex(r_context.window);
+
+	GList *list = NULL;
+
+	for (int32_t i = 0; i < SDL_GetNumDisplayModes(display); i++) {
+		SDL_DisplayMode *mode = g_new(SDL_DisplayMode, 1);
+		SDL_GetDisplayMode(display, i, mode);
+
+		if (SDL_BITSPERPIXEL(mode->format) < 32) {
+			break;
+		}
+
+		list = g_list_append(list, mode);
+	}
+
+	const size_t count = g_list_length(list);
+
+	TwEnumVal *modes = Mem_TagMalloc((count + 2) * sizeof(TwEnumVal), MEM_TAG_UI);
+
+	for (size_t i = 0; i < count; i++) {
+		SDL_DisplayMode *mode = g_list_nth_data(list, i);
+		char *label = Mem_CopyString(va("%dx%d", mode->w, mode->h));
+
+		modes[i].Label = Mem_Link(label, modes);
+		modes[i].Value = i;
+	}
+
+	modes[count].Label = "Custom";
+	modes[count].Value = -1;
+
+	g_list_free_full(list, g_free);
+
+	return modes;
+}
+
+/**
+ * @brief TwSetVarCallback for display mode.
+ */
+static void TW_CALL Ui_System_SetDisplayMode(const void *value, void *data __attribute__((unused))) {
+
+	const int32_t index = *(int32_t *) value;
+	if (index > -1) {
+		const int32_t display = SDL_GetWindowDisplayIndex(r_context.window);
+
+		SDL_DisplayMode mode;
+		if (SDL_GetDisplayMode(display, index, &mode) == 0) {
+			if (r_fullscreen->value) {
+				Cvar_SetValue(r_width->name, mode.w);
+				Cvar_SetValue(r_height->name, mode.h);
+			} else {
+				Cvar_SetValue(r_windowed_width->name, mode.w);
+				Cvar_SetValue(r_windowed_height->name, mode.h);
+			}
+		} else {
+			Com_Warn("Failed to get video mode: %s\n", SDL_GetError());
+		}
+	}
+}
+
+/**
+ * @brief TwGetVarCallback for display mode.
+ */
+static void TW_CALL Ui_System_GetDisplayMode(void *value, void *data __attribute__((unused))) {
+
+	const int32_t display = SDL_GetWindowDisplayIndex(r_context.window);
+
+	int32_t index = -1;
+
+	for (int32_t i = 0; i < SDL_GetNumDisplayModes(display); i++) {
+		SDL_DisplayMode mode;
+		SDL_GetDisplayMode(display, i, &mode);
+
+		if (SDL_BITSPERPIXEL(mode.format) < 32) {
+			break;
+		}
+
+		if (r_fullscreen->value) {
+			if (mode.w == r_width->integer && mode.h == r_height->integer) {
+				index = i;
+				break;
+			}
+		} else {
+			if (mode.w == r_windowed_width->integer && mode.h == r_windowed_height->integer) {
+				index = i;
+				break;
+			}
+		}
+	}
+
+	*(int32_t *) value = index;
+}
+
+/**
  * @brief
  */
 TwBar *Ui_System(void) {
 
+	const TwEnumVal *DisplayModesEnum = Ui_DisplayModes();
+	TwType DisplayModes = TwDefineEnum("Display Modes", DisplayModesEnum, Ui_EnumLength(DisplayModesEnum));
+
+	const TwEnumVal RateEnum[] = {
+		{ 16384, "DSL" },
+		{ 131072, "Cable" },
+		{ 0, "LAN" },
+	};
+
+	TwType Rate = TwDefineEnum("Rate", RateEnum, lengthof(RateEnum));
+
 	TwBar *bar = TwNewBar("System");
 
-	Ui_CvarInteger(bar, "Width", r_width, "min=1024 max=4096 step=128 group=Video");
-	Ui_CvarInteger(bar, "Height", r_height, "min=768 max=4096 step=128 group=Video");
-	Ui_CvarInteger(bar, "Windowed width", r_windowed_width,
-			"min=1024 max=4096 step=128 group=Video");
-	Ui_CvarInteger(bar, "Windowed height", r_windowed_height,
-			"min=768 max=4096 step=128 group=Video");
+	TwAddVarCB(bar, "Mode", DisplayModes, Ui_System_SetDisplayMode, Ui_System_GetDisplayMode, NULL, "group=Video");
 	Ui_CvarEnum(bar, "Fullscreen", r_fullscreen, ui.OffOrOn, "group=Video");
 
 	TwAddSeparator(bar, NULL, "group=Video");
@@ -48,27 +151,15 @@ TwBar *Ui_System(void) {
 	Ui_CvarEnum(bar, "Shaders", r_programs, ui.OffOrOn, "group=Video");
 	Ui_CvarEnum(bar, "Shadows", r_shadows, ui.OffLowMediumHigh, "group=Video");
 	Ui_CvarEnum(bar, "Anisotropy", r_anisotropy, ui.OffOrOn, "group=Video");
-	Ui_CvarEnum(bar, "Anti-aliasing", r_multisample, ui.OffLowMediumHigh, "group=Video");
+	Ui_CvarEnum(bar, "Multisampling", r_multisample, ui.OffLowMediumHigh, "group=Video");
 
 	TwAddSeparator(bar, NULL, "group=Video");
 
 	Ui_CvarEnum(bar, "Vertical sync", r_swap_interval, ui.OffOrOn, "group=Video");
 	Ui_CvarInteger(bar, "Framerate", cl_max_fps, "min=0 max=250 step=5 group=Video");
 
-	Ui_CvarDecimal(bar, "Volume", s_volume, "min=0.0 max=1.0 step=0.1 group=Audio");
-	Ui_CvarDecimal(bar, "Music volume", s_music_volume, "min=0.0 max=1.0 step=0.1 group=Audio");
-
-	TwAddSeparator(bar, NULL, "group=Network");
-
-	static TwType Rate;
-	if (!Rate) {
-		const TwEnumVal RateEnum[] = {
-			{ 16384, "DSL" },
-			{ 131072, "Cable" },
-			{ 0, "LAN" },
-		};
-		Rate = TwDefineEnum("Rate", RateEnum, lengthof(RateEnum));
-	}
+	Ui_CvarDecimal(bar, "Volume", s_volume, "min=0.0 max=1.0 step=0.05 group=Audio");
+	Ui_CvarDecimal(bar, "Music volume", s_music_volume, "min=0.0 max=1.0 step=0.05 group=Audio");
 
 	Ui_CvarEnum(bar, "Connection", rate, Rate, "group=Network");
 
@@ -76,7 +167,7 @@ TwBar *Ui_System(void) {
 
 	TwAddButton(bar, "Apply", Ui_Command, "r_restart; s_restart;", NULL);
 
-	TwDefine("System size='400 460' alpha=200 iconifiable=false valueswidth=100 visible=false");
+	TwDefine("System size='400 400' alpha=200 iconifiable=false valueswidth=100 visible=false");
 
 	return bar;
 }
