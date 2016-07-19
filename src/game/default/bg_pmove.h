@@ -47,7 +47,7 @@
 /**
  * @brief Friction constants.
  */
-#define PM_FRICT_AIR			0.375
+#define PM_FRICT_AIR			0.125
 #define PM_FRICT_GROUND			6.0
 #define PM_FRICT_GROUND_SLICK	2.0
 #define PM_FRICT_LADDER			5.0
