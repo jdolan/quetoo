@@ -1,4 +1,6 @@
 [![Build Status](http://ci.quetoo.org/buildStatus/icon?job=Quetoo-Linux-x86_64)](http://ci.quetoo.org/job/Quetoo-Linux-x86_64/)
+![GPLv2 License](https://img.shields.io/badge/license-GPL%20v2-brightgreen.svg)
+![This software is BETA](https://img.shields.io/badge/development_stage-BETA-yellowgreen.svg)
 
 # Quetoo BETA
 
