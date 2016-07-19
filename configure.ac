@@ -23,8 +23,8 @@ dnl ---------------
 dnl Check for tools
 dnl ---------------
 
+AC_PROG_CC
 AC_PROG_CC_STDC
-AC_PROG_CXX
 AC_PROG_LIBTOOL
 
 dnl --------------------
@@ -38,8 +38,6 @@ dnl Check host type
 dnl ---------------
 
 HOST_NAME=""
-HOST_CPPFLAGS=""
-HOST_CXXFLAGS=""
 HOST_CFLAGS=""
 HOST_LDFLAGS=""
 HOST_LIBS=""
@@ -54,8 +52,6 @@ AC_MSG_CHECKING([host type])
 case "$host" in
 	*-apple-*)
 		HOST_NAME="APPLE"
-		HOST_CPPFLAGS="-I/opt/local/include"
-		HOST_CXXFLAGS="-I/opt/local/include"
 		HOST_CFLAGS="-I/opt/local/include"
 		HOST_LDFLAGS="-L/opt/local/lib -headerpad_max_install_names"
 		HOST_LIBS="-ldl"
@@ -90,20 +86,12 @@ case "$host" in
 esac
 
 AC_SUBST(HOST_NAME)
-AC_SUBST(HOST_CPPFLAGS)
-AC_SUBST(HOST_CXXFLAGS)
 AC_SUBST(HOST_CFLAGS)
 AC_SUBST(HOST_LIBS)
 AC_SUBST(HOST_DEBUG_CFLAGS)
 AC_SUBST(HOST_DEBUG_LIBS)
 AC_SUBST(HOST_PROFILE_CFLAGS)
 AC_SUBST(HOST_PROFILE_LIBS)
-
-CPPFLAGS="$CPPFLAGS $HOST_CPPFLAGS"
-AC_SUBST(CPPFLAGS)
-
-CXXFLAGS="-pipe $CXXFLAGS $HOST_CXXFLAGS"
-AC_SUBST(CXXFLAGS)
 
 CFLAGS="-pipe $CFLAGS $HOST_CFLAGS"
 AC_SUBST(CFLAGS)
@@ -153,6 +141,12 @@ dnl --------------------------------------
 
 PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image SDL2_mixer])
 
+dnl ------------------------
+dnl Check for ObjectivelyMVC
+dnl ------------------------
+
+PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC])
+
 dnl --------------
 dnl Check for JPEG
 dnl --------------
@@ -201,52 +195,14 @@ AC_SUBST(OPENGL_CFLAGS)
 OPENGL_LIBS="$OPENGL_LIBS $HOST_OPENGL_LIBS"
 AC_SUBST(OPENGL_LIBS)
 
-dnl ----------------------------------------
-dnl Sort out AntTweakBar flags and libraries
-dnl ----------------------------------------
-
-HOST_ANTTWEAKBAR_CXXFLAGS=""
-HOST_ANTTWEAKBAR_CFLAGS=""
-HOST_ANTTWEAKBAR_LIBS=""
-
-case "$host" in
-	*-apple-*)
-		HOST_ANTTWEAKBAR_CXXFLAGS="-D_MACOSX -I/usr/X11R6/include -x objective-c++"
-		HOST_ANTTWEAKBAR_CFLAGS="-D_MACOSX -I/usr/X11R6/include"
-		HOST_ANTTWEAKBAR_LIBS="-framework GLUT -framework AppKit"
-		;;
-	*-*-mingw*)
-		HOST_ANTTWEAKBAR_CXXFLAGS="-D_WINDOWS -DTW_STATIC -fpermissive"
-		HOST_ANTTWEAKBAR_CFLAGS="-D_WINDOWS -DTW_STATIC"
-		;;
-	*)
-		HOST_ANTTWEAKBAR_CXXFLAGS="-D_UNIX -I/usr/X11R6/include"
-		HOST_ANTTWEAKBAR_CFLAGS="-D_UNIX -I/usr/X11R6/include"
-		HOST_ANTTWEAKBAR_LIBS="-lX11 -lXext"
-		;;
-esac
-
-AC_SUBST(HOST_ANTTWEAKBAR_CXXFLAGS)
-AC_SUBST(HOST_ANTTWEAKBAR_CFLAGS)
-AC_SUBST(HOST_ANTTWEAKBAR_LIBS)
-
-ANTTWEAKBAR_CXXFLAGS="-fno-strict-aliasing $ANTTWEAKBAR_CXXFLAGS $HOST_ANTTWEAKBAR_CXXFLAGS"
-AC_SUBST(ANTTWEAKBAR_CXXFLAGS)
-
-ANTTWEAKBAR_CFLAGS="-fno-strict-aliasing $ANTTWEAKBAR_CFLAGS $HOST_ANTTWEAKBAR_CFLAGS"
-AC_SUBST(ANTTWEAKBAR_CFLAGS)
-
-ANTTWEAKBAR_LIBS="$ANTTWEAKBAR_LIBS $HOST_ANTTWEAKBAR_LIBS"
-AC_SUBST(ANTTWEAKBAR_LIBS)
-
-
 dnl -------------------------------
 dnl Check for execinfo.h (optional)
 dnl -------------------------------
 
 AC_CHECK_HEADER(execinfo.h,
 	AC_DEFINE(HAVE_EXECINFO, 1,
-	[Define to 1 if you have the <execinfo.h> header file.]),
+		[Define to 1 if you have the <execinfo.h> header file.]
+	),
 )
 
 dnl --------------------------
@@ -266,18 +222,19 @@ AC_PATH_PROGS(MYSQL_CONFIG, mysql_config mysql_config5)
 if test "x${with_mysql}" != xno -a "x${MYSQL_CONFIG}" != x; then
 	MYSQL_CFLAGS=`$MYSQL_CONFIG --cflags`
 
-	save_CPPFLAGS="$CPPFLAGS"
-	CPPFLAGS="$CPPFLAGS $MYSQL_CFLAGS"
+	save_CFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS $MYSQL_CFLAGS"
 
 	AC_CHECK_HEADER(mysql.h,
 		HAVE_MYSQL=yes
 		AC_DEFINE(HAVE_MYSQL, 1,
-				[Define to 1 if you have the mysql.h header file.])
+			[Define to 1 if you have the mysql.h header file.]
+		)
 		MYSQL_LIBS=`$MYSQL_CONFIG --libs`,
 		HAVE_MYSQL=no
 	)
 
-	CPPFLAGS="$save_CPPFLAGS"
+	CFLAGS="$save_CFLAGS"
 fi
 AC_SUBST(MYSQL_CFLAGS)
 AC_SUBST(MYSQL_LIBS)
@@ -452,14 +409,10 @@ dnl ----------------------------------------
 dnl Consolidate our core flags and libraries
 dnl ----------------------------------------
 
-BASE_CPPFLAGS=$(echo $CPPFLAGS)
-BASE_CXXFLAGS=$(echo $CXXFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS)
 BASE_CFLAGS=$(echo $CFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS)
 BASE_LIBS=$(echo $HOST_LIBS $DEBUG_LIBS $PROFILE_LIBS $WARN_LIBS)
 BASE_LDFLAGS=$(echo $LDFLAGS)
 
-AC_SUBST(BASE_CPPFLAGS)
-AC_SUBST(BASE_CXXFLAGS)
 AC_SUBST(BASE_CFLAGS)
 AC_SUBST(BASE_LIBS)
 AC_SUBST(BASE_LDFLAGS)
@@ -500,9 +453,6 @@ dnl -----------------------------------------------------------
 AC_CONFIG_FILES([
 	Makefile
 	deps/Makefile
-	deps/AntTweakBar/Makefile
-	deps/AntTweakBar/include/Makefile
-	deps/AntTweakBar/src/Makefile
 	deps/minizip/Makefile
 	src/Makefile
 	src/ai/Makefile
@@ -532,9 +482,7 @@ Quetoo $VERSION: Automatic configuration OK.
 
   Configuration summary:
     Platform: .......... $host
-    Compilers: ......... $CC, $CXX
-    Preprocessor flags.. $BASE_CPPFLAGS
-    C++ flags: ......... $BASE_CXXFLAGS
+    Compiler: .......... $CC
     C flags: ........... $BASE_CFLAGS
     Libraries: ......... $BASE_LIBS
     Linking: ........... $BASE_LDFLAGS
@@ -553,6 +501,6 @@ Quetoo $VERSION: Automatic configuration OK.
     Libraries: ......... $PKGLIBDIR
     Data: .............. $PKGDATADIR
 
-Type 'make' to build Quetoo.  Type 'make install' to install it.
+Type 'make' to build Quetoo. Type 'make install' to install it.
 Type 'make rsync-data' to install or update the game data.
 ])

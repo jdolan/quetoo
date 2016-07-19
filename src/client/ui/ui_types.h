@@ -22,8 +22,8 @@
 #ifndef __UI_TYPES_H__
 #define __UI_TYPES_H__
 
-#include <SDL2/SDL.h>
+#include <ObjectivelyMVC.h>
 
-#include "client/client.h"
+#include "../client.h"
 
 #endif /* __UI_TYPES_H__ */

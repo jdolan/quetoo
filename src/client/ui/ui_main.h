@@ -24,31 +24,12 @@
 
 #include "ui_types.h"
 
-void Ui_Draw(void);
 _Bool Ui_HandleEvent(const SDL_Event *event);
+void Ui_Draw(void);
 void Ui_Init(void);
 void Ui_Shutdown(void);
 
 #ifdef __UI_LOCAL_H__
-
-typedef struct ui_s {
-	TwType OffOrOn;
-	TwType OffLowMediumHigh;
-
-	TwBar *root;
-	TwBar *servers;
-	TwBar *create_server;
-	TwBar *controls;
-	TwBar *player;
-	TwBar *system;
-	TwBar *credits;
-	TwBar *editor;
-
-	TwBar *top;
-} ui_t;
-
-extern ui_t ui;
-
 #endif /* __UI_LOCAL_H__ */
 
 #endif /* __UI_MAIN_H__ */

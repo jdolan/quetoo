@@ -69,7 +69,7 @@ void Cl_FreeServers(void) {
  * @brief
  */
 void Cl_ParseServerInfo(void) {
-	extern void Ui_AddServer(void);
+//	extern void Ui_AddServer(void);
 	char info[MAX_MSG_SIZE];
 
 	cl_server_info_t *server = Cl_ServerForNetaddr(&net_from);
@@ -103,7 +103,7 @@ void Cl_ParseServerInfo(void) {
 
 	server->ping = Clamp(quetoo.time - server->ping_time, 1, 999);
 
-	Ui_AddServer();
+//	Ui_AddServer();
 }
 
 /**
