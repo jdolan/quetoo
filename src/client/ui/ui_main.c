@@ -166,9 +166,7 @@ void Ui_Init(void) {
 	TwInit(TW_OPENGL, NULL);
 
 	ui.OffOrOn = TwDefineEnum("OnOrOff", OffOrOn, lengthof(OffOrOn));
-
-	ui.OffLowMediumHigh = TwDefineEnum("OffLowMediumHigh", OffLowMediumHigh,
-			lengthof(OffLowMediumHigh));
+	ui.OffLowMediumHigh = TwDefineEnum("OffLowMediumHigh", OffLowMediumHigh, lengthof(OffLowMediumHigh));
 
 	ui.root = Ui_Root();
 	ui.servers = Ui_Servers();
