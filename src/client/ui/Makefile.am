@@ -1,5 +1,6 @@
 noinst_HEADERS = \
 	ui.h \
+	ui_create_server.h \
 	ui_credits.h \
 	ui_controls.h \
 	ui_data.h \
@@ -14,6 +15,7 @@ noinst_LTLIBRARIES = \
 	libui.la
 
 libui_la_SOURCES = \
+	ui_create_server.c \
 	ui_credits.c \
 	ui_controls.c \
 	ui_data.c \

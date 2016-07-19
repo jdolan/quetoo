@@ -26,6 +26,8 @@
 
 #ifdef __UI_LOCAL_H__
 
+size_t Ui_EnumLength(const TwEnumVal *values);
+
 void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var, const char *def);
 void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def);
 void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType type, const char *def);

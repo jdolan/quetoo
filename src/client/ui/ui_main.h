@@ -35,19 +35,9 @@ typedef struct ui_s {
 	TwType OffOrOn;
 	TwType OffLowMediumHigh;
 
-	/*
-	 root
-	  - Mulitplayer (server's list)
-	   - Create server
-	  - Options
-	   - Controls
-	   - Player
-	   - System
-	  - Credits
-	 */
-
 	TwBar *root;
 	TwBar *servers;
+	TwBar *create_server;
 	TwBar *controls;
 	TwBar *player;
 	TwBar *system;

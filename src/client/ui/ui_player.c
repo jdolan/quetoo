@@ -25,19 +25,23 @@
  * @brief Fs_Enumerate function for resolving available skins for a give model.
  */
 static void Ui_PlayerSkins_enumerateSkins(const char *path, void *data) {
+	char name[MAX_QPATH];
 
-	char *s = strstr(path, "players/");
-	if (s) {
-		char name[MAX_QPATH];
-		StripExtension(s + strlen("players/"), name);
+	StripExtension(Basename(path), name);
 
-		if (g_str_has_suffix(name, "_i")) {
+	if (g_str_has_suffix(name, "_i")) {
 
-			name[strlen(name) - strlen("_i")] = '\0';
+		name[strlen(name) - strlen("_i")] = '\0';
 
-			GList **list = (GList **) data;
-			*list = g_list_append(*list, g_strdup(name));
+		GList **list = (GList **) data;
+
+		for (GList *skin = *list; skin; skin = skin->next) {
+			if (g_strcmp0(skin->data, name) == 0) {
+				return;
+			}
 		}
+
+		*list = g_list_append(*list, g_strdup(name));
 	}
 }
 
@@ -88,12 +92,9 @@ static TwEnumVal *Ui_PlayerSkins(void) {
  */
 TwBar *Ui_Player(void) {
 
-	const TwEnumVal *Skins = Ui_PlayerSkins();
+	const TwEnumVal *skins = Ui_PlayerSkins();
 
-	size_t num_Skins = 0;
-	for (const TwEnumVal *skin = Skins; skin->Label; skin++, num_Skins++);
-
-	static const TwEnumVal Colors[] = {
+	static const TwEnumVal colors[] = {
 		{ 0, "Default" },
 		{ 1, "Red" },
 		{ 2, "Green" },
@@ -106,16 +107,16 @@ TwBar *Ui_Player(void) {
 		{ 9, NULL }
 	};
 
-	TwType skins = TwDefineEnum("Skins", Skins, num_Skins);
-	TwType colors = TwDefineEnum("Colors", Colors, lengthof(Colors) - 1);
+	TwType Skins = TwDefineEnum("Skins", skins, Ui_EnumLength(skins));
+	TwType Colors = TwDefineEnum("Colors", colors, Ui_EnumLength(colors));
 
-	TwBar *bar = TwNewBar("Player");
+	TwBar *bar = TwNewBar("Player Setup");
 
 	Ui_CvarText(bar, "Name", name, NULL);
-	Ui_CvarSelect(bar, "Skin", skin, skins, Skins, NULL);
-	Ui_CvarSelect(bar, "Effects color", color, colors, Colors, NULL);
+	Ui_CvarSelect(bar, "Skin", skin, Skins, skins, NULL);
+	Ui_CvarSelect(bar, "Effects color", color, Colors, colors, NULL);
 
-	TwDefine("Player size='350 110' alpha=200 iconifiable=false valueswidth=175 visible=false");
+	TwDefine("'Player Setup' size='350 110' alpha=200 iconifiable=false valueswidth=175 visible=false");
 
 	return bar;
 }

@@ -24,7 +24,7 @@
 
 #include "ui_types.h"
 
-void Ui_NewServer(void);
+void Ui_AddServer(void);
 
 #ifdef __UI_LOCAL_H__
 TwBar *Ui_Servers(void);

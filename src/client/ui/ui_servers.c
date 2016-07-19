@@ -43,7 +43,7 @@ static TW_CALL void Ui_Servers_Refresh(void *data __attribute__((unused))) {
 /**
  * @brief A new server status message has just been parsed. Rebuild the servers menu.
  */
-void Ui_NewServer(void) {
+void Ui_AddServer(void) {
 	TwBar *bar = ui.servers;
 	const GList *e = cls.servers;
 
@@ -87,12 +87,12 @@ void Ui_NewServer(void) {
  */
 TwBar *Ui_Servers(void) {
 
-	TwBar *bar = TwNewBar("Servers");
+	TwBar *bar = TwNewBar("Join Game");
 
 	TwAddSeparator(bar, NULL, NULL);
 	TwAddButton(bar, "Refresh", Ui_Servers_Refresh, bar, NULL);
 
-	TwDefine("Servers size='850 400' alpha=200 iconifiable=false visible=false");
+	TwDefine("'Join Game' size='850 400' alpha=200 iconifiable=false visible=false");
 
 	// force a refresh, so pings aren't 999 by default
 	Ui_Servers_Refresh(NULL);

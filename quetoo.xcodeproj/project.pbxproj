@@ -85,6 +85,8 @@
 		CE12D86F1C5C79B500CD0B13 /* libAntTweakBar.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D85A1C5C780600CD0B13 /* libAntTweakBar.dylib */; };
 		CE12D8C41C5CF86600CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
+		CE5BD5901D3DBCAD00C43B85 /* ui_create_server.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5BD58E1D3DBCAD00C43B85 /* ui_create_server.c */; };
+		CE5BD5911D3DBCAD00C43B85 /* ui_create_server.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD58F1D3DBCAD00C43B85 /* ui_create_server.h */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
 		CE8000011C5E4D4400A21A51 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CE8000021C5E4D4400A21A51 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
@@ -1202,6 +1204,8 @@
 		CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2-2.0.0.dylib"; path = "/opt/local/lib/libSDL2-2.0.0.dylib"; sourceTree = "<absolute>"; };
 		CE12D85A1C5C780600CD0B13 /* libAntTweakBar.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libAntTweakBar.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-dedicated"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE5BD58E1D3DBCAD00C43B85 /* ui_create_server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_create_server.c; sourceTree = "<group>"; };
+		CE5BD58F1D3DBCAD00C43B85 /* ui_create_server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_create_server.h; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8000071C5E52A200A21A51 /* libz.1.2.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.8.dylib; path = /opt/local/lib/libz.1.2.8.dylib; sourceTree = "<absolute>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2037,6 +2041,8 @@
 				CE12D6111C5C58C300CD0B13 /* ui.h */,
 				CE12D6121C5C58C300CD0B13 /* ui_controls.c */,
 				CE12D6131C5C58C300CD0B13 /* ui_controls.h */,
+				CE5BD58E1D3DBCAD00C43B85 /* ui_create_server.c */,
+				CE5BD58F1D3DBCAD00C43B85 /* ui_create_server.h */,
 				CE12D6141C5C58C300CD0B13 /* ui_credits.c */,
 				CE12D6151C5C58C300CD0B13 /* ui_credits.h */,
 				CE12D6161C5C58C300CD0B13 /* ui_data.c */,
@@ -2644,6 +2650,7 @@
 				CE80FF0B1C5E462100A21A51 /* r_bsp_surface.h in Headers */,
 				CE80FF0C1C5E462100A21A51 /* r_context.h in Headers */,
 				CE80FF0D1C5E462100A21A51 /* r_corona.h in Headers */,
+				CE5BD5911D3DBCAD00C43B85 /* ui_create_server.h in Headers */,
 				CE80FF0E1C5E462100A21A51 /* r_draw.h in Headers */,
 				CE80FF0F1C5E462100A21A51 /* r_element.h in Headers */,
 				CE80FF101C5E462100A21A51 /* r_entity.h in Headers */,
@@ -3319,6 +3326,7 @@
 				CE80FF051C5E460B00A21A51 /* r_sky.c in Sources */,
 				CE80FF061C5E460B00A21A51 /* r_state.c in Sources */,
 				CE80FF4B1C5E475600A21A51 /* s_main.c in Sources */,
+				CE5BD5901D3DBCAD00C43B85 /* ui_create_server.c in Sources */,
 				CE80FF4C1C5E475600A21A51 /* s_media.c in Sources */,
 				CE80FF4D1C5E475600A21A51 /* s_mix.c in Sources */,
 				CE80FF4E1C5E475600A21A51 /* s_music.c in Sources */,

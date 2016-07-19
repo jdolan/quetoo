@@ -34,6 +34,7 @@
 #include "deps/AntTweakBar/include/AntTweakBar.h"
 
 #include "ui_controls.h"
+#include "ui_create_server.h"
 #include "ui_credits.h"
 #include "ui_data.h"
 #include "ui_editor.h"

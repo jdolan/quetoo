@@ -30,31 +30,30 @@ TwBar *Ui_Credits(void) {
 
 	TwAddButton(bar, "lead", NULL, NULL, "group='Project Lead' label=\"Jay 'jdolan' Dolan\"");
 
-	TwAddButton(bar, "infra", NULL, NULL, "group='Infrastructure' label=\"Marcel 'maci' Wysocki\"");
-
-	TwAddButton(bar, "dev0", NULL, NULL, "group='Programming' label=\"Jay 'jdolan' Dolan\"");
+	TwAddButton(bar, "dev0", NULL, NULL, "group='Programming' label=\"Joe 'claire' Reed\"");
 	TwAddButton(bar, "dev2", NULL, NULL, "group='Programming' label=\"Michael 'WickedShell' du Breuil\"");
 	TwAddButton(bar, "dev1", NULL, NULL, "group='Programming' label=\"Stijn 'Ingar' Buys\"");
+	TwAddButton(bar, "dev3", NULL, NULL, "group='Programming' label=\"Marcel 'maci' Wysocki\"");
 
-	TwAddButton(bar, "map0", NULL, NULL, "group='Level Design' label=\"Dan 'CardO' Shannon\"");
-	TwAddButton(bar, "map1", NULL, NULL, "group='Level Design' label=\"DJ 'Panjoo' Bloot\"");
+	TwAddButton(bar, "map0", NULL, NULL, "group='Level Design' label=\"DJ 'Panjoo' Bloot\"");
 	TwAddButton(bar, "map2", NULL, NULL, "group='Level Design' label=\"Georges 'TRaK' Grondin\"");
 	TwAddButton(bar, "map3", NULL, NULL, "group='Level Design' label=\"Steve 'Jester' Veihl\"");
 	TwAddButton(bar, "map4", NULL, NULL, "group='Level Design' label=\"Tim 'spirit' Schafer\"");
-	//TwAddButton(bar, "map5", NULL, NULL, "group='Level Design' label=\"Pawel 'ShadoW' Chrapka\"");
 
-	TwAddButton(bar, "mod0", NULL, NULL, "group='Model Design' label=\"Antti 'Karvajalka' Lahti\"");
-	TwAddButton(bar, "mod1", NULL, NULL, "group='Model Design' label=\"Georges 'TRaK' Grondin\"");
-	TwAddButton(bar, "mod2", NULL, NULL, "group='Model Design' label=\"Noel 'Nilium' Cower\"");
+	TwAddButton(bar, "mod0", NULL, NULL, "group='Model Design' label=\"DJ 'Panjoo' Bloot\"");
+	TwAddButton(bar, "mod1", NULL, NULL, "group='Model Design' label=\"Antti 'Karvajalka' Lahti\"");
+	TwAddButton(bar, "mod2", NULL, NULL, "group='Model Design' label=\"Georges 'TRaK' Grondin\"");
+	TwAddButton(bar, "mod3", NULL, NULL, "group='Model Design' label=\"Noel 'Nilium' Cower\"");
+
+	TwAddButton(bar, "tex0", NULL, NULL, "group='Textures' label=\"DJ 'Panjoo' Bloot\"");
+	TwAddButton(bar, "tex1", NULL, NULL, "group='Textures' label=\"Georges 'TRaK' Grondin\"");
+	TwAddButton(bar, "tex2", NULL, NULL, "group='Textures' label=\"Michael 'Thorn' Rodenhurst\"");
+	TwAddButton(bar, "tex3", NULL, NULL, "group='Textures' label=\"Noel 'Nilium' Cower\"");
 
 	TwAddButton(bar, "snd0", NULL, NULL, "group='Sound Design' label=\"Roland Shaw\"");
 
-	TwAddButton(bar, "tex0", NULL, NULL, "group='Textures' label=\"Georges 'TRaK' Grondin\"");
-	TwAddButton(bar, "tex1", NULL, NULL, "group='Textures' label=\"Michael 'Thorn' Rodenhurst\"");
-	TwAddButton(bar, "tex2", NULL, NULL, "group='Textures' label=\"Noel 'Nilium' Cower\"");
-
-	TwAddButton(bar, "thx0", NULL, NULL, "group='Special Thanks' label=\"Chris 'TheBunny' Dillman\"");
-	TwAddButton(bar, "thx1", NULL, NULL, "group='Special Thanks' label=\"Forest 'LordHavoc' Hale\"");
+	TwAddButton(bar, "thx0", NULL, NULL, "group='Special Thanks' label=\"Forest 'LordHavoc' Hale\"");
+	TwAddButton(bar, "thx1", NULL, NULL, "group='Special Thanks' label=\"Chris 'TheBunny' Dillman\"");
 	TwAddButton(bar, "thx2", NULL, NULL, "group='Special Thanks' label=\"Mads 'Madsy' Elvheim\"");
 	TwAddButton(bar, "thx3", NULL, NULL, "group='Special Thanks' label=\"Martin 'mattn' Gerhardy\"");
 	TwAddButton(bar, "thx4", NULL, NULL, "group='Special Thanks' label=\"Stephan 'stereo84' Reiter\"");

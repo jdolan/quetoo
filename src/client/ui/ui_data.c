@@ -25,6 +25,18 @@
 extern cl_static_t cls;
 
 /**
+ * @return The number of elements in the NULL-terminated TwEnumVal array.
+ */
+size_t Ui_EnumLength(const TwEnumVal *values) {
+
+	size_t length = 0;
+
+	for (const TwEnumVal *value = values; value->Label; value++, length++);
+
+	return length;
+}
+
+/**
  * @brief Callback setting a cvar_t's string.
  */
 static void TW_CALL Ui_CvarSetString(const void *value, void *data) {
