@@ -34,27 +34,27 @@
  */
 typedef struct {
 
-	/*
+	/**
 	 * @brief The print level (e.g. PRINT_HIGH).
 	 */
 	uint32_t level;
 
-	/*
+	/**
 	 * @brief The null-terminated C string.
 	 */
 	char *chars;
 
-	/*
+	/**
 	 * @brief The size of this string in bytes.
 	 */
 	size_t size;
 
-	/*
+	/**
 	 * @brief The length of this string in printable characters.
 	 */
 	size_t length;
 
-	/*
+	/**
 	 * @brief The timestamp.
 	 */
 	uint32_t timestamp;
@@ -70,27 +70,27 @@ typedef struct {
  * @brief The console state.
  */
 typedef struct {
-	/*
+	/**
 	 * @brief The console strings.
 	 */
 	GList *strings;
 
-	/*
+	/**
 	 * @brief The length of `strings`.
 	 */
 	size_t len;
 
-	/*
+	/**
 	 * @brief The length of the console strings in characters.
 	 */
 	size_t size;
 
-	/*
+	/**
 	 * @brief The configured consoles.
 	 */
 	GList *consoles;
 
-	/*
+	/**
 	 * @brief A lock for coordinating thread access to the console.
 	 */
 	SDL_mutex *lock;
@@ -114,17 +114,17 @@ typedef enum {
  */
 typedef struct {
 
-	/*
+	/**
 	 * @brief The circular buffer of history strings.
 	 */
 	char strings[CON_HISTORY_SIZE][MAX_PRINT_MSG];
 
-	/*
+	/**
 	 * @brief The always-increasing, un-clamped insert index.
 	 */
 	size_t index;
 
-	/*
+	/**
 	 * @brief The circularly clamped history position for up-scrolling.
 	 */
 	size_t pos;
@@ -136,12 +136,12 @@ typedef struct {
  */
 typedef struct {
 
-	/*
+	/**
 	 * @brief The input buffer.
 	 */
 	char buffer[MAX_PRINT_MSG];
 
-	/*
+	/**
 	 * @brief The cursor offset into `buffer`.
 	 */
 	size_t pos;
@@ -153,42 +153,42 @@ typedef struct {
  */
 typedef struct {
 
-	/*
+	/**
 	 * @brief Console width in characters.
 	 */
 	uint16_t width;
 
-	/*
+	/**
 	 * @brief Console height in characters.
 	 */
 	uint16_t height;
 
-	/*
+	/**
 	 * @brief The scroll offset in lines.
 	 */
 	uint16_t scroll;
 
-	/*
+	/**
 	 * @brief The minimum timestamp for tail operations.
 	 */
 	uint32_t whence;
 
-	/*
+	/**
 	 * @brief The level mask for tail operations.
 	 */
 	uint32_t level;
 
-	/*
+	/**
 	 * @brief The history structure.
 	 */
 	console_history_t history;
 
-	/*
+	/**
 	 * @brief The input structure.
 	 */
 	console_input_t input;
 
-	/*
+	/**
 	 * @brief An optional print callback.
 	 */
 	void (*Append)(const console_string_t *str);

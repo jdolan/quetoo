@@ -76,70 +76,70 @@ struct g_client_s {
  * through g_entity_locals_t.
  */
 struct g_entity_s {
-	/*
+	/**
 	 * @brief The class name provides basic identification and taxonomy for
 	 * the entity. This is guaranteed to be set through G_Spawn.
 	 */
 	const char *class_name;
 
-	/*
+	/**
 	 * @brief The model name for an entity (optional). For SOLID_BSP entities,
 	 * this is the inline model name (e.g. "*1").
 	 */
 	const char *model;
 
-	/*
+	/**
 	 * @brief The entity state is written by the game module and serialized
 	 * using delta compression by the server.
 	 */
 	entity_state_t s;
 
-	/*
+	/**
 	 * @brief True if the entity is currently allocated and active.
 	 */
 	_Bool in_use;
 
-	/*
+	/**
 	 * @brief True if the entity represents an AI-controlled client.
 	 */
 	_Bool ai;
 
-	/*
+	/**
 	 * @brief Server-specific flags bitmask (e.g. SVF_NO_CLIENT).
 	 */
 	uint32_t sv_flags;
 
-	/*
+	/**
 	 * @brief The entity bounding box, set by the game, defines its relative
 	 * bounds. These are typically populated in the entity's spawn function.
 	 */
 	vec3_t mins, maxs;
 
-	/*
+	/**
 	 * @brief The entity bounding box, set by the server, in world space. These
 	 * are populated by gi.LinkEntity / Sv_LinkEntity.
 	 */
 	vec3_t abs_mins, abs_maxs, size;
 
-	/*
+	/**
 	 * @brief The solid type for the entity (e.g. SOLID_BOX) defines its
 	 * clipping behavior and interactions with other entities.
 	 */
 	solid_t solid;
 
-	/*
+	/**
 	 * @brief Sometimes it is useful for an entity to not be clipped against
 	 * the entity that created it (for example, player projectiles).
 	 */
 	g_entity_t *owner;
 
-	/*
+	/**
 	 * @brief Entities 1 through sv_max_clients->integer will have a valid
 	 * pointer to the variable-sized g_client_t.
 	 */
 	g_client_t *client;
 
-	/*
+	/**
 	 * @brief The game module can extend the edict structure through this
 	 * opaque field. Therefore, the actual size of g_entity_t is returned to the
 	 * server through ge.edict_size.
@@ -155,17 +155,17 @@ typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
  */
 typedef struct {
 
-	/*
+	/**
 	 * @brief The server framerate (sv_hz->integer).
 	 */
 	uint32_t frame_rate;
 
-	/*
+	/**
 	 * @brief The server frame duration in milliseconds.
 	 */
 	uint32_t frame_millis;
 
-	/*
+	/**
 	 * @brief The server frame duration in seconds.
 	 */
 	vec_t frame_seconds;
@@ -180,7 +180,7 @@ typedef struct {
 	void (*Warn_)(const char *func, const char *fmr, ...) __attribute__((format(printf, 2, 3)));
 	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
-	/*
+	/**
 	 * @brief Memory management. The game module should use MEM_TAG_GAME and
 	 * MEM_TAG_GAME_LEVEL for any allocations it makes.
 	 */
@@ -189,13 +189,13 @@ typedef struct {
 	void (*Free)(void *p);
 	void (*FreeTag)(mem_tag_t tag);
 
-	/*
+	/**
 	 * @brief Filesystem interaction.
 	 */
 	int64_t (*LoadFile)(const char *file_name, void **buffer);
 	void (*FreeFile)(void *buffer);
 
-	/*
+	/**
 	 * @brief Console variable and console command management.
 	 */
 	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
@@ -204,18 +204,18 @@ typedef struct {
 	const char *(*Argv)(int32_t arg);
 	const char *(*Args)(void);
 
-	/*
+	/**
 	 * @brief Console command buffer interaction.
 	 */
 	void (*AddCommandString)(const char *text);
 
-	/*
+	/**
 	 * @brief Configuration strings are used to transmit arbitrary tokens such
 	 * as model names, skin names, team names and weather effects. See CS_GAME.
 	 */
 	void (*ConfigString)(const uint16_t index, const char *string);
 
-	/*
+	/**
 	 * @brief Returns the configuration string index for the given asset,
 	 * inserting it within the appropriate range if it is not present.
 	 */
@@ -223,13 +223,13 @@ typedef struct {
 	uint16_t (*SoundIndex)(const char *name);
 	uint16_t (*ImageIndex)(const char *name);
 
-	/*
+	/**
 	 * @brief Set the model of a given entity by name. For inline BSP models,
 	 * the bounding box is also set and the entity linked.
 	 */
 	void (*SetModel)(g_entity_t *ent, const char *name);
 
-	/*
+	/**
 	 * @brief Sound sample playback dispatch.
 	 *
 	 * @param ent The entity originating the sound.
@@ -238,7 +238,7 @@ typedef struct {
 	 */
 	void (*Sound)(const g_entity_t *ent, const uint16_t index, const uint16_t atten);
 
-	/*
+	/**
 	 * @brief Sound sample playback dispatch for server-local entities, or
 	 * sounds that do not originate from any specific entity.
 	 *
@@ -250,13 +250,13 @@ typedef struct {
 	void (*PositionedSound)(const vec3_t origin, const g_entity_t *ent, const uint16_t index,
 			const uint16_t atten);
 
-	/*
+	/**
 	 * @return The contents mask at the specific point. The point is tested
 	 * against the world as well as all solid entities.
 	 */
 	int32_t (*PointContents)(const vec3_t point);
 
-	/*
+	/**
 	 * @brief Collision detection. Traces between the two endpoints, impacting
 	 * world and solid entity planes matching the specified contents mask.
 	 *
@@ -273,33 +273,33 @@ typedef struct {
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
 			const g_entity_t *skip, const int32_t contents);
 
-	/*
+	/**
 	 * @brief PVS and PHS query facilities, returning true if the two points
 	 * can see or hear each other.
 	 */
 	_Bool (*inPVS)(const vec3_t p1, const vec3_t p2);
 	_Bool (*inPHS)(const vec3_t p1, const vec3_t p2);
 
-	/*
+	/**
 	 * @brief Area portal management, for doors and other entities that
 	 * manipulate BSP visibility.
 	 */
 	void (*SetAreaPortalState)(int32_t portal_num, _Bool open);
 	_Bool (*AreasConnected)(int32_t area1, int32_t area2);
 
-	/*
+	/**
 	 * @brief All solid and trigger entities must be linked when they are
 	 * initialized or moved. Linking resolves their absolute bounding box and
 	 * makes them eligible for physics interactions.
 	 */
 	void (*LinkEntity)(g_entity_t *ent);
 
-	/*
+	/**
 	 * @brief All entities should be unlinked before being freed.
 	 */
 	void (*UnlinkEntity)(g_entity_t *ent);
 
-	/*
+	/**
 	 * @brief Populates a list of entities occupying the specified bounding
 	 * box, filtered by the given type (BOX_SOLID, BOX_TRIGGER, ..).
 	 *
@@ -314,7 +314,7 @@ typedef struct {
 	size_t (*BoxEntities)(const vec3_t mins, const vec3_t maxs, g_entity_t **list, const size_t len,
 			const uint32_t type);
 
-	/*
+	/**
 	 * @brief Network messaging facilities.
 	 */
 	void (*Multicast)(const vec3_t org, multicast_t to, EntityFilterFunc filter);
@@ -331,7 +331,7 @@ typedef struct {
 	void (*WriteAngle)(const vec_t v);
 	void (*WriteAngles)(const vec3_t angles);
 
-	/*
+	/**
 	 * @brief Network console IO.
 	 */
 	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
@@ -344,85 +344,85 @@ typedef struct {
  * the server. The game must populate this structure as part of G_LoadGame.
  */
 typedef struct {
-	/*
+	/**
 	 * @brief Game API version, in case the game module was compiled for a
 	 * different version than the engine provides.
 	 */
 	uint16_t api_version;
 
-	/*
+	/**
 	 * @brief Minor protocol version.
 	 */
 	uint16_t protocol;
 
-	/*
+	/**
 	 * @brief Called only when the game module is first loaded. Persistent
 	 * structures for clients and game sate should be allocated here.
 	 */
 	void (*Init)(void);
 
-	/*
+	/**
 	 * @brief Called when the game module is unloaded.
 	 */
 	void (*Shutdown)(void);
 
-	/*
+	/**
 	 * @brief Called at the start of a new level.
 	 */
 	void (*SpawnEntities)(const char *name, const char *entities);
 
-	/*
+	/**
 	 * @brief Called when a client connects with valid user information.
 	 */
 	_Bool (*ClientConnect)(g_entity_t *ent, char *user_info);
 
-	/*
+	/**
 	 * @brief Called when a client has fully spawned and should begin thinking.
 	 */
 	void (*ClientBegin)(g_entity_t *ent);
 	void (*ClientUserInfoChanged)(g_entity_t *ent, const char *user_info);
 	void (*ClientDisconnect)(g_entity_t *ent);
 
-	/*
+	/**
 	 * @brief Called when a client has issued a console command that could not
 	 * be handled by the server directly (e.g. voting).
 	 */
 	void (*ClientCommand)(g_entity_t *ent);
 
-	/*
+	/**
 	 * @brief Called when a client issues a movement command, which may include
 	 * button actions such as attacking.
 	 */
 	void (*ClientThink)(g_entity_t *ent, pm_cmd_t *cmd);
 
-	/*
+	/**
 	 * @brief Called every gi.frame_seconds to advance game logic.
 	 */
 	void (*Frame)(void);
 
-	/*
+	/**
 	 * @brief Used to advertise the game name to server browsers.
 	 */
 	const char *(*GameName)(void);
 
-	/*
+	/**
 	 * @brief The g_entity_t array, which must be allocated by the game due to
 	 * the opaque nature of g_entity_t.
 	 */
 	struct g_entity_s *entities;
 
-	/*
+	/**
 	 * @brief To be set to the size of g_entity_t so that the server can safely
 	 * iterate the entities array.
 	 */
 	size_t entity_size;
 
-	/*
+	/**
 	 * @brief The current number of allocated (in use) g_entity_t.
 	 */
 	uint16_t num_entities;
 
-	/*
+	/**
 	 * @brief The total number of allocated g_entity_t (MAX_ENTITIES).
 	 */
 	uint16_t max_entities;

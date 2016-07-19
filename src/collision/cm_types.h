@@ -90,28 +90,28 @@ typedef struct {
  * within Quake.
  */
 typedef struct {
-	/*
+	/**
 	 * @brief If true, the trace started and ended within the same solid.
 	 */
 	_Bool all_solid;
 
-	/*
+	/**
 	 * @brief If true, the trace started within a solid, but exited it.
 	 */
 	_Bool start_solid;
 
-	/*
+	/**
 	 * @brief The fraction of the desired distance traveled (0.0 - 1.0). If
 	 * 1.0, no plane was impacted.
 	 */
 	vec_t fraction;
 
-	/*
+	/**
 	 * @brief The destination position.
 	 */
 	vec3_t end;
 
-	/*
+	/**
 	 * @brief The impacted plane, or empty. Note that a copy of the plane is
 	 * returned, rather than a pointer. This is because the plane may belong to
 	 * an inline BSP or the box hull of a solid entity, in which case it must
@@ -119,17 +119,17 @@ typedef struct {
 	 */
 	cm_bsp_plane_t plane;
 
-	/*
+	/**
 	 * @brief The impacted surface, or NULL.
 	 */
 	cm_bsp_surface_t *surface;
 
-	/*
+	/**
 	 * @brief The contents mask of the impacted brush, or 0.
 	 */
 	int32_t contents;
 
-	/*
+	/**
 	 * @brief The impacted entity, or NULL.
 	 */
 	struct g_entity_s *ent; // not set by Cm_*() functions

@@ -506,7 +506,7 @@ typedef struct {
 	uint8_t client; // client info index
 	uint8_t sound; // looped sounds
 
-	/*
+	/**
 	 * @brief Encoded bounding box dimensions for mesh entities. This enables
 	 * client-sided prediction so that players don't e.g. run through each
 	 * other. See PackBounds.

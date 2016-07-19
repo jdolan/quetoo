@@ -28,28 +28,28 @@
 
 typedef struct fs_state_s {
 
-	/*
+	/**
 	 * @brief If true, supported archives (.pk3, .pak) in search paths will be
 	 * automatically loaded. Set this to false for tools that require the write
 	 * directory, but not read access to the Quake file system (e.g q2wmaster).
 	 */
 	_Bool auto_load_archives;
 
-	/*
+	/**
 	 * @brief The base directory of the install, if running from a bundled
 	 * application. On Windows, this will always be set. On Mac and Linux, it
 	 * is set for the .app and .tgz distributables.
 	 */
 	char base_dir[MAX_OS_PATH];
 
-	/*
+	/**
 	 * @brief The base search paths (all those present after invoking Fs_Init).
 	 * When calling Fs_SetGameDir, all paths following the base paths are
 	 * unloaded.
 	 */
 	char **base_search_paths;
 
-	/*
+	/**
 	 * @brief For debugging purposes, track all loaded files to ensure that
 	 * they are freed (Fs_Free) in all code paths.
 	 */

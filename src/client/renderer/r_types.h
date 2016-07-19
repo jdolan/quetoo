@@ -356,7 +356,7 @@ typedef struct {
 	const r_bsp_leaf_t *leaf;
 	uint16_t count;
 
-	/*
+	/**
 	 * @see r_light_t
 	 */
 	struct {
@@ -865,17 +865,17 @@ typedef struct {
 	SDL_Window *window;
 	SDL_GLContext *context;
 
-	/*
+	/**
 	 * @brief Window size in actual pixels.
 	 */
 	r_pixel_t width, height;
 
-	/*
+	/**
 	 * @brief Window size as reported by SDL_GetWindowSize (High-DPI compatibility).
 	 */
 	r_pixel_t window_width, window_height;
 
-	/*
+	/**
 	 * @brief True if fullscreen, false if windowed.
 	 */
 	_Bool fullscreen;
