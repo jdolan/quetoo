@@ -119,6 +119,8 @@ static void TW_CALL Ui_CreateServer_Create(void *data) {
 
 		g_snprintf(cmd, sizeof(cmd), "map %s;", ui_create_server.map);
 		Cbuf_AddText(cmd);
+
+		ui_create_server.map = NULL;
 	}
 }
 
@@ -126,18 +128,23 @@ static void TW_CALL Ui_CreateServer_Create(void *data) {
  * @brief
  */
 TwBar *Ui_CreateServer(void) {
+	extern cvar_t *sv_hostname;
+	extern cvar_t *sv_max_clients;
 
 	const TwEnumVal *maps = Ui_Maps();
 	TwType Maps = TwDefineEnum("Maps", maps, Ui_EnumLength(maps));
 
-	TwBar *bar = TwNewBar("Host Game");
+	TwBar *bar = TwNewBar("Create Server");
+
+	Ui_CvarText(bar, "Hostname", sv_hostname, NULL);
+	Ui_CvarInteger(bar, "Clients", sv_max_clients, va("min=2 max=%d", MAX_CLIENTS));
 
 	TwAddVarCB(bar, "Map", Maps, Ui_CreateServer_SetMap, Ui_CreateServer_GetMap, (void *) maps, NULL);
 
 	TwAddSeparator(bar, NULL, NULL);
-	TwAddButton(bar, "Host Game", Ui_CreateServer_Create, NULL, NULL);
+	TwAddButton(bar, "Create Server", Ui_CreateServer_Create, NULL, NULL);
 
-	TwDefine("'Host Game' size='450 400' alpha=200 iconifiable=false visible=false");
+	TwDefine("'Create Server' size='450 120' alpha=200 iconifiable=false valueswidth=250 visible=false");
 
 	return bar;
 }

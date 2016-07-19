@@ -87,12 +87,12 @@ void Ui_AddServer(void) {
  */
 TwBar *Ui_Servers(void) {
 
-	TwBar *bar = TwNewBar("Join Game");
+	TwBar *bar = TwNewBar("Join Server");
 
 	TwAddSeparator(bar, NULL, NULL);
 	TwAddButton(bar, "Refresh", Ui_Servers_Refresh, bar, NULL);
 
-	TwDefine("'Join Game' size='850 400' alpha=200 iconifiable=false visible=false");
+	TwDefine("'Join Server' size='850 400' alpha=200 iconifiable=false visible=false");
 
 	// force a refresh, so pings aren't 999 by default
 	Ui_Servers_Refresh(NULL);

@@ -117,17 +117,21 @@ void Ui_Draw(void) {
 static TwBar *Ui_Root(void) {
 	TwBar *bar = TwNewBar("Quetoo");
 
-	TwAddButton(bar, "Join Game", Ui_ShowBar, "Join Game", NULL);
-	TwAddButton(bar, "Host Game", Ui_ShowBar, "Host Game", NULL);
+	TwAddButton(bar, "Join Server", Ui_ShowBar, "Join Server", NULL);
+	TwAddButton(bar, "Create Server", Ui_ShowBar, "Create Server", NULL);
+
+	TwAddSeparator(bar, NULL, NULL);
+
 	TwAddButton(bar, "Controls", Ui_ShowBar, "Controls", NULL);
 	TwAddButton(bar, "Player Setup", Ui_ShowBar, "Player Setup", NULL);
 	TwAddButton(bar, "System", Ui_ShowBar, "System", NULL);
 
 	TwAddSeparator(bar, NULL, NULL);
+
 	TwAddButton(bar, "Credits", Ui_ShowBar, "Credits", NULL);
 	TwAddButton(bar, "Quit", Ui_Command, "quit\n", NULL);
 
-	TwDefine("Quetoo size='300 200' alpha=200 iconifiable=false");
+	TwDefine("Quetoo size='300 180' alpha=200 iconifiable=false");
 
 	Ui_ShowBar("Quetoo");
 
