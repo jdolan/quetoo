@@ -339,23 +339,23 @@ _Bool Fs_Unlink(const char *filename) {
 }
 
 typedef struct {
-	char pattern[MAX_QPATH];
-	Fs_EnumerateFunc function;
 	char dir[MAX_QPATH];
+	const char *pattern;
+	Fs_EnumerateFunc function;
+	void *data;
 } fs_enumerate_t;
-
-static fs_enumerate_t fs_enumerate;
 
 /**
  * @brief Enumeration helper for Fs_Enumerate.
  */
 static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
 	char path[MAX_QPATH];
+	const fs_enumerate_t *en = data;
 
 	g_snprintf(path, sizeof(path), "%s%s", dir, filename);
 
-	if (GlobMatch(fs_enumerate.pattern, path)) {
-		fs_enumerate.function(path, data);
+	if (GlobMatch(en->pattern, path)) {
+		en->function(path, en->data);
 	}
 }
 
@@ -364,17 +364,19 @@ static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
  */
 void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
 
-	g_strlcpy(fs_enumerate.pattern, pattern, sizeof(fs_enumerate.pattern));
-
-	fs_enumerate.function = func;
+	fs_enumerate_t en = {
+		.pattern = pattern,
+		.function = func,
+		.data = data,
+	};
 
 	if (strchr(pattern, '/')) {
-		Dirname(pattern, fs_enumerate.dir);
+		Dirname(pattern, en.dir);
 	} else {
-		g_strlcpy(fs_enumerate.dir, "/", sizeof(fs_enumerate.dir));
+		g_strlcpy(en.dir, "/", sizeof(en.dir));
 	}
 
-	PHYSFS_enumerateFilesCallback(fs_enumerate.dir, Fs_Enumerate_, data);
+	PHYSFS_enumerateFilesCallback(en.dir, Fs_Enumerate_, &en);
 }
 
 /**
