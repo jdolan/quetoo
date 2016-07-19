@@ -54,7 +54,7 @@ static int32_t Ui_Maps_sort(const void *a, const void *b) {
 }
 
 /**
- * @return A NULL-terminated array of TwEnumVal for all available maps.
+ * @return A NULL-terminated array of TwEnumVal for available maps.
  */
 static TwEnumVal *Ui_Maps(void) {
 
@@ -68,11 +68,9 @@ static TwEnumVal *Ui_Maps(void) {
 	TwEnumVal *maps = Mem_TagMalloc((count + 1) * sizeof(TwEnumVal), MEM_TAG_UI);
 
 	for (size_t i = 0; i < count; i++) {
-
 		char *label = Mem_CopyString(g_list_nth_data(list, i));
-		Mem_Link(maps, label);
 
-		maps[i].Label = label;
+		maps[i].Label = Mem_Link(label, maps);
 		maps[i].Value = i;
 	}
 

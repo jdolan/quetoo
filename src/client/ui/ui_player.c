@@ -27,21 +27,24 @@
 static void Ui_PlayerSkins_enumerateSkins(const char *path, void *data) {
 	char name[MAX_QPATH];
 
-	StripExtension(Basename(path), name);
+	char *s = strstr(path, "players/");
+	if (s) {
+		StripExtension(s + strlen("players/"), name);
 
-	if (g_str_has_suffix(name, "_i")) {
+		if (g_str_has_suffix(name, "_i")) {
 
-		name[strlen(name) - strlen("_i")] = '\0';
+			name[strlen(name) - strlen("_i")] = '\0';
 
-		GList **list = (GList **) data;
+			GList **list = (GList **) data;
 
-		for (GList *skin = *list; skin; skin = skin->next) {
-			if (g_strcmp0(skin->data, name) == 0) {
-				return;
+			for (GList *skin = *list; skin; skin = skin->next) {
+				if (g_strcmp0(skin->data, name) == 0) {
+					return;
+				}
 			}
-		}
 
-		*list = g_list_append(*list, g_strdup(name));
+			*list = g_list_append(*list, g_strdup(name));
+		}
 	}
 }
 
@@ -60,7 +63,7 @@ static int32_t Ui_PlayerSkins_sort(const void *a, const void *b) {
 }
 
 /**
- * @return A NULL-terminated array of TwEnumVal for all available player skins.
+ * @return A NULL-terminated array of TwEnumVal for available player skins.
  */
 static TwEnumVal *Ui_PlayerSkins(void) {
 
@@ -74,11 +77,9 @@ static TwEnumVal *Ui_PlayerSkins(void) {
 	TwEnumVal *skins = Mem_TagMalloc((count + 1) * sizeof(TwEnumVal), MEM_TAG_UI);
 
 	for (size_t i = 0; i < count; i++) {
-
 		char *label = Mem_CopyString(g_list_nth_data(list, i));
-		Mem_Link(skins, label);
 
-		skins[i].Label = label;
+		skins[i].Label = Mem_Link(label, skins);
 		skins[i].Value = i;
 	}
 
