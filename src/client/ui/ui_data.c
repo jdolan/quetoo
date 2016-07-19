@@ -78,8 +78,64 @@ void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def) 
 /**
  * @brief Exposes a cvar_t as a select input with predefined numeric values.
  */
-void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType en, const char *def) {
-	TwAddVarCB(bar, name, en, Ui_CvarSetInteger, Ui_CvarGetInteger, var, def);
+void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType type, const char *def) {
+	TwAddVarCB(bar, name, type, Ui_CvarSetInteger, Ui_CvarGetInteger, var, def);
+}
+
+/**
+ * @brief Binds a cvar_t to an array of TwEnumVal so that it may reference the enum's
+ * labels (rather than its values) as select options.
+ */
+typedef struct {
+	cvar_t *var;
+	const TwEnumVal *values;
+} ui_cvar_options_t;
+
+/**
+ * @brief Callback setting a cvar_t's string from a TwEnumVal label.
+ */
+void TW_CALL Ui_CvarSetOption(const void *value, void *data) {
+
+	const ui_cvar_options_t *opts = (ui_cvar_options_t *) data;
+
+	for (const TwEnumVal *val = opts->values; val->Label; val++) {
+		if (val->Value == *(int32_t *) value) {
+			Cvar_Set(opts->var->name, val->Label);
+			return;
+		}
+	}
+}
+
+/**
+ * @brief Callback exposing a cvar_t's string as a TwEnumVal label.
+ */
+void TW_CALL Ui_CvarGetOption(void *value, void *data) {
+
+	const ui_cvar_options_t *opts = (ui_cvar_options_t *) data;
+
+	int32_t v = opts->values ? opts->values[0].Value : 0;
+
+	for (const TwEnumVal *val = opts->values; val->Label; val++) {
+		if (g_ascii_strcasecmp(val->Label, opts->var->string) == 0) {
+			v = val->Value;
+			break;
+		}
+	}
+
+	*(int32_t *) value = v;
+}
+
+/**
+ * @brief Exposes a cvar_t as a select input accepting predefined strings.
+ */
+void Ui_CvarSelect(TwBar *bar, const char *name, cvar_t *var, TwType type, const TwEnumVal *values, const char *def) {
+
+	ui_cvar_options_t *opts = Mem_TagMalloc(sizeof(*opts), MEM_TAG_UI);
+
+	opts->var = var;
+	opts->values = values;
+
+	TwAddVarCB(bar, name, type, Ui_CvarSetOption, Ui_CvarGetOption, opts, def);
 }
 
 /**

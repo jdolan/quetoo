@@ -84,51 +84,36 @@ static TwEnumVal *Ui_PlayerSkins(void) {
 }
 
 /**
- * @brief TwSetVarCallback for skin.
- */
-static void TW_CALL Ui_Player_SetSkin(const void *value, void *data) {
-
-	for (const TwEnumVal *skins = (const TwEnumVal *) data; skins->Label; skins++) {
-		if (skins->Value == *(int32_t *) value) {
-			Cvar_Set("skin", skins->Label);
-			return;
-		}
-	}
-}
-
-/**
- * @brief TwGetVarCallback for skin.
- */
-static void TW_CALL Ui_Player_GetSkin(void *value, void *data) {
-	int32_t v = 0;
-
-	for (const TwEnumVal *skins = (const TwEnumVal *) data; skins->Label; skins++) {
-		if (g_strcmp0(skins->Label, skin->string) == 0) {
-			v = skins->Value;
-			break;
-		}
-	}
-
-	*(int32_t *) value = v;
-}
-
-/**
  * @brief
  */
 TwBar *Ui_Player(void) {
 
-	TwEnumVal *values = Ui_PlayerSkins();
+	const TwEnumVal *Skins = Ui_PlayerSkins();
 
-	size_t count = 0;
-	for (const TwEnumVal *value = values; value->Label; value++, count++);
+	size_t num_Skins = 0;
+	for (const TwEnumVal *skin = Skins; skin->Label; skin++, num_Skins++);
 
-	TwType skins = TwDefineEnum("Skins", values, count);
+	static const TwEnumVal Colors[] = {
+		{ 0, "Default" },
+		{ 1, "Red" },
+		{ 2, "Green" },
+		{ 3, "Blue" },
+		{ 4, "Yellow" },
+		{ 5, "Orange" },
+		{ 6, "White" },
+		{ 7, "Pink" },
+		{ 8, "Purple" },
+		{ 9, NULL }
+	};
+
+	TwType skins = TwDefineEnum("Skins", Skins, num_Skins);
+	TwType colors = TwDefineEnum("Colors", Colors, lengthof(Colors) - 1);
 
 	TwBar *bar = TwNewBar("Player");
 
 	Ui_CvarText(bar, "Name", name, NULL);
-	TwAddVarCB(bar, "Skin", skins, Ui_Player_SetSkin, Ui_Player_GetSkin, values, NULL);
-	Ui_CvarText(bar, "Effects color", color, NULL);
+	Ui_CvarSelect(bar, "Skin", skin, skins, Skins, NULL);
+	Ui_CvarSelect(bar, "Effects color", color, colors, Colors, NULL);
 
 	TwDefine("Player size='350 110' alpha=200 iconifiable=false valueswidth=175 visible=false");
 

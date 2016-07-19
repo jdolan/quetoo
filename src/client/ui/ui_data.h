@@ -28,7 +28,8 @@
 
 void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var, const char *def);
 void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def);
-void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType en, const char *def);
+void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType type, const char *def);
+void Ui_CvarSelect(TwBar *bar, const char *name, cvar_t *var, TwType type, const TwEnumVal *values, const char *def);
 void Ui_CvarDecimal(TwBar *bar, const char *name, cvar_t *var, const char *def);
 void TW_CALL Ui_Command(void *data);
 void Ui_Bind(TwBar *bar, const char *name, const char *bind, const char *def);
