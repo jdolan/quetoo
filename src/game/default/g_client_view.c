@@ -47,8 +47,8 @@ static void G_ClientDamage(g_entity_t *ent) {
 			else
 				l = 100;
 
-			VectorAdd(client->ps.pm_state.origin, client->ps.pm_state.view_offset, org);
-			VectorScale(org, 0.125, org);
+			UnpackVector(client->ps.pm_state.view_offset, org);
+			VectorAdd(client->ps.pm_state.origin, org, org);
 
 			gi.PositionedSound(org, ent, gi.SoundIndex(va("*pain%i_1", l)), ATTEN_NORM);
 		}
@@ -88,8 +88,8 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 		if (old_water_level == 3 && water_level != 3 && (client->locals.drown_time - g_level.time) < 8000) {
 			vec3_t org;
 
-			VectorAdd(client->ps.pm_state.origin, client->ps.pm_state.view_offset, org);
-			VectorScale(org, 0.125, org);
+			UnpackVector(client->ps.pm_state.view_offset, org);
+			VectorAdd(client->ps.pm_state.origin, org, org);
 
 			gi.PositionedSound(org, ent, gi.SoundIndex("*gasp_1"), ATTEN_NORM);
 		}
