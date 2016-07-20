@@ -119,7 +119,7 @@
 /**
  * @brief Invalid player positions are nudged to find a valid position.
  */
-#define PM_NUDGE_DIST			0.1
+#define PM_NUDGE_DIST			1.0
 
 /**
  * @brief Player bounding box scaling. VectorScale(PM_MINS, PM_SCALE, mins)..
