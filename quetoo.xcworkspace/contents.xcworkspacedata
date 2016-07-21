@@ -2,6 +2,12 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:quetoo.xcodeproj">
+      location = "group:/Users/jdolan/Coding/quetoo/Quetoo.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../ObjectivelyMVC/ObjectivelyMVC.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../Objectively/Objectively.xcodeproj">
    </FileRef>
 </Workspace>

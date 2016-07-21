@@ -859,11 +859,23 @@ typedef struct {
 } r_view_t;
 
 /**
- * @brief OpenGL context information.
+ * @brief Window and OpenGL context information.
  */
 typedef struct {
+	/**
+	 * @brief The application window.
+	 */
 	SDL_Window *window;
+
+	/**
+	 * @brief The OpenGL 2.1 context.
+	 */
 	SDL_GLContext *context;
+
+	/**
+	 * @brief Renderer used for 2D drawing.
+	 */
+	SDL_Renderer *renderer;
 
 	/**
 	 * @brief Window size in actual pixels.

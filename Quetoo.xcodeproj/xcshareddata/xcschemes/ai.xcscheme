@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CEA029B31C5E545B00341079"
-               BuildableName = "Quetoo"
-               BlueprintName = "Quetoo"
-               ReferencedContainer = "container:quetoo.xcodeproj">
+               BlueprintIdentifier = "CE80FEAB1C5E44E800A21A51"
+               BuildableName = "libai.dylib"
+               BlueprintName = "ai"
+               ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -29,15 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
-            BuildableName = "quetoo"
-            BlueprintName = "quetoo"
-            ReferencedContainer = "container:quetoo.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -51,16 +42,15 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
-            BuildableName = "quetoo"
-            BlueprintName = "quetoo"
-            ReferencedContainer = "container:quetoo.xcodeproj">
+            BlueprintIdentifier = "CE80FEAB1C5E44E800A21A51"
+            BuildableName = "libai.dylib"
+            BlueprintName = "ai"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -73,10 +63,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CEA029B31C5E545B00341079"
-            BuildableName = "Quetoo"
-            BlueprintName = "Quetoo"
-            ReferencedContainer = "container:quetoo.xcodeproj">
+            BlueprintIdentifier = "CE80FEAB1C5E44E800A21A51"
+            BuildableName = "libai.dylib"
+            BlueprintName = "ai"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

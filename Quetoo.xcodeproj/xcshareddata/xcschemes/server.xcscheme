@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CE80FDD91C5E3E1100A21A51"
-               BuildableName = "libcommon.dylib"
-               BlueprintName = "common"
-               ReferencedContainer = "container:quetoo.xcodeproj">
+               BlueprintIdentifier = "CE80FF6D1C5E49C400A21A51"
+               BuildableName = "libserver.dylib"
+               BlueprintName = "server"
+               ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,10 +45,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE80FDD91C5E3E1100A21A51"
-            BuildableName = "libcommon.dylib"
-            BlueprintName = "common"
-            ReferencedContainer = "container:quetoo.xcodeproj">
+            BlueprintIdentifier = "CE80FF6D1C5E49C400A21A51"
+            BuildableName = "libserver.dylib"
+            BlueprintName = "server"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -63,10 +63,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE80FDD91C5E3E1100A21A51"
-            BuildableName = "libcommon.dylib"
-            BlueprintName = "common"
-            ReferencedContainer = "container:quetoo.xcodeproj">
+            BlueprintIdentifier = "CE80FF6D1C5E49C400A21A51"
+            BuildableName = "libserver.dylib"
+            BlueprintName = "server"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

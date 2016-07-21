@@ -75,7 +75,7 @@
 		CE12D8C41C5CF86600CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD5931D3EE1BF00C43B85 /* ui.h */; };
-		CE5BD59C1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */; };
+		CE72D8AA1D404ACA002129FC /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
 		CE8000011C5E4D4400A21A51 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CE8000021C5E4D4400A21A51 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
@@ -1068,6 +1068,7 @@
 		CE5BD5971D3EE25100C43B85 /* ui_main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_main.c; sourceTree = "<group>"; };
 		CE5BD5981D3EE25100C43B85 /* ui_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_main.h; sourceTree = "<group>"; };
 		CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
+		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8000071C5E52A200A21A51 /* libz.1.2.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.8.dylib; path = /opt/local/lib/libz.1.2.8.dylib; sourceTree = "<absolute>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1228,9 +1229,9 @@
 				CE80FF2B1C5E46B300A21A51 /* libcollision.dylib in Frameworks */,
 				CE80FF551C5E481400A21A51 /* AppKit.framework in Frameworks */,
 				CE80FF511C5E478800A21A51 /* OpenGL.framework in Frameworks */,
+				CE72D8AA1D404ACA002129FC /* libObjectivelyMVC.dylib in Frameworks */,
 				CE80FF571C5E485A00A21A51 /* libcurl.4.dylib in Frameworks */,
 				CE80FF2E1C5E46E500A21A51 /* libglib-2.0.0.dylib in Frameworks */,
-				CE5BD59C1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib in Frameworks */,
 				CE80FF301C5E470200A21A51 /* libSDL2-2.0.0.dylib in Frameworks */,
 				CE80FF2F1C5E470200A21A51 /* libSDL2_image-2.0.0.dylib in Frameworks */,
 				CE80FF501C5E477700A21A51 /* libSDL2_mixer-2.0.0.dylib in Frameworks */,
@@ -2187,6 +2188,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */,
 				CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */,
 				CEC986931D3835420002B714 /* libmysqlclient.18.dylib */,
 				CE12D8191C5C614B00CD0B13 /* AppKit.framework */,
@@ -2735,7 +2737,7 @@
 					};
 				};
 			};
-			buildConfigurationList = CE12D4A41C5C579D00CD0B13 /* Build configuration list for PBXProject "quetoo" */;
+			buildConfigurationList = CE12D4A41C5C579D00CD0B13 /* Build configuration list for PBXProject "Quetoo" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -4186,7 +4188,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CE12D4A41C5C579D00CD0B13 /* Build configuration list for PBXProject "quetoo" */ = {
+		CE12D4A41C5C579D00CD0B13 /* Build configuration list for PBXProject "Quetoo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CE12D4A51C5C579D00CD0B13 /* Debug */,

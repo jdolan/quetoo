@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CE80FED21C5E45EC00A21A51"
-               BuildableName = "libclient.dylib"
-               BlueprintName = "client"
-               ReferencedContainer = "container:quetoo.xcodeproj">
+               BlueprintIdentifier = "CE80FDB41C5E3D4E00A21A51"
+               BuildableName = "libshared.dylib"
+               BlueprintName = "shared"
+               ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,10 +45,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE80FED21C5E45EC00A21A51"
-            BuildableName = "libclient.dylib"
-            BlueprintName = "client"
-            ReferencedContainer = "container:quetoo.xcodeproj">
+            BlueprintIdentifier = "CE80FDB41C5E3D4E00A21A51"
+            BuildableName = "libshared.dylib"
+            BlueprintName = "shared"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -63,10 +63,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE80FED21C5E45EC00A21A51"
-            BuildableName = "libclient.dylib"
-            BlueprintName = "client"
-            ReferencedContainer = "container:quetoo.xcodeproj">
+            BlueprintIdentifier = "CE80FDB41C5E3D4E00A21A51"
+            BuildableName = "libshared.dylib"
+            BlueprintName = "shared"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

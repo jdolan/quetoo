@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CE80FE0E1C5E421900A21A51"
-               BuildableName = "libcollision.dylib"
-               BlueprintName = "collision"
-               ReferencedContainer = "container:quetoo.xcodeproj">
+               BlueprintIdentifier = "CEA029B31C5E545B00341079"
+               BuildableName = "Quetoo"
+               BlueprintName = "Quetoo"
+               ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -29,6 +29,15 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
+            BuildableName = "quetoo"
+            BlueprintName = "quetoo"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -42,15 +51,16 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE80FE0E1C5E421900A21A51"
-            BuildableName = "libcollision.dylib"
-            BlueprintName = "collision"
-            ReferencedContainer = "container:quetoo.xcodeproj">
+            BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
+            BuildableName = "quetoo"
+            BlueprintName = "quetoo"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -63,10 +73,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE80FE0E1C5E421900A21A51"
-            BuildableName = "libcollision.dylib"
-            BlueprintName = "collision"
-            ReferencedContainer = "container:quetoo.xcodeproj">
+            BlueprintIdentifier = "CEA029B31C5E545B00341079"
+            BuildableName = "Quetoo"
+            BlueprintName = "Quetoo"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

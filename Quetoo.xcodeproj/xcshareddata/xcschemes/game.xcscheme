@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CE80FE431C5E431000A21A51"
-               BuildableName = "libnet.dylib"
-               BlueprintName = "net"
-               ReferencedContainer = "container:quetoo.xcodeproj">
+               BlueprintIdentifier = "CE12D7CC1C5C5D5C00CD0B13"
+               BuildableName = "libgame.dylib"
+               BlueprintName = "game"
+               ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,10 +45,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE80FE431C5E431000A21A51"
-            BuildableName = "libnet.dylib"
-            BlueprintName = "net"
-            ReferencedContainer = "container:quetoo.xcodeproj">
+            BlueprintIdentifier = "CE12D7CC1C5C5D5C00CD0B13"
+            BuildableName = "libgame.dylib"
+            BlueprintName = "game"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -63,10 +63,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE80FE431C5E431000A21A51"
-            BuildableName = "libnet.dylib"
-            BlueprintName = "net"
-            ReferencedContainer = "container:quetoo.xcodeproj">
+            BlueprintIdentifier = "CE12D7CC1C5C5D5C00CD0B13"
+            BuildableName = "libgame.dylib"
+            BlueprintName = "game"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

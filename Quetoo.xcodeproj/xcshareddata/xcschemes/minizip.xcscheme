@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CE12D7EA1C5C5DF900CD0B13"
-               BuildableName = "libcgame.dylib"
-               BlueprintName = "cgame"
-               ReferencedContainer = "container:quetoo.xcodeproj">
+               BlueprintIdentifier = "CE12D8101C5C5EF000CD0B13"
+               BuildableName = "libminizip.dylib"
+               BlueprintName = "minizip"
+               ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,10 +45,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE12D7EA1C5C5DF900CD0B13"
-            BuildableName = "libcgame.dylib"
-            BlueprintName = "cgame"
-            ReferencedContainer = "container:quetoo.xcodeproj">
+            BlueprintIdentifier = "CE12D8101C5C5EF000CD0B13"
+            BuildableName = "libminizip.dylib"
+            BlueprintName = "minizip"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -63,10 +63,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE12D7EA1C5C5DF900CD0B13"
-            BuildableName = "libcgame.dylib"
-            BlueprintName = "cgame"
-            ReferencedContainer = "container:quetoo.xcodeproj">
+            BlueprintIdentifier = "CE12D8101C5C5EF000CD0B13"
+            BuildableName = "libminizip.dylib"
+            BlueprintName = "minizip"
+            ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

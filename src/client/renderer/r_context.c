@@ -88,12 +88,18 @@ void R_InitContext(void) {
 
 	Com_Print("  Trying %dx%d..\n", w, h);
 
-	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
+	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
+			SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
 	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to create GL context: %s\n", SDL_GetError());
+	}
+
+	if ((r_context.renderer = SDL_CreateRenderer(r_context.window, 0,
+			SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE)) == NULL) {
+		Com_Error(ERR_FATAL, "Failed to create renderer: %s\n", SDL_GetError());
 	}
 
 	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
