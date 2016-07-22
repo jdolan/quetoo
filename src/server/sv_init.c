@@ -251,7 +251,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 	if (state == SV_ACTIVE_DEMO) { // loading a demo
 		sv.cm_models[0] = Cm_LoadBspModel(NULL, &bsp_size);
 
-		sv.demo_file = Fs_OpenRead(va("demos/%s.dem", sv.name));
+		sv.demo_file = Fs_OpenRead(va("demos/%s.demo", sv.name));
 		svs.spawn_count = 0;
 
 		Com_Print("  Loaded demo %s.\n", sv.name);
@@ -319,7 +319,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 	char path[MAX_QPATH];
 
 	if (state == SV_ACTIVE_DEMO)
-		g_snprintf(path, sizeof(path), "demos/%s.dem", server);
+		g_snprintf(path, sizeof(path), "demos/%s.demo", server);
 	else
 		g_snprintf(path, sizeof(path), "maps/%s.bsp", server);
 
