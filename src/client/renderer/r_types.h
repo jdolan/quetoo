@@ -873,7 +873,7 @@ typedef struct {
 	SDL_GLContext *context;
 
 	/**
-	 * @brief Window size in actual pixels.
+	 * @brief OpenGL context size in drawable pixels, as reported by SDL_GL_GetDrawableSize.
 	 */
 	r_pixel_t width, height;
 

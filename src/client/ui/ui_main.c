@@ -59,6 +59,14 @@ void Ui_Draw(void) {
 
 	SDL_RenderClear(ui_context.renderer);
 
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	glOrtho(0, r_context.window_width, 0, r_context.window_height, -1, 1);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
 	$(mainViewController, drawView, ui_context.renderer);
 
 	glFinish(); // <-- well fuck my ass
@@ -66,6 +74,7 @@ void Ui_Draw(void) {
 	SDL_SetRenderTarget(ui_context.renderer, NULL);
 
 	SDL_GL_MakeCurrent(r_context.window, r_context.context);
+
 
 	R_DrawImage(0, 0, 1.0, &ui_context.image);
 }
