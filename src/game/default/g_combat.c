@@ -218,8 +218,13 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 	}
 
 	// there is no self damage in instagib or arena, but there is knockback
-	if (target == attacker && g_level.gameplay != GAME_DEATHMATCH)
-		damage = 0;
+	if (target == attacker) {
+		switch (g_level.gameplay) {
+			case GAME_INSTAGIB:
+			case GAME_ARENA:
+				damage = 0;
+		}
+	}
 
 	g_client_t *client = target->client;
 
