@@ -25,4 +25,7 @@
 #include "ui_main.h"
 #include "ui_types.h"
 
+#include "viewcontrollers/MainViewController.h"
+#include "viewcontrollers/MenuViewController.h"
+
 #endif /* __UI_H__ */

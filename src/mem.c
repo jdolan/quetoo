@@ -141,6 +141,7 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 	if (!(b = calloc(s, 1))) {
 		fprintf(stderr, "Failed to allocate %u bytes\n", (uint32_t) s);
 		raise(SIGABRT);
+		return NULL;
 	}
 
 	b->magic = MEM_MAGIC;

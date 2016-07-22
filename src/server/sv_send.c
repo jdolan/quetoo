@@ -275,6 +275,8 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
  */
 void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16_t index, const uint16_t atten) {
 
+	assert(origin || ent);
+
 	uint32_t flags = 0;
 
 	uint16_t at = atten;

@@ -69,75 +69,6 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 }
 
 /**
- * @brief Execute any system-level binds, regardless of key state. This enables e.g.
- * toggling of the console, toggling fullscreen, etc.
- */
-static _Bool Cl_KeySystem(const SDL_Event *event) {
-
-	if (event->type == SDL_KEYUP) { // don't care
-		return false;
-	}
-
-	if (event->key.keysym.sym == SDLK_ESCAPE) { // escape can cancel a few things
-
-		// connecting to a server
-		switch (cls.state) {
-			case CL_CONNECTING:
-			case CL_CONNECTED:
-				Com_Error(ERR_DROP, "Connection aborted by user\n");
-				break;
-			case CL_LOADING:
-				return false;
-			default:
-				break;
-		}
-
-		// message mode
-		if (cls.key_state.dest == KEY_CHAT) {
-			Cl_SetKeyDest(KEY_GAME);
-			return true;
-		}
-
-		// console
-		if (cls.key_state.dest == KEY_CONSOLE) {
-			Cl_ToggleConsole_f();
-			return true;
-		}
-
-		// and menus
-		if (cls.key_state.dest == KEY_UI) {
-
-			// if we're in the game, just hide the menus
-			if (cls.state == CL_ACTIVE) {
-				Cl_SetKeyDest(KEY_GAME);
-			}
-
-			return true;
-		}
-
-		Cl_SetKeyDest(KEY_UI);
-		return true;
-	}
-
-	// for everything other than ESC, check for system-level command binds
-
-	SDL_Scancode key = event->key.keysym.scancode;
-	if (cls.key_state.binds[key]) {
-		cmd_t *cmd;
-
-		if ((cmd = Cmd_Get(cls.key_state.binds[key]))) {
-			if (cmd->flags & CMD_SYSTEM) {
-				Cbuf_AddText(cls.key_state.binds[key]);
-				Cbuf_Execute();
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-/**
  * @brief Interactive line editing and console scrollback.
  */
 static void Cl_KeyConsole(const SDL_Event *event) {
@@ -558,16 +489,9 @@ void Cl_ShutdownKeys(void) {
  */
 void Cl_KeyEvent(const SDL_Event *event) {
 
-	// check for system commands first, swallowing such events
-	if (Cl_KeySystem(event)) {
-		return;
-	}
-
 	switch (cls.key_state.dest) {
 		case KEY_GAME:
 			Cl_KeyGame(event);
-			break;
-		case KEY_UI:
 			break;
 		case KEY_CHAT:
 			Cl_KeyChat(event);

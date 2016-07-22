@@ -170,7 +170,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 		Cg_DrawIcon(x, y, 1.0, icon);
 
 		x += HUD_PIC_HEIGHT;
-		y += ch / 2;
+		y += (HUD_PIC_HEIGHT - ch) / 2 + 2;
 
 		cgi.DrawString(x, y, string, HUD_COLOR_STAT);
 	}
@@ -254,6 +254,8 @@ static void Cg_DrawSpectator(const player_state_t *ps) {
 	y = cgi.view->y + HUD_PIC_HEIGHT;
 
 	cgi.DrawString(x, y, "Spectating", CON_COLOR_GREEN);
+
+	cgi.BindFont(NULL, NULL, NULL);
 }
 
 /**
@@ -397,9 +399,6 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	if (!cg_draw_crosshair->value)
 		return;
 
-	//if (ps->stats[STAT_SCORES])
-	//	return; // scoreboard up
-
 	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE])
 		return; // spectating
 
@@ -446,7 +445,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		cgi.ColorFromPalette(color, crosshair.color);
 	}
 
-	vec_t scale = cg_draw_crosshair_scale->value;
+	vec_t scale = cg_draw_crosshair_scale->value * (cgi.context->high_dpi ? 2.0 : 1.0);
 	crosshair.color[3] = 1.0;
 
 	// pulse the crosshair size and alpha based on pickups
@@ -525,7 +524,7 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
 	if (center_print.time < cgi.client->systime)
 		return;
 
-	cgi.BindFont(NULL, &cw, &ch);
+	cgi.BindFont("small", &cw, &ch);
 	y = (cgi.context->height - center_print.num_lines * ch) / 2;
 
 	while (*line) {
@@ -535,6 +534,8 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
 		line += MAX_STRING_CHARS;
 		y += ch;
 	}
+
+	cgi.BindFont(NULL, NULL, NULL);
 }
 
 /**

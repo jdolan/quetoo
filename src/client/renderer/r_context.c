@@ -51,6 +51,8 @@ void R_InitContext(void) {
 		}
 	}
 
+	SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -65,7 +67,11 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
 
-	uint32_t flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /*| SDL_WINDOW_ALLOW_HIGHDPI*/;
+	uint32_t flags = SDL_WINDOW_OPENGL;
+
+	if (r_allow_high_dpi->integer) {
+		flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+	}
 
 	if (r_fullscreen->integer) {
 		w = MAX(0, r_width->integer);
@@ -94,12 +100,7 @@ void R_InitContext(void) {
 	}
 
 	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
-		Com_Error(ERR_FATAL, "Failed to create GL context: %s\n", SDL_GetError());
-	}
-
-	if ((r_context.renderer = SDL_CreateRenderer(r_context.window, 0,
-			SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE)) == NULL) {
-		Com_Error(ERR_FATAL, "Failed to create renderer: %s\n", SDL_GetError());
+		Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 	}
 
 	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
@@ -110,15 +111,19 @@ void R_InitContext(void) {
 		Com_Warn("Failed to set gamma %1.1f: %s\n", r_gamma->value, SDL_GetError());
 	}
 
-//	SDL_GL_GetDrawableSize(r_context.window, &w, &h);
+	int32_t dw, dh;
+	SDL_GL_GetDrawableSize(r_context.window, &dw, &dh);
 
-	r_context.width = w;
-	r_context.height = h;
+	r_context.width = dw;
+	r_context.height = dh;
 
-//	SDL_GetWindowSize(r_context.window, &w, &h);
+	int32_t ww, wh;
+	SDL_GetWindowSize(r_context.window, &ww, &wh);
 
-	r_context.window_width = w;
-	r_context.window_height = h;
+	r_context.window_width = ww;
+	r_context.window_height = wh;
+
+	r_context.high_dpi = dw > ww && dh > wh;
 
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
 

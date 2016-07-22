@@ -96,8 +96,8 @@ void R_SelectTexture(r_texunit_t *texunit) {
 
 	qglActiveTexture(texunit->texture);
 
-	if (texunit == &texunit_diffuse|| texunit == &texunit_lightmap)
-	qglClientActiveTexture(texunit->texture);
+	if (texunit == &texunit_diffuse || texunit == &texunit_lightmap)
+		qglClientActiveTexture(texunit->texture);
 }
 
 /**

@@ -22,7 +22,7 @@
 #include "cl_local.h"
 
 /**
- * @brief
+ * @brief Handles mouse button events by dispatching them as key events.
  */
 void Cl_MouseButtonEvent(const SDL_Event *event) {
 	SDL_Event e;

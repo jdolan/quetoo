@@ -75,7 +75,6 @@
 		CE12D8C41C5CF86600CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD5931D3EE1BF00C43B85 /* ui.h */; };
-		CE72D8AA1D404ACA002129FC /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
 		CE8000011C5E4D4400A21A51 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CE8000021C5E4D4400A21A51 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
@@ -415,6 +414,12 @@
 		CEA029EC1C5E558100341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA029F71C5E55C100341079 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6831C5C58C300CD0B13 /* main.c */; };
 		CEC986941D3835420002B714 /* libmysqlclient.18.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC986931D3835420002B714 /* libmysqlclient.18.dylib */; };
+		CEDB4BB11D404D9D009921B6 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
+		CEDB4BB21D404E31009921B6 /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5BD5971D3EE25100C43B85 /* ui_main.c */; };
+		CEDB4BBB1D405F74009921B6 /* MenuViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEDB4BB91D405F74009921B6 /* MenuViewController.c */; };
+		CEDB4BBC1D405F74009921B6 /* MenuViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDB4BBA1D405F74009921B6 /* MenuViewController.h */; };
+		CEDB4BC01D40616C009921B6 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEDB4BBE1D40616C009921B6 /* MainViewController.c */; };
+		CEDB4BC11D40616C009921B6 /* MainViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDB4BBF1D40616C009921B6 /* MainViewController.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1089,6 +1094,11 @@
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = ../../../../opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<group>"; };
+		CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectivelyMVC.dylib"; sourceTree = "<group>"; };
+		CEDB4BB91D405F74009921B6 /* MenuViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MenuViewController.c; sourceTree = "<group>"; };
+		CEDB4BBA1D405F74009921B6 /* MenuViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MenuViewController.h; sourceTree = "<group>"; };
+		CEDB4BBE1D40616C009921B6 /* MainViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MainViewController.c; sourceTree = "<group>"; };
+		CEDB4BBF1D40616C009921B6 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1227,9 +1237,9 @@
 				CE80FF2C1C5E46B300A21A51 /* libcommon.dylib in Frameworks */,
 				CE80FF541C5E479E00A21A51 /* libnet.dylib in Frameworks */,
 				CE80FF2B1C5E46B300A21A51 /* libcollision.dylib in Frameworks */,
+				CEDB4BB11D404D9D009921B6 /* libObjectivelyMVC.dylib in Frameworks */,
 				CE80FF551C5E481400A21A51 /* AppKit.framework in Frameworks */,
 				CE80FF511C5E478800A21A51 /* OpenGL.framework in Frameworks */,
-				CE72D8AA1D404ACA002129FC /* libObjectivelyMVC.dylib in Frameworks */,
 				CE80FF571C5E485A00A21A51 /* libcurl.4.dylib in Frameworks */,
 				CE80FF2E1C5E46E500A21A51 /* libglib-2.0.0.dylib in Frameworks */,
 				CE80FF301C5E470200A21A51 /* libSDL2-2.0.0.dylib in Frameworks */,
@@ -1779,6 +1789,8 @@
 		CE12D60E1C5C58C300CD0B13 /* ui */ = {
 			isa = PBXGroup;
 			children = (
+				CEDB4BB71D405F5A009921B6 /* viewcontrollers */,
+				CEDB4BB81D405F5A009921B6 /* views */,
 				CE5BD5931D3EE1BF00C43B85 /* ui.h */,
 				CE5BD5961D3EE22300C43B85 /* ui_local.h */,
 				CE5BD5971D3EE25100C43B85 /* ui_main.c */,
@@ -2188,6 +2200,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */,
 				CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */,
 				CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */,
 				CEC986931D3835420002B714 /* libmysqlclient.18.dylib */,
@@ -2196,6 +2209,24 @@
 				CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		CEDB4BB71D405F5A009921B6 /* viewcontrollers */ = {
+			isa = PBXGroup;
+			children = (
+				CEDB4BBE1D40616C009921B6 /* MainViewController.c */,
+				CEDB4BBF1D40616C009921B6 /* MainViewController.h */,
+				CEDB4BB91D405F74009921B6 /* MenuViewController.c */,
+				CEDB4BBA1D405F74009921B6 /* MenuViewController.h */,
+			);
+			path = viewcontrollers;
+			sourceTree = "<group>";
+		};
+		CEDB4BB81D405F5A009921B6 /* views */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -2351,6 +2382,7 @@
 				CE80FF891C5E49E700A21A51 /* cl_local.h in Headers */,
 				CE80FF8A1C5E49E700A21A51 /* cl_main.h in Headers */,
 				CE80FF8B1C5E49E700A21A51 /* cl_media.h in Headers */,
+				CEDB4BC11D40616C009921B6 /* MainViewController.h in Headers */,
 				CE80FF8C1C5E49E700A21A51 /* cl_mouse.h in Headers */,
 				CE80FF8D1C5E49E700A21A51 /* cl_parse.h in Headers */,
 				CE80FF8E1C5E49E700A21A51 /* cl_predict.h in Headers */,
@@ -2358,6 +2390,7 @@
 				CE80FF901C5E49E700A21A51 /* cl_server.h in Headers */,
 				CE80FF911C5E49E700A21A51 /* cl_types.h in Headers */,
 				CE80FF921C5E49E700A21A51 /* cl_view.h in Headers */,
+				CEDB4BBC1D405F74009921B6 /* MenuViewController.h in Headers */,
 				CE80FF931C5E49E700A21A51 /* client.h in Headers */,
 				CE80FF071C5E462100A21A51 /* r_array.h in Headers */,
 				CE80FF081C5E462100A21A51 /* r_bsp.h in Headers */,
@@ -2962,6 +2995,7 @@
 				CE80FF401C5E473500A21A51 /* cl_server.c in Sources */,
 				CE80FF411C5E473500A21A51 /* cl_view.c in Sources */,
 				CE80FEE71C5E460B00A21A51 /* r_array.c in Sources */,
+				CEDB4BC01D40616C009921B6 /* MainViewController.c in Sources */,
 				CE80FEE81C5E460B00A21A51 /* r_bsp.c in Sources */,
 				CE80FEE91C5E460B00A21A51 /* r_bsp_light.c in Sources */,
 				CE80FEEA1C5E460B00A21A51 /* r_bsp_model.c in Sources */,
@@ -2969,6 +3003,7 @@
 				CE80FEEC1C5E460B00A21A51 /* r_context.c in Sources */,
 				CE80FEED1C5E460B00A21A51 /* r_corona.c in Sources */,
 				CE80FEEE1C5E460B00A21A51 /* r_draw.c in Sources */,
+				CEDB4BB21D404E31009921B6 /* ui_main.c in Sources */,
 				CE80FEEF1C5E460B00A21A51 /* r_element.c in Sources */,
 				CE80FEF01C5E460B00A21A51 /* r_entity.c in Sources */,
 				CE80FEF11C5E460B00A21A51 /* r_flare.c in Sources */,
@@ -2988,6 +3023,7 @@
 				CE80FEFF1C5E460B00A21A51 /* r_particle.c in Sources */,
 				CE80FF001C5E460B00A21A51 /* r_program.c in Sources */,
 				CE80FF011C5E460B00A21A51 /* r_program_default.c in Sources */,
+				CEDB4BBB1D405F74009921B6 /* MenuViewController.c in Sources */,
 				CE80FF021C5E460B00A21A51 /* r_program_shadow.c in Sources */,
 				CE80FF031C5E460B00A21A51 /* r_program_shell.c in Sources */,
 				CE80FF041C5E460B00A21A51 /* r_program_warp.c in Sources */,
@@ -3164,7 +3200,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ENABLE_TESTABILITY = YES;
-				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
@@ -3184,7 +3220,7 @@
 		CE12D4A61C5C579D00CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (

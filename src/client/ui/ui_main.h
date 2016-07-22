@@ -24,7 +24,7 @@
 
 #include "ui_types.h"
 
-_Bool Ui_HandleEvent(const SDL_Event *event);
+void Ui_HandleEvent(const SDL_Event *event);
 void Ui_Draw(void);
 void Ui_Init(void);
 void Ui_Shutdown(void);

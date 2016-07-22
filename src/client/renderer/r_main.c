@@ -44,6 +44,7 @@ cvar_t *r_draw_bsp_lights;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_wireframe;
 
+cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
 cvar_t *r_brightness;
 cvar_t *r_bumpmap;
@@ -424,6 +425,8 @@ static void R_InitLocal(void) {
 			"Controls the rendering of polygons as wireframe (developer tool)");
 
 	// settings and preferences
+	r_allow_high_dpi = Cvar_Get("r_allow_high_dpi", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
+			"Enables or disables support for High-DPI (Retina, 4K) display modes");
 	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls anisotropic texture filtering");
 	r_brightness = Cvar_Get("r_brightness", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,

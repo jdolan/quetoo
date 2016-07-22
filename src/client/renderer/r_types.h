@@ -873,11 +873,6 @@ typedef struct {
 	SDL_GLContext *context;
 
 	/**
-	 * @brief Renderer used for 2D drawing.
-	 */
-	SDL_Renderer *renderer;
-
-	/**
 	 * @brief Window size in actual pixels.
 	 */
 	r_pixel_t width, height;
@@ -886,6 +881,11 @@ typedef struct {
 	 * @brief Window size as reported by SDL_GetWindowSize (High-DPI compatibility).
 	 */
 	r_pixel_t window_width, window_height;
+
+	/**
+	 * @brief True if the application window uses High-DPI (Retina, 4K).
+	 */
+	_Bool high_dpi;
 
 	/**
 	 * @brief True if fullscreen, false if windowed.

@@ -22,8 +22,38 @@
 #ifndef __UI_TYPES_H__
 #define __UI_TYPES_H__
 
-#include <ObjectivelyMVC.h>
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_render.h>
 
-#include "../client.h"
+#include "common.h"
+
+#ifdef __UI_LOCAL_H__
+
+/**
+ * @brief The user interface OpenGL context.
+ */
+typedef struct {
+
+	/**
+	 * @brief The OpenGL context, reserved for rendering the user interface.
+	 */
+	SDL_GLContext *context;
+
+	/**
+	 * @brief The SDL renderer.
+	 */
+	SDL_Renderer *renderer;
+
+	/**
+	 * @brief The renderer target.
+	 */
+	SDL_Texture *texture;
+
+} ui_context_t;
+
+extern ui_context_t ui_context;
+
+#endif /* __UI_LOCAL_H__ */
 
 #endif /* __UI_TYPES_H__ */

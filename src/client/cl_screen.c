@@ -21,7 +21,6 @@
 
 #include "cl_local.h"
 
-#define NET_GRAPH_HEIGHT 48
 #define NET_GRAPH_WIDTH 256
 #define NET_GRAPH_Y 0
 
@@ -86,15 +85,20 @@ static void Cl_DrawNetGraph(void) {
 	if (!cl_draw_net_graph->value)
 		return;
 
-	x = r_context.width - NET_GRAPH_WIDTH;
-	y = r_context.height - NET_GRAPH_Y - NET_GRAPH_HEIGHT;
+	r_pixel_t ch;
+	R_BindFont("small", NULL, &ch);
 
-	R_DrawFill(x, y, NET_GRAPH_WIDTH, NET_GRAPH_HEIGHT, 8, 0.2);
+	const r_pixel_t netgraph_height = ch * 3;
+
+	x = r_context.width - NET_GRAPH_WIDTH;
+	y = r_context.height - NET_GRAPH_Y - netgraph_height;
+
+	R_DrawFill(x, y, NET_GRAPH_WIDTH, netgraph_height, 8, 0.2);
 
 	for (i = 0; i < NET_GRAPH_WIDTH; i++) {
 
 		j = (num_net_graph_samples - i) & (NET_GRAPH_WIDTH - 1);
-		h = net_graph_samples[j].value * NET_GRAPH_HEIGHT;
+		h = net_graph_samples[j].value * netgraph_height;
 
 		if (!h)
 			continue;

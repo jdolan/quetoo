@@ -1,13 +1,19 @@
 noinst_HEADERS = \
 	ui.h \
 	ui_local.h \
-	ui_main.h
+	ui_main.h \
+	\
+	viewcontrollers/MainViewController.h \
+	viewcontrollers/MenuViewController.h
 
 noinst_LTLIBRARIES = \
 	libui.la
 
 libui_la_SOURCES = \
-	ui_main.c
+	ui_main.c \
+	\
+	viewcontrollers/MainViewController.c \
+	viewcontrollers/MenuViewController.c
 
 libui_la_CFLAGS = \
 	-I.. -I../.. \

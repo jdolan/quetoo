@@ -186,12 +186,12 @@ void Cl_DrawLoading(void) {
 	R_DrawString(px, y, percent, CON_COLOR_DEFAULT);
 
 	// and finally the status detail
-	R_BindFont("small", &cw, &ch);
+	R_BindFont("small", NULL, NULL);
 
 	const char *status = va("Loading %s..", cls.loading.status);
 
 	const r_pixel_t sx = (r_context.width - R_StringWidth(status)) / 2;
-	const r_pixel_t sy = y + 48;
+	const r_pixel_t sy = y + ch * 2 + 2;
 
 	R_DrawString(sx, sy, status, CON_COLOR_DEFAULT);
 

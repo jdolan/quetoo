@@ -24,11 +24,6 @@
 
 #include "config.h"
 
-// to support the gnuc __attribute__ command
-#if defined(__ICC) || !defined(__GNUC__)
-#define __attribute__(x)  /*NOTHING*/
-#endif
-
 #include <assert.h>
 #include <glib.h>
 #include <inttypes.h>
@@ -56,6 +51,13 @@ typedef uint8_t byte;
 
 #ifndef M_PI_2
 #define M_PI_2 1.57079632679489661923132169163975144
+#endif
+
+/**
+ * @return The number of elements, rather than the number of bytes.
+ */
+#ifndef lengthof
+#define lengthof(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
 typedef float vec_t;
@@ -565,10 +567,5 @@ typedef struct player_state_s {
 #define IS_LEGACY_COLOR(c)( \
 	*c == 1 || *c == 2 \
 )
-
-/**
- * @return The number of elements, rather than the number of bytes.
- */
-#define lengthof(x) (sizeof(x) / sizeof(*(x)))
 
 #endif /* __QUETOO_H__ */
