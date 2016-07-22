@@ -403,16 +403,43 @@ static void G_Kill_f(g_entity_t *ent) {
 }
 
 /**
+ *  * @brief Server console command - force a command on a particular player
+ *   */
+void G_Stuff_Sv_f(void) {
+
+	char cmd[MAX_STRING_CHARS];
+
+        if (gi.Argc() < 3) {
+		gi.Print(" Usage: stuff <clientname> <command to execute>\n");
+                return;
+	}
+
+	g_entity_t *ent = G_EntityByName(va("%s",gi.Argv(2)));
+
+        if (!ent)
+                return;
+
+	// build the command 1 is the target
+	for (uint8_t i = 2; i < gi.Argc(); i++) {
+		g_strlcat(cmd, va("%s ", gi.Argv(i)), sizeof(cmd));
+	}
+
+
+	G_ClientStuff(ent, va("%s", cmd));
+}
+
+
+/**
  * @brief Server console command - force a command on all connected clients
  */
 void G_Stuffall_Sv_f(void) {
 
-	if (gi.Argc() < 2)
+	if (gi.Argc() < 2) {
+		gi.Print(" Usage: stuffall <command>\n");
 		return;
+	}
 
 	const char *cmd = gi.Args();
-
-	gi.Print("Sending \'%s\' to all clients\n", cmd);
 
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 		g_entity_t *ent = &g_game.entities[i + 1];

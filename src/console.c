@@ -390,7 +390,7 @@ _Bool Con_CompleteInput(console_t *console) {
 	// handle special cases for commands which accept filenames
 	if (g_str_has_prefix(partial, "demo ")) {
 		partial += strlen("demo ");
-		pattern = va("demos/%s*.dem", partial);
+		pattern = va("demos/%s*.demo", partial);
 		Fs_CompleteFile(pattern, &matches);
 	} else if (g_str_has_prefix(partial, "exec ")) {
 		partial += strlen("exec ");

@@ -154,7 +154,7 @@ void Cl_Record_f(void) {
 		return;
 	}
 
-	g_snprintf(cls.demo_filename, sizeof(cls.demo_filename), "demos/%s.dem", Cmd_Argv(1));
+	g_snprintf(cls.demo_filename, sizeof(cls.demo_filename), "demos/%s.demo", Cmd_Argv(1));
 
 	// open the demo file
 	if (!(cls.demo_file = Fs_OpenWrite(cls.demo_filename))) {

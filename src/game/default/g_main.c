@@ -937,8 +937,10 @@ void G_Init(void) {
 			g_time_limit->modified = false;
 	
 	// add game-specific server console commands
-	gi.Cmd("mute", G_Mute_Sv_f, 0, "Prevent a client from talking");
-	gi.Cmd("unmute", G_Mute_Sv_f, 0, "Allow a muted client to talk again");
+	gi.Cmd("mute", G_Mute_Sv_f, CMD_GAME, "Prevent a client from talking");
+	gi.Cmd("unmute", G_Mute_Sv_f, CMD_GAME, "Allow a muted client to talk again");
+	gi.Cmd("stuff", G_Stuff_Sv_f, CMD_GAME, "Force a client to execute a command");
+	gi.Cmd("stuffall", G_Stuffall_Sv_f, CMD_GAME, "Force all players to execute a command");
 
 	gi.Print("  Game initialized\n");
 }

@@ -16,9 +16,9 @@ VOLUME_NAME = "Quetoo BETA $(ARCH)"
 HTTP_REPOSITORY = quetoo.org:/var/www/quetoo.org/files
 HTTP_TARGET = $(REMOTE_USER)@$(HTTP_REPOSITORY)
 
-all: clean install-lib dist
+all: clean install-lib post-install dist
 
-all-data: clean install-lib install-data dist
+all-data: clean install-lib install-data post-install dist
 
 configure:
 	cd .. ; autoreconf -i; ./configure --prefix=/
@@ -30,7 +30,6 @@ pre-install:
 	install -d $(INSTALL)
 	cp -R Quetoo/* $(INSTALL)
 	find $(INSTALL) -name .turd -delete
-	./set-icon.sh icon.icns $(INSTALL)
 
 install: compile pre-install
 	ln -f -s Contents/MacOS $(QUETOO)/bin
@@ -51,6 +50,12 @@ install-lib: install
 install-data:
 	cp -R $(DATA)/target/* $(DATADIR)
 
+post-install:
+	./set-icon.sh icon.icns $(INSTALL)
+	./set-icon.sh $(DATADIR)/quetoo.icns $(BINDIR)/quetoo
+	./set-icon.sh $(DATADIR)/quetoo-dedicated.icns $(BINDIR)/quetoo-dedicated
+	./set-icon.sh $(DATADIR)/quemap.icns $(BINDIR)/quemap
+
 release:
 	rsync -rzhP --delete $(BINDIR) $(RSYNC_TARGET)
 	rsync -rzhP --delete $(DATADIR)/*.* $(RSYNC_TARGET)/Resources/
@@ -65,5 +70,5 @@ dist-release:
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all all-data configure compile pre-install install install-lib install-data release dist dist-release clean
+.PHONY: all all-data configure compile pre-install install install-lib install-data post-install release dist dist-release clean
 

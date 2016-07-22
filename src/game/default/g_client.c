@@ -423,7 +423,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	G_ClientObituary(self, attacker, mod);
 
 	if (g_level.warmup == false) {
-		if (g_level.gameplay == GAME_DEATHMATCH && mod != MOD_TRIGGER_HURT) {
+		if ((g_level.gameplay == GAME_DEATHMATCH || g_level.gameplay == GAME_DUEL) && mod != MOD_TRIGGER_HURT) {
 			G_TossWeapon(self);
 			G_TossQuadDamage(self);
 		}
