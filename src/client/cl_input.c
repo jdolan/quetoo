@@ -411,7 +411,13 @@ void Cl_HandleEvents(void) {
 		cls.mouse_state.grabbed = false;
 	}
 
-	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI || !m_grab->integer) {
+	if (cls.key_state.dest == KEY_UI || !m_grab->integer) {
+		if (cls.mouse_state.grabbed) {
+			SDL_ShowCursor(true);
+			SDL_SetWindowGrab(r_context.window, false);
+			cls.mouse_state.grabbed = false;
+		}
+	} else if (cls.key_state.dest == KEY_CONSOLE) {
 		if (!r_context.fullscreen) { // allow cursor to move outside window
 			if (cls.mouse_state.grabbed) {
 				SDL_ShowCursor(true);

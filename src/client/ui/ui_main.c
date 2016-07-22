@@ -63,6 +63,8 @@ void Ui_Draw(void) {
 
 	$(mainViewController, drawView, ui_context.renderer);
 
+	glFinish(); // <-- well fuck my ass
+
 	SDL_SetRenderTarget(ui_context.renderer, NULL);
 
 	SDL_GL_MakeCurrent(r_context.window, r_context.context);
@@ -77,9 +79,13 @@ void Ui_Init(void) {
 
 	memset(&ui_context, 0, sizeof(ui_context));
 
-	if ((ui_context.renderer = SDL_CreateRenderer(r_context.window, 0,
+	if ((ui_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
+		Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
+	}
+
+	if ((ui_context.renderer = SDL_CreateRenderer(r_context.window, -1,
 			SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE)) == NULL) {
-		Com_Error(ERR_FATAL, "Failed to create SDL Renderer: %s\n", SDL_GetError());
+		Com_Error(ERR_FATAL, "Failed to create SDL_Renderer: %s\n", SDL_GetError());
 	}
 
 	if ((ui_context.texture = SDL_CreateTexture(ui_context.renderer,
@@ -88,18 +94,14 @@ void Ui_Init(void) {
 		Com_Error(ERR_FATAL, "Failed to create SDL_Texture target: %s\n", SDL_GetError());
 	}
 
-	SDL_QueryTexture(ui_context.texture, NULL, NULL,
-			(int32_t *) &ui_context.image.width, (int32_t *) &ui_context.image.height);
+	ui_context.image.width = r_context.width;
+	ui_context.image.height = r_context.height;
 
 	SDL_GL_BindTexture(ui_context.texture, NULL, NULL);
 
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint *) &ui_context.image.texnum);
 
 	SDL_GL_UnbindTexture(ui_context.texture);
-
-	if ((ui_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
-		Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
-	}
 
 	SDL_GL_MakeCurrent(r_context.window, r_context.context);
 
