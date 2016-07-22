@@ -27,6 +27,7 @@
 #include <SDL2/SDL_render.h>
 
 #include "common.h"
+#include "renderer.h"
 
 #ifdef __UI_LOCAL_H__
 
@@ -46,9 +47,14 @@ typedef struct {
 	SDL_Renderer *renderer;
 
 	/**
-	 * @brief The renderer target.
+	 * @brief The SDL renderer target.
 	 */
 	SDL_Texture *texture;
+
+	/**
+	 * @brief An image container to blit the rendered texture.
+	 */
+	r_image_t image;
 
 } ui_context_t;
 

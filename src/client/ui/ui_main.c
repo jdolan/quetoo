@@ -67,7 +67,7 @@ void Ui_Draw(void) {
 
 	SDL_GL_MakeCurrent(r_context.window, r_context.context);
 
-//	SDL_RenderCopy(ui_context.renderer, ui_context.texture, NULL, NULL);
+	R_DrawImage(0, 0, 1.0, &ui_context.image);
 }
 
 /**
@@ -77,7 +77,7 @@ void Ui_Init(void) {
 
 	memset(&ui_context, 0, sizeof(ui_context));
 
-	if ((ui_context.renderer = SDL_CreateRenderer(r_context.window, -1,
+	if ((ui_context.renderer = SDL_CreateRenderer(r_context.window, 0,
 			SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to create SDL Renderer: %s\n", SDL_GetError());
 	}
@@ -87,6 +87,15 @@ void Ui_Init(void) {
 			r_context.width, r_context.height)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to create SDL_Texture target: %s\n", SDL_GetError());
 	}
+
+	SDL_QueryTexture(ui_context.texture, NULL, NULL,
+			(int32_t *) &ui_context.image.width, (int32_t *) &ui_context.image.height);
+
+	SDL_GL_BindTexture(ui_context.texture, NULL, NULL);
+
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint *) &ui_context.image.texnum);
+
+	SDL_GL_UnbindTexture(ui_context.texture);
 
 	if ((ui_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());

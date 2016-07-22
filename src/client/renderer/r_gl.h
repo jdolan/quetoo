@@ -69,9 +69,16 @@
 extern void (APIENTRY *qglActiveTexture)(GLenum texture);
 extern void (APIENTRY *qglClientActiveTexture)(GLenum texture);
 
+// frame buffer objects
+extern void (APIENTRY *qglGenFramebuffers)(GLuint count, GLuint *ids);
+extern void (APIENTRY *qglDeleteFramebuffers)(GLuint count, GLuint *ids);
+extern void (APIENTRY *qglBindFramebuffer)(GLenum target, GLuint id);
+extern void (APIENTRY *qglFramebufferTexture2D)(GLenum target, GLenum attachment, GLenum textarget,
+												GLuint texture, GLint level);
+
 // vertex buffer objects
-extern void (APIENTRY *qglGenBuffers)(GLuint count, GLuint *id);
-extern void (APIENTRY *qglDeleteBuffers)(GLuint count, GLuint *id);
+extern void (APIENTRY *qglGenBuffers)(GLuint count, GLuint *ids);
+extern void (APIENTRY *qglDeleteBuffers)(GLuint count, GLuint *ids);
 extern void (APIENTRY *qglBindBuffer)(GLenum target, GLuint id);
 extern void (APIENTRY *qglBufferData)(GLenum target, GLsizei size, const GLvoid *data, GLenum usage);
 
@@ -79,7 +86,7 @@ extern void (APIENTRY *qglBufferData)(GLenum target, GLsizei size, const GLvoid 
 extern void (APIENTRY *qglEnableVertexAttribArray)(GLuint index);
 extern void (APIENTRY *qglDisableVertexAttribArray)(GLuint index);
 extern void (APIENTRY *qglVertexAttribPointer)(GLuint index, GLint size, GLenum type,
-		GLboolean normalized, GLsizei stride, const GLvoid *pointer);
+											   GLboolean normalized, GLsizei stride, const GLvoid *pointer);
 
 // glsl vertex and fragment shaders and programs
 extern GLuint (APIENTRY *qglCreateShader)(GLenum type);
@@ -102,7 +109,7 @@ extern void (APIENTRY *qglUniform1f)(GLint location, GLfloat f);
 extern void (APIENTRY *qglUniform3fv)(GLint location, int32_t count, GLfloat *f);
 extern void (APIENTRY *qglUniform4fv)(GLint location, int32_t count, GLfloat *f);
 extern void (APIENTRY *qglUniformMatrix4fv)(GLint location, GLsizei count, GLboolean transpose,
-		const GLfloat *value);
+											const GLfloat *value);
 extern GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
 
 void R_EnforceGlVersion(void);
