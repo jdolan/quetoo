@@ -30,7 +30,7 @@ TwBar *Ui_Credits(void) {
 
 	TwAddButton(bar, "lead", NULL, NULL, "group='Project Lead' label=\"Jay 'jdolan' Dolan\"");
 
-	TwAddButton(bar, "dev0", NULL, NULL, "group='Programming' label=\"Joe 'claire' Reed\"");
+	TwAddButton(bar, "dev0", NULL, NULL, "group='Programming' label=\"Joe 'claire' Reid\"");
 	TwAddButton(bar, "dev2", NULL, NULL, "group='Programming' label=\"Michael 'WickedShell' du Breuil\"");
 	TwAddButton(bar, "dev1", NULL, NULL, "group='Programming' label=\"Stijn 'Ingar' Buys\"");
 	TwAddButton(bar, "dev3", NULL, NULL, "group='Programming' label=\"Marcel 'maci' Wysocki\"");
