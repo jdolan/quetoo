@@ -590,31 +590,43 @@ g_team_t *G_SmallestTeam(void) {
 	return g < e ? &g_team_good : &g_team_evil;
 }
 
+
+/**
+ * @brief
+ */
+g_entity_t *G_EntityByName(char *name) {
+        int32_t i, j, min;
+        g_client_t *cl; 
+	g_entity_t *ret;
+
+        if (!name)
+                return NULL;
+
+        ret = NULL;
+        min = 9999;
+
+        for (i = 0; i < sv_max_clients->integer; i++) {
+                if (!g_game.entities[i + 1].in_use)
+                        continue;
+
+                cl = g_game.entities[i + 1].client;
+                if ((j = g_strcmp0(name, cl->locals.persistent.net_name)) < min) {
+                        ret = &g_game.entities[i + 1];
+                        min = j;
+                }
+        }
+
+        return ret;
+}
+
+
 /**
  * @brief
  */
 g_client_t *G_ClientByName(char *name) {
-	int32_t i, j, min;
-	g_client_t *cl, *ret;
 
-	if (!name)
-		return NULL;
-
-	ret = NULL;
-	min = 9999;
-
-	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.entities[i + 1].in_use)
-			continue;
-
-		cl = g_game.entities[i + 1].client;
-		if ((j = g_strcmp0(name, cl->locals.persistent.net_name)) < min) {
-			ret = cl;
-			min = j;
-		}
-	}
-
-	return ret;
+	const g_entity_t *ent = G_EntityByName(name);
+	return ent->client;
 }
 
 /**
