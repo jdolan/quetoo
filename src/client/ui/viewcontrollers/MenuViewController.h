@@ -29,6 +29,8 @@
  * @brief The MenuViewController.
  */
 
+#define DEFAULT_MENU_STACKVIEW_SPACING 10
+
 typedef struct MenuViewController MenuViewController;
 typedef struct MenuViewControllerInterface MenuViewControllerInterface;
 
@@ -54,6 +56,11 @@ struct MenuViewController {
 	 * @private
 	 */
 	MenuViewControllerInterface *interface;
+
+	/**
+	 * @brief The Panel.
+	 */
+	Panel *panel;
 
 	/**
 	 * @brief The StackView

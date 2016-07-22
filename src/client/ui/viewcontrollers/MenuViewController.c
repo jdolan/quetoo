@@ -21,6 +21,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <assert.h>
+
 #include "MenuViewController.h"
 
 #define _Class _MenuViewController
@@ -30,6 +32,8 @@
 static void dealloc(Object *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
+
+	release(this->panel);
 
 	release(this->stackView);
 
@@ -45,23 +49,23 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	self->view->frame.w = 400;
-	self->view->frame.h = 300;
-	self->view->frame.x = 200;
-	self->view->frame.y = 100;
-	self->view->backgroundColor = Colors.DefaultColor;
-	self->view->backgroundColor.a = 192;
-	self->view->borderWidth = 1;
-
 	MenuViewController *this = (MenuViewController *) self;
 
-	this->stackView = $(alloc(StackView), initWithFrame, NULL);
-	this->stackView->view.autoresizingMask = ViewAutoresizingFill;
-	this->stackView->spacing = 10;
-	this->stackView->view.padding.top = this->stackView->view.padding.bottom = 10;
-	this->stackView->view.padding.left = this->stackView->view.padding.right = 10;
+	const SDL_Rect frame = { .w = 400, .h = 300 };
 
-	$(self->view, addSubview, (View *) this->stackView);
+	this->panel = $(alloc(Panel), initWithFrame, &frame);
+	assert(this->panel);
+
+	this->panel->view.alignment = ViewAlignmentMiddleCenter;
+
+	this->stackView = $(alloc(StackView), initWithFrame, NULL);
+	assert(this->stackView);
+
+	this->stackView->spacing = DEFAULT_MENU_STACKVIEW_SPACING;
+
+	$((View *) this->panel, addSubview, (View *) this->stackView);
+
+	$(self->view, addSubview, (View *) this->panel);
 }
 
 #pragma mark - Class lifecycle
