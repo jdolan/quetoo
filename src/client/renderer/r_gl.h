@@ -69,13 +69,6 @@
 extern void (APIENTRY *qglActiveTexture)(GLenum texture);
 extern void (APIENTRY *qglClientActiveTexture)(GLenum texture);
 
-// frame buffer objects
-extern void (APIENTRY *qglGenFramebuffers)(GLuint count, GLuint *ids);
-extern void (APIENTRY *qglDeleteFramebuffers)(GLuint count, GLuint *ids);
-extern void (APIENTRY *qglBindFramebuffer)(GLenum target, GLuint id);
-extern void (APIENTRY *qglFramebufferTexture2D)(GLenum target, GLenum attachment, GLenum textarget,
-												GLuint texture, GLint level);
-
 // vertex buffer objects
 extern void (APIENTRY *qglGenBuffers)(GLuint count, GLuint *ids);
 extern void (APIENTRY *qglDeleteBuffers)(GLuint count, GLuint *ids);

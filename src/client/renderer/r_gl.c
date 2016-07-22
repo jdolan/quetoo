@@ -24,12 +24,6 @@
 void (APIENTRY *qglActiveTexture)(GLenum texture);
 void (APIENTRY *qglClientActiveTexture)(GLenum texture);
 
-void (APIENTRY *qglGenFramebuffers)(GLuint count, GLuint *ids);
-void (APIENTRY *qglDeleteFramebuffers)(GLuint count, GLuint *ids);
-void (APIENTRY *qglBindFramebuffer)(GLenum target, GLuint id);
-void (APIENTRY *qglFramebufferTexture2D)(GLenum target, GLenum attachment, GLenum textarget,
-										 GLuint texture, GLint level);
-
 void (APIENTRY *qglGenBuffers)(GLuint count, GLuint *ids);
 void (APIENTRY *qglDeleteBuffers)(GLuint count, GLuint *ids);
 void (APIENTRY *qglBindBuffer)(GLenum target, GLuint id);
@@ -92,14 +86,6 @@ void R_InitGlExtensions(void) {
 		qglClientActiveTexture = SDL_GL_GetProcAddress("glClientActiveTexture");
 	} else
 		Com_Error(ERR_FATAL, "GL_ARB_multitexture not found\n");
-
-	if (strstr(r_config.extensions_string, "GL_ARB_framebuffer_object")) {
-		qglGenFramebuffers = SDL_GL_GetProcAddress("glGenFramebuffers");
-		qglDeleteFramebuffers = SDL_GL_GetProcAddress("glDeleteFramebuffers");
-		qglBindFramebuffer = SDL_GL_GetProcAddress("glBindFramebuffer");
-		qglFramebufferTexture2D = SDL_GL_GetProcAddress("glFramebufferTexture2D");
-	} else
-		Com_Error(ERR_FATAL, "GL_ARB_frame_buffer_object not found\n");
 
 	// vertex buffer objects
 	if (strstr(r_config.extensions_string, "GL_ARB_vertex_buffer_object")) {

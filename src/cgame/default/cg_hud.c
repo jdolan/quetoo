@@ -524,7 +524,8 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
 	if (center_print.time < cgi.client->systime)
 		return;
 
-	cgi.BindFont("small", &cw, &ch);
+	cgi.BindFont(NULL, &cw, &ch);
+
 	y = (cgi.context->height - center_print.num_lines * ch) / 2;
 
 	while (*line) {

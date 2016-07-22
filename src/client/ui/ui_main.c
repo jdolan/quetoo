@@ -22,8 +22,6 @@
 #include "ui_local.h"
 #include "client.h"
 
-ui_context_t ui_context;
-
 extern cl_static_t cls;
 
 static ViewController *mainViewController;
@@ -77,34 +75,6 @@ void Ui_Draw(void) {
  */
 void Ui_Init(void) {
 
-	memset(&ui_context, 0, sizeof(ui_context));
-
-	if ((ui_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
-		Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
-	}
-
-	if ((ui_context.renderer = SDL_CreateRenderer(r_context.window, -1,
-			SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE)) == NULL) {
-		Com_Error(ERR_FATAL, "Failed to create SDL_Renderer: %s\n", SDL_GetError());
-	}
-
-	if ((ui_context.texture = SDL_CreateTexture(ui_context.renderer,
-			SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
-			r_context.width, r_context.height)) == NULL) {
-		Com_Error(ERR_FATAL, "Failed to create SDL_Texture target: %s\n", SDL_GetError());
-	}
-
-	ui_context.image.width = r_context.width;
-	ui_context.image.height = r_context.height;
-
-	SDL_GL_BindTexture(ui_context.texture, NULL, NULL);
-
-	glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint *) &ui_context.image.texnum);
-
-	SDL_GL_UnbindTexture(ui_context.texture);
-
-	SDL_GL_MakeCurrent(r_context.window, r_context.context);
-
 	mainViewController = $((ViewController *) alloc(MainViewController), initRootViewController, r_context.window);
 }
 
@@ -113,20 +83,7 @@ void Ui_Init(void) {
  */
 void Ui_Shutdown(void) {
 
-	if (ui_context.texture) {
-		SDL_DestroyTexture(ui_context.texture);
-		ui_context.texture = NULL;
-	}
-
-	if (ui_context.renderer) {
-		SDL_DestroyRenderer(ui_context.renderer);
-		ui_context.renderer = NULL;
-	}
-
-	if (ui_context.context) {
-		SDL_GL_DeleteContext(ui_context.context);
-		ui_context.context = NULL;
-	}
+	Ui_ShutdownContext();
 
 	release(mainViewController);
 

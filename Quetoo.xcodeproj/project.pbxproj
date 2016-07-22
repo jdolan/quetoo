@@ -413,6 +413,8 @@
 		CEA029E91C5E558100341079 /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
 		CEA029EC1C5E558100341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA029F71C5E55C100341079 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6831C5C58C300CD0B13 /* main.c */; };
+		CEB5261D1D41CB020034AA0D /* ui_context.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB5261C1D41CB020034AA0D /* ui_context.h */; };
+		CEB5261E1D41CD070034AA0D /* ui_context.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB5261A1D41CABE0034AA0D /* ui_context.c */; };
 		CEC986941D3835420002B714 /* libmysqlclient.18.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC986931D3835420002B714 /* libmysqlclient.18.dylib */; };
 		CEDB4BB11D404D9D009921B6 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEDB4BB21D404E31009921B6 /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5BD5971D3EE25100C43B85 /* ui_main.c */; };
@@ -1093,6 +1095,8 @@
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEB5261A1D41CABE0034AA0D /* ui_context.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_context.c; sourceTree = "<group>"; };
+		CEB5261C1D41CB020034AA0D /* ui_context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_context.h; sourceTree = "<group>"; };
 		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = ../../../../opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<group>"; };
 		CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectivelyMVC.dylib"; sourceTree = "<group>"; };
 		CEDB4BB91D405F74009921B6 /* MenuViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MenuViewController.c; sourceTree = "<group>"; };
@@ -1792,6 +1796,8 @@
 				CEDB4BB71D405F5A009921B6 /* viewcontrollers */,
 				CEDB4BB81D405F5A009921B6 /* views */,
 				CE5BD5931D3EE1BF00C43B85 /* ui.h */,
+				CEB5261A1D41CABE0034AA0D /* ui_context.c */,
+				CEB5261C1D41CB020034AA0D /* ui_context.h */,
 				CE5BD5961D3EE22300C43B85 /* ui_local.h */,
 				CE5BD5971D3EE25100C43B85 /* ui_main.c */,
 				CE5BD5981D3EE25100C43B85 /* ui_main.h */,
@@ -2296,6 +2302,7 @@
 			files = (
 				CE80FE7A1C5E43AC00A21A51 /* zip.h in Headers */,
 				CE80FE791C5E43AC00A21A51 /* ioapi.h in Headers */,
+				CEB5261D1D41CB020034AA0D /* ui_context.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2995,7 +3002,6 @@
 				CE80FF401C5E473500A21A51 /* cl_server.c in Sources */,
 				CE80FF411C5E473500A21A51 /* cl_view.c in Sources */,
 				CE80FEE71C5E460B00A21A51 /* r_array.c in Sources */,
-				CEDB4BC01D40616C009921B6 /* MainViewController.c in Sources */,
 				CE80FEE81C5E460B00A21A51 /* r_bsp.c in Sources */,
 				CE80FEE91C5E460B00A21A51 /* r_bsp_light.c in Sources */,
 				CE80FEEA1C5E460B00A21A51 /* r_bsp_model.c in Sources */,
@@ -3003,7 +3009,6 @@
 				CE80FEEC1C5E460B00A21A51 /* r_context.c in Sources */,
 				CE80FEED1C5E460B00A21A51 /* r_corona.c in Sources */,
 				CE80FEEE1C5E460B00A21A51 /* r_draw.c in Sources */,
-				CEDB4BB21D404E31009921B6 /* ui_main.c in Sources */,
 				CE80FEEF1C5E460B00A21A51 /* r_element.c in Sources */,
 				CE80FEF01C5E460B00A21A51 /* r_entity.c in Sources */,
 				CE80FEF11C5E460B00A21A51 /* r_flare.c in Sources */,
@@ -3023,7 +3028,6 @@
 				CE80FEFF1C5E460B00A21A51 /* r_particle.c in Sources */,
 				CE80FF001C5E460B00A21A51 /* r_program.c in Sources */,
 				CE80FF011C5E460B00A21A51 /* r_program_default.c in Sources */,
-				CEDB4BBB1D405F74009921B6 /* MenuViewController.c in Sources */,
 				CE80FF021C5E460B00A21A51 /* r_program_shadow.c in Sources */,
 				CE80FF031C5E460B00A21A51 /* r_program_shell.c in Sources */,
 				CE80FF041C5E460B00A21A51 /* r_program_warp.c in Sources */,
@@ -3034,6 +3038,10 @@
 				CE80FF4D1C5E475600A21A51 /* s_mix.c in Sources */,
 				CE80FF4E1C5E475600A21A51 /* s_music.c in Sources */,
 				CE80FF4F1C5E475600A21A51 /* s_sample.c in Sources */,
+				CEB5261E1D41CD070034AA0D /* ui_context.c in Sources */,
+				CEDB4BB21D404E31009921B6 /* ui_main.c in Sources */,
+				CEDB4BC01D40616C009921B6 /* MainViewController.c in Sources */,
+				CEDB4BBB1D405F74009921B6 /* MenuViewController.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

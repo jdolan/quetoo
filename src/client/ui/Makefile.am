@@ -1,5 +1,6 @@
 noinst_HEADERS = \
 	ui.h \
+	ui_context.h \
 	ui_local.h \
 	ui_main.h \
 	\
@@ -10,6 +11,7 @@ noinst_LTLIBRARIES = \
 	libui.la
 
 libui_la_SOURCES = \
+	ui_context.c \
 	ui_main.c \
 	\
 	viewcontrollers/MainViewController.c \
