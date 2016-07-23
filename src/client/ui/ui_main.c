@@ -20,6 +20,11 @@
  */
 
 #include "ui_local.h"
+
+#include "viewcontrollers/ControlsViewController.h"
+#include "viewcontrollers/MainViewController.h"
+#include "viewcontrollers/MenuViewController.h"
+
 #include "client.h"
 
 extern cl_static_t cls;
@@ -84,7 +89,7 @@ void Ui_Draw(void) {
  */
 void Ui_Init(void) {
 
-	mainViewController = $((ViewController *) alloc(MainViewController), initRootViewController, r_context.window);
+	mainViewController = $((ViewController *) alloc(ControlsViewController), initRootViewController, r_context.window);
 }
 
 /**

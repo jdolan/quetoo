@@ -305,7 +305,7 @@ const char *Cl_KeyName(SDL_Scancode key) {
 /**
  * @brief Returns the number for the specified key name.
  */
-SDL_Scancode Cl_Key(const char *name) {
+SDL_Scancode Cl_KeyForName(const char *name) {
 
 	if (!name || !name[0]) {
 		return SDL_NUM_SCANCODES;
@@ -322,9 +322,23 @@ SDL_Scancode Cl_Key(const char *name) {
 }
 
 /**
+ * @brief Returns the key bound to the given command.
+ */
+SDL_Scancode Cl_KeyForBind(const char *binding) {
+
+	for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
+		if (g_strcmp0(binding, cls.key_state.binds[k]) == 0) {
+			return k;
+		}
+	}
+
+	return SDL_SCANCODE_UNKNOWN;
+}
+
+/**
  * @brief Binds the specified key to the given command.
  */
-void Cl_Bind(SDL_Scancode key, const char *binding) {
+void Cl_Bind(SDL_Scancode key, const char *bind) {
 
 	if (key == SDL_SCANCODE_UNKNOWN || key >= SDL_NUM_SCANCODES)
 		return;
@@ -335,13 +349,14 @@ void Cl_Bind(SDL_Scancode key, const char *binding) {
 		cls.key_state.binds[key] = NULL;
 	}
 
-	if (!binding)
+	if (!bind)
 		return;
 
 	// allocate for new binding and copy it in
-	cls.key_state.binds[key] = Mem_TagMalloc(strlen(binding) + 1, MEM_TAG_CLIENT);
-	strcpy(cls.key_state.binds[key], binding);
+	cls.key_state.binds[key] = Mem_TagMalloc(strlen(bind) + 1, MEM_TAG_CLIENT);
+	strcpy(cls.key_state.binds[key], bind);
 }
+
 
 /**
  * @brief
@@ -353,7 +368,7 @@ static void Cl_Unbind_f(void) {
 		return;
 	}
 
-	const SDL_Scancode k = Cl_Key(Cmd_Argv(1));
+	const SDL_Scancode k = Cl_KeyForName(Cmd_Argv(1));
 
 	if (k == SDL_NUM_SCANCODES) {
 		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
@@ -387,7 +402,7 @@ static void Cl_Bind_f(void) {
 		return;
 	}
 
-	const SDL_Scancode k = Cl_Key(Cmd_Argv(1));
+	const SDL_Scancode k = Cl_KeyForName(Cmd_Argv(1));
 
 	if (k == SDL_NUM_SCANCODES) {
 		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));

@@ -23,6 +23,8 @@
 
 #include <ObjectivelyMVC.h>
 
+#include "common.h"
+
 /**
  * @file
  *
@@ -77,17 +79,6 @@ struct MenuViewControllerInterface {
 	 * @brief The parent interface.
 	 */
 	ViewControllerInterface viewControllerInterface;
-	
-	/**
-	 * @fn MenuViewController *MenuViewController::init(MenuViewController *self)
-	 *
-	 * @brief Initializes this MenuViewController.
-	 *
-	 * @return The initialized MenuViewController, or `NULL` on error.
-	 *
-	 * @memberof MenuViewController
-	 */
-	MenuViewController *(*init)(MenuViewController *self);	
 };
 
 /**

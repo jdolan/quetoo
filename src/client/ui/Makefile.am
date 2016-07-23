@@ -5,7 +5,9 @@ noinst_HEADERS = \
 	ui_main.h \
 	\
 	viewcontrollers/MainViewController.h \
-	viewcontrollers/MenuViewController.h
+	viewcontrollers/MenuViewController.h \
+	\
+	views/BindInput.h
 
 noinst_LTLIBRARIES = \
 	libui.la
@@ -14,8 +16,11 @@ libui_la_SOURCES = \
 	ui_context.c \
 	ui_main.c \
 	\
+	viewcontrollers/ControlsViewController.c \
 	viewcontrollers/MainViewController.c \
-	viewcontrollers/MenuViewController.c
+	viewcontrollers/MenuViewController.c \
+	\
+	views/BindInput.c
 
 libui_la_CFLAGS = \
 	-I.. -I../.. \

@@ -422,6 +422,10 @@
 		CEDB4BBC1D405F74009921B6 /* MenuViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDB4BBA1D405F74009921B6 /* MenuViewController.h */; };
 		CEDB4BC01D40616C009921B6 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEDB4BBE1D40616C009921B6 /* MainViewController.c */; };
 		CEDB4BC11D40616C009921B6 /* MainViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDB4BBF1D40616C009921B6 /* MainViewController.h */; };
+		CEF1D8981D43DC7D0099A857 /* ControlsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8961D43DC7D0099A857 /* ControlsViewController.c */; };
+		CEF1D8991D43DC7D0099A857 /* ControlsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */; };
+		CEF1D89C1D43E28E0099A857 /* BindInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D89A1D43E28E0099A857 /* BindInput.c */; };
+		CEF1D89D1D43E28E0099A857 /* BindInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D89B1D43E28E0099A857 /* BindInput.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1103,6 +1107,10 @@
 		CEDB4BBA1D405F74009921B6 /* MenuViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MenuViewController.h; sourceTree = "<group>"; };
 		CEDB4BBE1D40616C009921B6 /* MainViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MainViewController.c; sourceTree = "<group>"; };
 		CEDB4BBF1D40616C009921B6 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
+		CEF1D8961D43DC7D0099A857 /* ControlsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ControlsViewController.c; sourceTree = "<group>"; };
+		CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControlsViewController.h; sourceTree = "<group>"; };
+		CEF1D89A1D43E28E0099A857 /* BindInput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = BindInput.c; sourceTree = "<group>"; };
+		CEF1D89B1D43E28E0099A857 /* BindInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BindInput.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2220,6 +2228,8 @@
 		CEDB4BB71D405F5A009921B6 /* viewcontrollers */ = {
 			isa = PBXGroup;
 			children = (
+				CEF1D8961D43DC7D0099A857 /* ControlsViewController.c */,
+				CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */,
 				CEDB4BBE1D40616C009921B6 /* MainViewController.c */,
 				CEDB4BBF1D40616C009921B6 /* MainViewController.h */,
 				CEDB4BB91D405F74009921B6 /* MenuViewController.c */,
@@ -2231,6 +2241,8 @@
 		CEDB4BB81D405F5A009921B6 /* views */ = {
 			isa = PBXGroup;
 			children = (
+				CEF1D89A1D43E28E0099A857 /* BindInput.c */,
+				CEF1D89B1D43E28E0099A857 /* BindInput.h */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -2427,9 +2439,11 @@
 				CE80FF201C5E462100A21A51 /* r_particle.h in Headers */,
 				CE80FF211C5E462200A21A51 /* r_program.h in Headers */,
 				CE80FF221C5E462200A21A51 /* r_program_default.h in Headers */,
+				CEF1D8991D43DC7D0099A857 /* ControlsViewController.h in Headers */,
 				CE80FF231C5E462200A21A51 /* r_program_shadow.h in Headers */,
 				CE80FF241C5E462200A21A51 /* r_program_shell.h in Headers */,
 				CE80FF251C5E462200A21A51 /* r_program_warp.h in Headers */,
+				CEF1D89D1D43E28E0099A857 /* BindInput.h in Headers */,
 				CE80FF261C5E462200A21A51 /* r_sky.h in Headers */,
 				CE80FF271C5E462200A21A51 /* r_state.h in Headers */,
 				CE80FF281C5E462200A21A51 /* r_types.h in Headers */,
@@ -2989,6 +3003,7 @@
 				CE80FF321C5E473500A21A51 /* cl_cmd.c in Sources */,
 				CE80FF331C5E473500A21A51 /* cl_console.c in Sources */,
 				CE80FF341C5E473500A21A51 /* cl_demo.c in Sources */,
+				CEF1D8981D43DC7D0099A857 /* ControlsViewController.c in Sources */,
 				CE80FF351C5E473500A21A51 /* cl_entity.c in Sources */,
 				CE80FF361C5E473500A21A51 /* cl_http.c in Sources */,
 				CE80FF371C5E473500A21A51 /* cl_input.c in Sources */,
@@ -3020,6 +3035,7 @@
 				CE80FEF71C5E460B00A21A51 /* r_main.c in Sources */,
 				CE80FEF81C5E460B00A21A51 /* r_material.c in Sources */,
 				CE80FEF91C5E460B00A21A51 /* r_media.c in Sources */,
+				CEF1D89C1D43E28E0099A857 /* BindInput.c in Sources */,
 				CE80FEFA1C5E460B00A21A51 /* r_mesh.c in Sources */,
 				CE80FEFB1C5E460B00A21A51 /* r_mesh_model.c in Sources */,
 				CE80FEFC1C5E460B00A21A51 /* r_mesh_shadow.c in Sources */,
