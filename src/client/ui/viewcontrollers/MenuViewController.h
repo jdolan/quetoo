@@ -41,7 +41,7 @@ typedef struct MenuViewControllerInterface MenuViewControllerInterface;
  *
  * @extends ViewController
  *
- * @ingroup
+ * @ingroup ViewControllers
  */
 struct MenuViewController {
 	

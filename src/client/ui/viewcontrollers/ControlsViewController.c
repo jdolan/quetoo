@@ -56,34 +56,104 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	addBindInput(this->stackView, "+forward", "Forward");
-	addBindInput(this->stackView, "+back", "Back");
-	addBindInput(this->stackView, "+move_left", "Move left");
-	addBindInput(this->stackView, "+move_right", "Move right");
-	addBindInput(this->stackView, "+left", "Turn left");
-	addBindInput(this->stackView, "+right", "Turn right");
-	addBindInput(this->stackView, "+move_up", "Jump");
-	addBindInput(this->stackView, "+move_down", "Crouch");
-	addBindInput(this->stackView, "+speed", "Run / walk");
+	this->stackView->axis = StackViewAxisHorizontal;
 
-	addBindInput(this->stackView, "+attack", "Attack");
-	addBindInput(this->stackView, "weapon_next", "Next weapon");
-	addBindInput(this->stackView, "weapon_previous", "Previous weapon");
-	addBindInput(this->stackView, "+ZOOM", "Zoom");
+	StackView *leftColumn = $(alloc(StackView), initWithFrame, NULL);
+	leftColumn->spacing = DEFAULT_MENU_STACKVIEW_SPACING;
 
-	addBindInput(this->stackView, "use blaster", "Blaster");
-	addBindInput(this->stackView, "use shotgun", "Shotgun");
-	addBindInput(this->stackView, "use super shotgun", "Super shotgun");
-	addBindInput(this->stackView, "use machinegun", "Machinegun");
-	addBindInput(this->stackView, "use grenades", "Hand grenades");
-	addBindInput(this->stackView, "use grenade launcher", "Grenade launcher");
-	addBindInput(this->stackView, "use rocket launcher", "Rocket launcher");
-	addBindInput(this->stackView, "use hyperblaster", "Hyperblaster");
-	addBindInput(this->stackView, "use lightning", "Lightning");
-	addBindInput(this->stackView, "use railgun", "Railgun");
-	addBindInput(this->stackView, "use bfg10k", "BFG-10K");
+	StackView *rightColumn = $(alloc(StackView), initWithFrame, NULL);
+	rightColumn->spacing = DEFAULT_MENU_STACKVIEW_SPACING;
+
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Movement");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		addBindInput(stackView, "+forward", "Forward");
+		addBindInput(stackView, "+back", "Back");
+		addBindInput(stackView, "+move_left", "Move left");
+		addBindInput(stackView, "+move_right", "Move right");
+		addBindInput(stackView, "+left", "Turn left");
+		addBindInput(stackView, "+right", "Turn right");
+		addBindInput(stackView, "+move_up", "Jump");
+		addBindInput(stackView, "+move_down", "Crouch");
+		addBindInput(stackView, "+speed", "Run / walk");
+
+		$((View *) stackView, sizeToFit);
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
+
+		$((View *) box, sizeToFit);
+
+		$((View *) leftColumn, addSubview, (View *) box);
+		release(box);
+	}
+
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Aim");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		$((View *) stackView, sizeToFit);
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
+
+		$((View *) box, sizeToFit);
+
+		$((View *) rightColumn, addSubview, (View *) box);
+		release(box);
+	}
+
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		$(box->label, setText, "Weapons");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		addBindInput(stackView, "+attack", "Attack");
+		addBindInput(stackView, "weapon_next", "Next weapon");
+		addBindInput(stackView, "weapon_previous", "Previous weapon");
+		addBindInput(stackView, "+ZOOM", "Zoom");
+
+		addBindInput(stackView, "use blaster", "Blaster");
+		addBindInput(stackView, "use shotgun", "Shotgun");
+		addBindInput(stackView, "use super shotgun", "Super shotgun");
+		addBindInput(stackView, "use machinegun", "Machinegun");
+		addBindInput(stackView, "use grenades", "Hand grenades");
+		addBindInput(stackView, "use grenade launcher", "Grenade launcher");
+		addBindInput(stackView, "use rocket launcher", "Rocket launcher");
+		addBindInput(stackView, "use hyperblaster", "Hyperblaster");
+		addBindInput(stackView, "use lightning", "Lightning");
+		addBindInput(stackView, "use railgun", "Railgun");
+		addBindInput(stackView, "use bfg10k", "BFG-10K");
+
+		$((View *) stackView, sizeToFit);
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
+
+		$((View *) box, sizeToFit);
+
+		$((View *) rightColumn, addSubview, (View *) box);
+		release(box);
+	}
+
+	$((View *) leftColumn, sizeToFit);
+
+	$((View *) this->stackView, addSubview, (View *) leftColumn);
+	release(leftColumn);
+
+	$((View *) rightColumn, sizeToFit);
+
+	$((View *) this->stackView, addSubview, (View *) rightColumn);
+	release(rightColumn);
 
 	$((View *) this->stackView, sizeToFit);
+	$((View *) this->panel, sizeToFit);
 }
 
 #pragma mark - Class lifecycle

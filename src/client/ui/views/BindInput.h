@@ -42,7 +42,7 @@ typedef struct BindInputInterface BindInputInterface;
  *
  * @extends Input
  *
- * @ingroup
+ * @ingroup Containers
  */
 struct BindInput {
 	

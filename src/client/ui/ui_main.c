@@ -80,7 +80,6 @@ void Ui_Draw(void) {
 
 	SDL_GL_MakeCurrent(r_context.window, r_context.context);
 
-
 	R_DrawImage(0, 0, 1.0, &ui_context.image);
 }
 

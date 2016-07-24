@@ -76,7 +76,7 @@ static void loadView(ViewController *self) {
 static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
-	
+
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 

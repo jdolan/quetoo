@@ -93,11 +93,11 @@ static BindInput *initWithBind(BindInput *self, const char *bind, const char *na
 	self = (BindInput *) super(Input, self, initWithOrientation, InputOrientationLeft, (Control *) textView, label);
 	if (self) {
 
-		assert(bind);
-		assert(name);
-
 		self->bind = bind;
+		assert(self->bind);
+
 		self->name = name;
+		assert(self->name);
 
 		SDL_Scancode key = Cl_KeyForBind(bind);
 		if (key != SDL_SCANCODE_UNKNOWN) {
@@ -133,4 +133,3 @@ Class _BindInput = {
 };
 
 #undef _Class
-

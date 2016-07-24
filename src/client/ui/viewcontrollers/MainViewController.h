@@ -39,7 +39,7 @@ typedef struct MainViewControllerInterface MainViewControllerInterface;
  *
  * @extends MenuViewController
  *
- * @ingroup
+ * @ingroup ViewControllers
  */
 struct MainViewController {
 	
