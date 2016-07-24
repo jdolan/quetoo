@@ -31,18 +31,18 @@
  * @brief An Input exposing a cvar_t with a Checkbox.
  */
 
-#define VARIABLE_CHECKBOX_INPUT_LABEL_WIDTH 120
-#define VARIABLE_CHECKBOX_INPUT_CONTROL_WIDTH 20
+#define CVAR_CHECKBOX_INPUT_LABEL_WIDTH 120
+#define CVAR_CHECKBOX_INPUT_CONTROL_WIDTH 20
 
-typedef struct VariableCheckboxInput VariableCheckboxInput;
-typedef struct VariableCheckboxInputInterface VariableCheckboxInputInterface;
+typedef struct CvarCheckboxInput CvarCheckboxInput;
+typedef struct CvarCheckboxInputInterface CvarCheckboxInputInterface;
 
 /**
- * @brief The VariableCheckboxInput type.
+ * @brief The CvarCheckboxInput type.
  *
  * @extends Input
  */
-struct VariableCheckboxInput {
+struct CvarCheckboxInput {
 	
 	/**
 	 * @brief The parent.
@@ -56,12 +56,7 @@ struct VariableCheckboxInput {
 	 *
 	 * @private
 	 */
-	VariableCheckboxInputInterface *interface;
-
-	/**
-	 * @brief The variable name (e.g. `Invert mouse`).
-	 */
-	const char *name;
+	CvarCheckboxInputInterface *interface;
 
 	/**
 	 * @brief The variable.
@@ -70,9 +65,9 @@ struct VariableCheckboxInput {
 };
 
 /**
- * @brief The VariableCheckboxInput interface.
+ * @brief The CvarCheckboxInput interface.
  */
-struct VariableCheckboxInputInterface {
+struct CvarCheckboxInputInterface {
 	
 	/**
 	 * @brief The parent interface.
@@ -80,22 +75,37 @@ struct VariableCheckboxInputInterface {
 	InputInterface inputInterface;
 	
 	/**
-	 * @fn VariableCheckboxInput *VariableCheckboxInput::initWithVariable(VariableCheckboxInput *self, cvar_t *var, const char *name)
+	 * @fn CvarCheckboxInput *CvarCheckboxInput::initWithVariable(CvarCheckboxInput *self, cvar_t *var, const char *name)
 	 *
-	 * @brief Initializes this VariableCheckboxInput with the given variable.
+	 * @brief Initializes this Input with the given variable.
 	 *
 	 * @param var The variable.
 	 * @param name The variable name (e.g. `Invert mouse`).
 	 *
-	 * @return The initialized VariableCheckboxInput, or `NULL` on error.
+	 * @return The initialized CvarCheckboxInput, or `NULL` on error.
 	 *
-	 * @memberof VariableCheckboxInput
+	 * @memberof CvarCheckboxInput
 	 */
-	VariableCheckboxInput *(*initWithVariable)(VariableCheckboxInput *self, cvar_t *var, const char *name);
+	CvarCheckboxInput *(*initWithVariable)(CvarCheckboxInput *self, cvar_t *var, const char *name);
+
+	/**
+	 * @fn void CvarCheckboxInput::input(View *view, cvar_t *var, const char *name)
+	 *
+	 * @brief Creates and appends a new Input in the specified View.
+	 *
+	 * @param view The View to which to append the new input.
+	 * @param var The variable.
+	 * @param name The variable name (e.g. `Invert mouse`).
+	 *
+	 * @memberof CvarCheckboxInput
+	 *
+	 * @static
+	 */
+	void (*input)(View *view, cvar_t *var, const char *name);
 };
 
 /**
- * @brief The VariableCheckboxInput Class.
+ * @brief The CvarCheckboxInput Class.
  */
-extern Class _VariableCheckboxInput;
+extern Class _CvarCheckboxInput;
 

@@ -23,40 +23,37 @@
 
 #include <ObjectivelyMVC/Checkbox.h>
 
-#include "VariableCheckboxInput.h"
+#include "CvarCheckboxInput.h"
 
-#define _Class _VariableCheckboxInput
+#define _Class _CvarCheckboxInput
 
-#pragma mark - VariableCheckboxInput
+#pragma mark - CvarCheckboxInput
 
 /**
  * @brief ActionFunction for the Checkbox.
  */
 static void checkboxAction(Control *control, const SDL_Event *event, ident data) {
 
-	const VariableCheckboxInput *this = (VariableCheckboxInput *) data;
+	const CvarCheckboxInput *this = (CvarCheckboxInput *) data;
 
 	Cvar_SetValue(this->var->name, control->state & ControlStateSelected);
 }
 
 /**
- * @fn VariableCheckboxInput *VariableCheckboxInput::initWithVariable(VariableCheckboxInput *self, cvar_t *var, const char *name)
+ * @fn CvarCheckboxInput *CvarCheckboxInput::initWithVariable(CvarCheckboxInput *self, cvar_t *var, const char *name)
  *
  *
- * @memberof VariableCheckboxInput
+ * @memberof CvarCheckboxInput
  */
-static VariableCheckboxInput *initWithVariable(VariableCheckboxInput *self, cvar_t *var, const char *name) {
+static CvarCheckboxInput *initWithVariable(CvarCheckboxInput *self, cvar_t *var, const char *name) {
 	
 	Control *control = (Control *) $(alloc(Checkbox), initWithFrame, NULL, ControlStyleDefault);
 
 	Label *label = $(alloc(Label), initWithText, name, NULL);
-	label->view.frame.w = VARIABLE_CHECKBOX_INPUT_LABEL_WIDTH;
+	label->view.frame.w = CVAR_CHECKBOX_INPUT_LABEL_WIDTH;
 
-	self = (VariableCheckboxInput *) super(Input, self, initWithOrientation, InputOrientationLeft, control, label);
+	self = (CvarCheckboxInput *) super(Input, self, initWithOrientation, InputOrientationLeft, control, label);
 	if (self) {
-
-		self->name = name;
-		assert(self->name);
 
 		self->var = var;
 		assert(self->var);
@@ -69,6 +66,22 @@ static VariableCheckboxInput *initWithVariable(VariableCheckboxInput *self, cvar
 	return self;
 }
 
+/**
+ * @fn void CvarCheckboxInput::input(View *view, cvar_t *var, const char *name)
+ *
+ * @memberof CvarCheckboxInput
+ */
+static void input(View *view, cvar_t *var, const char *name) {
+
+	assert(view);
+	
+	CvarCheckboxInput *input = $(alloc(CvarCheckboxInput), initWithVariable, var, name);
+	assert(input);
+
+	$(view, addSubview, (View *) input);
+	release(input);
+}
+
 #pragma mark - Class lifecycle
 
 /**
@@ -76,15 +89,17 @@ static VariableCheckboxInput *initWithVariable(VariableCheckboxInput *self, cvar
  */
 static void initialize(Class *clazz) {
 
-	((VariableCheckboxInputInterface *) clazz->interface)->initWithVariable = initWithVariable;
+	((CvarCheckboxInputInterface *) clazz->interface)->initWithVariable = initWithVariable;
+
+	((CvarCheckboxInputInterface *) clazz->interface)->input = input;
 }
 
-Class _VariableCheckboxInput = {
-	.name = "VariableCheckboxInput",
+Class _CvarCheckboxInput = {
+	.name = "CvarCheckboxInput",
 	.superclass = &_Input,
-	.instanceSize = sizeof(VariableCheckboxInput),
-	.interfaceOffset = offsetof(VariableCheckboxInput, interface),
-	.interfaceSize = sizeof(VariableCheckboxInputInterface),
+	.instanceSize = sizeof(CvarCheckboxInput),
+	.interfaceOffset = offsetof(CvarCheckboxInput, interface),
+	.interfaceSize = sizeof(CvarCheckboxInputInterface),
 	.initialize = initialize,
 };
 

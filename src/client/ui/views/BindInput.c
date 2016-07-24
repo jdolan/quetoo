@@ -82,31 +82,44 @@ static void respondToEvent(View *self, const SDL_Event *event) {
  */
 static BindInput *initWithBind(BindInput *self, const char *bind, const char *name) {
 
-	TextView *textView = $(alloc(TextView), initWithFrame, NULL, ControlStyleDefault);
-	textView->control.view.frame.w = BIND_INPUT_CONTROL_WIDTH;
+	Control *control = (Control *) $(alloc(TextView), initWithFrame, NULL, ControlStyleDefault);
+	control->view.frame.w = BIND_INPUT_CONTROL_WIDTH;
 
 	Label *label = $(alloc(Label), initWithText, name, NULL);
 	label->view.frame.w = BIND_INPUT_LABEL_WIDTH;
 
-	self = (BindInput *) super(Input, self, initWithOrientation, InputOrientationLeft, (Control *) textView, label);
+	self = (BindInput *) super(Input, self, initWithOrientation, InputOrientationLeft, control, label);
 	if (self) {
 
 		self->bind = bind;
 		assert(self->bind);
 
-		self->name = name;
-		assert(self->name);
-
 		SDL_Scancode key = Cl_KeyForBind(bind);
 		if (key != SDL_SCANCODE_UNKNOWN) {
-			textView->defaultText = Cl_KeyName(key);
+			((TextView *) control)->defaultText = Cl_KeyName(key);
 		}
 	}
 
-	release(textView);
+	release(control);
 	release(label);
 	
 	return self;
+}
+
+/**
+ * @fn void BindInput::input(View *view, const char *bind, const char *name)
+ *
+ * @memberof BindInput
+ */
+static void input(View *view, const char *bind, const char *name) {
+
+	assert(view);
+
+	BindInput *input = $(alloc(BindInput), initWithBind, bind, name);
+	assert(input);
+
+	$(view, addSubview, (View *) input);
+	release(input);
 }
 
 #pragma mark - Class lifecycle
@@ -119,6 +132,8 @@ static void initialize(Class *clazz) {
 	((ViewInterface *) clazz->interface)->respondToEvent = respondToEvent;
 
 	((BindInputInterface *) clazz->interface)->initWithBind = initWithBind;
+
+	((BindInputInterface *) clazz->interface)->input = input;
 }
 
 Class _BindInput = {
@@ -131,3 +146,4 @@ Class _BindInput = {
 };
 
 #undef _Class
+

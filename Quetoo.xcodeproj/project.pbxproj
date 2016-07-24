@@ -426,10 +426,10 @@
 		CEF1D8991D43DC7D0099A857 /* ControlsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */; };
 		CEF1D89C1D43E28E0099A857 /* BindInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D89A1D43E28E0099A857 /* BindInput.c */; };
 		CEF1D89D1D43E28E0099A857 /* BindInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D89B1D43E28E0099A857 /* BindInput.h */; };
-		CEF1D8A41D4521600099A857 /* VariableSliderInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8A21D4521600099A857 /* VariableSliderInput.c */; };
-		CEF1D8A51D4521600099A857 /* VariableSliderInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8A31D4521600099A857 /* VariableSliderInput.h */; };
-		CEF1D8A81D45673D0099A857 /* VariableCheckboxInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8A61D45673D0099A857 /* VariableCheckboxInput.c */; };
-		CEF1D8A91D45673D0099A857 /* VariableCheckboxInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8A71D45673D0099A857 /* VariableCheckboxInput.h */; };
+		CEF1D8A41D4521600099A857 /* CvarSliderInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8A21D4521600099A857 /* CvarSliderInput.c */; };
+		CEF1D8A51D4521600099A857 /* CvarSliderInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8A31D4521600099A857 /* CvarSliderInput.h */; };
+		CEF1D8A81D45673D0099A857 /* CvarCheckboxInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8A61D45673D0099A857 /* CvarCheckboxInput.c */; };
+		CEF1D8A91D45673D0099A857 /* CvarCheckboxInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8A71D45673D0099A857 /* CvarCheckboxInput.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1115,10 +1115,10 @@
 		CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControlsViewController.h; sourceTree = "<group>"; };
 		CEF1D89A1D43E28E0099A857 /* BindInput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = BindInput.c; sourceTree = "<group>"; };
 		CEF1D89B1D43E28E0099A857 /* BindInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BindInput.h; sourceTree = "<group>"; };
-		CEF1D8A21D4521600099A857 /* VariableSliderInput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VariableSliderInput.c; sourceTree = "<group>"; };
-		CEF1D8A31D4521600099A857 /* VariableSliderInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VariableSliderInput.h; sourceTree = "<group>"; };
-		CEF1D8A61D45673D0099A857 /* VariableCheckboxInput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VariableCheckboxInput.c; sourceTree = "<group>"; };
-		CEF1D8A71D45673D0099A857 /* VariableCheckboxInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VariableCheckboxInput.h; sourceTree = "<group>"; };
+		CEF1D8A21D4521600099A857 /* CvarSliderInput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CvarSliderInput.c; sourceTree = "<group>"; };
+		CEF1D8A31D4521600099A857 /* CvarSliderInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CvarSliderInput.h; sourceTree = "<group>"; };
+		CEF1D8A61D45673D0099A857 /* CvarCheckboxInput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CvarCheckboxInput.c; sourceTree = "<group>"; };
+		CEF1D8A71D45673D0099A857 /* CvarCheckboxInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CvarCheckboxInput.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2251,10 +2251,10 @@
 			children = (
 				CEF1D89A1D43E28E0099A857 /* BindInput.c */,
 				CEF1D89B1D43E28E0099A857 /* BindInput.h */,
-				CEF1D8A61D45673D0099A857 /* VariableCheckboxInput.c */,
-				CEF1D8A71D45673D0099A857 /* VariableCheckboxInput.h */,
-				CEF1D8A21D4521600099A857 /* VariableSliderInput.c */,
-				CEF1D8A31D4521600099A857 /* VariableSliderInput.h */,
+				CEF1D8A61D45673D0099A857 /* CvarCheckboxInput.c */,
+				CEF1D8A71D45673D0099A857 /* CvarCheckboxInput.h */,
+				CEF1D8A21D4521600099A857 /* CvarSliderInput.c */,
+				CEF1D8A31D4521600099A857 /* CvarSliderInput.h */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -2435,7 +2435,7 @@
 				CE80FF101C5E462100A21A51 /* r_entity.h in Headers */,
 				CE80FF111C5E462100A21A51 /* r_flare.h in Headers */,
 				CE80FF121C5E462100A21A51 /* r_gl.h in Headers */,
-				CEF1D8A91D45673D0099A857 /* VariableCheckboxInput.h in Headers */,
+				CEF1D8A91D45673D0099A857 /* CvarCheckboxInput.h in Headers */,
 				CE80FF131C5E462100A21A51 /* r_image.h in Headers */,
 				CE80FF141C5E462100A21A51 /* r_light.h in Headers */,
 				CE80FF151C5E462100A21A51 /* r_lighting.h in Headers */,
@@ -2460,7 +2460,7 @@
 				CE80FF261C5E462200A21A51 /* r_sky.h in Headers */,
 				CE80FF271C5E462200A21A51 /* r_state.h in Headers */,
 				CE80FF281C5E462200A21A51 /* r_types.h in Headers */,
-				CEF1D8A51D4521600099A857 /* VariableSliderInput.h in Headers */,
+				CEF1D8A51D4521600099A857 /* CvarSliderInput.h in Headers */,
 				CE80FF291C5E462200A21A51 /* renderer.h in Headers */,
 				CE80FFA01C5E4A0100A21A51 /* s_local.h in Headers */,
 				CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */,
@@ -3033,7 +3033,7 @@
 				CE80FEE71C5E460B00A21A51 /* r_array.c in Sources */,
 				CE80FEE81C5E460B00A21A51 /* r_bsp.c in Sources */,
 				CE80FEE91C5E460B00A21A51 /* r_bsp_light.c in Sources */,
-				CEF1D8A81D45673D0099A857 /* VariableCheckboxInput.c in Sources */,
+				CEF1D8A81D45673D0099A857 /* CvarCheckboxInput.c in Sources */,
 				CE80FEEA1C5E460B00A21A51 /* r_bsp_model.c in Sources */,
 				CE80FEEB1C5E460B00A21A51 /* r_bsp_surface.c in Sources */,
 				CE80FEEC1C5E460B00A21A51 /* r_context.c in Sources */,
@@ -3045,7 +3045,7 @@
 				CE80FEF21C5E460B00A21A51 /* r_gl.c in Sources */,
 				CE80FEF31C5E460B00A21A51 /* r_image.c in Sources */,
 				CE80FEF41C5E460B00A21A51 /* r_light.c in Sources */,
-				CEF1D8A41D4521600099A857 /* VariableSliderInput.c in Sources */,
+				CEF1D8A41D4521600099A857 /* CvarSliderInput.c in Sources */,
 				CE80FEF51C5E460B00A21A51 /* r_lighting.c in Sources */,
 				CE80FEF61C5E460B00A21A51 /* r_lightmap.c in Sources */,
 				CE80FEF71C5E460B00A21A51 /* r_main.c in Sources */,

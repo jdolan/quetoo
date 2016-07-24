@@ -24,15 +24,15 @@
 #include <ObjectivelyMVC/Input.h>
 #include <ObjectivelyMVC/Slider.h>
 
-#include "VariableSliderInput.h"
+#include "CvarSliderInput.h"
 
-#define _Class _VariableSliderInput
+#define _Class _CvarSliderInput
 
 #pragma mark - Object
 
 static void dealloc(Object *self) {
 
-	VariableSliderInput *this = (VariableSliderInput *) self;
+	CvarSliderInput *this = (CvarSliderInput *) self;
 
 	release(this->output);
 
@@ -43,7 +43,7 @@ static void dealloc(Object *self) {
 
 void respondToEvent(View *self, const SDL_Event *event) {
 
-	VariableSliderInput *this = (VariableSliderInput *) self;
+	CvarSliderInput *this = (CvarSliderInput *) self;
 
 	Slider *slider = (Slider *) this->input.control;
 
@@ -52,14 +52,14 @@ void respondToEvent(View *self, const SDL_Event *event) {
 	super(View, self, respondToEvent, event);
 }
 
-#pragma mark - VariableSliderInput
+#pragma mark - CvarSliderInput
 
 /**
  * @brief SliderDelegate callback.
  */
 static void didSetValue(Slider *slider) {
 
-	const VariableSliderInput *this = (VariableSliderInput *) slider->delegate.data;
+	const CvarSliderInput *this = (CvarSliderInput *) slider->delegate.data;
 
 	$(this->output, setText, va("%.1f", slider->value));
 
@@ -67,23 +67,20 @@ static void didSetValue(Slider *slider) {
 }
 
 /**
- * @fn VariableSliderInput *VariableSliderInput::initWithVariable(VariableSliderInput *self, cvar_t *var, const char *name, double min, double max, double step)
+ * @fn CvarSliderInput *CvarSliderInput::initWithVariable(CvarSliderInput *self, cvar_t *var, const char *name, double min, double max, double step)
  *
- * @memberof VariableSliderInput
+ * @memberof CvarSliderInput
  */
-static VariableSliderInput *initWithVariable(VariableSliderInput *self, cvar_t *var, const char *name, double min, double max, double step) {
+static CvarSliderInput *initWithVariable(CvarSliderInput *self, cvar_t *var, const char *name, double min, double max, double step) {
 
 	Control *control = (Control *) $(alloc(Slider), initWithFrame, NULL, ControlStyleDefault);
-	control->view.frame.w = VARIABLE_SLIDER_INPUT_SLIDER_WIDTH;
+	control->view.frame.w = CVAR_SLIDER_INPUT_SLIDER_WIDTH;
 
 	Label *label = $(alloc(Label), initWithText, name, NULL);
-	label->view.frame.w = VARIABLE_SLIDER_INPUT_LABEL_WIDTH;
+	label->view.frame.w = CVAR_SLIDER_INPUT_LABEL_WIDTH;
 
-	self = (VariableSliderInput *) super(Input, self, initWithOrientation, InputOrientationLeft, control, label);
+	self = (CvarSliderInput *) super(Input, self, initWithOrientation, InputOrientationLeft, control, label);
 	if (self) {
-
-		self->name = name;
-		assert(self->name);
 
 		self->var = var;
 		assert(self->var);
@@ -92,7 +89,7 @@ static VariableSliderInput *initWithVariable(VariableSliderInput *self, cvar_t *
 		assert(self->output);
 
 		self->output->view.alignment = ViewAlignmentMiddleLeft;
-		self->output->view.frame.w = VARIABLE_SLIDER_INPUT_OUTPUT_WIDTH;
+		self->output->view.frame.w = CVAR_SLIDER_INPUT_OUTPUT_WIDTH;
 
 		$((View *) self, addSubview, (View *) self->output);
 		$((View *) self, sizeToFit);
@@ -109,6 +106,22 @@ static VariableSliderInput *initWithVariable(VariableSliderInput *self, cvar_t *
 	return self;
 }
 
+/**
+ * @fn void CvarSliderInput::input(View *view, cvar_t *var, const char *name, double min, double max, double step)
+ *
+ * @memberof CvarSliderInput
+ */
+static void input(View *view, cvar_t *var, const char *name, double min, double max, double step) {
+
+	assert(view);
+
+	CvarSliderInput *input = $(alloc(CvarSliderInput), initWithVariable, var, name, min, max, step);
+	assert(input);
+
+	$(view, addSubview, (View *) input);
+	release(input);
+}
+
 #pragma mark - Class lifecycle
 
 /**
@@ -116,17 +129,20 @@ static VariableSliderInput *initWithVariable(VariableSliderInput *self, cvar_t *
  */
 static void initialize(Class *clazz) {
 
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+	
 	((ViewInterface *) clazz->interface)->respondToEvent = respondToEvent;
 
-	((VariableSliderInputInterface *) clazz->interface)->initWithVariable = initWithVariable;
+	((CvarSliderInputInterface *) clazz->interface)->initWithVariable = initWithVariable;
+	((CvarSliderInputInterface *) clazz->interface)->input = input;
 }
 
-Class _VariableSliderInput = {
-	.name = "VariableSliderInput",
+Class _CvarSliderInput = {
+	.name = "CvarSliderInput",
 	.superclass = &_Input,
-	.instanceSize = sizeof(VariableSliderInput),
-	.interfaceOffset = offsetof(VariableSliderInput, interface),
-	.interfaceSize = sizeof(VariableSliderInputInterface),
+	.instanceSize = sizeof(CvarSliderInput),
+	.interfaceOffset = offsetof(CvarSliderInput, interface),
+	.interfaceSize = sizeof(CvarSliderInputInterface),
 	.initialize = initialize,
 };
 

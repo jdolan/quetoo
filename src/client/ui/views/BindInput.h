@@ -60,11 +60,6 @@ struct BindInput {
 	 * @brief The bind (e.g. `+forward`).
 	 */
 	const char *bind;
-
-	/**
-	 * @brief The bind name (e.g. `Forward`).
-	 */
-	const char *name;
 };
 
 /**
@@ -78,9 +73,9 @@ struct BindInputInterface {
 	InputInterface inputInterface;
 	
 	/**
-	 * @fn BindInput *BindInput::initWithBind(BindInput *self, const char *bind,)
+	 * @fn BindInput *BindInput::initWithBind(BindInput *self, const char *bind, const char *name)
 	 *
-	 * @brief Initializes this BindInput with the given bind.
+	 * @brief Initializes this Input with the given bind.
 	 *
 	 * @param bind The bind (e.g. `+forward).
 	 * @param name The bind name (e.g. `Forward`).
@@ -90,10 +85,23 @@ struct BindInputInterface {
 	 * @memberof BindInput
 	 */
 	BindInput *(*initWithBind)(BindInput *self, const char *bind, const char *name);
+
+	/**
+	 * @fn void BindInput::input(View *view, const char *bind, const char *name)
+	 *
+	 * @brief Creates and appends a new Input in the specified View.
+	 *
+	 * @param bind The bind (e.g. `+forward).
+	 * @param name The bind name (e.g. `Forward`).
+	 *
+	 * @memberof BindInput
+	 *
+	 * @static
+	 */
+	void (*input)(View *view, const char *bind, const char *name);
 };
 
 /**
  * @brief The BindInput Class.
  */
 extern Class _BindInput;
-
