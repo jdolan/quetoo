@@ -31,7 +31,8 @@
  * @brief The MenuViewController.
  */
 
-#define DEFAULT_MENU_STACKVIEW_SPACING 10
+#define DEAFULT_MENU_STACKVIEW_HORIZONTAL_SPACING 10
+#define DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING 20
 
 typedef struct MenuViewController MenuViewController;
 typedef struct MenuViewControllerInterface MenuViewControllerInterface;

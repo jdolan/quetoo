@@ -29,7 +29,7 @@
 /**
  * @brief ActionFunction for Button.
  */
-static void buttonClicked(ident sender, const SDL_Event *event, ident data) {
+static void buttonClicked(Control *control, const SDL_Event *event, ident data) {
 	Com_Print("It's alive!\n");
 }
 

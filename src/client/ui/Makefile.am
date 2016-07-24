@@ -8,7 +8,8 @@ noinst_HEADERS = \
 	viewcontrollers/MenuViewController.h \
 	\
 	views/BindInput.h \
-	views/VariableSlider.h
+	views/VariableCheckboxInput.h \
+	views/VariableSliderInput.h
 
 noinst_LTLIBRARIES = \
 	libui.la
@@ -22,7 +23,8 @@ libui_la_SOURCES = \
 	viewcontrollers/MenuViewController.c \
 	\
 	views/BindInput.c \
-	views/VariableSlider.c
+	views/VariableCheckboxInput.c \
+	views/VariableSliderInput.c
 
 libui_la_CFLAGS = \
 	-I.. -I../.. \

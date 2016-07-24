@@ -26,7 +26,11 @@ static cvar_t *r_get_error;
 r_state_t r_state;
 
 const vec_t default_texcoords[] = { // useful for particles, pics, etc..
-		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 };
+	0.0, 0.0,
+	1.0, 0.0,
+	1.0, 1.0,
+	0.0, 1.0
+};
 
 /**
  * @brief Queries OpenGL for any errors and prints them as warnings.

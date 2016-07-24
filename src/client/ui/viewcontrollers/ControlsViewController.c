@@ -24,7 +24,8 @@
 #include "ControlsViewController.h"
 
 #include "../views/BindInput.h"
-#include "../views/VariableSlider.h"
+#include "../views/VariableCheckboxInput.h"
+#include "../views/VariableSliderInput.h"
 
 #include "client.h"
 
@@ -46,6 +47,33 @@ static void addBindInput(StackView *stackView, const char *bind, const char *nam
 }
 
 /**
+ * @brief Adds a new SliderVariableInput to the given StackView.
+ */
+static void addSliderVariableInput(StackView *stackView, cvar_t *var,
+		const char *name, double min, double max, double step) {
+
+	VariableSliderInput *input = $(alloc(VariableSliderInput), initWithVariable, var, name, min, max, step);
+	assert(input);
+
+	$((View *) stackView, addSubview, (View *) input);
+
+	release(input);
+}
+
+/**
+ * @brief Adds a new CheckboxVariableInput to the given StackView.
+ */
+static void addCheckboxVariableInput(StackView *stackView, cvar_t *var, const char *name) {
+
+	VariableCheckboxInput *input = $(alloc(VariableCheckboxInput), initWithVariable, var, name);
+	assert(input);
+
+	$((View *) stackView, addSubview, (View *) input);
+
+	release(input);
+}
+
+/**
  * @see ViewController::loadView(ViewController *)
  */
 static void loadView(ViewController *self) {
@@ -55,6 +83,7 @@ static void loadView(ViewController *self) {
 	MenuViewController *this = (MenuViewController *) self;
 
 	this->stackView->axis = StackViewAxisHorizontal;
+	this->stackView->spacing = DEAFULT_MENU_STACKVIEW_HORIZONTAL_SPACING;
 
 	StackView *leftColumn = $(alloc(StackView), initWithFrame, NULL);
 	leftColumn->view.autoresizingMask = ViewAutoresizingHeight;
@@ -62,14 +91,14 @@ static void loadView(ViewController *self) {
 	StackView *rightColumn = $(alloc(StackView), initWithFrame, NULL);
 	rightColumn->view.autoresizingMask = ViewAutoresizingHeight;
 
-	leftColumn->spacing = DEFAULT_MENU_STACKVIEW_SPACING;
-	rightColumn->spacing = DEFAULT_MENU_STACKVIEW_SPACING;
+	leftColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
+	rightColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		box->view.autoresizingMask = ViewAutoresizingContain;
 
-		$(box->label, setText, "Movement");
+		$(box->label, setText, "MOVEMENT");
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
@@ -98,18 +127,18 @@ static void loadView(ViewController *self) {
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		box->view.autoresizingMask = ViewAutoresizingContain;
 
-		$(box->label, setText, "Aim");
+		$(box->label, setText, "AIM");
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 		extern cvar_t *m_sensitivity;
-		VariableSlider *sensitivity = $(alloc(VariableSlider), initWithVariable, m_sensitivity, "Sensitivity");
+		addSliderVariableInput(stackView, m_sensitivity, "Sensitivity", 0.1, 6.0, 0.1);
 
-		sensitivity->slider->min = 0.1;
-		sensitivity->slider->max = 10.0;
-		sensitivity->slider->step = 0.1;
+		extern cvar_t *m_sensitivity_zoom;
+		addSliderVariableInput(stackView, m_sensitivity_zoom, "Zoom Sensitivity", 0.1, 6.0, 0.1);
 
-		$((View *) stackView, addSubview, (View *) sensitivity);
+		extern cvar_t *m_invert;
+		addCheckboxVariableInput(stackView, m_invert, "Invert mouse");
 
 		$((View *) stackView, sizeToFit);
 
@@ -126,7 +155,7 @@ static void loadView(ViewController *self) {
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		box->view.autoresizingMask = ViewAutoresizingContain;
 
-		$(box->label, setText, "Weapons");
+		$(box->label, setText, "COMBAT");
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 

@@ -29,8 +29,8 @@
  * @brief Inputs for key bindings.
  */
 
-#define BIND_INPUT_BIND_WIDTH 80
-#define BIND_INPUT_NAME_WIDTH 120
+#define BIND_INPUT_LABEL_WIDTH 120
+#define BIND_INPUT_CONTROL_WIDTH 80
 
 typedef struct BindInput BindInput;
 typedef struct BindInputInterface BindInputInterface;
@@ -39,8 +39,6 @@ typedef struct BindInputInterface BindInputInterface;
  * @brief The BindInput type.
  *
  * @extends Input
- *
- * @ingroup Containers
  */
 struct BindInput {
 	

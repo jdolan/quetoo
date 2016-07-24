@@ -22,59 +22,46 @@
 #pragma once
 
 #include <ObjectivelyMVC/Input.h>
-#include <ObjectivelyMVC/StackView.h>
 
 #include "cvar.h"
 
 /**
  * @file
  *
- * @brief An Input containing a Slider bound to a cvar_t.
+ * @brief An Input exposing a cvar_t with a Checkbox.
  */
 
-#define VARIABLE_SLIDER_INPUT_SLIDER_WIDTH 80
-#define VARIABLE_SLIDER_INPUT_NAME_WIDTH 100
+#define VARIABLE_CHECKBOX_INPUT_LABEL_WIDTH 120
+#define VARIABLE_CHECKBOX_INPUT_CONTROL_WIDTH 20
 
-typedef struct VariableSlider VariableSlider;
-typedef struct VariableSliderInterface VariableSliderInterface;
+typedef struct VariableCheckboxInput VariableCheckboxInput;
+typedef struct VariableCheckboxInputInterface VariableCheckboxInputInterface;
 
 /**
- * @brief The VariableSlider type.
+ * @brief The VariableCheckboxInput type.
  *
  * @extends Input
- *
- * @ingroup Containers
  */
-struct VariableSlider {
+struct VariableCheckboxInput {
 	
 	/**
 	 * @brief The parent.
 	 *
 	 * @private
 	 */
-	StackView stackView;
+	Input input;
 	
 	/**
 	 * @brief The typed interface.
 	 *
 	 * @private
 	 */
-	VariableSliderInterface *interface;
+	VariableCheckboxInputInterface *interface;
 
 	/**
-	 * @brief The variable name (e.g. `Sensitivity`).
+	 * @brief The variable name (e.g. `Invert mouse`).
 	 */
 	const char *name;
-
-	/**
-	 *
-	 */
-	Label *output;
-
-	/**
-	 * @brief The slider.
-	 */
-	Slider *slider;
 
 	/**
 	 * @brief The variable.
@@ -83,9 +70,9 @@ struct VariableSlider {
 };
 
 /**
- * @brief The VariableSlider interface.
+ * @brief The VariableCheckboxInput interface.
  */
-struct VariableSliderInterface {
+struct VariableCheckboxInputInterface {
 	
 	/**
 	 * @brief The parent interface.
@@ -93,22 +80,22 @@ struct VariableSliderInterface {
 	InputInterface inputInterface;
 	
 	/**
-	 * @fn VariableSlider *VariableSlider::initWithVariable(VariableSlider *self, cvar_t *var, const char *name)
+	 * @fn VariableCheckboxInput *VariableCheckboxInput::initWithVariable(VariableCheckboxInput *self, cvar_t *var, const char *name)
 	 *
-	 * @brief Initializes this VariableSlider with the given variable.
+	 * @brief Initializes this VariableCheckboxInput with the given variable.
 	 *
 	 * @param var The variable.
-	 * @param name The variable name (e.g. `Sensitivity`).
+	 * @param name The variable name (e.g. `Invert mouse`).
 	 *
-	 * @return The initialized VariableSlider, or `NULL` on error.
+	 * @return The initialized VariableCheckboxInput, or `NULL` on error.
 	 *
-	 * @memberof VariableSlider
+	 * @memberof VariableCheckboxInput
 	 */
-	VariableSlider *(*initWithVariable)(VariableSlider *self, cvar_t *var, const char *name);
+	VariableCheckboxInput *(*initWithVariable)(VariableCheckboxInput *self, cvar_t *var, const char *name);
 };
 
 /**
- * @brief The VariableSlider Class.
+ * @brief The VariableCheckboxInput Class.
  */
-extern Class _VariableSlider;
+extern Class _VariableCheckboxInput;
 

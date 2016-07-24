@@ -60,7 +60,7 @@ static void loadView(ViewController *self) {
 	this->stackView = $(alloc(StackView), initWithFrame, NULL);
 	assert(this->stackView);
 
-	this->stackView->spacing = DEFAULT_MENU_STACKVIEW_SPACING;
+	this->stackView->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
 	this->stackView->view.autoresizingMask = ViewAutoresizingContain;
 
 	$((View *) this->panel, addSubview, (View *) this->stackView);

@@ -26,7 +26,6 @@
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_render.h>
 
-#include "common.h"
 #include "../renderer/renderer.h"
 
 #ifdef __UI_LOCAL_H__

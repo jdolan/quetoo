@@ -83,10 +83,10 @@ static void respondToEvent(View *self, const SDL_Event *event) {
 static BindInput *initWithBind(BindInput *self, const char *bind, const char *name) {
 
 	TextView *textView = $(alloc(TextView), initWithFrame, NULL, ControlStyleDefault);
-	textView->control.view.frame.w = BIND_INPUT_BIND_WIDTH;
+	textView->control.view.frame.w = BIND_INPUT_CONTROL_WIDTH;
 
 	Label *label = $(alloc(Label), initWithText, name, NULL);
-	label->view.frame.w = BIND_INPUT_NAME_WIDTH;
+	label->view.frame.w = BIND_INPUT_LABEL_WIDTH;
 
 	self = (BindInput *) super(Input, self, initWithOrientation, InputOrientationLeft, (Control *) textView, label);
 	if (self) {
