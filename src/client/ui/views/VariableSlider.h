@@ -22,57 +22,70 @@
 #pragma once
 
 #include <ObjectivelyMVC/Input.h>
+#include <ObjectivelyMVC/StackView.h>
+
+#include "cvar.h"
 
 /**
  * @file
  *
- * @brief Inputs for key bindings.
+ * @brief An Input containing a Slider bound to a cvar_t.
  */
 
-#define BIND_INPUT_BIND_WIDTH 80
-#define BIND_INPUT_NAME_WIDTH 120
+#define VARIABLE_SLIDER_INPUT_SLIDER_WIDTH 80
+#define VARIABLE_SLIDER_INPUT_NAME_WIDTH 100
 
-typedef struct BindInput BindInput;
-typedef struct BindInputInterface BindInputInterface;
+typedef struct VariableSlider VariableSlider;
+typedef struct VariableSliderInterface VariableSliderInterface;
 
 /**
- * @brief The BindInput type.
+ * @brief The VariableSlider type.
  *
  * @extends Input
  *
  * @ingroup Containers
  */
-struct BindInput {
+struct VariableSlider {
 	
 	/**
 	 * @brief The parent.
 	 *
 	 * @private
 	 */
-	Input input;
+	StackView stackView;
 	
 	/**
 	 * @brief The typed interface.
 	 *
 	 * @private
 	 */
-	BindInputInterface *interface;
+	VariableSliderInterface *interface;
 
 	/**
-	 * @brief The bind (e.g. `+forward`).
-	 */
-	const char *bind;
-
-	/**
-	 * @brief The bind name (e.g. `Forward`).
+	 * @brief The variable name (e.g. `Sensitivity`).
 	 */
 	const char *name;
+
+	/**
+	 *
+	 */
+	Label *output;
+
+	/**
+	 * @brief The slider.
+	 */
+	Slider *slider;
+
+	/**
+	 * @brief The variable.
+	 */
+	cvar_t *var;
 };
 
 /**
- * @brief The BindInput interface.
+ * @brief The VariableSlider interface.
  */
-struct BindInputInterface {
+struct VariableSliderInterface {
 	
 	/**
 	 * @brief The parent interface.
@@ -80,22 +93,22 @@ struct BindInputInterface {
 	InputInterface inputInterface;
 	
 	/**
-	 * @fn BindInput *BindInput::initWithBind(BindInput *self, const char *bind,)
+	 * @fn VariableSlider *VariableSlider::initWithVariable(VariableSlider *self, cvar_t *var, const char *name)
 	 *
-	 * @brief Initializes this BindInput with the given bind.
+	 * @brief Initializes this VariableSlider with the given variable.
 	 *
-	 * @param bind The bind (e.g. `+forward).
-	 * @param name The bind name (e.g. `Forward`).
+	 * @param var The variable.
+	 * @param name The variable name (e.g. `Sensitivity`).
 	 *
-	 * @return The initialized BindInput, or `NULL` on error.
+	 * @return The initialized VariableSlider, or `NULL` on error.
 	 *
-	 * @memberof BindInput
+	 * @memberof VariableSlider
 	 */
-	BindInput *(*initWithBind)(BindInput *self, const char *bind, const char *name);
+	VariableSlider *(*initWithVariable)(VariableSlider *self, cvar_t *var, const char *name);
 };
 
 /**
- * @brief The BindInput Class.
+ * @brief The VariableSlider Class.
  */
-extern Class _BindInput;
+extern Class _VariableSlider;
 

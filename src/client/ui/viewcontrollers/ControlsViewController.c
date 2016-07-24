@@ -1,24 +1,22 @@
 /*
- * ObjectivelyMVC: MVC framework for OpenGL and SDL2 in c.
- * Copyright (C) 2014 Jay Dolan <jay@jaydolan.com>
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
  *
- * This software is provided 'as-is', without any express or implied
- * warranty. In no event will the authors be held liable for any damages
- * arising from the use of this software.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * Permission is granted to anyone to use this software for any purpose,
- * including commercial applications, and to alter it and redistribute it
- * freely, subject to the following restrictions:
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * 1. The origin of this software must not be misrepresented; you must not
- * claim that you wrote the original software. If you use this software
- * in a product, an acknowledgment in the product documentation would be
- * appreciated but is not required.
+ * See the GNU General Public License for more details.
  *
- * 2. Altered source versions must be plainly marked as such, and must not be
- * misrepresented as being the original software.
- *
- * 3. This notice may not be removed or altered from any source distribution.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 #include <assert.h>
@@ -26,10 +24,9 @@
 #include "ControlsViewController.h"
 
 #include "../views/BindInput.h"
+#include "../views/VariableSlider.h"
 
 #include "client.h"
-
-extern cl_static_t cls;
 
 #define _Class _ControlsViewController
 
@@ -41,6 +38,7 @@ extern cl_static_t cls;
 static void addBindInput(StackView *stackView, const char *bind, const char *name) {
 
 	BindInput *input = $(alloc(BindInput), initWithBind, bind, name);
+	assert(input);
 
 	$((View *) stackView, addSubview, (View *) input);
 
@@ -59,13 +57,18 @@ static void loadView(ViewController *self) {
 	this->stackView->axis = StackViewAxisHorizontal;
 
 	StackView *leftColumn = $(alloc(StackView), initWithFrame, NULL);
-	leftColumn->spacing = DEFAULT_MENU_STACKVIEW_SPACING;
+	leftColumn->view.autoresizingMask = ViewAutoresizingHeight;
 
 	StackView *rightColumn = $(alloc(StackView), initWithFrame, NULL);
+	rightColumn->view.autoresizingMask = ViewAutoresizingHeight;
+
+	leftColumn->spacing = DEFAULT_MENU_STACKVIEW_SPACING;
 	rightColumn->spacing = DEFAULT_MENU_STACKVIEW_SPACING;
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
+		box->view.autoresizingMask = ViewAutoresizingContain;
+
 		$(box->label, setText, "Movement");
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
@@ -93,9 +96,20 @@ static void loadView(ViewController *self) {
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
+		box->view.autoresizingMask = ViewAutoresizingContain;
+
 		$(box->label, setText, "Aim");
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		extern cvar_t *m_sensitivity;
+		VariableSlider *sensitivity = $(alloc(VariableSlider), initWithVariable, m_sensitivity, "Sensitivity");
+
+		sensitivity->slider->min = 0.1;
+		sensitivity->slider->max = 10.0;
+		sensitivity->slider->step = 0.1;
+
+		$((View *) stackView, addSubview, (View *) sensitivity);
 
 		$((View *) stackView, sizeToFit);
 
@@ -110,6 +124,8 @@ static void loadView(ViewController *self) {
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
+		box->view.autoresizingMask = ViewAutoresizingContain;
+
 		$(box->label, setText, "Weapons");
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);

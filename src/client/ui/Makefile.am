@@ -7,7 +7,8 @@ noinst_HEADERS = \
 	viewcontrollers/MainViewController.h \
 	viewcontrollers/MenuViewController.h \
 	\
-	views/BindInput.h
+	views/BindInput.h \
+	views/VariableSlider.h
 
 noinst_LTLIBRARIES = \
 	libui.la
@@ -20,7 +21,8 @@ libui_la_SOURCES = \
 	viewcontrollers/MainViewController.c \
 	viewcontrollers/MenuViewController.c \
 	\
-	views/BindInput.c
+	views/BindInput.c \
+	views/VariableSlider.c
 
 libui_la_CFLAGS = \
 	-I.. -I../.. \

@@ -426,6 +426,8 @@
 		CEF1D8991D43DC7D0099A857 /* ControlsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */; };
 		CEF1D89C1D43E28E0099A857 /* BindInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D89A1D43E28E0099A857 /* BindInput.c */; };
 		CEF1D89D1D43E28E0099A857 /* BindInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D89B1D43E28E0099A857 /* BindInput.h */; };
+		CEF1D8A41D4521600099A857 /* VariableSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8A21D4521600099A857 /* VariableSlider.c */; };
+		CEF1D8A51D4521600099A857 /* VariableSlider.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8A31D4521600099A857 /* VariableSlider.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1111,6 +1113,8 @@
 		CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControlsViewController.h; sourceTree = "<group>"; };
 		CEF1D89A1D43E28E0099A857 /* BindInput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = BindInput.c; sourceTree = "<group>"; };
 		CEF1D89B1D43E28E0099A857 /* BindInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BindInput.h; sourceTree = "<group>"; };
+		CEF1D8A21D4521600099A857 /* VariableSlider.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VariableSlider.c; sourceTree = "<group>"; };
+		CEF1D8A31D4521600099A857 /* VariableSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VariableSlider.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2243,6 +2247,8 @@
 			children = (
 				CEF1D89A1D43E28E0099A857 /* BindInput.c */,
 				CEF1D89B1D43E28E0099A857 /* BindInput.h */,
+				CEF1D8A21D4521600099A857 /* VariableSlider.c */,
+				CEF1D8A31D4521600099A857 /* VariableSlider.h */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -2447,6 +2453,7 @@
 				CE80FF261C5E462200A21A51 /* r_sky.h in Headers */,
 				CE80FF271C5E462200A21A51 /* r_state.h in Headers */,
 				CE80FF281C5E462200A21A51 /* r_types.h in Headers */,
+				CEF1D8A51D4521600099A857 /* VariableSlider.h in Headers */,
 				CE80FF291C5E462200A21A51 /* renderer.h in Headers */,
 				CE80FFA01C5E4A0100A21A51 /* s_local.h in Headers */,
 				CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */,
@@ -3030,6 +3037,7 @@
 				CE80FEF21C5E460B00A21A51 /* r_gl.c in Sources */,
 				CE80FEF31C5E460B00A21A51 /* r_image.c in Sources */,
 				CE80FEF41C5E460B00A21A51 /* r_light.c in Sources */,
+				CEF1D8A41D4521600099A857 /* VariableSlider.c in Sources */,
 				CE80FEF51C5E460B00A21A51 /* r_lighting.c in Sources */,
 				CE80FEF61C5E460B00A21A51 /* r_lightmap.c in Sources */,
 				CE80FEF71C5E460B00A21A51 /* r_main.c in Sources */,
