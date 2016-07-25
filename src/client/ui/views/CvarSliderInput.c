@@ -130,7 +130,7 @@ static void input(View *view, cvar_t *var, const char *name, double min, double 
 static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
-	
+
 	((ViewInterface *) clazz->interface)->respondToEvent = respondToEvent;
 
 	((CvarSliderInputInterface *) clazz->interface)->initWithVariable = initWithVariable;

@@ -566,7 +566,7 @@ void Cmd_Init(void) {
 
 	Mem_InitBuffer(&cmd_state.buf, (byte *) cmd_state.buffers[0], sizeof(cmd_state.buffers[0]));
 
-	Cmd_Add("cmd_list", Cmd_List_f, CMD_SYSTEM, NULL);
+	Cmd_Add("cmd_list", Cmd_List_f, 0, NULL);
 	Cmd_Add("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
 	Cmd_Add("echo", Cmd_Echo_f, 0, NULL);
 	Cmd_Add("alias", Cmd_Alias_f, CMD_SYSTEM, NULL);

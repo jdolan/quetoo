@@ -24,7 +24,8 @@
 ui_context_t ui_context;
 
 /**
- * @brief Initializes the user interface rendering context.
+ * @brief Initializes the user interface rendering context and framebuffer object,
+ * then pushes an `SDL_RENDER_DEVICE_RESET` event for the View hierarchy to respond to.
  */
 void Ui_InitContext(void) {
 
@@ -55,6 +56,12 @@ void Ui_InitContext(void) {
 	SDL_GL_UnbindTexture(ui_context.texture);
 
 	SDL_GL_MakeCurrent(r_context.window, r_context.context);
+
+	SDL_Event event = {
+		.type = SDL_RENDER_DEVICE_RESET
+	};
+	
+	SDL_PushEvent(&event);
 }
 
 /**

@@ -32,7 +32,7 @@
 /**
  * @brief ActionFunction for the Checkbox.
  */
-static void checkboxAction(Control *control, const SDL_Event *event, ident data) {
+static void checkboxAction(Control *control, const SDL_Event *event __attribute__((unused)), ident data) {
 
 	const CvarCheckboxInput *this = (CvarCheckboxInput *) data;
 
