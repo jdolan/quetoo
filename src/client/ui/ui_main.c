@@ -29,10 +29,12 @@
 
 extern cl_static_t cls;
 
+static WindowController *windowController;
 static ViewController *mainViewController;
 
 /**
- * @return True if the user interface handled the event, false otherwise.
+ * @brief Dispatch events to the user interface. Filter most common event types for
+ * performance consideration.
  */
 void Ui_HandleEvent(const SDL_Event *event) {
 
@@ -51,7 +53,7 @@ void Ui_HandleEvent(const SDL_Event *event) {
 		}
 	}
 
-	$(mainViewController, respondToEvent, event);
+	$(windowController, respondToEvent, event);
 }
 
 /**
@@ -83,7 +85,7 @@ void Ui_Draw(void) {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	$(mainViewController, drawView, ui_context.renderer);
+	$(windowController, render, ui_context.renderer);
 
 	glFinish(); // <-- well fuck my ass
 
@@ -99,7 +101,11 @@ void Ui_Draw(void) {
  */
 void Ui_Init(void) {
 
-	mainViewController = $((ViewController *) alloc(ControlsViewController), initRootViewController, r_context.window);
+	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
+
+	mainViewController = $((ViewController *) alloc(ControlsViewController), init);
+
+	$(windowController, setViewController, mainViewController);
 }
 
 /**
@@ -110,6 +116,7 @@ void Ui_Shutdown(void) {
 	Ui_ShutdownContext();
 
 	release(mainViewController);
+	release(windowController);
 
 	Mem_FreeTag(MEM_TAG_UI);
 }
