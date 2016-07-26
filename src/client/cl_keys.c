@@ -48,7 +48,12 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 	}
 
 	switch (dest) {
-		case KEY_UI:
+		case KEY_UI: {
+			SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
+			SDL_PushEvent(&event);
+		}
+			SDL_StopTextInput();
+			break;
 		case KEY_CONSOLE:
 		case KEY_CHAT:
 			SDL_StartTextInput();

@@ -27,6 +27,28 @@
 
 #define _Class _CvarCheckboxInput
 
+#pragma mark - View
+
+/**
+ * @see View::updateBindings(View *)
+ */
+static void updateBindings(View *self) {
+
+	super(View, self, updateBindings);
+
+	CvarCheckboxInput *this = (CvarCheckboxInput *) self;
+
+	Control *control = this->input.control;
+	
+	const ControlState state = control->state;
+
+	control->state = this->var->integer ? ControlStateSelected : ControlStateDefault;
+
+	if (control->state != state) {
+		$(control, stateDidChange);
+	}
+}
+
 #pragma mark - CvarCheckboxInput
 
 /**
@@ -57,11 +79,11 @@ static CvarCheckboxInput *initWithVariable(CvarCheckboxInput *self, cvar_t *var,
 
 		self->var = var;
 		assert(self->var);
+
+		$(control, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
+
+		$((View *) self, updateBindings);
 	}
-
-	control->state = var->integer ? ControlStateSelected : ControlStateDefault;
-
-	$(control, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
 	
 	return self;
 }
@@ -88,6 +110,8 @@ static void input(View *view, cvar_t *var, const char *name) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((CvarCheckboxInputInterface *) clazz->interface)->initWithVariable = initWithVariable;
 

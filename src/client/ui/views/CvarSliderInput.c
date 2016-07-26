@@ -41,15 +41,18 @@ static void dealloc(Object *self) {
 
 #pragma mark - View
 
-void respondToEvent(View *self, const SDL_Event *event) {
+/**
+ * @see View::updateBindings(View *)
+ */
+void updateBindings(View *self) {
+
+	super(View, self, updateBindings);
 
 	CvarSliderInput *this = (CvarSliderInput *) self;
 
 	Slider *slider = (Slider *) this->input.control;
 
 	$(slider, setValue, this->var->value);
-
-	super(View, self, respondToEvent, event);
 }
 
 #pragma mark - CvarSliderInput
@@ -131,7 +134,7 @@ static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->interface)->respondToEvent = respondToEvent;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((CvarSliderInputInterface *) clazz->interface)->initWithVariable = initWithVariable;
 	((CvarSliderInputInterface *) clazz->interface)->input = input;

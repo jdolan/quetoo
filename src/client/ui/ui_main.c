@@ -64,6 +64,9 @@ void Ui_Draw(void) {
 		return;
 	}
 
+	SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
+	SDL_PushEvent(&event);
+
 	SDL_GL_MakeCurrent(r_context.window, ui_context.context);
 
 	SDL_SetRenderTarget(ui_context.renderer, ui_context.texture);

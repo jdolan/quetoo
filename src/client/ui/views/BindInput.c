@@ -73,6 +73,24 @@ static void respondToEvent(View *self, const SDL_Event *event) {
 	super(View, self, respondToEvent, event);
 }
 
+/**
+ * @see View::updateBindings(View *)
+ */
+static void updateBindings(View *self) {
+
+	super(View, self, updateBindings);
+
+	BindInput *this = (BindInput *) self;
+
+	TextView *textView = (TextView *) this->input.control;
+	const SDL_Scancode key = Cl_KeyForBind(this->bind);
+	if (key != SDL_SCANCODE_UNKNOWN) {
+		textView->defaultText = Cl_KeyName(key);
+	} else {
+		textView->defaultText = NULL;
+	}
+}
+
 #pragma mark - BindInput
 
 /**
@@ -94,10 +112,7 @@ static BindInput *initWithBind(BindInput *self, const char *bind, const char *na
 		self->bind = bind;
 		assert(self->bind);
 
-		SDL_Scancode key = Cl_KeyForBind(bind);
-		if (key != SDL_SCANCODE_UNKNOWN) {
-			((TextView *) control)->defaultText = Cl_KeyName(key);
-		}
+		$((View *) self, updateBindings);
 	}
 
 	release(control);
@@ -130,6 +145,7 @@ static void input(View *view, const char *bind, const char *name) {
 static void initialize(Class *clazz) {
 
 	((ViewInterface *) clazz->interface)->respondToEvent = respondToEvent;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((BindInputInterface *) clazz->interface)->initWithBind = initWithBind;
 
