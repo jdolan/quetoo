@@ -29,17 +29,17 @@
  * @brief System ViewController.
  */
 
-typedef struct SystemViewController SystemViewController;
-typedef struct SystemViewControllerInterface SystemViewControllerInterface;
+typedef struct SettingsViewController SettingsViewController;
+typedef struct SettingsViewControllerInterface SettingsViewControllerInterface;
 
 /**
- * @brief The SystemViewController type.
+ * @brief The SettingsViewController type.
  *
  * @extends MenuViewController
  *
  * @ingroup
  */
-struct SystemViewController {
+struct SettingsViewController {
 	
 	/**
 	 * @brief The parent.
@@ -53,13 +53,13 @@ struct SystemViewController {
 	 *
 	 * @private
 	 */
-	SystemViewControllerInterface *interface;
+	SettingsViewControllerInterface *interface;
 };
 
 /**
- * @brief The SystemViewController interface.
+ * @brief The SettingsViewController interface.
  */
-struct SystemViewControllerInterface {
+struct SettingsViewControllerInterface {
 	
 	/**
 	 * @brief The parent interface.
@@ -68,7 +68,7 @@ struct SystemViewControllerInterface {
 };
 
 /**
- * @brief The SystemViewController Class.
+ * @brief The SettingsViewController Class.
  */
-extern Class _SystemViewController;
+extern Class _SettingsViewController;
 

@@ -8,7 +8,8 @@ noinst_HEADERS = \
 	viewcontrollers/MainViewController.h \
 	viewcontrollers/MenuViewController.h \
 	viewcontrollers/MultiplayerViewController.h \
-	viewcontrollers/SystemViewController.h \
+	viewcontrollers/PlayerSetupViewController.h \
+	viewcontrollers/SettingsViewController.h \
 	\
 	views/BindInput.h \
 	views/CvarCheckboxInput.h \
@@ -26,7 +27,8 @@ libui_la_SOURCES = \
 	viewcontrollers/MainViewController.c \
 	viewcontrollers/MenuViewController.c \
 	viewcontrollers/MultiplayerViewController.c \
-	viewcontrollers/SystemViewController.c \
+	viewcontrollers/PlayerSetupViewController.c \
+	viewcontrollers/SettingsViewController.c \
 	\
 	views/BindInput.c \
 	views/CvarCheckboxInput.c \

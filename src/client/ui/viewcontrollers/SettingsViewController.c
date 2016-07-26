@@ -21,11 +21,11 @@
 
 #include <assert.h>
 
-#include "SystemViewController.h"
+#include "SettingsViewController.h"
 
 #include "client.h"
 
-#define _Class _SystemViewController
+#define _Class _SettingsViewController
 
 #pragma mark - ViewController
 
@@ -64,12 +64,12 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
-Class _SystemViewController = {
-	.name = "SystemViewController",
+Class _SettingsViewController = {
+	.name = "SettingsViewController",
 	.superclass = &_MenuViewController,
-	.instanceSize = sizeof(SystemViewController),
-	.interfaceOffset = offsetof(SystemViewController, interface),
-	.interfaceSize = sizeof(SystemViewControllerInterface),
+	.instanceSize = sizeof(SettingsViewController),
+	.interfaceOffset = offsetof(SettingsViewController, interface),
+	.interfaceSize = sizeof(SettingsViewControllerInterface),
 	.initialize = initialize,
 };
 

@@ -23,7 +23,8 @@
 
 #include "ControlsViewController.h"
 #include "MultiplayerViewController.h"
-#include "SystemViewController.h"
+#include "PlayerSetupViewController.h"
+#include "SettingsViewController.h"
 
 #include "../views/PrimaryButton.h"
 
@@ -79,6 +80,9 @@ static void loadView(ViewController *self) {
 	MenuViewController *this = (MenuViewController *) self;
 
 	this->stackView->axis = StackViewAxisHorizontal;
+	this->stackView->distribution = StackViewDistributionFillEqually;
+
+	this->stackView->view.frame.w = min(r_context.window_width, 1024);
 
 	this->panel->isDraggable = false;
 	this->panel->isResizable = false;
@@ -87,10 +91,11 @@ static void loadView(ViewController *self) {
 
 	$$(PrimaryButton, button, (View *) this->stackView, "MULTIPLAYER", action, this, &_MultiplayerViewController);
 	$$(PrimaryButton, button, (View *) this->stackView, "CONTROLS", action, this, &_ControlsViewController);
-	$$(PrimaryButton, button, (View *) this->stackView, "SYSTEM", action, this, &_SystemViewController);
+	$$(PrimaryButton, button, (View *) this->stackView, "PLAYER SETUP", action, this, &_PlayerSetupViewController);
+	$$(PrimaryButton, button, (View *) this->stackView, "SETTINGS", action, this, &_SettingsViewController);
 	$$(PrimaryButton, button, (View *) this->stackView, "QUIT", action, this, NULL);
 
-	$((View *) this->stackView, sizeToFit);
+//	$((View *) this->stackView, sizeToFit);
 	$((View *) this->panel, sizeToFit);
 }
 

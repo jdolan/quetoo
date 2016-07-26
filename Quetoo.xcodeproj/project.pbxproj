@@ -75,6 +75,8 @@
 		CE12D8C41C5CF86600CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD5931D3EE1BF00C43B85 /* ui.h */; };
+		CE7EA4D11D47B20500BD37A3 /* PlayerSetupViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4D01D47B20500BD37A3 /* PlayerSetupViewController.h */; };
+		CE7EA4D21D47CC1600BD37A3 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7EA4CE1D47B1FB00BD37A3 /* PlayerSetupViewController.c */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
 		CE8000011C5E4D4400A21A51 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CE8000021C5E4D4400A21A51 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
@@ -432,8 +434,8 @@
 		CEF1D8A91D45673D0099A857 /* CvarCheckboxInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8A71D45673D0099A857 /* CvarCheckboxInput.h */; };
 		CEF1D8B01D4665800099A857 /* MultiplayerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8AE1D4665800099A857 /* MultiplayerViewController.c */; };
 		CEF1D8B11D4665800099A857 /* MultiplayerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8AF1D4665800099A857 /* MultiplayerViewController.h */; };
-		CEF1D8B31D466D9A0099A857 /* SystemViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8B21D466D9A0099A857 /* SystemViewController.c */; };
-		CEF1D8B51D466DA50099A857 /* SystemViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8B41D466DA50099A857 /* SystemViewController.h */; };
+		CEF1D8B31D466D9A0099A857 /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8B21D466D9A0099A857 /* SettingsViewController.c */; };
+		CEF1D8B51D466DA50099A857 /* SettingsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8B41D466DA50099A857 /* SettingsViewController.h */; };
 		CEF1D8B81D467A330099A857 /* PrimaryButton.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8B61D467A330099A857 /* PrimaryButton.c */; };
 		CEF1D8B91D467A330099A857 /* PrimaryButton.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8B71D467A330099A857 /* PrimaryButton.h */; };
 /* End PBXBuildFile section */
@@ -1090,6 +1092,8 @@
 		CE5BD5981D3EE25100C43B85 /* ui_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_main.h; sourceTree = "<group>"; };
 		CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
 		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
+		CE7EA4CE1D47B1FB00BD37A3 /* PlayerSetupViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerSetupViewController.c; sourceTree = "<group>"; };
+		CE7EA4D01D47B20500BD37A3 /* PlayerSetupViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerSetupViewController.h; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8000071C5E52A200A21A51 /* libz.1.2.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.8.dylib; path = /opt/local/lib/libz.1.2.8.dylib; sourceTree = "<absolute>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1127,8 +1131,8 @@
 		CEF1D8A71D45673D0099A857 /* CvarCheckboxInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CvarCheckboxInput.h; sourceTree = "<group>"; };
 		CEF1D8AE1D4665800099A857 /* MultiplayerViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MultiplayerViewController.c; sourceTree = "<group>"; };
 		CEF1D8AF1D4665800099A857 /* MultiplayerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MultiplayerViewController.h; sourceTree = "<group>"; };
-		CEF1D8B21D466D9A0099A857 /* SystemViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SystemViewController.c; sourceTree = "<group>"; };
-		CEF1D8B41D466DA50099A857 /* SystemViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SystemViewController.h; sourceTree = "<group>"; };
+		CEF1D8B21D466D9A0099A857 /* SettingsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SettingsViewController.c; sourceTree = "<group>"; };
+		CEF1D8B41D466DA50099A857 /* SettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
 		CEF1D8B61D467A330099A857 /* PrimaryButton.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PrimaryButton.c; sourceTree = "<group>"; };
 		CEF1D8B71D467A330099A857 /* PrimaryButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrimaryButton.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -2256,8 +2260,10 @@
 				CEDB4BBA1D405F74009921B6 /* MenuViewController.h */,
 				CEF1D8AE1D4665800099A857 /* MultiplayerViewController.c */,
 				CEF1D8AF1D4665800099A857 /* MultiplayerViewController.h */,
-				CEF1D8B21D466D9A0099A857 /* SystemViewController.c */,
-				CEF1D8B41D466DA50099A857 /* SystemViewController.h */,
+				CE7EA4CE1D47B1FB00BD37A3 /* PlayerSetupViewController.c */,
+				CE7EA4D01D47B20500BD37A3 /* PlayerSetupViewController.h */,
+				CEF1D8B21D466D9A0099A857 /* SettingsViewController.c */,
+				CEF1D8B41D466DA50099A857 /* SettingsViewController.h */,
 			);
 			path = viewcontrollers;
 			sourceTree = "<group>";
@@ -2344,6 +2350,7 @@
 			files = (
 				CE80FE7A1C5E43AC00A21A51 /* zip.h in Headers */,
 				CE80FE791C5E43AC00A21A51 /* ioapi.h in Headers */,
+				CE7EA4D11D47B20500BD37A3 /* PlayerSetupViewController.h in Headers */,
 				CEB5261D1D41CB020034AA0D /* ui_context.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2419,7 +2426,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEF1D8B51D466DA50099A857 /* SystemViewController.h in Headers */,
+				CEF1D8B51D466DA50099A857 /* SettingsViewController.h in Headers */,
 				CE80FF801C5E49E700A21A51 /* cl_binds.h in Headers */,
 				CE80FF811C5E49E700A21A51 /* cl_cgame.h in Headers */,
 				CE80FF821C5E49E700A21A51 /* cl_cmd.h in Headers */,
@@ -3054,11 +3061,12 @@
 				CE80FF411C5E473500A21A51 /* cl_view.c in Sources */,
 				CE80FEE71C5E460B00A21A51 /* r_array.c in Sources */,
 				CE80FEE81C5E460B00A21A51 /* r_bsp.c in Sources */,
+				CE7EA4D21D47CC1600BD37A3 /* PlayerSetupViewController.c in Sources */,
 				CE80FEE91C5E460B00A21A51 /* r_bsp_light.c in Sources */,
 				CEF1D8A81D45673D0099A857 /* CvarCheckboxInput.c in Sources */,
 				CE80FEEA1C5E460B00A21A51 /* r_bsp_model.c in Sources */,
 				CE80FEEB1C5E460B00A21A51 /* r_bsp_surface.c in Sources */,
-				CEF1D8B31D466D9A0099A857 /* SystemViewController.c in Sources */,
+				CEF1D8B31D466D9A0099A857 /* SettingsViewController.c in Sources */,
 				CE80FEEC1C5E460B00A21A51 /* r_context.c in Sources */,
 				CE80FEED1C5E460B00A21A51 /* r_corona.c in Sources */,
 				CE80FEEE1C5E460B00A21A51 /* r_draw.c in Sources */,

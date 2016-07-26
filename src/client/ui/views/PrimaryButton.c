@@ -33,15 +33,14 @@
  * @memberof PrimaryButton
  */
 static PrimaryButton *initWithFrame(PrimaryButton *self, const SDL_Rect *frame, ControlStyle style) {
-	
+
 	self = (PrimaryButton *) super(Button, self, initWithFrame, frame, style);
 	if (self) {
 
 		if (self->button.control.style == ControlStyleDefault) {
-			$(self->button.title, setFont, $$(Font, defaultFont, FontCategoryPrimaryResponder));
-
 			self->button.control.bevel = BevelTypeNone;
-			self->button.control.view.frame.w = DEFAULT_PRIMARY_BUTTON_WIDTH;
+
+			$(self->button.title, setFont, $$(Font, defaultFont, FontCategoryPrimaryResponder));
 		}
 	}
 	
@@ -61,6 +60,8 @@ static void button(View *view, const char *name, ActionFunction action, ident se
 	assert(button);
 
 	$(button->button.title, setText, name);
+
+	$((View *) button, sizeToFit);
 
 	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
 
