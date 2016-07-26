@@ -192,7 +192,7 @@ void Con_Append(int32_t level, const char *string) {
  *
  * @return The number of line offsets.
  *
- * @remark If `lines` is `NULL`, this function simply counts the number of
+ * @remarks If `lines` is `NULL`, this function simply counts the number of
  * wrapped lines in `chars`.
  */
 size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_lines) {

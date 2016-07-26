@@ -21,16 +21,13 @@
 
 #include "ui_local.h"
 
-#include "viewcontrollers/ControlsViewController.h"
 #include "viewcontrollers/MainViewController.h"
-#include "viewcontrollers/MenuViewController.h"
 
 #include "client.h"
 
 extern cl_static_t cls;
 
 static WindowController *windowController;
-static ViewController *mainViewController;
 
 /**
  * @brief Dispatch events to the user interface. Filter most common event types for
@@ -103,9 +100,11 @@ void Ui_Init(void) {
 
 	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
 
-	mainViewController = $((ViewController *) alloc(ControlsViewController), init);
+	ViewController *viewController = $((ViewController *) alloc(MainViewController), init);
 
-	$(windowController, setViewController, mainViewController);
+	$(windowController, setViewController, viewController);
+
+	release(viewController);
 }
 
 /**
@@ -115,7 +114,6 @@ void Ui_Shutdown(void) {
 
 	Ui_ShutdownContext();
 
-	release(mainViewController);
 	release(windowController);
 
 	Mem_FreeTag(MEM_TAG_UI);

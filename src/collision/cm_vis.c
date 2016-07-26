@@ -62,7 +62,7 @@ static void Cm_DecompressVis(const byte *in, byte *out) {
 /**
  * @brief
  *
- * @remark `pvs` must be at least `MAX_BSP_LEAFS >> 3` in length.
+ * @remarks `pvs` must be at least `MAX_BSP_LEAFS >> 3` in length.
  */
 size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
 

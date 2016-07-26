@@ -32,9 +32,9 @@
 /**
  * @brief ActionFunction for the Checkbox.
  */
-static void checkboxAction(Control *control, const SDL_Event *event __attribute__((unused)), ident data) {
+static void action(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	const CvarCheckboxInput *this = (CvarCheckboxInput *) data;
+	const CvarCheckboxInput *this = (CvarCheckboxInput *) sender;
 
 	Cvar_SetValue(this->var->name, control->state & ControlStateSelected);
 }
@@ -61,7 +61,7 @@ static CvarCheckboxInput *initWithVariable(CvarCheckboxInput *self, cvar_t *var,
 
 	control->state = var->integer ? ControlStateSelected : ControlStateDefault;
 
-	$(control, addActionForEventType, SDL_MOUSEBUTTONUP, checkboxAction, self);
+	$(control, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
 	
 	return self;
 }

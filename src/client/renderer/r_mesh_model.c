@@ -281,7 +281,7 @@ static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 /**
  * @brief Loads and populates vertex array data for the specified MD3 model.
  *
- * @remark Static MD3 meshes receive vertex, normal and tangent arrays in
+ * @remarks Static MD3 meshes receive vertex, normal and tangent arrays in
  * addition to texture coordinate arrays. Animated models receive only texture
  * coordinates, because they must be interpolated at each frame.
  */
@@ -555,7 +555,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
  * @brief Resolves the the vertex described by `indices`, allocating a new
  * vertex if `indices` is unique to the model.
  *
- * @remark In Object file format, primitives are indexed starting at 1, not 0.
+ * @remarks In Object file format, primitives are indexed starting at 1, not 0.
  */
 static r_obj_vertex_t *R_ObjVertexForIndices(r_model_t *mod, r_obj_t *obj, const uint16_t *indices) {
 

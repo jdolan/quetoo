@@ -21,22 +21,11 @@
 
 #include <assert.h>
 
-#include "MenuViewController.h"
+#include "MultiplayerViewController.h"
 
-#define _Class _MenuViewController
+#include "client.h"
 
-#pragma mark - Object
-
-static void dealloc(Object *self) {
-
-	MenuViewController *this = (MenuViewController *) self;
-
-	release(this->panel);
-
-	release(this->stackView);
-
-	super(Object, self, dealloc);
-}
+#define _Class _MultiplayerViewController
 
 #pragma mark - ViewController
 
@@ -49,20 +38,20 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	this->panel = $(alloc(Panel), initWithFrame, NULL);
-	assert(this->panel);
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		box->view.autoresizingMask = ViewAutoresizingContain;
 
-	this->panel->view.alignment = ViewAlignmentMiddleCenter;
-	this->panel->view.autoresizingMask = ViewAutoresizingContain;
+		$(box->label, setText, "MULTIPLAYER");
 
-	this->stackView = $(alloc(StackView), initWithFrame, NULL);
-	assert(this->stackView);
+		$((View *) box, sizeToFit);
 
-	this->stackView->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
-	this->stackView->view.autoresizingMask = ViewAutoresizingContain;
+		$((View *) this->stackView, addSubview, (View *) box);
+		release(box);
+	}
 
-	$((View *) this->panel, addSubview, (View *) this->stackView);
-	$(self->view, addSubview, (View *) this->panel);
+	$((View *) this->stackView, sizeToFit);
+	$((View *) this->panel, sizeToFit);
 }
 
 #pragma mark - Class lifecycle
@@ -72,18 +61,17 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
-
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
-Class _MenuViewController = {
-	.name = "MenuViewController",
-	.superclass = &_ViewController,
-	.instanceSize = sizeof(MenuViewController),
-	.interfaceOffset = offsetof(MenuViewController, interface),
-	.interfaceSize = sizeof(MenuViewControllerInterface),
+Class _MultiplayerViewController = {
+	.name = "MultiplayerViewController",
+	.superclass = &_MenuViewController,
+	.instanceSize = sizeof(MultiplayerViewController),
+	.interfaceOffset = offsetof(MultiplayerViewController, interface),
+	.interfaceSize = sizeof(MultiplayerViewControllerInterface),
 	.initialize = initialize,
 };
 
 #undef _Class
+

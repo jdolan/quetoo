@@ -20,17 +20,51 @@
  */
 
 #include "MainViewController.h"
-#include "../../client.h"
+
+#include "ControlsViewController.h"
+#include "MultiplayerViewController.h"
+#include "SystemViewController.h"
+
+#include "../views/PrimaryButton.h"
+
+#include "client.h"
 
 #define _Class _MainViewController
 
 #pragma mark - Actions
 
 /**
- * @brief ActionFunction for Button.
+ * @brief ActionFunction for main menu PrimaryButtons.
  */
-static void buttonClicked(Control *control, const SDL_Event *event, ident data) {
-	Com_Print("It's alive!\n");
+static void action(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	ViewController *this = (ViewController *) sender;
+	Class *clazz = (Class *) data;
+	if (clazz) {
+
+		ViewController *viewController = NULL;
+
+		Array *childViewControllers = (Array *) this->childViewControllers;
+		for (size_t i = 0; i < childViewControllers->count; i++) {
+
+			ViewController *childViewController = $(childViewControllers, objectAtIndex, i);
+			childViewController->view->hidden = true;
+
+			if ($((Object *) childViewController, isKindOfClass, clazz)) {
+				viewController = childViewController;
+			}
+		}
+
+		if (viewController == NULL) {
+			viewController = $((ViewController *) _alloc(clazz), init);
+			$(viewController, moveToParentViewController, this);
+		}
+
+		viewController->view->hidden = false;
+	} else {
+		Cbuf_AddText("quit\n");
+		Cbuf_Execute();
+	}
 }
 
 #pragma mark - ViewController
@@ -44,13 +78,32 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	Button *button = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
-	$(button->title, setText, "Testing, testing 123");
-	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, buttonClicked, NULL);
+	this->stackView->axis = StackViewAxisHorizontal;
 
-	$((View *) this->stackView, addSubview, (View *) button);
+	this->panel->isDraggable = false;
+	this->panel->isResizable = false;
 
-	release(button);
+	this->panel->view.alignment = ViewAlignmentTopCenter;
+
+	$$(PrimaryButton, button, (View *) this->stackView, "MULTIPLAYER", action, this, &_MultiplayerViewController);
+	$$(PrimaryButton, button, (View *) this->stackView, "CONTROLS", action, this, &_ControlsViewController);
+	$$(PrimaryButton, button, (View *) this->stackView, "SYSTEM", action, this, &_SystemViewController);
+	$$(PrimaryButton, button, (View *) this->stackView, "QUIT", action, this, NULL);
+
+	$((View *) this->stackView, sizeToFit);
+	$((View *) this->panel, sizeToFit);
+}
+
+#pragma mark - MainViewController
+
+/**
+ * @fn MainViewController *MainViewController::init(MainViewController *self)
+ *
+ * @memberof MainViewController
+ */
+static MainViewController *init(MainViewController *self) {
+
+	return (MainViewController *) super(ViewController, self, init);
 }
 
 #pragma mark - Class lifecycle
@@ -61,6 +114,8 @@ static void loadView(ViewController *self) {
 static void initialize(Class *clazz) {
 
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+
+	((MainViewControllerInterface *) clazz->interface)->init = init;
 }
 
 Class _MainViewController = {

@@ -26,20 +26,20 @@
 /**
  * @file
  *
- * @brief The MainViewController.
+ * @brief System ViewController.
  */
 
-typedef struct MainViewController MainViewController;
-typedef struct MainViewControllerInterface MainViewControllerInterface;
+typedef struct SystemViewController SystemViewController;
+typedef struct SystemViewControllerInterface SystemViewControllerInterface;
 
 /**
- * @brief The MainViewController type.
+ * @brief The SystemViewController type.
  *
  * @extends MenuViewController
  *
- * @ingroup ViewControllers
+ * @ingroup
  */
-struct MainViewController {
+struct SystemViewController {
 	
 	/**
 	 * @brief The parent.
@@ -53,33 +53,22 @@ struct MainViewController {
 	 *
 	 * @private
 	 */
-	MainViewControllerInterface *interface;
+	SystemViewControllerInterface *interface;
 };
 
 /**
- * @brief The MainViewController interface.
+ * @brief The SystemViewController interface.
  */
-struct MainViewControllerInterface {
+struct SystemViewControllerInterface {
 	
 	/**
 	 * @brief The parent interface.
 	 */
 	MenuViewControllerInterface menuViewControllerInterface;
-
-	/**
-	 * @fn MainViewController *MainViewController::init(MainViewController *self)
-	 *
-	 * @brief Initializes this ViewController.
-	 *
-	 * @return The initialized MainViewController, or `NULL` on error.
-	 *
-	 * @memberof MainViewController
-	 */
-	MainViewController *(*init)(MainViewController *self);
 };
 
 /**
- * @brief The MainViewController Class.
+ * @brief The SystemViewController Class.
  */
-extern Class _MainViewController;
+extern Class _SystemViewController;
 

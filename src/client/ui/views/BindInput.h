@@ -91,7 +91,7 @@ struct BindInputInterface {
 	 *
 	 * @brief Creates and appends a new Input in the specified View.
 	 *
-	 * @param bind The bind (e.g. `+forward).
+	 * @param bind The bind (e.g. `+forward`).
 	 * @param name The bind name (e.g. `Forward`).
 	 *
 	 * @memberof BindInput

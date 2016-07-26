@@ -4,12 +4,16 @@ noinst_HEADERS = \
 	ui_local.h \
 	ui_main.h \
 	\
+	viewcontrollers/ControlsViewController.h \
 	viewcontrollers/MainViewController.h \
 	viewcontrollers/MenuViewController.h \
+	viewcontrollers/MultiplayerViewController.h \
+	viewcontrollers/SystemViewController.h \
 	\
 	views/BindInput.h \
 	views/CvarCheckboxInput.h \
-	views/CvarSliderInput.h
+	views/CvarSliderInput.h \
+	views/PrimaryButton.h
 
 noinst_LTLIBRARIES = \
 	libui.la
@@ -21,10 +25,13 @@ libui_la_SOURCES = \
 	viewcontrollers/ControlsViewController.c \
 	viewcontrollers/MainViewController.c \
 	viewcontrollers/MenuViewController.c \
+	viewcontrollers/MultiplayerViewController.c \
+	viewcontrollers/SystemViewController.c \
 	\
 	views/BindInput.c \
 	views/CvarCheckboxInput.c \
-	views/CvarSliderInput.c
+	views/CvarSliderInput.c \
+	views/PrimaryButton.c
 
 libui_la_CFLAGS = \
 	-I.. -I../.. \
