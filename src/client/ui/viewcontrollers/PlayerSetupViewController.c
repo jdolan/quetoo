@@ -23,6 +23,9 @@
 
 #include "PlayerSetupViewController.h"
 
+#include "../views/MenuInput.h"
+#include "../views/SkinSelect.h"
+
 #include "client.h"
 
 #define _Class _PlayerSetupViewController
@@ -42,7 +45,17 @@ static void loadView(ViewController *self) {
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		box->view.autoresizingMask = ViewAutoresizingContain;
 
-		$(box->label, setText, "PlayerSetup");
+		$(box->label, setText, "PLAYER SETUP");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		Control *skin = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
+		$$(MenuInput, input, (View *) stackView, skin, "Player skin");
+
+		$((View *) stackView, sizeToFit);
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
 
 		$((View *) box, sizeToFit);
 

@@ -25,6 +25,18 @@
 
 #define _Class _PrimaryButton
 
+#pragma mark - View
+
+/**
+ * @see View::respondToEvent(View *, const SDL_Event *)
+ */
+static void respondToEvent(View *self, const SDL_Event *event) {
+
+	super(View, self, respondToEvent, event);
+
+	((Control *) self)->bevel = BevelTypeNone;
+}
+
 #pragma mark - PrimaryButton
 
 /**
@@ -36,12 +48,8 @@ static PrimaryButton *initWithFrame(PrimaryButton *self, const SDL_Rect *frame, 
 
 	self = (PrimaryButton *) super(Button, self, initWithFrame, frame, style);
 	if (self) {
-
-		if (self->button.control.style == ControlStyleDefault) {
-			self->button.control.bevel = BevelTypeNone;
-
-			$(self->button.title, setFont, $$(Font, defaultFont, FontCategoryPrimaryResponder));
-		}
+		$(self->button.title, setFont, $$(Font, defaultFont, FontCategoryPrimaryResponder));
+		self->button.control.bevel = BevelTypeNone;
 	}
 	
 	return self;
@@ -75,6 +83,8 @@ static void button(View *view, const char *name, ActionFunction action, ident se
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+	((ViewInterface *) clazz->interface)->respondToEvent = respondToEvent;
 
 	((PrimaryButtonInterface *) clazz->interface)->initWithFrame = initWithFrame;
 	((PrimaryButtonInterface *) clazz->interface)->button = button;

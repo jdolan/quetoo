@@ -95,7 +95,6 @@ static void loadView(ViewController *self) {
 	$$(PrimaryButton, button, (View *) this->stackView, "SETTINGS", action, this, &_SettingsViewController);
 	$$(PrimaryButton, button, (View *) this->stackView, "QUIT", action, this, NULL);
 
-//	$((View *) this->stackView, sizeToFit);
 	$((View *) this->panel, sizeToFit);
 }
 

@@ -21,13 +21,11 @@
 
 #include <assert.h>
 
-#include <ObjectivelyMVC/TextView.h>
-
-#include "BindInput.h"
+#include "BindTextView.h"
 
 #include "client.h"
 
-#define _Class _BindInput
+#define _Class _BindTextView
 
 #pragma mark - View
 
@@ -36,9 +34,8 @@
  */
 static void respondToEvent(View *self, const SDL_Event *event) {
 
-	BindInput *this = (BindInput *) self;
+	Control *control = (Control *) self;
 
-	Control *control = this->input.control;
 	if (control->state & ControlStateFocused) {
 
 		if (event->type == SDL_KEYDOWN || event->type == SDL_MOUSEBUTTONDOWN) {
@@ -50,6 +47,8 @@ static void respondToEvent(View *self, const SDL_Event *event) {
 				key = SDL_SCANCODE_MOUSE1 + (event->button.button - 1);
 			}
 
+			BindTextView *this = (BindTextView *) self;
+
 			if (key == SDL_SCANCODE_ESCAPE) {
 				key = Cl_KeyForBind(this->bind);
 				Cl_Bind(key, NULL);
@@ -57,13 +56,7 @@ static void respondToEvent(View *self, const SDL_Event *event) {
 				Cl_Bind(key, this->bind);
 			}
 
-			TextView *textView = (TextView *) control;
-			key = Cl_KeyForBind(this->bind);
-			if (key != SDL_SCANCODE_UNKNOWN) {
-				textView->defaultText = Cl_KeyName(key);
-			} else {
-				textView->defaultText = NULL;
-			}
+			$(self, updateBindings);
 
 			control->state &= ~ControlStateFocused;
 			return;
@@ -80,9 +73,9 @@ static void updateBindings(View *self) {
 
 	super(View, self, updateBindings);
 
-	BindInput *this = (BindInput *) self;
+	const BindTextView *this = (BindTextView *) self;
+	TextView *textView = (TextView *) this;
 
-	TextView *textView = (TextView *) this->input.control;
 	const SDL_Scancode key = Cl_KeyForBind(this->bind);
 	if (key != SDL_SCANCODE_UNKNOWN) {
 		textView->defaultText = Cl_KeyName(key);
@@ -91,50 +84,27 @@ static void updateBindings(View *self) {
 	}
 }
 
-#pragma mark - BindInput
+#pragma mark - BindTextView
 
 /**
- * @fn BindInput *BindInput::initWithBind(BindInput *self, const char *bind, const char *name)
+ * @fn BindTextView *BindTextView::initWithBind(BindTextView *self, const char *bind)
  *
- * @memberof BindInput
+ * @memberof BindTextView
  */
-static BindInput *initWithBind(BindInput *self, const char *bind, const char *name) {
+static BindTextView *initWithBind(BindTextView *self, const char *bind) {
 
-	Control *control = (Control *) $(alloc(TextView), initWithFrame, NULL, ControlStyleDefault);
-	control->view.frame.w = BIND_INPUT_CONTROL_WIDTH;
-
-	Label *label = $(alloc(Label), initWithText, name, NULL);
-	label->view.frame.w = BIND_INPUT_LABEL_WIDTH;
-
-	self = (BindInput *) super(Input, self, initWithOrientation, InputOrientationLeft, control, label);
+	self = (BindTextView *) super(TextView, self, initWithFrame, NULL, ControlStyleDefault);
 	if (self) {
 
 		self->bind = bind;
 		assert(self->bind);
 
+		self->textView.control.view.frame.w = BIND_WIDTH;
+
 		$((View *) self, updateBindings);
 	}
 
-	release(control);
-	release(label);
-	
 	return self;
-}
-
-/**
- * @fn void BindInput::input(View *view, const char *bind, const char *name)
- *
- * @memberof BindInput
- */
-static void input(View *view, const char *bind, const char *name) {
-
-	assert(view);
-
-	BindInput *input = $(alloc(BindInput), initWithBind, bind, name);
-	assert(input);
-
-	$(view, addSubview, (View *) input);
-	release(input);
 }
 
 #pragma mark - Class lifecycle
@@ -147,17 +117,15 @@ static void initialize(Class *clazz) {
 	((ViewInterface *) clazz->interface)->respondToEvent = respondToEvent;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((BindInputInterface *) clazz->interface)->initWithBind = initWithBind;
-
-	((BindInputInterface *) clazz->interface)->input = input;
+	((BindTextViewInterface *) clazz->interface)->initWithBind = initWithBind;
 }
 
-Class _BindInput = {
-	.name = "BindInput",
-	.superclass = &_Input,
-	.instanceSize = sizeof(BindInput),
-	.interfaceOffset = offsetof(BindInput, interface),
-	.interfaceSize = sizeof(BindInputInterface),
+Class _BindTextView = {
+	.name = "BindTextView",
+	.superclass = &_TextView,
+	.instanceSize = sizeof(BindTextView),
+	.interfaceOffset = offsetof(BindTextView, interface),
+	.interfaceSize = sizeof(BindTextViewInterface),
 	.initialize = initialize,
 };
 

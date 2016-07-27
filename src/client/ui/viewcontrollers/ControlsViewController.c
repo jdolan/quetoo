@@ -23,9 +23,10 @@
 
 #include "ControlsViewController.h"
 
-#include "../views/BindInput.h"
-#include "../views/CvarCheckboxInput.h"
-#include "../views/CvarSliderInput.h"
+#include "../views/BindTextView.h"
+#include "../views/CvarCheckbox.h"
+#include "../views/CvarSlider.h"
+#include "../views/MenuInput.h"
 
 #include "client.h"
 
@@ -62,15 +63,40 @@ static void loadView(ViewController *self) {
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		$$(BindInput, input, (View *) stackView, "+forward", "Forward");
-		$$(BindInput, input, (View *) stackView, "+back", "Back");
-		$$(BindInput, input, (View *) stackView, "+move_left", "Move left");
-		$$(BindInput, input, (View *) stackView, "+move_right", "Move right");
-		$$(BindInput, input, (View *) stackView, "+left", "Turn left");
-		$$(BindInput, input, (View *) stackView, "+right", "Turn right");
-		$$(BindInput, input, (View *) stackView, "+move_up", "Jump");
-		$$(BindInput, input, (View *) stackView, "+move_down", "Crouch");
-		$$(BindInput, input, (View *) stackView, "+speed", "Run / walk");
+		$$(MenuInput, bindTextView, (View *) stackView, "+forward", "Forward");
+		$$(MenuInput, bindTextView, (View *) stackView, "+back", "Back");
+		$$(MenuInput, bindTextView, (View *) stackView, "+move_left", "Move left");
+		$$(MenuInput, bindTextView, (View *) stackView, "+move_right", "Move right");
+		$$(MenuInput, bindTextView, (View *) stackView, "+move_up", "Jump");
+		$$(MenuInput, bindTextView, (View *) stackView, "+move_down", "Crouch");
+		$$(MenuInput, bindTextView, (View *) stackView, "+left", "Turn left");
+		$$(MenuInput, bindTextView, (View *) stackView, "+right", "Turn right");
+		$$(MenuInput, bindTextView, (View *) stackView, "center_view", "Center view");
+		$$(MenuInput, bindTextView, (View *) stackView, "+speed", "Run / walk");
+
+		$((View *) stackView, sizeToFit);
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
+
+		$((View *) box, sizeToFit);
+
+		$((View *) leftColumn, addSubview, (View *) box);
+		release(box);
+	}
+
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		box->view.autoresizingMask = ViewAutoresizingContain;
+
+		$(box->label, setText, "COMMUNICATIONS");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		$$(MenuInput, bindTextView, (View *) stackView, "cl_message_mode", "Say");
+		$$(MenuInput, bindTextView, (View *) stackView, "cl_message_mode_2", "Say Team");
+		$$(MenuInput, bindTextView, (View *) stackView, "+SCORE", "Show score");
+		$$(MenuInput, bindTextView, (View *) stackView, "r_screenshot", "Take screenshot");
 
 		$((View *) stackView, sizeToFit);
 
@@ -92,13 +118,13 @@ static void loadView(ViewController *self) {
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 		extern cvar_t *m_sensitivity;
-		$$(CvarSliderInput, input, (View *) stackView, m_sensitivity, "Sensitivity", 0.1, 6.0, 0.1);
+		$$(MenuInput, cvarSlider, (View *) stackView, m_sensitivity, "Sensitivity", 0.1, 6.0, 0.1);
 
 		extern cvar_t *m_sensitivity_zoom;
-		$$(CvarSliderInput, input, (View *) stackView, m_sensitivity_zoom, "Zoom Sensitivity", 0.1, 6.0, 0.1);
+		$$(MenuInput, cvarSlider, (View *) stackView, m_sensitivity_zoom, "Zoom Sensitivity", 0.1, 6.0, 0.1);
 
 		extern cvar_t *m_invert;
-		$$(CvarCheckboxInput, input, (View *) stackView, m_invert, "Invert mouse");
+		$$(MenuInput, cvarCheckbox, (View *) stackView, m_invert, "Invert mouse");
 
 		$((View *) stackView, sizeToFit);
 
@@ -119,22 +145,22 @@ static void loadView(ViewController *self) {
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		$$(BindInput, input, (View *) stackView, "+attack", "Attack");
-		$$(BindInput, input, (View *) stackView, "weapon_next", "Next weapon");
-		$$(BindInput, input, (View *) stackView, "weapon_previous", "Previous weapon");
-		$$(BindInput, input, (View *) stackView, "+ZOOM", "Zoom");
+		$$(MenuInput, bindTextView, (View *) stackView, "+attack", "Attack");
+		$$(MenuInput, bindTextView, (View *) stackView, "weapon_next", "Next weapon");
+		$$(MenuInput, bindTextView, (View *) stackView, "weapon_previous", "Previous weapon");
+		$$(MenuInput, bindTextView, (View *) stackView, "+ZOOM", "Zoom");
 
-		$$(BindInput, input, (View *) stackView, "use blaster", "Blaster");
-		$$(BindInput, input, (View *) stackView, "use shotgun", "Shotgun");
-		$$(BindInput, input, (View *) stackView, "use super shotgun", "Super shotgun");
-		$$(BindInput, input, (View *) stackView, "use machinegun", "Machinegun");
-		$$(BindInput, input, (View *) stackView, "use grenades", "Hand grenades");
-		$$(BindInput, input, (View *) stackView, "use grenade launcher", "Grenade launcher");
-		$$(BindInput, input, (View *) stackView, "use rocket launcher", "Rocket launcher");
-		$$(BindInput, input, (View *) stackView, "use hyperblaster", "Hyperblaster");
-		$$(BindInput, input, (View *) stackView, "use lightning", "Lightning");
-		$$(BindInput, input, (View *) stackView, "use railgun", "Railgun");
-		$$(BindInput, input, (View *) stackView, "use bfg10k", "BFG-10K");
+		$$(MenuInput, bindTextView, (View *) stackView, "use blaster", "Blaster");
+		$$(MenuInput, bindTextView, (View *) stackView, "use shotgun", "Shotgun");
+		$$(MenuInput, bindTextView, (View *) stackView, "use super shotgun", "Super shotgun");
+		$$(MenuInput, bindTextView, (View *) stackView, "use machinegun", "Machinegun");
+		$$(MenuInput, bindTextView, (View *) stackView, "use grenades", "Hand grenades");
+		$$(MenuInput, bindTextView, (View *) stackView, "use grenade launcher", "Grenade launcher");
+		$$(MenuInput, bindTextView, (View *) stackView, "use rocket launcher", "Rocket launcher");
+		$$(MenuInput, bindTextView, (View *) stackView, "use hyperblaster", "Hyperblaster");
+		$$(MenuInput, bindTextView, (View *) stackView, "use lightning", "Lightning");
+		$$(MenuInput, bindTextView, (View *) stackView, "use railgun", "Railgun");
+		$$(MenuInput, bindTextView, (View *) stackView, "use bfg10k", "BFG-10K");
 
 		$((View *) stackView, sizeToFit);
 

@@ -77,6 +77,10 @@
 		CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD5931D3EE1BF00C43B85 /* ui.h */; };
 		CE7EA4D11D47B20500BD37A3 /* PlayerSetupViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4D01D47B20500BD37A3 /* PlayerSetupViewController.h */; };
 		CE7EA4D21D47CC1600BD37A3 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7EA4CE1D47B1FB00BD37A3 /* PlayerSetupViewController.c */; };
+		CE7EA4D51D4829C400BD37A3 /* MenuInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7EA4D31D4829C400BD37A3 /* MenuInput.c */; };
+		CE7EA4D61D4829C400BD37A3 /* MenuInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4D41D4829C400BD37A3 /* MenuInput.h */; };
+		CE7EA4D91D48F53D00BD37A3 /* SkinSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7EA4D71D48F53D00BD37A3 /* SkinSelect.c */; };
+		CE7EA4DA1D48F53D00BD37A3 /* SkinSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4D81D48F53D00BD37A3 /* SkinSelect.h */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
 		CE8000011C5E4D4400A21A51 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CE8000021C5E4D4400A21A51 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
@@ -426,12 +430,12 @@
 		CEDB4BC11D40616C009921B6 /* MainViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDB4BBF1D40616C009921B6 /* MainViewController.h */; };
 		CEF1D8981D43DC7D0099A857 /* ControlsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8961D43DC7D0099A857 /* ControlsViewController.c */; };
 		CEF1D8991D43DC7D0099A857 /* ControlsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */; };
-		CEF1D89C1D43E28E0099A857 /* BindInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D89A1D43E28E0099A857 /* BindInput.c */; };
-		CEF1D89D1D43E28E0099A857 /* BindInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D89B1D43E28E0099A857 /* BindInput.h */; };
-		CEF1D8A41D4521600099A857 /* CvarSliderInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8A21D4521600099A857 /* CvarSliderInput.c */; };
-		CEF1D8A51D4521600099A857 /* CvarSliderInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8A31D4521600099A857 /* CvarSliderInput.h */; };
-		CEF1D8A81D45673D0099A857 /* CvarCheckboxInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8A61D45673D0099A857 /* CvarCheckboxInput.c */; };
-		CEF1D8A91D45673D0099A857 /* CvarCheckboxInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8A71D45673D0099A857 /* CvarCheckboxInput.h */; };
+		CEF1D89C1D43E28E0099A857 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D89A1D43E28E0099A857 /* BindTextView.c */; };
+		CEF1D89D1D43E28E0099A857 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D89B1D43E28E0099A857 /* BindTextView.h */; };
+		CEF1D8A41D4521600099A857 /* CvarSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8A21D4521600099A857 /* CvarSlider.c */; };
+		CEF1D8A51D4521600099A857 /* CvarSlider.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8A31D4521600099A857 /* CvarSlider.h */; };
+		CEF1D8A81D45673D0099A857 /* CvarCheckbox.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8A61D45673D0099A857 /* CvarCheckbox.c */; };
+		CEF1D8A91D45673D0099A857 /* CvarCheckbox.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8A71D45673D0099A857 /* CvarCheckbox.h */; };
 		CEF1D8B01D4665800099A857 /* MultiplayerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8AE1D4665800099A857 /* MultiplayerViewController.c */; };
 		CEF1D8B11D4665800099A857 /* MultiplayerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8AF1D4665800099A857 /* MultiplayerViewController.h */; };
 		CEF1D8B31D466D9A0099A857 /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8B21D466D9A0099A857 /* SettingsViewController.c */; };
@@ -1094,6 +1098,10 @@
 		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
 		CE7EA4CE1D47B1FB00BD37A3 /* PlayerSetupViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerSetupViewController.c; sourceTree = "<group>"; };
 		CE7EA4D01D47B20500BD37A3 /* PlayerSetupViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerSetupViewController.h; sourceTree = "<group>"; };
+		CE7EA4D31D4829C400BD37A3 /* MenuInput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MenuInput.c; sourceTree = "<group>"; };
+		CE7EA4D41D4829C400BD37A3 /* MenuInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MenuInput.h; sourceTree = "<group>"; };
+		CE7EA4D71D48F53D00BD37A3 /* SkinSelect.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SkinSelect.c; sourceTree = "<group>"; };
+		CE7EA4D81D48F53D00BD37A3 /* SkinSelect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SkinSelect.h; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8000071C5E52A200A21A51 /* libz.1.2.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.8.dylib; path = /opt/local/lib/libz.1.2.8.dylib; sourceTree = "<absolute>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1123,12 +1131,12 @@
 		CEDB4BBF1D40616C009921B6 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		CEF1D8961D43DC7D0099A857 /* ControlsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ControlsViewController.c; sourceTree = "<group>"; };
 		CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControlsViewController.h; sourceTree = "<group>"; };
-		CEF1D89A1D43E28E0099A857 /* BindInput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = BindInput.c; sourceTree = "<group>"; };
-		CEF1D89B1D43E28E0099A857 /* BindInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BindInput.h; sourceTree = "<group>"; };
-		CEF1D8A21D4521600099A857 /* CvarSliderInput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CvarSliderInput.c; sourceTree = "<group>"; };
-		CEF1D8A31D4521600099A857 /* CvarSliderInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CvarSliderInput.h; sourceTree = "<group>"; };
-		CEF1D8A61D45673D0099A857 /* CvarCheckboxInput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CvarCheckboxInput.c; sourceTree = "<group>"; };
-		CEF1D8A71D45673D0099A857 /* CvarCheckboxInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CvarCheckboxInput.h; sourceTree = "<group>"; };
+		CEF1D89A1D43E28E0099A857 /* BindTextView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = BindTextView.c; sourceTree = "<group>"; };
+		CEF1D89B1D43E28E0099A857 /* BindTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BindTextView.h; sourceTree = "<group>"; };
+		CEF1D8A21D4521600099A857 /* CvarSlider.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CvarSlider.c; sourceTree = "<group>"; };
+		CEF1D8A31D4521600099A857 /* CvarSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CvarSlider.h; sourceTree = "<group>"; };
+		CEF1D8A61D45673D0099A857 /* CvarCheckbox.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CvarCheckbox.c; sourceTree = "<group>"; };
+		CEF1D8A71D45673D0099A857 /* CvarCheckbox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CvarCheckbox.h; sourceTree = "<group>"; };
 		CEF1D8AE1D4665800099A857 /* MultiplayerViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MultiplayerViewController.c; sourceTree = "<group>"; };
 		CEF1D8AF1D4665800099A857 /* MultiplayerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MultiplayerViewController.h; sourceTree = "<group>"; };
 		CEF1D8B21D466D9A0099A857 /* SettingsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SettingsViewController.c; sourceTree = "<group>"; };
@@ -2271,14 +2279,18 @@
 		CEDB4BB81D405F5A009921B6 /* views */ = {
 			isa = PBXGroup;
 			children = (
-				CEF1D89A1D43E28E0099A857 /* BindInput.c */,
-				CEF1D89B1D43E28E0099A857 /* BindInput.h */,
-				CEF1D8A61D45673D0099A857 /* CvarCheckboxInput.c */,
-				CEF1D8A71D45673D0099A857 /* CvarCheckboxInput.h */,
-				CEF1D8A21D4521600099A857 /* CvarSliderInput.c */,
-				CEF1D8A31D4521600099A857 /* CvarSliderInput.h */,
+				CEF1D89A1D43E28E0099A857 /* BindTextView.c */,
+				CEF1D89B1D43E28E0099A857 /* BindTextView.h */,
+				CEF1D8A61D45673D0099A857 /* CvarCheckbox.c */,
+				CEF1D8A71D45673D0099A857 /* CvarCheckbox.h */,
+				CEF1D8A21D4521600099A857 /* CvarSlider.c */,
+				CEF1D8A31D4521600099A857 /* CvarSlider.h */,
+				CE7EA4D31D4829C400BD37A3 /* MenuInput.c */,
+				CE7EA4D41D4829C400BD37A3 /* MenuInput.h */,
 				CEF1D8B61D467A330099A857 /* PrimaryButton.c */,
 				CEF1D8B71D467A330099A857 /* PrimaryButton.h */,
+				CE7EA4D71D48F53D00BD37A3 /* SkinSelect.c */,
+				CE7EA4D81D48F53D00BD37A3 /* SkinSelect.h */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -2458,10 +2470,11 @@
 				CE80FF0D1C5E462100A21A51 /* r_corona.h in Headers */,
 				CE80FF0E1C5E462100A21A51 /* r_draw.h in Headers */,
 				CE80FF0F1C5E462100A21A51 /* r_element.h in Headers */,
+				CE7EA4DA1D48F53D00BD37A3 /* SkinSelect.h in Headers */,
 				CE80FF101C5E462100A21A51 /* r_entity.h in Headers */,
 				CE80FF111C5E462100A21A51 /* r_flare.h in Headers */,
 				CE80FF121C5E462100A21A51 /* r_gl.h in Headers */,
-				CEF1D8A91D45673D0099A857 /* CvarCheckboxInput.h in Headers */,
+				CEF1D8A91D45673D0099A857 /* CvarCheckbox.h in Headers */,
 				CE80FF131C5E462100A21A51 /* r_image.h in Headers */,
 				CE80FF141C5E462100A21A51 /* r_light.h in Headers */,
 				CE80FF151C5E462100A21A51 /* r_lighting.h in Headers */,
@@ -2483,17 +2496,18 @@
 				CE80FF231C5E462200A21A51 /* r_program_shadow.h in Headers */,
 				CE80FF241C5E462200A21A51 /* r_program_shell.h in Headers */,
 				CE80FF251C5E462200A21A51 /* r_program_warp.h in Headers */,
-				CEF1D89D1D43E28E0099A857 /* BindInput.h in Headers */,
+				CEF1D89D1D43E28E0099A857 /* BindTextView.h in Headers */,
 				CE80FF261C5E462200A21A51 /* r_sky.h in Headers */,
 				CE80FF271C5E462200A21A51 /* r_state.h in Headers */,
 				CEF1D8B91D467A330099A857 /* PrimaryButton.h in Headers */,
 				CE80FF281C5E462200A21A51 /* r_types.h in Headers */,
-				CEF1D8A51D4521600099A857 /* CvarSliderInput.h in Headers */,
+				CEF1D8A51D4521600099A857 /* CvarSlider.h in Headers */,
 				CE80FF291C5E462200A21A51 /* renderer.h in Headers */,
 				CE80FFA01C5E4A0100A21A51 /* s_local.h in Headers */,
 				CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */,
 				CE80FFA11C5E4A0200A21A51 /* s_main.h in Headers */,
 				CE80FFA21C5E4A0200A21A51 /* s_media.h in Headers */,
+				CE7EA4D61D4829C400BD37A3 /* MenuInput.h in Headers */,
 				CE80FFA31C5E4A0200A21A51 /* s_mix.h in Headers */,
 				CE80FFA41C5E4A0200A21A51 /* s_music.h in Headers */,
 				CE80FFA51C5E4A0200A21A51 /* s_sample.h in Headers */,
@@ -3057,13 +3071,14 @@
 				CE80FF3D1C5E473500A21A51 /* cl_parse.c in Sources */,
 				CE80FF3E1C5E473500A21A51 /* cl_predict.c in Sources */,
 				CE80FF3F1C5E473500A21A51 /* cl_screen.c in Sources */,
+				CE7EA4D91D48F53D00BD37A3 /* SkinSelect.c in Sources */,
 				CE80FF401C5E473500A21A51 /* cl_server.c in Sources */,
 				CE80FF411C5E473500A21A51 /* cl_view.c in Sources */,
 				CE80FEE71C5E460B00A21A51 /* r_array.c in Sources */,
 				CE80FEE81C5E460B00A21A51 /* r_bsp.c in Sources */,
 				CE7EA4D21D47CC1600BD37A3 /* PlayerSetupViewController.c in Sources */,
 				CE80FEE91C5E460B00A21A51 /* r_bsp_light.c in Sources */,
-				CEF1D8A81D45673D0099A857 /* CvarCheckboxInput.c in Sources */,
+				CEF1D8A81D45673D0099A857 /* CvarCheckbox.c in Sources */,
 				CE80FEEA1C5E460B00A21A51 /* r_bsp_model.c in Sources */,
 				CE80FEEB1C5E460B00A21A51 /* r_bsp_surface.c in Sources */,
 				CEF1D8B31D466D9A0099A857 /* SettingsViewController.c in Sources */,
@@ -3076,13 +3091,13 @@
 				CE80FEF21C5E460B00A21A51 /* r_gl.c in Sources */,
 				CE80FEF31C5E460B00A21A51 /* r_image.c in Sources */,
 				CE80FEF41C5E460B00A21A51 /* r_light.c in Sources */,
-				CEF1D8A41D4521600099A857 /* CvarSliderInput.c in Sources */,
+				CEF1D8A41D4521600099A857 /* CvarSlider.c in Sources */,
 				CE80FEF51C5E460B00A21A51 /* r_lighting.c in Sources */,
 				CE80FEF61C5E460B00A21A51 /* r_lightmap.c in Sources */,
 				CE80FEF71C5E460B00A21A51 /* r_main.c in Sources */,
 				CE80FEF81C5E460B00A21A51 /* r_material.c in Sources */,
 				CE80FEF91C5E460B00A21A51 /* r_media.c in Sources */,
-				CEF1D89C1D43E28E0099A857 /* BindInput.c in Sources */,
+				CEF1D89C1D43E28E0099A857 /* BindTextView.c in Sources */,
 				CE80FEFA1C5E460B00A21A51 /* r_mesh.c in Sources */,
 				CE80FEFB1C5E460B00A21A51 /* r_mesh_model.c in Sources */,
 				CE80FEFC1C5E460B00A21A51 /* r_mesh_shadow.c in Sources */,
@@ -3090,6 +3105,7 @@
 				CEF1D8B01D4665800099A857 /* MultiplayerViewController.c in Sources */,
 				CE80FEFE1C5E460B00A21A51 /* r_model.c in Sources */,
 				CE80FEFF1C5E460B00A21A51 /* r_particle.c in Sources */,
+				CE7EA4D51D4829C400BD37A3 /* MenuInput.c in Sources */,
 				CE80FF001C5E460B00A21A51 /* r_program.c in Sources */,
 				CE80FF011C5E460B00A21A51 /* r_program_default.c in Sources */,
 				CE80FF021C5E460B00A21A51 /* r_program_shadow.c in Sources */,
