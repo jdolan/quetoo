@@ -62,7 +62,7 @@ static void enumerateSkins(const char *path, void *data) {
 				}
 			}
 
-			const int value = options->count;
+			ident value = (ident) options->count;
 			$(this, addOption, name, value);
 
 			if (g_strcmp0(skin->string, name) == 0) {

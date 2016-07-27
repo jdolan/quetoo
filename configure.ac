@@ -464,6 +464,8 @@ AC_CONFIG_FILES([
 	src/client/renderer/shaders/Makefile
 	src/client/sound/Makefile
 	src/client/ui/Makefile
+	src/client/ui/viewcontrollers/Makefile
+	src/client/ui/views/Makefile
 	src/game/Makefile
 	src/game/default/Makefile
 	src/main/Makefile

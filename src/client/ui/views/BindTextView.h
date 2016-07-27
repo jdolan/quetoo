@@ -69,7 +69,7 @@ struct BindTextViewInterface {
 	/**
 	 * @brief The parent interface.
 	 */
-	TextViewInterface TextViewInterface;
+	TextViewInterface textViewInterface;
 	
 	/**
 	 * @fn BindTextView *BindTextView::initWithBind(BindTextView *self, const char *bind)

@@ -21,39 +21,39 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/Checkbox.h>
+#include <ObjectivelyMVC/TextView.h>
 
 #include "cvar.h"
 
 /**
  * @file
  *
- * @brief A Checkbox bound to a cvar_t.
+ * @brief A TextView bound to a cvar_t.
  */
 
-typedef struct CvarCheckbox CvarCheckbox;
-typedef struct CvarCheckboxInterface CvarCheckboxInterface;
+typedef struct CvarTextView CvarTextView;
+typedef struct CvarTextViewInterface CvarTextViewInterface;
 
 /**
- * @brief The CvarCheckbox type.
+ * @brief The CvarTextView type.
  *
- * @extends Checkbox
+ * @extends TextView
  */
-struct CvarCheckbox {
+struct CvarTextView {
 	
 	/**
 	 * @brief The parent.
 	 *
 	 * @private
 	 */
-	Checkbox checkbox;
+	TextView textView;
 	
 	/**
 	 * @brief The typed interface.
 	 *
 	 * @private
 	 */
-	CvarCheckboxInterface *interface;
+	CvarTextViewInterface *interface;
 
 	/**
 	 * @brief The variable.
@@ -62,31 +62,31 @@ struct CvarCheckbox {
 };
 
 /**
- * @brief The CvarCheckbox interface.
+ * @brief The CvarTextView interface.
  */
-struct CvarCheckboxInterface {
+struct CvarTextViewInterface {
 	
 	/**
 	 * @brief The parent interface.
 	 */
-	CheckboxInterface checkboxInterface;
+	TextViewInterface textViewInterface;
 	
 	/**
-	 * @fn CvarCheckbox *CvarCheckbox::initWithVariable(CvarCheckbox *self, cvar_t *var)
+	 * @fn CvarTextView *CvarTextView::initWithVariable(CvarTextView *self, cvar_t *var)
 	 *
-	 * @brief Initializes this Checkbox with the given variable.
+	 * @brief Initializes this TextView with the given variable.
 	 *
 	 * @param var The variable.
 	 *
-	 * @return The initialized CvarCheckbox, or `NULL` on error.
+	 * @return The initialized CvarTextView, or `NULL` on error.
 	 *
-	 * @memberof CvarCheckbox
+	 * @memberof CvarTextView
 	 */
-	CvarCheckbox *(*initWithVariable)(CvarCheckbox *self, cvar_t *var);
+	CvarTextView *(*initWithVariable)(CvarTextView *self, cvar_t *var);
 };
 
 /**
- * @brief The CvarCheckbox Class.
+ * @brief The CvarTextView Class.
  */
-extern Class _CvarCheckbox;
+extern Class _CvarTextView;
 

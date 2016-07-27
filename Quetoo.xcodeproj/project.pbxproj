@@ -75,12 +75,21 @@
 		CE12D8C41C5CF86600CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD5931D3EE1BF00C43B85 /* ui.h */; };
-		CE7EA4D11D47B20500BD37A3 /* PlayerSetupViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4D01D47B20500BD37A3 /* PlayerSetupViewController.h */; };
+		CE76278C1D49089500EEEE78 /* ControlsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */; };
+		CE76278D1D49089500EEEE78 /* MainViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDB4BBF1D40616C009921B6 /* MainViewController.h */; };
+		CE76278E1D49089500EEEE78 /* MenuViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDB4BBA1D405F74009921B6 /* MenuViewController.h */; };
+		CE76278F1D49089500EEEE78 /* MultiplayerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8AF1D4665800099A857 /* MultiplayerViewController.h */; };
+		CE7627901D49089500EEEE78 /* PlayerSetupViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4D01D47B20500BD37A3 /* PlayerSetupViewController.h */; };
+		CE7627911D49089500EEEE78 /* SettingsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8B41D466DA50099A857 /* SettingsViewController.h */; };
+		CE7627921D4908AF00EEEE78 /* ui_context.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB5261C1D41CB020034AA0D /* ui_context.h */; };
+		CE7627931D4908B300EEEE78 /* ui_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD5981D3EE25100C43B85 /* ui_main.h */; };
 		CE7EA4D21D47CC1600BD37A3 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7EA4CE1D47B1FB00BD37A3 /* PlayerSetupViewController.c */; };
 		CE7EA4D51D4829C400BD37A3 /* MenuInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7EA4D31D4829C400BD37A3 /* MenuInput.c */; };
 		CE7EA4D61D4829C400BD37A3 /* MenuInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4D41D4829C400BD37A3 /* MenuInput.h */; };
 		CE7EA4D91D48F53D00BD37A3 /* SkinSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7EA4D71D48F53D00BD37A3 /* SkinSelect.c */; };
 		CE7EA4DA1D48F53D00BD37A3 /* SkinSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4D81D48F53D00BD37A3 /* SkinSelect.h */; };
+		CE7EA4DC1D49036E00BD37A3 /* CvarTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4DB1D49036E00BD37A3 /* CvarTextView.h */; };
+		CE7EA4DE1D49037F00BD37A3 /* CvarTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7EA4DD1D49037F00BD37A3 /* CvarTextView.c */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
 		CE8000011C5E4D4400A21A51 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CE8000021C5E4D4400A21A51 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
@@ -419,17 +428,13 @@
 		CEA029E91C5E558100341079 /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
 		CEA029EC1C5E558100341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA029F71C5E55C100341079 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6831C5C58C300CD0B13 /* main.c */; };
-		CEB5261D1D41CB020034AA0D /* ui_context.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB5261C1D41CB020034AA0D /* ui_context.h */; };
 		CEB5261E1D41CD070034AA0D /* ui_context.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB5261A1D41CABE0034AA0D /* ui_context.c */; };
 		CEC986941D3835420002B714 /* libmysqlclient.18.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC986931D3835420002B714 /* libmysqlclient.18.dylib */; };
 		CEDB4BB11D404D9D009921B6 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEDB4BB21D404E31009921B6 /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5BD5971D3EE25100C43B85 /* ui_main.c */; };
 		CEDB4BBB1D405F74009921B6 /* MenuViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEDB4BB91D405F74009921B6 /* MenuViewController.c */; };
-		CEDB4BBC1D405F74009921B6 /* MenuViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDB4BBA1D405F74009921B6 /* MenuViewController.h */; };
 		CEDB4BC01D40616C009921B6 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEDB4BBE1D40616C009921B6 /* MainViewController.c */; };
-		CEDB4BC11D40616C009921B6 /* MainViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDB4BBF1D40616C009921B6 /* MainViewController.h */; };
 		CEF1D8981D43DC7D0099A857 /* ControlsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8961D43DC7D0099A857 /* ControlsViewController.c */; };
-		CEF1D8991D43DC7D0099A857 /* ControlsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */; };
 		CEF1D89C1D43E28E0099A857 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D89A1D43E28E0099A857 /* BindTextView.c */; };
 		CEF1D89D1D43E28E0099A857 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D89B1D43E28E0099A857 /* BindTextView.h */; };
 		CEF1D8A41D4521600099A857 /* CvarSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8A21D4521600099A857 /* CvarSlider.c */; };
@@ -437,9 +442,7 @@
 		CEF1D8A81D45673D0099A857 /* CvarCheckbox.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8A61D45673D0099A857 /* CvarCheckbox.c */; };
 		CEF1D8A91D45673D0099A857 /* CvarCheckbox.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8A71D45673D0099A857 /* CvarCheckbox.h */; };
 		CEF1D8B01D4665800099A857 /* MultiplayerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8AE1D4665800099A857 /* MultiplayerViewController.c */; };
-		CEF1D8B11D4665800099A857 /* MultiplayerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8AF1D4665800099A857 /* MultiplayerViewController.h */; };
 		CEF1D8B31D466D9A0099A857 /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8B21D466D9A0099A857 /* SettingsViewController.c */; };
-		CEF1D8B51D466DA50099A857 /* SettingsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8B41D466DA50099A857 /* SettingsViewController.h */; };
 		CEF1D8B81D467A330099A857 /* PrimaryButton.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D8B61D467A330099A857 /* PrimaryButton.c */; };
 		CEF1D8B91D467A330099A857 /* PrimaryButton.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8B71D467A330099A857 /* PrimaryButton.h */; };
 /* End PBXBuildFile section */
@@ -1102,6 +1105,10 @@
 		CE7EA4D41D4829C400BD37A3 /* MenuInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MenuInput.h; sourceTree = "<group>"; };
 		CE7EA4D71D48F53D00BD37A3 /* SkinSelect.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SkinSelect.c; sourceTree = "<group>"; };
 		CE7EA4D81D48F53D00BD37A3 /* SkinSelect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SkinSelect.h; sourceTree = "<group>"; };
+		CE7EA4DB1D49036E00BD37A3 /* CvarTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CvarTextView.h; sourceTree = "<group>"; };
+		CE7EA4DD1D49037F00BD37A3 /* CvarTextView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CvarTextView.c; sourceTree = "<group>"; };
+		CE7EA4DF1D49057200BD37A3 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE7EA4E01D49069D00BD37A3 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8000071C5E52A200A21A51 /* libz.1.2.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.8.dylib; path = /opt/local/lib/libz.1.2.8.dylib; sourceTree = "<absolute>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2264,6 +2271,7 @@
 				CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */,
 				CEDB4BBE1D40616C009921B6 /* MainViewController.c */,
 				CEDB4BBF1D40616C009921B6 /* MainViewController.h */,
+				CE7EA4DF1D49057200BD37A3 /* Makefile.am */,
 				CEDB4BB91D405F74009921B6 /* MenuViewController.c */,
 				CEDB4BBA1D405F74009921B6 /* MenuViewController.h */,
 				CEF1D8AE1D4665800099A857 /* MultiplayerViewController.c */,
@@ -2285,6 +2293,9 @@
 				CEF1D8A71D45673D0099A857 /* CvarCheckbox.h */,
 				CEF1D8A21D4521600099A857 /* CvarSlider.c */,
 				CEF1D8A31D4521600099A857 /* CvarSlider.h */,
+				CE7EA4DD1D49037F00BD37A3 /* CvarTextView.c */,
+				CE7EA4DB1D49036E00BD37A3 /* CvarTextView.h */,
+				CE7EA4E01D49069D00BD37A3 /* Makefile.am */,
 				CE7EA4D31D4829C400BD37A3 /* MenuInput.c */,
 				CE7EA4D41D4829C400BD37A3 /* MenuInput.h */,
 				CEF1D8B61D467A330099A857 /* PrimaryButton.c */,
@@ -2362,8 +2373,6 @@
 			files = (
 				CE80FE7A1C5E43AC00A21A51 /* zip.h in Headers */,
 				CE80FE791C5E43AC00A21A51 /* ioapi.h in Headers */,
-				CE7EA4D11D47B20500BD37A3 /* PlayerSetupViewController.h in Headers */,
-				CEB5261D1D41CB020034AA0D /* ui_context.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2438,7 +2447,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEF1D8B51D466DA50099A857 /* SettingsViewController.h in Headers */,
 				CE80FF801C5E49E700A21A51 /* cl_binds.h in Headers */,
 				CE80FF811C5E49E700A21A51 /* cl_cgame.h in Headers */,
 				CE80FF821C5E49E700A21A51 /* cl_cmd.h in Headers */,
@@ -2451,7 +2459,6 @@
 				CE80FF891C5E49E700A21A51 /* cl_local.h in Headers */,
 				CE80FF8A1C5E49E700A21A51 /* cl_main.h in Headers */,
 				CE80FF8B1C5E49E700A21A51 /* cl_media.h in Headers */,
-				CEDB4BC11D40616C009921B6 /* MainViewController.h in Headers */,
 				CE80FF8C1C5E49E700A21A51 /* cl_mouse.h in Headers */,
 				CE80FF8D1C5E49E700A21A51 /* cl_parse.h in Headers */,
 				CE80FF8E1C5E49E700A21A51 /* cl_predict.h in Headers */,
@@ -2459,7 +2466,6 @@
 				CE80FF901C5E49E700A21A51 /* cl_server.h in Headers */,
 				CE80FF911C5E49E700A21A51 /* cl_types.h in Headers */,
 				CE80FF921C5E49E700A21A51 /* cl_view.h in Headers */,
-				CEDB4BBC1D405F74009921B6 /* MenuViewController.h in Headers */,
 				CE80FF931C5E49E700A21A51 /* client.h in Headers */,
 				CE80FF071C5E462100A21A51 /* r_array.h in Headers */,
 				CE80FF081C5E462100A21A51 /* r_bsp.h in Headers */,
@@ -2470,11 +2476,10 @@
 				CE80FF0D1C5E462100A21A51 /* r_corona.h in Headers */,
 				CE80FF0E1C5E462100A21A51 /* r_draw.h in Headers */,
 				CE80FF0F1C5E462100A21A51 /* r_element.h in Headers */,
-				CE7EA4DA1D48F53D00BD37A3 /* SkinSelect.h in Headers */,
 				CE80FF101C5E462100A21A51 /* r_entity.h in Headers */,
 				CE80FF111C5E462100A21A51 /* r_flare.h in Headers */,
 				CE80FF121C5E462100A21A51 /* r_gl.h in Headers */,
-				CEF1D8A91D45673D0099A857 /* CvarCheckbox.h in Headers */,
+				CE7627931D4908B300EEEE78 /* ui_main.h in Headers */,
 				CE80FF131C5E462100A21A51 /* r_image.h in Headers */,
 				CE80FF141C5E462100A21A51 /* r_light.h in Headers */,
 				CE80FF151C5E462100A21A51 /* r_lighting.h in Headers */,
@@ -2488,31 +2493,39 @@
 				CE80FF1D1C5E462100A21A51 /* r_mesh_shadow.h in Headers */,
 				CE80FF1E1C5E462100A21A51 /* r_mesh_shell.h in Headers */,
 				CE80FF1F1C5E462100A21A51 /* r_model.h in Headers */,
-				CEF1D8B11D4665800099A857 /* MultiplayerViewController.h in Headers */,
 				CE80FF201C5E462100A21A51 /* r_particle.h in Headers */,
 				CE80FF211C5E462200A21A51 /* r_program.h in Headers */,
 				CE80FF221C5E462200A21A51 /* r_program_default.h in Headers */,
-				CEF1D8991D43DC7D0099A857 /* ControlsViewController.h in Headers */,
 				CE80FF231C5E462200A21A51 /* r_program_shadow.h in Headers */,
 				CE80FF241C5E462200A21A51 /* r_program_shell.h in Headers */,
 				CE80FF251C5E462200A21A51 /* r_program_warp.h in Headers */,
-				CEF1D89D1D43E28E0099A857 /* BindTextView.h in Headers */,
 				CE80FF261C5E462200A21A51 /* r_sky.h in Headers */,
 				CE80FF271C5E462200A21A51 /* r_state.h in Headers */,
-				CEF1D8B91D467A330099A857 /* PrimaryButton.h in Headers */,
 				CE80FF281C5E462200A21A51 /* r_types.h in Headers */,
-				CEF1D8A51D4521600099A857 /* CvarSlider.h in Headers */,
 				CE80FF291C5E462200A21A51 /* renderer.h in Headers */,
 				CE80FFA01C5E4A0100A21A51 /* s_local.h in Headers */,
-				CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */,
 				CE80FFA11C5E4A0200A21A51 /* s_main.h in Headers */,
 				CE80FFA21C5E4A0200A21A51 /* s_media.h in Headers */,
-				CE7EA4D61D4829C400BD37A3 /* MenuInput.h in Headers */,
 				CE80FFA31C5E4A0200A21A51 /* s_mix.h in Headers */,
 				CE80FFA41C5E4A0200A21A51 /* s_music.h in Headers */,
 				CE80FFA51C5E4A0200A21A51 /* s_sample.h in Headers */,
 				CE80FFA61C5E4A0200A21A51 /* s_types.h in Headers */,
 				CE80FFA71C5E4A0200A21A51 /* sound.h in Headers */,
+				CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */,
+				CE7627921D4908AF00EEEE78 /* ui_context.h in Headers */,
+				CE76278C1D49089500EEEE78 /* ControlsViewController.h in Headers */,
+				CE76278D1D49089500EEEE78 /* MainViewController.h in Headers */,
+				CE76278F1D49089500EEEE78 /* MultiplayerViewController.h in Headers */,
+				CE76278E1D49089500EEEE78 /* MenuViewController.h in Headers */,
+				CE7627901D49089500EEEE78 /* PlayerSetupViewController.h in Headers */,
+				CE7627911D49089500EEEE78 /* SettingsViewController.h in Headers */,
+				CEF1D89D1D43E28E0099A857 /* BindTextView.h in Headers */,
+				CEF1D8A51D4521600099A857 /* CvarSlider.h in Headers */,
+				CE7EA4DC1D49036E00BD37A3 /* CvarTextView.h in Headers */,
+				CEF1D8A91D45673D0099A857 /* CvarCheckbox.h in Headers */,
+				CEF1D8B91D467A330099A857 /* PrimaryButton.h in Headers */,
+				CE7EA4DA1D48F53D00BD37A3 /* SkinSelect.h in Headers */,
+				CE7EA4D61D4829C400BD37A3 /* MenuInput.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3055,12 +3068,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEF1D8B81D467A330099A857 /* PrimaryButton.c in Sources */,
 				CE80FF311C5E473500A21A51 /* cl_cgame.c in Sources */,
 				CE80FF321C5E473500A21A51 /* cl_cmd.c in Sources */,
 				CE80FF331C5E473500A21A51 /* cl_console.c in Sources */,
 				CE80FF341C5E473500A21A51 /* cl_demo.c in Sources */,
-				CEF1D8981D43DC7D0099A857 /* ControlsViewController.c in Sources */,
 				CE80FF351C5E473500A21A51 /* cl_entity.c in Sources */,
 				CE80FF361C5E473500A21A51 /* cl_http.c in Sources */,
 				CE80FF371C5E473500A21A51 /* cl_input.c in Sources */,
@@ -3071,17 +3082,13 @@
 				CE80FF3D1C5E473500A21A51 /* cl_parse.c in Sources */,
 				CE80FF3E1C5E473500A21A51 /* cl_predict.c in Sources */,
 				CE80FF3F1C5E473500A21A51 /* cl_screen.c in Sources */,
-				CE7EA4D91D48F53D00BD37A3 /* SkinSelect.c in Sources */,
 				CE80FF401C5E473500A21A51 /* cl_server.c in Sources */,
 				CE80FF411C5E473500A21A51 /* cl_view.c in Sources */,
 				CE80FEE71C5E460B00A21A51 /* r_array.c in Sources */,
 				CE80FEE81C5E460B00A21A51 /* r_bsp.c in Sources */,
-				CE7EA4D21D47CC1600BD37A3 /* PlayerSetupViewController.c in Sources */,
 				CE80FEE91C5E460B00A21A51 /* r_bsp_light.c in Sources */,
-				CEF1D8A81D45673D0099A857 /* CvarCheckbox.c in Sources */,
 				CE80FEEA1C5E460B00A21A51 /* r_bsp_model.c in Sources */,
 				CE80FEEB1C5E460B00A21A51 /* r_bsp_surface.c in Sources */,
-				CEF1D8B31D466D9A0099A857 /* SettingsViewController.c in Sources */,
 				CE80FEEC1C5E460B00A21A51 /* r_context.c in Sources */,
 				CE80FEED1C5E460B00A21A51 /* r_corona.c in Sources */,
 				CE80FEEE1C5E460B00A21A51 /* r_draw.c in Sources */,
@@ -3091,21 +3098,17 @@
 				CE80FEF21C5E460B00A21A51 /* r_gl.c in Sources */,
 				CE80FEF31C5E460B00A21A51 /* r_image.c in Sources */,
 				CE80FEF41C5E460B00A21A51 /* r_light.c in Sources */,
-				CEF1D8A41D4521600099A857 /* CvarSlider.c in Sources */,
 				CE80FEF51C5E460B00A21A51 /* r_lighting.c in Sources */,
 				CE80FEF61C5E460B00A21A51 /* r_lightmap.c in Sources */,
 				CE80FEF71C5E460B00A21A51 /* r_main.c in Sources */,
 				CE80FEF81C5E460B00A21A51 /* r_material.c in Sources */,
 				CE80FEF91C5E460B00A21A51 /* r_media.c in Sources */,
-				CEF1D89C1D43E28E0099A857 /* BindTextView.c in Sources */,
 				CE80FEFA1C5E460B00A21A51 /* r_mesh.c in Sources */,
 				CE80FEFB1C5E460B00A21A51 /* r_mesh_model.c in Sources */,
 				CE80FEFC1C5E460B00A21A51 /* r_mesh_shadow.c in Sources */,
 				CE80FEFD1C5E460B00A21A51 /* r_mesh_shell.c in Sources */,
-				CEF1D8B01D4665800099A857 /* MultiplayerViewController.c in Sources */,
 				CE80FEFE1C5E460B00A21A51 /* r_model.c in Sources */,
 				CE80FEFF1C5E460B00A21A51 /* r_particle.c in Sources */,
-				CE7EA4D51D4829C400BD37A3 /* MenuInput.c in Sources */,
 				CE80FF001C5E460B00A21A51 /* r_program.c in Sources */,
 				CE80FF011C5E460B00A21A51 /* r_program_default.c in Sources */,
 				CE80FF021C5E460B00A21A51 /* r_program_shadow.c in Sources */,
@@ -3120,8 +3123,19 @@
 				CE80FF4F1C5E475600A21A51 /* s_sample.c in Sources */,
 				CEB5261E1D41CD070034AA0D /* ui_context.c in Sources */,
 				CEDB4BB21D404E31009921B6 /* ui_main.c in Sources */,
+				CEF1D8981D43DC7D0099A857 /* ControlsViewController.c in Sources */,
+				CE7EA4D21D47CC1600BD37A3 /* PlayerSetupViewController.c in Sources */,
+				CEF1D8B31D466D9A0099A857 /* SettingsViewController.c in Sources */,
+				CEF1D8B01D4665800099A857 /* MultiplayerViewController.c in Sources */,
 				CEDB4BC01D40616C009921B6 /* MainViewController.c in Sources */,
 				CEDB4BBB1D405F74009921B6 /* MenuViewController.c in Sources */,
+				CEF1D89C1D43E28E0099A857 /* BindTextView.c in Sources */,
+				CE7EA4DE1D49037F00BD37A3 /* CvarTextView.c in Sources */,
+				CEF1D8A81D45673D0099A857 /* CvarCheckbox.c in Sources */,
+				CEF1D8A41D4521600099A857 /* CvarSlider.c in Sources */,
+				CE7EA4D51D4829C400BD37A3 /* MenuInput.c in Sources */,
+				CEF1D8B81D467A330099A857 /* PrimaryButton.c in Sources */,
+				CE7EA4D91D48F53D00BD37A3 /* SkinSelect.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
