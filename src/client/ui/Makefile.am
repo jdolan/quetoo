@@ -25,5 +25,6 @@ libui_la_LDFLAGS = \
 	-shared
 
 libui_la_LIBADD = \
-	../../libcommon.la \
-	viewcontrollers/libviewcontrollers.la
+	viewcontrollers/libviewcontrollers.la \
+	../../libcommon.la
+

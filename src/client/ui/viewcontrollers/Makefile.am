@@ -19,7 +19,7 @@ libviewcontrollers_la_SOURCES = \
 	SettingsViewController.c
 
 libviewcontrollers_la_CFLAGS = \
-	-I.. -I../.. -I../../.. \
+	-I.. -I../.. -I../../.. -I../views \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@
@@ -28,5 +28,5 @@ libviewcontrollers_la_LDFLAGS = \
 	-shared
 
 libviewcontrollers_la_LIBADD = \
-	../../../libcommon.la \
-	../views/libviews.la
+	../views/libviews.la \
+	../../../libcommon.la

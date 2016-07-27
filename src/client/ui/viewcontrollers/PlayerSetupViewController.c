@@ -23,8 +23,9 @@
 
 #include "PlayerSetupViewController.h"
 
-#include "../views/MenuInput.h"
-#include "../views/SkinSelect.h"
+#include "CvarTextView.h"
+#include "MenuInput.h"
+#include "SkinSelect.h"
 
 #include "client.h"
 
