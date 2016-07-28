@@ -23,12 +23,7 @@
 
 #include "ControlsViewController.h"
 
-#include "../views/BindTextView.h"
-#include "../views/CvarCheckbox.h"
-#include "../views/CvarSlider.h"
-#include "../views/MenuInput.h"
-
-#include "client.h"
+#include "ui_data.h"
 
 #define _Class _ControlsViewController
 
@@ -47,10 +42,10 @@ static void loadView(ViewController *self) {
 	this->stackView->spacing = DEAFULT_MENU_STACKVIEW_HORIZONTAL_SPACING;
 
 	StackView *leftColumn = $(alloc(StackView), initWithFrame, NULL);
-	leftColumn->view.autoresizingMask = ViewAutoresizingHeight;
+//	leftColumn->view.autoresizingMask = ViewAutoresizingHeight;
 
 	StackView *rightColumn = $(alloc(StackView), initWithFrame, NULL);
-	rightColumn->view.autoresizingMask = ViewAutoresizingHeight;
+//	rightColumn->view.autoresizingMask = ViewAutoresizingHeight;
 
 	leftColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
 	rightColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
@@ -63,16 +58,16 @@ static void loadView(ViewController *self) {
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		$$(MenuInput, bindTextView, (View *) stackView, "+forward", "Forward");
-		$$(MenuInput, bindTextView, (View *) stackView, "+back", "Back");
-		$$(MenuInput, bindTextView, (View *) stackView, "+move_left", "Move left");
-		$$(MenuInput, bindTextView, (View *) stackView, "+move_right", "Move right");
-		$$(MenuInput, bindTextView, (View *) stackView, "+move_up", "Jump");
-		$$(MenuInput, bindTextView, (View *) stackView, "+move_down", "Crouch");
-		$$(MenuInput, bindTextView, (View *) stackView, "+left", "Turn left");
-		$$(MenuInput, bindTextView, (View *) stackView, "+right", "Turn right");
-		$$(MenuInput, bindTextView, (View *) stackView, "center_view", "Center view");
-		$$(MenuInput, bindTextView, (View *) stackView, "+speed", "Run / walk");
+		Ui_Bind((View *) stackView, "Forward", "+forward");
+		Ui_Bind((View *) stackView, "Back", "+back");
+		Ui_Bind((View *) stackView, "Move left", "+move_left");
+		Ui_Bind((View *) stackView, "Move right", "+move_right");
+		Ui_Bind((View *) stackView, "Jump", "+move_up");
+		Ui_Bind((View *) stackView, "Crouch", "+move_down");
+		Ui_Bind((View *) stackView, "Turn left", "+left");
+		Ui_Bind((View *) stackView, "Turn right", "+right");
+		Ui_Bind((View *) stackView, "Center view", "center_view");
+		Ui_Bind((View *) stackView, "Run / walk", "+speed");
 
 		$((View *) stackView, sizeToFit);
 
@@ -93,10 +88,10 @@ static void loadView(ViewController *self) {
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		$$(MenuInput, bindTextView, (View *) stackView, "cl_message_mode", "Say");
-		$$(MenuInput, bindTextView, (View *) stackView, "cl_message_mode_2", "Say Team");
-		$$(MenuInput, bindTextView, (View *) stackView, "+SCORE", "Show score");
-		$$(MenuInput, bindTextView, (View *) stackView, "r_screenshot", "Take screenshot");
+		Ui_Bind((View *) stackView, "Say", "cl_message_mode");
+		Ui_Bind((View *) stackView, "Say Team", "cl_message_mode_2");
+		Ui_Bind((View *) stackView, "Show score", "+SCORE");
+		Ui_Bind((View *) stackView, "Take screenshot", "r_screenshot");
 
 		$((View *) stackView, sizeToFit);
 
@@ -118,13 +113,12 @@ static void loadView(ViewController *self) {
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 		extern cvar_t *m_sensitivity;
-		$$(MenuInput, cvarSlider, (View *) stackView, m_sensitivity, "Sensitivity", 0.1, 6.0, 0.1);
-
 		extern cvar_t *m_sensitivity_zoom;
-		$$(MenuInput, cvarSlider, (View *) stackView, m_sensitivity_zoom, "Zoom Sensitivity", 0.1, 6.0, 0.1);
-
 		extern cvar_t *m_invert;
-		$$(MenuInput, cvarCheckbox, (View *) stackView, m_invert, "Invert mouse");
+
+		Ui_CvarSlider((View *) stackView, "Sensitivity", m_sensitivity, 0.1, 6.0, 0.1);
+		Ui_CvarSlider((View *) stackView, "Zoom Sensitivity", m_sensitivity_zoom, 0.1, 6.0, 0.1);
+		Ui_CvarCheckbox((View *) stackView, "Invert mouse", m_invert);
 
 		$((View *) stackView, sizeToFit);
 
@@ -145,22 +139,22 @@ static void loadView(ViewController *self) {
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		$$(MenuInput, bindTextView, (View *) stackView, "+attack", "Attack");
-		$$(MenuInput, bindTextView, (View *) stackView, "weapon_next", "Next weapon");
-		$$(MenuInput, bindTextView, (View *) stackView, "weapon_previous", "Previous weapon");
-		$$(MenuInput, bindTextView, (View *) stackView, "+ZOOM", "Zoom");
+		Ui_Bind((View *) stackView, "+attack", "Attack");
+		Ui_Bind((View *) stackView, "weapon_next", "Next weapon");
+		Ui_Bind((View *) stackView, "weapon_previous", "Previous weapon");
+		Ui_Bind((View *) stackView, "+ZOOM", "Zoom");
 
-		$$(MenuInput, bindTextView, (View *) stackView, "use blaster", "Blaster");
-		$$(MenuInput, bindTextView, (View *) stackView, "use shotgun", "Shotgun");
-		$$(MenuInput, bindTextView, (View *) stackView, "use super shotgun", "Super shotgun");
-		$$(MenuInput, bindTextView, (View *) stackView, "use machinegun", "Machinegun");
-		$$(MenuInput, bindTextView, (View *) stackView, "use grenades", "Hand grenades");
-		$$(MenuInput, bindTextView, (View *) stackView, "use grenade launcher", "Grenade launcher");
-		$$(MenuInput, bindTextView, (View *) stackView, "use rocket launcher", "Rocket launcher");
-		$$(MenuInput, bindTextView, (View *) stackView, "use hyperblaster", "Hyperblaster");
-		$$(MenuInput, bindTextView, (View *) stackView, "use lightning", "Lightning");
-		$$(MenuInput, bindTextView, (View *) stackView, "use railgun", "Railgun");
-		$$(MenuInput, bindTextView, (View *) stackView, "use bfg10k", "BFG-10K");
+		Ui_Bind((View *) stackView, "use blaster", "Blaster");
+		Ui_Bind((View *) stackView, "use shotgun", "Shotgun");
+		Ui_Bind((View *) stackView, "use super shotgun", "Super shotgun");
+		Ui_Bind((View *) stackView, "use machinegun", "Machinegun");
+		Ui_Bind((View *) stackView, "use grenades", "Hand grenades");
+		Ui_Bind((View *) stackView, "use grenade launcher", "Grenade launcher");
+		Ui_Bind((View *) stackView, "use rocket launcher", "Rocket launcher");
+		Ui_Bind((View *) stackView, "use hyperblaster", "Hyperblaster");
+		Ui_Bind((View *) stackView, "use lightning", "Lightning");
+		Ui_Bind((View *) stackView, "use railgun", "Railgun");
+		Ui_Bind((View *) stackView, "use bfg10k", "BFG-10K");
 
 		$((View *) stackView, sizeToFit);
 

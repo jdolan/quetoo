@@ -3,7 +3,7 @@ noinst_HEADERS = \
 	BindTextView.h \
 	CvarCheckbox.h \
 	CvarSlider.h \
-	MenuInput.h \
+	MeshModelView.h \
 	PrimaryButton.h
 
 noinst_LTLIBRARIES = \
@@ -14,7 +14,7 @@ libviews_la_SOURCES = \
 	CvarCheckbox.c \
 	CvarSlider.c \
 	CvarTextView.c \
-	MenuInput.c \
+	MeshModelView.c \
 	PrimaryButton.c \
 	SkinSelect.c
 

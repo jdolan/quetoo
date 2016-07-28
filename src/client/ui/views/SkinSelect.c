@@ -22,8 +22,9 @@
 #include <assert.h>
 
 #include "SkinSelect.h"
+#include "cvar.h"
 
-#include "client.h"
+extern cvar_t *skin;
 
 #define _Class _SkinSelect
 

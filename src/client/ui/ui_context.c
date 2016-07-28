@@ -58,7 +58,7 @@ void Ui_InitContext(void) {
 	SDL_GL_MakeCurrent(r_context.window, r_context.context);
 
 	SDL_Event event = {
-		.type = SDL_RENDER_DEVICE_RESET
+		.type = MVC_EVENT_RENDER_DEVICE_RESET
 	};
 	
 	SDL_PushEvent(&event);

@@ -83,9 +83,11 @@
 		CE7627911D49089500EEEE78 /* SettingsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8B41D466DA50099A857 /* SettingsViewController.h */; };
 		CE7627921D4908AF00EEEE78 /* ui_context.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB5261C1D41CB020034AA0D /* ui_context.h */; };
 		CE7627931D4908B300EEEE78 /* ui_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD5981D3EE25100C43B85 /* ui_main.h */; };
+		CE7627961D49451500EEEE78 /* ui_data.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7627941D49451500EEEE78 /* ui_data.c */; };
+		CE7627971D49451500EEEE78 /* ui_data.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7627951D49451500EEEE78 /* ui_data.h */; };
+		CE76279A1D49540600EEEE78 /* MeshModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7627981D49540600EEEE78 /* MeshModelView.c */; };
+		CE76279B1D49540600EEEE78 /* MeshModelView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7627991D49540600EEEE78 /* MeshModelView.h */; };
 		CE7EA4D21D47CC1600BD37A3 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7EA4CE1D47B1FB00BD37A3 /* PlayerSetupViewController.c */; };
-		CE7EA4D51D4829C400BD37A3 /* MenuInput.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7EA4D31D4829C400BD37A3 /* MenuInput.c */; };
-		CE7EA4D61D4829C400BD37A3 /* MenuInput.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4D41D4829C400BD37A3 /* MenuInput.h */; };
 		CE7EA4D91D48F53D00BD37A3 /* SkinSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7EA4D71D48F53D00BD37A3 /* SkinSelect.c */; };
 		CE7EA4DA1D48F53D00BD37A3 /* SkinSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4D81D48F53D00BD37A3 /* SkinSelect.h */; };
 		CE7EA4DC1D49036E00BD37A3 /* CvarTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4DB1D49036E00BD37A3 /* CvarTextView.h */; };
@@ -1099,10 +1101,12 @@
 		CE5BD5981D3EE25100C43B85 /* ui_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_main.h; sourceTree = "<group>"; };
 		CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
 		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
+		CE7627941D49451500EEEE78 /* ui_data.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_data.c; sourceTree = "<group>"; };
+		CE7627951D49451500EEEE78 /* ui_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_data.h; sourceTree = "<group>"; };
+		CE7627981D49540600EEEE78 /* MeshModelView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MeshModelView.c; sourceTree = "<group>"; };
+		CE7627991D49540600EEEE78 /* MeshModelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MeshModelView.h; sourceTree = "<group>"; };
 		CE7EA4CE1D47B1FB00BD37A3 /* PlayerSetupViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerSetupViewController.c; sourceTree = "<group>"; };
 		CE7EA4D01D47B20500BD37A3 /* PlayerSetupViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerSetupViewController.h; sourceTree = "<group>"; };
-		CE7EA4D31D4829C400BD37A3 /* MenuInput.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MenuInput.c; sourceTree = "<group>"; };
-		CE7EA4D41D4829C400BD37A3 /* MenuInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MenuInput.h; sourceTree = "<group>"; };
 		CE7EA4D71D48F53D00BD37A3 /* SkinSelect.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SkinSelect.c; sourceTree = "<group>"; };
 		CE7EA4D81D48F53D00BD37A3 /* SkinSelect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SkinSelect.h; sourceTree = "<group>"; };
 		CE7EA4DB1D49036E00BD37A3 /* CvarTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CvarTextView.h; sourceTree = "<group>"; };
@@ -1845,6 +1849,8 @@
 				CE5BD5931D3EE1BF00C43B85 /* ui.h */,
 				CEB5261A1D41CABE0034AA0D /* ui_context.c */,
 				CEB5261C1D41CB020034AA0D /* ui_context.h */,
+				CE7627941D49451500EEEE78 /* ui_data.c */,
+				CE7627951D49451500EEEE78 /* ui_data.h */,
 				CE5BD5961D3EE22300C43B85 /* ui_local.h */,
 				CE5BD5971D3EE25100C43B85 /* ui_main.c */,
 				CE5BD5981D3EE25100C43B85 /* ui_main.h */,
@@ -2296,12 +2302,12 @@
 				CE7EA4DD1D49037F00BD37A3 /* CvarTextView.c */,
 				CE7EA4DB1D49036E00BD37A3 /* CvarTextView.h */,
 				CE7EA4E01D49069D00BD37A3 /* Makefile.am */,
-				CE7EA4D31D4829C400BD37A3 /* MenuInput.c */,
-				CE7EA4D41D4829C400BD37A3 /* MenuInput.h */,
+				CE7627981D49540600EEEE78 /* MeshModelView.c */,
 				CEF1D8B61D467A330099A857 /* PrimaryButton.c */,
 				CEF1D8B71D467A330099A857 /* PrimaryButton.h */,
 				CE7EA4D71D48F53D00BD37A3 /* SkinSelect.c */,
 				CE7EA4D81D48F53D00BD37A3 /* SkinSelect.h */,
+				CE7627991D49540600EEEE78 /* MeshModelView.h */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -2485,6 +2491,7 @@
 				CE80FF151C5E462100A21A51 /* r_lighting.h in Headers */,
 				CE80FF161C5E462100A21A51 /* r_lightmap.h in Headers */,
 				CE80FF171C5E462100A21A51 /* r_local.h in Headers */,
+				CE7627971D49451500EEEE78 /* ui_data.h in Headers */,
 				CE80FF181C5E462100A21A51 /* r_main.h in Headers */,
 				CE80FF191C5E462100A21A51 /* r_material.h in Headers */,
 				CE80FF1A1C5E462100A21A51 /* r_media.h in Headers */,
@@ -2508,6 +2515,7 @@
 				CE80FFA21C5E4A0200A21A51 /* s_media.h in Headers */,
 				CE80FFA31C5E4A0200A21A51 /* s_mix.h in Headers */,
 				CE80FFA41C5E4A0200A21A51 /* s_music.h in Headers */,
+				CE76279B1D49540600EEEE78 /* MeshModelView.h in Headers */,
 				CE80FFA51C5E4A0200A21A51 /* s_sample.h in Headers */,
 				CE80FFA61C5E4A0200A21A51 /* s_types.h in Headers */,
 				CE80FFA71C5E4A0200A21A51 /* sound.h in Headers */,
@@ -2525,7 +2533,6 @@
 				CEF1D8A91D45673D0099A857 /* CvarCheckbox.h in Headers */,
 				CEF1D8B91D467A330099A857 /* PrimaryButton.h in Headers */,
 				CE7EA4DA1D48F53D00BD37A3 /* SkinSelect.h in Headers */,
-				CE7EA4D61D4829C400BD37A3 /* MenuInput.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3099,6 +3106,7 @@
 				CE80FEF31C5E460B00A21A51 /* r_image.c in Sources */,
 				CE80FEF41C5E460B00A21A51 /* r_light.c in Sources */,
 				CE80FEF51C5E460B00A21A51 /* r_lighting.c in Sources */,
+				CE76279A1D49540600EEEE78 /* MeshModelView.c in Sources */,
 				CE80FEF61C5E460B00A21A51 /* r_lightmap.c in Sources */,
 				CE80FEF71C5E460B00A21A51 /* r_main.c in Sources */,
 				CE80FEF81C5E460B00A21A51 /* r_material.c in Sources */,
@@ -3122,6 +3130,7 @@
 				CE80FF4E1C5E475600A21A51 /* s_music.c in Sources */,
 				CE80FF4F1C5E475600A21A51 /* s_sample.c in Sources */,
 				CEB5261E1D41CD070034AA0D /* ui_context.c in Sources */,
+				CE7627961D49451500EEEE78 /* ui_data.c in Sources */,
 				CEDB4BB21D404E31009921B6 /* ui_main.c in Sources */,
 				CEF1D8981D43DC7D0099A857 /* ControlsViewController.c in Sources */,
 				CE7EA4D21D47CC1600BD37A3 /* PlayerSetupViewController.c in Sources */,
@@ -3133,7 +3142,6 @@
 				CE7EA4DE1D49037F00BD37A3 /* CvarTextView.c in Sources */,
 				CEF1D8A81D45673D0099A857 /* CvarCheckbox.c in Sources */,
 				CEF1D8A41D4521600099A857 /* CvarSlider.c in Sources */,
-				CE7EA4D51D4829C400BD37A3 /* MenuInput.c in Sources */,
 				CEF1D8B81D467A330099A857 /* PrimaryButton.c in Sources */,
 				CE7EA4D91D48F53D00BD37A3 /* SkinSelect.c in Sources */,
 			);

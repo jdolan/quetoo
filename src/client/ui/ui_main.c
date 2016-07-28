@@ -77,6 +77,8 @@ void Ui_Draw(void) {
 
 	SDL_RenderClear(ui_context.renderer);
 
+	glClear(GL_DEPTH_BUFFER_BIT);
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 

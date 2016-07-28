@@ -21,65 +21,84 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/Input.h>
+#include <ObjectivelyMVC/View.h>
 
-#include "client.h"
+#include "../../renderer/r_types.h"
 
 /**
  * @file
  *
- * @brief Menu Inputs.
+ * @brief A View capable of rendering an r_mesh_model_t.
  */
 
-#define MENU_INPUT_LABEL_WIDTH 140
-
-typedef struct MenuInput MenuInput;
-typedef struct MenuInputInterface MenuInputInterface;
+typedef struct MeshModelView MeshModelView;
+typedef struct MeshModelViewInterface MeshModelViewInterface;
 
 /**
- * @brief The MenuInput type.
+ * @brief The MeshModelView type.
  *
- * @extends Input
+ * @extends View
+ *
+ * @ingroup
  */
-struct MenuInput {
+struct MeshModelView {
 	
 	/**
 	 * @brief The parent.
 	 *
 	 * @private
 	 */
-	Input input;
+	View view;
 	
 	/**
 	 * @brief The typed interface.
 	 *
 	 * @private
 	 */
-	MenuInputInterface *interface;
+	MeshModelViewInterface *interface;
+
+	/**
+	 * @brief The model.
+	 */
+	const char *model;
+
+	/**
+	 * @brief The skin.
+	 */
+	const char *skin;
+
+	/**
+	 * @brief The scale.
+	 */
+	vec_t scale;
 };
 
 /**
- * @brief The MenuInput interface.
+ * @brief The MeshModelView interface.
  */
-struct MenuInputInterface {
+struct MeshModelViewInterface {
 	
 	/**
 	 * @brief The parent interface.
 	 */
-	InputInterface inputInterface;
-
-
-	void (*bindTextView)(View *view, const char *bind, const char *name);
-
-	void (*cvarCheckbox)(View *view, cvar_t *var, const char *name);
-
-	void (*cvarSlider)(View *view, cvar_t *var, const char *name, double min, double max, double step);
-
-	void (*input)(View *view, Control *control, const char *name);
+	ViewInterface viewInterface;
+	
+	/**
+	 * @fn MeshModelView *MeshModelView::initWithFrame(MeshModelView *self)
+	 *
+	 * @brief Initializes this MeshModelView.
+	 *
+	 * @param frame The frame.
+	 *
+	 * @return The initialized MeshModelView, or `NULL` on error.
+	 *
+	 * @memberof MeshModelView
+	 */
+	MeshModelView *(*initWithFrame)(MeshModelView *self, const SDL_Rect *frame);
 };
 
 /**
- * @brief The MenuInput Class.
+ * @brief The MeshModelView Class.
  */
-extern Class _MenuInput;
+extern Class _MeshModelView;
 

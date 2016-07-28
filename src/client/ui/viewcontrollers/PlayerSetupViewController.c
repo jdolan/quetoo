@@ -23,11 +23,10 @@
 
 #include "PlayerSetupViewController.h"
 
-#include "CvarTextView.h"
-#include "MenuInput.h"
-#include "SkinSelect.h"
+#include "ui_data.h"
 
-#include "client.h"
+#include "MeshModelView.h"
+#include "SkinSelect.h"
 
 #define _Class _PlayerSetupViewController
 
@@ -42,6 +41,15 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
+	this->stackView->axis = StackViewAxisHorizontal;
+	this->stackView->spacing = 10;
+
+	StackView *leftColumn = $(alloc(StackView), initWithFrame, NULL);
+	leftColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
+
+	StackView *rightColumn = $(alloc(StackView), initWithFrame, NULL);
+	rightColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
+
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		box->view.autoresizingMask = ViewAutoresizingContain;
@@ -50,8 +58,11 @@ static void loadView(ViewController *self) {
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		Control *skin = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
-		$$(MenuInput, input, (View *) stackView, skin, "Player skin");
+		extern cvar_t *name;
+		Ui_CvarTextView((View *) stackView, "Name", name);
+
+		Control *skinSelect = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
+		Ui_Input((View *) stackView, "Player skin", skinSelect);
 
 		$((View *) stackView, sizeToFit);
 
@@ -60,9 +71,29 @@ static void loadView(ViewController *self) {
 
 		$((View *) box, sizeToFit);
 
-		$((View *) this->stackView, addSubview, (View *) box);
+		$((View *) leftColumn, addSubview, (View *) box);
 		release(box);
 	}
+
+	{
+		const SDL_Rect frame = { .w = 200, .h = 300 };
+		MeshModelView *mesh = $(alloc(MeshModelView), initWithFrame, &frame);
+		mesh->model = "models/ammo/nukes/tris.md3";
+		mesh->scale = 0.05;
+
+		$((View *) rightColumn, addSubview, (View *) mesh);
+		release(mesh);
+	}
+
+	$((View *) leftColumn, sizeToFit);
+
+	$((View *) this->stackView, addSubview, (View *) leftColumn);
+	release(leftColumn);
+
+	$((View *) rightColumn, sizeToFit);
+
+	$((View *) this->stackView, addSubview, (View *) rightColumn);
+	release(rightColumn);
 
 	$((View *) this->stackView, sizeToFit);
 	$((View *) this->panel, sizeToFit);
