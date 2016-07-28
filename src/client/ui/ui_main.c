@@ -28,6 +28,7 @@
 extern cl_static_t cls;
 
 static WindowController *windowController;
+static ViewController *viewController;
 
 /**
  * @brief Dispatch events to the user interface. Filter most common event types for
@@ -64,38 +65,37 @@ void Ui_Draw(void) {
 		return;
 	}
 
-	SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
-	SDL_PushEvent(&event);
+	GLuint texnum;
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint *) &texnum);
 
-	SDL_GL_MakeCurrent(r_context.window, ui_context.context);
-
-	SDL_SetRenderTarget(ui_context.renderer, ui_context.texture);
-
-	SDL_SetRenderDrawColor(ui_context.renderer, 0, 0, 0, 0);
-
-	SDL_SetRenderDrawBlendMode(ui_context.renderer, SDL_BLENDMODE_BLEND);
-
-	SDL_RenderClear(ui_context.renderer);
-
-	glClear(GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_TEXTURE_2D);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	glOrtho(0, r_context.window_width, 0, r_context.window_height, -1, 1);
+	glOrtho(0, r_context.window_width, r_context.window_height, 0, -1, 1);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	$(windowController, render, ui_context.renderer);
+	$(windowController, render);
 
-	glFinish(); // <-- well fuck my ass
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
 
-	SDL_SetRenderTarget(ui_context.renderer, NULL);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	SDL_GL_MakeCurrent(r_context.window, r_context.context);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	R_DrawImage(0, 0, 1.0, &ui_context.image);
+	extern void R_BindDefaultArray(GLenum type);
+
+	R_BindDefaultArray(GL_VERTEX_ARRAY);
+	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+
+	glBindTexture(GL_TEXTURE_2D, texnum);
+
+	glOrtho(0, r_context.width, r_context.height, 0, -1, 1);
 }
 
 /**
@@ -105,11 +105,9 @@ void Ui_Init(void) {
 
 	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
 
-	ViewController *viewController = $((ViewController *) alloc(MainViewController), init);
+	viewController = $((ViewController *) alloc(MainViewController), init);
 
 	$(windowController, setViewController, viewController);
-
-	release(viewController);
 }
 
 /**
@@ -117,8 +115,7 @@ void Ui_Init(void) {
  */
 void Ui_Shutdown(void) {
 
-	Ui_ShutdownContext();
-
+	release(viewController);
 	release(windowController);
 
 	Mem_FreeTag(MEM_TAG_UI);

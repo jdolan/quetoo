@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <ObjectivelyMVC/Types.h>
+
 #include "r_local.h"
 
 r_context_t r_context;
@@ -50,8 +52,6 @@ void R_InitContext(void) {
 			Com_Error(ERR_FATAL, "%s\n", SDL_GetError());
 		}
 	}
-
-	SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
@@ -128,6 +128,12 @@ void R_InitContext(void) {
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
 
 	R_SetWindowIcon();
+
+	SDL_Event event = {
+		.type = MVC_EVENT_RENDER_DEVICE_RESET
+	};
+
+	SDL_PushEvent(&event);
 }
 
 /**

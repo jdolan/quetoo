@@ -29,100 +29,75 @@
 #pragma mark - View
 
 /**
- * @see View::render(View *, SDL_Renderer *)
+ * @see View::render(View *, Renderer *)
  */
-static void render(View *self, SDL_Renderer *renderer) {
+static void render(View *self, Renderer *renderer) {
 
 	super(View, self, render, renderer);
 
 	MeshModelView *this = (MeshModelView *) self;
 
 	if (this->model) {
-
-		const SDL_Rect frame = $(self, renderFrame);
-		glViewport(frame.x, frame.y, frame.w, frame.h);
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-
-		glOrtho(-2.0, 2.0, -2.0, 2.0, -3.0, 3.0);
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-
-		// Quake is retarded: rotate so that Z is up
-		glRotatef(90.0, 1.0, 0.0, 0.0);
-		glRotatef(90.0, 0.0, 0.0, 1.0);
-		glRotatef(15.0, 0.0, 1.0, 0.0);
-		glTranslatef(0.0, 0.0, -1.0);
-
-		glPushMatrix();
-
-		glRotatef(quetoo.time * 0.08, 0.0, 0.0, 1.0);
-		glScalef(this->scale, this->scale, this->scale);
-
-		glColor4f(1.0, 1.0, 1.0, 1.0);
-
 		const r_model_t *model = R_LoadModel(this->model);
 		if (model) {
 
+			const SDL_Rect frame = $(self, renderFrame);
+			glViewport(frame.x, frame.y, frame.w, frame.h);
+
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+
+			glOrtho(-2.0, 2.0, -2.0, 2.0, -3.0, 3.0);
+
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+
+			// Quake is retarded: rotate so that Z is up
+			glRotatef(90.0, 1.0, 0.0, 0.0);
+			glRotatef(90.0, 0.0, 0.0, 1.0);
+			glRotatef(15.0, 0.0, 1.0, 0.0);
+			glTranslatef(0.0, 0.0, -1.0);
+
+			glPushMatrix();
+
+			glRotatef(quetoo.time * 0.08, 0.0, 0.0, 1.0);
+
+			vec_t scale = this->scale;
+			if (scale == 0.0) {
+				scale = 1.0 / model->radius;
+			}
+			glScalef(scale, scale, scale);
+
+			glColor4f(1.0, 1.0, 1.0, 1.0);
+
 			assert(model->type == MOD_MD3);
 
-			static SDL_Texture *texture;
-			if (texture == NULL) {
-				const char *image = model->mesh->material->diffuse->media.name;
-
-				SDL_Surface *surface;
-				if (Img_LoadImage(image, &surface)) {
-					texture = SDL_CreateTextureFromSurface(renderer, surface);
-				}
-			}
-
-			if (texture) {
-				SDL_GL_BindTexture(texture, NULL, NULL);
-			}
-
-			const r_md3_t *md3 = (r_md3_t *) model->mesh->data;
-			const d_md3_frame_t *frame = md3->frames;
+			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_TEXTURE_2D);
+			
+			glBindTexture(GL_TEXTURE_2D, model->mesh->material->diffuse->texnum);
 
 			vec3_t verts[model->num_verts];
 
-			glEnableClientState(GL_VERTEX_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 0, verts);
 
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glTexCoordPointer(2, GL_FLOAT, 0, model->texcoords);
-
+			const r_md3_t *md3 = (r_md3_t *) model->mesh->data;
 			const r_md3_mesh_t *mesh = md3->meshes;
 			for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
 
 				const r_md3_vertex_t *v = mesh->verts;
 
+				glTexCoordPointer(2, GL_FLOAT, 0, mesh->coords);
+
 				for (uint16_t j = 0; j < mesh->num_verts; j++, v++) {
-					VectorAdd(v->point, frame->translate, verts[j]);
+					VectorAdd(v->point, md3->frames[0].translate, verts[j]);
 				}
 
 				glDrawElements(GL_TRIANGLES, mesh->num_tris * 3, GL_UNSIGNED_INT, mesh->tris);
 			}
 
-			glDisableClientState(GL_VERTEX_ARRAY);
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-			SDL_GL_UnbindTexture(texture);
-
-		} else {
-
-			glBegin(GL_TRIANGLE_FAN);
-			glVertex3f(0.0, 0.0, -16.0);
-			for (int32_t i = 0; i <= 4; i++)
-				glVertex3f(16.0 * cos(i * M_PI_2), 16.0 * sin(i * M_PI_2), 0.0);
-			glEnd();
-
-			glBegin(GL_TRIANGLE_FAN);
-			glVertex3f(0.0, 0.0, 16.0);
-			for (int32_t i = 4; i >= 0; i--)
-				glVertex3f(16.0 * cos(i * M_PI_2), 16.0 * sin(i * M_PI_2), 0.0);
-			glEnd();
+			glDisable(GL_TEXTURE_2D);
+			glDisable(GL_DEPTH_TEST);
 		}
 
 		glPopMatrix();
@@ -130,7 +105,6 @@ static void render(View *self, SDL_Renderer *renderer) {
 
 	glViewport(0, 0, r_context.window_width, r_context.window_height);
 }
-
 
 #pragma mark - MeshModelView
 
@@ -143,9 +117,6 @@ static MeshModelView *initWithFrame(MeshModelView *self, const SDL_Rect *frame) 
 
 	self = (MeshModelView *) super(View, self, initWithFrame, frame);
 	if (self) {
-
-		self->scale = 1.0;
-
 		self->view.backgroundColor = Colors.Charcoal;
 		self->view.backgroundColor.a = 128;
 	}

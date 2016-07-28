@@ -552,8 +552,6 @@ void R_Init(void) {
 
 	R_InitView();
 
-	Ui_InitContext();
-
 	Com_Print("Video initialized %dx%d %s\n", r_context.width, r_context.height,
 			(r_context.fullscreen ? "fullscreen" : "windowed"));
 }
@@ -563,8 +561,6 @@ void R_Init(void) {
  * including the GL context.
  */
 void R_Shutdown(void) {
-
-	Ui_ShutdownContext();
 
 	Cmd_RemoveAll(CMD_RENDERER);
 

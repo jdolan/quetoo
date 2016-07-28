@@ -79,7 +79,6 @@ static void loadView(ViewController *self) {
 		const SDL_Rect frame = { .w = 200, .h = 300 };
 		MeshModelView *mesh = $(alloc(MeshModelView), initWithFrame, &frame);
 		mesh->model = "models/ammo/nukes/tris.md3";
-		mesh->scale = 0.05;
 
 		$((View *) rightColumn, addSubview, (View *) mesh);
 		release(mesh);
