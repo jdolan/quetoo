@@ -139,22 +139,22 @@ static void loadView(ViewController *self) {
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		Ui_Bind((View *) stackView, "+attack", "Attack");
-		Ui_Bind((View *) stackView, "weapon_next", "Next weapon");
-		Ui_Bind((View *) stackView, "weapon_previous", "Previous weapon");
-		Ui_Bind((View *) stackView, "+ZOOM", "Zoom");
+		Ui_Bind((View *) stackView, "Attack", "+attack");
+		Ui_Bind((View *) stackView, "Next weapon", "weapon_next");
+		Ui_Bind((View *) stackView, "Previous weapon", "weapon_previous");
+		Ui_Bind((View *) stackView, "Zoom", "+ZOOM");
 
-		Ui_Bind((View *) stackView, "use blaster", "Blaster");
-		Ui_Bind((View *) stackView, "use shotgun", "Shotgun");
-		Ui_Bind((View *) stackView, "use super shotgun", "Super shotgun");
-		Ui_Bind((View *) stackView, "use machinegun", "Machinegun");
-		Ui_Bind((View *) stackView, "use grenades", "Hand grenades");
-		Ui_Bind((View *) stackView, "use grenade launcher", "Grenade launcher");
-		Ui_Bind((View *) stackView, "use rocket launcher", "Rocket launcher");
-		Ui_Bind((View *) stackView, "use hyperblaster", "Hyperblaster");
-		Ui_Bind((View *) stackView, "use lightning", "Lightning");
-		Ui_Bind((View *) stackView, "use railgun", "Railgun");
-		Ui_Bind((View *) stackView, "use bfg10k", "BFG-10K");
+		Ui_Bind((View *) stackView, "Blaster", "use blaster");
+		Ui_Bind((View *) stackView, "Shotgun", "use shotgun");
+		Ui_Bind((View *) stackView, "Super shotgun", "use super shotgun");
+		Ui_Bind((View *) stackView, "Machinegun", "use machinegun");
+		Ui_Bind((View *) stackView, "Hand grenades", "use grenades");
+		Ui_Bind((View *) stackView, "Grenade launcher", "use grenade launcher");
+		Ui_Bind((View *) stackView, "Rocket launcher", "use rocket launcher");
+		Ui_Bind((View *) stackView, "Hyperblaster", "use hyperblaster");
+		Ui_Bind((View *) stackView, "Lightning", "use lightning");
+		Ui_Bind((View *) stackView, "Railgun", "use railgun");
+		Ui_Bind((View *) stackView, "BFG-10K", "use bfg10k");
 
 		$((View *) stackView, sizeToFit);
 

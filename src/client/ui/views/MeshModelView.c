@@ -58,7 +58,7 @@ static void renderModel(r_entity_t *e) {
 	const r_md3_mesh_t *mesh = md3->meshes;
 	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
 
-		const r_material_t *material = e->skins[0] ?: e->model->mesh->material;
+		const r_material_t *material = e->skins[i] ?: e->model->mesh->material;
 		glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
 
 		const r_md3_vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
