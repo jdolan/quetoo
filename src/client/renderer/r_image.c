@@ -92,6 +92,12 @@ void R_Screenshot_f(void) {
 
 	byte *buffer = Mem_Malloc(width * height * 3);
 
+	// this doesn't need to be done strictly here, this could be rolled
+	// out to startup code, however this has been removed in the past
+	// when it was out in startup code, so it's easier to leave the pixel
+	// packing specification here before reading
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
 	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
 	const int32_t quality = Clamp(r_screenshot_quality->integer, 0, 100);
