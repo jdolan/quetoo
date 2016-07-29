@@ -418,6 +418,8 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	ClearBounds(mod->mins, mod->maxs);
 
 	for (i = 0; i < out_md3->num_frames; i++, in_frame++, out_frame++) {
+		out_frame->radius = LittleFloat(in_frame->radius);
+
 		for (j = 0; j < 3; j++) {
 			out_frame->mins[j] = LittleFloat(in_frame->mins[j]);
 			out_frame->maxs[j] = LittleFloat(in_frame->maxs[j]);
