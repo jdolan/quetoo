@@ -31,25 +31,13 @@
  * @brief Renders the given entity stub.
  */
 static void renderModel(r_entity_t *e) {
+	extern void R_SetMatrixForEntity(r_entity_t *e);
 
-	Matrix4x4_CreateIdentity(&e->matrix);
+	R_SetMatrixForEntity(e);
 
-	if (e->parent) {
-		const r_md3_t *md3 = (r_md3_t *) e->parent->model->mesh->data;
-		const r_md3_tag_t *tag = &md3->tags[e->frame * md3->num_tags];
-		for (uint16_t i = 0; i < md3->num_tags; i++, tag++) {
-			if (!g_strcmp0(e->tag_name, tag->name)) {
-				matrix4x4_t local, matrix;
-
-				Matrix4x4_Concat(&local, &e->parent->matrix, &e->matrix);
-				Matrix4x4_Concat(&matrix, &local, &tag->matrix);
-
-				glPushMatrix();
-				glMultMatrixf((GLfloat *) matrix.m);
-				break;
-			}
-		}
-	}
+	glPushMatrix();
+	
+	glMultMatrixf((GLfloat *) e->matrix.m);
 
 	vec3_t verts[e->model->num_verts];
 	glVertexPointer(3, GL_FLOAT, 0, verts);
@@ -72,10 +60,11 @@ static void renderModel(r_entity_t *e) {
 		glDrawElements(GL_TRIANGLES, mesh->num_tris * 3, GL_UNSIGNED_INT, mesh->tris);
 	}
 
-	if (e->tag_name) {
-		glPopMatrix();
-	}
+	glPopMatrix();
 }
+
+#define NEAR_Z 1.0
+#define FAR_Z  MAX_WORLD_COORD
 
 /**
  * @see View::render(View *, Renderer *)
@@ -97,7 +86,15 @@ static void render(View *self, Renderer *renderer) {
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 
-		glOrtho(-24.0, 24.0, -28.0, 32.0, -64.0, 64.0);
+		const vec_t aspect = (vec_t) viewport.w / (vec_t) viewport.h;
+
+		const vec_t ymax = NEAR_Z * tan(Radians(35));
+		const vec_t ymin = -ymax;
+
+		const vec_t xmin = ymin * aspect;
+		const vec_t xmax = ymax * aspect;
+
+		glFrustum(xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
 
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
@@ -105,6 +102,7 @@ static void render(View *self, Renderer *renderer) {
 		// Quake is retarded: rotate so that Z is up
 		glRotatef(-90.0, 1.0, 0.0, 0.0);
 		glRotatef( 90.0, 0.0, 0.0, 1.0);
+		glTranslatef(64.0, 0.0, -8.0);
 		
 		glPushMatrix();
 
@@ -156,11 +154,16 @@ static void updateBindings(View *self) {
 	cls.cgame->LoadClient(&this->client, string);
 
 	this->lower.model = this->client.lower;
+	this->lower.scale = 1.0;
+
 	this->upper.model = this->client.upper;
 	this->upper.parent = &this->lower;
+	this->upper.scale = 1.0;
 	this->upper.tag_name = "tag_torso";
+
 	this->head.model = this->client.head;
 	this->head.parent = &this->upper;
+	this->head.scale = 1.0;
 	this->head.tag_name = "tag_head";
 
 	memcpy(this->lower.skins, this->client.lower_skins, sizeof(this->lower.skins));
@@ -179,10 +182,10 @@ static void animate(MeshModelView *self) {
 
 	const r_md3_t *md3 = (r_md3_t *) self->upper.model->mesh->data;
 
-	const r_md3_animation_t *lower = &md3->animations[ANIM_LEGS_IDLE];
+	const r_md3_animation_t *lower = &md3->animations[ANIM_LEGS_RUN];
 	self->lower.frame = lower->first_frame;
 
-	const r_md3_animation_t *upper = &md3->animations[ANIM_TORSO_STAND1];
+	const r_md3_animation_t *upper = &md3->animations[ANIM_TORSO_ATTACK1];
 	self->upper.frame = upper->first_frame;
 
 	self->head.frame = 0;

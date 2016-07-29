@@ -87,7 +87,7 @@ void R_RotateForEntity(const r_entity_t *e) {
  * @brief Applies any configuration and tag alignment, populating the model-view
  * matrix for the entity in the process.
  */
-static void R_SetMatrixForEntity(r_entity_t *e) {
+void R_SetMatrixForEntity(r_entity_t *e) {
 
 	if (e->parent) {
 		vec3_t forward;
