@@ -30,7 +30,7 @@
 /**
  * @see View::updateBindings(View *)
  */
-void updateBindings(View *self) {
+static void updateBindings(View *self) {
 
 	super(View, self, updateBindings);
 

@@ -23,7 +23,7 @@
 
 #include <ObjectivelyMVC/View.h>
 
-#include "../../renderer/r_types.h"
+#include "client.h"
 
 /**
  * @file
@@ -58,19 +58,14 @@ struct MeshModelView {
 	MeshModelViewInterface *interface;
 
 	/**
-	 * @brief The model.
+	 * @brief The client information.
 	 */
-	const char *model;
+	cl_client_info_t client;
 
 	/**
-	 * @brief The skin.
+	 * @brief The entity stubs.
 	 */
-	const char *skin;
-
-	/**
-	 * @brief The scale.
-	 */
-	vec_t scale;
+	r_entity_t head, upper, lower;
 };
 
 /**
@@ -82,6 +77,15 @@ struct MeshModelViewInterface {
 	 * @brief The parent interface.
 	 */
 	ViewInterface viewInterface;
+
+	/**
+	 * @fn void MeshModelView::animate(MeshModelView *self)
+	 *
+	 * @brief Animates the model.
+	 *
+	 * @memberof MeshModelView
+	 */
+	void (*animate)(MeshModelView *self);
 	
 	/**
 	 * @fn MeshModelView *MeshModelView::initWithFrame(MeshModelView *self)

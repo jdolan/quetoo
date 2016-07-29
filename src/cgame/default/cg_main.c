@@ -234,6 +234,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.ClearState = Cg_ClearState;
 	cge.UpdateMedia = Cg_UpdateMedia;
 	cge.UpdateConfigString = Cg_UpdateConfigString;
+	cge.LoadClient = Cg_LoadClient;
 	cge.ParseMessage = Cg_ParseMessage;
 	cge.PredictMovement = Cg_PredictMovement;
 	cge.UpdateView = Cg_UpdateView;

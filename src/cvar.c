@@ -206,7 +206,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 
 	if (var->flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
 		if (!Cvar_InfoValidate(value)) {
-			Com_Print("Invalid info value\n");
+			Com_Print("Invalid info value for %s: %s\n", var->name, value);
 			return var;
 		}
 	}

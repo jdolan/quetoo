@@ -22,11 +22,58 @@
 #include <assert.h>
 
 #include "MeshModelView.h"
-#include "../../renderer/renderer.h"
 
 #define _Class _MeshModelView
 
 #pragma mark - View
+
+/**
+ * @brief Renders the given entity stub.
+ */
+static void renderModel(r_entity_t *e) {
+
+	if (e->parent) {
+		const r_md3_t *md3 = (r_md3_t *) e->parent->model->mesh->data;
+		const r_md3_tag_t *tag = &md3->tags[e->frame * md3->num_tags];
+		for (uint16_t i = 0; i < md3->num_tags; i++, tag++) {
+			if (!g_strcmp0(e->tag_name, tag->name)) {
+				matrix4x4_t local, matrix;
+
+				Matrix4x4_Concat(&local, &e->parent->matrix, &e->matrix);
+				Matrix4x4_Concat(&matrix, &local, &tag->matrix);
+
+				glPushMatrix();
+				glMultMatrixf((GLfloat *) matrix.m);
+				break;
+			}
+		}
+	}
+
+	vec3_t verts[e->model->num_verts];
+	glVertexPointer(3, GL_FLOAT, 0, verts);
+
+	const r_md3_t *md3 = (r_md3_t *) e->model->mesh->data;
+	const r_md3_mesh_t *mesh = md3->meshes;
+	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
+
+		const r_material_t *material = e->skins[0] ?: e->model->mesh->material;
+		glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
+
+		const r_md3_vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
+
+		glTexCoordPointer(2, GL_FLOAT, 0, mesh->coords);
+
+		for (uint16_t j = 0; j < mesh->num_verts; j++, v++) {
+			VectorAdd(v->point, md3->frames[e->frame].translate, verts[j]);
+		}
+
+		glDrawElements(GL_TRIANGLES, mesh->num_tris * 3, GL_UNSIGNED_INT, mesh->tris);
+	}
+
+	if (e->tag_name) {
+		glPopMatrix();
+	}
+}
 
 /**
  * @see View::render(View *, Renderer *)
@@ -35,78 +82,113 @@ static void render(View *self, Renderer *renderer) {
 
 	super(View, self, render, renderer);
 
-	MeshModelView *this = (MeshModelView *) self;
-
-	if (this->model) {
-		const r_model_t *model = R_LoadModel(this->model);
-		if (model) {
-
-			const SDL_Rect frame = $(self, renderFrame);
-			glViewport(frame.x, frame.y, frame.w, frame.h);
-
-			glMatrixMode(GL_PROJECTION);
-			glLoadIdentity();
-
-			glOrtho(-2.0, 2.0, -2.0, 2.0, -3.0, 3.0);
-
-			glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-
-			// Quake is retarded: rotate so that Z is up
-			glRotatef(90.0, 1.0, 0.0, 0.0);
-			glRotatef(90.0, 0.0, 0.0, 1.0);
-			glRotatef(15.0, 0.0, 1.0, 0.0);
-			glTranslatef(0.0, 0.0, -1.0);
-
-			glPushMatrix();
-
-			glRotatef(quetoo.time * 0.08, 0.0, 0.0, 1.0);
-
-			vec_t scale = this->scale;
-			if (scale == 0.0) {
-				scale = 1.0 / model->radius;
-			}
-			glScalef(scale, scale, scale);
-
-			glColor4f(1.0, 1.0, 1.0, 1.0);
-
-			assert(model->type == MOD_MD3);
-
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_TEXTURE_2D);
-			
-			glBindTexture(GL_TEXTURE_2D, model->mesh->material->diffuse->texnum);
-
-			vec3_t verts[model->num_verts];
-
-			glVertexPointer(3, GL_FLOAT, 0, verts);
-
-			const r_md3_t *md3 = (r_md3_t *) model->mesh->data;
-			const r_md3_mesh_t *mesh = md3->meshes;
-			for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
-
-				const r_md3_vertex_t *v = mesh->verts;
-
-				glTexCoordPointer(2, GL_FLOAT, 0, mesh->coords);
-
-				for (uint16_t j = 0; j < mesh->num_verts; j++, v++) {
-					VectorAdd(v->point, md3->frames[0].translate, verts[j]);
-				}
-
-				glDrawElements(GL_TRIANGLES, mesh->num_tris * 3, GL_UNSIGNED_INT, mesh->tris);
-			}
-
-			glDisable(GL_TEXTURE_2D);
-			glDisable(GL_DEPTH_TEST);
-		}
-
-		glPopMatrix();
+	if (cvar_user_info_modified) {
+		$(self, updateBindings);
 	}
 
-	glViewport(0, 0, r_context.window_width, r_context.window_height);
+	MeshModelView *this = (MeshModelView *) self;
+	if (this->client.upper) {
+
+		const SDL_Rect viewport = $(self, viewport);
+		glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+
+		glOrtho(-24.0, 24.0, -28.0, 32.0, -64.0, 64.0);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		// Quake is retarded: rotate so that Z is up
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+		glRotatef( 90.0, 0.0, 0.0, 1.0);
+		
+		glPushMatrix();
+
+		glRotatef(quetoo.time * 0.08, 0.0, 0.0, 1.0);
+
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_TEXTURE_2D);
+
+		Matrix4x4_CreateIdentity(&this->lower.matrix);
+		Matrix4x4_CreateIdentity(&this->upper.matrix);
+		Matrix4x4_CreateIdentity(&this->head.matrix);
+
+		$(this, animate);
+
+		renderModel(&this->lower);
+		renderModel(&this->upper);
+		renderModel(&this->head);
+
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_DEPTH_TEST);
+
+		glPopMatrix();
+
+		glViewport(0, 0, r_context.window_width, r_context.window_height);
+	}
+}
+
+/**
+ * @see View::renderDeviceDidReset(View *)
+ */
+static void renderDeviceDidReset(View *self) {
+
+	super(View, self, renderDeviceDidReset);
+
+	$(self, updateBindings);
+}
+
+/**
+ * @see View::updateBindings(View *)
+ */
+static void updateBindings(View *self) {
+	extern cl_static_t cls;
+	extern cvar_t *name;
+	extern cvar_t *skin;
+
+	super(View, self, updateBindings);
+
+	MeshModelView *this = (MeshModelView *) self;
+
+	char string[MAX_STRING_CHARS];
+	g_snprintf(string, sizeof(string), "%s\\%s", name->string, skin->string);
+
+	cls.cgame->LoadClient(&this->client, string);
+
+	this->lower.model = this->client.lower;
+	this->upper.model = this->client.upper;
+	this->upper.parent = &this->lower;
+	this->upper.tag_name = "tag_torso";
+	this->head.model = this->client.head;
+	this->head.parent = &this->upper;
+	this->head.tag_name = "tag_head";
+
+	memcpy(this->lower.skins, this->client.lower_skins, sizeof(this->lower.skins));
+	memcpy(this->upper.skins, this->client.upper_skins, sizeof(this->upper.skins));
+	memcpy(this->head.skins, this->client.head_skins, sizeof(this->head.skins));
 }
 
 #pragma mark - MeshModelView
+
+/**
+ * @fn void MeshModelView::animate(MeshModelView *self)
+ *
+ * @memberof MeshModelView
+ */
+static void animate(MeshModelView *self) {
+
+	const r_md3_t *md3 = (r_md3_t *) self->upper.model->mesh->data;
+
+	const r_md3_animation_t *lower = &md3->animations[ANIM_LEGS_IDLE];
+	self->lower.frame = lower->first_frame;
+
+	const r_md3_animation_t *upper = &md3->animations[ANIM_TORSO_STAND1];
+	self->upper.frame = upper->first_frame;
+
+	self->head.frame = 0;
+}
 
 /**
  * @fn MeshModelView *MeshModelView::init(MeshModelView *self)
@@ -132,7 +214,10 @@ static MeshModelView *initWithFrame(MeshModelView *self, const SDL_Rect *frame) 
 static void initialize(Class *clazz) {
 
 	((ViewInterface *) clazz->interface)->render = render;
+	((ViewInterface *) clazz->interface)->renderDeviceDidReset = renderDeviceDidReset;
+	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
+	((MeshModelViewInterface *) clazz->interface)->animate = animate;
 	((MeshModelViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }
 

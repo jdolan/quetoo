@@ -60,6 +60,7 @@ void Ui_HandleEvent(const SDL_Event *event) {
  * used to avoid OpenGL state pollution.
  */
 void Ui_Draw(void) {
+	extern void R_BindDefaultArray(GLenum type);
 
 	if (cls.key_state.dest != KEY_UI) {
 		return;
@@ -87,8 +88,6 @@ void Ui_Draw(void) {
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	extern void R_BindDefaultArray(GLenum type);
 
 	R_BindDefaultArray(GL_VERTEX_ARRAY);
 	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);

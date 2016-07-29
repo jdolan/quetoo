@@ -81,9 +81,8 @@ static const r_md3_tag_t *R_GetMeshModelTag(const r_model_t *mod, int32_t frame,
 
 	const r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
 	const r_md3_tag_t *tag = &md3->tags[frame * md3->num_tags];
-	int32_t i;
 
-	for (i = 0; i < md3->num_tags; i++, tag++) {
+	for (int32_t i = 0; i < md3->num_tags; i++, tag++) {
 		if (!g_strcmp0(name, tag->name)) {
 			return tag;
 		}
