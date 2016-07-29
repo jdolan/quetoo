@@ -248,8 +248,12 @@ static void R_Clear(void) {
 	if (r_shadows->value)
 		bits |= GL_STENCIL_BUFFER_BIT;
 
-	// clear the color buffer if desired or necessary
-	if (r_clear->value || r_draw_wireframe->value || r_view.x || r_view.y)
+	// clear the color buffer if requested
+	if (r_clear->value || r_draw_wireframe->value)
+		bits |= GL_COLOR_BUFFER_BIT;
+
+	// or if the viewport does not occupy the entire context
+	if (r_view.viewport.x || r_view.viewport.y)
 		bits |= GL_COLOR_BUFFER_BIT;
 
 	// or if the client is not fully loaded

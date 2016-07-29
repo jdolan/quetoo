@@ -559,7 +559,7 @@ void R_UseMaterial(const r_material_t *material) {
 }
 
 #define NEAR_Z 4.0
-#define FAR_Z 16384.0
+#define FAR_Z  (MAX_WORLD_COORD * 4.0)
 
 /**
  * @brief Prepare OpenGL for drawing the 3D scene. Update the view-port definition
@@ -567,16 +567,17 @@ void R_UseMaterial(const r_material_t *material) {
  */
 void R_Setup3D(void) {
 
-	if (!r_view.width || !r_view.height)
+	if (!r_context.context)
 		return;
 
-	glViewport(r_view.x, r_view.y, r_view.width, r_view.height);
+	const SDL_Rect *viewport = &r_view.viewport;
+	glViewport(viewport->x, viewport->y, viewport->w, viewport->h);
 
 	// set up projection matrix
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	const vec_t aspect = (vec_t) r_view.width / (vec_t) r_view.height;
+	const vec_t aspect = (vec_t) viewport->w / (vec_t) viewport->h;
 
 	const vec_t ymax = NEAR_Z * tan(Radians(r_view.fov[1]));
 	const vec_t ymin = -ymax;

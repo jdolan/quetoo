@@ -797,7 +797,7 @@ typedef enum {
  * @brief Provides read-write visibility and scene management to the client.
  */
 typedef struct {
-	r_pixel_t x, y, width, height; // in virtual screen coordinates
+	SDL_Rect viewport;
 	vec2_t fov;
 
 	vec3_t origin; // client's view origin, angles, and vectors
