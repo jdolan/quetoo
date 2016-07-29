@@ -32,6 +32,8 @@
  */
 static void renderModel(r_entity_t *e) {
 
+	Matrix4x4_CreateIdentity(&e->matrix);
+
 	if (e->parent) {
 		const r_md3_t *md3 = (r_md3_t *) e->parent->model->mesh->data;
 		const r_md3_tag_t *tag = &md3->tags[e->frame * md3->num_tags];
@@ -110,10 +112,6 @@ static void render(View *self, Renderer *renderer) {
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_TEXTURE_2D);
-
-		Matrix4x4_CreateIdentity(&this->lower.matrix);
-		Matrix4x4_CreateIdentity(&this->upper.matrix);
-		Matrix4x4_CreateIdentity(&this->head.matrix);
 
 		$(this, animate);
 
