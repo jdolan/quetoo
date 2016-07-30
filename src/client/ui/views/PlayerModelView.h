@@ -31,17 +31,17 @@
  * @brief A View capable of rendering an r_mesh_model_t.
  */
 
-typedef struct MeshModelView MeshModelView;
-typedef struct MeshModelViewInterface MeshModelViewInterface;
+typedef struct PlayerModelView PlayerModelView;
+typedef struct PlayerModelViewInterface PlayerModelViewInterface;
 
 /**
- * @brief The MeshModelView type.
+ * @brief The PlayerModelView type.
  *
  * @extends View
  *
  * @ingroup
  */
-struct MeshModelView {
+struct PlayerModelView {
 	
 	/**
 	 * @brief The parent.
@@ -55,7 +55,7 @@ struct MeshModelView {
 	 *
 	 * @private
 	 */
-	MeshModelViewInterface *interface;
+	PlayerModelViewInterface *interface;
 
 	/**
 	 * @brief The client information.
@@ -65,13 +65,18 @@ struct MeshModelView {
 	/**
 	 * @brief The entity stubs.
 	 */
-	r_entity_t head, upper, lower;
+	r_entity_t head, torso, legs, weapon;
+
+	/**
+	 * @brief The entity animations.
+	 */
+	cl_entity_animation_t animation1, animation2;
 };
 
 /**
- * @brief The MeshModelView interface.
+ * @brief The PlayerModelView interface.
  */
-struct MeshModelViewInterface {
+struct PlayerModelViewInterface {
 	
 	/**
 	 * @brief The parent interface.
@@ -79,30 +84,30 @@ struct MeshModelViewInterface {
 	ViewInterface viewInterface;
 
 	/**
-	 * @fn void MeshModelView::animate(MeshModelView *self)
+	 * @fn void PlayerModelView::animate(PlayerModelView *self)
 	 *
 	 * @brief Animates the model.
 	 *
-	 * @memberof MeshModelView
+	 * @memberof PlayerModelView
 	 */
-	void (*animate)(MeshModelView *self);
+	void (*animate)(PlayerModelView *self);
 	
 	/**
-	 * @fn MeshModelView *MeshModelView::initWithFrame(MeshModelView *self)
+	 * @fn PlayerModelView *PlayerModelView::initWithFrame(PlayerModelView *self)
 	 *
-	 * @brief Initializes this MeshModelView.
+	 * @brief Initializes this PlayerModelView.
 	 *
 	 * @param frame The frame.
 	 *
-	 * @return The initialized MeshModelView, or `NULL` on error.
+	 * @return The initialized PlayerModelView, or `NULL` on error.
 	 *
-	 * @memberof MeshModelView
+	 * @memberof PlayerModelView
 	 */
-	MeshModelView *(*initWithFrame)(MeshModelView *self, const SDL_Rect *frame);
+	PlayerModelView *(*initWithFrame)(PlayerModelView *self, const SDL_Rect *frame);
 };
 
 /**
- * @brief The MeshModelView Class.
+ * @brief The PlayerModelView Class.
  */
-extern Class _MeshModelView;
+extern Class _PlayerModelView;
 

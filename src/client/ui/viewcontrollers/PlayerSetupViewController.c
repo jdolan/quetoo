@@ -25,7 +25,7 @@
 
 #include "ui_data.h"
 
-#include "MeshModelView.h"
+#include "PlayerModelView.h"
 #include "SkinSelect.h"
 
 #define _Class _PlayerSetupViewController
@@ -76,8 +76,8 @@ static void loadView(ViewController *self) {
 	}
 
 	{
-		const SDL_Rect frame = { .w = 200, .h = 300 };
-		MeshModelView *mesh = $(alloc(MeshModelView), initWithFrame, &frame);
+		const SDL_Rect frame = { .w = 360, .h = 480 };
+		PlayerModelView *mesh = $(alloc(PlayerModelView), initWithFrame, &frame);
 
 		$((View *) rightColumn, addSubview, (View *) mesh);
 		release(mesh);
