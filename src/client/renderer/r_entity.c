@@ -106,11 +106,11 @@ void R_SetMatrixForEntity(r_entity_t *e) {
 		VectorClear(e->origin);
 		VectorClear(e->angles);
 
-		R_ApplyMeshModelConfig(e);
-
 		Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
 
-		R_ApplyMeshModelTag(e); // interpolate and concatenate the tag matrix
+		R_ApplyMeshModelTag(e);
+
+		R_ApplyMeshModelConfig(e);
 
 		Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 
@@ -121,11 +121,12 @@ void R_SetMatrixForEntity(r_entity_t *e) {
 		return;
 	}
 
+	Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
+
 	if (IS_MESH_MODEL(e->model)) {
 		R_ApplyMeshModelConfig(e);
 	}
 
-	Matrix4x4_CreateFromEntity(&e->matrix, e->origin, e->angles, e->scale);
 	Matrix4x4_Invert_Simple(&e->inverse_matrix, &e->matrix);
 }
 
