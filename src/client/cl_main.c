@@ -38,6 +38,7 @@ cvar_t *cl_view_size;
 // user info
 cvar_t *active;
 cvar_t *color;
+cvar_t *hand;
 cvar_t *message_level;
 cvar_t *name;
 cvar_t *password;
@@ -507,6 +508,7 @@ static void Cl_InitLocal(void) {
 	// user info
 	active = Cvar_Get("active", "1", CVAR_USER_INFO | CVAR_NO_SET, NULL);
 	color = Cvar_Get("color", "", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	hand = Cvar_Get("hand", "1", CVAR_ARCHIVE | CVAR_USER_INFO, NULL);
 	message_level = Cvar_Get("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	name = Cvar_Get("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);

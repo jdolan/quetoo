@@ -66,10 +66,21 @@ void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, 
 	VectorCopy(tr.end, pos);
 
 	// resolve the projectile origin
-	vec3_t ent_forward, ent_up;
-	AngleVectors(ent->s.angles, ent_forward, NULL, ent_up);
+	vec3_t ent_forward, ent_right, ent_up;
+	AngleVectors(ent->s.angles, ent_forward, ent_right, ent_up);
 
 	VectorMA(view, 12.0, ent_forward, org);
+
+	switch (ent->client->locals.persistent.hand) {
+		case HAND_RIGHT:
+			VectorMA(org, 6.0, ent_right, org);
+			break;
+		case HAND_LEFT:
+			VectorMA(org, -6.0, ent_right, org);
+			break;
+		default:
+			break;
+	}
 
 	if ((ent->client->ps.pm_state.flags & PMF_DUCKED)) {
 		VectorMA(org, -6.0, ent_up, org);

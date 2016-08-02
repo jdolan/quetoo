@@ -225,7 +225,7 @@ static void updateBindings(View *self) {
 #pragma mark - PlayerModelView
 
 /**
- *
+ * @brief Runs the animation, proceeding to the next in the sequence upon completion.
  */
 static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e) {
 
@@ -301,7 +301,7 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 	self = (PlayerModelView *) super(View, self, initWithFrame, frame);
 	if (self) {
 		self->view.backgroundColor = Colors.Charcoal;
-		self->view.backgroundColor.a = 128;
+		self->view.backgroundColor.a = 64;
 
 		self->animation1.animation = ANIM_TORSO_STAND1;
 		self->animation2.animation = ANIM_LEGS_RUN;

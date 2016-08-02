@@ -76,7 +76,7 @@ static void loadView(ViewController *self) {
 	}
 
 	{
-		const SDL_Rect frame = { .w = 360, .h = 480 };
+		const SDL_Rect frame = { .w = 400, .h = 500 };
 		PlayerModelView *mesh = $(alloc(PlayerModelView), initWithFrame, &frame);
 
 		$((View *) rightColumn, addSubview, (View *) mesh);

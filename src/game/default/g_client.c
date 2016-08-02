@@ -1030,15 +1030,18 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	gi.ConfigString(CS_CLIENTS + (cl - g_game.clients),
 			va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
 
-	// save off the user_info in case we want to check something later
-	g_strlcpy(ent->client->locals.persistent.user_info, user_info,
-			sizeof(ent->client->locals.persistent.user_info));
+	// set hand, if anything should go wrong, it defaults to 0 (centered)
+	cl->locals.persistent.hand = strtoul(GetUserInfo(user_info, "hand"), NULL, 10);
 
 	s = GetUserInfo(user_info, "active");
 	if (g_strcmp0(s, "0") == 0)
 		ent->s.effects = ent->s.effects | EF_INACTIVE;
 	else
 		ent->s.effects &= ~(EF_INACTIVE);
+
+	// save off the user_info in case we want to check something later
+	g_strlcpy(ent->client->locals.persistent.user_info, user_info,
+			  sizeof(ent->client->locals.persistent.user_info));
 }
 
 /**
