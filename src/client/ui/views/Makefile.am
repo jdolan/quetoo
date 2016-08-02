@@ -2,6 +2,7 @@
 noinst_HEADERS = \
 	BindTextView.h \
 	CvarCheckbox.h \
+	CvarSelect.h \
 	CvarSlider.h \
 	PlayerModelView.h \
 	PrimaryButton.h
@@ -12,6 +13,7 @@ noinst_LTLIBRARIES = \
 libviews_la_SOURCES = \
 	BindTextView.c \
 	CvarCheckbox.c \
+	CvarSelect.c \
 	CvarSlider.c \
 	CvarTextView.c \
 	PlayerModelView.c \

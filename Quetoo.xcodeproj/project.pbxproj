@@ -75,6 +75,8 @@
 		CE12D8C41C5CF86600CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD5931D3EE1BF00C43B85 /* ui.h */; };
+		CE5C3C7E1D501D1700608432 /* CvarSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5C3C7C1D501D1700608432 /* CvarSelect.c */; };
+		CE5C3C7F1D501D1700608432 /* CvarSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5C3C7D1D501D1700608432 /* CvarSelect.h */; };
 		CE76278C1D49089500EEEE78 /* ControlsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */; };
 		CE76278D1D49089500EEEE78 /* MainViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDB4BBF1D40616C009921B6 /* MainViewController.h */; };
 		CE76278E1D49089500EEEE78 /* MenuViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDB4BBA1D405F74009921B6 /* MenuViewController.h */; };
@@ -1098,6 +1100,8 @@
 		CE5BD5971D3EE25100C43B85 /* ui_main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_main.c; sourceTree = "<group>"; };
 		CE5BD5981D3EE25100C43B85 /* ui_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_main.h; sourceTree = "<group>"; };
 		CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
+		CE5C3C7C1D501D1700608432 /* CvarSelect.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CvarSelect.c; sourceTree = "<group>"; };
+		CE5C3C7D1D501D1700608432 /* CvarSelect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CvarSelect.h; sourceTree = "<group>"; };
 		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
 		CE7627941D49451500EEEE78 /* ui_data.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_data.c; sourceTree = "<group>"; };
 		CE7627951D49451500EEEE78 /* ui_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_data.h; sourceTree = "<group>"; };
@@ -2291,6 +2295,8 @@
 				CEF1D89B1D43E28E0099A857 /* BindTextView.h */,
 				CEF1D8A61D45673D0099A857 /* CvarCheckbox.c */,
 				CEF1D8A71D45673D0099A857 /* CvarCheckbox.h */,
+				CE5C3C7C1D501D1700608432 /* CvarSelect.c */,
+				CE5C3C7D1D501D1700608432 /* CvarSelect.h */,
 				CEF1D8A21D4521600099A857 /* CvarSlider.c */,
 				CEF1D8A31D4521600099A857 /* CvarSlider.h */,
 				CE7EA4DD1D49037F00BD37A3 /* CvarTextView.c */,
@@ -2493,6 +2499,7 @@
 				CE80FF1C1C5E462100A21A51 /* r_mesh_model.h in Headers */,
 				CE80FF1D1C5E462100A21A51 /* r_mesh_shadow.h in Headers */,
 				CE80FF1E1C5E462100A21A51 /* r_mesh_shell.h in Headers */,
+				CE5C3C7F1D501D1700608432 /* CvarSelect.h in Headers */,
 				CE80FF1F1C5E462100A21A51 /* r_model.h in Headers */,
 				CE80FF201C5E462100A21A51 /* r_particle.h in Headers */,
 				CE80FF211C5E462200A21A51 /* r_program.h in Headers */,
@@ -3109,6 +3116,7 @@
 				CE80FEFC1C5E460B00A21A51 /* r_mesh_shadow.c in Sources */,
 				CE80FEFD1C5E460B00A21A51 /* r_mesh_shell.c in Sources */,
 				CE80FEFE1C5E460B00A21A51 /* r_model.c in Sources */,
+				CE5C3C7E1D501D1700608432 /* CvarSelect.c in Sources */,
 				CE80FEFF1C5E460B00A21A51 /* r_particle.c in Sources */,
 				CE80FF001C5E460B00A21A51 /* r_program.c in Sources */,
 				CE80FF011C5E460B00A21A51 /* r_program_default.c in Sources */,
