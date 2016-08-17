@@ -718,7 +718,7 @@ void Cl_Shutdown(void) {
 
 	Cl_ShutdownCgame();
 
-//	Ui_Shutdown();
+	Ui_Shutdown();
 
 	S_Shutdown();
 

@@ -42,10 +42,7 @@ static void loadView(ViewController *self) {
 	this->stackView->spacing = DEAFULT_MENU_STACKVIEW_HORIZONTAL_SPACING;
 
 	StackView *leftColumn = $(alloc(StackView), initWithFrame, NULL);
-//	leftColumn->view.autoresizingMask = ViewAutoresizingHeight;
-
 	StackView *rightColumn = $(alloc(StackView), initWithFrame, NULL);
-//	rightColumn->view.autoresizingMask = ViewAutoresizingHeight;
 
 	leftColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
 	rightColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;

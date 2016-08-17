@@ -431,6 +431,8 @@
 		CEA029E91C5E558100341079 /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
 		CEA029EC1C5E558100341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA029F71C5E55C100341079 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6831C5C58C300CD0B13 /* main.c */; };
+		CEB476311D62B9D0009D23BE /* ServersTableView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB4762F1D62B9D0009D23BE /* ServersTableView.c */; };
+		CEB476321D62B9D0009D23BE /* ServersTableView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB476301D62B9D0009D23BE /* ServersTableView.h */; };
 		CEC986941D3835420002B714 /* libmysqlclient.18.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC986931D3835420002B714 /* libmysqlclient.18.dylib */; };
 		CEDB4BB11D404D9D009921B6 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEDB4BB21D404E31009921B6 /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5BD5971D3EE25100C43B85 /* ui_main.c */; };
@@ -1134,6 +1136,8 @@
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEB4762F1D62B9D0009D23BE /* ServersTableView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ServersTableView.c; sourceTree = "<group>"; };
+		CEB476301D62B9D0009D23BE /* ServersTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServersTableView.h; sourceTree = "<group>"; };
 		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = ../../../../opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<group>"; };
 		CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectivelyMVC.dylib"; sourceTree = "<group>"; };
 		CEDB4BB91D405F74009921B6 /* MenuViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MenuViewController.c; sourceTree = "<group>"; };
@@ -2306,6 +2310,8 @@
 				CE7627991D49540600EEEE78 /* PlayerModelView.h */,
 				CEF1D8B61D467A330099A857 /* PrimaryButton.c */,
 				CEF1D8B71D467A330099A857 /* PrimaryButton.h */,
+				CEB4762F1D62B9D0009D23BE /* ServersTableView.c */,
+				CEB476301D62B9D0009D23BE /* ServersTableView.h */,
 				CE7EA4D71D48F53D00BD37A3 /* SkinSelect.c */,
 				CE7EA4D81D48F53D00BD37A3 /* SkinSelect.h */,
 			);
@@ -2512,6 +2518,7 @@
 				CE80FF281C5E462200A21A51 /* r_types.h in Headers */,
 				CE80FF291C5E462200A21A51 /* renderer.h in Headers */,
 				CE80FFA01C5E4A0100A21A51 /* s_local.h in Headers */,
+				CEB476321D62B9D0009D23BE /* ServersTableView.h in Headers */,
 				CE80FFA11C5E4A0200A21A51 /* s_main.h in Headers */,
 				CE80FFA21C5E4A0200A21A51 /* s_media.h in Headers */,
 				CE80FFA31C5E4A0200A21A51 /* s_mix.h in Headers */,
@@ -3135,6 +3142,7 @@
 				CEF1D8981D43DC7D0099A857 /* ControlsViewController.c in Sources */,
 				CE7EA4D21D47CC1600BD37A3 /* PlayerSetupViewController.c in Sources */,
 				CEF1D8B31D466D9A0099A857 /* SettingsViewController.c in Sources */,
+				CEB476311D62B9D0009D23BE /* ServersTableView.c in Sources */,
 				CEF1D8B01D4665800099A857 /* MultiplayerViewController.c in Sources */,
 				CEDB4BC01D40616C009921B6 /* MainViewController.c in Sources */,
 				CEDB4BBB1D405F74009921B6 /* MenuViewController.c in Sources */,

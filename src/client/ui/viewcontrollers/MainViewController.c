@@ -58,7 +58,9 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 
 		if (viewController == NULL) {
 			viewController = $((ViewController *) _alloc(clazz), init);
+
 			$(viewController, moveToParentViewController, this);
+			release(viewController);
 		}
 
 		viewController->view->hidden = false;

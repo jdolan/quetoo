@@ -69,7 +69,6 @@ void Cl_FreeServers(void) {
  * @brief
  */
 void Cl_ParseServerInfo(void) {
-//	extern void Ui_AddServer(void);
 	char info[MAX_MSG_SIZE];
 
 	cl_server_info_t *server = Cl_ServerForNetaddr(&net_from);
@@ -103,7 +102,8 @@ void Cl_ParseServerInfo(void) {
 
 	server->ping = Clamp(quetoo.time - server->ping_time, 1, 999);
 
-//	Ui_AddServer();
+	SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
+	SDL_PushEvent(&event);
 }
 
 /**
@@ -253,6 +253,11 @@ void Cl_ParseServers(void) {
 
 		e = e->next;
 	}
+
+	// and inform the user interface
+
+	SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
+	SDL_PushEvent(&event);
 }
 
 /**

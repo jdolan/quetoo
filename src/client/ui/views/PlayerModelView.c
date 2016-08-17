@@ -169,7 +169,15 @@ static void render(View *self, Renderer *renderer) {
 
 		glPopMatrix();
 
-		glViewport(0, 0, r_context.window_width, r_context.window_height);
+		glViewport(0, 0, r_context.width, r_context.height);
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+
+		glOrtho(0, r_context.window_width, r_context.window_height, 0, -1, 1);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
 	}
 }
 

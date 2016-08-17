@@ -23,9 +23,37 @@
 
 #include "MultiplayerViewController.h"
 
+#include "ServersTableView.h"
+
 #include "client.h"
 
+extern cl_static_t cls;
+
 #define _Class _MultiplayerViewController
+
+#pragma mark - Actions
+
+/**
+ * @brief ActionFunction for the Refresh Button.
+ */
+static void refreshAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+	Cl_Servers_f();
+}
+
+/**
+ * @brief ActionFunction for the Connect Button.
+ */
+static void connectAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	const TableView *servers = (TableView *) data;
+
+	if (servers->selectedRow != -1) {
+		const cl_server_info_t *server = g_list_nth_data(cls.servers, servers->selectedRow);
+		if (server) {
+			Cbuf_AddText(va("connect %s\n", Net_NetaddrToString(&server->addr)));
+		}
+	}
+}
 
 #pragma mark - ViewController
 
@@ -36,13 +64,60 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
+	Cl_Servers_f();
+
 	MenuViewController *this = (MenuViewController *) self;
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		box->view.autoresizingMask = ViewAutoresizingContain;
 
-		$(box->label, setText, "MULTIPLAYER");
+		$(box->label, setText, "JOIN GAME");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+		stackView->view.padding.top = 4;
+
+		ServersTableView *servers = $(alloc(ServersTableView), initWithFrame, NULL);
+		$((View *) servers, sizeToFit);
+		
+		servers->tableView.view.frame.h = 480;
+
+		$((View *) stackView, addSubview, (View *) servers);
+		release(servers);
+
+		{
+			StackView *buttons = $(alloc(StackView), initWithFrame, NULL);
+			buttons->axis = StackViewAxisHorizontal;
+			buttons->spacing = DEFAULT_INPUT_SPACING;
+			buttons->view.alignment = ViewAlignmentMiddleRight;
+			buttons->view.padding.top = buttons->view.padding.bottom = DEFAULT_PANEL_PADDING;
+
+			Button *refresh = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
+			$(refresh->title, setText, "Refresh");
+
+			$((Control *) refresh, addActionForEventType, SDL_MOUSEBUTTONUP, refreshAction, self, NULL);
+
+			$((View *) buttons, addSubview, (View *) refresh);
+			release(refresh);
+
+			Button *connect = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
+			$(connect->title, setText, "Connect");
+
+			$((Control *) connect, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, servers);
+
+			$((View *) buttons, addSubview, (View *) connect);
+			release(connect);
+
+			$((View *) buttons, sizeToFit);
+
+			$((View *) stackView, addSubview, (View *) buttons);
+			release(buttons);
+		}
+
+		$((View *) stackView, sizeToFit);
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
 
 		$((View *) box, sizeToFit);
 
