@@ -35,6 +35,17 @@ static TableColumn *_gameplay;
 static TableColumn *_players;
 static TableColumn *_ping;
 
+/**
+ * @brief Comparator for numeric values (clients and ping).
+ */
+static Order intcmp(const ident a, const ident b) {
+
+	int i = *(int *) a;
+	int j = *(int *) b;
+
+	return i - j;
+}
+
 #pragma mark - TableViewDataSource
 
 /**
@@ -152,7 +163,17 @@ static void initialize(Class *clazz) {
 	_players = $(alloc(TableColumn), initWithIdentifier, "Players");
 	_ping = $(alloc(TableColumn), initWithIdentifier, "Ping");
 
-	_hostname->width = 300, _name->width = 100, _gameplay->width = 100, _players->width = 80, _ping->width = 80;
+	_hostname->width = 300;
+	_name->width = 100;
+	_gameplay->width = 100;
+	_players->width = 80;
+	_ping->width = 80;
+
+	_hostname->comparator = (Comparator) g_ascii_strcasecmp;
+	_name->comparator = (Comparator) g_ascii_strcasecmp;
+	_gameplay->comparator = (Comparator) g_ascii_strcasecmp;
+	_players->comparator = intcmp;
+	_ping->comparator = intcmp;
 }
 
 /**

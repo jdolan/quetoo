@@ -96,6 +96,10 @@ void Cl_ParseServerInfo(void) {
 		return;
 	}
 
+	g_strchomp(server->hostname);
+	g_strchomp(server->name);
+	g_strchomp(server->gameplay);
+
 	server->hostname[sizeof(server->hostname) - 1] = '\0';
 	server->name[sizeof(server->name) - 1] = '\0';
 	server->gameplay[sizeof(server->name) - 1] = '\0';
@@ -188,7 +192,7 @@ void Cl_Servers_f(void) {
 	addr.port = htons(PORT_MASTER);
 
 	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "getservers");
-
+	
 	Cl_SendBroadcast();
 }
 
