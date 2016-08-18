@@ -45,7 +45,7 @@ static void refreshAction(Control *control, const SDL_Event *event, ident sender
  */
 static void connectAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	if (event->type == SDL_MOUSEBUTTONUP) {
+	if ($((Object *) control, isKindOfClass, &_TableView)) {
 		if (event->button.clicks < 2) {
 			return;
 		}
@@ -86,7 +86,7 @@ static void loadView(ViewController *self) {
 		ServersTableView *servers = $(alloc(ServersTableView), initWithFrame, NULL, ControlStyleDefault);
 		$((View *) servers, sizeToFit);
 
-		servers->tableView.control.view.frame.h = 480;
+		servers->tableView.control.view.frame.h = 320;
 
 		$((Control *) servers, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, servers);
 
