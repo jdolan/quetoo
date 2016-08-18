@@ -45,6 +45,12 @@ static void refreshAction(Control *control, const SDL_Event *event, ident sender
  */
 static void connectAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
+	if (event->type == SDL_MOUSEBUTTONUP) {
+		if (event->button.clicks < 2) {
+			return;
+		}
+	}
+
 	const TableView *servers = (TableView *) data;
 
 	if (servers->selectedRow != -1) {
@@ -77,10 +83,12 @@ static void loadView(ViewController *self) {
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 		stackView->view.padding.top = 4;
 
-		ServersTableView *servers = $(alloc(ServersTableView), initWithFrame, NULL);
+		ServersTableView *servers = $(alloc(ServersTableView), initWithFrame, NULL, ControlStyleDefault);
 		$((View *) servers, sizeToFit);
-		
-		servers->tableView.view.frame.h = 480;
+
+		servers->tableView.control.view.frame.h = 480;
+
+		$((Control *) servers, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, servers);
 
 		$((View *) stackView, addSubview, (View *) servers);
 		release(servers);

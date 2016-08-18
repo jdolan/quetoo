@@ -67,17 +67,18 @@ struct ServersTableViewInterface {
 	TableViewInterface tableViewInterface;
 	
 	/**
-	 * @fn ServersTableView *ServersTableView::initWithFrame(ServersTableView *self, const SDL_Rect *frame)
+	 * @fn ServersTableView *ServersTableView::initWithFrame(ServersTableView *self, const SDL_Rect *frame, ControlStyle style)
 	 *
-	 * @brief Initializes this ServersTableView with the specified frame.
+	 * @brief Initializes this ServersTableView with the specified frame and style.
 	 *
 	 * @param frame The frame.
+	 * @param style The ControlStyle.
 	 *
 	 * @return The initialized ServersTableView, or `NULL` on error.
 	 *
 	 * @memberof ServersTableView
 	 */
-	ServersTableView *(*initWithFrame)(ServersTableView *self, const SDL_Rect *frame);
+	ServersTableView *(*initWithFrame)(ServersTableView *self, const SDL_Rect *frame, ControlStyle style);
 };
 
 /**

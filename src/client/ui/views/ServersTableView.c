@@ -109,13 +109,13 @@ static void updateBindings(View *self) {
 #pragma mark - ServersTableView
 
 /**
- * @fn ServersTableView *ServersTableView::initWithFrame(ServersTableView *self, const SDL_Rect *frame)
+ * @fn ServersTableView *ServersTableView::initWithFrame(ServersTableView *self, const SDL_Rect *frame, ControlStyle style)
  *
  * @memberof ServersTableView
  */
-static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *frame) {
+static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *frame, ControlStyle style) {
 	
-	self = (ServersTableView *) super(TableView, self, initWithFrame, frame);
+	self = (ServersTableView *) super(TableView, self, initWithFrame, frame, style);
 	if (self) {
 		
 		self->tableView.dataSource.numberOfRows = numberOfRows;
