@@ -54,7 +54,7 @@ void Ui_CvarTextView(View *view, const char *name, cvar_t *var) {
 	Ui_Input(view, name, (Control *) $(alloc(CvarTextView), initWithVariable, var));
 }
 
-#define MENU_INPUT_LABEL_WIDTH 100
+#define MENU_INPUT_LABEL_WIDTH 140
 
 /**
  * @brief
