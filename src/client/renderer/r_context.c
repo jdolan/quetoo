@@ -84,7 +84,7 @@ void R_InitContext(void) {
 			w = best.w;
 			h = best.h;
 		}
-		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+		flags |= SDL_WINDOW_FULLSCREEN;
 	} else {
 		w = MAX(0, r_windowed_width->integer);
 		h = MAX(0, r_windowed_height->integer);
