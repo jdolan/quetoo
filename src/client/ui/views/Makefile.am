@@ -26,6 +26,7 @@ libviews_la_SOURCES = \
 libviews_la_CFLAGS = \
 	-I.. -I../.. -I../../.. \
 	@BASE_CFLAGS@ \
+	-Wno-unused-parameter \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@
 

@@ -21,6 +21,7 @@ libviewcontrollers_la_SOURCES = \
 libviewcontrollers_la_CFLAGS = \
 	-I.. -I../.. -I../../.. -I../views \
 	@BASE_CFLAGS@ \
+	-Wno-unused-parameter \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@
 
