@@ -252,10 +252,10 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 	// and any velocity-based feedback
 
 	vec_t forward = DotProduct(ent->locals.velocity, ent->client->locals.forward);
-	kick[PITCH] += forward / 450.0;
+	kick[PITCH] += forward / 600.0;
 
 	vec_t right = DotProduct(ent->locals.velocity, ent->client->locals.right);
-	kick[ROLL] += right / 400.0;
+	kick[ROLL] += right / 600.0;
 
 	// now interpolate the kick angles towards neutral over time
 
