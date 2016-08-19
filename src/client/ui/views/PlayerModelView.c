@@ -119,7 +119,7 @@ static void render(View *self, Renderer *renderer) {
 
 	PlayerModelView *this = (PlayerModelView *) self;
 
-	if (this->client.torso == NULL || cvar_user_info_modified) {
+	if (this->client.torso == NULL) {
 		$(self, updateBindings);
 	}
 
