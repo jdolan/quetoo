@@ -399,12 +399,9 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 }
 
 /**
- * @brief
+ * @brief Updates mouse state, ensuring the window has mouse focus, and draws the cursor.
  */
-void Cl_HandleEvents(void) {
-
-	if (!SDL_WasInit(SDL_INIT_VIDEO))
-		return;
+static void Cl_UpdateMouseState(void) {
 
 	// force a mouse grab when changing video modes
 	if (r_view.update) {
@@ -432,6 +429,17 @@ void Cl_HandleEvents(void) {
 			cls.mouse_state.grabbed = true;
 		}
 	}
+}
+
+/**
+ * @brief
+ */
+void Cl_HandleEvents(void) {
+
+	if (!SDL_WasInit(SDL_INIT_VIDEO))
+		return;
+
+	Cl_UpdateMouseState();
 
 	// handle new key events
 	while (true) {
