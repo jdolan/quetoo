@@ -433,6 +433,8 @@
 		CEA029F71C5E55C100341079 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6831C5C58C300CD0B13 /* main.c */; };
 		CEB476311D62B9D0009D23BE /* ServersTableView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB4762F1D62B9D0009D23BE /* ServersTableView.c */; };
 		CEB476321D62B9D0009D23BE /* ServersTableView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB476301D62B9D0009D23BE /* ServersTableView.h */; };
+		CEB476361D671E57009D23BE /* VideoModeSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB476341D671E57009D23BE /* VideoModeSelect.c */; };
+		CEB476371D671E57009D23BE /* VideoModeSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB476351D671E57009D23BE /* VideoModeSelect.h */; };
 		CEC986941D3835420002B714 /* libmysqlclient.18.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC986931D3835420002B714 /* libmysqlclient.18.dylib */; };
 		CEDB4BB11D404D9D009921B6 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEDB4BB21D404E31009921B6 /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5BD5971D3EE25100C43B85 /* ui_main.c */; };
@@ -1138,6 +1140,8 @@
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEB4762F1D62B9D0009D23BE /* ServersTableView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ServersTableView.c; sourceTree = "<group>"; };
 		CEB476301D62B9D0009D23BE /* ServersTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServersTableView.h; sourceTree = "<group>"; };
+		CEB476341D671E57009D23BE /* VideoModeSelect.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VideoModeSelect.c; sourceTree = "<group>"; };
+		CEB476351D671E57009D23BE /* VideoModeSelect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoModeSelect.h; sourceTree = "<group>"; };
 		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = ../../../../opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<group>"; };
 		CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectivelyMVC.dylib"; sourceTree = "<group>"; };
 		CEDB4BB91D405F74009921B6 /* MenuViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MenuViewController.c; sourceTree = "<group>"; };
@@ -2314,6 +2318,8 @@
 				CEB476301D62B9D0009D23BE /* ServersTableView.h */,
 				CE7EA4D71D48F53D00BD37A3 /* SkinSelect.c */,
 				CE7EA4D81D48F53D00BD37A3 /* SkinSelect.h */,
+				CEB476341D671E57009D23BE /* VideoModeSelect.c */,
+				CEB476351D671E57009D23BE /* VideoModeSelect.h */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -2506,6 +2512,7 @@
 				CE80FF1D1C5E462100A21A51 /* r_mesh_shadow.h in Headers */,
 				CE80FF1E1C5E462100A21A51 /* r_mesh_shell.h in Headers */,
 				CE5C3C7F1D501D1700608432 /* CvarSelect.h in Headers */,
+				CEB476371D671E57009D23BE /* VideoModeSelect.h in Headers */,
 				CE80FF1F1C5E462100A21A51 /* r_model.h in Headers */,
 				CE80FF201C5E462100A21A51 /* r_particle.h in Headers */,
 				CE80FF211C5E462200A21A51 /* r_program.h in Headers */,
@@ -3117,6 +3124,7 @@
 				CE80FEF61C5E460B00A21A51 /* r_lightmap.c in Sources */,
 				CE80FEF71C5E460B00A21A51 /* r_main.c in Sources */,
 				CE80FEF81C5E460B00A21A51 /* r_material.c in Sources */,
+				CEB476361D671E57009D23BE /* VideoModeSelect.c in Sources */,
 				CE80FEF91C5E460B00A21A51 /* r_media.c in Sources */,
 				CE80FEFA1C5E460B00A21A51 /* r_mesh.c in Sources */,
 				CE80FEFB1C5E460B00A21A51 /* r_mesh_model.c in Sources */,

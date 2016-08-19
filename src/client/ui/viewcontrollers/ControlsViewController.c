@@ -42,10 +42,7 @@ static void loadView(ViewController *self) {
 	this->stackView->spacing = DEAFULT_MENU_STACKVIEW_HORIZONTAL_SPACING;
 
 	StackView *leftColumn = $(alloc(StackView), initWithFrame, NULL);
-	StackView *rightColumn = $(alloc(StackView), initWithFrame, NULL);
-
 	leftColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
-	rightColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
@@ -101,32 +98,13 @@ static void loadView(ViewController *self) {
 		release(box);
 	}
 
-	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingContain;
+	$((View *) leftColumn, sizeToFit);
 
-		$(box->label, setText, "AIM");
+	$((View *) this->stackView, addSubview, (View *) leftColumn);
+	release(leftColumn);
 
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-		extern cvar_t *m_sensitivity;
-		extern cvar_t *m_sensitivity_zoom;
-		extern cvar_t *m_invert;
-
-		Ui_CvarSlider((View *) stackView, "Sensitivity", m_sensitivity, 0.1, 6.0, 0.1);
-		Ui_CvarSlider((View *) stackView, "Zoom Sensitivity", m_sensitivity_zoom, 0.1, 6.0, 0.1);
-		Ui_CvarCheckbox((View *) stackView, "Invert mouse", m_invert);
-
-		$((View *) stackView, sizeToFit);
-
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
-
-		$((View *) box, sizeToFit);
-
-		$((View *) rightColumn, addSubview, (View *) box);
-		release(box);
-	}
+	StackView *centerColumn = $(alloc(StackView), initWithFrame, NULL);
+	centerColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
@@ -160,14 +138,47 @@ static void loadView(ViewController *self) {
 
 		$((View *) box, sizeToFit);
 
+		$((View *) centerColumn, addSubview, (View *) box);
+		release(box);
+	}
+
+	$((View *) centerColumn, sizeToFit);
+
+	$((View *) this->stackView, addSubview, (View *) centerColumn);
+	release(centerColumn);
+
+	StackView *rightColumn = $(alloc(StackView), initWithFrame, NULL);
+	rightColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
+
+	{
+		Box *box = $(alloc(Box), initWithFrame, NULL);
+		box->view.autoresizingMask = ViewAutoresizingContain;
+
+		$(box->label, setText, "AIM");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		extern cvar_t *m_sensitivity;
+		extern cvar_t *m_sensitivity_zoom;
+		extern cvar_t *m_invert;
+		extern cvar_t *m_interpolate;
+
+		Ui_CvarSlider((View *) stackView, "Sensitivity", m_sensitivity, 0.1, 6.0, 0.1);
+		Ui_CvarSlider((View *) stackView, "Zoom Sensitivity", m_sensitivity_zoom, 0.1, 6.0, 0.1);
+		Ui_CvarCheckbox((View *) stackView, "Invert mouse", m_invert);
+		Ui_CvarCheckbox((View *) stackView, "Smooth mouse", m_interpolate);
+
+		$((View *) stackView, sizeToFit);
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
+
+		$((View *) box, sizeToFit);
+
 		$((View *) rightColumn, addSubview, (View *) box);
 		release(box);
 	}
 
-	$((View *) leftColumn, sizeToFit);
-
-	$((View *) this->stackView, addSubview, (View *) leftColumn);
-	release(leftColumn);
 
 	$((View *) rightColumn, sizeToFit);
 

@@ -30,34 +30,56 @@
  * @brief
  */
 void Ui_Bind(View *view, const char *name, const char *bind) {
-	Ui_Input(view, name, (Control *) $(alloc(BindTextView), initWithBind, bind));
+
+	BindTextView *textView = $(alloc(BindTextView), initWithBind, bind);
+
+	Ui_Input(view, name, (Control *) textView);
+
+	release(textView);
 }
 
 /**
  * @brief
  */
 void Ui_CvarCheckbox(View *view, const char *name, cvar_t *var) {
-	Ui_Input(view, name, (Control *) $(alloc(CvarCheckbox), initWithVariable, var));
+
+	CvarCheckbox *checkbox = $(alloc(CvarCheckbox), initWithVariable, var);
+
+	Ui_Input(view, name, (Control *) checkbox);
+
+	release(checkbox);
 }
 
 /**
  * @brief
  */
 void Ui_CvarSlider(View *view, const char *name, cvar_t *var, double min, double max, double step) {
-	Ui_Input(view, name, (Control *) $(alloc(CvarSlider), initWithVariable, var, min, max, step));
+
+	CvarSlider *slider = $(alloc(CvarSlider), initWithVariable, var, min, max, step);
+
+	Ui_Input(view, name, (Control *) slider);
+
+	release(slider);
 }
 
 /**
  * @brief
  */
 void Ui_CvarTextView(View *view, const char *name, cvar_t *var) {
-	Ui_Input(view, name, (Control *) $(alloc(CvarTextView), initWithVariable, var));
+
+	CvarTextView *textView = $(alloc(CvarTextView), initWithVariable, var);
+
+	Ui_Input(view, name, (Control *) textView);
+
+	release(textView);
 }
 
 #define MENU_INPUT_LABEL_WIDTH 140
 
 /**
- * @brief
+ * @brief Adds a new Label and the specified Control to the given View.
+ *
+ * @remarks This function releases the Control for convenience.
  */
 void Ui_Input(View *view, const char *name, Control *control) {
 
@@ -76,6 +98,5 @@ void Ui_Input(View *view, const char *name, Control *control) {
 
 	release(input);
 	release(label);
-	release(control);
 }
 

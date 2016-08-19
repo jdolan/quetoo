@@ -36,8 +36,6 @@ typedef struct SkinSelectInterface SkinSelectInterface;
  * @brief The SkinSelect type.
  *
  * @extends Select
- *
- * @ingroup
  */
 struct SkinSelect {
 	

@@ -7,7 +7,8 @@ noinst_HEADERS = \
 	PlayerModelView.h \
 	PrimaryButton.h \
 	ServersTableView.h \
-	SkinSelect.h
+	SkinSelect.h \
+	VideoModeSelect.h
 
 noinst_LTLIBRARIES = \
 	libviews.la
@@ -21,7 +22,8 @@ libviews_la_SOURCES = \
 	PlayerModelView.c \
 	PrimaryButton.c \
 	ServersTableView.c \
-	SkinSelect.c
+	SkinSelect.c \
+	VideoModeSelect.c
 
 libviews_la_CFLAGS = \
 	-I.. -I../.. -I../../.. \

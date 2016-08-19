@@ -21,66 +21,73 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/TableView.h>
+#include <ObjectivelyMVC/Select.h>
 
 /**
  * @file
  *
- * @brief The multiplayer servers table.
+ * @brief Video mode selection.
  */
 
-typedef struct ServersTableView ServersTableView;
-typedef struct ServersTableViewInterface ServersTableViewInterface;
+typedef struct VideoModeSelect VideoModeSelect;
+typedef struct VideoModeSelectInterface VideoModeSelectInterface;
 
 /**
- * @brief The ServersTableView type.
+ * @brief The VideoModeSelect type.
  *
- * @extends TableView
+ * @extends Select
  */
-struct ServersTableView {
+struct VideoModeSelect {
 	
 	/**
 	 * @brief The parent.
 	 *
 	 * @private
 	 */
-	TableView tableView;
+	Select select;
 	
 	/**
 	 * @brief The typed interface.
 	 *
 	 * @private
 	 */
-	ServersTableViewInterface *interface;
+	VideoModeSelectInterface *interface;
+
+	/**
+	 * @brief The known display modes.
+	 *
+	 * @private
+	 */
+	SDL_DisplayMode *modes;
 };
 
 /**
- * @brief The ServersTableView interface.
+ * @brief The VideoModeSelect interface.
  */
-struct ServersTableViewInterface {
+struct VideoModeSelectInterface {
 	
 	/**
 	 * @brief The parent interface.
 	 */
-	TableViewInterface tableViewInterface;
+	SelectInterface selectInterface;
 	
 	/**
-	 * @fn ServersTableView *ServersTableView::initWithFrame(ServersTableView *self, const SDL_Rect *frame, ControlStyle style)
+	 * @fn VideoModeSelect *VideoModeSelect::initWithFrame(VideoModeSelect *self, const SDL_Rect *frame, ControlStyle style)
 	 *
-	 * @brief Initializes this ServersTableView with the specified frame and style.
+	 * @brief Initializes this VideoModeSelect with the specified frame and style.
 	 *
 	 * @param frame The frame.
 	 * @param style The ControlStyle.
 	 *
-	 * @return The initialized ServersTableView, or `NULL` on error.
+	 * @return The initialized VideoModeSelect, or `NULL` on error.
 	 *
-	 * @memberof ServersTableView
+	 * @memberof VideoModeSelect
 	 */
-	ServersTableView *(*initWithFrame)(ServersTableView *self, const SDL_Rect *frame, ControlStyle style);
+	VideoModeSelect *(*initWithFrame)(VideoModeSelect *self, const SDL_Rect *frame, ControlStyle style);
 };
 
 /**
- * @brief The ServersTableView Class.
+ * @brief The VideoModeSelect Class.
  */
-extern Class _ServersTableView;
+extern Class _VideoModeSelect;
 

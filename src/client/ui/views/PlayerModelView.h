@@ -38,8 +38,6 @@ typedef struct PlayerModelViewInterface PlayerModelViewInterface;
  * @brief The PlayerModelView type.
  *
  * @extends View
- *
- * @ingroup
  */
 struct PlayerModelView {
 	

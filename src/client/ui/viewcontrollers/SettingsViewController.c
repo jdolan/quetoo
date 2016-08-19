@@ -23,9 +23,13 @@
 
 #include "SettingsViewController.h"
 
+#include "VideoModeSelect.h"
+
 #include "client.h"
 
 #define _Class _SettingsViewController
+
+#pragma mark - Actions & Delegates
 
 #pragma mark - ViewController
 
@@ -42,7 +46,16 @@ static void loadView(ViewController *self) {
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		box->view.autoresizingMask = ViewAutoresizingContain;
 
-		$(box->label, setText, "SYSTEM");
+		$(box->label, setText, "VIDEO");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+		Control *videoModeSelect = (Control *) $(alloc(VideoModeSelect), initWithFrame, NULL, ControlStyleDefault);
+
+		Ui_Input((View *) stackView, "Video mode", videoModeSelect);
+		release(videoModeSelect);
+
+		$((View *) box, addSubview, (View *) stackView);
 
 		$((View *) box, sizeToFit);
 

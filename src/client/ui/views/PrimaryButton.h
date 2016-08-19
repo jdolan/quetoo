@@ -38,8 +38,6 @@ typedef struct PrimaryButtonInterface PrimaryButtonInterface;
  * @brief The PrimaryButton type.
  *
  * @extends Button
- *
- * @ingroup
  */
 struct PrimaryButton {
 	

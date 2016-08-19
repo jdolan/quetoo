@@ -62,8 +62,10 @@ static void loadView(ViewController *self) {
 		extern cvar_t *name;
 		Ui_CvarTextView((View *) stackView, "Name", name);
 
-		Control *skin = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
-		Ui_Input((View *) stackView, "Player skin", skin);
+		Control *skinSelect = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
+
+		Ui_Input((View *) stackView, "Player skin", skinSelect);
+		release(skinSelect);
 
 		extern cvar_t *color;
 		Select *colorSelect = (Select *) $(alloc(CvarSelect), initWithVariable, color);
@@ -79,7 +81,8 @@ static void loadView(ViewController *self) {
 		$(colorSelect, addOption, "purple", (ident) 187);
 
 		Ui_Input((View *) stackView, "Effect color", (Control *) colorSelect);
-		
+		release(colorSelect);
+
 		$((View *) stackView, sizeToFit);
 
 		$((View *) box, addSubview, (View *) stackView);
