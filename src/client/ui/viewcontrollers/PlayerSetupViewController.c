@@ -80,6 +80,8 @@ static void loadView(ViewController *self) {
 		$(colorSelect, addOption, "pink", (ident) 247);
 		$(colorSelect, addOption, "purple", (ident) 187);
 
+		$(colorSelect, selectOptionWithValue, (ident) (intptr_t) color->integer);
+
 		Ui_Input((View *) stackView, "Effect color", (Control *) colorSelect);
 		release(colorSelect);
 

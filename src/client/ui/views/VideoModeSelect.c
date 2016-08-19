@@ -34,15 +34,17 @@
  */
 static void didSelectOption(Select *select, Option *option) {
 
-	SDL_DisplayMode *mode = option->value;
-	if (mode) {
-		if (r_fullscreen->integer) {
-			Cvar_SetValue(r_width->name, mode->w);
-			Cvar_SetValue(r_height->name, mode->h);
-		} else {
-			Cvar_SetValue(r_windowed_width->name, mode->w);
-			Cvar_SetValue(r_windowed_height->name, mode->h);
-		}
+	const SDL_DisplayMode *mode = option->value;
+
+	const int32_t w = mode ? mode->w : 0;
+	const int32_t h = mode ? mode->h : 0;
+
+	if (r_fullscreen->value) {
+		Cvar_SetValue(r_width->name, w);
+		Cvar_SetValue(r_height->name, h);
+	} else {
+		Cvar_SetValue(r_windowed_width->name, w);
+		Cvar_SetValue(r_windowed_height->name, h);
 	}
 }
 

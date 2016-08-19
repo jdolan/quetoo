@@ -36,7 +36,7 @@ static void updateBindings(View *self) {
 
 	CvarSelect *this = (CvarSelect *) self;
 
-	$((Select *) this, selectOptionWithValue, this->var->string);
+	$((Select *) this, selectOptionWithValue, (ident) (intptr_t) this->var->integer);
 }
 
 #pragma mark - CvarSelect
@@ -67,8 +67,6 @@ static CvarSelect *initWithVariable(CvarSelect *self, cvar_t *var) {
 		Select *this = (Select *) self;
 
 		this->delegate.didSelectOption = didSelectOption;
-
-		$(this, selectOptionWithValue, (ident) (intptr_t) self->var->integer);
 	}
 
 	return self;

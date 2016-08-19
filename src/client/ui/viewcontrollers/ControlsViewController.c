@@ -179,7 +179,6 @@ static void loadView(ViewController *self) {
 		release(box);
 	}
 
-
 	$((View *) rightColumn, sizeToFit);
 
 	$((View *) this->stackView, addSubview, (View *) rightColumn);

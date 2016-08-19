@@ -56,7 +56,7 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 
 	const CvarCheckbox *this = (CvarCheckbox *) control;
 
-	Cvar_SetValue(this->var->name, control->state & ControlStateSelected);
+	Cvar_SetValue(this->var->name, $(control, selected));
 }
 
 /**
