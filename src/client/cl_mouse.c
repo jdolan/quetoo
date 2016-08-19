@@ -82,43 +82,34 @@ void Cl_MouseMotionEvent(const SDL_Event *event) {
 	if (cls.key_state.dest != KEY_GAME)
 		return;
 
-	const int32_t mx = event->motion.x;
-	const int32_t my = event->motion.y;
-
-	if (m_sensitivity->modified) { // clamp sensitivity
+	if (m_sensitivity->modified) {
 		m_sensitivity->value = Clamp(m_sensitivity->value, 0.1, 20.0);
 		m_sensitivity->modified = false;
 	}
 
-	if (m_interpolate->value) { // interpolate movements
-		cls.mouse_state.x = (mx + cls.mouse_state.old_x) * 0.5;
-		cls.mouse_state.y = (my + cls.mouse_state.old_y) * 0.5;
-	} else {
-		cls.mouse_state.x = mx;
-		cls.mouse_state.y = my;
+	cls.mouse_state.old_x = cls.mouse_state.x;
+	cls.mouse_state.old_y = cls.mouse_state.y;
+
+	cls.mouse_state.x = event->motion.xrel * m_sensitivity->value;
+	cls.mouse_state.y = event->motion.yrel * m_sensitivity->value;
+
+	if (m_interpolate->value) {
+		cls.mouse_state.x = (cls.mouse_state.x + cls.mouse_state.old_x) * 0.5;
+		cls.mouse_state.y = (cls.mouse_state.y + cls.mouse_state.old_y) * 0.5;
 	}
 
-	cls.mouse_state.old_x = mx;
-	cls.mouse_state.old_y = my;
-
-	const r_pixel_t cx = r_context.window_width * 0.5;
-	const r_pixel_t cy = r_context.window_height * 0.5;
-
 	if (cls.state == CL_ACTIVE) {
-
-		cls.mouse_state.x -= cx; // first normalize to center
-		cls.mouse_state.y -= cy;
-
-		cls.mouse_state.x *= m_sensitivity->value; // then amplify
-		cls.mouse_state.y *= m_sensitivity->value;
-
-		if (m_invert->value) // and finally invert
+		if (m_invert->value) {
 			cls.mouse_state.y = -cls.mouse_state.y;
+		}
 
-		// add horizontal and vertical movement
 		cl.angles[YAW] -= m_yaw->value * cls.mouse_state.x;
 		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
 	}
 
-	SDL_WarpMouseInWindow(r_context.window, cx, cy);
+	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+
+	SDL_WarpMouseInWindow(r_context.window, r_context.window_width * 0.5, r_context.window_height * 0.5);
+
+	SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
 }
