@@ -32,6 +32,13 @@
 
 #pragma mark - Actions & Delegates
 
+/**
+ * @brief ActionFunction for Apply Button.
+ */
+static void applyAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+	Cbuf_AddText("r_restart; s_restart;\n");
+}
+
 #pragma mark - ViewController
 
 /**
@@ -76,7 +83,7 @@ static void loadView(ViewController *self) {
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingContain;
+		box->view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
 
 		$(box->label, setText, "OPTIONS");
 
@@ -168,6 +175,18 @@ static void loadView(ViewController *self) {
 
 		$((View *) rightColumn, addSubview, (View *) box);
 		release(box);
+	}
+
+	{
+		Button *apply = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
+		$(apply->title, setText, "Apply");
+
+		apply->control.view.alignment = ViewAlignmentMiddleRight;
+
+		$((Control *) apply, addActionForEventType, SDL_MOUSEBUTTONUP, applyAction, self, NULL);
+
+		$((View *) rightColumn, addSubview, (View *) apply);
+		release(apply);
 	}
 
 	$((View *) rightColumn, sizeToFit);
