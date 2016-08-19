@@ -62,7 +62,9 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 			const r_pixel_t cx = r_context.window_width * 0.5;
 			const r_pixel_t cy = r_context.window_height * 0.5;
 
+			SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 			SDL_WarpMouseInWindow(r_context.window, cx, cy);
+			SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
 		}
 			SDL_StopTextInput();
 			break;

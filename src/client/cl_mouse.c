@@ -107,9 +107,10 @@ void Cl_MouseMotionEvent(const SDL_Event *event) {
 		cl.angles[PITCH] += m_pitch->value * cls.mouse_state.y;
 	}
 
+	const r_pixel_t cx = r_context.window_width * 0.5;
+	const r_pixel_t cy = r_context.window_height * 0.5;
+
 	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
-
-	SDL_WarpMouseInWindow(r_context.window, r_context.window_width * 0.5, r_context.window_height * 0.5);
-
+	SDL_WarpMouseInWindow(r_context.window, cx, cy);
 	SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
 }
