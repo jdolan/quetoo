@@ -192,7 +192,7 @@ void Cl_Servers_f(void) {
 	addr.port = htons(PORT_MASTER);
 
 	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "getservers");
-	
+
 	Cl_SendBroadcast();
 }
 

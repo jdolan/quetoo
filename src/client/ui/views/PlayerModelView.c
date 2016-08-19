@@ -117,13 +117,13 @@ static void render(View *self, Renderer *renderer) {
 
 	super(View, self, render, renderer);
 
-	if (cvar_user_info_modified) {
+	PlayerModelView *this = (PlayerModelView *) self;
+
+	if (this->client.torso == NULL || cvar_user_info_modified) {
 		$(self, updateBindings);
 	}
 
-	PlayerModelView *this = (PlayerModelView *) self;
 	if (this->client.torso) {
-
 		$(this, animate);
 
 		const SDL_Rect viewport = $(self, viewport);
@@ -243,7 +243,7 @@ static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e
 
 	const r_md3_animation_t *anim = &md3->animations[a->animation];
 
-	const uint32_t frameTime = (1000 / time_scale->value) / anim->hz;
+	const uint32_t frameTime = (1500 / time_scale->value) / anim->hz;
 	const uint32_t animationTime = anim->num_frames * frameTime;
 	const uint32_t elapsedTime = cl.systime - a->time;
 	uint16_t frame = elapsedTime / frameTime;
