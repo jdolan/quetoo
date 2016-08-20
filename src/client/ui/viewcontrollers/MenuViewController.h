@@ -23,6 +23,8 @@
 
 #include <ObjectivelyMVC.h>
 
+#include "MainViewController.h"
+
 #include "common.h"
 
 /**
@@ -30,9 +32,6 @@
  *
  * @brief The MenuViewController.
  */
-
-#define DEAFULT_MENU_STACKVIEW_HORIZONTAL_SPACING 10
-#define DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING 20
 
 typedef struct MenuViewController MenuViewController;
 typedef struct MenuViewControllerInterface MenuViewControllerInterface;
@@ -64,11 +63,6 @@ struct MenuViewController {
 	 * @brief The Panel.
 	 */
 	Panel *panel;
-
-	/**
-	 * @brief The StackView
-	 */
-	StackView *stackView;
 };
 
 /**
@@ -80,6 +74,15 @@ struct MenuViewControllerInterface {
 	 * @brief The parent interface.
 	 */
 	ViewControllerInterface viewControllerInterface;
+
+	/**
+	 * @fn MainViewController *MenuViewController::mainViewController(const MenuViewController *self)
+	 *
+	 * @return The MainViewController.
+	 *
+	 * @memberof MenuViewController
+	 */
+	MainViewController *(*mainViewController)(const MenuViewController *self);
 };
 
 /**

@@ -33,8 +33,6 @@ static void dealloc(Object *self) {
 
 	release(this->panel);
 
-	release(this->stackView);
-
 	super(Object, self, dealloc);
 }
 
@@ -55,14 +53,18 @@ static void loadView(ViewController *self) {
 	this->panel->view.alignment = ViewAlignmentMiddleCenter;
 	this->panel->view.autoresizingMask = ViewAutoresizingContain;
 
-	this->stackView = $(alloc(StackView), initWithFrame, NULL);
-	assert(this->stackView);
-
-	this->stackView->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
-	this->stackView->view.autoresizingMask = ViewAutoresizingContain;
-
-	$((View *) this->panel, addSubview, (View *) this->stackView);
 	$(self->view, addSubview, (View *) this->panel);
+}
+
+#pragma mark - MenuViewController
+
+/**
+ * @fn MainViewController *MenuViewController::mainViewController(const MenuViewController *self)
+ *
+ * @memberof MenuViewController
+ */
+static MainViewController *mainViewController(const MenuViewController *self) {
+	return (MainViewController *) ((ViewController *) self)->parentViewController;
 }
 
 #pragma mark - Class lifecycle
@@ -75,6 +77,8 @@ static void initialize(Class *clazz) {
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+
+	((MenuViewControllerInterface *) clazz->interface)->mainViewController = mainViewController;
 }
 
 Class _MenuViewController = {

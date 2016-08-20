@@ -21,65 +21,52 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/NavigationViewController.h>
+#include "MenuViewController.h"
 
 /**
  * @file
  *
- * @brief The MainViewController.
+ * @brief Create Server ViewController.
  */
 
-typedef struct MainViewController MainViewController;
-typedef struct MainViewControllerInterface MainViewControllerInterface;
+typedef struct CreateServerViewController CreateServerViewController;
+typedef struct CreateServerViewControllerInterface CreateServerViewControllerInterface;
 
 /**
- * @brief The MainViewController type.
+ * @brief The CreateServerViewController type.
  *
  * @extends MenuViewController
- *
- * @ingroup ViewControllers
  */
-struct MainViewController {
+struct CreateServerViewController {
 	
 	/**
 	 * @brief The parent.
 	 *
 	 * @private
 	 */
-	NavigationViewController navigationViewController;
+	MenuViewController menuViewController;
 	
 	/**
 	 * @brief The typed interface.
 	 *
 	 * @private
 	 */
-	MainViewControllerInterface *interface;
+	CreateServerViewControllerInterface *interface;
 };
 
 /**
- * @brief The MainViewController interface.
+ * @brief The CreateServerViewController interface.
  */
-struct MainViewControllerInterface {
+struct CreateServerViewControllerInterface {
 	
 	/**
 	 * @brief The parent interface.
 	 */
-	NavigationViewControllerInterface navigationViewControllerInterface;
-
-	/**
-	 * @fn MainViewController *MainViewController::init(MainViewController *self)
-	 *
-	 * @brief Initializes this ViewController.
-	 *
-	 * @return The initialized MainViewController, or `NULL` on error.
-	 *
-	 * @memberof MainViewController
-	 */
-	MainViewController *(*init)(MainViewController *self);
+	MenuViewControllerInterface menuViewControllerInterface;
 };
 
 /**
- * @brief The MainViewController Class.
+ * @brief The CreateServerViewController Class.
  */
-extern Class _MainViewController;
+extern Class _CreateServerViewController;
 

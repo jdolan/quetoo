@@ -74,6 +74,8 @@
 		CE12D82E1C5C6EAD00CD0B13 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CE12D8C41C5CF86600CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
+		CE562EB81D68013B006DF143 /* CreateServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE562EB61D68013B006DF143 /* CreateServerViewController.c */; };
+		CE562EB91D68013B006DF143 /* CreateServerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE562EB71D68013B006DF143 /* CreateServerViewController.h */; };
 		CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD5931D3EE1BF00C43B85 /* ui.h */; };
 		CE5C3C7E1D501D1700608432 /* CvarSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5C3C7C1D501D1700608432 /* CvarSelect.c */; };
 		CE5C3C7F1D501D1700608432 /* CvarSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5C3C7D1D501D1700608432 /* CvarSelect.h */; };
@@ -1098,6 +1100,8 @@
 		CE12D8321C5C6F0100CD0B13 /* libSDL2_mixer-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_mixer-2.0.0.dylib"; path = "/opt/local/lib/libSDL2_mixer-2.0.0.dylib"; sourceTree = "<absolute>"; };
 		CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2-2.0.0.dylib"; path = "/opt/local/lib/libSDL2-2.0.0.dylib"; sourceTree = "<absolute>"; };
 		CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-dedicated"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE562EB61D68013B006DF143 /* CreateServerViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CreateServerViewController.c; sourceTree = "<group>"; };
+		CE562EB71D68013B006DF143 /* CreateServerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreateServerViewController.h; sourceTree = "<group>"; };
 		CE5BD5931D3EE1BF00C43B85 /* ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui.h; sourceTree = "<group>"; };
 		CE5BD5951D3EE1FA00C43B85 /* ui_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_types.h; sourceTree = "<group>"; };
 		CE5BD5961D3EE22300C43B85 /* ui_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_local.h; sourceTree = "<group>"; };
@@ -2281,6 +2285,8 @@
 			children = (
 				CEF1D8961D43DC7D0099A857 /* ControlsViewController.c */,
 				CEF1D8971D43DC7D0099A857 /* ControlsViewController.h */,
+				CE562EB61D68013B006DF143 /* CreateServerViewController.c */,
+				CE562EB71D68013B006DF143 /* CreateServerViewController.h */,
 				CEDB4BBE1D40616C009921B6 /* MainViewController.c */,
 				CEDB4BBF1D40616C009921B6 /* MainViewController.h */,
 				CE7EA4DF1D49057200BD37A3 /* Makefile.am */,
@@ -2485,6 +2491,7 @@
 				CE80FF911C5E49E700A21A51 /* cl_types.h in Headers */,
 				CE80FF921C5E49E700A21A51 /* cl_view.h in Headers */,
 				CE80FF931C5E49E700A21A51 /* client.h in Headers */,
+				CE562EB91D68013B006DF143 /* CreateServerViewController.h in Headers */,
 				CE80FF071C5E462100A21A51 /* r_array.h in Headers */,
 				CE80FF081C5E462100A21A51 /* r_bsp.h in Headers */,
 				CE80FF091C5E462100A21A51 /* r_bsp_light.h in Headers */,
@@ -3136,6 +3143,7 @@
 				CE80FF001C5E460B00A21A51 /* r_program.c in Sources */,
 				CE80FF011C5E460B00A21A51 /* r_program_default.c in Sources */,
 				CE80FF021C5E460B00A21A51 /* r_program_shadow.c in Sources */,
+				CE562EB81D68013B006DF143 /* CreateServerViewController.c in Sources */,
 				CE80FF031C5E460B00A21A51 /* r_program_shell.c in Sources */,
 				CE80FF041C5E460B00A21A51 /* r_program_warp.c in Sources */,
 				CE80FF051C5E460B00A21A51 /* r_sky.c in Sources */,

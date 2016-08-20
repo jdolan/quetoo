@@ -42,79 +42,91 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	this->stackView->axis = StackViewAxisHorizontal;
-	this->stackView->spacing = 10;
+	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
-	StackView *leftColumn = $(alloc(StackView), initWithFrame, NULL);
-	leftColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
-
-	StackView *rightColumn = $(alloc(StackView), initWithFrame, NULL);
-	rightColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
+	columns->axis = StackViewAxisHorizontal;
+	columns->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
 
 	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingContain;
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
 
-		$(box->label, setText, "PLAYER SETUP");
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			box->view.autoresizingMask = ViewAutoresizingContain;
 
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			$(box->label, setText, "PLAYER SETUP");
 
-		extern cvar_t *name;
-		Ui_CvarTextView((View *) stackView, "Name", name);
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		Control *skinSelect = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
+			extern cvar_t *name;
+			Ui_CvarTextView((View *) stackView, "Name", name);
 
-		Ui_Input((View *) stackView, "Player skin", skinSelect);
-		release(skinSelect);
+			Control *skinSelect = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
 
-		extern cvar_t *color;
-		Select *colorSelect = (Select *) $(alloc(CvarSelect), initWithVariable, color);
+			Ui_Input((View *) stackView, "Player skin", skinSelect);
+			release(skinSelect);
 
-		$(colorSelect, addOption, "default", (ident) 0);
-		$(colorSelect, addOption, "red", (ident) 232);
-		$(colorSelect, addOption, "green", (ident) 201);
-		$(colorSelect, addOption, "blue", (ident) 119);
-		$(colorSelect, addOption, "yellow", (ident) 219);
-		$(colorSelect, addOption, "orange", (ident) 225);
-		$(colorSelect, addOption, "white", (ident) 216);
-		$(colorSelect, addOption, "pink", (ident) 247);
-		$(colorSelect, addOption, "purple", (ident) 187);
+			extern cvar_t *color;
+			Select *colorSelect = (Select *) $(alloc(CvarSelect), initWithVariable, color);
 
-		$(colorSelect, selectOptionWithValue, (ident) (intptr_t) color->integer);
+			$(colorSelect, addOption, "default", (ident) 0);
+			$(colorSelect, addOption, "red", (ident) 232);
+			$(colorSelect, addOption, "green", (ident) 201);
+			$(colorSelect, addOption, "blue", (ident) 119);
+			$(colorSelect, addOption, "yellow", (ident) 219);
+			$(colorSelect, addOption, "orange", (ident) 225);
+			$(colorSelect, addOption, "white", (ident) 216);
+			$(colorSelect, addOption, "pink", (ident) 247);
+			$(colorSelect, addOption, "purple", (ident) 187);
 
-		Ui_Input((View *) stackView, "Effect color", (Control *) colorSelect);
-		release(colorSelect);
+			$(colorSelect, selectOptionWithValue, (ident) (intptr_t) color->integer);
 
-		$((View *) stackView, sizeToFit);
+			Ui_Input((View *) stackView, "Effect color", (Control *) colorSelect);
+			release(colorSelect);
 
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
+			$((View *) stackView, sizeToFit);
 
-		$((View *) box, sizeToFit);
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
 
-		$((View *) leftColumn, addSubview, (View *) box);
-		release(box);
+			$((View *) box, sizeToFit);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		$((View *) column, sizeToFit);
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
 	}
 
 	{
-		const SDL_Rect frame = { .w = 400, .h = 500 };
-		PlayerModelView *mesh = $(alloc(PlayerModelView), initWithFrame, &frame);
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
 
-		$((View *) rightColumn, addSubview, (View *) mesh);
-		release(mesh);
+		{
+			const SDL_Rect frame = { .w = 400, .h = 500 };
+			PlayerModelView *mesh = $(alloc(PlayerModelView), initWithFrame, &frame);
+
+			$((View *) column, addSubview, (View *) mesh);
+			release(mesh);
+		}
+
+		$((View *) column, sizeToFit);
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
+
 	}
 
-	$((View *) leftColumn, sizeToFit);
+	$((View *) columns, sizeToFit);
 
-	$((View *) this->stackView, addSubview, (View *) leftColumn);
-	release(leftColumn);
+	$((View *) this->panel->stackView, addSubview, (View *) columns);
+	release(columns);
 
-	$((View *) rightColumn, sizeToFit);
-
-	$((View *) this->stackView, addSubview, (View *) rightColumn);
-	release(rightColumn);
-
-	$((View *) this->stackView, sizeToFit);
+	$((View *) this->panel->stackView, sizeToFit);
 	$((View *) this->panel, sizeToFit);
 }
 

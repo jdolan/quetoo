@@ -94,7 +94,7 @@ static void initialize(Class *clazz) {
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((SelectInterface *) clazz->interface)->addOption = addOption;
-	
+
 	((CvarSelectInterface *) clazz->interface)->initWithVariable = initWithVariable;
 }
 

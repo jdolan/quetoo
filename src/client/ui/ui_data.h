@@ -27,6 +27,7 @@
 #include "cvar.h"
 
 extern void Ui_Bind(View *view, const char *name, const char *bind);
+extern void Ui_Button(View *view, const char *title, ActionFunction function, ident sender, ident data);
 extern void Ui_CvarCheckbox(View *view, const char *name, cvar_t *var);
 extern void Ui_CvarSlider(View *view, const char *name, cvar_t *var, double min, double max, double step);
 extern void Ui_CvarTextView(View *view, const char *name, cvar_t *var);

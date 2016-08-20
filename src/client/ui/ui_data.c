@@ -41,6 +41,22 @@ void Ui_Bind(View *view, const char *name, const char *bind) {
 /**
  * @brief
  */
+void Ui_Button(View *view, const char *title, ActionFunction function, ident sender, ident data) {
+
+	Button *button = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
+
+	$(button->title, setText, title);
+
+	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, function, sender, data);
+
+	$(view, addSubview, (View *) button);
+
+	release(button);
+}
+
+/**
+ * @brief
+ */
 void Ui_CvarCheckbox(View *view, const char *name, cvar_t *var) {
 
 	CvarCheckbox *checkbox = $(alloc(CvarCheckbox), initWithVariable, var);

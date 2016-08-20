@@ -22,6 +22,7 @@
 #include "MainViewController.h"
 
 #include "ControlsViewController.h"
+#include "CreateServerViewController.h"
 #include "MultiplayerViewController.h"
 #include "PlayerSetupViewController.h"
 #include "SettingsViewController.h"
@@ -39,31 +40,17 @@
  */
 static void action(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	ViewController *this = (ViewController *) sender;
+	NavigationViewController *this = (NavigationViewController *) sender;
 	Class *clazz = (Class *) data;
 	if (clazz) {
+		$(this, popToRootViewController);
+		
+		ViewController *viewController = $((ViewController *) _alloc(clazz), init);
 
-		ViewController *viewController = NULL;
+		$(this, pushViewController, viewController);
 
-		Array *childViewControllers = (Array *) this->childViewControllers;
-		for (size_t i = 0; i < childViewControllers->count; i++) {
+		release(viewController);
 
-			ViewController *childViewController = $(childViewControllers, objectAtIndex, i);
-			childViewController->view->hidden = true;
-
-			if ($((Object *) childViewController, isKindOfClass, clazz)) {
-				viewController = childViewController;
-			}
-		}
-
-		if (viewController == NULL) {
-			viewController = $((ViewController *) _alloc(clazz), init);
-
-			$(viewController, moveToParentViewController, this);
-			release(viewController);
-		}
-
-		viewController->view->hidden = false;
 	} else {
 		Cbuf_AddText("quit\n");
 		Cbuf_Execute();
@@ -79,25 +66,29 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	MenuViewController *this = (MenuViewController *) self;
+	Panel *panel = $(alloc(Panel), initWithFrame, NULL);
 
-	this->stackView->axis = StackViewAxisHorizontal;
-	this->stackView->distribution = StackViewDistributionFillEqually;
+	panel->isDraggable = false;
+	panel->isResizable = false;
 
-	this->stackView->view.frame.w = min(r_context.window_width, 1024);
+	panel->stackView->axis = StackViewAxisHorizontal;
+	panel->stackView->distribution = StackViewDistributionFillEqually;
 
-	this->panel->isDraggable = false;
-	this->panel->isResizable = false;
+	panel->stackView->view.frame.w = min(r_context.window_width, 1024);
 
-	this->panel->view.alignment = ViewAlignmentTopCenter;
+	panel->view.alignment = ViewAlignmentTopCenter;
+	panel->view.autoresizingMask = ViewAutoresizingContain;
 
-	$$(PrimaryButton, button, (View *) this->stackView, "MULTIPLAYER", action, this, &_MultiplayerViewController);
-	$$(PrimaryButton, button, (View *) this->stackView, "CONTROLS", action, this, &_ControlsViewController);
-	$$(PrimaryButton, button, (View *) this->stackView, "PLAYER SETUP", action, this, &_PlayerSetupViewController);
-	$$(PrimaryButton, button, (View *) this->stackView, "SETTINGS", action, this, &_SettingsViewController);
-	$$(PrimaryButton, button, (View *) this->stackView, "QUIT", action, this, NULL);
+	$$(PrimaryButton, button, (View *) panel->stackView, "MULTIPLAYER", action, self, &_MultiplayerViewController);
+	$$(PrimaryButton, button, (View *) panel->stackView, "CONTROLS", action, self, &_ControlsViewController);
+	$$(PrimaryButton, button, (View *) panel->stackView, "PLAYER SETUP", action, self, &_PlayerSetupViewController);
+	$$(PrimaryButton, button, (View *) panel->stackView, "SETTINGS", action, self, &_SettingsViewController);
+	$$(PrimaryButton, button, (View *) panel->stackView, "QUIT", action, self, NULL);
 
-	$((View *) this->panel, sizeToFit);
+	$((View *) panel, sizeToFit);
+
+	$(self->view, addSubview, (View *) panel);
+	release(panel);
 }
 
 #pragma mark - MainViewController
@@ -126,7 +117,7 @@ static void initialize(Class *clazz) {
 
 Class _MainViewController = {
 	.name = "MainViewController",
-	.superclass = &_MenuViewController,
+	.superclass = &_NavigationViewController,
 	.instanceSize = sizeof(MainViewController),
 	.interfaceOffset = offsetof(MainViewController, interface),
 	.interfaceSize = sizeof(MainViewControllerInterface),

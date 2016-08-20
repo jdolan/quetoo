@@ -38,153 +38,165 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	this->stackView->axis = StackViewAxisHorizontal;
-	this->stackView->spacing = DEAFULT_MENU_STACKVIEW_HORIZONTAL_SPACING;
+	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
-	StackView *leftColumn = $(alloc(StackView), initWithFrame, NULL);
-	leftColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
+	columns->axis = StackViewAxisHorizontal;
+	columns->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
 
 	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingContain;
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
 
-		$(box->label, setText, "MOVEMENT");
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			box->view.autoresizingMask = ViewAutoresizingContain;
 
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			$(box->label, setText, "MOVEMENT");
 
-		Ui_Bind((View *) stackView, "Forward", "+forward");
-		Ui_Bind((View *) stackView, "Back", "+back");
-		Ui_Bind((View *) stackView, "Move left", "+move_left");
-		Ui_Bind((View *) stackView, "Move right", "+move_right");
-		Ui_Bind((View *) stackView, "Jump", "+move_up");
-		Ui_Bind((View *) stackView, "Crouch", "+move_down");
-		Ui_Bind((View *) stackView, "Turn left", "+left");
-		Ui_Bind((View *) stackView, "Turn right", "+right");
-		Ui_Bind((View *) stackView, "Center view", "center_view");
-		Ui_Bind((View *) stackView, "Run / walk", "+speed");
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		$((View *) stackView, sizeToFit);
+			Ui_Bind((View *) stackView, "Forward", "+forward");
+			Ui_Bind((View *) stackView, "Back", "+back");
+			Ui_Bind((View *) stackView, "Move left", "+move_left");
+			Ui_Bind((View *) stackView, "Move right", "+move_right");
+			Ui_Bind((View *) stackView, "Jump", "+move_up");
+			Ui_Bind((View *) stackView, "Crouch", "+move_down");
+			Ui_Bind((View *) stackView, "Turn left", "+left");
+			Ui_Bind((View *) stackView, "Turn right", "+right");
+			Ui_Bind((View *) stackView, "Center view", "center_view");
+			Ui_Bind((View *) stackView, "Run / walk", "+speed");
 
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
+			$((View *) stackView, sizeToFit);
 
-		$((View *) box, sizeToFit);
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
 
-		$((View *) leftColumn, addSubview, (View *) box);
-		release(box);
+			$((View *) box, sizeToFit);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			box->view.autoresizingMask = ViewAutoresizingContain;
+
+			$(box->label, setText, "COMMUNICATIONS");
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			Ui_Bind((View *) stackView, "Say", "cl_message_mode");
+			Ui_Bind((View *) stackView, "Say Team", "cl_message_mode_2");
+			Ui_Bind((View *) stackView, "Show score", "+SCORE");
+			Ui_Bind((View *) stackView, "Take screenshot", "r_screenshot");
+
+			$((View *) stackView, sizeToFit);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) box, sizeToFit);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		$((View *) column, sizeToFit);
+		
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
 	}
 
 	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingContain;
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
 
-		$(box->label, setText, "COMMUNICATIONS");
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			box->view.autoresizingMask = ViewAutoresizingContain;
 
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			$(box->label, setText, "COMBAT");
 
-		Ui_Bind((View *) stackView, "Say", "cl_message_mode");
-		Ui_Bind((View *) stackView, "Say Team", "cl_message_mode_2");
-		Ui_Bind((View *) stackView, "Show score", "+SCORE");
-		Ui_Bind((View *) stackView, "Take screenshot", "r_screenshot");
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		$((View *) stackView, sizeToFit);
+			Ui_Bind((View *) stackView, "Attack", "+attack");
+			Ui_Bind((View *) stackView, "Next weapon", "weapon_next");
+			Ui_Bind((View *) stackView, "Previous weapon", "weapon_previous");
+			Ui_Bind((View *) stackView, "Zoom", "+ZOOM");
 
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
+			Ui_Bind((View *) stackView, "Blaster", "use blaster");
+			Ui_Bind((View *) stackView, "Shotgun", "use shotgun");
+			Ui_Bind((View *) stackView, "Super shotgun", "use super shotgun");
+			Ui_Bind((View *) stackView, "Machinegun", "use machinegun");
+			Ui_Bind((View *) stackView, "Hand grenades", "use grenades");
+			Ui_Bind((View *) stackView, "Grenade launcher", "use grenade launcher");
+			Ui_Bind((View *) stackView, "Rocket launcher", "use rocket launcher");
+			Ui_Bind((View *) stackView, "Hyperblaster", "use hyperblaster");
+			Ui_Bind((View *) stackView, "Lightning", "use lightning");
+			Ui_Bind((View *) stackView, "Railgun", "use railgun");
+			Ui_Bind((View *) stackView, "BFG-10K", "use bfg10k");
 
-		$((View *) box, sizeToFit);
+			$((View *) stackView, sizeToFit);
 
-		$((View *) leftColumn, addSubview, (View *) box);
-		release(box);
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) box, sizeToFit);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		$((View *) column, sizeToFit);
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
 	}
-
-	$((View *) leftColumn, sizeToFit);
-
-	$((View *) this->stackView, addSubview, (View *) leftColumn);
-	release(leftColumn);
-
-	StackView *centerColumn = $(alloc(StackView), initWithFrame, NULL);
-	centerColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
 
 	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingContain;
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
 
-		$(box->label, setText, "COMBAT");
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			box->view.autoresizingMask = ViewAutoresizingContain;
 
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			$(box->label, setText, "AIM");
 
-		Ui_Bind((View *) stackView, "Attack", "+attack");
-		Ui_Bind((View *) stackView, "Next weapon", "weapon_next");
-		Ui_Bind((View *) stackView, "Previous weapon", "weapon_previous");
-		Ui_Bind((View *) stackView, "Zoom", "+ZOOM");
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		Ui_Bind((View *) stackView, "Blaster", "use blaster");
-		Ui_Bind((View *) stackView, "Shotgun", "use shotgun");
-		Ui_Bind((View *) stackView, "Super shotgun", "use super shotgun");
-		Ui_Bind((View *) stackView, "Machinegun", "use machinegun");
-		Ui_Bind((View *) stackView, "Hand grenades", "use grenades");
-		Ui_Bind((View *) stackView, "Grenade launcher", "use grenade launcher");
-		Ui_Bind((View *) stackView, "Rocket launcher", "use rocket launcher");
-		Ui_Bind((View *) stackView, "Hyperblaster", "use hyperblaster");
-		Ui_Bind((View *) stackView, "Lightning", "use lightning");
-		Ui_Bind((View *) stackView, "Railgun", "use railgun");
-		Ui_Bind((View *) stackView, "BFG-10K", "use bfg10k");
+			extern cvar_t *m_sensitivity;
+			extern cvar_t *m_sensitivity_zoom;
+			extern cvar_t *m_invert;
+			extern cvar_t *m_interpolate;
 
-		$((View *) stackView, sizeToFit);
+			Ui_CvarSlider((View *) stackView, "Sensitivity", m_sensitivity, 0.1, 6.0, 0.1);
+			Ui_CvarSlider((View *) stackView, "Zoom Sensitivity", m_sensitivity_zoom, 0.1, 6.0, 0.1);
+			Ui_CvarCheckbox((View *) stackView, "Invert mouse", m_invert);
+			Ui_CvarCheckbox((View *) stackView, "Smooth mouse", m_interpolate);
 
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
+			$((View *) stackView, sizeToFit);
 
-		$((View *) box, sizeToFit);
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
 
-		$((View *) centerColumn, addSubview, (View *) box);
-		release(box);
+			$((View *) box, sizeToFit);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		$((View *) column, sizeToFit);
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
 	}
 
-	$((View *) centerColumn, sizeToFit);
+	$((View *) columns, sizeToFit);
 
-	$((View *) this->stackView, addSubview, (View *) centerColumn);
-	release(centerColumn);
+	$((View *) this->panel->stackView, addSubview, (View *) columns);
+	release(columns);
 
-	StackView *rightColumn = $(alloc(StackView), initWithFrame, NULL);
-	rightColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
-
-	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingContain;
-
-		$(box->label, setText, "AIM");
-
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-		extern cvar_t *m_sensitivity;
-		extern cvar_t *m_sensitivity_zoom;
-		extern cvar_t *m_invert;
-		extern cvar_t *m_interpolate;
-
-		Ui_CvarSlider((View *) stackView, "Sensitivity", m_sensitivity, 0.1, 6.0, 0.1);
-		Ui_CvarSlider((View *) stackView, "Zoom Sensitivity", m_sensitivity_zoom, 0.1, 6.0, 0.1);
-		Ui_CvarCheckbox((View *) stackView, "Invert mouse", m_invert);
-		Ui_CvarCheckbox((View *) stackView, "Smooth mouse", m_interpolate);
-
-		$((View *) stackView, sizeToFit);
-
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
-
-		$((View *) box, sizeToFit);
-
-		$((View *) rightColumn, addSubview, (View *) box);
-		release(box);
-	}
-
-	$((View *) rightColumn, sizeToFit);
-
-	$((View *) this->stackView, addSubview, (View *) rightColumn);
-	release(rightColumn);
-
-	$((View *) this->stackView, sizeToFit);
 	$((View *) this->panel, sizeToFit);
 }
 

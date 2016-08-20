@@ -23,6 +23,7 @@
 
 #include "MultiplayerViewController.h"
 
+#include "CreateServerViewController.h"
 #include "ServersTableView.h"
 
 #include "client.h"
@@ -34,14 +35,28 @@ extern cl_static_t cls;
 #pragma mark - Actions
 
 /**
- * @brief ActionFunction for the Refresh Button.
+ * @brief ActionFunction for the Create button.
+ */
+static void createAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	MainViewController *mainViewController = $((MenuViewController *) sender, mainViewController);
+
+	ViewController *viewController = $((ViewController *) alloc(CreateServerViewController), init);
+
+	$((NavigationViewController *) mainViewController, pushViewController, viewController);
+
+	release(viewController);
+}
+
+/**
+ * @brief ActionFunction for the Refresh button.
  */
 static void refreshAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 	Cl_Servers_f();
 }
 
 /**
- * @brief ActionFunction for the Connect Button.
+ * @brief ActionFunction for the Connect button.
  */
 static void connectAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
@@ -100,21 +115,9 @@ static void loadView(ViewController *self) {
 			buttons->view.alignment = ViewAlignmentMiddleRight;
 			buttons->view.padding.top = buttons->view.padding.bottom = DEFAULT_PANEL_PADDING;
 
-			Button *refresh = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
-			$(refresh->title, setText, "Refresh");
-
-			$((Control *) refresh, addActionForEventType, SDL_MOUSEBUTTONUP, refreshAction, self, NULL);
-
-			$((View *) buttons, addSubview, (View *) refresh);
-			release(refresh);
-
-			Button *connect = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
-			$(connect->title, setText, "Connect");
-
-			$((Control *) connect, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, servers);
-
-			$((View *) buttons, addSubview, (View *) connect);
-			release(connect);
+			Ui_Button((View *) buttons, "Create..", createAction, self, NULL);
+			Ui_Button((View *) buttons, "Refresh", refreshAction, self, NULL);
+			Ui_Button((View *) buttons, "Connect", connectAction, self, servers);
 
 			$((View *) buttons, sizeToFit);
 
@@ -129,11 +132,11 @@ static void loadView(ViewController *self) {
 
 		$((View *) box, sizeToFit);
 
-		$((View *) this->stackView, addSubview, (View *) box);
+		$((View *) this->panel->stackView, addSubview, (View *) box);
 		release(box);
 	}
 
-	$((View *) this->stackView, sizeToFit);
+	$((View *) this->panel->stackView, sizeToFit);
 	$((View *) this->panel, sizeToFit);
 }
 

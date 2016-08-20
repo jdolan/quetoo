@@ -50,151 +50,156 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	this->stackView->axis = StackViewAxisHorizontal;
-	this->stackView->spacing = DEAFULT_MENU_STACKVIEW_HORIZONTAL_SPACING;
+	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
-	StackView *leftColumn = $(alloc(StackView), initWithFrame, NULL);
-	leftColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
+	columns->axis = StackViewAxisHorizontal;
+	columns->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
 
 	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingContain;
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
 
-		$(box->label, setText, "VIDEO");
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			box->view.autoresizingMask = ViewAutoresizingContain;
 
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			$(box->label, setText, "VIDEO");
 
-		Control *videoModeSelect = (Control *) $(alloc(VideoModeSelect), initWithFrame, NULL, ControlStyleDefault);
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		Ui_Input((View *) stackView, "Video mode", videoModeSelect);
-		release(videoModeSelect);
+			Control *videoModeSelect = (Control *) $(alloc(VideoModeSelect), initWithFrame, NULL, ControlStyleDefault);
 
-		Ui_CvarCheckbox((View *) stackView, "Fullscreen", r_fullscreen);
-		Ui_CvarCheckbox((View *) stackView, "Vertical Sync", r_swap_interval);
+			Ui_Input((View *) stackView, "Video mode", videoModeSelect);
+			release(videoModeSelect);
 
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
+			Ui_CvarCheckbox((View *) stackView, "Fullscreen", r_fullscreen);
+			Ui_CvarCheckbox((View *) stackView, "Vertical Sync", r_swap_interval);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) box, sizeToFit);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			box->view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
+
+			$(box->label, setText, "OPTIONS");
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+
+			Select *anisoSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_anisotropy);
+
+			$(anisoSelect, addOption, "16x", (ident) 16);
+			$(anisoSelect, addOption, "8x", (ident) 8);
+			$(anisoSelect, addOption, "4x", (ident) 4);
+			$(anisoSelect, addOption, "Off", (ident) 0);
+
+			Ui_Input((View *) stackView, "Anisotropy", (Control *) anisoSelect);
+			release(anisoSelect);
+
+			Select *multisampleSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_multisample);
+
+			$(multisampleSelect, addOption, "8x", (ident) 4);
+			$(multisampleSelect, addOption, "4x", (ident) 2);
+			$(multisampleSelect, addOption, "2x", (ident) 1);
+			$(multisampleSelect, addOption, "Off", (ident) 0);
+
+			Ui_Input((View *) stackView, "Multisample", (Control *) multisampleSelect);
+			release(multisampleSelect);
+
+			Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_shadows);
+
+			$(shadowsSelect, addOption, "High", (ident) 2);
+			$(shadowsSelect, addOption, "Low", (ident) 1);
+			$(shadowsSelect, addOption, "Off", (ident) 0);
+
+			Ui_Input((View *) stackView, "Shadows", (Control *) shadowsSelect);
+			release(shadowsSelect);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) box, sizeToFit);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
 		
-		$((View *) box, sizeToFit);
-
-		$((View *) leftColumn, addSubview, (View *) box);
-		release(box);
+		$((View *) column, sizeToFit);
+		
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
 	}
 
 	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingWidth | ViewAutoresizingContain;
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
 
-		$(box->label, setText, "OPTIONS");
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			box->view.autoresizingMask = ViewAutoresizingContain;
 
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			$(box->label, setText, "PICTURE");
 
-		Select *anisoSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_anisotropy);
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		$(anisoSelect, addOption, "16x", (ident) 16);
-		$(anisoSelect, addOption, "8x", (ident) 8);
-		$(anisoSelect, addOption, "4x", (ident) 4);
-		$(anisoSelect, addOption, "Off", (ident) 0);
+			Ui_CvarSlider((View *) stackView, "Brightness", r_brightness, 0.1, 2.0, 0.1);
+			Ui_CvarSlider((View *) stackView, "Contrast", r_contrast, 0.1, 2.0, 0.1);
+			Ui_CvarSlider((View *) stackView, "Gamma", r_gamma, 0.1, 2.0, 0.1);
+			Ui_CvarSlider((View *) stackView, "Modulate", r_modulate, 0.1, 5.0, 0.1);
 
-		Ui_Input((View *) stackView, "Anisotropy", (Control *) anisoSelect);
-		release(anisoSelect);
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
 
-		Select *multisampleSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_multisample);
+			$((View *) box, sizeToFit);
 
-		$(multisampleSelect, addOption, "8x", (ident) 4);
-		$(multisampleSelect, addOption, "4x", (ident) 2);
-		$(multisampleSelect, addOption, "2x", (ident) 1);
-		$(multisampleSelect, addOption, "Off", (ident) 0);
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
 
-		Ui_Input((View *) stackView, "Multisample", (Control *) multisampleSelect);
-		release(multisampleSelect);
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			box->view.autoresizingMask = ViewAutoresizingContain;
 
-		Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_shadows);
+			$(box->label, setText, "SOUND");
 
-		$(shadowsSelect, addOption, "High", (ident) 2);
-		$(shadowsSelect, addOption, "Low", (ident) 1);
-		$(shadowsSelect, addOption, "Off", (ident) 0);
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-		Ui_Input((View *) stackView, "Shadows", (Control *) shadowsSelect);
-		release(shadowsSelect);
+			Ui_CvarSlider((View *) stackView, "Volume", s_volume, 0.1, 1.0, 0.0);
+			Ui_CvarSlider((View *) stackView, "Music Volume", s_music_volume, 0.0, 1.0, 0.0);
 
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
 
-		$((View *) box, sizeToFit);
+			$((View *) box, sizeToFit);
 
-		$((View *) leftColumn, addSubview, (View *) box);
-		release(box);
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		{
+			Ui_Button((View *) column, "Apply", applyAction, self, NULL);
+
+//			apply->control.view.alignment = ViewAlignmentMiddleRight;
+		}
+
+		$((View *) column, sizeToFit);
+		
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
 	}
 
-	$((View *) leftColumn, sizeToFit);
+	$((View *) columns, sizeToFit);
 
-	$((View *) this->stackView, addSubview, (View *) leftColumn);
-	release(leftColumn);
+	$((View *) this->panel->stackView, addSubview, (View *) columns);
+	release(columns);
 
-	StackView *rightColumn = $(alloc(StackView), initWithFrame, NULL);
-	rightColumn->spacing = DEFAULT_MENU_STACKVIEW_VERTICAL_SPACING;
-
-	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingContain;
-
-		$(box->label, setText, "PICTURE");
-
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-		Ui_CvarSlider((View *) stackView, "Brightness", r_brightness, 0.1, 2.0, 0.1);
-		Ui_CvarSlider((View *) stackView, "Contrast", r_contrast, 0.1, 2.0, 0.1);
-		Ui_CvarSlider((View *) stackView, "Gamma", r_gamma, 0.1, 2.0, 0.1);
-		Ui_CvarSlider((View *) stackView, "Modulate", r_modulate, 0.1, 5.0, 0.1);
-
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
-
-		$((View *) box, sizeToFit);
-
-		$((View *) rightColumn, addSubview, (View *) box);
-		release(box);
-	}
-
-	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingContain;
-
-		$(box->label, setText, "SOUND");
-
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-		Ui_CvarSlider((View *) stackView, "Volume", s_volume, 0.1, 1.0, 0.0);
-		Ui_CvarSlider((View *) stackView, "Music Volume", s_music_volume, 0.0, 1.0, 0.0);
-
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
-
-		$((View *) box, sizeToFit);
-
-		$((View *) rightColumn, addSubview, (View *) box);
-		release(box);
-	}
-
-	{
-		Button *apply = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
-		$(apply->title, setText, "Apply");
-
-		apply->control.view.alignment = ViewAlignmentMiddleRight;
-
-		$((Control *) apply, addActionForEventType, SDL_MOUSEBUTTONUP, applyAction, self, NULL);
-
-		$((View *) rightColumn, addSubview, (View *) apply);
-		release(apply);
-	}
-
-	$((View *) rightColumn, sizeToFit);
-
-	$((View *) this->stackView, addSubview, (View *) rightColumn);
-	release(rightColumn);
-
-	$((View *) this->stackView, sizeToFit);
+	$((View *) this->panel->stackView, sizeToFit);
 	$((View *) this->panel, sizeToFit);
 }
 

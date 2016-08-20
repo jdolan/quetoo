@@ -1,6 +1,7 @@
 
 noinst_HEADERS = \
 	ControlsViewController.h \
+	CreateServerViewController.h \
 	MainViewController.h \
 	MenuViewController.h \
 	MultiplayerViewController.h \
@@ -12,6 +13,7 @@ noinst_LTLIBRARIES = \
 
 libviewcontrollers_la_SOURCES = \
 	ControlsViewController.c \
+	CreateServerViewController.c \
 	MainViewController.c \
 	MenuViewController.c \
 	MultiplayerViewController.c \
