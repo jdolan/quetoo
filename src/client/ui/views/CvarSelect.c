@@ -39,6 +39,18 @@ static void updateBindings(View *self) {
 	$((Select *) this, selectOptionWithValue, (ident) (intptr_t) this->var->integer);
 }
 
+#pragma mark - Select
+
+/**
+ * @see Select::addOption(Select *, const char *, ident)
+ */
+static void addOption(Select *self, const char *title, ident value) {
+
+	super(Select, self, addOption, title, value);
+
+	$((View *) self, updateBindings);
+}
+
 #pragma mark - CvarSelect
 
 /**
@@ -81,6 +93,8 @@ static void initialize(Class *clazz) {
 
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
+	((SelectInterface *) clazz->interface)->addOption = addOption;
+	
 	((CvarSelectInterface *) clazz->interface)->initWithVariable = initWithVariable;
 }
 
