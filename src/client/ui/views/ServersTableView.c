@@ -30,6 +30,7 @@ extern cl_static_t cls;
 #define _Class _ServersTableView
 
 static TableColumn *_hostname;
+static TableColumn *_source;
 static TableColumn *_name;
 static TableColumn *_gameplay;
 static TableColumn *_players;
@@ -65,6 +66,8 @@ static ident valueForColumnAndRow(const TableView *tableView, const TableColumn 
 
 	if (column == _hostname) {
 		return server->hostname;
+	} else if (column == _source) {
+		return &server->source;
 	} else if (column == _name) {
 		return server->name;
 	} else if (column == _gameplay) {
@@ -92,6 +95,18 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
 	if (column == _hostname) {
 		$(cell->text, setText, server->hostname);
+	} else if (column == _source) {
+		switch (server->source) {
+			case SERVER_SOURCE_INTERNET:
+				$(cell->text, setText, "Internet");
+				break;
+			case SERVER_SOURCE_USER:
+				$(cell->text, setText, "User");
+				break;
+			case SERVER_SOURCE_BCAST:
+				$(cell->text, setText, "LAN");
+				break;
+		}
 	} else if (column == _name) {
 		$(cell->text, setText, server->name);
 	} else if (column == _gameplay) {
@@ -135,6 +150,7 @@ static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *f
 		self->tableView.delegate.cellForColumnAndRow = cellForColumnAndRow;
 
 		$((TableView *) self, addColumn, _hostname);
+		$((TableView *) self, addColumn, _source);
 		$((TableView *) self, addColumn, _name);
 		$((TableView *) self, addColumn, _gameplay);
 		$((TableView *) self, addColumn, _players);
@@ -158,18 +174,21 @@ static void initialize(Class *clazz) {
 	((ServersTableViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 
 	_hostname = $(alloc(TableColumn), initWithIdentifier, "Hostname");
+	_source = $(alloc(TableColumn), initWithIdentifier, "Source");
 	_name = $(alloc(TableColumn), initWithIdentifier, "Map");
 	_gameplay = $(alloc(TableColumn), initWithIdentifier, "Gameplay");
 	_players = $(alloc(TableColumn), initWithIdentifier, "Players");
 	_ping = $(alloc(TableColumn), initWithIdentifier, "Ping");
 
-	_hostname->width = 300;
-	_name->width = 100;
+	_hostname->width = 360;
+	_source->width = 100;
+	_name->width = 120;
 	_gameplay->width = 100;
 	_players->width = 80;
 	_ping->width = 80;
 
 	_hostname->comparator = (Comparator) g_ascii_strcasecmp;
+	_source->comparator = intcmp;
 	_name->comparator = (Comparator) g_ascii_strcasecmp;
 	_gameplay->comparator = (Comparator) g_ascii_strcasecmp;
 	_players->comparator = intcmp;
@@ -182,6 +201,7 @@ static void initialize(Class *clazz) {
 static void destroy(Class *clazz) {
 
 	release(_hostname);
+	release(_source);
 	release(_name);
 	release(_gameplay);
 	release(_players);
