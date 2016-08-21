@@ -53,8 +53,6 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			box->view.autoresizingMask = ViewAutoresizingContain;
-
 			$(box->label, setText, "PLAYER SETUP");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
@@ -123,10 +121,10 @@ static void loadView(ViewController *self) {
 
 	$((View *) columns, sizeToFit);
 
-	$((View *) this->panel->stackView, addSubview, (View *) columns);
+	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);
 
-	$((View *) this->panel->stackView, sizeToFit);
+	$((View *) this->panel->contentView, sizeToFit);
 	$((View *) this->panel, sizeToFit);
 }
 

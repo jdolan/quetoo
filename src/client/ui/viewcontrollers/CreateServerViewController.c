@@ -23,6 +23,8 @@
 
 #include "CreateServerViewController.h"
 
+#include "ui_data.h"
+
 #define _Class _CreateServerViewController
 
 #pragma mark - ViewController
@@ -35,17 +37,35 @@ static void loadView(ViewController *self) {
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingContain;
-
 		$(box->label, setText, "CREATE SERVER");
+
+		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+		stackView->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+
+		extern cvar_t *sv_hostname;
+		Ui_CvarTextView((View *) stackView, "Hostname", sv_hostname);
+
+		extern cvar_t *sv_max_clients;
+		Ui_CvarTextView((View *) stackView, "Clients", sv_max_clients);
+
+		extern cvar_t *sv_public;
+		Ui_CvarCheckbox((View *) stackView, "Public", sv_public);
+
+		extern cvar_t *password;
+		Ui_CvarTextView((View *) stackView, "Password", password);
+
+		$((View *) stackView, sizeToFit);
+
+		$((View *) box, addSubview, (View *) stackView);
+		release(stackView);
 
 		$((View *) box, sizeToFit);
 
-		$((View *) this->panel->stackView, addSubview, (View *) box);
+		$((View *) this->panel->contentView, addSubview, (View *) box);
 		release(box);
 	}
 
-	$((View *) this->panel->stackView, sizeToFit);
+	$((View *) this->panel->contentView, sizeToFit);
 	$((View *) this->panel, sizeToFit);
 }
 

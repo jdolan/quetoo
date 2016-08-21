@@ -91,8 +91,6 @@ static void loadView(ViewController *self) {
 
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
-		box->view.autoresizingMask = ViewAutoresizingContain;
-
 		$(box->label, setText, "JOIN GAME");
 
 		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
@@ -132,11 +130,11 @@ static void loadView(ViewController *self) {
 
 		$((View *) box, sizeToFit);
 
-		$((View *) this->panel->stackView, addSubview, (View *) box);
+		$((View *) this->panel->contentView, addSubview, (View *) box);
 		release(box);
 	}
 
-	$((View *) this->panel->stackView, sizeToFit);
+	$((View *) this->panel->contentView, sizeToFit);
 	$((View *) this->panel, sizeToFit);
 }
 

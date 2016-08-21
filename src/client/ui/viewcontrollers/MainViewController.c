@@ -71,19 +71,18 @@ static void loadView(ViewController *self) {
 	panel->isDraggable = false;
 	panel->isResizable = false;
 
-	panel->stackView->axis = StackViewAxisHorizontal;
-	panel->stackView->distribution = StackViewDistributionFillEqually;
+	panel->contentView->axis = StackViewAxisHorizontal;
+	panel->contentView->distribution = StackViewDistributionFillEqually;
 
-	panel->stackView->view.frame.w = min(r_context.window_width, 1024);
+	panel->contentView->view.frame.w = min(r_context.window_width, 1024);
 
 	panel->view.alignment = ViewAlignmentTopCenter;
-	panel->view.autoresizingMask = ViewAutoresizingContain;
 
-	$$(PrimaryButton, button, (View *) panel->stackView, "MULTIPLAYER", action, self, &_MultiplayerViewController);
-	$$(PrimaryButton, button, (View *) panel->stackView, "CONTROLS", action, self, &_ControlsViewController);
-	$$(PrimaryButton, button, (View *) panel->stackView, "PLAYER SETUP", action, self, &_PlayerSetupViewController);
-	$$(PrimaryButton, button, (View *) panel->stackView, "SETTINGS", action, self, &_SettingsViewController);
-	$$(PrimaryButton, button, (View *) panel->stackView, "QUIT", action, self, NULL);
+	$$(PrimaryButton, button, (View *) panel->contentView, "MULTIPLAYER", action, self, &_MultiplayerViewController);
+	$$(PrimaryButton, button, (View *) panel->contentView, "CONTROLS", action, self, &_ControlsViewController);
+	$$(PrimaryButton, button, (View *) panel->contentView, "PLAYER SETUP", action, self, &_PlayerSetupViewController);
+	$$(PrimaryButton, button, (View *) panel->contentView, "SETTINGS", action, self, &_SettingsViewController);
+	$$(PrimaryButton, button, (View *) panel->contentView, "QUIT", action, self, NULL);
 
 	$((View *) panel, sizeToFit);
 

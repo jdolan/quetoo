@@ -49,8 +49,6 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			box->view.autoresizingMask = ViewAutoresizingContain;
-
 			$(box->label, setText, "MOVEMENT");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
@@ -79,8 +77,6 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			box->view.autoresizingMask = ViewAutoresizingContain;
-
 			$(box->label, setText, "COMMUNICATIONS");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
@@ -113,8 +109,6 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			box->view.autoresizingMask = ViewAutoresizingContain;
-
 			$(box->label, setText, "COMBAT");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
@@ -159,8 +153,6 @@ static void loadView(ViewController *self) {
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
-			box->view.autoresizingMask = ViewAutoresizingContain;
-
 			$(box->label, setText, "AIM");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
@@ -194,9 +186,10 @@ static void loadView(ViewController *self) {
 
 	$((View *) columns, sizeToFit);
 
-	$((View *) this->panel->stackView, addSubview, (View *) columns);
+	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);
 
+	$((View *) this->panel->contentView, sizeToFit);
 	$((View *) this->panel, sizeToFit);
 }
 

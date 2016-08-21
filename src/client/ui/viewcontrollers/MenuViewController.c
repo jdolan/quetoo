@@ -51,7 +51,6 @@ static void loadView(ViewController *self) {
 	assert(this->panel);
 
 	this->panel->view.alignment = ViewAlignmentMiddleCenter;
-	this->panel->view.autoresizingMask = ViewAutoresizingContain;
 
 	$(self->view, addSubview, (View *) this->panel);
 }
