@@ -140,7 +140,7 @@ void Cl_Ping_f(void) {
 	}
 
 	server->ping_time = quetoo.time;
-	server->ping = 0;
+	server->ping = 999;
 
 	Com_Print("Pinging %s\n", Net_NetaddrToString(&server->addr));
 
@@ -153,12 +153,13 @@ void Cl_Ping_f(void) {
 static void Cl_SendBroadcast(void) {
 	const GList *e = cls.servers;
 
+
 	while (e) { // update old ping times
 		cl_server_info_t *s = (cl_server_info_t *) e->data;
 
 		if (s->source == SERVER_SOURCE_BCAST) {
-			s->ping_time = cls.broadcast_time;
-			s->ping = 0;
+			s->ping_time = quetoo.time;
+			s->ping = 999;
 		}
 
 		e = e->next;
