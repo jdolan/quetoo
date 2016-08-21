@@ -127,9 +127,6 @@ static void Sv_Ack_f(void) {
 static void Sv_Info_f(void) {
 	char string[MAX_MSG_SIZE];
 
-	if (sv_max_clients->integer == 1)
-		return; // ignore in single player
-
 	const int32_t p = atoi(Cmd_Argv(1));
 	if (p != PROTOCOL_MAJOR) {
 		g_snprintf(string, sizeof(string), "%s: Wrong protocol: %d != %d", sv_hostname->string, p,
@@ -780,10 +777,7 @@ static void Sv_InitLocal(void) {
 
 	sv_public = Cvar_Get("sv_public", "0", 0, "Set to 1 to to advertise to the master server\n");
 
-	if (dedicated->value)
-		sv_max_clients = Cvar_Get("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
-	else
-		sv_max_clients = Cvar_Get("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+	sv_max_clients = Cvar_Get("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 
 	sv_timeout = Cvar_Get("sv_timeout", va("%d", SV_TIMEOUT), 0, NULL);
 	sv_udp_download = Cvar_Get("sv_udp_download", "1", CVAR_ARCHIVE, NULL);
