@@ -116,7 +116,6 @@ static void loadView(ViewController *self) {
 
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
-
 	}
 
 	$((View *) columns, sizeToFit);

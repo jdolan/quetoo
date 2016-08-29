@@ -23,51 +23,159 @@
 
 #include "CreateServerViewController.h"
 
+#include "MapListCollectionView.h"
+
 #include "ui_data.h"
 
 #define _Class _CreateServerViewController
 
 #pragma mark - ViewController
 
+/**
+ * @see ViewController::loadView(ViewController *)
+ */
 static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
 	MenuViewController *this = (MenuViewController *) self;
 
+	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
+
+	columns->axis = StackViewAxisHorizontal;
+	columns->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+
 	{
-		Box *box = $(alloc(Box), initWithFrame, NULL);
-		$(box->label, setText, "CREATE SERVER");
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
 
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-		stackView->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "CREATE SERVER");
 
-		extern cvar_t *sv_hostname;
-		Ui_CvarTextView((View *) stackView, "Hostname", sv_hostname);
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			stackView->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
 
-		extern cvar_t *sv_max_clients;
-		Ui_CvarTextView((View *) stackView, "Clients", sv_max_clients);
+			extern cvar_t *sv_hostname;
+			Ui_CvarTextView((View *) stackView, "Hostname", sv_hostname);
 
-		extern cvar_t *sv_public;
-		Ui_CvarCheckbox((View *) stackView, "Public", sv_public);
+			extern cvar_t *sv_max_clients;
+			Ui_CvarTextView((View *) stackView, "Clients", sv_max_clients);
 
-		extern cvar_t *password;
-		Ui_CvarTextView((View *) stackView, "Password", password);
+			extern cvar_t *sv_public;
+			Ui_CvarCheckbox((View *) stackView, "Public", sv_public);
 
-		$((View *) stackView, sizeToFit);
+			extern cvar_t *password;
+			Ui_CvarTextView((View *) stackView, "Password", password);
 
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
+			$((View *) stackView, sizeToFit);
 
-		$((View *) box, sizeToFit);
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
 
-		$((View *) this->panel->contentView, addSubview, (View *) box);
-		release(box);
+			$((View *) box, sizeToFit);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "GAME");
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			stackView->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+
+			Select *gameplay = $(alloc(Select), initWithFrame, NULL, ControlStateDefault);
+
+			$(gameplay, addOption, "Default", "default");
+			$(gameplay, addOption, "Deathmatch", "deathmatch");
+			$(gameplay, addOption, "Instagib", "instagib");
+			$(gameplay, addOption, "Arena", "arena");
+			$(gameplay, addOption, "Duel", "duel");
+
+			gameplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
+
+			Ui_Input((View *) stackView, "Gameplay", (Control *) gameplay);
+			release(gameplay);
+
+			Select *teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStateDefault);
+
+			$(teamsplay, addOption, "Free for All", "free-for-all");
+			$(teamsplay, addOption, "Team Deathmatch", "team-deathmatch");
+			$(teamsplay, addOption, "Capture the Flag", "capture-the-flag");
+
+			teamsplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
+
+			Ui_Input((View *) stackView, "Teams play", (Control *) teamsplay);
+			release(teamsplay);
+
+			Checkbox *match = $(alloc(Checkbox), initWithFrame, NULL, ControlStateDefault);
+
+			Ui_Input((View *) stackView, "Match mode", (Control *) match);
+			release(match);
+
+			$((View *) stackView, sizeToFit);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) box, sizeToFit);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		$((View *) column, sizeToFit);
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
 	}
+
+	{
+		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+
+		{
+			Box *box = $(alloc(Box), initWithFrame, NULL);
+			$(box->label, setText, "MAP LIST");
+
+			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			stackView->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+
+			const SDL_Rect frame = { .w = 760, .h = 600 };
+			CollectionView *mapList = (CollectionView *) $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStateDefault);
+
+			$((View *) stackView, addSubview, (View *) mapList);
+			release(mapList);
+
+			$((View *) stackView, sizeToFit);
+
+			$((View *) box, addSubview, (View *) stackView);
+			release(stackView);
+
+			$((View *) box, sizeToFit);
+
+			$((View *) column, addSubview, (View *) box);
+			release(box);
+		}
+
+		$((View *) column, sizeToFit);
+
+		$((View *) columns, addSubview, (View *) column);
+		release(column);
+	}
+
+	$((View *) columns, sizeToFit);
+
+	$((View *) this->panel->contentView, addSubview, (View *) columns);
+	release(columns);
 
 	$((View *) this->panel->contentView, sizeToFit);
 	$((View *) this->panel, sizeToFit);
 }
+
+#pragma mark - MapListCollectionView
 
 #pragma mark - Class lifecycle
 

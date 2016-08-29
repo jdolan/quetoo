@@ -50,6 +50,8 @@ static PrimaryButton *initWithFrame(PrimaryButton *self, const SDL_Rect *frame, 
 	if (self) {
 		$(self->button.title, setFont, $$(Font, defaultFont, FontCategoryPrimaryResponder));
 		self->button.control.bevel = BevelTypeNone;
+
+		self->button.control.view.borderWidth = 1;
 	}
 	
 	return self;

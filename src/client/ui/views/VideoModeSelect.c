@@ -129,6 +129,8 @@ static VideoModeSelect *initWithFrame(VideoModeSelect *self, const SDL_Rect *fra
  */
 static void initialize(Class *clazz) {
 
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((VideoModeSelectInterface *) clazz->interface)->initWithFrame = initWithFrame;

@@ -433,6 +433,10 @@
 		CEA029E91C5E558100341079 /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
 		CEA029EC1C5E558100341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA029F71C5E55C100341079 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6831C5C58C300CD0B13 /* main.c */; };
+		CEB078AF1D7306D000ABA6B3 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB078AD1D7306D000ABA6B3 /* MapListCollectionItemView.c */; };
+		CEB078B01D7306D000ABA6B3 /* MapListCollectionItemView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB078AE1D7306D000ABA6B3 /* MapListCollectionItemView.h */; };
+		CEB078B31D738CC800ABA6B3 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB078B11D738CC800ABA6B3 /* MapListCollectionView.c */; };
+		CEB078B41D738CC800ABA6B3 /* MapListCollectionView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB078B21D738CC800ABA6B3 /* MapListCollectionView.h */; };
 		CEB476311D62B9D0009D23BE /* ServersTableView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB4762F1D62B9D0009D23BE /* ServersTableView.c */; };
 		CEB476321D62B9D0009D23BE /* ServersTableView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB476301D62B9D0009D23BE /* ServersTableView.h */; };
 		CEB476361D671E57009D23BE /* VideoModeSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB476341D671E57009D23BE /* VideoModeSelect.c */; };
@@ -1142,6 +1146,10 @@
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEB078AD1D7306D000ABA6B3 /* MapListCollectionItemView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MapListCollectionItemView.c; sourceTree = "<group>"; };
+		CEB078AE1D7306D000ABA6B3 /* MapListCollectionItemView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MapListCollectionItemView.h; sourceTree = "<group>"; };
+		CEB078B11D738CC800ABA6B3 /* MapListCollectionView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MapListCollectionView.c; sourceTree = "<group>"; };
+		CEB078B21D738CC800ABA6B3 /* MapListCollectionView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MapListCollectionView.h; sourceTree = "<group>"; };
 		CEB4762F1D62B9D0009D23BE /* ServersTableView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ServersTableView.c; sourceTree = "<group>"; };
 		CEB476301D62B9D0009D23BE /* ServersTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServersTableView.h; sourceTree = "<group>"; };
 		CEB476341D671E57009D23BE /* VideoModeSelect.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VideoModeSelect.c; sourceTree = "<group>"; };
@@ -2316,6 +2324,10 @@
 				CE7EA4DD1D49037F00BD37A3 /* CvarTextView.c */,
 				CE7EA4DB1D49036E00BD37A3 /* CvarTextView.h */,
 				CE7EA4E01D49069D00BD37A3 /* Makefile.am */,
+				CEB078AD1D7306D000ABA6B3 /* MapListCollectionItemView.c */,
+				CEB078AE1D7306D000ABA6B3 /* MapListCollectionItemView.h */,
+				CEB078B11D738CC800ABA6B3 /* MapListCollectionView.c */,
+				CEB078B21D738CC800ABA6B3 /* MapListCollectionView.h */,
 				CE7627981D49540600EEEE78 /* PlayerModelView.c */,
 				CE7627991D49540600EEEE78 /* PlayerModelView.h */,
 				CEF1D8B61D467A330099A857 /* PrimaryButton.c */,
@@ -2515,7 +2527,9 @@
 				CE80FF191C5E462100A21A51 /* r_material.h in Headers */,
 				CE80FF1A1C5E462100A21A51 /* r_media.h in Headers */,
 				CE80FF1B1C5E462100A21A51 /* r_mesh.h in Headers */,
+				CEB078B01D7306D000ABA6B3 /* MapListCollectionItemView.h in Headers */,
 				CE80FF1C1C5E462100A21A51 /* r_mesh_model.h in Headers */,
+				CEB078B41D738CC800ABA6B3 /* MapListCollectionView.h in Headers */,
 				CE80FF1D1C5E462100A21A51 /* r_mesh_shadow.h in Headers */,
 				CE80FF1E1C5E462100A21A51 /* r_mesh_shell.h in Headers */,
 				CE5C3C7F1D501D1700608432 /* CvarSelect.h in Headers */,
@@ -3161,11 +3175,13 @@
 				CEB476311D62B9D0009D23BE /* ServersTableView.c in Sources */,
 				CEF1D8B01D4665800099A857 /* MultiplayerViewController.c in Sources */,
 				CEDB4BC01D40616C009921B6 /* MainViewController.c in Sources */,
+				CEB078AF1D7306D000ABA6B3 /* MapListCollectionItemView.c in Sources */,
 				CEDB4BBB1D405F74009921B6 /* MenuViewController.c in Sources */,
 				CEF1D89C1D43E28E0099A857 /* BindTextView.c in Sources */,
 				CE7EA4DE1D49037F00BD37A3 /* CvarTextView.c in Sources */,
 				CEF1D8A81D45673D0099A857 /* CvarCheckbox.c in Sources */,
 				CEF1D8A41D4521600099A857 /* CvarSlider.c in Sources */,
+				CEB078B31D738CC800ABA6B3 /* MapListCollectionView.c in Sources */,
 				CEF1D8B81D467A330099A857 /* PrimaryButton.c in Sources */,
 				CE7EA4D91D48F53D00BD37A3 /* SkinSelect.c in Sources */,
 			);
