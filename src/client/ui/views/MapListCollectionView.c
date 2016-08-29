@@ -70,39 +70,7 @@ CollectionItemView *itemForObjectAtIndex(const CollectionView *collectionView, i
 	return (CollectionItemView *) item;
 }
 
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-	
-	MapListCollectionView *this = (MapListCollectionView *) self;
-
-	release(this->lock);
-	release(this->maps);
-	
-	super(Object, self, dealloc);
-}
-
-#pragma mark - View
-
-static void render(View *self, Renderer *renderer) {
-
-	MapListCollectionView *this = (MapListCollectionView *) self;
-
-	WithLock(this->lock, {
-		const Array *maps = (Array *) this->maps;
-		const Array *items = (Array *) this->collectionView.items;
-		if (maps->count != items->count) {
-			$((CollectionView *) this, reloadData);
-		}
-	});
-
-	super(View, self, render, renderer);
-}
-
-#pragma mark - MapListCollectionView
+#pragma mark - Asynchronous map loading
 
 /**
  * @brief Comparator for map sorting.
@@ -147,7 +115,7 @@ static void enumerateMaps(const char *path, void *data) {
 			}
 
 			if (header.version != BSP_VERSION && header.version != BSP_VERSION_QUETOO) {
-				Com_Warn("Incompatible BSP header: %s\n", path);
+				Com_Warn("Invalid BSP header found in %s: %d\n", path, header.version);
 				Fs_Close(file);
 				return;
 			}
@@ -207,13 +175,13 @@ static void enumerateMaps(const char *path, void *data) {
 				if (Img_LoadImage(mapshot, &surf)) {
 					SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
 					info->mapshot = SDL_CreateRGBSurface(0,
-						 this->collectionView.itemSize.w * 2,
-						 this->collectionView.itemSize.h * 2,
-						 surf->format->BitsPerPixel,
-						 surf->format->Rmask,
-						 surf->format->Gmask,
-						 surf->format->Bmask,
-						 surf->format->Amask
+						this->collectionView.itemSize.w * 2,
+						this->collectionView.itemSize.h * 2,
+						surf->format->BitsPerPixel,
+						surf->format->Rmask,
+						surf->format->Gmask,
+						surf->format->Bmask,
+						surf->format->Amask
 					);
 					SDL_SetSurfaceBlendMode(info->mapshot, SDL_BLENDMODE_NONE);
 					SDL_BlitScaled(surf, NULL, info->mapshot, NULL);
@@ -240,11 +208,47 @@ static void enumerateMaps(const char *path, void *data) {
  * @brief ThreadRunFunc for asynchronous map info loading.
  */
 static void loadMaps(void *data) {
-
+	
 	MapListCollectionView *this = (MapListCollectionView *) data;
-
+	
 	Fs_Enumerate("maps/*.bsp", enumerateMaps, this);
 }
+
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+	
+	MapListCollectionView *this = (MapListCollectionView *) self;
+
+	release(this->lock);
+	release(this->maps);
+	
+	super(Object, self, dealloc);
+}
+
+#pragma mark - View
+
+static void layoutIfNeeded(View *self) {
+
+	MapListCollectionView *this = (MapListCollectionView *) self;
+
+	WithLock(this->lock, {
+
+		const Array *maps = (Array *) this->maps;
+		const Array *items = (Array *) this->collectionView.items;
+
+		if (maps->count != items->count) {
+			$((CollectionView *) this, reloadData);
+		}
+
+		super(View, self, layoutIfNeeded);
+	});
+}
+
+#pragma mark - MapListCollectionView
 
 /**
  * @fn MapListCollectionView *initWithFrame(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style)
@@ -268,8 +272,6 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 		self->collectionView.delegate.itemForObjectAtIndex = itemForObjectAtIndex;
 
 		self->collectionView.itemSize = MakeSize(240, 135);
-
-		$((CollectionView *) self, reloadData);
 	}
 	
 	return self;
@@ -284,7 +286,7 @@ static void initialize(Class *clazz) {
 	
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->interface)->render = render;
+	((ViewInterface *) clazz->interface)->layoutIfNeeded = layoutIfNeeded;
 
 	((MapListCollectionViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }

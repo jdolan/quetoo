@@ -59,9 +59,6 @@ static void setMapListItemInfo(MapListCollectionItemView *self, MapListItemInfo 
 	if (info) {
 		$(item->text, setText, info->message);
 		$(item->imageView, setImageWithSurface, info->mapshot);
-		if (info->mapshot) {
-			info->mapshot->refcount++;
-		}
 	}
 }
 
