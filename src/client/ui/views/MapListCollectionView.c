@@ -43,11 +43,13 @@ static size_t numberOfItems(const CollectionView *collectionView) {
 }
 
 /**
- * @see CollectionViewDataSource::objectForItemAtIndex(const CollectionView *, int)
+ * @see CollectionViewDataSource::objectForItemAtIndexPath(const CollectionView *, const IndexPath *)
  */
-static ident objectForItemAtIndex(const CollectionView *collectionView, int index) {
+static ident objectForItemAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
 	const MapListCollectionView *this = (MapListCollectionView *) collectionView;
+
+	const int index = $(indexPath, indexAtPosition, 0);
 
 	return $((Array *) this->maps, objectAtIndex, index);
 }
@@ -55,11 +57,13 @@ static ident objectForItemAtIndex(const CollectionView *collectionView, int inde
 #pragma mark - CollectionViewDelegate
 
 /**
- * @see CollectionViewDelegate::itemForObjectAtIndex(const CollectionView *, int)
+ * @see CollectionViewDelegate::itemForObjectAtIndex(const CollectionView *, const IndexPath *)
  */
-CollectionItemView *itemForObjectAtIndex(const CollectionView *collectionView, int index) {
+CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
 	const MapListCollectionView *this = (MapListCollectionView *) collectionView;
+	const int index = $(indexPath, indexAtPosition, 0);
+
 	Value *value = $((Array *) this->maps, objectAtIndex, index);
 
 	MapListCollectionItemView *item = $(alloc(MapListCollectionItemView), initWithFrame, NULL);
@@ -268,10 +272,12 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 		Thread_Create(loadMaps, self);
 
 		self->collectionView.dataSource.numberOfItems = numberOfItems;
-		self->collectionView.dataSource.objectForItemAtIndex = objectForItemAtIndex;
-		self->collectionView.delegate.itemForObjectAtIndex = itemForObjectAtIndex;
+		self->collectionView.dataSource.objectForItemAtIndexPath = objectForItemAtIndexPath;
+		self->collectionView.delegate.itemForObjectAtIndexPath = itemForObjectAtIndexPath;
 
 		self->collectionView.itemSize = MakeSize(240, 135);
+
+		self->collectionView.control.selection = ControlSelectionMultiple;
 	}
 	
 	return self;
