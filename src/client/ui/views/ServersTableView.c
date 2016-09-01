@@ -143,6 +143,7 @@ static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *f
 	
 	self = (ServersTableView *) super(TableView, self, initWithFrame, frame, style);
 	if (self) {
+		self->tableView.control.selection = ControlSelectionSingle;
 		
 		self->tableView.dataSource.numberOfRows = numberOfRows;
 		self->tableView.dataSource.valueForColumnAndRow = valueForColumnAndRow;

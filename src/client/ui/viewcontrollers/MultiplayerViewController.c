@@ -67,13 +67,15 @@ static void connectAction(Control *control, const SDL_Event *event, ident sender
 	}
 
 	const TableView *servers = (TableView *) data;
-
-	if (servers->selectedRow != -1) {
-		const cl_server_info_t *server = g_list_nth_data(cls.servers, servers->selectedRow);
+	IndexSet *selectedRowIndexes = $(servers, selectedRowIndexes);
+	if (selectedRowIndexes->count) {
+		const cl_server_info_t *server = g_list_nth_data(cls.servers, selectedRowIndexes->indexes[0]);
 		if (server) {
 			Cbuf_AddText(va("connect %s\n", Net_NetaddrToString(&server->addr)));
 		}
 	}
+
+	release(selectedRowIndexes);
 }
 
 #pragma mark - ViewController
