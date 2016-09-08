@@ -78,7 +78,7 @@ static void updateBindings(View *self) {
 
 	const SDL_Scancode key = Cl_KeyForBind(this->bind);
 	if (key != SDL_SCANCODE_UNKNOWN) {
-		textView->defaultText = Cl_KeyName(key);
+		textView->defaultText = g_strdup(Cl_KeyName(key));
 	} else {
 		textView->defaultText = NULL;
 	}

@@ -843,7 +843,7 @@ char *vtos(const vec3_t v) {
  * @brief Parse a token out of a string. Tokens are delimited by white space, and
  * may be grouped by quotation marks.
  *
- * @return The next token in `data_p`, or NULL if the end of
+ * @return The next token in the stream, or the empty string (`""`) if EOF.
  */
 char *ParseToken(const char **in) {
 	static char token[MAX_TOKEN_CHARS];

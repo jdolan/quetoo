@@ -251,7 +251,7 @@ void Cmd_TokenizeString(const char *text) {
 }
 
 /**
- * @return The command by the specified name, or NULL.
+ * @return The command by the specified name, or `NULL`.
  */
 cmd_t *Cmd_Get(const char *name) {
 

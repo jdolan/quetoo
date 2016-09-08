@@ -102,17 +102,13 @@ void Ui_Input(View *view, const char *name, Control *control) {
 	assert(view);
 	assert(control);
 
-	Label *label = $(alloc(Label), initWithText, name, NULL);
-	assert(label);
-
-	label->view.frame.w = MENU_INPUT_LABEL_WIDTH;
-
-	Input *input = $(alloc(Input), initWithOrientation, InputOrientationLeft, control, label);
+	Input *input = $(alloc(Input), initWithControl, control);
 	assert(input);
+
+	$(input->label, setText, name);
 
 	$(view, addSubview, (View *) input);
 
 	release(input);
-	release(label);
 }
 

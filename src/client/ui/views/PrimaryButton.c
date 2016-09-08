@@ -34,7 +34,7 @@ static void respondToEvent(View *self, const SDL_Event *event) {
 
 	super(View, self, respondToEvent, event);
 
-	((Control *) self)->bevel = BevelTypeNone;
+	((Control *) self)->bevel = ControlBevelTypeNone;
 }
 
 #pragma mark - PrimaryButton
@@ -49,7 +49,7 @@ static PrimaryButton *initWithFrame(PrimaryButton *self, const SDL_Rect *frame, 
 	self = (PrimaryButton *) super(Button, self, initWithFrame, frame, style);
 	if (self) {
 		$(self->button.title, setFont, $$(Font, defaultFont, FontCategoryPrimaryResponder));
-		self->button.control.bevel = BevelTypeNone;
+		self->button.control.bevel = ControlBevelTypeNone;
 
 		self->button.control.view.borderWidth = 1;
 	}

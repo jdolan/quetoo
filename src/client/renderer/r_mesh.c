@@ -54,7 +54,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 }
 
 /**
- * @brief Returns the desired tag structure, or NULL.
+ * @brief Returns the desired tag structure, or `NULL`.
  */
 static const r_md3_tag_t *R_GetMeshModelTag(const r_model_t *mod, int32_t frame, const char *name) {
 

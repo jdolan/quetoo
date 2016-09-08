@@ -54,7 +54,7 @@ static const char *atos(const struct sockaddr_in *addr) {
 #define stos(s) (atos(&s->addr))
 
 /**
- * @brief Returns the server for the specified address, or NULL.
+ * @brief Returns the server for the specified address, or `NULL`.
  */
 static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
 

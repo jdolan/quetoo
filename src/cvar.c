@@ -47,7 +47,7 @@ static _Bool Cvar_InfoValidate(const char *s) {
 }
 
 /**
- * @return The variable by the specified name, or NULL.
+ * @return The variable by the specified name, or `NULL`.
  */
 static cvar_t *Cvar_Get_(const char *name) {
 
