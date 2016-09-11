@@ -91,53 +91,35 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
+	ServersTableView *servers;
+
 	{
 		Box *box = $(alloc(Box), initWithFrame, NULL);
 		$(box->label, setText, "JOIN GAME");
 
-		StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-		stackView->view.padding.top = 4;
+		box->view.autoresizingMask |= ViewAutoresizingFill;
 
-		ServersTableView *servers = $(alloc(ServersTableView), initWithFrame, NULL, ControlStyleDefault);
-		$((View *) servers, sizeToFit);
+		const SDL_Rect frame = MakeRect(0, 0, 0, 320);
+		servers = $(alloc(ServersTableView), initWithFrame, &frame, ControlStyleDefault);
 
-		servers->tableView.control.view.frame.h = 320;
+		servers->tableView.control.view.autoresizingMask = ViewAutoresizingWidth;
 
 		$((Control *) servers, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, servers);
 
-		$((View *) stackView, addSubview, (View *) servers);
+		$((View *) box, addSubview, (View *) servers);
 		release(servers);
-
-		{
-			StackView *buttons = $(alloc(StackView), initWithFrame, NULL);
-			buttons->axis = StackViewAxisHorizontal;
-			buttons->spacing = DEFAULT_INPUT_SPACING;
-			buttons->view.alignment = ViewAlignmentMiddleRight;
-			buttons->view.padding.top = buttons->view.padding.bottom = DEFAULT_PANEL_PADDING;
-
-			Ui_Button((View *) buttons, "Create..", createAction, self, NULL);
-			Ui_Button((View *) buttons, "Refresh", refreshAction, self, NULL);
-			Ui_Button((View *) buttons, "Connect", connectAction, self, servers);
-
-			$((View *) buttons, sizeToFit);
-
-			$((View *) stackView, addSubview, (View *) buttons);
-			release(buttons);
-		}
-
-		$((View *) stackView, sizeToFit);
-
-		$((View *) box, addSubview, (View *) stackView);
-		release(stackView);
-
-		$((View *) box, sizeToFit);
 
 		$((View *) this->panel->contentView, addSubview, (View *) box);
 		release(box);
 	}
 
-	$((View *) this->panel->contentView, sizeToFit);
-	$((View *) this->panel, sizeToFit);
+	{
+		this->panel->accessoryView->view.hidden = false;
+
+		Ui_Button((View *) this->panel->accessoryView, "Create..", createAction, self, NULL);
+		Ui_Button((View *) this->panel->accessoryView, "Refresh", refreshAction, self, NULL);
+		Ui_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, servers);
+	}
 }
 
 #pragma mark - Class lifecycle

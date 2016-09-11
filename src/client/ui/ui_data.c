@@ -102,10 +102,19 @@ void Ui_Input(View *view, const char *name, Control *control) {
 	assert(view);
 	assert(control);
 
-	Input *input = $(alloc(Input), initWithControl, control);
+	Input *input = $(alloc(Input), initWithFrame, NULL);
 	assert(input);
 
-	$(input->label, setText, name);
+	$(input, setControl, control);
+
+	Label *label = $(alloc(Label), initWithText, name, NULL);
+	assert(label);
+
+	label->view.autoresizingMask &= ~ViewAutoresizingContain;
+	label->view.frame.w = MENU_INPUT_LABEL_WIDTH;
+
+	$(input, setLabel, label);
+	release(label);
 
 	$(view, addSubview, (View *) input);
 

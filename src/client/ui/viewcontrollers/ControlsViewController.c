@@ -41,11 +41,11 @@ static void loadView(ViewController *self) {
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
 	columns->axis = StackViewAxisHorizontal;
-	columns->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+	columns->spacing = DEFAULT_PANEL_SPACING;
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
@@ -64,12 +64,8 @@ static void loadView(ViewController *self) {
 			Ui_Bind((View *) stackView, "Center view", "center_view");
 			Ui_Bind((View *) stackView, "Run / walk", "+speed");
 
-			$((View *) stackView, sizeToFit);
-
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
-
-			$((View *) box, sizeToFit);
 
 			$((View *) column, addSubview, (View *) box);
 			release(box);
@@ -86,26 +82,20 @@ static void loadView(ViewController *self) {
 			Ui_Bind((View *) stackView, "Show score", "+SCORE");
 			Ui_Bind((View *) stackView, "Take screenshot", "r_screenshot");
 
-			$((View *) stackView, sizeToFit);
-
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
-
-			$((View *) box, sizeToFit);
 
 			$((View *) column, addSubview, (View *) box);
 			release(box);
 		}
 
-		$((View *) column, sizeToFit);
-		
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
@@ -130,18 +120,12 @@ static void loadView(ViewController *self) {
 			Ui_Bind((View *) stackView, "Railgun", "use railgun");
 			Ui_Bind((View *) stackView, "BFG-10K", "use bfg10k");
 
-			$((View *) stackView, sizeToFit);
-
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
-
-			$((View *) box, sizeToFit);
 
 			$((View *) column, addSubview, (View *) box);
 			release(box);
 		}
-
-		$((View *) column, sizeToFit);
 
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
@@ -149,7 +133,7 @@ static void loadView(ViewController *self) {
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
@@ -167,30 +151,21 @@ static void loadView(ViewController *self) {
 			Ui_CvarCheckbox((View *) stackView, "Invert mouse", m_invert);
 			Ui_CvarCheckbox((View *) stackView, "Smooth mouse", m_interpolate);
 
-			$((View *) stackView, sizeToFit);
-
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
-
-			$((View *) box, sizeToFit);
 
 			$((View *) column, addSubview, (View *) box);
 			release(box);
 		}
 
-		$((View *) column, sizeToFit);
-
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}
 
-	$((View *) columns, sizeToFit);
-
 	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);
 
-	$((View *) this->panel->contentView, sizeToFit);
-	$((View *) this->panel, sizeToFit);
+//	$((View *) this->panel, sizeToFit);
 }
 
 #pragma mark - Class lifecycle

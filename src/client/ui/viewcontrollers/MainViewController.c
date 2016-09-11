@@ -71,18 +71,20 @@ static void loadView(ViewController *self) {
 	panel->isDraggable = false;
 	panel->isResizable = false;
 
+	panel->stackView.view.alignment = ViewAlignmentTopCenter;
+
 	panel->contentView->axis = StackViewAxisHorizontal;
 	panel->contentView->distribution = StackViewDistributionFillEqually;
-
-	panel->contentView->view.frame.w = min(r_context.window_width, 1024);
-
-	panel->view.alignment = ViewAlignmentTopCenter;
+	panel->contentView->view.autoresizingMask = ViewAutoresizingNone;
 
 	$$(PrimaryButton, button, (View *) panel->contentView, "MULTIPLAYER", action, self, &_MultiplayerViewController);
 	$$(PrimaryButton, button, (View *) panel->contentView, "CONTROLS", action, self, &_ControlsViewController);
 	$$(PrimaryButton, button, (View *) panel->contentView, "PLAYER SETUP", action, self, &_PlayerSetupViewController);
 	$$(PrimaryButton, button, (View *) panel->contentView, "SETTINGS", action, self, &_SettingsViewController);
 	$$(PrimaryButton, button, (View *) panel->contentView, "QUIT", action, self, NULL);
+
+	SDL_Size size = MakeSize(min(r_context.window_width, 1024), 36);
+	$((View *) panel->contentView, resize, &size);
 
 	$((View *) panel, sizeToFit);
 

@@ -53,11 +53,11 @@ static void loadView(ViewController *self) {
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
 	columns->axis = StackViewAxisHorizontal;
-	columns->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+	columns->spacing = DEFAULT_PANEL_SPACING;
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
@@ -75,8 +75,6 @@ static void loadView(ViewController *self) {
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
-
-			$((View *) box, sizeToFit);
 
 			$((View *) column, addSubview, (View *) box);
 			release(box);
@@ -122,21 +120,17 @@ static void loadView(ViewController *self) {
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
 
-			$((View *) box, sizeToFit);
-
 			$((View *) column, addSubview, (View *) box);
 			release(box);
 		}
-		
-		$((View *) column, sizeToFit);
-		
+
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}
 
 	{
 		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_STACK_VIEW_SPACING;
+		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
 			Box *box = $(alloc(Box), initWithFrame, NULL);
@@ -151,8 +145,6 @@ static void loadView(ViewController *self) {
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
-
-			$((View *) box, sizeToFit);
 
 			$((View *) column, addSubview, (View *) box);
 			release(box);
@@ -170,31 +162,20 @@ static void loadView(ViewController *self) {
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
 
-			$((View *) box, sizeToFit);
-
 			$((View *) column, addSubview, (View *) box);
 			release(box);
 		}
 
 		{
-			Ui_Button((View *) column, "Apply", applyAction, self, NULL);
-
-//			apply->control.view.alignment = ViewAlignmentMiddleRight;
+			Ui_Button((View *) this->panel->accessoryView, "Apply", applyAction, self, NULL);
 		}
 
-		$((View *) column, sizeToFit);
-		
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}
 
-	$((View *) columns, sizeToFit);
-
 	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);
-
-	$((View *) this->panel->contentView, sizeToFit);
-	$((View *) this->panel, sizeToFit);
 }
 
 #pragma mark - Class lifecycle
