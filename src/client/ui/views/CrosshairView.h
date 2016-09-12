@@ -68,7 +68,7 @@ struct CrosshairViewInterface {
 	/**
 	 * @brief The parent interface.
 	 */
-	ViewInterface viewInterface;
+	ImageViewInterface imageViewInterface;
 	
 	/**
 	 * @fn CrosshairView *CrosshairView::initWithFrame(CrosshairView *self, const SDL_Rect *frame)

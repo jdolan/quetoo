@@ -59,6 +59,11 @@ struct CvarSelect {
 	 * @brief The variable.
 	 */
 	cvar_t *var;
+
+	/**
+	 * @brief Set to true if the variable expects a string value, false for integer.
+	 */
+	_Bool expectsStringValue;
 };
 
 /**

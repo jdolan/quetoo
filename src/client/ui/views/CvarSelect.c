@@ -36,7 +36,18 @@ static void updateBindings(View *self) {
 
 	CvarSelect *this = (CvarSelect *) self;
 
-	$((Select *) this, selectOptionWithValue, (ident) (intptr_t) this->var->integer);
+	if (this->expectsStringValue) {
+		const Array *options = (Array *) this->select.options;
+		for (size_t i = 0; i < options->count; i++) {
+			const Option *option = $(options, objectAtIndex, i);
+			if (strcmp(option->title->text, this->var->string) == 0) {
+				$((Select *) this, selectOptionWithValue, option->value);
+				break;
+			}
+		}
+	} else {
+		$((Select *) this, selectOptionWithValue, (ident) (intptr_t) this->var->integer);
+	}
 }
 
 #pragma mark - Select
@@ -60,7 +71,11 @@ static void didSelectOption(Select *Select, Option *option) {
 
 	const CvarSelect *this = (CvarSelect *) Select;
 
-	Cvar_SetValue(this->var->name, (int32_t) option->value);
+	if (this->expectsStringValue) {
+		Cvar_Set(this->var->name, option->title->text);
+	} else {
+		Cvar_SetValue(this->var->name, (int32_t) option->value);
+	}
 }
 
 /**

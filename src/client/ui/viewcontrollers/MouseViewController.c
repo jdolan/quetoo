@@ -27,6 +27,7 @@
 
 #include "CrosshairView.h"
 #include "CvarSelect.h"
+#include "CvarSlider.h"
 
 #define _Class _MouseViewController
 
@@ -47,9 +48,9 @@ static void enumerateCrosshairs(const char *path, void *data) {
 }
 
 /**
- * @brief ActionFunction for crosshair selection.
+ * @brief ActionFunction for crosshair modification.
  */
-static void selectCrosshair(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void modifyCrosshair(Control *control, const SDL_Event *event, ident sender, ident data) {
 
 	MouseViewController *this = (MouseViewController *) sender;
 
@@ -114,20 +115,39 @@ static void loadView(ViewController *self) {
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
 			cvar_t *cg_draw_crosshair = Cvar_Get("cg_draw_crosshair", "1", 0, NULL);
-			Ui_CvarCheckbox((View *) stackView, "Draw crosshair", cg_draw_crosshair);
+			cvar_t *cg_draw_crosshair_color = Cvar_Get("cg_draw_crosshair_color", "", 0, NULL);
+			cvar_t *cg_draw_crosshair_pulse = Cvar_Get("cg_draw_crosshair_pulse", "1", 0, NULL);
+			cvar_t *cg_draw_crosshair_scale = Cvar_Get("cg_draw_crosshair_scale", "1.0", 0, NULL);
 
-			cvar_t *cg_crosshair = Cvar_Get("cg_crosshair", "1", 0, NULL);
-			Control *crosshairSelect = (Control *) $(alloc(CvarSelect), initWithVariable, cg_crosshair);
-
+			CvarSelect *crosshairSelect = $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair);
+			$((Select *) crosshairSelect, addOption, "", NULL);
 			Fs_Enumerate("pics/ch*", enumerateCrosshairs, crosshairSelect);
 
-			$(crosshairSelect, addActionForEventType, SDL_MOUSEBUTTONUP, selectCrosshair, self, NULL);
+			$((Control *) crosshairSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
+			Ui_Input((View *) stackView, "Crosshair", (Control *) crosshairSelect);
 
-			Ui_Input((View *) stackView, "Crosshair", crosshairSelect);
+			CvarSelect *colorSelect = (CvarSelect *) $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair_color);
+			colorSelect->expectsStringValue = true;
 
-			const SDL_Rect frame = MakeRect(0, 0, 64, 64);
+			$((Select *) colorSelect, addOption, "default", (ident) 0);
+			$((Select *) colorSelect, addOption, "red", (ident) 1);
+			$((Select *) colorSelect, addOption, "green", (ident) 2);
+			$((Select *) colorSelect, addOption, "yellow", (ident) 3);
+			$((Select *) colorSelect, addOption, "orange", (ident) 4);
+
+			$((Control *) colorSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
+			Ui_Input((View *) stackView, "Crosshair color", (Control *) colorSelect);
+
+			CvarSlider *scaleSlider = $(alloc(CvarSlider), initWithVariable, cg_draw_crosshair_scale, 0.1, 2.0, 0.1);
+
+			$((Control *) scaleSlider, addActionForEventType, SDL_MOUSEMOTION, modifyCrosshair, self, NULL);
+			Ui_Input((View *) stackView, "Crosshair scale", (Control *) scaleSlider);
+
+			Ui_CvarCheckbox((View *) stackView, "Pulse on pickup", cg_draw_crosshair_pulse);
+
+			const SDL_Rect frame = MakeRect(0, 0, 72, 72);
+
 			this->crosshairView = $(alloc(CrosshairView), initWithFrame, &frame);
-
 			this->crosshairView->view.alignment = ViewAlignmentMiddleCenter;
 
 			$((View *) stackView, addSubview, (View *) this->crosshairView);

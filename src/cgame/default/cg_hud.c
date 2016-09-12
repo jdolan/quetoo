@@ -30,6 +30,7 @@
 #define CROSSHAIR_COLOR_RED		242
 #define CROSSHAIR_COLOR_GREEN	209
 #define CROSSHAIR_COLOR_YELLOW	219
+#define CROSSHAIR_COLOR_ORANGE  225
 #define CROSSHAIR_COLOR_DEFAULT	15
 
 #define HUD_PIC_HEIGHT			64
@@ -438,6 +439,8 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			color = CROSSHAIR_COLOR_GREEN;
 		} else if (!g_ascii_strcasecmp(c, "yellow")) {
 			color = CROSSHAIR_COLOR_YELLOW;
+		} else if (!g_ascii_strcasecmp(c, "orange")) {
+			color = CROSSHAIR_COLOR_ORANGE;
 		} else {
 			color = CROSSHAIR_COLOR_DEFAULT;
 		}

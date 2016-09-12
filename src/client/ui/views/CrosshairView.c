@@ -43,13 +43,24 @@ static void dealloc(Object *self) {
 #pragma mark - View
 
 /**
- * @see View::render(View *, Renderer *)
+ * @see View::layoutSubviews(View *)
  */
-static void render(View *self, Renderer *renderer) {
+static void layoutSubviews(View *self) {
 
-//	CrosshairView *this = (CrosshairView *) self;
+	CrosshairView *this = (CrosshairView *) self;
+	if (this->imageView->image) {
 
-	super(View, self, render, renderer);
+		const float scale = Cvar_GetValue("cg_draw_crosshair_scale");
+
+		const SDL_Size size = MakeSize(
+			this->imageView->image->surface->w * scale,
+			this->imageView->image->surface->h * scale
+		);
+
+		$((View *) this->imageView, resize, &size);
+	}
+
+	super(View, self, layoutSubviews);
 }
 
 /**
@@ -61,14 +72,34 @@ static void updateBindings(View *self) {
 
 	CrosshairView *this = (CrosshairView *) self;
 
-	const int ch = Cvar_GetValue("cg_crosshair");
+	$(this->imageView, setImage, NULL);
 
-	SDL_Surface *surface;
-	if (Img_LoadImage(va("pics/ch%d", ch), &surface)) {
+	const int ch = Cvar_GetValue("cg_draw_crosshair");
+	if (ch) {
+		SDL_Surface *surface;
+		if (Img_LoadImage(va("pics/ch%d", ch), &surface)) {
 
-		$(this->imageView, setImageWithSurface, surface);
-		SDL_FreeSurface(surface);
+			$(this->imageView, setImageWithSurface, surface);
+			SDL_FreeSurface(surface);
+
+			SDL_Color color = Colors.White;
+
+			const char *s = Cvar_GetString("cg_draw_crosshair_color");
+			if (!strcmp(s, "red")) {
+				color = Colors.Red;
+			} else if (!strcmp(s, "green")) {
+				color = Colors.Lime;
+			} else if (!strcmp(s, "yellow")) {
+				color = Colors.Yellow;
+			} else if (!strcmp(s, "orange")) {
+				color = Colors.Orange;
+			}
+
+			this->imageView->color = color;
+		}
 	}
+
+	self->needsLayout = true;
 }
 
 #pragma mark - CrosshairView
@@ -86,17 +117,12 @@ static CrosshairView *initWithFrame(CrosshairView *self, const SDL_Rect *frame) 
 		self->imageView = $(alloc(ImageView), initWithFrame, NULL);
 		assert(self->imageView);
 
-		self->imageView->view.autoresizingMask = ViewAutoresizingFill;
+		self->imageView->view.alignment = ViewAlignmentMiddleCenter;
 
 		$((View *) self, addSubview, (View *) self->imageView);
 
 		self->view.backgroundColor = Colors.Black;
 		self->view.backgroundColor.a = 48;
-
-		self->view.padding.top = 8;
-		self->view.padding.right = 8;
-		self->view.padding.bottom = 8;
-		self->view.padding.left = 8;
 
 		$((View *) self, updateBindings);
 	}
@@ -113,7 +139,7 @@ static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->interface)->render = render;
+	((ViewInterface *) clazz->interface)->layoutSubviews = layoutSubviews;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((CrosshairViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
