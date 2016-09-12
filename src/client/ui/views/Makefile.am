@@ -1,6 +1,7 @@
 
 noinst_HEADERS = \
 	BindTextView.h \
+	CrosshairView.h \
 	CvarCheckbox.h \
 	CvarSelect.h \
 	CvarSlider.h \
@@ -17,6 +18,7 @@ noinst_LTLIBRARIES = \
 
 libviews_la_SOURCES = \
 	BindTextView.c \
+	CrosshairView.c \
 	CvarCheckbox.c \
 	CvarSelect.c \
 	CvarSlider.c \
