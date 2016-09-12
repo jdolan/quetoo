@@ -21,68 +21,60 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/Button.h>
+#include "MenuViewController.h"
+#include "PlayerModelView.h"
 
 /**
  * @file
  *
- * @brief Primary Button.
+ * @brief PlayerSetup ViewController.
  */
 
-#define DEFAULT_PRIMARY_BUTTON_WIDTH 200
-
-typedef struct PrimaryButton PrimaryButton;
-typedef struct PrimaryButtonInterface PrimaryButtonInterface;
+typedef struct PlayerViewController PlayerViewController;
+typedef struct PlayerViewControllerInterface PlayerViewControllerInterface;
 
 /**
- * @brief The PrimaryButton type.
+ * @brief The PlayerViewController type.
  *
- * @extends Button
+ * @extends MenuViewController
+ *
+ * @ingroup
  */
-struct PrimaryButton {
+struct PlayerViewController {
 	
 	/**
 	 * @brief The parent.
 	 *
 	 * @private
 	 */
-	Button button;
+	MenuViewController menuViewController;
 	
 	/**
 	 * @brief The typed interface.
 	 *
 	 * @private
 	 */
-	PrimaryButtonInterface *interface;
+	PlayerViewControllerInterface *interface;
+
+	/**
+	 * @brief The PlayerModelView.
+	 */
+	PlayerModelView *playerModelView;
 };
 
 /**
- * @brief The PrimaryButton interface.
+ * @brief The PlayerViewController interface.
  */
-struct PrimaryButtonInterface {
+struct PlayerViewControllerInterface {
 	
 	/**
 	 * @brief The parent interface.
 	 */
-	ButtonInterface buttonInterface;
-	
-	/**
-	 * @fn PrimaryButton *PrimaryButton::initWithFrame(PrimaryButton *self, const SDL_Rect *frame, ControlStyle style)
-	 *
-	 * @brief Initializes this PrimaryButton with the specified frame and style.
-	 *
-	 * @param frame The frame.
-	 * @param style The ControlStyle.
-	 *
-	 * @return The initialized PrimaryButton, or `NULL` on error.
-	 *
-	 * @memberof PrimaryButton
-	 */
-	PrimaryButton *(*initWithFrame)(PrimaryButton *self, const SDL_Rect *frame, ControlStyle style);
+	MenuViewControllerInterface menuViewControllerInterface;
 };
 
 /**
- * @brief The PrimaryButton Class.
+ * @brief The PlayerViewController Class.
  */
-extern Class _PrimaryButton;
+extern Class _PlayerViewController;
 

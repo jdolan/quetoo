@@ -29,17 +29,17 @@
  * @brief Controls ViewController.
  */
 
-typedef struct ControlsViewController ControlsViewController;
-typedef struct ControlsViewControllerInterface ControlsViewControllerInterface;
+typedef struct KeysViewController KeysViewController;
+typedef struct KeysViewControllerInterface KeysViewControllerInterface;
 
 /**
- * @brief The ControlsViewController type.
+ * @brief The KeysViewController type.
  *
  * @extends MenuViewController
  *
  * @ingroup ViewControllers
  */
-struct ControlsViewController {
+struct KeysViewController {
 	
 	/**
 	 * @brief The parent.
@@ -53,13 +53,13 @@ struct ControlsViewController {
 	 *
 	 * @private
 	 */
-	ControlsViewControllerInterface *interface;
+	KeysViewControllerInterface *interface;
 };
 
 /**
- * @brief The ControlsViewController interface.
+ * @brief The KeysViewController interface.
  */
-struct ControlsViewControllerInterface {
+struct KeysViewControllerInterface {
 	
 	/**
 	 * @brief The parent interface.
@@ -68,7 +68,7 @@ struct ControlsViewControllerInterface {
 };
 
 /**
- * @brief The ControlsViewController Class.
+ * @brief The KeysViewController Class.
  */
-extern Class _ControlsViewController;
+extern Class _KeysViewController;
 

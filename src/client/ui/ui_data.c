@@ -25,6 +25,7 @@
 #include "views/CvarCheckbox.h"
 #include "views/CvarSlider.h"
 #include "views/CvarTextView.h"
+#include "views/PrimaryButton.h"
 
 /**
  * @brief
@@ -120,4 +121,23 @@ void Ui_Input(View *view, const char *name, Control *control) {
 
 	release(input);
 }
+
+/**
+ * @brief
+ */
+void Ui_PrimaryButton(View *view, const char *name, ActionFunction action, ident sender, ident data) {
+
+	assert(view);
+
+	PrimaryButton *button = $(alloc(PrimaryButton), initWithFrame, NULL, ControlStyleDefault);
+	assert(button);
+
+	$(button->button.title, setText, name);
+
+	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
+
+	$(view, addSubview, (View *) button);
+	release(button);
+}
+
 

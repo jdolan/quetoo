@@ -21,15 +21,26 @@
 
 #include <assert.h>
 
-#include "PlayerSetupViewController.h"
+#include "PlayerViewController.h"
 
 #include "ui_data.h"
 
 #include "CvarSelect.h"
-#include "PlayerModelView.h"
 #include "SkinSelect.h"
 
-#define _Class _PlayerSetupViewController
+#define _Class _PlayerViewController
+
+#pragma mark - Skin selection
+
+/**
+ * @brief ActionFunction for skin selection.
+ */
+static void selectSkin(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	PlayerViewController *this = (PlayerViewController *) sender;
+
+	$((View *) this->playerModelView, updateBindings);
+}
 
 #pragma mark - ViewController
 
@@ -40,7 +51,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	MenuViewController *this = (MenuViewController *) self;
+	PlayerViewController *this = (PlayerViewController *) self;
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
@@ -61,6 +72,8 @@ static void loadView(ViewController *self) {
 			Ui_CvarTextView((View *) stackView, "Name", name);
 
 			Control *skinSelect = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
+
+			$(skinSelect, addActionForEventType, SDL_MOUSEBUTTONUP, selectSkin, self, NULL);
 
 			Ui_Input((View *) stackView, "Player skin", skinSelect);
 			release(skinSelect);
@@ -100,17 +113,17 @@ static void loadView(ViewController *self) {
 
 		{
 			const SDL_Rect frame = { .w = 400, .h = 500 };
-			PlayerModelView *mesh = $(alloc(PlayerModelView), initWithFrame, &frame);
+			this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &frame);
 
-			$((View *) column, addSubview, (View *) mesh);
-			release(mesh);
+			$((View *) column, addSubview, (View *) this->playerModelView);
+			release(this->playerModelView);
 		}
 
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}
 
-	$((View *) this->panel->contentView, addSubview, (View *) columns);
+	$((View *) this->menuViewController.panel->contentView, addSubview, (View *) columns);
 	release(columns);
 }
 
@@ -124,12 +137,12 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
-Class _PlayerSetupViewController = {
-	.name = "PlayerSetupViewController",
+Class _PlayerViewController = {
+	.name = "PlayerViewController",
 	.superclass = &_MenuViewController,
-	.instanceSize = sizeof(PlayerSetupViewController),
-	.interfaceOffset = offsetof(PlayerSetupViewController, interface),
-	.interfaceSize = sizeof(PlayerSetupViewControllerInterface),
+	.instanceSize = sizeof(PlayerViewController),
+	.interfaceOffset = offsetof(PlayerViewController, interface),
+	.interfaceSize = sizeof(PlayerViewControllerInterface),
 	.initialize = initialize,
 };
 

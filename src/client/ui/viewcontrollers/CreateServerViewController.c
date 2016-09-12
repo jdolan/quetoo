@@ -68,12 +68,8 @@ static void loadView(ViewController *self) {
 			extern cvar_t *password;
 			Ui_CvarTextView((View *) stackView, "Password", password);
 
-//			$((View *) stackView, sizeToFit);
-
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
-
-//			$((View *) box, sizeToFit);
 
 			$((View *) column, addSubview, (View *) box);
 			release(box);
@@ -115,18 +111,12 @@ static void loadView(ViewController *self) {
 			Ui_Input((View *) stackView, "Match mode", (Control *) match);
 			release(match);
 
-//			$((View *) stackView, sizeToFit);
-
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
-
-//			$((View *) box, sizeToFit);
 
 			$((View *) column, addSubview, (View *) box);
 			release(box);
 		}
-
-//		$((View *) column, sizeToFit);
 
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
@@ -145,34 +135,23 @@ static void loadView(ViewController *self) {
 
 			const SDL_Rect frame = { .w = 760, .h = 600 };
 			CollectionView *mapList = (CollectionView *) $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStateDefault);
-
+			
 			$((View *) stackView, addSubview, (View *) mapList);
 			release(mapList);
 
-//			$((View *) stackView, sizeToFit);
-
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
-
-//			$((View *) box, sizeToFit);
 
 			$((View *) column, addSubview, (View *) box);
 			release(box);
 		}
 
-//		$((View *) column, sizeToFit);
-
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}
 
-//	$((View *) columns, sizeToFit);
-
 	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);
-
-//	$((View *) this->panel->contentView, sizeToFit);
-//	$((View *) this->panel, sizeToFit);
 }
 
 #pragma mark - MapListCollectionView

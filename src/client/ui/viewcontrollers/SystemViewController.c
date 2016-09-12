@@ -21,14 +21,14 @@
 
 #include <assert.h>
 
-#include "SettingsViewController.h"
+#include "SystemViewController.h"
 
 #include "CvarSelect.h"
 #include "VideoModeSelect.h"
 
 #include "client.h"
 
-#define _Class _SettingsViewController
+#define _Class _SystemViewController
 
 #pragma mark - Actions & Delegates
 
@@ -188,12 +188,12 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
-Class _SettingsViewController = {
-	.name = "SettingsViewController",
+Class _SystemViewController = {
+	.name = "SystemViewController",
 	.superclass = &_MenuViewController,
-	.instanceSize = sizeof(SettingsViewController),
-	.interfaceOffset = offsetof(SettingsViewController, interface),
-	.interfaceSize = sizeof(SettingsViewControllerInterface),
+	.instanceSize = sizeof(SystemViewController),
+	.interfaceOffset = offsetof(SystemViewController, interface),
+	.interfaceSize = sizeof(SystemViewControllerInterface),
 	.initialize = initialize,
 };
 

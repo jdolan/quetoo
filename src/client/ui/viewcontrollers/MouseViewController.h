@@ -21,68 +21,60 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/Button.h>
+#include "MenuViewController.h"
+#include "CrosshairView.h"
 
 /**
  * @file
  *
- * @brief Primary Button.
+ * @brief Controls ViewController.
  */
 
-#define DEFAULT_PRIMARY_BUTTON_WIDTH 200
-
-typedef struct PrimaryButton PrimaryButton;
-typedef struct PrimaryButtonInterface PrimaryButtonInterface;
+typedef struct MouseViewController MouseViewController;
+typedef struct MouseViewControllerInterface MouseViewControllerInterface;
 
 /**
- * @brief The PrimaryButton type.
+ * @brief The MouseViewController type.
  *
- * @extends Button
+ * @extends MenuViewController
+ *
+ * @ingroup ViewControllers
  */
-struct PrimaryButton {
+struct MouseViewController {
 	
 	/**
 	 * @brief The parent.
 	 *
 	 * @private
 	 */
-	Button button;
+	MenuViewController menuViewController;
 	
 	/**
 	 * @brief The typed interface.
 	 *
 	 * @private
 	 */
-	PrimaryButtonInterface *interface;
+	MouseViewControllerInterface *interface;
+
+	/**
+	 * @brief The CrosshairView.
+	 */
+	CrosshairView *crosshairView;
 };
 
 /**
- * @brief The PrimaryButton interface.
+ * @brief The MouseViewController interface.
  */
-struct PrimaryButtonInterface {
+struct MouseViewControllerInterface {
 	
 	/**
 	 * @brief The parent interface.
 	 */
-	ButtonInterface buttonInterface;
-	
-	/**
-	 * @fn PrimaryButton *PrimaryButton::initWithFrame(PrimaryButton *self, const SDL_Rect *frame, ControlStyle style)
-	 *
-	 * @brief Initializes this PrimaryButton with the specified frame and style.
-	 *
-	 * @param frame The frame.
-	 * @param style The ControlStyle.
-	 *
-	 * @return The initialized PrimaryButton, or `NULL` on error.
-	 *
-	 * @memberof PrimaryButton
-	 */
-	PrimaryButton *(*initWithFrame)(PrimaryButton *self, const SDL_Rect *frame, ControlStyle style);
+	MenuViewControllerInterface menuViewControllerInterface;
 };
 
 /**
- * @brief The PrimaryButton Class.
+ * @brief The MouseViewController Class.
  */
-extern Class _PrimaryButton;
+extern Class _MouseViewController;
 

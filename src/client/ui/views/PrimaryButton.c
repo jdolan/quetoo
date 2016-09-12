@@ -58,26 +58,6 @@ static PrimaryButton *initWithFrame(PrimaryButton *self, const SDL_Rect *frame, 
 	return self;
 }
 
-/**
- * @fn void PrimaryButton::button(View *view, const char *name, ActionFunction action, ident sender, ident data)
- *
- * @memberof PrimaryButton
- */
-static void button(View *view, const char *name, ActionFunction action, ident sender, ident data) {
-
-	assert(view);
-
-	PrimaryButton *button = $(alloc(PrimaryButton), initWithFrame, NULL, ControlStyleDefault);
-	assert(button);
-
-	$(button->button.title, setText, name);
-
-	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, sender, data);
-
-	$(view, addSubview, (View *) button);
-	release(button);
-}
-
 #pragma mark - Class lifecycle
 
 /**
@@ -88,7 +68,6 @@ static void initialize(Class *clazz) {
 	((ViewInterface *) clazz->interface)->respondToEvent = respondToEvent;
 
 	((PrimaryButtonInterface *) clazz->interface)->initWithFrame = initWithFrame;
-	((PrimaryButtonInterface *) clazz->interface)->button = button;
 }
 
 Class _PrimaryButton = {

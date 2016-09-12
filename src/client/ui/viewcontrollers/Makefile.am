@@ -1,24 +1,26 @@
 
 noinst_HEADERS = \
-	ControlsViewController.h \
 	CreateServerViewController.h \
+	KeysViewController.h \
 	MainViewController.h \
 	MenuViewController.h \
+	MouseViewController.h \
 	MultiplayerViewController.h \
-	PlayerSetupViewController.h \
-	SettingsViewController.h
+	PlayerViewController.h \
+	SystemViewController.h
 
 noinst_LTLIBRARIES = \
 	libviewcontrollers.la
 
 libviewcontrollers_la_SOURCES = \
-	ControlsViewController.c \
 	CreateServerViewController.c \
+	KeysViewController.c \
 	MainViewController.c \
 	MenuViewController.c \
+	MouseViewController.c \
 	MultiplayerViewController.c \
-	PlayerSetupViewController.c \
-	SettingsViewController.c
+	PlayerViewController.c \
+	SystemViewController.c
 
 libviewcontrollers_la_CFLAGS = \
 	-I.. -I../.. -I../../.. -I../views \

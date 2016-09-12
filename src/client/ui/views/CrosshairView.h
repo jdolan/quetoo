@@ -21,54 +21,71 @@
 
 #pragma once
 
-#include "MenuViewController.h"
+#include <ObjectivelyMVC/ImageView.h>
+#include <ObjectivelyMVC/View.h>
 
 /**
  * @file
  *
- * @brief PlayerSetup ViewController.
+ * @brief The CrosshairView type.
  */
 
-typedef struct PlayerSetupViewController PlayerSetupViewController;
-typedef struct PlayerSetupViewControllerInterface PlayerSetupViewControllerInterface;
+typedef struct CrosshairView CrosshairView;
+typedef struct CrosshairViewInterface CrosshairViewInterface;
 
 /**
- * @brief The PlayerSetupViewController type.
+ * @brief The CrosshairView type.
  *
- * @extends MenuViewController
- *
- * @ingroup
+ * @extends View
  */
-struct PlayerSetupViewController {
+struct CrosshairView {
 	
 	/**
 	 * @brief The parent.
 	 *
 	 * @private
 	 */
-	MenuViewController menuViewController;
+	View view;
 	
 	/**
 	 * @brief The typed interface.
 	 *
 	 * @private
 	 */
-	PlayerSetupViewControllerInterface *interface;
+	CrosshairViewInterface *interface;
+
+	/**
+	 * @brief The ImageView.
+	 */
+	ImageView *imageView;
 };
 
 /**
- * @brief The PlayerSetupViewController interface.
+ * @brief The CrosshairView interface.
  */
-struct PlayerSetupViewControllerInterface {
+struct CrosshairViewInterface {
 	
 	/**
 	 * @brief The parent interface.
 	 */
-	MenuViewControllerInterface menuViewControllerInterface;
+	ViewInterface viewInterface;
+	
+	/**
+	 * @fn CrosshairView *CrosshairView::initWithFrame(CrosshairView *self, const SDL_Rect *frame)
+	 *
+	 * @brief Initializes this CrosshairView with the specified frame.
+	 *
+	 * @param frame The frame.
+	 *
+	 * @return The initialized CrosshairView, or `NULL` on error.
+	 *
+	 * @memberof CrosshairView
+	 */
+	CrosshairView *(*initWithFrame)(CrosshairView *self, const SDL_Rect *frame);	
 };
 
 /**
- * @brief The PlayerSetupViewController Class.
+ * @brief The CrosshairView Class.
  */
-extern Class _PlayerSetupViewController;
+extern Class _CrosshairView;
 

@@ -21,11 +21,11 @@
 
 #include <assert.h>
 
-#include "ControlsViewController.h"
+#include "KeysViewController.h"
 
 #include "ui_data.h"
 
-#define _Class _ControlsViewController
+#define _Class _KeysViewController
 
 #pragma mark - ViewController
 
@@ -131,41 +131,8 @@ static void loadView(ViewController *self) {
 		release(column);
 	}
 
-	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
-
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "AIM");
-
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-			extern cvar_t *m_sensitivity;
-			extern cvar_t *m_sensitivity_zoom;
-			extern cvar_t *m_invert;
-			extern cvar_t *m_interpolate;
-
-			Ui_CvarSlider((View *) stackView, "Sensitivity", m_sensitivity, 0.1, 6.0, 0.1);
-			Ui_CvarSlider((View *) stackView, "Zoom Sensitivity", m_sensitivity_zoom, 0.1, 6.0, 0.1);
-			Ui_CvarCheckbox((View *) stackView, "Invert mouse", m_invert);
-			Ui_CvarCheckbox((View *) stackView, "Smooth mouse", m_interpolate);
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
-	}
-
 	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);
-
-//	$((View *) this->panel, sizeToFit);
 }
 
 #pragma mark - Class lifecycle
@@ -178,12 +145,12 @@ static void initialize(Class *clazz) {
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
-Class _ControlsViewController = {
-	.name = "ControlsViewController",
+Class _KeysViewController = {
+	.name = "KeysViewController",
 	.superclass = &_MenuViewController,
-	.instanceSize = sizeof(ControlsViewController),
-	.interfaceOffset = offsetof(ControlsViewController, interface),
-	.interfaceSize = sizeof(ControlsViewControllerInterface),
+	.instanceSize = sizeof(KeysViewController),
+	.interfaceOffset = offsetof(KeysViewController, interface),
+	.interfaceSize = sizeof(KeysViewControllerInterface),
 	.initialize = initialize,
 };
 

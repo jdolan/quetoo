@@ -21,13 +21,13 @@
 
 #include "MainViewController.h"
 
-#include "ControlsViewController.h"
-#include "CreateServerViewController.h"
+#include "KeysViewController.h"
+#include "MouseViewController.h"
 #include "MultiplayerViewController.h"
-#include "PlayerSetupViewController.h"
-#include "SettingsViewController.h"
+#include "PlayerViewController.h"
+#include "SystemViewController.h"
 
-#include "../views/PrimaryButton.h"
+#include "PrimaryButton.h"
 
 #include "client.h"
 
@@ -77,11 +77,12 @@ static void loadView(ViewController *self) {
 	panel->contentView->distribution = StackViewDistributionFillEqually;
 	panel->contentView->view.autoresizingMask = ViewAutoresizingNone;
 
-	$$(PrimaryButton, button, (View *) panel->contentView, "MULTIPLAYER", action, self, &_MultiplayerViewController);
-	$$(PrimaryButton, button, (View *) panel->contentView, "CONTROLS", action, self, &_ControlsViewController);
-	$$(PrimaryButton, button, (View *) panel->contentView, "PLAYER SETUP", action, self, &_PlayerSetupViewController);
-	$$(PrimaryButton, button, (View *) panel->contentView, "SETTINGS", action, self, &_SettingsViewController);
-	$$(PrimaryButton, button, (View *) panel->contentView, "QUIT", action, self, NULL);
+	Ui_PrimaryButton((View *) panel->contentView, "MULTIPLAYER", action, self, &_MultiplayerViewController);
+	Ui_PrimaryButton((View *) panel->contentView, "KEYS", action, self, &_KeysViewController);
+	Ui_PrimaryButton((View *) panel->contentView, "MOUSE", action, self, &_MouseViewController);
+	Ui_PrimaryButton((View *) panel->contentView, "PLAYER", action, self, &_PlayerViewController);
+	Ui_PrimaryButton((View *) panel->contentView, "SYSTEM", action, self, &_SystemViewController);
+	Ui_PrimaryButton((View *) panel->contentView, "QUIT", action, self, NULL);
 
 	SDL_Size size = MakeSize(min(r_context.window_width, 1024), 36);
 	$((View *) panel->contentView, resize, &size);
