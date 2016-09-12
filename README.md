@@ -15,7 +15,7 @@
  * Deathmatch, Capture, Instagib, Duel and Rocket Arena gameplay modes
  * Teams Play and Match Mode support
  * High quality remakes of id Software's legendary _Quake II_ deathmatch levels, as well as originals
- * Original sounds and game music by <a href="http://rolandshaw.wordpress.com/">Roland Shaw</a>
+ * Original sounds and game music by <a href="http://rolandshaw.wordpress.com/">Roland Shaw</a> and <a href="http://anthonywebbmusic.com/">Anthony Webb</a>.
  * 100% free to download, play and modify. See our <a href="http://quetoo.org/books/documentation/licensing">licensing</a> page.
 
 ## Downloads
