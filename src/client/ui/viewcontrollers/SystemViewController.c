@@ -167,6 +167,8 @@ static void loadView(ViewController *self) {
 		}
 
 		{
+			this->panel->accessoryView->view.hidden = false;
+
 			Ui_Button((View *) this->panel->accessoryView, "Apply", applyAction, self, NULL);
 		}
 
