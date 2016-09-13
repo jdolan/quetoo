@@ -22,9 +22,9 @@
 #ifndef __UI_TYPES_H__
 #define __UI_TYPES_H__
 
-#include <ObjectivelyMVC/Types.h>
-
 #ifdef __UI_LOCAL_H__
+
+#include <ObjectivelyMVC/Types.h>
 
 #endif /* __UI_LOCAL_H__ */
 
