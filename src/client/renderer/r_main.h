@@ -25,6 +25,7 @@
 #include "r_types.h"
 
 // settings and preferences
+extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_brightness;
 extern cvar_t *r_bumpmap;

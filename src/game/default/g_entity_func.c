@@ -903,6 +903,7 @@ static void G_func_door_GoingDown(g_entity_t *self) {
  * @brief
  */
 static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
+
 	if (self->locals.move_info.state == MOVE_STATE_GOING_UP)
 		return; // already going up
 

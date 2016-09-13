@@ -302,7 +302,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 /**
  * @brief Unwinds the surface, iterating all non-collinear vertices.
  *
- * @return The next winding point, or NULL if the face is completely unwound.
+ * @return The next winding point, or `NULL` if the face is completely unwound.
  */
 static const r_bsp_vertex_t *R_UnwindBspSurface(const r_bsp_model_t *bsp,
 		const r_bsp_surface_t *surf, uint16_t *index) {

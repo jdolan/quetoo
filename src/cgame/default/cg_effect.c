@@ -92,7 +92,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 
 	// resolve the number of origins based on surface area
 	VectorSubtract(s->maxs, s->mins, delta);
-	e->num_origins = VectorLength(delta) / 64.0;
+	e->num_origins = VectorLength(delta) / 32.0;
 	e->num_origins = Clamp(e->num_origins, 1, 128);
 
 	e->origins = cgi.Malloc(sizeof(vec3_t) * e->num_origins, MEM_TAG_CGAME_LEVEL);
@@ -207,7 +207,7 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 				p->vel[j] = Randomc() * 2.0;
 				p->accel[j] = Randomc() * 2.0;
 			}
-			p->vel[2] = -800.0;
+			p->vel[2] = -600.0;
 		} else {
 			VectorCopy(color, p->part.color);
 			p->part.color[3] = 0.6;

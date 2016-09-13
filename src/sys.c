@@ -102,7 +102,7 @@ const char *Sys_Username(void) {
 /**
  * @brief Returns the current user's Quetoo directory.
  *
- * @remark On Windows, this is `\My Documents\My Games\Quetoo`. On POSIX
+ * @remarks On Windows, this is `\My Documents\My Games\Quetoo`. On POSIX
  * platforms, it's `~/.quetoo`.
  */
 const char *Sys_UserDir(void) {

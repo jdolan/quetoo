@@ -20,178 +20,100 @@
  */
 
 #include "ui_local.h"
-#include "client.h"
 
-ui_t ui;
+#include "viewcontrollers/MainViewController.h"
+
+#include "client.h"
 
 extern cl_static_t cls;
 
-/**
- * @brief Activates the menu system when ESC is pressed.
- */
-static _Bool Ui_HandleKeyEvent(const SDL_Event *event) {
-
-	switch (event->key.keysym.sym) {
-
-		case SDLK_ESCAPE: {
-			int32_t visible;
-
-			TwBar *bar = cl_editor->value ? ui.editor : ui.root;
-			TwGetParam(bar, NULL, "visible", TW_PARAM_INT32, 1, &visible);
-
-			if (!visible) {
-				if (cl_editor->value)
-					Ui_ShowBar("Editor");
-				else
-					Ui_ShowBar("Quetoo");
-
-				return true;
-			}
-		}
-			break;
-	}
-
-	return false;
-}
+static WindowController *windowController;
+static ViewController *viewController;
 
 /**
- * @brief Informs AntTweakBar of window events.
+ * @brief Dispatch events to the user interface. Filter most common event types for
+ * performance consideration.
  */
-static _Bool Ui_HandleWindowEvent(const SDL_Event *event) {
+void Ui_HandleEvent(const SDL_Event *event) {
 
-	switch (event->window.event) {
-
-		case SDL_WINDOWEVENT_SHOWN:
-		case SDL_WINDOWEVENT_SIZE_CHANGED:
-
-			TwDefine("GLOBAL fontresizable=false fontstyle=fixed ");
-
-			if (ui.top && ui.top != ui.editor) {
-				Ui_CenterBar((void *) TwGetBarName(ui.top));
-			}
-
-			break;
-	}
-
-	return false;
-}
-
-/**
- * @brief Handles input events to the user interface, returning true if the
- * event was swallowed. While in focus, AntTweakBar receives all events. While
- * not in focus, we still pass SDL_WINDOWEVENTs to it.
- */
-_Bool Ui_HandleEvent(const SDL_Event *event) {
-
-	if (cls.key_state.dest == KEY_UI || event->type == SDL_WINDOWEVENT) {
-
-		if (TwEventSDL(event, SDL_MAJOR_VERSION, SDL_MINOR_VERSION))
-			return true;
+	if (cls.key_state.dest != KEY_UI) {
 
 		switch (event->type) {
 			case SDL_KEYDOWN:
-				return Ui_HandleKeyEvent(event);
-
-			case SDL_WINDOWEVENT:
-				return Ui_HandleWindowEvent(event);
+			case SDL_KEYUP:
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEBUTTONUP:
+			case SDL_MOUSEWHEEL:
+			case SDL_MOUSEMOTION:
+			case SDL_TEXTINPUT:
+			case SDL_TEXTEDITING:
+				return;
 		}
 	}
 
-	return false;
+	$(windowController, respondToEvent, event);
 }
 
 /**
- * @brief Draws any active TwBar components.
+ * @brief Renders the user interface to a texture in a reserved OpenGL context, then
+ * blits it back to the screen in the default context. A separate OpenGL context is
+ * used to avoid OpenGL state pollution.
  */
 void Ui_Draw(void) {
+	extern void R_BindTexture(GLuint texnum);
+	extern void R_BindDefaultArray(GLenum type);
 
-	if (cls.key_state.dest != KEY_UI)
+	if (cls.key_state.dest != KEY_UI) {
 		return;
+	}
 
-	TwDraw();
+	glDisable(GL_TEXTURE_2D);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	glOrtho(0, r_context.window_width, r_context.window_height, 0, -1, 1);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	$(windowController, render);
+
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	R_BindDefaultArray(GL_VERTEX_ARRAY);
+	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+
+	R_BindTexture(0);
+
+	glOrtho(0, r_context.width, r_context.height, 0, -1, 1);
 }
 
 /**
- * @brief Defines the root TwBar.
- */
-static TwBar *Ui_Root(void) {
-	TwBar *bar = TwNewBar("Quetoo");
-
-	TwAddButton(bar, "Join Server", Ui_ShowBar, "Join Server", NULL);
-	TwAddButton(bar, "Create Server", Ui_ShowBar, "Create Server", NULL);
-
-	TwAddSeparator(bar, NULL, NULL);
-
-	TwAddButton(bar, "Controls", Ui_ShowBar, "Controls", NULL);
-	TwAddButton(bar, "Player Setup", Ui_ShowBar, "Player Setup", NULL);
-	TwAddButton(bar, "System", Ui_ShowBar, "System", NULL);
-
-	TwAddSeparator(bar, NULL, NULL);
-
-	TwAddButton(bar, "Credits", Ui_ShowBar, "Credits", NULL);
-	TwAddButton(bar, "Quit", Ui_Command, "quit\n", NULL);
-
-	TwDefine("Quetoo size='300 180' alpha=200 iconifiable=false");
-
-	Ui_ShowBar("Quetoo");
-
-	return bar;
-}
-
-/**
- * @brief
- */
-static void Ui_Restart_f(void) {
-
-	Ui_Shutdown();
-
-	Ui_Init();
-}
-
-/**
- * @brief
+ * @brief Initializes the user interface.
  */
 void Ui_Init(void) {
 
-	const TwEnumVal OffOrOn[] = {
-		{ 0, "Off" },
-		{ 1, "On" }
-	};
+	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
 
-	const TwEnumVal OffLowMediumHigh[] = {
-		{ 0, "Off" },
-		{ 1, "Low" },
-		{ 2, "Medium" },
-		{ 3, "High" }
-	};
+	viewController = $((ViewController *) alloc(MainViewController), init);
 
-	memset(&ui, 0, sizeof(ui));
-
-	TwInit(TW_OPENGL, NULL);
-
-	ui.OffOrOn = TwDefineEnum("OnOrOff", OffOrOn, lengthof(OffOrOn));
-	ui.OffLowMediumHigh = TwDefineEnum("OffLowMediumHigh", OffLowMediumHigh, lengthof(OffLowMediumHigh));
-
-	ui.root = Ui_Root();
-	ui.servers = Ui_Servers();
-	ui.create_server = Ui_CreateServer();
-	ui.controls = Ui_Controls();
-	ui.player = Ui_Player();
-	ui.system = Ui_System();
-	ui.credits = Ui_Credits();
-	ui.editor = Ui_Editor();
-
-	Ui_ShowBar("Quetoo");
-
-	Cmd_Add("ui_restart", Ui_Restart_f, CMD_UI, "Restarts the menus subsystem");
+	$(windowController, setViewController, viewController);
 }
 
 /**
- * @brief
+ * @brief Shuts down the user interface.
  */
 void Ui_Shutdown(void) {
 
-	TwTerminate();
+	release(viewController);
+	release(windowController);
 
-	Cmd_RemoveAll(CMD_UI);
+	Mem_FreeTag(MEM_TAG_UI);
 }

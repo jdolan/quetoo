@@ -69,7 +69,6 @@ void Cl_FreeServers(void) {
  * @brief
  */
 void Cl_ParseServerInfo(void) {
-	extern void Ui_AddServer(void);
 	char info[MAX_MSG_SIZE];
 
 	cl_server_info_t *server = Cl_ServerForNetaddr(&net_from);
@@ -97,13 +96,18 @@ void Cl_ParseServerInfo(void) {
 		return;
 	}
 
+	g_strchomp(server->hostname);
+	g_strchomp(server->name);
+	g_strchomp(server->gameplay);
+
 	server->hostname[sizeof(server->hostname) - 1] = '\0';
 	server->name[sizeof(server->name) - 1] = '\0';
 	server->gameplay[sizeof(server->name) - 1] = '\0';
 
 	server->ping = Clamp(quetoo.time - server->ping_time, 1, 999);
 
-	Ui_AddServer();
+	SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
+	SDL_PushEvent(&event);
 }
 
 /**
@@ -136,7 +140,7 @@ void Cl_Ping_f(void) {
 	}
 
 	server->ping_time = quetoo.time;
-	server->ping = 0;
+	server->ping = 999;
 
 	Com_Print("Pinging %s\n", Net_NetaddrToString(&server->addr));
 
@@ -149,12 +153,13 @@ void Cl_Ping_f(void) {
 static void Cl_SendBroadcast(void) {
 	const GList *e = cls.servers;
 
+
 	while (e) { // update old ping times
 		cl_server_info_t *s = (cl_server_info_t *) e->data;
 
 		if (s->source == SERVER_SOURCE_BCAST) {
-			s->ping_time = cls.broadcast_time;
-			s->ping = 0;
+			s->ping_time = quetoo.time;
+			s->ping = 999;
 		}
 
 		e = e->next;
@@ -253,6 +258,11 @@ void Cl_ParseServers(void) {
 
 		e = e->next;
 	}
+
+	// and inform the user interface
+
+	SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
+	SDL_PushEvent(&event);
 }
 
 /**

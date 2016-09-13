@@ -797,7 +797,7 @@ typedef enum {
  * @brief Provides read-write visibility and scene management to the client.
  */
 typedef struct {
-	r_pixel_t x, y, width, height; // in virtual screen coordinates
+	SDL_Rect viewport;
 	vec2_t fov;
 
 	vec3_t origin; // client's view origin, angles, and vectors
@@ -859,14 +859,21 @@ typedef struct {
 } r_view_t;
 
 /**
- * @brief OpenGL context information.
+ * @brief Window and OpenGL context information.
  */
 typedef struct {
+	/**
+	 * @brief The application window.
+	 */
 	SDL_Window *window;
+
+	/**
+	 * @brief The OpenGL 2.1 context.
+	 */
 	SDL_GLContext *context;
 
 	/**
-	 * @brief Window size in actual pixels.
+	 * @brief OpenGL context size in drawable pixels, as reported by SDL_GL_GetDrawableSize.
 	 */
 	r_pixel_t width, height;
 
@@ -874,6 +881,11 @@ typedef struct {
 	 * @brief Window size as reported by SDL_GetWindowSize (High-DPI compatibility).
 	 */
 	r_pixel_t window_width, window_height;
+
+	/**
+	 * @brief True if the application window uses High-DPI (Retina, 4K).
+	 */
+	_Bool high_dpi;
 
 	/**
 	 * @brief True if fullscreen, false if windowed.

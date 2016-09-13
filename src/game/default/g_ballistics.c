@@ -893,16 +893,18 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 		VectorCopy(tr.end, pos);
 	}
 
-	uint8_t color;
-	// use team colors, or client's color
-	if (g_level.teams || g_level.ctf) {
-		if (ent->client->locals.persistent.team == &g_team_good) {
-			color = EFFECT_COLOR_BLUE;
+	uint8_t color = EFFECT_COLOR_DEFAULT;
+	if (ent && ent->client) {
+		// use team colors, or client's color
+		if (g_level.teams || g_level.ctf) {
+			if (ent->client->locals.persistent.team == &g_team_good) {
+				color = EFFECT_COLOR_BLUE;
+			} else {
+				color = EFFECT_COLOR_RED;
+			}
 		} else {
-			color = EFFECT_COLOR_RED;
+			color = ent->client->locals.persistent.color;
 		}
-	} else {
-		color = ent->client->locals.persistent.color;
 	}
 
 	// send rail trail

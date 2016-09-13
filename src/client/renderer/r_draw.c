@@ -149,28 +149,33 @@ void R_DrawCursor(r_pixel_t x, r_pixel_t y) {
  */
 void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 
-	r_draw.font = &r_draw.fonts[1]; // medium is the default font
+	if (name == NULL) {
+		name = "medium";
+	}
 
-	if (name) { // try to find it
-		uint16_t i;
-
-		for (i = 0; i < r_draw.num_fonts; i++) {
-			if (!g_strcmp0(name, r_draw.fonts[i].name)) {
+	uint16_t i;
+	for (i = 0; i < r_draw.num_fonts; i++) {
+		if (!g_strcmp0(name, r_draw.fonts[i].name)) {
+			if (r_context.high_dpi && i < r_draw.num_fonts - 1) {
+				r_draw.font = &r_draw.fonts[i + 1];
+			} else {
 				r_draw.font = &r_draw.fonts[i];
-				break;
 			}
-		}
-
-		if (i == r_draw.num_fonts) {
-			Com_Warn("Unknown font: %s\n", name);
+			break;
 		}
 	}
 
-	if (cw)
-		*cw = r_draw.font->char_width;
+	if (i == r_draw.num_fonts) {
+		Com_Warn("Unknown font: %s\n", name);
+	}
 
-	if (ch)
+	if (cw) {
+		*cw = r_draw.font->char_width;
+	}
+
+	if (ch) {
 		*ch = r_draw.font->char_height;
+	}
 }
 
 /**

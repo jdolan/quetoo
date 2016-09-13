@@ -239,6 +239,15 @@ typedef enum {
  */
 #define MODEL_CLIENT 0xff
 
+/**
+ * @brief Weapon handedness.
+ */
+typedef enum {
+	HAND_CENTER,
+	HAND_RIGHT,
+	HAND_LEFT
+} g_hand_t;
+
 #ifdef __GAME_LOCAL_H__
 
 /**
@@ -627,6 +636,7 @@ typedef struct {
 #define DMG_BULLET		0x4  // damage is from a bullet
 #define DMG_NO_ARMOR	0x8  // armor does not protect from this damage
 #define DMG_NO_GOD		0x10  // armor and god mode have no effect
+
 /**
  * @brief Voting constants.
  */
@@ -682,6 +692,7 @@ typedef struct {
 	char user_info[MAX_USER_INFO_STRING];
 	char net_name[MAX_NET_NAME];
 	char skin[MAX_QPATH];
+	g_hand_t hand;
 
 	g_team_t *team; // current team (good/evil)
 	int32_t color; // weapon effect colors

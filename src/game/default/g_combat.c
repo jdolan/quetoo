@@ -223,6 +223,9 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 			case GAME_INSTAGIB:
 			case GAME_ARENA:
 				damage = 0;
+				break;
+			default:
+				break;
 		}
 	}
 

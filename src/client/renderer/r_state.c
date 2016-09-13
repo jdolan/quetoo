@@ -26,7 +26,11 @@ static cvar_t *r_get_error;
 r_state_t r_state;
 
 const vec_t default_texcoords[] = { // useful for particles, pics, etc..
-		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 };
+	0.0, 0.0,
+	1.0, 0.0,
+	1.0, 1.0,
+	0.0, 1.0
+};
 
 /**
  * @brief Queries OpenGL for any errors and prints them as warnings.
@@ -96,8 +100,8 @@ void R_SelectTexture(r_texunit_t *texunit) {
 
 	qglActiveTexture(texunit->texture);
 
-	if (texunit == &texunit_diffuse|| texunit == &texunit_lightmap)
-	qglClientActiveTexture(texunit->texture);
+	if (texunit == &texunit_diffuse || texunit == &texunit_lightmap)
+		qglClientActiveTexture(texunit->texture);
 }
 
 /**
@@ -555,7 +559,7 @@ void R_UseMaterial(const r_material_t *material) {
 }
 
 #define NEAR_Z 4.0
-#define FAR_Z 16384.0
+#define FAR_Z  (MAX_WORLD_COORD * 4.0)
 
 /**
  * @brief Prepare OpenGL for drawing the 3D scene. Update the view-port definition
@@ -563,16 +567,17 @@ void R_UseMaterial(const r_material_t *material) {
  */
 void R_Setup3D(void) {
 
-	if (!r_view.width || !r_view.height)
+	if (!r_context.context)
 		return;
 
-	glViewport(r_view.x, r_view.y, r_view.width, r_view.height);
+	const SDL_Rect *viewport = &r_view.viewport;
+	glViewport(viewport->x, viewport->y, viewport->w, viewport->h);
 
 	// set up projection matrix
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	const vec_t aspect = (vec_t) r_view.width / (vec_t) r_view.height;
+	const vec_t aspect = (vec_t) viewport->w / (vec_t) viewport->h;
 
 	const vec_t ymax = NEAR_Z * tan(Radians(r_view.fov[1]));
 	const vec_t ymin = -ymax;
@@ -587,11 +592,11 @@ void R_Setup3D(void) {
 	glLoadIdentity();
 
 	glRotatef(-90.0, 1.0, 0.0, 0.0); // put Z going up
-	glRotatef(90.0, 0.0, 0.0, 1.0); // put Z going up
+	glRotatef( 90.0, 0.0, 0.0, 1.0); // put Z going up
 
-	glRotatef(-r_view.angles[ROLL], 1.0, 0.0, 0.0);
+	glRotatef(-r_view.angles[ROLL],  1.0, 0.0, 0.0);
 	glRotatef(-r_view.angles[PITCH], 0.0, 1.0, 0.0);
-	glRotatef(-r_view.angles[YAW], 0.0, 0.0, 1.0);
+	glRotatef(-r_view.angles[YAW],   0.0, 0.0, 1.0);
 
 	glTranslatef(-r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
 

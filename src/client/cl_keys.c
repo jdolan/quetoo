@@ -48,7 +48,12 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 	}
 
 	switch (dest) {
-		case KEY_UI:
+		case KEY_UI: {
+			SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
+			SDL_PushEvent(&event);
+		}
+			SDL_StopTextInput();
+			break;
 		case KEY_CONSOLE:
 		case KEY_CHAT:
 			SDL_StartTextInput();
@@ -57,7 +62,9 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 			const r_pixel_t cx = r_context.window_width * 0.5;
 			const r_pixel_t cy = r_context.window_height * 0.5;
 
+			SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 			SDL_WarpMouseInWindow(r_context.window, cx, cy);
+			SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
 		}
 			SDL_StopTextInput();
 			break;
@@ -66,75 +73,6 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 	SDL_FlushEvent(SDL_TEXTINPUT);
 
 	cls.key_state.dest = dest;
-}
-
-/**
- * @brief Execute any system-level binds, regardless of key state. This enables e.g.
- * toggling of the console, toggling fullscreen, etc.
- */
-static _Bool Cl_KeySystem(const SDL_Event *event) {
-
-	if (event->type == SDL_KEYUP) { // don't care
-		return false;
-	}
-
-	if (event->key.keysym.sym == SDLK_ESCAPE) { // escape can cancel a few things
-
-		// connecting to a server
-		switch (cls.state) {
-			case CL_CONNECTING:
-			case CL_CONNECTED:
-				Com_Error(ERR_DROP, "Connection aborted by user\n");
-				break;
-			case CL_LOADING:
-				return false;
-			default:
-				break;
-		}
-
-		// message mode
-		if (cls.key_state.dest == KEY_CHAT) {
-			Cl_SetKeyDest(KEY_GAME);
-			return true;
-		}
-
-		// console
-		if (cls.key_state.dest == KEY_CONSOLE) {
-			Cl_ToggleConsole_f();
-			return true;
-		}
-
-		// and menus
-		if (cls.key_state.dest == KEY_UI) {
-
-			// if we're in the game, just hide the menus
-			if (cls.state == CL_ACTIVE) {
-				Cl_SetKeyDest(KEY_GAME);
-			}
-
-			return true;
-		}
-
-		Cl_SetKeyDest(KEY_UI);
-		return true;
-	}
-
-	// for everything other than ESC, check for system-level command binds
-
-	SDL_Scancode key = event->key.keysym.scancode;
-	if (cls.key_state.binds[key]) {
-		cmd_t *cmd;
-
-		if ((cmd = Cmd_Get(cls.key_state.binds[key]))) {
-			if (cmd->flags & CMD_SYSTEM) {
-				Cbuf_AddText(cls.key_state.binds[key]);
-				Cbuf_Execute();
-				return true;
-			}
-		}
-	}
-
-	return false;
 }
 
 /**
@@ -374,7 +312,7 @@ const char *Cl_KeyName(SDL_Scancode key) {
 /**
  * @brief Returns the number for the specified key name.
  */
-SDL_Scancode Cl_Key(const char *name) {
+SDL_Scancode Cl_KeyForName(const char *name) {
 
 	if (!name || !name[0]) {
 		return SDL_NUM_SCANCODES;
@@ -391,9 +329,23 @@ SDL_Scancode Cl_Key(const char *name) {
 }
 
 /**
+ * @brief Returns the key bound to the given command.
+ */
+SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
+
+	for (SDL_Scancode k = from + 1; k < SDL_NUM_SCANCODES; k++) {
+		if (g_strcmp0(binding, cls.key_state.binds[k]) == 0) {
+			return k;
+		}
+	}
+
+	return SDL_SCANCODE_UNKNOWN;
+}
+
+/**
  * @brief Binds the specified key to the given command.
  */
-void Cl_Bind(SDL_Scancode key, const char *binding) {
+void Cl_Bind(SDL_Scancode key, const char *bind) {
 
 	if (key == SDL_SCANCODE_UNKNOWN || key >= SDL_NUM_SCANCODES)
 		return;
@@ -404,13 +356,14 @@ void Cl_Bind(SDL_Scancode key, const char *binding) {
 		cls.key_state.binds[key] = NULL;
 	}
 
-	if (!binding)
+	if (!bind)
 		return;
 
 	// allocate for new binding and copy it in
-	cls.key_state.binds[key] = Mem_TagMalloc(strlen(binding) + 1, MEM_TAG_CLIENT);
-	strcpy(cls.key_state.binds[key], binding);
+	cls.key_state.binds[key] = Mem_TagMalloc(strlen(bind) + 1, MEM_TAG_CLIENT);
+	strcpy(cls.key_state.binds[key], bind);
 }
+
 
 /**
  * @brief
@@ -422,7 +375,7 @@ static void Cl_Unbind_f(void) {
 		return;
 	}
 
-	const SDL_Scancode k = Cl_Key(Cmd_Argv(1));
+	const SDL_Scancode k = Cl_KeyForName(Cmd_Argv(1));
 
 	if (k == SDL_NUM_SCANCODES) {
 		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
@@ -456,7 +409,7 @@ static void Cl_Bind_f(void) {
 		return;
 	}
 
-	const SDL_Scancode k = Cl_Key(Cmd_Argv(1));
+	const SDL_Scancode k = Cl_KeyForName(Cmd_Argv(1));
 
 	if (k == SDL_NUM_SCANCODES) {
 		Com_Print("\"%s\" isn't a valid key\n", Cmd_Argv(1));
@@ -558,16 +511,9 @@ void Cl_ShutdownKeys(void) {
  */
 void Cl_KeyEvent(const SDL_Event *event) {
 
-	// check for system commands first, swallowing such events
-	if (Cl_KeySystem(event)) {
-		return;
-	}
-
 	switch (cls.key_state.dest) {
 		case KEY_GAME:
 			Cl_KeyGame(event);
-			break;
-		case KEY_UI:
 			break;
 		case KEY_CHAT:
 			Cl_KeyChat(event);

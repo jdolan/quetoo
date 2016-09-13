@@ -120,7 +120,7 @@ typedef struct {
 	cm_bsp_plane_t plane;
 
 	/**
-	 * @brief The impacted surface, or NULL.
+	 * @brief The impacted surface, or `NULL`.
 	 */
 	cm_bsp_surface_t *surface;
 
@@ -130,7 +130,7 @@ typedef struct {
 	int32_t contents;
 
 	/**
-	 * @brief The impacted entity, or NULL.
+	 * @brief The impacted entity, or `NULL`.
 	 */
 	struct g_entity_s *ent; // not set by Cm_*() functions
 } cm_trace_t;

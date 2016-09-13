@@ -65,14 +65,32 @@ void Cl_RequestNextDownload(void) {
 
 
 /**
- * @brief Fs_Enumerate function for Cl_LoadingBackground.
+ * @brief Fs_Enumerate function for Cl_Mapshots.
  */
-static void Cl_LoadingBackground_enumerate(const char *path, void *data) {
+static void Cl_Mapshots_enumerate(const char *path, void *data) {
 	GList **list = (GList **) data;
 
 	if (g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".png")) {
-		*list = g_list_append(*list, g_strdup(path));
+
+		char name[MAX_QPATH];
+		StripExtension(path, name);
+
+		*list = g_list_append(*list, g_strdup(name));
 	}
+}
+
+/**
+ * @return A GList of known mapshots for the given map.
+ */
+GList *Cl_Mapshots(const char *mapname) {
+
+	char map[MAX_QPATH];
+	StripExtension(mapname, map);
+
+	GList *list = NULL;
+	Fs_Enumerate(va("mapshots/%s/*", Basename(map)), Cl_Mapshots_enumerate, (void *) &list);
+
+	return list;
 }
 
 /**
@@ -81,11 +99,7 @@ static void Cl_LoadingBackground_enumerate(const char *path, void *data) {
 static r_image_t *Cl_LoadingBackground() {
 	r_image_t *image = NULL;
 
-	char map[MAX_QPATH];
-	StripExtension(cl.config_strings[CS_MODELS], map);
-
-	GList *list = NULL;
-	Fs_Enumerate(va("mapshots/%s/*", Basename(map)), Cl_LoadingBackground_enumerate, (void *) &list);
+	GList *list = Cl_Mapshots(cl.config_strings[CS_MODELS]);
 
 	const size_t len = g_list_length(list);
 	if (len > 0) {
@@ -186,12 +200,12 @@ void Cl_DrawLoading(void) {
 	R_DrawString(px, y, percent, CON_COLOR_DEFAULT);
 
 	// and finally the status detail
-	R_BindFont("small", &cw, &ch);
+	R_BindFont("small", NULL, NULL);
 
 	const char *status = va("Loading %s..", cls.loading.status);
 
 	const r_pixel_t sx = (r_context.width - R_StringWidth(status)) / 2;
-	const r_pixel_t sy = y + 48;
+	const r_pixel_t sy = y + ch * 2 + 2;
 
 	R_DrawString(sx, sy, status, CON_COLOR_DEFAULT);
 

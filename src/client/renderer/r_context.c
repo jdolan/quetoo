@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <ObjectivelyMVC/Types.h>
+
 #include "r_local.h"
 
 r_context_t r_context;
@@ -65,7 +67,11 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
 
-	uint32_t flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /*| SDL_WINDOW_ALLOW_HIGHDPI*/;
+	uint32_t flags = SDL_WINDOW_OPENGL;
+
+	if (r_allow_high_dpi->integer) {
+		flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+	}
 
 	if (r_fullscreen->integer) {
 		w = MAX(0, r_width->integer);
@@ -88,12 +94,13 @@ void R_InitContext(void) {
 
 	Com_Print("  Trying %dx%d..\n", w, h);
 
-	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
+	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
+			SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
 	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
-		Com_Error(ERR_FATAL, "Failed to create GL context: %s\n", SDL_GetError());
+		Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 	}
 
 	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
@@ -104,19 +111,29 @@ void R_InitContext(void) {
 		Com_Warn("Failed to set gamma %1.1f: %s\n", r_gamma->value, SDL_GetError());
 	}
 
-//	SDL_GL_GetDrawableSize(r_context.window, &w, &h);
+	int32_t dw, dh;
+	SDL_GL_GetDrawableSize(r_context.window, &dw, &dh);
 
-	r_context.width = w;
-	r_context.height = h;
+	r_context.width = dw;
+	r_context.height = dh;
 
-//	SDL_GetWindowSize(r_context.window, &w, &h);
+	int32_t ww, wh;
+	SDL_GetWindowSize(r_context.window, &ww, &wh);
 
-	r_context.window_width = w;
-	r_context.window_height = h;
+	r_context.window_width = ww;
+	r_context.window_height = wh;
+
+	r_context.high_dpi = dw > ww && dh > wh;
 
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
 
 	R_SetWindowIcon();
+
+	SDL_Event event = {
+		.type = MVC_EVENT_RENDER_DEVICE_RESET
+	};
+
+	SDL_PushEvent(&event);
 }
 
 /**

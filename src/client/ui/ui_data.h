@@ -22,20 +22,16 @@
 #ifndef __UI_DATA_H__
 #define __UI_DATA_H__
 
-#include "ui_types.h"
+#include <ObjectivelyMVC.h>
 
-#ifdef __UI_LOCAL_H__
+#include "cvar.h"
 
-size_t Ui_EnumLength(const TwEnumVal *values);
-
-void Ui_CvarText(TwBar *bar, const char *name, cvar_t *var, const char *def);
-void Ui_CvarInteger(TwBar *bar, const char *name, cvar_t *var, const char *def);
-void Ui_CvarEnum(TwBar *bar, const char *name, cvar_t *var, TwType type, const char *def);
-void Ui_CvarSelect(TwBar *bar, const char *name, cvar_t *var, TwType type, const TwEnumVal *values, const char *def);
-void Ui_CvarDecimal(TwBar *bar, const char *name, cvar_t *var, const char *def);
-void TW_CALL Ui_Command(void *data);
-void Ui_Bind(TwBar *bar, const char *name, const char *bind, const char *def);
-
-#endif /* __UI_LOCAL_H__ */
+extern void Ui_Bind(View *view, const char *name, const char *bind);
+extern void Ui_Button(View *view, const char *title, ActionFunction function, ident sender, ident data);
+extern void Ui_CvarCheckbox(View *view, const char *name, cvar_t *var);
+extern void Ui_CvarSlider(View *view, const char *name, cvar_t *var, double min, double max, double step);
+extern void Ui_CvarTextView(View *view, const char *name, cvar_t *var);
+extern void Ui_Input(View *view, const char *name, Control *control);
+extern void Ui_PrimaryButton(View *view, const char *name, ActionFunction action, ident sender, ident data);
 
 #endif /* __UI_DATA_H__ */

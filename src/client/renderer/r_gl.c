@@ -24,15 +24,15 @@
 void (APIENTRY *qglActiveTexture)(GLenum texture);
 void (APIENTRY *qglClientActiveTexture)(GLenum texture);
 
-void (APIENTRY *qglGenBuffers)(GLuint count, GLuint *id);
-void (APIENTRY *qglDeleteBuffers)(GLuint count, GLuint *id);
+void (APIENTRY *qglGenBuffers)(GLuint count, GLuint *ids);
+void (APIENTRY *qglDeleteBuffers)(GLuint count, GLuint *ids);
 void (APIENTRY *qglBindBuffer)(GLenum target, GLuint id);
 void (APIENTRY *qglBufferData)(GLenum target, GLsizei size, const GLvoid *data, GLenum usage);
 
 void (APIENTRY *qglEnableVertexAttribArray)(GLuint index);
 void (APIENTRY *qglDisableVertexAttribArray)(GLuint index);
 void (APIENTRY *qglVertexAttribPointer)(GLuint index, GLint size, GLenum type, GLboolean normalized,
-		GLsizei stride, const GLvoid *pointer);
+										GLsizei stride, const GLvoid *pointer);
 
 GLuint (APIENTRY *qglCreateShader)(GLenum type);
 void (APIENTRY *qglDeleteShader)(GLuint id);
@@ -54,7 +54,7 @@ void (APIENTRY *qglUniform1f)(GLint location, GLfloat f);
 void (APIENTRY *qglUniform3fv)(GLint location, int32_t count, GLfloat *f);
 void (APIENTRY *qglUniform4fv)(GLint location, int32_t count, GLfloat *f);
 void (APIENTRY *qglUniformMatrix4fv)(GLint location, GLsizei count, GLboolean transpose,
-		const GLfloat *value);
+									 const GLfloat *value);
 GLint (APIENTRY *qglGetAttribLocation)(GLuint id, const GLchar *name);
 
 /**

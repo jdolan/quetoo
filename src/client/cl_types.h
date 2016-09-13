@@ -62,8 +62,8 @@ typedef struct {
 
 	uint32_t time; // for intermittent effects
 
-	cl_entity_animation_t animation1; // upper body animation
-	cl_entity_animation_t animation2; // lower body animation
+	cl_entity_animation_t animation1; // torso animation
+	cl_entity_animation_t animation2; // legs animation
 
 	vec3_t origin; // interpolated origin
 	vec3_t termination; // and termination
@@ -84,11 +84,11 @@ typedef struct {
 	r_model_t *head;
 	r_material_t *head_skins[MD3_MAX_MESHES];
 
-	r_model_t *upper;
-	r_material_t *upper_skins[MD3_MAX_MESHES];
+	r_model_t *torso;
+	r_material_t *torso_skins[MD3_MAX_MESHES];
 
-	r_model_t *lower;
-	r_material_t *lower_skins[MD3_MAX_MESHES];
+	r_model_t *legs;
+	r_material_t *legs_skins[MD3_MAX_MESHES];
 
 	r_image_t *icon; // for the scoreboard
 } cl_client_info_t;
@@ -245,8 +245,8 @@ typedef struct {
 } cl_chat_state_t;
 
 typedef struct {
-	vec_t x, y;
-	vec_t old_x, old_y;
+	int32_t x, y;
+	int32_t old_x, old_y;
 	_Bool grabbed;
 } cl_mouse_state_t;
 

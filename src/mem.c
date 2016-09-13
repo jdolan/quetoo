@@ -83,19 +83,21 @@ static void Mem_Free_(mem_block_t *b) {
  * automatically freed as well.
  */
 void Mem_Free(void *p) {
-	mem_block_t *b = Mem_CheckMagic(p);
+	if (p) {
+		mem_block_t *b = Mem_CheckMagic(p);
 
-	SDL_mutexP(mem_state.lock);
+		SDL_mutexP(mem_state.lock);
 
-	if (b->parent) {
-		b->parent->children = g_list_remove(b->parent->children, b);
-	} else {
-		g_hash_table_remove(mem_state.blocks, (gconstpointer) b);
+		if (b->parent) {
+			b->parent->children = g_list_remove(b->parent->children, b);
+		} else {
+			g_hash_table_remove(mem_state.blocks, (gconstpointer) b);
+		}
+
+		Mem_Free_(b);
+
+		SDL_mutexV(mem_state.lock);
 	}
-
-	Mem_Free_(b);
-
-	SDL_mutexV(mem_state.lock);
 }
 
 /**
@@ -141,6 +143,7 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 	if (!(b = calloc(s, 1))) {
 		fprintf(stderr, "Failed to allocate %u bytes\n", (uint32_t) s);
 		raise(SIGABRT);
+		return NULL;
 	}
 
 	b->magic = MEM_MAGIC;

@@ -116,16 +116,16 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const
  */
 static _Bool Cg_ValidateClient(cl_client_info_t *ci) {
 
-	if (!ci->head || !ci->upper || !ci->lower)
+	if (!ci->head || !ci->torso || !ci->legs)
 		return false;
 
-	if (!ci->head_skins[0] || !ci->upper_skins[0] || !ci->lower_skins[0])
+	if (!ci->head_skins[0] || !ci->torso_skins[0] || !ci->legs_skins[0])
 		return false;
 
-	VectorCopy(PM_MINS, ci->lower->mins);
-	VectorCopy(PM_MAXS, ci->lower->maxs);
+	VectorCopy(PM_MINS, ci->legs->mins);
+	VectorCopy(PM_MAXS, ci->legs->maxs);
 
-	ci->lower->radius = (ci->lower->maxs[2] - ci->lower->mins[2]) / 2.0;
+	ci->legs->radius = (ci->legs->maxs[2] - ci->legs->mins[2]) / 2.0;
 
 	return true;
 }
@@ -180,13 +180,13 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 		}
 
 		g_snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
-		if ((ci->upper = cgi.LoadModel(path))) {
-			Cg_LoadClientSkins(ci->upper, ci->upper_skins, ci->skin);
+		if ((ci->torso = cgi.LoadModel(path))) {
+			Cg_LoadClientSkins(ci->torso, ci->torso_skins, ci->skin);
 		}
 
 		g_snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
-		if ((ci->lower = cgi.LoadModel(path))) {
-			Cg_LoadClientSkins(ci->lower, ci->lower_skins, ci->skin);
+		if ((ci->legs = cgi.LoadModel(path))) {
+			Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin);
 		}
 
 		g_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
@@ -258,6 +258,11 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
  * animation in the sequence.
  */
 static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e) {
+	static const cvar_t *time_scale;
+
+	if (time_scale == NULL) {
+		time_scale = cgi.Cvar("time_scale", NULL, 0, NULL);
+	}
 
 	e->frame = e->old_frame = 0;
 	e->lerp = 1.0;
@@ -275,7 +280,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 		return;
 	}
 
-	const uint32_t frame_time = 1000 / anim->hz;
+	const uint32_t frame_time = (1000 / time_scale->value) / anim->hz;
 	const uint32_t animation_time = anim->num_frames * frame_time;
 	const uint32_t elapsed_time = cgi.client->systime - a->time;
 	uint16_t frame = elapsed_time / frame_time;
@@ -322,8 +327,8 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
  * @brief Runs the animation sequences for the specified entity, setting the frame
  * indexes and interpolation fractions for the specified renderer entities.
  */
-void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower) {
-	const r_md3_t *md3 = (r_md3_t *) upper->model->mesh->data;
+void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *torso, r_entity_t *legs) {
+	const r_md3_t *md3 = (r_md3_t *) torso->model->mesh->data;
 
 	// do the torso animation
 	if (e->current.animation1 != e->prev.animation1 || !e->animation1.time) {
@@ -332,7 +337,7 @@ void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower
 		e->animation1.time = cgi.client->systime;
 	}
 
-	Cg_AnimateClientEntity_(md3, &e->animation1, upper);
+	Cg_AnimateClientEntity_(md3, &e->animation1, torso);
 
 	// and then the legs
 	if (e->current.animation2 != e->prev.animation2 || !e->animation2.time) {
@@ -341,5 +346,5 @@ void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *upper, r_entity_t *lower
 		e->animation2.time = cgi.client->systime;
 	}
 
-	Cg_AnimateClientEntity_(md3, &e->animation2, lower);
+	Cg_AnimateClientEntity_(md3, &e->animation2, legs);
 }

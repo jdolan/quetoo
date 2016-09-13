@@ -124,7 +124,7 @@ void R_RegisterMedia(r_media_t *media) {
  * @brief Resolves the specified media if it is already known. The returned
  * media is re-registered for convenience.
  *
- * @return r_media_t The media, or NULL.
+ * @return r_media_t The media, or `NULL`.
  */
 r_media_t *R_FindMedia(const char *name) {
 	r_media_t *media;

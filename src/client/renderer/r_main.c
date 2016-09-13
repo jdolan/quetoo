@@ -44,6 +44,7 @@ cvar_t *r_draw_bsp_lights;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_wireframe;
 
+cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
 cvar_t *r_brightness;
 cvar_t *r_bumpmap;
@@ -247,8 +248,12 @@ static void R_Clear(void) {
 	if (r_shadows->value)
 		bits |= GL_STENCIL_BUFFER_BIT;
 
-	// clear the color buffer if desired or necessary
-	if (r_clear->value || r_draw_wireframe->value || r_view.x || r_view.y)
+	// clear the color buffer if requested
+	if (r_clear->value || r_draw_wireframe->value)
+		bits |= GL_COLOR_BUFFER_BIT;
+
+	// or if the viewport does not occupy the entire context
+	if (r_view.viewport.x || r_view.viewport.y)
 		bits |= GL_COLOR_BUFFER_BIT;
 
 	// or if the client is not fully loaded
@@ -424,6 +429,8 @@ static void R_InitLocal(void) {
 			"Controls the rendering of polygons as wireframe (developer tool)");
 
 	// settings and preferences
+	r_allow_high_dpi = Cvar_Get("r_allow_high_dpi", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
+			"Enables or disables support for High-DPI (Retina, 4K) display modes");
 	r_anisotropy = Cvar_Get("r_anisotropy", "1", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls anisotropic texture filtering");
 	r_brightness = Cvar_Get("r_brightness", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,

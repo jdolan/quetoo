@@ -28,49 +28,33 @@ r_mesh_state_t r_mesh_state;
  * view configuration structure.
  */
 void R_ApplyMeshModelConfig(r_entity_t *e) {
+
+	assert(IS_MESH_MODEL(e->model));
+
 	const r_mesh_config_t *c;
-	vec3_t translate;
-	int32_t i;
-
-	// translation is applied differently for view weapons
 	if (e->effects & EF_WEAPON) {
-
-		// apply weapon bob on all 3 axis
-		vec_t b = r_view.bob * 0.4;
-
 		c = e->model->mesh->view_config;
-
-		VectorMA(e->origin, c->translate[0] + b, r_view.forward, e->origin);
-		VectorMA(e->origin, 6.0, r_view.right, e->origin);
-
-		b = r_view.bob * 0.25;
-
-		VectorMA(e->origin, c->translate[1] + b, r_view.right, e->origin);
-		VectorMA(e->origin, c->translate[2] + b, r_view.up, e->origin);
-	} else { // versus world and linked entities
-
-		if (e->parent)
-			c = e->model->mesh->link_config;
-		else
-			c = e->model->mesh->world_config;
-
-		// normalize the config's translation to the entity scale
-		for (i = 0; i < 3; i++)
-			translate[i] = c->translate[i] * e->scale;
-
-		// and add it to the origin
-		VectorAdd(e->origin, translate, e->origin);
+	} else if (e->parent) {
+		c = e->model->mesh->link_config;
+	} else {
+		c = e->model->mesh->world_config;
 	}
 
-	// apply scale
-	e->scale *= c->scale;
+	Matrix4x4_ConcatTranslate(&e->matrix, c->translate[0], c->translate[1], c->translate[2]);
+	Matrix4x4_ConcatScale(&e->matrix, c->scale);
 
-	// lastly apply effects
+	if (e->effects & EF_WEAPON) {
+		vec3_t bob = { 0.2, 0.6, 0.3 };
+		VectorScale(bob, r_view.bob, bob);
+
+		Matrix4x4_ConcatTranslate(&e->matrix, bob[0], bob[1], bob[2]);
+	}
+
 	e->effects |= c->flags;
 }
 
 /**
- * @brief Returns the desired tag structure, or NULL.
+ * @brief Returns the desired tag structure, or `NULL`.
  */
 static const r_md3_tag_t *R_GetMeshModelTag(const r_model_t *mod, int32_t frame, const char *name) {
 
@@ -81,9 +65,8 @@ static const r_md3_tag_t *R_GetMeshModelTag(const r_model_t *mod, int32_t frame,
 
 	const r_md3_t *md3 = (r_md3_t *) mod->mesh->data;
 	const r_md3_tag_t *tag = &md3->tags[frame * md3->num_tags];
-	int32_t i;
 
-	for (i = 0; i < md3->num_tags; i++, tag++) {
+	for (int32_t i = 0; i < md3->num_tags; i++, tag++) {
 		if (!g_strcmp0(name, tag->name)) {
 			return tag;
 		}

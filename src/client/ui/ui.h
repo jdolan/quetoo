@@ -22,27 +22,8 @@
 #ifndef __UI_H__
 #define __UI_H__
 
-#if defined(__APPLE__)
-#define _MACOSX
-#elif defined(__linux__)
-#define _UNIX
-#elif defined(_WIN32)
-#define _WINDOWS
-#define TW_STATIC
-#endif
-
-#include "deps/AntTweakBar/include/AntTweakBar.h"
-
-#include "ui_controls.h"
-#include "ui_create_server.h"
-#include "ui_credits.h"
 #include "ui_data.h"
-#include "ui_editor.h"
 #include "ui_main.h"
-#include "ui_misc.h"
-#include "ui_player.h"
-#include "ui_servers.h"
-#include "ui_system.h"
 #include "ui_types.h"
 
 #endif /* __UI_H__ */

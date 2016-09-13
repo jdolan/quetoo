@@ -45,13 +45,13 @@ _Bool Cg_IsSelf(const cl_entity_t *ent) {
 
 /**
  * @brief Adds the numerous render entities which comprise a given client (player)
- * entity: head, upper, lower, weapon, flags, etc.
+ * entity: head, torso, legs, weapon, flags, etc.
  */
 static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	const entity_state_t *s = &ent->current;
 
 	const cl_client_info_t *ci = &cgi.client->client_info[s->client];
-	if (!ci->head || !ci->upper || !ci->lower) {
+	if (!ci->head || !ci->torso || !ci->legs) {
 		cgi.Debug("Invalid client info: %d\n", s->client);
 		return;
 	}
@@ -71,26 +71,26 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		}
 	}
 
-	r_entity_t head, upper, lower;
+	r_entity_t head, torso, legs;
 
 	// copy the specified entity to all body segments
-	head = upper = lower = *e;
+	head = torso = legs = *e;
 
 	head.model = ci->head;
 	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
 
-	upper.model = ci->upper;
-	memcpy(upper.skins, ci->upper_skins, sizeof(upper.skins));
+	torso.model = ci->torso;
+	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
 
-	lower.model = ci->lower;
-	memcpy(lower.skins, ci->lower_skins, sizeof(lower.skins));
+	legs.model = ci->legs;
+	memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
 
-	Cg_AnimateClientEntity(ent, &upper, &lower);
+	Cg_AnimateClientEntity(ent, &torso, &legs);
 
-	upper.parent = cgi.AddEntity(&lower);
-	upper.tag_name = "tag_torso";
+	torso.parent = cgi.AddEntity(&legs);
+	torso.tag_name = "tag_torso";
 
-	head.parent = cgi.AddEntity(&upper);
+	head.parent = cgi.AddEntity(&torso);
 	head.tag_name = "tag_head";
 
 	cgi.AddEntity(&head);
@@ -144,6 +144,7 @@ static void Cg_WeaponKick(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 	static r_entity_t w;
 	static r_lighting_t lighting;
+	static const cvar_t *hand;
 	vec3_t offset, angles;
 
 	const player_state_t *ps = &cgi.client->frame.ps;
@@ -168,6 +169,21 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 	Cg_WeaponKick(ent, offset, angles);
 
 	VectorCopy(cgi.view->origin, w.origin);
+
+	if (hand == NULL) {
+		hand = cgi.Cvar("hand", NULL, 0, NULL);
+	}
+
+	switch (hand->integer) {
+		case HAND_LEFT:
+			offset[1] -= 6.0;
+			break;
+		case HAND_RIGHT:
+			offset[1] += 6.0;
+			break;
+		default:
+			break;
+	}
 
 	VectorMA(w.origin, offset[2], cgi.view->up, w.origin);
 	VectorMA(w.origin, offset[1], cgi.view->right, w.origin);

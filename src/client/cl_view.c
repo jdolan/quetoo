@@ -54,11 +54,11 @@ static void Cl_UpdateViewSize(void) {
 
 	const int32_t size = cl_view_size->value;
 
-	r_view.width = r_context.width * size / 100.0;
-	r_view.height = r_context.height * size / 100.0;
+	r_view.viewport.w = r_context.width * size / 100.0;
+	r_view.viewport.h = r_context.height * size / 100.0;
 
-	r_view.x = (r_context.width - r_view.width) / 2.0;
-	r_view.y = (r_context.height - r_view.height) / 2.0;
+	r_view.viewport.x = (r_context.width - r_view.viewport.w) / 2.0;
+	r_view.viewport.y = (r_context.height - r_view.viewport.h) / 2.0;
 
 	cl_view_size->modified = false;
 }

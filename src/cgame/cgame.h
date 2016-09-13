@@ -138,6 +138,7 @@ typedef struct cg_export_s {
 	void (*ClearState)(void);
 	void (*UpdateMedia)(void);
 	void (*UpdateConfigString)(uint16_t index);
+	void (*LoadClient)(cl_client_info_t *cl, const char *s);
 
 	_Bool (*ParseMessage)(int32_t cmd);
 	void (*PredictMovement)(const GList *cmds);

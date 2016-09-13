@@ -49,7 +49,7 @@ _Bool Cl_UsePrediction(void) {
  * @brief Prepares the collision model to clip to the specified entity. For
  * mesh models, the box hull must be set to reflect the bounds of the entity.
  *
- * @remark The server only informs us of `SOLID_BSP` and `SOLID_BOX`. Everything
+ * @remarks The server only informs us of `SOLID_BSP` and `SOLID_BOX`. Everything
  * else is `SOLID_NOT` to the client.
  */
 static int32_t Cl_HullForEntity(const entity_state_t *ent) {

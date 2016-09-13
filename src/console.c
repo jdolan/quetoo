@@ -33,12 +33,14 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 	console_string_t *str = g_new0(console_string_t, 1);
 	if (str == NULL) {
 		raise(SIGABRT);
+		return NULL;
 	}
 
 	str->level = level;
 	str->chars = g_strdup(string ?: "");
 	if (str->chars == NULL) {
 		raise(SIGABRT);
+		return NULL;
 	}
 
 	str->size = strlen(str->chars);
@@ -190,7 +192,7 @@ void Con_Append(int32_t level, const char *string) {
  *
  * @return The number of line offsets.
  *
- * @remark If `lines` is `NULL`, this function simply counts the number of
+ * @remarks If `lines` is `NULL`, this function simply counts the number of
  * wrapped lines in `chars`.
  */
 size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_lines) {

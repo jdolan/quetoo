@@ -80,7 +80,7 @@ const g_item_t *G_FindItem(const char *name) {
 }
 
 /**
- * @return The strongest armor item held by the specified client, or NULL. This
+ * @return The strongest armor item held by the specified client, or `NULL`. This
  * will never return the shard armor, because shards are added to the currently
  * held armor type, or to jacket armor if no armor is held.
  */

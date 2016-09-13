@@ -125,7 +125,7 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 		return;
 	}
 
-	const uint64_t bit = (uint64_t) (1 << (l - r_view.lights));
+	const uint64_t bit = ((uint64_t) 1 << (l - r_view.lights));
 
 	// mark all surfaces in this node
 	r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces + node->first_surface;
@@ -190,7 +190,7 @@ void R_EnableLights(uint64_t mask) {
 			if (j == MAX_ACTIVE_LIGHTS)
 				break;
 
-			const uint64_t bit = ((uint64_t) (1 << i));
+			const uint64_t bit = ((uint64_t ) 1 << i);
 			if (mask & bit) {
 
 				VectorCopy(l->origin, position);

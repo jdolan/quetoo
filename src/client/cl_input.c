@@ -255,9 +255,9 @@ static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs,
 	g_strlcpy(tmp, dest + ofs, sizeof(tmp));
 	dest[ofs] = '\0';
 
-	size_t i = g_strlcat(dest, src, len);
+	const size_t i = g_strlcat(dest, src, len);
 	if (i < len) {
-		i = g_strlcat(dest, tmp, len);
+		g_strlcat(dest, tmp, len);
 	}
 
 	return strlen(dest) - l;
@@ -284,12 +284,80 @@ static void Cl_TextEvent(const SDL_Event *event) {
 }
 
 /**
+ * @brief Handles system events, spanning all key destinations.
+ *
+ * @return True if the event was handled, false otherwise.
+ */
+static _Bool Cl_HandleSystemEvent(const SDL_Event *event) {
+
+	if (event->type != SDL_KEYDOWN) { // don't care
+		return false;
+	}
+
+	if (event->key.keysym.sym == SDLK_ESCAPE) { // escape can cancel a few things
+
+		// connecting to a server
+		switch (cls.state) {
+			case CL_CONNECTING:
+			case CL_CONNECTED:
+				Com_Error(ERR_DROP, "Connection aborted by user\n");
+				break;
+			case CL_LOADING:
+				return false;
+			default:
+				break;
+		}
+
+		// message mode
+		if (cls.key_state.dest == KEY_CHAT) {
+			Cl_SetKeyDest(KEY_GAME);
+			return true;
+		}
+
+		// console
+		if (cls.key_state.dest == KEY_CONSOLE) {
+			Cl_ToggleConsole_f();
+			return true;
+		}
+
+		// and menus
+		if (cls.key_state.dest == KEY_UI) {
+
+			// if we're in the game, just hide the menus
+			if (cls.state == CL_ACTIVE) {
+				Cl_SetKeyDest(KEY_GAME);
+				return true;
+			}
+
+			return false;
+		}
+
+		Cl_SetKeyDest(KEY_UI);
+		return true;
+	}
+
+	// for everything other than ESC, check for system-level command binds
+
+	SDL_Scancode key = event->key.keysym.scancode;
+	if (cls.key_state.binds[key]) {
+		cmd_t *cmd;
+
+		if ((cmd = Cmd_Get(cls.key_state.binds[key]))) {
+			if (cmd->flags & CMD_SYSTEM) {
+				Cbuf_AddText(cls.key_state.binds[key]);
+				Cbuf_Execute();
+				return true;
+			}
+		}
+	}
+	
+	return false;
+}
+
+/**
  * @brief
  */
 static void Cl_HandleEvent(const SDL_Event *event) {
-
-	if (Ui_HandleEvent(event))
-		return;
 
 	switch (event->type) {
 
@@ -322,8 +390,8 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 		case SDL_WINDOWEVENT:
 			if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
 				if (!r_context.fullscreen) {
-					Cvar_SetValue("r_windowed_width", event->window.data1);
-					Cvar_SetValue("r_windowed_height", event->window.data2);
+					Cvar_SetValue(r_windowed_width->name, event->window.data1);
+					Cvar_SetValue(r_windowed_height->name, event->window.data2);
 					Cbuf_AddText("r_restart\n");
 				}
 			}
@@ -332,19 +400,22 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 }
 
 /**
- * @brief
+ * @brief Updates mouse state, ensuring the window has mouse focus, and draws the cursor.
  */
-void Cl_HandleEvents(void) {
-
-	if (!SDL_WasInit(SDL_INIT_VIDEO))
-		return;
+static void Cl_UpdateMouseState(void) {
 
 	// force a mouse grab when changing video modes
 	if (r_view.update) {
 		cls.mouse_state.grabbed = false;
 	}
 
-	if (cls.key_state.dest == KEY_CONSOLE || cls.key_state.dest == KEY_UI || !m_grab->integer) {
+	if (cls.key_state.dest == KEY_UI || !m_grab->integer) {
+		if (cls.mouse_state.grabbed) {
+			SDL_ShowCursor(true);
+			SDL_SetWindowGrab(r_context.window, false);
+			cls.mouse_state.grabbed = false;
+		}
+	} else if (cls.key_state.dest == KEY_CONSOLE) {
 		if (!r_context.fullscreen) { // allow cursor to move outside window
 			if (cls.mouse_state.grabbed) {
 				SDL_ShowCursor(true);
@@ -359,6 +430,17 @@ void Cl_HandleEvents(void) {
 			cls.mouse_state.grabbed = true;
 		}
 	}
+}
+
+/**
+ * @brief
+ */
+void Cl_HandleEvents(void) {
+
+	if (!SDL_WasInit(SDL_INIT_VIDEO))
+		return;
+
+	Cl_UpdateMouseState();
 
 	// handle new key events
 	while (true) {
@@ -366,10 +448,15 @@ void Cl_HandleEvents(void) {
 
 		memset(&event, 0, sizeof(event));
 
-		if (SDL_PollEvent(&event))
-			Cl_HandleEvent(&event);
-		else
+		if (SDL_PollEvent(&event)) {
+			if (Cl_HandleSystemEvent(&event) == false) {
+
+				Ui_HandleEvent(&event);
+				Cl_HandleEvent(&event);
+			}
+		} else {
 			break;
+		}
 	}
 }
 
