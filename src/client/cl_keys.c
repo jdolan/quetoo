@@ -331,9 +331,9 @@ SDL_Scancode Cl_KeyForName(const char *name) {
 /**
  * @brief Returns the key bound to the given command.
  */
-SDL_Scancode Cl_KeyForBind(const char *binding) {
+SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
 
-	for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
+	for (SDL_Scancode k = from + 1; k < SDL_NUM_SCANCODES; k++) {
 		if (g_strcmp0(binding, cls.key_state.binds[k]) == 0) {
 			return k;
 		}

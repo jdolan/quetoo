@@ -21,6 +21,8 @@
 
 #include <assert.h>
 
+#include <Objectively/Value.h>
+
 #include "BindTextView.h"
 
 #include "client.h"
@@ -30,13 +32,46 @@
 #pragma mark - View
 
 /**
- * @see View::respondToEvent(View *, const SDL_Event *)
+ * @see View::updateBindings(View *)
  */
-static void respondToEvent(View *self, const SDL_Event *event) {
+static void updateBindings(View *self) {
 
-	Control *control = (Control *) self;
+	super(View, self, updateBindings);
 
-	if (control->state & ControlStateFocused) {
+	const BindTextView *this = (BindTextView *) self;
+	TextView *textView = (TextView *) this;
+
+	free(textView->defaultText);
+	textView->defaultText = NULL;
+
+	MutableArray *keys = $$(MutableArray, array);
+	SDL_Scancode key = SDL_SCANCODE_UNKNOWN;
+	while (true) {
+		key = Cl_KeyForBind(key, this->bind);
+		if (key == SDL_SCANCODE_UNKNOWN) {
+			break;
+		}
+
+		$(keys, addObject, str(Cl_KeyName(key)));
+	}
+
+	if (keys->array.count) {
+		String *keyNames = $((Array *) keys, componentsJoinedByCharacters, ", ");
+		textView->defaultText = g_strdup(keyNames->chars);
+		release(keyNames);
+	}
+
+	release(keys);
+}
+
+#pragma mark - Control
+
+/**
+ * @see Control::captureEvent(Control *, const SDL_Event *)
+ */
+static _Bool captureEvent(Control *self, const SDL_Event *event) {
+
+	if (self->state & ControlStateFocused) {
 
 		if (event->type == SDL_KEYDOWN || event->type == SDL_MOUSEBUTTONDOWN) {
 
@@ -49,39 +84,29 @@ static void respondToEvent(View *self, const SDL_Event *event) {
 
 			BindTextView *this = (BindTextView *) self;
 
-			if (key == SDL_SCANCODE_ESCAPE) {
-				key = Cl_KeyForBind(this->bind);
-				Cl_Bind(key, NULL);
+			
+			if (key == SDL_SCANCODE_BACKSPACE) {
+				key = SDL_SCANCODE_UNKNOWN;
+				while (true) {
+					key = Cl_KeyForBind(key, this->bind);
+					if (key == SDL_SCANCODE_UNKNOWN) {
+						break;
+					}
+
+					Cl_Bind(key, NULL);
+				}
 			} else {
 				Cl_Bind(key, this->bind);
 			}
 
-			$(self, updateBindings);
+			$((View *) self, updateBindings);
 
-			control->state &= ~ControlStateFocused;
-			return;
+			self->state &= ~ControlStateFocused;
+			return true;
 		}
 	}
 
-	super(View, self, respondToEvent, event);
-}
-
-/**
- * @see View::updateBindings(View *)
- */
-static void updateBindings(View *self) {
-
-	super(View, self, updateBindings);
-
-	const BindTextView *this = (BindTextView *) self;
-	TextView *textView = (TextView *) this;
-
-	const SDL_Scancode key = Cl_KeyForBind(this->bind);
-	if (key != SDL_SCANCODE_UNKNOWN) {
-		textView->defaultText = g_strdup(Cl_KeyName(key));
-	} else {
-		textView->defaultText = NULL;
-	}
+	return super(Control, self, captureEvent, event);
 }
 
 #pragma mark - BindTextView
@@ -114,8 +139,9 @@ static BindTextView *initWithBind(BindTextView *self, const char *bind) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->respondToEvent = respondToEvent;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+
+	((ControlInterface *) clazz->interface)->captureEvent = captureEvent;
 
 	((BindTextViewInterface *) clazz->interface)->initWithBind = initWithBind;
 }

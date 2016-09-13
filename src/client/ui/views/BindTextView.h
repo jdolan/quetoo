@@ -29,7 +29,7 @@
  * @brief A TextView bound to a key binding.
  */
 
-#define BIND_WIDTH 80
+#define BIND_WIDTH 140
 
 typedef struct BindTextView BindTextView;
 typedef struct BindTextViewInterface BindTextViewInterface;
