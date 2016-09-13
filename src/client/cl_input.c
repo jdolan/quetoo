@@ -326,9 +326,10 @@ static _Bool Cl_HandleSystemEvent(const SDL_Event *event) {
 			// if we're in the game, just hide the menus
 			if (cls.state == CL_ACTIVE) {
 				Cl_SetKeyDest(KEY_GAME);
+				return true;
 			}
 
-			return true;
+			return false;
 		}
 
 		Cl_SetKeyDest(KEY_UI);
