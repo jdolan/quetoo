@@ -28,6 +28,20 @@ extern cl_client_t cl;
 
 #define _Class _PlayerModelView
 
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+	PlayerModelView *this = (PlayerModelView *) self;
+
+	release(this->iconView);
+
+	super(Object, self, dealloc);
+}
+
 #pragma mark - View
 
 /**
@@ -228,6 +242,8 @@ static void updateBindings(View *self) {
 	memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
 	memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
 	memcpy(this->head.skins, this->client.head_skins, sizeof(this->head.skins));
+
+	this->iconView->texture = this->client.icon->texnum;
 }
 
 #pragma mark - PlayerModelView
@@ -313,6 +329,20 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 
 		self->animation1.animation = ANIM_TORSO_STAND1;
 		self->animation2.animation = ANIM_LEGS_RUN;
+
+		const SDL_Rect iconFrame = MakeRect(0, 0, 64, 64);
+
+		self->iconView = $(alloc(ImageView), initWithFrame, &iconFrame);
+		assert(self->iconView);
+
+		self->iconView->view.alignment = ViewAlignmentTopRight;
+
+		$((View *) self, addSubview, (View *) self->iconView);
+
+		self->view.padding.top = 4;
+		self->view.padding.right = 4;
+		self->view.padding.bottom = 4;
+		self->view.padding.left = 4;
 	}
 
 	return self;
@@ -324,6 +354,8 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
 	((ViewInterface *) clazz->interface)->render = render;
 	((ViewInterface *) clazz->interface)->renderDeviceDidReset = renderDeviceDidReset;

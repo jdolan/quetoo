@@ -69,6 +69,8 @@ struct PlayerModelView {
 	 * @brief The entity animations.
 	 */
 	cl_entity_animation_t animation1, animation2;
+
+	ImageView *iconView;
 };
 
 /**
