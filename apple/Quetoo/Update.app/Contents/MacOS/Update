@@ -1,2 +1,6 @@
 #!/bin/bash
-open $(dirname "$0")/update.command
+
+QUETOO_HOME=$(dirname "$0")
+QUETOO_HOME=${QUETOO_HOME/Update.app*/Quetoo.app}
+
+open "${QUETOO_HOME}/Contents/MacOS/quetoo-update"

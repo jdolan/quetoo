@@ -281,26 +281,6 @@ fi
 AC_SUBST(TOOLS)
 AC_MSG_RESULT($TOOLS)
 
-dnl ------------------------------------
-dnl Check whether to build master server
-dnl ------------------------------------
-
-BUILD_MASTER=no
-
-AC_ARG_WITH(master,
-	AS_HELP_STRING([--with-master],
-		[build a master server]
-	)
-)
-
-AC_MSG_CHECKING(whether to build master server)
-
-if test "x${with_master}" = xyes; then
-	BUILD_MASTER=yes
-	AC_DEFINE(BUILD_MASTER, 1, [Define to 1 to build a master server.])
-fi
-AC_MSG_RESULT($BUILD_MASTER)
-
 dnl ---------------------------------
 dnl Check whether to build unit tests
 dnl ---------------------------------
@@ -469,11 +449,11 @@ AC_CONFIG_FILES([
 	src/game/Makefile
 	src/game/default/Makefile
 	src/main/Makefile
-	src/master/Makefile
 	src/net/Makefile
 	src/server/Makefile
 	src/tests/Makefile
 	src/tools/Makefile
+	src/tools/master/Makefile
 	src/tools/quemap/Makefile
 	src/tools/update/Makefile
 ])
@@ -492,11 +472,10 @@ Quetoo $VERSION: Automatic configuration OK.
 
     Game modules: ...... $GAME_MODULES
     Tools: ............. $TOOLS
-    Master server: ..... $BUILD_MASTER
-    Unit tests: ........ $BUILD_TESTS
 
     Options:
       MySQL: ........... $HAVE_MYSQL
+      Unit tests: ...... $BUILD_TESTS
 
   Installation directories:
 

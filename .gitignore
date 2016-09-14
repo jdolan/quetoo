@@ -34,7 +34,6 @@ missing
 nbproject
 src/main/quetoo
 src/main/quetoo-dedicated
-src/master/quetoo-master
 src/tests/*.log
 src/tests/*.trs
 src/tests/check_cmd
@@ -44,8 +43,9 @@ src/tests/check_master
 src/tests/check_mem
 src/tests/check_r_media
 src/tests/check_thread
+src/tools/master/quetoo-master
 src/tools/quemap/quemap
-src/tools/update/update
+src/tools/update/quetoo-update
 stamp-h1
 target
 test-driver

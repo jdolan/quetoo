@@ -43,6 +43,7 @@ install-lib: install
 		-x $(BINDIR)/quemap \
 		-x $(BINDIR)/quetoo \
 		-x $(BINDIR)/quetoo-dedicated \
+		-x $(BINDIR)/quetoo-update \
 		-x $(LIBDIR)/default/cgame.so \
 		-x $(LIBDIR)/default/game.so \
 	-d $(LIBDIR) -of -p @executable_path/lib
@@ -52,9 +53,10 @@ install-data:
 
 post-install:
 	./set-icon.sh folder.icns $(INSTALL)
+	./set-icon.sh $(DATADIR)/quemap.icns $(BINDIR)/quemap
 	./set-icon.sh $(DATADIR)/quetoo.icns $(BINDIR)/quetoo
 	./set-icon.sh $(DATADIR)/quetoo-dedicated.icns $(BINDIR)/quetoo-dedicated
-	./set-icon.sh $(DATADIR)/quemap.icns $(BINDIR)/quemap
+	./set-icon.sh $(DATADIR)/quetoo-update.icns $(BINDIR)/quetoo-update
 
 release:
 	rsync -rzhP --delete $(BINDIR) $(RSYNC_TARGET)

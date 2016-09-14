@@ -37,10 +37,10 @@ install: compile pre-install
 
 install-lib: install
 	./dllbundler.sh -h $(HOST) \
+		$(BINDIR)/quemap.exe \
 		$(BINDIR)/quetoo.exe \
 		$(BINDIR)/quetoo-dedicated.exe \
-		$(BINDIR)/quemap.exe \
-		$(BINDIR)/update.exe
+		$(BINDIR)/quetoo-update.exe
 
 install-data:
 	cp -r $(DATA)/target/* $(DATADIR)

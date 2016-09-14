@@ -1,15 +1,15 @@
 bin_PROGRAMS = \
-	update
+	quetoo-update
 
-update_SOURCES = \
+quetoo_update_SOURCES = \
 	main.c
 
-update_CFLAGS = \
+quetoo_update_CFLAGS = \
 	-I../.. \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 
-update_LDADD = \
+quetoo_update_LDADD = \
 	../../libfilesystem.la \
 	../../libsys.la
 
@@ -18,7 +18,7 @@ if WINDOWS
 .rc.o:
 	@WINDRES@ $^ -o $@
 
-update_SOURCES += \
+quetoo_update_SOURCES += \
 	update-icon.rc
 
 endif

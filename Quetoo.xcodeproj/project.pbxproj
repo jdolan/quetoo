@@ -26,6 +26,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		CE0B64981D89EA380011F974 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE0B64961D89EA380011F974 /* main.c */; };
 		CE12D7A91C5C5C3200CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D7D11C5C5D6A00CD0B13 /* g_ai.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6431C5C58C300CD0B13 /* g_ai.c */; };
 		CE12D7D21C5C5D6A00CD0B13 /* g_ai_goal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6451C5C58C300CD0B13 /* g_ai_goal.c */; };
@@ -440,7 +441,6 @@
 		CEA029E81C5E558100341079 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
 		CEA029E91C5E558100341079 /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
 		CEA029EC1C5E558100341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CEA029F71C5E55C100341079 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6831C5C58C300CD0B13 /* main.c */; };
 		CEB078AF1D7306D000ABA6B3 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB078AD1D7306D000ABA6B3 /* MapListCollectionItemView.c */; };
 		CEB078B01D7306D000ABA6B3 /* MapListCollectionItemView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB078AE1D7306D000ABA6B3 /* MapListCollectionItemView.h */; };
 		CEB078B31D738CC800ABA6B3 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB078B11D738CC800ABA6B3 /* MapListCollectionView.c */; };
@@ -690,6 +690,8 @@
 		CE0B647C1D8979160011F974 /* fonts.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = fonts.conf; sourceTree = "<group>"; };
 		CE0B647E1D8979780011F974 /* fonts.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = fonts.conf; sourceTree = "<group>"; };
 		CE0B64811D89955B0011F974 /* .turd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
+		CE0B64961D89EA380011F974 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		CE0B64971D89EA380011F974 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D4A71C5C58C300CD0B13 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		CE12D4A81C5C58C300CD0B13 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
 		CE12D4FF1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -716,12 +718,10 @@
 		CE12D5221C5C58C300CD0B13 /* rsync.exe */ = {isa = PBXFileReference; lastKnownFileType = file; path = rsync.exe; sourceTree = "<group>"; };
 		CE12D5251C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D5291C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
-		CE12D52A1C5C58C300CD0B13 /* update.bat */ = {isa = PBXFileReference; lastKnownFileType = text; path = update.bat; sourceTree = "<group>"; };
 		CE12D52D1C5C58C300CD0B13 /* cygwin1.dll */ = {isa = PBXFileReference; lastKnownFileType = file; path = cygwin1.dll; sourceTree = "<group>"; };
 		CE12D52E1C5C58C300CD0B13 /* rsync.exe */ = {isa = PBXFileReference; lastKnownFileType = file; path = rsync.exe; sourceTree = "<group>"; };
 		CE12D5311C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D5351C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
-		CE12D5361C5C58C300CD0B13 /* update.bat */ = {isa = PBXFileReference; lastKnownFileType = text; path = update.bat; sourceTree = "<group>"; };
 		CE12D5371C5C58C300CD0B13 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		CE12D5521C5C58C300CD0B13 /* ai.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ai.h; sourceTree = "<group>"; };
 		CE12D5531C5C58C300CD0B13 /* ai_goal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ai_goal.c; sourceTree = "<group>"; };
@@ -980,8 +980,6 @@
 		CE12D67D1C5C58C300CD0B13 /* quetoo-icon.rc */ = {isa = PBXFileReference; lastKnownFileType = text; path = "quetoo-icon.rc"; sourceTree = "<group>"; };
 		CE12D67E1C5C58C300CD0B13 /* quetoo.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = quetoo.ico; sourceTree = "<group>"; };
 		CE12D6801C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE12D6831C5C58C300CD0B13 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		CE12D6841C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D6871C5C58C300CD0B13 /* matrix.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = matrix.c; sourceTree = "<group>"; };
 		CE12D6881C5C58C300CD0B13 /* matrix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = matrix.h; sourceTree = "<group>"; };
 		CE12D6891C5C58C300CD0B13 /* mem.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mem.c; sourceTree = "<group>"; };
@@ -1434,6 +1432,15 @@
 			path = bin;
 			sourceTree = "<group>";
 		};
+		CE0B648C1D89E9FE0011F974 /* master */ = {
+			isa = PBXGroup;
+			children = (
+				CE0B64961D89EA380011F974 /* main.c */,
+				CE0B64971D89EA380011F974 /* Makefile.am */,
+			);
+			path = master;
+			sourceTree = "<group>";
+		};
 		CE12D4A01C5C579D00CD0B13 = {
 			isa = PBXGroup;
 			children = (
@@ -1552,7 +1559,6 @@
 				CE0B64781D8978F30011F974 /* etc */,
 				CE12D5231C5C58C300CD0B13 /* lib */,
 				CE12D5271C5C58C300CD0B13 /* share */,
-				CE12D52A1C5C58C300CD0B13 /* update.bat */,
 			);
 			path = "Quetoo-i686";
 			sourceTree = "<group>";
@@ -1605,7 +1611,6 @@
 				CE0B647A1D8979030011F974 /* etc */,
 				CE12D52F1C5C58C300CD0B13 /* lib */,
 				CE12D5331C5C58C300CD0B13 /* share */,
-				CE12D5361C5C58C300CD0B13 /* update.bat */,
 			);
 			path = "Quetoo-x86_64";
 			sourceTree = "<group>";
@@ -1660,7 +1665,6 @@
 				CE12D6281C5C58C300CD0B13 /* collision */,
 				CE12D63F1C5C58C300CD0B13 /* game */,
 				CE12D6791C5C58C300CD0B13 /* main */,
-				CE12D6821C5C58C300CD0B13 /* master */,
 				CE12D68D1C5C58C300CD0B13 /* net */,
 				CE12D69D1C5C58C300CD0B13 /* server */,
 				CE12D6BE1C5C58C300CD0B13 /* tests */,
@@ -2043,15 +2047,6 @@
 			path = main;
 			sourceTree = "<group>";
 		};
-		CE12D6821C5C58C300CD0B13 /* master */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D6831C5C58C300CD0B13 /* main.c */,
-				CE12D6841C5C58C300CD0B13 /* Makefile.am */,
-			);
-			path = master;
-			sourceTree = "<group>";
-		};
 		CE12D68D1C5C58C300CD0B13 /* net */ = {
 			isa = PBXGroup;
 			children = (
@@ -2122,6 +2117,7 @@
 		CE12D6E01C5C58C300CD0B13 /* tools */ = {
 			isa = PBXGroup;
 			children = (
+				CE0B648C1D89E9FE0011F974 /* master */,
 				CE12D6E31C5C58C300CD0B13 /* mapfoo */,
 				CE12D6E51C5C58C300CD0B13 /* quemap */,
 				CE2DB5151D88F6F900560994 /* update */,
@@ -3098,6 +3094,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE0B64981D89EA380011F974 /* main.c in Sources */,
 				CE12D8151C5C5F0600CD0B13 /* ioapi.c in Sources */,
 				CE12D8161C5C5F0600CD0B13 /* zip.c in Sources */,
 			);
@@ -3323,7 +3320,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEA029F71C5E55C100341079 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

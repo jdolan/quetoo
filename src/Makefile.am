@@ -9,7 +9,6 @@ SUBDIRS = \
 	cgame \
 	main \
 	tools \
-	master \
 	tests
 
 noinst_HEADERS = \

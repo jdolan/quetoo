@@ -65,7 +65,7 @@ static char *get_default_dest(void) {
 			strncpy(dest, exe, len);
 		}
 #elif defined(_WIN32)
-		char *c = strstr(dest, "\\bin\\update.exe");
+		char *c = strstr(dest, "\\bin\\quetoo-update.exe");
 		if (c) {
 			const size_t len = (c - exe);
 			dest = calloc(len + 1, sizeof(char));

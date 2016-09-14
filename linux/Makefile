@@ -25,7 +25,7 @@ configure:
 		LDFLAGS='-Wl,-rpath=XORIGIN/../lib' \
 		--host=$(HOST) \
 		--prefix=/ \
-		--with-master
+		--with-tools='master quemap update'
 	
 compile: configure
 	make -C .. all
@@ -40,11 +40,11 @@ install: compile pre-install
 
 install-lib: install
 	./sobundler.sh -d $(LIBDIR) \
+		$(BINDIR)/quemap \
 		$(BINDIR)/quetoo \
 		$(BINDIR)/quetoo-dedicated \
 		$(BINDIR)/quetoo-master \
-		$(BINDIR)/quemap \
-		$(BINDIR)/update
+		$(BINDIR)/quetoo-update
 
 install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
