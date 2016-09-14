@@ -7,6 +7,7 @@ DATA = ../../quetoo-data
 TARGET = target
 INSTALL = $(TARGET)/Quetoo
 BINDIR = $(INSTALL)/bin
+ETCDIR = $(INSTALL)/etc
 LIBDIR = $(INSTALL)/lib
 DATADIR = $(INSTALL)/share
 REMOTE_USER = $(shell whoami)
@@ -44,7 +45,7 @@ install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -rzhP --delete $(INSTALL)/*.* $(BINDIR) $(LIBDIR) $(RSYNC_TARGET)
+	rsync -rzhP --delete $(INSTALL)/*.* $(BINDIR) $(ETCDIR) $(LIBDIR) $(RSYNC_TARGET)
 
 dist:
 	rm -f Quetoo; ln -s $(INSTALL)
