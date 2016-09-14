@@ -629,6 +629,22 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 
 			VectorMA(cgi.view->origin, 8.0, cgi.view->forward, start);
 
+			static const cvar_t *hand;
+			if (hand == NULL) {
+				hand = cgi.Cvar("hand", NULL, 0, NULL);
+			}
+
+			switch (hand->integer) {
+				case HAND_LEFT:
+					VectorMA(start, -6.0, cgi.view->right, start);
+					break;
+				case HAND_RIGHT:
+					VectorMA(start, 6.0, cgi.view->right, start);
+					break;
+				default:
+					break;
+			}
+
 			if (cgi.client->frame.ps.pm_state.flags & PMF_DUCKED) {
 				VectorMA(start, -6.0, cgi.view->up, start);
 			} else {
