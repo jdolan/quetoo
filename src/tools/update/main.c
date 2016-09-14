@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <sys/wait.h>
+
 #include "../../common.h"
 #include "../../sys.h"
 
@@ -90,49 +92,34 @@ int main(int argc, char **argv) {
 	}
 
 	if (dest) {
-		printf("Resolved rsync destination: %s\n", dest);
+		printf("Syncing "RSYNC_REPOSITORY" to %s..\n", dest);
 
-#if defined(__APPLE__)
-		char *const args[] = {
-			"rsync", "-rLzhP", "--delete", "--stats", RSYNC_REPOSITORY, dest, NULL
-		};
-#elif defined(__linux__)
-		char * const args[] = {
-			"rsync", "-rLzhP", "--delete", RSYNC_REPOSITORY, dest, NULL
-		};
-
-#elif defined(_WIN32)
-		char * const args[] = {
-			"rsync.exe", "-rkzhP", "--delete", "--stats",
-			"--skip-compress=pk3",
-			"--perms", "--chmod=a=rwx,Da+x",
-			"--exclude=bin/cygwin1.dll",
-			"--exclude=bin/rsync.exe",
-			"--exclude=bin/update.exe",
-			RSYNC_REPOSITORY, dest, NULL
-		}
-#endif
-
-		printf("Invoking rsync command:\n  rsync ");
-		for (char * const *s = args; *s; s++) {
-			printf("%s ", *s);
-		}
-		printf("\n");
-
+#if defined(_WIN32)
+		status = _spawnlp(_P_WAIT, "rsync.exe", "rsync.exe", "-rkzhP", "--delete", "--stats",
+				"--skip-compress=pk3",
+				"--perms",
+				"--chmod=a=rwx,Da+x",
+				"--exclude=bin/cygwin1.dll",
+				"--exclude=bin/rsync.exe",
+				"--exclude=bin/update.exe",
+				   RSYNC_REPOSITORY, dest, NULL);
+#else
 		const pid_t child = fork();
 		if (child == 0) {
-			const int err = execvp("rsync", args);
+			const int err = execlp("rsync", "rsync", "-rLzhP", "--delete", "--stats", RSYNC_REPOSITORY, dest, NULL);
 			if (err == -1) {
 				perror(NULL);
 				exit(err);
 			}
 		} else {
 			wait(&status);
-			if (status == 0) {
-				printf("\n\nFinished successfully\n");
-			} else {
-				fprintf(stderr, "\n\nrsync exited with error status %d\n", status);
-			}
+		}
+#endif
+
+		if (status == 0) {
+			printf("\n\nFinished successfully\n");
+		} else {
+			fprintf(stderr, "\n\nrsync exited with error status %d\n", status);
 		}
 
 		free(dest);
