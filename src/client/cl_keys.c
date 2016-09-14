@@ -33,7 +33,8 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 	if (dest == cls.key_state.dest)
 		return;
 
-	// send key-up events when leaving the game
+	// release keys and re-center the mouse when leaving KEY_GAME
+
 	if (cls.key_state.dest == KEY_GAME) {
 		SDL_Event e = { .type = SDL_KEYUP };
 
@@ -45,28 +46,30 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 				}
 			}
 		}
+
+		SDL_SetRelativeMouseMode(false);
+
+		const r_pixel_t cx = r_context.window_width * 0.5;
+		const r_pixel_t cy = r_context.window_height * 0.5;
+
+		SDL_WarpMouseInWindow(r_context.window, cx, cy);
 	}
 
 	switch (dest) {
-		case KEY_UI: {
-			SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
-			SDL_PushEvent(&event);
-		}
-			SDL_StopTextInput();
-			break;
 		case KEY_CONSOLE:
 		case KEY_CHAT:
 			SDL_StartTextInput();
 			break;
-		case KEY_GAME: {
-			const r_pixel_t cx = r_context.window_width * 0.5;
-			const r_pixel_t cy = r_context.window_height * 0.5;
-
-			SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
-			SDL_WarpMouseInWindow(r_context.window, cx, cy);
-			SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
-		}
+		case KEY_UI:
 			SDL_StopTextInput();
+		{
+			SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
+			SDL_PushEvent(&event);
+		}
+			break;
+		case KEY_GAME:
+			SDL_StopTextInput();
+			SDL_SetRelativeMouseMode(true);
 			break;
 	}
 
