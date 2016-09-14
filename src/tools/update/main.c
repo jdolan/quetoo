@@ -28,15 +28,15 @@
 #elif defined(__linux__)
  #include <sys/wait.h>
  #if defined(__x86_64__)
-  #define RSYNC_REPOSITORY = "rsync://quetoo.org/quetoo-linux/x86_64/"
+  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-linux/x86_64/"
  #else
-  #define RSYNC_REPOSITORY = "rsync://quetoo.org/quetoo-linux/i686/"
+  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-linux/i686/"
  #endif
 #elif defined(__MINGW32__)
  #if defined(__MINGW64__)
-  #define RSYNC_REPOSITORY = "rsync://quetoo.org/quetoo-mingw/x86_64/"
+  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
  #else
-  #define RSYNC_REPOSITORY = "rsync://quetoo.org/quetoo-mingw/i686/"
+  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
  #endif
 #endif
 
