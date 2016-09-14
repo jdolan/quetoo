@@ -80,8 +80,10 @@
 		CE2DB50F1D8628AB00560994 /* ui_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD5961D3EE22300C43B85 /* ui_local.h */; };
 		CE2DB5131D8633D600560994 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE2DB5111D8633D600560994 /* CrosshairView.c */; };
 		CE2DB5141D8633D600560994 /* CrosshairView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE2DB5121D8633D600560994 /* CrosshairView.h */; };
+		CE2DB5471D88F9B300560994 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE2DB5161D88F74000560994 /* main.c */; };
 		CE562EB81D68013B006DF143 /* CreateServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE562EB61D68013B006DF143 /* CreateServerViewController.c */; };
 		CE562EB91D68013B006DF143 /* CreateServerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE562EB71D68013B006DF143 /* CreateServerViewController.h */; };
+		CE5A5AB51D89016E001A00CC /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
 		CE5BD5941D3EE1BF00C43B85 /* ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD5931D3EE1BF00C43B85 /* ui.h */; };
 		CE5C3C7E1D501D1700608432 /* CvarSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5C3C7C1D501D1700608432 /* CvarSelect.c */; };
 		CE5C3C7F1D501D1700608432 /* CvarSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5C3C7D1D501D1700608432 /* CvarSelect.h */; };
@@ -655,6 +657,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		CE2DB5421D88F98600560994 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		CE80FD851C5E3B6F00A21A51 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -676,6 +687,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		CE0B647C1D8979160011F974 /* fonts.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = fonts.conf; sourceTree = "<group>"; };
+		CE0B647E1D8979780011F974 /* fonts.conf */ = {isa = PBXFileReference; lastKnownFileType = text; path = fonts.conf; sourceTree = "<group>"; };
+		CE0B64811D89955B0011F974 /* .turd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D4A71C5C58C300CD0B13 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		CE12D4A81C5C58C300CD0B13 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
 		CE12D4FF1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -689,7 +703,6 @@
 		CE12D50B1C5C58C300CD0B13 /* engine-architecture.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "engine-architecture.pdf"; sourceTree = "<group>"; };
 		CE12D50C1C5C58C300CD0B13 /* Doxyfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
 		CE12D50E1C5C58C300CD0B13 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
-		CE12D5111C5C58C300CD0B13 /* update.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = update.sh; sourceTree = "<group>"; };
 		CE12D5141C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D5151C5C58C300CD0B13 /* Quetoo Update.desktop */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Quetoo Update.desktop"; sourceTree = "<group>"; };
 		CE12D5161C5C58C300CD0B13 /* Quetoo.desktop */ = {isa = PBXFileReference; lastKnownFileType = text; path = Quetoo.desktop; sourceTree = "<group>"; };
@@ -702,13 +715,11 @@
 		CE12D5211C5C58C300CD0B13 /* cygwin1.dll */ = {isa = PBXFileReference; lastKnownFileType = file; path = cygwin1.dll; sourceTree = "<group>"; };
 		CE12D5221C5C58C300CD0B13 /* rsync.exe */ = {isa = PBXFileReference; lastKnownFileType = file; path = rsync.exe; sourceTree = "<group>"; };
 		CE12D5251C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
-		CE12D5261C5C58C300CD0B13 /* run.bat */ = {isa = PBXFileReference; lastKnownFileType = text; path = run.bat; sourceTree = "<group>"; };
 		CE12D5291C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D52A1C5C58C300CD0B13 /* update.bat */ = {isa = PBXFileReference; lastKnownFileType = text; path = update.bat; sourceTree = "<group>"; };
 		CE12D52D1C5C58C300CD0B13 /* cygwin1.dll */ = {isa = PBXFileReference; lastKnownFileType = file; path = cygwin1.dll; sourceTree = "<group>"; };
 		CE12D52E1C5C58C300CD0B13 /* rsync.exe */ = {isa = PBXFileReference; lastKnownFileType = file; path = rsync.exe; sourceTree = "<group>"; };
 		CE12D5311C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
-		CE12D5321C5C58C300CD0B13 /* run.bat */ = {isa = PBXFileReference; lastKnownFileType = text; path = run.bat; sourceTree = "<group>"; };
 		CE12D5351C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D5361C5C58C300CD0B13 /* update.bat */ = {isa = PBXFileReference; lastKnownFileType = text; path = update.bat; sourceTree = "<group>"; };
 		CE12D5371C5C58C300CD0B13 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -1092,7 +1103,7 @@
 		CE12D7251C5C58C300CD0B13 /* install_deps.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = install_deps.sh; sourceTree = "<group>"; };
 		CE12D7271C5C58C300CD0B13 /* apple_osx_10.7.valgrind */ = {isa = PBXFileReference; lastKnownFileType = text; path = apple_osx_10.7.valgrind; sourceTree = "<group>"; };
 		CE12D7281C5C58C300CD0B13 /* TODO */ = {isa = PBXFileReference; lastKnownFileType = text; path = TODO; sourceTree = "<group>"; };
-		CE12D72A1C5C58D800CD0B13 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
+		CE12D72A1C5C58D800CD0B13 /* folder.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = folder.icns; sourceTree = "<group>"; };
 		CE12D72B1C5C58D800CD0B13 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		CE12D72D1C5C58D800CD0B13 /* Quetoo.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Quetoo.app; sourceTree = "<group>"; };
 		CE12D72E1C5C58D800CD0B13 /* Update.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Update.app; sourceTree = "<group>"; };
@@ -1114,8 +1125,13 @@
 		CE2DB50C1D86271C00560994 /* MouseViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MouseViewController.h; sourceTree = "<group>"; };
 		CE2DB5111D8633D600560994 /* CrosshairView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CrosshairView.c; sourceTree = "<group>"; };
 		CE2DB5121D8633D600560994 /* CrosshairView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CrosshairView.h; sourceTree = "<group>"; };
+		CE2DB5161D88F74000560994 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		CE2DB5461D88F98600560994 /* update */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = update; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE562EB61D68013B006DF143 /* CreateServerViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CreateServerViewController.c; sourceTree = "<group>"; };
 		CE562EB71D68013B006DF143 /* CreateServerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreateServerViewController.h; sourceTree = "<group>"; };
+		CE5A5AB61D890190001A00CC /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CE5A5AB71D890349001A00CC /* update-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "update-icon.rc"; sourceTree = "<group>"; };
+		CE5A5AB81D8904FC001A00CC /* update.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = update.ico; sourceTree = "<group>"; };
 		CE5BD5931D3EE1BF00C43B85 /* ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui.h; sourceTree = "<group>"; };
 		CE5BD5951D3EE1FA00C43B85 /* ui_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_types.h; sourceTree = "<group>"; };
 		CE5BD5961D3EE22300C43B85 /* ui_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_local.h; sourceTree = "<group>"; };
@@ -1246,6 +1262,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE2DB5381D88F98600560994 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE5A5AB51D89016E001A00CC /* libcommon.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CE80FD841C5E3B6F00A21A51 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1370,6 +1394,46 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CE0B64781D8978F30011F974 /* etc */ = {
+			isa = PBXGroup;
+			children = (
+				CE0B64791D8978F30011F974 /* fonts */,
+			);
+			path = etc;
+			sourceTree = "<group>";
+		};
+		CE0B64791D8978F30011F974 /* fonts */ = {
+			isa = PBXGroup;
+			children = (
+				CE0B647E1D8979780011F974 /* fonts.conf */,
+			);
+			path = fonts;
+			sourceTree = "<group>";
+		};
+		CE0B647A1D8979030011F974 /* etc */ = {
+			isa = PBXGroup;
+			children = (
+				CE0B647B1D8979030011F974 /* fonts */,
+			);
+			path = etc;
+			sourceTree = "<group>";
+		};
+		CE0B647B1D8979030011F974 /* fonts */ = {
+			isa = PBXGroup;
+			children = (
+				CE0B647C1D8979160011F974 /* fonts.conf */,
+			);
+			path = fonts;
+			sourceTree = "<group>";
+		};
+		CE0B64801D89955B0011F974 /* bin */ = {
+			isa = PBXGroup;
+			children = (
+				CE0B64811D89955B0011F974 /* .turd */,
+			);
+			path = bin;
+			sourceTree = "<group>";
+		};
 		CE12D4A01C5C579D00CD0B13 = {
 			isa = PBXGroup;
 			children = (
@@ -1426,9 +1490,9 @@
 		CE12D50D1C5C58C300CD0B13 /* linux */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D50E1C5C58C300CD0B13 /* Makefile */,
 				CE12D50F1C5C58C300CD0B13 /* quetoo */,
 				CE12D51A1C5C58C300CD0B13 /* sobundler.sh */,
+				CE12D50E1C5C58C300CD0B13 /* Makefile */,
 			);
 			path = linux;
 			sourceTree = "<group>";
@@ -1436,22 +1500,14 @@
 		CE12D50F1C5C58C300CD0B13 /* quetoo */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D5101C5C58C300CD0B13 /* bin */,
+				CE0B64801D89955B0011F974 /* bin */,
 				CE12D5121C5C58C300CD0B13 /* lib */,
+				CE12D5181C5C58C300CD0B13 /* share */,
 				CE12D5151C5C58C300CD0B13 /* Quetoo Update.desktop */,
 				CE12D5161C5C58C300CD0B13 /* Quetoo.desktop */,
 				CE12D5171C5C58C300CD0B13 /* README.txt */,
-				CE12D5181C5C58C300CD0B13 /* share */,
 			);
 			path = quetoo;
-			sourceTree = "<group>";
-		};
-		CE12D5101C5C58C300CD0B13 /* bin */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5111C5C58C300CD0B13 /* update.sh */,
-			);
-			path = bin;
 			sourceTree = "<group>";
 		};
 		CE12D5121C5C58C300CD0B13 /* lib */ = {
@@ -1481,10 +1537,10 @@
 		CE12D51C1C5C58C300CD0B13 /* mingw-cross */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D51D1C5C58C300CD0B13 /* dllbundler.sh */,
-				CE12D51E1C5C58C300CD0B13 /* Makefile */,
 				CE12D51F1C5C58C300CD0B13 /* Quetoo-i686 */,
 				CE12D52B1C5C58C300CD0B13 /* Quetoo-x86_64 */,
+				CE12D51D1C5C58C300CD0B13 /* dllbundler.sh */,
+				CE12D51E1C5C58C300CD0B13 /* Makefile */,
 			);
 			path = "mingw-cross";
 			sourceTree = "<group>";
@@ -1493,8 +1549,8 @@
 			isa = PBXGroup;
 			children = (
 				CE12D5201C5C58C300CD0B13 /* bin */,
+				CE0B64781D8978F30011F974 /* etc */,
 				CE12D5231C5C58C300CD0B13 /* lib */,
-				CE12D5261C5C58C300CD0B13 /* run.bat */,
 				CE12D5271C5C58C300CD0B13 /* share */,
 				CE12D52A1C5C58C300CD0B13 /* update.bat */,
 			);
@@ -1546,8 +1602,8 @@
 			isa = PBXGroup;
 			children = (
 				CE12D52C1C5C58C300CD0B13 /* bin */,
+				CE0B647A1D8979030011F974 /* etc */,
 				CE12D52F1C5C58C300CD0B13 /* lib */,
-				CE12D5321C5C58C300CD0B13 /* run.bat */,
 				CE12D5331C5C58C300CD0B13 /* share */,
 				CE12D5361C5C58C300CD0B13 /* update.bat */,
 			);
@@ -2068,6 +2124,7 @@
 			children = (
 				CE12D6E31C5C58C300CD0B13 /* mapfoo */,
 				CE12D6E51C5C58C300CD0B13 /* quemap */,
+				CE2DB5151D88F6F900560994 /* update */,
 				CE12D6E11C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = tools;
@@ -2220,11 +2277,10 @@
 		CE12D7291C5C58D800CD0B13 /* apple */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D72A1C5C58D800CD0B13 /* icon.icns */,
-				CE12D72B1C5C58D800CD0B13 /* Makefile */,
 				CE12D72C1C5C58D800CD0B13 /* Quetoo */,
+				CE12D72A1C5C58D800CD0B13 /* folder.icns */,
 				CE12D72F1C5C58D800CD0B13 /* set-icon.sh */,
-				CE12D7301C5C58D800CD0B13 /* target */,
+				CE12D72B1C5C58D800CD0B13 /* Makefile */,
 			);
 			path = apple;
 			sourceTree = "<group>";
@@ -2236,13 +2292,6 @@
 				CE12D72E1C5C58D800CD0B13 /* Update.app */,
 			);
 			path = Quetoo;
-			sourceTree = "<group>";
-		};
-		CE12D7301C5C58D800CD0B13 /* target */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = target;
 			sourceTree = "<group>";
 		};
 		CE12D7361C5C5B9300CD0B13 /* Products */ = {
@@ -2263,6 +2312,7 @@
 				CE80FF6A1C5E494E00A21A51 /* libclient-null.dylib */,
 				CE80FF7F1C5E49C400A21A51 /* libserver.dylib */,
 				CEA029F41C5E558100341079 /* quetoo-master */,
+				CE2DB5461D88F98600560994 /* update */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2296,6 +2346,17 @@
 				CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		CE2DB5151D88F6F900560994 /* update */ = {
+			isa = PBXGroup;
+			children = (
+				CE2DB5161D88F74000560994 /* main.c */,
+				CE5A5AB71D890349001A00CC /* update-icon.rc */,
+				CE5A5AB81D8904FC001A00CC /* update.ico */,
+				CE5A5AB61D890190001A00CC /* Makefile.am */,
+			);
+			path = update;
 			sourceTree = "<group>";
 		};
 		CEDB4BB71D405F5A009921B6 /* viewcontrollers */ = {
@@ -2710,6 +2771,23 @@
 			productReference = CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */;
 			productType = "com.apple.product-type.tool";
 		};
+		CE2DB5171D88F98600560994 /* update */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE2DB5431D88F98600560994 /* Build configuration list for PBXNativeTarget "update" */;
+			buildPhases = (
+				CE2DB51E1D88F98600560994 /* Sources */,
+				CE2DB5381D88F98600560994 /* Frameworks */,
+				CE2DB5421D88F98600560994 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = update;
+			productName = quemap;
+			productReference = CE2DB5461D88F98600560994 /* update */;
+			productType = "com.apple.product-type.tool";
+		};
 		CE80FD861C5E3B6F00A21A51 /* quemap */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE80FD8D1C5E3B6F00A21A51 /* Build configuration list for PBXNativeTarget "quemap" */;
@@ -2947,6 +3025,7 @@
 				CE12D87B1C5CF86600CD0B13 /* quetoo-dedicated */,
 				CEA029C51C5E558100341079 /* quetoo-master */,
 				CE80FD861C5E3B6F00A21A51 /* quemap */,
+				CE2DB5171D88F98600560994 /* update */,
 				CEA029B31C5E545B00341079 /* Quetoo */,
 			);
 		};
@@ -3029,6 +3108,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE12D8C41C5CF86600CD0B13 /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE2DB51E1D88F98600560994 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE2DB5471D88F9B300560994 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3696,6 +3783,74 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = "-D_DARWIN_C_SOURCE";
 				OTHER_LDFLAGS = "-lstdc++";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/**";
+			};
+			name = Release;
+		};
+		CE2DB5441D88F98600560994 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				HEADER_SEARCH_PATHS = (
+					/opt/local/include,
+					"/opt/local/include/glib-2.0",
+					"/opt/local/lib/glib-2.0/include",
+					/usr/local/include,
+					/opt/local/include/libxml2,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				OTHER_CFLAGS = "-DLIBXML_ICONV_ENABLED=0";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/**";
+			};
+			name = Debug;
+		};
+		CE2DB5451D88F98600560994 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				HEADER_SEARCH_PATHS = (
+					/opt/local/include,
+					"/opt/local/include/glib-2.0",
+					"/opt/local/lib/glib-2.0/include",
+					/usr/local/include,
+					/opt/local/include/libxml2,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CFLAGS = "-DLIBXML_ICONV_ENABLED=0";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/**";
 			};
@@ -4444,6 +4599,15 @@
 			buildConfigurations = (
 				CE12D8F21C5CF86600CD0B13 /* Debug */,
 				CE12D8F31C5CF86600CD0B13 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE2DB5431D88F98600560994 /* Build configuration list for PBXNativeTarget "update" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE2DB5441D88F98600560994 /* Debug */,
+				CE2DB5451D88F98600560994 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

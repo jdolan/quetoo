@@ -45,6 +45,7 @@ src/tests/check_mem
 src/tests/check_r_media
 src/tests/check_thread
 src/tools/quemap/quemap
+src/tools/update/update
 stamp-h1
 target
 test-driver

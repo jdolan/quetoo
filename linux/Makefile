@@ -43,7 +43,8 @@ install-lib: install
 		$(BINDIR)/quetoo \
 		$(BINDIR)/quetoo-dedicated \
 		$(BINDIR)/quetoo-master \
-		$(BINDIR)/quemap
+		$(BINDIR)/quemap \
+		$(BINDIR)/update
 
 install-data:
 	cp -r $(DATA)/target/* $(DATADIR)

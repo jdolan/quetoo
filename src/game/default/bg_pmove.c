@@ -150,7 +150,8 @@ static void Pm_TouchEntity(struct g_entity_s *ent) {
 static _Bool Pm_SlideMove(void) {
 	vec3_t planes[MAX_CLIP_PLANES];
 
-	vec3_t vel0;
+	vec3_t pos0, vel0;
+	VectorCopy(pm->s.origin, pos0);
 	VectorCopy(pm->s.velocity, vel0);
 
 	vec_t time_remaining = pml.time;
@@ -257,6 +258,7 @@ static _Bool Pm_SlideMove(void) {
 
 	// if we were deflected backwards, clear the velocity
 	if (DotProduct(vel0, pm->s.velocity) <= 0.0) {
+		VectorCopy(pos0, pm->s.origin);
 		VectorClear(pm->s.velocity);
 	}
 
