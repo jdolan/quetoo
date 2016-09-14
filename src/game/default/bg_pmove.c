@@ -168,9 +168,6 @@ static _Bool Pm_SlideMove(void) {
 		// trace to it
 		const cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 
-		// store a reference to the entity for firing game events
-		Pm_TouchEntity(trace.ent);
-
 		// if the player is trapped in a solid, don't build up Z
 		if (trace.all_solid) {
 			pm->s.velocity[2] = 0.0;
@@ -189,6 +186,9 @@ static _Bool Pm_SlideMove(void) {
 			// update the movement time remaining
 			time_remaining -= (time_remaining * trace.fraction);
 		}
+
+		// store a reference to the entity for firing game events
+		Pm_TouchEntity(trace.ent);
 
 		// record the impacted plane
 		VectorCopy(trace.plane.normal, planes[num_planes]);
@@ -589,9 +589,11 @@ static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
 		for (int32_t j = -1; j <= 1; j++) {
 			for (int32_t k = -1; k <= 1; k++) {
 				VectorCopy(pm->s.origin, pos);
+
 				pos[0] += i * PM_NUDGE_DIST;
 				pos[1] += j * PM_NUDGE_DIST;
 				pos[2] += k * PM_NUDGE_DIST;
+
 				cm_trace_t tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
 				if (!tr.all_solid ) {
 					VectorCopy(pos, pm->s.origin);
@@ -602,6 +604,9 @@ static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
 			}
 		}
 	}
+
+	memset(trace, 0, sizeof(*trace));
+	trace->fraction = 1.0;
 
 	Pm_Debug("still solid %s\n", vtos(pm->s.origin));
 	return *trace;
