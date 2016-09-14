@@ -19,25 +19,25 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <sys/wait.h>
-
 #include "../../common.h"
 #include "../../sys.h"
 
 #if defined(__APPLE__)
-#define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-apple/x86_64/"
+ #include <sys/wait.h>
+ #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-apple/x86_64/"
 #elif defined(__linux__)
-#if defined(__x86_64__)
-#define RSYNC_REPOSITORY = "rsync://quetoo.org/quetoo-linux/x86_64/"
-#else
-#define RSYNC_REPOSITORY = "rsync://quetoo.org/quetoo-linux/i686/"
-#endif
+ #include <sys/wait.h>
+ #if defined(__x86_64__)
+  #define RSYNC_REPOSITORY = "rsync://quetoo.org/quetoo-linux/x86_64/"
+ #else
+  #define RSYNC_REPOSITORY = "rsync://quetoo.org/quetoo-linux/i686/"
+ #endif
 #elif defined(__MINGW32__)
-#if defined(__MINGW64__)
-#define RSYNC_REPOSITORY = "rsync://quetoo.org/quetoo-mingw/x86_64/"
-#else
-#define RSYNC_REPOSITORY = "rsync://quetoo.org/quetoo-mingw/i686/"
-#endif
+ #if defined(__MINGW64__)
+  #define RSYNC_REPOSITORY = "rsync://quetoo.org/quetoo-mingw/x86_64/"
+ #else
+  #define RSYNC_REPOSITORY = "rsync://quetoo.org/quetoo-mingw/i686/"
+ #endif
 #endif
 
 quetoo_t quetoo;
