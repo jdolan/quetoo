@@ -46,7 +46,7 @@ install-data:
 	cp -r $(DATA)/target/* $(DATADIR)
 
 release:
-	rsync -rzhP --delete $(INSTALL)/*.* $(BINDIR) $(ETCDIR) $(LIBDIR) $(RSYNC_TARGET)
+	rsync -rzhP --delete $(BINDIR) $(ETCDIR) $(LIBDIR) $(RSYNC_TARGET)
 
 dist:
 	rm -f Quetoo; ln -s $(INSTALL)
