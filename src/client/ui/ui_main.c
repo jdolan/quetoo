@@ -60,12 +60,14 @@ void Ui_HandleEvent(const SDL_Event *event) {
  * used to avoid OpenGL state pollution.
  */
 void Ui_Draw(void) {
-	extern void R_BindTexture(GLuint texnum);
 	extern void R_BindDefaultArray(GLenum type);
 
 	if (cls.key_state.dest != KEY_UI) {
 		return;
 	}
+
+	GLint texnum;
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &texnum);
 
 	glDisable(GL_TEXTURE_2D);
 
@@ -82,6 +84,8 @@ void Ui_Draw(void) {
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 
+	glBindTexture(GL_TEXTURE_2D, texnum);
+
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
@@ -89,8 +93,6 @@ void Ui_Draw(void) {
 
 	R_BindDefaultArray(GL_VERTEX_ARRAY);
 	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
-
-	R_BindTexture(0);
 
 	glOrtho(0, r_context.width, r_context.height, 0, -1, 1);
 }
