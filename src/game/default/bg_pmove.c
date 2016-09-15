@@ -607,10 +607,14 @@ static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
 		}
 	}
 
+	Pm_Debug("still solid %s\n", vtos(pm->s.origin));
+
 	memset(trace, 0, sizeof(*trace));
 	trace->fraction = 1.0;
 
-	Pm_Debug("still solid %s\n", vtos(pm->s.origin));
+	pm->s.flags &= ~PMF_ON_GROUND;
+	pm->ground_entity = NULL;
+
 	return *trace;
 }
 
@@ -619,6 +623,11 @@ static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
  */
 static void Pm_CheckGround(void) {
 	vec3_t pos;
+
+	// if we jumped this move, do not attempt to seek ground
+	if (pm->s.flags & PMF_JUMPED) {
+		return;
+	}
 
 	// seek ground eagerly if the player wishes to trick jump
 	const _Bool trick_jump = Pm_CheckTrickJump();
@@ -630,21 +639,27 @@ static void Pm_CheckGround(void) {
 		pos[2] -= PM_GROUND_DIST;
 	}
 
+	// ensure we are not trapped in a solid, if we are abort
 	cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 	if (trace.all_solid) {
 		trace = Pm_CorrectPosition(&trace);
 	}
 
-	// if we've just jumped, then we are implicitly no longer on the ground
-	if (pm->s.flags & PMF_JUMPED) {
-		pm->s.flags &= ~PMF_ON_GROUND;
-		pm->ground_entity = NULL;
-		return;
-	}
-
 	pml.ground_plane = trace.plane;
 	pml.ground_surface = trace.surface;
 	pml.ground_contents = trace.contents;
+
+	// if we are trapped in a solid, we are not on the ground; do nothing
+	if (trace.all_solid) {
+
+		VectorCopy(pml.previous_origin, pm->s.origin);
+		VectorCopy(pml.previous_velocity, pm->s.velocity);
+
+		pm->s.flags &= ~PMF_ON_GROUND;
+		pm->ground_entity = NULL;
+		
+		return;
+	}
 
 	// if we hit an upward facing plane, make it our ground
 	if (trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL) {
