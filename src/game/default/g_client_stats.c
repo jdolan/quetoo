@@ -279,9 +279,14 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_VOTE] = 0;
 
 	// weapon
-	if (client->locals.weapon) {
-		client->ps.stats[STAT_WEAPON_ICON] = gi.ImageIndex(client->locals.weapon->icon);
-		client->ps.stats[STAT_WEAPON] = gi.ModelIndex(client->locals.weapon->model);
+	const g_item_t *weapon = client->locals.weapon;
+	if (weapon) {
+		client->ps.stats[STAT_WEAPON_ICON] = gi.ImageIndex(weapon->icon);
+		if (g_strcmp0(weapon->class_name, "ammo_grenades") == 0) {
+			client->ps.stats[STAT_WEAPON] = g_media.models.grenade;
+		} else {
+			client->ps.stats[STAT_WEAPON] = gi.ModelIndex(client->locals.weapon->model);
+		}
 	} else {
 		client->ps.stats[STAT_WEAPON_ICON] = 0;
 		client->ps.stats[STAT_WEAPON] = 0;
