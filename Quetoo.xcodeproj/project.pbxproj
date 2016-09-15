@@ -26,7 +26,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		CE0B64981D89EA380011F974 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE0B64961D89EA380011F974 /* main.c */; };
+		CE0B64991D8A3A450011F974 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE0B64961D89EA380011F974 /* main.c */; };
 		CE12D7A91C5C5C3200CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D7D11C5C5D6A00CD0B13 /* g_ai.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6431C5C58C300CD0B13 /* g_ai.c */; };
 		CE12D7D21C5C5D6A00CD0B13 /* g_ai_goal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6451C5C58C300CD0B13 /* g_ai_goal.c */; };
@@ -3094,7 +3094,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE0B64981D89EA380011F974 /* main.c in Sources */,
 				CE12D8151C5C5F0600CD0B13 /* ioapi.c in Sources */,
 				CE12D8161C5C5F0600CD0B13 /* zip.c in Sources */,
 			);
@@ -3320,6 +3319,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE0B64991D8A3A450011F974 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
