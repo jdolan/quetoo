@@ -657,7 +657,7 @@ static void Pm_CheckGround(void) {
 
 		pm->s.flags &= ~PMF_ON_GROUND;
 		pm->ground_entity = NULL;
-		
+
 		return;
 	}
 
