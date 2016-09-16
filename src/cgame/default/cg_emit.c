@@ -193,7 +193,7 @@ void Cg_LoadEmits(void) {
 						e->atten = ATTEN_NONE;
 					else {
 						if (e->atten == 0) { // default
-							if (e->flags & (EMIT_SPARKS | EMIT_STEAM)) {
+							if (e->flags & (EMIT_SPARKS | EMIT_STEAM | EMIT_FLAME)) {
 								e->atten = ATTEN_STATIC;
 							} else {
 								e->atten = ATTEN_DEFAULT;
