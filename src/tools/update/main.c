@@ -58,14 +58,14 @@ static char *get_default_dest(void) {
 			strncpy(dest, exe, len);
 		}
 #elif defined(__linux__)
-		char *c = strstr(dest, "quetoo/bin");
+		char *c = strstr(exe, "quetoo/bin");
 		if (c) {
 			const size_t len = (c - exe) + strlen("quetoo");
 			dest = calloc(len + 1, sizeof(char));
 			strncpy(dest, exe, len);
 		}
 #elif defined(_WIN32)
-		char *c = strstr(dest, "\\bin\\quetoo-update.exe");
+		char *c = strstr(exe, "\\bin\\quetoo-update.exe");
 		if (c) {
 			const size_t len = (c - exe);
 			dest = calloc(len + 1, sizeof(char));
