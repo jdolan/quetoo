@@ -81,7 +81,7 @@
 #define PM_SPEED_FALL_FAR		-800.0
 #define PM_SPEED_JUMP			270.0
 #define PM_SPEED_LADDER			125.0
-#define PM_SPEED_LAND			-300.0
+#define PM_SPEED_LAND			-280.0
 #define PM_SPEED_RUN			300.0
 #define PM_SPEED_SPECTATOR		350.0
 #define PM_SPEED_STOP			100.0

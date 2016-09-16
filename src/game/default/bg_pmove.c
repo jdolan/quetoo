@@ -597,7 +597,7 @@ static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
 				pos[2] += k * PM_NUDGE_DIST;
 
 				cm_trace_t tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
-				if (!tr.all_solid ) {
+				if (!tr.all_solid) {
 					VectorCopy(pos, pm->s.origin);
 					pos[2] -= PM_GROUND_DIST;
 
@@ -679,10 +679,10 @@ static void Pm_CheckGround(void) {
 				pm->s.time = 1;
 
 				if (pml.previous_velocity[2] <= PM_SPEED_FALL) {
-					pm->s.time = 400;
+					pm->s.time = 16;
 
 					if (pml.previous_velocity[2] <= PM_SPEED_FALL_FAR) {
-						pm->s.time = 800;
+						pm->s.time = 256;
 					}
 				}
 			} else { // soft landings with upward momentum grant trick jumps
