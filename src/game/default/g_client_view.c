@@ -198,13 +198,15 @@ void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick) {
 	PackAngles(kick_angles, ent->client->ps.pm_state.kick_angles);
 }
 
+#define WEAPON_KICK_SCALE 0.0
+
 /**
  * @brief A convenience function for adding view kick from firing weapons.
  */
 void G_ClientWeaponKick(g_entity_t *ent, const vec_t kick) {
 	vec3_t dir;
 
-	VectorScale(ent->client->locals.forward, -1.0, dir);
+	VectorScale(ent->client->locals.forward, WEAPON_KICK_SCALE, dir);
 
 	G_ClientDamageKick(ent, dir, kick);
 }
