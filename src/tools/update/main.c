@@ -33,6 +33,7 @@
   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-linux/i686/"
  #endif
 #elif defined(__MINGW32__)
+ #include <ctype.h>
  #if defined(__MINGW64__)
   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
  #else
@@ -77,6 +78,37 @@ static char *get_default_dest(void) {
 	return dest;
 }
 
+#if defined(_WIN32)
+/**
+ * @return The Cygwin path corresponding to `path`. Ideally, we would use the Cygwin API for this,
+ * but cross-compiling for Cygwin is somehow not very popular.
+ *
+ * @see <sys/cygwin.h>
+ * @see cygwin_conv_path
+ */
+static char *convert_cygwin_path(const char *path) {
+
+	const size_t len = strlen(path) + strlen("/cgydrive/") + 1;
+	char *cygpath = calloc(len, sizeof(char));
+
+	strcpy(cygpath, "/cygdrive/");
+
+	const char *in = path;
+	char *out = cygpath + strlen(cygpath);
+	while (*in) {
+		if (*in == ':') {
+			in++;
+		} else if (*in == '\\') {
+			*out++ = '/'; in++;
+		} else {
+			*out++ = tolower(*in++);
+		}
+	}
+
+	return cygpath;
+}
+#endif
+
 /**
  * @brief Program entry point.
  */
@@ -95,14 +127,22 @@ int main(int argc, char **argv) {
 		printf("Syncing "RSYNC_REPOSITORY" to %s..\n", dest);
 
 #if defined(_WIN32)
-		status = _spawnlp(_P_WAIT, "rsync.exe", "rsync.exe", "-rkzhP", "--delete", "--stats",
-				"--skip-compress=pk3",
-				"--perms",
-				"--chmod=a=rwx,Da+x",
-				"--exclude=bin/cygwin1.dll",
-				"--exclude=bin/rsync.exe",
-				"--exclude=bin/update.exe",
-				   RSYNC_REPOSITORY, dest, NULL);
+		char *cygdest = convert_cygwin_path(dest);
+		if (cygdest) {
+			printf("Using cygwin path %s\n", cygdest);
+			status = _spawnlp(_P_WAIT, "rsync.exe", "rsync.exe", "-rkzhP", "--delete", "--stats",
+							  "--skip-compress=pk3",
+							  "--perms",
+							  "--chmod=a=rwx,Da+x",
+							  "--exclude=bin/cygwin1.dll",
+							  "--exclude=bin/rsync.exe",
+							  "--exclude=bin/update.exe",
+							  RSYNC_REPOSITORY, cygdest, NULL);
+
+			free(cygdest);
+		} else {
+			fprintf(stderr, "Failed to convert %s to cygwin path\n", dest);
+		}
 #else
 		const pid_t child = fork();
 		if (child == 0) {
