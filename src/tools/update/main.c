@@ -91,7 +91,9 @@ static char *convert_cygwin_path(const char *path) {
 	const size_t len = strlen(path) + strlen("/cgydrive/") + 1;
 	char *cygpath = calloc(len, sizeof(char));
 
-	strcpy(cygpath, "/cygdrive/");
+	if (strstr(path, ":\\")) {
+		strcpy(cygpath, "/cygdrive/");
+	}
 
 	const char *in = path;
 	char *out = cygpath + strlen(cygpath);
