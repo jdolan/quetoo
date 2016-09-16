@@ -59,6 +59,13 @@ typedef struct fs_state_s {
 static fs_state_t fs_state;
 
 /**
+ * @return The base directory, if running from a bundled application.
+ */
+const char *Fs_BaseDir(void) {
+	return fs_state.base_dir;
+}
+
+/**
  * @brief Closes the file.
  *
  * @return True on successful flush and close, false otherwise.

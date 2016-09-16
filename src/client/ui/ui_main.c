@@ -102,6 +102,17 @@ void Ui_Draw(void) {
  */
 void Ui_Init(void) {
 
+#if defined(__APPLE__)
+	const char *path = Fs_BaseDir();
+	if (path) {
+
+		char fonts[MAX_OS_PATH];
+		g_snprintf(fonts, sizeof(fonts), "%s/Contents/MacOS/etc/fonts", path);
+
+		setenv("FONTCONFIG_PATH", fonts, 0);
+	}
+#endif
+
 	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
 
 	viewController = $((ViewController *) alloc(MainViewController), init);
