@@ -105,8 +105,10 @@ static inline void AddPlaneToHash(map_plane_t * p) {
 static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 	map_plane_t *p, temp;
 
+	// bad plane
 	if (VectorLength(normal) < 0.5)
-		Com_Error(ERR_FATAL, "FloatPlane: bad normal\n");
+		return -1;
+
 	// create a new plane
 	if (num_map_planes + 2 > MAX_BSP_PLANES)
 		Com_Error(ERR_FATAL, "MAX_BSP_PLANES\n");
@@ -582,7 +584,7 @@ static void ParseBrush(entity_t *mapent) {
 		// find the plane number
 		plane_num = PlaneFromPoints(planepts[0], planepts[1], planepts[2]);
 		if (plane_num == -1) {
-			Com_Verbose("Entity %i, Brush %i: plane with no normal\n", b->entity_num, b->brush_num);
+			Com_Warn("Entity %i, Brush %i: plane with no normal\n", b->entity_num, b->brush_num);
 			continue;
 		}
 
