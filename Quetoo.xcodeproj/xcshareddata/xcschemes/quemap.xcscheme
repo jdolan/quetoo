@@ -61,6 +61,12 @@
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-bsp maps/jgothic.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+      </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>

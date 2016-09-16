@@ -82,6 +82,7 @@
 		CE2DB5131D8633D600560994 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE2DB5111D8633D600560994 /* CrosshairView.c */; };
 		CE2DB5141D8633D600560994 /* CrosshairView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE2DB5121D8633D600560994 /* CrosshairView.h */; };
 		CE2DB5471D88F9B300560994 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE2DB5161D88F74000560994 /* main.c */; };
+		CE4898D11D8B9DE100EEACA5 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CE562EB81D68013B006DF143 /* CreateServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE562EB61D68013B006DF143 /* CreateServerViewController.c */; };
 		CE562EB91D68013B006DF143 /* CreateServerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE562EB71D68013B006DF143 /* CreateServerViewController.h */; };
 		CE5A5AB51D89016E001A00CC /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
@@ -105,7 +106,6 @@
 		CE7EA4DC1D49036E00BD37A3 /* CvarTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7EA4DB1D49036E00BD37A3 /* CvarTextView.h */; };
 		CE7EA4DE1D49037F00BD37A3 /* CvarTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7EA4DD1D49037F00BD37A3 /* CvarTextView.c */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.dylib */; };
-		CE8000011C5E4D4400A21A51 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CE8000021C5E4D4400A21A51 /* libshared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.dylib */; };
 		CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE8000041C5E4EED00A21A51 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
@@ -1272,11 +1272,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE4898D11D8B9DE100EEACA5 /* libnet.dylib in Frameworks */,
 				CE8000001C5E4D4400A21A51 /* libminizip.dylib in Frameworks */,
 				CE8000021C5E4D4400A21A51 /* libshared.dylib in Frameworks */,
 				CE80FFFF1C5E4D4400A21A51 /* libcommon.dylib in Frameworks */,
 				CE80FFFE1C5E4D4400A21A51 /* libcollision.dylib in Frameworks */,
-				CE8000011C5E4D4400A21A51 /* libnet.dylib in Frameworks */,
 				CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */,
 				CE8000041C5E4EED00A21A51 /* libSDL2-2.0.0.dylib in Frameworks */,
 				CE8000061C5E4F0500A21A51 /* libxml2.2.dylib in Frameworks */,
