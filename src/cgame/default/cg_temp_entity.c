@@ -518,12 +518,12 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 	VectorCopy(start, point);
 
 	VectorSubtract(end, start, vec);
-	const vec_t len = MIN(VectorNormalize(vec), 2048.0);
+	const vec_t len = VectorNormalize(vec);
 
 	VectorSet(right, vec[2], -vec[0], vec[1]);
 	CrossProduct(vec, right, up);
 
-	for (int32_t i = 0; i < len; i++) {
+	for (int32_t i = 0; i < len && i < 2048; i++) {
 
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
 			return;
