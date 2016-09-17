@@ -284,8 +284,7 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
  */
 vec_t VectorNormalize(vec3_t v) {
 
-	const vec_t length = sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-
+	const vec_t length = VectorLength(v);
 	if (length) {
 		const vec_t ilength = 1.0 / length;
 		v[0] *= ilength;
@@ -294,6 +293,15 @@ vec_t VectorNormalize(vec3_t v) {
 	}
 
 	return length;
+}
+
+/**
+ * @brief Normalizes the input vector to `out`, returning the input vector's length.
+ */
+vec_t VectorNormalize2(const vec3_t in, vec3_t out) {
+
+	VectorCopy(in, out);
+	return VectorNormalize(out);
 }
 
 /**
