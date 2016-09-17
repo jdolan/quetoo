@@ -31,7 +31,7 @@
 #define PM_ACCEL_GROUND			10.0
 #define PM_ACCEL_GROUND_SLICK	4.375
 #define PM_ACCEL_LADDER			16.0
-#define PM_ACCEL_SPECTATOR		3.0
+#define PM_ACCEL_SPECTATOR		2.5
 #define PM_ACCEL_WATER			2.8
 
 /**
@@ -83,7 +83,7 @@
 #define PM_SPEED_LADDER			125.0
 #define PM_SPEED_LAND			-280.0
 #define PM_SPEED_RUN			300.0
-#define PM_SPEED_SPECTATOR		350.0
+#define PM_SPEED_SPECTATOR		500.0
 #define PM_SPEED_STOP			100.0
 #define PM_SPEED_UP				0.1
 #define PM_SPEED_TRICK_JUMP		20.0
