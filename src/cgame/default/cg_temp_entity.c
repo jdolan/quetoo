@@ -518,7 +518,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 	VectorCopy(start, point);
 
 	VectorSubtract(end, start, vec);
-	const vec_t len = VectorNormalize(vec);
+	const vec_t len = MIN(VectorNormalize(vec), 2048.0);
 
 	VectorSet(right, vec[2], -vec[0], vec[1]);
 	CrossProduct(vec, right, up);
