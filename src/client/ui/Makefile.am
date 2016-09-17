@@ -26,5 +26,6 @@ libui_la_LDFLAGS = \
 
 libui_la_LIBADD = \
 	viewcontrollers/libviewcontrollers.la \
-	../../libcommon.la
+	../../libcommon.la \
+	@OBJECTIVELYMVC_LIBS@
 
