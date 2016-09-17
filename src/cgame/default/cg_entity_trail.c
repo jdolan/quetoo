@@ -47,7 +47,8 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke)))
 		return;
 
-	cgi.ColorFromPalette(7 + (Random() & 7), p->part.color);
+	const vec_t gray = 1.0 - Randomf() * 0.2;
+	Vector4Set(p->part.color, gray, gray, gray, 1.0);
 	Vector4Set(p->color_vel, -1.0, -1.0, -1.0, -1.0 / (1.0 + Randomf()));
 
 	p->part.scale = 1.0;
