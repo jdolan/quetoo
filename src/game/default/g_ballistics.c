@@ -744,8 +744,8 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	}
 
 	VectorMA(start, 800.0, forward, end); // resolve end
-	VectorMA(end, 10.0 * sin(g_level.time / 4.0), up, end);
-	VectorMA(end, 10.0 * Randomc(), right, end);
+	VectorMA(end, 2.0 * sin(g_level.time / 4.0), up, end);
+	VectorMA(end, 2.0 * Randomc(), right, end);
 
 	tr = gi.Trace(start, end, NULL, NULL, self, MASK_CLIP_PROJECTILE | MASK_LIQUID);
 

@@ -448,8 +448,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -100.0);
 
 		p->part.scale = 8.0;
-
-		p->part.scroll_s = -4.0;
+		p->part.scroll_s = -8.0;
 
 		VectorCopy(pos, p->part.org);
 
@@ -457,7 +456,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			VectorScale(dir, dist, delta);
 			offset = 0.0;
 		} else {
-			offset = fabs(8.0 * sin(dist));
+			offset = fabs(2.0 * sin(dist));
 		}
 
 		VectorAdd(pos, delta, pos);

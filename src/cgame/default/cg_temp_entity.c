@@ -191,7 +191,7 @@ static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
 
 	p->part.scale = scale;
 
-	VectorScale(dir, -1, v);
+	VectorScale(dir, -1.0, v);
 	VectorAngles(v, p->part.dir);
 	p->part.dir[ROLL] = Random() % 360;
 	VectorAdd(org, dir, p->part.org);
