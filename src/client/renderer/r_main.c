@@ -42,6 +42,7 @@ cvar_t *r_draw_bsp_leafs;
 cvar_t *r_draw_bsp_lightmaps;
 cvar_t *r_draw_bsp_lights;
 cvar_t *r_draw_bsp_normals;
+cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_wireframe;
 
 cvar_t *r_allow_high_dpi;
@@ -425,6 +426,8 @@ static void R_InitLocal(void) {
 			"Controls the rendering of BSP lightmap textures (developer tool)");
 	r_draw_bsp_normals = Cvar_Get("r_draw_bsp_normals", "0", CVAR_LO_ONLY,
 			"Controls the rendering of BSP surface normals (developer tool)");
+	r_draw_entity_bounds = Cvar_Get("r_draw_entitiy_bounds", "0", CVAR_LO_ONLY,
+			"Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_wireframe = Cvar_Get("r_draw_wireframe", "0", CVAR_LO_ONLY,
 			"Controls the rendering of polygons as wireframe (developer tool)");
 

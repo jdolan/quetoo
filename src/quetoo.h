@@ -509,11 +509,17 @@ typedef struct {
 	uint8_t sound; // looped sounds
 
 	/**
+	 * @brief The solid type. All solid types are sent to the client, but the
+	 * client may elect to only predict collisions with certain types.
+	 */
+	uint8_t solid;
+
+	/**
 	 * @brief Encoded bounding box dimensions for mesh entities. This enables
 	 * client-sided prediction so that players don't e.g. run through each
 	 * other. See PackBounds.
 	 */
-	uint16_t solid;
+	uint16_t bounds;
 } entity_state_t;
 
 #define MAX_STATS			32

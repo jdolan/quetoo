@@ -227,6 +227,13 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	VectorCopy(ent->origin, e.origin);
 	VectorCopy(ent->angles, e.angles);
 
+	// set the bounding box, according to the server, for debugging
+	if (ent->current.solid != SOLID_BSP) {
+		if (!Cg_IsSelf(ent) || cg_third_person->value) {
+			UnpackBounds(ent->current.bounds, e.mins, e.maxs);
+		}
+	}
+
 	// add events
 	Cg_EntityEvent(ent);
 

@@ -20,6 +20,18 @@
  */
 
 #include "cg_local.h"
+#include "game/default/bg_pmove.h"
+
+/**
+ * @return True if the entity is ducking, false otherwise.
+ */
+static _Bool Cg_IsDucking(const entity_state_t *ent) {
+
+	vec3_t mins, maxs;
+	UnpackBounds(ent->bounds, mins, maxs);
+
+	return (PM_MAXS[2] - PM_MINS[2]) - (maxs[2] - mins[2]) > PM_STOP_EPSILON;
+}
 
 /**
  * @brief
@@ -27,15 +39,13 @@
 static void Cg_EnergyFlash(const entity_state_t *ent, uint8_t color) {
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
-	cm_trace_t tr;
-	vec_t dist;
 
 	// project the flash just in front of the entity
 	AngleVectors(ent->angles, forward, right, NULL );
 	VectorMA(ent->origin, 30.0, forward, org);
 	VectorMA(org, 6.0, right, org);
 
-	tr = cgi.Trace(ent->origin, org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = cgi.Trace(ent->origin, org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		VectorSubtract(ent->origin, tr.end, org);
@@ -44,9 +54,8 @@ static void Cg_EnergyFlash(const entity_state_t *ent, uint8_t color) {
 		VectorAdd(ent->origin, org, org);
 	}
 
-	// and adjust for ducking (this is a hack)
-	dist = ent->solid == 8290 ? -2.0 : 20.0;
-	org[2] += dist;
+	// and adjust for ducking
+	org[2] += Cg_IsDucking(ent) ? -2.0 : 20.0;
 
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
@@ -68,16 +77,13 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	cg_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
-	cm_trace_t tr;
-	vec_t dist;
-	int32_t j;
 
 	// project the puff just in front of the entity
 	AngleVectors(ent->angles, forward, right, NULL );
 	VectorMA(ent->origin, 30.0, forward, org);
 	VectorMA(org, 6.0, right, org);
 
-	tr = cgi.Trace(ent->origin, org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
+	const cm_trace_t tr = cgi.Trace(ent->origin, org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
 
 	if (tr.fraction < 1.0) { // firing near a wall, back it up
 		VectorSubtract(ent->origin, tr.end, org);
@@ -86,9 +92,8 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 		VectorAdd(ent->origin, org, org);
 	}
 
-	// and adjust for ducking (this is a hack)
-	dist = ent->solid == 8290 ? -2.0 : 20.0;
-	org[2] += dist;
+	// and adjust for ducking
+	org[2] += Cg_IsDucking(ent) ? -2.0 : 20.0;
 
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 80.0;
@@ -119,7 +124,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 
 	VectorCopy(org, p->part.org);
 
-	for (j = 0; j < 2; j++) {
+	for (int32_t j = 0; j < 2; j++) {
 		p->vel[j] = Randomc();
 	}
 	p->vel[2] = 10.0;

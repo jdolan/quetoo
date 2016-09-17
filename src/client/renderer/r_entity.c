@@ -227,6 +227,76 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 }
 
 /**
+ * @brief Draws bounding boxes for all non-linked entities in `ents`.
+ */
+static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
+
+	if (!r_draw_entity_bounds->value) {
+		return;
+	}
+
+	if (ents->count == 0) {
+		return;
+	}
+
+	R_EnableTexture(&texunit_diffuse, false);
+
+	R_ResetArrayState(); // default arrays
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	R_Color(color);
+
+	for (size_t i = 0; i < ents->count; i++) {
+		const r_entity_t *e = ents->entities[i];
+
+		if (e->parent) {
+			continue;
+		}
+
+		matrix4x4_t mat;
+		Matrix4x4_CreateFromEntity(&mat, e->origin, vec3_origin, e->scale);
+
+		glPushMatrix();
+		glMultMatrixf((GLfloat *) mat.m);
+
+		vec3_t verts[16];
+
+		VectorSet(verts[0], e->mins[0], e->mins[1], e->mins[2]);
+		VectorSet(verts[1], e->mins[0], e->mins[1], e->maxs[2]);
+		VectorSet(verts[2], e->mins[0], e->maxs[1], e->maxs[2]);
+		VectorSet(verts[3], e->mins[0], e->maxs[1], e->mins[2]);
+
+		VectorSet(verts[4], e->maxs[0], e->maxs[1], e->mins[2]);
+		VectorSet(verts[5], e->maxs[0], e->maxs[1], e->maxs[2]);
+		VectorSet(verts[6], e->maxs[0], e->mins[1], e->maxs[2]);
+		VectorSet(verts[7], e->maxs[0], e->mins[1], e->mins[2]);
+
+		VectorSet(verts[8], e->maxs[0], e->mins[1], e->mins[2]);
+		VectorSet(verts[9], e->maxs[0], e->mins[1], e->maxs[2]);
+		VectorSet(verts[10], e->mins[0], e->mins[1], e->maxs[2]);
+		VectorSet(verts[11], e->mins[0], e->mins[1], e->mins[2]);
+
+		VectorSet(verts[12], e->mins[0], e->maxs[1], e->mins[2]);
+		VectorSet(verts[13], e->mins[0], e->maxs[1], e->maxs[2]);
+		VectorSet(verts[14], e->maxs[0], e->maxs[1], e->maxs[2]);
+		VectorSet(verts[15], e->maxs[0], e->maxs[1], e->mins[2]);
+
+		memcpy(r_state.vertex_array_3d, verts, sizeof(verts));
+
+		glDrawArrays(GL_QUADS, 0, lengthof(verts));
+
+		glPopMatrix();
+	}
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	R_EnableTexture(&texunit_diffuse, true);
+	
+	R_Color(NULL);
+}
+
+/**
  * @brief Primary entry point for drawing all entities.
  */
 void R_DrawEntities(void) {
@@ -236,6 +306,9 @@ void R_DrawEntities(void) {
 	R_DrawMeshModels(&r_sorted_entities.mesh_entities);
 
 	R_DrawNullModels(&r_sorted_entities.null_entities);
+
+	vec4_t yellow = { 0.9, 0.9, 0.0, 1.0 };
+	R_DrawEntityBounds(&r_sorted_entities.mesh_entities, yellow);
 
 	r_sorted_entities.bsp_inline_entities.count = 0;
 	r_sorted_entities.mesh_entities.count = 0;

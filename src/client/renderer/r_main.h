@@ -117,6 +117,7 @@ extern cvar_t *r_draw_bsp_leafs;
 extern cvar_t *r_draw_bsp_lightmaps;
 extern cvar_t *r_draw_bsp_lights;
 extern cvar_t *r_draw_bsp_normals;
+extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_wireframe;
 
 void R_UpdateFrustum(void);

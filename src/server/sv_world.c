@@ -143,12 +143,16 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	VectorSubtract(ent->maxs, ent->mins, ent->size);
 
 	// encode the size into the entity state for client prediction
-	if (ent->solid == SOLID_BOX) {
-		PackBounds(ent->mins, ent->maxs, &ent->s.solid);
-	} else if (ent->solid == SOLID_BSP) {
-		ent->s.solid = SOLID_BSP;
-	} else {
-		ent->s.solid = SOLID_NOT;
+	ent->s.solid = ent->solid;
+	switch (ent->s.solid) {
+		case SOLID_TRIGGER:
+		case SOLID_DEAD:
+		case SOLID_BOX:
+			PackBounds(ent->mins, ent->maxs, &ent->s.bounds);
+			break;
+		default:
+			PackBounds(vec3_origin, vec3_origin, &ent->s.bounds);
+			break;
 	}
 
 	// set the absolute bounding box; ensure it is symmetrical

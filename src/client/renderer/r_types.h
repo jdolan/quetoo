@@ -663,6 +663,7 @@ typedef struct r_entity_s {
 	vec3_t origin;
 	vec3_t termination;
 	vec3_t angles;
+	vec3_t mins, maxs;
 
 	matrix4x4_t matrix;
 	matrix4x4_t inverse_matrix;

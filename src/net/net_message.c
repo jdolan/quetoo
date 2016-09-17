@@ -324,8 +324,8 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 	if (to->trail != from->trail)
 		bits |= U_TRAIL;
 
-	if (to->model1 != from->model1 || to->model2 != from->model2 || to->model3 != from->model3
-			|| to->model4 != from->model4)
+	if (to->model1 != from->model1 || to->model2 != from->model2 ||
+			to->model3 != from->model3 || to->model4 != from->model4)
 		bits |= U_MODELS;
 
 	if (to->client != from->client)
@@ -336,6 +336,9 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 
 	if (to->solid != from->solid)
 		bits |= U_SOLID;
+
+	if (to->bounds != from->bounds)
+		bits |= U_BOUNDS;
 
 	if (!bits && !force)
 		return; // nothing to send
@@ -382,7 +385,10 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		Net_WriteByte(msg, to->sound);
 
 	if (bits & U_SOLID)
-		Net_WriteShort(msg, to->solid);
+		Net_WriteByte(msg, to->solid);
+
+	if (bits & U_BOUNDS)
+		Net_WriteShort(msg, to->bounds);
 }
 
 /**
@@ -694,5 +700,8 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 		to->sound = Net_ReadByte(msg);
 
 	if (bits & U_SOLID)
-		to->solid = Net_ReadShort(msg);
+		to->solid = Net_ReadByte(msg);
+
+	if (bits & U_BOUNDS)
+		to->bounds = Net_ReadShort(msg);
 }

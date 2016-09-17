@@ -53,9 +53,9 @@
  * @brief These flags indicate which fields in a given entity_state_t must be
  * written or read for delta compression from one snapshot to the next.
  */
-#define U_ORIGIN				0x1
+#define U_ORIGIN				0x1 // origin
 #define U_TERMINATION			0x2 // beams
-#define U_ANGLES				0x4
+#define U_ANGLES				0x4 // angles
 #define U_ANIMATIONS			0x8 // animation frames
 #define U_EVENT					0x10 // single-frame events
 #define U_EFFECTS				0x20 // bit masked effects
@@ -63,8 +63,9 @@
 #define U_MODELS				0x80 // models (primary and linked)
 #define U_CLIENT				0x100 // offset into client skins array
 #define U_SOUND					0x200 // looped sounds
-#define U_SOLID					0x400 // encoded bounding box
-#define U_REMOVE				0x800 // remove this entity, don't add it
+#define U_SOLID					0x400 // solid type
+#define U_BOUNDS				0x800 // encoded bounding box
+#define U_REMOVE				0x1000 // remove this entity, don't add it
 
 /**
  * @brief These flags indicate which fields a given sound packet will contain.
