@@ -743,7 +743,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 		return;
 	}
 
-	VectorMA(start, 800.0, forward, end); // resolve end
+	VectorMA(start, 768.0, forward, end); // resolve end
 	VectorMA(end, 2.0 * sin(g_level.time / 4.0), up, end);
 	VectorMA(end, 2.0 * Randomc(), right, end);
 
@@ -809,7 +809,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 		if (G_ImmediateWall(ent, projectile))
 			VectorCopy(ent->s.origin, projectile->s.origin);
 
-		VectorMA(start, 800.0, dir, projectile->s.termination);
+		VectorMA(start, 768.0, dir, projectile->s.termination);
 
 		projectile->owner = ent;
 		projectile->solid = SOLID_NOT;

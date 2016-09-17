@@ -563,7 +563,7 @@ static void G_InitClientInventory(g_entity_t *ent) {
 	ent->client->locals.max_grenades = 50;
 	ent->client->locals.max_rockets = 50;
 	ent->client->locals.max_cells = 200;
-	ent->client->locals.max_bolts = 100;
+	ent->client->locals.max_bolts = 150;
 	ent->client->locals.max_slugs = 50;
 	ent->client->locals.max_nukes = 10;
 
