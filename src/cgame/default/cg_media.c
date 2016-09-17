@@ -44,7 +44,7 @@ s_sample_t *cg_sample_sparks;
 s_sample_t *cg_sample_footsteps[4];
 s_sample_t *cg_sample_rain;
 s_sample_t *cg_sample_snow;
-s_sample_t *cg_sample_hit;
+s_sample_t *cg_sample_hits[2];
 s_sample_t *cg_sample_gib;
 
 cg_particles_t *cg_particles_normal;
@@ -68,7 +68,6 @@ cg_particles_t *cg_particles_bullet[3];
  * @brief Updates all media references for the client game.
  */
 void Cg_UpdateMedia(void) {
-	int32_t i;
 	char name[MAX_QPATH];
 
 	Cg_FreeParticles();
@@ -96,21 +95,25 @@ void Cg_UpdateMedia(void) {
 	cg_sample_sparks = cgi.LoadSample("world/sparks");
 	cg_sample_rain = cgi.LoadSample("world/rain");
 	cg_sample_snow = cgi.LoadSample("world/snow");
-	cg_sample_hit = cgi.LoadSample("misc/hit");
 	cg_sample_gib = cgi.LoadSample("gibs/common/gib");
 
-	for (i = 0; i < 4; i++) {
-		g_snprintf(name, sizeof(name), "weapons/machinegun/fire_%i", i + 1);
+	for (size_t i = 0; i < lengthof(cg_sample_hits); i++) {
+		g_snprintf(name, sizeof(name), "misc/hit_%zd", i + 1);
+		cg_sample_hits[i] = cgi.LoadSample(name);
+	}
+
+	for (size_t i = 0; i < lengthof(cg_sample_machinegun_fire); i++) {
+		g_snprintf(name, sizeof(name), "weapons/machinegun/fire_%zd", i + 1);
 		cg_sample_machinegun_fire[i] = cgi.LoadSample(name);
 	}
 
-	for (i = 0; i < 3; i++) {
-		g_snprintf(name, sizeof(name), "weapons/machinegun/hit_%i", i + 1);
+	for (size_t i = 0; i < lengthof(cg_sample_machinegun_hit); i++) {
+		g_snprintf(name, sizeof(name), "weapons/machinegun/hit_%zd", i + 1);
 		cg_sample_machinegun_hit[i] = cgi.LoadSample(name);
 	}
 
-	for (i = 0; i < 4; i++) {
-		g_snprintf(name, sizeof(name), "#players/common/step_%i", i + 1);
+	for (size_t i = 0; i < lengthof(cg_sample_footsteps); i++) {
+		g_snprintf(name, sizeof(name), "#players/common/step_%zd", i + 1);
 		cg_sample_footsteps[i] = cgi.LoadSample(name);
 	}
 
@@ -130,8 +133,8 @@ void Cg_UpdateMedia(void) {
 	cg_particles_spark = Cg_AllocParticles(cgi.LoadImage("particles/spark.tga", IT_EFFECT));
 	cg_particles_inactive = Cg_AllocParticles(cgi.LoadImage("particles/inactive.tga", IT_EFFECT));
 
-	for (i = 0; i < 3; i++) {
-		g_snprintf(name, sizeof(name), "particles/bullet_%i", i);
+	for (size_t i = 0; i < lengthof(cg_particles_bullet); i++) {
+		g_snprintf(name, sizeof(name), "particles/bullet_%zd", i);
 		cg_particles_bullet[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT));
 	}
 
