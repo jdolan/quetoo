@@ -29,15 +29,18 @@ _Bool Cg_IsSelf(const cl_entity_t *ent) {
 	if (ent->current.number == cgi.client->client_num + 1)
 		return true;
 
-	if (ent->current.model1 == MODEL_CLIENT || (ent->current.effects & EF_BEAM)) {
+	if ((ent->current.effects & EF_CORPSE) == 0) {
+		
+		if (ent->current.model1 == MODEL_CLIENT || (ent->current.effects & EF_BEAM)) {
 
-		if (ent->current.client == cgi.client->client_num)
-			return true;
+			if (ent->current.client == cgi.client->client_num)
+				return true;
 
-		const int16_t chase = cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS;
+			const int16_t chase = cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS;
 
-		if (ent->current.client == chase)
-			return true;
+			if (ent->current.client == chase)
+				return true;
+		}
 	}
 
 	return false;
