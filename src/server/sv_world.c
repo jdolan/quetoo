@@ -146,6 +146,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	ent->s.solid = ent->solid;
 	switch (ent->s.solid) {
 		case SOLID_TRIGGER:
+		case SOLID_PROJECTILE:
 		case SOLID_DEAD:
 		case SOLID_BOX:
 			PackBounds(ent->mins, ent->maxs, &ent->s.bounds);
@@ -273,6 +274,7 @@ static _Bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
 
 	switch (ent->solid) {
 		case SOLID_TRIGGER:
+		case SOLID_PROJECTILE:
 			if (sv_world.box_type & BOX_OCCUPY)
 				return true;
 			break;

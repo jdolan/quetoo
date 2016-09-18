@@ -268,7 +268,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
 		// don't mark our own missiles as solid for prediction
 		if (ent->owner == client->entity)
-			s->solid = 0;
+			s->solid = SOLID_NOT;
 
 		svs.next_entity_state++;
 		frame->num_entities++;

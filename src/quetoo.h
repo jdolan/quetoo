@@ -482,10 +482,11 @@ typedef enum {
  */
 typedef enum {
 	SOLID_NOT, // no interaction with other objects
-	SOLID_TRIGGER, // occupy
-	SOLID_DEAD, // collide, never clip player
-	SOLID_BOX, // collide and clip other solids
-	SOLID_BSP = 31, // collide and clip against rotated bounds
+	SOLID_TRIGGER, // triggers touch objects which occupy them
+	SOLID_PROJECTILE, // projectiles are triggers which can themselves occupy triggers
+	SOLID_DEAD, // dead solids clip to the world, but do not clip to boxes
+	SOLID_BOX, // boxes collide with the world and other boxes
+	SOLID_BSP, // inline models interact just like the static world
 } solid_t;
 
 /*

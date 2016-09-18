@@ -36,7 +36,7 @@
  * @brief Filter bits to Sv_BoxEntities / gi.BoxEntities.
  */
 #define BOX_COLLIDE			(1 << 0) // SOLID_DEAD, SOLID_BOX, SOLID_BSP, ..
-#define BOX_OCCUPY			(1 << 1) // SOLID_TRIGGER, ..
+#define BOX_OCCUPY			(1 << 1) // SOLID_TRIGGER, SOLID_PROJECTILE, ..
 
 #define BOX_ALL				(BOX_COLLIDE | BOX_OCCUPY)
 

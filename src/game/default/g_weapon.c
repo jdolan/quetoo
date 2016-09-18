@@ -466,7 +466,7 @@ static void G_PullGrenadePin(g_entity_t *ent) {
 	g_entity_t *nade = G_AllocEntity(__func__);
 	ent->client->locals.held_grenade = nade;
 	nade->owner = ent;
-	nade->solid = SOLID_BOX;
+	nade->solid = SOLID_PROJECTILE;
 	nade->locals.clip_mask = MASK_CLIP_PROJECTILE;
 	nade->locals.move_type = MOVE_TYPE_BOUNCE;
 	nade->locals.take_damage = true;

@@ -298,8 +298,14 @@ static void G_Currents(g_entity_t *ent) {
 void G_TouchOccupy(g_entity_t *ent) {
 	g_entity_t *ents[MAX_ENTITIES];
 
-	if (ent->solid != SOLID_BOX && ent->solid != SOLID_DEAD)
-		return;
+	switch (ent->solid) {
+		case SOLID_PROJECTILE:
+		case SOLID_DEAD:
+		case SOLID_BOX:
+			break;
+		default:
+			return;
+	}
 
 	const size_t len = gi.BoxEntities(ent->abs_mins, ent->abs_maxs, ents, lengthof(ents), BOX_OCCUPY);
 	for (size_t i = 0; i < len; i++) {
