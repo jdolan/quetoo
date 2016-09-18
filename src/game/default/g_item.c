@@ -762,7 +762,7 @@ static void G_UseItem(g_entity_t *ent, g_entity_t *other __attribute__((unused))
  */
 void G_ResetItem(g_entity_t *ent) {
 
-	ent->solid = SOLID_BOX;
+	ent->solid = SOLID_TRIGGER;
 	ent->sv_flags &= ~SVF_NO_CLIENT;
 	ent->locals.Touch = G_TouchItem;
 
