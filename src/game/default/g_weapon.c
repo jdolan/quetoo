@@ -56,6 +56,8 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 	ent->client->locals.next_weapon = item;
 	ent->client->locals.prev_weapon = ent->client->locals.weapon;
 
+	ent->client->locals.grenade_hold_time = 0; // put the pin back in
+
 	G_SetAnimation(ent, ANIM_TORSO_DROP, true);
 
 	gi.Sound(ent, g_media.sounds.weapon_switch, ATTEN_NORM);
@@ -553,7 +555,6 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	
 		// play the timer sound if we're holding once every second
 		if ((g_level.frame_num - ent->client->locals.grenade_hold_frame) % gi.frame_rate == 0) {
-		
 			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang.ogg"), ATTEN_NORM);
 		}
 		return;
