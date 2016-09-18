@@ -619,8 +619,8 @@ static void Pm_CorrectPosition(void) {
 static void Pm_CheckGround(void) {
 	vec3_t pos;
 
-	// if we jumped this move, do not attempt to seek ground
-	if (pm->s.flags & PMF_JUMPED) {
+	// if we jumped, or been pushed, do not attempt to seek ground
+	if (pm->s.flags & (PMF_JUMPED | PMF_TIME_PUSHED)) {
 		return;
 	}
 
@@ -818,23 +818,6 @@ static _Bool Pm_CheckJump(void) {
 
 	// indicate that jump is currently held
 	pm->s.flags |= (PMF_JUMPED | PMF_JUMP_HELD);
-
-	// clear the ground indicators
-	pm->s.flags &= ~PMF_ON_GROUND;
-	pm->ground_entity = NULL;
-
-	return true;
-}
-
-/**
- * @brief Check for push interactions.
- *
- * @return True if the player was pushed by an entity, false otherwise.
- */
-static _Bool Pm_CheckPush(void) {
-
-	if (!(pm->s.flags & PMF_PUSHED))
-		return false;
 
 	// clear the ground indicators
 	pm->s.flags &= ~PMF_ON_GROUND;
@@ -1117,8 +1100,7 @@ static void Pm_WalkMove(void) {
 	vec_t speed, max_speed, accel;
 	vec3_t angles, vel, dir;
 
-	if (Pm_CheckJump() || Pm_CheckPush()) {
-		// jumped or pushed away
+	if (Pm_CheckJump()) { // jumped away
 		if (pm->water_level > 1) {
 			Pm_WaterMove();
 		} else {
@@ -1371,10 +1353,5 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	// check for water level, water type at new spot
 	Pm_CheckWater();
-
-	// touching the ground terminates being pushed
-	if (pm->s.flags & PMF_ON_GROUND) {
-		pm->s.flags &= ~PMF_PUSHED;
-	}
 }
 
