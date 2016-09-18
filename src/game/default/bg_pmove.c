@@ -582,40 +582,35 @@ static _Bool Pm_CheckTrickJump(void) {
 /**
  * @brief Shift around the current origin to find a valid position.
  */
-static cm_trace_t Pm_CorrectPosition(cm_trace_t *trace) {
-	vec3_t pos;
+static void Pm_CorrectPosition(void) {
 
-	Pm_Debug("all solid %s\n", vtos(pm->s.origin));
+	const cm_trace_t tr = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
+	if (tr.all_solid) {
 
-	for (int32_t i = -1; i <= 1; i++) {
-		for (int32_t j = -1; j <= 1; j++) {
-			for (int32_t k = -1; k <= 1; k++) {
-				VectorCopy(pm->s.origin, pos);
+		Pm_Debug("all solid %s\n", vtos(pm->s.origin));
 
-				pos[0] += i * PM_NUDGE_DIST;
-				pos[1] += j * PM_NUDGE_DIST;
-				pos[2] += k * PM_NUDGE_DIST;
+		for (int32_t i = -1; i <= 1; i++) {
+			for (int32_t j = -1; j <= 1; j++) {
+				for (int32_t k = -1; k <= 1; k++) {
+					vec3_t pos;
+					VectorCopy(pm->s.origin, pos);
 
-				cm_trace_t tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
-				if (!tr.all_solid) {
-					VectorCopy(pos, pm->s.origin);
-					pos[2] -= PM_GROUND_DIST;
+					pos[0] += i * PM_NUDGE_DIST;
+					pos[1] += j * PM_NUDGE_DIST;
+					pos[2] += k * PM_NUDGE_DIST;
 
-					return pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
+					const cm_trace_t tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
+					if (!tr.all_solid) {
+						return;
+					}
 				}
 			}
 		}
+
+		VectorCopy(pml.previous_origin, pm->s.origin);
+
+		Pm_Debug("still solid, reverted to %s\n", vtos(pm->s.origin));
 	}
-
-	Pm_Debug("still solid %s\n", vtos(pm->s.origin));
-
-	memset(trace, 0, sizeof(*trace));
-	trace->fraction = 1.0;
-
-	pm->s.flags &= ~PMF_ON_GROUND;
-	pm->ground_entity = NULL;
-
-	return *trace;
 }
 
 /**
@@ -641,25 +636,10 @@ static void Pm_CheckGround(void) {
 
 	// ensure we are not trapped in a solid, if we are abort
 	cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
-	if (trace.all_solid) {
-		trace = Pm_CorrectPosition(&trace);
-	}
 
 	pml.ground_plane = trace.plane;
 	pml.ground_surface = trace.surface;
 	pml.ground_contents = trace.contents;
-
-	// if we are trapped in a solid, we are not on the ground; do nothing
-	if (trace.all_solid) {
-
-		VectorCopy(pml.previous_origin, pm->s.origin);
-		VectorCopy(pml.previous_velocity, pm->s.velocity);
-
-		pm->s.flags &= ~PMF_ON_GROUND;
-		pm->ground_entity = NULL;
-
-		return;
-	}
 
 	// if we hit an upward facing plane, make it our ground
 	if (trace.ent && trace.plane.normal[2] >= PM_STEP_NORMAL) {
@@ -762,11 +742,6 @@ static void Pm_CheckDuck(void) {
 
 		if (pm->cmd.up < 0) {
 			pm->s.flags |= PMF_DUCKED;
-		} else {
-			cm_trace_t trace = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
-			if (trace.all_solid) {
-				pm->s.flags |= PMF_DUCKED;
-			}
 		}
 
 		const vec_t height = pm->maxs[2] - pm->mins[2];
@@ -1387,6 +1362,9 @@ void Pm_Move(pm_move_t *pm_move) {
 	} else {
 		Pm_AirMove();
 	}
+
+	// ensure we're in a valid spot, or revert
+	Pm_CorrectPosition();
 
 	// check for ground at new spot
 	Pm_CheckGround();
