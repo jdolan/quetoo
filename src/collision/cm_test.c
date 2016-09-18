@@ -169,22 +169,22 @@ void Cm_InitBoxHull(void) {
 		VectorClear(plane->normal);
 		plane->normal[i >> 1] = 1.0;
 		plane->sign_bits = Cm_SignBitsForPlane(plane);
-		plane->num = cm_bsp.num_planes + i * 2;
+		plane->num = (cm_bsp.num_planes >> 1) + (i >> 1) + 1;
 
 		plane = &cm_box.planes[i * 2 + 1];
 		plane->type = PLANE_ANY_X + (i >> 1);
 		VectorClear(plane->normal);
 		plane->normal[i >> 1] = -1.0;
 		plane->sign_bits = Cm_SignBitsForPlane(plane);
-		plane->num = cm_bsp.num_planes + i * 2 + 1;
+		plane->num = (cm_bsp.num_planes >> 1) + (i >> 1) + 1;
 
 		const int32_t side = i & 1;
 
 		// fill in nodes, one per side
 		cm_bsp_node_t *node = &cm_bsp.nodes[cm_box.head_node + i];
 		node->plane = cm_bsp.planes + (cm_bsp.num_planes + i * 2);
-		node->children[side] = -1 - cm_bsp.empty_leaf;
-		if (i < 5)
+		node->children[side] = -1 - cm_bsp.num_leafs;
+		if (i != 5)
 			node->children[side ^ 1] = cm_box.head_node + i + 1;
 		else
 			node->children[side ^ 1] = -1 - cm_bsp.num_leafs;
@@ -202,6 +202,9 @@ void Cm_InitBoxHull(void) {
  */
 int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t contents) {
 
+	VectorCopy(mins, cm_box.brush->mins);
+	VectorCopy(maxs, cm_box.brush->maxs);
+	
 	cm_box.planes[0].dist = maxs[0];
 	cm_box.planes[1].dist = -maxs[0];
 	cm_box.planes[2].dist = mins[0];

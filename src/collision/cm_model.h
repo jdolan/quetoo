@@ -59,7 +59,6 @@ typedef struct {
 
 	int32_t num_leafs;
 	cm_bsp_leaf_t leafs[MAX_BSP_LEAFS + 1]; // extra for box hull
-	int32_t empty_leaf, solid_leaf;
 
 	int32_t num_leaf_brushes;
 	uint16_t leaf_brushes[MAX_BSP_LEAF_BRUSHES + 1]; // extra for box hull

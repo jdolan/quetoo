@@ -172,19 +172,6 @@ static void Cm_LoadBspLeafs(const d_bsp_lump_t *l) {
 	if (cm_bsp.leafs[0].contents != CONTENTS_SOLID) {
 		Com_Error(ERR_DROP, "Map leaf 0 is not CONTENTS_SOLID\n");
 	}
-
-	cm_bsp.solid_leaf = 0;
-	cm_bsp.empty_leaf = -1;
-
-	for (int32_t i = 1; i < cm_bsp.num_leafs; i++) {
-		if (!cm_bsp.leafs[i].contents) {
-			cm_bsp.empty_leaf = i;
-			break;
-		}
-	}
-
-	if (cm_bsp.empty_leaf == -1)
-		Com_Error(ERR_DROP, "Map does not have an empty leaf\n");
 }
 
 /**
