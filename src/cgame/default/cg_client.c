@@ -122,8 +122,8 @@ static _Bool Cg_ValidateClient(cl_client_info_t *ci) {
 	if (!ci->head_skins[0] || !ci->torso_skins[0] || !ci->legs_skins[0])
 		return false;
 
-	VectorCopy(PM_MINS, ci->legs->mins);
-	VectorCopy(PM_MAXS, ci->legs->maxs);
+	VectorScale(PM_MINS, PM_SCALE, ci->legs->mins);
+	VectorScale(PM_MAXS, PM_SCALE, ci->legs->maxs);
 
 	ci->legs->radius = (ci->legs->maxs[2] - ci->legs->mins[2]) / 2.0;
 
