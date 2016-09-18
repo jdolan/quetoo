@@ -229,10 +229,10 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
 	if (other->locals.move_type == MOVE_TYPE_WALK || other->locals.move_type == MOVE_TYPE_BOUNCE) {
 
 		VectorScale(self->locals.move_dir, self->locals.speed * 10.0, other->locals.velocity);
-		other->s.origin[2] += 1.0;
-		
+
 		if (other->client) {
-			other->client->ps.pm_state.flags |= PMF_PUSHED;
+			other->client->ps.pm_state.flags |= PMF_TIME_PUSHED;
+			other->client->ps.pm_state.time = 240;
 		}
 
 		if (other->locals.push_time < g_level.time) {

@@ -248,7 +248,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 		const vec_t mass = Clamp(target->locals.mass, 1.0, 1000.0);
 
 		// rocket jump hack
-		const vec_t scale = (target == attacker ? 1000.0 : 500.0);
+		const vec_t scale = (target == attacker ? 1400.0 : 700.0);
 
 		VectorScale(ndir, scale * knockback / mass, knockback_vel);
 		VectorAdd(target->locals.velocity, knockback_vel, target->locals.velocity);
@@ -262,7 +262,8 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 		}
 
 		if (client) { // make sure the client can leave the ground
-			client->ps.pm_state.flags |= PMF_PUSHED;
+			client->ps.pm_state.flags |= PMF_TIME_PUSHED;
+			client->ps.pm_state.time = 120;
 		}
 	}
 

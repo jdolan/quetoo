@@ -263,27 +263,27 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 		}
 	}
 
-	if (age > 13000) {
-		G_FreeEntity(self);
-		return;
-	}
+//	if (age > 13000) {
+//		G_FreeEntity(self);
+//		return;
+//	}
 
 	// sink into the floor after a few seconds
-	if (age > 10000) {
-
-		self->s.effects |= EF_DESPAWN;
-
-		self->locals.move_type = MOVE_TYPE_NONE;
-		self->locals.take_damage = false;
-
-		self->solid = SOLID_NOT;
-
-		if (self->locals.ground_entity) {
-			self->s.origin[2] -= gi.frame_seconds * 8.0;
-		}
-
-		gi.LinkEntity(self);
-	}
+//	if (age > 10000) {
+//
+//		self->s.effects |= EF_DESPAWN;
+//
+//		self->locals.move_type = MOVE_TYPE_NONE;
+//		self->locals.take_damage = false;
+//
+//		self->solid = SOLID_NOT;
+//
+//		if (self->locals.ground_entity) {
+//			self->s.origin[2] -= gi.frame_seconds * 8.0;
+//		}
+//
+//		gi.LinkEntity(self);
+//	}
 
 	self->locals.next_think = g_level.time + gi.frame_millis;
 }

@@ -420,8 +420,8 @@ typedef struct {
 } sv_trace_t;
 
 /**
- * @brief Clips the specified trace to other entities in its area. This is the basis
- * of ALL collision and interaction for the server. Tread carefully.
+ * @brief Clips the specified trace to other entities in its area. This is the basis of all
+ * collision and interaction for the server. Tread carefully.
  */
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 	g_entity_t *e[MAX_ENTITIES];

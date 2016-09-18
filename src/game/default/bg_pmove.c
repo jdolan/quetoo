@@ -29,11 +29,11 @@
 const vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
 const vec3_t PM_MAXS = { 16.0, 16.0, 32.0 };
 
-const vec3_t PM_DEAD_MINS = { -16.0, -16.0, -24.0 };
-const vec3_t PM_DEAD_MAXS = { 16.0, 16.0, 8.0 };
+const vec3_t PM_DEAD_MINS = { -24.0, -24.0, -24.0 };
+const vec3_t PM_DEAD_MAXS = { 24.0, 24.0, -4.0 };
 
-const vec3_t PM_GIBLET_MINS = { -9.0, -9.0, -9.0 };
-const vec3_t PM_GIBLET_MAXS = { 9.0, 9.0, 9.0 };
+const vec3_t PM_GIBLET_MINS = { -8.0, -8.0, -8.0 };
+const vec3_t PM_GIBLET_MAXS = { 8.0, 8.0, 8.0 };
 
 static pm_move_t *pm;
 

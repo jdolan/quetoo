@@ -358,7 +358,6 @@ static void G_Physics_Push_Impact(g_entity_t *ent) {
 
 	if (ent->client) {
 		g_push_p->delta_yaw = ent->client->ps.pm_state.delta_angles[YAW];
-		ent->client->ps.pm_state.flags |= PMF_PUSHED;
 	} else {
 		g_push_p->delta_yaw = 0;
 	}
@@ -376,7 +375,6 @@ static void G_Physics_Push_Revert(const g_push_t *p) {
 
 	if (p->ent->client) {
 		p->ent->client->ps.pm_state.delta_angles[YAW] = p->delta_yaw;
-		p->ent->client->ps.pm_state.flags &= ~PMF_PUSHED;
 	}
 
 	gi.LinkEntity(p->ent);
