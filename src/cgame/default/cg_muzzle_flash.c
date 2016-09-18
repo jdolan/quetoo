@@ -30,7 +30,10 @@ static _Bool Cg_IsDucking(const entity_state_t *ent) {
 	vec3_t mins, maxs;
 	UnpackBounds(ent->bounds, mins, maxs);
 
-	return (PM_MAXS[2] - PM_MINS[2]) - (maxs[2] - mins[2]) > PM_STOP_EPSILON;
+	const vec_t standing_height = (PM_MAXS[2] - PM_MINS[2]) * PM_SCALE;
+	const vec_t height = maxs[2] - mins[2];
+
+	return standing_height - height > PM_STOP_EPSILON;
 }
 
 /**
