@@ -183,8 +183,8 @@ void Cm_InitBoxHull(void) {
 		// fill in nodes, one per side
 		cm_bsp_node_t *node = &cm_bsp.nodes[cm_box.head_node + i];
 		node->plane = cm_bsp.planes + (cm_bsp.num_planes + i * 2);
-		node->children[side] = -1 - cm_bsp.empty_leaf;
-		if (i < 5)
+		node->children[side] = -1 - cm_bsp.num_leafs;
+		if (i != 5)
 			node->children[side ^ 1] = cm_box.head_node + i + 1;
 		else
 			node->children[side ^ 1] = -1 - cm_bsp.num_leafs;
