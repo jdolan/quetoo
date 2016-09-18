@@ -403,9 +403,11 @@ int32_t Sv_PointContents(const vec3_t point) {
 		const g_entity_t *ent = entities[i];
 
 		const int32_t head_node = Sv_HullForEntity(ent);
-		const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+		if (head_node != -1) {
 
-		contents |= Cm_TransformedPointContents(point, head_node, &sent->inverse_matrix);
+			const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+			contents |= Cm_TransformedPointContents(point, head_node, &sent->inverse_matrix);
+		}
 	}
 
 	return contents;
@@ -460,19 +462,23 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 		}
 
 		const int32_t head_node = Sv_HullForEntity(ent);
-		const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+		if (head_node != -1) {
 
-		cm_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
-				head_node, trace->contents, &sent->matrix, &sent->inverse_matrix);
+			const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+			
+			const cm_trace_t tr = Cm_TransformedBoxTrace(
+				trace->start, trace->end, trace->mins, trace->maxs, head_node, trace->contents,
+				&sent->matrix, &sent->inverse_matrix);
 
-		// check for a full or partial intersection
-		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
+			// check for a full or partial intersection
+			if (tr.all_solid || tr.fraction < trace->trace.fraction) {
 
-			trace->trace = tr;
-			trace->trace.ent = ent;
+				trace->trace = tr;
+				trace->trace.ent = ent;
 
-			if (tr.all_solid) // we were actually blocked
-				return;
+				if (tr.all_solid) // we were actually blocked
+					return;
+			}
 		}
 	}
 }

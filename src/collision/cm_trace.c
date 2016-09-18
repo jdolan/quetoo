@@ -447,8 +447,8 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
  * @param maxs The trace bounding box maxs.
  * @param head_node The BSP head node to recurse down.
  * @param contents The contents mask to clip to.
- * @param matrix The matrix of the entity to be clipped to.
- * @param inverse_matrix The inverse matrix of the entity to be clipped to.
+ * @param matrix The matrix of the entity to clip to.
+ * @param inverse_matrix The inverse matrix of the entity to clip to.
  *
  * @return The trace.
  */
