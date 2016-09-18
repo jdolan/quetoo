@@ -601,6 +601,7 @@ static void Pm_CorrectPosition(void) {
 
 					const cm_trace_t tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
 					if (!tr.all_solid) {
+						VectorCopy(pos, pm->s.origin);
 						return;
 					}
 				}
@@ -634,7 +635,7 @@ static void Pm_CheckGround(void) {
 		pos[2] -= PM_GROUND_DIST;
 	}
 
-	// ensure we are not trapped in a solid, if we are abort
+	// seek the ground
 	cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 
 	pml.ground_plane = trace.plane;
