@@ -285,8 +285,7 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
  *
  * @return The contents mask at the specified point.
  */
-int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node,
-		const matrix4x4_t *inverse_matrix) {
+int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const matrix4x4_t *inverse_matrix) {
 	vec3_t p0;
 
 	Matrix4x4_Transform(inverse_matrix, p, p0);
