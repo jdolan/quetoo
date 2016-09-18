@@ -405,7 +405,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 
 	// check for position test special case
 	if (VectorCompare(start, end)) {
-		int32_t leafs[1024];
+		int32_t leafs[MAX_ENTITIES];
 
 		const size_t len = Cm_BoxLeafnums(data.box_mins, data.box_maxs, leafs, lengthof(leafs),
 				NULL, head_node);
