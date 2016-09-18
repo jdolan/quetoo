@@ -197,6 +197,7 @@ void Cg_ParseMuzzleFlash(void) {
 		cgi.PlaySample(NULL, ent_num, cg_sample_railgun_fire, ATTEN_NORM);
 		break;
 	case MZ_BFG:
+		cgi.PlaySample(NULL, ent_num, cg_sample_bfg_fire, ATTEN_NORM);
 		Cg_EnergyFlash(&cent->current, 200);
 		break;
 	case MZ_LOGOUT:

@@ -39,6 +39,7 @@ extern s_sample_t *cg_sample_lightning_fire;
 extern s_sample_t *cg_sample_lightning_fly;
 extern s_sample_t *cg_sample_lightning_discharge;
 extern s_sample_t *cg_sample_railgun_fire;
+extern s_sample_t *cg_sample_bfg_fire;
 extern s_sample_t *cg_sample_bfg_hit;
 
 extern s_sample_t *cg_sample_explosion;

@@ -1372,7 +1372,7 @@ const g_item_t g_items[] = {
 		ITEM_WEAPON,
 		0,
 		0.66,
-		"weapons/bfg/fire.wav weapons/bfg/hit.wav" },
+		"weapons/bfg/prime.wav weapons/bfg/hit.wav" },
 
 /*QUAKED ammo_shells (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
  Shells for the Shotgun and Super Shotgun.

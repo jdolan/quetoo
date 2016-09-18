@@ -521,6 +521,7 @@ typedef struct {
 		uint16_t gib_hits[NUM_GIB_MODELS];
 
 		uint16_t bfg_hit;
+		uint16_t bfg_prime;
 		uint16_t grenade_hit;
 		uint16_t rocket_fly;
 		uint16_t lightning_fly;

@@ -726,17 +726,22 @@ void G_FireRailgun(g_entity_t *ent) {
  * @brief
  */
 static void G_FireBfg_(g_entity_t *ent) {
-	vec3_t forward, right, up, org;
 
-	G_InitProjectile(ent->owner, forward, right, up, org);
+	if (ent->owner->locals.dead == false) {
+		if (ent->owner->client->locals.weapon == G_FindItemByClassName("weapon_bfg")) {
+			vec3_t forward, right, up, org;
 
-	G_BfgProjectile(ent->owner, org, forward, 720, 180, 140, 512.0);
+			G_InitProjectile(ent->owner, forward, right, up, org);
 
-	G_MuzzleFlash(ent->owner, MZ_BFG);
+			G_BfgProjectile(ent->owner, org, forward, 720, 180, 140, 512.0);
 
-	G_ClientWeaponKick(ent->owner, 1.0);
+			G_MuzzleFlash(ent->owner, MZ_BFG);
 
-	G_WeaponFired(ent->owner, 2000);
+			G_ClientWeaponKick(ent->owner, 1.0);
+
+			G_WeaponFired(ent->owner, 2000);
+		}
+	}
 
 	ent->locals.Think = G_FreeEntity;
 	ent->locals.next_think = g_level.time + 1;
@@ -748,14 +753,14 @@ static void G_FireBfg_(g_entity_t *ent) {
 void G_FireBfg(g_entity_t *ent) {
 
 	if (G_FireWeapon(ent)) {
-		ent->client->locals.weapon_fire_time = g_level.time + 1000 + gi.frame_millis;
+		ent->client->locals.weapon_fire_time = g_level.time + 3000;
 
 		g_entity_t *timer = G_AllocEntity(__func__);
 		timer->owner = ent;
 
 		timer->locals.Think = G_FireBfg_;
-		timer->locals.next_think = g_level.time + 1000;
+		timer->locals.next_think = g_level.time + 1000 - gi.frame_millis;
 
-		gi.Sound(ent, gi.SoundIndex("weapons/bfg/fire"), ATTEN_NORM);
+		gi.Sound(ent, g_media.sounds.bfg_prime, ATTEN_NORM);
 	}
 }
