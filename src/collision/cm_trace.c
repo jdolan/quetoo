@@ -443,8 +443,8 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
  *
  * @param start The trace start point, in world space.
  * @param end The trace end point, in world space.
- * @param mins The trace bounding box mins.
- * @param maxs The trace bounding box maxs.
+ * @param mins The bounding box mins, in model space.
+ * @param maxs The bounding box maxs, in model space.
  * @param head_node The BSP head node to recurse down.
  * @param contents The contents mask to clip to.
  * @param matrix The matrix of the entity to clip to.
