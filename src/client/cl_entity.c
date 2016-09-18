@@ -273,7 +273,7 @@ void Cl_ParseFrame(void) {
 
 	if (cl.frame.valid) {
 		// getting a valid frame message ends the connection process
-		if (cls.state != CL_ACTIVE) {
+		if (cls.state == CL_LOADING) {
 			cls.state = CL_ACTIVE;
 
 			VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_state.origin);
