@@ -202,6 +202,9 @@ void Cm_InitBoxHull(void) {
  */
 int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t contents) {
 
+	VectorCopy(mins, cm_box.brush->mins);
+	VectorCopy(maxs, cm_box.brush->maxs);
+	
 	cm_box.planes[0].dist = maxs[0];
 	cm_box.planes[1].dist = -maxs[0];
 	cm_box.planes[2].dist = mins[0];
