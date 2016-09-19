@@ -21,8 +21,6 @@
 
 #include "cl_local.h"
 
-#include <SDL2/SDL.h>
-
 static void *cgame_handle;
 
 /**
@@ -128,8 +126,6 @@ void Cl_InitCgame(void) {
 	import.Debug_ = Com_Debug_;
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Cl_CgameError;
-
-	import.Time = SDL_GetTicks;
 
 	import.Malloc = Mem_TagMalloc;
 	import.LinkMalloc = Mem_LinkMalloc;

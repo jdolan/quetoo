@@ -21,7 +21,6 @@
 
 #include "console.h"
 
-#include <SDL2/SDL.h>
 #include <signal.h>
 
 console_state_t console_state;
@@ -47,7 +46,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 	str->size = strlen(str->chars);
 	str->length = StrColorLen(str->chars);
 
-	str->timestamp = SDL_GetTicks();
+	str->timestamp = quetoo.time;
 
 	return str;
 }
