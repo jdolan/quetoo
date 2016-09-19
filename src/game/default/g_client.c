@@ -787,6 +787,8 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	VectorCopy(ent->s.origin, ent->client->ps.pm_state.origin);
 	PackAngles(delta_angles, ent->client->ps.pm_state.delta_angles);
 
+	VectorClear(ent->locals.velocity);
+
 	ent->s.effects = 0;
 	ent->s.model1 = 0;
 	ent->s.model2 = 0;
