@@ -265,9 +265,9 @@ static void Cl_KeyChat(const SDL_Event *event) {
 		case SDLK_KP_ENTER: {
 			const char *in;
 			if (cls.chat_state.team_chat) {
-				in = va("say_team %s", cl_chat_console.input.buffer);
+				in = va("say_team %s^7", cl_chat_console.input.buffer);
 			} else {
-				in = va("say %s", cl_chat_console.input.buffer);
+				in = va("say %s^7", cl_chat_console.input.buffer);
 			}
 			strncpy(cl_chat_console.input.buffer, in, sizeof(cl_chat_console.input.buffer));
 			Con_SubmitInput(&cl_chat_console);
