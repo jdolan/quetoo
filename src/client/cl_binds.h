@@ -37,7 +37,7 @@ static const char *DEFAULT_BINDS =
 	"bind 0 use bfg10k\n"
 	"bind g use grenades\n"
 
-	"bind = cl_view_size_down\n"
+	"bind - cl_view_size_down\n"
 	"bind = cl_view_size_up\n"
 
 	"bind w +forward\n"
