@@ -27,23 +27,53 @@
  * frustum.
  */
 static void Cg_UpdateFov(void) {
+	static uint32_t time, vtime;
+
+	vec_t ftime = cgi.view->time - vtime;
+	if (ftime > 1000) // the Clamp function generates a warning about unsigned int comparisons
+		ftime = 1000;
+
+	time += ftime;
+	vtime = cgi.view->time;
 
 	if (!cg_fov->modified && !cgi.view->update)
 		return;
 
 	cg_fov->value = Clamp(cg_fov->value, 10.0, 160.0);
+	cg_fov_interpolate->value = Clamp(cg_fov_interpolate->value, 0.0, 100.0);
 
-	cgi.view->fov[0] = cg_fov->value / 2.0;
+	vec_t target_fov = cg_fov->value;
+	vec_t current_fov = cgi.view->fov[0] * 2.0; // yes, yes, very hacky
 
-	const vec_t x = cgi.context->width / tan(Radians(cg_fov->value));
+	vec_t fov = 0.0;
+	vec_t fov_delta = 0.0;
+
+	if (cg_fov_interpolate->value) {
+		fov_delta = (ftime / 1000.0) * cg_fov_interpolate->value * 100.0;
+		if (current_fov - target_fov > 0.0)
+			fov_delta *= -1.0;
+
+		fov = current_fov + fov_delta;
+
+		if ((fov_delta > 0 && fov > target_fov) || (fov_delta < 0 && fov < target_fov)) {
+			fov = target_fov;
+			cg_fov->modified = false;
+		}
+	} else {
+		fov = target_fov;
+		cg_fov->modified = false;
+	}
+
+
+	cgi.view->fov[0] = fov / 2.0;
+
+	const vec_t x = cgi.context->width / tan(Radians(fov));
 
 	const vec_t y = atan2(cgi.context->height, x);
 
 	const vec_t a = cgi.context->height / (vec_t ) cgi.context->width;
 
 	cgi.view->fov[1] = Degrees(y) * a / 2.0;
-
-	cg_fov->modified = false;
 }
 
 /**
