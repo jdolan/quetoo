@@ -65,7 +65,7 @@ static void G_target_light_Cycle(g_entity_t *self) {
 /**
  * @brief
  */
-static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *activator) {
+static void G_target_light_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)), g_entity_t *activator __attribute__((unused))) {
 
 	if (self->locals.delay) {
 		self->locals.Think = G_target_light_Cycle;
@@ -188,7 +188,7 @@ void G_target_speaker(g_entity_t *ent) {
 	if (ent->locals.spawn_flags & SPEAKER_LOOP_ON)
 		ent->s.sound = ent->locals.noise_index;
 
-	ent->locals.Use = G_target_speaker_Use;
+	ent->locals.Use = (void *) &G_target_speaker_Use;
 
 	// must link the entity so we get areas and clusters so
 	// the server can determine who to send updates to
