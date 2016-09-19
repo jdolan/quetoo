@@ -25,7 +25,7 @@
 /**
  * @brief Allocs a g_ai_node_t for the specified item entity.
  */
-static ai_goal_t *G_Ai_AllocGoal_Item(g_entity_t *ent) {
+static ai_goal_t *G_Ai_AllocGoal_Item(/*g_entity_t *ent*/) {
 	/*ai_goal_t *goal = Ai_AllocGoal(AI_GOAL_ITEM, ent);
 
 	goal->priority = ent->locals.item->priority;
@@ -36,7 +36,7 @@ static ai_goal_t *G_Ai_AllocGoal_Item(g_entity_t *ent) {
 /**
  * @brief Allocs a g_ai_node_t for the specified player spawn entity.
  */
-static ai_goal_t *G_Ai_AllocGoal_Spawn(g_entity_t *ent) {
+static ai_goal_t *G_Ai_AllocGoal_Spawn(/*g_entity_t *ent*/) {
 	//return Ai_AllocGoal(AI_GOAL_NAV, ent);
 	return NULL;
 }
