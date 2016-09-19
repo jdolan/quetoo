@@ -266,6 +266,8 @@ void Cl_InitConsole(void) {
 
 	memset(&cl_console, 0, sizeof(cl_console));
 
+	cl_console.echo = true;
+
 	cl_console.Append = Cl_Print;
 
 	Con_AddConsole(&cl_console);

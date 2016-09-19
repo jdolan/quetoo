@@ -451,7 +451,10 @@ void Con_SubmitInput(console_t *console) {
 		}
 
 		Cbuf_AddText(cmd);
-		Con_Append(PRINT_ECHO, cmd);
+
+		if (console->echo) {
+			Con_Append(PRINT_ECHO, cmd);
+		}
 
 		memset(&console->input, 0, sizeof(console->input));
 	}

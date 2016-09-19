@@ -189,6 +189,11 @@ typedef struct {
 	console_input_t input;
 
 	/**
+	 * @brief If true, input is echoed to the console subsystem.
+	 */
+	_Bool echo;
+
+	/**
 	 * @brief An optional print callback.
 	 */
 	void (*Append)(const console_string_t *str);
