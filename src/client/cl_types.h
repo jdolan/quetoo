@@ -47,8 +47,8 @@ typedef struct {
 typedef struct {
 	entity_animation_t animation;
 	uint32_t time;
-	uint16_t frame;
-	uint16_t old_frame;
+	int32_t frame;
+	int32_t old_frame;
 	vec_t lerp;
 	vec_t fraction;
 } cl_entity_animation_t;

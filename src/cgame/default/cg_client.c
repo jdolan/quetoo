@@ -283,7 +283,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 	const uint32_t frame_time = (1000 / time_scale->value) / anim->hz;
 	const uint32_t animation_time = anim->num_frames * frame_time;
 	const uint32_t elapsed_time = cgi.client->systime - a->time;
-	uint16_t frame = elapsed_time / frame_time;
+	int32_t frame = elapsed_time / frame_time;
 
 	if (elapsed_time >= animation_time) { // to loop, or not to loop
 
@@ -309,9 +309,14 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 
 	frame = anim->first_frame + frame;
 
-	if (frame != a->frame) { // shuffle the frames
-		a->old_frame = a->frame;
-		a->frame = frame;
+	if (frame != a->frame) {
+		if (a->frame == -1) {
+			a->old_frame = frame;
+			a->frame = frame;
+		} else {
+			a->old_frame = a->frame;
+			a->frame = frame;
+		}
 	}
 
 	a->lerp = (elapsed_time % frame_time) / (vec_t) frame_time;
