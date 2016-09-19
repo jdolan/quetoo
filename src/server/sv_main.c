@@ -127,6 +127,11 @@ static void Sv_Ack_f(void) {
 static void Sv_Info_f(void) {
 	char string[MAX_MSG_SIZE];
 
+	if (sv.demo_file) {
+		Com_Debug("Demo server ignoring server info request\n");
+		return;
+	}
+
 	const int32_t p = atoi(Cmd_Argv(1));
 	if (p != PROTOCOL_MAJOR) {
 		g_snprintf(string, sizeof(string), "%s: Wrong protocol: %d != %d", sv_hostname->string, p,
