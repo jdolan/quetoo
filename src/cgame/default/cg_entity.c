@@ -64,14 +64,11 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	// don't draw ourselves unless third person is set
 	if (Cg_IsSelf(ent) && !cg_third_person->value) {
 
-		// corpses pass the "self" test (of course)
-		if (!(e->effects & EF_CORPSE)) {
-			e->effects |= EF_NO_DRAW;
+		e->effects |= EF_NO_DRAW;
 
-			// keep our shadow underneath us using the predicted origin
-			e->origin[0] = cgi.view->origin[0];
-			e->origin[1] = cgi.view->origin[1];
-		}
+		// keep our shadow underneath us using the predicted origin
+		e->origin[0] = cgi.view->origin[0];
+		e->origin[1] = cgi.view->origin[1];
 	}
 
 	r_entity_t head, torso, legs;
