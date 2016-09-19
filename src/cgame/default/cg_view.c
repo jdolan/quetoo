@@ -27,14 +27,11 @@
  * frustum.
  */
 static void Cg_UpdateFov(void) {
-	static uint32_t time, vtime;
+	static uint32_t time;
 
-	vec_t ftime = cgi.view->time - vtime;
-	if (ftime > 1000) // the Clamp function generates a warning about unsigned int comparisons
-		ftime = 1000;
+	vec_t ftime = Clamp(cgi.view->time - time, 1, 1000);
 
-	time += ftime;
-	vtime = cgi.view->time;
+	time = cgi.view->time;
 
 	if (!cg_fov->modified && !cgi.view->update)
 		return;
@@ -42,18 +39,18 @@ static void Cg_UpdateFov(void) {
 	cg_fov->value = Clamp(cg_fov->value, 10.0, 160.0);
 	cg_fov_interpolate->value = Clamp(cg_fov_interpolate->value, 0.0, 100.0);
 
-	vec_t target_fov = cg_fov->value;
-	vec_t current_fov = cgi.view->fov[0] * 2.0; // yes, yes, very hacky
+	const vec_t target_fov = cg_fov->value;
 
-	vec_t fov = 0.0;
-	vec_t fov_delta = 0.0;
+	static vec_t fov;
+	fov = cgi.view->fov[0] * 2.0; // yes, yes, very hacky
+
+	vec_t fov_delta;
 
 	if (cg_fov_interpolate->value) {
-		fov_delta = (ftime / 1000.0) * cg_fov_interpolate->value * 100.0;
-		if (current_fov - target_fov > 0.0)
-			fov_delta *= -1.0;
+		fov_delta = (ftime / 10.0) * cg_fov_interpolate->value; // msec/10 because the total has to be 100x larger
+		fov_delta = (fov - target_fov > 0) ? fov_delta * -1.0 : fov_delta;
 
-		fov = current_fov + fov_delta;
+		fov += fov_delta;
 
 		if ((fov_delta > 0 && fov > target_fov) || (fov_delta < 0 && fov < target_fov)) {
 			fov = target_fov;
