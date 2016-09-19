@@ -110,7 +110,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 /**
  * @brief Generates a single vertex for the specified stage.
  */
-static void R_StageVertex(const vec3_t in, vec3_t out) {
+static void R_StageVertex(const r_bsp_surface_t *surf __attribute__((unused)), const r_stage_t *stage __attribute__((unused)), const vec3_t in, vec3_t out) {
 
 	// TODO: vertex deformation
 	VectorCopy(in, out);
@@ -310,7 +310,7 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 		const vec_t *v = &r_model_state.world->verts[surf->index * 3 + i * 3];
 		const vec_t *st = &r_model_state.world->texcoords[surf->index * 2 + i * 2];
 
-		R_StageVertex(v, &r_state.vertex_array_3d[i * 3]);
+		R_StageVertex(surf, stage, v, &r_state.vertex_array_3d[i * 3]);
 
 		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[i * 2]);
 
