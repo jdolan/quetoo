@@ -247,7 +247,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	memset(&quetoo, 0, sizeof(quetoo));
 
-	quetoo.time = Sys_Milliseconds();
+	quetoo.time = SDL_GetTicks();
 
 	quetoo.Debug = Debug;
 	quetoo.Error = Error;
@@ -283,7 +283,7 @@ int32_t main(int32_t argc, char **argv) {
 		}
 
 		do {
-			quetoo.time = Sys_Milliseconds();
+			quetoo.time = SDL_GetTicks();
 			msec = (quetoo.time - old_time) * time_scale->value;
 		} while (msec < 1);
 

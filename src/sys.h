@@ -24,8 +24,6 @@
 
 #include "quetoo.h"
 
-uint32_t Sys_Milliseconds(void);
-
 const char *Sys_ExecutablePath(void);
 const char *Sys_Username(void);
 const char *Sys_UserDir(void);

@@ -47,21 +47,6 @@
 #endif
 
 /**
- * @return Milliseconds since Quake execution began.
- */
-uint32_t Sys_Milliseconds(void) {
-	static uint32_t base;
-	GTimeVal time;
-
-	g_get_current_time(&time);
-
-	if (!base)
-		base = time.tv_sec;
-
-	return (time.tv_sec - base) * 1000 + time.tv_usec / 1000;
-}
-
-/**
  * @return The current executable path (argv[0]).
  */
 const char *Sys_ExecutablePath(void) {
