@@ -42,7 +42,7 @@ static void updateBindings(View *self) {
 
 	this->state = var->integer ? ControlStateSelected : ControlStateDefault;
 
-	if (this->state != state) {
+	if ((ControlState) this->state != state) {
 		$(this, stateDidChange);
 	}
 }
@@ -65,7 +65,7 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
  * @memberof CvarCheckbox
  */
 static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
-	
+
 	self = (CvarCheckbox *) super(Checkbox, self, initWithFrame, NULL, ControlStyleDefault);
 	if (self) {
 
@@ -76,7 +76,7 @@ static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
 
 		$((View *) self, updateBindings);
 	}
-	
+
 	return self;
 }
 

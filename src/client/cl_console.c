@@ -81,7 +81,7 @@ static void Cl_DrawConsole_Input(void) {
 
 	// and the input buffer, scrolling horizontally if appropriate
 	const char *s = cl_console.input.buffer;
-	if (cl_console.input.pos > cl_console.width - 2) {
+	if (cl_console.input.pos > (size_t) cl_console.width - 2) {
 		s += 2 + cl_console.input.pos - cl_console.width;
 	}
 
@@ -113,7 +113,7 @@ void Cl_DrawConsole(void) {
  */
 void Cl_DrawNotify(void) {
 	r_pixel_t cw, ch;
-	
+
 	if (!cl_draw_notify->value) {
 		return;
 	}
@@ -155,12 +155,12 @@ void Cl_DrawChat(void) {
 	R_BindFont("small", &cw, &ch);
 
 	r_pixel_t x = 1, y = r_view.viewport.y + r_view.viewport.h * 0.66;
-	
+
 	cl_chat_console.width = r_context.width / cw / 3;
 	cl_chat_console.height = Clamp(cl_chat_lines->integer, 0, 8);
-	
+
 	if (cl_draw_chat->value && cl_chat_console.height) {
-		
+
 		if (cl.systime > cl_chat_time->value * 1000) {
 			cl_chat_console.whence = cl.systime - cl_chat_time->value * 1000;
 		}
@@ -186,7 +186,7 @@ void Cl_DrawChat(void) {
 
 		// and the input, scrolling horizontally if appropriate
 		const char *s = cl_chat_console.input.buffer;
-		if (cl_chat_console.input.pos > cl_chat_console.width - 2) {
+		if (cl_chat_console.input.pos > (size_t) cl_chat_console.width - 2) {
 			s += 2 + cl_chat_console.input.pos - cl_chat_console.width;
 		}
 
@@ -282,7 +282,7 @@ void Cl_InitConsole(void) {
 
 	memset(&cl_chat_console, 0, sizeof(cl_chat_console));
 	cl_chat_console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
-	
+
 	cl_draw_chat = Cvar_Get("cl_draw_chat", "1", 0, "Draw recent chat messages");
 	cl_draw_notify = Cvar_Get("cl_draw_notify", "1", 0, "Draw recent console activity");
 
