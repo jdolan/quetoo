@@ -9,7 +9,7 @@ noinst_LTLIBRARIES = \
 	libai.la
 
 libai_la_CFLAGS = \
-	-I ../ \
+	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 	
