@@ -52,7 +52,7 @@ install-data:
 	cp -R $(DATA)/target/* $(DATADIR)
 
 post-install:
-	./set-icon.sh folder.icns $(INSTALL)
+	./set-icon.sh $(DATADIR)/quetoo-folder.icns $(INSTALL)
 	./set-icon.sh $(DATADIR)/quemap.icns $(BINDIR)/quemap
 	./set-icon.sh $(DATADIR)/quetoo.icns $(BINDIR)/quetoo
 	./set-icon.sh $(DATADIR)/quetoo-dedicated.icns $(BINDIR)/quetoo-dedicated
