@@ -1,7 +1,7 @@
 if BUILD_TESTS
 
 TESTS_CFLAGS = \
-	-I.. \
+	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@CHECK_CFLAGS@ \
 	@GLIB_CFLAGS@ \

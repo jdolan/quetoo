@@ -16,7 +16,7 @@ libnet_la_SOURCES = \
 	net_udp.c
 
 libnet_la_CFLAGS = \
-	-I .. \
+	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 

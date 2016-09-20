@@ -19,7 +19,8 @@ libsound_la_SOURCES = \
 	s_sample.c
 
 libsound_la_CFLAGS = \
-	-I.. -I../.. \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/src/client \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@SDL2_CFLAGS@

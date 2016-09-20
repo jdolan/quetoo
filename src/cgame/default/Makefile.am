@@ -41,7 +41,7 @@ cgame_la_SOURCES = \
 	cg_view.c
 
 cgame_la_CFLAGS = \
-	-I../.. \
+	-I$(top_srcdir)/src \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \

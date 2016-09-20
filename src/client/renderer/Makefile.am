@@ -77,7 +77,8 @@ librenderer_la_SOURCES = \
 	r_state.c
 
 librenderer_la_CFLAGS = \
-	-I.. -I../.. \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/src/client \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \

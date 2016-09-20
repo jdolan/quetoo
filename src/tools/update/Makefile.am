@@ -5,7 +5,7 @@ quetoo_update_SOURCES = \
 	main.c
 
 quetoo_update_CFLAGS = \
-	-I../.. \
+	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 

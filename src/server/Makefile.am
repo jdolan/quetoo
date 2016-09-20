@@ -29,7 +29,7 @@ libserver_la_SOURCES = \
 	sv_world.c
 
 libserver_la_CFLAGS = \
-	-I.. \
+	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@

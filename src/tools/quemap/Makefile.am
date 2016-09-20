@@ -39,7 +39,8 @@ quemap_SOURCES = \
 	writebsp.c
 
 quemap_CFLAGS = \
-	-I../.. \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@ \

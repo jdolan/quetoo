@@ -48,7 +48,7 @@ libclient_la_SOURCES = \
 	cl_view.c
 
 libclient_la_CFLAGS = \
-	-I.. \
+	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@CURL_CFLAGS@ \
 	@GLIB_CFLAGS@ \
@@ -72,7 +72,7 @@ libclient_null_la_SOURCES = \
 	cl_null.c
 
 libclient_null_la_CFLAGS = \
-	-I.. \
+	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@CURL_CFLAGS@ \
 	@GLIB_CFLAGS@ \

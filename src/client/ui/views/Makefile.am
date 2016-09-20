@@ -32,7 +32,8 @@ libviews_la_SOURCES = \
 	VideoModeSelect.c
 
 libviews_la_CFLAGS = \
-	-I.. -I../.. -I../../.. \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/src/client \
 	@BASE_CFLAGS@ \
 	-Wno-unknown-pragmas \
 	-Wno-unused-parameter \
