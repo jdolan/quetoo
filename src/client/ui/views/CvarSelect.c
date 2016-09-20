@@ -74,7 +74,7 @@ static void didSelectOption(Select *Select, Option *option) {
 	if (this->expectsStringValue) {
 		Cvar_Set(this->var->name, option->title->text);
 	} else {
-		Cvar_SetValue(this->var->name, (int32_t) option->value);
+		Cvar_SetValue(this->var->name, (int32_t) (intptr_t) option->value);
 	}
 }
 

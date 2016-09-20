@@ -6,7 +6,7 @@ quetoo_SOURCES = \
 	main.c
 
 quetoo_CFLAGS = \
-	-I.. \
+	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@SDL2_CFLAGS@
@@ -19,7 +19,7 @@ quetoo_dedicated_SOURCES = \
 	main.c
 
 quetoo_dedicated_CFLAGS = \
-	-I.. \
+	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@SDL2_CFLAGS@

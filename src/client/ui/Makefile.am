@@ -16,7 +16,8 @@ libui_la_SOURCES = \
 	ui_main.c
 
 libui_la_CFLAGS = \
-	-I.. -I../.. \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/src/client \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@

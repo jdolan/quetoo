@@ -310,7 +310,7 @@ void Con_NavigateHistory(console_t *console, console_history_nav_t nav) {
 
 	console_history_t *hist = &console->history;
 
-	size_t p;
+	size_t p = 0;
 	switch (nav) {
 		case CON_HISTORY_PREV:
 			p = (hist->pos - 1) % CON_HISTORY_SIZE;

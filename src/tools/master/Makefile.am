@@ -6,7 +6,7 @@ quetoo_master_SOURCES = \
 	main.c
 
 quetoo_master_CFLAGS = \
-	-I../.. \
+	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 

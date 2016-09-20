@@ -31,7 +31,7 @@ noinst_LTLIBRARIES = \
 libpmove_la_SOURCES = \
 	bg_pmove.c
 libpmove_la_CFLAGS = \
-	-I ../.. \
+	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 libpmove_la_LDFLAGS = \
@@ -69,7 +69,7 @@ game_la_SOURCES = \
 	g_weapon.c
 
 game_la_CFLAGS = \
-	-I../.. \
+	-I$(top_srcdir)/src \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \

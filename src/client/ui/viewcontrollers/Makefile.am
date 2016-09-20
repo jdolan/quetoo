@@ -23,7 +23,10 @@ libviewcontrollers_la_SOURCES = \
 	SystemViewController.c
 
 libviewcontrollers_la_CFLAGS = \
-	-I.. -I../.. -I../../.. -I../views \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/src/client \
+	-I$(top_srcdir)/src/client/ui \
+	-I$(top_srcdir)/src/client/ui/views \
 	@BASE_CFLAGS@ \
 	-Wno-unknown-pragmas \
 	-Wno-unused-parameter \
