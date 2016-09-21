@@ -93,23 +93,27 @@ void S_Frame(void) {
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *ent = &cl.entity_states[snum];
 
-		if (!ent->sound)
-			continue;
+		if (ent->sound) {
+			s_sample_t *sample = cl.sound_precache[ent->sound];
 
-		s_sample_t *sample = cl.sound_precache[ent->sound];
-		int32_t j;
+			if (sample) {
 
-		ch = s_env.channels;
-		for (j = 0; j < MAX_CHANNELS; j++, ch++) {
-			if (ch->ent_num == ent->number) {
-				if (ch->sample == sample) {
-					break;
+				s_channel_t *ch = s_env.channels;
+				int32_t j;
+
+				for (j = 0; j < MAX_CHANNELS; j++, ch++) {
+					if (ch->ent_num == ent->number) {
+						if (ch->sample == sample) {
+							break;
+						}
+					}
+				}
+
+				if (j == MAX_CHANNELS) {
+					S_PlaySample(NULL, ent->number, sample, ATTEN_NORM);
 				}
 			}
 		}
-
-		if (j == MAX_CHANNELS)
-			S_PlaySample(NULL, ent->number, sample, ATTEN_NORM);
 	}
 
 	if (r_view.contents & MASK_LIQUID) { // add under water sample
