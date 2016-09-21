@@ -101,6 +101,10 @@ static void G_target_light_Use(g_entity_t *self, g_entity_t *other __attribute__
 */
 void G_target_light(g_entity_t *self) {
 
+	if (!g_game.spawn.colors) {
+		g_game.spawn.colors = "white";
+	}
+
 	char *c = strchr(g_game.spawn.colors, ' ');
 	if (c) {
 		self->locals.colors[1] = G_ColorByName(c + 1, 0);
