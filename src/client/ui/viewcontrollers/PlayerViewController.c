@@ -53,25 +53,25 @@ static void loadView(ViewController *self) {
 
 	PlayerViewController *this = (PlayerViewController *) self;
 
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
+	StackView *columns = alloc(StackView, initWithFrame, NULL);
 
 	columns->axis = StackViewAxisHorizontal;
 	columns->spacing = DEFAULT_PANEL_SPACING;
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		StackView *column = alloc(StackView, initWithFrame, NULL);
 		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
+			Box *box = alloc(Box, initWithFrame, NULL);
 			$(box->label, setText, "PLAYER SETUP");
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			StackView *stackView = alloc(StackView, initWithFrame, NULL);
 
 			extern cvar_t *name;
 			Ui_CvarTextView((View *) stackView, "Name", name);
 
-			Control *skinSelect = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
+			Control *skinSelect = (Control *) alloc(SkinSelect, initWithFrame, NULL, ControlStyleDefault);
 
 			$(skinSelect, addActionForEventType, SDL_MOUSEBUTTONUP, selectSkin, self, NULL);
 
@@ -79,7 +79,7 @@ static void loadView(ViewController *self) {
 			release(skinSelect);
 
 			extern cvar_t *color;
-			Select *colorSelect = (Select *) $(alloc(CvarSelect), initWithVariable, color);
+			Select *colorSelect = (Select *) alloc(CvarSelect, initWithVariable, color);
 
 			$(colorSelect, addOption, "default", (ident) 0);
 			$(colorSelect, addOption, "red", (ident) 232);
@@ -108,12 +108,12 @@ static void loadView(ViewController *self) {
 	}
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		StackView *column = alloc(StackView, initWithFrame, NULL);
 		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
 			const SDL_Rect frame = { .w = 400, .h = 500 };
-			this->playerModelView = $(alloc(PlayerModelView), initWithFrame, &frame);
+			this->playerModelView = alloc(PlayerModelView, initWithFrame, &frame);
 
 			$((View *) column, addSubview, (View *) this->playerModelView);
 			release(this->playerModelView);

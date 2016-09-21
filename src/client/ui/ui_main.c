@@ -113,9 +113,9 @@ void Ui_Init(void) {
 	}
 #endif
 
-	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
+	windowController = alloc(WindowController, initWithWindow, r_context.window);
 
-	viewController = $((ViewController *) alloc(MainViewController), init);
+	viewController = (ViewController *) $((ViewController *) _alloc(&_MainViewController), init);
 
 	$(windowController, setViewController, viewController);
 }

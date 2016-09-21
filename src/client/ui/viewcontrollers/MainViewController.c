@@ -66,7 +66,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	Panel *panel = $(alloc(Panel), initWithFrame, NULL);
+	Panel *panel = alloc(Panel, initWithFrame, NULL);
 
 	panel->isDraggable = false;
 	panel->isResizable = false;

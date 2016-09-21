@@ -332,7 +332,7 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 
 		const SDL_Rect iconFrame = MakeRect(0, 0, 64, 64);
 
-		self->iconView = $(alloc(ImageView), initWithFrame, &iconFrame);
+		self->iconView = alloc(ImageView, initWithFrame, &iconFrame);
 		assert(self->iconView);
 
 		self->iconView->view.alignment = ViewAlignmentTopRight;

@@ -47,7 +47,7 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	this->panel = $(alloc(Panel), initWithFrame, NULL);
+	this->panel = alloc(Panel, initWithFrame, NULL);
 	assert(this->panel);
 
 	this->panel->stackView.view.alignment = ViewAlignmentMiddleCenter;

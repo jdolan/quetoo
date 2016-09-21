@@ -114,7 +114,7 @@ static CrosshairView *initWithFrame(CrosshairView *self, const SDL_Rect *frame) 
 	self = (CrosshairView *) super(View, self, initWithFrame, frame);
 	if (self) {
 
-		self->imageView = $(alloc(ImageView), initWithFrame, NULL);
+		self->imageView = alloc(ImageView, initWithFrame, NULL);
 		assert(self->imageView);
 
 		self->imageView->view.alignment = ViewAlignmentMiddleCenter;

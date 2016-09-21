@@ -32,7 +32,7 @@
  */
 void Ui_Bind(View *view, const char *name, const char *bind) {
 
-	BindTextView *textView = $(alloc(BindTextView), initWithBind, bind);
+	BindTextView *textView = alloc(BindTextView, initWithBind, bind);
 
 	Ui_Input(view, name, (Control *) textView);
 
@@ -44,7 +44,7 @@ void Ui_Bind(View *view, const char *name, const char *bind) {
  */
 void Ui_Button(View *view, const char *title, ActionFunction function, ident sender, ident data) {
 
-	Button *button = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
+	Button *button = alloc(Button, initWithFrame, NULL, ControlStyleDefault);
 
 	$(button->title, setText, title);
 
@@ -60,7 +60,7 @@ void Ui_Button(View *view, const char *title, ActionFunction function, ident sen
  */
 void Ui_CvarCheckbox(View *view, const char *name, cvar_t *var) {
 
-	CvarCheckbox *checkbox = $(alloc(CvarCheckbox), initWithVariable, var);
+	CvarCheckbox *checkbox = alloc(CvarCheckbox, initWithVariable, var);
 
 	Ui_Input(view, name, (Control *) checkbox);
 
@@ -72,7 +72,7 @@ void Ui_CvarCheckbox(View *view, const char *name, cvar_t *var) {
  */
 void Ui_CvarSlider(View *view, const char *name, cvar_t *var, double min, double max, double step) {
 
-	CvarSlider *slider = $(alloc(CvarSlider), initWithVariable, var, min, max, step);
+	CvarSlider *slider = alloc(CvarSlider, initWithVariable, var, min, max, step);
 
 	Ui_Input(view, name, (Control *) slider);
 
@@ -84,7 +84,7 @@ void Ui_CvarSlider(View *view, const char *name, cvar_t *var, double min, double
  */
 void Ui_CvarTextView(View *view, const char *name, cvar_t *var) {
 
-	CvarTextView *textView = $(alloc(CvarTextView), initWithVariable, var);
+	CvarTextView *textView = alloc(CvarTextView, initWithVariable, var);
 
 	Ui_Input(view, name, (Control *) textView);
 
@@ -103,12 +103,12 @@ void Ui_Input(View *view, const char *name, Control *control) {
 	assert(view);
 	assert(control);
 
-	Input *input = $(alloc(Input), initWithFrame, NULL);
+	Input *input = alloc(Input, initWithFrame, NULL);
 	assert(input);
 
 	$(input, setControl, control);
 
-	Label *label = $(alloc(Label), initWithText, name, NULL);
+	Label *label = alloc(Label, initWithText, name, NULL);
 	assert(label);
 
 	label->view.autoresizingMask &= ~ViewAutoresizingContain;
@@ -129,7 +129,7 @@ void Ui_PrimaryButton(View *view, const char *name, ActionFunction action, ident
 
 	assert(view);
 
-	PrimaryButton *button = $(alloc(PrimaryButton), initWithFrame, NULL, ControlStyleDefault);
+	PrimaryButton *button = alloc(PrimaryButton, initWithFrame, NULL, ControlStyleDefault);
 	assert(button);
 
 	$(button->button.title, setText, name);

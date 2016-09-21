@@ -40,20 +40,20 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
+	StackView *columns = alloc(StackView, initWithFrame, NULL);
 
 	columns->axis = StackViewAxisHorizontal;
 	columns->spacing = DEFAULT_PANEL_SPACING;
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		StackView *column = alloc(StackView, initWithFrame, NULL);
 		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
+			Box *box = alloc(Box, initWithFrame, NULL);
 			$(box->label, setText, "CREATE SERVER");
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			StackView *stackView = alloc(StackView, initWithFrame, NULL);
 			stackView->spacing = DEFAULT_PANEL_SPACING;
 
 			extern cvar_t *sv_hostname;
@@ -76,13 +76,13 @@ static void loadView(ViewController *self) {
 		}
 
 		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
+			Box *box = alloc(Box, initWithFrame, NULL);
 			$(box->label, setText, "GAME");
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			StackView *stackView = alloc(StackView, initWithFrame, NULL);
 			stackView->spacing = DEFAULT_PANEL_SPACING;
 
-			Select *gameplay = $(alloc(Select), initWithFrame, NULL, ControlStateDefault);
+			Select *gameplay = alloc(Select, initWithFrame, NULL, ControlStateDefault);
 
 			$(gameplay, addOption, "Default", "default");
 			$(gameplay, addOption, "Deathmatch", "deathmatch");
@@ -95,7 +95,7 @@ static void loadView(ViewController *self) {
 			Ui_Input((View *) stackView, "Gameplay", (Control *) gameplay);
 			release(gameplay);
 
-			Select *teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStateDefault);
+			Select *teamsplay = alloc(Select, initWithFrame, NULL, ControlStateDefault);
 
 			$(teamsplay, addOption, "Free for All", "free-for-all");
 			$(teamsplay, addOption, "Team Deathmatch", "team-deathmatch");
@@ -106,7 +106,7 @@ static void loadView(ViewController *self) {
 			Ui_Input((View *) stackView, "Teams play", (Control *) teamsplay);
 			release(teamsplay);
 
-			Checkbox *match = $(alloc(Checkbox), initWithFrame, NULL, ControlStateDefault);
+			Checkbox *match = alloc(Checkbox, initWithFrame, NULL, ControlStateDefault);
 
 			Ui_Input((View *) stackView, "Match mode", (Control *) match);
 			release(match);
@@ -123,18 +123,18 @@ static void loadView(ViewController *self) {
 	}
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		StackView *column = alloc(StackView, initWithFrame, NULL);
 		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
+			Box *box = alloc(Box, initWithFrame, NULL);
 			$(box->label, setText, "MAP LIST");
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			StackView *stackView = alloc(StackView, initWithFrame, NULL);
 			stackView->spacing = DEFAULT_PANEL_SPACING;
 
 			const SDL_Rect frame = { .w = 760, .h = 600 };
-			CollectionView *mapList = (CollectionView *) $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStateDefault);
+			CollectionView *mapList = (CollectionView *) alloc(MapListCollectionView, initWithFrame, &frame, ControlStateDefault);
 			
 			$((View *) stackView, addSubview, (View *) mapList);
 			release(mapList);

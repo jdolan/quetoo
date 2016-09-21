@@ -38,20 +38,20 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
+	StackView *columns = alloc(StackView, initWithFrame, NULL);
 
 	columns->axis = StackViewAxisHorizontal;
 	columns->spacing = DEFAULT_PANEL_SPACING;
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		StackView *column = alloc(StackView, initWithFrame, NULL);
 		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
+			Box *box = alloc(Box, initWithFrame, NULL);
 			$(box->label, setText, "MOVEMENT");
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			StackView *stackView = alloc(StackView, initWithFrame, NULL);
 
 			Ui_Bind((View *) stackView, "Forward", "+forward");
 			Ui_Bind((View *) stackView, "Back", "+back");
@@ -72,10 +72,10 @@ static void loadView(ViewController *self) {
 		}
 
 		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
+			Box *box = alloc(Box, initWithFrame, NULL);
 			$(box->label, setText, "COMMUNICATIONS");
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			StackView *stackView = alloc(StackView, initWithFrame, NULL);
 
 			Ui_Bind((View *) stackView, "Say", "cl_message_mode");
 			Ui_Bind((View *) stackView, "Say Team", "cl_message_mode_2");
@@ -94,14 +94,14 @@ static void loadView(ViewController *self) {
 	}
 
 	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
+		StackView *column = alloc(StackView, initWithFrame, NULL);
 		column->spacing = DEFAULT_PANEL_SPACING;
 
 		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
+			Box *box = alloc(Box, initWithFrame, NULL);
 			$(box->label, setText, "COMBAT");
 
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
+			StackView *stackView = alloc(StackView, initWithFrame, NULL);
 
 			Ui_Bind((View *) stackView, "Attack", "+attack");
 			Ui_Bind((View *) stackView, "Next weapon", "weapon_next");

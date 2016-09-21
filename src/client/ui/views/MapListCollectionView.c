@@ -66,7 +66,7 @@ CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionVie
 
 	Value *value = $((Array *) this->maps, objectAtIndex, index);
 
-	MapListCollectionItemView *item = $(alloc(MapListCollectionItemView), initWithFrame, NULL);
+	MapListCollectionItemView *item = alloc(MapListCollectionItemView, initWithFrame, NULL);
 	assert(item);
 
 	$(item, setMapListItemInfo, value->value);
@@ -196,7 +196,7 @@ static void enumerateMaps(const char *path, void *data) {
 
 			g_list_free_full(mapshots, g_free);
 
-			Value *value = $(alloc(Value), initWithValue, info);
+			Value *value = alloc(Value, initWithValue, info);
 
 			WithLock(this->lock, {
 				$(this->maps, addObject, value);
@@ -263,7 +263,7 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 	
 	self = (MapListCollectionView *) super(CollectionView, self, initWithFrame, frame, style);
 	if (self) {
-		self->lock = $(alloc(Lock), init);
+		self->lock = alloc(Lock, init);
 		assert(self->lock);
 
 		self->maps = $$(MutableArray, array);

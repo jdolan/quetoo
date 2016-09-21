@@ -75,6 +75,7 @@
 		CE12D82E1C5C6EAD00CD0B13 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CE12D8C41C5CF86600CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
+		CE27BE571D9167C700F87B2C /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CE2DB50B1D86270500560994 /* MouseViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE2DB50A1D86270500560994 /* MouseViewController.c */; };
 		CE2DB50D1D86271C00560994 /* MouseViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE2DB50C1D86271C00560994 /* MouseViewController.h */; };
 		CE2DB50E1D86288400560994 /* ui_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5BD5951D3EE1FA00C43B85 /* ui_types.h */; };
@@ -1121,6 +1122,7 @@
 		CE12D8321C5C6F0100CD0B13 /* libSDL2_mixer-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_mixer-2.0.0.dylib"; path = "/opt/local/lib/libSDL2_mixer-2.0.0.dylib"; sourceTree = "<absolute>"; };
 		CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2-2.0.0.dylib"; path = "/opt/local/lib/libSDL2-2.0.0.dylib"; sourceTree = "<absolute>"; };
 		CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-dedicated"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE27BE561D9167C700F87B2C /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectively.dylib"; sourceTree = "<group>"; };
 		CE2DB50A1D86270500560994 /* MouseViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MouseViewController.c; sourceTree = "<group>"; };
 		CE2DB50C1D86271C00560994 /* MouseViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MouseViewController.h; sourceTree = "<group>"; };
 		CE2DB5111D8633D600560994 /* CrosshairView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CrosshairView.c; sourceTree = "<group>"; };
@@ -1349,6 +1351,7 @@
 				CE80FF541C5E479E00A21A51 /* libnet.dylib in Frameworks */,
 				CE80FF2B1C5E46B300A21A51 /* libcollision.dylib in Frameworks */,
 				CEDB4BB11D404D9D009921B6 /* libObjectivelyMVC.dylib in Frameworks */,
+				CE27BE571D9167C700F87B2C /* libObjectively.dylib in Frameworks */,
 				CE80FF551C5E481400A21A51 /* AppKit.framework in Frameworks */,
 				CE80FF511C5E478800A21A51 /* OpenGL.framework in Frameworks */,
 				CE80FF571C5E485A00A21A51 /* libcurl.4.dylib in Frameworks */,
@@ -2337,6 +2340,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE27BE561D9167C700F87B2C /* libObjectively.dylib */,
 				CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */,
 				CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */,
 				CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */,
@@ -3457,7 +3461,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ENABLE_TESTABILITY = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
@@ -3477,7 +3481,7 @@
 		CE12D4A61C5C579D00CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (

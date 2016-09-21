@@ -91,7 +91,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 	cl_server_info_t *server = g_list_nth_data(cls.servers, row);
 	assert(server);
 
-	TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
+	TableCellView *cell = alloc(TableCellView, initWithFrame, NULL);
 
 	if (column == _hostname) {
 		$(cell->text, setText, server->hostname);
@@ -174,12 +174,12 @@ static void initialize(Class *clazz) {
 
 	((ServersTableViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 
-	_hostname = $(alloc(TableColumn), initWithIdentifier, "Hostname");
-	_source = $(alloc(TableColumn), initWithIdentifier, "Source");
-	_name = $(alloc(TableColumn), initWithIdentifier, "Map");
-	_gameplay = $(alloc(TableColumn), initWithIdentifier, "Gameplay");
-	_players = $(alloc(TableColumn), initWithIdentifier, "Players");
-	_ping = $(alloc(TableColumn), initWithIdentifier, "Ping");
+	_hostname = alloc(TableColumn, initWithIdentifier, "Hostname");
+	_source = alloc(TableColumn, initWithIdentifier, "Source");
+	_name = alloc(TableColumn, initWithIdentifier, "Map");
+	_gameplay = alloc(TableColumn, initWithIdentifier, "Gameplay");
+	_players = alloc(TableColumn, initWithIdentifier, "Players");
+	_ping = alloc(TableColumn, initWithIdentifier, "Ping");
 
 	_hostname->width = 360;
 	_source->width = 100;
