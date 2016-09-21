@@ -66,11 +66,11 @@ case "$host" in
 		;;
 	*-*-mingw*)
 		HOST_NAME="WINDOWS"
-		HOST_LIBS="-lws2_32 -lole32 -lstdc++"
+		HOST_LIBS="-lws2_32 -lole32"
 		DEFAULT_PREFIX="/"
 		AC_MSG_RESULT(windows)
 		AC_PATH_PROGS([WINDRES],
-			[windres $target_cpu-$target_os-windres $host_alias-windres $host_os-windres i586-mingw32msvc-windres],
+			[windres $host-windres],
 		)
 		if test "x$WINDRES" = "x"; then
 			AC_MSG_ERROR([Could not find windres, please install windres])
@@ -78,7 +78,7 @@ case "$host" in
 		;;
 	*)
 		HOST_NAME="LINUX"
-		HOST_LIBS="-ldl -lm -lstdc++"
+		HOST_LIBS="-ldl -lm"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
 		AC_MSG_RESULT(linux)
