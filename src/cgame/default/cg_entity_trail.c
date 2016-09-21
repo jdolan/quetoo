@@ -424,14 +424,8 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	VectorSet(l.color, 0.6, 0.6, 1.0);
 	cgi.AddLight(&l);
 
-	cgi.LoopSample(start, cg_sample_lightning_fly);
-
 	VectorSubtract(start, end, dir);
 	dist = VectorNormalize(dir);
-
-	if (dist > 256.0) {
-		cgi.LoopSample(end, cg_sample_lightning_fly);
-	}
 
 	VectorScale(dir, -48.0, delta);
 	VectorCopy(start, pos);
