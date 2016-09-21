@@ -28,13 +28,13 @@ extern cl_client_t cl;
  * @brief
  */
 static int32_t S_AllocChannel(void) {
-	int32_t i;
 
-	for (i = 0; i < MAX_CHANNELS; i++) {
+	for (int32_t i = 0; i < MAX_CHANNELS; i++) {
 		if (!s_env.channels[i].sample)
 			return i;
 	}
 
+	Com_Debug("Failed\n");
 	return -1;
 }
 
@@ -42,10 +42,10 @@ static int32_t S_AllocChannel(void) {
  * @brief
  */
 void S_FreeChannel(int32_t c) {
-	memset(&s_env.channels[c], 0, sizeof(s_env.channels[0]));
+	memset(&s_env.channels[c], 0, sizeof(s_channel_t));
 }
 
-#define SOUND_MAX_DISTANCE 1536.0
+#define SOUND_MAX_DISTANCE 2048.0
 
 /**
  * @brief Set distance and stereo panning for the specified channel.
@@ -105,6 +105,7 @@ void S_PlaySample(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_
 
 	if (S_SpatializeChannel(ch)) {
 		Mix_SetPosition(i, ch->angle, ch->dist);
+		Mix_ChannelFinished(S_FreeChannel);
 		Mix_PlayChannel(i, ch->sample->chunk, 0);
 	} else {
 		S_FreeChannel(i);
@@ -118,7 +119,6 @@ void S_PlaySample(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_
  */
 void S_LoopSample(const vec3_t org, s_sample_t *sample) {
 	s_channel_t *ch;
-	vec3_t delta;
 	int32_t i;
 
 	if (!sample || !sample->chunk)
@@ -132,6 +132,7 @@ void S_LoopSample(const vec3_t org, s_sample_t *sample) {
 
 			if (s_env.channels[i].sample == sample) {
 
+				vec3_t delta;
 				VectorSubtract(s_env.channels[i].org, org, delta);
 
 				if (VectorLength(delta) < SOUND_LOOP_GROUP_DISTANCE) {
@@ -160,7 +161,7 @@ void S_LoopSample(const vec3_t org, s_sample_t *sample) {
 
 		if (S_SpatializeChannel(ch)) {
 			Mix_SetPosition(i, ch->angle, ch->dist);
-			Mix_PlayChannel(i, ch->sample->chunk, 0);
+			Mix_PlayChannel(i, ch->sample->chunk, -1);
 		} else {
 			S_FreeChannel(i);
 		}
