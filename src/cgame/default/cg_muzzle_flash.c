@@ -159,53 +159,63 @@ void Cg_ParseMuzzleFlash(void) {
 	const cl_entity_t *cent = &cgi.client->entities[ent_num];
 	const uint8_t flash = cgi.ReadByte();
 
+	const s_sample_t *sample;
+
 	switch (flash) {
 	case MZ_BLASTER:
 		c = cgi.ReadByte();
-		cgi.PlaySample(NULL, ent_num, cg_sample_blaster_fire, ATTEN_NORM);
+		sample = cg_sample_blaster_fire;
 		Cg_EnergyFlash(&cent->current, c ? c : EFFECT_COLOR_ORANGE);
 		break;
 	case MZ_SHOTGUN:
-		cgi.PlaySample(NULL, ent_num, cg_sample_shotgun_fire, ATTEN_NORM);
+		sample = cg_sample_shotgun_fire;
 		Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_SSHOTGUN:
-		cgi.PlaySample(NULL, ent_num, cg_sample_supershotgun_fire, ATTEN_NORM);
+		sample = cg_sample_supershotgun_fire;
 		Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_MACHINEGUN:
-		cgi.PlaySample(NULL, ent_num, cg_sample_machinegun_fire[Random() % 4], ATTEN_NORM);
+		sample = cg_sample_machinegun_fire[Random() % 4];
 		if (Random() & 1)
 			Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_ROCKET:
-		cgi.PlaySample(NULL, ent_num, cg_sample_rocketlauncher_fire, ATTEN_NORM);
+		sample = cg_sample_rocketlauncher_fire;
 		Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_GRENADE:
-		cgi.PlaySample(NULL, ent_num, cg_sample_grenadelauncher_fire, ATTEN_NORM);
+		sample = cg_sample_grenadelauncher_fire;
 		Cg_SmokeFlash(&cent->current);
 		break;
 	case MZ_HYPERBLASTER:
-		cgi.PlaySample(NULL, ent_num, cg_sample_hyperblaster_fire, ATTEN_NORM);
+		sample = cg_sample_hyperblaster_fire;
 		Cg_EnergyFlash(&cent->current, 105);
 		break;
 	case MZ_LIGHTNING:
-		cgi.PlaySample(NULL, ent_num, cg_sample_lightning_fire, ATTEN_NORM);
+		sample = cg_sample_lightning_fire;
 		break;
 	case MZ_RAILGUN:
-		cgi.PlaySample(NULL, ent_num, cg_sample_railgun_fire, ATTEN_NORM);
+		sample = cg_sample_railgun_fire;
 		break;
 	case MZ_BFG:
-		cgi.PlaySample(NULL, ent_num, cg_sample_bfg_fire, ATTEN_NORM);
+		sample = cg_sample_bfg_fire;
 		Cg_EnergyFlash(&cent->current, 200);
 		break;
 	case MZ_LOGOUT:
-		cgi.PlaySample(NULL, ent_num, cg_sample_teleport, ATTEN_NONE);
+		sample = cg_sample_teleport;
 		Cg_LogoutFlash(cent->current.origin);
 		break;
 	default:
+		sample = NULL;
 		break;
 	}
+
+	cgi.AddSample(&(const s_play_sample_t) {
+		.sample = sample,
+		.entity = ent_num,
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_ENTITY
+	});
 }
 

@@ -40,14 +40,25 @@ typedef struct s_sample_s {
 	Mix_Chunk *chunk;
 } s_sample_t;
 
+#define S_PLAY_POSITIONED   0x1
+#define S_PLAY_ENTITY       0x2
+#define S_PLAY_LOOP         0x4
+#define S_PLAY_AUTO			0x8
+
+typedef struct s_play_sample_s {
+	const s_sample_t *sample;
+	vec3_t origin;
+	int32_t entity;
+	int32_t attenuation;
+	int32_t flags;
+} s_play_sample_t;
+
 typedef struct s_channel_s {
-	vec3_t org; // for temporary entities and other positioned sounds
-	int32_t ent_num; // for entities and dynamic sounds
-	int32_t count; // for looped sounds
-	int32_t atten;
+	s_play_sample_t play;
+	const s_sample_t *sample;
+	uint32_t start_time;
 	int16_t angle;
 	uint8_t dist;
-	s_sample_t *sample;
 } s_channel_t;
 
 #define MAX_CHANNELS 64

@@ -84,8 +84,7 @@ typedef struct cg_import_s {
 
 	// sound
 	s_sample_t *(*LoadSample)(const char *name);
-	void (*PlaySample)(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_t atten);
-	void (*LoopSample)(const vec3_t org, s_sample_t *sample);
+	void (*AddSample)(const s_play_sample_t *play);
 
 	// OpenGL context
 	r_context_t *context;

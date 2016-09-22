@@ -48,6 +48,7 @@ extern s_sample_t *cg_sample_sparks;
 extern s_sample_t *cg_sample_footsteps[4];
 extern s_sample_t *cg_sample_rain;
 extern s_sample_t *cg_sample_snow;
+extern s_sample_t *cg_sample_underwater;
 extern s_sample_t *cg_sample_hits[2];
 extern s_sample_t *cg_sample_gib;
 

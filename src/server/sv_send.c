@@ -292,25 +292,11 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 		flags |= S_ORIGIN;
 
 	if (ent) {
-		// inline BSP models have relative origins, so always send the absolute origin
-		if ((ent->sv_flags & SVF_NO_CLIENT) || (ent->solid == SOLID_BSP)) {
+		flags |= S_ENTITY;
+		
+		if (ent->sv_flags & SVF_NO_CLIENT) {
 			flags |= S_ORIGIN;
-		}
-
-		// if the client knows about the entity, send it
-		if (!(ent->sv_flags & SVF_NO_CLIENT))
-			flags |= S_ENTITY;
-	}
-
-	vec3_t org;
-	if (origin)
-		VectorCopy(origin, org);
-	else {
-		if (ent->solid == SOLID_BSP) {
-			for (int32_t i = 0; i < 3; i++)
-				org[i] = ent->s.origin[i] + 0.5 * (ent->mins[i] + ent->maxs[i]);
-		} else {
-			VectorCopy(ent->s.origin, org);
+			origin = ent->s.origin;
 		}
 	}
 
@@ -325,12 +311,23 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 		Net_WriteShort(&sv.multicast, NUM_FOR_ENTITY(ent));
 
 	if (flags & S_ORIGIN)
-		Net_WritePosition(&sv.multicast, org);
+		Net_WritePosition(&sv.multicast, origin);
+
+	vec3_t broadcast_origin;
+	if (origin) {
+		VectorCopy(origin, broadcast_origin);
+	} else {
+		if (ent->solid == SOLID_BSP) {
+			VectorLerp(ent->abs_mins, ent->abs_maxs, 0.5, broadcast_origin);
+		} else {
+			VectorCopy(ent->s.origin, broadcast_origin);
+		}
+	}
 
 	if (atten != ATTEN_NONE)
-		Sv_Multicast(org, MULTICAST_PHS, NULL);
+		Sv_Multicast(broadcast_origin, MULTICAST_PHS, NULL);
 	else
-		Sv_Multicast(org, MULTICAST_ALL, NULL);
+		Sv_Multicast(broadcast_origin, MULTICAST_ALL, NULL);
 }
 
 /**
