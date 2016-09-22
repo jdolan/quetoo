@@ -753,6 +753,8 @@ typedef struct {
 	int16_t damage_health; // damage taken out of health
 	int16_t damage_inflicted; // damage done to other clients
 
+	int16_t max_boost_health; // max health can be boosted to
+
 	vec_t speed; // x/y speed after moving
 	vec3_t angles; // aiming direction
 	vec3_t forward, right, up; // aiming direction vectors
@@ -761,6 +763,7 @@ typedef struct {
 	uint32_t respawn_time; // eligible for respawn when time > this
 	uint32_t respawn_protection_time; // respawn protected till this time
 	uint32_t ground_time; // last touched ground whence
+	uint32_t boost_time; // eligible for falling health damage when time > this
 	uint32_t drown_time; // eligible for drowning damage when time > this
 	uint32_t sizzle_time; // eligible for sizzle damage when time > this
 	uint32_t land_time; // eligible for landing event when time > this
