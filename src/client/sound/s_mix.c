@@ -70,23 +70,23 @@ _Bool S_SpatializeChannel(s_channel_t *ch) {
 
 	VectorSubtract(org, r_view.origin, delta);
 
-	vec_t decay;
+	vec_t attenuation;
 	switch (ch->play.attenuation) {
 		case ATTEN_NORM:
-			decay = 1.0;
+			attenuation = 1.0;
 			break;
 		case ATTEN_IDLE:
-			decay = 1.5;
+			attenuation = 2.0;
 			break;
 		case ATTEN_STATIC:
-			decay = 3.0;
+			attenuation = 4.0;
 			break;
 		default:
-			decay = 0.0;
+			attenuation = 0.0;
 			break;
 	}
 
-	const vec_t dist = VectorNormalize(delta) * ch->play.attenuation * decay;
+	const vec_t dist = VectorNormalize(delta) * attenuation;
 	const vec_t frac = dist / SOUND_MAX_DISTANCE;
 
 	ch->dist = (uint8_t) (Clamp(frac * 255.0, 0.0, 255.0));

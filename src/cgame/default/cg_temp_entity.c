@@ -300,7 +300,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_gib,
 		.origin = { org[0], org[1], org[2] },
-		.attenuation = ATTEN_DEFAULT,
+		.attenuation = ATTEN_NORM,
 		.flags = S_PLAY_POSITIONED
 	});
 }
