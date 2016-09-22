@@ -112,13 +112,10 @@ void S_MixChannels(void) {
 		if (ch->sample) {
 
 			if (ch->start_time) {
-				if (ch->play.flags & S_PLAY_AUTO) {
-					const cl_entity_t *ent = &cl.entities[ch->play.entity];
-
-					if (ent->frame_num != cl.frame.frame_num
-							|| ent->current.sound != ent->prev.sound) {
-
+				if (ch->play.flags & S_PLAY_FRAME) {
+					if (ch->frame != cl.frame.frame_num) {
 						Mix_FadeOutChannel(i, 250);
+						continue;
 					}
 				}
 			}
@@ -166,9 +163,6 @@ void S_AddSample(const s_play_sample_t *play) {
 	if (play->entity >= MAX_ENTITIES)
 		return;
 
-//	if ((play->flags & (S_PLAY_POSITIONED | S_PLAY_LOOP)) != (S_PLAY_POSITIONED | S_PLAY_LOOP))
-//		return;
-
 	const s_sample_t *sample = play->sample;
 
 	const char *name = sample->media.name;
@@ -186,13 +180,14 @@ void S_AddSample(const s_play_sample_t *play) {
 		}
 	}
 
-	// if an identical loop sound already exists, cull this one
+	// for sounds added every frame, if an instance of the sound already exists, cull this one
 
-	if (play->flags & S_PLAY_LOOP) {
+	if (play->flags & S_PLAY_FRAME) {
 		s_channel_t *ch = s_env.channels;
 		for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
-			if (ch->sample && (ch->play.flags & S_PLAY_LOOP)) {
+			if (ch->sample && (ch->play.flags & S_PLAY_FRAME)) {
 				if (memcmp(play, &ch->play, sizeof(*play)) == 0) {
+					ch->frame = cl.frame.frame_num;
 					return;
 				}
 			}
@@ -203,5 +198,6 @@ void S_AddSample(const s_play_sample_t *play) {
 	if (i != -1) {
 		s_env.channels[i].play = *play;
 		s_env.channels[i].sample = sample;
+		s_env.channels[i].frame = cl.frame.frame_num;
 	}
 }

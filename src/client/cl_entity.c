@@ -108,7 +108,7 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 			.sample = cl.sound_precache[ent->current.sound],
 			.entity = ent->current.number,
 			.attenuation = ATTEN_IDLE,
-			.flags = S_PLAY_ENTITY | S_PLAY_LOOP | S_PLAY_AUTO
+			.flags = S_PLAY_ENTITY | S_PLAY_LOOP | S_PLAY_FRAME
 		});
 	}
 }

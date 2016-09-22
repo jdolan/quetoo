@@ -244,7 +244,7 @@ static void Cg_AddWeather(void) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = sample,
-		.flags = S_PLAY_LOOP
+		.flags = S_PLAY_LOOP | S_PLAY_FRAME
 	});
 
 	if (cgi.client->systime - cg_weather_state.time < 100)
@@ -270,7 +270,7 @@ static void Cg_AddUnderwater(void) {
 	if (cgi.view->contents & MASK_LIQUID) {
 		cgi.AddSample(&(const s_play_sample_t) {
 			.sample = cg_sample_underwater,
-			.flags = S_PLAY_LOOP
+			.flags = S_PLAY_LOOP | S_PLAY_FRAME
 		});
 	}
 }

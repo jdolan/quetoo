@@ -40,10 +40,10 @@ typedef struct s_sample_s {
 	Mix_Chunk *chunk;
 } s_sample_t;
 
-#define S_PLAY_POSITIONED   0x1
-#define S_PLAY_ENTITY       0x2
-#define S_PLAY_LOOP         0x4
-#define S_PLAY_AUTO	        0x8
+#define S_PLAY_POSITIONED   0x1 // position the sound at a fixed origin
+#define S_PLAY_ENTITY       0x2 // position the sound at the entity's origin at each frame
+#define S_PLAY_LOOP         0x4 // loop the sound continuously
+#define S_PLAY_FRAME        0x8 // cull the sound if it is not added at each frame
 
 typedef struct s_play_sample_s {
 	const s_sample_t *sample;
@@ -57,6 +57,7 @@ typedef struct s_channel_s {
 	s_play_sample_t play;
 	const s_sample_t *sample;
 	uint32_t start_time;
+	int32_t frame;
 	int16_t angle;
 	uint8_t dist;
 } s_channel_t;
