@@ -61,7 +61,7 @@ typedef struct s_channel_s {
 	uint8_t dist;
 } s_channel_t;
 
-#define MAX_CHANNELS 64
+#define MAX_CHANNELS 128
 
 typedef struct s_music_s {
 	s_media_t media;
