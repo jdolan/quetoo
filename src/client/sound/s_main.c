@@ -65,7 +65,7 @@ void S_Frame(void) {
 		S_FreeMedia();
 	}
 
-	if (s_reverse->modified) { // update reverse stereo
+	if (s_reverse->modified) {
 		Mix_SetReverseStereo(MIX_CHANNEL_POST, s_reverse->integer);
 		s_reverse->modified = false;
 	}
