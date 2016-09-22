@@ -138,7 +138,12 @@ void S_MixChannels(void) {
 
 				s_env.num_active_channels++;
 			} else {
-				Mix_HaltChannel(i);
+				
+				if (ch->start_time) {
+					Mix_HaltChannel(i);
+				} else {
+					S_FreeChannel(i);
+				}
 			}
 		}
 	}
