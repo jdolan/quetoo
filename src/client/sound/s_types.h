@@ -42,8 +42,9 @@ typedef struct s_sample_s {
 
 #define S_PLAY_POSITIONED   0x1 // position the sound at a fixed origin
 #define S_PLAY_ENTITY       0x2 // position the sound at the entity's origin at each frame
-#define S_PLAY_LOOP         0x4 // loop the sound continuously
-#define S_PLAY_FRAME        0x8 // cull the sound if it is not added at each frame
+#define S_PLAY_AMBIENT      0x4 // this is an ambient sound, and may be culled by the user
+#define S_PLAY_LOOP         0x8 // loop the sound continuously
+#define S_PLAY_FRAME        0x10 // cull the sound if it is not added at each frame
 
 typedef struct s_play_sample_s {
 	const s_sample_t *sample;

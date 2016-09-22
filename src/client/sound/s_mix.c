@@ -163,6 +163,11 @@ void S_AddSample(const s_play_sample_t *play) {
 	if (play->entity >= MAX_ENTITIES)
 		return;
 
+	if (!s_ambient->value) {
+		if (play->flags & S_PLAY_AMBIENT)
+			return;
+	}
+
 	const s_sample_t *sample = play->sample;
 
 	const char *name = sample->media.name;

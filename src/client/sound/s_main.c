@@ -25,6 +25,7 @@
 // the sound environment
 s_env_t s_env;
 
+cvar_t *s_ambient;
 cvar_t *s_music_volume;
 cvar_t *s_reverse;
 cvar_t *s_rate;
@@ -163,6 +164,7 @@ static void S_Restart_f(void) {
  */
 static void S_InitLocal(void) {
 
+	s_ambient = Cvar_Get("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds.");
 	s_music_volume = Cvar_Get("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
 	s_rate = Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
 	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");

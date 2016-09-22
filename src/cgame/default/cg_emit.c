@@ -365,7 +365,7 @@ void Cg_AddEmits(void) {
 				.sample = e->sample,
 				.origin = { e->org[0], e->org[1], e->org[2] },
 				.attenuation = e->atten,
-				.flags = S_PLAY_POSITIONED | S_PLAY_LOOP | S_PLAY_FRAME
+				.flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
 			});
 		}
 
@@ -427,7 +427,7 @@ void Cg_AddEmits(void) {
 				.sample = e->sample,
 				.origin = { e->org[0], e->org[1], e->org[2] },
 				.attenuation = e->atten,
-				.flags = S_PLAY_POSITIONED
+				.flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT
 			});
 		}
 	}
