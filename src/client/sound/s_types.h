@@ -43,7 +43,7 @@ typedef struct s_sample_s {
 #define S_PLAY_POSITIONED   0x1
 #define S_PLAY_ENTITY       0x2
 #define S_PLAY_LOOP         0x4
-#define S_PLAY_AUTO			0x8
+#define S_PLAY_AUTO	        0x8
 
 typedef struct s_play_sample_s {
 	const s_sample_t *sample;
