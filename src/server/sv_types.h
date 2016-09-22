@@ -280,7 +280,7 @@ typedef struct {
  *
  * FIXME: Can these be made prettier with ptrdiff_t / intptr_t?
  */
-#define ENTITY_FOR_NUM(n) ( (g_entity_t *)((byte *) svs.game->entities + svs.game->entity_size * (n)) )
+#define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) svs.game->entities + svs.game->entity_size * (n)) )
 
 /**
  * @brief Yields the entity number (index) for the specified g_entity_t * by

@@ -512,7 +512,12 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
 	if (ent->time > cgi.client->systime)
 		return;
 
-	cgi.PlaySample(NULL, ent->current.number, cg_sample_respawn, ATTEN_IDLE);
+	cgi.AddSample(&(const s_play_sample_t) {
+		.sample = cg_sample_respawn,
+		.entity = ent->current.number,
+		.attenuation = ATTEN_IDLE,
+		.flags = S_PLAY_ENTITY
+	});
 
 	ent->time = cgi.client->systime + 1000 + (2000 * Randomf());
 

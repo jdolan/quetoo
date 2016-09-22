@@ -425,6 +425,7 @@ typedef struct {
 	int32_t lip;
 	int32_t distance;
 	int32_t height;
+	int32_t sounds;
 	char *noise;
 	char *item;
 	char *colors;
@@ -497,7 +498,6 @@ extern g_game_t g_game;
 #define MSTAT_PLAYING		1<<0
 #define MSTAT_TIMEOUT		1<<1
 #define MSTAT_COUNTDOWN		1<<2
-
 
 /**
  * @brief This structure holds references to frequently accessed media.
@@ -842,7 +842,7 @@ typedef struct {
 	int16_t damage;
 	int16_t knockback;
 	vec_t damage_radius;
-	int16_t sounds; // make this a spawntemp var?
+//	int16_t sounds; // make this a spawntemp var?
 	int32_t count;
 
 	g_entity_t *enemy;

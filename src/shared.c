@@ -837,12 +837,12 @@ char *va(const char *format, ...) {
 char *vtos(const vec3_t v) {
 	static uint32_t index;
 	static char str[8][MAX_QPATH];
-	char *s;
+	char *s = "";
 
-	// use an array so that multiple vtos won't collide
-	s = str[index++ % 8];
-
-	g_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v[0], v[1], v[2]);
+	if (v) {
+		s = str[index++ % 8];
+		g_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v[0], v[1], v[2]);
+	}
 
 	return s;
 }

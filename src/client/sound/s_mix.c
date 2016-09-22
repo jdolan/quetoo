@@ -51,15 +51,42 @@ void S_FreeChannel(int32_t c) {
  * @brief Set distance and stereo panning for the specified channel.
  */
 _Bool S_SpatializeChannel(s_channel_t *ch) {
-	vec3_t delta;
+	vec3_t org, delta, center;
 
-	if (ch->ent_num != -1) { // update the channel origin
-		const cl_entity_t *ent = &cl.entities[ch->ent_num];
-		VectorCopy(ent->origin, ch->org);
+	VectorCopy(r_view.origin, org);
+
+	if (ch->play.flags & S_PLAY_POSITIONED) {
+		VectorCopy(ch->play.origin, org);
+	} else if (ch->play.flags & S_PLAY_ENTITY) {
+		const cl_entity_t *ent = &cl.entities[ch->play.entity];
+		if (ent->current.solid == SOLID_BSP) {
+			const r_model_t *mod = cl.model_precache[ent->current.model1];
+			VectorLerp(mod->mins, mod->maxs, 0.5, center);
+			VectorAdd(center, ent->origin, org);
+		} else {
+			VectorCopy(ent->origin, org);
+		}
 	}
 
-	VectorSubtract(ch->org, r_view.origin, delta);
-	const vec_t dist = VectorNormalize(delta) * ch->atten;
+	VectorSubtract(org, r_view.origin, delta);
+
+	vec_t attenuation;
+	switch (ch->play.attenuation) {
+		case ATTEN_NORM:
+			attenuation = 1.0;
+			break;
+		case ATTEN_IDLE:
+			attenuation = 2.0;
+			break;
+		case ATTEN_STATIC:
+			attenuation = 4.0;
+			break;
+		default:
+			attenuation = 0.0;
+			break;
+	}
+
+	const vec_t dist = VectorNormalize(delta) * attenuation;
 	const vec_t frac = dist / SOUND_MAX_DISTANCE;
 
 	ch->dist = (uint8_t) (Clamp(frac * 255.0, 0.0, 255.0));
@@ -69,120 +96,112 @@ _Bool S_SpatializeChannel(s_channel_t *ch) {
 
 	ch->angle = (int16_t) (360.0 - angle) % 360;
 
-	return frac < 1.0;
+	return frac <= 1.0;
+}
+
+/**
+ * @brief Updates all active channels for the current frame.
+ */
+void S_MixChannels(void) {
+
+	s_env.num_active_channels = 0;
+
+	s_channel_t *ch = s_env.channels;
+	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
+
+		if (ch->sample) {
+
+			if (ch->start_time) {
+				if (ch->play.flags & S_PLAY_AUTO) {
+					const cl_entity_t *ent = &cl.entities[ch->play.entity];
+
+					if (ent->frame_num != cl.frame.frame_num
+							|| ent->current.sound != ent->prev.sound) {
+
+						Mix_FadeOutChannel(i, 250);
+					}
+				}
+			}
+
+			if (S_SpatializeChannel(ch)) {
+				Mix_SetPosition(i, ch->angle, ch->dist);
+
+				if (!ch->start_time) {
+					ch->start_time = cl.systime;
+
+					if (ch->play.flags & S_PLAY_LOOP) {
+						Mix_PlayChannel(i, ch->sample->chunk, -1);
+					} else {
+						Mix_PlayChannel(i, ch->sample->chunk, 0);
+					}
+				}
+
+				s_env.num_active_channels++;
+			} else {
+				
+				if (ch->start_time) {
+					Mix_HaltChannel(i);
+				} else {
+					S_FreeChannel(i);
+				}
+			}
+		}
+	}
 }
 
 /**
  * @brief
  */
-void S_PlaySample(const vec3_t org, uint16_t ent_num, s_sample_t *sample, int32_t atten) {
-	s_channel_t *ch;
-	int32_t i;
+void S_AddSample(const s_play_sample_t *play) {
 
 	if (!s_env.initialized)
 		return;
 
-	if (sample && sample->media.name[0] == '*') // resolve the model-specific sample
-		sample = S_LoadModelSample(&cl.entities[ent_num].current, sample->media.name);
-
-	if (!sample || !sample->chunk)
+	if (!play)
 		return;
 
-	if ((i = S_AllocChannel()) == -1)
+	if (!play->sample)
 		return;
 
-	ch = &s_env.channels[i];
+	if (play->entity >= MAX_ENTITIES)
+		return;
 
-	if (org) { // positioned sound
-		VectorCopy(org, ch->org);
-		ch->ent_num = -1;
-	} else
-		// entity sound
-		ch->ent_num = ent_num;
+//	if ((play->flags & (S_PLAY_POSITIONED | S_PLAY_LOOP)) != (S_PLAY_POSITIONED | S_PLAY_LOOP))
+//		return;
 
-	ch->atten = atten;
-	ch->sample = sample;
+	const s_sample_t *sample = play->sample;
 
-	if (S_SpatializeChannel(ch)) {
-		Mix_SetPosition(i, ch->angle, ch->dist);
-		Mix_ChannelFinished(S_FreeChannel);
-		Mix_PlayChannel(i, ch->sample->chunk, 0);
-	} else {
-		S_FreeChannel(i);
+	const char *name = sample->media.name;
+	if (name[0] == '*') {
+		if (play->entity != -1) {
+			const entity_state_t *ent = &cl.entities[play->entity].current;
+			sample = S_LoadModelSample(ent, sample->media.name);
+			if (sample == NULL) {
+				Com_Debug("Failed to load player model sound %s\n", name);
+				return;
+			}
+		} else {
+			Com_Warn("Player model sound %s requested without entity\n", name);
+			return;
+		}
 	}
-}
 
-#define SOUND_LOOP_GROUP_DISTANCE 128.0
+	// if an identical loop sound already exists, cull this one
 
-/**
- * @brief
- */
-void S_LoopSample(const vec3_t org, s_sample_t *sample) {
-	s_channel_t *ch;
-	int32_t i;
-
-	if (!sample || !sample->chunk)
-		return;
-
-	ch = NULL;
-
-	for (i = 0; i < MAX_CHANNELS; i++) { // find existing loop sound
-
-		if (s_env.channels[i].ent_num == -1) {
-
-			if (s_env.channels[i].sample == sample) {
-
-				vec3_t delta;
-				VectorSubtract(s_env.channels[i].org, org, delta);
-
-				if (VectorLength(delta) < SOUND_LOOP_GROUP_DISTANCE) {
-					ch = &s_env.channels[i];
-					break;
+	if (play->flags & S_PLAY_LOOP) {
+		s_channel_t *ch = s_env.channels;
+		for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
+			if (ch->sample && (ch->play.flags & S_PLAY_LOOP)) {
+				if (memcmp(play, &ch->play, sizeof(*play)) == 0) {
+					return;
 				}
 			}
 		}
 	}
 
-	if (ch) { // update existing loop sample
-		ch->count++;
-		VectorMix(ch->org, org, 1.0 / ch->count, ch->org);
-	} else { // or allocate a new one
-
-		if ((i = S_AllocChannel()) == -1)
-			return;
-
-		ch = &s_env.channels[i];
-
-		VectorCopy(org, ch->org);
-		ch->ent_num = -1;
-		ch->count = 1;
-		ch->atten = ATTEN_IDLE;
-		ch->sample = sample;
-
-		if (S_SpatializeChannel(ch)) {
-			Mix_SetPosition(i, ch->angle, ch->dist);
-			Mix_PlayChannel(i, ch->sample->chunk, -1);
-		} else {
-			S_FreeChannel(i);
-		}
+	const int32_t i = S_AllocChannel();
+	if (i != -1) {
+		s_env.channels[i].play = *play;
+		s_env.channels[i].sample = sample;
 	}
-}
-
-/**
- * @brief
- */
-void S_StartLocalSample(const char *name) {
-	s_sample_t *sample;
-
-	if (!s_env.initialized)
-		return;
-
-	sample = S_LoadSample(name);
-
-	if (!sample) {
-		Com_Warn("Failed to load %s.\n", name);
-		return;
-	}
-
-	S_PlaySample(NULL, cl.client_num + 1, sample, ATTEN_NONE);
 }
