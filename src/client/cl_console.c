@@ -58,6 +58,26 @@ static void Cl_DrawConsole_Background(void) {
 			R_DrawImage(0, 0, scale, image);
 		}
 	}
+
+	const r_image_t *logo = R_LoadImage("ui/logo", IT_UI);
+	if (logo->type != IT_NULL) {
+
+		const r_pixel_t width = MIN(logo->width, r_context.window_width * 0.15);
+		const vec_t scale = width / (vec_t) logo->width;
+
+		const r_pixel_t x = r_context.window_width - (logo->width * scale) - 24;
+		const r_pixel_t y = r_context.window_height - (logo->height * scale) - 24;
+
+		if (cls.state == CL_ACTIVE) {
+			R_Color((const vec4_t) { 1.0, 1.0, 1.0, cl_console_background_alpha->value });
+
+			R_DrawImage(x, -r_context.window_height * 0.333 + y, scale, logo);
+
+			R_Color(NULL);
+		} else {
+			R_DrawImage(x, y, scale, logo);
+		}
+	}
 }
 
 /**

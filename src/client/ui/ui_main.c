@@ -55,6 +55,40 @@ void Ui_HandleEvent(const SDL_Event *event) {
 }
 
 /**
+ * @brief Draws the background for the user interface. Ideally, this would be done with an
+ * ImageView, within MainViewController. But because we don't want to load the (rather large)
+ * console background image twice, we do it here.
+ */
+static void Ui_DrawBackground(void) {
+
+	if (cls.state != CL_ACTIVE) {
+
+		const r_image_t *background = R_LoadImage("ui/background", IT_UI);
+		if (background->type != IT_NULL) {
+
+			const vec_t x_scale = r_context.window_width / (vec_t) background->width;
+			const vec_t y_scale = r_context.window_height / (vec_t) background->height;
+
+			const vec_t scale = MAX(x_scale, y_scale);
+
+			R_DrawImage(0, 0, scale, background);
+		}
+
+		const r_image_t *logo = R_LoadImage("ui/logo", IT_UI);
+		if (logo->type != IT_NULL) {
+
+			const r_pixel_t width = MIN(logo->width, r_context.window_width * 0.15);
+			const vec_t scale = width / (vec_t) logo->width;
+
+			const r_pixel_t x = r_context.window_width - (logo->width * scale) - 24;
+			const r_pixel_t y = r_context.window_height - (logo->height * scale) - 24;
+
+			R_DrawImage(x, y, scale, logo);
+		}
+	}
+}
+
+/**
  * @brief Renders the user interface to a texture in a reserved OpenGL context, then
  * blits it back to the screen in the default context. A separate OpenGL context is
  * used to avoid OpenGL state pollution.
@@ -66,19 +100,7 @@ void Ui_Draw(void) {
 		return;
 	}
 
-	if (cls.state != CL_ACTIVE) {
-		
-		const r_image_t *image = R_LoadImage("ui/background", IT_UI);
-		if (image->type != IT_NULL) {
-
-			const vec_t x_scale = r_context.window_width / (vec_t) image->width;
-			const vec_t y_scale = r_context.window_height / (vec_t) image->height;
-
-			const vec_t scale = MAX(x_scale, y_scale);
-
-			R_DrawImage(0, 0, scale, image);
-		}
-	}
+	Ui_DrawBackground();
 
 	GLint texnum;
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &texnum);
