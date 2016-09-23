@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set sv_max_clients 1 +map torn +set cl_show_sound_stats 1 +set g_cheats 1 +give all"
+            argument = "+map torn +set g_cheats 1 +give all"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
