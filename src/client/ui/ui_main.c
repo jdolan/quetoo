@@ -66,15 +66,18 @@ void Ui_Draw(void) {
 		return;
 	}
 
-	const r_image_t *image = R_LoadImage("ui/background", IT_UI);
-	if (image->type != IT_NULL) {
+	if (cls.state != CL_ACTIVE) {
+		
+		const r_image_t *image = R_LoadImage("ui/background", IT_UI);
+		if (image->type != IT_NULL) {
 
-		const vec_t x_scale = r_context.window_width / (vec_t) image->width;
-		const vec_t y_scale = r_context.window_height / (vec_t) image->height;
+			const vec_t x_scale = r_context.window_width / (vec_t) image->width;
+			const vec_t y_scale = r_context.window_height / (vec_t) image->height;
 
-		const vec_t scale = MAX(x_scale, y_scale);
+			const vec_t scale = MAX(x_scale, y_scale);
 
-		R_DrawImage(0, 0, scale, image);
+			R_DrawImage(0, 0, scale, image);
+		}
 	}
 
 	GLint texnum;
