@@ -20,6 +20,7 @@
  */
 
 #include <sys/time.h>
+#include <sys/select.h>
 
 #include "cvar.h"
 #include "net_udp.h"
