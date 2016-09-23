@@ -40,7 +40,7 @@ static cvar_t *cl_notify_time;
  */
 static void Cl_DrawConsole_Background(void) {
 
-	const r_image_t *image = R_LoadImage("ui/background", IT_UI);
+	const r_image_t *image = R_LoadImage("ui/conback", IT_UI);
 	if (image->type != IT_NULL) {
 
 		const vec_t x_scale = r_context.window_width / (vec_t) image->width;
