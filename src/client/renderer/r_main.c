@@ -493,8 +493,8 @@ static void R_InitLocal(void) {
 			"Controls the use of vertex buffer objects (VBO)");
 	r_warp = Cvar_Get("r_warp", "1", CVAR_ARCHIVE, "Controls warping surface effects (e.g. water)");
 	r_width = Cvar_Get("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_windowed_height = Cvar_Get("r_windowed_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_windowed_width = Cvar_Get("r_windowed_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+	r_windowed_height = Cvar_Get("r_windowed_height", "1024", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+	r_windowed_width = Cvar_Get("r_windowed_width", "768", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
 	Cvar_ClearAll(CVAR_R_MASK);
 
