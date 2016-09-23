@@ -104,13 +104,10 @@ _Bool S_SpatializeChannel(s_channel_t *ch) {
  */
 void S_MixChannels(void) {
 
-	if (s_volume->modified) {
-		Mix_Volume(-1, Clamp(s_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME);
-		s_volume->modified = false;
-	}
-
 	if (!s_volume->value)
 		return;
+
+	Mix_Volume(-1, Clamp(s_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME);
 
 	s_env.num_active_channels = 0;
 
