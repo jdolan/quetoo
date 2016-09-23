@@ -4,7 +4,7 @@
 
 # Quetoo BETA
 
-![Quetoo BETA](http://farm8.staticflickr.com/7052/6840396962_e01802d3f9_c.jpg)
+![Quetoo BETA](https://scontent-mia1-1.xx.fbcdn.net/t31.0-8/861008_617224188323107_1551552667_o.jpg)
 
 ## Overview
 
