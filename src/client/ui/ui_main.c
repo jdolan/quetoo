@@ -55,9 +55,7 @@ void Ui_HandleEvent(const SDL_Event *event) {
 }
 
 /**
- * @brief Draws the background for the user interface. Ideally, this would be done with an
- * ImageView, within MainViewController. But because we don't want to load the (rather large)
- * console background image twice, we do it here.
+ * @brief TODO: Make this an ImageView within MainViewController's View?
  */
 static void Ui_DrawBackground(void) {
 
@@ -72,18 +70,6 @@ static void Ui_DrawBackground(void) {
 			const vec_t scale = MAX(x_scale, y_scale);
 
 			R_DrawImage(0, 0, scale, background);
-		}
-
-		const r_image_t *logo = R_LoadImage("ui/logo", IT_UI);
-		if (logo->type != IT_NULL) {
-
-			const r_pixel_t width = MIN(logo->width, r_context.window_width * 0.15);
-			const vec_t scale = width / (vec_t) logo->width;
-
-			const r_pixel_t x = r_context.window_width - (logo->width * scale) - 24;
-			const r_pixel_t y = r_context.window_height - (logo->height * scale) - 24;
-
-			R_DrawImage(x, y, scale, logo);
 		}
 	}
 }
