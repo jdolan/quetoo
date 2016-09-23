@@ -425,6 +425,7 @@ typedef struct {
 	int32_t lip;
 	int32_t distance;
 	int32_t height;
+	int32_t sounds;
 	char *noise;
 	char *item;
 	char *colors;
@@ -497,7 +498,6 @@ extern g_game_t g_game;
 #define MSTAT_PLAYING		1<<0
 #define MSTAT_TIMEOUT		1<<1
 #define MSTAT_COUNTDOWN		1<<2
-
 
 /**
  * @brief This structure holds references to frequently accessed media.
@@ -753,6 +753,8 @@ typedef struct {
 	int16_t damage_health; // damage taken out of health
 	int16_t damage_inflicted; // damage done to other clients
 
+	int16_t max_boost_health; // max health can be boosted to
+
 	vec_t speed; // x/y speed after moving
 	vec3_t angles; // aiming direction
 	vec3_t forward, right, up; // aiming direction vectors
@@ -761,6 +763,7 @@ typedef struct {
 	uint32_t respawn_time; // eligible for respawn when time > this
 	uint32_t respawn_protection_time; // respawn protected till this time
 	uint32_t ground_time; // last touched ground whence
+	uint32_t boost_time; // eligible for falling health damage when time > this
 	uint32_t drown_time; // eligible for drowning damage when time > this
 	uint32_t sizzle_time; // eligible for sizzle damage when time > this
 	uint32_t land_time; // eligible for landing event when time > this
@@ -842,7 +845,7 @@ typedef struct {
 	int16_t damage;
 	int16_t knockback;
 	vec_t damage_radius;
-	int16_t sounds; // make this a spawntemp var?
+//	int16_t sounds; // make this a spawntemp var?
 	int32_t count;
 
 	g_entity_t *enemy;

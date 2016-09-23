@@ -113,7 +113,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
 		vec3_t end;
 		VectorSet(end, org[0], org[1], org[2] - MAX_WORLD_DIST);
 
-		cm_trace_t trace = cgi.Trace(org, end, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
+		cm_trace_t trace = cgi.Trace(org, end, NULL, NULL, 0, MASK_CLIP_PROJECTILE | MASK_LIQUID);
 		e->end_z[i] = trace.end[2];
 	}
 
@@ -231,18 +231,21 @@ static void Cg_AddWeather(void) {
 	if (!cg_add_weather->value)
 		return;
 
-	if (!(cgi.view->weather & (WEATHER_RAIN | WEATHER_SNOW)))
+	if (!(cgi.view->weather & WEATHER_PRECIP_MASK))
 		return;
 
-	s_sample_t *s; // add an appropriate looping sound
+	const s_sample_t *sample; // add an appropriate looping sound
 
 	if (cgi.view->weather & WEATHER_RAIN) {
-		s = cg_sample_rain;
+		sample = cg_sample_rain;
 	} else {
-		s = cg_sample_snow;
+		sample = cg_sample_snow;
 	}
 
-	cgi.LoopSample(cgi.view->origin, s);
+	cgi.AddSample(&(const s_play_sample_t) {
+		.sample = sample,
+		.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
+	});
 
 	if (cgi.client->systime - cg_weather_state.time < 100)
 		return;
@@ -260,8 +263,24 @@ static void Cg_AddWeather(void) {
 }
 
 /**
+ * @brief Adds an ambient loop sound when the player's view is underwater.
+ */
+static void Cg_AddUnderwater(void) {
+
+	if (cgi.view->contents & MASK_LIQUID) {
+		cgi.AddSample(&(const s_play_sample_t) {
+			.sample = cg_sample_underwater,
+			.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
+		});
+	}
+}
+
+/**
  * @brief
  */
 void Cg_AddEffects() {
+
 	Cg_AddWeather();
+
+	Cg_AddUnderwater();
 }

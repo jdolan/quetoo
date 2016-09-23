@@ -44,6 +44,7 @@ s_sample_t *cg_sample_sparks;
 s_sample_t *cg_sample_footsteps[4];
 s_sample_t *cg_sample_rain;
 s_sample_t *cg_sample_snow;
+s_sample_t *cg_sample_underwater;
 s_sample_t *cg_sample_hits[2];
 s_sample_t *cg_sample_gib;
 
@@ -95,6 +96,7 @@ void Cg_UpdateMedia(void) {
 	cg_sample_sparks = cgi.LoadSample("world/sparks");
 	cg_sample_rain = cgi.LoadSample("world/rain");
 	cg_sample_snow = cgi.LoadSample("world/snow");
+	cg_sample_underwater = cgi.LoadSample("world/underwater");
 	cg_sample_gib = cgi.LoadSample("gibs/common/gib");
 
 	for (size_t i = 0; i < lengthof(cg_sample_hits); i++) {

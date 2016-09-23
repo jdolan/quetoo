@@ -300,7 +300,7 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 	const uint16_t tag = ent->locals.item->tag;
 
 	const _Bool always_add = tag == HEALTH_SMALL;
-	const _Bool always_pickup = tag == HEALTH_SMALL || tag == HEALTH_MEGA;
+	const _Bool always_pickup = (tag == HEALTH_SMALL || tag == HEALTH_MEGA);
 
 	if (other->locals.health < other->locals.max_health || always_add || always_pickup) {
 
@@ -308,11 +308,11 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 		max = other->locals.max_health;
 
 		if (always_pickup) { // resolve max
-			if (other->locals.health > other->locals.max_health)
-				max = other->locals.health;
+			if (h > other->locals.max_health) {
+				max = other->client->locals.max_boost_health;
+}
 		} else if (always_add)
 			max = INT16_MAX;
-
 		if (h > max) // and enforce it
 			h = max;
 
@@ -327,6 +327,8 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 
 		return true;
 	}
+
+	other->client->locals.boost_time = g_level.time + 750;
 
 	return false;
 }

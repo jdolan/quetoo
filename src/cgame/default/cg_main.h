@@ -52,6 +52,7 @@ extern cvar_t *cg_draw_vitals_pulse;
 extern cvar_t *cg_draw_vote;
 extern cvar_t *cg_fov;
 extern cvar_t *cg_fov_zoom;
+extern cvar_t *cg_fov_interpolate;
 extern cvar_t *cg_third_person;
 extern cvar_t *cg_third_person_yaw;
 

@@ -835,6 +835,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->locals.Die = G_ClientDie;
 		ent->locals.ground_entity = NULL;
 		ent->locals.health = ent->locals.max_health = 100;
+		ent->client->locals.max_boost_health = 200;
 		ent->locals.move_type = MOVE_TYPE_WALK;
 		ent->locals.mass = 200.0;
 		ent->locals.take_damage = true;
@@ -1336,6 +1337,13 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 		ent->s.effects |= EF_RESPAWN;
 	else
 		ent->s.effects &= ~EF_RESPAWN;
+
+	// decrement any boosted health from items
+	if (ent->locals.health > ent->locals.max_health &&
+	    ent->client->locals.boost_time < g_level.time) {
+		ent->locals.health -= 1;
+		ent->client->locals.boost_time = g_level.time + 750;
+	}
 }
 
 /**

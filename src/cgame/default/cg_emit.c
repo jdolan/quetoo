@@ -196,7 +196,7 @@ void Cg_LoadEmits(void) {
 							if (e->flags & (EMIT_SPARKS | EMIT_STEAM | EMIT_FLAME)) {
 								e->atten = ATTEN_STATIC;
 							} else {
-								e->atten = ATTEN_DEFAULT;
+								e->atten = ATTEN_IDLE;
 							}
 						}
 					}
@@ -289,7 +289,7 @@ void Cg_LoadEmits(void) {
 			continue;
 		}
 
-		if (!g_strcmp0(c, "attenuation")) {
+		if (!g_strcmp0(c, "attenuation") || !g_strcmp0(c, "atten")) {
 			e->atten = atoi(ParseToken(&ents));
 			continue;
 		}
@@ -347,15 +347,11 @@ cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
  * @brief
  */
 void Cg_AddEmits(void) {
-	r_entity_t ent;
-	int32_t i;
 
 	if (!cg_add_emits->value)
 		return;
 
-	memset(&ent, 0, sizeof(ent));
-
-	for (i = 0; i < cg_num_emits; i++) {
+	for (int32_t i = 0; i < cg_num_emits; i++) {
 
 		cg_emit_t *e = Cg_UpdateEmit(&cg_emits[i]);
 
@@ -364,10 +360,20 @@ void Cg_AddEmits(void) {
 		if ((e->flags & EMIT_LIGHT) && !e->hz)
 			cgi.AddLight(Cg_EmitLight(e));
 
-		if ((e->flags & EMIT_SOUND) && e->loop)
-			cgi.LoopSample(e->org, e->sample);
+		if ((e->flags & EMIT_SOUND) && e->loop) {
+			cgi.AddSample(&(const s_play_sample_t) {
+				.sample = e->sample,
+				.origin = { e->org[0], e->org[1], e->org[2] },
+				.attenuation = e->atten,
+				.flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
+			});
+		}
 
 		if (e->flags & EMIT_MODEL) {
+			r_entity_t ent;
+
+			memset(&ent, 0, sizeof(ent));
+
 			VectorCopy(e->org, ent.origin);
 			VectorCopy(e->angles, ent.angles);
 
@@ -416,7 +422,13 @@ void Cg_AddEmits(void) {
 		if (e->flags & EMIT_FLAME)
 			Cg_FlameTrail(NULL, e->org, e->org);
 
-		if ((e->flags & EMIT_SOUND) && !e->loop)
-			cgi.PlaySample(e->org, -1, e->sample, e->atten);
+		if ((e->flags & EMIT_SOUND) && !e->loop) {
+			cgi.AddSample(&(const s_play_sample_t) {
+				.sample = e->sample,
+				.origin = { e->org[0], e->org[1], e->org[2] },
+				.attenuation = e->atten,
+				.flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT
+			});
+		}
 	}
 }

@@ -39,6 +39,12 @@
  #else
   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
  #endif
+#elif defined(__CYGWIN__)
+ #if defined(__LP64__)
+  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
+ #else
+  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
+ #endif
 #endif
 
 quetoo_t quetoo;

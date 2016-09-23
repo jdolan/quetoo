@@ -55,6 +55,26 @@ void Ui_HandleEvent(const SDL_Event *event) {
 }
 
 /**
+ * @brief TODO: Make this an ImageView within MainViewController's View?
+ */
+static void Ui_DrawBackground(void) {
+
+	if (cls.state != CL_ACTIVE) {
+
+		const r_image_t *background = R_LoadImage("ui/background", IT_UI);
+		if (background->type != IT_NULL) {
+
+			const vec_t x_scale = r_context.window_width / (vec_t) background->width;
+			const vec_t y_scale = r_context.window_height / (vec_t) background->height;
+
+			const vec_t scale = MAX(x_scale, y_scale);
+
+			R_DrawImage(0, 0, scale, background);
+		}
+	}
+}
+
+/**
  * @brief Renders the user interface to a texture in a reserved OpenGL context, then
  * blits it back to the screen in the default context. A separate OpenGL context is
  * used to avoid OpenGL state pollution.
@@ -65,6 +85,8 @@ void Ui_Draw(void) {
 	if (cls.key_state.dest != KEY_UI) {
 		return;
 	}
+
+	Ui_DrawBackground();
 
 	GLint texnum;
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &texnum);

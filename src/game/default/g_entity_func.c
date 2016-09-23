@@ -491,6 +491,7 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent) {
  accel : The platform acceleration (default 500).
  lip : The lip remaining at end of move (default 8 units).
  height : If set, this will determine the extent of the platform's movement, rather than implicitly using the platform's height.
+ sounds : The sound set for the platform (0 default, 1 stone, -1 silent).
  targetname : The target name of this entity if it is to be triggered.
 
  -------- Spawn flags --------
@@ -549,14 +550,18 @@ void G_func_plat(g_entity_t *ent) {
 	ent->locals.move_info.accel = ent->locals.accel;
 	ent->locals.move_info.decel = ent->locals.decel;
 	ent->locals.move_info.wait = ent->locals.wait;
+
 	VectorCopy(ent->locals.pos1, ent->locals.move_info.start_origin);
 	VectorCopy(ent->s.angles, ent->locals.move_info.start_angles);
 	VectorCopy(ent->locals.pos2, ent->locals.move_info.end_origin);
 	VectorCopy(ent->s.angles, ent->locals.move_info.end_angles);
 
-	ent->locals.move_info.sound_start = gi.SoundIndex("world/plat_start");
-	ent->locals.move_info.sound_middle = gi.SoundIndex("world/plat_mid");
-	ent->locals.move_info.sound_end = gi.SoundIndex("world/plat_end");
+	const int32_t s = g_game.spawn.sounds;
+	if (s != -1) {
+		ent->locals.move_info.sound_start = gi.SoundIndex(va("world/plat_start_%d", s + 1));
+		ent->locals.move_info.sound_middle = gi.SoundIndex(va("world/plat_middle_%d", s + 1));
+		ent->locals.move_info.sound_end = gi.SoundIndex(va("world/plat_end_%d", s + 1));
+	}
 }
 
 #define ROTATE_START_ON		0x1
@@ -756,6 +761,7 @@ static void G_func_button_Die(g_entity_t *self, g_entity_t *attacker,
  speed : Speed of the button's displacement (default 40).
  wait : Number of seconds the button stays pressed (default 1, -1 = indefinitely).
  lip : Lip remaining at end of move (default 4 units).
+ sounds : The sound set for the button (0 default, -1 silent).
  health : If set, the button must be killed instead of touched to use.
  targetname : The target name of this entity if it is to be triggered.
  */
@@ -770,7 +776,7 @@ void G_func_button(g_entity_t *ent) {
 
 	gi.LinkEntity(ent);
 
-	if (ent->locals.sounds != 1)
+	if (g_game.spawn.sounds != -1)
 		ent->locals.move_info.sound_start = gi.SoundIndex("world/switch");
 
 	if (!ent->locals.speed)
@@ -1123,6 +1129,7 @@ static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
  speed : The speed with which the door opens (default 100).
  wait : wait before returning (3 default, -1 = never return).
  lip : The lip remaining at end of move (default 8 units).
+ sounds : The sound set for the door (0 default, 1 stone, -1 silent).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
 
@@ -1132,11 +1139,6 @@ static void G_func_door_Touch(g_entity_t *self, g_entity_t *other,
  */
 void G_func_door(g_entity_t *ent) {
 	vec3_t abs_move_dir;
-
-	if (ent->locals.sounds != 1) {
-		ent->locals.move_info.sound_start = gi.SoundIndex("world/door_start");
-		ent->locals.move_info.sound_end = gi.SoundIndex("world/door_end");
-	}
 
 	G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
 	ent->locals.move_type = MOVE_TYPE_PUSH;
@@ -1169,10 +1171,11 @@ void G_func_door(g_entity_t *ent) {
 	abs_move_dir[0] = fabsf(ent->locals.move_dir[0]);
 	abs_move_dir[1] = fabsf(ent->locals.move_dir[1]);
 	abs_move_dir[2] = fabsf(ent->locals.move_dir[2]);
-	ent->locals.move_info.distance = abs_move_dir[0] * ent->size[0] + abs_move_dir[1] * ent->size[1]
-			+ abs_move_dir[2] * ent->size[2] - g_game.spawn.lip;
-	VectorMA(ent->locals.pos1, ent->locals.move_info.distance, ent->locals.move_dir,
-			ent->locals.pos2);
+	ent->locals.move_info.distance = abs_move_dir[0] * ent->size[0] +
+									 abs_move_dir[1] * ent->size[1] +
+									 abs_move_dir[2] * ent->size[2] - g_game.spawn.lip;
+
+	VectorMA(ent->locals.pos1, ent->locals.move_info.distance, ent->locals.move_dir, ent->locals.pos2);
 
 	// if it starts open, switch the positions
 	if (ent->locals.spawn_flags & DOOR_START_OPEN) {
@@ -1197,10 +1200,18 @@ void G_func_door(g_entity_t *ent) {
 	ent->locals.move_info.accel = ent->locals.accel;
 	ent->locals.move_info.decel = ent->locals.decel;
 	ent->locals.move_info.wait = ent->locals.wait;
+
 	VectorCopy(ent->locals.pos1, ent->locals.move_info.start_origin);
 	VectorCopy(ent->s.angles, ent->locals.move_info.start_angles);
 	VectorCopy(ent->locals.pos2, ent->locals.move_info.end_origin);
 	VectorCopy(ent->s.angles, ent->locals.move_info.end_angles);
+
+	const int32_t s = g_game.spawn.sounds;
+	if (s != -1) {
+		ent->locals.move_info.sound_start = gi.SoundIndex(va("world/door_start_%d", s + 1));
+		ent->locals.move_info.sound_middle = gi.SoundIndex(va("world/door_middle_%d", s + 1));
+		ent->locals.move_info.sound_end = gi.SoundIndex(va("world/door_end_%d", s + 1));
+	}
 
 	// to simplify logic elsewhere, make non-teamed doors into a team of one
 	if (!ent->locals.team)
@@ -1222,6 +1233,7 @@ void G_func_door(g_entity_t *ent) {
  speed : The speed with which the door opens (default 100).
  wait : wait before returning (3 default, -1 = never return).
  lip : The lip remaining at end of move (default 8 units).
+ sounds : The sound set for the door (0 default, 1 stone, -1 silent).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
 
@@ -1306,6 +1318,11 @@ void G_func_door_rotating(g_entity_t *ent) {
 	VectorCopy(ent->s.origin, ent->locals.move_info.end_origin);
 	VectorCopy(ent->locals.pos2, ent->locals.move_info.end_angles);
 
+	const int32_t s = g_game.spawn.sounds;
+	if (s != -1) {
+		ent->locals.move_info.sound_middle = gi.SoundIndex(va("world/door_middle_%d", s + 1));
+	}
+
 	// to simplify logic elsewhere, make non-teamed doors into a team of one
 	if (!ent->locals.team)
 		ent->locals.team_master = ent;
@@ -1330,6 +1347,7 @@ void G_func_door_rotating(g_entity_t *ent) {
  speed : The speed with which the door opens (default 100).
  wait : wait before returning (3 default, -1 = never return).
  lip : The lip remaining at end of move (default 8 units).
+ sounds : The sound set for the door (0 default, 1 stone, -1 silent).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
 
@@ -1462,10 +1480,6 @@ static void G_func_door_secret_Die(g_entity_t *self, g_entity_t *attacker, uint3
 
 void G_func_door_secret(g_entity_t *ent) {
 	vec3_t forward, right, up;
-
-	ent->locals.move_info.sound_start = gi.SoundIndex("world/door_start");
-	ent->locals.move_info.sound_middle = gi.SoundIndex("world/door_middle");
-	ent->locals.move_info.sound_end = gi.SoundIndex("world/door_end");
 
 	ent->locals.move_type = MOVE_TYPE_PUSH;
 	ent->solid = SOLID_BSP;

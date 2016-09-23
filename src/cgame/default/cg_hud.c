@@ -622,9 +622,10 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 		// play the hit sound
 		if (cgi.client->systime - last_damage_time > 50) {
 			last_damage_time = cgi.client->systime;
-
-			s_sample_t *sample = (dmg >= 25) ? cg_sample_hits[1] : cg_sample_hits[0];
-			cgi.PlaySample(cgi.view->origin, 0, sample, ATTEN_NONE);
+			
+			cgi.AddSample(&(const s_play_sample_t) {
+				.sample = dmg >= 25 ? cg_sample_hits[1] : cg_sample_hits[0]
+			});
 		}
 	}
 }

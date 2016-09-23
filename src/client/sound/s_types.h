@@ -40,17 +40,30 @@ typedef struct s_sample_s {
 	Mix_Chunk *chunk;
 } s_sample_t;
 
+#define S_PLAY_POSITIONED   0x1 // position the sound at a fixed origin
+#define S_PLAY_ENTITY       0x2 // position the sound at the entity's origin at each frame
+#define S_PLAY_AMBIENT      0x4 // this is an ambient sound, and may be culled by the user
+#define S_PLAY_LOOP         0x8 // loop the sound continuously
+#define S_PLAY_FRAME        0x10 // cull the sound if it is not added at each frame
+
+typedef struct s_play_sample_s {
+	const s_sample_t *sample;
+	vec3_t origin;
+	int32_t entity;
+	int32_t attenuation;
+	int32_t flags;
+} s_play_sample_t;
+
 typedef struct s_channel_s {
-	vec3_t org; // for temporary entities and other positioned sounds
-	int32_t ent_num; // for entities and dynamic sounds
-	int32_t count; // for looped sounds
-	int32_t atten;
+	s_play_sample_t play;
+	const s_sample_t *sample;
+	uint32_t start_time;
+	int32_t frame;
 	int16_t angle;
 	uint8_t dist;
-	s_sample_t *sample;
 } s_channel_t;
 
-#define MAX_CHANNELS 64
+#define MAX_CHANNELS 128
 
 typedef struct s_music_s {
 	s_media_t media;

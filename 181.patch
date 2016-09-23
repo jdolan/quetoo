@@ -1,0 +1,179 @@
+From b8ac04dd6c4d824b7e2988541d838a5f9e040f18 Mon Sep 17 00:00:00 2001
+From: kaadmy <kaadmy@gmail.com>
+Date: Sun, 18 Sep 2016 17:21:25 -0700
+Subject: [PATCH 1/2] Added FOV interpolation; expect glitches
+
+---
+ src/cgame/default/cg_main.c |  3 +++
+ src/cgame/default/cg_main.h |  1 +
+ src/cgame/default/cg_view.c | 38 ++++++++++++++++++++++++++++++++++----
+ 3 files changed, 38 insertions(+), 4 deletions(-)
+
+diff --git a/src/cgame/default/cg_main.c b/src/cgame/default/cg_main.c
+index ebec8b3..6aa0e52 100644
+--- a/src/cgame/default/cg_main.c
++++ b/src/cgame/default/cg_main.c
+@@ -47,6 +47,7 @@ cvar_t *cg_draw_vitals_pulse;
+ cvar_t *cg_draw_vote;
+ cvar_t *cg_fov;
+ cvar_t *cg_fov_zoom;
++cvar_t *cg_fov_interpolate;
+ cvar_t *cg_third_person;
+ cvar_t *cg_third_person_yaw;
+ 
+@@ -106,6 +107,8 @@ static void Cg_Init(void) {
+ 
+ 	cg_fov = cgi.Cvar("cg_fov", "110.0", CVAR_ARCHIVE, NULL);
+ 	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "55.0", CVAR_ARCHIVE, NULL);
++	cg_fov_interpolate = cgi.Cvar("cg_fov_interpolate", "100", CVAR_ARCHIVE,
++			"Speed to change the fov at in x100 degrees/second. 0 disables, 1 is 100 deg/sec, 0.5 is 50 deg/sec");
+ 
+ 	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_LO_ONLY,
+ 			"Activate third person perspective.");
+diff --git a/src/cgame/default/cg_main.h b/src/cgame/default/cg_main.h
+index 9f813cf..e3169ff 100644
+--- a/src/cgame/default/cg_main.h
++++ b/src/cgame/default/cg_main.h
+@@ -52,6 +52,7 @@ extern cvar_t *cg_draw_vitals_pulse;
+ extern cvar_t *cg_draw_vote;
+ extern cvar_t *cg_fov;
+ extern cvar_t *cg_fov_zoom;
++extern cvar_t *cg_fov_interpolate;
+ extern cvar_t *cg_third_person;
+ extern cvar_t *cg_third_person_yaw;
+ 
+diff --git a/src/cgame/default/cg_view.c b/src/cgame/default/cg_view.c
+index a64c18a..25c43ab 100644
+--- a/src/cgame/default/cg_view.c
++++ b/src/cgame/default/cg_view.c
+@@ -27,23 +27,53 @@
+  * frustum.
+  */
+ static void Cg_UpdateFov(void) {
++	static uint32_t time, vtime;
++
++	vec_t ftime = cgi.view->time - vtime;
++	if (ftime > 1000) // the Clamp function generates a warning about unsigned int comparisons
++		ftime = 1000;
++
++	time += ftime;
++	vtime = cgi.view->time;
+ 
+ 	if (!cg_fov->modified && !cgi.view->update)
+ 		return;
+ 
+ 	cg_fov->value = Clamp(cg_fov->value, 10.0, 160.0);
++	cg_fov_interpolate->value = Clamp(cg_fov_interpolate->value, 0.0, 100.0);
++
++	vec_t target_fov = cg_fov->value;
++	vec_t current_fov = cgi.view->fov[0] * 2.0; // yes, yes, very hacky
++
++	vec_t fov = 0.0;
++	vec_t fov_delta = 0.0;
+ 
+-	cgi.view->fov[0] = cg_fov->value / 2.0;
++	if (cg_fov_interpolate->value) {
++		fov_delta = (ftime / 1000.0) * cg_fov_interpolate->value * 100.0;
++		if (current_fov - target_fov > 0.0)
++			fov_delta *= -1.0;
+ 
+-	const vec_t x = cgi.context->width / tan(Radians(cg_fov->value));
++		fov = current_fov + fov_delta;
++
++		if ((fov_delta > 0 && fov > target_fov) || (fov_delta < 0 && fov < target_fov)) {
++			fov = target_fov;
++			cg_fov->modified = false;
++		}
++	} else {
++		fov = target_fov;
++		cg_fov->modified = false;
++	}
++
++
++	cgi.view->fov[0] = fov / 2.0;
++
++	const vec_t x = cgi.context->width / tan(Radians(fov));
+ 
+ 	const vec_t y = atan2(cgi.context->height, x);
+ 
+ 	const vec_t a = cgi.context->height / (vec_t ) cgi.context->width;
+ 
+ 	cgi.view->fov[1] = Degrees(y) * a / 2.0;
+-
+-	cg_fov->modified = false;
+ }
+ 
+ /**
+
+From 4836f8f9f23ae57cf197c7aa012df5468eedea21 Mon Sep 17 00:00:00 2001
+From: kaadmy <kaadmy@gmail.com>
+Date: Sun, 18 Sep 2016 18:45:12 -0700
+Subject: [PATCH 2/2] Add some code optimizations
+
+---
+ src/cgame/default/cg_main.c |  2 +-
+ src/cgame/default/cg_view.c | 25 +++++++++++--------------
+ 2 files changed, 12 insertions(+), 15 deletions(-)
+
+diff --git a/src/cgame/default/cg_main.c b/src/cgame/default/cg_main.c
+index 6aa0e52..58cd1e2 100644
+--- a/src/cgame/default/cg_main.c
++++ b/src/cgame/default/cg_main.c
+@@ -107,7 +107,7 @@ static void Cg_Init(void) {
+ 
+ 	cg_fov = cgi.Cvar("cg_fov", "110.0", CVAR_ARCHIVE, NULL);
+ 	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "55.0", CVAR_ARCHIVE, NULL);
+-	cg_fov_interpolate = cgi.Cvar("cg_fov_interpolate", "100", CVAR_ARCHIVE,
++	cg_fov_interpolate = cgi.Cvar("cg_fov_interpolate", "1", CVAR_ARCHIVE,
+ 			"Speed to change the fov at in x100 degrees/second. 0 disables, 1 is 100 deg/sec, 0.5 is 50 deg/sec");
+ 
+ 	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_LO_ONLY,
+diff --git a/src/cgame/default/cg_view.c b/src/cgame/default/cg_view.c
+index 25c43ab..99b10d7 100644
+--- a/src/cgame/default/cg_view.c
++++ b/src/cgame/default/cg_view.c
+@@ -27,14 +27,11 @@
+  * frustum.
+  */
+ static void Cg_UpdateFov(void) {
+-	static uint32_t time, vtime;
++	static uint32_t time;
+ 
+-	vec_t ftime = cgi.view->time - vtime;
+-	if (ftime > 1000) // the Clamp function generates a warning about unsigned int comparisons
+-		ftime = 1000;
++	vec_t ftime = Clamp(cgi.view->time - time, 1, 1000);
+ 
+-	time += ftime;
+-	vtime = cgi.view->time;
++	time = cgi.view->time;
+ 
+ 	if (!cg_fov->modified && !cgi.view->update)
+ 		return;
+@@ -42,18 +39,18 @@ static void Cg_UpdateFov(void) {
+ 	cg_fov->value = Clamp(cg_fov->value, 10.0, 160.0);
+ 	cg_fov_interpolate->value = Clamp(cg_fov_interpolate->value, 0.0, 100.0);
+ 
+-	vec_t target_fov = cg_fov->value;
+-	vec_t current_fov = cgi.view->fov[0] * 2.0; // yes, yes, very hacky
++	const vec_t target_fov = cg_fov->value;
++
++	static vec_t fov;
++	fov = cgi.view->fov[0] * 2.0; // yes, yes, very hacky
+ 
+-	vec_t fov = 0.0;
+-	vec_t fov_delta = 0.0;
++	vec_t fov_delta;
+ 
+ 	if (cg_fov_interpolate->value) {
+-		fov_delta = (ftime / 1000.0) * cg_fov_interpolate->value * 100.0;
+-		if (current_fov - target_fov > 0.0)
+-			fov_delta *= -1.0;
++		fov_delta = (ftime / 10.0) * cg_fov_interpolate->value; // msec/10 because the total has to be 100x larger
++		fov_delta = (fov - target_fov > 0) ? fov_delta * -1.0 : fov_delta;
+ 
+-		fov = current_fov + fov_delta;
++		fov += fov_delta;
+ 
+ 		if ((fov_delta > 0 && fov > target_fov) || (fov_delta < 0 && fov < target_fov)) {
+ 			fov = target_fov;

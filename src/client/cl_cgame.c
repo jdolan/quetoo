@@ -164,8 +164,7 @@ void Cl_InitCgame(void) {
 	import.LeafVisible = R_LeafVisible;
 
 	import.LoadSample = S_LoadSample;
-	import.PlaySample = S_PlaySample;
-	import.LoopSample = S_LoopSample;
+	import.AddSample = S_AddSample;
 
 	import.context = &r_context;
 
