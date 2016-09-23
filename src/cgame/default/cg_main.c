@@ -47,6 +47,7 @@ cvar_t *cg_draw_vitals_pulse;
 cvar_t *cg_draw_vote;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
+cvar_t *cg_fov_interpolate;
 cvar_t *cg_third_person;
 cvar_t *cg_third_person_yaw;
 
@@ -106,6 +107,8 @@ static void Cg_Init(void) {
 
 	cg_fov = cgi.Cvar("cg_fov", "110.0", CVAR_ARCHIVE, NULL);
 	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "55.0", CVAR_ARCHIVE, NULL);
+	cg_fov_interpolate = cgi.Cvar("cg_fov_interpolate", "1", CVAR_ARCHIVE,
+			"Speed to change the fov at in x100 degrees/second. 0 disables, 1 is 100 deg/sec, 0.5 is 50 deg/sec");
 
 	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_LO_ONLY,
 			"Activate third person perspective.");
