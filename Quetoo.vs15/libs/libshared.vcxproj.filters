@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="vs">
+      <UniqueIdentifier>{1faf1301-d0d3-4df3-ba9b-d6cb5a175d81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{fdc66d56-c60f-41f4-9e2a-482e8362c59e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\collision">
+      <UniqueIdentifier>{ab63c861-8f2c-4b59-8051-17178240c3bf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\config.h">
+      <Filter>vs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\unistd.h">
+      <Filter>vs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\collision\cm_types.h">
+      <Filter>src\collision</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\shared.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared-anorms.c">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

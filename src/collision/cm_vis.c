@@ -153,7 +153,7 @@ void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open) {
 /**
  * @brief Returns true if the specified areas are connected.
  */
-_Bool Cm_AreasConnected(int32_t area1, int32_t area2) {
+_Bool Cm_AreasConnected(const int32_t area1, const int32_t area2) {
 
 	if (cm_no_areas)
 		return true;

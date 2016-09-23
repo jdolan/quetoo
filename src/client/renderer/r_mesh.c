@@ -306,7 +306,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 
 	if (!r_draw_wireframe->value) {
 
-		r_mesh_state.material = e->skins[0] ?: e->model->mesh->material;
+		r_mesh_state.material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
 
 		R_BindTexture(r_mesh_state.material->diffuse->texnum);
 
@@ -369,7 +369,7 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 
 		if (!r_draw_wireframe->value) {
 			if (i > 0) { // update the diffuse state for the current mesh
-				r_mesh_state.material = e->skins[i] ?: e->model->mesh->material;
+				r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
 
 				R_BindTexture(r_mesh_state.material->diffuse->texnum);
 

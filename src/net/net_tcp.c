@@ -85,7 +85,7 @@ _Bool Net_SendStream(int32_t sock, const void *data, size_t len) {
 
 	ssize_t sent = 0;
 	while ((size_t) sent < buf.size) {
-		const ssize_t s = send(sock, (void *) buf.data + sent, buf.size - sent, 0);
+		const ssize_t s = send(sock, (void *)(buf.data + sent), buf.size - sent, 0);
 		if (s == -1) {
 			if (Net_GetError() != EWOULDBLOCK) {
 				Com_Warn("%s\n", Net_GetErrorString());
