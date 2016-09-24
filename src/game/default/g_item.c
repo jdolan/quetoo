@@ -308,9 +308,10 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 		max = other->locals.max_health;
 
 		if (always_pickup) { // resolve max
-			if (h > other->locals.max_health) {
+			if (h > max && other->client) {
+				other->client->locals.boost_time = g_level.time + 750;
 				max = other->client->locals.max_boost_health;
-}
+			}
 		} else if (always_add)
 			max = INT16_MAX;
 		if (h > max) // and enforce it
@@ -327,8 +328,6 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 
 		return true;
 	}
-
-	other->client->locals.boost_time = g_level.time + 750;
 
 	return false;
 }

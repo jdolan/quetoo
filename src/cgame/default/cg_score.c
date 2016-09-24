@@ -181,13 +181,11 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 	x += SCORES_ICON_WIDTH;
 
 	// background
-	{
 		const vec_t fa = s->client == cgi.client->client_num ? 0.3 : 0.15;
 		const r_pixel_t fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
 		const r_pixel_t fh = SCORES_ROW_HEIGHT - 1;
 
 		cgi.DrawFill(x, y, fw, fh, s->color, fa);
-	}
 
 	cgi.BindFont("small", &cw, &ch);
 
@@ -209,6 +207,9 @@ static _Bool Cg_DrawScore(r_pixel_t x, r_pixel_t y, const g_score_t *s) {
 
 	// frags
 	cgi.DrawString(x, y, va("%d frags", s->score), CON_COLOR_DEFAULT);
+
+	// deaths
+	cgi.DrawString(x + fw / 2, y, va("%d deaths", s->deaths), CON_COLOR_DEFAULT);
 
 	// ready/not ready
 	if (atoi(cgi.ConfigString(CS_MATCH))) {

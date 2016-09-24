@@ -28,7 +28,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1009
+#define PROTOCOL_MINOR 1010
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -87,6 +87,7 @@ typedef enum {
 	STAT_DAMAGE_HEALTH,
 	STAT_DAMAGE_INFLICT,
 	STAT_FRAGS,
+	STAT_DEATHS,
 	STAT_HEALTH,
 	STAT_HEALTH_ICON,
 	STAT_PICKUP_ICON,
@@ -157,6 +158,7 @@ typedef struct {
 	uint8_t color;
 	int16_t score;
 	int16_t captures;
+	uint16_t deaths;
 	uint8_t flags;
 } g_score_t;
 
@@ -700,6 +702,7 @@ typedef struct {
 
 	int16_t score;
 	int16_t captures;
+	uint16_t deaths;
 
 	_Bool admin; // client is special?
 	_Bool spectator; // client is a spectator

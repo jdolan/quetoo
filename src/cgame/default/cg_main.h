@@ -38,6 +38,7 @@ extern cvar_t *cg_draw_crosshair_pulse;
 extern cvar_t *cg_draw_crosshair_scale;
 extern cvar_t *cg_draw_crosshair;
 extern cvar_t *cg_draw_frags;
+extern cvar_t *cg_draw_deaths;
 extern cvar_t *cg_draw_hud;
 extern cvar_t *cg_draw_pickup;
 extern cvar_t *cg_draw_time;
