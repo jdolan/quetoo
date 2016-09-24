@@ -358,13 +358,11 @@ void Con_WriteHistory(const console_t *console, file_t *file) {
 
 	const console_history_t *hist = &console->history;
 
-	for (size_t i = 0; i < CON_HISTORY_SIZE; i++) {
+	for (size_t i = 1; i <= CON_HISTORY_SIZE; i++) {
 
 		const char *str = hist->strings[(hist->index + i) % CON_HISTORY_SIZE];
 		if (*str) {
 			Fs_Print(file, "%s\n", str);
-		} else {
-			break;
 		}
 	}
 }
