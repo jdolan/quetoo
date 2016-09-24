@@ -64,8 +64,8 @@ static void Ui_DrawBackground(void) {
 		const r_image_t *background = R_LoadImage("ui/background", IT_UI);
 		if (background->type != IT_NULL) {
 
-			const vec_t x_scale = r_context.window_width / (vec_t) background->width;
-			const vec_t y_scale = r_context.window_height / (vec_t) background->height;
+			const vec_t x_scale = r_context.width / (vec_t) background->width;
+			const vec_t y_scale = r_context.height / (vec_t) background->height;
 
 			const vec_t scale = MAX(x_scale, y_scale);
 
