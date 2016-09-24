@@ -41,6 +41,7 @@ typedef uint16_t in_port_t;
 #else
 
 #include <errno.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 
 #endif
