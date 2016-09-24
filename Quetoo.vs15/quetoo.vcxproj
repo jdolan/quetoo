@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\main\main.c" />
+    <ClCompile Include="src\main\winmain.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\src\main\quetoo.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\src\main\quetoo-icon.rc" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A05CAC53-F8F2-4A14-9C81-8A34F4EA9085}</ProjectGuid>
+    <RootNamespace>quetoo</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IncludePath>..\src\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;..\..\ObjectivelyMVC\Sources\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\Objectively\Sources\;..\..\Objectively\Objectively.vs15\Sources\;$(IncludePath)</IncludePath>
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IncludePath>..\src\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;..\..\ObjectivelyMVC\Sources\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\Objectively\Sources\;..\..\Objectively\Objectively.vs15\Sources\;$(IncludePath)</IncludePath>
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\src\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;..\..\ObjectivelyMVC\Sources\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\Objectively\Sources\;..\..\Objectively\Objectively.vs15\Sources\;$(IncludePath)</IncludePath>
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\src\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;..\..\ObjectivelyMVC\Sources\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\Objectively\Sources\;..\..\Objectively\Objectively.vs15\Sources\;$(IncludePath)</IncludePath>
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>CURL_STATICLIB;WIN32;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype27d.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>CURL_STATICLIB;WIN64;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype27d.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>CURL_STATICLIB;WIN32;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype27.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+      <ImageHasSafeExceptionHandlers />
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>CURL_STATICLIB;WIN64;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype27.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{cdca1c1c-7c24-4ee5-928b-835763449a5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\tools">
+      <UniqueIdentifier>{76463c61-ac1a-46b1-beef-d4aa5db1e3b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\tools\update">
+      <UniqueIdentifier>{6c553012-83be-433d-b019-59af51b5f422}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\tools\update\main.c">
+      <Filter>src\tools\update</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\src\tools\update\update.ico">
+      <Filter>src\tools\update</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\src\tools\update\update-icon.rc">
+      <Filter>src\tools\update</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
