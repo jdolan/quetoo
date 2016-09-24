@@ -62,6 +62,8 @@ typedef struct {
 
 	uint32_t time; // for intermittent effects
 
+	uint32_t breath_puff_time; // time breath puffs should be drawn next
+
 	cl_entity_animation_t animation1; // torso animation
 	cl_entity_animation_t animation2; // legs animation
 
