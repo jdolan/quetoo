@@ -91,13 +91,13 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -122,17 +122,28 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
-    <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)</TargetName>
-    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\$(Platform)\include\glib-2.0\;glib\$(Platform)\lib\glib-2.0\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
-    <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\Win$(PlatformArchitecture)\include\glib-2.0\;glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
-    <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
-    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\$(Platform)\include\glib-2.0\;glib\$(Platform)\lib\glib-2.0\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
-    <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\Win$(PlatformArchitecture)\include\glib-2.0\;glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\Win$(PlatformArchitecture)\include\glib-2.0\;glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\Win$(PlatformArchitecture)\include\glib-2.0\;glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

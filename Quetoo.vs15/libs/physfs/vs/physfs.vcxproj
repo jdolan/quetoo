@@ -80,13 +80,13 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -111,17 +111,24 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>..\..\bin\$(Platform)$(Configuration)\</OutDir>
-    <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
+    <OutDir>..\..\bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <IncludePath>..\;..\zlib123\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>..\..\bin\$(Platform)$(Configuration)\</OutDir>
-    <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
+    <OutDir>..\..\bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
     <IncludePath>..\;..\zlib123\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>..\..\bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <IncludePath>..\;..\zlib123\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>..\..\bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -142,6 +149,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100</DisableSpecificWarnings>
+      <PreprocessorDefinitions>PHYSFS_SUPPORTS_ZIP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
