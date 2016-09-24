@@ -467,6 +467,8 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	self->client->locals.respawn_time = g_level.time + 1800; // respawn after death animation finishes
 	self->client->locals.show_scores = true;
 
+	 self->client->locals.persistent.deaths++;
+
 	gi.LinkEntity(self);
 }
 
@@ -1073,6 +1075,7 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 	ent->client->locals.persistent.vote = VOTE_NO_OP;
 	ent->client->locals.persistent.spectator = false;
 	ent->client->locals.persistent.net_name[0] = 0;
+	ent->client->locals.persistent.deaths = 0;
 
 	// set name, skin, etc..
 	G_ClientUserInfoChanged(ent, user_info);

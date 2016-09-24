@@ -193,7 +193,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 	cgi.BindFont("small", NULL, &ch);
 
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Frags");
-	y = cgi.view->viewport.y + HUD_PIC_HEIGHT;
+	y = cgi.view->viewport.y + HUD_PIC_HEIGHT + ch;
 
 	cgi.DrawString(x, y, "Frags", CON_COLOR_GREEN);
 	y += ch;
@@ -206,6 +206,37 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 
 	cgi.BindFont(NULL, NULL, NULL);
 }
+
+/**
+ * @brief
+ */
+static void Cg_DrawDeaths(const player_state_t *ps) {
+	const int16_t deaths = ps->stats[STAT_DEATHS];
+	r_pixel_t x, y, cw, ch;
+
+	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE])
+		return;
+
+	if (!cg_draw_deaths->integer)
+		return;
+
+	cgi.BindFont("small", NULL, &ch);
+
+	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Deaths");
+	y = cgi.view->viewport.y + 2 * (HUD_PIC_HEIGHT + ch);
+
+	cgi.DrawString(x, y, "Deaths", CON_COLOR_GREEN);
+	y += ch;
+
+	cgi.BindFont("large", &cw, NULL);
+
+	x = cgi.view->viewport.x + cgi.view->viewport.w - 3 * cw;
+
+	cgi.DrawString(x, y, va("%3d", deaths), HUD_COLOR_STAT);
+
+	cgi.BindFont(NULL, NULL, NULL);
+}
+
 
 /**
  * @brief
@@ -226,7 +257,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 	cgi.BindFont("small", NULL, &ch);
 
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Captures");
-	y = cgi.view->viewport.y + 2 * HUD_PIC_HEIGHT + ch;
+	y = cgi.view->viewport.y + 3 * (HUD_PIC_HEIGHT + ch);
 
 	cgi.DrawString(x, y, "Captures", CON_COLOR_GREEN);
 	y += ch;
@@ -332,7 +363,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
 	cgi.BindFont("small", NULL, &ch);
 
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth(string);
-	y = cgi.view->viewport.y + HUD_PIC_HEIGHT * 2 + ch;
+	y = cgi.view->viewport.y + 3 * (HUD_PIC_HEIGHT + ch);
 
 	if (atoi(cgi.ConfigString(CS_CTF)) > 0)
 		y += HUD_PIC_HEIGHT + ch;
@@ -648,6 +679,8 @@ void Cg_DrawHud(const player_state_t *ps) {
 	Cg_DrawTeam(ps);
 
 	Cg_DrawFrags(ps);
+
+	Cg_DrawDeaths(ps);
 
 	Cg_DrawCaptures(ps);
 
