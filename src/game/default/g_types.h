@@ -100,7 +100,8 @@ typedef enum {
 	STAT_TIME,
 	STAT_VOTE,
 	STAT_WEAPON,
-	STAT_WEAPON_ICON
+	STAT_WEAPON_ICON,
+	STAT_QUAD_TIME
 } g_stat_t;
 
 /**
