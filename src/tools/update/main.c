@@ -45,6 +45,13 @@
  #else
   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
  #endif
+#elif defined(_MSC_VER)
+#include <process.h>
+ #if defined(WIN64)
+  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
+ #else
+  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
+ #endif
 #endif
 
 quetoo_t quetoo;
@@ -94,15 +101,18 @@ static char *get_default_dest(void) {
  */
 static char *convert_cygwin_path(const char *path) {
 
-	const size_t len = strlen(path) + strlen("/cgydrive/") + 1;
+	const size_t len = strlen(path) + strlen("/cygdrive/") + 1 + 2;
 	char *cygpath = calloc(len, sizeof(char));
 
 	if (strstr(path, ":\\")) {
-		strcpy(cygpath, "/cygdrive/");
+		strcpy(cygpath, "\"/cygdrive/");
 	}
+	else
+		strcpy(cygpath, "\"");
 
 	const char *in = path;
 	char *out = cygpath + strlen(cygpath);
+
 	while (*in) {
 		if (*in == ':') {
 			in++;
@@ -112,6 +122,9 @@ static char *convert_cygwin_path(const char *path) {
 			*out++ = tolower(*in++);
 		}
 	}
+
+	*out++ = '"';
+	*out++ = 0;
 
 	return cygpath;
 }
@@ -137,14 +150,14 @@ int main(int argc, char **argv) {
 #if defined(_WIN32)
 		char *cygdest = convert_cygwin_path(dest);
 		if (cygdest) {
-			printf("Using cygwin path %s\n", cygdest);
+			printf("Using cygwin path \"%s\"\n", cygdest);
 			status = _spawnlp(_P_WAIT, "rsync.exe", "rsync.exe", "-rkzhP", "--delete", "--stats",
 							  "--skip-compress=pk3",
 							  "--perms",
 							  "--chmod=a=rwx,Da+x",
 							  "--exclude=bin/cygwin1.dll",
 							  "--exclude=bin/rsync.exe",
-							  "--exclude=bin/update.exe",
+							  "--exclude=bin/quetoo-update.exe",
 							  RSYNC_REPOSITORY, cygdest, NULL);
 
 			free(cygdest);
