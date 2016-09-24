@@ -50,6 +50,7 @@ s_sample_t *cg_sample_gib;
 
 cg_particles_t *cg_particles_normal;
 cg_particles_t *cg_particles_explosion;
+cg_particles_t *cg_particles_debris[4];
 cg_particles_t *cg_particles_teleporter;
 cg_particles_t *cg_particles_smoke;
 cg_particles_t *cg_particles_steam;
@@ -121,6 +122,12 @@ void Cg_UpdateMedia(void) {
 
 	cg_particles_normal = Cg_AllocParticles(cgi.LoadImage("particles/particle.tga", IT_EFFECT));
 	cg_particles_explosion = Cg_AllocParticles(cgi.LoadImage("particles/explosion.tga", IT_EFFECT));
+
+	for (size_t i = 0; i < lengthof(cg_particles_debris); i++) {
+		g_snprintf(name, sizeof(name), "particles/debris_%zd", i);
+		cg_particles_debris[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT));
+	}
+
 	cg_particles_teleporter = Cg_AllocParticles(cgi.LoadImage("particles/teleport.tga", IT_EFFECT));
 	cg_particles_smoke = Cg_AllocParticles(cgi.LoadImage("particles/smoke.tga", IT_EFFECT));
 	cg_particles_steam = Cg_AllocParticles(cgi.LoadImage("particles/steam.tga", IT_EFFECT));
