@@ -1505,6 +1505,13 @@ void G_func_door_secret(g_entity_t *ent) {
 
 	ent->locals.move_info.speed = ent->locals.speed;
 
+	const int32_t s = g_game.spawn.sounds;
+	if (s != -1) {
+		ent->locals.move_info.sound_start = gi.SoundIndex(va("world/door_start_%d", s + 1));
+		ent->locals.move_info.sound_middle = gi.SoundIndex(va("world/door_middle_%d", s + 1));
+		ent->locals.move_info.sound_end = gi.SoundIndex(va("world/door_end_%d", s + 1));
+	}
+
 	// calculate positions
 	AngleVectors(ent->s.angles, forward, right, up);
 	VectorClear(ent->s.angles);
