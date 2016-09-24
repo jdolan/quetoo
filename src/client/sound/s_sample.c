@@ -74,7 +74,6 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 	}
 
 	if (sample->chunk) {
-		Mix_VolumeChunk(sample->chunk, s_volume->value * MIX_MAX_VOLUME);
 		Com_Debug("Loaded %s\n", path);
 	} else {
 		if (g_str_has_prefix(sample->media.name, "#players")) {

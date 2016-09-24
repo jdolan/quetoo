@@ -441,11 +441,11 @@ int32_t ZIP_Main(void) {
 		e = entities[i].epairs;
 		while (e) {
 
-			if (!strncmp(e->key, "noise", 5) || !strncmp(e->key, "sound", 5))
+			if (!g_strcmp0(e->key, "noise") || !g_strcmp0(e->key, "sound"))
 				AddSound(e->value);
-			else if (!strncmp(e->key, "model", 5))
+			else if (!g_strcmp0(e->key, "model"))
 				AddModel(e->value);
-			else if (!strncmp(e->key, "sky", 3))
+			else if (!g_strcmp0(e->key, "sky"))
 				AddSky(e->value);
 
 			e = e->next;
