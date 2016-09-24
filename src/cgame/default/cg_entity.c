@@ -65,26 +65,27 @@ _Bool Cg_IsDucking(const entity_state_t *ent) {
  * @brief Adds client-side player effects such as breath puffs in rain or snow
  */
 static void Cg_AddBreathPuffs(cl_entity_t *ent) {
+
 	if (cgi.view->time < ent->breath_puff_time)
 		return;
 
 	cg_particle_t *p;
 
-	vec3_t head_offset;
+	vec3_t pos;
+	VectorCopy(ent->origin, pos);
 
-	head_offset[0] = 0.0;
-	head_offset[1] = 0.0;
 	if (Cg_IsDucking(&ent->current))
-		head_offset[2] = 18.0;
+		pos[2] += 18.0;
 	else
-		head_offset[2] = 30.0;
+		pos[2] += 30.0;
 
-	vec3_t head;
+	vec3_t forward;
+	AngleVectors(ent->angles, forward, NULL, NULL);
 
-	VectorCopy(ent->origin, head);
-	VectorAdd(ent->origin, head_offset, head);
+	VectorMA(pos, 8.0, forward, pos);
 
-	if (cgi.PointContents(head) & MASK_LIQUID) {
+	if (cgi.PointContents(pos) & MASK_LIQUID) {
+
 		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble)))
 			return;
 
@@ -94,16 +95,19 @@ static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 		p->part.scale = 3.0;
 		p->scale_vel = -0.4 - Randomf() * 0.2;
 
+		VectorScale(forward, 2.0, p->vel);
+
 		for (int32_t j = 0; j < 3; j++) {
-			p->part.org[j] = head[j] + Randomc() * 2.0;
-			p->vel[j] = Randomc() * 5.0;
+			p->part.org[j] = pos[j] + Randomc() * 2.0;
+			p->vel[j] += Randomc() * 5.0;
 		}
 
 		p->vel[2] += 6.0;
 		p->accel[2] = 10.0;
 
-		ent->breath_puff_time = cgi.view->time + 2000;
+		ent->breath_puff_time = cgi.view->time + 3000;
 	} else if (cgi.view->weather & WEATHER_RAIN || cgi.view->weather & WEATHER_SNOW) {
+
 		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam)))
 			return;
 		
@@ -112,18 +116,20 @@ static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 		
 		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (5.0 + Randomf() * 0.5));
 		
-		p->part.scale = 6.0;
-		p->scale_vel = 5.0;
+		p->part.scale = 0.1;
+		p->scale_vel = 3.0;
 		
-		p->part.roll = Randomc() * 100.0;
+		p->part.roll = Randomc() * 20.0;
 		
-		VectorCopy(head, p->part.org);
+		VectorCopy(pos, p->part.org);
+
+		VectorScale(forward, 5.0, p->vel);
 		
 		for (int32_t i = 0; i < 3; i++) {
 			p->vel[i] += 2.0 * Randomc();
 		}
 
-		ent->breath_puff_time = cgi.view->time + 2000;
+		ent->breath_puff_time = cgi.view->time + 3000;
 	}
 }
 
