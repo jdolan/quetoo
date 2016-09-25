@@ -21,6 +21,9 @@
 #define g_list_free_full(list, func)	\
 		g_list_foreach(list, (GFunc)func, NULL); \
 		g_list_free(list);
+
+#define g_hash_table_contains(table, key) \
+		(g_hash_table_lookup(table, key) != NULL)
 #endif
 
 /* Set to the canonical name of the target machine */
@@ -77,3 +80,6 @@
 
 /* Define to 1 if you need to in order for `stat' and other things to work. */
 /* #undef _POSIX_SOURCE */
+
+// This stops SDL_main from doing anything so that we can do it ourselves.
+#define SDL_MAIN_HANDLED

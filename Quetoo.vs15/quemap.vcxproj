@@ -19,17 +19,56 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\tools\update\main.c" />
+    <ClCompile Include="..\deps\minizip\ioapi.c" />
+    <ClCompile Include="..\deps\minizip\zip.c" />
+    <ClCompile Include="..\src\tools\quemap\brush.c" />
+    <ClCompile Include="..\src\tools\quemap\bspfile.c" />
+    <ClCompile Include="..\src\tools\quemap\csg.c" />
+    <ClCompile Include="..\src\tools\quemap\faces.c" />
+    <ClCompile Include="..\src\tools\quemap\flow.c" />
+    <ClCompile Include="..\src\tools\quemap\leakfile.c" />
+    <ClCompile Include="..\src\tools\quemap\lightmap.c" />
+    <ClCompile Include="..\src\tools\quemap\main.c" />
+    <ClCompile Include="..\src\tools\quemap\map.c" />
+    <ClCompile Include="..\src\tools\quemap\monitor.c" />
+    <ClCompile Include="..\src\tools\quemap\patches.c" />
+    <ClCompile Include="..\src\tools\quemap\polylib.c" />
+    <ClCompile Include="..\src\tools\quemap\portals.c" />
+    <ClCompile Include="..\src\tools\quemap\prtfile.c" />
+    <ClCompile Include="..\src\tools\quemap\qaas.c" />
+    <ClCompile Include="..\src\tools\quemap\qbsp.c" />
+    <ClCompile Include="..\src\tools\quemap\qlight.c" />
+    <ClCompile Include="..\src\tools\quemap\qmat.c" />
+    <ClCompile Include="..\src\tools\quemap\qvis.c" />
+    <ClCompile Include="..\src\tools\quemap\qzip.c" />
+    <ClCompile Include="..\src\tools\quemap\scriplib.c" />
+    <ClCompile Include="..\src\tools\quemap\textures.c" />
+    <ClCompile Include="..\src\tools\quemap\threads.c" />
+    <ClCompile Include="..\src\tools\quemap\tree.c" />
+    <ClCompile Include="..\src\tools\quemap\writebsp.c" />
+    <ClCompile Include="src\main\winmain.c" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\src\tools\update\update.ico" />
+    <ClInclude Include="..\deps\minizip\ioapi.h" />
+    <ClInclude Include="..\deps\minizip\zip.h" />
+    <ClInclude Include="..\src\tools\quemap\bspfile.h" />
+    <ClInclude Include="..\src\tools\quemap\monitor.h" />
+    <ClInclude Include="..\src\tools\quemap\polylib.h" />
+    <ClInclude Include="..\src\tools\quemap\qbsp.h" />
+    <ClInclude Include="..\src\tools\quemap\qlight.h" />
+    <ClInclude Include="..\src\tools\quemap\quemap.h" />
+    <ClInclude Include="..\src\tools\quemap\qvis.h" />
+    <ClInclude Include="..\src\tools\quemap\scriplib.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\src\tools\update\update-icon.rc" />
+    <Image Include="..\src\tools\quemap\quemap.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\src\tools\quemap\quemap-icon.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A11F8826-C984-45ED-A335-AB616DEE1CCA}</ProjectGuid>
-    <RootNamespace>quetoo-update</RootNamespace>
+    <ProjectGuid>{082FC21A-6D83-4960-9C9E-5C4B71409E92}</ProjectGuid>
+    <RootNamespace>quemap</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -80,26 +119,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
-    <IncludePath>..\src\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\src\;..\;libs\physfs\zlib123\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
     <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
-    <IncludePath>..\src\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\src\;..\;libs\physfs\zlib123\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
     <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
-    <IncludePath>..\src\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\src\;..\;libs\physfs\zlib123\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
-    <IncludePath>..\src\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\src\;..\;libs\physfs\zlib123\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -107,13 +146,13 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
-      <PreprocessorDefinitions>CURL_STATICLIB;WIN32;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMONITOR;NOCRYPT;CURL_STATICLIB;WIN32;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;glib-2.0.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,13 +161,13 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
-      <PreprocessorDefinitions>CURL_STATICLIB;WIN64;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMONITOR;NOCRYPT;CURL_STATICLIB;WIN64;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <AdditionalDependencies>SDL2.lib;glib-2.0.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -139,15 +178,15 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
-      <PreprocessorDefinitions>CURL_STATICLIB;WIN32;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMONITOR;NOCRYPT;CURL_STATICLIB;WIN32;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>SDL2.lib;glib-2.0.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -158,15 +197,15 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
-      <PreprocessorDefinitions>CURL_STATICLIB;WIN64;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMONITOR;NOCRYPT;CURL_STATICLIB;WIN64;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <AdditionalDependencies>SDL2.lib;glib-2.0.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

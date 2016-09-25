@@ -113,6 +113,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "iconv", "..\..\Objectively\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quetoo-update", "quetoo-update.vcxproj", "{A11F8826-C984-45ED-A335-AB616DEE1CCA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quemap", "quemap.vcxproj", "{082FC21A-6D83-4960-9C9E-5C4B71409E92}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -361,6 +363,14 @@ Global
 		{A11F8826-C984-45ED-A335-AB616DEE1CCA}.Release|Win32.Build.0 = Release|Win32
 		{A11F8826-C984-45ED-A335-AB616DEE1CCA}.Release|x64.ActiveCfg = Release|x64
 		{A11F8826-C984-45ED-A335-AB616DEE1CCA}.Release|x64.Build.0 = Release|x64
+		{082FC21A-6D83-4960-9C9E-5C4B71409E92}.Debug|Win32.ActiveCfg = Debug|Win32
+		{082FC21A-6D83-4960-9C9E-5C4B71409E92}.Debug|Win32.Build.0 = Debug|Win32
+		{082FC21A-6D83-4960-9C9E-5C4B71409E92}.Debug|x64.ActiveCfg = Debug|x64
+		{082FC21A-6D83-4960-9C9E-5C4B71409E92}.Debug|x64.Build.0 = Debug|x64
+		{082FC21A-6D83-4960-9C9E-5C4B71409E92}.Release|Win32.ActiveCfg = Release|Win32
+		{082FC21A-6D83-4960-9C9E-5C4B71409E92}.Release|Win32.Build.0 = Release|Win32
+		{082FC21A-6D83-4960-9C9E-5C4B71409E92}.Release|x64.ActiveCfg = Release|x64
+		{082FC21A-6D83-4960-9C9E-5C4B71409E92}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
