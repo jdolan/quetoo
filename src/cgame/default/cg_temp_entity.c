@@ -425,22 +425,40 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			break;
 	
 		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.5 + 0.25 * Randomc());
+
+		p->part.scale = 5.0;
+
+		for (int32_t j = 0; j < 3; j++) {
+			p->part.org[j] = org[j] + (Random() % 32) - 16.0;
+			p->vel[j] = Randomc() * 200.0;
+		}
 	
-		p->part.scale = 4.0;
-	
-		p->part.org[0] = org[0] + (Random() % 32) - 16.0;
-		p->part.org[1] = org[1] + (Random() % 32) - 16.0;
-		p->part.org[2] = org[2] + (Random() % 32) - 16.0;
-	
-		p->vel[0] = Randomc() * 200.0;
-		p->vel[1] = Randomc() * 200.0;
-		p->vel[2] = Randomc() * 200.0;
-	
-		p->part.roll = Randomc() * 1000.0;
+		p->part.roll = Randomc() * 600.0;
 
 		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 
 		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY * 2.0);
+	}
+
+	for (int32_t i = 0; i < 10; i++) {
+	
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_debris[Random() % 3])))
+			break;
+	
+		Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -2.0 + 0.25 * Randomc());
+
+		p->part.scale = 40.0;
+		p->scale_vel = -20 - (40.0 * Randomf());	
+		for (int32_t j = 0; j < 3; j++) {
+			p->part.org[j] = org[j] + (Random() % 40) - 20.0;
+			p->vel[j] = Randomc() * 30.0;
+		}
+	
+		p->part.roll = Randomc() * 200.0;
+
+		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
+
+		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY * 0.5);
 	}
 
 	VectorCopy(org, s.light.origin);

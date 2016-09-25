@@ -293,14 +293,14 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 				break;
 
 			cgi.ColorFromPalette(EFFECT_COLOR_ORANGE + (Random() & 5), p->part.color);
-			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -2.0);
+			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -1.5);
 
-			p->part.scale = 4.0;
+			p->part.scale = 6.0;
 			p->scale_vel = -6.0;
 
 			VectorMA(start, d, delta, p->part.org);
-			VectorScale(delta, 800.0, p->vel);
-			VectorScale(delta, -1200.0, p->accel);
+			VectorScale(delta, 300.0, p->vel);
+			VectorScale(delta, -600.0, p->accel);
 
 			d += 1.0;
 		}
