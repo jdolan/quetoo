@@ -662,44 +662,47 @@ static const char *vote_cmds[] = {
 		"unmute",
 		NULL };
 
-static cvar_t *vote_cvars[32] = {}; // temp number so it doesn't have to be dynamically allocated
+static GList *vote_cvars; // temp number so it doesn't have to be dynamically allocated
 
 /**
- * @brief Create g_voting_allow_<vote> CVars
+ * @brief Create g_vote_allow_<vote> CVars
  */
-void G_CreateVoteCVars() {
+void G_InitVote() {
 	size_t i = 0;
 
 	while (vote_cmds[i]) {
-		const char *name = va("g_voting_allow_%s", vote_cmds[i]);
+		const char *name = va("g_vote_allow_%s", vote_cmds[i]);
 		const char *desc = va("Allows voting on %s", vote_cmds[i]);
 
-		vote_cvars[i] = gi.Cvar(name, "1", CVAR_SERVER_INFO, desc);
+		vote_cvars = g_list_append(vote_cvars, gi.Cvar(name, "1", CVAR_SERVER_INFO, desc));
 
 		i++;
 	}
-
-	vote_cvars[i] = NULL;
 }
 
 /**
- * @brief Returns if the g_voting_allow_<vote> CVar is enabled
+ * @brief Deinitialize the vote CVar GList
+ */
+void G_ShutdownVote() {
+  g_list_free(vote_cvars);
+}
+
+/**
+ * @brief Returns if the g_vote_allow_<vote> CVar is enabled
  */
 static _Bool G_VoteAllowed(const char *vote) {
-	size_t i = 0;
+	const char *name = va("g_vote_allow_%s", vote);
 
-	const char *name = va("g_voting_allow_%s", vote);
+	GList *list = vote_cvars;
 
-	while (vote_cvars[i]) {
-		if ((!g_strcmp0(name, vote_cvars[i]->name)) && vote_cvars[i]->integer)
-			break;
-		i++;
+	while (list) {
+		if ((!g_strcmp0(name, ((cvar_t *)list->data)->name)) && ((cvar_t *) list->data)->integer)
+			return true;
+
+		list = list->next;
 	}
 
-	if (!vote_cvars[i])
-		return false;
-
-	return true;
+	return false;
 }
 
 /**
