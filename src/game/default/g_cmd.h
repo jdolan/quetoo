@@ -25,6 +25,7 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
+void G_CreateVoteCVars();
 _Bool G_AddClientToTeam(g_entity_t *ent, const char *team_name);
 void G_ClientCommand(g_entity_t *ent);
 void G_Score_f(g_entity_t *ent);
