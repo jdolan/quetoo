@@ -162,7 +162,7 @@ static void Cg_DrawPowerup(r_pixel_t y, const int16_t value, const r_image_t *ic
 	if (value < HUD_POWERUP_LOW)
 		color = HUD_COLOR_STAT_LOW;
 
-	const char *string = va("%3d", value);
+	const char *string = va("%d", value);
 
 	x = cgi.view->viewport.x + (HUD_PIC_HEIGHT / 2);
 
