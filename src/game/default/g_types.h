@@ -698,6 +698,8 @@ typedef struct {
 	char skin[MAX_QPATH];
 	g_hand_t hand;
 
+	vec_t handicap; // handicap inverse percentage from 0 to 100
+  
 	g_team_t *team; // current team (good/evil)
 	int32_t color; // weapon effect colors
 
