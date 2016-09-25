@@ -818,7 +818,10 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 	}
 	else { // spawn an active client
 		ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
-		uint16_t handicap = ent->client->locals.persistent.handicap;
+
+		uint16_t handicap = 100;
+		if (g_handicap->integer != 0)
+			handicap = ent->client->locals.persistent.handicap;
 		
 		ent->class_name = "client";
 
