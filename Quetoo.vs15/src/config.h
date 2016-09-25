@@ -21,10 +21,11 @@
 #define g_list_free_full(list, func)	\
 		g_list_foreach(list, (GFunc)func, NULL); \
 		g_list_free(list);
+#endif
 
+// a fix for glib 2.28
 #define g_hash_table_contains(table, key) \
 		(g_hash_table_lookup(table, key) != NULL)
-#endif
 
 /* Set to the canonical name of the target machine */
 #if defined(_WIN64)

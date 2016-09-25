@@ -111,7 +111,7 @@
       <PreprocessorDefinitions>CURL_STATICLIB;WIN32;HAVE_STRUCT_TIMESPEC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype27d.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -125,7 +125,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype27d.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -140,7 +140,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype27.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <ImageHasSafeExceptionHandlers />
     </Link>
@@ -159,7 +159,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype27.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
