@@ -22,6 +22,8 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
+#define SMOKE_GRANULARITY 12.0
+
 /**
  * @brief
  */
@@ -36,7 +38,7 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		if (VectorCompare(ent->current.origin, ent->prev.origin))
 			return;
 
-		ent->time = cgi.client->systime + 16;
+		ent->time = cgi.client->systime + 32;
 	}
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
@@ -44,24 +46,36 @@ void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke)))
-		return;
+	vec3_t vec, move;
 
-	const vec_t gray = 1.0 - Randomf() * 0.2;
-	Vector4Set(p->part.color, gray, gray, gray, 1.0);
-	Vector4Set(p->color_vel, -1.0, -1.0, -1.0, -1.0 / (1.0 + Randomf()));
+	VectorCopy(start, move);
+	VectorSubtract(end, start, vec);
+	const vec_t len = VectorNormalize(vec);
 
-	p->part.scale = 1.0;
-	p->scale_vel = 10 + 25.0 * Randomf();
+	VectorScale(vec, SMOKE_GRANULARITY, vec);
+	VectorSubtract(move, vec, move);
 
-	p->part.roll = Randomc() * 100.0;
+	for (vec_t i = 0.0; i < len; i += SMOKE_GRANULARITY) {
+		VectorAdd(move, vec, move);
 
-	for (int32_t j = 0; j < 3; j++) {
-		p->part.org[j] = end[j];
-		p->vel[j] = Randomc();
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke)))
+			return;
+	
+		const vec_t gray = 1.0 - Randomf() * 0.2;
+		Vector4Set(p->part.color, gray, gray, gray, (Randomf() * 0.5) + 0.5);
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (1.0 + Randomf()));
+	
+		p->part.scale = 1.5 + Randomf();
+		p->scale_vel = 5.0 + (Randomf() * 5.0);
+		p->part.roll = Randomc() * 200.0;
+	
+		for (int32_t j = 0; j < 3; j++) {
+			p->part.org[j] = move[j];
+			p->vel[j] = Randomc();
+		}
+	
+		p->accel[2] = 10.0;
 	}
-
-	p->accel[2] = 10.0;
 }
 
 /**
