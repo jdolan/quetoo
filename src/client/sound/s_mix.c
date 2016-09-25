@@ -42,7 +42,7 @@ static int32_t S_AllocChannel(void) {
  * @brief
  */
 void S_FreeChannel(int32_t c) {
-	memset(&s_env.channels[c], 0, sizeof(s_channel_t));
+	s_env.channels[c].free = true;
 }
 
 #define SOUND_MAX_DISTANCE 2048.0
@@ -109,9 +109,16 @@ void S_MixChannels(void) {
 
 	Mix_Volume(-1, Clamp(s_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME);
 
+	s_channel_t *ch = s_env.channels;
+	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
+		if (ch->free) {
+			memset(ch, 0, sizeof(*ch));
+		}
+	}
+
 	s_env.num_active_channels = 0;
 
-	s_channel_t *ch = s_env.channels;
+	ch = s_env.channels;
 	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
 
 		if (ch->sample) {

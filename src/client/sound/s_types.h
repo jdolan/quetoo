@@ -61,6 +61,7 @@ typedef struct s_channel_s {
 	int32_t frame;
 	int16_t angle;
 	uint8_t dist;
+	_Bool free;
 } s_channel_t;
 
 #define MAX_CHANNELS 128
@@ -75,7 +76,7 @@ typedef struct s_music_s {
 // the sound environment
 typedef struct s_env_s {
 	s_channel_t channels[MAX_CHANNELS];
-
+	
 	_Bool initialized; // is the sound subsystem initialized
 	_Bool update; // inform the client of state changes
 
