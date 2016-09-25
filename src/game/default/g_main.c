@@ -921,6 +921,7 @@ void G_Init(void) {
 
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
 
+	G_InitVote();
 
 	// initialize entities and clients for this game
 	g_game.entities = gi.Malloc(g_max_entities->integer * sizeof(g_entity_t), MEM_TAG_GAME);
@@ -959,6 +960,8 @@ void G_Shutdown(void) {
 	G_MySQL_Shutdown();
 	G_MapList_Shutdown();
 	G_Ai_Shutdown();
+
+	G_ShutdownVote();
 
 	gi.FreeTag(MEM_TAG_GAME_LEVEL);
 	gi.FreeTag(MEM_TAG_GAME);
