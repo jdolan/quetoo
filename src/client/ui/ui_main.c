@@ -88,8 +88,8 @@ void Ui_Draw(void) {
 
 	Ui_DrawBackground();
 
-	GLint texnum;
-	glGetIntegerv(GL_TEXTURE_BINDING_2D, &texnum);
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glPushClientAttrib(GL_ALL_CLIENT_ATTRIB_BITS);
 
 	glDisable(GL_TEXTURE_2D);
 
@@ -103,20 +103,10 @@ void Ui_Draw(void) {
 
 	$(windowController, render);
 
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-
-	glBindTexture(GL_TEXTURE_2D, texnum);
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
-	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
-
 	glOrtho(0, r_context.width, r_context.height, 0, -1, 1);
+
+	glPopAttrib();
+	glPopClientAttrib();
 }
 
 /**
