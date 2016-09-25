@@ -693,10 +693,11 @@ void G_ShutdownVote() {
 static _Bool G_VoteAllowed(const char *vote) {
 	const char *name = va("g_vote_allow_%s", vote);
 
-	GList *list = vote_cvars;
+	const GList *list = vote_cvars;
 
 	while (list) {
-		if ((!g_strcmp0(name, ((cvar_t *)list->data)->name)) && ((cvar_t *) list->data)->integer)
+		const cvar_t *var = list->data;
+		if ((!g_strcmp0(name, var->name)) && var->integer)
 			return true;
 
 		list = list->next;
