@@ -369,7 +369,6 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	glMatrixMode(GL_TEXTURE); // some stages will manipulate texcoords
 
 	for (uint32_t i = 0; i < surfs->count; i++) {
-		vec_t j = -1.0;
 
 		r_bsp_surface_t *surf = surfs->surfaces[i];
 
@@ -380,12 +379,13 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 		R_UpdateMaterial(m);
 
-		for (const r_stage_t *s = m->stages; s; s = s->next, j--) {
+		vec_t j = -10.0;
+		for (const r_stage_t *s = m->stages; s; s = s->next, j -= 10.0) {
 
 			if (!(s->flags & STAGE_DIFFUSE))
 				continue;
 
-			glPolygonOffset(j, 1.0); // increase depth offset for each stage
+			glPolygonOffset(-0.125, j); // increase depth offset for each stage
 
 			R_SetStageState(surf, s);
 
