@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "+map torn +set g_cheats 1 +give all"
+            argument = "+map fragpipe +set g_cheats 1 +give all"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -46,6 +46,7 @@ extern cvar_t *name;
 extern cvar_t *password;
 extern cvar_t *rate;
 extern cvar_t *skin;
+extern cvar_t *handicap;
 
 void Cl_Disconnect(void);
 void Cl_Frame(const uint32_t msec);

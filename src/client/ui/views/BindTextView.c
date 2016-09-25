@@ -41,7 +41,7 @@ static void updateBindings(View *self) {
 	BindTextView *this = (BindTextView *) self;
 	TextView *textView = (TextView *) this;
 
-	free(textView->defaultText);
+	g_free(textView->defaultText);
 	textView->defaultText = NULL;
 
 	MutableArray *keys = $$(MutableArray, array);

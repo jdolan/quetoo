@@ -41,6 +41,7 @@ extern cvar_t *cg_draw_frags;
 extern cvar_t *cg_draw_deaths;
 extern cvar_t *cg_draw_hud;
 extern cvar_t *cg_draw_pickup;
+extern cvar_t *cg_draw_powerups;
 extern cvar_t *cg_draw_time;
 extern cvar_t *cg_draw_teambar;
 extern cvar_t *cg_draw_weapon;

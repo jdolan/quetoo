@@ -20,21 +20,6 @@
  */
 
 #include "cg_local.h"
-#include "game/default/bg_pmove.h"
-
-/**
- * @return True if the entity is ducking, false otherwise.
- */
-static _Bool Cg_IsDucking(const entity_state_t *ent) {
-
-	vec3_t mins, maxs;
-	UnpackBounds(ent->bounds, mins, maxs);
-
-	const vec_t standing_height = (PM_MAXS[2] - PM_MINS[2]) * PM_SCALE;
-	const vec_t height = maxs[2] - mins[2];
-
-	return standing_height - height > PM_STOP_EPSILON;
-}
 
 /**
  * @brief

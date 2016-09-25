@@ -293,6 +293,11 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_WEAPON_ICON] = 0;
 		client->ps.stats[STAT_WEAPON] = 0;
 	}
+
+	if (g_level.time <= client->locals.quad_damage_time)
+	  client->ps.stats[STAT_QUAD_TIME] = ceil((client->locals.quad_damage_time - g_level.time) / 1000.0);
+	else
+		client->ps.stats[STAT_QUAD_TIME] = 0;
 }
 
 /**

@@ -44,6 +44,7 @@ cvar_t *name;
 cvar_t *password;
 cvar_t *rate;
 cvar_t *skin;
+cvar_t *handicap;
 
 cvar_t *qport;
 
@@ -514,6 +515,7 @@ static void Cl_InitLocal(void) {
 	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);
 	rate = Cvar_Get("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	skin = Cvar_Get("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	handicap = Cvar_Get("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 
 	qport = Cvar_Get("qport", va("%d", Random() & 0xff), 0, NULL);
 

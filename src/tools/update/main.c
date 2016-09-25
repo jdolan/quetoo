@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
 							  "--exclude=bin/cygwin1.dll",
 							  "--exclude=bin/rsync.exe",
 							  "--exclude=bin/quetoo-update.exe",
-							  RSYNC_REPOSITORY, cygdest, NULL);
+							  RSYNC_REPOSITORY, va("\"%s\"", cygdest), NULL);
 
 			free(cygdest);
 		} else {
