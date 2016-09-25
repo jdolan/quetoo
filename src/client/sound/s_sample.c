@@ -74,7 +74,6 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 	}
 
 	if (sample->chunk) {
-		Mix_VolumeChunk(sample->chunk, s_volume->value * MIX_MAX_VOLUME);
 		Com_Debug("Loaded %s\n", path);
 	} else {
 		if (g_str_has_prefix(sample->media.name, "#players")) {
@@ -143,7 +142,7 @@ static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
 /**
  * @brief
  */
-s_sample_t *S_LoadModelSample(entity_state_t *ent, const char *name) {
+s_sample_t *S_LoadModelSample(const entity_state_t *ent, const char *name) {
 	char model[MAX_QPATH];
 	char path[MAX_QPATH];
 	char alias[MAX_QPATH];

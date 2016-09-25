@@ -1104,7 +1104,6 @@
 		CE12D7251C5C58C300CD0B13 /* install_deps.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = install_deps.sh; sourceTree = "<group>"; };
 		CE12D7271C5C58C300CD0B13 /* apple_osx_10.7.valgrind */ = {isa = PBXFileReference; lastKnownFileType = text; path = apple_osx_10.7.valgrind; sourceTree = "<group>"; };
 		CE12D7281C5C58C300CD0B13 /* TODO */ = {isa = PBXFileReference; lastKnownFileType = text; path = TODO; sourceTree = "<group>"; };
-		CE12D72A1C5C58D800CD0B13 /* folder.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = folder.icns; sourceTree = "<group>"; };
 		CE12D72B1C5C58D800CD0B13 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		CE12D72D1C5C58D800CD0B13 /* Quetoo.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Quetoo.app; sourceTree = "<group>"; };
 		CE12D72E1C5C58D800CD0B13 /* Update.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Update.app; sourceTree = "<group>"; };
@@ -2281,7 +2280,6 @@
 			isa = PBXGroup;
 			children = (
 				CE12D72C1C5C58D800CD0B13 /* Quetoo */,
-				CE12D72A1C5C58D800CD0B13 /* folder.icns */,
 				CE12D72F1C5C58D800CD0B13 /* set-icon.sh */,
 				CE12D72B1C5C58D800CD0B13 /* Makefile */,
 			);

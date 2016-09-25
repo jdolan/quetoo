@@ -196,10 +196,10 @@ void S_FrameMusic(void) {
 	last_state = cls.state;
 
 	if (s_music_volume->modified) {
-		s_music_volume->value = Clamp(s_music_volume->value, 0.0, 1.0);
+		const int32_t volume = Clamp(s_music_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME;
 
-		if (s_music_volume->value)
-			Mix_VolumeMusic(s_music_volume->value * 255);
+		if (volume)
+			Mix_VolumeMusic(volume);
 		else
 			S_StopMusic();
 	}

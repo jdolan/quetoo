@@ -467,6 +467,8 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	self->client->locals.respawn_time = g_level.time + 1800; // respawn after death animation finishes
 	self->client->locals.show_scores = true;
 
+	 self->client->locals.persistent.deaths++;
+
 	gi.LinkEntity(self);
 }
 
@@ -815,6 +817,9 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->client->locals.persistent.ready = false;
 	}
 	else { // spawn an active client
+		ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
+		uint16_t handicap = ent->client->locals.persistent.handicap;
+		
 		ent->class_name = "client";
 
 		ent->solid = SOLID_BOX;
@@ -834,7 +839,8 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->locals.dead = false;
 		ent->locals.Die = G_ClientDie;
 		ent->locals.ground_entity = NULL;
-		ent->locals.health = ent->locals.max_health = 100;
+		ent->locals.health = ent->locals.max_health = handicap;
+		ent->client->locals.max_boost_health = handicap + 100;
 		ent->locals.move_type = MOVE_TYPE_WALK;
 		ent->locals.mass = 200.0;
 		ent->locals.take_damage = true;
@@ -1041,6 +1047,16 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	else
 		ent->s.effects &= ~(EF_INACTIVE);
 
+	// handicap
+	uint16_t handicap = strtoul(GetUserInfo(user_info, "handicap"), NULL, 10);
+
+	if (handicap == 0)
+		handicap = 100;
+
+	handicap = Clamp(handicap, 50, 100);
+
+	cl->locals.persistent.handicap_next = handicap;
+
 	// save off the user_info in case we want to check something later
 	g_strlcpy(ent->client->locals.persistent.user_info, user_info,
 			  sizeof(ent->client->locals.persistent.user_info));
@@ -1072,6 +1088,7 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 	ent->client->locals.persistent.vote = VOTE_NO_OP;
 	ent->client->locals.persistent.spectator = false;
 	ent->client->locals.persistent.net_name[0] = 0;
+	ent->client->locals.persistent.deaths = 0;
 
 	// set name, skin, etc..
 	G_ClientUserInfoChanged(ent, user_info);
@@ -1336,6 +1353,13 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 		ent->s.effects |= EF_RESPAWN;
 	else
 		ent->s.effects &= ~EF_RESPAWN;
+
+	// decrement any boosted health from items
+	if (ent->locals.health > ent->locals.max_health &&
+	    ent->client->locals.boost_time < g_level.time) {
+		ent->locals.health -= 1;
+		ent->client->locals.boost_time = g_level.time + 750;
+	}
 }
 
 /**

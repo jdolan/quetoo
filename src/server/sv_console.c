@@ -20,9 +20,22 @@
  */
 
 #include <signal.h>
-#include <curses.h>
 
 #include "sv_local.h"
+
+// Visual Studio hack
+#if defined(_MSC_VER)
+#undef MOUSE_MOVED
+#undef bool
+#endif
+
+#include <curses.h>
+
+// Visual Studio hack
+#if defined(_MSC_VER)
+#undef bool
+#define bool _Bool
+#endif
 
 typedef struct {
 	WINDOW *window;
@@ -180,7 +193,7 @@ static void Sv_DrawConsole_Background(void) {
  */
 static void Sv_DrawConsole_Buffer(void) {
 
-	char *lines[sv_console.height];
+	char **lines = Mem_Malloc(sizeof(char*) * sv_console.height);
 	const size_t count = Con_Tail(&sv_console, lines, sv_console.height);
 
 	size_t row = sv_console.height;
@@ -210,6 +223,7 @@ static void Sv_DrawConsole_Buffer(void) {
 	}
 
 	Sv_DrawConsole_Color(CON_COLOR_DEFAULT);
+	Mem_Free(lines);
 }
 
 /**

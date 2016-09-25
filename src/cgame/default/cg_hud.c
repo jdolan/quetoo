@@ -41,6 +41,8 @@
 #define HUD_ARMOR_MED			40
 #define HUD_ARMOR_LOW			20
 
+#define HUD_POWERUP_LOW			5
+
 typedef struct cg_crosshair_s {
 	char name[16];
 	r_image_t *image;
@@ -149,6 +151,55 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 }
 
 /**
+ * @brief Draws the powerup and the time remaining
+ */
+static void Cg_DrawPowerup(r_pixel_t y, const int16_t value, const r_image_t *icon) {
+	r_pixel_t x;
+
+	vec4_t pulse = { 1.0, 1.0, 1.0, 1.0 };
+	int32_t color = HUD_COLOR_STAT;
+
+	if (value < HUD_POWERUP_LOW)
+		color = HUD_COLOR_STAT_LOW;
+
+	const char *string = va("%d", value);
+
+	x = cgi.view->viewport.x + (HUD_PIC_HEIGHT / 2);
+
+	cgi.Color(pulse);
+	cgi.DrawImage(x, y, 1.0, icon);
+	cgi.Color(NULL);
+
+	x += HUD_PIC_HEIGHT;
+
+	cgi.DrawString(x, y, string, color);
+}
+
+/**
+ * @brief Draws health, ammo and armor numerics and icons.
+ */
+static void Cg_DrawPowerups(const player_state_t *ps) {
+  r_pixel_t y, ch;
+
+	if (!cg_draw_powerups->integer)
+		return;
+
+	cgi.BindFont("large", &ch, NULL);
+
+	y = cgi.view->viewport.y + (cgi.view->viewport.h / 2);
+	
+	if (ps->stats[STAT_QUAD_TIME] > 0) {
+		const int32_t timer = ps->stats[STAT_QUAD_TIME];
+
+		Cg_DrawPowerup(y, timer, cgi.LoadImage("pics/i_quad", IT_PIC));
+
+		y += HUD_PIC_HEIGHT;
+	}
+
+	cgi.BindFont(NULL, NULL, NULL);
+}
+
+/**
  * @brief
  */
 static void Cg_DrawPickup(const player_state_t *ps) {
@@ -193,7 +244,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 	cgi.BindFont("small", NULL, &ch);
 
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Frags");
-	y = cgi.view->viewport.y + HUD_PIC_HEIGHT;
+	y = cgi.view->viewport.y + HUD_PIC_HEIGHT + ch;
 
 	cgi.DrawString(x, y, "Frags", CON_COLOR_GREEN);
 	y += ch;
@@ -206,6 +257,37 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 
 	cgi.BindFont(NULL, NULL, NULL);
 }
+
+/**
+ * @brief
+ */
+static void Cg_DrawDeaths(const player_state_t *ps) {
+	const int16_t deaths = ps->stats[STAT_DEATHS];
+	r_pixel_t x, y, cw, ch;
+
+	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE])
+		return;
+
+	if (!cg_draw_deaths->integer)
+		return;
+
+	cgi.BindFont("small", NULL, &ch);
+
+	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Deaths");
+	y = cgi.view->viewport.y + 2 * (HUD_PIC_HEIGHT + ch);
+
+	cgi.DrawString(x, y, "Deaths", CON_COLOR_GREEN);
+	y += ch;
+
+	cgi.BindFont("large", &cw, NULL);
+
+	x = cgi.view->viewport.x + cgi.view->viewport.w - 3 * cw;
+
+	cgi.DrawString(x, y, va("%3d", deaths), HUD_COLOR_STAT);
+
+	cgi.BindFont(NULL, NULL, NULL);
+}
+
 
 /**
  * @brief
@@ -226,7 +308,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 	cgi.BindFont("small", NULL, &ch);
 
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth("Captures");
-	y = cgi.view->viewport.y + 2 * HUD_PIC_HEIGHT + ch;
+	y = cgi.view->viewport.y + 3 * (HUD_PIC_HEIGHT + ch);
 
 	cgi.DrawString(x, y, "Captures", CON_COLOR_GREEN);
 	y += ch;
@@ -332,7 +414,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
 	cgi.BindFont("small", NULL, &ch);
 
 	x = cgi.view->viewport.x + cgi.view->viewport.w - cgi.StringWidth(string);
-	y = cgi.view->viewport.y + HUD_PIC_HEIGHT * 2 + ch;
+	y = cgi.view->viewport.y + 3 * (HUD_PIC_HEIGHT + ch);
 
 	if (atoi(cgi.ConfigString(CS_CTF)) > 0)
 		y += HUD_PIC_HEIGHT + ch;
@@ -622,9 +704,10 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 		// play the hit sound
 		if (cgi.client->systime - last_damage_time > 50) {
 			last_damage_time = cgi.client->systime;
-
-			s_sample_t *sample = (dmg >= 25) ? cg_sample_hits[1] : cg_sample_hits[0];
-			cgi.PlaySample(cgi.view->origin, 0, sample, ATTEN_NONE);
+			
+			cgi.AddSample(&(const s_play_sample_t) {
+				.sample = dmg >= 25 ? cg_sample_hits[1] : cg_sample_hits[0]
+			});
 		}
 	}
 }
@@ -642,11 +725,15 @@ void Cg_DrawHud(const player_state_t *ps) {
 
 	Cg_DrawVitals(ps);
 
+	Cg_DrawPowerups(ps);
+
 	Cg_DrawPickup(ps);
 
 	Cg_DrawTeam(ps);
 
 	Cg_DrawFrags(ps);
+
+	Cg_DrawDeaths(ps);
 
 	Cg_DrawCaptures(ps);
 

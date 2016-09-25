@@ -62,7 +62,12 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 
 	cgi.AddSustainedLight(&s);
 
-	cgi.PlaySample(org, 0, cg_sample_blaster_hit, ATTEN_NORM);
+	cgi.AddSample(&(const s_play_sample_t) {
+		.sample = cg_sample_blaster_hit,
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_POSITIONED
+	});
 }
 
 /**
@@ -167,8 +172,14 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		last_ric_time = 0;
 
 	if (cgi.client->systime - last_ric_time > 300) {
-		cgi.PlaySample(org, -1, cg_sample_machinegun_hit[Random() % 3], ATTEN_NORM);
 		last_ric_time = cgi.client->systime;
+
+		cgi.AddSample(&(const s_play_sample_t) {
+			.sample = cg_sample_machinegun_hit[Random() % 3],
+			.origin = { org[0], org[1], org[2] },
+			.attenuation = ATTEN_NORM,
+			.flags = S_PLAY_POSITIONED
+		});
 	}
 }
 
@@ -286,7 +297,12 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		}
 	}
 
-	cgi.PlaySample(org, -1, cg_sample_gib, ATTEN_DEFAULT);
+	cgi.AddSample(&(const s_play_sample_t) {
+		.sample = cg_sample_gib,
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_POSITIONED
+	});
 }
 
 /**
@@ -329,7 +345,12 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	cgi.AddSustainedLight(&s);
 
-	cgi.PlaySample(org, -1, cg_sample_sparks, ATTEN_STATIC);
+	cgi.AddSample(&(const s_play_sample_t) {
+		.sample = cg_sample_sparks,
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_STATIC,
+		.flags = S_PLAY_POSITIONED
+	});
 }
 
 /**
@@ -398,6 +419,30 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY);
 	}
 
+	for (int32_t i = 0; i < 32; i++) {
+	
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_debris[Random() % 4])))
+			break;
+	
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.5 + 0.25 * Randomc());
+	
+		p->part.scale = 4.0;
+	
+		p->part.org[0] = org[0] + (Random() % 32) - 16.0;
+		p->part.org[1] = org[1] + (Random() % 32) - 16.0;
+		p->part.org[2] = org[2] + (Random() % 32) - 16.0;
+	
+		p->vel[0] = Randomc() * 200.0;
+		p->vel[1] = Randomc() * 200.0;
+		p->vel[2] = Randomc() * 200.0;
+	
+		p->part.roll = Randomc() * 1000.0;
+
+		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
+
+		VectorSet(p->accel, 0.0, 0.0, -PARTICLE_GRAVITY * 2.0);
+	}
+
 	VectorCopy(org, s.light.origin);
 	s.light.radius = 200.0;
 	VectorSet(s.light.color, 0.8, 0.4, 0.2);
@@ -405,7 +450,12 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&s);
 
-	cgi.PlaySample(org, -1, cg_sample_explosion, ATTEN_NORM);
+	cgi.AddSample(&(const s_play_sample_t) {
+		.sample = cg_sample_explosion,
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_POSITIONED
+	});
 }
 
 /**
@@ -439,7 +489,12 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&s);
 
-	cgi.PlaySample(org, -1, cg_sample_hyperblaster_hit, ATTEN_NORM);
+	cgi.AddSample(&(const s_play_sample_t) {
+		.sample = cg_sample_hyperblaster_hit,
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_POSITIONED
+	});
 }
 
 /**
@@ -467,7 +522,12 @@ static void Cg_LightningEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&s);
 
-	cgi.PlaySample(org, -1, cg_sample_lightning_discharge, ATTEN_NORM);
+	cgi.AddSample(&(const s_play_sample_t) {
+		.sample = cg_sample_lightning_discharge,
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_POSITIONED
+	});
 }
 
 /**
@@ -664,7 +724,12 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	cgi.AddSustainedLight(&s);
 
-	cgi.PlaySample(org, -1, cg_sample_bfg_hit, ATTEN_NORM);
+	cgi.AddSample(&(const s_play_sample_t) {
+		.sample = cg_sample_bfg_hit,
+		.origin = { org[0], org[1], org[2] },
+		.attenuation = ATTEN_NORM,
+		.flags = S_PLAY_POSITIONED
+	});
 }
 
 /**

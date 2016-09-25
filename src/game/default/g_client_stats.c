@@ -97,6 +97,7 @@ static void G_UpdateScore(const g_entity_t *ent, g_score_t *s) {
 	}
 
 	s->score = ent->client->locals.persistent.score;
+	s->deaths = ent->client->locals.persistent.deaths;
 	s->captures = ent->client->locals.persistent.captures;
 }
 
@@ -228,6 +229,7 @@ void G_ClientStats(g_entity_t *ent) {
 
 	// frags
 	client->ps.stats[STAT_FRAGS] = client->locals.persistent.score;
+	client->ps.stats[STAT_DEATHS] = client->locals.persistent.deaths;
 
 	// health
 	if (client->locals.persistent.spectator || ent->locals.dead) {
@@ -291,6 +293,11 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_WEAPON_ICON] = 0;
 		client->ps.stats[STAT_WEAPON] = 0;
 	}
+
+	if (g_level.time <= client->locals.quad_damage_time)
+	  client->ps.stats[STAT_QUAD_TIME] = ceil((client->locals.quad_damage_time - g_level.time) / 1000.0);
+	else
+		client->ps.stats[STAT_QUAD_TIME] = 0;
 }
 
 /**

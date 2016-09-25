@@ -137,7 +137,7 @@ static _Bool Cg_ValidateClient(cl_client_info_t *ci) {
 void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 	char path[MAX_QPATH];
 	const char *t;
-	char *u, *v;
+	char *u = NULL, *v;
 	int32_t i;
 
 	cgi.Debug("%s\n", s);

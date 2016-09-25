@@ -38,10 +38,10 @@ static void updateBindings(View *self) {
 
 	super(View, self, updateBindings);
 
-	const BindTextView *this = (BindTextView *) self;
+	BindTextView *this = (BindTextView *) self;
 	TextView *textView = (TextView *) this;
 
-	free(textView->defaultText);
+	g_free(textView->defaultText);
 	textView->defaultText = NULL;
 
 	MutableArray *keys = $$(MutableArray, array);

@@ -338,16 +338,23 @@ static void Cl_ParsePrint(void) {
 			}
 		}
 
+		char *sample = NULL;
 		switch (level) {
 			case PRINT_CHAT:
 			case PRINT_TEAM_CHAT:
 				if (level == PRINT_CHAT && *cl_chat_sound->string)
-					S_StartLocalSample(cl_chat_sound->string);
+					sample = cl_chat_sound->string;
 				else if (level == PRINT_TEAM_CHAT && *cl_team_chat_sound->string)
-					S_StartLocalSample(cl_team_chat_sound->string);
+					sample = cl_team_chat_sound->string;
 				break;
 			default:
 				break;
+		}
+
+		if (sample) {
+			S_AddSample(&(const s_play_sample_t) {
+				.sample = S_LoadSample(sample)
+			});
 		}
 
 		Con_Append(level, string);
@@ -358,43 +365,37 @@ static void Cl_ParsePrint(void) {
  * @brief
  */
 static void Cl_ParseSound(void) {
-	vec3_t origin;
-	vec_t *org;
 	uint16_t index;
-	uint16_t ent_num;
-	int32_t atten;
+
+	s_play_sample_t play = {
+		.flags = 0
+	};
 
 	const byte flags = Net_ReadByte(&net_message);
 
-	if ((index = Net_ReadByte(&net_message)) > MAX_SOUNDS)
+	if ((index = Net_ReadByte(&net_message)) > MAX_SOUNDS) {
 		Com_Error(ERR_DROP, "Bad index (%d)\n", index);
+	}
 
-	if (flags & S_ATTEN)
-		atten = Net_ReadByte(&net_message);
-	else
-		atten = ATTEN_DEFAULT;
+	play.sample = cl.sound_precache[index];
+
+	if (flags & S_ATTEN) {
+		play.attenuation = Net_ReadByte(&net_message);
+	} else {
+		play.attenuation = ATTEN_DEFAULT;
+	}
 
 	if (flags & S_ENTITY) { // entity relative
-		ent_num = Net_ReadShort(&net_message);
-
-		if (ent_num > MAX_ENTITIES)
-			Com_Error(ERR_DROP, "Bad entity number (%d)\n", ent_num);
-	} else {
-		ent_num = 0;
+		play.entity = Net_ReadShort(&net_message);
+		play.flags |= S_PLAY_ENTITY;
 	}
 
 	if (flags & S_ORIGIN) { // positioned in space
-		Net_ReadPosition(&net_message, origin);
+		Net_ReadPosition(&net_message, play.origin);
+		play.flags |= S_PLAY_POSITIONED;
+	}
 
-		org = origin;
-	} else
-		// use ent_num
-		org = NULL;
-
-	if (!cl.sound_precache[index])
-		return;
-
-	S_PlaySample(org, ent_num, cl.sound_precache[index], atten);
+	S_AddSample(&play);
 }
 
 /**

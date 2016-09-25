@@ -32,18 +32,44 @@ static void Cg_UpdateFov(void) {
 		return;
 
 	cg_fov->value = Clamp(cg_fov->value, 10.0, 160.0);
+	cg_fov_interpolate->value = Clamp(cg_fov_interpolate->value, 0.0, 10.0);
 
-	cgi.view->fov[0] = cg_fov->value / 2.0;
+	vec_t fov = cg_fov->value;
 
-	const vec_t x = cgi.context->width / tan(Radians(cg_fov->value));
+	if (cg_fov_interpolate->value && cgi.view->fov[0] && cgi.view->fov[1]) {
+		static vec_t prev, next;
+		static uint32_t time;
+
+		if (next && next != cg_fov->value) {
+			time = 0;
+		}
+
+		if (time == 0) {
+			prev = cgi.view->fov[0] * 2.0, next = cg_fov->value;
+			time = cgi.client->systime;
+		}
+
+		const vec_t frac = (cgi.client->systime - time) / (cg_fov_interpolate->value * 100.0);
+		if (frac >= 1.0) {
+			time = 0;
+			fov = next;
+			cg_fov->modified = false;
+		} else {
+			fov = prev + frac * (next - prev);
+		}
+	} else {
+		cg_fov->modified = false;
+	}
+
+	cgi.view->fov[0] = fov / 2.0;
+
+	const vec_t x = cgi.context->width / tan(Radians(fov));
 
 	const vec_t y = atan2(cgi.context->height, x);
 
 	const vec_t a = cgi.context->height / (vec_t ) cgi.context->width;
 
 	cgi.view->fov[1] = Degrees(y) * a / 2.0;
-
-	cg_fov->modified = false;
 }
 
 /**

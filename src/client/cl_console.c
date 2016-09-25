@@ -24,6 +24,8 @@
 console_t cl_console;
 console_t cl_chat_console;
 
+static cvar_t *cl_console_background_alpha;
+
 static cvar_t *cl_draw_chat;
 static cvar_t *cl_draw_notify;
 
@@ -36,23 +38,46 @@ static cvar_t *cl_notify_time;
 /**
  * @brief
  */
+static void Cl_DrawConsole_Background(void) {
+
+	const r_image_t *image = R_LoadImage("ui/conback", IT_UI);
+	if (image->type != IT_NULL) {
+
+		const vec_t x_scale = r_context.width / (vec_t) image->width;
+		const vec_t y_scale = r_context.height / (vec_t) image->height;
+
+		const vec_t scale = MAX(x_scale, y_scale);
+
+		if (cls.state == CL_ACTIVE) {
+			R_Color((const vec4_t) { 1.0, 1.0, 1.0, cl_console_background_alpha->value });
+
+			R_DrawImage(0, -r_context.window_height * 0.333, scale, image);
+
+			R_Color(NULL);
+		} else {
+			R_DrawImage(0, 0, scale, image);
+		}
+	}
+}
+
+/**
+ * @brief
+ */
 static void Cl_DrawConsole_Buffer(void) {
 	r_pixel_t cw, ch, height;
 
 	R_BindFont("small", &cw, &ch);
 
 	if (cls.state == CL_ACTIVE) {
-		height = r_context.height * 0.5;
-		R_DrawFill(0, 0, r_context.width, height, 7, 0.3);
+		height = r_context.height * 0.666;
 	} else {
 		height = r_context.height;
-		R_DrawFill(0, 0, r_context.width, height, 0, 1.0);
 	}
 
 	cl_console.width = r_context.width / cw;
 	cl_console.height = (height / ch) - 1;
 
-	char *lines[cl_console.height];
+	char **lines = Mem_Malloc(sizeof(char*) * cl_console.height);
 	const size_t count = Con_Tail(&cl_console, lines, cl_console.height);
 
 	r_pixel_t y = (cl_console.height - count) * ch;
@@ -64,6 +89,8 @@ static void Cl_DrawConsole_Buffer(void) {
 		g_free(lines[i]);
 		y += ch;
 	}
+
+	Mem_Free(lines);
 }
 
 /**
@@ -101,6 +128,8 @@ static void Cl_DrawConsole_Input(void) {
  */
 void Cl_DrawConsole(void) {
 
+	Cl_DrawConsole_Background();
+
 	Cl_DrawConsole_Buffer();
 
 	Cl_DrawConsole_Input();
@@ -130,7 +159,7 @@ void Cl_DrawNotify(void) {
 		con.whence = cl.systime - cl_notify_time->value * 1000;
 	}
 
-	char *lines[con.height];
+	char **lines = Mem_Malloc(sizeof(char*) * con.height);
 	const size_t count = Con_Tail(&con, lines, con.height);
 
 	r_pixel_t y = 0;
@@ -144,6 +173,7 @@ void Cl_DrawNotify(void) {
 	}
 
 	R_BindFont(NULL, NULL, NULL);
+	Mem_Free(lines);
 }
 
 /**
@@ -165,7 +195,7 @@ void Cl_DrawChat(void) {
 			cl_chat_console.whence = cl.systime - cl_chat_time->value * 1000;
 		}
 
-		char *lines[cl_chat_console.height];
+		char **lines = Mem_Malloc(sizeof(char*) * cl_chat_console.height);
 		const size_t count = Con_Tail(&cl_chat_console, lines, cl_chat_console.height);
 
 		int32_t color = CON_COLOR_DEFAULT;
@@ -175,6 +205,8 @@ void Cl_DrawChat(void) {
 			g_free(lines[i]);
 			y += ch;
 		}
+
+		Mem_Free(lines);
 	}
 
 	if (cls.key_state.dest == KEY_CHAT) {
@@ -206,10 +238,12 @@ void Cl_DrawChat(void) {
  * @brief
  */
 static void Cl_Print(const console_string_t *str) {
-	char stripped[strlen(str->chars) + 1];
+	char *stripped = Mem_Malloc(sizeof(char) * (strlen(str->chars) + 1));
 
 	StripColors(str->chars, stripped);
 	fputs(stripped, stdout);
+
+	Mem_Free(stripped);
 }
 
 /**
@@ -282,6 +316,8 @@ void Cl_InitConsole(void) {
 
 	memset(&cl_chat_console, 0, sizeof(cl_chat_console));
 	cl_chat_console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
+
+	cl_console_background_alpha = Cvar_Get("cl_console_background_alpha", "0.9", CVAR_ARCHIVE, NULL);
 
 	cl_draw_chat = Cvar_Get("cl_draw_chat", "1", 0, "Draw recent chat messages");
 	cl_draw_notify = Cvar_Get("cl_draw_notify", "1", 0, "Draw recent console activity");

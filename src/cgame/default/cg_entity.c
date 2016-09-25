@@ -20,6 +20,7 @@
  */
 
 #include "cg_local.h"
+#include "game/default/bg_pmove.h"
 
 /**
  * @return True if the specified entity is bound to the local client.
@@ -47,6 +48,92 @@ _Bool Cg_IsSelf(const cl_entity_t *ent) {
 }
 
 /**
+ * @return True if the entity is ducking, false otherwise.
+ */
+_Bool Cg_IsDucking(const entity_state_t *ent) {
+
+	vec3_t mins, maxs;
+	UnpackBounds(ent->bounds, mins, maxs);
+
+	const vec_t standing_height = (PM_MAXS[2] - PM_MINS[2]) * PM_SCALE;
+	const vec_t height = maxs[2] - mins[2];
+
+	return standing_height - height > PM_STOP_EPSILON;
+}
+
+/**
+ * @brief Adds client-side player effects such as breath puffs in rain or snow
+ */
+static void Cg_AddBreathPuffs(cl_entity_t *ent) {
+
+	if (cgi.view->time < ent->breath_puff_time)
+		return;
+
+	cg_particle_t *p;
+
+	vec3_t pos;
+	VectorCopy(ent->origin, pos);
+
+	if (Cg_IsDucking(&ent->current))
+		pos[2] += 18.0;
+	else
+		pos[2] += 30.0;
+
+	vec3_t forward;
+	AngleVectors(ent->angles, forward, NULL, NULL);
+
+	VectorMA(pos, 8.0, forward, pos);
+
+	if (cgi.PointContents(pos) & MASK_LIQUID) {
+
+		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble)))
+			return;
+
+		cgi.ColorFromPalette(6 + (Random() & 3), p->part.color);
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -0.2 - Randomf() * 0.2);
+
+		p->part.scale = 3.0;
+		p->scale_vel = -0.4 - Randomf() * 0.2;
+
+		VectorScale(forward, 2.0, p->vel);
+
+		for (int32_t j = 0; j < 3; j++) {
+			p->part.org[j] = pos[j] + Randomc() * 2.0;
+			p->vel[j] += Randomc() * 5.0;
+		}
+
+		p->vel[2] += 6.0;
+		p->accel[2] = 10.0;
+
+		ent->breath_puff_time = cgi.view->time + 3000;
+	} else if (cgi.view->weather & WEATHER_RAIN || cgi.view->weather & WEATHER_SNOW) {
+
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam)))
+			return;
+		
+		cgi.ColorFromPalette(6 + (Random() & 7), p->part.color);
+		p->part.color[3] = 0.7;
+		
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (5.0 + Randomf() * 0.5));
+		
+		p->part.scale = 0.1;
+		p->scale_vel = 3.0;
+		
+		p->part.roll = Randomc() * 20.0;
+		
+		VectorCopy(pos, p->part.org);
+
+		VectorScale(forward, 5.0, p->vel);
+		
+		for (int32_t i = 0; i < 3; i++) {
+			p->vel[i] += 2.0 * Randomc();
+		}
+
+		ent->breath_puff_time = cgi.view->time + 3000;
+	}
+}
+
+/**
  * @brief Adds the numerous render entities which comprise a given client (player)
  * entity: head, torso, legs, weapon, flags, etc.
  */
@@ -69,6 +156,9 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		// keep our shadow underneath us using the predicted origin
 		e->origin[0] = cgi.view->origin[0];
 		e->origin[1] = cgi.view->origin[1];
+	} else {
+		// add breathing puffs in rain or snow, and bubbles while underwater
+		Cg_AddBreathPuffs(ent);
 	}
 
 	r_entity_t head, torso, legs;

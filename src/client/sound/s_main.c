@@ -25,6 +25,7 @@
 // the sound environment
 s_env_t s_env;
 
+cvar_t *s_ambient;
 cvar_t *s_music_volume;
 cvar_t *s_reverse;
 cvar_t *s_rate;
@@ -65,66 +66,12 @@ void S_Frame(void) {
 		S_FreeMedia();
 	}
 
-	if (s_reverse->modified) { // update reverse stereo
+	if (s_reverse->modified) {
 		Mix_SetReverseStereo(MIX_CHANNEL_POST, s_reverse->integer);
 		s_reverse->modified = false;
 	}
 
-	// update spatialization for current sounds
-	s_channel_t *ch = s_env.channels;
-	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
-
-		if (!ch->sample)
-			continue;
-
-		if (S_SpatializeChannel(ch)) {
-			Mix_SetPosition(i, ch->angle, ch->dist);
-		} else {
-			Mix_FadeOutChannel(i, 250);
-		}
-
-		// reset channel's count for loop samples
-		ch->count = 0;
-	}
-
-	// add new dynamic sounds
-	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
-
-		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-		const entity_state_t *ent = &cl.entity_states[snum];
-
-		if (!ent->sound)
-			continue;
-
-		s_sample_t *sample = cl.sound_precache[ent->sound];
-		int32_t j;
-
-		ch = s_env.channels;
-		for (j = 0; j < MAX_CHANNELS; j++, ch++) {
-			if (ch->ent_num == ent->number) {
-				if (ch->sample == sample) {
-					break;
-				}
-			}
-		}
-
-		if (j == MAX_CHANNELS)
-			S_PlaySample(NULL, ent->number, sample, ATTEN_NORM);
-	}
-
-	if (r_view.contents & MASK_LIQUID) { // add under water sample
-		S_LoopSample(r_view.origin, S_LoadSample("world/under_water"));
-	}
-
-	// update active channel count
-
-	ch = s_env.channels;
-	s_env.num_active_channels = 0;
-
-	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
-		if (ch->sample)
-			s_env.num_active_channels++;
-	}
+	S_MixChannels();
 }
 
 /**
@@ -173,12 +120,12 @@ void S_LoadMedia(void) {
  * @brief
  */
 static void S_Play_f(void) {
-	int32_t i;
 
-	i = 1;
+	int32_t i = 1;
 	while (i < Cmd_Argc()) {
-		S_StartLocalSample(Cmd_Argv(i));
-		i++;
+		S_AddSample(&(const s_play_sample_t) {
+			.sample = S_LoadSample(Cmd_Argv(i++))
+		});
 	}
 }
 
@@ -217,6 +164,7 @@ static void S_Restart_f(void) {
  */
 static void S_InitLocal(void) {
 
+	s_ambient = Cvar_Get("s_ambient", "1", CVAR_ARCHIVE, "Controls playback of ambient sounds.");
 	s_music_volume = Cvar_Get("s_music_volume", "0.15", CVAR_ARCHIVE, "Music volume level.");
 	s_rate = Cvar_Get("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
 	s_reverse = Cvar_Get("s_reverse", "0", CVAR_ARCHIVE, "Reverse left and right channels.");

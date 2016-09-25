@@ -55,6 +55,26 @@ void Ui_HandleEvent(const SDL_Event *event) {
 }
 
 /**
+ * @brief TODO: Make this an ImageView within MainViewController's View?
+ */
+static void Ui_DrawBackground(void) {
+
+	if (cls.state != CL_ACTIVE) {
+
+		const r_image_t *background = R_LoadImage("ui/background", IT_UI);
+		if (background->type != IT_NULL) {
+
+			const vec_t x_scale = r_context.width / (vec_t) background->width;
+			const vec_t y_scale = r_context.height / (vec_t) background->height;
+
+			const vec_t scale = MAX(x_scale, y_scale);
+
+			R_DrawImage(0, 0, scale, background);
+		}
+	}
+}
+
+/**
  * @brief Renders the user interface to a texture in a reserved OpenGL context, then
  * blits it back to the screen in the default context. A separate OpenGL context is
  * used to avoid OpenGL state pollution.
@@ -66,8 +86,10 @@ void Ui_Draw(void) {
 		return;
 	}
 
-	GLint texnum;
-	glGetIntegerv(GL_TEXTURE_BINDING_2D, &texnum);
+	Ui_DrawBackground();
+
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glPushClientAttrib(GL_ALL_CLIENT_ATTRIB_BITS);
 
 	glDisable(GL_TEXTURE_2D);
 
@@ -81,20 +103,10 @@ void Ui_Draw(void) {
 
 	$(windowController, render);
 
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-
-	glBindTexture(GL_TEXTURE_2D, texnum);
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
-	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
-
 	glOrtho(0, r_context.width, r_context.height, 0, -1, 1);
+
+	glPopAttrib();
+	glPopClientAttrib();
 }
 
 /**

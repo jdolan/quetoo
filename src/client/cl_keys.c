@@ -55,6 +55,8 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 		SDL_WarpMouseInWindow(r_context.window, cx, cy);
 	}
 
+	SDL_FlushEvent(SDL_TEXTINPUT);
+
 	switch (dest) {
 		case KEY_CONSOLE:
 		case KEY_CHAT:
@@ -72,8 +74,6 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 			SDL_SetRelativeMouseMode(true);
 			break;
 	}
-
-	SDL_FlushEvent(SDL_TEXTINPUT);
 
 	cls.key_state.dest = dest;
 }

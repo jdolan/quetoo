@@ -101,6 +101,16 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 	if (bits & U_ORIGIN) {
 		ent->lighting.state = LIGHTING_DIRTY;
 	}
+
+	// add any new auto-looped sounds
+	if (ent->current.sound) {
+		S_AddSample(&(const s_play_sample_t) {
+			.sample = cl.sound_precache[ent->current.sound],
+			.entity = ent->current.number,
+			.attenuation = ATTEN_IDLE,
+			.flags = S_PLAY_ENTITY | S_PLAY_LOOP | S_PLAY_FRAME
+		});
+	}
 }
 
 /**

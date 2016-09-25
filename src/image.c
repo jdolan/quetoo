@@ -34,6 +34,7 @@
  * @see http://www.asmail.be/msg0054688232.html
  */
 
+#if !defined(_MSC_VER) // Paril temporary
 #if defined(_WIN32)
 typedef byte boolean;
 #define HAVE_BOOLEAN
@@ -47,6 +48,7 @@ typedef byte boolean;
 #if defined(VTK_JPEG_XMD_H)
 #undef VTK_JPEG_XMD_H
 #undef XMD_H
+#endif
 #endif
 
 #define IMG_PALETTE "pics/colormap"
@@ -209,6 +211,7 @@ void Img_ColorFromPalette(uint8_t c, vec_t *res) {
  * @brief Write pixel data to a JPEG file.
  */
 _Bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality) {
+#if !defined(_MSC_VER) // Paril temporary
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 	JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
@@ -251,4 +254,7 @@ _Bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t heigh
 
 	fclose(f);
 	return true;
+#else
+	return false;
+#endif
 }

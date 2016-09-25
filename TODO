@@ -1,9 +1,3 @@
-Use macro for Com_Debug/Com_Warn that include function name
-Kill pics hash table
-Port filesystem hash to glib
-Add glib hash to cvars
-Refactor sound system modeling renderer
-
 Renderer experiments
 ====
 - Draw world by iterating clusters in PVS
@@ -47,16 +41,10 @@ R_DrawBspCluster(const r_bsp_cluster_t *c) {
 
 ====
 
-Toggling fullscreen loses fov
-
 Ctf scoring for assits, defense, etc.
 
 Shell effect via world.cfg
 
 Sound for telefrag
 
-Sound func_plat plat_mid.wav not heard?
-
 Add configurable attack to dynamic lights for misc_emit etc..
-
-Use actual math for ducking smoke flash shift instead of hard-coded hack.

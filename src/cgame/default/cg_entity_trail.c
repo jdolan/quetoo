@@ -424,14 +424,8 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	VectorSet(l.color, 0.6, 0.6, 1.0);
 	cgi.AddLight(&l);
 
-	cgi.LoopSample(start, cg_sample_lightning_fly);
-
 	VectorSubtract(start, end, dir);
 	dist = VectorNormalize(dir);
-
-	if (dist > 256.0) {
-		cgi.LoopSample(end, cg_sample_lightning_fly);
-	}
 
 	VectorScale(dir, -48.0, delta);
 	VectorCopy(start, pos);
@@ -518,7 +512,12 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
 	if (ent->time > cgi.client->systime)
 		return;
 
-	cgi.PlaySample(NULL, ent->current.number, cg_sample_respawn, ATTEN_IDLE);
+	cgi.AddSample(&(const s_play_sample_t) {
+		.sample = cg_sample_respawn,
+		.entity = ent->current.number,
+		.attenuation = ATTEN_IDLE,
+		.flags = S_PLAY_ENTITY
+	});
 
 	ent->time = cgi.client->systime + 1000 + (2000 * Randomf());
 

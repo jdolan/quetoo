@@ -73,8 +73,6 @@ typedef struct r_font_s {
 // pull it all together in one structure
 typedef struct r_draw_s {
 
-	r_image_t *cursor;
-
 	// registered fonts
 	uint16_t num_fonts;
 	r_font_t fonts[MAX_FONTS];
@@ -131,17 +129,6 @@ void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) 
 	r_state.vertex_array_2d[7] = y + image->height * scale;
 
 	glDrawArrays(GL_QUADS, 0, 4);
-}
-
-/**
- * @brief
- */
-void R_DrawCursor(r_pixel_t x, r_pixel_t y) {
-
-	x -= (r_draw.cursor->width / 2.0);
-	y -= (r_draw.cursor->height / 2.0);
-
-	R_DrawImage(x, y, 1.0, r_draw.cursor);
 }
 
 /**
@@ -522,8 +509,6 @@ void R_InitDraw(void) {
 	R_InitFont("large");
 
 	R_BindFont(NULL, NULL, NULL);
-
-	r_draw.cursor = R_LoadImage("fonts/cursor", IT_FONT);
 
 	// set ABGR color values
 	r_draw.colors[CON_COLOR_BLACK] = 0xff000000;

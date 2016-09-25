@@ -41,6 +41,7 @@ cvar_t *g_force_demo;
 cvar_t *g_force_screenshot;
 cvar_t *g_gameplay;
 cvar_t *g_gravity;
+cvar_t *g_handicap;
 cvar_t *g_match;
 cvar_t *g_max_entities;
 cvar_t *g_motd;
@@ -257,7 +258,7 @@ static void G_BeginIntermission(const char *map) {
 	gi.PositionedSound(g_level.intermission_origin, NULL, g_media.sounds.roar, ATTEN_NORM);
 
 	// stay on same level if not provided
-	g_level.changemap = map ?: g_level.name;
+	g_level.changemap = map ? map : g_level.name;
 }
 
 /**
@@ -894,6 +895,8 @@ void G_Init(void) {
 	g_force_screenshot = gi.Cvar("g_force_screenshot", "0", CVAR_SERVER_INFO, "Force all players to take a screenshot");
 	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat");
 	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
+	g_handicap = gi.Cvar("g_handicap", "1", CVAR_SERVER_INFO,
+			"Allows usage of player handicap. 0 disallows handicap, 1 allows handicap, 2 allows handicap but disables damage reduction. (default 1)");
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
 	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");

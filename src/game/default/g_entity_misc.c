@@ -29,16 +29,13 @@ static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
 		const cm_bsp_plane_t *plane __attribute__((unused)),
 		const cm_bsp_surface_t *surf __attribute__((unused))) {
 
-	g_entity_t *dest;
-	vec3_t forward, delta_angles;
-
-	if (!other->client)
+	if (!G_IsMeat(other))
 		return;
 
-	dest = G_Find(NULL, LOFS(target_name), self->locals.target);
+	const g_entity_t *dest = G_Find(NULL, LOFS(target_name), self->locals.target);
 
 	if (!dest) {
-		gi.Debug("Couldn't find destination\n");
+		gi.Warn("Couldn't find destination\n");
 		return;
 	}
 
@@ -48,26 +45,39 @@ static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
 	VectorCopy(dest->s.origin, other->s.origin);
 	other->s.origin[2] += 8.0;
 
-	// overwrite velocity and hold them in place briefly
-	other->client->ps.pm_state.flags &= ~PMF_TIME_MASK;
-	other->client->ps.pm_state.flags = PMF_TIME_TELEPORT;
+	vec3_t forward;
+	AngleVectors(dest->s.angles, forward, NULL, NULL);
 
-	other->client->ps.pm_state.time = 20;
+	if (other->client) {
+		// overwrite velocity and hold them in place briefly
+		other->client->ps.pm_state.flags &= ~PMF_TIME_MASK;
+		other->client->ps.pm_state.flags = PMF_TIME_TELEPORT;
 
-	// draw the teleport splash at source and on the player
+		other->client->ps.pm_state.time = 20;
+
+		// set delta angles
+		vec3_t delta_angles;
+		VectorSubtract(dest->s.angles, other->client->locals.cmd_angles, delta_angles);
+		PackAngles(delta_angles, other->client->ps.pm_state.delta_angles);
+
+		VectorScale(forward, other->client->locals.speed, other->locals.velocity);
+
+		VectorClear(other->client->locals.cmd_angles);
+		VectorClear(other->client->locals.angles);
+	} else {
+
+		const vec3_t vel = { other->locals.velocity[0], other->locals.velocity[1], 0.0 };
+		VectorScale(forward, VectorLength(vel), other->locals.velocity);
+
+		other->s.angles[1] += dest->s.angles[1];
+	}
+
+	other->locals.velocity[2] = 150.0;
+
+	// draw the teleport effect at source and dest
 	self->s.event = EV_CLIENT_TELEPORT;
 	other->s.event = EV_CLIENT_TELEPORT;
 
-	// set delta angles
-	VectorSubtract(dest->s.angles, other->client->locals.cmd_angles, delta_angles);
-	PackAngles(delta_angles, other->client->ps.pm_state.delta_angles);
-
-	AngleVectors(dest->s.angles, forward, NULL, NULL);
-	VectorScale(forward, other->client->locals.speed, other->locals.velocity);
-	other->locals.velocity[2] = 150.0;
-
-	VectorClear(other->client->locals.cmd_angles);
-	VectorClear(other->client->locals.angles);
 	VectorClear(other->s.angles);
 
 	G_KillBox(other); // telefrag anyone in our spot

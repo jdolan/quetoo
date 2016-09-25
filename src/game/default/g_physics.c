@@ -83,7 +83,7 @@ static void G_CheckWater(g_entity_t *ent) {
 	
 	ent->locals.water_type = tr.contents;
 	ent->locals.water_level = ent->locals.water_type ? 1 : 0;
-	
+
 	if (!old_water_level && ent->locals.water_level) {
 		gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_IDLE);
 		if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
@@ -118,7 +118,7 @@ static void G_RunThink(g_entity_t *ent) {
  */
 static _Bool G_GoodPosition(const g_entity_t *ent) {
 
-	const int32_t mask = ent->locals.clip_mask ?: MASK_SOLID;
+	const int32_t mask = ent->locals.clip_mask ? ent->locals.clip_mask : MASK_SOLID;
 
 	return !gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask).start_solid;
 }
@@ -615,7 +615,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 	VectorCopy(ent->s.origin, origin);
 	VectorCopy(ent->s.angles, angles);
 
-	const int32_t mask = ent->locals.clip_mask ?: MASK_SOLID;
+	const int32_t mask = ent->locals.clip_mask ? ent->locals.clip_mask : MASK_SOLID;
 
 	vec_t time_remaining = gi.frame_seconds;
 	int32_t num_planes = 0;

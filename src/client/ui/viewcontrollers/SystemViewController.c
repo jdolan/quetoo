@@ -156,7 +156,7 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = alloc(StackView, initWithFrame, NULL);
 
-			Ui_CvarSlider((View *) stackView, "Volume", s_volume, 0.1, 1.0, 0.0);
+			Ui_CvarSlider((View *) stackView, "Volume", s_volume, 0.0, 1.0, 0.0);
 			Ui_CvarSlider((View *) stackView, "Music Volume", s_music_volume, 0.0, 1.0, 0.0);
 
 			$((View *) box, addSubview, (View *) stackView);

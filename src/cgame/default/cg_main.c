@@ -33,8 +33,10 @@ cvar_t *cg_draw_crosshair_pulse;
 cvar_t *cg_draw_crosshair_scale;
 cvar_t *cg_draw_crosshair;
 cvar_t *cg_draw_frags;
+cvar_t *cg_draw_deaths;
 cvar_t *cg_draw_hud;
 cvar_t *cg_draw_pickup;
+cvar_t *cg_draw_powerups;
 cvar_t *cg_draw_time;
 cvar_t *cg_draw_teambar;
 cvar_t *cg_draw_weapon;
@@ -47,6 +49,7 @@ cvar_t *cg_draw_vitals_pulse;
 cvar_t *cg_draw_vote;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
+cvar_t *cg_fov_interpolate;
 cvar_t *cg_third_person;
 cvar_t *cg_third_person_yaw;
 
@@ -83,10 +86,13 @@ static void Cg_Init(void) {
 			"Controls the crosshair scale (size).");
 
 	cg_draw_frags = cgi.Cvar("cg_draw_frags", "1", CVAR_ARCHIVE, "Draw the number of frags");
+	cg_draw_deaths = cgi.Cvar("cg_draw_deaths", "1", CVAR_ARCHIVE, "Draw the number of deaths");
 	cg_draw_hud = cgi.Cvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
 	cg_draw_pickup = cgi.Cvar("cg_draw_pickup", "1", CVAR_ARCHIVE, "Draw the current pickup");
 	cg_draw_time = cgi.Cvar("cg_draw_time", "1", CVAR_ARCHIVE, "Draw the time remaning");
 	cg_draw_teambar = cgi.Cvar("cg_draw_teambar", "1", CVAR_ARCHIVE, "Draw the teambanner");
+	cg_draw_powerups = cgi.Cvar("cg_draw_powerups", "1", CVAR_ARCHIVE,
+			"Draw currently active powerups, such as Quad Damage and Adrenaline.");
 
 	cg_draw_weapon = cgi.Cvar("cg_draw_weapon", "1", CVAR_ARCHIVE,
 			"Toggle drawing of the weapon model.");
@@ -99,13 +105,15 @@ static void Cg_Init(void) {
 	cg_draw_weapon_z = cgi.Cvar("cg_draw_weapon_z", "0.0", CVAR_ARCHIVE,
 			"The z offset for drawing the weapon model.");
 	cg_draw_vitals = cgi.Cvar("cg_draw_vitals", "1", CVAR_ARCHIVE,
-			"Draw the vitals (health, armor, ammo");
+			"Draw the vitals (health, armor, ammo)");
 	cg_draw_vitals_pulse = cgi.Cvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE,
 			"Pulse the vitals when low");
 	cg_draw_vote = cgi.Cvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
 
-	cg_fov = cgi.Cvar("cg_fov", "110.0", CVAR_ARCHIVE, NULL);
-	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "55.0", CVAR_ARCHIVE, NULL);
+	cg_fov = cgi.Cvar("cg_fov", "110.0", CVAR_ARCHIVE, "Horizontal field of view, in degrees");
+	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "55.0", CVAR_ARCHIVE, "Zoomed in field of view");
+	cg_fov_interpolate = cgi.Cvar("cg_fov_interpolate", "1.0", CVAR_ARCHIVE,
+			"Interpolate between field of view changes (default 1.0).");
 
 	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_LO_ONLY,
 			"Activate third person perspective.");
