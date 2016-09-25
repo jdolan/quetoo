@@ -1054,7 +1054,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	handicap = Clamp(handicap, 1, 100);
 
-	cl->locals.persistent.handicap
+	cl->locals.persistent.handicap = handicap;
 
 	// save off the user_info in case we want to check something later
 	g_strlcpy(ent->client->locals.persistent.user_info, user_info,
