@@ -81,6 +81,3 @@
 
 /* Define to 1 if you need to in order for `stat' and other things to work. */
 /* #undef _POSIX_SOURCE */
-
-// This stops SDL_main from doing anything so that we can do it ourselves.
-#define SDL_MAIN_HANDLED

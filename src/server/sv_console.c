@@ -193,7 +193,7 @@ static void Sv_DrawConsole_Background(void) {
  */
 static void Sv_DrawConsole_Buffer(void) {
 
-	char **lines = Mem_Malloc(sizeof(char*) * sv_console.height);
+	char **lines = alloca(sizeof(char*) * sv_console.height);
 	const size_t count = Con_Tail(&sv_console, lines, sv_console.height);
 
 	size_t row = sv_console.height;
@@ -223,7 +223,6 @@ static void Sv_DrawConsole_Buffer(void) {
 	}
 
 	Sv_DrawConsole_Color(CON_COLOR_DEFAULT);
-	Mem_Free(lines);
 }
 
 /**

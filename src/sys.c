@@ -38,10 +38,9 @@
 const char *dlerror()
 {
 	static char num_buffer[32];
+	const DWORD err = GetLastError();
 
-	DWORD err = GetLastError();
 	itoa(err, num_buffer, 10);
-
 	return va("Error loading library: %i", err);
 }
 
