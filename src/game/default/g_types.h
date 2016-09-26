@@ -28,7 +28,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1010
+#define PROTOCOL_MINOR 1011
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -93,6 +93,7 @@ typedef enum {
 	STAT_HELDFLAG,
 	STAT_PICKUP_ICON,
 	STAT_PICKUP_STRING,
+	STAT_QUAD_TIME,
 	STAT_READY,
 	STAT_ROUND,
 	STAT_SCORES,
@@ -101,8 +102,7 @@ typedef enum {
 	STAT_TIME,
 	STAT_VOTE,
 	STAT_WEAPON,
-	STAT_WEAPON_ICON,
-	STAT_QUAD_TIME,
+	STAT_WEAPON_ICON
 } g_stat_t;
 
 /**
