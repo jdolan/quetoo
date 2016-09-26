@@ -89,5 +89,4 @@ librenderer_la_LDFLAGS = \
 	
 librenderer_la_LIBADD = \
 	../../libimage.la \
-	@JPEG_LIBS@ \
 	@OPENGL_LIBS@

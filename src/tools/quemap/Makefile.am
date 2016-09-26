@@ -54,7 +54,6 @@ quemap_LDADD = \
 	../../libimage.la \
 	../../libthread.la \
 	@CURSES_LIBS@ \
-	@JPEG_LIBS@ \
 	@SDL2_LIBS@ \
 	@XML_LIBS@
 

@@ -8,7 +8,6 @@ dnf -y install \
 	mingw32-freeglut \
 	mingw32-freetype \
 	mingw32-glib2 \
-	mingw32-libjpeg-turbo \
 	mingw32-libxml2 \
 	mingw32-pdcurses \
 	mingw32-physfs \
@@ -23,7 +22,6 @@ dnf -y install \
 	mingw64-freeglut \
 	mingw64-freetype \
 	mingw64-glib2 \
-	mingw64-libjpeg-turbo \
 	mingw64-libxml2 \
 	mingw64-pdcurses \
 	mingw64-physfs \
