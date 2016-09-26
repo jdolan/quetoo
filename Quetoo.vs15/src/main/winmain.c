@@ -1,8 +1,6 @@
 // Special file to redirect winmain
 #include "config.h"
 #include "shared.h"
-//#include "client/client.h"
-//#include "server/server.h"
 
 extern int32_t main(int32_t argc, char **argv);
 

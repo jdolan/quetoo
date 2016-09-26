@@ -38,10 +38,6 @@
         #ifndef _FILE_OFFSET_BIT
                 #define _FILE_OFFSET_BIT 64
         #endif
-#else
-#if (defined(_MSC_VER))
-		#define __attribute__(...)
-#endif
 #endif
 
 #include <stdio.h>

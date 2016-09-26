@@ -41,7 +41,7 @@ const char *dlerror()
 	const DWORD err = GetLastError();
 
 	itoa(err, num_buffer, 10);
-	return va("Error loading library: %i", err);
+	return va("Error loading library: %lu", err);
 }
 
 #define dlsym(handle, symbol) GetProcAddress(handle, symbol)
@@ -227,7 +227,7 @@ void Sys_Backtrace(void) {
 			else
 				fprintf(stderr, "unknown module ");
 		
-			fprintf(stderr, "(%s+%" PRIx32 ") [0x%" PRIx64 "]\n", symbol_name, symbol->Register, symbol->Address);
+			fprintf(stderr, "(%s+%lux) [0x%" PRIx64 "]\n", symbol_name, symbol->Register, symbol->Address);
 		}
 
 		fflush(stderr);

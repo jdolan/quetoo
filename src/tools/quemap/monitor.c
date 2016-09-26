@@ -111,6 +111,7 @@ void Mon_SendMessage(err_t err, const char *msg) {
 #endif
 }
 
+#if !defined(NOMONITOR)
 /**
  * @brief Routes all XML-originating messages (Mon_Send* below) to the
  * appropriate stdio routines, escaping them to avoid infinite loops.
@@ -130,6 +131,7 @@ static void Mon_Stdio(err_t err, const char *msg) {
 			break;
 	}
 }
+#endif
 
 /**
  * @brief Sends a brush selection to GtkRadiant.

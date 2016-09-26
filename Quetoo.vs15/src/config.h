@@ -1,3 +1,4 @@
+#if !defined(__clang__)
 #ifndef __attribute__
 #define __attribute__(...)
 #endif
@@ -5,13 +6,25 @@
 #ifndef __thread
 #define __thread __declspec(thread)
 #endif
+#endif
 
-#ifndef usleep
-#define usleep(t) Sleep(t / 1000)
+#if defined(__clang__)
+#define stat _stat64
+#define unlink _unlink
+#define S_IFDIR _S_IFDIR
+
+#define isascii __isascii
+#define itoa _itoa
+#define getpid _getpid
+#define strdup _strdup
 #endif
 
 #ifndef S_ISDIR
 #define S_ISDIR(m) (((m) & S_IFDIR) == S_IFDIR)
+#endif
+
+#ifndef usleep
+#define usleep(t) Sleep(t / 1000)
 #endif
 
 #define _WINSOCKAPI_
@@ -28,12 +41,21 @@
 		(g_hash_table_lookup(table, key) != NULL)
 
 /* Set to the canonical name of the target machine */
+#define _strngf(s) #s
+#define _strngfx(s) _strngf(s)
+
+#if defined(__clang__)
+#define BUILD_MACHINE "Clang " __clang_version__
+#elif defined(_MSC_VER)
+#define BUILD_MACHINE "MSC " _strngfx(_MSC_VER)
+#endif
+
 #if defined(_WIN64)
-#define BUILD_HOST "Win64"
+#define BUILD_HOST "Win64 " BUILD_MACHINE
 #elif defined(_WIN32)
-#define BUILD_HOST "Win32"
+#define BUILD_HOST "Win32 " BUILD_MACHINE
 #else
-#define BUILD_HOST "Windows"
+#define BUILD_HOST "Windows " BUILD_MACHINE
 #endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */

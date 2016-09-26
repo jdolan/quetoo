@@ -80,26 +80,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -126,49 +126,59 @@
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
     <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\Win$(PlatformArchitecture)\include\glib-2.0\;glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
     <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
     <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\Win$(PlatformArchitecture)\include\glib-2.0\;glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
     <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
     <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\Win$(PlatformArchitecture)\include\glib-2.0\;glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
     <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\Win$(PlatformArchitecture)\include\glib-2.0\;glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <CLanguageStandard>c99</CLanguageStandard>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <CLanguageStandard>c99</CLanguageStandard>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <CLanguageStandard>c99</CLanguageStandard>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -177,12 +187,14 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <CLanguageStandard>c99</CLanguageStandard>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

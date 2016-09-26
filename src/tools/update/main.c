@@ -47,7 +47,7 @@
  #endif
 #elif defined(_MSC_VER)
 #include <process.h>
- #if defined(WIN64)
+ #if defined(_WIN64)
   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
  #else
   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
