@@ -32,6 +32,7 @@ g_media_t g_media;
 cvar_t *g_admin_password;
 cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
+cvar_t *g_blocked_items;
 cvar_t *g_capture_limit;
 cvar_t *g_cheats;
 cvar_t *g_ctf;
@@ -886,6 +887,7 @@ void G_Init(void) {
 	g_admin_password = gi.Cvar("g_admin_password", "", CVAR_LATCH, "Password to authenticate as an admin");
 	g_ammo_respawn_time = gi.Cvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds");
 	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO, "Automatically assigns players to teams , ignored for duel mode");
+	g_blocked_items = gi.Cvar("g_blocked_items", "", CVAR_SERVER_INFO, "Items that will not spawn in the map. Space-seperated list of item names (example \"weapon_rocketlauncher ammo_rockets item_quad\")");
 	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level");
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
