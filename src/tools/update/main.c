@@ -101,15 +101,18 @@ static char *get_default_dest(void) {
  */
 static char *convert_cygwin_path(const char *path) {
 
-	const size_t len = strlen(path) + strlen("/cgydrive/") + 1;
+	const size_t len = strlen(path) + strlen("/cygdrive/") + 1 + 2;
 	char *cygpath = calloc(len, sizeof(char));
 
 	if (strstr(path, ":\\")) {
-		strcpy(cygpath, "/cygdrive/");
+		strcpy(cygpath, "\"/cygdrive/");
 	}
+	else
+		strcpy(cygpath, "\"");
 
 	const char *in = path;
 	char *out = cygpath + strlen(cygpath);
+
 	while (*in) {
 		if (*in == ':') {
 			in++;
@@ -119,6 +122,9 @@ static char *convert_cygwin_path(const char *path) {
 			*out++ = tolower(*in++);
 		}
 	}
+
+	*out++ = '"';
+	*out++ = 0;
 
 	return cygpath;
 }
