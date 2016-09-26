@@ -38,7 +38,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F81FD692-5EA3-4A8D-BE83-7C33B9627017}</ProjectGuid>
     <RootNamespace>libsound</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

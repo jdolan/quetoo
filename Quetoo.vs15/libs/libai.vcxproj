@@ -32,7 +32,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}</ProjectGuid>
     <RootNamespace>libai</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -92,7 +92,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3B26D4D9-B320-4D6F-B4D1-9A2487BBD0B3}</ProjectGuid>
     <RootNamespace>librenderer</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -36,7 +36,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{07DA2CEA-0340-40C6-B389-357B69130815}</ProjectGuid>
     <RootNamespace>libnet</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

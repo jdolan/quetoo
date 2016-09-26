@@ -48,7 +48,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{856AA625-7037-4E67-8DA4-26BA59C2A9F2}</ProjectGuid>
     <RootNamespace>libserver</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
