@@ -45,7 +45,6 @@
  #else
   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
  #endif
-<<<<<<< HEAD
 #elif defined(_MSC_VER)
 #include <process.h>
  #if defined(WIN64)
@@ -53,8 +52,6 @@
  #else
   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
  #endif
-=======
->>>>>>> master
 #endif
 
 quetoo_t quetoo;
