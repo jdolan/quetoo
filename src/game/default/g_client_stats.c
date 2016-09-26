@@ -227,6 +227,16 @@ void G_ClientStats(g_entity_t *ent) {
 	client->ps.stats[STAT_DAMAGE_HEALTH] = client->locals.damage_health;
 	client->ps.stats[STAT_DAMAGE_INFLICT] = client->locals.damage_inflicted;
 
+	// held flag
+
+	if (ent->s.effects & EF_CTF_BLUE) {
+		client->ps.stats[STAT_HELDFLAG] = 1;
+	} else if (ent->s.effects & EF_CTF_RED) {
+		client->ps.stats[STAT_HELDFLAG] = 2;
+	} else {
+		client->ps.stats[STAT_HELDFLAG] = 0;
+	}
+
 	// frags
 	client->ps.stats[STAT_FRAGS] = client->locals.persistent.score;
 	client->ps.stats[STAT_DEATHS] = client->locals.persistent.deaths;
