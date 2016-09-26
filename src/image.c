@@ -21,34 +21,6 @@
 
 #include "image.h"
 
-/*
- * Work-around for conflicts between windows.h and jpeglib.h.
- *
- * If ADDRESS_TAG_BIT is defined then BaseTsd.h has been included and INT32
- * has been defined with a typedef, so we must define XMD_H to prevent the JPEG
- * header from defining it again.
- *
- * Next up, jmorecfg.h defines the 'boolean' type as int, which conflicts with
- * the standard Windows 'boolean' definition as byte.
- *
- * @see http://www.asmail.be/msg0054688232.html
- */
-
-#if defined(_WIN32)
-typedef byte boolean;
-#define HAVE_BOOLEAN
-#endif
-
-#if defined(_WIN32) && defined(ADDRESS_TAG_BIT) && !defined(XMD_H)
-#define XMD_H
-#define VTK_JPEG_XMD_H
-#endif
-#include <jpeglib.h>
-#if defined(VTK_JPEG_XMD_H)
-#undef VTK_JPEG_XMD_H
-#undef XMD_H
-#endif
-
 #define IMG_PALETTE "pics/colormap"
 
 img_palette_t img_palette;
