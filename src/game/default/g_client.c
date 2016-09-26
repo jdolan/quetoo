@@ -452,6 +452,23 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 		self->locals.Die = G_ClientCorpse_Die;
 	}
 
+	uint32_t nade_hold_time = self->client->locals.grenade_hold_time;
+
+	if (nade_hold_time != 0) {
+		G_InitProjectile(self, vec3_forward, vec3_forward, vec3_up, self->s.origin);
+		G_HandGrenadeProjectile(
+			self,					// player
+			self->client->locals.held_grenade,	// the grenade
+			self->s.origin,				// starting point
+			vec3_up,				// direction
+			0,					// how fast it flies
+			120,					// damage dealt
+			120,					// knockback
+			185.0,					// blast radius 
+			3000 - (g_level.time - nade_hold_time)	// time before explode (next think)
+		);
+	}
+
 	self->solid = SOLID_DEAD;
 
 	self->s.event = EV_NONE;
@@ -467,7 +484,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	self->client->locals.respawn_time = g_level.time + 1800; // respawn after death animation finishes
 	self->client->locals.show_scores = true;
 
-	 self->client->locals.persistent.deaths++;
+	self->client->locals.persistent.deaths++;
 
 	gi.LinkEntity(self);
 }
