@@ -206,6 +206,34 @@ void Img_ColorFromPalette(uint8_t c, vec_t *res) {
 }
 
 /**
+* @brief Write pixel data to a PNG file.
+*/
+_Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height) {
+	SDL_RWops *f;
+	const char *real_path = Fs_RealPath(path);
+
+	if (!(f = SDL_RWFromFile(real_path, "wb"))) {
+		Com_Print("Failed to open to %s\n", real_path);
+		return false;
+	}
+
+	byte *buffer = Mem_Malloc(width * height * 3);
+	
+	// Flip pixels vertically
+	for (size_t i = 0; i < height; i++) {
+		memcpy(buffer + (height - i - 1) * width * 3, data + i * width * 3, 3 * width);
+	}
+
+	SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(buffer, width, height, 8 * 3, width * 3, 0, 0, 0, 0);
+	IMG_SavePNG_RW(ss, f, 0);
+
+	SDL_FreeSurface(ss);
+	Mem_Free(buffer);
+	SDL_FreeRW(f);
+	return true;
+}
+
+/**
  * @brief Write pixel data to a JPEG file.
  */
 _Bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality) {

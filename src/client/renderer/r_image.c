@@ -74,7 +74,7 @@ void R_Screenshot_f(void) {
 
 	// find a file name to save it to
 	for (i = last_screenshot; i < MAX_SCREENSHOTS; i++) {
-		g_snprintf(filename, sizeof(filename), "screenshots/quetoo%03u.jpg", i);
+		g_snprintf(filename, sizeof(filename), "screenshots/quetoo%03u.png", i);
 
 		if (!Fs_Exists(filename))
 			break; // file doesn't exist
@@ -102,7 +102,7 @@ void R_Screenshot_f(void) {
 
 	const int32_t quality = Clamp(r_screenshot_quality->integer, 0, 100);
 
-	if (Img_WriteJPEG(filename, buffer, width, height, quality)) {
+	if (Img_WritePNG(filename, buffer, width, height, quality)) {
 		Com_Print("Saved %s\n", Basename(filename));
 	} else {
 		Com_Warn("Failed to write %s\n", filename);
