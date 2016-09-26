@@ -662,6 +662,50 @@ static const char *vote_cmds[] = {
 		"unmute",
 		NULL };
 
+static GList *vote_cvars; // temp number so it doesn't have to be dynamically allocated
+
+/**
+ * @brief Create g_vote_allow_<vote> CVars
+ */
+void G_InitVote() {
+	size_t i = 0;
+
+	while (vote_cmds[i]) {
+		const char *name = va("g_vote_allow_%s", vote_cmds[i]);
+		const char *desc = va("Allows voting on %s", vote_cmds[i]);
+
+		vote_cvars = g_list_append(vote_cvars, gi.Cvar(name, "1", CVAR_SERVER_INFO, desc));
+
+		i++;
+	}
+}
+
+/**
+ * @brief Deinitialize the vote CVar GList
+ */
+void G_ShutdownVote() {
+  g_list_free(vote_cvars);
+}
+
+/**
+ * @brief Returns if the g_vote_allow_<vote> CVar is enabled
+ */
+static _Bool G_VoteAllowed(const char *vote) {
+	const char *name = va("g_vote_allow_%s", vote);
+
+	const GList *list = vote_cvars;
+
+	while (list) {
+		const cvar_t *var = list->data;
+		if ((!g_strcmp0(name, var->name)) && var->integer)
+			return true;
+
+		list = list->next;
+	}
+
+	return false;
+}
+
 /**
  * @brief Inspects the vote command and issues help if applicable. Returns
  * true if the command received help and may therefore be ignored, false
@@ -689,9 +733,12 @@ static _Bool G_VoteHelp(g_entity_t *ent) {
 		strcat(msg, "\nAvailable vote commands:\n\n");
 
 		while (vote_cmds[i]) {
-			strcat(msg, "  ");
-			strcat(msg, vote_cmds[i]);
-			strcat(msg, "\n");
+			if (G_VoteAllowed(vote_cmds[i])) {
+				strcat(msg, "  ");
+				strcat(msg, vote_cmds[i]);
+				strcat(msg, "\n");
+		  	}
+
 			i++;
 		}
 		gi.ClientPrint(ent, PRINT_HIGH, "%s", msg);
@@ -707,6 +754,11 @@ static _Bool G_VoteHelp(g_entity_t *ent) {
 
 	if (!vote_cmds[i]) { // inform client if it is not
 		gi.ClientPrint(ent, PRINT_HIGH, "Voting on \"%s\" is not supported\n", gi.Argv(1));
+		return true;
+	}
+
+	if (!G_VoteAllowed(vote_cmds[i])) {
+		gi.ClientPrint(ent, PRINT_HIGH, "Voting on \"%s\" is disabled\n", gi.Argv(1));
 		return true;
 	}
 

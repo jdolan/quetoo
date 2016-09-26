@@ -34,7 +34,6 @@
  * @see http://www.asmail.be/msg0054688232.html
  */
 
-#if !defined(_MSC_VER) // Paril temporary
 #if defined(_WIN32)
 typedef byte boolean;
 #define HAVE_BOOLEAN
@@ -48,7 +47,6 @@ typedef byte boolean;
 #if defined(VTK_JPEG_XMD_H)
 #undef VTK_JPEG_XMD_H
 #undef XMD_H
-#endif
 #endif
 
 #define IMG_PALETTE "pics/colormap"
@@ -208,53 +206,29 @@ void Img_ColorFromPalette(uint8_t c, vec_t *res) {
 }
 
 /**
- * @brief Write pixel data to a JPEG file.
- */
-_Bool Img_WriteJPEG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality) {
-#if !defined(_MSC_VER) // Paril temporary
-	struct jpeg_compress_struct cinfo;
-	struct jpeg_error_mgr jerr;
-	JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
-	FILE *f;
-
+* @brief Write pixel data to a PNG file.
+*/
+_Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height) {
+	SDL_RWops *f;
 	const char *real_path = Fs_RealPath(path);
 
-	if (!(f = fopen(real_path, "wb"))) {
+	if (!(f = SDL_RWFromFile(real_path, "wb"))) {
 		Com_Print("Failed to open to %s\n", real_path);
 		return false;
 	}
 
-	cinfo.err = jpeg_std_error(&jerr);
-
-	jpeg_create_compress(&cinfo);
-
-	jpeg_stdio_dest(&cinfo, f);
-
-	cinfo.image_width = width;
-	cinfo.image_height = height;
-	cinfo.input_components = 3;
-	cinfo.in_color_space = JCS_RGB;
-
-	jpeg_set_defaults(&cinfo);
-
-	jpeg_set_quality(&cinfo, quality, TRUE);
-
-	jpeg_start_compress(&cinfo, TRUE);
-
-	const uint32_t stride = width * 3; // bytes per scanline
-
-	while (cinfo.next_scanline < cinfo.image_height) {
-		row_pointer[0] = &data[(cinfo.image_height - cinfo.next_scanline - 1) * stride];
-		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
+	byte *buffer = Mem_Malloc(width * height * 3);
+	
+	// Flip pixels vertically
+	for (size_t i = 0; i < height; i++) {
+		memcpy(buffer + (height - i - 1) * width * 3, data + i * width * 3, 3 * width);
 	}
 
-	jpeg_finish_compress(&cinfo);
+	SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(buffer, width, height, 8 * 3, width * 3, 0, 0, 0, 0);
+	IMG_SavePNG_RW(ss, f, 0);
 
-	jpeg_destroy_compress(&cinfo);
-
-	fclose(f);
+	SDL_FreeSurface(ss);
+	Mem_Free(buffer);
+	SDL_FreeRW(f);
 	return true;
-#else
-	return false;
-#endif
 }

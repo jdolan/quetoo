@@ -32,6 +32,7 @@ cvar_t *cg_draw_crosshair_color;
 cvar_t *cg_draw_crosshair_pulse;
 cvar_t *cg_draw_crosshair_scale;
 cvar_t *cg_draw_crosshair;
+cvar_t *cg_draw_heldflag;
 cvar_t *cg_draw_frags;
 cvar_t *cg_draw_deaths;
 cvar_t *cg_draw_hud;
@@ -85,6 +86,7 @@ static void Cg_Init(void) {
 	cg_draw_crosshair_scale = cgi.Cvar("cg_draw_crosshair_scale", "1.0", CVAR_ARCHIVE,
 			"Controls the crosshair scale (size).");
 
+	cg_draw_heldflag = cgi.Cvar("cg_draw_heldflag", "1", CVAR_ARCHIVE, "Draw the currently held team flag");
 	cg_draw_frags = cgi.Cvar("cg_draw_frags", "1", CVAR_ARCHIVE, "Draw the number of frags");
 	cg_draw_deaths = cgi.Cvar("cg_draw_deaths", "1", CVAR_ARCHIVE, "Draw the number of deaths");
 	cg_draw_hud = cgi.Cvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");

@@ -200,6 +200,31 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
 }
 
 /**
+ * @brief Draws the flag you are currently holding
+ */
+static void Cg_DrawHeldFlag(const player_state_t *ps) {
+	r_pixel_t x, y;
+
+	if (!cg_draw_heldflag->integer)
+		return;
+
+	vec4_t pulse = { 1.0, 1.0, 1.0, sin(cgi.client->systime / 150.0) + 0.75 };
+
+	x = cgi.view->viewport.x + (HUD_PIC_HEIGHT / 2);
+	y = cgi.view->viewport.y + ((cgi.view->viewport.h / 2) - (HUD_PIC_HEIGHT * 2));
+
+	uint16_t flag = ps->stats[STAT_HELDFLAG];
+	
+	if (flag != 0) {
+		cgi.Color(pulse);
+
+		cgi.DrawImage(x, y, 1.0, cgi.LoadImage(va("pics/i_flag%d", flag), IT_PIC));
+
+		cgi.Color(NULL);
+	}
+}
+
+/**
  * @brief
  */
 static void Cg_DrawPickup(const player_state_t *ps) {
@@ -726,6 +751,8 @@ void Cg_DrawHud(const player_state_t *ps) {
 	Cg_DrawVitals(ps);
 
 	Cg_DrawPowerups(ps);
+
+	Cg_DrawHeldFlag(ps);
 
 	Cg_DrawPickup(ps);
 

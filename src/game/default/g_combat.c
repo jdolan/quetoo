@@ -201,8 +201,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 			knockback *= QUAD_KNOCKBACK_FACTOR;
 		}
 
-		if (g_handicap->integer == 1)
-			damage *= attacker->client->locals.persistent.handicap / 100.0;
+		damage *= attacker->client->locals.persistent.handicap / 100.0;
 	}
 
 	// friendly fire avoidance
