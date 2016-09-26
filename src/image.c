@@ -39,16 +39,6 @@ typedef byte boolean;
 #define HAVE_BOOLEAN
 #endif
 
-#if defined(_WIN32) && defined(ADDRESS_TAG_BIT) && !defined(XMD_H)
-#define XMD_H
-#define VTK_JPEG_XMD_H
-#endif
-#include <jpeglib.h>
-#if defined(VTK_JPEG_XMD_H)
-#undef VTK_JPEG_XMD_H
-#undef XMD_H
-#endif
-
 #define IMG_PALETTE "pics/colormap"
 
 img_palette_t img_palette;
