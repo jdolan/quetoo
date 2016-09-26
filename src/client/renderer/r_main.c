@@ -71,7 +71,6 @@ cvar_t *r_parallax;
 cvar_t *r_programs;
 cvar_t *r_render_plugin;
 cvar_t *r_saturation;
-cvar_t *r_screenshot_quality;
 cvar_t *r_shadows;
 cvar_t *r_shell;
 cvar_t *r_specular;
@@ -477,8 +476,6 @@ static void R_InitLocal(void) {
 			"Specifies the active renderer plugin (default or pro)");
 	r_saturation = Cvar_Get("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls texture saturation");
-	r_screenshot_quality = Cvar_Get("r_screenshot_quality", "95", CVAR_ARCHIVE,
-			"Screenshot image quality (JPEG compression 0 - 100)");
 	r_shadows = Cvar_Get("r_shadows", "7", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls the rendering of mesh model shadows");
 	r_shell = Cvar_Get("r_shell", "1", CVAR_ARCHIVE,

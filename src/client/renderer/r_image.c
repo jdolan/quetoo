@@ -100,8 +100,6 @@ void R_Screenshot_f(void) {
 
 	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
-	const int32_t quality = Clamp(r_screenshot_quality->integer, 0, 100);
-
 	if (Img_WritePNG(filename, buffer, width, height)) {
 		Com_Print("Saved %s\n", Basename(filename));
 	} else {
