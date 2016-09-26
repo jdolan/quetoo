@@ -102,7 +102,7 @@ void R_Screenshot_f(void) {
 
 	const int32_t quality = Clamp(r_screenshot_quality->integer, 0, 100);
 
-	if (Img_WritePNG(filename, buffer, width, height, quality)) {
+	if (Img_WritePNG(filename, buffer, width, height)) {
 		Com_Print("Saved %s\n", Basename(filename));
 	} else {
 		Com_Warn("Failed to write %s\n", filename);
