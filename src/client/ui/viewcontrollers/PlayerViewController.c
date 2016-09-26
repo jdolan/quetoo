@@ -96,6 +96,8 @@ static void loadView(ViewController *self) {
 			Ui_Input((View *) stackView, "Effect color", (Control *) colorSelect);
 			release(colorSelect);
 
+			Ui_CvarSlider((View *) stackView, "Handicap", handicap, 50.0, 100.0, 5.0);
+
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
 
