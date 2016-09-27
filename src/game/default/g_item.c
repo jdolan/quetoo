@@ -897,9 +897,6 @@ void G_PrecacheItem(const g_item_t *it) {
  */
 void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 
-	if (GlobMatch(va("*%s*", item->class_name), g_blocked_items->string))
-		return;
-
 	ent->locals.item = item;
 	G_PrecacheItem(ent->locals.item);
 
