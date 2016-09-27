@@ -41,7 +41,7 @@ typedef struct {
 	SDL_cond *cond;
 	SDL_mutex *mutex;
 	char name[64];
-	thread_status_t status;
+	volatile thread_status_t status;
 	ThreadRunFunc Run;
 	void *data;
 } thread_t;
