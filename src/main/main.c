@@ -177,6 +177,9 @@ static void Init(void) {
 		Cbuf_AddText("map edge\n");
 		Cbuf_Execute();
 	}
+
+	// Eliminate garbage filling input buffer until it's needed
+	SDL_StopTextInput();
 }
 
 /**
