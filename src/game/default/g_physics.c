@@ -120,7 +120,45 @@ static _Bool G_GoodPosition(const g_entity_t *ent) {
 
 	const int32_t mask = ent->locals.clip_mask ?: MASK_SOLID;
 
-	return !gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask).start_solid;
+	const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
+
+	return tr.start_solid == false;
+}
+
+/**
+ * @return True if the entitiy is in, or could be moved to, a valid position, false otherwise.
+ */
+static _Bool G_CorrectPosition(g_entity_t *ent) {
+
+	const int32_t mask = ent->locals.clip_mask ?: MASK_SOLID;
+
+	const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
+	if (tr.all_solid) {
+
+		for (int32_t i = -1; i <= 1; i++) {
+			for (int32_t j = -1; j <= 1; j++) {
+				for (int32_t k = -1; k <= 1; k++) {
+					vec3_t pos;
+					VectorCopy(ent->s.origin, pos);
+
+					pos[0] += i * PM_NUDGE_DIST;
+					pos[1] += j * PM_NUDGE_DIST;
+					pos[2] += k * PM_NUDGE_DIST;
+
+					const cm_trace_t tr = gi.Trace(pos, pos, ent->mins, ent->maxs, ent, mask);
+					if (!tr.all_solid) {
+						VectorCopy(pos, ent->s.origin);
+						return true;
+					}
+				}
+			}
+		}
+
+		gi.Debug("still solid, reverting %s\n", etos(ent));
+		return false;
+	}
+
+	return true;
 }
 
 #define MAX_SPEED 2400.0
@@ -465,7 +503,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 			VectorAdd(ent->s.origin, delta, ent->s.origin);
 			
 			// if the move has separated us, finish up by rotating the entity
-			if (G_GoodPosition(ent)) {
+			if (G_CorrectPosition(ent)) {
 				G_Physics_Push_Rotate(self, ent, amove[YAW]);
 				continue;
 			}
@@ -478,7 +516,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 				G_Physics_Push_Revert(--g_push_p);
 
 				// but in this case, don't rotate
-				if (G_GoodPosition(ent)) {
+				if (G_CorrectPosition(ent)) {
 					continue;
 				}
 			}
@@ -620,15 +658,23 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 	vec_t time_remaining = gi.frame_seconds;
 	int32_t num_planes = 0;
 
-	for (int32_t i = 0; i < MAX_CLIP_PLANES; i++) {
+	for (int32_t bump = 0; bump < MAX_CLIP_PLANES; bump++) {
 		vec3_t pos;
 
 		if (time_remaining <= 0.0)
 			break;
 
+		// project desired destination
 		VectorMA(ent->s.origin, time_remaining, ent->locals.velocity, pos);
 
+		// trace to it
 		const cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, mask);
+
+		// if the entity is trapped in a solid, don't build up Z
+		if (trace.all_solid) {
+			ent->locals.velocity[2] = 0;
+			return true;
+		}
 
 		const vec_t time = trace.fraction * time_remaining;
 
@@ -715,7 +761,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 		}
 	}
 	
-	if (!G_GoodPosition(ent)) {
+	if (!G_CorrectPosition(ent)) {
 		gi.Debug("reverting %s\n", etos(ent));
 		
 		VectorCopy(origin, ent->s.origin);
