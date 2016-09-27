@@ -79,7 +79,8 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
  */
 static void Cl_KeyConsole(const SDL_Event *event) {
 
-	SDL_StartTextInput();
+	if (SDL_GetEventState(SDL_TEXTINPUT) != SDL_ENABLE)
+		SDL_StartTextInput();
 
 	if (event->type == SDL_KEYUP) // don't care
 		return;
@@ -252,7 +253,8 @@ static void Cl_KeyGame(const SDL_Event *event) {
  */
 static void Cl_KeyChat(const SDL_Event *event) {
 
-	SDL_StartTextInput();
+	if (SDL_GetEventState(SDL_TEXTINPUT) != SDL_ENABLE)
+		SDL_StartTextInput();
 
 	if (event->type == SDL_KEYUP) // don't care
 		return;
