@@ -25,6 +25,7 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
+void G_AddWaterRipple(const vec3_t pos, const vec_t shift, const vec_t size);
 void G_TouchOccupy(g_entity_t *ent);
 void G_RunEntity(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */
