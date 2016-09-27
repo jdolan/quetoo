@@ -179,7 +179,7 @@ static void Cg_DrawPowerup(r_pixel_t y, const int16_t value, const r_image_t *ic
  * @brief Draws health, ammo and armor numerics and icons.
  */
 static void Cg_DrawPowerups(const player_state_t *ps) {
-  r_pixel_t y, ch;
+	r_pixel_t y, ch;
 
 	if (!cg_draw_powerups->integer)
 		return;

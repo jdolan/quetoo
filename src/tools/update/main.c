@@ -19,42 +19,74 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "../../common.h"
-#include "../../sys.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 
 #if defined(__APPLE__)
+ #include <unistd.h>
  #include <sys/wait.h>
+ #include <mach-o/dyld.h>
  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-apple/x86_64/"
 #elif defined(__linux__)
+ #include <unistd.h>
  #include <sys/wait.h>
  #if defined(__x86_64__)
   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-linux/x86_64/"
  #else
   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-linux/i686/"
  #endif
-#elif defined(__MINGW32__)
- #include <ctype.h>
- #if defined(__MINGW64__)
-  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
- #else
-  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
- #endif
-#elif defined(__CYGWIN__)
- #if defined(__LP64__)
-  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
- #else
-  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
- #endif
-#elif defined(_MSC_VER)
-#include <process.h>
- #if defined(_WIN64)
-  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
- #else
-  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
+#elif defined(_WIN32)
+ #undef WIN32_LEAN_AND_MEAN
+ #define WIN32_LEAN_AND_MEAN
+ #include <windows.h>
+ #include <process.h>
+ #if defined(__MINGW32__)
+  #if defined(__MINGW64__)
+   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
+  #else
+   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
+  #endif
+ #elif defined(__CYGWIN__)
+  #if defined(__LP64__)
+   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
+  #else
+   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
+  #endif
  #endif
 #endif
 
-quetoo_t quetoo;
+/**
+ * @return The path to this executable.
+ */
+static char *get_exe_path(void) {
+	static char path[1024];
+
+#if defined(__APPLE__)
+	uint32_t i = sizeof(path);
+
+	if (_NSGetExecutablePath(path, &i) > -1) {
+		return path;
+	}
+
+#elif defined(__linux__)
+
+	if (readlink(va("/proc/%d/exe", getpid()), path, sizeof(path)) > -1) {
+		return path;
+	}
+
+#elif defined(_WIN32)
+
+	if (GetModuleFileName(0, path, sizeof(path))) {
+		return path;
+	}
+
+#endif
+
+	fprintf(stderr, "Failed to resolve executable path\n");
+	return NULL;
+}
 
 /**
  * @return The default rsync destination, assuming the game is installed via the official packages.
@@ -62,7 +94,7 @@ quetoo_t quetoo;
 static char *get_default_dest(void) {
 	char *dest = NULL;
 
-	const char *exe = Sys_ExecutablePath();
+	const char *exe = get_exe_path();
 	if (exe) {
 #if defined(__APPLE__)
 		char *c = strstr(exe, "Quetoo.app/Contents");
@@ -101,18 +133,15 @@ static char *get_default_dest(void) {
  */
 static char *convert_cygwin_path(const char *path) {
 
-	const size_t len = strlen(path) + strlen("/cygdrive/") + 1 + 2;
+	const size_t len = strlen(path) + strlen("/cgydrive/") + 1;
 	char *cygpath = calloc(len, sizeof(char));
 
 	if (strstr(path, ":\\")) {
-		strcpy(cygpath, "\"/cygdrive/");
+		strcpy(cygpath, "/cygdrive/");
 	}
-	else
-		strcpy(cygpath, "\"");
 
 	const char *in = path;
 	char *out = cygpath + strlen(cygpath);
-
 	while (*in) {
 		if (*in == ':') {
 			in++;
@@ -122,9 +151,6 @@ static char *convert_cygwin_path(const char *path) {
 			*out++ = tolower(*in++);
 		}
 	}
-
-	*out++ = '"';
-	*out++ = 0;
 
 	return cygpath;
 }
@@ -139,7 +165,17 @@ int main(int argc, char **argv) {
 	char *dest;
 
 	if (argc == 2) {
+
+		printf("You have specified a non-default destination %s\n", argv[1]);
+		printf("Are you absolutely sure you wish to udpate to this directory? All other content \
+			    in this directory will be deleted. Press Y to continue.\n");
+
+		if (tolower(getchar()) != 'y') {
+			exit(status);
+		}
+
 		dest = strdup(argv[1]);
+
 	} else {
 		dest = get_default_dest();
 	}
@@ -150,17 +186,42 @@ int main(int argc, char **argv) {
 #if defined(_WIN32)
 		char *cygdest = convert_cygwin_path(dest);
 		if (cygdest) {
-			printf("Using cygwin path \"%s\"\n", cygdest);
+
+			printf("Using cygwin path %s\n", cygdest);
+
+			char *target;
+			asprintf(&target, "\"%s\"", cygdest);
+
 			status = _spawnlp(_P_WAIT, "rsync.exe", "rsync.exe", "-rkzhP", "--delete", "--stats",
 							  "--skip-compress=pk3",
-							  "--perms",
-							  "--chmod=a=rwx,Da+x",
 							  "--exclude=bin/cygwin1.dll",
 							  "--exclude=bin/rsync.exe",
 							  "--exclude=bin/quetoo-update.exe",
-							  RSYNC_REPOSITORY, va("\"%s\"", cygdest), NULL);
+							  RSYNC_REPOSITORY, target, NULL);
+
+			free(target);
+
+			const char *bins[] = {
+				"bin/cygwin1.dll",
+				"bin/rsync.exe",
+				"bin/quetoo-update.exe",
+				NULL
+			};
+
+			for (const char **bin = bins; *bin && status == 0; bin++) {
+
+				char *src, *target;
+				asprintf(&src, "%s%s", RSYNC_REPOSITORY, *bin);
+				asprintf(&target, "\"%s/%s.new\"", cygdest, *bin);
+
+				status = _spawnlp(_P_WAIT, "rsync.exe", "rsync.exe", "-rkzhP", "--stats", src, target, NULL);
+
+				free(src);
+				free(target);
+			}
 
 			free(cygdest);
+
 		} else {
 			fprintf(stderr, "Failed to convert %s to cygwin path\n", dest);
 		}
@@ -188,6 +249,13 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Failed to resolve rsync destination\n");
 		fprintf(stderr, "Usage: %s [destination]\n", argv[0]);
 	}
+
+	printf("Press any key to close.\n");
+	getchar();
+
+#if defined(_WIN32)
+	_spawnlp(_P_NOWAIT, "post-update.bat", "post-update.bat", NULL);
+#endif
 
 	return status;
 }

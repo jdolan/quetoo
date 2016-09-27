@@ -32,6 +32,7 @@ g_media_t g_media;
 cvar_t *g_admin_password;
 cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
+cvar_t *g_inhibit;
 cvar_t *g_capture_limit;
 cvar_t *g_cheats;
 cvar_t *g_ctf;
@@ -42,6 +43,7 @@ cvar_t *g_force_screenshot;
 cvar_t *g_gameplay;
 cvar_t *g_gravity;
 cvar_t *g_handicap;
+cvar_t *g_inhibit;
 cvar_t *g_match;
 cvar_t *g_max_entities;
 cvar_t *g_motd;
@@ -897,6 +899,7 @@ void G_Init(void) {
 	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
 	g_handicap = gi.Cvar("g_handicap", "1", CVAR_SERVER_INFO,
 			"Allows usage of player handicap. 0 disallows handicap, 1 allows handicap, 2 allows handicap but disables damage reduction. (default 1)");
+	g_inhibit = gi.Cvar("g_inhibit", "", CVAR_SERVER_INFO, "Prevents entities from spawning using a class name filter (e.g.: \"weapon_bfg ammo_nukes item_quad\")");
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
 	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");

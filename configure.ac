@@ -147,16 +147,6 @@ dnl ------------------------
 
 PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC])
 
-dnl --------------
-dnl Check for JPEG
-dnl --------------
-
-AC_CHECK_HEADER(jpeglib.h,
-	JPEG_LIBS="-ljpeg",
-	[AC_MSG_ERROR([Could not find jpeglib.h, please install libjpeg])]
-)
-AC_SUBST(JPEG_LIBS)
-
 dnl -------------------
 dnl Check for PhysicsFS
 dnl -------------------
