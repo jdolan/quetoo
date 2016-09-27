@@ -74,7 +74,7 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 	}
 
 	SDL_PumpEvents();
-	
+
 	SDL_FlushEvent(SDL_TEXTINPUT);
 
 	cls.key_state.dest = dest;
