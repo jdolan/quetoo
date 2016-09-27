@@ -94,13 +94,13 @@ static void loadView(ViewController *self) {
 	ServersTableView *servers;
 
 	{
-		Box *box = alloc(Box, initWithFrame, NULL);
+		Box *box = $(alloc(Box), initWithFrame, NULL);
 		$(box->label, setText, "JOIN GAME");
 
 		box->view.autoresizingMask |= ViewAutoresizingFill;
 
 		const SDL_Rect frame = MakeRect(0, 0, 0, 320);
-		servers = alloc(ServersTableView, initWithFrame, &frame, ControlStyleDefault);
+		servers = $(alloc(ServersTableView), initWithFrame, &frame, ControlStyleDefault);
 
 		servers->tableView.control.view.autoresizingMask = ViewAutoresizingWidth;
 
