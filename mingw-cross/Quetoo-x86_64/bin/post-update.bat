@@ -1,7 +1,8 @@
-@ECHO OFF
 
 TIMEOUT /t 1
 
-SET BIN=%~dp0
+PUSHD %~dp0
 
-FOR %%f IN (BIN/*.new) DO RENAME "%%f" "%%~nf"
+FOR %%f IN (*.new) DO MOVE "%%f" "%%nf"
+
+POPD
