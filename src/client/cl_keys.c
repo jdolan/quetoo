@@ -56,10 +56,6 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 	}
 
 	switch (dest) {
-		case KEY_CONSOLE:
-		case KEY_CHAT:
-			SDL_StartTextInput();
-			break;
 		case KEY_UI:
 			SDL_StopTextInput();
 		{
@@ -84,6 +80,9 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
  * @brief Interactive line editing and console scrollback.
  */
 static void Cl_KeyConsole(const SDL_Event *event) {
+
+	if (SDL_GetEventState(SDL_TEXTINPUT) != SDL_ENABLE)
+		SDL_StartTextInput();
 
 	if (event->type == SDL_KEYUP) // don't care
 		return;
@@ -255,6 +254,9 @@ static void Cl_KeyGame(const SDL_Event *event) {
  * @brief
  */
 static void Cl_KeyChat(const SDL_Event *event) {
+
+	if (SDL_GetEventState(SDL_TEXTINPUT) != SDL_ENABLE)
+		SDL_StartTextInput();
 
 	if (event->type == SDL_KEYUP) // don't care
 		return;
