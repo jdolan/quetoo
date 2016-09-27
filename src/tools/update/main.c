@@ -221,8 +221,6 @@ int main(int argc, char **argv) {
 
 			free(cygdest);
 
-			_spawnlp(_P_NOWAIT, "post-update.bat", "post-update.bat", NULL);
-
 		} else {
 			fprintf(stderr, "Failed to convert %s to cygwin path\n", dest);
 		}
@@ -253,6 +251,10 @@ int main(int argc, char **argv) {
 
 	printf("Press any key to close.\n");
 	getchar();
+
+#if defined(_WIN32)
+	_spawnlp(_P_NOWAIT, "post-update.bat", "post-update.bat", NULL);
+#endif
 
 	return status;
 }
