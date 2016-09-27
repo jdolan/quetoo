@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <ctype.h>
+
 #include "../../common.h"
 #include "../../sys.h"
 
@@ -33,7 +35,6 @@
   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-linux/i686/"
  #endif
 #elif defined(__MINGW32__)
- #include <ctype.h>
  #if defined(__MINGW64__)
   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
  #else
@@ -126,7 +127,17 @@ int main(int argc, char **argv) {
 	char *dest;
 
 	if (argc == 2) {
+
+		printf("You have specified a non-default destination %s\n", argv[1]);
+		printf("Are you absolutely sure you wish to udpate to this directory? All other content \
+			    in this directory will be deleted. Press Y to continue.\n");
+
+		if (tolower(getchar()) != 'y') {
+			exit(status);
+		}
+
 		dest = strdup(argv[1]);
+
 	} else {
 		dest = get_default_dest();
 	}
@@ -140,14 +151,24 @@ int main(int argc, char **argv) {
 			printf("Using cygwin path %s\n", cygdest);
 			status = _spawnlp(_P_WAIT, "rsync.exe", "rsync.exe", "-rkzhP", "--delete", "--stats",
 							  "--skip-compress=pk3",
-							  "--perms",
-							  "--chmod=a=rwx,Da+x",
 							  "--exclude=bin/cygwin1.dll",
 							  "--exclude=bin/rsync.exe",
-							  "--exclude=bin/update.exe",
+							  "--exclude=bin/quetoo-update.exe",
 							  RSYNC_REPOSITORY, va("\"%s\"", cygdest), NULL);
 
+			const char *bins[] = { "bin/cygwin1.dll", "bin/rsync.exe", "bin/quetoo-update.exe", NULL };
+			for (const char **bin = bins; bin && status == 0; bin++) {
+
+				const char *src = va("%s%s", RSYNC_REPOSITORY, *bin);
+				const char *dst = va("%s/%s.new", cygdest, *bin);
+
+				status = _spawnlp(_P_WAIT, "rsync.exe", "rsync.exe", "-rkzhP", "--stats", src, dst, NULL);
+			}
+
 			free(cygdest);
+
+			_spawnlp(_P_NOWAIT, "post-update.bat", "post-update.bat", NULL);
+
 		} else {
 			fprintf(stderr, "Failed to convert %s to cygwin path\n", dest);
 		}
@@ -175,6 +196,9 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Failed to resolve rsync destination\n");
 		fprintf(stderr, "Usage: %s [destination]\n", argv[0]);
 	}
+
+	printf("Press any key to close.\n");
+	getchar();
 
 	return status;
 }

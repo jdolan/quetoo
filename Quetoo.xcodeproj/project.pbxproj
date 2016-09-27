@@ -1172,6 +1172,8 @@
 		CE92B3AA1D2FF77800E9153A /* quemap.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = quemap.ico; sourceTree = "<group>"; };
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
+		CE9305BC1D9A929100D62770 /* post-update.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "post-update.bat"; sourceTree = "<group>"; };
+		CE9305BD1D9A94F600D62770 /* post-update.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "post-update.bat"; sourceTree = "<group>"; };
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEB078AD1D7306D000ABA6B3 /* MapListCollectionItemView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MapListCollectionItemView.c; sourceTree = "<group>"; };
 		CEB078AE1D7306D000ABA6B3 /* MapListCollectionItemView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MapListCollectionItemView.h; sourceTree = "<group>"; };
@@ -1573,6 +1575,7 @@
 			isa = PBXGroup;
 			children = (
 				CE12D5211C5C58C300CD0B13 /* cygwin1.dll */,
+				CE9305BC1D9A929100D62770 /* post-update.bat */,
 				CE12D5221C5C58C300CD0B13 /* rsync.exe */,
 			);
 			path = bin;
@@ -1625,6 +1628,7 @@
 			isa = PBXGroup;
 			children = (
 				CE12D52D1C5C58C300CD0B13 /* cygwin1.dll */,
+				CE9305BD1D9A94F600D62770 /* post-update.bat */,
 				CE12D52E1C5C58C300CD0B13 /* rsync.exe */,
 			);
 			path = bin;
