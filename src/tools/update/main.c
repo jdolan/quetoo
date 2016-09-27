@@ -54,6 +54,46 @@
   #else
    #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
   #endif
+ #elif defined(_MSC_VER)
+  #if defined(_WIN64)
+   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
+  #else
+   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
+  #endif
+#define strdup _strdup
+
+char *asprintf(char ** __restrict ret, char * __restrict format, ...)
+{
+	va_list ap; 
+	int len;
+
+	if (!format)
+		return NULL;
+
+	va_start(ap, format); 
+
+	/* Get Length */
+	len = _vscprintf(format, ap);
+
+	if (len < 0)
+		return NULL;
+
+	/* +1 for \0 terminator. */
+	*ret = malloc(len + 1);
+
+	/* Check malloc fail*/
+	if (!*ret)
+		return NULL;
+
+	/* Write String */
+	_vsnprintf(*ret, len + 1, format, ap);
+
+	/* Terminate explicitly */
+	(*ret)[len] = '\0';
+
+	va_end(ap);
+	return *ret;
+}
  #endif
 #endif
 
