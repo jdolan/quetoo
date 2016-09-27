@@ -49,8 +49,7 @@ release:
 	rsync -rzhP --delete $(BINDIR) $(ETCDIR) $(LIBDIR) $(RSYNC_TARGET)
 
 dist:
-	rm -f Quetoo; ln -s $(INSTALL)
-	zip -9 -r $(DIST) Quetoo
+	zip -9 -r $(DIST) $(INSTALL)
 
 dist-release:
 	rsync -rzhP $(DIST) $(HTTP_TARGET)
