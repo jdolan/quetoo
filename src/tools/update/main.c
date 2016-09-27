@@ -207,7 +207,7 @@ int main(int argc, char **argv) {
 				NULL
 			};
 
-			for (const char **bin = bins; bin && status == 0; bin++) {
+			for (const char **bin = bins; *bin && status == 0; bin++) {
 
 				char *src, *target;
 				asprintf(&src, "%s%s", RSYNC_REPOSITORY, *bin);
