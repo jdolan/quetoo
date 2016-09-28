@@ -1,0 +1,3 @@
+Grab the latest version of physfs from
+https://icculus.org/physfs/ and copy physfs.h,
+zlib123/zconf.h and zlib123/zlib.h into this folder.
