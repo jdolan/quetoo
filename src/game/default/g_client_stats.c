@@ -54,7 +54,7 @@ void G_ClientToIntermission(g_entity_t *ent) {
 
 	ent->client->locals.ammo_index = 0;
 	ent->client->locals.pickup_msg_time = 0;
-	
+
 	// take a screenshot if we're supposed to
 	if (g_force_screenshot->integer == 1){
 		G_ClientStuff(ent, "r_screenshot\n");
@@ -120,7 +120,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
 
 	// and optionally concatenate the team scores
 	if (g_level.teams || g_level.ctf) {
-		memset(s, 0, sizeof(s) * 2);
+		memset(s, 0, sizeof(*s) * 2);
 
 		s->client = MAX_CLIENTS;
 		s->score = g_team_good.score;
