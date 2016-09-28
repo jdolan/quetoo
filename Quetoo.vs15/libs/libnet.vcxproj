@@ -86,14 +86,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
-    <IncludePath>..\..\src\;..\src\;glib\Win$(PlatformArchitecture)\include\glib-2.0\;glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\src\;..\src\;glib\include\;$(IncludePath)</IncludePath>
     <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
-    <IncludePath>..\..\src\;..\src\;glib\Win$(PlatformArchitecture)\include\glib-2.0\;glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\src\;..\src\;glib\include\;$(IncludePath)</IncludePath>
     <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
@@ -101,14 +101,14 @@
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
     <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
-    <IncludePath>..\..\src\;..\src\;glib\Win$(PlatformArchitecture)\include\glib-2.0\;glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\src\;..\src\;glib\include\;$(IncludePath)</IncludePath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
     <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
-    <IncludePath>..\..\src\;..\src\;glib\Win$(PlatformArchitecture)\include\glib-2.0\;glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\src\;..\src\;glib\include\;$(IncludePath)</IncludePath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
