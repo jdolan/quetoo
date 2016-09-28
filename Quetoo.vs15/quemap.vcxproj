@@ -119,29 +119,29 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
-    <IncludePath>..\src\;..\;libs\physfs\zlib123\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
-    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\physfs\bin\Win$(PlatformArchitecture)\;libs\glib\Win$(PlatformArchitecture)\lib\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\src\;..\;libs\physfs\zlib123\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;libs\xml\include\;$(IncludePath)</IncludePath>
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\physfs\bin\Win$(PlatformArchitecture)\;libs\glib\Win$(PlatformArchitecture)\lib\;libs\xml\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
-    <IncludePath>..\src\;..\;libs\physfs\zlib123\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
-    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\physfs\bin\Win$(PlatformArchitecture)\;libs\glib\Win$(PlatformArchitecture)\lib\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\src\;..\;libs\physfs\zlib123\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;libs\xml\include\;$(IncludePath)</IncludePath>
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\physfs\bin\Win$(PlatformArchitecture)\;libs\glib\Win$(PlatformArchitecture)\lib\;libs\xml\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\physfs\bin\Win$(PlatformArchitecture)\;libs\glib\Win$(PlatformArchitecture)\lib\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\physfs\bin\Win$(PlatformArchitecture)\;libs\glib\Win$(PlatformArchitecture)\lib\;libs\xml\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
-    <IncludePath>..\src\;..\;libs\physfs\zlib123\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\src\;..\;libs\physfs\zlib123\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;libs\xml\include\;$(IncludePath)</IncludePath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\physfs\bin\Win$(PlatformArchitecture)\;libs\glib\Win$(PlatformArchitecture)\lib\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\physfs\bin\Win$(PlatformArchitecture)\;libs\glib\Win$(PlatformArchitecture)\lib\;libs\xml\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
     <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
-    <IncludePath>..\src\;..\;libs\physfs\zlib123\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\src\;..\;libs\physfs\zlib123\;src\;libs\glib\Win$(PlatformArchitecture)\include\glib-2.0\;libs\glib\Win$(PlatformArchitecture)\lib\glib-2.0\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;libs\xml\include\;$(IncludePath)</IncludePath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -150,11 +150,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;NOMONITOR;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CLanguageStandard>gnu99</CLanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;libnet.lib;physfs.lib;dbghelp.lib;Wldap32.lib;libxml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
       <SubSystem>Windows</SubSystem>
@@ -166,13 +166,13 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;NOMONITOR;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CLanguageStandard>gnu99</CLanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;libnet.lib;physfs.lib;dbghelp.lib;Wldap32.lib;libxml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -184,13 +184,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;NOMONITOR;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CLanguageStandard>gnu99</CLanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;libnet.lib;physfs.lib;dbghelp.lib;Wldap32.lib;libxml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
       <SubSystem>Windows</SubSystem>
@@ -204,7 +204,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;NOMONITOR;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;NOCRYPT;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CLanguageStandard>gnu99</CLanguageStandard>
     </ClCompile>
     <Link>
@@ -212,7 +212,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;libswap.lib;libimage.lib;libmatrix.lib;libthread.lib;libcmodel.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;libnet.lib;physfs.lib;dbghelp.lib;Wldap32.lib;libxml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>

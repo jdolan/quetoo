@@ -27,6 +27,8 @@
 
 #if defined(_WIN32)
 #define LIBXML_STATIC
+
+#define sleep Sleep
 #endif
 
 #include <libxml/tree.h>
@@ -47,7 +49,6 @@ static GList *mon_backlog; // nodes created before a connection was established
 #define xmlStringf(...) xmlString(va(__VA_ARGS__))
 #endif
 
-#if !defined(NOMONITOR)
 /**
  * @brief Sends the specified (XML) string to the stream.
  */
@@ -67,9 +68,7 @@ static void Mon_SendString(const xmlChar *string) {
 		}
 	}
 }
-#endif
 
-#if !defined(NOMONITOR)
 /**
  * @brief Sends the specified XML node to the stream.
  */
@@ -93,7 +92,6 @@ static void Mon_SendXML(xmlNodePtr node) {
 		}
 	}
 }
-#endif
 
 /**
  * @brief Sends a message to GtkRadiant. Note that Com_Print, Com_Warn and
@@ -101,17 +99,14 @@ static void Mon_SendXML(xmlNodePtr node) {
  * GtkRadiant.
  */
 void Mon_SendMessage(err_t err, const char *msg) {
-	
-#if !defined(NOMONITOR)
+
 	xmlNodePtr message = xmlNewNode(NULL, xmlString("message"));
 	xmlNodeSetContent(message, xmlString(msg));
 	xmlSetProp(message, xmlString("level"), xmlStringf("%d", err));
 
 	Mon_SendXML(message);
-#endif
 }
 
-#if !defined(NOMONITOR)
 /**
  * @brief Routes all XML-originating messages (Mon_Send* below) to the
  * appropriate stdio routines, escaping them to avoid infinite loops.
@@ -131,14 +126,12 @@ static void Mon_Stdio(err_t err, const char *msg) {
 			break;
 	}
 }
-#endif
 
 /**
  * @brief Sends a brush selection to GtkRadiant.
  */
 void Mon_SendSelect_(const char *func, err_t err, uint16_t e, uint16_t b, const char *msg) {
 	
-#if !defined(NOMONITOR)
 	xmlNodePtr select = xmlNewNode(NULL, xmlString("select"));
 	xmlNodeSetContent(select, xmlStringf("%s: Entity %u, Brush %u: %s", func, e, b, msg));
 	xmlSetProp(select, xmlString("level"), xmlStringf("%d", err));
@@ -150,7 +143,6 @@ void Mon_SendSelect_(const char *func, err_t err, uint16_t e, uint16_t b, const 
 	Mon_SendXML(select);
 
 	Mon_Stdio(err, va("%s: Entity %u, Brush %u: %s", func, e, b, msg));
-#endif
 }
 
 /**
@@ -158,7 +150,6 @@ void Mon_SendSelect_(const char *func, err_t err, uint16_t e, uint16_t b, const 
  */
 void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg) {
 
-#if !defined(NOMONITOR)
 	xmlNodePtr point_msg = xmlNewNode(NULL, xmlString("pointmsg"));
 	xmlNodeSetContent(point_msg, xmlStringf("%s: Point %s: %s", func, vtos(p), msg));
 	xmlSetProp(point_msg, xmlString("level"), xmlStringf("%d", err));
@@ -170,7 +161,6 @@ void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg
 	Mon_SendXML(point_msg);
 
 	Mon_Stdio(err, va("%s: Point %s: %s", func, vtos(p), msg));
-#endif
 }
 
 /**
@@ -178,7 +168,6 @@ void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg
  */
 void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n, const char *msg) {
 	
-#if !defined(NOMONITOR)
 	xmlNodePtr winding_msg = xmlNewNode(NULL, xmlString("windingmsg"));
 	xmlNodeSetContent(winding_msg, xmlStringf("%s: %s", func, msg));
 	xmlSetProp(winding_msg, xmlString("level"), xmlStringf("%d", err));
@@ -195,7 +184,6 @@ void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n,
 	Mon_SendXML(winding_msg);
 
 	Mon_Stdio(err, va("%s: Winding at %s: %s", func, vtos(p[0]), msg));
-#endif
 }
 
 /**
@@ -203,7 +191,6 @@ void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n,
  */
 _Bool Mon_Init(const char *host) {
 	
-#if !defined(NOMONITOR)
 	Net_Init();
 
 	memset(&mon_state, 0, sizeof(mon_state));
@@ -237,7 +224,6 @@ _Bool Mon_Init(const char *host) {
 		return true;
 	}
 
-#endif
 	return false;
 }
 
@@ -246,7 +232,6 @@ _Bool Mon_Init(const char *host) {
  */
 void Mon_Shutdown(const char *msg) {
 	
-#if !defined(NOMONITOR)
 	if (mon_state.socket) {
 
 		if (msg && *msg == '@') {
@@ -279,5 +264,4 @@ void Mon_Shutdown(const char *msg) {
 	mon_backlog = NULL;
 
 	Net_Shutdown();
-#endif
 }
