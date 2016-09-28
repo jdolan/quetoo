@@ -117,6 +117,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quemap", "quemap.vcxproj", 
 		{C22DAAE7-0044-4B19-A369-28DE8F2C661D} = {C22DAAE7-0044-4B19-A369-28DE8F2C661D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quetoo-dedicated", "quetoo-dedicated.vcxproj", "{990F298C-0B12-4792-8175-90370FD9358A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -333,6 +335,14 @@ Global
 		{082FC21A-6D83-4960-9C9E-5C4B71409E92}.Release|Win32.Build.0 = Release|Win32
 		{082FC21A-6D83-4960-9C9E-5C4B71409E92}.Release|x64.ActiveCfg = Release|x64
 		{082FC21A-6D83-4960-9C9E-5C4B71409E92}.Release|x64.Build.0 = Release|x64
+		{990F298C-0B12-4792-8175-90370FD9358A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{990F298C-0B12-4792-8175-90370FD9358A}.Debug|Win32.Build.0 = Debug|Win32
+		{990F298C-0B12-4792-8175-90370FD9358A}.Debug|x64.ActiveCfg = Debug|x64
+		{990F298C-0B12-4792-8175-90370FD9358A}.Debug|x64.Build.0 = Debug|x64
+		{990F298C-0B12-4792-8175-90370FD9358A}.Release|Win32.ActiveCfg = Release|Win32
+		{990F298C-0B12-4792-8175-90370FD9358A}.Release|Win32.Build.0 = Release|Win32
+		{990F298C-0B12-4792-8175-90370FD9358A}.Release|x64.ActiveCfg = Release|x64
+		{990F298C-0B12-4792-8175-90370FD9358A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
