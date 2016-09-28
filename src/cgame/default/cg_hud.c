@@ -35,11 +35,11 @@
 
 #define HUD_PIC_HEIGHT			64
 
-#define HUD_HEALTH_MED			40
-#define HUD_HEALTH_LOW			20
+#define HUD_HEALTH_MED			75
+#define HUD_HEALTH_LOW			25
 
-#define HUD_ARMOR_MED			40
-#define HUD_ARMOR_LOW			20
+#define HUD_ARMOR_MED			50
+#define HUD_ARMOR_LOW			25
 
 #define HUD_POWERUP_LOW			5
 

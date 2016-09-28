@@ -229,9 +229,12 @@ void G_ClientStats(g_entity_t *ent) {
 
 	// held flag
 
-	if (ent->s.effects & EF_CTF_BLUE) {
+	const int16_t good_flag = ITEM_INDEX(G_FindItemByClassName("item_flag_team1"));
+	const int16_t evil_flag = ITEM_INDEX(G_FindItemByClassName("item_flag_team2"));
+
+	if (client->locals.inventory[good_flag]) {
 		client->ps.stats[STAT_HELDFLAG] = 1;
-	} else if (ent->s.effects & EF_CTF_RED) {
+	} else if (client->locals.inventory[evil_flag]) {
 		client->ps.stats[STAT_HELDFLAG] = 2;
 	} else {
 		client->ps.stats[STAT_HELDFLAG] = 0;
@@ -246,7 +249,15 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_HEALTH_ICON] = 0;
 		client->ps.stats[STAT_HEALTH] = 0;
 	} else {
-		client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("pics/i_health");
+		if (ent->locals.health > 100) {
+			client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("pics/i_mega_health");
+		} else if (ent->locals.health > 75) {
+			client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("pics/i_health");
+		} else if (ent->locals.health > 25) {
+			client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("pics/i_medium_health");
+		} else {
+			client->ps.stats[STAT_HEALTH_ICON] = gi.ImageIndex("pics/i_large_health");
+		}
 		client->ps.stats[STAT_HEALTH] = ent->locals.health;
 	}
 
