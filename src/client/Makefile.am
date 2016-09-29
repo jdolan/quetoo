@@ -60,10 +60,10 @@ libclient_la_LDFLAGS = \
 libclient_la_LIBADD = \
 	renderer/librenderer.la \
 	sound/libsound.la \
-	../collision/libcmodel.la \
-	../net/libnet.la \
-	../libconsole.la \
-	../libthread.la \
+	$(top_srcdir)/src/collision/libcmodel.la \
+	$(top_srcdir)/src/net/libnet.la \
+	$(top_srcdir)/src/libconsole.la \
+	$(top_srcdir)/src/libthread.la \
 	@CURL_LIBS@
 
 libclient_null_la_SOURCES = \

@@ -75,6 +75,7 @@
 		CE12D8C41C5CF86600CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
+		CE1CCD9D1D9D49C700891F05 /* libswap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79D01D9CB22E000FA6B2 /* libswap.dylib */; };
 		CE2DB5471D88F9B300560994 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE2DB5161D88F74000560994 /* main.c */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CE5816EE1D904AD4002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
@@ -1426,6 +1427,7 @@
 			files = (
 				CEFC7B931D9D2FB3000FA6B2 /* libpmove.dylib in Frameworks */,
 				CE80FE071C5E414A00A21A51 /* libshared.dylib in Frameworks */,
+				CE1CCD9D1D9D49C700891F05 /* libswap.dylib in Frameworks */,
 				CEFC7B9B1D9D3023000FA6B2 /* libviews.dylib in Frameworks */,
 				CEFC7B9A1D9D3023000FA6B2 /* libviewcontrollers.dylib in Frameworks */,
 				CEFC79A21D9BE550000FA6B2 /* libObjectively.dylib in Frameworks */,

@@ -35,6 +35,11 @@ typedef struct cg_import_s {
 	cl_client_t *client;
 
 	/**
+	 * @brief The client key state.
+	 */
+	cl_key_state_t *key_state;
+
+	/**
 	 * @brief The renderer context.
 	 */
 	r_context_t *context;
@@ -153,8 +158,6 @@ typedef struct cg_import_s {
 	 * @param data User data.
 	 */
 	void (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
-
-	int32_t (*LittleLong)(int32_t i);
 
 	/**
 	 * @brief Resolves a console variable, creating it if not found.

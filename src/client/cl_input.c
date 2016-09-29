@@ -452,6 +452,7 @@ void Cl_HandleEvents(void) {
 			if (Cl_HandleSystemEvent(&event) == false) {
 
 				cls.cgame->HandleEvent(&event);
+
 				Cl_HandleEvent(&event);
 			}
 		} else {

@@ -33,8 +33,9 @@ static ViewController *viewController;
  */
 void Cg_UpdateBindings(void) {
 
-	SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
-	SDL_PushEvent(&event);
+	const SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
+
+	$(windowController, respondToEvent, &event);
 }
 
 /**
@@ -43,7 +44,7 @@ void Cg_UpdateBindings(void) {
  */
 void Cg_HandleEvent(const SDL_Event *event) {
 
-	if (/*cls.key_state.dest != KEY_UI*/false) {
+	if (cgi.key_state->dest != KEY_UI) {
 
 		switch (event->type) {
 			case SDL_KEYDOWN:

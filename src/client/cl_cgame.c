@@ -131,6 +131,8 @@ void Cl_InitCgame(void) {
 
 	import.client = &cl;
 
+	import.key_state = &cls.key_state;
+
 	import.context = &r_context;
 
 	import.view = &r_view;
@@ -165,8 +167,6 @@ void Cl_InitCgame(void) {
 	import.Mapshots = Cl_Mapshots;
 
 	import.ConfigString = Cl_ConfigString;
-
-	import.LittleLong = LittleLong;
 
 	import.ReadData = Cl_ReadData;
 	import.ReadChar = Cl_ReadChar;

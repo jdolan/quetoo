@@ -113,7 +113,7 @@ static void enumerateMaps(const char *path, void *data) {
 		if (cgi.ReadFile(file, (void *) &header, sizeof(header), 1) == 1) {
 
 			for (size_t i = 0; i < sizeof(header) / sizeof(int32_t); i++) {
-				((int32_t *) &header)[i] = cgi.LittleLong(((int32_t *) &header)[i]);
+				((int32_t *) &header)[i] = LittleLong(((int32_t *) &header)[i]);
 			}
 
 			if (header.version != BSP_VERSION && header.version != BSP_VERSION_QUETOO) {
