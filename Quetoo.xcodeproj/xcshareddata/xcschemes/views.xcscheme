@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CE80FD861C5E3B6F00A21A51"
-               BuildableName = "quemap"
-               BlueprintName = "quemap"
+               BlueprintIdentifier = "CEFC7AAE1D9D2CDE000FA6B2"
+               BuildableName = "libviews.dylib"
+               BlueprintName = "views"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -29,15 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE80FD861C5E3B6F00A21A51"
-            BuildableName = "quemap"
-            BlueprintName = "quemap"
-            ReferencedContainer = "container:Quetoo.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -51,22 +42,15 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE80FD861C5E3B6F00A21A51"
-            BuildableName = "quemap"
-            BlueprintName = "quemap"
+            BlueprintIdentifier = "CEFC7AAE1D9D2CDE000FA6B2"
+            BuildableName = "libviews.dylib"
+            BlueprintName = "views"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
-      <CommandLineArguments>
-         <CommandLineArgument
-            argument = "-t8 -bsp -vis -light maps/jgothic.map"
-            isEnabled = "YES">
-         </CommandLineArgument>
-      </CommandLineArguments>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -76,16 +60,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE80FD861C5E3B6F00A21A51"
-            BuildableName = "quemap"
-            BlueprintName = "quemap"
+            BlueprintIdentifier = "CEFC7AAE1D9D2CDE000FA6B2"
+            BuildableName = "libviews.dylib"
+            BlueprintName = "views"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
