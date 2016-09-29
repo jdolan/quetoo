@@ -75,7 +75,7 @@ vec_t Cvar_GetValue(const char *name) {
 /**
  * @return The string for the specified variable, or the empty string.
  */
-char *Cvar_GetString(const char *name) {
+const char *Cvar_GetString(const char *name) {
 	cvar_t *var;
 
 	var = Cvar_Get_(name);
@@ -333,7 +333,7 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 /**
  * @brief
  */
-void Cvar_SetValue(const char *name, vec_t value) {
+cvar_t *Cvar_SetValue(const char *name, vec_t value) {
 	char val[32];
 
 	if (value == (int32_t) value)
@@ -341,26 +341,20 @@ void Cvar_SetValue(const char *name, vec_t value) {
 	else
 		g_snprintf(val, sizeof(val), "%f", value);
 
-	Cvar_Set(name, val);
+	return Cvar_Set(name, val);
 }
 
 /**
  * @brief
  */
-void Cvar_Toggle(const char *name) {
-	cvar_t *var;
+cvar_t *Cvar_Toggle(const char *name) {
 
-	var = Cvar_Get_(name);
-
-	if (!var) {
-		Com_Print("\"%s\" is not set\n", name);
-		return;
-	}
+	cvar_t *var = Cvar_Get_(name) ?: Cvar_Get(name, "0", 0, NULL);
 
 	if (var->value)
-		Cvar_SetValue(name, 0.0);
+		return Cvar_SetValue(name, 0.0);
 	else
-		Cvar_SetValue(name, 1.0);
+		return Cvar_SetValue(name, 1.0);
 }
 
 /**

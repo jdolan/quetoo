@@ -30,7 +30,6 @@
 #include "renderer/renderer.h"
 #include "sound/sound.h"
 #include "thread.h"
-#include "ui/ui.h"
 
 #include "cl_cgame.h"
 #include "cl_cmd.h"

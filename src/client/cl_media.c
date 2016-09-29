@@ -235,6 +235,8 @@ void Cl_LoadMedia(void) {
 
 	cls.cgame->UpdateMedia();
 
+	cls.cgame->UpdateBindings();
+
 	Cl_LoadingProgress(100, "ready");
 
 	Cl_SetKeyDest(KEY_GAME);

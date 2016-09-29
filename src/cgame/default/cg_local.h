@@ -36,6 +36,8 @@
 #include "cg_hud.h"
 #include "cg_main.h"
 #include "cg_media.h"
+#include "cg_menu.h"
+#include "cg_menu_data.h"
 #include "cg_muzzle_flash.h"
 #include "cg_particle.h"
 #include "cg_predict.h"

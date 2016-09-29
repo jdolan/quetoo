@@ -295,7 +295,9 @@ void Cl_UpdateScreen(void) {
 
 	R_Draw2D();
 
-	Ui_Draw();
+	if (cls.key_state.dest == KEY_UI) {
+		cls.cgame->DrawMenu();
+	}
 
 	R_EndFrame();
 }

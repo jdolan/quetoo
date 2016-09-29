@@ -451,7 +451,7 @@ void Cl_HandleEvents(void) {
 		if (SDL_PollEvent(&event)) {
 			if (Cl_HandleSystemEvent(&event) == false) {
 
-				Ui_HandleEvent(&event);
+				cls.cgame->HandleEvent(&event);
 				Cl_HandleEvent(&event);
 			}
 		} else {

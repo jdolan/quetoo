@@ -35,16 +35,9 @@ cvar_t *cl_team_chat_sound;
 cvar_t *cl_timeout;
 cvar_t *cl_view_size;
 
-// user info
-cvar_t *active;
-cvar_t *color;
-cvar_t *hand;
 cvar_t *message_level;
-cvar_t *name;
 cvar_t *password;
 cvar_t *rate;
-cvar_t *skin;
-cvar_t *handicap;
 
 cvar_t *qport;
 
@@ -507,15 +500,12 @@ static void Cl_InitLocal(void) {
 	cl_view_size = Cvar_Get("cl_view_size", "100.0", CVAR_ARCHIVE, NULL);
 
 	// user info
-	active = Cvar_Get("active", "1", CVAR_USER_INFO | CVAR_NO_SET, NULL);
-	color = Cvar_Get("color", "", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	hand = Cvar_Get("hand", "1", CVAR_ARCHIVE | CVAR_USER_INFO, NULL);
+
+	Cvar_Set("cg_name", Sys_Username());
+
 	message_level = Cvar_Get("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	name = Cvar_Get("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);
 	rate = Cvar_Get("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	skin = Cvar_Get("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	handicap = Cvar_Get("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 
 	qport = Cvar_Get("qport", va("%d", Random() & 0xff), 0, NULL);
 
@@ -699,8 +689,6 @@ void Cl_Init(void) {
 
 	Cl_ClearState();
 
-	Ui_Init();
-
 	Cl_InitCgame();
 
 	Cl_SetKeyDest(KEY_UI);
@@ -719,8 +707,6 @@ void Cl_Shutdown(void) {
 	Cl_ShutdownHttp();
 
 	Cl_ShutdownCgame();
-
-	Ui_Shutdown();
 
 	S_Shutdown();
 

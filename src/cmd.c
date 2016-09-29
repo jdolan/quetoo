@@ -242,7 +242,7 @@ void Cmd_TokenizeString(const char *text) {
 
 		// expand console variables
 		if (*c == '$' && g_strcmp0(cmd_state.args.argv[0], "alias")) {
-			c = Cvar_GetString(c + 1);
+			c = (char *) Cvar_GetString(c + 1);
 		}
 
 		g_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);

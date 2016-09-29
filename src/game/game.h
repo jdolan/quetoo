@@ -170,7 +170,7 @@ typedef struct {
 	 */
 	vec_t frame_seconds;
 
-	/*
+	/**
  	 * @brief The game's write directory
  	 */
 	char write_dir[MAX_OS_PATH];
