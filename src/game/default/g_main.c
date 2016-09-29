@@ -260,7 +260,7 @@ static void G_BeginIntermission(const char *map) {
 	gi.PositionedSound(g_level.intermission_origin, NULL, g_media.sounds.roar, ATTEN_NORM);
 
 	// stay on same level if not provided
-	g_level.changemap = map ?: g_level.name;
+	g_level.changemap = map ? map : g_level.name;
 }
 
 /**

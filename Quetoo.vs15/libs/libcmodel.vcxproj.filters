@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{3583a5f6-9733-4a0c-9019-f0da06fa5005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\collision">
+      <UniqueIdentifier>{e75739eb-24e2-42bc-bc37-eecbae0c2e4c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\collision\cm_local.h">
+      <Filter>src\collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\collision\cm_model.h">
+      <Filter>src\collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\collision\cm_test.h">
+      <Filter>src\collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\collision\cm_trace.h">
+      <Filter>src\collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\collision\cm_types.h">
+      <Filter>src\collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\collision\cm_vis.h">
+      <Filter>src\collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\collision\cmodel.h">
+      <Filter>src\collision</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\collision\cm_model.c">
+      <Filter>src\collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\collision\cm_test.c">
+      <Filter>src\collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\collision\cm_trace.c">
+      <Filter>src\collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\collision\cm_vis.c">
+      <Filter>src\collision</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

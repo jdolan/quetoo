@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{fdc66d56-c60f-41f4-9e2a-482e8362c59e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\views">
+      <UniqueIdentifier>{b03030ee-3099-46ce-ad00-60c2fc00fb4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\viewcontrollers">
+      <UniqueIdentifier>{0457362e-16a9-4b71-9259-35b8deacff2e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\client\ui\ui.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\ui_data.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\ui_local.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\ui_main.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\ui_types.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\BindTextView.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\CrosshairView.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\CvarCheckbox.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\CvarSelect.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\CvarSlider.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\CvarTextView.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\MapListCollectionItemView.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\MapListCollectionView.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\PlayerModelView.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\PrimaryButton.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\ServersTableView.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\SkinSelect.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\views\VideoModeSelect.h">
+      <Filter>src\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\viewcontrollers\MenuViewController.h">
+      <Filter>src\viewcontrollers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\viewcontrollers\MouseViewController.h">
+      <Filter>src\viewcontrollers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\viewcontrollers\MultiplayerViewController.h">
+      <Filter>src\viewcontrollers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\viewcontrollers\PlayerViewController.h">
+      <Filter>src\viewcontrollers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\viewcontrollers\SystemViewController.h">
+      <Filter>src\viewcontrollers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\viewcontrollers\CreateServerViewController.h">
+      <Filter>src\viewcontrollers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\viewcontrollers\KeysViewController.h">
+      <Filter>src\viewcontrollers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\viewcontrollers\MainViewController.h">
+      <Filter>src\viewcontrollers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\client\ui\ui_data.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\ui_main.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\BindTextView.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\CrosshairView.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\CvarCheckbox.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\CvarSelect.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\CvarSlider.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\CvarTextView.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\MapListCollectionItemView.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\MapListCollectionView.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\PlayerModelView.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\PrimaryButton.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\ServersTableView.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\SkinSelect.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\views\VideoModeSelect.c">
+      <Filter>src\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\viewcontrollers\MenuViewController.c">
+      <Filter>src\viewcontrollers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\viewcontrollers\MouseViewController.c">
+      <Filter>src\viewcontrollers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\viewcontrollers\MultiplayerViewController.c">
+      <Filter>src\viewcontrollers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\viewcontrollers\PlayerViewController.c">
+      <Filter>src\viewcontrollers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\viewcontrollers\SystemViewController.c">
+      <Filter>src\viewcontrollers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\viewcontrollers\CreateServerViewController.c">
+      <Filter>src\viewcontrollers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\viewcontrollers\KeysViewController.c">
+      <Filter>src\viewcontrollers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\viewcontrollers\MainViewController.c">
+      <Filter>src\viewcontrollers</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

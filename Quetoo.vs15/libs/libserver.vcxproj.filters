@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{3583a5f6-9733-4a0c-9019-f0da06fa5005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\server">
+      <UniqueIdentifier>{78b177af-74a9-4974-a392-4673ce2d27b9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\server\server.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_admin.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_client.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_console.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_entity.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_game.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_init.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_local.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_main.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_master.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_send.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_types.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_world.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\server\sv_admin.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\server\sv_client.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\server\sv_console.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\server\sv_entity.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\server\sv_game.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\server\sv_init.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\server\sv_main.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\server\sv_master.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\server\sv_send.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\server\sv_world.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

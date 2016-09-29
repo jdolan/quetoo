@@ -1,0 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\client\client.h" />
+    <ClInclude Include="..\..\src\client\cl_binds.h" />
+    <ClInclude Include="..\..\src\client\cl_cgame.h" />
+    <ClInclude Include="..\..\src\client\cl_cmd.h" />
+    <ClInclude Include="..\..\src\client\cl_console.h" />
+    <ClInclude Include="..\..\src\client\cl_demo.h" />
+    <ClInclude Include="..\..\src\client\cl_entity.h" />
+    <ClInclude Include="..\..\src\client\cl_http.h" />
+    <ClInclude Include="..\..\src\client\cl_input.h" />
+    <ClInclude Include="..\..\src\client\cl_keys.h" />
+    <ClInclude Include="..\..\src\client\cl_local.h" />
+    <ClInclude Include="..\..\src\client\cl_main.h" />
+    <ClInclude Include="..\..\src\client\cl_media.h" />
+    <ClInclude Include="..\..\src\client\cl_mouse.h" />
+    <ClInclude Include="..\..\src\client\cl_parse.h" />
+    <ClInclude Include="..\..\src\client\cl_predict.h" />
+    <ClInclude Include="..\..\src\client\cl_screen.h" />
+    <ClInclude Include="..\..\src\client\cl_server.h" />
+    <ClInclude Include="..\..\src\client\cl_types.h" />
+    <ClInclude Include="..\..\src\client\cl_view.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\client\cl_cgame.c" />
+    <ClCompile Include="..\..\src\client\cl_cmd.c" />
+    <ClCompile Include="..\..\src\client\cl_console.c" />
+    <ClCompile Include="..\..\src\client\cl_demo.c" />
+    <ClCompile Include="..\..\src\client\cl_entity.c" />
+    <ClCompile Include="..\..\src\client\cl_http.c" />
+    <ClCompile Include="..\..\src\client\cl_input.c" />
+    <ClCompile Include="..\..\src\client\cl_keys.c" />
+    <ClCompile Include="..\..\src\client\cl_main.c" />
+    <ClCompile Include="..\..\src\client\cl_media.c" />
+    <ClCompile Include="..\..\src\client\cl_mouse.c" />
+    <ClCompile Include="..\..\src\client\cl_parse.c" />
+    <ClCompile Include="..\..\src\client\cl_predict.c" />
+    <ClCompile Include="..\..\src\client\cl_screen.c" />
+    <ClCompile Include="..\..\src\client\cl_server.c" />
+    <ClCompile Include="..\..\src\client\cl_view.c" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C85EAFFF-BAD0-46C2-868C-982FE719263E}</ProjectGuid>
+    <RootNamespace>libclient</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\libs\curl\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\libs\curl\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\libs\curl\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\libs\curl\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

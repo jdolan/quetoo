@@ -19,7 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if !defined(_MSC_VER)
 #include <sys/time.h>
+#endif
 
 #include "cvar.h"
 #include "net_udp.h"
