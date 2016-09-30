@@ -77,7 +77,7 @@ static void Cl_DrawConsole_Buffer(void) {
 	cl_console.width = r_context.width / cw;
 	cl_console.height = (height / ch) - 1;
 
-	char **lines = alloca(sizeof(char*) * cl_console.height);
+	char **lines[cl_console.height];
 	const size_t count = Con_Tail(&cl_console, lines, cl_console.height);
 
 	r_pixel_t y = (cl_console.height - count) * ch;
@@ -157,7 +157,7 @@ void Cl_DrawNotify(void) {
 		con.whence = cl.systime - cl_notify_time->value * 1000;
 	}
 
-	char **lines = alloca(sizeof(char*) * con.height);
+	char **lines[con.height];
 	const size_t count = Con_Tail(&con, lines, con.height);
 
 	r_pixel_t y = 0;

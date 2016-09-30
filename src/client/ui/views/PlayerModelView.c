@@ -62,12 +62,8 @@ static void renderMeshEntity_obj(const r_entity_t *e) {
  */
 static void renderMeshEntity_md3(const r_entity_t *e) {
 
-	// Paril FIXME: find a way to not need to abuse this
-#if defined(_MSC_VER)
-	static vec3_t verts[MD3_MAX_VERTS];
-#else
 	vec3_t verts[e->model->num_verts];
-#endif
+
 	glVertexPointer(3, GL_FLOAT, 0, verts);
 
 	const r_md3_t *md3 = (r_md3_t *) e->model->mesh->data;
