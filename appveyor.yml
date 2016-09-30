@@ -52,7 +52,7 @@ install:
 
     [Environment]::CurrentDirectory = $PWD
 build:
-  parallel: true
-  verbosity: minimal
+  parallel: false
+  verbosity: detailed
 test: off
 deploy: off
