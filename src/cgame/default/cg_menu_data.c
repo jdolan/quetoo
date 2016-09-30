@@ -19,13 +19,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "cg_menu_data.h"
+#include "cg_local.h"
 
 #include "views/BindTextView.h"
 #include "views/CvarCheckbox.h"
 #include "views/CvarSlider.h"
 #include "views/CvarTextView.h"
 #include "views/PrimaryButton.h"
+
+/**
+ * @brief InletBinding for InletTypeApplicationDefined -> cvar_t.
+ */
+void Cg_MenuBindCvar(const Inlet *inlet, ident obj) {
+	*((cvar_t **) inlet->dest) = cgi.Cvar(cast(String, obj)->chars, NULL, 0, NULL);
+}
 
 /**
  * @brief

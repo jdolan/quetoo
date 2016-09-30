@@ -130,7 +130,7 @@ void Cg_InitMenu(void) {
 
 	windowController = $(alloc(WindowController), initWithWindow, cgi.context->window);
 
-	viewController = (ViewController *) $((ViewController *) _alloc(&_MainViewController), init);
+	viewController = (ViewController *) $((ViewController *) alloc(MainViewController), init);
 
 	$(windowController, setViewController, viewController);
 }

@@ -25,6 +25,8 @@
 
 #include "cg_types.h"
 
+extern void Cg_MenuBindCvar(const Inlet *inlet, ident obj);
+
 extern void Ui_Bind(View *view, const char *name, const char *bind);
 extern void Ui_Button(View *view, const char *title, ActionFunction function, ident sender, ident data);
 extern void Ui_CvarCheckbox(View *view, const char *name, cvar_t *var);

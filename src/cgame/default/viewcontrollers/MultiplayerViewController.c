@@ -37,7 +37,7 @@ static void createAction(Control *control, const SDL_Event *event, ident sender,
 
 	MainViewController *mainViewController = $((MenuViewController *) sender, mainViewController);
 
-	ViewController *viewController = $((ViewController *) _alloc(&_CreateServerViewController), init);
+	ViewController *viewController = $((ViewController *) alloc(CreateServerViewController), init);
 
 	$((NavigationViewController *) mainViewController, pushViewController, viewController);
 

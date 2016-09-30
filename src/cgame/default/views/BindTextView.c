@@ -25,7 +25,37 @@
 
 #define _Class _BindTextView
 
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+	BindTextView *this = (BindTextView *) self;
+
+	free(this->bind);
+
+	super(Object, self, dealloc);
+}
+
 #pragma mark - View
+
+/**
+ * @see View::awakeWithDictionary(View *, const Dictionary *)
+ */
+static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
+
+	super(View, self, awakeWithDictionary, dictionary);
+
+	BindTextView *this = (BindTextView *) self;
+
+	const Inlet inlets[] = MakeInlets(
+		MakeInlet("bind", InletTypeCharacters, &this->bind, NULL)
+	);
+
+	$(self, bind, dictionary, inlets);
+}
 
 /**
  * @see View::updateBindings(View *)
@@ -34,16 +64,15 @@ static void updateBindings(View *self) {
 
 	super(View, self, updateBindings);
 
-	BindTextView *this = (BindTextView *) self;
-	TextView *textView = (TextView *) this;
+	TextView *this = (TextView *) self;
 
-	g_free(textView->defaultText);
-	textView->defaultText = NULL;
+	free(this->defaultText);
+	this->defaultText = NULL;
 
 	MutableArray *keys = $$(MutableArray, array);
 	SDL_Scancode key = SDL_SCANCODE_UNKNOWN;
 	while (true) {
-		key = cgi.KeyForBind(key, this->bind);
+		key = cgi.KeyForBind(key, ((BindTextView *) this)->bind);
 		if (key == SDL_SCANCODE_UNKNOWN) {
 			break;
 		}
@@ -53,7 +82,7 @@ static void updateBindings(View *self) {
 
 	if (keys->array.count) {
 		String *keyNames = $((Array *) keys, componentsJoinedByCharacters, ", ");
-		textView->defaultText = g_strdup(keyNames->chars);
+		this->defaultText = strdup(keyNames->chars);
 		release(keyNames);
 	}
 
@@ -116,7 +145,7 @@ static BindTextView *initWithBind(BindTextView *self, const char *bind) {
 	self = (BindTextView *) super(TextView, self, initWithFrame, NULL, ControlStyleDefault);
 	if (self) {
 
-		self->bind = bind;
+		self->bind = strdup(bind);
 		assert(self->bind);
 
 		self->textView.control.view.frame.w = BIND_WIDTH;
@@ -134,6 +163,9 @@ static BindTextView *initWithBind(BindTextView *self, const char *bind) {
  */
 static void initialize(Class *clazz) {
 
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+
+	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((ControlInterface *) clazz->interface)->captureEvent = captureEvent;

@@ -58,7 +58,7 @@ struct BindTextView {
 	/**
 	 * @brief The bind (e.g. `+forward`).
 	 */
-	const char *bind;
+	char *bind;
 };
 
 /**
