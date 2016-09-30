@@ -3,6 +3,6 @@ Write-Output "Downloading libxml2..."
 Write-Output "Extracting libxml2..."
 7z x tmp.tar.gz
 7z e tmp.tar -aos "libxml2-2.9.4\include\*.h"
-7z e tmp.tar -aos "libxml2-2.9.4\libxml\*.h" -olibxml\
+7z e tmp.tar -aos "libxml2-2.9.4\include\libxml\*.h" -olibxml\
 Rename-Item win32config.h config.h
 Remove-Item "tmp.*"
