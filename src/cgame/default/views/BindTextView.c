@@ -42,22 +42,6 @@ static void dealloc(Object *self) {
 #pragma mark - View
 
 /**
- * @see View::awakeWithDictionary(View *, const Dictionary *)
- */
-static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
-
-	super(View, self, awakeWithDictionary, dictionary);
-
-	BindTextView *this = (BindTextView *) self;
-
-	const Inlet inlets[] = MakeInlets(
-		MakeInlet("bind", InletTypeCharacters, &this->bind, NULL)
-	);
-
-	$(self, bind, dictionary, inlets);
-}
-
-/**
  * @see View::updateBindings(View *)
  */
 static void updateBindings(View *self) {
@@ -165,7 +149,6 @@ static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((ControlInterface *) clazz->interface)->captureEvent = captureEvent;

@@ -28,23 +28,6 @@
 #pragma mark - View
 
 /**
- * @see View::awakeWithDictionary(View *, const Dictionary *)
- */
-static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
-
-	super(View, self, awakeWithDictionary, dictionary);
-
-	CvarSelect *this = (CvarSelect *) self;
-
-	const Inlet inlets[] = MakeInlets(
-		MakeInlet("expectsStringValue", InletTypeBool, &this->expectsStringValue, NULL),
-		MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_MenuBindCvar)
-	);
-
-	$(self, bind, dictionary, inlets);
-}
-
-/**
  * @see View::updateBindings(View *)
  */
 static void updateBindings(View *self) {
@@ -123,7 +106,6 @@ static CvarSelect *initWithVariable(CvarSelect *self, cvar_t *var) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((SelectInterface *) clazz->interface)->addOption = addOption;

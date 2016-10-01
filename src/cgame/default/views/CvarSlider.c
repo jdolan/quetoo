@@ -28,22 +28,6 @@
 #pragma mark - View
 
 /**
- * @see View::awakeWithDictionary(View *, const Dictionary *)
- */
-static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
-
-	super(View, self, awakeWithDictionary, dictionary);
-
-	CvarSlider *this = (CvarSlider *) self;
-
-	const Inlet inlets[] = MakeInlets(
-		MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_MenuBindCvar)
-	);
-
-	$(self, bind, dictionary, inlets);
-}
-
-/**
  * @see View::updateBindings(View *)
  */
 static void updateBindings(View *self) {
@@ -101,7 +85,6 @@ static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, d
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((CvarSliderInterface *) clazz->interface)->initWithVariable = initWithVariable;
