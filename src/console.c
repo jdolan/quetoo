@@ -175,7 +175,7 @@ void Con_Append(int32_t level, const char *string) {
 			}
 		}
 	} else {
-		char *stripped = alloca(sizeof(char) * strlen(string) + 1);
+		char stripped[strlen(string) + 1];
 
 		StripColors(string, stripped);
 		fputs(stripped, stdout);
