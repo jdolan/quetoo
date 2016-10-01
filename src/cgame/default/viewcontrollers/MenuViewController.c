@@ -51,6 +51,7 @@ static void loadView(ViewController *self) {
 	assert(this->panel);
 
 	this->panel->stackView.view.alignment = ViewAlignmentMiddleCenter;
+	this->panel->stackView.view.needsLayout = true;
 
 	$(self->view, addSubview, (View *) this->panel);
 }
