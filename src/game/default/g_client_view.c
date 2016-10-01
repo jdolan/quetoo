@@ -358,7 +358,7 @@ static void G_ClientAnimation(g_entity_t *ent) {
 			return;
 		}
 
-		if (cl->speed < 1.0 && !cl->cmd.forward && !cl->cmd.right && !cl->cmd.up) {
+		if (cl->speed < 1.0 && !cl->cmd.forward && !cl->cmd.right) {
 			G_SetAnimation(ent, ANIM_LEGS_IDLE, false);
 			return;
 		}
