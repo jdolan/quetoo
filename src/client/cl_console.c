@@ -77,7 +77,7 @@ static void Cl_DrawConsole_Buffer(void) {
 	cl_console.width = r_context.width / cw;
 	cl_console.height = (height / ch) - 1;
 
-	char *lines[cl_console.height];
+	char **lines = alloca(sizeof(char*) * cl_console.height);
 	const size_t count = Con_Tail(&cl_console, lines, cl_console.height);
 
 	r_pixel_t y = (cl_console.height - count) * ch;
@@ -157,7 +157,7 @@ void Cl_DrawNotify(void) {
 		con.whence = cl.systime - cl_notify_time->value * 1000;
 	}
 
-	char *lines[con.height];
+	char **lines = alloca(sizeof(char*) * con.height);
 	const size_t count = Con_Tail(&con, lines, con.height);
 
 	r_pixel_t y = 0;
@@ -192,7 +192,7 @@ void Cl_DrawChat(void) {
 			cl_chat_console.whence = cl.systime - cl_chat_time->value * 1000;
 		}
 
-		char *lines[cl_chat_console.height];
+		char **lines = Mem_Malloc(sizeof(char*) * cl_chat_console.height);
 		const size_t count = Con_Tail(&cl_chat_console, lines, cl_chat_console.height);
 
 		int32_t color = CON_COLOR_DEFAULT;
@@ -202,6 +202,8 @@ void Cl_DrawChat(void) {
 			g_free(lines[i]);
 			y += ch;
 		}
+
+		Mem_Free(lines);
 	}
 
 	if (cls.key_state.dest == KEY_CHAT) {
@@ -233,10 +235,12 @@ void Cl_DrawChat(void) {
  * @brief
  */
 static void Cl_Print(const console_string_t *str) {
-	char stripped[strlen(str->chars) + 1];
+	char *stripped = Mem_Malloc(sizeof(char) * (strlen(str->chars) + 1));
 
 	StripColors(str->chars, stripped);
 	fputs(stripped, stdout);
+
+	Mem_Free(stripped);
 }
 
 /**

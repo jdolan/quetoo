@@ -23,13 +23,27 @@
 #include "filesystem.h"
 
 #include <signal.h>
+
+#if !defined(_MSC_VER)
 #include <sys/time.h>
+#else
+#include <DbgHelp.h>
+#endif
 
 #if defined(_WIN32)
 #include <shlobj.h>
 #define RTLD_NOW 0
 #define dlopen(file_name, mode) LoadLibrary(file_name)
-#define dlerror() "Windows.. go figure."
+
+const char *dlerror()
+{
+	static char num_buffer[32];
+	const DWORD err = GetLastError();
+
+	itoa(err, num_buffer, 10);
+	return va("Error loading library: %lu", err);
+}
+
 #define dlsym(handle, symbol) GetProcAddress(handle, symbol)
 #define dlclose(handle) FreeLibrary(handle)
 
@@ -178,6 +192,52 @@ void Sys_Backtrace(void) {
 	backtrace_symbols_fd(symbols, i, STDERR_FILENO);
 
 	fflush(stderr);
+#elif defined(_MSC_VER)
+	void *symbols[MAXSHORT];
+    int32_t i;
+    WORD frames;
+    SYMBOL_INFO *symbol;
+    HANDLE process = GetCurrentProcess();
+	
+	SymSetOptions(SYMOPT_UNDNAME);
+	
+	if (SymInitialize(process, NULL, TRUE))
+	{
+		frames = CaptureStackBackTrace(0, MAXSHORT, symbols, NULL);
+    
+		symbol = Mem_Malloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char));
+		symbol->MaxNameLen = 255;
+		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+
+		for (i = 0; i < frames; i++)
+		{
+			const char *symbol_name = "unknown symbol";
+        
+			SymFromAddr(process, (DWORD64)(symbols[i]), 0, symbol);
+
+			if (symbol->NameLen)
+				symbol_name = symbol->Name;
+			if (symbol->ModBase)
+			{
+				IMAGEHLP_MODULE module;
+				module.SizeOfStruct = sizeof(module);
+				SymGetModuleInfo(process, (DWORD)symbol->ModBase, &module);
+				fprintf(stderr, "%s ", module.ImageName);
+			}
+			else
+				fprintf(stderr, "unknown module ");
+		
+			fprintf(stderr, "(%s+%lux) [0x%" PRIx64 "]\n", symbol_name, symbol->Register, symbol->Address);
+		}
+
+		fflush(stderr);
+		Mem_Free(symbol);
+	}
+	else
+	{
+		fprintf(stderr, "Couldn't get stack trace.\n");
+		fflush(stderr);
+	}
 #endif
 }
 

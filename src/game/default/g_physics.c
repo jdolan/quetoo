@@ -118,7 +118,7 @@ static void G_RunThink(g_entity_t *ent) {
  */
 static _Bool G_GoodPosition(const g_entity_t *ent) {
 
-	const int32_t mask = ent->locals.clip_mask ?: MASK_SOLID;
+	const int32_t mask = ent->locals.clip_mask ? ent->locals.clip_mask : MASK_SOLID;
 
 	const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
 
@@ -653,7 +653,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 	VectorCopy(ent->s.origin, origin);
 	VectorCopy(ent->s.angles, angles);
 
-	const int32_t mask = ent->locals.clip_mask ?: MASK_SOLID;
+	const int32_t mask = ent->locals.clip_mask ? ent->locals.clip_mask : MASK_SOLID;
 
 	vec_t time_remaining = gi.frame_seconds;
 	int32_t num_planes = 0;

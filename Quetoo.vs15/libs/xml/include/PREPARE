@@ -1,0 +1,3 @@
+Grab the latest source for libxml2 from http://xmlsoft.org/downloads.html
+and extract the contents of the include folder to here. Do not overwrite the
+files that already exist, as they have configuration for this project.
