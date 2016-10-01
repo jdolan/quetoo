@@ -38,3 +38,8 @@ libviewcontrollers_la_LDFLAGS = \
 
 libviewcontrollers_la_LIBADD = \
 	$(top_srcdir)/src/cgame/default/views/libviews.la
+
+viewsdir = @PKGLIBDIR@/default/views
+
+views_DATA = \
+	KeysViewController.json

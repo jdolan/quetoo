@@ -23,6 +23,8 @@
 
 #include "KeysViewController.h"
 
+#include "BindTextView.h"
+
 #define _Class _KeysViewController
 
 #pragma mark - ViewController
@@ -36,101 +38,11 @@ static void loadView(ViewController *self) {
 
 	MenuViewController *this = (MenuViewController *) self;
 
-	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
+	$((View *) this->panel, removeFromSuperview);
+	release(this->panel);
 
-	columns->axis = StackViewAxisHorizontal;
-	columns->spacing = DEFAULT_PANEL_SPACING;
-
-	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
-
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "MOVEMENT");
-
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-			Ui_Bind((View *) stackView, "Forward", "+forward");
-			Ui_Bind((View *) stackView, "Back", "+back");
-			Ui_Bind((View *) stackView, "Move left", "+move_left");
-			Ui_Bind((View *) stackView, "Move right", "+move_right");
-			Ui_Bind((View *) stackView, "Jump", "+move_up");
-			Ui_Bind((View *) stackView, "Crouch", "+move_down");
-			Ui_Bind((View *) stackView, "Turn left", "+left");
-			Ui_Bind((View *) stackView, "Turn right", "+right");
-			Ui_Bind((View *) stackView, "Center view", "center_view");
-			Ui_Bind((View *) stackView, "Run / walk", "+speed");
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "COMMUNICATIONS");
-
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-			Ui_Bind((View *) stackView, "Say", "cl_message_mode");
-			Ui_Bind((View *) stackView, "Say Team", "cl_message_mode_2");
-			Ui_Bind((View *) stackView, "Show score", "+SCORE");
-			Ui_Bind((View *) stackView, "Take screenshot", "r_screenshot");
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
-	}
-
-	{
-		StackView *column = $(alloc(StackView), initWithFrame, NULL);
-		column->spacing = DEFAULT_PANEL_SPACING;
-
-		{
-			Box *box = $(alloc(Box), initWithFrame, NULL);
-			$(box->label, setText, "COMBAT");
-
-			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-
-			Ui_Bind((View *) stackView, "Attack", "+attack");
-			Ui_Bind((View *) stackView, "Next weapon", "weapon_next");
-			Ui_Bind((View *) stackView, "Previous weapon", "weapon_previous");
-			Ui_Bind((View *) stackView, "Zoom", "+ZOOM");
-
-			Ui_Bind((View *) stackView, "Blaster", "use blaster");
-			Ui_Bind((View *) stackView, "Shotgun", "use shotgun");
-			Ui_Bind((View *) stackView, "Super shotgun", "use super shotgun");
-			Ui_Bind((View *) stackView, "Machinegun", "use machinegun");
-			Ui_Bind((View *) stackView, "Hand grenades", "use grenades");
-			Ui_Bind((View *) stackView, "Grenade launcher", "use grenade launcher");
-			Ui_Bind((View *) stackView, "Rocket launcher", "use rocket launcher");
-			Ui_Bind((View *) stackView, "Hyperblaster", "use hyperblaster");
-			Ui_Bind((View *) stackView, "Lightning", "use lightning");
-			Ui_Bind((View *) stackView, "Railgun", "use railgun");
-			Ui_Bind((View *) stackView, "BFG-10K", "use bfg10k");
-
-			$((View *) box, addSubview, (View *) stackView);
-			release(stackView);
-
-			$((View *) column, addSubview, (View *) box);
-			release(box);
-		}
-
-		$((View *) columns, addSubview, (View *) column);
-		release(column);
-	}
-
-	$((View *) this->panel->contentView, addSubview, (View *) columns);
-	release(columns);
+	this->panel = (Panel *) Cg_LoadView(_Class.name, NULL);
+	$(self->view, addSubview, (View *) this->panel);
 }
 
 #pragma mark - Class lifecycle
@@ -139,7 +51,9 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-	
+
+	_initialize(&_BindTextView);
+
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 

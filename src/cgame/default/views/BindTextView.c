@@ -58,35 +58,45 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 }
 
 /**
+ * @see View::init(View *)
+ */
+static View *init(View *self) {
+	return (View *) $((BindTextView *) self, initWithBind, NULL);
+}
+
+/**
  * @see View::updateBindings(View *)
  */
 static void updateBindings(View *self) {
 
 	super(View, self, updateBindings);
 
-	TextView *this = (TextView *) self;
+	if (((BindTextView *) self)->bind) {
 
-	free(this->defaultText);
-	this->defaultText = NULL;
+		TextView *this = (TextView *) self;
 
-	MutableArray *keys = $$(MutableArray, array);
-	SDL_Scancode key = SDL_SCANCODE_UNKNOWN;
-	while (true) {
-		key = cgi.KeyForBind(key, ((BindTextView *) this)->bind);
-		if (key == SDL_SCANCODE_UNKNOWN) {
-			break;
+		free(this->defaultText);
+		this->defaultText = NULL;
+
+		MutableArray *keys = $$(MutableArray, array);
+		SDL_Scancode key = SDL_SCANCODE_UNKNOWN;
+		while (true) {
+			key = cgi.KeyForBind(key, ((BindTextView *) this)->bind);
+			if (key == SDL_SCANCODE_UNKNOWN) {
+				break;
+			}
+
+			$(keys, addObject, str(cgi.KeyName(key)));
 		}
 
-		$(keys, addObject, str(cgi.KeyName(key)));
+		if (keys->array.count) {
+			String *keyNames = $((Array *) keys, componentsJoinedByCharacters, ", ");
+			this->defaultText = strdup(keyNames->chars);
+			release(keyNames);
+		}
+		
+		release(keys);
 	}
-
-	if (keys->array.count) {
-		String *keyNames = $((Array *) keys, componentsJoinedByCharacters, ", ");
-		this->defaultText = strdup(keyNames->chars);
-		release(keyNames);
-	}
-
-	release(keys);
 }
 
 #pragma mark - Control
@@ -145,8 +155,10 @@ static BindTextView *initWithBind(BindTextView *self, const char *bind) {
 	self = (BindTextView *) super(TextView, self, initWithFrame, NULL, ControlStyleDefault);
 	if (self) {
 
-		self->bind = strdup(bind);
-		assert(self->bind);
+		if (bind) {
+			self->bind = strdup(bind);
+			assert(self->bind);
+		}
 
 		self->textView.control.view.frame.w = BIND_WIDTH;
 
@@ -166,6 +178,7 @@ static void initialize(Class *clazz) {
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
 	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
+	((ViewInterface *) clazz->interface)->init = init;
 	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
 	((ControlInterface *) clazz->interface)->captureEvent = captureEvent;

@@ -25,6 +25,7 @@
 
 #include "cg_types.h"
 
+extern View *Cg_LoadView(const char *name, Outlet *outlets);
 extern void Cg_MenuBindCvar(const Inlet *inlet, ident obj);
 
 extern void Ui_Bind(View *view, const char *name, const char *bind);

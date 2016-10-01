@@ -1,0 +1,472 @@
+{
+	"class": "Panel",
+	"alignment": "ViewAlignmentMiddleCenter",
+	"contentView": {
+		"subviews": [
+			{
+				"class": "StackView",
+				"axis": "StackViewAxisHorizontal",
+				"spacing": 10,
+				"subviews": [
+					{
+						"class": "StackView",
+						"spacing": 10,
+						"subviews": [
+							{
+								"class": "Box",
+								"label": {
+									"text": "MOVEMENT"
+								},
+								"subviews": [
+									{
+										"class": "StackView",
+										"subviews": [
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "+forward"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Forward"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "+back"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Back"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "+move_left"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Move left"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "+move_right"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Move right"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "+move_up"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Jump"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "+move_down"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Crouch"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "+left"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Turn left"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "+right"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Turn right"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "center_view"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Center view"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "+speed"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Run / walk"
+													}
+												}
+											}
+										]
+									}
+								]
+							},
+							{
+								"class": "Box",
+								"label": {
+									"text": "COMMUNICATIONS"
+								},
+								"subviews": [
+									{
+										"class": "StackView",
+										"subviews": [
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "cl_message_mode"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Say"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "cl_message_mode_2"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Say team"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "+SCORE"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Show score"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "r_screenshot"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Take screenshot"
+													}
+												}
+											}
+										]
+									}
+								]
+							}
+						]
+					},
+					{
+						"class": "StackView",
+						"spacing": 10,
+						"subviews": [
+							{
+								"class": "Box",
+								"label": {
+									"text": "COMBAT"
+								},
+								"subviews": [
+									{
+										"class": "StackView",
+										"subviews": [
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "+attack"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Attack"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "weapon_next"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Next weapon"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "weapon_previous"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Previous weapon"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "+ZOOM"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Zoom"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "use blaster"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Blaster"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "use shotgun"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Shotgun"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "use supershotgun"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Super shotgun"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "use machinegun"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Machinegun"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "use grenades"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Hand grenades"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "use grenade launcher"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Grenade Launcher"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "use rocket launcher"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Rocket Launcher"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "use hyperblaster"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Hyperblaster"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "use lightning"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Lightning"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "use railgun"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "Raigun"
+													}
+												}
+											},
+											{
+												"class": "Input",
+												"control": {
+													"class": "BindTextView",
+													"bind": "use bfg10k"
+												},
+												"label": {
+													"frame": [ 0, 0, 140, 0],
+													"viewAutoresizingMask": "ViewAutoresizingNone",
+													"text": {
+														"text": "BFG-10K"
+													}
+												}
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}

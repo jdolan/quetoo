@@ -28,6 +28,31 @@
 #include "views/PrimaryButton.h"
 
 /**
+ *
+ */
+View *Cg_LoadView(const char *name, Outlet *outlets) {
+
+	View *view = NULL;
+
+	void *buffer;
+	const int64_t size = cgi.LoadFile(va("views/%s.json", name), &buffer);
+	if (size > -1) {
+
+		Data *data = $$(Data, dataWithBytes, buffer, size);
+		cgi.FreeFile(buffer);
+
+		view = $$(View, viewWithData, data, outlets);
+
+		release(data);
+
+	} else {
+		cgi.Error("Failed to load View %s\n", name);
+	}
+
+	return view;
+}
+
+/**
  * @brief InletBinding for InletTypeApplicationDefined -> cvar_t.
  */
 void Cg_MenuBindCvar(const Inlet *inlet, ident obj) {

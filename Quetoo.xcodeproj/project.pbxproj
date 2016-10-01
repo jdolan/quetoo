@@ -1298,6 +1298,7 @@
 		CE5A5AB71D890349001A00CC /* update-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "update-icon.rc"; sourceTree = "<group>"; };
 		CE5A5AB81D8904FC001A00CC /* update.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = update.ico; sourceTree = "<group>"; };
 		CE5BD59B1D3EE3B800C43B85 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
+		CE5CDB921D9F04A60034757D /* KeysViewController.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = KeysViewController.json; sourceTree = "<group>"; };
 		CE72D8A91D404ACA002129FC /* libObjectivelyMVC.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.dylib; path = ../ObjectivelyMVC/build/Debug/libObjectivelyMVC.dylib; sourceTree = "<group>"; };
 		CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = /opt/local/lib/libxml2.2.dylib; sourceTree = "<absolute>"; };
 		CE8000071C5E52A200A21A51 /* libz.1.2.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.8.dylib; path = /opt/local/lib/libz.1.2.8.dylib; sourceTree = "<absolute>"; };
@@ -2673,6 +2674,7 @@
 				CEFC78BC1D9BE432000FA6B2 /* CreateServerViewController.h */,
 				CEFC78BD1D9BE432000FA6B2 /* KeysViewController.c */,
 				CEFC78BE1D9BE432000FA6B2 /* KeysViewController.h */,
+				CE5CDB921D9F04A60034757D /* KeysViewController.json */,
 				CEFC78D01D9BE432000FA6B2 /* MainViewController.c */,
 				CEFC78D11D9BE432000FA6B2 /* MainViewController.h */,
 				CEFC78D51D9BE432000FA6B2 /* MenuViewController.c */,
