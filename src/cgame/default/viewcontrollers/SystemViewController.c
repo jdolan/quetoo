@@ -68,8 +68,8 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Video mode", videoModeSelect);
 			release(videoModeSelect);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Fullscreen", cgi.Cvar("r_fullscreen", NULL, 0, NULL));
-			Cg_CvarCheckboxInput((View *) stackView, "Vertical Sync", cgi.Cvar("r_swap_interval", NULL, 0, NULL));
+			Cg_CvarCheckboxInput((View *) stackView, "Fullscreen", "r_fullscreen");
+			Cg_CvarCheckboxInput((View *) stackView, "Vertical Sync", "r_swap_interval");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -86,7 +86,7 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Select *anisoSelect = (Select *) $(alloc(CvarSelect), initWithVariable, cgi.Cvar("r_anisotropy", NULL, 0, NULL));
+			Select *anisoSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_anisotropy");
 
 			$(anisoSelect, addOption, "16x", (ident) 16);
 			$(anisoSelect, addOption, "8x", (ident) 8);
@@ -96,7 +96,7 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Anisotropy", (Control *) anisoSelect);
 			release(anisoSelect);
 
-			Select *multisampleSelect = (Select *) $(alloc(CvarSelect), initWithVariable, cgi.Cvar("r_multisample", NULL, 0, NULL));
+			Select *multisampleSelect = (Select *) $(alloc(CvarSelect), initWithVariableName, "r_multisample");
 
 			$(multisampleSelect, addOption, "8x", (ident) 4);
 			$(multisampleSelect, addOption, "4x", (ident) 2);
@@ -106,7 +106,8 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Multisample", (Control *) multisampleSelect);
 			release(multisampleSelect);
 
-			Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariable, cgi.Cvar("r_shadows", NULL, 0, NULL));
+			cvar_t *r_shadows = cgi.CvarGet("r_shadows");
+			Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariable, r_shadows);
 
 			$(shadowsSelect, addOption, "High", (ident) 2);
 			$(shadowsSelect, addOption, "Low", (ident) 1);
@@ -136,10 +137,10 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarSliderInput((View *) stackView, "Brightness", cgi.Cvar("r_brightness", NULL, 0, NULL), 0.1, 2.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Contrast", cgi.Cvar("r_contrast", NULL, 0, NULL), 0.1, 2.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Gamma", cgi.Cvar("r_gamma", NULL, 0, NULL), 0.1, 2.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Modulate", cgi.Cvar("r_modulate", NULL, 0, NULL), 0.1, 5.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Brightness", "r_brightness", 0.1, 2.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Contrast", "r_contrast", 0.1, 2.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Gamma", "r_gamma", 0.1, 2.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Modulate", "r_modulate", 0.1, 5.0, 0.1);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -154,8 +155,8 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarSliderInput((View *) stackView, "Volume", cgi.Cvar("s_volume", NULL, 0, NULL), 0.0, 1.0, 0.0);
-			Cg_CvarSliderInput((View *) stackView, "Music Volume", cgi.Cvar("s_music_volume", NULL, 0, NULL), 0.0, 1.0, 0.0);
+			Cg_CvarSliderInput((View *) stackView, "Volume", "s_volume", 0.0, 1.0, 0.0);
+			Cg_CvarSliderInput((View *) stackView, "Music Volume", "s_music_volume", 0.0, 1.0, 0.0);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

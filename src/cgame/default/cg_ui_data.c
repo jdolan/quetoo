@@ -58,7 +58,10 @@ void Cg_Button(View *view, const char *title, ActionFunction function, ident sen
 /**
  * @brief
  */
-void Cg_CvarCheckboxInput(View *view, const char *label, cvar_t *var) {
+void Cg_CvarCheckboxInput(View *view, const char *label, const char *name) {
+
+	cvar_t *var = cgi.CvarGet(name);
+	assert(var);
 
 	CvarCheckbox *checkbox = $(alloc(CvarCheckbox), initWithVariable, var);
 
@@ -70,7 +73,10 @@ void Cg_CvarCheckboxInput(View *view, const char *label, cvar_t *var) {
 /**
  * @brief
  */
-void Cg_CvarSliderInput(View *view, const char *label, cvar_t *var, double min, double max, double step) {
+void Cg_CvarSliderInput(View *view, const char *label, const char *name, double min, double max, double step) {
+
+	cvar_t *var = cgi.CvarGet(name);
+	assert(var);
 
 	CvarSlider *slider = $(alloc(CvarSlider), initWithVariable, var, min, max, step);
 
@@ -82,8 +88,11 @@ void Cg_CvarSliderInput(View *view, const char *label, cvar_t *var, double min, 
 /**
  * @brief
  */
-void Cg_CvarTextView(View *view, const char *label, cvar_t *var) {
+void Cg_CvarTextView(View *view, const char *label, const char *name) {
 
+	cvar_t *var = cgi.CvarGet(name);
+	assert(var);
+	
 	CvarTextView *textView = $(alloc(CvarTextView), initWithVariable, var);
 
 	Cg_Input(view, label, (Control *) textView);

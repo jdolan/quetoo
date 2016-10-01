@@ -81,10 +81,10 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarSliderInput((View *) stackView, "Sensitivity", cgi.Cvar("m_sensitivity", NULL, 0, NULL), 0.1, 6.0, 0.1);
-			Cg_CvarSliderInput((View *) stackView, "Zoom Sensitivity", cgi.Cvar("m_sensitivity_zoom", NULL, 0, NULL), 0.1, 6.0, 0.1);
-			Cg_CvarCheckboxInput((View *) stackView, "Invert mouse", cgi.Cvar("m_invert", NULL, 0, NULL));
-			Cg_CvarCheckboxInput((View *) stackView, "Smooth mouse", cgi.Cvar("m_interpolate", NULL, 0, NULL));
+			Cg_CvarSliderInput((View *) stackView, "Sensitivity", "m_sensitivity", 0.1, 6.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Zoom Sensitivity", "m_sensitivity_zoom", 0.1, 6.0, 0.1);
+			Cg_CvarCheckboxInput((View *) stackView, "Invert mouse", "m_invert");
+			Cg_CvarCheckboxInput((View *) stackView, "Smooth mouse", "m_interpolate");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -131,7 +131,7 @@ static void loadView(ViewController *self) {
 			$((Control *) scaleSlider, addActionForEventType, SDL_MOUSEMOTION, modifyCrosshair, self, NULL);
 			Cg_Input((View *) stackView, "Crosshair scale", (Control *) scaleSlider);
 
-			Cg_CvarCheckboxInput((View *) stackView, "Pulse on pickup", cg_draw_crosshair_pulse);
+			Cg_CvarCheckboxInput((View *) stackView, "Pulse on pickup", cg_draw_crosshair_pulse->name);
 
 			const SDL_Rect frame = MakeRect(0, 0, 72, 72);
 

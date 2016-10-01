@@ -29,7 +29,8 @@ extern _Bool cvar_user_info_modified;
 
 typedef void (*CvarEnumerateFunc)(cvar_t *var, void *data);
 
-cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char *description);
+cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *description);
+cvar_t *Cvar_Get(const char *name);
 cvar_t *Cvar_Set(const char *name, const char *value);
 cvar_t *Cvar_ForceSet(const char *name, const char *value);
 cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags);

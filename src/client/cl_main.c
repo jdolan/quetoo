@@ -35,14 +35,15 @@ cvar_t *cl_team_chat_sound;
 cvar_t *cl_timeout;
 cvar_t *cl_view_size;
 
+cvar_t *name;
 cvar_t *message_level;
 cvar_t *password;
 cvar_t *rate;
 
 cvar_t *qport;
 
-cvar_t *rcon_password;
 cvar_t *rcon_address;
+cvar_t *rcon_password;
 
 cvar_t *cl_show_net_messages;
 cvar_t *cl_show_renderer_stats;
@@ -498,35 +499,34 @@ static const char *Cl_Username(void) {
 static void Cl_InitLocal(void) {
 
 	// register our variables
-	cl_async = Cvar_Get("cl_async", "0", CVAR_ARCHIVE, NULL);
-	cl_chat_sound = Cvar_Get("cl_chat_sound", "misc/chat", 0, NULL);
-	cl_draw_counters = Cvar_Get("cl_draw_counters", "1", CVAR_ARCHIVE, NULL);
-	cl_draw_net_graph = Cvar_Get("cl_draw_net_graph", "1", CVAR_ARCHIVE, NULL);
-	cl_editor = Cvar_Get("cl_editor", "0", CVAR_LO_ONLY, "Activate the in-game editor");
-	cl_ignore = Cvar_Get("cl_ignore", "", 0, NULL);
-	cl_max_fps = Cvar_Get("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
-	cl_max_pps = Cvar_Get("cl_max_pps", "0", CVAR_ARCHIVE, NULL);
-	cl_predict = Cvar_Get("cl_predict", "1", 0, "Use client-side prediction to update local view");
-	cl_team_chat_sound = Cvar_Get("cl_team_chat_sound", "misc/teamchat", 0, NULL);
-	cl_timeout = Cvar_Get("cl_timeout", "15.0", 0, NULL);
-	cl_view_size = Cvar_Get("cl_view_size", "100.0", CVAR_ARCHIVE, NULL);
+	cl_async = Cvar_Add("cl_async", "0", CVAR_ARCHIVE, NULL);
+	cl_chat_sound = Cvar_Add("cl_chat_sound", "misc/chat", 0, NULL);
+	cl_draw_counters = Cvar_Add("cl_draw_counters", "1", CVAR_ARCHIVE, NULL);
+	cl_draw_net_graph = Cvar_Add("cl_draw_net_graph", "1", CVAR_ARCHIVE, NULL);
+	cl_editor = Cvar_Add("cl_editor", "0", CVAR_LO_ONLY, "Activate the in-game editor");
+	cl_ignore = Cvar_Add("cl_ignore", "", 0, NULL);
+	cl_max_fps = Cvar_Add("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
+	cl_max_pps = Cvar_Add("cl_max_pps", "0", CVAR_ARCHIVE, NULL);
+	cl_predict = Cvar_Add("cl_predict", "1", 0, "Use client-side prediction to update local view");
+	cl_team_chat_sound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", 0, NULL);
+	cl_timeout = Cvar_Add("cl_timeout", "15.0", 0, NULL);
+	cl_view_size = Cvar_Add("cl_view_size", "100.0", CVAR_ARCHIVE, NULL);
 
 	// user info
 
-	Cvar_Set("cg_name", Sys_Username());
+	name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name");
+	message_level = Cvar_Add("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	password = Cvar_Add("password", "", CVAR_USER_INFO, NULL);
+	rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
 
-	message_level = Cvar_Get("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-	password = Cvar_Get("password", "", CVAR_USER_INFO, NULL);
-	rate = Cvar_Get("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
+	qport = Cvar_Add("qport", va("%d", Random() & 0xff), 0, NULL);
 
-	qport = Cvar_Get("qport", va("%d", Random() & 0xff), 0, NULL);
+	rcon_address = Cvar_Add("rcon_address", "", 0, NULL);
+	rcon_password = Cvar_Add("rcon_password", "", 0, NULL);
 
-	rcon_password = Cvar_Get("rcon_password", "", 0, NULL);
-	rcon_address = Cvar_Get("rcon_address", "", 0, NULL);
-
-	cl_show_net_messages = Cvar_Get("cl_show_net_messages", "0", CVAR_LO_ONLY, NULL);
-	cl_show_renderer_stats = Cvar_Get("cl_show_renderer_stats", "0", CVAR_LO_ONLY, NULL);
-	cl_show_sound_stats = Cvar_Get("cl_show_sound_stats", "0", CVAR_LO_ONLY, NULL);
+	cl_show_net_messages = Cvar_Add("cl_show_net_messages", "0", CVAR_LO_ONLY, NULL);
+	cl_show_renderer_stats = Cvar_Add("cl_show_renderer_stats", "0", CVAR_LO_ONLY, NULL);
+	cl_show_sound_stats = Cvar_Add("cl_show_sound_stats", "0", CVAR_LO_ONLY, NULL);
 
 	// register our commands
 	Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);

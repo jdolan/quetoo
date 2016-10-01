@@ -79,7 +79,7 @@ struct CvarSelectInterface {
 	/**
 	 * @fn CvarSelect *CvarSelect::initWithVariable(CvarSelect *self, cvar_t *var)
 	 *
-	 * @brief Initializes this Select with the given variable.
+	 * @brief Initializes this CvarSelect with the given variable.
 	 *
 	 * @param var The variable.
 	 *
@@ -88,6 +88,19 @@ struct CvarSelectInterface {
 	 * @memberof CvarSelect
 	 */
 	CvarSelect *(*initWithVariable)(CvarSelect *self, cvar_t *var);
+
+	/**
+	 * @fn CvarSelect *CvarSelect::initWithVariabeName(CvarSelect *self, const char (name)
+	 *
+	 * @brief Initializes this CvarSelect with the given variable name.
+	 *
+	 * @param name The variable name.
+	 *
+	 * @return The initialized CvarSelect, or `NULL`.
+	 * 
+	 * @memberof CvarSelect
+	 */
+	CvarSelect *(*initWithVariableName)(CvarSelect *self, const char *name);
 };
 
 /**

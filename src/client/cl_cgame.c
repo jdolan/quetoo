@@ -156,9 +156,10 @@ void Cl_InitCgame(void) {
 	import.FreeFile = Fs_Free;
 	import.EnumerateFiles = Fs_Enumerate;
 
-	import.Cvar = Cvar_Get;
-	import.CvarString = Cvar_GetString;
+	import.Cvar = Cvar_Add;
+	import.CvarGet = Cvar_Get;
 	import.CvarSet = Cvar_Set;
+	import.CvarString = Cvar_GetString;
 	import.CvarValue = Cvar_GetValue;
 	import.CvarSetValue = Cvar_SetValue;
 	import.Cmd = Cmd_Add;

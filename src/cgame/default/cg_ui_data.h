@@ -25,8 +25,8 @@
 
 extern void Cg_BindInput(View *view, const char *label, const char *bind);
 extern void Cg_Button(View *view, const char *title, ActionFunction function, ident sender, ident data);
-extern void Cg_CvarCheckboxInput(View *view, const char *label, cvar_t *var);
-extern void Cg_CvarSliderInput(View *view, const char *label, cvar_t *var, double min, double max, double step);
-extern void Cg_CvarTextView(View *view, const char *label, cvar_t *var);
+extern void Cg_CvarCheckboxInput(View *view, const char *label, const char *name);
+extern void Cg_CvarSliderInput(View *view, const char *label, const char *name, double min, double max, double step);
+extern void Cg_CvarTextView(View *view, const char *label, const char *name);
 extern void Cg_Input(View *view, const char *label, Control *control);
 extern void Cg_PrimaryButton(View *view, const char *label, ActionFunction action, ident sender, ident data);

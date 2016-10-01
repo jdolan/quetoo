@@ -72,6 +72,10 @@ void Ui_UpdateBindings(void) {
  */
 void Ui_Draw(void) {
 
+	if (cls.state == CL_LOADING) {
+		return;
+	}
+
 	if (cls.key_state.dest != KEY_UI) {
 		return;
 	}

@@ -99,6 +99,15 @@ static CvarSelect *initWithVariable(CvarSelect *self, cvar_t *var) {
 	return self;
 }
 
+/**
+ * @fn CvarSelect *CvarSelect::initWithVariabeName(CvarSelect *self, const char (name)
+ *
+ * @memberof CvarSelect
+ */
+static CvarSelect *initWithVariableName(CvarSelect *self, const char *name) {
+	return $(self, initWithVariable, cgi.CvarGet(name));
+}
+
 #pragma mark - Class lifecycle
 
 /**
@@ -111,6 +120,7 @@ static void initialize(Class *clazz) {
 	((SelectInterface *) clazz->interface)->addOption = addOption;
 
 	((CvarSelectInterface *) clazz->interface)->initWithVariable = initWithVariable;
+	((CvarSelectInterface *) clazz->interface)->initWithVariableName = initWithVariableName;
 }
 
 Class _CvarSelect = {

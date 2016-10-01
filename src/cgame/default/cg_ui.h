@@ -24,9 +24,6 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_UpdateBindings(void);
-void Cg_HandleEvent(const SDL_Event *event);
-void Cg_DrawMenu(void);
 void Cg_InitMenu(void);
 void Cg_ShutdownMenu(void);
 #endif /* __CG_LOCAL_H__ */

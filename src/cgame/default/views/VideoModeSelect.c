@@ -68,7 +68,7 @@ static void updateBindings(View *self) {
 
 	VideoModeSelect *this = (VideoModeSelect *) self;
 
-	cgi.Free(this->modes);
+	g_free(this->modes);
 
 	Select *select = (Select *) this;
 
@@ -80,7 +80,8 @@ static void updateBindings(View *self) {
 	const int32_t numDisplayModes = SDL_GetNumDisplayModes(display);
 
 	if (numDisplayModes) {
-		this->modes = cgi.Malloc(sizeof(SDL_DisplayMode) * numDisplayModes, MEM_TAG_CGAME);
+		this->modes = g_malloc(sizeof(SDL_DisplayMode) * numDisplayModes);
+		assert(this->modes);
 
 		SDL_DisplayMode *mode = this->modes;
 		for (int32_t i = 0; i < numDisplayModes; i++, mode++) {

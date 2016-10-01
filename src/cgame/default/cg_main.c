@@ -54,7 +54,6 @@ cvar_t *cg_fov_zoom;
 cvar_t *cg_fov_interpolate;
 cvar_t *cg_hand;
 cvar_t *cg_handicap;
-cvar_t *cg_name;
 cvar_t *cg_skin;
 cvar_t *cg_third_person;
 cvar_t *cg_third_person_yaw;
@@ -124,11 +123,12 @@ static void Cg_Init(void) {
 	cg_fov_interpolate = cgi.Cvar("cg_fov_interpolate", "1.0", CVAR_ARCHIVE,
 			"Interpolate between field of view changes (default 1.0).");
 
-	cg_hand = cgi.Cvar("cg_hand", "1", CVAR_ARCHIVE | CVAR_USER_INFO,
+	cg_hand = cgi.Cvar("hand", "1", CVAR_ARCHIVE | CVAR_USER_INFO,
 			"Controls weapon handedness (center: 0, right: 1, left: 2).");
-	cg_handicap = cgi.Cvar("cg_handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE, "Sets your handicap.");
-	cg_name = cgi.Cvar("cg_name", "newbie", CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name.");
-	cg_skin = cgi.Cvar("cg_skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE, "Your player model and skin.");
+	cg_handicap = cgi.Cvar("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE,
+			"Your handicap, or disadvantage.");
+	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
+			"Your player model and skin.");
 
 	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_LO_ONLY,
 			"Activate third person perspective.");

@@ -66,7 +66,7 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Cg_CvarTextView((View *) stackView, "Name", cg_name);
+			Cg_CvarTextView((View *) stackView, "Name", "name");
 
 			Control *skinSelect = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
 
@@ -92,7 +92,7 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Effect color", (Control *) colorSelect);
 			release(colorSelect);
 
-			Cg_CvarSliderInput((View *) stackView, "Handicap", cg_handicap, 50.0, 100.0, 5.0);
+			Cg_CvarSliderInput((View *) stackView, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

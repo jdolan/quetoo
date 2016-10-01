@@ -286,7 +286,7 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 		const char *description) {
 	cmd_t *cmd;
 
-	if (Cvar_Get(name, NULL, 0, NULL)) {
+	if (Cvar_Add(name, NULL, 0, NULL)) {
 		Com_Debug("%s already defined as a var\n", name);
 		return NULL;
 	}
@@ -320,7 +320,7 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 	cmd_t *cmd;
 
-	if (Cvar_Get(name, NULL, 0, NULL)) {
+	if (Cvar_Add(name, NULL, 0, NULL)) {
 		Com_Debug("%s already defined as a var\n", name);
 		return NULL;
 	}
@@ -466,7 +466,7 @@ static void Cmd_Alias_f(void) {
 		return;
 	}
 
-	if (Cvar_Get(Cmd_Argv(1), NULL, 0, NULL)) {
+	if (Cvar_Add(Cmd_Argv(1), NULL, 0, NULL)) {
 		Com_Print("%s is a variable\n", Cmd_Argv(1));
 		return;
 	}

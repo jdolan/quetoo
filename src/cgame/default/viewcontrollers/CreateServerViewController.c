@@ -53,10 +53,10 @@ static void loadView(ViewController *self) {
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 			stackView->spacing = DEFAULT_PANEL_SPACING;
 
-			Cg_CvarTextView((View *) stackView, "Hostname", cgi.Cvar("sv_hostname", NULL, 0, NULL));
-			Cg_CvarTextView((View *) stackView, "Clients", cgi.Cvar("sv_max_clients", NULL, 0, NULL));
-			Cg_CvarCheckboxInput((View *) stackView, "Public", cgi.Cvar("sv_public", NULL, 0, NULL));
-			Cg_CvarTextView((View *) stackView, "Password", cgi.Cvar("password", NULL, 0, NULL));
+			Cg_CvarTextView((View *) stackView, "Hostname", "sv_hostname");
+			Cg_CvarTextView((View *) stackView, "Clients", "sv_max_clients");
+			Cg_CvarCheckboxInput((View *) stackView, "Public", "sv_public");
+			Cg_CvarTextView((View *) stackView, "Password", "password");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

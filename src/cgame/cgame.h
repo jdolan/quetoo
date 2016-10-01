@@ -219,6 +219,13 @@ typedef struct cg_import_s {
 	vec_t (*CvarValue)(const char *name);
 
 	/**
+	 * @brief Resolves a console variable that is expected to be defined by the engine.
+	 *
+	 * @return The predefined console variable.
+	 */
+	cvar_t *(*CvarGet)(const char *name);
+
+	/**
 	 * @brief Sets the console variable by `name` to `string`.
 	 */
 	cvar_t *(*CvarSet)(const char *name, const char *string);

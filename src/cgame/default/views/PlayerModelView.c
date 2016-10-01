@@ -211,7 +211,7 @@ static void updateBindings(View *self) {
 	PlayerModelView *this = (PlayerModelView *) self;
 
 	char string[MAX_STRING_CHARS];
-	g_snprintf(string, sizeof(string), "%s\\%s", cg_name->string, cg_skin->string);
+	g_snprintf(string, sizeof(string), "newbie\\%s", cg_skin->string);
 
 	Cg_LoadClient(&this->client, string);
 
