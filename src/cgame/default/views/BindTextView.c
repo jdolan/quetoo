@@ -132,7 +132,7 @@ static BindTextView *initWithBind(BindTextView *self, const char *bind) {
 		self->bind = strdup(bind);
 		assert(self->bind);
 
-		self->textView.control.view.frame.w = BIND_WIDTH;
+		self->textView.control.view.frame.w = BIND_TEXTVIEW_WIDTH;
 
 		$((View *) self, updateBindings);
 	}

@@ -28,20 +28,13 @@
 #include "views/PrimaryButton.h"
 
 /**
- * @brief InletBinding for InletTypeApplicationDefined -> cvar_t.
- */
-void Cg_MenuBindCvar(const Inlet *inlet, ident obj) {
-	*((cvar_t **) inlet->dest) = cgi.Cvar(cast(String, obj)->chars, NULL, 0, NULL);
-}
-
-/**
  * @brief
  */
-void Ui_Bind(View *view, const char *name, const char *bind) {
+void Cg_BindInput(View *view, const char *name, const char *bind) {
 
 	BindTextView *textView = $(alloc(BindTextView), initWithBind, bind);
 
-	Ui_Input(view, name, (Control *) textView);
+	Cg_Input(view, name, (Control *) textView);
 
 	release(textView);
 }
@@ -49,7 +42,7 @@ void Ui_Bind(View *view, const char *name, const char *bind) {
 /**
  * @brief
  */
-void Ui_Button(View *view, const char *title, ActionFunction function, ident sender, ident data) {
+void Cg_Button(View *view, const char *title, ActionFunction function, ident sender, ident data) {
 
 	Button *button = $(alloc(Button), initWithFrame, NULL, ControlStyleDefault);
 
@@ -65,11 +58,11 @@ void Ui_Button(View *view, const char *title, ActionFunction function, ident sen
 /**
  * @brief
  */
-void Ui_CvarCheckbox(View *view, const char *name, cvar_t *var) {
+void Cg_CvarCheckboxInput(View *view, const char *label, cvar_t *var) {
 
 	CvarCheckbox *checkbox = $(alloc(CvarCheckbox), initWithVariable, var);
 
-	Ui_Input(view, name, (Control *) checkbox);
+	Cg_Input(view, label, (Control *) checkbox);
 
 	release(checkbox);
 }
@@ -77,11 +70,11 @@ void Ui_CvarCheckbox(View *view, const char *name, cvar_t *var) {
 /**
  * @brief
  */
-void Ui_CvarSlider(View *view, const char *name, cvar_t *var, double min, double max, double step) {
+void Cg_CvarSliderInput(View *view, const char *label, cvar_t *var, double min, double max, double step) {
 
 	CvarSlider *slider = $(alloc(CvarSlider), initWithVariable, var, min, max, step);
 
-	Ui_Input(view, name, (Control *) slider);
+	Cg_Input(view, label, (Control *) slider);
 
 	release(slider);
 }
@@ -89,23 +82,23 @@ void Ui_CvarSlider(View *view, const char *name, cvar_t *var, double min, double
 /**
  * @brief
  */
-void Ui_CvarTextView(View *view, const char *name, cvar_t *var) {
+void Cg_CvarTextView(View *view, const char *label, cvar_t *var) {
 
 	CvarTextView *textView = $(alloc(CvarTextView), initWithVariable, var);
 
-	Ui_Input(view, name, (Control *) textView);
+	Cg_Input(view, label, (Control *) textView);
 
 	release(textView);
 }
 
-#define MENU_INPUT_LABEL_WIDTH 140
+#define INPUT_LABEL_WIDTH 140
 
 /**
  * @brief Adds a new Label and the specified Control to the given View.
  *
  * @remarks This function releases the Control for convenience.
  */
-void Ui_Input(View *view, const char *name, Control *control) {
+void Cg_Input(View *view, const char *label, Control *control) {
 
 	assert(view);
 	assert(control);
@@ -115,14 +108,10 @@ void Ui_Input(View *view, const char *name, Control *control) {
 
 	$(input, setControl, control);
 
-	Label *label = $(alloc(Label), initWithText, name, NULL);
-	assert(label);
+	$(input->label->text, setText, label);
 
-	label->view.autoresizingMask &= ~ViewAutoresizingContain;
-	label->view.frame.w = MENU_INPUT_LABEL_WIDTH;
-
-	$(input, setLabel, label);
-	release(label);
+	input->label->view.autoresizingMask &= ~ViewAutoresizingContain;
+	input->label->view.frame.w = INPUT_LABEL_WIDTH;
 
 	$(view, addSubview, (View *) input);
 
@@ -132,7 +121,7 @@ void Ui_Input(View *view, const char *name, Control *control) {
 /**
  * @brief
  */
-void Ui_PrimaryButton(View *view, const char *name, ActionFunction action, ident sender, ident data) {
+void Cg_PrimaryButton(View *view, const char *name, ActionFunction action, ident sender, ident data) {
 
 	assert(view);
 

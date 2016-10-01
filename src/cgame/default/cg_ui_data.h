@@ -21,16 +21,12 @@
 
 #pragma once
 
-#include <ObjectivelyMVC.h>
-
 #include "cg_types.h"
 
-extern void Cg_MenuBindCvar(const Inlet *inlet, ident obj);
-
-extern void Ui_Bind(View *view, const char *name, const char *bind);
-extern void Ui_Button(View *view, const char *title, ActionFunction function, ident sender, ident data);
-extern void Ui_CvarCheckbox(View *view, const char *name, cvar_t *var);
-extern void Ui_CvarSlider(View *view, const char *name, cvar_t *var, double min, double max, double step);
-extern void Ui_CvarTextView(View *view, const char *name, cvar_t *var);
-extern void Ui_Input(View *view, const char *name, Control *control);
-extern void Ui_PrimaryButton(View *view, const char *name, ActionFunction action, ident sender, ident data);
+extern void Cg_BindInput(View *view, const char *label, const char *bind);
+extern void Cg_Button(View *view, const char *title, ActionFunction function, ident sender, ident data);
+extern void Cg_CvarCheckboxInput(View *view, const char *label, cvar_t *var);
+extern void Cg_CvarSliderInput(View *view, const char *label, cvar_t *var, double min, double max, double step);
+extern void Cg_CvarTextView(View *view, const char *label, cvar_t *var);
+extern void Cg_Input(View *view, const char *label, Control *control);
+extern void Cg_PrimaryButton(View *view, const char *label, ActionFunction action, ident sender, ident data);

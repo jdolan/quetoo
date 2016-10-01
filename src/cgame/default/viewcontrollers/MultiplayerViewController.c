@@ -113,9 +113,9 @@ static void loadView(ViewController *self) {
 	{
 		this->panel->accessoryView->view.hidden = false;
 
-		Ui_Button((View *) this->panel->accessoryView, "Create..", createAction, self, NULL);
-		Ui_Button((View *) this->panel->accessoryView, "Refresh", refreshAction, self, NULL);
-		Ui_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, servers);
+		Cg_Button((View *) this->panel->accessoryView, "Create..", createAction, self, NULL);
+		Cg_Button((View *) this->panel->accessoryView, "Refresh", refreshAction, self, NULL);
+		Cg_Button((View *) this->panel->accessoryView, "Connect", connectAction, self, servers);
 	}
 }
 

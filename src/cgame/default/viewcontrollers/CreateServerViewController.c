@@ -53,10 +53,10 @@ static void loadView(ViewController *self) {
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 			stackView->spacing = DEFAULT_PANEL_SPACING;
 
-			Ui_CvarTextView((View *) stackView, "Hostname", cgi.Cvar("sv_hostname", NULL, 0, NULL));
-			Ui_CvarTextView((View *) stackView, "Clients", cgi.Cvar("sv_max_clients", NULL, 0, NULL));
-			Ui_CvarCheckbox((View *) stackView, "Public", cgi.Cvar("sv_public", NULL, 0, NULL));
-			Ui_CvarTextView((View *) stackView, "Password", cgi.Cvar("password", NULL, 0, NULL));
+			Cg_CvarTextView((View *) stackView, "Hostname", cgi.Cvar("sv_hostname", NULL, 0, NULL));
+			Cg_CvarTextView((View *) stackView, "Clients", cgi.Cvar("sv_max_clients", NULL, 0, NULL));
+			Cg_CvarCheckboxInput((View *) stackView, "Public", cgi.Cvar("sv_public", NULL, 0, NULL));
+			Cg_CvarTextView((View *) stackView, "Password", cgi.Cvar("password", NULL, 0, NULL));
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -82,7 +82,7 @@ static void loadView(ViewController *self) {
 
 			gameplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
 
-			Ui_Input((View *) stackView, "Gameplay", (Control *) gameplay);
+			Cg_Input((View *) stackView, "Gameplay", (Control *) gameplay);
 			release(gameplay);
 
 			Select *teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStateDefault);
@@ -93,12 +93,12 @@ static void loadView(ViewController *self) {
 
 			teamsplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
 
-			Ui_Input((View *) stackView, "Teams play", (Control *) teamsplay);
+			Cg_Input((View *) stackView, "Teams play", (Control *) teamsplay);
 			release(teamsplay);
 
 			Checkbox *match = $(alloc(Checkbox), initWithFrame, NULL, ControlStateDefault);
 
-			Ui_Input((View *) stackView, "Match mode", (Control *) match);
+			Cg_Input((View *) stackView, "Match mode", (Control *) match);
 			release(match);
 
 			$((View *) box, addSubview, (View *) stackView);

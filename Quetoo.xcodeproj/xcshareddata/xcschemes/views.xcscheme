@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CEFC7AAE1D9D2CDE000FA6B2"
-               BuildableName = "libviews.dylib"
-               BlueprintName = "views"
+               BuildableName = "libcgame-views.dylib"
+               BlueprintName = "cgame-views"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,8 +46,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEFC7AAE1D9D2CDE000FA6B2"
-            BuildableName = "libviews.dylib"
-            BlueprintName = "views"
+            BuildableName = "libcgame-views.dylib"
+            BlueprintName = "cgame-views"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -64,8 +64,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEFC7AAE1D9D2CDE000FA6B2"
-            BuildableName = "libviews.dylib"
-            BlueprintName = "views"
+            BuildableName = "libcgame-views.dylib"
+            BlueprintName = "cgame-views"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

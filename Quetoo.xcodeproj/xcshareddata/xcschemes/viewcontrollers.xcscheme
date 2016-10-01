@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CEFC7B101D9D2DBA000FA6B2"
-               BuildableName = "libviewcontrollers.dylib"
-               BlueprintName = "viewcontrollers"
+               BuildableName = "libcgame-viewcontrollers.dylib"
+               BlueprintName = "cgame-viewcontrollers"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,8 +46,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEFC7B101D9D2DBA000FA6B2"
-            BuildableName = "libviewcontrollers.dylib"
-            BlueprintName = "viewcontrollers"
+            BuildableName = "libcgame-viewcontrollers.dylib"
+            BlueprintName = "cgame-viewcontrollers"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -64,8 +64,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEFC7B101D9D2DBA000FA6B2"
-            BuildableName = "libviewcontrollers.dylib"
-            BlueprintName = "viewcontrollers"
+            BuildableName = "libcgame-viewcontrollers.dylib"
+            BlueprintName = "cgame-viewcontrollers"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

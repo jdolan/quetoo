@@ -65,11 +65,11 @@ static void loadView(ViewController *self) {
 
 			Control *videoModeSelect = (Control *) $(alloc(VideoModeSelect), initWithFrame, NULL, ControlStyleDefault);
 
-			Ui_Input((View *) stackView, "Video mode", videoModeSelect);
+			Cg_Input((View *) stackView, "Video mode", videoModeSelect);
 			release(videoModeSelect);
 
-			Ui_CvarCheckbox((View *) stackView, "Fullscreen", cgi.Cvar("r_fullscreen", NULL, 0, NULL));
-			Ui_CvarCheckbox((View *) stackView, "Vertical Sync", cgi.Cvar("r_swap_interval", NULL, 0, NULL));
+			Cg_CvarCheckboxInput((View *) stackView, "Fullscreen", cgi.Cvar("r_fullscreen", NULL, 0, NULL));
+			Cg_CvarCheckboxInput((View *) stackView, "Vertical Sync", cgi.Cvar("r_swap_interval", NULL, 0, NULL));
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -93,7 +93,7 @@ static void loadView(ViewController *self) {
 			$(anisoSelect, addOption, "4x", (ident) 4);
 			$(anisoSelect, addOption, "Off", (ident) 0);
 
-			Ui_Input((View *) stackView, "Anisotropy", (Control *) anisoSelect);
+			Cg_Input((View *) stackView, "Anisotropy", (Control *) anisoSelect);
 			release(anisoSelect);
 
 			Select *multisampleSelect = (Select *) $(alloc(CvarSelect), initWithVariable, cgi.Cvar("r_multisample", NULL, 0, NULL));
@@ -103,7 +103,7 @@ static void loadView(ViewController *self) {
 			$(multisampleSelect, addOption, "2x", (ident) 1);
 			$(multisampleSelect, addOption, "Off", (ident) 0);
 
-			Ui_Input((View *) stackView, "Multisample", (Control *) multisampleSelect);
+			Cg_Input((View *) stackView, "Multisample", (Control *) multisampleSelect);
 			release(multisampleSelect);
 
 			Select *shadowsSelect = (Select *) $(alloc(CvarSelect), initWithVariable, cgi.Cvar("r_shadows", NULL, 0, NULL));
@@ -112,7 +112,7 @@ static void loadView(ViewController *self) {
 			$(shadowsSelect, addOption, "Low", (ident) 1);
 			$(shadowsSelect, addOption, "Off", (ident) 0);
 
-			Ui_Input((View *) stackView, "Shadows", (Control *) shadowsSelect);
+			Cg_Input((View *) stackView, "Shadows", (Control *) shadowsSelect);
 			release(shadowsSelect);
 
 			$((View *) box, addSubview, (View *) stackView);
@@ -136,10 +136,10 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Ui_CvarSlider((View *) stackView, "Brightness", cgi.Cvar("r_brightness", NULL, 0, NULL), 0.1, 2.0, 0.1);
-			Ui_CvarSlider((View *) stackView, "Contrast", cgi.Cvar("r_contrast", NULL, 0, NULL), 0.1, 2.0, 0.1);
-			Ui_CvarSlider((View *) stackView, "Gamma", cgi.Cvar("r_gamma", NULL, 0, NULL), 0.1, 2.0, 0.1);
-			Ui_CvarSlider((View *) stackView, "Modulate", cgi.Cvar("r_modulate", NULL, 0, NULL), 0.1, 5.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Brightness", cgi.Cvar("r_brightness", NULL, 0, NULL), 0.1, 2.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Contrast", cgi.Cvar("r_contrast", NULL, 0, NULL), 0.1, 2.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Gamma", cgi.Cvar("r_gamma", NULL, 0, NULL), 0.1, 2.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Modulate", cgi.Cvar("r_modulate", NULL, 0, NULL), 0.1, 5.0, 0.1);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -154,8 +154,8 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Ui_CvarSlider((View *) stackView, "Volume", cgi.Cvar("s_volume", NULL, 0, NULL), 0.0, 1.0, 0.0);
-			Ui_CvarSlider((View *) stackView, "Music Volume", cgi.Cvar("s_music_volume", NULL, 0, NULL), 0.0, 1.0, 0.0);
+			Cg_CvarSliderInput((View *) stackView, "Volume", cgi.Cvar("s_volume", NULL, 0, NULL), 0.0, 1.0, 0.0);
+			Cg_CvarSliderInput((View *) stackView, "Music Volume", cgi.Cvar("s_music_volume", NULL, 0, NULL), 0.0, 1.0, 0.0);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -167,7 +167,7 @@ static void loadView(ViewController *self) {
 		{
 			this->panel->accessoryView->view.hidden = false;
 
-			Ui_Button((View *) this->panel->accessoryView, "Apply", applyAction, self, NULL);
+			Cg_Button((View *) this->panel->accessoryView, "Apply", applyAction, self, NULL);
 		}
 
 		$((View *) columns, addSubview, (View *) column);

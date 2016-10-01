@@ -81,10 +81,10 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Ui_CvarSlider((View *) stackView, "Sensitivity", cgi.Cvar("m_sensitivity", NULL, 0, NULL), 0.1, 6.0, 0.1);
-			Ui_CvarSlider((View *) stackView, "Zoom Sensitivity", cgi.Cvar("m_sensitivity_zoom", NULL, 0, NULL), 0.1, 6.0, 0.1);
-			Ui_CvarCheckbox((View *) stackView, "Invert mouse", cgi.Cvar("m_invert", NULL, 0, NULL));
-			Ui_CvarCheckbox((View *) stackView, "Smooth mouse", cgi.Cvar("m_interpolate", NULL, 0, NULL));
+			Cg_CvarSliderInput((View *) stackView, "Sensitivity", cgi.Cvar("m_sensitivity", NULL, 0, NULL), 0.1, 6.0, 0.1);
+			Cg_CvarSliderInput((View *) stackView, "Zoom Sensitivity", cgi.Cvar("m_sensitivity_zoom", NULL, 0, NULL), 0.1, 6.0, 0.1);
+			Cg_CvarCheckboxInput((View *) stackView, "Invert mouse", cgi.Cvar("m_invert", NULL, 0, NULL));
+			Cg_CvarCheckboxInput((View *) stackView, "Smooth mouse", cgi.Cvar("m_interpolate", NULL, 0, NULL));
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -112,7 +112,7 @@ static void loadView(ViewController *self) {
 			cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, crosshairSelect);
 
 			$((Control *) crosshairSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
-			Ui_Input((View *) stackView, "Crosshair", (Control *) crosshairSelect);
+			Cg_Input((View *) stackView, "Crosshair", (Control *) crosshairSelect);
 
 			CvarSelect *colorSelect = (CvarSelect *) $(alloc(CvarSelect), initWithVariable, cg_draw_crosshair_color);
 			colorSelect->expectsStringValue = true;
@@ -124,14 +124,14 @@ static void loadView(ViewController *self) {
 			$((Select *) colorSelect, addOption, "orange", (ident) 4);
 
 			$((Control *) colorSelect, addActionForEventType, SDL_MOUSEBUTTONUP, modifyCrosshair, self, NULL);
-			Ui_Input((View *) stackView, "Crosshair color", (Control *) colorSelect);
+			Cg_Input((View *) stackView, "Crosshair color", (Control *) colorSelect);
 
 			CvarSlider *scaleSlider = $(alloc(CvarSlider), initWithVariable, cg_draw_crosshair_scale, 0.1, 2.0, 0.1);
 
 			$((Control *) scaleSlider, addActionForEventType, SDL_MOUSEMOTION, modifyCrosshair, self, NULL);
-			Ui_Input((View *) stackView, "Crosshair scale", (Control *) scaleSlider);
+			Cg_Input((View *) stackView, "Crosshair scale", (Control *) scaleSlider);
 
-			Ui_CvarCheckbox((View *) stackView, "Pulse on pickup", cg_draw_crosshair_pulse);
+			Cg_CvarCheckboxInput((View *) stackView, "Pulse on pickup", cg_draw_crosshair_pulse);
 
 			const SDL_Rect frame = MakeRect(0, 0, 72, 72);
 

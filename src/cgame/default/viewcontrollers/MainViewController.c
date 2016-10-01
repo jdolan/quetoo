@@ -76,12 +76,12 @@ static void loadView(ViewController *self) {
 	panel->contentView->distribution = StackViewDistributionFillEqually;
 	panel->contentView->view.autoresizingMask = ViewAutoresizingNone;
 
-	Ui_PrimaryButton((View *) panel->contentView, "MULTIPLAYER", action, self, &_MultiplayerViewController);
-	Ui_PrimaryButton((View *) panel->contentView, "KEYS", action, self, &_KeysViewController);
-	Ui_PrimaryButton((View *) panel->contentView, "MOUSE", action, self, &_MouseViewController);
-	Ui_PrimaryButton((View *) panel->contentView, "PLAYER", action, self, &_PlayerViewController);
-	Ui_PrimaryButton((View *) panel->contentView, "SYSTEM", action, self, &_SystemViewController);
-	Ui_PrimaryButton((View *) panel->contentView, "QUIT", action, self, NULL);
+	Cg_PrimaryButton((View *) panel->contentView, "MULTIPLAYER", action, self, &_MultiplayerViewController);
+	Cg_PrimaryButton((View *) panel->contentView, "KEYS", action, self, &_KeysViewController);
+	Cg_PrimaryButton((View *) panel->contentView, "MOUSE", action, self, &_MouseViewController);
+	Cg_PrimaryButton((View *) panel->contentView, "PLAYER", action, self, &_PlayerViewController);
+	Cg_PrimaryButton((View *) panel->contentView, "SYSTEM", action, self, &_SystemViewController);
+	Cg_PrimaryButton((View *) panel->contentView, "QUIT", action, self, NULL);
 
 	SDL_Size size = MakeSize(min(cgi.context->window_width, 1024), 36);
 	$((View *) panel->contentView, resize, &size);

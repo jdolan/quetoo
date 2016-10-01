@@ -51,16 +51,16 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Ui_Bind((View *) stackView, "Forward", "+forward");
-			Ui_Bind((View *) stackView, "Back", "+back");
-			Ui_Bind((View *) stackView, "Move left", "+move_left");
-			Ui_Bind((View *) stackView, "Move right", "+move_right");
-			Ui_Bind((View *) stackView, "Jump", "+move_up");
-			Ui_Bind((View *) stackView, "Crouch", "+move_down");
-			Ui_Bind((View *) stackView, "Turn left", "+left");
-			Ui_Bind((View *) stackView, "Turn right", "+right");
-			Ui_Bind((View *) stackView, "Center view", "center_view");
-			Ui_Bind((View *) stackView, "Run / walk", "+speed");
+			Cg_BindInput((View *) stackView, "Forward", "+forward");
+			Cg_BindInput((View *) stackView, "Back", "+back");
+			Cg_BindInput((View *) stackView, "Move left", "+move_left");
+			Cg_BindInput((View *) stackView, "Move right", "+move_right");
+			Cg_BindInput((View *) stackView, "Jump", "+move_up");
+			Cg_BindInput((View *) stackView, "Crouch", "+move_down");
+			Cg_BindInput((View *) stackView, "Turn left", "+left");
+			Cg_BindInput((View *) stackView, "Turn right", "+right");
+			Cg_BindInput((View *) stackView, "Center view", "center_view");
+			Cg_BindInput((View *) stackView, "Run / walk", "+speed");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -75,10 +75,10 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Ui_Bind((View *) stackView, "Say", "cl_message_mode");
-			Ui_Bind((View *) stackView, "Say Team", "cl_message_mode_2");
-			Ui_Bind((View *) stackView, "Show score", "+SCORE");
-			Ui_Bind((View *) stackView, "Take screenshot", "r_screenshot");
+			Cg_BindInput((View *) stackView, "Say", "cl_message_mode");
+			Cg_BindInput((View *) stackView, "Say Team", "cl_message_mode_2");
+			Cg_BindInput((View *) stackView, "Show score", "+SCORE");
+			Cg_BindInput((View *) stackView, "Take screenshot", "r_screenshot");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -101,22 +101,22 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Ui_Bind((View *) stackView, "Attack", "+attack");
-			Ui_Bind((View *) stackView, "Next weapon", "weapon_next");
-			Ui_Bind((View *) stackView, "Previous weapon", "weapon_previous");
-			Ui_Bind((View *) stackView, "Zoom", "+ZOOM");
+			Cg_BindInput((View *) stackView, "Attack", "+attack");
+			Cg_BindInput((View *) stackView, "Next weapon", "weapon_next");
+			Cg_BindInput((View *) stackView, "Previous weapon", "weapon_previous");
+			Cg_BindInput((View *) stackView, "Zoom", "+ZOOM");
 
-			Ui_Bind((View *) stackView, "Blaster", "use blaster");
-			Ui_Bind((View *) stackView, "Shotgun", "use shotgun");
-			Ui_Bind((View *) stackView, "Super shotgun", "use super shotgun");
-			Ui_Bind((View *) stackView, "Machinegun", "use machinegun");
-			Ui_Bind((View *) stackView, "Hand grenades", "use grenades");
-			Ui_Bind((View *) stackView, "Grenade launcher", "use grenade launcher");
-			Ui_Bind((View *) stackView, "Rocket launcher", "use rocket launcher");
-			Ui_Bind((View *) stackView, "Hyperblaster", "use hyperblaster");
-			Ui_Bind((View *) stackView, "Lightning", "use lightning");
-			Ui_Bind((View *) stackView, "Railgun", "use railgun");
-			Ui_Bind((View *) stackView, "BFG-10K", "use bfg10k");
+			Cg_BindInput((View *) stackView, "Blaster", "use blaster");
+			Cg_BindInput((View *) stackView, "Shotgun", "use shotgun");
+			Cg_BindInput((View *) stackView, "Super shotgun", "use super shotgun");
+			Cg_BindInput((View *) stackView, "Machinegun", "use machinegun");
+			Cg_BindInput((View *) stackView, "Hand grenades", "use grenades");
+			Cg_BindInput((View *) stackView, "Grenade launcher", "use grenade launcher");
+			Cg_BindInput((View *) stackView, "Rocket launcher", "use rocket launcher");
+			Cg_BindInput((View *) stackView, "Hyperblaster", "use hyperblaster");
+			Cg_BindInput((View *) stackView, "Lightning", "use lightning");
+			Cg_BindInput((View *) stackView, "Railgun", "use railgun");
+			Cg_BindInput((View *) stackView, "BFG-10K", "use bfg10k");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

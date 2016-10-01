@@ -36,14 +36,14 @@
 #include "cg_hud.h"
 #include "cg_main.h"
 #include "cg_media.h"
-#include "cg_menu.h"
-#include "cg_menu_data.h"
 #include "cg_muzzle_flash.h"
 #include "cg_particle.h"
 #include "cg_predict.h"
 #include "cg_score.h"
 #include "cg_temp_entity.h"
 #include "cg_types.h"
+#include "cg_ui.h"
+#include "cg_ui_data.h"
 #include "cg_view.h"
 
 #endif /* __CG_LOCAL_H__ */

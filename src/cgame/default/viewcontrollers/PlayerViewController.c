@@ -66,13 +66,13 @@ static void loadView(ViewController *self) {
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 
-			Ui_CvarTextView((View *) stackView, "Name", cg_name);
+			Cg_CvarTextView((View *) stackView, "Name", cg_name);
 
 			Control *skinSelect = (Control *) $(alloc(SkinSelect), initWithFrame, NULL, ControlStyleDefault);
 
 			$(skinSelect, addActionForEventType, SDL_MOUSEBUTTONUP, selectSkin, self, NULL);
 
-			Ui_Input((View *) stackView, "Player skin", skinSelect);
+			Cg_Input((View *) stackView, "Player skin", skinSelect);
 			release(skinSelect);
 
 			Select *colorSelect = (Select *) $(alloc(CvarSelect), initWithVariable, cg_color);
@@ -89,10 +89,10 @@ static void loadView(ViewController *self) {
 
 			$(colorSelect, selectOptionWithValue, (ident) (intptr_t) cg_color->integer);
 
-			Ui_Input((View *) stackView, "Effect color", (Control *) colorSelect);
+			Cg_Input((View *) stackView, "Effect color", (Control *) colorSelect);
 			release(colorSelect);
 
-			Ui_CvarSlider((View *) stackView, "Handicap", cg_handicap, 50.0, 100.0, 5.0);
+			Cg_CvarSliderInput((View *) stackView, "Handicap", cg_handicap, 50.0, 100.0, 5.0);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);

@@ -15,14 +15,14 @@ noinst_HEADERS = \
 	cg_local.h \
 	cg_main.h \
 	cg_media.h \
-	cg_menu.h \
-	cg_menu_data.h \
 	cg_muzzle_flash.h \
 	cg_particle.h \
 	cg_predict.h \
 	cg_score.h \
 	cg_temp_entity.h \
 	cg_types.h \
+	cg_ui.h \
+	cg_ui_data.h \
 	cg_view.h
 
 cgamelib_LTLIBRARIES = \
@@ -39,13 +39,13 @@ cgame_la_SOURCES = \
 	cg_hud.c \
 	cg_main.c \
 	cg_media.c \
-	cg_menu.c \
-	cg_menu_data.c \
 	cg_muzzle_flash.c \
 	cg_particle.c \
 	cg_predict.c \
 	cg_score.c \
 	cg_temp_entity.c \
+	cg_ui.c \
+	cg_ui_data.c \
 	cg_view.c
 
 cgame_la_CFLAGS = \

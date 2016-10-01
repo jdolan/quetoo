@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include <ObjectivelyMVC.h>
-
 #include "MainViewController.h"
 
 #include "cg_local.h"
