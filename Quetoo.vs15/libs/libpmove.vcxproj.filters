@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{3583a5f6-9733-4a0c-9019-f0da06fa5005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\game">
+      <UniqueIdentifier>{23e4db7c-3d2b-44a7-a386-5f5bc93f09d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\game\default">
+      <UniqueIdentifier>{50ecd607-496b-4be8-ad68-c385c2d7859e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\game\default\bg_pmove.h">
+      <Filter>src\game\default</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\game\default\bg_pmove.c">
+      <Filter>src\game\default</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{a616e660-e42a-4ead-bf88-7cfc2d5edc31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\main">
+      <UniqueIdentifier>{77b5db62-bb53-47ff-b2c1-96892bae343c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\main\main.c">
+      <Filter>src\main</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main\winmain.c">
+      <Filter>src\main</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\src\main\quetoo.ico">
+      <Filter>src\main</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\src\main\quetoo-icon.rc">
+      <Filter>src\main</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

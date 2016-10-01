@@ -450,7 +450,6 @@ void Cl_HandleEvents(void) {
 
 		if (SDL_PollEvent(&event)) {
 			if (Cl_HandleSystemEvent(&event) == false) {
-
 				Ui_HandleEvent(&event);
 				Cl_HandleEvent(&event);
 			}
@@ -572,20 +571,20 @@ void Cl_InitInput(void) {
 	Cmd_Add("+attack", Cl_Attack_down_f, CMD_CLIENT, NULL);
 	Cmd_Add("-attack", Cl_Attack_up_f, CMD_CLIENT, NULL);
 
-	cl_run = Cvar_Get("cl_run", "1", CVAR_ARCHIVE, NULL);
-	cl_forward_speed = Cvar_Get("cl_forward_speed", "300.0", 0, NULL);
-	cl_pitch_speed = Cvar_Get("cl_pitch_speed", "0.15", 0, NULL);
-	cl_right_speed = Cvar_Get("cl_right_speed", "300.0", 0, NULL);
-	cl_up_speed = Cvar_Get("cl_up_speed", "300.0", 0, NULL);
-	cl_yaw_speed = Cvar_Get("cl_yaw_speed", "0.15", 0, NULL);
+	cl_run = Cvar_Add("cl_run", "1", CVAR_ARCHIVE, NULL);
+	cl_forward_speed = Cvar_Add("cl_forward_speed", "300.0", 0, NULL);
+	cl_pitch_speed = Cvar_Add("cl_pitch_speed", "0.15", 0, NULL);
+	cl_right_speed = Cvar_Add("cl_right_speed", "300.0", 0, NULL);
+	cl_up_speed = Cvar_Add("cl_up_speed", "300.0", 0, NULL);
+	cl_yaw_speed = Cvar_Add("cl_yaw_speed", "0.15", 0, NULL);
 
-	m_sensitivity = Cvar_Get("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
-	m_sensitivity_zoom = Cvar_Get("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
-	m_interpolate = Cvar_Get("m_interpolate", "0", CVAR_ARCHIVE, NULL);
-	m_invert = Cvar_Get("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
-	m_pitch = Cvar_Get("m_pitch", "0.022", 0, NULL);
-	m_yaw = Cvar_Get("m_yaw", "0.022", 0, NULL);
-	m_grab = Cvar_Get("m_grab", "1", 0, NULL);
+	m_sensitivity = Cvar_Add("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
+	m_sensitivity_zoom = Cvar_Add("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
+	m_interpolate = Cvar_Add("m_interpolate", "0", CVAR_ARCHIVE, NULL);
+	m_invert = Cvar_Add("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
+	m_pitch = Cvar_Add("m_pitch", "0.022", 0, NULL);
+	m_yaw = Cvar_Add("m_yaw", "0.022", 0, NULL);
+	m_grab = Cvar_Add("m_grab", "1", 0, NULL);
 
 	Cl_ClearInput();
 

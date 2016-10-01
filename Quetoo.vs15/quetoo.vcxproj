@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\main\main.c" />
+    <ClCompile Include="src\main\winmain.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\src\main\quetoo.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\src\main\quetoo-icon.rc" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A05CAC53-F8F2-4A14-9C81-8A34F4EA9085}</ProjectGuid>
+    <RootNamespace>quetoo</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IncludePath>..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;..\..\ObjectivelyMVC\Sources\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\Objectively\Sources\;..\..\Objectively\Objectively.vs15\Sources\;$(IncludePath)</IncludePath>
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\physfs\bin\Win$(PlatformArchitecture)\;libs\glib\Win$(PlatformArchitecture)\lib\;libs\curses\lib\Win$(PlatformArchitecture)\;libs\sdl_mixer\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\curl\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\iconv\lib\bin\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\pthread\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\fontconfig\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\freetype\lib\Win$(PlatformArchitecture)\;$(LibraryPath)</LibraryPath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IncludePath>..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;..\..\ObjectivelyMVC\Sources\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\Objectively\Sources\;..\..\Objectively\Objectively.vs15\Sources\;$(IncludePath)</IncludePath>
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\physfs\bin\Win$(PlatformArchitecture)\;libs\glib\Win$(PlatformArchitecture)\lib\;libs\curses\lib\Win$(PlatformArchitecture)\;libs\sdl_mixer\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\curl\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\iconv\lib\bin\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\pthread\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\fontconfig\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\freetype\lib\Win$(PlatformArchitecture)\;$(LibraryPath)</LibraryPath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\physfs\bin\Win$(PlatformArchitecture)\;libs\glib\Win$(PlatformArchitecture)\lib\;libs\curses\lib\Win$(PlatformArchitecture)\;libs\sdl_mixer\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\curl\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\iconv\lib\bin\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\pthread\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\fontconfig\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\freetype\lib\Win$(PlatformArchitecture)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;..\..\ObjectivelyMVC\Sources\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\Objectively\Sources\;..\..\Objectively\Objectively.vs15\Sources\;$(IncludePath)</IncludePath>
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\physfs\bin\Win$(PlatformArchitecture)\;libs\glib\Win$(PlatformArchitecture)\lib\;libs\curses\lib\Win$(PlatformArchitecture)\;libs\sdl_mixer\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\curl\lib\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\iconv\lib\bin\Win$(PlatformArchitecture)\;..\..\Objectively\Objectively.vs15\libs\pthread\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\fontconfig\lib\Win$(PlatformArchitecture)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\freetype\lib\Win$(PlatformArchitecture)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;..\..\ObjectivelyMVC\Sources\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\Objectively\Sources\;..\..\Objectively\Objectively.vs15\Sources\;$(IncludePath)</IncludePath>
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+      <ImageHasSafeExceptionHandlers />
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>libcmodel.lib;libcommon.lib;libconsole.lib;libclient.lib;libfilesystem.lib;libimage.lib;libmatrix.lib;libmem.lib;libnet.lib;librenderer.lib;libserver.lib;libshared.lib;libsound.lib;libswap.lib;libsys.lib;libthread.lib;libui.lib;curses.lib;glib-2.0.lib;libcurl.lib;SDL2.lib;SDL2_mixer.lib;SDL2_ttf.lib;SDL2_image.lib;physfs.lib;ws2_32.lib;opengl32.lib;fontconfig.lib;iconv.lib;pthread.lib;freetype.lib;ObjectivelyMVC.lib;Objectively.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

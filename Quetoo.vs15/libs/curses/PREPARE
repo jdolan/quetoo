@@ -1,0 +1,4 @@
+Grab the public header files for pdcurses
+(curses.h, panel.h and term.h)
+from https://sourceforge.net/projects/pdcurses/files/pdcurses/
+and place them here.

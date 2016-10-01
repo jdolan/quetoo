@@ -1,0 +1,2 @@
+Grab the Glib include files for Win32 (https://github.com/winlibs/glib)
+and place them here. This includes the gio, glib and gobject subfolders.

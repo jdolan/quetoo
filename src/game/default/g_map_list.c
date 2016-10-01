@@ -197,7 +197,10 @@ const g_map_list_map_t *G_MapList_Next(void) {
 		} else {
 			const g_map_list_map_t *map = G_MapList_Find(g_level.name);
 			if (map) {
-				list = g_list_find(g_map_list, map)->next ?: g_map_list;
+				list = g_list_find(g_map_list, map)->next;
+				
+				if (!list)
+					list = g_map_list;
 			} else {
 				list = g_map_list;
 			}

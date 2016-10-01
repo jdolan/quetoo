@@ -22,7 +22,7 @@
 #include "tests.h"
 
 #define main Ms_Main
-#include "../master/main.c"
+#include "../tools/master/main.c"
 #undef main
 
 /**

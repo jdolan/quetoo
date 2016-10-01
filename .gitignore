@@ -24,6 +24,7 @@ config.sub
 configure
 depcomp
 gmon.out
+html
 install-sh
 libtool
 ltmain.sh
@@ -50,3 +51,4 @@ stamp-h1
 target
 test-driver
 xcuserdata
+/Quetoo.vs15/.vs/quetoo/v15/*.suo

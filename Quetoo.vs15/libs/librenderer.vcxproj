@@ -1,0 +1,225 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\client\renderer\r_array.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_bsp.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_bsp_light.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_bsp_model.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_bsp_surface.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_context.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_corona.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_draw.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_element.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_entity.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_flare.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_gl.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_image.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_light.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_lighting.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_lightmap.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_main.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_material.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_media.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_mesh.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_mesh_model.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_mesh_shadow.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_mesh_shell.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_model.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_particle.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_program.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_program_default.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_program_shadow.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_program_shell.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_program_warp.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_state.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\client\renderer\renderer.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_array.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_bsp.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_bsp_light.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_bsp_model.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_bsp_surface.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_context.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_corona.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_draw.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_element.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_entity.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_flare.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_gl.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_image.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_light.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_lighting.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_lightmap.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_local.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_main.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_material.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_media.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_mesh.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_mesh_model.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_mesh_shadow.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_mesh_shell.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_model.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_particle.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_program.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_program_default.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_program_shadow.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_program_shell.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_program_warp.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_state.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_types.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3B26D4D9-B320-4D6F-B4D1-9A2487BBD0B3}</ProjectGuid>
+    <RootNamespace>librenderer</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <LibraryPath>bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

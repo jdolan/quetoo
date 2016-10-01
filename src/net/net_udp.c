@@ -19,7 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if !defined(_MSC_VER)
 #include <sys/time.h>
+#endif
 
 #include "cvar.h"
 #include "net_udp.h"
@@ -196,8 +198,8 @@ void Net_Config(net_src_t source, _Bool up) {
 
 	if (up) {
 
-		const cvar_t *net_interface = Cvar_Get("net_interface", "", CVAR_NO_SET, NULL);
-		const cvar_t *net_port = Cvar_Get("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
+		const cvar_t *net_interface = Cvar_Add("net_interface", "", CVAR_NO_SET, NULL);
+		const cvar_t *net_port = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
 
 		if (*sock == 0) {
 			const char *iface = strlen(net_interface->string) ? net_interface->string : NULL;

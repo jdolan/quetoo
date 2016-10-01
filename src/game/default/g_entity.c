@@ -432,8 +432,14 @@ static void G_InitMedia(void) {
 	G_PrecacheItem(G_FindItem("BFG10K"));
 
 	// precache these so that the HUD icons are available
+	G_PrecacheItem(G_FindItem("Large Health"));
 	G_PrecacheItem(G_FindItem("Medium Health"));
+	G_PrecacheItem(G_FindItem("Small Health"));
 	G_PrecacheItem(G_FindItem("Body Armor"));
+	G_PrecacheItem(G_FindItem("Combat Armor"));
+	G_PrecacheItem(G_FindItem("Jacket Armor"));
+
+	gi.ImageIndex("pics/i_health");
 }
 
 /**
@@ -457,7 +463,9 @@ void G_SpawnEntities(const char *name, const char *entities) {
 	ge.num_entities = sv_max_clients->integer + 1;
 
 	g_entity_t *ent = NULL;
-	uint16_t inhibit = 0;
+
+	gchar **inhibit = g_strsplit(g_inhibit->string, " ", -1);
+	int32_t inhibited = 0;
 
 	// parse the entity definition string
 	while (true) {
@@ -477,12 +485,21 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 		entities = G_ParseEntity(entities, ent);
 
-		// handle legacy spawn flags
 		if (ent != g_game.entities) {
 
+			// enforce entity inhibiting
+			for (size_t i = 0; i < g_strv_length(inhibit); i++) {
+				if (g_strcmp0(ent->class_name, inhibit[i]) == 0) {
+					G_FreeEntity(ent);
+					inhibited++;
+					continue;
+				}
+			}
+
+			// handle legacy spawn flags
 			if (ent->locals.spawn_flags & SF_NOT_DEATHMATCH) {
 				G_FreeEntity(ent);
-				inhibit++;
+				inhibited++;
 				continue;
 			}
 
@@ -493,7 +510,9 @@ void G_SpawnEntities(const char *name, const char *entities) {
 		G_SpawnEntity(ent);
 	}
 
-	gi.Debug("%i entities inhibited\n", inhibit);
+	g_strfreev(inhibit);
+
+	gi.Debug("%i entities inhibited\n", inhibited);
 
 	G_InitEntityTeams();
 

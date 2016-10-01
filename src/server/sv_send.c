@@ -60,7 +60,7 @@ void Sv_ClientPrint(const g_entity_t *ent, const int32_t level, const char *fmt,
 /**
  * @brief Sends text to all active clients over their unreliable channels.
  */
-void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) {
+void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
 	char string[MAX_STRING_CHARS];
 	va_list args;
 	sv_client_t * cl;
@@ -177,7 +177,8 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 	byte vis[MAX_BSP_LEAFS >> 3];
 	int32_t area;
 
-	origin = origin ?: vec3_origin;
+	if (!origin)
+		origin = vec3_origin;
 
 	_Bool reliable = false;
 
@@ -490,6 +491,8 @@ void Sv_SendClientPackets(void) {
 			if ((size = Sv_GetDemoMessage(buffer))) {
 				Netchan_Transmit(&cl->net_chan, buffer, size);
 			}
+			else
+				break; // recording is done, so we're done
 		} else if (cl->state == SV_CLIENT_ACTIVE) { // send the game packet
 
 			if (Sv_RateDrop(cl)) { // enforce rate throttle

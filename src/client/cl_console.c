@@ -310,16 +310,16 @@ void Cl_InitConsole(void) {
 	memset(&cl_chat_console, 0, sizeof(cl_chat_console));
 	cl_chat_console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
 
-	cl_console_background_alpha = Cvar_Get("cl_console_background_alpha", "0.9", CVAR_ARCHIVE, NULL);
+	cl_console_background_alpha = Cvar_Add("cl_console_background_alpha", "0.9", CVAR_ARCHIVE, NULL);
 
-	cl_draw_chat = Cvar_Get("cl_draw_chat", "1", 0, "Draw recent chat messages");
-	cl_draw_notify = Cvar_Get("cl_draw_notify", "1", 0, "Draw recent console activity");
+	cl_draw_chat = Cvar_Add("cl_draw_chat", "1", 0, "Draw recent chat messages");
+	cl_draw_notify = Cvar_Add("cl_draw_notify", "1", 0, "Draw recent console activity");
 
-	cl_notify_lines = Cvar_Get("cl_console_notify_lines", "3", CVAR_ARCHIVE, NULL);
-	cl_notify_time = Cvar_Get("cl_notify_time", "3.0", CVAR_ARCHIVE, NULL);
+	cl_notify_lines = Cvar_Add("cl_console_notify_lines", "3", CVAR_ARCHIVE, NULL);
+	cl_notify_time = Cvar_Add("cl_notify_time", "3.0", CVAR_ARCHIVE, NULL);
 
-	cl_chat_lines = Cvar_Get("cl_chat_lines", "3", CVAR_ARCHIVE, NULL);
-	cl_chat_time = Cvar_Get("cl_chat_time", "10.0", CVAR_ARCHIVE, NULL);
+	cl_chat_lines = Cvar_Add("cl_chat_lines", "3", CVAR_ARCHIVE, NULL);
+	cl_chat_time = Cvar_Add("cl_chat_time", "10.0", CVAR_ARCHIVE, NULL);
 
 	Cmd_Add("cl_toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
 	Cmd_Add("cl_message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");

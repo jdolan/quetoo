@@ -149,15 +149,25 @@ static void Pm_TouchEntity(struct g_entity_s *ent) {
  */
 static _Bool Pm_SlideMove(void) {
 	vec3_t planes[MAX_CLIP_PLANES];
+	int32_t bump, num_bumps = MAX_CLIP_PLANES - 1;
 
-	vec3_t pos0, vel0;
-	VectorCopy(pm->s.origin, pos0);
+	vec3_t vel0;
 	VectorCopy(pm->s.velocity, vel0);
 
 	vec_t time_remaining = pml.time;
 	int32_t num_planes = 0;
 
-	for (int32_t bump = 0; bump < MAX_CLIP_PLANES; bump++) {
+	// never turn against our ground plane
+	if (pm->s.flags & PMF_ON_GROUND) {
+		VectorCopy(pml.ground_plane.normal, planes[num_planes]);
+		num_planes++;
+	}
+
+	// or our original velocity
+	VectorNormalize2(pm->s.velocity, planes[num_planes]);
+	num_planes++;
+
+	for (bump = 0; bump < num_bumps; bump++) {
 		vec3_t pos;
 
 		if (time_remaining <= 0.0) // out of time
@@ -214,19 +224,20 @@ static _Bool Pm_SlideMove(void) {
 					continue;
 				}
 
+				// if the clipped velocity doesn't impact this plane, skip it
 				if (DotProduct(vel, planes[j]) >= 0.0) {
 					continue;
 				}
 
-				// try clipping the move to the plane
+				// we are now intersecting a second plane
 				Pm_ClipVelocity(vel, planes[j], vel, PM_CLIP_BOUNCE);
 
-				// see if it goes back into the first clip plane
+				// but if we clip against it without being deflected back, we're okay
 				if (DotProduct(vel, planes[i]) >= 0.0) {
 					continue;
 				}
 
-				// slide the original velocity along the crease
+				// we must now slide along the crease (cross product of the planes)
 				CrossProduct(planes[i], planes[j], cross);
 				VectorNormalize(cross);
 
@@ -256,13 +267,7 @@ static _Bool Pm_SlideMove(void) {
 		}
 	}
 
-	// if we were deflected backwards, clear the velocity
-	if (DotProduct(vel0, pm->s.velocity) <= 0.0) {
-		VectorCopy(pos0, pm->s.origin);
-		VectorClear(pm->s.velocity);
-	}
-
-	return num_planes == 0;
+	return bump == 0;
 }
 
 /**

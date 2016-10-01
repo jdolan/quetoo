@@ -37,7 +37,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 	}
 
 	str->level = level;
-	str->chars = g_strdup(string ?: "");
+	str->chars = g_strdup(string ? string : "");
 	if (str->chars == NULL) {
 		raise(SIGABRT);
 		return NULL;
@@ -175,7 +175,7 @@ void Con_Append(int32_t level, const char *string) {
 			}
 		}
 	} else {
-		char stripped[strlen(string + 1)];
+		char stripped[strlen(string) + 1];
 
 		StripColors(string, stripped);
 		fputs(stripped, stdout);

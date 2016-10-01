@@ -367,7 +367,7 @@ static void Fs_Enumerate_(void *data, const char *dir, const char *filename) {
 }
 
 /**
- * @brief Enumerates files in the specified directory, calling the given function.
+ * @brief Enumerates files matching `pattern`, calling the given function.
  */
 void Fs_Enumerate(const char *pattern, Fs_EnumerateFunc func, void *data) {
 

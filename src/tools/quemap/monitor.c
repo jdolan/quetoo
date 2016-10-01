@@ -20,11 +20,15 @@
  */
 
 #include "monitor.h"
+
+#if !defined(NOMONITOR)
 #include "net/net_tcp.h"
 #include "net/net_message.h"
 
 #if defined(_WIN32)
 #define LIBXML_STATIC
+
+#define sleep Sleep
 #endif
 
 #include <libxml/tree.h>
@@ -43,12 +47,13 @@ static GList *mon_backlog; // nodes created before a connection was established
 
 #define xmlString(s) ((const xmlChar *) s)
 #define xmlStringf(...) xmlString(va(__VA_ARGS__))
+#endif
 
 /**
  * @brief Sends the specified (XML) string to the stream.
  */
 static void Mon_SendString(const xmlChar *string) {
-
+	
 	const char *s = (const char *) string;
 	if (strlen(s) && mon_state.socket) {
 
@@ -68,7 +73,7 @@ static void Mon_SendString(const xmlChar *string) {
  * @brief Sends the specified XML node to the stream.
  */
 static void Mon_SendXML(xmlNodePtr node) {
-
+	
 	if (node) {
 		if (mon_state.doc) {
 			xmlAddChild(xmlDocGetRootElement(mon_state.doc), node);
@@ -126,7 +131,7 @@ static void Mon_Stdio(err_t err, const char *msg) {
  * @brief Sends a brush selection to GtkRadiant.
  */
 void Mon_SendSelect_(const char *func, err_t err, uint16_t e, uint16_t b, const char *msg) {
-
+	
 	xmlNodePtr select = xmlNewNode(NULL, xmlString("select"));
 	xmlNodeSetContent(select, xmlStringf("%s: Entity %u, Brush %u: %s", func, e, b, msg));
 	xmlSetProp(select, xmlString("level"), xmlStringf("%d", err));
@@ -162,7 +167,7 @@ void Mon_SendPoint_(const char *func, err_t err, const vec3_t p, const char *msg
  * @brief Sends a winding to GtkRadiant.
  */
 void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n, const char *msg) {
-
+	
 	xmlNodePtr winding_msg = xmlNewNode(NULL, xmlString("windingmsg"));
 	xmlNodeSetContent(winding_msg, xmlStringf("%s: %s", func, msg));
 	xmlSetProp(winding_msg, xmlString("level"), xmlStringf("%d", err));
@@ -185,7 +190,7 @@ void Mon_SendWinding_(const char *func, err_t err, const vec3_t p[], uint16_t n,
  * @brief Initialize BSP monitoring facilities (XML over TCP).
  */
 _Bool Mon_Init(const char *host) {
-
+	
 	Net_Init();
 
 	memset(&mon_state, 0, sizeof(mon_state));
@@ -226,7 +231,7 @@ _Bool Mon_Init(const char *host) {
  * @brief Shuts down BSP monitoring facilities.
  */
 void Mon_Shutdown(const char *msg) {
-
+	
 	if (mon_state.socket) {
 
 		if (msg && *msg == '@') {

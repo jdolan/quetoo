@@ -47,8 +47,8 @@ static void Cl_CgameError(const char *func, const char *fmt, ...) {
 	Com_Error(ERR_DROP, "!Client game error: %s\n", msg);
 }
 
-/*
- * Message parsing facilities.
+/**
+ * @brief Message parsing facilities.
  */
 
 static void Cl_ReadData(void *data, size_t len) {
@@ -98,6 +98,13 @@ static void Cl_ReadAngles(vec3_t angles) {
 /**
  * @brief
  */
+static GList *Cl_Servers(void) {
+	return cls.servers;
+}
+
+/**
+ * @brief
+ */
 static char *Cl_ConfigString(uint16_t index) {
 
 	if (index > MAX_CONFIG_STRINGS) {
@@ -122,6 +129,12 @@ void Cl_InitCgame(void) {
 
 	memset(&import, 0, sizeof(import));
 
+	import.client = &cl;
+
+	import.context = &r_context;
+
+	import.view = &r_view;
+
 	import.Print = Com_Print;
 	import.Debug_ = Com_Debug_;
 	import.Warn_ = Com_Warn_;
@@ -132,11 +145,38 @@ void Cl_InitCgame(void) {
 	import.Free = Mem_Free;
 	import.FreeTag = Mem_FreeTag;
 
+	import.Thread = Thread_Create_;
+
+	import.BaseDir = Fs_BaseDir;
+	import.OpenFile = Fs_OpenRead;
+	import.SeekFile = Fs_Seek;
+	import.ReadFile = Fs_Read;
+	import.CloseFile = Fs_Close;
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;
+	import.EnumerateFiles = Fs_Enumerate;
 
-	import.Cvar = Cvar_Get;
+	import.Cvar = Cvar_Add;
+	import.CvarGet = Cvar_Get;
+	import.CvarSet = Cvar_Set;
+	import.CvarString = Cvar_GetString;
+	import.CvarValue = Cvar_GetValue;
+	import.CvarSetValue = Cvar_SetValue;
 	import.Cmd = Cmd_Add;
+	import.Cbuf = Cbuf_AddText;
+
+	import.AddViewControler = Ui_AddViewController;
+	import.RemoveViewController = Ui_RemoveViewController;
+
+	import.BindKey = Cl_Bind;
+	import.KeyForBind = Cl_KeyForBind;
+	import.KeyName = Cl_KeyName;
+
+	import.Servers = Cl_Servers;
+	import.GetServers = Cl_Servers_f;
+	import.Connect = Cl_Connect;
+	
+	import.Mapshots = Cl_Mapshots;
 
 	import.ConfigString = Cl_ConfigString;
 
@@ -152,8 +192,6 @@ void Cl_InitCgame(void) {
 	import.ReadAngle = Cl_ReadAngle;
 	import.ReadAngles = Cl_ReadAngles;
 
-	import.client = &cl;
-
 	import.EntityString = Cm_EntityString;
 
 	import.PointContents = Cl_PointContents;
@@ -166,15 +204,10 @@ void Cl_InitCgame(void) {
 	import.LoadSample = S_LoadSample;
 	import.AddSample = S_AddSample;
 
-	import.context = &r_context;
-
-	import.view = &r_view;
-
-	import.palette = &img_palette;
 	import.ColorFromPalette = Img_ColorFromPalette;
-
 	import.Color = R_Color;
 
+	import.LoadSurface = Img_LoadImage;
 	import.LoadImage = R_LoadImage;
 	import.LoadMaterial = R_LoadMaterial;
 	import.LoadModel = R_LoadModel;
@@ -183,6 +216,7 @@ void Cl_InitCgame(void) {
 	import.AddCorona = R_AddCorona;
 	import.AddEntity = R_AddEntity;
 	import.AddLinkedEntity = R_AddLinkedEntity;
+	import.SetMatrixForEntity = R_SetMatrixForEntity;
 	import.AddLight = R_AddLight;
 	import.AddParticle = R_AddParticle;
 	import.AddSustainedLight = R_AddSustainedLight;
@@ -193,8 +227,6 @@ void Cl_InitCgame(void) {
 	import.BindFont = R_BindFont;
 	import.StringWidth = R_StringWidth;
 	import.DrawString = R_DrawString;
-
-	import.Cbuf = Cbuf_AddText;
 
 	cls.cgame = Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
 

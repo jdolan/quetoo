@@ -332,7 +332,7 @@ vec_t VectorLength(const vec3_t v) {
 /**
  * @brief Combines a fraction of the second vector with the first.
  */
-void VectorMix(const vec3_t v1, const vec3_t v2, vec_t mix, vec3_t out) {
+void VectorMix(const vec3_t v1, const vec3_t v2, const vec_t mix, vec3_t out) {
 
 	for (int32_t i = 0; i < 3; i++)
 		out[i] = v1[i] * (1.0 - mix) + v2[i] * mix;

@@ -45,7 +45,7 @@ for exe in ${exes}; do
 
 	# Clean up ${dir} bedore copying .dll files
 	pushd ${dir}
-	rm -f $(find . -type f | egrep -v "cygwin|*.exe")
+	rm -f $(find . -type f | egrep -v "cygwin|*.bat|*.exe")
 	popd
 done
 

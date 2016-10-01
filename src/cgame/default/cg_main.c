@@ -26,6 +26,7 @@ cvar_t *cg_add_entities;
 cvar_t *cg_add_particles;
 cvar_t *cg_add_weather;
 cvar_t *cg_bob;
+cvar_t *cg_color;
 cvar_t *cg_draw_blend;
 cvar_t *cg_draw_captures;
 cvar_t *cg_draw_crosshair_color;
@@ -51,6 +52,9 @@ cvar_t *cg_draw_vote;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
 cvar_t *cg_fov_interpolate;
+cvar_t *cg_hand;
+cvar_t *cg_handicap;
+cvar_t *cg_skin;
 cvar_t *cg_third_person;
 cvar_t *cg_third_person_yaw;
 
@@ -73,6 +77,8 @@ static void Cg_Init(void) {
 			"Control the intensity of atmospheric effects.");
 
 	cg_bob = cgi.Cvar("cg_bob", "1.0", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
+	cg_color = cgi.Cvar("cg_color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+			"Specifies the effect color for your own weapon trails.");
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
 			"Controls the intensity of screen alpha-blending");
@@ -117,6 +123,13 @@ static void Cg_Init(void) {
 	cg_fov_interpolate = cgi.Cvar("cg_fov_interpolate", "1.0", CVAR_ARCHIVE,
 			"Interpolate between field of view changes (default 1.0).");
 
+	cg_hand = cgi.Cvar("hand", "1", CVAR_ARCHIVE | CVAR_USER_INFO,
+			"Controls weapon handedness (center: 0, right: 1, left: 2).");
+	cg_handicap = cgi.Cvar("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE,
+			"Your handicap, or disadvantage.");
+	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
+			"Your player model and skin.");
+
 	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_LO_ONLY,
 			"Activate third person perspective.");
 	cg_third_person_yaw = cgi.Cvar("cg_third_person_yaw", "0.0", CVAR_ARCHIVE,
@@ -150,6 +163,8 @@ static void Cg_Init(void) {
 	cgi.Cmd("config_strings", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("baselines", NULL, CMD_CGAME, NULL);
 
+	Cg_InitMenu();
+
 	cgi.Print("  Client game initialized\n");
 }
 
@@ -159,6 +174,8 @@ static void Cg_Init(void) {
 static void Cg_Shutdown(void) {
 
 	cgi.Print("  Client game shutdown...\n");
+
+	Cg_ShutdownMenu();
 
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
 	cgi.FreeTag(MEM_TAG_CGAME);

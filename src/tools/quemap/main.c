@@ -19,9 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL2/SDL.h>
-
 #include "quemap.h"
+
+#include <SDL2/SDL.h>
 
 quetoo_t quetoo;
 
@@ -161,6 +161,8 @@ static void Init(void) {
 	}
 #endif
 
+	SDL_Init(SDL_INIT_TIMER);
+
 	Mem_Init();
 
 	Fs_Init(true);
@@ -184,6 +186,8 @@ static void Shutdown(const char *msg) {
 	Fs_Shutdown();
 
 	Mem_Shutdown();
+
+	SDL_Quit();
 
 #if defined(_WIN32)
 	if (!is_monitor) {
@@ -552,4 +556,6 @@ int32_t main(int32_t argc, char **argv) {
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	Com_Shutdown(NULL);
+
+	return 0;
 }

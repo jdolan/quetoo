@@ -1,0 +1,226 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="game.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\game\default\g_ai.h" />
+    <ClInclude Include="..\src\game\default\g_ai_goal.h" />
+    <ClInclude Include="..\src\game\default\g_ballistics.h" />
+    <ClInclude Include="..\src\game\default\g_client.h" />
+    <ClInclude Include="..\src\game\default\g_client_chase.h" />
+    <ClInclude Include="..\src\game\default\g_client_stats.h" />
+    <ClInclude Include="..\src\game\default\g_client_view.h" />
+    <ClInclude Include="..\src\game\default\g_cmd.h" />
+    <ClInclude Include="..\src\game\default\g_combat.h" />
+    <ClInclude Include="..\src\game\default\g_entity.h" />
+    <ClInclude Include="..\src\game\default\g_entity_func.h" />
+    <ClInclude Include="..\src\game\default\g_entity_info.h" />
+    <ClInclude Include="..\src\game\default\g_entity_misc.h" />
+    <ClInclude Include="..\src\game\default\g_entity_target.h" />
+    <ClInclude Include="..\src\game\default\g_entity_trigger.h" />
+    <ClInclude Include="..\src\game\default\g_item.h" />
+    <ClInclude Include="..\src\game\default\g_local.h" />
+    <ClInclude Include="..\src\game\default\g_main.h" />
+    <ClInclude Include="..\src\game\default\g_map_list.h" />
+    <ClInclude Include="..\src\game\default\g_mysql.h" />
+    <ClInclude Include="..\src\game\default\g_physics.h" />
+    <ClInclude Include="..\src\game\default\g_types.h" />
+    <ClInclude Include="..\src\game\default\g_util.h" />
+    <ClInclude Include="..\src\game\default\g_weapon.h" />
+    <ClInclude Include="..\src\game\game.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\game\default\g_ai.c" />
+    <ClCompile Include="..\src\game\default\g_ai_goal.c" />
+    <ClCompile Include="..\src\game\default\g_ballistics.c" />
+    <ClCompile Include="..\src\game\default\g_client.c" />
+    <ClCompile Include="..\src\game\default\g_client_chase.c" />
+    <ClCompile Include="..\src\game\default\g_client_stats.c" />
+    <ClCompile Include="..\src\game\default\g_client_view.c" />
+    <ClCompile Include="..\src\game\default\g_cmd.c" />
+    <ClCompile Include="..\src\game\default\g_combat.c" />
+    <ClCompile Include="..\src\game\default\g_entity.c" />
+    <ClCompile Include="..\src\game\default\g_entity_func.c" />
+    <ClCompile Include="..\src\game\default\g_entity_info.c" />
+    <ClCompile Include="..\src\game\default\g_entity_misc.c" />
+    <ClCompile Include="..\src\game\default\g_entity_target.c" />
+    <ClCompile Include="..\src\game\default\g_entity_trigger.c" />
+    <ClCompile Include="..\src\game\default\g_item.c" />
+    <ClCompile Include="..\src\game\default\g_main.c" />
+    <ClCompile Include="..\src\game\default\g_map_list.c" />
+    <ClCompile Include="..\src\game\default\g_mysql.c" />
+    <ClCompile Include="..\src\game\default\g_physics.c" />
+    <ClCompile Include="..\src\game\default\g_util.c" />
+    <ClCompile Include="..\src\game\default\g_weapon.c" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A663B8E2-126D-45DA-B3F8-B381AB866E7D}</ProjectGuid>
+    <RootNamespace>cgame</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_clang_c2</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <IncludePath>..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\glib\Win$(PlatformArchitecture)\lib\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <IncludePath>..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\glib\Win$(PlatformArchitecture)\lib\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\glib\Win$(PlatformArchitecture)\lib\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IncludePath>..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LibraryPath>libs\bin\Win$(PlatformArchitecture)$(Configuration)\;libs\glib\Win$(PlatformArchitecture)\lib\;..\..\Objectively\Objectively.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\Win$(PlatformArchitecture)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\Win$(PlatformArchitecture)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <IntDir>tmp\$(ProjectName)\Win$(PlatformArchitecture)$(Configuration)\</IntDir>
+    <OutDir>bin\Win$(PlatformArchitecture)$(Configuration)\</OutDir>
+    <IncludePath>..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>glib-2.0.lib;libshared.lib;libpmove.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>game.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+    </ClCompile>
+    <Link>
+      <ModuleDefinitionFile>game.def</ModuleDefinitionFile>
+      <AdditionalDependencies>glib-2.0.lib;libshared.lib;libpmove.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>glib-2.0.lib;libshared.lib;libpmove.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>game.def</ModuleDefinitionFile>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CLanguageStandard>gnu99</CLanguageStandard>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>game.def</ModuleDefinitionFile>
+      <AdditionalDependencies>glib-2.0.lib;libshared.lib;libpmove.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

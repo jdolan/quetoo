@@ -897,9 +897,6 @@ void G_PrecacheItem(const g_item_t *it) {
  */
 void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 
-	if (GlobMatch(va("*%s*", item->class_name), g_blocked_items->string))
-		return;
-
 	ent->locals.item = item;
 	G_PrecacheItem(ent->locals.item);
 
@@ -1689,7 +1686,7 @@ const g_item_t g_items[] = {
 		"health/small/pickup.wav",
 		"models/health/small/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/i_health",
+		"pics/i_small_health",
 		"Small Health",
 		3,
 		NULL,
@@ -1721,7 +1718,7 @@ const g_item_t g_items[] = {
 		"health/medium/pickup.wav",
 		"models/health/medium/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/i_health",
+		"pics/i_medium_health",
 		"Medium Health",
 		15,
 		NULL,
@@ -1753,7 +1750,7 @@ const g_item_t g_items[] = {
 		"health/large/pickup.wav",
 		"models/health/large/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/i_health",
+		"pics/i_large_health",
 		"Large Health",
 		25,
 		NULL,
@@ -1785,7 +1782,7 @@ const g_item_t g_items[] = {
 		"health/mega/pickup.wav",
 		"models/health/mega/tris.obj",
 		EF_ROTATE | EF_BOB | EF_PULSE,
-		"pics/i_health",
+		"pics/i_mega_health",
 		"Mega Health",
 		75,
 		NULL,

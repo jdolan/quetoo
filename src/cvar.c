@@ -49,7 +49,7 @@ static _Bool Cvar_InfoValidate(const char *s) {
 /**
  * @return The variable by the specified name, or `NULL`.
  */
-static cvar_t *Cvar_Get_(const char *name) {
+cvar_t *Cvar_Get(const char *name) {
 
 	if (cvar_state.vars) {
 		return (cvar_t *) g_hash_table_lookup(cvar_state.vars, name);
@@ -64,7 +64,7 @@ static cvar_t *Cvar_Get_(const char *name) {
 vec_t Cvar_GetValue(const char *name) {
 	cvar_t *var;
 
-	var = Cvar_Get_(name);
+	var = Cvar_Get(name);
 
 	if (!var)
 		return 0.0f;
@@ -75,10 +75,10 @@ vec_t Cvar_GetValue(const char *name) {
 /**
  * @return The string for the specified variable, or the empty string.
  */
-char *Cvar_GetString(const char *name) {
+const char *Cvar_GetString(const char *name) {
 	cvar_t *var;
 
-	var = Cvar_Get_(name);
+	var = Cvar_Get(name);
 
 	if (!var)
 		return "";
@@ -135,7 +135,7 @@ void Cvar_CompleteVar(const char *pattern, GList **matches) {
  * variables set at the command line can receive their meta data through the
  * various subsystem initialization routines.
  */
-cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char *description) {
+cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *description) {
 
 	if (flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
 		if (!Cvar_InfoValidate(name)) {
@@ -149,7 +149,7 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 	}
 
 	// update existing variables with meta data from owning subsystem
-	cvar_t *var = Cvar_Get_(name);
+	cvar_t *var = Cvar_Get(name);
 	if (var) {
 		if (value) {
 			if (var->default_value) {
@@ -199,9 +199,9 @@ cvar_t *Cvar_Get(const char *name, const char *value, uint32_t flags, const char
 static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 	cvar_t *var;
 
-	var = Cvar_Get_(name);
+	var = Cvar_Get(name);
 	if (!var) { // create it
-		return Cvar_Get(name, value, 0, NULL);
+		return Cvar_Add(name, value, 0, NULL);
 	}
 
 	if (var->flags & (CVAR_USER_INFO | CVAR_SERVER_INFO)) {
@@ -311,9 +311,9 @@ cvar_t *Cvar_Set(const char *name, const char *value) {
 cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 	cvar_t *var;
 
-	var = Cvar_Get_(name);
+	var = Cvar_Get(name);
 	if (!var) { // create it
-		return Cvar_Get(name, value, flags, NULL);
+		return Cvar_Add(name, value, flags, NULL);
 	}
 
 	if (var->flags & CVAR_USER_INFO)
@@ -333,7 +333,7 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 /**
  * @brief
  */
-void Cvar_SetValue(const char *name, vec_t value) {
+cvar_t *Cvar_SetValue(const char *name, vec_t value) {
 	char val[32];
 
 	if (value == (int32_t) value)
@@ -341,26 +341,20 @@ void Cvar_SetValue(const char *name, vec_t value) {
 	else
 		g_snprintf(val, sizeof(val), "%f", value);
 
-	Cvar_Set(name, val);
+	return Cvar_Set(name, val);
 }
 
 /**
  * @brief
  */
-void Cvar_Toggle(const char *name) {
-	cvar_t *var;
+cvar_t *Cvar_Toggle(const char *name) {
 
-	var = Cvar_Get_(name);
-
-	if (!var) {
-		Com_Print("\"%s\" is not set\n", name);
-		return;
-	}
+	cvar_t *var = Cvar_Get(name) ?: Cvar_Add(name, "0", 0, NULL);
 
 	if (var->value)
-		Cvar_SetValue(name, 0.0);
+		return Cvar_SetValue(name, 0.0);
 	else
-		Cvar_SetValue(name, 1.0);
+		return Cvar_SetValue(name, 1.0);
 }
 
 /**
@@ -480,7 +474,7 @@ _Bool Cvar_Command(void) {
 	cvar_t *var;
 
 	// check variables
-	var = Cvar_Get_(Cmd_Argv(0));
+	var = Cvar_Get(Cmd_Argv(0));
 	if (!var)
 		return false;
 
@@ -671,7 +665,7 @@ void Cvar_Init(void) {
 		if (!strncmp(s, "+set", 4)) {
 			Cmd_ExecuteString(va("%s %s %s\n", Com_Argv(i) + 1, Com_Argv(i + 1), Com_Argv(i + 2)));
 
-			cvar_t *var = Cvar_Get_(Com_Argv(i + 1));
+			cvar_t *var = Cvar_Get(Com_Argv(i + 1));
 			if (var) {
 				var->flags |= CVAR_CLI;
 			} else {

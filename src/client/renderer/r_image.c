@@ -98,7 +98,7 @@ void R_Screenshot_f(void) {
 	// packing specification here before reading
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+	glReadPixels(0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, buffer);
 
 	if (Img_WritePNG(filename, buffer, width, height)) {
 		Com_Print("Saved %s\n", Basename(filename));

@@ -10,3 +10,13 @@ RSYNC_REPOSITORY = \
 rsync-data:
 	mkdir -p $(DESTDIR)@PKGDATADIR@
 	rsync -rzhP --delete $(RSYNC_REPOSITORY) $(DESTDIR)@PKGDATADIR@
+
+html:
+	doxygen
+
+html-clean:
+	rm -rf doc/html
+
+html-release:
+	rsync -rz --delete doc/html/ jaydolan.com:/var/www/projects/quetoo
+

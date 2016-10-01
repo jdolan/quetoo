@@ -38,7 +38,7 @@ libserver_la_LDFLAGS = \
 	-shared
 
 libserver_la_LIBADD = \
-	../collision/libcmodel.la \
-	../net/libnet.la \
-	../libconsole.la \
-	../libthread.la
+	$(top_srcdir)/src/collision/libcmodel.la \
+	$(top_srcdir)/src/net/libnet.la \
+	$(top_srcdir)/src/libconsole.la \
+	$(top_srcdir)/src/libthread.la
