@@ -31,6 +31,7 @@ extern cvar_t *cg_add_entities;
 extern cvar_t *cg_add_particles;
 extern cvar_t *cg_add_weather;
 extern cvar_t *cg_bob;
+extern cvar_t *cg_color;
 extern cvar_t *cg_draw_blend;
 extern cvar_t *cg_draw_captures;
 extern cvar_t *cg_draw_crosshair_color;
@@ -56,6 +57,9 @@ extern cvar_t *cg_draw_vote;
 extern cvar_t *cg_fov;
 extern cvar_t *cg_fov_zoom;
 extern cvar_t *cg_fov_interpolate;
+extern cvar_t *cg_hand;
+extern cvar_t *cg_handicap;
+extern cvar_t *cg_skin;
 extern cvar_t *cg_third_person;
 extern cvar_t *cg_third_person_yaw;
 

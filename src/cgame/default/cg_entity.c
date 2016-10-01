@@ -234,7 +234,6 @@ static void Cg_WeaponKick(cl_entity_t *ent, vec3_t offset, vec3_t angles) {
 static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 	static r_entity_t w;
 	static r_lighting_t lighting;
-	static const cvar_t *hand;
 	vec3_t offset, angles;
 
 	const player_state_t *ps = &cgi.client->frame.ps;
@@ -260,11 +259,7 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	VectorCopy(cgi.view->origin, w.origin);
 
-	if (hand == NULL) {
-		hand = cgi.Cvar("hand", NULL, 0, NULL);
-	}
-
-	switch (hand->integer) {
+	switch (cg_hand->integer) {
 		case HAND_LEFT:
 			offset[1] -= 6.0;
 			break;

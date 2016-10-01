@@ -101,6 +101,7 @@ void R_SetMatrixForEntity(r_entity_t *e) {
 		while (p->parent) {
 			p = p->parent;
 		}
+
 		AngleVectors(p->angles, forward, NULL, NULL);
 
 		VectorClear(e->origin);

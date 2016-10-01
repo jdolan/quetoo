@@ -27,7 +27,7 @@ libtests_la_CFLAGS = \
 libtests_la_LDFLAGS = \
 	-shared
 libtests_la_LIBADD = \
-	../libcommon.la
+	$(top_srcdir)/src/libcommon.la
 
 TESTS = \
 	check_cmd \
@@ -46,7 +46,7 @@ check_cmd_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cmd_LDADD = \
 	$(TESTS_LIBS) \
-	../libconsole.la
+	$(top_srcdir)/src/libconsole.la
 
 check_cvar_SOURCES = \
 	check_cvar.c
@@ -54,7 +54,7 @@ check_cvar_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cvar_LDADD = \
 	$(TESTS_LIBS) \
-	../libconsole.la
+	$(top_srcdir)/src/libconsole.la
 
 check_filesystem_SOURCES = \
 	check_filesystem.c
@@ -62,7 +62,7 @@ check_filesystem_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_filesystem_LDADD = \
 	$(TESTS_LIBS) \
-	../libfilesystem.la
+	$(top_srcdir)/src/libfilesystem.la
 
 check_master_SOURCES = \
 	check_master.c
@@ -70,7 +70,7 @@ check_master_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_master_LDADD = \
 	$(TESTS_LIBS) \
-	../libfilesystem.la
+	$(top_srcdir)/src/libfilesystem.la
 
 check_mem_SOURCES = \
 	check_mem.c
@@ -78,26 +78,26 @@ check_mem_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_mem_LDADD = \
 	$(TESTS_LIBS) \
-	../libmem.la
+	$(top_srcdir)/src/libmem.la
 
 check_r_media_SOURCES = \
 	check_r_media.c \
-	../client/renderer/r_media.c
+	$(top_srcdir)/src/client/renderer/r_media.c
 check_r_media_CFLAGS = \
-	-I../client/renderer \
+	-I$(top_srcdir)/src/client/renderer \
 	$(TESTS_CFLAGS) \
 	@OPENGL_CFLAGS@
 check_r_media_LDADD = \
 	$(TESTS_LIBS) \
-	../libmem.la
+	$(top_srcdir)/src/libmem.la
 
 check_thread_SOURCES = \
 	check_thread.c
 check_thread_CFLAGS = \
-	-I../ \
+	-I$(top_srcdir)/src \
 	$(TESTS_CFLAGS)
 check_thread_LDADD = \
 	$(TESTS_LIBS) \
-	../libthread.la
+	$(top_srcdir)/src/libthread.la
 
 endif

@@ -21,14 +21,11 @@
 
 #include "ui_local.h"
 
-#include "viewcontrollers/MainViewController.h"
-
 #include "client.h"
 
 extern cl_static_t cls;
 
 static WindowController *windowController;
-static ViewController *viewController;
 
 /**
  * @brief Dispatch events to the user interface. Filter most common event types for
@@ -51,42 +48,37 @@ void Ui_HandleEvent(const SDL_Event *event) {
 		}
 	}
 
+	if (event->type == SDL_WINDOWEVENT) {
+		if (event->window.event == SDL_WINDOWEVENT_SHOWN) {
+			$(windowController->viewController->view, renderDeviceDidReset);
+		}
+	}
+
 	$(windowController, respondToEvent, event);
 }
 
 /**
- * @brief TODO: Make this an ImageView within MainViewController's View?
+ * @brief
  */
-static void Ui_DrawBackground(void) {
+void Ui_UpdateBindings(void) {
 
-	if (cls.state != CL_ACTIVE) {
-
-		const r_image_t *background = R_LoadImage("ui/background", IT_UI);
-		if (background->type != IT_NULL) {
-
-			const vec_t x_scale = r_context.width / (vec_t) background->width;
-			const vec_t y_scale = r_context.height / (vec_t) background->height;
-
-			const vec_t scale = MAX(x_scale, y_scale);
-
-			R_DrawImage(0, 0, scale, background);
-		}
+	if (windowController) {
+		$(windowController->viewController->view, updateBindings);
 	}
 }
 
 /**
- * @brief Renders the user interface to a texture in a reserved OpenGL context, then
- * blits it back to the screen in the default context. A separate OpenGL context is
- * used to avoid OpenGL state pollution.
+ * @brief
  */
 void Ui_Draw(void) {
-	extern void R_BindDefaultArray(GLenum type);
+
+	if (cls.state == CL_LOADING) {
+		return;
+	}
 
 	if (cls.key_state.dest != KEY_UI) {
 		return;
 	}
-
-	Ui_DrawBackground();
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glPushClientAttrib(GL_ALL_CLIENT_ATTRIB_BITS);
@@ -110,6 +102,24 @@ void Ui_Draw(void) {
 }
 
 /**
+ * @brief
+ */
+void Ui_AddViewController(ViewController *viewController) {
+	if (viewController) {
+		$(viewController, moveToParentViewController, windowController->viewController);
+	}
+}
+
+/**
+ * @brief
+ */
+void Ui_RemoveViewController(ViewController *viewController) {
+	if (viewController) {
+		$(viewController, moveToParentViewController, NULL);
+	}
+}
+
+/**
  * @brief Initializes the user interface.
  */
 void Ui_Init(void) {
@@ -117,7 +127,6 @@ void Ui_Init(void) {
 #if defined(__APPLE__)
 	const char *path = Fs_BaseDir();
 	if (path) {
-
 		char fonts[MAX_OS_PATH];
 		g_snprintf(fonts, sizeof(fonts), "%s/Contents/MacOS/etc/fonts", path);
 
@@ -127,9 +136,11 @@ void Ui_Init(void) {
 
 	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
 
-	viewController = (ViewController *) $((ViewController *) _alloc(&_MainViewController), init);
+	ViewController *viewController = $(alloc(ViewController), init);
 
 	$(windowController, setViewController, viewController);
+
+	release(viewController);
 }
 
 /**
@@ -137,7 +148,6 @@ void Ui_Init(void) {
  */
 void Ui_Shutdown(void) {
 
-	release(viewController);
 	release(windowController);
 
 	Mem_FreeTag(MEM_TAG_UI);

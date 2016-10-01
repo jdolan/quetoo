@@ -429,6 +429,8 @@ AC_CONFIG_FILES([
 	src/collision/Makefile
 	src/cgame/Makefile
 	src/cgame/default/Makefile
+	src/cgame/default/viewcontrollers/Makefile
+	src/cgame/default/views/Makefile
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile

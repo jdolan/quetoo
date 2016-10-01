@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE2DB5171D88F98600560994"
-               BuildableName = "update"
-               BlueprintName = "update"
+               BuildableName = "quetoo-update"
+               BlueprintName = "quetoo-update"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -33,8 +33,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE2DB5171D88F98600560994"
-            BuildableName = "update"
-            BlueprintName = "update"
+            BuildableName = "quetoo-update"
+            BlueprintName = "quetoo-update"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -56,8 +56,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE2DB5171D88F98600560994"
-            BuildableName = "update"
-            BlueprintName = "update"
+            BuildableName = "quetoo-update"
+            BlueprintName = "quetoo-update"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -75,8 +75,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE2DB5171D88F98600560994"
-            BuildableName = "update"
-            BlueprintName = "update"
+            BuildableName = "quetoo-update"
+            BlueprintName = "quetoo-update"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

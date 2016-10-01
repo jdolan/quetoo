@@ -47,15 +47,10 @@ static void Cl_UpdateViewSize(void) {
 	if (!cl_view_size->modified && !r_view.update)
 		return;
 
-	if (cl_view_size->value < 40.0)
-		Cvar_Set("cl_view_size", "40.0");
-	if (cl_view_size->value > 100.0)
-		Cvar_Set("cl_view_size", "100.0");
+	Cvar_SetValue(cl_view_size->name, Clamp(cl_view_size->value, 40.0, 100.0));
 
-	const int32_t size = cl_view_size->value;
-
-	r_view.viewport.w = r_context.width * size / 100.0;
-	r_view.viewport.h = r_context.height * size / 100.0;
+	r_view.viewport.w = r_context.width * cl_view_size->value / 100.0;
+	r_view.viewport.h = r_context.height * cl_view_size->value / 100.0;
 
 	r_view.viewport.x = (r_context.width - r_view.viewport.w) / 2.0;
 	r_view.viewport.y = (r_context.height - r_view.viewport.h) / 2.0;

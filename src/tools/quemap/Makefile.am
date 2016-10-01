@@ -48,11 +48,11 @@ quemap_CFLAGS = \
 	@XML_CFLAGS@
 
 quemap_LDADD = \
-	../../../deps/minizip/libminizip.la \
-	../../collision/libcmodel.la \
-	../../net/libnet.la \
-	../../libimage.la \
-	../../libthread.la \
+	$(top_srcdir)/deps/minizip/libminizip.la \
+	$(top_srcdir)/src/collision/libcmodel.la \
+	$(top_srcdir)/src/net/libnet.la \
+	$(top_srcdir)/src/libimage.la \
+	$(top_srcdir)/src/libthread.la \
 	@CURSES_LIBS@ \
 	@SDL2_LIBS@ \
 	@XML_LIBS@
