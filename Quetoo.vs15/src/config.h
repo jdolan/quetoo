@@ -104,4 +104,4 @@
 
 #undef HAVE_UNISTD_H
 
-typedef ptrdiff_t		ssize_t;
+typedef int		ssize_t;
