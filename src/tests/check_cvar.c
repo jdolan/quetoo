@@ -54,7 +54,7 @@ void teardown(void) {
 START_TEST(check_Cvar_Get)
 	{
 		// check that we can create a variable and that its fields are populated correctly
-		cvar_t *var = Cvar_Get("var", "3.2", CVAR_ARCHIVE, __func__);
+		cvar_t *var = Cvar_Add("var", "3.2", CVAR_ARCHIVE, __func__);
 
 		ck_assert(var != NULL);
 		ck_assert_str_eq(var->name, "var");
@@ -66,7 +66,7 @@ START_TEST(check_Cvar_Get)
 
 		// check that a subsequent call for the same variable does not modify the value
 		// but does modify all meta-data
-		cvar_t *var_copy = Cvar_Get("var", "0.5", CVAR_USER_INFO, "Some other description");
+		cvar_t *var_copy = Cvar_Add("var", "0.5", CVAR_USER_INFO, "Some other description");
 
 		ck_assert(var_copy == var);
 		ck_assert_str_eq(var->string, "3.2");
@@ -92,7 +92,7 @@ START_TEST(check_Cvar_WriteAll)
 
 		// create a whole mess of variables
 		for (uint32_t i = 0; i < lengthof(vars); i++) {
-			vars[i] = Cvar_Get(va("var%02d", i), va("%d", i), CVAR_ARCHIVE, NULL);
+			vars[i] = Cvar_Add(va("var%02d", i), va("%d", i), CVAR_ARCHIVE, NULL);
 			vars[i]->modified = false;
 		}
 

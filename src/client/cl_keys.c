@@ -62,10 +62,7 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 			break;
 		case KEY_UI:
 			SDL_StopTextInput();
-		{
-			SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
-			SDL_PushEvent(&event);
-		}
+			Ui_UpdateBindings();
 			break;
 		case KEY_GAME:
 			SDL_StopTextInput();
@@ -78,6 +75,8 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 	SDL_FlushEvent(SDL_TEXTINPUT);
 
 	cls.key_state.dest = dest;
+
+	Cvar_FullSet("active", dest == KEY_GAME ? "1" : "0", CVAR_NO_SET | CVAR_USER_INFO);
 }
 
 /**
@@ -533,10 +532,4 @@ void Cl_KeyEvent(const SDL_Event *event) {
 	}
 
 	cls.key_state.down[event->key.keysym.scancode] = event->type == SDL_KEYDOWN;
-
-	if (cls.key_state.dest == KEY_GAME && !(active->integer)) {
-		Cvar_FullSet("active", "1", CVAR_USER_INFO | CVAR_NO_SET);
-	} else if (cls.key_state.dest != KEY_GAME && active->integer) {
-		Cvar_FullSet("active", "0", CVAR_USER_INFO | CVAR_NO_SET);
-	}
 }

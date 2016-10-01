@@ -38,16 +38,12 @@ extern cvar_t *cl_timeout;
 extern cvar_t *cl_view_size;
 
 // user_info
-extern cvar_t *active;
-extern cvar_t *color;
-extern cvar_t *hand;
-extern cvar_t *message_level;
 extern cvar_t *name;
+extern cvar_t *message_level;
 extern cvar_t *password;
 extern cvar_t *rate;
-extern cvar_t *skin;
-extern cvar_t *handicap;
 
+void Cl_Connect(const net_addr_t *addr);
 void Cl_Disconnect(void);
 void Cl_Frame(const uint32_t msec);
 void Cl_Init(void);

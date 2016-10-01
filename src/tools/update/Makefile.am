@@ -9,10 +9,6 @@ quetoo_update_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@
 
-quetoo_update_LDADD = \
-	../../libfilesystem.la \
-	../../libsys.la
-
 if WINDOWS
 
 .rc.o:

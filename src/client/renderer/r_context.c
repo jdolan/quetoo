@@ -128,12 +128,6 @@ void R_InitContext(void) {
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
 
 	R_SetWindowIcon();
-
-	SDL_Event event = {
-		.type = MVC_EVENT_RENDER_DEVICE_RESET
-	};
-
-	SDL_PushEvent(&event);
 }
 
 /**

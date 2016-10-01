@@ -106,8 +106,7 @@ void Cl_ParseServerInfo(void) {
 
 	server->ping = Clamp(quetoo.time - server->ping_time, 1, 999);
 
-	SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
-	SDL_PushEvent(&event);
+	Ui_UpdateBindings();
 }
 
 /**
@@ -261,8 +260,7 @@ void Cl_ParseServers(void) {
 
 	// and inform the user interface
 
-	SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
-	SDL_PushEvent(&event);
+	Ui_UpdateBindings();
 }
 
 /**

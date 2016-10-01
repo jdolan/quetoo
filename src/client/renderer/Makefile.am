@@ -88,5 +88,5 @@ librenderer_la_LDFLAGS = \
 	-shared
 	
 librenderer_la_LIBADD = \
-	../../libimage.la \
+	$(top_srcdir)/src/libimage.la \
 	@OPENGL_LIBS@

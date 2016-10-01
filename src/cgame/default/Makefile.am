@@ -1,5 +1,9 @@
 cgamelibdir = @PKGLIBDIR@/default
 
+SUBDIRS = \
+	views \
+	viewcontrollers
+
 noinst_HEADERS = \
 	cg_client.h \
 	cg_effect.h \
@@ -17,6 +21,8 @@ noinst_HEADERS = \
 	cg_score.h \
 	cg_temp_entity.h \
 	cg_types.h \
+	cg_ui.h \
+	cg_ui_data.h \
 	cg_view.h
 
 cgamelib_LTLIBRARIES = \
@@ -38,6 +44,8 @@ cgame_la_SOURCES = \
 	cg_predict.c \
 	cg_score.c \
 	cg_temp_entity.c \
+	cg_ui.c \
+	cg_ui_data.c \
 	cg_view.c
 
 cgame_la_CFLAGS = \
@@ -45,6 +53,7 @@ cgame_la_CFLAGS = \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
+	@OBJECTIVELYMVC_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL2_CFLAGS@
 
@@ -55,5 +64,7 @@ cgame_la_LDFLAGS = \
 	-shared
 
 cgame_la_LIBADD = \
-	../../game/default/libpmove.la
+	viewcontrollers/libviewcontrollers.la \
+	$(top_srcdir)/src/game/default/libpmove.la \
+	$(top_srcdir)/src/libswap.la
 

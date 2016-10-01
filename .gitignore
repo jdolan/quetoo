@@ -24,6 +24,7 @@ config.sub
 configure
 depcomp
 gmon.out
+html
 install-sh
 libtool
 ltmain.sh
