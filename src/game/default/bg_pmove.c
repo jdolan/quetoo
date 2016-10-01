@@ -379,7 +379,7 @@ static void Pm_StepSlideMove(void) {
 	if (Pm_SlideMove()) {
 
 		// attempt to step down to remain on ground
-		if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up == 0) {
+		if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up <= 0) {
 
 			VectorMA(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, vec3_down, down);
 			const cm_trace_t step_down = pm->Trace(pm->s.origin, down, pm->mins, pm->maxs);
