@@ -37,7 +37,7 @@ libpmove_la_CFLAGS = \
 libpmove_la_LDFLAGS = \
 	-shared
 libpmove_la_LIBADD = \
-	../../libshared.la
+	$(top_srcdir)/src/libshared.la
 
 gamelibdir = @PKGLIBDIR@/default
 

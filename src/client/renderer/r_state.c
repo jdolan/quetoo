@@ -649,7 +649,7 @@ void R_Setup2D(void) {
  */
 void R_InitState(void) {
 
-	r_get_error = Cvar_Get("r_get_error", "0", 0, NULL);
+	r_get_error = Cvar_Add("r_get_error", "0", 0, NULL);
 
 	memset(&r_state, 0, sizeof(r_state));
 

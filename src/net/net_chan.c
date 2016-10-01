@@ -300,8 +300,8 @@ void Netchan_Init(void) {
 
 	Net_Init();
 
-	net_show_packets = Cvar_Get("net_show_packets", "0", 0, NULL);
-	net_show_drop = Cvar_Get("net_show_drop", "0", 0, NULL);
+	net_show_packets = Cvar_Add("net_show_packets", "0", 0, NULL);
+	net_show_drop = Cvar_Add("net_show_drop", "0", 0, NULL);
 
 	Mem_InitBuffer(&net_message, net_message_buffer, sizeof(net_message_buffer));
 }

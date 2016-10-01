@@ -644,12 +644,7 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 
 			VectorMA(cgi.view->origin, 8.0, cgi.view->forward, start);
 
-			static const cvar_t *hand;
-			if (hand == NULL) {
-				hand = cgi.Cvar("hand", NULL, 0, NULL);
-			}
-
-			switch (hand->integer) {
+			switch (cg_hand->integer) {
 				case HAND_LEFT:
 					VectorMA(start, -6.0, cgi.view->right, start);
 					break;
