@@ -161,6 +161,8 @@ static void Init(void) {
 	}
 #endif
 
+	SDL_Init(SDL_INIT_TIMER);
+
 	Mem_Init();
 
 	Fs_Init(true);
@@ -184,6 +186,8 @@ static void Shutdown(const char *msg) {
 	Fs_Shutdown();
 
 	Mem_Shutdown();
+
+	SDL_Quit();
 
 #if defined(_WIN32)
 	if (!is_monitor) {

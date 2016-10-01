@@ -123,6 +123,8 @@ static void Quit_f(void) {
  */
 static void Init(void) {
 
+	SDL_Init(SDL_INIT_TIMER);
+
 	Mem_Init();
 
 	Cmd_Init();
@@ -204,6 +206,8 @@ static void Shutdown(const char *msg) {
 	Fs_Shutdown();
 
 	Mem_Shutdown();
+
+	SDL_Quit();
 }
 
 /**

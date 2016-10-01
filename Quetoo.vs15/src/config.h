@@ -38,7 +38,8 @@
 #define g_hash_table_contains(table, key) \
 		(g_hash_table_lookup(table, key) != NULL)
 
-/* Set to the canonical name of the target machine */
+/* Set to the canonical name of the target machine
+ */
 #define _strngf(s) #s
 #define _strngfx(s) _strngf(s)
 
@@ -80,10 +81,12 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "0.1.0"
 
-/* Define to path containing the game data. */
+/* Define to path containing the game data.
+ */
 #define PKGDATADIR "/share"
 
-/* Define to path containing the shared modules. */
+/* Define to path containing the shared modules.
+ */
 #define PKGLIBDIR "/lib"
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -101,3 +104,7 @@
 
 /* Define to 1 if you need to in order for `stat' and other things to work. */
 /* #undef _POSIX_SOURCE */
+
+#undef HAVE_UNISTD_H
+
+typedef int		ssize_t;

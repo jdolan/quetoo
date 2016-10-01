@@ -23,16 +23,16 @@
 
 #include "sv_local.h"
 
-// Visual Studio hack
-#if defined(_MSC_VER)
+// Windows hack
+#if defined(_WIN32)
 #undef MOUSE_MOVED
 #undef bool
 #endif
 
 #include <curses.h>
 
-// Visual Studio hack
-#if defined(_MSC_VER)
+// Windows hack
+#if defined(_WIN32)
 #undef bool
 #define bool _Bool
 #endif

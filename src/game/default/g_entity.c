@@ -432,8 +432,14 @@ static void G_InitMedia(void) {
 	G_PrecacheItem(G_FindItem("BFG10K"));
 
 	// precache these so that the HUD icons are available
+	G_PrecacheItem(G_FindItem("Large Health"));
 	G_PrecacheItem(G_FindItem("Medium Health"));
+	G_PrecacheItem(G_FindItem("Small Health"));
 	G_PrecacheItem(G_FindItem("Body Armor"));
+	G_PrecacheItem(G_FindItem("Combat Armor"));
+	G_PrecacheItem(G_FindItem("Jacket Armor"));
+
+	gi.ImageIndex("pics/i_health");
 }
 
 /**

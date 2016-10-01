@@ -248,10 +248,7 @@ void S_Shutdown(void) {
 
 	Mix_CloseAudio();
 
-	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_AUDIO)
-		SDL_Quit();
-	else
-		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
 	Cmd_RemoveAll(CMD_SOUND);
 

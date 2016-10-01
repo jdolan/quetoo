@@ -151,8 +151,5 @@ void R_ShutdownContext(void) {
 		r_context.window = NULL;
 	}
 
-	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)
-		SDL_Quit();
-	else
-		SDL_QuitSubSystem(SDL_INIT_VIDEO);
+	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }

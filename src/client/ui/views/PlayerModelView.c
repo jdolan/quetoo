@@ -67,7 +67,7 @@ static void renderMeshEntity_md3(const r_entity_t *e) {
 	static vec3_t verts[MD3_MAX_VERTS];
 #else
 	vec3_t verts[e->model->num_verts];
-#endif
+
 	glVertexPointer(3, GL_FLOAT, 0, verts);
 
 	const r_md3_t *md3 = (r_md3_t *) e->model->mesh->data;
@@ -81,7 +81,7 @@ static void renderMeshEntity_md3(const r_entity_t *e) {
 	const r_md3_mesh_t *mesh = md3->meshes;
 	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
 
-		const r_material_t *material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
+		const r_material_t *material = e->skins[i] ?: e->model->mesh->material;
 		glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
 
 		glTexCoordPointer(2, GL_FLOAT, 0, mesh->coords);
