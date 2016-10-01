@@ -86,11 +86,9 @@ _Bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b) {
  * @brief
  */
 const char *Net_NetaddrToString(const net_addr_t *a) {
-	static char s[64];
+	static char s[INET_ADDRSTRLEN];
 
-	g_snprintf(s, sizeof(s), "%s:%i", inet_ntoa(*(struct in_addr *) &a->addr), ntohs(a->port));
-
-	return s;
+	return va("%s:%i", inet_ntop(AF_INET, &a->addr, s, sizeof(s)), ntohs(a->port));
 }
 
 /**
