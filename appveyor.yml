@@ -1,7 +1,4 @@
 version: 1.0.{build}
-branches:
-  only:
-  - feature/vs-ci
 configuration: Release
 platform:
 - Win32
