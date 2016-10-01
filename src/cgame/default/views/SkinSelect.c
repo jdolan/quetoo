@@ -83,7 +83,7 @@ static void enumerateModels(const char *path, void *data) {
  * @brief SelectDelegate callback.
  */
 static void didSelectOption(Select *select, Option *option) {
-	cgi.CvarSetString(cg_skin->name, option->title->text);
+	cgi.CvarSet(cg_skin->name, option->title->text);
 }
 
 #pragma mark - SkinSelect

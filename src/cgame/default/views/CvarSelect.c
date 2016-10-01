@@ -72,7 +72,7 @@ static void didSelectOption(Select *Select, Option *option) {
 	const CvarSelect *this = (CvarSelect *) Select;
 
 	if (this->expectsStringValue) {
-		cgi.CvarSetString(this->var->name, option->title->text);
+		cgi.CvarSet(this->var->name, option->title->text);
 	} else {
 		cgi.CvarSetValue(this->var->name, (int32_t) (intptr_t) option->value);
 	}

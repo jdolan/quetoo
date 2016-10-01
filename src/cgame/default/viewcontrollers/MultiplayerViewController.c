@@ -48,7 +48,7 @@ static void createAction(Control *control, const SDL_Event *event, ident sender,
  * @brief ActionFunction for the Refresh button.
  */
 static void refreshAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-	cgi.Cbuf("servers\n");
+	cgi.GetServers();
 }
 
 /**
@@ -65,10 +65,10 @@ static void connectAction(Control *control, const SDL_Event *event, ident sender
 	const TableView *servers = (TableView *) data;
 	IndexSet *selectedRowIndexes = $(servers, selectedRowIndexes);
 	if (selectedRowIndexes->count) {
-//		const cl_server_info_t *server = g_list_nth_data(cls.servers, selectedRowIndexes->indexes[0]);
-//		if (server) {
-//			cgi.Cbuf(va("connect %s\n", Net_NetaddrToString(&server->addr)));
-//		}
+		const cl_server_info_t *server = g_list_nth_data(cgi.Servers(), selectedRowIndexes->indexes[0]);
+		if (server) {
+			cgi.Connect(&server->addr);
+		}
 	}
 
 	release(selectedRowIndexes);
@@ -83,8 +83,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	cgi.Cbuf("servers\n");
-//	Cl_Servers_f();
+	cgi.GetServers();
 
 	MenuViewController *this = (MenuViewController *) self;
 

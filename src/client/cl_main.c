@@ -124,14 +124,9 @@ static void Cl_CheckForResend(void) {
 }
 
 /**
- * @brief
+ * @brief Initiates the connection process to the specified server.
  */
-static void Cl_Connect_f(void) {
-
-	if (Cmd_Argc() != 2) {
-		Com_Print("Usage: %s <address>\n", Cmd_Argv(0));
-		return;
-	}
+void Cl_Connect(const net_addr_t *addr) {
 
 	if (Com_WasInit(QUETOO_SERVER)) { // if running a local server, kill it
 		Sv_ShutdownServer("Server quit\n");
@@ -139,11 +134,28 @@ static void Cl_Connect_f(void) {
 
 	Cl_Disconnect();
 
-	strncpy(cls.server_name, Cmd_Argv(1), sizeof(cls.server_name));
-	cls.server_name[sizeof(cls.server_name) - 1] = '\0';
+	g_strlcpy(cls.server_name, Net_NetaddrToString(addr), sizeof(cls.server_name));
 
 	cls.state = CL_CONNECTING;
-	cls.connect_time = 0; // fire immediately
+	cls.connect_time = 0;
+}
+
+/**
+ * @brief
+ */
+static void Cl_Connect_f(void) {
+	net_addr_t addr;
+
+	if (Cmd_Argc() != 2) {
+		Com_Print("Usage: %s <address>\n", Cmd_Argv(0));
+		return;
+	}
+
+	if (Net_StringToNetaddr(Cmd_Argv(1), &addr)) {
+		Cl_Connect(&addr);
+	} else {
+		Com_Print("Invalid server address: %s\n", Cmd_Argv(1));
+	}
 }
 
 /**

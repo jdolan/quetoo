@@ -50,7 +50,7 @@ static void didEndEditing(TextView *textView) {
 
 	const CvarTextView *this = (CvarTextView *) textView;
 
-	cgi.CvarSetString(this->var->name, textView->attributedText->string.chars);
+	cgi.CvarSet(this->var->name, textView->attributedText->string.chars);
 }
 
 /**

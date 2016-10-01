@@ -86,8 +86,6 @@ static void loadView(ViewController *self) {
 	SDL_Size size = MakeSize(min(cgi.context->window_width, 1024), 36);
 	$((View *) panel->contentView, resize, &size);
 
-	$((View *) panel, sizeToFit);
-
 	$(self->view, addSubview, (View *) panel);
 	release(panel);
 }

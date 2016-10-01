@@ -105,6 +105,15 @@ typedef struct cg_import_s {
 	void (*FreeTag)(mem_tag_t tag);
 
 	/**
+	 * @brief Creates and starts a thread for the given function.
+	 *
+	 * @param name The thread name.
+	 * @param run The thread function.
+	 * @param data User data.
+	 */
+	thread_t *(*Thread)(const char *name, ThreadRunFunc run, void *data);
+
+	/**
 	 * @}
 	 *
 	 * @defgroup filesystem Filesystem
@@ -212,7 +221,7 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Sets the console variable by `name` to `string`.
 	 */
-	cvar_t *(*CvarSetString)(const char *name, const char *string);
+	cvar_t *(*CvarSet)(const char *name, const char *string);
 
 	/**
 	 * @brief Sets the console variable by `name` to `value`.
@@ -241,9 +250,54 @@ typedef struct cg_import_s {
 	 */
 
 	/**
+	 * @brief Adds the specified ViewController to the user interface.
+	 */
+	void (*AddViewControler)(ViewController *viewController);
+
+	/**
+	 * @brief Removes the specified ViewController from the user interface.
+	 */
+	void (*RemoveViewController)(ViewController *viewController);
+
+	/**
+	 * @brief Resolves the next key after `from` that references `bind`.
+	 *
+	 * @param from The key to search from (SDL_SCANCODE_UNKNOWN to begin).
+	 * @param bind The key binding to search for.
+	 *
+	 * @return The next key bound to `bind`.
+	 */
+	SDL_Scancode (*KeyForBind)(SDL_Scancode from, const char *bind);
+
+	/**
+	 * @return The human readable name of the given `key`.
+	 */
+	const char *(*KeyName)(SDL_Scancode key);
+
+	/**
+	 * @brief Binds or unbinds `key`.
+	 *
+	 * @param key The key to bind or unbind.
+	 * @param bind The binding, or `NULL` to unbind.
+	 */
+	void (*BindKey)(SDL_Scancode key, const char *bind);
+
+	/**
 	 * @return The list of known servers (cl_server_info_t).
 	 */
 	GList *(*Servers)(void);
+
+	/**
+	 * @brief Refreshes the list of known servers from the master and LAN.
+	 */
+	void (*GetServers)(void);
+
+	/**
+	 * @brief Initiates the connection sequence to the specified server address.
+	 *
+	 * @param addr The network server address.
+	 */
+	void (*Connect)(const net_addr_t *addr);
 
 	/**
 	 * @return The list of mapshots (char *) for the given map.
@@ -566,47 +620,6 @@ typedef struct cg_import_s {
 	 * @}
 	 */
 
-	/**
-	 * @brief Adds the specified ViewController to the user interface.
-	 */
-	void (*AddViewControler)(ViewController *viewController);
-
-	/**
-	 * @brief Removes the specified ViewController from the user interface.
-	 */
-	void (*RemoveViewController)(ViewController *viewController);
-
-	/**
-	 * @brief Resolves the next key after `from` that references `bind`.
-	 *
-	 * @param from The key to search from (SDL_SCANCODE_UNKNOWN to begin).
-	 * @param bind The key binding to search for.
-	 *
-	 * @return The next key bound to `bind`.
-	 */
-	SDL_Scancode (*KeyForBind)(SDL_Scancode from, const char *bind);
-
-	/**
-	 * @return The human readable name of the given `key`.
-	 */
-	const char *(*KeyName)(SDL_Scancode key);
-
-	/**
-	 * @brief Binds or unbinds `key`.
-	 *
-	 * @param key The key to bind or unbind.
-	 * @param bind The binding, or `NULL` to unbind.
-	 */
-	void (*BindKey)(SDL_Scancode key, const char *bind);
-
-	/**
-	 * @brief Creates and starts a thread for the given function.
-	 *
-	 * @param name The thread name.
-	 * @param run The thread function.
-	 * @param data User data.
-	 */
-	thread_t *(*Thread)(const char *name, ThreadRunFunc run, void *data);
 } cg_import_t;
 
 /**

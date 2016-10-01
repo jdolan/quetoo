@@ -48,6 +48,12 @@ void Ui_HandleEvent(const SDL_Event *event) {
 		}
 	}
 
+	if (event->type == SDL_WINDOWEVENT) {
+		if (event->window.event == SDL_WINDOWEVENT_SHOWN) {
+			$(windowController->viewController->view, renderDeviceDidReset);
+		}
+	}
+
 	$(windowController, respondToEvent, event);
 }
 
@@ -56,9 +62,9 @@ void Ui_HandleEvent(const SDL_Event *event) {
  */
 void Ui_UpdateBindings(void) {
 
-	Ui_HandleEvent(&(const SDL_Event) {
-		.type = MVC_EVENT_UPDATE_BINDINGS
-	});
+	if (windowController) {
+		$(windowController->viewController->view, updateBindings);
+	}
 }
 
 /**
@@ -95,14 +101,18 @@ void Ui_Draw(void) {
  * @brief
  */
 void Ui_AddViewController(ViewController *viewController) {
-	$(viewController, moveToParentViewController, windowController->viewController);
+	if (viewController) {
+		$(viewController, moveToParentViewController, windowController->viewController);
+	}
 }
 
 /**
  * @brief
  */
 void Ui_RemoveViewController(ViewController *viewController) {
-	$(viewController, moveToParentViewController, NULL);
+	if (viewController) {
+		$(viewController, moveToParentViewController, NULL);
+	}
 }
 
 /**

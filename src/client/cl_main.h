@@ -42,6 +42,7 @@ extern cvar_t *message_level;
 extern cvar_t *password;
 extern cvar_t *rate;
 
+void Cl_Connect(const net_addr_t *addr);
 void Cl_Disconnect(void);
 void Cl_Frame(const uint32_t msec);
 void Cl_Init(void);

@@ -145,6 +145,8 @@ void Cl_InitCgame(void) {
 	import.Free = Mem_Free;
 	import.FreeTag = Mem_FreeTag;
 
+	import.Thread = Thread_Create_;
+
 	import.BaseDir = Fs_BaseDir;
 	import.OpenFile = Fs_OpenRead;
 	import.SeekFile = Fs_Seek;
@@ -156,13 +158,23 @@ void Cl_InitCgame(void) {
 
 	import.Cvar = Cvar_Get;
 	import.CvarString = Cvar_GetString;
-	import.CvarSetString = Cvar_Set;
+	import.CvarSet = Cvar_Set;
 	import.CvarValue = Cvar_GetValue;
 	import.CvarSetValue = Cvar_SetValue;
 	import.Cmd = Cmd_Add;
 	import.Cbuf = Cbuf_AddText;
 
+	import.AddViewControler = Ui_AddViewController;
+	import.RemoveViewController = Ui_RemoveViewController;
+
+	import.BindKey = Cl_Bind;
+	import.KeyForBind = Cl_KeyForBind;
+	import.KeyName = Cl_KeyName;
+
 	import.Servers = Cl_Servers;
+	import.GetServers = Cl_Servers_f;
+	import.Connect = Cl_Connect;
+	
 	import.Mapshots = Cl_Mapshots;
 
 	import.ConfigString = Cl_ConfigString;
@@ -214,15 +226,6 @@ void Cl_InitCgame(void) {
 	import.BindFont = R_BindFont;
 	import.StringWidth = R_StringWidth;
 	import.DrawString = R_DrawString;
-
-	import.AddViewControler = Ui_AddViewController;
-	import.RemoveViewController = Ui_RemoveViewController;
-
-	import.BindKey = Cl_Bind;
-	import.KeyForBind = Cl_KeyForBind;
-	import.KeyName = Cl_KeyName;
-
-	import.Thread = Thread_Create_;
 
 	cls.cgame = Sys_LoadLibrary("cgame", &cgame_handle, "Cg_LoadCgame", &import);
 

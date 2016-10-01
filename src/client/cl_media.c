@@ -227,8 +227,6 @@ void Cl_LoadMedia(void) {
 
 	S_LoadMedia();
 
-	Ui_UpdateBindings();
-
 	Cl_LoadingProgress(88, "entities");
 
 	Cl_UpdateEntities();
