@@ -60,10 +60,9 @@
   #else
    #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
   #endif
-#define strdup _strdup
+ #define strdup _strdup
 
-char *asprintf(char ** __restrict ret, char * __restrict format, ...)
-{
+char *asprintf(char ** __restrict ret, char * __restrict format, ...) {
 	va_list ap; 
 	int len;
 
