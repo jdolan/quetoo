@@ -961,7 +961,7 @@ static void Pm_LadderMove(void) {
 	speed = Clamp(speed, 0.0, PM_SPEED_LADDER);
 
 	if (speed < PM_STOP_EPSILON)
-		speed = 0;
+		speed = 0.0;
 
 	Pm_Accelerate(dir, speed, PM_ACCEL_LADDER);
 
@@ -1060,7 +1060,7 @@ static void Pm_WaterMove(void) {
 	speed = Clamp(speed, 0, PM_SPEED_WATER);
 
 	if (speed < PM_STOP_EPSILON)
-		speed = 0;
+		speed = 0.0;
 
 	Pm_Accelerate(dir, speed, PM_ACCEL_WATER);
 
@@ -1098,7 +1098,7 @@ static void Pm_AirMove(void) {
 	speed = Clamp(speed, 0.0, PM_SPEED_AIR);
 
 	if (speed < PM_STOP_EPSILON)
-		speed = 0;
+		speed = 0.0;
 
 	Pm_Accelerate(dir, speed, PM_ACCEL_AIR);
 
@@ -1164,7 +1164,7 @@ static void Pm_WalkMove(void) {
 	speed = Clamp(speed, 0.0, max_speed);
 
 	if (speed < PM_STOP_EPSILON)
-		speed = 0;
+		speed = 0.0;
 
 	// accelerate based on slickness of ground surface
 	accel = (pml.ground_surface->flags & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
@@ -1236,7 +1236,7 @@ static void Pm_SpectatorMove() {
 	speed = Clamp(speed, 0.0, PM_SPEED_SPECTATOR);
 
 	if (speed < PM_STOP_EPSILON)
-		speed = 0;
+		speed = 0.0;
 
 	// accelerate
 	Pm_Accelerate(vel, speed, PM_ACCEL_SPECTATOR);

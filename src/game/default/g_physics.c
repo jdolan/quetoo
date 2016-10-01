@@ -162,6 +162,7 @@ static _Bool G_CorrectPosition(g_entity_t *ent) {
 }
 
 #define MAX_SPEED 2400.0
+#define STOP_EPSILON PM_STOP_EPSILON
 
 /**
  * @brief
@@ -177,8 +178,6 @@ static void G_ClampVelocity(g_entity_t *ent) {
 		VectorClear(ent->locals.velocity);
 	}
 }
-
-#define STOP_EPSILON PM_STOP_EPSILON
 
 /**
  * @brief Slide off of the impacted plane.
