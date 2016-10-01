@@ -306,7 +306,7 @@ static void Cl_ParseServerData(void) {
 	// get the full level name
 	str = Net_ReadString(&net_message);
 	Com_Print("\n");
-	Com_Print("%c%s\n", 2, str);
+	Com_Print("%c%s^7\n", 2, str);
 }
 
 /**
