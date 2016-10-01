@@ -20,7 +20,8 @@
  */
 
 #include "cl_local.h"
-#include "../server/server.h"
+
+#include "server/server.h"
 
 cvar_t *cl_async;
 cvar_t *cl_chat_sound;
