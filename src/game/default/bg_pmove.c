@@ -111,9 +111,6 @@ static void Pm_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, ve
 
 		const vec_t change = normal[i] * backoff;
 		out[i] = in[i] - change;
-
-		if (out[i] < PM_STOP_EPSILON && out[i] > -PM_STOP_EPSILON)
-			out[i] = 0.0;
 	}
 }
 
@@ -963,6 +960,9 @@ static void Pm_LadderMove(void) {
 
 	speed = Clamp(speed, 0.0, PM_SPEED_LADDER);
 
+	if (speed < PM_STOP_EPSILON)
+		speed = 0;
+
 	Pm_Accelerate(dir, speed, PM_ACCEL_LADDER);
 
 	Pm_StepSlideMove();
@@ -1059,6 +1059,9 @@ static void Pm_WaterMove(void) {
 
 	speed = Clamp(speed, 0, PM_SPEED_WATER);
 
+	if (speed < PM_STOP_EPSILON)
+		speed = 0;
+
 	Pm_Accelerate(dir, speed, PM_ACCEL_WATER);
 
 	Pm_StepSlideMove();
@@ -1093,6 +1096,9 @@ static void Pm_AirMove(void) {
 	speed = VectorNormalize(dir);
 
 	speed = Clamp(speed, 0.0, PM_SPEED_AIR);
+
+	if (speed < PM_STOP_EPSILON)
+		speed = 0;
 
 	Pm_Accelerate(dir, speed, PM_ACCEL_AIR);
 
@@ -1154,8 +1160,11 @@ static void Pm_WalkMove(void) {
 		max_speed *= PM_SPEED_MOD_WALK;
 	}
 
-	// clamp the speed to max speed
+	// clamp the speed to min/max speed
 	speed = Clamp(speed, 0.0, max_speed);
+
+	if (speed < PM_STOP_EPSILON)
+		speed = 0;
 
 	// accelerate based on slickness of ground surface
 	accel = (pml.ground_surface->flags & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
@@ -1225,6 +1234,9 @@ static void Pm_SpectatorMove() {
 
 	vec_t speed = VectorNormalize(vel);
 	speed = Clamp(speed, 0.0, PM_SPEED_SPECTATOR);
+
+	if (speed < PM_STOP_EPSILON)
+		speed = 0;
 
 	// accelerate
 	Pm_Accelerate(vel, speed, PM_ACCEL_SPECTATOR);

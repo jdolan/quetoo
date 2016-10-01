@@ -173,6 +173,9 @@ static void G_ClampVelocity(g_entity_t *ent) {
 	if (speed > MAX_SPEED) {
 		VectorScale(ent->locals.velocity, MAX_SPEED / speed, ent->locals.velocity);
 	}
+	else if (speed < STOP_EPSILON) {
+		VectorClear(ent->locals.velocity);
+	}
 }
 
 #define STOP_EPSILON PM_STOP_EPSILON
@@ -193,9 +196,6 @@ static void G_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, vec
 
 		const vec_t change = normal[i] * backoff;
 		out[i] = in[i] - change;
-
-		if (out[i] < STOP_EPSILON && out[i] > -STOP_EPSILON)
-			out[i] = 0.0;
 	}
 }
 
