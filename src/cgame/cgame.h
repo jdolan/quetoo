@@ -26,18 +26,15 @@
 
 #define CGAME_API_VERSION 2
 
-// exposed to the client game by the engine
+/**
+ * @brief The client game import struct imports engine functionailty to the client game.
+ */
 typedef struct cg_import_s {
 
 	/**
 	 * @brief The client structure.
 	 */
 	cl_client_t *client;
-
-	/**
-	 * @brief The client key state.
-	 */
-	cl_key_state_t *key_state;
 
 	/**
 	 * @brief The renderer context.
@@ -48,6 +45,11 @@ typedef struct cg_import_s {
 	 * @brief The renderer view scene.
 	 */
 	r_view_t *view;
+
+	/**
+	 * @defgroup console-appending Console appending
+	 * @{
+	 */
 
 	/**
 	 * @brief Prints a formatted message to the configured consoles.
@@ -72,6 +74,13 @@ typedef struct cg_import_s {
 	void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
 	/**
+	 * @}
+	 *
+	 * @defgroup memory-management Memory management
+	 * @{
+	 */
+
+	/**
 	 * @param tag The tag to associate the managed block with (e.g. MEM_TAG_CGAME_LEVEL).
 	 *
 	 * @return A newly allocated block of managed memory under the given `tag`.
@@ -94,6 +103,18 @@ typedef struct cg_import_s {
 	 * @brief Frees all managed memory allocated with the given `tag`.
 	 */
 	void (*FreeTag)(mem_tag_t tag);
+
+	/**
+	 * @}
+	 *
+	 * @defgroup filesystem Filesystem
+	 * @{
+	 */
+
+	/**
+	 * @return The base directory, if running from a bundled application.
+	 */
+	const char *(*BaseDir)(void);
 
 	/**
 	 * @brief Opens the specified file for reading.
@@ -160,6 +181,13 @@ typedef struct cg_import_s {
 	void (*EnumerateFiles)(const char *pattern, Fs_EnumerateFunc enumerator, void *data);
 
 	/**
+	 * @}
+	 *
+	 * @defgroup console-variables Console variables & commands
+	 * @{
+	 */
+
+	/**
 	 * @brief Resolves a console variable, creating it if not found.
 	 *
 	 * @param name The variable name.
@@ -209,6 +237,10 @@ typedef struct cg_import_s {
 	void (*Cbuf)(const char *s);
 
 	/**
+	 * @}
+	 */
+
+	/**
 	 * @return The list of known servers (cl_server_info_t).
 	 */
 	GList *(*Servers)(void);
@@ -222,6 +254,11 @@ typedef struct cg_import_s {
 	 * @return The configuration string at `index`.
 	 */
 	char *(*ConfigString)(uint16_t index);
+
+	/**
+	 * @defgroup network Network messaging
+	 * @{
+	 */
 
 	/**
 	 * @brief Reads up to `len` bytes of data from the last received network message into `buf`.
@@ -293,9 +330,18 @@ typedef struct cg_import_s {
 	void (*ReadAngles)(vec3_t angles);
 
 	/**
+	 * @}
+	 */
+
+	/**
 	 * @return The entities string for the currently loaded level.
 	 */
 	const char *(*EntityString)(void);
+
+	/**
+	 * @defgroup collision Collision model
+	 * @{
+	 */
 
 	/**
 	 * @return The contents mask at the specified point.
@@ -335,6 +381,10 @@ typedef struct cg_import_s {
 	 * @return True if `leaf` is in the potentially visible set for the current frame.
 	 */
 	_Bool (*LeafVisible)(const r_bsp_leaf_t *leaf);
+
+	/**
+	 * @}
+	 */
 
 	/**
 	 * @brief Loads a sound sample by the given name.
@@ -460,6 +510,11 @@ typedef struct cg_import_s {
 	void (*AddSustainedLight)(const r_sustained_light_t *s);
 
 	/**
+	 * @defgroup draw-2d 2D drawing
+	 * @{
+	 */
+
+	/**
 	 * @brief Draws an image in orthographic projection on the screen.
 	 *
 	 * @param x The x coordinate, in pixels.
@@ -508,6 +563,20 @@ typedef struct cg_import_s {
 	size_t (*DrawString)(r_pixel_t x, r_pixel_t y, const char *s, int32_t color);
 
 	/**
+	 * @}
+	 */
+
+	/**
+	 * @brief Adds the specified ViewController to the user interface.
+	 */
+	void (*AddViewControler)(ViewController *viewController);
+
+	/**
+	 * @brief Removes the specified ViewController from the user interface.
+	 */
+	void (*RemoveViewController)(ViewController *viewController);
+
+	/**
 	 * @brief Resolves the next key after `from` that references `bind`.
 	 *
 	 * @param from The key to search from (SDL_SCANCODE_UNKNOWN to begin).
@@ -538,10 +607,11 @@ typedef struct cg_import_s {
 	 * @param data User data.
 	 */
 	thread_t *(*Thread)(const char *name, ThreadRunFunc run, void *data);
-
 } cg_import_t;
 
-// exposed to the engine by the client game
+/**
+ * @brief The client game export struct exports client game functionality to the engine.
+ */
 typedef struct cg_export_s {
 	uint16_t api_version;
 	uint16_t protocol;
@@ -559,10 +629,7 @@ typedef struct cg_export_s {
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*PopulateView)(const cl_frame_t *frame);
 	void (*DrawFrame)(const cl_frame_t *frame);
-
-	void (*UpdateBindings)(void);
-	void (*HandleEvent)(const SDL_Event *event);
-	void (*DrawMenu)(void);
+	
 } cg_export_t;
 
 #endif /* __CGAME_H__ */

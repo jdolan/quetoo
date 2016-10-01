@@ -267,9 +267,6 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.UpdateView = Cg_UpdateView;
 	cge.PopulateView = Cg_PopulateView;
 	cge.DrawFrame = Cg_DrawFrame;
-	cge.UpdateBindings = Cg_UpdateBindings;
-	cge.HandleEvent = Cg_HandleEvent;
-	cge.DrawMenu = Cg_DrawMenu;
 
 	return &cge;
 }

@@ -25,6 +25,7 @@
 #include "net/net_types.h"
 #include "renderer/r_types.h"
 #include "sound/s_types.h"
+#include "ui/ui_types.h"
 
 typedef struct {
 	pm_cmd_t cmd; // the movement command

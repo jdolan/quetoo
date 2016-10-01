@@ -106,7 +106,7 @@ void Cl_ParseServerInfo(void) {
 
 	server->ping = Clamp(quetoo.time - server->ping_time, 1, 999);
 
-	cls.cgame->UpdateBindings();
+	Ui_UpdateBindings();
 }
 
 /**
@@ -260,7 +260,7 @@ void Cl_ParseServers(void) {
 
 	// and inform the user interface
 
-	cls.cgame->UpdateBindings();
+	Ui_UpdateBindings();
 }
 
 /**

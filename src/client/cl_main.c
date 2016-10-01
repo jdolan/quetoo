@@ -681,6 +681,8 @@ void Cl_Init(void) {
 
 	R_Init();
 
+	Ui_Init();
+
 	Cl_InitView();
 
 	Cl_InitInput();
@@ -707,6 +709,8 @@ void Cl_Shutdown(void) {
 	Cl_ShutdownHttp();
 
 	Cl_ShutdownCgame();
+
+	Ui_Shutdown();
 
 	S_Shutdown();
 

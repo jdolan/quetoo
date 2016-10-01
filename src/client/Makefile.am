@@ -1,6 +1,7 @@
 SUBDIRS = \
 	renderer \
-	sound
+	sound \
+	ui
 
 noinst_HEADERS = \
 	cl_binds.h \
@@ -60,6 +61,7 @@ libclient_la_LDFLAGS = \
 libclient_la_LIBADD = \
 	renderer/librenderer.la \
 	sound/libsound.la \
+	ui/libui.la \
 	$(top_srcdir)/src/collision/libcmodel.la \
 	$(top_srcdir)/src/net/libnet.la \
 	$(top_srcdir)/src/libconsole.la \

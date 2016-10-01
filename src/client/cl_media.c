@@ -227,6 +227,8 @@ void Cl_LoadMedia(void) {
 
 	S_LoadMedia();
 
+	Ui_UpdateBindings();
+
 	Cl_LoadingProgress(88, "entities");
 
 	Cl_UpdateEntities();
@@ -234,8 +236,6 @@ void Cl_LoadMedia(void) {
 	Cl_LoadingProgress(95, "effects");
 
 	cls.cgame->UpdateMedia();
-
-	cls.cgame->UpdateBindings();
 
 	Cl_LoadingProgress(100, "ready");
 

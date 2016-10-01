@@ -23,116 +23,15 @@
 
 #include "viewcontrollers/MainViewController.h"
 
-//extern cl_static_t cls;
-
-static WindowController *windowController;
-static ViewController *viewController;
-
-/**
- * @brief Forces all Views to rebind to their data sources.
- */
-void Cg_UpdateBindings(void) {
-
-	const SDL_Event event = { .type = MVC_EVENT_UPDATE_BINDINGS };
-
-	$(windowController, respondToEvent, &event);
-}
-
-/**
- * @brief Dispatch events to the user interface. Filter most common event types for
- * performance consideration.
- */
-void Cg_HandleEvent(const SDL_Event *event) {
-
-	if (cgi.key_state->dest != KEY_UI) {
-
-		switch (event->type) {
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
-			case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEBUTTONUP:
-			case SDL_MOUSEWHEEL:
-			case SDL_MOUSEMOTION:
-			case SDL_TEXTINPUT:
-			case SDL_TEXTEDITING:
-				return;
-		}
-	}
-
-	$(windowController, respondToEvent, event);
-}
-
-/**
- * @brief TODO: Make this an ImageView within MainViewController's View?
- */
-static void Cg_DrawBackground(void) {
-
-//	if (cls.state != CL_ACTIVE) {
-//
-//		const r_image_t *background = cgi.LoadImage("ui/background", IT_UI);
-//		if (background->type != IT_NULL) {
-//
-//			const vec_t x_scale = cgi.context->width / (vec_t) background->width;
-//			const vec_t y_scale = cgi.context->height / (vec_t) background->height;
-//
-//			const vec_t scale = MAX(x_scale, y_scale);
-//
-//			cgi.DrawImage(0, 0, scale, background);
-//		}
-//	}
-}
-
-/**
- * @brief Renders the user interface to a texture in a reserved OpenGL context, then
- * blits it back to the screen in the default context. A separate OpenGL context is
- * used to avoid OpenGL state pollution.
- */
-void Cg_DrawMenu(void) {
-
-	Cg_DrawBackground();
-
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glPushClientAttrib(GL_ALL_CLIENT_ATTRIB_BITS);
-
-	glDisable(GL_TEXTURE_2D);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	glOrtho(0, cgi.context->window_width, cgi.context->window_height, 0, -1, 1);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	$(windowController, render);
-
-	glOrtho(0, cgi.context->width, cgi.context->height, 0, -1, 1);
-
-	glPopAttrib();
-	glPopClientAttrib();
-}
+static MainViewController *mainViewController;
 
 /**
  * @brief Initializes the user interface.
  */
 void Cg_InitMenu(void) {
 
-#if defined(__APPLE__)
-//	const char *path = Fs_BaseDir();
-//	if (path) {
-//
-//		char fonts[MAX_OS_PATH];
-//		g_snprintf(fonts, sizeof(fonts), "%s/Contents/MacOS/etc/fonts", path);
-//
-//		setenv("FONTCONFIG_PATH", fonts, 0);
-//	}
-#endif
-
-	windowController = $(alloc(WindowController), initWithWindow, cgi.context->window);
-
-	viewController = (ViewController *) $((ViewController *) alloc(MainViewController), init);
-
-	$(windowController, setViewController, viewController);
+	mainViewController = $(alloc(MainViewController), init);
+	cgi.AddViewControler((ViewController *) mainViewController);
 }
 
 /**
@@ -140,6 +39,6 @@ void Cg_InitMenu(void) {
  */
 void Cg_ShutdownMenu(void) {
 
-	release(viewController);
-	release(windowController);
+	cgi.RemoveViewController((ViewController *) mainViewController);
+	release(mainViewController);
 }

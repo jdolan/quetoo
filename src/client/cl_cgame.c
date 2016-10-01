@@ -131,8 +131,6 @@ void Cl_InitCgame(void) {
 
 	import.client = &cl;
 
-	import.key_state = &cls.key_state;
-
 	import.context = &r_context;
 
 	import.view = &r_view;
@@ -147,6 +145,7 @@ void Cl_InitCgame(void) {
 	import.Free = Mem_Free;
 	import.FreeTag = Mem_FreeTag;
 
+	import.BaseDir = Fs_BaseDir;
 	import.OpenFile = Fs_OpenRead;
 	import.SeekFile = Fs_Seek;
 	import.ReadFile = Fs_Read;
@@ -215,6 +214,9 @@ void Cl_InitCgame(void) {
 	import.BindFont = R_BindFont;
 	import.StringWidth = R_StringWidth;
 	import.DrawString = R_DrawString;
+
+	import.AddViewControler = Ui_AddViewController;
+	import.RemoveViewController = Ui_RemoveViewController;
 
 	import.BindKey = Cl_Bind;
 	import.KeyForBind = Cl_KeyForBind;

@@ -19,35 +19,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CLIENT_H__
-#define __CLIENT_H__
+#ifndef __UI_MAIN_H__
+#define __UI_MAIN_H__
 
-#include "collision/cmodel.h"
-#include "console.h"
-#include "filesystem.h"
-#include "cgame/cgame.h"
-#include "net/net_chan.h"
-#include "renderer/renderer.h"
-#include "sound/sound.h"
-#include "thread.h"
-#include "ui/ui.h"
+#include "ui_types.h"
 
-#include "cl_cgame.h"
-#include "cl_cmd.h"
-#include "cl_console.h"
-#include "cl_demo.h"
-#include "cl_entity.h"
-#include "cl_http.h"
-#include "cl_input.h"
-#include "cl_keys.h"
-#include "cl_main.h"
-#include "cl_media.h"
-#include "cl_mouse.h"
-#include "cl_parse.h"
-#include "cl_predict.h"
-#include "cl_screen.h"
-#include "cl_server.h"
-#include "cl_types.h"
-#include "cl_view.h"
+void Ui_HandleEvent(const SDL_Event *event);
+void Ui_UpdateBindings(void);
+void Ui_AddViewController(ViewController *viewController);
+void Ui_RemoveViewController(ViewController *viewController);
+void Ui_Draw(void);
+void Ui_Init(void);
+void Ui_Shutdown(void);
 
-#endif /* __CLIENT_H__ */
+#ifdef __UI_LOCAL_H__
+#endif /* __UI_LOCAL_H__ */
+
+#endif /* __UI_MAIN_H__ */

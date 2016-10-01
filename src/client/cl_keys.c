@@ -62,7 +62,7 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 			break;
 		case KEY_UI:
 			SDL_StopTextInput();
-			cls.cgame->UpdateBindings();
+			Ui_UpdateBindings();
 			break;
 		case KEY_GAME:
 			SDL_StopTextInput();
