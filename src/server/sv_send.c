@@ -491,6 +491,8 @@ void Sv_SendClientPackets(void) {
 			if ((size = Sv_GetDemoMessage(buffer))) {
 				Netchan_Transmit(&cl->net_chan, buffer, size);
 			}
+			else
+				break; // recording is done, so we're done
 		} else if (cl->state == SV_CLIENT_ACTIVE) { // send the game packet
 
 			if (Sv_RateDrop(cl)) { // enforce rate throttle

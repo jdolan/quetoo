@@ -150,6 +150,7 @@
     <Link>
       <AdditionalDependencies>glib-2.0.lib;libshared.lib;libpmove.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>cgame.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -164,6 +165,7 @@
     <Link>
       <ModuleDefinitionFile>cgame.def</ModuleDefinitionFile>
       <AdditionalDependencies>glib-2.0.lib;libshared.lib;libpmove.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
