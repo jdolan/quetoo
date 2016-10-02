@@ -24,7 +24,7 @@
 #include "sv_local.h"
 
 // Windows hack
-#if defined(_WIN32)
+#if defined(_MSC_VER)
 #undef MOUSE_MOVED
 #undef bool
 #endif
@@ -32,7 +32,7 @@
 #include <curses.h>
 
 // Windows hack
-#if defined(_WIN32)
+#if defined(_MSC_VER)
 #undef bool
 #define bool _Bool
 #endif
