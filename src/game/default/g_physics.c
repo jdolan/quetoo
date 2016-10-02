@@ -130,31 +130,30 @@ static _Bool G_GoodPosition(const g_entity_t *ent) {
  */
 static _Bool G_CorrectPosition(g_entity_t *ent) {
 
-	const int32_t mask = ent->locals.clip_mask ?: MASK_SOLID;
+	if (!G_GoodPosition(ent)) {
 
-	const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
-	if (tr.all_solid) {
+		vec3_t pos;
+		VectorCopy(ent->s.origin, pos);
 
 		for (int32_t i = -1; i <= 1; i++) {
 			for (int32_t j = -1; j <= 1; j++) {
 				for (int32_t k = -1; k <= 1; k++) {
-					vec3_t pos;
-					VectorCopy(ent->s.origin, pos);
+					VectorCopy(pos, ent->s.origin);
 
-					pos[0] += i * PM_NUDGE_DIST;
-					pos[1] += j * PM_NUDGE_DIST;
-					pos[2] += k * PM_NUDGE_DIST;
+					ent->s.origin[0] += i * PM_NUDGE_DIST;
+					ent->s.origin[1] += j * PM_NUDGE_DIST;
+					ent->s.origin[2] += k * PM_NUDGE_DIST;
 
-					const cm_trace_t tr = gi.Trace(pos, pos, ent->mins, ent->maxs, ent, mask);
-					if (!tr.all_solid) {
-						VectorCopy(pos, ent->s.origin);
+					if (G_GoodPosition(ent)) {
 						return true;
 					}
 				}
 			}
 		}
 
+		VectorCopy(pos, ent->s.origin);
 		gi.Debug("still solid, reverting %s\n", etos(ent));
+
 		return false;
 	}
 
