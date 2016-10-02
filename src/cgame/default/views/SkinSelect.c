@@ -116,7 +116,7 @@ SkinSelect *initWithFrame(SkinSelect *self, const SDL_Rect *frame, ControlStyle 
  */
 static void initialize(Class *clazz) {
 
-	((SkinSelectInterface *) clazz->interface)->initWithFrame = initWithFrame;
+	((SkinSelectInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
 Class _SkinSelect = {

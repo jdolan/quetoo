@@ -87,9 +87,9 @@ static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
-	((CvarCheckboxInterface *) clazz->interface)->initWithVariable = initWithVariable;
+	((CvarCheckboxInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
 }
 
 Class _CvarCheckbox = {

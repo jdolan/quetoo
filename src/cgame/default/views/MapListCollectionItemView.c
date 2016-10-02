@@ -67,8 +67,8 @@ static void setMapListItemInfo(MapListCollectionItemView *self, MapListItemInfo 
  */
 static void initialize(Class *clazz) {
 	
-	((MapListCollectionItemViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
-	((MapListCollectionItemViewInterface *) clazz->interface)->setMapListItemInfo = setMapListItemInfo;
+	((MapListCollectionItemViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
+	((MapListCollectionItemViewInterface *) clazz->def->interface)->setMapListItemInfo = setMapListItemInfo;
 }
 
 Class _MapListCollectionItemView = {

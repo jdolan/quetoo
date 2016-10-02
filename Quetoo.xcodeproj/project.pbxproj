@@ -80,7 +80,6 @@
 		CE4898D11D8B9DE100EEACA5 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CE5816EE1D904AD4002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
-		CE5A5AB51D89016E001A00CC /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
 		CE5CDC241D9F51580034757D /* librenderer.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* librenderer.dylib */; };
 		CE5CDC331D9F518B0034757D /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5CDBB21D9F45090034757D /* ui_main.c */; };
 		CE5CDC351D9F51990034757D /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5CDC341D9F51990034757D /* libObjectivelyMVC.dylib */; };
@@ -1506,7 +1505,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE5A5AB51D89016E001A00CC /* libcommon.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

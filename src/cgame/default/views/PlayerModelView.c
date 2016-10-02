@@ -74,7 +74,7 @@ static void renderMeshEntity_md3(const r_entity_t *e) {
 	const r_md3_mesh_t *mesh = md3->meshes;
 	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
 
-		const r_material_t *material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
+		const r_material_t *material = e->skins[i] ?: e->model->mesh->material;
 		glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
 
 		glTexCoordPointer(2, GL_FLOAT, 0, mesh->coords);
@@ -349,14 +349,14 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->interface)->render = render;
-	((ViewInterface *) clazz->interface)->renderDeviceDidReset = renderDeviceDidReset;
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->def->interface)->render = render;
+	((ViewInterface *) clazz->def->interface)->renderDeviceDidReset = renderDeviceDidReset;
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
-	((PlayerModelViewInterface *) clazz->interface)->animate = animate;
-	((PlayerModelViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+	((PlayerModelViewInterface *) clazz->def->interface)->animate = animate;
+	((PlayerModelViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
 Class _PlayerModelView = {

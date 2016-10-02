@@ -81,9 +81,9 @@ static CvarTextView *initWithVariable(CvarTextView *self, cvar_t *var) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
-	((CvarTextViewInterface *) clazz->interface)->initWithVariable = initWithVariable;
+	((CvarTextViewInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
 }
 
 Class _CvarTextView = {

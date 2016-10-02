@@ -163,7 +163,7 @@ static void Cg_Init(void) {
 	cgi.Cmd("config_strings", NULL, CMD_CGAME, NULL);
 	cgi.Cmd("baselines", NULL, CMD_CGAME, NULL);
 
-	Cg_InitMenu();
+	Cg_InitUi();
 
 	cgi.Print("  Client game initialized\n");
 }
@@ -175,7 +175,7 @@ static void Cg_Shutdown(void) {
 
 	cgi.Print("  Client game shutdown...\n");
 
-	Cg_ShutdownMenu();
+	Cg_ShutdownUi();
 
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
 	cgi.FreeTag(MEM_TAG_CGAME);

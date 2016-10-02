@@ -197,7 +197,6 @@ static void Shutdown(const char *msg) {
 	Thread_Shutdown();
 
 	Con_Shutdown();
-	quetoo.time = 0; // short-circuit Print
 
 	Cvar_Shutdown();
 

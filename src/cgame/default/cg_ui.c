@@ -28,17 +28,19 @@ static MainViewController *mainViewController;
 /**
  * @brief Initializes the user interface.
  */
-void Cg_InitMenu(void) {
+void Cg_InitUi(void) {
 
 	mainViewController = $(alloc(MainViewController), init);
+
 	cgi.AddViewControler((ViewController *) mainViewController);
 }
 
 /**
  * @brief Shuts down the user interface.
  */
-void Cg_ShutdownMenu(void) {
+void Cg_ShutdownUi(void) {
 
 	cgi.RemoveViewController((ViewController *) mainViewController);
+
 	release(mainViewController);
 }

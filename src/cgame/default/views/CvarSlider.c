@@ -85,9 +85,9 @@ static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, d
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
-	((CvarSliderInterface *) clazz->interface)->initWithVariable = initWithVariable;
+	((CvarSliderInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
 }
 
 Class _CvarSlider = {

@@ -288,11 +288,11 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
  */
 static void initialize(Class *clazz) {
 	
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->interface)->layoutIfNeeded = layoutIfNeeded;
+	((ViewInterface *) clazz->def->interface)->layoutIfNeeded = layoutIfNeeded;
 
-	((MapListCollectionViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+	((MapListCollectionViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
 Class _MapListCollectionView = {

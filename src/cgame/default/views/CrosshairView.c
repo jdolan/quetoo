@@ -136,12 +136,12 @@ static CrosshairView *initWithFrame(CrosshairView *self, const SDL_Rect *frame) 
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->interface)->layoutSubviews = layoutSubviews;
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->def->interface)->layoutSubviews = layoutSubviews;
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
-	((CrosshairViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+	((CrosshairViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
 Class _CrosshairView = {

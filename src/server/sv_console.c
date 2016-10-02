@@ -192,7 +192,7 @@ static void Sv_DrawConsole_Background(void) {
  * @brief
  */
 static void Sv_DrawConsole_Buffer(void) {
-
+	
 	char *lines[sv_console.height];
 	const size_t count = Con_Tail(&sv_console, lines, sv_console.height);
 
