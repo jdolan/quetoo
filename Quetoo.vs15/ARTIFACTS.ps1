@@ -14,7 +14,7 @@ mkdir Quetoo\share\default -ErrorAction SilentlyContinue
 
 # move stuff that we need from old crap
 copy "..\mingw-cross\Quetoo-i686\etc\fonts\*" "Quetoo\etc\fonts\"
-copy "..\src\client\renderer\shaders\*" "Quetoo\lib\default\shaders\"
+copy "..\src\client\renderer\shaders\*.glsl" "Quetoo\lib\default\shaders\"
 copy "..\mingw-cross\Quetoo-i686\bin\*" "Quetoo\bin\"
 
 # move our build outputs
