@@ -19,23 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <curses.h>
 #include <signal.h>
 
 #include "sv_local.h"
-
-// Windows hack
-#if defined(_MSC_VER)
-#undef MOUSE_MOVED
-#undef bool
-#endif
-
-#include <curses.h>
-
-// Windows hack
-#if defined(_MSC_VER)
-#undef bool
-#define bool _Bool
-#endif
 
 typedef struct {
 	WINDOW *window;
