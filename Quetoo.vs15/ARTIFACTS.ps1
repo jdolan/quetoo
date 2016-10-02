@@ -1,4 +1,4 @@
-$platform = If ($env:PLATFORM = "Win32") {"Win32"} Else {"x64"}
+echo "Pulling ${env:Platform} files"
 
 # make the folders
 rmdir Quetoo -Recurse -ErrorAction SilentlyContinue
@@ -18,7 +18,7 @@ copy "..\src\client\renderer\shaders\*" "Quetoo\lib\default\shaders\"
 copy "..\mingw-cross\Quetoo-i686\bin\*" "Quetoo\bin\"
 
 # move our build outputs
-$outdir = "bin\${platform}Release\"
+$outdir = "bin\${env:Platform}Release\"
 
 # start with game/cgame
 copy "$outdir\cgame.dll" "Quetoo\lib\default\"
@@ -33,11 +33,11 @@ copy "$outdir\que*.pdb" "Quetoo\bin\"
 
 # copy external libs
 $libdir = "libs"
-copy "$libdir\sdl_mixer\lib\$platform\*.dll" "Quetoo\bin\"
-copy "$libdir\glib\$platform\bin\*.dll" "Quetoo\bin\"
-copy "$libdir\gettext\$platform\bin\*.dll" "Quetoo\bin\"
+copy "$libdir\sdl_mixer\lib\${env:Platform}\*.dll" "Quetoo\bin\"
+copy "$libdir\glib\${env:Platform}\bin\*.dll" "Quetoo\bin\"
+copy "$libdir\gettext\${env:Platform}\bin\*.dll" "Quetoo\bin\"
 
 $libdir = "..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs"
-copy "$libdir\sdl\lib\$platform\*.dll" "Quetoo\bin\"
-copy "$libdir\sdl_image\lib\$platform\*.dll" "Quetoo\bin\"
-copy "$libdir\sdl_ttf\lib\$platform\*.dll" "Quetoo\bin\"
+copy "$libdir\sdl\lib\${env:Platform}\*.dll" "Quetoo\bin\"
+copy "$libdir\sdl_image\lib\${env:Platform}\*.dll" "Quetoo\bin\"
+copy "$libdir\sdl_ttf\lib\${env:Platform}\*.dll" "Quetoo\bin\"
