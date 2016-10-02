@@ -51,5 +51,20 @@ install:
 build:
   parallel: false
   verbosity: minimal
+after_build:
+- ps: >-
+    Push-Location "Quetoo.vs15\"
+
+    [Environment]::CurrentDirectory = $PWD
+
+    .\ARTIFACTS.ps1
+
+    Pop-Location
+
+    [Environment]::CurrentDirectory = $PWD
+
+    7z a ..\Quetoo.zip \Quetoo
 test: off
 deploy: off
+artifacts:
+- path: Quetoo.zip
