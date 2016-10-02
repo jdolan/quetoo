@@ -65,9 +65,9 @@ static PrimaryButton *initWithFrame(PrimaryButton *self, const SDL_Rect *frame, 
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->respondToEvent = respondToEvent;
+	((ViewInterface *) clazz->def->interface)->respondToEvent = respondToEvent;
 
-	((PrimaryButtonInterface *) clazz->interface)->initWithFrame = initWithFrame;
+	((PrimaryButtonInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
 Class _PrimaryButton = {

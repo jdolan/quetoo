@@ -147,13 +147,13 @@ static BindTextView *initWithBind(BindTextView *self, const char *bind) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
-	((ControlInterface *) clazz->interface)->captureEvent = captureEvent;
+	((ControlInterface *) clazz->def->interface)->captureEvent = captureEvent;
 
-	((BindTextViewInterface *) clazz->interface)->initWithBind = initWithBind;
+	((BindTextViewInterface *) clazz->def->interface)->initWithBind = initWithBind;
 }
 
 Class _BindTextView = {

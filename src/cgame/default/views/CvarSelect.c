@@ -115,12 +115,12 @@ static CvarSelect *initWithVariableName(CvarSelect *self, const char *name) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
-	((SelectInterface *) clazz->interface)->addOption = addOption;
+	((SelectInterface *) clazz->def->interface)->addOption = addOption;
 
-	((CvarSelectInterface *) clazz->interface)->initWithVariable = initWithVariable;
-	((CvarSelectInterface *) clazz->interface)->initWithVariableName = initWithVariableName;
+	((CvarSelectInterface *) clazz->def->interface)->initWithVariable = initWithVariable;
+	((CvarSelectInterface *) clazz->def->interface)->initWithVariableName = initWithVariableName;
 }
 
 Class _CvarSelect = {

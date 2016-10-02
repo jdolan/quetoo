@@ -166,9 +166,9 @@ static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *f
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
-	((ServersTableViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+	((ServersTableViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 
 	_hostname = $(alloc(TableColumn), initWithIdentifier, "Hostname");
 	_source = $(alloc(TableColumn), initWithIdentifier, "Source");

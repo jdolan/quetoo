@@ -132,7 +132,7 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 
 Class _PlayerViewController = {

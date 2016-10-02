@@ -349,14 +349,14 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->interface)->render = render;
-	((ViewInterface *) clazz->interface)->renderDeviceDidReset = renderDeviceDidReset;
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+	((ViewInterface *) clazz->def->interface)->render = render;
+	((ViewInterface *) clazz->def->interface)->renderDeviceDidReset = renderDeviceDidReset;
+	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
-	((PlayerModelViewInterface *) clazz->interface)->animate = animate;
-	((PlayerModelViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+	((PlayerModelViewInterface *) clazz->def->interface)->animate = animate;
+	((PlayerModelViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
 }
 
 Class _PlayerModelView = {
