@@ -24,20 +24,6 @@
 
 #include "sv_local.h"
 
-// Windows hack
-#if defined(_WIN32)
-#undef MOUSE_MOVED
-#undef bool
-#endif
-
-#include <curses.h>
-
-// Windows hack
-#if defined(_WIN32)
-#undef bool
-#define bool _Bool
-#endif
-
 typedef struct {
 	WINDOW *window;
 	_Bool dirty;
