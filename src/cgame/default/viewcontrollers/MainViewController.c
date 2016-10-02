@@ -109,9 +109,9 @@ static MainViewController *init(MainViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 
-	((MainViewControllerInterface *) clazz->interface)->init = init;
+	((MainViewControllerInterface *) clazz->def->interface)->init = init;
 }
 
 Class _MainViewController = {
