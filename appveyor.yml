@@ -59,11 +59,11 @@ after_build:
 
     .\ARTIFACTS.ps1
 
+    7z a ..\Quetoo.zip Quetoo\
+
     Pop-Location
 
     [Environment]::CurrentDirectory = $PWD
-
-    7z a ..\Quetoo.zip \Quetoo
 test: off
 deploy: off
 artifacts:
