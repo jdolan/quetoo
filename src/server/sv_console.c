@@ -124,6 +124,7 @@ static void Sv_HandleEvents(void) {
 			case KEY_HOME:
 				in->pos = 0;
 				break;
+
 			case KEY_END:
 				in->pos = strlen(in->buffer);
 				break;
