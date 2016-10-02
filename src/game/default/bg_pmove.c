@@ -148,9 +148,6 @@ static _Bool Pm_SlideMove(void) {
 	vec3_t planes[MAX_CLIP_PLANES];
 	int32_t bump, num_bumps = MAX_CLIP_PLANES - 1;
 
-	vec3_t vel0;
-	VectorCopy(pm->s.velocity, vel0);
-
 	vec_t time_remaining = pml.time;
 	int32_t num_planes = 0;
 
