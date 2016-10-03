@@ -118,7 +118,7 @@ static void G_RunThink(g_entity_t *ent) {
  */
 static _Bool G_GoodPosition(const g_entity_t *ent) {
 
-	const int32_t mask = ent->locals.clip_mask ? ent->locals.clip_mask : MASK_SOLID;
+	const int32_t mask = ent->locals.clip_mask ?: MASK_SOLID;
 
 	const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
 
