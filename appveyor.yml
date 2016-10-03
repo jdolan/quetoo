@@ -59,7 +59,7 @@ after_build:
 
     .\ARTIFACTS.ps1
 
-    7z a ..\Quetoo.zip Quetoo\
+    7z a ..\Quetoo-BETA-MSVC.zip Quetoo\
 
     Pop-Location
 
