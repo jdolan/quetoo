@@ -1,9 +1,9 @@
-echo "Writing key..."
+echo "Writing key ${env:QUETOO_PRIVATE_KEY}..."
 $QUETOO_PRIVATE_KEY = ${env:QUETOO_PRIVATE_KEY}.Replace("@", "`r`n")
 [System.IO.File]::WriteAllText("quetoo.rsa", $QUETOO_PRIVATE_KEY)
 chmod 0600 quetoo.rsa
 
-echo "Key done, I think"
+echo "Key done, I think? " + [System.IO.File]::Exists("quetoo.rsa").ToString()
 
 $env:Path += ";..\mingw-cross\Quetoo-x86_64\bin\"
 
@@ -36,5 +36,6 @@ rm -rf Quetoo".Replace("`r", "")
 echo "Environment set up"
 
 echo "Executing SSH..."
+echo "ssh -i quetoo.rsa ${QUETOO_REMOTE_USER}@quetoo.org $PIECE_OF_SHIT"
 ssh -i quetoo.rsa ${QUETOO_REMOTE_USER}@quetoo.org $PIECE_OF_SHIT
 echo "Donedy"
