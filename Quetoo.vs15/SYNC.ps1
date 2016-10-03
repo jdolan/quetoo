@@ -1,6 +1,9 @@
+echo "Writing key..."
 $QUETOO_PRIVATE_KEY = ${env:QUETOO_PRIVATE_KEY}.Replace("@", "`r`n")
 [System.IO.File]::WriteAllText("quetoo.rsa", $QUETOO_PRIVATE_KEY)
 chmod 0600 quetoo.rsa
+
+echo "Key done, I think"
 
 $env:Path += ";..\mingw-cross\Quetoo-x86_64\bin\"
 
@@ -30,6 +33,8 @@ unzip -o $QUETOO_WEB_ARTIFACT &&
 cp -r Quetoo/{bin,etc,lib} . &&
 rm -rf Quetoo".Replace("`r", "")
 
-ssh -i quetoo.rsa ${QUETOO_REMOTE_USER}@quetoo.org $PIECE_OF_SHIT
+echo "Environment set up"
 
-Pause
+echo "Executing SSH..."
+ssh -i quetoo.rsa ${QUETOO_REMOTE_USER}@quetoo.org $PIECE_OF_SHIT
+echo "Donedy"
