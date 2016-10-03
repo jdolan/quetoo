@@ -1,3 +1,5 @@
+where ssh.exe
+
 echo "Pulling ${env:Platform} files"
 
 # make the folders
