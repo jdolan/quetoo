@@ -23,7 +23,7 @@ $QUETOO_DIST = "$QUETOO_TARGET/Quetoo-BETA-$QUETOO_HOST.zip"
 $QUETOO_HTTP_REPOSITORY = "quetoo.org:/var/www/quetoo.org/files"
 $QUETOO_HTTP_TARGET = "$QUETOO_REMOTE_USER@$QUETOO_HTTP_REPOSITORY"
 
-$QUETOO_ARTIFACT_URL = "https://ci.appveyor.com/api/buildjobs/$env:APPVEYOR_JOB_NAME/artifacts/Quetoo-BETA-MSVC.zip"
+$QUETOO_ARTIFACT_URL = "https://ci.appveyor.com/api/buildjobs/$env:APPVEYOR_JOB_ID/artifacts/Quetoo-BETA-MSVC.zip"
 $QUETOO_WEB_ARTIFACT = "/var/www/quetoo.org/files/Quetoo-BETA-$QUETOO_HOST.zip"
 
 echo "Artifact: $QUETOO_ARTIFACT_URL"
