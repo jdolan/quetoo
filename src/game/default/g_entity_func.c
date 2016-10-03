@@ -306,13 +306,25 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
 	const vec_t *dir = self->locals.velocity;
 
 	if (G_IsMeat(other)) {
-		const int16_t dmg = self->locals.damage * 10.0 / gi.frame_rate;
-		G_Damage(other, self, NULL, dir, NULL, vec3_up, dmg, 0, DMG_NO_ARMOR, MOD_CRUSH);
 
-		if (other->in_use && other->locals.dead) {
-			if (!other->client) {
-				G_Gib(other);
+		if (other->solid == SOLID_DEAD) {
+			G_Damage(other, self, NULL, dir, NULL, vec3_up, 999, 0, DMG_NO_ARMOR, MOD_CRUSH);
+			if (other->in_use) {
+				if (other->client) {
+					gi.WriteByte(SV_CMD_TEMP_ENTITY);
+					gi.WriteByte(TE_GIB);
+					gi.WritePosition(other->s.origin);
+					gi.Multicast(other->s.origin, MULTICAST_PVS, NULL);
+
+					other->solid = SOLID_NOT;
+				} else {
+					G_Gib(other);
+				}
 			}
+		} else if (other->solid == SOLID_BOX) {
+			G_Damage(other, self, NULL, dir, NULL, vec3_up, self->locals.damage, 0, DMG_NO_ARMOR, MOD_CRUSH);
+		} else {
+			gi.Debug("Unhandled blocker: %s: %s\n", etos(self), etos(other));
 		}
 	} else {
 		G_Damage(other, self, NULL, dir, NULL, vec3_up, 999, 0, 0, MOD_CRUSH);
@@ -430,7 +442,7 @@ static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other,
 	if (!other->client)
 		return;
 
-	if (other->locals.health <= 0)
+	if (other->locals.dead)
 		return;
 
 	ent = ent->locals.enemy; // now point at the plat, not the trigger
