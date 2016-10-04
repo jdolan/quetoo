@@ -165,7 +165,7 @@ static void Sv_DrawConsole_Color(int32_t color) {
  */
 static void Sv_DrawConsole_Background(void) {
 
-	Sv_DrawConsole_Color(CON_COLOR_DEFAULT);
+	Sv_DrawConsole_Color(CON_COLOR_WHITE);
 
 	bkgdset(' ');
 	clear();
