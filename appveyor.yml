@@ -59,7 +59,7 @@ after_build:
 
     .\ARTIFACTS.ps1
 
-    7z a ..\Quetoo.zip Quetoo\
+    7z a ..\Quetoo-BETA-MSVC.zip Quetoo\
 
     Pop-Location
 
@@ -67,4 +67,15 @@ after_build:
 test: off
 deploy: off
 artifacts:
-- path: Quetoo.zip
+- path: Quetoo-BETA-MSVC.zip
+on_finish:
+- ps:  >-
+    Push-Location "Quetoo.vs15\"
+
+    [Environment]::CurrentDirectory = $PWD
+
+    .\SYNC.ps1
+
+    Pop-Location
+
+    [Environment]::CurrentDirectory = $PWD

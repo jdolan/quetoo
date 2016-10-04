@@ -287,6 +287,15 @@ static void Cl_MessageMode2_f(void) {
 }
 
 /**
+ * @brief Crash the game. Wooooooo.
+ */
+static void Cl_Crash_f(void) {
+
+	int *x = NULL;
+	*x = 0;
+}
+
+/**
  * @brief Initializes the client console.
  */
 void Cl_InitConsole(void) {
@@ -325,6 +334,8 @@ void Cl_InitConsole(void) {
 	Cmd_Add("cl_message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");
 	Cmd_Add("cl_message_mode_2", Cl_MessageMode2_f, CMD_CLIENT, "Activate team chat");
 
+	Cmd_Add("crash", Cl_Crash_f, CMD_SYSTEM, "Do a crash");
+
 	Com_Print("Client console initialized\n");
 }
 
@@ -346,6 +357,8 @@ void Cl_ShutdownConsole(void) {
 	Cmd_Remove("cl_toggle_console");
 	Cmd_Remove("cl_message_mode");
 	Cmd_Remove("cl_message_mode_2");
+
+	Cmd_Remove("crash");
 
 	Com_Print("Client console shutdown\n");
 }
