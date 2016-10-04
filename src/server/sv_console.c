@@ -132,11 +132,11 @@ static void Sv_HandleEvents(void) {
 			default:
 				if (isascii(key)) {
 					if (strlen(in->buffer) < sizeof(in->buffer) - 1) {
-						char *c = in->buffer + in->pos;
-						while (*c) {
-							*(c + 1) = *c; c++;
-						}
+						char tmp[MAX_STRING_CHARS];
+						g_strlcpy(tmp, in->buffer + in->pos, sizeof(tmp));
 						in->buffer[in->pos++] = key;
+						in->buffer[in->pos] = '\0';
+						g_strlcat(in->buffer, tmp, sizeof(in->buffer));
 					}
 				}
 				break;
@@ -165,7 +165,7 @@ static void Sv_DrawConsole_Color(int32_t color) {
  */
 static void Sv_DrawConsole_Background(void) {
 
-	Sv_DrawConsole_Color(CON_COLOR_DEFAULT);
+	Sv_DrawConsole_Color(CON_COLOR_WHITE);
 
 	bkgdset(' ');
 	clear();
@@ -180,7 +180,7 @@ static void Sv_DrawConsole_Background(void) {
  * @brief
  */
 static void Sv_DrawConsole_Buffer(void) {
-	
+
 	char *lines[sv_console.height];
 	const size_t count = Con_Tail(&sv_console, lines, sv_console.height);
 
@@ -322,12 +322,14 @@ void Sv_InitConsole(void) {
 
 	Con_AddConsole(&sv_console);
 
-	file_t *file = Fs_OpenRead("history");
-	if (file) {
-		Con_ReadHistory(&sv_console, file);
-		Fs_Close(file);
-	} else {
-		Com_Debug("Couldn't read history");
+	if (dedicated->value) {
+		file_t *file = Fs_OpenRead("history");
+		if (file) {
+			Con_ReadHistory(&sv_console, file);
+			Fs_Close(file);
+		} else {
+			Com_Debug("Couldn't read history");
+		}
 	}
 
 	Com_Print("Server console initialized\n");
