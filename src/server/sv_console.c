@@ -322,12 +322,14 @@ void Sv_InitConsole(void) {
 
 	Con_AddConsole(&sv_console);
 
-	file_t *file = Fs_OpenRead("history");
-	if (file) {
-		Con_ReadHistory(&sv_console, file);
-		Fs_Close(file);
-	} else {
-		Com_Debug("Couldn't read history");
+	if (dedicated->value) {
+		file_t *file = Fs_OpenRead("history");
+		if (file) {
+			Con_ReadHistory(&sv_console, file);
+			Fs_Close(file);
+		} else {
+			Com_Debug("Couldn't read history");
+		}
 	}
 
 	Com_Print("Server console initialized\n");
