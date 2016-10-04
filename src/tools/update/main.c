@@ -255,6 +255,13 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Usage: %s [destination]\n", argv[0]);
 	}
 
+#if defined(_MSC_VER)
+	// we have to fix permissions
+	// because rsync breaks them
+	printf("Fixing permissions....\n");
+	_spawnlp(_P_WAIT, "icacls", "icacls", "..\\*", "/T", "/Q", "/C", "/RESET", NULL);
+#endif
+
 	printf("Press any key to close.\n");
 	getchar();
 
