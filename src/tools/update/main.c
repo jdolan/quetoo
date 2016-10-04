@@ -56,9 +56,9 @@
   #endif
  #elif defined(_MSC_VER)
   #if defined(_WIN64)
-   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
+   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-msvc/x86_64/"
   #else
-   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
+   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-msvc/i686/"
   #endif
   #define strdup _strdup
  #endif
