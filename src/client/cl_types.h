@@ -201,7 +201,7 @@ typedef enum {
 } cl_state_t;
 
 typedef enum {
-	KEY_UI,
+	KEY_UI = 1,
 	KEY_CONSOLE,
 	KEY_GAME,
 	KEY_CHAT
