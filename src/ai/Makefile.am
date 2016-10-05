@@ -21,4 +21,4 @@ libai_la_LDFLAGS = \
 	-shared
 	
 libai_la_LIBADD = \
-	$(top_srcdir)/src/collision/libcmodel.la
+	$(top_builddir)/src/collision/libcmodel.la

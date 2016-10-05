@@ -24,4 +24,4 @@ libnet_la_LDFLAGS = \
 	-shared
 
 libnet_la_LIBADD = \
-	$(top_srcdir)/src/libconsole.la
+	$(top_builddir)/src/libconsole.la

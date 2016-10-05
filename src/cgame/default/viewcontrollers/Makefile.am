@@ -37,4 +37,4 @@ libviewcontrollers_la_LDFLAGS = \
 	-shared
 
 libviewcontrollers_la_LIBADD = \
-	$(top_srcdir)/src/cgame/default/views/libviews.la
+	$(top_builddir)/src/cgame/default/views/libviews.la

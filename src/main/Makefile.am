@@ -12,8 +12,8 @@ quetoo_CFLAGS = \
 	@SDL2_CFLAGS@
 
 quetoo_LDADD = \
-	$(top_srcdir)/src/client/libclient.la \
-	$(top_srcdir)/src/server/libserver.la
+	$(top_builddir)/src/client/libclient.la \
+	$(top_builddir)/src/server/libserver.la
 	
 quetoo_dedicated_SOURCES = \
 	main.c
@@ -25,8 +25,8 @@ quetoo_dedicated_CFLAGS = \
 	@SDL2_CFLAGS@
 
 quetoo_dedicated_LDADD = \
-	$(top_srcdir)/src/client/libclient_null.la \
-	$(top_srcdir)/src/server/libserver.la
+	$(top_builddir)/src/client/libclient_null.la \
+	$(top_builddir)/src/server/libserver.la
 
 if WINDOWS
 
