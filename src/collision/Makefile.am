@@ -24,5 +24,5 @@ libcmodel_la_LDFLAGS = \
 	-shared
 
 libcmodel_la_LIBADD = \
-	$(top_srcdir)/src/libfilesystem.la \
-	$(top_srcdir)/src/libmatrix.la
+	$(top_builddir)/src/libfilesystem.la \
+	$(top_builddir)/src/libmatrix.la

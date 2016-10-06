@@ -29,5 +29,5 @@ libsound_la_LDFLAGS = \
 	-shared
 
 libsound_la_LIBADD = \
-	$(top_srcdir)/src/libshared.la \
+	$(top_builddir)/src/libshared.la \
 	@SDL2_LIBS@

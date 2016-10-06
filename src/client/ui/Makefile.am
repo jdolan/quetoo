@@ -24,6 +24,6 @@ libui_la_LDFLAGS = \
 	-shared
 
 libui_la_LIBADD = \
-	$(top_srcdir)/src/libcommon.la \
+	$(top_builddir)/src/libcommon.la \
 	@OBJECTIVELYMVC_LIBS@
 

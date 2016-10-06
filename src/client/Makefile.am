@@ -62,10 +62,10 @@ libclient_la_LIBADD = \
 	renderer/librenderer.la \
 	sound/libsound.la \
 	ui/libui.la \
-	$(top_srcdir)/src/collision/libcmodel.la \
-	$(top_srcdir)/src/net/libnet.la \
-	$(top_srcdir)/src/libconsole.la \
-	$(top_srcdir)/src/libthread.la \
+	$(top_builddir)/src/collision/libcmodel.la \
+	$(top_builddir)/src/net/libnet.la \
+	$(top_builddir)/src/libconsole.la \
+	$(top_builddir)/src/libthread.la \
 	@CURL_LIBS@
 
 libclient_null_la_SOURCES = \
