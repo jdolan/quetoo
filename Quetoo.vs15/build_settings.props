@@ -1,0 +1,7 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <DefaultPlatformToolset Condition="'$(VisualStudioVersion)'=='15.0'">v141_Clang_C2</DefaultPlatformToolset>
+    <DefaultPlatformToolset Condition="'$(VisualStudioVersion)'=='14.0'">v140_Clang_C2</DefaultPlatformToolset>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+  </PropertyGroup>
+</Project>
