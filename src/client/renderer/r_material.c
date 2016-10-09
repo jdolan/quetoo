@@ -354,8 +354,6 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(r_state.default_program, true);
 
-	R_EnableFog(true);
-
 	R_EnableColorArray(true);
 
 	R_ResetArrayState();
@@ -406,11 +404,11 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(&texunit_lightmap, false);
 
+	R_EnableLighting(r_state.default_program, true);
+
 	R_EnableLights(0);
 
 	R_UseMaterial(NULL);
-
-	R_EnableFog(false);
 
 	R_EnableLighting(NULL, false);
 	

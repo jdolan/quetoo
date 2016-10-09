@@ -29,6 +29,7 @@ void R_InitProgram_default(void);
 void R_UseProgram_default(void);
 void R_UseMaterial_default(const r_material_t *material);
 void R_UseFog_default(const r_fog_parameters_t *value);
+void R_UseLight_default(const uint32_t light_index, const r_light_t *lights);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PROGRAM_DEFAULT_H__ */

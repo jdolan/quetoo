@@ -403,7 +403,7 @@ void R_EnableLighting(const r_program_t *program, _Bool enable) {
 	if (!r_programs->value)
 		return;
 
-	if (enable && (!program || !program->id))
+	if (enable && (!program || !program->id || !program->UseLight))
 		return;
 
 	if (!r_lighting->value || r_state.lighting_enabled == enable)

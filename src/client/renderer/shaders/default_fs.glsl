@@ -14,8 +14,22 @@ struct FogParameters
 
 uniform FogParameters FOG;
 
+#define MAX_LIGHTS 8
+
+struct LightParameters
+{
+	vec3 ORIGIN[MAX_LIGHTS];
+	vec3 COLOR[MAX_LIGHTS];
+	float RADIUS[MAX_LIGHTS];
+};
+
+uniform LightParameters LIGHTS;
+
 // linear + quadratic attenuation
-#define LIGHT_ATTENUATION (4.0 * dist + 8.0 * dist * dist)
+#define LIGHT_CONSTANT 0.0
+#define LIGHT_LINEAR 4.0
+#define LIGHT_QUADRATIC 8.0
+#define LIGHT_ATTENUATION (LIGHT_CONSTANT + (LIGHT_LINEAR * dist) + (LIGHT_QUADRATIC * dist * dist))
 
 // light color clamping
 #define LIGHT_CLAMP_MIN 0.0
@@ -87,21 +101,21 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 	 * Iterate the hardware light sources, accumulating dynamic lighting for
 	 * this fragment.  An attenuation of 0.0 means break.
 	 */
-	for (int i = 0; i < gl_MaxLights; i++) {
+	for (int i = 0; i < MAX_LIGHTS; i++) {
 
-		if (gl_LightSource[i].constantAttenuation == 0.0)
+		if (LIGHTS.RADIUS[i] == 0.0)
 			break;
 
-		vec3 delta = gl_LightSource[i].position.xyz - point;
-		
+		vec3 delta = LIGHTS.ORIGIN[i] - point;
 		float dist = length(delta);
-		if (dist < gl_LightSource[i].constantAttenuation) {
+
+		if (dist < LIGHTS.RADIUS[i]) {
 
 			float d = dot(normalmap, normalize(delta));
 			if (d > 0.0) {
 			
-				dist = 1.0 - dist / gl_LightSource[i].constantAttenuation;
-				light += gl_LightSource[i].diffuse.rgb * d * LIGHT_ATTENUATION;
+				dist = 1.0 - dist / LIGHTS.RADIUS[i];
+				light += LIGHTS.COLOR[i] * d * LIGHT_ATTENUATION;
 			}
 		}
 	}

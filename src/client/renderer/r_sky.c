@@ -324,7 +324,7 @@ void R_DrawSkyBox(void) {
 
 	// Paril FIXME: doesn't work since program is not bound.
 	// need a program for skybox.
-	if (r_state.fog_enabled)
+	if (r_state.fog_enabled && r_state.active_program)
 	{
 		r_state.active_fog_parameters.end = FOG_END * 8.0;
 		r_state.active_program->UseFog(&r_state.active_fog_parameters);
@@ -351,7 +351,7 @@ void R_DrawSkyBox(void) {
 	
 	// Paril FIXME: doesn't work since program is not bound.
 	// need a program for skybox.
-	if (r_state.fog_enabled)
+	if (r_state.fog_enabled && r_state.active_program)
 	{
 		r_state.active_fog_parameters.end = FOG_END;
 		r_state.active_program->UseFog(&r_state.active_fog_parameters);

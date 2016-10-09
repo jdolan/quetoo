@@ -67,6 +67,7 @@ typedef r_variable_t r_uniform4fv_t;
 typedef r_variable_t r_uniform_matrix4fv_t;
 typedef r_variable_t r_sampler2d_t;
 
+// fog info
 typedef struct {
 	float	start;
 	float	end;
@@ -85,6 +86,15 @@ enum {
 
 typedef r_variable_t r_uniformfog_t[NUM_FOG_PARAMETERS];
 
+// light info
+typedef struct {
+	r_variable_t	origin;
+	r_variable_t	color;
+	r_variable_t	radius;
+} r_uniformlight_t;
+
+typedef r_uniformlight_t r_uniformlight_list_t[MAX_ACTIVE_LIGHTS];
+
 #define MAX_PROGRAM_VARIABLES 32
 
 // and glsl programs
@@ -100,6 +110,7 @@ typedef struct {
 	void (*UseEntity)(const r_entity_t *e);
 	void (*UseShadow)(const r_shadow_t *s);
 	void (*UseFog)(const r_fog_parameters_t *fog);
+	void (*UseLight)(const uint16_t light_index, const r_light_t *light);
 } r_program_t;
 
 #define MAX_PROGRAMS 8

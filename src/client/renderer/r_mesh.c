@@ -265,9 +265,6 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
  */
 static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
 
-	vec4_t position = { 0.0, 0.0, 0.0, 1.0 };
-	vec4_t diffuse = { 0.0, 0.0, 0.0, 1.0 };
-
 	uint16_t i;
 	for (i = 0; i < MAX_ACTIVE_LIGHTS; i++) {
 
@@ -276,17 +273,11 @@ static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
 		if (il->diffuse == 0.0)
 			break;
 
-		VectorCopy(il->light.origin, position);
-		glLightfv(GL_LIGHT0 + i, GL_POSITION, position);
-
-		VectorCopy(il->light.color, diffuse);
-		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, diffuse);
-
-		glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, il->light.radius);
+		r_state.active_program->UseLight(i, &il->light);
 	}
-
+	
 	if (i < MAX_ACTIVE_LIGHTS) // disable the next light as a stop
-		glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, 0.0);
+		r_state.active_program->UseLight(i, NULL);
 }
 
 /**
@@ -413,8 +404,6 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 
 	R_EnableLighting(r_state.default_program, true);
 
-	R_EnableFog(true);
-
 	if (r_draw_wireframe->value) {
 		R_EnableTexture(&texunit_diffuse, false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -438,8 +427,6 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 		R_EnableTexture(&texunit_diffuse, true);
 	}
 	
-	R_EnableFog(false);
-
 	R_EnableLighting(NULL, false);
 
 	R_EnableBlend(true);

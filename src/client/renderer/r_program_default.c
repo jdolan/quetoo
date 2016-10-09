@@ -42,6 +42,7 @@ typedef struct {
 	r_sampler2d_t sampler4;
 
 	r_uniformfog_t fog;
+	r_uniformlight_list_t lights;
 } r_default_program_t;
 
 static r_default_program_t r_default_program;
@@ -76,6 +77,13 @@ void R_InitProgram_default(void) {
 	R_ProgramVariable(&p->fog[UNIFORM_FOG_COLOR], R_UNIFORM_VEC3, "FOG.COLOR");
 	R_ProgramVariable(&p->fog[UNIFORM_FOG_DENSITY], R_UNIFORM_FLOAT, "FOG.DENSITY");
 
+	for (int32_t i = 0; i < MAX_ACTIVE_LIGHTS; ++i)
+	{
+		R_ProgramVariable(&p->lights[i].origin, R_UNIFORM_VEC3, va("LIGHTS.ORIGIN[%i]", i));
+		R_ProgramVariable(&p->lights[i].color, R_UNIFORM_VEC3, va("LIGHTS.COLOR[%i]", i));
+		R_ProgramVariable(&p->lights[i].radius, R_UNIFORM_FLOAT, va("LIGHTS.RADIUS[%i]", i));
+	}
+
 	R_DisableAttribute(&p->tangent);
 
 	R_ProgramParameter1i(&p->lightmap, 0);
@@ -94,6 +102,8 @@ void R_InitProgram_default(void) {
 	R_ProgramParameter1i(&p->sampler4, 4);
 
 	R_ProgramParameter1f(&p->fog[UNIFORM_FOG_DENSITY], 0.0);
+
+	R_ProgramParameter1f(&p->lights[0].radius, 0.0);
 }
 
 /**
@@ -160,4 +170,24 @@ void R_UseFog_default(const r_fog_parameters_t *fog) {
 	}
 	else
 		R_ProgramParameter1f(&p->fog[UNIFORM_FOG_DENSITY], 0.0);
+}
+
+/**
+ * @brief
+ */
+void R_UseLight_default(const uint32_t light_index, const r_light_t *light) {
+
+	r_default_program_t *p = &r_default_program;
+
+	if (light && light->radius)
+	{
+		vec3_t origin;
+		Matrix4x4_Transform(&r_view.matrix, light->origin, origin);
+
+		R_ProgramParameter3fv(&p->lights[light_index].origin, origin);
+		R_ProgramParameter3fv(&p->lights[light_index].color, light->color);
+		R_ProgramParameter1f(&p->lights[light_index].radius, light->radius);
+	}
+	else
+		R_ProgramParameter1f(&p->lights[light_index].radius, 0.0);
 }
