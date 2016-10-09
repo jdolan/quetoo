@@ -47,7 +47,6 @@ void Cg_ResolveWeather(const char *weather) {
 	cgi.Debug("%s\n", weather);
 
 	cgi.view->weather = WEATHER_NONE;
-	cgi.view->fog_color[3] = 1.0;
 
 	VectorSet(cgi.view->fog_color, 0.75, 0.75, 0.75);
 

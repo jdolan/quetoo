@@ -408,6 +408,7 @@ void R_InitPrograms(void) {
 	if ((r_state.default_program = R_LoadProgram("default", R_InitProgram_default))) {
 		r_state.default_program->Use = R_UseProgram_default;
 		r_state.default_program->UseMaterial = R_UseMaterial_default;
+		r_state.default_program->UseFog = R_UseFog_default;
 		r_state.default_program->arrays_mask = 0xff;
 	}
 

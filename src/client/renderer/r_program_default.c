@@ -40,6 +40,8 @@ typedef struct {
 	r_sampler2d_t sampler2;
 	r_sampler2d_t sampler3;
 	r_sampler2d_t sampler4;
+
+	r_uniformfog_t fog;
 } r_default_program_t;
 
 static r_default_program_t r_default_program;
@@ -68,6 +70,11 @@ void R_InitProgram_default(void) {
 	R_ProgramVariable(&p->sampler2, R_SAMPLER_2D, "SAMPLER2");
 	R_ProgramVariable(&p->sampler3, R_SAMPLER_2D, "SAMPLER3");
 	R_ProgramVariable(&p->sampler4, R_SAMPLER_2D, "SAMPLER4");
+	
+	R_ProgramVariable(&p->fog[UNIFORM_FOG_START], R_UNIFORM_FLOAT, "FOG.START");
+	R_ProgramVariable(&p->fog[UNIFORM_FOG_END], R_UNIFORM_FLOAT, "FOG.END");
+	R_ProgramVariable(&p->fog[UNIFORM_FOG_COLOR], R_UNIFORM_VEC3, "FOG.COLOR");
+	R_ProgramVariable(&p->fog[UNIFORM_FOG_DENSITY], R_UNIFORM_FLOAT, "FOG.DENSITY");
 
 	R_DisableAttribute(&p->tangent);
 
@@ -85,6 +92,8 @@ void R_InitProgram_default(void) {
 	R_ProgramParameter1i(&p->sampler2, 2);
 	R_ProgramParameter1i(&p->sampler3, 3);
 	R_ProgramParameter1i(&p->sampler4, 4);
+
+	R_ProgramParameter1f(&p->fog[UNIFORM_FOG_DENSITY], 0.0);
 }
 
 /**
@@ -128,4 +137,27 @@ void R_UseMaterial_default(const r_material_t *material) {
 	R_ProgramParameter1f(&p->parallax, material->parallax * r_parallax->value);
 	R_ProgramParameter1f(&p->hardness, material->hardness * r_hardness->value);
 	R_ProgramParameter1f(&p->specular, material->specular * r_specular->value);
+}
+
+/**
+ * @brief
+ */
+void R_UseFog_default(const r_fog_parameters_t *fog) {
+
+	r_default_program_t *p = &r_default_program;
+
+	if (fog)
+	{
+		R_ProgramParameter1f(&p->fog[UNIFORM_FOG_DENSITY], fog->density);
+
+		if (fog->density)
+		{
+			// Paril TODO: cache values so that they don't send ones that are already set
+			R_ProgramParameter1f(&p->fog[UNIFORM_FOG_START], fog->start);
+			R_ProgramParameter1f(&p->fog[UNIFORM_FOG_END], fog->end);
+			R_ProgramParameter3fv(&p->fog[UNIFORM_FOG_COLOR], fog->color);
+		}
+	}
+	else
+		R_ProgramParameter1f(&p->fog[UNIFORM_FOG_DENSITY], 0.0);
 }

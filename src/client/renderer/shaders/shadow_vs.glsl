@@ -4,6 +4,16 @@
 
 #version 120
 
+struct FogParameters
+{
+	float START;
+	float END;
+	vec3 COLOR;
+	float DENSITY;
+};
+
+uniform FogParameters FOG;
+
 uniform mat4 MATRIX;
 uniform vec4 LIGHT;
 
@@ -22,8 +32,8 @@ void ShadowVertex() {
  * @brief
  */
 void FogVertex(void) {
-    fog = (gl_Position.z - gl_Fog.start) / (gl_Fog.end - gl_Fog.start) / point.w;
-    fog = clamp(fog, 0.0, 1.0) * gl_Fog.density;
+    fog = (gl_Position.z - FOG.START) / (FOG.END - FOG.START) / point.w;
+    fog = clamp(fog, 0.0, 1.0) * FOG.DENSITY;
 }
 
 /**

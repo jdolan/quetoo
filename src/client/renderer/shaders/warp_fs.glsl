@@ -4,6 +4,16 @@
 
 #version 120
 
+struct FogParameters
+{
+	float START;
+	float END;
+	vec3 COLOR;
+	float DENSITY;
+};
+
+uniform FogParameters FOG;
+
 uniform vec3 OFFSET;
 
 uniform sampler2D SAMPLER0;
@@ -15,7 +25,7 @@ varying float fog;
  * @brief
  */
 void FogFragment(void) {
-	gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_Fog.color.rgb, fog);
+	gl_FragColor.rgb = mix(gl_FragColor.rgb, FOG.COLOR, fog);
 }
 
 /**

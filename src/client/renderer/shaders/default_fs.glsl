@@ -4,6 +4,16 @@
 
 #version 120
 
+struct FogParameters
+{
+	float START;
+	float END;
+	vec3 COLOR;
+	float DENSITY;
+};
+
+uniform FogParameters FOG;
+
 // linear + quadratic attenuation
 #define LIGHT_ATTENUATION (4.0 * dist + 8.0 * dist * dist)
 
@@ -109,7 +119,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
  * @brief Apply fog to the fragment if enabled.
  */
 void FogFragment(void) {
-	gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_Fog.color.rgb, fog);
+	gl_FragColor.rgb = mix(gl_FragColor.rgb, FOG.COLOR, fog);
 }
 
 /**

@@ -4,6 +4,16 @@
 
 #version 120
 
+struct FogParameters
+{
+	float START;
+	float END;
+	vec3 COLOR;
+	float DENSITY;
+};
+
+uniform FogParameters FOG;
+
 uniform bool DIFFUSE;
 uniform bool NORMALMAP;
 
@@ -35,8 +45,8 @@ void LightVertex(void) {
  * @brief Calculate the interpolated fog value for the vertex.
  */
 void FogVertex(void) {
-	fog = (gl_Position.z - gl_Fog.start) / (gl_Fog.end - gl_Fog.start);
-	fog = clamp(fog, 0.0, 1.0) * gl_Fog.density;
+	fog = (gl_Position.z - FOG.START) / (FOG.END - FOG.START);
+	fog = clamp(fog, 0.0, 1.0) * FOG.DENSITY;
 }
 
 /**

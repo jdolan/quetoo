@@ -413,6 +413,8 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 
 	R_EnableLighting(r_state.default_program, true);
 
+	R_EnableFog(true);
+
 	if (r_draw_wireframe->value) {
 		R_EnableTexture(&texunit_diffuse, false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -435,6 +437,8 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		R_EnableTexture(&texunit_diffuse, true);
 	}
+	
+	R_EnableFog(false);
 
 	R_EnableLighting(NULL, false);
 

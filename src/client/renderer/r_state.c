@@ -423,6 +423,8 @@ void R_EnableLighting(const r_program_t *program, _Bool enable) {
 		R_UseProgram(NULL);
 	}
 
+	R_EnableFog(enable);
+
 	R_GetError(NULL);
 }
 
@@ -446,6 +448,8 @@ void R_EnableShadow(const r_program_t *program, _Bool enable) {
 		R_UseProgram(program);
 	else
 		R_UseProgram(NULL);
+
+	R_EnableFog(enable);
 
 	R_GetError(NULL);
 }
@@ -475,6 +479,8 @@ void R_EnableWarp(const r_program_t *program, _Bool enable) {
 	} else {
 		R_UseProgram(NULL);
 	}
+
+	R_EnableFog(enable);
 
 	R_SelectTexture(&texunit_diffuse);
 
@@ -516,8 +522,11 @@ void R_EnableShell(const r_program_t *program, _Bool enable) {
  * @brief
  */
 void R_EnableFog(_Bool enable) {
+	
+	if (!r_state.active_program)
+		return;
 
-	if (!r_fog->value || r_state.fog_enabled == enable)
+	if (!r_fog->value || r_state.fog_enabled == enable || !r_state.active_program->UseFog)
 		return;
 
 	r_state.fog_enabled = false;
@@ -526,15 +535,16 @@ void R_EnableFog(_Bool enable) {
 		if ((r_view.weather & WEATHER_FOG) || r_fog->integer == 2) {
 
 			r_state.fog_enabled = true;
-
-			glFogfv(GL_FOG_COLOR, r_view.fog_color);
-
-			glFogf(GL_FOG_DENSITY, 1.0);
-			glEnable(GL_FOG);
+			
+			r_state.active_fog_parameters.start = FOG_START;
+			r_state.active_fog_parameters.end = FOG_END;
+			VectorCopy(r_view.fog_color, r_state.active_fog_parameters.color);
+			r_state.active_fog_parameters.density = 1.0;
+			
+			r_state.active_program->UseFog(&r_state.active_fog_parameters);
 		}
 	} else {
-		glFogf(GL_FOG_DENSITY, 0.0);
-		glDisable(GL_FOG);
+		r_state.active_fog_parameters.density = 0.0;
 	}
 }
 
@@ -696,12 +706,6 @@ void R_InitState(void) {
 
 	// polygon offset parameters
 	glPolygonOffset(-1.0, 1.0);
-
-	// fog parameters
-	glFogi(GL_FOG_MODE, GL_LINEAR);
-	glFogf(GL_FOG_DENSITY, 0.0);
-	glFogf(GL_FOG_START, FOG_START);
-	glFogf(GL_FOG_END, FOG_END);
 
 	// alpha blend parameters
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

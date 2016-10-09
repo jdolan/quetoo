@@ -354,6 +354,8 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(r_state.default_program, true);
 
+	R_EnableFog(true);
+
 	R_EnableColorArray(true);
 
 	R_ResetArrayState();
@@ -400,8 +402,6 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	R_EnableFog(true);
-
 	R_EnableColorArray(false);
 
 	R_EnableTexture(&texunit_lightmap, false);
@@ -410,8 +410,10 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_UseMaterial(NULL);
 
-	R_EnableLighting(NULL, false);
+	R_EnableFog(false);
 
+	R_EnableLighting(NULL, false);
+	
 	R_Color(NULL);
 }
 

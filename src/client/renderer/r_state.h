@@ -74,6 +74,7 @@ typedef struct r_state_s {
 	const r_entity_t *active_entity; // entity being rendered
 	const r_shadow_t *active_shadow; // shadow being rendered
 
+	r_fog_parameters_t active_fog_parameters;
 
 	_Bool color_array_enabled;
 	_Bool alpha_test_enabled;

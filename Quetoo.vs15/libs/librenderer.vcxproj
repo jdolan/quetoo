@@ -89,6 +89,16 @@
     <ClInclude Include="..\..\src\client\renderer\r_state.h" />
     <ClInclude Include="..\..\src\client\renderer\r_types.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\client\renderer\shaders\default_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\default_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\shadow_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\shadow_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\shell_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\shell_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\warp_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\warp_vs.glsl" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3B26D4D9-B320-4D6F-B4D1-9A2487BBD0B3}</ProjectGuid>
     <RootNamespace>librenderer</RootNamespace>

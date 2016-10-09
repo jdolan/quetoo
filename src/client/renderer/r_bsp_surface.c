@@ -151,6 +151,8 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(r_state.default_program, true);
 
+	R_EnableFog(true);
+
 	if (r_shadows->value)
 		R_EnableStencilTest(GL_REPLACE, true);
 
@@ -158,6 +160,8 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	if (r_shadows->value)
 		R_EnableStencilTest(GL_KEEP, false);
+	
+	R_EnableFog(false);
 
 	R_EnableLighting(NULL, false);
 
@@ -224,7 +228,11 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(r_state.default_program, true);
 
+	R_EnableFog(true);
+
 	R_DrawBspSurfaces_default(surfs);
+
+	R_EnableFog(false);
 
 	R_EnableLighting(NULL, false);
 
@@ -255,7 +263,11 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(r_state.default_program, true);
 
+	R_EnableFog(true);
+
 	R_DrawBspSurfaces_default(surfs);
+
+	R_EnableFog(false);
 
 	R_EnableLighting(NULL, false);
 

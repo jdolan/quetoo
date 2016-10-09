@@ -149,8 +149,6 @@ void R_DrawView(void) {
 
 	R_MarkBspSurfaces();
 
-	R_EnableFog(true);
-
 	R_DrawSkyBox();
 
 	// wait for the client to fully populate the scene
@@ -191,8 +189,6 @@ void R_DrawView(void) {
 	Thread_Wait(sort_elements);
 
 	R_DrawElements();
-
-	R_EnableFog(false);
 
 	R_DrawDeveloperTools();
 
