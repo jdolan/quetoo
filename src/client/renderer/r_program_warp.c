@@ -27,6 +27,8 @@ typedef struct r_warp_program_s {
 
 	r_sampler2d_t sampler0;
 	r_sampler2d_t sampler1;
+
+	r_uniformfog_t fog;
 } r_warp_program_t;
 
 static r_warp_program_t r_warp_program;
@@ -46,6 +48,8 @@ void R_InitProgram_warp(void) {
 
 	R_ProgramParameter1i(&p->sampler0, 0);
 	R_ProgramParameter1i(&p->sampler1, 1);
+
+	R_ProgramParameter1f(&p->fog.density, 0.0);
 }
 
 /**

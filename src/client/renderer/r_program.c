@@ -415,6 +415,7 @@ void R_InitPrograms(void) {
 
 	if ((r_state.shadow_program = R_LoadProgram("shadow", R_InitProgram_shadow))) {
 		r_state.shadow_program->Use = R_UseProgram_shadow;
+		r_state.shadow_program->UseFog = R_UseFog_default;
 		r_state.shadow_program->arrays_mask = R_ARRAY_VERTEX;
 	}
 
@@ -425,6 +426,7 @@ void R_InitPrograms(void) {
 
 	if ((r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp))) {
 		r_state.warp_program->Use = R_UseProgram_warp;
+		r_state.warp_program->UseFog = R_UseFog_default;
 		r_state.warp_program->arrays_mask = R_ARRAY_VERTEX | R_ARRAY_TEX_DIFFUSE;
 	}
 }

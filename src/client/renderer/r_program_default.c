@@ -72,10 +72,10 @@ void R_InitProgram_default(void) {
 	R_ProgramVariable(&p->sampler3, R_SAMPLER_2D, "SAMPLER3");
 	R_ProgramVariable(&p->sampler4, R_SAMPLER_2D, "SAMPLER4");
 	
-	R_ProgramVariable(&p->fog[UNIFORM_FOG_START], R_UNIFORM_FLOAT, "FOG.START");
-	R_ProgramVariable(&p->fog[UNIFORM_FOG_END], R_UNIFORM_FLOAT, "FOG.END");
-	R_ProgramVariable(&p->fog[UNIFORM_FOG_COLOR], R_UNIFORM_VEC3, "FOG.COLOR");
-	R_ProgramVariable(&p->fog[UNIFORM_FOG_DENSITY], R_UNIFORM_FLOAT, "FOG.DENSITY");
+	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
+	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
+	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR");
+	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
 
 	for (int32_t i = 0; i < MAX_ACTIVE_LIGHTS; ++i)
 	{
@@ -101,7 +101,7 @@ void R_InitProgram_default(void) {
 	R_ProgramParameter1i(&p->sampler3, 3);
 	R_ProgramParameter1i(&p->sampler4, 4);
 
-	R_ProgramParameter1f(&p->fog[UNIFORM_FOG_DENSITY], 0.0);
+	R_ProgramParameter1f(&p->fog.density, 0.0);
 
 	R_ProgramParameter1f(&p->lights[0].radius, 0.0);
 }
@@ -158,18 +158,17 @@ void R_UseFog_default(const r_fog_parameters_t *fog) {
 
 	if (fog)
 	{
-		R_ProgramParameter1f(&p->fog[UNIFORM_FOG_DENSITY], fog->density);
+		R_ProgramParameter1f(&p->fog.density, fog->density);
 
 		if (fog->density)
 		{
-			// Paril TODO: cache values so that they don't send ones that are already set
-			R_ProgramParameter1f(&p->fog[UNIFORM_FOG_START], fog->start);
-			R_ProgramParameter1f(&p->fog[UNIFORM_FOG_END], fog->end);
-			R_ProgramParameter3fv(&p->fog[UNIFORM_FOG_COLOR], fog->color);
+			R_ProgramParameter1f(&p->fog.start, fog->start);
+			R_ProgramParameter1f(&p->fog.end, fog->end);
+			R_ProgramParameter3fv(&p->fog.color, fog->color);
 		}
 	}
 	else
-		R_ProgramParameter1f(&p->fog[UNIFORM_FOG_DENSITY], 0.0);
+		R_ProgramParameter1f(&p->fog.density, 0.0);
 }
 
 /**

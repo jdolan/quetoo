@@ -69,28 +69,25 @@ typedef r_variable_t r_sampler2d_t;
 
 // fog info
 typedef struct {
-	float	start;
-	float	end;
-	vec3_t	color; // Paril NOTE: this could be passed as 3 bytes instead
-	float	density;
+	float start;
+	float end;
+	vec3_t color;
+	float density;
 } r_fog_parameters_t;
 
-enum {
-	UNIFORM_FOG_START,
-	UNIFORM_FOG_END,
-	UNIFORM_FOG_COLOR,
-	UNIFORM_FOG_DENSITY,
-
-	NUM_FOG_PARAMETERS
-};
-
-typedef r_variable_t r_uniformfog_t[NUM_FOG_PARAMETERS];
+typedef struct
+{
+	r_variable_t start;
+	r_variable_t end;
+	r_variable_t color;
+	r_variable_t density;
+} r_uniformfog_t;
 
 // light info
 typedef struct {
-	r_variable_t	origin;
-	r_variable_t	color;
-	r_variable_t	radius;
+	r_variable_t origin;
+	r_variable_t color;
+	r_variable_t radius;
 } r_uniformlight_t;
 
 typedef r_uniformlight_t r_uniformlight_list_t[MAX_ACTIVE_LIGHTS];

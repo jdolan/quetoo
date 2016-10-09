@@ -26,6 +26,8 @@ typedef struct r_shadow_program_s {
 	r_uniform_matrix4fv_t matrix;
 	r_uniform4fv_t light;
 	r_uniform4fv_t plane;
+
+	r_uniformfog_t fog;
 } r_shadow_program_t;
 
 static r_shadow_program_t r_shadow_program;
@@ -46,6 +48,8 @@ void R_InitProgram_shadow(void) {
 	R_ProgramParameterMatrix4fv(&p->matrix, (GLfloat *) matrix4x4_identity.m);
 	R_ProgramParameter4fv(&p->light, light);
 	R_ProgramParameter4fv(&p->plane, plane);
+
+	R_ProgramParameter1f(&p->fog.density, 0.0);
 }
 
 /**
