@@ -1761,3 +1761,54 @@ void Matrix4x4_Abs (matrix4x4_t *out)
     out->m[2][1] = fabs(out->m[2][1]);
     out->m[2][2] = fabs(out->m[2][2]);
 }
+
+// dutifully stolen from https://github.com/toji/gl-matrix/blob/master/src/gl-matrix/mat4.js
+void Matrix4x4_FromFrustum (matrix4x4_t *out, double left, double right, double bottom, double top, double nearval, double farval)
+{
+    double rl = 1.0 / (right - left);
+	double tb = 1.0 / (top - bottom);
+	double nf = 1.0 / (nearval - farval);
+	double n2 = (nearval * 2.0);
+
+    out->m[0][0] = n2 * rl;
+    out->m[0][1] = 0.0;
+    out->m[0][2] = 0.0;
+    out->m[0][3] = 0.0;
+    out->m[1][0] = 0.0;
+    out->m[1][1] = n2 * tb;
+    out->m[1][2] = 0.0;
+    out->m[1][3] = 0.0;
+    out->m[2][0] = (right + left) * rl;
+    out->m[2][1] = (top + bottom) * tb;
+    out->m[2][2] = (farval + nearval) * nf;
+    out->m[2][3] = -1.0;
+    out->m[3][0] = 0.0;
+    out->m[3][1] = 0.0;
+    out->m[3][2] = (farval * n2) * nf;
+    out->m[3][3] = 0.0;
+}
+
+// dutifully stolen from https://github.com/toji/gl-matrix/blob/master/src/gl-matrix/mat4.js
+void Matrix4x4_FromOrtho (matrix4x4_t *out, double left, double right, double bottom, double top, double nearval, double farval)
+{
+    double lr = 1.0 / (left - right);
+    double bt = 1.0 / (bottom - top);
+    double nf = 1.0 / (nearval - farval);
+
+    out->m[0][0] = -2.0 * lr;
+    out->m[0][1] = 0.0;
+    out->m[0][2] = 0.0;
+    out->m[0][3] = 0.0;
+    out->m[1][0] = 0.0;
+    out->m[1][1] = -2.0 * bt;
+    out->m[1][2] = 0.0;
+    out->m[1][3] = 0.0;
+    out->m[2][0] = 0.0;
+    out->m[2][1] = 0.0;
+    out->m[2][2] = 2.0 * nf;
+    out->m[2][3] = 0.0;
+    out->m[3][0] = (left + right) * lr;
+    out->m[3][1] = (top + bottom) * bt;
+    out->m[3][2] = (farval + nearval) * nf;
+    out->m[3][3] = 1.0;
+}

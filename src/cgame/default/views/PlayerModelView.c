@@ -150,16 +150,22 @@ static void render(View *self, Renderer *renderer) {
 
 		const vec_t xmin = ymin * aspect;
 		const vec_t xmax = ymax * aspect;
+		matrix4x4_t mat;
 
-		glFrustum(xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
+		Matrix4x4_FromFrustum(&mat, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
+
+		glLoadMatrixf((GLfloat *) mat.m);
 
 		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
+
+		Matrix4x4_Copy(&mat, &matrix4x4_identity);
 
 		// Quake is retarded: rotate so that Z is up
-		glRotatef(-90.0, 1.0, 0.0, 0.0);
-		glRotatef( 90.0, 0.0, 0.0, 1.0);
-		glTranslatef(64.0, 0.0, -8.0);
+		Matrix4x4_ConcatRotate(&mat, -90.0, 1.0, 0.0, 0.0);
+		Matrix4x4_ConcatRotate(&mat,  90.0, 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatTranslate(&mat, 64.0, 0.0, -8.0);
+
+		glLoadMatrixf((GLfloat *) mat.m);
 		
 		glPushMatrix();
 
@@ -185,7 +191,9 @@ static void render(View *self, Renderer *renderer) {
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 
-		glOrtho(0, cgi.context->window_width, cgi.context->window_height, 0, -1, 1);
+		Matrix4x4_FromOrtho(&mat, 0.0, cgi.context->window_width, cgi.context->window_height, 0.0, -1.0, 1.0);
+
+		glLoadMatrixf((GLfloat *) mat.m);
 
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();

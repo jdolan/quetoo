@@ -174,12 +174,13 @@ void R_UseFog_default(const r_fog_parameters_t *fog) {
 /**
  * @brief
  */
-void R_UseLight_default(const uint32_t light_index, const r_light_t *light) {
+void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
 
 	r_default_program_t *p = &r_default_program;
 
 	if (light && light->radius)
 	{
+		// Paril TODO: see if this can be cached or calculated on GPU instead.
 		vec3_t origin;
 		Matrix4x4_Transform(&r_view.matrix, light->origin, origin);
 

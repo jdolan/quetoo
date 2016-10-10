@@ -585,7 +585,6 @@ void R_Setup3D(void) {
 
 	// set up projection matrix
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
 
 	const vec_t aspect = (vec_t) viewport->w / (vec_t) viewport->h;
 
@@ -595,22 +594,27 @@ void R_Setup3D(void) {
 	const vec_t xmin = ymin * aspect;
 	const vec_t xmax = ymax * aspect;
 
-	glFrustum(xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
+	matrix4x4_t mat;
+
+	Matrix4x4_FromFrustum(&mat, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
+
+	glLoadMatrixf((GLfloat *) mat.m);
 
 	// setup the model-view matrix
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 
-	glRotatef(-90.0, 1.0, 0.0, 0.0); // put Z going up
-	glRotatef( 90.0, 0.0, 0.0, 1.0); // put Z going up
+	Matrix4x4_Copy(&r_view.matrix, &matrix4x4_identity);
+	
+	Matrix4x4_ConcatRotate(&r_view.matrix, -90.0, 1.0, 0.0, 0.0);	 // put Z going up
+	Matrix4x4_ConcatRotate(&r_view.matrix,  90.0, 0.0, 0.0, 1.0);	 // put Z going up
 
-	glRotatef(-r_view.angles[ROLL],  1.0, 0.0, 0.0);
-	glRotatef(-r_view.angles[PITCH], 0.0, 1.0, 0.0);
-	glRotatef(-r_view.angles[YAW],   0.0, 0.0, 1.0);
+	Matrix4x4_ConcatRotate(&r_view.matrix, -r_view.angles[ROLL],  1.0, 0.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_view.matrix, -r_view.angles[PITCH], 0.0, 1.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_view.matrix, -r_view.angles[YAW],   0.0, 0.0, 1.0);
 
-	glTranslatef(-r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
-
-	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) r_view.matrix.m);
+	Matrix4x4_ConcatTranslate(&r_view.matrix, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
+	
+	glLoadMatrixf((GLfloat *) r_view.matrix.m);
 
 	Matrix4x4_Invert_Simple(&r_view.inverse_matrix, &r_view.matrix);
 
@@ -633,9 +637,12 @@ void R_Setup2D(void) {
 	glViewport(0, 0, r_context.width, r_context.height);
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
 
-	glOrtho(0, r_context.width, r_context.height, 0, -1, 1);
+	matrix4x4_t mat;
+
+	Matrix4x4_FromOrtho(&mat, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+
+	glLoadMatrixf((GLfloat *) mat.m);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

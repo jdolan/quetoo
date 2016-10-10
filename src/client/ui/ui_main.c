@@ -86,16 +86,21 @@ void Ui_Draw(void) {
 	glDisable(GL_TEXTURE_2D);
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
 
-	glOrtho(0, r_context.window_width, r_context.window_height, 0, -1, 1);
+	matrix4x4_t mat;
+
+	Matrix4x4_FromOrtho(&mat, 0.0, r_context.window_width, r_context.window_height, 0.0, -1.0, 1.0);
+
+	glLoadMatrixf((const GLfloat *) mat.m);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	$(windowController, render);
 
-	glOrtho(0, r_context.width, r_context.height, 0, -1, 1);
+	Matrix4x4_FromOrtho(&mat, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+
+	glLoadMatrixf((const GLfloat *) mat.m);
 
 	glPopAttrib();
 	glPopClientAttrib();
