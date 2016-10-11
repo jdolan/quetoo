@@ -64,6 +64,7 @@ cvar_t *r_lighting;
 cvar_t *r_line_alpha;
 cvar_t *r_line_width;
 cvar_t *r_materials;
+cvar_t *r_max_lights;
 cvar_t *r_modulate;
 cvar_t *r_monochrome;
 cvar_t *r_multisample;
@@ -459,6 +460,8 @@ static void R_InitLocal(void) {
 	r_line_width = Cvar_Add("r_line_width", "1.0", CVAR_ARCHIVE, NULL);
 	r_materials = Cvar_Add("r_materials", "1", CVAR_ARCHIVE,
 			"Enables or disables the materials (progressive texture effects) system");
+	r_max_lights = Cvar_Add("r_max_lights", "8", CVAR_ARCHIVE | CVAR_R_CONTEXT,
+			"Controls the maximum number of lights affecting a rendered object");
 	r_modulate = Cvar_Add("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls the brightness of world surface lightmaps");
 	r_monochrome = Cvar_Add("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_MEDIA,

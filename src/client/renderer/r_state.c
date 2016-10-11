@@ -717,6 +717,9 @@ void R_InitState(void) {
 	// alpha blend parameters
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// set num lights
+	r_state.max_lights = Clamp(r_max_lights->integer, 0, MAX_ILLUMINATIONS);
+
 	R_GetError(NULL);
 }
 

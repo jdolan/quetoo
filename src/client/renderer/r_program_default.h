@@ -26,6 +26,7 @@
 
 #ifdef __R_LOCAL_H__
 void R_InitProgram_default(void);
+void R_Shutdown_default(void);
 void R_UseProgram_default(void);
 void R_UseMaterial_default(const r_material_t *material);
 void R_UseFog_default(const r_fog_parameters_t *value);

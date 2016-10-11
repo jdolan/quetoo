@@ -14,8 +14,9 @@ struct FogParameters
 
 uniform FogParameters FOG;
 
-#define MAX_LIGHTS 8
+#define MAX_LIGHTS $r_max_lights
 
+#if MAX_LIGHTS
 struct LightParameters
 {
 	vec3 ORIGIN[MAX_LIGHTS];
@@ -34,6 +35,7 @@ uniform LightParameters LIGHTS;
 // light color clamping
 #define LIGHT_CLAMP_MIN 0.0
 #define LIGHT_CLAMP_MAX 4.0
+#endif
 
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
@@ -96,7 +98,8 @@ vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
 void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 
 	vec3 light = vec3(0.0);
-
+	
+#if MAX_LIGHTS
 	/*
 	 * Iterate the hardware light sources, accumulating dynamic lighting for
 	 * this fragment.  An attenuation of 0.0 means break.
@@ -121,6 +124,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 	}
 
 	light = clamp(light, LIGHT_CLAMP_MIN, LIGHT_CLAMP_MAX);
+#endif
 
 	// now modulate the diffuse sample with the modified lightmap
 	gl_FragColor.rgb = diffuse.rgb * (lightmap + light);

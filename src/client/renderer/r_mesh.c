@@ -237,7 +237,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 	if (!r_lighting->value || !r_programs->value) {
 		const r_illumination_t *il = e->lighting->illuminations;
 
-		for (uint16_t i = 0; i < lengthof(e->lighting->illuminations); i++, il++) {
+		for (uint16_t i = 0; i < r_state.max_lights; i++, il++) {
 
 			if (il->diffuse == 0.0)
 				break;
@@ -266,7 +266,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
 
 	uint16_t i;
-	for (i = 0; i < MAX_ACTIVE_LIGHTS; i++) {
+	for (i = 0; i < r_state.max_lights; i++) {
 
 		const r_illumination_t *il = &e->lighting->illuminations[i];
 
@@ -276,7 +276,7 @@ static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
 		r_state.active_program->UseLight(i, &il->light);
 	}
 	
-	if (i < MAX_ACTIVE_LIGHTS) // disable the next light as a stop
+	if (i < r_state.max_lights) // disable the next light as a stop
 		r_state.active_program->UseLight(i, NULL);
 }
 

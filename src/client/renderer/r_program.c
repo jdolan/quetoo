@@ -235,6 +235,9 @@ static void R_ShutdownShader(r_shader_t *sh) {
  */
 static void R_ShutdownProgram(r_program_t *prog) {
 
+	if (prog->Shutdown)
+		prog->Shutdown();
+
 	if (prog->v)
 		R_ShutdownShader(prog->v);
 	if (prog->f)
@@ -284,9 +287,6 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 		return NULL;
 	}
 
-	src[0] = (char *) buf;
-	length[0] = len;
-
 	for (i = 0; i < MAX_SHADERS; i++) {
 		sh = &r_state.shaders[i];
 
@@ -310,8 +310,23 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 		return NULL;
 	}
 
+	// run shader source through cvar parser
+	size_t parsed_size;
+	_Bool had_replacements = Cvar_EmplaceValues((const char *) buf, len, src, &parsed_size);
+
+	if (!had_replacements)
+	{
+		src[0] = (char *) buf;
+		length[0] = len;
+	}
+	else
+		length[0] = parsed_size;
+
 	// upload the shader source
 	qglShaderSource(sh->id, 1, src, length);
+
+	if (had_replacements)
+		Mem_Free(src[0]);
 
 	// compile it and check for errors
 	qglCompileShader(sh->id);
@@ -406,6 +421,7 @@ void R_InitPrograms(void) {
 		return;
 
 	if ((r_state.default_program = R_LoadProgram("default", R_InitProgram_default))) {
+		r_state.default_program->Shutdown = R_Shutdown_default;
 		r_state.default_program->Use = R_UseProgram_default;
 		r_state.default_program->UseMaterial = R_UseMaterial_default;
 		r_state.default_program->UseFog = R_UseFog_default;

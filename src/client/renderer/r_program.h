@@ -90,7 +90,7 @@ typedef struct {
 	r_variable_t radius;
 } r_uniformlight_t;
 
-typedef r_uniformlight_t r_uniformlight_list_t[MAX_ACTIVE_LIGHTS];
+typedef r_uniformlight_t *r_uniformlight_list_t;
 
 #define MAX_PROGRAM_VARIABLES 32
 
@@ -102,6 +102,7 @@ typedef struct {
 	r_shader_t *f;
 	uint32_t arrays_mask;
 	void (*Init)(void);
+	void (*Shutdown)(void);
 	void (*Use)(void);
 	void (*UseMaterial)(const r_material_t *material);
 	void (*UseEntity)(const r_entity_t *e);

@@ -191,7 +191,7 @@
       <CLanguageStandard>gnu99</CLanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libshared.lib;libpmove.lib;libswap.lib;SDL2.lib;SDL2_ttf.lib;SDL2_image.lib;pthread.lib;opengl32.lib;iconv.lib;fontconfig.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libshared.lib;libpmove.lib;libswap.lib;libmatrix.lib;SDL2.lib;SDL2_ttf.lib;SDL2_image.lib;pthread.lib;opengl32.lib;iconv.lib;fontconfig.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>cgame.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
@@ -207,7 +207,7 @@
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>cgame.def</ModuleDefinitionFile>
-      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libshared.lib;libpmove.lib;libswap.lib;SDL2.lib;SDL2_ttf.lib;SDL2_image.lib;pthread.lib;opengl32.lib;iconv.lib;fontconfig.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libshared.lib;libpmove.lib;libswap.lib;libmatrix.lib;SDL2.lib;SDL2_ttf.lib;SDL2_image.lib;pthread.lib;opengl32.lib;iconv.lib;fontconfig.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -225,7 +225,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libshared.lib;libpmove.lib;libswap.lib;SDL2.lib;SDL2_ttf.lib;SDL2_image.lib;pthread.lib;opengl32.lib;iconv.lib;fontconfig.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libshared.lib;libpmove.lib;libswap.lib;libmatrix.lib;SDL2.lib;SDL2_ttf.lib;SDL2_image.lib;pthread.lib;opengl32.lib;iconv.lib;fontconfig.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>cgame.def</ModuleDefinitionFile>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
@@ -245,7 +245,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>cgame.def</ModuleDefinitionFile>
-      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libshared.lib;libpmove.lib;libswap.lib;SDL2.lib;SDL2_ttf.lib;SDL2_image.lib;pthread.lib;opengl32.lib;iconv.lib;fontconfig.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;libshared.lib;libpmove.lib;libswap.lib;libmatrix.lib;SDL2.lib;SDL2_ttf.lib;SDL2_image.lib;pthread.lib;opengl32.lib;iconv.lib;fontconfig.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>

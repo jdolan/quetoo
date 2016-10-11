@@ -187,7 +187,7 @@ void R_EnableLights(uint64_t mask) {
 
 		for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
 
-			if (j == MAX_ACTIVE_LIGHTS)
+			if (j == r_state.max_lights)
 				break;
 
 			const uint64_t bit = ((uint64_t ) 1 << i);
@@ -198,6 +198,6 @@ void R_EnableLights(uint64_t mask) {
 		}
 	}
 
-	if (j < MAX_ACTIVE_LIGHTS) // disable the next light as a stop
+	if (j < r_state.max_lights) // disable the next light as a stop
 		r_state.active_program->UseLight(j, NULL);
 }

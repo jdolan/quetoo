@@ -77,12 +77,21 @@ void R_InitProgram_default(void) {
 	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR");
 	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
 
-	for (int32_t i = 0; i < MAX_ACTIVE_LIGHTS; ++i)
+	if (r_state.max_lights)
 	{
-		R_ProgramVariable(&p->lights[i].origin, R_UNIFORM_VEC3, va("LIGHTS.ORIGIN[%i]", i));
-		R_ProgramVariable(&p->lights[i].color, R_UNIFORM_VEC3, va("LIGHTS.COLOR[%i]", i));
-		R_ProgramVariable(&p->lights[i].radius, R_UNIFORM_FLOAT, va("LIGHTS.RADIUS[%i]", i));
+		p->lights = Mem_TagMalloc(sizeof(r_uniformlight_t) * r_state.max_lights, MEM_TAG_RENDERER);
+
+		for (int32_t i = 0; i < r_state.max_lights; ++i)
+		{
+			R_ProgramVariable(&p->lights[i].origin, R_UNIFORM_VEC3, va("LIGHTS.ORIGIN[%i]", i));
+			R_ProgramVariable(&p->lights[i].color, R_UNIFORM_VEC3, va("LIGHTS.COLOR[%i]", i));
+			R_ProgramVariable(&p->lights[i].radius, R_UNIFORM_FLOAT, va("LIGHTS.RADIUS[%i]", i));
+		}
+
+		R_ProgramParameter1f(&p->lights[0].radius, 0.0);
 	}
+	else
+		p->lights = NULL;
 
 	R_DisableAttribute(&p->tangent);
 
@@ -102,8 +111,17 @@ void R_InitProgram_default(void) {
 	R_ProgramParameter1i(&p->sampler4, 4);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
+}
 
-	R_ProgramParameter1f(&p->lights[0].radius, 0.0);
+/**
+ * @brief
+ */
+void R_Shutdown_default(void) {
+
+	r_default_program_t *p = &r_default_program;
+
+	if (p->lights)
+		Mem_Free(p->lights);
 }
 
 /**

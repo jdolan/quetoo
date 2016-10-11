@@ -76,6 +76,8 @@ typedef struct r_state_s {
 
 	r_fog_parameters_t active_fog_parameters;
 
+	uint8_t max_lights;
+
 	_Bool color_array_enabled;
 	_Bool alpha_test_enabled;
 	_Bool stencil_test_enabled;

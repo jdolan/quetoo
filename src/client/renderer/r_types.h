@@ -573,7 +573,6 @@ typedef struct {
 } r_light_t;
 
 #define MAX_LIGHTS			64
-#define MAX_ACTIVE_LIGHTS	8
 
 /**
  * @brief Sustains are light flashes which slowly decay over time. These
@@ -619,19 +618,21 @@ typedef enum {
 } r_lighting_state_t;
 
 /**
- * @brief Up to 8 illuminations are calculated for each mesh entity. The first
+ * @brief Up to MAX_ILLUMINATIONS illuminations are calculated for each mesh entity. The first
  * illumination in the structure is reserved for world lighting (ambient and
- * sunlight). The remaining 7 are populated by both BSP and dynamic light
+ * sunlight). The remaining (MAX_ILLUMINATIONS - 1) are populated by both BSP and dynamic light
  * sources, by order of their contribution.
  */
-#define MAX_ILLUMINATIONS MAX_ACTIVE_LIGHTS
+#define MAX_ILLUMINATIONS 8
 
 /**
- * @brief Up to 3 shadows are cast for each illumination. These are populated
- * by tracing from the illumination position through the lighting origin and
+ * @brief Up to MAX_PLANES_PER_SHADOW shadows are cast for up to MAX_ILLUMINATIONS_PER_SHADOW illuminations.
+ * These are populated by tracing from the illumination position through the lighting origin and
  * bounds. A shadow is cast for each unique plane hit.
  */
-#define MAX_SHADOWS (MAX_ILLUMINATIONS * 3)
+#define MAX_ILLUMINATIONS_PER_SHADOW (MAX_ILLUMINATIONS / 2)
+#define MAX_PLANES_PER_SHADOW 3
+#define MAX_SHADOWS (MAX_ILLUMINATIONS_PER_SHADOW * MAX_PLANES_PER_SHADOW)
 
 /**
  * @brief Provides lighting information for mesh entities. Illuminations and
