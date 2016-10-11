@@ -639,6 +639,176 @@ void Cvar_WriteAll(file_t *f) {
 	Cvar_Enumerate(Cvar_WriteVariables_enumerate, (void *) f);
 }
 
+/*
+void Cmd_TokenizeString(const char *text) {
+	char *c;
+
+	// clear the command state from the last string
+	memset(&cmd_state.args, 0, sizeof(cmd_state.args));
+
+	if (!text)
+		return;
+
+	// prevent overflows
+	if (strlen(text) >= MAX_STRING_CHARS) {
+		Com_Warn("MAX_STRING_CHARS exceeded\n");
+		return;
+	}
+
+	while (true) {
+		// stop after we've exhausted our token buffer
+		if (cmd_state.args.argc == MAX_STRING_TOKENS) {
+			Com_Warn("MAX_STRING_TOKENS exceeded\n");
+			return;
+		}
+
+		// skip whitespace up to a \n
+		while (*text <= ' ') {
+			if (!*text || *text == '\n')
+				return;
+			text++;
+		}
+
+		// set cmd_state.args to everything after the command name
+		if (cmd_state.args.argc == 1) {
+			g_strlcpy(cmd_state.args.args, text, MAX_STRING_CHARS);
+
+			// strip off any trailing whitespace
+			size_t l = strlen(cmd_state.args.args);
+			c = &cmd_state.args.args[l - 1];
+
+			while (*c <= ' ') {
+				*c-- = '\0';
+			}
+		}
+
+		c = ParseToken(&text);
+
+		if (*c == '\0' && !text) { // we're done
+			return;
+		}
+
+		// expand console variables
+		if (*c == '$' && g_strcmp0(cmd_state.args.argv[0], "alias")) {
+			c = (char *) Cvar_GetString(c + 1);
+		}
+
+		g_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
+		cmd_state.args.argc++;
+	}
+}
+*/
+
+typedef struct
+{
+	const char	*start;
+	size_t		length;
+	const char *value;
+	size_t		value_length;
+} cvar_replacement_t;
+
+/**
+ * @brief Replaces cvar replacement strings (ie, $cvar_name_here) with their string values.
+ * This is a two-pass function; output is guaranteed to only contain the size it absolutely needs.
+ * @returns false if failed or nothing replaced. true if succeeded. Be sure to Mem_Free *output if true is encountered.
+ */
+_Bool Cvar_EmplaceValues(const char *input, const size_t in_size, char **output, size_t *out_size)
+{
+	// sanity checks
+	if (!input || !in_size)
+		return false;
+
+	// we are sane, clear the output ptrs.
+	*output = NULL;
+	*out_size = in_size;
+
+	// find all of the replacement spots
+	GSList *replacements = NULL;
+	size_t num_replacements = 0;
+
+	// initial loop to find $s
+	for (size_t i = 0; i < in_size; ++i)
+	{
+		if (input[i] != '$')
+			continue;
+
+		// store the start, since we need it for later
+		size_t start = i;
+
+		do
+		{
+			++i;
+		} while (i < in_size && !(input[i] <= ' ')); // while not EOF and not whitespace
+
+		// if we have a length of 1, it's a stray $
+		// so just skip it.
+		if (i - start == 1)
+			break;
+
+		// copy cvar's name from the input (this null-terminates it too)
+		char *cvar_name = g_strndup(input + start + 1, i - start - 1);
+
+		// create the replacement value on heap
+		cvar_replacement_t *replacement = (cvar_replacement_t *) Mem_Malloc(sizeof(cvar_replacement_t));
+		replacement->start = input + start;
+		replacement->length = i - start;
+		replacement->value = Cvar_GetString(cvar_name);
+		replacement->value_length = strlen(replacement->value);
+
+		// free cvar_name
+		g_free(cvar_name);
+
+		// store it for the second pass
+		replacements = g_slist_append(replacements, replacement);
+
+		// change output size to match the replacement
+		*out_size += replacement->value_length - replacement->length;
+
+		// increase num_replacements (I think g_slist_length is not constant time)
+		++num_replacements;
+	}
+
+	// if we got no replacements, we can quit early.
+	if (replacements == NULL)
+		return false;
+
+	// we have replacements to deal with.
+	// create the new string buffer.
+	// also stores where to append next.
+	char *outptr = *output = Mem_Malloc(*out_size + 1);
+
+	// stores the last "end" position for copying from input
+	const char *inptr = input;
+
+	// loop through replacements
+	for (GSList *r = replacements; r; r = r->next)
+	{
+		cvar_replacement_t *replacement = (cvar_replacement_t *) r->data;
+
+		// first, append the string input data up to this point
+		strncpy(outptr, inptr, replacement->start - inptr);
+
+		// move outptr forward to just before $
+		outptr += (replacement->start - inptr);
+
+		// write cvar's value
+		strncpy(outptr, replacement->value, replacement->value_length);
+
+		// move outptr to directly after the cvar's value
+		outptr += replacement->value_length;
+		
+		// set up next string input point to be after the $x placeholder
+		inptr += (replacement->start - inptr) + replacement->length;
+	}
+
+	// write out whatever input is left to the output
+	strncpy(outptr, inptr, in_size - (inptr - input) + 1);
+
+	// free replacements
+	g_slist_free_full(replacements, Mem_Free);
+	return true;
+}
+
 /**
  * @brief Initializes the console variable subsystem. Parses the command line
  * arguments looking for "+set" directives. Any variables initialized at the
