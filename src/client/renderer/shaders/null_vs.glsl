@@ -4,7 +4,17 @@
 
 #version 120
 
-#include "fog_inc.glsl"
+struct FogParameters
+{
+	float START;
+	float END;
+	vec3 COLOR;
+	float DENSITY;
+};
+
+uniform FogParameters FOG;
+
+varying float fog;
 
 /**
  * @brief

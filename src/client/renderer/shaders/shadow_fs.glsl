@@ -9,7 +9,8 @@ uniform vec4 PLANE;
 
 varying vec4 point;
 
-varying float fog;
+#define FOG_NO_UNIFORM
+#include "fog_inc.glsl"
 
 /**
  * @brief

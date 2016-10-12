@@ -4,15 +4,7 @@
 
 #version 120
 
-struct FogParameters
-{
-	float START;
-	float END;
-	vec3 COLOR;
-	float DENSITY;
-};
-
-uniform FogParameters FOG;
+#include "fog_inc.glsl"
 
 #define MAX_LIGHTS $r_max_lights
 
@@ -58,7 +50,7 @@ varying vec3 normal;
 varying vec3 tangent;
 varying vec3 bitangent;
 
-varying float fog;
+varying mat4 modelView;
 
 const vec3 two = vec3(2.0);
 const vec3 negHalf = vec3(-0.5);
@@ -109,7 +101,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 		if (LIGHTS.RADIUS[i] == 0.0)
 			break;
 
-		vec3 delta = LIGHTS.ORIGIN[i] - point;
+		vec3 delta = (modelView * vec4(LIGHTS.ORIGIN[i], 1)).xyz - point;
 		float dist = length(delta);
 
 		if (dist < LIGHTS.RADIUS[i]) {

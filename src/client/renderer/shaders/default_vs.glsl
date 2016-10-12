@@ -4,15 +4,8 @@
 
 #version 120
 
-struct FogParameters
-{
-	float START;
-	float END;
-	vec3 COLOR;
-	float DENSITY;
-};
-
-uniform FogParameters FOG;
+#include "matrix_inc.glsl"
+#include "fog_inc.glsl"
 
 uniform bool DIFFUSE;
 uniform bool NORMALMAP;
@@ -22,7 +15,7 @@ varying vec3 normal;
 varying vec3 tangent;
 varying vec3 bitangent;
 
-varying float fog;
+varying mat4 modelView;
 
 attribute vec4 TANGENT;
 
@@ -34,6 +27,8 @@ void LightVertex(void) {
 
 	point = vec3(gl_ModelViewMatrix * gl_Vertex);
 	normal = normalize(gl_NormalMatrix * gl_Normal);
+
+	modelView = gl_ModelViewMatrix;
 
 	if (NORMALMAP) {
 		tangent = normalize(gl_NormalMatrix * TANGENT.xyz);

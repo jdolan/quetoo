@@ -49,7 +49,7 @@ _Bool Cvar_Command(void);
 char *Cvar_UserInfo(void);
 char *Cvar_ServerInfo(void);
 void Cvar_WriteAll(file_t *f);
-_Bool Cvar_EmplaceValues(const char *input, const size_t in_size, char **output, size_t *out_size);
+_Bool Cvar_EmplaceValues(const char *input, const size_t in_size, GString **output);
 void Cvar_Init(void);
 void Cvar_Shutdown(void);
 

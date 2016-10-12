@@ -134,6 +134,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
     </Link>
+    <PostBuildEvent>
+      <Command>COPY_BUILD "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

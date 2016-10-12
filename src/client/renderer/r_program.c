@@ -171,7 +171,6 @@ void R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat 
 	R_GetError(variable->name);
 }
 
-
 /**
  * @brief
  */
@@ -270,6 +269,55 @@ void R_ShutdownPrograms(void) {
 	}
 }
 
+static gchar *R_PreprocessShader(const char *input, const uint32_t length);
+
+/**
+ * @brief
+ */
+static gboolean R_PreprocessShader_EvalCallback(const GMatchInfo *match_info, GString *result, gpointer user_data)
+{
+	const gchar *name = g_match_info_fetch(match_info, 1);
+	gchar path[MAX_OS_PATH];
+	int32_t len;
+	void *buf;
+
+	g_snprintf(path, sizeof(path), "shaders/%s", name);
+	
+	if ((len = Fs_Load(path, &buf)) == -1) {
+		Com_Warn("Failed to load %s\n", name);
+		return true;
+	}
+	
+	gchar *processed = R_PreprocessShader((const char *) buf, len);
+	g_string_append(result, processed);
+	g_free(processed);
+
+	return false;
+}
+
+static GRegex *shader_preprocess_regex = NULL;
+
+/**
+ * @brief
+ */
+static gchar *R_PreprocessShader(const char *input, const uint32_t length)
+{
+	GString *emplaced = NULL;
+	_Bool had_replacements = Cvar_EmplaceValues(input, length, &emplaced);
+
+	if (!had_replacements) {
+		emplaced = g_string_new_len(input, length);
+	}
+
+	GError *error = NULL;
+	gchar *output = g_regex_replace_eval(shader_preprocess_regex, emplaced->str, emplaced->len, 0, 0, R_PreprocessShader_EvalCallback, NULL, &error);
+
+	if (error)
+		Com_Warn("Error preprocessing shader: %s", error->message);
+
+	return output;
+}
+
 /**
  * @brief
  */
@@ -311,22 +359,14 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	}
 
 	// run shader source through cvar parser
-	size_t parsed_size;
-	_Bool had_replacements = Cvar_EmplaceValues((const char *) buf, len, src, &parsed_size);
-
-	if (!had_replacements)
-	{
-		src[0] = (char *) buf;
-		length[0] = len;
-	}
-	else
-		length[0] = parsed_size;
+	gchar *parsed = R_PreprocessShader((const char *) buf, len);
+	src[0] = parsed;
+	length[0] = strlen(parsed);
 
 	// upload the shader source
 	qglShaderSource(sh->id, 1, src, length);
 
-	if (had_replacements)
-		Mem_Free(src[0]);
+	g_free(parsed);
 
 	// compile it and check for errors
 	qglCompileShader(sh->id);
@@ -413,6 +453,16 @@ void R_InitPrograms(void) {
 
 	if (!qglCreateProgram)
 		return;
+
+	// this only needs to be done once
+	if (!shader_preprocess_regex)
+	{
+		GError *error = NULL;
+		shader_preprocess_regex = g_regex_new("#include [\"\']([a-z0-9_]+\\.glsl)[\"\']", G_REGEX_CASELESS | G_REGEX_MULTILINE | G_REGEX_DOTALL, 0, &error);
+
+		if (error)
+			Com_Warn("Error compiling regex: %s", error->message);
+	}
 
 	memset(r_state.shaders, 0, sizeof(r_state.shaders));
 	memset(r_state.programs, 0, sizeof(r_state.programs));

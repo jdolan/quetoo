@@ -174,16 +174,12 @@ void R_UseFog_default(const r_fog_parameters_t *fog) {
 
 	r_default_program_t *p = &r_default_program;
 
-	if (fog)
+	if (fog && fog->density)
 	{
 		R_ProgramParameter1f(&p->fog.density, fog->density);
-
-		if (fog->density)
-		{
-			R_ProgramParameter1f(&p->fog.start, fog->start);
-			R_ProgramParameter1f(&p->fog.end, fog->end);
-			R_ProgramParameter3fv(&p->fog.color, fog->color);
-		}
+		R_ProgramParameter1f(&p->fog.start, fog->start);
+		R_ProgramParameter1f(&p->fog.end, fog->end);
+		R_ProgramParameter3fv(&p->fog.color, fog->color);
 	}
 	else
 		R_ProgramParameter1f(&p->fog.density, 0.0);
@@ -199,10 +195,10 @@ void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
 	if (light && light->radius)
 	{
 		// Paril TODO: calculate on GPU instead
-		vec3_t origin;
-		Matrix4x4_Transform(&r_view.matrix, light->origin, origin);
+		//vec3_t origin;
+		//Matrix4x4_Transform(&r_view.matrix, light->origin, origin);
 
-		R_ProgramParameter3fv(&p->lights[light_index].origin, origin);
+		R_ProgramParameter3fv(&p->lights[light_index].origin, light->origin);
 		R_ProgramParameter3fv(&p->lights[light_index].color, light->color);
 		R_ProgramParameter1f(&p->lights[light_index].radius, light->radius);
 	}

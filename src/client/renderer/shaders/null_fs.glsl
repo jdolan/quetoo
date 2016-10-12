@@ -4,12 +4,22 @@
 
 #version 120
 
-#include "fog_inc.glsl"
+struct FogParameters
+{
+	float START;
+	float END;
+	vec3 COLOR;
+	float DENSITY;
+};
+
+uniform FogParameters FOG;
 
 uniform vec3 OFFSET;
 
 uniform sampler2D SAMPLER0;
 uniform sampler2D SAMPLER1;
+
+varying float fog;
 
 /**
  * @brief

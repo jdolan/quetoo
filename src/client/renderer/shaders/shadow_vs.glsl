@@ -4,22 +4,12 @@
 
 #version 120
 
-struct FogParameters
-{
-	float START;
-	float END;
-	vec3 COLOR;
-	float DENSITY;
-};
-
-uniform FogParameters FOG;
+#include "fog_inc.glsl"
 
 uniform mat4 MATRIX;
 uniform vec4 LIGHT;
 
 varying vec4 point;
-
-varying float fog;
 
 /**
  * @brief
