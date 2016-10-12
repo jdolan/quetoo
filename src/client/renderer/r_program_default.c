@@ -198,7 +198,7 @@ void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
 
 	if (light && light->radius)
 	{
-		// Paril TODO: see if this can be cached or calculated on GPU instead.
+		// Paril TODO: calculate on GPU instead
 		vec3_t origin;
 		Matrix4x4_Transform(&r_view.matrix, light->origin, origin);
 

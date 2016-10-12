@@ -540,12 +540,15 @@ void R_EnableFog(_Bool enable) {
 			r_state.active_fog_parameters.end = FOG_END;
 			VectorCopy(r_view.fog_color, r_state.active_fog_parameters.color);
 			r_state.active_fog_parameters.density = 1.0;
-			
-			r_state.active_program->UseFog(&r_state.active_fog_parameters);
+		}
+		else {
+			r_state.active_fog_parameters.density = 0.0;
 		}
 	} else {
 		r_state.active_fog_parameters.density = 0.0;
 	}
+			
+	r_state.active_program->UseFog(&r_state.active_fog_parameters);
 }
 
 /**
