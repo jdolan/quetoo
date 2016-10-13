@@ -814,7 +814,6 @@ typedef struct {
 	
 	matrix4x4_t projection_matrix;
 	matrix4x4_t modelview_matrix;
-	matrix4x4_t normal_matrix;
 	matrix4x4_t texture_matrix;
 
 	uint32_t contents; // view origin contents mask

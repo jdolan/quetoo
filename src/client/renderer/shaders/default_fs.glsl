@@ -101,7 +101,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 		if (LIGHTS.RADIUS[i] == 0.0)
 			break;
 
-		vec3 delta = (MODELVIEW_MAT * vec4(LIGHTS.ORIGIN[i], 1)).xyz - point;
+		vec3 delta = LIGHTS.ORIGIN[i] - point;
 		float dist = length(delta);
 
 		if (dist < LIGHTS.RADIUS[i]) {

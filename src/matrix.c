@@ -152,6 +152,13 @@ void Matrix4x4_Concat (matrix4x4_t *out, const matrix4x4_t *in1, const matrix4x4
 
 void Matrix4x4_Transpose (matrix4x4_t *out, const matrix4x4_t *in1)
 {
+	if (in1 == out)
+	{
+		static matrix4x4_t in1_temp;
+		Matrix4x4_Copy(&in1_temp, in1);
+		in1 = &in1_temp;
+	}
+
 	out->m[0][0] = in1->m[0][0];
 	out->m[0][1] = in1->m[1][0];
 	out->m[0][2] = in1->m[2][0];

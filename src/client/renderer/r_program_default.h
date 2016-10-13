@@ -31,8 +31,7 @@ void R_UseProgram_default(void);
 void R_UseMaterial_default(const r_material_t *material);
 void R_UseFog_default(const r_fog_parameters_t *value);
 void R_UseLight_default(const uint16_t light_index, const r_light_t *lights);
-void R_UseMatrices_default(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *normal, const matrix4x4_t *texture);
-void R_UseMatrices_default(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *normal, const matrix4x4_t *texture);
+void R_UseMatrices_default(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PROGRAM_DEFAULT_H__ */

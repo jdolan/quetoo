@@ -204,11 +204,10 @@ void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
 
 	if (light && light->radius)
 	{
-		// Paril TODO: calculate on GPU instead
-		//vec3_t origin;
-		//Matrix4x4_Transform(&r_view.matrix, light->origin, origin);
+		vec3_t origin;
+		Matrix4x4_Transform(&r_view.modelview_matrix, light->origin, origin);
 
-		R_ProgramParameter3fv(&p->lights[light_index].origin, light->origin);
+		R_ProgramParameter3fv(&p->lights[light_index].origin, origin);
 		R_ProgramParameter3fv(&p->lights[light_index].color, light->color);
 		R_ProgramParameter1f(&p->lights[light_index].radius, light->radius);
 	}
@@ -219,7 +218,7 @@ void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
 /**
  * @brief
  */
-void R_UseMatrices_default(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *normal, const matrix4x4_t *texture) {
+void R_UseMatrices_default(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture) {
 
 	r_default_program_t *p = &r_default_program;
 
@@ -227,10 +226,16 @@ void R_UseMatrices_default(const matrix4x4_t *projection, const matrix4x4_t *mod
 		R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) projection->m);
 
 	if (modelview)
-		R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) modelview->m);
-
-	if (normal)
-		R_ProgramParameterMatrix4fv(&p->normal_mat, (const GLfloat *) normal->m);
+	{
+		if (R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) modelview->m))
+		{
+			// recalculate normal matrix if the modelview has changed.
+			matrix4x4_t normalMatrix;
+			Matrix4x4_Invert_Full(&normalMatrix, modelview);
+			Matrix4x4_Transpose(&normalMatrix, &normalMatrix);
+			R_ProgramParameterMatrix4fv(&p->normal_mat, (const GLfloat *) normalMatrix.m);
+		}
+	}
 
 	if (texture)
 		R_ProgramParameterMatrix4fv(&p->texture_mat, (const GLfloat *) texture->m);

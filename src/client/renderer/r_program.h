@@ -109,7 +109,7 @@ typedef struct {
 	void (*UseShadow)(const r_shadow_t *s);
 	void (*UseFog)(const r_fog_parameters_t *fog);
 	void (*UseLight)(const uint16_t light_index, const r_light_t *light);
-	void (*UseMatrices)(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *normal, const matrix4x4_t *texture);
+	void (*UseMatrices)(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture);
 } r_program_t;
 
 #define MAX_PROGRAMS 8
@@ -120,7 +120,7 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value);
 void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value);
 void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value);
 void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value);
-void R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value);
+_Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value);
 void R_AttributePointer(const char *name, GLuint size, const GLvoid *array);
 void R_EnableAttribute(r_attribute_t *attribute);
 void R_DisableAttribute(r_attribute_t *attribute);

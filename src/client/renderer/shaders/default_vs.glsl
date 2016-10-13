@@ -16,8 +16,6 @@ varying vec3 normal;
 varying vec3 tangent;
 varying vec3 bitangent;
 
-varying mat4 modelView;
-
 attribute vec4 TANGENT;
 
 /**
@@ -29,8 +27,6 @@ void LightVertex(void) {
 	point = vec3(MODELVIEW_MAT * gl_Vertex);
 	normal = normalize(vec3(NORMAL_MAT * vec4(gl_Normal, 1.0)));
 
-	modelView = MODELVIEW_MAT;
-
 	if (NORMALMAP) {
 		tangent = normalize(vec3(NORMAL_MAT * TANGENT));
 		bitangent = cross(normal, tangent) * TANGENT.w;
@@ -41,6 +37,7 @@ void LightVertex(void) {
  * @brief Calculate the interpolated fog value for the vertex.
  */
 void FogVertex(void) {
+
 	fog = (gl_Position.z - FOG.START) / (FOG.END - FOG.START);
 	fog = clamp(fog, 0.0, 1.0) * FOG.DENSITY;
 }

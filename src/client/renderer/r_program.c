@@ -155,20 +155,21 @@ void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
 /**
  * @brief
  */
-void R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value) {
+_Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value) {
 
 	if (!variable || variable->location == -1) {
 		Com_Warn("NULL or invalid variable\n");
-		return;
+		return false;
 	}
 
 	if (memcmp(&variable->value.mat4, value, sizeof(variable->value.mat4)) == 0)
-		return;
+		return false;
 
 	memcpy(&variable->value.mat4, value, sizeof(variable->value.mat4));
 	qglUniformMatrix4fv(variable->location, 1, false, (GLfloat *) variable->value.mat4.m);
 
 	R_GetError(variable->name);
+	return true;
 }
 
 /**

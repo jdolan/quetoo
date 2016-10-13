@@ -602,7 +602,7 @@ void R_UploadMatrices(void) {
 		return;
 
 	if (r_state.active_program->UseMatrices)
-		r_state.active_program->UseMatrices(&r_view.projection_matrix, &r_view.modelview_matrix, &r_view.normal_matrix, &r_view.texture_matrix);
+		r_state.active_program->UseMatrices(&r_view.projection_matrix, &r_view.modelview_matrix, &r_view.texture_matrix);
 }
 
 #define NEAR_Z 4.0
@@ -741,7 +741,6 @@ void R_InitState(void) {
 	// set num lights
 	r_state.max_lights = Clamp(r_max_lights->integer, 0, MAX_ILLUMINATIONS);
 	
-	Matrix4x4_CreateIdentity(&r_view.normal_matrix);
 	Matrix4x4_CreateIdentity(&r_view.texture_matrix);
 
 	R_GetError(NULL);
