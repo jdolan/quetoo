@@ -770,11 +770,11 @@ typedef enum {
  * asynchronous rendering via commands, etc.
  */
 typedef struct {
-	r_element_type_t type;
 	const void *element;
 	const vec_t *origin;
-	vec_t depth; // resolved for all elements
 	void *data;
+	vec_t depth; // resolved for all elements
+	r_element_type_t type;
 } r_element_t;
 
 /**
