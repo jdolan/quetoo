@@ -28,6 +28,9 @@ typedef struct r_shadow_program_s {
 	r_uniform4fv_t plane;
 
 	r_uniformfog_t fog;
+
+	r_uniform_matrix4fv_t projection_mat;
+	r_uniform_matrix4fv_t modelview_mat;
 } r_shadow_program_t;
 
 static r_shadow_program_t r_shadow_program;
@@ -50,6 +53,9 @@ void R_InitProgram_shadow(void) {
 	R_ProgramParameter4fv(&p->plane, plane);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
+
+	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
+	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
 }
 
 /**
@@ -126,4 +132,18 @@ void R_UseFog_shadow(const r_fog_parameters_t *fog) {
 	}
 	else
 		R_ProgramParameter1f(&p->fog.density, 0.0);
+}
+
+/**
+ * @brief
+ */
+void R_UseMatrices_shadow(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture) {
+	
+	r_shadow_program_t *p = &r_shadow_program;
+
+	if (projection)
+		R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) projection->m);
+
+	if (modelview)
+		R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) modelview->m);
 }

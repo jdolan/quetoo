@@ -47,6 +47,7 @@ uniform sampler2D SAMPLER3;
 uniform sampler2D SAMPLER4;
 
 varying vec4 color;
+varying vec2 texcoords[2];
 varying vec3 point;
 varying vec3 normal;
 varying vec3 tangent;
@@ -142,7 +143,7 @@ void main(void) {
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-		lightmap = texture2D(SAMPLER1, gl_TexCoord[1].st).rgb;
+		lightmap = texture2D(SAMPLER1, texcoords[1]).rgb;
 	}
 
 	// then resolve any bump mapping
@@ -151,10 +152,10 @@ void main(void) {
 	vec3 bump = vec3(1.0);
 
 	if (NORMALMAP) {
-		deluxemap = texture2D(SAMPLER2, gl_TexCoord[1].st).rgb;
+		deluxemap = texture2D(SAMPLER2, texcoords[1]).rgb;
 		deluxemap = normalize(two * (deluxemap + negHalf));
 
-		normalmap = texture2D(SAMPLER3, gl_TexCoord[0].st);
+		normalmap = texture2D(SAMPLER3, texcoords[0]);
 
 		parallax = BumpTexcoord(normalmap.w);
 
@@ -164,7 +165,7 @@ void main(void) {
 		vec3 glossmap = vec3(1.0);
 
 		if (GLOSSMAP) {
-			glossmap = texture2D(SAMPLER4, gl_TexCoord[0].st).rgb;
+			glossmap = texture2D(SAMPLER4, texcoords[0]).rgb;
 		}
 
 		// resolve the bumpmap modulation
@@ -181,7 +182,7 @@ void main(void) {
 	vec4 diffuse = vec4(1.0);
 
 	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
-		diffuse = texture2D(SAMPLER0, gl_TexCoord[0].st + parallax);
+		diffuse = texture2D(SAMPLER0, texcoords[0] + parallax);
 
 		// factor in bump mapping
 		diffuse.rgb *= bump;

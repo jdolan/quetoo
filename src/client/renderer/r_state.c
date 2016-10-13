@@ -420,7 +420,7 @@ void R_EnableLighting(const r_program_t *program, _Bool enable) {
 	} else {
 		glDisableClientState(GL_NORMAL_ARRAY);
 
-		R_UseProgram(NULL);
+		R_UseProgram(r_state.null_program);
 	}
 
 	R_EnableFog(enable);
@@ -447,7 +447,7 @@ void R_EnableShadow(const r_program_t *program, _Bool enable) {
 	if (enable)
 		R_UseProgram(program);
 	else
-		R_UseProgram(NULL);
+		R_UseProgram(r_state.null_program);
 
 	R_EnableFog(enable);
 
@@ -477,7 +477,7 @@ void R_EnableWarp(const r_program_t *program, _Bool enable) {
 
 		R_UseProgram(program);
 	} else {
-		R_UseProgram(NULL);
+		R_UseProgram(r_state.null_program);
 	}
 
 	R_EnableFog(enable);
@@ -512,7 +512,7 @@ void R_EnableShell(const r_program_t *program, _Bool enable) {
 	} else {
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		R_UseProgram(NULL);
+		R_UseProgram(r_state.null_program);
 	}
 
 	R_GetError(NULL);

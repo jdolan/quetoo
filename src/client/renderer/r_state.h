@@ -73,6 +73,7 @@ typedef struct r_state_s {
 	r_program_t *shadow_program;
 	r_program_t *shell_program;
 	r_program_t *warp_program;
+	r_program_t *null_program;
 
 	const r_program_t *active_program;
 	const r_material_t *active_material;

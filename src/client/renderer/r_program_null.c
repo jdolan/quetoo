@@ -22,58 +22,45 @@
 #include "r_local.h"
 
 // these are the variables defined in the GLSL shader
-typedef struct r_warp_program_s {
-	r_uniform1f_t offset;
-
+typedef struct {
 	r_sampler2d_t sampler0;
-	r_sampler2d_t sampler1;
 
 	r_uniformfog_t fog;
 
 	r_uniform_matrix4fv_t projection_mat;
 	r_uniform_matrix4fv_t modelview_mat;
-} r_warp_program_t;
+} r_null_program_t;
 
-static r_warp_program_t r_warp_program;
+static r_null_program_t r_null_program;
 
 /**
  * @brief
  */
-void R_InitProgram_warp(void) {
-	r_warp_program_t *p = &r_warp_program;
+void R_InitProgram_null(void) {
 
-	R_ProgramVariable(&p->offset, R_UNIFORM_FLOAT, "OFFSET");
+	r_null_program_t *p = &r_null_program;
 
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0");
-	R_ProgramVariable(&p->sampler1, R_SAMPLER_2D, "SAMPLER1");
 
-	R_ProgramParameter1f(&p->offset, 0.0);
-
-	R_ProgramParameter1i(&p->sampler0, 0);
-	R_ProgramParameter1i(&p->sampler1, 1);
-
-	R_ProgramParameter1f(&p->fog.density, 0.0);
+	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
+	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
+	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR");
+	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
 
 	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
 	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
+
+	R_ProgramParameter1i(&p->sampler0, 0);
+
+	R_ProgramParameter1f(&p->fog.density, 0.0);
 }
 
 /**
  * @brief
  */
-void R_UseProgram_warp(void) {
+void R_UseFog_null(const r_fog_parameters_t *fog) {
 
-	r_warp_program_t *p = &r_warp_program;
-
-	R_ProgramParameter1f(&p->offset, r_view.time * 0.000125);
-}
-
-/**
- * @brief
- */
-void R_UseFog_warp(const r_fog_parameters_t *fog) {
-
-	r_warp_program_t *p = &r_warp_program;
+	r_null_program_t *p = &r_null_program;
 
 	if (fog && fog->density)
 	{
@@ -89,9 +76,9 @@ void R_UseFog_warp(const r_fog_parameters_t *fog) {
 /**
  * @brief
  */
-void R_UseMatrices_warp(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture) {
-	
-	r_warp_program_t *p = &r_warp_program;
+void R_UseMatrices_null(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture) {
+
+	r_null_program_t *p = &r_null_program;
 
 	if (projection)
 		R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) projection->m);

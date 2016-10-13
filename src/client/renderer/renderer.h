@@ -55,6 +55,7 @@
 #include "r_program_shadow.h"
 #include "r_program_shell.h"
 #include "r_program_warp.h"
+#include "r_program_null.h"
 #include "r_sky.h"
 #include "r_state.h"
 #include "r_types.h"

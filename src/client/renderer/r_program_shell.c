@@ -27,6 +27,9 @@ typedef struct r_shell_program_s {
 
 	r_sampler2d_t sampler0;
 	r_sampler2d_t sampler1;
+
+	r_uniform_matrix4fv_t projection_mat;
+	r_uniform_matrix4fv_t modelview_mat;
 } r_shell_program_t;
 
 static r_shell_program_t r_shell_program;
@@ -42,6 +45,9 @@ void R_InitProgram_shell(void) {
 
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0");
 	R_ProgramParameter1i(&p->sampler0, 0);
+
+	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
+	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
 }
 
 /**
@@ -50,4 +56,18 @@ void R_InitProgram_shell(void) {
 void R_UseProgram_shell(void) {
 
 	R_ProgramParameter1f(&r_shell_program.offset, r_view.time * 0.00025);
+}
+
+/**
+ * @brief
+ */
+void R_UseMatrices_shell(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture) {
+	
+	r_shell_program_t *p = &r_shell_program;
+
+	if (projection)
+		R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) projection->m);
+
+	if (modelview)
+		R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) modelview->m);
 }

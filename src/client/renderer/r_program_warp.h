@@ -28,6 +28,7 @@
 void R_InitProgram_warp(void);
 void R_UseProgram_warp(void);
 void R_UseFog_warp(const r_fog_parameters_t *fog);
+void R_UseMatrices_warp(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PROGRAM_WARP_H__ */

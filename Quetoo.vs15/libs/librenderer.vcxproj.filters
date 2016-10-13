@@ -105,6 +105,9 @@
     <ClCompile Include="..\..\src\client\renderer\r_state.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_program_null.c">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\r_array.h">
@@ -212,6 +215,9 @@
     <ClInclude Include="..\..\src\client\renderer\renderer.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_program_null.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\client\renderer\shaders\default_fs.glsl">
@@ -236,6 +242,18 @@
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\warp_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\null_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\null_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\fog_inc.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\matrix_inc.glsl">
       <Filter>src\shaders</Filter>
     </None>
   </ItemGroup>

@@ -46,6 +46,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_particle.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_default.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_program_null.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_shadow.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_shell.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_warp.c" />
@@ -82,6 +83,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_particle.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_default.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_program_null.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_shadow.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_shell.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_warp.h" />
@@ -92,6 +94,10 @@
   <ItemGroup>
     <None Include="..\..\src\client\renderer\shaders\default_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\default_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\fog_inc.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\matrix_inc.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\null_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\null_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shadow_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shadow_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shell_fs.glsl" />

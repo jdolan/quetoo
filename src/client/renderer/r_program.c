@@ -478,24 +478,35 @@ void R_InitPrograms(void) {
 		r_state.default_program->UseFog = R_UseFog_default;
 		r_state.default_program->UseLight = R_UseLight_default;
 		r_state.default_program->UseMatrices = R_UseMatrices_default;
-		r_state.default_program->arrays_mask = 0xff;
+		r_state.default_program->arrays_mask = R_ARRAY_ALL;
 	}
 
 	if ((r_state.shadow_program = R_LoadProgram("shadow", R_InitProgram_shadow))) {
 		r_state.shadow_program->Use = R_UseProgram_shadow;
 		r_state.shadow_program->UseFog = R_UseFog_shadow;
+		r_state.shadow_program->UseMatrices = R_UseMatrices_shadow;
 		r_state.shadow_program->arrays_mask = R_ARRAY_VERTEX;
 	}
 
 	if ((r_state.shell_program = R_LoadProgram("shell", R_InitProgram_shell))) {
 		r_state.shell_program->Use = R_UseProgram_shell;
+		r_state.shell_program->UseMatrices = R_UseMatrices_shell;
 		r_state.shell_program->arrays_mask = R_ARRAY_VERTEX | R_ARRAY_TEX_DIFFUSE;
 	}
-
+	
 	if ((r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp))) {
 		r_state.warp_program->Use = R_UseProgram_warp;
 		r_state.warp_program->UseFog = R_UseFog_warp;
+		r_state.warp_program->UseMatrices = R_UseMatrices_warp;
 		r_state.warp_program->arrays_mask = R_ARRAY_VERTEX | R_ARRAY_TEX_DIFFUSE;
 	}
+	
+	if ((r_state.null_program = R_LoadProgram("null", R_InitProgram_null))) {
+		r_state.null_program->UseFog = R_UseFog_null;
+		r_state.null_program->UseMatrices = R_UseMatrices_null;
+		r_state.null_program->arrays_mask = R_ARRAY_VERTEX;
+	}
+
+	R_UseProgram(r_state.null_program);
 }
 

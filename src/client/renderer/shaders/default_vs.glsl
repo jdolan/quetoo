@@ -11,6 +11,7 @@ uniform bool DIFFUSE;
 uniform bool NORMALMAP;
 
 varying vec4 color;
+varying vec2 texcoords[2];
 varying vec3 point;
 varying vec3 normal;
 varying vec3 tangent;
@@ -51,8 +52,8 @@ void main(void) {
 	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * gl_Vertex;
 
 	if (DIFFUSE) { // pass texcoords through
-		gl_TexCoord[0] = TEXTURE_MAT * gl_MultiTexCoord0;
-		gl_TexCoord[1] = TEXTURE_MAT * gl_MultiTexCoord1;
+		texcoords[0] = vec2(TEXTURE_MAT * gl_MultiTexCoord0);
+		texcoords[1] = vec2(TEXTURE_MAT * gl_MultiTexCoord1);
 	}
 
 	// pass the color through as well

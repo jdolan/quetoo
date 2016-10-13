@@ -27,6 +27,7 @@
 #ifdef __R_LOCAL_H__
 void R_InitProgram_shell(void);
 void R_UseProgram_shell(void);
+void R_UseMatrices_shell(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PROGRAM_SHELL_H__ */

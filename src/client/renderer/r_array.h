@@ -30,6 +30,7 @@
 #define R_ARRAY_TANGENT			0x8
 #define R_ARRAY_TEX_DIFFUSE		0x10
 #define R_ARRAY_TEX_LIGHTMAP	0x20
+#define R_ARRAY_ALL				0xFF
 
 #ifdef __R_LOCAL_H__
 void R_SetArrayState(const r_model_t *mod);

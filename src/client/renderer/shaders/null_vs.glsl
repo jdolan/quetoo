@@ -1,42 +1,36 @@
 /**
- * @brief Warp vertex shader.
+ * @brief Null vertex shader.
  */
 
 #version 120
 
-struct FogParameters
-{
-	float START;
-	float END;
-	vec3 COLOR;
-	float DENSITY;
-};
+#include "matrix_inc.glsl"
+#include "fog_inc.glsl"
 
-uniform FogParameters FOG;
-
-varying float fog;
+varying vec4 color;
+varying vec2 texcoord;
 
 /**
- * @brief
+ * @brief Calculate the interpolated fog value for the vertex.
  */
 void FogVertex(void) {
+
 	fog = (gl_Position.z - FOG.START) / (FOG.END - FOG.START);
 	fog = clamp(fog, 0.0, 1.0) * FOG.DENSITY;
 }
 
 /**
- * @brief Program entry point.
+ * @brief Shader entry point.
  */
 void main(void) {
 
 	// mvp transform into clip space
-	gl_Position = ftransform();
+	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * gl_Vertex;
 
-	// pass texcoords through
-	gl_TexCoord[0] = gl_MultiTexCoord0;
+	texcoord = vec2(gl_MultiTexCoord0);
 
-	// and primary color
-	gl_FrontColor = gl_Color;
+	// pass the color through as well
+	color = gl_Color;
 
 	FogVertex();
 }

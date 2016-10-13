@@ -5,6 +5,10 @@
 #version 120
 
 #include "fog_inc.glsl"
+#include "matrix_inc.glsl"
+
+varying vec4 color;
+varying vec2 texcoord;
 
 /**
  * @brief
@@ -20,13 +24,13 @@ void FogVertex(void) {
 void main(void) {
 
 	// mvp transform into clip space
-	gl_Position = ftransform();
+	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * gl_Vertex;
 
 	// pass texcoords through
-	gl_TexCoord[0] = gl_MultiTexCoord0;
+	texcoord = vec2(gl_MultiTexCoord0);
 
 	// and primary color
-	gl_FrontColor = gl_Color;
+	color = gl_Color;
 
 	FogVertex();
 }

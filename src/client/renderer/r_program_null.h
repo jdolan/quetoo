@@ -19,16 +19,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_PROGRAM_SHADOW_H__
-#define __R_PROGRAM_SHADOW_H__
+#ifndef __R_PROGRAM_NULL_H__
+#define __R_PROGRAM_NULL_H__
 
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_InitProgram_shadow(void);
-void R_UseProgram_shadow(void);
-void R_UseFog_shadow(const r_fog_parameters_t *fog);
-void R_UseMatrices_shadow(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture);
+void R_InitProgram_null(void);
+void R_UseFog_null(const r_fog_parameters_t *value);
+void R_UseMatrices_null(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture);
 #endif /* __R_LOCAL_H__ */
 
-#endif /* __R_PROGRAM_SHADOW_H__ */
+#endif /* __R_PROGRAM_NULL_H__ */

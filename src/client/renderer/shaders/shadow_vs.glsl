@@ -5,17 +5,19 @@
 #version 120
 
 #include "fog_inc.glsl"
+#include "matrix_inc.glsl"
 
 uniform mat4 MATRIX;
 uniform vec4 LIGHT;
 
+varying vec4 color;
 varying vec4 point;
 
 /**
  * @brief
  */
 void ShadowVertex() {
-	point = gl_ModelViewMatrix * MATRIX * gl_Vertex;	
+	point = MODELVIEW_MAT * MATRIX * gl_Vertex;	
 }
 
 /**
@@ -32,10 +34,10 @@ void FogVertex(void) {
 void main(void) {
 	
 	// mvp transform into clip space
-	gl_Position = gl_ModelViewProjectionMatrix * MATRIX * gl_Vertex;
+	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * MATRIX * gl_Vertex;
 	
 	// and primary color
-	gl_FrontColor = gl_Color;
+	color = gl_Color;
 	
 	ShadowVertex();
     
