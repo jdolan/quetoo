@@ -27,6 +27,7 @@
 #ifdef __R_LOCAL_H__
 void R_InitProgram_shadow(void);
 void R_UseProgram_shadow(void);
+void R_UseFog_shadow(const r_fog_parameters_t *fog);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PROGRAM_SHADOW_H__ */

@@ -53,9 +53,9 @@ static void R_SetMeshShellState_default(const r_entity_t *e) {
 
 	if (e->effects & EF_WEAPON) {
 		glDepthRange(0.0, 0.3);
-		glScalef(1.03, 1.03, 1.03);
+		Matrix4x4_ConcatScale3(&r_view.modelview_matrix, 1.03, 1.03, 1.03);
 	} else {
-		glScalef(1.125, 1.125, 1.125);
+		Matrix4x4_ConcatScale3(&r_view.modelview_matrix, 1.125, 1.125, 1.125);
 	}
 }
 
@@ -77,7 +77,7 @@ void R_DrawMeshShell_default(const r_entity_t *e) {
 
 	R_SetMeshShellState_default(e);
 
-	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+	R_DrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
 	R_ResetMeshShellState_default(e);
 }

@@ -128,7 +128,7 @@ void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) 
 	r_state.vertex_array_2d[6] = x;
 	r_state.vertex_array_2d[7] = y + image->height * scale;
 
-	glDrawArrays(GL_QUADS, 0, 4);
+	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 /**
@@ -301,7 +301,7 @@ static void R_DrawChars(void) {
 		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, chars->texcoords);
 		R_BindArray(GL_VERTEX_ARRAY, GL_SHORT, chars->verts);
 
-		glDrawArrays(GL_QUADS, 0, chars->vert_index / 2);
+		R_DrawArrays(GL_QUADS, 0, chars->vert_index / 2);
 
 		chars->color_index = 0;
 		chars->texcoord_index = 0;
@@ -378,7 +378,7 @@ static void R_DrawFills(void) {
 	R_BindArray(GL_VERTEX_ARRAY, GL_SHORT, r_draw.fill_arrays.verts);
 	R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, r_draw.fill_arrays.colors);
 
-	glDrawArrays(GL_QUADS, 0, r_draw.fill_arrays.vert_index / 2);
+	R_DrawArrays(GL_QUADS, 0, r_draw.fill_arrays.vert_index / 2);
 
 	// and restore them
 	R_BindDefaultArray(GL_VERTEX_ARRAY);
@@ -441,7 +441,7 @@ static void R_DrawLines(void) {
 	R_BindArray(GL_VERTEX_ARRAY, GL_SHORT, r_draw.line_arrays.verts);
 	R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, r_draw.line_arrays.colors);
 
-	glDrawArrays(GL_LINES, 0, r_draw.line_arrays.vert_index / 2);
+	R_DrawArrays(GL_LINES, 0, r_draw.line_arrays.vert_index / 2);
 
 	// and restore them
 	R_BindDefaultArray(GL_VERTEX_ARRAY);

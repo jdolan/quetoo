@@ -319,8 +319,8 @@ void R_DrawSkyBox(void) {
 
 	R_ResetArrayState();
 
-	glPushMatrix();
-	glTranslatef(r_view.origin[0], r_view.origin[1], r_view.origin[2]);
+	R_PushMatrix();
+	Matrix4x4_ConcatTranslate(&r_view.modelview_matrix, r_view.origin[0], r_view.origin[1], r_view.origin[2]);
 
 	// Paril FIXME: doesn't work since program is not bound.
 	// need a program for skybox.
@@ -345,7 +345,7 @@ void R_DrawSkyBox(void) {
 		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_maxs[1][i], i);
 		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_mins[1][i], i);
 
-		glDrawArrays(GL_QUADS, 0, r_sky.vert_index / 3);
+		R_DrawArrays(GL_QUADS, 0, r_sky.vert_index / 3);
 		r_sky.texcoord_index = r_sky.vert_index = 0;
 	}
 	
@@ -357,7 +357,7 @@ void R_DrawSkyBox(void) {
 		r_state.active_program->UseFog(&r_state.active_fog_parameters);
 	}
 
-	glPopMatrix();
+	R_PopMatrix();
 }
 
 /**

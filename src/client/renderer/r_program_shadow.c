@@ -109,3 +109,21 @@ void R_UseProgram_shadow(void) {
 
 	R_ProgramParameter4fv(&p->plane, plane);
 }
+
+/**
+ * @brief
+ */
+void R_UseFog_shadow(const r_fog_parameters_t *fog) {
+
+	r_shadow_program_t *p = &r_shadow_program;
+
+	if (fog && fog->density)
+	{
+		R_ProgramParameter1f(&p->fog.density, fog->density);
+		R_ProgramParameter1f(&p->fog.start, fog->start);
+		R_ProgramParameter1f(&p->fog.end, fog->end);
+		R_ProgramParameter3fv(&p->fog.color, fog->color);
+	}
+	else
+		R_ProgramParameter1f(&p->fog.density, 0.0);
+}

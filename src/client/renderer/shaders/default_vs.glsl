@@ -10,6 +10,7 @@
 uniform bool DIFFUSE;
 uniform bool NORMALMAP;
 
+varying vec4 color;
 varying vec3 point;
 varying vec3 normal;
 varying vec3 tangent;
@@ -25,13 +26,13 @@ attribute vec4 TANGENT;
  */
 void LightVertex(void) {
 
-	point = vec3(gl_ModelViewMatrix * gl_Vertex);
-	normal = normalize(gl_NormalMatrix * gl_Normal);
+	point = vec3(MODELVIEW_MAT * gl_Vertex);
+	normal = normalize(vec3(NORMAL_MAT * vec4(gl_Normal, 1.0)));
 
-	modelView = gl_ModelViewMatrix;
+	modelView = MODELVIEW_MAT;
 
 	if (NORMALMAP) {
-		tangent = normalize(gl_NormalMatrix * TANGENT.xyz);
+		tangent = normalize(vec3(NORMAL_MAT * TANGENT));
 		bitangent = cross(normal, tangent) * TANGENT.w;
 	}
 }
@@ -50,15 +51,15 @@ void FogVertex(void) {
 void main(void) {
 
 	// mvp transform into clip space
-	gl_Position = ftransform();
+	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * gl_Vertex;
 
 	if (DIFFUSE) { // pass texcoords through
-		gl_TexCoord[0] = gl_MultiTexCoord0;
-		gl_TexCoord[1] = gl_MultiTexCoord1;
+		gl_TexCoord[0] = TEXTURE_MAT * gl_MultiTexCoord0;
+		gl_TexCoord[1] = TEXTURE_MAT * gl_MultiTexCoord1;
 	}
 
 	// pass the color through as well
-	gl_FrontColor = gl_Color;
+	color = gl_Color;
 
 	LightVertex();
 

@@ -63,3 +63,21 @@ void R_UseProgram_warp(void) {
 
 	R_ProgramParameter3fv(&p->offset, offset);
 }
+
+/**
+ * @brief
+ */
+void R_UseFog_warp(const r_fog_parameters_t *fog) {
+
+	r_warp_program_t *p = &r_warp_program;
+
+	if (fog && fog->density)
+	{
+		R_ProgramParameter1f(&p->fog.density, fog->density);
+		R_ProgramParameter1f(&p->fog.start, fog->start);
+		R_ProgramParameter1f(&p->fog.end, fog->end);
+		R_ProgramParameter3fv(&p->fog.color, fog->color);
+	}
+	else
+		R_ProgramParameter1f(&p->fog.density, 0.0);
+}

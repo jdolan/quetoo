@@ -368,7 +368,7 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 			}
 		}
 
-		glDrawArrays(GL_TRIANGLES, offset, mesh->num_tris * 3);
+		R_DrawArrays(GL_TRIANGLES, offset, mesh->num_tris * 3);
 
 		R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_tris * 3);
 
@@ -386,7 +386,7 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 	if (e->model->type == MOD_MD3) {
 		R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->data);
 	} else {
-		glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+		R_DrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
 		R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_verts);
 	}

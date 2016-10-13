@@ -96,6 +96,23 @@ void Matrix4x4_CopyTranslateOnly (matrix4x4_t *out, const matrix4x4_t *in)
 
 void Matrix4x4_Concat (matrix4x4_t *out, const matrix4x4_t *in1, const matrix4x4_t *in2)
 {
+	// In the case where Concat uses the output as input,
+	// handle it with a quick stop'n'swap.
+	// Ideally I think a Matrix4x4_Multiply(out, in) would
+	// be a better option though, to operate as out *= in.
+	if (in1 == out)
+	{
+		static matrix4x4_t in1_temp;
+		Matrix4x4_Copy(&in1_temp, in1);
+		in1 = &in1_temp;
+	}
+	if (in2 == out)
+	{
+		static matrix4x4_t in2_temp;
+		Matrix4x4_Copy(&in2_temp, in2);
+		in2 = &in2_temp;
+	}
+
 #if MATRIX4x4_OPENGLORIENTATION
 	out->m[0][0] = in1->m[0][0] * in2->m[0][0] + in1->m[1][0] * in2->m[0][1] + in1->m[2][0] * in2->m[0][2] + in1->m[3][0] * in2->m[0][3];
 	out->m[1][0] = in1->m[0][0] * in2->m[1][0] + in1->m[1][0] * in2->m[1][1] + in1->m[2][0] * in2->m[1][2] + in1->m[3][0] * in2->m[1][3];

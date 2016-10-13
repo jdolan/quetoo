@@ -245,7 +245,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 		if (p->image->texnum != texunit_diffuse.texnum) {
 
 			if (i > j) { // draw pending particles
-				glDrawArrays(GL_QUADS, (base + j) * 4, (i - j) * 4);
+				R_DrawArrays(GL_QUADS, (base + j) * 4, (i - j) * 4);
 				j = i;
 			}
 
@@ -261,7 +261,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	}
 
 	if (i > j) { // draw any remaining particles
-		glDrawArrays(GL_QUADS, (base + j) * 4, (i - j) * 4);
+		R_DrawArrays(GL_QUADS, (base + j) * 4, (i - j) * 4);
 	}
 
 	// restore depth range

@@ -48,7 +48,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 	vec_t dot;
 
 	if (!e) {
-		glPopMatrix();
+		R_PopMatrix();
 		return;
 	}
 
@@ -72,9 +72,9 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 
 	Matrix4x4_FromVectors(&proj, vx, vy, vz, t);
 
-	glPushMatrix();
+	R_PushMatrix();
 
-	glMultMatrixf((GLfloat *) proj.m);
+	Matrix4x4_Concat(&r_view.modelview_matrix, &r_view.modelview_matrix, &proj);
 }
 
 /**
@@ -110,7 +110,7 @@ static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) 
 
 	R_SetMeshShadowState_default(e, s);
 
-	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+	R_DrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 
 	R_ResetMeshShadowState_default(e, s);
 }

@@ -245,3 +245,17 @@ void R_ResetArrayState(void) {
 	r_array_state.arrays = arrays;
 }
 
+/**
+ * @brief
+ */
+void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
+
+	if (!r_state.active_program)
+		return;
+
+	// TODO: should we figure a better way to "dirty" the matrices so that the memcmp doesn't run every time?
+	if (r_state.active_program->UseMatrices)
+		r_state.active_program->UseMatrices(&r_view.projection_matrix, &r_view.modelview_matrix, &r_view.normal_matrix, &r_view.texture_matrix);
+
+	glDrawArrays(type, start, count);
+}

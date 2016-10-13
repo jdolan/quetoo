@@ -87,7 +87,7 @@ void R_DrawCoronas(void) {
 			vert_index += 3;
 		}
 
-		glDrawArrays(GL_TRIANGLE_FAN, 0, vert_index / 3);
+		R_DrawArrays(GL_TRIANGLE_FAN, 0, vert_index / 3);
 	}
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

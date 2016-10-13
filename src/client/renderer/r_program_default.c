@@ -43,6 +43,11 @@ typedef struct {
 
 	r_uniformfog_t fog;
 	r_uniformlight_list_t lights;
+
+	r_uniform_matrix4fv_t projection_mat;
+	r_uniform_matrix4fv_t modelview_mat;
+	r_uniform_matrix4fv_t normal_mat;
+	r_uniform_matrix4fv_t texture_mat;
 } r_default_program_t;
 
 static r_default_program_t r_default_program;
@@ -92,6 +97,11 @@ void R_InitProgram_default(void) {
 	}
 	else
 		p->lights = NULL;
+
+	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
+	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
+	R_ProgramVariable(&p->normal_mat, R_UNIFORM_MAT4, "NORMAL_MAT");
+	R_ProgramVariable(&p->texture_mat, R_UNIFORM_MAT4, "TEXTURE_MAT");
 
 	R_DisableAttribute(&p->tangent);
 
@@ -204,4 +214,24 @@ void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
 	}
 	else
 		R_ProgramParameter1f(&p->lights[light_index].radius, 0.0);
+}
+
+/**
+ * @brief
+ */
+void R_UseMatrices_default(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *normal, const matrix4x4_t *texture) {
+
+	r_default_program_t *p = &r_default_program;
+
+	if (projection)
+		R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) projection->m);
+
+	if (modelview)
+		R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) modelview->m);
+
+	if (normal)
+		R_ProgramParameterMatrix4fv(&p->normal_mat, (const GLfloat *) normal->m);
+
+	if (texture)
+		R_ProgramParameterMatrix4fv(&p->texture_mat, (const GLfloat *) texture->m);
 }

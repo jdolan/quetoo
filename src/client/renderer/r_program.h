@@ -109,6 +109,7 @@ typedef struct {
 	void (*UseShadow)(const r_shadow_t *s);
 	void (*UseFog)(const r_fog_parameters_t *fog);
 	void (*UseLight)(const uint16_t light_index, const r_light_t *light);
+	void (*UseMatrices)(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *normal, const matrix4x4_t *texture);
 } r_program_t;
 
 #define MAX_PROGRAMS 8

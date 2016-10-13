@@ -158,7 +158,7 @@ static void render(View *self, Renderer *renderer) {
 
 		glMatrixMode(GL_MODELVIEW);
 
-		Matrix4x4_Copy(&mat, &matrix4x4_identity);
+		Matrix4x4_CreateIdentity(&mat);
 
 		// Quake is retarded: rotate so that Z is up
 		Matrix4x4_ConcatRotate(&mat, -90.0, 1.0, 0.0, 0.0);

@@ -109,7 +109,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		// bind the flare's texture
 		if (f->image != image) {
 
-			glDrawArrays(GL_QUADS, 0, l / 3);
+			R_DrawArrays(GL_QUADS, 0, l / 3);
 			j = k = l = 0;
 
 			image = f->image;
@@ -174,7 +174,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		l += sizeof(vec3_t) / sizeof(vec_t) * 4;
 	}
 
-	glDrawArrays(GL_QUADS, 0, l / 3);
+	R_DrawArrays(GL_QUADS, 0, l / 3);
 
 	glEnable(GL_DEPTH_TEST);
 

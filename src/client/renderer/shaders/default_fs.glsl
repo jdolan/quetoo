@@ -4,6 +4,7 @@
 
 #version 120
 
+#include "matrix_inc.glsl"
 #include "fog_inc.glsl"
 
 #define MAX_LIGHTS $r_max_lights
@@ -45,12 +46,11 @@ uniform sampler2D SAMPLER2;
 uniform sampler2D SAMPLER3;
 uniform sampler2D SAMPLER4;
 
+varying vec4 color;
 varying vec3 point;
 varying vec3 normal;
 varying vec3 tangent;
 varying vec3 bitangent;
-
-varying mat4 modelView;
 
 const vec3 two = vec3(2.0);
 const vec3 negHalf = vec3(-0.5);
@@ -101,7 +101,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 		if (LIGHTS.RADIUS[i] == 0.0)
 			break;
 
-		vec3 delta = (modelView * vec4(LIGHTS.ORIGIN[i], 1)).xyz - point;
+		vec3 delta = (MODELVIEW_MAT * vec4(LIGHTS.ORIGIN[i], 1)).xyz - point;
 		float dist = length(delta);
 
 		if (dist < LIGHTS.RADIUS[i]) {
@@ -122,7 +122,7 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 	gl_FragColor.rgb = diffuse.rgb * (lightmap + light);
 
 	// lastly modulate the alpha channel by the color
-	gl_FragColor.a = diffuse.a * gl_Color.a;
+	gl_FragColor.a = diffuse.a * color.a;
 }
 
 /**
@@ -138,7 +138,7 @@ void FogFragment(void) {
 void main(void) {
 
 	// first resolve the flat shading
-	vec3 lightmap = gl_Color.rgb;
+	vec3 lightmap = color.rgb;
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {

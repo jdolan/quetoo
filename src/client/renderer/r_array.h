@@ -34,6 +34,7 @@
 #ifdef __R_LOCAL_H__
 void R_SetArrayState(const r_model_t *mod);
 void R_ResetArrayState(void);
+void R_DrawArrays(GLenum type, GLint start, GLsizei count);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_ARRAY_H__ */

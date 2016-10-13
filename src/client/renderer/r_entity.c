@@ -74,13 +74,13 @@ const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *m
 void R_RotateForEntity(const r_entity_t *e) {
 
 	if (!e) {
-		glPopMatrix();
+		R_PopMatrix();
 		return;
 	}
 
-	glPushMatrix();
+	R_PushMatrix();
 
-	glMultMatrixf((GLfloat *) e->matrix.m);
+	Matrix4x4_Concat(&r_view.modelview_matrix, &r_view.modelview_matrix, &e->matrix);
 }
 
 /**
@@ -258,8 +258,8 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		matrix4x4_t mat;
 		Matrix4x4_CreateFromEntity(&mat, e->origin, vec3_origin, e->scale);
 
-		glPushMatrix();
-		glMultMatrixf((GLfloat *) mat.m);
+		R_PushMatrix();
+		Matrix4x4_Concat(&r_view.modelview_matrix, &r_view.modelview_matrix, &mat);
 
 		vec3_t verts[16];
 
@@ -285,9 +285,9 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 		memcpy(r_state.vertex_array_3d, verts, sizeof(verts));
 
-		glDrawArrays(GL_QUADS, 0, lengthof(verts));
+		R_DrawArrays(GL_QUADS, 0, lengthof(verts));
 
-		glPopMatrix();
+		R_PopMatrix();
 	}
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

@@ -44,7 +44,9 @@ typedef struct r_texunit_s {
 	GLfloat *texcoord_array;
 } r_texunit_t;
 
-#define MAX_GL_TEXUNITS		8
+#define MAX_GL_TEXUNITS			8
+
+#define MAX_GL_MATRIX_STACK		16
 
 // opengl state management
 typedef struct r_state_s {
@@ -61,6 +63,9 @@ typedef struct r_state_s {
 
 	r_texunit_t texunits[MAX_GL_TEXUNITS];
 	r_texunit_t *active_texunit;
+
+	matrix4x4_t matrix_stack[MAX_GL_MATRIX_STACK];
+	uint8_t matrix_stack_index;
 
 	r_shader_t shaders[MAX_SHADERS];
 	r_program_t programs[MAX_PROGRAMS];
@@ -122,6 +127,9 @@ void R_EnableWarp(const r_program_t *program, _Bool enable);
 void R_EnableShell(const r_program_t *program, _Bool enable);
 void R_EnableFog(_Bool enable);
 void R_UseMaterial(const r_material_t *material);
+void R_PushMatrix(void);
+void R_PopMatrix(void);
+void R_UploadMatrices(void);
 void R_InitState(void);
 void R_ShutdownState(void);
 

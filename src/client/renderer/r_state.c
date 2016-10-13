@@ -571,6 +571,40 @@ void R_UseMaterial(const r_material_t *material) {
 	R_GetError(material ? material->diffuse->media.name : r_state.active_program->name);
 }
 
+/**
+ * @brief
+ */
+void R_PushMatrix(void) {
+
+	if (r_state.matrix_stack_index == MAX_GL_MATRIX_STACK)
+		Com_Error(ERR_DROP, "Matrix stack overflow");
+
+	Matrix4x4_Copy(&r_state.matrix_stack[r_state.matrix_stack_index++], &r_view.modelview_matrix);
+}
+
+/**
+ * @brief
+ */
+void R_PopMatrix(void) {
+	
+	if (r_state.matrix_stack_index == 0)
+		Com_Error(ERR_DROP, "Matrix stack underflow");
+
+	Matrix4x4_Copy(&r_view.modelview_matrix, &r_state.matrix_stack[--r_state.matrix_stack_index]);
+}
+
+/**
+ * @brief Uploads matrices to the currently loaded program.
+ */
+void R_UploadMatrices(void) {
+
+	if (!r_state.active_program)
+		return;
+
+	if (r_state.active_program->UseMatrices)
+		r_state.active_program->UseMatrices(&r_view.projection_matrix, &r_view.modelview_matrix, &r_view.normal_matrix, &r_view.texture_matrix);
+}
+
 #define NEAR_Z 4.0
 #define FAR_Z  (MAX_WORLD_COORD * 4.0)
 
@@ -587,8 +621,6 @@ void R_Setup3D(void) {
 	glViewport(viewport->x, viewport->y, viewport->w, viewport->h);
 
 	// set up projection matrix
-	glMatrixMode(GL_PROJECTION);
-
 	const vec_t aspect = (vec_t) viewport->w / (vec_t) viewport->h;
 
 	const vec_t ymax = NEAR_Z * tan(Radians(r_view.fov[1]));
@@ -597,28 +629,21 @@ void R_Setup3D(void) {
 	const vec_t xmin = ymin * aspect;
 	const vec_t xmax = ymax * aspect;
 
-	matrix4x4_t mat;
-
-	Matrix4x4_FromFrustum(&mat, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
-
-	glLoadMatrixf((GLfloat *) mat.m);
+	Matrix4x4_FromFrustum(&r_view.projection_matrix, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
 
 	// setup the model-view matrix
-	glMatrixMode(GL_MODELVIEW);
-
-	Matrix4x4_Copy(&r_view.matrix, &matrix4x4_identity);
+	Matrix4x4_CreateIdentity(&r_view.modelview_matrix);
 	
-	Matrix4x4_ConcatRotate(&r_view.matrix, -90.0, 1.0, 0.0, 0.0);	 // put Z going up
-	Matrix4x4_ConcatRotate(&r_view.matrix,  90.0, 0.0, 0.0, 1.0);	 // put Z going up
+	Matrix4x4_ConcatRotate(&r_view.modelview_matrix, -90.0, 1.0, 0.0, 0.0);	 // put Z going up
+	Matrix4x4_ConcatRotate(&r_view.modelview_matrix,  90.0, 0.0, 0.0, 1.0);	 // put Z going up
 
-	Matrix4x4_ConcatRotate(&r_view.matrix, -r_view.angles[ROLL],  1.0, 0.0, 0.0);
-	Matrix4x4_ConcatRotate(&r_view.matrix, -r_view.angles[PITCH], 0.0, 1.0, 0.0);
-	Matrix4x4_ConcatRotate(&r_view.matrix, -r_view.angles[YAW],   0.0, 0.0, 1.0);
+	Matrix4x4_ConcatRotate(&r_view.modelview_matrix, -r_view.angles[ROLL],  1.0, 0.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_view.modelview_matrix, -r_view.angles[PITCH], 0.0, 1.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_view.modelview_matrix, -r_view.angles[YAW],   0.0, 0.0, 1.0);
 
-	Matrix4x4_ConcatTranslate(&r_view.matrix, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
-	
-	glLoadMatrixf((GLfloat *) r_view.matrix.m);
+	Matrix4x4_ConcatTranslate(&r_view.modelview_matrix, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
 
+	Matrix4x4_Copy(&r_view.matrix, &r_view.modelview_matrix);
 	Matrix4x4_Invert_Simple(&r_view.inverse_matrix, &r_view.matrix);
 
 	r_state.ortho = false;
@@ -639,16 +664,9 @@ void R_Setup2D(void) {
 
 	glViewport(0, 0, r_context.width, r_context.height);
 
-	glMatrixMode(GL_PROJECTION);
+	Matrix4x4_FromOrtho(&r_view.projection_matrix, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
 
-	matrix4x4_t mat;
-
-	Matrix4x4_FromOrtho(&mat, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
-
-	glLoadMatrixf((GLfloat *) mat.m);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	Matrix4x4_CreateIdentity(&r_view.modelview_matrix);
 
 	r_state.ortho = true;
 
@@ -722,6 +740,9 @@ void R_InitState(void) {
 
 	// set num lights
 	r_state.max_lights = Clamp(r_max_lights->integer, 0, MAX_ILLUMINATIONS);
+	
+	Matrix4x4_CreateIdentity(&r_view.normal_matrix);
+	Matrix4x4_CreateIdentity(&r_view.texture_matrix);
 
 	R_GetError(NULL);
 }

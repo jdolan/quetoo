@@ -252,7 +252,7 @@ void R_DrawBspNormals(void) {
 			continue; // don't care
 
 		if (k > MAX_GL_ARRAY_LENGTH - 512) { // avoid overflows, draw in batches
-			glDrawArrays(GL_LINES, 0, k / 3);
+			R_DrawArrays(GL_LINES, 0, k / 3);
 			k = 0;
 		}
 
@@ -270,7 +270,7 @@ void R_DrawBspNormals(void) {
 		}
 	}
 
-	glDrawArrays(GL_LINES, 0, k / 3);
+	R_DrawArrays(GL_LINES, 0, k / 3);
 
 	R_EnableTexture(&texunit_diffuse, true);
 
@@ -320,7 +320,7 @@ void R_DrawBspLeafs(void) {
 			if ((*s)->vis_frame != r_locals.vis_frame)
 				continue;
 
-			glDrawArrays(GL_POLYGON, (*s)->index, (*s)->num_edges);
+			R_DrawArrays(GL_TRIANGLE_FAN, (*s)->index, (*s)->num_edges);
 		}
 	}
 

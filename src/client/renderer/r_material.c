@@ -127,43 +127,43 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 	if (!(stage->flags & STAGE_TEXTURE_MATRIX)) {
 
 		if (!identity)
-			glLoadIdentity();
+			Matrix4x4_CreateIdentity(&r_view.texture_matrix);
 
 		identity = true;
 		return;
 	}
 
-	glLoadIdentity();
+	Matrix4x4_CreateIdentity(&r_view.texture_matrix);
 
 	if (surf) { // for BSP surfaces, add stretch and rotate
 
 		s = surf->st_center[0] / surf->texinfo->material->diffuse->width;
 		t = surf->st_center[1] / surf->texinfo->material->diffuse->height;
-
+		
 		if (stage->flags & STAGE_STRETCH) {
-			glTranslatef(-s, -t, 0.0);
-			glScalef(stage->stretch.damp, stage->stretch.damp, 1.0);
-			glTranslatef(-s, -t, 0.0);
+			Matrix4x4_ConcatTranslate(&r_view.texture_matrix, -s, -t, 0.0);
+			Matrix4x4_ConcatScale3(&r_view.texture_matrix, stage->stretch.damp, stage->stretch.damp, 1.0);
+			Matrix4x4_ConcatTranslate(&r_view.texture_matrix, -s, -t, 0.0);
 		}
 
 		if (stage->flags & STAGE_ROTATE) {
-			glTranslatef(-s, -t, 0.0);
-			glRotatef(stage->rotate.deg, 0.0, 0.0, 1.0);
-			glTranslatef(-s, -t, 0.0);
+			Matrix4x4_ConcatTranslate(&r_view.texture_matrix, -s, -t, 0.0);
+			Matrix4x4_ConcatRotate(&r_view.texture_matrix, stage->rotate.deg, 0.0, 0.0, 1.0);
+			Matrix4x4_ConcatTranslate(&r_view.texture_matrix, -s, -t, 0.0);
 		}
 	}
 
 	if (stage->flags & STAGE_SCALE_S)
-		glScalef(stage->scale.s, 1.0, 1.0);
+		Matrix4x4_ConcatScale3(&r_view.texture_matrix, stage->scale.s, 1.0, 1.0);
 
 	if (stage->flags & STAGE_SCALE_T)
-		glScalef(1.0, stage->scale.t, 1.0);
+		Matrix4x4_ConcatScale3(&r_view.texture_matrix, 1.0, stage->scale.t, 1.0);
 
 	if (stage->flags & STAGE_SCROLL_S)
-		glTranslatef(stage->scroll.ds, 0.0, 0.0);
+		Matrix4x4_ConcatTranslate(&r_view.texture_matrix, stage->scroll.ds, 0.0, 0.0);
 
 	if (stage->flags & STAGE_SCROLL_T)
-		glTranslatef(0.0, stage->scroll.dt, 0.0);
+		Matrix4x4_ConcatTranslate(&r_view.texture_matrix, 0.0, stage->scroll.dt, 0.0);
 
 	identity = false;
 }
@@ -333,7 +333,7 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 		}
 	}
 
-	glDrawArrays(GL_POLYGON, 0, i);
+	R_DrawArrays(GL_TRIANGLE_FAN, 0, i);
 }
 
 /**
@@ -366,7 +366,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
 
-	glMatrixMode(GL_TEXTURE); // some stages will manipulate texcoords
+	// some stages will manipulate texcoords
 
 	for (uint32_t i = 0; i < surfs->count; i++) {
 
@@ -395,8 +395,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
 
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
+	Matrix4x4_CreateIdentity(&r_view.texture_matrix);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -435,7 +434,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 
 	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
 
-	glMatrixMode(GL_TEXTURE); // some stages will manipulate texcoords
+	// some stages will manipulate texcoords
 
 	const r_stage_t *s = m->stages;
 	for (vec_t j = -1.0; s; s = s->next, j--) {
@@ -447,7 +446,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 
 		R_SetStageState(NULL, s);
 
-		glDrawArrays(GL_TRIANGLES, offset, count);
+		R_DrawArrays(GL_TRIANGLES, offset, count);
 	}
 
 	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
@@ -455,8 +454,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	if (!blend)
 		R_EnableBlend(false);
 
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
+	Matrix4x4_CreateIdentity(&r_view.texture_matrix);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

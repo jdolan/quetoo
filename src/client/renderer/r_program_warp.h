@@ -27,6 +27,7 @@
 #ifdef __R_LOCAL_H__
 void R_InitProgram_warp(void);
 void R_UseProgram_warp(void);
+void R_UseFog_warp(const r_fog_parameters_t *fog);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PROGRAM_WARP_H__ */
