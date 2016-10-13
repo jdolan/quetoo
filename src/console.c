@@ -180,6 +180,10 @@ void Con_Append(int32_t level, const char *string) {
 		StripColors(string, stripped);
 		fputs(stripped, stdout);
 	}
+
+#if defined(_WIN32) && defined(_DEBUG)
+	OutputDebugString(string);
+#endif
 }
 
 /**
