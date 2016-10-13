@@ -16,7 +16,7 @@ AC_DEFINE_UNQUOTED(BUILD_HOST,
 AC_SUBST(PROGRAM)
 AC_SUBST(VERSION)
 
-AM_INIT_AUTOMAKE([subdir-objects foreign])
+AM_INIT_AUTOMAKE([foreign])
 AM_SILENT_RULES([yes])
 
 dnl ---------------
