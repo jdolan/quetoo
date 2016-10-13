@@ -1059,8 +1059,7 @@ void G_RunTimers(void) {
 			}
 			
 		} else if (g_level.match && G_WARMUP) {	// not everyone ready yet
-			gi.ConfigString(CS_TIME, va("Warmup %s",G_FormatTime(g_time_limit->integer * 60 * 1000)));
-			
+			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_time_limit->integer * 60 * 1000)));
 		} else if (G_TIMEOUT) {	// mid match, player called timeout
 			j = (g_level.timeout_time - g_level.time) / 1000;
 			gi.ConfigString(CS_TIME, va("Timeout %s",

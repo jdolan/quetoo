@@ -72,7 +72,7 @@ static void loadView(ViewController *self) {
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
 			stackView->spacing = DEFAULT_PANEL_SPACING;
 
-			Select *gameplay = $(alloc(Select), initWithFrame, NULL, ControlStateDefault);
+			Select *gameplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
 			$(gameplay, addOption, "Default", "default");
 			$(gameplay, addOption, "Deathmatch", "deathmatch");
@@ -85,7 +85,7 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Gameplay", (Control *) gameplay);
 			release(gameplay);
 
-			Select *teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStateDefault);
+			Select *teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
 			$(teamsplay, addOption, "Free for All", "free-for-all");
 			$(teamsplay, addOption, "Team Deathmatch", "team-deathmatch");
@@ -96,7 +96,7 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Teams play", (Control *) teamsplay);
 			release(teamsplay);
 
-			Checkbox *match = $(alloc(Checkbox), initWithFrame, NULL, ControlStateDefault);
+			Checkbox *match = $(alloc(Checkbox), initWithFrame, NULL, ControlStyleDefault);
 
 			Cg_Input((View *) stackView, "Match mode", (Control *) match);
 			release(match);
@@ -124,7 +124,7 @@ static void loadView(ViewController *self) {
 			stackView->spacing = DEFAULT_PANEL_SPACING;
 
 			const SDL_Rect frame = { .w = 760, .h = 600 };
-			CollectionView *mapList = (CollectionView *) $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStateDefault);
+			CollectionView *mapList = (CollectionView *) $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStyleDefault);
 			
 			$((View *) stackView, addSubview, (View *) mapList);
 			release(mapList);
