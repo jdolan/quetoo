@@ -364,8 +364,14 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 
-		if (ent->locals.move_info.sound_end)
-			gi.Sound(ent, ent->locals.move_info.sound_end, ATTEN_IDLE);
+		if (ent->locals.move_info.sound_end) {
+			vec3_t pos;
+
+			VectorLerp(ent->abs_mins, ent->abs_maxs, 0.5, pos);
+			pos[2] = ent->abs_maxs[2];
+
+			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_end, ATTEN_IDLE);
+		}
 
 		ent->s.sound = 0;
 	}
@@ -397,8 +403,14 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 
 	if (!(ent->locals.flags & FL_TEAM_SLAVE)) {
 
-		if (ent->locals.move_info.sound_start)
-			gi.Sound(ent, ent->locals.move_info.sound_start, ATTEN_IDLE);
+		if (ent->locals.move_info.sound_start) {
+			vec3_t pos;
+
+			VectorLerp(ent->abs_mins, ent->abs_maxs, 0.5, pos);
+			pos[2] = ent->abs_maxs[2];
+
+			gi.PositionedSound(pos, ent, ent->locals.move_info.sound_start, ATTEN_IDLE);
+		}
 
 		ent->s.sound = ent->locals.move_info.sound_middle;
 	}
