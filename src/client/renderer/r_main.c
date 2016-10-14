@@ -511,6 +511,9 @@ static void R_InitConfig(void) {
 
 	memset(&r_config, 0, sizeof(r_config));
 
+	// initialize GL pointers
+	R_InitGlPointers();
+
 	r_config.renderer_string = (const char *) glGetString(GL_RENDERER);
 	r_config.vendor_string = (const char *) glGetString(GL_VENDOR);
 	r_config.version_string = (const char *) glGetString(GL_VERSION);
@@ -538,8 +541,6 @@ void R_Init(void) {
 	R_InitConfig();
 
 	R_EnforceGlVersion();
-
-	R_InitGlExtensions();
 
 	R_InitState();
 

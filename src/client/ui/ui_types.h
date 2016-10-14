@@ -22,6 +22,9 @@
 #ifndef __UI_TYPES_H__
 #define __UI_TYPES_H__
 
+// This is just to silence error about gl.h already being included by Objectively.
+#define USE_SDL_GL
+
 #include <ObjectivelyMVC.h>
 
 #ifdef __UI_LOCAL_H__

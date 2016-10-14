@@ -40,9 +40,6 @@ static const r_model_format_t r_model_formats[] = { // supported model formats
  */
 static void R_LoadVertexBuffers(r_model_t *mod) {
 
-	if (!qglGenBuffers)
-		return;
-
 	if (IS_MESH_MODEL(mod) && mod->mesh->num_frames > 1) // animated models don't use VBO
 		return;
 
@@ -51,29 +48,29 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 	const GLsizei t = mod->num_verts * 4 * sizeof(GLfloat);
 
 	// load the vertex buffer objects
-	qglGenBuffers(1, &mod->vertex_buffer);
-	qglBindBuffer(GL_ARRAY_BUFFER, mod->vertex_buffer);
-	qglBufferData(GL_ARRAY_BUFFER, v, mod->verts, GL_STATIC_DRAW);
+	glGenBuffers(1, &mod->vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, mod->vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, v, mod->verts, GL_STATIC_DRAW);
 
-	qglGenBuffers(1, &mod->texcoord_buffer);
-	qglBindBuffer(GL_ARRAY_BUFFER, mod->texcoord_buffer);
-	qglBufferData(GL_ARRAY_BUFFER, st, mod->texcoords, GL_STATIC_DRAW);
+	glGenBuffers(1, &mod->texcoord_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, mod->texcoord_buffer);
+	glBufferData(GL_ARRAY_BUFFER, st, mod->texcoords, GL_STATIC_DRAW);
 
-	qglGenBuffers(1, &mod->normal_buffer);
-	qglBindBuffer(GL_ARRAY_BUFFER, mod->normal_buffer);
-	qglBufferData(GL_ARRAY_BUFFER, v, mod->normals, GL_STATIC_DRAW);
+	glGenBuffers(1, &mod->normal_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, mod->normal_buffer);
+	glBufferData(GL_ARRAY_BUFFER, v, mod->normals, GL_STATIC_DRAW);
 
-	qglGenBuffers(1, &mod->tangent_buffer);
-	qglBindBuffer(GL_ARRAY_BUFFER, mod->tangent_buffer);
-	qglBufferData(GL_ARRAY_BUFFER, t, mod->tangents, GL_STATIC_DRAW);
+	glGenBuffers(1, &mod->tangent_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, mod->tangent_buffer);
+	glBufferData(GL_ARRAY_BUFFER, t, mod->tangents, GL_STATIC_DRAW);
 
 	if (mod->lightmap_texcoords) {
-		qglGenBuffers(1, &mod->lightmap_texcoord_buffer);
-		qglBindBuffer(GL_ARRAY_BUFFER, mod->lightmap_texcoord_buffer);
-		qglBufferData(GL_ARRAY_BUFFER, st, mod->lightmap_texcoords, GL_STATIC_DRAW);
+		glGenBuffers(1, &mod->lightmap_texcoord_buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, mod->lightmap_texcoord_buffer);
+		glBufferData(GL_ARRAY_BUFFER, st, mod->lightmap_texcoords, GL_STATIC_DRAW);
 	}
 
-	qglBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	R_GetError(mod->media.name);
 }
@@ -115,19 +112,19 @@ static void R_FreeModel(r_media_t *self) {
 	r_model_t *mod = (r_model_t *) self;
 
 	if (mod->vertex_buffer)
-		qglDeleteBuffers(1, &mod->vertex_buffer);
+		glDeleteBuffers(1, &mod->vertex_buffer);
 
 	if (mod->texcoord_buffer)
-		qglDeleteBuffers(1, &mod->texcoord_buffer);
+		glDeleteBuffers(1, &mod->texcoord_buffer);
 
 	if (mod->lightmap_texcoord_buffer)
-		qglDeleteBuffers(1, &mod->lightmap_texcoord_buffer);
+		glDeleteBuffers(1, &mod->lightmap_texcoord_buffer);
 
 	if (mod->normal_buffer)
-		qglDeleteBuffers(1, &mod->normal_buffer);
+		glDeleteBuffers(1, &mod->normal_buffer);
 
 	if (mod->tangent_buffer)
-		qglDeleteBuffers(1, &mod->tangent_buffer);
+		glDeleteBuffers(1, &mod->tangent_buffer);
 
 	R_GetError(mod->media.name);
 }

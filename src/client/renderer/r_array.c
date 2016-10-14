@@ -170,7 +170,7 @@ void R_SetArrayState(const r_model_t *mod) {
 	if (r_state.active_program) // cull anything the program doesn't use
 		mask &= r_state.active_program->arrays_mask;
 
-	if (r_vertex_buffers->value && qglGenBuffers) // use vbo
+	if (r_vertex_buffers->value && glGenBuffers) // use vbo
 		R_SetVertexBufferState(mod, mask);
 	else
 		// or arrays

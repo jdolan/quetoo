@@ -26,18 +26,18 @@
  */
 void R_UseProgram(const r_program_t *prog) {
 
-	if (!qglUseProgram || r_state.active_program == prog)
+	if (r_state.active_program == prog)
 		return;
 
 	r_state.active_program = prog;
 
 	if (prog) {
-		qglUseProgram(prog->id);
+		glUseProgram(prog->id);
 
 		if (prog->Use) // invoke use function
 			prog->Use();
 	} else {
-		qglUseProgram(0);
+		glUseProgram(0);
 	}
 
 	R_GetError(NULL);
@@ -58,10 +58,10 @@ void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *na
 
 	switch (type) {
 		case R_ATTRIBUTE:
-			variable->location = qglGetAttribLocation(r_state.active_program->id, name);
+			variable->location = glGetAttribLocation(r_state.active_program->id, name);
 			break;
 		default:
-			variable->location = qglGetUniformLocation(r_state.active_program->id, name);
+			variable->location = glGetUniformLocation(r_state.active_program->id, name);
 			break;
 	}
 
@@ -90,7 +90,7 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
 		return;
 
 	variable->value.i = value;
-	qglUniform1i(variable->location, variable->value.i);
+	glUniform1i(variable->location, variable->value.i);
 
 	R_GetError(variable->name);
 }
@@ -109,7 +109,7 @@ void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
 		return;
 
 	variable->value.f = value;
-	qglUniform1f(variable->location, variable->value.f);
+	glUniform1f(variable->location, variable->value.f);
 
 	R_GetError(variable->name);
 }
@@ -128,7 +128,7 @@ void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
 		return;
 
 	VectorCopy(value, variable->value.vec3);
-	qglUniform3fv(variable->location, 1, variable->value.vec3);
+	glUniform3fv(variable->location, 1, variable->value.vec3);
 
 	R_GetError(variable->name);
 }
@@ -147,7 +147,7 @@ void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
 		return;
 
 	Vector4Copy(value, variable->value.vec4);
-	qglUniform4fv(variable->location, 1, variable->value.vec4);
+	glUniform4fv(variable->location, 1, variable->value.vec4);
 
 	R_GetError(variable->name);
 }
@@ -166,7 +166,7 @@ _Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat
 		return false;
 
 	memcpy(&variable->value.mat4, value, sizeof(variable->value.mat4));
-	qglUniformMatrix4fv(variable->location, 1, false, (GLfloat *) variable->value.mat4.m);
+	glUniformMatrix4fv(variable->location, 1, false, (GLfloat *) variable->value.mat4.m);
 
 	R_GetError(variable->name);
 	return true;
@@ -180,7 +180,7 @@ void R_AttributePointer(const char *name, GLuint size, const GLvoid *array) {
 
 	R_ProgramVariable(&attribute, R_ATTRIBUTE, name);
 
-	qglVertexAttribPointer(attribute.location, size, GL_FLOAT, GL_FALSE, 0, array);
+	glVertexAttribPointer(attribute.location, size, GL_FLOAT, GL_FALSE, 0, array);
 
 	R_GetError(name);
 }
@@ -196,7 +196,7 @@ void R_EnableAttribute(r_attribute_t *attribute) {
 	}
 
 	if (attribute->value.i != 1) {
-		qglEnableVertexAttribArray(attribute->location);
+		glEnableVertexAttribArray(attribute->location);
 		attribute->value.i = 1;
 	}
 
@@ -214,7 +214,7 @@ void R_DisableAttribute(r_attribute_t *attribute) {
 	}
 
 	if (attribute->value.i != 0) {
-		qglDisableVertexAttribArray(attribute->location);
+		glDisableVertexAttribArray(attribute->location);
 		attribute->value.i = 0;
 	}
 
@@ -226,7 +226,7 @@ void R_DisableAttribute(r_attribute_t *attribute) {
  */
 static void R_ShutdownShader(r_shader_t *sh) {
 
-	qglDeleteShader(sh->id);
+	glDeleteShader(sh->id);
 	memset(sh, 0, sizeof(r_shader_t));
 }
 
@@ -243,7 +243,7 @@ static void R_ShutdownProgram(r_program_t *prog) {
 	if (prog->f)
 		R_ShutdownShader(prog->f);
 
-	qglDeleteProgram(prog->id);
+	glDeleteProgram(prog->id);
 
 	R_GetError(prog->name);
 
@@ -255,9 +255,6 @@ static void R_ShutdownProgram(r_program_t *prog) {
  */
 void R_ShutdownPrograms(void) {
 	int32_t i;
-
-	if (!qglDeleteProgram)
-		return;
 
 	R_UseProgram(NULL);
 
@@ -324,10 +321,10 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length)
  */
 static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	r_shader_t *sh;
-	char path[MAX_QPATH], *src[1], log[MAX_STRING_CHARS];
-	uint32_t e, length[1];
+	char path[MAX_QPATH], log[MAX_STRING_CHARS];
+	const char *src[1];
 	void *buf;
-	int32_t i, len;
+	int32_t e, i, len, length[1];
 
 	g_snprintf(path, sizeof(path), "shaders/%s", name);
 
@@ -353,7 +350,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 
 	sh->type = type;
 
-	sh->id = qglCreateShader(sh->type);
+	sh->id = glCreateShader(sh->type);
 	if (!sh->id) {
 		Fs_Free(buf);
 		return NULL;
@@ -365,19 +362,19 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	length[0] = strlen(parsed);
 
 	// upload the shader source
-	qglShaderSource(sh->id, 1, src, length);
+	glShaderSource(sh->id, 1, src, length);
 
 	g_free(parsed);
 
 	// compile it and check for errors
-	qglCompileShader(sh->id);
+	glCompileShader(sh->id);
 
-	qglGetShaderiv(sh->id, GL_COMPILE_STATUS, &e);
+	glGetShaderiv(sh->id, GL_COMPILE_STATUS, &e);
 	if (!e) {
-		qglGetShaderInfoLog(sh->id, sizeof(log) - 1, NULL, log);
+		glGetShaderInfoLog(sh->id, sizeof(log) - 1, NULL, log);
 		Com_Warn("%s: %s\n", sh->name, log);
 
-		qglDeleteShader(sh->id);
+		glDeleteShader(sh->id);
 		memset(sh, 0, sizeof(*sh));
 
 		Fs_Free(buf);
@@ -394,8 +391,7 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 static r_program_t *R_LoadProgram(const char *name, void (*Init)(void)) {
 	r_program_t *prog;
 	char log[MAX_STRING_CHARS];
-	uint32_t e;
-	int32_t i;
+	int32_t i, e;
 
 	for (i = 0; i < MAX_PROGRAMS; i++) {
 		prog = &r_state.programs[i];
@@ -411,21 +407,21 @@ static r_program_t *R_LoadProgram(const char *name, void (*Init)(void)) {
 
 	g_strlcpy(prog->name, name, sizeof(prog->name));
 
-	prog->id = qglCreateProgram();
+	prog->id = glCreateProgram();
 
 	prog->v = R_LoadShader(GL_VERTEX_SHADER, va("%s_vs.glsl", name));
 	prog->f = R_LoadShader(GL_FRAGMENT_SHADER, va("%s_fs.glsl", name));
 
 	if (prog->v)
-		qglAttachShader(prog->id, prog->v->id);
+		glAttachShader(prog->id, prog->v->id);
 	if (prog->f)
-		qglAttachShader(prog->id, prog->f->id);
+		glAttachShader(prog->id, prog->f->id);
 
-	qglLinkProgram(prog->id);
+	glLinkProgram(prog->id);
 
-	qglGetProgramiv(prog->id, GL_LINK_STATUS, &e);
+	glGetProgramiv(prog->id, GL_LINK_STATUS, &e);
 	if (!e) {
-		qglGetProgramInfoLog(prog->id, sizeof(log) - 1, NULL, log);
+		glGetProgramInfoLog(prog->id, sizeof(log) - 1, NULL, log);
 		Com_Warn("%s: %s\n", prog->name, log);
 
 		R_ShutdownProgram(prog);
@@ -451,9 +447,6 @@ static r_program_t *R_LoadProgram(const char *name, void (*Init)(void)) {
  * @brief
  */
 void R_InitPrograms(void) {
-
-	if (!qglCreateProgram)
-		return;
 
 	// this only needs to be done once
 	if (!shader_preprocess_regex)

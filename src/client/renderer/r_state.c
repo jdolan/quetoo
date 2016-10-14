@@ -98,10 +98,10 @@ void R_SelectTexture(r_texunit_t *texunit) {
 
 	r_state.active_texunit = texunit;
 
-	qglActiveTexture(texunit->texture);
+	glActiveTexture(texunit->texture);
 
 	if (texunit == &texunit_diffuse || texunit == &texunit_lightmap)
-		qglClientActiveTexture(texunit->texture);
+		glClientActiveTexture(texunit->texture);
 }
 
 /**
@@ -250,13 +250,10 @@ void R_BindDefaultArray(GLenum target) {
  */
 void R_BindBuffer(GLenum target, GLenum type, GLuint id) {
 
-	if (!qglBindBuffer)
-		return;
-
 	if (!r_vertex_buffers->value)
 		return;
 
-	qglBindBuffer(GL_ARRAY_BUFFER, id);
+	glBindBuffer(GL_ARRAY_BUFFER, id);
 
 	if (type && id) // assign the array pointer as well
 		R_BindArray(target, type, NULL);
@@ -684,7 +681,7 @@ void R_Setup2D(void) {
  */
 void R_DisablePrograms(void) {
 
-	qglUseProgram(0);
+	glUseProgram(0);
 }
 
 /*
@@ -693,7 +690,7 @@ void R_DisablePrograms(void) {
  */
 void R_EnablePrograms(void) {
 
-	qglUseProgram(r_state.active_program->id);
+	glUseProgram(r_state.active_program->id);
 }
 
 /**
@@ -725,7 +722,7 @@ void R_InitState(void) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
 		if (i < r_config.max_teximage_units) {
-			texunit->texture = GL_TEXTURE0_ARB + i;
+			texunit->texture = GL_TEXTURE0 + i;
 
 			if (i < r_config.max_texunits) {
 				texunit->texcoord_array = Mem_TagMalloc(len, MEM_TAG_RENDERER);
