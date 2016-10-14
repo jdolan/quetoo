@@ -80,6 +80,8 @@ void Ui_Draw(void) {
 		return;
 	}
 
+	R_DisablePrograms();
+
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glPushClientAttrib(GL_ALL_CLIENT_ATTRIB_BITS);
 
@@ -104,6 +106,8 @@ void Ui_Draw(void) {
 
 	glPopAttrib();
 	glPopClientAttrib();
+
+	R_EnablePrograms();
 }
 
 /**

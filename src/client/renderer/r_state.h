@@ -27,6 +27,8 @@
 void R_Color(const vec4_t color);
 void R_Setup3D(void);
 void R_Setup2D(void);
+void R_DisablePrograms(void);
+void R_EnablePrograms(void);
 
 #ifdef __R_LOCAL_H__
 

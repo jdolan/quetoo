@@ -678,6 +678,24 @@ void R_Setup2D(void) {
 	glDisable(GL_DEPTH_TEST);
 }
 
+/*
+ * @brief Temporarily disable programs without affecting r_state.
+ * This is just for MVC right now.
+ */
+void R_DisablePrograms(void) {
+
+	qglUseProgram(0);
+}
+
+/*
+ * @brief Re-enable programs without affecting r_state.
+ * This is just for MVC right now.
+ */
+void R_EnablePrograms(void) {
+
+	qglUseProgram(r_state.active_program->id);
+}
+
 /**
  * @brief Initializes the OpenGL state cache and sets OpenGL state parameters to
  * appropriate defaults.
