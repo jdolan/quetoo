@@ -969,7 +969,7 @@ void G_ClientBegin(g_entity_t *ent) {
 		gi.WriteString(welcome);
 		gi.Unicast(ent, true);
 
-		if (G_TIMEOUT) {	// joined during a match timeout
+		if (G_MatchIsTimeout()) { // joined during a match timeout
 			ent->client->ps.pm_state.type = PM_FREEZE;
 		}
 	}
