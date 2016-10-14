@@ -141,6 +141,7 @@ void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
 static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
 	int32_t leafs[MAX_ENT_LEAFS];
 	int32_t clusters[MAX_ENT_CLUSTERS];
+	size_t num_clusters = 0;
 	vec3_t mins, maxs;
 
 	// spread the bounds to account for view offset
@@ -160,13 +161,15 @@ static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
 		const int32_t cluster = Cm_LeafCluster(leafs[i]);
 
 		size_t j;
-		for (j = 0; j < i; j++) {
+		for (j = 0; j < num_clusters; j++) {
 			if (clusters[j] == cluster)
 				break;
 		}
 
-		if (j < i) // already got it
+		if (j < num_clusters) // already got it
 			continue;
+
+		clusters[num_clusters++] = cluster;
 
 		byte cluster_pvs[MAX_BSP_LEAFS >> 3];
 		byte cluster_phs[MAX_BSP_LEAFS >> 3];
@@ -177,6 +180,11 @@ static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
 		for (size_t i = 0; i < sizeof(cluster_pvs); i++) {
 			pvs[i] |= cluster_pvs[i];
 			phs[i] |= cluster_phs[i];
+		}
+
+		if (num_clusters == lengthof(clusters)) {
+			Com_Warn("MAX_ENT_CLUSTERS\n");
+			break;
 		}
 	}
 }
