@@ -596,10 +596,7 @@ void R_PopMatrix(void) {
 /**
  * @brief Uploads matrices to the currently loaded program.
  */
-void R_UploadMatrices(void) {
-
-	if (!r_state.active_program)
-		return;
+void R_UseMatrices(void) {
 
 	if (r_state.active_program->UseMatrices)
 		r_state.active_program->UseMatrices(&r_view.projection_matrix, &r_view.modelview_matrix, &r_view.texture_matrix);

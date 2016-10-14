@@ -130,7 +130,7 @@ void R_EnableFog(_Bool enable);
 void R_UseMaterial(const r_material_t *material);
 void R_PushMatrix(void);
 void R_PopMatrix(void);
-void R_UploadMatrices(void);
+void R_UseMatrices(void);
 void R_InitState(void);
 void R_ShutdownState(void);
 
