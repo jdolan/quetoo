@@ -183,7 +183,7 @@ static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
 		}
 
 		if (num_clusters == lengthof(clusters)) {
-			Com_Warn("MAX_ENT_CLUSTERS\n");
+			Com_Warn("MAX_ENT_CLUSTERS %s\n", vtos(org));
 			break;
 		}
 	}
