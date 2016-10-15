@@ -107,9 +107,6 @@ extern r_state_t r_state;
 #define texunit_normalmap		r_state.texunits[3]
 #define texunit_specularmap		r_state.texunits[4]
 
-// just used internally to distinguish array types
-#define GL_TANGENT_ARRAY		-1
-
 #define R_GetError(msg) R_GetError_(__func__, msg)
 void R_GetError_(const char *function, const char *msg);
 void R_SelectTexture(r_texunit_t *texunit);
@@ -118,9 +115,9 @@ void R_BindLightmapTexture(GLuint texnum);
 void R_BindDeluxemapTexture(GLuint texnum);
 void R_BindNormalmapTexture(GLuint texnum);
 void R_BindSpecularmapTexture(GLuint texnum);
-void R_BindArray(GLenum target, GLenum type, GLvoid *array);
-void R_BindDefaultArray(GLenum target);
-void R_BindBuffer(GLenum target, GLenum type, GLuint id);
+void R_BindArray(int target, GLenum type, GLvoid *array);
+void R_BindDefaultArray(int target);
+void R_BindBuffer(int target, GLenum type, GLuint id);
 void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
 

@@ -297,9 +297,9 @@ static void R_DrawChars(void) {
 		R_EnableColorArray(true);
 
 		// alter the array pointers
-		R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, chars->colors);
-		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, chars->texcoords);
-		R_BindArray(GL_VERTEX_ARRAY, GL_SHORT, chars->verts);
+		R_BindArray(R_ARRAY_COLOR, GL_UNSIGNED_BYTE, chars->colors);
+		R_BindArray(R_ARRAY_TEX_DIFFUSE, GL_FLOAT, chars->texcoords);
+		R_BindArray(R_ARRAY_VERTEX, GL_SHORT, chars->verts);
 
 		R_DrawArrays(GL_QUADS, 0, chars->vert_index / 2);
 
@@ -309,9 +309,9 @@ static void R_DrawChars(void) {
 	}
 
 	// restore array pointers
-	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
-	R_BindDefaultArray(GL_COLOR_ARRAY);
+	R_BindDefaultArray(R_ARRAY_COLOR);
+	R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
+	R_BindDefaultArray(R_ARRAY_VERTEX);
 
 	R_EnableColorArray(false);
 
@@ -375,14 +375,14 @@ static void R_DrawFills(void) {
 	R_EnableColorArray(true);
 
 	// alter the array pointers
-	R_BindArray(GL_VERTEX_ARRAY, GL_SHORT, r_draw.fill_arrays.verts);
-	R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, r_draw.fill_arrays.colors);
+	R_BindArray(R_ARRAY_VERTEX, GL_SHORT, r_draw.fill_arrays.verts);
+	R_BindArray(R_ARRAY_COLOR, GL_UNSIGNED_BYTE, r_draw.fill_arrays.colors);
 
 	R_DrawArrays(GL_QUADS, 0, r_draw.fill_arrays.vert_index / 2);
 
 	// and restore them
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
-	R_BindDefaultArray(GL_COLOR_ARRAY);
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+	R_BindDefaultArray(R_ARRAY_COLOR);
 
 	R_EnableColorArray(false);
 
@@ -438,14 +438,14 @@ static void R_DrawLines(void) {
 	R_EnableColorArray(true);
 
 	// alter the array pointers
-	R_BindArray(GL_VERTEX_ARRAY, GL_SHORT, r_draw.line_arrays.verts);
-	R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, r_draw.line_arrays.colors);
+	R_BindArray(R_ARRAY_VERTEX, GL_SHORT, r_draw.line_arrays.verts);
+	R_BindArray(R_ARRAY_COLOR, GL_UNSIGNED_BYTE, r_draw.line_arrays.colors);
 
 	R_DrawArrays(GL_LINES, 0, r_draw.line_arrays.vert_index / 2);
 
 	// and restore them
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
-	R_BindDefaultArray(GL_COLOR_ARRAY);
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+	R_BindDefaultArray(R_ARRAY_COLOR);
 
 	R_EnableColorArray(false);
 

@@ -27,7 +27,7 @@ void main(void) {
 	// mvp transform into clip space
 	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * gl_Vertex;
 
-	texcoord = vec2(gl_MultiTexCoord0);
+	texcoord = vec2(TEXTURE_MAT * gl_MultiTexCoord0);
 
 	// pass the color through as well
 	color = gl_Color;

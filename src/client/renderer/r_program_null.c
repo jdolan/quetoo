@@ -29,6 +29,7 @@ typedef struct {
 
 	r_uniform_matrix4fv_t projection_mat;
 	r_uniform_matrix4fv_t modelview_mat;
+	r_uniform_matrix4fv_t texture_mat;
 } r_null_program_t;
 
 static r_null_program_t r_null_program;
@@ -49,6 +50,7 @@ void R_InitProgram_null(void) {
 
 	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
 	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
+	R_ProgramVariable(&p->texture_mat, R_UNIFORM_MAT4, "TEXTURE_MAT");
 
 	R_ProgramParameter1i(&p->sampler0, 0);
 
@@ -85,4 +87,7 @@ void R_UseMatrices_null(const matrix4x4_t *projection, const matrix4x4_t *modelv
 
 	if (modelview)
 		R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) modelview->m);
+
+	if (texture)
+		R_ProgramParameterMatrix4fv(&p->texture_mat, (const GLfloat *) texture->m);
 }

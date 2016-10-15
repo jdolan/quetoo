@@ -47,6 +47,10 @@ void R_InitProgram_shadow(void) {
 	R_ProgramVariable(&p->matrix, R_UNIFORM_MAT4, "MATRIX");
 	R_ProgramVariable(&p->light, R_UNIFORM_VEC4, "LIGHT");
 	R_ProgramVariable(&p->plane, R_UNIFORM_VEC4, "PLANE");
+	
+	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
+	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
+	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
 
 	R_ProgramParameterMatrix4fv(&p->matrix, (GLfloat *) matrix4x4_identity.m);
 	R_ProgramParameter4fv(&p->light, light);
@@ -128,7 +132,6 @@ void R_UseFog_shadow(const r_fog_parameters_t *fog) {
 		R_ProgramParameter1f(&p->fog.density, fog->density);
 		R_ProgramParameter1f(&p->fog.start, fog->start);
 		R_ProgramParameter1f(&p->fog.end, fog->end);
-		R_ProgramParameter3fv(&p->fog.color, fog->color);
 	}
 	else
 		R_ProgramParameter1f(&p->fog.density, 0.0);

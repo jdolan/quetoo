@@ -42,7 +42,7 @@ static void R_SetMeshShellState_default(const r_entity_t *e) {
 	} else {
 		R_ResetArrayState();
 
-		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
+		R_BindArray(R_ARRAY_TEX_DIFFUSE, GL_FLOAT, e->model->texcoords);
 
 		R_InterpolateMeshModel(e);
 	}

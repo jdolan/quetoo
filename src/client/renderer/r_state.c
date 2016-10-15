@@ -67,7 +67,11 @@ void R_GetError_(const char *function, const char *msg) {
 
 		Sys_Backtrace();
 
-		Com_Warn("%s threw %s: %s.\n", s, function, msg);
+		Com_Warn("%s threw %s: %s.\n", function, s, msg);
+
+#if defined(_MSC_VER)
+		__debugbreak();
+#endif
 	}
 }
 
@@ -187,25 +191,26 @@ void R_BindSpecularmapTexture(GLuint texnum) {
 /**
  * @brief Binds the specified array for the given target.
  */
-void R_BindArray(GLenum target, GLenum type, GLvoid *array) {
+void R_BindArray(int target, GLenum type, GLvoid *array) {
 
 	switch (target) {
-		case GL_VERTEX_ARRAY:
+		case R_ARRAY_VERTEX:
 			if (r_state.ortho)
 				glVertexPointer(2, type, 0, array);
 			else
 				glVertexPointer(3, type, 0, array);
 			break;
-		case GL_TEXTURE_COORD_ARRAY:
+		case R_ARRAY_TEX_DIFFUSE:
+		case R_ARRAY_TEX_LIGHTMAP:
 			glTexCoordPointer(2, type, 0, array);
 			break;
-		case GL_COLOR_ARRAY:
+		case R_ARRAY_COLOR:
 			glColorPointer(4, type, 0, array);
 			break;
-		case GL_NORMAL_ARRAY:
+		case R_ARRAY_NORMAL:
 			glNormalPointer(type, 0, array);
 			break;
-		case GL_TANGENT_ARRAY:
+		case R_ARRAY_TANGENT:
 			R_AttributePointer("TANGENT", 4, array);
 			break;
 		default:
@@ -216,25 +221,26 @@ void R_BindArray(GLenum target, GLenum type, GLvoid *array) {
 /**
  * @brief Binds the appropriate shared vertex array to the specified target.
  */
-void R_BindDefaultArray(GLenum target) {
+void R_BindDefaultArray(int target) {
 
 	switch (target) {
-		case GL_VERTEX_ARRAY:
+		case R_ARRAY_VERTEX:
 			if (r_state.ortho)
 				R_BindArray(target, GL_SHORT, r_state.vertex_array_2d);
 			else
 				R_BindArray(target, GL_FLOAT, r_state.vertex_array_3d);
 			break;
-		case GL_TEXTURE_COORD_ARRAY:
+		case R_ARRAY_TEX_DIFFUSE:
+		case R_ARRAY_TEX_LIGHTMAP:
 			R_BindArray(target, GL_FLOAT, r_state.active_texunit->texcoord_array);
 			break;
-		case GL_COLOR_ARRAY:
+		case R_ARRAY_COLOR:
 			R_BindArray(target, GL_FLOAT, r_state.color_array);
 			break;
-		case GL_NORMAL_ARRAY:
+		case R_ARRAY_NORMAL:
 			R_BindArray(target, GL_FLOAT, r_state.normal_array);
 			break;
-		case GL_TANGENT_ARRAY:
+		case R_ARRAY_TANGENT:
 			R_BindArray(target, GL_FLOAT, r_state.tangent_array);
 			break;
 		default:
@@ -245,7 +251,7 @@ void R_BindDefaultArray(GLenum target) {
 /**
  * @brief
  */
-void R_BindBuffer(GLenum target, GLenum type, GLuint id) {
+void R_BindBuffer(int target, GLenum type, GLuint id) {
 
 	if (!r_vertex_buffers->value)
 		return;
@@ -641,7 +647,7 @@ void R_Setup3D(void) {
 	r_state.ortho = false;
 
 	// bind default vertex array
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
+	R_BindDefaultArray(R_ARRAY_VERTEX);
 
 	glDisable(GL_BLEND);
 
@@ -663,7 +669,7 @@ void R_Setup2D(void) {
 	r_state.ortho = true;
 
 	// bind default vertex array
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
+	R_BindDefaultArray(R_ARRAY_VERTEX);
 
 	// and set default texcoords for all 2d pics
 	memcpy(texunit_diffuse.texcoord_array, default_texcoords, sizeof(vec2_t) * 4);
@@ -703,14 +709,14 @@ void R_InitState(void) {
 
 	// setup vertex array pointers
 	glEnableClientState(GL_VERTEX_ARRAY);
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
+	R_BindDefaultArray(R_ARRAY_VERTEX);
 
 	R_EnableColorArray(true);
-	R_BindDefaultArray(GL_COLOR_ARRAY);
+	R_BindDefaultArray(R_ARRAY_COLOR);
 	R_EnableColorArray(false);
 
 	glEnableClientState(GL_NORMAL_ARRAY);
-	R_BindDefaultArray(GL_NORMAL_ARRAY);
+	R_BindDefaultArray(R_ARRAY_NORMAL);
 	glDisableClientState(GL_NORMAL_ARRAY);
 
 	// setup texture units
@@ -726,7 +732,7 @@ void R_InitState(void) {
 
 			R_EnableTexture(texunit, true);
 
-			R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+			R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
 
 			R_EnableTexture(texunit, false);
 		}

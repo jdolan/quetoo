@@ -290,7 +290,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	} else { // or use the default arrays
 		R_ResetArrayState();
 
-		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
+		R_BindArray(R_ARRAY_TEX_DIFFUSE, GL_FLOAT, e->model->texcoords);
 
 		R_InterpolateMeshModel(e);
 	}
@@ -344,7 +344,7 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 
 	if (e->model->mesh->num_frames > 1) {
 		if (texunit_diffuse.enabled) {
-			R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+			R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
 		}
 	}
 }

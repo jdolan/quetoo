@@ -232,9 +232,9 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_ResetArrayState();
 
 	// alter the array pointers
-	R_BindArray(GL_VERTEX_ARRAY, GL_FLOAT, r_particle_state.verts);
-	R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, r_particle_state.texcoords);
-	R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, r_particle_state.colors);
+	R_BindArray(R_ARRAY_VERTEX, GL_FLOAT, r_particle_state.verts);
+	R_BindArray(R_ARRAY_TEX_DIFFUSE, GL_FLOAT, r_particle_state.texcoords);
+	R_BindArray(R_ARRAY_COLOR, GL_UNSIGNED_BYTE, r_particle_state.colors);
 
 	const GLuint base = (uintptr_t) e->data;
 
@@ -268,9 +268,9 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	glDepthRange(0.0, 1.0);
 
 	// restore array pointers
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
-	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
-	R_BindDefaultArray(GL_COLOR_ARRAY);
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+	R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
+	R_BindDefaultArray(R_ARRAY_COLOR);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
