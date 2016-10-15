@@ -746,7 +746,7 @@ void R_InitState(void) {
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// set num lights
-	r_state.max_lights = Clamp(r_max_lights->integer, 0, MAX_ILLUMINATIONS);
+	r_state.max_lights = Clamp(r_max_lights->integer, 0, MAX_LIGHTS);
 	
 	Matrix4x4_CreateIdentity(&r_view.texture_matrix);
 

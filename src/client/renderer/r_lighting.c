@@ -22,7 +22,8 @@
 #include "r_local.h"
 #include "client.h"
 
-#define LIGHTING_MAX_ILLUMINATIONS (MAX_ILLUMINATIONS * 2)
+// Max illuminations for the whole scene
+#define LIGHTING_MAX_ILLUMINATIONS (MAX_ILLUMINATIONS * 16)
 
 /**
  * @brief Provides a working area for gathering and sorting illuminations.
