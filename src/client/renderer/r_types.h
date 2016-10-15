@@ -22,8 +22,14 @@
 #ifndef __R_TYPES_H__
 #define __R_TYPES_H__
 
+#define OPENGL_CORE
+
 #if !defined(USE_SDL_GL)
-#include "r_glad.h"
+#if !defined(OPENGL_CORE)
+#include "r_glad_compat.h"
+#else
+#include "r_glad_core.h"
+#endif
 #endif
 
 #include <SDL2/SDL_opengl.h>

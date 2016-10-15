@@ -505,6 +505,24 @@ static void R_InitLocal(void) {
 }
 
 /**
+ * @brief
+ */
+static void R_EnforceGlVersion(void) {
+	const char *s = r_config.version_string;
+	int32_t maj, min;
+
+	sscanf(s, "%d.%d", &maj, &min);
+
+	if (maj > 2)
+		return;
+
+	if (min > 1)
+		return;
+
+	Com_Error(ERR_FATAL, "OpenGL version %s is less than 2.1\n", s);
+}
+
+/**
  * @brief Populates the GL config structure by querying the implementation.
  */
 static void R_InitConfig(void) {
@@ -512,15 +530,16 @@ static void R_InitConfig(void) {
 	memset(&r_config, 0, sizeof(r_config));
 
 	// initialize GL pointers
-	R_InitGlPointers();
+	gladLoadGL();
 
 	r_config.renderer_string = (const char *) glGetString(GL_RENDERER);
 	r_config.vendor_string = (const char *) glGetString(GL_VENDOR);
 	r_config.version_string = (const char *) glGetString(GL_VERSION);
 	r_config.extensions_string = (const char *) glGetString(GL_EXTENSIONS);
 
-	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &r_config.max_texunits);
-	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_teximage_units);
+	R_EnforceGlVersion();
+
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
 
 	Com_Print("  Renderer: ^2%s^7\n", r_config.renderer_string);
 	Com_Print("  Vendor:   ^2%s^7\n", r_config.vendor_string);
@@ -539,8 +558,6 @@ void R_Init(void) {
 	R_InitContext();
 
 	R_InitConfig();
-
-	R_EnforceGlVersion();
 
 	R_InitState();
 

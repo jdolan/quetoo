@@ -19,9 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-// This is just to silence error about gl.h already being included by Objectively.
-#define USE_SDL_GL
-
 #include "cg_local.h"
 
 #include "PlayerModelView.h"

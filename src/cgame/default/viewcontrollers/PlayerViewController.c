@@ -21,9 +21,6 @@
 
 #include "cg_local.h"
 
-// This is just to silence error about gl.h already being included by Objectively.
-#define USE_SDL_GL
-
 #include "PlayerViewController.h"
 
 #include "CvarSelect.h"

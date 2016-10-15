@@ -30,8 +30,8 @@
     <ClCompile Include="..\..\src\client\renderer\r_element.c" />
     <ClCompile Include="..\..\src\client\renderer\r_entity.c" />
     <ClCompile Include="..\..\src\client\renderer\r_flare.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_gl.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_glad.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_glad_compat.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_glad_core.c" />
     <ClCompile Include="..\..\src\client\renderer\r_image.c" />
     <ClCompile Include="..\..\src\client\renderer\r_light.c" />
     <ClCompile Include="..\..\src\client\renderer\r_lighting.c" />
@@ -67,8 +67,8 @@
     <ClInclude Include="..\..\src\client\renderer\r_element.h" />
     <ClInclude Include="..\..\src\client\renderer\r_entity.h" />
     <ClInclude Include="..\..\src\client\renderer\r_flare.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_gl.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_glad.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_glad_compat.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_glad_core.h" />
     <ClInclude Include="..\..\src\client\renderer\r_image.h" />
     <ClInclude Include="..\..\src\client\renderer\r_light.h" />
     <ClInclude Include="..\..\src\client\renderer\r_lighting.h" />

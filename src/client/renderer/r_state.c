@@ -57,20 +57,17 @@ void R_GetError_(const char *function, const char *msg) {
 			case GL_INVALID_OPERATION:
 				s = "GL_INVALID_OPERATION";
 				break;
-			case GL_STACK_OVERFLOW:
-				s = "GL_STACK_OVERFLOW";
-				break;
 			case GL_OUT_OF_MEMORY:
 				s = "GL_OUT_OF_MEMORY";
 				break;
 			default:
-				s = "Unkown error";
+				s = va("%" PRIx32, err);
 				break;
 		}
 
 		Sys_Backtrace();
 
-		Com_Warn("%s: %s: %s.\n", s, function, msg);
+		Com_Warn("%s threw %s: %s.\n", s, function, msg);
 	}
 }
 
@@ -721,21 +718,19 @@ void R_InitState(void) {
 	for (int32_t i = 0; i < MAX_GL_TEXUNITS; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
-		if (i < r_config.max_teximage_units) {
+		if (i < r_config.max_texunits) {
 			texunit->texture = GL_TEXTURE0 + i;
 
-			if (i < r_config.max_texunits) {
-				texunit->texcoord_array = Mem_TagMalloc(len, MEM_TAG_RENDERER);
+			texunit->texcoord_array = Mem_TagMalloc(len, MEM_TAG_RENDERER);
 
-				R_EnableTexture(texunit, true);
+			R_EnableTexture(texunit, true);
 
-				R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+			R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
 
-				if (texunit == &texunit_lightmap)
-					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			if (texunit == &texunit_lightmap)
+				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-				R_EnableTexture(texunit, false);
-			}
+			R_EnableTexture(texunit, false);
 		}
 	}
 

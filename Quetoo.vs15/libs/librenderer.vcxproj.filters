@@ -42,9 +42,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_flare.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_gl.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_image.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -108,7 +105,10 @@
     <ClCompile Include="..\..\src\client\renderer\r_program_null.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_glad.c">
+    <ClCompile Include="..\..\src\client\renderer\r_glad_core.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_glad_compat.c">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -144,9 +144,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_flare.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_gl.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_image.h">
@@ -221,7 +218,10 @@
     <ClInclude Include="..\..\src\client\renderer\r_program_null.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_glad.h">
+    <ClInclude Include="..\..\src\client\renderer\r_glad_compat.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_glad_core.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

@@ -82,7 +82,6 @@ typedef struct {
 	const char *extensions_string;
 
 	int32_t max_texunits;
-	int32_t max_teximage_units;
 } r_config_t;
 
 extern r_config_t r_config;
