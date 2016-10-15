@@ -370,8 +370,12 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	if (new_armor->tag == ARMOR_SHARD) { // take it, ignoring cap
 		if (current_armor) {
 			other->client->locals.inventory[ITEM_INDEX(current_armor)] += new_armor->quantity;
+			other->client->locals.inventory[ITEM_INDEX(current_armor)] =
+			  Clamp(other->client->locals.inventory[ITEM_INDEX(current_armor)], 0, 200);
 		} else {
 			other->client->locals.inventory[g_media.items.jacket_armor] = new_armor->quantity;
+			other->client->locals.inventory[g_media.items.jacket_armor] =
+			  Clamp(other->client->locals.inventory[g_media.items.jacket_armor], 0, 200);
 		}
 		taken = true;
 	} else if (!current_armor) { // no current armor, take it
@@ -388,8 +392,11 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 			const int16_t new_count = Clamp(salvage_count + new_armor->quantity, 0, new_info->max_count);
 
-			other->client->locals.inventory[ITEM_INDEX(new_armor)] = new_count;
-			other->client->locals.inventory[ITEM_INDEX(current_armor)] = 0;
+			if (new_count < 200) {
+				other->client->locals.inventory[ITEM_INDEX(new_armor)] = new_count;
+				other->client->locals.inventory[ITEM_INDEX(current_armor)] = 0;
+			}
+
 			taken = true;
 		} else {
 			// we picked up the same, or weaker
@@ -400,8 +407,10 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 			new_count = Clamp(new_count, 0, current_info->max_count);
 
 			// take it
-			if (other->client->locals.inventory[ITEM_INDEX(current_armor)] < new_count) {
+			if (other->client->locals.inventory[ITEM_INDEX(current_armor)] < new_count &&
+					other->client->locals.inventory[ITEM_INDEX(current_armor)] < 200) {
 				other->client->locals.inventory[ITEM_INDEX(current_armor)] = new_count;
+
 				taken = true;
 			}
 		}
