@@ -252,5 +252,7 @@ void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 
 	R_UseMatrices();
 
+	R_UseAlphaTest();
+
 	glDrawArrays(type, start, count);
 }

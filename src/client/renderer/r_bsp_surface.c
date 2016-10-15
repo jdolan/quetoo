@@ -218,7 +218,7 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		return;
 	}
 
-	R_EnableAlphaTest(true);
+	R_EnableAlphaTest(ALPHA_TEST_ENABLED_THRESHOLD);
 
 	R_EnableTexture(&texunit_lightmap, true);
 
@@ -230,7 +230,7 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(&texunit_lightmap, false);
 
-	R_EnableAlphaTest(false);
+	R_EnableAlphaTest(ALPHA_TEST_DISABLED_THRESHOLD);
 }
 
 /**

@@ -471,6 +471,7 @@ void R_InitPrograms(void) {
 		r_state.default_program->UseFog = R_UseFog_default;
 		r_state.default_program->UseLight = R_UseLight_default;
 		r_state.default_program->UseMatrices = R_UseMatrices_default;
+		r_state.default_program->UseAlphaTest = R_UseAlphaTest_default;
 		r_state.default_program->arrays_mask = R_ARRAY_ALL;
 	}
 

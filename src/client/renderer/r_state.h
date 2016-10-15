@@ -62,6 +62,7 @@ typedef struct r_state_s {
 
 	GLenum blend_src, blend_dest; // blend function
 	_Bool blend_enabled;
+	float alpha_threshold;
 
 	r_texunit_t texunits[MAX_GL_TEXUNITS];
 	r_texunit_t *active_texunit;
@@ -122,7 +123,11 @@ void R_BindDefaultArray(GLenum target);
 void R_BindBuffer(GLenum target, GLenum type, GLuint id);
 void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
-void R_EnableAlphaTest(_Bool enable);
+
+#define ALPHA_TEST_DISABLED_THRESHOLD 0.0
+#define ALPHA_TEST_ENABLED_THRESHOLD 0.25
+
+void R_EnableAlphaTest(float threshold);
 void R_EnableStencilTest(GLenum pass, _Bool enable);
 void R_EnablePolygonOffset(GLenum mode, _Bool enable);
 void R_EnableTexture(r_texunit_t *texunit, _Bool enable);
@@ -136,6 +141,7 @@ void R_UseMaterial(const r_material_t *material);
 void R_PushMatrix(void);
 void R_PopMatrix(void);
 void R_UseMatrices(void);
+void R_UseAlphaTest(void);
 void R_InitState(void);
 void R_ShutdownState(void);
 

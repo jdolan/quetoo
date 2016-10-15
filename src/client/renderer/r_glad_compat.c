@@ -141,7 +141,9 @@ static int max_loaded_major;
 static int max_loaded_minor;
 
 static const char *exts = NULL;
+#ifdef _GLAD_IS_SOME_NEW_VERSION
 static int num_exts_i = 0;
+#endif
 static const char **exts_i = NULL;
 
 static int get_exts(void) {

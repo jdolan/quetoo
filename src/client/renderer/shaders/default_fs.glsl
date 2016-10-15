@@ -46,6 +46,8 @@ uniform sampler2D SAMPLER2;
 uniform sampler2D SAMPLER3;
 uniform sampler2D SAMPLER4;
 
+uniform float ALPHA_THRESHOLD;
+
 varying vec4 color;
 varying vec2 texcoords[2];
 varying vec3 point;
@@ -184,6 +186,10 @@ void main(void) {
 	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
 		diffuse = texture2D(SAMPLER0, texcoords[0] + parallax);
 
+		// see if diffuse can be discarded because of alpha test
+		if (diffuse.a < ALPHA_THRESHOLD)
+			discard;
+
 		// factor in bump mapping
 		diffuse.rgb *= bump;
 	}
@@ -191,5 +197,5 @@ void main(void) {
 	// add any dynamic lighting to yield the final fragment color
 	LightFragment(diffuse, lightmap, normalmap.xyz);
 
-	FogFragment(); // and lastly add fog	
+	FogFragment(); // and lastly add fog
 }

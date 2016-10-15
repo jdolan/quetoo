@@ -304,7 +304,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 		R_SetMeshColor_default(e);
 
 		if (e->effects & EF_ALPHATEST)
-			R_EnableAlphaTest(true);
+			R_EnableAlphaTest(ALPHA_TEST_ENABLED_THRESHOLD);
 
 		if (e->effects & EF_BLEND)
 			R_EnableBlend(true);
@@ -340,7 +340,7 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 		R_EnableBlend(false);
 
 	if (e->effects & EF_ALPHATEST)
-		R_EnableAlphaTest(false);
+		R_EnableAlphaTest(ALPHA_TEST_DISABLED_THRESHOLD);
 
 	if (e->model->mesh->num_frames > 1) {
 		if (texunit_diffuse.enabled) {

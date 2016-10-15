@@ -296,17 +296,12 @@ void R_EnableBlend(_Bool enable) {
 /**
  * @brief
  */
-void R_EnableAlphaTest(_Bool enable) {
+void R_EnableAlphaTest(float threshold) {
 
-	if (r_state.alpha_test_enabled == enable)
+	if (r_state.alpha_threshold == threshold)
 		return;
 
-	r_state.alpha_test_enabled = enable;
-
-	if (enable)
-		glEnable(GL_ALPHA_TEST);
-	else
-		glDisable(GL_ALPHA_TEST);
+	r_state.alpha_threshold = threshold;
 }
 
 /**
@@ -596,6 +591,12 @@ void R_UseMatrices(void) {
 		r_state.active_program->UseMatrices(&r_view.projection_matrix, &r_view.modelview_matrix, &r_view.texture_matrix);
 }
 
+void R_UseAlphaTest(void) {
+
+	if (r_state.active_program->UseAlphaTest)
+		r_state.active_program->UseAlphaTest(r_state.alpha_threshold);
+}
+
 #define NEAR_Z 4.0
 #define FAR_Z  (MAX_WORLD_COORD * 4.0)
 
@@ -727,17 +728,11 @@ void R_InitState(void) {
 
 			R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
 
-			if (texunit == &texunit_lightmap)
-				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
 			R_EnableTexture(texunit, false);
 		}
 	}
 
 	R_EnableTexture(&texunit_diffuse, true);
-
-	// alpha test parameters
-	glAlphaFunc(GL_GREATER, 0.25);
 
 	// polygon offset parameters
 	glPolygonOffset(-1.0, 1.0);
@@ -747,8 +742,9 @@ void R_InitState(void) {
 
 	// set num lights
 	r_state.max_lights = Clamp(r_max_lights->integer, 0, MAX_LIGHTS);
-	
-	Matrix4x4_CreateIdentity(&r_view.texture_matrix);
+
+	// set default alpha threshold
+	r_state.alpha_threshold = ALPHA_TEST_DISABLED_THRESHOLD;
 
 	R_GetError(NULL);
 }

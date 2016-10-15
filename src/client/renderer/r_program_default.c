@@ -48,6 +48,8 @@ typedef struct {
 	r_uniform_matrix4fv_t modelview_mat;
 	r_uniform_matrix4fv_t normal_mat;
 	r_uniform_matrix4fv_t texture_mat;
+
+	r_uniform1f_t alpha_threshold;
 } r_default_program_t;
 
 static r_default_program_t r_default_program;
@@ -103,6 +105,8 @@ void R_InitProgram_default(void) {
 	R_ProgramVariable(&p->normal_mat, R_UNIFORM_MAT4, "NORMAL_MAT");
 	R_ProgramVariable(&p->texture_mat, R_UNIFORM_MAT4, "TEXTURE_MAT");
 
+	R_ProgramVariable(&p->alpha_threshold, R_UNIFORM_FLOAT, "ALPHA_THRESHOLD");
+
 	R_DisableAttribute(&p->tangent);
 
 	R_ProgramParameter1i(&p->lightmap, 0);
@@ -121,6 +125,7 @@ void R_InitProgram_default(void) {
 	R_ProgramParameter1i(&p->sampler4, 4);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
+	R_ProgramParameter1f(&p->alpha_threshold, ALPHA_TEST_DISABLED_THRESHOLD);
 }
 
 /**
@@ -239,4 +244,14 @@ void R_UseMatrices_default(const matrix4x4_t *projection, const matrix4x4_t *mod
 
 	if (texture)
 		R_ProgramParameterMatrix4fv(&p->texture_mat, (const GLfloat *) texture->m);
+}
+
+/**
+ * @brief
+ */
+void R_UseAlphaTest_default(const float threshold) {
+
+	r_default_program_t *p = &r_default_program;
+
+	R_ProgramParameter1f(&p->alpha_threshold, threshold);
 }
