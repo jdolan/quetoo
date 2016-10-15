@@ -22,7 +22,7 @@
 #ifndef __R_TYPES_H__
 #define __R_TYPES_H__
 
-#define OPENGL_CORE
+//#define OPENGL_CORE
 
 #if !defined(USE_SDL_GL)
 #if !defined(OPENGL_CORE)

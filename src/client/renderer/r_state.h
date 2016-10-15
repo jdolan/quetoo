@@ -106,6 +106,9 @@ extern r_state_t r_state;
 #define texunit_normalmap		r_state.texunits[3]
 #define texunit_specularmap		r_state.texunits[4]
 
+// just used internally to distinguish array types
+#define GL_TANGENT_ARRAY		-1
+
 #define R_GetError(msg) R_GetError_(__func__, msg)
 void R_GetError_(const char *function, const char *msg);
 void R_SelectTexture(r_texunit_t *texunit);
