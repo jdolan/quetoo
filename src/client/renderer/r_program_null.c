@@ -30,6 +30,8 @@ typedef struct {
 	r_uniform_matrix4fv_t projection_mat;
 	r_uniform_matrix4fv_t modelview_mat;
 	r_uniform_matrix4fv_t texture_mat;
+
+	r_uniform4fv_t current_color;
 } r_null_program_t;
 
 static r_null_program_t r_null_program;
@@ -52,9 +54,14 @@ void R_InitProgram_null(void) {
 	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
 	R_ProgramVariable(&p->texture_mat, R_UNIFORM_MAT4, "TEXTURE_MAT");
 
+	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
+
 	R_ProgramParameter1i(&p->sampler0, 0);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
+
+	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
+	R_ProgramParameter4fv(&p->current_color, white);
 }
 
 /**
@@ -90,4 +97,18 @@ void R_UseMatrices_null(const matrix4x4_t *projection, const matrix4x4_t *modelv
 
 	if (texture)
 		R_ProgramParameterMatrix4fv(&p->texture_mat, (const GLfloat *) texture->m);
+}
+
+/**
+ * @brief
+ */
+void R_UseCurrentColor_null(const vec4_t color) {
+
+	r_null_program_t *p = &r_null_program;
+	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
+
+	if (color)
+		R_ProgramParameter4fv(&p->current_color, color);
+	else
+		R_ProgramParameter4fv(&p->current_color, white);
 }

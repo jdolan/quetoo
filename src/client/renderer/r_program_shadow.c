@@ -31,6 +31,8 @@ typedef struct r_shadow_program_s {
 
 	r_uniform_matrix4fv_t projection_mat;
 	r_uniform_matrix4fv_t modelview_mat;
+
+	r_uniform4fv_t current_color;
 } r_shadow_program_t;
 
 static r_shadow_program_t r_shadow_program;
@@ -52,14 +54,20 @@ void R_InitProgram_shadow(void) {
 	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
 	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
 
+	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
+	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
+
+	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
+
 	R_ProgramParameterMatrix4fv(&p->matrix, (GLfloat *) matrix4x4_identity.m);
 	R_ProgramParameter4fv(&p->light, light);
 	R_ProgramParameter4fv(&p->plane, plane);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
+	
+	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
-	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
-	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
+	R_ProgramParameter4fv(&p->current_color, white);
 }
 
 /**
@@ -149,4 +157,18 @@ void R_UseMatrices_shadow(const matrix4x4_t *projection, const matrix4x4_t *mode
 
 	if (modelview)
 		R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) modelview->m);
+}
+
+/**
+ * @brief
+ */
+void R_UseCurrentColor_shadow(const vec4_t color) {
+
+	r_shadow_program_t *p = &r_shadow_program;
+	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
+
+	if (color)
+		R_ProgramParameter4fv(&p->current_color, color);
+	else
+		R_ProgramParameter4fv(&p->current_color, white);
 }

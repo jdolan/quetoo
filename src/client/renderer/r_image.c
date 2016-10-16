@@ -334,10 +334,10 @@ static void R_InitNullImage(void) {
 	r_image_state.null->media.Retain = R_RetainImage;
 	r_image_state.null->media.Free = R_FreeImage;
 
-	r_image_state.null->width = r_image_state.null->height = 16;
+	r_image_state.null->width = r_image_state.null->height = 1;
 	r_image_state.null->type = IT_NULL;
 
-	byte data[16 * 16 * 3];
+	byte data[1 * 1 * 3];
 	memset(&data, 0xff, sizeof(data));
 
 	R_UploadImage(r_image_state.null, GL_RGB, data);

@@ -7,6 +7,8 @@
 #include "matrix_inc.glsl"
 #include "fog_inc.glsl"
 
+uniform vec4 GLOBAL_COLOR;
+
 varying vec4 color;
 varying vec2 texcoord;
 
@@ -30,7 +32,7 @@ void main(void) {
 	texcoord = vec2(TEXTURE_MAT * gl_MultiTexCoord0);
 
 	// pass the color through as well
-	color = gl_Color;
+	color = gl_Color * GLOBAL_COLOR;
 
 	FogVertex();
 }

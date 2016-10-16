@@ -9,6 +9,7 @@
 
 uniform mat4 MATRIX;
 uniform vec4 LIGHT;
+uniform vec4 GLOBAL_COLOR;
 
 varying vec4 color;
 varying vec4 point;
@@ -37,7 +38,7 @@ void main(void) {
 	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * MATRIX * gl_Vertex;
 	
 	// and primary color
-	color = gl_Color;
+	color = gl_Color * GLOBAL_COLOR;
 	
 	ShadowVertex();
     

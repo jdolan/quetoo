@@ -29,6 +29,7 @@ void R_InitProgram_shadow(void);
 void R_UseProgram_shadow(void);
 void R_UseFog_shadow(const r_fog_parameters_t *fog);
 void R_UseMatrices_shadow(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture);
+void R_UseCurrentColor_shadow(const vec4_t color);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PROGRAM_SHADOW_H__ */

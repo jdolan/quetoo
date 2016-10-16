@@ -479,6 +479,7 @@ void R_InitPrograms(void) {
 		r_state.shadow_program->Use = R_UseProgram_shadow;
 		r_state.shadow_program->UseFog = R_UseFog_shadow;
 		r_state.shadow_program->UseMatrices = R_UseMatrices_shadow;
+		r_state.shadow_program->UseCurrentColor = R_UseCurrentColor_shadow;
 		r_state.shadow_program->arrays_mask = R_ARRAY_VERTEX;
 	}
 
@@ -498,6 +499,7 @@ void R_InitPrograms(void) {
 	if ((r_state.null_program = R_LoadProgram("null", R_InitProgram_null))) {
 		r_state.null_program->UseFog = R_UseFog_null;
 		r_state.null_program->UseMatrices = R_UseMatrices_null;
+		r_state.null_program->UseCurrentColor = R_UseCurrentColor_null;
 		r_state.null_program->arrays_mask = R_ARRAY_VERTEX;
 	}
 

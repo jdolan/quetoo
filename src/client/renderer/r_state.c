@@ -82,9 +82,9 @@ void R_Color(const vec4_t color) {
 	static const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
 	if (color) {
-		glColor4fv(color);
+		Vector4Copy(color, r_state.current_color);
 	} else {
-		glColor4fv(white);
+		Vector4Copy(white, r_state.current_color);
 	}
 }
 
@@ -106,7 +106,23 @@ void R_SelectTexture(r_texunit_t *texunit) {
 }
 
 /**
- * @brief Binds the specified texture for the active texture unit.
+ * @brief Actually binds the specified texture for the active texture unit
+ * if it is not already bound.
+ */
+static void R_BindTexture_Force(GLuint texnum) {
+
+	if (texnum == r_state.active_texunit->bound)
+		return;
+
+	glBindTexture(GL_TEXTURE_2D, texnum);
+
+	r_state.active_texunit->bound = texnum;
+
+	r_view.num_bind_texture++;
+}
+
+/**
+ * @brief Request that a texnum be bound to the active texture unit.
  */
 void R_BindTexture(GLuint texnum) {
 
@@ -115,9 +131,7 @@ void R_BindTexture(GLuint texnum) {
 
 	r_state.active_texunit->texnum = texnum;
 
-	glBindTexture(GL_TEXTURE_2D, texnum);
-
-	r_view.num_bind_texture++;
+	R_BindTexture_Force(texnum);
 }
 
 /**
@@ -360,11 +374,15 @@ void R_EnableTexture(r_texunit_t *texunit, _Bool enable) {
 	R_SelectTexture(texunit);
 
 	if (enable) { // activate texture unit
-		glEnable(GL_TEXTURE_2D);
+		//glEnable(GL_TEXTURE_2D);
+
+		R_BindTexture_Force(texunit->texnum);
 
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	} else { // or deactivate it
-		glDisable(GL_TEXTURE_2D);
+		//glDisable(GL_TEXTURE_2D);
+
+		R_BindTexture_Force(r_image_state.null ? r_image_state.null->texnum : 0);
 
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
@@ -597,10 +615,22 @@ void R_UseMatrices(void) {
 		r_state.active_program->UseMatrices(&r_view.projection_matrix, &r_view.modelview_matrix, &r_view.texture_matrix);
 }
 
+/**
+ * @brief Uploads the alpha threshold to the currently loaded program.
+ */
 void R_UseAlphaTest(void) {
 
 	if (r_state.active_program->UseAlphaTest)
 		r_state.active_program->UseAlphaTest(r_state.alpha_threshold);
+}
+
+/**
+ * @brief Uploads the current global color to the currently loaded program.
+ */
+void R_UseCurrentColor(void) {
+
+	if (r_state.active_program->UseCurrentColor)
+		r_state.active_program->UseCurrentColor(r_state.current_color);
 }
 
 #define NEAR_Z 4.0
@@ -706,6 +736,8 @@ void R_InitState(void) {
 	r_get_error = Cvar_Add("r_get_error", "0", 0, NULL);
 
 	memset(&r_state, 0, sizeof(r_state));
+
+	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
 	// setup vertex array pointers
 	glEnableClientState(GL_VERTEX_ARRAY);

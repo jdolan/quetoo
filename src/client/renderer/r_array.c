@@ -250,9 +250,12 @@ void R_ResetArrayState(void) {
  */
 void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 
+	// upload state data that needs to be synced up to current program
 	R_UseMatrices();
 
 	R_UseAlphaTest();
+
+	R_UseCurrentColor();
 
 	glDrawArrays(type, start, count);
 }

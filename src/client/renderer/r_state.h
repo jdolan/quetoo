@@ -40,9 +40,10 @@ extern const vec_t default_texcoords[];
 
 // texunits maintain multitexture state
 typedef struct r_texunit_s {
-	_Bool enabled; // GL_TEXTURE_2D on / off
-	GLenum texture; // e.g. GL_TEXTURE0_ARB
+	_Bool enabled; // on / off (off uses null texture)
+	GLenum texture; // e.g. GL_TEXTURE0 + x
 	GLuint texnum; // e.g 123
+	GLuint bound; // the actual bound value regardless of enabled state
 	GLfloat *texcoord_array;
 } r_texunit_t;
 
@@ -62,7 +63,9 @@ typedef struct r_state_s {
 
 	GLenum blend_src, blend_dest; // blend function
 	_Bool blend_enabled;
+
 	float alpha_threshold;
+	vec4_t current_color;
 
 	r_texunit_t texunits[MAX_GL_TEXUNITS];
 	r_texunit_t *active_texunit;
@@ -139,6 +142,7 @@ void R_PushMatrix(void);
 void R_PopMatrix(void);
 void R_UseMatrices(void);
 void R_UseAlphaTest(void);
+void R_UseCurrentColor(void);
 void R_InitState(void);
 void R_ShutdownState(void);
 
