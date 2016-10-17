@@ -119,6 +119,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) __attribute__
 void Com_Init(int32_t argc, char **argv);
 void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn));
 
+
 // subsystems
 #define QUETOO_SERVER		0x1
 #define QUETOO_GAME			0x2
@@ -152,6 +153,7 @@ uint32_t Com_WasInit(uint32_t s);
 void Com_InitSubsystem(uint32_t s);
 void Com_QuitSubsystem(uint32_t s);
 
+extern cvar_t *developer;
 extern cvar_t *dedicated;
 extern cvar_t *game;
 extern cvar_t *time_demo;

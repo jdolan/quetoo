@@ -24,18 +24,23 @@
 
 #include "r_types.h"
 
-#define R_ARRAY_VERTEX			0x1
-#define R_ARRAY_COLOR			0x2
-#define R_ARRAY_NORMAL			0x4
-#define R_ARRAY_TANGENT			0x8
-#define R_ARRAY_TEX_DIFFUSE		0x10
-#define R_ARRAY_TEX_LIGHTMAP	0x20
-#define R_ARRAY_ALL				0xFF
+#define R_ARRAY_VERTEX			0
+#define R_ARRAY_COLOR			1
+#define R_ARRAY_NORMAL			2
+#define R_ARRAY_TANGENT			3
+#define R_ARRAY_TEX_DIFFUSE		4
+#define R_ARRAY_TEX_LIGHTMAP	5
+#define R_ARRAY_MAX_ATTRIBS		6
+
+#define R_ARRAY_MASK(i)			(1 << i)
+
+#define R_ARRAY_MASK_ALL		0xFF
 
 #ifdef __R_LOCAL_H__
 void R_SetArrayState(const r_model_t *mod);
 void R_ResetArrayState(void);
 void R_DrawArrays(GLenum type, GLint start, GLsizei count);
+int32_t R_ArraysMask(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_ARRAY_H__ */

@@ -22,7 +22,7 @@
 #ifndef __R_TYPES_H__
 #define __R_TYPES_H__
 
-#define OPENGL_CORE
+//#define OPENGL_CORE
 
 #if !defined(USE_SDL_GL)
 #if !defined(OPENGL_CORE)
@@ -81,6 +81,21 @@ typedef enum {
 	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER)
 } r_image_type_t;
+
+/**
+ * @brief Buffers are used to hold data for the renderer.
+ */
+typedef struct r_buffer_s {
+	GLenum type; // R_BUFFER_DATA or R_BUFFER_INDICES
+	GLenum hint; // GL_x_y, where x is STATIC or DYNAMIC, and where y is DRAW, READ or COPY
+	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
+	GLuint bufnum; // e.g. 123
+	size_t size; // last size of buffer, for resize operations
+} r_buffer_t;
+
+#define R_BUFFER_DATA			0
+#define R_BUFFER_INDICES		1
+#define R_NUM_BUFFERS			2
 
 /**
  * @brief Images are referenced by materials, models, entities, particles, etc.
@@ -562,11 +577,11 @@ typedef struct r_model_s {
 	GLfloat *normals;
 	GLfloat *tangents;
 
-	GLuint vertex_buffer; // vertex buffer objects
-	GLuint texcoord_buffer;
-	GLuint lightmap_texcoord_buffer;
-	GLuint normal_buffer;
-	GLuint tangent_buffer;
+	r_buffer_t vertex_buffer; // vertex buffer objects
+	r_buffer_t texcoord_buffer;
+	r_buffer_t lightmap_texcoord_buffer;
+	r_buffer_t normal_buffer;
+	r_buffer_t tangent_buffer;
 } r_model_t;
 
 #define IS_MESH_MODEL(m) (m && m->mesh)

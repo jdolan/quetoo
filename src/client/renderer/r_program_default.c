@@ -23,6 +23,10 @@
 
 // these are the variables defined in the GLSL shader
 typedef struct {
+	r_attribute_t position;
+	r_attribute_t color;
+	r_attribute_t texcoords[2];
+	r_attribute_t normal;
 	r_attribute_t tangent;
 
 	r_uniform1i_t diffuse;
@@ -61,6 +65,11 @@ void R_InitProgram_default(void) {
 
 	r_default_program_t *p = &r_default_program;
 
+	R_ProgramVariable(&p->position, R_ATTRIBUTE, "POSITION");
+	R_ProgramVariable(&p->color, R_ATTRIBUTE, "COLOR");
+	R_ProgramVariable(&p->texcoords[0], R_ATTRIBUTE, "TEXCOORD0");
+	R_ProgramVariable(&p->texcoords[1], R_ATTRIBUTE, "TEXCOORD1");
+	R_ProgramVariable(&p->normal, R_ATTRIBUTE, "NORMAL");
 	R_ProgramVariable(&p->tangent, R_ATTRIBUTE, "TANGENT");
 
 	R_ProgramVariable(&p->diffuse, R_UNIFORM_INT, "DIFFUSE");
@@ -107,6 +116,11 @@ void R_InitProgram_default(void) {
 
 	R_ProgramVariable(&p->alpha_threshold, R_UNIFORM_FLOAT, "ALPHA_THRESHOLD");
 
+	R_DisableAttribute(&p->position);
+	R_DisableAttribute(&p->color);
+	R_DisableAttribute(&p->texcoords[0]);
+	R_DisableAttribute(&p->texcoords[1]);
+	R_DisableAttribute(&p->normal);
 	R_DisableAttribute(&p->tangent);
 
 	R_ProgramParameter1i(&p->lightmap, 0);
@@ -254,4 +268,69 @@ void R_UseAlphaTest_default(const float threshold) {
 	r_default_program_t *p = &r_default_program;
 
 	R_ProgramParameter1f(&p->alpha_threshold, threshold);
+}
+
+/**
+ * @brief
+ */
+void R_UseAttributes_default(void) {
+
+	r_default_program_t *p = &r_default_program;
+	int32_t mask = R_ArraysMask() & r_state.active_program->arrays_mask;
+
+	if (mask & R_ARRAY_MASK(R_ARRAY_VERTEX)) {
+
+		R_EnableAttribute(&p->position);
+		R_BindBuffer(r_state.array_buffers[R_ARRAY_VERTEX]);
+		R_AttributePointer(&p->position, 4, NULL);
+	}
+	else
+		R_DisableAttribute(&p->position);
+
+	if (mask & R_ARRAY_MASK(R_ARRAY_COLOR)) {
+
+		R_EnableAttribute(&p->color);
+		R_BindBuffer(r_state.array_buffers[R_ARRAY_COLOR]);
+		R_AttributePointer(&p->color, 4, NULL);
+	}
+	else
+		R_DisableAttribute(&p->color);
+
+	if (mask & R_ARRAY_MASK(R_ARRAY_TEX_DIFFUSE)) {
+
+		R_EnableAttribute(&p->texcoords[0]);
+		R_BindBuffer(r_state.array_buffers[R_ARRAY_TEX_DIFFUSE]);
+		R_AttributePointer(&p->texcoords[0], 2, NULL);
+	}
+	else
+		R_DisableAttribute(&p->texcoords[0]);
+
+	if (mask & R_ARRAY_MASK(R_ARRAY_TEX_LIGHTMAP)) {
+
+		R_EnableAttribute(&p->texcoords[1]);
+		R_BindBuffer(r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP]);
+		R_AttributePointer(&p->texcoords[1], 2, NULL);
+	}
+	else
+		R_DisableAttribute(&p->texcoords[1]);
+
+	if (mask & R_ARRAY_MASK(R_ARRAY_NORMAL)) {
+
+		R_EnableAttribute(&p->normal);
+		R_BindBuffer(r_state.array_buffers[R_ARRAY_NORMAL]);
+		R_AttributePointer(&p->normal, 3, NULL);
+	}
+	else
+		R_DisableAttribute(&p->normal);
+
+	if (mask & R_ARRAY_MASK(R_ARRAY_TANGENT)) {
+
+		R_EnableAttribute(&p->tangent);
+		R_BindBuffer(r_state.array_buffers[R_ARRAY_TANGENT]);
+		R_AttributePointer(&p->tangent, 4, NULL);
+	}
+	else
+		R_DisableAttribute(&p->tangent);
+
+	R_UnbindBuffer(R_BUFFER_DATA);
 }

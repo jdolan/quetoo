@@ -175,14 +175,11 @@ _Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat
 /**
  * @brief
  */
-void R_AttributePointer(const char *name, GLuint size, const GLvoid *array) {
-	r_attribute_t attribute;
+void R_AttributePointer(const r_attribute_t *attribute, GLuint size, const GLvoid *array) {
 
-	R_ProgramVariable(&attribute, R_ATTRIBUTE, name);
+	glVertexAttribPointer(attribute->location, size, GL_FLOAT, GL_FALSE, 0, array);
 
-	glVertexAttribPointer(attribute.location, size, GL_FLOAT, GL_FALSE, 0, array);
-
-	R_GetError(name);
+	R_GetError(NULL);
 }
 
 /**
@@ -461,9 +458,6 @@ void R_InitPrograms(void) {
 	memset(r_state.shaders, 0, sizeof(r_state.shaders));
 	memset(r_state.programs, 0, sizeof(r_state.programs));
 
-	if (!r_programs->value)
-		return;
-
 	if ((r_state.default_program = R_LoadProgram("default", R_InitProgram_default))) {
 		r_state.default_program->Shutdown = R_Shutdown_default;
 		r_state.default_program->Use = R_UseProgram_default;
@@ -472,7 +466,8 @@ void R_InitPrograms(void) {
 		r_state.default_program->UseLight = R_UseLight_default;
 		r_state.default_program->UseMatrices = R_UseMatrices_default;
 		r_state.default_program->UseAlphaTest = R_UseAlphaTest_default;
-		r_state.default_program->arrays_mask = R_ARRAY_ALL;
+		r_state.default_program->UseAttributes = R_UseAttributes_default;
+		r_state.default_program->arrays_mask = R_ARRAY_MASK_ALL;
 	}
 
 	if ((r_state.shadow_program = R_LoadProgram("shadow", R_InitProgram_shadow))) {
@@ -480,27 +475,28 @@ void R_InitPrograms(void) {
 		r_state.shadow_program->UseFog = R_UseFog_shadow;
 		r_state.shadow_program->UseMatrices = R_UseMatrices_shadow;
 		r_state.shadow_program->UseCurrentColor = R_UseCurrentColor_shadow;
-		r_state.shadow_program->arrays_mask = R_ARRAY_VERTEX;
+		r_state.shadow_program->arrays_mask = R_ARRAY_MASK(R_ARRAY_VERTEX);
 	}
 
 	if ((r_state.shell_program = R_LoadProgram("shell", R_InitProgram_shell))) {
 		r_state.shell_program->Use = R_UseProgram_shell;
 		r_state.shell_program->UseMatrices = R_UseMatrices_shell;
-		r_state.shell_program->arrays_mask = R_ARRAY_VERTEX | R_ARRAY_TEX_DIFFUSE;
+		r_state.shell_program->arrays_mask = R_ARRAY_MASK(R_ARRAY_VERTEX) | R_ARRAY_MASK(R_ARRAY_TEX_DIFFUSE);
 	}
 	
 	if ((r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp))) {
 		r_state.warp_program->Use = R_UseProgram_warp;
 		r_state.warp_program->UseFog = R_UseFog_warp;
 		r_state.warp_program->UseMatrices = R_UseMatrices_warp;
-		r_state.warp_program->arrays_mask = R_ARRAY_VERTEX | R_ARRAY_TEX_DIFFUSE;
+		r_state.warp_program->arrays_mask = R_ARRAY_MASK(R_ARRAY_VERTEX) | R_ARRAY_MASK(R_ARRAY_TEX_DIFFUSE);
 	}
 	
 	if ((r_state.null_program = R_LoadProgram("null", R_InitProgram_null))) {
 		r_state.null_program->UseFog = R_UseFog_null;
 		r_state.null_program->UseMatrices = R_UseMatrices_null;
 		r_state.null_program->UseCurrentColor = R_UseCurrentColor_null;
-		r_state.null_program->arrays_mask = R_ARRAY_VERTEX;
+		r_state.null_program->UseAttributes = R_UseAttributes_null;
+		r_state.null_program->arrays_mask = R_ARRAY_MASK(R_ARRAY_VERTEX) | R_ARRAY_MASK(R_ARRAY_TEX_DIFFUSE) | R_ARRAY_MASK(R_ARRAY_COLOR);
 	}
 
 	R_UseProgram(r_state.null_program);

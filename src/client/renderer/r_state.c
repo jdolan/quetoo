@@ -68,10 +68,6 @@ void R_GetError_(const char *function, const char *msg) {
 		Sys_Backtrace();
 
 		Com_Warn("%s threw %s: %s.\n", function, s, msg);
-
-#if defined(_MSC_VER)
-		__debugbreak();
-#endif
 	}
 }
 
@@ -89,8 +85,7 @@ void R_Color(const vec4_t color) {
 }
 
 /**
- * @brief Set the active texture unit. If the diffuse or lightmap texture units are
- * selected, set the client state to allow binding of texture coordinates.
+ * @brief Set the active texture unit.
  */
 void R_SelectTexture(r_texunit_t *texunit) {
 
@@ -100,9 +95,6 @@ void R_SelectTexture(r_texunit_t *texunit) {
 	r_state.active_texunit = texunit;
 
 	glActiveTexture(texunit->texture);
-
-	if (texunit == &texunit_diffuse || texunit == &texunit_lightmap)
-		glClientActiveTexture(texunit->texture);
 }
 
 /**
@@ -203,33 +195,20 @@ void R_BindSpecularmapTexture(GLuint texnum) {
 }
 
 /**
- * @brief Binds the specified array for the given target.
+ * @brief Binds the specified buffer for the given target.
  */
-void R_BindArray(int target, GLenum type, GLvoid *array) {
+void R_BindArray(int target, const r_buffer_t *buffer) {
 
-	switch (target) {
-		case R_ARRAY_VERTEX:
-			if (r_state.ortho)
-				glVertexPointer(2, type, 0, array);
-			else
-				glVertexPointer(3, type, 0, array);
-			break;
-		case R_ARRAY_TEX_DIFFUSE:
-		case R_ARRAY_TEX_LIGHTMAP:
-			glTexCoordPointer(2, type, 0, array);
-			break;
-		case R_ARRAY_COLOR:
-			glColorPointer(4, type, 0, array);
-			break;
-		case R_ARRAY_NORMAL:
-			glNormalPointer(type, 0, array);
-			break;
-		case R_ARRAY_TANGENT:
-			R_AttributePointer("TANGENT", 4, array);
-			break;
-		default:
-			break;
-	}
+	r_state.array_buffers[target] = buffer;
+}
+
+/**
+ * @brief Returns whether or not a buffer is "finished".
+ * Doesn't care if data is actually in the buffer.
+ */
+_Bool R_ValidBuffer(const r_buffer_t *buffer) {
+
+	return buffer && buffer->bufnum && buffer->size;
 }
 
 /**
@@ -239,41 +218,145 @@ void R_BindDefaultArray(int target) {
 
 	switch (target) {
 		case R_ARRAY_VERTEX:
-			if (r_state.ortho)
-				R_BindArray(target, GL_SHORT, r_state.vertex_array_2d);
-			else
-				R_BindArray(target, GL_FLOAT, r_state.vertex_array_3d);
+			R_BindArray(target, &r_state.buffer_vertex_array);
 			break;
 		case R_ARRAY_TEX_DIFFUSE:
 		case R_ARRAY_TEX_LIGHTMAP:
-			R_BindArray(target, GL_FLOAT, r_state.active_texunit->texcoord_array);
+			R_BindArray(target, &r_state.active_texunit->buffer_texcoord_array);
 			break;
 		case R_ARRAY_COLOR:
-			R_BindArray(target, GL_FLOAT, r_state.color_array);
+			R_BindArray(target, &r_state.buffer_color_array);
 			break;
 		case R_ARRAY_NORMAL:
-			R_BindArray(target, GL_FLOAT, r_state.normal_array);
+			R_BindArray(target, &r_state.buffer_normal_array);
 			break;
 		case R_ARRAY_TANGENT:
-			R_BindArray(target, GL_FLOAT, r_state.tangent_array);
+			R_BindArray(target, &r_state.buffer_tangent_array);
 			break;
 		default:
 			break;
 	}
 }
 
+static GLenum R_BufferTypeToTarget(int type) {
+
+	return (type == R_BUFFER_INDICES) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+}
+
 /**
  * @brief
  */
-void R_BindBuffer(int target, GLenum type, GLuint id) {
+void R_BindBuffer(const r_buffer_t *buffer) {
 
-	if (!r_vertex_buffers->value)
+	assert(buffer->bufnum != 0);
+
+	if (r_state.active_buffers[buffer->type] == buffer->bufnum)
 		return;
 
-	glBindBuffer(GL_ARRAY_BUFFER, id);
+	r_state.active_buffers[buffer->type] = buffer->bufnum;
 
-	if (type && id) // assign the array pointer as well
-		R_BindArray(target, type, NULL);
+	glBindBuffer(buffer->target, buffer->bufnum);
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief
+ */
+void R_UnbindBuffer(const int type) {
+
+	if (!r_state.active_buffers[type])
+		return;
+
+	r_state.active_buffers[type] = 0;
+
+	glBindBuffer(R_BufferTypeToTarget(type), 0);
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief Upload data to an already-created buffer.
+ * Note that this function assumes "data" is already offset to
+ * where you want to start reading from. You could also use this function to
+ * resize an existing buffer without uploading data, although it can't make the
+ * buffer smaller.
+ */
+void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data) {
+
+	assert(buffer->bufnum != 0);
+
+	// Check size. This is benign really, but it's usually a bug.
+	if (!size) {
+		Com_Warn("Attempted to upload 0 bytes to GPU");
+		return;
+	}
+
+	R_BindBuffer(buffer);
+
+	// if the buffer isn't big enough to hold what we had already,
+	// we have to resize the buffer
+	const size_t total_size = start + size;
+
+	if (total_size > buffer->size) {
+		// if we passed a "start", the data is offset, so
+		// just reset to null. This is an odd edge case and
+		// it's fairly rare you'll be editing at the end first,
+		// but who knows.
+		if (start) {
+			glBufferData(buffer->target, total_size, NULL, buffer->hint);
+			R_GetError("Partial resize");
+			glBufferSubData(buffer->target, start, size, data);
+			R_GetError("Partial update");
+		}
+		else
+		{
+			glBufferData(buffer->target, total_size, data, buffer->hint);
+			R_GetError("Full resize");
+		}
+
+		buffer->size = total_size;
+	}
+	else {
+		// just update the range we specified
+		buffer->size = size;
+		glBufferSubData(buffer->target, start, size, data);
+
+		R_GetError("Updating existing buffer");
+	}
+}
+
+/**
+ * @brief Allocate a GPU buffer of the specified size.
+ * Optionally upload the data immediately too.
+ */
+void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const int type, const size_t size, const void *data) {
+
+	assert(buffer->bufnum == 0);
+
+	glGenBuffers(1, &buffer->bufnum);
+
+	buffer->type = type;
+	buffer->target = R_BufferTypeToTarget(buffer->type);
+	buffer->hint = hint;
+
+	R_UploadToBuffer(buffer, 0, size, data);
+}
+
+/**
+ * @brief Destroy a GPU-allocated buffer.
+ */
+void R_DestroyBuffer(r_buffer_t *buffer)
+{
+	assert(buffer->bufnum != 0);
+
+	// if this buffer is currently bound, unbind it.
+	if (r_state.active_buffers[buffer->type] == buffer->bufnum)
+		R_UnbindBuffer(buffer->type);
+
+	glDeleteBuffers(1, &buffer->bufnum);
+
+	memset(buffer, 0, sizeof(r_buffer_t));
 
 	R_GetError(NULL);
 }
@@ -374,17 +457,11 @@ void R_EnableTexture(r_texunit_t *texunit, _Bool enable) {
 	R_SelectTexture(texunit);
 
 	if (enable) { // activate texture unit
-		//glEnable(GL_TEXTURE_2D);
 
 		R_BindTexture_Force(texunit->texnum);
-
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	} else { // or deactivate it
-		//glDisable(GL_TEXTURE_2D);
 
 		R_BindTexture_Force(r_image_state.null ? r_image_state.null->texnum : 0);
-
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 
 	R_SelectTexture(&texunit_diffuse);
@@ -399,11 +476,6 @@ void R_EnableColorArray(_Bool enable) {
 		return;
 
 	r_state.color_array_enabled = enable;
-
-	if (enable)
-		glEnableClientState(GL_COLOR_ARRAY);
-	else
-		glDisableClientState(GL_COLOR_ARRAY);
 }
 
 /**
@@ -412,9 +484,6 @@ void R_EnableColorArray(_Bool enable) {
  * have been enabled.
  */
 void R_EnableLighting(const r_program_t *program, _Bool enable) {
-
-	if (!r_programs->value)
-		return;
 
 	if (enable && (!program || !program->id || !program->UseLight))
 		return;
@@ -429,9 +498,7 @@ void R_EnableLighting(const r_program_t *program, _Bool enable) {
 
 		R_ResetLights();
 
-		glEnableClientState(GL_NORMAL_ARRAY);
 	} else {
-		glDisableClientState(GL_NORMAL_ARRAY);
 
 		R_UseProgram(r_state.null_program);
 	}
@@ -445,9 +512,6 @@ void R_EnableLighting(const r_program_t *program, _Bool enable) {
  * @brief Enables alpha-blended, stencil-test shadows.
  */
 void R_EnableShadow(const r_program_t *program, _Bool enable) {
-
-	if (!r_programs->value)
-		return;
 
 	if (enable && (!program || !program->id))
 		return;
@@ -471,9 +535,6 @@ void R_EnableShadow(const r_program_t *program, _Bool enable) {
  * @brief Enables the warp shader for drawing liquids and other effects.
  */
 void R_EnableWarp(const r_program_t *program, _Bool enable) {
-
-	if (!r_programs->value)
-		return;
 
 	if (enable && (!program || !program->id))
 		return;
@@ -504,9 +565,6 @@ void R_EnableWarp(const r_program_t *program, _Bool enable) {
  * @brief
  */
 void R_EnableShell(const r_program_t *program, _Bool enable) {
-
-	if (!r_programs->value)
-		return;
 
 	if (enable && (!program || !program->id))
 		return;
@@ -616,6 +674,16 @@ void R_UseMatrices(void) {
 }
 
 /**
+ * @brief Tells the program that all the usable attributes are
+ * ready for binding.
+ */
+void R_UseAttributes(void) {
+
+	if (r_state.active_program->UseAttributes)
+		r_state.active_program->UseAttributes();	
+}
+
+/**
  * @brief Uploads the alpha threshold to the currently loaded program.
  */
 void R_UseAlphaTest(void) {
@@ -674,8 +742,6 @@ void R_Setup3D(void) {
 	Matrix4x4_Copy(&r_view.matrix, &r_view.modelview_matrix);
 	Matrix4x4_Invert_Simple(&r_view.inverse_matrix, &r_view.matrix);
 
-	r_state.ortho = false;
-
 	// bind default vertex array
 	R_BindDefaultArray(R_ARRAY_VERTEX);
 
@@ -696,13 +762,12 @@ void R_Setup2D(void) {
 
 	Matrix4x4_CreateIdentity(&r_view.modelview_matrix);
 
-	r_state.ortho = true;
-
 	// bind default vertex array
 	R_BindDefaultArray(R_ARRAY_VERTEX);
 
 	// and set default texcoords for all 2d pics
 	memcpy(texunit_diffuse.texcoord_array, default_texcoords, sizeof(vec2_t) * 4);
+	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, sizeof(vec2_t) * 4, default_texcoords);
 
 	glEnable(GL_BLEND);
 
@@ -740,16 +805,17 @@ void R_InitState(void) {
 	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
 	// setup vertex array pointers
-	glEnableClientState(GL_VERTEX_ARRAY);
+	R_CreateBuffer(&r_state.buffer_vertex_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.vertex_array), NULL);
+	R_CreateBuffer(&r_state.buffer_color_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.color_array), NULL);
+	R_CreateBuffer(&r_state.buffer_normal_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.normal_array), NULL);
+	R_CreateBuffer(&r_state.buffer_tangent_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.tangent_array), NULL);
+	
+	R_UnbindBuffer(R_BUFFER_DATA);
+	R_UnbindBuffer(R_BUFFER_INDICES);
+
 	R_BindDefaultArray(R_ARRAY_VERTEX);
-
-	R_EnableColorArray(true);
 	R_BindDefaultArray(R_ARRAY_COLOR);
-	R_EnableColorArray(false);
-
-	glEnableClientState(GL_NORMAL_ARRAY);
 	R_BindDefaultArray(R_ARRAY_NORMAL);
-	glDisableClientState(GL_NORMAL_ARRAY);
 
 	// setup texture units
 	const size_t len = MAX_GL_ARRAY_LENGTH * sizeof(vec2_t);
@@ -761,6 +827,7 @@ void R_InitState(void) {
 			texunit->texture = GL_TEXTURE0 + i;
 
 			texunit->texcoord_array = Mem_TagMalloc(len, MEM_TAG_RENDERER);
+			R_CreateBuffer(&texunit->buffer_texcoord_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, len, NULL);
 
 			R_EnableTexture(texunit, true);
 
@@ -797,8 +864,16 @@ void R_ShutdownState(void) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
 		if (texunit->texcoord_array)
+		{
 			Mem_Free(texunit->texcoord_array);
+			R_DestroyBuffer(&texunit->buffer_texcoord_array);
+		}
 	}
+	
+	R_DestroyBuffer(&r_state.buffer_vertex_array);
+	R_DestroyBuffer(&r_state.buffer_color_array);
+	R_DestroyBuffer(&r_state.buffer_normal_array);
+	R_DestroyBuffer(&r_state.buffer_tangent_array);
 
 	memset(&r_state, 0, sizeof(r_state));
 }

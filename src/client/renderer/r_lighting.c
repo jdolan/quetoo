@@ -339,8 +339,8 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		if (tr.start_solid || tr.fraction == 1.0)
 			continue;
 
-		// for fixed-function render path, skip non-floor shadows
-		if (!r_programs->value || !r_lighting->value) {
+		// if lighting is disabled, skip non-floor shadows
+		if (!r_lighting->value) {
 			if (tr.plane.normal[2] < 0.7)
 				continue;
 		}

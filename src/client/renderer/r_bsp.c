@@ -252,6 +252,8 @@ void R_DrawBspNormals(void) {
 			continue; // don't care
 
 		if (k > MAX_GL_ARRAY_LENGTH - 512) { // avoid overflows, draw in batches
+			R_UploadToBuffer(&r_state.buffer_vertex_array, 0, k * sizeof(float), r_state.vertex_array);
+
 			R_DrawArrays(GL_LINES, 0, k / 3);
 			k = 0;
 		}
@@ -264,11 +266,13 @@ void R_DrawBspNormals(void) {
 
 			VectorMA(vertex, 12.0, normal, end);
 
-			memcpy(&r_state.vertex_array_3d[k], vertex, sizeof(vec3_t));
-			memcpy(&r_state.vertex_array_3d[k + 3], end, sizeof(vec3_t));
+			memcpy(&r_state.vertex_array[k], vertex, sizeof(vec3_t));
+			memcpy(&r_state.vertex_array[k + 3], end, sizeof(vec3_t));
 			k += sizeof(vec3_t) / sizeof(vec_t) * 2;
 		}
 	}
+
+	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, k * sizeof(float), r_state.vertex_array);
 
 	R_DrawArrays(GL_LINES, 0, k / 3);
 

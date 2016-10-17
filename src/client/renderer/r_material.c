@@ -310,7 +310,7 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 		const vec_t *v = &r_model_state.world->verts[surf->index * 3 + i * 3];
 		const vec_t *st = &r_model_state.world->texcoords[surf->index * 2 + i * 2];
 
-		R_StageVertex(surf, stage, v, &r_state.vertex_array_3d[i * 3]);
+		R_StageVertex(surf, stage, v, &r_state.vertex_array[i * 3]);
 
 		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[i * 2]);
 
@@ -331,6 +331,25 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 			const vec_t *t = &r_model_state.world->tangents[surf->index * 4 + i * 4];
 			VectorCopy(t, (&r_state.tangent_array[i * 4]));
 		}
+	}
+
+	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, i * sizeof(vec3_t), r_state.vertex_array);
+	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, i * sizeof(vec2_t), texunit_diffuse.texcoord_array);
+
+	if (texunit_lightmap.enabled) { 
+
+		R_UploadToBuffer(&texunit_lightmap.buffer_texcoord_array, 0, i * sizeof(vec2_t), texunit_lightmap.texcoord_array);
+	}
+
+	if (r_state.color_array_enabled) {
+	
+		R_UploadToBuffer(&r_state.buffer_color_array, 0, i * sizeof(vec4_t), r_state.color_array);
+	}
+
+	if (r_state.lighting_enabled) {
+
+		R_UploadToBuffer(&r_state.buffer_normal_array, 0, i * sizeof(vec3_t), r_state.normal_array);
+		R_UploadToBuffer(&r_state.buffer_tangent_array, 0, i * sizeof(vec4_t), r_state.tangent_array);
 	}
 
 	R_DrawArrays(GL_TRIANGLE_FAN, 0, i);
@@ -1025,7 +1044,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 		if (!m)
 			continue;
 
-		if (!g_strcmp0(c, "normalmap") && r_programs->value && r_bumpmap->value) {
+		if (!g_strcmp0(c, "normalmap") && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
 				m->normalmap = R_LoadImage(++c, IT_NORMALMAP);
@@ -1039,7 +1058,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			}
 		}
 
-		if (!g_strcmp0(c, "specularmap") && r_programs->value && r_bumpmap->value) {
+		if (!g_strcmp0(c, "specularmap") && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
 				m->specularmap = R_LoadImage(++c, IT_SPECULARMAP);

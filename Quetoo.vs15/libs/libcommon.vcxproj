@@ -68,14 +68,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
-    <IncludePath>..\..\src\;..\src\;glib\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\src\;..\src\;glib\include\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;$(IncludePath)</IncludePath>
     <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
-    <IncludePath>..\..\src\;..\src\;glib\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\src\;..\src\;glib\include\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;$(IncludePath)</IncludePath>
     <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
@@ -83,14 +83,14 @@
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
-    <IncludePath>..\..\src\;..\src\;glib\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\src\;..\src\;glib\include\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;$(IncludePath)</IncludePath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
-    <IncludePath>..\..\src\;..\src\;glib\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\src\;..\src\;glib\include\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;$(IncludePath)</IncludePath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

@@ -53,10 +53,34 @@ typedef struct {
 
 	GLfloat verts[MAX_PARTICLES * 3 * 4];
 	GLfloat texcoords[MAX_PARTICLES * 2 * 4];
-	GLubyte colors[MAX_PARTICLES * 4 * 4];
+	GLfloat colors[MAX_PARTICLES * 4 * 4];
+	
+	r_buffer_t verts_buffer;
+	r_buffer_t texcoords_buffer;
+	r_buffer_t colors_buffer;
 } r_particle_state_t;
 
 static r_particle_state_t r_particle_state;
+
+/**
+ * @brief
+ */
+void R_InitParticles(void) {
+	
+	R_CreateBuffer(&r_particle_state.verts_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.verts), NULL);
+	R_CreateBuffer(&r_particle_state.texcoords_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.texcoords), NULL);
+	R_CreateBuffer(&r_particle_state.colors_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.colors), NULL);
+}
+
+/**
+ * @brief
+ */
+void R_ShutdownParticles(void) {
+	
+	R_DestroyBuffer(&r_particle_state.verts_buffer);
+	R_DestroyBuffer(&r_particle_state.texcoords_buffer);
+	R_DestroyBuffer(&r_particle_state.colors_buffer);
+}
 
 /**
  * @brief Generates the vertex coordinates for the specified particle.
@@ -167,13 +191,10 @@ static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
 /**
  * @brief Generates vertex colors for the specified particle.
  */
-static void R_ParticleColor(const r_particle_t *p, GLubyte *out) {
+static void R_ParticleColor(const r_particle_t *p, GLfloat *out) {
 
 	for (int32_t i = 0; i < 4; i++) {
-		out[0] = Clamp(p->color[0] * 255, 0, 255);
-		out[1] = Clamp(p->color[1] * 255, 0, 255);
-		out[2] = Clamp(p->color[2] * 255, 0, 255);
-		out[3] = Clamp(p->color[3] * 255, 0, 255);
+		Vector4Copy(p->color, out);
 		out += 4;
 	}
 }
@@ -219,6 +240,13 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 			e->data = (void *) (uintptr_t) j++;
 		}
 	}
+
+	if (!j)
+		return;
+	
+	R_UploadToBuffer(&r_particle_state.verts_buffer, 0, j * sizeof(vec3_t) * 4, r_particle_state.verts);
+	R_UploadToBuffer(&r_particle_state.texcoords_buffer, 0, j * sizeof(vec2_t) * 4, r_particle_state.texcoords);
+	R_UploadToBuffer(&r_particle_state.colors_buffer, 0, j * sizeof(vec4_t) * 4, r_particle_state.colors);
 }
 
 /**
@@ -232,9 +260,9 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_ResetArrayState();
 
 	// alter the array pointers
-	R_BindArray(R_ARRAY_VERTEX, GL_FLOAT, r_particle_state.verts);
-	R_BindArray(R_ARRAY_TEX_DIFFUSE, GL_FLOAT, r_particle_state.texcoords);
-	R_BindArray(R_ARRAY_COLOR, GL_UNSIGNED_BYTE, r_particle_state.colors);
+	R_BindArray(R_ARRAY_VERTEX, &r_particle_state.verts_buffer);
+	R_BindArray(R_ARRAY_TEX_DIFFUSE, &r_particle_state.texcoords_buffer);
+	R_BindArray(R_ARRAY_COLOR, &r_particle_state.colors_buffer);
 
 	const GLuint base = (uintptr_t) e->data;
 

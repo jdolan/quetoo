@@ -38,6 +38,7 @@ void R_Draw2D(void);
 
 #ifdef __R_LOCAL_H__
 void R_InitDraw(void);
+void R_ShutdownDraw(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_DRAW_H__ */

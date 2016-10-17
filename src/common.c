@@ -21,6 +21,11 @@
 
 #include "common.h"
 
+#include <SDL2\SDL_assert.h>
+#include <SDL2\SDL_log.h>
+
+cvar_t *developer;
+
 /**
  * @brief Print a debug statement. If the format begins with '!', the function
  * name is omitted.
@@ -83,6 +88,7 @@ void Com_Debug_(const char *func, const char *fmt, ...) {
  * @brief An error condition has occurred. This function does not return.
  */
 void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
+	
 	char msg[MAX_PRINT_MSG];
 
 	if (err == ERR_FATAL) {
@@ -107,6 +113,10 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	va_start(args, fmt);
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
+
+	// trigger breakpoint before end but after msg is ready to read
+	if (developer->value >= 1)
+		SDL_TriggerBreakpoint();
 
 	if (quetoo.Error) {
 		quetoo.Error(err, (const char *) msg);
@@ -134,12 +144,19 @@ void Com_Print(const char *fmt, ...) {
 		fputs(msg, stdout);
 		fflush(stdout);
 	}
+
+	// FIXME: not sure how to resolve this one, because
+	// prints happen before command buf is run and whatnot.
+	// developer may never be non-zero if crash happens very early.
+	if (!developer || developer->value >= 3)
+		SDL_Log("%s", (const char *) msg);
 }
 
 /**
  * @brief Prints a warning message.
  */
 void Com_Warn_(const char *func, const char *fmt, ...) {
+	
 	static char msg[MAX_PRINT_MSG];
 
 	if (fmt[0] != '!') {
@@ -162,6 +179,10 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
 		fprintf(stderr, "WARNING: %s", msg);
 		fflush(stderr);
 	}
+
+	// trigger breakpoint after msg is ready to read
+	if (developer->value >= 2)
+		SDL_TriggerBreakpoint();
 }
 
 /**

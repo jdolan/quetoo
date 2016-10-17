@@ -22,6 +22,7 @@
 #include "console.h"
 
 #include <signal.h>
+#include <SDL2\SDL_log.h>
 
 console_state_t console_state;
 
@@ -181,9 +182,8 @@ void Con_Append(int32_t level, const char *string) {
 		fputs(stripped, stdout);
 	}
 
-#if defined(_WIN32) && defined(_DEBUG)
-	OutputDebugString(string);
-#endif
+	if (developer->integer >= 3)
+		OutputDebugString(string);
 }
 
 /**

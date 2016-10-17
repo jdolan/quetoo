@@ -210,9 +210,9 @@ void R_InterpolateMeshModel(const r_entity_t *e) {
 
 		for (uint16_t j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the triangles
 
-			VectorCopy(r_mesh_state.vertexes[tri[0]], (&r_state.vertex_array_3d[vert_index + 0]));
-			VectorCopy(r_mesh_state.vertexes[tri[1]], (&r_state.vertex_array_3d[vert_index + 3]));
-			VectorCopy(r_mesh_state.vertexes[tri[2]], (&r_state.vertex_array_3d[vert_index + 6]));
+			VectorCopy(r_mesh_state.vertexes[tri[0]], (&r_state.vertex_array[vert_index + 0]));
+			VectorCopy(r_mesh_state.vertexes[tri[1]], (&r_state.vertex_array[vert_index + 3]));
+			VectorCopy(r_mesh_state.vertexes[tri[2]], (&r_state.vertex_array[vert_index + 6]));
 
 			if (r_state.lighting_enabled) { // normal vectors for lighting
 				VectorCopy(r_mesh_state.normals[tri[0]], (&r_state.normal_array[vert_index + 0]));
@@ -222,6 +222,13 @@ void R_InterpolateMeshModel(const r_entity_t *e) {
 
 			vert_index += 9;
 		}
+	}
+
+	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, vert_index * sizeof(vec3_t), r_state.vertex_array);
+
+	if (r_state.lighting_enabled) {
+	
+		R_UploadToBuffer(&r_state.buffer_normal_array, 0, vert_index * sizeof(vec3_t), r_state.normal_array);
 	}
 }
 
@@ -234,7 +241,7 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
 
 	VectorCopy(r_bsp_light_state.ambient, color);
 
-	if (!r_lighting->value || !r_programs->value) {
+	if (!r_lighting->value) {
 		const r_illumination_t *il = e->lighting->illuminations;
 
 		for (uint16_t i = 0; i < r_state.max_lights; i++, il++) {
@@ -290,7 +297,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	} else { // or use the default arrays
 		R_ResetArrayState();
 
-		R_BindArray(R_ARRAY_TEX_DIFFUSE, GL_FLOAT, e->model->texcoords);
+		R_BindArray(R_ARRAY_TEX_DIFFUSE, &e->model->texcoord_buffer);
 
 		R_InterpolateMeshModel(e);
 	}

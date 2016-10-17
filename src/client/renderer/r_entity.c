@@ -187,7 +187,7 @@ void R_CullEntities(void *data __attribute__((unused))) {
  */
 static void R_DrawNullModel(const r_entity_t *e) {
 
-	R_EnableTexture(&texunit_diffuse, false);
+	/*R_EnableTexture(&texunit_diffuse, false);
 
 	R_RotateForEntity(e);
 
@@ -205,7 +205,7 @@ static void R_DrawNullModel(const r_entity_t *e) {
 
 	R_RotateForEntity(NULL);
 
-	R_EnableTexture(&texunit_diffuse, true);
+	R_EnableTexture(&texunit_diffuse, true);*/
 }
 
 /**
@@ -283,7 +283,9 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		VectorSet(verts[14], e->maxs[0], e->maxs[1], e->maxs[2]);
 		VectorSet(verts[15], e->maxs[0], e->maxs[1], e->mins[2]);
 
-		memcpy(r_state.vertex_array_3d, verts, sizeof(verts));
+		memcpy(r_state.vertex_array, verts, sizeof(verts));
+
+		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, sizeof(verts), r_state.vertex_array);
 
 		R_DrawArrays(GL_QUADS, 0, lengthof(verts));
 

@@ -39,27 +39,40 @@ void R_EnablePrograms(void);
 extern const vec_t default_texcoords[];
 
 // texunits maintain multitexture state
+#define MAX_GL_TEXUNITS			8
+
 typedef struct r_texunit_s {
 	_Bool enabled; // on / off (off uses null texture)
 	GLenum texture; // e.g. GL_TEXTURE0 + x
 	GLuint texnum; // e.g 123
 	GLuint bound; // the actual bound value regardless of enabled state
 	GLfloat *texcoord_array;
+	r_buffer_t buffer_texcoord_array;
 } r_texunit_t;
-
-#define MAX_GL_TEXUNITS			8
 
 #define MAX_GL_MATRIX_STACK		16
 
 // opengl state management
 typedef struct r_state_s {
-	_Bool ortho; // 2d vs 3d projection
-
-	GLfloat vertex_array_3d[MAX_GL_ARRAY_LENGTH * 3]; // default vertex arrays
-	GLshort vertex_array_2d[MAX_GL_ARRAY_LENGTH * 2];
+	GLfloat vertex_array[MAX_GL_ARRAY_LENGTH * 3]; // default vertex arrays
 	GLfloat color_array[MAX_GL_ARRAY_LENGTH * 4];
 	GLfloat normal_array[MAX_GL_ARRAY_LENGTH * 3];
-	GLfloat tangent_array[MAX_GL_ARRAY_LENGTH * 3];
+	GLfloat tangent_array[MAX_GL_ARRAY_LENGTH * 4];
+	
+	// built-in buffers for the above vertex arrays
+	r_buffer_t buffer_vertex_array;
+	r_buffer_t buffer_color_array;
+	r_buffer_t buffer_normal_array;
+	r_buffer_t buffer_tangent_array;
+
+	// the current buffers bound to the global
+	// renderer state. This just prevents
+	// them being bound multiple times in a row.
+	GLuint active_buffers[R_NUM_BUFFERS];
+
+	// the buffers that will be passed to the
+	// programs to be used in attributes.
+	const r_buffer_t *array_buffers[R_ARRAY_MAX_ATTRIBS];
 
 	GLenum blend_src, blend_dest; // blend function
 	_Bool blend_enabled;
@@ -118,11 +131,18 @@ void R_BindLightmapTexture(GLuint texnum);
 void R_BindDeluxemapTexture(GLuint texnum);
 void R_BindNormalmapTexture(GLuint texnum);
 void R_BindSpecularmapTexture(GLuint texnum);
-void R_BindArray(int target, GLenum type, GLvoid *array);
 void R_BindDefaultArray(int target);
-void R_BindBuffer(int target, GLenum type, GLuint id);
 void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
+
+void R_BindBuffer(const r_buffer_t *buffer);
+void R_UnbindBuffer(const int type);
+void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data);
+void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const int type, const size_t size, const void *data);
+void R_DestroyBuffer(r_buffer_t *buffer);
+_Bool R_ValidBuffer(const r_buffer_t *buffer);
+
+void R_BindArray(int target, const r_buffer_t *buffer);
 
 #define ALPHA_TEST_DISABLED_THRESHOLD 0.0
 #define ALPHA_TEST_ENABLED_THRESHOLD 0.25
@@ -143,6 +163,7 @@ void R_PopMatrix(void);
 void R_UseMatrices(void);
 void R_UseAlphaTest(void);
 void R_UseCurrentColor(void);
+void R_UseAttributes(void);
 void R_InitState(void);
 void R_ShutdownState(void);
 

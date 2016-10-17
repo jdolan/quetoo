@@ -132,8 +132,9 @@ static void Init(void) {
 	Cvar_Init();
 
 	Fs_Init(true);
-
+	
 	debug = Cvar_Add("debug", "0", 0, "Print debugging information");
+	developer = Cvar_Add("developer", "0", 0, "Enable developer mode, which may provide more options or more information");
 
 	dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
 	if (strstr(Sys_ExecutablePath(), "-dedicated")) {

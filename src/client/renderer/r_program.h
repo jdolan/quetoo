@@ -112,6 +112,7 @@ typedef struct {
 	void (*UseMatrices)(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture);
 	void (*UseAlphaTest)(const float threshold);
 	void (*UseCurrentColor)(const vec4_t threshold);
+	void (*UseAttributes)(void);
 } r_program_t;
 
 #define MAX_PROGRAMS 8
@@ -123,7 +124,7 @@ void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value);
 void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value);
 void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value);
 _Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value);
-void R_AttributePointer(const char *name, GLuint size, const GLvoid *array);
+void R_AttributePointer(const r_attribute_t *attribute, GLuint size, const GLvoid *array);
 void R_EnableAttribute(r_attribute_t *attribute);
 void R_DisableAttribute(r_attribute_t *attribute);
 void R_ShutdownPrograms(void);

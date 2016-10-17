@@ -23,6 +23,10 @@
 
 // these are the variables defined in the GLSL shader
 typedef struct {
+	r_attribute_t position;
+	r_attribute_t color;
+	r_attribute_t texcoord;
+
 	r_sampler2d_t sampler0;
 
 	r_uniformfog_t fog;
@@ -43,6 +47,10 @@ void R_InitProgram_null(void) {
 
 	r_null_program_t *p = &r_null_program;
 
+	R_ProgramVariable(&p->position, R_ATTRIBUTE, "A_POSITION");
+	R_ProgramVariable(&p->color, R_ATTRIBUTE, "A_COLOR");
+	R_ProgramVariable(&p->texcoord, R_ATTRIBUTE, "A_TEXCOORD");
+	
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0");
 
 	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
@@ -55,6 +63,10 @@ void R_InitProgram_null(void) {
 	R_ProgramVariable(&p->texture_mat, R_UNIFORM_MAT4, "TEXTURE_MAT");
 
 	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
+
+	R_DisableAttribute(&p->position);
+	R_DisableAttribute(&p->color);
+	R_DisableAttribute(&p->texcoord);
 
 	R_ProgramParameter1i(&p->sampler0, 0);
 
@@ -111,4 +123,42 @@ void R_UseCurrentColor_null(const vec4_t color) {
 		R_ProgramParameter4fv(&p->current_color, color);
 	else
 		R_ProgramParameter4fv(&p->current_color, white);
+}
+
+/**
+ * @brief
+ */
+void R_UseAttributes_null(void) {
+
+	r_null_program_t *p = &r_null_program;
+	int32_t mask = R_ArraysMask() & r_state.active_program->arrays_mask;
+	
+	if (mask & R_ARRAY_MASK(R_ARRAY_VERTEX)) {
+
+		R_EnableAttribute(&p->position);
+		R_BindBuffer(r_state.array_buffers[R_ARRAY_VERTEX]);
+		R_AttributePointer(&p->position, 3, NULL);
+	}
+	else
+		R_DisableAttribute(&p->position);
+
+	if (mask & R_ARRAY_MASK(R_ARRAY_COLOR)) {
+
+		R_EnableAttribute(&p->color);
+		R_BindBuffer(r_state.array_buffers[R_ARRAY_COLOR]);
+		R_AttributePointer(&p->color, 4, NULL);
+	}
+	else
+		R_DisableAttribute(&p->color);
+
+	if (mask & R_ARRAY_MASK(R_ARRAY_TEX_DIFFUSE)) {
+
+		R_EnableAttribute(&p->texcoord);
+		R_BindBuffer(r_state.array_buffers[R_ARRAY_TEX_DIFFUSE]);
+		R_AttributePointer(&p->texcoord, 2, NULL);
+	}
+	else
+		R_DisableAttribute(&p->texcoord);
+
+	R_UnbindBuffer(R_BUFFER_DATA);
 }
