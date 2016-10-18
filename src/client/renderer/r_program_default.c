@@ -104,11 +104,11 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR");
 	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
 
-	if (r_state.max_lights)
+	if (r_state.max_active_lights)
 	{
-		p->lights = Mem_TagMalloc(sizeof(r_uniformlight_t) * r_state.max_lights, MEM_TAG_RENDERER);
+		p->lights = Mem_TagMalloc(sizeof(r_uniformlight_t) * r_state.max_active_lights, MEM_TAG_RENDERER);
 
-		for (int32_t i = 0; i < r_state.max_lights; ++i)
+		for (int32_t i = 0; i < r_state.max_active_lights; ++i)
 		{
 			R_ProgramVariable(&p->lights[i].origin, R_UNIFORM_VEC3, va("LIGHTS.ORIGIN[%i]", i));
 			R_ProgramVariable(&p->lights[i].color, R_UNIFORM_VEC3, va("LIGHTS.COLOR[%i]", i));

@@ -821,7 +821,7 @@ void R_InitState(void) {
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// set num lights
-	r_state.max_lights = Clamp(r_max_lights->integer, 0, MAX_LIGHTS);
+	r_state.max_active_lights = Clamp(r_max_lights->integer, 0, MAX_LIGHTS);
 
 	// set default alpha threshold
 	r_state.alpha_threshold = ALPHA_TEST_DISABLED_THRESHOLD;
