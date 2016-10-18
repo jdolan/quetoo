@@ -285,11 +285,10 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length);
 /**
  * @brief
  */
-static gboolean R_PreprocessShader_EvalCallback(const GMatchInfo *match_info, GString *result, gpointer user_data)
-{
+static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *result, gpointer data) {
 	const gchar *name = g_match_info_fetch(match_info, 1);
 	gchar path[MAX_OS_PATH];
-	int32_t len;
+	int64_t len;
 	void *buf;
 
 	g_snprintf(path, sizeof(path), "shaders/%s", name);
@@ -302,6 +301,8 @@ static gboolean R_PreprocessShader_EvalCallback(const GMatchInfo *match_info, GS
 	gchar *processed = R_PreprocessShader((const char *) buf, len);
 	g_string_append(result, processed);
 	g_free(processed);
+
+	Fs_Free(buf);
 
 	return false;
 }
@@ -321,7 +322,7 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length)
 	}
 
 	GError *error = NULL;
-	gchar *output = g_regex_replace_eval(shader_preprocess_regex, emplaced->str, emplaced->len, 0, 0, R_PreprocessShader_EvalCallback, NULL, &error);
+	gchar *output = g_regex_replace_eval(shader_preprocess_regex, emplaced->str, emplaced->len, 0, 0, R_PreprocessShader_eval, NULL, &error);
 
 	if (error)
 		Com_Warn("Error preprocessing shader: %s", error->message);
