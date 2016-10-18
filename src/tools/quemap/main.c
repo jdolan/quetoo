@@ -414,7 +414,7 @@ static void PrintHelpMessage(void) {
  * @brief
  */
 int32_t main(int32_t argc, char **argv) {
-	int32_t i;
+	int32_t threads = 0;
 	_Bool do_bsp = false;
 	_Bool do_vis = false;
 	_Bool do_light = false;
@@ -449,7 +449,7 @@ int32_t main(int32_t argc, char **argv) {
 	Com_Init(argc, argv);
 
 	// general options
-	for (i = 1; i < Com_Argc(); i++) {
+	for (int32_t i = 1; i < Com_Argc(); i++) {
 
 		if (!g_strcmp0(Com_Argv(i), "-h") || !g_strcmp0(Com_Argv(i), "-help")) {
 			PrintHelpMessage();
@@ -472,8 +472,7 @@ int32_t main(int32_t argc, char **argv) {
 		}
 
 		if (!g_strcmp0(Com_Argv(i), "-t") || !g_strcmp0(Com_Argv(i), "-threads")) {
-			Thread_Init(atoi(Com_Argv(i + 1)));
-			Com_Print("Using %u threads\n", Thread_Count());
+			threads = atoi(Com_Argv(i + 1));
 			continue;
 		}
 
@@ -484,7 +483,7 @@ int32_t main(int32_t argc, char **argv) {
 	}
 
 	// read compiling options
-	for (i = 1; i < Com_Argc(); i++) {
+	for (int32_t i = 1; i < Com_Argc(); i++) {
 
 		if (!g_strcmp0(Com_Argv(i), "-bsp")) {
 			do_bsp = true;
@@ -518,11 +517,13 @@ int32_t main(int32_t argc, char **argv) {
 	}
 
 	if (!do_bsp && !do_vis && !do_light && !do_aas && !do_mat && !do_zip) {
-		Com_Error(ERR_FATAL, "No action specified. Try %s -help\n", Com_Argv(0));
+		Com_Error(ERR_FATAL, "No action specified. Try %s --help\n", Com_Argv(0));
 	}
 
-	// ugly little hack to localize global paths to game paths
-	// for e.g. GtkRadiant
+	Thread_Init(threads);
+	Com_Print("Using %u threads\n", Thread_Count());
+
+	// ugly little hack to localize global paths to game paths for e.g. GtkRadiant
 	const char *c = strstr(Com_Argv(Com_Argc() - 1), "/maps/");
 	c = c ? c + 1 : Com_Argv(Com_Argc() - 1);
 

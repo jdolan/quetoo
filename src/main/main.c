@@ -148,7 +148,7 @@ static void Init(void) {
 	game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
 	game->modified = g_strcmp0(game->string, DEFAULT_GAME);
 
-	threads = Cvar_Add("threads", "4", CVAR_ARCHIVE, "Enable or disable threads");
+	threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create");
 	time_demo = Cvar_Add("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
 	time_scale = Cvar_Add("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
 	verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");

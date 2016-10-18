@@ -77,7 +77,8 @@ static void Cg_Init(void) {
 			"Control the intensity of atmospheric effects.");
 
 	cg_bob = cgi.Cvar("cg_bob", "1.0", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
-	cg_color = cgi.Cvar("cg_color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
+
+	cg_color = cgi.Cvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 			"Specifies the effect color for your own weapon trails.");
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,

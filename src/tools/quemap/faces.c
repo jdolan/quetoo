@@ -32,7 +32,7 @@
 
 #define EQUAL_EPSILON		0.001
 #define	INTEGRAL_EPSILON	0.01
-#define	POINT_EPSILON		0.5
+#define	POINT_EPSILON		0.1
 #define	OFF_EPSILON			0.5
 
 static int32_t c_merge;
