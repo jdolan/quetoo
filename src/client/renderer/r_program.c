@@ -25,7 +25,7 @@ typedef struct {
 	_Bool attributes_enabled[R_ARRAY_MAX_ATTRIBS];
 } r_program_state_t;
 
-static r_program_state_t program_state;
+static r_program_state_t r_program_state;
 
 /**
  * @brief
@@ -208,9 +208,9 @@ void R_EnableAttribute(const r_attribute_t *attribute) {
 		return;
 	}
 
-	if (program_state.attributes_enabled[attribute->location] != true) {
+	if (r_program_state.attributes_enabled[attribute->location] != true) {
 		glEnableVertexAttribArray(attribute->location);
-		program_state.attributes_enabled[attribute->location] = true;
+		r_program_state.attributes_enabled[attribute->location] = true;
 	}
 
 	R_GetError(attribute->name);
@@ -226,9 +226,9 @@ void R_DisableAttribute(const r_attribute_t *attribute) {
 		return;
 	}
 
-	if (program_state.attributes_enabled[attribute->location] != false) {
+	if (r_program_state.attributes_enabled[attribute->location] != false) {
 		glDisableVertexAttribArray(attribute->location);
-		program_state.attributes_enabled[attribute->location] = false;
+		r_program_state.attributes_enabled[attribute->location] = false;
 	}
 
 	R_GetError(attribute->name);
@@ -267,11 +267,10 @@ static void R_ShutdownProgram(r_program_t *prog) {
  * @brief
  */
 void R_ShutdownPrograms(void) {
-	int32_t i;
 
 	R_UseProgram(NULL);
 
-	for (i = 0; i < MAX_PROGRAMS; i++) {
+	for (int32_t i = 0; i < MAX_PROGRAMS; i++) {
 
 		if (!r_state.programs[i].id)
 			continue;
