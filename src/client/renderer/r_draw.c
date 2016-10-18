@@ -22,21 +22,23 @@
 #include "r_local.h"
 #include "client.h"
 
-#define MAX_CHARS 16384  // per font
+#define MAX_CHARS MAX_GL_ARRAY_LENGTH  // per font
 // characters are batched per frame and drawn in one shot
 // accumulate coordinates and colors as vertex arrays
 typedef struct r_char_arrays_s {
-	GLfloat verts[MAX_CHARS * 4 * 3];
+	GLfloat verts[MAX_CHARS * sizeof(vec3_t)];
 	uint32_t vert_index;
 	r_buffer_t vert_buffer;
 
-	GLfloat texcoords[MAX_CHARS * 4 * 2];
+	GLfloat texcoords[MAX_CHARS * sizeof(vec2_t)];
 	uint32_t texcoord_index;
 	r_buffer_t texcoord_buffer;
 
-	GLfloat colors[MAX_CHARS * 4 * 4];
+	GLfloat colors[MAX_CHARS * sizeof(vec4_t)];
 	uint32_t color_index;
 	r_buffer_t color_buffer;
+
+	uint32_t num_chars;
 } r_char_arrays_t;
 
 #define MAX_FILLS 512
@@ -300,6 +302,7 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 	chars->verts[chars->vert_index + 11] = 0;
 
 	chars->vert_index += 12;
+	chars->num_chars++;
 }
 
 /**
@@ -331,6 +334,7 @@ static void R_DrawChars(void) {
 		chars->color_index = 0;
 		chars->texcoord_index = 0;
 		chars->vert_index = 0;
+		chars->num_chars = 0;
 	}
 
 	// restore array pointers

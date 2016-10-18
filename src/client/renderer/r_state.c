@@ -320,7 +320,6 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size,
 	}
 	else {
 		// just update the range we specified
-		buffer->size = size;
 		glBufferSubData(buffer->target, start, size, data);
 
 		R_GetError("Updating existing buffer");

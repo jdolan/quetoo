@@ -115,7 +115,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	va_end(args);
 
 	// trigger breakpoint before end but after msg is ready to read
-	if (developer->value >= 1)
+	if (developer && developer->value >= 1)
 		SDL_TriggerBreakpoint();
 
 	if (quetoo.Error) {
@@ -181,7 +181,7 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
 	}
 
 	// trigger breakpoint after msg is ready to read
-	if (developer->value >= 2)
+	if (developer && developer->value >= 2)
 		SDL_TriggerBreakpoint();
 }
 
