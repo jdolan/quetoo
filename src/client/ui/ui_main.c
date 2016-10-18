@@ -48,12 +48,6 @@ void Ui_HandleEvent(const SDL_Event *event) {
 		}
 	}
 
-	if (event->type == SDL_WINDOWEVENT) {
-		if (event->window.event == SDL_WINDOWEVENT_SHOWN) {
-			$(windowController->viewController->view, renderDeviceDidReset);
-		}
-	}
-
 	$(windowController, respondToEvent, event);
 }
 
@@ -84,8 +78,6 @@ void Ui_Draw(void) {
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glPushClientAttrib(GL_ALL_CLIENT_ATTRIB_BITS);
-
-	glDisable(GL_TEXTURE_2D);
 
 	glMatrixMode(GL_PROJECTION);
 
