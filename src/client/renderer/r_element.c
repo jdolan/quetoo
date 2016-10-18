@@ -177,6 +177,8 @@ void R_DrawElements(void) {
 	if (!r_element_state.count)
 		return;
 
+	R_UploadParticles();
+
 	const r_element_t *e = r_element_state.elements;
 
 #if 0

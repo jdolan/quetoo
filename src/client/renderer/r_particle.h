@@ -31,6 +31,7 @@ void R_ShutdownParticles(void);
 void R_InitParticles(void);
 void R_UpdateParticles(r_element_t *e, const size_t count);
 void R_DrawParticles(const r_element_t *e, const size_t count);
+void R_UploadParticles(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PARTICLE_H__ */

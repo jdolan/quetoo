@@ -54,6 +54,7 @@ typedef struct {
 	GLfloat verts[MAX_PARTICLES * 3 * 4];
 	GLfloat texcoords[MAX_PARTICLES * 2 * 4];
 	GLfloat colors[MAX_PARTICLES * 4 * 4];
+	uint32_t num_particles;
 	
 	r_buffer_t verts_buffer;
 	r_buffer_t texcoords_buffer;
@@ -238,15 +239,21 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 			R_ParticleColor(p, &r_particle_state.colors[j * 4 * 4]);
 
 			e->data = (void *) (uintptr_t) j++;
+			r_particle_state.num_particles++;
 		}
 	}
+}
 
-	if (!j)
+void R_UploadParticles(void) {
+
+	if (!r_particle_state.num_particles)
 		return;
-	
-	R_UploadToBuffer(&r_particle_state.verts_buffer, 0, j * sizeof(vec3_t) * 4, r_particle_state.verts);
-	R_UploadToBuffer(&r_particle_state.texcoords_buffer, 0, j * sizeof(vec2_t) * 4, r_particle_state.texcoords);
-	R_UploadToBuffer(&r_particle_state.colors_buffer, 0, j * sizeof(vec4_t) * 4, r_particle_state.colors);
+
+	R_UploadToBuffer(&r_particle_state.verts_buffer, 0, r_particle_state.num_particles * sizeof(vec3_t) * 4, r_particle_state.verts);
+	R_UploadToBuffer(&r_particle_state.texcoords_buffer, 0, r_particle_state.num_particles * sizeof(vec2_t) * 4, r_particle_state.texcoords);
+	R_UploadToBuffer(&r_particle_state.colors_buffer, 0, r_particle_state.num_particles * sizeof(vec4_t) * 4, r_particle_state.colors);
+
+	r_particle_state.num_particles = 0;
 }
 
 /**
