@@ -91,6 +91,7 @@ typedef struct r_buffer_s {
 	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
 	GLuint bufnum; // e.g. 123
 	size_t size; // last size of buffer, for resize operations
+	uint64_t u_up, r_up; // debugging
 } r_buffer_t;
 
 #define R_BUFFER_DATA			0

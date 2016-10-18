@@ -14,11 +14,13 @@ uniform vec4 GLOBAL_COLOR;
 varying vec4 color;
 varying vec4 point;
 
+attribute vec3 POSITION;
+
 /**
  * @brief
  */
 void ShadowVertex() {
-	point = MODELVIEW_MAT * MATRIX * gl_Vertex;	
+	point = MODELVIEW_MAT * MATRIX * vec4(POSITION, 1.0);	
 }
 
 /**
@@ -35,12 +37,12 @@ void FogVertex(void) {
 void main(void) {
 	
 	// mvp transform into clip space
-	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * MATRIX * gl_Vertex;
+	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * MATRIX * vec4(POSITION, 1.0);
 	
 	// and primary color
-	color = gl_Color * GLOBAL_COLOR;
-	
+	color = GLOBAL_COLOR;
+
 	ShadowVertex();
-    
+	    
     FogVertex();
 }

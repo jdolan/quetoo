@@ -6,7 +6,6 @@
 
 uniform sampler2D SAMPLER0;
 
-varying vec4 color;
 varying vec2 texcoord;
 
 /**
@@ -14,5 +13,5 @@ varying vec2 texcoord;
  */
 void main(void) {
 
-	gl_FragColor = texture2D(SAMPLER0, texcoord) * color;	
+	gl_FragColor = texture2D(SAMPLER0, texcoord);	
 }

@@ -26,6 +26,7 @@
 
 #ifdef __R_LOCAL_H__
 void R_InitProgram_default(void);
+void R_PreLink_default(const r_program_t *program);
 void R_Shutdown_default(void);
 void R_UseProgram_default(void);
 void R_UseMaterial_default(const r_material_t *material);

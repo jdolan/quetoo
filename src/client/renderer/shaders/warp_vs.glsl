@@ -10,6 +10,9 @@
 varying vec4 color;
 varying vec2 texcoord;
 
+attribute vec3 POSITION;
+attribute vec2 TEXCOORD;
+
 /**
  * @brief
  */
@@ -24,13 +27,10 @@ void FogVertex(void) {
 void main(void) {
 
 	// mvp transform into clip space
-	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * gl_Vertex;
+	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * vec4(POSITION, 1.0);
 
 	// pass texcoords through
-	texcoord = vec2(gl_MultiTexCoord0);
-
-	// and primary color
-	color = gl_Color;
+	texcoord = TEXCOORD;
 
 	FogVertex();
 }

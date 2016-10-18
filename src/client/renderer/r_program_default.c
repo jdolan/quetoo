@@ -61,8 +61,21 @@ static r_default_program_t r_default_program;
 /**
  * @brief
  */
-void R_InitProgram_default(void) {
+void R_PreLink_default(const r_program_t *program) {
+	
+	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
+	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
+	R_BindAttributeLocation(program, "TEXCOORD0", R_ARRAY_TEX_DIFFUSE);
+	R_BindAttributeLocation(program, "TEXCOORD1", R_ARRAY_TEX_LIGHTMAP);
+	R_BindAttributeLocation(program, "NORMAL", R_ARRAY_NORMAL);
+	R_BindAttributeLocation(program, "TANGENT", R_ARRAY_TANGENT);
+}
 
+/**
+ * @brief
+ */
+void R_InitProgram_default(void) {
+	
 	r_default_program_t *p = &r_default_program;
 
 	R_ProgramVariable(&p->position, R_ATTRIBUTE, "POSITION");
@@ -282,10 +295,11 @@ void R_UseAttributes_default(void) {
 
 		R_EnableAttribute(&p->position);
 		R_BindBuffer(r_state.array_buffers[R_ARRAY_VERTEX]);
-		R_AttributePointer(&p->position, 4, NULL);
+		R_AttributePointer(&p->position, 3, NULL);
 	}
-	else
+	else {
 		R_DisableAttribute(&p->position);
+	}
 
 	if (mask & R_ARRAY_MASK(R_ARRAY_COLOR)) {
 
@@ -293,8 +307,10 @@ void R_UseAttributes_default(void) {
 		R_BindBuffer(r_state.array_buffers[R_ARRAY_COLOR]);
 		R_AttributePointer(&p->color, 4, NULL);
 	}
-	else
+	else {
 		R_DisableAttribute(&p->color);
+		glVertexAttrib4f(p->color.location, 1, 1, 1, 1);
+	}
 
 	if (mask & R_ARRAY_MASK(R_ARRAY_TEX_DIFFUSE)) {
 
@@ -302,8 +318,9 @@ void R_UseAttributes_default(void) {
 		R_BindBuffer(r_state.array_buffers[R_ARRAY_TEX_DIFFUSE]);
 		R_AttributePointer(&p->texcoords[0], 2, NULL);
 	}
-	else
+	else {
 		R_DisableAttribute(&p->texcoords[0]);
+	}
 
 	if (mask & R_ARRAY_MASK(R_ARRAY_TEX_LIGHTMAP)) {
 
@@ -311,8 +328,9 @@ void R_UseAttributes_default(void) {
 		R_BindBuffer(r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP]);
 		R_AttributePointer(&p->texcoords[1], 2, NULL);
 	}
-	else
+	else {
 		R_DisableAttribute(&p->texcoords[1]);
+	}
 
 	if (mask & R_ARRAY_MASK(R_ARRAY_NORMAL)) {
 
@@ -320,8 +338,9 @@ void R_UseAttributes_default(void) {
 		R_BindBuffer(r_state.array_buffers[R_ARRAY_NORMAL]);
 		R_AttributePointer(&p->normal, 3, NULL);
 	}
-	else
+	else {
 		R_DisableAttribute(&p->normal);
+	}
 
 	if (mask & R_ARRAY_MASK(R_ARRAY_TANGENT)) {
 
@@ -329,8 +348,9 @@ void R_UseAttributes_default(void) {
 		R_BindBuffer(r_state.array_buffers[R_ARRAY_TANGENT]);
 		R_AttributePointer(&p->tangent, 4, NULL);
 	}
-	else
+	else {
 		R_DisableAttribute(&p->tangent);
+	}
 
 	R_UnbindBuffer(R_BUFFER_DATA);
 }

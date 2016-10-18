@@ -191,6 +191,8 @@ void R_ResetArrayState(void) {
  */
 void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 
+	assert(r_state.array_buffers[R_ARRAY_VERTEX] != NULL);
+
 	// upload state data that needs to be synced up to current program
 	R_UseMatrices();
 

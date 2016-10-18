@@ -23,6 +23,9 @@
 
 // these are the variables defined in the GLSL shader
 typedef struct r_warp_program_s {
+	r_attribute_t position;
+	r_attribute_t texcoord;
+
 	r_uniform1f_t offset;
 
 	r_sampler2d_t sampler0;
@@ -39,8 +42,20 @@ static r_warp_program_t r_warp_program;
 /**
  * @brief
  */
+void R_PreLink_warp(const r_program_t *program) {
+	
+	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
+	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_TEX_DIFFUSE);
+}
+
+/**
+ * @brief
+ */
 void R_InitProgram_warp(void) {
 	r_warp_program_t *p = &r_warp_program;
+
+	R_ProgramVariable(&p->position, R_ATTRIBUTE, "POSITION");
+	R_ProgramVariable(&p->texcoord, R_ATTRIBUTE, "TEXCOORD");
 
 	R_ProgramVariable(&p->offset, R_UNIFORM_FLOAT, "OFFSET");
 
@@ -98,4 +113,35 @@ void R_UseMatrices_warp(const matrix4x4_t *projection, const matrix4x4_t *modelv
 
 	if (modelview)
 		R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) modelview->m);
+}
+
+/**
+ * @brief
+ */
+void R_UseAttributes_warp(void) {
+
+	r_warp_program_t *p = &r_warp_program;
+	int32_t mask = R_ArraysMask() & r_state.active_program->arrays_mask;
+
+	if (mask & R_ARRAY_MASK(R_ARRAY_VERTEX)) {
+
+		R_EnableAttribute(&p->position);
+		R_BindBuffer(r_state.array_buffers[R_ARRAY_VERTEX]);
+		R_AttributePointer(&p->position, 3, NULL);
+	}
+	else {
+		R_DisableAttribute(&p->position);
+	}
+
+	if (mask & R_ARRAY_MASK(R_ARRAY_TEX_DIFFUSE)) {
+
+		R_EnableAttribute(&p->texcoord);
+		R_BindBuffer(r_state.array_buffers[R_ARRAY_TEX_DIFFUSE]);
+		R_AttributePointer(&p->texcoord, 2, NULL);
+	}
+	else {
+		R_DisableAttribute(&p->texcoord);
+	}
+
+	R_UnbindBuffer(R_BUFFER_DATA);
 }

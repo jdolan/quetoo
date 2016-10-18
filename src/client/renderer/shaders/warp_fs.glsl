@@ -33,7 +33,7 @@ void main(void) {
 	vec2 coord = vec2(texcoord.x + warp.z, texcoord.y + warp.w);
 
 	// sample the diffuse texture, factoring in primary color as well
-	gl_FragColor = color * texture2D(SAMPLER0, coord);
+	gl_FragColor = texture2D(SAMPLER0, coord);
 
 	FogFragment();  // add fog
 }

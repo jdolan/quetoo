@@ -197,7 +197,4 @@ void main(void) {
 	LightFragment(diffuse, lightmap, normalmap.xyz);
 
 	FogFragment(); // and lastly add fog
-	
-	gl_FragColor.r += 1.0;
-	gl_FragColor.a += 1.0;
 }

@@ -224,11 +224,11 @@ void R_InterpolateMeshModel(const r_entity_t *e) {
 		}
 	}
 
-	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, vert_index * sizeof(vec3_t), r_state.vertex_array);
+	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, vert_index * sizeof(float), r_state.vertex_array);
 
 	if (r_state.lighting_enabled) {
 	
-		R_UploadToBuffer(&r_state.buffer_normal_array, 0, vert_index * sizeof(vec3_t), r_state.normal_array);
+		R_UploadToBuffer(&r_state.buffer_normal_array, 0, vert_index * sizeof(float), r_state.normal_array);
 	}
 }
 

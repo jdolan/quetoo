@@ -43,13 +43,23 @@ static r_null_program_t r_null_program;
 /**
  * @brief
  */
+void R_PreLink_null(const r_program_t *program) {
+	
+	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
+	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
+	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_TEX_DIFFUSE);
+}
+
+/**
+ * @brief
+ */
 void R_InitProgram_null(void) {
 
 	r_null_program_t *p = &r_null_program;
 
-	R_ProgramVariable(&p->position, R_ATTRIBUTE, "A_POSITION");
-	R_ProgramVariable(&p->color, R_ATTRIBUTE, "A_COLOR");
-	R_ProgramVariable(&p->texcoord, R_ATTRIBUTE, "A_TEXCOORD");
+	R_ProgramVariable(&p->position, R_ATTRIBUTE, "POSITION");
+	R_ProgramVariable(&p->color, R_ATTRIBUTE, "COLOR");
+	R_ProgramVariable(&p->texcoord, R_ATTRIBUTE, "TEXCOORD");
 	
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0");
 
@@ -139,8 +149,9 @@ void R_UseAttributes_null(void) {
 		R_BindBuffer(r_state.array_buffers[R_ARRAY_VERTEX]);
 		R_AttributePointer(&p->position, 3, NULL);
 	}
-	else
+	else {
 		R_DisableAttribute(&p->position);
+	}
 
 	if (mask & R_ARRAY_MASK(R_ARRAY_COLOR)) {
 
@@ -148,8 +159,10 @@ void R_UseAttributes_null(void) {
 		R_BindBuffer(r_state.array_buffers[R_ARRAY_COLOR]);
 		R_AttributePointer(&p->color, 4, NULL);
 	}
-	else
+	else {
 		R_DisableAttribute(&p->color);
+		glVertexAttrib4f(p->color.location, 1, 1, 1, 1);
+	}
 
 	if (mask & R_ARRAY_MASK(R_ARRAY_TEX_DIFFUSE)) {
 
@@ -157,8 +170,9 @@ void R_UseAttributes_null(void) {
 		R_BindBuffer(r_state.array_buffers[R_ARRAY_TEX_DIFFUSE]);
 		R_AttributePointer(&p->texcoord, 2, NULL);
 	}
-	else
+	else {
 		R_DisableAttribute(&p->texcoord);
+	}
 
 	R_UnbindBuffer(R_BUFFER_DATA);
 }

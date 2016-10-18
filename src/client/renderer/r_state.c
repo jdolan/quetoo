@@ -118,7 +118,8 @@ static void R_BindTexture_Force(GLuint texnum) {
  */
 void R_BindTexture(GLuint texnum) {
 
-	if (texnum == r_state.active_texunit->texnum)
+	if (texnum == r_state.active_texunit->texnum &&
+		texnum == r_state.active_texunit->bound)
 		return;
 
 	r_state.active_texunit->texnum = texnum;
@@ -324,6 +325,8 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size,
 
 		R_GetError("Updating existing buffer");
 	}
+
+	buffer->u_up++;
 }
 
 /**

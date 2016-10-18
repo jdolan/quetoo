@@ -25,6 +25,7 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
+void R_PreLink_null(const r_program_t *program);
 void R_InitProgram_null(void);
 void R_UseFog_null(const r_fog_parameters_t *value);
 void R_UseMatrices_null(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture);
