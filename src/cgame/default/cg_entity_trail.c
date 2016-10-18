@@ -354,7 +354,7 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int
 		}
 	}
 
-	const vec_t ltime = (vec_t) cgi.client->systime / 300.0;
+	const vec_t ltime = (vec_t) (cgi.client->systime + ent->current.number) / 300.0;
 
 	for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
 		cg_particle_t *p;
