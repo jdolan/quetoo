@@ -42,8 +42,6 @@ void R_UseProgram(const r_program_t *prog) {
 
 		if (prog->Use) // invoke use function
 			prog->Use();
-
-		//memset(&program_state, 0, sizeof(program_state));
 	} else {
 		glUseProgram(0);
 	}
@@ -203,7 +201,7 @@ void R_AttributePointer(const r_attribute_t *attribute, GLuint size, const GLvoi
 /**
  * @brief
  */
-void R_EnableAttribute(r_attribute_t *attribute) {
+void R_EnableAttribute(const r_attribute_t *attribute) {
 
 	if (!attribute || attribute->location == -1) {
 		Com_Warn("NULL or invalid attribute\n");
@@ -221,7 +219,7 @@ void R_EnableAttribute(r_attribute_t *attribute) {
 /**
  * @brief
  */
-void R_DisableAttribute(r_attribute_t *attribute) {
+void R_DisableAttribute(const r_attribute_t *attribute) {
 
 	if (!attribute || attribute->location == -1) {
 		Com_Warn("NULL or invalid attribute\n");
@@ -466,8 +464,7 @@ static r_program_t *R_LoadProgram(const char *name, void (*Init)(r_program_t *pr
  */
 void R_SetupAttributes(void) {
 
-	// FIXME: I don't like having to remove the const here...
-	r_program_t *p = (r_program_t *) r_state.active_program;
+	const r_program_t *p = (r_program_t *) r_state.active_program;
 	int32_t mask = R_ArraysMask();
 
 	if (p->arrays_mask & R_ARRAY_MASK_VERTEX)
