@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <SDL2/SDL_cpuinfo.h>
+
 #include "thread.h"
 
 typedef struct thread_pool_s {
@@ -63,6 +65,10 @@ static int32_t Thread_Run(void *data) {
  * @brief Initializes the threads backing the thread pool.
  */
 static void Thread_Init_(uint16_t num_threads) {
+
+	if (num_threads == 0) {
+		num_threads = SDL_GetCPUCount();
+	}
 
 	thread_pool.num_threads = MIN(num_threads, MAX_THREADS);
 
