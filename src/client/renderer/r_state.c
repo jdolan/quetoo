@@ -101,16 +101,35 @@ void R_SelectTexture(r_texunit_t *texunit) {
  * @brief Actually binds the specified texture for the active texture unit
  * if it is not already bound.
  */
-static void R_BindTexture_Force(GLuint texnum) {
+static void R_BindTexture_Force(r_texunit_t *texunit, GLuint texnum) {
 
-	if (texnum == r_state.active_texunit->bound)
+	if (texnum == texunit->bound)
 		return;
 
 	glBindTexture(GL_TEXTURE_2D, texnum);
 
-	r_state.active_texunit->bound = texnum;
+	texunit->bound = texnum;
 
 	r_view.num_bind_texture++;
+}
+
+/**
+ * @brief Request that a texnum be bound to the specified texture unit.
+ */
+void R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
+
+	if (texnum == texunit->texnum &&
+		texnum == texunit->bound)
+		return;
+
+	r_texunit_t *old_unit = r_state.active_texunit;
+	R_SelectTexture(texunit);
+
+	texunit->texnum = texnum;
+
+	R_BindTexture_Force(texunit, texnum);
+
+	R_SelectTexture(old_unit);
 }
 
 /**
@@ -118,13 +137,7 @@ static void R_BindTexture_Force(GLuint texnum) {
  */
 void R_BindTexture(GLuint texnum) {
 
-	if (texnum == r_state.active_texunit->texnum &&
-		texnum == r_state.active_texunit->bound)
-		return;
-
-	r_state.active_texunit->texnum = texnum;
-
-	R_BindTexture_Force(texnum);
+	R_BindUnitTexture(r_state.active_texunit, texnum);
 }
 
 /**
@@ -132,14 +145,7 @@ void R_BindTexture(GLuint texnum) {
  */
 void R_BindLightmapTexture(GLuint texnum) {
 
-	if (texnum == texunit_lightmap.texnum)
-		return;
-
-	R_SelectTexture(&texunit_lightmap);
-
-	R_BindTexture(texnum);
-
-	R_SelectTexture(&texunit_diffuse);
+	R_BindUnitTexture(&texunit_lightmap, texnum);
 
 	r_view.num_bind_lightmap++;
 }
@@ -149,14 +155,7 @@ void R_BindLightmapTexture(GLuint texnum) {
  */
 void R_BindDeluxemapTexture(GLuint texnum) {
 
-	if (texnum == texunit_deluxemap.texnum)
-		return;
-
-	R_SelectTexture(&texunit_deluxemap);
-
-	R_BindTexture(texnum);
-
-	R_SelectTexture(&texunit_diffuse);
+	R_BindUnitTexture(&texunit_deluxemap, texnum);
 
 	r_view.num_bind_deluxemap++;
 }
@@ -166,14 +165,7 @@ void R_BindDeluxemapTexture(GLuint texnum) {
  */
 void R_BindNormalmapTexture(GLuint texnum) {
 
-	if (texnum == texunit_normalmap.texnum)
-		return;
-
-	R_SelectTexture(&texunit_normalmap);
-
-	R_BindTexture(texnum);
-
-	R_SelectTexture(&texunit_diffuse);
+	R_BindUnitTexture(&texunit_normalmap, texnum);
 
 	r_view.num_bind_normalmap++;
 }
@@ -183,14 +175,7 @@ void R_BindNormalmapTexture(GLuint texnum) {
  */
 void R_BindSpecularmapTexture(GLuint texnum) {
 
-	if (texnum == texunit_specularmap.texnum)
-		return;
-
-	R_SelectTexture(&texunit_specularmap);
-
-	R_BindTexture(texnum);
-
-	R_SelectTexture(&texunit_diffuse);
+	R_BindUnitTexture(&texunit_specularmap, texnum);
 
 	r_view.num_bind_specularmap++;
 }
@@ -324,8 +309,6 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size,
 
 		R_GetError("Updating existing buffer");
 	}
-
-	buffer->u_up++;
 }
 
 /**
@@ -460,10 +443,10 @@ void R_EnableTexture(r_texunit_t *texunit, _Bool enable) {
 
 	if (enable) { // activate texture unit
 
-		R_BindTexture_Force(texunit->texnum);
+		R_BindTexture_Force(texunit, texunit->texnum);
 	} else { // or deactivate it
 
-		R_BindTexture_Force(r_image_state.null ? r_image_state.null->texnum : 0);
+		R_BindTexture_Force(texunit, r_image_state.null ? r_image_state.null->texnum : 0);
 	}
 
 	R_SelectTexture(&texunit_diffuse);
@@ -673,16 +656,6 @@ void R_UseMatrices(void) {
 
 	if (r_state.active_program->UseMatrices)
 		r_state.active_program->UseMatrices(&r_view.projection_matrix, &r_view.modelview_matrix, &r_view.texture_matrix);
-}
-
-/**
- * @brief Tells the program that all the usable attributes are
- * ready for binding.
- */
-void R_UseAttributes(void) {
-
-	if (r_state.active_program->UseAttributes)
-		r_state.active_program->UseAttributes();	
 }
 
 /**

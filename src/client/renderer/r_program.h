@@ -101,6 +101,7 @@ typedef struct {
 	r_shader_t *v;
 	r_shader_t *f;
 	uint32_t arrays_mask;
+	r_attribute_t attributes[R_ARRAY_MAX_ATTRIBS];
 	void (*Init)(void);
 	void (*Shutdown)(void);
 	void (*Use)(void);
@@ -128,6 +129,7 @@ void R_AttributePointer(const r_attribute_t *attribute, GLuint size, const GLvoi
 void R_BindAttributeLocation(const r_program_t *prog, const char *name, const GLuint location);
 void R_EnableAttribute(r_attribute_t *attribute);
 void R_DisableAttribute(r_attribute_t *attribute);
+void R_SetupAttributes(void);
 void R_ShutdownPrograms(void);
 void R_InitPrograms(void);
 

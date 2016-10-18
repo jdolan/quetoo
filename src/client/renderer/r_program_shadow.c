@@ -23,8 +23,6 @@
 
 // these are the variables defined in the GLSL shader
 typedef struct r_shadow_program_s {
-	r_attribute_t position;
-
 	r_uniform_matrix4fv_t matrix;
 	r_uniform4fv_t light;
 	r_uniform4fv_t plane;
@@ -50,10 +48,10 @@ void R_PreLink_shadow(const r_program_t *program) {
 /**
  * @brief
  */
-void R_InitProgram_shadow(void) {
+void R_InitProgram_shadow(r_program_t *program) {
 	r_shadow_program_t *p = &r_shadow_program;
 
-	R_ProgramVariable(&p->position, R_ATTRIBUTE, "POSITION");
+	R_ProgramVariable(&program->attributes[R_ARRAY_VERTEX], R_ATTRIBUTE, "POSITION");
 
 	const vec4_t light = { 0.0, 0.0, 0.0, 1.0 };
 	const vec4_t plane = { 0.0, 0.0, 1.0, 0.0 };
@@ -183,25 +181,4 @@ void R_UseCurrentColor_shadow(const vec4_t color) {
 		R_ProgramParameter4fv(&p->current_color, color);
 	else
 		R_ProgramParameter4fv(&p->current_color, white);
-}
-
-/**
- * @brief
- */
-void R_UseAttributes_shadow(void) {
-
-	r_shadow_program_t *p = &r_shadow_program;
-	int32_t mask = R_ArraysMask() & r_state.active_program->arrays_mask;
-
-	if (mask & R_ARRAY_MASK(R_ARRAY_VERTEX)) {
-
-		R_EnableAttribute(&p->position);
-		R_BindBuffer(r_state.array_buffers[R_ARRAY_VERTEX]);
-		R_AttributePointer(&p->position, 3, NULL);
-	}
-	else {
-		R_DisableAttribute(&p->position);
-	}
-
-	R_UnbindBuffer(R_BUFFER_DATA);
 }

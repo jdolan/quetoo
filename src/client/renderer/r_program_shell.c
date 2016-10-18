@@ -23,9 +23,6 @@
 
 // these are the variables defined in the GLSL shader
 typedef struct r_shell_program_s {
-	r_attribute_t position;
-	r_attribute_t texcoord;
-
 	r_uniform1f_t offset;
 
 	r_sampler2d_t sampler0;
@@ -33,6 +30,8 @@ typedef struct r_shell_program_s {
 
 	r_uniform_matrix4fv_t projection_mat;
 	r_uniform_matrix4fv_t modelview_mat;
+
+	r_uniform4fv_t current_color;
 } r_shell_program_t;
 
 static r_shell_program_t r_shell_program;
@@ -49,11 +48,11 @@ void R_PreLink_shell(const r_program_t *program) {
 /**
  * @brief
  */
-void R_InitProgram_shell(void) {
+void R_InitProgram_shell(r_program_t *program) {
 	r_shell_program_t *p = &r_shell_program;
 
-	R_ProgramVariable(&p->position, R_ATTRIBUTE, "POSITION");
-	R_ProgramVariable(&p->texcoord, R_ATTRIBUTE, "TEXCOORD");
+	R_ProgramVariable(&program->attributes[R_ARRAY_VERTEX], R_ATTRIBUTE, "POSITION");
+	R_ProgramVariable(&program->attributes[R_ARRAY_TEX_DIFFUSE], R_ATTRIBUTE, "TEXCOORD");
 
 	R_ProgramVariable(&p->offset, R_UNIFORM_FLOAT, "OFFSET");
 	R_ProgramParameter1f(&p->offset, 0.0);
@@ -63,6 +62,10 @@ void R_InitProgram_shell(void) {
 
 	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
 	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
+
+	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
+	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
+	R_ProgramParameter4fv(&p->current_color, white);
 }
 
 /**
@@ -90,30 +93,13 @@ void R_UseMatrices_shell(const matrix4x4_t *projection, const matrix4x4_t *model
 /**
  * @brief
  */
-void R_UseAttributes_shell(void) {
+void R_UseCurrentColor_shell(const vec4_t color) {
 
 	r_shell_program_t *p = &r_shell_program;
-	int32_t mask = R_ArraysMask() & r_state.active_program->arrays_mask;
+	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
-	if (mask & R_ARRAY_MASK(R_ARRAY_VERTEX)) {
-
-		R_EnableAttribute(&p->position);
-		R_BindBuffer(r_state.array_buffers[R_ARRAY_VERTEX]);
-		R_AttributePointer(&p->position, 3, NULL);
-	}
-	else {
-		R_DisableAttribute(&p->position);
-	}
-
-	if (mask & R_ARRAY_MASK(R_ARRAY_TEX_DIFFUSE)) {
-
-		R_EnableAttribute(&p->texcoord);
-		R_BindBuffer(r_state.array_buffers[R_ARRAY_TEX_DIFFUSE]);
-		R_AttributePointer(&p->texcoord, 2, NULL);
-	}
-	else {
-		R_DisableAttribute(&p->texcoord);
-	}
-
-	R_UnbindBuffer(R_BUFFER_DATA);
+	if (color)
+		R_ProgramParameter4fv(&p->current_color, color);
+	else
+		R_ProgramParameter4fv(&p->current_color, white);
 }

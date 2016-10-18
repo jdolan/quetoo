@@ -7,7 +7,6 @@
 #include "fog_inc.glsl"
 #include "matrix_inc.glsl"
 
-varying vec4 color;
 varying vec2 texcoord;
 
 attribute vec3 POSITION;

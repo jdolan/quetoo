@@ -35,8 +35,7 @@
 #define RTLD_NOW 0
 #define dlopen(file_name, mode) LoadLibrary(file_name)
 
-const char *dlerror()
-{
+const char *dlerror() {
 	static char num_buffer[32];
 	const DWORD err = GetLastError();
 
@@ -201,40 +200,40 @@ void Sys_Backtrace(void) {
 	
 	SymSetOptions(SYMOPT_UNDNAME);
 	
-	if (SymInitialize(process, NULL, TRUE))
-	{
+	if (SymInitialize(process, NULL, TRUE)) {
+
 		frames = CaptureStackBackTrace(0, MAXSHORT, symbols, NULL);
     
 		symbol = Mem_Malloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char));
 		symbol->MaxNameLen = 255;
 		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
-		for (i = 0; i < frames; i++)
-		{
+		for (i = 0; i < frames; i++) {
 			const char *symbol_name = "unknown symbol";
         
 			SymFromAddr(process, (DWORD64)(symbols[i]), 0, symbol);
 
-			if (symbol->NameLen)
+			if (symbol->NameLen) {
 				symbol_name = symbol->Name;
-			if (symbol->ModBase)
-			{
+			}
+
+			if (symbol->ModBase) {
 				IMAGEHLP_MODULE module;
 				module.SizeOfStruct = sizeof(module);
 				SymGetModuleInfo(process, (DWORD)symbol->ModBase, &module);
 				fprintf(stderr, "%s ", module.ImageName);
 			}
-			else
+			else {
 				fprintf(stderr, "unknown module ");
-		
+			}
+
 			fprintf(stderr, "(%s+%lux) [0x%" PRIx64 "]\n", symbol_name, symbol->Register, symbol->Address);
 		}
 
 		fflush(stderr);
 		Mem_Free(symbol);
 	}
-	else
-	{
+	else {
 		fprintf(stderr, "Couldn't get stack trace.\n");
 		fflush(stderr);
 	}

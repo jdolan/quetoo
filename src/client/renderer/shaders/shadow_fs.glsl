@@ -6,8 +6,8 @@
 
 uniform vec4 LIGHT;
 uniform vec4 PLANE;
+uniform vec4 GLOBAL_COLOR;
 
-varying vec4 color;
 varying vec4 point;
 
 #define FOG_NO_UNIFORM
@@ -26,7 +26,7 @@ void ShadowFragment(void) {
 		float s = (LIGHT.w - dist) / LIGHT.w;
 		float d = dot(PLANE.xyz, normalize(delta));
 		
-		gl_FragColor.a = min(s * d, color.a);
+		gl_FragColor.a = min(s * d, GLOBAL_COLOR.a);
 	} else {
 		discard;
 	}
@@ -44,7 +44,7 @@ void FogFragment(void) {
  */
 void main(void) {
 
-	gl_FragColor = color;
+	gl_FragColor = GLOBAL_COLOR;
 
 	ShadowFragment();
     

@@ -94,8 +94,8 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	glDisable(GL_DEPTH_TEST);
 
-	const r_image_t *image = surfs->surfaces[0]->flare->image;
-	R_BindTexture(image->texnum);
+	// set to NULL, so it binds the first image that we run into
+	const r_image_t *image = NULL;
 
 	j = k = l = 0;
 	for (i = 0; i < surfs->count; i++) {

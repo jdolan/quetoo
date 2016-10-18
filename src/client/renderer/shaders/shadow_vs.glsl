@@ -9,9 +9,7 @@
 
 uniform mat4 MATRIX;
 uniform vec4 LIGHT;
-uniform vec4 GLOBAL_COLOR;
 
-varying vec4 color;
 varying vec4 point;
 
 attribute vec3 POSITION;
@@ -39,9 +37,6 @@ void main(void) {
 	// mvp transform into clip space
 	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * MATRIX * vec4(POSITION, 1.0);
 	
-	// and primary color
-	color = GLOBAL_COLOR;
-
 	ShadowVertex();
 	    
     FogVertex();

@@ -121,10 +121,11 @@ void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 	light = clamp(light, LIGHT_CLAMP_MIN, LIGHT_CLAMP_MAX);
 #endif
 
-	gl_FragColor = vec4(
-						diffuse.rgb * (lightmap + light),	// modulate the diffuse sample with the modified lightmap
-						diffuse.a * color.a					// modulate the alpha channel by the color
-						);
+	// now modulate the diffuse sample with the modified lightmap
+	gl_FragColor.rgb = diffuse.rgb * (lightmap + light);
+
+	// lastly modulate the alpha channel by the color
+	gl_FragColor.a = diffuse.a * color.a;
 }
 
 /**

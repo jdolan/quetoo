@@ -24,6 +24,8 @@
 
 #include "r_types.h"
 
+// Attribute indices - these should be assigned to
+// every program, and are also used for buffer storage.
 #define R_ARRAY_VERTEX			0
 #define R_ARRAY_COLOR			1
 #define R_ARRAY_NORMAL			2
@@ -32,9 +34,16 @@
 #define R_ARRAY_TEX_LIGHTMAP	5
 #define R_ARRAY_MAX_ATTRIBS		6
 
-#define R_ARRAY_MASK(i)			(1 << i)
-
-#define R_ARRAY_MASK_ALL		0xFF
+// These are the masks used to tell which data
+// should be actually bound. They don't have
+// to match up to the above, but it's nice if they do.
+#define R_ARRAY_MASK_VERTEX			0x01
+#define R_ARRAY_MASK_COLOR			0x02
+#define R_ARRAY_MASK_NORMAL			0x04
+#define R_ARRAY_MASK_TANGENT		0x08
+#define R_ARRAY_MASK_TEX_DIFFUSE	0x10
+#define R_ARRAY_MASK_TEX_LIGHTMAP	0x20
+#define R_ARRAY_MASK_ALL			0xFF
 
 #ifdef __R_LOCAL_H__
 void R_SetArrayState(const r_model_t *mod);

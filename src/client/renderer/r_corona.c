@@ -88,7 +88,7 @@ void R_DrawCoronas(void) {
 		}
 
 		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, vert_index * sizeof(float), r_state.vertex_array);
-		R_UploadToBuffer(&r_state.buffer_color_array, 0, num_verts * sizeof(vec4_t), r_state.color_array);
+		R_UploadToBuffer(&r_state.buffer_color_array, 0, (num_verts + 1) * 2 * sizeof(vec4_t), r_state.color_array);
 
 		R_DrawArrays(GL_TRIANGLE_FAN, 0, vert_index / 3);
 	}

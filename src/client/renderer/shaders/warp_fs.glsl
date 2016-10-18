@@ -7,11 +7,11 @@
 #include "fog_inc.glsl"
 
 uniform float OFFSET;
+uniform vec4 GLOBAL_COLOR;
 
 uniform sampler2D SAMPLER0;
 uniform sampler2D SAMPLER1;
 
-varying vec4 color;
 varying vec2 texcoord;
 
 /**
@@ -33,7 +33,7 @@ void main(void) {
 	vec2 coord = vec2(texcoord.x + warp.z, texcoord.y + warp.w);
 
 	// sample the diffuse texture, factoring in primary color as well
-	gl_FragColor = texture2D(SAMPLER0, coord);
+	gl_FragColor = GLOBAL_COLOR * texture2D(SAMPLER0, coord);
 
 	FogFragment();  // add fog
 }

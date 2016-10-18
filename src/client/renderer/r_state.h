@@ -126,6 +126,7 @@ extern r_state_t r_state;
 #define R_GetError(msg) R_GetError_(__func__, msg)
 void R_GetError_(const char *function, const char *msg);
 void R_SelectTexture(r_texunit_t *texunit);
+void R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum);
 void R_BindTexture(GLuint texnum);
 void R_BindLightmapTexture(GLuint texnum);
 void R_BindDeluxemapTexture(GLuint texnum);
@@ -163,7 +164,6 @@ void R_PopMatrix(void);
 void R_UseMatrices(void);
 void R_UseAlphaTest(void);
 void R_UseCurrentColor(void);
-void R_UseAttributes(void);
 void R_InitState(void);
 void R_ShutdownState(void);
 
