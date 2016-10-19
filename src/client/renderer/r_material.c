@@ -449,7 +449,10 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	R_UpdateMaterial(m);
 
 	if (!blend)
+	{
 		R_EnableBlend(true);
+		R_EnableDepthMask(false);
+	}
 
 	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
 
@@ -471,7 +474,10 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
 
 	if (!blend)
+	{
 		R_EnableBlend(false);
+		R_EnableDepthMask(true);
+	}
 
 	Matrix4x4_CreateIdentity(&r_view.texture_matrix);
 

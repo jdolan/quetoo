@@ -111,6 +111,9 @@
     <ClCompile Include="..\..\src\client\renderer\r_glad_compat.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\RendererQuetoo.c">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\r_array.h">
@@ -222,6 +225,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_glad_core.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\RendererQuetoo.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

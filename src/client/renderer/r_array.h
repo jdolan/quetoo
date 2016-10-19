@@ -26,13 +26,16 @@
 
 // Attribute indices - these should be assigned to
 // every program, and are also used for buffer storage.
-#define R_ARRAY_VERTEX			0
-#define R_ARRAY_COLOR			1
-#define R_ARRAY_NORMAL			2
-#define R_ARRAY_TANGENT			3
-#define R_ARRAY_TEX_DIFFUSE		4
-#define R_ARRAY_TEX_LIGHTMAP	5
-#define R_ARRAY_MAX_ATTRIBS		6
+typedef enum {
+	R_ARRAY_VERTEX,
+	R_ARRAY_COLOR,
+	R_ARRAY_NORMAL,
+	R_ARRAY_TANGENT,
+	R_ARRAY_TEX_DIFFUSE,
+	R_ARRAY_TEX_LIGHTMAP,
+
+	R_ARRAY_MAX_ATTRIBS,
+} r_attribute_id_t;
 
 // These are the masks used to tell which data
 // should be actually bound. They don't have

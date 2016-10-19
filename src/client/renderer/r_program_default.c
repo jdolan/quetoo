@@ -178,12 +178,12 @@ void R_UseMaterial_default(const r_material_t *material) {
 	if (!material || !material->normalmap ||
 		!r_bumpmap->value || r_draw_bsp_lightmaps->value) {
 
-		R_DisableAttribute(&p->program->attributes[R_ARRAY_TANGENT]);
+		R_DisableAttribute(R_ARRAY_TANGENT);
 		R_ProgramParameter1i(&p->normalmap, 0);
 		return;
 	}
 
-	R_EnableAttribute(&p->program->attributes[R_ARRAY_TANGENT]);
+	R_EnableAttribute(R_ARRAY_TANGENT);
 
 	R_BindNormalmapTexture(material->normalmap->texnum);
 	R_ProgramParameter1i(&p->normalmap, 1);

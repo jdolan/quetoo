@@ -80,34 +80,7 @@ void Ui_Draw(void) {
 		return;
 	}
 
-	R_DisablePrograms();
-
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glPushClientAttrib(GL_ALL_CLIENT_ATTRIB_BITS);
-
-	glDisable(GL_TEXTURE_2D);
-
-	glMatrixMode(GL_PROJECTION);
-
-	matrix4x4_t mat;
-
-	Matrix4x4_FromOrtho(&mat, 0.0, r_context.window_width, r_context.window_height, 0.0, -1.0, 1.0);
-
-	glLoadMatrixf((const GLfloat *) mat.m);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
 	$(windowController, render);
-
-	Matrix4x4_FromOrtho(&mat, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
-
-	glLoadMatrixf((const GLfloat *) mat.m);
-
-	glPopAttrib();
-	glPopClientAttrib();
-
-	R_EnablePrograms();
 }
 
 /**
@@ -143,7 +116,7 @@ void Ui_Init(void) {
 	}
 #endif
 
-	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
+	windowController = $(alloc(WindowController), initWithWindow, r_context.window, R_GetUIRenderer());
 
 	ViewController *viewController = $(alloc(ViewController), init);
 

@@ -27,8 +27,6 @@
 void R_Color(const vec4_t color);
 void R_Setup3D(void);
 void R_Setup2D(void);
-void R_DisablePrograms(void);
-void R_EnablePrograms(void);
 
 #ifdef __R_LOCAL_H__
 
@@ -76,6 +74,7 @@ typedef struct r_state_s {
 
 	GLenum blend_src, blend_dest; // blend function
 	_Bool blend_enabled;
+	_Bool depth_mask_enabled;
 
 	float alpha_threshold;
 	vec4_t current_color;
@@ -93,6 +92,8 @@ typedef struct r_state_s {
 	r_program_t *shell_program;
 	r_program_t *warp_program;
 	r_program_t *null_program;
+
+	_Bool attributes_enabled[R_ARRAY_MAX_ATTRIBS];
 
 	const r_program_t *active_program;
 	const r_material_t *active_material;
@@ -135,6 +136,7 @@ void R_BindSpecularmapTexture(GLuint texnum);
 void R_BindDefaultArray(int target);
 void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
+void R_EnableDepthMask(_Bool enable);
 
 void R_BindBuffer(const r_buffer_t *buffer);
 void R_UnbindBuffer(const int type);
@@ -147,6 +149,8 @@ void R_BindArray(int target, const r_buffer_t *buffer);
 
 #define ALPHA_TEST_DISABLED_THRESHOLD 0.0
 #define ALPHA_TEST_ENABLED_THRESHOLD 0.25
+
+void R_EnableScissor(const GLint *bounds);
 
 void R_EnableAlphaTest(float threshold);
 void R_EnableStencilTest(GLenum pass, _Bool enable);

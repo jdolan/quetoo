@@ -314,7 +314,10 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 			R_EnableAlphaTest(ALPHA_TEST_ENABLED_THRESHOLD);
 
 		if (e->effects & EF_BLEND)
+		{
 			R_EnableBlend(true);
+			R_EnableDepthMask(false);
+		}
 
 		if ((e->effects & EF_NO_LIGHTING) == 0 && r_state.lighting_enabled) {
 			R_UseMaterial(r_mesh_state.material);
@@ -344,7 +347,10 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 		glDepthRange(0.0, 1.0);
 
 	if (e->effects & EF_BLEND)
+	{
 		R_EnableBlend(false);
+		R_EnableDepthMask(true);
+	}
 
 	if (e->effects & EF_ALPHATEST)
 		R_EnableAlphaTest(ALPHA_TEST_DISABLED_THRESHOLD);
@@ -438,9 +444,13 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 
 	R_EnableBlend(true);
 
+	R_EnableDepthMask(false);
+
 	R_DrawMeshShadows_default(ents);
 
 	R_DrawMeshShells_default(ents);
 
 	R_EnableBlend(false);
+
+	R_EnableDepthMask(true);
 }

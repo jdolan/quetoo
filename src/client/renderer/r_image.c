@@ -215,7 +215,10 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 	glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format,
 			GL_UNSIGNED_BYTE, data);
 
-	R_RegisterMedia((r_media_t *) image);
+	// "explicit" media does not get registered and is managed at the
+	// expense of the caller.
+	if ((image->type & IT_MASK_TYPE) != IT_EXPLICIT)
+		R_RegisterMedia((r_media_t *) image);
 
 	R_GetError(image->media.name);
 }
