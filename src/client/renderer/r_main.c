@@ -513,18 +513,18 @@ static void R_InitLocal(void) {
  * @brief
  */
 static void R_EnforceGlVersion(void) {
-	const char *s = r_config.version_string;
-	int32_t maj, min;
+	int32_t major, minor;
 
-	sscanf(s, "%d.%d", &maj, &min);
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major);
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minor);
 
-	if (maj > 2)
+	if (major > 2)
 		return;
 
-	if (min > 1)
+	if (major == 2 && minor >= 1)
 		return;
 
-	Com_Error(ERR_FATAL, "OpenGL version %s is less than 2.1\n", s);
+	Com_Error(ERR_FATAL, "OpenGL version %s is less than 2.1\n", r_config.version_string);
 }
 
 /**

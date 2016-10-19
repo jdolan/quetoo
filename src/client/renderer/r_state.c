@@ -850,9 +850,8 @@ void R_InitState(void) {
  * @brief
  */
 void R_ShutdownState(void) {
-	int32_t i;
 
-	for (i = 0; i < min(MAX_GL_TEXUNITS, r_config.max_texunits); i++) {
+	for (int32_t i = 0; i < MIN(r_config.max_texunits, MAX_GL_TEXUNITS); i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
 		if (texunit->texcoord_array)

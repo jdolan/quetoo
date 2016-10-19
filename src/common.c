@@ -19,10 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "common.h"
+#include <SDL2/SDL_assert.h>
+#include <SDL2/SDL_log.h>
 
-#include <SDL2\SDL_assert.h>
-#include <SDL2\SDL_log.h>
+#include "common.h"
 
 cvar_t *developer;
 
