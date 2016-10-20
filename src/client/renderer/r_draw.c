@@ -378,8 +378,8 @@ static void R_DrawChars(void) {
 	R_Color(NULL);
 }
 
-void R_DrawFills(void);
-void R_DrawLines(void);
+static void R_DrawFills(void);
+static void R_DrawLines(void);
 
 /**
  * @brief The color can be specified as an index into the palette with positive alpha

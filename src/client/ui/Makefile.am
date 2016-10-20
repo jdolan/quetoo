@@ -1,4 +1,5 @@
 SUBDIRS = \
+	renderers \
 	views \
 	viewcontrollers
 
@@ -24,6 +25,7 @@ libui_la_LDFLAGS = \
 	-shared
 
 libui_la_LIBADD = \
+	renderers/librenderers.la \
 	$(top_builddir)/src/libcommon.la \
 	@OBJECTIVELYMVC_LIBS@
 

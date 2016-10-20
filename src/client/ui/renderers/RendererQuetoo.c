@@ -57,11 +57,11 @@ static void beginFrame(Renderer *self) {
  * @memberof RendererQuetoo
  */
 static void drawLine(const Renderer *self, const SDL_Point *points) {
-	
-	RendererQuetoo *this = (RendererQuetoo *) self;
 
 	assert(points);
-	
+
+	RendererQuetoo *this = (RendererQuetoo *) self;
+
 	R_DrawLine(points[0].x, points[0].y, points[1].x, points[1].y, this->currentColor.c, -1.0);
 }
 
@@ -70,13 +70,12 @@ static void drawLine(const Renderer *self, const SDL_Point *points) {
  * @memberof RendererQuetoo
  */
 static void drawLines(const Renderer *self, const SDL_Point *points, size_t count) {
-	
-	RendererQuetoo *this = (RendererQuetoo *) self;
 
 	assert(points);
-	
-	for (size_t i = 0; i < count - 1; ++i)
-	{
+
+	RendererQuetoo *this = (RendererQuetoo *) self;
+
+	for (size_t i = 0; i < count - 1; ++i) {
 		const SDL_Point *start = &points[i];
 		const SDL_Point *end = &points[i + 1];
 
@@ -90,9 +89,9 @@ static void drawLines(const Renderer *self, const SDL_Point *points, size_t coun
  */
 static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 
-	RendererQuetoo *this = (RendererQuetoo *) self;
-
 	assert(rect);
+
+	RendererQuetoo *this = (RendererQuetoo *) self;
 
 	R_DrawLine(rect->x,					rect->y,				rect->x + rect->w - 1,			rect->y, this->currentColor.c, -1.0);
 	R_DrawLine(rect->x + rect->w - 1,	rect->y,				rect->x + rect->w - 1,			rect->y + rect->h - 1, this->currentColor.c, -1.0);
@@ -106,9 +105,9 @@ static void drawRect(const Renderer *self, const SDL_Rect *rect) {
  */
 static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
 
-	RendererQuetoo *this = (RendererQuetoo *) self;
-
 	assert(rect);
+
+	RendererQuetoo *this = (RendererQuetoo *) self;
 
 	R_DrawFill(rect->x, rect->y, rect->w, rect->h, this->currentColor.c, -1.0);
 }
