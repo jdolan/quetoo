@@ -249,7 +249,7 @@ static void updateBindings(View *self) {
 	memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
 	memcpy(this->head.skins, this->client.head_skins, sizeof(this->head.skins));
 
-	this->iconView->texture = (ident) this->client.icon;
+	this->iconView->texture = this->client.icon->texnum;
 }
 
 #pragma mark - PlayerModelView

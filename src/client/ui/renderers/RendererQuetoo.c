@@ -23,13 +23,11 @@
 
 #include <assert.h>
 
-#include "r_local.h"
+#include "ui_local.h"
 
-#include <ObjectivelyMVC/Image.h>
-#include <ObjectivelyMVC/Log.h>
-#include <ObjectivelyMVC/Types.h>
+#include "client.h"
+
 #include "RendererQuetoo.h"
-#include <ObjectivelyMVC/View.h>
 
 #define _Class _RendererQuetoo
 
@@ -46,67 +44,12 @@ static void beginFrame(Renderer *self) {
 	// set color to white
 	this->currentColor.c = -1;
 
-	R_UseProgram(r_state.null_program);
-
 	R_EnableBlend(true);
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_EnableColorArray(false);
 
 	super(Renderer, self, beginFrame);
-}
-
-/**
- * @fn void RendererQuetoo::createTexture(const Renderer *self, const SDL_Surface *surface)
- * @memberof RendererQuetoo
- */
-static ident createTexture(const Renderer *self, const SDL_Surface *surface) {
-
-	assert(surface);
-
-	static uint32_t count;
-	static char name[MAX_QPATH];
-
-	g_snprintf(name, sizeof(name), "mvc_%u", count++);
-
-	r_image_t *image = (r_image_t *) R_AllocMedia(name, sizeof(r_image_t));
-
-	image->type = IT_EXPLICIT;
-	image->width = surface->w;
-	image->height = surface->h;
-
-	GLenum format;
-	switch (surface->format->BytesPerPixel) {
-		case 1:
-			format = GL_LUMINANCE;
-			break;
-		case 3:
-			format = GL_RGB;
-			break;
-		case 4:
-			format = GL_RGBA;
-			break;
-		default:
-			MVC_LogError("Invalid surface format: %s\n",
-					 SDL_GetPixelFormatName(surface->format->format));
-			return NULL;
-	}
-
-	R_UploadImage(image, format, surface->pixels);
-
-	return (ident)image;
-}
-
-/**
- * @fn void RendererQuetoo::destroyTexture(const Renderer *self, ident texture)
- * @memberof RendererQuetoo
- */
-static void destroyTexture(const Renderer *self, ident texture) {
-
-	r_image_t *image = (r_image_t *) texture;
-
-	glDeleteTextures(1, &image->texnum);
-	Mem_Free(image);
 }
 
 /**
@@ -171,14 +114,18 @@ static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
 }
 
 /**
- * @fn void RendererQuetoo::drawTexture(const Renderer *self, ident texture, const SDL_Rect *dest)
+ * @fn void RendererQuetoo::drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *dest)
  * @memberof RendererQuetoo
  */
-static void drawTexture(const Renderer *self, ident texture, const SDL_Rect *rect) {
+static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *rect) {
 
 	assert(rect);
 
-	R_DrawImageResized(rect->x, rect->y, rect->w, rect->h, (const r_image_t *) texture);
+	static r_image_t image;
+
+	image.texnum = texture;
+
+	R_DrawImageResized(rect->x, rect->y, rect->w, rect->h, &image);
 }
 
 /**
@@ -187,9 +134,7 @@ static void drawTexture(const Renderer *self, ident texture, const SDL_Rect *rec
  */
 static void endFrame(Renderer *self) {
 	
-	$(self, setScissor, NULL);
-
-	R_GetError("MVC");
+	$(self, setClippingFrame, NULL);
 }
 
 /**
@@ -203,11 +148,21 @@ static void setDrawColor(Renderer *self, const SDL_Color *color) {
 }
 
 /**
- * @fn void RendererQuetoo::setScissor(Renderer *self, const SDL_Rect *rect)
+ * @fn void RendererQuetoo::setClippingFrame(Renderer *self, const SDL_Rect *frame)
  * @memberof RendererQuetoo
  */
-static void setScissor(Renderer *self, const SDL_Rect *rect) {
-	R_EnableScissor((const GLint *) rect);
+static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
+
+	if (!frame)
+	{
+		R_EnableScissor(NULL);
+		return;
+	}
+
+	SDL_Window *window = SDL_GL_GetCurrentWindow();
+	const SDL_Rect scissor = MVC_TransformToWindow(window, frame);
+
+	R_EnableScissor(&scissor);
 }
 
 /**
@@ -227,16 +182,12 @@ static RendererQuetoo *init(RendererQuetoo *self) {
 
 #pragma mark - Class lifecycle
 
-#include <ObjectivelyMVC/Program.h>
-
 /**
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
 
 	((RendererInterface *) clazz->def->interface)->beginFrame = beginFrame;
-	((RendererInterface *) clazz->def->interface)->createTexture = createTexture;
-	((RendererInterface *) clazz->def->interface)->destroyTexture = destroyTexture;
 	((RendererInterface *) clazz->def->interface)->drawLine = drawLine;
 	((RendererInterface *) clazz->def->interface)->drawLines = drawLines;
 	((RendererInterface *) clazz->def->interface)->drawRect = drawRect;
@@ -244,7 +195,7 @@ static void initialize(Class *clazz) {
 	((RendererInterface *) clazz->def->interface)->drawTexture = drawTexture;
 	((RendererInterface *) clazz->def->interface)->endFrame = endFrame;
 	((RendererInterface *) clazz->def->interface)->setDrawColor = setDrawColor;
-	((RendererInterface *) clazz->def->interface)->setScissor = setScissor;
+	((RendererInterface *) clazz->def->interface)->setClippingFrame = setClippingFrame;
 
 	((RendererQuetooInterface *) clazz->def->interface)->init = init;
 }

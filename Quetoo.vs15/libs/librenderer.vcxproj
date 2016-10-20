@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\client\renderer\RendererQuetoo.c" />
     <ClCompile Include="..\..\src\client\renderer\r_array.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp_light.c" />
@@ -57,7 +56,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\renderer.h" />
-    <ClInclude Include="..\..\src\client\renderer\RendererQuetoo.h" />
     <ClInclude Include="..\..\src\client\renderer\r_array.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp_light.h" />

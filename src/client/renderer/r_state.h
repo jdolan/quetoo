@@ -24,9 +24,13 @@
 
 #include "r_types.h"
 
+void R_EnableScissor(const SDL_Rect *bounds);
 void R_Color(const vec4_t color);
 void R_Setup3D(void);
 void R_Setup2D(void);
+void R_EnableColorArray(_Bool enable);
+void R_BlendFunc(GLenum src, GLenum dest);
+void R_EnableBlend(_Bool enable);
 
 #ifdef __R_LOCAL_H__
 
@@ -135,8 +139,6 @@ void R_BindDeluxemapTexture(GLuint texnum);
 void R_BindNormalmapTexture(GLuint texnum);
 void R_BindSpecularmapTexture(GLuint texnum);
 void R_BindDefaultArray(int target);
-void R_BlendFunc(GLenum src, GLenum dest);
-void R_EnableBlend(_Bool enable);
 void R_EnableDepthMask(_Bool enable);
 
 void R_BindBuffer(const r_buffer_t *buffer);
@@ -151,14 +153,11 @@ void R_BindArray(int target, const r_buffer_t *buffer);
 #define ALPHA_TEST_DISABLED_THRESHOLD 0.0
 #define ALPHA_TEST_ENABLED_THRESHOLD 0.25
 
-void R_EnableScissor(const GLint *bounds);
-
 void R_EnableAlphaTest(float threshold);
 void R_EnableStencilTest(GLenum pass, _Bool enable);
 void R_EnablePolygonOffset(GLenum mode, _Bool enable);
 void R_EnableTexture(r_texunit_t *texunit, _Bool enable);
 void R_EnableDepthTest(_Bool enable);
-void R_EnableColorArray(_Bool enable);
 void R_EnableLighting(const r_program_t *program, _Bool enable);
 void R_EnableShadow(const r_program_t *program, _Bool enable);
 void R_EnableWarp(const r_program_t *program, _Bool enable);

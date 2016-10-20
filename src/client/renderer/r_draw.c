@@ -22,8 +22,6 @@
 #include "r_local.h"
 #include "client.h"
 
-#include "RendererQuetoo.h"
-
 #define MAX_CHARS MAX_GL_ARRAY_LENGTH  // per font
 // characters are batched per frame and drawn in one shot
 // accumulate coordinates and colors as vertex arrays
@@ -97,8 +95,6 @@ typedef struct r_draw_s {
 	r_char_arrays_t char_arrays[MAX_FONTS];
 	r_fill_arrays_t fill_arrays;
 	r_line_arrays_t line_arrays;
-
-	RendererQuetoo *ui_renderer;
 } r_draw_t;
 
 r_draw_t r_draw;
@@ -586,14 +582,6 @@ static void R_InitFont(char *name) {
 /**
  * @brief
  */
-Renderer *R_GetUIRenderer(void) {
-
-	return (Renderer *)r_draw.ui_renderer;
-}
-
-/**
- * @brief
- */
 void R_InitDraw(void) {
 
 	memset(&r_draw, 0, sizeof(r_draw));
@@ -626,8 +614,6 @@ void R_InitDraw(void) {
 
 	R_CreateBuffer(&r_draw.line_arrays.vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.line_arrays.verts), NULL);
 	R_CreateBuffer(&r_draw.line_arrays.color_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.line_arrays.colors), NULL);
-
-	r_draw.ui_renderer = $(alloc(RendererQuetoo), init);
 }
 
 /**
@@ -647,6 +633,4 @@ void R_ShutdownDraw(void) {
 
 	R_DestroyBuffer(&r_draw.line_arrays.vert_buffer);
 	R_DestroyBuffer(&r_draw.line_arrays.color_buffer);
-	
-	release(r_draw.ui_renderer);
 }

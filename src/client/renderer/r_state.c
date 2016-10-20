@@ -751,7 +751,7 @@ void R_EnableDepthTest(_Bool enable) {
 		glDisable(GL_DEPTH_TEST);
 }
 
-void R_EnableScissor(const GLint *bounds) {
+void R_EnableScissor(const SDL_Rect *bounds) {
 
 	if (!bounds) {
 		if (!r_view.scissor_enabled) {
@@ -769,7 +769,7 @@ void R_EnableScissor(const GLint *bounds) {
 		r_view.scissor_enabled = true;
 	}
 
-	glScissor(bounds[0], bounds[1], bounds[2], bounds[3]);
+	glScissor(bounds->x, bounds->y, bounds->w, bounds->h);
 }
 
 /**

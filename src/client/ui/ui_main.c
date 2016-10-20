@@ -23,6 +23,8 @@
 
 #include "client.h"
 
+#include "renderers/RendererQuetoo.h"
+
 extern cl_static_t cls;
 
 static WindowController *windowController;
@@ -110,7 +112,13 @@ void Ui_Init(void) {
 	}
 #endif
 
-	windowController = $(alloc(WindowController), initWithWindow, r_context.window, R_GetUIRenderer());
+	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
+
+	Renderer *renderer = (Renderer *) $(alloc(RendererQuetoo), init);
+
+	$(windowController, setRenderer, renderer);
+
+	release(renderer);
 
 	ViewController *viewController = $(alloc(ViewController), init);
 

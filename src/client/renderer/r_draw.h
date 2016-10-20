@@ -38,8 +38,6 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t c, vec_t a);
 void R_Draw2D(void);
 
-Renderer *R_GetUIRenderer(void);
-
 #ifdef __R_LOCAL_H__
 void R_InitDraw(void);
 void R_ShutdownDraw(void);
