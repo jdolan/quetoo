@@ -74,7 +74,6 @@ typedef struct r_state_s {
 
 	GLenum blend_src, blend_dest; // blend function
 	_Bool blend_enabled;
-	_Bool depth_mask_enabled;
 
 	float alpha_threshold;
 	vec4_t current_color;
@@ -113,6 +112,8 @@ typedef struct r_state_s {
 	_Bool warp_enabled;
 	_Bool shell_enabled;
 	_Bool fog_enabled;
+	_Bool depth_mask_enabled;
+	_Bool depth_test_enabled;
 } r_state_t;
 
 extern r_state_t r_state;
@@ -156,6 +157,7 @@ void R_EnableAlphaTest(float threshold);
 void R_EnableStencilTest(GLenum pass, _Bool enable);
 void R_EnablePolygonOffset(GLenum mode, _Bool enable);
 void R_EnableTexture(r_texunit_t *texunit, _Bool enable);
+void R_EnableDepthTest(_Bool enable);
 void R_EnableColorArray(_Bool enable);
 void R_EnableLighting(const r_program_t *program, _Bool enable);
 void R_EnableShadow(const r_program_t *program, _Bool enable);

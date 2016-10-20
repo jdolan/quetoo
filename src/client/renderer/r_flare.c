@@ -92,7 +92,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_ResetArrayState();
 
-	glDisable(GL_DEPTH_TEST);
+	R_EnableDepthTest(false);
 
 	// set to NULL, so it binds the first image that we run into
 	const r_image_t *image = NULL;
@@ -191,7 +191,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		R_DrawArrays(GL_QUADS, 0, l / 3);
 	}
 
-	glEnable(GL_DEPTH_TEST);
+	R_EnableDepthTest(true);
 
 	R_EnableColorArray(false);
 

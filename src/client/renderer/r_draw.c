@@ -151,6 +151,36 @@ void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) 
 }
 
 /**
+ * @brief
+ */
+void R_DrawImageResized(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image) {
+
+	R_BindTexture(image->texnum);
+
+	// our texcoords are already setup, just set verts and draw
+
+	r_state.vertex_array[0] = x;
+	r_state.vertex_array[1] = y;
+	r_state.vertex_array[2] = 0;
+
+	r_state.vertex_array[3] = x + w;
+	r_state.vertex_array[4] = y;
+	r_state.vertex_array[5] = 0;
+
+	r_state.vertex_array[6] = x + w;
+	r_state.vertex_array[7] = y + h;
+	r_state.vertex_array[8] = 0;
+
+	r_state.vertex_array[9] = x;
+	r_state.vertex_array[10] = y + h;
+	r_state.vertex_array[11] = 0;
+
+	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, 4 * sizeof(vec3_t), r_state.vertex_array);
+
+	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+/**
  * @brief Binds the specified font, returning the character width and height.
  */
 void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
@@ -352,6 +382,9 @@ static void R_DrawChars(void) {
 	R_Color(NULL);
 }
 
+void R_DrawFills(void);
+void R_DrawLines(void);
+
 /**
  * @brief The color can be specified as an index into the palette with positive alpha
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
@@ -400,6 +433,8 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 11] = 0;
 
 	r_draw.fill_arrays.vert_index += 12;
+
+	R_DrawFills();
 }
 
 /**
@@ -472,6 +507,8 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 5] = 0;
 
 	r_draw.line_arrays.vert_index += 6;
+
+	R_DrawLines();
 }
 
 /**
@@ -511,10 +548,6 @@ static void R_DrawLines(void) {
  * @brief Draw all 2D geometry accumulated for the current frame.
  */
 void R_Draw2D(void) {
-
-	R_DrawFills();
-
-	R_DrawLines();
 
 	R_DrawChars();
 }

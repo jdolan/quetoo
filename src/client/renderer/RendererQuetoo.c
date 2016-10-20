@@ -151,24 +151,10 @@ static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 
 	assert(rect);
 
-	GLint verts[8];
-
-	verts[0] = rect->x;
-	verts[1] = rect->y;
-
-	verts[2] = rect->x + rect->w;
-	verts[3] = rect->y;
-
-	verts[4] = rect->x + rect->w;
-	verts[5] = rect->y + rect->h;
-
-	verts[6] = rect->x;
-	verts[7] = rect->y + rect->h;
-
-	R_DrawLine(rect->x, rect->y, rect->x + rect->w, rect->y, this->currentColor.c, -1.0);
-	R_DrawLine(rect->x + rect->w, rect->y, rect->x + rect->w, rect->y + rect->h, this->currentColor.c, -1.0);
-	R_DrawLine(rect->x + rect->w, rect->y + rect->h, rect->x, rect->y + rect->h, this->currentColor.c, -1.0);
-	R_DrawLine(rect->x, rect->y + rect->h, rect->x, rect->y, this->currentColor.c, -1.0);
+	R_DrawLine(rect->x,					rect->y,				rect->x + rect->w - 1,			rect->y, this->currentColor.c, -1.0);
+	R_DrawLine(rect->x + rect->w - 1,	rect->y,				rect->x + rect->w - 1,			rect->y + rect->h - 1, this->currentColor.c, -1.0);
+	R_DrawLine(rect->x + rect->w - 1,	rect->y + rect->h - 1,	rect->x, rect->y + rect->h - 1,	this->currentColor.c, -1.0);
+	R_DrawLine(rect->x,					rect->y + rect->h - 1,	rect->x, rect->y,				this->currentColor.c, -1.0);
 }
 
 /**
@@ -192,7 +178,7 @@ static void drawTexture(const Renderer *self, ident texture, const SDL_Rect *rec
 
 	assert(rect);
 
-	R_DrawImage(rect->x, rect->y, 1.0f, (const r_image_t *) texture);
+	R_DrawImageResized(rect->x, rect->y, rect->w, rect->h, (const r_image_t *) texture);
 }
 
 /**
@@ -203,10 +189,7 @@ static void endFrame(Renderer *self) {
 	
 	$(self, setScissor, NULL);
 
-	const GLenum err = glGetError();
-	if (err) {
-		MVC_LogError("GL error: %d\n", err);
-	}
+	R_GetError("MVC");
 }
 
 /**

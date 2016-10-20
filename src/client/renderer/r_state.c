@@ -735,7 +735,20 @@ void R_Setup3D(void) {
 
 	R_EnableBlend(false);
 
-	glEnable(GL_DEPTH_TEST);
+	R_EnableDepthTest(true);
+}
+
+void R_EnableDepthTest(_Bool enable) {
+
+	if (r_state.depth_test_enabled == enable)
+		return;
+
+	r_state.depth_test_enabled = enable;
+
+	if (enable)
+		glEnable(GL_DEPTH_TEST);
+	else
+		glDisable(GL_DEPTH_TEST);
 }
 
 void R_EnableScissor(const GLint *bounds) {
@@ -780,7 +793,7 @@ void R_Setup2D(void) {
 
 	R_EnableBlend(true);
 
-	glDisable(GL_DEPTH_TEST);
+	R_EnableDepthTest(false);
 }
 
 /**

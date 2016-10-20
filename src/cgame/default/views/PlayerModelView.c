@@ -97,6 +97,8 @@ static void renderMeshEntity_md3(const r_entity_t *e) {
  * @brief Renders the given entity stub.
  */
 static void renderMeshEntity(r_entity_t *e) {
+	
+	return;
 
 	cgi.SetMatrixForEntity(e);
 
@@ -127,6 +129,8 @@ static void renderMeshEntity(r_entity_t *e) {
 static void render(View *self, Renderer *renderer) {
 
 	super(View, self, render, renderer);
+	
+	return;
 
 	PlayerModelView *this = (PlayerModelView *) self;
 
