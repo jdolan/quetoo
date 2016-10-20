@@ -789,6 +789,7 @@ void R_Setup2D(void) {
 
 	// and set default texcoords for all 2d pics
 	memcpy(texunit_diffuse.texcoord_array, default_texcoords, sizeof(vec2_t) * 4);
+
 	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, sizeof(vec2_t) * 4, default_texcoords);
 
 	R_EnableBlend(true);
