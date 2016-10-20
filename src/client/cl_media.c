@@ -169,13 +169,7 @@ void Cl_DrawLoading(void) {
 
 	// draw the background
 	if (cls.loading.background) {
-		const vec_t cr = (vec_t) r_context.width / r_context.height;
-		const vec_t ir = (vec_t) cls.loading.background->width / cls.loading.background->height;
-		if (cr >= ir) {
-			R_DrawImage(0, 0, (vec_t) r_context.width / cls.loading.background->width, cls.loading.background);
-		} else {
-			R_DrawImage(0, 0, (vec_t) r_context.height / cls.loading.background->height, cls.loading.background);
-		}
+		R_DrawImageResized(0, 0, r_context.width, r_context.height, cls.loading.background);
 	} else {
 		R_DrawFill(0, 0, r_context.width, r_context.height, 0, 1.0);
 	}

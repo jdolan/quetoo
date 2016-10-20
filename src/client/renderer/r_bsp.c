@@ -157,6 +157,8 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 
 	R_EnableBlend(true);
 
+	R_EnableDepthMask(false);
+
 	R_DrawBackBspSurfaces(&surfs->back);
 
 	R_DrawMaterialBspSurfaces(&surfs->material);
@@ -168,6 +170,8 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 	R_DrawBlendWarpBspSurfaces(&surfs->blend_warp);
 
 	R_EnableBlend(false);
+
+	R_EnableDepthMask(true);
 
 	r_locals.frame = f; // undo the swap
 }

@@ -23,9 +23,11 @@
 #define __R_DRAW_H__
 
 #include "r_types.h"
+#include <ObjectivelyMVC\Renderer.h>
 
 r_color_t R_MakeColor(byte r, byte g, byte b, byte a);
 void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image);
+void R_DrawImageResized(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image);
 void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch);
 r_pixel_t R_StringWidth(const char *s);
 size_t R_DrawString(r_pixel_t x, r_pixel_t y, const char *s, int32_t color);

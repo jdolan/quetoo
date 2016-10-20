@@ -21,12 +21,6 @@
 
 #include "r_local.h"
 
-typedef struct {
-	_Bool attributes_enabled[R_ARRAY_MAX_ATTRIBS];
-} r_program_state_t;
-
-static r_program_state_t r_program_state;
-
 /**
  * @brief
  */
@@ -74,7 +68,7 @@ void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *na
 
 	if (variable->location == -1) {
 		Com_Warn("Failed to resolve variable %s in program %s\n", name,
-				 r_state.active_program->name);
+				r_state.active_program->name);
 		return;
 	}
 
@@ -191,47 +185,47 @@ void R_BindAttributeLocation(const r_program_t *prog, const char *name, const GL
 /**
  * @brief
  */
-void R_AttributePointer(const r_attribute_t *attribute, GLuint size, const GLvoid *array) {
+void R_AttributePointer(const r_attribute_id_t attribute, GLuint size, const GLvoid *array) {
 
-	glVertexAttribPointer(attribute->location, size, GL_FLOAT, GL_FALSE, 0, array);
+	glVertexAttribPointer(attribute, size, GL_FLOAT, GL_FALSE, 0, array);
 
-	R_GetError(attribute->name);
+	R_GetError(r_state.active_program->attributes[attribute].name);
 }
 
 /**
  * @brief
  */
-void R_EnableAttribute(const r_attribute_t *attribute) {
+void R_EnableAttribute(const r_attribute_id_t attribute) {
 
-	if (!attribute || attribute->location == -1) {
-		Com_Warn("NULL or invalid attribute\n");
+	if (attribute < 0) {
+		Com_Warn("invalid attribute\n");
 		return;
 	}
 
-	if (r_program_state.attributes_enabled[attribute->location] != true) {
-		glEnableVertexAttribArray(attribute->location);
-		r_program_state.attributes_enabled[attribute->location] = true;
+	if (r_state.attributes_enabled[attribute] != true) {
+		glEnableVertexAttribArray(attribute);
+		r_state.attributes_enabled[attribute] = true;
 	}
 
-	R_GetError(attribute->name);
+	R_GetError(r_state.active_program->attributes[attribute].name);
 }
 
 /**
  * @brief
  */
-void R_DisableAttribute(const r_attribute_t *attribute) {
+void R_DisableAttribute(const r_attribute_id_t attribute) {
 
-	if (!attribute || attribute->location == -1) {
+	if (attribute < 0) {
 		Com_Warn("NULL or invalid attribute\n");
 		return;
 	}
 
-	if (r_program_state.attributes_enabled[attribute->location] != false) {
-		glDisableVertexAttribArray(attribute->location);
-		r_program_state.attributes_enabled[attribute->location] = false;
+	if (r_state.attributes_enabled[attribute] != false) {
+		glDisableVertexAttribArray(attribute);
+		r_state.attributes_enabled[attribute] = false;
 	}
 
-	R_GetError(attribute->name);
+	R_GetError(r_state.active_program->attributes[attribute].name);
 }
 
 /**
@@ -471,12 +465,12 @@ void R_SetupAttributes(void) {
 	{
 		if (mask & R_ARRAY_MASK_VERTEX) {
 
-			R_EnableAttribute(&p->attributes[R_ARRAY_VERTEX]);
+			R_EnableAttribute(R_ARRAY_VERTEX);
 			R_BindBuffer(r_state.array_buffers[R_ARRAY_VERTEX]);
-			R_AttributePointer(&p->attributes[R_ARRAY_VERTEX], 3, NULL);
+			R_AttributePointer(R_ARRAY_VERTEX, 3, NULL);
 		}
 		else {
-			R_DisableAttribute(&p->attributes[R_ARRAY_VERTEX]);
+			R_DisableAttribute(R_ARRAY_VERTEX);
 		}
 	}
 	
@@ -484,12 +478,12 @@ void R_SetupAttributes(void) {
 	{
 		if (mask & R_ARRAY_MASK_COLOR) {
 
-			R_EnableAttribute(&p->attributes[R_ARRAY_COLOR]);
+			R_EnableAttribute(R_ARRAY_COLOR);
 			R_BindBuffer(r_state.array_buffers[R_ARRAY_COLOR]);
-			R_AttributePointer(&p->attributes[R_ARRAY_COLOR], 4, NULL);
+			R_AttributePointer(R_ARRAY_COLOR, 4, NULL);
 		}
 		else {
-			R_DisableAttribute(&p->attributes[R_ARRAY_COLOR]);
+			R_DisableAttribute(R_ARRAY_COLOR);
 			glVertexAttrib4fv(R_ARRAY_COLOR, r_state.current_color);
 		}
 	}
@@ -498,12 +492,12 @@ void R_SetupAttributes(void) {
 	{
 		if (mask & R_ARRAY_MASK_TEX_DIFFUSE) {
 
-			R_EnableAttribute(&p->attributes[R_ARRAY_TEX_DIFFUSE]);
+			R_EnableAttribute(R_ARRAY_TEX_DIFFUSE);
 			R_BindBuffer(r_state.array_buffers[R_ARRAY_TEX_DIFFUSE]);
-			R_AttributePointer(&p->attributes[R_ARRAY_TEX_DIFFUSE], 2, NULL);
+			R_AttributePointer(R_ARRAY_TEX_DIFFUSE, 2, NULL);
 		}
 		else {
-			R_DisableAttribute(&p->attributes[R_ARRAY_TEX_DIFFUSE]);
+			R_DisableAttribute(R_ARRAY_TEX_DIFFUSE);
 		}
 	}
 
@@ -511,12 +505,12 @@ void R_SetupAttributes(void) {
 	{
 		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
 
-			R_EnableAttribute(&p->attributes[R_ARRAY_TEX_LIGHTMAP]);
+			R_EnableAttribute(R_ARRAY_TEX_LIGHTMAP);
 			R_BindBuffer(r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP]);
-			R_AttributePointer(&p->attributes[R_ARRAY_TEX_LIGHTMAP], 2, NULL);
+			R_AttributePointer(R_ARRAY_TEX_LIGHTMAP, 2, NULL);
 		}
 		else {
-			R_DisableAttribute(&p->attributes[R_ARRAY_TEX_LIGHTMAP]);
+			R_DisableAttribute(R_ARRAY_TEX_LIGHTMAP);
 		}
 	}
 
@@ -524,12 +518,12 @@ void R_SetupAttributes(void) {
 	{
 		if (mask & R_ARRAY_MASK_NORMAL) {
 
-			R_EnableAttribute(&p->attributes[R_ARRAY_NORMAL]);
+			R_EnableAttribute(R_ARRAY_NORMAL);
 			R_BindBuffer(r_state.array_buffers[R_ARRAY_NORMAL]);
-			R_AttributePointer(&p->attributes[R_ARRAY_NORMAL], 3, NULL);
+			R_AttributePointer(R_ARRAY_NORMAL, 3, NULL);
 		}
 		else {
-			R_DisableAttribute(&p->attributes[R_ARRAY_NORMAL]);
+			R_DisableAttribute(R_ARRAY_NORMAL);
 		}
 	}
 
@@ -537,12 +531,12 @@ void R_SetupAttributes(void) {
 	{
 		if (mask & R_ARRAY_MASK_TANGENT) {
 
-			R_EnableAttribute(&p->attributes[R_ARRAY_TANGENT]);
+			R_EnableAttribute(R_ARRAY_TANGENT);
 			R_BindBuffer(r_state.array_buffers[R_ARRAY_TANGENT]);
-			R_AttributePointer(&p->attributes[R_ARRAY_TANGENT], 4, NULL);
+			R_AttributePointer(R_ARRAY_TANGENT, 4, NULL);
 		}
 		else {
-			R_DisableAttribute(&p->attributes[R_ARRAY_TANGENT]);
+			R_DisableAttribute(R_ARRAY_TANGENT);
 		}
 	}
 }
@@ -564,7 +558,6 @@ void R_InitPrograms(void) {
 
 	memset(r_state.shaders, 0, sizeof(r_state.shaders));
 	memset(r_state.programs, 0, sizeof(r_state.programs));
-	memset(&r_program_state, 0, sizeof(r_program_state));
 
 	if ((r_state.default_program = R_LoadProgram("default", R_InitProgram_default, R_PreLink_default))) {
 		r_state.default_program->Shutdown = R_Shutdown_default;

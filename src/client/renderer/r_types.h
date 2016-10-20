@@ -61,8 +61,11 @@ typedef union {
 } r_color_t;
 
 // high bits OR'ed with image types
-#define IT_MASK_MIPMAP 128
-#define IT_MASK_FILTER 256
+#define IT_MASK_MIPMAP	128
+#define IT_MASK_FILTER	256
+
+#define IT_MASK_TYPE	0x7F
+#define IT_MASK_FLAGS	(-1 & ~IT_MASK_TYPE)
 
 // image types
 typedef enum {
@@ -79,7 +82,8 @@ typedef enum {
 	IT_ENVMAP = 10 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER)
+	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_EXPLICIT = 14
 } r_image_type_t;
 
 /**
@@ -888,6 +892,7 @@ typedef struct {
 	uint32_t num_mesh_tris;
 
 	_Bool update; // inform the client of state changes
+	_Bool scissor_enabled;
 } r_view_t;
 
 /**

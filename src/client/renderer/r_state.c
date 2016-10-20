@@ -363,6 +363,23 @@ void R_BlendFunc(GLenum src, GLenum dest) {
 /**
  * @brief
  */
+void R_EnableDepthMask(_Bool enable) {
+	
+	if (r_state.depth_mask_enabled == enable)
+		return;
+
+	r_state.depth_mask_enabled = enable;
+
+	if (enable) {
+		glDepthMask(GL_TRUE);
+	} else {
+		glDepthMask(GL_FALSE);
+	}
+}
+
+/**
+ * @brief
+ */
 void R_EnableBlend(_Bool enable) {
 
 	if (r_state.blend_enabled == enable)
@@ -372,12 +389,8 @@ void R_EnableBlend(_Bool enable) {
 
 	if (enable) {
 		glEnable(GL_BLEND);
-
-		glDepthMask(GL_FALSE);
 	} else {
 		glDisable(GL_BLEND);
-
-		glDepthMask(GL_TRUE);
 	}
 }
 
@@ -720,9 +733,43 @@ void R_Setup3D(void) {
 	// bind default vertex array
 	R_BindDefaultArray(R_ARRAY_VERTEX);
 
-	glDisable(GL_BLEND);
+	R_EnableBlend(false);
 
-	glEnable(GL_DEPTH_TEST);
+	R_EnableDepthTest(true);
+}
+
+void R_EnableDepthTest(_Bool enable) {
+
+	if (r_state.depth_test_enabled == enable)
+		return;
+
+	r_state.depth_test_enabled = enable;
+
+	if (enable)
+		glEnable(GL_DEPTH_TEST);
+	else
+		glDisable(GL_DEPTH_TEST);
+}
+
+void R_EnableScissor(const SDL_Rect *bounds) {
+
+	if (!bounds) {
+		if (!r_view.scissor_enabled) {
+			return;
+		}
+
+		glDisable(GL_SCISSOR_TEST);
+		r_view.scissor_enabled = false;
+	
+		return;
+	}
+
+	if (!r_view.scissor_enabled) {
+		glEnable(GL_SCISSOR_TEST);
+		r_view.scissor_enabled = true;
+	}
+
+	glScissor(bounds->x, bounds->y, bounds->w, bounds->h);
 }
 
 /**
@@ -744,30 +791,9 @@ void R_Setup2D(void) {
 	memcpy(texunit_diffuse.texcoord_array, default_texcoords, sizeof(vec2_t) * 4);
 	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, sizeof(vec2_t) * 4, default_texcoords);
 
-	glEnable(GL_BLEND);
+	R_EnableBlend(true);
 
-	glDisable(GL_DEPTH_TEST);
-}
-
-/**
- * @brief Temporarily disable programs without affecting r_state.
- * This is just for MVC right now.
- */
-void R_DisablePrograms(void) {
-
-	glUseProgram(0);
-}
-
-/**
- * @brief Re-enable programs without affecting r_state.
- * This is just for MVC right now.
- */
-void R_EnablePrograms(void) {
-
-	const r_program_t *prog = r_state.active_program;
-
-	R_UseProgram(NULL);
-	R_UseProgram(prog);
+	R_EnableDepthTest(false);
 }
 
 /**
@@ -780,6 +806,7 @@ void R_InitState(void) {
 
 	memset(&r_state, 0, sizeof(r_state));
 
+	r_state.depth_mask_enabled = true;
 	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
 	// setup vertex array pointers
@@ -800,7 +827,7 @@ void R_InitState(void) {
 
 	for (int32_t i = 0; i < MAX_GL_TEXUNITS; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
-
+		
 		if (i < r_config.max_texunits) {
 			texunit->texture = GL_TEXTURE0 + i;
 
@@ -816,7 +843,7 @@ void R_InitState(void) {
 	}
 
 	R_EnableTexture(&texunit_diffuse, true);
-
+	
 	// polygon offset parameters
 	glPolygonOffset(-1.0, 1.0);
 

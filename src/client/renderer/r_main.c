@@ -169,6 +169,8 @@ void R_DrawView(void) {
 
 	R_EnableBlend(true);
 
+	R_EnableDepthMask(false);
+
 	R_DrawBackBspSurfaces(&surfs->back);
 
 	R_DrawMaterialBspSurfaces(&surfs->material);
@@ -177,12 +179,16 @@ void R_DrawView(void) {
 
 	R_EnableBlend(false);
 
+	R_EnableDepthMask(true);
+
 	// wait for entity culling to complete
 	Thread_Wait(cull_entities);
 
 	R_DrawEntities();
 
 	R_EnableBlend(true);
+
+	R_EnableDepthMask(false);
 
 	// wait for element sorting to complete
 	Thread_Wait(sort_elements);
@@ -194,6 +200,8 @@ void R_DrawView(void) {
 	R_DrawCoronas();
 
 	R_EnableBlend(false);
+
+	R_EnableDepthMask(true);
 
 	R_ResetArrayState();
 
