@@ -81,16 +81,14 @@ typedef struct
 	r_variable_t end;
 	r_variable_t color;
 	r_variable_t density;
-} r_uniformfog_t;
+} r_uniform_fog_t;
 
 // light info
 typedef struct {
 	r_variable_t origin;
 	r_variable_t color;
 	r_variable_t radius;
-} r_uniformlight_t;
-
-typedef r_uniformlight_t *r_uniformlight_list_t;
+} r_uniform_light_t;
 
 #define MAX_PROGRAM_VARIABLES 32
 
@@ -100,7 +98,7 @@ typedef struct {
 	char name[MAX_QPATH];
 	r_shader_t *v;
 	r_shader_t *f;
-	uint32_t arrays_mask;
+	int32_t arrays_mask;
 	r_attribute_t attributes[R_ARRAY_MAX_ATTRIBS];
 	void (*Init)(void);
 	void (*Shutdown)(void);

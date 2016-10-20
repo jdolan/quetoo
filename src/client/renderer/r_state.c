@@ -749,7 +749,7 @@ void R_Setup2D(void) {
 	glDisable(GL_DEPTH_TEST);
 }
 
-/*
+/**
  * @brief Temporarily disable programs without affecting r_state.
  * This is just for MVC right now.
  */
@@ -758,13 +758,16 @@ void R_DisablePrograms(void) {
 	glUseProgram(0);
 }
 
-/*
+/**
  * @brief Re-enable programs without affecting r_state.
  * This is just for MVC right now.
  */
 void R_EnablePrograms(void) {
 
-	glUseProgram(r_state.active_program->id);
+	const r_program_t *prog = r_state.active_program;
+
+	R_UseProgram(NULL);
+	R_UseProgram(prog);
 }
 
 /**

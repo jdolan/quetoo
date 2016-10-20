@@ -41,8 +41,8 @@ typedef struct {
 	r_sampler2d_t sampler3;
 	r_sampler2d_t sampler4;
 
-	r_uniformfog_t fog;
-	r_uniformlight_list_t lights;
+	r_uniform_fog_t fog;
+	r_uniform_light_t *lights;
 
 	r_uniform_matrix4fv_t projection_mat;
 	r_uniform_matrix4fv_t modelview_mat;
@@ -106,7 +106,7 @@ void R_InitProgram_default(r_program_t *program) {
 
 	if (r_state.max_active_lights)
 	{
-		p->lights = Mem_TagMalloc(sizeof(r_uniformlight_t) * r_state.max_active_lights, MEM_TAG_RENDERER);
+		p->lights = Mem_TagMalloc(sizeof(r_uniform_light_t) * r_state.max_active_lights, MEM_TAG_RENDERER);
 
 		for (int32_t i = 0; i < r_state.max_active_lights; ++i)
 		{

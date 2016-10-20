@@ -74,7 +74,7 @@ void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *na
 
 	if (variable->location == -1) {
 		Com_Warn("Failed to resolve variable %s in program %s\n", name,
-				r_state.active_program->name);
+				 r_state.active_program->name);
 		return;
 	}
 
@@ -564,7 +564,7 @@ void R_InitPrograms(void) {
 
 	memset(r_state.shaders, 0, sizeof(r_state.shaders));
 	memset(r_state.programs, 0, sizeof(r_state.programs));
-	memset(&program_state, 0, sizeof(program_state));
+	memset(&r_program_state, 0, sizeof(r_program_state));
 
 	if ((r_state.default_program = R_LoadProgram("default", R_InitProgram_default, R_PreLink_default))) {
 		r_state.default_program->Shutdown = R_Shutdown_default;

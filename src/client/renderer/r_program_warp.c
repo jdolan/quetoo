@@ -28,7 +28,7 @@ typedef struct r_warp_program_s {
 	r_sampler2d_t sampler0;
 	r_sampler2d_t sampler1;
 
-	r_uniformfog_t fog;
+	r_uniform_fog_t fog;
 
 	r_uniform_matrix4fv_t projection_mat;
 	r_uniform_matrix4fv_t modelview_mat;
