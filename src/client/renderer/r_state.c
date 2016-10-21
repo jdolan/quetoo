@@ -207,8 +207,10 @@ void R_BindDefaultArray(int target) {
 			R_BindArray(target, &r_state.buffer_vertex_array);
 			break;
 		case R_ARRAY_TEX_DIFFUSE:
+			R_BindArray(target, &texunit_diffuse.buffer_texcoord_array);
+			break;
 		case R_ARRAY_TEX_LIGHTMAP:
-			R_BindArray(target, &r_state.active_texunit->buffer_texcoord_array);
+			R_BindArray(target, &texunit_lightmap.buffer_texcoord_array);
 			break;
 		case R_ARRAY_COLOR:
 			R_BindArray(target, &r_state.buffer_color_array);
@@ -220,6 +222,7 @@ void R_BindDefaultArray(int target) {
 			R_BindArray(target, &r_state.buffer_tangent_array);
 			break;
 		default:
+			R_BindArray(target, NULL);
 			break;
 	}
 }
@@ -687,6 +690,15 @@ void R_UseCurrentColor(void) {
 
 	if (r_state.active_program->UseCurrentColor)
 		r_state.active_program->UseCurrentColor(r_state.current_color);
+}
+
+/**
+ * @brief Uploads the interpolation value to the currently loaded program.
+ */
+void R_UseInterpolation(const float lerp) {
+
+	if (r_state.active_program->UseInterpolation)
+		r_state.active_program->UseInterpolation(lerp);
 }
 
 #define NEAR_Z 4.0

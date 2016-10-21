@@ -41,14 +41,26 @@ static r_array_state_t r_array_state;
 int32_t R_ArraysMask(void) {
 	uint32_t mask = R_ARRAY_MASK_VERTEX;
 
+	_Bool do_interpolation = r_view.current_entity && r_view.current_entity->old_frame != r_view.current_entity->frame && IS_MESH_MODEL(r_view.current_entity->model);
+
+	if (do_interpolation)
+		mask |= R_ARRAY_MASK_NEXT_VERTEX;
+
 	if (r_state.color_array_enabled)
 		mask |= R_ARRAY_MASK_COLOR;
 
 	if (r_state.lighting_enabled) {
 		mask |= R_ARRAY_MASK_NORMAL;
 
-		if (r_bumpmap->value)
+		if (do_interpolation)
+			mask |= R_ARRAY_MASK_NEXT_NORMAL;
+
+		if (r_bumpmap->value) {
 			mask |= R_ARRAY_MASK_TANGENT;
+
+			if (do_interpolation)
+				mask |= R_ARRAY_MASK_NEXT_TANGENT;
+		}
 	}
 
 	if (texunit_diffuse.enabled)
@@ -78,30 +90,57 @@ void R_SetArrayState(const r_model_t *mod) {
 		mask = arrays & xor;
 	}
 
-	if (r_state.active_program) // cull anything the program doesn't use
+	if (r_state.active_program) { // cull anything the program doesn't use
 		mask &= r_state.active_program->arrays_mask;
+	}
 
 	R_BindArray(R_ARRAY_COLOR, NULL);
 
+	_Bool do_interpolation = r_view.current_entity && IS_MESH_MODEL(mod) && mod->mesh->num_frames > 1 && r_view.current_entity->old_frame != r_view.current_entity->frame;
+	uint16_t old_frame = r_view.current_entity ? r_view.current_entity->old_frame : 0;
+	uint16_t frame = r_view.current_entity ? r_view.current_entity->frame : 0;
+
 	// vertex array
-	if (mask & R_ARRAY_MASK_VERTEX)
-		R_BindArray(R_ARRAY_VERTEX, &mod->vertex_buffer);
+	if (mask & R_ARRAY_MASK_VERTEX) {
+
+		R_BindArray(R_ARRAY_VERTEX, &mod->vertex_buffers[old_frame]);
+
+		// bind interpolation if we need it
+		if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && do_interpolation) {
+			R_BindArray(R_ARRAY_NEXT_VERTEX, &mod->vertex_buffers[frame]);
+		}
+	}
 
 	// normals and tangents
 	if (r_state.lighting_enabled) {
 
-		if (mask & R_ARRAY_MASK_NORMAL)
-			R_BindArray(R_ARRAY_NORMAL, &mod->normal_buffer);
-		
+		if (mask & R_ARRAY_MASK_NORMAL) {
+
+			R_BindArray(R_ARRAY_NORMAL, &mod->normal_buffers[old_frame]);
+
+			// bind interpolation if we need it
+			if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && do_interpolation) {
+				R_BindArray(R_ARRAY_NEXT_NORMAL, &mod->normal_buffers[frame]);
+			}
+		}
+
 		if (r_bumpmap->value) {
 
-			if ((mask & R_ARRAY_MASK_TANGENT) && R_ValidBuffer(&mod->tangent_buffer))
-				R_BindArray(R_ARRAY_TANGENT, &mod->tangent_buffer);
+			if ((mask & R_ARRAY_MASK_TANGENT) && R_ValidBuffer(&mod->tangent_buffers[old_frame])) {
+
+				R_BindArray(R_ARRAY_TANGENT, &mod->tangent_buffers[old_frame]);
+
+				// bind interpolation if we need it
+				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && do_interpolation) {
+					R_BindArray(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffers[frame]);
+				}
+			}
 		}
 	}
 
 	// diffuse texcoords
 	if (texunit_diffuse.enabled) {
+
 		if (mask & R_ARRAY_MASK_TEX_DIFFUSE)
 			R_BindArray(R_ARRAY_TEX_DIFFUSE, &mod->texcoord_buffer);
 	}
@@ -145,7 +184,12 @@ void R_ResetArrayState(void) {
 
 	// vertex array
 	if (mask & R_ARRAY_MASK_VERTEX)
+	{
 		R_BindDefaultArray(R_ARRAY_VERTEX);
+
+		if (mask & R_ARRAY_MASK_NEXT_VERTEX)
+			R_BindDefaultArray(R_ARRAY_NEXT_VERTEX);
+	}
 
 	// color array
 	if (r_state.color_array_enabled) {
@@ -157,12 +201,22 @@ void R_ResetArrayState(void) {
 	if (r_state.lighting_enabled) {
 
 		if (mask & R_ARRAY_MASK_NORMAL)
+		{
 			R_BindDefaultArray(R_ARRAY_NORMAL);
+
+			if (mask & R_ARRAY_MASK_NEXT_NORMAL)
+				R_BindDefaultArray(R_ARRAY_NEXT_NORMAL);
+		}
 
 		if (r_bumpmap->value) {
 
 			if (mask & R_ARRAY_MASK_TANGENT)
+			{
 				R_BindDefaultArray(R_ARRAY_TANGENT);
+
+				if (mask & R_ARRAY_MASK_NEXT_TANGENT)
+					R_BindDefaultArray(R_ARRAY_NEXT_TANGENT);
+			}
 		}
 	}
 

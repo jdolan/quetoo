@@ -45,13 +45,24 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 	const GLsizei t = mod->num_verts * 4 * sizeof(GLfloat);
 
 	// load the vertex buffer objects
-	R_CreateBuffer(&mod->vertex_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, v, mod->verts);
+	uint16_t frames = IS_MESH_MODEL(mod) ? mod->mesh->num_frames : 1;
 	
+	mod->vertex_buffers = Mem_LinkMalloc(sizeof(r_buffer_t) * frames, mod);
+
+	mod->normal_buffers = Mem_LinkMalloc(sizeof(r_buffer_t) * frames, mod);
+
+	mod->tangent_buffers = Mem_LinkMalloc(sizeof(r_buffer_t) * frames, mod);
+
+	for (uint16_t i = 0; i < frames; ++i)
+	{
+		R_CreateBuffer(&mod->vertex_buffers[i], GL_STATIC_DRAW, R_BUFFER_DATA, v, mod->verts + i * mod->num_verts * 3);
+	
+		R_CreateBuffer(&mod->normal_buffers[i], GL_STATIC_DRAW, R_BUFFER_DATA, v, mod->normals + i * mod->num_verts * 3);
+	
+		R_CreateBuffer(&mod->tangent_buffers[i], GL_STATIC_DRAW, R_BUFFER_DATA, t, mod->tangents + i * mod->num_verts * 3);
+	}
+
 	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, mod->texcoords);
-	
-	R_CreateBuffer(&mod->normal_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, v, mod->normals);
-	
-	R_CreateBuffer(&mod->tangent_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, t, mod->tangents);
 
 	if (mod->lightmap_texcoords) {
 
@@ -59,6 +70,20 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 	}
 
 	R_UnbindBuffer(R_BUFFER_DATA);
+
+	// Mesh models don't need their frame data any more
+	if (IS_MESH_MODEL(mod))
+	{
+		Mem_Free(mod->verts);
+		Mem_Free(mod->normals);
+		Mem_Free(mod->tangents);
+		Mem_Free(mod->texcoords);
+	
+		mod->verts = NULL;
+		mod->normals = NULL;
+		mod->tangents = NULL;
+		mod->texcoords = NULL;
+	}
 
 	R_GetError(mod->media.name);
 }
@@ -99,20 +124,25 @@ static void R_RegisterModel(r_media_t *self) {
 static void R_FreeModel(r_media_t *self) {
 	r_model_t *mod = (r_model_t *) self;
 
-	if (R_ValidBuffer(&mod->vertex_buffer))
-		R_DestroyBuffer(&mod->vertex_buffer);
+	uint16_t frames = IS_MESH_MODEL(mod) ? mod->mesh->num_frames : 1;
+
+	for (uint16_t i = 0; i < frames; ++i)
+	{
+		if (R_ValidBuffer(&mod->vertex_buffers[i]))
+			R_DestroyBuffer(&mod->vertex_buffers[i]);
 	
+		if (R_ValidBuffer(&mod->normal_buffers[i]))
+			R_DestroyBuffer(&mod->normal_buffers[i]);
+	
+		if (R_ValidBuffer(&mod->tangent_buffers[i]))
+			R_DestroyBuffer(&mod->tangent_buffers[i]);
+	}
+
 	if (R_ValidBuffer(&mod->texcoord_buffer))
 		R_DestroyBuffer(&mod->texcoord_buffer);
 	
 	if (R_ValidBuffer(&mod->lightmap_texcoord_buffer))
 		R_DestroyBuffer(&mod->lightmap_texcoord_buffer);
-	
-	if (R_ValidBuffer(&mod->normal_buffer))
-		R_DestroyBuffer(&mod->normal_buffer);
-	
-	if (R_ValidBuffer(&mod->tangent_buffer))
-		R_DestroyBuffer(&mod->tangent_buffer);
 
 	R_GetError(mod->media.name);
 }

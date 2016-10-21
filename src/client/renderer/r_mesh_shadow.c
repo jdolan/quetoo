@@ -81,6 +81,9 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
  * @brief Sets renderer state for the given entity and shadow.
  */
 static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *s) {
+	
+	// setup VBO states
+	R_SetArrayState(e->model);
 
 	R_SetMeshShadowColor_default(e, s);
 
@@ -90,6 +93,10 @@ static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *
 	// just to re-calculate the shadow matrix. Figure out a clean way
 	// to make this happen.
 	R_UseProgram_shadow();
+	
+	// setup lerp for animating models
+	if (e->old_frame != e->frame)
+		R_UseInterpolation(e->lerp);
 
 	glStencilFunc(GL_EQUAL, (s->plane.num % 0xff) + 1, ~0);
 }
@@ -101,6 +108,10 @@ static void R_ResetMeshShadowState_default(const r_entity_t *e __attribute__((un
 		const r_shadow_t *s __attribute__((unused))) {
 
 	R_RotateForMeshShadow_default(NULL, NULL);
+
+	R_ResetArrayState();
+
+	R_UseInterpolation(0.0);
 }
 
 /**
@@ -119,14 +130,6 @@ static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) 
  * @brief Draws all shadows for the specified entity.
  */
 void R_DrawMeshShadow_default(const r_entity_t *e) {
-
-	if (e->model->mesh->num_frames == 1) {
-		R_SetArrayState(e->model);
-	} else {
-		R_ResetArrayState();
-
-		R_InterpolateMeshModel(e);
-	}
 
 	r_shadow_t *s = e->lighting->shadows;
 	for (size_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {

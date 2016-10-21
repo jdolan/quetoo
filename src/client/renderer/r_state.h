@@ -101,8 +101,6 @@ typedef struct r_state_s {
 
 	const r_program_t *active_program;
 	const r_material_t *active_material;
-	const r_entity_t *active_entity; // entity being rendered
-	const r_shadow_t *active_shadow; // shadow being rendered
 
 	r_fog_parameters_t active_fog_parameters;
 
@@ -167,6 +165,7 @@ void R_UseMaterial(const r_material_t *material);
 void R_PushMatrix(void);
 void R_PopMatrix(void);
 void R_UseMatrices(void);
+void R_UseInterpolation(const float lerp);
 void R_UseAlphaTest(void);
 void R_UseCurrentColor(void);
 void R_InitState(void);

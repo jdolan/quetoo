@@ -24,6 +24,7 @@
 // these are the variables defined in the GLSL shader
 typedef struct r_shell_program_s {
 	r_uniform1f_t offset;
+	r_uniform1f_t time_fraction;
 
 	r_sampler2d_t sampler0;
 	r_sampler2d_t sampler1;
@@ -43,6 +44,7 @@ void R_PreLink_shell(const r_program_t *program) {
 	
 	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
 	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_TEX_DIFFUSE);
+	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_VERTEX);
 }
 
 /**
@@ -53,6 +55,7 @@ void R_InitProgram_shell(r_program_t *program) {
 
 	R_ProgramVariable(&program->attributes[R_ARRAY_VERTEX], R_ATTRIBUTE, "POSITION");
 	R_ProgramVariable(&program->attributes[R_ARRAY_TEX_DIFFUSE], R_ATTRIBUTE, "TEXCOORD");
+	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_VERTEX], R_ATTRIBUTE, "NEXT_POSITION");
 
 	R_ProgramVariable(&p->offset, R_UNIFORM_FLOAT, "OFFSET");
 	R_ProgramParameter1f(&p->offset, 0.0);
@@ -64,8 +67,13 @@ void R_InitProgram_shell(r_program_t *program) {
 	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
 
 	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
+
+	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION");
+
 	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 	R_ProgramParameter4fv(&p->current_color, white);
+
+	R_ProgramParameter1f(&p->time_fraction, 0.0f);
 }
 
 /**
@@ -102,4 +110,14 @@ void R_UseCurrentColor_shell(const vec4_t color) {
 		R_ProgramParameter4fv(&p->current_color, color);
 	else
 		R_ProgramParameter4fv(&p->current_color, white);
+}
+
+/**
+ * @brief
+ */
+void R_UseInterpolation_shell(const float time_fraction) {
+
+	r_shell_program_t *p = &r_shell_program;
+
+	R_ProgramParameter1f(&p->time_fraction, time_fraction);
 }

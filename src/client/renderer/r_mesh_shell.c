@@ -37,15 +37,7 @@ static void R_SetMeshShellColor_default(const r_entity_t *e) {
  */
 static void R_SetMeshShellState_default(const r_entity_t *e) {
 
-	if (e->model->mesh->num_frames == 1) {
-		R_SetArrayState(e->model);
-	} else {
-		R_ResetArrayState();
-
-		R_BindArray(R_ARRAY_TEX_DIFFUSE, &e->model->texcoord_buffer);
-
-		R_InterpolateMeshModel(e);
-	}
+	R_SetArrayState(e->model);
 
 	R_SetMeshShellColor_default(e);
 
@@ -57,6 +49,10 @@ static void R_SetMeshShellState_default(const r_entity_t *e) {
 	} else {
 		Matrix4x4_ConcatScale3(&r_view.modelview_matrix, 1.125, 1.125, 1.125);
 	}
+
+	// setup lerp for animating models
+	if (e->old_frame != e->frame)
+		R_UseInterpolation(e->lerp);
 }
 
 /**
@@ -68,6 +64,10 @@ static void R_ResetMeshShellState_default(const r_entity_t *e) {
 		glDepthRange(0.0, 1.0);
 
 	R_RotateForEntity(NULL);
+
+	R_ResetArrayState();
+
+	R_UseInterpolation(0.0);
 }
 
 /**

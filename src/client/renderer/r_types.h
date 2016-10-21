@@ -581,11 +581,11 @@ typedef struct r_model_s {
 	GLfloat *normals;
 	GLfloat *tangents;
 
-	r_buffer_t vertex_buffer; // vertex buffer objects
+	r_buffer_t *vertex_buffers; // vertex buffer objects
 	r_buffer_t texcoord_buffer;
 	r_buffer_t lightmap_texcoord_buffer;
-	r_buffer_t normal_buffer;
-	r_buffer_t tangent_buffer;
+	r_buffer_t *normal_buffers;
+	r_buffer_t *tangent_buffers;
 } r_model_t;
 
 #define IS_MESH_MODEL(m) (m && m->mesh)
