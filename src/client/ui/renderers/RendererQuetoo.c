@@ -39,15 +39,8 @@
  */
 static void beginFrame(Renderer *self) {
 
-	RendererQuetoo *this = (RendererQuetoo *) self;
-
 	// set color to white
-	this->currentColor.c = -1;
-
-	R_EnableBlend(true);
-	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	R_EnableColorArray(false);
+	R_Color(NULL);
 
 	super(Renderer, self, beginFrame);
 }
@@ -58,11 +51,9 @@ static void beginFrame(Renderer *self) {
  */
 static void drawLine(const Renderer *self, const SDL_Point *points) {
 	
-	RendererQuetoo *this = (RendererQuetoo *) self;
-
 	assert(points);
 	
-	R_DrawLine(points[0].x, points[0].y, points[1].x, points[1].y, this->currentColor.c, -1.0);
+	R_DrawLinesUI(points, 2, false);
 }
 
 /**
@@ -71,17 +62,9 @@ static void drawLine(const Renderer *self, const SDL_Point *points) {
  */
 static void drawLines(const Renderer *self, const SDL_Point *points, size_t count) {
 	
-	RendererQuetoo *this = (RendererQuetoo *) self;
-
 	assert(points);
 	
-	for (size_t i = 0; i < count - 1; ++i)
-	{
-		const SDL_Point *start = &points[i];
-		const SDL_Point *end = &points[i + 1];
-
-		R_DrawLine(start->x, start->y, end->x, end->y, this->currentColor.c, -1.0);
-	}
+	R_DrawLinesUI(points, count, false);
 }
 
 /**
@@ -90,14 +73,16 @@ static void drawLines(const Renderer *self, const SDL_Point *points, size_t coun
  */
 static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 
-	RendererQuetoo *this = (RendererQuetoo *) self;
-
 	assert(rect);
 
-	R_DrawLine(rect->x,					rect->y,				rect->x + rect->w - 1,			rect->y, this->currentColor.c, -1.0);
-	R_DrawLine(rect->x + rect->w - 1,	rect->y,				rect->x + rect->w - 1,			rect->y + rect->h - 1, this->currentColor.c, -1.0);
-	R_DrawLine(rect->x + rect->w - 1,	rect->y + rect->h - 1,	rect->x, rect->y + rect->h - 1,	this->currentColor.c, -1.0);
-	R_DrawLine(rect->x,					rect->y + rect->h - 1,	rect->x, rect->y,				this->currentColor.c, -1.0);
+	const SDL_Point points[] = {
+		{ rect->x,					rect->y },
+		{ rect->x + rect->w - 1,	rect->y },
+		{ rect->x + rect->w - 1,	rect->y + rect->h - 1 },
+		{ rect->x,					rect->y + rect->h - 1 }
+	};
+
+	R_DrawLinesUI(points, 4, true);
 }
 
 /**
@@ -106,11 +91,9 @@ static void drawRect(const Renderer *self, const SDL_Rect *rect) {
  */
 static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
 
-	RendererQuetoo *this = (RendererQuetoo *) self;
-
 	assert(rect);
 
-	R_DrawFill(rect->x, rect->y, rect->w, rect->h, this->currentColor.c, -1.0);
+	R_DrawFillUI(rect);
 }
 
 /**
@@ -142,9 +125,18 @@ static void endFrame(Renderer *self) {
  * @memberof RendererQuetoo
  */
 static void setDrawColor(Renderer *self, const SDL_Color *color) {
-	RendererQuetoo *this = (RendererQuetoo *) self;
 
-	memcpy(&this->currentColor, color, sizeof(this->currentColor));
+	if (color) {
+		R_Color((const vec4_t) {
+			color->r / 255.0f,
+			color->g / 255.0f,
+			color->b / 255.0f,
+			color->a / 255.0f
+		});
+	}
+	else {
+		R_Color(NULL);
+	}
 }
 
 /**

@@ -52,6 +52,9 @@ typedef struct r_fill_arrays_s {
 	GLfloat colors[MAX_FILLS * 4 * 4];
 	uint32_t color_index;
 	r_buffer_t color_buffer;
+
+	// buffer used for immediately-rendered fills
+	r_buffer_t ui_vert_buffer;
 } r_fill_arrays_t;
 
 #define MAX_LINES 512
@@ -65,6 +68,9 @@ typedef struct r_line_arrays_s {
 	GLfloat colors[MAX_LINES * 2 * 4];
 	uint32_t color_index;
 	r_buffer_t color_buffer;
+
+	// buffer used for immediately-rendered lines
+	r_buffer_t ui_vert_buffer;
 } r_line_arrays_t;
 
 // each font has vertex arrays of characters to draw each frame
@@ -378,9 +384,6 @@ static void R_DrawChars(void) {
 	R_Color(NULL);
 }
 
-void R_DrawFills(void);
-void R_DrawLines(void);
-
 /**
  * @brief The color can be specified as an index into the palette with positive alpha
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
@@ -429,8 +432,6 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 11] = 0;
 
 	r_draw.fill_arrays.vert_index += 12;
-
-	R_DrawFills();
 }
 
 /**
@@ -503,8 +504,6 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 5] = 0;
 
 	r_draw.line_arrays.vert_index += 6;
-
-	R_DrawLines();
 }
 
 /**
@@ -541,9 +540,76 @@ static void R_DrawLines(void) {
 }
 
 /**
+ * @brief Draws a filled rect, for MVC. Uses current color.
+ */
+void R_DrawFillUI(const SDL_Rect *rect) {
+
+	const float verts[] = {
+		rect->x + 0.5, rect->y + 0.5, 0.0,
+		(rect->x + rect->w) + 0.5, rect->y + 0.5, 0.0,
+		(rect->x + rect->w) + 0.5, (rect->y + rect->h) + 0.5, 0.0,
+		rect->x + 0.5, (rect->y + rect->h) + 0.5, 0.0
+	};
+
+	R_EnableColorArray(false);
+
+	R_EnableTexture(&texunit_diffuse, false);
+
+	// upload the changed data
+	R_UploadToBuffer(&r_draw.fill_arrays.ui_vert_buffer, 0, sizeof(verts), verts);
+
+	// alter the array pointers
+	R_BindArray(R_ARRAY_VERTEX, &r_draw.fill_arrays.ui_vert_buffer);
+
+	// draw!
+	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+	// and restore them
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+
+	R_EnableTexture(&texunit_diffuse, true);
+}
+
+void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop) {
+
+	float point_buffer[count * 3];
+
+	for (size_t i = 0; i < count; ++i)
+	{
+		const size_t px = i * 3;
+		
+		point_buffer[px + 0] = points[i].x + 0.5;
+		point_buffer[px + 1] = points[i].y + 0.5;
+		point_buffer[px + 2] = 0.0;
+	}
+
+	R_EnableColorArray(false);
+
+	R_EnableTexture(&texunit_diffuse, false);
+
+	// upload the changed data
+	R_UploadToBuffer(&r_draw.line_arrays.ui_vert_buffer, 0, sizeof(point_buffer), point_buffer);
+
+	// alter the array pointers
+	R_BindArray(R_ARRAY_VERTEX, &r_draw.line_arrays.ui_vert_buffer);
+
+	// draw!
+	R_DrawArrays(loop ? GL_LINE_LOOP : GL_LINE_STRIP, 0, count);
+
+	// and restore them
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+
+	R_EnableTexture(&texunit_diffuse, true);
+}
+
+/**
  * @brief Draw all 2D geometry accumulated for the current frame.
  */
 void R_Draw2D(void) {
+
+	R_DrawLines();
+
+	R_DrawFills();
 
 	R_DrawChars();
 }
@@ -614,6 +680,10 @@ void R_InitDraw(void) {
 
 	R_CreateBuffer(&r_draw.line_arrays.vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.line_arrays.verts), NULL);
 	R_CreateBuffer(&r_draw.line_arrays.color_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.line_arrays.colors), NULL);
+
+	// fill buffer only needs 4 verts
+	R_CreateBuffer(&r_draw.fill_arrays.ui_vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(vec3_t) * 4, NULL);
+	R_CreateBuffer(&r_draw.line_arrays.ui_vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(vec3_t) * MAX_LINES * 4, NULL);
 }
 
 /**
@@ -633,4 +703,7 @@ void R_ShutdownDraw(void) {
 
 	R_DestroyBuffer(&r_draw.line_arrays.vert_buffer);
 	R_DestroyBuffer(&r_draw.line_arrays.color_buffer);
+	
+	R_DestroyBuffer(&r_draw.fill_arrays.ui_vert_buffer);
+	R_DestroyBuffer(&r_draw.line_arrays.ui_vert_buffer);
 }

@@ -31,6 +31,7 @@ void R_Setup2D(void);
 void R_EnableColorArray(_Bool enable);
 void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
+void R_EnableDepthTest(_Bool enable);
 
 #ifdef __R_LOCAL_H__
 
@@ -157,7 +158,6 @@ void R_EnableAlphaTest(float threshold);
 void R_EnableStencilTest(GLenum pass, _Bool enable);
 void R_EnablePolygonOffset(GLenum mode, _Bool enable);
 void R_EnableTexture(r_texunit_t *texunit, _Bool enable);
-void R_EnableDepthTest(_Bool enable);
 void R_EnableLighting(const r_program_t *program, _Bool enable);
 void R_EnableShadow(const r_program_t *program, _Bool enable);
 void R_EnableWarp(const r_program_t *program, _Bool enable);
