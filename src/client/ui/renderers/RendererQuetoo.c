@@ -50,9 +50,9 @@ static void beginFrame(Renderer *self) {
  * @memberof RendererQuetoo
  */
 static void drawLine(const Renderer *self, const SDL_Point *points) {
-	
+
 	assert(points);
-	
+
 	R_DrawLinesUI(points, 2, false);
 }
 
@@ -61,7 +61,6 @@ static void drawLine(const Renderer *self, const SDL_Point *points) {
  * @memberof RendererQuetoo
  */
 static void drawLines(const Renderer *self, const SDL_Point *points, size_t count) {
-	
 	assert(points);
 	
 	R_DrawLinesUI(points, count, false);
@@ -74,7 +73,6 @@ static void drawLines(const Renderer *self, const SDL_Point *points, size_t coun
 static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 
 	assert(rect);
-
 	const SDL_Point points[] = {
 		{ rect->x,					rect->y },
 		{ rect->x + rect->w - 1,	rect->y },
@@ -92,7 +90,6 @@ static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
 
 	assert(rect);
-
 	R_DrawFillUI(rect);
 }
 

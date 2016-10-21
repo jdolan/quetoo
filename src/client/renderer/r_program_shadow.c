@@ -27,7 +27,7 @@ typedef struct r_shadow_program_s {
 	r_uniform4fv_t light;
 	r_uniform4fv_t plane;
 
-	r_uniformfog_t fog;
+	r_uniform_fog_t fog;
 
 	r_uniform_matrix4fv_t projection_mat;
 	r_uniform_matrix4fv_t modelview_mat;
@@ -145,14 +145,13 @@ void R_UseFog_shadow(const r_fog_parameters_t *fog) {
 
 	r_shadow_program_t *p = &r_shadow_program;
 
-	if (fog && fog->density)
-	{
+	if (fog && fog->density) {
 		R_ProgramParameter1f(&p->fog.density, fog->density);
 		R_ProgramParameter1f(&p->fog.start, fog->start);
 		R_ProgramParameter1f(&p->fog.end, fog->end);
-	}
-	else
+	} else {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
+	}
 }
 
 /**

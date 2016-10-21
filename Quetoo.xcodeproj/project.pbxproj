@@ -83,6 +83,8 @@
 		CE3BCDC81DB6DD77002E6C6D /* r_glad_core.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */; };
 		CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */; };
 		CE3BCDCA1DB6DD87002E6C6D /* r_program_null.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDBA1DB6DCE0002E6C6D /* r_program_null.h */; };
+		CE3BCDF01DB91B01002E6C6D /* RendererQuetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDEC1DB91AF7002E6C6D /* RendererQuetoo.c */; };
+		CE3BCDF11DB91B0B002E6C6D /* RendererQuetoo.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDED1DB91AF7002E6C6D /* RendererQuetoo.h */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.dylib */; };
 		CE5816EE1D904AD4002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
@@ -1328,6 +1330,9 @@
 		CE3BCDC21DB6DD05002E6C6D /* matrix_inc.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = matrix_inc.glsl; sourceTree = "<group>"; };
 		CE3BCDC31DB6DD05002E6C6D /* null_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = null_fs.glsl; sourceTree = "<group>"; };
 		CE3BCDC41DB6DD05002E6C6D /* null_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = null_vs.glsl; sourceTree = "<group>"; };
+		CE3BCDEC1DB91AF7002E6C6D /* RendererQuetoo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = RendererQuetoo.c; sourceTree = "<group>"; };
+		CE3BCDED1DB91AF7002E6C6D /* RendererQuetoo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RendererQuetoo.h; sourceTree = "<group>"; };
+		CE3BCDF21DB91B52002E6C6D /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5A5AB61D890190001A00CC /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5A5AB71D890349001A00CC /* update-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "update-icon.rc"; sourceTree = "<group>"; };
 		CE5A5AB81D8904FC001A00CC /* update.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = update.ico; sourceTree = "<group>"; };
@@ -2730,9 +2735,20 @@
 			path = update;
 			sourceTree = "<group>";
 		};
+		CE3BCDEB1DB91AF7002E6C6D /* renderers */ = {
+			isa = PBXGroup;
+			children = (
+				CE3BCDEC1DB91AF7002E6C6D /* RendererQuetoo.c */,
+				CE3BCDED1DB91AF7002E6C6D /* RendererQuetoo.h */,
+				CE3BCDF21DB91B52002E6C6D /* Makefile.am */,
+			);
+			path = renderers;
+			sourceTree = "<group>";
+		};
 		CE5CDB931D9F45090034757D /* ui */ = {
 			isa = PBXGroup;
 			children = (
+				CE3BCDEB1DB91AF7002E6C6D /* renderers */,
 				CE5CDBB51D9F45090034757D /* viewcontrollers */,
 				CE5CDBC71D9F450A0034757D /* views */,
 				CE5CDBB11D9F45090034757D /* ui_local.h */,
@@ -2899,6 +2915,7 @@
 				CE5CDC371D9F51A90034757D /* ui_main.c in Headers */,
 				CE5CDC381D9F51A90034757D /* ui_main.h in Headers */,
 				CE5CDC391D9F51A90034757D /* ui_types.h in Headers */,
+				CE3BCDF11DB91B0B002E6C6D /* RendererQuetoo.h in Headers */,
 				CE5CDC3A1D9F51A90034757D /* ui.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3900,6 +3917,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE5CDC331D9F518B0034757D /* ui_main.c in Sources */,
+				CE3BCDF01DB91B01002E6C6D /* RendererQuetoo.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

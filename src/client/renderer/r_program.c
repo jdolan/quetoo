@@ -197,8 +197,8 @@ void R_AttributePointer(const r_attribute_id_t attribute, GLuint size, const GLv
  */
 void R_EnableAttribute(const r_attribute_id_t attribute) {
 
-	if (attribute < 0) {
-		Com_Warn("invalid attribute\n");
+	if (attribute >= R_ARRAY_MAX_ATTRIBS) {
+		Com_Warn("Invalid attribute\n");
 		return;
 	}
 
@@ -215,8 +215,8 @@ void R_EnableAttribute(const r_attribute_id_t attribute) {
  */
 void R_DisableAttribute(const r_attribute_id_t attribute) {
 
-	if (attribute < 0) {
-		Com_Warn("NULL or invalid attribute\n");
+	if (attribute >= R_ARRAY_MAX_ATTRIBS) {
+		Com_Warn("Invalid attribute\n");
 		return;
 	}
 

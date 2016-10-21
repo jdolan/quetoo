@@ -25,7 +25,7 @@
 typedef struct {
 	r_sampler2d_t sampler0;
 
-	r_uniformfog_t fog;
+	r_uniform_fog_t fog;
 
 	r_uniform_matrix4fv_t projection_mat;
 	r_uniform_matrix4fv_t modelview_mat;
