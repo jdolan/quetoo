@@ -81,6 +81,8 @@ cvar_t *r_width;
 cvar_t *r_windowed_height;
 cvar_t *r_windowed_width;
 
+extern cvar_t *verbose;
+
 // render mode function pointers
 BspSurfacesDrawFunc R_DrawOpaqueBspSurfaces;
 BspSurfacesDrawFunc R_DrawOpaqueWarpBspSurfaces;
@@ -550,7 +552,7 @@ static void R_InitConfig(void) {
 	Com_Print("  Vendor:     ^2%s^7\n", r_config.vendor_string);
 	Com_Print("  Version:    ^2%s^7\n", r_config.version_string);
 
-	if (developer->value >= 1) {
+	if (verbose->integer >= 1) {
 
 		// extension string can be gigantic, so let's pretty it up a bit.
 		GString *pretty_string = g_string_new(NULL);

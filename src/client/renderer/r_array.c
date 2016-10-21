@@ -41,7 +41,7 @@ static r_array_state_t r_array_state;
 int32_t R_ArraysMask(void) {
 	uint32_t mask = R_ARRAY_MASK_VERTEX;
 
-	_Bool do_interpolation = r_view.current_entity && r_view.current_entity->old_frame != r_view.current_entity->frame && IS_MESH_MODEL(r_view.current_entity->model);
+	_Bool do_interpolation = r_view.current_entity && IS_MESH_MODEL(r_view.current_entity->model) && r_view.current_entity->model->mesh->num_frames > 1 && r_view.current_entity->old_frame != r_view.current_entity->frame;
 
 	if (do_interpolation)
 		mask |= R_ARRAY_MASK_NEXT_VERTEX;
@@ -245,18 +245,31 @@ void R_ResetArrayState(void) {
 /**
  * @brief
  */
-void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
-
-	assert(r_state.array_buffers[R_ARRAY_VERTEX] != NULL);
-
-	R_SetupAttributes();
+static void R_PrepareProgram() {
 
 	// upload state data that needs to be synced up to current program
+	R_SetupAttributes();
+
 	R_UseMatrices();
 
 	R_UseAlphaTest();
 
 	R_UseCurrentColor();
+}
 
-	glDrawArrays(type, start, count);
+/**
+ * @brief
+ */
+void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
+
+	assert(r_state.array_buffers[R_ARRAY_VERTEX] != NULL);
+	
+	R_PrepareProgram();
+
+	if (r_state.element_buffer) {
+		glDrawElements(type, count, GL_UNSIGNED_INT, (const void *)(ptrdiff_t)start);
+	}
+	else {
+		glDrawArrays(type, start, count);
+	}
 }

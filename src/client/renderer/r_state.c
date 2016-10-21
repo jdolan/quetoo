@@ -185,7 +185,10 @@ void R_BindSpecularmapTexture(GLuint texnum) {
  */
 void R_BindArray(int target, const r_buffer_t *buffer) {
 
-	r_state.array_buffers[target] = buffer;
+	if (target == R_ARRAY_ELEMENTS)
+		r_state.element_buffer = buffer;
+	else
+		r_state.array_buffers[target] = buffer;
 }
 
 /**
@@ -227,6 +230,9 @@ void R_BindDefaultArray(int target) {
 	}
 }
 
+/**
+ * @brief Binds the appropriate shared vertex array to the specified target.
+ */
 static GLenum R_BufferTypeToTarget(int type) {
 
 	return (type == R_BUFFER_INDICES) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;

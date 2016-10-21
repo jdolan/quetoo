@@ -322,13 +322,10 @@ void R_DrawSkyBox(void) {
 	R_PushMatrix();
 	Matrix4x4_ConcatTranslate(&r_view.modelview_matrix, r_view.origin[0], r_view.origin[1], r_view.origin[2]);
 
-	// Paril FIXME: doesn't work since program is not bound.
-	// need a program for skybox.
-	if (r_state.fog_enabled && r_state.active_program)
-	{
-		r_state.active_fog_parameters.end = FOG_END * 8.0;
-		r_state.active_program->UseFog(&r_state.active_fog_parameters);
-	}
+	R_EnableFog(true);
+
+	r_state.active_fog_parameters.end = FOG_END * 8.0;
+	r_state.active_program->UseFog(&r_state.active_fog_parameters);
 
 	r_sky.texcoord_index = r_sky.vert_index = 0;
 
@@ -352,13 +349,10 @@ void R_DrawSkyBox(void) {
 		r_sky.texcoord_index = r_sky.vert_index = 0;
 	}
 	
-	// Paril FIXME: doesn't work since program is not bound.
-	// need a program for skybox.
-	if (r_state.fog_enabled && r_state.active_program)
-	{
-		r_state.active_fog_parameters.end = FOG_END;
-		r_state.active_program->UseFog(&r_state.active_fog_parameters);
-	}
+	r_state.active_fog_parameters.end = FOG_END;
+	r_state.active_program->UseFog(&r_state.active_fog_parameters);
+
+	R_EnableFog(false);
 
 	R_PopMatrix();
 }

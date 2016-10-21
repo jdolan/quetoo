@@ -73,6 +73,9 @@ typedef struct r_state_s {
 	// them being bound multiple times in a row.
 	GLuint active_buffers[R_NUM_BUFFERS];
 
+	// the active element buffer.
+	const r_buffer_t *element_buffer;
+
 	// the buffers that will be passed to the
 	// programs to be used in attributes.
 	const r_buffer_t *array_buffers[R_ARRAY_MAX_ATTRIBS];

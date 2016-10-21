@@ -24,7 +24,8 @@
 
 #include "common.h"
 
-cvar_t *developer;
+extern cvar_t *debug;
+extern cvar_t *verbose;
 
 /**
  * @brief Print a debug statement. If the format begins with '!', the function
@@ -115,7 +116,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	va_end(args);
 
 	// trigger breakpoint before end but after msg is ready to read
-	if (developer && developer->value >= 1)
+	if (debug && debug->integer >= 1)
 		SDL_TriggerBreakpoint();
 
 	if (quetoo.Error) {
@@ -148,7 +149,7 @@ void Com_Print(const char *fmt, ...) {
 	// FIXME: not sure how to resolve this one, because
 	// prints happen before command buf is run and whatnot.
 	// developer may never be non-zero if crash happens very early.
-	if (!developer || developer->value >= 3)
+	if (!debug || debug->integer >= 3)
 		SDL_Log("%s", (const char *) msg);
 }
 
@@ -181,7 +182,7 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
 	}
 
 	// trigger breakpoint after msg is ready to read
-	if (developer && developer->value >= 2)
+	if (debug && debug->integer >= 2)
 		SDL_TriggerBreakpoint();
 }
 

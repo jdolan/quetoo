@@ -42,6 +42,10 @@ typedef enum {
 	R_ARRAY_NEXT_TANGENT,
 
 	R_ARRAY_MAX_ATTRIBS,
+
+	// This is a special entry so that R_BindArray can be
+	// used for binding element buffers as well.
+	R_ARRAY_ELEMENTS = -1
 } r_attribute_id_t;
 
 // These are the masks used to tell which data

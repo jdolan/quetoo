@@ -30,13 +30,13 @@ static jmp_buf env;
 
 quetoo_t quetoo;
 
-static cvar_t *debug;
+cvar_t *debug;
 cvar_t *dedicated;
 cvar_t *game;
 static cvar_t *threads;
 cvar_t *time_demo;
 cvar_t *time_scale;
-static cvar_t *verbose;
+cvar_t *verbose;
 
 static void Debug(const char *msg);
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
@@ -134,7 +134,6 @@ static void Init(void) {
 	Fs_Init(true);
 	
 	debug = Cvar_Add("debug", "0", 0, "Print debugging information");
-	developer = Cvar_Add("developer", "0", 0, "Enable developer mode, which may provide more options or more information");
 
 	dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
 	if (strstr(Sys_ExecutablePath(), "-dedicated")) {
