@@ -185,7 +185,7 @@ _Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height
 	const char *real_path = Fs_RealPath(path);
 
 	if (!(f = SDL_RWFromFile(real_path, "wb"))) {
-		Com_Print("Failed to open to %s\n", real_path);
+		Com_Warn("Failed to open to %s\n", real_path);
 		return false;
 	}
 
