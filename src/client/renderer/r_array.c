@@ -272,4 +272,6 @@ void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 	else {
 		glDrawArrays(type, start, count);
 	}
+
+	R_GetError(NULL);
 }

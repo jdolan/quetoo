@@ -473,7 +473,7 @@ void R_SetupAttributes(void) {
 			
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_VERTEX)
 			{
-				if (mask & R_ARRAY_MASK_NEXT_VERTEX) {
+				if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_VERTEX])) {
 
 					R_AttributePointer(R_ARRAY_NEXT_VERTEX, 3, r_state.array_buffers[R_ARRAY_NEXT_VERTEX], NULL);
 				}
@@ -530,7 +530,7 @@ void R_SetupAttributes(void) {
 			
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_NORMAL)
 			{
-				if (mask & R_ARRAY_MASK_NEXT_NORMAL) {
+				if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_NORMAL])) {
 
 					R_AttributePointer(R_ARRAY_NEXT_NORMAL, 3, r_state.array_buffers[R_ARRAY_NEXT_NORMAL], NULL);
 				}
@@ -553,7 +553,7 @@ void R_SetupAttributes(void) {
 
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_TANGENT)
 			{
-				if (mask & R_ARRAY_MASK_NEXT_TANGENT) {
+				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_TANGENT])) {
 
 					R_AttributePointer(R_ARRAY_NEXT_TANGENT, 4, r_state.array_buffers[R_ARRAY_NEXT_TANGENT], NULL);
 				}

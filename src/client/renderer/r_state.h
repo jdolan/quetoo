@@ -61,12 +61,14 @@ typedef struct r_state_s {
 	GLfloat color_array[MAX_GL_ARRAY_LENGTH * 4];
 	GLfloat normal_array[MAX_GL_ARRAY_LENGTH * 3];
 	GLfloat tangent_array[MAX_GL_ARRAY_LENGTH * 4];
-	
+	GLuint indice_array[MAX_GL_ARRAY_LENGTH * 4];
+
 	// built-in buffers for the above vertex arrays
 	r_buffer_t buffer_vertex_array;
 	r_buffer_t buffer_color_array;
 	r_buffer_t buffer_normal_array;
 	r_buffer_t buffer_tangent_array;
+	r_buffer_t buffer_indice_array;
 
 	// the current buffers bound to the global
 	// renderer state. This just prevents

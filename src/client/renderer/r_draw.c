@@ -38,7 +38,7 @@ typedef struct r_char_arrays_s {
 	uint32_t color_index;
 	r_buffer_t color_buffer;
 
-	GLuint indices[MAX_CHARS];
+	GLuint indices[MAX_CHARS * 4];
 	uint32_t indice_index;
 	r_buffer_t indice_buffer;
 
@@ -56,6 +56,12 @@ typedef struct r_fill_arrays_s {
 	GLfloat colors[MAX_FILLS * 4 * 4];
 	uint32_t color_index;
 	r_buffer_t color_buffer;
+
+	GLuint indices[MAX_FILLS * 4];
+	uint32_t indice_index;
+	r_buffer_t indice_buffer;
+
+	uint32_t num_fills;
 
 	// buffer used for immediately-rendered fills
 	r_buffer_t ui_vert_buffer;
@@ -456,6 +462,20 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 11] = 0;
 
 	r_draw.fill_arrays.vert_index += 12;
+
+	const GLuint fill_index = r_draw.fill_arrays.num_fills * 4;
+	
+	r_draw.fill_arrays.indices[r_draw.fill_arrays.indice_index + 0] = fill_index;
+	r_draw.fill_arrays.indices[r_draw.fill_arrays.indice_index + 1] = fill_index + 1;
+	r_draw.fill_arrays.indices[r_draw.fill_arrays.indice_index + 2] = fill_index + 2;
+
+	r_draw.fill_arrays.indices[r_draw.fill_arrays.indice_index + 3] = fill_index + 0;
+	r_draw.fill_arrays.indices[r_draw.fill_arrays.indice_index + 4] = fill_index + 2;
+	r_draw.fill_arrays.indices[r_draw.fill_arrays.indice_index + 5] = fill_index + 3;
+
+	r_draw.fill_arrays.indice_index += 6;
+
+	r_draw.fill_arrays.num_fills++;
 }
 
 /**
@@ -470,6 +490,8 @@ static void R_DrawFills(void) {
 	R_UploadToBuffer(&r_draw.fill_arrays.vert_buffer, 0, r_draw.fill_arrays.vert_index * sizeof(float), r_draw.fill_arrays.verts);
 	R_UploadToBuffer(&r_draw.fill_arrays.color_buffer, 0, r_draw.fill_arrays.color_index * sizeof(float), r_draw.fill_arrays.colors);
 
+	R_UploadToBuffer(&r_draw.fill_arrays.indice_buffer, 0, r_draw.fill_arrays.indice_index * sizeof(GLuint), r_draw.fill_arrays.indices);
+
 	R_EnableTexture(&texunit_diffuse, false);
 
 	R_EnableColorArray(true);
@@ -477,18 +499,20 @@ static void R_DrawFills(void) {
 	// alter the array pointers
 	R_BindArray(R_ARRAY_VERTEX, &r_draw.fill_arrays.vert_buffer);
 	R_BindArray(R_ARRAY_COLOR, &r_draw.fill_arrays.color_buffer);
+	R_BindArray(R_ARRAY_ELEMENTS, &r_draw.fill_arrays.indice_buffer);
 
-	R_DrawArrays(GL_QUADS, 0, r_draw.fill_arrays.vert_index / 3);
+	R_DrawArrays(GL_TRIANGLES, 0, r_draw.fill_arrays.indice_index);
 
 	// and restore them
 	R_BindDefaultArray(R_ARRAY_VERTEX);
 	R_BindDefaultArray(R_ARRAY_COLOR);
+	R_BindDefaultArray(R_ARRAY_ELEMENTS);
 
 	R_EnableColorArray(false);
 
 	R_EnableTexture(&texunit_diffuse, true);
 
-	r_draw.fill_arrays.vert_index = r_draw.fill_arrays.color_index = 0;
+	r_draw.fill_arrays.vert_index = r_draw.fill_arrays.color_index = r_draw.fill_arrays.indice_index = r_draw.fill_arrays.num_fills = 0;
 }
 
 /**
@@ -703,6 +727,8 @@ void R_InitDraw(void) {
 
 	R_CreateBuffer(&r_draw.fill_arrays.vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.fill_arrays.verts), NULL);
 	R_CreateBuffer(&r_draw.fill_arrays.color_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.fill_arrays.colors), NULL);
+
+	R_CreateBuffer(&r_draw.fill_arrays.indice_buffer, GL_DYNAMIC_DRAW, R_BUFFER_INDICES, sizeof(r_draw.fill_arrays.indices), NULL);
 
 	R_CreateBuffer(&r_draw.line_arrays.vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.line_arrays.verts), NULL);
 	R_CreateBuffer(&r_draw.line_arrays.color_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.line_arrays.colors), NULL);
