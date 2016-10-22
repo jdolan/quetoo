@@ -77,8 +77,9 @@ typedef unsigned __int64 guint64;
 typedef signed long long gssize;
 typedef unsigned long long gsize;
 #define G_GSIZE_MODIFIER "I64"
-#define G_GSSIZE_FORMAT "I64d"
+#define G_GSSIZE_MODIFIER "I64"
 #define G_GSIZE_FORMAT "I64u"
+#define G_GSSIZE_FORMAT "I64d"
 
 #define G_MAXSIZE	G_MAXUINT64
 #define G_MINSSIZE	G_MININT64
@@ -93,8 +94,9 @@ typedef unsigned long long gsize;
 typedef signed int gssize;
 typedef unsigned int gsize;
 #define G_GSIZE_MODIFIER ""
-#define G_GSSIZE_FORMAT "i"
+#define G_GSSIZE_MODIFIER ""
 #define G_GSIZE_FORMAT "u"
+#define G_GSSIZE_FORMAT "i"
 
 #define G_MAXSIZE	G_MAXUINT
 #define G_MINSSIZE	G_MININT
@@ -113,6 +115,8 @@ typedef gint64 goffset;
 
 #ifndef _WIN64
 
+#define G_POLLFD_FORMAT "%#x"
+
 #define GPOINTER_TO_INT(p)	((gint)   (p))
 #define GPOINTER_TO_UINT(p)	((guint)  (p))
 
@@ -127,6 +131,8 @@ typedef unsigned int guintptr;
 #define G_GUINTPTR_FORMAT       "u"
 
 #else
+
+#define G_POLLFD_FORMAT "%#I64x"
 
 #define GPOINTER_TO_INT(p)	((gint)  (gint64) (p))
 #define GPOINTER_TO_UINT(p)	((guint) (guint64) (p))
@@ -148,16 +154,14 @@ typedef unsigned __int64 guintptr;
 
 #endif
 
-#ifdef NeXT /* @#%@! NeXTStep */
-# define g_ATEXIT(proc)	(!atexit (proc))
-#else
-# define g_ATEXIT(proc)	(atexit (proc))
-#endif
+#ifndef G_DISABLE_DEPRECATED
+#define g_ATEXIT(proc)	(atexit (proc))
 
 #define g_memmove(dest,src,len) G_STMT_START { memmove ((dest), (src), (len)); } G_STMT_END
+#endif
 
 #define GLIB_MAJOR_VERSION 2
-#define GLIB_MINOR_VERSION 26
+#define GLIB_MINOR_VERSION 50
 #define GLIB_MICRO_VERSION 1
 
 #define G_OS_WIN32
@@ -167,20 +171,6 @@ typedef unsigned __int64 guintptr;
 #ifndef _MSC_VER
 #define G_VA_COPY	va_copy
 #endif /* not _MSC_VER */
-
-#ifdef	__cplusplus
-#define	G_HAVE_INLINE	1
-#else	/* !__cplusplus */
-#ifndef _MSC_VER
-#define G_HAVE_INLINE 1
-#endif /* _MSC_VER */
-#define G_HAVE___INLINE 1
-#if !defined(_MSC_VER) && !defined(__DMC__)
-#define G_HAVE___INLINE__ 1
-#endif /* !_MSC_VER and !__DMC__ */
-#endif	/* !__cplusplus */
-
-#define G_CAN_INLINE	1
 
 #ifndef _MSC_VER
 #define G_HAVE_ISO_VARARGS 1
@@ -206,26 +196,8 @@ typedef unsigned __int64 guintptr;
 
 #define G_THREADS_ENABLED
 #define G_THREADS_IMPL_WIN32
-typedef struct _GMutex* GStaticMutex;
-#define G_STATIC_MUTEX_INIT NULL
-#define g_static_mutex_get_mutex(mutex) \
-  (g_static_mutex_get_mutex_impl_shortcut (mutex))
-/* This represents a system thread as used by the implementation. An
- * alien implementaion, as loaded by g_thread_init can only count on
- * "sizeof (gpointer)" bytes to store their info. We however need more
- * for some of our native implementations. */
-typedef union _GSystemThread GSystemThread;
-union _GSystemThread
-{
-#ifndef _WIN64
-  char   data[4];
-#else
-  char   data[8];
-#endif
-  double dummy_double;
-  void  *dummy_pointer;
-  long   dummy_long;
-};
+
+#define G_ATOMIC_LOCK_FREE
 
 #define GINT16_TO_LE(val)	((gint16) (val))
 #define GUINT16_TO_LE(val)	((guint16) (val))
@@ -270,6 +242,7 @@ union _GSystemThread
  * not a process identifier.
  */
 typedef void * GPid;
+#define G_PID_FORMAT "p"
 
 #define GLIB_SYSDEF_AF_UNIX 1
 #define GLIB_SYSDEF_AF_INET 2
