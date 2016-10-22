@@ -42,12 +42,10 @@ static void R_SetWindowIcon(void) {
 /**
  * @brief Attempts to create the specified versioned context, returns true on success and false on failure.
  */
-static _Bool R_InitGLContext(const int major, const int minor, const SDL_GLcontextFlag context_flags, const SDL_GLprofile profile) {
+static _Bool R_InitGLContext(const int major, const int minor) {
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, context_flags);
 		
 	return (r_context.context = SDL_GL_CreateContext(r_context.window)) != NULL;
 }
@@ -120,23 +118,9 @@ void R_InitContext(void) {
 
 	// Prepare GL stuff
 	Com_Print("  Setting up OpenGL context..\n");
-	
-	int default_flags, default_profile;
-	
-	SDL_GL_GetAttribute(SDL_GL_CONTEXT_FLAGS, &default_flags);
-	SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &default_profile);
-
-	// try 2.1 core. Technically, 2.1 does not support "core/compat"
-	// but some implementors (OSX for instance) actually respect this flag.
-	if (!R_InitGLContext(2, 1, default_flags, SDL_GL_CONTEXT_PROFILE_CORE)) {
-
-		Com_Print("  Failed to create OpenGL 2.1 Core context (%s), attempting 2.1 Compatibility..\n", SDL_GetError());
-	
-		// If all else fails, just try base 2.1.
-		if (!R_InitGLContext(2, 1, default_flags, default_profile)) {
-
-			Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
-		}
+		
+	if (!R_InitGLContext(2, 1)) {
+		Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 	}
 
 	SDL_ShowWindow(r_context.window);

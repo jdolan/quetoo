@@ -512,24 +512,6 @@ static void R_InitLocal(void) {
 }
 
 /**
- * @brief
- */
-static void R_EnforceGlVersion(void) {
-	int32_t major, minor;
-
-	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major);
-	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minor);
-
-	if (major > 2)
-		return;
-
-	if (major == 2 && minor >= 1)
-		return;
-
-	Com_Error(ERR_FATAL, "OpenGL version %s is less than 2.1\n", r_config.version_string);
-}
-
-/**
  * @brief Populates the GL config structure by querying the implementation.
  */
 static void R_InitConfig(void) {
@@ -542,8 +524,6 @@ static void R_InitConfig(void) {
 	r_config.renderer_string = (const char *) glGetString(GL_RENDERER);
 	r_config.vendor_string = (const char *) glGetString(GL_VENDOR);
 	r_config.version_string = (const char *) glGetString(GL_VERSION);
-
-	R_EnforceGlVersion();
 
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
 
