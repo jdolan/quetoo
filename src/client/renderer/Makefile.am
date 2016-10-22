@@ -14,7 +14,6 @@ noinst_HEADERS = \
 	r_element.h \
 	r_entity.h \
 	r_flare.h \
-	r_glad_compat.h \
 	r_glad_core.h \
 	r_image.h \
 	r_light.h \
@@ -56,7 +55,6 @@ librenderer_la_SOURCES = \
 	r_element.c \
 	r_entity.c \
 	r_flare.c \
-	r_glad_compat.c \
 	r_glad_core.c \
 	r_image.c \
 	r_light.c \

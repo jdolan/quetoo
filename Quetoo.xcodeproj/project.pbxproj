@@ -77,8 +77,6 @@
 		CE1CCD9A1D9D41DA00891F05 /* libncurses.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */; };
 		CE1CCD9D1D9D49C700891F05 /* libswap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC79D01D9CB22E000FA6B2 /* libswap.dylib */; };
 		CE2DB5471D88F9B300560994 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE2DB5161D88F74000560994 /* main.c */; };
-		CE3BCDC51DB6DD64002E6C6D /* r_glad_compat.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB51DB6DCE0002E6C6D /* r_glad_compat.c */; };
-		CE3BCDC61DB6DD6C002E6C6D /* r_glad_compat.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDB61DB6DCE0002E6C6D /* r_glad_compat.h */; };
 		CE3BCDC71DB6DD71002E6C6D /* r_glad_core.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB71DB6DCE0002E6C6D /* r_glad_core.c */; };
 		CE3BCDC81DB6DD77002E6C6D /* r_glad_core.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */; };
 		CE3BCDC91DB6DD81002E6C6D /* r_program_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */; };
@@ -1320,8 +1318,6 @@
 		CE27BE561D9167C700F87B2C /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectively.dylib"; sourceTree = "<group>"; };
 		CE2DB5161D88F74000560994 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		CE2DB5461D88F98600560994 /* quetoo-update */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-update"; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE3BCDB51DB6DCE0002E6C6D /* r_glad_compat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_glad_compat.c; sourceTree = "<group>"; };
-		CE3BCDB61DB6DCE0002E6C6D /* r_glad_compat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_glad_compat.h; sourceTree = "<group>"; };
 		CE3BCDB71DB6DCE0002E6C6D /* r_glad_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_glad_core.c; sourceTree = "<group>"; };
 		CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_glad_core.h; sourceTree = "<group>"; };
 		CE3BCDB91DB6DCE0002E6C6D /* r_program_null.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_null.c; sourceTree = "<group>"; };
@@ -2218,8 +2214,6 @@
 				CE12D5C31C5C58C300CD0B13 /* r_entity.h */,
 				CE12D5C41C5C58C300CD0B13 /* r_flare.c */,
 				CE12D5C51C5C58C300CD0B13 /* r_flare.h */,
-				CE3BCDB51DB6DCE0002E6C6D /* r_glad_compat.c */,
-				CE3BCDB61DB6DCE0002E6C6D /* r_glad_compat.h */,
 				CE3BCDB71DB6DCE0002E6C6D /* r_glad_core.c */,
 				CE3BCDB81DB6DCE0002E6C6D /* r_glad_core.h */,
 				CE12D5C81C5C58C300CD0B13 /* r_image.c */,
@@ -3042,7 +3036,6 @@
 				CED438871D9D34450052BAFA /* r_element.h in Headers */,
 				CED438881D9D34450052BAFA /* r_entity.h in Headers */,
 				CED438891D9D34450052BAFA /* r_flare.h in Headers */,
-				CE3BCDC61DB6DD6C002E6C6D /* r_glad_compat.h in Headers */,
 				CE3BCDC81DB6DD77002E6C6D /* r_glad_core.h in Headers */,
 				CED4388B1D9D34450052BAFA /* r_image.h in Headers */,
 				CED4388C1D9D34450052BAFA /* r_light.h in Headers */,
@@ -4073,7 +4066,6 @@
 				CED438401D9D34450052BAFA /* r_element.c in Sources */,
 				CED438411D9D34450052BAFA /* r_entity.c in Sources */,
 				CED438421D9D34450052BAFA /* r_flare.c in Sources */,
-				CE3BCDC51DB6DD64002E6C6D /* r_glad_compat.c in Sources */,
 				CE3BCDC71DB6DD71002E6C6D /* r_glad_core.c in Sources */,
 				CED438441D9D34450052BAFA /* r_image.c in Sources */,
 				CED438451D9D34450052BAFA /* r_light.c in Sources */,
