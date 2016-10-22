@@ -320,8 +320,6 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size,
 
 		R_GetError("Updating existing buffer");
 	}
-
-	R_UnbindBuffer(buffer->type);
 }
 
 /**
