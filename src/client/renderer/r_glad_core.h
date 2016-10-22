@@ -19,7 +19,6 @@
         http://glad.dav1d.de/#profile=core&language=c&specification=gl&loader=on&api=gl%3D3.0&extensions=GL_EXT_texture_filter_anisotropic&extensions=GL_SGIS_generate_mipmap
 */
 
-#if defined(OPENGL_CORE)
 #ifndef __glad_h_
 #define __glad_h_
 
@@ -1481,6 +1480,7 @@ GLAPI PFNGLUNIFORMMATRIX4X3FVPROC glad_glUniformMatrix4x3fv;
 #ifndef GL_VERSION_3_0
 #define GL_VERSION_3_0 1
 GLAPI int GLAD_GL_VERSION_3_0;
+#if defined(INCLUDE_EXTRA_GL_3_0_STUFF)
 typedef void (APIENTRYP PFNGLCOLORMASKIPROC)(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a);
 GLAPI PFNGLCOLORMASKIPROC glad_glColorMaski;
 #define glColorMaski glad_glColorMaski
@@ -1652,9 +1652,6 @@ GLAPI PFNGLCLEARBUFFERFVPROC glad_glClearBufferfv;
 typedef void (APIENTRYP PFNGLCLEARBUFFERFIPROC)(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
 GLAPI PFNGLCLEARBUFFERFIPROC glad_glClearBufferfi;
 #define glClearBufferfi glad_glClearBufferfi
-typedef const GLubyte * (APIENTRYP PFNGLGETSTRINGIPROC)(GLenum name, GLuint index);
-GLAPI PFNGLGETSTRINGIPROC glad_glGetStringi;
-#define glGetStringi glad_glGetStringi
 typedef GLboolean (APIENTRYP PFNGLISRENDERBUFFERPROC)(GLuint renderbuffer);
 GLAPI PFNGLISRENDERBUFFERPROC glad_glIsRenderbuffer;
 #define glIsRenderbuffer glad_glIsRenderbuffer
@@ -1703,9 +1700,6 @@ GLAPI PFNGLFRAMEBUFFERRENDERBUFFERPROC glad_glFramebufferRenderbuffer;
 typedef void (APIENTRYP PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC)(GLenum target, GLenum attachment, GLenum pname, GLint *params);
 GLAPI PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC glad_glGetFramebufferAttachmentParameteriv;
 #define glGetFramebufferAttachmentParameteriv glad_glGetFramebufferAttachmentParameteriv
-typedef void (APIENTRYP PFNGLGENERATEMIPMAPPROC)(GLenum target);
-GLAPI PFNGLGENERATEMIPMAPPROC glad_glGenerateMipmap;
-#define glGenerateMipmap glad_glGenerateMipmap
 typedef void (APIENTRYP PFNGLBLITFRAMEBUFFERPROC)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 GLAPI PFNGLBLITFRAMEBUFFERPROC glad_glBlitFramebuffer;
 #define glBlitFramebuffer glad_glBlitFramebuffer
@@ -1734,6 +1728,13 @@ typedef GLboolean (APIENTRYP PFNGLISVERTEXARRAYPROC)(GLuint array);
 GLAPI PFNGLISVERTEXARRAYPROC glad_glIsVertexArray;
 #define glIsVertexArray glad_glIsVertexArray
 #endif
+typedef void (APIENTRYP PFNGLGENERATEMIPMAPPROC)(GLenum target);
+GLAPI PFNGLGENERATEMIPMAPPROC glad_glGenerateMipmap;
+#define glGenerateMipmap glad_glGenerateMipmap
+typedef const GLubyte * (APIENTRYP PFNGLGETSTRINGIPROC)(GLenum name, GLuint index);
+GLAPI PFNGLGETSTRINGIPROC glad_glGetStringi;
+#define glGetStringi glad_glGetStringi
+#endif
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 #define GL_GENERATE_MIPMAP_SGIS 0x8191
@@ -1751,5 +1752,4 @@ GLAPI int GLAD_GL_SGIS_generate_mipmap;
 }
 #endif
 
-#endif
 #endif

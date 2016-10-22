@@ -126,7 +126,6 @@ void R_InitContext(void) {
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_FLAGS, &default_flags);
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &default_profile);
 
-#if defined(OPENGL_CORE)
 	// first, try a 3.0 core forward compatible context.
 	// this will be the most performant for most implementations
 	// since we are not using any fixed pipeline.
@@ -139,13 +138,11 @@ void R_InitContext(void) {
 		if (!R_InitGLContext(2, 1, default_flags, SDL_GL_CONTEXT_PROFILE_CORE)) {
 			Com_Print("  Failed with 2.1 Core (%s), attempting 2.1..\n", SDL_GetError());
 	
-#endif
 			// If all else fails, just try base 2.1.
 			if (!R_InitGLContext(2, 1, default_flags, default_profile)) {
 
 				Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 			}
-#if defined(OPENGL_CORE)
 		}
 	}
 	else {
@@ -153,7 +150,6 @@ void R_InitContext(void) {
 		Com_Print("  Succeeded with 3.0 Forward Compatible Core.\n");
 		r_context.is_core = true;
 	}
-#endif
 
 	SDL_ShowWindow(r_context.window);
 

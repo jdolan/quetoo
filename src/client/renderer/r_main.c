@@ -555,7 +555,6 @@ static void R_InitConfig(void) {
 
 		GString *extension_string;
 
-#if defined(OPENGL_CORE)
 		if (r_context.is_core) {
 
 			extension_string = g_string_new(NULL);
@@ -569,7 +568,6 @@ static void R_InitConfig(void) {
 			}
 		}
 		else
-#endif
 			extension_string = g_string_new((const gchar *) glGetString(GL_EXTENSIONS));
 
 		// extension string can be gigantic, so let's pretty it up a bit.
