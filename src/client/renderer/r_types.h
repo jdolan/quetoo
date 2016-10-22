@@ -77,7 +77,6 @@ typedef enum {
 	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_EXPLICIT = 14
 } r_image_type_t;
 
 /**
@@ -926,7 +925,7 @@ typedef struct {
 	/**
 	 * @brief True if the context is a GL 3.x Core Fwd Compat context.
 	 */
-	_Bool is_core;
+	_Bool core_profile;
 } r_context_t;
 
 #endif /* __R_TYPES_H__ */

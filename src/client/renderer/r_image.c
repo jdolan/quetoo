@@ -223,7 +223,7 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
 
-		if (!r_context.is_core)
+		if (!r_context.core_profile)
 			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 
 	} else {
@@ -234,13 +234,8 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 	glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format,
 			GL_UNSIGNED_BYTE, data);
 
-	if (r_context.is_core && (image->type & IT_MASK_MIPMAP))
+	if (r_context.core_profile && (image->type & IT_MASK_MIPMAP))
 		glGenerateMipmap(GL_TEXTURE_2D);
-
-	// "explicit" media does not get registered and is managed at the
-	// expense of the caller.
-	if ((image->type & IT_MASK_TYPE) != IT_EXPLICIT)
-		R_RegisterMedia((r_media_t *) image);
 
 	R_GetError(image->media.name);
 }

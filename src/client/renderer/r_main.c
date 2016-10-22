@@ -555,7 +555,7 @@ static void R_InitConfig(void) {
 
 		GString *extension_string;
 
-		if (r_context.is_core) {
+		if (r_context.core_profile) {
 
 			extension_string = g_string_new(NULL);
 			

@@ -140,15 +140,11 @@ void R_InitContext(void) {
 	
 			// If all else fails, just try base 2.1.
 			if (!R_InitGLContext(2, 1, default_flags, default_profile)) {
-
 				Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 			}
 		}
-	}
-	else {
-
+	} else {
 		Com_Print("  Succeeded with 3.0 Forward Compatible Core.\n");
-		r_context.is_core = true;
 	}
 
 	SDL_ShowWindow(r_context.window);
