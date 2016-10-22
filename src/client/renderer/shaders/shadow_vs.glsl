@@ -14,11 +14,15 @@ varying vec4 point;
 
 attribute vec3 POSITION;
 
+uniform float TIME_FRACTION;
+
+attribute vec3 NEXT_POSITION;
+
 /**
  * @brief
  */
 void ShadowVertex() {
-	point = MODELVIEW_MAT * MATRIX * vec4(POSITION, 1.0);	
+	point = MODELVIEW_MAT * MATRIX * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);	
 }
 
 /**
@@ -33,11 +37,11 @@ void FogVertex(void) {
  * @brief Program entry point.
  */
 void main(void) {
+
+	ShadowVertex();
 	
 	// mvp transform into clip space
-	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * MATRIX * vec4(POSITION, 1.0);
-	
-	ShadowVertex();
+	gl_Position = PROJECTION_MAT * point;
 	    
     FogVertex();
 }

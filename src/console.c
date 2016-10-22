@@ -182,9 +182,6 @@ void Con_Append(int32_t level, const char *string) {
 		StripColors(string, stripped);
 		fputs(stripped, stdout);
 	}
-
-//	if (developer->integer >= 3)
-//		OutputDebugString(string);
 }
 
 /**

@@ -244,9 +244,31 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 	R_ResetArrayState(); // default arrays
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 	R_Color(color);
+
+	const GLuint bound_indices[] = {
+		// bottom
+		0, 1,
+		1, 2,
+		2, 3,
+		3, 0,
+
+		// top
+		4, 5,
+		5, 6,
+		6, 7,
+		7, 4,
+
+		// connections
+		0, 4,
+		1, 5,
+		2, 6,
+		3, 7
+	};
+
+	R_UploadToBuffer(&r_state.buffer_indice_array, 0, sizeof(bound_indices), bound_indices);
+
+	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_indice_array);
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
@@ -261,38 +283,28 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		R_PushMatrix();
 		Matrix4x4_Concat(&r_view.modelview_matrix, &r_view.modelview_matrix, &mat);
 
-		vec3_t verts[16];
+		vec3_t verts[8];
 
 		VectorSet(verts[0], e->mins[0], e->mins[1], e->mins[2]);
-		VectorSet(verts[1], e->mins[0], e->mins[1], e->maxs[2]);
-		VectorSet(verts[2], e->mins[0], e->maxs[1], e->maxs[2]);
+		VectorSet(verts[1], e->maxs[0], e->mins[1], e->mins[2]);
+		VectorSet(verts[2], e->maxs[0], e->maxs[1], e->mins[2]);
 		VectorSet(verts[3], e->mins[0], e->maxs[1], e->mins[2]);
-
-		VectorSet(verts[4], e->maxs[0], e->maxs[1], e->mins[2]);
-		VectorSet(verts[5], e->maxs[0], e->maxs[1], e->maxs[2]);
-		VectorSet(verts[6], e->maxs[0], e->mins[1], e->maxs[2]);
-		VectorSet(verts[7], e->maxs[0], e->mins[1], e->mins[2]);
-
-		VectorSet(verts[8], e->maxs[0], e->mins[1], e->mins[2]);
-		VectorSet(verts[9], e->maxs[0], e->mins[1], e->maxs[2]);
-		VectorSet(verts[10], e->mins[0], e->mins[1], e->maxs[2]);
-		VectorSet(verts[11], e->mins[0], e->mins[1], e->mins[2]);
-
-		VectorSet(verts[12], e->mins[0], e->maxs[1], e->mins[2]);
-		VectorSet(verts[13], e->mins[0], e->maxs[1], e->maxs[2]);
-		VectorSet(verts[14], e->maxs[0], e->maxs[1], e->maxs[2]);
-		VectorSet(verts[15], e->maxs[0], e->maxs[1], e->mins[2]);
+		
+		VectorSet(verts[4], e->mins[0], e->mins[1], e->maxs[2]);
+		VectorSet(verts[5], e->maxs[0], e->mins[1], e->maxs[2]);
+		VectorSet(verts[6], e->maxs[0], e->maxs[1], e->maxs[2]);
+		VectorSet(verts[7], e->mins[0], e->maxs[1], e->maxs[2]);
 
 		memcpy(r_state.vertex_array, verts, sizeof(verts));
 
 		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, sizeof(verts), r_state.vertex_array);
 
-		R_DrawArrays(GL_QUADS, 0, lengthof(verts));
+		R_DrawArrays(GL_LINES, 0, lengthof(bound_indices));
 
 		R_PopMatrix();
 	}
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	R_BindDefaultArray(R_ARRAY_ELEMENTS);
 
 	R_EnableTexture(&texunit_diffuse, true);
 	

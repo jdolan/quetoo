@@ -157,82 +157,6 @@ void R_UpdateMeshModelLighting(const r_entity_t *e) {
 }
 
 /**
- * @brief Interpolate the animation for the give entity, writing primitives to
- * the default vertex arrays. This must be called at each frame for animated
- * entities.
- */
-void R_InterpolateMeshModel(const r_entity_t *e) {
-
-	const r_md3_t *md3 = (r_md3_t *) e->model->mesh->data;
-	const d_md3_frame_t *frame, *old_frame;
-
-	if (e->frame >= e->model->mesh->num_frames) {
-		Com_Warn("%s: no such frame %d\n", e->model->media.name, e->frame);
-		frame = &md3->frames[0];
-	} else {
-		frame = &md3->frames[e->frame];
-	}
-
-	if (e->old_frame >= e->model->mesh->num_frames) {
-		Com_Warn("%s: no such old_frame %d\n", e->model->media.name, e->old_frame);
-		old_frame = &md3->frames[0];
-	} else {
-		old_frame = &md3->frames[e->old_frame];
-	}
-
-	vec3_t trans;
-	for (int32_t i = 0; i < 3; i++) // calculate the translation
-		trans[i] = e->back_lerp * old_frame->translate[i] + e->lerp * frame->translate[i];
-
-	GLuint vert_index = 0;
-
-	const r_md3_mesh_t *mesh = md3->meshes;
-	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) { // iterate the meshes
-
-		const r_md3_vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
-		const r_md3_vertex_t *ov = mesh->verts + e->old_frame * mesh->num_verts;
-
-		const uint32_t *tri = mesh->tris;
-
-		for (uint16_t j = 0; j < mesh->num_verts; j++, v++, ov++) { // interpolate the vertexes
-			VectorSet(r_mesh_state.vertexes[j],
-					trans[0] + ov->point[0] * e->back_lerp + v->point[0] * e->lerp,
-					trans[1] + ov->point[1] * e->back_lerp + v->point[1] * e->lerp,
-					trans[2] + ov->point[2] * e->back_lerp + v->point[2] * e->lerp);
-
-			if (r_state.lighting_enabled) { // and the normals
-				VectorSet(r_mesh_state.normals[j],
-						v->normal[0] + (ov->normal[0] - v->normal[0]) * e->back_lerp,
-						v->normal[1] + (ov->normal[1] - v->normal[1]) * e->back_lerp,
-						v->normal[2] + (ov->normal[2] - v->normal[2]) * e->back_lerp);
-			}
-		}
-
-		for (uint16_t j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the triangles
-
-			VectorCopy(r_mesh_state.vertexes[tri[0]], (&r_state.vertex_array[vert_index + 0]));
-			VectorCopy(r_mesh_state.vertexes[tri[1]], (&r_state.vertex_array[vert_index + 3]));
-			VectorCopy(r_mesh_state.vertexes[tri[2]], (&r_state.vertex_array[vert_index + 6]));
-
-			if (r_state.lighting_enabled) { // normal vectors for lighting
-				VectorCopy(r_mesh_state.normals[tri[0]], (&r_state.normal_array[vert_index + 0]));
-				VectorCopy(r_mesh_state.normals[tri[1]], (&r_state.normal_array[vert_index + 3]));
-				VectorCopy(r_mesh_state.normals[tri[2]], (&r_state.normal_array[vert_index + 6]));
-			}
-
-			vert_index += 9;
-		}
-	}
-
-	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, vert_index * sizeof(float), r_state.vertex_array);
-
-	if (r_state.lighting_enabled) {
-	
-		R_UploadToBuffer(&r_state.buffer_normal_array, 0, vert_index * sizeof(float), r_state.normal_array);
-	}
-}
-
-/**
  * @brief Sets the shade color for the mesh by modulating any preset color
  * with static lighting.
  */
@@ -292,20 +216,13 @@ static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
  */
 static void R_SetMeshState_default(const r_entity_t *e) {
 
-	if (e->model->mesh->num_frames == 1) { // bind static arrays
-		R_SetArrayState(e->model);
-	} else { // or use the default arrays
-		R_ResetArrayState();
-
-		R_BindArray(R_ARRAY_TEX_DIFFUSE, &e->model->texcoord_buffer);
-
-		R_InterpolateMeshModel(e);
-	}
+	// setup VBO states
+	R_SetArrayState(e->model);
 
 	if (!r_draw_wireframe->value) {
 
 		r_mesh_state.material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
-
+		
 		R_BindTexture(r_mesh_state.material->diffuse->texnum);
 
 		R_SetMeshColor_default(e);
@@ -334,6 +251,10 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 		glDepthRange(0.0, 0.3);
 
 	R_RotateForEntity(e);
+
+	// setup lerp for animating models
+	if (e->old_frame != e->frame)
+		R_UseInterpolation(e->lerp);
 }
 
 /**
@@ -354,12 +275,10 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 
 	if (e->effects & EF_ALPHATEST)
 		R_EnableAlphaTest(ALPHA_TEST_DISABLED_THRESHOLD);
+	
+	R_ResetArrayState();
 
-	if (e->model->mesh->num_frames > 1) {
-		if (texunit_diffuse.enabled) {
-			R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
-		}
-	}
+	R_UseInterpolation(0.0);
 }
 
 /**

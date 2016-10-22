@@ -64,33 +64,56 @@ static void R_TextureMode(void) {
 
 #define MAX_SCREENSHOTS 1000
 
-/**
- * @brief Captures a screenshot, writing it to the user's directory.
- */
-void R_Screenshot_f(void) {
-	static uint16_t last_screenshot;
-	char filename[MAX_OS_PATH];
-	uint16_t i;
+typedef struct {
+	uint32_t width;
+	uint32_t height;
+	byte *buffer;
+} r_screenshot_t;
 
-	// find a file name to save it to
+/**
+ * @brief ThreadRunFunc for R_Screenshot_f.
+ */
+static void R_Screenshot_f_encode(void *data) {
+	static int32_t last_screenshot;
+	char filename[MAX_QPATH];
+	int32_t i;
+
 	for (i = last_screenshot; i < MAX_SCREENSHOTS; i++) {
 		g_snprintf(filename, sizeof(filename), "screenshots/quetoo%03u.png", i);
 
 		if (!Fs_Exists(filename))
-			break; // file doesn't exist
+			break;
 	}
 
 	if (i == MAX_SCREENSHOTS) {
-		Com_Warn("Failed to create %s\n", filename);
+		Com_Warn("MAX_SCREENSHOTS exceeded\n");
 		return;
 	}
 
-	last_screenshot = i; // save for next call
+	last_screenshot = i;
 
-	const uint32_t width = r_context.width;
-	const uint32_t height = r_context.height;
+	r_screenshot_t *s = (r_screenshot_t *) data;
 
-	byte *buffer = Mem_Malloc(width * height * 3);
+	if (Img_WritePNG(filename, s->buffer, s->width, s->height)) {
+		Com_Print("Saved %s\n", Basename(filename));
+	} else {
+		Com_Warn("Failed to write %s\n", filename);
+	}
+
+	Mem_Free(s);
+}
+
+/**
+ * @brief Captures a screenshot, writing it to the user's directory.
+ */
+void R_Screenshot_f(void) {
+
+	r_screenshot_t *s = Mem_Malloc(sizeof(r_screenshot_t));
+
+	s->width = r_context.width;
+	s->height = r_context.height;
+	
+	s->buffer = Mem_LinkMalloc(s->width * s->height * 3, s);
 
 	// this doesn't need to be done strictly here, this could be rolled
 	// out to startup code, however this has been removed in the past
@@ -98,15 +121,9 @@ void R_Screenshot_f(void) {
 	// packing specification here before reading
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-	glReadPixels(0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, buffer);
+	glReadPixels(0, 0, s->width, s->height, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
 
-	if (Img_WritePNG(filename, buffer, width, height)) {
-		Com_Print("Saved %s\n", Basename(filename));
-	} else {
-		Com_Warn("Failed to write %s\n", filename);
-	}
-
-	Mem_Free(buffer);
+	Thread_Create(R_Screenshot_f_encode, s);
 }
 
 /**
@@ -205,15 +222,20 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
-		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+
+		if (!r_context.is_core)
+			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+
 	} else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_mag);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
-		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_FALSE);
 	}
 
 	glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format,
 			GL_UNSIGNED_BYTE, data);
+
+	if (r_context.is_core && (image->type & IT_MASK_MIPMAP))
+		glGenerateMipmap(GL_TEXTURE_2D);
 
 	// "explicit" media does not get registered and is managed at the
 	// expense of the caller.

@@ -34,6 +34,7 @@ typedef struct {
 	r_uniform1f_t parallax;
 	r_uniform1f_t hardness;
 	r_uniform1f_t specular;
+	r_uniform1f_t time_fraction;
 
 	r_sampler2d_t sampler0;
 	r_sampler2d_t sampler1;
@@ -65,6 +66,10 @@ void R_PreLink_default(const r_program_t *program) {
 	R_BindAttributeLocation(program, "TEXCOORD1", R_ARRAY_TEX_LIGHTMAP);
 	R_BindAttributeLocation(program, "NORMAL", R_ARRAY_NORMAL);
 	R_BindAttributeLocation(program, "TANGENT", R_ARRAY_TANGENT);
+
+	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_VERTEX);
+	R_BindAttributeLocation(program, "NEXT_NORMAL", R_ARRAY_NEXT_NORMAL);
+	R_BindAttributeLocation(program, "NEXT_TANGENT", R_ARRAY_NEXT_TANGENT);
 }
 
 /**
@@ -82,6 +87,10 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramVariable(&program->attributes[R_ARRAY_TEX_LIGHTMAP], R_ATTRIBUTE, "TEXCOORD1");
 	R_ProgramVariable(&program->attributes[R_ARRAY_NORMAL], R_ATTRIBUTE, "NORMAL");
 	R_ProgramVariable(&program->attributes[R_ARRAY_TANGENT], R_ATTRIBUTE, "TANGENT");
+
+	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_VERTEX], R_ATTRIBUTE, "NEXT_POSITION");
+	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_NORMAL], R_ATTRIBUTE, "NEXT_NORMAL");
+	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_TANGENT], R_ATTRIBUTE, "NEXT_TANGENT");
 
 	R_ProgramVariable(&p->diffuse, R_UNIFORM_INT, "DIFFUSE");
 	R_ProgramVariable(&p->lightmap, R_UNIFORM_INT, "LIGHTMAP");
@@ -126,7 +135,8 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramVariable(&p->texture_mat, R_UNIFORM_MAT4, "TEXTURE_MAT");
 
 	R_ProgramVariable(&p->alpha_threshold, R_UNIFORM_FLOAT, "ALPHA_THRESHOLD");
-
+	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION");
+	
 	R_ProgramParameter1i(&p->lightmap, 0);
 	R_ProgramParameter1i(&p->normalmap, 0);
 	R_ProgramParameter1i(&p->glossmap, 0);
@@ -144,6 +154,8 @@ void R_InitProgram_default(r_program_t *program) {
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
 	R_ProgramParameter1f(&p->alpha_threshold, ALPHA_TEST_DISABLED_THRESHOLD);
+
+	R_ProgramParameter1f(&p->time_fraction, 0.0f);
 }
 
 /**
@@ -272,4 +284,14 @@ void R_UseAlphaTest_default(const float threshold) {
 	r_default_program_t *p = &r_default_program;
 
 	R_ProgramParameter1f(&p->alpha_threshold, threshold);
+}
+
+/**
+ * @brief
+ */
+void R_UseInterpolation_default(const float time_fraction) {
+
+	r_default_program_t *p = &r_default_program;
+
+	R_ProgramParameter1f(&p->time_fraction, time_fraction);
 }

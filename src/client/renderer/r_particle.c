@@ -54,11 +54,13 @@ typedef struct {
 	GLfloat verts[MAX_PARTICLES * 3 * 4];
 	GLfloat texcoords[MAX_PARTICLES * 2 * 4];
 	GLfloat colors[MAX_PARTICLES * 4 * 4];
+	GLuint indices[MAX_PARTICLES * 6];
 	uint32_t num_particles;
 	
 	r_buffer_t verts_buffer;
 	r_buffer_t texcoords_buffer;
 	r_buffer_t colors_buffer;
+	r_buffer_t indices_buffer;
 } r_particle_state_t;
 
 static r_particle_state_t r_particle_state;
@@ -71,6 +73,8 @@ void R_InitParticles(void) {
 	R_CreateBuffer(&r_particle_state.verts_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.verts), NULL);
 	R_CreateBuffer(&r_particle_state.texcoords_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.texcoords), NULL);
 	R_CreateBuffer(&r_particle_state.colors_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.colors), NULL);
+
+	R_CreateBuffer(&r_particle_state.indices_buffer, GL_DYNAMIC_DRAW, R_BUFFER_INDICES, sizeof(r_particle_state.indices_buffer), NULL);
 }
 
 /**
@@ -81,6 +85,8 @@ void R_ShutdownParticles(void) {
 	R_DestroyBuffer(&r_particle_state.verts_buffer);
 	R_DestroyBuffer(&r_particle_state.texcoords_buffer);
 	R_DestroyBuffer(&r_particle_state.colors_buffer);
+
+	R_DestroyBuffer(&r_particle_state.indices_buffer);
 }
 
 /**
@@ -225,21 +231,32 @@ static void R_UpdateParticleState(void) {
  * field.
  */
 void R_UpdateParticles(r_element_t *e, const size_t count) {
-	size_t i, j;
+	size_t i;
 
 	R_UpdateParticleState();
 
-	for (i = j = 0; i < count; i++, e++) {
+	for (i = 0; i < count; i++, e++) {
 
 		if (e->type == ELEMENT_PARTICLE) {
 			r_particle_t *p = (r_particle_t *) e->element;
 
-			R_ParticleVerts(p, &r_particle_state.verts[j * 3 * 4]);
-			R_ParticleTexcoords(p, &r_particle_state.texcoords[j * 2 * 4]);
-			R_ParticleColor(p, &r_particle_state.colors[j * 4 * 4]);
+			const uint32_t vertex_start = r_particle_state.num_particles * 4;
 
-			e->data = (void *) (uintptr_t) j++;
-			r_particle_state.num_particles++;
+			R_ParticleVerts(p, &r_particle_state.verts[vertex_start * 3]);
+			R_ParticleTexcoords(p, &r_particle_state.texcoords[vertex_start * 2]);
+			R_ParticleColor(p, &r_particle_state.colors[vertex_start * 4]);
+			
+			const uint32_t index_start = r_particle_state.num_particles * 6;
+
+			r_particle_state.indices[index_start + 0] = vertex_start + 0;
+			r_particle_state.indices[index_start + 1] = vertex_start + 1;
+			r_particle_state.indices[index_start + 2] = vertex_start + 2;
+
+			r_particle_state.indices[index_start + 3] = vertex_start + 0;
+			r_particle_state.indices[index_start + 4] = vertex_start + 2;
+			r_particle_state.indices[index_start + 5] = vertex_start + 3;
+
+			e->data = (void *) (uintptr_t) r_particle_state.num_particles++;
 		}
 	}
 }
@@ -252,6 +269,8 @@ void R_UploadParticles(void) {
 	R_UploadToBuffer(&r_particle_state.verts_buffer, 0, r_particle_state.num_particles * sizeof(vec3_t) * 4, r_particle_state.verts);
 	R_UploadToBuffer(&r_particle_state.texcoords_buffer, 0, r_particle_state.num_particles * sizeof(vec2_t) * 4, r_particle_state.texcoords);
 	R_UploadToBuffer(&r_particle_state.colors_buffer, 0, r_particle_state.num_particles * sizeof(vec4_t) * 4, r_particle_state.colors);
+
+	R_UploadToBuffer(&r_particle_state.indices_buffer, 0, r_particle_state.num_particles * sizeof(GLuint) * 6, r_particle_state.indices);
 
 	r_particle_state.num_particles = 0;
 }
@@ -271,6 +290,8 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_BindArray(R_ARRAY_TEX_DIFFUSE, &r_particle_state.texcoords_buffer);
 	R_BindArray(R_ARRAY_COLOR, &r_particle_state.colors_buffer);
 
+	R_BindArray(R_ARRAY_ELEMENTS, &r_particle_state.indices_buffer);
+
 	const GLuint base = (uintptr_t) e->data;
 
 	for (i = j = 0; i < count; i++, e++) {
@@ -280,7 +301,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 		if (p->image->texnum != texunit_diffuse.texnum) {
 
 			if (i > j) { // draw pending particles
-				R_DrawArrays(GL_QUADS, (base + j) * 4, (i - j) * 4);
+				R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
 				j = i;
 			}
 
@@ -296,7 +317,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	}
 
 	if (i > j) { // draw any remaining particles
-		R_DrawArrays(GL_QUADS, (base + j) * 4, (i - j) * 4);
+		R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
 	}
 
 	// restore depth range
@@ -306,6 +327,8 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_BindDefaultArray(R_ARRAY_VERTEX);
 	R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
 	R_BindDefaultArray(R_ARRAY_COLOR);
+
+	R_BindDefaultArray(R_ARRAY_ELEMENTS);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

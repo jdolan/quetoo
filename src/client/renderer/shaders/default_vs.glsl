@@ -24,18 +24,25 @@ attribute vec2 TEXCOORD1;
 attribute vec3 NORMAL;
 attribute vec4 TANGENT;
 
+uniform float TIME_FRACTION;
+
+attribute vec3 NEXT_POSITION;
+attribute vec3 NEXT_NORMAL;
+attribute vec4 NEXT_TANGENT;
+
 /**
  * @brief Transform the point, normal and tangent vectors, passing them through
  * to the fragment shader for per-pixel lighting.
  */
 void LightVertex(void) {
 
-	point = vec3(MODELVIEW_MAT * vec4(POSITION, 1.0));
-	normal = normalize(vec3(NORMAL_MAT * vec4(NORMAL, 1.0)));
+	point = vec3(MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0));
+	normal = normalize(vec3(NORMAL_MAT * vec4(mix(NORMAL, NEXT_NORMAL, TIME_FRACTION), 1.0)));
 
 	if (NORMALMAP) {
-		tangent = normalize(vec3(NORMAL_MAT * TANGENT));
-		bitangent = cross(normal, tangent) * TANGENT.w;
+		vec4 temp_tangent = mix(TANGENT, NEXT_TANGENT, TIME_FRACTION);
+		tangent = normalize(vec3(NORMAL_MAT * temp_tangent));
+		bitangent = cross(normal, tangent) * temp_tangent.w;
 	}
 }
 

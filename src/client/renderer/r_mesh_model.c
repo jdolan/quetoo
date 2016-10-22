@@ -296,11 +296,9 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 		mod->num_verts += mesh->num_tris * 3;
 	}
 
-	if (mod->mesh->num_frames == 1) {
-		mod->verts = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
-		mod->normals = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
-		mod->tangents = Mem_LinkMalloc(mod->num_verts * sizeof(vec4_t), mod);
-	}
+	mod->verts = Mem_LinkMalloc(mod->num_verts * md3->num_frames * sizeof(vec3_t), mod);
+	mod->normals = Mem_LinkMalloc(mod->num_verts * md3->num_frames * sizeof(vec3_t), mod);
+	mod->tangents = Mem_LinkMalloc(mod->num_verts * md3->num_frames * sizeof(vec4_t), mod);
 
 	mod->texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
 
@@ -310,26 +308,24 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	vec_t *tout = mod->tangents;
 
 	const d_md3_frame_t *frame = md3->frames;
+	for (uint16_t f = 0; f < md3->num_frames; ++f, frame++) {
 
-	mesh = md3->meshes;
-	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) { // iterate the meshes
+		mesh = md3->meshes;
+		for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) { // iterate the meshes
 
-		const r_md3_vertex_t *v = mesh->verts;
+			const r_md3_vertex_t *v = mesh->verts + f * mesh->num_verts;
 
-		if (mod->mesh->num_frames == 1) { // for static models, build the verts and normals
 			for (uint16_t j = 0; j < mesh->num_verts; j++, v++) {
 				VectorAdd(frame->translate, v->point, r_mesh_state.vertexes[j]);
 				VectorCopy(v->normal, r_mesh_state.normals[j]);
 				Vector4Copy(v->tangent, r_mesh_state.tangents[j]);
 			}
-		}
 
-		uint32_t *tri = mesh->tris;
-		const d_md3_texcoord_t *texcoords = mesh->coords;
+			const uint32_t *tri = mesh->tris;
+			const d_md3_texcoord_t *texcoords = mesh->coords;
 
-		for (uint16_t j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the arrays
+			for (uint16_t j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the arrays
 
-			if (mod->mesh->num_frames == 1) {
 				VectorCopy(r_mesh_state.vertexes[tri[0]], vout + 0);
 				VectorCopy(r_mesh_state.vertexes[tri[1]], vout + 3);
 				VectorCopy(r_mesh_state.vertexes[tri[2]], vout + 6);
@@ -344,12 +340,15 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 				Vector4Copy(r_mesh_state.tangents[tri[1]], tout + 4);
 				Vector4Copy(r_mesh_state.tangents[tri[2]], tout + 8);
 				tout += 12;
-			}
 
-			Vector2Copy(texcoords[tri[0]].st, sout + 0);
-			Vector2Copy(texcoords[tri[1]].st, sout + 2);
-			Vector2Copy(texcoords[tri[2]].st, sout + 4);
-			sout += 6;
+				// only first frame needs texcoords calculated
+				if (f == 0) {
+					Vector2Copy(texcoords[tri[0]].st, sout + 0);
+					Vector2Copy(texcoords[tri[1]].st, sout + 2);
+					Vector2Copy(texcoords[tri[2]].st, sout + 4);
+					sout += 6;
+				}
+			}
 		}
 	}
 }

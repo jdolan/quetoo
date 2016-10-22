@@ -22,14 +22,8 @@
 #ifndef __R_TYPES_H__
 #define __R_TYPES_H__
 
-//#define OPENGL_CORE
-
 #if !defined(USE_SDL_GL)
-#if !defined(OPENGL_CORE)
-#include "r_glad_compat.h"
-#else
 #include "r_glad_core.h"
-#endif
 #endif
 
 #include <SDL2/SDL_opengl.h>
@@ -581,11 +575,11 @@ typedef struct r_model_s {
 	GLfloat *normals;
 	GLfloat *tangents;
 
-	r_buffer_t vertex_buffer; // vertex buffer objects
+	r_buffer_t *vertex_buffers; // vertex buffer objects
 	r_buffer_t texcoord_buffer;
 	r_buffer_t lightmap_texcoord_buffer;
-	r_buffer_t normal_buffer;
-	r_buffer_t tangent_buffer;
+	r_buffer_t *normal_buffers;
+	r_buffer_t *tangent_buffers;
 } r_model_t;
 
 #define IS_MESH_MODEL(m) (m && m->mesh)
@@ -928,6 +922,11 @@ typedef struct {
 	 * @brief True if fullscreen, false if windowed.
 	 */
 	_Bool fullscreen;
+	
+	/**
+	 * @brief True if the context is a GL 3.x Core Fwd Compat context.
+	 */
+	_Bool is_core;
 } r_context_t;
 
 #endif /* __R_TYPES_H__ */

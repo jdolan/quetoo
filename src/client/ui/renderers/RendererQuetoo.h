@@ -47,12 +47,6 @@ struct RendererQuetoo {
 	 * @protected
 	 */
 	RendererQuetooInterface *interface;
-
-	/**
-	 * @brief
-	 * @private
-	 */
-	r_color_t currentColor;
 };
 
 /**

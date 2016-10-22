@@ -185,9 +185,13 @@ void R_BindAttributeLocation(const r_program_t *prog, const char *name, const GL
 /**
  * @brief
  */
-void R_AttributePointer(const r_attribute_id_t attribute, GLuint size, const GLvoid *array) {
+void R_AttributePointer(const r_attribute_id_t attribute, GLuint size, const r_buffer_t *buffer, const GLvoid *offset) {
 
-	glVertexAttribPointer(attribute, size, GL_FLOAT, GL_FALSE, 0, array);
+	R_EnableAttribute(attribute);
+
+	R_BindBuffer(buffer);
+
+	glVertexAttribPointer(attribute, size, GL_FLOAT, GL_FALSE, 0, offset);
 
 	R_GetError(r_state.active_program->attributes[attribute].name);
 }
@@ -465,12 +469,22 @@ void R_SetupAttributes(void) {
 	{
 		if (mask & R_ARRAY_MASK_VERTEX) {
 
-			R_EnableAttribute(R_ARRAY_VERTEX);
-			R_BindBuffer(r_state.array_buffers[R_ARRAY_VERTEX]);
-			R_AttributePointer(R_ARRAY_VERTEX, 3, NULL);
+			R_AttributePointer(R_ARRAY_VERTEX, 3, r_state.array_buffers[R_ARRAY_VERTEX], NULL);
+			
+			if (p->arrays_mask & R_ARRAY_MASK_NEXT_VERTEX)
+			{
+				if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_VERTEX])) {
+
+					R_AttributePointer(R_ARRAY_NEXT_VERTEX, 3, r_state.array_buffers[R_ARRAY_NEXT_VERTEX], NULL);
+				}
+				else {
+					R_DisableAttribute(R_ARRAY_NEXT_VERTEX);
+				}
+			}
 		}
 		else {
 			R_DisableAttribute(R_ARRAY_VERTEX);
+			R_DisableAttribute(R_ARRAY_NEXT_VERTEX);
 		}
 	}
 	
@@ -478,9 +492,7 @@ void R_SetupAttributes(void) {
 	{
 		if (mask & R_ARRAY_MASK_COLOR) {
 
-			R_EnableAttribute(R_ARRAY_COLOR);
-			R_BindBuffer(r_state.array_buffers[R_ARRAY_COLOR]);
-			R_AttributePointer(R_ARRAY_COLOR, 4, NULL);
+			R_AttributePointer(R_ARRAY_COLOR, 4, r_state.array_buffers[R_ARRAY_COLOR], NULL);
 		}
 		else {
 			R_DisableAttribute(R_ARRAY_COLOR);
@@ -492,9 +504,7 @@ void R_SetupAttributes(void) {
 	{
 		if (mask & R_ARRAY_MASK_TEX_DIFFUSE) {
 
-			R_EnableAttribute(R_ARRAY_TEX_DIFFUSE);
-			R_BindBuffer(r_state.array_buffers[R_ARRAY_TEX_DIFFUSE]);
-			R_AttributePointer(R_ARRAY_TEX_DIFFUSE, 2, NULL);
+			R_AttributePointer(R_ARRAY_TEX_DIFFUSE, 2, r_state.array_buffers[R_ARRAY_TEX_DIFFUSE], NULL);
 		}
 		else {
 			R_DisableAttribute(R_ARRAY_TEX_DIFFUSE);
@@ -505,9 +515,7 @@ void R_SetupAttributes(void) {
 	{
 		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
 
-			R_EnableAttribute(R_ARRAY_TEX_LIGHTMAP);
-			R_BindBuffer(r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP]);
-			R_AttributePointer(R_ARRAY_TEX_LIGHTMAP, 2, NULL);
+			R_AttributePointer(R_ARRAY_TEX_LIGHTMAP, 2, r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP], NULL);
 		}
 		else {
 			R_DisableAttribute(R_ARRAY_TEX_LIGHTMAP);
@@ -518,12 +526,22 @@ void R_SetupAttributes(void) {
 	{
 		if (mask & R_ARRAY_MASK_NORMAL) {
 
-			R_EnableAttribute(R_ARRAY_NORMAL);
-			R_BindBuffer(r_state.array_buffers[R_ARRAY_NORMAL]);
-			R_AttributePointer(R_ARRAY_NORMAL, 3, NULL);
+			R_AttributePointer(R_ARRAY_NORMAL, 3, r_state.array_buffers[R_ARRAY_NORMAL], NULL);
+			
+			if (p->arrays_mask & R_ARRAY_MASK_NEXT_NORMAL)
+			{
+				if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_NORMAL])) {
+
+					R_AttributePointer(R_ARRAY_NEXT_NORMAL, 3, r_state.array_buffers[R_ARRAY_NEXT_NORMAL], NULL);
+				}
+				else {
+					R_DisableAttribute(R_ARRAY_NEXT_NORMAL);
+				}
+			}
 		}
 		else {
 			R_DisableAttribute(R_ARRAY_NORMAL);
+			R_DisableAttribute(R_ARRAY_NEXT_NORMAL);
 		}
 	}
 
@@ -531,12 +549,22 @@ void R_SetupAttributes(void) {
 	{
 		if (mask & R_ARRAY_MASK_TANGENT) {
 
-			R_EnableAttribute(R_ARRAY_TANGENT);
-			R_BindBuffer(r_state.array_buffers[R_ARRAY_TANGENT]);
-			R_AttributePointer(R_ARRAY_TANGENT, 4, NULL);
+			R_AttributePointer(R_ARRAY_TANGENT, 4, r_state.array_buffers[R_ARRAY_TANGENT], NULL);
+
+			if (p->arrays_mask & R_ARRAY_MASK_NEXT_TANGENT)
+			{
+				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_TANGENT])) {
+
+					R_AttributePointer(R_ARRAY_NEXT_TANGENT, 4, r_state.array_buffers[R_ARRAY_NEXT_TANGENT], NULL);
+				}
+				else {
+					R_DisableAttribute(R_ARRAY_NEXT_TANGENT);
+				}
+			}
 		}
 		else {
 			R_DisableAttribute(R_ARRAY_TANGENT);
+			R_DisableAttribute(R_ARRAY_NEXT_TANGENT);
 		}
 	}
 }
@@ -567,6 +595,7 @@ void R_InitPrograms(void) {
 		r_state.default_program->UseLight = R_UseLight_default;
 		r_state.default_program->UseMatrices = R_UseMatrices_default;
 		r_state.default_program->UseAlphaTest = R_UseAlphaTest_default;
+		r_state.default_program->UseInterpolation = R_UseInterpolation_default;
 		r_state.default_program->arrays_mask = R_ARRAY_MASK_ALL;
 	}
 
@@ -575,14 +604,16 @@ void R_InitPrograms(void) {
 		r_state.shadow_program->UseFog = R_UseFog_shadow;
 		r_state.shadow_program->UseMatrices = R_UseMatrices_shadow;
 		r_state.shadow_program->UseCurrentColor = R_UseCurrentColor_shadow;
-		r_state.shadow_program->arrays_mask = R_ARRAY_MASK_VERTEX;
+		r_state.shadow_program->UseInterpolation = R_UseInterpolation_shadow;
+		r_state.shadow_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_NEXT_VERTEX;
 	}
 
 	if ((r_state.shell_program = R_LoadProgram("shell", R_InitProgram_shell, R_PreLink_shell))) {
 		r_state.shell_program->Use = R_UseProgram_shell;
 		r_state.shell_program->UseMatrices = R_UseMatrices_shell;
 		r_state.shell_program->UseCurrentColor = R_UseCurrentColor_shell;
-		r_state.shell_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE;
+		r_state.shell_program->UseInterpolation = R_UseInterpolation_shell;
+		r_state.shell_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_NEXT_VERTEX;
 	}
 	
 	if ((r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp, R_PreLink_warp))) {

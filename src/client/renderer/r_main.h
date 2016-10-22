@@ -77,7 +77,6 @@ typedef struct {
 	const char *renderer_string;
 	const char *vendor_string;
 	const char *version_string;
-	const char *extensions_string;
 
 	int32_t max_texunits;
 } r_config_t;

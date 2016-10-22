@@ -31,6 +31,7 @@ void R_Setup2D(void);
 void R_EnableColorArray(_Bool enable);
 void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
+void R_EnableDepthTest(_Bool enable);
 
 #ifdef __R_LOCAL_H__
 
@@ -60,17 +61,22 @@ typedef struct r_state_s {
 	GLfloat color_array[MAX_GL_ARRAY_LENGTH * 4];
 	GLfloat normal_array[MAX_GL_ARRAY_LENGTH * 3];
 	GLfloat tangent_array[MAX_GL_ARRAY_LENGTH * 4];
-	
+	GLuint indice_array[MAX_GL_ARRAY_LENGTH * 4];
+
 	// built-in buffers for the above vertex arrays
 	r_buffer_t buffer_vertex_array;
 	r_buffer_t buffer_color_array;
 	r_buffer_t buffer_normal_array;
 	r_buffer_t buffer_tangent_array;
+	r_buffer_t buffer_indice_array;
 
 	// the current buffers bound to the global
 	// renderer state. This just prevents
 	// them being bound multiple times in a row.
 	GLuint active_buffers[R_NUM_BUFFERS];
+
+	// the active element buffer.
+	const r_buffer_t *element_buffer;
 
 	// the buffers that will be passed to the
 	// programs to be used in attributes.
@@ -100,8 +106,6 @@ typedef struct r_state_s {
 
 	const r_program_t *active_program;
 	const r_material_t *active_material;
-	const r_entity_t *active_entity; // entity being rendered
-	const r_shadow_t *active_shadow; // shadow being rendered
 
 	r_fog_parameters_t active_fog_parameters;
 
@@ -157,7 +161,6 @@ void R_EnableAlphaTest(float threshold);
 void R_EnableStencilTest(GLenum pass, _Bool enable);
 void R_EnablePolygonOffset(GLenum mode, _Bool enable);
 void R_EnableTexture(r_texunit_t *texunit, _Bool enable);
-void R_EnableDepthTest(_Bool enable);
 void R_EnableLighting(const r_program_t *program, _Bool enable);
 void R_EnableShadow(const r_program_t *program, _Bool enable);
 void R_EnableWarp(const r_program_t *program, _Bool enable);
@@ -167,6 +170,7 @@ void R_UseMaterial(const r_material_t *material);
 void R_PushMatrix(void);
 void R_PopMatrix(void);
 void R_UseMatrices(void);
+void R_UseInterpolation(const float lerp);
 void R_UseAlphaTest(void);
 void R_UseCurrentColor(void);
 void R_InitState(void);

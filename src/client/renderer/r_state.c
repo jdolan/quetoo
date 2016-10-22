@@ -185,7 +185,12 @@ void R_BindSpecularmapTexture(GLuint texnum) {
  */
 void R_BindArray(int target, const r_buffer_t *buffer) {
 
-	r_state.array_buffers[target] = buffer;
+	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
+
+	if (target == R_ARRAY_ELEMENTS)
+		r_state.element_buffer = buffer;
+	else
+		r_state.array_buffers[target] = buffer;
 }
 
 /**
@@ -207,8 +212,10 @@ void R_BindDefaultArray(int target) {
 			R_BindArray(target, &r_state.buffer_vertex_array);
 			break;
 		case R_ARRAY_TEX_DIFFUSE:
+			R_BindArray(target, &texunit_diffuse.buffer_texcoord_array);
+			break;
 		case R_ARRAY_TEX_LIGHTMAP:
-			R_BindArray(target, &r_state.active_texunit->buffer_texcoord_array);
+			R_BindArray(target, &texunit_lightmap.buffer_texcoord_array);
 			break;
 		case R_ARRAY_COLOR:
 			R_BindArray(target, &r_state.buffer_color_array);
@@ -220,10 +227,14 @@ void R_BindDefaultArray(int target) {
 			R_BindArray(target, &r_state.buffer_tangent_array);
 			break;
 		default:
+			R_BindArray(target, NULL);
 			break;
 	}
 }
 
+/**
+ * @brief Binds the appropriate shared vertex array to the specified target.
+ */
 static GLenum R_BufferTypeToTarget(int type) {
 
 	return (type == R_BUFFER_INDICES) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
@@ -689,6 +700,15 @@ void R_UseCurrentColor(void) {
 		r_state.active_program->UseCurrentColor(r_state.current_color);
 }
 
+/**
+ * @brief Uploads the interpolation value to the currently loaded program.
+ */
+void R_UseInterpolation(const float lerp) {
+
+	if (r_state.active_program->UseInterpolation)
+		r_state.active_program->UseInterpolation(lerp);
+}
+
 #define NEAR_Z 4.0
 #define FAR_Z  (MAX_WORLD_COORD * 4.0)
 
@@ -805,6 +825,9 @@ void R_InitState(void) {
 
 	r_get_error = Cvar_Add("r_get_error", "0", 0, NULL);
 
+	// See if we have any errors before state initialization.
+	R_GetError("Pre-init");
+	
 	memset(&r_state, 0, sizeof(r_state));
 
 	r_state.depth_mask_enabled = true;
@@ -815,6 +838,7 @@ void R_InitState(void) {
 	R_CreateBuffer(&r_state.buffer_color_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.color_array), NULL);
 	R_CreateBuffer(&r_state.buffer_normal_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.normal_array), NULL);
 	R_CreateBuffer(&r_state.buffer_tangent_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.tangent_array), NULL);
+	R_CreateBuffer(&r_state.buffer_indice_array, GL_DYNAMIC_DRAW, R_BUFFER_INDICES, sizeof(r_state.indice_array), NULL);
 	
 	R_UnbindBuffer(R_BUFFER_DATA);
 	R_UnbindBuffer(R_BUFFER_INDICES);
@@ -857,7 +881,7 @@ void R_InitState(void) {
 	// set default alpha threshold
 	r_state.alpha_threshold = ALPHA_TEST_DISABLED_THRESHOLD;
 
-	R_GetError(NULL);
+	R_GetError("Post-init");
 }
 
 /**
@@ -879,6 +903,7 @@ void R_ShutdownState(void) {
 	R_DestroyBuffer(&r_state.buffer_color_array);
 	R_DestroyBuffer(&r_state.buffer_normal_array);
 	R_DestroyBuffer(&r_state.buffer_tangent_array);
+	R_DestroyBuffer(&r_state.buffer_indice_array);
 
 	memset(&r_state, 0, sizeof(r_state));
 }
