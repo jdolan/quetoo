@@ -126,25 +126,17 @@ void R_InitContext(void) {
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_FLAGS, &default_flags);
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &default_profile);
 
-	// first, try a 3.0 core forward compatible context.
-	// this will be the most performant for most implementations
-	// since we are not using any fixed pipeline.
-	if (!R_InitGLContext(3, 0, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG, SDL_GL_CONTEXT_PROFILE_CORE)) {
+	// try 2.1 core. Technically, 2.1 does not support "core/compat"
+	// but some implementors (OSX for instance) actually respect this flag.
+	if (!R_InitGLContext(2, 1, default_flags, SDL_GL_CONTEXT_PROFILE_CORE)) {
 
-		Com_Print("  Failed with 3.0 Forward Compatible Core, (%s) attempting 2.1 Core..\n", SDL_GetError());
-
-		// if that fails, try 2.1 core. Technically, 2.1 does not support "core/compat"
-		// but some implementors (OSX for instance) actually respect this flag.
-		if (!R_InitGLContext(2, 1, default_flags, SDL_GL_CONTEXT_PROFILE_CORE)) {
-			Com_Print("  Failed with 2.1 Core (%s), attempting 2.1..\n", SDL_GetError());
+		Com_Print("  Failed to create OpenGL 2.1 Core context (%s), attempting 2.1 Compatibility..\n", SDL_GetError());
 	
-			// If all else fails, just try base 2.1.
-			if (!R_InitGLContext(2, 1, default_flags, default_profile)) {
-				Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
-			}
+		// If all else fails, just try base 2.1.
+		if (!R_InitGLContext(2, 1, default_flags, default_profile)) {
+
+			Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 		}
-	} else {
-		Com_Print("  Succeeded with 3.0 Forward Compatible Core.\n");
 	}
 
 	SDL_ShowWindow(r_context.window);

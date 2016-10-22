@@ -553,22 +553,7 @@ static void R_InitConfig(void) {
 
 	if (verbose->integer >= 1) {
 
-		GString *extension_string;
-
-		if (r_context.core_profile) {
-
-			extension_string = g_string_new(NULL);
-			
-			GLint num_extensions;
-			glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-
-			for (GLint i = 0; i < num_extensions; ++i) {
-
-				extension_string = g_string_append(g_string_append(extension_string, " "), (const gchar *) glGetStringi(GL_EXTENSIONS, (GLuint) i));
-			}
-		}
-		else
-			extension_string = g_string_new((const gchar *) glGetString(GL_EXTENSIONS));
+		GString *extension_string = g_string_new((const gchar *) glGetString(GL_EXTENSIONS));
 
 		// extension string can be gigantic, so let's pretty it up a bit.
 		GString *pretty_string = g_string_new(NULL);
