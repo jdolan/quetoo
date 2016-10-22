@@ -542,7 +542,6 @@ static void R_InitConfig(void) {
 	r_config.renderer_string = (const char *) glGetString(GL_RENDERER);
 	r_config.vendor_string = (const char *) glGetString(GL_VENDOR);
 	r_config.version_string = (const char *) glGetString(GL_VERSION);
-	r_config.extensions_string = (const char *) glGetString(GL_EXTENSIONS);
 
 	R_EnforceGlVersion();
 
@@ -554,9 +553,28 @@ static void R_InitConfig(void) {
 
 	if (verbose->integer >= 1) {
 
+		GString *extension_string;
+
+#if defined(OPENGL_CORE)
+		if (r_context.is_core) {
+
+			extension_string = g_string_new(NULL);
+			
+			GLint num_extensions;
+			glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
+
+			for (GLint i = 0; i < num_extensions; ++i) {
+
+				extension_string = g_string_append(g_string_append(extension_string, " "), (const gchar *) glGetStringi(GL_EXTENSIONS, (GLuint) i));
+			}
+		}
+		else
+#endif
+			extension_string = g_string_new((const gchar *) glGetString(GL_EXTENSIONS));
+
 		// extension string can be gigantic, so let's pretty it up a bit.
 		GString *pretty_string = g_string_new(NULL);
-		const char *extensions_in = r_config.extensions_string;
+		const char *extensions_in = extension_string->str;
 		const char *extension_prefix = "  Extensions: ";
 		int num_waiting = 0;
 
@@ -607,6 +625,7 @@ static void R_InitConfig(void) {
 		}
 
 		g_string_free(pretty_string, true);
+		g_string_free(extension_string, true);
 	}
 }
 

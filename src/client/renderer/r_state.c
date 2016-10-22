@@ -185,6 +185,8 @@ void R_BindSpecularmapTexture(GLuint texnum) {
  */
 void R_BindArray(int target, const r_buffer_t *buffer) {
 
+	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
+
 	if (target == R_ARRAY_ELEMENTS)
 		r_state.element_buffer = buffer;
 	else
@@ -318,6 +320,8 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size,
 
 		R_GetError("Updating existing buffer");
 	}
+
+	R_UnbindBuffer(buffer->type);
 }
 
 /**
@@ -822,6 +826,9 @@ void R_InitState(void) {
 
 	r_get_error = Cvar_Add("r_get_error", "0", 0, NULL);
 
+	// See if we have any errors before state initialization.
+	R_GetError("Pre-init");
+	
 	memset(&r_state, 0, sizeof(r_state));
 
 	r_state.depth_mask_enabled = true;
@@ -875,7 +882,7 @@ void R_InitState(void) {
 	// set default alpha threshold
 	r_state.alpha_threshold = ALPHA_TEST_DISABLED_THRESHOLD;
 
-	R_GetError(NULL);
+	R_GetError("Post-init");
 }
 
 /**

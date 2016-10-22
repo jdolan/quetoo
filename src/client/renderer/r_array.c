@@ -267,7 +267,9 @@ void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 	R_PrepareProgram();
 
 	if (r_state.element_buffer) {
-		glDrawElements(type, count, GL_UNSIGNED_INT, (const void *)(ptrdiff_t)start);
+
+		R_BindBuffer(r_state.element_buffer);
+		glDrawElements(type, count, GL_UNSIGNED_INT, (const void *)(ptrdiff_t)(start * sizeof(GLuint)));
 	}
 	else {
 		glDrawArrays(type, start, count);

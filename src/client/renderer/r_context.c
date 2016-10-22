@@ -40,6 +40,33 @@ static void R_SetWindowIcon(void) {
 }
 
 /**
+ * @brief Attempts to create the specified context, returns true on success and false on failure.
+ */
+static _Bool R_InitGLContext(const int major, const int minor, const SDL_GLcontextFlag context_flags, const SDL_GLprofile profile) {
+
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, context_flags);
+
+	const int32_t s = Clamp(r_multisample->integer, 0, 8);
+
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
+
+	return (r_context.context = SDL_GL_CreateContext(r_context.window)) != NULL;
+}
+
+/**
  * @brief Initialize the OpenGL context, returning true on success, false on failure.
  */
 void R_InitContext(void) {
@@ -52,28 +79,6 @@ void R_InitContext(void) {
 			Com_Error(ERR_FATAL, "%s\n", SDL_GetError());
 		}
 	}
-
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-#if defined(OPENGL_CORE)
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-#else
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-#endif
-
-	const int32_t s = Clamp(r_multisample->integer, 0, 8);
-
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
 
 	uint32_t flags = SDL_WINDOW_OPENGL;
 
@@ -107,9 +112,37 @@ void R_InitContext(void) {
 		Com_Error(ERR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
-	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
-		Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
+	// Prepare GL stuff
+	Com_Print("  Setting up OpenGL context..\n");
+
+#if defined(OPENGL_CORE)
+	// first, try a 3.0 core forward compatible context.
+	// this will be the most performant for most implementations
+	// since we are not using any fixed pipeline.
+	if (!R_InitGLContext(3, 0, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG, SDL_GL_CONTEXT_PROFILE_CORE)) {
+
+		Com_Print("  Failed with 3.0 Forward Compatible Core, (%s) attempting 2.1 Core..\n", SDL_GetError());
+
+		// if that fails, try 2.1 core. Technically, 2.1 does not support "core/compat"
+		// but some implementors (OSX for instance) actually respect this flag.
+		if (!R_InitGLContext(2, 1, 0, SDL_GL_CONTEXT_PROFILE_CORE)) {
+			Com_Print("  Failed with 2.1 Core (%s), attempting 2.1..\n", SDL_GetError());
+	
+#endif
+			// If all else fails, just try base 2.1.
+			if (!R_InitGLContext(2, 1, 0, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY)) {
+
+				Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
+			}
+#if defined(OPENGL_CORE)
+		}
 	}
+	else {
+
+		Com_Print("  Succeeded with 3.0 Forward Compatible Core.\n");
+		r_context.is_core = true;
+	}
+#endif
 
 	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
 		Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());

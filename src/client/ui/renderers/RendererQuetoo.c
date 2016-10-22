@@ -41,8 +41,6 @@ static void beginFrame(Renderer *self) {
 
 	// set color to white
 	R_Color(NULL);
-
-	super(Renderer, self, beginFrame);
 }
 
 /**

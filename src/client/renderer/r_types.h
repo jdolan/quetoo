@@ -928,6 +928,13 @@ typedef struct {
 	 * @brief True if fullscreen, false if windowed.
 	 */
 	_Bool fullscreen;
+	
+#if defined(OPENGL_CORE)
+	/**
+	 * @brief True if the context is a GL 3.x Core Fwd Compat context.
+	 */
+	_Bool is_core;
+#endif
 } r_context_t;
 
 #endif /* __R_TYPES_H__ */
