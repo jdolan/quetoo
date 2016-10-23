@@ -201,7 +201,8 @@ void R_AttributePointer(const r_attribute_id_t attribute, GLuint size, const r_b
  */
 void R_EnableAttribute(const r_attribute_id_t attribute) {
 
-	if (attribute >= R_ARRAY_MAX_ATTRIBS) {
+	if (attribute >= R_ARRAY_MAX_ATTRIBS ||
+		r_state.active_program->attributes[attribute].location == -1) {
 		Com_Warn("Invalid attribute\n");
 		return;
 	}
@@ -219,7 +220,8 @@ void R_EnableAttribute(const r_attribute_id_t attribute) {
  */
 void R_DisableAttribute(const r_attribute_id_t attribute) {
 
-	if (attribute >= R_ARRAY_MAX_ATTRIBS) {
+	if (attribute >= R_ARRAY_MAX_ATTRIBS ||
+		r_state.active_program->attributes[attribute].location == -1) {
 		Com_Warn("Invalid attribute\n");
 		return;
 	}
@@ -418,6 +420,8 @@ static r_program_t *R_LoadProgram(const char *name, void (*Init)(r_program_t *pr
 	}
 
 	g_strlcpy(prog->name, name, sizeof(prog->name));
+
+	memset(prog->attributes, -1, sizeof(prog->attributes));
 
 	prog->id = glCreateProgram();
 
@@ -629,6 +633,12 @@ void R_InitPrograms(void) {
 		r_state.null_program->UseMatrices = R_UseMatrices_null;
 		r_state.null_program->UseCurrentColor = R_UseCurrentColor_null;
 		r_state.null_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_COLOR;
+	}
+
+	if ((r_state.corona_program = R_LoadProgram("corona", R_InitProgram_corona, R_PreLink_corona))) {
+		r_state.corona_program->UseFog = R_UseFog_corona;
+		r_state.corona_program->UseMatrices = R_UseMatrices_corona;
+		r_state.corona_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_COLOR;
 	}
 
 	R_UseProgram(r_state.null_program);

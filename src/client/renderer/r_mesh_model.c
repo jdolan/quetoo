@@ -296,19 +296,28 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 		mod->num_verts += mesh->num_tris * 3;
 	}
 
-	mod->verts = Mem_LinkMalloc(mod->num_verts * md3->num_frames * sizeof(vec3_t), mod);
-	mod->normals = Mem_LinkMalloc(mod->num_verts * md3->num_frames * sizeof(vec3_t), mod);
-	mod->tangents = Mem_LinkMalloc(mod->num_verts * md3->num_frames * sizeof(vec4_t), mod);
+	// make the scratch space
+	const GLsizei v = mod->num_verts * sizeof(vec3_t);
+	const GLsizei st = mod->num_verts * sizeof(vec2_t);
+	const GLsizei t = mod->num_verts * sizeof(vec4_t);
 
-	mod->texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
+	vec_t *verts = Mem_LinkMalloc(v, mod);
+	vec_t *normals = Mem_LinkMalloc(v, mod);
+	vec_t *tangents = Mem_LinkMalloc(t, mod);
 
-	vec_t *vout = mod->verts;
-	vec_t *sout = mod->texcoords;
-	vec_t *nout = mod->normals;
-	vec_t *tout = mod->tangents;
+	vec_t *texcoords = Mem_LinkMalloc(st, mod);
+
+	mod->vertex_buffers = Mem_LinkMalloc(sizeof(r_buffer_t) * md3->num_frames, mod);
+	mod->normal_buffers = Mem_LinkMalloc(sizeof(r_buffer_t) * md3->num_frames, mod);
+	mod->tangent_buffers = Mem_LinkMalloc(sizeof(r_buffer_t) * md3->num_frames, mod);
 
 	const d_md3_frame_t *frame = md3->frames;
 	for (uint16_t f = 0; f < md3->num_frames; ++f, frame++) {
+
+		vec_t *vout = verts;
+		vec_t *sout = texcoords;
+		vec_t *nout = normals;
+		vec_t *tout = tangents;
 
 		mesh = md3->meshes;
 		for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) { // iterate the meshes
@@ -350,7 +359,26 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 				}
 			}
 		}
+
+		// upload each frame
+		R_CreateBuffer(&mod->vertex_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, v, verts);
+	
+		R_CreateBuffer(&mod->normal_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, v, normals);
+	
+		R_CreateBuffer(&mod->tangent_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, t, tangents);
 	}
+
+	// upload texcoords
+	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, texcoords);
+
+	R_UnbindBuffer(R_BUFFER_DATA);
+	
+	Mem_Free(verts);
+	Mem_Free(normals);
+	Mem_Free(tangents);
+	Mem_Free(texcoords);
+
+	R_GetError(mod->media.name);
 }
 
 /**
@@ -809,10 +837,19 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 	mod->num_verts = g_list_length(obj->tris) * 3;
 
-	vec_t *vout = mod->verts = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
-	vec_t *sout = mod->texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
-	vec_t *nout = mod->normals = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
-	vec_t *tout = mod->tangents = Mem_LinkMalloc(mod->num_verts * sizeof(vec4_t), mod);
+	const GLsizei v = mod->num_verts * sizeof(vec3_t);
+	const GLsizei st = mod->num_verts * sizeof(vec2_t);
+	const GLsizei t = mod->num_verts * sizeof(vec4_t);
+
+	vec_t *verts = Mem_LinkMalloc(v, mod);
+	vec_t *texcoords = Mem_LinkMalloc(st, mod);
+	vec_t *normals = Mem_LinkMalloc(v, mod);
+	vec_t *tangents = Mem_LinkMalloc(t, mod);
+	
+	vec_t *vout = verts;
+	vec_t *sout = texcoords;
+	vec_t *nout = normals;
+	vec_t *tout = tangents;
 
 	const GList *tris = obj->tris;
 	while (tris) {
@@ -842,6 +879,28 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 		tris = tris->next;
 	}
+
+	// load the vertex buffer objects
+	mod->vertex_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
+	mod->normal_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
+	mod->tangent_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
+
+	R_CreateBuffer(&mod->vertex_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, v, verts);
+	
+	R_CreateBuffer(&mod->normal_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, v, normals);
+	
+	R_CreateBuffer(&mod->tangent_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, t, tangents);
+
+	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, texcoords);
+
+	R_UnbindBuffer(R_BUFFER_DATA);
+	
+	Mem_Free(verts);
+	Mem_Free(texcoords);
+	Mem_Free(normals);
+	Mem_Free(tangents);
+
+	R_GetError(mod->media.name);
 }
 
 /**

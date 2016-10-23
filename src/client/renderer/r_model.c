@@ -38,6 +38,7 @@ static const r_model_format_t r_model_formats[] = { // supported model formats
 /**
  * @brief Allocates and populates static VBO's for the specified r_model_t.
  */
+/*
 static void R_LoadVertexBuffers(r_model_t *mod) {
 
 	const GLsizei v = mod->num_verts * 3 * sizeof(GLfloat);
@@ -87,6 +88,7 @@ static void R_LoadVertexBuffers(r_model_t *mod) {
 
 	R_GetError(mod->media.name);
 }
+*/
 
 /**
  * @brief Register event listener for models.
@@ -204,9 +206,6 @@ r_model_t *R_LoadModel(const char *name) {
 
 		// free the file
 		Fs_Free(buf);
-
-		// assemble vertex buffer objects from static arrays
-		R_LoadVertexBuffers(mod);
 
 		// calculate an approximate radius from the bounding box
 		vec3_t tmp;

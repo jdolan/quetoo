@@ -101,6 +101,7 @@ typedef struct r_state_s {
 	r_program_t *shell_program;
 	r_program_t *warp_program;
 	r_program_t *null_program;
+	r_program_t *corona_program;
 
 	_Bool attributes_enabled[R_ARRAY_MAX_ATTRIBS];
 
@@ -173,6 +174,7 @@ void R_UseMatrices(void);
 void R_UseInterpolation(const float lerp);
 void R_UseAlphaTest(void);
 void R_UseCurrentColor(void);
+void R_UseFog(void);
 void R_InitState(void);
 void R_ShutdownState(void);
 

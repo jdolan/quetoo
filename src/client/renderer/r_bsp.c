@@ -265,8 +265,8 @@ void R_DrawBspNormals(void) {
 		for (uint16_t j = 0; j < surf->num_edges; j++) {
 			vec3_t end;
 
-			const GLfloat *vertex = &r_model_state.world->verts[(surf->index + j) * 3];
-			const GLfloat *normal = &r_model_state.world->normals[(surf->index + j) * 3];
+			const GLfloat *vertex = &r_model_state.world->bsp->verts[(surf->index + j) * 3];
+			const GLfloat *normal = &r_model_state.world->bsp->normals[(surf->index + j) * 3];
 
 			VectorMA(vertex, 12.0, normal, end);
 

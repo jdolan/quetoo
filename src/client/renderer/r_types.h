@@ -528,6 +528,13 @@ typedef struct {
 
 	// sorted surfaces arrays
 	r_sorted_bsp_surfaces_t *sorted_surfaces;
+
+	// vertex arrays, for materials
+	GLfloat *verts;
+	GLfloat *texcoords;
+	GLfloat *lightmap_texcoords;
+	GLfloat *normals;
+	GLfloat *tangents;
 } r_bsp_model_t;
 
 /**
@@ -568,13 +575,8 @@ typedef struct r_model_s {
 
 	GLsizei num_verts; // raw vertex primitive count, used to build arrays
 
-	GLfloat *verts; // vertex arrays
-	GLfloat *texcoords;
-	GLfloat *lightmap_texcoords;
-	GLfloat *normals;
-	GLfloat *tangents;
-
-	r_buffer_t *vertex_buffers; // vertex buffer objects
+	// vertex buffer objects
+	r_buffer_t *vertex_buffers;
 	r_buffer_t texcoord_buffer;
 	r_buffer_t lightmap_texcoord_buffer;
 	r_buffer_t *normal_buffers;

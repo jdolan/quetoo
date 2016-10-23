@@ -627,8 +627,6 @@ void R_EnableFog(_Bool enable) {
 	} else {
 		r_state.active_fog_parameters.density = 0.0;
 	}
-			
-	r_state.active_program->UseFog(&r_state.active_fog_parameters);
 }
 
 /**
@@ -698,6 +696,15 @@ void R_UseCurrentColor(void) {
 
 	if (r_state.active_program->UseCurrentColor)
 		r_state.active_program->UseCurrentColor(r_state.current_color);
+}
+
+/**
+ * @brief Uploads the current fog data to the currently loaded program.
+ */
+void R_UseFog(void) {
+
+	if (r_state.active_program->UseFog)
+		r_state.active_program->UseFog(&r_state.active_fog_parameters);
 }
 
 /**

@@ -255,6 +255,8 @@ static void R_PrepareProgram() {
 	R_UseAlphaTest();
 
 	R_UseCurrentColor();
+
+	R_UseFog();
 }
 
 /**

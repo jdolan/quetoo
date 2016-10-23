@@ -659,7 +659,7 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 	for (uint16_t i = 0; i < surf->num_edges; i++, e++) {
 		const r_bsp_vertex_t *vert = R_BSP_VERTEX(mod->bsp, *e);
 
-		memcpy(&mod->verts[(*count) * 3], vert->position, sizeof(vec3_t));
+		memcpy(&mod->bsp->verts[(*count) * 3], vert->position, sizeof(vec3_t));
 
 		// texture directional vectors and offsets
 		const vec_t *sdir = surf->texinfo->vecs[0];
@@ -675,8 +675,8 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		vec_t t = DotProduct(vert->position, tdir) + toff;
 		t /= surf->texinfo->material->diffuse->height;
 
-		mod->texcoords[(*count) * 2 + 0] = s;
-		mod->texcoords[(*count) * 2 + 1] = t;
+		mod->bsp->texcoords[(*count) * 2 + 0] = s;
+		mod->bsp->texcoords[(*count) * 2 + 1] = t;
 
 		// lightmap texture coordinates
 		if (surf->flags & R_SURF_LIGHTMAP) {
@@ -693,8 +693,8 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 			t /= surf->lightmap->height * mod->bsp->lightmaps->scale;
 		}
 
-		mod->lightmap_texcoords[(*count) * 2 + 0] = s;
-		mod->lightmap_texcoords[(*count) * 2 + 1] = t;
+		mod->bsp->lightmap_texcoords[(*count) * 2 + 0] = s;
+		mod->bsp->lightmap_texcoords[(*count) * 2 + 1] = t;
 
 		// normal vector, which is per-vertex for SURF_PHONG
 
@@ -704,14 +704,14 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		else
 			normal = surf->normal;
 
-		memcpy(&mod->normals[(*count) * 3], normal, sizeof(vec3_t));
+		memcpy(&mod->bsp->normals[(*count) * 3], normal, sizeof(vec3_t));
 
 		// tangent vectors
 		vec4_t tangent;
 		vec3_t bitangent;
 
 		TangentVectors(normal, sdir, tdir, tangent, bitangent);
-		memcpy(&mod->tangents[(*count) * 4], tangent, sizeof(vec4_t));
+		memcpy(&mod->bsp->tangents[(*count) * 4], tangent, sizeof(vec4_t));
 
 		(*count)++;
 	}
@@ -733,11 +733,15 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		}
 	}
 
-	mod->verts = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
-	mod->texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
-	mod->lightmap_texcoords = Mem_LinkMalloc(mod->num_verts * sizeof(vec2_t), mod);
-	mod->normals = Mem_LinkMalloc(mod->num_verts * sizeof(vec3_t), mod);
-	mod->tangents = Mem_LinkMalloc(mod->num_verts * sizeof(vec4_t), mod);
+	const GLsizei v = mod->num_verts * sizeof(vec3_t);
+	const GLsizei st = mod->num_verts * sizeof(vec2_t);
+	const GLsizei t = mod->num_verts * sizeof(vec4_t);
+
+	mod->bsp->verts = Mem_LinkMalloc(v, mod);
+	mod->bsp->texcoords = Mem_LinkMalloc(st, mod);
+	mod->bsp->lightmap_texcoords = Mem_LinkMalloc(st, mod);
+	mod->bsp->normals = Mem_LinkMalloc(v, mod);
+	mod->bsp->tangents = Mem_LinkMalloc(t, mod);
 
 	GLuint count = 0;
 
@@ -750,6 +754,25 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 			R_LoadBspVertexArrays_Surface(mod, *s, &count);
 		}
 	}
+
+	// load the vertex buffer objects
+	mod->vertex_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
+	mod->normal_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
+	mod->tangent_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
+
+	R_CreateBuffer(&mod->vertex_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, v, mod->bsp->verts);
+	
+	R_CreateBuffer(&mod->normal_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, v, mod->bsp->normals);
+	
+	R_CreateBuffer(&mod->tangent_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, t, mod->bsp->tangents);
+
+	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, mod->bsp->texcoords);
+
+	R_CreateBuffer(&mod->lightmap_texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, mod->bsp->lightmap_texcoords);
+
+	R_UnbindBuffer(R_BUFFER_DATA);
+
+	R_GetError(mod->media.name);
 }
 
 /**

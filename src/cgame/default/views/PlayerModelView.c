@@ -48,10 +48,10 @@ static void renderMeshEntity_obj(const r_entity_t *e) {
 
 	glBindTexture(GL_TEXTURE_2D, e->model->mesh->material->diffuse->texnum);
 
-	glTexCoordPointer(2, GL_FLOAT, 0, e->model->texcoords);
-	glVertexPointer(3, GL_FLOAT, 0, e->model->verts);
+	//glTexCoordPointer(2, GL_FLOAT, 0, e->model->texcoords);
+	//glVertexPointer(3, GL_FLOAT, 0, e->model->verts);
 
-	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+	//glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
 }
 
 /**
