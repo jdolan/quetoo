@@ -554,6 +554,12 @@ typedef struct cg_import_s {
 	 * @param e The entity.
 	 */
 	void (*SetMatrixForEntity)(r_entity_t *e);
+	
+	void (*PushMatrix)(const r_matrix_id_t id);
+	void (*PopMatrix)(const r_matrix_id_t id);
+	void (*DrawMeshModel)(const r_entity_t *e);
+	void (*EnableDepthTest)(_Bool enable);
+	void (*EnableTextureID)(const int texunit_id, _Bool enable);
 
 	/**
 	 * @brief Adds an instantaneous light to the scene for the current frame.

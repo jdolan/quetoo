@@ -16,6 +16,10 @@ attribute vec3 POSITION;
 attribute vec2 TEXCOORD;
 attribute vec4 COLOR;
 
+uniform float TIME_FRACTION;
+
+attribute vec3 NEXT_POSITION;
+
 /**
  * @brief Calculate the interpolated fog value for the vertex.
  */
@@ -31,7 +35,7 @@ void FogVertex(void) {
 void main(void) {
 
 	// mvp transform into clip space
-	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * vec4(POSITION, 1.0);
+	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);
 
 	texcoord = vec2(TEXTURE_MAT * vec4(TEXCOORD, 0, 1));
 

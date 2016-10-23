@@ -24,6 +24,8 @@
 
 #include "r_types.h"
 
+void R_DrawMeshModel_default(const r_entity_t *e);
+
 #ifdef __R_LOCAL_H__
 
 typedef struct {

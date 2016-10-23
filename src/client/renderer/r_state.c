@@ -718,14 +718,6 @@ void R_PopMatrix(const r_matrix_id_t id) {
 /**
  * @brief
  */
-void R_GetMatrix(const r_matrix_id_t id, matrix4x4_t *out) {
-
-	Matrix4x4_Copy(out, &r_view.active_matrices[id]);
-}
-
-/**
- * @brief
- */
 void R_SetMatrix(const r_matrix_id_t id, const matrix4x4_t *in) {
 
 	Matrix4x4_Copy(&r_view.active_matrices[id], in);
@@ -836,6 +828,11 @@ void R_EnableDepthTest(_Bool enable) {
 		glEnable(GL_DEPTH_TEST);
 	else
 		glDisable(GL_DEPTH_TEST);
+}
+
+void R_EnableTextureID(const int texunit_id, _Bool enable) {
+
+	R_EnableTexture(&r_state.texunits[texunit_id], enable);
 }
 
 void R_EnableScissor(const SDL_Rect *bounds) {

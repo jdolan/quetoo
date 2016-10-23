@@ -163,21 +163,26 @@ void R_UpdateMeshModelLighting(const r_entity_t *e) {
 static void R_SetMeshColor_default(const r_entity_t *e) {
 	vec4_t color;
 
-	VectorCopy(r_bsp_light_state.ambient, color);
+	if ((e->effects & EF_NO_LIGHTING) == 0)
+	{
+		VectorCopy(r_bsp_light_state.ambient, color);
+	
+		if (!r_lighting->value) {
+			const r_illumination_t *il = e->lighting->illuminations;
 
-	if (!r_lighting->value) {
-		const r_illumination_t *il = e->lighting->illuminations;
+			for (uint16_t i = 0; i < r_state.max_active_lights; i++, il++) {
 
-		for (uint16_t i = 0; i < r_state.max_active_lights; i++, il++) {
+				if (il->diffuse == 0.0)
+					break;
 
-			if (il->diffuse == 0.0)
-				break;
+				VectorMA(color, il->diffuse / il->light.radius, il->light.color, color);
+			}
 
-			VectorMA(color, il->diffuse / il->light.radius, il->light.color, color);
+			ColorNormalize(color, color);
 		}
-
-		ColorNormalize(color, color);
 	}
+	else
+		VectorSet(color, 1.0, 1.0, 1.0);
 
 	for (int32_t i = 0; i < 3; i++) {
 		color[i] *= e->color[i];

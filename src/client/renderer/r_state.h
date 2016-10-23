@@ -32,6 +32,10 @@ void R_EnableColorArray(_Bool enable);
 void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
 void R_EnableDepthTest(_Bool enable);
+void R_EnableTextureID(const int texunit_id, _Bool enable);
+
+void R_PushMatrix(const r_matrix_id_t id);
+void R_PopMatrix(const r_matrix_id_t id);
 
 #ifdef __R_LOCAL_H__
 
@@ -186,8 +190,6 @@ void R_EnableWarp(const r_program_t *program, _Bool enable);
 void R_EnableShell(const r_program_t *program, _Bool enable);
 void R_EnableFog(_Bool enable);
 void R_UseMaterial(const r_material_t *material);
-void R_PushMatrix(const r_matrix_id_t id);
-void R_PopMatrix(const r_matrix_id_t id);
 void R_UseMatrices(void);
 void R_UseInterpolation(const float lerp);
 void R_UseAlphaTest(void);

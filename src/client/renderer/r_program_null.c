@@ -32,6 +32,8 @@ typedef struct {
 	r_uniform_matrix4fv_t texture_mat;
 
 	r_uniform4fv_t current_color;
+
+	r_uniform1f_t time_fraction;
 } r_null_program_t;
 
 static r_null_program_t r_null_program;
@@ -44,6 +46,8 @@ void R_PreLink_null(const r_program_t *program) {
 	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
 	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
 	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_TEX_DIFFUSE);
+
+	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_VERTEX);
 }
 
 /**
@@ -57,6 +61,8 @@ void R_InitProgram_null(r_program_t *program) {
 	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR");
 	R_ProgramVariable(&program->attributes[R_ARRAY_TEX_DIFFUSE], R_ATTRIBUTE, "TEXCOORD");
 	
+	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_VERTEX], R_ATTRIBUTE, "NEXT_POSITION");
+	
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0");
 
 	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
@@ -69,6 +75,8 @@ void R_InitProgram_null(r_program_t *program) {
 	R_ProgramVariable(&p->texture_mat, R_UNIFORM_MAT4, "TEXTURE_MAT");
 
 	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
+	
+	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION");
 
 	R_ProgramParameter1i(&p->sampler0, 0);
 
@@ -76,6 +84,8 @@ void R_InitProgram_null(r_program_t *program) {
 
 	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 	R_ProgramParameter4fv(&p->current_color, white);
+
+	R_ProgramParameter1f(&p->time_fraction, 0.0f);
 }
 
 /**
@@ -120,4 +130,14 @@ void R_UseCurrentColor_null(const vec4_t color) {
 		R_ProgramParameter4fv(&p->current_color, color);
 	else
 		R_ProgramParameter4fv(&p->current_color, white);
+}
+
+/**
+ * @brief
+ */
+void R_UseInterpolation_null(const float time_fraction) {
+
+	r_null_program_t *p = &r_null_program;
+
+	R_ProgramParameter1f(&p->time_fraction, time_fraction);
 }

@@ -42,82 +42,15 @@ static void dealloc(Object *self) {
 #pragma mark - View
 
 /**
- * @brief Renders the given entity's OBJ model.
- */
-static void renderMeshEntity_obj(const r_entity_t *e) {
-
-	glBindTexture(GL_TEXTURE_2D, e->model->mesh->material->diffuse->texnum);
-
-	//glTexCoordPointer(2, GL_FLOAT, 0, e->model->texcoords);
-	//glVertexPointer(3, GL_FLOAT, 0, e->model->verts);
-
-	//glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
-}
-
-/**
- * @brief Renders the given entity's MD3 model.
- */
-static void renderMeshEntity_md3(const r_entity_t *e) {
-
-	vec3_t verts[e->model->num_verts];
-
-	glVertexPointer(3, GL_FLOAT, 0, verts);
-
-	const r_md3_t *md3 = (r_md3_t *) e->model->mesh->data;
-
-	const d_md3_frame_t *frame = &md3->frames[e->frame];
-	const d_md3_frame_t *oldFrame = &md3->frames[e->old_frame];
-
-	vec3_t translate;
-	VectorLerp(oldFrame->translate, frame->translate, e->back_lerp, translate);
-
-	const r_md3_mesh_t *mesh = md3->meshes;
-	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
-
-		const r_material_t *material = e->skins[i] ?: e->model->mesh->material;
-		glBindTexture(GL_TEXTURE_2D, material->diffuse->texnum);
-
-		glTexCoordPointer(2, GL_FLOAT, 0, mesh->coords);
-
-		const r_md3_vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
-		const r_md3_vertex_t *ov = mesh->verts + e->old_frame * mesh->num_verts;
-
-		for (uint16_t j = 0; j < mesh->num_verts; j++, v++, ov++) {
-			VectorSet(verts[j],
-					  translate[0] + ov->point[0] * e->back_lerp + v->point[0] * e->lerp,
-					  translate[1] + ov->point[1] * e->back_lerp + v->point[1] * e->lerp,
-					  translate[2] + ov->point[2] * e->back_lerp + v->point[2] * e->lerp);
-		}
-
-		glDrawElements(GL_TRIANGLES, mesh->num_tris * 3, GL_UNSIGNED_INT, mesh->tris);
-	}
-}
-
-/**
  * @brief Renders the given entity stub.
  */
 static void renderMeshEntity(r_entity_t *e) {
 	
-	return;
+	cgi.view->current_entity = e;
 
 	cgi.SetMatrixForEntity(e);
 
-	glPushMatrix();
-	
-	glMultMatrixf((GLfloat *) e->matrix.m);
-
-	switch (e->model->type) {
-		case MOD_OBJ:
-			renderMeshEntity_obj(e);
-			break;
-		case MOD_MD3:
-			renderMeshEntity_md3(e);
-			break;
-		default:
-			break;
-	}
-
-	glPopMatrix();
+	cgi.DrawMeshModel(e);
 }
 
 #define NEAR_Z 1.0
@@ -130,8 +63,6 @@ static void render(View *self, Renderer *renderer) {
 
 	super(View, self, render, renderer);
 	
-	return;
-
 	PlayerModelView *this = (PlayerModelView *) self;
 
 	if (this->client.torso == NULL) {
@@ -140,13 +71,14 @@ static void render(View *self, Renderer *renderer) {
 
 	if (this->client.torso) {
 		$(this, animate);
+		
+		cgi.PushMatrix(R_MATRIX_PROJECTION);
+		cgi.PushMatrix(R_MATRIX_MODELVIEW);
 
 		const SDL_Rect viewport = $(self, viewport);
 		glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
 
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-
+		// create projection matrix
 		const vec_t aspect = (vec_t) viewport.w / (vec_t) viewport.h;
 
 		const vec_t ymax = NEAR_Z * tan(Radians(35));
@@ -158,49 +90,35 @@ static void render(View *self, Renderer *renderer) {
 
 		Matrix4x4_FromFrustum(&mat, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
 
-		glLoadMatrixf((GLfloat *) mat.m);
+		Matrix4x4_Copy(&cgi.view->active_matrices[R_MATRIX_PROJECTION], &mat);
 
-		glMatrixMode(GL_MODELVIEW);
-
+		// create base modelview matrix
 		Matrix4x4_CreateIdentity(&mat);
 
 		// Quake is retarded: rotate so that Z is up
 		Matrix4x4_ConcatRotate(&mat, -90.0, 1.0, 0.0, 0.0);
 		Matrix4x4_ConcatRotate(&mat,  90.0, 0.0, 0.0, 1.0);
 		Matrix4x4_ConcatTranslate(&mat, 64.0, 0.0, -8.0);
-
-		glLoadMatrixf((GLfloat *) mat.m);
 		
-		glPushMatrix();
+		Matrix4x4_ConcatRotate(&mat, cgi.client->systime * 0.08, 0.0, 0.0, 1.0);
 
-		glRotatef(cgi.client->systime * 0.08, 0.0, 0.0, 1.0);
-
-		glDepthRange(0.0, 0.1);
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_TEXTURE_2D);
+		Matrix4x4_Copy(&cgi.view->active_matrices[R_MATRIX_MODELVIEW], &mat);
+		
+		cgi.EnableTextureID(0, true);
+		cgi.EnableDepthTest(true);
 
 		renderMeshEntity(&this->legs);
 		renderMeshEntity(&this->torso);
 		renderMeshEntity(&this->head);
 		renderMeshEntity(&this->weapon);
 
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_DEPTH_TEST);
-		glDepthRange(0.0, 1.0);
-
-		glPopMatrix();
-
+		cgi.EnableDepthTest(false);
+		cgi.EnableTextureID(0, false);
+		
 		glViewport(0, 0, cgi.context->width, cgi.context->height);
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-
-		Matrix4x4_FromOrtho(&mat, 0.0, cgi.context->window_width, cgi.context->window_height, 0.0, -1.0, 1.0);
-
-		glLoadMatrixf((GLfloat *) mat.m);
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
+		
+		cgi.PopMatrix(R_MATRIX_MODELVIEW);
+		cgi.PopMatrix(R_MATRIX_PROJECTION);
 	}
 }
 
@@ -229,21 +147,29 @@ static void updateBindings(View *self) {
 
 	this->legs.model = this->client.legs;
 	this->legs.scale = 1.0;
+	this->legs.effects = EF_NO_LIGHTING;
+	Vector4Set(this->legs.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->torso.model = this->client.torso;
 	this->torso.parent = &this->legs;
 	this->torso.scale = 1.0;
 	this->torso.tag_name = "tag_torso";
+	this->torso.effects = EF_NO_LIGHTING;
+	Vector4Set(this->torso.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->head.model = this->client.head;
 	this->head.parent = &this->torso;
 	this->head.scale = 1.0;
 	this->head.tag_name = "tag_head";
+	this->head.effects = EF_NO_LIGHTING;
+	Vector4Set(this->head.color, 1.0, 1.0, 1.0, 1.0);
 
 	this->weapon.model = cgi.LoadModel("models/weapons/rocketlauncher/tris");
 	this->weapon.parent = &this->torso;
 	this->weapon.scale = 1.0;
 	this->weapon.tag_name = "tag_weapon";
+	this->weapon.effects = EF_NO_LIGHTING;
+	Vector4Set(this->weapon.color, 1.0, 1.0, 1.0, 1.0);
 
 	memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
 	memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));

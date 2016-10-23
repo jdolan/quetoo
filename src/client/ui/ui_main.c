@@ -76,7 +76,15 @@ void Ui_Draw(void) {
 		return;
 	}
 
+	// backup all of the matrices
+	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix)
+		R_PushMatrix(matrix);
+
 	$(windowController, render);
+
+	// restore matrices
+	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix)
+		R_PopMatrix(matrix);
 }
 
 /**

@@ -658,7 +658,8 @@ void R_InitPrograms(void) {
 		r_state.null_program->UseFog = R_UseFog_null;
 		r_state.null_program->UseMatrices = R_UseMatrices_null;
 		r_state.null_program->UseCurrentColor = R_UseCurrentColor_null;
-		r_state.null_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_COLOR;
+		r_state.null_program->UseInterpolation = R_UseInterpolation_null;
+		r_state.null_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_NEXT_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_COLOR;
 	}
 
 	if ((r_state.corona_program = R_LoadProgram("corona", R_InitProgram_corona, R_PreLink_corona))) {
