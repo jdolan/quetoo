@@ -99,18 +99,13 @@ void R_UseFog_null(const r_fog_parameters_t *fog) {
 /**
  * @brief
  */
-void R_UseMatrices_null(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture) {
+void R_UseMatrices_null(const matrix4x4_t *matrices) {
 
 	r_null_program_t *p = &r_null_program;
 
-	if (projection)
-		R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) projection->m);
-
-	if (modelview)
-		R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) modelview->m);
-
-	if (texture)
-		R_ProgramParameterMatrix4fv(&p->texture_mat, (const GLfloat *) texture->m);
+	R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) matrices[R_MATRIX_PROJECTION].m);
+	R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) matrices[R_MATRIX_MODELVIEW].m);
+	R_ProgramParameterMatrix4fv(&p->texture_mat, (const GLfloat *) matrices[R_MATRIX_TEXTURE].m);
 }
 
 /**

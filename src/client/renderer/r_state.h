@@ -53,7 +53,13 @@ typedef struct r_texunit_s {
 	r_buffer_t buffer_texcoord_array;
 } r_texunit_t;
 
-#define MAX_GL_MATRIX_STACK		16
+// matrix stack
+#define MAX_MATRIX_STACK		16
+
+typedef struct r_matrix_stack_s {
+	matrix4x4_t matrices[MAX_MATRIX_STACK];
+	uint8_t depth;
+} r_matrix_stack_t;
 
 // opengl state management
 typedef struct r_state_s {
@@ -91,8 +97,7 @@ typedef struct r_state_s {
 	r_texunit_t texunits[MAX_GL_TEXUNITS];
 	r_texunit_t *active_texunit;
 
-	matrix4x4_t matrix_stack[MAX_GL_MATRIX_STACK];
-	uint8_t matrix_stack_index;
+	r_matrix_stack_t matrix_stacks[R_MATRIX_TOTAL];
 
 	r_shader_t shaders[MAX_SHADERS];
 	r_program_t programs[MAX_PROGRAMS];
@@ -116,6 +121,10 @@ typedef struct r_state_s {
 	GLenum stencil_func_func;
 	GLint stencil_func_ref;
 	GLuint stencil_func_mask;
+
+	// polygon offset state
+	GLfloat polygon_offset_factor;
+	GLfloat polygon_offset_units;
 
 	uint8_t max_active_lights;
 
@@ -169,6 +178,7 @@ void R_EnableAlphaTest(float threshold);
 void R_EnableStencilTest(GLenum pass, _Bool enable);
 void R_StencilFunc(GLenum func, GLint ref, GLuint mask);
 void R_EnablePolygonOffset(GLenum mode, _Bool enable);
+void R_PolygonOffset(GLfloat factor, GLfloat units);
 void R_EnableTexture(r_texunit_t *texunit, _Bool enable);
 void R_EnableLighting(const r_program_t *program, _Bool enable);
 void R_EnableShadow(const r_program_t *program, _Bool enable);
@@ -176,8 +186,8 @@ void R_EnableWarp(const r_program_t *program, _Bool enable);
 void R_EnableShell(const r_program_t *program, _Bool enable);
 void R_EnableFog(_Bool enable);
 void R_UseMaterial(const r_material_t *material);
-void R_PushMatrix(void);
-void R_PopMatrix(void);
+void R_PushMatrix(const r_matrix_id_t id);
+void R_PopMatrix(const r_matrix_id_t id);
 void R_UseMatrices(void);
 void R_UseInterpolation(const float lerp);
 void R_UseAlphaTest(void);

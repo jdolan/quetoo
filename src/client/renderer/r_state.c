@@ -464,6 +464,21 @@ void R_StencilFunc(GLenum func, GLint ref, GLuint mask) {
 }
 
 /**
+ * @brief
+ */
+void R_PolygonOffset(GLfloat factor, GLfloat units) {
+
+	if (r_state.polygon_offset_factor == factor &&
+		r_state.polygon_offset_units == units)
+		return;
+
+	glPolygonOffset(factor, units);
+
+	r_state.polygon_offset_factor = factor;
+	r_state.polygon_offset_units = units;
+}
+
+/**
  * @brief Enables polygon offset fill for decals, etc.
  */
 void R_EnablePolygonOffset(GLenum mode, _Bool enable) {
@@ -478,7 +493,7 @@ void R_EnablePolygonOffset(GLenum mode, _Bool enable) {
 	else
 		glDisable(mode);
 
-	glPolygonOffset(-1.0, 1.0);
+	R_PolygonOffset(-1.0, 1.0);
 }
 
 /**
@@ -681,23 +696,39 @@ void R_UseMaterial(const r_material_t *material) {
 /**
  * @brief
  */
-void R_PushMatrix(void) {
+void R_PushMatrix(const r_matrix_id_t id) {
 
-	if (r_state.matrix_stack_index == MAX_GL_MATRIX_STACK)
+	if (r_state.matrix_stacks[id].depth == MAX_MATRIX_STACK)
 		Com_Error(ERR_DROP, "Matrix stack overflow");
 
-	Matrix4x4_Copy(&r_state.matrix_stack[r_state.matrix_stack_index++], &r_view.modelview_matrix);
+	Matrix4x4_Copy(&r_state.matrix_stacks[id].matrices[r_state.matrix_stacks[id].depth++], &r_view.active_matrices[id]);
 }
 
 /**
  * @brief
  */
-void R_PopMatrix(void) {
+void R_PopMatrix(const r_matrix_id_t id) {
 	
-	if (r_state.matrix_stack_index == 0)
+	if (r_state.matrix_stacks[id].depth == 0)
 		Com_Error(ERR_DROP, "Matrix stack underflow");
 
-	Matrix4x4_Copy(&r_view.modelview_matrix, &r_state.matrix_stack[--r_state.matrix_stack_index]);
+	Matrix4x4_Copy(&r_view.active_matrices[id], &r_state.matrix_stacks[id].matrices[--r_state.matrix_stacks[id].depth]);
+}
+
+/**
+ * @brief
+ */
+void R_GetMatrix(const r_matrix_id_t id, matrix4x4_t *out) {
+
+	Matrix4x4_Copy(out, &r_view.active_matrices[id]);
+}
+
+/**
+ * @brief
+ */
+void R_SetMatrix(const r_matrix_id_t id, const matrix4x4_t *in) {
+
+	Matrix4x4_Copy(&r_view.active_matrices[id], in);
 }
 
 /**
@@ -706,7 +737,7 @@ void R_PopMatrix(void) {
 void R_UseMatrices(void) {
 
 	if (r_state.active_program->UseMatrices)
-		r_state.active_program->UseMatrices(&r_view.projection_matrix, &r_view.modelview_matrix, &r_view.texture_matrix);
+		r_state.active_program->UseMatrices((const matrix4x4_t *) r_view.active_matrices);
 }
 
 /**
@@ -769,21 +800,21 @@ void R_Setup3D(void) {
 	const vec_t xmin = ymin * aspect;
 	const vec_t xmax = ymax * aspect;
 
-	Matrix4x4_FromFrustum(&r_view.projection_matrix, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
+	Matrix4x4_FromFrustum(&projection_matrix, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
 
 	// setup the model-view matrix
-	Matrix4x4_CreateIdentity(&r_view.modelview_matrix);
+	Matrix4x4_CreateIdentity(&r_view.matrix);
 	
-	Matrix4x4_ConcatRotate(&r_view.modelview_matrix, -90.0, 1.0, 0.0, 0.0);	 // put Z going up
-	Matrix4x4_ConcatRotate(&r_view.modelview_matrix,  90.0, 0.0, 0.0, 1.0);	 // put Z going up
+	Matrix4x4_ConcatRotate(&r_view.matrix, -90.0, 1.0, 0.0, 0.0);	 // put Z going up
+	Matrix4x4_ConcatRotate(&r_view.matrix,  90.0, 0.0, 0.0, 1.0);	 // put Z going up
 
-	Matrix4x4_ConcatRotate(&r_view.modelview_matrix, -r_view.angles[ROLL],  1.0, 0.0, 0.0);
-	Matrix4x4_ConcatRotate(&r_view.modelview_matrix, -r_view.angles[PITCH], 0.0, 1.0, 0.0);
-	Matrix4x4_ConcatRotate(&r_view.modelview_matrix, -r_view.angles[YAW],   0.0, 0.0, 1.0);
+	Matrix4x4_ConcatRotate(&r_view.matrix, -r_view.angles[ROLL],  1.0, 0.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_view.matrix, -r_view.angles[PITCH], 0.0, 1.0, 0.0);
+	Matrix4x4_ConcatRotate(&r_view.matrix, -r_view.angles[YAW],   0.0, 0.0, 1.0);
 
-	Matrix4x4_ConcatTranslate(&r_view.modelview_matrix, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
+	Matrix4x4_ConcatTranslate(&r_view.matrix, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
 
-	Matrix4x4_Copy(&r_view.matrix, &r_view.modelview_matrix);
+	Matrix4x4_Copy(&modelview_matrix, &r_view.matrix);
 	Matrix4x4_Invert_Simple(&r_view.inverse_matrix, &r_view.matrix);
 
 	// bind default vertex array
@@ -836,9 +867,9 @@ void R_Setup2D(void) {
 
 	glViewport(0, 0, r_context.width, r_context.height);
 
-	Matrix4x4_FromOrtho(&r_view.projection_matrix, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+	Matrix4x4_FromOrtho(&projection_matrix, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
 
-	Matrix4x4_CreateIdentity(&r_view.modelview_matrix);
+	Matrix4x4_CreateIdentity(&modelview_matrix);
 
 	// bind default vertex array
 	R_BindDefaultArray(R_ARRAY_VERTEX);
@@ -906,7 +937,7 @@ void R_InitState(void) {
 	R_EnableTexture(&texunit_diffuse, true);
 	
 	// polygon offset parameters
-	glPolygonOffset(-1.0, 1.0);
+	R_PolygonOffset(-1.0, 1.0);
 
 	// alpha blend parameters
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -30,7 +30,7 @@ void R_SetMatrixForEntity(r_entity_t *e);
 
 #ifdef __R_LOCAL_H__
 void R_RotateForEntity(const r_entity_t *e);
-void R_CullEntities(void *data);
+void R_CullEntities(void *data __attribute__((unused)));
 void R_DrawEntities(void);
 #endif /* __R_LOCAL_H__ */
 

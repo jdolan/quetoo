@@ -319,7 +319,7 @@ void R_InitView(void) {
 
 	memset(&r_view, 0, sizeof(r_view));
 	
-	Matrix4x4_CreateIdentity(&r_view.texture_matrix);
+	Matrix4x4_CreateIdentity(&texture_matrix);
 
 	R_RenderPlugin(r_render_plugin->string);
 

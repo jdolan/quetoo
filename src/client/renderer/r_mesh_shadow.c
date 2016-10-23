@@ -48,7 +48,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 	vec_t dot;
 
 	if (!e) {
-		R_PopMatrix();
+		R_PopMatrix(R_MATRIX_MODELVIEW);
 		return;
 	}
 
@@ -72,9 +72,9 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 
 	Matrix4x4_FromVectors(&proj, vx, vy, vz, t);
 
-	R_PushMatrix();
+	R_PushMatrix(R_MATRIX_MODELVIEW);
 
-	Matrix4x4_Concat(&r_view.modelview_matrix, &r_view.modelview_matrix, &proj);
+	Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &proj);
 }
 
 /**

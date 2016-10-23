@@ -820,6 +820,15 @@ typedef enum {
 #define FOG_START			128.0
 #define FOG_END				2048.0
 
+// matrix indexes
+typedef enum {
+	R_MATRIX_PROJECTION,
+	R_MATRIX_MODELVIEW,
+	R_MATRIX_TEXTURE,
+
+	R_MATRIX_TOTAL
+} r_matrix_id_t;
+
 /**
  * @brief Provides read-write visibility and scene management to the client.
  */
@@ -833,12 +842,10 @@ typedef struct {
 	vec3_t right;
 	vec3_t up;
 
-	matrix4x4_t matrix; // the view matrix
+	matrix4x4_t matrix; // the base modelview matrix
 	matrix4x4_t inverse_matrix;
 	
-	matrix4x4_t projection_matrix;
-	matrix4x4_t modelview_matrix;
-	matrix4x4_t texture_matrix;
+	matrix4x4_t active_matrices[R_MATRIX_TOTAL];
 
 	uint32_t contents; // view origin contents mask
 	vec_t bob;

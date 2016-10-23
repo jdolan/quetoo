@@ -108,15 +108,12 @@ void R_UseFog_warp(const r_fog_parameters_t *fog) {
 /**
  * @brief
  */
-void R_UseMatrices_warp(const matrix4x4_t *projection, const matrix4x4_t *modelview, const matrix4x4_t *texture) {
+void R_UseMatrices_warp(const matrix4x4_t *matrices) {
 	
 	r_warp_program_t *p = &r_warp_program;
 
-	if (projection)
-		R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) projection->m);
-
-	if (modelview)
-		R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) modelview->m);
+	R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) matrices[R_MATRIX_PROJECTION].m);
+	R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) matrices[R_MATRIX_MODELVIEW].m);
 }
 
 /**

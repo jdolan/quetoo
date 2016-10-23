@@ -319,8 +319,8 @@ void R_DrawSkyBox(void) {
 
 	R_ResetArrayState();
 
-	R_PushMatrix();
-	Matrix4x4_ConcatTranslate(&r_view.modelview_matrix, r_view.origin[0], r_view.origin[1], r_view.origin[2]);
+	R_PushMatrix(R_MATRIX_MODELVIEW);
+	Matrix4x4_ConcatTranslate(&modelview_matrix, r_view.origin[0], r_view.origin[1], r_view.origin[2]);
 
 	R_EnableFog(true);
 
@@ -354,7 +354,7 @@ void R_DrawSkyBox(void) {
 
 	R_EnableFog(false);
 
-	R_PopMatrix();
+	R_PopMatrix(R_MATRIX_MODELVIEW);
 }
 
 /**
