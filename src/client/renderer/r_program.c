@@ -189,9 +189,39 @@ void R_AttributePointer(const r_attribute_id_t attribute, GLuint size, const r_b
 
 	R_EnableAttribute(attribute);
 
-	R_BindBuffer(buffer);
+	// only set the ptr if it hasn't changed.
+	if (r_state.attributes[attribute].constant == true ||
+		r_state.attributes[attribute].value.buffer != buffer ||
+		r_state.attributes[attribute].size != size ||
+		r_state.attributes[attribute].offset != offset) {
 
-	glVertexAttribPointer(attribute, size, GL_FLOAT, GL_FALSE, 0, offset);
+		R_BindBuffer(buffer);
+
+		glVertexAttribPointer(attribute, size, GL_FLOAT, GL_FALSE, 0, offset);
+
+		r_state.attributes[attribute].value.buffer = buffer;
+		r_state.attributes[attribute].size = size;
+		r_state.attributes[attribute].offset = offset;
+		r_state.attributes[attribute].constant = false;
+
+		R_GetError(r_state.active_program->attributes[attribute].name);
+	}
+}
+
+/**
+ * @brief
+ */
+void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *value) {
+
+	R_DisableAttribute(attribute);
+
+	if (r_state.attributes[attribute].constant == true && Vector4Compare(r_state.attributes[attribute].value.vec4, value))
+		return;
+
+	Vector4Copy(value, r_state.attributes[attribute].value.vec4);
+	glVertexAttrib4fv(attribute, r_state.attributes[attribute].value.vec4);
+
+	r_state.attributes[attribute].constant = true;
 
 	R_GetError(r_state.active_program->attributes[attribute].name);
 }
@@ -207,12 +237,12 @@ void R_EnableAttribute(const r_attribute_id_t attribute) {
 		return;
 	}
 
-	if (r_state.attributes_enabled[attribute] != true) {
+	if (r_state.attributes[attribute].enabled != true) {
 		glEnableVertexAttribArray(attribute);
-		r_state.attributes_enabled[attribute] = true;
-	}
+		r_state.attributes[attribute].enabled = true;
 
-	R_GetError(r_state.active_program->attributes[attribute].name);
+		R_GetError(r_state.active_program->attributes[attribute].name);
+	}
 }
 
 /**
@@ -226,12 +256,12 @@ void R_DisableAttribute(const r_attribute_id_t attribute) {
 		return;
 	}
 
-	if (r_state.attributes_enabled[attribute] != false) {
+	if (r_state.attributes[attribute].enabled != false) {
 		glDisableVertexAttribArray(attribute);
-		r_state.attributes_enabled[attribute] = false;
-	}
+		r_state.attributes[attribute].enabled = false;
 
-	R_GetError(r_state.active_program->attributes[attribute].name);
+		R_GetError(r_state.active_program->attributes[attribute].name);
+	}
 }
 
 /**
@@ -469,16 +499,15 @@ void R_SetupAttributes(void) {
 	const r_program_t *p = (r_program_t *) r_state.active_program;
 	int32_t mask = R_ArraysMask();
 
-	if (p->arrays_mask & R_ARRAY_MASK_VERTEX)
-	{
+	if (p->arrays_mask & R_ARRAY_MASK_VERTEX) {
+
 		if (mask & R_ARRAY_MASK_VERTEX) {
 
 			R_AttributePointer(R_ARRAY_VERTEX, 3, r_state.array_buffers[R_ARRAY_VERTEX], NULL);
 			
-			if (p->arrays_mask & R_ARRAY_MASK_NEXT_VERTEX)
-			{
-				if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_VERTEX])) {
+			if (p->arrays_mask & R_ARRAY_MASK_NEXT_VERTEX) {
 
+				if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_VERTEX])) {
 					R_AttributePointer(R_ARRAY_NEXT_VERTEX, 3, r_state.array_buffers[R_ARRAY_NEXT_VERTEX], NULL);
 				}
 				else {
@@ -487,27 +516,25 @@ void R_SetupAttributes(void) {
 			}
 		}
 		else {
+
 			R_DisableAttribute(R_ARRAY_VERTEX);
 			R_DisableAttribute(R_ARRAY_NEXT_VERTEX);
 		}
 	}
 	
-	if (p->arrays_mask & R_ARRAY_MASK_COLOR)
-	{
-		if (mask & R_ARRAY_MASK_COLOR) {
+	if (p->arrays_mask & R_ARRAY_MASK_COLOR) {
 
+		if (mask & R_ARRAY_MASK_COLOR) {
 			R_AttributePointer(R_ARRAY_COLOR, 4, r_state.array_buffers[R_ARRAY_COLOR], NULL);
 		}
 		else {
-			R_DisableAttribute(R_ARRAY_COLOR);
-			glVertexAttrib4fv(R_ARRAY_COLOR, r_state.current_color);
+			R_AttributeConstant4fv(R_ARRAY_COLOR, r_state.current_color);
 		}
 	}
 
-	if (p->arrays_mask & R_ARRAY_MASK_TEX_DIFFUSE)
-	{
-		if (mask & R_ARRAY_MASK_TEX_DIFFUSE) {
+	if (p->arrays_mask & R_ARRAY_MASK_TEX_DIFFUSE) {
 
+		if (mask & R_ARRAY_MASK_TEX_DIFFUSE) {
 			R_AttributePointer(R_ARRAY_TEX_DIFFUSE, 2, r_state.array_buffers[R_ARRAY_TEX_DIFFUSE], NULL);
 		}
 		else {
@@ -515,10 +542,9 @@ void R_SetupAttributes(void) {
 		}
 	}
 
-	if (p->arrays_mask & R_ARRAY_MASK_TEX_LIGHTMAP)
-	{
-		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
+	if (p->arrays_mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
 
+		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
 			R_AttributePointer(R_ARRAY_TEX_LIGHTMAP, 2, r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP], NULL);
 		}
 		else {
@@ -526,16 +552,15 @@ void R_SetupAttributes(void) {
 		}
 	}
 
-	if (p->arrays_mask & R_ARRAY_MASK_NORMAL)
-	{
+	if (p->arrays_mask & R_ARRAY_MASK_NORMAL) {
+
 		if (mask & R_ARRAY_MASK_NORMAL) {
 
 			R_AttributePointer(R_ARRAY_NORMAL, 3, r_state.array_buffers[R_ARRAY_NORMAL], NULL);
 			
-			if (p->arrays_mask & R_ARRAY_MASK_NEXT_NORMAL)
-			{
-				if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_NORMAL])) {
+			if (p->arrays_mask & R_ARRAY_MASK_NEXT_NORMAL) {
 
+				if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_NORMAL])) {
 					R_AttributePointer(R_ARRAY_NEXT_NORMAL, 3, r_state.array_buffers[R_ARRAY_NEXT_NORMAL], NULL);
 				}
 				else {
@@ -544,21 +569,21 @@ void R_SetupAttributes(void) {
 			}
 		}
 		else {
+
 			R_DisableAttribute(R_ARRAY_NORMAL);
 			R_DisableAttribute(R_ARRAY_NEXT_NORMAL);
 		}
 	}
 
-	if (p->arrays_mask & R_ARRAY_MASK_TANGENT)
-	{
+	if (p->arrays_mask & R_ARRAY_MASK_TANGENT) {
+
 		if (mask & R_ARRAY_MASK_TANGENT) {
 
 			R_AttributePointer(R_ARRAY_TANGENT, 4, r_state.array_buffers[R_ARRAY_TANGENT], NULL);
 
-			if (p->arrays_mask & R_ARRAY_MASK_NEXT_TANGENT)
-			{
-				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_TANGENT])) {
+			if (p->arrays_mask & R_ARRAY_MASK_NEXT_TANGENT) {
 
+				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_TANGENT])) {
 					R_AttributePointer(R_ARRAY_NEXT_TANGENT, 4, r_state.array_buffers[R_ARRAY_NEXT_TANGENT], NULL);
 				}
 				else {
@@ -567,6 +592,7 @@ void R_SetupAttributes(void) {
 			}
 		}
 		else {
+
 			R_DisableAttribute(R_ARRAY_TANGENT);
 			R_DisableAttribute(R_ARRAY_NEXT_TANGENT);
 		}

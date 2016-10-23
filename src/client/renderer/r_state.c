@@ -350,6 +350,14 @@ void R_DestroyBuffer(r_buffer_t *buffer)
 	if (r_state.active_buffers[buffer->type] == buffer->bufnum)
 		R_UnbindBuffer(buffer->type);
 
+	// if the buffer is attached to any active attribs, remove that ptr too
+	for (r_attribute_id_t i = 0; i < R_ARRAY_MAX_ATTRIBS; ++i) {
+
+		if (r_state.attributes[i].constant == false &&
+			r_state.attributes[i].value.buffer == buffer)
+			r_state.attributes[i].value.buffer = NULL;
+	}
+
 	glDeleteBuffers(1, &buffer->bufnum);
 
 	memset(buffer, 0, sizeof(r_buffer_t));
@@ -431,7 +439,28 @@ void R_EnableStencilTest(GLenum pass, _Bool enable) {
 	else
 		glDisable(GL_STENCIL_TEST);
 
-	glStencilOp(GL_KEEP, GL_KEEP, pass);
+	if (r_state.stencil_op_pass != pass) {
+
+		glStencilOp(GL_KEEP, GL_KEEP, pass);
+		r_state.stencil_op_pass = pass;
+	}
+}
+
+/**
+ * @brief Sets stencil func parameters.
+ */
+void R_StencilFunc(GLenum func, GLint ref, GLuint mask) {
+	
+	if (r_state.stencil_func_func == func &&
+		r_state.stencil_func_ref == ref &&
+		r_state.stencil_func_mask == mask)
+		return;
+	
+	r_state.stencil_func_func = func;
+	r_state.stencil_func_ref = ref;
+	r_state.stencil_func_mask = mask;
+
+	glStencilFunc(func, ref, mask);
 }
 
 /**
@@ -887,6 +916,14 @@ void R_InitState(void) {
 
 	// set default alpha threshold
 	r_state.alpha_threshold = ALPHA_TEST_DISABLED_THRESHOLD;
+
+	// set default stencil pass operation
+	r_state.stencil_op_pass = GL_KEEP;
+
+	// set default stencil func arguments
+	r_state.stencil_func_mask = ~0;
+	r_state.stencil_func_func = GL_ALWAYS;
+	r_state.stencil_func_ref = 0;
 
 	R_GetError("Post-init");
 }

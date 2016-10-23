@@ -103,12 +103,19 @@ typedef struct r_state_s {
 	r_program_t *null_program;
 	r_program_t *corona_program;
 
-	_Bool attributes_enabled[R_ARRAY_MAX_ATTRIBS];
+	r_attrib_state_t attributes[R_ARRAY_MAX_ATTRIBS];
 
 	const r_program_t *active_program;
 	const r_material_t *active_material;
 
+	// fog state
 	r_fog_parameters_t active_fog_parameters;
+
+	// stencil state
+	GLenum stencil_op_pass;
+	GLenum stencil_func_func;
+	GLint stencil_func_ref;
+	GLuint stencil_func_mask;
 
 	uint8_t max_active_lights;
 
@@ -160,6 +167,7 @@ void R_BindArray(int target, const r_buffer_t *buffer);
 
 void R_EnableAlphaTest(float threshold);
 void R_EnableStencilTest(GLenum pass, _Bool enable);
+void R_StencilFunc(GLenum func, GLint ref, GLuint mask);
 void R_EnablePolygonOffset(GLenum mode, _Bool enable);
 void R_EnableTexture(r_texunit_t *texunit, _Bool enable);
 void R_EnableLighting(const r_program_t *program, _Bool enable);

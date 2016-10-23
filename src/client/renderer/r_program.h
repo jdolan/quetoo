@@ -50,6 +50,7 @@ typedef union {
 	vec3_t vec3;
 	vec4_t vec4;
 	matrix4x4_t mat4;
+	const r_buffer_t *buffer;
 } r_variable_value_t;
 
 typedef struct {
@@ -114,6 +115,15 @@ typedef struct {
 	void (*UseAttributes)(void);
 	void (*UseInterpolation)(const float time_fraction);
 } r_program_t;
+
+// attribute state
+typedef struct r_attrib_state_s {
+	r_variable_value_t value;
+	const GLvoid *offset;
+	GLuint size;
+	_Bool enabled;
+	_Bool constant;
+} r_attrib_state_t;
 
 #define MAX_PROGRAMS 8
 

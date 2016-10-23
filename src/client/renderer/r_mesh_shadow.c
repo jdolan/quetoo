@@ -98,7 +98,7 @@ static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *
 	if (e->old_frame != e->frame)
 		R_UseInterpolation(e->lerp);
 
-	glStencilFunc(GL_EQUAL, (s->plane.num % 0xff) + 1, ~0);
+	R_StencilFunc(GL_EQUAL, (s->plane.num % 0xff) + 1, ~0);
 }
 
 /**
