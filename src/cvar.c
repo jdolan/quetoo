@@ -112,7 +112,7 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
 	GList **matches = (GList **) data;
 
 	if (GlobMatch(cvar_complete_pattern, var->name)) {
-		Com_Print("^2%s^7 is \"^3%s^7\"\n", var->name, var->string);
+		Com_Print("^2%s^7 is \"^3%s^7\" (default is \"^3%s^7\")\n", var->name, var->string, var->default_value);
 
 		if (var->description)
 			Com_Print("\t^2%s^7\n", var->description);
@@ -480,7 +480,7 @@ _Bool Cvar_Command(void) {
 
 	// perform a variable print or set
 	if (Cmd_Argc() == 1) {
-		Com_Print("\"%s\" is \"%s\"\n", var->name, var->string);
+		Com_Print("^2%s^7 is \"^3%s^7\" (default is \"^3%s^7\")\n", var->name, var->string, var->default_value);
 		return true;
 	}
 
