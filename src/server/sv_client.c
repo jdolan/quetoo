@@ -94,7 +94,7 @@ static void Sv_ConfigStrings_f(void) {
 	while (start < MAX_CONFIG_STRINGS) {
 		const size_t len = strlen(sv.config_strings[start]);
 		if (len) {
-			if (ch->message.size + len >= ch->message.max_size - 32) {
+			if (ch->message.size + len >= ch->message.max_size - 48) {
 				break;
 			}
 			Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CONFIG_STRING);
