@@ -88,8 +88,15 @@ static void Sv_ConfigStrings_f(void) {
 	}
 
 	// write a packet full of data
-	while (sv_client->net_chan.message.size < MAX_MSG_SIZE / 2 && start < MAX_CONFIG_STRINGS) {
-		if (sv.config_strings[start][0]) {
+
+	net_chan_t *ch = &sv_client->net_chan;
+
+	while (start < MAX_CONFIG_STRINGS) {
+		const size_t len = strlen(sv.config_strings[start]);
+		if (len) {
+			if (ch->message.size + len >= ch->message.max_size - 32) {
+				break;
+			}
 			Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CONFIG_STRING);
 			Net_WriteShort(&sv_client->net_chan.message, start);
 			Net_WriteString(&sv_client->net_chan.message, sv.config_strings[start]);
