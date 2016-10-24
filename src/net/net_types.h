@@ -53,7 +53,7 @@ typedef uint16_t in_port_t;
  * this length. However, large server frames can be split into multiple
  * messages and sent in series. See Sv_SendClientDatagram.
  */
-#define MAX_MSG_SIZE 16384
+#define MAX_MSG_SIZE 1400
 
 typedef enum {
 	NA_LOOP,
@@ -77,7 +77,7 @@ typedef enum {
  * @brief The network channel provides a conduit for packet sequencing and
  * optional reliable message delivery. The client and server speak explicitly
  * through this interface.
- */
+ */	
 typedef struct {
 	net_src_t source;
 
@@ -102,11 +102,11 @@ typedef struct {
 
 	// reliable staging and holding areas
 	mem_buf_t message; // writing buffer to send to server
-	byte message_buffer[MAX_MSG_SIZE - 16]; // leave space for header
+	byte message_buffer[MAX_MSG_SIZE - 10]; // leave space for header
 
 	// message is copied to this buffer when it is first transfered
 	size_t reliable_size;
-	byte reliable_buffer[MAX_MSG_SIZE - 16]; // un-acked reliable message
+	byte reliable_buffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
 } net_chan_t;
 
 #endif /* __NET_TYPES_H__ */

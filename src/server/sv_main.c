@@ -542,7 +542,7 @@ static void Sv_ReadPackets(void) {
 		const byte qport = Net_ReadByte(&net_message) & 0xff;
 
 		// check for packets from connected clients
-		sv_client_t * cl = svs.clients;
+		sv_client_t *cl = svs.clients;
 		for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
 			if (cl->state == SV_CLIENT_FREE)
