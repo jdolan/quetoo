@@ -825,6 +825,7 @@ typedef enum {
 	R_MATRIX_PROJECTION,
 	R_MATRIX_MODELVIEW,
 	R_MATRIX_TEXTURE,
+	R_MATRIX_SHADOW,
 
 	R_MATRIX_TOTAL
 } r_matrix_id_t;
@@ -877,6 +878,7 @@ typedef struct {
 
 	const r_entity_t *current_entity; // entity being rendered
 	const r_shadow_t *current_shadow; // shadow being rendered
+	vec4_t current_shadow_light, current_shadow_plane;
 
 	// counters, reset each frame
 

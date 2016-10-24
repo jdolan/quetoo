@@ -7,7 +7,7 @@
 #include "fog_inc.glsl"
 #include "matrix_inc.glsl"
 
-uniform mat4 MATRIX;
+uniform mat4 SHADOW_MAT;
 uniform vec4 LIGHT;
 
 varying vec4 point;
@@ -22,7 +22,7 @@ attribute vec3 NEXT_POSITION;
  * @brief
  */
 void ShadowVertex() {
-	point = MODELVIEW_MAT * MATRIX * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);	
+	point = MODELVIEW_MAT * SHADOW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);	
 }
 
 /**

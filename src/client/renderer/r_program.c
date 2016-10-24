@@ -630,7 +630,6 @@ void R_InitPrograms(void) {
 	}
 
 	if ((r_state.shadow_program = R_LoadProgram("shadow", R_InitProgram_shadow, R_PreLink_shadow))) {
-		r_state.shadow_program->Use = R_UseProgram_shadow;
 		r_state.shadow_program->UseFog = R_UseFog_shadow;
 		r_state.shadow_program->UseMatrices = R_UseMatrices_shadow;
 		r_state.shadow_program->UseCurrentColor = R_UseCurrentColor_shadow;

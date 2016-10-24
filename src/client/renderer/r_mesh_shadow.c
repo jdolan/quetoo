@@ -34,9 +34,9 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *
 	if (e->effects & EF_BLEND)
 		alpha *= e->color[3];
 
-	vec4_t color = { 0.0, 0.0, 0.0, alpha * r_shadows->value };
-
-	R_Color(color);
+	R_Color((const vec4_t) {
+		0.0, 0.0, 0.0, alpha * r_shadows->value
+	});
 }
 
 /**
@@ -78,6 +78,49 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 }
 
 /**
+ * @brief Calculates a perspective shearing matrix for the current shadow
+ * ftp://ftp.sgi.com/opengl/contrib/blythe/advanced99/notes/node192.html
+ */
+static void R_CalculateShadowMatrix_default(const r_entity_t *e, const r_shadow_t *s) {
+
+	// transform the light position and shadow plane into model space
+	vec_t *light = r_view.current_shadow_light, *plane = r_view.current_shadow_plane;
+
+	Matrix4x4_Transform(&e->inverse_matrix, s->illumination->light.origin, light);
+	light[3] = 1.0;
+
+	Matrix4x4_TransformQuakePlane(&e->inverse_matrix, s->plane.normal, s->plane.dist, r_view.current_shadow_plane);
+	plane[3] = -plane[3];
+
+	// calculate the perspective-shearing matrix
+	const vec_t dot = DotProduct(light, plane) + light[3] * plane[3];
+
+	matrix4x4_t *matrix = &r_view.active_matrices[R_MATRIX_SHADOW];
+	matrix->m[0][0] = dot - light[0] * plane[0];
+	matrix->m[1][0] = 0.0 - light[0] * plane[1];
+	matrix->m[2][0] = 0.0 - light[0] * plane[2];
+	matrix->m[3][0] = 0.0 - light[0] * plane[3];
+	matrix->m[0][1] = 0.0 - light[1] * plane[0];
+	matrix->m[1][1] = dot - light[1] * plane[1];
+	matrix->m[2][1] = 0.0 - light[1] * plane[2];
+	matrix->m[3][1] = 0.0 - light[1] * plane[3];
+	matrix->m[0][2] = 0.0 - light[2] * plane[0];
+	matrix->m[1][2] = 0.0 - light[2] * plane[1];
+	matrix->m[2][2] = dot - light[2] * plane[2];
+	matrix->m[3][2] = 0.0 - light[2] * plane[3];
+	matrix->m[0][3] = 0.0 - light[3] * plane[0];
+	matrix->m[1][3] = 0.0 - light[3] * plane[1];
+	matrix->m[2][3] = 0.0 - light[3] * plane[2];
+	matrix->m[3][3] = dot - light[3] * plane[3];
+
+	Matrix4x4_Transform(&r_view.matrix, s->illumination->light.origin, light);
+	light[3] = s->illumination->light.radius;
+
+	Matrix4x4_TransformQuakePlane(&r_view.matrix, s->plane.normal, s->plane.dist, plane);
+	plane[3] = -plane[3];
+}
+
+/**
  * @brief Sets renderer state for the given entity and shadow.
  */
 static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *s) {
@@ -89,10 +132,7 @@ static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *
 
 	R_RotateForMeshShadow_default(e, s);
 
-	// TODO: This is a hack, but we don't want to toggle the program
-	// just to re-calculate the shadow matrix. Figure out a clean way
-	// to make this happen.
-	R_UseProgram_shadow();
+	R_CalculateShadowMatrix_default(e, s);
 	
 	// setup lerp for animating models
 	if (e->old_frame != e->frame)
