@@ -8,6 +8,7 @@
 #include "fog_inc.glsl"
 
 uniform bool DIFFUSE;
+uniform bool LIGHTMAP;
 uniform bool NORMALMAP;
 
 varying vec4 color;
@@ -67,6 +68,9 @@ void main(void) {
 
 	if (DIFFUSE) { // pass texcoords through
 		texcoords[0] = vec2(TEXTURE_MAT * vec4(TEXCOORD0, 0, 1));
+	}
+
+	if (LIGHTMAP) {
 		texcoords[1] = vec2(TEXTURE_MAT * vec4(TEXCOORD1, 0, 1));
 	}
 

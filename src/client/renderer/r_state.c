@@ -101,35 +101,39 @@ void R_SelectTexture(r_texunit_t *texunit) {
  * @brief Actually binds the specified texture for the active texture unit
  * if it is not already bound.
  */
-static void R_BindTexture_Force(r_texunit_t *texunit, GLuint texnum) {
+static _Bool R_BindTexture_Force(r_texunit_t *texunit, GLuint texnum) {
 
 	if (texnum == texunit->bound)
-		return;
+		return false;
 
 	glBindTexture(GL_TEXTURE_2D, texnum);
 
 	texunit->bound = texnum;
 
 	r_view.num_bind_texture++;
+	return true;
 }
 
 /**
  * @brief Request that a texnum be bound to the specified texture unit.
+ * returns true if it was indeed bound (for statistical analysis)
  */
-void R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
+_Bool R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
 
 	if (texnum == texunit->texnum &&
 		texnum == texunit->bound)
-		return;
+		return false;
 
 	r_texunit_t *old_unit = r_state.active_texunit;
+	_Bool bound;
 	R_SelectTexture(texunit);
 
-	texunit->texnum = texnum;
-
-	R_BindTexture_Force(texunit, texnum);
+	if ((bound = R_BindTexture_Force(texunit, texnum)))
+		texunit->texnum = texnum;
 
 	R_SelectTexture(old_unit);
+
+	return bound;
 }
 
 /**
@@ -145,9 +149,8 @@ void R_BindTexture(GLuint texnum) {
  */
 void R_BindLightmapTexture(GLuint texnum) {
 
-	R_BindUnitTexture(&texunit_lightmap, texnum);
-
-	r_view.num_bind_lightmap++;
+	if (R_BindUnitTexture(&texunit_lightmap, texnum))
+		r_view.num_bind_lightmap++;
 }
 
 /**
@@ -155,9 +158,8 @@ void R_BindLightmapTexture(GLuint texnum) {
  */
 void R_BindDeluxemapTexture(GLuint texnum) {
 
-	R_BindUnitTexture(&texunit_deluxemap, texnum);
-
-	r_view.num_bind_deluxemap++;
+	if (R_BindUnitTexture(&texunit_deluxemap, texnum))
+		r_view.num_bind_deluxemap++;
 }
 
 /**
@@ -165,9 +167,8 @@ void R_BindDeluxemapTexture(GLuint texnum) {
  */
 void R_BindNormalmapTexture(GLuint texnum) {
 
-	R_BindUnitTexture(&texunit_normalmap, texnum);
-
-	r_view.num_bind_normalmap++;
+	if (R_BindUnitTexture(&texunit_normalmap, texnum))
+		r_view.num_bind_normalmap++;
 }
 
 /**
@@ -175,9 +176,8 @@ void R_BindNormalmapTexture(GLuint texnum) {
  */
 void R_BindSpecularmapTexture(GLuint texnum) {
 
-	R_BindUnitTexture(&texunit_specularmap, texnum);
-
-	r_view.num_bind_specularmap++;
+	if (R_BindUnitTexture(&texunit_specularmap, texnum))
+		r_view.num_bind_specularmap++;
 }
 
 /**
@@ -509,13 +509,18 @@ void R_EnableTexture(r_texunit_t *texunit, _Bool enable) {
 
 	R_SelectTexture(texunit);
 
+	GLuint texnum;
+
 	if (enable) { // activate texture unit
 
-		R_BindTexture_Force(texunit, texunit->texnum);
+		texnum = texunit->texnum;
 	} else { // or deactivate it
 
-		R_BindTexture_Force(texunit, r_image_state.null ? r_image_state.null->texnum : 0);
+		texnum = r_image_state.null ? r_image_state.null->texnum : 0;
 	}
+
+	if (R_BindTexture_Force(texunit, texnum))
+		texunit->texnum = texnum;
 
 	R_SelectTexture(&texunit_diffuse);
 }
@@ -538,27 +543,37 @@ void R_EnableColorArray(_Bool enable) {
  */
 void R_EnableLighting(const r_program_t *program, _Bool enable) {
 
-	if (enable && (!program || !program->id || !program->UseLight))
-		return;
+	if (program == NULL)
+		program = r_state.null_program;
 
+	// if the program can't use lights, lighting can't really
+	// be enabled on it.
+	if (enable && !program->UseLight) {
+		Com_Warn("Attempted to use lights on a non-lightable program\n");
+		return;
+	}
+
+	// use the program here. this is done regardless
+	// of if lighting is supported.
+	R_UseProgram(program);
+	
+	// enable fog if supported by the program.
+	R_EnableFog(enable);
+	
+	R_GetError(NULL);
+
+	// if we don't actually have lighting support,
+	// don't bother turning on the lights.
 	if (!r_lighting->value || r_state.lighting_enabled == enable)
 		return;
 
 	r_state.lighting_enabled = enable;
 
-	if (enable) { // toggle state
-		R_UseProgram(program);
-
+	// set up all the lights if we're enabling
+	if (enable) {
 		R_ResetLights();
-
-	} else {
-
-		R_UseProgram(r_state.null_program);
+		R_GetError(NULL);
 	}
-
-	R_EnableFog(enable);
-
-	R_GetError(NULL);
 }
 
 /**

@@ -158,11 +158,8 @@ void R_SetArrayState(const r_model_t *mod) {
 	}
 
 	// elements
-	if (R_ValidBuffer(&mod->element_buffer)) {
-		
+	if (R_ValidBuffer(&mod->element_buffer))
 		R_BindArray(R_ARRAY_ELEMENTS, &mod->element_buffer);
-
-	}
 
 	r_array_state.model = mod;
 	r_array_state.arrays = arrays;
