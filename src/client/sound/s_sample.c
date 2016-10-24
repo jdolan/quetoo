@@ -25,24 +25,16 @@
 extern cl_client_t cl;
 
 static const char *SAMPLE_TYPES[] = { ".ogg", ".wav", NULL };
+static const char *SOUND_PATHS[] = { "sounds/", "sound/", NULL };
 
 /**
  * @brief
  */
-static void S_LoadSampleChunk(s_sample_t *sample) {
-	char path[MAX_QPATH];
+static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const size_t pathlen) {
+	
 	void *buf;
 	int32_t i, len;
 	SDL_RWops *rw;
-
-	if (sample->media.name[0] == '*') // place holder
-		return;
-
-	if (sample->media.name[0] == '#') { // global path
-		g_strlcpy(path, (sample->media.name + 1), sizeof(path));
-	} else { // or relative
-		g_snprintf(path, sizeof(path), "sounds/%s", sample->media.name);
-	}
 
 	buf = NULL;
 	rw = NULL;
@@ -51,7 +43,7 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 	while (SAMPLE_TYPES[i]) {
 
 		StripExtension(path, path);
-		g_strlcat(path, SAMPLE_TYPES[i++], sizeof(path));
+		g_strlcat(path, SAMPLE_TYPES[i++], pathlen);
 
 		if ((len = Fs_Load(path, &buf)) == -1)
 			continue;
@@ -73,7 +65,38 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 		}
 	}
 
-	if (sample->chunk) {
+	return !!sample->chunk;
+}
+
+/**
+ * @brief
+ */
+static void S_LoadSampleChunk(s_sample_t *sample) {
+	char path[MAX_QPATH];
+	_Bool found = false;
+
+	if (sample->media.name[0] == '*') // place holder
+		return;
+
+	if (sample->media.name[0] == '#') { // global path
+
+		g_strlcpy(path, (sample->media.name + 1), sizeof(path));
+		found = S_LoadSampleChunkFromPath(sample, path, sizeof(path));
+	} else { // or relative
+		int i = 0;
+
+		while (SOUND_PATHS[i]) {
+		
+			g_snprintf(path, sizeof(path), "%s%s", SOUND_PATHS[i], sample->media.name);
+
+			if ((found = S_LoadSampleChunkFromPath(sample, path, sizeof(path))))
+				break;
+
+			++i;
+		}
+	}
+	
+	if (found) {
 		Com_Debug("Loaded %s\n", path);
 	} else {
 		if (g_str_has_prefix(sample->media.name, "#players")) {
