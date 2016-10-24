@@ -253,7 +253,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	}
 
 	if (e->effects & EF_WEAPON)
-		glDepthRange(0.0, 0.3);
+		R_DepthRange(0.0, 0.3);
 
 	R_RotateForEntity(e);
 
@@ -270,7 +270,7 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 	R_RotateForEntity(NULL);
 
 	if (e->effects & EF_WEAPON)
-		glDepthRange(0.0, 1.0);
+		R_DepthRange(0.0, 1.0);
 
 	if (e->effects & EF_BLEND)
 	{

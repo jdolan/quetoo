@@ -306,9 +306,9 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 			}
 
 			if (p->type == PARTICLE_ROLL) {
-				glDepthRange(0.0, 0.999);
+				R_DepthRange(0.0, 0.999);
 			} else {
-				glDepthRange(0.0, 1.0);
+				R_DepthRange(0.0, 1.0);
 			}
 
 			R_BindTexture(p->image->texnum);
@@ -321,7 +321,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	}
 
 	// restore depth range
-	glDepthRange(0.0, 1.0);
+	R_DepthRange(0.0, 1.0);
 
 	// restore array pointers
 	R_BindDefaultArray(R_ARRAY_VERTEX);

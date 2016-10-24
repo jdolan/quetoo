@@ -32,6 +32,7 @@ void R_EnableColorArray(_Bool enable);
 void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
 void R_EnableDepthTest(_Bool enable);
+void R_DepthRange(GLdouble znear, GLdouble zfar);
 void R_EnableTextureID(const int texunit_id, _Bool enable);
 
 void R_PushMatrix(const r_matrix_id_t id);
@@ -129,6 +130,10 @@ typedef struct r_state_s {
 	// polygon offset state
 	GLfloat polygon_offset_factor;
 	GLfloat polygon_offset_units;
+
+	// depth state
+	GLdouble depth_near;
+	GLdouble depth_far;
 
 	uint8_t max_active_lights;
 

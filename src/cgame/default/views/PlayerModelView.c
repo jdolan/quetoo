@@ -106,12 +106,14 @@ static void render(View *self, Renderer *renderer) {
 		
 		cgi.EnableTextureID(0, true);
 		cgi.EnableDepthTest(true);
+		cgi.DepthRange(0.0, 0.1);
 
 		renderMeshEntity(&this->legs);
 		renderMeshEntity(&this->torso);
 		renderMeshEntity(&this->head);
 		renderMeshEntity(&this->weapon);
-
+		
+		cgi.DepthRange(0.0, 1.0);
 		cgi.EnableDepthTest(false);
 		cgi.EnableTextureID(0, false);
 		

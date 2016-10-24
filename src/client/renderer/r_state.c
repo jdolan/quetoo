@@ -694,7 +694,7 @@ void R_UseMaterial(const r_material_t *material) {
 }
 
 /**
- * @brief
+ * @brief Push the active matrix into the stack
  */
 void R_PushMatrix(const r_matrix_id_t id) {
 
@@ -705,7 +705,7 @@ void R_PushMatrix(const r_matrix_id_t id) {
 }
 
 /**
- * @brief
+ * @brief Pop a saved matrix from the stack
  */
 void R_PopMatrix(const r_matrix_id_t id) {
 	
@@ -713,14 +713,6 @@ void R_PopMatrix(const r_matrix_id_t id) {
 		Com_Error(ERR_DROP, "Matrix stack underflow");
 
 	Matrix4x4_Copy(&r_view.active_matrices[id], &r_state.matrix_stacks[id].matrices[--r_state.matrix_stacks[id].depth]);
-}
-
-/**
- * @brief
- */
-void R_SetMatrix(const r_matrix_id_t id, const matrix4x4_t *in) {
-
-	Matrix4x4_Copy(&r_view.active_matrices[id], in);
 }
 
 /**
@@ -817,6 +809,9 @@ void R_Setup3D(void) {
 	R_EnableDepthTest(true);
 }
 
+/**
+ * @brief Toggle the state of depth testing.
+ */
 void R_EnableDepthTest(_Bool enable) {
 
 	if (r_state.depth_test_enabled == enable)
@@ -830,11 +825,31 @@ void R_EnableDepthTest(_Bool enable) {
 		glDisable(GL_DEPTH_TEST);
 }
 
+/**
+ * @brief Set the range of depth testing.
+ */
+void R_DepthRange(GLdouble znear, GLdouble zfar) {
+
+	if (r_state.depth_near == znear &&
+		r_state.depth_far == zfar)
+		return;
+
+	glDepthRange(znear, zfar);
+	r_state.depth_near = znear;
+	r_state.depth_far = zfar;
+}
+
+/**
+ * @brief Shortcut to toggling texunits by ID, for cgame.
+ */
 void R_EnableTextureID(const int texunit_id, _Bool enable) {
 
 	R_EnableTexture(&r_state.texunits[texunit_id], enable);
 }
 
+/**
+ * @brief Set the current window scissor.
+ */
 void R_EnableScissor(const SDL_Rect *bounds) {
 
 	if (!bounds) {
@@ -952,6 +967,10 @@ void R_InitState(void) {
 	r_state.stencil_func_mask = ~0;
 	r_state.stencil_func_func = GL_ALWAYS;
 	r_state.stencil_func_ref = 0;
+
+	// default depth range
+	r_state.depth_near = 0.0;
+	r_state.depth_far = 1.0;
 
 	R_GetError("Post-init");
 }

@@ -555,10 +555,34 @@ typedef struct cg_import_s {
 	 */
 	void (*SetMatrixForEntity)(r_entity_t *e);
 	
+	/**
+	 * @brief Push the active matrix into the stack
+	 */
 	void (*PushMatrix)(const r_matrix_id_t id);
+
+	/**
+	 * @brief Pop a saved matrix from the stack
+	 */
 	void (*PopMatrix)(const r_matrix_id_t id);
+
+	/**
+	 * @brief Draws the mesh model for the given entity.
+	 */
 	void (*DrawMeshModel)(const r_entity_t *e);
+
+	/**
+	 * @brief Toggle the state of depth testing.
+	 */
 	void (*EnableDepthTest)(_Bool enable);
+
+	/**
+	 * @brief Set the range of depth testing.
+	 */
+	void (*DepthRange)(double znear, double zfar);
+	
+	/**
+	 * @brief Toggle the specified texunit.
+	 */
 	void (*EnableTextureID)(const int texunit_id, _Bool enable);
 
 	/**

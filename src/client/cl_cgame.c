@@ -221,6 +221,7 @@ void Cl_InitCgame(void) {
 	import.PopMatrix = R_PopMatrix;
 	import.DrawMeshModel = R_DrawMeshModel_default;
 	import.EnableDepthTest = R_EnableDepthTest;
+	import.DepthRange = R_DepthRange;
 	import.EnableTextureID = R_EnableTextureID;
 	import.AddLight = R_AddLight;
 	import.AddParticle = R_AddParticle;
