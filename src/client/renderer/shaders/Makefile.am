@@ -1,6 +1,8 @@
 shadersdir = @PKGLIBDIR@/default/shaders
 
 shaders_DATA = \
+	corona_fs.glsl \
+	corona_vs.glsl \
 	default_fs.glsl \
 	default_vs.glsl \
 	fog_inc.glsl \

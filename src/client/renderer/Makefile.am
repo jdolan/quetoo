@@ -30,6 +30,7 @@ noinst_HEADERS = \
 	r_model.h \
 	r_particle.h \
 	r_program.h \
+	r_program_corona.h \
 	r_program_default.h \
 	r_program_null.h \
 	r_program_shadow.h \
@@ -70,6 +71,7 @@ librenderer_la_SOURCES = \
 	r_model.c \
 	r_particle.c \
 	r_program.c \
+	r_program_corona.c \
 	r_program_default.c \
 	r_program_null.c \
 	r_program_shadow.c \
