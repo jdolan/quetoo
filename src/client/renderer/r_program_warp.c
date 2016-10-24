@@ -62,6 +62,11 @@ void R_InitProgram_warp(r_program_t *program) {
 	R_ProgramVariable(&p->sampler1, R_SAMPLER_2D, "SAMPLER1");
 
 	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
+	
+	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
+	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
+	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR");
+	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
 
 	R_ProgramParameter1f(&p->offset, 0.0);
 
