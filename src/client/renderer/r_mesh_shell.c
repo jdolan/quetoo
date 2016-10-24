@@ -77,7 +77,7 @@ void R_DrawMeshShell_default(const r_entity_t *e) {
 
 	R_SetMeshShellState_default(e);
 
-	R_DrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+	R_DrawArrays(GL_TRIANGLES, 0, e->model->num_elements);
 
 	R_ResetMeshShellState_default(e);
 }

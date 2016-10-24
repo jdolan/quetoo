@@ -417,6 +417,8 @@ typedef struct {
 
 	uint16_t num_tris;
 	uint32_t *tris;
+
+	uint32_t num_elements;
 } r_md3_mesh_t;
 
 typedef struct {
@@ -574,6 +576,7 @@ typedef struct r_model_s {
 	vec_t radius;
 
 	GLsizei num_verts; // raw vertex primitive count, used to build arrays
+	GLsizei num_elements; // number of vertex elements, if element_buffer is to be used
 
 	// vertex buffer objects
 	r_buffer_t *vertex_buffers;
@@ -581,6 +584,7 @@ typedef struct r_model_s {
 	r_buffer_t lightmap_texcoord_buffer;
 	r_buffer_t *normal_buffers;
 	r_buffer_t *tangent_buffers;
+	r_buffer_t element_buffer;
 } r_model_t;
 
 #define IS_MESH_MODEL(m) (m && m->mesh)

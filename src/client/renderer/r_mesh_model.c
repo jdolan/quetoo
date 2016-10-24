@@ -293,90 +293,79 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	mod->num_verts = 0;
 
 	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) {
-		mod->num_verts += mesh->num_tris * 3;
+		mod->num_verts += mesh->num_verts;
+		mod->num_elements += mesh->num_tris * 3;
 	}
 
 	// make the scratch space
 	const GLsizei v = mod->num_verts * sizeof(vec3_t);
 	const GLsizei st = mod->num_verts * sizeof(vec2_t);
 	const GLsizei t = mod->num_verts * sizeof(vec4_t);
-
-	vec_t *verts = Mem_LinkMalloc(v, mod);
-	vec_t *normals = Mem_LinkMalloc(v, mod);
-	vec_t *tangents = Mem_LinkMalloc(t, mod);
+	const GLsizei e = mod->num_elements * sizeof(GLuint);
 
 	vec_t *texcoords = Mem_LinkMalloc(st, mod);
+	GLuint *tris = Mem_LinkMalloc(e, mod);
 
 	mod->vertex_buffers = Mem_LinkMalloc(sizeof(r_buffer_t) * md3->num_frames, mod);
 	mod->normal_buffers = Mem_LinkMalloc(sizeof(r_buffer_t) * md3->num_frames, mod);
 	mod->tangent_buffers = Mem_LinkMalloc(sizeof(r_buffer_t) * md3->num_frames, mod);
 
 	const d_md3_frame_t *frame = md3->frames;
+	GLuint *out_tri = tris;
+	vec_t *out_texcoord = texcoords;
+
 	for (uint16_t f = 0; f < md3->num_frames; ++f, frame++) {
 
-		vec_t *vout = verts;
-		vec_t *sout = texcoords;
-		vec_t *nout = normals;
-		vec_t *tout = tangents;
-
 		mesh = md3->meshes;
+		GLuint vert_offset = 0;
+
 		for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) { // iterate the meshes
 
 			const r_md3_vertex_t *v = mesh->verts + f * mesh->num_verts;
+			const d_md3_texcoord_t *t = mesh->coords;
 
-			for (uint16_t j = 0; j < mesh->num_verts; j++, v++) {
-				VectorAdd(frame->translate, v->point, r_mesh_state.vertexes[j]);
-				VectorCopy(v->normal, r_mesh_state.normals[j]);
-				Vector4Copy(v->tangent, r_mesh_state.tangents[j]);
-			}
+			for (uint16_t j = 0; j < mesh->num_verts; j++, v++, ++t) {
+				VectorAdd(frame->translate, v->point, r_mesh_state.vertexes[j + vert_offset]);
+				VectorCopy(v->normal, r_mesh_state.normals[j + vert_offset]);
+				Vector4Copy(v->tangent, r_mesh_state.tangents[j + vert_offset]);
 
-			const uint32_t *tri = mesh->tris;
-			const d_md3_texcoord_t *texcoords = mesh->coords;
-
-			for (uint16_t j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the arrays
-
-				VectorCopy(r_mesh_state.vertexes[tri[0]], vout + 0);
-				VectorCopy(r_mesh_state.vertexes[tri[1]], vout + 3);
-				VectorCopy(r_mesh_state.vertexes[tri[2]], vout + 6);
-				vout += 9;
-
-				VectorCopy(r_mesh_state.normals[tri[0]], nout + 0);
-				VectorCopy(r_mesh_state.normals[tri[1]], nout + 3);
-				VectorCopy(r_mesh_state.normals[tri[2]], nout + 6);
-				nout += 9;
-
-				Vector4Copy(r_mesh_state.tangents[tri[0]], tout + 0);
-				Vector4Copy(r_mesh_state.tangents[tri[1]], tout + 4);
-				Vector4Copy(r_mesh_state.tangents[tri[2]], tout + 8);
-				tout += 12;
-
-				// only first frame needs texcoords calculated
+				// only copy st coords once
 				if (f == 0) {
-					Vector2Copy(texcoords[tri[0]].st, sout + 0);
-					Vector2Copy(texcoords[tri[1]].st, sout + 2);
-					Vector2Copy(texcoords[tri[2]].st, sout + 4);
-					sout += 6;
+					Vector2Copy(t->st, out_texcoord);
+					out_texcoord += 2;
 				}
 			}
+
+			// only copy elements once
+			if (f == 0) {
+				const uint32_t *tri = mesh->tris;
+
+				for (uint16_t j = 0; j < mesh->num_tris; ++j) {
+					for (uint16_t k = 0; k < 3; ++k)
+						*out_tri++ = *tri++ + vert_offset;
+				}
+			}
+
+			vert_offset += mesh->num_verts;
 		}
 
 		// upload each frame
-		R_CreateBuffer(&mod->vertex_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, v, verts);
+		R_CreateBuffer(&mod->vertex_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, v, r_mesh_state.vertexes);
 	
-		R_CreateBuffer(&mod->normal_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, v, normals);
+		R_CreateBuffer(&mod->normal_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, v, r_mesh_state.normals);
 	
-		R_CreateBuffer(&mod->tangent_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, t, tangents);
+		R_CreateBuffer(&mod->tangent_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, t, r_mesh_state.tangents);
 	}
 
 	// upload texcoords
 	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, texcoords);
 
-	R_UnbindBuffer(R_BUFFER_DATA);
+	// upload elements
+	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_INDICES, e, tris);
 	
-	Mem_Free(verts);
-	Mem_Free(normals);
-	Mem_Free(tangents);
+	// get rid of these, we don't need them any more
 	Mem_Free(texcoords);
+	Mem_Free(tris);
 
 	R_GetError(mod->media.name);
 }
@@ -558,7 +547,9 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 		R_LoadMd3Tangents(out_mesh);
 
-		Com_Debug("%s: %s: %d triangles\n", mod->media.name, out_mesh->name, out_mesh->num_tris);
+		out_mesh->num_elements = out_mesh->num_tris * 3;
+
+		Com_Debug("%s: %s: %d triangles (%d elements)\n", mod->media.name, out_mesh->name, out_mesh->num_tris, out_mesh->num_elements);
 
 		in_mesh = (d_md3_mesh_t *) ((byte *) in_mesh + in_mesh->size);
 	}
@@ -836,6 +827,7 @@ static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
 static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 	mod->num_verts = g_list_length(obj->tris) * 3;
+	mod->num_elements = mod->num_verts;
 
 	const GLsizei v = mod->num_verts * sizeof(vec3_t);
 	const GLsizei st = mod->num_verts * sizeof(vec2_t);
@@ -893,8 +885,6 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, texcoords);
 
-	R_UnbindBuffer(R_BUFFER_DATA);
-	
 	Mem_Free(verts);
 	Mem_Free(texcoords);
 	Mem_Free(normals);

@@ -157,6 +157,13 @@ void R_SetArrayState(const r_model_t *mod) {
 		}
 	}
 
+	// elements
+	if (R_ValidBuffer(&mod->element_buffer)) {
+		
+		R_BindArray(R_ARRAY_ELEMENTS, &mod->element_buffer);
+
+	}
+
 	r_array_state.model = mod;
 	r_array_state.arrays = arrays;
 }
@@ -237,6 +244,9 @@ void R_ResetArrayState(void) {
 			R_SelectTexture(&texunit_diffuse);
 		}
 	}
+	
+	// elements
+	R_BindArray(R_ARRAY_ELEMENTS, NULL);
 
 	r_array_state.model = NULL;
 	r_array_state.arrays = arrays;

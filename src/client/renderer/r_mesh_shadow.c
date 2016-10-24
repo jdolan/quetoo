@@ -161,7 +161,7 @@ static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) 
 
 	R_SetMeshShadowState_default(e, s);
 
-	R_DrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+	R_DrawArrays(GL_TRIANGLES, 0, e->model->num_elements);
 
 	R_ResetMeshShadowState_default(e, s);
 }
