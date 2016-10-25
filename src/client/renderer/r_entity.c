@@ -246,7 +246,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 	R_Color(color);
 
-	const GLuint bound_indices[] = {
+	const GLuint bound_elements[] = {
 		// bottom
 		0, 1,
 		1, 2,
@@ -266,9 +266,9 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		3, 7
 	};
 
-	R_UploadToBuffer(&r_state.buffer_indice_array, 0, sizeof(bound_indices), bound_indices);
+	R_UploadToBuffer(&r_state.buffer_element_array, 0, sizeof(bound_elements), bound_elements);
 
-	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_indice_array);
+	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
@@ -300,7 +300,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, sizeof(verts), r_state.vertex_array);
 
-		R_DrawArrays(GL_LINES, 0, lengthof(bound_indices));
+		R_DrawArrays(GL_LINES, 0, lengthof(bound_elements));
 
 		R_PopMatrix(R_MATRIX_MODELVIEW);
 	}

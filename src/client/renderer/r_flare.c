@@ -94,7 +94,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableDepthTest(false);
 
-	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_indice_array);
+	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
 
 	// set to NULL, so it binds the first image that we run into
 	const r_image_t *image = NULL;
@@ -116,7 +116,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 				R_UploadToBuffer(&r_state.buffer_color_array, 0, j * sizeof(float), r_state.color_array);
 				R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, k * sizeof(float), texunit_diffuse.texcoord_array);
 				R_UploadToBuffer(&r_state.buffer_vertex_array, 0, l * sizeof(float), r_state.vertex_array);
-				R_UploadToBuffer(&r_state.buffer_indice_array, 0, m * sizeof(GLuint), r_state.indice_array);
+				R_UploadToBuffer(&r_state.buffer_element_array, 0, m * sizeof(GLuint), r_state.indice_array);
 
 				R_DrawArrays(GL_TRIANGLES, 0, m);
 			}
@@ -201,7 +201,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		R_UploadToBuffer(&r_state.buffer_color_array, 0, j * sizeof(float), r_state.color_array);
 		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, k * sizeof(float), texunit_diffuse.texcoord_array);
 		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, l * sizeof(float), r_state.vertex_array);
-		R_UploadToBuffer(&r_state.buffer_indice_array, 0, m * sizeof(GLuint), r_state.indice_array);
+		R_UploadToBuffer(&r_state.buffer_element_array, 0, m * sizeof(GLuint), r_state.indice_array);
 
 		R_DrawArrays(GL_TRIANGLES, 0, m);
 	}

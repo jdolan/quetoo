@@ -361,7 +361,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, texcoords);
 
 	// upload elements
-	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_INDICES, e, tris);
+	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_ELEMENT, e, tris);
 	
 	// get rid of these, we don't need them any more
 	Mem_Free(texcoords);
@@ -894,7 +894,7 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, texcoords);
 
-	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_INDICES, e, elements);
+	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_ELEMENT, e, elements);
 
 	// free our temporary buffers
 	Mem_Free(verts);

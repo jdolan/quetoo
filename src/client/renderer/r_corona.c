@@ -58,7 +58,7 @@ void R_DrawCoronas(void) {
 	R_UseProgram(r_state.corona_program);
 
 	uint16_t num_verts = 0;
-	uint16_t num_indices = 0;
+	uint16_t num_elements = 0;
 
 	const vec2_t texcoords[] = {
 		{ 0.0, 0.0 },
@@ -104,26 +104,26 @@ void R_DrawCoronas(void) {
 		VectorMA(v, f, r_view.up, &r_state.vertex_array[(num_verts * 3) + 9]);
 
 		// indices
-		r_state.indice_array[num_indices + 0] = num_verts + 0;
-		r_state.indice_array[num_indices + 1] = num_verts + 1;
-		r_state.indice_array[num_indices + 2] = num_verts + 2;
+		r_state.indice_array[num_elements + 0] = num_verts + 0;
+		r_state.indice_array[num_elements + 1] = num_verts + 1;
+		r_state.indice_array[num_elements + 2] = num_verts + 2;
 
-		r_state.indice_array[num_indices + 3] = num_verts + 0;
-		r_state.indice_array[num_indices + 4] = num_verts + 2;
-		r_state.indice_array[num_indices + 5] = num_verts + 3;
+		r_state.indice_array[num_elements + 3] = num_verts + 0;
+		r_state.indice_array[num_elements + 4] = num_verts + 2;
+		r_state.indice_array[num_elements + 5] = num_verts + 3;
 
 		num_verts += 4;
-		num_indices += 6;
+		num_elements += 6;
 	}
 
 	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, num_verts * sizeof(vec3_t), r_state.vertex_array);
 	R_UploadToBuffer(&r_state.buffer_color_array, 0, num_verts * sizeof(vec4_t), r_state.color_array);
 	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, num_verts * sizeof(vec2_t), texunit_diffuse.texcoord_array);
-	R_UploadToBuffer(&r_state.buffer_indice_array, 0, num_indices * sizeof(GLuint), r_state.indice_array);
+	R_UploadToBuffer(&r_state.buffer_element_array, 0, num_elements * sizeof(GLuint), r_state.indice_array);
 
-	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_indice_array);
+	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
 
-	R_DrawArrays(GL_TRIANGLES, 0, num_indices);
+	R_DrawArrays(GL_TRIANGLES, 0, num_elements);
 
 	R_BindArray(R_ARRAY_ELEMENTS, NULL);
 	

@@ -79,7 +79,7 @@ typedef struct r_state_s {
 	r_buffer_t buffer_color_array;
 	r_buffer_t buffer_normal_array;
 	r_buffer_t buffer_tangent_array;
-	r_buffer_t buffer_indice_array;
+	r_buffer_t buffer_element_array;
 
 	// the current buffers bound to the global
 	// renderer state. This just prevents

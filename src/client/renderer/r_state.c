@@ -237,7 +237,7 @@ void R_BindDefaultArray(int target) {
  */
 static GLenum R_BufferTypeToTarget(int type) {
 
-	return (type == R_BUFFER_INDICES) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+	return (type == R_BUFFER_ELEMENT) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 }
 
 /**
@@ -932,10 +932,10 @@ void R_InitState(void) {
 	R_CreateBuffer(&r_state.buffer_color_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.color_array), NULL);
 	R_CreateBuffer(&r_state.buffer_normal_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.normal_array), NULL);
 	R_CreateBuffer(&r_state.buffer_tangent_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.tangent_array), NULL);
-	R_CreateBuffer(&r_state.buffer_indice_array, GL_DYNAMIC_DRAW, R_BUFFER_INDICES, sizeof(r_state.indice_array), NULL);
+	R_CreateBuffer(&r_state.buffer_element_array, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT, sizeof(r_state.indice_array), NULL);
 	
 	R_UnbindBuffer(R_BUFFER_DATA);
-	R_UnbindBuffer(R_BUFFER_INDICES);
+	R_UnbindBuffer(R_BUFFER_ELEMENT);
 
 	R_BindDefaultArray(R_ARRAY_VERTEX);
 	R_BindDefaultArray(R_ARRAY_COLOR);
@@ -1009,7 +1009,7 @@ void R_ShutdownState(void) {
 	R_DestroyBuffer(&r_state.buffer_color_array);
 	R_DestroyBuffer(&r_state.buffer_normal_array);
 	R_DestroyBuffer(&r_state.buffer_tangent_array);
-	R_DestroyBuffer(&r_state.buffer_indice_array);
+	R_DestroyBuffer(&r_state.buffer_element_array);
 
 	memset(&r_state, 0, sizeof(r_state));
 }

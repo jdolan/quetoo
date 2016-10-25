@@ -83,7 +83,7 @@ typedef enum {
  * @brief Buffers are used to hold data for the renderer.
  */
 typedef struct r_buffer_s {
-	GLenum type; // R_BUFFER_DATA or R_BUFFER_INDICES
+	GLenum type; // R_BUFFER_DATA or R_BUFFER_ELEMENT
 	GLenum hint; // GL_x_y, where x is STATIC or DYNAMIC, and where y is DRAW, READ or COPY
 	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
 	GLuint bufnum; // e.g. 123
@@ -91,7 +91,7 @@ typedef struct r_buffer_s {
 } r_buffer_t;
 
 #define R_BUFFER_DATA			0
-#define R_BUFFER_INDICES		1
+#define R_BUFFER_ELEMENT		1
 #define R_NUM_BUFFERS			2
 
 /**

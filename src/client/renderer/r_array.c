@@ -184,7 +184,7 @@ void R_ResetArrayState(void) {
 
 	// unbind any buffers we got going
 	R_UnbindBuffer(R_BUFFER_DATA);
-	R_UnbindBuffer(R_BUFFER_INDICES);
+	R_UnbindBuffer(R_BUFFER_ELEMENT);
 
 	// vertex array
 	if (mask & R_ARRAY_MASK_VERTEX)
