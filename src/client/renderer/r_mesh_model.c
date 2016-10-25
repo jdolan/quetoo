@@ -546,7 +546,8 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		}
 
 		R_LoadMd3Tangents(out_mesh);
-
+		
+		mod->num_tris += out_mesh->num_tris;
 		out_mesh->num_elements = out_mesh->num_tris * 3;
 
 		Com_Debug("%s: %s: %d triangles (%d elements)\n", mod->media.name, out_mesh->name, out_mesh->num_tris, out_mesh->num_elements);
@@ -602,6 +603,7 @@ static r_obj_vertex_t *R_ObjVertexForIndices(r_model_t *mod, r_obj_t *obj, const
 				indices[0], indices[1], indices[2]);
 	}
 
+	v->position = g_list_length(obj->verts);
 	obj->verts = g_list_append(obj->verts, v);
 	return v;
 }
@@ -826,50 +828,57 @@ static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
  */
 static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
-	mod->num_verts = g_list_length(obj->tris) * 3;
-	mod->num_elements = mod->num_verts;
+	mod->num_verts = g_list_length(obj->verts);
+	mod->num_tris = g_list_length(obj->tris);
+	mod->num_elements = mod->num_tris * 3;
 
 	const GLsizei v = mod->num_verts * sizeof(vec3_t);
 	const GLsizei st = mod->num_verts * sizeof(vec2_t);
 	const GLsizei t = mod->num_verts * sizeof(vec4_t);
+	const GLsizei e = mod->num_elements * sizeof(GLuint);
 
 	vec_t *verts = Mem_LinkMalloc(v, mod);
 	vec_t *texcoords = Mem_LinkMalloc(st, mod);
 	vec_t *normals = Mem_LinkMalloc(v, mod);
 	vec_t *tangents = Mem_LinkMalloc(t, mod);
+	GLuint *elements = Mem_LinkMalloc(e, mod);
 	
 	vec_t *vout = verts;
 	vec_t *sout = texcoords;
 	vec_t *nout = normals;
 	vec_t *tout = tangents;
+	GLuint *eout = elements;
 
-	const GList *tris = obj->tris;
-	while (tris) {
+	const GList *vl = obj->verts;
+	while (vl) {
 
-		const r_obj_triangle_t *tri = tris->data;
+		const r_obj_vertex_t *ve = vl->data;
 
-		VectorCopy(tri->verts[0]->point, vout + 0);
-		VectorCopy(tri->verts[1]->point, vout + 3);
-		VectorCopy(tri->verts[2]->point, vout + 6);
+		VectorCopy(ve->point, vout);
 
-		Vector2Copy(tri->verts[0]->texcoords, sout + 0);
-		Vector2Copy(tri->verts[1]->texcoords, sout + 2);
-		Vector2Copy(tri->verts[2]->texcoords, sout + 4);
+		Vector2Copy(ve->texcoords, sout);
 
-		VectorCopy(tri->verts[0]->normal, nout + 0);
-		VectorCopy(tri->verts[1]->normal, nout + 3);
-		VectorCopy(tri->verts[2]->normal, nout + 6);
+		VectorCopy(ve->normal, nout);
 
-		Vector4Copy(tri->verts[0]->tangent, tout + 0);
-		Vector4Copy(tri->verts[1]->tangent, tout + 4);
-		Vector4Copy(tri->verts[2]->tangent, tout + 8);
+		Vector4Copy(ve->tangent, tout);
 
-		vout += 9;
-		sout += 6;
-		nout += 9;
-		tout += 12;
+		vout += 3;
+		sout += 2;
+		nout += 3;
+		tout += 4;
 
-		tris = tris->next;
+		vl = vl->next;
+	}
+
+	const GList *el = obj->tris;
+	while (el) {
+
+		const r_obj_triangle_t *te = el->data;
+	
+		for (int i = 0; i < 3; ++i)
+			*eout++ = te->verts[i]->position;
+
+		el = el->next;
 	}
 
 	// load the vertex buffer objects
@@ -885,10 +894,14 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, texcoords);
 
+	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_INDICES, e, elements);
+
+	// free our temporary buffers
 	Mem_Free(verts);
 	Mem_Free(texcoords);
 	Mem_Free(normals);
 	Mem_Free(tangents);
+	Mem_Free(elements);
 
 	R_GetError(mod->media.name);
 }

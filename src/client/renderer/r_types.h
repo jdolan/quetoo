@@ -453,6 +453,7 @@ typedef struct {
 } r_md3_t;
 
 typedef struct {
+	uint32_t position;
 	uint16_t indices[3];
 	vec_t *point;
 	vec_t *texcoords;
@@ -577,6 +578,7 @@ typedef struct r_model_s {
 
 	GLsizei num_verts; // raw vertex primitive count, used to build arrays
 	GLsizei num_elements; // number of vertex elements, if element_buffer is to be used
+	GLsizei num_tris; // cached num_tris amount
 
 	// vertex buffer objects
 	r_buffer_t *vertex_buffers;
