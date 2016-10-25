@@ -307,15 +307,15 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 
 	for (i = 0; i < surf->num_edges; i++) {
 
-		const vec_t *v = &r_model_state.world->bsp->verts[surf->index * 3 + i * 3];
-		const vec_t *st = &r_model_state.world->bsp->texcoords[surf->index * 2 + i * 2];
+		const vec_t *v = &r_model_state.world->bsp->verts[surf->elements[i]][0];
+		const vec_t *st = &r_model_state.world->bsp->texcoords[surf->elements[i]][0];
 
 		R_StageVertex(surf, stage, v, &r_state.vertex_array[i * 3]);
 
 		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[i * 2]);
 
 		if (texunit_lightmap.enabled) { // lightmap texcoords
-			st = &r_model_state.world->bsp->lightmap_texcoords[surf->index * 2 + i * 2];
+			st = &r_model_state.world->bsp->lightmap_texcoords[surf->elements[i]][0];
 			texunit_lightmap.texcoord_array[i * 2 + 0] = st[0];
 			texunit_lightmap.texcoord_array[i * 2 + 1] = st[1];
 		}
@@ -325,10 +325,10 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 
 		if (r_state.lighting_enabled) { // normals and tangents
 
-			const vec_t *n = &r_model_state.world->bsp->normals[surf->index * 3 + i * 3];
+			const vec_t *n = &r_model_state.world->bsp->normals[surf->elements[i]][0];
 			VectorCopy(n, (&r_state.normal_array[i * 3]));
 
-			const vec_t *t = &r_model_state.world->bsp->tangents[surf->index * 4 + i * 4];
+			const vec_t *t = &r_model_state.world->bsp->tangents[surf->elements[i]][0];
 			VectorCopy(t, (&r_state.tangent_array[i * 4]));
 		}
 	}

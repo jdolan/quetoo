@@ -450,6 +450,9 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		// and size, texcoords, etc
 		R_SetupBspSurface(bsp, out);
 
+		// make room for elements
+		out->elements = Mem_LinkMalloc(sizeof(GLuint) * out->num_edges, bsp);
+
 		// lastly lighting info
 		const int32_t ofs = LittleLong(in->light_ofs);
 		const byte *data = (ofs == -1) ? NULL : bsp->lightmaps->data + ofs;
@@ -645,21 +648,70 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
+typedef struct {
+	r_model_t *mod;
+	GHashTable *hash_table;
+	size_t count;
+} r_bsp_unique_verts_t;
+
+static r_bsp_unique_verts_t r_unique_vertices;
+
+guint R_UniqueVerts_HashFunc (gconstpointer key) {
+	const GLuint vi = (GLuint) key;
+
+	return	g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][0]) ^
+			g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][1]) ^
+			g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][2]) ^
+			g_double_hash(&r_unique_vertices.mod->bsp->normals[vi][0]) ^
+			g_double_hash(&r_unique_vertices.mod->bsp->normals[vi][1]) ^
+			g_double_hash(&r_unique_vertices.mod->bsp->normals[vi][2]) ^
+			g_double_hash(&r_unique_vertices.mod->bsp->texcoords[vi][0]) ^
+			g_double_hash(&r_unique_vertices.mod->bsp->texcoords[vi][1]);
+}
+
+gboolean R_UniqueVerts_EqualFunc (gconstpointer a, gconstpointer b) {
+	const GLuint va = (GLuint) a;
+	const GLuint vb = (GLuint) b;
+
+	return	memcmp(r_unique_vertices.mod->bsp->verts[va], r_unique_vertices.mod->bsp->verts[vb], sizeof(vec3_t)) == 0 &&
+			memcmp(r_unique_vertices.mod->bsp->normals[va], r_unique_vertices.mod->bsp->normals[vb], sizeof(vec3_t)) == 0 &&
+			memcmp(r_unique_vertices.mod->bsp->texcoords[va], r_unique_vertices.mod->bsp->texcoords[vb], sizeof(vec2_t)) == 0 &&
+			memcmp(r_unique_vertices.mod->bsp->lightmap_texcoords[va], r_unique_vertices.mod->bsp->lightmap_texcoords[vb], sizeof(vec2_t)) == 0 &&
+			memcmp(r_unique_vertices.mod->bsp->tangents[va], r_unique_vertices.mod->bsp->tangents[vb], sizeof(vec4_t)) == 0;
+}
+
+static GLuint R_LoadBspVertexArrays_FindOrAddVertex(r_model_t *mod, GLuint *vertex_index) {
+
+	GLuint *lookup_index;
+
+	if ((lookup_index = g_hash_table_lookup(r_unique_vertices.hash_table, (gconstpointer)(ptrdiff_t) *vertex_index))) {
+	
+		return (GLuint) lookup_index;
+	}
+
+	g_hash_table_add(r_unique_vertices.hash_table, (gpointer)(ptrdiff_t) *vertex_index);
+
+	GLuint position = *vertex_index;
+	(*vertex_index)++;
+	return position;
+}
+
 /**
  * @brief Writes vertex data for the given surface to the load model's arrays.
  *
- * @param count The current vertex count for the load model.
+ * @param element The current element count for the load model.
+ * @param count The current unique vertex count for the load model.
  */
-static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf, GLuint *count) {
+static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf, GLuint *elements, GLuint *vertices) {
 
-	surf->index = *count;
+	surf->index = *elements;
 
 	const int32_t *e = &mod->bsp->surface_edges[surf->first_edge];
 
 	for (uint16_t i = 0; i < surf->num_edges; i++, e++) {
 		const r_bsp_vertex_t *vert = R_BSP_VERTEX(mod->bsp, *e);
 
-		memcpy(&mod->bsp->verts[(*count) * 3], vert->position, sizeof(vec3_t));
+		VectorCopy(vert->position, mod->bsp->verts[*vertices]);
 
 		// texture directional vectors and offsets
 		const vec_t *sdir = surf->texinfo->vecs[0];
@@ -675,8 +727,8 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		vec_t t = DotProduct(vert->position, tdir) + toff;
 		t /= surf->texinfo->material->diffuse->height;
 
-		mod->bsp->texcoords[(*count) * 2 + 0] = s;
-		mod->bsp->texcoords[(*count) * 2 + 1] = t;
+		mod->bsp->texcoords[*vertices][0] = s;
+		mod->bsp->texcoords[*vertices][1] = t;
 
 		// lightmap texture coordinates
 		if (surf->flags & R_SURF_LIGHTMAP) {
@@ -693,9 +745,9 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 			t /= surf->lightmap->height * mod->bsp->lightmaps->scale;
 		}
 
-		mod->bsp->lightmap_texcoords[(*count) * 2 + 0] = s;
-		mod->bsp->lightmap_texcoords[(*count) * 2 + 1] = t;
-
+		mod->bsp->lightmap_texcoords[*vertices][0] = s;
+		mod->bsp->lightmap_texcoords[*vertices][1] = t;
+		
 		// normal vector, which is per-vertex for SURF_PHONG
 
 		const vec_t *normal;
@@ -704,16 +756,18 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		else
 			normal = surf->normal;
 
-		memcpy(&mod->bsp->normals[(*count) * 3], normal, sizeof(vec3_t));
+		VectorCopy(normal, mod->bsp->normals[*vertices]);
 
 		// tangent vectors
 		vec4_t tangent;
 		vec3_t bitangent;
 
 		TangentVectors(normal, sdir, tdir, tangent, bitangent);
-		memcpy(&mod->bsp->tangents[(*count) * 4], tangent, sizeof(vec4_t));
+		Vector4Copy(tangent, mod->bsp->tangents[*vertices]);
 
-		(*count)++;
+		surf->elements[i] = R_LoadBspVertexArrays_FindOrAddVertex(mod, vertices);
+
+		(*elements)++;
 	}
 }
 
@@ -733,17 +787,23 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		}
 	}
 
-	const GLsizei v = mod->num_verts * sizeof(vec3_t);
-	const GLsizei st = mod->num_verts * sizeof(vec2_t);
-	const GLsizei t = mod->num_verts * sizeof(vec4_t);
+	// start with worst case scenario # of vertices
+	GLsizei v = mod->num_verts * sizeof(vec3_t);
+	GLsizei st = mod->num_verts * sizeof(vec2_t);
+	GLsizei t = mod->num_verts * sizeof(vec4_t);
 
 	mod->bsp->verts = Mem_LinkMalloc(v, mod);
 	mod->bsp->texcoords = Mem_LinkMalloc(st, mod);
 	mod->bsp->lightmap_texcoords = Mem_LinkMalloc(st, mod);
 	mod->bsp->normals = Mem_LinkMalloc(v, mod);
 	mod->bsp->tangents = Mem_LinkMalloc(t, mod);
+	
+	// make lookup table
+	r_unique_vertices.count = 0;
+	r_unique_vertices.mod = mod;
+	r_unique_vertices.hash_table = g_hash_table_new(R_UniqueVerts_HashFunc, R_UniqueVerts_EqualFunc);
 
-	GLuint count = 0;
+	GLuint num_vertices = 0, num_elements = 0;
 
 	leaf = mod->bsp->leafs;
 	for (uint16_t i = 0; i < mod->bsp->num_leafs; i++, leaf++) {
@@ -751,9 +811,50 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		r_bsp_surface_t **s = leaf->first_leaf_surface;
 		for (uint16_t j = 0; j < leaf->num_leaf_surfaces; j++, s++) {
 
-			R_LoadBspVertexArrays_Surface(mod, *s, &count);
+			R_LoadBspVertexArrays_Surface(mod, *s, &num_elements, &num_vertices);
 		}
 	}
+
+	// hash table no longer required, get rid
+	g_hash_table_destroy(r_unique_vertices.hash_table);
+
+	// resize our garbage now that we know exactly how much
+	// storage we needed
+	mod->num_verts = num_vertices;
+
+	v = mod->num_verts * sizeof(vec3_t);
+	st = mod->num_verts * sizeof(vec2_t);
+	t = mod->num_verts * sizeof(vec4_t);
+
+	mod->bsp->verts = Mem_Realloc(mod->bsp->verts, v);
+	mod->bsp->texcoords = Mem_Realloc(mod->bsp->texcoords, st);
+	mod->bsp->lightmap_texcoords = Mem_Realloc(mod->bsp->lightmap_texcoords, st);
+	mod->bsp->normals = Mem_Realloc(mod->bsp->normals, v);
+	mod->bsp->tangents = Mem_Realloc(mod->bsp->tangents, t);
+
+	// load the element buffer object
+	mod->num_elements = num_elements;
+
+	const size_t e = mod->num_elements * sizeof(GLuint);
+	GLuint *elements = Mem_LinkMalloc(e, mod);
+	GLuint ei = 0;
+	
+	leaf = mod->bsp->leafs;
+	for (uint16_t i = 0; i < mod->bsp->num_leafs; i++, leaf++) {
+
+		r_bsp_surface_t **s = leaf->first_leaf_surface;
+		for (uint16_t j = 0; j < leaf->num_leaf_surfaces; j++, s++) {
+
+			r_bsp_surface_t *surf = (*s);
+			for (uint16_t k = 0; k < surf->num_edges; k++, ei++) {
+				elements[ei] = surf->elements[k];
+			}
+		}
+	}
+
+	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_ELEMENT, e, elements);
+
+	Mem_Free(elements);
 
 	// load the vertex buffer objects
 	mod->vertex_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);

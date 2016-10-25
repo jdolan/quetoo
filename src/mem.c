@@ -157,7 +157,7 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 	if (b->parent) {
 		b->parent->children = g_list_prepend(b->parent->children, b);
 	} else {
-		g_hash_table_insert(mem_state.blocks, b, b);
+		g_hash_table_add(mem_state.blocks, b);
 	}
 
 	mem_state.size += size;
@@ -203,6 +203,30 @@ void *Mem_LinkMalloc(size_t size, void *parent) {
  */
 void *Mem_Malloc(size_t size) {
 	return Mem_Malloc_(size, MEM_TAG_DEFAULT, NULL);
+}
+
+/**
+ * @brief Reallocates a block of memory with a new size.
+ *
+ * @return The new pointer to the resized memory. Do not try to write to p after
+ * calling this function, the results are undefined!
+ */
+void *Mem_Realloc(void *p, size_t size) {
+
+	mem_block_t *b = Mem_CheckMagic(p);
+
+	// allocate the block plus the desired size
+	const size_t s = size + sizeof(mem_block_t);
+
+	b->size = size;
+
+	if (!(b = realloc(b, s))) {
+		fprintf(stderr, "Failed to allocate %u bytes\n", (uint32_t) s);
+		raise(SIGABRT);
+		return NULL;
+	}
+
+	return (void *) (b + 1);
 }
 
 /**

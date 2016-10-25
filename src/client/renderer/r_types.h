@@ -251,7 +251,8 @@ typedef struct {
 	vec2_t st_center;
 	vec2_t st_extents;
 
-	GLuint index; // index into world vertex buffers
+	GLuint index; // index into element buffer
+	GLuint *elements; // elements unique to this surf
 
 	r_bsp_texinfo_t *texinfo; // SURF_ flags
 
@@ -489,6 +490,14 @@ typedef enum {
 } r_model_type_t;
 
 typedef struct {
+	vec3_t position;
+	vec3_t normal;
+	vec2_t texcoord;
+	vec2_t lightmap_texcoord;
+	vec4_t tangent;
+} r_vertex_t;
+
+typedef struct {
 	int32_t version;
 
 	uint16_t num_inline_models;
@@ -533,11 +542,11 @@ typedef struct {
 	r_sorted_bsp_surfaces_t *sorted_surfaces;
 
 	// vertex arrays, for materials
-	GLfloat *verts;
-	GLfloat *texcoords;
-	GLfloat *lightmap_texcoords;
-	GLfloat *normals;
-	GLfloat *tangents;
+	vec3_t *verts;
+	vec2_t *texcoords;
+	vec2_t *lightmap_texcoords;
+	vec3_t *normals;
+	vec4_t *tangents;
 } r_bsp_model_t;
 
 /**
