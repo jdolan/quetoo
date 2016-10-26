@@ -344,7 +344,7 @@ static GRegex *shader_preprocess_regex = NULL;
 static gchar *R_PreprocessShader(const char *input, const uint32_t length)
 {
 	GString *emplaced = NULL;
-	_Bool had_replacements = Cvar_EmplaceValues(input, length, &emplaced);
+	_Bool had_replacements = Cvar_ExpandString(input, length, &emplaced);
 
 	if (!had_replacements) {
 		emplaced = g_string_new_len(input, length);

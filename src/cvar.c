@@ -644,7 +644,7 @@ static GRegex *cvar_emplace_regex = NULL;
 /**
  * @brief
  */
-static gboolean Cvar_EmplaceValues_EvalCallback(const GMatchInfo *match_info, GString *result, gpointer data __attribute__((unused))) {
+static gboolean Cvar_ExpandString_EvalCallback(const GMatchInfo *match_info, GString *result, gpointer data __attribute__((unused))) {
 	const gchar *name = g_match_info_fetch(match_info, 1);
 	const char *value = Cvar_GetString(name);
 	g_string_append(result, value);
@@ -656,14 +656,14 @@ static gboolean Cvar_EmplaceValues_EvalCallback(const GMatchInfo *match_info, GS
  * @returns false if no emplacement was performed (or could be performed), otherwise the *output is set
  * to a valid GString.
  */
-_Bool Cvar_EmplaceValues(const char *input, const size_t in_size, GString **output)
+_Bool Cvar_ExpandString(const char *input, const size_t in_size, GString **output)
 {
 	// sanity checks
 	if (!input || !in_size)
 		return false;
 
 	GError *error = NULL;
-	gchar *replaced = g_regex_replace_eval(cvar_emplace_regex, input, in_size, 0, 0, Cvar_EmplaceValues_EvalCallback, NULL, &error);
+	gchar *replaced = g_regex_replace_eval(cvar_emplace_regex, input, in_size, 0, 0, Cvar_ExpandString_EvalCallback, NULL, &error);
 
 	if (error)
 		Com_Warn("Error preprocessing shader: %s", error->message);
