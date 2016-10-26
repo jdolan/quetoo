@@ -33,6 +33,12 @@ typedef struct r_array_state_s {
 
 static r_array_state_t r_array_state;
 
+// macro for determining interpolation ability
+#define IS_ENTITY_INTERPOLATABLE(e, mod) \
+	(IS_MESH_MODEL(mod) && \
+	mod->mesh->num_frames > 1 && \
+	e->old_frame != e->frame)
+
 /**
  * @brief Returns a bitmask representing the arrays which should be enabled according
  * to r_state. This function is consulted to determine whether or not array
@@ -41,7 +47,7 @@ static r_array_state_t r_array_state;
 int32_t R_ArraysMask(void) {
 	uint32_t mask = R_ARRAY_MASK_VERTEX;
 
-	_Bool do_interpolation = r_view.current_entity && IS_MESH_MODEL(r_view.current_entity->model) && r_view.current_entity->model->mesh->num_frames > 1 && r_view.current_entity->old_frame != r_view.current_entity->frame;
+	_Bool do_interpolation = r_view.current_entity != NULL && IS_ENTITY_INTERPOLATABLE(r_view.current_entity, r_view.current_entity->model);
 
 	if (do_interpolation)
 		mask |= R_ARRAY_MASK_NEXT_VERTEX;
@@ -96,9 +102,18 @@ void R_SetArrayState(const r_model_t *mod) {
 
 	R_BindArray(R_ARRAY_COLOR, NULL);
 
-	_Bool do_interpolation = r_view.current_entity && IS_MESH_MODEL(mod) && mod->mesh->num_frames > 1 && r_view.current_entity->old_frame != r_view.current_entity->frame;
-	uint16_t old_frame = r_view.current_entity ? r_view.current_entity->old_frame : 0;
-	uint16_t frame = r_view.current_entity ? r_view.current_entity->frame : 0;
+	_Bool do_interpolation = false;
+	uint16_t old_frame = 0;
+	uint16_t frame = 0;
+
+	// see if we can do interpolation
+	if (r_view.current_entity) {
+		old_frame = r_view.current_entity->old_frame;
+		do_interpolation = IS_ENTITY_INTERPOLATABLE(r_view.current_entity, mod);
+
+		if (do_interpolation)
+			frame = r_view.current_entity->frame;
+	}
 
 	// vertex array
 	if (mask & R_ARRAY_MASK_VERTEX) {
