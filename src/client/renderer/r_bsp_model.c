@@ -668,13 +668,12 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
-// These two functions are to make the bottom code a tad clearer.
-#define BSP_VERTEX_INDEX_FOR_KEY(ptr) ((GLuint)(ptr))
-#define BSP_VERTEX_INDEX_AS_KEY(i) ((gpointer)(ptrdiff_t)*(i))
+#define BSP_VERTEX_INDEX_FOR_KEY(ptr) ((GLuint) (ptr))
+#define BSP_VERTEX_INDEX_AS_KEY(i) ((gpointer) (ptrdiff_t) *(i))
 
 /**
  * @brief The hash function for unique vertices.
- * @see R_LoadBspVertexArrays_FindOrAddVertex
+ * @see R_LoadBspVertexArrays_VertexElement
  */
 static guint R_UniqueVerts_HashFunc (gconstpointer key) {
 	const GLuint vi = BSP_VERTEX_INDEX_FOR_KEY(key);
@@ -690,46 +689,51 @@ static guint R_UniqueVerts_HashFunc (gconstpointer key) {
 }
 
 /**
- * @brief The equal function for unique vertices. It should return true if
- * the vertices at index a and b are both equal.
- * @see R_LoadBspVertexArrays_FindOrAddVertex
+ * @brief GEqualFunc for resolving unique vertices.
+ * @param a A vertex index.
+ * @param b A vertex index.
+ * @return True of the vertices at indices `a` and `b` are equal.
+ * @remarks While the vertex indices are used as the hash keys, equality is determined by a deep
+ * comparison of the vertex attributes at those indices.
+ * @see R_LoadBspVertexArrays_VertexElement
  */
 static gboolean R_UniqueVerts_EqualFunc (gconstpointer a, gconstpointer b) {
+
 	const GLuint va = BSP_VERTEX_INDEX_FOR_KEY(a);
 	const GLuint vb = BSP_VERTEX_INDEX_FOR_KEY(b);
 
-	return	memcmp(r_unique_vertices.mod->bsp->verts[va], r_unique_vertices.mod->bsp->verts[vb], sizeof(vec3_t)) == 0 &&
-			memcmp(r_unique_vertices.mod->bsp->normals[va], r_unique_vertices.mod->bsp->normals[vb], sizeof(vec3_t)) == 0 &&
-			memcmp(r_unique_vertices.mod->bsp->texcoords[va], r_unique_vertices.mod->bsp->texcoords[vb], sizeof(vec2_t)) == 0 &&
-			memcmp(r_unique_vertices.mod->bsp->lightmap_texcoords[va], r_unique_vertices.mod->bsp->lightmap_texcoords[vb], sizeof(vec2_t)) == 0 &&
-			memcmp(r_unique_vertices.mod->bsp->tangents[va], r_unique_vertices.mod->bsp->tangents[vb], sizeof(vec4_t)) == 0;
+	const r_bsp_model_t *bsp = r_unique_vertices.mod->bsp;
+
+	return	memcmp(bsp->verts[va], bsp->verts[vb], sizeof(vec3_t)) == 0 &&
+			memcmp(bsp->normals[va], bsp->normals[vb], sizeof(vec3_t)) == 0 &&
+			memcmp(bsp->texcoords[va], bsp->texcoords[vb], sizeof(vec2_t)) == 0 &&
+			memcmp(bsp->lightmap_texcoords[va], bsp->lightmap_texcoords[vb], sizeof(vec2_t)) == 0 &&
+			memcmp(bsp->tangents[va], bsp->tangents[vb], sizeof(vec4_t)) == 0;
 }
 
 /**
- * @brief Attempts to find a matching vertex index for the index specified by *vertex_index.
+ * @brief Attempts to find an element for the vertex at `vertex_index`. If none exists, a new 
+ * element is inserted, and its index returned.
  *
  * @returns If a vertex has already been written to the vertex array list that matches
  * the vertex at index *vertex_index, the index of that vertex will be returned. Otherwise,
- * it will return *vertex_position and increase it by 1.
+ * it will return *vertex_index and increase it by 1.
  *
  * @note The hash table lookup uses indexes into the various vertex arrays to act as the
  * key and value storages. The hash functions convert the pointer to an index for comparison,
  * and in here it searches the table by *vertex_index (and inserts it if need be) to trigger
  * the comparison functions that do the magic. It's easy to get lost in the indirection.
  */
-static GLuint R_LoadBspVertexArrays_FindOrAddVertex(GLuint *vertex_index) {
-	GLuint *lookup_index;
+static GLuint R_LoadBspVertexArrays_VertexElement(GLuint *vertex_index) {
 
-	if ((lookup_index = g_hash_table_lookup(r_unique_vertices.hash_table, BSP_VERTEX_INDEX_AS_KEY(vertex_index)))) {
-	
-		return BSP_VERTEX_INDEX_FOR_KEY(lookup_index);
+	gpointer value;
+
+	if ((value = g_hash_table_lookup(r_unique_vertices.hash_table, BSP_VERTEX_INDEX_AS_KEY(vertex_index)))) {
+		return BSP_VERTEX_INDEX_FOR_KEY(value);
 	}
 
 	g_hash_table_add(r_unique_vertices.hash_table, BSP_VERTEX_INDEX_AS_KEY(vertex_index));
-
-	GLuint position = *vertex_index;
-	(*vertex_index)++;
-	return position;
+	return (*vertex_index)++;
 }
 
 /**
@@ -802,7 +806,7 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		Vector4Copy(tangent, mod->bsp->tangents[*vertices]);
 
 		// find the index that this vertex belongs to.
-		surf->elements[i] = R_LoadBspVertexArrays_FindOrAddVertex(vertices);
+		surf->elements[i] = R_LoadBspVertexArrays_VertexElement(vertices);
 		(*elements)++;
 	}
 }
