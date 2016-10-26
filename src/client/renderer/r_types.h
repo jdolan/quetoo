@@ -188,11 +188,6 @@ typedef struct r_material_s {
 
 // bsp model memory representation
 typedef struct {
-	vec3_t position;
-	vec3_t normal;
-} r_bsp_vertex_t;
-
-typedef struct {
 	vec3_t mins, maxs;
 	vec3_t origin; // for sounds or lights
 	vec_t radius;
@@ -490,14 +485,6 @@ typedef enum {
 } r_model_type_t;
 
 typedef struct {
-	vec3_t position;
-	vec3_t normal;
-	vec2_t texcoord;
-	vec2_t lightmap_texcoord;
-	vec4_t tangent;
-} r_vertex_t;
-
-typedef struct {
 	int32_t version;
 
 	uint16_t num_inline_models;
@@ -508,9 +495,6 @@ typedef struct {
 
 	uint16_t num_leafs;
 	r_bsp_leaf_t *leafs;
-
-	uint16_t num_vertexes;
-	r_bsp_vertex_t *vertexes;
 
 	uint32_t num_edges;
 	r_bsp_edge_t *edges;

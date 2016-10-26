@@ -27,6 +27,26 @@
  */
 static const byte *r_bsp_base;
 
+/*
+ * Structures used for intermediate representation of data
+ * to compile unique vertex list and element array
+ */
+typedef struct {
+	vec3_t position;
+	vec3_t normal;
+} r_bsp_vertex_t;
+
+typedef struct {
+	r_model_t *mod;
+	GHashTable *hash_table;
+	size_t count;
+
+	uint16_t num_vertexes;
+	r_bsp_vertex_t *vertexes;
+} r_bsp_unique_verts_t;
+
+static r_bsp_unique_verts_t r_unique_vertices;
+
 /**
  * @brief Loads the lightmap and deluxemap information into memory so that it
  * may be parsed into GL textures for r_bsp_surface_t. This memory is actually
@@ -85,10 +105,10 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
-	bsp->num_vertexes = l->file_len / sizeof(*in);
-	bsp->vertexes = out = Mem_LinkMalloc(bsp->num_vertexes * sizeof(*out), bsp);
+	r_unique_vertices.num_vertexes = l->file_len / sizeof(*in);
+	r_unique_vertices.vertexes = out = Mem_LinkMalloc(r_unique_vertices.num_vertexes * sizeof(*out), bsp);
 
-	for (uint16_t i = 0; i < bsp->num_vertexes; i++, in++, out++) {
+	for (uint16_t i = 0; i < r_unique_vertices.num_vertexes; i++, in++, out++) {
 		out->position[0] = LittleFloat(in->point[0]);
 		out->position[1] = LittleFloat(in->point[1]);
 		out->position[2] = LittleFloat(in->point[2]);
@@ -110,12 +130,12 @@ static void R_LoadBspNormals(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 	const uint16_t count = l->file_len / sizeof(*in);
 
-	if (count != bsp->num_vertexes) { // ensure sane normals count
-		Com_Error(ERR_DROP, "Bad count (%d != %d)\n", count, bsp->num_vertexes);
+	if (count != r_unique_vertices.num_vertexes) { // ensure sane normals count
+		Com_Error(ERR_DROP, "Bad count (%d != %d)\n", count, r_unique_vertices.num_vertexes);
 	}
 
-	r_bsp_vertex_t *out = bsp->vertexes;
-	for (uint16_t i = 0; i < bsp->num_vertexes; i++, in++, out++) {
+	r_bsp_vertex_t *out = r_unique_vertices.vertexes;
+	for (uint16_t i = 0; i < r_unique_vertices.num_vertexes; i++, in++, out++) {
 		out->normal[0] = LittleFloat(in->normal[0]);
 		out->normal[1] = LittleFloat(in->normal[1]);
 		out->normal[2] = LittleFloat(in->normal[2]);
@@ -296,7 +316,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  * @brief Convenience for resolving r_bsp_vertex_t from surface edges.
  */
 #define R_BSP_VERTEX(b, e) ((e) >= 0 ? \
-	(&b->vertexes[b->edges[(e)].v[0]]) : (&b->vertexes[b->edges[-(e)].v[1]]) \
+	(&r_unique_vertices.vertexes[b->edges[(e)].v[0]]) : (&r_unique_vertices.vertexes[b->edges[-(e)].v[1]]) \
 )
 
 /**
@@ -648,16 +668,16 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 }
 
-typedef struct {
-	r_model_t *mod;
-	GHashTable *hash_table;
-	size_t count;
-} r_bsp_unique_verts_t;
+// These two functions are to make the bottom code a tad clearer.
+#define BSP_VERTEX_INDEX_FOR_KEY(ptr) ((GLuint)(ptr))
+#define BSP_VERTEX_INDEX_AS_KEY(i) ((gpointer)(ptrdiff_t)*(i))
 
-static r_bsp_unique_verts_t r_unique_vertices;
-
-guint R_UniqueVerts_HashFunc (gconstpointer key) {
-	const GLuint vi = (GLuint) key;
+/**
+ * @brief The hash function for unique vertices.
+ * @see R_LoadBspVertexArrays_FindOrAddVertex
+ */
+static guint R_UniqueVerts_HashFunc (gconstpointer key) {
+	const GLuint vi = BSP_VERTEX_INDEX_FOR_KEY(key);
 
 	return	g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][0]) ^
 			g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][1]) ^
@@ -669,9 +689,14 @@ guint R_UniqueVerts_HashFunc (gconstpointer key) {
 			g_double_hash(&r_unique_vertices.mod->bsp->texcoords[vi][1]);
 }
 
-gboolean R_UniqueVerts_EqualFunc (gconstpointer a, gconstpointer b) {
-	const GLuint va = (GLuint) a;
-	const GLuint vb = (GLuint) b;
+/**
+ * @brief The equal function for unique vertices. It should return true if
+ * the vertices at index a and b are both equal.
+ * @see R_LoadBspVertexArrays_FindOrAddVertex
+ */
+static gboolean R_UniqueVerts_EqualFunc (gconstpointer a, gconstpointer b) {
+	const GLuint va = BSP_VERTEX_INDEX_FOR_KEY(a);
+	const GLuint vb = BSP_VERTEX_INDEX_FOR_KEY(b);
 
 	return	memcmp(r_unique_vertices.mod->bsp->verts[va], r_unique_vertices.mod->bsp->verts[vb], sizeof(vec3_t)) == 0 &&
 			memcmp(r_unique_vertices.mod->bsp->normals[va], r_unique_vertices.mod->bsp->normals[vb], sizeof(vec3_t)) == 0 &&
@@ -680,16 +705,28 @@ gboolean R_UniqueVerts_EqualFunc (gconstpointer a, gconstpointer b) {
 			memcmp(r_unique_vertices.mod->bsp->tangents[va], r_unique_vertices.mod->bsp->tangents[vb], sizeof(vec4_t)) == 0;
 }
 
+/**
+ * @brief Attempts to find a matching vertex index for the index specified by *vertex_index.
+ *
+ * @returns If a vertex has already been written to the vertex array list that matches
+ * the vertex at index *vertex_index, the index of that vertex will be returned. Otherwise,
+ * it will return *vertex_position and increase it by 1.
+ *
+ * @note The hash table lookup uses indexes into the various vertex arrays to act as the
+ * key and value storages. The hash functions convert the pointer to an index for comparison,
+ * and in here it searches the table by *vertex_index (and inserts it if need be) to trigger
+ * the comparison functions that do the magic. It's easy to get lost in the indirection.
+ */
 static GLuint R_LoadBspVertexArrays_FindOrAddVertex(r_model_t *mod, GLuint *vertex_index) {
 
 	GLuint *lookup_index;
 
-	if ((lookup_index = g_hash_table_lookup(r_unique_vertices.hash_table, (gconstpointer)(ptrdiff_t) *vertex_index))) {
+	if ((lookup_index = g_hash_table_lookup(r_unique_vertices.hash_table, BSP_VERTEX_INDEX_AS_KEY(vertex_index)))) {
 	
-		return (GLuint) lookup_index;
+		return BSP_VERTEX_INDEX_FOR_KEY(lookup_index);
 	}
 
-	g_hash_table_add(r_unique_vertices.hash_table, (gpointer)(ptrdiff_t) *vertex_index);
+	g_hash_table_add(r_unique_vertices.hash_table, BSP_VERTEX_INDEX_AS_KEY(vertex_index));
 
 	GLuint position = *vertex_index;
 	(*vertex_index)++;
@@ -699,8 +736,8 @@ static GLuint R_LoadBspVertexArrays_FindOrAddVertex(r_model_t *mod, GLuint *vert
 /**
  * @brief Writes vertex data for the given surface to the load model's arrays.
  *
- * @param element The current element count for the load model.
- * @param count The current unique vertex count for the load model.
+ * @param elements The current element count for the load model.
+ * @param vertices The current unique vertex count for the load model.
  */
 static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf, GLuint *elements, GLuint *vertices) {
 
@@ -765,6 +802,7 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		TangentVectors(normal, sdir, tdir, tangent, bitangent);
 		Vector4Copy(tangent, mod->bsp->tangents[*vertices]);
 
+		// find the index that this vertex belongs to.
 		surf->elements[i] = R_LoadBspVertexArrays_FindOrAddVertex(mod, vertices);
 
 		(*elements)++;
@@ -1018,51 +1056,62 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	// set the base pointer for lump loading
 	r_bsp_base = (byte *) buffer;
 
-	R_LoadBspVertexes(mod->bsp, &header.lumps[BSP_LUMP_VERTEXES]);
 	Cl_LoadingProgress(4, "vertices");
+	R_LoadBspVertexes(mod->bsp, &header.lumps[BSP_LUMP_VERTEXES]);
 
 	if (header.version == BSP_VERSION_QUETOO) // enhanced format
 		R_LoadBspNormals(mod->bsp, &header.lumps[BSP_LUMP_NORMALS]);
 
-	R_LoadBspEdges(mod->bsp, &header.lumps[BSP_LUMP_EDGES]);
 	Cl_LoadingProgress(8, "edges");
+	R_LoadBspEdges(mod->bsp, &header.lumps[BSP_LUMP_EDGES]);
 
-	R_LoadBspSurfaceEdges(mod->bsp, &header.lumps[BSP_LUMP_FACE_EDGES]);
 	Cl_LoadingProgress(12, "surface edges");
+	R_LoadBspSurfaceEdges(mod->bsp, &header.lumps[BSP_LUMP_FACE_EDGES]);
 
-	R_LoadBspLightmaps(mod->bsp, &header.lumps[BSP_LUMP_LIGHTMAPS]);
 	Cl_LoadingProgress(16, "lightmaps");
+	R_LoadBspLightmaps(mod->bsp, &header.lumps[BSP_LUMP_LIGHTMAPS]);
 
-	R_LoadBspPlanes(mod->bsp, &header.lumps[BSP_LUMP_PLANES]);
 	Cl_LoadingProgress(20, "planes");
+	R_LoadBspPlanes(mod->bsp, &header.lumps[BSP_LUMP_PLANES]);
 
-	R_LoadBspTexinfo(mod->bsp, &header.lumps[BSP_LUMP_TEXINFO]);
 	Cl_LoadingProgress(24, "texinfo");
+	R_LoadBspTexinfo(mod->bsp, &header.lumps[BSP_LUMP_TEXINFO]);
 
-	R_LoadBspSurfaces(mod->bsp, &header.lumps[BSP_LUMP_FACES]);
 	Cl_LoadingProgress(28, "faces");
+	R_LoadBspSurfaces(mod->bsp, &header.lumps[BSP_LUMP_FACES]);
 
-	R_LoadBspLeafSurfaces(mod->bsp, &header.lumps[BSP_LUMP_LEAF_FACES]);
 	Cl_LoadingProgress(32, "leaf faces");
+	R_LoadBspLeafSurfaces(mod->bsp, &header.lumps[BSP_LUMP_LEAF_FACES]);
 
-	R_LoadBspLeafs(mod->bsp, &header.lumps[BSP_LUMP_LEAFS]);
 	Cl_LoadingProgress(36, "leafs");
+	R_LoadBspLeafs(mod->bsp, &header.lumps[BSP_LUMP_LEAFS]);
 
-	R_LoadBspNodes(mod->bsp, &header.lumps[BSP_LUMP_NODES]);
 	Cl_LoadingProgress(40, "nodes");
+	R_LoadBspNodes(mod->bsp, &header.lumps[BSP_LUMP_NODES]);
 
-	R_LoadBspClusters(mod->bsp, &header.lumps[BSP_LUMP_VISIBILITY]);
 	Cl_LoadingProgress(44, "clusters");
+	R_LoadBspClusters(mod->bsp, &header.lumps[BSP_LUMP_VISIBILITY]);
 
-	R_LoadBspInlineModels(mod->bsp, &header.lumps[BSP_LUMP_MODELS]);
 	Cl_LoadingProgress(48, "inline models");
+	R_LoadBspInlineModels(mod->bsp, &header.lumps[BSP_LUMP_MODELS]);
 
-	R_LoadBspLights(mod->bsp);
 	Cl_LoadingProgress(50, "lights");
+	R_LoadBspLights(mod->bsp);
+
+	Cl_LoadingProgress(52, "inline models");
+	R_SetupBspInlineModels(mod);
+
+	Cl_LoadingProgress(54, "vertex arrays");
+	R_LoadBspVertexArrays(mod);
+
+	Cl_LoadingProgress(58, "sorted surfaces");
+	R_LoadBspSurfacesArrays(mod);
+
+	R_InitElements(mod->bsp);
 
 	Com_Debug("!================================\n");
 	Com_Debug("!R_LoadBspModel: %s\n", mod->media.name);
-	Com_Debug("!  Verts:          %d\n", mod->bsp->num_vertexes);
+	Com_Debug("!  Verts:          %d (%d unique, %d elements)\n", r_unique_vertices.num_vertexes, mod->num_verts, mod->num_elements);
 	Com_Debug("!  Edges:          %d\n", mod->bsp->num_edges);
 	Com_Debug("!  Surface edges:  %d\n", mod->bsp->num_surface_edges);
 	Com_Debug("!  Faces:          %d\n", mod->bsp->num_surfaces);
@@ -1074,14 +1123,7 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Com_Debug("!  Lights:         %d\n", mod->bsp->num_bsp_lights);
 	Com_Debug("!================================\n");
 
-	R_SetupBspInlineModels(mod);
-	Cl_LoadingProgress(52, "inline models");
-
-	R_LoadBspVertexArrays(mod);
-	Cl_LoadingProgress(54, "vertex arrays");
-
-	R_LoadBspSurfacesArrays(mod);
-	Cl_LoadingProgress(58, "sorted surfaces");
-
-	R_InitElements(mod->bsp);
+	// unload r_unique_vertices.vertexes, as they are no longer required
+	Mem_Free(r_unique_vertices.vertexes);
+	r_unique_vertices.vertexes = NULL;
 }
