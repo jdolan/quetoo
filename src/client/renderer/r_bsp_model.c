@@ -680,7 +680,7 @@ gboolean R_UniqueVerts_EqualFunc (gconstpointer a, gconstpointer b) {
 			memcmp(r_unique_vertices.mod->bsp->tangents[va], r_unique_vertices.mod->bsp->tangents[vb], sizeof(vec4_t)) == 0;
 }
 
-static GLuint R_LoadBspVertexArrays_FindOrAddVertex(r_model_t *mod, GLuint *vertex_index) {
+static GLuint R_LoadBspVertexArrays_FindOrAddVertex(GLuint *vertex_index) {
 
 	GLuint *lookup_index;
 
@@ -765,7 +765,7 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		TangentVectors(normal, sdir, tdir, tangent, bitangent);
 		Vector4Copy(tangent, mod->bsp->tangents[*vertices]);
 
-		surf->elements[i] = R_LoadBspVertexArrays_FindOrAddVertex(mod, vertices);
+		surf->elements[i] = R_LoadBspVertexArrays_FindOrAddVertex(vertices);
 
 		(*elements)++;
 	}

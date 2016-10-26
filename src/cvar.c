@@ -644,8 +644,7 @@ static GRegex *cvar_emplace_regex = NULL;
 /**
  * @brief
  */
-static gboolean Cvar_EmplaceValues_EvalCallback(const GMatchInfo *match_info, GString *result, gpointer user_data)
-{
+static gboolean Cvar_EmplaceValues_EvalCallback(const GMatchInfo *match_info, GString *result, gpointer data __attribute__((unused))) {
 	const gchar *name = g_match_info_fetch(match_info, 1);
 	const char *value = Cvar_GetString(name);
 	g_string_append(result, value);
