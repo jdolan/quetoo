@@ -39,17 +39,6 @@ static void R_SetWindowIcon(void) {
 	SDL_FreeSurface(surf);
 }
 
-/**
- * @brief Attempts to create the specified versioned context, returns true on success and false on failure.
- */
-static _Bool R_InitGLContext(const int major, const int minor) {
-
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
-		
-	return (r_context.context = SDL_GL_CreateContext(r_context.window)) != NULL;
-}
-
 extern cvar_t *verbose;
 
 /**
@@ -118,8 +107,11 @@ void R_InitContext(void) {
 
 	// Prepare GL stuff
 	Com_Print("  Setting up OpenGL context..\n");
-		
-	if (!R_InitGLContext(2, 1)) {
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+
+	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 	}
 
