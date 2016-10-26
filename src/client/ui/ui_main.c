@@ -20,7 +20,6 @@
  */
 
 #include "ui_local.h"
-
 #include "client.h"
 
 #include "renderers/RendererQuetoo.h"

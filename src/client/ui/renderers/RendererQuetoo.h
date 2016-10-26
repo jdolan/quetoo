@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "src/client/renderer/renderer.h"
+
 #include <ObjectivelyMVC/Renderer.h>
 
 /**

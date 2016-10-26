@@ -24,7 +24,6 @@
 
 #include "r_glad_core.h"
 
-#include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_video.h>
 
 #include "files.h"
