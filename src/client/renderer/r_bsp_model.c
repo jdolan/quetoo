@@ -717,8 +717,7 @@ static gboolean R_UniqueVerts_EqualFunc (gconstpointer a, gconstpointer b) {
  * and in here it searches the table by *vertex_index (and inserts it if need be) to trigger
  * the comparison functions that do the magic. It's easy to get lost in the indirection.
  */
-static GLuint R_LoadBspVertexArrays_FindOrAddVertex(r_model_t *mod, GLuint *vertex_index) {
-
+static GLuint R_LoadBspVertexArrays_FindOrAddVertex(GLuint *vertex_index) {
 	GLuint *lookup_index;
 
 	if ((lookup_index = g_hash_table_lookup(r_unique_vertices.hash_table, BSP_VERTEX_INDEX_AS_KEY(vertex_index)))) {
@@ -803,8 +802,7 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		Vector4Copy(tangent, mod->bsp->tangents[*vertices]);
 
 		// find the index that this vertex belongs to.
-		surf->elements[i] = R_LoadBspVertexArrays_FindOrAddVertex(mod, vertices);
-
+		surf->elements[i] = R_LoadBspVertexArrays_FindOrAddVertex(vertices);
 		(*elements)++;
 	}
 }

@@ -314,7 +314,7 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length);
 /**
  * @brief
  */
-static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *result, gpointer data) {
+static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *result, gpointer data __attribute((unused))) {
 	const gchar *name = g_match_info_fetch(match_info, 1);
 	gchar path[MAX_OS_PATH];
 	int64_t len;
