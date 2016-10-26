@@ -20,7 +20,6 @@
  */
 
 #include <SDL2/SDL_assert.h>
-#include <SDL2/SDL_log.h>
 
 #include "common.h"
 
@@ -145,12 +144,6 @@ void Com_Print(const char *fmt, ...) {
 		fputs(msg, stdout);
 		fflush(stdout);
 	}
-
-	// FIXME: not sure how to resolve this one, because
-	// prints happen before command buf is run and whatnot.
-	// developer may never be non-zero if crash happens very early.
-	if (!debug || debug->integer >= 3)
-		SDL_Log("%s", (const char *) msg);
 }
 
 /**

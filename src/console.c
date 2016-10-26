@@ -21,8 +21,6 @@
 
 #include <signal.h>
 
-#include <SDL2/SDL_log.h>
-
 #include "console.h"
 
 console_state_t console_state;
