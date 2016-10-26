@@ -98,42 +98,31 @@ void R_SelectTexture(r_texunit_t *texunit) {
 }
 
 /**
- * @brief Actually binds the specified texture for the active texture unit
- * if it is not already bound.
- */
-static _Bool R_BindTexture_Force(r_texunit_t *texunit, GLuint texnum) {
-
-	if (texnum == texunit->bound)
-		return false;
-
-	glBindTexture(GL_TEXTURE_2D, texnum);
-
-	texunit->bound = texnum;
-
-	r_view.num_bind_texture++;
-	return true;
-}
-
-/**
  * @brief Request that a texnum be bound to the specified texture unit.
  * returns true if it was indeed bound (for statistical analysis)
  */
 _Bool R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
 
-	if (texnum == texunit->texnum &&
-		texnum == texunit->bound)
+	if (texnum == texunit->texnum)
 		return false;
 
+	// save old texunit so we go back to it after
+	// this bind
 	r_texunit_t *old_unit = r_state.active_texunit;
-	_Bool bound;
+
 	R_SelectTexture(texunit);
 
-	if ((bound = R_BindTexture_Force(texunit, texnum)))
-		texunit->texnum = texnum;
+	// bind the texture
+	glBindTexture(GL_TEXTURE_2D, texnum);
 
+	texunit->texnum = texnum;
+
+	r_view.num_bind_texture++;
+
+	// restore old texunit
 	R_SelectTexture(old_unit);
 
-	return bound;
+	return true;
 }
 
 /**
@@ -507,8 +496,6 @@ void R_EnableTexture(r_texunit_t *texunit, _Bool enable) {
 
 	texunit->enabled = enable;
 
-	R_SelectTexture(texunit);
-
 	GLuint texnum;
 
 	if (enable) { // activate texture unit
@@ -519,10 +506,7 @@ void R_EnableTexture(r_texunit_t *texunit, _Bool enable) {
 		texnum = r_image_state.null ? r_image_state.null->texnum : 0;
 	}
 
-	if (R_BindTexture_Force(texunit, texnum))
-		texunit->texnum = texnum;
-
-	R_SelectTexture(&texunit_diffuse);
+	R_BindUnitTexture(texunit, texnum);
 }
 
 /**
@@ -979,6 +963,9 @@ void R_InitState(void) {
 			R_EnableTexture(texunit, false);
 		}
 	}
+
+	// default texture unit
+	R_SelectTexture(&texunit_diffuse);
 
 	R_EnableTexture(&texunit_diffuse, true);
 	

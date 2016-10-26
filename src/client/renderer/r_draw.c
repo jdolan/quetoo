@@ -305,7 +305,7 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 
 	// resolve ABGR color
 	const uint32_t *abgr = &r_draw.colors[color & (MAX_COLORS - 1)];
-	float colors[4];
+	vec4_t colors;
 
 	for (int i = 0; i < 4; ++i)
 		colors[i] = ((*abgr >> (i * 8)) & 0xFF) / 255.0;
@@ -419,7 +419,7 @@ static void R_DrawChars(void) {
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
 void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, vec_t a) {
-	float color[4];
+	vec4_t color;
 
 	if (a > 1.0) {
 		Com_Warn("Bad alpha %f\n", a);
@@ -437,10 +437,10 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 	}
 
 	// duplicate color data to all 4 verts
-	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 0], color, 4 * sizeof(float));
-	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 4], color, 4 * sizeof(float));
-	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 8], color, 4 * sizeof(float));
-	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 12], color, 4 * sizeof(float));
+	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 0], color, sizeof(vec4_t));
+	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 4], color, sizeof(vec4_t));
+	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 8], color, sizeof(vec4_t));
+	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 12], color, sizeof(vec4_t));
 
 	r_draw.fill_arrays.color_index += 16;
 
@@ -519,7 +519,7 @@ static void R_DrawFills(void) {
  * @brief
  */
 void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t c, vec_t a) {
-	float color[4];
+	vec4_t color;
 
 	if (a > 1.0) {
 		Com_Warn("Bad alpha %f\n", a);
@@ -537,8 +537,8 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 	}
 
 	// duplicate color data to all 4 verts
-	memcpy(&r_draw.line_arrays.colors[r_draw.line_arrays.color_index + 0], color, 4 * sizeof(float));
-	memcpy(&r_draw.line_arrays.colors[r_draw.line_arrays.color_index + 4], color, 4 * sizeof(float));
+	memcpy(&r_draw.line_arrays.colors[r_draw.line_arrays.color_index + 0], color, sizeof(vec4_t));
+	memcpy(&r_draw.line_arrays.colors[r_draw.line_arrays.color_index + 4], color, sizeof(vec4_t));
 
 	r_draw.line_arrays.color_index += 8;
 
