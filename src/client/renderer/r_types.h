@@ -893,7 +893,6 @@ typedef struct {
 	uint32_t num_mesh_tris;
 
 	_Bool update; // inform the client of state changes
-	_Bool scissor_enabled;
 } r_view_t;
 
 /**

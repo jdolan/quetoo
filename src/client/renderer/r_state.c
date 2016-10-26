@@ -871,19 +871,19 @@ void R_EnableTextureID(const uint8_t texunit_id, _Bool enable) {
 void R_EnableScissor(const SDL_Rect *bounds) {
 
 	if (!bounds) {
-		if (!r_view.scissor_enabled) {
+		if (!r_state.scissor_enabled) {
 			return;
 		}
 
 		glDisable(GL_SCISSOR_TEST);
-		r_view.scissor_enabled = false;
+		r_state.scissor_enabled = false;
 	
 		return;
 	}
 
-	if (!r_view.scissor_enabled) {
+	if (!r_state.scissor_enabled) {
 		glEnable(GL_SCISSOR_TEST);
-		r_view.scissor_enabled = true;
+		r_state.scissor_enabled = true;
 	}
 
 	glScissor(bounds->x, bounds->y, bounds->w, bounds->h);
