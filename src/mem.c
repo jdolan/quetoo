@@ -221,7 +221,7 @@ void *Mem_Realloc(void *p, size_t size) {
 	b->size = size;
 
 	if (!(b = realloc(b, s))) {
-		fprintf(stderr, "Failed to allocate %u bytes\n", (uint32_t) s);
+		fprintf(stderr, "Failed to re-allocate %u bytes\n", (uint32_t) s);
 		raise(SIGABRT);
 		return NULL;
 	}
