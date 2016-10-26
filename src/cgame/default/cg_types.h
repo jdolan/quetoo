@@ -22,9 +22,6 @@
 #ifndef __CG_TYPES_H__
 #define __CG_TYPES_H__
 
-// This is just to silence error about gl.h already being included by Objectively.
-#define USE_SDL_GL
-
 #include "cgame/cgame.h"
 #include "game/default/g_types.h"
 

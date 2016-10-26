@@ -22,9 +22,7 @@
 #ifndef __R_TYPES_H__
 #define __R_TYPES_H__
 
-#if !defined(USE_SDL_GL)
 #include "r_glad_core.h"
-#endif
 
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_video.h>

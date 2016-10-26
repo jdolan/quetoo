@@ -17,6 +17,7 @@ libui_la_SOURCES = \
 libui_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/client \
+	-I$(top_srcdir)/src/client/renderer \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@

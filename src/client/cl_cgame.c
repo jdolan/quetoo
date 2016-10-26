@@ -223,6 +223,7 @@ void Cl_InitCgame(void) {
 	import.EnableDepthTest = R_EnableDepthTest;
 	import.DepthRange = R_DepthRange;
 	import.EnableTextureID = R_EnableTextureID;
+	import.SetViewport = R_SetViewport;
 	import.AddLight = R_AddLight;
 	import.AddParticle = R_AddParticle;
 	import.AddSustainedLight = R_AddSustainedLight;

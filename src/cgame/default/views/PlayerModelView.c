@@ -76,7 +76,7 @@ static void render(View *self, Renderer *renderer) {
 		cgi.PushMatrix(R_MATRIX_MODELVIEW);
 
 		const SDL_Rect viewport = $(self, viewport);
-		glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
+		cgi.SetViewport(viewport.x, viewport.y, viewport.w, viewport.h);
 
 		// create projection matrix
 		const vec_t aspect = (vec_t) viewport.w / (vec_t) viewport.h;
@@ -117,7 +117,7 @@ static void render(View *self, Renderer *renderer) {
 		cgi.EnableDepthTest(false);
 		cgi.EnableTextureID(0, false);
 		
-		glViewport(0, 0, cgi.context->width, cgi.context->height);
+		cgi.SetViewport(0, 0, cgi.context->width, cgi.context->height);
 		
 		cgi.PopMatrix(R_MATRIX_MODELVIEW);
 		cgi.PopMatrix(R_MATRIX_PROJECTION);

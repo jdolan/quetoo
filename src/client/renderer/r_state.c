@@ -775,6 +775,25 @@ void R_UseInterpolation(const float lerp) {
 		r_state.active_program->UseInterpolation(lerp);
 }
 
+/**
+ * @brief Change the rendering viewport.
+ */
+void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
+
+	if (r_state.current_viewport.x == x &&
+		r_state.current_viewport.y == y &&
+		r_state.current_viewport.w == width &&
+		r_state.current_viewport.h == height)
+		return;
+	
+	r_state.current_viewport.x = x;
+	r_state.current_viewport.y = y;
+	r_state.current_viewport.w = width;
+	r_state.current_viewport.h = height;
+
+	glViewport(x, y, width, height);
+}
+
 #define NEAR_Z 4.0
 #define FAR_Z  (MAX_WORLD_COORD * 4.0)
 
@@ -788,7 +807,7 @@ void R_Setup3D(void) {
 		return;
 
 	const SDL_Rect *viewport = &r_view.viewport;
-	glViewport(viewport->x, viewport->y, viewport->w, viewport->h);
+	R_SetViewport(viewport->x, viewport->y, viewport->w, viewport->h);
 
 	// set up projection matrix
 	const vec_t aspect = (vec_t) viewport->w / (vec_t) viewport->h;
@@ -857,7 +876,7 @@ void R_DepthRange(GLdouble znear, GLdouble zfar) {
 /**
  * @brief Shortcut to toggling texunits by ID, for cgame.
  */
-void R_EnableTextureID(const int texunit_id, _Bool enable) {
+void R_EnableTextureID(const uint8_t texunit_id, _Bool enable) {
 
 	R_EnableTexture(&r_state.texunits[texunit_id], enable);
 }
@@ -892,7 +911,7 @@ void R_EnableScissor(const SDL_Rect *bounds) {
  */
 void R_Setup2D(void) {
 
-	glViewport(0, 0, r_context.width, r_context.height);
+	R_SetViewport(0, 0, r_context.width, r_context.height);
 
 	Matrix4x4_FromOrtho(&projection_matrix, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
 

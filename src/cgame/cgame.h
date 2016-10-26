@@ -583,7 +583,12 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Toggle the specified texunit.
 	 */
-	void (*EnableTextureID)(const int texunit_id, _Bool enable);
+	void (*EnableTextureID)(const uint8_t texunit_id, _Bool enable);
+
+	/**
+	 * @brief Change the rendering viewport.
+	 */
+	void (*SetViewport)(GLint x, GLint y, GLsizei width, GLsizei height);
 
 	/**
 	 * @brief Adds an instantaneous light to the scene for the current frame.

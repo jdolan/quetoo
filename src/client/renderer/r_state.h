@@ -33,7 +33,8 @@ void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
 void R_EnableDepthTest(_Bool enable);
 void R_DepthRange(GLdouble znear, GLdouble zfar);
-void R_EnableTextureID(const int texunit_id, _Bool enable);
+void R_EnableTextureID(const uint8_t texunit_id, _Bool enable);
+void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height);
 
 void R_PushMatrix(const r_matrix_id_t id);
 void R_PopMatrix(const r_matrix_id_t id);
@@ -134,6 +135,8 @@ typedef struct r_state_s {
 	// depth state
 	GLdouble depth_near;
 	GLdouble depth_far;
+
+	SDL_Rect current_viewport;
 
 	uint8_t max_active_lights;
 
