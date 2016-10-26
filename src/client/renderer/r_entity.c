@@ -187,31 +187,25 @@ void R_CullEntities(void *data __attribute__((unused))) {
  */
 static void R_DrawNullModel(const r_entity_t *e) {
 
-	/*R_EnableTexture(&texunit_diffuse, false);
+	R_EnableTexture(&texunit_diffuse, false);
 
 	R_RotateForEntity(e);
 
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3f(0.0, 0.0, -16.0);
-	for (int32_t i = 0; i <= 4; i++)
-		glVertex3f(16.0 * cos(i * M_PI_2), 16.0 * sin(i * M_PI_2), 0.0);
-	glEnd();
-
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3f(0.0, 0.0, 16.0);
-	for (int32_t i = 4; i >= 0; i--)
-		glVertex3f(16.0 * cos(i * M_PI_2), 16.0 * sin(i * M_PI_2), 0.0);
-	glEnd();
+	R_DrawArrays(GL_TRIANGLES, 0, r_model_state.null_elements_count);
 
 	R_RotateForEntity(NULL);
 
-	R_EnableTexture(&texunit_diffuse, true);*/
+	R_EnableTexture(&texunit_diffuse, true);
 }
 
 /**
  * @brief Draws all entities added to the view but missing a model.
  */
 static void R_DrawNullModels(const r_entities_t *ents) {
+	
+	R_BindArray(R_ARRAY_VERTEX, &r_model_state.null_vertices);
+
+	R_BindArray(R_ARRAY_ELEMENTS, &r_model_state.null_elements);
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];

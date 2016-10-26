@@ -176,4 +176,41 @@ r_model_t *R_WorldModel(void) {
  */
 void R_InitModels(void) {
 	memset(&r_model_state, 0, sizeof(r_model_state));
+
+	const vec3_t null_vertices[] = {
+		{ 0.0, 0.0, -16.0 },
+		{ 16.0 * cos(0 * M_PI_2), 16.0 * sin(0 * M_PI_2), 0.0 },
+		{ 16.0 * cos(1 * M_PI_2), 16.0 * sin(1 * M_PI_2), 0.0 },
+		{ 16.0 * cos(2 * M_PI_2), 16.0 * sin(2 * M_PI_2), 0.0 },
+		{ 16.0 * cos(3 * M_PI_2), 16.0 * sin(3 * M_PI_2), 0.0 },
+		{ 0.0, 0.0, 16.0 }
+	};
+
+	const GLuint null_elements[] = {
+		0, 1, 2,
+		0, 2, 3,
+		0, 3, 4,
+		0, 4, 1,
+
+		1, 2, 5,
+		2, 3, 5,
+		3, 4, 5,
+		4, 1, 5
+	};
+
+	r_model_state.null_elements_count = lengthof(null_elements);
+	
+	R_CreateBuffer(&r_model_state.null_vertices, GL_STATIC_DRAW, R_BUFFER_DATA, sizeof(null_vertices), null_vertices);
+
+	R_CreateBuffer(&r_model_state.null_elements, GL_STATIC_DRAW, R_BUFFER_ELEMENT, sizeof(null_elements), null_elements);
+}
+
+/**
+ * @brief Shuts down the model facilities.
+ */
+void R_ShutdownModels(void) {
+
+	R_DestroyBuffer(&r_model_state.null_vertices);
+
+	R_DestroyBuffer(&r_model_state.null_elements);
 }

@@ -637,6 +637,8 @@ void R_Shutdown(void) {
 
 	R_ShutdownDraw();
 
+	R_ShutdownModels();
+
 	R_ShutdownPrograms();
 
 	R_ShutdownState();
