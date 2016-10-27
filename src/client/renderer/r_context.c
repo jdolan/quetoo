@@ -78,8 +78,6 @@ void R_InitContext(void) {
 		flags |= SDL_WINDOW_RESIZABLE;
 	}
 
-	flags |= SDL_WINDOW_HIDDEN;
-
 	Com_Print("  Trying %dx%d..\n", w, h);
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -109,8 +107,6 @@ void R_InitContext(void) {
 	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 	}
-
-	SDL_ShowWindow(r_context.window);
 
 	int32_t attr[SDL_GL_CONTEXT_RELEASE_BEHAVIOR];
 	for (int32_t i = 0; i < SDL_GL_CONTEXT_RELEASE_BEHAVIOR; i++) {
