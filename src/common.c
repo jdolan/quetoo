@@ -19,42 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL2/SDL_assert.h>
-#include <SDL2/SDL_log.h>
-
 #include "common.h"
-
-extern cvar_t *debug;
-extern cvar_t *verbose;
-
-/**
- * @brief Print a debug statement. If the format begins with '!', the function
- * name is omitted.
- */
-void Com_Trace_(const char *func, const char *fmt, ...) {
-	char msg[MAX_PRINT_MSG];
-
-	if (fmt[0] != '!') {
-		g_snprintf(msg, sizeof(msg), "%s: ", func);
-	} else {
-		msg[0] = '\0';
-		fmt++;
-	}
-
-	const size_t len = strlen(msg);
-	va_list args;
-
-	va_start(args, fmt);
-	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
-	va_end(args);
-
-	if (quetoo.Debug) {
-		quetoo.Debug((const char *) msg);
-	} else {
-		fputs(msg, stdout);
-		fflush(stdout);
-	}
-}
 
 /**
  * @brief Print a debug statement. If the format begins with '!', the function
@@ -113,11 +78,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 
 	va_start(args, fmt);
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
-	va_end(args);
-
-	// trigger breakpoint before end but after msg is ready to read
-	if (debug && debug->integer >= 1)
-		SDL_TriggerBreakpoint();
+	va_end(args);// trigger breakpoint before end but after msg is ready to read
 
 	if (quetoo.Error) {
 		quetoo.Error(err, (const char *) msg);
@@ -145,12 +106,6 @@ void Com_Print(const char *fmt, ...) {
 		fputs(msg, stdout);
 		fflush(stdout);
 	}
-
-	// FIXME: not sure how to resolve this one, because
-	// prints happen before command buf is run and whatnot.
-	// developer may never be non-zero if crash happens very early.
-	if (!debug || debug->integer >= 3)
-		SDL_Log("%s", (const char *) msg);
 }
 
 /**
@@ -180,10 +135,6 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
 		fprintf(stderr, "WARNING: %s", msg);
 		fflush(stderr);
 	}
-
-	// trigger breakpoint after msg is ready to read
-	if (debug && debug->integer >= 2)
-		SDL_TriggerBreakpoint();
 }
 
 /**
@@ -210,12 +161,10 @@ void Com_Verbose(const char *fmt, ...) {
  * implementation, if provided. Should be called shortly after program
  * execution begins.
  */
-void Com_Init(int32_t argc, char **argv) {
+void Com_Init(int32_t argc, char *argv[]) {
 
 	quetoo.argc = argc;
 	quetoo.argv = argv;
-
-	//putenv("G_SLICE=always-malloc");
 
 	if (quetoo.Init) {
 		quetoo.Init();

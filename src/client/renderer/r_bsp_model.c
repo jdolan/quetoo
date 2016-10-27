@@ -675,7 +675,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  * @brief The hash function for unique vertices.
  * @see R_LoadBspVertexArrays_VertexElement
  */
-static guint R_UniqueVerts_HashFunc (gconstpointer key) {
+static guint R_UniqueVerts_HashFunc(gconstpointer key) {
 	const GLuint vi = BSP_VERTEX_INDEX_FOR_KEY(key);
 
 	return	g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][0]) ^
@@ -697,7 +697,7 @@ static guint R_UniqueVerts_HashFunc (gconstpointer key) {
  * comparison of the vertex attributes at those indices.
  * @see R_LoadBspVertexArrays_VertexElement
  */
-static gboolean R_UniqueVerts_EqualFunc (gconstpointer a, gconstpointer b) {
+static gboolean R_UniqueVerts_EqualFunc(gconstpointer a, gconstpointer b) {
 
 	const GLuint va = BSP_VERTEX_INDEX_FOR_KEY(a);
 	const GLuint vb = BSP_VERTEX_INDEX_FOR_KEY(b);

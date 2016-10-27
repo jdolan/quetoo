@@ -22,6 +22,8 @@
 #include <setjmp.h>
 #include <signal.h>
 
+#include <SDL2/SDL_assert.h>
+
 #include "config.h"
 #include "client/client.h"
 #include "server/server.h"
@@ -30,13 +32,14 @@ static jmp_buf env;
 
 quetoo_t quetoo;
 
-cvar_t *debug;
+static cvar_t *debug;
+static cvar_t *verbose;
+
 cvar_t *dedicated;
 cvar_t *game;
 static cvar_t *threads;
 cvar_t *time_demo;
 cvar_t *time_scale;
-cvar_t *verbose;
 
 static void Debug(const char *msg);
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
@@ -50,7 +53,11 @@ static void Warn(const char *msg);
  */
 static void Debug(const char *msg) {
 
-	if (debug && debug->integer) {
+	if (debug->integer) {
+		if (debug->integer > 2) {
+			SDL_TriggerBreakpoint();
+		}
+
 		Print(msg);
 	}
 }
@@ -60,6 +67,10 @@ static void Debug(const char *msg) {
  * recover, or we may shut the entire engine down and exit.
  */
 static void Error(err_t err, const char *msg) {
+
+	if (debug->integer) {
+		SDL_TriggerBreakpoint();
+	}
 
 	Print(va("^1%s\n", msg));
 
@@ -96,10 +107,13 @@ static void Print(const char *msg) {
  */
 static void Verbose(const char *msg) {
 
-	if (verbose && verbose->integer) {
+	if (debug->integer > 1) {
+		SDL_TriggerBreakpoint();
+	}
+	
+	if (verbose->integer) {
 		Print(msg);
 	}
-
 }
 
 /**
@@ -131,9 +145,8 @@ static void Init(void) {
 
 	Cvar_Init();
 
-	Fs_Init(true);
-	
 	debug = Cvar_Add("debug", "0", 0, "Print debugging information");
+	verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 
 	dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
 	if (strstr(Sys_ExecutablePath(), "-dedicated")) {
@@ -148,15 +161,23 @@ static void Init(void) {
 	game->modified = g_strcmp0(game->string, DEFAULT_GAME);
 
 	threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create");
+	threads->modified = false;
+
 	time_demo = Cvar_Add("time_demo", "0", CVAR_LO_ONLY, "Benchmark and stress test");
 	time_scale = Cvar_Add("time_scale", "1.0", CVAR_LO_ONLY, "Controls time lapse");
-	verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 
 	const char *s = va("Quetoo %s %s %s", VERSION, __DATE__, BUILD_HOST);
 	Cvar_Add("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
+	quetoo.Debug = Debug;
+	quetoo.Error = Error;
+	quetoo.Print = Print;
+	quetoo.Verbose = Verbose;
+	quetoo.Warn = Warn;
+
+	Fs_Init(true);
+
 	Thread_Init(threads->integer);
-	threads->modified = false;
 
 	Con_Init();
 
@@ -242,7 +263,7 @@ static void Frame(const uint32_t msec) {
 /**
  * @brief The entry point of the program.
  */
-int32_t main(int32_t argc, char **argv) {
+int32_t main(int32_t argc, char *argv[]) {
 	static uint32_t old_time;
 	uint32_t msec;
 
@@ -251,12 +272,6 @@ int32_t main(int32_t argc, char **argv) {
 	memset(&quetoo, 0, sizeof(quetoo));
 
 	quetoo.time = SDL_GetTicks();
-
-	quetoo.Debug = Debug;
-	quetoo.Error = Error;
-	quetoo.Print = Print;
-	quetoo.Verbose = Verbose;
-	quetoo.Warn = Warn;
 
 	quetoo.Init = Init;
 	quetoo.Shutdown = Shutdown;

@@ -81,8 +81,6 @@ cvar_t *r_width;
 cvar_t *r_windowed_height;
 cvar_t *r_windowed_width;
 
-extern cvar_t *verbose;
-
 // render mode function pointers
 BspSurfacesDrawFunc R_DrawOpaqueBspSurfaces;
 BspSurfacesDrawFunc R_DrawOpaqueWarpBspSurfaces;
@@ -521,74 +519,32 @@ static void R_InitConfig(void) {
 	// initialize GL pointers
 	gladLoadGL();
 
-	r_config.renderer_string = (const char *) glGetString(GL_RENDERER);
-	r_config.vendor_string = (const char *) glGetString(GL_VENDOR);
-	r_config.version_string = (const char *) glGetString(GL_VERSION);
+	r_config.renderer = (const char *) glGetString(GL_RENDERER);
+	r_config.vendor = (const char *) glGetString(GL_VENDOR);
+	r_config.version = (const char *) glGetString(GL_VERSION);
+	r_config.extensions = (const char *) glGetString(GL_EXTENSIONS);
 
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
 
-	Com_Print("  Renderer:   ^2%s^7\n", r_config.renderer_string);
-	Com_Print("  Vendor:     ^2%s^7\n", r_config.vendor_string);
-	Com_Print("  Version:    ^2%s^7\n", r_config.version_string);
+	Com_Print("  Renderer:   ^2%s^7\n", r_config.renderer);
+	Com_Print("  Vendor:     ^2%s^7\n", r_config.vendor);
+	Com_Print("  Version:    ^2%s^7\n", r_config.version);
 
-	if (verbose->integer >= 1) {
+	const char *e = r_config.extensions, *c = r_config.extensions;
+	while (*c) {
 
-		GString *extension_string = g_string_new((const gchar *) glGetString(GL_EXTENSIONS));
-
-		// extension string can be gigantic, so let's pretty it up a bit.
-		GString *pretty_string = g_string_new(NULL);
-		const char *extensions_in = extension_string->str;
-		const char *extension_prefix = "  Extensions: ";
-		int num_waiting = 0;
-
-		while (true) {
-
-			// up here, we are assumed to be either at EOF or at a GL_ boundary.
-			// just be sure first.
-			while (*extensions_in && *extensions_in != 'G') {
-				++extensions_in;
+		if (*c == ' ') {
+			char *ext = g_strndup(e, (ptrdiff_t) (c - e));
+			if (e == r_config.extensions) {
+				Com_Verbose("  Extensions: ^2%s^7\n", ext);
+			} else {
+				Com_Verbose("              ^2%s^7\n", ext);
 			}
-
-			// done, print what's left
-			if (!*extensions_in) {
-
-				if (pretty_string->len) {
-					Com_Print("%s^2%s^7\n", extension_prefix, pretty_string->str);
-				}
-
-				break;
-			}
-
-			// append a space if we're not at the end
-			if (pretty_string->len) {
-				pretty_string = g_string_append(pretty_string, " ");
-			}
-
-			// skip the "GL_"
-			extensions_in += 3;
-
-			size_t len = 0;
-
-			for (; extensions_in[len]; ++len)
-				if (extensions_in[len] == ' ')
-					break;
-
-			pretty_string = g_string_append_len(pretty_string, extensions_in, len);
-			++num_waiting;
-
-			extensions_in += len + 1;
-
-			// print 7 at a time
-			if (num_waiting == 7) {
-				Com_Print("%s^2%s^7\n", extension_prefix, pretty_string->str);
-				extension_prefix = "              ";
-				num_waiting = 0;
-				pretty_string = g_string_truncate(pretty_string, 0);
-			}
+			g_free(ext);
+			e = c + 1;
 		}
 
-		g_string_free(pretty_string, true);
-		g_string_free(extension_string, true);
+		c++;
 	}
 }
 

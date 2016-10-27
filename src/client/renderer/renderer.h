@@ -36,6 +36,7 @@
 #include "r_element.h"
 #include "r_entity.h"
 #include "r_flare.h"
+#include "r_glad_core.h"
 #include "r_image.h"
 #include "r_light.h"
 #include "r_lighting.h"

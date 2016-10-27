@@ -23,29 +23,25 @@
 
 #include <assert.h>
 
-#include "ui_local.h"
-
-#include "client.h"
-
 #include "RendererQuetoo.h"
+
+#include "ui_local.h"
 
 #define _Class _RendererQuetoo
 
 #pragma mark - RendererQuetoo
 
 /**
- * @fn void RendererQuetoo::beginFrame(Renderer *self)
+ * @see Renderer::beginFrame(Renderer *self)
  * @memberof RendererQuetoo
  */
 static void beginFrame(Renderer *self) {
 
-	// set color to white
 	R_Color(NULL);
 }
 
 /**
- * @fn void RendererQuetoo::drawLine(const Renderer *self, const SDL_Point *points, size_t count)
- * @memberof RendererQuetoo
+ * @see Renderer::drawLine(const Renderer *self, const SDL_Point *points, size_t count)
  */
 static void drawLine(const Renderer *self, const SDL_Point *points) {
 
@@ -55,8 +51,7 @@ static void drawLine(const Renderer *self, const SDL_Point *points) {
 }
 
 /**
- * @fn void RendererQuetoo::drawLines(const Renderer *self, const SDL_Point *points, size_t count)
- * @memberof RendererQuetoo
+ * @see Renderer::drawLines(const Renderer *self, const SDL_Point *points, size_t count)
  */
 static void drawLines(const Renderer *self, const SDL_Point *points, size_t count) {
 	assert(points);
@@ -65,12 +60,12 @@ static void drawLines(const Renderer *self, const SDL_Point *points, size_t coun
 }
 
 /**
- * @fn void RendererQuetoo::drawRect(const Renderer *self, const SDL_Rect *rect)
- * @memberof RendererQuetoo
+ * @see Renderer::drawRect(const Renderer *self, const SDL_Rect *rect)
  */
 static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 
 	assert(rect);
+
 	const SDL_Point points[] = {
 		{ rect->x,					rect->y },
 		{ rect->x + rect->w - 1,	rect->y },
@@ -82,33 +77,29 @@ static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 }
 
 /**
- * @fn void RendererQuetoo::drawRectFilled(const Renderer *self, const SDL_Rect *rect)
- * @memberof RendererQuetoo
+ * @see Renderer::drawRectFilled(const Renderer *self, const SDL_Rect *rect)
  */
 static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
 
 	assert(rect);
+
 	R_DrawFillUI(rect);
 }
 
 /**
- * @fn void RendererQuetoo::drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *dest)
- * @memberof RendererQuetoo
+ * @see Renderer::drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *dest)
  */
 static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *rect) {
 
 	assert(rect);
 
-	static r_image_t image;
-
-	image.texnum = texture;
+	const r_image_t image = { .texnum = texture };
 
 	R_DrawImageResized(rect->x, rect->y, rect->w, rect->h, &image);
 }
 
 /**
- * @fn void RendererQuetoo::endFrame(RendererQuetoo *self)
- * @memberof RendererQuetoo
+ * @see Renderer::endFrame(RendererQuetoo *self)
  */
 static void endFrame(Renderer *self) {
 	
@@ -116,8 +107,7 @@ static void endFrame(Renderer *self) {
 }
 
 /**
- * @fn void RendererQuetoo::setDrawColor(Renderer *self, const SDL_Color *color)
- * @memberof RendererQuetoo
+ * @see Renderer::setDrawColor(Renderer *self, const SDL_Color *color)
  */
 static void setDrawColor(Renderer *self, const SDL_Color *color) {
 
@@ -135,8 +125,7 @@ static void setDrawColor(Renderer *self, const SDL_Color *color) {
 }
 
 /**
- * @fn void RendererQuetoo::setClippingFrame(Renderer *self, const SDL_Rect *frame)
- * @memberof RendererQuetoo
+ * @see Renderer::setClippingFrame(Renderer *self, const SDL_Rect *frame)
  */
 static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
 
@@ -157,14 +146,7 @@ static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
  * @memberof RendererQuetoo
  */
 static RendererQuetoo *init(RendererQuetoo *self) {
-	
-	self = (RendererQuetoo *) super(Renderer, self, init);
-
-	if (self) {
-
-	}
-	
-	return self;
+	return (RendererQuetoo *) super(Renderer, self, init);
 }
 
 #pragma mark - Class lifecycle
