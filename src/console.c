@@ -397,13 +397,13 @@ _Bool Con_CompleteInput(console_t *console) {
 		max_len--; // prevent buffer overflow
 	}
 
+	const size_t partial_len = strlen(partial);
+
 	if (!*partial)
 		return false; // lets start with at least something
 
-	// tokenize the input
 	Cmd_TokenizeString(partial);
 
-	// find the command name to poke for autocompletes
 	uint32_t argi = Cmd_Argc() - 1;
 	const _Bool new_argument = partial[strlen(partial) - 1] == ' ';
 	
@@ -412,13 +412,10 @@ _Bool Con_CompleteInput(console_t *console) {
 
 	AutocompleteFunc autocomplete = NULL;
 
-	// only a single argument and no space awaiting a new piece
-	// of input, so assume they are trying to complete root command
 	if (argi == 0) {
 		autocomplete = Con_AutocompleteInput_f;
 	}
 	else {
-		// find the command or cvar we're trying to complete.
 		const char *name = Cmd_Argv(0);
 		const cmd_t *command = Cmd_Get(name);
 
@@ -433,25 +430,19 @@ _Bool Con_CompleteInput(console_t *console) {
 		}
 	}
 
-	// if there wasn't an autocomplete function available, we're done.
 	if (!autocomplete)
 		return false;
 
-	// call the autocomplete function.
 	autocomplete(argi, &matches);
 
-	// no matches? we're done. get outta here
 	if (g_list_length(matches) == 0)
 		return false;
 
 	_Bool output_quotes = false;
 
-	// 1 match, just use it as the argument.
 	if (g_list_length(matches) == 1) {
 		match = (char *) g_list_nth_data(matches, 0);
 
-		// add space to the end.
-		// if the match contains a space, wrap it in quotes
 		if (strchr(match, ' ') != NULL) {
 			match = va("\"%s\" ", match);
 			output_quotes = true;
@@ -459,72 +450,46 @@ _Bool Con_CompleteInput(console_t *console) {
 		else
 			match = va("%s ", match);
 	}
-	else { // multiple matches, find common prefix
+	else {
 		match = CommonPrefix(matches);
 
-		// if the match contains a space, prepend quote
 		if (strchr(match, ' ') != NULL) {
 			match = va("\"%s", match);
 			output_quotes = true;
 		}
 	}
 
-	// good to go, emplace the final argument into the buffer.
-
-	// if we're waiting for a new argument, we can just concat the
-	// new string onto the end
 	if (new_argument) {
 		g_strlcat(partial, match, max_len);
 	} else {
-		// trying to replace the last argument
-		size_t last_space = 0;
+		size_t arg_pos = 0;
 		_Bool input_quotes = false;
 		
-		// if we have arguments, count backwards to find where to put us.
 		if (Cmd_Argc() > 1) {
 			const char *last_arg = Cmd_Argv(Cmd_Argc() - 1);
-			last_space = strlen(partial);
+			arg_pos = strlen(partial) - strlen(last_arg);
 
-			// remove the last " if we ended with one
-			if (partial[last_space - 1] == '"') {
-				last_space--;
-				input_quotes = true;
-			}
+			uint8_t num_quotes = (partial[partial_len - 1] == '"') + (partial[arg_pos - 1 - (partial[partial_len - 1] == '"')] == '"');
 
-			// subtract by the total len of the argument
-			last_space -= strlen(last_arg);
-
-			// check if we had a " here too. This should handle
-			// both cases of 'bind "Left A"' and 'bind "Left '
-			// (mismatched quotes)
-			if (partial[last_space - 1] == '"') {
-				last_space--;
+			if (num_quotes) {
+				arg_pos -= num_quotes;
 				input_quotes = true;
 			}
 		}
 
-		// if the output won't append quotes,
-		// but we had quotes put in to begin with,
-		// re-assemble the quotes.
 		if (!output_quotes && input_quotes) {
 
-			// if we're the only match, we can close the quote,
-			// otherwise leave the quote open even if the input
-			// had both quotes there.
 			if (g_list_length(matches) == 1)
 				match = va("\"%s\"", match);
 			else
 				match = va("\"%s", match);
 		}
 
-		// emplace!
-		g_snprintf(partial + last_space, max_len - last_space, "%s", match);
+		g_snprintf(partial + arg_pos, max_len - arg_pos, "%s", match);
 	}
 
-	// set the caret to the end of the buffer
 	console->input.pos = strlen(console->input.buffer);
 
-	// later matches
 	g_list_free_full(matches, Mem_Free);
 
 	return true;
