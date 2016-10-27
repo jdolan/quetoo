@@ -119,6 +119,14 @@ static _Bool Sv_SetPlayer(void) {
 }
 
 /**
+ * @brief Demo command autocompletion.
+ */
+static void Sv_Demo_Autocomplete_f(const uint32_t argi, GList **matches) {
+	const char *pattern = va("demos/%s*.demo", Cmd_Argv(argi));
+	Fs_CompleteFile(pattern, matches);
+}
+
+/**
  * @brief Starts playback of the specified demo file.
  */
 static void Sv_Demo_f(void) {
@@ -130,6 +138,14 @@ static void Sv_Demo_f(void) {
 
 	// start up the demo
 	Sv_InitServer(Cmd_Argv(1), SV_ACTIVE_DEMO);
+}
+
+/**
+ * @brief Map command autocompletion.
+ */
+static void Sv_Map_Autocomplete_f(const uint32_t argi, GList **matches) {
+	const char *pattern = va("maps/%s*.bsp", Cmd_Argv(argi));
+	Fs_CompleteFile(pattern, matches);
 }
 
 /**
@@ -382,8 +398,11 @@ void Sv_InitAdmin(void) {
 	Cmd_Add("server_info", Sv_ServerInfo_f, CMD_SERVER, "Print server info settings");
 	Cmd_Add("user_info", Sv_UserInfo_f, CMD_SERVER, "Print information for a given user");
 
-	Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file");
-	Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map");
+	cmd_t *demo_cmd = Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file");
+	Cmd_SetAutocomplete(demo_cmd, Sv_Demo_Autocomplete_f);
+
+	cmd_t *map_cmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map");
+	Cmd_SetAutocomplete(map_cmd, Sv_Map_Autocomplete_f);
 
 	Cmd_Add("set_master", Sv_SetMaster_f, CMD_SERVER,
 			"Set the master server(s) for the dedicated server");

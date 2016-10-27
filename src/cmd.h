@@ -44,6 +44,7 @@ typedef void (*CmdEnumerateFunc)(cmd_t *cmd, void *data);
 cmd_t *Cmd_Get(const char *name);
 void Cmd_Enumerate(CmdEnumerateFunc func, void *data);
 cmd_t *Cmd_Add(const char *name, CmdExecuteFunc func, uint32_t flags, const char *description);
+void Cmd_SetAutocomplete(cmd_t *cmd, AutocompleteFunc autocomplete);
 void Cmd_Remove(const char *name);
 void Cmd_RemoveAll(uint32_t flags);
 void Cmd_CompleteCommand(const char *pattern, GList **matches);

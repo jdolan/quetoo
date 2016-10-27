@@ -210,6 +210,7 @@ _Bool Con_CompleteInput(console_t *console);
 void Con_SubmitInput(console_t *console);
 void Con_AddConsole(const console_t *console);
 void Con_RemoveConsole(const console_t *console);
+void Con_AutocompleteInput_f(const uint32_t argi, GList **matches);
 void Con_Init(void);
 void Con_Shutdown(void);
 

@@ -402,6 +402,29 @@ static void Cl_UnbindAll_f(void) {
 }
 
 /**
+ * @brief Bind command autocomplete
+ */
+static void Cl_Bind_Autocomplete_f(const uint32_t argi, GList **matches) {
+
+	if (argi != 1)
+		return;
+
+	const char *pattern = va("%s*", Cmd_Argv(argi));
+
+	for (uint32_t i = 0; i < SDL_NUM_SCANCODES; ++i) {
+		const char *keyName = cl_key_names[i];
+
+		if (!keyName || !keyName[i])
+			continue;
+
+		if (GlobMatch(pattern, keyName)) {
+			*matches = g_list_prepend(*matches, Mem_CopyString(keyName));
+			Com_Print("%s\n", keyName);
+		}
+	}
+}
+
+/**
  * @brief
  */
 static void Cl_Bind_f(void) {
@@ -493,8 +516,12 @@ void Cl_InitKeys(void) {
 	memset(&cls.key_state, 0, sizeof(cl_key_state_t));
 
 	// register our functions
-	Cmd_Add("bind", Cl_Bind_f, CMD_CLIENT, NULL);
-	Cmd_Add("unbind", Cl_Unbind_f, CMD_CLIENT, NULL);
+	cmd_t *bind_cmd = Cmd_Add("bind", Cl_Bind_f, CMD_CLIENT, NULL);
+	cmd_t *unbind_cmd = Cmd_Add("unbind", Cl_Unbind_f, CMD_CLIENT, NULL);
+
+	Cmd_SetAutocomplete(bind_cmd, Cl_Bind_Autocomplete_f);
+	Cmd_SetAutocomplete(unbind_cmd, Cl_Bind_Autocomplete_f);
+
 	Cmd_Add("unbind_all", Cl_UnbindAll_f, CMD_CLIENT, NULL);
 	Cmd_Add("bind_list", Cl_BindList_f, CMD_CLIENT, NULL);
 

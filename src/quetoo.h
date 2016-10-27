@@ -161,6 +161,17 @@ typedef enum {
 } mem_tag_t;
 
 /**
+ * @brief Autocomplete function definition. You must fill "matches"
+ * with any results that match the state of the current input buffer.
+ * You can fetch the current state of the typed command with the Cmd_Arg*
+ * functions.
+ *
+ * @param argi The index of the argument being autocompleted.
+ * @param matches The list of matches you need to write to.
+ */
+typedef void (*AutocompleteFunc)(const uint32_t argi, GList **matches);
+
+/**
  * @brief Console variables hold mutable scalars and strings.
  */
 typedef struct cvar_s {
@@ -173,6 +184,7 @@ typedef struct cvar_s {
 	uint32_t flags;
 	const char *description;
 	_Bool modified; // set each time the cvar is changed
+	AutocompleteFunc Autocomplete;
 } cvar_t;
 
 typedef void (*CmdExecuteFunc)(void);
@@ -184,6 +196,7 @@ typedef struct cmd_s {
 	const char *name;
 	const char *description;
 	CmdExecuteFunc Execute;
+	AutocompleteFunc Autocomplete;
 	const char *commands; // for alias commands
 	uint32_t flags;
 } cmd_t;

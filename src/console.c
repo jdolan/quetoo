@@ -368,6 +368,17 @@ void Con_WriteHistory(const console_t *console, file_t *file) {
 }
 
 /**
+ * @brief Tab completion for cvars & commands. This is the "generic case".
+ */
+void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
+	const char *partial = Cmd_Argv(argi);
+	const char *pattern = va("%s*", partial);
+
+	Cmd_CompleteCommand(pattern, matches);
+	Cvar_CompleteVar(pattern, matches);
+}
+
+/**
  * @brief Tab completion. Query various subsystems for potential
  * matches, and append an appropriate string to the input buffer. If no
  * matches are found, do nothing. If only one match is found, simply
@@ -375,51 +386,148 @@ void Con_WriteHistory(const console_t *console, file_t *file) {
  * common prefix they all share.
  */
 _Bool Con_CompleteInput(console_t *console) {
-	const char *pattern, *match;
+	const char *match;
 	GList *matches = NULL;
 
 	char *partial = console->input.buffer;
-	if (*partial == '\\' || *partial == '/')
+	size_t max_len = sizeof(console->input.buffer) - 1;
+
+	if (*partial == '\\' || *partial == '/') {
 		partial++;
+		max_len--; // prevent buffer overflow
+	}
 
 	if (!*partial)
 		return false; // lets start with at least something
 
-	// handle special cases for commands which accept filenames
-	if (g_str_has_prefix(partial, "demo ")) {
-		partial += strlen("demo ");
-		pattern = va("demos/%s*.demo", partial);
-		Fs_CompleteFile(pattern, &matches);
-	} else if (g_str_has_prefix(partial, "exec ")) {
-		partial += strlen("exec ");
-		pattern = va("%s*.cfg", partial);
-		Fs_CompleteFile(pattern, &matches);
-	} else if (g_str_has_prefix(partial, "map ")) {
-		partial += strlen("map ");
-		pattern = va("maps/%s*.bsp", partial);
-		Fs_CompleteFile(pattern, &matches);
-	} else if (g_str_has_prefix(partial, "set ")) {
-		partial += strlen("set ");
-		pattern = va("%s*", partial);
-		Cvar_CompleteVar(pattern, &matches);
-	} else { // handle general case for commands and variables
-		pattern = va("%s*", partial);
-		Cmd_CompleteCommand(pattern, &matches);
-		Cvar_CompleteVar(pattern, &matches);
+	// tokenize the input
+	Cmd_TokenizeString(partial);
+
+	// find the command name to poke for autocompletes
+	uint32_t argi = Cmd_Argc() - 1;
+	const _Bool new_argument = partial[strlen(partial) - 1] == ' ';
+	
+	if (new_argument)
+		argi++;
+
+	AutocompleteFunc autocomplete = NULL;
+
+	// only a single argument and no space awaiting a new piece
+	// of input, so assume they are trying to complete root command
+	if (argi == 0) {
+		autocomplete = Con_AutocompleteInput_f;
+	}
+	else {
+		// find the command or cvar we're trying to complete.
+		const char *name = Cmd_Argv(0);
+		const cmd_t *command = Cmd_Get(name);
+
+		if (command) {
+			autocomplete = command->Autocomplete;
+		} else {
+			const cvar_t *cvar = Cvar_Get(name);
+
+			if (cvar) {
+				autocomplete = cvar->Autocomplete;
+			}
+		}
 	}
 
+	// if there wasn't an autocomplete function available, we're done.
+	if (!autocomplete)
+		return false;
+
+	// call the autocomplete function.
+	autocomplete(argi, &matches);
+
+	// no matches? we're done. get outta here
 	if (g_list_length(matches) == 0)
 		return false;
 
-	if (g_list_length(matches) == 1)
-		match = va("%s ", (char *) g_list_nth_data(matches, 0));
-	else
+	_Bool output_quotes = false;
+
+	// 1 match, just use it as the argument.
+	if (g_list_length(matches) == 1) {
+		match = (char *) g_list_nth_data(matches, 0);
+
+		// add space to the end.
+		// if the match contains a space, wrap it in quotes
+		if (strchr(match, ' ') != NULL) {
+			match = va("\"%s\" ", match);
+			output_quotes = true;
+		}
+		else
+			match = va("%s ", match);
+	}
+	else { // multiple matches, find common prefix
 		match = CommonPrefix(matches);
 
-	const size_t len = sizeof(console->input.buffer) - 1;
-	g_snprintf(partial, len - (partial - console->input.buffer), "%s", match);
+		// if the match contains a space, wrap it in quotes
+		if (strchr(match, ' ') != NULL) {
+			match = va("\"%s\"", match);
+			output_quotes = true;
+		}
+	}
+
+	// good to go, emplace the final argument into the buffer.
+
+	// if we're waiting for a new argument, we can just concat the
+	// new string onto the end
+	if (new_argument) {
+		g_strlcat(partial, match, max_len);
+	} else {
+		// trying to replace the last argument
+		size_t last_space = 0;
+		_Bool input_quotes = false;
+		
+		// if we have arguments, count backwards to find where to put us.
+		if (Cmd_Argc() > 1) {
+			const char *last_arg = Cmd_Argv(Cmd_Argc() - 1);
+			last_space = strlen(partial);
+
+			// remove the last " if we ended with one
+			if (partial[last_space - 1] == '"') {
+				last_space--;
+				input_quotes = true;
+			}
+
+			// subtract by the total len of the argument
+			last_space -= strlen(last_arg);
+
+			// check if we had a " here too. This should handle
+			// both cases of 'bind "Left A"' and 'bind "Left '
+			// (mismatched quotes)
+			if (partial[last_space - 1] == '"') {
+				last_space--;
+				input_quotes = true;
+			}
+		}
+
+		// if the output won't append quotes,
+		// but we had quotes put in to begin with,
+		// re-assemble the quotes.
+		if (!output_quotes) {
+
+			if (input_quotes || (!input_quotes && strchr(partial, ' ') != NULL)) {
+
+				// if we're the only match, we can close the quote,
+				// otherwise leave the quote open even if the input
+				// had both quotes there.
+				if (g_list_length(matches) == 1)
+					match = va("\"%s\"", match);
+				else
+					match = va("\"%s", match);
+			}
+		}
+
+		// emplace!
+		g_snprintf(partial + last_space, max_len - last_space, "%s", match);
+	}
+
+	// set the caret to the end of the buffer
 	console->input.pos = strlen(console->input.buffer);
 
+	// later matches
 	g_list_free_full(matches, Mem_Free);
 
 	return true;

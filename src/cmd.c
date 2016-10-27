@@ -315,6 +315,13 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 }
 
 /**
+ * @brief Assign the specified autocomplete function to the given command.
+ */
+void Cmd_SetAutocomplete(cmd_t *cmd, AutocompleteFunc autocomplete) {
+	cmd->Autocomplete = autocomplete;
+}
+
+/**
  * @brief Adds the specified alias command, bound to the given commands string.
  */
 static cmd_t *Cmd_Alias(const char *name, const char *commands) {
@@ -510,6 +517,14 @@ static void Cmd_List_f(void) {
 }
 
 /**
+ * @brief Demo command autocompletion.
+ */
+static void Cmd_Exec_Autocomplete_f(const uint32_t argi, GList **matches) {
+	const char *pattern = va("%s*.cfg", Cmd_Argv(argi));
+	Fs_CompleteFile(pattern, matches);
+}
+
+/**
  * @brief Executes the specified script file (e.g autoexec.cfg).
  */
 static void Cmd_Exec_f(void) {
@@ -567,7 +582,8 @@ void Cmd_Init(void) {
 	Mem_InitBuffer(&cmd_state.buf, (byte *) cmd_state.buffers[0], sizeof(cmd_state.buffers[0]));
 
 	Cmd_Add("cmd_list", Cmd_List_f, 0, NULL);
-	Cmd_Add("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
+	cmd_t *exec_cmd = Cmd_Add("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
+	Cmd_SetAutocomplete(exec_cmd, Cmd_Exec_Autocomplete_f);
 	Cmd_Add("echo", Cmd_Echo_f, 0, NULL);
 	Cmd_Add("alias", Cmd_Alias_f, CMD_SYSTEM, NULL);
 	Cmd_Add("wait", Cmd_Wait_f, 0, NULL);

@@ -489,6 +489,14 @@ _Bool Cvar_Command(void) {
 }
 
 /**
+ * @brief Set command autocompletion.
+ */
+static void Cvar_Set_Autocomplete_f(const uint32_t argi, GList **matches) {
+	const char *pattern = va("%s*", Cmd_Argv(argi));
+	Cvar_CompleteVar(pattern, matches);
+}
+
+/**
  * @brief Allows setting and defining of arbitrary cvars from console
  */
 static void Cvar_Set_f(void) {
@@ -684,12 +692,20 @@ void Cvar_Init(void) {
 
 	cvar_state.vars = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
 
-	Cmd_Add("set", Cvar_Set_f, 0, "Set a console variable");
-	Cmd_Add("seta", Cvar_Set_f, 0, "Set an archived console variable");
-	Cmd_Add("sets", Cvar_Set_f, 0, "Set a server-info console variable");
-	Cmd_Add("setu", Cvar_Set_f, 0, "Set a user-info console variable");
+	cmd_t *set_cmd = Cmd_Add("set", Cvar_Set_f, 0, "Set a console variable");
+	cmd_t *seta_cmd = Cmd_Add("seta", Cvar_Set_f, 0, "Set an archived console variable");
+	cmd_t *sets_cmd = Cmd_Add("sets", Cvar_Set_f, 0, "Set a server-info console variable");
+	cmd_t *setu_cmd = Cmd_Add("setu", Cvar_Set_f, 0, "Set a user-info console variable");
 
-	Cmd_Add("toggle", Cvar_Toggle_f, 0, NULL);
+	Cmd_SetAutocomplete(set_cmd, Cvar_Set_Autocomplete_f);
+	Cmd_SetAutocomplete(seta_cmd, Cvar_Set_Autocomplete_f);
+	Cmd_SetAutocomplete(sets_cmd, Cvar_Set_Autocomplete_f);
+	Cmd_SetAutocomplete(setu_cmd, Cvar_Set_Autocomplete_f);
+
+	cmd_t *toggle_cmd = Cmd_Add("toggle", Cvar_Toggle_f, 0, "Toggle a cvar between 0 and 1");
+
+	Cmd_SetAutocomplete(toggle_cmd, Cvar_Set_Autocomplete_f);
+
 	Cmd_Add("cvar_list", Cvar_List_f, 0, NULL);
 
 	for (int32_t i = 1; i < Com_Argc(); i++) {
