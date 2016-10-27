@@ -231,7 +231,6 @@ typedef struct {
 
 	int32_t first_edge; // look up in model->surf_edges, negative numbers
 	uint16_t num_edges; // are backwards edges
-	uint32_t num_elements; // number of elements
 
 	vec3_t mins;
 	vec3_t maxs;
