@@ -462,9 +462,9 @@ _Bool Con_CompleteInput(console_t *console) {
 	else { // multiple matches, find common prefix
 		match = CommonPrefix(matches);
 
-		// if the match contains a space, wrap it in quotes
+		// if the match contains a space, prepend quote
 		if (strchr(match, ' ') != NULL) {
-			match = va("\"%s\"", match);
+			match = va("\"%s", match);
 			output_quotes = true;
 		}
 	}
@@ -506,18 +506,15 @@ _Bool Con_CompleteInput(console_t *console) {
 		// if the output won't append quotes,
 		// but we had quotes put in to begin with,
 		// re-assemble the quotes.
-		if (!output_quotes) {
+		if (!output_quotes && input_quotes) {
 
-			if (input_quotes || (!input_quotes && strchr(partial, ' ') != NULL)) {
-
-				// if we're the only match, we can close the quote,
-				// otherwise leave the quote open even if the input
-				// had both quotes there.
-				if (g_list_length(matches) == 1)
-					match = va("\"%s\"", match);
-				else
-					match = va("\"%s", match);
-			}
+			// if we're the only match, we can close the quote,
+			// otherwise leave the quote open even if the input
+			// had both quotes there.
+			if (g_list_length(matches) == 1)
+				match = va("\"%s\"", match);
+			else
+				match = va("\"%s", match);
 		}
 
 		// emplace!
