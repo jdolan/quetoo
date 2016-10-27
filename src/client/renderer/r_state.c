@@ -106,10 +106,6 @@ _Bool R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
 	if (texnum == texunit->texnum)
 		return false;
 
-	// save old texunit so we go back to it after
-	// this bind
-	r_texunit_t *old_unit = r_state.active_texunit;
-
 	R_SelectTexture(texunit);
 
 	// bind the texture
@@ -119,8 +115,8 @@ _Bool R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
 
 	r_view.num_bind_texture++;
 
-	// restore old texunit
-	R_SelectTexture(old_unit);
+	// return to diffuse
+	R_SelectTexture(&texunit_diffuse);
 
 	return true;
 }
