@@ -237,15 +237,15 @@ static void R_ClipSkySurface(int32_t nump, vec3_t vecs, int32_t stage) {
  */
 static void R_AddSkySurface(const r_bsp_surface_t *surf) {
 	vec3_t verts[MAX_CLIP_VERTS];
-	uint16_t i;
+	uint16_t i, j;
 
 	if (r_draw_wireframe->value)
 		return;
 
 	// calculate distance to surface verts
-	for (i = 0; i < surf->num_edges; i++) {
+	for (i = 0, j = 0; i < surf->num_elements; i += (i < 2 ? 1 : 3), j++) {
 		const vec_t *v = &r_model_state.world->bsp->verts[surf->elements[i]][0];
-		VectorSubtract(v, r_view.origin, verts[i]);
+		VectorSubtract(v, r_view.origin, verts[j]);
 	}
 
 	R_ClipSkySurface(surf->num_edges, verts[0], 0);

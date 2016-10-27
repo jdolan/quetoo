@@ -470,8 +470,9 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		// and size, texcoords, etc
 		R_SetupBspSurface(bsp, out);
 
-		// make room for elements
-		out->elements = Mem_LinkMalloc(sizeof(GLuint) * out->num_edges, bsp);
+		// make room for triangles
+		out->num_elements = (out->num_edges - 2) * 3;
+		out->elements = Mem_LinkMalloc(sizeof(GLuint) * out->num_elements, bsp);
 
 		// lastly lighting info
 		const int32_t ofs = LittleLong(in->light_ofs);
@@ -739,19 +740,23 @@ static GLuint R_LoadBspVertexArrays_VertexElement(GLuint *vertex_index) {
 /**
  * @brief Writes vertex data for the given surface to the load model's arrays.
  *
- * @param elements The current element count for the load model.
- * @param vertices The current unique vertex count for the load model.
+ * @param num_elements The current element count for the load model.
+ * @param num_vertices The current unique vertex count for the load model.
  */
-static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf, GLuint *elements, GLuint *vertices) {
+static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf, GLuint *num_elements, GLuint *num_vertices) {
 
-	surf->index = *elements;
+	surf->index = *num_elements;
 
 	const int32_t *e = &mod->bsp->surface_edges[surf->first_edge];
 
-	for (uint16_t i = 0; i < surf->num_edges; i++, e++) {
+	// these are initialized to -1 since it's never going
+	// to be this value legally.
+	GLuint first_index = (GLuint) -1, last_index = (GLuint) -1;
+
+	for (uint16_t i = 0, element = 0; i < surf->num_edges; i++, e++) {
 		const r_bsp_vertex_t *vert = R_BSP_VERTEX(mod->bsp, *e);
 
-		VectorCopy(vert->position, mod->bsp->verts[*vertices]);
+		VectorCopy(vert->position, mod->bsp->verts[*num_vertices]);
 
 		// texture directional vectors and offsets
 		const vec_t *sdir = surf->texinfo->vecs[0];
@@ -767,8 +772,8 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		vec_t t = DotProduct(vert->position, tdir) + toff;
 		t /= surf->texinfo->material->diffuse->height;
 
-		mod->bsp->texcoords[*vertices][0] = s;
-		mod->bsp->texcoords[*vertices][1] = t;
+		mod->bsp->texcoords[*num_vertices][0] = s;
+		mod->bsp->texcoords[*num_vertices][1] = t;
 
 		// lightmap texture coordinates
 		if (surf->flags & R_SURF_LIGHTMAP) {
@@ -785,8 +790,8 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 			t /= surf->lightmap->height * mod->bsp->lightmaps->scale;
 		}
 
-		mod->bsp->lightmap_texcoords[*vertices][0] = s;
-		mod->bsp->lightmap_texcoords[*vertices][1] = t;
+		mod->bsp->lightmap_texcoords[*num_vertices][0] = s;
+		mod->bsp->lightmap_texcoords[*num_vertices][1] = t;
 		
 		// normal vector, which is per-vertex for SURF_PHONG
 
@@ -796,19 +801,44 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 		else
 			normal = surf->normal;
 
-		VectorCopy(normal, mod->bsp->normals[*vertices]);
+		VectorCopy(normal, mod->bsp->normals[*num_vertices]);
 
 		// tangent vectors
 		vec4_t tangent;
 		vec3_t bitangent;
 
 		TangentVectors(normal, sdir, tdir, tangent, bitangent);
-		Vector4Copy(tangent, mod->bsp->tangents[*vertices]);
+		Vector4Copy(tangent, mod->bsp->tangents[*num_vertices]);
 
 		// find the index that this vertex belongs to.
-		surf->elements[i] = R_LoadBspVertexArrays_VertexElement(vertices);
-		(*elements)++;
+		GLuint vertex_id = R_LoadBspVertexArrays_VertexElement(num_vertices);
+
+		// we're compiling triangles here and converting from a fan.
+		// for the first 3 elements, just add them as-is.
+		// they provide the "seed triangle". index 0 is first_index, and
+		// index 2 will be the first "last_index" 
+
+		if (i < 3) {
+			if (i == 0)
+				first_index = vertex_id;
+			else if (i == 2)
+				last_index = vertex_id;
+
+			surf->elements[element++] = vertex_id;
+		}
+		else {
+			// we have more than 3 added to the elements list, so 
+			// now for each vertex we're creating a new triangle.
+			// surf->index is the first element ID, so every
+			// new triangle is (surf->index, last_index, element)
+			// and last_index becomes element.
+			surf->elements[element++] = first_index;
+			surf->elements[element++] = last_index;
+			last_index = surf->elements[element++] = vertex_id;
+		}
 	}
+
+	*num_elements += surf->num_elements;
 }
 
 /**
@@ -877,7 +907,7 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 
 	const size_t e = mod->num_elements * sizeof(GLuint);
 	GLuint *elements = Mem_LinkMalloc(e, mod);
-	GLuint ei = 0;
+	GLuint element = 0;
 	
 	leaf = mod->bsp->leafs;
 	for (uint16_t i = 0; i < mod->bsp->num_leafs; i++, leaf++) {
@@ -886,8 +916,8 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		for (uint16_t j = 0; j < leaf->num_leaf_surfaces; j++, s++) {
 
 			r_bsp_surface_t *surf = (*s);
-			for (uint16_t k = 0; k < surf->num_edges; k++, ei++) {
-				elements[ei] = surf->elements[k];
+			for (uint16_t k = 0; k < surf->num_elements; k++, element++) {
+				elements[element] = surf->elements[k];
 			}
 		}
 	}

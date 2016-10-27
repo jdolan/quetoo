@@ -328,7 +328,7 @@ void R_DrawBspLeafs(void) {
 			if ((*s)->vis_frame != r_locals.vis_frame)
 				continue;
 
-			R_DrawArrays(GL_TRIANGLE_FAN, (*s)->index, (*s)->num_edges);
+			R_DrawArrays(GL_TRIANGLES, (*s)->index, (*s)->num_elements);
 		}
 	}
 

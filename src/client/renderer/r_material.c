@@ -303,56 +303,56 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
  * helper functions, outputting to the default vertex arrays.
  */
 static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_stage_t *stage) {
-	int32_t i;
+	int32_t i, j;
 
-	for (i = 0; i < surf->num_edges; i++) {
+	for (i = 0, j = 0; i < surf->num_elements; i += (i < 2 ? 1 : 3), j++) {
 
 		const vec_t *v = &r_model_state.world->bsp->verts[surf->elements[i]][0];
 		const vec_t *st = &r_model_state.world->bsp->texcoords[surf->elements[i]][0];
 
-		R_StageVertex(surf, stage, v, &r_state.vertex_array[i * 3]);
+		R_StageVertex(surf, stage, v, &r_state.vertex_array[j * 3]);
 
-		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[i * 2]);
+		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[j * 2]);
 
 		if (texunit_lightmap.enabled) { // lightmap texcoords
 			st = &r_model_state.world->bsp->lightmap_texcoords[surf->elements[i]][0];
-			texunit_lightmap.texcoord_array[i * 2 + 0] = st[0];
-			texunit_lightmap.texcoord_array[i * 2 + 1] = st[1];
+			texunit_lightmap.texcoord_array[j * 2 + 0] = st[0];
+			texunit_lightmap.texcoord_array[j * 2 + 1] = st[1];
 		}
 
 		if (r_state.color_array_enabled) // colors
-			R_StageColor(stage, v, &r_state.color_array[i * 4]);
+			R_StageColor(stage, v, &r_state.color_array[j * 4]);
 
 		if (r_state.lighting_enabled) { // normals and tangents
 
 			const vec_t *n = &r_model_state.world->bsp->normals[surf->elements[i]][0];
-			VectorCopy(n, (&r_state.normal_array[i * 3]));
+			VectorCopy(n, (&r_state.normal_array[j * 3]));
 
 			const vec_t *t = &r_model_state.world->bsp->tangents[surf->elements[i]][0];
-			VectorCopy(t, (&r_state.tangent_array[i * 4]));
+			VectorCopy(t, (&r_state.tangent_array[j * 4]));
 		}
 	}
 
-	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, i * sizeof(vec3_t), r_state.vertex_array);
-	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, i * sizeof(vec2_t), texunit_diffuse.texcoord_array);
+	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, j * sizeof(vec3_t), r_state.vertex_array);
+	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, j * sizeof(vec2_t), texunit_diffuse.texcoord_array);
 
 	if (texunit_lightmap.enabled) { 
 
-		R_UploadToBuffer(&texunit_lightmap.buffer_texcoord_array, 0, i * sizeof(vec2_t), texunit_lightmap.texcoord_array);
+		R_UploadToBuffer(&texunit_lightmap.buffer_texcoord_array, 0, j * sizeof(vec2_t), texunit_lightmap.texcoord_array);
 	}
 
 	if (r_state.color_array_enabled) {
 	
-		R_UploadToBuffer(&r_state.buffer_color_array, 0, i * sizeof(vec4_t), r_state.color_array);
+		R_UploadToBuffer(&r_state.buffer_color_array, 0, j * sizeof(vec4_t), r_state.color_array);
 	}
 
 	if (r_state.lighting_enabled) {
 
-		R_UploadToBuffer(&r_state.buffer_normal_array, 0, i * sizeof(vec3_t), r_state.normal_array);
-		R_UploadToBuffer(&r_state.buffer_tangent_array, 0, i * sizeof(vec4_t), r_state.tangent_array);
+		R_UploadToBuffer(&r_state.buffer_normal_array, 0, j * sizeof(vec3_t), r_state.normal_array);
+		R_UploadToBuffer(&r_state.buffer_tangent_array, 0, j * sizeof(vec4_t), r_state.tangent_array);
 	}
 
-	R_DrawArrays(GL_TRIANGLE_FAN, 0, i);
+	R_DrawArrays(GL_TRIANGLE_FAN, 0, j);
 }
 
 /**
