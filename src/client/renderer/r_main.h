@@ -79,9 +79,10 @@ void R_EndFrame(void);
 
 // private hardware configuration information
 typedef struct {
-	const char *renderer_string;
-	const char *vendor_string;
-	const char *version_string;
+	const char *renderer;
+	const char *vendor;
+	const char *version;
+	const char *extensions;
 
 	int32_t max_texunits;
 } r_config_t;

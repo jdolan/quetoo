@@ -116,7 +116,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) __attribute__
 #define Com_Error(err, ...) Com_Error_(__func__, err, __VA_ARGS__)
 #define Com_Warn(...) Com_Warn_(__func__, __VA_ARGS__)
 
-void Com_Init(int32_t argc, char **argv);
+void Com_Init(int32_t argc, char *argv[]);
 void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn));
 
 
