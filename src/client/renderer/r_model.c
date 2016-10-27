@@ -36,49 +36,6 @@ static const r_model_format_t r_model_formats[] = { // supported model formats
 };
 
 /**
- * @brief Allocates and populates static VBO's for the specified r_model_t.
- */
-static void R_LoadVertexBuffers(r_model_t *mod) {
-
-	if (!qglGenBuffers)
-		return;
-
-	if (IS_MESH_MODEL(mod) && mod->mesh->num_frames > 1) // animated models don't use VBO
-		return;
-
-	const GLsizei v = mod->num_verts * 3 * sizeof(GLfloat);
-	const GLsizei st = mod->num_verts * 2 * sizeof(GLfloat);
-	const GLsizei t = mod->num_verts * 4 * sizeof(GLfloat);
-
-	// load the vertex buffer objects
-	qglGenBuffers(1, &mod->vertex_buffer);
-	qglBindBuffer(GL_ARRAY_BUFFER, mod->vertex_buffer);
-	qglBufferData(GL_ARRAY_BUFFER, v, mod->verts, GL_STATIC_DRAW);
-
-	qglGenBuffers(1, &mod->texcoord_buffer);
-	qglBindBuffer(GL_ARRAY_BUFFER, mod->texcoord_buffer);
-	qglBufferData(GL_ARRAY_BUFFER, st, mod->texcoords, GL_STATIC_DRAW);
-
-	qglGenBuffers(1, &mod->normal_buffer);
-	qglBindBuffer(GL_ARRAY_BUFFER, mod->normal_buffer);
-	qglBufferData(GL_ARRAY_BUFFER, v, mod->normals, GL_STATIC_DRAW);
-
-	qglGenBuffers(1, &mod->tangent_buffer);
-	qglBindBuffer(GL_ARRAY_BUFFER, mod->tangent_buffer);
-	qglBufferData(GL_ARRAY_BUFFER, t, mod->tangents, GL_STATIC_DRAW);
-
-	if (mod->lightmap_texcoords) {
-		qglGenBuffers(1, &mod->lightmap_texcoord_buffer);
-		qglBindBuffer(GL_ARRAY_BUFFER, mod->lightmap_texcoord_buffer);
-		qglBufferData(GL_ARRAY_BUFFER, st, mod->lightmap_texcoords, GL_STATIC_DRAW);
-	}
-
-	qglBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	R_GetError(mod->media.name);
-}
-
-/**
  * @brief Register event listener for models.
  */
 static void R_RegisterModel(r_media_t *self) {
@@ -114,20 +71,25 @@ static void R_RegisterModel(r_media_t *self) {
 static void R_FreeModel(r_media_t *self) {
 	r_model_t *mod = (r_model_t *) self;
 
-	if (mod->vertex_buffer)
-		qglDeleteBuffers(1, &mod->vertex_buffer);
+	uint16_t frames = IS_MESH_MODEL(mod) ? mod->mesh->num_frames : 1;
 
-	if (mod->texcoord_buffer)
-		qglDeleteBuffers(1, &mod->texcoord_buffer);
+	for (uint16_t i = 0; i < frames; ++i)
+	{
+		if (R_ValidBuffer(&mod->vertex_buffers[i]))
+			R_DestroyBuffer(&mod->vertex_buffers[i]);
+	
+		if (R_ValidBuffer(&mod->normal_buffers[i]))
+			R_DestroyBuffer(&mod->normal_buffers[i]);
+	
+		if (R_ValidBuffer(&mod->tangent_buffers[i]))
+			R_DestroyBuffer(&mod->tangent_buffers[i]);
+	}
 
-	if (mod->lightmap_texcoord_buffer)
-		qglDeleteBuffers(1, &mod->lightmap_texcoord_buffer);
-
-	if (mod->normal_buffer)
-		qglDeleteBuffers(1, &mod->normal_buffer);
-
-	if (mod->tangent_buffer)
-		qglDeleteBuffers(1, &mod->tangent_buffer);
+	if (R_ValidBuffer(&mod->texcoord_buffer))
+		R_DestroyBuffer(&mod->texcoord_buffer);
+	
+	if (R_ValidBuffer(&mod->lightmap_texcoord_buffer))
+		R_DestroyBuffer(&mod->lightmap_texcoord_buffer);
 
 	R_GetError(mod->media.name);
 }
@@ -190,9 +152,6 @@ r_model_t *R_LoadModel(const char *name) {
 		// free the file
 		Fs_Free(buf);
 
-		// assemble vertex buffer objects from static arrays
-		R_LoadVertexBuffers(mod);
-
 		// calculate an approximate radius from the bounding box
 		vec3_t tmp;
 
@@ -217,4 +176,41 @@ r_model_t *R_WorldModel(void) {
  */
 void R_InitModels(void) {
 	memset(&r_model_state, 0, sizeof(r_model_state));
+
+	const vec3_t null_vertices[] = {
+		{ 0.0, 0.0, -16.0 },
+		{ 16.0 * cos(0 * M_PI_2), 16.0 * sin(0 * M_PI_2), 0.0 },
+		{ 16.0 * cos(1 * M_PI_2), 16.0 * sin(1 * M_PI_2), 0.0 },
+		{ 16.0 * cos(2 * M_PI_2), 16.0 * sin(2 * M_PI_2), 0.0 },
+		{ 16.0 * cos(3 * M_PI_2), 16.0 * sin(3 * M_PI_2), 0.0 },
+		{ 0.0, 0.0, 16.0 }
+	};
+
+	const GLuint null_elements[] = {
+		0, 1, 2,
+		0, 2, 3,
+		0, 3, 4,
+		0, 4, 1,
+
+		1, 2, 5,
+		2, 3, 5,
+		3, 4, 5,
+		4, 1, 5
+	};
+
+	r_model_state.null_elements_count = lengthof(null_elements);
+	
+	R_CreateBuffer(&r_model_state.null_vertices, GL_STATIC_DRAW, R_BUFFER_DATA, sizeof(null_vertices), null_vertices);
+
+	R_CreateBuffer(&r_model_state.null_elements, GL_STATIC_DRAW, R_BUFFER_ELEMENT, sizeof(null_elements), null_elements);
+}
+
+/**
+ * @brief Shuts down the model facilities.
+ */
+void R_ShutdownModels(void) {
+
+	R_DestroyBuffer(&r_model_state.null_vertices);
+
+	R_DestroyBuffer(&r_model_state.null_elements);
 }

@@ -25,8 +25,12 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_InitProgram_shadow(void);
-void R_UseProgram_shadow(void);
+void R_InitProgram_shadow(r_program_t *program);
+void R_PreLink_shadow(const r_program_t *program);
+void R_UseFog_shadow(const r_fog_parameters_t *fog);
+void R_UseMatrices_shadow(const matrix4x4_t *matrices);
+void R_UseCurrentColor_shadow(const vec4_t color);
+void R_UseInterpolation_shadow(const float time_fraction);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PROGRAM_SHADOW_H__ */

@@ -50,6 +50,7 @@ typedef union {
 	vec3_t vec3;
 	vec4_t vec4;
 	matrix4x4_t mat4;
+	const r_buffer_t *buffer;
 } r_variable_value_t;
 
 typedef struct {
@@ -67,6 +68,29 @@ typedef r_variable_t r_uniform4fv_t;
 typedef r_variable_t r_uniform_matrix4fv_t;
 typedef r_variable_t r_sampler2d_t;
 
+// fog info
+typedef struct {
+	float start;
+	float end;
+	vec3_t color;
+	float density;
+} r_fog_parameters_t;
+
+typedef struct
+{
+	r_variable_t start;
+	r_variable_t end;
+	r_variable_t color;
+	r_variable_t density;
+} r_uniform_fog_t;
+
+// light info
+typedef struct {
+	r_variable_t origin;
+	r_variable_t color;
+	r_variable_t radius;
+} r_uniform_light_t;
+
 #define MAX_PROGRAM_VARIABLES 32
 
 // and glsl programs
@@ -75,13 +99,31 @@ typedef struct {
 	char name[MAX_QPATH];
 	r_shader_t *v;
 	r_shader_t *f;
-	uint32_t arrays_mask;
+	int32_t arrays_mask;
+	r_attribute_t attributes[R_ARRAY_MAX_ATTRIBS];
 	void (*Init)(void);
+	void (*Shutdown)(void);
 	void (*Use)(void);
 	void (*UseMaterial)(const r_material_t *material);
 	void (*UseEntity)(const r_entity_t *e);
 	void (*UseShadow)(const r_shadow_t *s);
+	void (*UseFog)(const r_fog_parameters_t *fog);
+	void (*UseLight)(const uint16_t light_index, const r_light_t *light);
+	void (*UseMatrices)(const matrix4x4_t *matrices);
+	void (*UseAlphaTest)(const float threshold);
+	void (*UseCurrentColor)(const vec4_t threshold);
+	void (*UseAttributes)(void);
+	void (*UseInterpolation)(const float time_fraction);
 } r_program_t;
+
+// attribute state
+typedef struct r_attrib_state_s {
+	r_variable_value_t value;
+	const GLvoid *offset;
+	GLuint size;
+	_Bool enabled;
+	_Bool constant;
+} r_attrib_state_t;
 
 #define MAX_PROGRAMS 8
 
@@ -91,10 +133,12 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value);
 void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value);
 void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value);
 void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value);
-void R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value);
-void R_AttributePointer(const char *name, GLuint size, const GLvoid *array);
-void R_EnableAttribute(r_attribute_t *attribute);
-void R_DisableAttribute(r_attribute_t *attribute);
+_Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value);
+void R_BindAttributeLocation(const r_program_t *prog, const char *name, const GLuint location);
+void R_AttributePointer(const r_attribute_id_t attribute, GLuint size, const r_buffer_t *buffer, const GLvoid *offset);
+void R_EnableAttribute(const r_attribute_id_t attribute);
+void R_DisableAttribute(const r_attribute_id_t attribute);
+void R_SetupAttributes(void);
 void R_ShutdownPrograms(void);
 void R_InitPrograms(void);
 

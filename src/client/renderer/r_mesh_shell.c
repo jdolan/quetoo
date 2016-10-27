@@ -37,26 +37,22 @@ static void R_SetMeshShellColor_default(const r_entity_t *e) {
  */
 static void R_SetMeshShellState_default(const r_entity_t *e) {
 
-	if (e->model->mesh->num_frames == 1) {
-		R_SetArrayState(e->model);
-	} else {
-		R_ResetArrayState();
-
-		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
-
-		R_InterpolateMeshModel(e);
-	}
+	R_SetArrayState(e->model);
 
 	R_SetMeshShellColor_default(e);
 
 	R_RotateForEntity(e);
 
 	if (e->effects & EF_WEAPON) {
-		glDepthRange(0.0, 0.3);
-		glScalef(1.03, 1.03, 1.03);
+		R_DepthRange(0.0, 0.3);
+		Matrix4x4_ConcatScale3(&modelview_matrix, 1.03, 1.03, 1.03);
 	} else {
-		glScalef(1.125, 1.125, 1.125);
+		Matrix4x4_ConcatScale3(&modelview_matrix, 1.125, 1.125, 1.125);
 	}
+
+	// setup lerp for animating models
+	if (e->old_frame != e->frame)
+		R_UseInterpolation(e->lerp);
 }
 
 /**
@@ -65,9 +61,13 @@ static void R_SetMeshShellState_default(const r_entity_t *e) {
 static void R_ResetMeshShellState_default(const r_entity_t *e) {
 
 	if (e->effects & EF_WEAPON)
-		glDepthRange(0.0, 1.0);
+		R_DepthRange(0.0, 1.0);
 
 	R_RotateForEntity(NULL);
+
+	R_ResetArrayState();
+
+	R_UseInterpolation(0.0);
 }
 
 /**
@@ -77,7 +77,7 @@ void R_DrawMeshShell_default(const r_entity_t *e) {
 
 	R_SetMeshShellState_default(e);
 
-	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+	R_DrawArrays(GL_TRIANGLES, 0, e->model->num_elements);
 
 	R_ResetMeshShellState_default(e);
 }

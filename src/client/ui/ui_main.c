@@ -20,8 +20,9 @@
  */
 
 #include "ui_local.h"
-
 #include "client.h"
+
+#include "renderers/RendererQuetoo.h"
 
 extern cl_static_t cls;
 
@@ -45,12 +46,6 @@ void Ui_HandleEvent(const SDL_Event *event) {
 			case SDL_TEXTINPUT:
 			case SDL_TEXTEDITING:
 				return;
-		}
-	}
-
-	if (event->type == SDL_WINDOWEVENT) {
-		if (event->window.event == SDL_WINDOWEVENT_SHOWN) {
-			$(windowController->viewController->view, renderDeviceDidReset);
 		}
 	}
 
@@ -80,25 +75,15 @@ void Ui_Draw(void) {
 		return;
 	}
 
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glPushClientAttrib(GL_ALL_CLIENT_ATTRIB_BITS);
-
-	glDisable(GL_TEXTURE_2D);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	glOrtho(0, r_context.window_width, r_context.window_height, 0, -1, 1);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	// backup all of the matrices
+	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix)
+		R_PushMatrix(matrix);
 
 	$(windowController, render);
 
-	glOrtho(0, r_context.width, r_context.height, 0, -1, 1);
-
-	glPopAttrib();
-	glPopClientAttrib();
+	// restore matrices
+	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix)
+		R_PopMatrix(matrix);
 }
 
 /**
@@ -135,6 +120,12 @@ void Ui_Init(void) {
 #endif
 
 	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
+
+	Renderer *renderer = (Renderer *) $(alloc(RendererQuetoo), init);
+
+	$(windowController, setRenderer, renderer);
+
+	release(renderer);
 
 	ViewController *viewController = $(alloc(ViewController), init);
 

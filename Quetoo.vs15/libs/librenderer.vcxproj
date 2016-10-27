@@ -30,7 +30,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_element.c" />
     <ClCompile Include="..\..\src\client\renderer\r_entity.c" />
     <ClCompile Include="..\..\src\client\renderer\r_flare.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_gl.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_glad_core.c" />
     <ClCompile Include="..\..\src\client\renderer\r_image.c" />
     <ClCompile Include="..\..\src\client\renderer\r_light.c" />
     <ClCompile Include="..\..\src\client\renderer\r_lighting.c" />
@@ -45,7 +45,9 @@
     <ClCompile Include="..\..\src\client\renderer\r_model.c" />
     <ClCompile Include="..\..\src\client\renderer\r_particle.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_program_corona.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_default.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_program_null.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_shadow.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_shell.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program_warp.c" />
@@ -65,7 +67,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_element.h" />
     <ClInclude Include="..\..\src\client\renderer\r_entity.h" />
     <ClInclude Include="..\..\src\client\renderer\r_flare.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_gl.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_glad_core.h" />
     <ClInclude Include="..\..\src\client\renderer\r_image.h" />
     <ClInclude Include="..\..\src\client\renderer\r_light.h" />
     <ClInclude Include="..\..\src\client\renderer\r_lighting.h" />
@@ -81,13 +83,339 @@
     <ClInclude Include="..\..\src\client\renderer\r_model.h" />
     <ClInclude Include="..\..\src\client\renderer\r_particle.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_program_corona.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_default.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_program_null.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_shadow.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_shell.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program_warp.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
     <ClInclude Include="..\..\src\client\renderer\r_state.h" />
     <ClInclude Include="..\..\src\client\renderer\r_types.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\client\renderer\shaders\corona_fs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\corona_vs.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\default_fs.glsl">
+      <FileType>Document</FileType>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(FileName)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(FileName)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(FileName)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(FileName)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\default_vs.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatOutputAsContent>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\fog_inc.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatOutputAsContent>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\matrix_inc.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatOutputAsContent>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\null_fs.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatOutputAsContent>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\null_vs.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatOutputAsContent>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\shadow_fs.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatOutputAsContent>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\shadow_vs.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatOutputAsContent>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\shell_fs.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatOutputAsContent>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\shell_vs.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatOutputAsContent>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\warp_fs.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatOutputAsContent>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\warp_vs.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)" "%(Filename)"</Command>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Message>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatOutputAsContent>
+    </None>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3B26D4D9-B320-4D6F-B4D1-9A2487BBD0B3}</ProjectGuid>
@@ -139,30 +467,34 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
-    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\;..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
     <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <UseMultiToolTask>true</UseMultiToolTask>
+    <CustomBuildAfterTargets>BuildLink</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
-    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\;..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
     <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <UseMultiToolTask>true</UseMultiToolTask>
+    <CustomBuildAfterTargets>BuildLink</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
-    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\;..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
     <UseMultiToolTask>true</UseMultiToolTask>
+    <CustomBuildAfterTargets>BuildLink</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
-    <IncludePath>..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\;..\..\src\client\ui\views\;..\..\src\client\ui\;..\..\src\client\;..\..\src\;..\src\;glib\include\;..\..\..\Objectively\Objectively.vs15\Sources\;..\..\..\Objectively\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\Sources\;..\..\..\ObjectivelyMVC\Sources\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;sdl_mixer\;$(IncludePath)</IncludePath>
     <UseMultiToolTask>true</UseMultiToolTask>
+    <CustomBuildAfterTargets>BuildLink</CustomBuildAfterTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -172,7 +504,12 @@
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
       <CLanguageStandard>gnu99</CLanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-ferror-limit=0 %(AdditionalOptions)</AdditionalOptions>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
+    <PostBuildEvent>
+      <Command>COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -182,7 +519,12 @@
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
       <CLanguageStandard>gnu99</CLanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-ferror-limit=0 %(AdditionalOptions)</AdditionalOptions>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
+    <PostBuildEvent>
+      <Command>COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -194,11 +536,15 @@
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
       <CLanguageStandard>gnu99</CLanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-ferror-limit=0 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent>
+      <Command>COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -210,11 +556,15 @@
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
       <CLanguageStandard>gnu99</CLanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-ferror-limit=0 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent>
+      <Command>COPY_SHADER "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

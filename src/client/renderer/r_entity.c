@@ -74,13 +74,13 @@ const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *m
 void R_RotateForEntity(const r_entity_t *e) {
 
 	if (!e) {
-		glPopMatrix();
+		R_PopMatrix(R_MATRIX_MODELVIEW);
 		return;
 	}
 
-	glPushMatrix();
+	R_PushMatrix(R_MATRIX_MODELVIEW);
 
-	glMultMatrixf((GLfloat *) e->matrix.m);
+	Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &e->matrix);
 }
 
 /**
@@ -191,17 +191,7 @@ static void R_DrawNullModel(const r_entity_t *e) {
 
 	R_RotateForEntity(e);
 
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3f(0.0, 0.0, -16.0);
-	for (int32_t i = 0; i <= 4; i++)
-		glVertex3f(16.0 * cos(i * M_PI_2), 16.0 * sin(i * M_PI_2), 0.0);
-	glEnd();
-
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3f(0.0, 0.0, 16.0);
-	for (int32_t i = 4; i >= 0; i--)
-		glVertex3f(16.0 * cos(i * M_PI_2), 16.0 * sin(i * M_PI_2), 0.0);
-	glEnd();
+	R_DrawArrays(GL_TRIANGLES, 0, r_model_state.null_elements_count);
 
 	R_RotateForEntity(NULL);
 
@@ -212,6 +202,10 @@ static void R_DrawNullModel(const r_entity_t *e) {
  * @brief Draws all entities added to the view but missing a model.
  */
 static void R_DrawNullModels(const r_entities_t *ents) {
+	
+	R_BindArray(R_ARRAY_VERTEX, &r_model_state.null_vertices);
+
+	R_BindArray(R_ARRAY_ELEMENTS, &r_model_state.null_elements);
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
@@ -244,9 +238,31 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 	R_ResetArrayState(); // default arrays
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 	R_Color(color);
+
+	const GLuint bound_elements[] = {
+		// bottom
+		0, 1,
+		1, 2,
+		2, 3,
+		3, 0,
+
+		// top
+		4, 5,
+		5, 6,
+		6, 7,
+		7, 4,
+
+		// connections
+		0, 4,
+		1, 5,
+		2, 6,
+		3, 7
+	};
+
+	R_UploadToBuffer(&r_state.buffer_element_array, 0, sizeof(bound_elements), bound_elements);
+
+	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
@@ -258,39 +274,32 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		matrix4x4_t mat;
 		Matrix4x4_CreateFromEntity(&mat, e->origin, vec3_origin, e->scale);
 
-		glPushMatrix();
-		glMultMatrixf((GLfloat *) mat.m);
+		R_PushMatrix(R_MATRIX_MODELVIEW);
 
-		vec3_t verts[16];
+		Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
+
+		vec3_t verts[8];
 
 		VectorSet(verts[0], e->mins[0], e->mins[1], e->mins[2]);
-		VectorSet(verts[1], e->mins[0], e->mins[1], e->maxs[2]);
-		VectorSet(verts[2], e->mins[0], e->maxs[1], e->maxs[2]);
+		VectorSet(verts[1], e->maxs[0], e->mins[1], e->mins[2]);
+		VectorSet(verts[2], e->maxs[0], e->maxs[1], e->mins[2]);
 		VectorSet(verts[3], e->mins[0], e->maxs[1], e->mins[2]);
+		
+		VectorSet(verts[4], e->mins[0], e->mins[1], e->maxs[2]);
+		VectorSet(verts[5], e->maxs[0], e->mins[1], e->maxs[2]);
+		VectorSet(verts[6], e->maxs[0], e->maxs[1], e->maxs[2]);
+		VectorSet(verts[7], e->mins[0], e->maxs[1], e->maxs[2]);
 
-		VectorSet(verts[4], e->maxs[0], e->maxs[1], e->mins[2]);
-		VectorSet(verts[5], e->maxs[0], e->maxs[1], e->maxs[2]);
-		VectorSet(verts[6], e->maxs[0], e->mins[1], e->maxs[2]);
-		VectorSet(verts[7], e->maxs[0], e->mins[1], e->mins[2]);
+		memcpy(r_state.vertex_array, verts, sizeof(verts));
 
-		VectorSet(verts[8], e->maxs[0], e->mins[1], e->mins[2]);
-		VectorSet(verts[9], e->maxs[0], e->mins[1], e->maxs[2]);
-		VectorSet(verts[10], e->mins[0], e->mins[1], e->maxs[2]);
-		VectorSet(verts[11], e->mins[0], e->mins[1], e->mins[2]);
+		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, sizeof(verts), r_state.vertex_array);
 
-		VectorSet(verts[12], e->mins[0], e->maxs[1], e->mins[2]);
-		VectorSet(verts[13], e->mins[0], e->maxs[1], e->maxs[2]);
-		VectorSet(verts[14], e->maxs[0], e->maxs[1], e->maxs[2]);
-		VectorSet(verts[15], e->maxs[0], e->maxs[1], e->mins[2]);
+		R_DrawArrays(GL_LINES, 0, lengthof(bound_elements));
 
-		memcpy(r_state.vertex_array_3d, verts, sizeof(verts));
-
-		glDrawArrays(GL_QUADS, 0, lengthof(verts));
-
-		glPopMatrix();
+		R_PopMatrix(R_MATRIX_MODELVIEW);
 	}
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	R_BindDefaultArray(R_ARRAY_ELEMENTS);
 
 	R_EnableTexture(&texunit_diffuse, true);
 	

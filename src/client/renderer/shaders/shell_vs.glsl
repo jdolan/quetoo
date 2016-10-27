@@ -4,7 +4,20 @@
 
 #version 120
 
+#include "matrix_inc.glsl"
+
 uniform float OFFSET;
+
+varying vec4 color;
+varying vec2 texcoord;
+
+attribute vec3 POSITION;
+attribute vec2 TEXCOORD;
+
+uniform float TIME_FRACTION;
+
+attribute vec3 NEXT_POSITION;
+
 
 /**
  * @brief Shader entry point.
@@ -12,11 +25,8 @@ uniform float OFFSET;
 void main(void) {
 
 	// mvp transform into clip space
-	gl_Position = ftransform();
+	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);
 
 	// pass texcoords through
-	gl_TexCoord[0] = gl_MultiTexCoord0 + OFFSET;
-	
-	// pass the color through as well
-	gl_FrontColor = gl_Color;
+	texcoord = TEXCOORD + OFFSET;
 }

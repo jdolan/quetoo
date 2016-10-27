@@ -34,9 +34,9 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *
 	if (e->effects & EF_BLEND)
 		alpha *= e->color[3];
 
-	vec4_t color = { 0.0, 0.0, 0.0, alpha * r_shadows->value };
-
-	R_Color(color);
+	R_Color((const vec4_t) {
+		0.0, 0.0, 0.0, alpha * r_shadows->value
+	});
 }
 
 /**
@@ -48,7 +48,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 	vec_t dot;
 
 	if (!e) {
-		glPopMatrix();
+		R_PopMatrix(R_MATRIX_MODELVIEW);
 		return;
 	}
 
@@ -72,26 +72,73 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 
 	Matrix4x4_FromVectors(&proj, vx, vy, vz, t);
 
-	glPushMatrix();
+	R_PushMatrix(R_MATRIX_MODELVIEW);
 
-	glMultMatrixf((GLfloat *) proj.m);
+	Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &proj);
+}
+
+/**
+ * @brief Calculates a perspective shearing matrix for the current shadow
+ * ftp://ftp.sgi.com/opengl/contrib/blythe/advanced99/notes/node192.html
+ */
+static void R_CalculateShadowMatrix_default(const r_entity_t *e, const r_shadow_t *s) {
+
+	// transform the light position and shadow plane into model space
+	vec_t *light = r_view.current_shadow_light, *plane = r_view.current_shadow_plane;
+
+	Matrix4x4_Transform(&e->inverse_matrix, s->illumination->light.origin, light);
+	light[3] = 1.0;
+
+	Matrix4x4_TransformQuakePlane(&e->inverse_matrix, s->plane.normal, s->plane.dist, r_view.current_shadow_plane);
+	plane[3] = -plane[3];
+
+	// calculate the perspective-shearing matrix
+	const vec_t dot = DotProduct(light, plane) + light[3] * plane[3];
+
+	matrix4x4_t *matrix = &r_view.active_matrices[R_MATRIX_SHADOW];
+	matrix->m[0][0] = dot - light[0] * plane[0];
+	matrix->m[1][0] = 0.0 - light[0] * plane[1];
+	matrix->m[2][0] = 0.0 - light[0] * plane[2];
+	matrix->m[3][0] = 0.0 - light[0] * plane[3];
+	matrix->m[0][1] = 0.0 - light[1] * plane[0];
+	matrix->m[1][1] = dot - light[1] * plane[1];
+	matrix->m[2][1] = 0.0 - light[1] * plane[2];
+	matrix->m[3][1] = 0.0 - light[1] * plane[3];
+	matrix->m[0][2] = 0.0 - light[2] * plane[0];
+	matrix->m[1][2] = 0.0 - light[2] * plane[1];
+	matrix->m[2][2] = dot - light[2] * plane[2];
+	matrix->m[3][2] = 0.0 - light[2] * plane[3];
+	matrix->m[0][3] = 0.0 - light[3] * plane[0];
+	matrix->m[1][3] = 0.0 - light[3] * plane[1];
+	matrix->m[2][3] = 0.0 - light[3] * plane[2];
+	matrix->m[3][3] = dot - light[3] * plane[3];
+
+	Matrix4x4_Transform(&r_view.matrix, s->illumination->light.origin, light);
+	light[3] = s->illumination->light.radius;
+
+	Matrix4x4_TransformQuakePlane(&r_view.matrix, s->plane.normal, s->plane.dist, plane);
+	plane[3] = -plane[3];
 }
 
 /**
  * @brief Sets renderer state for the given entity and shadow.
  */
 static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *s) {
+	
+	// setup VBO states
+	R_SetArrayState(e->model);
 
 	R_SetMeshShadowColor_default(e, s);
 
 	R_RotateForMeshShadow_default(e, s);
 
-	// TODO: This is a hack, but we don't want to toggle the program
-	// just to re-calculate the shadow matrix. Figure out a clean way
-	// to make this happen.
-	R_UseProgram_shadow();
+	R_CalculateShadowMatrix_default(e, s);
+	
+	// setup lerp for animating models
+	if (e->old_frame != e->frame)
+		R_UseInterpolation(e->lerp);
 
-	glStencilFunc(GL_EQUAL, (s->plane.num % 0xff) + 1, ~0);
+	R_StencilFunc(GL_EQUAL, (s->plane.num % 0xff) + 1, ~0);
 }
 
 /**
@@ -101,6 +148,10 @@ static void R_ResetMeshShadowState_default(const r_entity_t *e __attribute__((un
 		const r_shadow_t *s __attribute__((unused))) {
 
 	R_RotateForMeshShadow_default(NULL, NULL);
+
+	R_ResetArrayState();
+
+	R_UseInterpolation(0.0);
 }
 
 /**
@@ -110,7 +161,7 @@ static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) 
 
 	R_SetMeshShadowState_default(e, s);
 
-	glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+	R_DrawArrays(GL_TRIANGLES, 0, e->model->num_elements);
 
 	R_ResetMeshShadowState_default(e, s);
 }
@@ -119,14 +170,6 @@ static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) 
  * @brief Draws all shadows for the specified entity.
  */
 void R_DrawMeshShadow_default(const r_entity_t *e) {
-
-	if (e->model->mesh->num_frames == 1) {
-		R_SetArrayState(e->model);
-	} else {
-		R_ResetArrayState();
-
-		R_InterpolateMeshModel(e);
-	}
 
 	r_shadow_t *s = e->lighting->shadows;
 	for (size_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {

@@ -19,9 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "console.h"
-
 #include <signal.h>
+
+#include "console.h"
 
 console_state_t console_state;
 

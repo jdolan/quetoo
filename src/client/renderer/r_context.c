@@ -53,20 +53,6 @@ void R_InitContext(void) {
 		}
 	}
 
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-	const int32_t s = Clamp(r_multisample->integer, 0, 8);
-
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
-
 	uint32_t flags = SDL_WINDOW_OPENGL;
 
 	if (r_allow_high_dpi->integer) {
@@ -94,14 +80,43 @@ void R_InitContext(void) {
 
 	Com_Print("  Trying %dx%d..\n", w, h);
 
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	
+	const int32_t s = Clamp(r_multisample->integer, 0, 8);
+
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
+
 	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
 			SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
+	Com_Print("  Setting up OpenGL context..\n");
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+
 	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
 		Com_Error(ERR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 	}
+
+	int32_t attr[SDL_GL_CONTEXT_RELEASE_BEHAVIOR];
+	for (int32_t i = 0; i < SDL_GL_CONTEXT_RELEASE_BEHAVIOR; i++) {
+		SDL_GL_GetAttribute(i, &attr[i]);
+	}
+
+	Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i stencil %i framebuffer %i\n", attr[SDL_GL_RED_SIZE], attr[SDL_GL_GREEN_SIZE], attr[SDL_GL_BLUE_SIZE], attr[SDL_GL_ALPHA_SIZE], attr[SDL_GL_DEPTH_SIZE], attr[SDL_GL_STENCIL_SIZE], attr[SDL_GL_BUFFER_SIZE]);
+	Com_Verbose("   Double-buffered: %s\n", attr[SDL_GL_DOUBLEBUFFER] ? "yes" : "no");
+	Com_Verbose("   Multisample: %i buffers, %i samples\n", attr[SDL_GL_MULTISAMPLEBUFFERS], attr[SDL_GL_MULTISAMPLESAMPLES]);
+	Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n", attr[SDL_GL_CONTEXT_MAJOR_VERSION], attr[SDL_GL_CONTEXT_MINOR_VERSION], attr[SDL_GL_CONTEXT_FLAGS], attr[SDL_GL_CONTEXT_PROFILE_MASK]);
 
 	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
 		Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());

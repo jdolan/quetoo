@@ -217,6 +217,13 @@ void Cl_InitCgame(void) {
 	import.AddEntity = R_AddEntity;
 	import.AddLinkedEntity = R_AddLinkedEntity;
 	import.SetMatrixForEntity = R_SetMatrixForEntity;
+	import.PushMatrix = R_PushMatrix;
+	import.PopMatrix = R_PopMatrix;
+	import.DrawMeshModel = R_DrawMeshModel_default;
+	import.EnableDepthTest = R_EnableDepthTest;
+	import.DepthRange = R_DepthRange;
+	import.EnableTextureID = R_EnableTextureID;
+	import.SetViewport = R_SetViewport;
 	import.AddLight = R_AddLight;
 	import.AddParticle = R_AddParticle;
 	import.AddSustainedLight = R_AddSustainedLight;

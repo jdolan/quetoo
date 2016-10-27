@@ -29,6 +29,7 @@ void Mem_FreeTag(mem_tag_t tag);
 void *Mem_TagMalloc(size_t size, mem_tag_t tag);
 void *Mem_LinkMalloc(size_t size, void *parent);
 void *Mem_Malloc(size_t size);
+void *Mem_Realloc(void *p, size_t size);
 void *Mem_Link(void *parent, void *child);
 size_t Mem_Size(void);
 char *Mem_CopyString(const char *in);

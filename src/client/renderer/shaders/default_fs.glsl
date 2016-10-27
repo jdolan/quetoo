@@ -4,12 +4,31 @@
 
 #version 120
 
+#include "matrix_inc.glsl"
+#include "fog_inc.glsl"
+
+#define MAX_LIGHTS $r_max_lights
+
+#if MAX_LIGHTS
+struct LightParameters
+{
+	vec3 ORIGIN[MAX_LIGHTS];
+	vec3 COLOR[MAX_LIGHTS];
+	float RADIUS[MAX_LIGHTS];
+};
+
+uniform LightParameters LIGHTS;
+
 // linear + quadratic attenuation
-#define LIGHT_ATTENUATION (4.0 * dist + 8.0 * dist * dist)
+#define LIGHT_CONSTANT 0.0
+#define LIGHT_LINEAR 4.0
+#define LIGHT_QUADRATIC 8.0
+#define LIGHT_ATTENUATION (LIGHT_CONSTANT + (LIGHT_LINEAR * dist) + (LIGHT_QUADRATIC * dist * dist))
 
 // light color clamping
 #define LIGHT_CLAMP_MIN 0.0
 #define LIGHT_CLAMP_MAX 4.0
+#endif
 
 uniform bool DIFFUSE;
 uniform bool LIGHTMAP;
@@ -27,12 +46,14 @@ uniform sampler2D SAMPLER2;
 uniform sampler2D SAMPLER3;
 uniform sampler2D SAMPLER4;
 
+uniform float ALPHA_THRESHOLD;
+
+varying vec4 color;
+varying vec2 texcoords[2];
 varying vec3 point;
 varying vec3 normal;
 varying vec3 tangent;
 varying vec3 bitangent;
-
-varying float fog;
 
 const vec3 two = vec3(2.0);
 const vec3 negHalf = vec3(-0.5);
@@ -72,44 +93,46 @@ vec3 BumpFragment(in vec3 deluxemap, in vec3 normalmap, in vec3 glossmap) {
 void LightFragment(in vec4 diffuse, in vec3 lightmap, in vec3 normalmap) {
 
 	vec3 light = vec3(0.0);
-
+	
+#if MAX_LIGHTS
 	/*
 	 * Iterate the hardware light sources, accumulating dynamic lighting for
 	 * this fragment.  An attenuation of 0.0 means break.
 	 */
-	for (int i = 0; i < gl_MaxLights; i++) {
+	for (int i = 0; i < MAX_LIGHTS; i++) {
 
-		if (gl_LightSource[i].constantAttenuation == 0.0)
+		if (LIGHTS.RADIUS[i] == 0.0)
 			break;
 
-		vec3 delta = gl_LightSource[i].position.xyz - point;
-		
+		vec3 delta = LIGHTS.ORIGIN[i] - point;
 		float dist = length(delta);
-		if (dist < gl_LightSource[i].constantAttenuation) {
+
+		if (dist < LIGHTS.RADIUS[i]) {
 
 			float d = dot(normalmap, normalize(delta));
 			if (d > 0.0) {
 			
-				dist = 1.0 - dist / gl_LightSource[i].constantAttenuation;
-				light += gl_LightSource[i].diffuse.rgb * d * LIGHT_ATTENUATION;
+				dist = 1.0 - dist / LIGHTS.RADIUS[i];
+				light += LIGHTS.COLOR[i] * d * LIGHT_ATTENUATION;
 			}
 		}
 	}
 
 	light = clamp(light, LIGHT_CLAMP_MIN, LIGHT_CLAMP_MAX);
+#endif
 
 	// now modulate the diffuse sample with the modified lightmap
 	gl_FragColor.rgb = diffuse.rgb * (lightmap + light);
 
 	// lastly modulate the alpha channel by the color
-	gl_FragColor.a = diffuse.a * gl_Color.a;
+	gl_FragColor.a = diffuse.a * color.a;
 }
 
 /**
  * @brief Apply fog to the fragment if enabled.
  */
 void FogFragment(void) {
-	gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_Fog.color.rgb, fog);
+	gl_FragColor.rgb = mix(gl_FragColor.rgb, FOG.COLOR, fog);
 }
 
 /**
@@ -118,11 +141,11 @@ void FogFragment(void) {
 void main(void) {
 
 	// first resolve the flat shading
-	vec3 lightmap = gl_Color.rgb;
+	vec3 lightmap = color.rgb;
 	vec3 deluxemap = vec3(0.0, 0.0, 1.0);
 
 	if (LIGHTMAP) {
-		lightmap = texture2D(SAMPLER1, gl_TexCoord[1].st).rgb;
+		lightmap = texture2D(SAMPLER1, texcoords[1]).rgb;
 	}
 
 	// then resolve any bump mapping
@@ -131,10 +154,10 @@ void main(void) {
 	vec3 bump = vec3(1.0);
 
 	if (NORMALMAP) {
-		deluxemap = texture2D(SAMPLER2, gl_TexCoord[1].st).rgb;
+		deluxemap = texture2D(SAMPLER2, texcoords[1]).rgb;
 		deluxemap = normalize(two * (deluxemap + negHalf));
 
-		normalmap = texture2D(SAMPLER3, gl_TexCoord[0].st);
+		normalmap = texture2D(SAMPLER3, texcoords[0]);
 
 		parallax = BumpTexcoord(normalmap.w);
 
@@ -144,7 +167,7 @@ void main(void) {
 		vec3 glossmap = vec3(1.0);
 
 		if (GLOSSMAP) {
-			glossmap = texture2D(SAMPLER4, gl_TexCoord[0].st).rgb;
+			glossmap = texture2D(SAMPLER4, texcoords[0]).rgb;
 		}
 
 		// resolve the bumpmap modulation
@@ -161,7 +184,11 @@ void main(void) {
 	vec4 diffuse = vec4(1.0);
 
 	if (DIFFUSE) { // sample the diffuse texture, honoring the parallax offset
-		diffuse = texture2D(SAMPLER0, gl_TexCoord[0].st + parallax);
+		diffuse = texture2D(SAMPLER0, texcoords[0] + parallax);
+
+		// see if diffuse can be discarded because of alpha test
+		if (diffuse.a < ALPHA_THRESHOLD)
+			discard;
 
 		// factor in bump mapping
 		diffuse.rgb *= bump;
@@ -170,5 +197,5 @@ void main(void) {
 	// add any dynamic lighting to yield the final fragment color
 	LightFragment(diffuse, lightmap, normalmap.xyz);
 
-	FogFragment(); // and lastly add fog	
+	FogFragment(); // and lastly add fog
 }

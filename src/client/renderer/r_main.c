@@ -64,11 +64,11 @@ cvar_t *r_lighting;
 cvar_t *r_line_alpha;
 cvar_t *r_line_width;
 cvar_t *r_materials;
+cvar_t *r_max_lights;
 cvar_t *r_modulate;
 cvar_t *r_monochrome;
 cvar_t *r_multisample;
 cvar_t *r_parallax;
-cvar_t *r_programs;
 cvar_t *r_render_plugin;
 cvar_t *r_saturation;
 cvar_t *r_shadows;
@@ -76,7 +76,6 @@ cvar_t *r_shell;
 cvar_t *r_specular;
 cvar_t *r_swap_interval;
 cvar_t *r_texture_mode;
-cvar_t *r_vertex_buffers;
 cvar_t *r_warp;
 cvar_t *r_width;
 cvar_t *r_windowed_height;
@@ -149,8 +148,6 @@ void R_DrawView(void) {
 
 	R_MarkBspSurfaces();
 
-	R_EnableFog(true);
-
 	R_DrawSkyBox();
 
 	// wait for the client to fully populate the scene
@@ -172,6 +169,8 @@ void R_DrawView(void) {
 
 	R_EnableBlend(true);
 
+	R_EnableDepthMask(false);
+
 	R_DrawBackBspSurfaces(&surfs->back);
 
 	R_DrawMaterialBspSurfaces(&surfs->material);
@@ -180,6 +179,8 @@ void R_DrawView(void) {
 
 	R_EnableBlend(false);
 
+	R_EnableDepthMask(true);
+
 	// wait for entity culling to complete
 	Thread_Wait(cull_entities);
 
@@ -187,18 +188,20 @@ void R_DrawView(void) {
 
 	R_EnableBlend(true);
 
+	R_EnableDepthMask(false);
+
 	// wait for element sorting to complete
 	Thread_Wait(sort_elements);
 
 	R_DrawElements();
-
-	R_EnableFog(false);
 
 	R_DrawDeveloperTools();
 
 	R_DrawCoronas();
 
 	R_EnableBlend(false);
+
+	R_EnableDepthMask(true);
 
 	R_ResetArrayState();
 
@@ -313,6 +316,8 @@ void R_EndFrame(void) {
 void R_InitView(void) {
 
 	memset(&r_view, 0, sizeof(r_view));
+	
+	Matrix4x4_CreateIdentity(&texture_matrix);
 
 	R_RenderPlugin(r_render_plugin->string);
 
@@ -463,6 +468,8 @@ static void R_InitLocal(void) {
 	r_line_width = Cvar_Add("r_line_width", "1.0", CVAR_ARCHIVE, NULL);
 	r_materials = Cvar_Add("r_materials", "1", CVAR_ARCHIVE,
 			"Enables or disables the materials (progressive texture effects) system");
+	r_max_lights = Cvar_Add("r_max_lights", "8", CVAR_ARCHIVE | CVAR_R_CONTEXT,
+			"Controls the maximum number of lights affecting a rendered object");
 	r_modulate = Cvar_Add("r_modulate", "3.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls the brightness of world surface lightmaps");
 	r_monochrome = Cvar_Add("r_monochrome", "0", CVAR_ARCHIVE | CVAR_R_MEDIA,
@@ -471,7 +478,6 @@ static void R_InitLocal(void) {
 			"Controls multisampling (anti-aliasing)");
 	r_parallax = Cvar_Add("r_parallax", "1.0", CVAR_ARCHIVE,
 			"Controls the intensity of parallax mapping effects");
-	r_programs = Cvar_Add("r_programs", "1", CVAR_ARCHIVE, "Controls GLSL shaders");
 	r_render_plugin = Cvar_Add("r_render_plugin", "default", CVAR_ARCHIVE,
 			"Specifies the active renderer plugin (default or pro)");
 	r_saturation = Cvar_Add("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
@@ -486,8 +492,6 @@ static void R_InitLocal(void) {
 			"Controls vertical refresh synchronization (v-sync)");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR",
 			CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");
-	r_vertex_buffers = Cvar_Add("r_vertex_buffers", "1", CVAR_ARCHIVE,
-			"Controls the use of vertex buffer objects (VBO)");
 	r_warp = Cvar_Add("r_warp", "1", CVAR_ARCHIVE, "Controls warping surface effects (e.g. water)");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_windowed_height = Cvar_Add("r_windowed_height", "1024", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
@@ -512,17 +516,36 @@ static void R_InitConfig(void) {
 
 	memset(&r_config, 0, sizeof(r_config));
 
-	r_config.renderer_string = (const char *) glGetString(GL_RENDERER);
-	r_config.vendor_string = (const char *) glGetString(GL_VENDOR);
-	r_config.version_string = (const char *) glGetString(GL_VERSION);
-	r_config.extensions_string = (const char *) glGetString(GL_EXTENSIONS);
+	// initialize GL pointers
+	gladLoadGL();
 
-	glGetIntegerv(GL_MAX_TEXTURE_UNITS, &r_config.max_texunits);
-	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_teximage_units);
+	r_config.renderer = (const char *) glGetString(GL_RENDERER);
+	r_config.vendor = (const char *) glGetString(GL_VENDOR);
+	r_config.version = (const char *) glGetString(GL_VERSION);
+	r_config.extensions = (const char *) glGetString(GL_EXTENSIONS);
 
-	Com_Print("  Renderer: ^2%s^7\n", r_config.renderer_string);
-	Com_Print("  Vendor:   ^2%s^7\n", r_config.vendor_string);
-	Com_Print("  Version:  ^2%s^7\n", r_config.version_string);
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
+
+	Com_Print("  Renderer:   ^2%s^7\n", r_config.renderer);
+	Com_Print("  Vendor:     ^2%s^7\n", r_config.vendor);
+	Com_Print("  Version:    ^2%s^7\n", r_config.version);
+
+	const char *e = r_config.extensions, *c = r_config.extensions;
+	while (*c) {
+
+		if (*c == ' ') {
+			char *ext = g_strndup(e, (ptrdiff_t) (c - e));
+			if (e == r_config.extensions) {
+				Com_Verbose("  Extensions: ^2%s^7\n", ext);
+			} else {
+				Com_Verbose("              ^2%s^7\n", ext);
+			}
+			g_free(ext);
+			e = c + 1;
+		}
+
+		c++;
+	}
 }
 
 /**
@@ -538,10 +561,6 @@ void R_Init(void) {
 
 	R_InitConfig();
 
-	R_EnforceGlVersion();
-
-	R_InitGlExtensions();
-
 	R_InitState();
 
 	R_InitPrograms();
@@ -555,6 +574,8 @@ void R_Init(void) {
 	R_InitModels();
 
 	R_InitView();
+
+	R_InitParticles();
 
 	Com_Print("Video initialized %dx%d %s\n", r_context.width, r_context.height,
 			(r_context.fullscreen ? "fullscreen" : "windowed"));
@@ -570,11 +591,17 @@ void R_Shutdown(void) {
 
 	R_ShutdownMedia();
 
+	R_ShutdownDraw();
+
+	R_ShutdownModels();
+
 	R_ShutdownPrograms();
 
-	R_ShutdownContext();
-
 	R_ShutdownState();
+
+	R_ShutdownParticles();
+
+	R_ShutdownContext();
 
 	Mem_FreeTag(MEM_TAG_RENDERER);
 }

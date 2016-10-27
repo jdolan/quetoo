@@ -68,14 +68,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
-    <IncludePath>..\..\src\;..\src\;glib\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\src\;..\src\;glib\include\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;$(IncludePath)</IncludePath>
     <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
-    <IncludePath>..\..\src\;..\src\;glib\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\src\;..\src\;glib\include\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;$(IncludePath)</IncludePath>
     <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
@@ -83,14 +83,14 @@
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
-    <IncludePath>..\..\src\;..\src\;glib\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\src\;..\src\;glib\include\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;$(IncludePath)</IncludePath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <LibraryPath>bin\$(Platform)$(Configuration)\;$(LibraryPath)</LibraryPath>
-    <IncludePath>..\..\src\;..\src\;glib\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\src\;..\src\;glib\include\;..\..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;$(IncludePath)</IncludePath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -101,6 +101,8 @@
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
       <CLanguageStandard>gnu99</CLanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-ferror-limit=0 %(AdditionalOptions)</AdditionalOptions>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -111,6 +113,8 @@
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
       <CLanguageStandard>gnu99</CLanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-ferror-limit=0 %(AdditionalOptions)</AdditionalOptions>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -123,6 +127,7 @@
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
       <CLanguageStandard>gnu99</CLanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-ferror-limit=0 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -139,6 +144,7 @@
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
       <CLanguageStandard>gnu99</CLanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-ferror-limit=0 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

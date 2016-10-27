@@ -22,6 +22,7 @@
 #include <errno.h>
 
 #if defined(_WIN32)
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define ioctl ioctlsocket
 #else
 #include <netdb.h>

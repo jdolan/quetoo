@@ -22,7 +22,8 @@
 #include "r_local.h"
 #include "client.h"
 
-#define LIGHTING_MAX_ILLUMINATIONS 128
+// Max illuminations for the whole scene
+#define LIGHTING_MAX_ILLUMINATIONS (MAX_ILLUMINATIONS * 16)
 
 /**
  * @brief Provides a working area for gathering and sorting illuminations.
@@ -295,7 +296,7 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 	qsort(il, r_illuminations.num_illuminations, sizeof(r_illumination_t), R_CompareIllumination);
 
 	// take the strongest illuminations
-	uint16_t n = MIN(r_illuminations.num_illuminations, MAX_ILLUMINATIONS);
+	uint16_t n = MIN(r_illuminations.num_illuminations, r_state.max_active_lights);
 
 	// and copy them in
 	memcpy(l->illuminations, il, n * sizeof(r_illumination_t));
@@ -338,8 +339,8 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		if (tr.start_solid || tr.fraction == 1.0)
 			continue;
 
-		// for fixed-function render path, skip non-floor shadows
-		if (!r_programs->value || !r_lighting->value) {
+		// if lighting is disabled, skip non-floor shadows
+		if (!r_lighting->value) {
 			if (tr.plane.normal[2] < 0.7)
 				continue;
 		}
@@ -395,7 +396,7 @@ static void R_UpdateShadows(r_lighting_t *l) {
 	memset(l->shadows, 0, sizeof(l->shadows));
 
 	const r_illumination_t *il = l->illuminations;
-	for (size_t i = 0; i < lengthof(l->illuminations); i++, il++) {
+	for (size_t i = 0; i < r_state.max_active_lights; i++, il++) {
 
 		if (il->diffuse == 0.0)
 			break;

@@ -62,7 +62,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 	}
 
 	if (r_state.stencil_test_enabled) // write to stencil buffer to clip shadows
-		glStencilFunc(GL_ALWAYS, (surf->plane->num % 0xff) + 1, ~0);
+		R_StencilFunc(GL_ALWAYS, (surf->plane->num % 0xff) + 1, ~0);
 }
 
 /**
@@ -70,7 +70,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
  */
 static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
 
-	glDrawArrays(GL_POLYGON, surf->index, surf->num_edges);
+	R_DrawArrays(GL_TRIANGLE_FAN, surf->index, surf->num_edges);
 
 	r_view.num_bsp_surfaces++;
 }
@@ -158,7 +158,7 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	if (r_shadows->value)
 		R_EnableStencilTest(GL_KEEP, false);
-
+	
 	R_EnableLighting(NULL, false);
 
 	R_EnableTexture(&texunit_lightmap, false);
@@ -218,7 +218,7 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		return;
 	}
 
-	R_EnableAlphaTest(true);
+	R_EnableAlphaTest(ALPHA_TEST_ENABLED_THRESHOLD);
 
 	R_EnableTexture(&texunit_lightmap, true);
 
@@ -230,7 +230,7 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(&texunit_lightmap, false);
 
-	R_EnableAlphaTest(false);
+	R_EnableAlphaTest(ALPHA_TEST_DISABLED_THRESHOLD);
 }
 
 /**

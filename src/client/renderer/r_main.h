@@ -44,11 +44,11 @@ extern cvar_t *r_lighting;
 extern cvar_t *r_line_alpha;
 extern cvar_t *r_line_width;
 extern cvar_t *r_materials;
+extern cvar_t *r_max_lights;
 extern cvar_t *r_modulate;
 extern cvar_t *r_monochrome;
 extern cvar_t *r_multisample;
 extern cvar_t *r_parallax;
-extern cvar_t *r_programs;
 extern cvar_t *r_render_plugin;
 extern cvar_t *r_saturation;
 extern cvar_t *r_shadows;
@@ -56,13 +56,17 @@ extern cvar_t *r_shell;
 extern cvar_t *r_specular;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_texture_mode;
-extern cvar_t *r_vertex_buffers;
 extern cvar_t *r_warp;
 extern cvar_t *r_width;
 extern cvar_t *r_windowed_height;
 extern cvar_t *r_windowed_width;
 
 extern r_view_t r_view;
+
+// convenience shortcuts for matrices
+#define projection_matrix r_view.active_matrices[R_MATRIX_PROJECTION]
+#define modelview_matrix r_view.active_matrices[R_MATRIX_MODELVIEW]
+#define texture_matrix r_view.active_matrices[R_MATRIX_TEXTURE]
 
 void R_Init(void);
 void R_Shutdown(void);
@@ -75,13 +79,12 @@ void R_EndFrame(void);
 
 // private hardware configuration information
 typedef struct {
-	const char *renderer_string;
-	const char *vendor_string;
-	const char *version_string;
-	const char *extensions_string;
+	const char *renderer;
+	const char *vendor;
+	const char *version;
+	const char *extensions;
 
 	int32_t max_texunits;
-	int32_t max_teximage_units;
 } r_config_t;
 
 extern r_config_t r_config;

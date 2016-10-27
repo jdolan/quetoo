@@ -157,96 +157,32 @@ void R_UpdateMeshModelLighting(const r_entity_t *e) {
 }
 
 /**
- * @brief Interpolate the animation for the give entity, writing primitives to
- * the default vertex arrays. This must be called at each frame for animated
- * entities.
- */
-void R_InterpolateMeshModel(const r_entity_t *e) {
-
-	const r_md3_t *md3 = (r_md3_t *) e->model->mesh->data;
-	const d_md3_frame_t *frame, *old_frame;
-
-	if (e->frame >= e->model->mesh->num_frames) {
-		Com_Warn("%s: no such frame %d\n", e->model->media.name, e->frame);
-		frame = &md3->frames[0];
-	} else {
-		frame = &md3->frames[e->frame];
-	}
-
-	if (e->old_frame >= e->model->mesh->num_frames) {
-		Com_Warn("%s: no such old_frame %d\n", e->model->media.name, e->old_frame);
-		old_frame = &md3->frames[0];
-	} else {
-		old_frame = &md3->frames[e->old_frame];
-	}
-
-	vec3_t trans;
-	for (int32_t i = 0; i < 3; i++) // calculate the translation
-		trans[i] = e->back_lerp * old_frame->translate[i] + e->lerp * frame->translate[i];
-
-	GLuint vert_index = 0;
-
-	const r_md3_mesh_t *mesh = md3->meshes;
-	for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) { // iterate the meshes
-
-		const r_md3_vertex_t *v = mesh->verts + e->frame * mesh->num_verts;
-		const r_md3_vertex_t *ov = mesh->verts + e->old_frame * mesh->num_verts;
-
-		const uint32_t *tri = mesh->tris;
-
-		for (uint16_t j = 0; j < mesh->num_verts; j++, v++, ov++) { // interpolate the vertexes
-			VectorSet(r_mesh_state.vertexes[j],
-					trans[0] + ov->point[0] * e->back_lerp + v->point[0] * e->lerp,
-					trans[1] + ov->point[1] * e->back_lerp + v->point[1] * e->lerp,
-					trans[2] + ov->point[2] * e->back_lerp + v->point[2] * e->lerp);
-
-			if (r_state.lighting_enabled) { // and the normals
-				VectorSet(r_mesh_state.normals[j],
-						v->normal[0] + (ov->normal[0] - v->normal[0]) * e->back_lerp,
-						v->normal[1] + (ov->normal[1] - v->normal[1]) * e->back_lerp,
-						v->normal[2] + (ov->normal[2] - v->normal[2]) * e->back_lerp);
-			}
-		}
-
-		for (uint16_t j = 0; j < mesh->num_tris; j++, tri += 3) { // populate the triangles
-
-			VectorCopy(r_mesh_state.vertexes[tri[0]], (&r_state.vertex_array_3d[vert_index + 0]));
-			VectorCopy(r_mesh_state.vertexes[tri[1]], (&r_state.vertex_array_3d[vert_index + 3]));
-			VectorCopy(r_mesh_state.vertexes[tri[2]], (&r_state.vertex_array_3d[vert_index + 6]));
-
-			if (r_state.lighting_enabled) { // normal vectors for lighting
-				VectorCopy(r_mesh_state.normals[tri[0]], (&r_state.normal_array[vert_index + 0]));
-				VectorCopy(r_mesh_state.normals[tri[1]], (&r_state.normal_array[vert_index + 3]));
-				VectorCopy(r_mesh_state.normals[tri[2]], (&r_state.normal_array[vert_index + 6]));
-			}
-
-			vert_index += 9;
-		}
-	}
-}
-
-/**
  * @brief Sets the shade color for the mesh by modulating any preset color
  * with static lighting.
  */
 static void R_SetMeshColor_default(const r_entity_t *e) {
 	vec4_t color;
 
-	VectorCopy(r_bsp_light_state.ambient, color);
+	if ((e->effects & EF_NO_LIGHTING) == 0 && r_state.max_active_lights)
+	{
+		VectorCopy(r_bsp_light_state.ambient, color);
+	
+		if (!r_lighting->value) {
+			const r_illumination_t *il = e->lighting->illuminations;
 
-	if (!r_lighting->value || !r_programs->value) {
-		const r_illumination_t *il = e->lighting->illuminations;
+			for (uint16_t i = 0; i < r_state.max_active_lights; i++, il++) {
 
-		for (uint16_t i = 0; i < lengthof(e->lighting->illuminations); i++, il++) {
+				if (il->diffuse == 0.0)
+					break;
 
-			if (il->diffuse == 0.0)
-				break;
+				VectorMA(color, il->diffuse / il->light.radius, il->light.color, color);
+			}
 
-			VectorMA(color, il->diffuse / il->light.radius, il->light.color, color);
+			ColorNormalize(color, color);
 		}
-
-		ColorNormalize(color, color);
 	}
+	else
+		VectorSet(color, 1.0, 1.0, 1.0);
 
 	for (int32_t i = 0; i < 3; i++) {
 		color[i] *= e->color[i];
@@ -265,28 +201,19 @@ static void R_SetMeshColor_default(const r_entity_t *e) {
  */
 static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
 
-	vec4_t position = { 0.0, 0.0, 0.0, 1.0 };
-	vec4_t diffuse = { 0.0, 0.0, 0.0, 1.0 };
-
 	uint16_t i;
-	for (i = 0; i < MAX_ACTIVE_LIGHTS; i++) {
+	for (i = 0; i < r_state.max_active_lights; i++) {
 
 		const r_illumination_t *il = &e->lighting->illuminations[i];
 
 		if (il->diffuse == 0.0)
 			break;
 
-		VectorCopy(il->light.origin, position);
-		glLightfv(GL_LIGHT0 + i, GL_POSITION, position);
-
-		VectorCopy(il->light.color, diffuse);
-		glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, diffuse);
-
-		glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, il->light.radius);
+		r_state.active_program->UseLight(i, &il->light);
 	}
-
-	if (i < MAX_ACTIVE_LIGHTS) // disable the next light as a stop
-		glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, 0.0);
+	
+	if (i < r_state.max_active_lights) // disable the next light as a stop
+		r_state.active_program->UseLight(i, NULL);
 }
 
 /**
@@ -294,29 +221,25 @@ static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
  */
 static void R_SetMeshState_default(const r_entity_t *e) {
 
-	if (e->model->mesh->num_frames == 1) { // bind static arrays
-		R_SetArrayState(e->model);
-	} else { // or use the default arrays
-		R_ResetArrayState();
-
-		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, e->model->texcoords);
-
-		R_InterpolateMeshModel(e);
-	}
+	// setup VBO states
+	R_SetArrayState(e->model);
 
 	if (!r_draw_wireframe->value) {
 
 		r_mesh_state.material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
-
+		
 		R_BindTexture(r_mesh_state.material->diffuse->texnum);
 
 		R_SetMeshColor_default(e);
 
 		if (e->effects & EF_ALPHATEST)
-			R_EnableAlphaTest(true);
+			R_EnableAlphaTest(ALPHA_TEST_ENABLED_THRESHOLD);
 
 		if (e->effects & EF_BLEND)
+		{
 			R_EnableBlend(true);
+			R_EnableDepthMask(false);
+		}
 
 		if ((e->effects & EF_NO_LIGHTING) == 0 && r_state.lighting_enabled) {
 			R_UseMaterial(r_mesh_state.material);
@@ -330,9 +253,13 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	}
 
 	if (e->effects & EF_WEAPON)
-		glDepthRange(0.0, 0.3);
+		R_DepthRange(0.0, 0.3);
 
 	R_RotateForEntity(e);
+
+	// setup lerp for animating models
+	if (e->old_frame != e->frame)
+		R_UseInterpolation(e->lerp);
 }
 
 /**
@@ -343,19 +270,20 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 	R_RotateForEntity(NULL);
 
 	if (e->effects & EF_WEAPON)
-		glDepthRange(0.0, 1.0);
+		R_DepthRange(0.0, 1.0);
 
 	if (e->effects & EF_BLEND)
+	{
 		R_EnableBlend(false);
+		R_EnableDepthMask(true);
+	}
 
 	if (e->effects & EF_ALPHATEST)
-		R_EnableAlphaTest(false);
+		R_EnableAlphaTest(ALPHA_TEST_DISABLED_THRESHOLD);
+	
+	R_ResetArrayState();
 
-	if (e->model->mesh->num_frames > 1) {
-		if (texunit_diffuse.enabled) {
-			R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
-		}
-	}
+	R_UseInterpolation(0.0);
 }
 
 /**
@@ -377,11 +305,11 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 			}
 		}
 
-		glDrawArrays(GL_TRIANGLES, offset, mesh->num_tris * 3);
+		R_DrawArrays(GL_TRIANGLES, offset, mesh->num_elements);
 
-		R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_tris * 3);
+		R_DrawMeshMaterial(r_mesh_state.material, offset, mesh->num_elements);
 
-		offset += mesh->num_tris * 3;
+		offset += mesh->num_elements;
 	}
 }
 
@@ -395,15 +323,16 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 	if (e->model->type == MOD_MD3) {
 		R_DrawMeshParts_default(e, (const r_md3_t *) e->model->mesh->data);
 	} else {
-		glDrawArrays(GL_TRIANGLES, 0, e->model->num_verts);
+		R_DrawArrays(GL_TRIANGLES, 0, e->model->num_elements);
 
-		R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_verts);
+		R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_elements);
 	}
+	
+	r_view.num_mesh_tris += e->model->num_tris;
 
 	R_ResetMeshState_default(e); // reset state
 
 	r_view.num_mesh_models++;
-	r_view.num_mesh_tris += e->model->num_verts / 3;
 }
 
 /**
@@ -435,14 +364,18 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		R_EnableTexture(&texunit_diffuse, true);
 	}
-
+	
 	R_EnableLighting(NULL, false);
 
 	R_EnableBlend(true);
+
+	R_EnableDepthMask(false);
 
 	R_DrawMeshShadows_default(ents);
 
 	R_DrawMeshShells_default(ents);
 
 	R_EnableBlend(false);
+
+	R_EnableDepthMask(true);
 }

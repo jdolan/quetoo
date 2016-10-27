@@ -33,29 +33,47 @@ typedef struct r_array_state_s {
 
 static r_array_state_t r_array_state;
 
+// macro for determining interpolation ability
+#define IS_ENTITY_INTERPOLATABLE(e, mod) \
+	(IS_MESH_MODEL(mod) && \
+	mod->mesh->num_frames > 1 && \
+	e->old_frame != e->frame)
+
 /**
  * @brief Returns a bitmask representing the arrays which should be enabled according
  * to r_state. This function is consulted to determine whether or not array
  * bindings are up to date.
  */
-static int32_t R_ArraysMask(void) {
-	uint32_t mask = R_ARRAY_VERTEX;
+int32_t R_ArraysMask(void) {
+	uint32_t mask = R_ARRAY_MASK_VERTEX;
+
+	_Bool do_interpolation = r_view.current_entity != NULL && IS_ENTITY_INTERPOLATABLE(r_view.current_entity, r_view.current_entity->model);
+
+	if (do_interpolation)
+		mask |= R_ARRAY_MASK_NEXT_VERTEX;
 
 	if (r_state.color_array_enabled)
-		mask |= R_ARRAY_COLOR;
+		mask |= R_ARRAY_MASK_COLOR;
 
 	if (r_state.lighting_enabled) {
-		mask |= R_ARRAY_NORMAL;
+		mask |= R_ARRAY_MASK_NORMAL;
 
-		if (r_bumpmap->value)
-			mask |= R_ARRAY_TANGENT;
+		if (do_interpolation)
+			mask |= R_ARRAY_MASK_NEXT_NORMAL;
+
+		if (r_bumpmap->value) {
+			mask |= R_ARRAY_MASK_TANGENT;
+
+			if (do_interpolation)
+				mask |= R_ARRAY_MASK_NEXT_TANGENT;
+		}
 	}
 
 	if (texunit_diffuse.enabled)
-		mask |= R_ARRAY_TEX_DIFFUSE;
+		mask |= R_ARRAY_MASK_TEX_DIFFUSE;
 
 	if (texunit_lightmap.enabled)
-		mask |= R_ARRAY_TEX_LIGHTMAP;
+		mask |= R_ARRAY_MASK_TEX_LIGHTMAP;
 
 	return mask;
 }
@@ -63,96 +81,7 @@ static int32_t R_ArraysMask(void) {
 /**
  * @brief
  */
-static void R_SetVertexArrayState(const r_model_t *mod, uint32_t mask) {
-
-	// vertex array
-	if (mask & R_ARRAY_VERTEX)
-		R_BindArray(GL_VERTEX_ARRAY, GL_FLOAT, mod->verts);
-
-	// normals and tangents
-	if (r_state.lighting_enabled) {
-
-		if (mask & R_ARRAY_NORMAL)
-			R_BindArray(GL_NORMAL_ARRAY, GL_FLOAT, mod->normals);
-
-		if (r_bumpmap->value) {
-
-			if ((mask & R_ARRAY_TANGENT) && mod->tangents)
-				R_BindArray(GL_TANGENT_ARRAY, GL_FLOAT, mod->tangents);
-		}
-	}
-
-	// diffuse texcoords
-	if (texunit_diffuse.enabled) {
-		if (mask & R_ARRAY_TEX_DIFFUSE)
-			R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->texcoords);
-	}
-
-	// lightmap coords
-	if (texunit_lightmap.enabled) {
-
-		if (mask & R_ARRAY_TEX_LIGHTMAP) {
-			R_SelectTexture(&texunit_lightmap);
-
-			R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->lightmap_texcoords);
-
-			R_SelectTexture(&texunit_diffuse);
-		}
-	}
-}
-
-/**
- * @brief
- */
-static void R_SetVertexBufferState(const r_model_t *mod, uint32_t mask) {
-
-	// vertex array
-	if (mask & R_ARRAY_VERTEX)
-		R_BindBuffer(GL_VERTEX_ARRAY, GL_FLOAT, mod->vertex_buffer);
-
-	// normals and tangents
-	if (r_state.lighting_enabled) {
-
-		if (mask & R_ARRAY_NORMAL)
-			R_BindBuffer(GL_NORMAL_ARRAY, GL_FLOAT, mod->normal_buffer);
-
-		if (r_bumpmap->value) {
-
-			if ((mask & R_ARRAY_TANGENT) && mod->tangent_buffer)
-				R_BindBuffer(GL_TANGENT_ARRAY, GL_FLOAT, mod->tangent_buffer);
-		}
-	}
-
-	// diffuse texcoords
-	if (texunit_diffuse.enabled) {
-		if (mask & R_ARRAY_TEX_DIFFUSE)
-			R_BindBuffer(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->texcoord_buffer);
-	}
-
-	// lightmap texcoords
-	if (texunit_lightmap.enabled) {
-
-		if (mask & R_ARRAY_TEX_LIGHTMAP) {
-			R_SelectTexture(&texunit_lightmap);
-
-			R_BindBuffer(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, mod->lightmap_texcoord_buffer);
-
-			R_SelectTexture(&texunit_diffuse);
-		}
-	}
-}
-
-/**
- * @brief
- */
 void R_SetArrayState(const r_model_t *mod) {
-
-	if (r_vertex_buffers->modified) { // force a full re-bind
-		r_array_state.model = NULL;
-		r_array_state.arrays = 0xffff;
-	}
-
-	r_vertex_buffers->modified = false;
 
 	uint32_t mask = 0xffff, arrays = R_ArraysMask(); // resolve the desired arrays mask
 
@@ -167,14 +96,85 @@ void R_SetArrayState(const r_model_t *mod) {
 		mask = arrays & xor;
 	}
 
-	if (r_state.active_program) // cull anything the program doesn't use
+	if (r_state.active_program) { // cull anything the program doesn't use
 		mask &= r_state.active_program->arrays_mask;
+	}
 
-	if (r_vertex_buffers->value && qglGenBuffers) // use vbo
-		R_SetVertexBufferState(mod, mask);
-	else
-		// or arrays
-		R_SetVertexArrayState(mod, mask);
+	R_BindArray(R_ARRAY_COLOR, NULL);
+
+	_Bool do_interpolation = false;
+	uint16_t old_frame = 0;
+	uint16_t frame = 0;
+
+	// see if we can do interpolation
+	if (r_view.current_entity) {
+		old_frame = r_view.current_entity->old_frame;
+		do_interpolation = IS_ENTITY_INTERPOLATABLE(r_view.current_entity, mod);
+
+		if (do_interpolation)
+			frame = r_view.current_entity->frame;
+	}
+
+	// vertex array
+	if (mask & R_ARRAY_MASK_VERTEX) {
+
+		R_BindArray(R_ARRAY_VERTEX, &mod->vertex_buffers[old_frame]);
+
+		// bind interpolation if we need it
+		if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && do_interpolation) {
+			R_BindArray(R_ARRAY_NEXT_VERTEX, &mod->vertex_buffers[frame]);
+		}
+	}
+
+	// normals and tangents
+	if (r_state.lighting_enabled) {
+
+		if (mask & R_ARRAY_MASK_NORMAL) {
+
+			R_BindArray(R_ARRAY_NORMAL, &mod->normal_buffers[old_frame]);
+
+			// bind interpolation if we need it
+			if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && do_interpolation) {
+				R_BindArray(R_ARRAY_NEXT_NORMAL, &mod->normal_buffers[frame]);
+			}
+		}
+
+		if (r_bumpmap->value) {
+
+			if ((mask & R_ARRAY_MASK_TANGENT) && R_ValidBuffer(&mod->tangent_buffers[old_frame])) {
+
+				R_BindArray(R_ARRAY_TANGENT, &mod->tangent_buffers[old_frame]);
+
+				// bind interpolation if we need it
+				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && do_interpolation) {
+					R_BindArray(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffers[frame]);
+				}
+			}
+		}
+	}
+
+	// diffuse texcoords
+	if (texunit_diffuse.enabled) {
+
+		if (mask & R_ARRAY_MASK_TEX_DIFFUSE)
+			R_BindArray(R_ARRAY_TEX_DIFFUSE, &mod->texcoord_buffer);
+	}
+
+	// lightmap texcoords
+	if (texunit_lightmap.enabled) {
+
+		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
+			R_SelectTexture(&texunit_lightmap);
+
+			R_BindArray(R_ARRAY_TEX_LIGHTMAP, &mod->lightmap_texcoord_buffer);
+
+			R_SelectTexture(&texunit_diffuse);
+		}
+	}
+
+	// elements
+	if (R_ValidBuffer(&mod->element_buffer))
+		R_BindArray(R_ARRAY_ELEMENTS, &mod->element_buffer);
 
 	r_array_state.model = mod;
 	r_array_state.arrays = arrays;
@@ -197,51 +197,107 @@ void R_ResetArrayState(void) {
 		mask = arrays & xor;
 	}
 
-	// reset vbo
-	R_BindBuffer(0, 0, 0);
+	// unbind any buffers we got going
+	R_UnbindBuffer(R_BUFFER_DATA);
+	R_UnbindBuffer(R_BUFFER_ELEMENT);
 
 	// vertex array
-	if (mask & R_ARRAY_VERTEX)
-		R_BindDefaultArray(GL_VERTEX_ARRAY);
+	if (mask & R_ARRAY_MASK_VERTEX)
+	{
+		R_BindDefaultArray(R_ARRAY_VERTEX);
+
+		if (mask & R_ARRAY_MASK_NEXT_VERTEX)
+			R_BindDefaultArray(R_ARRAY_NEXT_VERTEX);
+	}
 
 	// color array
 	if (r_state.color_array_enabled) {
-		if (mask & R_ARRAY_COLOR)
-			R_BindDefaultArray(GL_COLOR_ARRAY);
+		if (mask & R_ARRAY_MASK_COLOR)
+			R_BindDefaultArray(R_ARRAY_COLOR);
 	}
 
 	// normals and tangents
 	if (r_state.lighting_enabled) {
 
-		if (mask & R_ARRAY_NORMAL)
-			R_BindDefaultArray(GL_NORMAL_ARRAY);
+		if (mask & R_ARRAY_MASK_NORMAL)
+		{
+			R_BindDefaultArray(R_ARRAY_NORMAL);
+
+			if (mask & R_ARRAY_MASK_NEXT_NORMAL)
+				R_BindDefaultArray(R_ARRAY_NEXT_NORMAL);
+		}
 
 		if (r_bumpmap->value) {
 
-			if (mask & R_ARRAY_TANGENT)
-				R_BindDefaultArray(GL_TANGENT_ARRAY);
+			if (mask & R_ARRAY_MASK_TANGENT)
+			{
+				R_BindDefaultArray(R_ARRAY_TANGENT);
+
+				if (mask & R_ARRAY_MASK_NEXT_TANGENT)
+					R_BindDefaultArray(R_ARRAY_NEXT_TANGENT);
+			}
 		}
 	}
 
 	// diffuse texcoords
 	if (texunit_diffuse.enabled) {
-		if (mask & R_ARRAY_TEX_DIFFUSE)
-			R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+		if (mask & R_ARRAY_MASK_TEX_DIFFUSE)
+			R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
 	}
 
 	// lightmap texcoords
 	if (texunit_lightmap.enabled) {
 
-		if (mask & R_ARRAY_TEX_LIGHTMAP) {
+		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
 			R_SelectTexture(&texunit_lightmap);
 
-			R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
+			R_BindDefaultArray(R_ARRAY_TEX_LIGHTMAP);
 
 			R_SelectTexture(&texunit_diffuse);
 		}
 	}
+	
+	// elements
+	R_BindArray(R_ARRAY_ELEMENTS, NULL);
 
 	r_array_state.model = NULL;
 	r_array_state.arrays = arrays;
 }
 
+/**
+ * @brief
+ */
+static void R_PrepareProgram() {
+
+	// upload state data that needs to be synced up to current program
+	R_SetupAttributes();
+
+	R_UseMatrices();
+
+	R_UseAlphaTest();
+
+	R_UseCurrentColor();
+
+	R_UseFog();
+}
+
+/**
+ * @brief
+ */
+void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
+
+	assert(r_state.array_buffers[R_ARRAY_VERTEX] != NULL);
+	
+	R_PrepareProgram();
+
+	if (r_state.element_buffer) {
+
+		R_BindBuffer(r_state.element_buffer);
+		glDrawElements(type, count, GL_UNSIGNED_INT, (const void *)(ptrdiff_t)(start * sizeof(GLuint)));
+	}
+	else {
+		glDrawArrays(type, start, count);
+	}
+
+	R_GetError(NULL);
+}

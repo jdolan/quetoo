@@ -78,7 +78,7 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
  * view origin.
  */
 void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
-	uint32_t i, j, k, l, m;
+	uint32_t i, j, k, l, m, n;
 	vec3_t view, verts[4];
 	vec3_t right, up, up_right, down_right;
 
@@ -92,12 +92,14 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_ResetArrayState();
 
-	glDisable(GL_DEPTH_TEST);
+	R_EnableDepthTest(false);
 
-	const r_image_t *image = surfs->surfaces[0]->flare->image;
-	R_BindTexture(image->texnum);
+	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
 
-	j = k = l = 0;
+	// set to NULL, so it binds the first image that we run into
+	const r_image_t *image = NULL;
+
+	j = k = l = m = 0;
 	for (i = 0; i < surfs->count; i++) {
 		const r_bsp_surface_t *surf = surfs->surfaces[i];
 
@@ -108,9 +110,18 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 		// bind the flare's texture
 		if (f->image != image) {
+			
+			if (l)
+			{
+				R_UploadToBuffer(&r_state.buffer_color_array, 0, j * sizeof(float), r_state.color_array);
+				R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, k * sizeof(float), texunit_diffuse.texcoord_array);
+				R_UploadToBuffer(&r_state.buffer_vertex_array, 0, l * sizeof(float), r_state.vertex_array);
+				R_UploadToBuffer(&r_state.buffer_element_array, 0, m * sizeof(GLuint), r_state.indice_array);
 
-			glDrawArrays(GL_QUADS, 0, l / 3);
-			j = k = l = 0;
+				R_DrawArrays(GL_TRIANGLES, 0, m);
+			}
+
+			j = k = l = m = 0;
 
 			image = f->image;
 			R_BindTexture(image->texnum);
@@ -159,7 +170,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		VectorAdd(f->origin, down_right, verts[2]);
 		VectorSubtract(f->origin, up_right, verts[3]);
 
-		for (m = 0; m < 4; m++) { // duplicate color data to all 4 verts
+		for (n = 0; n < 4; n++) { // duplicate color data to all 4 verts
 			memcpy(&r_state.color_array[j], f->color, sizeof(vec3_t));
 			r_state.color_array[j + 3] = alpha;
 			j += 4;
@@ -167,16 +178,37 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 		// copy texcoord info
 		memcpy(&texunit_diffuse.texcoord_array[k], default_texcoords, sizeof(vec2_t) * 4);
-		k += sizeof(vec2_t) / sizeof(vec_t) * 4;
 
-		// and lastly copy the 4 verts
-		memcpy(&r_state.vertex_array_3d[l], verts, sizeof(vec3_t) * 4);
+		// copy the 4 verts
+		memcpy(&r_state.vertex_array[l], verts, sizeof(vec3_t) * 4);
+
+		// lastly, make indexes
+		r_state.indice_array[m + 0] = (l / 3) + 0;
+		r_state.indice_array[m + 1] = (l / 3) + 1;
+		r_state.indice_array[m + 2] = (l / 3) + 2;
+
+		r_state.indice_array[m + 3] = (l / 3) + 0;
+		r_state.indice_array[m + 4] = (l / 3) + 2;
+		r_state.indice_array[m + 5] = (l / 3) + 3;
+
+		k += sizeof(vec2_t) / sizeof(vec_t) * 4;
 		l += sizeof(vec3_t) / sizeof(vec_t) * 4;
+		m += 6;
+	}
+	
+	if (l)
+	{
+		R_UploadToBuffer(&r_state.buffer_color_array, 0, j * sizeof(float), r_state.color_array);
+		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, k * sizeof(float), texunit_diffuse.texcoord_array);
+		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, l * sizeof(float), r_state.vertex_array);
+		R_UploadToBuffer(&r_state.buffer_element_array, 0, m * sizeof(GLuint), r_state.indice_array);
+
+		R_DrawArrays(GL_TRIANGLES, 0, m);
 	}
 
-	glDrawArrays(GL_QUADS, 0, l / 3);
+	R_BindDefaultArray(R_ARRAY_ELEMENTS);
 
-	glEnable(GL_DEPTH_TEST);
+	R_EnableDepthTest(true);
 
 	R_EnableColorArray(false);
 

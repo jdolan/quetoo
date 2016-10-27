@@ -24,6 +24,8 @@
 
 #include "r_types.h"
 
+void R_DrawMeshModel_default(const r_entity_t *e);
+
 #ifdef __R_LOCAL_H__
 
 typedef struct {
@@ -39,7 +41,6 @@ extern r_mesh_state_t r_mesh_state;
 void R_ApplyMeshModelTag(r_entity_t *e);
 void R_ApplyMeshModelConfig(r_entity_t *e);
 _Bool R_CullMeshModel(const r_entity_t *e);
-void R_InterpolateMeshModel(const r_entity_t *e);
 void R_UpdateMeshModelLighting(const r_entity_t *e);
 void R_DrawMeshModels_default(const r_entities_t *ents);
 #endif /* __R_LOCAL_H__ */

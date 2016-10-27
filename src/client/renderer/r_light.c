@@ -173,6 +173,9 @@ void R_MarkLights(void) {
  */
 void R_EnableLights(uint64_t mask) {
 
+	if (r_state.active_program != r_state.default_program)
+		return;
+
 	if (mask == r_locals.light_mask) // no change
 		return;
 
@@ -182,29 +185,19 @@ void R_EnableLights(uint64_t mask) {
 	if (mask) { // enable up to MAX_ACTIVE_LIGHT sources
 		const r_light_t *l = r_view.lights;
 
-		vec4_t position = { 0.0, 0.0, 0.0, 1.0 };
-		vec4_t diffuse = { 0.0, 0.0, 0.0, 1.0 };
-
 		for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
 
-			if (j == MAX_ACTIVE_LIGHTS)
+			if (j == r_state.max_active_lights)
 				break;
 
 			const uint64_t bit = ((uint64_t ) 1 << i);
 			if (mask & bit) {
-
-				VectorCopy(l->origin, position);
-				glLightfv(GL_LIGHT0 + j, GL_POSITION, position);
-
-				VectorCopy(l->color, diffuse);
-				glLightfv(GL_LIGHT0 + j, GL_DIFFUSE, diffuse);
-
-				glLightf(GL_LIGHT0 + j, GL_CONSTANT_ATTENUATION, l->radius);
+				r_state.active_program->UseLight(j, l);
 				j++;
 			}
 		}
 	}
 
-	if (j < MAX_ACTIVE_LIGHTS) // disable the next light as a stop
-		glLightf(GL_LIGHT0 + j, GL_CONSTANT_ATTENUATION, 0.0);
+	if (j < r_state.max_active_lights) // disable the next light as a stop
+		r_state.active_program->UseLight(j, NULL);
 }

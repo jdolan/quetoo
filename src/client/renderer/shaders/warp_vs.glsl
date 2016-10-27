@@ -4,14 +4,20 @@
 
 #version 120
 
-varying float fog;
+#include "fog_inc.glsl"
+#include "matrix_inc.glsl"
+
+varying vec2 texcoord;
+
+attribute vec3 POSITION;
+attribute vec2 TEXCOORD;
 
 /**
  * @brief
  */
 void FogVertex(void) {
-	fog = (gl_Position.z - gl_Fog.start) / (gl_Fog.end - gl_Fog.start);
-	fog = clamp(fog, 0.0, 1.0) * gl_Fog.density;
+	fog = (gl_Position.z - FOG.START) / (FOG.END - FOG.START);
+	fog = clamp(fog, 0.0, 1.0) * FOG.DENSITY;
 }
 
 /**
@@ -20,13 +26,10 @@ void FogVertex(void) {
 void main(void) {
 
 	// mvp transform into clip space
-	gl_Position = ftransform();
+	gl_Position = PROJECTION_MAT * MODELVIEW_MAT * vec4(POSITION, 1.0);
 
 	// pass texcoords through
-	gl_TexCoord[0] = gl_MultiTexCoord0;
-
-	// and primary color
-	gl_FrontColor = gl_Color;
+	texcoord = TEXCOORD;
 
 	FogVertex();
 }

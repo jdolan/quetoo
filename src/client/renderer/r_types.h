@@ -22,7 +22,8 @@
 #ifndef __R_TYPES_H__
 #define __R_TYPES_H__
 
-#include <SDL2/SDL_opengl.h>
+#include "r_glad_core.h"
+
 #include <SDL2/SDL_video.h>
 
 #include "files.h"
@@ -51,8 +52,11 @@ typedef union {
 } r_color_t;
 
 // high bits OR'ed with image types
-#define IT_MASK_MIPMAP 128
-#define IT_MASK_FILTER 256
+#define IT_MASK_MIPMAP	128
+#define IT_MASK_FILTER	256
+
+#define IT_MASK_TYPE	0x7F
+#define IT_MASK_FLAGS	(-1 & ~IT_MASK_TYPE)
 
 // image types
 typedef enum {
@@ -69,8 +73,23 @@ typedef enum {
 	IT_ENVMAP = 10 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
-	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER)
+	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 } r_image_type_t;
+
+/**
+ * @brief Buffers are used to hold data for the renderer.
+ */
+typedef struct r_buffer_s {
+	GLenum type; // R_BUFFER_DATA or R_BUFFER_ELEMENT
+	GLenum hint; // GL_x_y, where x is STATIC or DYNAMIC, and where y is DRAW, READ or COPY
+	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
+	GLuint bufnum; // e.g. 123
+	size_t size; // last size of buffer, for resize operations
+} r_buffer_t;
+
+#define R_BUFFER_DATA			0
+#define R_BUFFER_ELEMENT		1
+#define R_NUM_BUFFERS			2
 
 /**
  * @brief Images are referenced by materials, models, entities, particles, etc.
@@ -166,11 +185,6 @@ typedef struct r_material_s {
 
 // bsp model memory representation
 typedef struct {
-	vec3_t position;
-	vec3_t normal;
-} r_bsp_vertex_t;
-
-typedef struct {
 	vec3_t mins, maxs;
 	vec3_t origin; // for sounds or lights
 	vec_t radius;
@@ -229,7 +243,8 @@ typedef struct {
 	vec2_t st_center;
 	vec2_t st_extents;
 
-	GLuint index; // index into world vertex buffers
+	GLuint index; // index into element buffer
+	GLuint *elements; // elements unique to this surf
 
 	r_bsp_texinfo_t *texinfo; // SURF_ flags
 
@@ -395,6 +410,8 @@ typedef struct {
 
 	uint16_t num_tris;
 	uint32_t *tris;
+
+	uint32_t num_elements;
 } r_md3_mesh_t;
 
 typedef struct {
@@ -429,6 +446,7 @@ typedef struct {
 } r_md3_t;
 
 typedef struct {
+	uint32_t position;
 	uint16_t indices[3];
 	vec_t *point;
 	vec_t *texcoords;
@@ -475,9 +493,6 @@ typedef struct {
 	uint16_t num_leafs;
 	r_bsp_leaf_t *leafs;
 
-	uint16_t num_vertexes;
-	r_bsp_vertex_t *vertexes;
-
 	uint32_t num_edges;
 	r_bsp_edge_t *edges;
 
@@ -506,6 +521,13 @@ typedef struct {
 
 	// sorted surfaces arrays
 	r_sorted_bsp_surfaces_t *sorted_surfaces;
+
+	// vertex arrays, for materials
+	vec3_t *verts;
+	vec2_t *texcoords;
+	vec2_t *lightmap_texcoords;
+	vec3_t *normals;
+	vec4_t *tangents;
 } r_bsp_model_t;
 
 /**
@@ -545,18 +567,16 @@ typedef struct r_model_s {
 	vec_t radius;
 
 	GLsizei num_verts; // raw vertex primitive count, used to build arrays
+	GLsizei num_elements; // number of vertex elements, if element_buffer is to be used
+	GLsizei num_tris; // cached num_tris amount
 
-	GLfloat *verts; // vertex arrays
-	GLfloat *texcoords;
-	GLfloat *lightmap_texcoords;
-	GLfloat *normals;
-	GLfloat *tangents;
-
-	GLuint vertex_buffer; // vertex buffer objects
-	GLuint texcoord_buffer;
-	GLuint lightmap_texcoord_buffer;
-	GLuint normal_buffer;
-	GLuint tangent_buffer;
+	// vertex buffer objects
+	r_buffer_t *vertex_buffers;
+	r_buffer_t texcoord_buffer;
+	r_buffer_t lightmap_texcoord_buffer;
+	r_buffer_t *normal_buffers;
+	r_buffer_t *tangent_buffers;
+	r_buffer_t element_buffer;
 } r_model_t;
 
 #define IS_MESH_MODEL(m) (m && m->mesh)
@@ -573,7 +593,6 @@ typedef struct {
 } r_light_t;
 
 #define MAX_LIGHTS			64
-#define MAX_ACTIVE_LIGHTS	8
 
 /**
  * @brief Sustains are light flashes which slowly decay over time. These
@@ -619,19 +638,21 @@ typedef enum {
 } r_lighting_state_t;
 
 /**
- * @brief Up to 8 illuminations are calculated for each mesh entity. The first
+ * @brief Up to MAX_ILLUMINATIONS illuminations are calculated for each mesh entity. The first
  * illumination in the structure is reserved for world lighting (ambient and
- * sunlight). The remaining 7 are populated by both BSP and dynamic light
+ * sunlight). The remaining (MAX_ILLUMINATIONS - 1) are populated by both BSP and dynamic light
  * sources, by order of their contribution.
  */
-#define MAX_ILLUMINATIONS MAX_ACTIVE_LIGHTS
+#define MAX_ILLUMINATIONS 8
 
 /**
- * @brief Up to 3 shadows are cast for each illumination. These are populated
- * by tracing from the illumination position through the lighting origin and
+ * @brief Up to MAX_PLANES_PER_SHADOW shadows are cast for up to MAX_ILLUMINATIONS_PER_SHADOW illuminations.
+ * These are populated by tracing from the illumination position through the lighting origin and
  * bounds. A shadow is cast for each unique plane hit.
  */
-#define MAX_SHADOWS (MAX_ILLUMINATIONS * 3)
+#define MAX_ILLUMINATIONS_PER_SHADOW (MAX_ILLUMINATIONS / 2)
+#define MAX_PLANES_PER_SHADOW 3
+#define MAX_SHADOWS (MAX_ILLUMINATIONS_PER_SHADOW * MAX_PLANES_PER_SHADOW)
 
 /**
  * @brief Provides lighting information for mesh entities. Illuminations and
@@ -795,6 +816,27 @@ typedef enum {
 #define FOG_START			128.0
 #define FOG_END				2048.0
 
+// matrix indexes
+typedef enum {
+	R_MATRIX_PROJECTION,
+	R_MATRIX_MODELVIEW,
+	R_MATRIX_TEXTURE,
+	R_MATRIX_SHADOW,
+
+	R_MATRIX_TOTAL
+} r_matrix_id_t;
+
+// texunit IDs
+typedef enum {
+	R_TEXUNIT_DIFFUSE,
+	R_TEXUNIT_LIGHTMAP,
+	R_TEXUNIT_DELUXEMAP,
+	R_TEXUNIT_NORMALMAP,
+	R_TEXUNIT_SPECULARMAP,
+
+	R_TEXUNIT_TOTAL
+} r_texunit_id_t;
+
 /**
  * @brief Provides read-write visibility and scene management to the client.
  */
@@ -808,8 +850,10 @@ typedef struct {
 	vec3_t right;
 	vec3_t up;
 
-	matrix4x4_t matrix; // the view matrix
+	matrix4x4_t matrix; // the base modelview matrix
 	matrix4x4_t inverse_matrix;
+	
+	matrix4x4_t active_matrices[R_MATRIX_TOTAL];
 
 	uint32_t contents; // view origin contents mask
 	vec_t bob;
@@ -821,7 +865,7 @@ typedef struct {
 	r_plugin_t plugin; // active renderer plugin
 
 	byte weather; // weather effects
-	vec4_t fog_color;
+	vec3_t fog_color;
 
 	uint16_t num_entities;
 	r_entity_t entities[MAX_ENTITIES];
@@ -841,6 +885,7 @@ typedef struct {
 
 	const r_entity_t *current_entity; // entity being rendered
 	const r_shadow_t *current_shadow; // shadow being rendered
+	vec4_t current_shadow_light, current_shadow_plane;
 
 	// counters, reset each frame
 

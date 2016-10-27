@@ -77,14 +77,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
-    <IncludePath>..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\;..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
     <LibraryPath>libs\bin\$(Platform)$(Configuration)\;libs\physfs\bin\$(Platform)\;libs\glib\$(Platform)\lib\;..\..\Objectively\Objectively.vs15\libs\bin\$(Platform)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\$(Platform)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\$(Platform)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\$(Platform)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\$(Platform)\;$(LibraryPath)</LibraryPath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
-    <IncludePath>..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\;..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
     <LibraryPath>libs\bin\$(Platform)$(Configuration)\;libs\physfs\bin\$(Platform)\;libs\glib\$(Platform)\lib\;..\..\Objectively\Objectively.vs15\libs\bin\$(Platform)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\$(Platform)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\$(Platform)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\$(Platform)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\$(Platform)\;$(LibraryPath)</LibraryPath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
@@ -92,14 +92,14 @@
     <LibraryPath>libs\bin\$(Platform)$(Configuration)\;libs\physfs\bin\$(Platform)\;libs\glib\$(Platform)\lib\;..\..\Objectively\Objectively.vs15\libs\bin\$(Platform)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\$(Platform)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\$(Platform)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\$(Platform)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\$(Platform)\;$(LibraryPath)</LibraryPath>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
-    <IncludePath>..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\;..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>libs\bin\$(Platform)$(Configuration)\;libs\physfs\bin\$(Platform)\;libs\glib\$(Platform)\lib\;..\..\Objectively\Objectively.vs15\libs\bin\$(Platform)$(Configuration)\;..\..\Objectively\Objectively.vs15\bin\$(Platform)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\bin\$(Platform)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\$(Platform)$(Configuration)\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\$(Platform)\;$(LibraryPath)</LibraryPath>
     <IntDir>tmp\$(ProjectName)\$(Platform)$(Configuration)\</IntDir>
     <OutDir>bin\$(Platform)$(Configuration)\</OutDir>
-    <IncludePath>..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
+    <IncludePath>..\;..\src\;src\;libs\glib\include\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\SDL2\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_ttf\;..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl_image\;libs\sdl_mixer\;$(IncludePath)</IncludePath>
     <UseMultiToolTask>true</UseMultiToolTask>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -110,6 +110,8 @@
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CLanguageStandard>gnu99</CLanguageStandard>
+      <AdditionalOptions>-ferror-limit=0 %(AdditionalOptions)</AdditionalOptions>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <AdditionalDependencies>SDL2.lib;glib-2.0.lib;libmem.lib;libfilesystem.lib;libshared.lib;libcommon.lib;libsys.lib;physfs.lib;dbghelp.lib;Wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -119,6 +121,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
     </Link>
+    <PostBuildEvent>
+      <Command>COPY_QUETOO-UPDATE "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -128,6 +133,8 @@
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CLanguageStandard>gnu99</CLanguageStandard>
+      <AdditionalOptions>-ferror-limit=0 %(AdditionalOptions)</AdditionalOptions>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>
@@ -137,6 +144,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
     </Link>
+    <PostBuildEvent>
+      <Command>COPY_QUETOO-UPDATE "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -148,6 +158,7 @@
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CLanguageStandard>gnu99</CLanguageStandard>
+      <AdditionalOptions>-ferror-limit=0 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -158,6 +169,9 @@
       <SubSystem>Console</SubSystem>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
+    <PostBuildEvent>
+      <Command>COPY_QUETOO-UPDATE "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -169,6 +183,7 @@
       <DisableSpecificWarnings>4068;4996;4115;4706;4204;4244;4245;4100;4267;4305;4267;4018;4702;4311</DisableSpecificWarnings>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SDL_MAIN_HANDLED;CURL_STATICLIB;HAVE_STRUCT_TIMESPEC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CLanguageStandard>gnu99</CLanguageStandard>
+      <AdditionalOptions>-ferror-limit=0 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -179,6 +194,9 @@
       <SubSystem>Console</SubSystem>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
+    <PostBuildEvent>
+      <Command>COPY_QUETOO-UPDATE "$(LocalDebuggerWorkingDirectory)\.." "$(Platform)$(Configuration)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

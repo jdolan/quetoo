@@ -25,35 +25,6 @@
  * @brief Print a debug statement. If the format begins with '!', the function
  * name is omitted.
  */
-void Com_Trace_(const char *func, const char *fmt, ...) {
-	char msg[MAX_PRINT_MSG];
-
-	if (fmt[0] != '!') {
-		g_snprintf(msg, sizeof(msg), "%s: ", func);
-	} else {
-		msg[0] = '\0';
-		fmt++;
-	}
-
-	const size_t len = strlen(msg);
-	va_list args;
-
-	va_start(args, fmt);
-	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
-	va_end(args);
-
-	if (quetoo.Debug) {
-		quetoo.Debug((const char *) msg);
-	} else {
-		fputs(msg, stdout);
-		fflush(stdout);
-	}
-}
-
-/**
- * @brief Print a debug statement. If the format begins with '!', the function
- * name is omitted.
- */
 void Com_Debug_(const char *func, const char *fmt, ...) {
 	char msg[MAX_PRINT_MSG];
 
@@ -83,6 +54,7 @@ void Com_Debug_(const char *func, const char *fmt, ...) {
  * @brief An error condition has occurred. This function does not return.
  */
 void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
+	
 	char msg[MAX_PRINT_MSG];
 
 	if (err == ERR_FATAL) {
@@ -106,7 +78,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 
 	va_start(args, fmt);
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
-	va_end(args);
+	va_end(args);// trigger breakpoint before end but after msg is ready to read
 
 	if (quetoo.Error) {
 		quetoo.Error(err, (const char *) msg);
@@ -140,6 +112,7 @@ void Com_Print(const char *fmt, ...) {
  * @brief Prints a warning message.
  */
 void Com_Warn_(const char *func, const char *fmt, ...) {
+	
 	static char msg[MAX_PRINT_MSG];
 
 	if (fmt[0] != '!') {
@@ -188,12 +161,10 @@ void Com_Verbose(const char *fmt, ...) {
  * implementation, if provided. Should be called shortly after program
  * execution begins.
  */
-void Com_Init(int32_t argc, char **argv) {
+void Com_Init(int32_t argc, char *argv[]) {
 
 	quetoo.argc = argc;
 	quetoo.argv = argv;
-
-	//putenv("G_SLICE=always-malloc");
 
 	if (quetoo.Init) {
 		quetoo.Init();

@@ -23,9 +23,17 @@
 
 // these are the variables defined in the GLSL shader
 typedef struct r_shadow_program_s {
-	r_uniform_matrix4fv_t matrix;
 	r_uniform4fv_t light;
 	r_uniform4fv_t plane;
+	r_uniform1f_t time_fraction;
+
+	r_uniform_fog_t fog;
+
+	r_uniform_matrix4fv_t projection_mat;
+	r_uniform_matrix4fv_t modelview_mat;
+	r_uniform_matrix4fv_t shadow_mat;
+
+	r_uniform4fv_t current_color;
 } r_shadow_program_t;
 
 static r_shadow_program_t r_shadow_program;
@@ -33,75 +41,103 @@ static r_shadow_program_t r_shadow_program;
 /**
  * @brief
  */
-void R_InitProgram_shadow(void) {
+void R_PreLink_shadow(const r_program_t *program) {
+	
+	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
+	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_VERTEX);
+}
+
+/**
+ * @brief
+ */
+void R_InitProgram_shadow(r_program_t *program) {
 	r_shadow_program_t *p = &r_shadow_program;
+
+	R_ProgramVariable(&program->attributes[R_ARRAY_VERTEX], R_ATTRIBUTE, "POSITION");
+	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_VERTEX], R_ATTRIBUTE, "NEXT_POSITION");
 
 	const vec4_t light = { 0.0, 0.0, 0.0, 1.0 };
 	const vec4_t plane = { 0.0, 0.0, 1.0, 0.0 };
 
-	R_ProgramVariable(&p->matrix, R_UNIFORM_MAT4, "MATRIX");
+	R_ProgramVariable(&p->shadow_mat, R_UNIFORM_MAT4, "SHADOW_MAT");
 	R_ProgramVariable(&p->light, R_UNIFORM_VEC4, "LIGHT");
 	R_ProgramVariable(&p->plane, R_UNIFORM_VEC4, "PLANE");
+	
+	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
+	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
+	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
 
-	R_ProgramParameterMatrix4fv(&p->matrix, (GLfloat *) matrix4x4_identity.m);
+	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
+	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
+
+	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
+
+	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION");
+
+	R_ProgramParameterMatrix4fv(&p->shadow_mat, (GLfloat *) matrix4x4_identity.m);
 	R_ProgramParameter4fv(&p->light, light);
 	R_ProgramParameter4fv(&p->plane, plane);
+
+	R_ProgramParameter1f(&p->fog.density, 0.0);
+	
+	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
+
+	R_ProgramParameter4fv(&p->current_color, white);
+
+	R_ProgramParameter1f(&p->time_fraction, 0.0f);
 }
 
 /**
- * @brief Calculates a perspective shearing matrix for the current shadow and
- * uploads it as a uniform variable to the shader.
- *
- * ftp://ftp.sgi.com/opengl/contrib/blythe/advanced99/notes/node192.html
+ * @brief
  */
-void R_UseProgram_shadow(void) {
+void R_UseFog_shadow(const r_fog_parameters_t *fog) {
+
 	r_shadow_program_t *p = &r_shadow_program;
 
-	if (!r_view.current_entity || !r_view.current_shadow)
-		return;
+	if (fog && fog->density) {
+		R_ProgramParameter1f(&p->fog.density, fog->density);
+		R_ProgramParameter1f(&p->fog.start, fog->start);
+		R_ProgramParameter1f(&p->fog.end, fog->end);
+	} else {
+		R_ProgramParameter1f(&p->fog.density, 0.0);
+	}
+}
 
-	const r_entity_t *e = r_view.current_entity;
-	const r_shadow_t *s = r_view.current_shadow;
+/**
+ * @brief
+ */
+void R_UseMatrices_shadow(const matrix4x4_t *matrices) {
+	
+	r_shadow_program_t *p = &r_shadow_program;
 
-	// transform the light position and shadow plane into model space
-	vec4_t light, plane;
+	R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) matrices[R_MATRIX_PROJECTION].m);
+	R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) matrices[R_MATRIX_MODELVIEW].m);
 
-	Matrix4x4_Transform(&e->inverse_matrix, s->illumination->light.origin, light);
-	light[3] = 1.0;
+	R_ProgramParameterMatrix4fv(&p->shadow_mat, (const GLfloat *) matrices[R_MATRIX_SHADOW].m);
+	R_ProgramParameter4fv(&p->light, r_view.current_shadow_light);
+	R_ProgramParameter4fv(&p->plane, r_view.current_shadow_plane);
+}
 
-	Matrix4x4_TransformQuakePlane(&e->inverse_matrix, s->plane.normal, s->plane.dist, plane);
-	plane[3] = -plane[3];
+/**
+ * @brief
+ */
+void R_UseCurrentColor_shadow(const vec4_t color) {
 
-	// calculate the perspective-shearing matrix
-	const vec_t dot = DotProduct(light, plane) + light[3] * plane[3];
+	r_shadow_program_t *p = &r_shadow_program;
+	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
-	matrix4x4_t matrix;
-	matrix.m[0][0] = dot - light[0] * plane[0];
-	matrix.m[1][0] = 0.0 - light[0] * plane[1];
-	matrix.m[2][0] = 0.0 - light[0] * plane[2];
-	matrix.m[3][0] = 0.0 - light[0] * plane[3];
-	matrix.m[0][1] = 0.0 - light[1] * plane[0];
-	matrix.m[1][1] = dot - light[1] * plane[1];
-	matrix.m[2][1] = 0.0 - light[1] * plane[2];
-	matrix.m[3][1] = 0.0 - light[1] * plane[3];
-	matrix.m[0][2] = 0.0 - light[2] * plane[0];
-	matrix.m[1][2] = 0.0 - light[2] * plane[1];
-	matrix.m[2][2] = dot - light[2] * plane[2];
-	matrix.m[3][2] = 0.0 - light[2] * plane[3];
-	matrix.m[0][3] = 0.0 - light[3] * plane[0];
-	matrix.m[1][3] = 0.0 - light[3] * plane[1];
-	matrix.m[2][3] = 0.0 - light[3] * plane[2];
-	matrix.m[3][3] = dot - light[3] * plane[3];
+	if (color)
+		R_ProgramParameter4fv(&p->current_color, color);
+	else
+		R_ProgramParameter4fv(&p->current_color, white);
+}
 
-	R_ProgramParameterMatrix4fv(&p->matrix, (GLfloat *) matrix.m);
+/**
+ * @brief
+ */
+void R_UseInterpolation_shadow(const float time_fraction) {
 
-	Matrix4x4_Transform(&r_view.matrix, s->illumination->light.origin, light);
-	light[3] = s->illumination->light.radius;
+	r_shadow_program_t *p = &r_shadow_program;
 
-	R_ProgramParameter4fv(&p->light, light);
-
-	Matrix4x4_TransformQuakePlane(&r_view.matrix, s->plane.normal, s->plane.dist, plane);
-	plane[3] = -plane[3];
-
-	R_ProgramParameter4fv(&p->plane, plane);
+	R_ProgramParameter1f(&p->time_fraction, time_fraction);
 }

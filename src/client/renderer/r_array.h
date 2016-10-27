@@ -24,16 +24,51 @@
 
 #include "r_types.h"
 
-#define R_ARRAY_VERTEX			0x1
-#define R_ARRAY_COLOR			0x2
-#define R_ARRAY_NORMAL			0x4
-#define R_ARRAY_TANGENT			0x8
-#define R_ARRAY_TEX_DIFFUSE		0x10
-#define R_ARRAY_TEX_LIGHTMAP	0x20
+// Attribute indices - these should be assigned to
+// every program that uses them, and are also used for buffer storage.
+typedef enum {
+	R_ARRAY_VERTEX,
+	R_ARRAY_COLOR,
+	R_ARRAY_NORMAL,
+	R_ARRAY_TANGENT,
+	R_ARRAY_TEX_DIFFUSE,
+	R_ARRAY_TEX_LIGHTMAP,
+
+	// These three are only used for shader-based lerp.
+	// They are only enabled if the ones that match up
+	// to it are enabled as well.
+	R_ARRAY_NEXT_VERTEX,
+	R_ARRAY_NEXT_NORMAL,
+	R_ARRAY_NEXT_TANGENT,
+
+	R_ARRAY_MAX_ATTRIBS,
+
+	// This is a special entry so that R_BindArray can be
+	// used for binding element buffers as well.
+	R_ARRAY_ELEMENTS = -1
+} r_attribute_id_t;
+
+// These are the masks used to tell which data
+// should be actually bound. They should match
+// up with the ones above to make things simple.
+#define R_ARRAY_MASK_VERTEX			(1 << R_ARRAY_VERTEX)
+#define R_ARRAY_MASK_COLOR			(1 << R_ARRAY_COLOR)
+#define R_ARRAY_MASK_NORMAL			(1 << R_ARRAY_NORMAL)
+#define R_ARRAY_MASK_TANGENT		(1 << R_ARRAY_TANGENT)
+#define R_ARRAY_MASK_TEX_DIFFUSE	(1 << R_ARRAY_TEX_DIFFUSE)
+#define R_ARRAY_MASK_TEX_LIGHTMAP	(1 << R_ARRAY_TEX_LIGHTMAP)
+
+#define R_ARRAY_MASK_NEXT_VERTEX	(1 << R_ARRAY_NEXT_VERTEX)
+#define R_ARRAY_MASK_NEXT_NORMAL	(1 << R_ARRAY_NEXT_NORMAL)
+#define R_ARRAY_MASK_NEXT_TANGENT	(1 << R_ARRAY_NEXT_TANGENT)
+
+#define R_ARRAY_MASK_ALL			(1 << R_ARRAY_MAX_ATTRIBS) - 1
 
 #ifdef __R_LOCAL_H__
 void R_SetArrayState(const r_model_t *mod);
 void R_ResetArrayState(void);
+void R_DrawArrays(GLenum type, GLint start, GLsizei count);
+int32_t R_ArraysMask(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_ARRAY_H__ */

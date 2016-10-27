@@ -112,7 +112,7 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
 	GList **matches = (GList **) data;
 
 	if (GlobMatch(cvar_complete_pattern, var->name)) {
-		Com_Print("^2%s^7 is \"^3%s^7\"\n", var->name, var->string);
+		Com_Print("^2%s^7 is \"^3%s^7\" (default is \"^3%s^7\")\n", var->name, var->string, var->default_value);
 
 		if (var->description)
 			Com_Print("\t^2%s^7\n", var->description);
@@ -480,7 +480,7 @@ _Bool Cvar_Command(void) {
 
 	// perform a variable print or set
 	if (Cmd_Argc() == 1) {
-		Com_Print("\"%s\" is \"%s\"\n", var->name, var->string);
+		Com_Print("^2%s^7 is \"^3%s^7\" (default is \"^3%s^7\")\n", var->name, var->string, var->default_value);
 		return true;
 	}
 
@@ -639,6 +639,39 @@ void Cvar_WriteAll(file_t *f) {
 	Cvar_Enumerate(Cvar_WriteVariables_enumerate, (void *) f);
 }
 
+static GRegex *cvar_emplace_regex = NULL;
+
+/**
+ * @brief
+ */
+static gboolean Cvar_ExpandString_EvalCallback(const GMatchInfo *match_info, GString *result, gpointer data __attribute__((unused))) {
+	const gchar *name = g_match_info_fetch(match_info, 1);
+	const char *value = Cvar_GetString(name);
+	g_string_append(result, value);
+	return false;
+}
+
+/**
+ * @brief Replaces cvar replacement strings (ie, $cvar_name_here) with their string values.
+ * @returns false if no emplacement was performed (or could be performed), otherwise the *output is set
+ * to a valid GString.
+ */
+_Bool Cvar_ExpandString(const char *input, const size_t in_size, GString **output)
+{
+	// sanity checks
+	if (!input || !in_size)
+		return false;
+
+	GError *error = NULL;
+	gchar *replaced = g_regex_replace_eval(cvar_emplace_regex, input, in_size, 0, 0, Cvar_ExpandString_EvalCallback, NULL, &error);
+
+	if (error)
+		Com_Warn("Error preprocessing shader: %s", error->message);
+
+	*output = g_string_new(replaced);
+	return true;
+}
+
 /**
  * @brief Initializes the console variable subsystem. Parses the command line
  * arguments looking for "+set" directives. Any variables initialized at the
@@ -674,6 +707,16 @@ void Cvar_Init(void) {
 
 			i += 2;
 		}
+	}
+
+	// this only needs to be done once
+	if (!cvar_emplace_regex)
+	{
+		GError *error = NULL;
+		cvar_emplace_regex = g_regex_new("\\$([a-z0-9_]+)", G_REGEX_CASELESS | G_REGEX_MULTILINE | G_REGEX_DOTALL, 0, &error);
+
+		if (error)
+			Com_Warn("Error compiling regex: %s", error->message);
 	}
 }
 

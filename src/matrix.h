@@ -191,4 +191,9 @@ void Matrix4x4_Scale (matrix4x4_t *out, double rotatescale, double originscale);
 // ensures each element of the 3x3 rotation matrix is facing in the + direction
 void Matrix4x4_Abs (matrix4x4_t *out);
 
+// generate a perspective transformation matrix from bounds
+void Matrix4x4_FromFrustum (matrix4x4_t *out, double left, double right, double bottom, double top, double nearval, double farval);
+// generate an orthogonal projection matrix from bounds
+void Matrix4x4_FromOrtho (matrix4x4_t *out, double left, double right, double bottom, double top, double nearval, double farval);
+
 #endif /* __MATRIX_H__ */

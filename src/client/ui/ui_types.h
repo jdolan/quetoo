@@ -22,6 +22,8 @@
 #ifndef __UI_TYPES_H__
 #define __UI_TYPES_H__
 
+#include "src/client/renderer/r_types.h"
+
 #include <ObjectivelyMVC.h>
 
 #ifdef __UI_LOCAL_H__

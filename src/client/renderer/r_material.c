@@ -127,43 +127,43 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 	if (!(stage->flags & STAGE_TEXTURE_MATRIX)) {
 
 		if (!identity)
-			glLoadIdentity();
+			Matrix4x4_CreateIdentity(&texture_matrix);
 
 		identity = true;
 		return;
 	}
 
-	glLoadIdentity();
+	Matrix4x4_CreateIdentity(&texture_matrix);
 
 	if (surf) { // for BSP surfaces, add stretch and rotate
 
 		s = surf->st_center[0] / surf->texinfo->material->diffuse->width;
 		t = surf->st_center[1] / surf->texinfo->material->diffuse->height;
-
+		
 		if (stage->flags & STAGE_STRETCH) {
-			glTranslatef(-s, -t, 0.0);
-			glScalef(stage->stretch.damp, stage->stretch.damp, 1.0);
-			glTranslatef(-s, -t, 0.0);
+			Matrix4x4_ConcatTranslate(&texture_matrix, -s, -t, 0.0);
+			Matrix4x4_ConcatScale3(&texture_matrix, stage->stretch.damp, stage->stretch.damp, 1.0);
+			Matrix4x4_ConcatTranslate(&texture_matrix, -s, -t, 0.0);
 		}
 
 		if (stage->flags & STAGE_ROTATE) {
-			glTranslatef(-s, -t, 0.0);
-			glRotatef(stage->rotate.deg, 0.0, 0.0, 1.0);
-			glTranslatef(-s, -t, 0.0);
+			Matrix4x4_ConcatTranslate(&texture_matrix, -s, -t, 0.0);
+			Matrix4x4_ConcatRotate(&texture_matrix, stage->rotate.deg, 0.0, 0.0, 1.0);
+			Matrix4x4_ConcatTranslate(&texture_matrix, -s, -t, 0.0);
 		}
 	}
 
 	if (stage->flags & STAGE_SCALE_S)
-		glScalef(stage->scale.s, 1.0, 1.0);
+		Matrix4x4_ConcatScale3(&texture_matrix, stage->scale.s, 1.0, 1.0);
 
 	if (stage->flags & STAGE_SCALE_T)
-		glScalef(1.0, stage->scale.t, 1.0);
+		Matrix4x4_ConcatScale3(&texture_matrix, 1.0, stage->scale.t, 1.0);
 
 	if (stage->flags & STAGE_SCROLL_S)
-		glTranslatef(stage->scroll.ds, 0.0, 0.0);
+		Matrix4x4_ConcatTranslate(&texture_matrix, stage->scroll.ds, 0.0, 0.0);
 
 	if (stage->flags & STAGE_SCROLL_T)
-		glTranslatef(0.0, stage->scroll.dt, 0.0);
+		Matrix4x4_ConcatTranslate(&texture_matrix, 0.0, stage->scroll.dt, 0.0);
 
 	identity = false;
 }
@@ -307,15 +307,15 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 
 	for (i = 0; i < surf->num_edges; i++) {
 
-		const vec_t *v = &r_model_state.world->verts[surf->index * 3 + i * 3];
-		const vec_t *st = &r_model_state.world->texcoords[surf->index * 2 + i * 2];
+		const vec_t *v = &r_model_state.world->bsp->verts[surf->elements[i]][0];
+		const vec_t *st = &r_model_state.world->bsp->texcoords[surf->elements[i]][0];
 
-		R_StageVertex(surf, stage, v, &r_state.vertex_array_3d[i * 3]);
+		R_StageVertex(surf, stage, v, &r_state.vertex_array[i * 3]);
 
 		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[i * 2]);
 
 		if (texunit_lightmap.enabled) { // lightmap texcoords
-			st = &r_model_state.world->lightmap_texcoords[surf->index * 2 + i * 2];
+			st = &r_model_state.world->bsp->lightmap_texcoords[surf->elements[i]][0];
 			texunit_lightmap.texcoord_array[i * 2 + 0] = st[0];
 			texunit_lightmap.texcoord_array[i * 2 + 1] = st[1];
 		}
@@ -325,15 +325,34 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 
 		if (r_state.lighting_enabled) { // normals and tangents
 
-			const vec_t *n = &r_model_state.world->normals[surf->index * 3 + i * 3];
+			const vec_t *n = &r_model_state.world->bsp->normals[surf->elements[i]][0];
 			VectorCopy(n, (&r_state.normal_array[i * 3]));
 
-			const vec_t *t = &r_model_state.world->tangents[surf->index * 4 + i * 4];
+			const vec_t *t = &r_model_state.world->bsp->tangents[surf->elements[i]][0];
 			VectorCopy(t, (&r_state.tangent_array[i * 4]));
 		}
 	}
 
-	glDrawArrays(GL_POLYGON, 0, i);
+	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, i * sizeof(vec3_t), r_state.vertex_array);
+	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, i * sizeof(vec2_t), texunit_diffuse.texcoord_array);
+
+	if (texunit_lightmap.enabled) { 
+
+		R_UploadToBuffer(&texunit_lightmap.buffer_texcoord_array, 0, i * sizeof(vec2_t), texunit_lightmap.texcoord_array);
+	}
+
+	if (r_state.color_array_enabled) {
+	
+		R_UploadToBuffer(&r_state.buffer_color_array, 0, i * sizeof(vec4_t), r_state.color_array);
+	}
+
+	if (r_state.lighting_enabled) {
+
+		R_UploadToBuffer(&r_state.buffer_normal_array, 0, i * sizeof(vec3_t), r_state.normal_array);
+		R_UploadToBuffer(&r_state.buffer_tangent_array, 0, i * sizeof(vec4_t), r_state.tangent_array);
+	}
+
+	R_DrawArrays(GL_TRIANGLE_FAN, 0, i);
 }
 
 /**
@@ -366,7 +385,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
 
-	glMatrixMode(GL_TEXTURE); // some stages will manipulate texcoords
+	// some stages will manipulate texcoords
 
 	for (uint32_t i = 0; i < surfs->count; i++) {
 
@@ -385,7 +404,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 			if (!(s->flags & STAGE_DIFFUSE))
 				continue;
 
-			glPolygonOffset(-0.125, j); // increase depth offset for each stage
+			R_PolygonOffset(-0.125, j); // increase depth offset for each stage
 
 			R_SetStageState(surf, s);
 
@@ -395,23 +414,22 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
 
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
+	Matrix4x4_CreateIdentity(&texture_matrix);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	R_EnableFog(true);
 
 	R_EnableColorArray(false);
 
 	R_EnableTexture(&texunit_lightmap, false);
+
+	R_EnableLighting(r_state.default_program, true);
 
 	R_EnableLights(0);
 
 	R_UseMaterial(NULL);
 
 	R_EnableLighting(NULL, false);
-
+	
 	R_Color(NULL);
 }
 
@@ -431,11 +449,14 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	R_UpdateMaterial(m);
 
 	if (!blend)
+	{
 		R_EnableBlend(true);
+		R_EnableDepthMask(false);
+	}
 
 	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
 
-	glMatrixMode(GL_TEXTURE); // some stages will manipulate texcoords
+	// some stages will manipulate texcoords
 
 	const r_stage_t *s = m->stages;
 	for (vec_t j = -1.0; s; s = s->next, j--) {
@@ -443,20 +464,22 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 		if (!(s->flags & STAGE_DIFFUSE))
 			continue;
 
-		glPolygonOffset(j, 1.0); // increase depth offset for each stage
+		R_PolygonOffset(j, 1.0); // increase depth offset for each stage
 
 		R_SetStageState(NULL, s);
 
-		glDrawArrays(GL_TRIANGLES, offset, count);
+		R_DrawArrays(GL_TRIANGLES, offset, count);
 	}
 
 	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
 
 	if (!blend)
+	{
 		R_EnableBlend(false);
+		R_EnableDepthMask(true);
+	}
 
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
+	Matrix4x4_CreateIdentity(&texture_matrix);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1027,7 +1050,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 		if (!m)
 			continue;
 
-		if (!g_strcmp0(c, "normalmap") && r_programs->value && r_bumpmap->value) {
+		if (!g_strcmp0(c, "normalmap") && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
 				m->normalmap = R_LoadImage(++c, IT_NORMALMAP);
@@ -1041,7 +1064,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 			}
 		}
 
-		if (!g_strcmp0(c, "specularmap") && r_programs->value && r_bumpmap->value) {
+		if (!g_strcmp0(c, "specularmap") && r_bumpmap->value) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
 				m->specularmap = R_LoadImage(++c, IT_SPECULARMAP);

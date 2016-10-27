@@ -4,40 +4,44 @@
 
 #version 120
 
-uniform mat4 MATRIX;
+#include "fog_inc.glsl"
+#include "matrix_inc.glsl"
+
+uniform mat4 SHADOW_MAT;
 uniform vec4 LIGHT;
 
 varying vec4 point;
 
-varying float fog;
+attribute vec3 POSITION;
+
+uniform float TIME_FRACTION;
+
+attribute vec3 NEXT_POSITION;
 
 /**
  * @brief
  */
 void ShadowVertex() {
-	point = gl_ModelViewMatrix * MATRIX * gl_Vertex;	
+	point = MODELVIEW_MAT * SHADOW_MAT * vec4(mix(POSITION, NEXT_POSITION, TIME_FRACTION), 1.0);	
 }
 
 /**
  * @brief
  */
 void FogVertex(void) {
-    fog = (gl_Position.z - gl_Fog.start) / (gl_Fog.end - gl_Fog.start) / point.w;
-    fog = clamp(fog, 0.0, 1.0) * gl_Fog.density;
+    fog = (gl_Position.z - FOG.START) / (FOG.END - FOG.START) / point.w;
+    fog = clamp(fog, 0.0, 1.0) * FOG.DENSITY;
 }
 
 /**
  * @brief Program entry point.
  */
 void main(void) {
+
+	ShadowVertex();
 	
 	// mvp transform into clip space
-	gl_Position = gl_ModelViewProjectionMatrix * MATRIX * gl_Vertex;
-	
-	// and primary color
-	gl_FrontColor = gl_Color;
-	
-	ShadowVertex();
-    
+	gl_Position = PROJECTION_MAT * point;
+	    
     FogVertex();
 }

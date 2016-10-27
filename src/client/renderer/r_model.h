@@ -31,11 +31,16 @@ r_model_t *R_WorldModel(void);
 
 typedef struct {
 	r_model_t *world;
+
+	r_buffer_t null_vertices;
+	r_buffer_t null_elements;
+	size_t null_elements_count;
 } r_model_state_t;
 
 extern r_model_state_t r_model_state;
 
 void R_InitModels(void);
+void R_ShutdownModels(void);
 
 #endif /* __R_LOCAL_H__ */
 

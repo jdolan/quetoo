@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "cg_local.h"
+
 #include "MainViewController.h"
 
 #include "KeysViewController.h"
@@ -28,8 +30,6 @@
 #include "SystemViewController.h"
 
 #include "PrimaryButton.h"
-
-#include "cg_local.h"
 
 #define _Class _MainViewController
 

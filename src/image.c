@@ -58,7 +58,7 @@ static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 		Img_InitPalette();
 
 	size_t size = wal->width * wal->height;
-	uint32_t *p = (uint32_t *) malloc(size * sizeof(uint32_t));
+	uint32_t *p = (uint32_t *) SDL_malloc(size * sizeof(uint32_t));
 
 	const byte *b = (byte *) wal + wal->offsets[0];
 	for (size_t i = 0; i < size; i++) { // convert to 32bpp RGBA via palette
@@ -68,8 +68,6 @@ static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 			p[i] = img_palette[b[i]];
 	}
 
-	Fs_Free(buf);
-
 	// create the RGBA surface
 	if ((*surf = SDL_CreateRGBSurfaceFrom(p, wal->width, wal->height, 32, 0,
 			RMASK, GMASK, BMASK, AMASK))) {
@@ -77,6 +75,8 @@ static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 		// trick SDL into freeing the pixel data with the surface
 		(*surf)->flags &= ~SDL_PREALLOC;
 	}
+
+	Fs_Free(buf);
 
 	return *surf != NULL;
 }

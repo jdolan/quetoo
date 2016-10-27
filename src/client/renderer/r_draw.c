@@ -22,40 +22,65 @@
 #include "r_local.h"
 #include "client.h"
 
-#define MAX_CHARS 16384  // per font
+#define MAX_CHARS MAX_GL_ARRAY_LENGTH  // per font
 // characters are batched per frame and drawn in one shot
 // accumulate coordinates and colors as vertex arrays
 typedef struct r_char_arrays_s {
-	GLshort verts[MAX_CHARS * 4 * 2];
+	GLfloat verts[MAX_CHARS * sizeof(vec3_t)];
 	uint32_t vert_index;
+	r_buffer_t vert_buffer;
 
-	GLfloat texcoords[MAX_CHARS * 4 * 2];
+	GLfloat texcoords[MAX_CHARS * sizeof(vec2_t)];
 	uint32_t texcoord_index;
+	r_buffer_t texcoord_buffer;
 
-	GLbyte colors[MAX_CHARS * 4 * 4];
+	GLfloat colors[MAX_CHARS * sizeof(vec4_t)];
 	uint32_t color_index;
+	r_buffer_t color_buffer;
+
+	GLuint elements[MAX_CHARS * 4];
+	uint32_t element_index;
+	r_buffer_t element_buffer;
+
+	uint32_t num_chars;
 } r_char_arrays_t;
 
 #define MAX_FILLS 512
 
 // fills (alpha-blended quads) are also batched per frame
 typedef struct r_fill_arrays_s {
-	GLshort verts[MAX_FILLS * 4 * 2];
+	GLfloat verts[MAX_FILLS * 4 * 3];
 	uint32_t vert_index;
+	r_buffer_t vert_buffer;
 
-	GLbyte colors[MAX_FILLS * 4 * 4];
+	GLfloat colors[MAX_FILLS * 4 * 4];
 	uint32_t color_index;
+	r_buffer_t color_buffer;
+
+	GLuint elements[MAX_FILLS * 4];
+	uint32_t element_index;
+	r_buffer_t element_buffer;
+
+	uint32_t num_fills;
+
+	// buffer used for immediately-rendered fills
+	r_buffer_t ui_vert_buffer;
 } r_fill_arrays_t;
 
 #define MAX_LINES 512
 
 // lines are batched per frame too
 typedef struct r_line_arrays_s {
-	GLshort verts[MAX_LINES * 2 * 2];
+	GLfloat verts[MAX_LINES * 2 * 3];
 	uint32_t vert_index;
+	r_buffer_t vert_buffer;
 
-	GLbyte colors[MAX_LINES * 2 * 4];
+	GLfloat colors[MAX_LINES * 2 * 4];
 	uint32_t color_index;
+	r_buffer_t color_buffer;
+
+	// buffer used for immediately-rendered lines
+	r_buffer_t ui_vert_buffer;
 } r_line_arrays_t;
 
 // each font has vertex arrays of characters to draw each frame
@@ -116,19 +141,55 @@ void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) 
 
 	// our texcoords are already setup, just set verts and draw
 
-	r_state.vertex_array_2d[0] = x;
-	r_state.vertex_array_2d[1] = y;
+	r_state.vertex_array[0] = x;
+	r_state.vertex_array[1] = y;
+	r_state.vertex_array[2] = 0;
 
-	r_state.vertex_array_2d[2] = x + image->width * scale;
-	r_state.vertex_array_2d[3] = y;
+	r_state.vertex_array[3] = x + image->width * scale;
+	r_state.vertex_array[4] = y;
+	r_state.vertex_array[5] = 0;
 
-	r_state.vertex_array_2d[4] = x + image->width * scale;
-	r_state.vertex_array_2d[5] = y + image->height * scale;
+	r_state.vertex_array[6] = x + image->width * scale;
+	r_state.vertex_array[7] = y + image->height * scale;
+	r_state.vertex_array[8] = 0;
 
-	r_state.vertex_array_2d[6] = x;
-	r_state.vertex_array_2d[7] = y + image->height * scale;
+	r_state.vertex_array[9] = x;
+	r_state.vertex_array[10] = y + image->height * scale;
+	r_state.vertex_array[11] = 0;
 
-	glDrawArrays(GL_QUADS, 0, 4);
+	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, 4 * sizeof(vec3_t), r_state.vertex_array);
+
+	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+/**
+ * @brief
+ */
+void R_DrawImageResized(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image) {
+
+	R_BindTexture(image->texnum);
+
+	// our texcoords are already setup, just set verts and draw
+
+	r_state.vertex_array[0] = x;
+	r_state.vertex_array[1] = y;
+	r_state.vertex_array[2] = 0;
+
+	r_state.vertex_array[3] = x + w;
+	r_state.vertex_array[4] = y;
+	r_state.vertex_array[5] = 0;
+
+	r_state.vertex_array[6] = x + w;
+	r_state.vertex_array[7] = y + h;
+	r_state.vertex_array[8] = 0;
+
+	r_state.vertex_array[9] = x;
+	r_state.vertex_array[10] = y + h;
+	r_state.vertex_array[11] = 0;
+
+	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, 4 * sizeof(vec3_t), r_state.vertex_array);
+
+	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 /**
@@ -244,11 +305,15 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 
 	// resolve ABGR color
 	const uint32_t *abgr = &r_draw.colors[color & (MAX_COLORS - 1)];
+	vec4_t colors;
 
-	memcpy(&chars->colors[chars->color_index + 0], abgr, 4);
-	memcpy(&chars->colors[chars->color_index + 4], abgr, 4);
-	memcpy(&chars->colors[chars->color_index + 8], abgr, 4);
-	memcpy(&chars->colors[chars->color_index + 12], abgr, 4);
+	for (int i = 0; i < 4; ++i)
+		colors[i] = ((*abgr >> (i * 8)) & 0xFF) / 255.0;
+
+	memcpy(&chars->colors[chars->color_index + 0], colors, 4 * sizeof(float));
+	memcpy(&chars->colors[chars->color_index + 4], colors, 4 * sizeof(float));
+	memcpy(&chars->colors[chars->color_index + 8], colors, 4 * sizeof(float));
+	memcpy(&chars->colors[chars->color_index + 12], colors, 4 * sizeof(float));
 
 	chars->color_index += 16;
 
@@ -268,17 +333,35 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 
 	chars->verts[chars->vert_index + 0] = x;
 	chars->verts[chars->vert_index + 1] = y;
+	chars->verts[chars->vert_index + 2] = 0;
 
-	chars->verts[chars->vert_index + 2] = x + r_draw.font->char_width;
-	chars->verts[chars->vert_index + 3] = y;
+	chars->verts[chars->vert_index + 3] = x + r_draw.font->char_width;
+	chars->verts[chars->vert_index + 4] = y;
+	chars->verts[chars->vert_index + 5] = 0;
 
-	chars->verts[chars->vert_index + 4] = x + r_draw.font->char_width;
-	chars->verts[chars->vert_index + 5] = y + r_draw.font->char_height;
-
-	chars->verts[chars->vert_index + 6] = x;
+	chars->verts[chars->vert_index + 6] = x + r_draw.font->char_width;
 	chars->verts[chars->vert_index + 7] = y + r_draw.font->char_height;
+	chars->verts[chars->vert_index + 8] = 0;
 
-	chars->vert_index += 8;
+	chars->verts[chars->vert_index + 9] = x;
+	chars->verts[chars->vert_index + 10] = y + r_draw.font->char_height;
+	chars->verts[chars->vert_index + 11] = 0;
+
+	chars->vert_index += 12;
+
+	const GLuint char_index = chars->num_chars * 4;
+	
+	chars->elements[chars->element_index + 0] = char_index;
+	chars->elements[chars->element_index + 1] = char_index + 1;
+	chars->elements[chars->element_index + 2] = char_index + 2;
+
+	chars->elements[chars->element_index + 3] = char_index + 0;
+	chars->elements[chars->element_index + 4] = char_index + 2;
+	chars->elements[chars->element_index + 5] = char_index + 3;
+
+	chars->element_index += 6;
+
+	chars->num_chars++;
 }
 
 /**
@@ -291,27 +374,39 @@ static void R_DrawChars(void) {
 
 		if (!chars->vert_index)
 			continue;
+		
+		R_UploadToBuffer(&r_draw.char_arrays[i].vert_buffer, 0, r_draw.char_arrays[i].vert_index * sizeof(GLfloat), r_draw.char_arrays[i].verts);
+		R_UploadToBuffer(&r_draw.char_arrays[i].texcoord_buffer, 0, r_draw.char_arrays[i].texcoord_index * sizeof(GLfloat), r_draw.char_arrays[i].texcoords);
+		R_UploadToBuffer(&r_draw.char_arrays[i].color_buffer, 0, r_draw.char_arrays[i].color_index * sizeof(GLfloat), r_draw.char_arrays[i].colors);
+
+		R_UploadToBuffer(&r_draw.char_arrays[i].element_buffer, 0, r_draw.char_arrays[i].element_index * sizeof(GLuint), r_draw.char_arrays[i].elements);
 
 		R_BindTexture(r_draw.fonts[i].image->texnum);
 
 		R_EnableColorArray(true);
 
 		// alter the array pointers
-		R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, chars->colors);
-		R_BindArray(GL_TEXTURE_COORD_ARRAY, GL_FLOAT, chars->texcoords);
-		R_BindArray(GL_VERTEX_ARRAY, GL_SHORT, chars->verts);
+		R_BindArray(R_ARRAY_COLOR, &chars->color_buffer);
+		R_BindArray(R_ARRAY_TEX_DIFFUSE, &chars->texcoord_buffer);
+		R_BindArray(R_ARRAY_VERTEX, &chars->vert_buffer);
 
-		glDrawArrays(GL_QUADS, 0, chars->vert_index / 2);
+		R_BindArray(R_ARRAY_ELEMENTS, &chars->element_buffer);
+
+		R_DrawArrays(GL_TRIANGLES, 0, chars->element_index);
 
 		chars->color_index = 0;
 		chars->texcoord_index = 0;
 		chars->vert_index = 0;
+		chars->element_index = 0;
+		chars->num_chars = 0;
 	}
 
 	// restore array pointers
-	R_BindDefaultArray(GL_TEXTURE_COORD_ARRAY);
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
-	R_BindDefaultArray(GL_COLOR_ARRAY);
+	R_BindDefaultArray(R_ARRAY_COLOR);
+	R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+
+	R_BindDefaultArray(R_ARRAY_ELEMENTS);
 
 	R_EnableColorArray(false);
 
@@ -324,7 +419,7 @@ static void R_DrawChars(void) {
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
 void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, vec_t a) {
-	byte color[4];
+	vec4_t color;
 
 	if (a > 1.0) {
 		Com_Warn("Bad alpha %f\n", a);
@@ -332,34 +427,55 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 	}
 
 	if (a < 0.0) { // RGBA integer
-		memcpy(color, &c, 4);
+		for (int i = 0; i < 4; ++i)
+			color[i] = ((c >> (i * 8)) & 0xFF) / 255.0;
 	} else { // palette index
-		memcpy(color, &img_palette[c], sizeof(color));
-		color[3] = a * 255;
+		for (int i = 0; i < 3; ++i)
+			color[i] = ((img_palette[c] >> (i * 8)) & 0xFF) / 255.0;
+
+		color[3] = a;
 	}
 
 	// duplicate color data to all 4 verts
-	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 0], color, 4);
-	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 4], color, 4);
-	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 8], color, 4);
-	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 12], color, 4);
+	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 0], color, sizeof(vec4_t));
+	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 4], color, sizeof(vec4_t));
+	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 8], color, sizeof(vec4_t));
+	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.color_index + 12], color, sizeof(vec4_t));
 
 	r_draw.fill_arrays.color_index += 16;
 
 	// populate verts
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 0] = x;
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 1] = y;
+	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 0] = x + 0.5;
+	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 1] = y + 0.5;
+	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 2] = 0;
 
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 2] = x + w;
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 3] = y;
+	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 3] = (x + w) + 0.5;
+	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 4] = y + 0.5;
+	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 5] = 0;
 
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 4] = x + w;
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 5] = y + h;
+	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 6] = (x + w) + 0.5;
+	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 7] = (y + h) + 0.5;
+	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 8] = 0;
 
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 6] = x;
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 7] = y + h;
+	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 9] = x + 0.5;
+	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 10] = (y + h) + 0.5;
+	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 11] = 0;
 
-	r_draw.fill_arrays.vert_index += 8;
+	r_draw.fill_arrays.vert_index += 12;
+
+	const GLuint fill_index = r_draw.fill_arrays.num_fills * 4;
+	
+	r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index + 0] = fill_index;
+	r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index + 1] = fill_index + 1;
+	r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index + 2] = fill_index + 2;
+
+	r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index + 3] = fill_index + 0;
+	r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index + 4] = fill_index + 2;
+	r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index + 5] = fill_index + 3;
+
+	r_draw.fill_arrays.element_index += 6;
+
+	r_draw.fill_arrays.num_fills++;
 }
 
 /**
@@ -370,32 +486,40 @@ static void R_DrawFills(void) {
 	if (!r_draw.fill_arrays.vert_index)
 		return;
 
+	// upload the changed data
+	R_UploadToBuffer(&r_draw.fill_arrays.vert_buffer, 0, r_draw.fill_arrays.vert_index * sizeof(float), r_draw.fill_arrays.verts);
+	R_UploadToBuffer(&r_draw.fill_arrays.color_buffer, 0, r_draw.fill_arrays.color_index * sizeof(float), r_draw.fill_arrays.colors);
+
+	R_UploadToBuffer(&r_draw.fill_arrays.element_buffer, 0, r_draw.fill_arrays.element_index * sizeof(GLuint), r_draw.fill_arrays.elements);
+
 	R_EnableTexture(&texunit_diffuse, false);
 
 	R_EnableColorArray(true);
 
 	// alter the array pointers
-	R_BindArray(GL_VERTEX_ARRAY, GL_SHORT, r_draw.fill_arrays.verts);
-	R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, r_draw.fill_arrays.colors);
+	R_BindArray(R_ARRAY_VERTEX, &r_draw.fill_arrays.vert_buffer);
+	R_BindArray(R_ARRAY_COLOR, &r_draw.fill_arrays.color_buffer);
+	R_BindArray(R_ARRAY_ELEMENTS, &r_draw.fill_arrays.element_buffer);
 
-	glDrawArrays(GL_QUADS, 0, r_draw.fill_arrays.vert_index / 2);
+	R_DrawArrays(GL_TRIANGLES, 0, r_draw.fill_arrays.element_index);
 
 	// and restore them
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
-	R_BindDefaultArray(GL_COLOR_ARRAY);
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+	R_BindDefaultArray(R_ARRAY_COLOR);
+	R_BindDefaultArray(R_ARRAY_ELEMENTS);
 
 	R_EnableColorArray(false);
 
 	R_EnableTexture(&texunit_diffuse, true);
 
-	r_draw.fill_arrays.vert_index = r_draw.fill_arrays.color_index = 0;
+	r_draw.fill_arrays.vert_index = r_draw.fill_arrays.color_index = r_draw.fill_arrays.element_index = r_draw.fill_arrays.num_fills = 0;
 }
 
 /**
  * @brief
  */
 void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t c, vec_t a) {
-	byte color[4];
+	vec4_t color;
 
 	if (a > 1.0) {
 		Com_Warn("Bad alpha %f\n", a);
@@ -403,26 +527,31 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 	}
 
 	if (a < 0.0) { // RGBA integer
-		memcpy(color, &c, 4);
+		for (int i = 0; i < 4; ++i)
+			color[i] = ((c >> (i * 8)) & 0xFF) / 255.0;
 	} else { // palette index
-		memcpy(color, &img_palette[c], sizeof(color));
-		color[3] = a * 255;
+		for (int i = 0; i < 3; ++i)
+			color[i] = ((img_palette[c] >> (i * 8)) & 0xFF) / 255.0;
+
+		color[3] = a;
 	}
 
 	// duplicate color data to all 4 verts
-	memcpy(&r_draw.line_arrays.colors[r_draw.line_arrays.color_index + 0], color, 4);
-	memcpy(&r_draw.line_arrays.colors[r_draw.line_arrays.color_index + 4], color, 4);
+	memcpy(&r_draw.line_arrays.colors[r_draw.line_arrays.color_index + 0], color, sizeof(vec4_t));
+	memcpy(&r_draw.line_arrays.colors[r_draw.line_arrays.color_index + 4], color, sizeof(vec4_t));
 
 	r_draw.line_arrays.color_index += 8;
 
 	// populate verts
-	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 0] = x1;
-	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 1] = y1;
+	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 0] = x1 + 0.5;
+	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 1] = y1 + 0.5;
+	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 2] = 0;
 
-	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 2] = x2;
-	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 3] = y2;
+	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 3] = x2 + 0.5;
+	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 4] = y2 + 0.5;
+	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 5] = 0;
 
-	r_draw.line_arrays.vert_index += 4;
+	r_draw.line_arrays.vert_index += 6;
 }
 
 /**
@@ -433,19 +562,23 @@ static void R_DrawLines(void) {
 	if (!r_draw.line_arrays.vert_index)
 		return;
 
+	// upload the changed data
+	R_UploadToBuffer(&r_draw.line_arrays.vert_buffer, 0, r_draw.line_arrays.vert_index * sizeof(float), r_draw.line_arrays.verts);
+	R_UploadToBuffer(&r_draw.line_arrays.color_buffer, 0, r_draw.line_arrays.color_index * sizeof(float), r_draw.line_arrays.colors);
+
 	R_EnableTexture(&texunit_diffuse, false);
 
 	R_EnableColorArray(true);
 
 	// alter the array pointers
-	R_BindArray(GL_VERTEX_ARRAY, GL_SHORT, r_draw.line_arrays.verts);
-	R_BindArray(GL_COLOR_ARRAY, GL_UNSIGNED_BYTE, r_draw.line_arrays.colors);
+	R_BindArray(R_ARRAY_VERTEX, &r_draw.line_arrays.vert_buffer);
+	R_BindArray(R_ARRAY_COLOR, &r_draw.line_arrays.color_buffer);
 
-	glDrawArrays(GL_LINES, 0, r_draw.line_arrays.vert_index / 2);
+	R_DrawArrays(GL_LINES, 0, r_draw.line_arrays.vert_index / 3);
 
 	// and restore them
-	R_BindDefaultArray(GL_VERTEX_ARRAY);
-	R_BindDefaultArray(GL_COLOR_ARRAY);
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+	R_BindDefaultArray(R_ARRAY_COLOR);
 
 	R_EnableColorArray(false);
 
@@ -455,13 +588,76 @@ static void R_DrawLines(void) {
 }
 
 /**
+ * @brief Draws a filled rect, for MVC. Uses current color.
+ */
+void R_DrawFillUI(const SDL_Rect *rect) {
+
+	const float verts[] = {
+		rect->x + 0.5, rect->y + 0.5, 0.0,
+		(rect->x + rect->w) + 0.5, rect->y + 0.5, 0.0,
+		(rect->x + rect->w) + 0.5, (rect->y + rect->h) + 0.5, 0.0,
+		rect->x + 0.5, (rect->y + rect->h) + 0.5, 0.0
+	};
+
+	R_EnableColorArray(false);
+
+	R_EnableTexture(&texunit_diffuse, false);
+
+	// upload the changed data
+	R_UploadToBuffer(&r_draw.fill_arrays.ui_vert_buffer, 0, sizeof(verts), verts);
+
+	// alter the array pointers
+	R_BindArray(R_ARRAY_VERTEX, &r_draw.fill_arrays.ui_vert_buffer);
+
+	// draw!
+	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+	// and restore them
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+
+	R_EnableTexture(&texunit_diffuse, true);
+}
+
+void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop) {
+
+	float point_buffer[count * 3];
+
+	for (size_t i = 0; i < count; ++i)
+	{
+		const size_t px = i * 3;
+		
+		point_buffer[px + 0] = points[i].x + 0.5;
+		point_buffer[px + 1] = points[i].y + 0.5;
+		point_buffer[px + 2] = 0.0;
+	}
+
+	R_EnableColorArray(false);
+
+	R_EnableTexture(&texunit_diffuse, false);
+
+	// upload the changed data
+	R_UploadToBuffer(&r_draw.line_arrays.ui_vert_buffer, 0, sizeof(point_buffer), point_buffer);
+
+	// alter the array pointers
+	R_BindArray(R_ARRAY_VERTEX, &r_draw.line_arrays.ui_vert_buffer);
+
+	// draw!
+	R_DrawArrays(loop ? GL_LINE_LOOP : GL_LINE_STRIP, 0, count);
+
+	// and restore them
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+
+	R_EnableTexture(&texunit_diffuse, true);
+}
+
+/**
  * @brief Draw all 2D geometry accumulated for the current frame.
  */
 void R_Draw2D(void) {
 
-	R_DrawFills();
-
 	R_DrawLines();
+
+	R_DrawFills();
 
 	R_DrawChars();
 }
@@ -519,4 +715,47 @@ void R_InitDraw(void) {
 	r_draw.colors[CON_COLOR_CYAN] = 0xffffff00;
 	r_draw.colors[CON_COLOR_MAGENTA] = 0xffff00ff;
 	r_draw.colors[CON_COLOR_WHITE] = 0xffffffff;
+
+	for (int i = 0; i < MAX_FONTS; ++i) {
+
+		R_CreateBuffer(&r_draw.char_arrays[i].vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.char_arrays[i].verts), NULL);
+		R_CreateBuffer(&r_draw.char_arrays[i].texcoord_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.char_arrays[i].texcoords), NULL);
+		R_CreateBuffer(&r_draw.char_arrays[i].color_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.char_arrays[i].colors), NULL);
+
+		R_CreateBuffer(&r_draw.char_arrays[i].element_buffer, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT, sizeof(r_draw.char_arrays[i].elements), NULL);
+	}
+
+	R_CreateBuffer(&r_draw.fill_arrays.vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.fill_arrays.verts), NULL);
+	R_CreateBuffer(&r_draw.fill_arrays.color_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.fill_arrays.colors), NULL);
+
+	R_CreateBuffer(&r_draw.fill_arrays.element_buffer, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT, sizeof(r_draw.fill_arrays.elements), NULL);
+
+	R_CreateBuffer(&r_draw.line_arrays.vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.line_arrays.verts), NULL);
+	R_CreateBuffer(&r_draw.line_arrays.color_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.line_arrays.colors), NULL);
+
+	// fill buffer only needs 4 verts
+	R_CreateBuffer(&r_draw.fill_arrays.ui_vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(vec3_t) * 4, NULL);
+	R_CreateBuffer(&r_draw.line_arrays.ui_vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(vec3_t) * MAX_LINES * 4, NULL);
+}
+
+/**
+ * @brief
+ */
+void R_ShutdownDraw(void) {
+	
+	for (int i = 0; i < MAX_FONTS; ++i) {
+
+		R_DestroyBuffer(&r_draw.char_arrays[i].vert_buffer);
+		R_DestroyBuffer(&r_draw.char_arrays[i].texcoord_buffer);
+		R_DestroyBuffer(&r_draw.char_arrays[i].color_buffer);
+	}
+	
+	R_DestroyBuffer(&r_draw.fill_arrays.vert_buffer);
+	R_DestroyBuffer(&r_draw.fill_arrays.color_buffer);
+
+	R_DestroyBuffer(&r_draw.line_arrays.vert_buffer);
+	R_DestroyBuffer(&r_draw.line_arrays.color_buffer);
+	
+	R_DestroyBuffer(&r_draw.fill_arrays.ui_vert_buffer);
+	R_DestroyBuffer(&r_draw.line_arrays.ui_vert_buffer);
 }

@@ -25,8 +25,12 @@
 #include "r_types.h"
 
 #ifdef __R_LOCAL_H__
-void R_InitProgram_shell(void);
+void R_InitProgram_shell(r_program_t *program);
 void R_UseProgram_shell(void);
+void R_UseMatrices_shell(const matrix4x4_t *matrices);
+void R_UseCurrentColor_shell(const vec4_t color);
+void R_PreLink_shell(const r_program_t *program);
+void R_UseInterpolation_shell(const float time_fraction);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_PROGRAM_SHELL_H__ */

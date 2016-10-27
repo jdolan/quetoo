@@ -242,11 +242,9 @@ static void R_AddSkySurface(const r_bsp_surface_t *surf) {
 	if (r_draw_wireframe->value)
 		return;
 
-	const GLuint index = surf->index * 3;
-
 	// calculate distance to surface verts
 	for (i = 0; i < surf->num_edges; i++) {
-		const vec_t *v = &r_model_state.world->verts[index + i * 3];
+		const vec_t *v = &r_model_state.world->bsp->verts[surf->elements[i]][0];
 		VectorSubtract(v, r_view.origin, verts[i]);
 	}
 
@@ -282,7 +280,7 @@ static void R_MakeSkyVec(vec_t s, vec_t t, int32_t axis) {
 			v[j] = b[k - 1];
 	}
 
-	memcpy(&r_state.vertex_array_3d[r_sky.vert_index], v, sizeof(vec3_t));
+	memcpy(&r_state.vertex_array[r_sky.vert_index], v, sizeof(vec3_t));
 	r_sky.vert_index += 3;
 
 	// avoid bilerp seam
@@ -319,11 +317,13 @@ void R_DrawSkyBox(void) {
 
 	R_ResetArrayState();
 
-	glPushMatrix();
-	glTranslatef(r_view.origin[0], r_view.origin[1], r_view.origin[2]);
+	R_PushMatrix(R_MATRIX_MODELVIEW);
+	Matrix4x4_ConcatTranslate(&modelview_matrix, r_view.origin[0], r_view.origin[1], r_view.origin[2]);
 
-	if (r_state.fog_enabled)
-		glFogf(GL_FOG_END, FOG_END * 8.0);
+	R_EnableFog(true);
+
+	r_state.active_fog_parameters.end = FOG_END * 8.0;
+	r_state.active_program->UseFog(&r_state.active_fog_parameters);
 
 	r_sky.texcoord_index = r_sky.vert_index = 0;
 
@@ -339,15 +339,20 @@ void R_DrawSkyBox(void) {
 		R_MakeSkyVec(r_sky.st_mins[0][i], r_sky.st_maxs[1][i], i);
 		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_maxs[1][i], i);
 		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_mins[1][i], i);
+		
+		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, r_sky.vert_index * sizeof(float), r_state.vertex_array);
+		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, r_sky.texcoord_index * sizeof(float), texunit_diffuse.texcoord_array);
 
-		glDrawArrays(GL_QUADS, 0, r_sky.vert_index / 3);
+		R_DrawArrays(GL_TRIANGLE_FAN, 0, r_sky.vert_index / 3);
 		r_sky.texcoord_index = r_sky.vert_index = 0;
 	}
+	
+	r_state.active_fog_parameters.end = FOG_END;
+	r_state.active_program->UseFog(&r_state.active_fog_parameters);
 
-	if (r_state.fog_enabled)
-		glFogf(GL_FOG_END, FOG_END);
+	R_EnableFog(false);
 
-	glPopMatrix();
+	R_PopMatrix(R_MATRIX_MODELVIEW);
 }
 
 /**
