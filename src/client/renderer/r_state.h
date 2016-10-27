@@ -33,11 +33,12 @@ void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
 void R_EnableDepthTest(_Bool enable);
 void R_DepthRange(GLdouble znear, GLdouble zfar);
-void R_EnableTextureID(const uint8_t texunit_id, _Bool enable);
 void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height);
 
 void R_PushMatrix(const r_matrix_id_t id);
 void R_PopMatrix(const r_matrix_id_t id);
+
+void R_EnableTextureID(const r_texunit_id_t texunit_id, _Bool enable);
 
 #ifdef __R_LOCAL_H__
 
@@ -48,8 +49,6 @@ void R_PopMatrix(const r_matrix_id_t id);
 extern const vec_t default_texcoords[];
 
 // texunits maintain multitexture state
-#define MAX_GL_TEXUNITS			8
-
 typedef struct r_texunit_s {
 	_Bool enabled; // on / off (off uses null texture)
 	GLenum texture; // e.g. GL_TEXTURE0 + x
@@ -99,7 +98,7 @@ typedef struct r_state_s {
 	float alpha_threshold;
 	vec4_t current_color;
 
-	r_texunit_t texunits[MAX_GL_TEXUNITS];
+	r_texunit_t texunits[R_TEXUNIT_TOTAL];
 	r_texunit_t *active_texunit;
 
 	r_matrix_stack_t matrix_stacks[R_MATRIX_TOTAL];
@@ -156,11 +155,11 @@ typedef struct r_state_s {
 extern r_state_t r_state;
 
 // these are defined for convenience
-#define texunit_diffuse			r_state.texunits[0]
-#define texunit_lightmap		r_state.texunits[1]
-#define texunit_deluxemap		r_state.texunits[2]
-#define texunit_normalmap		r_state.texunits[3]
-#define texunit_specularmap		r_state.texunits[4]
+#define texunit_diffuse			r_state.texunits[R_TEXUNIT_DIFFUSE]
+#define texunit_lightmap		r_state.texunits[R_TEXUNIT_LIGHTMAP]
+#define texunit_deluxemap		r_state.texunits[R_TEXUNIT_DELUXEMAP]
+#define texunit_normalmap		r_state.texunits[R_TEXUNIT_NORMALMAP]
+#define texunit_specularmap		r_state.texunits[R_TEXUNIT_SPECULARMAP]
 
 #define R_GetError(msg) R_GetError_(__func__, msg)
 void R_GetError_(const char *function, const char *msg);

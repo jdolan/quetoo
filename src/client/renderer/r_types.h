@@ -826,6 +826,17 @@ typedef enum {
 	R_MATRIX_TOTAL
 } r_matrix_id_t;
 
+// texunit IDs
+typedef enum {
+	R_TEXUNIT_DIFFUSE,
+	R_TEXUNIT_LIGHTMAP,
+	R_TEXUNIT_DELUXEMAP,
+	R_TEXUNIT_NORMALMAP,
+	R_TEXUNIT_SPECULARMAP,
+
+	R_TEXUNIT_TOTAL
+} r_texunit_id_t;
+
 /**
  * @brief Provides read-write visibility and scene management to the client.
  */

@@ -104,7 +104,7 @@ static void render(View *self, Renderer *renderer) {
 
 		Matrix4x4_Copy(&cgi.view->active_matrices[R_MATRIX_MODELVIEW], &mat);
 		
-		cgi.EnableTextureID(0, true);
+		cgi.EnableTextureID(R_TEXUNIT_DIFFUSE, true);
 		cgi.EnableDepthTest(true);
 		cgi.DepthRange(0.0, 0.1);
 
@@ -115,7 +115,7 @@ static void render(View *self, Renderer *renderer) {
 		
 		cgi.DepthRange(0.0, 1.0);
 		cgi.EnableDepthTest(false);
-		cgi.EnableTextureID(0, false);
+		cgi.EnableTextureID(R_TEXUNIT_DIFFUSE, false);
 		
 		cgi.SetViewport(0, 0, cgi.context->width, cgi.context->height);
 		

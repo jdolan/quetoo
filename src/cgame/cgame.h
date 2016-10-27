@@ -583,7 +583,7 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Toggle the specified texunit.
 	 */
-	void (*EnableTextureID)(const uint8_t texunit_id, _Bool enable);
+	void (*EnableTextureID)(const r_texunit_id_t texunit_id, _Bool enable);
 
 	/**
 	 * @brief Change the rendering viewport.

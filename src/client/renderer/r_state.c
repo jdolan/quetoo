@@ -856,7 +856,7 @@ void R_DepthRange(GLdouble znear, GLdouble zfar) {
 /**
  * @brief Shortcut to toggling texunits by ID, for cgame.
  */
-void R_EnableTextureID(const uint8_t texunit_id, _Bool enable) {
+void R_EnableTextureID(const r_texunit_id_t texunit_id, _Bool enable) {
 
 	R_EnableTexture(&r_state.texunits[texunit_id], enable);
 }
@@ -943,7 +943,7 @@ void R_InitState(void) {
 	// setup texture units
 	const size_t len = MAX_GL_ARRAY_LENGTH * sizeof(vec2_t);
 
-	for (int32_t i = 0; i < MAX_GL_TEXUNITS; i++) {
+	for (int32_t i = 0; i < R_TEXUNIT_TOTAL; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 		
 		if (i < r_config.max_texunits) {
@@ -997,7 +997,7 @@ void R_InitState(void) {
  */
 void R_ShutdownState(void) {
 
-	for (int32_t i = 0; i < MIN(r_config.max_texunits, MAX_GL_TEXUNITS); i++) {
+	for (int32_t i = 0; i < MIN(r_config.max_texunits, R_TEXUNIT_TOTAL); i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
 		if (texunit->texcoord_array)
