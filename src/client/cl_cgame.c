@@ -204,6 +204,8 @@ void Cl_InitCgame(void) {
 	import.LoadSample = S_LoadSample;
 	import.AddSample = S_AddSample;
 
+	import.CullBox = R_CullBox;
+
 	import.ColorFromPalette = Img_ColorFromPalette;
 	import.Color = R_Color;
 

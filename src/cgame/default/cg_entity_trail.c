@@ -342,7 +342,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
  * @brief
  */
 static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int32_t color) {
-	static vec2_t angles[NUM_APPROXIMATE_NORMALS];
+	static vec2_t angles[NUM_APPROXIMATE_NORMALS] = { { 0, 0 } };
 	int32_t i;
 
 	if (!angles[0][0]) { // initialize our angular velocities

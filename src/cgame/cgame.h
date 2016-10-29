@@ -472,6 +472,12 @@ typedef struct cg_import_s {
 	void (*ColorFromPalette)(uint8_t c, vec3_t color);
 
 	/**
+	 * @brief Returns true if the specified bounding box is completely culled by the
+	 * view frustum, false otherwise.
+	 */
+	_Bool (*CullBox)(const vec3_t mins, const vec3_t maxs);
+
+	/**
 	 * @brief Sets the drawing color.
 	 *
 	 * @param color The RGBA drawing color.
