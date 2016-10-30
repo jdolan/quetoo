@@ -212,7 +212,7 @@ static void R_ParticleColor(const r_particle_t *p, GLfloat *out) {
 /**
  * @brief Updates the shared angular vectors required for particle generation.
  */
-static void R_UpdateParticleState(void) {
+void R_UpdateParticleState(void) {
 	vec3_t v;
 
 	// reset the common angular vectors for particle alignment
@@ -235,8 +235,6 @@ static void R_UpdateParticleState(void) {
  */
 void R_UpdateParticles(r_element_t *e, const size_t count) {
 	size_t i;
-
-	R_UpdateParticleState();
 
 	for (i = 0; i < count; i++, e++) {
 

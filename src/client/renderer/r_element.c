@@ -135,6 +135,7 @@ static int R_SortParticles_Compare(const void *a, const void *b) {
 
 /**
  * @brief Sorts particle ranges by their material, to prevent texture swaps.
+ * This also updates the particles' positions, etc while it loops.
  */
 static void R_SortParticles_(r_element_t *e, const size_t count) {
 	r_element_t *start = NULL;
@@ -152,6 +153,8 @@ static void R_SortParticles_(r_element_t *e, const size_t count) {
 				
 				const size_t length = p - start;
 				qsort(start, length, sizeof(r_element_t), R_SortParticles_Compare);
+
+				R_UpdateParticles(start, length);
 
 				start = NULL;
 			}
@@ -172,13 +175,12 @@ void R_SortElements(void *data __attribute__((unused))) {
 
 	if (!r_element_state.count)
 		return;
-	
-	if (r_element_state.count > 1) {
-		R_SortElements_(r_element_state.elements, r_element_state.count);
-		R_SortParticles_(r_element_state.elements, r_element_state.count);
-	}
 
-	R_UpdateParticles(r_element_state.elements, r_element_state.count);
+	R_SortElements_(r_element_state.elements, r_element_state.count);
+
+	R_UpdateParticleState();
+
+	R_SortParticles_(r_element_state.elements, r_element_state.count);
 }
 
 /**
