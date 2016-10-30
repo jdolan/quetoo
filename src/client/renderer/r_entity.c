@@ -202,6 +202,9 @@ static void R_DrawNullModel(const r_entity_t *e) {
  * @brief Draws all entities added to the view but missing a model.
  */
 static void R_DrawNullModels(const r_entities_t *ents) {
+
+	if (!ents->count)
+		return;
 	
 	R_BindArray(R_ARRAY_VERTEX, &r_model_state.null_vertices);
 
@@ -217,6 +220,10 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 
 		R_DrawNullModel(e);
 	}
+	
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+
+	R_BindDefaultArray(R_ARRAY_ELEMENTS);
 
 	r_view.current_entity = NULL;
 }
@@ -236,9 +243,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 	R_EnableTexture(&texunit_diffuse, false);
 
-	R_ResetArrayState(); // default arrays
-
-	R_Color(color);
+	R_EnableColorArray(true);
 
 	const GLuint bound_elements[] = {
 		// bottom
@@ -257,49 +262,106 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		0, 4,
 		1, 5,
 		2, 6,
-		3, 7
+		3, 7,
+
+		// origin
+		8, 9,
+		10, 11,
+		12, 13
 	};
 
-	R_UploadToBuffer(&r_state.buffer_element_array, 0, sizeof(bound_elements), bound_elements);
-
 	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
+
+	R_UploadToBuffer(&r_state.buffer_element_array, 0, sizeof(bound_elements), bound_elements);
+	
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+
+	R_BindDefaultArray(R_ARRAY_COLOR);
+
+	const vec4_t colors[] = {
+		{ color[0], color[1], color[2], color[3] },
+		{ color[0], color[1], color[2], color[3] },
+		{ color[0], color[1], color[2], color[3] },
+		{ color[0], color[1], color[2], color[3] },
+
+		{ color[0], color[1], color[2], color[3] },
+		{ color[0], color[1], color[2], color[3] },
+		{ color[0], color[1], color[2], color[3] },
+		{ color[0], color[1], color[2], color[3] },
+			
+		{ 1.0, 0.0, 0.0, 1.0 },
+		{ 1.0, 0.0, 0.0, 1.0 },
+			
+		{ 0.0, 1.0, 0.0, 1.0 },
+		{ 0.0, 1.0, 0.0, 1.0 },
+			
+		{ 0.0, 0.0, 1.0, 1.0 },
+		{ 0.0, 0.0, 1.0, 1.0 },
+	};
+
+	R_UploadToBuffer(&r_state.buffer_color_array, 0, sizeof(colors), colors);
+	
+	static matrix4x4_t mat;
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
 
-		if (e->parent) {
+		if (e->parent || (e->effects & EF_WEAPON) || !IS_MESH_MODEL(e->model)) {
 			continue;
 		}
 
-		matrix4x4_t mat;
+		const vec3_t verts[] = {
+			{ e->mins[0], e->mins[1], e->mins[2] },
+			{ e->maxs[0], e->mins[1], e->mins[2] },
+			{ e->maxs[0], e->maxs[1], e->mins[2] },
+			{ e->mins[0], e->maxs[1], e->mins[2] },
+
+			{ e->mins[0], e->mins[1], e->maxs[2] },
+			{ e->maxs[0], e->mins[1], e->maxs[2] },
+			{ e->maxs[0], e->maxs[1], e->maxs[2] },
+			{ e->mins[0], e->maxs[1], e->maxs[2] },
+
+			// red
+			{ 0, 0, 0 },
+			{ 8, 0, 0 },
+
+			// green
+			{ 0, 0, 0 },
+			{ 0, 8, 0 },
+
+			// blue
+			{ 0, 0, 0 },
+			{ 0, 0, 8 }
+		};
+		
+		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, sizeof(verts), verts);
+
+		// draw box
 		Matrix4x4_CreateFromEntity(&mat, e->origin, vec3_origin, e->scale);
 
 		R_PushMatrix(R_MATRIX_MODELVIEW);
 
 		Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
 
-		vec3_t verts[8];
+		R_DrawArrays(GL_LINES, 0, 24);
 
-		VectorSet(verts[0], e->mins[0], e->mins[1], e->mins[2]);
-		VectorSet(verts[1], e->maxs[0], e->mins[1], e->mins[2]);
-		VectorSet(verts[2], e->maxs[0], e->maxs[1], e->mins[2]);
-		VectorSet(verts[3], e->mins[0], e->maxs[1], e->mins[2]);
-		
-		VectorSet(verts[4], e->mins[0], e->mins[1], e->maxs[2]);
-		VectorSet(verts[5], e->maxs[0], e->mins[1], e->maxs[2]);
-		VectorSet(verts[6], e->maxs[0], e->maxs[1], e->maxs[2]);
-		VectorSet(verts[7], e->mins[0], e->maxs[1], e->maxs[2]);
+		R_PopMatrix(R_MATRIX_MODELVIEW);
 
-		memcpy(r_state.vertex_array, verts, sizeof(verts));
+		// draw origin
+		Matrix4x4_CreateFromEntity(&mat, e->origin, e->angles, e->scale);
 
-		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, sizeof(verts), r_state.vertex_array);
+		R_PushMatrix(R_MATRIX_MODELVIEW);
 
-		R_DrawArrays(GL_LINES, 0, lengthof(bound_elements));
+		Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
+
+		R_DrawArrays(GL_LINES, 24, 6);
 
 		R_PopMatrix(R_MATRIX_MODELVIEW);
 	}
 
 	R_BindDefaultArray(R_ARRAY_ELEMENTS);
+	
+	R_EnableColorArray(false);
 
 	R_EnableTexture(&texunit_diffuse, true);
 	
