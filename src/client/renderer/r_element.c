@@ -113,6 +113,31 @@ static void R_SortElements_(r_element_t *e, const size_t count) {
 }
 
 /**
+ * @brief Qsort comparator for particles elements.
+ */
+static int R_SortParticles_Compare(const void *a, const void *b) {
+	const r_element_t *ae = ((const r_element_t *) a);
+	const r_element_t *be = ((const r_element_t *) b);
+
+	if (ae->type == ELEMENT_PARTICLE && be->type == ELEMENT_PARTICLE) {
+		const r_particle_t *ap = ((const r_particle_t *) ae->element);
+		const r_particle_t *bp = ((const r_particle_t *) be->element);
+
+		return bp->image - ap->image;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief Sorts the specified elements array by their distance from the view.
+ * Elements are sorted farthest-first so that they are rendered back-to-front.
+ */
+static void R_SortParticles_(r_element_t *e, const size_t count) {
+	qsort(e, count, sizeof(r_element_t), R_SortParticles_Compare);
+}
+
+/**
  * @brief Sorts the draw elements for the current frame. Once elements are
  * sorted, particles for the current frame are also updated.
  */
@@ -122,8 +147,9 @@ void R_SortElements(void *data __attribute__((unused))) {
 
 	if (!r_element_state.count)
 		return;
-
+	
 	R_SortElements_(r_element_state.elements, r_element_state.count);
+	R_SortParticles_(r_element_state.elements, r_element_state.count);
 
 	R_UpdateParticles(r_element_state.elements, r_element_state.count);
 }
