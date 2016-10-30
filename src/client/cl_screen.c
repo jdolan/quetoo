@@ -175,9 +175,6 @@ static void Cl_DrawRendererStats(void) {
 	R_DrawString(0, y, va("%d lights", r_view.num_lights), CON_COLOR_WHITE);
 	y += ch;
 
-	R_DrawString(0, y, va("%d coronas", r_view.num_coronas), CON_COLOR_WHITE);
-	y += ch;
-
 	R_DrawString(0, y, va("%d particles", r_view.num_particles), CON_COLOR_WHITE);
 
 	R_BindFont(NULL, NULL, NULL);

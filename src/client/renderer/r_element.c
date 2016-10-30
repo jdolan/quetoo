@@ -114,6 +114,7 @@ static void R_SortElements_(r_element_t *e, const size_t count) {
 
 /**
  * @brief Qsort comparator for particles elements.
+ * This batches particles between elements by type, then by image.
  */
 static int R_SortParticles_Compare(const void *a, const void *b) {
 	const r_element_t *ae = ((const r_element_t *) a);
@@ -123,18 +124,42 @@ static int R_SortParticles_Compare(const void *a, const void *b) {
 		const r_particle_t *ap = ((const r_particle_t *) ae->element);
 		const r_particle_t *bp = ((const r_particle_t *) be->element);
 
-		return bp->image - ap->image;
+		if (bp->type == ap->type)
+			return bp->image - ap->image;
+
+		return bp->type - ap->type;
 	}
 
 	return 0;
 }
 
 /**
- * @brief Sorts the specified elements array by their distance from the view.
- * Elements are sorted farthest-first so that they are rendered back-to-front.
+ * @brief Sorts particle ranges by their material, to prevent texture swaps.
  */
 static void R_SortParticles_(r_element_t *e, const size_t count) {
-	qsort(e, count, sizeof(r_element_t), R_SortParticles_Compare);
+	r_element_t *start = NULL;
+	size_t c = 0;
+
+	for (r_element_t *p = e; ; p++, c++) {
+
+		if (c < count && p->type == ELEMENT_PARTICLE) {
+			
+			if (start == NULL)
+				start = p;
+		} else {
+
+			if (start != NULL) {
+				
+				const size_t length = p - start;
+				qsort(start, length, sizeof(r_element_t), R_SortParticles_Compare);
+
+				start = NULL;
+			}
+		}
+
+		if (c == count)
+			break;
+	}
 }
 
 /**
@@ -148,8 +173,10 @@ void R_SortElements(void *data __attribute__((unused))) {
 	if (!r_element_state.count)
 		return;
 	
-	R_SortElements_(r_element_state.elements, r_element_state.count);
-	R_SortParticles_(r_element_state.elements, r_element_state.count);
+	if (r_element_state.count > 1) {
+		R_SortElements_(r_element_state.elements, r_element_state.count);
+		R_SortParticles_(r_element_state.elements, r_element_state.count);
+	}
 
 	R_UpdateParticles(r_element_state.elements, r_element_state.count);
 }
@@ -209,16 +236,6 @@ void R_DrawElements(void) {
 	R_UploadParticles();
 
 	const r_element_t *e = r_element_state.elements;
-
-#if 0
-	static r_corona_t c;
-
-	VectorCopy(e->origin, c.origin);
-	VectorSet(c.color, 1.0, 0.0, 1.0);
-	c.radius = 64.0;
-
-	R_AddCorona(&c);
-#endif
 
 	r_element_type_t type = ELEMENT_NONE;
 

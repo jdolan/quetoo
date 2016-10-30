@@ -31,7 +31,6 @@
 #include "r_bsp_surface.h"
 #include "r_bsp.h"
 #include "r_context.h"
-#include "r_corona.h"
 #include "r_draw.h"
 #include "r_element.h"
 #include "r_entity.h"

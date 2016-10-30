@@ -102,6 +102,36 @@ typedef struct {
 	vec3_t color; // average color
 } r_image_t;
 
+typedef enum {
+	PARTICLE_NORMAL,
+	PARTICLE_ROLL,
+	PARTICLE_DECAL,
+	PARTICLE_BUBBLE,
+	PARTICLE_BEAM,
+	PARTICLE_WEATHER,
+	PARTICLE_SPLASH,
+	PARTICLE_CORONA
+} r_particle_type_t;
+
+/**
+ * @brief Particles are alpha-blended quads.
+ */
+typedef struct r_particle_s {
+	r_particle_type_t type;
+	const r_image_t *image;
+	GLenum blend;
+	vec4_t color;
+	vec_t scale;
+	vec_t scroll_s;
+	vec_t scroll_t;
+	vec_t roll;
+	vec3_t org;
+	vec3_t end;
+	vec3_t dir;
+} r_particle_t;
+
+#define MAX_PARTICLES		16384
+
 typedef struct {
 	GLenum src, dest;
 } r_stage_blend_t;
@@ -380,6 +410,8 @@ typedef struct {
 		vec3_t color;
 		vec_t radius;
 	} light;
+
+	r_particle_t debug;
 
 } r_bsp_light_t;
 
@@ -736,45 +768,6 @@ typedef struct {
  */
 typedef void (*MeshModelsDrawFunc)(const r_entities_t *ents);
 
-typedef enum {
-	PARTICLE_NORMAL,
-	PARTICLE_ROLL,
-	PARTICLE_DECAL,
-	PARTICLE_BUBBLE,
-	PARTICLE_BEAM,
-	PARTICLE_WEATHER,
-	PARTICLE_SPLASH
-} r_particle_type_t;
-
-/**
- * @brief Particles are alpha-blended, textured quads.
- */
-typedef struct r_particle_s {
-	r_particle_type_t type;
-	const r_image_t *image;
-	GLenum blend;
-	vec4_t color;
-	vec_t scale;
-	vec_t scroll_s;
-	vec_t scroll_t;
-	vec_t roll;
-	vec3_t org;
-	vec3_t end;
-	vec3_t dir;
-} r_particle_t;
-
-#define MAX_PARTICLES		16384
-
-/**
- * @brief Coronas are soft, alpha-blended, rounded sprites.
- */
-typedef struct {
-	vec3_t origin;
-	vec_t radius;
-	vec_t flicker;
-	vec3_t color;
-} r_corona_t;
-
 /**
  * @brief Renderer element types.
  */
@@ -804,8 +797,6 @@ typedef struct {
 typedef enum {
 	R_PLUGIN_DEFAULT
 } r_plugin_t;
-
-#define MAX_CORONAS 		1024
 
 #define WEATHER_NONE		0
 #define WEATHER_RAIN 		1
@@ -872,9 +863,6 @@ typedef struct {
 
 	uint16_t num_particles;
 	r_particle_t particles[MAX_PARTICLES];
-
-	uint16_t num_coronas;
-	r_corona_t coronas[MAX_CORONAS];
 
 	uint16_t num_lights;
 	r_light_t lights[MAX_LIGHTS];

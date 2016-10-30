@@ -174,6 +174,9 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
 	vec_t s, t;
 
+	if (p->type == PARTICLE_CORONA)
+		return;
+
 	if (!p->scroll_s && !p->scroll_t) {
 		memcpy(out, default_texcoords, sizeof(vec2_t) * 4);
 		return;
@@ -293,12 +296,17 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_BindArray(R_ARRAY_ELEMENTS, &r_particle_state.element_buffer);
 
 	const GLuint base = (uintptr_t) e->data;
+	r_particle_type_t last_type = -1;
+	GLuint last_texnum = -1;
 
 	for (i = j = 0; i < count; i++, e++) {
 		const r_particle_t *p = (const r_particle_t *) e->element;
 
 		// bind the particle's texture
-		if (p->image->texnum != texunit_diffuse.texnum) {
+		GLuint texnum = p->image ? p->image->texnum : 0;
+
+		if (texnum != texunit_diffuse.texnum ||
+			p->type != last_type) {
 
 			if (i > j) { // draw pending particles
 				R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
@@ -311,8 +319,16 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 				R_DepthRange(0.0, 1.0);
 			}
 
-			R_BindTexture(p->image->texnum);
+			R_BindTexture(texnum);
 			R_BlendFunc(GL_SRC_ALPHA, p->blend);
+
+			if (p->type == PARTICLE_CORONA)
+				R_UseProgram(r_state.corona_program);
+			else
+				R_UseProgram(r_state.null_program);
+
+			last_type = p->type;
+			last_texnum = texnum;
 		}
 	}
 
@@ -335,5 +351,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_EnableColorArray(false);
 
 	R_Color(NULL);
+
+	R_UseProgram(r_state.null_program);
 }
 

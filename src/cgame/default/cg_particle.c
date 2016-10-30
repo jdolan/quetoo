@@ -65,7 +65,7 @@ static void Cg_PopParticle(cg_particle_t *p, cg_particle_t **list) {
 /**
  * @brief Allocates a free particle with the specified type and image.
  */
-cg_particle_t *Cg_AllocParticle(const uint16_t type, cg_particles_t *particles) {
+cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles) {
 
 	if (!cg_add_particles->integer)
 		return NULL;
@@ -145,6 +145,18 @@ void Cg_FreeParticles(void) {
 }
 
 /**
+ * @brief
+ */
+static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const float delta, const float delta_squared) {
+
+	// free up weather particles that have hit the ground
+	if (p->part.org[2] <= p->weather.end_z)
+		return true;
+
+	return false;
+}
+
+/**
  * @brief Adds all particles that are active for this frame to the view.
  * Particles that fade or shrink beyond visibility are freed.
  */
@@ -184,15 +196,22 @@ void Cg_AddParticles(void) {
 					continue;
 				}
 
-				for (int32_t i = 0; i < 3; i++) { // update origin, end, and acceleration
+				for (int32_t i = 0; i < 3; i++) { // update origin and acceleration
 					p->part.org[i] += p->vel[i] * delta + p->accel[i] * delta_squared;
-					p->part.end[i] += p->vel[i] * delta + p->accel[i] * delta_squared;
-
 					p->vel[i] += p->accel[i] * delta;
 				}
 
-				// free up weather particles that have hit the ground
-				if (p->part.type == PARTICLE_WEATHER && (p->part.org[2] <= p->end_z)) {
+				_Bool free = false;
+
+				switch (p->part.type) {
+					case PARTICLE_WEATHER:
+						free = Cg_UpdateParticle_Weather(p, delta, delta_squared);
+						break;
+					default:
+						break;
+				}
+
+				if (free) {
 					p = Cg_FreeParticle(p, &ps->particles);
 					continue;
 				}

@@ -29,12 +29,26 @@
 
 typedef struct cg_particle_s {
 	r_particle_t part; // the r_particle_t to add to the view
+
+	// common particle components
+	uint32_t time; // client time when allocated
 	vec3_t vel;
 	vec3_t accel;
 	vec4_t color_vel;
 	vec_t scale_vel;
-	vec_t end_z; // weather particles are freed at this Z
-	uint32_t time; // client time when allocated
+
+	// particle type specific
+	union {
+		struct {
+			vec_t end_z; // weather particles are freed at this Z
+		} weather;
+
+		struct {
+			vec_t radius;
+			vec_t flicker;
+		} corona;
+	};
+
 	struct cg_particle_s *prev; // previous particle in the chain
 	struct cg_particle_s *next; // next particle in chain
 } cg_particle_t;

@@ -213,6 +213,7 @@ void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	const uint8_t col = ent->current.client ? ent->current.client : EFFECT_COLOR_ORANGE;
+	cg_particle_t *p;
 
 	if (ent->time < cgi.client->systime) {
 		vec3_t delta;
@@ -230,8 +231,6 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		const vec_t dist = VectorNormalize(delta);
 
 		while (d < dist) {
-			cg_particle_t *p;
-
 			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
 				break;
 			}
@@ -262,13 +261,13 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 			color[i] = 1.0;
 	}
 
-	r_corona_t c;
-	VectorCopy(end, c.origin);
-	c.radius = 3.0;
-	c.flicker = 0.125;
-	VectorCopy(color, c.color);
+	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL))) {
+		VectorCopy(color, p->part.color);
+		VectorCopy(end, p->part.org);
 
-	cgi.AddCorona(&c);
+		p->color_vel[3] = -FLT_MAX;
+		p->part.scale = CORONA_SCALE(3.0, 0.125);
+	}
 
 	r_light_t l;
 	VectorCopy(end, l.origin);
@@ -292,6 +291,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	const uint32_t time = ent->time;
+	cg_particle_t *p;
 
 	Cg_SmokeTrail(ent, start, end);
 
@@ -303,7 +303,6 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 		vec_t d = 0.0;
 		while (d < dist) {
-			cg_particle_t *p;
 
 			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_flame)))
 				break;
@@ -322,13 +321,13 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		}
 	}
 
-	r_corona_t c;
-	VectorCopy(end, c.origin);
-	c.radius = 3.0;
-	c.flicker = 0.125;
-	VectorSet(c.color, 0.8, 0.4, 0.2);
+	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL))) {
+		VectorSet(p->part.color, 0.8, 0.4, 0.2);
+		VectorCopy(end, p->part.org);
 
-	cgi.AddCorona(&c);
+		p->color_vel[3] = -FLT_MAX;
+		p->part.scale = CORONA_SCALE(3.0, 0.125);
+	}
 
 	r_light_t l;
 	VectorCopy(end, l.origin);
@@ -407,17 +406,18 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int
  * @brief
  */
 static void Cg_HyperblasterTrail(cl_entity_t *ent, const vec3_t org) {
-	r_corona_t c;
 	r_light_t l;
+	cg_particle_t *p;
 
 	Cg_EnergyTrail(ent, org, 6.0, 107);
 
-	VectorCopy(org, c.origin);
-	c.radius = 10.0;
-	c.flicker = 0.15;
-	VectorSet(c.color, 0.4, 0.7, 1.0);
+	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL))) {
+		VectorSet(p->part.color, 0.4, 0.7, 1.0);
+		VectorCopy(org, p->part.org);
 
-	cgi.AddCorona(&c);
+		p->color_vel[3] = -FLT_MAX;
+		p->part.scale = CORONA_SCALE(10.0, 0.15);
+	}
 
 	VectorCopy(org, l.origin);
 	l.radius = 100.0;

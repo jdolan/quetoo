@@ -25,7 +25,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_bsp_model.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp_surface.c" />
     <ClCompile Include="..\..\src\client\renderer\r_context.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_corona.c" />
     <ClCompile Include="..\..\src\client\renderer\r_draw.c" />
     <ClCompile Include="..\..\src\client\renderer\r_element.c" />
     <ClCompile Include="..\..\src\client\renderer\r_entity.c" />
@@ -62,7 +61,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_bsp_model.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp_surface.h" />
     <ClInclude Include="..\..\src\client\renderer\r_context.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_corona.h" />
     <ClInclude Include="..\..\src\client\renderer\r_draw.h" />
     <ClInclude Include="..\..\src\client\renderer\r_element.h" />
     <ClInclude Include="..\..\src\client\renderer\r_entity.h" />

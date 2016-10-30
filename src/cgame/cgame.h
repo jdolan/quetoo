@@ -536,11 +536,6 @@ typedef struct cg_import_s {
 	r_model_t *(*WorldModel)(void);
 
 	/**
-	 * @brief Adds a corona to the scene for the current frame.
-	 */
-	void (*AddCorona)(const r_corona_t *c);
-
-	/**
 	 * @brief Adds an entity to the scene for the current frame.
 	 *
 	 * @return The added entity.

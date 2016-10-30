@@ -216,7 +216,6 @@ void Cl_InitCgame(void) {
 	import.LoadModel = R_LoadModel;
 	import.WorldModel = R_WorldModel;
 
-	import.AddCorona = R_AddCorona;
 	import.AddEntity = R_AddEntity;
 	import.AddLinkedEntity = R_AddLinkedEntity;
 	import.SetMatrixForEntity = R_SetMatrixForEntity;

@@ -50,7 +50,6 @@ cvar_t *r_anisotropy;
 cvar_t *r_brightness;
 cvar_t *r_bumpmap;
 cvar_t *r_contrast;
-cvar_t *r_coronas;
 cvar_t *r_draw_buffer;
 cvar_t *r_flares;
 cvar_t *r_fog;
@@ -196,8 +195,6 @@ void R_DrawView(void) {
 	R_DrawElements();
 
 	R_DrawDeveloperTools();
-
-	R_DrawCoronas();
 
 	R_EnableBlend(false);
 
@@ -446,7 +443,6 @@ static void R_InitLocal(void) {
 			"Controls the intensity of bump-mapping effects");
 	r_contrast = Cvar_Add("r_contrast", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 			"Controls texture contrast");
-	r_coronas = Cvar_Add("r_coronas", "1", CVAR_ARCHIVE, "Controls the rendering of coronas");
 	r_draw_buffer = Cvar_Add("r_draw_buffer", "GL_BACK", CVAR_ARCHIVE, NULL);
 	r_flares = Cvar_Add("r_flares", "1.0", CVAR_ARCHIVE,
 			"Controls the rendering of light source flares");
