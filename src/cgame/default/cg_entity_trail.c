@@ -342,15 +342,15 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
  * @brief
  */
 static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int32_t color) {
-	static vec3_t angles[NUM_APPROXIMATE_NORMALS];
+	static vec2_t angles[NUM_APPROXIMATE_NORMALS];
 	int32_t i;
 
 	if (!angles[0][0]) { // initialize our angular velocities
 		for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
-			const vec_t x = (Random() & 255) * 0.01;
-			const vec_t y = (Random() & 255) * 0.01;
-			const vec_t z = (Random() & 255) * 0.01;
-			VectorSet(angles[i], x, y, z);
+			const int32_t half_normals = (NUM_APPROXIMATE_NORMALS / 2);
+			const float a = ((i - half_normals) / (float)half_normals) * M_PI;
+			angles[i][0] = sin(a) * 2.0;
+			angles[i][1] = cos(a) * 2.0;
 		}
 	}
 
