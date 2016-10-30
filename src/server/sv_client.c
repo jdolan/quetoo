@@ -43,8 +43,6 @@ static void Sv_New_f(void) {
 	Net_WriteByte(&sv_client->net_chan.message, SV_CMD_SERVER_DATA);
 	Net_WriteShort(&sv_client->net_chan.message, PROTOCOL_MAJOR);
 	Net_WriteShort(&sv_client->net_chan.message, svs.game->protocol);
-	Net_WriteLong(&sv_client->net_chan.message, svs.spawn_count);
-	Net_WriteLong(&sv_client->net_chan.message, svs.frame_rate);
 	Net_WriteByte(&sv_client->net_chan.message, 0);
 	Net_WriteString(&sv_client->net_chan.message, Cvar_GetString("game"));
 

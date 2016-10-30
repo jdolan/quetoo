@@ -277,7 +277,7 @@ void Cl_ParseFrame(void) {
 	Cl_ParseEntities(cl.delta_frame, &cl.frame);
 
 	// set the simulation time for the frame
-	cl.frame.time = cl.frame.frame_num * (1000 / cl.server_hz);
+	cl.frame.time = cl.frame.frame_num * QUETOO_TICK_MILLIS;
 
 	// save the frame off in the backup array for later delta comparisons
 	cl.frames[cl.frame.frame_num & PACKET_MASK] = cl.frame;
@@ -299,7 +299,7 @@ void Cl_ParseFrame(void) {
 
 /**
  * @brief Updates the interpolation fraction for the current client frame.
- * Because the client typically runs at a higher framerate than the server, we
+ * Because the client often runs at a higher framerate than the server, we
  * use linear interpolation between the last 2 server frames. We aim to reach
  * the current server time just as a new packet arrives.
  */
@@ -311,18 +311,16 @@ static void Cl_UpdateLerp(void) {
 		return;
 	}
 
-	const uint32_t frame_millis = 1000.0 / cl.server_hz;
-
 	if (cl.time > cl.frame.time) {
-		// Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
+		Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
 		cl.time = cl.frame.time;
 		cl.lerp = 1.0;
-	} else if (cl.time < cl.frame.time - frame_millis) {
-		// Com_Debug("Low clamp: %dms\n", (cl.frame.time - frame_millis) - cl.time);
-		cl.time = cl.frame.time - frame_millis;
+	} else if (cl.time < cl.frame.time - QUETOO_TICK_MILLIS) {
+		Com_Debug("Low clamp: %dms\n", (cl.frame.time - QUETOO_TICK_MILLIS) - cl.time);
+		cl.time = cl.frame.time - QUETOO_TICK_MILLIS;
 		cl.lerp = 0.0;
 	} else {
-		cl.lerp = 1.0 - (cl.frame.time - cl.time) / (vec_t) frame_millis;
+		cl.lerp = 1.0 - (cl.frame.time - cl.time) / (vec_t) QUETOO_TICK_MILLIS;
 	}
 }
 

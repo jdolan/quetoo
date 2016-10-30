@@ -231,10 +231,6 @@ void Sv_InitGame(void) {
 
 	memset(&import, 0, sizeof(import));
 
-	import.frame_rate = svs.frame_rate;
-	import.frame_millis = 1000 / svs.frame_rate;
-	import.frame_seconds = 1.0 / svs.frame_rate;
-
 	g_strlcpy(import.write_dir, Fs_WriteDir(), MAX_OS_PATH);  
 
 	import.Print = Com_Print;

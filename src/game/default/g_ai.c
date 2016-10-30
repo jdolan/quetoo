@@ -28,11 +28,11 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 	pm_cmd_t cmd;
 
 	memset(&cmd, 0, sizeof(cmd));
-	cmd.msec = gi.frame_millis;
+	cmd.msec = QUETOO_TICK_MILLIS;
 
 	G_ClientThink(self, &cmd);
 
-	self->locals.next_think = g_level.time + gi.frame_millis;
+	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -48,7 +48,7 @@ static void G_Ai_Spawn(g_entity_t *self) {
 	gi.Debug("Spawned %s at %s", self->client->locals.persistent.net_name, vtos(self->s.origin));
 
 	self->locals.Think = G_Ai_ClientThink;
-	self->locals.next_think = g_level.time + gi.frame_millis;
+	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 
 }
 

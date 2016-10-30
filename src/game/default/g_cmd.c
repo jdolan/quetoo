@@ -623,7 +623,7 @@ static void G_PlayerList_f(g_entity_t *ent) {
 		if (!e2->in_use)
 			continue;
 
-		seconds = (g_level.frame_num - e2->client->locals.persistent.first_frame) / gi.frame_rate;
+		seconds = (g_level.frame_num - e2->client->locals.persistent.first_frame) / QUETOO_TICK_RATE;
 
 		g_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s %s\n", (seconds / 60), (seconds % 60),
 				e2->client->ping, e2->client->locals.persistent.score,

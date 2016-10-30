@@ -798,7 +798,7 @@ static void G_ExitLevel(void) {
 static void G_Frame(void) {
 
 	g_level.frame_num++;
-	g_level.time = g_level.frame_num * gi.frame_millis;
+	g_level.time = g_level.frame_num * QUETOO_TICK_MILLIS;
 
 	// check for level change after running intermission
 	if (g_level.intermission_time) {
@@ -1039,7 +1039,7 @@ void G_RunTimers(void) {
 		time = g_level.time_limit - g_level.time; // count down
 	}
 	
-	if (g_level.frame_num % gi.frame_rate == 0) { // send time updates once per second
+	if (g_level.frame_num % QUETOO_TICK_RATE == 0) { // send time updates once per second
 		
 		if (G_MatchIsCountdown() && !G_MatchIsPlaying()) { // match mode, everyone ready, show countdown
 		

@@ -337,7 +337,7 @@ void G_ClientWeaponThink(g_entity_t *ent) {
 				} else {
 					ent->s.model2 = 0;
 				}
-			} else if (delta <= gi.frame_millis) {
+			} else if (delta <= QUETOO_TICK_MILLIS) {
 
 				ent->client->locals.next_weapon = NULL;
 				ent->client->locals.weapon_fire_time = 0;
@@ -554,7 +554,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	if (holding && (int32_t)(nade_time - hold_time) > 0) {
 	
 		// play the timer sound if we're holding once every second
-		if ((g_level.frame_num - ent->client->locals.grenade_hold_frame) % gi.frame_rate == 0) {
+		if ((g_level.frame_num - ent->client->locals.grenade_hold_frame) % QUETOO_TICK_RATE == 0) {
 			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang.ogg"), ATTEN_NORM);
 		}
 		return;
@@ -760,7 +760,7 @@ void G_FireBfg(g_entity_t *ent) {
 		timer->owner = ent;
 
 		timer->locals.Think = G_FireBfg_;
-		timer->locals.next_think = g_level.time + 1000 - gi.frame_millis;
+		timer->locals.next_think = g_level.time + 1000 - QUETOO_TICK_MILLIS;
 
 		gi.Sound(ent, g_media.sounds.bfg_prime, ATTEN_NORM);
 	}

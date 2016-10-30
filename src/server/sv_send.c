@@ -379,7 +379,7 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 	frame_size += buf.size;
 
 	// record the total size for rate estimation
-	cl->frame_size[sv.frame_num % sv_hz->integer] = frame_size;
+	cl->frame_size[sv.frame_num % QUETOO_TICK_RATE] = frame_size;
 }
 
 /**
@@ -395,7 +395,7 @@ static void Sv_DemoCompleted(void) {
  */
 static _Bool Sv_RateDrop(sv_client_t *cl) {
 
-	if (sv.frame_num < sv_hz->integer)
+	if (sv.frame_num < lengthof(cl->frame_size))
 		return false;
 
 	if (cl->rate == 0)
@@ -406,8 +406,8 @@ static _Bool Sv_RateDrop(sv_client_t *cl) {
 
 	size_t total = 0;
 
-	for (int32_t i = 0; i < sv_hz->integer; i++) {
-		total += cl->frame_size[(sv.frame_num - i) % sv_hz->integer];
+	for (int32_t i = 0; i < lengthof(cl->frame_size); i++) {
+		total += cl->frame_size[(sv.frame_num - i) % lengthof(cl->frame_size)];
 		if (total > cl->rate) {
 			cl->surpress_count++;
 			return true;
@@ -496,7 +496,7 @@ void Sv_SendClientPackets(void) {
 		} else if (cl->state == SV_CLIENT_ACTIVE) { // send the game packet
 
 			if (Sv_RateDrop(cl)) { // enforce rate throttle
-				cl->frame_size[sv.frame_num % sv_hz->integer] = 0;
+				cl->frame_size[sv.frame_num % lengthof(cl->frame_size)] = 0;
 			} else {
 				Sv_SendClientDatagram(cl);
 			}

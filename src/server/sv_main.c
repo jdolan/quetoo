@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <SDL2/SDL_timer.h>
+
 #include "sv_local.h"
 #include "console.h"
 
@@ -30,7 +32,6 @@ sv_client_t *sv_client; // current client
 cvar_t *sv_download_url;
 cvar_t *sv_enforce_time;
 cvar_t *sv_hostname;
-cvar_t *sv_hz;
 cvar_t *sv_max_clients;
 cvar_t *sv_no_areas;
 cvar_t *sv_public;
@@ -619,7 +620,7 @@ static void Sv_ResetEntities(void) {
 static void Sv_RunGameFrame(void) {
 
 	sv.frame_num++;
-	sv.time = sv.frame_num * 1000 / svs.frame_rate;
+	sv.time = sv.frame_num * QUETOO_TICK_MILLIS;
 
 	if (sv.state == SV_ACTIVE_GAME) {
 		svs.game->Frame();
@@ -717,28 +718,30 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
  * @brief
  */
 void Sv_Frame(const uint32_t msec) {
+	static uint32_t frame_delta;
 
 	// if server is not active, do nothing
 	if (!svs.initialized)
 		return;
 
-	// read any pending packets from clients
-	Sv_ReadPackets();
-
 	// keep simulation time in sync with reality
-	if (!time_demo->value){
+	if (!time_demo->value) {
 
-		const uint32_t frame_millis = 1000 / svs.frame_rate;
+		frame_delta += msec;
 
-		svs.frame_delta += msec;
+		if (frame_delta < QUETOO_TICK_MILLIS) {
+			if (dedicated->value) {
+				SDL_Delay(QUETOO_TICK_MILLIS - frame_delta);
+			}
 
-		 if (svs.frame_delta < frame_millis) {
-			Net_Sleep(frame_millis - svs.frame_delta);
 			return;
 		}
 	}
 
-	svs.frame_delta = 0;
+	frame_delta = 0;
+
+	// read any pending packets from clients
+	Sv_ReadPackets();
 
 	// check timeouts
 	Sv_CheckTimeouts();
@@ -776,13 +779,12 @@ static void Sv_InitLocal(void) {
 	sv_enforce_time = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, NULL);
 
 	sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, NULL);
-	sv_hz = Cvar_Add("sv_hz", va("%d", SV_HZ), CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 
 	sv_no_areas = Cvar_Add("sv_no_areas", "0", CVAR_LATCH, "Disable server-side area management\n");
 
 	sv_public = Cvar_Add("sv_public", "0", 0, "Set to 1 to to advertise to the master server\n");
 
-	sv_max_clients = Cvar_Add("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+	sv_max_clients = Cvar_Add("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 
 	sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, NULL);
 	sv_udp_download = Cvar_Add("sv_udp_download", "1", CVAR_ARCHIVE, NULL);

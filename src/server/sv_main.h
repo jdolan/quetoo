@@ -33,7 +33,6 @@ void Sv_Frame(const uint32_t msec);
 extern cvar_t *sv_download_url;
 extern cvar_t *sv_enforce_time;
 extern cvar_t *sv_hostname;
-extern cvar_t *sv_hz;
 extern cvar_t *sv_max_clients;
 extern cvar_t *sv_no_areas;
 extern cvar_t *sv_public;

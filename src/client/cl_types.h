@@ -170,9 +170,6 @@ typedef struct {
 	// tracked view angles to account for spawn and teleport direction changes
 	vec3_t angles;
 
-	uint32_t server_count; // server identification for precache
-	uint16_t server_hz; // server frame rate (packets per second)
-
 	_Bool demo_server; // we're viewing a demo
 	_Bool third_person; // we're using a 3rd person camera
 
