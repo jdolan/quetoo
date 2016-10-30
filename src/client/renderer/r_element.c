@@ -101,14 +101,6 @@ static int R_SortElements_Compare(const void *a, const void *b) {
 	const r_element_t *ae = ((const r_element_t *) a);
 	const r_element_t *be = ((const r_element_t *) b);
 
-	// move particles together by material
-	if (ae->type == ELEMENT_PARTICLE && be->type == ELEMENT_PARTICLE) {
-		const r_particle_t *ap = ((const r_particle_t *)ae->element);
-		const r_particle_t *bp = ((const r_particle_t *)be->element);
-
-		return (int)(ap->image->texnum - bp->image->texnum);
-	}
-
 	return be->depth - ae->depth;
 }
 

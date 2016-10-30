@@ -478,6 +478,12 @@ typedef struct cg_import_s {
 	_Bool (*CullBox)(const vec3_t mins, const vec3_t maxs);
 
 	/**
+	 * @brief Returns true if the specified sphere is completely culled by the
+	 * view frustum, false otherwise.
+	 */
+	_Bool (*CullSphere)(const vec3_t point, const float radius);
+
+	/**
 	 * @brief Sets the drawing color.
 	 *
 	 * @param color The RGBA drawing color.

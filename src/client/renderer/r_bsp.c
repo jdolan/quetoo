@@ -42,6 +42,27 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 }
 
 /**
+ * @brief Returns true if the specified sphere (point and radius) is completely culled by the
+ * view frustum, false otherwise.
+ */
+_Bool R_CullSphere(const vec3_t point, const float radius) {
+
+	if (!r_cull->value)
+		return false;
+
+	for (int32_t i = 0 ; i < 4 ; i++) 
+	{
+		const cm_bsp_plane_t *p = &r_locals.frustum[i];
+		const float dist = DotProduct(point, p->normal) - p->dist;
+
+		if (dist < -radius)
+			return true;
+	}
+
+	return false;
+}
+
+/**
  * @brief Returns true if the specified entity is completely culled by the view
  * frustum, false otherwise.
  */
