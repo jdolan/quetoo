@@ -55,7 +55,7 @@ static size_t numberOfRows(const TableView *tableView) {
 /**
  * @see TableViewDataSource::valueForColumnAndRow
  */
-static ident valueForColumnAndRow(const TableView *tableView, const TableColumn *column, int row) {
+static ident valueForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
 
 	cl_server_info_t *server = g_list_nth_data(cgi.Servers(), row);
 	assert(server);
@@ -82,7 +82,7 @@ static ident valueForColumnAndRow(const TableView *tableView, const TableColumn 
 /**
  * @see TableViewDelegate::cellForColumnAndRow
  */
-static TableCellView *cellForColumnAndRow(const TableView *tableView, const TableColumn *column, int row) {
+static TableCellView *cellForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
 
 	cl_server_info_t *server = g_list_nth_data(cgi.Servers(), row);
 	assert(server);
