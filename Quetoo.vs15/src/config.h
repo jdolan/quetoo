@@ -27,6 +27,12 @@
 #define usleep(t) Sleep(t / 1000)
 #endif
 
+#ifdef _WIN64
+    typedef signed __int64 ssize_t;
+#else
+    typedef signed int     ssize_t;
+#endif
+
 #define _WINSOCKAPI_
 
 /* Set to the canonical name of the target machine
@@ -97,5 +103,3 @@
 /* #undef _POSIX_SOURCE */
 
 #undef HAVE_UNISTD_H
-
-typedef int		ssize_t;
