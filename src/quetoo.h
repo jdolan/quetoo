@@ -73,6 +73,11 @@ typedef dvec_t dvec2_t[2];
 typedef dvec_t dvec3_t[3];
 typedef dvec_t dvec4_t[4];
 
+typedef uint16_t u16vec_t;
+typedef u16vec_t u16vec2_t[2];
+typedef u16vec_t u16vec3_t[3];
+typedef u16vec_t u16vec4_t[4];
+
 /**
  * @brief Indices for angle vectors.
  */

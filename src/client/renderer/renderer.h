@@ -37,6 +37,7 @@
 #include "r_flare.h"
 #include "r_glad_core.h"
 #include "r_image.h"
+#include "r_atlas.h"
 #include "r_light.h"
 #include "r_lighting.h"
 #include "r_lightmap.h"

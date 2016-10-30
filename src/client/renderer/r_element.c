@@ -200,7 +200,7 @@ static void R_DrawBspSurfaceElements(const r_element_t *e, const size_t count, B
 }
 
 /**
- * @brief Draws the specified subset of elements. The type
+ * @brief Draws the specified subset of elements.
  */
 static void R_DrawElements_(const r_element_t *e, const size_t count) {
 

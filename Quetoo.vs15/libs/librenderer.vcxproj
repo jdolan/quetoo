@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\client\renderer\r_array.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_atlas.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp_light.c" />
     <ClCompile Include="..\..\src\client\renderer\r_bsp_model.c" />
@@ -56,6 +57,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\renderer.h" />
     <ClInclude Include="..\..\src\client\renderer\r_array.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_atlas.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp_light.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp_model.h" />

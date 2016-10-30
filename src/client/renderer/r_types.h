@@ -102,6 +102,16 @@ typedef struct {
 	vec3_t color; // average color
 } r_image_t;
 
+/**
+ * @brief An atlas is composed of multiple images stitched together to make
+ * a single image. It is a sub-type of r_image_t.
+ */
+typedef struct {
+	r_image_t image;
+	GArray *images; // image list
+	GHashTable *hash; // hash of image -> image list ptr
+} r_atlas_t;
+
 typedef enum {
 	PARTICLE_NORMAL,
 	PARTICLE_ROLL,

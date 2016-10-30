@@ -108,6 +108,9 @@
     <ClCompile Include="..\..\src\client\renderer\r_program_corona.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_atlas.c">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\r_array.h">
@@ -216,6 +219,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_program_corona.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_atlas.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
