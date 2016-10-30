@@ -24,75 +24,31 @@
 /**
  * @brief Accumulates all movement for the current packet frame in a command. This
  * may be called multiple times per packet frame.
- *
- * @return True if the command should be dispatched immediately, false if it's safe
- * safe to defer.
  */
-_Bool Cl_UpdateCmd(void) {
-	static uint32_t last_move;
+static void Cl_UpdateCommand(void) {
 
-	if (cls.state != CL_ACTIVE)
-		return false;
-
-	pm_cmd_t c;
-	memset(&c, 0, sizeof(c));
-
-	// determine the interval for just this move
-	c.msec = Clamp((cl.systime - last_move) * time_scale->value, 1, 255);
-
-	// get movement from input devices
-	Cl_Move(&c);
-	last_move = cl.systime;
-
-	// now update the pending command
 	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
-	cmd->cmd.msec += c.msec;
+	memset(cmd, 0, sizeof(*cmd));
 
-	cmd->cmd.buttons |= c.buttons;
+	cmd->cmd.msec = Clamp(cls.packet_delta, QUETOO_TICK_MILLIS, 255);
 
-	VectorCopy(c.angles, cmd->cmd.angles);
+	Cl_Move(&cmd->cmd);
 
-	cmd->cmd.forward += c.forward;
-	cmd->cmd.right += c.right;
-	cmd->cmd.up += c.up;
+	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->cmd.msec, cmd->cmd.forward, cmd->cmd.right, cmd->cmd.up);
 
 	// store timestamp for netgraph and prediction calculations
 	cmd->time = cl.time;
 	cmd->timestamp = cl.systime;
-	
-	// if the client wishes to fire or jump, send the command immediately
-	return c.buttons & BUTTON_ATTACK || c.up;
-}
-
-/**
- * @brief Initializes the next outgoing command so that it may accumulate movement
- * over the next packet frame.
- */
-static void Cl_InitCmd(void) {
-	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
-
-	memset(cmd, 0, sizeof(cl_cmd_t));
-}
-
-/**
- * @brief Calculate the true command duration and clamp it so that it may be sent.
- */
-static void Cl_FinalizeCmd(void) {
-	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
-
-	cmd->cmd.msec = Clamp(cls.packet_delta, 1, 255);
-	
-	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->cmd.msec, cmd->cmd.forward, cmd->cmd.right, cmd->cmd.up);
 }
 
 /**
  * @brief Pumps the command cycle, sending the most recently gathered movement
  * to the server.
  */
-void Cl_SendCmd(void) {
+void Cl_SendCommand(void) {
 	mem_buf_t buf;
-	byte data[128];
+	byte data[sizeof(cl_cmd_t) * 3];
 
 	if (cls.state <= CL_CONNECTING)
 		return;
@@ -104,31 +60,21 @@ void Cl_SendCmd(void) {
 		return;
 	}
 
-	// send a user info update if needed
-	if (cvar_user_info_modified) {
-		Net_WriteByte(&cls.net_chan.message, CL_CMD_USER_INFO);
-		Net_WriteString(&cls.net_chan.message, Cvar_UserInfo());
-
-		cvar_user_info_modified = false;
-	}
-
-	// finalize the current command
-	Cl_FinalizeCmd();
+	// gather the current command
+	Cl_UpdateCommand();
 
 	// and write it out
 	Mem_InitBuffer(&buf, data, sizeof(data));
-
+	
 	Net_WriteByte(&buf, CL_CMD_MOVE);
 
-	// let the server know what the last frame we got was, so the next
-	// message can be delta compressed
+	// let the server know the last frame we received, so the next message can be delta compressed
 	if (!cl.frame.valid || (cls.demo_file && Fs_Tell(cls.demo_file) == 0))
 		Net_WriteLong(&buf, -1); // no compression
 	else
 		Net_WriteLong(&buf, cl.frame.frame_num);
 
-	// send this and the previous two cmds in the message, so
-	// if the last packet was dropped, it can be recovered
+	// send this and the previous two cmds, so if the last packet was dropped, it can be recovered
 	static pm_cmd_t null_cmd;
 
 	cl_cmd_t *cmd = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
@@ -142,12 +88,17 @@ void Cl_SendCmd(void) {
 	cmd = &cl.cmds[(cls.net_chan.outgoing_sequence) & CMD_MASK];
 	Net_WriteDeltaMoveCmd(&buf, old_cmd, &cmd->cmd);
 
+	// send a user info update if needed
+	if (cvar_user_info_modified) {
+		Net_WriteByte(&cls.net_chan.message, CL_CMD_USER_INFO);
+		Net_WriteString(&cls.net_chan.message, Cvar_UserInfo());
+
+		cvar_user_info_modified = false;
+	}
+
 	// deliver the message
 	Netchan_Transmit(&cls.net_chan, buf.data, buf.size);
 
 	cl.packet_counter++;
-
-	// initialize the next command
-	Cl_InitCmd();
 }
 

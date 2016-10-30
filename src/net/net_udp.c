@@ -174,10 +174,7 @@ void Net_Sleep(uint32_t msec) {
 	fd_set fdset;
 
 	const uint32_t sock = net_udp_state.sockets[NS_UDP_SERVER];
-
-	if (!sock || !dedicated->value)
-		return; // we're not a server, simply return
-
+	assert(sock);
 
 	FD_ZERO(&fdset);
 	FD_SET(sock, &fdset); // server socket

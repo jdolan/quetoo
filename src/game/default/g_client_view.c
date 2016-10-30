@@ -268,7 +268,7 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 
 	// we recover from kick at a rate based on the kick itself
 
-	delta = 0.5 + delta * delta * gi.frame_seconds;
+	delta = 0.5 + delta * delta * QUETOO_TICK_SECONDS;
 
 	for (int32_t i = 0; i < 3; i++) {
 

@@ -279,13 +279,13 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 		self->solid = SOLID_NOT;
 
 		if (self->locals.ground_entity) {
-			self->s.origin[2] -= gi.frame_seconds * 8.0;
+			self->s.origin[2] -= QUETOO_TICK_SECONDS * 8.0;
 		}
 
 		gi.LinkEntity(self);
 	}
 
-	self->locals.next_think = g_level.time + gi.frame_millis;
+	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -326,7 +326,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker __attribut
 		ent->locals.dead = true;
 		ent->locals.mass = ((i % NUM_GIB_MODELS) + 1) * 20.0;
 		ent->locals.move_type = MOVE_TYPE_BOUNCE;
-		ent->locals.next_think = g_level.time + gi.frame_millis;
+		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 		ent->locals.take_damage = true;
 		ent->locals.Think = G_ClientCorpse_Think;
 		ent->locals.Touch = G_ClientGiblet_Touch;
@@ -406,7 +406,7 @@ static void G_ClientCorpse(g_entity_t *self) {
 	ent->locals.health = self->locals.health;
 	ent->locals.Die = ent->locals.health > 0 ? G_ClientCorpse_Die : NULL;
 	ent->locals.Think = G_ClientCorpse_Think;
-	ent->locals.next_think = g_level.time + gi.frame_millis;
+	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 
 	gi.LinkEntity(ent);
 }

@@ -161,6 +161,13 @@ typedef enum {
 } mem_tag_t;
 
 /**
+ * @brief The server, game and player movement frame rate.
+ */
+#define QUETOO_TICK_RATE	60
+#define QUETOO_TICK_SECONDS	(1.0 / QUETOO_TICK_RATE)
+#define QUETOO_TICK_MILLIS	(1000 / QUETOO_TICK_RATE)
+
+/**
  * @brief Autocomplete function definition. You must fill "matches"
  * with any results that match the state of the current input buffer.
  * You can fetch the current state of the typed command with the Cmd_Arg*

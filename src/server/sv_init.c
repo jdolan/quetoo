@@ -152,8 +152,6 @@ static void Sv_UpdateLatchedVars(void) {
 
 	sv_max_clients->integer = Clamp(sv_max_clients->integer, MIN_CLIENTS, MAX_CLIENTS);
 
-	sv_hz->integer = Clamp(sv_hz->integer, SV_HZ_MIN, SV_HZ_MAX);
-
 	cm_no_areas = sv_no_areas->integer;
 }
 
@@ -202,8 +200,6 @@ static void Sv_InitEntities(void) {
 		// and the entity states array
 		svs.num_entity_states = sv_max_clients->integer * PACKET_BACKUP * MAX_PACKET_ENTITIES;
 		svs.entity_states = Mem_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states, MEM_TAG_SERVER);
-
-		svs.frame_rate = sv_hz->integer;
 
 		svs.spawn_count = Random();
 
