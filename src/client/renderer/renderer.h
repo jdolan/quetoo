@@ -26,6 +26,7 @@
 #include "console.h"
 
 #include "r_array.h"
+#include "r_atlas.h"
 #include "r_bsp_light.h"
 #include "r_bsp_model.h"
 #include "r_bsp_surface.h"
@@ -37,7 +38,6 @@
 #include "r_flare.h"
 #include "r_glad_core.h"
 #include "r_image.h"
-#include "r_atlas.h"
 #include "r_light.h"
 #include "r_lighting.h"
 #include "r_lightmap.h"
