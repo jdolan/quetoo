@@ -192,6 +192,16 @@ static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const float delta, cons
 }
 
 /**
+ *
+ */
+static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const float delta, const float delta_squared) {
+
+	VectorMA(p->part.org, 0.03, p->vel, p->part.end);
+
+	return false;
+}
+
+/**
  * @brief Adds all particles that are active for this frame to the view.
  * Particles that fade or shrink beyond visibility are freed.
  */
@@ -242,6 +252,9 @@ void Cg_AddParticles(void) {
 					case PARTICLE_WEATHER:
 						free = Cg_UpdateParticle_Weather(p, delta, delta_squared);
 						break;
+					case PARTICLE_SPARK:
+						free = Cg_UpdateParticle_Spark(p, delta, delta_squared);
+						break;
 					default:
 						break;
 				}
@@ -256,7 +269,8 @@ void Cg_AddParticles(void) {
 			float radius;
 			_Bool cull;
 
-			if (p->part.type == PARTICLE_BEAM) {
+			if (p->part.type == PARTICLE_BEAM ||
+				p->part.type == PARTICLE_SPARK) {
 				vec3_t distance, center;
 				VectorSubtract(p->part.end, p->part.org, distance);
 				VectorMA(p->part.org, 0.5, distance, center);

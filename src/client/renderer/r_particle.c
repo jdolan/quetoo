@@ -98,7 +98,7 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 
 	verts = (vec3_t *) out;
 
-	if (p->type == PARTICLE_BEAM) { // beams are lines with starts and ends
+	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK) { // beams are lines with starts and ends
 		VectorSubtract(p->org, p->end, v);
 		VectorNormalize(v);
 		VectorCopy(v, up);
