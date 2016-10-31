@@ -130,9 +130,9 @@ void R_StitchAtlas(r_atlas_t *atlas) {
 		image->position[1] = 0;
 
 		width += image->input_image->width;
-		height = max(height, image->input_image->height);
+		height = MAX(height, image->input_image->height);
 
-		min_size = min(min_size, min(image->input_image->width, image->input_image->height));
+		min_size = MIN(min_size, MIN(image->input_image->width, image->input_image->height));
 		
 		image->image.width = image->input_image->width;
 		image->image.height = image->input_image->height;
