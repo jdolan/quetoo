@@ -347,7 +347,7 @@ AC_ARG_ENABLE(debug,
 		[--enable-debug], [include debugging information]
 	),
 	AC_MSG_RESULT(yes)
-	DEBUG_CFLAGS="-ggdb $DEBUG_CFLAGS $HOST_DEBUG_CFLAGS"
+	DEBUG_CFLAGS="-g $DEBUG_CFLAGS $HOST_DEBUG_CFLAGS"
 	DEBUG_LIBS="$DEBUG_LIBS $HOST_DEBUG_LIBS",
 	AC_MSG_RESULT(no)
 )
