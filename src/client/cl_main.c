@@ -572,6 +572,7 @@ void Cl_Frame(const uint32_t msec) {
 	if (dedicated->value)
 		return;
 
+	// update the simulation time
 	cl.time += msec;
 
 	// and copy the system time for the client game module
@@ -582,7 +583,7 @@ void Cl_Frame(const uint32_t msec) {
 
 	if (cl_max_fps->modified) { // ensure frame caps are sane
 		if (cl_max_fps->value > 0.0) {
-			cl_max_fps->value = Clamp(cl_max_fps->value, 30.0, 1000.0);
+			cl_max_fps->value = Clamp(cl_max_fps->value, QUETOO_TICK_RATE, 1000.0);
 		}
 		cl_max_fps->modified = false;
 	}
