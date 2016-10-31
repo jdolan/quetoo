@@ -138,7 +138,7 @@ static void Pm_TouchEntity(struct g_entity_s *ent) {
 	pm->touch_ents[pm->num_touch_ents++] = ent;
 }
 
-#define MAX_CLIP_PLANES	5
+#define MAX_CLIP_PLANES	6
 
 /**
  * @brief Calculates a new origin, velocity, and contact entities based on the
@@ -146,7 +146,7 @@ static void Pm_TouchEntity(struct g_entity_s *ent) {
  */
 static _Bool Pm_SlideMove(void) {
 	vec3_t planes[MAX_CLIP_PLANES];
-	int32_t bump, num_bumps = MAX_CLIP_PLANES - 1;
+	int32_t bump, num_bumps = MAX_CLIP_PLANES - 2;
 
 	vec_t time_remaining = pml.time;
 	int32_t num_planes = 0;
