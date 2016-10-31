@@ -174,28 +174,46 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
 	vec_t s, t;
 
-	if (p->type == PARTICLE_CORONA)
-		return;
+	_Bool is_atlas = p->image->type == IT_ATLAS_IMAGE;
 
-	if (!p->scroll_s && !p->scroll_t) {
+	if (!p->image ||
+		(!p->scroll_s && !p->scroll_t && !is_atlas) ||
+		p->type == PARTICLE_CORONA) {
 		memcpy(out, default_texcoords, sizeof(vec2_t) * 4);
 		return;
 	}
 
-	s = p->scroll_s * r_view.time / 1000.0;
-	t = p->scroll_t * r_view.time / 1000.0;
+	// atlas needs a different pipeline
+	if (is_atlas) {
+		const r_atlas_image_t *atlas_image = (const r_atlas_image_t *) p->image;
+		
+		out[0] = atlas_image->texcoords[0];
+		out[1] = atlas_image->texcoords[1];
 
-	out[0] = 0.0 + s;
-	out[1] = 0.0 + t;
+		out[2] = atlas_image->texcoords[2];
+		out[3] = atlas_image->texcoords[1];
 
-	out[2] = 1.0 + s;
-	out[3] = 0.0 + t;
+		out[4] = atlas_image->texcoords[2];
+		out[5] = atlas_image->texcoords[3];
 
-	out[4] = 1.0 + s;
-	out[5] = 1.0 + t;
+		out[6] = atlas_image->texcoords[0];
+		out[7] = atlas_image->texcoords[3];
+	} else {
+		s = p->scroll_s * r_view.time / 1000.0;
+		t = p->scroll_t * r_view.time / 1000.0;
 
-	out[6] = 0.0 + s;
-	out[7] = 1.0 + t;
+		out[0] = 0.0 + s;
+		out[1] = 0.0 + t;
+
+		out[2] = 1.0 + s;
+		out[3] = 0.0 + t;
+
+		out[4] = 1.0 + s;
+		out[5] = 1.0 + t;
+
+		out[6] = 0.0 + s;
+		out[7] = 1.0 + t;
+	}
 }
 
 /**
@@ -301,7 +319,12 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 		const r_particle_t *p = (const r_particle_t *) e->element;
 
 		// bind the particle's texture
-		GLuint texnum = p->image ? p->image->texnum : 0;
+		GLuint texnum = 0;
+		
+		if (p->image)
+			texnum = p->image->texnum;
+		else if (p->type == PARTICLE_CORONA)
+			texnum = last_texnum;
 
 		if (texnum != texunit_diffuse.texnum ||
 			p->type != last_type) {
@@ -317,7 +340,12 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 				R_DepthRange(0.0, 1.0);
 			}
 
-			R_BindTexture(texnum);
+			// if we're a corona, don't switch textures cause it doesn't matter
+			if (p->type != PARTICLE_CORONA) {
+				R_BindTexture(texnum);
+				last_texnum = texnum;
+			}
+
 			R_BlendFunc(GL_SRC_ALPHA, p->blend);
 
 			if (p->type == PARTICLE_CORONA)
@@ -326,7 +354,6 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 				R_UseProgram(r_state.null_program);
 
 			last_type = p->type;
-			last_texnum = texnum;
 		}
 	}
 

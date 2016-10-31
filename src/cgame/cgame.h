@@ -512,6 +512,12 @@ typedef struct cg_import_s {
 	 */
 	r_image_t *(*LoadImage)(const char *name, r_image_type_t type);
 
+	r_atlas_t *(*CreateAtlas)(const char *name);
+	void (*AddImageToAtlas)(r_atlas_t *atlas, const r_image_t *image);
+	const r_atlas_image_t *(*GetAtlasImageFromAtlas)(const r_atlas_t *atlas, const r_image_t *image);
+	void (*StitchAtlas)(r_atlas_t *atlas);
+
+
 	/**
 	 * @brief Loads the material with the given diffuse texture name.
 	 *

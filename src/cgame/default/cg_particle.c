@@ -26,6 +26,8 @@ static cg_particles_t *cg_active_particles; // list of active particles, by imag
 
 static cg_particle_t cg_particles[MAX_PARTICLES];
 
+static r_atlas_t *cg_particle_atlas;
+
 /**
  * @brief Pushes the particle onto the head of specified list.
  */
@@ -116,16 +118,47 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
 /**
  * @brief Allocates a particles chain for the specified image.
  */
-cg_particles_t *Cg_AllocParticles(const r_image_t *image) {
+cg_particles_t *Cg_AllocParticles(const r_image_t *image, const _Bool use_atlas) {
 	cg_particles_t *particles;
 
 	particles = cgi.Malloc(sizeof(*particles), MEM_TAG_CGAME);
-	particles->image = image;
+
+	if (use_atlas) {
+		particles->original_image = image;
+		cgi.AddImageToAtlas(cg_particle_atlas, image);
+	}
+	else
+		particles->image = image;
 
 	particles->next = cg_active_particles;
 	cg_active_particles = particles;
 
 	return particles;
+}
+
+/**
+ * @brief Initializes particle subsystem
+ */
+void Cg_InitParticles(void) {
+
+	cg_particle_atlas = cgi.CreateAtlas("cg_particle_atlas");
+}
+
+/**
+ * @brief Called when all particle images are done loading.
+ */
+void Cg_SetupParticleAtlas(void) {
+
+	cgi.StitchAtlas(cg_particle_atlas);
+
+	cg_particles_t *ps = cg_active_particles;
+	while (ps) {
+
+		if (ps->original_image)
+			ps->image = (const r_image_t *) cgi.GetAtlasImageFromAtlas(cg_particle_atlas, ps->original_image);
+
+		ps = ps->next;
+	}
 }
 
 /**
@@ -142,6 +175,8 @@ void Cg_FreeParticles(void) {
 	for (i = 0; i < lengthof(cg_particles); i++) {
 		Cg_FreeParticle(&cg_particles[i], NULL);
 	}
+
+	cg_particle_atlas = NULL;
 }
 
 /**

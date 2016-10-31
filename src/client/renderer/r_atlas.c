@@ -22,16 +22,6 @@
 #include "r_local.h"
 
 /**
- * @brief Local struct for r_atlas_t::images
- */
-typedef struct {
-	const r_image_t *image; // image ptr
-	u16vec2_t position; // position in pixels
-	vec2_t texcoords; // position in texcoords
-	r_color_t *scratch; // scratch space for image
-} r_atlas_image_t;
-
-/**
  * @brief Retain event listener for atlases.
  */
 static _Bool R_RetainAtlas(r_media_t *self) {
@@ -50,8 +40,7 @@ static void R_FreeAtlas(r_media_t *media) {
 
 	g_array_unref(atlas->images);
 
-	if (atlas->hash)
-		g_hash_table_destroy(atlas->hash);
+	g_hash_table_destroy(atlas->hash);
 }
 
 /**
@@ -63,9 +52,12 @@ r_atlas_t *R_CreateAtlas(const char *name) {
 
 	atlas->image.media.Retain = R_RetainAtlas;
 	atlas->image.media.Free = R_FreeAtlas;
+	atlas->image.type = IT_ATLAS_MAP;
 	g_strlcpy(atlas->image.media.name, name, sizeof(atlas->image.media.name));
 
 	atlas->images = g_array_new(false, true, sizeof(r_atlas_image_t));
+
+	atlas->hash = g_hash_table_new(g_direct_hash, g_direct_equal);
 
 	return atlas;
 }
@@ -81,11 +73,22 @@ void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image) {
 
 	// add to list
 	g_array_append_val(atlas->images, (const r_atlas_image_t){
-		.image = image
+		.input_image = image
 	});
 
 	// add blank entry to hash, it's filled in in upload stage
 	g_hash_table_insert(atlas->hash, (gpointer) image, NULL);
+
+	// might as well register it as a dependent
+	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) image);
+}
+
+/**
+ * @brief Resolve an atlas image from an atlas and image.
+ */
+const r_atlas_image_t *R_GetAtlasImageFromAtlas(const r_atlas_t *atlas, const r_image_t *image) {
+
+	return (const r_atlas_image_t *) g_hash_table_lookup(atlas->hash, image);
 }
 
 // RGBA color masks
@@ -101,18 +104,39 @@ void R_StitchAtlas(r_atlas_t *atlas) {
 
 	uint16_t width = 0, height = 0;
 	uint16_t min_size = USHRT_MAX;
+
+	// make the image if we need to
+	if (!atlas->image.texnum) {
+
+		glGenTextures(1, &(atlas->image.texnum));
+		R_BindTexture(atlas->image.texnum);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
+	}
+	else
+		R_BindTexture(atlas->image.texnum);
 	
-	// quite possibly the worst stitch algorithm known to man.
+	// FIXME: quite possibly the worst stitch algorithm known to man.
+	// stitch and set up some initial data
 	for (uint16_t i = 0; i < atlas->images->len; i++) {
 		r_atlas_image_t *image = &g_array_index(atlas->images, r_atlas_image_t, i);
 
 		image->position[0] = width;
 		image->position[1] = 0;
 
-		width += image->image->width;
-		height = max(height, image->image->height);
+		width += image->input_image->width;
+		height = max(height, image->input_image->height);
 
-		min_size = min(min_size, min(image->image->width, image->image->height));
+		min_size = min(min_size, min(image->input_image->width, image->input_image->height));
+		
+		image->image.width = image->input_image->width;
+		image->image.height = image->input_image->height;
+		image->image.type = IT_ATLAS_IMAGE;
+		image->image.texnum = atlas->image.texnum;
+
+		g_hash_table_replace(atlas->hash, (gpointer) image->input_image, (gpointer) image);
 	}
 
 	// see how many mips we need to make
@@ -123,20 +147,14 @@ void R_StitchAtlas(r_atlas_t *atlas) {
 		num_mips++;
 	}
 
-	// make the image if we need to
-	if (!atlas->image.texnum) {
-
-		glGenTextures(1, &(atlas->image.texnum));
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
-	}
+	// set up num mipmaps
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, num_mips - 1);
 
 	// make all of the mips as we go
 	for (uint16_t i = 0; i < num_mips; i++) {
-		const uint16_t mip_width = width >> i;
-		const uint16_t mip_height = height >> i;
+		const r_pixel_t mip_width = width >> i;
+		const r_pixel_t mip_height = height >> i;
 
 		SDL_Surface *mip_surface = SDL_CreateRGBSurface(0, mip_width, mip_height, 32, RMASK, GMASK, BMASK, AMASK);
 
@@ -150,7 +168,7 @@ void R_StitchAtlas(r_atlas_t *atlas) {
 			GLint image_mip_width;
 			GLint image_mip_height;
 
-			R_BindTexture(image->image->texnum);
+			R_BindTexture(image->input_image->texnum);
 			
 			// this has to be done, otherwise mipmaps for the image specified may not have been generated yet.
 			// these actually force it to generate the mip.
@@ -181,8 +199,6 @@ void R_StitchAtlas(r_atlas_t *atlas) {
 			w += image_mip_width;
 		}
 
-		SDL_SaveBMP(mip_surface, va("mip_%u.bmp", i));
-
 		SDL_LockSurface(mip_surface);
 
 		R_BindTexture(atlas->image.texnum);
@@ -193,17 +209,23 @@ void R_StitchAtlas(r_atlas_t *atlas) {
 
 		SDL_FreeSurface(mip_surface);
 	}
+	
+	// check for errors
+	R_GetError(atlas->image.media.name);
 
 	// setup texcoords
 	for (uint16_t i = 0, j = 0; i < atlas->images->len; i++) {
 		r_atlas_image_t *image = &g_array_index(atlas->images, r_atlas_image_t, i);
 
-		image->texcoords[0] = (float)j / (float)width;
-		image->texcoords[1] = 0;
+		Vector4Set(image->texcoords, 
+			(float)j / (float)width,
+			0.0,
+			(float)(j + image->input_image->width) / (float)width,
+			(float)image->input_image->height / (float)height);
 
-		j += image->image->width;
+		j += image->input_image->width;
 	}
 
 	// register if we aren't already
-	R_RegisterMedia(&atlas->image.media);
+	R_RegisterMedia((r_media_t *) atlas);
 }

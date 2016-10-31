@@ -74,6 +74,8 @@ typedef enum {
 	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*
+	IT_ATLAS_IMAGE = 15 // image is an r_atlas_image_t*
 } r_image_type_t;
 
 /**
@@ -101,6 +103,19 @@ typedef struct {
 	GLuint texnum; // OpenGL texture binding
 	vec3_t color; // average color
 } r_image_t;
+
+/**
+ * @brief This is a proxy structure that allows an atlased piece of texture to be
+ * used in places that expect r_image_t's.
+ */
+typedef struct {
+	r_image_t image; // this allows the individual atlas piece to be used as an image
+
+	const r_image_t *input_image; // image ptr
+	u16vec2_t position; // position in pixels
+	vec4_t texcoords;
+	r_color_t *scratch; // scratch space for image
+} r_atlas_image_t;
 
 /**
  * @brief An atlas is composed of multiple images stitched together to make
