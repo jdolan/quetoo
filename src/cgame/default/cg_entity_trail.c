@@ -341,17 +341,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
  * @brief
  */
 static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int32_t color) {
-	static vec2_t angles[NUM_APPROXIMATE_NORMALS] = { { 0, 0 } };
 	int32_t i;
-
-	if (!angles[0][0]) { // initialize our angular velocities
-		for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
-			const int32_t half_normals = (NUM_APPROXIMATE_NORMALS / 2);
-			const float a = ((i - half_normals) / (float)half_normals) * M_PI;
-			angles[i][0] = sin(a) * 2.0;
-			angles[i][1] = cos(a) * 2.0;
-		}
-	}
 
 	const vec_t ltime = (vec_t) (cgi.client->systime + ent->current.number) / 300.0;
 
@@ -361,11 +351,11 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
 			return;
 
-		vec_t angle = ltime * angles[i][0];
+		vec_t angle = ltime * approximate_normals[i][0];
 		const vec_t sp = sin(angle);
 		const vec_t cp = cos(angle);
 
-		angle = ltime * angles[i][1];
+		angle = ltime * approximate_normals[i][1];
 		const vec_t sy = sin(angle);
 		const vec_t cy = cos(angle);
 
