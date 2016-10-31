@@ -98,10 +98,7 @@ static void R_AddBspSurfaceElements(void) {
  * iterating the sorted array from 0 to length.
  */
 static int R_SortElements_Compare(const void *a, const void *b) {
-	const r_element_t *ae = ((const r_element_t *) a);
-	const r_element_t *be = ((const r_element_t *) b);
-
-	return be->depth - ae->depth;
+	return ((r_element_t *) b)->depth - ((r_element_t *) a)->depth;
 }
 
 /**
