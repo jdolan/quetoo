@@ -79,6 +79,8 @@ void Ui_Draw(void) {
 	for (r_matrix_id_t matrix = R_MATRIX_PROJECTION; matrix < R_MATRIX_TOTAL; ++matrix)
 		R_PushMatrix(matrix);
 
+	Matrix4x4_FromOrtho(&projection_matrix, 0.0, r_context.window_width, r_context.window_height, 0.0, -1.0, 1.0);
+
 	$(windowController, render);
 
 	// restore matrices
