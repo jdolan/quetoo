@@ -646,20 +646,16 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 
 			switch (cg_hand->integer) {
 				case HAND_LEFT:
-					VectorMA(start, -6.0, cgi.view->right, start);
+					VectorMA(start, -5.5, cgi.view->right, start);
 					break;
 				case HAND_RIGHT:
-					VectorMA(start, 6.0, cgi.view->right, start);
+					VectorMA(start, 5.5, cgi.view->right, start);
 					break;
 				default:
 					break;
 			}
 
-			if (cgi.client->frame.ps.pm_state.flags & PMF_DUCKED) {
-				VectorMA(start, -6.0, cgi.view->up, start);
-			} else {
-				VectorMA(start, -12.0, cgi.view->up, start);
-			}
+			VectorMA(start, -8.0, cgi.view->up, start);
 		}
 
 		VectorCopy(ent->termination, end);
