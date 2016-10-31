@@ -75,12 +75,18 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	const uint8_t old_water_level = ent->locals.old_water_level;
 
 	// if just entered a water volume, play a sound
-	if (!old_water_level && water_level)
+	if (!old_water_level && water_level) {
 		gi.Sound(ent, g_media.sounds.water_in, ATTEN_NORM);
+		G_AddWaterRipple(ent->s.origin, -ent->maxs[2], ent->locals.mass);
+	}
 
 	// completely exited the water
 	if (old_water_level && !water_level)
 		gi.Sound(ent, g_media.sounds.water_out, ATTEN_NORM);
+
+	// any part above water
+	if (old_water_level == 3 && water_level != 3)
+		G_AddWaterRipple(ent->s.origin, -ent->maxs[2], ent->locals.mass);
 
 	if (ent->locals.dead == false) { // if we're alive, we can drown
 

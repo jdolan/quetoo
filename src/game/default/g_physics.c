@@ -23,6 +23,23 @@
 #include "bg_pmove.h"
 
 /**
+ * @brief Spawn a water ripple
+ */
+void G_AddWaterRipple(const vec3_t pos, const vec_t shift, const vec_t size) {
+	vec3_t offset = { 0.0, 0.0, 0.0 };
+	offset[2] = shift;
+
+	vec3_t v;
+	VectorAdd(pos, offset, v);
+
+	gi.WriteByte(SV_CMD_TEMP_ENTITY);
+	gi.WriteByte(TE_RIPPLE);
+	gi.WritePosition(v);
+	gi.WriteVector(Clamp((size / 400.0) + 0.5, 0.5, 1.0));
+	gi.Multicast(v, MULTICAST_PHS, NULL);
+}
+
+/**
  * @see Pm_CheckGround
  */
 static void G_CheckGround(g_entity_t *ent) {
@@ -86,11 +103,13 @@ static void G_CheckWater(g_entity_t *ent) {
 
 	if (!old_water_level && ent->locals.water_level) {
 		gi.PositionedSound(pos, ent, g_media.sounds.water_in, ATTEN_IDLE);
+		G_AddWaterRipple(pos, -ent->maxs[2], ent->locals.mass);
 		if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
 			VectorScale(ent->locals.velocity, 0.66, ent->locals.velocity);
 		}
 	} else if (old_water_level && !ent->locals.water_level) {
 		gi.PositionedSound(pos, ent, g_media.sounds.water_out, ATTEN_IDLE);
+		G_AddWaterRipple(pos, -ent->maxs[2], ent->locals.mass);
 	}
 }
 

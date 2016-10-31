@@ -738,8 +738,28 @@ static void Cg_BfgEffect(const vec3_t org) {
 /**
  * @brief
  */
+static void Cg_RippleEffect(const vec3_t org, const vec_t size) {
+	cg_particle_t *p;
+
+	if (!(p = Cg_AllocParticle(PARTICLE_SPLASH, cg_particles_ripple)))
+		return;
+
+	p->part.color[3] = 1.0;
+
+	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -2.0);
+
+	p->part.scale = 15.0 * size;
+	p->scale_vel = 50.0 * size;
+
+	VectorCopy(org, p->part.org);
+}
+
+/**
+ * @brief
+ */
 void Cg_ParseTempEntity(void) {
 	vec3_t pos, pos2, dir;
+	vec_t size;
 	int32_t i, j;
 
 	const uint8_t type = cgi.ReadByte();
@@ -827,6 +847,12 @@ void Cg_ParseTempEntity(void) {
 			cgi.ReadPosition(pos);
 			cgi.ReadPosition(pos2);
 			Cg_BubbleTrail(pos, pos2, 1.0);
+			break;
+
+		case TE_RIPPLE: // water surface ripples
+			cgi.ReadPosition(pos);
+			size = cgi.ReadVector();
+			Cg_RippleEffect(pos, size);
 			break;
 
 		default:
