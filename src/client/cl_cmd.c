@@ -65,7 +65,7 @@ void Cl_SendCommand(void) {
 
 	// and write it out
 	Mem_InitBuffer(&buf, data, sizeof(data));
-	
+
 	Net_WriteByte(&buf, CL_CMD_MOVE);
 
 	// let the server know the last frame we received, so the next message can be delta compressed
