@@ -98,29 +98,36 @@ extern cl_static_t cls;
  * and angles for this frame.
  */
 void R_UpdateFrustum(void) {
-	int32_t i;
 
 	if (!r_cull->value)
 		return;
 
 	cm_bsp_plane_t *p = r_locals.frustum;
 
-	const vec_t fov_x = r_view.fov[0];
-	const vec_t fov_y = r_view.fov[1];
+	vec_t ang = Radians(r_view.fov[0]);
+	vec_t xs = sin(ang);
+	vec_t xc = cos(ang);
 
-	// rotate r_view.forward right by fov_x degrees
-	RotatePointAroundVector(r_view.forward, r_view.right, -(90.0 - fov_x), (p++)->normal);
-	// rotate r_view.forward left by fov_x degrees
-	RotatePointAroundVector(r_view.forward, r_view.right, 90.0 - fov_x, (p++)->normal);
-	// rotate r_view.forward up by fov_y degrees
-	RotatePointAroundVector(r_view.forward, r_view.up, 90.0 - fov_y, (p++)->normal);
-	// rotate r_view.forward down by fov_y degrees
-	RotatePointAroundVector(r_view.forward, r_view.up, -(90.0 - fov_y), p->normal);
+	VectorScale(r_view.forward, xs, p[0].normal);
+	VectorMA(p[0].normal, xc, r_view.right, p[0].normal);
 
-	for (i = 0; i < 4; i++) {
-		r_locals.frustum[i].type = PLANE_ANY_Z;
-		r_locals.frustum[i].dist = DotProduct(r_view.origin, r_locals.frustum[i].normal);
-		r_locals.frustum[i].sign_bits = Cm_SignBitsForPlane(&r_locals.frustum[i]);
+	VectorScale(r_view.forward, xs, p[1].normal);
+	VectorMA(p[1].normal, -xc, r_view.right, p[1].normal);
+
+	ang = Radians(r_view.fov[1]);
+	xs = sin(ang);
+	xc = cos(ang);
+
+	VectorScale(r_view.forward, xs, p[2].normal);
+	VectorMA(p[2].normal, xc, r_view.up, p[2].normal);
+
+	VectorScale(r_view.forward, xs, p[3].normal);
+	VectorMA(p[3].normal, -xc, r_view.up, p[3].normal);
+
+	for (int32_t i = 0; i < 4; i++) {
+		p[i].type = PLANE_ANY_Z;
+		p[i].dist = DotProduct (r_view.origin, p[i].normal);
+		p[i].sign_bits = Cm_SignBitsForPlane(&p[i]);
 	}
 }
 

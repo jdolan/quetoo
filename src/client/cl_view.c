@@ -37,6 +37,8 @@ static void Cl_ClearView(void) {
 	r_view.num_bsp_surfaces = 0;
 
 	r_view.num_mesh_models = r_view.num_mesh_tris = 0;
+	
+	r_view.cull_passes = r_view.cull_fails = 0;
 }
 
 /**

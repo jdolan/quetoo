@@ -254,16 +254,21 @@ void Cg_AddParticles(void) {
 
 			// add the particle if it's visible on our screen
 			float radius;
+			_Bool cull;
 
 			if (p->part.type == PARTICLE_BEAM) {
-				vec3_t distance;
+				vec3_t distance, center;
 				VectorSubtract(p->part.end, p->part.org, distance);
+				VectorMA(p->part.org, 0.5, distance, center);
 				radius = VectorLength(distance);
+				cull = cgi.CullSphere(center, radius);
 			}
-			else
-				radius = max(p->part.image->width, p->part.image->height) * p->part.scale;
+			else {
+				radius = p->part.scale * 0.5;
+				cull = cgi.CullSphere(p->part.org, radius);
+			}
 
-			if (!cgi.CullSphere(p->part.org, radius))
+			if (!cull)
 				cgi.AddParticle(&p->part);
 	
 			p = p->next;

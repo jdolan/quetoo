@@ -176,6 +176,9 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	R_DrawString(0, y, va("%d particles", r_view.num_particles), CON_COLOR_WHITE);
+	y += ch;
+
+	R_DrawString(0, y, va("cull: %d pass, %d fail", r_view.cull_passes, r_view.cull_fails), CON_COLOR_WHITE);
 
 	R_BindFont(NULL, NULL, NULL);
 }

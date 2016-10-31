@@ -914,6 +914,9 @@ typedef struct {
 
 	uint32_t num_mesh_models;
 	uint32_t num_mesh_tris;
+	
+	uint32_t cull_passes;
+	uint32_t cull_fails;
 
 	_Bool update; // inform the client of state changes
 } r_view_t;

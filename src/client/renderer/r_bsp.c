@@ -34,10 +34,13 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 		return false;
 
 	for (i = 0; i < 4; i++) {
-		if (Cm_BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) != SIDE_BACK)
+		if (Cm_BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) != SIDE_BACK) {
+			r_view.cull_fails++;
 			return false;
+		}
 	}
-
+	
+	r_view.cull_passes++;
 	return true;
 }
 
@@ -50,15 +53,17 @@ _Bool R_CullSphere(const vec3_t point, const float radius) {
 	if (!r_cull->value)
 		return false;
 
-	for (int32_t i = 0 ; i < 4 ; i++) 
-	{
+	for (int32_t i = 0 ; i < 4 ; i++)  {
 		const cm_bsp_plane_t *p = &r_locals.frustum[i];
 		const float dist = DotProduct(point, p->normal) - p->dist;
 
-		if (dist < -radius)
+		if (dist < -radius) {
+			r_view.cull_passes++;
 			return true;
+		}
 	}
-
+	
+	r_view.cull_fails++;
 	return false;
 }
 

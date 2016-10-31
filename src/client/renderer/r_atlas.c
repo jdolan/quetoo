@@ -81,6 +81,8 @@ void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image) {
 
 	// might as well register it as a dependent
 	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) image);
+
+	Com_Debug("Atlas %s -> %s\n", atlas->image.media.name, image->media.name);
 }
 
 /**
@@ -104,6 +106,7 @@ void R_StitchAtlas(r_atlas_t *atlas) {
 
 	uint16_t width = 0, height = 0;
 	uint16_t min_size = USHRT_MAX;
+	uint32_t time_start = SDL_GetTicks();
 
 	// make the image if we need to
 	if (!atlas->image.texnum) {
@@ -228,4 +231,7 @@ void R_StitchAtlas(r_atlas_t *atlas) {
 
 	// register if we aren't already
 	R_RegisterMedia((r_media_t *) atlas);
+
+	uint32_t time = SDL_GetTicks() - time_start;
+	Com_Debug("Atlas %s compiled in %u ms", atlas->image.media.name, time);
 }
