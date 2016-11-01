@@ -196,7 +196,7 @@ static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const vec_t delta, cons
  */
 static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const vec_t delta_squared) {
 
-	VectorMA(p->part.org, 0.03, p->vel, p->part.end);
+	VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 
 	return false;
 }

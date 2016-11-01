@@ -47,6 +47,10 @@ typedef struct cg_particle_s {
 			vec_t radius;
 			vec_t flicker;
 		} corona;
+
+		struct {
+			vec_t length;
+		} spark;
 	};
 
 	struct cg_particle_s *prev; // previous particle in the chain

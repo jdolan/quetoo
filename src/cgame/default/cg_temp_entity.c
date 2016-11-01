@@ -145,8 +145,9 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 			}
 
 			p->accel[2] = -0.75 * PARTICLE_GRAVITY;
+			p->spark.length = 0.03;
 
-			VectorMA(p->part.org, 0.03, p->vel, p->part.end);
+			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 		}
 	}
 
@@ -320,27 +321,30 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	for (i = 0; i < count; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_spark)))
+		if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark)))
 			break;
 
 		cgi.ColorFromPalette(0xd7 + (i % 14), p->part.color);
 		p->part.color[3] = 1.5;
 
-		Vector4Set(p->color_vel, 2.0, 2.0, 1.0, -1.0 / (0.5 + Randomf() * 0.3));
+		Vector4Set(p->color_vel, 2.0, 2.0, 1.0, -1.0 / (0.05 + Randomf() * 0.1));
 
-		p->part.scale = 2.5;
+		p->part.scale = 0.7;
 
 		VectorCopy(org, p->part.org);
-		VectorCopy(dir, p->vel);
+		VectorScale(dir, 4, p->vel);
 
 		for (j = 0; j < 3; j++) {
 			p->part.org[j] += Randomc() * 4.0;
-			p->vel[j] += Randomc() * 20.0;
+			p->vel[j] += Randomc() * 90.0;
 		}
 
-		p->accel[0] = Randomc() * 16.0;
-		p->accel[1] = Randomc() * 16.0;
-		p->accel[2] = -PARTICLE_GRAVITY;
+		p->accel[0] = Randomc() * 1.0;
+		p->accel[1] = Randomc() * 1.0;
+		p->accel[2] = -0.5 * PARTICLE_GRAVITY;
+		p->spark.length = 0.15;
+
+		VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 	}
 
 	VectorCopy(org, s.light.origin);
