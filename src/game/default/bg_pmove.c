@@ -138,7 +138,21 @@ static void Pm_TouchEntity(struct g_entity_s *ent) {
 	pm->touch_ents[pm->num_touch_ents++] = ent;
 }
 
-#define MAX_CLIP_PLANES	5
+/**
+ * @return True if `plane` is unique to `planes` and should be impacted, false otherwise.
+ */
+static _Bool Pm_ImpactPlane(vec3_t *planes, int32_t num_planes, const vec3_t plane) {
+
+	for (int32_t i = 0 ; i < num_planes; i++) {
+		if (DotProduct(plane, planes[i]) > 1.0 - PM_STOP_EPSILON) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+#define MAX_CLIP_PLANES	6
 
 /**
  * @brief Calculates a new origin, velocity, and contact entities based on the
@@ -146,7 +160,7 @@ static void Pm_TouchEntity(struct g_entity_s *ent) {
  */
 static _Bool Pm_SlideMove(void) {
 	vec3_t planes[MAX_CLIP_PLANES];
-	int32_t bump, num_bumps = MAX_CLIP_PLANES - 1;
+	int32_t bump, num_bumps = MAX_CLIP_PLANES - 2;
 
 	vec_t time_remaining = pml.time;
 	int32_t num_planes = 0;
@@ -195,14 +209,21 @@ static _Bool Pm_SlideMove(void) {
 		// store a reference to the entity for firing game events
 		Pm_TouchEntity(trace.ent);
 
-		// record the impacted plane
-		VectorCopy(trace.plane.normal, planes[num_planes]);
-		num_planes++;
+		// record the impacted plane, or nudge velocity out along it
+		if (Pm_ImpactPlane(planes, num_planes, trace.plane.normal)) {
+			VectorCopy(trace.plane.normal, planes[num_planes]);
+			num_planes++;
+		} else {
+			// if we've seen this plane before, nudge our velocity out along it
+			VectorAdd(pm->s.velocity, trace.plane.normal, pm->s.velocity);
+			continue;
+		}
 
 		// and modify velocity, clipping to all impacted planes
 		for (int32_t i = 0; i < num_planes; i++) {
 			vec3_t vel;
 
+			// if velocity doesn't impact this plane, skip it
 			if (DotProduct(pm->s.velocity, planes[i]) >= 0.0) {
 				continue;
 			}

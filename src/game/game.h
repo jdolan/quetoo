@@ -156,21 +156,6 @@ typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
 typedef struct {
 
 	/**
-	 * @brief The server framerate (sv_hz->integer).
-	 */
-	uint32_t frame_rate;
-
-	/**
-	 * @brief The server frame duration in milliseconds.
-	 */
-	uint32_t frame_millis;
-
-	/**
-	 * @brief The server frame duration in seconds.
-	 */
-	vec_t frame_seconds;
-
-	/**
  	 * @brief The game's write directory
  	 */
 	char write_dir[MAX_OS_PATH];
@@ -396,7 +381,7 @@ typedef struct {
 	void (*ClientThink)(g_entity_t *ent, pm_cmd_t *cmd);
 
 	/**
-	 * @brief Called every gi.frame_seconds to advance game logic.
+	 * @brief Called every QUETOO_TICK_SECONDS to advance game logic.
 	 */
 	void (*Frame)(void);
 

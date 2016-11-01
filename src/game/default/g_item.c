@@ -676,7 +676,7 @@ static void G_DropItem_Think(g_entity_t *ent) {
 
 		ent->locals.next_think = g_level.time + expiration;
 	} else {
-		ent->locals.next_think = g_level.time + gi.frame_millis;
+		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 	}
 }
 
@@ -741,7 +741,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	it->locals.velocity[2] = 300.0 + (Randomf() * 50.0);
 
 	it->locals.Think = G_DropItem_Think;
-	it->locals.next_think = g_level.time + gi.frame_millis;
+	it->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 
 	gi.LinkEntity(it);
 
@@ -928,7 +928,7 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 			ent->locals.health = 0;
 	}
 
-	ent->locals.next_think = g_level.time + gi.frame_millis * 2;
+	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS * 2;
 	ent->locals.Think = G_ItemDropToFloor;
 }
 

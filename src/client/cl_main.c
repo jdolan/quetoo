@@ -23,14 +23,12 @@
 
 #include "server/server.h"
 
-cvar_t *cl_async;
 cvar_t *cl_chat_sound;
 cvar_t *cl_draw_counters;
 cvar_t *cl_draw_net_graph;
 cvar_t *cl_editor;
 cvar_t *cl_ignore;
 cvar_t *cl_max_fps;
-cvar_t *cl_max_pps;
 cvar_t *cl_predict;
 cvar_t *cl_team_chat_sound;
 cvar_t *cl_timeout;
@@ -500,14 +498,12 @@ static const char *Cl_Username(void) {
 static void Cl_InitLocal(void) {
 
 	// register our variables
-	cl_async = Cvar_Add("cl_async", "0", CVAR_ARCHIVE, NULL);
 	cl_chat_sound = Cvar_Add("cl_chat_sound", "misc/chat", 0, NULL);
 	cl_draw_counters = Cvar_Add("cl_draw_counters", "1", CVAR_ARCHIVE, NULL);
 	cl_draw_net_graph = Cvar_Add("cl_draw_net_graph", "1", CVAR_ARCHIVE, NULL);
 	cl_editor = Cvar_Add("cl_editor", "0", CVAR_LO_ONLY, "Activate the in-game editor");
 	cl_ignore = Cvar_Add("cl_ignore", "", 0, NULL);
 	cl_max_fps = Cvar_Add("cl_max_fps", "0", CVAR_ARCHIVE, NULL);
-	cl_max_pps = Cvar_Add("cl_max_pps", "0", CVAR_ARCHIVE, NULL);
 	cl_predict = Cvar_Add("cl_predict", "1", 0, "Use client-side prediction to update local view");
 	cl_team_chat_sound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", 0, NULL);
 	cl_timeout = Cvar_Add("cl_timeout", "15.0", 0, NULL);
@@ -576,29 +572,24 @@ void Cl_Frame(const uint32_t msec) {
 	if (dedicated->value)
 		return;
 
+	// update the simulation time
 	cl.time += msec;
+
+	// as well as our delta intervals
+	cls.packet_delta += msec;
+	cls.render_delta += msec;
 
 	// and copy the system time for the client game module
 	cl.systime = quetoo.time;
 
-	cls.packet_delta += msec;
-	cls.render_delta += msec;
-
 	if (cl_max_fps->modified) { // ensure frame caps are sane
 		if (cl_max_fps->value > 0.0) {
-			cl_max_fps->value = Clamp(cl_max_fps->value, 30.0, 1000.0);
+			cl_max_fps->value = Clamp(cl_max_fps->value, QUETOO_TICK_RATE, 1000.0);
 		}
 		cl_max_fps->modified = false;
 	}
 
-	if (cl_max_pps->modified) {
-		if (cl_max_pps->value > 0.0) {
-			cl_max_pps->value = Clamp(cl_max_pps->value, 30.0, 1000.0);
-		}
-		cl_max_pps->modified = false;
-	}
-
-	_Bool packet_frame = true, render_frame = true;
+	_Bool render_frame = true, packet_frame = true;
 
 	if (time_demo->value) { // accumulate timed demo statistics
 		if (!cl.time_demo_start) {
@@ -614,11 +605,8 @@ void Cl_Frame(const uint32_t msec) {
 			}
 		}
 
-		if (cl_max_pps->value > 0.0) { // cap net frame rate
-			const uint32_t ms = 1000.0 * time_scale->value / cl_max_pps->value;
-			if (cls.packet_delta < ms) {
-				packet_frame = false;
-			}
+		if (cls.packet_delta * time_scale->value < QUETOO_TICK_MILLIS) {
+			packet_frame = false;
 		}
 	}
 
@@ -635,8 +623,19 @@ void Cl_Frame(const uint32_t msec) {
 		// fetch input from user
 		Cl_HandleEvents();
 
-		// and add it to the current command
-		packet_frame |= Cl_UpdateCmd();
+		if (packet_frame) {
+
+			// send command to the server
+			Cl_SendCommand();
+
+			// resend a connection request if necessary
+			Cl_CheckForResend();
+
+			// run http downloads
+			Cl_HttpThink();
+
+			cls.packet_delta = 0;
+		}
 
 		// predict all unacknowledged movements
 		Cl_PredictMovement();
@@ -649,23 +648,9 @@ void Cl_Frame(const uint32_t msec) {
 
 		cls.render_delta = 0;
 
-		if (packet_frame || cl_async->integer == 0) {
-
-			// send command to the server
-			Cl_SendCmd();
-
-			// resend a connection request if necessary
-			Cl_CheckForResend();
-
-			// run http downloads
-			Cl_HttpThink();
-
-			cls.packet_delta = 0;
-		}
-
 		// enforce a cap of 60fps while idle or connecting
 		if (cls.state < CL_LOADING && !Com_WasInit(QUETOO_SERVER)) {
-			usleep(16000);
+			SDL_Delay(QUETOO_TICK_MILLIS);
 		}
 	}
 }

@@ -278,10 +278,6 @@ static void Cl_ParseServerData(void) {
 		Com_Error(ERR_DROP, "Server is using protocol major %d\n", major);
 	}
 
-	// retrieve spawn count and packet rate
-	cl.server_count = Net_ReadLong(&net_message);
-	cl.server_hz = Net_ReadLong(&net_message);
-
 	// determine if we're viewing a demo
 	cl.demo_server = Net_ReadByte(&net_message);
 

@@ -784,7 +784,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 
 	gi.LinkEntity(self);
 
-	self->locals.next_think = g_level.time + gi.frame_millis;
+	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -986,8 +986,8 @@ static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_
  */
 static void G_BfgProjectile_Think(g_entity_t *self) {
 
-	const int16_t frame_damage = self->locals.damage * gi.frame_seconds;
-	const int16_t frame_knockback = self->locals.knockback * gi.frame_seconds;
+	const int16_t frame_damage = self->locals.damage * QUETOO_TICK_SECONDS;
+	const int16_t frame_knockback = self->locals.knockback * QUETOO_TICK_SECONDS;
 
 	g_entity_t *ent = NULL;
 	while ((ent = G_FindRadius(ent, self->s.origin, self->locals.damage_radius)) != NULL) {
@@ -1018,7 +1018,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 		gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
 	}
 
-	self->locals.next_think = g_level.time + gi.frame_millis;
+	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -1043,7 +1043,7 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 	projectile->locals.damage_radius = damage_radius;
 	projectile->locals.knockback = knockback;
 	projectile->locals.move_type = MOVE_TYPE_FLY;
-	projectile->locals.next_think = g_level.time + gi.frame_millis;
+	projectile->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 	projectile->locals.Think = G_BfgProjectile_Think;
 	projectile->locals.Touch = G_BfgProjectile_Touch;
 	projectile->s.trail = TRAIL_BFG;

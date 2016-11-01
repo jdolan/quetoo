@@ -271,8 +271,6 @@ int32_t main(int32_t argc, char *argv[]) {
 
 	memset(&quetoo, 0, sizeof(quetoo));
 
-	quetoo.time = SDL_GetTicks();
-
 	quetoo.Init = Init;
 	quetoo.Shutdown = Shutdown;
 

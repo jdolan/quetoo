@@ -62,7 +62,7 @@ static void G_trigger_multiple_Think(g_entity_t *ent) {
 	} else { // we can't just remove (self) here, because this is a touch function
 		// called while looping through area links...
 		ent->locals.Touch = NULL;
-		ent->locals.next_think = g_level.time + gi.frame_millis;
+		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 		ent->locals.Think = G_FreeEntity;
 	}
 }

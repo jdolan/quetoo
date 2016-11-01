@@ -72,10 +72,10 @@ static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
 		return;
 	}
 
-	VectorScale(delta, distance / gi.frame_seconds, ent->locals.velocity);
+	VectorScale(delta, distance / QUETOO_TICK_SECONDS, ent->locals.velocity);
 
 	ent->locals.Think = G_MoveInfo_Linear_Done;
-	ent->locals.next_think = g_level.time + gi.frame_millis;
+	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -89,16 +89,16 @@ static void G_MoveInfo_Linear_Constant(g_entity_t *ent) {
 	VectorSubtract(move->dest, ent->s.origin, delta);
 	const vec_t distance = VectorLength(delta);
 
-	if ((move->speed * gi.frame_seconds) >= distance) {
+	if ((move->speed * QUETOO_TICK_SECONDS) >= distance) {
 		G_MoveInfo_Linear_Final(ent);
 		return;
 	}
 
 	VectorScale(move->dir, move->speed, ent->locals.velocity);
 
-	move->const_frames = distance / move->speed * gi.frame_rate;
+	move->const_frames = distance / move->speed * QUETOO_TICK_RATE;
 
-	ent->locals.next_think = g_level.time + move->const_frames * gi.frame_millis;
+	ent->locals.next_think = g_level.time + move->const_frames * QUETOO_TICK_MILLIS;
 	ent->locals.Think = G_MoveInfo_Linear_Final;
 }
 
@@ -120,8 +120,8 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 		const vec_t accel_time = move->speed / move->accel;
 		const vec_t decel_time = move->speed / move->decel;
 
-		move->accel_frames = accel_time * gi.frame_rate;
-		move->decel_frames = decel_time * gi.frame_rate;
+		move->accel_frames = accel_time * QUETOO_TICK_RATE;
+		move->decel_frames = decel_time * QUETOO_TICK_RATE;
 
 		const vec_t avg_speed = move->speed * 0.5;
 
@@ -136,19 +136,19 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 			accel_distance *= scale;
 			decel_distance *= scale;
 
-			move->accel_frames = accel_distance / avg_speed * gi.frame_rate;
-			move->decel_frames = decel_distance / avg_speed * gi.frame_rate;
+			move->accel_frames = accel_distance / avg_speed * QUETOO_TICK_RATE;
+			move->decel_frames = decel_distance / avg_speed * QUETOO_TICK_RATE;
 		}
 
 		const vec_t const_distance = (distance - (accel_distance + decel_distance));
 		const vec_t const_time = const_distance / move->speed;
 
-		move->const_frames = const_time * gi.frame_rate;
+		move->const_frames = const_time * QUETOO_TICK_RATE;
 	}
 
 	// accelerate
 	if (move->accel_frames) {
-		move->current_speed += move->accel * gi.frame_seconds;
+		move->current_speed += move->accel * QUETOO_TICK_SECONDS;
 		if (move->current_speed > move->speed) {
 			move->current_speed = move->speed;
 		}
@@ -163,7 +163,7 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 
 	// decelerate
 	else if (move->decel_frames) {
-		move->current_speed -= move->decel * gi.frame_seconds;
+		move->current_speed -= move->decel * QUETOO_TICK_SECONDS;
 		if (move->current_speed <= sqrt(move->speed)) {
 			move->current_speed = sqrt(move->speed);
 		}
@@ -178,7 +178,7 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 
 	VectorScale(move->dir, move->current_speed, ent->locals.velocity);
 
-	ent->locals.next_think = g_level.time + gi.frame_millis;
+	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 	ent->locals.Think = G_MoveInfo_Linear_Accelerate;
 }
 
@@ -204,12 +204,12 @@ static void G_MoveInfo_Linear_Init(g_entity_t *ent, vec3_t dest, void (*Done)(g_
 		if (g_level.current_entity == master) {
 			G_MoveInfo_Linear_Constant(ent);
 		} else {
-			ent->locals.next_think = g_level.time + gi.frame_millis;
+			ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 			ent->locals.Think = G_MoveInfo_Linear_Constant;
 		}
 	} else { // accelerative
 		ent->locals.Think = G_MoveInfo_Linear_Accelerate;
-		ent->locals.next_think = g_level.time + gi.frame_millis;
+		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 	}
 }
 
@@ -239,10 +239,10 @@ static void G_MoveInfo_Angular_Final(g_entity_t *ent) {
 		return;
 	}
 
-	VectorScale(delta, 1.0 / gi.frame_seconds, ent->locals.avelocity);
+	VectorScale(delta, 1.0 / QUETOO_TICK_SECONDS, ent->locals.avelocity);
 
 	ent->locals.Think = G_MoveInfo_Angular_Done;
-	ent->locals.next_think = g_level.time + gi.frame_millis;
+	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -264,18 +264,18 @@ static void G_MoveInfo_Angular_Begin(g_entity_t *ent) {
 	// divide by speed to get time to reach dest
 	const vec_t time = len / move->speed;
 
-	if (time < gi.frame_seconds) {
+	if (time < QUETOO_TICK_SECONDS) {
 		G_MoveInfo_Angular_Final(ent);
 		return;
 	}
 
-	const vec_t frames = floor(time / gi.frame_seconds);
+	const vec_t frames = floor(time / QUETOO_TICK_SECONDS);
 
 	// scale the move vector by the time spent traveling to get velocity
 	VectorScale(delta, 1.0 / time, ent->locals.avelocity);
 
 	// set next_think to trigger a think when dest is reached
-	ent->locals.next_think = g_level.time + frames * gi.frame_millis;
+	ent->locals.next_think = g_level.time + frames * QUETOO_TICK_MILLIS;
 	ent->locals.Think = G_MoveInfo_Angular_Final;
 }
 
@@ -292,7 +292,7 @@ static void G_MoveInfo_Angular_Init(g_entity_t *ent, void (*Done)(g_entity_t *))
 	if (g_level.current_entity == master) {
 		G_MoveInfo_Angular_Begin(ent);
 	} else {
-		ent->locals.next_think = g_level.time + gi.frame_millis;
+		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 		ent->locals.Think = G_MoveInfo_Angular_Begin;
 	}
 }
@@ -1241,7 +1241,7 @@ void G_func_door(g_entity_t *ent) {
 	if (!ent->locals.team)
 		ent->locals.team_master = ent;
 
-	ent->locals.next_think = g_level.time + gi.frame_millis;
+	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 	if (ent->locals.health || ent->locals.target_name)
 		ent->locals.Think = G_func_door_CalculateMove;
 	else
@@ -1353,7 +1353,7 @@ void G_func_door_rotating(g_entity_t *ent) {
 
 	gi.LinkEntity(ent);
 
-	ent->locals.next_think = g_level.time + gi.frame_millis;
+	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 	if (ent->locals.health || ent->locals.target_name)
 		ent->locals.Think = G_func_door_CalculateMove;
 	else
@@ -1836,7 +1836,7 @@ static void G_func_train_Find(g_entity_t *self) {
 		self->locals.spawn_flags |= TRAIN_START_ON;
 
 	if (self->locals.spawn_flags & TRAIN_START_ON) {
-		self->locals.next_think = g_level.time + gi.frame_millis;
+		self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 		self->locals.Think = G_func_train_Next;
 		self->locals.activator = self;
 	}
@@ -1908,7 +1908,7 @@ void G_func_train(g_entity_t *self) {
 	if (self->locals.target) {
 		// start trains on the second frame, to make sure their targets have had
 		// a chance to spawn
-		self->locals.next_think = g_level.time + gi.frame_millis;
+		self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 		self->locals.Think = G_func_train_Find;
 	} else {
 		gi.Debug("No target: %s\n", vtos(self->s.origin));
@@ -1970,7 +1970,7 @@ void G_func_timer(g_entity_t *self) {
 	self->locals.Think = G_func_timer_Think;
 
 	if (self->locals.random >= self->locals.wait) {
-		self->locals.random = self->locals.wait - gi.frame_seconds;
+		self->locals.random = self->locals.wait - QUETOO_TICK_SECONDS;
 		gi.Debug("random >= wait: %s\n", vtos(self->s.origin));
 	}
 

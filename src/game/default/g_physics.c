@@ -235,7 +235,7 @@ static void G_Friction(g_entity_t *ent) {
 
 	friction += PM_FRICT_WATER * ent->locals.water_level;
 
-	vec_t scale = MAX(0.0, speed - (friction * control * gi.frame_seconds)) / speed;
+	vec_t scale = MAX(0.0, speed - (friction * control * QUETOO_TICK_SECONDS)) / speed;
 
 	VectorScale(ent->locals.velocity, scale, ent->locals.velocity);
 	VectorScale(ent->locals.avelocity, scale, ent->locals.avelocity);
@@ -252,7 +252,7 @@ static void G_Accelerate(g_entity_t *ent, vec3_t dir, vec_t speed, vec_t accel) 
 	if (add_speed <= 0.0)
 		return;
 
-	vec_t accel_speed = accel * gi.frame_seconds * speed;
+	vec_t accel_speed = accel * QUETOO_TICK_SECONDS * speed;
 
 	if (accel_speed > add_speed)
 		accel_speed = add_speed;
@@ -274,7 +274,7 @@ static void G_Gravity(g_entity_t *ent) {
 			gravity *= PM_GRAVITY_WATER;
 		}
 
-		ent->locals.velocity[2] -= gravity * gi.frame_seconds;
+		ent->locals.velocity[2] -= gravity * QUETOO_TICK_SECONDS;
 	}
 }
 
@@ -366,8 +366,8 @@ void G_TouchOccupy(g_entity_t *ent) {
  */
 static void G_Physics_NoClip(g_entity_t *ent) {
 
-	VectorMA(ent->s.angles, gi.frame_seconds, ent->locals.avelocity, ent->s.angles);
-	VectorMA(ent->s.origin, gi.frame_seconds, ent->locals.velocity, ent->s.origin);
+	VectorMA(ent->s.angles, QUETOO_TICK_SECONDS, ent->locals.avelocity, ent->s.angles);
+	VectorMA(ent->s.origin, QUETOO_TICK_SECONDS, ent->locals.velocity, ent->s.origin);
 
 	gi.LinkEntity(ent);
 }
@@ -579,8 +579,8 @@ static void G_Physics_Push(g_entity_t *ent) {
 
 			vec3_t move, amove;
 
-			VectorScale(part->locals.velocity, gi.frame_seconds, move);
-			VectorScale(part->locals.avelocity, gi.frame_seconds, amove);
+			VectorScale(part->locals.velocity, QUETOO_TICK_SECONDS, move);
+			VectorScale(part->locals.avelocity, QUETOO_TICK_SECONDS, amove);
 
 			if ((obstacle = G_Physics_Push_Move(part, move, amove)))
 				break; // move was blocked
@@ -590,7 +590,7 @@ static void G_Physics_Push(g_entity_t *ent) {
 	if (obstacle) { // blocked, let's try again next frame
 		for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
 			if (part->locals.next_think)
-				part->locals.next_think += gi.frame_millis;
+				part->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
 		}
 	} else { // the move succeeded, so call all think functions
 		for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
@@ -653,7 +653,7 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 
 	const int32_t mask = ent->locals.clip_mask ? ent->locals.clip_mask : MASK_SOLID;
 
-	vec_t time_remaining = gi.frame_seconds;
+	vec_t time_remaining = QUETOO_TICK_SECONDS;
 	int32_t num_planes = 0;
 
 	for (int32_t bump = 0; bump < MAX_CLIP_PLANES; bump++) {

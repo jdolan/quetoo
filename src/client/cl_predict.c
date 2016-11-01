@@ -42,6 +42,9 @@ _Bool Cl_UsePrediction(void) {
 	if (cl.frame.ps.pm_state.type == PM_FREEZE)
 		return false;
 
+	if (cls.net_chan.outgoing_sequence == 0)
+		return false;
+
 	return true;
 }
 
@@ -194,23 +197,23 @@ void Cl_PredictMovement(void) {
 
 	if (Cl_UsePrediction()) {
 
-		const uint32_t current = cls.net_chan.outgoing_sequence;
+		const uint32_t last = cls.net_chan.outgoing_sequence - 1;
 		uint32_t ack = cls.net_chan.incoming_acknowledged;
 
 		// if we are too far out of date, just freeze in place
-		if (current - ack >= CMD_BACKUP) {
+		if (last - ack >= CMD_BACKUP) {
 			Com_Debug("Exceeded CMD_BACKUP\n");
 			return;
 		}
 
 		GList *cmds = NULL;
 
-		while (++ack <= current) {
+		while (++ack <= last) {
 			cmds = g_list_append(cmds, &cl.cmds[ack & CMD_MASK]);
 		}
 
 		cls.cgame->PredictMovement(cmds);
-
+		
 		g_list_free(cmds);
 	}
 }

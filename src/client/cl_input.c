@@ -489,8 +489,7 @@ static void Cl_ClampPitch(void) {
  */
 void Cl_Move(pm_cmd_t *cmd) {
 
-	if (cmd->msec < 1) // save key states for next move
-		return;
+	assert(cmd->msec);
 
 	// keyboard move forward / back
 	cmd->forward += cl_forward_speed->value * cmd->msec * Cl_KeyState(&in_forward, cmd->msec);

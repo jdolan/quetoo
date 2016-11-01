@@ -106,20 +106,9 @@ typedef struct {
 } sv_frame_t;
 
 /**
- * @brief The server runs at fixed-interval frames at a configurable rate.
+ * @brief Clients are dropped after 120 seconds without receiving a packet.
  */
-#define SV_HZ_MIN 10
-#define SV_HZ_MAX 120
-
-/**
- * @brief The default server frame rate.
- */
-#define SV_HZ 30
-
-/**
- * @brief Clients are dropped after 60 seconds without receiving a packet.
- */
-#define SV_TIMEOUT 60
+#define SV_TIMEOUT 120
 
 /**
  * @brief Frame latency accounting, used to estimate ping.
@@ -197,7 +186,7 @@ typedef struct {
 
 	uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT]; // used to calculate ping
 
-	uint32_t frame_size[SV_HZ_MAX]; // used to rate drop packets
+	uint32_t frame_size[QUETOO_TICK_RATE]; // used to rate drop packets
 	uint32_t rate;
 	uint32_t surpress_count; // number of messages rate suppressed
 
@@ -250,9 +239,6 @@ typedef struct {
 	_Bool initialized; // sv_init has completed
 
 	uint32_t spawn_count; // incremented each level start, used to check late spawns
-
-	uint16_t frame_rate; // configurable server frame rate (sv_hz)
-	uint32_t frame_delta;
 
 	sv_client_t *clients; // server-side client structures
 

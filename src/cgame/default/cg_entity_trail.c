@@ -446,7 +446,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			return;
 
 		cgi.ColorFromPalette(12 + (Random() & 3), p->part.color);
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -100);
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -100.0);
 
 		p->part.scale = 8.0;
 		p->part.scroll_s = -8.0;
