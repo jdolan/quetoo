@@ -302,6 +302,12 @@ void Cl_ParseFrame(void) {
  * Because the client often runs at a higher framerate than the server, we
  * use linear interpolation between the last 2 server frames. We aim to reach
  * the current server time just as a new packet arrives.
+ *
+ * @remarks The client advances its simulation time each frame, by the elapsed
+ * millisecond delta. Here, we clamp the simulation time to be within the 
+ * range of the current frame. Even under ideal conditions, it's likely that
+ * clamping will occur. This is due, in part, to the game using fixed integer
+ * frame durations (e.g. 60hz * 16ms < 1000ms).
  */
 static void Cl_UpdateLerp(void) {
 
@@ -312,11 +318,11 @@ static void Cl_UpdateLerp(void) {
 	}
 
 	if (cl.time > cl.frame.time) {
-		Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
+//		Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
 		cl.time = cl.frame.time;
 		cl.lerp = 1.0;
 	} else if (cl.time < cl.frame.time - QUETOO_TICK_MILLIS) {
-		Com_Debug("Low clamp: %dms\n", (cl.frame.time - QUETOO_TICK_MILLIS) - cl.time);
+//		Com_Debug("Low clamp: %dms\n", (cl.frame.time - QUETOO_TICK_MILLIS) - cl.time);
 		cl.time = cl.frame.time - QUETOO_TICK_MILLIS;
 		cl.lerp = 0.0;
 	} else {

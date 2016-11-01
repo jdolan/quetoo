@@ -575,11 +575,12 @@ void Cl_Frame(const uint32_t msec) {
 	// update the simulation time
 	cl.time += msec;
 
-	// and copy the system time for the client game module
-	cl.systime = quetoo.time;
-
+	// as well as our delta intervals
 	cls.packet_delta += msec;
 	cls.render_delta += msec;
+
+	// and copy the system time for the client game module
+	cl.systime = quetoo.time;
 
 	if (cl_max_fps->modified) { // ensure frame caps are sane
 		if (cl_max_fps->value > 0.0) {
