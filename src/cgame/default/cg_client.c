@@ -258,11 +258,6 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
  * animation in the sequence.
  */
 static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e) {
-	static const cvar_t *time_scale;
-
-	if (time_scale == NULL) {
-		time_scale = cgi.Cvar("time_scale", NULL, 0, NULL);
-	}
 
 	e->frame = e->old_frame = 0;
 	e->lerp = 1.0;
@@ -280,7 +275,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 		return;
 	}
 
-	const uint32_t frame_time = (1000 / time_scale->value) / anim->hz;
+	const uint32_t frame_time = (1000 / cgi.CvarValue("time_scale") ?: 1.0) / anim->hz;
 	const uint32_t animation_time = anim->num_frames * frame_time;
 	const uint32_t elapsed_time = cgi.client->systime - a->time;
 	int32_t frame = elapsed_time / frame_time;
