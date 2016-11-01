@@ -295,6 +295,7 @@ int32_t main(int32_t argc, char *argv[]) {
 		}
 
 		if (time_scale->modified) {
+			time_scale->modified = false;
 			time_scale->value = Clamp(time_scale->value, 0.1, 3.0);
 		}
 
