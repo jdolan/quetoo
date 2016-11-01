@@ -592,11 +592,11 @@ static void R_DrawLines(void) {
  */
 void R_DrawFillUI(const SDL_Rect *rect) {
 
-	const vec_t verts[] = {
-		rect->x + 0.5, rect->y + 0.5, 0.0,
-		(rect->x + rect->w) + 0.5, rect->y + 0.5, 0.0,
-		(rect->x + rect->w) + 0.5, (rect->y + rect->h) + 0.5, 0.0,
-		rect->x + 0.5, (rect->y + rect->h) + 0.5, 0.0
+	const vec3_t verts[] = {
+		{ rect->x - 1.0, rect->y - 1.0, 0.0 },
+		{ rect->x + rect->w + 1.0, rect->y - 1.0, 0.0 },
+		{ rect->x + rect->w + 1.0, rect->y + rect->h + 1.0, 0.0 },
+		{ rect->x - 1.0, rect->y + rect->h + 1.0, 0.0 }
 	};
 
 	R_EnableColorArray(false);
