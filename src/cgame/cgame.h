@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 2
+#define CGAME_API_VERSION 3
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.

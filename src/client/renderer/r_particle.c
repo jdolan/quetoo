@@ -174,7 +174,7 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
 	vec_t s, t;
 
-	_Bool is_atlas = p->image->type == IT_ATLAS_IMAGE;
+	_Bool is_atlas = p->image && p->image->type == IT_ATLAS_IMAGE;
 
 	if (!p->image ||
 		(!p->scroll_s && !p->scroll_t && !is_atlas) ||
