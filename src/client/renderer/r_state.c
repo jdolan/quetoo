@@ -168,7 +168,7 @@ void R_BindSpecularmapTexture(GLuint texnum) {
 /**
  * @brief Binds the specified buffer for the given target.
  */
-void R_BindArray(int target, const r_buffer_t *buffer) {
+void R_BindArray(const r_attribute_id_t target, const r_buffer_t *buffer) {
 
 	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
 
@@ -190,7 +190,7 @@ _Bool R_ValidBuffer(const r_buffer_t *buffer) {
 /**
  * @brief Binds the appropriate shared vertex array to the specified target.
  */
-void R_BindDefaultArray(int target) {
+void R_BindDefaultArray(const r_attribute_id_t target) {
 
 	switch (target) {
 		case R_ARRAY_VERTEX:
@@ -245,7 +245,7 @@ void R_BindBuffer(const r_buffer_t *buffer) {
 /**
  * @brief
  */
-void R_UnbindBuffer(const int type) {
+void R_UnbindBuffer(const r_buffer_type_t type) {
 
 	if (!r_state.active_buffers[type])
 		return;
@@ -311,7 +311,7 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size,
  * @brief Allocate a GPU buffer of the specified size.
  * Optionally upload the data immediately too.
  */
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const int type, const size_t size, const void *data) {
+void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t type, const size_t size, const void *data) {
 
 	assert(buffer->bufnum == 0);
 
@@ -401,7 +401,7 @@ void R_EnableBlend(_Bool enable) {
 /**
  * @brief
  */
-void R_EnableAlphaTest(float threshold) {
+void R_EnableAlphaTest(vec_t threshold) {
 
 	if (r_state.alpha_threshold == threshold)
 		return;
@@ -749,7 +749,7 @@ void R_UseFog(void) {
 /**
  * @brief Uploads the interpolation value to the currently loaded program.
  */
-void R_UseInterpolation(const float lerp) {
+void R_UseInterpolation(const vec_t lerp) {
 
 	if (r_state.active_program->UseInterpolation)
 		r_state.active_program->UseInterpolation(lerp);

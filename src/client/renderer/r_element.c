@@ -97,7 +97,7 @@ static void R_AddBspSurfaceElements(void) {
  * Thus (a) is sorted before (b) so that we may render back-to-front by
  * iterating the sorted array from 0 to length.
  */
-static int R_SortElements_Compare(const void *a, const void *b) {
+static int32_t R_SortElements_Compare(const void *a, const void *b) {
 	return ((r_element_t *) b)->depth - ((r_element_t *) a)->depth;
 }
 
@@ -113,7 +113,7 @@ static void R_SortElements_(r_element_t *e, const size_t count) {
  * @brief Qsort comparator for particles elements.
  * This batches particles between elements by type, then by image.
  */
-static int R_SortParticles_Compare(const void *a, const void *b) {
+static int32_t R_SortParticles_Compare(const void *a, const void *b) {
 	const r_element_t *ae = ((const r_element_t *) a);
 	const r_element_t *be = ((const r_element_t *) b);
 

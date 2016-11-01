@@ -100,9 +100,9 @@ const r_atlas_image_t *R_GetAtlasImageFromAtlas(const r_atlas_t *atlas, const r_
 #define AMASK 0xff000000
 
 /**
- * @brief Stitches the images together into an atlas.
+ * @brief Compiles the specified atlas.
  */
-void R_StitchAtlas(r_atlas_t *atlas) {
+void R_CompileAtlas(r_atlas_t *atlas) {
 
 	uint16_t width = 0, height = 0;
 	uint16_t min_size = USHRT_MAX;
@@ -221,10 +221,10 @@ void R_StitchAtlas(r_atlas_t *atlas) {
 		r_atlas_image_t *image = &g_array_index(atlas->images, r_atlas_image_t, i);
 
 		Vector4Set(image->texcoords, 
-			(float)j / (float)width,
+			j / (vec_t) width,
 			0.0,
-			(float)(j + image->input_image->width) / (float)width,
-			(float)image->input_image->height / (float)height);
+			(j + image->input_image->width) / (vec_t) width,
+			image->input_image->height / (vec_t) height);
 
 		j += image->input_image->width;
 	}

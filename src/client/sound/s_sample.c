@@ -83,7 +83,7 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 		g_strlcpy(path, (sample->media.name + 1), sizeof(path));
 		found = S_LoadSampleChunkFromPath(sample, path, sizeof(path));
 	} else { // or relative
-		int i = 0;
+		int32_t i = 0;
 
 		while (SOUND_PATHS[i]) {
 		

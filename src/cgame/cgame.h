@@ -491,7 +491,7 @@ typedef struct cg_import_s {
 	 * @return Returns true if the specified sphere is completely culled by the
 	 * view frustum, false otherwise.
 	 */
-	_Bool (*CullSphere)(const vec3_t point, const float radius);
+	_Bool (*CullSphere)(const vec3_t point, const vec_t radius);
 
 	/**
 	 * @brief Sets the drawing color.
@@ -553,11 +553,11 @@ typedef struct cg_import_s {
 	const r_atlas_image_t *(*GetAtlasImageFromAtlas)(const r_atlas_t *atlas, const r_image_t *image);
 
 	/**
-	 * @brief Stitches the images together into an atlas.
+	 * @brief Generates the specified atlas.
 	 *
-	 * @param atlas The atlas to stitch together.
+	 * @param atlas The atlas to stitch together and produce the image for.
 	 */
-	void (*StitchAtlas)(r_atlas_t *atlas);
+	void (*GenerateAtlas)(r_atlas_t *atlas);
 
 
 	/**

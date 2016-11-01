@@ -149,7 +149,7 @@ void Cg_InitParticles(void) {
  */
 void Cg_SetupParticleAtlas(void) {
 
-	cgi.StitchAtlas(cg_particle_atlas);
+	cgi.GenerateAtlas(cg_particle_atlas);
 
 	cg_particles_t *ps = cg_active_particles;
 	while (ps) {
@@ -182,7 +182,7 @@ void Cg_FreeParticles(void) {
 /**
  * @brief
  */
-static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const float delta, const float delta_squared) {
+static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const vec_t delta, const vec_t delta_squared) {
 
 	// free up weather particles that have hit the ground
 	if (p->part.org[2] <= p->weather.end_z)
@@ -194,7 +194,7 @@ static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const float delta, cons
 /**
  *
  */
-static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const float delta, const float delta_squared) {
+static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const vec_t delta_squared) {
 
 	VectorMA(p->part.org, 0.03, p->vel, p->part.end);
 
@@ -216,6 +216,7 @@ void Cg_AddParticles(void) {
 
 	const vec_t delta = (cgi.client->systime - last_particle_time) * 0.001;
 	const vec_t delta_squared = delta * delta;
+	_Bool cull;
 
 	last_particle_time = cgi.client->systime;
 
@@ -266,19 +267,16 @@ void Cg_AddParticles(void) {
 			}
 
 			// add the particle if it's visible on our screen
-			float radius;
-			_Bool cull;
-
 			if (p->part.type == PARTICLE_BEAM ||
 				p->part.type == PARTICLE_SPARK) {
 				vec3_t distance, center;
 				VectorSubtract(p->part.end, p->part.org, distance);
 				VectorMA(p->part.org, 0.5, distance, center);
-				radius = VectorLength(distance);
+				const vec_t radius = VectorLength(distance);
 				cull = cgi.CullSphere(center, radius);
 			}
 			else {
-				radius = p->part.scale * 0.5;
+				const vec_t radius = p->part.scale * 0.5;
 				cull = cgi.CullSphere(p->part.org, radius);
 			}
 

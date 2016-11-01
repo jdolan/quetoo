@@ -875,7 +875,7 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 		const r_obj_triangle_t *te = el->data;
 	
-		for (int i = 0; i < 3; ++i)
+		for (int32_t i = 0; i < 3; ++i)
 			*eout++ = te->verts[i]->position;
 
 		el = el->next;

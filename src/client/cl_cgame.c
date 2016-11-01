@@ -215,7 +215,7 @@ void Cl_InitCgame(void) {
 	import.CreateAtlas = R_CreateAtlas;
 	import.AddImageToAtlas = R_AddImageToAtlas;
 	import.GetAtlasImageFromAtlas = R_GetAtlasImageFromAtlas;
-	import.StitchAtlas = R_StitchAtlas;
+	import.CompileAtlas = R_CompileAtlas;
 	import.LoadMaterial = R_LoadMaterial;
 	import.LoadModel = R_LoadModel;
 	import.WorldModel = R_WorldModel;

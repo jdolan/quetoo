@@ -49,7 +49,7 @@ static void layoutSubviews(View *self) {
 	CrosshairView *this = (CrosshairView *) self;
 	if (this->imageView->image) {
 
-		const float scale = cgi.CvarValue("cg_draw_crosshair_scale");
+		const vec_t scale = cgi.CvarValue("cg_draw_crosshair_scale");
 
 		const SDL_Size size = MakeSize(
 			this->imageView->image->surface->w * scale,
@@ -73,7 +73,7 @@ static void updateBindings(View *self) {
 
 	$(this->imageView, setImage, NULL);
 
-	const int ch = cgi.CvarValue("cg_draw_crosshair");
+	const int32_t ch = (int32_t)cgi.CvarValue("cg_draw_crosshair");
 	if (ch) {
 		SDL_Surface *surface;
 		if (cgi.LoadSurface(va("pics/ch%d", ch), &surface)) {

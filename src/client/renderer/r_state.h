@@ -170,22 +170,22 @@ void R_BindLightmapTexture(GLuint texnum);
 void R_BindDeluxemapTexture(GLuint texnum);
 void R_BindNormalmapTexture(GLuint texnum);
 void R_BindSpecularmapTexture(GLuint texnum);
-void R_BindDefaultArray(int target);
+void R_BindDefaultArray(const r_attribute_id_t target);
 void R_EnableDepthMask(_Bool enable);
 
 void R_BindBuffer(const r_buffer_t *buffer);
-void R_UnbindBuffer(const int type);
+void R_UnbindBuffer(const r_buffer_type_t type);
 void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data);
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const int type, const size_t size, const void *data);
+void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t type, const size_t size, const void *data);
 void R_DestroyBuffer(r_buffer_t *buffer);
 _Bool R_ValidBuffer(const r_buffer_t *buffer);
 
-void R_BindArray(int target, const r_buffer_t *buffer);
+void R_BindArray(const r_attribute_id_t target, const r_buffer_t *buffer);
 
 #define ALPHA_TEST_DISABLED_THRESHOLD 0.0
 #define ALPHA_TEST_ENABLED_THRESHOLD 0.25
 
-void R_EnableAlphaTest(float threshold);
+void R_EnableAlphaTest(vec_t threshold);
 void R_EnableStencilTest(GLenum pass, _Bool enable);
 void R_StencilFunc(GLenum func, GLint ref, GLuint mask);
 void R_EnablePolygonOffset(GLenum mode, _Bool enable);
@@ -198,7 +198,7 @@ void R_EnableShell(const r_program_t *program, _Bool enable);
 void R_EnableFog(_Bool enable);
 void R_UseMaterial(const r_material_t *material);
 void R_UseMatrices(void);
-void R_UseInterpolation(const float lerp);
+void R_UseInterpolation(const vec_t lerp);
 void R_UseAlphaTest(void);
 void R_UseCurrentColor(void);
 void R_UseFog(void);

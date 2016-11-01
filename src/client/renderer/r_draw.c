@@ -307,13 +307,13 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 	const uint32_t *abgr = &r_draw.colors[color & (MAX_COLORS - 1)];
 	vec4_t colors;
 
-	for (int i = 0; i < 4; ++i)
+	for (int32_t i = 0; i < 4; ++i)
 		colors[i] = ((*abgr >> (i * 8)) & 0xFF) / 255.0;
 
-	memcpy(&chars->colors[chars->color_index + 0], colors, 4 * sizeof(float));
-	memcpy(&chars->colors[chars->color_index + 4], colors, 4 * sizeof(float));
-	memcpy(&chars->colors[chars->color_index + 8], colors, 4 * sizeof(float));
-	memcpy(&chars->colors[chars->color_index + 12], colors, 4 * sizeof(float));
+	memcpy(&chars->colors[chars->color_index + 0], colors, 4 * sizeof(vec_t));
+	memcpy(&chars->colors[chars->color_index + 4], colors, 4 * sizeof(vec_t));
+	memcpy(&chars->colors[chars->color_index + 8], colors, 4 * sizeof(vec_t));
+	memcpy(&chars->colors[chars->color_index + 12], colors, 4 * sizeof(vec_t));
 
 	chars->color_index += 16;
 
@@ -427,10 +427,10 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 	}
 
 	if (a < 0.0) { // RGBA integer
-		for (int i = 0; i < 4; ++i)
+		for (int32_t i = 0; i < 4; ++i)
 			color[i] = ((c >> (i * 8)) & 0xFF) / 255.0;
 	} else { // palette index
-		for (int i = 0; i < 3; ++i)
+		for (int32_t i = 0; i < 3; ++i)
 			color[i] = ((img_palette[c] >> (i * 8)) & 0xFF) / 255.0;
 
 		color[3] = a;
@@ -487,8 +487,8 @@ static void R_DrawFills(void) {
 		return;
 
 	// upload the changed data
-	R_UploadToBuffer(&r_draw.fill_arrays.vert_buffer, 0, r_draw.fill_arrays.vert_index * sizeof(float), r_draw.fill_arrays.verts);
-	R_UploadToBuffer(&r_draw.fill_arrays.color_buffer, 0, r_draw.fill_arrays.color_index * sizeof(float), r_draw.fill_arrays.colors);
+	R_UploadToBuffer(&r_draw.fill_arrays.vert_buffer, 0, r_draw.fill_arrays.vert_index * sizeof(vec_t), r_draw.fill_arrays.verts);
+	R_UploadToBuffer(&r_draw.fill_arrays.color_buffer, 0, r_draw.fill_arrays.color_index * sizeof(vec_t), r_draw.fill_arrays.colors);
 
 	R_UploadToBuffer(&r_draw.fill_arrays.element_buffer, 0, r_draw.fill_arrays.element_index * sizeof(GLuint), r_draw.fill_arrays.elements);
 
@@ -527,10 +527,10 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 	}
 
 	if (a < 0.0) { // RGBA integer
-		for (int i = 0; i < 4; ++i)
+		for (int32_t i = 0; i < 4; ++i)
 			color[i] = ((c >> (i * 8)) & 0xFF) / 255.0;
 	} else { // palette index
-		for (int i = 0; i < 3; ++i)
+		for (int32_t i = 0; i < 3; ++i)
 			color[i] = ((img_palette[c] >> (i * 8)) & 0xFF) / 255.0;
 
 		color[3] = a;
@@ -563,8 +563,8 @@ static void R_DrawLines(void) {
 		return;
 
 	// upload the changed data
-	R_UploadToBuffer(&r_draw.line_arrays.vert_buffer, 0, r_draw.line_arrays.vert_index * sizeof(float), r_draw.line_arrays.verts);
-	R_UploadToBuffer(&r_draw.line_arrays.color_buffer, 0, r_draw.line_arrays.color_index * sizeof(float), r_draw.line_arrays.colors);
+	R_UploadToBuffer(&r_draw.line_arrays.vert_buffer, 0, r_draw.line_arrays.vert_index * sizeof(vec_t), r_draw.line_arrays.verts);
+	R_UploadToBuffer(&r_draw.line_arrays.color_buffer, 0, r_draw.line_arrays.color_index * sizeof(vec_t), r_draw.line_arrays.colors);
 
 	R_EnableTexture(&texunit_diffuse, false);
 
@@ -592,7 +592,7 @@ static void R_DrawLines(void) {
  */
 void R_DrawFillUI(const SDL_Rect *rect) {
 
-	const float verts[] = {
+	const vec_t verts[] = {
 		rect->x + 0.5, rect->y + 0.5, 0.0,
 		(rect->x + rect->w) + 0.5, rect->y + 0.5, 0.0,
 		(rect->x + rect->w) + 0.5, (rect->y + rect->h) + 0.5, 0.0,
@@ -620,7 +620,7 @@ void R_DrawFillUI(const SDL_Rect *rect) {
 
 void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop) {
 
-	float point_buffer[count * 3];
+	vec_t point_buffer[count * 3];
 
 	for (size_t i = 0; i < count; ++i)
 	{
@@ -716,7 +716,7 @@ void R_InitDraw(void) {
 	r_draw.colors[CON_COLOR_MAGENTA] = 0xffff00ff;
 	r_draw.colors[CON_COLOR_WHITE] = 0xffffffff;
 
-	for (int i = 0; i < MAX_FONTS; ++i) {
+	for (int32_t i = 0; i < MAX_FONTS; ++i) {
 
 		R_CreateBuffer(&r_draw.char_arrays[i].vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.char_arrays[i].verts), NULL);
 		R_CreateBuffer(&r_draw.char_arrays[i].texcoord_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.char_arrays[i].texcoords), NULL);
@@ -743,7 +743,7 @@ void R_InitDraw(void) {
  */
 void R_ShutdownDraw(void) {
 	
-	for (int i = 0; i < MAX_FONTS; ++i) {
+	for (int32_t i = 0; i < MAX_FONTS; ++i) {
 
 		R_DestroyBuffer(&r_draw.char_arrays[i].vert_buffer);
 		R_DestroyBuffer(&r_draw.char_arrays[i].texcoord_buffer);

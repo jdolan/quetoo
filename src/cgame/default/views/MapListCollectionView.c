@@ -47,7 +47,7 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
 
 	const MapListCollectionView *this = (MapListCollectionView *) collectionView;
 
-	const int index = $(indexPath, indexAtPosition, 0);
+	const size_t index = $(indexPath, indexAtPosition, 0);
 
 	return $((Array *) this->maps, objectAtIndex, index);
 }
@@ -60,7 +60,7 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
 CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
 	const MapListCollectionView *this = (MapListCollectionView *) collectionView;
-	const int index = $(indexPath, indexAtPosition, 0);
+	const size_t index = $(indexPath, indexAtPosition, 0);
 
 	Value *value = $((Array *) this->maps, objectAtIndex, index);
 
