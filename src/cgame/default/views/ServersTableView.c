@@ -23,14 +23,14 @@
 
 #include "ServersTableView.h"
 
-#define _Class _ServersTableView
+static const char *_hostname = "Hostname";
+static const char *_source = "Source";
+static const char *_name = "Map";
+static const char *_gameplay = "Gameplay";
+static const char *_players = "Players";
+static const char *_ping = "Ping";
 
-static TableColumn *_hostname;
-static TableColumn *_source;
-static TableColumn *_name;
-static TableColumn *_gameplay;
-static TableColumn *_players;
-static TableColumn *_ping;
+#define _Class _ServersTableView
 
 /**
  * @brief Comparator for numeric values (clients and ping).
@@ -60,17 +60,17 @@ static ident valueForColumnAndRow(const TableView *tableView, const TableColumn 
 	cl_server_info_t *server = g_list_nth_data(cgi.Servers(), row);
 	assert(server);
 
-	if (column == _hostname) {
+	if (g_strcmp0(column->identifier, _hostname) == 0) {
 		return server->hostname;
-	} else if (column == _source) {
+	} else if (g_strcmp0(column->identifier, _source) == 0) {
 		return &server->source;
-	} else if (column == _name) {
+	} else if (g_strcmp0(column->identifier, _name) == 0) {
 		return server->name;
-	} else if (column == _gameplay) {
+	} else if (g_strcmp0(column->identifier, _gameplay) == 0) {
 		return server->gameplay;
-	} else if (column == _players) {
+	} else if (g_strcmp0(column->identifier, _players) == 0) {
 		return &server->clients;
-	} else if (column == _ping) {
+	} else if (g_strcmp0(column->identifier, _ping) == 0) {
 		return &server->ping;
 	}
 
@@ -89,9 +89,9 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
 	TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
-	if (column == _hostname) {
+	if (g_strcmp0(column->identifier, _hostname) == 0) {
 		$(cell->text, setText, server->hostname);
-	} else if (column == _source) {
+	} else if (g_strcmp0(column->identifier, _source) == 0) {
 		switch (server->source) {
 			case SERVER_SOURCE_INTERNET:
 				$(cell->text, setText, "Internet");
@@ -103,13 +103,13 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 				$(cell->text, setText, "LAN");
 				break;
 		}
-	} else if (column == _name) {
+	} else if (g_strcmp0(column->identifier, _name) == 0) {
 		$(cell->text, setText, server->name);
-	} else if (column == _gameplay) {
+	} else if (g_strcmp0(column->identifier, _gameplay) == 0) {
 		$(cell->text, setText, server->gameplay);
-	} else if (column == _players) {
+	} else if (g_strcmp0(column->identifier, _players) == 0) {
 		$(cell->text, setText, va("%d/%d", server->clients, server->max_clients));
-	} else if (column == _ping) {
+	} else if (g_strcmp0(column->identifier, _ping) == 0) {
 		$(cell->text, setText, va("%3d", server->ping));
 	}
 
@@ -146,12 +146,71 @@ static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *f
 
 		self->tableView.delegate.cellForColumnAndRow = cellForColumnAndRow;
 
-		$((TableView *) self, addColumn, _hostname);
-		$((TableView *) self, addColumn, _source);
-		$((TableView *) self, addColumn, _name);
-		$((TableView *) self, addColumn, _gameplay);
-		$((TableView *) self, addColumn, _players);
-		$((TableView *) self, addColumn, _ping);
+		{
+			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _hostname);
+			assert(column);
+
+			column->comparator = (Comparator) g_ascii_strcasecmp;
+			column->width = 360;
+
+			$((TableView *) self, addColumn, column);
+			release(column);
+		}
+
+		{
+			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _source);
+			assert(column);
+
+			column->comparator = intcmp;
+			column->width = 100;
+
+			$((TableView *) self, addColumn, column);
+			release(column);
+		}
+
+		{
+			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _name);
+			assert(column);
+
+			column->comparator = (Comparator) g_ascii_strcasecmp;
+			column->width = 120;
+
+			$((TableView *) self, addColumn, column);
+			release(column);
+		}
+
+		{
+			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _gameplay);
+			assert(column);
+
+			column->comparator = (Comparator) g_ascii_strcasecmp;
+			column->width = 100;
+
+			$((TableView *) self, addColumn, column);
+			release(column);
+		}
+
+		{
+			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _players);
+			assert(column);
+
+			column->comparator = intcmp;
+			column->width = 80;
+
+			$((TableView *) self, addColumn, column);
+			release(column);
+		}
+
+		{
+			TableColumn *column = $(alloc(TableColumn), initWithIdentifier, _ping);
+			assert(column);
+
+			column->comparator = intcmp;
+			column->width = 80;
+
+			$((TableView *) self, addColumn, column);
+			release(column);
+		}
 
 		$((TableView *) self, reloadData);
 	}
@@ -169,40 +228,6 @@ static void initialize(Class *clazz) {
 	((ViewInterface *) clazz->def->interface)->updateBindings = updateBindings;
 
 	((ServersTableViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
-
-	_hostname = $(alloc(TableColumn), initWithIdentifier, "Hostname");
-	_source = $(alloc(TableColumn), initWithIdentifier, "Source");
-	_name = $(alloc(TableColumn), initWithIdentifier, "Map");
-	_gameplay = $(alloc(TableColumn), initWithIdentifier, "Gameplay");
-	_players = $(alloc(TableColumn), initWithIdentifier, "Players");
-	_ping = $(alloc(TableColumn), initWithIdentifier, "Ping");
-
-	_hostname->width = 360;
-	_source->width = 100;
-	_name->width = 120;
-	_gameplay->width = 100;
-	_players->width = 80;
-	_ping->width = 80;
-
-	_hostname->comparator = (Comparator) g_ascii_strcasecmp;
-	_source->comparator = intcmp;
-	_name->comparator = (Comparator) g_ascii_strcasecmp;
-	_gameplay->comparator = (Comparator) g_ascii_strcasecmp;
-	_players->comparator = intcmp;
-	_ping->comparator = intcmp;
-}
-
-/**
- * @see Class::destroy(Class *)
- */
-static void destroy(Class *clazz) {
-
-	release(_hostname);
-	release(_source);
-	release(_name);
-	release(_gameplay);
-	release(_players);
-	release(_ping);
 }
 
 Class _ServersTableView = {
@@ -212,7 +237,6 @@ Class _ServersTableView = {
 	.interfaceOffset = offsetof(ServersTableView, interface),
 	.interfaceSize = sizeof(ServersTableViewInterface),
 	.initialize = initialize,
-	.destroy = destroy
 };
 
 #undef _Class
