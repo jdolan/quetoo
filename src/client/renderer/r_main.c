@@ -491,7 +491,7 @@ static void R_InitLocal(void) {
 			"Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specular = Cvar_Add("r_specular", "1.0", CVAR_ARCHIVE,
 			"Controls the specularity of bump-mapping effects");
-	r_swap_interval = Cvar_Add("r_swap_interval", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
+	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT,
 			"Controls vertical refresh synchronization (v-sync)");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR",
 			CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode");
