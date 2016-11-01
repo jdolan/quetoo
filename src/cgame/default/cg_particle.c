@@ -149,7 +149,7 @@ void Cg_InitParticles(void) {
  */
 void Cg_SetupParticleAtlas(void) {
 
-	cgi.GenerateAtlas(cg_particle_atlas);
+	cgi.CompileAtlas(cg_particle_atlas);
 
 	cg_particles_t *ps = cg_active_particles;
 	while (ps) {
