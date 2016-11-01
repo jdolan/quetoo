@@ -75,6 +75,7 @@ vec_t Randomc(void); // -1.0 to 1.0
 
 void ClearBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
+vec_t RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
 
 vec_t VectorNormalize(vec3_t v);
 vec_t VectorNormalize2(const vec3_t in, vec3_t out);

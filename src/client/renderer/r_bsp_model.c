@@ -143,19 +143,6 @@ static void R_LoadBspNormals(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 }
 
 /**
- * @brief Returns an approximate radius from the specified bounding box.
- */
-static vec_t R_RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
-	vec3_t corner;
-
-	for (int32_t i = 0; i < 3; i++) {
-		corner[i] = fabsf(mins[i]) > fabsf(maxs[i]) ? fabsf(mins[i]) : fabsf(maxs[i]);
-	}
-
-	return VectorLength(corner);
-}
-
-/**
  * @brief Loads all r_bsp_inline_model_t for the specified BSP model. These are
  * later registered as first-class r_model_t's in R_SetupBspInlineModels.
  */
@@ -179,7 +166,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 			out->origin[j] = LittleFloat(in->origin[j]);
 		}
-		out->radius = R_RadiusFromBounds(out->mins, out->maxs);
+		out->radius = RadiusFromBounds(out->mins, out->maxs);
 
 		out->head_node = LittleLong(in->head_node);
 

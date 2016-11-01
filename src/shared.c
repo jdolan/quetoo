@@ -279,6 +279,19 @@ void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
 }
 
 /**
+ * @brief Returns an approximate radius from the specified bounding box.
+ */
+vec_t RadiusFromBounds(const vec3_t mins, const vec3_t maxs) {
+	vec3_t corner;
+
+	for (int32_t i = 0; i < 3; i++) {
+		corner[i] = fabsf(mins[i]) > fabsf(maxs[i]) ? fabsf(mins[i]) : fabsf(maxs[i]);
+	}
+
+	return VectorLength(corner);
+}
+
+/**
  * @brief Normalizes the specified vector to unit-length, returning the original
  * vector's length.
  */

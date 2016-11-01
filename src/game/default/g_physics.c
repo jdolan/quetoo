@@ -450,6 +450,38 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 
 	G_Physics_Push_Impact(self);
 
+	// calculate bounds for the entire move
+	vec3_t total_mins, total_maxs;
+
+	if ( self->s.angles[0] || self->s.angles[1] || self->s.angles[2]
+		|| amove[0] || amove[1] || amove[2] ) {
+		vec_t radius = RadiusFromBounds( self->mins, self->maxs );
+
+		for (int32_t i = 0 ; i < 3 ; i++ ) {
+
+			total_mins[i] = self->s.origin[i] - radius;
+			total_maxs[i] = self->s.origin[i] + radius;
+		}
+	} else {
+
+		VectorCopy(self->abs_mins, total_mins);
+		VectorCopy(self->abs_maxs, total_maxs);
+
+		for (int32_t i = 0; i < 3; i++) {
+
+			if (move[i] > 0) {
+				total_maxs[i] += move[i];
+			} else {
+				total_mins[i] += move[i];
+			}
+		}
+	}
+	
+	// unlink the pusher so we don't get it in the entity list
+	gi.UnlinkEntity(self);
+
+	const size_t len = gi.BoxEntities(total_mins, total_maxs, ents, lengthof(ents), BOX_ALL);
+
 	// move the pusher to it's intended position
 	VectorAdd(self->s.origin, move, self->s.origin);
 	VectorAdd(self->s.angles, amove, self->s.angles);
@@ -461,13 +493,9 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 	AngleVectors(inverse_amove, forward, right, up);
 
 	// see if any solid entities are inside the final position
-	const size_t len = gi.BoxEntities(self->abs_mins, self->abs_maxs, ents, lengthof(ents), BOX_ALL);
 	for (size_t i = 0; i < len; i++) {
 
 		g_entity_t *ent = ents[i];
-
-		if (ent == self)
-			continue;
 
 		if (ent->solid == SOLID_BSP)
 			continue;
