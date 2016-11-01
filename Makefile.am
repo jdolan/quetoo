@@ -20,3 +20,11 @@ html-clean:
 html-release:
 	rsync -rz --delete doc/html/ jaydolan.com:/var/www/projects/quetoo
 
+style:
+	astyle -r "src/*.c" "src/*.h" \
+		--style=java \
+		--indent=tab \
+		--indent-cases \
+		--add-brackets \
+		--max-code-length=100
+
