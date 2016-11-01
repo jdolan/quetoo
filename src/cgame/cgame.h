@@ -553,11 +553,11 @@ typedef struct cg_import_s {
 	const r_atlas_image_t *(*GetAtlasImageFromAtlas)(const r_atlas_t *atlas, const r_image_t *image);
 
 	/**
-	 * @brief Generates the specified atlas.
+	 * @brief Compiles the specified atlas.
 	 *
 	 * @param atlas The atlas to stitch together and produce the image for.
 	 */
-	void (*GenerateAtlas)(r_atlas_t *atlas);
+	void (*CompileAtlas)(r_atlas_t *atlas);
 
 
 	/**

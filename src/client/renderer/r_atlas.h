@@ -27,7 +27,7 @@
 r_atlas_t *R_CreateAtlas(const char *name);
 void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image);
 const r_atlas_image_t *R_GetAtlasImageFromAtlas(const r_atlas_t *atlas, const r_image_t *image);
-void R_GenerateAtlas(r_atlas_t *atlas);
+void R_CompileAtlas(r_atlas_t *atlas);
 
 #ifdef __R_LOCAL_H__
 
