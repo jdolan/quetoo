@@ -51,7 +51,7 @@ void R_AddElement(const r_element_t *e) {
 
 	// and resolve its depth
 	VectorSubtract(r_view.origin, el->origin, delta);
-	el->depth = VectorLength(delta);
+	el->depth = VectorLengthSquared(delta);
 }
 
 /**
@@ -97,7 +97,7 @@ static void R_AddBspSurfaceElements(void) {
  * Thus (a) is sorted before (b) so that we may render back-to-front by
  * iterating the sorted array from 0 to length.
  */
-static int R_SortElements_Compare(const void *a, const void *b) {
+static int32_t R_SortElements_Compare(const void *a, const void *b) {
 	return ((r_element_t *) b)->depth - ((r_element_t *) a)->depth;
 }
 
@@ -107,6 +107,59 @@ static int R_SortElements_Compare(const void *a, const void *b) {
  */
 static void R_SortElements_(r_element_t *e, const size_t count) {
 	qsort(e, count, sizeof(r_element_t), R_SortElements_Compare);
+}
+
+/**
+ * @brief Qsort comparator for particles elements.
+ * This batches particles between elements by type, then by image.
+ */
+static int32_t R_SortParticles_Compare(const void *a, const void *b) {
+	const r_element_t *ae = ((const r_element_t *) a);
+	const r_element_t *be = ((const r_element_t *) b);
+
+	if (ae->type == ELEMENT_PARTICLE && be->type == ELEMENT_PARTICLE) {
+		const r_particle_t *ap = ((const r_particle_t *) ae->element);
+		const r_particle_t *bp = ((const r_particle_t *) be->element);
+
+		if (bp->type == ap->type)
+			return bp->image - ap->image;
+
+		return bp->type - ap->type;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief Sorts particle ranges by their material, to prevent texture swaps.
+ * This also updates the particles' positions, etc while it loops.
+ */
+static void R_SortParticles_(r_element_t *e, const size_t count) {
+	r_element_t *start = NULL;
+	size_t c = 0;
+
+	for (r_element_t *p = e; ; p++, c++) {
+
+		if (c < count && p->type == ELEMENT_PARTICLE) {
+			
+			if (start == NULL)
+				start = p;
+		} else {
+
+			if (start != NULL) {
+				
+				const size_t length = p - start;
+				qsort(start, length, sizeof(r_element_t), R_SortParticles_Compare);
+
+				R_UpdateParticles(start, length);
+
+				start = NULL;
+			}
+		}
+
+		if (c == count)
+			break;
+	}
 }
 
 /**
@@ -122,7 +175,9 @@ void R_SortElements(void *data __attribute__((unused))) {
 
 	R_SortElements_(r_element_state.elements, r_element_state.count);
 
-	R_UpdateParticles(r_element_state.elements, r_element_state.count);
+	R_UpdateParticleState();
+
+	R_SortParticles_(r_element_state.elements, r_element_state.count);
 }
 
 /**
@@ -142,7 +197,7 @@ static void R_DrawBspSurfaceElements(const r_element_t *e, const size_t count, B
 }
 
 /**
- * @brief Draws the specified subset of elements. The type
+ * @brief Draws the specified subset of elements.
  */
 static void R_DrawElements_(const r_element_t *e, const size_t count) {
 
@@ -180,16 +235,6 @@ void R_DrawElements(void) {
 	R_UploadParticles();
 
 	const r_element_t *e = r_element_state.elements;
-
-#if 0
-	static r_corona_t c;
-
-	VectorCopy(e->origin, c.origin);
-	VectorSet(c.color, 1.0, 0.0, 1.0);
-	c.radius = 64.0;
-
-	R_AddCorona(&c);
-#endif
 
 	r_element_type_t type = ELEMENT_NONE;
 

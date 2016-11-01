@@ -98,7 +98,7 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 
 	verts = (vec3_t *) out;
 
-	if (p->type == PARTICLE_BEAM) { // beams are lines with starts and ends
+	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK) { // beams are lines with starts and ends
 		VectorSubtract(p->org, p->end, v);
 		VectorNormalize(v);
 		VectorCopy(v, up);
@@ -174,25 +174,46 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
 	vec_t s, t;
 
-	if (!p->scroll_s && !p->scroll_t) {
+	_Bool is_atlas = p->image->type == IT_ATLAS_IMAGE;
+
+	if (!p->image ||
+		(!p->scroll_s && !p->scroll_t && !is_atlas) ||
+		p->type == PARTICLE_CORONA) {
 		memcpy(out, default_texcoords, sizeof(vec2_t) * 4);
 		return;
 	}
 
-	s = p->scroll_s * r_view.time / 1000.0;
-	t = p->scroll_t * r_view.time / 1000.0;
+	// atlas needs a different pipeline
+	if (is_atlas) {
+		const r_atlas_image_t *atlas_image = (const r_atlas_image_t *) p->image;
+		
+		out[0] = atlas_image->texcoords[0];
+		out[1] = atlas_image->texcoords[1];
 
-	out[0] = 0.0 + s;
-	out[1] = 0.0 + t;
+		out[2] = atlas_image->texcoords[2];
+		out[3] = atlas_image->texcoords[1];
 
-	out[2] = 1.0 + s;
-	out[3] = 0.0 + t;
+		out[4] = atlas_image->texcoords[2];
+		out[5] = atlas_image->texcoords[3];
 
-	out[4] = 1.0 + s;
-	out[5] = 1.0 + t;
+		out[6] = atlas_image->texcoords[0];
+		out[7] = atlas_image->texcoords[3];
+	} else {
+		s = p->scroll_s * r_view.time / 1000.0;
+		t = p->scroll_t * r_view.time / 1000.0;
 
-	out[6] = 0.0 + s;
-	out[7] = 1.0 + t;
+		out[0] = 0.0 + s;
+		out[1] = 0.0 + t;
+
+		out[2] = 1.0 + s;
+		out[3] = 0.0 + t;
+
+		out[4] = 1.0 + s;
+		out[5] = 1.0 + t;
+
+		out[6] = 0.0 + s;
+		out[7] = 1.0 + t;
+	}
 }
 
 /**
@@ -209,7 +230,7 @@ static void R_ParticleColor(const r_particle_t *p, GLfloat *out) {
 /**
  * @brief Updates the shared angular vectors required for particle generation.
  */
-static void R_UpdateParticleState(void) {
+void R_UpdateParticleState(void) {
 	vec3_t v;
 
 	// reset the common angular vectors for particle alignment
@@ -232,8 +253,6 @@ static void R_UpdateParticleState(void) {
  */
 void R_UpdateParticles(r_element_t *e, const size_t count) {
 	size_t i;
-
-	R_UpdateParticleState();
 
 	for (i = 0; i < count; i++, e++) {
 
@@ -293,12 +312,22 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_BindArray(R_ARRAY_ELEMENTS, &r_particle_state.element_buffer);
 
 	const GLuint base = (uintptr_t) e->data;
+	r_particle_type_t last_type = -1;
+	GLuint last_texnum = -1;
 
 	for (i = j = 0; i < count; i++, e++) {
 		const r_particle_t *p = (const r_particle_t *) e->element;
 
 		// bind the particle's texture
-		if (p->image->texnum != texunit_diffuse.texnum) {
+		GLuint texnum = 0;
+		
+		if (p->image)
+			texnum = p->image->texnum;
+		else if (p->type == PARTICLE_CORONA)
+			texnum = last_texnum;
+
+		if (texnum != texunit_diffuse.texnum ||
+			p->type != last_type) {
 
 			if (i > j) { // draw pending particles
 				R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
@@ -311,8 +340,20 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 				R_DepthRange(0.0, 1.0);
 			}
 
-			R_BindTexture(p->image->texnum);
+			// if we're a corona, don't switch textures cause it doesn't matter
+			if (p->type != PARTICLE_CORONA) {
+				R_BindTexture(texnum);
+				last_texnum = texnum;
+			}
+
 			R_BlendFunc(GL_SRC_ALPHA, p->blend);
+
+			if (p->type == PARTICLE_CORONA)
+				R_UseProgram(r_state.corona_program);
+			else
+				R_UseProgram(r_state.null_program);
+
+			last_type = p->type;
 		}
 	}
 
@@ -335,5 +376,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_EnableColorArray(false);
 
 	R_Color(NULL);
+
+	R_UseProgram(r_state.null_program);
 }
 

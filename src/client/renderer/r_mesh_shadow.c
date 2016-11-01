@@ -177,18 +177,6 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 		if (s->shadow == 0.0)
 			break;
 
-#if 0
-		if (e->effects & EF_CLIENT) {
-			r_corona_t c;
-
-			VectorCopy(s->illumination->light.origin, c.origin);
-			VectorCopy(s->illumination->light.color, c.color);
-			c.radius = s->illumination->light.radius / 8;
-
-			R_AddCorona(&c);
-		}
-#endif
-
 		r_view.current_shadow = s;
 
 		R_DrawMeshShadow_default_(e, s);

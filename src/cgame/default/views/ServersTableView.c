@@ -37,8 +37,8 @@ static TableColumn *_ping;
  */
 static Order intcmp(const ident a, const ident b) {
 
-	int i = *(int *) a;
-	int j = *(int *) b;
+	int32_t i = *(int32_t *) a;
+	int32_t j = *(int32_t *) b;
 
 	return i - j;
 }

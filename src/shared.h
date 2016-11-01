@@ -78,6 +78,7 @@ void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs);
 
 vec_t VectorNormalize(vec3_t v);
 vec_t VectorNormalize2(const vec3_t in, vec3_t out);
+vec_t VectorLengthSquared(const vec3_t v);
 vec_t VectorLength(const vec3_t v);
 void VectorMix(const vec3_t v1, const vec3_t v2, const vec_t mix, vec3_t out);
 void VectorMA(const vec3_t veca, const vec_t scale, const vec3_t vecb, vec3_t vecc);

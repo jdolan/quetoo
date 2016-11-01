@@ -19,6 +19,12 @@
 #define strdup _strdup
 #endif
 
+#ifdef _WIN64
+    typedef signed __int64 ssize_t;
+#else
+    typedef signed int     ssize_t;
+#endif
+
 #ifndef S_ISDIR
 #define S_ISDIR(m) (((m) & S_IFDIR) == S_IFDIR)
 #endif

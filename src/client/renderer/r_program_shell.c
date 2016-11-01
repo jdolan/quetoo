@@ -112,7 +112,7 @@ void R_UseCurrentColor_shell(const vec4_t color) {
 /**
  * @brief
  */
-void R_UseInterpolation_shell(const float time_fraction) {
+void R_UseInterpolation_shell(const vec_t time_fraction) {
 
 	r_shell_program_t *p = &r_shell_program;
 

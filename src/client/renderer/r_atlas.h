@@ -19,16 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __R_CORONA_H__
-#define __R_CORONA_H__
+#ifndef __R_ATLAS_H__
+#define __R_ATLAS_H__
 
 #include "r_types.h"
 
-void R_AddCorona(const r_corona_t *c);
+r_atlas_t *R_CreateAtlas(const char *name);
+void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image);
+const r_atlas_image_t *R_GetAtlasImageFromAtlas(const r_atlas_t *atlas, const r_image_t *image);
+void R_GenerateAtlas(r_atlas_t *atlas);
 
 #ifdef __R_LOCAL_H__
-void R_DrawCoronas(void);
+
 #endif /* __R_LOCAL_H__ */
 
-#endif /* __R_CORONA_H__ */
-
+#endif /* __R_ATLAS_H__ */

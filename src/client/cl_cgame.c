@@ -204,16 +204,22 @@ void Cl_InitCgame(void) {
 	import.LoadSample = S_LoadSample;
 	import.AddSample = S_AddSample;
 
+	import.CullBox = R_CullBox;
+	import.CullSphere = R_CullSphere;
+
 	import.ColorFromPalette = Img_ColorFromPalette;
 	import.Color = R_Color;
 
 	import.LoadSurface = Img_LoadImage;
 	import.LoadImage = R_LoadImage;
+	import.CreateAtlas = R_CreateAtlas;
+	import.AddImageToAtlas = R_AddImageToAtlas;
+	import.GetAtlasImageFromAtlas = R_GetAtlasImageFromAtlas;
+	import.CompileAtlas = R_CompileAtlas;
 	import.LoadMaterial = R_LoadMaterial;
 	import.LoadModel = R_LoadModel;
 	import.WorldModel = R_WorldModel;
 
-	import.AddCorona = R_AddCorona;
 	import.AddEntity = R_AddEntity;
 	import.AddLinkedEntity = R_AddLinkedEntity;
 	import.SetMatrixForEntity = R_SetMatrixForEntity;

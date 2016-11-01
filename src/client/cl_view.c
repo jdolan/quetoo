@@ -28,7 +28,7 @@ static void Cl_ClearView(void) {
 
 	// reset entity, light, particle and corona counts
 	r_view.num_entities = r_view.num_lights = 0;
-	r_view.num_particles = r_view.num_coronas = 0;
+	r_view.num_particles = 0;
 
 	// reset counters
 	r_view.num_bind_texture = r_view.num_bind_lightmap = r_view.num_bind_deluxemap = 0;
@@ -37,6 +37,8 @@ static void Cl_ClearView(void) {
 	r_view.num_bsp_surfaces = 0;
 
 	r_view.num_mesh_models = r_view.num_mesh_tris = 0;
+	
+	r_view.cull_passes = r_view.cull_fails = 0;
 }
 
 /**

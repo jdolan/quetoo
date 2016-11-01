@@ -135,7 +135,7 @@ void R_UseCurrentColor_shadow(const vec4_t color) {
 /**
  * @brief
  */
-void R_UseInterpolation_shadow(const float time_fraction) {
+void R_UseInterpolation_shadow(const vec_t time_fraction) {
 
 	r_shadow_program_t *p = &r_shadow_program;
 

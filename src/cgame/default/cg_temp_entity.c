@@ -104,7 +104,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	cg_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t v;
-	int32_t j;
+	int32_t j, k;
 
 	cg_particles_t *ps = cg_particles_bullet[Random() % 3];
 
@@ -126,26 +126,28 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		VectorAdd(org, dir, p->part.org);
 	}
 
-	if ((p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_spark))) {
+	k = 1 + (Random() % 5);
 
-		cgi.ColorFromPalette(221 + (Random() & 7), p->part.color);
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (0.6 + Randomc() * 0.1));
+	while (k--) {
+		if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam))) {
 
-		p->part.scale = 2.0;
-		p->scale_vel = -3.0;
+			cgi.ColorFromPalette(221 + (Random() & 7), p->part.color);
+			Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (0.1 + Randomc() * 0.1));
 
-		VectorCopy(org, p->part.org);
+			p->part.scale = 0.8;
 
-		VectorScale(dir, 200.0, p->vel);
+			VectorCopy(org, p->part.org);
 
-		for (j = 0; j < 3; j++) {
-			p->vel[j] += Randomc() * 75.0;
+			VectorScale(dir, 315.0, p->vel);
+
+			for (j = 0; j < 3; j++) {
+				p->vel[j] += Randomc() * 40.0;
+			}
+
+			p->accel[2] = -0.75 * PARTICLE_GRAVITY;
+
+			VectorMA(p->part.org, 0.03, p->vel, p->part.end);
 		}
-
-		if (p->vel[2] < 100.0) // deflect up a bit
-			p->vel[2] = 100.0;
-
-		p->accel[2] = -3.0 * PARTICLE_GRAVITY;
 	}
 
 	if ((cgi.PointContents(org) & MASK_LIQUID) == 0) {

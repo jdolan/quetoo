@@ -274,7 +274,7 @@ void R_UseMatrices_default(const matrix4x4_t *matrices) {
 /**
  * @brief
  */
-void R_UseAlphaTest_default(const float threshold) {
+void R_UseAlphaTest_default(const vec_t threshold) {
 
 	r_default_program_t *p = &r_default_program;
 
@@ -284,7 +284,7 @@ void R_UseAlphaTest_default(const float threshold) {
 /**
  * @brief
  */
-void R_UseInterpolation_default(const float time_fraction) {
+void R_UseInterpolation_default(const vec_t time_fraction) {
 
 	r_default_program_t *p = &r_default_program;
 

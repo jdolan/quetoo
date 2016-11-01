@@ -187,10 +187,10 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			p->part.org[j] = org[j] + Randomc() * 16.0;
 		}
 
-		p->end_z = e->end_z[i];
+		p->weather.end_z = e->end_z[i];
 
 		// keep particle z origin relatively close to the view origin
-		if (p->end_z < cgi.view->origin[2]) {
+		if (p->weather.end_z < cgi.view->origin[2]) {
 			if (p->part.org[2] - cgi.view->origin[2] > 512.0) {
 				p->part.org[2] = cgi.view->origin[2] + 256.0 + Randomf() * 256.0;
 			}

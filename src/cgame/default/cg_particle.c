@@ -26,6 +26,8 @@ static cg_particles_t *cg_active_particles; // list of active particles, by imag
 
 static cg_particle_t cg_particles[MAX_PARTICLES];
 
+static r_atlas_t *cg_particle_atlas;
+
 /**
  * @brief Pushes the particle onto the head of specified list.
  */
@@ -65,7 +67,7 @@ static void Cg_PopParticle(cg_particle_t *p, cg_particle_t **list) {
 /**
  * @brief Allocates a free particle with the specified type and image.
  */
-cg_particle_t *Cg_AllocParticle(const uint16_t type, cg_particles_t *particles) {
+cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles) {
 
 	if (!cg_add_particles->integer)
 		return NULL;
@@ -116,16 +118,47 @@ static cg_particle_t *Cg_FreeParticle(cg_particle_t *p, cg_particle_t **list) {
 /**
  * @brief Allocates a particles chain for the specified image.
  */
-cg_particles_t *Cg_AllocParticles(const r_image_t *image) {
+cg_particles_t *Cg_AllocParticles(const r_image_t *image, const _Bool use_atlas) {
 	cg_particles_t *particles;
 
 	particles = cgi.Malloc(sizeof(*particles), MEM_TAG_CGAME);
-	particles->image = image;
+
+	if (use_atlas) {
+		particles->original_image = image;
+		cgi.AddImageToAtlas(cg_particle_atlas, image);
+	}
+	else
+		particles->image = image;
 
 	particles->next = cg_active_particles;
 	cg_active_particles = particles;
 
 	return particles;
+}
+
+/**
+ * @brief Initializes particle subsystem
+ */
+void Cg_InitParticles(void) {
+
+	cg_particle_atlas = cgi.CreateAtlas("cg_particle_atlas");
+}
+
+/**
+ * @brief Called when all particle images are done loading.
+ */
+void Cg_SetupParticleAtlas(void) {
+
+	cgi.GenerateAtlas(cg_particle_atlas);
+
+	cg_particles_t *ps = cg_active_particles;
+	while (ps) {
+
+		if (ps->original_image)
+			ps->image = (const r_image_t *) cgi.GetAtlasImageFromAtlas(cg_particle_atlas, ps->original_image);
+
+		ps = ps->next;
+	}
 }
 
 /**
@@ -142,6 +175,30 @@ void Cg_FreeParticles(void) {
 	for (i = 0; i < lengthof(cg_particles); i++) {
 		Cg_FreeParticle(&cg_particles[i], NULL);
 	}
+
+	cg_particle_atlas = NULL;
+}
+
+/**
+ * @brief
+ */
+static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const vec_t delta, const vec_t delta_squared) {
+
+	// free up weather particles that have hit the ground
+	if (p->part.org[2] <= p->weather.end_z)
+		return true;
+
+	return false;
+}
+
+/**
+ *
+ */
+static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const vec_t delta_squared) {
+
+	VectorMA(p->part.org, 0.03, p->vel, p->part.end);
+
+	return false;
 }
 
 /**
@@ -159,6 +216,7 @@ void Cg_AddParticles(void) {
 
 	const vec_t delta = (cgi.client->systime - last_particle_time) * 0.001;
 	const vec_t delta_squared = delta * delta;
+	_Bool cull;
 
 	last_particle_time = cgi.client->systime;
 
@@ -184,21 +242,47 @@ void Cg_AddParticles(void) {
 					continue;
 				}
 
-				for (int32_t i = 0; i < 3; i++) { // update origin, end, and acceleration
+				for (int32_t i = 0; i < 3; i++) { // update origin and acceleration
 					p->part.org[i] += p->vel[i] * delta + p->accel[i] * delta_squared;
-					p->part.end[i] += p->vel[i] * delta + p->accel[i] * delta_squared;
-
 					p->vel[i] += p->accel[i] * delta;
 				}
 
-				// free up weather particles that have hit the ground
-				if (p->part.type == PARTICLE_WEATHER && (p->part.org[2] <= p->end_z)) {
+				_Bool free = false;
+
+				switch (p->part.type) {
+					case PARTICLE_WEATHER:
+						free = Cg_UpdateParticle_Weather(p, delta, delta_squared);
+						break;
+					case PARTICLE_SPARK:
+						free = Cg_UpdateParticle_Spark(p, delta, delta_squared);
+						break;
+					default:
+						break;
+				}
+
+				if (free) {
 					p = Cg_FreeParticle(p, &ps->particles);
 					continue;
 				}
 			}
 
-			cgi.AddParticle(&p->part);
+			// add the particle if it's visible on our screen
+			if (p->part.type == PARTICLE_BEAM ||
+				p->part.type == PARTICLE_SPARK) {
+				vec3_t distance, center;
+				VectorSubtract(p->part.end, p->part.org, distance);
+				VectorMA(p->part.org, 0.5, distance, center);
+				const vec_t radius = VectorLength(distance);
+				cull = cgi.CullSphere(center, radius);
+			}
+			else {
+				const vec_t radius = p->part.scale * 0.5;
+				cull = cgi.CullSphere(p->part.org, radius);
+			}
+
+			if (!cull)
+				cgi.AddParticle(&p->part);
+	
 			p = p->next;
 		}
 

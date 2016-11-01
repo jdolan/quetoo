@@ -280,6 +280,8 @@
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.dylib */; };
 		CEA029C31C5E54C200341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
+		CEA082371DC6EC50001207AA /* r_atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA082331DC6EBB7001207AA /* r_atlas.c */; };
+		CEA082381DC6EC59001207AA /* r_atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA082341DC6EBB7001207AA /* r_atlas.h */; };
 		CEA936661DBCD88D00A12B79 /* r_program_corona.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA936621DBCD87400A12B79 /* r_program_corona.c */; };
 		CEA936671DBCD89000A12B79 /* r_program_corona.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA936631DBCD87400A12B79 /* r_program_corona.h */; };
 		CEC986941D3835420002B714 /* libmysqlclient.18.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC986931D3835420002B714 /* libmysqlclient.18.dylib */; };
@@ -291,7 +293,6 @@
 		CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B61C5C58C300CD0B13 /* r_bsp_model.c */; };
 		CED4383C1D9D34450052BAFA /* r_bsp_surface.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B81C5C58C300CD0B13 /* r_bsp_surface.c */; };
 		CED4383D1D9D34450052BAFA /* r_context.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5BA1C5C58C300CD0B13 /* r_context.c */; };
-		CED4383E1D9D34450052BAFA /* r_corona.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5BC1C5C58C300CD0B13 /* r_corona.c */; };
 		CED4383F1D9D34450052BAFA /* r_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5BE1C5C58C300CD0B13 /* r_draw.c */; };
 		CED438401D9D34450052BAFA /* r_element.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5C01C5C58C300CD0B13 /* r_element.c */; };
 		CED438411D9D34450052BAFA /* r_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5C21C5C58C300CD0B13 /* r_entity.c */; };
@@ -322,7 +323,6 @@
 		CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B71C5C58C300CD0B13 /* r_bsp_model.h */; };
 		CED438831D9D34450052BAFA /* r_bsp_surface.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B91C5C58C300CD0B13 /* r_bsp_surface.h */; };
 		CED438841D9D34450052BAFA /* r_context.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5BB1C5C58C300CD0B13 /* r_context.h */; };
-		CED438851D9D34450052BAFA /* r_corona.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5BD1C5C58C300CD0B13 /* r_corona.h */; };
 		CED438861D9D34450052BAFA /* r_draw.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5BF1C5C58C300CD0B13 /* r_draw.h */; };
 		CED438871D9D34450052BAFA /* r_element.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5C11C5C58C300CD0B13 /* r_element.h */; };
 		CED438881D9D34450052BAFA /* r_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5C31C5C58C300CD0B13 /* r_entity.h */; };
@@ -1021,8 +1021,6 @@
 		CE12D5B91C5C58C300CD0B13 /* r_bsp_surface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_bsp_surface.h; sourceTree = "<group>"; };
 		CE12D5BA1C5C58C300CD0B13 /* r_context.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_context.c; sourceTree = "<group>"; };
 		CE12D5BB1C5C58C300CD0B13 /* r_context.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_context.h; sourceTree = "<group>"; };
-		CE12D5BC1C5C58C300CD0B13 /* r_corona.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_corona.c; sourceTree = "<group>"; };
-		CE12D5BD1C5C58C300CD0B13 /* r_corona.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_corona.h; sourceTree = "<group>"; };
 		CE12D5BE1C5C58C300CD0B13 /* r_draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_draw.c; sourceTree = "<group>"; };
 		CE12D5BF1C5C58C300CD0B13 /* r_draw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_draw.h; sourceTree = "<group>"; };
 		CE12D5C01C5C58C300CD0B13 /* r_element.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_element.c; sourceTree = "<group>"; };
@@ -1367,6 +1365,8 @@
 		CE9305BC1D9A929100D62770 /* post-update.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; lineEnding = 2; path = "post-update.bat"; sourceTree = "<group>"; };
 		CE9305BD1D9A94F600D62770 /* post-update.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; lineEnding = 2; path = "post-update.bat"; sourceTree = "<group>"; };
 		CEA029F41C5E558100341079 /* quetoo-master */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-master"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEA082331DC6EBB7001207AA /* r_atlas.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_atlas.c; sourceTree = "<group>"; };
+		CEA082341DC6EBB7001207AA /* r_atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_atlas.h; sourceTree = "<group>"; };
 		CEA936601DBCD85400A12B79 /* corona_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = corona_fs.glsl; sourceTree = "<group>"; };
 		CEA936611DBCD85400A12B79 /* corona_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = corona_vs.glsl; sourceTree = "<group>"; };
 		CEA936621DBCD87400A12B79 /* r_program_corona.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_corona.c; sourceTree = "<group>"; };
@@ -2200,6 +2200,8 @@
 				CE12D5F31C5C58C300CD0B13 /* shaders */,
 				CE12D5B01C5C58C300CD0B13 /* r_array.c */,
 				CE12D5B11C5C58C300CD0B13 /* r_array.h */,
+				CEA082331DC6EBB7001207AA /* r_atlas.c */,
+				CEA082341DC6EBB7001207AA /* r_atlas.h */,
 				CE12D5B41C5C58C300CD0B13 /* r_bsp_light.c */,
 				CE12D5B51C5C58C300CD0B13 /* r_bsp_light.h */,
 				CE12D5B61C5C58C300CD0B13 /* r_bsp_model.c */,
@@ -2210,8 +2212,6 @@
 				CE12D5B31C5C58C300CD0B13 /* r_bsp.h */,
 				CE12D5BA1C5C58C300CD0B13 /* r_context.c */,
 				CE12D5BB1C5C58C300CD0B13 /* r_context.h */,
-				CE12D5BC1C5C58C300CD0B13 /* r_corona.c */,
-				CE12D5BD1C5C58C300CD0B13 /* r_corona.h */,
 				CE12D5BE1C5C58C300CD0B13 /* r_draw.c */,
 				CE12D5BF1C5C58C300CD0B13 /* r_draw.h */,
 				CE12D5C01C5C58C300CD0B13 /* r_element.c */,
@@ -3036,12 +3036,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				CED4387F1D9D34450052BAFA /* r_array.h in Headers */,
+				CEA082381DC6EC59001207AA /* r_atlas.h in Headers */,
 				CED438801D9D34450052BAFA /* r_bsp.h in Headers */,
 				CED438811D9D34450052BAFA /* r_bsp_light.h in Headers */,
 				CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */,
 				CED438831D9D34450052BAFA /* r_bsp_surface.h in Headers */,
 				CED438841D9D34450052BAFA /* r_context.h in Headers */,
-				CED438851D9D34450052BAFA /* r_corona.h in Headers */,
 				CED438861D9D34450052BAFA /* r_draw.h in Headers */,
 				CED438871D9D34450052BAFA /* r_element.h in Headers */,
 				CED438881D9D34450052BAFA /* r_entity.h in Headers */,
@@ -4067,12 +4067,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				CED438381D9D34450052BAFA /* r_array.c in Sources */,
+				CEA082371DC6EC50001207AA /* r_atlas.c in Sources */,
 				CED438391D9D34450052BAFA /* r_bsp.c in Sources */,
 				CED4383A1D9D34450052BAFA /* r_bsp_light.c in Sources */,
 				CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */,
 				CED4383C1D9D34450052BAFA /* r_bsp_surface.c in Sources */,
 				CED4383D1D9D34450052BAFA /* r_context.c in Sources */,
-				CED4383E1D9D34450052BAFA /* r_corona.c in Sources */,
 				CED4383F1D9D34450052BAFA /* r_draw.c in Sources */,
 				CED438401D9D34450052BAFA /* r_element.c in Sources */,
 				CED438411D9D34450052BAFA /* r_entity.c in Sources */,

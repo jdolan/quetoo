@@ -34,11 +34,37 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 		return false;
 
 	for (i = 0; i < 4; i++) {
-		if (Cm_BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) != SIDE_BACK)
+		if (Cm_BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) != SIDE_BACK) {
+			r_view.cull_fails++;
 			return false;
+		}
 	}
-
+	
+	r_view.cull_passes++;
 	return true;
+}
+
+/**
+ * @brief Returns true if the specified sphere (point and radius) is completely culled by the
+ * view frustum, false otherwise.
+ */
+_Bool R_CullSphere(const vec3_t point, const vec_t radius) {
+
+	if (!r_cull->value)
+		return false;
+
+	for (int32_t i = 0 ; i < 4 ; i++)  {
+		const cm_bsp_plane_t *p = &r_locals.frustum[i];
+		const vec_t dist = DotProduct(point, p->normal) - p->dist;
+
+		if (dist < -radius) {
+			r_view.cull_passes++;
+			return true;
+		}
+	}
+	
+	r_view.cull_fails++;
+	return false;
 }
 
 /**
@@ -256,7 +282,7 @@ void R_DrawBspNormals(void) {
 			continue; // don't care
 
 		if (k > MAX_GL_ARRAY_LENGTH - 512) { // avoid overflows, draw in batches
-			R_UploadToBuffer(&r_state.buffer_vertex_array, 0, k * sizeof(float), r_state.vertex_array);
+			R_UploadToBuffer(&r_state.buffer_vertex_array, 0, k * sizeof(vec_t), r_state.vertex_array);
 
 			R_DrawArrays(GL_LINES, 0, k / 3);
 			k = 0;
@@ -276,7 +302,7 @@ void R_DrawBspNormals(void) {
 		}
 	}
 
-	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, k * sizeof(float), r_state.vertex_array);
+	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, k * sizeof(vec_t), r_state.vertex_array);
 
 	R_DrawArrays(GL_LINES, 0, k / 3);
 

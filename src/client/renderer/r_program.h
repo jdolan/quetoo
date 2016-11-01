@@ -70,10 +70,10 @@ typedef r_variable_t r_sampler2d_t;
 
 // fog info
 typedef struct {
-	float start;
-	float end;
+	vec_t start;
+	vec_t end;
 	vec3_t color;
-	float density;
+	vec_t density;
 } r_fog_parameters_t;
 
 typedef struct
@@ -110,10 +110,10 @@ typedef struct {
 	void (*UseFog)(const r_fog_parameters_t *fog);
 	void (*UseLight)(const uint16_t light_index, const r_light_t *light);
 	void (*UseMatrices)(const matrix4x4_t *matrices);
-	void (*UseAlphaTest)(const float threshold);
+	void (*UseAlphaTest)(const vec_t threshold);
 	void (*UseCurrentColor)(const vec4_t threshold);
 	void (*UseAttributes)(void);
-	void (*UseInterpolation)(const float time_fraction);
+	void (*UseInterpolation)(const vec_t time_fraction);
 } r_program_t;
 
 // attribute state

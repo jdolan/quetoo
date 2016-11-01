@@ -340,8 +340,8 @@ void R_DrawSkyBox(void) {
 		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_maxs[1][i], i);
 		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_mins[1][i], i);
 		
-		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, r_sky.vert_index * sizeof(float), r_state.vertex_array);
-		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, r_sky.texcoord_index * sizeof(float), texunit_diffuse.texcoord_array);
+		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, r_sky.vert_index * sizeof(vec_t), r_state.vertex_array);
+		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, r_sky.texcoord_index * sizeof(vec_t), texunit_diffuse.texcoord_array);
 
 		R_DrawArrays(GL_TRIANGLE_FAN, 0, r_sky.vert_index / 3);
 		r_sky.texcoord_index = r_sky.vert_index = 0;

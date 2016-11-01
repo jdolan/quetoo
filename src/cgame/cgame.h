@@ -472,6 +472,28 @@ typedef struct cg_import_s {
 	void (*ColorFromPalette)(uint8_t c, vec3_t color);
 
 	/**
+	 * @brief Query if a box is visible on screen.
+	 *
+	 * @param mins The min bounds point.
+	 * @param maxs The max bounds point.
+	 *
+	 * @return Returns true if the specified bounding box is completely culled by the
+	 * view frustum, false otherwise.
+	 */
+	_Bool (*CullBox)(const vec3_t mins, const vec3_t maxs);
+
+	/**
+	 * @brief Query if a sphere is visible on screen.
+	 *
+	 * @param point The central point of the sphere.
+	 * @param radius The radius of the sphere.
+	 *
+	 * @return Returns true if the specified sphere is completely culled by the
+	 * view frustum, false otherwise.
+	 */
+	_Bool (*CullSphere)(const vec3_t point, const vec_t radius);
+
+	/**
 	 * @brief Sets the drawing color.
 	 *
 	 * @param color The RGBA drawing color.
@@ -499,6 +521,44 @@ typedef struct cg_import_s {
 	 * @remarks This function never returns `NULL`, but instead will return the null texture.
 	 */
 	r_image_t *(*LoadImage)(const char *name, r_image_type_t type);
+	
+	/**
+	 * @brief Creates a blank state for an atlas and returns it.
+	 *
+	 * @param name The name to give to the atlas, e.g. `"my_atlas_is_cool"`
+	 *
+	 * @return The atlas that has been created.
+	 *
+	 * @remarks Start with this function, add images to it with AddImageToAtlas, then call StitchAtlas when
+	 * you are ready. You can then query positions with GetAtlasImageFromAtlas.
+	 */
+	r_atlas_t *(*CreateAtlas)(const char *name);
+
+	/**
+	 * @brief Add an image to the list of images for this atlas.
+	 *
+	 * @param atlas The atlas to add an image to.
+	 * @param image The image to add to the atlas.
+	 */
+	void (*AddImageToAtlas)(r_atlas_t *atlas, const r_image_t *image);
+	
+	/**
+	 * @brief Resolve an atlas image from an atlas and image.
+	 *
+	 * @param atlas The atlas to fetch the stitched image from.
+	 * @param image The original image you wish to query.
+	 *
+	 * @return An r_atlas_image_t which contains the stitched coordinates of that image.
+	 */
+	const r_atlas_image_t *(*GetAtlasImageFromAtlas)(const r_atlas_t *atlas, const r_image_t *image);
+
+	/**
+	 * @brief Generates the specified atlas.
+	 *
+	 * @param atlas The atlas to stitch together and produce the image for.
+	 */
+	void (*GenerateAtlas)(r_atlas_t *atlas);
+
 
 	/**
 	 * @brief Loads the material with the given diffuse texture name.
@@ -522,11 +582,6 @@ typedef struct cg_import_s {
 	 * @return The world model for the currently loaded level.
 	 */
 	r_model_t *(*WorldModel)(void);
-
-	/**
-	 * @brief Adds a corona to the scene for the current frame.
-	 */
-	void (*AddCorona)(const r_corona_t *c);
 
 	/**
 	 * @brief Adds an entity to the scene for the current frame.

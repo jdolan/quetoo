@@ -113,9 +113,9 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 			
 			if (l)
 			{
-				R_UploadToBuffer(&r_state.buffer_color_array, 0, j * sizeof(float), r_state.color_array);
-				R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, k * sizeof(float), texunit_diffuse.texcoord_array);
-				R_UploadToBuffer(&r_state.buffer_vertex_array, 0, l * sizeof(float), r_state.vertex_array);
+				R_UploadToBuffer(&r_state.buffer_color_array, 0, j * sizeof(vec_t), r_state.color_array);
+				R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, k * sizeof(vec_t), texunit_diffuse.texcoord_array);
+				R_UploadToBuffer(&r_state.buffer_vertex_array, 0, l * sizeof(vec_t), r_state.vertex_array);
 				R_UploadToBuffer(&r_state.buffer_element_array, 0, m * sizeof(GLuint), r_state.indice_array);
 
 				R_DrawArrays(GL_TRIANGLES, 0, m);
@@ -198,9 +198,9 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	
 	if (l)
 	{
-		R_UploadToBuffer(&r_state.buffer_color_array, 0, j * sizeof(float), r_state.color_array);
-		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, k * sizeof(float), texunit_diffuse.texcoord_array);
-		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, l * sizeof(float), r_state.vertex_array);
+		R_UploadToBuffer(&r_state.buffer_color_array, 0, j * sizeof(vec_t), r_state.color_array);
+		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, k * sizeof(vec_t), texunit_diffuse.texcoord_array);
+		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, l * sizeof(vec_t), r_state.vertex_array);
 		R_UploadToBuffer(&r_state.buffer_element_array, 0, m * sizeof(GLuint), r_state.indice_array);
 
 		R_DrawArrays(GL_TRIANGLES, 0, m);

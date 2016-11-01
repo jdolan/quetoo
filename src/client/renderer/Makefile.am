@@ -4,12 +4,12 @@ SUBDIRS = \
 
 noinst_HEADERS = \
 	r_array.h \
+	r_atlas.h \
 	r_bsp_light.h \
 	r_bsp_model.h \
 	r_bsp_surface.h \
 	r_bsp.h \
 	r_context.h \
-	r_corona.h \
 	r_draw.h \
 	r_element.h \
 	r_entity.h \
@@ -46,12 +46,12 @@ noinst_LTLIBRARIES = \
 
 librenderer_la_SOURCES = \
 	r_array.c \
+	r_atlas.c \
 	r_bsp_light.c \
 	r_bsp_model.c \
 	r_bsp_surface.c \
 	r_bsp.c \
 	r_context.c \
-	r_corona.c \
 	r_draw.c \
 	r_element.c \
 	r_entity.c \

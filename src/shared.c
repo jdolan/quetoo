@@ -323,7 +323,14 @@ void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross) {
 }
 
 /**
- * @brief Returns the length of the specified vector.
+ @brief Returns the squared length of the specified vector.
+ */
+vec_t VectorLengthSquared(const vec3_t v) {
+	return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+}
+
+/**
+ * @brief Returns the square root of the length of the specified vector.
  */
 vec_t VectorLength(const vec3_t v) {
 	return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);

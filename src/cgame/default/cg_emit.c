@@ -388,14 +388,16 @@ void Cg_AddEmits(void) {
 		}
 
 		if (e->flags & EMIT_CORONA) {
-			r_corona_t c;
 
-			VectorCopy(e->org, c.origin);
-			c.radius = e->radius;
-			c.flicker = e->flicker;
-			VectorCopy(e->color, c.color);
+			cg_particle_t *p = Cg_AllocParticle(PARTICLE_CORONA, NULL);
 
-			cgi.AddCorona(&c);
+			if (p) {
+				VectorCopy(e->color, p->part.color);
+				VectorCopy(e->org, p->part.org);
+
+				p->color_vel[3] = -FLT_MAX;
+				p->part.scale = CORONA_SCALE(e->radius, e->flicker);
+			}
 		}
 
 		// then add emits with timed events if they are due to run

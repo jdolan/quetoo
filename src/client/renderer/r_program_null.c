@@ -135,7 +135,7 @@ void R_UseCurrentColor_null(const vec4_t color) {
 /**
  * @brief
  */
-void R_UseInterpolation_null(const float time_fraction) {
+void R_UseInterpolation_null(const vec_t time_fraction) {
 
 	r_null_program_t *p = &r_null_program;
 

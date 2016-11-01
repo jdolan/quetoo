@@ -74,22 +74,30 @@ typedef enum {
 	IT_FLARE = 11 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_SKY = 12 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
 	IT_PIC = 13 + (IT_MASK_MIPMAP | IT_MASK_FILTER),
+	IT_ATLAS_MAP = 14 + (IT_MASK_MIPMAP), // image is an r_atlas_t*
+	IT_ATLAS_IMAGE = 15 // image is an r_atlas_image_t*
 } r_image_type_t;
+
+/**
+ * @brief Buffer types
+ */
+typedef enum {
+	R_BUFFER_DATA,
+	R_BUFFER_ELEMENT,
+
+	R_NUM_BUFFERS,
+} r_buffer_type_t;
 
 /**
  * @brief Buffers are used to hold data for the renderer.
  */
 typedef struct r_buffer_s {
-	GLenum type; // R_BUFFER_DATA or R_BUFFER_ELEMENT
+	r_buffer_type_t type; // R_BUFFER_DATA or R_BUFFER_ELEMENT
 	GLenum hint; // GL_x_y, where x is STATIC or DYNAMIC, and where y is DRAW, READ or COPY
 	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
 	GLuint bufnum; // e.g. 123
 	size_t size; // last size of buffer, for resize operations
 } r_buffer_t;
-
-#define R_BUFFER_DATA			0
-#define R_BUFFER_ELEMENT		1
-#define R_NUM_BUFFERS			2
 
 /**
  * @brief Images are referenced by materials, models, entities, particles, etc.
@@ -101,6 +109,60 @@ typedef struct {
 	GLuint texnum; // OpenGL texture binding
 	vec3_t color; // average color
 } r_image_t;
+
+/**
+ * @brief This is a proxy structure that allows an atlased piece of texture to be
+ * used in places that expect r_image_t's.
+ */
+typedef struct {
+	r_image_t image; // this allows the individual atlas piece to be used as an image
+
+	const r_image_t *input_image; // image ptr
+	u16vec2_t position; // position in pixels
+	vec4_t texcoords;
+	r_color_t *scratch; // scratch space for image
+} r_atlas_image_t;
+
+/**
+ * @brief An atlas is composed of multiple images stitched together to make
+ * a single image. It is a sub-type of r_image_t.
+ */
+typedef struct {
+	r_image_t image;
+	GArray *images; // image list
+	GHashTable *hash; // hash of image -> image list ptr
+} r_atlas_t;
+
+typedef enum {
+	PARTICLE_NORMAL,
+	PARTICLE_SPARK,
+	PARTICLE_ROLL,
+	PARTICLE_DECAL,
+	PARTICLE_BUBBLE,
+	PARTICLE_BEAM,
+	PARTICLE_WEATHER,
+	PARTICLE_SPLASH,
+	PARTICLE_CORONA
+} r_particle_type_t;
+
+/**
+ * @brief Particles are alpha-blended quads.
+ */
+typedef struct r_particle_s {
+	r_particle_type_t type;
+	const r_image_t *image;
+	GLenum blend;
+	vec4_t color;
+	vec_t scale;
+	vec_t scroll_s;
+	vec_t scroll_t;
+	vec_t roll;
+	vec3_t org;
+	vec3_t end;
+	vec3_t dir;
+} r_particle_t;
+
+#define MAX_PARTICLES		16384
 
 typedef struct {
 	GLenum src, dest;
@@ -380,6 +442,8 @@ typedef struct {
 		vec3_t color;
 		vec_t radius;
 	} light;
+
+	r_particle_t debug;
 
 } r_bsp_light_t;
 
@@ -736,45 +800,6 @@ typedef struct {
  */
 typedef void (*MeshModelsDrawFunc)(const r_entities_t *ents);
 
-typedef enum {
-	PARTICLE_NORMAL,
-	PARTICLE_ROLL,
-	PARTICLE_DECAL,
-	PARTICLE_BUBBLE,
-	PARTICLE_BEAM,
-	PARTICLE_WEATHER,
-	PARTICLE_SPLASH
-} r_particle_type_t;
-
-/**
- * @brief Particles are alpha-blended, textured quads.
- */
-typedef struct r_particle_s {
-	r_particle_type_t type;
-	const r_image_t *image;
-	GLenum blend;
-	vec4_t color;
-	vec_t scale;
-	vec_t scroll_s;
-	vec_t scroll_t;
-	vec_t roll;
-	vec3_t org;
-	vec3_t end;
-	vec3_t dir;
-} r_particle_t;
-
-#define MAX_PARTICLES		16384
-
-/**
- * @brief Coronas are soft, alpha-blended, rounded sprites.
- */
-typedef struct {
-	vec3_t origin;
-	vec_t radius;
-	vec_t flicker;
-	vec3_t color;
-} r_corona_t;
-
 /**
  * @brief Renderer element types.
  */
@@ -804,8 +829,6 @@ typedef struct {
 typedef enum {
 	R_PLUGIN_DEFAULT
 } r_plugin_t;
-
-#define MAX_CORONAS 		1024
 
 #define WEATHER_NONE		0
 #define WEATHER_RAIN 		1
@@ -873,9 +896,6 @@ typedef struct {
 	uint16_t num_particles;
 	r_particle_t particles[MAX_PARTICLES];
 
-	uint16_t num_coronas;
-	r_corona_t coronas[MAX_CORONAS];
-
 	uint16_t num_lights;
 	r_light_t lights[MAX_LIGHTS];
 
@@ -901,6 +921,9 @@ typedef struct {
 
 	uint32_t num_mesh_models;
 	uint32_t num_mesh_tris;
+	
+	uint32_t cull_passes;
+	uint32_t cull_fails;
 
 	_Bool update; // inform the client of state changes
 } r_view_t;

@@ -173,6 +173,10 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t origin, vec3_t color, vec_t
 	bl->light.radius = ((bl->light.radius * (bl->count - 1)) + radius) / bl->count;
 
 	VectorMix(bl->light.color, color, 1.0 / bl->count, bl->light.color);
+
+	bl->debug.type = PARTICLE_CORONA;
+	bl->debug.color[3] = 1.0;
+	bl->debug.blend = GL_ONE;
 }
 
 /**
@@ -296,7 +300,7 @@ void R_DrawBspLights(void) {
 	if (!r_draw_bsp_lights->value)
 		return;
 
-	const r_bsp_light_t *bl = r_model_state.world->bsp->bsp_lights;
+	r_bsp_light_t *bl = r_model_state.world->bsp->bsp_lights;
 	for (uint16_t i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, bl++) {
 
 		const r_bsp_leaf_t *l = R_LeafForPoint(bl->light.origin, NULL);
@@ -304,12 +308,10 @@ void R_DrawBspLights(void) {
 			continue;
 		}
 
-		static r_corona_t c;
+		VectorCopy(bl->light.origin, bl->debug.org);
+		VectorCopy(bl->light.color, bl->debug.color);
+		bl->debug.scale = bl->light.radius * r_draw_bsp_lights->value;
 
-		VectorCopy(bl->light.origin, c.origin);
-		c.radius = bl->light.radius * r_draw_bsp_lights->value;
-		VectorCopy(bl->light.color, c.color);
-
-		R_AddCorona(&c);
+		R_AddParticle(&bl->debug);
 	}
 }

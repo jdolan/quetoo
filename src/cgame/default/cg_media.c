@@ -119,33 +119,37 @@ void Cg_UpdateMedia(void) {
 		g_snprintf(name, sizeof(name), "#players/common/step_%zd", i + 1);
 		cg_sample_footsteps[i] = cgi.LoadSample(name);
 	}
+	
+	Cg_InitParticles();
 
-	cg_particles_normal = Cg_AllocParticles(cgi.LoadImage("particles/particle.tga", IT_EFFECT));
-	cg_particles_explosion = Cg_AllocParticles(cgi.LoadImage("particles/explosion.tga", IT_EFFECT));
+	cg_particles_normal = Cg_AllocParticles(cgi.LoadImage("particles/particle.tga", IT_EFFECT), true);
+	cg_particles_explosion = Cg_AllocParticles(cgi.LoadImage("particles/explosion.tga", IT_EFFECT), true);
 
 	for (size_t i = 0; i < lengthof(cg_particles_debris); i++) {
 		g_snprintf(name, sizeof(name), "particles/debris_%zd", i);
-		cg_particles_debris[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT));
+		cg_particles_debris[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT), true);
 	}
 
-	cg_particles_teleporter = Cg_AllocParticles(cgi.LoadImage("particles/teleport.tga", IT_EFFECT));
-	cg_particles_smoke = Cg_AllocParticles(cgi.LoadImage("particles/smoke.tga", IT_EFFECT));
-	cg_particles_steam = Cg_AllocParticles(cgi.LoadImage("particles/steam.tga", IT_EFFECT));
-	cg_particles_bubble = Cg_AllocParticles(cgi.LoadImage("particles/bubble.tga", IT_EFFECT));
-	cg_particles_rain = Cg_AllocParticles(cgi.LoadImage("particles/rain.tga", IT_EFFECT));
-	cg_particles_snow = Cg_AllocParticles(cgi.LoadImage("particles/snow.tga", IT_EFFECT));
-	cg_particles_beam = Cg_AllocParticles(cgi.LoadImage("particles/beam.tga", IT_EFFECT));
-	cg_particles_burn = Cg_AllocParticles(cgi.LoadImage("particles/burn.tga", IT_EFFECT));
-	cg_particles_blood = Cg_AllocParticles(cgi.LoadImage("particles/blood.tga", IT_EFFECT));
-	cg_particles_lightning = Cg_AllocParticles(cgi.LoadImage("particles/lightning.tga", IT_EFFECT));
-	cg_particles_flame = Cg_AllocParticles(cgi.LoadImage("particles/flame.tga", IT_EFFECT));
-	cg_particles_spark = Cg_AllocParticles(cgi.LoadImage("particles/spark.tga", IT_EFFECT));
-	cg_particles_inactive = Cg_AllocParticles(cgi.LoadImage("particles/inactive.tga", IT_EFFECT));
+	cg_particles_teleporter = Cg_AllocParticles(cgi.LoadImage("particles/teleport.tga", IT_EFFECT), true);
+	cg_particles_smoke = Cg_AllocParticles(cgi.LoadImage("particles/smoke.tga", IT_EFFECT), true);
+	cg_particles_steam = Cg_AllocParticles(cgi.LoadImage("particles/steam.tga", IT_EFFECT), true);
+	cg_particles_bubble = Cg_AllocParticles(cgi.LoadImage("particles/bubble.tga", IT_EFFECT), true);
+	cg_particles_rain = Cg_AllocParticles(cgi.LoadImage("particles/rain.tga", IT_EFFECT), true);
+	cg_particles_snow = Cg_AllocParticles(cgi.LoadImage("particles/snow.tga", IT_EFFECT), true);
+	cg_particles_beam = Cg_AllocParticles(cgi.LoadImage("particles/beam.tga", IT_EFFECT), false);
+	cg_particles_burn = Cg_AllocParticles(cgi.LoadImage("particles/burn.tga", IT_EFFECT), true);
+	cg_particles_blood = Cg_AllocParticles(cgi.LoadImage("particles/blood.tga", IT_EFFECT), true);
+	cg_particles_lightning = Cg_AllocParticles(cgi.LoadImage("particles/lightning.tga", IT_EFFECT), false);
+	cg_particles_flame = Cg_AllocParticles(cgi.LoadImage("particles/flame.tga", IT_EFFECT), true);
+	cg_particles_spark = Cg_AllocParticles(cgi.LoadImage("particles/spark.tga", IT_EFFECT), true);
+	cg_particles_inactive = Cg_AllocParticles(cgi.LoadImage("particles/inactive.tga", IT_EFFECT), true);
 
 	for (size_t i = 0; i < lengthof(cg_particles_bullet); i++) {
 		g_snprintf(name, sizeof(name), "particles/bullet_%zd", i);
-		cg_particles_bullet[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT));
+		cg_particles_bullet[i] = Cg_AllocParticles(cgi.LoadImage(name, IT_EFFECT), true);
 	}
+
+	Cg_SetupParticleAtlas();
 
 	cg_draw_crosshair->modified = true;
 	cg_draw_crosshair_color->modified = true;
