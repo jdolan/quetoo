@@ -295,9 +295,6 @@ typedef struct {
 
 	cl_chat_state_t chat_state;
 
-	uint32_t packet_delta; // milliseconds since last outgoing packet
-	uint32_t render_delta; // milliseconds since last renderer frame
-
 	// connection information
 	char server_name[MAX_OS_PATH]; // name of server to connect to
 	uint32_t connect_time; // for connection retransmits

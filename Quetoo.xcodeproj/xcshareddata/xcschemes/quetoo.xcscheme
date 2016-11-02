@@ -63,8 +63,8 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "+set r_fullscreen 1 +map fragpipe +give all"
-            isEnabled = "NO">
+            argument = "+set r_fullscreen 1 +map edge +give all"
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

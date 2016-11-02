@@ -26,12 +26,13 @@
  * may be called multiple times per packet frame.
  */
 static void Cl_UpdateCommand(void) {
+	static uint32_t command_time;
 
 	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
 	memset(cmd, 0, sizeof(*cmd));
 
-	cmd->cmd.msec = Clamp(cls.packet_delta, QUETOO_TICK_MILLIS, 255);
+	cmd->cmd.msec = MIN((cl.systime - command_time) * time_scale->value, 255);
 
 	Cl_Move(&cmd->cmd);
 
@@ -40,6 +41,8 @@ static void Cl_UpdateCommand(void) {
 	// store timestamp for netgraph and prediction calculations
 	cmd->time = cl.time;
 	cmd->timestamp = cl.systime;
+
+	command_time = cl.systime;
 }
 
 /**

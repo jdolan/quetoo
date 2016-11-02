@@ -268,7 +268,6 @@ void Cl_SendDisconnect(void) {
 
 	cls.broadcast_time = 0;
 	cls.connect_time = 0;
-	cls.packet_delta = 9999;
 	cls.state = CL_DISCONNECTED;
 }
 
@@ -568,6 +567,8 @@ static void Cl_WriteConfiguration(void) {
  * @brief
  */
 void Cl_Frame(const uint32_t msec) {
+	static uint32_t render_time;
+	static uint32_t packet_time;
 
 	if (dedicated->value)
 		return;
@@ -575,84 +576,56 @@ void Cl_Frame(const uint32_t msec) {
 	// update the simulation time
 	cl.time += msec;
 
-	// as well as our delta intervals
-	cls.packet_delta += msec;
-	cls.render_delta += msec;
-
 	// and copy the system time for the client game module
 	cl.systime = quetoo.time;
-
-	if (cl_max_fps->modified) { // ensure frame caps are sane
-		if (cl_max_fps->value > 0.0) {
-			cl_max_fps->value = Clamp(cl_max_fps->value, QUETOO_TICK_RATE, 1000.0);
-		}
-		cl_max_fps->modified = false;
-	}
-
-	_Bool render_frame = true, packet_frame = true;
 
 	if (time_demo->value) { // accumulate timed demo statistics
 		if (!cl.time_demo_start) {
 			cl.time_demo_start = cl.systime;
 		}
 		cl.time_demo_frames++;
-	} else { // check frame rate cap conditions
-
-		if (cl_max_fps->value > 0.0) { // cap render frame rate
-			const uint32_t ms = 1000.0 * time_scale->value / cl_max_fps->value;
-			if (cls.render_delta < ms) {
-				render_frame = false;
-			}
-		}
-
-		if (cls.packet_delta * time_scale->value < QUETOO_TICK_MILLIS) {
-			packet_frame = false;
+	} else if (cl_max_fps->value > 0.0) { // cap render frame rate
+		if (cl.systime - render_time < 1000.0 / cl_max_fps->value) {
+			return;
 		}
 	}
 
-	if (render_frame) {
-		// update any stale media references
-		Cl_UpdateMedia();
+	// update any stale media references
+	Cl_UpdateMedia();
 
-		// fetch updates from server
-		Cl_ReadPackets();
+	// fetch updates from server
+	Cl_ReadPackets();
 
-		// and interpolate them
-		Cl_Interpolate();
+	// and interpolate them
+	Cl_Interpolate();
 
-		// fetch input from user
-		Cl_HandleEvents();
+	// fetch input from user
+	Cl_HandleEvents();
 
-		if (packet_frame) {
+	if (cl.systime - packet_time >= QUETOO_TICK_MILLIS) {
 
-			// send command to the server
-			Cl_SendCommand();
+		// send command to the server
+		Cl_SendCommand();
 
-			// resend a connection request if necessary
-			Cl_CheckForResend();
+		// resend a connection request if necessary
+		Cl_CheckForResend();
 
-			// run http downloads
-			Cl_HttpThink();
+		// run http downloads
+		Cl_HttpThink();
 
-			cls.packet_delta = 0;
-		}
-
-		// predict all unacknowledged movements
-		Cl_PredictMovement();
-
-		// update the screen
-		Cl_UpdateScreen();
-
-		// update audio
-		S_Frame();
-
-		cls.render_delta = 0;
-
-		// enforce a cap of 60fps while idle or connecting
-		if (cls.state < CL_LOADING && !Com_WasInit(QUETOO_SERVER)) {
-			SDL_Delay(QUETOO_TICK_MILLIS);
-		}
+		packet_time = cl.systime;
 	}
+
+	// predict all unacknowledged movements
+	Cl_PredictMovement();
+
+	// update the screen
+	Cl_UpdateScreen();
+
+	// update audio
+	S_Frame();
+
+	render_time = cl.systime;
 }
 
 /**
