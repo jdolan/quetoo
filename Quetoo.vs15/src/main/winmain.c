@@ -7,27 +7,55 @@ extern int32_t main(int32_t argc, char **argv);
 #if defined(_MSC_VER)
 #include <DbgHelp.h>
 
+HMODULE GetCurrentModule()
+{
+	HMODULE hModule = NULL;
+	GetModuleHandleEx(
+		GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+		(LPCTSTR)GetCurrentModule,
+		&hModule);
+
+	return hModule;
+}
+
 HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh)
 {
 	HRESULT error = S_OK;
 
 	// get the time
-	SYSTEMTIME sysTime ={ 0 };
+	SYSTEMTIME sysTime = { 0 };
 	GetSystemTime(&sysTime);
 
 	// build the filename: APPNAME_COMPUTERNAME_DATE_TIME.DMP
-	char path[MAX_PATH] ={ 0 };
+	char path[MAX_PATH] = { 0 };
+	char moduleName[MAX_PATH] = { 0 };
+
+	const size_t len = GetModuleFileName(GetCurrentModule(), moduleName, sizeof(moduleName));
+	moduleName[len] = 0;
+
+	const char *slash = strrchr(moduleName, '\\');
+
+	if (!slash)
+		slash = moduleName;
+	else
+		slash++;
+
+	const char *dot = strrchr(moduleName, '.');
+	const size_t nameLength = dot ? (dot - slash) : strlen(slash);
+
+	g_strlcpy(moduleName, slash, nameLength + 1);
 
 	sprintf_s(path, ARRAYSIZE(path),
-		".\\quetoo_%04u-%02u-%02u_%02u-%02u-%02u.dmp",
+		".\\%s_%04u-%02u-%02u_%02u-%02u-%02u.dmp",
+		moduleName,
 		sysTime.wYear, sysTime.wMonth, sysTime.wDay,
 		sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
 
 	// open the file
 	HANDLE hFile = CreateFileA(path, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	if (hFile == INVALID_HANDLE_VALUE)
-	{
+	if (hFile == INVALID_HANDLE_VALUE) {
+
 		error = GetLastError();
 		error = HRESULT_FROM_WIN32(error);
 		return error;
@@ -38,11 +66,11 @@ HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh)
 	DWORD procID = GetProcessId(hProc);
 
 	// if we have SEH info, package it up
-	MINIDUMP_EXCEPTION_INFORMATION sehInfo ={ 0 };
+	MINIDUMP_EXCEPTION_INFORMATION sehInfo = { 0 };
 	MINIDUMP_EXCEPTION_INFORMATION *sehPtr = NULL;
 
-	if (seh)
-	{
+	if (seh) {
+
 		sehInfo.ThreadId = GetCurrentThreadId();
 		sehInfo.ExceptionPointers = seh;
 		sehInfo.ClientPointers = FALSE;
