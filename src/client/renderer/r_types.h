@@ -119,7 +119,7 @@ typedef struct {
 
 	const r_image_t *input_image; // image ptr
 	u16vec2_t position; // position in pixels
-	vec4_t texcoords;
+	vec4_t texcoords; // position in texcoords
 	r_color_t *scratch; // scratch space for image
 } r_atlas_image_t;
 
