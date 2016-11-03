@@ -22,14 +22,6 @@
 #include "r_local.h"
 
 /**
- * @brief Retain event listener for atlases.
- */
-static _Bool R_RetainAtlas(r_media_t *self __attribute__((unused))) {
-	
-	return false;
-}
-
-/**
  * @brief Free event listener for atlases.
  */
 static void R_FreeAtlas(r_media_t *media) {
@@ -47,10 +39,8 @@ static void R_FreeAtlas(r_media_t *media) {
  * @brief Creates a blank state for an atlas and returns it.
  */
 r_atlas_t *R_CreateAtlas(const char *name) {
-
 	r_atlas_t *atlas = (r_atlas_t *) R_AllocMedia(name, sizeof(r_atlas_t));
 
-	atlas->image.media.Retain = R_RetainAtlas;
 	atlas->image.media.Free = R_FreeAtlas;
 	atlas->image.type = IT_ATLAS_MAP;
 	g_strlcpy(atlas->image.media.name, name, sizeof(atlas->image.media.name));
