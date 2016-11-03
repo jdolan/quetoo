@@ -24,7 +24,7 @@
 /**
  * @brief Retain event listener for atlases.
  */
-static _Bool R_RetainAtlas(r_media_t *self) {
+static _Bool R_RetainAtlas(r_media_t *self __attribute__((unused))) {
 	
 	return false;
 }
@@ -107,7 +107,7 @@ typedef struct {
 } r_packer_t;
 
 /**
- * @brief
+ * @brief Finds a free node that is big enough to hold us.
  */
 static r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, r_packer_node_t *root, r_atlas_image_t *image) {
 	
@@ -130,10 +130,9 @@ static r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, r_packer_node
 }
 
 /**
- * @brief
+ * @brief Split a packer node into two, assigning the first to the image.
  */
 static r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *node, r_atlas_image_t *image) {
-
 	const uint32_t index = node - (r_packer_node_t *) packer->nodes->data;
 
 	node->used = true;
@@ -163,10 +162,9 @@ static r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_nod
 #define GROW_DOWN false
 
 /**
- * @brief
+ * @brief Grow the packer in the specified direction.
  */
-static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, r_atlas_image_t *image, const _Bool grow_direction)
-{
+static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, r_atlas_image_t *image, const _Bool grow_direction) {
 	const uint32_t new_root_id = packer->nodes->len;
 	const uint32_t new_connect_id = packer->nodes->len + 1;
 	const r_packer_node_t *old_root = &g_array_index(packer->nodes, r_packer_node_t, packer->root);
@@ -215,10 +213,9 @@ static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, r_atlas_image_t *
 }
 
 /**
- * @brief
+ * @brief Checks to see where the packer should grow into next. This keeps the atlas square.
  */
-static r_packer_node_t *R_AtlasPacker_GrowNode(r_packer_t *packer, r_atlas_image_t *image)
-{
+static r_packer_node_t *R_AtlasPacker_GrowNode(r_packer_t *packer, r_atlas_image_t *image) {
 	const r_packer_node_t *root = &g_array_index(packer->nodes, r_packer_node_t, packer->root);
 
 	const _Bool canGrowDown = (image->input_image->width <= root->width);
@@ -248,7 +245,6 @@ typedef struct {
  * @brief Stitches the atlas, returning atlas parameters.
  */
 static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
-
 	uint16_t min_size = USHRT_MAX;
 	params->width = params->height = 0;
 
