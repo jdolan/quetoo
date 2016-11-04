@@ -750,8 +750,7 @@ void Sv_Frame(const uint32_t msec) {
 	Sv_UpdatePings();
 
 	// let everything in the world think and move
-	const int32_t frames = frame_delta / QUETOO_TICK_MILLIS;
-	for (int32_t i = 0; i < frames; i++) {
+	for (int32_t i = 0; i < frame_delta / QUETOO_TICK_MILLIS; i++) {
 		Sv_RunGameFrame();
 	}
 
