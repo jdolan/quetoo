@@ -302,6 +302,8 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 
 	R_EnableColorArray(true);
 
+	R_Color(NULL);
+
 	R_ResetArrayState();
 
 	// alter the array pointers
@@ -313,7 +315,8 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 
 	const GLuint base = (uintptr_t) e->data;
 	r_particle_type_t last_type = -1;
-	GLuint last_texnum = -1;
+	GLuint last_texnum = texunit_diffuse.texnum;
+	GLenum last_blend = -1;
 
 	for (i = j = 0; i < count; i++, e++) {
 		const r_particle_t *p = (const r_particle_t *) e->element;
@@ -324,36 +327,41 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 		if (p->image)
 			texnum = p->image->texnum;
 		else if (p->type == PARTICLE_CORONA)
-			texnum = last_texnum;
+			texnum = last_texnum; // corona texture switching = no
 
-		if (texnum != texunit_diffuse.texnum ||
-			p->type != last_type) {
+		// draw pending particles
+		if ((texnum != last_texnum ||
+			p->type != last_type ||
+			p->blend != last_blend) && i > j) {
+			R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
+			j = i;
+		}
 
-			if (i > j) { // draw pending particles
-				R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
-				j = i;
-			}
-
+		// change states
+		if (p->type != last_type) {
 			if (p->type == PARTICLE_ROLL) {
 				R_DepthRange(0.0, 0.999);
 			} else {
 				R_DepthRange(0.0, 1.0);
 			}
-
-			// if we're a corona, don't switch textures cause it doesn't matter
-			if (p->type != PARTICLE_CORONA) {
-				R_BindTexture(texnum);
-				last_texnum = texnum;
+			
+			if (p->type == PARTICLE_CORONA) {
+				R_UseProgram(r_state.corona_program);
+			} else {
+				R_UseProgram(r_state.null_program);
 			}
 
-			R_BlendFunc(GL_SRC_ALPHA, p->blend);
-
-			if (p->type == PARTICLE_CORONA)
-				R_UseProgram(r_state.corona_program);
-			else
-				R_UseProgram(r_state.null_program);
-
 			last_type = p->type;
+		}
+
+		if (p->blend != last_blend) {
+			R_BlendFunc(GL_SRC_ALPHA, p->blend);
+			last_blend = p->blend;
+		}
+
+		if (texnum != last_texnum) {
+			R_BindTexture(texnum);
+			last_texnum = texnum;
 		}
 	}
 
@@ -374,8 +382,6 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_EnableColorArray(false);
-
-	R_Color(NULL);
 
 	R_UseProgram(r_state.null_program);
 }
