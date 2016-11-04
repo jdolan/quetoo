@@ -265,8 +265,6 @@ static void Cl_ParseServerData(void) {
 	// wipe the cl_client_t struct
 	Cl_ClearState();
 
-	cls.state = CL_CONNECTED;
-
 	Cl_SetKeyDest(KEY_CONSOLE);
 
 	// parse protocol version number
