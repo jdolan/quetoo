@@ -213,20 +213,29 @@ void *Mem_Malloc(size_t size) {
  */
 void *Mem_Realloc(void *p, size_t size) {
 
-	mem_block_t *b = Mem_CheckMagic(p);
+	mem_block_t *b = Mem_CheckMagic(p), *new_b;
 
 	// allocate the block plus the desired size
 	const size_t s = size + sizeof(mem_block_t);
 
 	b->size = size;
 
-	if (!(b = realloc(b, s))) {
+	if (!(new_b = realloc(b, s))) {
 		fprintf(stderr, "Failed to re-allocate %u bytes\n", (uint32_t) s);
 		raise(SIGABRT);
 		return NULL;
 	}
 
-	return (void *) (b + 1);
+	// re-seat us in our parent or in global hash list
+	if (new_b->parent) {
+		new_b->parent->children = g_list_remove(new_b->parent->children, b);
+		new_b->parent->children = g_list_prepend(new_b->parent->children, new_b);
+	} else {
+		g_hash_table_remove(mem_state.blocks, b);
+		g_hash_table_add(mem_state.blocks, new_b);
+	}
+
+	return (void *) (new_b + 1);
 }
 
 /**
