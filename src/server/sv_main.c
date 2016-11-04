@@ -498,7 +498,7 @@ static void Sv_CheckCommandTimes(void) {
 
 		if (sv_enforce_time->value) { // check them
 
-			if (cl->cmd_msec > CMD_MSEC_ALLOWABLE_DRIFT) { // irregular movement
+			if (cl->cmd_msec > time_scale->value * CMD_MSEC_ALLOWABLE_DRIFT) { // irregular movement
 				cl->cmd_msec_errors++;
 
 				Com_Debug("%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmd_msec);
@@ -614,8 +614,7 @@ static void Sv_ResetEntities(void) {
 }
 
 /**
- * @brief Updates the game module's time and runs its frame function once per
- * server frame.
+ * @brief Updates the game module's time and runs its frame function.
  */
 static void Sv_RunGameFrame(void) {
 
@@ -738,8 +737,6 @@ void Sv_Frame(const uint32_t msec) {
 		}
 	}
 
-	frame_delta = 0;
-
 	// read any pending packets from clients
 	Sv_ReadPackets();
 
@@ -753,7 +750,10 @@ void Sv_Frame(const uint32_t msec) {
 	Sv_UpdatePings();
 
 	// let everything in the world think and move
-	Sv_RunGameFrame();
+	const int32_t frames = frame_delta / QUETOO_TICK_MILLIS;
+	for (int32_t i = 0; i < frames; i++) {
+		Sv_RunGameFrame();
+	}
 
 	// send messages back to the clients that had packets read this frame
 	Sv_SendClientPackets();
@@ -766,6 +766,8 @@ void Sv_Frame(const uint32_t msec) {
 
 	// redraw the console
 	Sv_DrawConsole();
+
+	frame_delta = 0;
 }
 
 /**
