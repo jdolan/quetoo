@@ -165,18 +165,15 @@ static void loadView(ViewController *self) {
 			release(box);
 		}
 
-		{
-			this->panel->accessoryView->view.hidden = false;
-
-			Cg_Button((View *) this->panel->accessoryView, "Apply", applyAction, self, NULL);
-		}
-
 		$((View *) columns, addSubview, (View *) column);
 		release(column);
 	}
 
 	$((View *) this->panel->contentView, addSubview, (View *) columns);
 	release(columns);
+
+	this->panel->accessoryView->view.hidden = false;
+	Cg_Button((View *) this->panel->accessoryView, "Apply", applyAction, self, NULL);
 }
 
 #pragma mark - Class lifecycle

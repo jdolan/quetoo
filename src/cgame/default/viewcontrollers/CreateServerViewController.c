@@ -19,12 +19,53 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <Objectively/Value.h>
+
 #include "cg_local.h"
 
 #include "CreateServerViewController.h"
-#include "MapListCollectionView.h"
 
 #define _Class _CreateServerViewController
+
+#pragma mark - Actions and delegate callbacks
+
+/**
+ * @brief ActionFunction for the Create button.
+ */
+static void createAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+
+	CreateServerViewController *this = (CreateServerViewController *) sender;
+
+	GList *selectedMaps = $(this->mapList, selectedMaps);
+	for (const GList *list = selectedMaps; list; list = list->next) {
+
+		g_map_list_map_t *map = cgi.Malloc(sizeof(g_map_list_map_t), MEM_TAG_CGAME);
+
+		g_strlcpy(map->name, (const char *) list->data, sizeof(map->name));
+		printf("selected %s\n", map->name);
+
+		//mapList = g_list_append(mapList, map);
+	}
+
+	g_list_free(selectedMaps);
+}
+
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+	CreateServerViewController *this = (CreateServerViewController *) self;
+
+	release(this->gameplay);
+	release(this->mapList);
+	release(this->matchMode);
+	release(this->teamsplay);
+
+	super(Object, self, dealloc);
+}
 
 #pragma mark - ViewController
 
@@ -35,7 +76,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	MenuViewController *this = (MenuViewController *) self;
+	CreateServerViewController *this = (CreateServerViewController *) self;
 
 	StackView *columns = $(alloc(StackView), initWithFrame, NULL);
 
@@ -51,7 +92,6 @@ static void loadView(ViewController *self) {
 			$(box->label, setText, "CREATE SERVER");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-			stackView->spacing = DEFAULT_PANEL_SPACING;
 
 			Cg_CvarTextView((View *) stackView, "Hostname", "sv_hostname");
 			Cg_CvarTextView((View *) stackView, "Clients", "sv_max_clients");
@@ -70,36 +110,32 @@ static void loadView(ViewController *self) {
 			$(box->label, setText, "GAME");
 
 			StackView *stackView = $(alloc(StackView), initWithFrame, NULL);
-			stackView->spacing = DEFAULT_PANEL_SPACING;
 
-			Select *gameplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+			this->gameplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
-			$(gameplay, addOption, "Default", "default");
-			$(gameplay, addOption, "Deathmatch", "deathmatch");
-			$(gameplay, addOption, "Instagib", "instagib");
-			$(gameplay, addOption, "Arena", "arena");
-			$(gameplay, addOption, "Duel", "duel");
+			$(this->gameplay, addOption, "Default", "default");
+			$(this->gameplay, addOption, "Deathmatch", "deathmatch");
+			$(this->gameplay, addOption, "Instagib", "instagib");
+			$(this->gameplay, addOption, "Arena", "arena");
+			$(this->gameplay, addOption, "Duel", "duel");
 
-			gameplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
+			this->gameplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
 
-			Cg_Input((View *) stackView, "Gameplay", (Control *) gameplay);
-			release(gameplay);
+			Cg_Input((View *) stackView, "Gameplay", (Control *) this->gameplay);
 
-			Select *teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
+			this->teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
-			$(teamsplay, addOption, "Free for All", "free-for-all");
-			$(teamsplay, addOption, "Team Deathmatch", "team-deathmatch");
-			$(teamsplay, addOption, "Capture the Flag", "capture-the-flag");
+			$(this->teamsplay, addOption, "Free for All", "free-for-all");
+			$(this->teamsplay, addOption, "Team Deathmatch", "team-deathmatch");
+			$(this->teamsplay, addOption, "Capture the Flag", "capture-the-flag");
 
-			teamsplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
+			this->teamsplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
 
-			Cg_Input((View *) stackView, "Teams play", (Control *) teamsplay);
-			release(teamsplay);
+			Cg_Input((View *) stackView, "Teams play", (Control *) this->teamsplay);
 
-			Checkbox *match = $(alloc(Checkbox), initWithFrame, NULL, ControlStyleDefault);
+			this->matchMode = $(alloc(Checkbox), initWithFrame, NULL, ControlStyleDefault);
 
-			Cg_Input((View *) stackView, "Match mode", (Control *) match);
-			release(match);
+			Cg_Input((View *) stackView, "Match mode", (Control *) this->matchMode);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -124,10 +160,9 @@ static void loadView(ViewController *self) {
 			stackView->spacing = DEFAULT_PANEL_SPACING;
 
 			const SDL_Rect frame = { .w = 760, .h = 600 };
-			CollectionView *mapList = (CollectionView *) $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStyleDefault);
+			this->mapList = $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStyleDefault);
 			
-			$((View *) stackView, addSubview, (View *) mapList);
-			release(mapList);
+			$((View *) stackView, addSubview, (View *) this->mapList);
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
@@ -140,8 +175,12 @@ static void loadView(ViewController *self) {
 		release(column);
 	}
 
-	$((View *) this->panel->contentView, addSubview, (View *) columns);
+	$((View *) this->menuViewController.panel->contentView, addSubview, (View *) columns);
 	release(columns);
+
+	this->menuViewController.panel->accessoryView->view.hidden = false;
+	Cg_Button((View *) this->menuViewController.panel->accessoryView, "Create", createAction, self, NULL);
+
 }
 
 #pragma mark - MapListCollectionView
@@ -152,6 +191,8 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }

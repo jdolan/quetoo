@@ -26,25 +26,6 @@
 
 #ifdef __GAME_LOCAL_H__
 
-typedef struct {
-	char name[32];
-	char title[128];
-	char sky[32];
-	char weather[64];
-	int32_t gravity;
-	int32_t gameplay;
-	int32_t teams;
-	int32_t ctf;
-	int32_t match;
-	int32_t rounds;
-	int32_t frag_limit;
-	int32_t round_limit;
-	int32_t capture_limit;
-	vec_t time_limit;
-	char give[MAX_STRING_CHARS];
-	char music[MAX_STRING_CHARS];
-} g_map_list_map_t;
-
 extern GList *g_map_list;
 
 const g_map_list_map_t *G_MapList_Find(const char *name);
