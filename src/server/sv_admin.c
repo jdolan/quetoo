@@ -187,10 +187,6 @@ static void Sv_Kick_f(void) {
  * @brief
  */
 static void Sv_Status_f(void) {
-	int32_t i, j, l;
-	sv_client_t * cl;
-	const char *s;
-	uint32_t ping;
 
 	if (!svs.initialized) {
 		Com_Print("No server running\n");
@@ -198,38 +194,27 @@ static void Sv_Status_f(void) {
 	}
 
 	Com_Print("map: %s\n", sv.name);
-	Com_Print("num ping name            lastmsg address               qport \n");
-	Com_Print("--- ---- --------------- ------- --------------------- ------\n");
-	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
+	Com_Print("num ping name             lastmsg address               qport\n");
+	Com_Print("--- ---- ---------------- ------- --------------------- -----\n");
+
+	sv_client_t *cl = svs.clients;
+	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
 		if (cl->state == SV_CLIENT_FREE)
 			continue;
 
-		Com_Print("%3i ", i);
+		const uint32_t ping = cl->entity->client->ping < 9999 ? cl->entity->client->ping : 9999;
 
-		if (cl->state == SV_CLIENT_CONNECTED)
-			Com_Print("CNCT ");
-		else {
-			ping = cl->entity->client->ping < 9999 ? cl->entity->client->ping : 9999;
-			Com_Print("%4i ", ping);
-		}
+		char status[MAX_STRING_CHARS];
+		g_snprintf(status, sizeof(status), "%3d %4d %16s %7d %22s %3d",
+				   i,
+				   ping,
+				   cl->name,
+				   quetoo.time - cl->last_message,
+				   Net_NetaddrToString(&(cl->net_chan.remote_address)),
+				   cl->net_chan.qport);
 
-		Com_Print("%s", cl->name);
-		l = 16 - strlen(cl->name);
-		for (j = 0; j < l; j++)
-			Com_Print(" ");
-
-		Com_Print("%7i ", quetoo.time - cl->last_message);
-
-		s = Net_NetaddrToString(&(cl->net_chan.remote_address));
-		Com_Print("%s", s);
-		l = 22 - strlen(s);
-		for (j = 0; j < l; j++)
-			Com_Print(" ");
-
-		Com_Print("%5i", (int32_t) cl->net_chan.qport);
-
-		Com_Print("\n");
+		Com_Print("%s\n", status);
 	}
 }
 

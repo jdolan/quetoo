@@ -62,7 +62,7 @@ typedef struct {
 	byte *flood; // [portals], intermediate
 	byte *vis; // [portals], final
 
-	int32_t num_might_see; // bit count on flood for sort
+	size_t num_might_see; // bit count on flood for sort
 } portal_t;
 
 typedef struct separating_plane_s {
@@ -113,10 +113,7 @@ typedef struct map_vis_s {
 	leaf_t *leafs;
 
 	size_t leaf_bytes; // (portal_clusters + 63) >> 3
-	size_t leaf_longs; // / sizeof(long)
-
 	size_t portal_bytes; // (num_portals * 2 + 63) >> 3
-	size_t portal_longs; // / sizeof(long)
 
 	size_t uncompressed_size;
 	byte *uncompressed;

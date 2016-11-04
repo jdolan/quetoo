@@ -122,16 +122,16 @@ static void AddSky(char *sky) {
  * @brief
  */
 static void AddAnimation(char *name, int32_t count) {
-	int32_t i, j, k;
+	int32_t i, k;
 
 	Com_Debug("Adding %d frames for %s\n", count, name);
 
-	j = strlen(name);
+	const size_t len = strlen(name);
 
-	if ((i = atoi(&name[j - 1])) < 0)
+	if ((i = atoi(&name[len - 1])) < 0)
 		return;
 
-	name[j - 1] = '\0';
+	name[len - 1] = '\0';
 
 	for (k = 1, i = i + 1; k < count; k++, i++) {
 		AddImage(va("%s%d", name, i), true);
@@ -369,7 +369,7 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
 	while (!Fs_Eof(file)) {
 		int64_t len = Fs_Read(file, buffer, 1, ZIP_BUFFER_SIZE);
 		if (len > 0) {
-			if (zipWriteInFileInZip(zip_file, buffer, len) != ZIP_OK) {
+			if (zipWriteInFileInZip(zip_file, buffer, (uint32_t) len) != ZIP_OK) {
 				Com_Warn("Failed to deflate %s\n", filename);
 				success = false;
 				break;

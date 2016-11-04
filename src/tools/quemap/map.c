@@ -194,7 +194,7 @@ int32_t FindPlane(vec3_t normal, dvec_t dist) {
 
 		while (p) {
 			if (PlaneEqual(p, normal, dist)) {
-				return p - map_planes;
+				return (int32_t) (ptrdiff_t) (p - map_planes);
 			}
 			p = p->hash_chain;
 		}
@@ -300,7 +300,7 @@ static void AddBrushBevels(map_brush_t * b) {
 				b->original_sides[order] = b->original_sides[i];
 				b->original_sides[i] = sidetemp;
 
-				j = b->original_sides - map_brush_sides;
+				j = (int32_t) (ptrdiff_t) (b->original_sides - map_brush_sides);
 				tdtemp = map_brush_textures[j + order];
 				map_brush_textures[j + order] = map_brush_textures[j + i];
 				map_brush_textures[j + i] = tdtemp;

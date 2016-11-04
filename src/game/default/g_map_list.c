@@ -87,37 +87,37 @@ static void G_MapList_Parse(const char *filename) {
 		}
 
 		if (!g_strcmp0(c, "teams")) {
-			map->teams = strtoul(ParseToken(&buffer), NULL, 0);
+			map->teams = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
 		if (!g_strcmp0(c, "ctf")) {
-			map->ctf = strtoul(ParseToken(&buffer), NULL, 0);
+			map->ctf = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
 		if (!g_strcmp0(c, "match")) {
-			map->match = strtoul(ParseToken(&buffer), NULL, 0);
+			map->match = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
 		if (!g_strcmp0(c, "rounds")) {
-			map->rounds = strtoul(ParseToken(&buffer), NULL, 0);
+			map->rounds = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
 		if (!g_strcmp0(c, "frag_limit")) {
-			map->frag_limit = strtoul(ParseToken(&buffer), NULL, 0);
+			map->frag_limit = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
 		if (!g_strcmp0(c, "round_limit")) {
-			map->round_limit = strtoul(ParseToken(&buffer), NULL, 0);
+			map->round_limit = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 
 		if (!g_strcmp0(c, "capture_limit")) {
-			map->capture_limit = strtoul(ParseToken(&buffer), NULL, 0);
+			map->capture_limit = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
 			continue;
 		}
 

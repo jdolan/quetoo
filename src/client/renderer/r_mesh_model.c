@@ -674,8 +674,8 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 			r_obj_triangle_t *tri = g_new(r_obj_triangle_t, 1);
 
 			tri->verts[0] = g_list_nth_data(verts, 0);
-			tri->verts[1] = g_list_nth_data(verts, i);
-			tri->verts[2] = g_list_nth_data(verts, i + 1);
+			tri->verts[1] = g_list_nth_data(verts, (guint) i);
+			tri->verts[2] = g_list_nth_data(verts, (guint) (i + 1));
 
 			obj->tris = g_list_append(obj->tris, tri);
 		}

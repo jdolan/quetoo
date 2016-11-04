@@ -101,7 +101,7 @@ static _Bool Img_LoadTypedImage(const char *name, const char *type, SDL_Surface 
 	if ((len = Fs_Load(path, &buf)) != -1) {
 
 		SDL_RWops *rw;
-		if ((rw = SDL_RWFromMem(buf, len))) {
+		if ((rw = SDL_RWFromMem(buf, (int32_t) len))) {
 
 			SDL_Surface *s;
 			if ((s = IMG_LoadTyped_RW(rw, 0, (char *) type))) {

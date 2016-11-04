@@ -67,10 +67,10 @@ static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mi
 	StripExtension(name, path);
 	g_snprintf(path, sizeof(path), "music/%s.ogg", name);
 
-	int32_t len;
+	int64_t len;
 	if ((len = Fs_Load(path, buffer)) != -1) {
 
-		if ((*rw = SDL_RWFromMem(*buffer, len))) {
+		if ((*rw = SDL_RWFromMem(*buffer, (int32_t) len))) {
 
 			if ((*music = Mix_LoadMUS_RW(*rw, false))) {
 				Com_Debug("Loaded %s\n", name);

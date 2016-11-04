@@ -187,7 +187,7 @@ static void Sv_DrawConsole_Buffer(void) {
 	size_t row = sv_console.height;
 
 	for (size_t i = 0; i < count; i++) {
-		const int32_t j = count - i - 1;
+		const size_t j = count - i - 1;
 		char *line = lines[j];
 		char *s = line;
 		
@@ -201,7 +201,7 @@ static void Sv_DrawConsole_Buffer(void) {
 				Sv_DrawConsole_Color(*(s + 1) - '0');
 				s++;
 			} else if (isascii(*s)) {
-				mvaddch(row, col++, *s);
+				mvaddch((int32_t) row, (int32_t) col++, *s);
 			}
 			s++;
 		}
@@ -232,7 +232,7 @@ static void Sv_DrawConsole_Input(void) {
 		mvaddch(LINES - 1, col++, *s++);
 	}
 
-	wmove(sv_console_state.window, LINES - 1, pos + 2);
+	wmove(sv_console_state.window, LINES - 1, (int32_t) pos + 2);
 }
 
 /**

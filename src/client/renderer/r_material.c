@@ -632,7 +632,7 @@ static int32_t R_LoadStageFrames(r_stage_t *s) {
 	g_strlcpy(name, s->image->media.name, sizeof(name));
 	const size_t len = strlen(name);
 
-	if ((i = strtol(&name[len - 1], NULL, 0)) < 0) {
+	if ((i = (int32_t) strtol(&name[len - 1], NULL, 0)) < 0) {
 		Com_Warn("Texture name does not end in numeric: %s\n", name);
 		return -1;
 	}
@@ -694,7 +694,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "envmap")) {
 
 			c = ParseToken(buffer);
-			i = strtol(c, NULL, 0);
+			i = (int32_t) strtol(c, NULL, 0);
 
 			if (*c == '#') {
 				s->image = R_LoadImage(++c, IT_ENVMAP);
@@ -926,7 +926,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 		if (!g_strcmp0(c, "flare")) {
 
 			c = ParseToken(buffer);
-			i = strtol(c, NULL, 0);
+			i = (int32_t) strtol(c, NULL, 0);
 
 			if (*c == '#') {
 				s->image = R_LoadImage(++c, IT_FLARE);

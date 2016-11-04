@@ -261,7 +261,7 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
 
 	assert(console);
 
-	int32_t back = console->scroll + max_lines;
+	ssize_t back = console->scroll + max_lines;
 
 	GList *start = NULL;
 	GList *list = g_list_last(console_state.strings);

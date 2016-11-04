@@ -184,7 +184,7 @@ int64_t Fs_Print(file_t *file, const char *fmt, ...) {
  * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
-	return PHYSFS_read((PHYSFS_File *) file, buffer, size, count);
+	return PHYSFS_read((PHYSFS_File *) file, buffer, (PHYSFS_uint32) size, (PHYSFS_uint32) count);
 }
 
 /**
@@ -233,7 +233,7 @@ int64_t Fs_Tell(file_t *file) {
  * @return The number of objects read, or -1 on failure.
  */
 int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count) {
-	return PHYSFS_write((PHYSFS_File *) file, buffer, size, count);
+	return PHYSFS_write((PHYSFS_File *) file, buffer, (PHYSFS_uint32) size, (PHYSFS_uint32) count);
 }
 
 /**

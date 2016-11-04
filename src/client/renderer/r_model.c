@@ -73,8 +73,11 @@ static void R_FreeModel(r_media_t *self) {
 
 	uint16_t frames = IS_MESH_MODEL(mod) ? mod->mesh->num_frames : 1;
 
-	for (uint16_t i = 0; i < frames; ++i)
-	{
+	if (mod->type == MOD_BSP) {
+		printf("whee\n");
+	}
+	
+	for (uint16_t i = 0; i < frames; i++) {
 		if (R_ValidBuffer(&mod->vertex_buffers[i]))
 			R_DestroyBuffer(&mod->vertex_buffers[i]);
 	

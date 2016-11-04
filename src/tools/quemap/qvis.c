@@ -112,10 +112,10 @@ static void ClusterMerge(uint32_t leaf_num) {
 	byte uncompressed[MAX_BSP_LEAFS / 8];
 	byte compressed[MAX_BSP_LEAFS / 8];
 	uint32_t i, j;
-	int32_t numvis;
+	size_t numvis;
 	byte *dest;
 	portal_t *p;
-	int32_t pnum;
+	ptrdiff_t pnum;
 
 	if (map_vis.portal_bytes > sizeof(portalvector)) {
 		Com_Error(ERR_FATAL, "VIS overflow. Try making more brushes CONTENTS_DETAIL.\n");
@@ -128,8 +128,8 @@ static void ClusterMerge(uint32_t leaf_num) {
 		p = leaf->portals[i];
 		if (p->status != stat_done)
 			Com_Error(ERR_FATAL, "Portal not done\n");
-		for (j = 0; j < map_vis.portal_longs; j++)
-			((long *) portalvector)[j] |= ((long *) p->vis)[j];
+		for (j = 0; j < map_vis.portal_bytes; j++)
+			portalvector[j] |= p->vis[j];
 		pnum = p - map_vis.portals;
 		portalvector[pnum >> 3] |= 1 << (pnum & 7);
 	}
@@ -148,7 +148,7 @@ static void ClusterMerge(uint32_t leaf_num) {
 	memcpy(map_vis.uncompressed + leaf_num * map_vis.leaf_bytes, uncompressed, map_vis.leaf_bytes);
 
 	// compress the bit string
-	Com_Debug("Cluster %4i : %4i visible\n", leaf_num, numvis);
+	Com_Debug("Cluster %4i : %4zi visible\n", leaf_num, numvis);
 	visibility_count += numvis;
 
 	i = CompressVis(uncompressed, compressed);
@@ -159,7 +159,7 @@ static void ClusterMerge(uint32_t leaf_num) {
 	if (map_vis.pointer > map_vis.end)
 		Com_Error(ERR_FATAL, "VIS expansion overflow\n");
 
-	d_vis->bit_offsets[leaf_num][DVIS_PVS] = dest - map_vis.base;
+	d_vis->bit_offsets[leaf_num][DVIS_PVS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
 
 	memcpy(dest, compressed, i);
 }
@@ -256,12 +256,9 @@ static void LoadPortals(const char *filename) {
 	Com_Verbose("Loading %4u portals, %4u clusters from %s...\n", map_vis.num_portals,
 			map_vis.portal_clusters, filename);
 
-	// these counts should take advantage of 64 bit systems automatically
+	// determine the size, in bytes, of the leafs and portals
 	map_vis.leaf_bytes = ((map_vis.portal_clusters + 63) & ~63) >> 3;
-	map_vis.leaf_longs = map_vis.leaf_bytes / sizeof(long);
-
 	map_vis.portal_bytes = ((map_vis.num_portals * 2 + 63) & ~63) >> 3;
-	map_vis.portal_longs = map_vis.portal_bytes / sizeof(long);
 
 	// each file portal is split into two memory portals
 	map_vis.portals = Mem_Malloc(2 * map_vis.num_portals * sizeof(portal_t));
@@ -362,7 +359,7 @@ static void LoadPortals(const char *filename) {
 static void CalcPHS(void) {
 	uint32_t i, j, k, l, index;
 	int32_t bitbyte;
-	long *dest, *src;
+	byte *dest, *src;
 	byte *scan;
 	int32_t count;
 	byte uncompressed[MAX_BSP_LEAFS / 8];
@@ -385,9 +382,9 @@ static void CalcPHS(void) {
 				index = ((j << 3) + k);
 				if (index >= map_vis.portal_clusters)
 					Com_Error(ERR_FATAL, "Bad bit vector in PVS\n"); // pad bits should be 0
-				src = (long *) (map_vis.uncompressed + index * map_vis.leaf_bytes);
-				for (l = 0; l < map_vis.leaf_longs; l++)
-					((long *) uncompressed)[l] |= src[l];
+				src = (map_vis.uncompressed + index * map_vis.leaf_bytes);
+				for (l = 0; l < map_vis.leaf_bytes; l++)
+					uncompressed[l] |= src[l];
 			}
 		}
 		for (j = 0; j < map_vis.portal_clusters; j++)
@@ -397,13 +394,13 @@ static void CalcPHS(void) {
 		// compress the bit string
 		j = CompressVis(uncompressed, compressed);
 
-		dest = (long *) map_vis.pointer;
+		dest = map_vis.pointer;
 		map_vis.pointer += j;
 
 		if (map_vis.pointer > map_vis.end)
 			Com_Error(ERR_FATAL, "Overflow\n");
 
-		d_vis->bit_offsets[i][DVIS_PHS] = (byte *) dest - map_vis.base;
+		d_vis->bit_offsets[i][DVIS_PHS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
 
 		memcpy(dest, compressed, j);
 	}
@@ -438,7 +435,7 @@ int32_t VIS_Main(void) {
 
 	CalcPHS();
 
-	d_bsp.vis_data_size = map_vis.pointer - d_bsp.vis_data;
+	d_bsp.vis_data_size = (int32_t) (ptrdiff_t) (map_vis.pointer - d_bsp.vis_data);
 	Com_Print("VIS data: %d bytes (compressed from %u bytes)\n", d_bsp.vis_data_size,
 			(uint32_t) (map_vis.uncompressed_size * 2));
 

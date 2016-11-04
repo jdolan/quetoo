@@ -52,7 +52,7 @@ int32_t CompressVis(const byte *vis, byte *dest) {
 		j--;
 	}
 
-	return dest_p - dest;
+	return (int32_t) (ptrdiff_t) (dest_p - dest);
 }
 
 /**
@@ -610,7 +610,7 @@ void UnparseEntities(void) {
 			Com_Error(ERR_FATAL, "MAX_BSP_ENT_STRING\n");
 	}
 
-	d_bsp.entity_string_len = end - buf + 1;
+	d_bsp.entity_string_len = (int32_t) (ptrdiff_t) (end - buf + 1);
 }
 
 void SetKeyValue(entity_t *ent, const char *key, const char *value) {

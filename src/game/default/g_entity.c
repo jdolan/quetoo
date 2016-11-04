@@ -123,7 +123,7 @@ static void G_SpawnEntity(g_entity_t *ent) {
  */
 static char *G_NewString(const char *string) {
 	char *newb, *new_p;
-	int32_t i, l;
+	size_t i, l;
 
 	l = strlen(string) + 1;
 

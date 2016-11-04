@@ -242,7 +242,7 @@ void Com_PrintInfo(const char *s) {
 	char key[512];
 	char value[512];
 	char *o;
-	int32_t l;
+	intptr_t l;
 
 	if (*s == '\\')
 		s++;

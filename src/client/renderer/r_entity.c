@@ -191,7 +191,7 @@ static void R_DrawNullModel(const r_entity_t *e) {
 
 	R_RotateForEntity(e);
 
-	R_DrawArrays(GL_TRIANGLES, 0, r_model_state.null_elements_count);
+	R_DrawArrays(GL_TRIANGLES, 0, (GLsizei) r_model_state.null_elements_count);
 
 	R_RotateForEntity(NULL);
 
