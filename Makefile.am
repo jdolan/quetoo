@@ -22,9 +22,17 @@ html-release:
 
 style:
 	astyle -r "src/*.c" "src/*.h" \
-		--style=java \
-		--indent=tab \
-		--indent-cases \
 		--add-brackets \
-		--max-code-length=100
-
+		--align-pointer=name \
+		--attach-classes \
+		--attach-extern-c \
+		--attach-inlines \
+		--attach-namespaces \
+		--indent-cases \
+		--indent-preproc-block \
+		--indent-preproc-define
+		--indent=tab \
+		--pad-header \
+		--pad-oper \
+		--max-code-length=100 \
+		--style=java
