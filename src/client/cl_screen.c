@@ -224,12 +224,16 @@ static void Cl_DrawCounters(void) {
 
 	cl.frame_counter++;
 
-	if (quetoo.time - last_draw_time >= 1000) {
+	if (quetoo.time % 16 == 0) {
 
 		VectorCopy(cl.frame.ps.pm_state.velocity, velocity);
 		velocity[2] = 0.0;
 
 		g_snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));
+	}
+
+	if (quetoo.time - last_draw_time >= 1000) {
+
 		g_snprintf(fps, sizeof(fps), "%4ufps", cl.frame_counter);
 		g_snprintf(pps, sizeof(pps), "%4upps", cl.packet_counter);
 
