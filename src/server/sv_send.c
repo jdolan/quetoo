@@ -28,11 +28,11 @@ void Sv_ClientPrint(const g_entity_t *ent, const int32_t level, const char *fmt,
 	sv_client_t * cl;
 	va_list args;
 	char string[MAX_STRING_CHARS];
-	int32_t n;
+	ptrdiff_t n;
 
 	n = NUM_FOR_ENTITY(ent);
 	if (n < 1 || n > sv_max_clients->integer) {
-		Com_Warn("Issued to non-client %d\n", n);
+		Com_Warn("Issued to non-client %zd\n", n);
 		return;
 	}
 
@@ -309,7 +309,7 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 		Net_WriteByte(&sv.multicast, at);
 
 	if (flags & S_ENTITY)
-		Net_WriteShort(&sv.multicast, NUM_FOR_ENTITY(ent));
+		Net_WriteShort(&sv.multicast, (int32_t) NUM_FOR_ENTITY(ent));
 
 	if (flags & S_ORIGIN)
 		Net_WritePosition(&sv.multicast, origin);

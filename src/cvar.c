@@ -177,7 +177,7 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 	var->default_value = Mem_Link(Mem_CopyString(value), var);
 	var->string = Mem_Link(Mem_CopyString(value), var);
 	var->value = strtof(var->string, NULL);
-	var->integer = strtol(var->string, NULL, 0);
+	var->integer = (int32_t) strtol(var->string, NULL, 0);
 	var->modified = true;
 	var->flags = flags;
 
@@ -256,7 +256,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 					Mem_Free(var->string);
 				var->string = Mem_Link(Mem_CopyString(value), var);
 				var->value = strtof(var->string, NULL);
-				var->integer = strtol(var->string, NULL, 0);
+				var->integer = (int32_t) strtol(var->string, NULL, 0);
 				var->modified = true;
 			}
 			return var;
@@ -284,7 +284,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 
 	var->string = Mem_Link(Mem_CopyString(value), var);
 	var->value = strtof(var->string, NULL);
-	var->integer = strtol(var->string, NULL, 0);
+	var->integer = (int32_t) strtol(var->string, NULL, 0);
 
 	var->modified = true;
 
@@ -323,7 +323,7 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 
 	var->string = Mem_Link(Mem_CopyString(value), var);
 	var->value = strtof(var->string, NULL);
-	var->integer = strtol(var->string, NULL, 0);
+	var->integer = (int32_t) strtol(var->string, NULL, 0);
 	var->flags = flags;
 	var->modified = true;
 
@@ -413,7 +413,7 @@ void Cvar_UpdateLatched_enumerate(cvar_t *var, void *data __attribute__((unused)
 		var->string = var->latched_string;
 		var->latched_string = NULL;
 		var->value = strtof(var->string, NULL);
-		var->integer = strtol(var->string, NULL, 0);
+		var->integer = (int32_t) strtol(var->string, NULL, 0);
 		var->modified = true;
 	}
 }
@@ -559,8 +559,8 @@ static void Cvar_List_f_enumerate(cvar_t *var, void *data __attribute__((unused)
 	if (modifiers) {
 		g_strlcat(str, " (", sizeof(str));
 		
-		const size_t len = g_list_length(modifiers);
-		for (size_t i = 0; i < len; i++) {
+		const guint len = g_list_length(modifiers);
+		for (guint i = 0; i < len; i++) {
 			if (i) {
 				g_strlcat(str, ", ", sizeof(str));
 			}

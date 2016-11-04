@@ -846,7 +846,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 void G_PrecacheItem(const g_item_t *it) {
 	const char *s, *start;
 	char data[MAX_QPATH];
-	int32_t len;
+	ptrdiff_t len;
 
 	if (!it)
 		return;

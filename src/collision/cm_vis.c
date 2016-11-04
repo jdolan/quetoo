@@ -48,7 +48,7 @@ static void Cm_DecompressVis(const byte *in, byte *out) {
 			int32_t c = in[1];
 			in += 2;
 			if ((out_p - out) + c > row) {
-				c = row - (out_p - out);
+				c = (int32_t) (row - (out_p - out));
 				Com_Warn("Overrun\n");
 			}
 			while (c) {

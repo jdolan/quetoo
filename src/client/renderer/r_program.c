@@ -327,7 +327,7 @@ static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *r
 		return true;
 	}
 	
-	gchar *processed = R_PreprocessShader((const char *) buf, len);
+	gchar *processed = R_PreprocessShader((const char *) buf, (uint32_t) len);
 	g_string_append(result, processed);
 	g_free(processed);
 
@@ -365,9 +365,9 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length)
 static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	r_shader_t *sh;
 	char path[MAX_QPATH], log[MAX_STRING_CHARS];
-	const char *src[1];
 	void *buf;
-	int32_t e, i, len, length[1];
+	int32_t e, i;
+	int64_t len;
 
 	g_snprintf(path, sizeof(path), "shaders/%s", name);
 
@@ -400,12 +400,12 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	}
 
 	// run shader source through cvar parser
-	gchar *parsed = R_PreprocessShader((const char *) buf, len);
-	src[0] = parsed;
-	length[0] = strlen(parsed);
+	gchar *parsed = R_PreprocessShader((const char *) buf, (uint32_t) len);
+	const GLchar *src[] = { parsed };
+	GLint length = (GLint) strlen(parsed);
 
 	// upload the shader source
-	glShaderSource(sh->id, 1, src, length);
+	glShaderSource(sh->id, 1, src, &length);
 
 	g_free(parsed);
 

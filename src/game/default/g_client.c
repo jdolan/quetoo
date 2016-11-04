@@ -922,7 +922,7 @@ void G_ClientBegin(g_entity_t *ent) {
 
 	G_InitEntity(ent, "client");
 
-	const int32_t entity_num = ent - g_game.entities - 1;
+	const int32_t entity_num = (int32_t) (ptrdiff_t) (ent - g_game.entities - 1);
 	ent->client = g_game.clients + entity_num;
 
 	VectorClear(ent->client->locals.cmd_angles);
@@ -1056,7 +1056,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 			va("%s\\%s", cl->locals.persistent.net_name, cl->locals.persistent.skin));
 
 	// set hand, if anything should go wrong, it defaults to 0 (centered)
-	cl->locals.persistent.hand = strtoul(GetUserInfo(user_info, "hand"), NULL, 10);
+	cl->locals.persistent.hand = (g_hand_t) strtol(GetUserInfo(user_info, "hand"), NULL, 10);
 
 	s = GetUserInfo(user_info, "active");
 	if (g_strcmp0(s, "0") == 0)
@@ -1121,7 +1121,6 @@ _Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
  * @brief Called when a player drops from the server. Not be called between levels.
  */
 void G_ClientDisconnect(g_entity_t *ent) {
-	int32_t entity_num;
 
 	if (!ent->client)
 		return;
@@ -1149,7 +1148,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 
 	memset(ent->client, 0, sizeof(g_client_t));
 
-	entity_num = ent - g_game.entities - 1;
+	const int32_t entity_num = (int32_t) (ptrdiff_t) (ent - g_game.entities - 1);
 	gi.ConfigString(CS_CLIENTS + entity_num, "");
 }
 

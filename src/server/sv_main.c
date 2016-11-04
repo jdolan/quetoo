@@ -208,7 +208,7 @@ static void Sv_Connect_f(void) {
 
 	net_addr_t *addr = &net_from;
 
-	const int32_t version = strtol(Cmd_Argv(1), NULL, 0);
+	const int32_t version = (int32_t) strtol(Cmd_Argv(1), NULL, 0);
 
 	// resolve protocol
 	if (version != PROTOCOL_MAJOR) {
@@ -217,9 +217,8 @@ static void Sv_Connect_f(void) {
 		return;
 	}
 
-	const uint8_t qport = strtoul(Cmd_Argv(2), NULL, 0);
-
-	const uint32_t challenge = strtoul(Cmd_Argv(3), NULL, 0);
+	const uint8_t qport = (uint8_t) strtoul(Cmd_Argv(2), NULL, 0);
+	const uint32_t challenge = (uint32_t) strtoul(Cmd_Argv(3), NULL, 0);
 
 	// copy user_info, leave room for ip stuffing
 	g_strlcpy(user_info, Cmd_Argv(4), sizeof(user_info) - 25);
@@ -700,7 +699,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 	// rate command
 	val = GetUserInfo(cl->user_info, "rate");
 	if (*val != '\0') {
-		cl->rate = strtoul(val, NULL, 10);
+		cl->rate = (uint32_t) strtoul(val, NULL, 10);
 		if (cl->rate > 0 && cl->rate < CLIENT_RATE_MIN) {
 			cl->rate = CLIENT_RATE_MIN;
 		}
@@ -709,7 +708,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 	// limit the print messages the client receives
 	val = GetUserInfo(cl->user_info, "message_level");
 	if (*val != '\0') {
-		cl->message_level = strtoul(val, NULL, 10);
+		cl->message_level = (int32_t) strtol(val, NULL, 10);
 	}
 }
 
@@ -723,8 +722,9 @@ void Sv_Frame(const uint32_t msec) {
 	if (!svs.initialized)
 		return;
 
-	// keep simulation time in sync with reality
-	if (!time_demo->value) {
+	if (time_demo->value) { // always run a frame
+		frame_delta = QUETOO_TICK_MILLIS;
+	} else { // keep simulation time in sync with reality
 
 		frame_delta += msec;
 
@@ -750,7 +750,7 @@ void Sv_Frame(const uint32_t msec) {
 	Sv_UpdatePings();
 
 	// let everything in the world think and move
-	for (int32_t i = 0; i < frame_delta / QUETOO_TICK_MILLIS; i++) {
+	for (uint32_t i = 0; i < frame_delta / QUETOO_TICK_MILLIS; i++) {
 		Sv_RunGameFrame();
 	}
 

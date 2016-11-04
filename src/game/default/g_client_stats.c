@@ -163,8 +163,8 @@ void G_ClientScores(g_entity_t *ent) {
 		const size_t len = (i - j) * sizeof(g_score_t);
 		if (len > 512) {
 			gi.WriteByte(SV_CMD_SCORES);
-			gi.WriteShort(j);
-			gi.WriteShort(i);
+			gi.WriteShort((int32_t) j);
+			gi.WriteShort((int32_t) i);
 			gi.WriteData((const void *) (scores + j), len);
 			gi.WriteByte(0); // sequence is incomplete
 			gi.Unicast(ent, false);
@@ -177,8 +177,8 @@ void G_ClientScores(g_entity_t *ent) {
 	const size_t len = (i - j) * sizeof(g_score_t);
 
 	gi.WriteByte(SV_CMD_SCORES);
-	gi.WriteShort(j);
-	gi.WriteShort(i);
+	gi.WriteShort((int32_t) j);
+	gi.WriteShort((int32_t) i);
 	gi.WriteData((const void *) (scores + j), len);
 	gi.WriteByte(1); // sequence is complete
 	gi.Unicast(ent, false);

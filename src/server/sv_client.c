@@ -46,7 +46,7 @@ static void Sv_New_f(void) {
 	Net_WriteByte(&sv_client->net_chan.message, 0);
 	Net_WriteString(&sv_client->net_chan.message, Cvar_GetString("game"));
 
-	const intptr_t client_num = sv_client - svs.clients;
+	const int32_t client_num = (int32_t) (ptrdiff_t) (sv_client - svs.clients);
 	Net_WriteShort(&sv_client->net_chan.message, client_num);
 
 	// send full level name
@@ -77,7 +77,7 @@ static void Sv_ConfigStrings_f(void) {
 		return;
 	}
 
-	start = strtoul(Cmd_Argv(2), NULL, 0);
+	start = (uint32_t) strtoul(Cmd_Argv(2), NULL, 0);
 
 	if (start >= MAX_CONFIG_STRINGS) { // catch bad offsets
 		Com_Warn("Bad offset from %s\n", Sv_NetaddrToString(sv_client));
@@ -135,7 +135,7 @@ static void Sv_Baselines_f(void) {
 		return;
 	}
 
-	start = strtoul(Cmd_Argv(2), NULL, 0);
+	start = (uint32_t) strtoul(Cmd_Argv(2), NULL, 0);
 
 	memset(&null_state, 0, sizeof(null_state));
 
@@ -288,7 +288,7 @@ static void Sv_Download_f(void) {
 	}
 
 	if (Cmd_Argc() > 2) {
-		download->count = strtol(Cmd_Argv(2), NULL, 0);
+		download->count = (int32_t) strtol(Cmd_Argv(2), NULL, 0);
 		if (download->count < 0 || download->count > download->size) {
 			Com_Warn("Invalid offset (%d) from %s\n", download->count,
 					Sv_NetaddrToString(sv_client));

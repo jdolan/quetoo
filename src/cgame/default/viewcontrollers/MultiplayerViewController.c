@@ -65,7 +65,8 @@ static void connectAction(Control *control, const SDL_Event *event, ident sender
 	const TableView *servers = (TableView *) data;
 	IndexSet *selectedRowIndexes = $(servers, selectedRowIndexes);
 	if (selectedRowIndexes->count) {
-		const cl_server_info_t *server = g_list_nth_data(cgi.Servers(), selectedRowIndexes->indexes[0]);
+		const guint index = (guint) selectedRowIndexes->indexes[0];
+		const cl_server_info_t *server = g_list_nth_data(cgi.Servers(), index);
 		if (server) {
 			cgi.Connect(&server->addr);
 		}

@@ -40,7 +40,7 @@
  *   void CalcMightSee (leaf_t *leaf,
  */
 
-size_t CountBits(const byte * bits, size_t max) {
+size_t CountBits(const byte *bits, size_t max) {
 	size_t i, c;
 
 	c = 0;
@@ -51,7 +51,7 @@ size_t CountBits(const byte * bits, size_t max) {
 	return c;
 }
 
-static winding_t *AllocStackWinding(pstack_t * stack) {
+static winding_t *AllocStackWinding(pstack_t *stack) {
 	int32_t i;
 
 	for (i = 0; i < 3; i++) {
@@ -65,8 +65,8 @@ static winding_t *AllocStackWinding(pstack_t * stack) {
 	return NULL;
 }
 
-static void FreeStackWinding(const winding_t * w, pstack_t * stack) {
-	const int32_t i = w - stack->windings;
+static void FreeStackWinding(const winding_t *w, pstack_t *stack) {
+	const ptrdiff_t i = w - stack->windings;
 
 	if (i < 0 || i > 2)
 		return; // not from local
@@ -187,7 +187,7 @@ static winding_t *Vis_ChopWinding(winding_t *in, pstack_t *stack, plane_t *split
  * flipclip should be set.
  * ==============
  */
-static winding_t *ClipToSeperators(winding_t * source, winding_t * pass, winding_t * target,
+static winding_t *ClipToSeperators(winding_t *source, winding_t *pass, winding_t *target,
 		_Bool flipclip, pstack_t * stack) {
 	int32_t i, j, k, l;
 	plane_t plane;
@@ -325,8 +325,8 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread, pstack_t
 	plane_t back_plane;
 	leaf_t *leaf;
 	uint32_t i, j;
-	long *test, *might, *vis, more;
-	int32_t pnum;
+	byte *test, *might, *vis, more;
+	ptrdiff_t pnum;
 
 	thread->c_chains++;
 
@@ -338,8 +338,8 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread, pstack_t
 	stack.leaf = leaf;
 	stack.portal = NULL;
 
-	might = (long *) stack.mightsee;
-	vis = (long *) thread->base->vis;
+	might = stack.mightsee;
+	vis = thread->base->vis;
 
 	// check all portals for flowing into other leafs
 	for (i = 0; i < leaf->num_portals; i++) {
@@ -351,14 +351,14 @@ static void RecursiveLeafFlow(int32_t leaf_num, thread_data_t * thread, pstack_t
 		}
 		// if the portal can't see anything we haven't already seen, skip it
 		if (p->status == stat_done) {
-			test = (long *) p->vis;
+			test = p->vis;
 		} else {
-			test = (long *) p->flood;
+			test = p->flood;
 		}
 
 		more = 0;
-		for (j = 0; j < map_vis.portal_longs; j++) {
-			might[j] = ((long *) prevstack->mightsee)[j] & test[j];
+		for (j = 0; j < map_vis.portal_bytes; j++) {
+			might[j] = prevstack->mightsee[j] & test[j];
 			more |= (might[j] & ~vis[j]);
 		}
 
@@ -454,8 +454,8 @@ void FinalVis(int32_t portal_num) {
 	data.pstack_head.source = p->winding;
 	data.pstack_head.portalplane = p->plane;
 
-	for (i = 0; i < map_vis.portal_longs; i++) {
-		((long *) data.pstack_head.mightsee)[i] = ((long *) p->flood)[i];
+	for (i = 0; i < map_vis.portal_bytes; i++) {
+		data.pstack_head.mightsee[i] = p->flood[i];
 	}
 
 	RecursiveLeafFlow(p->leaf, &data, &data.pstack_head);
@@ -475,7 +475,7 @@ static void SimpleFlood(portal_t *srcportal, int32_t leaf_num) {
 	uint32_t i;
 	leaf_t *leaf;
 	portal_t *p;
-	int32_t pnum;
+	ptrdiff_t pnum;
 
 	leaf = &map_vis.leafs[leaf_num];
 

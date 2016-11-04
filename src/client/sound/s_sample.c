@@ -33,7 +33,7 @@ static const char *SOUND_PATHS[] = { "sounds/", "sound/", NULL };
 static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const size_t pathlen) {
 	
 	void *buf;
-	int32_t i, len;
+	int32_t i;
 	SDL_RWops *rw;
 
 	buf = NULL;
@@ -45,10 +45,11 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 		StripExtension(path, path);
 		g_strlcat(path, SAMPLE_TYPES[i++], pathlen);
 
+		int64_t len;
 		if ((len = Fs_Load(path, &buf)) == -1)
 			continue;
 
-		if (!(rw = SDL_RWFromMem(buf, len))) {
+		if (!(rw = SDL_RWFromMem(buf, (int32_t) len))) {
 			Fs_Free(buf);
 			continue;
 		}

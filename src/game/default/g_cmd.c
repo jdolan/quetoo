@@ -26,7 +26,7 @@
  */
 static void G_Give_f(g_entity_t *ent) {
 	const g_item_t *it;
-	int32_t index, quantity;
+	uint32_t index, quantity;
 	uint32_t i;
 	_Bool give_all;
 	g_entity_t *it_ent;
@@ -39,7 +39,7 @@ static void G_Give_f(g_entity_t *ent) {
 	const char *name = gi.Args();
 
 	if (gi.Argc() == 3) {
-		quantity = strtoul(gi.Argv(2), NULL, 10);
+		quantity = (uint32_t) strtol(gi.Argv(2), NULL, 10);
 
 		if (quantity > 9999)
 			quantity = 9999;
@@ -502,7 +502,7 @@ static const char *G_ExpandVariable(g_entity_t *ent, char v) {
  */
 static char *G_ExpandVariables(g_entity_t *ent, const char *text) {
 	static char expanded[MAX_STRING_CHARS];
-	int32_t i, j, len;
+	size_t i, j, len;
 
 	if (!text || !text[0])
 		return "";

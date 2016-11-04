@@ -642,7 +642,7 @@ void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop
 	R_BindArray(R_ARRAY_VERTEX, &r_draw.line_arrays.ui_vert_buffer);
 
 	// draw!
-	R_DrawArrays(loop ? GL_LINE_LOOP : GL_LINE_STRIP, 0, count);
+	R_DrawArrays(loop ? GL_LINE_LOOP : GL_LINE_STRIP, 0, (GLsizei) count);
 
 	// and restore them
 	R_BindDefaultArray(R_ARRAY_VERTEX);

@@ -72,13 +72,12 @@ void G_ClientChaseThink(g_entity_t *ent) {
  * @brief
  */
 void G_ClientChaseNext(g_entity_t *ent) {
-	int32_t i;
 	g_entity_t *e;
 
 	if (!ent->client->locals.chase_target)
 		return;
 
-	i = ent->client->locals.chase_target - g_game.entities;
+	int32_t i = (int32_t) (ptrdiff_t) (ent->client->locals.chase_target - g_game.entities);
 	do {
 		i++;
 
@@ -102,13 +101,12 @@ void G_ClientChaseNext(g_entity_t *ent) {
  * @brief
  */
 void G_ClientChasePrevious(g_entity_t *ent) {
-	int32_t i;
 	g_entity_t *e;
 
 	if (!ent->client->locals.chase_target)
 		return;
 
-	i = ent->client->locals.chase_target - g_game.entities;
+	int32_t i = (int32_t) (ptrdiff_t) (ent->client->locals.chase_target - g_game.entities);
 	do {
 		i--;
 

@@ -50,7 +50,7 @@ void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
 	void *data;
 
 	if (buf->size + len > buf->max_size) {
-		const uint32_t delta = buf->size + len - buf->max_size;
+		const uint32_t delta = (uint32_t) (buf->size + len - buf->max_size);
 		fprintf(stderr, "%s: Overflow by %u bytes\n", __func__, delta);
 
 		if (!buf->allow_overflow) {

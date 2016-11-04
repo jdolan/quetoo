@@ -280,25 +280,29 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 	}
 }
 
+/**
+ * @brief
+ */
 void R_UploadParticles(void) {
+	r_particle_state_t *p = &r_particle_state;
 
-	if (!r_particle_state.num_particles)
+	if (!p->num_particles)
 		return;
 
-	R_UploadToBuffer(&r_particle_state.verts_buffer, 0, r_particle_state.num_particles * sizeof(vec3_t) * 4, r_particle_state.verts);
-	R_UploadToBuffer(&r_particle_state.texcoords_buffer, 0, r_particle_state.num_particles * sizeof(vec2_t) * 4, r_particle_state.texcoords);
-	R_UploadToBuffer(&r_particle_state.colors_buffer, 0, r_particle_state.num_particles * sizeof(vec4_t) * 4, r_particle_state.colors);
+	R_UploadToBuffer(&p->verts_buffer, 0, p->num_particles * sizeof(vec3_t) * 4, p->verts);
+	R_UploadToBuffer(&p->texcoords_buffer, 0, p->num_particles * sizeof(vec2_t) * 4, p->texcoords);
+	R_UploadToBuffer(&p->colors_buffer, 0, p->num_particles * sizeof(vec4_t) * 4, p->colors);
 
-	R_UploadToBuffer(&r_particle_state.element_buffer, 0, r_particle_state.num_particles * sizeof(GLuint) * 6, r_particle_state.elements);
+	R_UploadToBuffer(&p->element_buffer, 0, p->num_particles * sizeof(GLuint) * 6, p->elements);
 
-	r_particle_state.num_particles = 0;
+	p->num_particles = 0;
 }
 
 /**
  * @brief Draws all particles for the current frame.
  */
 void R_DrawParticles(const r_element_t *e, const size_t count) {
-	size_t i, j;
+	GLsizei i, j;
 
 	R_EnableColorArray(true);
 
@@ -310,15 +314,14 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_BindArray(R_ARRAY_VERTEX, &r_particle_state.verts_buffer);
 	R_BindArray(R_ARRAY_TEX_DIFFUSE, &r_particle_state.texcoords_buffer);
 	R_BindArray(R_ARRAY_COLOR, &r_particle_state.colors_buffer);
-
 	R_BindArray(R_ARRAY_ELEMENTS, &r_particle_state.element_buffer);
 
-	const GLuint base = (uintptr_t) e->data;
+	const GLint base = (GLint) (intptr_t) e->data;
 	r_particle_type_t last_type = -1;
 	GLuint last_texnum = texunit_diffuse.texnum;
 	GLenum last_blend = -1;
 
-	for (i = j = 0; i < count; i++, e++) {
+	for (i = j = 0; i < (GLsizei) count; i++, e++) {
 		const r_particle_t *p = (const r_particle_t *) e->element;
 
 		// bind the particle's texture

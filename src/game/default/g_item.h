@@ -29,7 +29,7 @@
 extern const g_item_t g_items[];
 extern const uint16_t g_num_items;
 
-#define ITEM_INDEX(x) ((x) - g_items)
+#define ITEM_INDEX(x) (uint32_t) (ptrdiff_t) ((x) - g_items)
 
 /**
  * @brief Item bounding box scaling.

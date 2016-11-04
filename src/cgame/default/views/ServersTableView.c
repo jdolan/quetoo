@@ -57,7 +57,7 @@ static size_t numberOfRows(const TableView *tableView) {
  */
 static ident valueForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
 
-	cl_server_info_t *server = g_list_nth_data(cgi.Servers(), row);
+	cl_server_info_t *server = g_list_nth_data(cgi.Servers(), (guint) row);
 	assert(server);
 
 	if (g_strcmp0(column->identifier, _hostname) == 0) {
@@ -84,7 +84,7 @@ static ident valueForColumnAndRow(const TableView *tableView, const TableColumn 
  */
 static TableCellView *cellForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
 
-	cl_server_info_t *server = g_list_nth_data(cgi.Servers(), row);
+	cl_server_info_t *server = g_list_nth_data(cgi.Servers(), (guint) row);
 	assert(server);
 
 	TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);

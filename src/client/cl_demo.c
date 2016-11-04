@@ -43,10 +43,10 @@ static void Cl_WriteDemoHeader(void) {
 	Net_WriteString(&msg, cl.config_strings[CS_NAME]);
 
 	// and config_strings
-	for (size_t i = 0; i < MAX_CONFIG_STRINGS; i++) {
+	for (int32_t i = 0; i < MAX_CONFIG_STRINGS; i++) {
 		if (*cl.config_strings[i] != '\0') {
 			if (msg.size + strlen(cl.config_strings[i]) + 32 > msg.max_size) { // write it out
-				const int32_t len = LittleLong(msg.size);
+				const int32_t len = LittleLong((int32_t) msg.size);
 				Fs_Write(cls.demo_file, &len, sizeof(len), 1);
 				Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 				msg.size = 0;
@@ -65,7 +65,7 @@ static void Cl_WriteDemoHeader(void) {
 			continue;
 
 		if (msg.size + 64 > msg.max_size) { // write it out
-			const int32_t len = LittleLong(msg.size);
+			const int32_t len = LittleLong((int32_t) msg.size);
 			Fs_Write(cls.demo_file, &len, sizeof(len), 1);
 			Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 			msg.size = 0;
@@ -80,7 +80,8 @@ static void Cl_WriteDemoHeader(void) {
 
 	// write it to the demo file
 
-	const int32_t len = LittleLong(msg.size);
+	const int32_t len = LittleLong((int32_t) msg.size);
+
 	Fs_Write(cls.demo_file, &len, sizeof(len), 1);
 	Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 
@@ -106,7 +107,8 @@ void Cl_WriteDemoMessage(void) {
 	}
 
 	// the first eight bytes are just packet sequencing stuff
-	int32_t len = LittleLong(net_message.size - 8);
+	const int32_t len = LittleLong((int32_t) (net_message.size - 8));
+
 	Fs_Write(cls.demo_file, &len, sizeof(len), 1);
 	Fs_Write(cls.demo_file, net_message.data + 8, len, 1);
 }

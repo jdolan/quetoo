@@ -360,7 +360,7 @@ void G_ClientWeaponThink(g_entity_t *ent) {
 static void G_MuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
 
 	gi.WriteByte(SV_CMD_MUZZLE_FLASH);
-	gi.WriteShort(ent - g_game.entities);
+	gi.WriteShort((int32_t) (ptrdiff_t) (ent - g_game.entities));
 	gi.WriteByte(flash);
 
 	if (flash == MZ_BLASTER) {

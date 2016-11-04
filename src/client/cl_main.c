@@ -424,7 +424,7 @@ static void Cl_ConnectionlessPacket(void) {
 			Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&net_from));
 			return;
 		}
-		cls.challenge = strtoul(Cmd_Argv(1), NULL, 10);
+		cls.challenge = (uint32_t) strtoul(Cmd_Argv(1), NULL, 10);
 		Cl_SendConnect();
 		return;
 	}
