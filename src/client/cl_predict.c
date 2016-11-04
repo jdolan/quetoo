@@ -42,9 +42,6 @@ _Bool Cl_UsePrediction(void) {
 	if (cl.frame.ps.pm_state.type == PM_FREEZE)
 		return false;
 
-	if (cls.net_chan.outgoing_sequence == 0)
-		return false;
-
 	return true;
 }
 
@@ -197,7 +194,7 @@ void Cl_PredictMovement(void) {
 
 	if (Cl_UsePrediction()) {
 
-		const uint32_t last = cls.net_chan.outgoing_sequence - 1;
+		const uint32_t last = cls.net_chan.outgoing_sequence;
 		uint32_t ack = cls.net_chan.incoming_acknowledged;
 
 		// if we are too far out of date, just freeze in place

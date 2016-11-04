@@ -483,51 +483,49 @@ static void Cl_ClampPitch(void) {
 }
 
 /**
- * @brief Accumulate this frame's movement-related inputs and assemble a movement
- * command to send to the server. This may be called several times for each
- * command that is transmitted if the client is running asynchronously.
+ * @brief Accumulate view angle modifications for the specified command.
  */
-void Cl_Move(pm_cmd_t *cmd) {
+void Cl_Look(pm_cmd_t *cmd) {
 
-	assert(cmd->msec);
-
-	// keyboard move forward / back
-	cmd->forward += cl_forward_speed->value * cmd->msec * Cl_KeyState(&in_forward, cmd->msec);
-	cmd->forward -= cl_forward_speed->value * cmd->msec * Cl_KeyState(&in_back, cmd->msec);
-
-	// keyboard strafe left / right
-	cmd->right += cl_right_speed->value * cmd->msec * Cl_KeyState(&in_move_right, cmd->msec);
-	cmd->right -= cl_right_speed->value * cmd->msec * Cl_KeyState(&in_move_left, cmd->msec);
-
-	// keyboard jump / crouch
-	cmd->up += cl_up_speed->value * cmd->msec * Cl_KeyState(&in_up, cmd->msec);
-	cmd->up -= cl_up_speed->value * cmd->msec * Cl_KeyState(&in_down, cmd->msec);
-
-	// keyboard turn left / right
 	cl.angles[YAW] -= cl_yaw_speed->value * cmd->msec * Cl_KeyState(&in_right, cmd->msec);
 	cl.angles[YAW] += cl_yaw_speed->value * cmd->msec * Cl_KeyState(&in_left, cmd->msec);
 
-	// keyboard look up / down
 	cl.angles[PITCH] -= cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_up, cmd->msec);
 	cl.angles[PITCH] += cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_down, cmd->msec);
 
-	Cl_ClampPitch(); // clamp, accounting for frame delta angles
+	Cl_ClampPitch();
 
-	// pack the angles into the command
 	PackAngles(cl.angles, cmd->angles);
+}
 
-	// set any button hits that occurred since last frame
-	if (in_attack.state & 3)
-	cmd->buttons |= BUTTON_ATTACK;
+/**
+ * @brief Accumulate movement and button interactions for the specified command.
+ */
+void Cl_Move(pm_cmd_t *cmd) {
+
+	cmd->forward += cl_forward_speed->value * cmd->msec * Cl_KeyState(&in_forward, cmd->msec);
+	cmd->forward -= cl_forward_speed->value * cmd->msec * Cl_KeyState(&in_back, cmd->msec);
+
+	cmd->right += cl_right_speed->value * cmd->msec * Cl_KeyState(&in_move_right, cmd->msec);
+	cmd->right -= cl_right_speed->value * cmd->msec * Cl_KeyState(&in_move_left, cmd->msec);
+
+	cmd->up += cl_up_speed->value * cmd->msec * Cl_KeyState(&in_up, cmd->msec);
+	cmd->up -= cl_up_speed->value * cmd->msec * Cl_KeyState(&in_down, cmd->msec);
+
+	if (in_attack.state & 3) {
+		cmd->buttons |= BUTTON_ATTACK;
+	}
 
 	in_attack.state &= ~2;
 
-	if (cl_run->value) { // run by default, walk on speed toggle
-		if (in_speed.state & 1)
-		cmd->buttons |= BUTTON_WALK;
-	} else { // walk by default, run on speed toggle
-		if (!(in_speed.state & 1))
-		cmd->buttons |= BUTTON_WALK;
+	if (cl_run->value) {
+		if (in_speed.state & 1) {
+			cmd->buttons |= BUTTON_WALK;
+		}
+	} else {
+		if (!(in_speed.state & 1)) {
+			cmd->buttons |= BUTTON_WALK;
+		}
 	}
 }
 

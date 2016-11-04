@@ -136,7 +136,7 @@ void S_MixChannels(void) {
 				Mix_SetPosition(i, ch->angle, ch->dist);
 
 				if (!ch->start_time) {
-					ch->start_time = cl.systime;
+					ch->start_time = quetoo.time;
 
 					if (ch->play.flags & S_PLAY_LOOP) {
 						Mix_PlayChannel(i, ch->sample->chunk, -1);

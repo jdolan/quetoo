@@ -36,6 +36,7 @@ extern cvar_t *m_yaw;
 void Cl_ClearInput(void);
 void Cl_InitInput(void);
 void Cl_HandleEvents(void);
+void Cl_Look(pm_cmd_t *cmd);
 void Cl_Move(pm_cmd_t *cmd);
 #endif /* __CL_LOCAL_H__ */
 

@@ -25,7 +25,8 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
-void Cl_SendCommand(void);
+void Cl_UpdateMovementCommand(uint32_t msec);
+void Cl_SendCommands(void);
 #endif /* __CL_LOCAL_H__ */
 
 #endif /* __CL_CMD_H__ */

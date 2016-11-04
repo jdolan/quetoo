@@ -65,8 +65,9 @@ static void Cl_SendConnect(void) {
 		return;
 	}
 
-	if (addr.port == 0) // use default port
+	if (addr.port == 0) {
 		addr.port = htons(PORT_SERVER);
+	}
 
 	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %u \"%s\"\n", PROTOCOL_MAJOR,
 			qport->integer, cls.challenge, Cvar_UserInfo());
@@ -77,7 +78,7 @@ static void Cl_SendConnect(void) {
 /**
  * @brief Re-send a connect message if the last one has timed out.
  */
-static void Cl_CheckForResend(void) {
+static void Cl_AttemptConnect(void) {
 
 	// if the local server is running and we aren't then connect
 	if (Com_WasInit(QUETOO_SERVER) && g_strcmp0(cls.server_name, "localhost")) {
@@ -108,10 +109,11 @@ static void Cl_CheckForResend(void) {
 		return;
 	}
 
-	if (addr.port == 0)
+	if (addr.port == 0) {
 		addr.port = htons(PORT_SERVER);
+	}
 
-	cls.connect_time = quetoo.time; // for retransmit requests
+	cls.connect_time = quetoo.time;
 
 	const char *s = Net_NetaddrToString(&addr);
 	if (g_strcmp0(cls.server_name, s)) {
@@ -282,7 +284,7 @@ void Cl_Disconnect(void) {
 
 	if (time_demo->value) { // summarize time_demo results
 
-		const vec_t s = (cl.systime - cl.time_demo_start) / 1000.0;
+		const vec_t s = (quetoo.time - cl.time_demo_start) / 1000.0;
 
 		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
 				cl.time_demo_frames / s);
@@ -382,10 +384,12 @@ static void Cl_ConnectionlessPacket(void) {
 
 		cls.state = CL_CONNECTED;
 
-		memset(cls.download_url, 0, sizeof(cls.download_url));
 		if (Cmd_Argc() == 2) { // http download url
 			g_strlcpy(cls.download_url, Cmd_Argv(1), sizeof(cls.download_url));
+		} else {
+			cls.download_url[0] = '\0';
 		}
+		
 		return;
 	}
 
@@ -445,19 +449,19 @@ static void Cl_ReadPackets(void) {
 
 		// dump it if not connected
 		if (cls.state <= CL_CONNECTING) {
-			Com_Debug("%s: Unsolicited packet\n", Net_NetaddrToString(&net_from));
+			Com_Warn("%s: Unsolicited packet\n", Net_NetaddrToString(&net_from));
 			continue;
 		}
 
 		// check for runt packets
 		if (net_message.size < 8) {
-			Com_Debug("%s: Runt packet\n", Net_NetaddrToString(&net_from));
+			Com_Warn("%s: Runt packet\n", Net_NetaddrToString(&net_from));
 			continue;
 		}
 
 		// packet from server
 		if (!Net_CompareNetaddr(&net_from, &cls.net_chan.remote_address)) {
-			Com_Debug("%s: Sequenced packet without connection\n", Net_NetaddrToString(&net_from));
+			Com_Warn("%s: Sequenced packet without connection\n", Net_NetaddrToString(&net_from));
 			continue;
 		}
 
@@ -470,10 +474,9 @@ static void Cl_ReadPackets(void) {
 	// check timeout
 	if (cls.state >= CL_CONNECTED) {
 
-		const uint32_t ttl = quetoo.time - cls.net_chan.last_received;
-		if (ttl > cl_timeout->value * 1000) {
-
-			Com_Print("%s: Timed out.\n", Net_NetaddrToString(&net_from));
+		const uint32_t delta = quetoo.time - cls.net_chan.last_received;
+		if (delta > cl_timeout->value * 1000) {
+			Com_Warn("%s: Timed out.\n", Net_NetaddrToString(&net_from));
 			Cl_Disconnect();
 		}
 	}
@@ -567,8 +570,7 @@ static void Cl_WriteConfiguration(void) {
  * @brief
  */
 void Cl_Frame(const uint32_t msec) {
-	static uint32_t render_time;
-	static uint32_t packet_time;
+	static uint32_t frame_time;
 
 	if (dedicated->value)
 		return;
@@ -581,14 +583,20 @@ void Cl_Frame(const uint32_t msec) {
 
 	if (time_demo->value) { // accumulate timed demo statistics
 		if (!cl.time_demo_start) {
-			cl.time_demo_start = cl.systime;
+			cl.time_demo_start = quetoo.time;
 		}
 		cl.time_demo_frames++;
 	} else if (cl_max_fps->value > 0.0) { // cap render frame rate
-		if (cl.systime - render_time < 1000.0 / cl_max_fps->value) {
+		if (quetoo.time - frame_time < 1000.0 / cl_max_fps->value) {
 			return;
 		}
 	}
+
+	// attempt to [re]connect to the server
+	Cl_AttemptConnect();
+
+	// run http downloads
+	Cl_HttpThink();
 
 	// update any stale media references
 	Cl_UpdateMedia();
@@ -602,19 +610,11 @@ void Cl_Frame(const uint32_t msec) {
 	// fetch input from user
 	Cl_HandleEvents();
 
-	if (cl.systime - packet_time >= QUETOO_TICK_MILLIS) {
+	// and update the movement command
+	Cl_UpdateMovementCommand(msec);
 
-		// send command to the server
-		Cl_SendCommand();
-
-		// resend a connection request if necessary
-		Cl_CheckForResend();
-
-		// run http downloads
-		Cl_HttpThink();
-
-		packet_time = cl.systime;
-	}
+	// send any pending commands
+	Cl_SendCommands();
 
 	// predict all unacknowledged movements
 	Cl_PredictMovement();
@@ -625,7 +625,7 @@ void Cl_Frame(const uint32_t msec) {
 	// update audio
 	S_Frame();
 
-	render_time = cl.systime;
+	frame_time = quetoo.time;
 }
 
 /**
