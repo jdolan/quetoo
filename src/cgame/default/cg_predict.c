@@ -70,12 +70,12 @@ void Cg_PredictMovement(const GList *cmds) {
 			// for each movement, check for stair interaction and interpolate
 			if (pm.s.flags & PMF_ON_STAIRS) {
 				cgi.client->predicted_state.step_time = cmd->time;
-				cgi.client->predicted_state.step_interval = 120.0 * (fabs(pm.step) / 16.0);
+				cgi.client->predicted_state.step_interval = 128.0 * (fabs(pm.step) / 16.0);
 				cgi.client->predicted_state.step = pm.step;
 			}
 
 			// save for debug checking
-			const uint32_t frame = (intptr_t) (cmd - cgi.client->cmds);
+			const uint32_t frame = (uint32_t) (intptr_t) (cmd - cgi.client->cmds);
 			VectorCopy(pm.s.origin, cgi.client->predicted_state.origins[frame]);
 		}
 

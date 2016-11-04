@@ -78,17 +78,20 @@ struct MapListCollectionViewInterface {
 	
 	/**
 	 * @fn MapListCollectionView *MapListCollectionView::initWithFrame(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style)
-	 *
 	 * @brief Initializes this MapListCollectionView with the specified frame and style.
-	 *
 	 * @param frame The frame.
 	 * @param style The ControlStyle.
-	 *
 	 * @return The initialized MapListCollectionView, or `NULL` on error.
-	 *
 	 * @memberof MapListCollectionView
 	 */
 	MapListCollectionView *(*initWithFrame)(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style);
+
+	/**
+	 * @fn GList *MapListCollectionView::selectedMaps(const MapListCollectionView *self)
+	 * @return A list of selected map names.
+	 * @memberof MapListCollectionView
+	 */
+	GList *(*selectedMaps)(const MapListCollectionView *self);
 };
 
 /**

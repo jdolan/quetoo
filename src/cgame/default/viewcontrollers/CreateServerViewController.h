@@ -22,6 +22,7 @@
 #pragma once
 
 #include "MenuViewController.h"
+#include "MapListCollectionView.h"
 
 /**
  * @file
@@ -52,6 +53,26 @@ struct CreateServerViewController {
 	 * @private
 	 */
 	CreateServerViewControllerInterface *interface;
+
+	/**
+	 * @brief The gameplay Select.
+	 */
+	Select *gameplay;
+
+	/**
+	 * @brief The MapListCollectionView.
+	 */
+	MapListCollectionView *mapList;
+
+	/**
+	 * @brief The teamsplay Select.
+	 */
+	Select *teamsplay;
+
+	/**
+	 * @brief The match mode Checkbox.
+	 */
+	Checkbox *matchMode;
 };
 
 /**

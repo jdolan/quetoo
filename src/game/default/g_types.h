@@ -60,6 +60,28 @@ typedef enum {
 } g_gameplay_t;
 
 /**
+ * @brief Map list entries describe available gameplay parameters for a given map.
+ */
+typedef struct {
+	char name[32];
+	char title[128];
+	char sky[32];
+	char weather[64];
+	int32_t gravity;
+	int32_t gameplay;
+	int32_t teams;
+	int32_t ctf;
+	int32_t match;
+	int32_t rounds;
+	int32_t frag_limit;
+	int32_t round_limit;
+	int32_t capture_limit;
+	vec_t time_limit;
+	char give[MAX_STRING_CHARS];
+	char music[MAX_STRING_CHARS];
+} g_map_list_map_t;
+
+/**
  * @brief ConfigStrings that are local to the game module.
  */
 #define CS_GAMEPLAY			(CS_GENERAL + 0) // gameplay string
@@ -499,9 +521,9 @@ extern g_game_t g_game;
 
 // for match status bitmasking
 #define MSTAT_WARMUP		0
-#define MSTAT_PLAYING		1<<0
-#define MSTAT_TIMEOUT		1<<1
-#define MSTAT_COUNTDOWN		1<<2
+#define MSTAT_PLAYING		1 << 0
+#define MSTAT_TIMEOUT		1 << 1
+#define MSTAT_COUNTDOWN		1 << 2
 
 /**
  * @brief This structure holds references to frequently accessed media.

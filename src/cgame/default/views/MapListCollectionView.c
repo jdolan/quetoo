@@ -281,6 +281,32 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 	return self;
 }
 
+/**
+ * @fn GList *MapListCollectionView::selectedMaps(const MapListCollectionView *self)
+ * @memberof MapListCollectionView
+ */
+static GList *selectedMaps(const MapListCollectionView *self) {
+
+	CollectionView *this = (CollectionView *) self;
+
+	GList *list = NULL;
+
+	Array *selection = $(this, selectionIndexPaths);
+	for (size_t i = 0; i < selection->count; i++) {
+
+		const IndexPath *indexPath = $(selection, objectAtIndex, i);
+		const Value *value = this->dataSource.objectForItemAtIndexPath(this, indexPath);
+
+		const MapListItemInfo *info = value->value;
+
+		list = g_list_append(list, (gpointer) info->mapname);
+	}
+
+	release(selection);
+
+	return list;
+}
+
 #pragma mark - Class lifecycle
 
 /**
@@ -293,6 +319,7 @@ static void initialize(Class *clazz) {
 	((ViewInterface *) clazz->def->interface)->layoutIfNeeded = layoutIfNeeded;
 
 	((MapListCollectionViewInterface *) clazz->def->interface)->initWithFrame = initWithFrame;
+	((MapListCollectionViewInterface *) clazz->def->interface)->selectedMaps = selectedMaps;
 }
 
 Class _MapListCollectionView = {
