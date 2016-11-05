@@ -89,7 +89,7 @@ static void EmitLeaf(node_t *node) {
 	face_t *f;
 	bsp_brush_t *b;
 	int32_t i;
-	int32_t brush_num;
+	ptrdiff_t brush_num;
 
 	// emit a leaf
 	if (d_bsp.num_leafs >= MAX_BSP_LEAFS)
@@ -242,7 +242,7 @@ static int32_t EmitDrawNode_r(node_t * node) {
 		}
 	}
 
-	return n - d_bsp.nodes;
+	return (int32_t) (ptrdiff_t) (n - d_bsp.nodes);
 }
 
 /**
