@@ -324,6 +324,7 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t ep
 		}
 		counts[sides[i]]++;
 	}
+
 	sides[i] = sides[0];
 	dists[i] = dists[0];
 
@@ -434,6 +435,7 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 		}
 		counts[sides[i]]++;
 	}
+
 	sides[i] = sides[0];
 	dists[i] = dists[0];
 

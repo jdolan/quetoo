@@ -1002,8 +1002,7 @@ static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
 /**
  * @brief
  */
-static void G_func_door_Use(g_entity_t *self, g_entity_t *other,
-                            g_entity_t *activator) {
+static void G_func_door_Use(g_entity_t *self, g_entity_t *other, g_entity_t *activator) {
 	g_entity_t *ent;
 
 	if (self->locals.flags & FL_TEAM_SLAVE) {
@@ -1161,8 +1160,7 @@ static void G_func_door_Blocked(g_entity_t *self, g_entity_t *other) {
 /**
  * @brief
  */
-static void G_func_door_Die(g_entity_t *self, g_entity_t *attacker,
-                            uint32_t mod) {
+static void G_func_door_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 	g_entity_t *ent;
 
