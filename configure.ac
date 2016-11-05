@@ -102,6 +102,9 @@ AC_SUBST(SO_CFLAGS)
 LDFLAGS="$LDFLAGS $HOST_LDFLAGS"
 AC_SUBST(LDFLAGS)
 
+CPPFLAGS="$CFLAGS $CPPFLAGS"
+AC_SUBST(CPPFLAGS)
+
 AM_CONDITIONAL([APPLE], [test "x$HOST_NAME" = "xAPPLE"])
 AM_CONDITIONAL([BSD], [test "x$HOST_NAME" = "xBSD"])
 AM_CONDITIONAL([WINDOWS], [test "x$HOST_NAME" = "xWINDOWS"])
@@ -212,8 +215,8 @@ AC_PATH_PROGS(MYSQL_CONFIG, mysql_config mysql_config5)
 if test "x${with_mysql}" != xno -a "x${MYSQL_CONFIG}" != x; then
 	MYSQL_CFLAGS=`$MYSQL_CONFIG --cflags`
 
-	save_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS $MYSQL_CFLAGS"
+	save_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="$CPPFLAGS $MYSQL_CFLAGS"
 
 	AC_CHECK_HEADER(mysql.h,
 		HAVE_MYSQL=yes
@@ -224,7 +227,7 @@ if test "x${with_mysql}" != xno -a "x${MYSQL_CONFIG}" != x; then
 		HAVE_MYSQL=no
 	)
 
-	CFLAGS="$save_CFLAGS"
+	CPPFLAGS="$save_CPPFLAGS"
 fi
 AC_SUBST(MYSQL_CFLAGS)
 AC_SUBST(MYSQL_LIBS)
@@ -299,7 +302,7 @@ dnl -----------------
 
 AC_MSG_CHECKING(whether to abort on compiler warnings)
 
-WARN_CFLAGS="-Wall -Wextra"
+WARN_CFLAGS="-Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas"
 
 AC_ARG_ENABLE(warn,
 	AS_HELP_STRING(
