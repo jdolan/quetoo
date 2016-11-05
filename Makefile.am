@@ -28,11 +28,13 @@ style:
 		--attach-extern-c \
 		--attach-inlines \
 		--attach-namespaces \
+		--break-after-logical \
 		--indent-cases \
 		--indent-preproc-block \
-		--indent-preproc-define
+		--indent-preproc-define \
+		--indent-switches \
 		--indent=tab \
 		--pad-header \
 		--pad-oper \
-		--max-code-length=100 \
+		--max-code-length=120 \
 		--style=java
