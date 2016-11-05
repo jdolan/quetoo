@@ -137,22 +137,24 @@ void ThreadUnlock(void) {
  * @brief
  */
 static void RunThreads(void) {
-	thread_t *t[MAX_THREADS];
-	int32_t i;
 
-	if (Thread_Count() == 0) {
+	const uint16_t thread_count = Thread_Count();
+
+	if (thread_count == 0) {
 		ThreadWork(0);
 		return;
 	}
 
 	lock = SDL_CreateMutex();
 
-	for (i = 0; i < Thread_Count(); i++) {
-		t[i] = Thread_Create(ThreadWork, NULL);
+	thread_t *threads[thread_count];
+
+	for (uint16_t i = 0; i < thread_count; i++) {
+		threads[i] = Thread_Create(ThreadWork, NULL);
 	}
 
-	for (i = 0; i < Thread_Count(); i++) {
-		Thread_Wait(t[i]);
+	for (uint16_t i = 0; i < thread_count; i++) {
+		Thread_Wait(threads[i]);
 	}
 
 	SDL_DestroyMutex(lock);
