@@ -423,7 +423,8 @@ typedef struct cg_import_s {
 	 *
 	 * @return A trace result.
 	 */
-	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, const uint16_t skip, const int32_t contents);
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, const uint16_t skip,
+	                    const int32_t contents);
 
 	/**
 	 * @param p The point to check.
@@ -431,7 +432,7 @@ typedef struct cg_import_s {
 	 *
 	 * @return The BSP leaf at the given point `p`, in the given `model`.
 	 */
-	const r_bsp_leaf_t * (*LeafForPoint)(const vec3_t p, const r_bsp_model_t *model);
+	const r_bsp_leaf_t *(*LeafForPoint)(const vec3_t p, const r_bsp_model_t *model);
 
 	/**
 	 * @return True if `leaf` is in the potentially hearable set for the current frame.
@@ -521,7 +522,7 @@ typedef struct cg_import_s {
 	 * @remarks This function never returns `NULL`, but instead will return the null texture.
 	 */
 	r_image_t *(*LoadImage)(const char *name, r_image_type_t type);
-	
+
 	/**
 	 * @brief Creates a blank state for an atlas and returns it.
 	 *
@@ -541,7 +542,7 @@ typedef struct cg_import_s {
 	 * @param image The image to add to the atlas.
 	 */
 	void (*AddImageToAtlas)(r_atlas_t *atlas, const r_image_t *image);
-	
+
 	/**
 	 * @brief Resolve an atlas image from an atlas and image.
 	 *
@@ -609,7 +610,7 @@ typedef struct cg_import_s {
 	 * @param e The entity.
 	 */
 	void (*SetMatrixForEntity)(r_entity_t *e);
-	
+
 	/**
 	 * @brief Push the active matrix into the stack
 	 */
@@ -634,7 +635,7 @@ typedef struct cg_import_s {
 	 * @brief Set the range of depth testing.
 	 */
 	void (*DepthRange)(double znear, double zfar);
-	
+
 	/**
 	 * @brief Toggle the specified texunit.
 	 */
@@ -739,7 +740,7 @@ typedef struct cg_export_s {
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*PopulateView)(const cl_frame_t *frame);
 	void (*DrawFrame)(const cl_frame_t *frame);
-	
+
 } cg_export_t;
 
 #endif /* __CGAME_H__ */

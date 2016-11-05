@@ -117,19 +117,23 @@ void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, 
 g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
 	char *s;
 
-	if (!from)
+	if (!from) {
 		from = g_game.entities;
-	else
+	} else {
 		from++;
+	}
 
 	for (; from < &g_game.entities[ge.num_entities]; from++) {
-		if (!from->in_use)
+		if (!from->in_use) {
 			continue;
+		}
 		s = *(char **) ((byte *) from + field);
-		if (!s)
+		if (!s) {
 			continue;
-		if (!g_ascii_strcasecmp(s, match))
+		}
+		if (!g_ascii_strcasecmp(s, match)) {
 			return from;
+		}
 	}
 
 	return NULL;
@@ -144,24 +148,29 @@ g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad) {
 	vec3_t delta;
 	int32_t j;
 
-	if (!from)
+	if (!from) {
 		from = g_game.entities;
-	else
+	} else {
 		from++;
+	}
 
 	for (; from < &g_game.entities[ge.num_entities]; from++) {
 
-		if (!from->in_use)
+		if (!from->in_use) {
 			continue;
+		}
 
-		if (from->solid == SOLID_NOT)
+		if (from->solid == SOLID_NOT) {
 			continue;
+		}
 
-		for (j = 0; j < 3; j++)
+		for (j = 0; j < 3; j++) {
 			delta[j] = org[j] - (from->s.origin[j] + (from->mins[j] + from->maxs[j]) * 0.5);
+		}
 
-		if (VectorLength(delta) > rad)
+		if (VectorLength(delta) > rad) {
 			continue;
+		}
 
 		return from;
 	}
@@ -191,13 +200,15 @@ g_entity_t *G_PickTarget(char *target_name) {
 
 		ent = G_Find(ent, LOFS(target_name), target_name);
 
-		if (!ent)
+		if (!ent) {
 			break;
+		}
 
 		choice[num_choices++] = ent;
 
-		if (num_choices == MAX_TARGETS)
+		if (num_choices == MAX_TARGETS) {
 			break;
+		}
 	}
 
 	if (!num_choices) {
@@ -231,8 +242,9 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 		t->locals.next_think = g_level.time + ent->locals.delay * 1000;
 		t->locals.Think = G_UseTargets_Delay;
 		t->locals.activator = activator;
-		if (!activator)
+		if (!activator) {
 			gi.Debug("No activator for %s\n", etos(ent));
+		}
 		t->locals.message = ent->locals.message;
 		t->locals.target = ent->locals.target;
 		t->locals.kill_target = ent->locals.kill_target;
@@ -245,10 +257,11 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 		gi.WriteString(ent->locals.message);
 		gi.Unicast(activator, true);
 
-		if (ent->locals.noise_index)
+		if (ent->locals.noise_index) {
 			gi.Sound(activator, ent->locals.noise_index, ATTEN_NORM);
-		else
+		} else {
 			gi.Sound(activator, gi.SoundIndex("misc/chat"), ATTEN_NORM);
+		}
 	}
 
 	// kill kill_targets
@@ -340,8 +353,9 @@ g_entity_t *G_AllocEntity(const char *class_name) {
 		}
 	}
 
-	if (i >= g_max_entities->value)
+	if (i >= g_max_entities->value) {
 		gi.Error("No free entities for %s\n", class_name);
+	}
 
 	ge.num_entities++;
 	G_InitEntity(e, class_name);
@@ -355,8 +369,9 @@ void G_FreeEntity(g_entity_t *ent) {
 
 	gi.UnlinkEntity(ent);
 
-	if ((ent - g_game.entities) <= sv_max_clients->integer)
+	if ((ent - g_game.entities) <= sv_max_clients->integer) {
 		return;
+	}
 
 	memset(ent, 0, sizeof(*ent));
 	ent->class_name = "free";
@@ -372,15 +387,17 @@ _Bool G_KillBox(g_entity_t *ent) {
 	while (true) {
 		cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, MASK_MEAT);
 
-		if (!tr.ent)
+		if (!tr.ent) {
 			break;
+		}
 
 		// nail it
 		G_Damage(tr.ent, ent, NULL, NULL, NULL, NULL, 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
 
 		// if we didn't kill it, fail
-		if (tr.ent->solid)
+		if (tr.ent->solid) {
 			return false;
+		}
 	}
 
 	return true; // all clear
@@ -439,8 +456,9 @@ char *G_GameplayName(int32_t g) {
 g_gameplay_t G_GameplayByName(const char *c) {
 	g_gameplay_t gameplay = GAME_DEATHMATCH;
 
-	if (!c || *c == '\0')
+	if (!c || *c == '\0') {
 		return gameplay;
+	}
 
 	char *lower = g_ascii_strdown(c, -1);
 
@@ -461,14 +479,17 @@ g_gameplay_t G_GameplayByName(const char *c) {
  */
 g_team_t *G_TeamByName(const char *c) {
 
-	if (!c || !*c)
+	if (!c || !*c) {
 		return NULL;
+	}
 
-	if (!StrColorCmp(g_team_good.name, c))
+	if (!StrColorCmp(g_team_good.name, c)) {
 		return &g_team_good;
+	}
 
-	if (!StrColorCmp(g_team_evil.name, c))
+	if (!StrColorCmp(g_team_evil.name, c)) {
 		return &g_team_evil;
+	}
 
 	return NULL;
 }
@@ -478,17 +499,21 @@ g_team_t *G_TeamByName(const char *c) {
  */
 g_team_t *G_TeamForFlag(g_entity_t *ent) {
 
-	if (!g_level.ctf)
+	if (!g_level.ctf) {
 		return NULL;
+	}
 
-	if (!ent->locals.item || ent->locals.item->type != ITEM_FLAG)
+	if (!ent->locals.item || ent->locals.item->type != ITEM_FLAG) {
 		return NULL;
+	}
 
-	if (!g_strcmp0(ent->class_name, "item_flag_team1"))
+	if (!g_strcmp0(ent->class_name, "item_flag_team1")) {
 		return &g_team_good;
+	}
 
-	if (!g_strcmp0(ent->class_name, "item_flag_team2"))
+	if (!g_strcmp0(ent->class_name, "item_flag_team2")) {
 		return &g_team_evil;
+	}
 
 	return NULL;
 }
@@ -501,8 +526,9 @@ g_entity_t *G_FlagForTeam(g_team_t *t) {
 	char class_name[32];
 	uint32_t i;
 
-	if (!g_level.ctf)
+	if (!g_level.ctf) {
 		return NULL;
+	}
 
 	if (t == &g_team_good) {
 		g_strlcpy(class_name, "item_flag_team1", sizeof(class_name));
@@ -517,16 +543,19 @@ g_entity_t *G_FlagForTeam(g_team_t *t) {
 
 		ent = &ge.entities[i++];
 
-		if (!ent->locals.item || ent->locals.item->type != ITEM_FLAG)
+		if (!ent->locals.item || ent->locals.item->type != ITEM_FLAG) {
 			continue;
+		}
 
 		// when a carrier is killed, we spawn a new temporary flag
 		// where they died. we are generally not interested in these.
-		if (ent->locals.spawn_flags & SF_ITEM_DROPPED)
+		if (ent->locals.spawn_flags & SF_ITEM_DROPPED) {
 			continue;
+		}
 
-		if (!g_strcmp0(ent->class_name, class_name))
+		if (!g_strcmp0(ent->class_name, class_name)) {
 			return ent;
+		}
 	}
 
 	return NULL;
@@ -537,8 +566,9 @@ g_entity_t *G_FlagForTeam(g_team_t *t) {
  */
 uint32_t G_EffectForTeam(g_team_t *t) {
 
-	if (!t)
+	if (!t) {
 		return 0;
+	}
 
 	return (t == &g_team_good ? EF_CTF_BLUE : EF_CTF_RED);
 }
@@ -548,14 +578,17 @@ uint32_t G_EffectForTeam(g_team_t *t) {
  */
 g_team_t *G_OtherTeam(g_team_t *t) {
 
-	if (!t)
+	if (!t) {
 		return NULL;
+	}
 
-	if (t == &g_team_good)
+	if (t == &g_team_good) {
 		return &g_team_evil;
+	}
 
-	if (t == &g_team_evil)
+	if (t == &g_team_evil) {
 		return &g_team_good;
+	}
 
 	return NULL;
 }
@@ -565,18 +598,20 @@ g_team_t *G_OtherTeam(g_team_t *t) {
  */
 size_t G_TeamSize(g_team_t *team) {
 	size_t count = 0;
-	
-	for (int32_t i = 0; i < sv_max_clients->integer; i++){
-		if (!g_game.entities[i + 1].in_use)
+
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+		if (!g_game.entities[i + 1].in_use) {
 			continue;
-			
+		}
+
 		const g_client_t *cl = g_game.entities[i + 1].client;
-		if (cl->locals.persistent.team == team)
+		if (cl->locals.persistent.team == team) {
 			count++;
+		}
 	}
 	return count;
 }
- 
+
 /**
  * @brief
  */
@@ -587,15 +622,17 @@ g_team_t *G_SmallestTeam(void) {
 	g = e = 0;
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.entities[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use) {
 			continue;
+		}
 
 		cl = g_game.entities[i + 1].client;
 
-		if (cl->locals.persistent.team == &g_team_good)
+		if (cl->locals.persistent.team == &g_team_good) {
 			g++;
-		else if (cl->locals.persistent.team == &g_team_evil)
+		} else if (cl->locals.persistent.team == &g_team_evil) {
 			e++;
+		}
 	}
 
 	return g < e ? &g_team_good : &g_team_evil;
@@ -606,28 +643,30 @@ g_team_t *G_SmallestTeam(void) {
  * @brief
  */
 g_entity_t *G_EntityByName(char *name) {
-        int32_t i, j, min;
-        g_client_t *cl; 
+	int32_t i, j, min;
+	g_client_t *cl;
 	g_entity_t *ret;
 
-        if (!name)
-                return NULL;
+	if (!name) {
+		return NULL;
+	}
 
-        ret = NULL;
-        min = 9999;
+	ret = NULL;
+	min = 9999;
 
-        for (i = 0; i < sv_max_clients->integer; i++) {
-                if (!g_game.entities[i + 1].in_use)
-                        continue;
+	for (i = 0; i < sv_max_clients->integer; i++) {
+		if (!g_game.entities[i + 1].in_use) {
+			continue;
+		}
 
-                cl = g_game.entities[i + 1].client;
-                if ((j = g_strcmp0(name, cl->locals.persistent.net_name)) < min) {
-                        ret = &g_game.entities[i + 1];
-                        min = j;
-                }
-        }
+		cl = g_game.entities[i + 1].client;
+		if ((j = g_strcmp0(name, cl->locals.persistent.net_name)) < min) {
+			ret = &g_game.entities[i + 1];
+			min = j;
+		}
+	}
 
-        return ret;
+	return ret;
 }
 
 
@@ -645,29 +684,39 @@ g_client_t *G_ClientByName(char *name) {
  */
 int32_t G_ColorByName(const char *s, int32_t def) {
 
-	if (!s || *s == '\0')
+	if (!s || *s == '\0') {
 		return def;
+	}
 
 	int32_t i = atoi(s);
-	if (i > 0 && i < 255)
+	if (i > 0 && i < 255) {
 		return i;
+	}
 
-	if (!g_ascii_strcasecmp(s, "red"))
+	if (!g_ascii_strcasecmp(s, "red")) {
 		return EFFECT_COLOR_RED;
-	if (!g_ascii_strcasecmp(s, "green"))
+	}
+	if (!g_ascii_strcasecmp(s, "green")) {
 		return EFFECT_COLOR_GREEN;
-	if (!g_ascii_strcasecmp(s, "blue"))
+	}
+	if (!g_ascii_strcasecmp(s, "blue")) {
 		return EFFECT_COLOR_BLUE;
-	if (!g_ascii_strcasecmp(s, "yellow"))
+	}
+	if (!g_ascii_strcasecmp(s, "yellow")) {
 		return EFFECT_COLOR_YELLOW;
-	if (!g_ascii_strcasecmp(s, "orange"))
+	}
+	if (!g_ascii_strcasecmp(s, "orange")) {
 		return EFFECT_COLOR_ORANGE;
-	if (!g_ascii_strcasecmp(s, "white"))
+	}
+	if (!g_ascii_strcasecmp(s, "white")) {
 		return EFFECT_COLOR_WHITE;
-	if (!g_ascii_strcasecmp(s, "pink"))
+	}
+	if (!g_ascii_strcasecmp(s, "pink")) {
 		return EFFECT_COLOR_PINK;
-	if (!g_ascii_strcasecmp(s, "purple"))
+	}
+	if (!g_ascii_strcasecmp(s, "purple")) {
 		return EFFECT_COLOR_PURPLE;
+	}
 
 	return def;
 }
@@ -677,14 +726,17 @@ int32_t G_ColorByName(const char *s, int32_t def) {
  */
 _Bool G_IsMeat(const g_entity_t *ent) {
 
-	if (!ent || !ent->in_use)
+	if (!ent || !ent->in_use) {
 		return false;
+	}
 
-	if (ent->solid == SOLID_BOX && ent->client)
+	if (ent->solid == SOLID_BOX && ent->client) {
 		return true;
+	}
 
-	if (ent->solid == SOLID_DEAD)
+	if (ent->solid == SOLID_DEAD) {
 		return true;
+	}
 
 	return false;
 }
@@ -694,17 +746,21 @@ _Bool G_IsMeat(const g_entity_t *ent) {
  */
 _Bool G_IsStationary(const g_entity_t *ent) {
 
-	if (!ent || !ent->in_use)
+	if (!ent || !ent->in_use) {
 		return false;
+	}
 
-	if (ent->locals.move_type)
+	if (ent->locals.move_type) {
 		return false;
+	}
 
-	if (!VectorCompare(vec3_origin, ent->locals.velocity))
+	if (!VectorCompare(vec3_origin, ent->locals.velocity)) {
 		return false;
+	}
 
-	if (!VectorCompare(vec3_origin, ent->locals.avelocity))
+	if (!VectorCompare(vec3_origin, ent->locals.avelocity)) {
 		return false;
+	}
 
 	return true;
 }
@@ -717,8 +773,9 @@ _Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_surface_t *surf) {
 	if (ent) {
 		if (ent->solid == SOLID_BSP) {
 
-			if (!surf || (surf->flags & SURF_SKY))
+			if (!surf || (surf->flags & SURF_SKY)) {
 				return false;
+			}
 
 			return true;
 		}
@@ -732,8 +789,9 @@ _Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_surface_t *surf) {
  */
 _Bool G_IsSky(const cm_bsp_surface_t *surf) {
 
-	if (surf && (surf->flags & SURF_SKY))
+	if (surf && (surf->flags & SURF_SKY)) {
 		return true;
+	}
 
 	return false;
 }
@@ -788,10 +846,11 @@ void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, _Bool restart) {
 _Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
 	byte a;
 
-	if (anim < ANIM_LEGS_WALK)
+	if (anim < ANIM_LEGS_WALK) {
 		a = ent->s.animation1;
-	else
+	} else {
 		a = ent->s.animation2;
+	}
 
 	return (a & ~ANIM_TOGGLE_BIT) == anim;
 }
@@ -799,7 +858,7 @@ _Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
 /**
  * @brief forcefully suggest client adds given command to its console buffer
  */
-void G_ClientStuff(g_entity_t *ent, const char *s){
+void G_ClientStuff(g_entity_t *ent, const char *s) {
 	gi.WriteByte(SV_CMD_CBUF_TEXT);
 	gi.WriteString(s);
 	gi.Unicast(ent, true);
@@ -808,24 +867,25 @@ void G_ClientStuff(g_entity_t *ent, const char *s){
 /**
  * @brief Send a centerprint to everyone on the supplied team
  */
-void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...){
+void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...) {
 	char string[MAX_STRING_CHARS];
 	va_list args;
 	const g_entity_t *ent;
-	
+
 	va_start(args, fmt);
 	vsprintf(string, fmt, args);
 	va_end(args);
-	
+
 	// look through all players
-	for (int32_t i = 0; i < sv_max_clients->integer; i++){
-		if (!g_game.entities[i + 1].in_use)
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+		if (!g_game.entities[i + 1].in_use) {
 			continue;
-		
+		}
+
 		ent = &g_game.entities[i + 1];
-		
+
 		// member of supplied team? send it
-		if (ent->client->locals.persistent.team == team){
+		if (ent->client->locals.persistent.team == team) {
 			gi.WriteByte(SV_CMD_CENTER_PRINT);
 			gi.WriteString(string);
 			gi.Unicast(ent, false);

@@ -96,8 +96,9 @@ void Cl_SendCommands(void) {
 	static uint32_t command_time;
 
 	const uint32_t msec = quetoo.time - command_time;
-	if (msec < QUETOO_TICK_MILLIS)
+	if (msec < QUETOO_TICK_MILLIS) {
 		return;
+	}
 
 	switch (cls.state) {
 		case CL_CONNECTED:

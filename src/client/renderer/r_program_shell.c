@@ -41,7 +41,7 @@ static r_shell_program_t r_shell_program;
  * @brief
  */
 void R_PreLink_shell(const r_program_t *program) {
-	
+
 	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
 	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_TEX_DIFFUSE);
 	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_VERTEX);
@@ -88,7 +88,7 @@ void R_UseProgram_shell(void) {
  * @brief
  */
 void R_UseMatrices_shell(const matrix4x4_t *matrices) {
-	
+
 	r_shell_program_t *p = &r_shell_program;
 
 	R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) matrices[R_MATRIX_PROJECTION].m);
@@ -103,10 +103,11 @@ void R_UseCurrentColor_shell(const vec4_t color) {
 	r_shell_program_t *p = &r_shell_program;
 	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
-	if (color)
+	if (color) {
 		R_ProgramParameter4fv(&p->current_color, color);
-	else
+	} else {
 		R_ProgramParameter4fv(&p->current_color, white);
+	}
 }
 
 /**

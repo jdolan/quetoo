@@ -53,7 +53,7 @@ void teardown(void) {
 /**
  * @brief Populates the critical section.
  */
-static void produce(void *data __attribute__((unused))) {
+static void produce(void *data) {
 	cs.ready = true; // set the CS to ready
 }
 
@@ -69,17 +69,17 @@ static void consume(void *data) {
 	cs.ready = false; // and reset it
 }
 
-START_TEST(check_Thread_Wait)
-	{
-		thread_t *p = Thread_Create(produce, NULL);
+START_TEST(check_Thread_Wait) {
+	thread_t *p = Thread_Create(produce, NULL);
 
-		thread_t *c = Thread_Create(consume, p);
+	thread_t *c = Thread_Create(consume, p);
 
-		Thread_Wait(c);
+	Thread_Wait(c);
 
-		ck_assert(!cs.ready);
+	ck_assert(!cs.ready);
 
-	}END_TEST
+}
+END_TEST
 
 /**
  * @brief Test entry point.

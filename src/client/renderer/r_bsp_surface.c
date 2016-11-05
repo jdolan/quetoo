@@ -44,25 +44,29 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		R_Color(color);
 	}
 
-	if (texunit_diffuse.enabled) // diffuse texture
+	if (texunit_diffuse.enabled) { // diffuse texture
 		R_BindTexture(surf->texinfo->material->diffuse->texnum);
+	}
 
-	if (texunit_lightmap.enabled) // lightmap texture
+	if (texunit_lightmap.enabled) { // lightmap texture
 		R_BindLightmapTexture(surf->lightmap->texnum);
+	}
 
 	if (r_state.lighting_enabled) { // hardware lighting
 		R_BindDeluxemapTexture(surf->deluxemap->texnum);
 
 		R_UseMaterial(surf->texinfo->material);
 
-		if (surf->light_frame == r_locals.light_frame) // dynamic light sources
+		if (surf->light_frame == r_locals.light_frame) { // dynamic light sources
 			R_EnableLights(surf->light_mask);
-		else
+		} else {
 			R_EnableLights(0);
+		}
 	}
 
-	if (r_state.stencil_test_enabled) // write to stencil buffer to clip shadows
+	if (r_state.stencil_test_enabled) { // write to stencil buffer to clip shadows
 		R_StencilFunc(GL_ALWAYS, (surf->plane->num % 0xff) + 1, ~0);
+	}
 }
 
 /**
@@ -85,11 +89,13 @@ static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	// draw the surfaces
 	for (size_t i = 0; i < surfs->count; i++) {
 
-		if (surfs->surfaces[i]->texinfo->flags & SURF_MATERIAL)
+		if (surfs->surfaces[i]->texinfo->flags & SURF_MATERIAL) {
 			continue;
+		}
 
-		if (surfs->surfaces[i]->frame != r_locals.frame)
+		if (surfs->surfaces[i]->frame != r_locals.frame) {
 			continue;
+		}
 
 		R_SetBspSurfaceState_default(surfs->surfaces[i]);
 
@@ -120,8 +126,9 @@ static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 
 	for (size_t i = 0; i < surfs->count; i++) {
 
-		if (surfs->surfaces[i]->frame != r_locals.frame)
+		if (surfs->surfaces[i]->frame != r_locals.frame) {
 			continue;
+		}
 
 		R_DrawBspSurface_default(surfs->surfaces[i]);
 	}
@@ -136,35 +143,40 @@ static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
  */
 void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
-	if (!surfs->count)
+	if (!surfs->count) {
 		return;
+	}
 
 	if (r_draw_wireframe->value) { // surface outlines
 		R_DrawBspSurfacesLines_default(surfs);
 		return;
 	}
 
-	if (r_draw_bsp_lightmaps->value)
+	if (r_draw_bsp_lightmaps->value) {
 		R_EnableTexture(&texunit_diffuse, false);
+	}
 
 	R_EnableTexture(&texunit_lightmap, true);
 
 	R_EnableLighting(r_state.default_program, true);
 
-	if (r_shadows->value)
+	if (r_shadows->value) {
 		R_EnableStencilTest(GL_REPLACE, true);
+	}
 
 	R_DrawBspSurfaces_default(surfs);
 
-	if (r_shadows->value)
+	if (r_shadows->value) {
 		R_EnableStencilTest(GL_KEEP, false);
-	
+	}
+
 	R_EnableLighting(NULL, false);
 
 	R_EnableTexture(&texunit_lightmap, false);
 
-	if (r_draw_bsp_lightmaps->value)
+	if (r_draw_bsp_lightmaps->value) {
 		R_EnableTexture(&texunit_diffuse, true);
+	}
 
 #if 0
 	if (r_clear->value) {
@@ -190,8 +202,9 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
  */
 void R_DrawOpaqueWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
-	if (!surfs->count)
+	if (!surfs->count) {
 		return;
+	}
 
 	if (r_draw_wireframe->value) { // surface outlines
 		R_DrawBspSurfacesLines_default(surfs);
@@ -210,8 +223,9 @@ void R_DrawOpaqueWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
  */
 void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
-	if (!surfs->count)
+	if (!surfs->count) {
 		return;
+	}
 
 	if (r_draw_wireframe->value) { // surface outlines
 		R_DrawBspSurfacesLines_default(surfs);
@@ -238,16 +252,18 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
  */
 void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
-	if (!surfs->count)
+	if (!surfs->count) {
 		return;
+	}
 
 	if (r_draw_wireframe->value) { // surface outlines
 		R_DrawBspSurfacesLines_default(surfs);
 		return;
 	}
 
-	if (r_draw_bsp_lightmaps->value)
+	if (r_draw_bsp_lightmaps->value) {
 		R_EnableTexture(&texunit_diffuse, false);
+	}
 
 	// blend is already enabled when this is called
 
@@ -261,8 +277,9 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(&texunit_lightmap, false);
 
-	if (r_draw_bsp_lightmaps->value)
+	if (r_draw_bsp_lightmaps->value) {
 		R_EnableTexture(&texunit_diffuse, true);
+	}
 }
 
 /**
@@ -270,8 +287,9 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
  */
 void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
-	if (!surfs->count)
+	if (!surfs->count) {
 		return;
+	}
 
 	if (r_draw_wireframe->value) { // surface outlines
 		R_DrawBspSurfacesLines_default(surfs);
@@ -288,6 +306,6 @@ void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 /**
  * @brief
  */
-void R_DrawBackBspSurfaces_default(const r_bsp_surfaces_t *surfs __attribute__((unused))) {
+void R_DrawBackBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	// no-op
 }

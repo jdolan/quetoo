@@ -40,10 +40,11 @@ int32_t num_visportals;
 static void WriteFloat(file_t *f, vec_t v) {
 	const vec_t r = floor(v + 0.5);
 
-	if (fabs(v - r) < 0.001)
+	if (fabs(v - r) < 0.001) {
 		Fs_Print(f, "%i ", (int32_t) r);
-	else
+	} else {
 		Fs_Print(f, "%f ", v);
+	}
 }
 
 /**
@@ -63,15 +64,17 @@ static void WritePortalFile_r(node_t *node) {
 		return;
 	}
 
-	if (node->contents & CONTENTS_SOLID)
+	if (node->contents & CONTENTS_SOLID) {
 		return;
+	}
 
 	for (p = node->portals; p; p = p->next[s]) {
 		w = p->winding;
 		s = (p->nodes[1] == node);
 		if (w && p->nodes[0] == node) {
-			if (!Portal_VisFlood(p))
+			if (!Portal_VisFlood(p)) {
 				continue;
+			}
 			// write out to the file
 
 			// sometimes planes get turned around when they are very near
@@ -81,10 +84,10 @@ static void WritePortalFile_r(node_t *node) {
 			WindingPlane(w, normal, &dist);
 			if (DotProduct(p->plane.normal, normal) < 0.99) { // backwards...
 				Fs_Print(prtfile, "%i %i %i ", w->num_points, p->nodes[1]->cluster,
-						p->nodes[0]->cluster);
+				         p->nodes[0]->cluster);
 			} else
 				Fs_Print(prtfile, "%i %i %i ", w->num_points, p->nodes[0]->cluster,
-						p->nodes[1]->cluster);
+				         p->nodes[1]->cluster);
 			for (i = 0; i < w->num_points; i++) {
 				Fs_Print(prtfile, "(");
 				WriteFloat(prtfile, w->points[i][0]);
@@ -101,12 +104,13 @@ static void WritePortalFile_r(node_t *node) {
 /**
  * @brief All of the leafs under node will have the same cluster
  */
-static void FillLeafNumbers_r(node_t * node, int32_t num) {
+static void FillLeafNumbers_r(node_t *node, int32_t num) {
 	if (node->plane_num == PLANENUM_LEAF) {
-		if (node->contents & CONTENTS_SOLID)
+		if (node->contents & CONTENTS_SOLID) {
 			node->cluster = -1;
-		else
+		} else {
 			node->cluster = num;
+		}
 		return;
 	}
 	node->cluster = num;
@@ -117,7 +121,7 @@ static void FillLeafNumbers_r(node_t * node, int32_t num) {
 /**
  * @brief
  */
-static void NumberLeafs_r(node_t * node) {
+static void NumberLeafs_r(node_t *node) {
 	portal_t *p;
 
 	if (node->plane_num != PLANENUM_LEAF && !node->detail_seperator) { // decision node
@@ -138,13 +142,14 @@ static void NumberLeafs_r(node_t * node) {
 
 	// count the portals
 	for (p = node->portals; p;) {
-		if (p->nodes[0] == node) // only write out from first leaf
-		{
-			if (Portal_VisFlood(p))
+		if (p->nodes[0] == node) { // only write out from first leaf
+			if (Portal_VisFlood(p)) {
 				num_visportals++;
+			}
 			p = p->next[0];
-		} else
+		} else {
 			p = p->next[1];
+		}
 	}
 
 }
@@ -152,11 +157,12 @@ static void NumberLeafs_r(node_t * node) {
 /**
  * @brief
  */
-static void CreateVisPortals_r(node_t * node) {
+static void CreateVisPortals_r(node_t *node) {
 	// stop as soon as we get to a detail_seperator, which
 	// means that everything below is in a single cluster
-	if (node->plane_num == PLANENUM_LEAF || node->detail_seperator)
+	if (node->plane_num == PLANENUM_LEAF || node->detail_seperator) {
 		return;
+	}
 
 	MakeNodePortal(node);
 	SplitNodePortals(node);
@@ -166,7 +172,7 @@ static void CreateVisPortals_r(node_t * node) {
 }
 
 static int32_t clusterleaf;
-static void SaveClusters_r(node_t * node) {
+static void SaveClusters_r(node_t *node) {
 	if (node->plane_num == PLANENUM_LEAF) {
 		d_bsp.leafs[clusterleaf++].cluster = node->cluster;
 		return;
@@ -201,8 +207,9 @@ void WritePortalFile(tree_t *tree) {
 	StripExtension(map_name, filename);
 	strcat(filename, ".prt");
 
-	if (!(prtfile = Fs_OpenWrite(filename)))
+	if (!(prtfile = Fs_OpenWrite(filename))) {
 		Com_Error(ERR_FATAL, "Error opening %s\n", filename);
+	}
 
 	Fs_Print(prtfile, "%s\n", PORTALFILE);
 	Fs_Print(prtfile, "%i\n", num_visclusters);

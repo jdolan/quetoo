@@ -46,8 +46,9 @@ static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
 	while (e) {
 		cl_server_info_t *s = (cl_server_info_t *) e->data;
 
-		if (Net_CompareNetaddr(addr, &s->addr))
+		if (Net_CompareNetaddr(addr, &s->addr)) {
 			return s;
+		}
 
 		e = e->next;
 	}
@@ -83,7 +84,7 @@ void Cl_ParseServerInfo(void) {
 	// try to parse the info string
 	g_strlcpy(info, Net_ReadString(&net_message), sizeof(info));
 	if (sscanf(info, "%63c\\%31c\\%31c\\%hu\\%hu", server->hostname, server->name,
-			server->gameplay, &server->clients, &server->max_clients) != 5) {
+	           server->gameplay, &server->clients, &server->max_clients) != 5) {
 
 		Com_Debug("Failed to parse info \"%s\" for %s\n", info, Net_NetaddrToString(&server->addr));
 
@@ -128,8 +129,9 @@ void Cl_Ping_f(void) {
 		return;
 	}
 
-	if (!addr.port) // use default
+	if (!addr.port) { // use default
 		addr.port = (uint16_t) htons(PORT_SERVER);
+	}
 
 	server = Cl_ServerForNetaddr(&addr);
 
@@ -228,13 +230,15 @@ void Cl_ParseServers(void) {
 			break;
 		}
 
-		if (!addr.port) // 0's mean we're done
+		if (!addr.port) { // 0's mean we're done
 			break;
+		}
 
 		server = Cl_ServerForNetaddr(&addr);
 
-		if (!server)
+		if (!server) {
 			server = Cl_AddServer(&addr);
+		}
 
 		server->source = SERVER_SOURCE_INTERNET;
 	}
@@ -275,8 +279,8 @@ void Cl_Servers_List_f(void) {
 		const cl_server_info_t *s = (cl_server_info_t *) e->data;
 
 		g_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
-				s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gameplay, s->clients,
-				s->max_clients, s->ping);
+		           s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gameplay, s->clients,
+		           s->max_clients, s->ping);
 		Com_Print("%s\n", string);
 		e = e->next;
 	}

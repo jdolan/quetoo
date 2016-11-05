@@ -1,0 +1,229 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#include "r_local.h"
+
+#define MESH_SHADOW_ALPHA 0.33
+
+/**
+ * @brief Sets the shadow color, which is dependent on the entity's alpha blend
+ * and its distance from the shadow plane.
+ */
+static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *s) {
+
+	vec_t alpha = MESH_SHADOW_ALPHA * s->shadow / s->illumination->diffuse;
+
+	if (e->effects & EF_BLEND)
+		alpha *= e->color[3];
+
+	R_Color((const vec4_t) {
+		0.0, 0.0, 0.0, alpha * r_shadows->value
+	});
+}
+
+/**
+ * @brief Projects the model view matrix for the entity onto the shadow plane,
+ * and concatenates it to the current model view matrix.
+ */
+static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t *s) {
+	matrix4x4_t proj;
+	vec_t dot;
+
+	if (!e) {
+		R_PopMatrix(R_MATRIX_MODELVIEW);
+		return;
+	}
+
+	const cm_bsp_plane_t *p = &s->plane;
+
+	// project the entity onto the shadow plane
+	vec3_t vx, vy, vz, t;
+	Matrix4x4_ToVectors(&e->matrix, vx, vy, vz, t);
+
+	dot = DotProduct(vx, p->normal);
+	VectorMA(vx, -dot, p->normal, vx);
+
+	dot = DotProduct(vy, p->normal);
+	VectorMA(vy, -dot, p->normal, vy);
+
+	dot = DotProduct(vz, p->normal);
+	VectorMA(vz, -dot, p->normal, vz);
+
+	dot = DotProduct(t, p->normal) - p->dist;
+	VectorMA(t, -dot, p->normal, t);
+
+	Matrix4x4_FromVectors(&proj, vx, vy, vz, t);
+
+	R_PushMatrix(R_MATRIX_MODELVIEW);
+
+	Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &proj);
+}
+
+/**
+ * @brief Calculates a perspective shearing matrix for the current shadow
+ * ftp://ftp.sgi.com/opengl/contrib/blythe/advanced99/notes/node192.html
+ */
+static void R_CalculateShadowMatrix_default(const r_entity_t *e, const r_shadow_t *s) {
+
+	// transform the light position and shadow plane into model space
+	vec_t *light = r_view.current_shadow_light, *plane = r_view.current_shadow_plane;
+
+	Matrix4x4_Transform(&e->inverse_matrix, s->illumination->light.origin, light);
+	light[3] = 1.0;
+
+	Matrix4x4_TransformQuakePlane(&e->inverse_matrix, s->plane.normal, s->plane.dist, r_view.current_shadow_plane);
+	plane[3] = -plane[3];
+
+	// calculate the perspective-shearing matrix
+	const vec_t dot = DotProduct(light, plane) + light[3] * plane[3];
+
+	matrix4x4_t *matrix = &r_view.active_matrices[R_MATRIX_SHADOW];
+	matrix->m[0][0] = dot - light[0] * plane[0];
+	matrix->m[1][0] = 0.0 - light[0] * plane[1];
+	matrix->m[2][0] = 0.0 - light[0] * plane[2];
+	matrix->m[3][0] = 0.0 - light[0] * plane[3];
+	matrix->m[0][1] = 0.0 - light[1] * plane[0];
+	matrix->m[1][1] = dot - light[1] * plane[1];
+	matrix->m[2][1] = 0.0 - light[1] * plane[2];
+	matrix->m[3][1] = 0.0 - light[1] * plane[3];
+	matrix->m[0][2] = 0.0 - light[2] * plane[0];
+	matrix->m[1][2] = 0.0 - light[2] * plane[1];
+	matrix->m[2][2] = dot - light[2] * plane[2];
+	matrix->m[3][2] = 0.0 - light[2] * plane[3];
+	matrix->m[0][3] = 0.0 - light[3] * plane[0];
+	matrix->m[1][3] = 0.0 - light[3] * plane[1];
+	matrix->m[2][3] = 0.0 - light[3] * plane[2];
+	matrix->m[3][3] = dot - light[3] * plane[3];
+
+	Matrix4x4_Transform(&r_view.matrix, s->illumination->light.origin, light);
+	light[3] = s->illumination->light.radius;
+
+	Matrix4x4_TransformQuakePlane(&r_view.matrix, s->plane.normal, s->plane.dist, plane);
+	plane[3] = -plane[3];
+}
+
+/**
+ * @brief Sets renderer state for the given entity and shadow.
+ */
+static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *s) {
+	
+	// setup VBO states
+	R_SetArrayState(e->model);
+
+	R_SetMeshShadowColor_default(e, s);
+
+	R_RotateForMeshShadow_default(e, s);
+
+	R_CalculateShadowMatrix_default(e, s);
+	
+	// setup lerp for animating models
+	if (e->old_frame != e->frame)
+		R_UseInterpolation(e->lerp);
+
+	R_StencilFunc(GL_EQUAL, (s->plane.num % 0xff) + 1, ~0);
+}
+
+/**
+ * @brief Restores renderer state for the given entity and shadow.
+ */
+static void R_ResetMeshShadowState_default(const r_entity_t *e,
+		const r_shadow_t *s) {
+
+	R_RotateForMeshShadow_default(NULL, NULL);
+
+	R_ResetArrayState();
+
+	R_UseInterpolation(0.0);
+}
+
+/**
+ * @brief Draws the shadow `s` for the specified entity `e`.
+ */
+static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) {
+
+	R_SetMeshShadowState_default(e, s);
+
+	R_DrawArrays(GL_TRIANGLES, 0, e->model->num_elements);
+
+	R_ResetMeshShadowState_default(e, s);
+}
+
+/**
+ * @brief Draws all shadows for the specified entity.
+ */
+void R_DrawMeshShadow_default(const r_entity_t *e) {
+
+	r_shadow_t *s = e->lighting->shadows;
+	for (size_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {
+
+		if (s->shadow == 0.0)
+			break;
+
+		r_view.current_shadow = s;
+
+		R_DrawMeshShadow_default_(e, s);
+	}
+
+	r_view.current_shadow = NULL;
+}
+
+/**
+ * @brief Draws all mesh model shadows for the current frame.
+ */
+void R_DrawMeshShadows_default(const r_entities_t *ents) {
+
+	if (!r_shadows->value)
+		return;
+
+	if (r_draw_wireframe->value)
+		return;
+
+	R_EnableTexture(&texunit_diffuse, false);
+
+	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
+
+	R_EnableShadow(r_state.shadow_program, true);
+
+	R_EnableStencilTest(GL_ZERO, true);
+
+	for (size_t i = 0; i < ents->count; i++) {
+		const r_entity_t *e = ents->entities[i];
+
+		if (e->effects & (EF_NO_LIGHTING | EF_NO_SHADOW))
+			continue;
+
+		r_view.current_entity = e;
+
+		R_DrawMeshShadow_default(e);
+	}
+
+	r_view.current_entity = NULL;
+
+	R_EnableShadow(NULL, false);
+
+	R_EnableStencilTest(GL_KEEP, false);
+
+	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
+
+	R_EnableTexture(&texunit_diffuse, true);
+
+	R_Color(NULL);
+}

@@ -26,14 +26,14 @@
 
 #ifdef __S_LOCAL_H__
 
-void S_ListMedia_f(void);
-void S_RegisterMedia(s_media_t *media);
-s_media_t *S_FindMedia(const char *name);
-s_media_t *S_AllocMedia(const char *name, size_t size);
-void S_FreeMedia(void);
-void S_BeginLoading(void);
-void S_InitMedia(void);
-void S_ShutdownMedia(void);
+	void S_ListMedia_f(void);
+	void S_RegisterMedia(s_media_t *media);
+	s_media_t *S_FindMedia(const char *name);
+	s_media_t *S_AllocMedia(const char *name, size_t size);
+	void S_FreeMedia(void);
+	void S_BeginLoading(void);
+	void S_InitMedia(void);
+	void S_ShutdownMedia(void);
 
 #endif /* __S_LOCAL_H__ */
 

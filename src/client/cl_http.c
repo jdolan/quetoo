@@ -43,7 +43,7 @@ static cl_http_state_t cl_http_state;
 /**
  * @brief cURL HTTP receive handler.
  */
-static size_t Cl_HttpDownload_Receive(void *buffer, size_t size, size_t count, void *p __attribute__((unused))) {
+static size_t Cl_HttpDownload_Receive(void *buffer, size_t size, size_t count, void *p) {
 	const int64_t i = Fs_Write(cls.download.file, buffer, size, count);
 	return i > 0 ? (size_t) i : 0;
 }
@@ -54,8 +54,9 @@ static size_t Cl_HttpDownload_Receive(void *buffer, size_t size, size_t count, v
  */
 void Cl_HttpDownload_Complete() {
 
-	if (!cls.download.file || !cls.download.http)
+	if (!cls.download.file || !cls.download.http) {
 		return;
+	}
 
 	curl_multi_remove_handle(cl_http_state.curlm, cl_http_state.curl); // cleanup curl
 
@@ -86,7 +87,7 @@ void Cl_HttpDownload_Complete() {
 		}
 
 		Com_Print("Failed to download %s via HTTP: %s.\n"
-			"Trying UDP...\n", cls.download.name, c);
+		          "Trying UDP...\n", cls.download.name, c);
 
 		// try legacy UDP download
 
@@ -106,8 +107,9 @@ void Cl_HttpDownload_Complete() {
  */
 _Bool Cl_HttpDownload(void) {
 
-	if (!cl_http_state.ready)
+	if (!cl_http_state.ready) {
 		return false;
+	}
 
 	StripExtension(cls.download.name, cls.download.tempname);
 	g_strlcat(cls.download.tempname, ".tmp", sizeof(cls.download.tempname));
@@ -154,8 +156,9 @@ void Cl_HttpThink(void) {
 	CURLMsg *msg;
 	int32_t i;
 
-	if (!cls.download.http)
-		return; // nothing to do
+	if (!cls.download.http) {
+		return;    // nothing to do
+	}
 
 	// process the download as long as data is available
 	while (true) {
@@ -203,11 +206,13 @@ void Cl_InitHttp(void) {
 
 	memset(&cl_http_state, 0, sizeof(cl_http_state));
 
-	if (!(cl_http_state.curlm = curl_multi_init()))
+	if (!(cl_http_state.curlm = curl_multi_init())) {
 		return;
+	}
 
-	if (!(cl_http_state.curl = curl_easy_init()))
+	if (!(cl_http_state.curl = curl_easy_init())) {
 		return;
+	}
 
 	cl_http_state.ready = true;
 
@@ -220,10 +225,12 @@ void Cl_ShutdownHttp(void) {
 
 	Cl_HttpDownload_Complete();
 
-	if (cl_http_state.curl)
+	if (cl_http_state.curl) {
 		curl_easy_cleanup(cl_http_state.curl);
+	}
 
-	if (cl_http_state.curlm)
+	if (cl_http_state.curlm) {
 		curl_multi_cleanup(cl_http_state.curlm);
+	}
 
 }

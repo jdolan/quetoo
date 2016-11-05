@@ -65,7 +65,7 @@ static void G_target_light_Cycle(g_entity_t *self) {
 /**
  * @brief
  */
-static void G_target_light_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)), g_entity_t *activator __attribute__((unused))) {
+static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *activator) {
 
 	if (self->locals.delay) {
 		self->locals.Think = G_target_light_Cycle;
@@ -135,7 +135,7 @@ void G_target_light(g_entity_t *self) {
 /**
  * @brief
  */
-static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other __attribute__((unused)), g_entity_t *activator __attribute__((unused))) {
+static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 
 	if (ent->locals.spawn_flags & SPEAKER_LOOP) { // looping sound toggles
 		if (ent->s.sound) {
@@ -176,21 +176,24 @@ void G_target_speaker(g_entity_t *ent) {
 		return;
 	}
 
-	if (!strstr(g_game.spawn.noise, ""))
+	if (!strstr(g_game.spawn.noise, "")) {
 		g_snprintf(buffer, sizeof(buffer), "%s", g_game.spawn.noise);
-	else
+	} else {
 		g_strlcpy(buffer, g_game.spawn.noise, sizeof(buffer));
+	}
 
 	ent->locals.noise_index = gi.SoundIndex(buffer);
 
-	if (!ent->locals.attenuation)
+	if (!ent->locals.attenuation) {
 		ent->locals.attenuation = ATTEN_NORM;
-	else if (ent->locals.attenuation == -1) // use -1 so 0 defaults to 1
+	} else if (ent->locals.attenuation == -1) { // use -1 so 0 defaults to 1
 		ent->locals.attenuation = ATTEN_NONE;
+	}
 
 	// check for looping sound
-	if (ent->locals.spawn_flags & SPEAKER_LOOP_ON)
+	if (ent->locals.spawn_flags & SPEAKER_LOOP_ON) {
 		ent->s.sound = ent->locals.noise_index;
+	}
 
 	ent->locals.Use = (void *) &G_target_speaker_Use;
 
@@ -207,8 +210,9 @@ void G_target_speaker(g_entity_t *ent) {
  */
 void G_target_string(g_entity_t *self) {
 
-	if (!self->locals.message)
+	if (!self->locals.message) {
 		self->locals.message = "";
+	}
 
 	// the rest is handled by G_UseTargets
 }

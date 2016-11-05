@@ -54,9 +54,9 @@ r_material_t *R_LoadMaterial(const char *diffuse);
 
 // composite mask for simplifying state management
 #define STAGE_TEXTURE_MATRIX (\
-		STAGE_STRETCH | STAGE_ROTATE | STAGE_SCROLL_S | STAGE_SCROLL_T | \
-		STAGE_SCALE_S | STAGE_SCALE_T \
-)
+                              STAGE_STRETCH | STAGE_ROTATE | STAGE_SCROLL_S | STAGE_SCROLL_T | \
+                              STAGE_SCALE_S | STAGE_SCALE_T \
+                             )
 
 void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs);
 void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count);

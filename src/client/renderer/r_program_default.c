@@ -59,7 +59,7 @@ static r_default_program_t r_default_program;
  * @brief
  */
 void R_PreLink_default(const r_program_t *program) {
-	
+
 	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
 	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
 	R_BindAttributeLocation(program, "TEXCOORD0", R_ARRAY_TEX_DIFFUSE);
@@ -76,9 +76,9 @@ void R_PreLink_default(const r_program_t *program) {
  * @brief
  */
 void R_InitProgram_default(r_program_t *program) {
-	
+
 	r_default_program_t *p = &r_default_program;
-	
+
 	p->program = program;
 
 	R_ProgramVariable(&program->attributes[R_ARRAY_VERTEX], R_ATTRIBUTE, "POSITION");
@@ -107,28 +107,26 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramVariable(&p->sampler2, R_SAMPLER_2D, "SAMPLER2");
 	R_ProgramVariable(&p->sampler3, R_SAMPLER_2D, "SAMPLER3");
 	R_ProgramVariable(&p->sampler4, R_SAMPLER_2D, "SAMPLER4");
-	
+
 	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
 	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
 	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR");
 	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
 
-	if (r_state.max_active_lights)
-	{
+	if (r_state.max_active_lights) {
 		p->lights = Mem_TagMalloc(sizeof(r_uniform_light_t) * r_state.max_active_lights, MEM_TAG_RENDERER);
 
-		for (int32_t i = 0; i < r_state.max_active_lights; ++i)
-		{
+		for (int32_t i = 0; i < r_state.max_active_lights; ++i) {
 			R_ProgramVariable(&p->lights[i].origin, R_UNIFORM_VEC3, va("LIGHTS.ORIGIN[%i]", i));
 			R_ProgramVariable(&p->lights[i].color, R_UNIFORM_VEC3, va("LIGHTS.COLOR[%i]", i));
 			R_ProgramVariable(&p->lights[i].radius, R_UNIFORM_FLOAT, va("LIGHTS.RADIUS[%i]", i));
 		}
 
 		R_ProgramParameter1f(&p->lights[0].radius, 0.0);
-	}
-	else
+	} else {
 		p->lights = NULL;
-	
+	}
+
 	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
 	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
 	R_ProgramVariable(&p->normal_mat, R_UNIFORM_MAT4, "NORMAL_MAT");
@@ -136,7 +134,7 @@ void R_InitProgram_default(r_program_t *program) {
 
 	R_ProgramVariable(&p->alpha_threshold, R_UNIFORM_FLOAT, "ALPHA_THRESHOLD");
 	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION");
-	
+
 	R_ProgramParameter1i(&p->lightmap, 0);
 	R_ProgramParameter1i(&p->normalmap, 0);
 	R_ProgramParameter1i(&p->glossmap, 0);
@@ -165,8 +163,9 @@ void R_Shutdown_default(void) {
 
 	r_default_program_t *p = &r_default_program;
 
-	if (p->lights)
+	if (p->lights) {
 		Mem_Free(p->lights);
+	}
 }
 
 /**
@@ -188,7 +187,7 @@ void R_UseMaterial_default(const r_material_t *material) {
 	r_default_program_t *p = &r_default_program;
 
 	if (!material || !material->normalmap ||
-		!r_bumpmap->value || r_draw_bsp_lightmaps->value) {
+	        !r_bumpmap->value || r_draw_bsp_lightmaps->value) {
 
 		R_DisableAttribute(R_ARRAY_TANGENT);
 		R_ProgramParameter1i(&p->normalmap, 0);
@@ -203,8 +202,9 @@ void R_UseMaterial_default(const r_material_t *material) {
 	if (material->specularmap) {
 		R_BindSpecularmapTexture(material->specularmap->texnum);
 		R_ProgramParameter1i(&p->glossmap, 1);
-	} else
+	} else {
 		R_ProgramParameter1i(&p->glossmap, 0);
+	}
 
 	R_ProgramParameter1f(&p->bump, material->bump * r_bumpmap->value);
 	R_ProgramParameter1f(&p->parallax, material->parallax * r_parallax->value);
@@ -219,15 +219,14 @@ void R_UseFog_default(const r_fog_parameters_t *fog) {
 
 	r_default_program_t *p = &r_default_program;
 
-	if (fog && fog->density)
-	{
+	if (fog && fog->density) {
 		R_ProgramParameter1f(&p->fog.density, fog->density);
 		R_ProgramParameter1f(&p->fog.start, fog->start);
 		R_ProgramParameter1f(&p->fog.end, fog->end);
 		R_ProgramParameter3fv(&p->fog.color, fog->color);
-	}
-	else
+	} else {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
+	}
 }
 
 /**
@@ -237,17 +236,16 @@ void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
 
 	r_default_program_t *p = &r_default_program;
 
-	if (light && light->radius)
-	{
+	if (light && light->radius) {
 		vec3_t origin;
 		Matrix4x4_Transform(&modelview_matrix, light->origin, origin);
 
 		R_ProgramParameter3fv(&p->lights[light_index].origin, origin);
 		R_ProgramParameter3fv(&p->lights[light_index].color, light->color);
 		R_ProgramParameter1f(&p->lights[light_index].radius, light->radius);
-	}
-	else
+	} else {
 		R_ProgramParameter1f(&p->lights[light_index].radius, 0.0);
+	}
 }
 
 /**
@@ -259,8 +257,7 @@ void R_UseMatrices_default(const matrix4x4_t *matrices) {
 
 	R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) matrices[R_MATRIX_PROJECTION].m);
 
-	if (R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) matrices[R_MATRIX_MODELVIEW].m))
-	{
+	if (R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) matrices[R_MATRIX_MODELVIEW].m)) {
 		// recalculate normal matrix if the modelview has changed.
 		matrix4x4_t normalMatrix;
 		Matrix4x4_Invert_Full(&normalMatrix, &matrices[R_MATRIX_MODELVIEW]);

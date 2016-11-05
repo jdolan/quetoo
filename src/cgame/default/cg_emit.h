@@ -25,8 +25,8 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_LoadEmits(void);
-void Cg_AddEmits(void);
+	void Cg_LoadEmits(void);
+	void Cg_AddEmits(void);
 #endif /* __CG_LOCAL_H__ */
 
 #endif /* __CG_EMIT_H__ */

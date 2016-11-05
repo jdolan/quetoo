@@ -51,80 +51,80 @@ void teardown(void) {
 	Mem_Shutdown();
 }
 
-START_TEST(check_Cvar_Get)
-	{
-		// check that we can create a variable and that its fields are populated correctly
-		cvar_t *var = Cvar_Add("var", "3.2", CVAR_ARCHIVE, __func__);
+START_TEST(check_Cvar_Get) {
+	// check that we can create a variable and that its fields are populated correctly
+	cvar_t *var = Cvar_Add("var", "3.2", CVAR_ARCHIVE, __func__);
 
-		ck_assert(var != NULL);
-		ck_assert_str_eq(var->name, "var");
-		ck_assert_str_eq(var->string, "3.2");
-		ck_assert_msg(var->integer == 3, "var->integer was %d", var->integer);
-		ck_assert_msg(var->value > 3.19 && var->value < 3.21, "var->value was %f", var->value);
-		ck_assert_msg(var->flags == CVAR_ARCHIVE, "var->flags was %d", var->flags);
-		ck_assert_str_eq(var->description, __func__);
+	ck_assert(var != NULL);
+	ck_assert_str_eq(var->name, "var");
+	ck_assert_str_eq(var->string, "3.2");
+	ck_assert_msg(var->integer == 3, "var->integer was %d", var->integer);
+	ck_assert_msg(var->value > 3.19 && var->value < 3.21, "var->value was %f", var->value);
+	ck_assert_msg(var->flags == CVAR_ARCHIVE, "var->flags was %d", var->flags);
+	ck_assert_str_eq(var->description, __func__);
 
-		// check that a subsequent call for the same variable does not modify the value
-		// but does modify all meta-data
-		cvar_t *var_copy = Cvar_Add("var", "0.5", CVAR_USER_INFO, "Some other description");
+	// check that a subsequent call for the same variable does not modify the value
+	// but does modify all meta-data
+	cvar_t *var_copy = Cvar_Add("var", "0.5", CVAR_USER_INFO, "Some other description");
 
-		ck_assert(var_copy == var);
-		ck_assert_str_eq(var->string, "3.2");
-		ck_assert_msg(var->integer == 3, "var->integer was %d", var->integer);
-		ck_assert_msg(var->value > 3.19 && var->value < 3.21, "var->value was %f", var->value);
-		ck_assert_msg(var->flags == (CVAR_ARCHIVE | CVAR_USER_INFO), "var->flags was %d", var->flags);
-		ck_assert_str_eq(var->description, "Some other description");
+	ck_assert(var_copy == var);
+	ck_assert_str_eq(var->string, "3.2");
+	ck_assert_msg(var->integer == 3, "var->integer was %d", var->integer);
+	ck_assert_msg(var->value > 3.19 && var->value < 3.21, "var->value was %f", var->value);
+	ck_assert_msg(var->flags == (CVAR_ARCHIVE | CVAR_USER_INFO), "var->flags was %d", var->flags);
+	ck_assert_str_eq(var->description, "Some other description");
 
-		// modify the variable and inspect it for changes
-		Cmd_ExecuteString("set var 1.4\n");
+	// modify the variable and inspect it for changes
+	Cmd_ExecuteString("set var 1.4\n");
 
-		ck_assert(var->modified);
-		ck_assert_str_eq(var->string, "1.4");
-		ck_assert_msg(var->value > 1.39 && var->value < 1.41, "var->value was %f", var->value);
-		ck_assert_msg(var->integer == 1, "var->integer was %d", var->integer);
+	ck_assert(var->modified);
+	ck_assert_str_eq(var->string, "1.4");
+	ck_assert_msg(var->value > 1.39 && var->value < 1.41, "var->value was %f", var->value);
+	ck_assert_msg(var->integer == 1, "var->integer was %d", var->integer);
 
-	}END_TEST
+}
+END_TEST
 
-START_TEST(check_Cvar_WriteAll)
-	{
-		cvar_t *vars[32];
-		file_t *file;
+START_TEST(check_Cvar_WriteAll) {
+	cvar_t *vars[32];
+	file_t *file;
 
-		// create a whole mess of variables
-		for (uint32_t i = 0; i < lengthof(vars); i++) {
-			vars[i] = Cvar_Add(va("var%02d", i), va("%d", i), CVAR_ARCHIVE, NULL);
-			vars[i]->modified = false;
-		}
+	// create a whole mess of variables
+	for (uint32_t i = 0; i < lengthof(vars); i++) {
+		vars[i] = Cvar_Add(va("var%02d", i), va("%d", i), CVAR_ARCHIVE, NULL);
+		vars[i]->modified = false;
+	}
 
-		if ((file = Fs_OpenWrite(__func__))) {
+	if ((file = Fs_OpenWrite(__func__))) {
 
-			// flush them to a file
-			Cvar_WriteAll(file);
+		// flush them to a file
+		Cvar_WriteAll(file);
+
+		Fs_Close(file);
+
+		if ((file = Fs_OpenRead(__func__))) {
+			char line[MAX_STRING_CHARS];
+
+			// each line in the file should correspond to a variable
+			for (uint32_t i = 0; i < lengthof(vars); i++) {
+
+				if (Fs_ReadLine(file, line, sizeof(line))) {
+					ck_assert_str_eq(line, va("set var%02d \"%d\"", i, i));
+				} else {
+					ck_abort_msg("var%02d had no line", i);
+				}
+			}
 
 			Fs_Close(file);
-
-			if ((file = Fs_OpenRead(__func__))) {
-				char line[MAX_STRING_CHARS];
-
-				// each line in the file should correspond to a variable
-				for (uint32_t i = 0; i < lengthof(vars); i++) {
-
-					if (Fs_ReadLine(file, line, sizeof(line))) {
-						ck_assert_str_eq(line, va("set var%02d \"%d\"", i, i));
-					} else {
-						ck_abort_msg("var%02d had no line", i);
-					}
-				}
-
-				Fs_Close(file);
-			} else {
-				ck_abort_msg("Failed to open %s for reading", __func__);
-			}
 		} else {
-			ck_abort_msg("Failed to open %s for writing", __func__);
+			ck_abort_msg("Failed to open %s for reading", __func__);
 		}
+	} else {
+		ck_abort_msg("Failed to open %s for writing", __func__);
+	}
 
-	}END_TEST
+}
+END_TEST
 
 /**
  * @brief Test entry point.

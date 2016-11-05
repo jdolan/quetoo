@@ -113,7 +113,7 @@ void Com_Print(const char *fmt, ...) {
  * @brief Prints a warning message.
  */
 void Com_Warn_(const char *func, const char *fmt, ...) {
-	
+
 	static char msg[MAX_PRINT_MSG];
 
 	if (fmt[0] != '!') {
@@ -181,7 +181,7 @@ void Com_Shutdown(const char *fmt, ...) {
 	va_list args;
 	char msg[MAX_PRINT_MSG];
 
-	fmt = fmt ?: ""; // normal shutdown will actually pass NULL
+	fmt = fmt ? : ""; // normal shutdown will actually pass NULL
 
 	va_start(args, fmt);
 	vsnprintf(msg, sizeof(msg), fmt, args);
@@ -230,8 +230,9 @@ int32_t Com_Argc(void) {
  * @brief Returns the command line argument at the specified index.
  */
 char *Com_Argv(int32_t arg) {
-	if (arg < 0 || arg >= Com_Argc())
+	if (arg < 0 || arg >= Com_Argc()) {
 		return "";
+	}
 	return quetoo.argv[arg];
 }
 
@@ -244,19 +245,22 @@ void Com_PrintInfo(const char *s) {
 	char *o;
 	intptr_t l;
 
-	if (*s == '\\')
+	if (*s == '\\') {
 		s++;
+	}
 	while (*s) {
 		o = key;
-		while (*s && *s != '\\')
+		while (*s && *s != '\\') {
 			*o++ = *s++;
+		}
 
 		l = o - key;
 		if (l < 20) {
 			memset(o, ' ', 20 - l);
 			key[20] = 0;
-		} else
+		} else {
 			*o = 0;
+		}
 		Com_Print("%s", key);
 
 		if (!*s) {
@@ -266,12 +270,14 @@ void Com_PrintInfo(const char *s) {
 
 		o = value;
 		s++;
-		while (*s && *s != '\\')
+		while (*s && *s != '\\') {
 			*o++ = *s++;
+		}
 		*o = 0;
 
-		if (*s)
+		if (*s) {
 			s++;
+		}
 		Com_Print("%s\n", value);
 	}
 }

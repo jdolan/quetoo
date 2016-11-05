@@ -25,9 +25,9 @@
 #include <signal.h>
 
 #if !defined(_MSC_VER)
-#include <sys/time.h>
+	#include <sys/time.h>
 #else
-#include <DbgHelp.h>
+	#include <DbgHelp.h>
 #endif
 
 #if defined(_WIN32)
@@ -51,12 +51,12 @@ const char *dlerror() {
 #endif
 
 #if defined(__APPLE__)
-#include <mach-o/dyld.h>
+	#include <mach-o/dyld.h>
 #endif
 
 #if HAVE_EXECINFO
-#include <execinfo.h>
-#define MAX_BACKTRACE_SYMBOLS 50
+	#include <execinfo.h>
+	#define MAX_BACKTRACE_SYMBOLS 50
 #endif
 
 /**
@@ -135,8 +135,9 @@ void Sys_OpenLibrary(const char *name, void **handle) {
 		g_snprintf(path, sizeof(path), "%s%c%s", Fs_RealDir(so_name), G_DIR_SEPARATOR, so_name);
 		Com_Print("Trying %s...\n", path);
 
-		if ((*handle = dlopen(path, RTLD_NOW)))
+		if ((*handle = dlopen(path, RTLD_NOW))) {
 			return;
+		}
 
 		Com_Error(ERR_DROP, "%s\n", dlerror());
 	}
@@ -148,8 +149,9 @@ void Sys_OpenLibrary(const char *name, void **handle) {
  * @brief Closes an open game module.
  */
 void Sys_CloseLibrary(void **handle) {
-	if (*handle)
+	if (*handle) {
 		dlclose(*handle);
+	}
 	*handle = NULL;
 }
 
@@ -191,34 +193,36 @@ void Sys_Backtrace(void) {
 
 	fflush(stderr);
 #elif defined(_MSC_VER)
-    HANDLE process = GetCurrentProcess();
-	
+	HANDLE process = GetCurrentProcess();
+
 	SymSetOptions(SYMOPT_UNDNAME);
-	
+
 	if (SymInitialize(process, NULL, TRUE)) {
 		void *symbols[MAXSHORT];
 
 		WORD frames = CaptureStackBackTrace(0, MAXSHORT, symbols, NULL);
-    
+
 		SYMBOL_INFO *symbol = Mem_Malloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char));
 		symbol->MaxNameLen = 255;
 		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
 		for (int32_t i = 0; i < frames; i++) {
 			const char *symbol_name = "unknown symbol";
-        
+
 			SymFromAddr(process, (DWORD64)(symbols[i]), 0, symbol);
 
-			if (symbol->NameLen)
+			if (symbol->NameLen) {
 				symbol_name = symbol->Name;
+			}
 			if (symbol->ModBase) {
 				IMAGEHLP_MODULE module;
 				module.SizeOfStruct = sizeof(module);
 				SymGetModuleInfo(process, (DWORD)symbol->ModBase, &module);
 				fprintf(stderr, "%s ", module.ImageName);
-			} else
+			} else {
 				fprintf(stderr, "unknown module ");
-		
+			}
+
 			fprintf(stderr, "(%s+%lux) [0x%" PRIx64 "]\n", symbol_name, symbol->Register, symbol->Address);
 		}
 

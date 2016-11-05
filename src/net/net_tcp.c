@@ -20,7 +20,7 @@
  */
 
 #ifndef _WIN32
-#include <sys/select.h>
+	#include <sys/select.h>
 #endif
 
 #include "net_tcp.h"
@@ -108,8 +108,9 @@ _Bool Net_ReceiveStream(int32_t sock, mem_buf_t *buf) {
 	const ssize_t received = recv(sock, (void *) buf->data, buf->max_size, 0);
 	if (received == -1) {
 
-		if (Net_GetError() == EWOULDBLOCK)
-			return false; // no data, don't crap our pants
+		if (Net_GetError() == EWOULDBLOCK) {
+			return false;    // no data, don't crap our pants
+		}
 
 		Com_Warn("%s\n", Net_GetErrorString());
 		return false;

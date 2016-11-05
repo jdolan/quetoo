@@ -560,7 +560,7 @@ typedef struct {
 
 		uint16_t weapon_no_ammo;
 		uint16_t weapon_switch;
-		
+
 		uint16_t countdown[11];
 
 		uint16_t roar;
@@ -614,7 +614,7 @@ typedef struct {
 	uint32_t vote_time; // time vote started
 
 	g_entity_t *current_entity; // entity running from G_RunFrame
-	
+
 	uint32_t match_status;	// (bitmask) are we playing, in warmup, in timeout?
 	g_entity_t *timeout_caller; // who called it?
 	uint32_t timeout_time;
@@ -723,7 +723,7 @@ typedef struct {
 
 	uint16_t handicap; // current handicap inverse percentage from 0 to 100
 	uint16_t handicap_next; // handicap to use next respawn
-  
+
 	g_team_t *team; // current team (good/evil)
 	int32_t color; // weapon effect colors
 

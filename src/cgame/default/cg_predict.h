@@ -25,7 +25,7 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_PredictMovement(const GList *cmds);
+	void Cg_PredictMovement(const GList *cmds);
 #endif /* __CG_LOCAL_H__ */
 
 #endif /* __CG_PREDICT_H__ */

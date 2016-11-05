@@ -46,8 +46,9 @@ void CalcTextureReflectivity(void) {
 			}
 		}
 
-		if (j != i) // earlier texinfo found, continue
+		if (j != i) { // earlier texinfo found, continue
 			continue;
+		}
 
 		// load the image to calculate reflectivity
 		g_snprintf(path, sizeof(path), "textures/%s", d_bsp.texinfo[i].texture);
@@ -93,7 +94,7 @@ static inline _Bool HasLight(const d_bsp_face_t *f) {
 /**
  * @brief
  */
-static inline _Bool IsSky(const d_bsp_face_t * f) {
+static inline _Bool IsSky(const d_bsp_face_t *f) {
 	const d_bsp_texinfo_t *tex;
 
 	tex = &d_bsp.texinfo[f->texinfo];
@@ -130,10 +131,11 @@ static void BuildPatch(int32_t fn, winding_t *w) {
 	// resolve the normal
 	plane = &d_bsp.planes[patch->face->plane_num];
 
-	if (patch->face->side)
+	if (patch->face->side) {
 		VectorNegate(plane->normal, patch->normal);
-	else
+	} else {
 		VectorCopy(plane->normal, patch->normal);
+	}
 
 	WindingCenter(w, patch->origin);
 
@@ -142,8 +144,9 @@ static void BuildPatch(int32_t fn, winding_t *w) {
 
 	patch->area = WindingArea(w);
 
-	if (patch->area < 1.0) // clamp area
+	if (patch->area < 1.0) { // clamp area
 		patch->area = 1.0;
+	}
 
 	EmissiveLight(patch); // surface light
 }
@@ -162,8 +165,9 @@ static entity_t *EntityForModel(int32_t num) {
 
 		const char *s = ValueForKey(&entities[i], "model");
 
-		if (!g_strcmp0(s, name))
+		if (!g_strcmp0(s, name)) {
 			return &entities[i];
+		}
 	}
 
 	return &entities[0];
@@ -194,8 +198,9 @@ void BuildPatches(void) {
 
 			VectorCopy(origin, face_offset[facenum]);
 
-			if (!HasLight(f)) // no light
+			if (!HasLight(f)) { // no light
 				continue;
+			}
 
 			w = WindingForFace(f);
 
@@ -221,13 +226,15 @@ static void FinishSubdividePatch(patch_t *patch, patch_t *newp) {
 
 	patch->area = WindingArea(patch->winding);
 
-	if (patch->area < 1.0)
+	if (patch->area < 1.0) {
 		patch->area = 1.0;
+	}
 
 	newp->area = WindingArea(newp->winding);
 
-	if (newp->area < 1.0)
+	if (newp->area < 1.0) {
 		newp->area = 1.0;
+	}
 
 	WindingCenter(patch->winding, patch->origin);
 
@@ -263,8 +270,9 @@ static void SubdividePatch(patch_t *patch) {
 		}
 	}
 
-	if (i == 3) // no splitting needed
+	if (i == 3) { // no splitting needed
 		return;
+	}
 
 	dist = PATCH_SUBDIVIDE * (1 + floor((mins[i] + 1) / PATCH_SUBDIVIDE));
 	ClipWindingEpsilon(w, split, dist, ON_EPSILON, &o1, &o2);
@@ -295,8 +303,9 @@ void SubdividePatches(void) {
 		const d_bsp_face_t *f = &d_bsp.faces[i];
 		patch_t *p = face_patches[i];
 
-		if (p && !IsSky(f)) // break it up
+		if (p && !IsSky(f)) { // break it up
 			SubdividePatch(p);
+		}
 	}
 }
 

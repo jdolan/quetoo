@@ -44,8 +44,9 @@ static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 
 	*surf = NULL;
 
-	if (Fs_Load(path, &buf) == -1)
+	if (Fs_Load(path, &buf) == -1) {
 		return false;
+	}
 
 	d_wal_t *wal = (d_wal_t *) buf;
 
@@ -54,23 +55,25 @@ static _Bool Img_LoadWal(const char *path, SDL_Surface **surf) {
 
 	wal->offsets[0] = LittleLong(wal->offsets[0]);
 
-	if (!img_palette_initialized) // lazy-load palette if necessary
+	if (!img_palette_initialized) { // lazy-load palette if necessary
 		Img_InitPalette();
+	}
 
 	size_t size = wal->width * wal->height;
 	uint32_t *p = (uint32_t *) SDL_malloc(size * sizeof(uint32_t));
 
 	const byte *b = (byte *) wal + wal->offsets[0];
 	for (size_t i = 0; i < size; i++) { // convert to 32bpp RGBA via palette
-		if (b[i] == 255) // transparent
+		if (b[i] == 255) { // transparent
 			p[i] = 0;
-		else
+		} else {
 			p[i] = img_palette[b[i]];
+		}
 	}
 
 	// create the RGBA surface
 	if ((*surf = SDL_CreateRGBSurfaceFrom(p, wal->width, wal->height, 32, 0,
-			RMASK, GMASK, BMASK, AMASK))) {
+	                                      RMASK, GMASK, BMASK, AMASK))) {
 
 		// trick SDL into freeing the pixel data with the surface
 		(*surf)->flags &= ~SDL_PREALLOC;
@@ -130,8 +133,9 @@ _Bool Img_LoadImage(const char *name, SDL_Surface **surf) {
 
 	int32_t i = 0;
 	while (img_formats[i]) {
-		if (Img_LoadTypedImage(name, img_formats[i++], surf))
+		if (Img_LoadTypedImage(name, img_formats[i++], surf)) {
 			return true;
+		}
 	}
 
 	return false;
@@ -143,8 +147,9 @@ _Bool Img_LoadImage(const char *name, SDL_Surface **surf) {
 void Img_InitPalette(void) {
 	SDL_Surface *surf;
 
-	if (!Img_LoadTypedImage(IMG_PALETTE, "pcx", &surf))
+	if (!Img_LoadTypedImage(IMG_PALETTE, "pcx", &surf)) {
 		return;
+	}
 
 	for (size_t i = 0; i < lengthof(img_palette); i++) {
 		const byte r = surf->format->palette->colors[i].r;
@@ -167,8 +172,9 @@ void Img_InitPalette(void) {
  */
 void Img_ColorFromPalette(uint8_t c, vec_t *res) {
 
-	if (!img_palette_initialized) // lazy-load palette if necessary
+	if (!img_palette_initialized) { // lazy-load palette if necessary
 		Img_InitPalette();
+	}
 
 	const uint32_t color = img_palette[c];
 
@@ -190,7 +196,7 @@ _Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height
 	}
 
 	byte *buffer = Mem_Malloc(width * height * 3);
-	
+
 	// Flip pixels vertically
 	for (size_t i = 0; i < height; i++) {
 		memcpy(buffer + (height - i - 1) * width * 3, data + i * width * 3, 3 * width);

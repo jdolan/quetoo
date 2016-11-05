@@ -26,25 +26,25 @@
  */
 static const vec3_t base_axis[18] = {
 // base texture axis
-		{ 0, 0, 1 },
-		{ 1, 0, 0 },
-		{ 0, -1, 0 }, // floor
-		{ 0, 0, -1 },
-		{ 1, 0, 0 },
-		{ 0, -1, 0 }, // ceiling
-		{ 1, 0, 0 },
-		{ 0, 1, 0 },
-		{ 0, 0, -1 }, // west wall
-		{ -1, 0, 0 },
-		{ 0, 1, 0 },
-		{ 0, 0, -1 }, // east wall
-		{ 0, 1, 0 },
-		{ 1, 0, 0 },
-		{ 0, 0, -1 }, // south wall
-		{ 0, -1, 0 },
-		{ 1, 0, 0 },
-		{ 0, 0, -1 }, // north wall
-		};
+	{ 0, 0, 1 },
+	{ 1, 0, 0 },
+	{ 0, -1, 0 }, // floor
+	{ 0, 0, -1 },
+	{ 1, 0, 0 },
+	{ 0, -1, 0 }, // ceiling
+	{ 1, 0, 0 },
+	{ 0, 1, 0 },
+	{ 0, 0, -1 }, // west wall
+	{ -1, 0, 0 },
+	{ 0, 1, 0 },
+	{ 0, 0, -1 }, // east wall
+	{ 0, 1, 0 },
+	{ 1, 0, 0 },
+	{ 0, 0, -1 }, // south wall
+	{ 0, -1, 0 },
+	{ 1, 0, 0 },
+	{ 0, 0, -1 }, // north wall
+};
 
 static void TextureAxisFromPlane(map_plane_t *pln, vec3_t xv, vec3_t yv) {
 	int32_t bestaxis;
@@ -76,17 +76,21 @@ static int32_t FindTexinfo(d_bsp_texinfo_t *tx) {
 
 	for (i = 0; i < d_bsp.num_texinfo; i++, tc++) {
 
-		if (tc->flags != tx->flags)
+		if (tc->flags != tx->flags) {
 			continue;
+		}
 
-		if (tc->value != tx->value)
+		if (tc->value != tx->value) {
 			continue;
+		}
 
-		if (strncmp(tc->texture, tx->texture, sizeof(tc->texture)))
+		if (strncmp(tc->texture, tx->texture, sizeof(tc->texture))) {
 			continue;
+		}
 
-		if (memcmp((char *) (tc->vecs), (char *) (tx->vecs), sizeof(tx->vecs)))
+		if (memcmp((char *) (tc->vecs), (char *) (tx->vecs), sizeof(tx->vecs))) {
 			continue;
+		}
 
 		return i;
 	}
@@ -111,8 +115,9 @@ int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3
 	d_bsp_texinfo_t tx;
 	int32_t i, j, sv, tv;
 
-	if (!bt->name[0])
+	if (!bt->name[0]) {
 		return 0;
+	}
 
 	memset(&tx, 0, sizeof(tx));
 	strcpy(tx.texture, bt->name);
@@ -122,10 +127,12 @@ int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3
 	shift[0] = DotProduct(origin, vecs[0]);
 	shift[1] = DotProduct(origin, vecs[1]);
 
-	if (!bt->scale[0])
+	if (!bt->scale[0]) {
 		bt->scale[0] = 1.0;
-	if (!bt->scale[1])
+	}
+	if (!bt->scale[1]) {
 		bt->scale[1] = 1.0;
+	}
 
 	// rotate axis
 	if (bt->rotate == 0.0) {
@@ -146,19 +153,21 @@ int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3
 		cosv = cos(ang);
 	}
 
-	if (vecs[0][0])
+	if (vecs[0][0]) {
 		sv = 0;
-	else if (vecs[0][1])
+	} else if (vecs[0][1]) {
 		sv = 1;
-	else
+	} else {
 		sv = 2;
+	}
 
-	if (vecs[1][0])
+	if (vecs[1][0]) {
 		tv = 0;
-	else if (vecs[1][1])
+	} else if (vecs[1][1]) {
 		tv = 1;
-	else
+	} else {
 		tv = 2;
+	}
 
 	for (i = 0; i < 2; i++) {
 		ns = cosv * vecs[i][sv] - sinv * vecs[i][tv];
@@ -168,8 +177,9 @@ int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3
 	}
 
 	for (i = 0; i < 2; i++)
-		for (j = 0; j < 3; j++)
+		for (j = 0; j < 3; j++) {
 			tx.vecs[i][j] = vecs[i][j] / bt->scale[i];
+		}
 
 	tx.vecs[0][3] = bt->shift[0] + shift[0];
 	tx.vecs[1][3] = bt->shift[1] + shift[1];

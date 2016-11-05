@@ -25,15 +25,15 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_InitVote();
-void G_ShutdownVote();
-_Bool G_AddClientToTeam(g_entity_t *ent, const char *team_name);
-void G_ClientCommand(g_entity_t *ent);
-void G_Score_f(g_entity_t *ent);
-void G_Timeout_f(g_entity_t *ent);
-void G_Stuffall_Sv_f(void);
-void G_Mute_Sv_f(void);
-void G_Stuff_Sv_f(void);
+	void G_InitVote();
+	void G_ShutdownVote();
+	_Bool G_AddClientToTeam(g_entity_t *ent, const char *team_name);
+	void G_ClientCommand(g_entity_t *ent);
+	void G_Score_f(g_entity_t *ent);
+	void G_Timeout_f(g_entity_t *ent);
+	void G_Stuffall_Sv_f(void);
+	void G_Mute_Sv_f(void);
+	void G_Stuff_Sv_f(void);
 
 #endif /* __GAME_LOCAL_H__ */
 

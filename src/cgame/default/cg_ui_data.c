@@ -92,7 +92,7 @@ void Cg_CvarTextView(View *view, const char *label, const char *name) {
 
 	cvar_t *var = cgi.CvarGet(name);
 	assert(var);
-	
+
 	CvarTextView *textView = $(alloc(CvarTextView), initWithVariable, var);
 
 	Cg_Input(view, label, (Control *) textView);

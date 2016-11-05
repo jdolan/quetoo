@@ -75,8 +75,9 @@ static void Sv_ConfigString(const uint16_t index, const char *val) {
 		return;
 	}
 
-	if (!val)
+	if (!val) {
 		val = "";
+	}
 
 	// make sure it's actually changed
 	if (!g_strcmp0(sv.config_strings[index], val)) {
@@ -156,16 +157,18 @@ static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
 	const int32_t area1 = Cm_LeafArea(leaf1);
 	const int32_t area2 = Cm_LeafArea(leaf2);
 
-	if (!Cm_AreasConnected(area1, area2))
-		return false; // a door blocks sight
+	if (!Cm_AreasConnected(area1, area2)) {
+		return false;    // a door blocks sight
+	}
 
 	const int32_t cluster1 = Cm_LeafCluster(leaf1);
 	const int32_t cluster2 = Cm_LeafCluster(leaf2);
 
 	Cm_ClusterPVS(cluster1, pvs);
 
-	if ((pvs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0)
+	if ((pvs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0) {
 		return false;
+	}
 
 	return true;
 }
@@ -183,16 +186,18 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 	const int32_t area1 = Cm_LeafArea(leaf1);
 	const int32_t area2 = Cm_LeafArea(leaf2);
 
-	if (!Cm_AreasConnected(area1, area2))
-		return false; // a door blocks hearing
+	if (!Cm_AreasConnected(area1, area2)) {
+		return false;    // a door blocks hearing
+	}
 
 	const int32_t cluster1 = Cm_LeafCluster(leaf1);
 	const int32_t cluster2 = Cm_LeafCluster(leaf2);
 
 	Cm_ClusterPHS(cluster1, phs);
 
-	if ((phs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0)
+	if ((phs[cluster2 >> 3] & (1 << (cluster2 & 7))) == 0) {
 		return false;
+	}
 
 	return true;
 }
@@ -202,8 +207,9 @@ static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
  */
 static void Sv_Sound(const g_entity_t *ent, const uint16_t index, const uint16_t atten) {
 
-	if (!ent)
+	if (!ent) {
 		return;
+	}
 
 	Sv_PositionedSound(NULL, ent, index, atten);
 }
@@ -231,7 +237,7 @@ void Sv_InitGame(void) {
 
 	memset(&import, 0, sizeof(import));
 
-	g_strlcpy(import.write_dir, Fs_WriteDir(), MAX_OS_PATH);  
+	g_strlcpy(import.write_dir, Fs_WriteDir(), MAX_OS_PATH);
 
 	import.Print = Com_Print;
 	import.Debug_ = Com_Debug_;
@@ -300,7 +306,7 @@ void Sv_InitGame(void) {
 
 	if (svs.game->api_version != GAME_API_VERSION) {
 		Com_Error(ERR_DROP, "Game is version %i, not %i\n", svs.game->api_version,
-				GAME_API_VERSION);
+		          GAME_API_VERSION);
 	}
 
 	svs.game->Init();
@@ -315,8 +321,9 @@ void Sv_InitGame(void) {
  */
 void Sv_ShutdownGame(void) {
 
-	if (!svs.game)
+	if (!svs.game) {
 		return;
+	}
 
 	Com_Print("Game shutdown...\n");
 

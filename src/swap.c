@@ -75,8 +75,9 @@ int32_t LittleLong(int32_t l) {
  * @brief
  */
 vec_t BigFloat(vec_t f) {
-	if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
+	if (SDL_BYTEORDER == SDL_LIL_ENDIAN) {
 		return SwapFloat(f);
+	}
 	return f;
 }
 
@@ -84,7 +85,8 @@ vec_t BigFloat(vec_t f) {
  * @brief
  */
 vec_t LittleFloat(vec_t f) {
-	if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+	if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
 		return SwapFloat(f);
+	}
 	return f;
 }

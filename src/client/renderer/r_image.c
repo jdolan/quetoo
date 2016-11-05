@@ -44,8 +44,9 @@ static void R_TextureMode(void) {
 	uint16_t i;
 
 	for (i = 0; i < lengthof(r_texture_modes); i++) {
-		if (!g_ascii_strcasecmp(r_texture_modes[i].name, r_texture_mode->string))
+		if (!g_ascii_strcasecmp(r_texture_modes[i].name, r_texture_mode->string)) {
 			break;
+		}
 	}
 
 	if (i == lengthof(r_texture_modes)) {
@@ -56,10 +57,11 @@ static void R_TextureMode(void) {
 	r_image_state.filter_min = r_texture_modes[i].minimize;
 	r_image_state.filter_mag = r_texture_modes[i].maximize;
 
-	if (r_anisotropy->value)
+	if (r_anisotropy->value) {
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &r_image_state.anisotropy);
-	else
+	} else {
 		r_image_state.anisotropy = 1.0;
+	}
 }
 
 #define MAX_SCREENSHOTS 1000
@@ -81,8 +83,9 @@ static void R_Screenshot_f_encode(void *data) {
 	for (i = last_screenshot; i < MAX_SCREENSHOTS; i++) {
 		g_snprintf(filename, sizeof(filename), "screenshots/quetoo%03u.png", i);
 
-		if (!Fs_Exists(filename))
+		if (!Fs_Exists(filename)) {
 			break;
+		}
 	}
 
 	if (i == MAX_SCREENSHOTS) {
@@ -112,7 +115,7 @@ void R_Screenshot_f(void) {
 
 	s->width = r_context.width;
 	s->height = r_context.height;
-	
+
 	s->buffer = Mem_LinkMalloc(s->width * s->height * 3, s);
 
 	// this doesn't need to be done strictly here, this could be rolled
@@ -168,12 +171,14 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 
 			p[j] = (byte) temp[j];
 
-			if (image->type == IT_DIFFUSE) // accumulate color
+			if (image->type == IT_DIFFUSE) { // accumulate color
 				color[j] += p[j];
+			}
 		}
 
-		if (r_monochrome->integer & mask) // monochrome
+		if (r_monochrome->integer & mask) { // monochrome
 			p[0] = p[1] = p[2] = (p[0] + p[1] + p[2]) / 3;
+		}
 
 		if (r_invert->integer & mask) { // inverted
 			p[0] = 255 - p[0];
@@ -183,11 +188,13 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 	}
 
 	if (image->type == IT_DIFFUSE) { // average accumulated colors
-		for (i = 0; i < 3; i++)
+		for (i = 0; i < 3; i++) {
 			color[i] /= (vec_t) pixels;
+		}
 
-		if (r_monochrome->integer & mask)
+		if (r_monochrome->integer & mask) {
 			color[0] = color[1] = color[2] = (color[0] + color[1] + color[2]) / 3.0;
+		}
 
 		if (r_invert->integer & mask) {
 			color[0] = 255 - color[0];
@@ -195,8 +202,9 @@ void R_FilterImage(r_image_t *image, GLenum format, byte *data) {
 			color[2] = 255 - color[2];
 		}
 
-		for (i = 0; i < 3; i++)
+		for (i = 0; i < 3; i++) {
 			image->color[i] = color[i] / 255.0;
+		}
 	}
 }
 
@@ -231,7 +239,7 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 	}
 
 	glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format,
-			GL_UNSIGNED_BYTE, data);
+	             GL_UNSIGNED_BYTE, data);
 
 	R_RegisterMedia((r_media_t *) image);
 

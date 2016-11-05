@@ -10,7 +10,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU General Public License for more details.
  *
@@ -22,7 +22,7 @@
 #include "qbsp.h"
 
 /**
- * @brief Finds the shortest possible chain of portals that leads from the 
+ * @brief Finds the shortest possible chain of portals that leads from the
  * outside leaf to a specifically occupied leaf.
  */
 void LeakFile(tree_t *tree) {
@@ -32,8 +32,9 @@ void LeakFile(tree_t *tree) {
 	node_t *node;
 	int32_t count;
 
-	if (!tree->outside_node.occupied)
+	if (!tree->outside_node.occupied) {
 		return;
+	}
 
 	Com_Print("--- LeakFile ---\n");
 
@@ -41,8 +42,9 @@ void LeakFile(tree_t *tree) {
 	StripExtension(map_name, file_name);
 	strcat(file_name, ".lin");
 
-	if (!(leakfile = Fs_OpenWrite(file_name)))
+	if (!(leakfile = Fs_OpenWrite(file_name))) {
 		Com_Error(ERR_FATAL, "Couldn't open %s\n", file_name);
+	}
 
 	count = 0;
 	node = &tree->outside_node;

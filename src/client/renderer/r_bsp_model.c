@@ -189,8 +189,9 @@ static void R_SetupBspInlineModel(r_bsp_node_t *node, r_model_t *model) {
 
 	node->model = model;
 
-	if (node->contents != CONTENTS_NODE)
+	if (node->contents != CONTENTS_NODE) {
 		return;
+	}
 
 	R_SetupBspInlineModel(node->children[0], model);
 	R_SetupBspInlineModel(node->children[1], model);
@@ -303,8 +304,8 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  * @brief Convenience for resolving r_bsp_vertex_t from surface edges.
  */
 #define R_BSP_VERTEX(b, e) ((e) >= 0 ? \
-	(&r_unique_vertices.vertexes[b->edges[(e)].v[0]]) : (&r_unique_vertices.vertexes[b->edges[-(e)].v[1]]) \
-)
+                            (&r_unique_vertices.vertexes[b->edges[(e)].v[0]]) : (&r_unique_vertices.vertexes[b->edges[-(e)].v[1]]) \
+                           )
 
 /**
  * @brief Unwinds the surface, iterating all non-collinear vertices.
@@ -312,7 +313,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
  * @return The next winding point, or `NULL` if the face is completely unwound.
  */
 static const r_bsp_vertex_t *R_UnwindBspSurface(const r_bsp_model_t *bsp,
-		const r_bsp_surface_t *surf, uint16_t *index) {
+        const r_bsp_surface_t *surf, uint16_t *index) {
 
 	const int32_t *edges = &bsp->surface_edges[surf->first_edge];
 
@@ -362,10 +363,12 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 		for (int32_t j = 0; j < 2; j++) { // calculate st_mins, st_maxs
 			const vec_t val = DotProduct(v->position, tex->vecs[j]) + tex->vecs[j][3];
-			if (val < st_mins[j])
+			if (val < st_mins[j]) {
 				st_mins[j] = val;
-			if (val > st_maxs[j])
+			}
+			if (val > st_maxs[j]) {
 				st_maxs[j] = val;
+			}
 		}
 	}
 
@@ -441,8 +444,9 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		if (side) {
 			out->flags |= R_SURF_PLANE_BACK;
 			VectorNegate(out->plane->normal, out->normal);
-		} else
+		} else {
 			VectorCopy(out->plane->normal, out->normal);
+		}
 
 		// then texinfo
 		const uint16_t ti = LittleShort(in->texinfo);
@@ -451,8 +455,9 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		}
 		out->texinfo = bsp->texinfo + ti;
 
-		if (!(out->texinfo->flags & (SURF_WARP | SURF_SKY)))
+		if (!(out->texinfo->flags & (SURF_WARP | SURF_SKY))) {
 			out->flags |= R_SURF_LIGHTMAP;
+		}
 
 		// and size, texcoords, etc
 		R_SetupBspSurface(bsp, out);
@@ -489,8 +494,9 @@ static void R_SetupBspNode(r_bsp_node_t *node, r_bsp_node_t *parent) {
 
 	node->parent = parent;
 
-	if (node->contents != CONTENTS_NODE) // leaf
+	if (node->contents != CONTENTS_NODE) { // leaf
 		return;
+	}
 
 	R_SetupBspNode(node->children[0], node);
 	R_SetupBspNode(node->children[1], node);
@@ -528,10 +534,11 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 		for (int32_t j = 0; j < 2; j++) {
 			const int32_t c = LittleLong(in->children[j]);
-			if (c >= 0)
+			if (c >= 0) {
 				out->children[j] = bsp->nodes + c;
-			else
+			} else {
 				out->children[j] = (r_bsp_node_t *) (bsp->leafs + (-1 - c));
+			}
 		}
 	}
 
@@ -621,8 +628,9 @@ static void R_LoadBspSurfaceEdges(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	bsp->surface_edges = out;
 	bsp->num_surface_edges = count;
 
-	for (int32_t i = 0; i < count; i++)
+	for (int32_t i = 0; i < count; i++) {
 		out[i] = LittleLong(in[i]);
+	}
 }
 
 /**
@@ -666,13 +674,13 @@ static guint R_UniqueVerts_HashFunc(gconstpointer key) {
 	const GLuint vi = BSP_VERTEX_INDEX_FOR_KEY(key);
 
 	return	g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][0]) ^
-			g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][1]) ^
-			g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][2]) ^
-			g_double_hash(&r_unique_vertices.mod->bsp->normals[vi][0]) ^
-			g_double_hash(&r_unique_vertices.mod->bsp->normals[vi][1]) ^
-			g_double_hash(&r_unique_vertices.mod->bsp->normals[vi][2]) ^
-			g_double_hash(&r_unique_vertices.mod->bsp->texcoords[vi][0]) ^
-			g_double_hash(&r_unique_vertices.mod->bsp->texcoords[vi][1]);
+	        g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][1]) ^
+	        g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][2]) ^
+	        g_double_hash(&r_unique_vertices.mod->bsp->normals[vi][0]) ^
+	        g_double_hash(&r_unique_vertices.mod->bsp->normals[vi][1]) ^
+	        g_double_hash(&r_unique_vertices.mod->bsp->normals[vi][2]) ^
+	        g_double_hash(&r_unique_vertices.mod->bsp->texcoords[vi][0]) ^
+	        g_double_hash(&r_unique_vertices.mod->bsp->texcoords[vi][1]);
 }
 
 /**
@@ -692,14 +700,14 @@ static gboolean R_UniqueVerts_EqualFunc(gconstpointer a, gconstpointer b) {
 	const r_bsp_model_t *bsp = r_unique_vertices.mod->bsp;
 
 	return	memcmp(bsp->verts[va], bsp->verts[vb], sizeof(vec3_t)) == 0 &&
-			memcmp(bsp->normals[va], bsp->normals[vb], sizeof(vec3_t)) == 0 &&
-			memcmp(bsp->texcoords[va], bsp->texcoords[vb], sizeof(vec2_t)) == 0 &&
-			memcmp(bsp->lightmap_texcoords[va], bsp->lightmap_texcoords[vb], sizeof(vec2_t)) == 0 &&
-			memcmp(bsp->tangents[va], bsp->tangents[vb], sizeof(vec4_t)) == 0;
+	        memcmp(bsp->normals[va], bsp->normals[vb], sizeof(vec3_t)) == 0 &&
+	        memcmp(bsp->texcoords[va], bsp->texcoords[vb], sizeof(vec2_t)) == 0 &&
+	        memcmp(bsp->lightmap_texcoords[va], bsp->lightmap_texcoords[vb], sizeof(vec2_t)) == 0 &&
+	        memcmp(bsp->tangents[va], bsp->tangents[vb], sizeof(vec4_t)) == 0;
 }
 
 /**
- * @brief Attempts to find an element for the vertex at `vertex_index`. If none exists, a new 
+ * @brief Attempts to find an element for the vertex at `vertex_index`. If none exists, a new
  * element is inserted, and its index returned.
  *
  * @returns If a vertex has already been written to the vertex array list that matches
@@ -767,21 +775,22 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 
 			t = DotProduct(vert->position, tdir) + toff;
 			t -= surf->st_mins[1];
-			t += surf->lightmap_t * mod->bsp->lightmaps->scale;
+			t += surf->lightmap_t *mod->bsp->lightmaps->scale;
 			t += mod->bsp->lightmaps->scale / 2.0;
 			t /= surf->lightmap->height * mod->bsp->lightmaps->scale;
 		}
 
 		mod->bsp->lightmap_texcoords[*vertices][0] = s;
 		mod->bsp->lightmap_texcoords[*vertices][1] = t;
-		
+
 		// normal vector, which is per-vertex for SURF_PHONG
 
 		const vec_t *normal;
-		if ((surf->texinfo->flags & SURF_PHONG) && !VectorCompare(vert->normal, vec3_origin))
+		if ((surf->texinfo->flags & SURF_PHONG) && !VectorCompare(vert->normal, vec3_origin)) {
 			normal = vert->normal;
-		else
+		} else {
 			normal = surf->normal;
+		}
 
 		VectorCopy(normal, mod->bsp->normals[*vertices]);
 
@@ -824,7 +833,7 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 	mod->bsp->lightmap_texcoords = Mem_LinkMalloc(st, mod);
 	mod->bsp->normals = Mem_LinkMalloc(v, mod);
 	mod->bsp->tangents = Mem_LinkMalloc(t, mod);
-	
+
 	// make lookup table
 	r_unique_vertices.count = 0;
 	r_unique_vertices.mod = mod;
@@ -865,7 +874,7 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 	const size_t e = mod->num_elements * sizeof(GLuint);
 	GLuint *elements = Mem_LinkMalloc(e, mod);
 	GLuint ei = 0;
-	
+
 	leaf = mod->bsp->leafs;
 	for (uint16_t i = 0; i < mod->bsp->num_leafs; i++, leaf++) {
 
@@ -889,9 +898,9 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 	mod->tangent_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
 
 	R_CreateBuffer(&mod->vertex_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, v, mod->bsp->verts);
-	
+
 	R_CreateBuffer(&mod->normal_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, v, mod->bsp->normals);
-	
+
 	R_CreateBuffer(&mod->tangent_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, t, mod->bsp->tangents);
 
 	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, mod->bsp->texcoords);
@@ -926,7 +935,7 @@ static void R_SortBspSurfacesArrays(r_bsp_model_t *bsp) {
 
 	for (size_t i = 0; i < len; i++, surfs++) {
 		qsort(surfs->surfaces, surfs->count, sizeof(r_bsp_surface_t *),
-				R_SortBspSurfacesArrays_Compare);
+		      R_SortBspSurfacesArrays_Compare);
 	}
 }
 
@@ -950,27 +959,32 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 		}
 
 		if (surf->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
-			if (surf->texinfo->flags & SURF_WARP)
+			if (surf->texinfo->flags & SURF_WARP) {
 				sorted->blend_warp.count++;
-			else
+			} else {
 				sorted->blend.count++;
+			}
 		} else {
-			if (surf->texinfo->flags & SURF_WARP)
+			if (surf->texinfo->flags & SURF_WARP) {
 				sorted->opaque_warp.count++;
-			else if (surf->texinfo->flags & SURF_ALPHA_TEST)
+			} else if (surf->texinfo->flags & SURF_ALPHA_TEST) {
 				sorted->alpha_test.count++;
-			else
+			} else {
 				sorted->opaque.count++;
+			}
 		}
 
-		if (surf->texinfo->material->flags & STAGE_DIFFUSE)
+		if (surf->texinfo->material->flags & STAGE_DIFFUSE) {
 			sorted->material.count++;
+		}
 
-		if (surf->texinfo->material->flags & STAGE_FLARE)
+		if (surf->texinfo->material->flags & STAGE_FLARE) {
 			sorted->flare.count++;
+		}
 
-		if (!(surf->texinfo->flags & SURF_WARP))
+		if (!(surf->texinfo->flags & SURF_WARP)) {
 			sorted->back.count++;
+		}
 	}
 
 	// allocate the surfaces pointers based on the counts
@@ -995,27 +1009,32 @@ static void R_LoadBspSurfacesArrays(r_model_t *mod) {
 		}
 
 		if (surf->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
-			if (surf->texinfo->flags & SURF_WARP)
+			if (surf->texinfo->flags & SURF_WARP) {
 				R_SURFACE_TO_SURFACES(&sorted->blend_warp, surf);
-			else
+			} else {
 				R_SURFACE_TO_SURFACES(&sorted->blend, surf);
+			}
 		} else {
-			if (surf->texinfo->flags & SURF_WARP)
+			if (surf->texinfo->flags & SURF_WARP) {
 				R_SURFACE_TO_SURFACES(&sorted->opaque_warp, surf);
-			else if (surf->texinfo->flags & SURF_ALPHA_TEST)
+			} else if (surf->texinfo->flags & SURF_ALPHA_TEST) {
 				R_SURFACE_TO_SURFACES(&sorted->alpha_test, surf);
-			else
+			} else {
 				R_SURFACE_TO_SURFACES(&sorted->opaque, surf);
+			}
 		}
 
-		if (surf->texinfo->material->flags & STAGE_DIFFUSE)
+		if (surf->texinfo->material->flags & STAGE_DIFFUSE) {
 			R_SURFACE_TO_SURFACES(&sorted->material, surf);
+		}
 
-		if (surf->texinfo->material->flags & STAGE_FLARE)
+		if (surf->texinfo->material->flags & STAGE_FLARE) {
 			R_SURFACE_TO_SURFACES(&sorted->flare, surf);
+		}
 
-		if (!(surf->texinfo->flags & SURF_WARP))
+		if (!(surf->texinfo->flags & SURF_WARP)) {
 			R_SURFACE_TO_SURFACES(&sorted->back, surf);
+		}
 	}
 
 	// now sort them by texture
@@ -1048,8 +1067,9 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	Cl_LoadingProgress(4, "vertices");
 	R_LoadBspVertexes(mod->bsp, &header.lumps[BSP_LUMP_VERTEXES]);
 
-	if (header.version == BSP_VERSION_QUETOO) // enhanced format
+	if (header.version == BSP_VERSION_QUETOO) { // enhanced format
 		R_LoadBspNormals(mod->bsp, &header.lumps[BSP_LUMP_NORMALS]);
+	}
 
 	Cl_LoadingProgress(8, "edges");
 	R_LoadBspEdges(mod->bsp, &header.lumps[BSP_LUMP_EDGES]);
@@ -1100,7 +1120,8 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	Com_Debug("!================================\n");
 	Com_Debug("!R_LoadBspModel: %s\n", mod->media.name);
-	Com_Debug("!  Verts:          %d (%d unique, %d elements)\n", r_unique_vertices.num_vertexes, mod->num_verts, mod->num_elements);
+	Com_Debug("!  Verts:          %d (%d unique, %d elements)\n", r_unique_vertices.num_vertexes, mod->num_verts,
+	          mod->num_elements);
 	Com_Debug("!  Edges:          %d\n", mod->bsp->num_edges);
 	Com_Debug("!  Surface edges:  %d\n", mod->bsp->num_surface_edges);
 	Com_Debug("!  Faces:          %d\n", mod->bsp->num_surfaces);

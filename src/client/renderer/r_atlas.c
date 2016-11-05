@@ -27,8 +27,9 @@
 static void R_FreeAtlas(r_media_t *media) {
 	r_atlas_t *atlas = (r_atlas_t *) media;
 
-	if (atlas->image.texnum)
+	if (atlas->image.texnum) {
 		glDeleteTextures(1, &atlas->image.texnum);
+	}
 
 	g_array_unref(atlas->images);
 
@@ -58,11 +59,12 @@ r_atlas_t *R_CreateAtlas(const char *name) {
 void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image) {
 
 	// ignore duplicates
-	if (g_hash_table_contains(atlas->hash, image))
+	if (g_hash_table_contains(atlas->hash, image)) {
 		return;
+	}
 
 	// add to array
-	g_array_append_vals(atlas->images, &(const r_atlas_image_t){
+	g_array_append_vals(atlas->images, &(const r_atlas_image_t) {
 		.input_image = image
 	}, 1);
 
@@ -100,19 +102,21 @@ typedef struct {
  * @brief Finds a free node that is big enough to hold us.
  */
 static r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, r_packer_node_t *root, r_atlas_image_t *image) {
-	
-	if (root->used) {
-		r_packer_node_t *node = R_AtlasPacker_FindNode(packer, &g_array_index(packer->nodes, r_packer_node_t, root->right), image);
 
-		if (node)
+	if (root->used) {
+		r_packer_node_t *node = R_AtlasPacker_FindNode(packer, &g_array_index(packer->nodes, r_packer_node_t, root->right),
+		                        image);
+
+		if (node) {
 			return node;
+		}
 
 		node = R_AtlasPacker_FindNode(packer, &g_array_index(packer->nodes, r_packer_node_t, root->down), image);
 
-		if (node)
+		if (node) {
 			return node;
-	}
-	else if (image->input_image->width <= root->width && image->input_image->height <= root->height) {
+		}
+	} else if (image->input_image->width <= root->width && image->input_image->height <= root->height) {
 		return root;
 	}
 
@@ -129,21 +133,23 @@ static r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_nod
 	node->down = packer->nodes->len;
 	node->right = packer->nodes->len + 1;
 
-	g_array_append_vals(packer->nodes, &(const r_packer_node_t[]) { {
-		.width = node->width,
-		.height = node->height - image->input_image->height,
-		.x = node->x,
-		.y = node->y + image->input_image->height,
-		.right = -1,
-		.down = -1
-	}, {
-		.width = node->width - image->input_image->width,
-		.height = image->input_image->height,
-		.x = node->x + image->input_image->width,
-		.y = node->y,
-		.right = -1,
-		.down = -1
-	} }, 2);
+	g_array_append_vals(packer->nodes, &(const r_packer_node_t[]) {
+		{
+			.width = node->width,
+			 .height = node->height - image->input_image->height,
+			  .x = node->x,
+			   .y = node->y + image->input_image->height,
+			    .right = -1,
+			     .down = -1
+		}, {
+			.width = node->width - image->input_image->width,
+			.height = image->input_image->height,
+			.x = node->x + image->input_image->width,
+			.y = node->y,
+			.right = -1,
+			.down = -1
+		}
+	}, 2);
 
 	return &g_array_index(packer->nodes, r_packer_node_t, index);
 }
@@ -160,12 +166,13 @@ static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, r_atlas_image_t *
 	const r_packer_node_t *old_root = &g_array_index(packer->nodes, r_packer_node_t, packer->root);
 
 	if (grow_direction == GROW_RIGHT) {
-		g_array_append_vals(packer->nodes, &(const r_packer_node_t[]) { {
+		g_array_append_vals(packer->nodes, &(const r_packer_node_t[]) {
+			{
 				.width = old_root->width + image->input_image->width,
-				.height = old_root->height,
-				.used = true,
-				.down = packer->root,
-				.right = new_connect_id
+				 .height = old_root->height,
+				  .used = true,
+				   .down = packer->root,
+				    .right = new_connect_id
 			}, {
 				.width = image->input_image->width,
 				.height = old_root->height,
@@ -173,31 +180,36 @@ static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, r_atlas_image_t *
 				.y = 0,
 				.right = -1,
 				.down = -1
-			} }, 2);
+			}
+		}, 2);
 
 	} else {
-		g_array_append_vals(packer->nodes, &(const r_packer_node_t[]) { {
-			.width = old_root->width,
-			.height = old_root->height + image->input_image->height,
-			.used = true,
-			.right = packer->root,
-			.down = new_connect_id
-		}, {
-			.width = old_root->width,
-			.height = image->input_image->height,
-			.x = 0,
-			.y = old_root->height,
-			.right = -1,
-			.down = -1
-		} }, 2);
+		g_array_append_vals(packer->nodes, &(const r_packer_node_t[]) {
+			{
+				.width = old_root->width,
+				 .height = old_root->height + image->input_image->height,
+				  .used = true,
+				   .right = packer->root,
+				    .down = new_connect_id
+			}, {
+				.width = old_root->width,
+				.height = image->input_image->height,
+				.x = 0,
+				.y = old_root->height,
+				.right = -1,
+				.down = -1
+			}
+		}, 2);
 	}
 
 	packer->root = new_root_id;
 
-	r_packer_node_t *node = R_AtlasPacker_FindNode(packer, &g_array_index(packer->nodes, r_packer_node_t, packer->root), image);
+	r_packer_node_t *node = R_AtlasPacker_FindNode(packer, &g_array_index(packer->nodes, r_packer_node_t, packer->root),
+	                        image);
 
-	if (node != NULL)
+	if (node != NULL) {
 		return R_AtlasPacker_SplitNode(packer, node, image);
+	}
 
 	return NULL;
 }
@@ -211,17 +223,20 @@ static r_packer_node_t *R_AtlasPacker_GrowNode(r_packer_t *packer, r_atlas_image
 	const _Bool canGrowDown = (image->input_image->width <= root->width);
 	const _Bool canGrowRight = (image->input_image->height <= root->height);
 
-	const _Bool shouldGrowRight = canGrowRight && (root->height >= (root->width + image->input_image->width)); // attempt to keep square-ish by growing right when height is much greater than width
-	const _Bool shouldGrowDown = canGrowDown && (root->width >= (root->height + image->input_image->height));  // attempt to keep square-ish by growing down  when width  is much greater than height
+	const _Bool shouldGrowRight = canGrowRight &&
+	                              (root->height >= (root->width + image->input_image->width)); // attempt to keep square-ish by growing right when height is much greater than width
+	const _Bool shouldGrowDown = canGrowDown &&
+	                             (root->width >= (root->height + image->input_image->height));  // attempt to keep square-ish by growing down  when width  is much greater than height
 
-	if (shouldGrowRight)
+	if (shouldGrowRight) {
 		return R_AtlasPacker_Grow(packer, image, GROW_RIGHT);
-	else if (shouldGrowDown)
+	} else if (shouldGrowDown) {
 		return R_AtlasPacker_Grow(packer, image, GROW_DOWN);
-	else if (canGrowRight)
+	} else if (canGrowRight) {
 		return R_AtlasPacker_Grow(packer, image, GROW_RIGHT);
-	else if (canGrowDown)
+	} else if (canGrowDown) {
 		return R_AtlasPacker_Grow(packer, image, GROW_DOWN);
+	}
 
 	return NULL;
 }
@@ -244,9 +259,9 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 
 	g_array_append_vals(packer.nodes, &(const r_packer_node_t) {
 		.width = g_array_index(atlas->images, r_atlas_image_t, 0).input_image->width,
-		.height = g_array_index(atlas->images, r_atlas_image_t, 0).input_image->height,
-		.right = -1,
-		.down = -1
+		 .height = g_array_index(atlas->images, r_atlas_image_t, 0).input_image->height,
+		  .right = -1,
+		   .down = -1
 	}, 1);
 
 	packer.root = 0;
@@ -254,18 +269,20 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 	// stitch!
 	for (uint16_t i = 0; i < atlas->images->len; i++) {
 		r_atlas_image_t *image = &g_array_index(atlas->images, r_atlas_image_t, i);
-		r_packer_node_t *node = R_AtlasPacker_FindNode(&packer, &g_array_index(packer.nodes, r_packer_node_t, packer.root), image);
+		r_packer_node_t *node = R_AtlasPacker_FindNode(&packer, &g_array_index(packer.nodes, r_packer_node_t, packer.root),
+		                        image);
 
-		if (node != NULL)
+		if (node != NULL) {
 			node = R_AtlasPacker_SplitNode(&packer, node, image);
-		else
+		} else {
 			node = R_AtlasPacker_GrowNode(&packer, image);
+		}
 
 		params->width = MAX(node->x + image->input_image->width, params->width);
 		params->height = MAX(node->y + image->input_image->height, params->height);
 
 		min_size = MIN(min_size, MIN(image->input_image->width, image->input_image->height));
-		
+
 		image->position[0] = node->x;
 		image->position[1] = node->y;
 		image->image.width = image->input_image->width;
@@ -293,7 +310,7 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
  * @brief Generate mipmap levels for the specified atlas.
  */
 void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
-	
+
 	for (uint16_t i = 0; i < params->num_mips; i++) {
 		const uint16_t mip_scale = 1 << i;
 
@@ -324,22 +341,23 @@ void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 
 			// push them into the atlas
 			R_BindTexture(atlas->image.texnum);
-			
+
 			const r_pixel_t subimage_x = image->position[0] / mip_scale;
 			const r_pixel_t subimage_y = image->position[1] / mip_scale;
 
-			glTexSubImage2D(GL_TEXTURE_2D, i, subimage_x, subimage_y, image_mip_width, image_mip_height, GL_RGBA, GL_UNSIGNED_BYTE, subimage_pixels);
+			glTexSubImage2D(GL_TEXTURE_2D, i, subimage_x, subimage_y, image_mip_width, image_mip_height, GL_RGBA, GL_UNSIGNED_BYTE,
+			                subimage_pixels);
 
 			// free scratch
 			Mem_Free(subimage_pixels);
 
 			// if we're setting up mip 0, set up texcoords
 			if (i == 0) {
-				Vector4Set(image->texcoords, 
-					image->position[0] / (vec_t) params->width,
-					image->position[1] / (vec_t) params->height,
-					(image->position[0] + image->input_image->width) / (vec_t) params->width,
-					(image->position[1] + image->input_image->height) / (vec_t) params->height);
+				Vector4Set(image->texcoords,
+				           image->position[0] / (vec_t) params->width,
+				           image->position[1] / (vec_t) params->height,
+				           (image->position[0] + image->input_image->width) / (vec_t) params->width,
+				           (image->position[1] + image->input_image->height) / (vec_t) params->height);
 			}
 		}
 	}
@@ -348,17 +366,18 @@ void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 /**
  * @brief Comparison function for atlas images. This keeps the larger ones running first.
  */
-static int R_AtlasImage_Compare(gconstpointer a, gconstpointer b)
-{
+static int R_AtlasImage_Compare(gconstpointer a, gconstpointer b) {
 	const r_atlas_image_t *ai = (const r_atlas_image_t *) a;
 	const r_atlas_image_t *bi = (const r_atlas_image_t *) b;
 	int cmp;
 
-	if ((cmp = MAX(bi->input_image->width, bi->input_image->height) - MAX(ai->input_image->width, ai->input_image->height)) ||
-		(cmp = MIN(bi->input_image->width, bi->input_image->height) - MIN(ai->input_image->width, ai->input_image->height)) ||
-		(cmp = bi->input_image->height - ai->input_image->height) ||
-		(cmp = bi->input_image->width - ai->input_image->width))
+	if ((cmp = MAX(bi->input_image->width, bi->input_image->height) - MAX(ai->input_image->width,
+	           ai->input_image->height)) ||
+	        (cmp = MIN(bi->input_image->width, bi->input_image->height) - MIN(ai->input_image->width, ai->input_image->height)) ||
+	        (cmp = bi->input_image->height - ai->input_image->height) ||
+	        (cmp = bi->input_image->width - ai->input_image->width)) {
 		return cmp;
+	}
 
 	return 0;
 }
@@ -383,10 +402,10 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
-	}
-	else
+	} else {
 		R_BindTexture(atlas->image.texnum);
-	
+	}
+
 	// stitch
 	R_StitchAtlas(atlas, &params);
 
@@ -396,7 +415,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 	// run generation
 	R_GenerateAtlasMips(atlas, &params);
-	
+
 	// check for errors
 	R_GetError(atlas->image.media.name);
 

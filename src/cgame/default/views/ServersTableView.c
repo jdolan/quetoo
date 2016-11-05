@@ -136,7 +136,7 @@ static void updateBindings(View *self) {
  * @memberof ServersTableView
  */
 static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *frame, ControlStyle style) {
-	
+
 	self = (ServersTableView *) super(TableView, self, initWithFrame, frame, style);
 	if (self) {
 		self->tableView.control.selection = ControlSelectionSingle;
@@ -214,7 +214,7 @@ static ServersTableView *initWithFrame(ServersTableView *self, const SDL_Rect *f
 
 		$((TableView *) self, reloadData);
 	}
-	
+
 	return self;
 }
 

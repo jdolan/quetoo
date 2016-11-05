@@ -30,9 +30,9 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 		ent->client->locals.weapon = item;
 
 		if (item) {
-			
+
 			ent->s.model2 = gi.ModelIndex(item->model);
-			
+
 			if (item->ammo) {
 				ent->client->locals.ammo_index = ITEM_INDEX(G_FindItem(item->ammo));
 			} else {
@@ -48,8 +48,9 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 		return;
 	}
 
-	if (ent->client->locals.weapon_change_time > g_level.time)
+	if (ent->client->locals.weapon_change_time > g_level.time) {
 		return;
+	}
 
 	ent->client->locals.weapon_change_time = g_level.time + 500;
 
@@ -77,10 +78,11 @@ _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 	if (ammo) {
 		const int16_t *stock = &other->client->locals.inventory[ITEM_INDEX(ammo)];
 
-		if (*stock >= ent->locals.health)
+		if (*stock >= ent->locals.health) {
 			G_AddAmmo(other, ammo, ent->locals.health / 2);
-		else
+		} else {
 			G_AddAmmo(other, ammo, ent->locals.health);
+		}
 	}
 
 	// setup respawn if it's not a dropped item
@@ -89,8 +91,9 @@ _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 	}
 
 	// auto-change if it's the first weapon we pick up
-	if (other->client->locals.weapon == G_FindItem("Blaster"))
+	if (other->client->locals.weapon == G_FindItem("Blaster")) {
 		G_ChangeWeapon(other, ent->locals.item);
+	}
 
 	return true;
 }
@@ -145,8 +148,9 @@ void G_UseBestWeapon(g_entity_t *ent) {
 void G_UseWeapon(g_entity_t *ent, const g_item_t *item) {
 
 	// see if we're already using it
-	if (item == ent->client->locals.weapon)
+	if (item == ent->client->locals.weapon) {
 		return;
+	}
 
 	if (item->ammo) { // ensure we have ammo
 		uint16_t index = ITEM_INDEX(G_FindItem(item->ammo));
@@ -190,8 +194,9 @@ g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item) {
 		cl->inventory[index]--;
 
 		// now adjust dropped ammo quantity to reflect what we actually had available
-		if (cl->inventory[ammo_index] < ammo->quantity)
+		if (cl->inventory[ammo_index] < ammo->quantity) {
 			dropped->locals.health = cl->inventory[ammo_index];
+		}
 
 		G_AddAmmo(ent, ammo, -dropped->locals.health);
 	} else {
@@ -208,19 +213,22 @@ g_entity_t *G_TossWeapon(g_entity_t *ent) {
 
 	const g_item_t *weapon = ent->client->locals.weapon;
 
-	if (!weapon || !weapon->ammo) // don't drop if not holding
+	if (!weapon || !weapon->ammo) { // don't drop if not holding
 		return NULL;
+	}
 
 	const int16_t ammo = ent->client->locals.inventory[ent->client->locals.ammo_index];
 
-	if (!ammo) // don't drop when out of ammo
+	if (!ammo) { // don't drop when out of ammo
 		return NULL;
+	}
 
 	g_entity_t *dropped = G_DropItem(ent, ent->client->locals.weapon);
 
 	if (dropped) {
-		if (dropped->locals.health > ammo)
+		if (dropped->locals.health > ammo) {
 			dropped->locals.health = ammo;
+		}
 	}
 
 	return dropped;
@@ -236,21 +244,24 @@ static _Bool G_FireWeapon(g_entity_t *ent) {
 
 	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
 
-	if (!(buttons & BUTTON_ATTACK))
+	if (!(buttons & BUTTON_ATTACK)) {
 		return false;
+	}
 
 	ent->client->locals.latched_buttons &= ~BUTTON_ATTACK;
 
 	// use small epsilon for low server frame rates
-	if (ent->client->locals.weapon_fire_time > g_level.time + 1)
+	if (ent->client->locals.weapon_fire_time > g_level.time + 1) {
 		return false;
+	}
 
 	// determine if ammo is required, and if the quantity is sufficient
 	int16_t ammo;
-	if (ent->client->locals.ammo_index)
+	if (ent->client->locals.ammo_index) {
 		ammo = ent->client->locals.inventory[ent->client->locals.ammo_index];
-	else
+	} else {
 		ammo = 0;
+	}
 
 	const uint16_t ammo_needed = ent->client->locals.weapon->quantity;
 
@@ -284,7 +295,7 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
 	// and decrease their inventory
 	if (ent->client->locals.ammo_index) {
 		ent->client->locals.inventory[ent->client->locals.ammo_index] -=
-				ent->client->locals.weapon->quantity;
+		    ent->client->locals.weapon->quantity;
 	}
 
 	// play a quad damage sound if applicable
@@ -302,11 +313,13 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
  */
 void G_ClientWeaponThink(g_entity_t *ent) {
 
-	if (ent->locals.dead)
+	if (ent->locals.dead) {
 		return;
+	}
 
-	if (ent->client->locals.persistent.spectator)
+	if (ent->client->locals.persistent.spectator) {
 		return;
+	}
 
 	ent->client->locals.weapon_think_time = g_level.time;
 
@@ -321,7 +334,7 @@ void G_ClientWeaponThink(g_entity_t *ent) {
 
 				const g_item_t *item = ent->client->locals.weapon;
 				if (item) {
-					
+
 					// special case for grenades since they're ammo and weapon
 					if (g_strcmp0(item->class_name, "ammo_grenades") == 0) {
 						ent->s.model2 = g_media.models.grenade;
@@ -350,8 +363,9 @@ void G_ClientWeaponThink(g_entity_t *ent) {
 	}
 
 	// call active weapon fire routine
-	if (ent->client->locals.weapon && ent->client->locals.weapon->Think)
+	if (ent->client->locals.weapon && ent->client->locals.weapon->Think) {
 		ent->client->locals.weapon->Think(ent);
+	}
 }
 
 /**
@@ -461,7 +475,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 }
 
 /*
- *  Create a grenade entity that will follow the player 
+ *  Create a grenade entity that will follow the player
  *  while playing the ticking sound
  */
 static void G_PullGrenadePin(g_entity_t *ent) {
@@ -484,24 +498,21 @@ static void G_PullGrenadePin(g_entity_t *ent) {
  * @brief Checks button status and hold time to determine if we're still holding
  * a primed grenade
  */
-static _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
-{
+static _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons) {
 	_Bool current_hold = buttons & BUTTON_ATTACK;
-	
+
 	// just pulled the pin
-	if (!ent->client->locals.grenade_hold_time && current_hold)
-	{
+	if (!ent->client->locals.grenade_hold_time && current_hold) {
 		G_PullGrenadePin(ent);
 		ent->client->locals.grenade_hold_time = g_level.time;
 		ent->client->locals.grenade_hold_frame = g_level.frame_num;
 		return true;
 	}
 	// already pulled the pin and holding it
-	else if (ent->client->locals.grenade_hold_time && current_hold)
-	{
+	else if (ent->client->locals.grenade_hold_time && current_hold) {
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -511,30 +522,33 @@ static _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons)
 void G_FireHandGrenade(g_entity_t *ent) {
 
 	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
-	
+
 	// didn't touch fire button or holding a grenade
-	if (!(buttons & BUTTON_ATTACK) && !ent->client->locals.grenade_hold_time)
+	if (!(buttons & BUTTON_ATTACK) && !ent->client->locals.grenade_hold_time) {
 		return;
-	
+	}
+
 	const uint32_t nade_time = 3 * 1000;	// 3 seconds before boom
 	vec_t throw_speed = 500.0; // minimum
-	
+
 	// use small epsilon for low server frame rates
-	if (ent->client->locals.weapon_fire_time > g_level.time + 1)
+	if (ent->client->locals.weapon_fire_time > g_level.time + 1) {
 		return;
+	}
 
 	int16_t ammo;
-	if (ent->client->locals.ammo_index)
+	if (ent->client->locals.ammo_index) {
 		ammo = ent->client->locals.inventory[ent->client->locals.ammo_index];
-	else
+	} else {
 		ammo = 0;
+	}
 
 	// override quantity needed from g_item_t since grenades are both ammo and weapon
 	const uint16_t ammo_needed = 1;
-	
+
 	// if the client does not have enough ammo, change weapons
 	if (ent->client->locals.ammo_index && ammo < ammo_needed) {
-	
+
 		if (g_level.time >= ent->client->locals.pain_time) { // play a click sound
 			gi.Sound(ent, g_media.sounds.weapon_no_ammo, ATTEN_NORM);
 			ent->client->locals.pain_time = g_level.time + 1000;
@@ -543,50 +557,50 @@ void G_FireHandGrenade(g_entity_t *ent) {
 		G_UseBestWeapon(ent);
 		return;
 	}
-	
+
 	// are we holding a primed grenade?
 	_Bool holding = G_CheckGrenadeHold(ent, buttons);
-	
+
 	// how long have we been holding it?
 	uint32_t hold_time = g_level.time - ent->client->locals.grenade_hold_time;
-	
+
 	// continue holding if time allows
 	if (holding && (int32_t)(nade_time - hold_time) > 0) {
-	
+
 		// play the timer sound if we're holding once every second
 		if ((g_level.frame_num - ent->client->locals.grenade_hold_frame) % QUETOO_TICK_RATE == 0) {
 			gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_clang.ogg"), ATTEN_NORM);
 		}
 		return;
 	}
-	
+
 	// to tell if it went off in player's hand or not
 	if (!holding) {
 		ent->client->locals.grenade_hold_time = 0;
 	}
-		
+
 	// figure out how fast/far to throw
 	throw_speed *= (vec_t) hold_time / 1000;
 	throw_speed = Clamp(throw_speed, 500, 1200);
-	
+
 	vec3_t forward, right, up, org;
-	
+
 	G_InitProjectile(ent, forward, right, up, org);
 	G_HandGrenadeProjectile(
-		ent,					// player
-		ent->client->locals.held_grenade,	// the grenade
-		org,					// starting point
-		forward,				// direction
-		(uint32_t)throw_speed,	// how fast does it fly
-		120,					// damage dealt
-		120,					// knockback
-		185.0,					// blast radius 
-		nade_time-hold_time		// time before explode (next think)
+	    ent,					// player
+	    ent->client->locals.held_grenade,	// the grenade
+	    org,					// starting point
+	    forward,				// direction
+	    (uint32_t)throw_speed,	// how fast does it fly
+	    120,					// damage dealt
+	    120,					// knockback
+	    185.0,					// blast radius
+	    nade_time - hold_time		// time before explode (next think)
 	);
-		
+
 	// play the sound if we throw it
 	gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_throw.wav"), ATTEN_NORM);
-	
+
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
@@ -606,7 +620,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 			ent->client->locals.quad_attack_time = g_level.time + 500;
 		}
 	}
-	
+
 	ent->client->locals.grenade_hold_time = 0;
 	ent->client->locals.grenade_hold_frame = 0;
 }

@@ -31,8 +31,9 @@
 static void Cg_LoadClientSkin(r_material_t **skins, const r_md3_t *md3, char *line) {
 	int32_t i;
 
-	if (strstr(line, "tag_"))
+	if (strstr(line, "tag_")) {
 		return;
+	}
 
 	char *skin_name, *mesh_name = line;
 
@@ -117,11 +118,13 @@ static void Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const
  */
 static _Bool Cg_ValidateClient(cl_client_info_t *ci) {
 
-	if (!ci->head || !ci->torso || !ci->legs)
+	if (!ci->head || !ci->torso || !ci->legs) {
 		return false;
+	}
 
-	if (!ci->head_skins[0] || !ci->torso_skins[0] || !ci->legs_skins[0])
+	if (!ci->head_skins[0] || !ci->torso_skins[0] || !ci->legs_skins[0]) {
 		return false;
+	}
 
 	VectorScale(PM_MINS, PM_SCALE, ci->legs->mins);
 	VectorScale(PM_MAXS, PM_SCALE, ci->legs->maxs);
@@ -218,8 +221,9 @@ void Cg_LoadClients(void) {
 		cl_client_info_t *ci = &cgi.client->client_info[i];
 		const char *s = cgi.ConfigString(CS_CLIENTS + i);
 
-		if (!*s)
+		if (!*s) {
 			continue;
+		}
 
 		Cg_LoadClient(ci, s);
 	}
@@ -276,7 +280,7 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 		return;
 	}
 
-	const uint32_t frame_time = (1000 / cgi.CvarValue("time_scale") ?: 1.0) / anim->hz;
+	const uint32_t frame_time = (1000 / cgi.CvarValue("time_scale") ? : 1.0) / anim->hz;
 	const uint32_t animation_time = anim->num_frames * frame_time;
 	const uint32_t elapsed_time = cgi.client->systime - a->time;
 	int32_t frame = elapsed_time / frame_time;

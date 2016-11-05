@@ -36,7 +36,7 @@ static console_t sv_console;
 /**
  * @brief Console append callback.
  */
-static void Sv_Print(const console_string_t *str __attribute__((unused))) {
+static void Sv_Print(const console_string_t *str) {
 
 	sv_console_state.dirty = true;
 }
@@ -70,7 +70,8 @@ static void Sv_HandleEvents(void) {
 				if (in->pos > 0) {
 					char *c = in->buffer + in->pos - 1;
 					while (*c) {
-						*c = *(c + 1); c++;
+						*c = *(c + 1);
+						c++;
 					}
 					in->pos--;
 				}
@@ -80,7 +81,8 @@ static void Sv_HandleEvents(void) {
 				if (in->pos < strlen(in->buffer)) {
 					char *c = in->buffer + in->pos;
 					while (*c) {
-						*c = *(c + 1); c++;
+						*c = *(c + 1);
+						c++;
 					}
 				}
 				break;
@@ -149,15 +151,17 @@ static void Sv_HandleEvents(void) {
  */
 static void Sv_DrawConsole_Color(int32_t color) {
 
-	if (!has_colors())
+	if (!has_colors()) {
 		return;
+	}
 
 	color_set(color, NULL);
 
-	if (color == 3 || color == 0)
+	if (color == 3 || color == 0) {
 		attron(A_BOLD);
-	else
+	} else {
 		attroff(A_BOLD);
+	}
 }
 
 /**
@@ -190,7 +194,7 @@ static void Sv_DrawConsole_Buffer(void) {
 		const size_t j = count - i - 1;
 		char *line = lines[j];
 		char *s = line;
-		
+
 		Sv_DrawConsole_Color(j ? StrrColor(lines[j - 1]) : CON_COLOR_DEFAULT);
 
 		size_t col = 1;
@@ -261,7 +265,7 @@ void Sv_DrawConsole(void) {
 /**
  * @brief Window resize signal handler
  */
-static void Sv_ResizeConsole(int32_t sig __attribute__((unused))) {
+static void Sv_ResizeConsole(int32_t sig) {
 
 	endwin();
 
@@ -276,8 +280,9 @@ static void Sv_ResizeConsole(int32_t sig __attribute__((unused))) {
  */
 void Sv_InitConsole(void) {
 
-	if (!dedicated->value)
+	if (!dedicated->value) {
 		return;
+	}
 
 #if defined(_WIN32)
 	if (AllocConsole()) {
@@ -340,8 +345,9 @@ void Sv_InitConsole(void) {
  */
 void Sv_ShutdownConsole(void) {
 
-	if (!dedicated->value)
+	if (!dedicated->value) {
 		return;
+	}
 
 	endwin();
 

@@ -32,14 +32,14 @@ typedef struct {
 #define	MAX_POINTS_ON_WINDING	64
 
 #ifndef	ON_EPSILON
-#define	ON_EPSILON	0.1
+	#define	ON_EPSILON	0.1
 #endif
 
 winding_t *AllocWinding(int32_t points);
 vec_t WindingArea(const winding_t *w);
 void WindingCenter(const winding_t *w, vec3_t center);
 void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t epsilon,
-		winding_t **front, winding_t **back);
+                        winding_t **front, winding_t **back);
 winding_t *CopyWinding(const winding_t *w);
 winding_t *ReverseWinding(winding_t *w);
 winding_t *WindingForPlane(const vec3_t normal, const vec_t dist);

@@ -50,14 +50,16 @@ static void S_Stop(void) {
  */
 void S_Frame(void) {
 
-	if (!s_env.initialized)
+	if (!s_env.initialized) {
 		return;
+	}
 
 	S_FrameMusic();
 
 	if (cls.state != CL_ACTIVE) {
-		if (Mix_Playing(-1) > 0)
+		if (Mix_Playing(-1) > 0) {
 			S_Stop();
+		}
 		return;
 	}
 
@@ -80,8 +82,9 @@ void S_Frame(void) {
 void S_LoadMedia(void) {
 	extern cl_client_t cl;
 
-	if (!s_env.initialized)
-		return; // sound disabled
+	if (!s_env.initialized) {
+		return;    // sound disabled
+	}
 
 	if (!cl.config_strings[CS_MODELS][0]) {
 		return; // no map specified
@@ -95,16 +98,18 @@ void S_LoadMedia(void) {
 
 	for (uint32_t i = 0; i < MAX_SOUNDS; i++) {
 
-		if (!cl.config_strings[CS_SOUNDS + i][0])
+		if (!cl.config_strings[CS_SOUNDS + i][0]) {
 			break;
+		}
 
 		cl.sound_precache[i] = S_LoadSample(cl.config_strings[CS_SOUNDS + i]);
 	}
 
 	for (uint32_t i = 0; i < MAX_MUSICS; i++) {
 
-		if (!cl.config_strings[CS_MUSICS + i][0])
+		if (!cl.config_strings[CS_MUSICS + i][0]) {
 			break;
+		}
 
 		cl.music_precache[i] = S_LoadMusic(cl.config_strings[CS_MUSICS + i]);
 	}
@@ -141,8 +146,9 @@ static void S_Stop_f(void) {
  */
 static void S_Restart_f(void) {
 
-	if (cls.state == CL_LOADING)
+	if (cls.state == CL_LOADING) {
 		return;
+	}
 
 	S_Shutdown();
 
@@ -235,8 +241,9 @@ void S_Init(void) {
  */
 void S_Shutdown(void) {
 
-	if (!s_env.initialized)
+	if (!s_env.initialized) {
 		return;
+	}
 
 	S_Stop();
 

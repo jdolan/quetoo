@@ -29,11 +29,11 @@ _Bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2);
 _Bool G_CanDamage(g_entity_t *targ, g_entity_t *inflictor);
 
 void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, const vec3_t dir,
-		const vec3_t point, const vec3_t normal, int16_t damage, int16_t knockback, uint32_t dflags,
-		uint32_t mod);
+              const vec3_t point, const vec3_t normal, int16_t damage, int16_t knockback, uint32_t dflags,
+              uint32_t mod);
 
 void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ignore, int16_t damage,
-		int16_t knockback, vec_t radius, uint32_t mod);
+                    int16_t knockback, vec_t radius, uint32_t mod);
 
 #endif /* __GAME_LOCAL_H__ */
 

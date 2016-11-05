@@ -98,8 +98,9 @@ static void G_SpawnEntity(g_entity_t *ent) {
 	const g_item_t *item = g_items;
 	for (i = 0; i < g_num_items; i++, item++) {
 
-		if (!item->class_name)
+		if (!item->class_name) {
 			continue;
+		}
 
 		if (!g_strcmp0(item->class_name, ent->class_name)) { // found it
 			G_SpawnItem(ent, item);
@@ -134,12 +135,14 @@ static char *G_NewString(const char *string) {
 	for (i = 0; i < l; i++) {
 		if (string[i] == '\\' && i < l - 1) {
 			i++;
-			if (string[i] == 'n')
+			if (string[i] == 'n') {
 				*new_p++ = '\n';
-			else
+			} else {
 				*new_p++ = '\\';
-		} else
+			}
+		} else {
 			*new_p++ = string[i];
+		}
 	}
 
 	return newb;
@@ -233,10 +236,11 @@ static void G_ParseField(const char *key, const char *value, g_entity_t *ent) {
 
 		if (!(f->flags & FFL_NO_SPAWN) && !g_ascii_strcasecmp(f->name, key)) { // found it
 
-			if (f->flags & FFL_SPAWN_TEMP)
+			if (f->flags & FFL_SPAWN_TEMP) {
 				b = (byte *) &g_game.spawn;
-			else
+			} else {
 				b = (byte *) ent;
+			}
 
 			switch (f->type) {
 				case F_SHORT:
@@ -289,34 +293,40 @@ static const char *G_ParseEntity(const char *data, g_entity_t *ent) {
 	while (true) {
 		// parse key
 		tok = ParseToken(&data);
-		if (tok[0] == '}')
+		if (tok[0] == '}') {
 			break;
+		}
 
-		if (!data)
+		if (!data) {
 			gi.Error("EOF without closing brace\n");
+		}
 
 		g_strlcpy(key, tok, sizeof(key));
 
 		// parse value
 		tok = ParseToken(&data);
-		if (!data)
+		if (!data) {
 			gi.Error("EOF in entity definition\n");
+		}
 
-		if (tok[0] == '}')
+		if (tok[0] == '}') {
 			gi.Error("No entity definition\n");
+		}
 
 		init = true;
 
 		// keys with a leading underscore are used for utility comments,
 		// and are immediately discarded by quake
-		if (key[0] == '_')
+		if (key[0] == '_') {
 			continue;
+		}
 
 		G_ParseField(key, tok, ent);
 	}
 
-	if (!init)
+	if (!init) {
 		memset(ent, 0, sizeof(*ent));
+	}
 
 	return data;
 }
@@ -334,14 +344,17 @@ static void G_InitEntityTeams(void) {
 	uint16_t teams = 0, team_entities = 0;
 	for (i = 1, e = g_game.entities + i; i < ge.num_entities; i++, e++) {
 
-		if (!e->in_use)
+		if (!e->in_use) {
 			continue;
+		}
 
-		if (!e->locals.team)
+		if (!e->locals.team) {
 			continue;
+		}
 
-		if (e->locals.flags & FL_TEAM_SLAVE)
+		if (e->locals.flags & FL_TEAM_SLAVE) {
 			continue;
+		}
 
 		g_entity_t *chain = e;
 		e->locals.team_master = e;
@@ -351,14 +364,17 @@ static void G_InitEntityTeams(void) {
 
 		for (j = i + 1, e2 = e + 1; j < ge.num_entities; j++, e2++) {
 
-			if (!e2->in_use)
+			if (!e2->in_use) {
 				continue;
+			}
 
-			if (!e2->locals.team)
+			if (!e2->locals.team) {
 				continue;
+			}
 
-			if (e2->locals.flags & FL_TEAM_SLAVE)
+			if (e2->locals.flags & FL_TEAM_SLAVE) {
 				continue;
+			}
 
 			if (!g_strcmp0(e->locals.team, e2->locals.team)) {
 
@@ -415,10 +431,10 @@ static void G_InitMedia(void) {
 	for (i = 1; i < lengthof(g_media.sounds.countdown); i++) {
 		g_media.sounds.countdown[i] = gi.SoundIndex(va("world/countdown_%d", i));
 	}
-	
+
 	g_media.sounds.roar = gi.SoundIndex("world/ominous_bwah");
-	
-	
+
+
 	// precache all weapons, even if the map doesn't contain them
 	G_PrecacheItem(G_FindItem("Blaster"));
 	G_PrecacheItem(G_FindItem("Shotgun"));
@@ -472,16 +488,19 @@ void G_SpawnEntities(const char *name, const char *entities) {
 
 		const char *tok = ParseToken(&entities);
 
-		if (!entities)
+		if (!entities) {
 			break;
+		}
 
-		if (tok[0] != '{')
+		if (tok[0] != '{') {
 			gi.Error("Found \"%s\" when expecting \"{\"", tok);
+		}
 
-		if (ent == NULL)
+		if (ent == NULL) {
 			ent = g_game.entities;
-		else
+		} else {
 			ent = G_AllocEntity(__func__);
+		}
 
 		entities = G_ParseEntity(entities, ent);
 
@@ -547,14 +566,17 @@ static void G_WorldspawnMusic(void) {
 
 	while (true) {
 
-		if (!t)
+		if (!t) {
 			break;
+		}
 
-		if (i == MAX_MUSICS)
+		if (i == MAX_MUSICS) {
 			break;
+		}
 
-		if (*t != '\0')
+		if (*t != '\0') {
 			gi.ConfigString(CS_MUSICS + i++, g_strstrip(t));
+		}
 
 		t = strtok(NULL, ",");
 	}
@@ -593,41 +615,49 @@ static void G_worldspawn(g_entity_t *ent) {
 
 	const g_map_list_map_t *map = G_MapList_Find(g_level.name);
 
-	if (ent->locals.message && *ent->locals.message)
+	if (ent->locals.message && *ent->locals.message) {
 		g_strlcpy(g_level.title, ent->locals.message, sizeof(g_level.title));
-	else
+	} else
 		// or just the level name
+	{
 		g_strlcpy(g_level.title, g_level.name, sizeof(g_level.title));
+	}
 	gi.ConfigString(CS_NAME, g_level.title);
 
-	if (map && *map->sky) // prefer maps.lst sky
+	if (map && *map->sky) { // prefer maps.lst sky
 		gi.ConfigString(CS_SKY, map->sky);
-	else { // or fall back on worldspawn
-		if (g_game.spawn.sky && *g_game.spawn.sky)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.sky && *g_game.spawn.sky) {
 			gi.ConfigString(CS_SKY, g_game.spawn.sky);
-		else
+		} else
 			// or default to unit1_
+		{
 			gi.ConfigString(CS_SKY, "unit1_");
+		}
 	}
 
-	if (map && *map->weather) // prefer maps.lst weather
+	if (map && *map->weather) { // prefer maps.lst weather
 		gi.ConfigString(CS_WEATHER, map->weather);
-	else { // or fall back on worldspawn
-		if (g_game.spawn.weather && *g_game.spawn.weather)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.weather && *g_game.spawn.weather) {
 			gi.ConfigString(CS_WEATHER, g_game.spawn.weather);
-		else
+		} else
 			// or default to none
+		{
 			gi.ConfigString(CS_WEATHER, "none");
+		}
 	}
 
-	if (map && map->gravity > 0) // prefer maps.lst gravity
+	if (map && map->gravity > 0) { // prefer maps.lst gravity
 		g_level.gravity = map->gravity;
-	else { // or fall back on worldspawn
-		if (g_game.spawn.gravity && *g_game.spawn.gravity)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.gravity && *g_game.spawn.gravity) {
 			g_level.gravity = atoi(g_game.spawn.gravity);
-		else
+		} else
 			// or default to 800
+		{
 			g_level.gravity = 800;
+		}
 	}
 
 	if (g_strcmp0(g_gameplay->string, "default")) { // perfer g_gameplay
@@ -635,125 +665,148 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else if (map && map->gameplay > -1) { // then maps.lst gameplay
 		g_level.gameplay = map->gameplay;
 	} else { // or fall back on worldspawn
-		if (g_game.spawn.gameplay && *g_game.spawn.gameplay)
+		if (g_game.spawn.gameplay && *g_game.spawn.gameplay) {
 			g_level.gameplay = G_GameplayByName(g_game.spawn.gameplay);
-		else
+		} else
 			// or default to deathmatch
+		{
 			g_level.gameplay = GAME_DEATHMATCH;
+		}
 	}
 	gi.ConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
-	if (map && map->teams > -1) // prefer maps.lst teams
+	if (map && map->teams > -1) { // prefer maps.lst teams
 		g_level.teams = map->teams;
-	else { // or fall back on worldspawn
-		if (g_game.spawn.teams && *g_game.spawn.teams)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.teams && *g_game.spawn.teams) {
 			g_level.teams = atoi(g_game.spawn.teams);
-		else
+		} else
 			// or default to cvar
+		{
 			g_level.teams = g_teams->integer;
+		}
 	}
 
-	if (map && map->ctf > -1) // prefer maps.lst ctf
+	if (map && map->ctf > -1) { // prefer maps.lst ctf
 		g_level.ctf = map->ctf;
-	else { // or fall back on worldspawn
-		if (g_game.spawn.ctf && *g_game.spawn.ctf)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.ctf && *g_game.spawn.ctf) {
 			g_level.ctf = atoi(g_game.spawn.ctf);
-		else
+		} else
 			// or default to cvar
+		{
 			g_level.ctf = g_ctf->integer;
+		}
 	}
 
-	if (g_level.teams && g_level.ctf) // ctf overrides teams
+	if (g_level.teams && g_level.ctf) { // ctf overrides teams
 		g_level.teams = 0;
+	}
 
 	gi.ConfigString(CS_TEAMS, va("%d", g_level.teams));
 	gi.ConfigString(CS_CTF, va("%d", g_level.ctf));
 
-	if (map && map->match > -1) // prefer maps.lst match
+	if (map && map->match > -1) { // prefer maps.lst match
 		g_level.match = map->match;
-	else { // or fall back on worldspawn
-		if (g_game.spawn.match && *g_game.spawn.match)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.match && *g_game.spawn.match) {
 			g_level.match = atoi(g_game.spawn.match);
-		else
+		} else
 			// or default to cvar
+		{
 			g_level.match = g_match->integer;
+		}
 	}
 
-	if (map && map->rounds > -1) // prefer maps.lst rounds
+	if (map && map->rounds > -1) { // prefer maps.lst rounds
 		g_level.rounds = map->rounds;
-	else { // or fall back on worldspawn
-		if (g_game.spawn.rounds && *g_game.spawn.rounds)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.rounds && *g_game.spawn.rounds) {
 			g_level.rounds = atoi(g_game.spawn.rounds);
-		else
+		} else
 			// or default to cvar
+		{
 			g_level.rounds = g_rounds->integer;
+		}
 	}
 
-	if (g_level.match && g_level.rounds) // rounds overrides match
+	if (g_level.match && g_level.rounds) { // rounds overrides match
 		g_level.match = 0;
+	}
 
 	gi.ConfigString(CS_MATCH, va("%d", g_level.match));
 	gi.ConfigString(CS_ROUNDS, va("%d", g_level.rounds));
 
-	if (map && map->frag_limit > -1) // prefer maps.lst frag_limit
+	if (map && map->frag_limit > -1) { // prefer maps.lst frag_limit
 		g_level.frag_limit = map->frag_limit;
-	else { // or fall back on worldspawn
-		if (g_game.spawn.frag_limit && *g_game.spawn.frag_limit)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.frag_limit && *g_game.spawn.frag_limit) {
 			g_level.frag_limit = atoi(g_game.spawn.frag_limit);
-		else
+		} else
 			// or default to cvar
+		{
 			g_level.frag_limit = g_frag_limit->integer;
+		}
 	}
 
-	if (map && map->round_limit > -1) // prefer maps.lst round_limit
+	if (map && map->round_limit > -1) { // prefer maps.lst round_limit
 		g_level.round_limit = map->round_limit;
-	else { // or fall back on worldspawn
-		if (g_game.spawn.round_limit && *g_game.spawn.round_limit)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.round_limit && *g_game.spawn.round_limit) {
 			g_level.round_limit = atoi(g_game.spawn.round_limit);
-		else
+		} else
 			// or default to cvar
+		{
 			g_level.round_limit = g_round_limit->integer;
+		}
 	}
 
-	if (map && map->capture_limit > -1) // prefer maps.lst capture_limit
+	if (map && map->capture_limit > -1) { // prefer maps.lst capture_limit
 		g_level.capture_limit = map->capture_limit;
-	else { // or fall back on worldspawn
-		if (g_game.spawn.capture_limit && *g_game.spawn.capture_limit)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.capture_limit && *g_game.spawn.capture_limit) {
 			g_level.capture_limit = atoi(g_game.spawn.capture_limit);
-		else
+		} else
 			// or default to cvar
+		{
 			g_level.capture_limit = g_capture_limit->integer;
+		}
 	}
 
 	vec_t time_limit;
-	if (map && map->time_limit > -1) // prefer maps.lst time_limit
+	if (map && map->time_limit > -1) { // prefer maps.lst time_limit
 		time_limit = map->time_limit;
-	else { // or fall back on worldspawn
-		if (g_game.spawn.time_limit && *g_game.spawn.time_limit)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.time_limit && *g_game.spawn.time_limit) {
 			time_limit = atof(g_game.spawn.time_limit);
-		else
+		} else
 			// or default to cvar
+		{
 			time_limit = g_time_limit->value;
+		}
 	}
 	g_level.time_limit = time_limit * 60 * 1000;
 
-	if (map && *map->give) // prefer maps.lst give
+	if (map && *map->give) { // prefer maps.lst give
 		g_strlcpy(g_level.give, map->give, sizeof(g_level.give));
-	else { // or fall back on worldspawn
-		if (g_game.spawn.give && *g_game.spawn.give)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.give && *g_game.spawn.give) {
 			g_strlcpy(g_level.give, g_game.spawn.give, sizeof(g_level.give));
-		else
+		} else
 			// or clean it
+		{
 			g_level.give[0] = '\0';
+		}
 	}
 
-	if (map && *map->music) // prefer maps.lst music
+	if (map && *map->music) { // prefer maps.lst music
 		g_strlcpy(g_level.music, map->music, sizeof(g_level.music));
-	else { // or fall back on worldspawn
-		if (g_game.spawn.music && *g_game.spawn.music)
+	} else { // or fall back on worldspawn
+		if (g_game.spawn.music && *g_game.spawn.music) {
 			g_strlcpy(g_level.music, g_game.spawn.music, sizeof(g_level.music));
-		else
+		} else {
 			g_level.music[0] = '\0';
+		}
 	}
 
 	G_WorldspawnMusic();

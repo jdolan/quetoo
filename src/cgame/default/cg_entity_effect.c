@@ -27,11 +27,13 @@
 void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 	cg_particle_t *p;
 
-	if (Cg_IsSelf(ent) && !cg_third_person->value)
+	if (Cg_IsSelf(ent) && !cg_third_person->value) {
 		return;
+	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_inactive)))
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_inactive))) {
 		return;
+	}
 
 	cgi.ColorFromPalette(11, p->part.color);
 	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -9999.0);
@@ -102,8 +104,9 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		VectorMA(e->shell, 0.5, l.color, e->shell);
 	}
 
-	if (VectorNormalize(e->shell) > 0.0)
+	if (VectorNormalize(e->shell) > 0.0) {
 		e->effects |= EF_SHELL;
+	}
 
 	if (e->effects & EF_DESPAWN) {
 

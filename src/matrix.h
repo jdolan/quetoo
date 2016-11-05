@@ -25,8 +25,7 @@
 
 #define MATRIX4x4_OPENGLORIENTATION true
 
-typedef struct matrix4x4_s
-{
+typedef struct matrix4x4_s {
 	vec_t m[4][4];
 }
 matrix4x4_t;
@@ -75,7 +74,8 @@ void Matrix4x4_Normalize (matrix4x4_t *out, const matrix4x4_t *in1);
 void Matrix4x4_Normalize3 (matrix4x4_t *out, const matrix4x4_t *in1);
 // modifies a matrix to have all vectors and origin reflected across the plane
 // to the opposite side (at least if axisscale is -2)
-void Matrix4x4_Reflect (matrix4x4_t *out, double normalx, double normaly, double normalz, double dist, double axisscale);
+void Matrix4x4_Reflect (matrix4x4_t *out, double normalx, double normaly, double normalz, double dist,
+                        double axisscale);
 
 // creates an identity matrix
 // (a matrix which does nothing)
@@ -96,7 +96,8 @@ void Matrix4x4_CreateScale (matrix4x4_t *out, double x);
 // (warning: do not apply this kind of matrix to direction vectors)
 void Matrix4x4_CreateScale3 (matrix4x4_t *out, double x, double y, double z);
 // creates a matrix for a quake entity
-void Matrix4x4_CreateFromQuakeEntity(matrix4x4_t *out, double x, double y, double z, double pitch, double yaw, double roll, double scale);
+void Matrix4x4_CreateFromQuakeEntity(matrix4x4_t *out, double x, double y, double z, double pitch, double yaw,
+                                     double roll, double scale);
 
 // for convenience, take vector-based origin and angles parameters
 #define Matrix4x4_CreateFromEntity(m, o, a, s) Matrix4x4_CreateFromQuakeEntity(m, o[0], o[1], o[2], a[0], a[1], a[2], s)
@@ -192,8 +193,10 @@ void Matrix4x4_Scale (matrix4x4_t *out, double rotatescale, double originscale);
 void Matrix4x4_Abs (matrix4x4_t *out);
 
 // generate a perspective transformation matrix from bounds
-void Matrix4x4_FromFrustum (matrix4x4_t *out, double left, double right, double bottom, double top, double nearval, double farval);
+void Matrix4x4_FromFrustum (matrix4x4_t *out, double left, double right, double bottom, double top, double nearval,
+                            double farval);
 // generate an orthogonal projection matrix from bounds
-void Matrix4x4_FromOrtho (matrix4x4_t *out, double left, double right, double bottom, double top, double nearval, double farval);
+void Matrix4x4_FromOrtho (matrix4x4_t *out, double left, double right, double bottom, double top, double nearval,
+                          double farval);
 
 #endif /* __MATRIX_H__ */

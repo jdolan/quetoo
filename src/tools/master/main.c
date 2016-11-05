@@ -193,7 +193,7 @@ static void Ms_Frame(void) {
 
 					const char *ping = "\xFF\xFF\xFF\xFF" "ping";
 					sendto(ms_sock, ping, strlen(ping), 0, (struct sockaddr *) &server->addr,
-							sizeof(server->addr));
+					       sizeof(server->addr));
 				}
 			}
 		}
@@ -226,10 +226,11 @@ static void Ms_GetServers(struct sockaddr_in *from) {
 		s = s->next;
 	}
 
-	if ((sendto(ms_sock, buf.data, buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1)
+	if ((sendto(ms_sock, buf.data, buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
 		Com_Warn("%s: %s\n", atos(from), strerror(errno));
-	else
+	} else {
 		Com_Verbose("Sent %d servers to %s\n", i, atos(from));
+	}
 }
 
 /**
@@ -274,8 +275,9 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 	char *cmd = data;
 	char *line = data;
 
-	while (*line && *line != '\n')
+	while (*line && *line != '\n') {
 		line++;
+	}
 
 	*(line++) = '\0';
 	cmd += 4;
@@ -415,13 +417,14 @@ int32_t main(int32_t argc, char **argv) {
 				socklen_t from_len = sizeof(from);
 
 				const ssize_t len = recvfrom(ms_sock, buffer, sizeof(buffer), 0,
-						(struct sockaddr *) &from, &from_len);
+				                             (struct sockaddr *) &from, &from_len);
 
 				if (len > 0) {
-					if (len > 4)
+					if (len > 4) {
 						Ms_ParseMessage(&from, buffer);
-					else
+					} else {
 						Com_Warn("Invalid packet from %s\n", atos(&from));
+					}
 				} else {
 					Com_Warn("Socket error: %s\n", strerror(errno));
 				}

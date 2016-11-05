@@ -62,11 +62,13 @@ static _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, const int32_t brush_nu
  */
 static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
-	if (!brush->num_sides)
+	if (!brush->num_sides) {
 		return;
+	}
 
-	if (!BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs))
+	if (!BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs)) {
 		return;
+	}
 
 	vec_t enter_fraction = -1.0;
 	vec_t leave_fraction = 1.0;
@@ -86,18 +88,22 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		const vec_t d1 = DotProduct(data->start, plane->normal) - dist;
 		const vec_t d2 = DotProduct(data->end, plane->normal) - dist;
 
-		if (d2 > 0.0)
-			end_outside = true; // end point is not in solid
-		if (d1 > 0.0)
+		if (d2 > 0.0) {
+			end_outside = true;    // end point is not in solid
+		}
+		if (d1 > 0.0) {
 			start_outside = true;
+		}
 
 		// if completely in front of face, no intersection with entire brush
-		if (d1 > 0.0 && d2 >= d1)
+		if (d1 > 0.0 && d2 >= d1) {
 			return;
+		}
 
 		// if completely behind plane, no intersection
-		if (d1 <= 0.0 && d2 <= 0.0)
+		if (d1 <= 0.0 && d2 <= 0.0) {
 			continue;
+		}
 
 		// crosses face
 		if (d1 > d2) { // enter
@@ -111,8 +117,9 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 		} else { // leave
 			const vec_t f = (d1 + DIST_EPSILON) / (d1 - d2);
 
-			if (f < leave_fraction)
+			if (f < leave_fraction) {
 				leave_fraction = f;
+			}
 		}
 	}
 
@@ -140,11 +147,13 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
  */
 static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
-	if (!brush->num_sides)
+	if (!brush->num_sides) {
 		return;
+	}
 
-	if (!BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs))
+	if (!BoxIntersect(data->box_mins, data->box_maxs, brush->mins, brush->maxs)) {
 		return;
+	}
 
 	const cm_bsp_brush_side_t *side = &cm_bsp.brush_sides[brush->first_brush_side];
 
@@ -156,8 +165,9 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 		const vec_t d1 = DotProduct(data->start, plane->normal) - dist;
 
 		// if completely in front of face, no intersection
-		if (d1 > 0.0)
+		if (d1 > 0.0) {
 			return;
+		}
 	}
 
 	// inside this brush
@@ -173,8 +183,9 @@ static void Cm_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 
 	const cm_bsp_leaf_t *leaf = &cm_bsp.leafs[leaf_num];
 
-	if (!(leaf->contents & data->contents))
+	if (!(leaf->contents & data->contents)) {
 		return;
+	}
 
 	// reset the brushes cache for this leaf
 	memset(data->brushes, 0xff, sizeof(data->brushes));
@@ -183,18 +194,21 @@ static void Cm_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
 		const int32_t brush_num = cm_bsp.leaf_brushes[leaf->first_leaf_brush + i];
 
-		if (Cm_BrushAlreadyTested(data, brush_num))
-			continue; // already checked this brush in another leaf
+		if (Cm_BrushAlreadyTested(data, brush_num)) {
+			continue;    // already checked this brush in another leaf
+		}
 
 		const cm_bsp_brush_t *b = &cm_bsp.brushes[brush_num];
 
-		if (!(b->contents & data->contents))
+		if (!(b->contents & data->contents)) {
 			continue;
+		}
 
 		Cm_TraceToBrush(data, b);
 
-		if (data->trace.all_solid)
+		if (data->trace.all_solid) {
 			return;
+		}
 	}
 }
 
@@ -205,25 +219,29 @@ static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 
 	const cm_bsp_leaf_t *leaf = &cm_bsp.leafs[leaf_num];
 
-	if (!(leaf->contents & data->contents))
+	if (!(leaf->contents & data->contents)) {
 		return;
+	}
 
 	// trace line against all brushes in the leaf
 	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
 		const int32_t brush_num = cm_bsp.leaf_brushes[leaf->first_leaf_brush + i];
 
-		if (Cm_BrushAlreadyTested(data, brush_num))
-			continue; // already checked this brush in another leaf
+		if (Cm_BrushAlreadyTested(data, brush_num)) {
+			continue;    // already checked this brush in another leaf
+		}
 
 		const cm_bsp_brush_t *b = &cm_bsp.brushes[brush_num];
 
-		if (!(b->contents & data->contents))
+		if (!(b->contents & data->contents)) {
 			continue;
+		}
 
 		Cm_TestBoxInBrush(data, b);
 
-		if (data->trace.all_solid)
+		if (data->trace.all_solid) {
 			return;
+		}
 	}
 }
 
@@ -231,10 +249,11 @@ static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
  * @brief
  */
 static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t p2f,
-		const vec3_t p1, const vec3_t p2) {
+                           const vec3_t p1, const vec3_t p2) {
 
-	if (data->trace.fraction <= p1f)
-		return; // already hit something nearer
+	if (data->trace.fraction <= p1f) {
+		return;    // already hit something nearer
+	}
 
 	// if < 0, we are in a leaf node
 	if (num < 0) {
@@ -255,12 +274,12 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t 
 	} else {
 		d1 = DotProduct(plane->normal, p1) - plane->dist;
 		d2 = DotProduct(plane->normal, p2) - plane->dist;
-		if (data->is_point)
+		if (data->is_point) {
 			offset = 0.0;
-		else
+		} else
 			offset = fabsf(data->extents[0] * plane->normal[0])
-					+ fabsf(data->extents[1] * plane->normal[1])
-					+ fabsf(data->extents[2] * plane->normal[2]);
+			         + fabsf(data->extents[1] * plane->normal[1])
+			         + fabsf(data->extents[2] * plane->normal[2]);
 	}
 
 	// see which sides we need to consider
@@ -329,7 +348,7 @@ static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, vec_t p1f, vec_t 
  * @return The trace.
  */
 cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		const int32_t head_node, const int32_t contents) {
+                       const int32_t head_node, const int32_t contents) {
 
 	static __thread cm_trace_data_t data;
 	memset(&data, 0, sizeof(data));
@@ -408,13 +427,14 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
 		int32_t leafs[MAX_ENTITIES];
 
 		const size_t len = Cm_BoxLeafnums(data.box_mins, data.box_maxs, leafs, lengthof(leafs),
-				NULL, head_node);
+		                                  NULL, head_node);
 
 		for (size_t i = 0; i < len; i++) {
 			Cm_TestInLeaf(&data, leafs[i]);
 
-			if (data.trace.all_solid)
+			if (data.trace.all_solid) {
 				break;
+			}
 		}
 
 		VectorCopy(start, data.trace.end);
@@ -453,8 +473,8 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, 
  * @return The trace.
  */
 cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
-		const vec3_t maxs, const int32_t head_node, const int32_t contents,
-		const matrix4x4_t *matrix, const matrix4x4_t *inverse_matrix) {
+                                  const vec3_t maxs, const int32_t head_node, const int32_t contents,
+                                  const matrix4x4_t *matrix, const matrix4x4_t *inverse_matrix) {
 
 	vec3_t start0, end0;
 

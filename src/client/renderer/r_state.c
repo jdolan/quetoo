@@ -39,13 +39,15 @@ void R_GetError_(const char *function, const char *msg) {
 	GLenum err;
 	char *s;
 
-	if (!r_get_error->value)
+	if (!r_get_error->value) {
 		return;
+	}
 
 	while (true) {
 
-		if ((err = glGetError()) == GL_NO_ERROR)
+		if ((err = glGetError()) == GL_NO_ERROR) {
 			return;
+		}
 
 		switch (err) {
 			case GL_INVALID_ENUM:
@@ -89,8 +91,9 @@ void R_Color(const vec4_t color) {
  */
 void R_SelectTexture(r_texunit_t *texunit) {
 
-	if (texunit == r_state.active_texunit)
+	if (texunit == r_state.active_texunit) {
 		return;
+	}
 
 	r_state.active_texunit = texunit;
 
@@ -103,8 +106,9 @@ void R_SelectTexture(r_texunit_t *texunit) {
  */
 _Bool R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
 
-	if (texnum == texunit->texnum)
+	if (texnum == texunit->texnum) {
 		return false;
+	}
 
 	R_SelectTexture(texunit);
 
@@ -134,8 +138,9 @@ void R_BindTexture(GLuint texnum) {
  */
 void R_BindLightmapTexture(GLuint texnum) {
 
-	if (R_BindUnitTexture(&texunit_lightmap, texnum))
+	if (R_BindUnitTexture(&texunit_lightmap, texnum)) {
 		r_view.num_bind_lightmap++;
+	}
 }
 
 /**
@@ -143,8 +148,9 @@ void R_BindLightmapTexture(GLuint texnum) {
  */
 void R_BindDeluxemapTexture(GLuint texnum) {
 
-	if (R_BindUnitTexture(&texunit_deluxemap, texnum))
+	if (R_BindUnitTexture(&texunit_deluxemap, texnum)) {
 		r_view.num_bind_deluxemap++;
+	}
 }
 
 /**
@@ -152,8 +158,9 @@ void R_BindDeluxemapTexture(GLuint texnum) {
  */
 void R_BindNormalmapTexture(GLuint texnum) {
 
-	if (R_BindUnitTexture(&texunit_normalmap, texnum))
+	if (R_BindUnitTexture(&texunit_normalmap, texnum)) {
 		r_view.num_bind_normalmap++;
+	}
 }
 
 /**
@@ -161,8 +168,9 @@ void R_BindNormalmapTexture(GLuint texnum) {
  */
 void R_BindSpecularmapTexture(GLuint texnum) {
 
-	if (R_BindUnitTexture(&texunit_specularmap, texnum))
+	if (R_BindUnitTexture(&texunit_specularmap, texnum)) {
 		r_view.num_bind_specularmap++;
+	}
 }
 
 /**
@@ -172,10 +180,11 @@ void R_BindArray(const r_attribute_id_t target, const r_buffer_t *buffer) {
 
 	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
 
-	if (target == R_ARRAY_ELEMENTS)
+	if (target == R_ARRAY_ELEMENTS) {
 		r_state.element_buffer = buffer;
-	else
+	} else {
 		r_state.array_buffers[target] = buffer;
+	}
 }
 
 /**
@@ -232,8 +241,9 @@ void R_BindBuffer(const r_buffer_t *buffer) {
 
 	assert(buffer->bufnum != 0);
 
-	if (r_state.active_buffers[buffer->type] == buffer->bufnum)
+	if (r_state.active_buffers[buffer->type] == buffer->bufnum) {
 		return;
+	}
 
 	r_state.active_buffers[buffer->type] = buffer->bufnum;
 
@@ -247,8 +257,9 @@ void R_BindBuffer(const r_buffer_t *buffer) {
  */
 void R_UnbindBuffer(const r_buffer_type_t type) {
 
-	if (!r_state.active_buffers[type])
+	if (!r_state.active_buffers[type]) {
 		return;
+	}
 
 	r_state.active_buffers[type] = 0;
 
@@ -290,16 +301,13 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size,
 			R_GetError("Partial resize");
 			glBufferSubData(buffer->target, start, size, data);
 			R_GetError("Partial update");
-		}
-		else
-		{
+		} else {
 			glBufferData(buffer->target, total_size, data, buffer->hint);
 			R_GetError("Full resize");
 		}
 
 		buffer->size = total_size;
-	}
-	else {
+	} else {
 		// just update the range we specified
 		glBufferSubData(buffer->target, start, size, data);
 
@@ -311,7 +319,8 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size,
  * @brief Allocate a GPU buffer of the specified size.
  * Optionally upload the data immediately too.
  */
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t type, const size_t size, const void *data) {
+void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t type, const size_t size,
+                    const void *data) {
 
 	assert(buffer->bufnum == 0);
 
@@ -327,20 +336,21 @@ void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t
 /**
  * @brief Destroy a GPU-allocated buffer.
  */
-void R_DestroyBuffer(r_buffer_t *buffer)
-{
+void R_DestroyBuffer(r_buffer_t *buffer) {
 	assert(buffer->bufnum != 0);
 
 	// if this buffer is currently bound, unbind it.
-	if (r_state.active_buffers[buffer->type] == buffer->bufnum)
+	if (r_state.active_buffers[buffer->type] == buffer->bufnum) {
 		R_UnbindBuffer(buffer->type);
+	}
 
 	// if the buffer is attached to any active attribs, remove that ptr too
 	for (r_attribute_id_t i = 0; i < R_ARRAY_MAX_ATTRIBS; ++i) {
 
 		if (r_state.attributes[i].constant == false &&
-			r_state.attributes[i].value.buffer == buffer)
+		        r_state.attributes[i].value.buffer == buffer) {
 			r_state.attributes[i].value.buffer = NULL;
+		}
 	}
 
 	glDeleteBuffers(1, &buffer->bufnum);
@@ -355,8 +365,9 @@ void R_DestroyBuffer(r_buffer_t *buffer)
  */
 void R_BlendFunc(GLenum src, GLenum dest) {
 
-	if (r_state.blend_src == src && r_state.blend_dest == dest)
+	if (r_state.blend_src == src && r_state.blend_dest == dest) {
 		return;
+	}
 
 	r_state.blend_src = src;
 	r_state.blend_dest = dest;
@@ -368,9 +379,10 @@ void R_BlendFunc(GLenum src, GLenum dest) {
  * @brief
  */
 void R_EnableDepthMask(_Bool enable) {
-	
-	if (r_state.depth_mask_enabled == enable)
+
+	if (r_state.depth_mask_enabled == enable) {
 		return;
+	}
 
 	r_state.depth_mask_enabled = enable;
 
@@ -386,8 +398,9 @@ void R_EnableDepthMask(_Bool enable) {
  */
 void R_EnableBlend(_Bool enable) {
 
-	if (r_state.blend_enabled == enable)
+	if (r_state.blend_enabled == enable) {
 		return;
+	}
 
 	r_state.blend_enabled = enable;
 
@@ -403,8 +416,9 @@ void R_EnableBlend(_Bool enable) {
  */
 void R_EnableAlphaTest(vec_t threshold) {
 
-	if (r_state.alpha_threshold == threshold)
+	if (r_state.alpha_threshold == threshold) {
 		return;
+	}
 
 	r_state.alpha_threshold = threshold;
 }
@@ -414,15 +428,17 @@ void R_EnableAlphaTest(vec_t threshold) {
  */
 void R_EnableStencilTest(GLenum pass, _Bool enable) {
 
-	if (r_state.stencil_test_enabled == enable)
+	if (r_state.stencil_test_enabled == enable) {
 		return;
+	}
 
 	r_state.stencil_test_enabled = enable;
 
-	if (enable)
+	if (enable) {
 		glEnable(GL_STENCIL_TEST);
-	else
+	} else {
 		glDisable(GL_STENCIL_TEST);
+	}
 
 	if (r_state.stencil_op_pass != pass) {
 
@@ -435,12 +451,13 @@ void R_EnableStencilTest(GLenum pass, _Bool enable) {
  * @brief Sets stencil func parameters.
  */
 void R_StencilFunc(GLenum func, GLint ref, GLuint mask) {
-	
+
 	if (r_state.stencil_func_func == func &&
-		r_state.stencil_func_ref == ref &&
-		r_state.stencil_func_mask == mask)
+	        r_state.stencil_func_ref == ref &&
+	        r_state.stencil_func_mask == mask) {
 		return;
-	
+	}
+
 	r_state.stencil_func_func = func;
 	r_state.stencil_func_ref = ref;
 	r_state.stencil_func_mask = mask;
@@ -454,8 +471,9 @@ void R_StencilFunc(GLenum func, GLint ref, GLuint mask) {
 void R_PolygonOffset(GLfloat factor, GLfloat units) {
 
 	if (r_state.polygon_offset_factor == factor &&
-		r_state.polygon_offset_units == units)
+	        r_state.polygon_offset_units == units) {
 		return;
+	}
 
 	glPolygonOffset(factor, units);
 
@@ -468,15 +486,17 @@ void R_PolygonOffset(GLfloat factor, GLfloat units) {
  */
 void R_EnablePolygonOffset(GLenum mode, _Bool enable) {
 
-	if (r_state.polygon_offset_enabled == enable)
+	if (r_state.polygon_offset_enabled == enable) {
 		return;
+	}
 
 	r_state.polygon_offset_enabled = enable;
 
-	if (enable)
+	if (enable) {
 		glEnable(mode);
-	else
+	} else {
 		glDisable(mode);
+	}
 
 	R_PolygonOffset(-1.0, 1.0);
 }
@@ -487,8 +507,9 @@ void R_EnablePolygonOffset(GLenum mode, _Bool enable) {
  */
 void R_EnableTexture(r_texunit_t *texunit, _Bool enable) {
 
-	if (enable == texunit->enabled)
+	if (enable == texunit->enabled) {
 		return;
+	}
 
 	texunit->enabled = enable;
 
@@ -510,8 +531,9 @@ void R_EnableTexture(r_texunit_t *texunit, _Bool enable) {
  */
 void R_EnableColorArray(_Bool enable) {
 
-	if (r_state.color_array_enabled == enable)
+	if (r_state.color_array_enabled == enable) {
 		return;
+	}
 
 	r_state.color_array_enabled = enable;
 }
@@ -523,8 +545,9 @@ void R_EnableColorArray(_Bool enable) {
  */
 void R_EnableLighting(const r_program_t *program, _Bool enable) {
 
-	if (program == NULL)
+	if (program == NULL) {
 		program = r_state.null_program;
+	}
 
 	// if the program can't use lights, lighting can't really
 	// be enabled on it.
@@ -536,16 +559,17 @@ void R_EnableLighting(const r_program_t *program, _Bool enable) {
 	// use the program here. this is done regardless
 	// of if lighting is supported.
 	R_UseProgram(program);
-	
+
 	// enable fog if supported by the program.
 	R_EnableFog(enable);
-	
+
 	R_GetError(NULL);
 
 	// if we don't actually have lighting support,
 	// don't bother turning on the lights.
-	if (!r_lighting->value || r_state.lighting_enabled == enable)
+	if (!r_lighting->value || r_state.lighting_enabled == enable) {
 		return;
+	}
 
 	r_state.lighting_enabled = enable;
 
@@ -561,18 +585,21 @@ void R_EnableLighting(const r_program_t *program, _Bool enable) {
  */
 void R_EnableShadow(const r_program_t *program, _Bool enable) {
 
-	if (enable && (!program || !program->id))
+	if (enable && (!program || !program->id)) {
 		return;
+	}
 
-	if (!r_shadows->value || r_state.shadow_enabled == enable)
+	if (!r_shadows->value || r_state.shadow_enabled == enable) {
 		return;
+	}
 
 	r_state.shadow_enabled = enable;
 
-	if (enable)
+	if (enable) {
 		R_UseProgram(program);
-	else
+	} else {
 		R_UseProgram(r_state.null_program);
+	}
 
 	R_EnableFog(enable);
 
@@ -584,11 +611,13 @@ void R_EnableShadow(const r_program_t *program, _Bool enable) {
  */
 void R_EnableWarp(const r_program_t *program, _Bool enable) {
 
-	if (enable && (!program || !program->id))
+	if (enable && (!program || !program->id)) {
 		return;
+	}
 
-	if (!r_warp->value || r_state.warp_enabled == enable)
+	if (!r_warp->value || r_state.warp_enabled == enable) {
 		return;
+	}
 
 	r_state.warp_enabled = enable;
 
@@ -614,11 +643,13 @@ void R_EnableWarp(const r_program_t *program, _Bool enable) {
  */
 void R_EnableShell(const r_program_t *program, _Bool enable) {
 
-	if (enable && (!program || !program->id))
+	if (enable && (!program || !program->id)) {
 		return;
+	}
 
-	if (!r_shell->value || r_state.shell_enabled == enable)
+	if (!r_shell->value || r_state.shell_enabled == enable) {
 		return;
+	}
 
 	r_state.shell_enabled = enable;
 
@@ -641,12 +672,14 @@ void R_EnableShell(const r_program_t *program, _Bool enable) {
  * @brief
  */
 void R_EnableFog(_Bool enable) {
-	
-	if (!r_state.active_program)
-		return;
 
-	if (!r_fog->value || r_state.fog_enabled == enable || !r_state.active_program->UseFog)
+	if (!r_state.active_program) {
 		return;
+	}
+
+	if (!r_fog->value || r_state.fog_enabled == enable || !r_state.active_program->UseFog) {
+		return;
+	}
 
 	r_state.fog_enabled = false;
 
@@ -654,13 +687,12 @@ void R_EnableFog(_Bool enable) {
 		if ((r_view.weather & WEATHER_FOG) || r_fog->integer == 2) {
 
 			r_state.fog_enabled = true;
-			
+
 			r_state.active_fog_parameters.start = FOG_START;
 			r_state.active_fog_parameters.end = FOG_END;
 			VectorCopy(r_view.fog_color, r_state.active_fog_parameters.color);
 			r_state.active_fog_parameters.density = 1.0;
-		}
-		else {
+		} else {
 			r_state.active_fog_parameters.density = 0.0;
 		}
 	} else {
@@ -674,16 +706,19 @@ void R_EnableFog(_Bool enable) {
  */
 void R_UseMaterial(const r_material_t *material) {
 
-	if (!r_state.active_program)
+	if (!r_state.active_program) {
 		return;
+	}
 
-	if (r_state.active_material == material)
+	if (r_state.active_material == material) {
 		return;
+	}
 
 	r_state.active_material = material;
 
-	if (r_state.active_program->UseMaterial)
+	if (r_state.active_program->UseMaterial) {
 		r_state.active_program->UseMaterial(material);
+	}
 
 	R_GetError(material ? material->diffuse->media.name : r_state.active_program->name);
 }
@@ -693,8 +728,9 @@ void R_UseMaterial(const r_material_t *material) {
  */
 void R_PushMatrix(const r_matrix_id_t id) {
 
-	if (r_state.matrix_stacks[id].depth == MAX_MATRIX_STACK)
+	if (r_state.matrix_stacks[id].depth == MAX_MATRIX_STACK) {
 		Com_Error(ERR_DROP, "Matrix stack overflow");
+	}
 
 	Matrix4x4_Copy(&r_state.matrix_stacks[id].matrices[r_state.matrix_stacks[id].depth++], &r_view.active_matrices[id]);
 }
@@ -703,9 +739,10 @@ void R_PushMatrix(const r_matrix_id_t id) {
  * @brief Pop a saved matrix from the stack
  */
 void R_PopMatrix(const r_matrix_id_t id) {
-	
-	if (r_state.matrix_stacks[id].depth == 0)
+
+	if (r_state.matrix_stacks[id].depth == 0) {
 		Com_Error(ERR_DROP, "Matrix stack underflow");
+	}
 
 	Matrix4x4_Copy(&r_view.active_matrices[id], &r_state.matrix_stacks[id].matrices[--r_state.matrix_stacks[id].depth]);
 }
@@ -715,8 +752,9 @@ void R_PopMatrix(const r_matrix_id_t id) {
  */
 void R_UseMatrices(void) {
 
-	if (r_state.active_program->UseMatrices)
+	if (r_state.active_program->UseMatrices) {
 		r_state.active_program->UseMatrices((const matrix4x4_t *) r_view.active_matrices);
+	}
 }
 
 /**
@@ -724,8 +762,9 @@ void R_UseMatrices(void) {
  */
 void R_UseAlphaTest(void) {
 
-	if (r_state.active_program->UseAlphaTest)
+	if (r_state.active_program->UseAlphaTest) {
 		r_state.active_program->UseAlphaTest(r_state.alpha_threshold);
+	}
 }
 
 /**
@@ -733,8 +772,9 @@ void R_UseAlphaTest(void) {
  */
 void R_UseCurrentColor(void) {
 
-	if (r_state.active_program->UseCurrentColor)
+	if (r_state.active_program->UseCurrentColor) {
 		r_state.active_program->UseCurrentColor(r_state.current_color);
+	}
 }
 
 /**
@@ -742,8 +782,9 @@ void R_UseCurrentColor(void) {
  */
 void R_UseFog(void) {
 
-	if (r_state.active_program->UseFog)
+	if (r_state.active_program->UseFog) {
 		r_state.active_program->UseFog(&r_state.active_fog_parameters);
+	}
 }
 
 /**
@@ -751,8 +792,9 @@ void R_UseFog(void) {
  */
 void R_UseInterpolation(const vec_t lerp) {
 
-	if (r_state.active_program->UseInterpolation)
+	if (r_state.active_program->UseInterpolation) {
 		r_state.active_program->UseInterpolation(lerp);
+	}
 }
 
 /**
@@ -761,11 +803,12 @@ void R_UseInterpolation(const vec_t lerp) {
 void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
 
 	if (r_state.current_viewport.x == x &&
-		r_state.current_viewport.y == y &&
-		r_state.current_viewport.w == width &&
-		r_state.current_viewport.h == height)
+	        r_state.current_viewport.y == y &&
+	        r_state.current_viewport.w == width &&
+	        r_state.current_viewport.h == height) {
 		return;
-	
+	}
+
 	r_state.current_viewport.x = x;
 	r_state.current_viewport.y = y;
 	r_state.current_viewport.w = width;
@@ -783,8 +826,9 @@ void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
  */
 void R_Setup3D(void) {
 
-	if (!r_context.context)
+	if (!r_context.context) {
 		return;
+	}
 
 	const SDL_Rect *viewport = &r_view.viewport;
 	R_SetViewport(viewport->x, viewport->y, viewport->w, viewport->h);
@@ -802,7 +846,7 @@ void R_Setup3D(void) {
 
 	// setup the model-view matrix
 	Matrix4x4_CreateIdentity(&r_view.matrix);
-	
+
 	Matrix4x4_ConcatRotate(&r_view.matrix, -90.0, 1.0, 0.0, 0.0);	 // put Z going up
 	Matrix4x4_ConcatRotate(&r_view.matrix,  90.0, 0.0, 0.0, 1.0);	 // put Z going up
 
@@ -828,15 +872,17 @@ void R_Setup3D(void) {
  */
 void R_EnableDepthTest(_Bool enable) {
 
-	if (r_state.depth_test_enabled == enable)
+	if (r_state.depth_test_enabled == enable) {
 		return;
+	}
 
 	r_state.depth_test_enabled = enable;
 
-	if (enable)
+	if (enable) {
 		glEnable(GL_DEPTH_TEST);
-	else
+	} else {
 		glDisable(GL_DEPTH_TEST);
+	}
 }
 
 /**
@@ -845,8 +891,9 @@ void R_EnableDepthTest(_Bool enable) {
 void R_DepthRange(GLdouble znear, GLdouble zfar) {
 
 	if (r_state.depth_near == znear &&
-		r_state.depth_far == zfar)
+	        r_state.depth_far == zfar) {
 		return;
+	}
 
 	glDepthRange(znear, zfar);
 	r_state.depth_near = znear;
@@ -873,7 +920,7 @@ void R_EnableScissor(const SDL_Rect *bounds) {
 
 		glDisable(GL_SCISSOR_TEST);
 		r_state.scissor_enabled = false;
-	
+
 		return;
 	}
 
@@ -920,7 +967,7 @@ void R_InitState(void) {
 
 	// See if we have any errors before state initialization.
 	R_GetError("Pre-init");
-	
+
 	memset(&r_state, 0, sizeof(r_state));
 
 	r_state.depth_mask_enabled = true;
@@ -932,7 +979,7 @@ void R_InitState(void) {
 	R_CreateBuffer(&r_state.buffer_normal_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.normal_array), NULL);
 	R_CreateBuffer(&r_state.buffer_tangent_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.tangent_array), NULL);
 	R_CreateBuffer(&r_state.buffer_element_array, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT, sizeof(r_state.indice_array), NULL);
-	
+
 	R_UnbindBuffer(R_BUFFER_DATA);
 	R_UnbindBuffer(R_BUFFER_ELEMENT);
 
@@ -945,7 +992,7 @@ void R_InitState(void) {
 
 	for (int32_t i = 0; i < R_TEXUNIT_TOTAL; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
-		
+
 		if (i < r_config.max_texunits) {
 			texunit->texture = GL_TEXTURE0 + i;
 
@@ -964,7 +1011,7 @@ void R_InitState(void) {
 	R_SelectTexture(&texunit_diffuse);
 
 	R_EnableTexture(&texunit_diffuse, true);
-	
+
 	// polygon offset parameters
 	R_PolygonOffset(-1.0, 1.0);
 
@@ -1000,13 +1047,12 @@ void R_ShutdownState(void) {
 	for (int32_t i = 0; i < MIN(r_config.max_texunits, R_TEXUNIT_TOTAL); i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
-		if (texunit->texcoord_array)
-		{
+		if (texunit->texcoord_array) {
 			Mem_Free(texunit->texcoord_array);
 			R_DestroyBuffer(&texunit->buffer_texcoord_array);
 		}
 	}
-	
+
 	R_DestroyBuffer(&r_state.buffer_vertex_array);
 	R_DestroyBuffer(&r_state.buffer_color_array);
 	R_DestroyBuffer(&r_state.buffer_normal_array);

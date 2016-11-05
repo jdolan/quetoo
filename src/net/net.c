@@ -22,15 +22,15 @@
 #include <errno.h>
 
 #if defined(_WIN32)
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-#define ioctl ioctlsocket
+	#define _WINSOCK_DEPRECATED_NO_WARNINGS
+	#define ioctl ioctlsocket
 #else
-#include <netdb.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <sys/uio.h>
-#include <sys/socket.h>
+	#include <netdb.h>
+	#include <netinet/tcp.h>
+	#include <arpa/inet.h>
+	#include <sys/ioctl.h>
+	#include <sys/uio.h>
+	#include <sys/socket.h>
 #endif
 
 #include "net.h"
@@ -135,8 +135,9 @@ _Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr) {
 _Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 	struct sockaddr_in saddr;
 
-	if (!Net_StringToSockaddr(s, &saddr))
+	if (!Net_StringToSockaddr(s, &saddr)) {
 		return false;
+	}
 
 	a->addr = saddr.sin_addr.s_addr;
 

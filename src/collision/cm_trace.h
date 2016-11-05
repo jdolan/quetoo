@@ -25,10 +25,10 @@
 #include "cm_types.h"
 
 cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		const int32_t head_node, const int32_t contents);
+                       const int32_t head_node, const int32_t contents);
 
 cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const vec3_t mins,
-		const vec3_t maxs, const int32_t head_node, const int32_t contents,
-		const matrix4x4_t *matrix, const matrix4x4_t *inverse_matrix);
+                                  const vec3_t maxs, const int32_t head_node, const int32_t contents,
+                                  const matrix4x4_t *matrix, const matrix4x4_t *inverse_matrix);
 
 #endif /* __CM_TRACE_H__ */

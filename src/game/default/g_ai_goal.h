@@ -25,7 +25,7 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_Ai_AllocNodes(void);
+	void G_Ai_AllocNodes(void);
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_AI_H__ */

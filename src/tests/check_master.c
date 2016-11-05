@@ -45,64 +45,64 @@ void teardown(void) {
 	Mem_Shutdown();
 }
 
-START_TEST(check_Ms_AddServer)
-	{
-		ck_assert_int_eq(g_list_length(ms_servers), 0);
+START_TEST(check_Ms_AddServer) {
+	ck_assert_int_eq(g_list_length(ms_servers), 0);
 
-		struct sockaddr_in addr;
-		memset(&addr, 0, sizeof(addr));
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(addr));
 
-		*(in_addr_t *) &addr.sin_addr = inet_addr("192.168.1.1");
-		addr.sin_family = AF_INET;
-		addr.sin_port = htons(PORT_SERVER);
+	*(in_addr_t *) &addr.sin_addr = inet_addr("192.168.1.1");
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(PORT_SERVER);
 
-		Ms_AddServer(&addr);
-		ck_assert_int_eq(g_list_length(ms_servers), 1);
+	Ms_AddServer(&addr);
+	ck_assert_int_eq(g_list_length(ms_servers), 1);
 
-		ms_server_t *server = g_list_nth_data(ms_servers, 0);
-		ck_assert_msg(server->addr.sin_addr.s_addr == addr.sin_addr.s_addr, "Corrupt server address");
+	ms_server_t *server = g_list_nth_data(ms_servers, 0);
+	ck_assert_msg(server->addr.sin_addr.s_addr == addr.sin_addr.s_addr, "Corrupt server address");
 
-		Ms_AddServer(&addr);
-		ck_assert_int_eq(g_list_length(ms_servers), 1);
+	Ms_AddServer(&addr);
+	ck_assert_int_eq(g_list_length(ms_servers), 1);
 
-		*(in_addr_t *) &addr.sin_addr = inet_addr("192.168.1.2");
+	*(in_addr_t *) &addr.sin_addr = inet_addr("192.168.1.2");
 
-		Ms_AddServer(&addr);
-		ck_assert_int_eq(g_list_length(ms_servers), 2);
+	Ms_AddServer(&addr);
+	ck_assert_int_eq(g_list_length(ms_servers), 2);
 
-		Ms_RemoveServer(&addr);
-		ck_assert_int_eq(g_list_length(ms_servers), 1);
+	Ms_RemoveServer(&addr);
+	ck_assert_int_eq(g_list_length(ms_servers), 1);
 
-		ms_server_t *s = Ms_GetServer(&addr);
-		ck_assert_msg(!s, "Server was not NULL");
+	ms_server_t *s = Ms_GetServer(&addr);
+	ck_assert_msg(!s, "Server was not NULL");
 
-	}END_TEST
+}
+END_TEST
 
-START_TEST(check_Ms_BlacklistServer)
-	{
-		file_t *f = Fs_OpenAppend("servers-blacklist");
-		ck_assert_msg(f != NULL, "Failed to open servers-blacklist");
+START_TEST(check_Ms_BlacklistServer) {
+	file_t *f = Fs_OpenAppend("servers-blacklist");
+	ck_assert_msg(f != NULL, "Failed to open servers-blacklist");
 
-		const char *test = "192.168.0.*\n";
-		int64_t len = Fs_Write(f, (void *) test, 1, strlen(test));
+	const char *test = "192.168.0.*\n";
+	int64_t len = Fs_Write(f, (void *) test, 1, strlen(test));
 
-		ck_assert_msg((size_t) len == strlen(test), "Failed to write servers-blacklist");
-		ck_assert_msg(Fs_Close(f), "Failed to close servers-blacklist");
+	ck_assert_msg((size_t) len == strlen(test), "Failed to write servers-blacklist");
+	ck_assert_msg(Fs_Close(f), "Failed to close servers-blacklist");
 
-		struct sockaddr_in addr;
-		memset(&addr, 0, sizeof(addr));
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(addr));
 
-		*(in_addr_t *) &addr.sin_addr = inet_addr("192.168.0.1");
-		addr.sin_family = AF_INET;
-		addr.sin_port = htons(PORT_SERVER);
+	*(in_addr_t *) &addr.sin_addr = inet_addr("192.168.0.1");
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(PORT_SERVER);
 
-		ck_assert_msg(Ms_BlacklistServer(&addr), "Missed %s", inet_ntoa(addr.sin_addr));
+	ck_assert_msg(Ms_BlacklistServer(&addr), "Missed %s", inet_ntoa(addr.sin_addr));
 
-		*(in_addr_t *) &addr.sin_addr = inet_addr("127.0.0.1");
+	*(in_addr_t *) &addr.sin_addr = inet_addr("127.0.0.1");
 
-		ck_assert_msg(!Ms_BlacklistServer(&addr), "False positive for %s", inet_ntoa(addr.sin_addr));
+	ck_assert_msg(!Ms_BlacklistServer(&addr), "False positive for %s", inet_ntoa(addr.sin_addr));
 
-	}END_TEST
+}
+END_TEST
 
 /**
  * @brief Test entry point.

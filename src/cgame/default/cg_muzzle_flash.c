@@ -96,8 +96,9 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke)))
+	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
 		return;
+	}
 
 	p->part.blend = GL_ONE;
 	cgi.ColorFromPalette(Random() & 7, p->part.color);
@@ -147,60 +148,61 @@ void Cg_ParseMuzzleFlash(void) {
 	const s_sample_t *sample;
 
 	switch (flash) {
-	case MZ_BLASTER:
-		c = cgi.ReadByte();
-		sample = cg_sample_blaster_fire;
-		Cg_EnergyFlash(&cent->current, c ? c : EFFECT_COLOR_ORANGE);
-		break;
-	case MZ_SHOTGUN:
-		sample = cg_sample_shotgun_fire;
-		Cg_SmokeFlash(&cent->current);
-		break;
-	case MZ_SSHOTGUN:
-		sample = cg_sample_supershotgun_fire;
-		Cg_SmokeFlash(&cent->current);
-		break;
-	case MZ_MACHINEGUN:
-		sample = cg_sample_machinegun_fire[Random() % 4];
-		if (Random() & 1)
+		case MZ_BLASTER:
+			c = cgi.ReadByte();
+			sample = cg_sample_blaster_fire;
+			Cg_EnergyFlash(&cent->current, c ? c : EFFECT_COLOR_ORANGE);
+			break;
+		case MZ_SHOTGUN:
+			sample = cg_sample_shotgun_fire;
 			Cg_SmokeFlash(&cent->current);
-		break;
-	case MZ_ROCKET:
-		sample = cg_sample_rocketlauncher_fire;
-		Cg_SmokeFlash(&cent->current);
-		break;
-	case MZ_GRENADE:
-		sample = cg_sample_grenadelauncher_fire;
-		Cg_SmokeFlash(&cent->current);
-		break;
-	case MZ_HYPERBLASTER:
-		sample = cg_sample_hyperblaster_fire;
-		Cg_EnergyFlash(&cent->current, 105);
-		break;
-	case MZ_LIGHTNING:
-		sample = cg_sample_lightning_fire;
-		break;
-	case MZ_RAILGUN:
-		sample = cg_sample_railgun_fire;
-		break;
-	case MZ_BFG:
-		sample = cg_sample_bfg_fire;
-		Cg_EnergyFlash(&cent->current, 200);
-		break;
-	case MZ_LOGOUT:
-		sample = cg_sample_teleport;
-		Cg_LogoutFlash(cent->current.origin);
-		break;
-	default:
-		sample = NULL;
-		break;
+			break;
+		case MZ_SSHOTGUN:
+			sample = cg_sample_supershotgun_fire;
+			Cg_SmokeFlash(&cent->current);
+			break;
+		case MZ_MACHINEGUN:
+			sample = cg_sample_machinegun_fire[Random() % 4];
+			if (Random() & 1) {
+				Cg_SmokeFlash(&cent->current);
+			}
+			break;
+		case MZ_ROCKET:
+			sample = cg_sample_rocketlauncher_fire;
+			Cg_SmokeFlash(&cent->current);
+			break;
+		case MZ_GRENADE:
+			sample = cg_sample_grenadelauncher_fire;
+			Cg_SmokeFlash(&cent->current);
+			break;
+		case MZ_HYPERBLASTER:
+			sample = cg_sample_hyperblaster_fire;
+			Cg_EnergyFlash(&cent->current, 105);
+			break;
+		case MZ_LIGHTNING:
+			sample = cg_sample_lightning_fire;
+			break;
+		case MZ_RAILGUN:
+			sample = cg_sample_railgun_fire;
+			break;
+		case MZ_BFG:
+			sample = cg_sample_bfg_fire;
+			Cg_EnergyFlash(&cent->current, 200);
+			break;
+		case MZ_LOGOUT:
+			sample = cg_sample_teleport;
+			Cg_LogoutFlash(cent->current.origin);
+			break;
+		default:
+			sample = NULL;
+			break;
 	}
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = sample,
-		.entity = ent_num,
-		.attenuation = ATTEN_NORM,
-		.flags = S_PLAY_ENTITY
+		 .entity = ent_num,
+		  .attenuation = ATTEN_NORM,
+		   .flags = S_PLAY_ENTITY
 	});
 }
 

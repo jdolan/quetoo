@@ -50,14 +50,17 @@ void Cg_ResolveWeather(const char *weather) {
 
 	VectorSet(cgi.view->fog_color, 0.75, 0.75, 0.75);
 
-	if (!weather || *weather == '\0')
+	if (!weather || *weather == '\0') {
 		return;
+	}
 
-	if (strstr(weather, "rain"))
+	if (strstr(weather, "rain")) {
 		cgi.view->weather |= WEATHER_RAIN;
+	}
 
-	if (strstr(weather, "snow"))
+	if (strstr(weather, "snow")) {
 		cgi.view->weather |= WEATHER_SNOW;
+	}
 
 	if ((c = strstr(weather, "fog"))) {
 
@@ -135,8 +138,9 @@ void Cg_LoadWeather(void) {
 
 	Cg_ResolveWeather(cgi.ConfigString(CS_WEATHER));
 
-	if (!(cgi.view->weather & WEATHER_PRECIP_MASK))
+	if (!(cgi.view->weather & WEATHER_PRECIP_MASK)) {
 		return;
+	}
 
 	const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
 	const r_bsp_surface_t *s = bsp->surfaces;
@@ -177,8 +181,9 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
 		ps = cgi.view->weather & WEATHER_RAIN ? cg_particles_rain : cg_particles_snow;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER, ps)))
+		if (!(p = Cg_AllocParticle(PARTICLE_WEATHER, ps))) {
 			break;
+		}
 
 		const vec_t *org = &e->origins[i * 3];
 
@@ -227,11 +232,13 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
  */
 static void Cg_AddWeather(void) {
 
-	if (!cg_add_weather->value)
+	if (!cg_add_weather->value) {
 		return;
+	}
 
-	if (!(cgi.view->weather & WEATHER_PRECIP_MASK))
+	if (!(cgi.view->weather & WEATHER_PRECIP_MASK)) {
 		return;
+	}
 
 	const s_sample_t *sample; // add an appropriate looping sound
 
@@ -243,11 +250,12 @@ static void Cg_AddWeather(void) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = sample,
-		.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
+		 .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
 	});
 
-	if (cgi.client->systime - cg_weather_state.time < 100)
+	if (cgi.client->systime - cg_weather_state.time < 100) {
 		return;
+	}
 
 	cg_weather_state.time = cgi.client->systime;
 
@@ -269,7 +277,7 @@ static void Cg_AddUnderwater(void) {
 	if (cgi.view->contents & MASK_LIQUID) {
 		cgi.AddSample(&(const s_play_sample_t) {
 			.sample = cg_sample_underwater,
-			.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
+			 .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
 		});
 	}
 }

@@ -40,33 +40,34 @@ void Cl_MouseButtonEvent(const SDL_Event *event) {
  */
 void Cl_MouseWheelEvent(const SDL_Event *event) {
 
-	if (event->wheel.y == 0)
+	if (event->wheel.y == 0) {
 		return;
+	}
 
 	switch (cls.key_state.dest) {
 		case KEY_UI:
 			break;
 
 		case KEY_CONSOLE: {
-			const int64_t scroll = cl_console.scroll + event->wheel.y;
-			cl_console.scroll = Clamp(scroll, 0, (int64_t) console_state.len);
-		}
+				const int64_t scroll = cl_console.scroll + event->wheel.y;
+				cl_console.scroll = Clamp(scroll, 0, (int64_t) console_state.len);
+			}
 			break;
 
 		case KEY_GAME: {
-			SDL_Event e;
-			memset(&e, 0, sizeof(e));
+				SDL_Event e;
+				memset(&e, 0, sizeof(e));
 
-			e.type = SDL_KEYDOWN;
-			e.key.keysym.scancode = (SDL_Scancode) (event->wheel.y > 0 ? SDL_SCANCODE_MOUSE5 : SDL_SCANCODE_MOUSE4);
-			e.key.keysym.sym = SDL_SCANCODE_TO_KEYCODE(e.key.keysym.scancode);
+				e.type = SDL_KEYDOWN;
+				e.key.keysym.scancode = (SDL_Scancode) (event->wheel.y > 0 ? SDL_SCANCODE_MOUSE5 : SDL_SCANCODE_MOUSE4);
+				e.key.keysym.sym = SDL_SCANCODE_TO_KEYCODE(e.key.keysym.scancode);
 
-			Cl_KeyEvent(&e);
+				Cl_KeyEvent(&e);
 
-			e.type = SDL_KEYUP;
+				e.type = SDL_KEYUP;
 
-			Cl_KeyEvent(&e);
-		}
+				Cl_KeyEvent(&e);
+			}
 			break;
 
 		default:
@@ -79,8 +80,9 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
  */
 void Cl_MouseMotionEvent(const SDL_Event *event) {
 
-	if (cls.key_state.dest != KEY_GAME)
+	if (cls.key_state.dest != KEY_GAME) {
 		return;
+	}
 
 	if (m_sensitivity->modified) {
 		m_sensitivity->value = Clamp(m_sensitivity->value, 0.1, 20.0);

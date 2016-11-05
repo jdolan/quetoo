@@ -175,7 +175,7 @@ void Cl_InitCgame(void) {
 	import.Servers = Cl_Servers;
 	import.GetServers = Cl_Servers_f;
 	import.Connect = Cl_Connect;
-	
+
 	import.Mapshots = Cl_Mapshots;
 
 	import.ConfigString = Cl_ConfigString;
@@ -262,8 +262,9 @@ void Cl_InitCgame(void) {
  */
 void Cl_ShutdownCgame(void) {
 
-	if (!cls.cgame)
+	if (!cls.cgame) {
 		return;
+	}
 
 	Com_Print("Client game shutdown...\n");
 

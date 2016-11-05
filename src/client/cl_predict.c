@@ -27,20 +27,25 @@
  */
 _Bool Cl_UsePrediction(void) {
 
-	if (!cl_predict->value)
+	if (!cl_predict->value) {
 		return false;
+	}
 
-	if (cls.state != CL_ACTIVE)
+	if (cls.state != CL_ACTIVE) {
 		return false;
+	}
 
-	if (cl.demo_server || cl.third_person)
+	if (cl.demo_server || cl.third_person) {
 		return false;
+	}
 
-	if (cl.frame.ps.pm_state.flags & PMF_NO_PREDICTION)
+	if (cl.frame.ps.pm_state.flags & PMF_NO_PREDICTION) {
 		return false;
+	}
 
-	if (cl.frame.ps.pm_state.type == PM_FREEZE)
+	if (cl.frame.ps.pm_state.type == PM_FREEZE) {
 		return false;
+	}
 
 	return true;
 }
@@ -54,8 +59,9 @@ static int32_t Cl_HullForEntity(const entity_state_t *ent) {
 	if (ent->solid == SOLID_BSP) {
 		const cm_bsp_model_t *mod = cl.cm_models[ent->model1];
 
-		if (!mod)
+		if (!mod) {
 			Com_Error(ERR_DROP, "SOLID_BSP with no model\n");
+		}
 
 		return mod->head_node;
 	}
@@ -63,10 +69,11 @@ static int32_t Cl_HullForEntity(const entity_state_t *ent) {
 	vec3_t emins, emaxs;
 	UnpackBounds(ent->bounds, emins, emaxs);
 
-	if (ent->client)
+	if (ent->client) {
 		return Cm_SetBoxHull(emins, emaxs, CONTENTS_MONSTER);
-	else
+	} else {
 		return Cm_SetBoxHull(emins, emaxs, CONTENTS_SOLID);
+	}
 }
 
 /**
@@ -82,8 +89,9 @@ int32_t Cl_PointContents(const vec3_t point) {
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *s = &cl.entity_states[snum];
 
-		if (s->solid < SOLID_BOX)
+		if (s->solid < SOLID_BOX) {
 			continue;
+		}
 
 		const int32_t head_node = Cl_HullForEntity(s);
 		const cl_entity_t *ent = &cl.entities[s->number];
@@ -115,27 +123,31 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
 		const entity_state_t *s = &cl.entity_states[snum];
 
-		if (s->solid < SOLID_BOX)
+		if (s->solid < SOLID_BOX) {
 			continue;
+		}
 
-		if (s->number == trace->skip)
+		if (s->number == trace->skip) {
 			continue;
+		}
 
-		if (s->number == cl.client_num + 1)
+		if (s->number == cl.client_num + 1) {
 			continue;
+		}
 
 		const int32_t head_node = Cl_HullForEntity(s);
 		const cl_entity_t *ent = &cl.entities[s->number];
 
 		cm_trace_t tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->mins, trace->maxs,
-				head_node, trace->contents, &ent->matrix, &ent->inverse_matrix);
+		                                       head_node, trace->contents, &ent->matrix, &ent->inverse_matrix);
 
 		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
 			trace->trace = tr;
 			trace->trace.ent = (struct g_entity_s *) (intptr_t) s->number;
 
-			if (tr.start_solid)
+			if (tr.start_solid) {
 				return;
+			}
 		}
 	}
 }
@@ -148,21 +160,23 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
  * 0 for none, because entity 0 is the world, which we always test.
  */
 cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		const uint16_t skip, const int32_t contents) {
+                    const uint16_t skip, const int32_t contents) {
 
 	cl_trace_t trace;
 
 	memset(&trace, 0, sizeof(trace));
 
-	if (!mins)
+	if (!mins) {
 		mins = vec3_origin;
-	if (!maxs)
+	}
+	if (!maxs) {
 		maxs = vec3_origin;
+	}
 
 	// clip to world
 	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents);
 	if (trace.trace.fraction < 1.0) {
-		trace.trace.ent = (struct g_entity_s *) (intptr_t) -1;
+		trace.trace.ent = (struct g_entity_s *) (intptr_t) - 1;
 
 		if (trace.trace.start_solid) { // blocked entirely
 			return trace.trace;
@@ -210,7 +224,7 @@ void Cl_PredictMovement(void) {
 		}
 
 		cls.cgame->PredictMovement(cmds);
-		
+
 		g_list_free(cmds);
 	}
 }
@@ -224,8 +238,9 @@ void Cl_CheckPredictionError(void) {
 
 	VectorClear(cl.predicted_state.error);
 
-	if (!Cl_UsePrediction())
+	if (!Cl_UsePrediction()) {
 		return;
+	}
 
 	// calculate the last user_cmd_t we sent that the server has processed
 	const uint32_t frame = (cls.net_chan.incoming_acknowledged & CMD_MASK);
@@ -262,7 +277,7 @@ void Cl_UpdatePrediction(void) {
 
 		if (bs != bsp_size) {
 			Com_Error(ERR_DROP, "Local map version differs from server: "
-					"%" PRId64 " != %" PRId64 "\n", bs, bsp_size);
+			          "%" PRId64 " != %" PRId64 "\n", bs, bsp_size);
 		}
 	}
 
@@ -270,9 +285,10 @@ void Cl_UpdatePrediction(void) {
 	for (uint16_t i = 1; i < MAX_MODELS; i++) {
 
 		const char *s = cl.config_strings[CS_MODELS + i];
-		if (*s == '*')
+		if (*s == '*') {
 			cl.cm_models[i] = Cm_Model(cl.config_strings[CS_MODELS + i]);
-		else
+		} else {
 			cl.cm_models[i] = NULL;
+		}
 	}
 }

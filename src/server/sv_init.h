@@ -27,10 +27,10 @@
 void Sv_ShutdownServer(const char *msg);
 
 #ifdef __SV_LOCAL_H__
-uint16_t Sv_ModelIndex(const char *name);
-uint16_t Sv_SoundIndex(const char *name);
-uint16_t Sv_ImageIndex(const char *name);
-void Sv_InitServer(const char *name, sv_state_t state);
+	uint16_t Sv_ModelIndex(const char *name);
+	uint16_t Sv_SoundIndex(const char *name);
+	uint16_t Sv_ImageIndex(const char *name);
+	void Sv_InitServer(const char *name, sv_state_t state);
 #endif /* __SV_LOCAL_H__ */
 
 #endif /* __SV_INIT_H__ */

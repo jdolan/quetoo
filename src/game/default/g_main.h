@@ -26,69 +26,69 @@
 
 #ifdef __GAME_LOCAL_H__
 
-#define G_MatchIsPlaying()   (g_level.match_status & MSTAT_PLAYING)
-#define G_MatchIsTimeout()   (g_level.match_status & MSTAT_TIMEOUT)
-#define G_MatchIsCountdown() (g_level.match_status & MSTAT_COUNTDOWN)
-#define G_MatchIsWarmup()    (g_level.match_status & MSTAT_WARMUP)
+	#define G_MatchIsPlaying()   (g_level.match_status & MSTAT_PLAYING)
+	#define G_MatchIsTimeout()   (g_level.match_status & MSTAT_TIMEOUT)
+	#define G_MatchIsCountdown() (g_level.match_status & MSTAT_COUNTDOWN)
+	#define G_MatchIsWarmup()    (g_level.match_status & MSTAT_WARMUP)
 
-extern g_level_t g_level;
-extern g_media_t g_media;
+	extern g_level_t g_level;
+	extern g_media_t g_media;
 
-extern g_import_t gi;
-extern g_export_t ge;
+	extern g_import_t gi;
+	extern g_export_t ge;
 
-extern uint32_t g_means_of_death;
+	extern uint32_t g_means_of_death;
 
-extern cvar_t *g_admin_password;
-extern cvar_t *g_ammo_respawn_time;
-extern cvar_t *g_auto_join;
-extern cvar_t *g_capture_limit;
-extern cvar_t *g_cheats;
-extern cvar_t *g_ctf;
-extern cvar_t *g_frag_limit;
-extern cvar_t *g_friendly_fire;
-extern cvar_t *g_force_demo;
-extern cvar_t *g_force_screenshot;
-extern cvar_t *g_gameplay;
-extern cvar_t *g_gravity;
-extern cvar_t *g_handicap;
-extern cvar_t *g_inhibit;
-extern cvar_t *g_match;
-extern cvar_t *g_max_entities;
-extern cvar_t *g_motd;
-extern cvar_t *g_password;
-extern cvar_t *g_player_projectile;
-extern cvar_t *g_random_map;
-extern cvar_t *g_respawn_protection;
-extern cvar_t *g_round_limit;
-extern cvar_t *g_rounds;
-extern cvar_t *g_show_attacker_stats;
-extern cvar_t *g_spawn_farthest;
-extern cvar_t *g_spectator_chat;
-extern cvar_t *g_teams;
-extern cvar_t *g_time_limit;
-extern cvar_t *g_timeout_time;
-extern cvar_t *g_voting;
-extern cvar_t *g_warmup_time;
-extern cvar_t *g_weapon_respawn_time;
+	extern cvar_t *g_admin_password;
+	extern cvar_t *g_ammo_respawn_time;
+	extern cvar_t *g_auto_join;
+	extern cvar_t *g_capture_limit;
+	extern cvar_t *g_cheats;
+	extern cvar_t *g_ctf;
+	extern cvar_t *g_frag_limit;
+	extern cvar_t *g_friendly_fire;
+	extern cvar_t *g_force_demo;
+	extern cvar_t *g_force_screenshot;
+	extern cvar_t *g_gameplay;
+	extern cvar_t *g_gravity;
+	extern cvar_t *g_handicap;
+	extern cvar_t *g_inhibit;
+	extern cvar_t *g_match;
+	extern cvar_t *g_max_entities;
+	extern cvar_t *g_motd;
+	extern cvar_t *g_password;
+	extern cvar_t *g_player_projectile;
+	extern cvar_t *g_random_map;
+	extern cvar_t *g_respawn_protection;
+	extern cvar_t *g_round_limit;
+	extern cvar_t *g_rounds;
+	extern cvar_t *g_show_attacker_stats;
+	extern cvar_t *g_spawn_farthest;
+	extern cvar_t *g_spectator_chat;
+	extern cvar_t *g_teams;
+	extern cvar_t *g_time_limit;
+	extern cvar_t *g_timeout_time;
+	extern cvar_t *g_voting;
+	extern cvar_t *g_warmup_time;
+	extern cvar_t *g_weapon_respawn_time;
 
-extern cvar_t *sv_max_clients;
-extern cvar_t *sv_hostname;
-extern cvar_t *dedicated;
+	extern cvar_t *sv_max_clients;
+	extern cvar_t *sv_hostname;
+	extern cvar_t *dedicated;
 
-extern g_team_t g_team_good, g_team_evil;
+	extern g_team_t g_team_good, g_team_evil;
 
-void G_Init(void);
-void G_Shutdown(void);
-void G_ResetItems(void);
-void G_ResetTeams(void);
-void G_ResetVote(void);
-void G_CallTimeOut(g_entity_t *ent);
-void G_CallTimeIn(void);
-void G_RunTimers(void);
-void G_MuteClient(char *name, _Bool mute);
+	void G_Init(void);
+	void G_Shutdown(void);
+	void G_ResetItems(void);
+	void G_ResetTeams(void);
+	void G_ResetVote(void);
+	void G_CallTimeOut(g_entity_t *ent);
+	void G_CallTimeIn(void);
+	void G_RunTimers(void);
+	void G_MuteClient(char *name, _Bool mute);
 
-g_export_t *G_LoadGame(g_import_t *import);
+	g_export_t *G_LoadGame(g_import_t *import);
 
 #endif /* __GAME_LOCAL_H__ */
 

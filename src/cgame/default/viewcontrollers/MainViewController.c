@@ -44,7 +44,7 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
 	Class *clazz = (Class *) data;
 	if (clazz) {
 		$(this, popToRootViewController);
-		
+
 		ViewController *viewController = $((ViewController *) _alloc(clazz), init);
 
 		$(this, pushViewController, viewController);

@@ -27,9 +27,9 @@
 extern r_context_t r_context;
 
 #ifdef __R_LOCAL_H__
-void R_SwapBuffers(void);
-void R_InitContext(void);
-void R_ShutdownContext(void);
+	void R_SwapBuffers(void);
+	void R_InitContext(void);
+	void R_ShutdownContext(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_CONTEXT_H__ */

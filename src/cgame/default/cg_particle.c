@@ -69,8 +69,9 @@ static void Cg_PopParticle(cg_particle_t *p, cg_particle_t **list) {
  */
 cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *particles) {
 
-	if (!cg_add_particles->integer)
+	if (!cg_add_particles->integer) {
 		return NULL;
+	}
 
 	if (!cg_free_particles) {
 		cgi.Debug("No free particles\n");
@@ -126,9 +127,9 @@ cg_particles_t *Cg_AllocParticles(const r_image_t *image, const _Bool use_atlas)
 	if (use_atlas) {
 		particles->original_image = image;
 		cgi.AddImageToAtlas(cg_particle_atlas, image);
-	}
-	else
+	} else {
 		particles->image = image;
+	}
 
 	particles->next = cg_active_particles;
 	cg_active_particles = particles;
@@ -154,8 +155,9 @@ void Cg_SetupParticleAtlas(void) {
 	cg_particles_t *ps = cg_active_particles;
 	while (ps) {
 
-		if (ps->original_image)
+		if (ps->original_image) {
 			ps->image = (const r_image_t *) cgi.GetAtlasImageFromAtlas(cg_particle_atlas, ps->original_image);
+		}
 
 		ps = ps->next;
 	}
@@ -185,8 +187,9 @@ void Cg_FreeParticles(void) {
 static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const vec_t delta, const vec_t delta_squared) {
 
 	// free up weather particles that have hit the ground
-	if (p->part.org[2] <= p->weather.end_z)
+	if (p->part.org[2] <= p->weather.end_z) {
 		return true;
+	}
 
 	return false;
 }
@@ -208,11 +211,13 @@ static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const 
 void Cg_AddParticles(void) {
 	static uint32_t last_particle_time;
 
-	if (!cg_add_particles->value)
+	if (!cg_add_particles->value) {
 		return;
+	}
 
-	if (last_particle_time > cgi.client->systime)
+	if (last_particle_time > cgi.client->systime) {
 		last_particle_time = 0;
+	}
 
 	const vec_t delta = (cgi.client->systime - last_particle_time) * 0.001;
 	const vec_t delta_squared = delta * delta;
@@ -268,21 +273,21 @@ void Cg_AddParticles(void) {
 
 			// add the particle if it's visible on our screen
 			if (p->part.type == PARTICLE_BEAM ||
-				p->part.type == PARTICLE_SPARK) {
+			        p->part.type == PARTICLE_SPARK) {
 				vec3_t distance, center;
 				VectorSubtract(p->part.end, p->part.org, distance);
 				VectorMA(p->part.org, 0.5, distance, center);
 				const vec_t radius = VectorLength(distance);
 				cull = cgi.CullSphere(center, radius);
-			}
-			else {
+			} else {
 				const vec_t radius = p->part.scale * 0.5;
 				cull = cgi.CullSphere(p->part.org, radius);
 			}
 
-			if (!cull)
+			if (!cull) {
 				cgi.AddParticle(&p->part);
-	
+			}
+
 			p = p->next;
 		}
 

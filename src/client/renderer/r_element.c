@@ -121,8 +121,9 @@ static int32_t R_SortParticles_Compare(const void *a, const void *b) {
 		const r_particle_t *ap = ((const r_particle_t *) ae->element);
 		const r_particle_t *bp = ((const r_particle_t *) be->element);
 
-		if (bp->type == ap->type)
+		if (bp->type == ap->type) {
 			return (int32_t) (intptr_t) (bp->image - ap->image);
+		}
 
 		return bp->type - ap->type;
 	}
@@ -141,13 +142,14 @@ static void R_SortParticles_(r_element_t *e, const size_t count) {
 	for (r_element_t *p = e; ; p++, c++) {
 
 		if (c < count && p->type == ELEMENT_PARTICLE) {
-			
-			if (start == NULL)
+
+			if (start == NULL) {
 				start = p;
+			}
 		} else {
 
 			if (start != NULL) {
-				
+
 				const size_t length = p - start;
 				qsort(start, length, sizeof(r_element_t), R_SortParticles_Compare);
 
@@ -157,8 +159,9 @@ static void R_SortParticles_(r_element_t *e, const size_t count) {
 			}
 		}
 
-		if (c == count)
+		if (c == count) {
 			break;
+		}
 	}
 }
 
@@ -166,12 +169,13 @@ static void R_SortParticles_(r_element_t *e, const size_t count) {
  * @brief Sorts the draw elements for the current frame. Once elements are
  * sorted, particles for the current frame are also updated.
  */
-void R_SortElements(void *data __attribute__((unused))) {
+void R_SortElements(void *data) {
 
 	R_AddBspSurfaceElements();
 
-	if (!r_element_state.count)
+	if (!r_element_state.count) {
 		return;
+	}
 
 	R_SortElements_(r_element_state.elements, r_element_state.count);
 
@@ -229,8 +233,9 @@ static void R_DrawElements_(const r_element_t *e, const size_t count) {
 void R_DrawElements(void) {
 	size_t i, j;
 
-	if (!r_element_state.count)
+	if (!r_element_state.count) {
 		return;
+	}
 
 	R_UploadParticles();
 

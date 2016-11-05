@@ -30,8 +30,9 @@
  */
 static void G_Trigger_Init(g_entity_t *self) {
 
-	if (!VectorCompare(self->s.angles, vec3_origin))
+	if (!VectorCompare(self->s.angles, vec3_origin)) {
 		G_SetMoveDir(self->s.angles, self->locals.move_dir);
+	}
 
 	self->solid = SOLID_TRIGGER;
 	self->locals.move_type = MOVE_TYPE_NONE;
@@ -51,8 +52,9 @@ static void G_trigger_multiple_Wait(g_entity_t *ent) {
  */
 static void G_trigger_multiple_Think(g_entity_t *ent) {
 
-	if (ent->locals.next_think)
-		return; // already been triggered
+	if (ent->locals.next_think) {
+		return;    // already been triggered
+	}
 
 	G_UseTargets(ent, ent->locals.activator);
 
@@ -70,8 +72,8 @@ static void G_trigger_multiple_Think(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other __attribute__((unused)),
-		g_entity_t *activator) {
+static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other,
+                                   g_entity_t *activator) {
 
 	ent->locals.activator = activator;
 
@@ -82,8 +84,8 @@ static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other __attribut
  * @brief
  */
 static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
-		const cm_bsp_plane_t *plane __attribute__((unused)),
-		const cm_bsp_surface_t *surf __attribute__((unused))) {
+                                     const cm_bsp_plane_t *plane,
+                                     const cm_bsp_surface_t *surf) {
 
 	if (!other->client) {
 		const _Bool isProjectile = other->owner && other->owner->client;
@@ -99,8 +101,9 @@ static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
 
 		AngleVectors(other->s.angles, forward, NULL, NULL);
 
-		if (DotProduct(forward, self->locals.move_dir) < 0.0)
+		if (DotProduct(forward, self->locals.move_dir) < 0.0) {
 			return;
+		}
 	}
 
 	self->locals.activator = other;
@@ -110,8 +113,8 @@ static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
 /**
  * @brief
  */
-static void G_trigger_multiple_Enable(g_entity_t *self, g_entity_t *other __attribute__((unused)),
-		g_entity_t *activator __attribute__((unused))) {
+static void G_trigger_multiple_Enable(g_entity_t *self, g_entity_t *other,
+                                      g_entity_t *activator) {
 	self->solid = SOLID_TRIGGER;
 	self->locals.Use = G_trigger_multiple_Use;
 	gi.LinkEntity(self);
@@ -136,8 +139,9 @@ void G_trigger_multiple(g_entity_t *ent) {
 
 	ent->locals.noise_index = gi.SoundIndex("misc/chat");
 
-	if (!ent->locals.wait)
+	if (!ent->locals.wait) {
 		ent->locals.wait = 0.2;
+	}
 
 	ent->locals.Touch = G_trigger_multiple_Touch;
 	ent->locals.move_type = MOVE_TYPE_NONE;
@@ -151,8 +155,9 @@ void G_trigger_multiple(g_entity_t *ent) {
 		ent->locals.Use = G_trigger_multiple_Use;
 	}
 
-	if (!VectorCompare(ent->s.angles, vec3_origin))
+	if (!VectorCompare(ent->s.angles, vec3_origin)) {
 		G_SetMoveDir(ent->s.angles, ent->locals.move_dir);
+	}
 
 	gi.SetModel(ent, ent->model);
 	gi.LinkEntity(ent);
@@ -179,8 +184,8 @@ void G_trigger_once(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_trigger_relay_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
-		g_entity_t *activator) {
+static void G_trigger_relay_Use(g_entity_t *self, g_entity_t *other,
+                                g_entity_t *activator) {
 	G_UseTargets(self, activator);
 }
 
@@ -210,8 +215,9 @@ void G_trigger_relay(g_entity_t *self) {
 void G_trigger_always(g_entity_t *ent) {
 
 	// we must have some delay to make sure our use targets are present
-	if (ent->locals.delay < 0.2)
+	if (ent->locals.delay < 0.2) {
 		ent->locals.delay = 0.2;
+	}
 
 	G_UseTargets(ent, ent);
 }
@@ -223,8 +229,8 @@ void G_trigger_always(g_entity_t *ent) {
  * @brief
  */
 static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
-		const cm_bsp_plane_t *plane __attribute__((unused)),
-		const cm_bsp_surface_t *surf __attribute__((unused))) {
+                                 const cm_bsp_plane_t *plane,
+                                 const cm_bsp_surface_t *surf) {
 
 	if (other->locals.move_type == MOVE_TYPE_WALK || other->locals.move_type == MOVE_TYPE_BOUNCE) {
 
@@ -241,8 +247,9 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
 		}
 	}
 
-	if (self->locals.spawn_flags & PUSH_ONCE)
+	if (self->locals.spawn_flags & PUSH_ONCE) {
 		G_FreeEntity(self);
+	}
 }
 
 /**
@@ -278,65 +285,73 @@ void G_trigger_push(g_entity_t *self) {
 
 	self->locals.Touch = G_trigger_push_Touch;
 
-	if (!self->locals.speed)
+	if (!self->locals.speed) {
 		self->locals.speed = 100;
+	}
 
 	gi.LinkEntity(self);
 
-	if (self->locals.spawn_flags & PUSH_EFFECT)
+	if (self->locals.spawn_flags & PUSH_EFFECT) {
 		G_trigger_push_Effect(self);
+	}
 }
 
 /**
  * @brief
  */
-static void G_trigger_hurt_Use(g_entity_t *self, g_entity_t *other __attribute__((unused)),
-		g_entity_t *activator __attribute__((unused))) {
+static void G_trigger_hurt_Use(g_entity_t *self, g_entity_t *other,
+                               g_entity_t *activator) {
 
-	if (self->solid == SOLID_NOT)
+	if (self->solid == SOLID_NOT) {
 		self->solid = SOLID_TRIGGER;
-	else
+	} else {
 		self->solid = SOLID_NOT;
+	}
 	gi.LinkEntity(self);
 
-	if (!(self->locals.spawn_flags & 2))
+	if (!(self->locals.spawn_flags & 2)) {
 		self->locals.Use = NULL;
+	}
 }
 
 /**
  * @brief
  */
 static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
-		const cm_bsp_plane_t *plane __attribute__((unused)),
-		const cm_bsp_surface_t *surf __attribute__((unused))) {
+                                 const cm_bsp_plane_t *plane,
+                                 const cm_bsp_surface_t *surf) {
 
 	if (!other->locals.take_damage) { // deal with items that land on us
 
 		if (other->locals.item) {
-			if (other->locals.item->type == ITEM_FLAG)
+			if (other->locals.item->type == ITEM_FLAG) {
 				G_ResetDroppedFlag(other);
-			else
+			} else {
 				G_FreeEntity(other);
+			}
 		}
 
 		gi.Debug("%s\n", etos(other));
 		return;
 	}
 
-	if (self->locals.timestamp > g_level.time)
+	if (self->locals.timestamp > g_level.time) {
 		return;
+	}
 
-	if (self->locals.spawn_flags & 16)
+	if (self->locals.spawn_flags & 16) {
 		self->locals.timestamp = g_level.time + 1000;
-	else
+	} else {
 		self->locals.timestamp = g_level.time + 100;
+	}
 
 	const int16_t d = self->locals.damage;
 
 	int32_t dflags = DMG_NO_ARMOR;
 
-	if (self->locals.spawn_flags & 8)
+	if (self->locals.spawn_flags & 8) {
 		dflags = DMG_NO_GOD;
+	}
 
 	G_Damage(other, self, NULL, NULL, NULL, NULL, d, d, dflags, MOD_TRIGGER_HURT);
 }
@@ -361,16 +376,19 @@ void G_trigger_hurt(g_entity_t *self) {
 
 	self->locals.Touch = G_trigger_hurt_Touch;
 
-	if (!self->locals.damage)
+	if (!self->locals.damage) {
 		self->locals.damage = 2;
+	}
 
-	if (self->locals.spawn_flags & 1)
+	if (self->locals.spawn_flags & 1) {
 		self->solid = SOLID_NOT;
-	else
+	} else {
 		self->solid = SOLID_TRIGGER;
+	}
 
-	if (self->locals.spawn_flags & 2)
+	if (self->locals.spawn_flags & 2) {
 		self->locals.Use = G_trigger_hurt_Use;
+	}
 
 	gi.LinkEntity(self);
 }
@@ -378,20 +396,23 @@ void G_trigger_hurt(g_entity_t *self) {
 /**
  * @brief
  */
-static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other __attribute__((unused)),
-		const cm_bsp_plane_t *plane __attribute__((unused)),
-		const cm_bsp_surface_t *surf __attribute__((unused))) {
+static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other,
+                                 const cm_bsp_plane_t *plane,
+                                 const cm_bsp_surface_t *surf) {
 
-	if (self->locals.timestamp > g_level.time)
+	if (self->locals.timestamp > g_level.time) {
 		return;
+	}
 
 	self->locals.timestamp = g_level.time + self->locals.delay * 1000;
 
-	if (self->locals.command)
+	if (self->locals.command) {
 		gi.AddCommandString(va("%s\n", self->locals.command));
+	}
 
-	else if (self->locals.script)
+	else if (self->locals.script) {
 		gi.AddCommandString(va("exec %s\n", self->locals.script));
+	}
 }
 
 /*QUAKED trigger_exec (0 1 0) ?

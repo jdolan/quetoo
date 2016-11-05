@@ -28,13 +28,15 @@
 static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	static player_state_t null_state;
 
-	if (delta_frame && delta_frame->valid)
+	if (delta_frame && delta_frame->valid) {
 		Net_ReadDeltaPlayerState(&net_message, &delta_frame->ps, &frame->ps);
-	else
+	} else {
 		Net_ReadDeltaPlayerState(&net_message, &null_state, &frame->ps);
+	}
 
-	if (cl.demo_server) // if playing a demo, force freeze
+	if (cl.demo_server) { // if playing a demo, force freeze
 		frame->ps.pm_state.type = PM_FREEZE;
+	}
 }
 
 /**
@@ -43,13 +45,15 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
 static _Bool Cl_ValidDeltaEntity(const entity_state_t *from, const entity_state_t *to) {
 	vec3_t delta;
 
-	if (from->model1 != to->model1)
+	if (from->model1 != to->model1) {
 		return false;
+	}
 
 	VectorSubtract(from->origin, to->origin, delta);
 
-	if (VectorLength(delta) > 256.0)
+	if (VectorLength(delta) > 256.0) {
 		return false;
+	}
 
 	return true;
 }
@@ -106,9 +110,9 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 	if (ent->current.sound) {
 		S_AddSample(&(const s_play_sample_t) {
 			.sample = cl.sound_precache[ent->current.sound],
-			.entity = ent->current.number,
-			.attenuation = ATTEN_IDLE,
-			.flags = S_PLAY_ENTITY | S_PLAY_LOOP | S_PLAY_FRAME
+			 .entity = ent->current.number,
+			  .attenuation = ATTEN_IDLE,
+			   .flags = S_PLAY_ENTITY | S_PLAY_LOOP | S_PLAY_FRAME
 		});
 	}
 }
@@ -136,20 +140,24 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	while (true) {
 		const uint16_t number = Net_ReadShort(&net_message);
 
-		if (number >= MAX_ENTITIES)
+		if (number >= MAX_ENTITIES) {
 			Com_Error(ERR_DROP, "Bad number: %i\n", number);
+		}
 
-		if (net_message.read > net_message.size)
+		if (net_message.read > net_message.size) {
 			Com_Error(ERR_DROP, "End of message\n");
+		}
 
-		if (!number) // done
+		if (!number) { // done
 			break;
+		}
 
 		// before dealing with the new entity, copy unchanged entities into the frame
 		while (delta_number < number) {
 
-			if (cl_show_net_messages->integer == 3)
+			if (cl_show_net_messages->integer == 3) {
 				Com_Print("   unchanged: %i\n", delta_number);
+			}
 
 			Cl_ReadDeltaEntity(frame, state, delta_number, 0);
 
@@ -168,11 +176,13 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 
 		if (bits & U_REMOVE) { // remove it, no delta
 
-			if (cl_show_net_messages->integer == 3)
+			if (cl_show_net_messages->integer == 3) {
 				Com_Print("   remove: %i\n", number);
+			}
 
-			if (delta_number != number)
+			if (delta_number != number) {
 				Com_Warn("U_REMOVE: %u != %u\n", delta_number, number);
+			}
 
 			index++;
 
@@ -188,8 +198,9 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 
 		if (delta_number == number) { // delta from previous state
 
-			if (cl_show_net_messages->integer == 3)
+			if (cl_show_net_messages->integer == 3) {
 				Com_Print("   delta: %i\n", number);
+			}
 
 			Cl_ReadDeltaEntity(frame, state, number, bits);
 
@@ -207,8 +218,9 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 
 		if (delta_number > number) { // delta from baseline
 
-			if (cl_show_net_messages->integer == 3)
+			if (cl_show_net_messages->integer == 3) {
 				Com_Print("   baseline: %i\n", number);
+			}
 
 			Cl_ReadDeltaEntity(frame, &cl.entities[number].baseline, number, bits);
 
@@ -219,8 +231,9 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 	// any remaining entities in the old frame are copied over
 	while (delta_number != UINT16_MAX) { // one or more entities from the old packet are unchanged
 
-		if (cl_show_net_messages->integer == 3)
+		if (cl_show_net_messages->integer == 3) {
 			Com_Print("   unchanged: %i\n", delta_number);
+		}
 
 		Cl_ReadDeltaEntity(frame, state, delta_number, 0);
 
@@ -248,8 +261,9 @@ void Cl_ParseFrame(void) {
 
 	cl.surpress_count = Net_ReadByte(&net_message);
 
-	if (cl_show_net_messages->integer == 3)
+	if (cl_show_net_messages->integer == 3) {
 		Com_Print("   frame:%i  delta:%i\n", cl.frame.frame_num, cl.frame.delta_frame_num);
+	}
 
 	if (cl.frame.delta_frame_num <= 0) { // uncompressed frame
 		cl.delta_frame = NULL;
@@ -257,14 +271,17 @@ void Cl_ParseFrame(void) {
 	} else { // delta compressed frame
 		cl.delta_frame = &cl.frames[cl.frame.delta_frame_num & PACKET_MASK];
 
-		if (!cl.delta_frame->valid)
+		if (!cl.delta_frame->valid) {
 			Com_Error(ERR_DROP, "Delta from invalid frame\n");
+		}
 
-		if (cl.delta_frame->frame_num != cl.frame.delta_frame_num)
+		if (cl.delta_frame->frame_num != cl.frame.delta_frame_num) {
 			Com_Error(ERR_DROP, "Delta frame too old\n");
+		}
 
-		else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP)
+		else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP) {
 			Com_Error(ERR_DROP, "Delta entity state too old\n");
+		}
 
 		cl.frame.valid = true;
 	}
@@ -304,7 +321,7 @@ void Cl_ParseFrame(void) {
  * the current server time just as a new packet arrives.
  *
  * @remarks The client advances its simulation time each frame, by the elapsed
- * millisecond delta. Here, we clamp the simulation time to be within the 
+ * millisecond delta. Here, we clamp the simulation time to be within the
  * range of the current frame. Even under ideal conditions, it's likely that
  * clamping will occur. This is due, in part, to the game using fixed integer
  * frame durations (e.g. 60hz * 16ms < 1000ms).

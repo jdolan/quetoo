@@ -73,7 +73,7 @@ static r_image_t *R_AllocLightmap_(r_image_type_t type) {
 /**
  * @brief
  */
-static void R_UploadLightmapBlock(r_bsp_model_t *bsp __attribute__((unused))) {
+static void R_UploadLightmapBlock(r_bsp_model_t *bsp) {
 
 	R_UploadImage(r_lightmap_state.lightmap, GL_RGB, r_lightmap_state.sample_buffer);
 	R_UploadImage(r_lightmap_state.deluxemap, GL_RGB, r_lightmap_state.direction_buffer);
@@ -97,11 +97,13 @@ static _Bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixe
 		r_pixel_t best2 = 0;
 
 		for (j = 0; j < w; j++) {
-			if (r_lightmap_state.allocated[i + j] >= best)
+			if (r_lightmap_state.allocated[i + j] >= best) {
 				break;
+			}
 
-			if (r_lightmap_state.allocated[i + j] > best2)
+			if (r_lightmap_state.allocated[i + j] > best2) {
 				best2 = r_lightmap_state.allocated[i + j];
+			}
 		}
 		if (j == w) { // this is a valid spot
 			*x = i;
@@ -109,11 +111,13 @@ static _Bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixe
 		}
 	}
 
-	if (best + h > r_lightmap_state.block_size)
+	if (best + h > r_lightmap_state.block_size) {
 		return false;
+	}
 
-	for (i = 0; i < w; i++)
+	for (i = 0; i < w; i++) {
 		r_lightmap_state.allocated[*x + i] = best + h;
+	}
 
 	return true;
 }
@@ -122,7 +126,7 @@ static _Bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixe
  * @brief
  */
 static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *sout,
-		byte *dout, size_t stride) {
+                                   byte *dout, size_t stride) {
 
 	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmaps->scale) + 1;
 	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmaps->scale) + 1;
@@ -172,7 +176,7 @@ static void R_FilterLightmap(r_pixel_t width, r_pixel_t height, byte *lightmap) 
  * @param dout The destination for processed deluxemap data.
  */
 static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf, const byte *in,
-		byte *lout, byte *dout, size_t stride) {
+                            byte *lout, byte *dout, size_t stride) {
 
 	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmaps->scale) + 1;
 	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmaps->scale) + 1;
@@ -239,8 +243,9 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
  */
 void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const byte *data) {
 
-	if (!(surf->flags & R_SURF_LIGHTMAP))
+	if (!(surf->flags & R_SURF_LIGHTMAP)) {
 		return;
+	}
 
 	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmaps->scale) + 1;
 	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmaps->scale) + 1;
@@ -261,23 +266,24 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 	surf->deluxemap = r_lightmap_state.deluxemap;
 
 	byte *sout = r_lightmap_state.sample_buffer;
-	sout += (surf->lightmap_t * r_lightmap_state.block_size + surf->lightmap_s) * 3;
+	sout += (surf->lightmap_t *r_lightmap_state.block_size + surf->lightmap_s) * 3;
 
 	byte *dout = r_lightmap_state.direction_buffer;
-	dout += (surf->lightmap_t * r_lightmap_state.block_size + surf->lightmap_s) * 3;
+	dout += (surf->lightmap_t *r_lightmap_state.block_size + surf->lightmap_s) * 3;
 
 	const size_t stride = r_lightmap_state.block_size * 3;
 
-	if (data)
+	if (data) {
 		R_BuildLightmap(bsp, surf, data, sout, dout, stride);
-	else
+	} else {
 		R_BuildDefaultLightmap(bsp, surf, sout, dout, stride);
+	}
 }
 
 /**
  * @brief
  */
-void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp __attribute__((unused))) {
+void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 	int32_t max;
 
 	// users can tune lightmap size for their card

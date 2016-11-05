@@ -32,8 +32,9 @@ const vec3_t ITEM_MAXS = { 16.0, 16.0, 16.0 };
  */
 const g_item_t *G_ItemByIndex(uint16_t index) {
 
-	if (index == 0 || index >= g_num_items)
+	if (index == 0 || index >= g_num_items) {
 		return NULL;
+	}
 
 	return &g_items[index];
 }
@@ -47,11 +48,13 @@ const g_item_t *G_FindItemByClassName(const char *class_name) {
 	const g_item_t *it = g_items;
 	for (i = 0; i < g_num_items; i++, it++) {
 
-		if (!it->class_name)
+		if (!it->class_name) {
 			continue;
+		}
 
-		if (!g_strcmp0(it->class_name, class_name))
+		if (!g_strcmp0(it->class_name, class_name)) {
 			return it;
+		}
 	}
 
 	return NULL;
@@ -63,17 +66,20 @@ const g_item_t *G_FindItemByClassName(const char *class_name) {
 const g_item_t *G_FindItem(const char *name) {
 	int32_t i;
 
-	if (!name)
+	if (!name) {
 		return NULL;
+	}
 
 	const g_item_t *it = g_items;
 	for (i = 0; i < g_num_items; i++, it++) {
 
-		if (!it->name)
+		if (!it->name) {
 			continue;
+		}
 
-		if (!g_ascii_strcasecmp(it->name, name))
+		if (!g_ascii_strcasecmp(it->name, name)) {
 			return it;
+		}
 	}
 
 	return NULL;
@@ -145,11 +151,13 @@ void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
  */
 static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
 
-	if (other->locals.health < other->locals.max_health)
+	if (other->locals.health < other->locals.max_health) {
 		other->locals.health = other->locals.max_health;
+	}
 
-	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED))
+	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
 		G_SetItemRespawn(ent, 60000);
+	}
 
 	return true;
 }
@@ -159,8 +167,9 @@ static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
  */
 static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 
-	if (other->client->locals.inventory[g_media.items.quad_damage])
-		return false; // already have it
+	if (other->client->locals.inventory[g_media.items.quad_damage]) {
+		return false;    // already have it
+	}
 
 	other->client->locals.inventory[g_media.items.quad_damage] = 1;
 
@@ -181,13 +190,15 @@ static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 g_entity_t *G_TossQuadDamage(g_entity_t *ent) {
 	g_entity_t *quad;
 
-	if (!ent->client->locals.inventory[g_media.items.quad_damage])
+	if (!ent->client->locals.inventory[g_media.items.quad_damage]) {
 		return NULL;
+	}
 
 	quad = G_DropItem(ent, G_FindItemByClassName("item_quad"));
 
-	if (quad)
+	if (quad) {
 		quad->locals.timestamp = ent->client->locals.quad_damage_time;
+	}
 
 	ent->client->locals.quad_damage_time = 0.0;
 	ent->client->locals.inventory[g_media.items.quad_damage] = 0;
@@ -202,33 +213,35 @@ _Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	uint16_t index;
 	int16_t max;
 
-	if (item->tag == AMMO_SHELLS)
+	if (item->tag == AMMO_SHELLS) {
 		max = ent->client->locals.max_shells;
-	else if (item->tag == AMMO_BULLETS)
+	} else if (item->tag == AMMO_BULLETS) {
 		max = ent->client->locals.max_bullets;
-	else if (item->tag == AMMO_GRENADES)
+	} else if (item->tag == AMMO_GRENADES) {
 		max = ent->client->locals.max_grenades;
-	else if (item->tag == AMMO_ROCKETS)
+	} else if (item->tag == AMMO_ROCKETS) {
 		max = ent->client->locals.max_rockets;
-	else if (item->tag == AMMO_CELLS)
+	} else if (item->tag == AMMO_CELLS) {
 		max = ent->client->locals.max_cells;
-	else if (item->tag == AMMO_BOLTS)
+	} else if (item->tag == AMMO_BOLTS) {
 		max = ent->client->locals.max_bolts;
-	else if (item->tag == AMMO_SLUGS)
+	} else if (item->tag == AMMO_SLUGS) {
 		max = ent->client->locals.max_slugs;
-	else if (item->tag == AMMO_NUKES)
+	} else if (item->tag == AMMO_NUKES) {
 		max = ent->client->locals.max_nukes;
-	else
+	} else {
 		return false;
+	}
 
 	index = ITEM_INDEX(item);
 
 	ent->client->locals.inventory[index] += count;
 
-	if (ent->client->locals.inventory[index] > max)
+	if (ent->client->locals.inventory[index] > max) {
 		ent->client->locals.inventory[index] = max;
-	else if (ent->client->locals.inventory[index] < 0)
+	} else if (ent->client->locals.inventory[index] < 0) {
 		ent->client->locals.inventory[index] = 0;
+	}
 
 	return true;
 }
@@ -240,33 +253,35 @@ _Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	uint16_t index;
 	int16_t max;
 
-	if (item->tag == AMMO_SHELLS)
+	if (item->tag == AMMO_SHELLS) {
 		max = ent->client->locals.max_shells;
-	else if (item->tag == AMMO_BULLETS)
+	} else if (item->tag == AMMO_BULLETS) {
 		max = ent->client->locals.max_bullets;
-	else if (item->tag == AMMO_GRENADES)
+	} else if (item->tag == AMMO_GRENADES) {
 		max = ent->client->locals.max_grenades;
-	else if (item->tag == AMMO_ROCKETS)
+	} else if (item->tag == AMMO_ROCKETS) {
 		max = ent->client->locals.max_rockets;
-	else if (item->tag == AMMO_CELLS)
+	} else if (item->tag == AMMO_CELLS) {
 		max = ent->client->locals.max_cells;
-	else if (item->tag == AMMO_BOLTS)
+	} else if (item->tag == AMMO_BOLTS) {
 		max = ent->client->locals.max_bolts;
-	else if (item->tag == AMMO_SLUGS)
+	} else if (item->tag == AMMO_SLUGS) {
 		max = ent->client->locals.max_slugs;
-	else if (item->tag == AMMO_NUKES)
+	} else if (item->tag == AMMO_NUKES) {
 		max = ent->client->locals.max_nukes;
-	else
+	} else {
 		return false;
+	}
 
 	index = ITEM_INDEX(item);
 
 	ent->client->locals.inventory[index] = count;
 
-	if (ent->client->locals.inventory[index] > max)
+	if (ent->client->locals.inventory[index] > max) {
 		ent->client->locals.inventory[index] = max;
-	else if (ent->client->locals.inventory[index] < 0)
+	} else if (ent->client->locals.inventory[index] < 0) {
 		ent->client->locals.inventory[index] = 0;
+	}
 
 	return true;
 }
@@ -277,16 +292,19 @@ _Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 static _Bool G_PickupAmmo(g_entity_t *ent, g_entity_t *other) {
 	int32_t count;
 
-	if (ent->locals.count)
+	if (ent->locals.count) {
 		count = ent->locals.count;
-	else
+	} else {
 		count = ent->locals.item->quantity;
+	}
 
-	if (!G_AddAmmo(other, ent->locals.item, count))
+	if (!G_AddAmmo(other, ent->locals.item, count)) {
 		return false;
+	}
 
-	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED))
+	if (!(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
 		G_SetItemRespawn(ent, g_ammo_respawn_time->value * 1000);
+	}
 
 	return true;
 }
@@ -312,19 +330,22 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 				other->client->locals.boost_time = g_level.time + 750;
 				max = other->client->locals.max_boost_health;
 			}
-		} else if (always_add)
+		} else if (always_add) {
 			max = INT16_MAX;
-		if (h > max) // and enforce it
+		}
+		if (h > max) { // and enforce it
 			h = max;
+		}
 
 		other->locals.health = h;
 
-		if (tag == HEALTH_MEGA) // respawn the item
+		if (tag == HEALTH_MEGA) { // respawn the item
 			G_SetItemRespawn(ent, 90000);
-		else if (tag == HEALTH_LARGE)
+		} else if (tag == HEALTH_LARGE) {
 			G_SetItemRespawn(ent, 60000);
-		else
+		} else {
 			G_SetItemRespawn(ent, 20000);
+		}
 
 		return true;
 	}
@@ -342,8 +363,9 @@ const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
 		{ ARMOR_JACKET, 25, 50, 0.3, 0.0 }
 	};
 
-	if (!armor)
+	if (!armor) {
 		return NULL;
+	}
 
 	for (size_t i = 0; i < lengthof(armor_info); i++) {
 		if (armor->tag == armor_info[i].tag) {
@@ -364,18 +386,18 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 	const g_armor_info_t *new_info = G_ArmorInfo(new_armor);
 	const g_armor_info_t *current_info = G_ArmorInfo(current_armor);
-	
+
 	_Bool taken = false;
 
 	if (new_armor->tag == ARMOR_SHARD) { // take it, ignoring cap
 		if (current_armor) {
 			other->client->locals.inventory[ITEM_INDEX(current_armor)] += new_armor->quantity;
 			other->client->locals.inventory[ITEM_INDEX(current_armor)] =
-			  Clamp(other->client->locals.inventory[ITEM_INDEX(current_armor)], 0, 200);
+			    Clamp(other->client->locals.inventory[ITEM_INDEX(current_armor)], 0, 200);
 		} else {
 			other->client->locals.inventory[g_media.items.jacket_armor] = new_armor->quantity;
 			other->client->locals.inventory[g_media.items.jacket_armor] =
-			  Clamp(other->client->locals.inventory[g_media.items.jacket_armor], 0, 200);
+			    Clamp(other->client->locals.inventory[g_media.items.jacket_armor], 0, 200);
 		}
 		taken = true;
 	} else if (!current_armor) { // no current armor, take it
@@ -386,7 +408,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 		if (new_info->normal_protection > current_info->normal_protection) {
 
 			// get the ratio between the new and old armor to add a portion to
-			// new armor pickup. Ganked from q2pro (thanks skuller) 
+			// new armor pickup. Ganked from q2pro (thanks skuller)
 			const vec_t salvage = current_info->normal_protection / new_info->normal_protection;
 			const int16_t salvage_count = salvage * other->client->locals.inventory[ITEM_INDEX(current_armor)];
 
@@ -408,7 +430,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 			// take it
 			if (other->client->locals.inventory[ITEM_INDEX(current_armor)] < new_count &&
-					other->client->locals.inventory[ITEM_INDEX(current_armor)] < 200) {
+			        other->client->locals.inventory[ITEM_INDEX(current_armor)] < 200) {
 				other->client->locals.inventory[ITEM_INDEX(current_armor)] = new_count;
 
 				taken = true;
@@ -444,11 +466,13 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 	g_team_t *t;
 	g_entity_t *f;
 
-	if (!(t = G_TeamForFlag(ent)))
+	if (!(t = G_TeamForFlag(ent))) {
 		return;
+	}
 
-	if (!(f = G_FlagForTeam(t)))
+	if (!(f = G_FlagForTeam(t))) {
 		return;
+	}
 
 	f->sv_flags &= ~SVF_NO_CLIENT;
 	f->s.event = EV_ITEM_RESPAWN;
@@ -471,20 +495,25 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	g_entity_t *f, *of;
 	int32_t index;
 
-	if (!other->client->locals.persistent.team)
+	if (!other->client->locals.persistent.team) {
 		return false;
+	}
 
-	if (!(t = G_TeamForFlag(ent)))
+	if (!(t = G_TeamForFlag(ent))) {
 		return false;
+	}
 
-	if (!(f = G_FlagForTeam(t)))
+	if (!(f = G_FlagForTeam(t))) {
 		return false;
+	}
 
-	if (!(ot = G_OtherTeam(t)))
+	if (!(ot = G_OtherTeam(t))) {
 		return false;
+	}
 
-	if (!(of = G_FlagForTeam(ot)))
+	if (!(of = G_FlagForTeam(ot))) {
 		return false;
+	}
 
 	if (t == other->client->locals.persistent.team) { // our flag
 
@@ -500,7 +529,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 			gi.Sound(other, gi.SoundIndex("ctf/return"), ATTEN_NONE);
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag\n",
-					other->client->locals.persistent.net_name, t->name);
+			                  other->client->locals.persistent.net_name, t->name);
 
 			return true;
 		}
@@ -522,7 +551,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 			gi.Sound(other, gi.SoundIndex("ctf/capture"), ATTEN_NONE);
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag\n",
-					other->client->locals.persistent.net_name, ot->name);
+			                  other->client->locals.persistent.net_name, ot->name);
 
 			t->captures++;
 			other->client->locals.persistent.captures++;
@@ -550,7 +579,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	gi.Sound(other, gi.SoundIndex("ctf/steal"), ATTEN_NONE);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag\n",
-			other->client->locals.persistent.net_name, t->name);
+	                  other->client->locals.persistent.net_name, t->name);
 
 	other->s.effects |= G_EffectForTeam(t);
 	return true;
@@ -563,16 +592,19 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 	g_team_t *ot;
 	g_entity_t *of;
 
-	if (!(ot = G_OtherTeam(ent->client->locals.persistent.team)))
+	if (!(ot = G_OtherTeam(ent->client->locals.persistent.team))) {
 		return NULL;
+	}
 
-	if (!(of = G_FlagForTeam(ot)))
+	if (!(of = G_FlagForTeam(ot))) {
 		return NULL;
+	}
 
 	const int32_t index = ITEM_INDEX(of->locals.item);
 
-	if (!ent->client->locals.inventory[index])
+	if (!ent->client->locals.inventory[index]) {
 		return NULL;
+	}
 
 	ent->client->locals.inventory[index] = 0;
 
@@ -580,7 +612,7 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 	ent->s.effects &= ~(EF_CTF_RED | EF_CTF_BLUE);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag\n",
-			ent->client->locals.persistent.net_name, ot->name);
+	                  ent->client->locals.persistent.net_name, ot->name);
 
 	return G_DropItem(ent, of->locals.item);
 }
@@ -588,7 +620,7 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 /**
  * @brief
  */
-static g_entity_t *G_DropFlag(g_entity_t *ent, const g_item_t *item __attribute__((unused))) {
+static g_entity_t *G_DropFlag(g_entity_t *ent, const g_item_t *item) {
 	return G_TossFlag(ent);
 }
 
@@ -596,33 +628,39 @@ static g_entity_t *G_DropFlag(g_entity_t *ent, const g_item_t *item __attribute_
  * @brief
  */
 void G_TouchItem(g_entity_t *ent, g_entity_t *other,
-		const cm_bsp_plane_t *plane __attribute__((unused)),
-		const cm_bsp_surface_t *surf __attribute__((unused))) {
+                 const cm_bsp_plane_t *plane,
+                 const cm_bsp_surface_t *surf) {
 
 	if (other == ent->owner) {
-		if (ent->locals.ground_entity == NULL)
+		if (ent->locals.ground_entity == NULL) {
 			return;
+		}
 	}
 
-	if (!other->client)
+	if (!other->client) {
 		return;
+	}
 
-	if (other->locals.dead)
-		return; // dead people can't pickup
+	if (other->locals.dead) {
+		return;    // dead people can't pickup
+	}
 
-	if (!ent->locals.item->Pickup)
-		return; // item can't be picked up
+	if (!ent->locals.item->Pickup) {
+		return;    // item can't be picked up
+	}
 
-	if (g_level.warmup)
-		return; // warmup mode
+	if (g_level.warmup) {
+		return;    // warmup mode
+	}
 
 	const _Bool pickup = ent->locals.item->Pickup(ent, other);
 	if (pickup) {
 		// show icon and name on status bar
 		uint16_t icon = gi.ImageIndex(ent->locals.item->icon);
 
-		if (other->client->ps.stats[STAT_PICKUP_ICON] == icon)
+		if (other->client->ps.stats[STAT_PICKUP_ICON] == icon) {
 			icon |= STAT_TOGGLE_BIT;
+		}
 
 		other->client->ps.stats[STAT_PICKUP_ICON] = icon;
 		other->client->ps.stats[STAT_PICKUP_STRING] = CS_ITEMS + ITEM_INDEX(ent->locals.item);
@@ -656,23 +694,27 @@ static void G_DropItem_Think(g_entity_t *ent) {
 	// continue to think as we drop to the floor
 	if (ent->locals.ground_entity) {
 
-		if (ent->locals.item->type == ITEM_FLAG) // flags go back to base
+		if (ent->locals.item->type == ITEM_FLAG) { // flags go back to base
 			ent->locals.Think = G_ResetDroppedFlag;
-		else // everything else just gets freed
+		} else { // everything else just gets freed
 			ent->locals.Think = G_FreeEntity;
+		}
 
 		uint32_t expiration;
-		if (ent->locals.item->type == ITEM_POWERUP) // expire from last touch
+		if (ent->locals.item->type == ITEM_POWERUP) { // expire from last touch
 			expiration = ent->locals.timestamp - g_level.time;
-		else // general case
+		} else { // general case
 			expiration = 30000;
+		}
 
 		const int32_t contents = gi.PointContents(ent->s.origin);
 
-		if (contents & CONTENTS_LAVA) // expire more quickly in lava
+		if (contents & CONTENTS_LAVA) { // expire more quickly in lava
 			expiration /= 5;
-		if (contents & CONTENTS_SLIME) // and slime
+		}
+		if (contents & CONTENTS_SLIME) { // and slime
 			expiration /= 2;
+		}
 
 		ent->locals.next_think = g_level.time + expiration;
 	} else {
@@ -713,10 +755,11 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 
 	// we're in a bad spot, forget it
 	if (tr.start_solid) {
-		if (item->type == ITEM_FLAG)
+		if (item->type == ITEM_FLAG) {
 			G_ResetDroppedFlag(it);
-		else
+		} else {
 			G_FreeEntity(it);
+		}
 
 		return NULL;
 	}
@@ -733,8 +776,9 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 
 	if (item->type == ITEM_WEAPON) {
 		const g_item_t *ammo = G_FindItem(item->ammo);
-		if (ammo)
+		if (ammo) {
 			it->locals.health = ammo->quantity;
+		}
 	}
 
 	VectorScale(forward, 100.0, it->locals.velocity);
@@ -751,7 +795,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 /**
  * @brief
  */
-static void G_UseItem(g_entity_t *ent, g_entity_t *other __attribute__((unused)), g_entity_t *activator __attribute__((unused))) {
+static void G_UseItem(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 
 	ent->sv_flags &= ~SVF_NO_CLIENT;
 	ent->locals.Use = NULL;
@@ -795,7 +839,7 @@ void G_ResetItem(g_entity_t *ent) {
 	}
 
 	const _Bool inhibited = g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB;
-	
+
 	if (inhibited || (ent->locals.flags & FL_TEAM_SLAVE)) {
 		ent->sv_flags |= SVF_NO_CLIENT;
 		ent->solid = SOLID_NOT;
@@ -848,53 +892,63 @@ void G_PrecacheItem(const g_item_t *it) {
 	char data[MAX_QPATH];
 	ptrdiff_t len;
 
-	if (!it)
+	if (!it) {
 		return;
+	}
 
 	gi.ConfigString(CS_ITEMS + ITEM_INDEX(it), it->name);
 
-	if (it->pickup_sound)
+	if (it->pickup_sound) {
 		gi.SoundIndex(it->pickup_sound);
-	if (it->model)
+	}
+	if (it->model) {
 		gi.ModelIndex(it->model);
-	if (it->icon)
+	}
+	if (it->icon) {
 		gi.ImageIndex(it->icon);
+	}
 
 	// parse everything for its ammo
 	if (it->ammo && it->ammo[0]) {
 		const g_item_t *ammo = G_FindItem(it->ammo);
-		if (ammo != it)
+		if (ammo != it) {
 			G_PrecacheItem(ammo);
+		}
 	}
 
 	// parse the space-separated precache string for other items
 	s = it->precaches;
-	if (!s || !s[0])
+	if (!s || !s[0]) {
 		return;
+	}
 
 	while (*s) {
 		start = s;
-		while (*s && *s != ' ')
+		while (*s && *s != ' ') {
 			s++;
+		}
 
 		len = s - start;
-		if (len >= MAX_QPATH || len < 5)
+		if (len >= MAX_QPATH || len < 5) {
 			gi.Error("%s has bad precache string\n", it->class_name);
+		}
 		memcpy(data, start, len);
 		data[len] = '\0';
-		if (*s)
+		if (*s) {
 			s++;
+		}
 
 		// determine type based on extension
-		if (g_str_has_suffix(data, ".md3") || g_str_has_suffix(data, ".obj"))
+		if (g_str_has_suffix(data, ".md3") || g_str_has_suffix(data, ".obj")) {
 			gi.ModelIndex(data);
-		else if (g_str_has_suffix(data, ".wav") || g_str_has_suffix(data, ".ogg"))
+		} else if (g_str_has_suffix(data, ".wav") || g_str_has_suffix(data, ".ogg")) {
 			gi.SoundIndex(data);
-		else if (g_str_has_suffix(data, ".tga") || g_str_has_suffix(data, ".png")
-				|| g_str_has_suffix(data, ".jpg") || g_str_has_suffix(data, ".pcx"))
+		} else if (g_str_has_suffix(data, ".tga") || g_str_has_suffix(data, ".png")
+		           || g_str_has_suffix(data, ".jpg") || g_str_has_suffix(data, ".pcx")) {
 			gi.ImageIndex(data);
-		else
+		} else {
 			gi.Error("%s has unknown data type\n", it->class_name);
+		}
 	}
 }
 
@@ -912,20 +966,22 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 	VectorScale(ITEM_MINS, ITEM_SCALE, ent->mins);
 	VectorScale(ITEM_MAXS, ITEM_SCALE, ent->maxs);
 
-	if (ent->model)
+	if (ent->model) {
 		gi.SetModel(ent, ent->model);
-	else
+	} else {
 		gi.SetModel(ent, ent->locals.item->model);
+	}
 
 	ent->s.effects = item->effects;
 
 	// weapons override the health field to store their ammo count
 	if (ent->locals.item->type == ITEM_WEAPON) {
 		const g_item_t *ammo = G_FindItem(ent->locals.item->ammo);
-		if (ammo)
+		if (ammo) {
 			ent->locals.health = ammo->quantity;
-		else
+		} else {
 			ent->locals.health = 0;
+		}
 	}
 
 	ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS * 2;
@@ -933,21 +989,21 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 }
 
 const g_item_t g_items[] = {
-/*QUAKED item_armor_body (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Body armor (+200).
+	/*QUAKED item_armor_body (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Body armor (+200).
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/armor/body/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/armor/body/tris.md3"
+	 */
+	{
 		"item_armor_body",
 		G_PickupArmor,
 		NULL,
@@ -963,23 +1019,24 @@ const g_item_t g_items[] = {
 		ITEM_ARMOR,
 		ARMOR_BODY,
 		0.80,
-		"" },
+		""
+	},
 
-/*QUAKED item_armor_combat (.8 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Combat armor (+100).
+	/*QUAKED item_armor_combat (.8 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Combat armor (+100).
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/armor/combat/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/armor/combat/tris.md3"
+	 */
+	{
 		"item_armor_combat",
 		G_PickupArmor,
 		NULL,
@@ -995,23 +1052,24 @@ const g_item_t g_items[] = {
 		ITEM_ARMOR,
 		ARMOR_COMBAT,
 		0.66,
-		"" },
+		""
+	},
 
-/*QUAKED item_armor_jacket (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Jacket armor (+50).
+	/*QUAKED item_armor_jacket (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Jacket armor (+50).
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/armor/jacket/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/armor/jacket/tris.md3"
+	 */
+	{
 		"item_armor_jacket",
 		G_PickupArmor,
 		NULL,
@@ -1027,23 +1085,24 @@ const g_item_t g_items[] = {
 		ITEM_ARMOR,
 		ARMOR_JACKET,
 		0.50,
-		"" },
+		""
+	},
 
-/*QUAKED item_armor_shard (.1 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Shard armor (+3).
+	/*QUAKED item_armor_shard (.1 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Shard armor (+3).
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/armor/shard/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/armor/shard/tris.md3"
+	 */
+	{
 		"item_armor_shard",
 		G_PickupArmor,
 		NULL,
@@ -1059,23 +1118,24 @@ const g_item_t g_items[] = {
 		ITEM_ARMOR,
 		ARMOR_SHARD,
 		0.10,
-		"" },
+		""
+	},
 
-/*QUAKED weapon_blaster (.8 .8 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Blaster.
+	/*QUAKED weapon_blaster (.8 .8 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Blaster.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/weapons/shotgun/tris.obj"
- */
-{
+	 -------- Radiant config --------
+	 model="models/weapons/shotgun/tris.obj"
+	 */
+	{
 		"weapon_blaster",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1091,23 +1151,24 @@ const g_item_t g_items[] = {
 		ITEM_WEAPON,
 		0,
 		0.10,
-		"weapons/blaster/fire.wav" },
+		"weapons/blaster/fire.wav"
+	},
 
-/*QUAKED weapon_shotgun (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Shotgun.
+	/*QUAKED weapon_shotgun (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Shotgun.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/weapons/shotgun/tris.obj"
- */
-{
+	 -------- Radiant config --------
+	 model="models/weapons/shotgun/tris.obj"
+	 */
+	{
 		"weapon_shotgun",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1123,23 +1184,24 @@ const g_item_t g_items[] = {
 		ITEM_WEAPON,
 		0,
 		0.15,
-		"weapons/shotgun/fire.wav" },
+		"weapons/shotgun/fire.wav"
+	},
 
-/*QUAKED weapon_supershotgun (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Super shotgun.
+	/*QUAKED weapon_supershotgun (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Super shotgun.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/weapons/supershotgun/tris.obj"
- */
-{
+	 -------- Radiant config --------
+	 model="models/weapons/supershotgun/tris.obj"
+	 */
+	{
 		"weapon_supershotgun",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1155,23 +1217,24 @@ const g_item_t g_items[] = {
 		ITEM_WEAPON,
 		0,
 		0.25,
-		"weapons/supershotgun/fire.wav" },
+		"weapons/supershotgun/fire.wav"
+	},
 
-/*QUAKED weapon_machinegun (.8 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Machinegun.
+	/*QUAKED weapon_machinegun (.8 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Machinegun.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/weapons/machinegun/tris.obj"
- */
-{
+	 -------- Radiant config --------
+	 model="models/weapons/machinegun/tris.obj"
+	 */
+	{
 		"weapon_machinegun",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1188,23 +1251,24 @@ const g_item_t g_items[] = {
 		0,
 		0.30,
 		"weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
-			"weapons/machinegun/fire_3.wav weapons/machinegun/fire_4.wav" },
+		"weapons/machinegun/fire_3.wav weapons/machinegun/fire_4.wav"
+	},
 
-/*QUAKED weapon_grenadelauncher (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Grenade Launcher.
+	/*QUAKED weapon_grenadelauncher (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Grenade Launcher.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/weapons/grenadelauncher/tris.obj"
- */
-{
+	 -------- Radiant config --------
+	 model="models/weapons/grenadelauncher/tris.obj"
+	 */
+	{
 		"weapon_grenadelauncher",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1220,23 +1284,24 @@ const g_item_t g_items[] = {
 		ITEM_WEAPON,
 		0,
 		0.40,
-		"models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav" },
+		"models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav"
+	},
 
-/*QUAKED weapon_rocketlauncher (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Rocket Launcher.
+	/*QUAKED weapon_rocketlauncher (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Rocket Launcher.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/weapons/rocketlauncher/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/weapons/rocketlauncher/tris.md3"
+	 */
+	{
 		"weapon_rocketlauncher",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1253,23 +1318,24 @@ const g_item_t g_items[] = {
 		0,
 		0.50,
 		"models/objects/rocket/tris.md3 objects/rocket/fly.wav "
-			"weapons/rocketlauncher/fire.wav" },
+		"weapons/rocketlauncher/fire.wav"
+	},
 
-/*QUAKED weapon_hyperblaster (.4 .7 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Hyperblaster.
+	/*QUAKED weapon_hyperblaster (.4 .7 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Hyperblaster.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/weapons/hyperblaster/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/weapons/hyperblaster/tris.md3"
+	 */
+	{
 		"weapon_hyperblaster",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1285,23 +1351,24 @@ const g_item_t g_items[] = {
 		ITEM_WEAPON,
 		0,
 		0.50,
-		"weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav" },
+		"weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav"
+	},
 
-/*QUAKED weapon_lightning (.9 .9 .9) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Lightning.
+	/*QUAKED weapon_lightning (.9 .9 .9) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Lightning.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/weapons/lightning/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/weapons/lightning/tris.md3"
+	 */
+	{
 		"weapon_lightning",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1318,23 +1385,24 @@ const g_item_t g_items[] = {
 		0,
 		0.50,
 		"weapons/lightning/fire.wav weapons/lightning/fly.wav "
-			"weapons/lightning/discharge.wav" },
+		"weapons/lightning/discharge.wav"
+	},
 
-/*QUAKED weapon_railgun (.1 .1 .8) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Railgun.
+	/*QUAKED weapon_railgun (.1 .1 .8) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Railgun.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/weapons/railgun/tris.obj"
- */
-{
+	 -------- Radiant config --------
+	 model="models/weapons/railgun/tris.obj"
+	 */
+	{
 		"weapon_railgun",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1350,23 +1418,24 @@ const g_item_t g_items[] = {
 		ITEM_WEAPON,
 		0,
 		0.60,
-		"weapons/railgun/fire.wav" },
+		"weapons/railgun/fire.wav"
+	},
 
-/*QUAKED weapon_bfg (.4 1 .5) (-16 -16 -16) (16 16 16) triggered no_touch hover
- BFG10K.
+	/*QUAKED weapon_bfg (.4 1 .5) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 BFG10K.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/weapons/bfg/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/weapons/bfg/tris.md3"
+	 */
+	{
 		"weapon_bfg",
 		G_PickupWeapon,
 		G_UseWeapon,
@@ -1382,23 +1451,24 @@ const g_item_t g_items[] = {
 		ITEM_WEAPON,
 		0,
 		0.66,
-		"weapons/bfg/prime.wav weapons/bfg/hit.wav" },
+		"weapons/bfg/prime.wav weapons/bfg/hit.wav"
+	},
 
-/*QUAKED ammo_shells (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Shells for the Shotgun and Super Shotgun.
+	/*QUAKED ammo_shells (.6 .6 .1) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Shells for the Shotgun and Super Shotgun.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/ammo/shells/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/ammo/shells/tris.md3"
+	 */
+	{
 		"ammo_shells",
 		G_PickupAmmo,
 		NULL,
@@ -1414,23 +1484,24 @@ const g_item_t g_items[] = {
 		ITEM_AMMO,
 		AMMO_SHELLS,
 		0.15,
-		"" },
+		""
+	},
 
-/*QUAKED ammo_bullets (.8 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Bullets for the Machinegun.
+	/*QUAKED ammo_bullets (.8 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Bullets for the Machinegun.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/ammo/bullets/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/ammo/bullets/tris.md3"
+	 */
+	{
 		"ammo_bullets",
 		G_PickupAmmo,
 		NULL,
@@ -1446,23 +1517,24 @@ const g_item_t g_items[] = {
 		ITEM_AMMO,
 		AMMO_BULLETS,
 		0.15,
-		"" },
+		""
+	},
 
-/*QUAKED ammo_grenades (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Grenades for the Grenade Launcher.
+	/*QUAKED ammo_grenades (.2 .8 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Grenades for the Grenade Launcher.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/ammo/grenades/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/ammo/grenades/tris.md3"
+	 */
+	{
 		"ammo_grenades",
 		G_PickupAmmo,
 		G_UseWeapon,
@@ -1478,23 +1550,24 @@ const g_item_t g_items[] = {
 		ITEM_AMMO,
 		AMMO_GRENADES,
 		0.15,
-		"weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang.ogg weapons/handgrenades/hg_tick.ogg" },
+		"weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang.ogg weapons/handgrenades/hg_tick.ogg"
+	},
 
-/*QUAKED ammo_rockets (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Rockets for the Rocket Launcher.
+	/*QUAKED ammo_rockets (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Rockets for the Rocket Launcher.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/ammo/rockets/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/ammo/rockets/tris.md3"
+	 */
+	{
 		"ammo_rockets",
 		G_PickupAmmo,
 		NULL,
@@ -1510,23 +1583,24 @@ const g_item_t g_items[] = {
 		ITEM_AMMO,
 		AMMO_ROCKETS,
 		0.15,
-		"" },
+		""
+	},
 
-/*QUAKED ammo_cells (.4 .7 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Cells for the Hyperblaster.
+	/*QUAKED ammo_cells (.4 .7 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Cells for the Hyperblaster.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/ammo/cells/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/ammo/cells/tris.md3"
+	 */
+	{
 		"ammo_cells",
 		G_PickupAmmo,
 		NULL,
@@ -1542,23 +1616,24 @@ const g_item_t g_items[] = {
 		ITEM_AMMO,
 		AMMO_CELLS,
 		0.15,
-		"" },
+		""
+	},
 
-/*QUAKED ammo_bolts (.9 .9 .9) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Bolts for the Lightning.
+	/*QUAKED ammo_bolts (.9 .9 .9) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Bolts for the Lightning.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/ammo/bolts/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/ammo/bolts/tris.md3"
+	 */
+	{
 		"ammo_bolts",
 		G_PickupAmmo,
 		NULL,
@@ -1574,23 +1649,24 @@ const g_item_t g_items[] = {
 		ITEM_AMMO,
 		AMMO_BOLTS,
 		0.15,
-		"" },
+		""
+	},
 
-/*QUAKED ammo_slugs (.1 .1 .8) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Slugs for the Railgun.
+	/*QUAKED ammo_slugs (.1 .1 .8) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Slugs for the Railgun.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/ammo/slugs/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/ammo/slugs/tris.md3"
+	 */
+	{
 		"ammo_slugs",
 		G_PickupAmmo,
 		NULL,
@@ -1606,23 +1682,24 @@ const g_item_t g_items[] = {
 		ITEM_AMMO,
 		AMMO_SLUGS,
 		0.15,
-		"" },
+		""
+	},
 
-/*QUAKED ammo_nukes (.4 1 .5) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Nukes for the BFG10K.
+	/*QUAKED ammo_nukes (.4 1 .5) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Nukes for the BFG10K.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/ammo/nukes/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/ammo/nukes/tris.md3"
+	 */
+	{
 		"ammo_nukes",
 		G_PickupAmmo,
 		NULL,
@@ -1638,23 +1715,24 @@ const g_item_t g_items[] = {
 		ITEM_AMMO,
 		AMMO_NUKES,
 		0.15,
-		"" },
+		""
+	},
 
-/*QUAKED item_adrenaline (.3 .3 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Adrenaline (=100).
+	/*QUAKED item_adrenaline (.3 .3 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Adrenaline (=100).
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/powerups/adren/tris.obj"
- */
-{
+	 -------- Radiant config --------
+	 model="models/powerups/adren/tris.obj"
+	 */
+	{
 		"item_adrenaline",
 		G_PickupAdrenaline,
 		NULL,
@@ -1670,23 +1748,24 @@ const g_item_t g_items[] = {
 		0,
 		0,
 		0.45,
-		"" },
+		""
+	},
 
-/*QUAKED item_health_small (.3 1 .3) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Small health (+3).
+	/*QUAKED item_health_small (.3 1 .3) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Small health (+3).
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/health/small/tris.obj"
- */
-{
+	 -------- Radiant config --------
+	 model="models/health/small/tris.obj"
+	 */
+	{
 		"item_health_small",
 		G_PickupHealth,
 		NULL,
@@ -1702,23 +1781,24 @@ const g_item_t g_items[] = {
 		ITEM_HEALTH,
 		HEALTH_SMALL,
 		0.10,
-		"" },
+		""
+	},
 
-/*QUAKED item_health (.8 .8 0) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Health (+15).
+	/*QUAKED item_health (.8 .8 0) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Health (+15).
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/health/medium/tris.obj"
- */
-{
+	 -------- Radiant config --------
+	 model="models/health/medium/tris.obj"
+	 */
+	{
 		"item_health",
 		G_PickupHealth,
 		NULL,
@@ -1734,23 +1814,24 @@ const g_item_t g_items[] = {
 		ITEM_HEALTH,
 		HEALTH_MEDIUM,
 		0.25,
-		"" },
+		""
+	},
 
-/*QUAKED item_health_large (1 0 0) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Large health (+25).
+	/*QUAKED item_health_large (1 0 0) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Large health (+25).
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/health/large/tris.obj"
- */
-{
+	 -------- Radiant config --------
+	 model="models/health/large/tris.obj"
+	 */
+	{
 		"item_health_large",
 		G_PickupHealth,
 		NULL,
@@ -1766,23 +1847,24 @@ const g_item_t g_items[] = {
 		ITEM_HEALTH,
 		HEALTH_LARGE,
 		0.40,
-		"" },
+		""
+	},
 
-/*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Mega health (+75).
+	/*QUAKED item_health_mega (.3 .3 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Mega health (+75).
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/health/mega/tris.obj"
- */
-{
+	 -------- Radiant config --------
+	 model="models/health/mega/tris.obj"
+	 */
+	{
 		"item_health_mega",
 		G_PickupHealth,
 		NULL,
@@ -1798,19 +1880,20 @@ const g_item_t g_items[] = {
 		ITEM_HEALTH,
 		HEALTH_MEGA,
 		0.60,
-		"" },
+		""
+	},
 
-/*QUAKED item_flag_team1 (.2 .2 1) (-16 -16 -24) (16 16 32) triggered no_touch hover
+	/*QUAKED item_flag_team1 (.2 .2 1) (-16 -16 -24) (16 16 32) triggered no_touch hover
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/ctf/flag1/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/ctf/flag1/tris.md3"
+	 */
+	{
 		"item_flag_team1",
 		G_PickupFlag,
 		NULL,
@@ -1826,19 +1909,20 @@ const g_item_t g_items[] = {
 		ITEM_FLAG,
 		0,
 		0.75,
-		"ctf/capture.wav ctf/steal.wav ctf/return.wav" },
+		"ctf/capture.wav ctf/steal.wav ctf/return.wav"
+	},
 
-/*QUAKED item_flag_team2 (1 .2 .2) (-16 -16 -24) (16 16 32) triggered no_touch hover
+	/*QUAKED item_flag_team2 (1 .2 .2) (-16 -16 -24) (16 16 32) triggered no_touch hover
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/ctf/flag2/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/ctf/flag2/tris.md3"
+	 */
+	{
 		"item_flag_team2",
 		G_PickupFlag,
 		NULL,
@@ -1854,23 +1938,24 @@ const g_item_t g_items[] = {
 		ITEM_FLAG,
 		0,
 		0.75,
-		"ctf/capture.wav ctf/steal.wav ctf/return.wav" },
+		"ctf/capture.wav ctf/steal.wav ctf/return.wav"
+	},
 
-/*QUAKED item_quad (.2 .4 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
- Quad damage.
+	/*QUAKED item_quad (.2 .4 1) (-16 -16 -16) (16 16 16) triggered no_touch hover
+	 Quad damage.
 
- -------- Keys --------
- team : The team name for alternating item spawns.
+	 -------- Keys --------
+	 team : The team name for alternating item spawns.
 
- -------- Spawn flags --------
- triggered : Item will not appear until triggered.
- no_touch : Item will interact as solid instead of being picked up by player.
- hover : Item will spawn where it was placed in the map and won't drop the floor.
+	 -------- Spawn flags --------
+	 triggered : Item will not appear until triggered.
+	 no_touch : Item will interact as solid instead of being picked up by player.
+	 hover : Item will spawn where it was placed in the map and won't drop the floor.
 
- -------- Radiant config --------
- model="models/powerups/quad/tris.md3"
- */
-{
+	 -------- Radiant config --------
+	 model="models/powerups/quad/tris.md3"
+	 */
+	{
 		"item_quad",
 		G_PickupQuadDamage,
 		NULL,
@@ -1886,6 +1971,8 @@ const g_item_t g_items[] = {
 		ITEM_POWERUP,
 		0,
 		0.80,
-		"quad/attack.wav quad/expire.wav" }, };
+		"quad/attack.wav quad/expire.wav"
+	},
+};
 
 const uint16_t g_num_items = lengthof(g_items);

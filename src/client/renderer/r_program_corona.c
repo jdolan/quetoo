@@ -35,7 +35,7 @@ static r_corona_program_t r_corona_program;
  * @brief
  */
 void R_PreLink_corona(const r_program_t *program) {
-	
+
 	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
 	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
 	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_TEX_DIFFUSE);
@@ -51,7 +51,7 @@ void R_InitProgram_corona(r_program_t *program) {
 	R_ProgramVariable(&program->attributes[R_ARRAY_VERTEX], R_ATTRIBUTE, "POSITION");
 	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR");
 	R_ProgramVariable(&program->attributes[R_ARRAY_TEX_DIFFUSE], R_ATTRIBUTE, "TEXCOORD");
-	
+
 	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
 	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
 	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR");
@@ -70,15 +70,14 @@ void R_UseFog_corona(const r_fog_parameters_t *fog) {
 
 	r_corona_program_t *p = &r_corona_program;
 
-	if (fog && fog->density)
-	{
+	if (fog && fog->density) {
 		R_ProgramParameter1f(&p->fog.density, fog->density);
 		R_ProgramParameter1f(&p->fog.start, fog->start);
 		R_ProgramParameter1f(&p->fog.end, fog->end);
 		R_ProgramParameter3fv(&p->fog.color, fog->color);
-	}
-	else
+	} else {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
+	}
 }
 
 /**

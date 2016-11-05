@@ -42,8 +42,9 @@ static void G_MapList_Parse(const char *filename) {
 
 		const char *c = ParseToken(&buffer);
 
-		if (*c == '\0')
+		if (*c == '\0') {
 			break;
+		}
 
 		if (*c == '{') {
 			if (map) {
@@ -53,8 +54,9 @@ static void G_MapList_Parse(const char *filename) {
 			map = gi.Malloc(sizeof(g_map_list_map_t), MEM_TAG_GAME);
 		}
 
-		if (map == NULL) // skip any whitespace between maps
+		if (map == NULL) { // skip any whitespace between maps
 			continue;
+		}
 
 		if (!g_strcmp0(c, "name")) {
 			g_strlcpy(map->name, ParseToken(&buffer), sizeof(map->name));
@@ -139,25 +141,25 @@ static void G_MapList_Parse(const char *filename) {
 		if (*c == '}') { // wrap it up, B
 
 			gi.Debug("Loaded map %s:\n"
-			 "title: %s\n"
-			 "sky: %s\n"
-			 "weather: %s\n"
-			 "gravity: %d\n"
-			 "gameplay: %ud\n"
-			 "teams: %ud\n"
-			 "ctf: %ud\n"
-			 "match: %ud\n"
-			 "rounds: %ud\n"
-			 "frag_limit: %ud\n"
-			 "round_limit: %ud\n"
-			 "capture_limit: %ud\n"
-			 "time_limit: %f\n"
-			 "give: %s\n"
-			 "music: %s\n",
-			 map->name, map->title, map->sky, map->weather, map->gravity,
-			 map->gameplay, map->teams, map->ctf, map->match, map->rounds,
-			 map->frag_limit, map->round_limit, map->capture_limit,
-			 map->time_limit, map->give, map->music);
+			         "title: %s\n"
+			         "sky: %s\n"
+			         "weather: %s\n"
+			         "gravity: %d\n"
+			         "gameplay: %ud\n"
+			         "teams: %ud\n"
+			         "ctf: %ud\n"
+			         "match: %ud\n"
+			         "rounds: %ud\n"
+			         "frag_limit: %ud\n"
+			         "round_limit: %ud\n"
+			         "capture_limit: %ud\n"
+			         "time_limit: %f\n"
+			         "give: %s\n"
+			         "music: %s\n",
+			         map->name, map->title, map->sky, map->weather, map->gravity,
+			         map->gameplay, map->teams, map->ctf, map->match, map->rounds,
+			         map->frag_limit, map->round_limit, map->capture_limit,
+			         map->time_limit, map->give, map->music);
 
 			g_map_list = g_list_append(g_map_list, map);
 
@@ -198,9 +200,10 @@ const g_map_list_map_t *G_MapList_Next(void) {
 			const g_map_list_map_t *map = G_MapList_Find(g_level.name);
 			if (map) {
 				list = g_list_find(g_map_list, map)->next;
-				
-				if (!list)
+
+				if (!list) {
 					list = g_map_list;
+				}
 			} else {
 				list = g_map_list;
 			}

@@ -70,10 +70,11 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, vec3_t mins, vec3_t maxs) {
 	}
 
 	VectorSubtract(maxs, mins, size);
-	if (size[0] > size[1])
+	if (size[0] > size[1]) {
 		sector->axis = 0;
-	else
+	} else {
 		sector->axis = 1;
+	}
 
 	sector->dist = 0.5 * (maxs[sector->axis] + mins[sector->axis]);
 	VectorCopy(mins, mins1);
@@ -130,14 +131,16 @@ void Sv_LinkEntity(g_entity_t *ent) {
 	size_t i, j;
 	int32_t top_node;
 
-	if (ent == svs.game->entities) // never bother with the world
+	if (ent == svs.game->entities) { // never bother with the world
 		return;
+	}
 
 	// remove it from its current sector
 	Sv_UnlinkEntity(ent);
 
-	if (!ent->in_use) // and if its free, we're done
+	if (!ent->in_use) { // and if its free, we're done
 		return;
+	}
 
 	// set the size
 	VectorSubtract(ent->maxs, ent->mins, ent->size);
@@ -162,11 +165,13 @@ void Sv_LinkEntity(g_entity_t *ent) {
 
 		for (i = 0; i < 3; i++) {
 			vec_t v = fabsf(ent->mins[i]);
-			if (v > max)
+			if (v > max) {
 				max = v;
+			}
 			v = fabsf(ent->maxs[i]);
-			if (v > max)
+			if (v > max) {
 				max = v;
+			}
 		}
 		for (i = 0; i < 3; i++) {
 			ent->abs_mins[i] = ent->s.origin[i] - max;
@@ -194,7 +199,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 
 	// get all leafs, including solids
 	const size_t len = Cm_BoxLeafnums(ent->abs_mins, ent->abs_maxs, leafs, lengthof(leafs),
-			&top_node, 0);
+	                                  &top_node, 0);
 
 	// set areas, allowing entities (doors) to occupy up to two
 	for (i = 0; i < len; i++) {
@@ -206,8 +211,9 @@ void Sv_LinkEntity(g_entity_t *ent) {
 					Com_Warn("Object touching 3 areas at %s\n", vtos(ent->abs_mins));
 				}
 				sent->areas[1] = area;
-			} else
+			} else {
 				sent->areas[0] = area;
+			}
 		}
 	}
 
@@ -218,12 +224,14 @@ void Sv_LinkEntity(g_entity_t *ent) {
 		sent->num_clusters = 0;
 		for (i = 0; i < len; i++) {
 
-			if (clusters[i] == -1)
-				continue; // not a visible leaf
+			if (clusters[i] == -1) {
+				continue;    // not a visible leaf
+			}
 
 			for (j = 0; j < i; j++)
-				if (clusters[j] == clusters[i])
+				if (clusters[j] == clusters[i]) {
 					break;
+				}
 
 			if (j == i) {
 				if (sent->num_clusters == MAX_ENT_CLUSTERS) { // use top_node
@@ -238,22 +246,25 @@ void Sv_LinkEntity(g_entity_t *ent) {
 		}
 	}
 
-	if (ent->solid == SOLID_NOT)
+	if (ent->solid == SOLID_NOT) {
 		return;
+	}
 
 	// find the first sector that the ent's box crosses
 	sv_sector_t *sector = sv_world.sectors;
 	while (true) {
 
-		if (sector->axis == -1)
+		if (sector->axis == -1) {
 			break;
+		}
 
-		if (ent->abs_mins[sector->axis] > sector->dist)
+		if (ent->abs_mins[sector->axis] > sector->dist) {
 			sector = sector->children[0];
-		else if (ent->abs_maxs[sector->axis] < sector->dist)
+		} else if (ent->abs_maxs[sector->axis] < sector->dist) {
 			sector = sector->children[1];
-		else
-			break; // crosses the node
+		} else {
+			break;    // crosses the node
+		}
 	}
 
 	// add it to the sector
@@ -275,15 +286,17 @@ static _Bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
 	switch (ent->solid) {
 		case SOLID_TRIGGER:
 		case SOLID_PROJECTILE:
-			if (sv_world.box_type & BOX_OCCUPY)
+			if (sv_world.box_type & BOX_OCCUPY) {
 				return true;
+			}
 			break;
 
 		case SOLID_DEAD:
 		case SOLID_BOX:
 		case SOLID_BSP:
-			if (sv_world.box_type & BOX_COLLIDE)
+			if (sv_world.box_type & BOX_COLLIDE) {
 				return true;
+			}
 			break;
 
 		case SOLID_NOT:
@@ -319,15 +332,18 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
 		e = e->next;
 	}
 
-	if (sector->axis == -1)
-		return; // terminal node
+	if (sector->axis == -1) {
+		return;    // terminal node
+	}
 
 	// recurse down both sides
-	if (sv_world.box_maxs[sector->axis] > sector->dist)
+	if (sv_world.box_maxs[sector->axis] > sector->dist) {
 		Sv_BoxEntities_r(sector->children[0]);
+	}
 
-	if (sv_world.box_mins[sector->axis] < sector->dist)
+	if (sv_world.box_mins[sector->axis] < sector->dist) {
 		Sv_BoxEntities_r(sector->children[1]);
+	}
 }
 
 /**
@@ -338,7 +354,7 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
  * @return The number of entities found.
  */
 size_t Sv_BoxEntities(const vec3_t mins, const vec3_t maxs, g_entity_t **list, const size_t len,
-		const uint32_t type) {
+                      const uint32_t type) {
 
 	sv_world.box_mins = mins;
 	sv_world.box_maxs = maxs;
@@ -348,7 +364,7 @@ size_t Sv_BoxEntities(const vec3_t mins, const vec3_t maxs, g_entity_t **list, c
 	sv_world.box_type = type;
 
 	Sv_BoxEntities_r(sv_world.sectors);
-	
+
 	sv_world.box_mins = vec3_origin;
 	sv_world.box_maxs = vec3_origin;
 	sv_world.box_entities = NULL;
@@ -365,22 +381,25 @@ static int32_t Sv_HullForEntity(const g_entity_t *ent) {
 	if (ent->solid == SOLID_BSP) {
 		const cm_bsp_model_t *mod = sv.cm_models[ent->s.model1];
 
-		if (!mod)
+		if (!mod) {
 			Com_Error(ERR_DROP, "SOLID_BSP with no model\n");
+		}
 
 		return mod->head_node;
 	}
 
 	if (ent->solid == SOLID_BOX) {
 
-		if (ent->client)
+		if (ent->client) {
 			return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_MONSTER);
+		}
 
 		return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_SOLID);
 	}
 
-	if (ent->solid == SOLID_DEAD)
+	if (ent->solid == SOLID_DEAD) {
 		return Cm_SetBoxHull(ent->mins, ent->maxs, CONTENTS_DEAD_MONSTER);
+	}
 
 	return -1;
 }
@@ -437,24 +456,28 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 
 		if (trace->skip) { // see if we can skip it
 
-			if (ent == trace->skip)
-				continue; // explicitly (ourselves)
+			if (ent == trace->skip) {
+				continue;    // explicitly (ourselves)
+			}
 
-			if (ent->owner == trace->skip)
-				continue; // or via ownership (we own it)
+			if (ent->owner == trace->skip) {
+				continue;    // or via ownership (we own it)
+			}
 
 			if (trace->skip->owner) {
 
-				if (ent == trace->skip->owner)
-					continue; // which is bidirectional (inverse of previous case)
+				if (ent == trace->skip->owner) {
+					continue;    // which is bidirectional (inverse of previous case)
+				}
 
-				if (ent->owner == trace->skip->owner)
-					continue; // and commutative (we are both owned by the same)
+				if (ent->owner == trace->skip->owner) {
+					continue;    // and commutative (we are both owned by the same)
+				}
 			}
-			
+
 			// triggers only clip to the world (while other entities can occupy triggers)
 			if (trace->skip->solid == SOLID_TRIGGER) {
-				
+
 				if (ent->solid != SOLID_BSP) {
 					continue;
 				}
@@ -465,10 +488,10 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 		if (head_node != -1) {
 
 			const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
-			
+
 			const cm_trace_t tr = Cm_TransformedBoxTrace(
-				trace->start, trace->end, trace->mins, trace->maxs, head_node, trace->contents,
-				&sent->matrix, &sent->inverse_matrix);
+			                          trace->start, trace->end, trace->mins, trace->maxs, head_node, trace->contents,
+			                          &sent->matrix, &sent->inverse_matrix);
 
 			// check for a full or partial intersection
 			if (tr.all_solid || tr.fraction < trace->trace.fraction) {
@@ -476,8 +499,9 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 				trace->trace = tr;
 				trace->trace.ent = ent;
 
-				if (tr.all_solid) // we were actually blocked
+				if (tr.all_solid) { // we were actually blocked
 					return;
+				}
 			}
 		}
 	}
@@ -507,24 +531,27 @@ static void Sv_TraceBounds(sv_trace_t *trace) {
  * This prevents players from clipping against their own projectiles, etc.
  */
 cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-		const g_entity_t *skip, const int32_t contents) {
+                    const g_entity_t *skip, const int32_t contents) {
 
 	sv_trace_t trace;
 
 	memset(&trace, 0, sizeof(trace));
 
-	if (!mins)
+	if (!mins) {
 		mins = vec3_origin;
-	if (!maxs)
+	}
+	if (!maxs) {
 		maxs = vec3_origin;
+	}
 
 	// clip to world
 	trace.trace = Cm_BoxTrace(start, end, mins, maxs, 0, contents);
 	if (trace.trace.fraction < 1.0) {
 		trace.trace.ent = svs.game->entities;
 
-		if (trace.trace.start_solid) // blocked entirely
+		if (trace.trace.start_solid) { // blocked entirely
 			return trace.trace;
+		}
 	}
 
 	trace.start = start;

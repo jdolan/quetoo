@@ -25,9 +25,9 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
-void Cl_ParseFrame(void);
-void Cl_Interpolate(void);
-void Cl_UpdateEntities(void);
+	void Cl_ParseFrame(void);
+	void Cl_Interpolate(void);
+	void Cl_UpdateEntities(void);
 #endif /* __CL_LOCAL_H__ */
 
 #endif /* __CL_ENTITY_H__ */

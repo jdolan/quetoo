@@ -161,7 +161,7 @@ static void loadView(ViewController *self) {
 
 			const SDL_Rect frame = { .w = 760, .h = 600 };
 			this->mapList = $(alloc(MapListCollectionView), initWithFrame, &frame, ControlStyleDefault);
-			
+
 			$((View *) stackView, addSubview, (View *) this->mapList);
 
 			$((View *) box, addSubview, (View *) stackView);

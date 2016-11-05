@@ -69,29 +69,29 @@ static void Cg_Init(void) {
 	cgi.Print("  Client game initialization...\n");
 
 	cg_add_emits = cgi.Cvar("cg_add_emits", "1", 0,
-			"Toggles adding client-side entities to the scene.");
+	                        "Toggles adding client-side entities to the scene.");
 	cg_add_entities = cgi.Cvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
 	cg_add_particles = cgi.Cvar("cg_add_particles", "1", 0,
-			"Toggles adding particles to the scene.");
+	                            "Toggles adding particles to the scene.");
 	cg_add_weather = cgi.Cvar("cg_add_weather", "1", CVAR_ARCHIVE,
-			"Control the intensity of atmospheric effects.");
+	                          "Control the intensity of atmospheric effects.");
 
 	cg_bob = cgi.Cvar("cg_bob", "1.0", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
 
 	cg_color = cgi.Cvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-			"Specifies the effect color for your own weapon trails.");
+	                    "Specifies the effect color for your own weapon trails.");
 
 	cg_draw_blend = cgi.Cvar("cg_draw_blend", "1.0", CVAR_ARCHIVE,
-			"Controls the intensity of screen alpha-blending");
+	                         "Controls the intensity of screen alpha-blending");
 	cg_draw_captures = cgi.Cvar("cg_draw_captures", "1", CVAR_ARCHIVE,
-			"Draw the number of captures");
+	                            "Draw the number of captures");
 	cg_draw_crosshair = cgi.Cvar("cg_draw_crosshair", "1", CVAR_ARCHIVE, NULL);
 	cg_draw_crosshair_color = cgi.Cvar("cg_draw_crosshair_color", "", CVAR_ARCHIVE,
-			"Specifies the crosshair color (red|green|yellow|default).");
+	                                   "Specifies the crosshair color (red|green|yellow|default).");
 	cg_draw_crosshair_pulse = cgi.Cvar("cg_draw_crosshair_pulse", "1.0", CVAR_ARCHIVE,
-			"Pulse the crosshair when picking up items");
+	                                   "Pulse the crosshair when picking up items");
 	cg_draw_crosshair_scale = cgi.Cvar("cg_draw_crosshair_scale", "1.0", CVAR_ARCHIVE,
-			"Controls the crosshair scale (size).");
+	                                   "Controls the crosshair scale (size).");
 
 	cg_draw_heldflag = cgi.Cvar("cg_draw_heldflag", "1", CVAR_ARCHIVE, "Draw the currently held team flag");
 	cg_draw_frags = cgi.Cvar("cg_draw_frags", "1", CVAR_ARCHIVE, "Draw the number of frags");
@@ -101,40 +101,40 @@ static void Cg_Init(void) {
 	cg_draw_time = cgi.Cvar("cg_draw_time", "1", CVAR_ARCHIVE, "Draw the time remaning");
 	cg_draw_teambar = cgi.Cvar("cg_draw_teambar", "1", CVAR_ARCHIVE, "Draw the teambanner");
 	cg_draw_powerups = cgi.Cvar("cg_draw_powerups", "1", CVAR_ARCHIVE,
-			"Draw currently active powerups, such as Quad Damage and Adrenaline.");
+	                            "Draw currently active powerups, such as Quad Damage and Adrenaline.");
 
 	cg_draw_weapon = cgi.Cvar("cg_draw_weapon", "1", CVAR_ARCHIVE,
-			"Toggle drawing of the weapon model.");
+	                          "Toggle drawing of the weapon model.");
 	cg_draw_weapon_alpha = cgi.Cvar("cg_draw_weapon_alpha", "1.0", CVAR_ARCHIVE,
-			"The alpha transparency for drawing the weapon model");
+	                                "The alpha transparency for drawing the weapon model");
 	cg_draw_weapon_x = cgi.Cvar("cg_draw_weapon_x", "0.0", CVAR_ARCHIVE,
-			"The x offset for drawing the weapon model.");
+	                            "The x offset for drawing the weapon model.");
 	cg_draw_weapon_y = cgi.Cvar("cg_draw_weapon_y", "0.0", CVAR_ARCHIVE,
-			"The y offset for drawing the weapon model.");
+	                            "The y offset for drawing the weapon model.");
 	cg_draw_weapon_z = cgi.Cvar("cg_draw_weapon_z", "0.0", CVAR_ARCHIVE,
-			"The z offset for drawing the weapon model.");
+	                            "The z offset for drawing the weapon model.");
 	cg_draw_vitals = cgi.Cvar("cg_draw_vitals", "1", CVAR_ARCHIVE,
-			"Draw the vitals (health, armor, ammo)");
+	                          "Draw the vitals (health, armor, ammo)");
 	cg_draw_vitals_pulse = cgi.Cvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE,
-			"Pulse the vitals when low");
+	                                "Pulse the vitals when low");
 	cg_draw_vote = cgi.Cvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
 
 	cg_fov = cgi.Cvar("cg_fov", "110.0", CVAR_ARCHIVE, "Horizontal field of view, in degrees");
 	cg_fov_zoom = cgi.Cvar("cg_fov_zoom", "55.0", CVAR_ARCHIVE, "Zoomed in field of view");
 	cg_fov_interpolate = cgi.Cvar("cg_fov_interpolate", "1.0", CVAR_ARCHIVE,
-			"Interpolate between field of view changes (default 1.0).");
+	                              "Interpolate between field of view changes (default 1.0).");
 
 	cg_hand = cgi.Cvar("hand", "1", CVAR_ARCHIVE | CVAR_USER_INFO,
-			"Controls weapon handedness (center: 0, right: 1, left: 2).");
+	                   "Controls weapon handedness (center: 0, right: 1, left: 2).");
 	cg_handicap = cgi.Cvar("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE,
-			"Your handicap, or disadvantage.");
+	                       "Your handicap, or disadvantage.");
 	cg_skin = cgi.Cvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
-			"Your player model and skin.");
+	                   "Your player model and skin.");
 
 	cg_third_person = cgi.Cvar("cg_third_person", "0.0", CVAR_ARCHIVE | CVAR_LO_ONLY,
-			"Activate third person perspective.");
+	                           "Activate third person perspective.");
 	cg_third_person_yaw = cgi.Cvar("cg_third_person_yaw", "0.0", CVAR_ARCHIVE,
-			"Yaw offset for third person perspective.");
+	                               "Yaw offset for third person perspective.");
 
 	// add forward to server commands for tab completion
 

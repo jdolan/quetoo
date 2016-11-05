@@ -168,7 +168,7 @@ extern vec_t microvolume;
 
 void LoadMapFile(const char *file_name);
 int32_t FindPlane(vec3_t normal, dvec_t dist);
-_Bool WindingIsTiny(const winding_t * w);
+_Bool WindingIsTiny(const winding_t *w);
 
 // textures.c
 int32_t FindMiptex(char *name);
@@ -177,50 +177,50 @@ int32_t TexinfoForBrushTexture(map_plane_t *plane, map_brush_texture_t *bt, vec3
 
 void FindGCD(int32_t *v);
 
-map_brush_t *Brush_LoadEntity(entity_t * ent);
-_Bool MakeBrushPlanes(map_brush_t * b);
+map_brush_t *Brush_LoadEntity(entity_t *ent);
+_Bool MakeBrushPlanes(map_brush_t *b);
 int32_t FindIntPlane(int32_t *inormal, int32_t *iorigin);
 void CreateBrush(int32_t brush_num);
 
 // csg.c
 bsp_brush_t *MakeBspBrushList(int32_t startbrush, int32_t endbrush, vec3_t clipmins,
-		vec3_t clipmaxs);
-bsp_brush_t *ChopBrushes(bsp_brush_t * head);
+                              vec3_t clipmaxs);
+bsp_brush_t *ChopBrushes(bsp_brush_t *head);
 
-void WriteBrushMap(char *name, bsp_brush_t * list);
+void WriteBrushMap(char *name, bsp_brush_t *list);
 
 // brushbsp.c
-void WriteBrushList(char *name, bsp_brush_t * brush, _Bool onlyvis);
+void WriteBrushList(char *name, bsp_brush_t *brush, _Bool onlyvis);
 
-bsp_brush_t *CopyBrush(bsp_brush_t * brush);
+bsp_brush_t *CopyBrush(bsp_brush_t *brush);
 
-void SplitBrush(bsp_brush_t * brush, int32_t plane_num, bsp_brush_t ** front, bsp_brush_t ** back);
+void SplitBrush(bsp_brush_t *brush, int32_t plane_num, bsp_brush_t **front, bsp_brush_t **back);
 
 tree_t *AllocTree(void);
 node_t *AllocNode(void);
 void FreeNode(node_t *node);
 bsp_brush_t *AllocBrush(int32_t num_sides);
-int32_t CountBrushList(bsp_brush_t * brushes);
-void FreeBrush(bsp_brush_t * brushes);
-void FreeBrushList(bsp_brush_t * brushes);
+int32_t CountBrushList(bsp_brush_t *brushes);
+void FreeBrush(bsp_brush_t *brushes);
+void FreeBrushList(bsp_brush_t *brushes);
 
-tree_t *BrushBSP(bsp_brush_t * brushlist, vec3_t mins, vec3_t maxs);
+tree_t *BrushBSP(bsp_brush_t *brushlist, vec3_t mins, vec3_t maxs);
 
 // portals.c
 int32_t VisibleContents(int32_t contents);
 
-void MakeHeadnodePortals(tree_t * tree);
-void MakeNodePortal(node_t * node);
-void SplitNodePortals(node_t * node);
+void MakeHeadnodePortals(tree_t *tree);
+void MakeNodePortal(node_t *node);
+void SplitNodePortals(node_t *node);
 
-_Bool Portal_VisFlood(const portal_t * p);
-void RemovePortalFromNode(portal_t * portal, node_t * l);
+_Bool Portal_VisFlood(const portal_t *p);
+void RemovePortalFromNode(portal_t *portal, node_t *l);
 
-_Bool FloodEntities(tree_t * tree);
-void FillOutside(node_t * head_node);
-void FloodAreas(tree_t * tree);
-void MarkVisibleSides(tree_t * tree, int32_t start, int32_t end);
-void FreePortal(portal_t * p);
+_Bool FloodEntities(tree_t *tree);
+void FillOutside(node_t *head_node);
+void FloodAreas(tree_t *tree);
+void MarkVisibleSides(tree_t *tree, int32_t start, int32_t end);
+void FreePortal(portal_t *p);
 void EmitAreaPortals(void);
 
 void MakeTreePortals(tree_t *tree);

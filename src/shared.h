@@ -95,7 +95,7 @@ _Bool BoxIntersect(const vec3_t mins0, const vec3_t maxs0, const vec3_t mins1, c
 void ProjectPointOnPlane(const vec3_t p, const vec3_t normal, vec3_t out);
 void PerpendicularVector(const vec3_t in, vec3_t out);
 void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent,
-		vec3_t bitangent);
+                    vec3_t bitangent);
 void RotatePointAroundVector(const vec3_t p, const vec3_t dir, const vec_t degrees, vec3_t out);
 
 /**

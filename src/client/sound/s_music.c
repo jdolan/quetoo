@@ -198,15 +198,17 @@ void S_FrameMusic(void) {
 	if (s_music_volume->modified) {
 		const int32_t volume = Clamp(s_music_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME;
 
-		if (volume)
+		if (volume) {
 			Mix_VolumeMusic(volume);
-		else
+		} else {
 			S_StopMusic();
+		}
 	}
 
 	// if music is enabled but not playing, play that funky music
-	if (s_music_volume->value && !Mix_PlayingMusic())
+	if (s_music_volume->value && !Mix_PlayingMusic()) {
 		S_NextTrack_f();
+	}
 }
 
 /**

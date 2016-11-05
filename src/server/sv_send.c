@@ -25,7 +25,7 @@
  * @brief Sends text across to be displayed if the level filter passes.
  */
 void Sv_ClientPrint(const g_entity_t *ent, const int32_t level, const char *fmt, ...) {
-	sv_client_t * cl;
+	sv_client_t *cl;
 	va_list args;
 	char string[MAX_STRING_CHARS];
 	ptrdiff_t n;
@@ -63,7 +63,7 @@ void Sv_ClientPrint(const g_entity_t *ent, const int32_t level, const char *fmt,
 void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
 	char string[MAX_STRING_CHARS];
 	va_list args;
-	sv_client_t * cl;
+	sv_client_t *cl;
 	int32_t i;
 
 	va_start(args, fmt);
@@ -76,19 +76,22 @@ void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
 		int32_t j;
 
 		// mask off high bits
-		for (j = 0; j < MAX_STRING_CHARS - 1 && string[j]; j++)
+		for (j = 0; j < MAX_STRING_CHARS - 1 && string[j]; j++) {
 			copy[j] = string[j] & 127;
+		}
 		copy[j] = 0;
 		Com_Print("%s", copy);
 	}
 
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
-		if (level < cl->message_level)
+		if (level < cl->message_level) {
 			continue;
+		}
 
-		if (cl->state != SV_CLIENT_ACTIVE)
+		if (cl->state != SV_CLIENT_ACTIVE) {
 			continue;
+		}
 
 		Net_WriteByte(&cl->net_chan.message, SV_CMD_PRINT);
 		Net_WriteByte(&cl->net_chan.message, level);
@@ -103,8 +106,9 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 	char string[MAX_STRING_CHARS];
 	va_list args;
 
-	if (!sv.state)
+	if (!sv.state) {
 		return;
+	}
 
 	va_start(args, fmt);
 	vsprintf(string, fmt, args);
@@ -177,41 +181,42 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 	byte vis[MAX_BSP_LEAFS >> 3];
 	int32_t area;
 
-	if (!origin)
+	if (!origin) {
 		origin = vec3_origin;
+	}
 
 	_Bool reliable = false;
 
 	switch (to) {
 		case MULTICAST_ALL_R:
 			reliable = true;
-			/* no break */
+		/* no break */
 		case MULTICAST_ALL:
 			memset(vis, 1, sizeof(vis));
-			area = 0;			
+			area = 0;
 			break;
 
 		case MULTICAST_PHS_R:
 			reliable = true;
-			/* no break */
+		/* no break */
 		case MULTICAST_PHS: {
-			const int32_t leaf = Cm_PointLeafnum(origin, 0);
-			const int32_t cluster = Cm_LeafCluster(leaf);
-			Cm_ClusterPHS(cluster, vis);
-			area = Cm_LeafArea(leaf);
-		}
+				const int32_t leaf = Cm_PointLeafnum(origin, 0);
+				const int32_t cluster = Cm_LeafCluster(leaf);
+				Cm_ClusterPHS(cluster, vis);
+				area = Cm_LeafArea(leaf);
+			}
 
 			break;
 
 		case MULTICAST_PVS_R:
 			reliable = true;
-			/* no break */
+		/* no break */
 		case MULTICAST_PVS: {
-			const int32_t leaf = Cm_PointLeafnum(origin, 0);
-			const int32_t cluster = Cm_LeafCluster(leaf);
-			Cm_ClusterPVS(cluster, vis);
-			area = Cm_LeafArea(leaf);
-		}
+				const int32_t leaf = Cm_PointLeafnum(origin, 0);
+				const int32_t cluster = Cm_LeafCluster(leaf);
+				Cm_ClusterPVS(cluster, vis);
+				area = Cm_LeafArea(leaf);
+			}
 			break;
 
 		default:
@@ -224,14 +229,17 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 	sv_client_t *cl = svs.clients;
 	for (int32_t j = 0; j < sv_max_clients->integer; j++, cl++) {
 
-		if (cl->state == SV_CLIENT_FREE)
+		if (cl->state == SV_CLIENT_FREE) {
 			continue;
+		}
 
-		if (cl->state != SV_CLIENT_ACTIVE && !reliable)
+		if (cl->state != SV_CLIENT_ACTIVE && !reliable) {
 			continue;
+		}
 
-		if (cl->entity->ai)
+		if (cl->entity->ai) {
 			continue;
+		}
 
 		if (to != MULTICAST_ALL && to != MULTICAST_ALL_R) {
 			const pm_state_t *pm = &cl->entity->client->ps.pm_state;
@@ -243,12 +251,14 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
 			const int32_t leaf = Cm_PointLeafnum(org, 0);
 
 			const int32_t client_area = Cm_LeafArea(leaf);
-			if (!Cm_AreasConnected(area, client_area))
+			if (!Cm_AreasConnected(area, client_area)) {
 				continue;
+			}
 
 			const int32_t cluster = Cm_LeafCluster(leaf);
-			if (!(vis[cluster >> 3] & (1 << (cluster & 7))))
+			if (!(vis[cluster >> 3] & (1 << (cluster & 7)))) {
 				continue;
+			}
 		}
 
 		if (filter) { // allow the game module to filter the recipients
@@ -286,15 +296,17 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 		at = ATTEN_DEFAULT;
 	}
 
-	if (at != ATTEN_DEFAULT)
+	if (at != ATTEN_DEFAULT) {
 		flags |= S_ATTEN;
+	}
 
-	if (origin)
+	if (origin) {
 		flags |= S_ORIGIN;
+	}
 
 	if (ent) {
 		flags |= S_ENTITY;
-		
+
 		if (ent->sv_flags & SVF_NO_CLIENT) {
 			flags |= S_ORIGIN;
 			origin = ent->s.origin;
@@ -305,14 +317,17 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 	Net_WriteByte(&sv.multicast, flags);
 	Net_WriteByte(&sv.multicast, index);
 
-	if (flags & S_ATTEN)
+	if (flags & S_ATTEN) {
 		Net_WriteByte(&sv.multicast, at);
+	}
 
-	if (flags & S_ENTITY)
+	if (flags & S_ENTITY) {
 		Net_WriteShort(&sv.multicast, (int32_t) NUM_FOR_ENTITY(ent));
+	}
 
-	if (flags & S_ORIGIN)
+	if (flags & S_ORIGIN) {
 		Net_WritePosition(&sv.multicast, origin);
+	}
 
 	vec3_t broadcast_origin;
 	if (origin) {
@@ -325,10 +340,11 @@ void Sv_PositionedSound(const vec3_t origin, const g_entity_t *ent, const uint16
 		}
 	}
 
-	if (atten != ATTEN_NONE)
+	if (atten != ATTEN_NONE) {
 		Sv_Multicast(broadcast_origin, MULTICAST_PHS, NULL);
-	else
+	} else {
 		Sv_Multicast(broadcast_origin, MULTICAST_ALL, NULL);
+	}
 }
 
 /**
@@ -395,14 +411,17 @@ static void Sv_DemoCompleted(void) {
  */
 static _Bool Sv_RateDrop(sv_client_t *cl) {
 
-	if (sv.frame_num < lengthof(cl->frame_size))
+	if (sv.frame_num < lengthof(cl->frame_size)) {
 		return false;
+	}
 
-	if (cl->rate == 0)
+	if (cl->rate == 0) {
 		return false;
+	}
 
-	if (cl->net_chan.remote_address.type == NA_LOOP)
+	if (cl->net_chan.remote_address.type == NA_LOOP) {
 		return false;
+	}
 
 	size_t total = 0;
 
@@ -465,17 +484,19 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
  * @brief Send the frame and all pending datagram messages since the last frame.
  */
 void Sv_SendClientPackets(void) {
-	sv_client_t * cl;
+	sv_client_t *cl;
 	int32_t i;
 
-	if (!svs.initialized)
+	if (!svs.initialized) {
 		return;
+	}
 
 	// send a message to each connected client
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
-		if (cl->state == SV_CLIENT_FREE) // don't bother
+		if (cl->state == SV_CLIENT_FREE) { // don't bother
 			continue;
+		}
 
 		// if the client's reliable message overflowed, we must drop them
 		if (cl->net_chan.message.overflowed) {
@@ -490,9 +511,9 @@ void Sv_SendClientPackets(void) {
 
 			if ((size = Sv_GetDemoMessage(buffer))) {
 				Netchan_Transmit(&cl->net_chan, buffer, size);
+			} else {
+				break;    // recording is done, so we're done
 			}
-			else
-				break; // recording is done, so we're done
 		} else if (cl->state == SV_CLIENT_ACTIVE) { // send the game packet
 
 			if (Sv_RateDrop(cl)) { // enforce rate throttle
@@ -511,8 +532,9 @@ void Sv_SendClientPackets(void) {
 			cl->datagram.messages = NULL;
 
 		} else { // just update reliable if needed
-			if (cl->net_chan.message.size || quetoo.time - cl->net_chan.last_sent > 1000)
+			if (cl->net_chan.message.size || quetoo.time - cl->net_chan.last_sent > 1000) {
 				Netchan_Transmit(&cl->net_chan, NULL, 0);
+			}
 		}
 	}
 }

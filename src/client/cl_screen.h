@@ -23,9 +23,9 @@
 #define __CL_SCREEN_H__
 
 #ifdef __CL_LOCAL_H__
-void Cl_CenterPrint(char *s);
-void Cl_AddNetGraph(void);
-void Cl_UpdateScreen(void);
+	void Cl_CenterPrint(char *s);
+	void Cl_AddNetGraph(void);
+	void Cl_UpdateScreen(void);
 #endif /* __CL_LOCAL_H__ */
 
 #endif /* __CL_SCREEN_H__ */

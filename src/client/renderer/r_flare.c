@@ -33,8 +33,9 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	m = surf->texinfo->material;
 
-	if (!(m->flags & STAGE_FLARE)) // surface is not flared
+	if (!(m->flags & STAGE_FLARE)) { // surface is not flared
 		return;
+	}
 
 	surf->flare = Mem_LinkMalloc(sizeof(*surf->flare), bsp);
 
@@ -47,24 +48,27 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	const r_stage_t *s = m->stages; // resolve the flare stage
 	while (s) {
-		if (s->flags & STAGE_FLARE)
+		if (s->flags & STAGE_FLARE) {
 			break;
+		}
 		s = s->next;
 	}
 
-	if(!s) {
+	if (!s) {
 		return;
 	}
 
 	// resolve flare color
-	if (s->flags & STAGE_COLOR)
+	if (s->flags & STAGE_COLOR) {
 		VectorCopy(s->color, surf->flare->color);
-	else
+	} else {
 		VectorCopy(surf->texinfo->material->diffuse->color, surf->flare->color);
+	}
 
 	// and scaled radius
-	if (s->flags & (STAGE_SCALE_S | STAGE_SCALE_T))
+	if (s->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
 		surf->flare->radius *= (s->scale.s ? s->scale.s : s->scale.t);
+	}
 
 	// and image
 	surf->flare->image = s->image;
@@ -82,11 +86,13 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	vec3_t view, verts[4];
 	vec3_t right, up, up_right, down_right;
 
-	if (!r_flares->value || r_draw_wireframe->value)
+	if (!r_flares->value || r_draw_wireframe->value) {
 		return;
+	}
 
-	if (!surfs->count)
+	if (!surfs->count) {
 		return;
+	}
 
 	R_EnableColorArray(true);
 
@@ -103,16 +109,16 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	for (i = 0; i < surfs->count; i++) {
 		const r_bsp_surface_t *surf = surfs->surfaces[i];
 
-		if (surf->frame != r_locals.frame)
+		if (surf->frame != r_locals.frame) {
 			continue;
+		}
 
 		r_bsp_flare_t *f = surf->flare;
 
 		// bind the flare's texture
 		if (f->image != image) {
-			
-			if (l)
-			{
+
+			if (l) {
 				R_UploadToBuffer(&r_state.buffer_color_array, 0, j * sizeof(vec_t), r_state.color_array);
 				R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, k * sizeof(vec_t), texunit_diffuse.texcoord_array);
 				R_UploadToBuffer(&r_state.buffer_vertex_array, 0, l * sizeof(vec_t), r_state.vertex_array);
@@ -130,8 +136,9 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		// periodically test visibility to ramp alpha
 		if (r_view.time - f->time > 15) {
 
-			if (r_view.time - f->time > 500) // reset old flares
+			if (r_view.time - f->time > 500) { // reset old flares
 				f->alpha = 0;
+			}
 
 			cm_trace_t tr = Cl_Trace(r_view.origin, f->origin, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
 
@@ -146,13 +153,15 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 		// fade according to angle
 		const vec_t cos = DotProduct(surf->normal, view);
-		if (cos > 0.0)
+		if (cos > 0.0) {
 			continue;
+		}
 
 		vec_t alpha = 0.1 + -cos * r_flares->value;
 
-		if (alpha > 1.0)
+		if (alpha > 1.0) {
 			alpha = 1.0;
+		}
 
 		alpha = f->alpha * alpha;
 
@@ -195,9 +204,8 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		l += sizeof(vec3_t) / sizeof(vec_t) * 4;
 		m += 6;
 	}
-	
-	if (l)
-	{
+
+	if (l) {
 		R_UploadToBuffer(&r_state.buffer_color_array, 0, j * sizeof(vec_t), r_state.color_array);
 		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, k * sizeof(vec_t), texunit_diffuse.texcoord_array);
 		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, l * sizeof(vec_t), r_state.vertex_array);

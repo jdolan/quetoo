@@ -82,29 +82,35 @@ static void BuildFaceExtents(void) {
 
 		for (i = 0; i < s->num_edges; i++) {
 			const int32_t e = d_bsp.face_edges[s->first_edge + i];
-			if (e >= 0)
+			if (e >= 0) {
 				v = d_bsp.vertexes + d_bsp.edges[e].v[0];
-			else
+			} else {
 				v = d_bsp.vertexes + d_bsp.edges[-e].v[1];
+			}
 
 			for (j = 0; j < 3; j++) { // calculate mins, maxs
-				if (v->point[j] > maxs[j])
+				if (v->point[j] > maxs[j]) {
 					maxs[j] = v->point[j];
-				if (v->point[j] < mins[j])
+				}
+				if (v->point[j] < mins[j]) {
 					mins[j] = v->point[j];
+				}
 			}
 
 			for (j = 0; j < 2; j++) { // calculate st_mins, st_maxs
 				const vec_t val = DotProduct(v->point, tex->vecs[j]) + tex->vecs[j][3];
-				if (val < st_mins[j])
+				if (val < st_mins[j]) {
 					st_mins[j] = val;
-				if (val > st_maxs[j])
+				}
+				if (val > st_maxs[j]) {
 					st_maxs[j] = val;
+				}
 			}
 		}
 
-		for (i = 0; i < 3; i++) // calculate center
+		for (i = 0; i < 3; i++) { // calculate center
 			center[i] = (mins[i] + maxs[i]) / 2.0;
+		}
 	}
 }
 
@@ -139,7 +145,7 @@ static void CalcLightinfoExtents(light_info_t *l) {
 		const winding_t *w = WindingForFace(s);
 
 		Mon_SendWinding(ERR_FATAL, (const vec3_t *) w->points, w->num_points,
-				va("Surface too large to light (%dx%d)\n", l->tex_size[0], l->tex_size[1]));
+		                va("Surface too large to light (%dx%d)\n", l->tex_size[0], l->tex_size[1]));
 	}
 }
 
@@ -156,8 +162,9 @@ static void CalcLightinfoVectors(light_info_t *l) {
 	tex = &d_bsp.texinfo[l->face->texinfo];
 
 	// convert from vec_t to double
-	for (i = 0; i < 2; i++)
+	for (i = 0; i < 2; i++) {
 		VectorCopy(tex->vecs[i], l->world_to_tex[i]);
+	}
 
 	// calculate a normal to the texture axis. points can be moved along this
 	// without changing their S/T
@@ -190,7 +197,7 @@ static void CalcLightinfoVectors(light_info_t *l) {
 	// calculate tex_org on the texture plane
 	for (i = 0; i < 3; i++)
 		l->tex_org[i] = -tex->vecs[0][3] * l->tex_to_world[0][i] - tex->vecs[1][3]
-				* l->tex_to_world[1][i];
+		                * l->tex_to_world[1][i];
 
 	// project back to the face plane
 	dist = DotProduct(l->tex_org, l->face_normal) - l->face_dist - 1;
@@ -230,8 +237,9 @@ static void CalcPoints(light_info_t *l, vec_t sofs, vec_t tofs) {
 			const vec_t ut = startt + (t + tofs) * step;
 
 			// calculate texture point
-			for (j = 0; j < 3; j++)
+			for (j = 0; j < 3; j++) {
 				surf[j] = l->tex_org[j] + l->tex_to_world[0][j] * us + l->tex_to_world[1][j] * ut;
+			}
 		}
 	}
 }
@@ -277,8 +285,9 @@ static entity_t *FindTargetEntity(const char *target) {
 
 	for (i = 0; i < num_entities; i++) {
 		const char *n = ValueForKey(&entities[i], "targetname");
-		if (!g_strcmp0(n, target))
+		if (!g_strcmp0(n, target)) {
 			return &entities[i];
+		}
 	}
 
 	return NULL;
@@ -307,8 +316,9 @@ void BuildLights(void) {
 
 		while (p) { // iterate subdivided patches
 
-			if (VectorCompare(p->light, vec3_origin))
+			if (VectorCompare(p->light, vec3_origin)) {
 				continue;
+			}
 
 			num_lights++;
 			l = Mem_Malloc(sizeof(*l));
@@ -334,8 +344,9 @@ void BuildLights(void) {
 		const entity_t *e = &entities[i];
 
 		const char *name = ValueForKey(e, "classname");
-		if (strncmp(name, "light", 5)) // not a light
+		if (strncmp(name, "light", 5)) { // not a light
 			continue;
+		}
 
 		num_lights++;
 		l = Mem_Malloc(sizeof(*l));
@@ -349,10 +360,12 @@ void BuildLights(void) {
 		lights[cluster] = l;
 
 		intensity = FloatForKey(e, "light");
-		if (!intensity)
+		if (!intensity) {
 			intensity = FloatForKey(e, "_light");
-		if (!intensity)
+		}
+		if (!intensity) {
 			intensity = 300.0;
+		}
 
 		color = ValueForKey(e, "_color");
 		if (color && color[0]) {
@@ -371,10 +384,12 @@ void BuildLights(void) {
 			l->type = LIGHT_SPOT;
 
 			l->stopdot = FloatForKey(e, "cone");
-			if (!l->stopdot)
+			if (!l->stopdot) {
 				l->stopdot = FloatForKey(e, "_cone");
-			if (!l->stopdot) // reasonable default cone
+			}
+			if (!l->stopdot) { // reasonable default cone
 				l->stopdot = 20.0;
+			}
 
 			l->stopdot = cos(Radians(l->stopdot));
 
@@ -428,8 +443,8 @@ void BuildLights(void) {
 
 		if (sun.light)
 			Com_Verbose("Sun defined with light %3.0f, color %0.2f %0.2f %0.2f, "
-				"angles %1.3f %1.3f %1.3f\n", sun.light, sun.color[0], sun.color[1],
-					sun.color[2], sun.angles[0], sun.angles[1], sun.angles[2]);
+			            "angles %1.3f %1.3f %1.3f\n", sun.light, sun.color[0], sun.color[1],
+			            sun.color[2], sun.angles[0], sun.angles[1], sun.angles[2]);
 
 		// ambient light, also from worldspawn
 		color = ValueForKey(e, "ambient_light");
@@ -437,26 +452,30 @@ void BuildLights(void) {
 
 		if (VectorLength(ambient))
 			Com_Verbose("Ambient lighting defined with color %0.2f %0.2f %0.2f\n", ambient[0],
-					ambient[1], ambient[2]);
+			            ambient[1], ambient[2]);
 
 		// optionally pull brightness from worldspawn
 		v = FloatForKey(e, "brightness");
-		if (v > 0.0)
+		if (v > 0.0) {
 			brightness = v;
+		}
 
 		// saturation as well
 		v = FloatForKey(e, "saturation");
-		if (v > 0.0)
+		if (v > 0.0) {
 			saturation = v;
+		}
 
 		v = FloatForKey(e, "contrast");
-		if (v > 0.0)
+		if (v > 0.0) {
 			contrast = v;
+		}
 
 		// lightmap resolution downscale (e.g. 8 = 1 / 8)
 		lightmap_scale = (int32_t) FloatForKey(e, "lightmap_scale");
-		if (!lightmap_scale)
+		if (!lightmap_scale) {
 			lightmap_scale = DEFAULT_LIGHTMAP_SCALE;
+		}
 	}
 }
 
@@ -465,26 +484,29 @@ void BuildLights(void) {
  * sunlight when a sky surface is struck.
  */
 static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *sample,
-		vec_t *direction, vec_t scale) {
+                                 vec_t *direction, vec_t scale) {
 
 	vec3_t delta;
 	vec_t dot, light;
 	cm_trace_t trace;
 
-	if (!sun.light)
+	if (!sun.light) {
 		return;
+	}
 
 	dot = DotProduct(sun.dir, normal);
 
-	if (dot <= 0.001)
-		return; // wrong direction
+	if (dot <= 0.001) {
+		return;    // wrong direction
+	}
 
 	VectorMA(pos, MAX_WORLD_DIST, sun.dir, delta);
 
 	Light_Trace(&trace, pos, delta, CONTENTS_SOLID);
 
-	if (trace.fraction < 1.0 && !(trace.surface->flags & SURF_SKY))
-		return; // occluded
+	if (trace.fraction < 1.0 && !(trace.surface->flags & SURF_SKY)) {
+		return;    // occluded
+	}
 
 	light = sun.light * dot * scale;
 
@@ -501,7 +523,7 @@ static void GatherSampleSunlight(const vec3_t pos, const vec3_t normal, vec_t *s
  * light and directional information to the specified pointers.
  */
 static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sample,
-		vec_t *direction, vec_t scale) {
+                              vec_t *direction, vec_t scale) {
 
 	light_t *l;
 	vec3_t delta;
@@ -513,8 +535,9 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
 	// iterate over lights, which are in buckets by cluster
 	for (i = 0; i < d_vis->num_clusters; i++) {
 
-		if (!(pvs[i >> 3] & (1 << (i & 7))))
+		if (!(pvs[i >> 3] & (1 << (i & 7)))) {
 			continue;
+		}
 
 		for (l = lights[i]; l; l = l->next) {
 
@@ -524,8 +547,9 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
 			dist = VectorNormalize(delta);
 
 			dot = DotProduct(delta, normal);
-			if (dot <= 0.001)
-				continue; // behind sample surface
+			if (dot <= 0.001) {
+				continue;    // behind sample surface
+			}
 
 			switch (l->type) {
 				case LIGHT_POINT: // linear falloff
@@ -538,9 +562,9 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
 
 				case LIGHT_SPOT: // linear falloff with cone
 					dot2 = -DotProduct(delta, l->normal);
-					if (dot2 > l->stopdot) // inside the cone
+					if (dot2 > l->stopdot) { // inside the cone
 						light = (l->intensity - dist) * dot;
-					else { // outside the cone
+					} else { // outside the cone
 						const vec_t decay = 1.0 + l->stopdot - dot2;
 						light = (l->intensity - decay * decay * dist) * dot;
 					}
@@ -550,13 +574,15 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
 					break;
 			}
 
-			if (light <= 0.0) // no light
+			if (light <= 0.0) { // no light
 				continue;
+			}
 
 			Light_Trace(&trace, l->origin, pos, CONTENTS_SOLID);
 
-			if (trace.fraction < 1.0)
-				continue; // occluded
+			if (trace.fraction < 1.0) {
+				continue;    // occluded
+			}
 
 			// add some light to it
 			VectorMA(sample, light * scale, l->color, sample);
@@ -578,7 +604,7 @@ static void GatherSampleLight(vec3_t pos, vec3_t normal, byte *pvs, vec_t *sampl
  * position, returning true if the new point is valid, false otherwise.
  */
 static _Bool NudgeSamplePosition(const vec3_t in, const vec3_t normal, const vec3_t center,
-		vec3_t out, byte *pvs) {
+                                 vec3_t out, byte *pvs) {
 	vec3_t dir;
 
 	VectorCopy(in, out);
@@ -607,8 +633,9 @@ static void FacesWithVert(int32_t vert, int32_t *faces, int32_t *nfaces) {
 	for (i = 0; i < d_bsp.num_faces; i++) {
 		const d_bsp_face_t *face = &d_bsp.faces[i];
 
-		if (!(d_bsp.texinfo[face->texinfo].flags & SURF_PHONG))
+		if (!(d_bsp.texinfo[face->texinfo].flags & SURF_PHONG)) {
 			continue;
+		}
 
 		for (j = 0; j < face->num_edges; j++) {
 
@@ -646,8 +673,9 @@ void BuildVertexNormals(void) {
 
 		FacesWithVert(i, vert_faces, &num_vert_faces);
 
-		if (!num_vert_faces) // rely on plane normal only
+		if (!num_vert_faces) { // rely on plane normal only
 			continue;
+		}
 
 		for (j = 0; j < num_vert_faces; j++) {
 
@@ -660,10 +688,11 @@ void BuildVertexNormals(void) {
 
 			const vec_t scale = VectorLength(delta);
 
-			if (face->side)
+			if (face->side) {
 				VectorScale(plane->normal, -scale, norm);
-			else
+			} else {
 				VectorScale(plane->normal, scale, norm);
+			}
 
 			VectorAdd(d_bsp.normals[i].normal, norm, d_bsp.normals[i].normal);
 		}
@@ -686,10 +715,11 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 		const int32_t e = d_bsp.face_edges[l->face->first_edge + i];
 		uint16_t v;
 
-		if (e >= 0)
+		if (e >= 0) {
 			v = d_bsp.edges[e].v[0];
-		else
+		} else {
 			v = d_bsp.edges[-e].v[1];
+		}
 
 		vec3_t delta;
 		VectorSubtract(pos, d_bsp.vertexes[v].point, delta);
@@ -706,10 +736,11 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 		const int32_t e = d_bsp.face_edges[l->face->first_edge + i];
 		uint16_t v;
 
-		if (e >= 0)
+		if (e >= 0) {
 			v = d_bsp.edges[e].v[0];
-		else
+		} else {
 			v = d_bsp.edges[-e].v[1];
+		}
 
 		const vec_t mix = powf(max_dist - dist[i], 4.0) / powf(max_dist, 4.0);
 		VectorMA(normal, mix, d_bsp.normals[v].normal, normal);
@@ -722,11 +753,12 @@ static void SampleNormal(const light_info_t *l, const vec3_t pos, vec3_t normal)
 
 #define MAX_SAMPLES 5
 static const vec_t sampleofs[MAX_SAMPLES][2] = {
-		{ 0.0, 0.0 },
-		{ -0.125, -0.125 },
-		{ 0.125, -0.125 },
-		{ 0.125, 0.125 },
-		{ -0.125, 0.125 } };
+	{ 0.0, 0.0 },
+	{ -0.125, -0.125 },
+	{ 0.125, -0.125 },
+	{ 0.125, 0.125 },
+	{ -0.125, 0.125 }
+};
 
 /**
  * @brief
@@ -755,16 +787,18 @@ void BuildFacelights(int32_t face_num) {
 
 	tex = &d_bsp.texinfo[face->texinfo];
 
-	if (tex->flags & (SURF_SKY | SURF_WARP))
-		return; // non-lit texture
+	if (tex->flags & (SURF_SKY | SURF_WARP)) {
+		return;    // non-lit texture
+	}
 
 	sdir = tex->vecs[0];
 	tdir = tex->vecs[1];
 
-	if (extra_samples) // -light -extra antialiasing
+	if (extra_samples) { // -light -extra antialiasing
 		num_samples = MAX_SAMPLES;
-	else
+	} else {
 		num_samples = 1;
+	}
 
 	scale = 1.0 / num_samples; // each sample contributes this much
 
@@ -820,8 +854,9 @@ void BuildFacelights(int32_t face_num) {
 				VectorCopy(l[0].face_normal, normal);
 			}
 
-			if (!NudgeSamplePosition(l[j].sample_points[i], normal, center, pos, pvs))
-				continue; // not a valid point
+			if (!NudgeSamplePosition(l[j].sample_points[i], normal, center, pos, pvs)) {
+				continue;    // not a valid point
+			}
 
 			GatherSampleLight(pos, normal, pvs, sample, direction, scale);
 		}
@@ -852,8 +887,9 @@ void BuildFacelights(int32_t face_num) {
 
 			vec_t *direction = fl->directions + i * 3;
 
-			if (VectorCompare(direction, vec3_origin))
+			if (VectorCompare(direction, vec3_origin)) {
 				VectorSet(direction, 0.0, 0.0, 1.0);
+			}
 		}
 	}
 
@@ -878,8 +914,9 @@ void FinalLightFace(int32_t face_num) {
 	f = &d_bsp.faces[face_num];
 	fl = &face_lights[face_num];
 
-	if (d_bsp.texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY))
-		return; // non-lit texture
+	if (d_bsp.texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY)) {
+		return;    // non-lit texture
+	}
 
 	f->unused[0] = 0; // pack the old lightstyles array for legacy games
 	f->unused[1] = f->unused[2] = f->unused[3] = 255;
@@ -889,11 +926,13 @@ void FinalLightFace(int32_t face_num) {
 	f->light_ofs = d_bsp.lightmap_data_size;
 	d_bsp.lightmap_data_size += fl->num_samples * 3;
 
-	if (!legacy) // account for light direction data as well
+	if (!legacy) { // account for light direction data as well
 		d_bsp.lightmap_data_size += fl->num_samples * 3;
+	}
 
-	if (d_bsp.lightmap_data_size > MAX_BSP_LIGHTING)
+	if (d_bsp.lightmap_data_size > MAX_BSP_LIGHTING) {
 		Com_Error(ERR_FATAL, "MAX_BSP_LIGHTING\n");
+	}
 
 	ThreadUnlock();
 

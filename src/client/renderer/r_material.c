@@ -30,30 +30,35 @@ static void R_UpdateMaterial(r_material_t *m) {
 	r_stage_t *s;
 
 	if (!r_view.current_entity) {
-		if (r_view.time - m->time < UPDATE_THRESHOLD)
+		if (r_view.time - m->time < UPDATE_THRESHOLD) {
 			return;
+		}
 	}
 
 	m->time = r_view.time;
 
 	for (s = m->stages; s; s = s->next) {
 
-		if (s->flags & STAGE_PULSE)
+		if (s->flags & STAGE_PULSE) {
 			s->pulse.dhz = (sin(r_view.time * s->pulse.hz * 0.00628) + 1.0) / 2.0;
+		}
 
 		if (s->flags & STAGE_STRETCH) {
 			s->stretch.dhz = (sin(r_view.time * s->stretch.hz * 0.00628) + 1.0) / 2.0;
 			s->stretch.damp = 1.5 - s->stretch.dhz * s->stretch.amp;
 		}
 
-		if (s->flags & STAGE_ROTATE)
+		if (s->flags & STAGE_ROTATE) {
 			s->rotate.deg = r_view.time * s->rotate.hz * 0.360;
+		}
 
-		if (s->flags & STAGE_SCROLL_S)
+		if (s->flags & STAGE_SCROLL_S) {
 			s->scroll.ds = s->scroll.s * r_view.time / 1000.0;
+		}
 
-		if (s->flags & STAGE_SCROLL_T)
+		if (s->flags & STAGE_SCROLL_T) {
 			s->scroll.dt = s->scroll.t * r_view.time / 1000.0;
+		}
 
 		if (s->flags & STAGE_ANIM) {
 			if (s->anim.fps) {
@@ -73,8 +78,9 @@ static void R_UpdateMaterial(r_material_t *m) {
  */
 static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage) {
 
-	if (!surf) // mesh materials don't support per-stage lighting
+	if (!surf) { // mesh materials don't support per-stage lighting
 		return;
+	}
 
 	// if the surface has a lightmap, and the stage specifies lighting..
 
@@ -92,10 +98,11 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 
 				R_UseMaterial(stage->material);
 
-				if (surf->light_frame == r_locals.light_frame) // dynamic light sources
+				if (surf->light_frame == r_locals.light_frame) { // dynamic light sources
 					R_EnableLights(surf->light_mask);
-				else
+				} else {
 					R_EnableLights(0);
+				}
 			}
 		} else {
 			R_EnableLighting(NULL, false);
@@ -110,7 +117,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 /**
  * @brief Generates a single vertex for the specified stage.
  */
-static void R_StageVertex(const r_bsp_surface_t *surf __attribute__((unused)), const r_stage_t *stage __attribute__((unused)), const vec3_t in, vec3_t out) {
+static void R_StageVertex(const r_bsp_surface_t *surf, const r_stage_t *stage, const vec3_t in, vec3_t out) {
 
 	// TODO: vertex deformation
 	VectorCopy(in, out);
@@ -126,8 +133,9 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 
 	if (!(stage->flags & STAGE_TEXTURE_MATRIX)) {
 
-		if (!identity)
+		if (!identity) {
 			Matrix4x4_CreateIdentity(&texture_matrix);
+		}
 
 		identity = true;
 		return;
@@ -139,7 +147,7 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 
 		s = surf->st_center[0] / surf->texinfo->material->diffuse->width;
 		t = surf->st_center[1] / surf->texinfo->material->diffuse->height;
-		
+
 		if (stage->flags & STAGE_STRETCH) {
 			Matrix4x4_ConcatTranslate(&texture_matrix, -s, -t, 0.0);
 			Matrix4x4_ConcatScale3(&texture_matrix, stage->stretch.damp, stage->stretch.damp, 1.0);
@@ -153,17 +161,21 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 		}
 	}
 
-	if (stage->flags & STAGE_SCALE_S)
+	if (stage->flags & STAGE_SCALE_S) {
 		Matrix4x4_ConcatScale3(&texture_matrix, stage->scale.s, 1.0, 1.0);
+	}
 
-	if (stage->flags & STAGE_SCALE_T)
+	if (stage->flags & STAGE_SCALE_T) {
 		Matrix4x4_ConcatScale3(&texture_matrix, 1.0, stage->scale.t, 1.0);
+	}
 
-	if (stage->flags & STAGE_SCROLL_S)
+	if (stage->flags & STAGE_SCROLL_S) {
 		Matrix4x4_ConcatTranslate(&texture_matrix, stage->scroll.ds, 0.0, 0.0);
+	}
 
-	if (stage->flags & STAGE_SCROLL_T)
+	if (stage->flags & STAGE_SCROLL_T) {
 		Matrix4x4_ConcatTranslate(&texture_matrix, 0.0, stage->scroll.dt, 0.0);
+	}
 
 	identity = false;
 }
@@ -172,7 +184,7 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
  * @brief Generates a single texture coordinate for the specified stage and vertex.
  */
 static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const vec2_t in,
-		vec2_t out) {
+                                   vec2_t out) {
 
 	vec3_t tmp;
 
@@ -191,22 +203,23 @@ static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const
 
 #define NUM_DIRTMAP_ENTRIES 16
 static const vec_t dirtmap[NUM_DIRTMAP_ENTRIES] = {
-		0.6,
-		0.5,
-		0.3,
-		0.4,
-		0.7,
-		0.3,
-		0.0,
-		0.4,
-		0.5,
-		0.2,
-		0.8,
-		0.5,
-		0.3,
-		0.2,
-		0.5,
-		0.3 };
+	0.6,
+	0.5,
+	0.3,
+	0.4,
+	0.7,
+	0.3,
+	0.0,
+	0.4,
+	0.5,
+	0.2,
+	0.8,
+	0.5,
+	0.3,
+	0.2,
+	0.5,
+	0.3
+};
 
 /**
  * @brief Generates a single color for the specified stage and vertex.
@@ -217,30 +230,35 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t c
 
 	if (stage->flags & STAGE_TERRAIN) {
 
-		if (stage->flags & STAGE_COLOR) // honor stage color
+		if (stage->flags & STAGE_COLOR) { // honor stage color
 			VectorCopy(stage->color, color);
-		else
+		} else
 			// or use white
+		{
 			VectorSet(color, 1.0, 1.0, 1.0);
+		}
 
 		// resolve alpha for vert based on z axis height
-		if (v[2] < stage->terrain.floor)
+		if (v[2] < stage->terrain.floor) {
 			a = 0.0;
-		else if (v[2] > stage->terrain.ceil)
+		} else if (v[2] > stage->terrain.ceil) {
 			a = 1.0;
-		else
+		} else {
 			a = (v[2] - stage->terrain.floor) / stage->terrain.height;
+		}
 
 		color[3] = a;
 	} else if (stage->flags & STAGE_DIRTMAP) {
 
 		// resolve dirtmap based on vertex position
 		const uint16_t index = (uint16_t) (v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
-		if (stage->flags & STAGE_COLOR) // honor stage color
+		if (stage->flags & STAGE_COLOR) { // honor stage color
 			VectorCopy(stage->color, color);
-		else
+		} else
 			// or use white
+		{
 			VectorSet(color, 1.0, 1.0, 1.0);
+		}
 
 		color[3] = dirtmap[index] * stage->dirt.intensity;
 	} else { // simply use white
@@ -265,10 +283,11 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	R_StageTextureMatrix(surf, stage);
 
 	// set the blend function, ensuring a sane default
-	if (stage->flags & STAGE_BLEND)
+	if (stage->flags & STAGE_BLEND) {
 		R_BlendFunc(stage->blend.src, stage->blend.dest);
-	else
+	} else {
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
 
 	// for terrain, enable the color array
 	if (stage->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
@@ -320,8 +339,9 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 			texunit_lightmap.texcoord_array[i * 2 + 1] = st[1];
 		}
 
-		if (r_state.color_array_enabled) // colors
+		if (r_state.color_array_enabled) { // colors
 			R_StageColor(stage, v, &r_state.color_array[i * 4]);
+		}
 
 		if (r_state.lighting_enabled) { // normals and tangents
 
@@ -336,13 +356,13 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, i * sizeof(vec3_t), r_state.vertex_array);
 	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, i * sizeof(vec2_t), texunit_diffuse.texcoord_array);
 
-	if (texunit_lightmap.enabled) { 
+	if (texunit_lightmap.enabled) {
 
 		R_UploadToBuffer(&texunit_lightmap.buffer_texcoord_array, 0, i * sizeof(vec2_t), texunit_lightmap.texcoord_array);
 	}
 
 	if (r_state.color_array_enabled) {
-	
+
 		R_UploadToBuffer(&r_state.buffer_color_array, 0, i * sizeof(vec4_t), r_state.color_array);
 	}
 
@@ -363,11 +383,13 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
  */
 void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
-	if (!r_materials->value || r_draw_wireframe->value)
+	if (!r_materials->value || r_draw_wireframe->value) {
 		return;
+	}
 
-	if (!surfs->count)
+	if (!surfs->count) {
 		return;
+	}
 
 	R_EnableTexture(&texunit_lightmap, true);
 
@@ -391,8 +413,9 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 		r_bsp_surface_t *surf = surfs->surfaces[i];
 
-		if (surf->frame != r_locals.frame)
+		if (surf->frame != r_locals.frame) {
 			continue;
+		}
 
 		r_material_t *m = surf->texinfo->material;
 
@@ -401,8 +424,9 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		vec_t j = -10.0;
 		for (const r_stage_t *s = m->stages; s; s = s->next, j -= 10.0) {
 
-			if (!(s->flags & STAGE_DIFFUSE))
+			if (!(s->flags & STAGE_DIFFUSE)) {
 				continue;
+			}
 
 			R_PolygonOffset(-0.125, j); // increase depth offset for each stage
 
@@ -429,7 +453,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_UseMaterial(NULL);
 
 	R_EnableLighting(NULL, false);
-	
+
 	R_Color(NULL);
 }
 
@@ -440,16 +464,17 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count) {
 	const _Bool blend = r_state.blend_enabled;
 
-	if (!r_materials->value || r_draw_wireframe->value)
+	if (!r_materials->value || r_draw_wireframe->value) {
 		return;
+	}
 
-	if (!(m->flags & STAGE_DIFFUSE))
+	if (!(m->flags & STAGE_DIFFUSE)) {
 		return;
+	}
 
 	R_UpdateMaterial(m);
 
-	if (!blend)
-	{
+	if (!blend) {
 		R_EnableBlend(true);
 		R_EnableDepthMask(false);
 	}
@@ -461,8 +486,9 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 	const r_stage_t *s = m->stages;
 	for (vec_t j = -1.0; s; s = s->next, j--) {
 
-		if (!(s->flags & STAGE_DIFFUSE))
+		if (!(s->flags & STAGE_DIFFUSE)) {
 			continue;
+		}
 
 		R_PolygonOffset(j, 1.0); // increase depth offset for each stage
 
@@ -473,8 +499,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 
 	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
 
-	if (!blend)
-	{
+	if (!blend) {
 		R_EnableBlend(false);
 		R_EnableDepthMask(true);
 	}
@@ -563,8 +588,9 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
 
 	g_strlcpy(base, name, sizeof(base));
 
-	if (g_str_has_suffix(base, "_d"))
+	if (g_str_has_suffix(base, "_d")) {
 		base[strlen(base) - 2] = '\0';
+	}
 
 	g_snprintf(key, sizeof(key), "%s_mat", base);
 
@@ -597,20 +623,27 @@ r_material_t *R_LoadMaterial(const char *diffuse) {
  */
 static inline GLenum R_ConstByName(const char *c) {
 
-	if (!g_strcmp0(c, "GL_ONE"))
+	if (!g_strcmp0(c, "GL_ONE")) {
 		return GL_ONE;
-	if (!g_strcmp0(c, "GL_ZERO"))
+	}
+	if (!g_strcmp0(c, "GL_ZERO")) {
 		return GL_ZERO;
-	if (!g_strcmp0(c, "GL_SRC_ALPHA"))
+	}
+	if (!g_strcmp0(c, "GL_SRC_ALPHA")) {
 		return GL_SRC_ALPHA;
-	if (!g_strcmp0(c, "GL_ONE_MINUS_SRC_ALPHA"))
+	}
+	if (!g_strcmp0(c, "GL_ONE_MINUS_SRC_ALPHA")) {
 		return GL_ONE_MINUS_SRC_ALPHA;
-	if (!g_strcmp0(c, "GL_SRC_COLOR"))
+	}
+	if (!g_strcmp0(c, "GL_SRC_COLOR")) {
 		return GL_SRC_COLOR;
-	if (!g_strcmp0(c, "GL_DST_COLOR"))
+	}
+	if (!g_strcmp0(c, "GL_DST_COLOR")) {
 		return GL_DST_COLOR;
-	if (!g_strcmp0(c, "GL_ONE_MINUS_SRC_COLOR"))
+	}
+	if (!g_strcmp0(c, "GL_ONE_MINUS_SRC_COLOR")) {
 		return GL_ONE_MINUS_SRC_COLOR;
+	}
 
 	// ...
 	Com_Warn("Failed to resolve: %s\n", c);
@@ -670,8 +703,9 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 		const char *c = ParseToken(buffer);
 
-		if (*c == '\0')
+		if (*c == '\0') {
 			break;
+		}
 
 		if (!g_strcmp0(c, "texture") || !g_strcmp0(c, "diffuse")) {
 
@@ -868,7 +902,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 			if (s->terrain.ceil <= s->terrain.floor) {
 				Com_Warn("Invalid terrain ceiling and floor values for %s\n",
-						(s->image ? s->image->media.name : "NULL"));
+				         (s->image ? s->image->media.name : "NULL"));
 				return -1;
 			}
 
@@ -884,7 +918,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 			if (s->dirt.intensity <= 0.0 || s->dirt.intensity > 1.0) {
 				Com_Warn("Invalid dirtmap intensity for %s\n",
-						(s->image ? s->image->media.name : "NULL"));
+				         (s->image ? s->image->media.name : "NULL"));
 				return -1;
 			}
 
@@ -899,7 +933,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 			if (s->anim.num_frames < 1) {
 				Com_Warn("Invalid number of anim frames for %s\n",
-						(s->image ? s->image->media.name : "NULL"));
+				         (s->image ? s->image->media.name : "NULL"));
 				return -1;
 			}
 
@@ -908,7 +942,7 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 
 			if (s->anim.fps < 0.0) {
 				Com_Warn("Invalid anim fps for %s\n",
-						(s->image ? s->image->media.name : "NULL"));
+				         (s->image ? s->image->media.name : "NULL"));
 				return -1;
 			}
 
@@ -959,27 +993,27 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 			}
 
 			Com_Debug("Parsed stage\n"
-					"  flags: %d\n"
-					"  texture: %s\n"
-					"   -> material: %s\n"
-					"  blend: %d %d\n"
-					"  color: %3f %3f %3f\n"
-					"  pulse: %3f\n"
-					"  stretch: %3f %3f\n"
-					"  rotate: %3f\n"
-					"  scroll.s: %3f\n"
-					"  scroll.t: %3f\n"
-					"  scale.s: %3f\n"
-					"  scale.t: %3f\n"
-					"  terrain.floor: %5f\n"
-					"  terrain.ceil: %5f\n"
-					"  anim.num_frames: %d\n"
-					"  anim.fps: %3f\n", s->flags, (s->image ? s->image->media.name : "NULL"),
-					(s->material ? s->material->diffuse->media.name : "NULL"), s->blend.src,
-					s->blend.dest, s->color[0], s->color[1], s->color[2], s->pulse.hz,
-					s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
-					s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->anim.num_frames,
-					s->anim.fps);
+			          "  flags: %d\n"
+			          "  texture: %s\n"
+			          "   -> material: %s\n"
+			          "  blend: %d %d\n"
+			          "  color: %3f %3f %3f\n"
+			          "  pulse: %3f\n"
+			          "  stretch: %3f %3f\n"
+			          "  rotate: %3f\n"
+			          "  scroll.s: %3f\n"
+			          "  scroll.t: %3f\n"
+			          "  scale.s: %3f\n"
+			          "  scale.t: %3f\n"
+			          "  terrain.floor: %5f\n"
+			          "  terrain.ceil: %5f\n"
+			          "  anim.num_frames: %d\n"
+			          "  anim.fps: %3f\n", s->flags, (s->image ? s->image->media.name : "NULL"),
+			          (s->material ? s->material->diffuse->media.name : "NULL"), s->blend.src,
+			          s->blend.dest, s->color[0], s->color[1], s->color[2], s->pulse.hz,
+			          s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
+			          s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->anim.num_frames,
+			          s->anim.fps);
 
 			return 0;
 		}
@@ -1023,8 +1057,9 @@ void R_LoadMaterials(const r_model_t *mod) {
 
 		const char *c = ParseToken(&buffer);
 
-		if (*c == '\0')
+		if (*c == '\0') {
 			break;
+		}
 
 		if (*c == '{' && !in_material) {
 			in_material = true;
@@ -1047,8 +1082,9 @@ void R_LoadMaterials(const r_model_t *mod) {
 			continue;
 		}
 
-		if (!m)
+		if (!m) {
 			continue;
+		}
 
 		if (!g_strcmp0(c, "normalmap") && r_bumpmap->value) {
 			c = ParseToken(&buffer);
@@ -1135,12 +1171,13 @@ void R_LoadMaterials(const r_model_t *mod) {
 			}
 
 			// append the stage to the chain
-			if (!m->stages)
+			if (!m->stages) {
 				m->stages = s;
-			else {
+			} else {
 				r_stage_t *ss = m->stages;
-				while (ss->next)
+				while (ss->next) {
 					ss = ss->next;
+				}
 				ss->next = s;
 			}
 
@@ -1199,8 +1236,9 @@ void R_SaveMaterials_f(void) {
 		for (i = 0; i < MAX_SAVE_MATERIALS; i++) {
 			g_snprintf(filename, sizeof(filename), "materials/%s%03u.mat", map, i);
 
-			if (!Fs_Exists(filename))
+			if (!Fs_Exists(filename)) {
 				break;
+			}
 		}
 
 		if (i == MAX_SAVE_MATERIALS) {
@@ -1234,13 +1272,13 @@ void R_SaveMaterials_f(void) {
 		const char *normalmap = m->normalmap->media.name + strlen("textures/");
 
 		const char *s = va("{\n"
-			"\tmaterial %s\n"
-			"\tnormalmap %s\n"
-			"\tbump %01.1f\n"
-			"\thardness %01.1f\n"
-			"\tspecular %01.1f\n"
-			"\tparallax %01.1f\n"
-			"}\n", diffuse, normalmap, m->bump, m->hardness, m->specular, m->parallax);
+		                   "\tmaterial %s\n"
+		                   "\tnormalmap %s\n"
+		                   "\tbump %01.1f\n"
+		                   "\thardness %01.1f\n"
+		                   "\tspecular %01.1f\n"
+		                   "\tparallax %01.1f\n"
+		                   "}\n", diffuse, normalmap, m->bump, m->hardness, m->specular, m->parallax);
 
 		Fs_Write(file, s, 1, strlen(s));
 		e = e->next;

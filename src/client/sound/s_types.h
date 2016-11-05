@@ -76,7 +76,7 @@ typedef struct s_music_s {
 // the sound environment
 typedef struct s_env_s {
 	s_channel_t channels[MAX_CHANNELS];
-	
+
 	_Bool initialized; // is the sound subsystem initialized
 	_Bool update; // inform the client of state changes
 

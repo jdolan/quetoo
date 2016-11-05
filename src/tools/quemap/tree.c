@@ -24,7 +24,7 @@
 /**
  * @brief
  */
-void FreeTreePortals_r(node_t * node) {
+void FreeTreePortals_r(node_t *node) {
 	portal_t *p, *nextp;
 	int32_t s;
 
@@ -65,8 +65,9 @@ void FreeTree_r(node_t *node) {
 	}
 
 	// free the node
-	if (node->volume)
+	if (node->volume) {
 		FreeBrush(node->volume);
+	}
 
 	FreeNode(node);
 }
@@ -74,7 +75,7 @@ void FreeTree_r(node_t *node) {
 /**
  * @brief
  */
-void FreeTree(tree_t * tree) {
+void FreeTree(tree_t *tree) {
 
 	Com_Verbose("--- FreeTree ---\n");
 	FreeTreePortals_r(tree->head_node);
@@ -94,28 +95,32 @@ int32_t c_pruned;
 /**
  * @brief
  */
-void PruneNodes_r(node_t * node) {
+void PruneNodes_r(node_t *node) {
 	bsp_brush_t *b, *next;
 
-	if (node->plane_num == PLANENUM_LEAF)
+	if (node->plane_num == PLANENUM_LEAF) {
 		return;
+	}
 	PruneNodes_r(node->children[0]);
 	PruneNodes_r(node->children[1]);
 
 	if ((node->children[0]->contents & CONTENTS_SOLID) && (node->children[1]->contents
-			& CONTENTS_SOLID)) {
-		if (node->faces)
+	        & CONTENTS_SOLID)) {
+		if (node->faces) {
 			Com_Error(ERR_FATAL, "Node faces separating CONTENTS_SOLID\n");
-		if (node->children[0]->faces || node->children[1]->faces)
+		}
+		if (node->children[0]->faces || node->children[1]->faces) {
 			Com_Error(ERR_FATAL, "Node has no faces but children do\n");
+		}
 
 		// FIXME: free stuff
 		node->plane_num = PLANENUM_LEAF;
 		node->contents = CONTENTS_SOLID;
 		node->detail_seperator = false;
 
-		if (node->brushes)
+		if (node->brushes) {
 			Com_Error(ERR_FATAL, "Node still references brushes\n");
+		}
 
 		// combine brush lists
 		node->brushes = node->children[1]->brushes;
@@ -130,7 +135,7 @@ void PruneNodes_r(node_t * node) {
 	}
 }
 
-void PruneNodes(node_t * node) {
+void PruneNodes(node_t *node) {
 	Com_Verbose("--- PruneNodes ---\n");
 	c_pruned = 0;
 	PruneNodes_r(node);

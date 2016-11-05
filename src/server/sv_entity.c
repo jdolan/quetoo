@@ -30,26 +30,27 @@ static void Sv_WriteEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 	uint16_t old_num, new_num;
 	uint16_t from_num_entities;
 
-	if (!from)
+	if (!from) {
 		from_num_entities = 0;
-	else
+	} else {
 		from_num_entities = from->num_entities;
+	}
 
 	new_index = 0;
 	old_index = 0;
 	while (new_index < to->num_entities || old_index < from_num_entities) {
-		if (new_index >= to->num_entities)
+		if (new_index >= to->num_entities) {
 			new_num = 0xffff;
-		else {
+		} else {
 			new_state = &svs.entity_states[(to->entity_state + new_index) % svs.num_entity_states];
 			new_num = new_state->number;
 		}
 
-		if (old_index >= from_num_entities)
+		if (old_index >= from_num_entities) {
 			old_num = 0xffff;
-		else {
+		} else {
 			old_state
-					= &svs.entity_states[(from->entity_state + old_index) % svs.num_entity_states];
+			    = &svs.entity_states[(from->entity_state + old_index) % svs.num_entity_states];
 			old_num = old_state->number;
 		}
 
@@ -86,10 +87,11 @@ static void Sv_WriteEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 static void Sv_WritePlayerState(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 	static player_state_t null_state;
 
-	if (from)
+	if (from) {
 		Net_WriteDeltaPlayerState(msg, &from->ps, &to->ps);
-	else
+	} else {
 		Net_WriteDeltaPlayerState(msg, &null_state, &to->ps);
+	}
 }
 
 /**
@@ -162,12 +164,14 @@ static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
 
 		size_t j;
 		for (j = 0; j < num_clusters; j++) {
-			if (clusters[j] == cluster)
+			if (clusters[j] == cluster) {
 				break;
+			}
 		}
 
-		if (j < num_clusters) // already got it
+		if (j < num_clusters) { // already got it
 			continue;
+		}
 
 		clusters[num_clusters++] = cluster;
 
@@ -197,8 +201,9 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 	vec3_t org, off;
 
 	g_entity_t *cent = client->entity;
-	if (!cent->client)
-		return; // not in game yet
+	if (!cent->client) {
+		return;    // not in game yet
+	}
 
 	// this is the frame we are creating
 	sv_frame_t *frame = &client->frames[sv.frame_num & PACKET_MASK];
@@ -230,12 +235,14 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 		g_entity_t *ent = ENTITY_FOR_NUM(e);
 
 		// ignore entities that are local to the server
-		if (ent->sv_flags & SVF_NO_CLIENT)
+		if (ent->sv_flags & SVF_NO_CLIENT) {
 			continue;
+		}
 
 		// ignore entities without visible presence unless they have an effect
-		if (!ent->s.event && !ent->s.effects && !ent->s.trail && !ent->s.model1 && !ent->s.sound)
+		if (!ent->s.event && !ent->s.effects && !ent->s.trail && !ent->s.model1 && !ent->s.sound) {
 			continue;
+		}
 
 		// ignore entities not in PVS / PHS
 		if (ent != cent) {
@@ -243,24 +250,28 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
 			// by first checking area
 			if (!Cm_AreasConnected(area, sent->areas[0])) {
-				if (!sent->areas[1] || !Cm_AreasConnected(area, sent->areas[1]))
+				if (!sent->areas[1] || !Cm_AreasConnected(area, sent->areas[1])) {
 					continue;
+				}
 			}
 
 			const byte *vis = ent->s.sound || ent->s.event ? phs : pvs;
 
 			if (sent->num_clusters == -1) { // use top_node
-				if (!Cm_HeadnodeVisible(sent->top_node, vis))
+				if (!Cm_HeadnodeVisible(sent->top_node, vis)) {
 					continue;
+				}
 			} else { // or check individual leafs
 				int32_t i;
 				for (i = 0; i < sent->num_clusters; i++) {
 					const int32_t c = sent->clusters[i];
-					if (vis[c >> 3] & (1 << (c & 7)))
+					if (vis[c >> 3] & (1 << (c & 7))) {
 						break;
+					}
 				}
-				if (i == sent->num_clusters)
-					continue; // not visible
+				if (i == sent->num_clusters) {
+					continue;    // not visible
+				}
 			}
 		}
 
@@ -273,8 +284,9 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 		*s = ent->s;
 
 		// don't mark our own missiles as solid for prediction
-		if (ent->owner == client->entity)
+		if (ent->owner == client->entity) {
 			s->solid = SOLID_NOT;
+		}
 
 		svs.next_entity_state++;
 		frame->num_entities++;

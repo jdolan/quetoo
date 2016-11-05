@@ -26,11 +26,12 @@
  * @brief
  */
 static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
-		const cm_bsp_plane_t *plane __attribute__((unused)),
-		const cm_bsp_surface_t *surf __attribute__((unused))) {
+                                    const cm_bsp_plane_t *plane,
+                                    const cm_bsp_surface_t *surf) {
 
-	if (!G_IsMeat(other))
+	if (!G_IsMeat(other)) {
 		return;
+	}
 
 	const g_entity_t *dest = G_Find(NULL, LOFS(target_name), self->locals.target);
 
@@ -164,13 +165,14 @@ static void G_misc_fireball_Think(g_entity_t *self) {
  * @brief
  */
 static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other,
-		const cm_bsp_plane_t *plane __attribute__((unused)),
-		const cm_bsp_surface_t *surf __attribute__((unused))) {
+                                  const cm_bsp_plane_t *plane,
+                                  const cm_bsp_surface_t *surf) {
 
 	if (g_level.time - self->locals.touch_time > 500) {
 		self->locals.touch_time = g_level.time;
 
-		G_Damage(other, self, NULL, self->locals.velocity, self->s.origin, NULL, self->locals.damage, self->locals.damage, 0, MOD_FIREBALL);
+		G_Damage(other, self, NULL, self->locals.velocity, self->s.origin, NULL, self->locals.damage, self->locals.damage, 0,
+		         MOD_FIREBALL);
 	}
 }
 

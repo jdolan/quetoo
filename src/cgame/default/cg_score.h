@@ -25,8 +25,8 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_ParseScores(void);
-void Cg_DrawScores(const player_state_t *ps);
+	void Cg_ParseScores(void);
+	void Cg_DrawScores(const player_state_t *ps);
 #endif /* __CG_LOCAL_H__ */
 
 #endif /* __CG_SCORES_H__ */

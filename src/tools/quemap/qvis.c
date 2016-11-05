@@ -49,8 +49,9 @@ static winding_t *NewWinding(uint16_t points) {
 	winding_t *w;
 	size_t size;
 
-	if (points > MAX_POINTS_ON_WINDING)
+	if (points > MAX_POINTS_ON_WINDING) {
 		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n");
+	}
 
 	size = (size_t) ((winding_t *) 0)->points[points];
 	w = Mem_Malloc(size);
@@ -62,10 +63,12 @@ static winding_t *NewWinding(uint16_t points) {
  * @brief
  */
 static int32_t SortPortals_Compare(const void *a, const void *b) {
-	if ((*(portal_t **) a)->num_might_see == (*(portal_t **) b)->num_might_see)
+	if ((*(portal_t **) a)->num_might_see == (*(portal_t **) b)->num_might_see) {
 		return 0;
-	if ((*(portal_t **) a)->num_might_see < (*(portal_t **) b)->num_might_see)
+	}
+	if ((*(portal_t **) a)->num_might_see < (*(portal_t **) b)->num_might_see) {
 		return -1;
+	}
 	return 1;
 }
 
@@ -76,11 +79,13 @@ static int32_t SortPortals_Compare(const void *a, const void *b) {
 static void SortPortals(void) {
 	uint32_t i;
 
-	for (i = 0; i < map_vis.num_portals * 2; i++)
+	for (i = 0; i < map_vis.num_portals * 2; i++) {
 		map_vis.sorted_portals[i] = &map_vis.portals[i];
+	}
 
-	if (nosort)
+	if (nosort) {
 		return;
+	}
 
 	qsort(map_vis.sorted_portals, map_vis.num_portals * 2, sizeof(portal_t *), SortPortals_Compare);
 }
@@ -126,10 +131,12 @@ static void ClusterMerge(uint32_t leaf_num) {
 	leaf = &map_vis.leafs[leaf_num];
 	for (i = 0; i < leaf->num_portals; i++) {
 		p = leaf->portals[i];
-		if (p->status != stat_done)
+		if (p->status != stat_done) {
 			Com_Error(ERR_FATAL, "Portal not done\n");
-		for (j = 0; j < map_vis.portal_bytes; j++)
+		}
+		for (j = 0; j < map_vis.portal_bytes; j++) {
 			portalvector[j] |= p->vis[j];
+		}
 		pnum = p - map_vis.portals;
 		portalvector[pnum >> 3] |= 1 << (pnum & 7);
 	}
@@ -156,8 +163,9 @@ static void ClusterMerge(uint32_t leaf_num) {
 	dest = map_vis.pointer;
 	map_vis.pointer += i;
 
-	if (map_vis.pointer > map_vis.end)
+	if (map_vis.pointer > map_vis.end) {
 		Com_Error(ERR_FATAL, "VIS expansion overflow\n");
+	}
 
 	d_vis->bit_offsets[leaf_num][DVIS_PVS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
 
@@ -185,19 +193,21 @@ static void CalcVis(void) {
 	}
 
 	// assemble the leaf vis lists by OR-ing and compressing the portal lists
-	for (i = 0; i < map_vis.portal_clusters; i++)
+	for (i = 0; i < map_vis.portal_clusters; i++) {
 		ClusterMerge(i);
+	}
 
-	if (map_vis.portal_clusters)
+	if (map_vis.portal_clusters) {
 		Com_Print("Average clusters visible: %i\n", visibility_count / map_vis.portal_clusters);
-	else
+	} else {
 		Com_Print("Average clusters visible: 0\n");
+	}
 }
 
 /**
  * @brief
  */
-static void SetPortalSphere(portal_t * p) {
+static void SetPortalSphere(portal_t *p) {
 	int32_t i;
 	vec3_t total, dist;
 	winding_t *w;
@@ -209,15 +219,17 @@ static void SetPortalSphere(portal_t * p) {
 		VectorAdd(total, w->points[i], total);
 	}
 
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < 3; i++) {
 		total[i] /= w->num_points;
+	}
 
 	bestr = 0;
 	for (i = 0; i < w->num_points; i++) {
 		VectorSubtract(w->points[i], total, dist);
 		r = VectorLength(dist);
-		if (r > bestr)
+		if (r > bestr) {
 			bestr = r;
+		}
 	}
 	VectorCopy(total, p->origin);
 	p->radius = bestr;
@@ -238,23 +250,26 @@ static void LoadPortals(const char *filename) {
 	int32_t leaf_nums[2];
 	plane_t plane;
 
-	if (Fs_Load(filename, (void **) &buffer) == -1)
+	if (Fs_Load(filename, (void **) &buffer) == -1) {
 		Com_Error(ERR_FATAL, "Could not open %s\n", filename);
+	}
 
 	s = buffer;
 
 	memset(&map_vis, 0, sizeof(map_vis));
 
 	if (sscanf(s, "%79s\n%u\n%u\n%n", magic, &map_vis.portal_clusters, &map_vis.num_portals, &len)
-			!= 3)
+	        != 3) {
 		Com_Error(ERR_FATAL, "Failed to read header: %s\n", filename);
+	}
 	s += len;
 
-	if (g_strcmp0(magic, PORTALFILE))
+	if (g_strcmp0(magic, PORTALFILE)) {
 		Com_Error(ERR_FATAL, "Not a portal file: %s\n", filename);
+	}
 
 	Com_Verbose("Loading %4u portals, %4u clusters from %s...\n", map_vis.num_portals,
-			map_vis.portal_clusters, filename);
+	            map_vis.portal_clusters, filename);
 
 	// determine the size, in bytes, of the leafs and portals
 	map_vis.leaf_bytes = ((map_vis.portal_clusters + 63) & ~63) >> 3;
@@ -288,7 +303,7 @@ static void LoadPortals(const char *filename) {
 		}
 
 		if ((uint32_t) leaf_nums[0] > map_vis.portal_clusters || (uint32_t) leaf_nums[1]
-				> map_vis.portal_clusters) {
+		        > map_vis.portal_clusters) {
 			Com_Error(ERR_FATAL, "Portal %i has invalid leafs\n", i);
 		}
 
@@ -302,12 +317,14 @@ static void LoadPortals(const char *filename) {
 
 			// scanf into double, then assign to vec_t
 			// so we don't care what size vec_t is
-			if (sscanf(s, "(%lf %lf %lf ) %n", &v[0], &v[1], &v[2], &len) != 3)
+			if (sscanf(s, "(%lf %lf %lf ) %n", &v[0], &v[1], &v[2], &len) != 3) {
 				Com_Error(ERR_FATAL, "Failed to read portal vertex definition %i:%i\n", i, j);
+			}
 			s += len;
 
-			for (k = 0; k < 3; k++)
+			for (k = 0; k < 3; k++) {
 				w->points[j][k] = v[k];
+			}
 		}
 		if (sscanf(s, "\n%n", &len)) {
 			s += len;
@@ -318,8 +335,9 @@ static void LoadPortals(const char *filename) {
 
 		// create forward portal
 		l = &map_vis.leafs[leaf_nums[0]];
-		if (l->num_portals == MAX_PORTALS_ON_LEAF)
+		if (l->num_portals == MAX_PORTALS_ON_LEAF) {
 			Com_Error(ERR_FATAL, "MAX_PORTALS_ON_LEAF\n");
+		}
 		l->portals[l->num_portals] = p;
 		l->num_portals++;
 
@@ -332,8 +350,9 @@ static void LoadPortals(const char *filename) {
 
 		// create backwards portal
 		l = &map_vis.leafs[leaf_nums[1]];
-		if (l->num_portals == MAX_PORTALS_ON_LEAF)
+		if (l->num_portals == MAX_PORTALS_ON_LEAF) {
 			Com_Error(ERR_FATAL, "MAX_PORTALS_ON_LEAF\n");
+		}
 		l->portals[l->num_portals] = p;
 		l->num_portals++;
 
@@ -373,23 +392,28 @@ static void CalcPHS(void) {
 		memcpy(uncompressed, scan, map_vis.leaf_bytes);
 		for (j = 0; j < map_vis.leaf_bytes; j++) {
 			bitbyte = scan[j];
-			if (!bitbyte)
+			if (!bitbyte) {
 				continue;
+			}
 			for (k = 0; k < 8; k++) {
-				if (!(bitbyte & (1 << k)))
+				if (!(bitbyte & (1 << k))) {
 					continue;
+				}
 				// OR this pvs row into the phs
 				index = ((j << 3) + k);
-				if (index >= map_vis.portal_clusters)
-					Com_Error(ERR_FATAL, "Bad bit vector in PVS\n"); // pad bits should be 0
+				if (index >= map_vis.portal_clusters) {
+					Com_Error(ERR_FATAL, "Bad bit vector in PVS\n");    // pad bits should be 0
+				}
 				src = (map_vis.uncompressed + index * map_vis.leaf_bytes);
-				for (l = 0; l < map_vis.leaf_bytes; l++)
+				for (l = 0; l < map_vis.leaf_bytes; l++) {
 					uncompressed[l] |= src[l];
+				}
 			}
 		}
 		for (j = 0; j < map_vis.portal_clusters; j++)
-			if (uncompressed[j >> 3] & (1 << (j & 7)))
+			if (uncompressed[j >> 3] & (1 << (j & 7))) {
 				count++;
+			}
 
 		// compress the bit string
 		j = CompressVis(uncompressed, compressed);
@@ -397,18 +421,20 @@ static void CalcPHS(void) {
 		dest = map_vis.pointer;
 		map_vis.pointer += j;
 
-		if (map_vis.pointer > map_vis.end)
+		if (map_vis.pointer > map_vis.end) {
 			Com_Error(ERR_FATAL, "Overflow\n");
+		}
 
 		d_vis->bit_offsets[i][DVIS_PHS] = (int32_t) (ptrdiff_t) (dest - map_vis.base);
 
 		memcpy(dest, compressed, j);
 	}
 
-	if (map_vis.portal_clusters)
+	if (map_vis.portal_clusters) {
 		Com_Print("Average clusters hearable: %i\n", count / map_vis.portal_clusters);
-	else
+	} else {
 		Com_Print("Average clusters hearable: 0\n");
+	}
 }
 
 /**
@@ -423,8 +449,9 @@ int32_t VIS_Main(void) {
 
 	LoadBSPFile(bsp_name);
 
-	if (d_bsp.num_nodes == 0 || d_bsp.num_faces == 0)
+	if (d_bsp.num_nodes == 0 || d_bsp.num_faces == 0) {
 		Com_Error(ERR_FATAL, "Empty map\n");
+	}
 
 	StripExtension(map_name, portal_file);
 	strcat(portal_file, ".prt");
@@ -437,15 +464,16 @@ int32_t VIS_Main(void) {
 
 	d_bsp.vis_data_size = (int32_t) (ptrdiff_t) (map_vis.pointer - d_bsp.vis_data);
 	Com_Print("VIS data: %d bytes (compressed from %u bytes)\n", d_bsp.vis_data_size,
-			(uint32_t) (map_vis.uncompressed_size * 2));
+	          (uint32_t) (map_vis.uncompressed_size * 2));
 
 	WriteBSPFile(bsp_name);
 
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
 	Com_Print("\nVIS Time: ");
-	if (duration > 59)
+	if (duration > 59) {
 		Com_Print("%d Minutes ", (int32_t) (duration / 60));
+	}
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	return 0;

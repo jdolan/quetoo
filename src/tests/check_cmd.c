@@ -52,23 +52,23 @@ static void Cmd1(void) {
 static void Cmd2(void) {
 }
 
-START_TEST(check_Cmd_RemoveAll)
-	{
-		cmd_t *cmd1 = Cmd_Add("cmd1", Cmd1, (CMD_SYSTEM | CMD_SERVER), NULL);
-		cmd_t *cmd2 = Cmd_Add("cmd2", Cmd2, CMD_GAME, NULL);
+START_TEST(check_Cmd_RemoveAll) {
+	cmd_t *cmd1 = Cmd_Add("cmd1", Cmd1, (CMD_SYSTEM | CMD_SERVER), NULL);
+	cmd_t *cmd2 = Cmd_Add("cmd2", Cmd2, CMD_GAME, NULL);
 
-		ck_assert(cmd1 != NULL);
-		ck_assert(cmd2 != NULL);
+	ck_assert(cmd1 != NULL);
+	ck_assert(cmd2 != NULL);
 
-		Cmd_RemoveAll(CMD_GAME);
+	Cmd_RemoveAll(CMD_GAME);
 
-		cmd1 = Cmd_Get("cmd1");
-		cmd2 = Cmd_Get("cmd2");
+	cmd1 = Cmd_Get("cmd1");
+	cmd2 = Cmd_Get("cmd2");
 
-		ck_assert(cmd1 != NULL);
-		ck_assert(cmd2 == NULL);
+	ck_assert(cmd1 != NULL);
+	ck_assert(cmd2 == NULL);
 
-	}END_TEST
+}
+END_TEST
 
 /**
  * @brief Test entry point.

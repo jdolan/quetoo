@@ -24,25 +24,25 @@
 
 #if defined(_WIN32)
 
-#include <winsock2.h>
-#include <ws2tcpip.h>
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
 
-#include <inttypes.h>
-typedef uint32_t in_addr_t;
-typedef uint16_t in_port_t;
+	#include <inttypes.h>
+	typedef uint32_t in_addr_t;
+	typedef uint16_t in_port_t;
 
-#undef  EWOULDBLOCK
-#define EWOULDBLOCK  WSAEWOULDBLOCK
-#undef  ECONNREFUSED
-#define ECONNREFUSED WSAECONNREFUSED
-#undef  EINPROGRESS
-#define EINPROGRESS  WSAEINPROGRESS
+	#undef  EWOULDBLOCK
+	#define EWOULDBLOCK  WSAEWOULDBLOCK
+	#undef  ECONNREFUSED
+	#define ECONNREFUSED WSAECONNREFUSED
+	#undef  EINPROGRESS
+	#define EINPROGRESS  WSAEINPROGRESS
 
 #else
 
-#include <errno.h>
-#include <sys/select.h>
-#include <netinet/in.h>
+	#include <errno.h>
+	#include <sys/select.h>
+	#include <netinet/in.h>
 
 #endif
 
@@ -77,7 +77,7 @@ typedef enum {
  * @brief The network channel provides a conduit for packet sequencing and
  * optional reliable message delivery. The client and server speak explicitly
  * through this interface.
- */	
+ */
 typedef struct {
 	net_src_t source;
 

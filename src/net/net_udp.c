@@ -20,7 +20,7 @@
  */
 
 #if !defined(_MSC_VER)
-#include <sys/time.h>
+	#include <sys/time.h>
 #endif
 
 #include "cvar.h"
@@ -51,11 +51,13 @@ static net_udp_state_t net_udp_state;
 static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
 	net_udp_loop_t *loop = &net_udp_state.loops[source];
 
-	if (loop->send - loop->recv > MAX_NET_UDP_LOOPS)
+	if (loop->send - loop->recv > MAX_NET_UDP_LOOPS) {
 		loop->recv = loop->send - MAX_NET_UDP_LOOPS;
+	}
 
-	if (loop->recv >= loop->send)
+	if (loop->recv >= loop->send) {
 		return false;
+	}
 
 	const uint32_t i = loop->recv & (MAX_NET_UDP_LOOPS - 1);
 	loop->recv++;
@@ -81,19 +83,21 @@ _Bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
 	memset(from, 0, sizeof(*from));
 	from->type = NA_DATAGRAM;
 
-	if (Net_ReceiveDatagram_Loop(source, from, buf))
+	if (Net_ReceiveDatagram_Loop(source, from, buf)) {
 		return true;
+	}
 
 	const int32_t sock = net_udp_state.sockets[source];
 
-	if (!sock)
+	if (!sock) {
 		return false;
+	}
 
 	struct sockaddr_in addr;
 	socklen_t addr_len = sizeof(addr);
 
 	const ssize_t received = recvfrom(sock, (void *) buf->data, buf->max_size, 0,
-			(struct sockaddr *) &addr, &addr_len);
+	                                  (struct sockaddr *) &addr, &addr_len);
 
 	from->addr = addr.sin_addr.s_addr;
 	from->port = addr.sin_port;
@@ -101,8 +105,9 @@ _Bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
 	if (received == -1) {
 		const int32_t err = Net_GetError();
 
-		if (err == EWOULDBLOCK || err == ECONNREFUSED)
-			return false; // not terribly abnormal
+		if (err == EWOULDBLOCK || err == ECONNREFUSED) {
+			return false;    // not terribly abnormal
+		}
 
 		Com_Warn("%s\n", Net_GetErrorString());
 		return false;
@@ -147,8 +152,9 @@ _Bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data,
 
 	int32_t sock;
 	if (to->type == NA_BROADCAST || to->type == NA_DATAGRAM) {
-		if (!(sock = net_udp_state.sockets[source]))
+		if (!(sock = net_udp_state.sockets[source])) {
 			return false;
+		}
 	} else {
 		Com_Error(ERR_DROP, "Bad address type\n");
 	}

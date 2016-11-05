@@ -75,8 +75,9 @@ void Cbuf_InsertText(const char *text) {
 		temp = Mem_Malloc(size);
 		memcpy(temp, cmd_state.buf.data, size);
 		Mem_ClearBuffer(&cmd_state.buf);
-	} else
-		temp = NULL; // shut up compiler
+	} else {
+		temp = NULL;    // shut up compiler
+	}
 
 	// add the entire text of the file
 	Cbuf_AddText(text);
@@ -127,12 +128,15 @@ void Cbuf_Execute(void) {
 
 		quotes = 0;
 		for (i = 0; i < cmd_state.buf.size; i++) {
-			if (text[i] == '"')
+			if (text[i] == '"') {
 				quotes++;
-			if (!(quotes & 1) && text[i] == ';')
-				break; // don't break if inside a quoted string
-			if (text[i] == '\n')
+			}
+			if (!(quotes & 1) && text[i] == ';') {
+				break;    // don't break if inside a quoted string
+			}
+			if (text[i] == '\n') {
 				break;
+			}
 		}
 
 		if (i > MAX_STRING_CHARS) { // length check each command
@@ -147,9 +151,9 @@ void Cbuf_Execute(void) {
 		// this is necessary because commands (exec, alias) can insert data at the
 		// beginning of the text buffer
 
-		if (i == cmd_state.buf.size)
+		if (i == cmd_state.buf.size) {
 			cmd_state.buf.size = 0;
-		else {
+		} else {
 			i++;
 			cmd_state.buf.size -= i;
 			memmove(text, text + i, cmd_state.buf.size);
@@ -177,8 +181,9 @@ int32_t Cmd_Argc(void) {
  * @return The command argument at the specified index.
  */
 const char *Cmd_Argv(int32_t arg) {
-	if (arg >= cmd_state.args.argc)
+	if (arg >= cmd_state.args.argc) {
 		return "";
+	}
 	return cmd_state.args.argv[arg];
 }
 
@@ -198,8 +203,9 @@ void Cmd_TokenizeString(const char *text) {
 	// clear the command state from the last string
 	memset(&cmd_state.args, 0, sizeof(cmd_state.args));
 
-	if (!text)
+	if (!text) {
 		return;
+	}
 
 	// prevent overflows
 	if (strlen(text) >= MAX_STRING_CHARS) {
@@ -216,8 +222,9 @@ void Cmd_TokenizeString(const char *text) {
 
 		// skip whitespace up to a \n
 		while (*text <= ' ') {
-			if (!*text || *text == '\n')
+			if (!*text || *text == '\n') {
 				return;
+			}
 			text++;
 		}
 
@@ -283,7 +290,7 @@ void Cmd_Enumerate(CmdEnumerateFunc func, void *data) {
  * @brief Adds the specified command, bound to the given function.
  */
 cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
-		const char *description) {
+               const char *description) {
 	cmd_t *cmd;
 
 	if (Cvar_Add(name, NULL, 0, NULL)) {
@@ -392,8 +399,9 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
 		if (cmd->Execute) {
 			Com_Print("^1%s^7\n", cmd->name);
 
-			if (cmd->description)
+			if (cmd->description) {
 				Com_Print("\t%s\n", cmd->description);
+			}
 		} else if (cmd->commands) {
 			Com_Print("^3%s^7\n", cmd->name);
 			Com_Print("\t%s\n", cmd->commands);
@@ -419,8 +427,9 @@ void Cmd_ExecuteString(const char *text) {
 
 	Cmd_TokenizeString(text);
 
-	if (!Cmd_Argc())
+	if (!Cmd_Argc()) {
 		return;
+	}
 
 	// execute the command line
 	if ((cmd = Cmd_Get(Cmd_Argv(0)))) {
@@ -439,18 +448,20 @@ void Cmd_ExecuteString(const char *text) {
 	}
 
 	// check cvars
-	if (Cvar_Command())
+	if (Cvar_Command()) {
 		return;
+	}
 
 	// send it as a server command if we are connected
-	if (!Cvar_GetValue("dedicated") && Cmd_ForwardToServer)
+	if (!Cvar_GetValue("dedicated") && Cmd_ForwardToServer) {
 		Cmd_ForwardToServer();
+	}
 }
 
 /**
  * @brief Enumeration helper for Cmd_Alias_f.
  */
-static void Cmd_Alias_f_enumerate(cmd_t *cmd, void *data __attribute__((unused))) {
+static void Cmd_Alias_f_enumerate(cmd_t *cmd, void *data) {
 
 	if (cmd->commands) {
 		Com_Print("%s: %s\n", cmd->name, cmd->commands);
@@ -498,7 +509,7 @@ static void Cmd_Alias_f(void) {
 /**
  * @brief Enumeration helper for Cmd_List_f.
  */
-static void Cmd_List_f_enumerate(cmd_t *cmd, void *data __attribute__((unused))) {
+static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
 
 	if (cmd->Execute) {
 		Com_Print("%s\n", cmd->name);
@@ -556,8 +567,9 @@ static void Cmd_Exec_f(void) {
 static void Cmd_Echo_f(void) {
 	int32_t i;
 
-	for (i = 1; i < Cmd_Argc(); i++)
+	for (i = 1; i < Cmd_Argc(); i++) {
 		Com_Print("%s ", Cmd_Argv(i));
+	}
 
 	Com_Print("\n");
 }

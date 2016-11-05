@@ -34,7 +34,7 @@ int32_t Cm_WriteAreaBits(const int32_t area, byte *out);
 _Bool Cm_HeadnodeVisible(const int32_t head_node, const byte *vis);
 
 #ifdef __CM_LOCAL_H__
-void Cm_FloodAreas(void);
+	void Cm_FloodAreas(void);
 #endif /* __CM_LOCAL_H__ */
 
 #endif /* __CM_VIS_H__ */

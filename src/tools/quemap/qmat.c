@@ -28,8 +28,9 @@ static GList *materials;
  */
 static void AddMaterial(const char *name) {
 
-	if (!name || !g_strcmp0(name, "NULL"))
+	if (!name || !g_strcmp0(name, "NULL")) {
 		return;
+	}
 
 	if (!g_list_find_custom(materials, name, (GCompareFunc) g_ascii_strcasecmp)) {
 		materials = g_list_insert_sorted(materials, (gpointer) name, (GCompareFunc) g_ascii_strcasecmp);
@@ -58,22 +59,24 @@ int32_t MAT_Main(void) {
 
 		LoadBSPFileTexinfo(bsp_name);
 
-		if (!(f = Fs_OpenWrite(path)))
+		if (!(f = Fs_OpenWrite(path))) {
 			Com_Error(ERR_FATAL, "Couldn't open %s for writing\n", path);
+		}
 
-		for (i = 0; i < d_bsp.num_texinfo; i++) // resolve the materials
+		for (i = 0; i < d_bsp.num_texinfo; i++) { // resolve the materials
 			AddMaterial(d_bsp.texinfo[i].texture);
+		}
 
 		GList *material = materials;
 		while (material) { // write the .mat definition
 
 			Fs_Print(f, "{\n"
-				"\tmaterial %s\n"
-				"\tbump 1.0\n"
-				"\thardness 1.0\n"
-				"\tparallax 1.0\n"
-				"\tspecular 1.0\n"
-				"}\n", (char *) material->data);
+			         "\tmaterial %s\n"
+			         "\tbump 1.0\n"
+			         "\thardness 1.0\n"
+			         "\tparallax 1.0\n"
+			         "\tspecular 1.0\n"
+			         "}\n", (char *) material->data);
 
 			material = material->next;
 		}
@@ -88,8 +91,9 @@ int32_t MAT_Main(void) {
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
 	Com_Print("\nMaterials time: ");
-	if (duration > 59)
+	if (duration > 59) {
 		Com_Print("%d Minutes ", (int32_t) (duration / 60));
+	}
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	return 0;

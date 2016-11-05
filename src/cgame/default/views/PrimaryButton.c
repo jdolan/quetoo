@@ -54,7 +54,7 @@ static PrimaryButton *initWithFrame(PrimaryButton *self, const SDL_Rect *frame, 
 
 		self->button.control.view.borderWidth = 1;
 	}
-	
+
 	return self;
 }
 

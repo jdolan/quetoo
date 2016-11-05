@@ -28,8 +28,9 @@
 void R_AddParticle(const r_particle_t *p) {
 	static r_element_t e;
 
-	if (r_view.num_particles == lengthof(r_view.particles))
+	if (r_view.num_particles == lengthof(r_view.particles)) {
 		return;
+	}
 
 	r_view.particles[r_view.num_particles++] = *p;
 
@@ -56,7 +57,7 @@ typedef struct {
 	GLfloat colors[MAX_PARTICLES * 4 * 4];
 	GLuint elements[MAX_PARTICLES * 6];
 	uint32_t num_particles;
-	
+
 	r_buffer_t verts_buffer;
 	r_buffer_t texcoords_buffer;
 	r_buffer_t colors_buffer;
@@ -69,19 +70,21 @@ static r_particle_state_t r_particle_state;
  * @brief
  */
 void R_InitParticles(void) {
-	
+
 	R_CreateBuffer(&r_particle_state.verts_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.verts), NULL);
-	R_CreateBuffer(&r_particle_state.texcoords_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.texcoords), NULL);
+	R_CreateBuffer(&r_particle_state.texcoords_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.texcoords),
+	               NULL);
 	R_CreateBuffer(&r_particle_state.colors_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.colors), NULL);
 
-	R_CreateBuffer(&r_particle_state.element_buffer, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT, sizeof(r_particle_state.element_buffer), NULL);
+	R_CreateBuffer(&r_particle_state.element_buffer, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT,
+	               sizeof(r_particle_state.element_buffer), NULL);
 }
 
 /**
  * @brief
  */
 void R_ShutdownParticles(void) {
-	
+
 	R_DestroyBuffer(&r_particle_state.verts_buffer);
 	R_DestroyBuffer(&r_particle_state.texcoords_buffer);
 	R_DestroyBuffer(&r_particle_state.colors_buffer);
@@ -177,8 +180,8 @@ static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
 	_Bool is_atlas = p->image && p->image->type == IT_ATLAS_IMAGE;
 
 	if (!p->image ||
-		(!p->scroll_s && !p->scroll_t && !is_atlas) ||
-		p->type == PARTICLE_CORONA) {
+	        (!p->scroll_s && !p->scroll_t &&!is_atlas) ||
+	        p->type == PARTICLE_CORONA) {
 		memcpy(out, default_texcoords, sizeof(vec2_t) * 4);
 		return;
 	}
@@ -186,7 +189,7 @@ static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
 	// atlas needs a different pipeline
 	if (is_atlas) {
 		const r_atlas_image_t *atlas_image = (const r_atlas_image_t *) p->image;
-		
+
 		out[0] = atlas_image->texcoords[0];
 		out[1] = atlas_image->texcoords[1];
 
@@ -200,7 +203,7 @@ static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
 		out[7] = atlas_image->texcoords[3];
 	} else {
 		s = p->scroll_s * r_view.time / 1000.0;
-		t = p->scroll_t * r_view.time / 1000.0;
+		t = p->scroll_t *r_view.time / 1000.0;
 
 		out[0] = 0.0 + s;
 		out[1] = 0.0 + t;
@@ -264,7 +267,7 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 			R_ParticleVerts(p, &r_particle_state.verts[vertex_start * 3]);
 			R_ParticleTexcoords(p, &r_particle_state.texcoords[vertex_start * 2]);
 			R_ParticleColor(p, &r_particle_state.colors[vertex_start * 4]);
-			
+
 			const uint32_t index_start = r_particle_state.num_particles * 6;
 
 			r_particle_state.elements[index_start + 0] = vertex_start + 0;
@@ -286,8 +289,9 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 void R_UploadParticles(void) {
 	r_particle_state_t *p = &r_particle_state;
 
-	if (!p->num_particles)
+	if (!p->num_particles) {
 		return;
+	}
 
 	R_UploadToBuffer(&p->verts_buffer, 0, p->num_particles * sizeof(vec3_t) * 4, p->verts);
 	R_UploadToBuffer(&p->texcoords_buffer, 0, p->num_particles * sizeof(vec2_t) * 4, p->texcoords);
@@ -326,16 +330,17 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 
 		// bind the particle's texture
 		GLuint texnum = 0;
-		
-		if (p->image)
+
+		if (p->image) {
 			texnum = p->image->texnum;
-		else if (p->type == PARTICLE_CORONA)
-			texnum = last_texnum; // corona texture switching = no
+		} else if (p->type == PARTICLE_CORONA) {
+			texnum = last_texnum;    // corona texture switching = no
+		}
 
 		// draw pending particles
 		if ((texnum != last_texnum ||
-			p->type != last_type ||
-			p->blend != last_blend) && i > j) {
+		        p->type != last_type ||
+		        p->blend != last_blend) && i > j) {
 			R_DrawArrays(GL_TRIANGLES, (base + j) * 6, (i - j) * 6);
 			j = i;
 		}
@@ -347,7 +352,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 			} else {
 				R_DepthRange(0.0, 1.0);
 			}
-			
+
 			if (p->type == PARTICLE_CORONA) {
 				R_UseProgram(r_state.corona_program);
 			} else {
