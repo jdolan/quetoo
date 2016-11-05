@@ -76,7 +76,7 @@ typedef struct {
 	sv_state_t state;
 
 	uint32_t time; // always sv.frame_num * 1000 / sv_packetrate->value
-	int32_t frame_num;
+	uint32_t frame_num;
 
 	char name[MAX_QPATH]; // map name
 	cm_bsp_model_t *cm_models[MAX_MODELS];
