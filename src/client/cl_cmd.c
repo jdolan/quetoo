@@ -22,7 +22,7 @@
 #include "cl_local.h"
 
 /**
- * @brief Gather movement that is eligible for client-side prediction (i.e. view angles).
+ * @brief Gather movement that is eligible for client-side prediction (i.e. view offset, angles).
  */
 void Cl_UpdateMovementCommand(uint32_t msec) {
 
@@ -31,6 +31,9 @@ void Cl_UpdateMovementCommand(uint32_t msec) {
 	cmd->cmd.msec = MIN(msec, 255);
 
 	Cl_Look(&cmd->cmd);
+
+	cmd->time = cl.time;
+	cmd->timestamp = quetoo.time;
 }
 
 /**
@@ -43,9 +46,6 @@ static void Cl_FinalizeMovementCommand(uint32_t msec) {
 	cmd->cmd.msec = MIN(msec, 255);
 
 	Cl_Move(&cmd->cmd);
-
-	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->cmd.msec,
-	//		  cmd->cmd.forward, cmd->cmd.right, cmd->cmd.up);
 
 	cmd->time = cl.time;
 	cmd->timestamp = quetoo.time;

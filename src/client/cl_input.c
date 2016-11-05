@@ -497,9 +497,14 @@ static void Cl_ClampPitch(void) {
 }
 
 /**
- * @brief Accumulate view angle modifications for the specified command.
+ * @brief Accumulate view offset and angle modifications for the specified command.
+ * @details In the event that the client is running at greater than 60hz, this is called multiple 
+ * times per tick. This view offset and angles to be used as early as possible for prediction.
  */
 void Cl_Look(pm_cmd_t *cmd) {
+
+	cmd->up += cl_up_speed->value * cmd->msec * Cl_KeyState(&in_up, cmd->msec);
+	cmd->up -= cl_up_speed->value * cmd->msec * Cl_KeyState(&in_down, cmd->msec);
 
 	cl.angles[YAW] -= cl_yaw_speed->value * cmd->msec * Cl_KeyState(&in_right, cmd->msec);
 	cl.angles[YAW] += cl_yaw_speed->value * cmd->msec * Cl_KeyState(&in_left, cmd->msec);
@@ -514,6 +519,8 @@ void Cl_Look(pm_cmd_t *cmd) {
 
 /**
  * @brief Accumulate movement and button interactions for the specified command.
+ * @details This is called at ~60hz regardless of the client's framerate. This is to avoid micro-
+ * commands, which introduce prediction errors (screen jitter).
  */
 void Cl_Move(pm_cmd_t *cmd) {
 
@@ -522,9 +529,6 @@ void Cl_Move(pm_cmd_t *cmd) {
 
 	cmd->right += cl_right_speed->value * cmd->msec * Cl_KeyState(&in_move_right, cmd->msec);
 	cmd->right -= cl_right_speed->value * cmd->msec * Cl_KeyState(&in_move_left, cmd->msec);
-
-	cmd->up += cl_up_speed->value * cmd->msec * Cl_KeyState(&in_up, cmd->msec);
-	cmd->up -= cl_up_speed->value * cmd->msec * Cl_KeyState(&in_down, cmd->msec);
 
 	if (in_attack.state & 3) {
 		cmd->buttons |= BUTTON_ATTACK;
@@ -541,6 +545,8 @@ void Cl_Move(pm_cmd_t *cmd) {
 			cmd->buttons |= BUTTON_WALK;
 		}
 	}
+
+	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->msec, cmd->forward, cmd->right, cmd->up);
 }
 
 /**
