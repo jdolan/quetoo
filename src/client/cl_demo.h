@@ -25,11 +25,11 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
-void Cl_WriteDemoMessage(void);
-void Cl_Record_f(void);
-void Cl_Stop_f(void);
-void Cl_FastForward_f(void);
-void Cl_SlowMotion_f(void);
+	void Cl_WriteDemoMessage(void);
+	void Cl_Record_f(void);
+	void Cl_Stop_f(void);
+	void Cl_FastForward_f(void);
+	void Cl_SlowMotion_f(void);
 #endif /* __CL_LOCAL_H__ */
 
 #endif /* __CL_DEMO_H__ */

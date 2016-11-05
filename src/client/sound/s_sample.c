@@ -31,7 +31,7 @@ static const char *SOUND_PATHS[] = { "sounds/", "sound/", NULL };
  * @brief
  */
 static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const size_t pathlen) {
-	
+
 	void *buf;
 	int32_t i;
 	SDL_RWops *rw;
@@ -46,16 +46,18 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 		g_strlcat(path, SAMPLE_TYPES[i++], pathlen);
 
 		int64_t len;
-		if ((len = Fs_Load(path, &buf)) == -1)
+		if ((len = Fs_Load(path, &buf)) == -1) {
 			continue;
+		}
 
 		if (!(rw = SDL_RWFromMem(buf, (int32_t) len))) {
 			Fs_Free(buf);
 			continue;
 		}
 
-		if (!(sample->chunk = Mix_LoadWAV_RW(rw, false)))
+		if (!(sample->chunk = Mix_LoadWAV_RW(rw, false))) {
 			Com_Warn("%s\n", Mix_GetError());
+		}
 
 		Fs_Free(buf);
 
@@ -76,8 +78,9 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 	char path[MAX_QPATH];
 	_Bool found = false;
 
-	if (sample->media.name[0] == '*') // place holder
+	if (sample->media.name[0] == '*') { // place holder
 		return;
+	}
 
 	if (sample->media.name[0] == '#') { // global path
 
@@ -87,16 +90,17 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 		int32_t i = 0;
 
 		while (SOUND_PATHS[i]) {
-		
+
 			g_snprintf(path, sizeof(path), "%s%s", SOUND_PATHS[i], sample->media.name);
 
-			if ((found = S_LoadSampleChunkFromPath(sample, path, sizeof(path))))
+			if ((found = S_LoadSampleChunkFromPath(sample, path, sizeof(path)))) {
 				break;
+			}
 
 			++i;
 		}
 	}
-	
+
 	if (found) {
 		Com_Debug("Loaded %s\n", path);
 	} else {
@@ -126,8 +130,9 @@ s_sample_t *S_LoadSample(const char *name) {
 	char key[MAX_QPATH];
 	s_sample_t *sample;
 
-	if (!s_env.initialized)
+	if (!s_env.initialized) {
 		return NULL;
+	}
 
 	if (!name || !name[0]) {
 		Com_Error(ERR_DROP, "NULL name\n");
@@ -172,8 +177,9 @@ s_sample_t *S_LoadModelSample(const entity_state_t *ent, const char *name) {
 	char alias[MAX_QPATH];
 	s_sample_t *sample;
 
-	if (!s_env.initialized)
+	if (!s_env.initialized) {
 		return NULL;
+	}
 
 	// determine what model the client is using
 	memset(model, 0, sizeof(model));
@@ -190,35 +196,40 @@ s_sample_t *S_LoadModelSample(const entity_state_t *ent, const char *name) {
 			p += 1;
 			strcpy(model, p);
 			p = strchr(model, '/');
-			if (p)
+			if (p) {
 				*p = 0;
+			}
 		}
 	}
 
 	// if we can't figure it out, use common
-	if (*model == '\0')
+	if (*model == '\0') {
 		strcpy(model, "common");
+	}
 
 	// see if we already know of the model-specific sound
 	g_snprintf(alias, sizeof(path), "#players/%s/%s", model, name + 1);
 	sample = (s_sample_t *) S_FindMedia(alias);
 
-	if (sample)
+	if (sample) {
 		return sample;
+	}
 
 	// we don't, try it
 	sample = S_LoadSample(alias);
 
-	if (sample->chunk)
+	if (sample->chunk) {
 		return sample;
+	}
 
 	// that didn't work, so load the common one and alias it
 	// the media subsystem will free the previous sample for us
 	g_snprintf(path, sizeof(path), "#players/common/%s", name + 1);
 	sample = S_LoadSample(path);
 
-	if (sample->chunk)
+	if (sample->chunk) {
 		return S_AliasSample(sample, alias);
+	}
 
 	Com_Warn("Failed to load %s\n", alias);
 	return NULL;

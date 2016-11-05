@@ -25,7 +25,7 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e);
+	void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e);
 #endif /* __CG_LOCAL_H__ */
 
 #endif /* __CG_ENTITY_EFFECT_H__ */

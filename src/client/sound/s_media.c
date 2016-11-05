@@ -78,7 +78,7 @@ void S_RegisterMedia(s_media_t *media) {
 		}
 
 		s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media->name,
-				S_RegisterMedia_Compare);
+		                     S_RegisterMedia_Compare);
 
 		// re-seed the media to retain it
 		media->seed = s_media_state.seed;

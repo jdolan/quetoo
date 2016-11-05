@@ -289,7 +289,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 				}
 
 				g_hash_table_insert(fs_state.loaded_files, *buffer,
-						(gpointer) Mem_CopyString(filename));
+				                    (gpointer) Mem_CopyString(filename));
 			} else {
 				*buffer = NULL;
 			}
@@ -397,7 +397,7 @@ static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 
 	if (!g_list_find_custom(*matches, match, (GCompareFunc) strcmp)) {
 		*matches = g_list_insert_sorted(*matches, Mem_CopyString(match),
-				(GCompareFunc) g_ascii_strcasecmp);
+		                                (GCompareFunc) g_ascii_strcasecmp);
 	}
 }
 
@@ -673,7 +673,7 @@ void Fs_Init(_Bool auto_load_archives) {
 /**
  * @brief Prints the names of loaded (i.e. yet-to-be-freed) files.
  */
-static void Fs_LoadedFiles_(gpointer key, gpointer value, gpointer data __attribute__((unused))) {
+static void Fs_LoadedFiles_(gpointer key, gpointer value, gpointer data) {
 	Com_Print("Fs_PrintLoadedFiles: %s @ %p\n", (char *) value, key);
 }
 

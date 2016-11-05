@@ -10,7 +10,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU General Public License for more details.
  *
@@ -74,23 +74,27 @@ void G_ClientChaseThink(g_entity_t *ent) {
 void G_ClientChaseNext(g_entity_t *ent) {
 	g_entity_t *e;
 
-	if (!ent->client->locals.chase_target)
+	if (!ent->client->locals.chase_target) {
 		return;
+	}
 
 	int32_t i = (int32_t) (ptrdiff_t) (ent->client->locals.chase_target - g_game.entities);
 	do {
 		i++;
 
-		if (i > sv_max_clients->integer)
+		if (i > sv_max_clients->integer) {
 			i = 1;
+		}
 
 		e = g_game.entities + i;
 
-		if (!e->in_use)
+		if (!e->in_use) {
 			continue;
+		}
 
-		if (!e->client->locals.persistent.spectator)
+		if (!e->client->locals.persistent.spectator) {
 			break;
+		}
 
 	} while (e != ent->client->locals.chase_target);
 
@@ -103,23 +107,27 @@ void G_ClientChaseNext(g_entity_t *ent) {
 void G_ClientChasePrevious(g_entity_t *ent) {
 	g_entity_t *e;
 
-	if (!ent->client->locals.chase_target)
+	if (!ent->client->locals.chase_target) {
 		return;
+	}
 
 	int32_t i = (int32_t) (ptrdiff_t) (ent->client->locals.chase_target - g_game.entities);
 	do {
 		i--;
 
-		if (i < 1)
+		if (i < 1) {
 			i = sv_max_clients->integer;
+		}
 
 		e = g_game.entities + i;
 
-		if (!e->in_use)
+		if (!e->in_use) {
 			continue;
+		}
 
-		if (!e->client->locals.persistent.spectator)
+		if (!e->client->locals.persistent.spectator) {
 			break;
+		}
 
 	} while (e != ent->client->locals.chase_target);
 

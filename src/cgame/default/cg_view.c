@@ -28,8 +28,9 @@
  */
 static void Cg_UpdateFov(void) {
 
-	if (!cg_fov->modified && !cgi.view->update)
+	if (!cg_fov->modified && !cgi.view->update) {
 		return;
+	}
 
 	cg_fov->value = Clamp(cg_fov->value, 10.0, 160.0);
 	cg_fov_interpolate->value = Clamp(cg_fov_interpolate->value, 0.0, 10.0);
@@ -76,7 +77,7 @@ static void Cg_UpdateFov(void) {
  * @brief Update the third person offset, if any. This is used as a client-side
  * option, or as the default chase camera view.
  */
-static void Cg_UpdateThirdPerson(const player_state_t *ps __attribute__((unused))) {
+static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	vec3_t angles, forward, dest;
 	vec3_t mins, maxs;
 	vec_t dist;
@@ -84,8 +85,9 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps __attribute__((unused)
 
 	cgi.client->third_person = cg_third_person->integer;
 
-	if (!cg_third_person->value)
+	if (!cg_third_person->value) {
 		return;
+	}
 
 	VectorCopy(cgi.view->angles, angles);
 	angles[YAW] += cg_third_person_yaw->value;
@@ -94,8 +96,9 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps __attribute__((unused)
 
 	dist = cg_third_person->value;
 
-	if (!dist)
+	if (!dist) {
 		dist = 1.0;
+	}
 
 	dist = fabs(150.0 * dist);
 
@@ -127,17 +130,20 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	static uint32_t time, vtime;
 	vec3_t velocity;
 
-	if (!cg_bob->value)
+	if (!cg_bob->value) {
 		return;
+	}
 
-	if (cg_third_person->value)
+	if (cg_third_person->value) {
 		return;
+	}
 
 	if (ps->pm_state.type != PM_NORMAL) {
 
 		// if we're frozen and not chasing, don't bob
-		if (!ps->stats[STAT_CHASE])
+		if (!ps->stats[STAT_CHASE]) {
 			return;
+		}
 	}
 
 	const _Bool ducked = ps->pm_state.flags & PMF_DUCKED;
@@ -152,8 +158,9 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	vec_t ftime = Clamp(cgi.view->time - vtime, 1, 1000);
 	ftime *= (1.0 + speed * 1.0 + speed);
 
-	if (!(ps->pm_state.flags & PMF_ON_GROUND))
+	if (!(ps->pm_state.flags & PMF_ON_GROUND)) {
 		ftime *= 0.25;
+	}
 
 	time += ftime;
 	vtime = cgi.view->time;

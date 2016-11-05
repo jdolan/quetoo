@@ -32,8 +32,9 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 
 	for (i = 0; i < 24; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_spark)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_spark))) {
 			break;
+		}
 
 		cgi.ColorFromPalette(color + (Random() & 7), p->part.color);
 		Vector4Set(p->color_vel, 2.0, 2.0, 2.0, -1.0 / (0.7 + Randomc() * 0.1));
@@ -64,9 +65,9 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_blaster_hit,
-		.origin = { org[0], org[1], org[2] },
-		.attenuation = ATTEN_NORM,
-		.flags = S_PLAY_POSITIONED
+		 .origin = { org[0], org[1], org[2] },
+		  .attenuation = ATTEN_NORM,
+		   .flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -76,8 +77,9 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam)))
+	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam))) {
 		return;
+	}
 
 	cgi.ColorFromPalette(14, p->part.color);
 	p->part.color[3] = 0.2;
@@ -152,7 +154,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	}
 
 	if ((cgi.PointContents(org) & MASK_LIQUID) == 0) {
-		
+
 		if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
 
 			cgi.ColorFromPalette(7 + (Random() & 7), p->part.color);
@@ -174,17 +176,18 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 	cgi.AddSustainedLight(&s);
 
-	if (cgi.client->systime < last_ric_time)
+	if (cgi.client->systime < last_ric_time) {
 		last_ric_time = 0;
+	}
 
 	if (cgi.client->systime - last_ric_time > 300) {
 		last_ric_time = cgi.client->systime;
 
 		cgi.AddSample(&(const s_play_sample_t) {
 			.sample = cg_sample_machinegun_hit[Random() % 3],
-			.origin = { org[0], org[1], org[2] },
-			.attenuation = ATTEN_NORM,
-			.flags = S_PLAY_POSITIONED
+			 .origin = { org[0], org[1], org[2] },
+			  .attenuation = ATTEN_NORM,
+			   .flags = S_PLAY_POSITIONED
 		});
 	}
 }
@@ -196,8 +199,9 @@ static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
 	cg_particle_t *p;
 	vec3_t v;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_DECAL, cg_particles_burn)))
+	if (!(p = Cg_AllocParticle(PARTICLE_DECAL, cg_particles_burn))) {
 		return;
+	}
 
 	p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
 
@@ -223,8 +227,9 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	for (i = 0; i < count; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood))) {
 			break;
+		}
 
 		cgi.ColorFromPalette(232 + (Random() & 7), p->part.color);
 
@@ -281,8 +286,9 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 		for (j = 1; j < GIB_STREAM_COUNT; j++) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood)))
+			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_blood))) {
 				break;
+			}
 
 			cgi.ColorFromPalette(232 + (Random() & 7), p->part.color);
 
@@ -305,9 +311,9 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_gib,
-		.origin = { org[0], org[1], org[2] },
-		.attenuation = ATTEN_NORM,
-		.flags = S_PLAY_POSITIONED
+		 .origin = { org[0], org[1], org[2] },
+		  .attenuation = ATTEN_NORM,
+		   .flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -321,8 +327,9 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 	for (i = 0; i < count; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark)))
+		if (!(p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_spark))) {
 			break;
+		}
 
 		cgi.ColorFromPalette(0xd7 + (i % 14), p->part.color);
 		p->part.color[3] = 1.5;
@@ -356,9 +363,9 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_sparks,
-		.origin = { org[0], org[1], org[2] },
-		.attenuation = ATTEN_STATIC,
-		.flags = S_PLAY_POSITIONED
+		 .origin = { org[0], org[1], org[2] },
+		  .attenuation = ATTEN_STATIC,
+		   .flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -407,8 +414,9 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	for (int32_t i = 0; i < 128; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
 			break;
+		}
 
 		cgi.ColorFromPalette(0xe0 + (Random() & 7), p->part.color);
 		p->part.color[3] = 0.66 + Randomc() * 0.125;
@@ -429,22 +437,23 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 	}
 
 	for (int32_t i = 0; i < 32; i++) {
-	
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_debris[Random() % 4])))
+
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_debris[Random() % 4]))) {
 			break;
-	
+		}
+
 		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.5 + 0.25 * Randomc());
-	
+
 		p->part.scale = 4.0;
-	
+
 		p->part.org[0] = org[0] + (Random() % 32) - 16.0;
 		p->part.org[1] = org[1] + (Random() % 32) - 16.0;
 		p->part.org[2] = org[2] + (Random() % 32) - 16.0;
-	
+
 		p->vel[0] = Randomc() * 200.0;
 		p->vel[1] = Randomc() * 200.0;
 		p->vel[2] = Randomc() * 200.0;
-	
+
 		p->part.roll = Randomc() * 1000.0;
 
 		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
@@ -461,9 +470,9 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_explosion,
-		.origin = { org[0], org[1], org[2] },
-		.attenuation = ATTEN_NORM,
-		.flags = S_PLAY_POSITIONED
+		 .origin = { org[0], org[1], org[2] },
+		  .attenuation = ATTEN_NORM,
+		   .flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -477,8 +486,9 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 
 	for (i = 0; i < 2; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion)))
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
 			break;
+		}
 
 		cgi.ColorFromPalette(113 + Random() % 3, p->part.color);
 		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -8.0);
@@ -500,9 +510,9 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_hyperblaster_hit,
-		.origin = { org[0], org[1], org[2] },
-		.attenuation = ATTEN_NORM,
-		.flags = S_PLAY_POSITIONED
+		 .origin = { org[0], org[1], org[2] },
+		  .attenuation = ATTEN_NORM,
+		   .flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -518,8 +528,9 @@ static void Cg_LightningEffect(const vec3_t org) {
 
 		VectorCopy(org, tmp);
 
-		for (j = 0; j < 3; j++)
+		for (j = 0; j < 3; j++) {
 			tmp[j] = tmp[j] + (Random() % 96) - 48.0;
+		}
 
 		Cg_BubbleTrail(org, tmp, 4.0);
 	}
@@ -533,9 +544,9 @@ static void Cg_LightningEffect(const vec3_t org) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_lightning_discharge,
-		.origin = { org[0], org[1], org[2] },
-		.attenuation = ATTEN_NORM,
-		.flags = S_PLAY_POSITIONED
+		 .origin = { org[0], org[1], org[2] },
+		  .attenuation = ATTEN_NORM,
+		   .flags = S_PLAY_POSITIONED
 	});
 }
 
@@ -558,8 +569,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 
 	// draw the core with a beam
 
-	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam)))
+	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam))) {
 		return;
+	}
 
 	// white cores for some colors, shifted for others
 	switch (color) {
@@ -594,8 +606,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 
 	for (int32_t i = 0; i < len && i < 2048; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
 			return;
+		}
 
 		cgi.ColorFromPalette(color, p->part.color);
 		Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -2.0 + i / len);
@@ -631,11 +644,13 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 	}
 
 	// check for explosion effect on solids
-	if (flags & SURF_SKY)
+	if (flags & SURF_SKY) {
 		return;
+	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_explosion)))
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_explosion))) {
 		return;
+	}
 
 	cgi.ColorFromPalette(color, p->part.color);
 	p->part.color[3] = 1.25;
@@ -661,8 +676,9 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 	cg_particle_t *p;
 	r_light_t l;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam)))
+	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam))) {
 		return;
+	}
 
 	VectorCopy(org, p->part.org);
 	VectorCopy(end, p->part.end);
@@ -691,8 +707,9 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	for (i = 0; i < 4; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion)))
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
 			break;
+		}
 
 		cgi.ColorFromPalette(200 + Random() % 3, p->part.color);
 		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -3.0);
@@ -707,8 +724,9 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	for (i = 0; i < 128; i++) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL)))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
 			break;
+		}
 
 		cgi.ColorFromPalette(206, p->part.color);
 		Vector4Set(p->color_vel, 1.0, 2.0, 0.0, -1.0 + 0.25 * Randomc());
@@ -735,9 +753,9 @@ static void Cg_BfgEffect(const vec3_t org) {
 
 	cgi.AddSample(&(const s_play_sample_t) {
 		.sample = cg_sample_bfg_hit,
-		.origin = { org[0], org[1], org[2] },
-		.attenuation = ATTEN_NORM,
-		.flags = S_PLAY_POSITIONED
+		 .origin = { org[0], org[1], org[2] },
+		  .attenuation = ATTEN_NORM,
+		   .flags = S_PLAY_POSITIONED
 	});
 }
 

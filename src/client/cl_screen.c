@@ -41,13 +41,15 @@ static void Cl_NetGraph(vec_t value, int32_t color) {
 	net_graph_samples[num_net_graph_samples].value = value;
 	net_graph_samples[num_net_graph_samples].color = color;
 
-	if (net_graph_samples[num_net_graph_samples].value > 1.0)
+	if (net_graph_samples[num_net_graph_samples].value > 1.0) {
 		net_graph_samples[num_net_graph_samples].value = 1.0;
+	}
 
 	num_net_graph_samples++;
 
-	if (num_net_graph_samples == NET_GRAPH_WIDTH)
+	if (num_net_graph_samples == NET_GRAPH_WIDTH) {
 		num_net_graph_samples = 0;
+	}
 }
 
 /**
@@ -59,14 +61,17 @@ void Cl_AddNetGraph(void) {
 	uint32_t i;
 
 	// we only need to do our accounting when asked to
-	if (!cl_draw_net_graph->value)
+	if (!cl_draw_net_graph->value) {
 		return;
+	}
 
-	for (i = 0; i < cls.net_chan.dropped; i++)
+	for (i = 0; i < cls.net_chan.dropped; i++) {
 		Cl_NetGraph(1.0, 0x40);
+	}
 
-	for (i = 0; i < cl.surpress_count; i++)
+	for (i = 0; i < cl.surpress_count; i++) {
 		Cl_NetGraph(1.0, 0xdf);
+	}
 
 	// see what the latency was on this packet
 	const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
@@ -82,8 +87,9 @@ void Cl_AddNetGraph(void) {
 static void Cl_DrawNetGraph(void) {
 	int32_t i, j, x, y, h;
 
-	if (!cl_draw_net_graph->value)
+	if (!cl_draw_net_graph->value) {
 		return;
+	}
 
 	r_pixel_t ch;
 	R_BindFont("small", NULL, &ch);
@@ -100,8 +106,9 @@ static void Cl_DrawNetGraph(void) {
 		j = (num_net_graph_samples - i) & (NET_GRAPH_WIDTH - 1);
 		h = net_graph_samples[j].value * netgraph_height;
 
-		if (!h)
+		if (!h) {
 			continue;
+		}
 
 		x = r_context.width - i;
 		y = r_context.height - NET_GRAPH_Y - h;
@@ -116,11 +123,13 @@ static void Cl_DrawNetGraph(void) {
 static void Cl_DrawRendererStats(void) {
 	r_pixel_t ch, y = 64;
 
-	if (!cl_show_renderer_stats->value)
+	if (!cl_show_renderer_stats->value) {
 		return;
+	}
 
-	if (cls.state != CL_ACTIVE)
+	if (cls.state != CL_ACTIVE) {
 		return;
+	}
 
 	R_BindFont("small", NULL, &ch);
 
@@ -128,7 +137,7 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	const uint32_t num_bind_diffuse = r_view.num_bind_texture - r_view.num_bind_lightmap
-			- r_view.num_bind_deluxemap - r_view.num_bind_normalmap - r_view.num_bind_specularmap;
+	                                  - r_view.num_bind_deluxemap - r_view.num_bind_normalmap - r_view.num_bind_specularmap;
 
 	R_DrawString(0, y, va("%d diffuse", num_bind_diffuse), CON_COLOR_GREEN);
 	y += ch;
@@ -189,11 +198,13 @@ static void Cl_DrawRendererStats(void) {
 static void Cl_DrawSoundStats(void) {
 	r_pixel_t ch, y = cl_show_renderer_stats->value ? 400 : 64;
 
-	if (!cl_show_sound_stats->value)
+	if (!cl_show_sound_stats->value) {
 		return;
+	}
 
-	if (cls.state != CL_ACTIVE)
+	if (cls.state != CL_ACTIVE) {
 		return;
+	}
 
 	R_BindFont("small", NULL, &ch);
 
@@ -214,8 +225,9 @@ static void Cl_DrawCounters(void) {
 	static int32_t last_draw_time;
 	r_pixel_t cw, ch;
 
-	if (!cl_draw_counters->value)
+	if (!cl_draw_counters->value) {
 		return;
+	}
 
 	R_BindFont("small", &cw, &ch);
 

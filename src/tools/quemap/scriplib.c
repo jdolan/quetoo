@@ -46,15 +46,17 @@ static void AddScriptToStack(const char *file_name) {
 	int64_t size;
 
 	script++;
-	if (script == &scriptstack[MAX_INCLUDES])
+	if (script == &scriptstack[MAX_INCLUDES]) {
 		Com_Error(ERR_FATAL, "Script file exceeded MAX_INCLUDES\n");
+	}
 
 	strcpy(script->file_name, file_name);
 
 	size = Fs_Load(script->file_name, (void **) (char *) &script->buffer);
 
-	if (size == -1)
+	if (size == -1) {
 		Com_Error(ERR_FATAL, "Could not load %s\n", script->file_name);
+	}
 
 	Com_Verbose("Loading %s (%u bytes)\n", script->file_name, (uint32_t) size);
 
@@ -80,8 +82,9 @@ void LoadScriptFile(const char *file_name) {
 void ParseFromMemory(char *buffer, int32_t size) {
 	script = scriptstack;
 	script++;
-	if (script == &scriptstack[MAX_INCLUDES])
+	if (script == &scriptstack[MAX_INCLUDES]) {
 		Com_Error(ERR_FATAL, "Script file exceeded MAX_INCLUDES\n");
+	}
 	strcpy(script->file_name, "memory buffer");
 
 	script->buffer = buffer;
@@ -96,8 +99,9 @@ void ParseFromMemory(char *buffer, int32_t size) {
  * @brief
  */
 static _Bool EndOfScript(_Bool crossline) {
-	if (!crossline)
+	if (!crossline) {
 		Com_Error(ERR_FATAL, "Line %i is incomplete\n", scriptline);
+	}
 
 	if (!g_strcmp0(script->file_name, "memory buffer")) {
 		endofscript = true;
@@ -121,42 +125,51 @@ static _Bool EndOfScript(_Bool crossline) {
 _Bool GetToken(_Bool crossline) {
 	char *token_p;
 
-	if (script->script_p >= script->end_p)
+	if (script->script_p >= script->end_p) {
 		return EndOfScript(crossline);
+	}
 
 	// skip space
-	skipspace: while (script->script_p < script->end_p && *script->script_p <= 32) {
-		if (script->script_p >= script->end_p)
+skipspace:
+	while (script->script_p < script->end_p && *script->script_p <= 32) {
+		if (script->script_p >= script->end_p) {
 			return EndOfScript(crossline);
+		}
 		if (*script->script_p++ == '\n') {
-			if (!crossline)
+			if (!crossline) {
 				Com_Error(ERR_FATAL, "Line %i is incomplete (skip space)\n", scriptline);
+			}
 			scriptline = script->line++;
 		}
 	}
 
-	if (script->script_p >= script->end_p)
+	if (script->script_p >= script->end_p) {
 		return EndOfScript(crossline);
+	}
 
 	// comments
 	if ((script->script_p[0] == '/' && script->script_p[1] == '/') || script->script_p[0] == ';') {
-		if (!crossline)
+		if (!crossline) {
 			Com_Error(ERR_FATAL, "Line %i is incomplete (// comments)\n", scriptline);
+		}
 		while (*script->script_p++ != '\n')
-			if (script->script_p >= script->end_p)
+			if (script->script_p >= script->end_p) {
 				return EndOfScript(crossline);
+			}
 		goto skipspace;
 	}
 
 	// /* */ comments
 	if (script->script_p[0] == '/' && script->script_p[1] == '*') {
-		if (!crossline)
+		if (!crossline) {
 			Com_Error(ERR_FATAL, "Line %i is incomplete (/* comments */)\n", scriptline);
+		}
 		script->script_p += 2;
 		while (script->script_p[0] != '*' && script->script_p[1] != '/') {
 			script->script_p++;
-			if (script->script_p >= script->end_p)
+			if (script->script_p >= script->end_p) {
 				return EndOfScript(crossline);
+			}
 		}
 		script->script_p += 2;
 		goto skipspace;
@@ -170,20 +183,24 @@ _Bool GetToken(_Bool crossline) {
 		script->script_p++;
 		while (*script->script_p != '"') {
 			*token_p++ = *script->script_p++;
-			if (script->script_p == script->end_p)
+			if (script->script_p == script->end_p) {
 				break;
-			if (token_p == &token[MAXTOKEN])
+			}
+			if (token_p == &token[MAXTOKEN]) {
 				Com_Error(ERR_FATAL, "Token too large on line %i\n", scriptline);
+			}
 		}
 		script->script_p++;
 	} else
 		// regular token
 		while (*script->script_p > 32 && *script->script_p != ';') {
 			*token_p++ = *script->script_p++;
-			if (script->script_p == script->end_p)
+			if (script->script_p == script->end_p) {
 				break;
-			if (token_p == &token[MAXTOKEN])
+			}
+			if (token_p == &token[MAXTOKEN]) {
 				Com_Error(ERR_FATAL, "Token too large on line %i\n", scriptline);
+			}
 		}
 
 	*token_p = 0;
@@ -205,22 +222,26 @@ _Bool TokenAvailable(void) {
 
 	search_p = script->script_p;
 
-	if (search_p >= script->end_p)
+	if (search_p >= script->end_p) {
 		return false;
+	}
 
 	while (*search_p <= 32) {
 
-		if (*search_p == '\n')
+		if (*search_p == '\n') {
 			return false;
+		}
 
 		search_p++;
 
-		if (search_p == script->end_p)
+		if (search_p == script->end_p) {
 			return false;
+		}
 	}
 
-	if (*search_p == ';')
+	if (*search_p == ';') {
 		return false;
+	}
 
 	return true;
 }

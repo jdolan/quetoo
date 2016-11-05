@@ -143,8 +143,9 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t origin, vec3_t color, vec_t
 		return;
 	}
 
-	if (r_lighting->value) // scale by r_lighting->value, if enabled
+	if (r_lighting->value) { // scale by r_lighting->value, if enabled
 		radius *= r_lighting->value;
+	}
 
 	r_bsp_light_t *bl = NULL;
 	GList *e = r_bsp_light_state.lights;
@@ -154,8 +155,9 @@ static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t origin, vec3_t color, vec_t
 		bl = (r_bsp_light_t *) e->data;
 		VectorSubtract(origin, bl->light.origin, delta);
 
-		if (VectorLength(delta) <= BSP_LIGHT_MERGE_THRESHOLD) // merge them
+		if (VectorLength(delta) <= BSP_LIGHT_MERGE_THRESHOLD) { // merge them
 			break;
+		}
 
 		bl = NULL;
 		e = e->next;
@@ -224,14 +226,17 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 
 		const char *c = ParseToken(&ents);
 
-		if (!strlen(c))
+		if (!strlen(c)) {
 			break;
+		}
 
-		if (*c == '{')
+		if (*c == '{') {
 			entity = true;
+		}
 
-		if (!entity) // skip any whitespace between ents
+		if (!entity) { // skip any whitespace between ents
 			continue;
+		}
 
 		if (*c == '}') {
 			entity = false;
@@ -251,8 +256,9 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 			c = ParseToken(&ents);
 			g_strlcpy(class_name, c, sizeof(class_name));
 
-			if (!strncmp(c, "light", 5)) // light, light_spot, etc..
+			if (!strncmp(c, "light", 5)) { // light, light_spot, etc..
 				light = true;
+			}
 
 			continue;
 		}
@@ -297,8 +303,9 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
  */
 void R_DrawBspLights(void) {
 
-	if (!r_draw_bsp_lights->value)
+	if (!r_draw_bsp_lights->value) {
 		return;
+	}
 
 	r_bsp_light_t *bl = r_model_state.world->bsp->bsp_lights;
 	for (uint16_t i = 0; i < r_model_state.world->bsp->num_bsp_lights; i++, bl++) {

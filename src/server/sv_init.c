@@ -29,15 +29,18 @@
 static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, _Bool create) {
 	uint16_t i;
 
-	if (!name || !name[0])
+	if (!name || !name[0]) {
 		return 0;
+	}
 
 	for (i = 0; i < max && sv.config_strings[start + i][0]; i++)
-		if (!g_strcmp0(sv.config_strings[start + i], name))
+		if (!g_strcmp0(sv.config_strings[start + i], name)) {
 			return i;
+		}
 
-	if (!create)
+	if (!create) {
 		return 0;
+	}
 
 	if (i == max) {
 		Com_Warn("Max index for %s reached\n", name);
@@ -80,11 +83,13 @@ static void Sv_CreateBaseline(void) {
 
 		g_entity_t *ent = ENTITY_FOR_NUM(i);
 
-		if (!ent->in_use)
+		if (!ent->in_use) {
 			continue;
+		}
 
-		if (!ent->s.model1 && !ent->s.sound && !ent->s.effects)
+		if (!ent->s.model1 && !ent->s.sound && !ent->s.effects) {
 			continue;
+		}
 
 		ent->s.number = i;
 
@@ -99,11 +104,12 @@ static void Sv_CreateBaseline(void) {
  * returning from this function.
  */
 static void Sv_ShutdownMessage(const char *msg, _Bool reconnect) {
-	sv_client_t * cl;
+	sv_client_t *cl;
 	int32_t i;
 
-	if (!svs.initialized)
+	if (!svs.initialized) {
 		return;
+	}
 
 	Mem_ClearBuffer(&net_message);
 
@@ -113,15 +119,18 @@ static void Sv_ShutdownMessage(const char *msg, _Bool reconnect) {
 		Net_WriteString(&net_message, msg);
 	}
 
-	if (reconnect) // send reconnect
+	if (reconnect) { // send reconnect
 		Net_WriteByte(&net_message, SV_CMD_RECONNECT);
-	else
+	} else
 		// or just disconnect
+	{
 		Net_WriteByte(&net_message, SV_CMD_DISCONNECT);
+	}
 
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++)
-		if (cl->state >= SV_CLIENT_CONNECTED)
+		if (cl->state >= SV_CLIENT_CONNECTED) {
 			Netchan_Transmit(&cl->net_chan, net_message.data, net_message.size);
+		}
 }
 
 /**
@@ -159,11 +168,12 @@ static void Sv_UpdateLatchedVars(void) {
  * @brief Gracefully frees all resources allocated to svs.clients.
  */
 static void Sv_ShutdownClients(void) {
-	sv_client_t * cl;
+	sv_client_t *cl;
 	int32_t i;
 
-	if (!svs.initialized)
+	if (!svs.initialized) {
 		return;
+	}
 
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
@@ -224,8 +234,9 @@ static void Sv_InitClients(void) {
 		svs.clients[i].entity = ent;
 
 		// reset state of spawned clients back to connected
-		if (svs.clients[i].state > SV_CLIENT_CONNECTED)
+		if (svs.clients[i].state > SV_CLIENT_CONNECTED) {
 			svs.clients[i].state = SV_CLIENT_CONNECTED;
+		}
 
 		// invalidate last frame to force a baseline
 		svs.clients[i].last_frame = -1;
@@ -314,10 +325,11 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 	// ensure that the requested map or demo exists
 	char path[MAX_QPATH];
 
-	if (state == SV_ACTIVE_DEMO)
+	if (state == SV_ACTIVE_DEMO) {
 		g_snprintf(path, sizeof(path), "demos/%s.demo", server);
-	else
+	} else {
 		g_snprintf(path, sizeof(path), "maps/%s.bsp", server);
+	}
 
 	if (!Fs_Exists(path)) {
 		Com_Print("Couldn't open %s\n", path);

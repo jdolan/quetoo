@@ -49,7 +49,9 @@ static void Cl_DrawConsole_Background(void) {
 		const vec_t scale = MAX(x_scale, y_scale);
 
 		if (cls.state == CL_ACTIVE) {
-			R_Color((const vec4_t) { 1.0, 1.0, 1.0, cl_console_background_alpha->value });
+			R_Color((const vec4_t) {
+				1.0, 1.0, 1.0, cl_console_background_alpha->value
+			});
 
 			R_DrawImage(0, -r_context.window_height * 0.333, scale, image);
 
@@ -244,8 +246,9 @@ static void Cl_Print(const console_string_t *str) {
  */
 void Cl_ToggleConsole_f(void) {
 
-	if (cls.state == CL_LOADING)
+	if (cls.state == CL_LOADING) {
 		return;
+	}
 
 	if (cls.key_state.dest == KEY_CONSOLE) {
 		if (cls.state == CL_ACTIVE) {

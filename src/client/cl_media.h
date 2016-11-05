@@ -29,11 +29,11 @@ void Cl_LoadingProgress(uint16_t percent, const char *file);
 
 #ifdef __CL_LOCAL_H__
 
-void Cl_RequestNextDownload(void);
-void Cl_LoadMedia(void);
-void Cl_UpdateMedia(void);
-void Cl_DrawDownload(void);
-void Cl_DrawLoading(void);
+	void Cl_RequestNextDownload(void);
+	void Cl_LoadMedia(void);
+	void Cl_UpdateMedia(void);
+	void Cl_DrawDownload(void);
+	void Cl_DrawLoading(void);
 
 #endif /* __CL_LOCAL_H__ */
 

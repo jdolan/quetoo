@@ -45,8 +45,9 @@ static void Sv_SetMaster_f(void) {
 	// the first slot will always contain the default master
 	for (slot = i = 1; i < Cmd_Argc(); i++) {
 
-		if (slot == MAX_MASTERS)
+		if (slot == MAX_MASTERS) {
 			break;
+		}
 
 		addr = &svs.masters[slot];
 
@@ -55,8 +56,9 @@ static void Sv_SetMaster_f(void) {
 			continue;
 		}
 
-		if (addr->port == 0)
+		if (addr->port == 0) {
 			addr->port = htons(PORT_MASTER);
+		}
 
 		Com_Print("Master server at %s\n", Net_NetaddrToString(addr));
 		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "ping");
@@ -78,11 +80,12 @@ static void Sv_Heartbeat_f(void) {
  * @brief Sets sv_client and sv_player to the player identified by Cmd_Argv(1).
  */
 static _Bool Sv_SetPlayer(void) {
-	sv_client_t * cl;
+	sv_client_t *cl;
 	int32_t i;
 
-	if (Cmd_Argc() < 2)
+	if (Cmd_Argc() < 2) {
 		return false;
+	}
 
 	const char *s = Cmd_Argv(1);
 
@@ -105,8 +108,9 @@ static _Bool Sv_SetPlayer(void) {
 	// check for a name match
 	for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
 
-		if (!cl->state)
+		if (!cl->state) {
 			continue;
+		}
 
 		if (!g_strcmp0(cl->name, s)) {
 			sv_client = cl;
@@ -177,8 +181,9 @@ static void Sv_Kick_f(void) {
 		return;
 	}
 
-	if (!Sv_SetPlayer())
+	if (!Sv_SetPlayer()) {
 		return;
+	}
 
 	Sv_KickClient(sv_client, NULL);
 }
@@ -200,19 +205,20 @@ static void Sv_Status_f(void) {
 	sv_client_t *cl = svs.clients;
 	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
-		if (cl->state == SV_CLIENT_FREE)
+		if (cl->state == SV_CLIENT_FREE) {
 			continue;
+		}
 
 		const uint32_t ping = cl->entity->client->ping < 9999 ? cl->entity->client->ping : 9999;
 
 		char status[MAX_STRING_CHARS];
 		g_snprintf(status, sizeof(status), "%3d %4d %16s %7d %22s %3d",
-				   i,
-				   ping,
-				   cl->name,
-				   quetoo.time - cl->last_message,
-				   Net_NetaddrToString(&(cl->net_chan.remote_address)),
-				   cl->net_chan.qport);
+		           i,
+		           ping,
+		           cl->name,
+		           quetoo.time - cl->last_message,
+		           Net_NetaddrToString(&(cl->net_chan.remote_address)),
+		           cl->net_chan.qport);
 
 		Com_Print("%s\n", status);
 	}
@@ -249,8 +255,9 @@ static void Sv_Say_f(void) {
 	char text[MAX_STRING_CHARS];
 	int32_t i;
 
-	if (Cmd_Argc() < 2)
+	if (Cmd_Argc() < 2) {
 		return;
+	}
 
 	StripColors(Cmd_Args(), text);
 	if (!strlen(text)) {
@@ -268,8 +275,9 @@ static void Sv_Say_f(void) {
 	const sv_client_t *client = svs.clients;
 	for (i = 0; i < sv_max_clients->integer; i++, client++) {
 
-		if (client->state != SV_CLIENT_ACTIVE)
+		if (client->state != SV_CLIENT_ACTIVE) {
 			continue;
+		}
 
 		Sv_ClientPrint(client->entity, PRINT_CHAT, "^1console^%d: %s\n", CON_COLOR_CHAT, s);
 	}
@@ -283,11 +291,13 @@ static void Sv_Say_f(void) {
 static void Sv_Tell_f(void) {
 	char text[MAX_STRING_CHARS];
 
-	if (Cmd_Argc() < 3)
+	if (Cmd_Argc() < 3) {
 		return;
+	}
 
-	if (!Sv_SetPlayer())
+	if (!Sv_SetPlayer()) {
 		return;
+	}
 
 	const char *msg = Cmd_Args() + strlen(Cmd_Argv(1)) + 1;
 	StripColors(msg, text);
@@ -303,8 +313,9 @@ static void Sv_Tell_f(void) {
 		s++;
 	}
 
-	if (sv_client->state != SV_CLIENT_ACTIVE)
+	if (sv_client->state != SV_CLIENT_ACTIVE) {
 		return;
+	}
 
 	Sv_ClientPrint(sv_client->entity, PRINT_CHAT, "^1console^%d: %s\n", CON_COLOR_TEAMCHAT, s);
 	Com_Print("^1console^%d: %s\n", CON_COLOR_TEAMCHAT, s);
@@ -339,8 +350,9 @@ static void Sv_UserInfo_f(void) {
 		return;
 	}
 
-	if (!Sv_SetPlayer())
+	if (!Sv_SetPlayer()) {
 		return;
+	}
 
 	Com_PrintInfo(sv_client->user_info);
 }
@@ -353,14 +365,17 @@ static void Sv_Stuff_f(void) {
 	char text[MAX_STRING_CHARS];
 	int32_t i;
 
-	if (Cmd_Argc() < 3)
+	if (Cmd_Argc() < 3) {
 		return;
+	}
 
-	if (!Sv_SetPlayer())
+	if (!Sv_SetPlayer()) {
 		return;
+	}
 
-	if (sv_client->state != SV_CLIENT_ACTIVE)
+	if (sv_client->state != SV_CLIENT_ACTIVE) {
 		return;
+	}
 
 	strcpy(text, Cmd_Argv(2));
 	for (i = 3; i <= Cmd_Argc(); i++) {
@@ -390,7 +405,7 @@ void Sv_InitAdmin(void) {
 	Cmd_SetAutocomplete(map_cmd, Sv_Map_Autocomplete_f);
 
 	Cmd_Add("set_master", Sv_SetMaster_f, CMD_SERVER,
-			"Set the master server(s) for the dedicated server");
+	        "Set the master server(s) for the dedicated server");
 	Cmd_Add("heartbeat", Sv_Heartbeat_f, CMD_SERVER, "Send a heartbeat to the master server");
 
 	if (dedicated->value) {

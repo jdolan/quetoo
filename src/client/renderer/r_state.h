@@ -176,7 +176,8 @@ void R_EnableDepthMask(_Bool enable);
 void R_BindBuffer(const r_buffer_t *buffer);
 void R_UnbindBuffer(const r_buffer_type_t type);
 void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data);
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t type, const size_t size, const void *data);
+void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t type, const size_t size,
+                    const void *data);
 void R_DestroyBuffer(r_buffer_t *buffer);
 _Bool R_ValidBuffer(const r_buffer_t *buffer);
 

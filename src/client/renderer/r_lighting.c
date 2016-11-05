@@ -111,8 +111,9 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 	vec_t max = 0.15;
 
 	for (uint16_t i = 0; i < 3; i++) {
-		if (r_bsp_light_state.ambient[i] > max)
+		if (r_bsp_light_state.ambient[i] > max) {
 			max = r_bsp_light_state.ambient[i];
+		}
 	}
 
 	VectorMA(l->origin, LIGHTING_AMBIENT_DIST, vec3_up, il.light.origin);
@@ -135,8 +136,9 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 static void R_SunIllumination(const r_lighting_t *l) {
 	r_illumination_t il;
 
-	if (!r_bsp_light_state.sun.diffuse)
+	if (!r_bsp_light_state.sun.diffuse) {
 		return;
+	}
 
 	const vec3_t *p = (const vec3_t *) r_lighting_points;
 
@@ -154,8 +156,9 @@ static void R_SunIllumination(const r_lighting_t *l) {
 		}
 	}
 
-	if (exposure == 0.0)
+	if (exposure == 0.0) {
 		return;
+	}
 
 	VectorMA(l->origin, LIGHTING_SUN_DIST, r_bsp_light_state.sun.dir, il.light.origin);
 	VectorScale(r_bsp_light_state.sun.color, exposure, il.light.color);
@@ -187,18 +190,21 @@ static _Bool R_PositionalIllumination(const r_lighting_t *l, r_illumination_type
 
 		const vec_t diff = light->radius - VectorLength(dir);
 
-		if (diff <= 0.0)
+		if (diff <= 0.0) {
 			continue;
+		}
 
 		// is it visible to the entity
-		if (Cl_Trace(light->origin, p[i], NULL, NULL, l->number, CONTENTS_SOLID).fraction < 1.0)
+		if (Cl_Trace(light->origin, p[i], NULL, NULL, l->number, CONTENTS_SOLID).fraction < 1.0) {
 			continue;
+		}
 
 		diffuse += diff;
 	}
 
-	if (diffuse == 0.0)
+	if (diffuse == 0.0) {
 		return false;
+	}
 
 	il.type = type;
 	il.light = *light;
@@ -228,7 +234,7 @@ static void R_StaticIlluminations(r_lighting_t *l) {
 			}
 		}
 
-		R_PositionalIllumination(l, ILLUM_STATIC, (const r_light_t *) &(bl->light));
+		R_PositionalIllumination(l, ILLUM_STATIC, (const r_light_t *) & (bl->light));
 	}
 }
 
@@ -278,8 +284,9 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 	R_DynamicIlluminations(l);
 
 	// if not dirty, and no dynamic lighting, we're done
-	if (l->state == LIGHTING_READY)
+	if (l->state == LIGHTING_READY) {
 		return;
+	}
 
 	memset(l->illuminations, 0, sizeof(l->illuminations));
 
@@ -326,8 +333,9 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		// check if the light exits the entity
 		VectorSubtract(il->light.origin, p[j], dir);
 
-		if (il->light.radius <= VectorNormalize(dir))
+		if (il->light.radius <= VectorNormalize(dir)) {
 			continue;
+		}
 
 		// project the farthest possible shadow impact position
 		VectorMA(il->light.origin, -il->light.radius, dir, pos);
@@ -336,13 +344,15 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		cm_trace_t tr = Cl_Trace(p[j], pos, NULL, NULL, l->number, MASK_SOLID);
 
 		// check if the trace impacted a valid plane
-		if (tr.start_solid || tr.fraction == 1.0)
+		if (tr.start_solid || tr.fraction == 1.0) {
 			continue;
+		}
 
 		// if lighting is disabled, skip non-floor shadows
 		if (!r_lighting->value) {
-			if (tr.plane.normal[2] < 0.7)
+			if (tr.plane.normal[2] < 0.7) {
 				continue;
+			}
 		}
 
 		// calculate the distance from the light source to the plane
@@ -368,8 +378,9 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 			s++;
 		}
 
-		if (s->illumination) // already got it
+		if (s->illumination) { // already got it
 			continue;
+		}
 
 		s->illumination = il;
 		s->plane = tr.plane;
@@ -385,12 +396,14 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
  */
 static void R_UpdateShadows(r_lighting_t *l) {
 
-	if (!r_shadows->value)
+	if (!r_shadows->value) {
 		return;
+	}
 
 	// if not dirty and nothing has changed, retain our cached shadows
-	if (l->state == LIGHTING_READY)
+	if (l->state == LIGHTING_READY) {
 		return;
+	}
 
 	// otherwise, refresh all shadow information based on the new illuminations
 	memset(l->shadows, 0, sizeof(l->shadows));
@@ -398,20 +411,23 @@ static void R_UpdateShadows(r_lighting_t *l) {
 	const r_illumination_t *il = l->illuminations;
 	for (size_t i = 0; i < r_state.max_active_lights; i++, il++) {
 
-		if (il->diffuse == 0.0)
+		if (il->diffuse == 0.0) {
 			break;
+		}
 
 		switch (il->type) {
 			case ILLUM_AMBIENT:
 				break;
 			case ILLUM_SUN:
-				if (r_shadows->integer < 2)
+				if (r_shadows->integer < 2) {
 					continue;
+				}
 				break;
 			case ILLUM_STATIC:
 			case ILLUM_DYNAMIC:
-				if (r_shadows->integer < 3)
+				if (r_shadows->integer < 3) {
 					continue;
+				}
 				break;
 		}
 

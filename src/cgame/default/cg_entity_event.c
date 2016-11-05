@@ -32,8 +32,9 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 	for (int32_t i = 0; i < 64; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL ))) {
 			break;
+		}
 
 		VectorCopy(color, p->part.color);
 		Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -1.5 + Randomf() * 0.5);
@@ -73,8 +74,9 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 	for (int32_t i = 0; i < 32; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL ))) {
 			break;
+		}
 
 		VectorCopy(color, p->part.color);
 		Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -1.5 + Randomf() * 0.5);
@@ -114,8 +116,9 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 	for (int32_t i = 0; i < 64; i++) {
 		cg_particle_t *p;
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL )))
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL ))) {
 			break;
+		}
 
 		VectorCopy(color, p->part.color);
 		Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -1.5 + Randomf() * 0.5);
@@ -216,47 +219,47 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 	};
 
 	switch (s->event) {
-	case EV_CLIENT_DROWN:
-		Cg_DrownEffect(ent);
-		break;
-	case EV_CLIENT_FALL:
-		play.sample = cgi.LoadSample("*fall_2");
-		break;
-	case EV_CLIENT_FALL_FAR:
-		play.sample = cgi.LoadSample("*fall_1");
-		break;
-	case EV_CLIENT_FOOTSTEP:
-		play.sample = cg_sample_footsteps[Random() & 3];
-		break;
-	case EV_CLIENT_GURP:
-		Cg_GurpEffect(ent);
-		break;
-	case EV_CLIENT_LAND:
-		play.sample = cgi.LoadSample("*land_1");
-		break;
-	case EV_CLIENT_JUMP:
-		play.sample = cgi.LoadSample(va("*jump_%d", Random() % 5 + 1));
-		break;
-	case EV_CLIENT_SIZZLE:
-		play.sample = cgi.LoadSample("*sizzle_1");
-		break;
-	case EV_CLIENT_TELEPORT:
-		play.sample = cg_sample_teleport;
-		play.attenuation = ATTEN_IDLE;
-		Cg_TeleporterEffect(s->origin);
-		break;
+		case EV_CLIENT_DROWN:
+			Cg_DrownEffect(ent);
+			break;
+		case EV_CLIENT_FALL:
+			play.sample = cgi.LoadSample("*fall_2");
+			break;
+		case EV_CLIENT_FALL_FAR:
+			play.sample = cgi.LoadSample("*fall_1");
+			break;
+		case EV_CLIENT_FOOTSTEP:
+			play.sample = cg_sample_footsteps[Random() & 3];
+			break;
+		case EV_CLIENT_GURP:
+			Cg_GurpEffect(ent);
+			break;
+		case EV_CLIENT_LAND:
+			play.sample = cgi.LoadSample("*land_1");
+			break;
+		case EV_CLIENT_JUMP:
+			play.sample = cgi.LoadSample(va("*jump_%d", Random() % 5 + 1));
+			break;
+		case EV_CLIENT_SIZZLE:
+			play.sample = cgi.LoadSample("*sizzle_1");
+			break;
+		case EV_CLIENT_TELEPORT:
+			play.sample = cg_sample_teleport;
+			play.attenuation = ATTEN_IDLE;
+			Cg_TeleporterEffect(s->origin);
+			break;
 
-	case EV_ITEM_RESPAWN:
-		play.sample = cg_sample_respawn;
-		play.attenuation = ATTEN_IDLE;
-		Cg_ItemRespawnEffect(s->origin);
-		break;
-	case EV_ITEM_PICKUP:
-		Cg_ItemPickupEffect(s->origin);
-		break;
+		case EV_ITEM_RESPAWN:
+			play.sample = cg_sample_respawn;
+			play.attenuation = ATTEN_IDLE;
+			Cg_ItemRespawnEffect(s->origin);
+			break;
+		case EV_ITEM_PICKUP:
+			Cg_ItemPickupEffect(s->origin);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	cgi.AddSample(&play);

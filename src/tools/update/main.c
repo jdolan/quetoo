@@ -25,43 +25,43 @@
 #include <ctype.h>
 
 #if defined(__APPLE__)
- #include <unistd.h>
- #include <sys/wait.h>
- #include <mach-o/dyld.h>
- #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-apple/x86_64/"
+	#include <unistd.h>
+	#include <sys/wait.h>
+	#include <mach-o/dyld.h>
+	#define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-apple/x86_64/"
 #elif defined(__linux__)
- #include <unistd.h>
- #include <sys/wait.h>
- #if defined(__x86_64__)
-  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-linux/x86_64/"
- #else
-  #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-linux/i686/"
- #endif
+	#include <unistd.h>
+	#include <sys/wait.h>
+	#if defined(__x86_64__)
+		#define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-linux/x86_64/"
+	#else
+		#define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-linux/i686/"
+	#endif
 #elif defined(_WIN32)
- #undef WIN32_LEAN_AND_MEAN
- #define WIN32_LEAN_AND_MEAN
- #include <windows.h>
- #include <process.h>
- #if defined(__MINGW32__)
-  #if defined(__MINGW64__)
-   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
-  #else
-   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
-  #endif
- #elif defined(__CYGWIN__)
-  #if defined(__LP64__)
-   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
-  #else
-   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
-  #endif
- #elif defined(_MSC_VER)
-  #if defined(_WIN64)
-   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-msvc/x86_64/"
-  #else
-   #define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-msvc/i686/"
-  #endif
-  #define strdup _strdup
- #endif
+	#undef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
+	#include <windows.h>
+	#include <process.h>
+	#if defined(__MINGW32__)
+		#if defined(__MINGW64__)
+			#define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
+		#else
+			#define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
+		#endif
+	#elif defined(__CYGWIN__)
+		#if defined(__LP64__)
+			#define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/x86_64/"
+		#else
+			#define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-mingw/i686/"
+		#endif
+	#elif defined(_MSC_VER)
+		#if defined(_WIN64)
+			#define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-msvc/x86_64/"
+		#else
+			#define RSYNC_REPOSITORY "rsync://quetoo.org/quetoo-msvc/i686/"
+		#endif
+		#define strdup _strdup
+	#endif
 #endif
 
 /**
@@ -156,7 +156,8 @@ static char *convert_cygwin_path(const char *path) {
 		if (*in == ':') {
 			in++;
 		} else if (*in == '\\') {
-			*out++ = '/'; in++;
+			*out++ = '/';
+			in++;
 		} else {
 			*out++ = tolower(*in++);
 		}
@@ -203,11 +204,11 @@ int main(int argc, char **argv) {
 			snprintf(target, sizeof(target), "\"%s\"", cygdest);
 
 			status = _spawnlp(_P_WAIT, "rsync.exe", "rsync.exe", "-rkzhP", "--delete", "--stats",
-							  "--skip-compress=pk3",
-							  "--exclude=bin/cygwin1.dll",
-							  "--exclude=bin/rsync.exe",
-							  "--exclude=bin/quetoo-update.exe",
-							  RSYNC_REPOSITORY, target, NULL);
+			                  "--skip-compress=pk3",
+			                  "--exclude=bin/cygwin1.dll",
+			                  "--exclude=bin/rsync.exe",
+			                  "--exclude=bin/quetoo-update.exe",
+			                  RSYNC_REPOSITORY, target, NULL);
 
 			const char *bins[] = {
 				"bin/cygwin1.dll",

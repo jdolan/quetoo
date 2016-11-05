@@ -162,7 +162,7 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-	
+
 	((ViewControllerInterface *) clazz->def->interface)->loadView = loadView;
 }
 

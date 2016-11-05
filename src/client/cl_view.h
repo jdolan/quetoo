@@ -25,9 +25,9 @@
 #include "cl_types.h"
 
 #ifdef __CL_LOCAL_H__
-void Cl_InitView(void);
-void Cl_ClearState(void);
-void Cl_UpdateView(void);
+	void Cl_InitView(void);
+	void Cl_ClearState(void);
+	void Cl_UpdateView(void);
 #endif /* __CL_LOCAL_H__ */
 
 #endif /* __CL_VIEW_H__ */

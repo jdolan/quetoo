@@ -51,8 +51,9 @@ static void R_SetMeshShellState_default(const r_entity_t *e) {
 	}
 
 	// setup lerp for animating models
-	if (e->old_frame != e->frame)
+	if (e->old_frame != e->frame) {
 		R_UseInterpolation(e->lerp);
+	}
 }
 
 /**
@@ -60,8 +61,9 @@ static void R_SetMeshShellState_default(const r_entity_t *e) {
  */
 static void R_ResetMeshShellState_default(const r_entity_t *e) {
 
-	if (e->effects & EF_WEAPON)
+	if (e->effects & EF_WEAPON) {
 		R_DepthRange(0.0, 1.0);
+	}
 
 	R_RotateForEntity(NULL);
 
@@ -87,22 +89,26 @@ void R_DrawMeshShell_default(const r_entity_t *e) {
  */
 void R_DrawMeshShells_default(const r_entities_t *ents) {
 
-	if (!r_shell->value)
+	if (!r_shell->value) {
 		return;
+	}
 
-	if (r_draw_wireframe->value)
+	if (r_draw_wireframe->value) {
 		return;
+	}
 
 	R_EnableShell(r_state.shell_program, true);
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
 
-		if ((e->effects & EF_SHELL) == 0)
+		if ((e->effects & EF_SHELL) == 0) {
 			continue;
+		}
 
-		if (e->effects & EF_NO_DRAW)
+		if (e->effects & EF_NO_DRAW) {
 			continue;
+		}
 
 		r_view.current_entity = e;
 

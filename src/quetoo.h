@@ -35,32 +35,32 @@
 #include <string.h>
 
 #if HAVE_UNISTD_H
-#include <unistd.h>
+	#include <unistd.h>
 #endif
 
 #if defined(_WIN32)
-#undef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+	#undef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
+	#include <windows.h>
 #endif
 
 #ifndef byte
-typedef uint8_t byte;
+	typedef uint8_t byte;
 #endif
 
 #ifndef M_PI
-#define M_PI 3.14159265358979323846264338327950288
+	#define M_PI 3.14159265358979323846264338327950288
 #endif
 
 #ifndef M_PI_2
-#define M_PI_2 1.57079632679489661923132169163975144
+	#define M_PI_2 1.57079632679489661923132169163975144
 #endif
 
 /**
  * @return The number of elements, rather than the number of bytes.
  */
 #ifndef lengthof
-#define lengthof(x) (sizeof(x) / sizeof(x[0]))
+	#define lengthof(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
 typedef float vec_t;
@@ -591,16 +591,16 @@ typedef struct player_state_s {
  * @return True if the byte represents a color escape sequence.
  */
 #define IS_COLOR(c)( \
-	*c == COLOR_ESC && ( \
-		*(c + 1) >= '0' && *(c + 1) <= '7' \
-	) \
-)
+                     *c == COLOR_ESC && ( \
+                             *(c + 1) >= '0' && *(c + 1) <= '7' \
+                                        ) \
+                   )
 
 /**
  * @return True if the byte represents a legacy color escape sequence.
  */
 #define IS_LEGACY_COLOR(c)( \
-	*c == 1 || *c == 2 \
-)
+                            *c == 1 || *c == 2 \
+                          )
 
 #endif /* __QUETOO_H__ */

@@ -22,17 +22,18 @@
 #include "cl_local.h"
 
 static char *sv_cmd_names[32] = {
-		"SV_CMD_BAD",
-		"SV_CMD_BASELINE",
-		"SV_CMD_CBUF_TEXT",
-		"SV_CMD_CONFIG_STRING",
-		"SV_CMD_DISCONNECT",
-		"SV_CMD_DOWNLOAD",
-		"SV_CMD_FRAME",
-		"SV_CMD_PRINT",
-		"SV_CMD_RECONNECT",
-		"SV_CMD_SERVER_DATA",
-		"SV_CMD_SOUND" };
+	"SV_CMD_BAD",
+	"SV_CMD_BASELINE",
+	"SV_CMD_CBUF_TEXT",
+	"SV_CMD_CONFIG_STRING",
+	"SV_CMD_DISCONNECT",
+	"SV_CMD_DOWNLOAD",
+	"SV_CMD_FRAME",
+	"SV_CMD_PRINT",
+	"SV_CMD_RECONNECT",
+	"SV_CMD_SERVER_DATA",
+	"SV_CMD_SOUND"
+};
 
 /**
  * @brief Returns true if the file exists, otherwise it attempts to start a download
@@ -66,8 +67,9 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 	g_strlcat(cls.download.tempname, ".tmp", sizeof(cls.download.tempname));
 
 	// attempt an HTTP download if available
-	if (cls.download_url[0] && Cl_HttpDownload())
+	if (cls.download_url[0] && Cl_HttpDownload()) {
 		return false;
+	}
 
 	// check to see if we already have a temp for this file, if so, try to resume
 	// open the file if not opened yet
@@ -323,8 +325,9 @@ static void Cl_ParsePrint(void) {
 			const char *p = patterns;
 			while (true) {
 				const char *pattern = ParseToken(&p);
-				if (pattern == NULL)
+				if (pattern == NULL) {
 					break;
+				}
 
 				if (GlobMatch(pattern, string)) {
 					return;
@@ -336,10 +339,11 @@ static void Cl_ParsePrint(void) {
 		switch (level) {
 			case PRINT_CHAT:
 			case PRINT_TEAM_CHAT:
-				if (level == PRINT_CHAT && *cl_chat_sound->string)
+				if (level == PRINT_CHAT && *cl_chat_sound->string) {
 					sample = cl_chat_sound->string;
-				else if (level == PRINT_TEAM_CHAT && *cl_team_chat_sound->string)
+				} else if (level == PRINT_TEAM_CHAT && *cl_team_chat_sound->string) {
 					sample = cl_team_chat_sound->string;
+				}
 				break;
 			default:
 				break;
@@ -396,8 +400,9 @@ static void Cl_ParseSound(void) {
  * @brief
  */
 static void Cl_ShowNet(const char *s) {
-	if (cl_show_net_messages->integer >= 2)
+	if (cl_show_net_messages->integer >= 2) {
 		Com_Print("%3u: %s\n", (uint32_t) (net_message.read - 1), s);
+	}
 }
 
 /**
@@ -406,10 +411,11 @@ static void Cl_ShowNet(const char *s) {
 void Cl_ParseServerMessage(void) {
 	int32_t cmd, old_cmd;
 
-	if (cl_show_net_messages->integer == 1)
+	if (cl_show_net_messages->integer == 1) {
 		Com_Print("%u ", (uint32_t) net_message.size);
-	else if (cl_show_net_messages->integer >= 2)
+	} else if (cl_show_net_messages->integer >= 2) {
 		Com_Print("------------------\n");
+	}
 
 	cmd = 0;
 
@@ -427,8 +433,9 @@ void Cl_ParseServerMessage(void) {
 			break;
 		}
 
-		if (cl_show_net_messages->integer >= 2 && sv_cmd_names[cmd])
+		if (cl_show_net_messages->integer >= 2 && sv_cmd_names[cmd]) {
 			Cl_ShowNet(sv_cmd_names[cmd]);
+		}
 
 		switch (cmd) {
 
@@ -464,11 +471,13 @@ void Cl_ParseServerMessage(void) {
 				Com_Print("Server disconnected, reconnecting...\n");
 				// stop download
 				if (cls.download.file) {
-					if (cls.download.http) // clean up http downloads
+					if (cls.download.http) { // clean up http downloads
 						Cl_HttpDownload_Complete();
-					else
+					} else
 						// or just stop legacy ones
+					{
 						Fs_Close(cls.download.file);
+					}
 					cls.download.name[0] = '\0';
 					cls.download.file = NULL;
 				}
@@ -488,7 +497,7 @@ void Cl_ParseServerMessage(void) {
 				// delegate to the client game module before failing
 				if (!cls.cgame->ParseMessage(cmd)) {
 					Com_Error(ERR_DROP, "Illegible server message:\n"
-							" %d: last command was %s\n", cmd, sv_cmd_names[old_cmd]);
+					          " %d: last command was %s\n", cmd, sv_cmd_names[old_cmd]);
 				}
 				break;
 		}

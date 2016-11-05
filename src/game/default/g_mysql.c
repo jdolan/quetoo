@@ -95,7 +95,7 @@ void G_MySQL_ClientObituary(const g_entity_t *self, const g_entity_t *attacker, 
 	const char *fragger = G_MySQL_EntityName(attacker);
 
 	G_MySQL_Query("INSERT INTO `frag` VALUES(NULL, NOW(), '%s', '%s', '%s', %d)",
-			g_level.name, fragger, fraggee, mod);
+	              g_level.name, fragger, fraggee, mod);
 #endif
 }
 

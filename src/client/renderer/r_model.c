@@ -76,23 +76,28 @@ static void R_FreeModel(r_media_t *self) {
 	if (mod->type == MOD_BSP) {
 		printf("whee\n");
 	}
-	
+
 	for (uint16_t i = 0; i < frames; i++) {
-		if (R_ValidBuffer(&mod->vertex_buffers[i]))
+		if (R_ValidBuffer(&mod->vertex_buffers[i])) {
 			R_DestroyBuffer(&mod->vertex_buffers[i]);
-	
-		if (R_ValidBuffer(&mod->normal_buffers[i]))
+		}
+
+		if (R_ValidBuffer(&mod->normal_buffers[i])) {
 			R_DestroyBuffer(&mod->normal_buffers[i]);
-	
-		if (R_ValidBuffer(&mod->tangent_buffers[i]))
+		}
+
+		if (R_ValidBuffer(&mod->tangent_buffers[i])) {
 			R_DestroyBuffer(&mod->tangent_buffers[i]);
+		}
 	}
 
-	if (R_ValidBuffer(&mod->texcoord_buffer))
+	if (R_ValidBuffer(&mod->texcoord_buffer)) {
 		R_DestroyBuffer(&mod->texcoord_buffer);
-	
-	if (R_ValidBuffer(&mod->lightmap_texcoord_buffer))
+	}
+
+	if (R_ValidBuffer(&mod->lightmap_texcoord_buffer)) {
 		R_DestroyBuffer(&mod->lightmap_texcoord_buffer);
+	}
 
 	R_GetError(mod->media.name);
 }
@@ -124,8 +129,9 @@ r_model_t *R_LoadModel(const char *name) {
 			StripExtension(name, key);
 			strcat(key, format->extension);
 
-			if (Fs_Load(key, &buf) != -1)
+			if (Fs_Load(key, &buf) != -1) {
 				break;
+			}
 		}
 
 		if (i == lengthof(r_model_formats)) { // not found
@@ -202,7 +208,7 @@ void R_InitModels(void) {
 	};
 
 	r_model_state.null_elements_count = lengthof(null_elements);
-	
+
 	R_CreateBuffer(&r_model_state.null_vertices, GL_STATIC_DRAW, R_BUFFER_DATA, sizeof(null_vertices), null_vertices);
 
 	R_CreateBuffer(&r_model_state.null_elements, GL_STATIC_DRAW, R_BUFFER_ELEMENT, sizeof(null_elements), null_elements);

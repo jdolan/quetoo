@@ -25,10 +25,10 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick);
-void G_ClientWeaponKick(g_entity_t *ent, const vec_t kick);
-void G_ClientEndFrame(g_entity_t *ent);
-void G_EndClientFrames(void);
+	void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick);
+	void G_ClientWeaponKick(g_entity_t *ent, const vec_t kick);
+	void G_ClientEndFrame(g_entity_t *ent);
+	void G_EndClientFrames(void);
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_CLIENT_VIEW_H__ */

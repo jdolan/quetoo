@@ -68,10 +68,11 @@ size_t Cm_ClusterPVS(const int32_t cluster, byte *pvs) {
 
 	const size_t len = (cm_vis->num_clusters + 7) >> 3;
 
-	if (cluster == -1)
+	if (cluster == -1) {
 		memset(pvs, 0, len);
-	else
+	} else {
 		Cm_DecompressVis(cm_bsp.visibility + cm_vis->bit_offsets[cluster][DVIS_PVS], pvs);
+	}
 
 	return len;
 }
@@ -83,10 +84,11 @@ size_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
 
 	const size_t len = (cm_vis->num_clusters + 7) >> 3;
 
-	if (cluster == -1)
+	if (cluster == -1) {
 		memset(phs, 0, len);
-	else
+	} else {
 		Cm_DecompressVis(cm_bsp.visibility + cm_vis->bit_offsets[cluster][DVIS_PHS], phs);
+	}
 
 	return len;
 }
@@ -97,8 +99,9 @@ size_t Cm_ClusterPHS(const int32_t cluster, byte *phs) {
 static void Cm_FloodArea(cm_bsp_area_t *area, int32_t flood_num) {
 
 	if (area->flood_valid == cm_bsp.flood_valid) {
-		if (area->flood_num == flood_num)
+		if (area->flood_num == flood_num) {
 			return;
+		}
 
 		Com_Error(ERR_DROP, "Re-flooded\n");
 	}
@@ -128,8 +131,9 @@ void Cm_FloodAreas(void) {
 	for (int32_t i = flood_num = 1; i < cm_bsp.num_areas; i++) {
 		cm_bsp_area_t *area = &cm_bsp.areas[i];
 
-		if (area->flood_valid == cm_bsp.flood_valid)
-			continue; // already flooded into
+		if (area->flood_valid == cm_bsp.flood_valid) {
+			continue;    // already flooded into
+		}
 
 		Cm_FloodArea(area, flood_num++);
 	}
@@ -155,15 +159,17 @@ void Cm_SetAreaPortalState(const int32_t portal_num, const _Bool open) {
  */
 _Bool Cm_AreasConnected(const int32_t area1, const int32_t area2) {
 
-	if (cm_no_areas)
+	if (cm_no_areas) {
 		return true;
+	}
 
 	if (area1 > cm_bsp.num_areas || area2 > cm_bsp.num_areas) {
 		Com_Error(ERR_DROP, "Area %d > cm.num_areas\n", area1 > area2 ? area1 : area2);
 	}
 
-	if (cm_bsp.areas[area1].flood_num == cm_bsp.areas[area2].flood_num)
+	if (cm_bsp.areas[area1].flood_num == cm_bsp.areas[area2].flood_num) {
 		return true;
+	}
 
 	return false;
 }
@@ -205,19 +211,22 @@ _Bool Cm_HeadnodeVisible(const int32_t node_num, const byte *vis) {
 		const int32_t leaf_num = -1 - node_num;
 		const int32_t cluster = cm_bsp.leafs[leaf_num].cluster;
 
-		if (cluster == -1)
+		if (cluster == -1) {
 			return false;
+		}
 
-		if (vis[cluster >> 3] & (1 << (cluster & 7)))
+		if (vis[cluster >> 3] & (1 << (cluster & 7))) {
 			return true;
+		}
 
 		return false;
 	}
 
 	node = &cm_bsp.nodes[node_num];
 
-	if (Cm_HeadnodeVisible(node->children[0], vis))
+	if (Cm_HeadnodeVisible(node->children[0], vis)) {
 		return true;
+	}
 
 	return Cm_HeadnodeVisible(node->children[1], vis);
 }

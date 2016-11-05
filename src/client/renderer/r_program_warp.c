@@ -42,7 +42,7 @@ static r_warp_program_t r_warp_program;
  * @brief
  */
 void R_PreLink_warp(const r_program_t *program) {
-	
+
 	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
 	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_TEX_DIFFUSE);
 }
@@ -62,7 +62,7 @@ void R_InitProgram_warp(r_program_t *program) {
 	R_ProgramVariable(&p->sampler1, R_SAMPLER_2D, "SAMPLER1");
 
 	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
-	
+
 	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
 	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
 	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR");
@@ -99,22 +99,21 @@ void R_UseFog_warp(const r_fog_parameters_t *fog) {
 
 	r_warp_program_t *p = &r_warp_program;
 
-	if (fog && fog->density)
-	{
+	if (fog && fog->density) {
 		R_ProgramParameter1f(&p->fog.density, fog->density);
 		R_ProgramParameter1f(&p->fog.start, fog->start);
 		R_ProgramParameter1f(&p->fog.end, fog->end);
 		R_ProgramParameter3fv(&p->fog.color, fog->color);
-	}
-	else
+	} else {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
+	}
 }
 
 /**
  * @brief
  */
 void R_UseMatrices_warp(const matrix4x4_t *matrices) {
-	
+
 	r_warp_program_t *p = &r_warp_program;
 
 	R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) matrices[R_MATRIX_PROJECTION].m);
@@ -129,8 +128,9 @@ void R_UseCurrentColor_warp(const vec4_t color) {
 	r_warp_program_t *p = &r_warp_program;
 	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
-	if (color)
+	if (color) {
 		R_ProgramParameter4fv(&p->current_color, color);
-	else
+	} else {
 		R_ProgramParameter4fv(&p->current_color, white);
+	}
 }

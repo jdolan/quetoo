@@ -59,7 +59,7 @@ static void didEndEditing(TextView *textView) {
  * @memberof CvarTextView
  */
 static CvarTextView *initWithVariable(CvarTextView *self, cvar_t *var) {
-	
+
 	self = (CvarTextView *) super(TextView, self, initWithFrame, NULL, ControlStyleDefault);
 	if (self) {
 
@@ -70,7 +70,7 @@ static CvarTextView *initWithVariable(CvarTextView *self, cvar_t *var) {
 
 		$((View *) self, updateBindings);
 	}
-	
+
 	return self;
 }
 

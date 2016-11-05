@@ -38,14 +38,15 @@ static void G_ClientDamage(g_entity_t *ent) {
 
 			client->locals.pain_time = g_level.time + 700;
 
-			if (ent->locals.health < 25)
+			if (ent->locals.health < 25) {
 				l = 25;
-			else if (ent->locals.health < 50)
+			} else if (ent->locals.health < 50) {
 				l = 50;
-			else if (ent->locals.health < 75)
+			} else if (ent->locals.health < 75) {
 				l = 75;
-			else
+			} else {
 				l = 100;
+			}
 
 			UnpackVector(client->ps.pm_state.view_offset, org);
 			VectorAdd(client->ps.pm_state.origin, org, org);
@@ -75,12 +76,14 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	const uint8_t old_water_level = ent->locals.old_water_level;
 
 	// if just entered a water volume, play a sound
-	if (!old_water_level && water_level)
+	if (!old_water_level && water_level) {
 		gi.Sound(ent, g_media.sounds.water_in, ATTEN_NORM);
+	}
 
 	// completely exited the water
-	if (old_water_level && !water_level)
+	if (old_water_level && !water_level) {
 		gi.Sound(ent, g_media.sounds.water_out, ATTEN_NORM);
+	}
 
 	if (ent->locals.dead == false) { // if we're alive, we can drown
 
@@ -105,14 +108,16 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 				// take more damage the longer under water
 				ent->locals.damage += 2;
 
-				if (ent->locals.damage > 12)
+				if (ent->locals.damage > 12) {
 					ent->locals.damage = 12;
+				}
 
 				// play a gurp sound instead of a normal pain sound
-				if (ent->locals.health <= ent->locals.damage)
+				if (ent->locals.health <= ent->locals.damage) {
 					ent->s.event = EV_CLIENT_DROWN;
-				else
+				} else {
 					ent->s.event = EV_CLIENT_GURP;
+				}
 
 				// suppress normal pain sound
 				client->locals.pain_time = g_level.time;
@@ -139,12 +144,12 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 
 			if (ent->locals.water_type & CONTENTS_LAVA) {
 				G_Damage(ent, NULL, NULL, NULL, NULL, NULL, 12 * water_level, 0, DMG_NO_ARMOR,
-						MOD_LAVA);
+				         MOD_LAVA);
 			}
 
 			if (ent->locals.water_type & CONTENTS_SLIME) {
 				G_Damage(ent, NULL, NULL, NULL, NULL, NULL, 6 * water_level, 0, DMG_NO_ARMOR,
-						MOD_SLIME);
+				         MOD_SLIME);
 			}
 		}
 	}
@@ -158,8 +163,9 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
  */
 static void G_ClientWorldAngles(g_entity_t *ent) {
 
-	if (ent->locals.dead) // just lay there like a lump
+	if (ent->locals.dead) { // just lay there like a lump
 		return;
+	}
 
 	ent->s.angles[PITCH] = ent->client->locals.angles[PITCH] / 3.0;
 	ent->s.angles[YAW] = ent->client->locals.angles[YAW];
@@ -231,8 +237,9 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 	// un-clamp them so that we can work with small signed values near zero
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (kick[i] > 180.0)
+		if (kick[i] > 180.0) {
 			kick[i] -= 360.0;
+		}
 	}
 
 	// add in any event-based feedback
@@ -263,8 +270,9 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 
 	vec_t delta = VectorLength(kick);
 
-	if (!delta) // no kick, we're done
+	if (!delta) { // no kick, we're done
 		return;
+	}
 
 	// we recover from kick at a rate based on the kick itself
 
@@ -292,8 +300,9 @@ static void G_ClientKickAngles(g_entity_t *ent) {
  */
 static void G_ClientAnimation(g_entity_t *ent) {
 
-	if (ent->s.model1 != MODEL_CLIENT)
+	if (ent->s.model1 != MODEL_CLIENT) {
 		return;
+	}
 
 	// corpses animate to their final resting place
 
@@ -339,8 +348,9 @@ static void G_ClientAnimation(g_entity_t *ent) {
 		_Bool jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
 		jumping |= G_IsAnimation(ent, ANIM_LEGS_JUMP2);
 
-		if (!jumping)
+		if (!jumping) {
 			G_SetAnimation(ent, ANIM_LEGS_JUMP1, false);
+		}
 
 		return;
 	}
@@ -350,10 +360,11 @@ static void G_ClientAnimation(g_entity_t *ent) {
 	if (g_level.time - 400 > cl->land_time && g_level.time - 50 > cl->ground_time) {
 
 		if (ent->client->ps.pm_state.flags & PMF_DUCKED) { // ducked
-			if (cl->speed < 1.0)
+			if (cl->speed < 1.0) {
 				G_SetAnimation(ent, ANIM_LEGS_IDLECR, false);
-			else
+			} else {
 				G_SetAnimation(ent, ANIM_LEGS_WALKCR, false);
+			}
 
 			return;
 		}
@@ -368,12 +379,13 @@ static void G_ClientAnimation(g_entity_t *ent) {
 		VectorSet(angles, 0.0, ent->s.angles[YAW], 0.0);
 		AngleVectors(angles, forward, NULL, NULL);
 
-		if (DotProduct(ent->locals.velocity, forward) < -0.1)
+		if (DotProduct(ent->locals.velocity, forward) < -0.1) {
 			G_SetAnimation(ent, ANIM_LEGS_BACK, false);
-		else if (cl->speed < 200.0)
+		} else if (cl->speed < 200.0) {
 			G_SetAnimation(ent, ANIM_LEGS_WALK, false);
-		else
+		} else {
 			G_SetAnimation(ent, ANIM_LEGS_RUN, false);
+		}
 
 		return;
 	}
@@ -403,10 +415,11 @@ void G_ClientEndFrame(g_entity_t *ent) {
 	}
 
 	// set the stats for this client
-	if (ent->client->locals.persistent.spectator)
+	if (ent->client->locals.persistent.spectator) {
 		G_ClientSpectatorStats(ent);
-	else
+	} else {
 		G_ClientStats(ent);
+	}
 
 	// check for water entry / exit, burn from lava, slime, etc
 	G_ClientWaterInteraction(ent);
@@ -424,8 +437,9 @@ void G_ClientEndFrame(g_entity_t *ent) {
 	G_ClientAnimation(ent);
 
 	// if the scoreboard is up, update it
-	if (ent->client->locals.show_scores)
+	if (ent->client->locals.show_scores) {
 		G_ClientScores(ent);
+	}
 }
 
 /**
@@ -438,8 +452,9 @@ void G_EndClientFrames(void) {
 
 		g_entity_t *ent = g_game.entities + 1 + i;
 
-		if (!ent->in_use || !ent->client)
+		if (!ent->in_use || !ent->client) {
 			continue;
+		}
 
 		G_ClientEndFrame(ent);
 	}

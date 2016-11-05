@@ -212,8 +212,9 @@ int32_t AAS_Main(void) {
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
 	Com_Print("\nAAS Time: ");
-	if (duration > 59)
+	if (duration > 59) {
 		Com_Print("%d Minutes ", (int32_t) (duration / 60));
+	}
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	return 0;

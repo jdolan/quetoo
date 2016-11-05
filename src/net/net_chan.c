@@ -149,7 +149,7 @@ static _Bool Netchan_CheckRetransmit(net_chan_t *chan) {
 
 	// if the remote side dropped the last reliable message, re-send it
 	if (chan->incoming_acknowledged > chan->reliable_outgoing && chan->reliable_acknowledged
-			!= chan->reliable_sequence) {
+	        != chan->reliable_sequence) {
 		return true;
 	}
 
@@ -196,8 +196,9 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 	Net_WriteLong(&send, w2);
 
 	// send the qport if we are a client
-	if (chan->source == NS_UDP_CLIENT)
+	if (chan->source == NS_UDP_CLIENT) {
 		Net_WriteByte(&send, chan->qport);
+	}
 
 	// copy the reliable message to the packet first
 	if (send_reliable) {
@@ -206,10 +207,11 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 	}
 
 	// add the unreliable part if space is available
-	if (send.max_size - send.size >= len)
+	if (send.max_size - send.size >= len) {
 		Mem_WriteBuffer(&send, data, len);
-	else
+	} else {
 		Com_Warn("Netchan_Transmit: dumped unreliable\n");
+	}
 
 	// send the datagram
 	Net_SendDatagram(chan->source, &chan->remote_address, send.data, send.size);
@@ -217,11 +219,11 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 	if (net_show_packets->value) {
 		if (send_reliable)
 			Com_Print("Send %u bytes: s=%i reliable=%i ack=%i rack=%i\n", (uint32_t) send.size,
-					chan->outgoing_sequence - 1, chan->reliable_sequence, chan->incoming_sequence,
-					chan->reliable_incoming);
+			          chan->outgoing_sequence - 1, chan->reliable_sequence, chan->incoming_sequence,
+			          chan->reliable_incoming);
 		else
 			Com_Print("Send %u bytes : s=%i ack=%i rack=%i\n", (uint32_t) send.size,
-					chan->outgoing_sequence - 1, chan->incoming_sequence, chan->reliable_incoming);
+			          chan->outgoing_sequence - 1, chan->incoming_sequence, chan->reliable_incoming);
 	}
 }
 
@@ -240,8 +242,9 @@ _Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
 	sequence_ack = Net_ReadLong(msg);
 
 	// read the qport if we are a server
-	if (chan->source == NS_UDP_SERVER)
+	if (chan->source == NS_UDP_SERVER) {
 		Net_ReadByte(msg);
+	}
 
 	reliable_message = sequence >> 31;
 	reliable_ack = sequence_ack >> 31;
@@ -252,17 +255,17 @@ _Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
 	if (net_show_packets->value) {
 		if (reliable_message)
 			Com_Print("Recv %u bytes: s=%i reliable=%i ack=%i rack=%i\n", (uint32_t) msg->size,
-					sequence, chan->reliable_incoming ^ 1, sequence_ack, reliable_ack);
+			          sequence, chan->reliable_incoming ^ 1, sequence_ack, reliable_ack);
 		else
 			Com_Print("Recv %u bytes : s=%i ack=%i rack=%i\n", (uint32_t) msg->size, sequence,
-					sequence_ack, reliable_ack);
+			          sequence_ack, reliable_ack);
 	}
 
 	// discard stale or duplicated packets
 	if (sequence <= chan->incoming_sequence) {
 		if (net_show_drop->value)
 			Com_Print("%s:Out of order packet %i at %i\n",
-					Net_NetaddrToString(&chan->remote_address), sequence, chan->incoming_sequence);
+			          Net_NetaddrToString(&chan->remote_address), sequence, chan->incoming_sequence);
 		return false;
 	}
 
@@ -271,13 +274,14 @@ _Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
 	if (chan->dropped > 0) {
 		if (net_show_drop->value)
 			Com_Print("%s:Dropped %i packets at %i\n", Net_NetaddrToString(&chan->remote_address),
-					chan->dropped, sequence);
+			          chan->dropped, sequence);
 	}
 
 	// if the current outgoing reliable message has been acknowledged
 	// clear the buffer to make way for the next
-	if (reliable_ack == chan->reliable_sequence)
-		chan->reliable_size = 0; // it has been received
+	if (reliable_ack == chan->reliable_sequence) {
+		chan->reliable_size = 0;    // it has been received
+	}
 
 	// if this message contains a reliable message, bump reliable_incoming
 	chan->incoming_sequence = sequence;

@@ -29,8 +29,9 @@ int32_t Cm_SignBitsForPlane(const cm_bsp_plane_t *p) {
 	int32_t bits = 0;
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (p->normal[i] < 0.0)
+		if (p->normal[i] < 0.0) {
 			bits |= 1 << i;
+		}
 	}
 
 	return bits;
@@ -45,10 +46,12 @@ int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_pla
 
 	// axial planes
 	if (AXIAL(p)) {
-		if (p->dist - SIDE_EPSILON <= mins[p->type])
+		if (p->dist - SIDE_EPSILON <= mins[p->type]) {
 			return SIDE_FRONT;
-		if (p->dist + SIDE_EPSILON >= maxs[p->type])
+		}
+		if (p->dist + SIDE_EPSILON >= maxs[p->type]) {
 			return SIDE_BACK;
+		}
 		return SIDE_BOTH;
 	}
 
@@ -93,10 +96,12 @@ int32_t Cm_BoxOnPlaneSide(const vec3_t mins, const vec3_t maxs, const cm_bsp_pla
 
 	int32_t sides = 0;
 
-	if (dist1 >= p->dist)
+	if (dist1 >= p->dist) {
 		sides = SIDE_FRONT;
-	if (dist2 < p->dist)
+	}
+	if (dist2 < p->dist) {
 		sides |= SIDE_BACK;
+	}
 
 	return sides;
 }
@@ -122,23 +127,29 @@ static cm_box_t cm_box;
 void Cm_InitBoxHull(void) {
 	static cm_bsp_surface_t null_surface;
 
-	if (cm_bsp.num_planes + 12 > MAX_BSP_PLANES)
+	if (cm_bsp.num_planes + 12 > MAX_BSP_PLANES) {
 		Com_Error(ERR_DROP, "MAX_BSP_PLANES\n");
+	}
 
-	if (cm_bsp.num_nodes + 6 > MAX_BSP_NODES)
+	if (cm_bsp.num_nodes + 6 > MAX_BSP_NODES) {
 		Com_Error(ERR_DROP, "MAX_BSP_NODES\n");
+	}
 
-	if (cm_bsp.num_leafs + 1 > MAX_BSP_LEAFS)
+	if (cm_bsp.num_leafs + 1 > MAX_BSP_LEAFS) {
 		Com_Error(ERR_DROP, "MAX_BSP_LEAFS\n");
+	}
 
-	if (cm_bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES)
+	if (cm_bsp.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES) {
 		Com_Error(ERR_DROP, "MAX_BSP_LEAF_BRUSHES\n");
+	}
 
-	if (cm_bsp.num_brushes + 1 > MAX_BSP_BRUSHES)
+	if (cm_bsp.num_brushes + 1 > MAX_BSP_BRUSHES) {
 		Com_Error(ERR_DROP, "MAX_BSP_BRUSHES\n");
+	}
 
-	if (cm_bsp.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES)
+	if (cm_bsp.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES) {
 		Com_Error(ERR_DROP, "MAX_BSP_BRUSH_SIDES\n");
+	}
 
 	// head node
 	cm_box.head_node = cm_bsp.num_nodes;
@@ -184,10 +195,11 @@ void Cm_InitBoxHull(void) {
 		cm_bsp_node_t *node = &cm_bsp.nodes[cm_box.head_node + i];
 		node->plane = cm_bsp.planes + (cm_bsp.num_planes + i * 2);
 		node->children[side] = -1 - cm_bsp.num_leafs;
-		if (i != 5)
+		if (i != 5) {
 			node->children[side ^ 1] = cm_box.head_node + i + 1;
-		else
+		} else {
 			node->children[side ^ 1] = -1 - cm_bsp.num_leafs;
+		}
 
 		// fill in brush sides, one per side
 		cm_bsp_brush_side_t *bside = &cm_bsp.brush_sides[cm_bsp.num_brush_sides + i];
@@ -204,7 +216,7 @@ int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t conten
 
 	VectorCopy(mins, cm_box.brush->mins);
 	VectorCopy(maxs, cm_box.brush->maxs);
-	
+
 	cm_box.planes[0].dist = maxs[0];
 	cm_box.planes[1].dist = -maxs[0];
 	cm_box.planes[2].dist = mins[0];
@@ -233,15 +245,17 @@ static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
 		cm_bsp_plane_t *plane = node->plane;
 
 		vec_t d;
-		if (AXIAL(plane))
+		if (AXIAL(plane)) {
 			d = p[plane->type] - plane->dist;
-		else
+		} else {
 			d = DotProduct(plane->normal, p) - plane->dist;
+		}
 
-		if (d < 0.0)
+		if (d < 0.0) {
 			num = node->children[1];
-		else
+		} else {
 			num = node->children[0];
+		}
 	}
 
 	return -1 - num;
@@ -252,8 +266,9 @@ static int32_t Cm_PointLeafnum_r(const vec3_t p, int32_t num) {
  */
 int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
 
-	if (!cm_bsp.num_nodes)
+	if (!cm_bsp.num_nodes) {
 		return 0;
+	}
 
 	return Cm_PointLeafnum_r(p, head_node);
 }
@@ -268,8 +283,9 @@ int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
  */
 int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
 
-	if (!cm_bsp.num_nodes)
+	if (!cm_bsp.num_nodes) {
 		return 0;
+	}
 
 	const int32_t leaf_num = Cm_PointLeafnum(p, head_node);
 
@@ -325,13 +341,14 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 
 		const int32_t side = Cm_BoxOnPlaneSide(data->mins, data->maxs, plane);
 
-		if (side == SIDE_FRONT)
+		if (side == SIDE_FRONT) {
 			node_num = node->children[0];
-		else if (side == SIDE_BACK)
+		} else if (side == SIDE_BACK) {
 			node_num = node->children[1];
-		else { // go down both
-			if (data->top_node == -1)
+		} else { // go down both
+			if (data->top_node == -1) {
 				data->top_node = node_num;
+			}
 			Cm_BoxLeafnums_r(data, node->children[0]);
 			node_num = node->children[1];
 		}
@@ -353,7 +370,7 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
  * @return The number of leafs accumulated to the list.
  */
 size_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len,
-		int32_t *top_node, int32_t head_node) {
+                      int32_t *top_node, int32_t head_node) {
 
 	cm_box_leafnum_data data;
 
@@ -366,11 +383,12 @@ size_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_
 
 	Cm_BoxLeafnums_r(&data, head_node);
 
-	if (top_node)
+	if (top_node) {
 		*top_node = data.top_node;
+	}
 
 	if (data.len == data.max_len) {
-		 Com_Debug("max_len (%zd) reached\n", data.max_len);
+		Com_Debug("max_len (%zd) reached\n", data.max_len);
 	}
 
 	return data.len;

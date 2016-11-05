@@ -126,8 +126,9 @@ static void ProcessBlock_Thread(int32_t blocknum) {
 		return;
 	}
 
-	if (!nocsg)
+	if (!nocsg) {
 		brushes = ChopBrushes(brushes);
+	}
 
 	tree = BrushBSP(brushes, mins, maxs);
 
@@ -151,29 +152,37 @@ static void ProcessWorldModel(void) {
 	leaked = false;
 
 	// perform per-block operations
-	if (block_xh * 1024 > map_maxs[0])
+	if (block_xh * 1024 > map_maxs[0]) {
 		block_xh = floor(map_maxs[0] / 1024.0);
-	if ((block_xl + 1) * 1024 < map_mins[0])
+	}
+	if ((block_xl + 1) * 1024 < map_mins[0]) {
 		block_xl = floor(map_mins[0] / 1024.0);
-	if (block_yh * 1024 > map_maxs[1])
+	}
+	if (block_yh * 1024 > map_maxs[1]) {
 		block_yh = floor(map_maxs[1] / 1024.0);
-	if ((block_yl + 1) * 1024 < map_mins[1])
+	}
+	if ((block_yl + 1) * 1024 < map_mins[1]) {
 		block_yl = floor(map_mins[1] / 1024.0);
+	}
 
-	if (block_xl < -4)
+	if (block_xl < -4) {
 		block_xl = -4;
-	if (block_yl < -4)
+	}
+	if (block_yl < -4) {
 		block_yl = -4;
-	if (block_xh > 3)
+	}
+	if (block_xh > 3) {
 		block_xh = 3;
-	if (block_yh > 3)
+	}
+	if (block_yh > 3) {
 		block_yh = 3;
+	}
 
 	for (optimize = 0; optimize <= 1; optimize++) {
 		Com_Verbose("--------------------------------------------\n");
 
 		RunThreadsOn((block_xh - block_xl + 1) * (block_yh - block_yl + 1), !verbose,
-				ProcessBlock_Thread);
+		             ProcessBlock_Thread);
 
 		// build the division tree
 		// oversizing the blocks guarantees that all the boundaries
@@ -195,9 +204,9 @@ static void ProcessWorldModel(void) {
 		// perform the global operations
 		MakeTreePortals(tree);
 
-		if (FloodEntities(tree))
+		if (FloodEntities(tree)) {
 			FillOutside(tree->head_node);
-		else {
+		} else {
 			leaked = true;
 			LeakFile(tree);
 
@@ -208,8 +217,9 @@ static void ProcessWorldModel(void) {
 		}
 
 		MarkVisibleSides(tree, brush_start, brush_end);
-		if (noopt || leaked)
+		if (noopt || leaked) {
 			break;
+		}
 		if (!optimize) {
 			FreeTree(tree);
 		}
@@ -219,13 +229,15 @@ static void ProcessWorldModel(void) {
 	MakeFaces(tree->head_node);
 	FixTjuncs(tree->head_node);
 
-	if (!noprune)
+	if (!noprune) {
 		PruneNodes(tree->head_node);
+	}
 
 	WriteBSP(tree->head_node);
 
-	if (!leaked)
+	if (!leaked) {
 		WritePortalFile(tree);
+	}
 
 	FreeTree(tree);
 }
@@ -248,8 +260,9 @@ static void ProcessSubModel(void) {
 	mins[0] = mins[1] = mins[2] = MIN_WORLD_COORD;
 	maxs[0] = maxs[1] = maxs[2] = MAX_WORLD_COORD;
 	list = MakeBspBrushList(start, end, mins, maxs);
-	if (!nocsg)
+	if (!nocsg) {
 		list = ChopBrushes(list);
+	}
 	tree = BrushBSP(list, mins, maxs);
 	MakeTreePortals(tree);
 	MarkVisibleSides(tree, start, end);
@@ -266,15 +279,17 @@ static void ProcessModels(void) {
 	BeginBSPFile();
 
 	for (entity_num = 0; entity_num < num_entities; entity_num++) {
-		if (!entities[entity_num].num_brushes)
+		if (!entities[entity_num].num_brushes) {
 			continue;
+		}
 
 		Com_Verbose("############### model %i ###############\n", d_bsp.num_models);
 		BeginModel();
-		if (entity_num == 0)
+		if (entity_num == 0) {
 			ProcessWorldModel();
-		else
+		} else {
 			ProcessSubModel();
+		}
 		EndModel();
 	}
 
@@ -323,8 +338,9 @@ int32_t BSP_Main(void) {
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
 	Com_Print("\nBSP Time: ");
-	if (duration > 59)
+	if (duration > 59) {
 		Com_Print("%d Minutes ", (int32_t) (duration / 60));
+	}
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	return 0;

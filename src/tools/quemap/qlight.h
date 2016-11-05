@@ -27,9 +27,9 @@
 #include "collision/cmodel.h"
 
 typedef enum {
-    LIGHT_POINT,
-    LIGHT_SPOT,
-    LIGHT_FACE,
+	LIGHT_POINT,
+	LIGHT_SPOT,
+	LIGHT_FACE,
 } light_type_t;
 
 typedef struct patch_s {

@@ -102,10 +102,11 @@ static void Pm_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, ve
 
 	vec_t backoff = DotProduct(in, normal);
 
-	if (backoff < 0.0)
+	if (backoff < 0.0) {
 		backoff *= bounce;
-	else
+	} else {
 		backoff /= bounce;
+	}
 
 	for (int32_t i = 0; i < 3; i++) {
 
@@ -178,8 +179,9 @@ static _Bool Pm_SlideMove(void) {
 	for (bump = 0; bump < num_bumps; bump++) {
 		vec3_t pos;
 
-		if (time_remaining <= 0.0) // out of time
+		if (time_remaining <= 0.0) { // out of time
 			break;
+		}
 
 		// project desired destination
 		VectorMA(pm->s.origin, time_remaining, pm->s.velocity, pos);
@@ -199,8 +201,9 @@ static _Bool Pm_SlideMove(void) {
 			VectorCopy(trace.end, pm->s.origin);
 
 			// if the trace didn't hit anything, we're done
-			if (trace.fraction == 1.0)
+			if (trace.fraction == 1.0) {
 				break;
+			}
 
 			// update the movement time remaining
 			time_remaining -= (time_remaining * trace.fraction);
@@ -508,13 +511,15 @@ static void Pm_Accelerate(vec3_t dir, vec_t speed, vec_t accel) {
 	const vec_t current_speed = DotProduct(pm->s.velocity, dir);
 	const vec_t add_speed = speed - current_speed;
 
-	if (add_speed <= 0.0)
+	if (add_speed <= 0.0) {
 		return;
+	}
 
 	vec_t accel_speed = accel * pml.time * speed;
 
-	if (accel_speed > add_speed)
+	if (accel_speed > add_speed) {
 		accel_speed = add_speed;
+	}
 
 	VectorMA(pm->s.velocity, accel_speed, dir, pm->s.velocity);
 }
@@ -542,34 +547,46 @@ static void Pm_Currents(vec3_t vel) {
 
 	// add water currents
 	if (pm->water_level) {
-		if (pm->water_type & CONTENTS_CURRENT_0)
+		if (pm->water_type & CONTENTS_CURRENT_0) {
 			current[0] += 1.0;
-		if (pm->water_type & CONTENTS_CURRENT_90)
+		}
+		if (pm->water_type & CONTENTS_CURRENT_90) {
 			current[1] += 1.0;
-		if (pm->water_type & CONTENTS_CURRENT_180)
+		}
+		if (pm->water_type & CONTENTS_CURRENT_180) {
 			current[0] -= 1.0;
-		if (pm->water_type & CONTENTS_CURRENT_270)
+		}
+		if (pm->water_type & CONTENTS_CURRENT_270) {
 			current[1] -= 1.0;
-		if (pm->water_type & CONTENTS_CURRENT_UP)
+		}
+		if (pm->water_type & CONTENTS_CURRENT_UP) {
 			current[2] += 1.0;
-		if (pm->water_type & CONTENTS_CURRENT_DOWN)
+		}
+		if (pm->water_type & CONTENTS_CURRENT_DOWN) {
 			current[2] -= 1.0;
+		}
 	}
 
 	// add conveyer belt velocities
 	if (pm->ground_entity) {
-		if (pml.ground_contents & CONTENTS_CURRENT_0)
+		if (pml.ground_contents & CONTENTS_CURRENT_0) {
 			current[0] += 1.0;
-		if (pml.ground_contents & CONTENTS_CURRENT_90)
+		}
+		if (pml.ground_contents & CONTENTS_CURRENT_90) {
 			current[1] += 1.0;
-		if (pml.ground_contents & CONTENTS_CURRENT_180)
+		}
+		if (pml.ground_contents & CONTENTS_CURRENT_180) {
 			current[0] -= 1.0;
-		if (pml.ground_contents & CONTENTS_CURRENT_270)
+		}
+		if (pml.ground_contents & CONTENTS_CURRENT_270) {
 			current[1] -= 1.0;
-		if (pml.ground_contents & CONTENTS_CURRENT_UP)
+		}
+		if (pml.ground_contents & CONTENTS_CURRENT_UP) {
 			current[2] += 1.0;
-		if (pml.ground_contents & CONTENTS_CURRENT_DOWN)
+		}
+		if (pml.ground_contents & CONTENTS_CURRENT_DOWN) {
 			current[2] -= 1.0;
+		}
 	}
 
 	VectorMA(vel, PM_SPEED_CURRENT, current, vel);
@@ -581,20 +598,25 @@ static void Pm_Currents(vec3_t vel) {
  */
 static _Bool Pm_CheckTrickJump(void) {
 
-	if (pm->ground_entity)
+	if (pm->ground_entity) {
 		return false;
+	}
 
-	if (pml.previous_velocity[2] < PM_SPEED_UP)
+	if (pml.previous_velocity[2] < PM_SPEED_UP) {
 		return false;
+	}
 
-	if (pm->cmd.up < 1)
+	if (pm->cmd.up < 1) {
 		return false;
+	}
 
-	if (pm->s.flags & PMF_JUMP_HELD)
+	if (pm->s.flags & PMF_JUMP_HELD) {
 		return false;
+	}
 
-	if (pm->s.flags & PMF_TIME_MASK)
+	if (pm->s.flags & PMF_TIME_MASK) {
 		return false;
+	}
 
 	return true;
 }
@@ -770,22 +792,26 @@ static void Pm_CheckDuck(void) {
 		if (pm->s.flags & PMF_DUCKED) { // ducked, reduce height
 			vec_t target = pm->mins[2] + height * 0.5;
 
-			if (pml.view_offset[2] > target) // go down
+			if (pml.view_offset[2] > target) { // go down
 				pml.view_offset[2] -= pml.time * PM_SPEED_DUCK_STAND;
+			}
 
-			if (pml.view_offset[2] < target)
+			if (pml.view_offset[2] < target) {
 				pml.view_offset[2] = target;
+			}
 
 			// change the bounding box to reflect ducking
 			pm->maxs[2] = pm->maxs[2] + pm->mins[2] * 0.5;
 		} else {
 			const vec_t target = pm->mins[2] + height * 0.9;
 
-			if (pml.view_offset[2] < target) // go up
+			if (pml.view_offset[2] < target) { // go up
 				pml.view_offset[2] += pml.time * PM_SPEED_DUCK_STAND;
+			}
 
-			if (pml.view_offset[2] > target)
+			if (pml.view_offset[2] > target) {
 				pml.view_offset[2] = target;
+			}
 		}
 	}
 
@@ -800,16 +826,19 @@ static void Pm_CheckDuck(void) {
 static _Bool Pm_CheckJump(void) {
 
 	// must wait for landing damage to subside
-	if (pm->s.flags & PMF_TIME_LAND)
+	if (pm->s.flags & PMF_TIME_LAND) {
 		return false;
+	}
 
 	// must wait for jump key to be released
-	if (pm->s.flags & PMF_JUMP_HELD)
+	if (pm->s.flags & PMF_JUMP_HELD) {
 		return false;
+	}
 
 	// didn't ask to jump
-	if (pm->cmd.up < 1)
+	if (pm->cmd.up < 1) {
 		return false;
+	}
 
 	// finally, do the jump
 	vec_t jump = PM_SPEED_JUMP;
@@ -855,8 +884,9 @@ static _Bool Pm_CheckJump(void) {
 static void Pm_CheckLadder(void) {
 	vec3_t forward, pos;
 
-	if (pm->s.flags & PMF_TIME_MASK)
+	if (pm->s.flags & PMF_TIME_MASK) {
 		return;
+	}
 
 	VectorCopy(pml.forward, forward);
 	forward[2] = 0.0;
@@ -884,14 +914,17 @@ static void Pm_CheckLadder(void) {
 static _Bool Pm_CheckWaterJump(void) {
 	vec3_t pos, pos2;
 
-	if (pm->s.flags & PMF_TIME_WATER_JUMP)
+	if (pm->s.flags & PMF_TIME_WATER_JUMP) {
 		return false;
+	}
 
-	if (pm->water_level != 2)
+	if (pm->water_level != 2) {
 		return false;
+	}
 
-	if (pm->cmd.up < 1 && pm->cmd.forward < 1)
+	if (pm->cmd.up < 1 && pm->cmd.forward < 1) {
 		return false;
+	}
 
 	VectorMA(pm->s.origin, 16.0, pml.forward, pos);
 
@@ -978,8 +1011,9 @@ static void Pm_LadderMove(void) {
 
 	speed = Clamp(speed, 0.0, PM_SPEED_LADDER);
 
-	if (speed < PM_STOP_EPSILON)
+	if (speed < PM_STOP_EPSILON) {
 		speed = 0.0;
+	}
 
 	Pm_Accelerate(dir, speed, PM_ACCEL_LADDER);
 
@@ -1077,8 +1111,9 @@ static void Pm_WaterMove(void) {
 
 	speed = Clamp(speed, 0, PM_SPEED_WATER);
 
-	if (speed < PM_STOP_EPSILON)
+	if (speed < PM_STOP_EPSILON) {
 		speed = 0.0;
+	}
 
 	Pm_Accelerate(dir, speed, PM_ACCEL_WATER);
 
@@ -1115,8 +1150,9 @@ static void Pm_AirMove(void) {
 
 	speed = Clamp(speed, 0.0, PM_SPEED_AIR);
 
-	if (speed < PM_STOP_EPSILON)
+	if (speed < PM_STOP_EPSILON) {
 		speed = 0.0;
+	}
 
 	Pm_Accelerate(dir, speed, PM_ACCEL_AIR);
 
@@ -1142,13 +1178,13 @@ static void Pm_WalkMove(void) {
 //	Pm_Debug("%s\n", vtos(pm->s.origin));
 
 	Pm_Friction();
-	
+
 	// project the desired movement into the X/Y plane
 	VectorCopy(pm->angles, angles);
 	angles[PITCH] = 0.0;
-	
+
 	AngleVectors(angles, pml.forward, pml.right, NULL);
-	
+
 	Pm_ClipVelocity(pml.forward, pml.ground_plane.normal, pml.forward, PM_CLIP_BOUNCE);
 	Pm_ClipVelocity(pml.right, pml.ground_plane.normal, pml.right, PM_CLIP_BOUNCE);
 
@@ -1181,8 +1217,9 @@ static void Pm_WalkMove(void) {
 	// clamp the speed to min/max speed
 	speed = Clamp(speed, 0.0, max_speed);
 
-	if (speed < PM_STOP_EPSILON)
+	if (speed < PM_STOP_EPSILON) {
 		speed = 0.0;
+	}
 
 	// accelerate based on slickness of ground surface
 	accel = (pml.ground_surface->flags & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
@@ -1253,8 +1290,9 @@ static void Pm_SpectatorMove() {
 	vec_t speed = VectorNormalize(vel);
 	speed = Clamp(speed, 0.0, PM_SPEED_SPECTATOR);
 
-	if (speed < PM_STOP_EPSILON)
+	if (speed < PM_STOP_EPSILON) {
 		speed = 0.0;
+	}
 
 	// accelerate
 	Pm_Accelerate(vel, speed, PM_ACCEL_SPECTATOR);
@@ -1278,8 +1316,7 @@ static void Pm_Init(void) {
 			VectorScale(PM_DEAD_MINS, PM_SCALE, pm->mins);
 			VectorScale(PM_DEAD_MAXS, PM_SCALE, pm->maxs);
 		}
-	}
-	else {
+	} else {
 		VectorScale(PM_MINS, PM_SCALE, pm->mins);
 		VectorScale(PM_MAXS, PM_SCALE, pm->maxs);
 	}

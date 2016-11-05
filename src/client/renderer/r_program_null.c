@@ -42,7 +42,7 @@ static r_null_program_t r_null_program;
  * @brief
  */
 void R_PreLink_null(const r_program_t *program) {
-	
+
 	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
 	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
 	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_TEX_DIFFUSE);
@@ -60,9 +60,9 @@ void R_InitProgram_null(r_program_t *program) {
 	R_ProgramVariable(&program->attributes[R_ARRAY_VERTEX], R_ATTRIBUTE, "POSITION");
 	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR");
 	R_ProgramVariable(&program->attributes[R_ARRAY_TEX_DIFFUSE], R_ATTRIBUTE, "TEXCOORD");
-	
+
 	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_VERTEX], R_ATTRIBUTE, "NEXT_POSITION");
-	
+
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0");
 
 	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
@@ -75,7 +75,7 @@ void R_InitProgram_null(r_program_t *program) {
 	R_ProgramVariable(&p->texture_mat, R_UNIFORM_MAT4, "TEXTURE_MAT");
 
 	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
-	
+
 	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION");
 
 	R_ProgramParameter1i(&p->sampler0, 0);
@@ -95,15 +95,14 @@ void R_UseFog_null(const r_fog_parameters_t *fog) {
 
 	r_null_program_t *p = &r_null_program;
 
-	if (fog && fog->density)
-	{
+	if (fog && fog->density) {
 		R_ProgramParameter1f(&p->fog.density, fog->density);
 		R_ProgramParameter1f(&p->fog.start, fog->start);
 		R_ProgramParameter1f(&p->fog.end, fog->end);
 		R_ProgramParameter3fv(&p->fog.color, fog->color);
-	}
-	else
+	} else {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
+	}
 }
 
 /**
@@ -126,10 +125,11 @@ void R_UseCurrentColor_null(const vec4_t color) {
 	r_null_program_t *p = &r_null_program;
 	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
-	if (color && r_state.color_array_enabled)
+	if (color && r_state.color_array_enabled) {
 		R_ProgramParameter4fv(&p->current_color, color);
-	else
+	} else {
 		R_ProgramParameter4fv(&p->current_color, white);
+	}
 }
 
 /**

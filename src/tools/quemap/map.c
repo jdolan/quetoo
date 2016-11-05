@@ -49,21 +49,26 @@ static int32_t c_clip_brushes;
  */
 static int32_t PlaneTypeForNormal(const vec3_t normal) {
 
-	if (normal[0] == 1.0 || normal[0] == -1.0)
+	if (normal[0] == 1.0 || normal[0] == -1.0) {
 		return PLANE_X;
-	if (normal[1] == 1.0 || normal[1] == -1.0)
+	}
+	if (normal[1] == 1.0 || normal[1] == -1.0) {
 		return PLANE_Y;
-	if (normal[2] == 1.0 || normal[2] == -1.0)
+	}
+	if (normal[2] == 1.0 || normal[2] == -1.0) {
 		return PLANE_Z;
+	}
 
 	const vec_t ax = fabs(normal[0]);
 	const vec_t ay = fabs(normal[1]);
 	const vec_t az = fabs(normal[2]);
 
-	if (ax >= ay && ax >= az)
+	if (ax >= ay && ax >= az) {
 		return PLANE_ANY_X;
-	if (ay >= ax && ay >= az)
+	}
+	if (ay >= ax && ay >= az) {
 		return PLANE_ANY_Y;
+	}
 	return PLANE_ANY_Z;
 }
 
@@ -73,15 +78,15 @@ static int32_t PlaneTypeForNormal(const vec3_t normal) {
 /**
  * @brief
  */
-static _Bool PlaneEqual(const map_plane_t * p, const vec3_t normal, const dvec_t dist) {
+static _Bool PlaneEqual(const map_plane_t *p, const vec3_t normal, const dvec_t dist) {
 
 	const vec_t ne = NORMAL_EPSILON;
 	const dvec_t de = DIST_EPSILON;
 
 	if ((p->dist == dist || fabsl(p->dist - dist) < de) && (p->normal[0] == normal[0] || fabs(
-			p->normal[0] - normal[0]) < ne) && (p->normal[1] == normal[1] || fabs(
-			p->normal[1] - normal[1]) < ne) && (p->normal[2] == normal[2] || fabs(
-			p->normal[2] - normal[2]) < ne)) {
+	            p->normal[0] - normal[0]) < ne) && (p->normal[1] == normal[1] || fabs(
+	                        p->normal[1] - normal[1]) < ne) && (p->normal[2] == normal[2] || fabs(
+	                                    p->normal[2] - normal[2]) < ne)) {
 		return true;
 	}
 
@@ -91,7 +96,7 @@ static _Bool PlaneEqual(const map_plane_t * p, const vec3_t normal, const dvec_t
 /**
  * @brief
  */
-static inline void AddPlaneToHash(map_plane_t * p) {
+static inline void AddPlaneToHash(map_plane_t *p) {
 
 	const uint16_t hash = ((uint32_t) fabs(p->dist)) & (PLANE_HASHES - 1);
 
@@ -106,12 +111,14 @@ static int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist) {
 	map_plane_t *p, temp;
 
 	// bad plane
-	if (VectorLength(normal) < 0.5)
+	if (VectorLength(normal) < 0.5) {
 		return -1;
+	}
 
 	// create a new plane
-	if (num_map_planes + 2 > MAX_BSP_PLANES)
+	if (num_map_planes + 2 > MAX_BSP_PLANES) {
 		Com_Error(ERR_FATAL, "MAX_BSP_PLANES\n");
+	}
 
 	p = &map_planes[num_map_planes];
 	VectorCopy(normal, p->normal);
@@ -173,8 +180,9 @@ static void SnapPlane(vec3_t normal, dvec_t *dist) {
 	if (PlaneTypeForNormal(normal) <= PLANE_Z) {
 
 		const vec_t f = floor(*dist + 0.5);
-		if (fabs(*dist - f) < DIST_EPSILON)
+		if (fabs(*dist - f) < DIST_EPSILON) {
 			*dist = f;
+		}
 	}
 }
 
@@ -222,7 +230,7 @@ static int32_t PlaneFromPoints(const vec3_t p0, const vec3_t p1, const vec3_t p2
 /**
  * @brief
  */
-static int32_t BrushContents(const map_brush_t * b) {
+static int32_t BrushContents(const map_brush_t *b) {
 	int32_t contents;
 	const side_t *s;
 	int32_t i;
@@ -255,7 +263,7 @@ static int32_t BrushContents(const map_brush_t * b) {
  * @brief Adds any additional planes necessary to allow the brush to be expanded
  * against axial bounding boxes
  */
-static void AddBrushBevels(map_brush_t * b) {
+static void AddBrushBevels(map_brush_t *b) {
 	int32_t axis, dir;
 	int32_t i, j, k, l, order;
 	side_t sidetemp;
@@ -273,21 +281,24 @@ static void AddBrushBevels(map_brush_t * b) {
 		for (dir = -1; dir <= 1; dir += 2, order++) {
 			// see if the plane is already present
 			for (i = 0, s = b->original_sides; i < b->num_sides; i++, s++) {
-				if (map_planes[s->plane_num].normal[axis] == dir)
+				if (map_planes[s->plane_num].normal[axis] == dir) {
 					break;
+				}
 			}
 
 			if (i == b->num_sides) { // add a new side
-				if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
+				if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES) {
 					Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+				}
 				num_map_brush_sides++;
 				b->num_sides++;
 				VectorClear(normal);
 				normal[axis] = dir;
-				if (dir == 1)
+				if (dir == 1) {
 					dist = b->maxs[axis];
-				else
+				} else {
 					dist = -b->mins[axis];
+				}
 				s->plane_num = FindPlane(normal, dist);
 				s->texinfo = b->original_sides[0].texinfo;
 				s->contents = b->original_sides[0].contents;
@@ -309,15 +320,17 @@ static void AddBrushBevels(map_brush_t * b) {
 	}
 
 	// add the edge bevels
-	if (b->num_sides == 6)
-		return; // pure axial
+	if (b->num_sides == 6) {
+		return;    // pure axial
+	}
 
 	// test the non-axial plane edges
 	for (i = 6; i < b->num_sides; i++) {
 		s = b->original_sides + i;
 		w = s->winding;
-		if (!w)
+		if (!w) {
 			continue;
+		}
 		for (j = 0; j < w->num_points; j++) {
 			k = (j + 1) % w->num_points;
 			VectorSubtract(w->points[j], w->points[k], vec);
@@ -341,8 +354,9 @@ static void AddBrushBevels(map_brush_t * b) {
 					VectorClear(vec2);
 					vec2[axis] = dir;
 					CrossProduct(vec, vec2, normal);
-					if (VectorNormalize(normal) < 0.5)
+					if (VectorNormalize(normal) < 0.5) {
 						continue;
+					}
 					dist = DotProduct(w->points[j], normal);
 
 					// if all the points on all the sides are
@@ -351,34 +365,42 @@ static void AddBrushBevels(map_brush_t * b) {
 						vec_t minBack;
 
 						// if this plane has already been used, skip it
-						if (PlaneEqual(&map_planes[b->original_sides[k].plane_num], normal, dist))
+						if (PlaneEqual(&map_planes[b->original_sides[k].plane_num], normal, dist)) {
 							break;
+						}
 
 						w2 = b->original_sides[k].winding;
-						if (!w2)
+						if (!w2) {
 							continue;
+						}
 						minBack = 0.0f;
 						for (l = 0; l < w2->num_points; l++) {
 							d = DotProduct(w2->points[l], normal) - dist;
-							if (d > 0.1)
-								break; // point in front
-							if (d < minBack)
+							if (d > 0.1) {
+								break;    // point in front
+							}
+							if (d < minBack) {
 								minBack = d;
+							}
 						}
 						// if some point was at the front
-						if (l != w2->num_points)
+						if (l != w2->num_points) {
 							break;
+						}
 						// if no points at the back then the winding is on the
 						// bevel plane
-						if (minBack > -0.1f)
+						if (minBack > -0.1f) {
 							break;
+						}
 					}
 
-					if (k != b->num_sides)
-						continue; // wasn't part of the outer hull
+					if (k != b->num_sides) {
+						continue;    // wasn't part of the outer hull
+					}
 					// add this plane
-					if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
+					if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES) {
 						Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+					}
 
 					s2 = &b->original_sides[b->num_sides++];
 					s2->plane_num = FindPlane(normal, dist);
@@ -397,7 +419,7 @@ static void AddBrushBevels(map_brush_t * b) {
 /**
  * @brief Makes basewindigs for sides and mins / maxs for the brush
  */
-static _Bool MakeBrushWindings(map_brush_t * ob) {
+static _Bool MakeBrushWindings(map_brush_t *ob) {
 	int32_t i, j;
 	side_t *side;
 
@@ -407,13 +429,16 @@ static _Bool MakeBrushWindings(map_brush_t * ob) {
 		const map_plane_t *plane = &map_planes[ob->original_sides[i].plane_num];
 		winding_t *w = WindingForPlane(plane->normal, plane->dist);
 		for (j = 0; j < ob->num_sides && w; j++) {
-			if (i == j)
+			if (i == j) {
 				continue;
+			}
 			// back side clipaway
-			if (ob->original_sides[j].plane_num == (ob->original_sides[j].plane_num ^ 1))
+			if (ob->original_sides[j].plane_num == (ob->original_sides[j].plane_num ^ 1)) {
 				continue;
-			if (ob->original_sides[j].bevel)
+			}
+			if (ob->original_sides[j].bevel) {
 				continue;
+			}
 			plane = &map_planes[ob->original_sides[j].plane_num ^ 1];
 			ChopWindingInPlace(&w, plane->normal, plane->dist, 0); //CLIP_EPSILON);
 		}
@@ -422,17 +447,19 @@ static _Bool MakeBrushWindings(map_brush_t * ob) {
 		side->winding = w;
 		if (w) {
 			side->visible = true;
-			for (j = 0; j < w->num_points; j++)
+			for (j = 0; j < w->num_points; j++) {
 				AddPointToBounds(w->points[j], ob->mins, ob->maxs);
+			}
 		}
 	}
 
 	for (i = 0; i < 3; i++) {
-		if (ob->mins[0] < MIN_WORLD_COORD || ob->maxs[0] > MAX_WORLD_COORD)
+		if (ob->mins[0] < MIN_WORLD_COORD || ob->maxs[0] > MAX_WORLD_COORD) {
 			Com_Verbose("entity %i, brush %i: bounds out of range\n", ob->entity_num, ob->brush_num);
+		}
 		if (ob->mins[0] > MAX_WORLD_COORD || ob->maxs[0] < MIN_WORLD_COORD)
 			Com_Verbose("entity %i, brush %i: no visible sides on brush\n", ob->entity_num,
-					ob->brush_num);
+			            ob->brush_num);
 	}
 
 	return true;
@@ -492,8 +519,9 @@ static void ParseBrush(entity_t *mapent) {
 	map_brush_texture_t td;
 	vec3_t planepts[3];
 
-	if (num_map_brushes == MAX_BSP_BRUSHES)
+	if (num_map_brushes == MAX_BSP_BRUSHES) {
 		Com_Error(ERR_FATAL, "MAX_BSP_BRUSHES\n");
+	}
 
 	b = &map_brushes[num_map_brushes];
 	b->original_sides = &map_brush_sides[num_map_brush_sides];
@@ -501,21 +529,26 @@ static void ParseBrush(entity_t *mapent) {
 	b->brush_num = num_map_brushes - mapent->first_brush;
 
 	do {
-		if (!GetToken(true))
+		if (!GetToken(true)) {
 			break;
-		if (!g_strcmp0(token, "}"))
+		}
+		if (!g_strcmp0(token, "}")) {
 			break;
+		}
 
-		if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES)
+		if (num_map_brush_sides == MAX_BSP_BRUSH_SIDES) {
 			Com_Error(ERR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+		}
 		side = &map_brush_sides[num_map_brush_sides];
 
 		// read the three point plane definition
 		for (i = 0; i < 3; i++) {
-			if (i != 0)
+			if (i != 0) {
 				GetToken(true);
-			if (g_strcmp0(token, "("))
+			}
+			if (g_strcmp0(token, "(")) {
 				Com_Error(ERR_FATAL, "Parsing brush\n");
+			}
 
 			for (j = 0; j < 3; j++) {
 				GetToken(false);
@@ -523,8 +556,9 @@ static void ParseBrush(entity_t *mapent) {
 			}
 
 			GetToken(false);
-			if (g_strcmp0(token, ")"))
+			if (g_strcmp0(token, ")")) {
 				Com_Error(ERR_FATAL, "Parsing brush\n");
+			}
 		}
 
 		memset(&td, 0, sizeof(td));
@@ -532,8 +566,9 @@ static void ParseBrush(entity_t *mapent) {
 		// read the texturedef
 		GetToken(false);
 
-		if (strlen(token) > sizeof(td.name) - 1)
+		if (strlen(token) > sizeof(td.name) - 1) {
 			Com_Error(ERR_FATAL, "Texture name \"%s\" is too long.\n", token);
+		}
 
 		g_strlcpy(td.name, token, sizeof(td.name));
 
@@ -565,15 +600,19 @@ static void ParseBrush(entity_t *mapent) {
 		SetImpliedFlags(side, td.name);
 
 		// translucent objects are automatically classified as detail
-		if (side->surf & (SURF_ALPHA_TEST | SURF_BLEND_33 | SURF_BLEND_66))
+		if (side->surf & (SURF_ALPHA_TEST | SURF_BLEND_33 | SURF_BLEND_66)) {
 			side->contents |= CONTENTS_DETAIL;
-		if (side->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP))
+		}
+		if (side->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)) {
 			side->contents |= CONTENTS_DETAIL;
-		if (fulldetail)
+		}
+		if (fulldetail) {
 			side->contents &= ~CONTENTS_DETAIL;
+		}
 		if (!(side->contents & ((LAST_VISIBLE_CONTENTS - 1) | CONTENTS_PLAYER_CLIP
-				| CONTENTS_MONSTER_CLIP | CONTENTS_MIST)))
+		                        | CONTENTS_MONSTER_CLIP | CONTENTS_MIST))) {
 			side->contents |= CONTENTS_SOLID;
+		}
 
 		// hints and skips are never detail, and have no content
 		if (side->surf & (SURF_HINT | SURF_SKIP)) {
@@ -600,8 +639,9 @@ static void ParseBrush(entity_t *mapent) {
 				break;
 			}
 		}
-		if (k != b->num_sides)
-			continue; // duplicated
+		if (k != b->num_sides) {
+			continue;    // duplicated
+		}
 
 		// keep this side
 		side = b->original_sides + b->num_sides;
@@ -638,8 +678,9 @@ static void ParseBrush(entity_t *mapent) {
 	// used as bsp splitters
 	if (b->contents & (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)) {
 		c_clip_brushes++;
-		for (i = 0; i < b->num_sides; i++)
+		for (i = 0; i < b->num_sides; i++) {
 			b->original_sides[i].texinfo = TEXINFO_NODE;
+		}
 	}
 
 	// origin brushes are removed, but they set
@@ -653,8 +694,8 @@ static void ParseBrush(entity_t *mapent) {
 
 		if (num_entities == 1) {
 			Com_Error(ERR_FATAL,
-					"Entity %i, Brush %i: origin brushes not allowed in world\n",
-					b->entity_num, b->brush_num);
+			          "Entity %i, Brush %i: origin brushes not allowed in world\n",
+			          b->entity_num, b->brush_num);
 			return;
 		}
 
@@ -662,7 +703,7 @@ static void ParseBrush(entity_t *mapent) {
 		VectorScale(origin, 0.5, origin);
 
 		sprintf(string, "%i %i %i", (int32_t)origin[0], (int32_t)origin[1],
-				(int32_t)origin[2]);
+		        (int32_t)origin[2]);
 		SetKeyValue(&entities[b->entity_num], "origin", string);
 
 		VectorCopy(origin, entities[b->entity_num].origin);
@@ -699,20 +740,21 @@ static void MoveBrushesToWorld(entity_t *ent) {
 
 	temp = Mem_Malloc(new_brushes * sizeof(map_brush_t));
 	memcpy(temp, map_brushes + ent->first_brush,
-			new_brushes * sizeof(map_brush_t));
+	       new_brushes * sizeof(map_brush_t));
 
 	// make space to move the brushes (overlapped copy)
 	memmove(map_brushes + world_brushes + new_brushes,
-			map_brushes + world_brushes,
-			sizeof(map_brush_t) * (num_map_brushes - world_brushes - new_brushes));
+	        map_brushes + world_brushes,
+	        sizeof(map_brush_t) * (num_map_brushes - world_brushes - new_brushes));
 
 	// copy the new brushes down
 	memcpy(map_brushes + world_brushes, temp, sizeof(map_brush_t) * new_brushes);
 
 	// fix up indexes
 	entities[0].num_brushes += new_brushes;
-	for (i = 1; i < num_entities; i++)
+	for (i = 1; i < num_entities; i++) {
 		entities[i].first_brush += new_brushes;
+	}
 	Mem_Free(temp);
 
 	ent->num_brushes = 0;
@@ -729,14 +771,17 @@ static _Bool ParseMapEntity(void) {
 	vec_t newdist;
 	map_brush_t *b;
 
-	if (!GetToken(true))
+	if (!GetToken(true)) {
 		return false;
+	}
 
-	if (g_strcmp0(token, "{"))
+	if (g_strcmp0(token, "{")) {
 		Com_Error(ERR_FATAL, "\"{\" not found\n");
+	}
 
-	if (num_entities == MAX_BSP_ENTITIES)
+	if (num_entities == MAX_BSP_ENTITIES) {
 		Com_Error(ERR_FATAL, "MAX_BSP_ENTITIES\n");
+	}
 
 	mapent = &entities[num_entities];
 	num_entities++;
@@ -745,13 +790,15 @@ static _Bool ParseMapEntity(void) {
 	mapent->num_brushes = 0;
 
 	do {
-		if (!GetToken(true))
+		if (!GetToken(true)) {
 			Com_Error(ERR_FATAL, "EOF without closing brace\n");
-		if (!g_strcmp0(token, "}"))
+		}
+		if (!g_strcmp0(token, "}")) {
 			break;
-		if (!g_strcmp0(token, "{"))
+		}
+		if (!g_strcmp0(token, "{")) {
 			ParseBrush(mapent);
-		else {
+		} else {
 			e = ParseEpair();
 			e->next = mapent->epairs;
 			mapent->epairs = e;
@@ -769,12 +816,12 @@ static _Bool ParseMapEntity(void) {
 				s = &b->original_sides[j];
 
 				newdist = map_planes[s->plane_num].dist
-						- DotProduct(map_planes[s->plane_num].normal, mapent->origin);
+				          - DotProduct(map_planes[s->plane_num].normal, mapent->origin);
 
 				s->plane_num = FindPlane(map_planes[s->plane_num].normal, newdist);
 
 				s->texinfo = TexinfoForBrushTexture(&map_planes[s->plane_num],
-						&map_brush_textures[s - map_brush_sides], mapent->origin);
+				                                    &map_brush_textures[s - map_brush_sides], mapent->origin);
 			}
 			MakeBrushWindings(b);
 		}
@@ -794,9 +841,9 @@ static _Bool ParseMapEntity(void) {
 
 		if (mapent->num_brushes != 1)
 			Com_Error(
-					ERR_FATAL,
-					"ParseMapEntity: %i func_areaportal can only be a single brush\n",
-					num_entities - 1);
+			    ERR_FATAL,
+			    "ParseMapEntity: %i func_areaportal can only be a single brush\n",
+			    num_entities - 1);
 
 		b = &map_brushes[num_map_brushes - 1];
 		b->contents = CONTENTS_AREA_PORTAL;
@@ -847,8 +894,9 @@ void LoadMapFile(const char *file_name) {
 
 	ClearBounds(map_mins, map_maxs);
 	for (i = 0; i < entities[0].num_brushes; i++) {
-		if (map_brushes[i].mins[0] > MAX_WORLD_COORD)
-			continue; // no valid points
+		if (map_brushes[i].mins[0] > MAX_WORLD_COORD) {
+			continue;    // no valid points
+		}
 		AddPointToBounds(map_brushes[i].mins, map_mins, map_maxs);
 		AddPointToBounds(map_brushes[i].maxs, map_mins, map_maxs);
 	}
@@ -862,5 +910,5 @@ void LoadMapFile(const char *file_name) {
 	Com_Verbose("%5i planes\n", num_map_planes);
 	Com_Verbose("%5i area portals\n", c_area_portals);
 	Com_Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n", map_mins[0], map_mins[1],
-			map_mins[2], map_maxs[0], map_maxs[1], map_maxs[2]);
+	            map_mins[2], map_maxs[0], map_maxs[1], map_maxs[2]);
 }

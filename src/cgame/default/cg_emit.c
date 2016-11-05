@@ -89,14 +89,17 @@ void Cg_LoadEmits(void) {
 
 		const char *c = ParseToken(&ents);
 
-		if (*c == '\0')
+		if (*c == '\0') {
 			break;
+		}
 
-		if (*c == '{')
+		if (*c == '{') {
 			entity = true;
+		}
 
-		if (!entity) // skip any whitespace between ents
+		if (!entity) { // skip any whitespace between ents
 			continue;
+		}
 
 		if (*c == '}') {
 			entity = false;
@@ -126,32 +129,38 @@ void Cg_LoadEmits(void) {
 				}
 
 				// crutch up flags as a convenience
-				if (e->sample)
+				if (e->sample) {
 					e->flags |= EMIT_SOUND;
+				}
 
-				if (e->mod)
+				if (e->mod) {
 					e->flags |= EMIT_MODEL;
+				}
 
-				if (VectorCompare(e->color, vec3_origin)) // default color
+				if (VectorCompare(e->color, vec3_origin)) { // default color
 					VectorSet(e->color, 1.0, 1.0, 1.0);
+				}
 
-				if (e->count <= 0) // default particle count
+				if (e->count <= 0) { // default particle count
 					e->count = 12;
+				}
 
 				if (e->radius <= 0.0) { // default light and corona radius
 
-					if (e->flags & EMIT_CORONA)
+					if (e->flags & EMIT_CORONA) {
 						e->radius = 12.0;
-					else if (e->flags & EMIT_LIGHT)
+					} else if (e->flags & EMIT_LIGHT) {
 						e->radius = 100.0;
-					else
+					} else {
 						e->radius = 1.0;
+					}
 				}
 
 				if (VectorCompare(e->vel, vec3_origin)) { // default velocity
 
-					if (e->flags & EMIT_STEAM)
+					if (e->flags & EMIT_STEAM) {
 						VectorSet(e->vel, 0.0, 0.0, 40.0);
+					}
 				}
 
 				if (e->flags & EMIT_SPARKS) { // default directional scale
@@ -165,33 +174,36 @@ void Cg_LoadEmits(void) {
 				if (e->hz <= 0.0) { // default hz and drift
 
 					if (e->flags & EMIT_LIGHT) {
-						if (e->hz == 0.0) // -1.0 for constant light
+						if (e->hz == 0.0) { // -1.0 for constant light
 							e->hz = 0.5;
-					} else if (e->flags & EMIT_SPARKS)
+						}
+					} else if (e->flags & EMIT_SPARKS) {
 						e->hz = 0.5;
-					else if (e->flags & EMIT_STEAM)
+					} else if (e->flags & EMIT_STEAM) {
 						e->hz = 20.0;
-					else if (e->flags & EMIT_FLAME)
+					} else if (e->flags & EMIT_FLAME) {
 						e->hz = 5.0;
-					else if (e->flags & EMIT_SOUND)
-						e->hz = 0.0; // ambient
-					else
+					} else if (e->flags & EMIT_SOUND) {
+						e->hz = 0.0;    // ambient
+					} else {
 						e->hz = 1.0;
+					}
 				}
 
 				if (e->drift <= 0.0) {
 
-					if (e->flags & (EMIT_LIGHT | EMIT_SPARKS))
+					if (e->flags & (EMIT_LIGHT | EMIT_SPARKS)) {
 						e->drift = 3.0;
-					else
+					} else {
 						e->drift = 0.01;
+					}
 				}
 
 				if (e->flags & EMIT_SOUND) { // resolve attenuation and looping
 
-					if (e->atten == -1) // explicit -1 for global
+					if (e->atten == -1) { // explicit -1 for global
 						e->atten = ATTEN_NONE;
-					else {
+					} else {
 						if (e->atten == 0) { // default
 							if (e->flags & (EMIT_SPARKS | EMIT_STEAM | EMIT_FLAME)) {
 								e->atten = ATTEN_STATIC;
@@ -202,21 +214,25 @@ void Cg_LoadEmits(void) {
 					}
 
 					// flame and steam sounds are always looped
-					if (e->flags & (EMIT_FLAME | EMIT_STEAM))
+					if (e->flags & (EMIT_FLAME | EMIT_STEAM)) {
 						e->loop = true;
-					else
+					} else
 						// the default is to honor the hz parameter
+					{
 						e->loop = e->hz == 0.0;
+					}
 				}
 
-				if (e->flags & EMIT_SPARKS) // don't combine sparks and light
+				if (e->flags & EMIT_SPARKS) { // don't combine sparks and light
 					e->flags &= ~EMIT_LIGHT;
+				}
 
 				cgi.Debug("Added %d emit at %s\n", e->flags, vtos(e->org));
 
 				cg_num_emits++;
-			} else
+			} else {
 				memset(&cg_emits[cg_num_emits], 0, sizeof(cg_emit_t));
+			}
 
 			emit = false;
 		}
@@ -226,8 +242,9 @@ void Cg_LoadEmits(void) {
 			c = ParseToken(&ents);
 			g_strlcpy(class_name, c, sizeof(class_name));
 
-			if (!g_strcmp0(c, "misc_emit") || !g_strcmp0(c, "misc_model"))
+			if (!g_strcmp0(c, "misc_emit") || !g_strcmp0(c, "misc_model")) {
 				emit = true;
+			}
 		}
 
 		e = &cg_emits[cg_num_emits];
@@ -329,9 +346,9 @@ cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
 
 	em = *e;
 
-	if (!cgi.LeafHearable(e->leaf))
+	if (!cgi.LeafHearable(e->leaf)) {
 		em.flags = 0;
-	else if (!cgi.LeafVisible(e->leaf)) {
+	} else if (!cgi.LeafVisible(e->leaf)) {
 		em.flags &= ~EMIT_VISIBLE;
 	}
 
@@ -348,8 +365,9 @@ cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
  */
 void Cg_AddEmits(void) {
 
-	if (!cg_add_emits->value)
+	if (!cg_add_emits->value) {
 		return;
+	}
 
 	for (int32_t i = 0; i < cg_num_emits; i++) {
 
@@ -357,15 +375,16 @@ void Cg_AddEmits(void) {
 
 		// first add emits which fire every frame
 
-		if ((e->flags & EMIT_LIGHT) && !e->hz)
+		if ((e->flags & EMIT_LIGHT) && !e->hz) {
 			cgi.AddLight(Cg_EmitLight(e));
+		}
 
 		if ((e->flags & EMIT_SOUND) && e->loop) {
 			cgi.AddSample(&(const s_play_sample_t) {
 				.sample = e->sample,
-				.origin = { e->org[0], e->org[1], e->org[2] },
-				.attenuation = e->atten,
-				.flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
+				 .origin = { e->org[0], e->org[1], e->org[2] },
+				  .attenuation = e->atten,
+				   .flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
 			});
 		}
 
@@ -402,8 +421,9 @@ void Cg_AddEmits(void) {
 
 		// then add emits with timed events if they are due to run
 
-		if (e->time > cgi.client->systime)
+		if (e->time > cgi.client->systime) {
 			continue;
+		}
 
 		if ((e->flags & EMIT_LIGHT) && e->hz) {
 			const r_light_t *l = Cg_EmitLight(e);
@@ -415,21 +435,24 @@ void Cg_AddEmits(void) {
 			cgi.AddSustainedLight(&s);
 		}
 
-		if (e->flags & EMIT_SPARKS)
+		if (e->flags & EMIT_SPARKS) {
 			Cg_SparksEffect(e->org, e->dir, e->count);
+		}
 
-		if (e->flags & EMIT_STEAM)
+		if (e->flags & EMIT_STEAM) {
 			Cg_SteamTrail(NULL, e->org, e->vel);
+		}
 
-		if (e->flags & EMIT_FLAME)
+		if (e->flags & EMIT_FLAME) {
 			Cg_FlameTrail(NULL, e->org, e->org);
+		}
 
 		if ((e->flags & EMIT_SOUND) && !e->loop) {
 			cgi.AddSample(&(const s_play_sample_t) {
 				.sample = e->sample,
-				.origin = { e->org[0], e->org[1], e->org[2] },
-				.attenuation = e->atten,
-				.flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT
+				 .origin = { e->org[0], e->org[1], e->org[2] },
+				  .attenuation = e->atten,
+				   .flags = S_PLAY_POSITIONED | S_PLAY_AMBIENT
 			});
 		}
 	}

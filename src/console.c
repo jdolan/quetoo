@@ -268,16 +268,18 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
 	while (list) {
 		const console_string_t *str = list->data;
 
-		if (str->timestamp < console->whence)
+		if (str->timestamp < console->whence) {
 			break;
+		}
 
 		if (Con_Filter(console, str)) {
 
 			back -= Con_Wrap(str->chars, console->width, NULL, 0);
 
 			if (back < 0) {
-				if (back < -1)
+				if (back < -1) {
 					list = list->next;
+				}
 				break;
 			}
 		}
@@ -399,23 +401,24 @@ _Bool Con_CompleteInput(console_t *console) {
 
 	const size_t partial_len = strlen(partial);
 
-	if (!*partial)
-		return false; // lets start with at least something
+	if (!*partial) {
+		return false;    // lets start with at least something
+	}
 
 	Cmd_TokenizeString(partial);
 
 	uint32_t argi = Cmd_Argc() - 1;
 	const _Bool new_argument = partial[strlen(partial) - 1] == ' ';
-	
-	if (new_argument)
+
+	if (new_argument) {
 		argi++;
+	}
 
 	AutocompleteFunc autocomplete = NULL;
 
 	if (argi == 0) {
 		autocomplete = Con_AutocompleteInput_f;
-	}
-	else {
+	} else {
 		const char *name = Cmd_Argv(0);
 		const cmd_t *command = Cmd_Get(name);
 
@@ -430,13 +433,15 @@ _Bool Con_CompleteInput(console_t *console) {
 		}
 	}
 
-	if (!autocomplete)
+	if (!autocomplete) {
 		return false;
+	}
 
 	autocomplete(argi, &matches);
 
-	if (g_list_length(matches) == 0)
+	if (g_list_length(matches) == 0) {
 		return false;
+	}
 
 	_Bool output_quotes = false;
 
@@ -446,11 +451,10 @@ _Bool Con_CompleteInput(console_t *console) {
 		if (strchr(match, ' ') != NULL) {
 			match = va("\"%s\" ", match);
 			output_quotes = true;
-		}
-		else
+		} else {
 			match = va("%s ", match);
-	}
-	else {
+		}
+	} else {
 		match = CommonPrefix(matches);
 
 		if (strchr(match, ' ') != NULL) {
@@ -464,12 +468,13 @@ _Bool Con_CompleteInput(console_t *console) {
 	} else {
 		size_t arg_pos = 0;
 		_Bool input_quotes = false;
-		
+
 		if (Cmd_Argc() > 1) {
 			const char *last_arg = Cmd_Argv(Cmd_Argc() - 1);
 			arg_pos = strlen(partial) - strlen(last_arg);
 
-			uint8_t num_quotes = (partial[partial_len - 1] == '"') + (partial[arg_pos - 1 - (partial[partial_len - 1] == '"')] == '"');
+			uint8_t num_quotes = (partial[partial_len - 1] == '"') + (partial[arg_pos - 1 - (partial[partial_len - 1] == '"')] ==
+			                     '"');
 
 			if (num_quotes) {
 				arg_pos -= num_quotes;
@@ -479,10 +484,11 @@ _Bool Con_CompleteInput(console_t *console) {
 
 		if (!output_quotes && input_quotes) {
 
-			if (g_list_length(matches) == 1)
+			if (g_list_length(matches) == 1) {
 				match = va("\"%s\"", match);
-			else
+			} else {
 				match = va("\"%s", match);
+			}
 		}
 
 		g_snprintf(partial + arg_pos, max_len - arg_pos, "%s", match);

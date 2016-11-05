@@ -30,8 +30,9 @@ static char **cl_key_names;
  */
 void Cl_SetKeyDest(cl_key_dest_t dest) {
 
-	if (dest == cls.key_state.dest)
+	if (dest == cls.key_state.dest) {
 		return;
+	}
 
 	// release keys and re-center the mouse when leaving KEY_GAME
 
@@ -84,8 +85,9 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
  */
 static void Cl_KeyConsole(const SDL_Event *event) {
 
-	if (event->type == SDL_KEYUP) // don't care
+	if (event->type == SDL_KEYUP) { // don't care
 		return;
+	}
 
 	console_input_t *in = &cl_console.input;
 
@@ -107,7 +109,8 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 			if (in->pos > 0) {
 				char *c = in->buffer + in->pos - 1;
 				while (*c) {
-					*c = *(c + 1); c++;
+					*c = *(c + 1);
+					c++;
 				}
 				in->pos--;
 			}
@@ -117,7 +120,8 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 			if (in->pos < strlen(in->buffer)) {
 				char *c = in->buffer + in->pos;
 				while (*c) {
-					*c = *(c + 1); c++;
+					*c = *(c + 1);
+					c++;
 				}
 			}
 			break;
@@ -132,10 +136,12 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 
 		case SDLK_LEFT:
 			if (SDL_GetModState() & KMOD_CTRL) { // move one word left
-				while (in->pos > 0 && in->buffer[in->pos] == ' ')
-					in->pos--; // off current word
-				while (in->pos > 0 && in->buffer[in->pos] != ' ')
-					in->pos--; // and behind previous word
+				while (in->pos > 0 && in->buffer[in->pos] == ' ') {
+					in->pos--;    // off current word
+				}
+				while (in->pos > 0 && in->buffer[in->pos] != ' ') {
+					in->pos--;    // and behind previous word
+				}
 			} else if (in->pos > 0) {
 				in->pos--;
 			}
@@ -144,12 +150,15 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 		case SDLK_RIGHT:
 			if (SDL_GetModState() & KMOD_CTRL) { // move one word right
 				const size_t len = strlen(in->buffer);
-				while (in->pos < len && in->buffer[in->pos] == ' ')
-					in->pos++; // off current word
-				while (in->pos < len && in->buffer[in->pos] != ' ')
-					in->pos++; // and in front of next word
-				if (in->pos < len) // all the way in front
+				while (in->pos < len && in->buffer[in->pos] == ' ') {
+					in->pos++;    // off current word
+				}
+				while (in->pos < len && in->buffer[in->pos] != ' ') {
+					in->pos++;    // and in front of next word
+				}
+				if (in->pos < len) { // all the way in front
 					in->pos++;
+				}
 			} else if (in->pos < strlen(in->buffer)) {
 				in->pos++;
 			}
@@ -224,8 +233,9 @@ static void Cl_KeyGame(const SDL_Event *event) {
 	const SDL_Scancode key = event->key.keysym.scancode;
 	const char *bind = cls.key_state.binds[key];
 
-	if (!bind)
+	if (!bind) {
 		return;
+	}
 
 	cmd[0] = '\0';
 
@@ -255,8 +265,9 @@ static void Cl_KeyGame(const SDL_Event *event) {
  */
 static void Cl_KeyChat(const SDL_Event *event) {
 
-	if (event->type == SDL_KEYUP) // don't care
+	if (event->type == SDL_KEYUP) { // don't care
 		return;
+	}
 
 	console_input_t *in = &cl_chat_console.input;
 
@@ -264,17 +275,17 @@ static void Cl_KeyChat(const SDL_Event *event) {
 
 		case SDLK_RETURN:
 		case SDLK_KP_ENTER: {
-			const char *in;
-			if (cls.chat_state.team_chat) {
-				in = va("say_team %s^7", cl_chat_console.input.buffer);
-			} else {
-				in = va("say %s^7", cl_chat_console.input.buffer);
-			}
-			strncpy(cl_chat_console.input.buffer, in, sizeof(cl_chat_console.input.buffer));
-			Con_SubmitInput(&cl_chat_console);
+				const char *in;
+				if (cls.chat_state.team_chat) {
+					in = va("say_team %s^7", cl_chat_console.input.buffer);
+				} else {
+					in = va("say %s^7", cl_chat_console.input.buffer);
+				}
+				strncpy(cl_chat_console.input.buffer, in, sizeof(cl_chat_console.input.buffer));
+				Con_SubmitInput(&cl_chat_console);
 
-			Cl_SetKeyDest(KEY_GAME);
-		}
+				Cl_SetKeyDest(KEY_GAME);
+			}
 			break;
 
 		case SDLK_BACKSPACE:
@@ -282,7 +293,8 @@ static void Cl_KeyChat(const SDL_Event *event) {
 			if (in->pos > 0) {
 				char *c = in->buffer + in->pos - 1;
 				while (*c) {
-					*c = *(c + 1); c++;
+					*c = *(c + 1);
+					c++;
 				}
 				in->pos--;
 			}
@@ -292,7 +304,8 @@ static void Cl_KeyChat(const SDL_Event *event) {
 			if (in->pos < strlen(in->buffer)) {
 				char *c = in->buffer + in->pos;
 				while (*c) {
-					*c = *(c + 1); c++;
+					*c = *(c + 1);
+					c++;
 				}
 			}
 			break;
@@ -324,8 +337,9 @@ SDL_Scancode Cl_KeyForName(const char *name) {
 
 	for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
 		if (cl_key_names[k]) {
-			if (!g_ascii_strcasecmp(name, cl_key_names[k]))
+			if (!g_ascii_strcasecmp(name, cl_key_names[k])) {
 				return k;
+			}
 		}
 	}
 
@@ -351,8 +365,9 @@ SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
  */
 void Cl_Bind(SDL_Scancode key, const char *bind) {
 
-	if (key == SDL_SCANCODE_UNKNOWN || key >= SDL_NUM_SCANCODES)
+	if (key == SDL_SCANCODE_UNKNOWN || key >= SDL_NUM_SCANCODES) {
 		return;
+	}
 
 	// free the old binding
 	if (cls.key_state.binds[key]) {
@@ -360,8 +375,9 @@ void Cl_Bind(SDL_Scancode key, const char *bind) {
 		cls.key_state.binds[key] = NULL;
 	}
 
-	if (!bind)
+	if (!bind) {
 		return;
+	}
 
 	// allocate for new binding and copy it in
 	cls.key_state.binds[key] = Mem_TagMalloc(strlen(bind) + 1, MEM_TAG_CLIENT);
@@ -406,16 +422,18 @@ static void Cl_UnbindAll_f(void) {
  */
 static void Cl_Bind_Autocomplete_f(const uint32_t argi, GList **matches) {
 
-	if (argi != 1)
+	if (argi != 1) {
 		return;
+	}
 
 	const char *pattern = va("%s*", Cmd_Argv(argi));
 
 	for (uint32_t i = 0; i < SDL_NUM_SCANCODES; ++i) {
 		const char *keyName = cl_key_names[i];
 
-		if (!keyName || !keyName[i])
+		if (!keyName || !keyName[i]) {
 			continue;
+		}
 
 		if (GlobMatch(pattern, keyName)) {
 			*matches = g_list_prepend(*matches, Mem_CopyString(keyName));
@@ -444,10 +462,11 @@ static void Cl_Bind_f(void) {
 	}
 
 	if (c == 2) {
-		if (cls.key_state.binds[k])
+		if (cls.key_state.binds[k]) {
 			Com_Print("\"%s\" = \"%s\"\n", Cmd_Argv(1), cls.key_state.binds[k]);
-		else
+		} else {
 			Com_Print("\"%s\" is not bound\n", Cmd_Argv(1));
+		}
 		return;
 	}
 
@@ -455,8 +474,9 @@ static void Cl_Bind_f(void) {
 	cmd[0] = 0; // start out with a null string
 	for (int32_t i = 2; i < c; i++) {
 		strcat(cmd, Cmd_Argv(i));
-		if (i != (c - 1))
+		if (i != (c - 1)) {
 			strcat(cmd, " ");
+		}
 	}
 
 	// check for compound bindings

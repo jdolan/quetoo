@@ -119,8 +119,9 @@ void R_ApplyMeshModelTag(r_entity_t *e) {
 _Bool R_CullMeshModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 
-	if (e->effects & EF_WEAPON) // never cull the weapon
+	if (e->effects & EF_WEAPON) { // never cull the weapon
 		return false;
+	}
 
 	// calculate scaled bounding box in world space
 
@@ -135,16 +136,18 @@ _Bool R_CullMeshModel(const r_entity_t *e) {
  */
 void R_UpdateMeshModelLighting(const r_entity_t *e) {
 
-	if (e->effects & EF_NO_LIGHTING)
+	if (e->effects & EF_NO_LIGHTING) {
 		return;
+	}
 
 	if (e->lighting->state != LIGHTING_READY) {
 
 		// update the origin and bounds based on the entity
-		if (e->effects & EF_WEAPON)
+		if (e->effects & EF_WEAPON) {
 			VectorCopy(r_view.origin, e->lighting->origin);
-		else
+		} else {
 			VectorCopy(e->origin, e->lighting->origin);
+		}
 
 		e->lighting->radius = e->scale * e->model->radius;
 
@@ -163,35 +166,36 @@ void R_UpdateMeshModelLighting(const r_entity_t *e) {
 static void R_SetMeshColor_default(const r_entity_t *e) {
 	vec4_t color;
 
-	if ((e->effects & EF_NO_LIGHTING) == 0 && r_state.max_active_lights)
-	{
+	if ((e->effects & EF_NO_LIGHTING) == 0 && r_state.max_active_lights) {
 		VectorCopy(r_bsp_light_state.ambient, color);
-	
+
 		if (!r_lighting->value) {
 			const r_illumination_t *il = e->lighting->illuminations;
 
 			for (uint16_t i = 0; i < r_state.max_active_lights; i++, il++) {
 
-				if (il->diffuse == 0.0)
+				if (il->diffuse == 0.0) {
 					break;
+				}
 
 				VectorMA(color, il->diffuse / il->light.radius, il->light.color, color);
 			}
 
 			ColorNormalize(color, color);
 		}
-	}
-	else
+	} else {
 		VectorSet(color, 1.0, 1.0, 1.0);
+	}
 
 	for (int32_t i = 0; i < 3; i++) {
 		color[i] *= e->color[i];
 	}
 
-	if (e->effects & EF_BLEND)
+	if (e->effects & EF_BLEND) {
 		color[3] = Clamp(e->color[3], 0.0, 1.0);
-	else
+	} else {
 		color[3] = 1.0;
+	}
 
 	R_Color(color);
 }
@@ -206,14 +210,16 @@ static void R_ApplyMeshModelLighting_default(const r_entity_t *e) {
 
 		const r_illumination_t *il = &e->lighting->illuminations[i];
 
-		if (il->diffuse == 0.0)
+		if (il->diffuse == 0.0) {
 			break;
+		}
 
 		r_state.active_program->UseLight(i, &il->light);
 	}
-	
-	if (i < r_state.max_active_lights) // disable the next light as a stop
+
+	if (i < r_state.max_active_lights) { // disable the next light as a stop
 		r_state.active_program->UseLight(i, NULL);
+	}
 }
 
 /**
@@ -227,16 +233,16 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 	if (!r_draw_wireframe->value) {
 
 		r_mesh_state.material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
-		
+
 		R_BindTexture(r_mesh_state.material->diffuse->texnum);
 
 		R_SetMeshColor_default(e);
 
-		if (e->effects & EF_ALPHATEST)
+		if (e->effects & EF_ALPHATEST) {
 			R_EnableAlphaTest(ALPHA_TEST_ENABLED_THRESHOLD);
+		}
 
-		if (e->effects & EF_BLEND)
-		{
+		if (e->effects & EF_BLEND) {
 			R_EnableBlend(true);
 			R_EnableDepthMask(false);
 		}
@@ -252,14 +258,16 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 		R_UseMaterial(NULL);
 	}
 
-	if (e->effects & EF_WEAPON)
+	if (e->effects & EF_WEAPON) {
 		R_DepthRange(0.0, 0.3);
+	}
 
 	R_RotateForEntity(e);
 
 	// setup lerp for animating models
-	if (e->old_frame != e->frame)
+	if (e->old_frame != e->frame) {
 		R_UseInterpolation(e->lerp);
+	}
 }
 
 /**
@@ -269,18 +277,19 @@ static void R_ResetMeshState_default(const r_entity_t *e) {
 
 	R_RotateForEntity(NULL);
 
-	if (e->effects & EF_WEAPON)
+	if (e->effects & EF_WEAPON) {
 		R_DepthRange(0.0, 1.0);
+	}
 
-	if (e->effects & EF_BLEND)
-	{
+	if (e->effects & EF_BLEND) {
 		R_EnableBlend(false);
 		R_EnableDepthMask(true);
 	}
 
-	if (e->effects & EF_ALPHATEST)
+	if (e->effects & EF_ALPHATEST) {
 		R_EnableAlphaTest(ALPHA_TEST_DISABLED_THRESHOLD);
-	
+	}
+
 	R_ResetArrayState();
 
 	R_UseInterpolation(0.0);
@@ -327,7 +336,7 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
 
 		R_DrawMeshMaterial(r_mesh_state.material, 0, e->model->num_elements);
 	}
-	
+
 	r_view.num_mesh_tris += e->model->num_tris;
 
 	R_ResetMeshState_default(e); // reset state
@@ -350,8 +359,9 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
 
-		if (e->effects & EF_NO_DRAW)
+		if (e->effects & EF_NO_DRAW) {
 			continue;
+		}
 
 		r_view.current_entity = e;
 
@@ -364,7 +374,7 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		R_EnableTexture(&texunit_diffuse, true);
 	}
-	
+
 	R_EnableLighting(NULL, false);
 
 	R_EnableBlend(true);

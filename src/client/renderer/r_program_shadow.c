@@ -42,7 +42,7 @@ static r_shadow_program_t r_shadow_program;
  * @brief
  */
 void R_PreLink_shadow(const r_program_t *program) {
-	
+
 	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
 	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_VERTEX);
 }
@@ -62,7 +62,7 @@ void R_InitProgram_shadow(r_program_t *program) {
 	R_ProgramVariable(&p->shadow_mat, R_UNIFORM_MAT4, "SHADOW_MAT");
 	R_ProgramVariable(&p->light, R_UNIFORM_VEC4, "LIGHT");
 	R_ProgramVariable(&p->plane, R_UNIFORM_VEC4, "PLANE");
-	
+
 	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
 	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
 	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
@@ -79,7 +79,7 @@ void R_InitProgram_shadow(r_program_t *program) {
 	R_ProgramParameter4fv(&p->plane, plane);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
-	
+
 	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
 	R_ProgramParameter4fv(&p->current_color, white);
@@ -107,7 +107,7 @@ void R_UseFog_shadow(const r_fog_parameters_t *fog) {
  * @brief
  */
 void R_UseMatrices_shadow(const matrix4x4_t *matrices) {
-	
+
 	r_shadow_program_t *p = &r_shadow_program;
 
 	R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) matrices[R_MATRIX_PROJECTION].m);
@@ -126,10 +126,11 @@ void R_UseCurrentColor_shadow(const vec4_t color) {
 	r_shadow_program_t *p = &r_shadow_program;
 	const vec4_t white = { 1.0, 1.0, 1.0, 1.0 };
 
-	if (color)
+	if (color) {
 		R_ProgramParameter4fv(&p->current_color, color);
-	else
+	} else {
 		R_ProgramParameter4fv(&p->current_color, white);
+	}
 }
 
 /**

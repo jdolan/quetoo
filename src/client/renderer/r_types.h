@@ -875,7 +875,7 @@ typedef struct {
 
 	matrix4x4_t matrix; // the base modelview matrix
 	matrix4x4_t inverse_matrix;
-	
+
 	matrix4x4_t active_matrices[R_MATRIX_TOTAL];
 
 	uint32_t contents; // view origin contents mask
@@ -921,7 +921,7 @@ typedef struct {
 
 	uint32_t num_mesh_models;
 	uint32_t num_mesh_tris;
-	
+
 	uint32_t cull_passes;
 	uint32_t cull_fails;
 

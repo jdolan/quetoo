@@ -1061,7 +1061,7 @@ extern int ZEXPORT zipOpenNewFileInZip4_64 (zipFile file, const char* filename, 
                                          const void* extrafield_global, uInt size_extrafield_global,
                                          const char* comment, int method, int level, int raw,
                                          int windowBits,int memLevel, int strategy,
-                                         const char* password, uLong crcForCrypting __attribute__((unused)),
+                                         const char* password, uLong crcForCrypting,
                                          uLong versionMadeBy, uLong flagBase, int zip64)
 {
     zip64_internal* zi;

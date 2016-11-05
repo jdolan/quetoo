@@ -81,31 +81,35 @@ static void Cl_KeyDown(cl_button_t *b) {
 	SDL_Scancode k;
 
 	const char *c = Cmd_Argv(1);
-	if (c[0])
+	if (c[0]) {
 		k = atoi(c);
-	else
-		k = SDL_NUM_SCANCODES; // typed manually at the console for continuous down
+	} else {
+		k = SDL_NUM_SCANCODES;    // typed manually at the console for continuous down
+	}
 
-	if (k == b->keys[0] || k == b->keys[1])
-		return; // repeating key
+	if (k == b->keys[0] || k == b->keys[1]) {
+		return;    // repeating key
+	}
 
-	if (b->keys[0] == SDL_SCANCODE_UNKNOWN)
+	if (b->keys[0] == SDL_SCANCODE_UNKNOWN) {
 		b->keys[0] = k;
-	else if (b->keys[1] == SDL_SCANCODE_UNKNOWN)
+	} else if (b->keys[1] == SDL_SCANCODE_UNKNOWN) {
 		b->keys[1] = k;
-	else {
+	} else {
 		Com_Debug("3 keys down for button\n");
 		return;
 	}
 
-	if (b->state & 1)
-		return; // still down
+	if (b->state & 1) {
+		return;    // still down
+	}
 
 	// save the down time so that we can calculate fractional time later
 	const char *t = Cmd_Argv(2);
 	b->down_time = atoi(t);
-	if (!b->down_time)
+	if (!b->down_time) {
 		b->down_time = quetoo.time;
+	}
 
 	b->state |= 1;
 }
@@ -122,26 +126,30 @@ static void Cl_KeyUp(cl_button_t *b) {
 
 	const SDL_Scancode k = atoi(Cmd_Argv(1));
 
-	if (b->keys[0] == k)
+	if (b->keys[0] == k) {
 		b->keys[0] = SDL_SCANCODE_UNKNOWN;
-	else if (b->keys[1] == k)
+	} else if (b->keys[1] == k) {
 		b->keys[1] = SDL_SCANCODE_UNKNOWN;
-	else
-		return; // key up without corresponding down
+	} else {
+		return;    // key up without corresponding down
+	}
 
-	if (b->keys[0] || b->keys[1])
-		return; // some other key is still holding it down
+	if (b->keys[0] || b->keys[1]) {
+		return;    // some other key is still holding it down
+	}
 
-	if (!(b->state & 1))
-		return; // still up (this should not happen)
+	if (!(b->state & 1)) {
+		return;    // still up (this should not happen)
+	}
 
 	// save timestamp
 	const char *t = Cmd_Argv(2);
 	const uint32_t up_time = atoi(t);
-	if (up_time)
+	if (up_time) {
 		b->msec += up_time - b->down_time;
-	else
+	} else {
 		b->msec += 10;
+	}
 
 	b->state &= ~1; // now up
 }
@@ -350,7 +358,7 @@ static _Bool Cl_HandleSystemEvent(const SDL_Event *event) {
 			}
 		}
 	}
-	
+
 	return false;
 }
 
@@ -437,8 +445,9 @@ static void Cl_UpdateMouseState(void) {
  */
 void Cl_HandleEvents(void) {
 
-	if (!SDL_WasInit(SDL_INIT_VIDEO))
+	if (!SDL_WasInit(SDL_INIT_VIDEO)) {
 		return;
+	}
 
 	Cl_UpdateMouseState();
 
@@ -468,18 +477,23 @@ static void Cl_ClampPitch(void) {
 	// ensure our pitch is valid
 	vec_t pitch = UnpackAngle(s->delta_angles[PITCH] + s->kick_angles[PITCH]);
 
-	if (pitch > 180.0)
+	if (pitch > 180.0) {
 		pitch -= 360.0;
+	}
 
-	if (cl.angles[PITCH] + pitch < -360.0)
-		cl.angles[PITCH] += 360.0; // wrapped
-	if (cl.angles[PITCH] + pitch > 360.0)
-		cl.angles[PITCH] -= 360.0; // wrapped
+	if (cl.angles[PITCH] + pitch < -360.0) {
+		cl.angles[PITCH] += 360.0;    // wrapped
+	}
+	if (cl.angles[PITCH] + pitch > 360.0) {
+		cl.angles[PITCH] -= 360.0;    // wrapped
+	}
 
-	if (cl.angles[PITCH] + pitch > 89.0)
+	if (cl.angles[PITCH] + pitch > 89.0) {
 		cl.angles[PITCH] = 89.0 - pitch;
-	if (cl.angles[PITCH] + pitch < -89.0)
+	}
+	if (cl.angles[PITCH] + pitch < -89.0) {
 		cl.angles[PITCH] = -89.0 - pitch;
+	}
 }
 
 /**

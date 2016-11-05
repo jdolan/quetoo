@@ -30,17 +30,21 @@ void Sv_HeartbeatMasters(void) {
 	const char *string;
 	int32_t i;
 
-	if (!dedicated->value)
-		return; // only dedicated servers report to masters
+	if (!dedicated->value) {
+		return;    // only dedicated servers report to masters
+	}
 
-	if (!sv_public->value)
-		return; // a private dedicated game
+	if (!sv_public->value) {
+		return;    // a private dedicated game
+	}
 
-	if (!svs.initialized) // we're not up yet
+	if (!svs.initialized) { // we're not up yet
 		return;
+	}
 
-	if (svs.next_heartbeat > quetoo.time)
-		return; // not time to send yet
+	if (svs.next_heartbeat > quetoo.time) {
+		return;    // not time to send yet
+	}
 
 	svs.next_heartbeat = quetoo.time + HEARTBEAT_SECONDS * 1000;
 
@@ -74,11 +78,13 @@ void Sv_InitMasters(void) {
 void Sv_ShutdownMasters(void) {
 	int32_t i;
 
-	if (!dedicated->value)
-		return; // only dedicated servers send heartbeats
+	if (!dedicated->value) {
+		return;    // only dedicated servers send heartbeats
+	}
 
-	if (!sv_public->value)
-		return; // a private dedicated game
+	if (!sv_public->value) {
+		return;    // a private dedicated game
+	}
 
 	// send to group master
 	for (i = 0; i < MAX_MASTERS; i++) {

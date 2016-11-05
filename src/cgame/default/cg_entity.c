@@ -27,20 +27,23 @@
  */
 _Bool Cg_IsSelf(const cl_entity_t *ent) {
 
-	if (ent->current.number == cgi.client->client_num + 1)
+	if (ent->current.number == cgi.client->client_num + 1) {
 		return true;
+	}
 
 	if ((ent->current.effects & EF_CORPSE) == 0) {
-		
+
 		if (ent->current.model1 == MODEL_CLIENT || (ent->current.effects & EF_BEAM)) {
 
-			if (ent->current.client == cgi.client->client_num)
+			if (ent->current.client == cgi.client->client_num) {
 				return true;
+			}
 
 			const int16_t chase = cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS;
 
-			if (ent->current.client == chase)
+			if (ent->current.client == chase) {
 				return true;
+			}
 		}
 	}
 
@@ -66,18 +69,20 @@ _Bool Cg_IsDucking(const entity_state_t *ent) {
  */
 static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 
-	if (cgi.view->time < ent->breath_puff_time)
+	if (cgi.view->time < ent->breath_puff_time) {
 		return;
+	}
 
 	cg_particle_t *p;
 
 	vec3_t pos;
 	VectorCopy(ent->origin, pos);
 
-	if (Cg_IsDucking(&ent->current))
+	if (Cg_IsDucking(&ent->current)) {
 		pos[2] += 18.0;
-	else
+	} else {
 		pos[2] += 30.0;
+	}
 
 	vec3_t forward;
 	AngleVectors(ent->angles, forward, NULL, NULL);
@@ -86,8 +91,9 @@ static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 
 	if (cgi.PointContents(pos) & MASK_LIQUID) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble)))
+		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble))) {
 			return;
+		}
 
 		cgi.ColorFromPalette(6 + (Random() & 3), p->part.color);
 		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -0.2 - Randomf() * 0.2);
@@ -108,23 +114,24 @@ static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 		ent->breath_puff_time = cgi.view->time + 3000;
 	} else if (cgi.view->weather & WEATHER_RAIN || cgi.view->weather & WEATHER_SNOW) {
 
-		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam)))
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam))) {
 			return;
-		
+		}
+
 		cgi.ColorFromPalette(6 + (Random() & 7), p->part.color);
 		p->part.color[3] = 0.7;
-		
+
 		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (5.0 + Randomf() * 0.5));
-		
+
 		p->part.scale = 0.1;
 		p->scale_vel = 3.0;
-		
+
 		p->part.roll = Randomc() * 20.0;
-		
+
 		VectorCopy(pos, p->part.org);
 
 		VectorScale(forward, 5.0, p->vel);
-		
+
 		for (int32_t i = 0; i < 3; i++) {
 			p->vel[i] += 2.0 * Randomc();
 		}
@@ -195,8 +202,9 @@ static void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		cgi.AddLinkedEntity(head.parent, model, "tag_head");
 	}
 
-	if (s->model4)
+	if (s->model4) {
 		cgi.Warn("Unsupported model_index4\n");
+	}
 }
 
 /**
@@ -238,20 +246,25 @@ static void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
 	const player_state_t *ps = &cgi.client->frame.ps;
 
-	if (!cg_draw_weapon->value)
+	if (!cg_draw_weapon->value) {
 		return;
+	}
 
-	if (cg_third_person->value)
+	if (cg_third_person->value) {
 		return;
+	}
 
-	if (ps->stats[STAT_HEALTH] <= 0)
-		return; // dead
+	if (ps->stats[STAT_HEALTH] <= 0) {
+		return;    // dead
+	}
 
-	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE])
-		return; // spectating
+	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
+		return;    // spectating
+	}
 
-	if (!ps->stats[STAT_WEAPON])
-		return; // no weapon, e.g. level intermission
+	if (!ps->stats[STAT_WEAPON]) {
+		return;    // no weapon, e.g. level intermission
+	}
 
 	memset(&w, 0, sizeof(w));
 
@@ -329,22 +342,25 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	Cg_EntityTrail(ent, &e);
 
 	// if there's no model associated with the entity, we're done
-	if (!ent->current.model1)
+	if (!ent->current.model1) {
 		return;
+	}
 
 	if (ent->current.model1 == MODEL_CLIENT) { // add a player entity
 
 		Cg_AddClientEntity(ent, &e);
 
-		if (Cg_IsSelf(ent))
+		if (Cg_IsSelf(ent)) {
 			Cg_AddWeapon(ent, &e);
+		}
 
 		return;
 	}
 
 	// don't draw our own giblet
-	if (Cg_IsSelf(ent) && !cg_third_person->value)
+	if (Cg_IsSelf(ent) && !cg_third_person->value) {
 		e.effects |= EF_NO_DRAW;
+	}
 
 	// assign the model
 	e.model = cgi.client->model_precache[ent->current.model1];
@@ -367,8 +383,9 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 void Cg_AddEntities(const cl_frame_t *frame) {
 	uint16_t i;
 
-	if (!cg_add_entities->value)
+	if (!cg_add_entities->value) {
 		return;
+	}
 
 	// resolve any models, animations, interpolations, rotations, bobbing, etc..
 	for (i = 0; i < frame->num_entities; i++) {

@@ -97,8 +97,9 @@ const char *Sv_StatusString(void) {
 			g_snprintf(player, sizeof(player), "%d %u \"%s\"\n", i, ping, cl->name);
 			const size_t player_len = strlen(player);
 
-			if (status_len + player_len + 1 >= sizeof(status))
-				break; // can't hold any more
+			if (status_len + player_len + 1 >= sizeof(status)) {
+				break;    // can't hold any more
+			}
 
 			strcat(status, player);
 			status_len += player_len;
@@ -136,17 +137,18 @@ static void Sv_Info_f(void) {
 	const int32_t p = atoi(Cmd_Argv(1));
 	if (p != PROTOCOL_MAJOR) {
 		g_snprintf(string, sizeof(string), "%s: Wrong protocol: %d != %d", sv_hostname->string, p,
-		PROTOCOL_MAJOR);
+		           PROTOCOL_MAJOR);
 	} else {
 		int32_t i, count = 0;
 
 		for (i = 0; i < sv_max_clients->integer; i++) {
-			if (svs.clients[i].state >= SV_CLIENT_CONNECTED)
+			if (svs.clients[i].state >= SV_CLIENT_CONNECTED) {
 				count++;
+			}
 		}
 
 		g_snprintf(string, sizeof(string), "%-63s\\%-31s\\%-31s\\%d\\%d", sv_hostname->string,
-				sv.name, svs.game->GameName(), count, sv_max_clients->integer);
+		           sv.name, svs.game->GameName(), count, sv_max_clients->integer);
 	}
 
 	Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "info\n%s", string);
@@ -176,8 +178,9 @@ static void Sv_GetChallenge_f(void) {
 	// see if we already have a challenge for this ip
 	for (i = 0; i < MAX_CHALLENGES; i++) {
 
-		if (Net_CompareClientNetaddr(&net_from, &svs.challenges[i].addr))
+		if (Net_CompareClientNetaddr(&net_from, &svs.challenges[i].addr)) {
 			break;
+		}
 
 		if (svs.challenges[i].time < oldest_time) {
 			oldest_time = svs.challenges[i].time;
@@ -213,7 +216,7 @@ static void Sv_Connect_f(void) {
 	// resolve protocol
 	if (version != PROTOCOL_MAJOR) {
 		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n",
-		PROTOCOL_MAJOR);
+		                       PROTOCOL_MAJOR);
 		return;
 	}
 
@@ -275,8 +278,9 @@ static void Sv_Connect_f(void) {
 
 		const net_chan_t *ch = &cl->net_chan;
 
-		if (cl->state == SV_CLIENT_FREE) // not in use, not interested
+		if (cl->state == SV_CLIENT_FREE) { // not in use, not interested
 			continue;
+		}
 
 		// the base address and either the qport or real port must match
 		if (Net_CompareClientNetaddr(addr, &ch->remote_address)) {
@@ -342,12 +346,14 @@ static void Sv_Connect_f(void) {
 static _Bool Sv_RconAuthenticate(void) {
 
 	// a password must be set for rcon to be available
-	if (*sv_rcon_password->string == '\0')
+	if (*sv_rcon_password->string == '\0') {
 		return false;
+	}
 
 	// and of course the passwords must match
-	if (g_strcmp0(Cmd_Argv(1), sv_rcon_password->string))
+	if (g_strcmp0(Cmd_Argv(1), sv_rcon_password->string)) {
 		return false;
+	}
 
 	return true;
 }
@@ -373,10 +379,11 @@ static void Sv_Rcon_f(void) {
 	const char *addr = Net_NetaddrToString(&net_from);
 
 	// first print to the server console
-	if (auth)
+	if (auth) {
 		Com_Print("Rcon from %s:\n%s\n", addr, net_message.data + 4);
-	else
+	} else {
 		Com_Print("Bad rcon from %s:\n%s\n", addr, net_message.data + 4);
+	}
 
 	// then redirect the remaining output back to the client
 
@@ -423,22 +430,23 @@ static void Sv_ConnectionlessPacket(void) {
 
 	Com_Debug("Packet from %s: %s\n", a, c);
 
-	if (!g_strcmp0(c, "ping"))
+	if (!g_strcmp0(c, "ping")) {
 		Sv_Ping_f();
-	else if (!g_strcmp0(c, "ack"))
+	} else if (!g_strcmp0(c, "ack")) {
 		Sv_Ack_f();
-	else if (!g_strcmp0(c, "status"))
+	} else if (!g_strcmp0(c, "status")) {
 		Sv_Status_f();
-	else if (!g_strcmp0(c, "info"))
+	} else if (!g_strcmp0(c, "info")) {
 		Sv_Info_f();
-	else if (!g_strcmp0(c, "get_challenge"))
+	} else if (!g_strcmp0(c, "get_challenge")) {
 		Sv_GetChallenge_f();
-	else if (!g_strcmp0(c, "connect"))
+	} else if (!g_strcmp0(c, "connect")) {
 		Sv_Connect_f();
-	else if (!g_strcmp0(c, "rcon"))
+	} else if (!g_strcmp0(c, "rcon")) {
 		Sv_Rcon_f();
-	else
+	} else {
 		Com_Print("Bad connectionless packet from %s:\n%s\n", a, s);
+	}
 }
 
 /**
@@ -446,15 +454,16 @@ static void Sv_ConnectionlessPacket(void) {
  */
 static void Sv_UpdatePings(void) {
 	int32_t i, j;
-	sv_client_t * cl;
+	sv_client_t *cl;
 	int32_t total, count;
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
 
 		cl = &svs.clients[i];
 
-		if (cl->state != SV_CLIENT_ACTIVE)
+		if (cl->state != SV_CLIENT_ACTIVE) {
 			continue;
+		}
 
 		total = count = 0;
 		for (j = 0; j < SV_CLIENT_LATENCY_COUNT; j++) {
@@ -464,10 +473,11 @@ static void Sv_UpdatePings(void) {
 			}
 		}
 
-		if (!count)
+		if (!count) {
 			cl->entity->client->ping = 0;
-		else
+		} else {
 			cl->entity->client->ping = total / count;
+		}
 	}
 }
 
@@ -545,14 +555,17 @@ static void Sv_ReadPackets(void) {
 		sv_client_t *cl = svs.clients;
 		for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
-			if (cl->state == SV_CLIENT_FREE)
+			if (cl->state == SV_CLIENT_FREE) {
 				continue;
+			}
 
-			if (!Net_CompareClientNetaddr(&net_from, &cl->net_chan.remote_address))
+			if (!Net_CompareClientNetaddr(&net_from, &cl->net_chan.remote_address)) {
 				continue;
+			}
 
-			if (cl->net_chan.qport != qport)
+			if (cl->net_chan.qport != qport) {
 				continue;
+			}
 
 			if (cl->net_chan.remote_address.port != net_from.port) {
 				cl->net_chan.remote_address.port = net_from.port;
@@ -578,16 +591,18 @@ static void Sv_CheckTimeouts(void) {
 
 	const uint32_t timeout = 1000 * sv_timeout->value;
 
-	if (timeout > quetoo.time)
+	if (timeout > quetoo.time) {
 		return;
+	}
 
 	const uint32_t whence = quetoo.time - timeout;
 
 	sv_client_t *cl = svs.clients;
 	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
-		if (cl->state == SV_CLIENT_FREE)
+		if (cl->state == SV_CLIENT_FREE) {
 			continue;
+		}
 
 		if (cl->last_message < whence) {
 			Sv_BroadcastPrint(PRINT_MEDIUM, "%s timed out\n", cl->name);
@@ -601,8 +616,9 @@ static void Sv_CheckTimeouts(void) {
  */
 static void Sv_ResetEntities(void) {
 
-	if (sv.state != SV_ACTIVE_GAME)
+	if (sv.state != SV_ACTIVE_GAME) {
 		return;
+	}
 
 	for (uint16_t i = 0; i < svs.game->num_entities; i++) {
 		g_entity_t *edict = ENTITY_FOR_NUM(i);
@@ -632,21 +648,25 @@ static void Sv_RunGameFrame(void) {
 void Sv_KickClient(sv_client_t *cl, const char *msg) {
 	char buf[MAX_STRING_CHARS], name[32];
 
-	if (!cl)
+	if (!cl) {
 		return;
+	}
 
-	if (cl->state < SV_CLIENT_CONNECTED)
+	if (cl->state < SV_CLIENT_CONNECTED) {
 		return;
+	}
 
-	if (*cl->name == '\0') // force a name to kick
+	if (*cl->name == '\0') { // force a name to kick
 		strcpy(name, "player");
-	else
+	} else {
 		g_strlcpy(name, cl->name, sizeof(name));
+	}
 
 	memset(buf, 0, sizeof(buf));
 
-	if (msg && *msg != '\0')
+	if (msg && *msg != '\0') {
 		g_snprintf(buf, sizeof(buf), ": %s", msg);
+	}
 
 	Sv_ClientPrint(cl->entity, PRINT_HIGH, "You were kicked%s\n", buf);
 
@@ -719,8 +739,9 @@ void Sv_Frame(const uint32_t msec) {
 	static uint32_t frame_delta;
 
 	// if server is not active, do nothing
-	if (!svs.initialized)
+	if (!svs.initialized) {
 		return;
+	}
 
 	if (time_demo->value) { // always run a frame
 		frame_delta = QUETOO_TICK_MILLIS;

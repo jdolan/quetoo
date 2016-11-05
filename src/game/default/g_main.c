@@ -95,8 +95,9 @@ void G_ResetVote(void) {
 
 	for (i = 0; i < sv_max_clients->integer; i++) { //reset vote flags
 
-		if (!g_game.entities[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use) {
 			continue;
+		}
 
 		g_game.entities[i + 1].client->locals.persistent.vote = VOTE_NO_OP;
 	}
@@ -118,11 +119,13 @@ void G_ResetItems(void) {
 
 		g_entity_t *ent = &g_game.entities[i];
 
-		if (!ent->in_use)
+		if (!ent->in_use) {
 			continue;
+		}
 
-		if (!ent->locals.item)
+		if (!ent->locals.item) {
 			continue;
+		}
 
 		if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // free dropped ones
 			G_FreeEntity(ent);
@@ -140,16 +143,19 @@ void G_ResetItems(void) {
  */
 static void G_RestartGame(_Bool teamz) {
 
-	if (g_level.match_time)
+	if (g_level.match_time) {
 		g_level.match_num++;
+	}
 
-	if (g_level.round_time)
+	if (g_level.round_time) {
 		g_level.round_num++;
+	}
 
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) { // reset clients
 
-		if (!g_game.entities[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use) {
 			continue;
+		}
 
 		g_entity_t *ent = &g_game.entities[i + 1];
 		g_client_t *cl = ent->client;
@@ -158,32 +164,36 @@ static void G_RestartGame(_Bool teamz) {
 		cl->locals.persistent.score = 0;
 		cl->locals.persistent.captures = 0;
 
-		if (teamz) // reset teams
+		if (teamz) { // reset teams
 			cl->locals.persistent.team = NULL;
+		}
 
 		// determine spectator or team affiliations
 
 		if (g_level.match) {
-			if (cl->locals.persistent.match_num == g_level.match_num)
+			if (cl->locals.persistent.match_num == g_level.match_num) {
 				cl->locals.persistent.spectator = false;
-			else
+			} else {
 				cl->locals.persistent.spectator = true;
+			}
 		}
 
 		else if (g_level.rounds) {
-			if (cl->locals.persistent.round_num == g_level.round_num)
+			if (cl->locals.persistent.round_num == g_level.round_num) {
 				cl->locals.persistent.spectator = false;
-			else
+			} else {
 				cl->locals.persistent.spectator = true;
+			}
 		}
 
 		if (g_level.teams || g_level.ctf) {
 
 			if (!cl->locals.persistent.team) {
-				if (g_auto_join->value && g_level.gameplay != GAME_DUEL)
+				if (g_auto_join->value && g_level.gameplay != GAME_DUEL) {
 					G_AddClientToTeam(ent, G_SmallestTeam()->name);
-				else
+				} else {
 					cl->locals.persistent.spectator = true;
+				}
 			}
 		}
 
@@ -206,8 +216,9 @@ static void G_RestartGame(_Bool teamz) {
 void G_MuteClient(char *name, _Bool mute) {
 	g_client_t *cl;
 
-	if (!(cl = G_ClientByName(name)))
+	if (!(cl = G_ClientByName(name))) {
 		return;
+	}
 
 	cl->locals.muted = mute;
 }
@@ -217,8 +228,9 @@ void G_MuteClient(char *name, _Bool mute) {
  */
 static void G_BeginIntermission(const char *map) {
 
-	if (g_level.intermission_time)
-		return; // already activated
+	if (g_level.intermission_time) {
+		return;    // already activated
+	}
 
 	g_level.intermission_time = g_level.time;
 
@@ -227,19 +239,22 @@ static void G_BeginIntermission(const char *map) {
 
 		g_entity_t *client = g_game.entities + 1 + i;
 
-		if (!client->in_use)
+		if (!client->in_use) {
 			continue;
+		}
 
-		if (client->locals.health <= 0)
+		if (client->locals.health <= 0) {
 			G_ClientRespawn(client, false);
+		}
 	}
 
 	// find an intermission spot
 	g_entity_t *ent = G_Find(NULL, EOFS(class_name), "info_player_intermission");
 	if (!ent) { // map does not have an intermission point
 		ent = G_Find(NULL, EOFS(class_name), "info_player_start");
-		if (!ent)
+		if (!ent) {
 			ent = G_Find(NULL, EOFS(class_name), "info_player_deathmatch");
+		}
 	}
 
 	VectorCopy(ent->s.origin, g_level.intermission_origin);
@@ -250,8 +265,9 @@ static void G_BeginIntermission(const char *map) {
 
 		g_entity_t *client = g_game.entities + 1 + i;
 
-		if (!client->in_use)
+		if (!client->in_use) {
 			continue;
+		}
 
 		G_ClientToIntermission(client);
 	}
@@ -267,11 +283,11 @@ static void G_BeginIntermission(const char *map) {
  * @brief The time limit, frag limit, etc.. has been exceeded.
  */
 static void G_EndLevel(void) {
-	
+
 	const g_map_list_map_t *map = G_MapList_Next();
-	
+
 	g_level.match_status = 0;
-	
+
 	// always stay on the same map when in match mode
 	if (map && !g_level.match) {
 		G_BeginIntermission(map->name);
@@ -286,11 +302,13 @@ static void G_EndLevel(void) {
 static void G_CheckVote(void) {
 	int32_t i, count = 0;
 
-	if (!g_voting->value)
+	if (!g_voting->value) {
 		return;
+	}
 
-	if (g_level.vote_time == 0)
+	if (g_level.vote_time == 0) {
 		return;
+	}
 
 	if (g_level.time - g_level.vote_time > MAX_VOTE_TIME) {
 		gi.BroadcastPrint(PRINT_HIGH, "Vote \"%s\" expired\n", g_level.vote_cmd);
@@ -299,8 +317,9 @@ static void G_CheckVote(void) {
 	}
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.entities[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use) {
 			continue;
+		}
 		count++;
 	}
 
@@ -337,38 +356,46 @@ static void G_CheckRoundStart(void) {
 	int32_t i, g, e, clients;
 	g_client_t *cl;
 
-	if (!g_level.rounds)
+	if (!g_level.rounds) {
 		return;
+	}
 
-	if (g_level.round_time)
+	if (g_level.round_time) {
 		return;
+	}
 
 	clients = g = e = 0;
 
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.entities[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use) {
 			continue;
+		}
 
 		cl = g_game.entities[i + 1].client;
 
-		if (cl->locals.persistent.spectator)
+		if (cl->locals.persistent.spectator) {
 			continue;
+		}
 
 		clients++;
 
-		if (g_level.teams)
+		if (g_level.teams) {
 			cl->locals.persistent.team == &g_team_good ? g++ : e++;
+		}
 	}
 
-	if (clients < 2) // need at least 2 clients to trigger countdown
+	if (clients < 2) { // need at least 2 clients to trigger countdown
 		return;
+	}
 
-	if (g_level.teams && (!g || !e)) // need at least 1 player per team
+	if (g_level.teams && (!g || !e)) { // need at least 1 player per team
 		return;
+	}
 
 	if ((int32_t) g_level.teams == 2 && (g != e)) { // balanced teams required
-		if (g_level.frame_num % 100 == 0)
+		if (g_level.frame_num % 100 == 0) {
 			gi.BroadcastPrint(PRINT_HIGH, "Teams must be balanced for round to start\n");
+		}
 		return;
 	}
 
@@ -394,23 +421,28 @@ static void G_CheckRoundLimit() {
 
 	// or attempt to re-join previously active players
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.entities[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use) {
 			continue;
+		}
 
 		ent = &g_game.entities[i + 1];
 		cl = ent->client;
 
-		if (cl->locals.persistent.round_num != g_level.round_num)
-			continue; // they were intentionally spectating, skip them
+		if (cl->locals.persistent.round_num != g_level.round_num) {
+			continue;    // they were intentionally spectating, skip them
+		}
 
 		if (g_level.teams || g_level.ctf) { // rejoin a team
-			if (cl->locals.persistent.team)
+			if (cl->locals.persistent.team) {
 				G_AddClientToTeam(ent, cl->locals.persistent.team->name);
-			else
+			} else {
 				G_AddClientToTeam(ent, G_SmallestTeam()->name);
+			}
 		} else
 			// just rejoin the game
+		{
 			cl->locals.persistent.spectator = false;
+		}
 
 		G_ClientRespawn(ent, false);
 	}
@@ -425,27 +457,32 @@ static void G_CheckRoundEnd(void) {
 	g_entity_t *winner;
 	g_client_t *cl;
 
-	if (!g_level.rounds)
+	if (!g_level.rounds) {
 		return;
+	}
 
-	if (!g_level.round_time || g_level.round_time > g_level.time)
-		return; // no round currently running
+	if (!g_level.round_time || g_level.round_time > g_level.time) {
+		return;    // no round currently running
+	}
 
 	winner = NULL;
 	g = e = clients = 0;
 	for (j = 0; j < sv_max_clients->integer; j++) {
-		if (!g_game.entities[j + 1].in_use)
+		if (!g_game.entities[j + 1].in_use) {
 			continue;
+		}
 
 		cl = g_game.entities[j + 1].client;
 
-		if (cl->locals.persistent.spectator) // true spectator, or dead
+		if (cl->locals.persistent.spectator) { // true spectator, or dead
 			continue;
+		}
 
 		winner = &g_game.entities[j + 1];
 
-		if (g_level.teams)
+		if (g_level.teams) {
 			cl->locals.persistent.team == &g_team_good ? g++ : e++;
+		}
 
 		clients++;
 	}
@@ -458,35 +495,42 @@ static void G_CheckRoundEnd(void) {
 	}
 
 	if (g_level.teams || g_level.ctf) { // teams rounds continue if each team has a player
-		if (g > 0 && e > 0)
+		if (g > 0 && e > 0) {
 			return;
-	} else if (clients > 1) // ffa continues if two players are alive
+		}
+	} else if (clients > 1) { // ffa continues if two players are alive
 		return;
+	}
 
 	// allow enemy projectiles to expire before declaring a winner
 	for (i = 0; i < ge.num_entities; i++) {
-		if (!g_game.entities[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use) {
 			continue;
+		}
 
-		if (!g_game.entities[i + 1].owner)
+		if (!g_game.entities[i + 1].owner) {
 			continue;
+		}
 
-		if (!(cl = g_game.entities[i + 1].owner->client))
+		if (!(cl = g_game.entities[i + 1].owner->client)) {
 			continue;
+		}
 
 		if (g_level.teams || g_level.ctf) {
-			if (cl->locals.persistent.team != winner->client->locals.persistent.team)
+			if (cl->locals.persistent.team != winner->client->locals.persistent.team) {
 				return;
+			}
 		} else {
-			if (g_game.entities[i + 1].owner != winner)
+			if (g_game.entities[i + 1].owner != winner) {
 				return;
+			}
 		}
 	}
 
 	// we have a winner
 	gi.BroadcastPrint(PRINT_HIGH, "%s wins!\n",
-			(g_level.teams || g_level.ctf ? winner->client->locals.persistent.team->name
-					: winner->client->locals.persistent.net_name));
+	                  (g_level.teams || g_level.ctf ? winner->client->locals.persistent.team->name
+	                   : winner->client->locals.persistent.net_name));
 
 	g_level.round_time = 0;
 
@@ -500,24 +544,29 @@ static void G_CheckMatchEnd(void) {
 	int32_t i, g, e, clients;
 	g_client_t *cl;
 
-	if (!g_level.match)
+	if (!g_level.match) {
 		return;
+	}
 
-	if (!g_level.match_time || g_level.match_time > g_level.time)
-		return; // no match currently running
+	if (!g_level.match_time || g_level.match_time > g_level.time) {
+		return;    // no match currently running
+	}
 
 	g = e = clients = 0;
 	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.entities[i + 1].in_use)
+		if (!g_game.entities[i + 1].in_use) {
 			continue;
+		}
 
 		cl = g_game.entities[i + 1].client;
 
-		if (cl->locals.persistent.spectator)
+		if (cl->locals.persistent.spectator) {
 			continue;
+		}
 
-		if (g_level.teams || g_level.ctf)
+		if (g_level.teams || g_level.ctf) {
 			cl->locals.persistent.team == &g_team_good ? g++ : e++;
+		}
 
 		clients++;
 	}
@@ -546,10 +595,11 @@ static char *G_FormatTime(uint32_t time) {
 	char *c;
 
 	// highlight for countdowns
-	if (time < (30 * 1000) && time < last_time && (s & 1))
+	if (time < (30 * 1000) && time < last_time && (s & 1)) {
 		c = "^2";
-	else
+	} else {
 		c = "^7";
+	}
 
 	g_snprintf(formatted_time, sizeof(formatted_time), "%s%2u:%02u", c, m, s);
 
@@ -565,17 +615,18 @@ static void G_CheckRules(void) {
 	int32_t i;
 	_Bool restart = false;
 
-	if (g_level.intermission_time)
+	if (g_level.intermission_time) {
 		return;
+	}
 
 	// match mode, no match, or countdown underway
 	g_level.warmup = g_level.match && (!g_level.match_time || g_level.match_time > g_level.time);
 
 	// arena mode, no round, or countdown underway
 	g_level.warmup |= g_level.rounds && (!g_level.round_time || g_level.round_time > g_level.time);
-	
+
 	if (g_level.start_match && g_level.time >= g_level.match_time) {
-		
+
 		// players have readied, begin match
 		g_level.start_match = false;
 		g_level.warmup = false;
@@ -583,8 +634,9 @@ static void G_CheckRules(void) {
 		g_level.match_status = MSTAT_PLAYING;
 
 		for (i = 0; i < sv_max_clients->integer; i++) {
-			if (!g_game.entities[i + 1].in_use)
+			if (!g_game.entities[i + 1].in_use) {
 				continue;
+			}
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
@@ -598,8 +650,9 @@ static void G_CheckRules(void) {
 		g_level.warmup = false;
 
 		for (i = 0; i < sv_max_clients->integer; i++) {
-			if (!g_game.entities[i + 1].in_use)
+			if (!g_game.entities[i + 1].in_use) {
 				continue;
+			}
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
@@ -620,8 +673,9 @@ static void G_CheckRules(void) {
 		} else { // or individual scores
 			for (i = 0; i < sv_max_clients->integer; i++) {
 				g_client_t *cl = g_game.clients + i;
-				if (!g_game.entities[i + 1].in_use)
+				if (!g_game.entities[i + 1].in_use) {
 					continue;
+				}
 
 				if (cl->locals.persistent.score >= g_level.frag_limit) {
 					gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
@@ -635,7 +689,7 @@ static void G_CheckRules(void) {
 	if (g_level.ctf && g_level.capture_limit) { // check capture limit
 
 		if (g_team_good.captures >= g_level.capture_limit || g_team_evil.captures
-				>= g_level.capture_limit) {
+		        >= g_level.capture_limit) {
 			gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
 			G_EndLevel();
 			return;
@@ -651,7 +705,7 @@ static void G_CheckRules(void) {
 		restart = true;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n",
-				G_GameplayName(g_level.gameplay));
+		                  G_GameplayName(g_level.gameplay));
 
 		if (g_level.gameplay == GAME_DUEL) {
 
@@ -678,7 +732,7 @@ static void G_CheckRules(void) {
 		g_teams->modified = false;
 
 		// teams are required for duel
-		if (g_level.gameplay == GAME_DUEL && g_teams->integer == 0){
+		if (g_level.gameplay == GAME_DUEL && g_teams->integer == 0) {
 			gi.Print("Teams can't be disabled in DUEL mode, enabling...\n");
 			gi.AddCommandString("set g_teams 1\n");
 		} else {
@@ -686,7 +740,7 @@ static void G_CheckRules(void) {
 			gi.ConfigString(CS_TEAMS, va("%d", g_level.teams));
 
 			gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n",
-					g_level.teams ? "enabled" : "disabled");
+			                  g_level.teams ? "enabled" : "disabled");
 
 			restart = true;
 		}
@@ -705,8 +759,8 @@ static void G_CheckRules(void) {
 
 	if (g_match->modified) { // reset scores
 		g_match->modified = false;
-		
-		if (g_level.gameplay == GAME_DUEL && g_match->integer == 0){
+
+		if (g_level.gameplay == GAME_DUEL && g_match->integer == 0) {
 			gi.Print("Matchs can't be disabled in DUEL mode, enabling...\n");
 			gi.AddCommandString("set g_match 1\n");
 		} else {
@@ -731,7 +785,7 @@ static void G_CheckRules(void) {
 		g_level.warmup = g_level.rounds; // toggle warmup
 
 		gi.BroadcastPrint(PRINT_HIGH, "Rounds have been %s\n",
-				g_level.rounds ? "enabled" : "disabled");
+		                  g_level.rounds ? "enabled" : "disabled");
 
 		restart = true;
 	}
@@ -740,7 +794,7 @@ static void G_CheckRules(void) {
 		g_cheats->modified = false;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Cheats have been %s\n",
-				g_cheats->integer ? "enabled" : "disabled");
+		                  g_cheats->integer ? "enabled" : "disabled");
 	}
 
 	if (g_frag_limit->modified) {
@@ -762,7 +816,7 @@ static void G_CheckRules(void) {
 		g_level.capture_limit = g_capture_limit->integer;
 
 		gi.BroadcastPrint(PRINT_HIGH, "Capture limit has been changed to %d\n",
-				g_level.capture_limit);
+		                  g_level.capture_limit);
 	}
 
 	if (g_time_limit->modified) {
@@ -771,7 +825,7 @@ static void G_CheckRules(void) {
 
 		gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n", g_time_limit->value);
 	}
-	
+
 	if (restart) {
 		G_RestartGame(true);	// reset all clients
 	}
@@ -807,15 +861,16 @@ static void G_Frame(void) {
 			return;
 		}
 	}
-		
+
 	if (!G_MatchIsTimeout()) {
 		// treat each object in turn
 		// even the world gets a chance to think
 		g_entity_t *ent = &g_game.entities[0];
 		for (uint16_t i = 0; i < ge.num_entities; i++, ent++) {
 
-			if (!ent->in_use)
+			if (!ent->in_use) {
 				continue;
+			}
 
 			g_level.current_entity = ent;
 
@@ -885,7 +940,8 @@ void G_Init(void) {
 
 	g_admin_password = gi.Cvar("g_admin_password", "", CVAR_LATCH, "Password to authenticate as an admin");
 	g_ammo_respawn_time = gi.Cvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds");
-	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO, "Automatically assigns players to teams , ignored for duel mode");
+	g_auto_join = gi.Cvar("g_auto_join", "1", CVAR_SERVER_INFO,
+	                      "Automatically assigns players to teams , ignored for duel mode");
 	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level");
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
@@ -896,8 +952,9 @@ void G_Init(void) {
 	g_gameplay = gi.Cvar("g_gameplay", "0", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat");
 	g_gravity = gi.Cvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
 	g_handicap = gi.Cvar("g_handicap", "1", CVAR_SERVER_INFO,
-			"Allows usage of player handicap. 0 disallows handicap, 1 allows handicap, 2 allows handicap but disables damage reduction. (default 1)");
-	g_inhibit = gi.Cvar("g_inhibit", "", CVAR_SERVER_INFO, "Prevents entities from spawning using a class name filter (e.g.: \"weapon_bfg ammo_nukes item_quad\")");
+	                     "Allows usage of player handicap. 0 disallows handicap, 1 allows handicap, 2 allows handicap but disables damage reduction. (default 1)");
+	g_inhibit = gi.Cvar("g_inhibit", "", CVAR_SERVER_INFO,
+	                    "Prevents entities from spawning using a class name filter (e.g.: \"weapon_bfg ammo_nukes item_quad\")");
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
 	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");
@@ -909,7 +966,8 @@ void G_Init(void) {
 	g_rounds = gi.Cvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins");
 	g_show_attacker_stats = gi.Cvar("g_show_attacker_stats", "1", CVAR_SERVER_INFO, NULL);
 	g_spawn_farthest = gi.Cvar("g_spawn_farthest", "1", CVAR_SERVER_INFO, NULL);
-	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators");
+	g_spectator_chat = gi.Cvar("g_spectator_chat", "1", CVAR_SERVER_INFO,
+	                           "If enabled, spectators can only talk to other spectators");
 	g_teams = gi.Cvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
 	g_time_limit = gi.Cvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes");
 	g_timeout_time = gi.Cvar("g_timeout_time", "120", CVAR_SERVER_INFO, "Length in seconds of a timeout, 0 = disabled");
@@ -937,10 +995,10 @@ void G_Init(void) {
 	G_MySQL_Init();
 
 	// set these to false to avoid spurious game restarts and alerts on init
-	g_gameplay->modified = g_ctf->modified = g_cheats->modified = 
-		g_frag_limit->modified = g_round_limit->modified = g_capture_limit->modified = 
-			g_time_limit->modified = false;
-	
+	g_gameplay->modified = g_ctf->modified = g_cheats->modified =
+	                           g_frag_limit->modified = g_round_limit->modified = g_capture_limit->modified =
+	                                       g_time_limit->modified = false;
+
 	// add game-specific server console commands
 	gi.Cmd("mute", G_Mute_Sv_f, CMD_GAME, "Prevent a client from talking");
 	gi.Cmd("unmute", G_Mute_Sv_f, CMD_GAME, "Allow a muted client to talk again");
@@ -969,35 +1027,35 @@ void G_Shutdown(void) {
 }
 
 void G_CallTimeOut(g_entity_t *ent) {
-	
+
 	if (g_timeout_time->integer == 0) {
 		gi.ClientPrint(ent, PRINT_HIGH, "Timeouts are disabled\n");
 		return;
 	}
-	
+
 	g_level.match_status |= MSTAT_TIMEOUT;
 	g_level.timeout_caller = ent;
 	g_level.timeout_time = g_level.time + (g_timeout_time->integer * 1000);
 	g_level.timeout_frame = g_level.frame_num;
-	
+
 	// lock everyone in place
 	for (int32_t i = 1; i < sv_max_clients->integer; i++) {
 		g_game.entities[i].client->ps.pm_state.type = PM_FREEZE;
 	}
-	
-	gi.BroadcastPrint(PRINT_HIGH, "%s called a timeout, play with resume in %s\n", 
-		ent->client->locals.persistent.net_name, G_FormatTime(g_timeout_time->integer * 1000));
+
+	gi.BroadcastPrint(PRINT_HIGH, "%s called a timeout, play with resume in %s\n",
+	                  ent->client->locals.persistent.net_name, G_FormatTime(g_timeout_time->integer * 1000));
 }
 
 void G_CallTimeIn(void) {
-	
+
 	g_level.frame_num = g_level.timeout_frame; // where we were before timeout
-	
+
 	// unlock everyone
 	for (int32_t i = 1; i < sv_max_clients->integer; i++) {
 		g_game.entities[i].client->ps.pm_state.type = PM_NORMAL;
 	}
-	
+
 	g_level.match_status = MSTAT_PLAYING;
 	g_level.timeout_caller = NULL;
 	g_level.timeout_time = 0;
@@ -1010,24 +1068,27 @@ void G_CallTimeIn(void) {
 void G_RunTimers(void) {
 	uint32_t j;
 	uint32_t time = g_level.time;
-	
+
 	if (g_level.rounds) {
-		if (g_level.round_time > g_level.time) // round about to start, show pre-game countdown
+		if (g_level.round_time > g_level.time) { // round about to start, show pre-game countdown
 			time = g_level.round_time - g_level.time;
-		else if (g_level.round_time)
-			time = g_level.time - g_level.round_time; // round started, count up
-		else
+		} else if (g_level.round_time) {
+			time = g_level.time - g_level.round_time;    // round started, count up
+		} else {
 			time = 0;
+		}
 	} else if (g_level.match) {
-		if (g_level.match_time > g_level.time) // match about to start, show pre-game countdown
+		if (g_level.match_time > g_level.time) { // match about to start, show pre-game countdown
 			time = g_level.match_time - g_level.time;
-		else if (g_level.match_time) {
-			if (g_level.time_limit) // count down to time_limit
+		} else if (g_level.match_time) {
+			if (g_level.time_limit) { // count down to time_limit
 				time = g_level.time_limit - g_level.time;
-			else
-				time = g_level.time - g_level.match_time; // count up
-		} else
+			} else {
+				time = g_level.time - g_level.match_time;    // count up
+			}
+		} else {
 			time = 0;
+		}
 	}
 
 	if (g_level.time_limit) { // check time_limit
@@ -1038,44 +1099,44 @@ void G_RunTimers(void) {
 		}
 		time = g_level.time_limit - g_level.time; // count down
 	}
-	
+
 	if (g_level.frame_num % QUETOO_TICK_RATE == 0) { // send time updates once per second
-		
+
 		if (G_MatchIsCountdown() && !G_MatchIsPlaying()) { // match mode, everyone ready, show countdown
-		
+
 			j = (g_level.match_time - g_level.time) / 1000 % 60;
 			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_level.match_time - g_level.time)));
-			
+
 			if (j <= 5) {
-			
+
 				if (j > 0) {
 					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE);
 				}
-				
+
 				G_TeamCenterPrint(&g_team_good, "%s\n", (!j) ? "Fight!" : va("%d", j));
-				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));	
+				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));
 			}
-			
+
 		} else if (G_MatchIsWarmup()) {	// not everyone ready yet
 			gi.ConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_time_limit->integer * 60 * 1000)));
 		} else if (G_MatchIsTimeout()) { // mid match, player called timeout
 			j = (g_level.timeout_time - g_level.time) / 1000;
 			gi.ConfigString(CS_TIME, va("Timeout %s",
-				G_FormatTime(g_level.timeout_time - g_level.time))
-			);
-			
+			                            G_FormatTime(g_level.timeout_time - g_level.time))
+			               );
+
 			if (j <= 10) {
-			
+
 				if (j > 0) {
 					gi.Sound(&g_game.entities[0], g_media.sounds.countdown[j], ATTEN_NONE);
 				} else {
 					G_CallTimeIn();
 				}
-				
+
 				G_TeamCenterPrint(&g_team_good, "%s\n", (!j) ? "Fight!" : va("%d", j));
-				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));	
+				G_TeamCenterPrint(&g_team_evil, "%s\n", (!j) ? "Fight!" : va("%d", j));
 			}
-		} else { 
+		} else {
 			gi.ConfigString(CS_TIME, G_FormatTime(time));
 		}
 	}

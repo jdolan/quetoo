@@ -110,14 +110,14 @@ static void updateBindings(View *self) {
  * @memberof VideoModeSelect
  */
 static VideoModeSelect *initWithFrame(VideoModeSelect *self, const SDL_Rect *frame, ControlStyle style) {
-	
+
 	self = (VideoModeSelect *) super(Select, self, initWithFrame, frame, style);
 	if (self) {
 		$((View *) self, updateBindings);
-		
+
 		self->select.delegate.didSelectOption = didSelectOption;
 	}
-	
+
 	return self;
 }
 

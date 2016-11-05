@@ -65,10 +65,10 @@ typedef enum {
 #define R_ARRAY_MASK_ALL			(1 << R_ARRAY_MAX_ATTRIBS) - 1
 
 #ifdef __R_LOCAL_H__
-void R_SetArrayState(const r_model_t *mod);
-void R_ResetArrayState(void);
-void R_DrawArrays(GLenum type, GLint start, GLsizei count);
-int32_t R_ArraysMask(void);
+	void R_SetArrayState(const r_model_t *mod);
+	void R_ResetArrayState(void);
+	void R_DrawArrays(GLenum type, GLint start, GLsizei count);
+	int32_t R_ArraysMask(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_ARRAY_H__ */

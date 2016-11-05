@@ -25,8 +25,8 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_TouchOccupy(g_entity_t *ent);
-void G_RunEntity(g_entity_t *ent);
+	void G_TouchOccupy(g_entity_t *ent);
+	void G_RunEntity(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_PHYSICS_H__ */

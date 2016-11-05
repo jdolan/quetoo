@@ -128,8 +128,9 @@ static void AddAnimation(char *name, int32_t count) {
 
 	const size_t len = strlen(name);
 
-	if ((i = atoi(&name[len - 1])) < 0)
+	if ((i = atoi(&name[len - 1])) < 0) {
 		return;
+	}
 
 	name[len - 1] = '\0';
 
@@ -169,8 +170,9 @@ static void AddMaterials(const char *path) {
 
 		c = ParseToken(&buf);
 
-		if (*c == '\0')
+		if (*c == '\0') {
 			break;
+		}
 
 		// texture references should all be added
 		if (!g_strcmp0(c, "texture")) {
@@ -245,8 +247,9 @@ static void AddMaterials(const char *path) {
 
 		if (*c == '}') {
 
-			if (num_frames) // add animation frames
+			if (num_frames) { // add animation frames
 				AddAnimation(texture, num_frames);
+			}
 
 			num_frames = 0;
 			continue;
@@ -263,8 +266,9 @@ static void AddModel(char *model) {
 	const char *model_formats[] = { "md3", "obj", NULL };
 	char path[MAX_QPATH];
 
-	if (model[0] == '*') // bsp submodel
+	if (model[0] == '*') { // bsp submodel
 		return;
+	}
 
 	if (!ResolveAsset(model, model_formats)) {
 		Com_Warn("Failed to resolve %s\n", model);
@@ -312,7 +316,7 @@ static void AddDocumentation(void) {
 /**
  * @brief
  */
-static void AddMapshots_enumerate(const char *path, void *data __attribute__((unused))) {
+static void AddMapshots_enumerate(const char *path, void *data) {
 
 	if (g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".png")) {
 		AddAsset(path, false);
@@ -358,7 +362,7 @@ static _Bool DeflateAsset(zipFile zip_file, const char *filename) {
 	}
 
 	if (zipOpenNewFileInZip(zip_file, filename, &zip_info, NULL, 0, NULL, 0, NULL, Z_DEFLATED,
-			Z_DEFAULT_COMPRESSION) != Z_OK) {
+	                        Z_DEFAULT_COMPRESSION) != Z_OK) {
 		Com_Warn("Failed to write %s\n", filename);
 		return false;
 	}
@@ -441,12 +445,13 @@ int32_t ZIP_Main(void) {
 		e = entities[i].epairs;
 		while (e) {
 
-			if (!g_strcmp0(e->key, "noise") || !g_strcmp0(e->key, "sound"))
+			if (!g_strcmp0(e->key, "noise") || !g_strcmp0(e->key, "sound")) {
 				AddSound(e->value);
-			else if (!g_strcmp0(e->key, "model"))
+			} else if (!g_strcmp0(e->key, "model")) {
 				AddModel(e->value);
-			else if (!g_strcmp0(e->key, "sky"))
+			} else if (!g_strcmp0(e->key, "sky")) {
 				AddSky(e->value);
+			}
 
 			e = e->next;
 		}
@@ -494,8 +499,9 @@ int32_t ZIP_Main(void) {
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
 	Com_Print("\nZIP Time: ");
-	if (duration > 59)
+	if (duration > 59) {
 		Com_Print("%d Minutes ", (int32_t) (duration / 60));
+	}
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	return 0;

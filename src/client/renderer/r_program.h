@@ -76,8 +76,7 @@ typedef struct {
 	vec_t density;
 } r_fog_parameters_t;
 
-typedef struct
-{
+typedef struct {
 	r_variable_t start;
 	r_variable_t end;
 	r_variable_t color;

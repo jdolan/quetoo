@@ -42,8 +42,8 @@ typedef struct {
 	vec3_t points[MAX_POINTS_ON_FIXED_WINDING]; // variable sized
 } winding_t;
 
-void FreeWinding(winding_t * w);
-winding_t *CopyWinding(winding_t * w);
+void FreeWinding(winding_t *w);
+winding_t *CopyWinding(winding_t *w);
 
 typedef enum {
 	stat_none, stat_working, stat_done

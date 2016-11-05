@@ -25,10 +25,10 @@
 #define __R_ELEMENT_H__
 
 #ifdef __R_LOCAL_H__
-void R_AddElement(const r_element_t *e);
-void R_SortElements(void *data __attribute__((unused)));
-void R_DrawElements(void);
-void R_InitElements(r_bsp_model_t *bsp);
+	void R_AddElement(const r_element_t *e);
+	void R_SortElements(void *data);
+	void R_DrawElements(void);
+	void R_InitElements(r_bsp_model_t *bsp);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_ELEMENT_H__ */

@@ -70,7 +70,7 @@ static void Cl_SendConnect(void) {
 	}
 
 	Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %u \"%s\"\n", PROTOCOL_MAJOR,
-			qport->integer, cls.challenge, Cvar_UserInfo());
+	                       qport->integer, cls.challenge, Cvar_UserInfo());
 
 	cvar_user_info_modified = false;
 }
@@ -94,12 +94,14 @@ static void Cl_AttemptConnect(void) {
 	}
 
 	// re-send if we haven't received a reply yet
-	if (cls.state != CL_CONNECTING)
+	if (cls.state != CL_CONNECTING) {
 		return;
+	}
 
 	// don't flood connection packets
-	if (cls.connect_time && (quetoo.time - cls.connect_time < 1000))
+	if (cls.connect_time && (quetoo.time - cls.connect_time < 1000)) {
 		return;
+	}
 
 	net_addr_t addr;
 
@@ -190,9 +192,9 @@ static void Cl_Rcon_f(void) {
 		strcat(message, " ");
 	}
 
-	if (cls.state >= CL_CONNECTED)
+	if (cls.state >= CL_CONNECTED) {
 		to = cls.net_chan.remote_address;
-	else {
+	} else {
 		if (*rcon_address->string == '\0') {
 			Com_Print("Not connected and no rcon_address set\n");
 			return;
@@ -203,8 +205,9 @@ static void Cl_Rcon_f(void) {
 			return;
 		}
 
-		if (to.port == 0)
+		if (to.port == 0) {
 			to.port = htons(PORT_SERVER);
+		}
 	}
 
 	Net_SendDatagram(NS_UDP_CLIENT, &to, message, strlen(message) + 1);
@@ -236,8 +239,9 @@ static void Cl_ForwardCmdToServer(void) {
  */
 void Cl_ClearState(void) {
 
-	if (Com_WasInit(QUETOO_CGAME))
+	if (Com_WasInit(QUETOO_CGAME)) {
 		cls.cgame->ClearState();
+	}
 
 	Cl_ClearInput();
 
@@ -255,8 +259,9 @@ void Cl_ClearState(void) {
 void Cl_SendDisconnect(void) {
 	byte final[16];
 
-	if (cls.state <= CL_DISCONNECTED)
+	if (cls.state <= CL_DISCONNECTED) {
 		return;
+	}
 
 	Com_Print("Disconnecting from %s...\n", cls.server_name);
 
@@ -279,15 +284,16 @@ void Cl_SendDisconnect(void) {
  */
 void Cl_Disconnect(void) {
 
-	if (cls.state <= CL_DISCONNECTED)
+	if (cls.state <= CL_DISCONNECTED) {
 		return;
+	}
 
 	if (time_demo->value) { // summarize time_demo results
 
 		const vec_t s = (quetoo.time - cl.time_demo_start) / 1000.0;
 
 		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
-				cl.time_demo_frames / s);
+		          cl.time_demo_frames / s);
 
 		cl.time_demo_frames = cl.time_demo_start = 0;
 	}
@@ -300,11 +306,13 @@ void Cl_Disconnect(void) {
 
 	if (cls.download.file) { // stop download
 
-		if (cls.download.http) // clean up http downloads
+		if (cls.download.http) { // clean up http downloads
 			Cl_HttpDownload_Complete();
-		else
+		} else
 			// or just stop legacy ones
+		{
 			Fs_Close(cls.download.file);
+		}
 
 		cls.download.file = NULL;
 	}
@@ -331,8 +339,9 @@ static void Cl_Disconnect_f(void) {
  */
 void Cl_Reconnect_f(void) {
 
-	if (cls.download.file) // don't disrupt downloads
+	if (cls.download.file) { // don't disrupt downloads
 		return;
+	}
 
 	if (cls.server_name[0] != '\0') {
 
@@ -389,7 +398,7 @@ static void Cl_ConnectionlessPacket(void) {
 		} else {
 			cls.download_url[0] = '\0';
 		}
-		
+
 		return;
 	}
 
@@ -465,8 +474,9 @@ static void Cl_ReadPackets(void) {
 			continue;
 		}
 
-		if (!Netchan_Process(&cls.net_chan, &net_message))
-			continue; // wasn't accepted for some reason
+		if (!Netchan_Process(&cls.net_chan, &net_message)) {
+			continue;    // wasn't accepted for some reason
+		}
 
 		Cl_ParseServerMessage();
 	}
@@ -488,8 +498,9 @@ static void Cl_ReadPackets(void) {
 static const char *Cl_Username(void) {
 	const char *username = Sys_Username();
 
-	if (username[0] == '\0')
+	if (username[0] == '\0') {
 		username = "newbie";
+	}
 
 	return username;
 }
@@ -552,8 +563,9 @@ static void Cl_InitLocal(void) {
 static void Cl_WriteConfiguration(void) {
 	file_t *f;
 
-	if (cls.state == CL_UNINITIALIZED)
+	if (cls.state == CL_UNINITIALIZED) {
 		return;
+	}
 
 	if (!(f = Fs_OpenWrite("quetoo.cfg"))) {
 		Com_Warn("Couldn't write quetoo.cfg\n");
@@ -572,8 +584,9 @@ static void Cl_WriteConfiguration(void) {
 void Cl_Frame(const uint32_t msec) {
 	static uint32_t frame_time;
 
-	if (dedicated->value)
+	if (dedicated->value) {
 		return;
+	}
 
 	// update the simulation time
 	cl.time += msec;
@@ -635,8 +648,9 @@ void Cl_Init(void) {
 
 	memset(&cls, 0, sizeof(cls));
 
-	if (dedicated->value)
-		return; // nothing running on the client
+	if (dedicated->value) {
+		return;    // nothing running on the client
+	}
 
 	cls.state = CL_DISCONNECTED;
 
@@ -672,8 +686,9 @@ void Cl_Init(void) {
  */
 void Cl_Shutdown(void) {
 
-	if (dedicated->value)
+	if (dedicated->value) {
 		return;
+	}
 
 	Cl_Disconnect();
 

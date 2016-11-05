@@ -45,7 +45,7 @@ static void dealloc(Object *self) {
  * @brief Renders the given entity stub.
  */
 static void renderMeshEntity(r_entity_t *e) {
-	
+
 	cgi.view->current_entity = e;
 
 	cgi.SetMatrixForEntity(e);
@@ -62,7 +62,7 @@ static void renderMeshEntity(r_entity_t *e) {
 static void render(View *self, Renderer *renderer) {
 
 	super(View, self, render, renderer);
-	
+
 	PlayerModelView *this = (PlayerModelView *) self;
 
 	if (this->client.torso == NULL) {
@@ -71,7 +71,7 @@ static void render(View *self, Renderer *renderer) {
 
 	if (this->client.torso) {
 		$(this, animate);
-		
+
 		cgi.PushMatrix(R_MATRIX_PROJECTION);
 		cgi.PushMatrix(R_MATRIX_MODELVIEW);
 
@@ -99,11 +99,11 @@ static void render(View *self, Renderer *renderer) {
 		Matrix4x4_ConcatRotate(&mat, -90.0, 1.0, 0.0, 0.0);
 		Matrix4x4_ConcatRotate(&mat,  90.0, 0.0, 0.0, 1.0);
 		Matrix4x4_ConcatTranslate(&mat, 64.0, 0.0, -8.0);
-		
+
 		Matrix4x4_ConcatRotate(&mat, cgi.client->systime * 0.08, 0.0, 0.0, 1.0);
 
 		Matrix4x4_Copy(&cgi.view->active_matrices[R_MATRIX_MODELVIEW], &mat);
-		
+
 		cgi.EnableTextureID(R_TEXUNIT_DIFFUSE, true);
 		cgi.EnableDepthTest(true);
 		cgi.DepthRange(0.0, 0.1);
@@ -112,13 +112,13 @@ static void render(View *self, Renderer *renderer) {
 		renderMeshEntity(&this->torso);
 		renderMeshEntity(&this->head);
 		renderMeshEntity(&this->weapon);
-		
+
 		cgi.DepthRange(0.0, 1.0);
 		cgi.EnableDepthTest(false);
 		cgi.EnableTextureID(R_TEXUNIT_DIFFUSE, false);
-		
+
 		cgi.SetViewport(0, 0, cgi.context->width, cgi.context->height);
-		
+
 		cgi.PopMatrix(R_MATRIX_MODELVIEW);
 		cgi.PopMatrix(R_MATRIX_PROJECTION);
 	}
@@ -193,7 +193,7 @@ static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e
 
 	const r_md3_animation_t *anim = &md3->animations[a->animation];
 
-	const uint32_t frameTime = (1500 / cgi.CvarValue("time_scale") ?: 1.0) / anim->hz;
+	const uint32_t frameTime = (1500 / cgi.CvarValue("time_scale") ? : 1.0) / anim->hz;
 	const uint32_t animationTime = anim->num_frames * frameTime;
 	const uint32_t elapsedTime = cgi.client->systime - a->time;
 	uint16_t frame = elapsedTime / frameTime;

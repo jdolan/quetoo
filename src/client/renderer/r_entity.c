@@ -43,7 +43,7 @@ const r_entity_t *R_AddEntity(const r_entity_t *ent) {
  * @brief Binds a linked model to its parent, and copies it into the view structure.
  */
 const r_entity_t *R_AddLinkedEntity(const r_entity_t *parent, const r_model_t *model,
-		const char *tag_name) {
+                                    const char *tag_name) {
 
 	if (!parent) {
 		Com_Warn("NULL parent\n");
@@ -147,7 +147,7 @@ static int32_t R_CullEntities_compare(const void *a, const void *b) {
  * thread while the renderer draws the world. Mesh entities which pass a frustum
  * cull will also have their lighting information updated.
  */
-void R_CullEntities(void *data __attribute__((unused))) {
+void R_CullEntities(void *data) {
 
 	r_entity_t *e = r_view.entities;
 	for (uint16_t i = 0; i < r_view.num_entities; i++, e++) {
@@ -156,15 +156,16 @@ void R_CullEntities(void *data __attribute__((unused))) {
 
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 
-			if (R_CullBspInlineModel(e))
+			if (R_CullBspInlineModel(e)) {
 				continue;
+			}
 
 			ents = &r_sorted_entities.bsp_inline_entities;
-		}
-		else if (IS_MESH_MODEL(e->model)) {
+		} else if (IS_MESH_MODEL(e->model)) {
 
-			if (R_CullMeshModel(e))
+			if (R_CullMeshModel(e)) {
 				continue;
+			}
 
 			R_UpdateMeshModelLighting(e);
 
@@ -203,9 +204,10 @@ static void R_DrawNullModel(const r_entity_t *e) {
  */
 static void R_DrawNullModels(const r_entities_t *ents) {
 
-	if (!ents->count)
+	if (!ents->count) {
 		return;
-	
+	}
+
 	R_BindArray(R_ARRAY_VERTEX, &r_model_state.null_vertices);
 
 	R_BindArray(R_ARRAY_ELEMENTS, &r_model_state.null_elements);
@@ -213,14 +215,15 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
 
-		if (e->effects & EF_NO_DRAW)
+		if (e->effects & EF_NO_DRAW) {
 			continue;
+		}
 
 		r_view.current_entity = e;
 
 		R_DrawNullModel(e);
 	}
-	
+
 	R_BindDefaultArray(R_ARRAY_VERTEX);
 
 	R_BindDefaultArray(R_ARRAY_ELEMENTS);
@@ -273,7 +276,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
 
 	R_UploadToBuffer(&r_state.buffer_element_array, 0, sizeof(bound_elements), bound_elements);
-	
+
 	R_BindDefaultArray(R_ARRAY_VERTEX);
 
 	R_BindDefaultArray(R_ARRAY_COLOR);
@@ -288,19 +291,19 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		{ color[0], color[1], color[2], color[3] },
 		{ color[0], color[1], color[2], color[3] },
 		{ color[0], color[1], color[2], color[3] },
-			
+
 		{ 1.0, 0.0, 0.0, 1.0 },
 		{ 1.0, 0.0, 0.0, 1.0 },
-			
+
 		{ 0.0, 1.0, 0.0, 1.0 },
 		{ 0.0, 1.0, 0.0, 1.0 },
-			
+
 		{ 0.0, 0.0, 1.0, 1.0 },
 		{ 0.0, 0.0, 1.0, 1.0 },
 	};
 
 	R_UploadToBuffer(&r_state.buffer_color_array, 0, sizeof(colors), colors);
-	
+
 	static matrix4x4_t mat;
 
 	for (size_t i = 0; i < ents->count; i++) {
@@ -333,7 +336,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 			{ 0, 0, 0 },
 			{ 0, 0, 8 }
 		};
-		
+
 		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, sizeof(verts), verts);
 
 		// draw box
@@ -360,11 +363,11 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 	}
 
 	R_BindDefaultArray(R_ARRAY_ELEMENTS);
-	
+
 	R_EnableColorArray(false);
 
 	R_EnableTexture(&texunit_diffuse, true);
-	
+
 	R_Color(NULL);
 }
 

@@ -55,7 +55,7 @@ static void drawLine(const Renderer *self, const SDL_Point *points) {
  */
 static void drawLines(const Renderer *self, const SDL_Point *points, size_t count) {
 	assert(points);
-	
+
 	R_DrawLinesUI(points, count, false);
 }
 
@@ -102,7 +102,7 @@ static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *re
  * @see Renderer::endFrame(RendererQuetoo *self)
  */
 static void endFrame(Renderer *self) {
-	
+
 	$(self, setClippingFrame, NULL);
 }
 
@@ -114,12 +114,11 @@ static void setDrawColor(Renderer *self, const SDL_Color *color) {
 	if (color) {
 		R_Color((const vec4_t) {
 			color->r / 255.0f,
-			color->g / 255.0f,
-			color->b / 255.0f,
-			color->a / 255.0f
+			      color->g / 255.0f,
+			      color->b / 255.0f,
+			      color->a / 255.0f
 		});
-	}
-	else {
+	} else {
 		R_Color(NULL);
 	}
 }
@@ -129,8 +128,7 @@ static void setDrawColor(Renderer *self, const SDL_Color *color) {
  */
 static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
 
-	if (!frame)
-	{
+	if (!frame) {
 		R_EnableScissor(NULL);
 		return;
 	}

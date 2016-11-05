@@ -105,7 +105,7 @@ SkinSelect *initWithFrame(SkinSelect *self, const SDL_Rect *frame, ControlStyle 
 
 		$((View *) self, sizeToFit);
 	}
-	
+
 	return self;
 }
 

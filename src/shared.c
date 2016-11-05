@@ -185,7 +185,7 @@ void PerpendicularVector(const vec3_t in, vec3_t out) {
  * The fourth component of the resulting tangent vector represents sidedness.
  */
 void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent,
-		vec3_t bitangent) {
+                    vec3_t bitangent) {
 
 	vec3_t s, t;
 
@@ -203,10 +203,11 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 	// resolve sidedness, encode as fourth tangent component
 	CrossProduct(normal, tangent, bitangent);
 
-	if (DotProduct(t, bitangent) < 0.0)
+	if (DotProduct(t, bitangent) < 0.0) {
 		tangent[3] = -1.0;
-	else
+	} else {
 		tangent[3] = 1.0;
+	}
 
 	VectorScale(bitangent, tangent[3], bitangent);
 }
@@ -216,8 +217,9 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
  */
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
 
-	for (int32_t i = 0; i < 3; i++)
+	for (int32_t i = 0; i < 3; i++) {
 		out[i] = from[i] + frac * (to[i] - from[i]);
+	}
 }
 
 /**
@@ -233,11 +235,13 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
 
 	for (int32_t i = 0; i < 3; i++) {
 
-		if (_to[i] - _from[i] > 180.0)
+		if (_to[i] - _from[i] > 180.0) {
 			_to[i] -= 360.0;
+		}
 
-		if (_to[i] - _from[i] < -180.0)
+		if (_to[i] - _from[i] < -180.0) {
 			_to[i] += 360.0;
+		}
 	}
 
 	VectorLerp(_from, _to, frac, out);
@@ -248,11 +252,13 @@ void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out)
  */
 _Bool BoxIntersect(const vec3_t mins0, const vec3_t maxs0, const vec3_t mins1, const vec3_t maxs1) {
 
-	if (mins0[0] >= maxs1[0] || mins0[1] >= maxs1[1] || mins0[2] >= maxs1[2])
+	if (mins0[0] >= maxs1[0] || mins0[1] >= maxs1[1] || mins0[2] >= maxs1[2]) {
 		return false;
+	}
 
-	if (maxs0[0] <= mins1[0] || maxs0[1] <= mins1[1] || maxs0[2] <= mins1[2])
+	if (maxs0[0] <= mins1[0] || maxs0[1] <= mins1[1] || maxs0[2] <= mins1[2]) {
 		return false;
+	}
 
 	return true;
 }
@@ -271,10 +277,12 @@ void ClearBounds(vec3_t mins, vec3_t maxs) {
 void AddPointToBounds(const vec3_t point, vec3_t mins, vec3_t maxs) {
 
 	for (int32_t i = 0; i < 3; i++) {
-		if (point[i] < mins[i])
+		if (point[i] < mins[i]) {
 			mins[i] = point[i];
-		if (point[i] > maxs[i])
+		}
+		if (point[i] > maxs[i]) {
 			maxs[i] = point[i];
+		}
 	}
 }
 
@@ -354,8 +362,9 @@ vec_t VectorLength(const vec3_t v) {
  */
 void VectorMix(const vec3_t v1, const vec3_t v2, const vec_t mix, vec3_t out) {
 
-	for (int32_t i = 0; i < 3; i++)
+	for (int32_t i = 0; i < 3; i++) {
 		out[i] = v1[i] * (1.0 - mix) + v2[i] * mix;
+	}
 }
 
 /**
@@ -477,15 +486,18 @@ vec_t ColorNormalize(const vec3_t in, vec3_t out) {
 
 	for (int32_t i = 0; i < 3; i++) { // find the brightest component
 
-		if (out[i] < 0.0) // enforcing positive values
+		if (out[i] < 0.0) { // enforcing positive values
 			out[i] = 0.0;
+		}
 
-		if (out[i] > max)
+		if (out[i] > max) {
 			max = out[i];
+		}
 	}
 
-	if (max > 1.0) // clamp without changing hue
+	if (max > 1.0) { // clamp without changing hue
 		VectorScale(out, 1.0 / max, out);
+	}
 
 	return max;
 }
@@ -534,8 +546,9 @@ char *CommonPrefix(GList *words) {
 
 	memset(common_prefix, 0, sizeof(common_prefix));
 
-	if (!words)
+	if (!words) {
 		return common_prefix;
+	}
 
 	for (size_t i = 0; i < sizeof(common_prefix) - 1; i++) {
 		GList *e = words;
@@ -543,8 +556,9 @@ char *CommonPrefix(GList *words) {
 		while (e) {
 			const char *w = (char *) e->data;
 
-			if (!c || w[i] != c) // prefix no longer common
+			if (!c || w[i] != c) { // prefix no longer common
 				return common_prefix;
+			}
 
 			e = e->next;
 		}
@@ -562,22 +576,27 @@ static _Bool GlobMatchStar(const char *pattern, const char *text) {
 	register char c, c1;
 
 	while ((c = *p++) == '?' || c == '*')
-		if (c == '?' && *t++ == '\0')
+		if (c == '?' && *t++ == '\0') {
 			return false;
+		}
 
-	if (c == '\0')
+	if (c == '\0') {
 		return true;
+	}
 
-	if (c == '\\')
+	if (c == '\\') {
 		c1 = *p;
-	else
+	} else {
 		c1 = c;
+	}
 
 	while (true) {
-		if ((c == '[' || *t == c1) && GlobMatch(p - 1, t))
+		if ((c == '[' || *t == c1) && GlobMatch(p - 1, t)) {
 			return true;
-		if (*t++ == '\0')
+		}
+		if (*t++ == '\0') {
 			return false;
+		}
 	}
 
 	return false;
@@ -612,79 +631,93 @@ _Bool GlobMatch(const char *pattern, const char *text) {
 	while ((c = *p++) != '\0')
 		switch (c) {
 			case '?':
-				if (*t == '\0')
+				if (*t == '\0') {
 					return 0;
-				else
+				} else {
 					++t;
+				}
 				break;
 
 			case '\\':
-				if (*p++ != *t++)
+				if (*p++ != *t++) {
 					return 0;
+				}
 				break;
 
 			case '*':
 				return GlobMatchStar(p, t);
 
 			case '[': {
-				register char c1 = *t++;
-				int32_t invert;
+					register char c1 = *t++;
+					int32_t invert;
 
-				if (!c1)
-					return 0;
-
-				invert = ((*p == '!') || (*p == '^'));
-				if (invert)
-					p++;
-
-				c = *p++;
-				while (true) {
-					register char cstart = c, cend = c;
-
-					if (c == '\\') {
-						cstart = *p++;
-						cend = cstart;
-					}
-					if (c == '\0')
+					if (!c1) {
 						return 0;
+					}
+
+					invert = ((*p == '!') || (*p == '^'));
+					if (invert) {
+						p++;
+					}
 
 					c = *p++;
-					if (c == '-' && *p != ']') {
-						cend = *p++;
-						if (cend == '\\')
-							cend = *p++;
-						if (cend == '\0')
+					while (true) {
+						register char cstart = c, cend = c;
+
+						if (c == '\\') {
+							cstart = *p++;
+							cend = cstart;
+						}
+						if (c == '\0') {
 							return 0;
-						c = *p++;
-					}
-					if (c1 >= cstart && c1 <= cend)
-						goto match;
-					if (c == ']')
-						break;
-				}
-				if (!invert)
-					return 0;
-				break;
+						}
 
-				match:
-				/* Skip the rest of the [...] construct that already matched. */
-				while (c != ']') {
-					if (c == '\0')
+						c = *p++;
+						if (c == '-' && *p != ']') {
+							cend = *p++;
+							if (cend == '\\') {
+								cend = *p++;
+							}
+							if (cend == '\0') {
+								return 0;
+							}
+							c = *p++;
+						}
+						if (c1 >= cstart && c1 <= cend) {
+							goto match;
+						}
+						if (c == ']') {
+							break;
+						}
+					}
+					if (!invert) {
 						return 0;
-					c = *p++;
-					if (c == '\0')
+					}
+					break;
+
+match:
+					/* Skip the rest of the [...] construct that already matched. */
+					while (c != ']') {
+						if (c == '\0') {
+							return 0;
+						}
+						c = *p++;
+						if (c == '\0') {
+							return 0;
+						} else if (c == '\\') {
+							++p;
+						}
+					}
+					if (invert) {
 						return 0;
-					else if (c == '\\')
-						++p;
+					}
+					break;
 				}
-				if (invert)
-					return 0;
-				break;
-			}
 
 			default:
-				if (c != *t++)
+				if (c != *t++) {
 					return 0;
+				}
 				break;
 		}
 
@@ -697,8 +730,9 @@ _Bool GlobMatch(const char *pattern, const char *text) {
 const char *Basename(const char *path) {
 	const char *last = path;
 	while (*path) {
-		if (*path == '/')
+		if (*path == '/') {
 			last = path + 1;
+		}
 		path++;
 	}
 	return last;
@@ -797,7 +831,7 @@ int32_t StrColorCmp(const char *s1, const char *s2) {
  * @return The first color sequence in s.
  */
 int32_t StrColor(const char *s) {
-	
+
 	const char *c = s;
 	while (*c) {
 		if (IS_COLOR(c)) {
@@ -807,7 +841,7 @@ int32_t StrColor(const char *s) {
 		}
 		c++;
 	}
-	
+
 	return CON_COLOR_DEFAULT;
 }
 
@@ -815,7 +849,7 @@ int32_t StrColor(const char *s) {
  * @return The last occurrence of a color escape sequence in s.
  */
 int32_t StrrColor(const char *s) {
-	
+
 	if (strlen(s)) {
 		const char *c = s + strlen(s) - 1;
 		while (c > s) {
@@ -827,7 +861,7 @@ int32_t StrrColor(const char *s) {
 			c--;
 		}
 	}
-	
+
 	return CON_COLOR_DEFAULT;
 }
 
@@ -887,7 +921,8 @@ char *ParseToken(const char **in) {
 	char c;
 
 	// skip whitespace
-	skipwhite: while ((c = *s) <= ' ') {
+skipwhite:
+	while ((c = *s) <= ' ') {
 		if (c == '\0') {
 			*in = NULL;
 			return "";
@@ -897,8 +932,9 @@ char *ParseToken(const char **in) {
 
 	// skip // comments
 	if (c == '/' && s[1] == '/') {
-		while (*s && *s != '\n')
+		while (*s && *s != '\n') {
 			s++;
+		}
 		goto skipwhite;
 	}
 
@@ -950,13 +986,15 @@ char *GetUserInfo(const char *s, const char *key) {
 	char *o;
 
 	value_index ^= 1;
-	if (*s == '\\')
+	if (*s == '\\') {
 		s++;
+	}
 	while (true) {
 		o = pkey;
 		while (*s != '\\') {
-			if (!*s)
+			if (!*s) {
 				return "";
+			}
 			*o++ = *s++;
 		}
 		*o = '\0';
@@ -965,17 +1003,20 @@ char *GetUserInfo(const char *s, const char *key) {
 		o = value[value_index];
 
 		while (*s != '\\' && *s) {
-			if (!*s)
+			if (!*s) {
 				return "";
+			}
 			*o++ = *s++;
 		}
 		*o = '\0';
 
-		if (!g_strcmp0(key, pkey))
+		if (!g_strcmp0(key, pkey)) {
 			return value[value_index];
+		}
 
-		if (!*s)
+		if (!*s) {
 			return "";
+		}
 		s++;
 	}
 
@@ -997,12 +1038,14 @@ void DeleteUserInfo(char *s, const char *key) {
 
 	while (true) {
 		start = s;
-		if (*s == '\\')
+		if (*s == '\\') {
 			s++;
+		}
 		o = pkey;
 		while (*s != '\\') {
-			if (!*s)
+			if (!*s) {
 				return;
+			}
 			*o++ = *s++;
 		}
 		*o = '\0';
@@ -1010,8 +1053,9 @@ void DeleteUserInfo(char *s, const char *key) {
 
 		o = value;
 		while (*s != '\\' && *s) {
-			if (!*s)
+			if (!*s) {
 				return;
+			}
 			*o++ = *s++;
 		}
 		*o = '\0';
@@ -1021,8 +1065,9 @@ void DeleteUserInfo(char *s, const char *key) {
 			return;
 		}
 
-		if (!*s)
+		if (!*s) {
 			return;
+		}
 	}
 }
 
@@ -1031,12 +1076,15 @@ void DeleteUserInfo(char *s, const char *key) {
  * otherwise.
  */
 _Bool ValidateUserInfo(const char *s) {
-	if (!s || !*s)
+	if (!s || !*s) {
 		return false;
-	if (strstr(s, "\""))
+	}
+	if (strstr(s, "\"")) {
 		return false;
-	if (strstr(s, ";"))
+	}
+	if (strstr(s, ";")) {
 		return false;
+	}
 	return true;
 }
 
@@ -1068,8 +1116,9 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 
 	DeleteUserInfo(s, key);
 
-	if (!value || *value == '\0')
+	if (!value || *value == '\0') {
 		return;
+	}
 
 	g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
 
@@ -1084,8 +1133,9 @@ void SetUserInfo(char *s, const char *key, const char *value) {
 	while (*v) {
 		char c = *v++;
 		c &= 127; // strip high bits
-		if (c >= 32 && c < 127)
+		if (c >= 32 && c < 127) {
 			*s++ = c;
+		}
 	}
 	*s = '\0';
 }

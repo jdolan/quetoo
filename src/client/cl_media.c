@@ -29,16 +29,18 @@
  */
 void Cl_RequestNextDownload(void) {
 
-	if (cls.state < CL_CONNECTED)
+	if (cls.state < CL_CONNECTED) {
 		return;
+	}
 
 	// check zip
 	if (cl.precache_check == CS_ZIP) {
 		cl.precache_check = CS_MODELS;
 
 		if (*cl.config_strings[CS_ZIP] != '\0') {
-			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_ZIP]))
-				return; // started a download
+			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_ZIP])) {
+				return;    // started a download
+			}
 		}
 	}
 
@@ -47,8 +49,9 @@ void Cl_RequestNextDownload(void) {
 		cl.precache_check++;
 
 		if (*cl.config_strings[CS_MODELS] != '\0') {
-			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS]))
-				return; // started a download
+			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS])) {
+				return;    // started a download
+			}
 		}
 	}
 

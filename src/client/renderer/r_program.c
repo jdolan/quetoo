@@ -26,16 +26,18 @@
  */
 void R_UseProgram(const r_program_t *prog) {
 
-	if (r_state.active_program == prog)
+	if (r_state.active_program == prog) {
 		return;
+	}
 
 	r_state.active_program = prog;
 
 	if (prog) {
 		glUseProgram(prog->id);
 
-		if (prog->Use) // invoke use function
+		if (prog->Use) { // invoke use function
 			prog->Use();
+		}
 	} else {
 		glUseProgram(0);
 	}
@@ -68,7 +70,7 @@ void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *na
 
 	if (variable->location == -1) {
 		Com_Warn("Failed to resolve variable %s in program %s\n", name,
-				r_state.active_program->name);
+		         r_state.active_program->name);
 		return;
 	}
 
@@ -86,8 +88,9 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
 		return;
 	}
 
-	if (variable->value.i == value)
+	if (variable->value.i == value) {
 		return;
+	}
 
 	variable->value.i = value;
 	glUniform1i(variable->location, variable->value.i);
@@ -105,8 +108,9 @@ void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
 		return;
 	}
 
-	if (variable->value.f == value)
+	if (variable->value.f == value) {
 		return;
+	}
 
 	variable->value.f = value;
 	glUniform1f(variable->location, variable->value.f);
@@ -124,8 +128,9 @@ void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
 		return;
 	}
 
-	if (VectorCompare(variable->value.vec3, value))
+	if (VectorCompare(variable->value.vec3, value)) {
 		return;
+	}
 
 	VectorCopy(value, variable->value.vec3);
 	glUniform3fv(variable->location, 1, variable->value.vec3);
@@ -143,8 +148,9 @@ void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
 		return;
 	}
 
-	if (Vector4Compare(variable->value.vec4, value))
+	if (Vector4Compare(variable->value.vec4, value)) {
 		return;
+	}
 
 	Vector4Copy(value, variable->value.vec4);
 	glUniform4fv(variable->location, 1, variable->value.vec4);
@@ -162,8 +168,9 @@ _Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat
 		return false;
 	}
 
-	if (memcmp(&variable->value.mat4, value, sizeof(variable->value.mat4)) == 0)
+	if (memcmp(&variable->value.mat4, value, sizeof(variable->value.mat4)) == 0) {
 		return false;
+	}
 
 	memcpy(&variable->value.mat4, value, sizeof(variable->value.mat4));
 	glUniformMatrix4fv(variable->location, 1, false, (GLfloat *) variable->value.mat4.m);
@@ -191,9 +198,9 @@ void R_AttributePointer(const r_attribute_id_t attribute, GLuint size, const r_b
 
 	// only set the ptr if it hasn't changed.
 	if (r_state.attributes[attribute].constant == true ||
-		r_state.attributes[attribute].value.buffer != buffer ||
-		r_state.attributes[attribute].size != size ||
-		r_state.attributes[attribute].offset != offset) {
+	        r_state.attributes[attribute].value.buffer != buffer ||
+	        r_state.attributes[attribute].size != size ||
+	        r_state.attributes[attribute].offset != offset) {
 
 		R_BindBuffer(buffer);
 
@@ -215,8 +222,9 @@ void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *val
 
 	R_DisableAttribute(attribute);
 
-	if (r_state.attributes[attribute].constant == true && Vector4Compare(r_state.attributes[attribute].value.vec4, value))
+	if (r_state.attributes[attribute].constant == true && Vector4Compare(r_state.attributes[attribute].value.vec4, value)) {
 		return;
+	}
 
 	Vector4Copy(value, r_state.attributes[attribute].value.vec4);
 	glVertexAttrib4fv(attribute, r_state.attributes[attribute].value.vec4);
@@ -232,7 +240,7 @@ void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *val
 void R_EnableAttribute(const r_attribute_id_t attribute) {
 
 	if (attribute >= R_ARRAY_MAX_ATTRIBS ||
-		r_state.active_program->attributes[attribute].location == -1) {
+	        r_state.active_program->attributes[attribute].location == -1) {
 		Com_Warn("Invalid attribute\n");
 		return;
 	}
@@ -251,7 +259,7 @@ void R_EnableAttribute(const r_attribute_id_t attribute) {
 void R_DisableAttribute(const r_attribute_id_t attribute) {
 
 	if (attribute >= R_ARRAY_MAX_ATTRIBS ||
-		r_state.active_program->attributes[attribute].location == -1) {
+	        r_state.active_program->attributes[attribute].location == -1) {
 		Com_Warn("Invalid attribute\n");
 		return;
 	}
@@ -278,13 +286,16 @@ static void R_ShutdownShader(r_shader_t *sh) {
  */
 static void R_ShutdownProgram(r_program_t *prog) {
 
-	if (prog->Shutdown)
+	if (prog->Shutdown) {
 		prog->Shutdown();
+	}
 
-	if (prog->v)
+	if (prog->v) {
 		R_ShutdownShader(prog->v);
-	if (prog->f)
+	}
+	if (prog->f) {
 		R_ShutdownShader(prog->f);
+	}
 
 	glDeleteProgram(prog->id);
 
@@ -302,8 +313,9 @@ void R_ShutdownPrograms(void) {
 
 	for (int32_t i = 0; i < MAX_PROGRAMS; i++) {
 
-		if (!r_state.programs[i].id)
+		if (!r_state.programs[i].id) {
 			continue;
+		}
 
 		R_ShutdownProgram(&r_state.programs[i]);
 	}
@@ -314,19 +326,20 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length);
 /**
  * @brief
  */
-static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *result, gpointer data __attribute((unused))) {
+static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *result,
+                                        gpointer data __attribute((unused))) {
 	const gchar *name = g_match_info_fetch(match_info, 1);
 	gchar path[MAX_OS_PATH];
 	int64_t len;
 	void *buf;
 
 	g_snprintf(path, sizeof(path), "shaders/%s", name);
-	
+
 	if ((len = Fs_Load(path, &buf)) == -1) {
 		Com_Warn("Failed to load %s\n", name);
 		return true;
 	}
-	
+
 	gchar *processed = R_PreprocessShader((const char *) buf, (uint32_t) len);
 	g_string_append(result, processed);
 	g_free(processed);
@@ -341,8 +354,7 @@ static GRegex *shader_preprocess_regex = NULL;
 /**
  * @brief
  */
-static gchar *R_PreprocessShader(const char *input, const uint32_t length)
-{
+static gchar *R_PreprocessShader(const char *input, const uint32_t length) {
 	GString *emplaced = NULL;
 	_Bool had_replacements = Cvar_ExpandString(input, length, &emplaced);
 
@@ -351,10 +363,12 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length)
 	}
 
 	GError *error = NULL;
-	gchar *output = g_regex_replace_eval(shader_preprocess_regex, emplaced->str, emplaced->len, 0, 0, R_PreprocessShader_eval, NULL, &error);
+	gchar *output = g_regex_replace_eval(shader_preprocess_regex, emplaced->str, emplaced->len, 0, 0,
+	                                     R_PreprocessShader_eval, NULL, &error);
 
-	if (error)
+	if (error) {
 		Com_Warn("Error preprocessing shader: %s", error->message);
+	}
 
 	return output;
 }
@@ -379,8 +393,9 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 	for (i = 0; i < MAX_SHADERS; i++) {
 		sh = &r_state.shaders[i];
 
-		if (!sh->id)
+		if (!sh->id) {
 			break;
+		}
 	}
 
 	if (i == MAX_SHADERS) {
@@ -431,7 +446,8 @@ static r_shader_t *R_LoadShader(GLenum type, const char *name) {
 /**
  * @brief
  */
-static r_program_t *R_LoadProgram(const char *name, void (*Init)(r_program_t *program), void (*PreLink)(const r_program_t *program)) {
+static r_program_t *R_LoadProgram(const char *name, void (*Init)(r_program_t *program),
+                                  void (*PreLink)(const r_program_t *program)) {
 
 	r_program_t *prog;
 	char log[MAX_STRING_CHARS];
@@ -440,8 +456,9 @@ static r_program_t *R_LoadProgram(const char *name, void (*Init)(r_program_t *pr
 	for (i = 0; i < MAX_PROGRAMS; i++) {
 		prog = &r_state.programs[i];
 
-		if (!prog->id)
+		if (!prog->id) {
 			break;
+		}
 	}
 
 	if (i == MAX_PROGRAMS) {
@@ -458,13 +475,16 @@ static r_program_t *R_LoadProgram(const char *name, void (*Init)(r_program_t *pr
 	prog->v = R_LoadShader(GL_VERTEX_SHADER, va("%s_vs.glsl", name));
 	prog->f = R_LoadShader(GL_FRAGMENT_SHADER, va("%s_fs.glsl", name));
 
-	if (prog->v)
+	if (prog->v) {
 		glAttachShader(prog->id, prog->v->id);
-	if (prog->f)
+	}
+	if (prog->f) {
 		glAttachShader(prog->id, prog->f->id);
+	}
 
-	if (PreLink)
+	if (PreLink) {
 		PreLink(prog);
+	}
 
 	glLinkProgram(prog->id);
 
@@ -504,30 +524,27 @@ void R_SetupAttributes(void) {
 		if (mask & R_ARRAY_MASK_VERTEX) {
 
 			R_AttributePointer(R_ARRAY_VERTEX, 3, r_state.array_buffers[R_ARRAY_VERTEX], NULL);
-			
+
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_VERTEX) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_VERTEX])) {
 					R_AttributePointer(R_ARRAY_NEXT_VERTEX, 3, r_state.array_buffers[R_ARRAY_NEXT_VERTEX], NULL);
-				}
-				else {
+				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_VERTEX);
 				}
 			}
-		}
-		else {
+		} else {
 
 			R_DisableAttribute(R_ARRAY_VERTEX);
 			R_DisableAttribute(R_ARRAY_NEXT_VERTEX);
 		}
 	}
-	
+
 	if (p->arrays_mask & R_ARRAY_MASK_COLOR) {
 
 		if (mask & R_ARRAY_MASK_COLOR) {
 			R_AttributePointer(R_ARRAY_COLOR, 4, r_state.array_buffers[R_ARRAY_COLOR], NULL);
-		}
-		else {
+		} else {
 			R_AttributeConstant4fv(R_ARRAY_COLOR, r_state.current_color);
 		}
 	}
@@ -536,8 +553,7 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ARRAY_MASK_TEX_DIFFUSE) {
 			R_AttributePointer(R_ARRAY_TEX_DIFFUSE, 2, r_state.array_buffers[R_ARRAY_TEX_DIFFUSE], NULL);
-		}
-		else {
+		} else {
 			R_DisableAttribute(R_ARRAY_TEX_DIFFUSE);
 		}
 	}
@@ -546,8 +562,7 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
 			R_AttributePointer(R_ARRAY_TEX_LIGHTMAP, 2, r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP], NULL);
-		}
-		else {
+		} else {
 			R_DisableAttribute(R_ARRAY_TEX_LIGHTMAP);
 		}
 	}
@@ -557,18 +572,16 @@ void R_SetupAttributes(void) {
 		if (mask & R_ARRAY_MASK_NORMAL) {
 
 			R_AttributePointer(R_ARRAY_NORMAL, 3, r_state.array_buffers[R_ARRAY_NORMAL], NULL);
-			
+
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_NORMAL) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_NORMAL])) {
 					R_AttributePointer(R_ARRAY_NEXT_NORMAL, 3, r_state.array_buffers[R_ARRAY_NEXT_NORMAL], NULL);
-				}
-				else {
+				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_NORMAL);
 				}
 			}
-		}
-		else {
+		} else {
 
 			R_DisableAttribute(R_ARRAY_NORMAL);
 			R_DisableAttribute(R_ARRAY_NEXT_NORMAL);
@@ -585,13 +598,11 @@ void R_SetupAttributes(void) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_TANGENT])) {
 					R_AttributePointer(R_ARRAY_NEXT_TANGENT, 4, r_state.array_buffers[R_ARRAY_NEXT_TANGENT], NULL);
-				}
-				else {
+				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_TANGENT);
 				}
 			}
-		}
-		else {
+		} else {
 
 			R_DisableAttribute(R_ARRAY_TANGENT);
 			R_DisableAttribute(R_ARRAY_NEXT_TANGENT);
@@ -605,13 +616,14 @@ void R_SetupAttributes(void) {
 void R_InitPrograms(void) {
 
 	// this only needs to be done once
-	if (!shader_preprocess_regex)
-	{
+	if (!shader_preprocess_regex) {
 		GError *error = NULL;
-		shader_preprocess_regex = g_regex_new("#include [\"\']([a-z0-9_]+\\.glsl)[\"\']", G_REGEX_CASELESS | G_REGEX_MULTILINE | G_REGEX_DOTALL, 0, &error);
+		shader_preprocess_regex = g_regex_new("#include [\"\']([a-z0-9_]+\\.glsl)[\"\']",
+		                                      G_REGEX_CASELESS | G_REGEX_MULTILINE | G_REGEX_DOTALL, 0, &error);
 
-		if (error)
+		if (error) {
 			Com_Warn("Error compiling regex: %s", error->message);
+		}
 	}
 
 	memset(r_state.shaders, 0, sizeof(r_state.shaders));
@@ -644,7 +656,7 @@ void R_InitPrograms(void) {
 		r_state.shell_program->UseInterpolation = R_UseInterpolation_shell;
 		r_state.shell_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_NEXT_VERTEX;
 	}
-	
+
 	if ((r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp, R_PreLink_warp))) {
 		r_state.warp_program->Use = R_UseProgram_warp;
 		r_state.warp_program->UseFog = R_UseFog_warp;
@@ -652,13 +664,14 @@ void R_InitPrograms(void) {
 		r_state.warp_program->UseCurrentColor = R_UseCurrentColor_warp;
 		r_state.warp_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE;
 	}
-	
+
 	if ((r_state.null_program = R_LoadProgram("null", R_InitProgram_null, R_PreLink_null))) {
 		r_state.null_program->UseFog = R_UseFog_null;
 		r_state.null_program->UseMatrices = R_UseMatrices_null;
 		r_state.null_program->UseCurrentColor = R_UseCurrentColor_null;
 		r_state.null_program->UseInterpolation = R_UseInterpolation_null;
-		r_state.null_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_NEXT_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_COLOR;
+		r_state.null_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_NEXT_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE |
+		                                    R_ARRAY_MASK_COLOR;
 	}
 
 	if ((r_state.corona_program = R_LoadProgram("corona", R_InitProgram_corona, R_PreLink_corona))) {

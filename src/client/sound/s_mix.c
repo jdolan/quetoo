@@ -30,8 +30,9 @@ extern cl_client_t cl;
 static int32_t S_AllocChannel(void) {
 
 	for (int32_t i = 0; i < MAX_CHANNELS; i++) {
-		if (!s_env.channels[i].sample)
+		if (!s_env.channels[i].sample) {
 			return i;
+		}
 	}
 
 	Com_Debug("Failed\n");
@@ -104,8 +105,9 @@ _Bool S_SpatializeChannel(s_channel_t *ch) {
  */
 void S_MixChannels(void) {
 
-	if (!s_volume->value)
+	if (!s_volume->value) {
 		return;
+	}
 
 	Mix_Volume(-1, Clamp(s_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME);
 
@@ -147,7 +149,7 @@ void S_MixChannels(void) {
 
 				s_env.num_active_channels++;
 			} else {
-				
+
 				if (ch->start_time) {
 					Mix_HaltChannel(i);
 				} else {
@@ -163,32 +165,38 @@ void S_MixChannels(void) {
  */
 void S_AddSample(const s_play_sample_t *play) {
 
-	if (!s_env.initialized)
+	if (!s_env.initialized) {
 		return;
+	}
 
-	if (!play)
+	if (!play) {
 		return;
+	}
 
-	if (!play->sample)
+	if (!play->sample) {
 		return;
+	}
 
-	if (play->entity >= MAX_ENTITIES)
+	if (play->entity >= MAX_ENTITIES) {
 		return;
+	}
 
 	switch (s_ambient->integer) {
 		case 0:
-			if (play->flags & S_PLAY_AMBIENT)
+			if (play->flags & S_PLAY_AMBIENT) {
 				return;
+			}
 			break;
 		case 2:
-			if (!(play->flags & S_PLAY_AMBIENT))
+			if (!(play->flags & S_PLAY_AMBIENT)) {
 				return;
+			}
 			break;
 		default:
 			break;
 
 	}
-	
+
 	const s_sample_t *sample = play->sample;
 
 	const char *name = sample->media.name;

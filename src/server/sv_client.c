@@ -109,7 +109,7 @@ static void Sv_ConfigStrings_f(void) {
 	} else {
 		Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
 		Net_WriteString(&sv_client->net_chan.message,
-				va("config_strings %i %i\n", svs.spawn_count, start));
+		                va("config_strings %i %i\n", svs.spawn_count, start));
 	}
 }
 
@@ -156,7 +156,7 @@ static void Sv_Baselines_f(void) {
 	} else {
 		Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
 		Net_WriteString(&sv_client->net_chan.message,
-				va("baselines %i %i\n", svs.spawn_count, start));
+		                va("baselines %i %i\n", svs.spawn_count, start));
 	}
 }
 
@@ -173,8 +173,9 @@ static void Sv_Begin_f(void) {
 		return;
 	}
 
-	if (sv.state == SV_ACTIVE_DEMO)
+	if (sv.state == SV_ACTIVE_DEMO) {
 		return;
+	}
 
 	// handle the case of a level changing while a client was connecting
 	if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawn_count) {
@@ -200,8 +201,9 @@ static void Sv_NextDownload_f(void) {
 
 	sv_client_download_t *download = &sv_client->download;
 
-	if (!download->buffer)
+	if (!download->buffer) {
 		return;
+	}
 
 	Mem_InitBuffer(&msg, buf, sizeof(buf));
 
@@ -231,13 +233,14 @@ static void Sv_NextDownload_f(void) {
  */
 static void Sv_Download_f(void) {
 	const char *allowed_patterns[] = {
-			"*.pk3",
-			"maps/*",
-			"models/*",
-			"sounds/*",
-			"env/*",
-			"textures/*",
-			NULL };
+		"*.pk3",
+		"maps/*",
+		"models/*",
+		"sounds/*",
+		"env/*",
+		"textures/*",
+		NULL
+	};
 
 	const char *filename = Cmd_Argv(1);
 
@@ -250,8 +253,9 @@ static void Sv_Download_f(void) {
 
 	const char **pattern = allowed_patterns;
 	while (pattern) { // ensure download name is allowed
-		if (GlobMatch(*pattern, filename))
+		if (GlobMatch(*pattern, filename)) {
 			break;
+		}
 		pattern++;
 	}
 
@@ -291,7 +295,7 @@ static void Sv_Download_f(void) {
 		download->count = (int32_t) strtol(Cmd_Argv(2), NULL, 0);
 		if (download->count < 0 || download->count > download->size) {
 			Com_Warn("Invalid offset (%d) from %s\n", download->count,
-					Sv_NetaddrToString(sv_client));
+			         Sv_NetaddrToString(sv_client));
 			download->count = download->size;
 		}
 	}
@@ -372,8 +376,9 @@ static void Sv_UserStringCommand(const char *s) {
 	}
 
 	if (!c->name) { // unmatched command
-		if (sv.state == SV_ACTIVE_GAME) // maybe the game knows what to do with it
+		if (sv.state == SV_ACTIVE_GAME) { // maybe the game knows what to do with it
 			svs.game->ClientCommand(sv_client->entity);
+		}
 	}
 }
 
@@ -411,8 +416,9 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 		}
 
 		const int32_t c = Net_ReadByte(&net_message);
-		if (c == -1)
+		if (c == -1) {
 			break;
+		}
 
 		switch (c) {
 
@@ -432,7 +438,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 					cl->last_frame = last_frame;
 					if (cl->last_frame > -1) {
 						cl->frame_latency[cl->last_frame & (SV_CLIENT_LATENCY_COUNT - 1)] =
-								quetoo.time - cl->frames[cl->last_frame & PACKET_MASK].sent_time;
+						    quetoo.time - cl->frames[cl->last_frame & PACKET_MASK].sent_time;
 					}
 				}
 
@@ -455,10 +461,12 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 						Sv_ClientThink(cl, &cl->last_cmd);
 						net_drop--;
 					}
-					if (net_drop > 1)
+					if (net_drop > 1) {
 						Sv_ClientThink(cl, &oldest_cmd);
-					if (net_drop > 0)
+					}
+					if (net_drop > 0) {
 						Sv_ClientThink(cl, &old_cmd);
+					}
 				}
 				Sv_ClientThink(cl, &new_cmd);
 				cl->last_cmd = new_cmd;
@@ -475,8 +483,9 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 
 				Sv_UserStringCommand(Net_ReadString(&net_message));
 
-				if (cl->state == SV_CLIENT_FREE)
-					return; // disconnect command
+				if (cl->state == SV_CLIENT_FREE) {
+					return;    // disconnect command
+				}
 
 				break;
 

@@ -177,14 +177,14 @@ static void enumerateMaps(const char *path, void *data) {
 				if (cgi.LoadSurface(mapshot, &surf)) {
 					SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
 					info->mapshot = SDL_CreateRGBSurface(0,
-						this->collectionView.itemSize.w * 2,
-						this->collectionView.itemSize.h * 2,
-						surf->format->BitsPerPixel,
-						surf->format->Rmask,
-						surf->format->Gmask,
-						surf->format->Bmask,
-						surf->format->Amask
-					);
+					                                     this->collectionView.itemSize.w * 2,
+					                                     this->collectionView.itemSize.h * 2,
+					                                     surf->format->BitsPerPixel,
+					                                     surf->format->Rmask,
+					                                     surf->format->Gmask,
+					                                     surf->format->Bmask,
+					                                     surf->format->Amask
+					                                    );
 					SDL_SetSurfaceBlendMode(info->mapshot, SDL_BLENDMODE_NONE);
 					SDL_BlitScaled(surf, NULL, info->mapshot, NULL);
 				} else {
@@ -210,9 +210,9 @@ static void enumerateMaps(const char *path, void *data) {
  * @brief ThreadRunFunc for asynchronous map info loading.
  */
 static void loadMaps(void *data) {
-	
+
 	MapListCollectionView *this = (MapListCollectionView *) data;
-	
+
 	cgi.EnumerateFiles("maps/*.bsp", enumerateMaps, this);
 }
 
@@ -222,12 +222,12 @@ static void loadMaps(void *data) {
  * @see Object::dealloc(Object *)
  */
 static void dealloc(Object *self) {
-	
+
 	MapListCollectionView *this = (MapListCollectionView *) self;
 
 	release(this->lock);
 	release(this->maps);
-	
+
 	super(Object, self, dealloc);
 }
 
@@ -258,7 +258,7 @@ static void layoutIfNeeded(View *self) {
  * @memberof MapListCollectionView
  */
 static MapListCollectionView *initWithFrame(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style) {
-	
+
 	self = (MapListCollectionView *) super(CollectionView, self, initWithFrame, frame, style);
 	if (self) {
 		self->lock = $(alloc(Lock), init);
@@ -277,7 +277,7 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 
 		self->collectionView.control.selection = ControlSelectionMultiple;
 	}
-	
+
 	return self;
 }
 
@@ -313,7 +313,7 @@ static GList *selectedMaps(const MapListCollectionView *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-	
+
 	((ObjectInterface *) clazz->def->interface)->dealloc = dealloc;
 
 	((ViewInterface *) clazz->def->interface)->layoutIfNeeded = layoutIfNeeded;

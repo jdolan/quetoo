@@ -28,15 +28,16 @@
 static void G_CheckGround(g_entity_t *ent) {
 	vec3_t pos;
 
-	if (ent->locals.move_type == MOVE_TYPE_WALK)
+	if (ent->locals.move_type == MOVE_TYPE_WALK) {
 		return;
+	}
 
 	// check for ground interaction
 	if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
 
 		VectorCopy(ent->s.origin, pos);
 		pos[2] -= PM_GROUND_DIST;
-		
+
 		// TODO: Use ent->locals.clip_mask?
 
 		cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->mins, ent->maxs, ent, MASK_SOLID);
@@ -62,13 +63,14 @@ static void G_CheckGround(g_entity_t *ent) {
 
 static void G_CheckWater(g_entity_t *ent) {
 	vec3_t pos, mins, maxs;
-	
-	if (ent->locals.move_type == MOVE_TYPE_WALK)
+
+	if (ent->locals.move_type == MOVE_TYPE_WALK) {
 		return;
+	}
 
 	// check for water interaction
 	const uint8_t old_water_level = ent->locals.water_level;
-	
+
 	if (ent->solid == SOLID_BSP) {
 		VectorLerp(ent->abs_mins, ent->abs_maxs, 0.5, pos);
 		VectorSubtract(pos, ent->abs_mins, mins);
@@ -78,9 +80,9 @@ static void G_CheckWater(g_entity_t *ent) {
 		VectorCopy(ent->mins, mins);
 		VectorCopy(ent->maxs, maxs);
 	}
-	
+
 	cm_trace_t tr = gi.Trace(pos, pos, mins, maxs, ent, MASK_LIQUID);
-	
+
 	ent->locals.water_type = tr.contents;
 	ent->locals.water_level = ent->locals.water_type ? 1 : 0;
 
@@ -99,16 +101,19 @@ static void G_CheckWater(g_entity_t *ent) {
  */
 static void G_RunThink(g_entity_t *ent) {
 
-	if (ent->locals.next_think == 0)
+	if (ent->locals.next_think == 0) {
 		return;
+	}
 
-	if (ent->locals.next_think > g_level.time + 1)
+	if (ent->locals.next_think > g_level.time + 1) {
 		return;
+	}
 
 	ent->locals.next_think = 0;
 
-	if (!ent->locals.Think)
+	if (!ent->locals.Think) {
 		gi.Error("%s has no Think function\n", etos(ent));
+	}
 
 	ent->locals.Think(ent);
 }
@@ -118,7 +123,7 @@ static void G_RunThink(g_entity_t *ent) {
  */
 static _Bool G_GoodPosition(const g_entity_t *ent) {
 
-	const int32_t mask = ent->locals.clip_mask ?: MASK_SOLID;
+	const int32_t mask = ent->locals.clip_mask ? : MASK_SOLID;
 
 	const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->mins, ent->maxs, ent, mask);
 
@@ -172,8 +177,7 @@ static void G_ClampVelocity(g_entity_t *ent) {
 
 	if (speed > MAX_SPEED) {
 		VectorScale(ent->locals.velocity, MAX_SPEED / speed, ent->locals.velocity);
-	}
-	else if (speed < STOP_EPSILON) {
+	} else if (speed < STOP_EPSILON) {
 		VectorClear(ent->locals.velocity);
 	}
 }
@@ -185,10 +189,11 @@ static void G_ClipVelocity(const vec3_t in, const vec3_t normal, vec3_t out, vec
 
 	vec_t backoff = DotProduct(in, normal);
 
-	if (backoff < 0.0)
+	if (backoff < 0.0) {
 		backoff *= bounce;
-	else
+	} else {
 		backoff /= bounce;
+	}
 
 	for (int32_t i = 0; i < 3; i++) {
 
@@ -249,13 +254,15 @@ static void G_Accelerate(g_entity_t *ent, vec3_t dir, vec_t speed, vec_t accel) 
 	const vec_t current_speed = DotProduct(ent->locals.velocity, dir);
 	const vec_t add_speed = speed - current_speed;
 
-	if (add_speed <= 0.0)
+	if (add_speed <= 0.0) {
 		return;
+	}
 
 	vec_t accel_speed = accel * QUETOO_TICK_SECONDS * speed;
 
-	if (accel_speed > add_speed)
+	if (accel_speed > add_speed) {
 		accel_speed = add_speed;
+	}
 
 	gi.Print("%3.2f %3.2f %3.2f\n", current_speed, add_speed, accel_speed);
 
@@ -288,42 +295,55 @@ static void G_Currents(g_entity_t *ent) {
 
 	if (ent->locals.water_level) {
 
-		if (ent->locals.water_type & CONTENTS_CURRENT_0)
+		if (ent->locals.water_type & CONTENTS_CURRENT_0) {
 			current[0] += 1.0;
-		if (ent->locals.water_type & CONTENTS_CURRENT_90)
+		}
+		if (ent->locals.water_type & CONTENTS_CURRENT_90) {
 			current[1] += 1.0;
-		if (ent->locals.water_type & CONTENTS_CURRENT_180)
+		}
+		if (ent->locals.water_type & CONTENTS_CURRENT_180) {
 			current[0] -= 1.0;
-		if (ent->locals.water_type & CONTENTS_CURRENT_270)
+		}
+		if (ent->locals.water_type & CONTENTS_CURRENT_270) {
 			current[1] -= 1.0;
-		if (ent->locals.water_type & CONTENTS_CURRENT_UP)
+		}
+		if (ent->locals.water_type & CONTENTS_CURRENT_UP) {
 			current[2] += 1.0;
-		if (ent->locals.water_type & CONTENTS_CURRENT_DOWN)
+		}
+		if (ent->locals.water_type & CONTENTS_CURRENT_DOWN) {
 			current[2] -= 1.0;
+		}
 	}
 
 	if (ent->locals.ground_entity) {
 
-		if (ent->locals.ground_contents & CONTENTS_CURRENT_0)
+		if (ent->locals.ground_contents & CONTENTS_CURRENT_0) {
 			current[0] += 1.0;
-		if (ent->locals.ground_contents & CONTENTS_CURRENT_90)
+		}
+		if (ent->locals.ground_contents & CONTENTS_CURRENT_90) {
 			current[1] += 1.0;
-		if (ent->locals.ground_contents & CONTENTS_CURRENT_180)
+		}
+		if (ent->locals.ground_contents & CONTENTS_CURRENT_180) {
 			current[0] -= 1.0;
-		if (ent->locals.ground_contents & CONTENTS_CURRENT_270)
+		}
+		if (ent->locals.ground_contents & CONTENTS_CURRENT_270) {
 			current[1] -= 1.0;
-		if (ent->locals.ground_contents & CONTENTS_CURRENT_UP)
+		}
+		if (ent->locals.ground_contents & CONTENTS_CURRENT_UP) {
 			current[2] += 1.0;
-		if (ent->locals.ground_contents & CONTENTS_CURRENT_DOWN)
+		}
+		if (ent->locals.ground_contents & CONTENTS_CURRENT_DOWN) {
 			current[2] -= 1.0;
+		}
 	}
 
 	VectorScale(current, PM_SPEED_CURRENT, current);
 
 	const vec_t speed = VectorNormalize(current);
 
-	if (speed == 0.0)
+	if (speed == 0.0) {
 		return;
+	}
 
 	G_Accelerate(ent, current, speed, PM_ACCEL_GROUND);
 }
@@ -348,16 +368,18 @@ void G_TouchOccupy(g_entity_t *ent) {
 
 		g_entity_t *occupied = ents[i];
 
-		if (occupied == ent)
+		if (occupied == ent) {
 			continue;
+		}
 
 		if (occupied->locals.Touch) {
 			gi.Debug("%s occupying %s\n", etos(ent), etos(occupied));
 			occupied->locals.Touch(occupied, ent, NULL, NULL);
 		}
 
-		if (!ent->in_use)
+		if (!ent->in_use) {
 			break;
+		}
 	}
 }
 
@@ -390,8 +412,9 @@ static g_push_t g_pushes[MAX_ENTITIES], *g_push_p;
  */
 static void G_Physics_Push_Impact(g_entity_t *ent) {
 
-	if (g_push_p - g_pushes == MAX_ENTITIES)
+	if (g_push_p - g_pushes == MAX_ENTITIES) {
 		gi.Error("MAX_ENTITIES\n");
+	}
 
 	g_push_p->ent = ent;
 
@@ -454,7 +477,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 	vec3_t total_mins, total_maxs;
 
 	if ( self->s.angles[0] || self->s.angles[1] || self->s.angles[2]
-		|| amove[0] || amove[1] || amove[2] ) {
+	        || amove[0] || amove[1] || amove[2] ) {
 		vec_t radius = RadiusFromBounds( self->mins, self->maxs );
 
 		for (int32_t i = 0 ; i < 3 ; i++ ) {
@@ -476,7 +499,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 			}
 		}
 	}
-	
+
 	// unlink the pusher so we don't get it in the entity list
 	gi.UnlinkEntity(self);
 
@@ -497,11 +520,13 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 
 		g_entity_t *ent = ents[i];
 
-		if (ent->solid == SOLID_BSP)
+		if (ent->solid == SOLID_BSP) {
 			continue;
+		}
 
-		if (ent->locals.move_type < MOVE_TYPE_WALK)
+		if (ent->locals.move_type < MOVE_TYPE_WALK) {
 			continue;
+		}
 
 		// if the entity is in a good position and not riding us, we can skip them
 		if (G_GoodPosition(ent) && ent->locals.ground_entity != self) {
@@ -527,7 +552,7 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 			VectorSubtract(rotate, translate, delta);
 
 			VectorAdd(ent->s.origin, delta, ent->s.origin);
-			
+
 			// if the move has separated us, finish up by rotating the entity
 			if (G_CorrectPosition(ent)) {
 				G_Physics_Push_Rotate(self, ent, amove[YAW]);
@@ -535,10 +560,10 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 			}
 
 			if (ent->locals.ground_entity == self) {
-				
+
 				// an entity riding us may have been pushed off of us by the world, so try
 				// it's original position, which may now be valid
-				
+
 				G_Physics_Push_Revert(--g_push_p);
 
 				// but in this case, don't rotate
@@ -574,11 +599,11 @@ static g_entity_t *G_Physics_Push_Move(g_entity_t *self, vec3_t move, vec3_t amo
 		if (p->ent->in_use) {
 
 			gi.LinkEntity(p->ent);
-			
+
 			G_CheckGround(p->ent);
-			
+
 			G_CheckWater(p->ent);
-			
+
 			G_TouchOccupy(p->ent);
 		}
 	}
@@ -594,8 +619,9 @@ static void G_Physics_Push(g_entity_t *ent) {
 	g_entity_t *obstacle = NULL;
 
 	// for teamed entities, the master must initiate all moves
-	if (ent->locals.flags & FL_TEAM_SLAVE)
+	if (ent->locals.flags & FL_TEAM_SLAVE) {
 		return;
+	}
 
 	// reset the pushed array
 	g_push_p = g_pushes;
@@ -603,22 +629,24 @@ static void G_Physics_Push(g_entity_t *ent) {
 	// make sure all team slaves can move before committing any moves
 	for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
 		if (!VectorCompare(part->locals.velocity, vec3_origin) ||
-				!VectorCompare(part->locals.avelocity, vec3_origin)) { // object is moving
+		        !VectorCompare(part->locals.avelocity, vec3_origin)) { // object is moving
 
 			vec3_t move, amove;
 
 			VectorScale(part->locals.velocity, QUETOO_TICK_SECONDS, move);
 			VectorScale(part->locals.avelocity, QUETOO_TICK_SECONDS, amove);
 
-			if ((obstacle = G_Physics_Push_Move(part, move, amove)))
-				break; // move was blocked
+			if ((obstacle = G_Physics_Push_Move(part, move, amove))) {
+				break;    // move was blocked
+			}
 		}
 	}
 
 	if (obstacle) { // blocked, let's try again next frame
 		for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
-			if (part->locals.next_think)
+			if (part->locals.next_think) {
 				part->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
+			}
 		}
 	} else { // the move succeeded, so call all think functions
 		for (g_entity_t *part = ent; part; part = part->locals.team_chain) {
@@ -640,7 +668,7 @@ static g_touch_t g_touch;
  * @brief Runs the `Touch` functions of each object.
  */
 static void G_TouchEntity(g_entity_t *ent, const cm_trace_t *trace) {
-	
+
 	// ensure that we only impact an entity once per frame
 
 	for (int32_t i = 0; i < g_touch.num_entities; i++) {
@@ -648,18 +676,18 @@ static void G_TouchEntity(g_entity_t *ent, const cm_trace_t *trace) {
 			return;
 		}
 	}
-	
+
 	g_touch.entities[g_touch.num_entities++] = trace->ent;
-	
+
 	// run the interaction
-	
+
 	if (ent->locals.Touch) {
 		gi.Debug("%s touching %s\n", etos(ent), etos(trace->ent));
 		ent->locals.Touch(ent, trace->ent, &trace->plane, trace->surface);
 	}
 
 	if (ent->in_use && trace->ent->in_use) {
-		
+
 		if (trace->ent->locals.Touch) {
 			gi.Debug("%s touching %s\n", etos(trace->ent), etos(ent));
 			trace->ent->locals.Touch(trace->ent, ent, NULL, NULL);
@@ -673,7 +701,7 @@ static void G_TouchEntity(g_entity_t *ent, const cm_trace_t *trace) {
 static _Bool G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 	vec3_t planes[MAX_CLIP_PLANES];
 	vec3_t origin, angles;
-	
+
 	memset(&g_touch, 0, sizeof(g_touch));
 
 	VectorCopy(ent->s.origin, origin);
@@ -687,8 +715,9 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 	for (int32_t bump = 0; bump < MAX_CLIP_PLANES; bump++) {
 		vec3_t pos;
 
-		if (time_remaining <= 0.0)
+		if (time_remaining <= 0.0) {
 			break;
+		}
 
 		// project desired destination
 		VectorMA(ent->s.origin, time_remaining, ent->locals.velocity, pos);
@@ -716,89 +745,89 @@ static _Bool G_Physics_Fly_Move(g_entity_t *ent, const vec_t bounce) {
 			if (!ent->in_use) {
 				return true;
 			}
-			
+
 			if (!trace.ent->in_use) {
 				continue;
 			}
-			
+
 			// if both entities remain, clip this entity to the trace entity
-			
+
 			VectorCopy(trace.plane.normal, planes[num_planes]);
 			num_planes++;
-			
+
 			for (int32_t i = 0; i < num_planes; i++) {
 				vec3_t vel;
 
 				if (DotProduct(ent->locals.velocity, planes[i]) >= 0.0) {
 					continue;
 				}
-				
+
 				// slide along the plane
 				G_ClipVelocity(ent->locals.velocity, planes[i], vel, bounce);
-				
+
 				// see if there is a second plane that the new move enters
 				for (int32_t j = 0; j < num_planes; j++) {
 					vec3_t cross;
-					
+
 					if (j == i) {
 						continue;
 					}
-					
+
 					if (DotProduct(vel, planes[j]) >= 0.0) {
 						continue;
 					}
-					
+
 					// try clipping the move to the plane
 					G_ClipVelocity(vel, planes[j], vel, PM_CLIP_BOUNCE);
-					
+
 					// see if it goes back into the first clip plane
 					if (DotProduct(vel, planes[i]) >= 0.0) {
 						continue;
 					}
-					
+
 					// slide the original velocity along the crease
 					CrossProduct(planes[i], planes[j], cross);
 					VectorNormalize(cross);
-					
+
 					const vec_t scale = DotProduct(cross, ent->locals.velocity);
 					VectorScale(cross, scale, vel);
-					
+
 					// see if there is a third plane the the new move enters
 					for (int32_t k = 0; k < num_planes; k++) {
-						
+
 						if (k == i || k == j) {
 							continue;
 						}
-						
+
 						if (DotProduct(vel, planes[k]) >= 0.0) {
 							continue;
 						}
-						
+
 						// stop dead at a triple plane interaction
 						VectorClear(ent->locals.velocity);
 						return true;
 					}
 				}
-				
+
 				// if we have fixed all interactions, try another move
 				VectorCopy(vel, ent->locals.velocity);
 				break;
 			}
 		}
 	}
-	
+
 	if (!G_CorrectPosition(ent)) {
 		gi.Debug("reverting %s\n", etos(ent));
-		
+
 		VectorCopy(origin, ent->s.origin);
 		VectorCopy(angles, ent->s.angles);
-		
+
 		VectorClear(ent->locals.velocity);
 		VectorClear(ent->locals.avelocity);
 	}
-	
+
 	gi.LinkEntity(ent);
-	
+
 	return num_planes == 0;
 }
 
@@ -810,9 +839,9 @@ static void G_Physics_Fly(g_entity_t *ent) {
 	G_Physics_Fly_Move(ent, 1.0);
 
 	G_CheckGround(ent);
-	
+
 	G_CheckWater(ent);
-	
+
 	G_TouchOccupy(ent);
 }
 
@@ -820,22 +849,22 @@ static void G_Physics_Fly(g_entity_t *ent) {
  * @brief Bounce movement. When on ground, do nothing.
  */
 static void G_Physics_Bounce(g_entity_t *ent) {
-	
+
 	if (ent->locals.ground_entity == NULL || VectorCompare(ent->locals.velocity, vec3_origin) == false) {
 
 		G_Friction(ent);
-		
+
 		G_Gravity(ent);
-		
+
 		G_Currents(ent);
-		
+
 		G_Physics_Fly_Move(ent, 1.33);
 	}
 
 	G_CheckGround(ent);
-	
+
 	G_CheckWater(ent);
-	
+
 	G_TouchOccupy(ent);
 }
 

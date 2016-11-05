@@ -227,9 +227,9 @@ enum {
 };
 
 #if defined(__APPLE__)
-#define KMOD_CLIPBOARD KMOD_GUI
+	#define KMOD_CLIPBOARD KMOD_GUI
 #else
-#define KMOD_CLIPBOARD KMOD_CTRL
+	#define KMOD_CLIPBOARD KMOD_CTRL
 #endif
 
 typedef struct {

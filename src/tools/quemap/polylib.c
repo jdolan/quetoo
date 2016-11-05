@@ -50,8 +50,9 @@ winding_t *AllocWinding(int32_t points) {
  */
 void FreeWinding(winding_t *w) {
 
-	if (debug)
+	if (debug) {
 		SDL_SemWait(semaphores.active_windings);
+	}
 
 	Mem_Free(w);
 }
@@ -79,8 +80,9 @@ void RemoveColinearPoints(winding_t *w) {
 		}
 	}
 
-	if (nump == w->num_points)
+	if (nump == w->num_points) {
 		return;
+	}
 
 	if (debug) {
 		const int32_t j = w->num_points - nump;
@@ -136,10 +138,12 @@ void WindingBounds(const winding_t *w, vec3_t mins, vec3_t maxs) {
 	for (i = 0; i < w->num_points; i++) {
 		for (j = 0; j < 3; j++) {
 			const vec_t v = w->points[i][j];
-			if (v < mins[j])
+			if (v < mins[j]) {
 				mins[j] = v;
-			if (v > maxs[j])
+			}
+			if (v > maxs[j]) {
 				maxs[j] = v;
+			}
 		}
 	}
 }
@@ -152,8 +156,9 @@ void WindingCenter(const winding_t *w, vec3_t center) {
 	vec_t scale;
 
 	VectorClear(center);
-	for (i = 0; i < w->num_points; i++)
+	for (i = 0; i < w->num_points; i++) {
 		VectorAdd(w->points[i], center, center);
+	}
 
 	scale = 1.0 / w->num_points;
 	VectorScale(center, scale, center);
@@ -179,8 +184,9 @@ winding_t *WindingForPlane(const vec3_t normal, const vec_t dist) {
 			max = v;
 		}
 	}
-	if (x == -1)
+	if (x == -1) {
 		Com_Error(ERR_FATAL, "No axis found\n");
+	}
 
 	switch (x) {
 		case 0:
@@ -228,7 +234,7 @@ winding_t *WindingForPlane(const vec3_t normal, const vec_t dist) {
 /**
  * @brief
  */
-winding_t *WindingForFace(const d_bsp_face_t * f) {
+winding_t *WindingForFace(const d_bsp_face_t *f) {
 	int32_t i;
 	d_bsp_vertex_t *dv;
 	int32_t v;
@@ -239,10 +245,11 @@ winding_t *WindingForFace(const d_bsp_face_t * f) {
 
 	for (i = 0; i < f->num_edges; i++) {
 		const int32_t se = d_bsp.face_edges[f->first_edge + i];
-		if (se < 0)
+		if (se < 0) {
 			v = d_bsp.edges[-se].v[1];
-		else
+		} else {
 			v = d_bsp.edges[se].v[0];
+		}
 
 		dv = &d_bsp.vertexes[v];
 		VectorCopy(dv->point, w->points[i]);
@@ -275,7 +282,7 @@ winding_t *ReverseWinding(winding_t *w) {
 
 	c = AllocWinding(w->num_points);
 	for (i = 0; i < w->num_points; i++) {
-		VectorCopy(w->points[w->num_points-1-i], c->points[i]);
+		VectorCopy(w->points[w->num_points - 1 - i], c->points[i]);
 	}
 	c->num_points = w->num_points;
 	return c;
@@ -285,7 +292,7 @@ winding_t *ReverseWinding(winding_t *w) {
  * @brief
  */
 void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t epsilon,
-		winding_t **front, winding_t **back) {
+                        winding_t **front, winding_t **back) {
 	dvec_t dists[MAX_POINTS_ON_WINDING + 4];
 	int32_t sides[MAX_POINTS_ON_WINDING + 4];
 	int32_t counts[SIDE_BOTH + 1];
@@ -308,11 +315,11 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t ep
 		dot = DotProduct(in->points[i], dnormal);
 		dot -= dist;
 		dists[i] = dot;
-		if (dot > depsilon)
+		if (dot > depsilon) {
 			sides[i] = SIDE_FRONT;
-		else if (dot < -depsilon)
+		} else if (dot < -depsilon) {
 			sides[i] = SIDE_BACK;
-		else {
+		} else {
 			sides[i] = SIDE_BOTH;
 		}
 		counts[sides[i]]++;
@@ -356,20 +363,22 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t ep
 			b->num_points++;
 		}
 
-		if (sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i])
+		if (sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i]) {
 			continue;
+		}
 
 		// generate a split point
 		VectorCopy(in->points[(i + 1) % in->num_points], p2);
 
 		dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (j = 0; j < 3; j++) { // avoid round off error when possible
-			if (normal[j] == 1)
+			if (normal[j] == 1) {
 				mid[j] = dist;
-			else if (normal[j] == -1)
+			} else if (normal[j] == -1) {
 				mid[j] = -dist;
-			else
+			} else {
 				mid[j] = p1[j] + dot * (p2[j] - p1[j]);
+			}
 		}
 
 		VectorCopy(mid, f->points[f->num_points]);
@@ -378,17 +387,19 @@ void ClipWindingEpsilon(const winding_t *in, vec3_t normal, vec_t dist, vec_t ep
 		b->num_points++;
 	}
 
-	if (f->num_points > maxpts || b->num_points > maxpts)
+	if (f->num_points > maxpts || b->num_points > maxpts) {
 		Com_Error(ERR_FATAL, "Points exceeded estimate\n");
-	if (f->num_points > MAX_POINTS_ON_WINDING || b->num_points > MAX_POINTS_ON_WINDING)
+	}
+	if (f->num_points > MAX_POINTS_ON_WINDING || b->num_points > MAX_POINTS_ON_WINDING) {
 		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n");
+	}
 }
 
 /**
  * @brief
  */
 void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist,
-		const vec_t epsilon) {
+                        const vec_t epsilon) {
 	winding_t *in;
 	dvec_t dists[MAX_POINTS_ON_WINDING + 4];
 	int32_t sides[MAX_POINTS_ON_WINDING + 4];
@@ -414,11 +425,11 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 		dot = DotProduct(in->points[i], dnormal);
 		dot -= dist;
 		dists[i] = dot;
-		if (dot > depsilon)
+		if (dot > depsilon) {
 			sides[i] = SIDE_FRONT;
-		else if (dot < -depsilon)
+		} else if (dot < -depsilon) {
 			sides[i] = SIDE_BACK;
-		else {
+		} else {
 			sides[i] = SIDE_BOTH;
 		}
 		counts[sides[i]]++;
@@ -431,8 +442,9 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 		*inout = NULL;
 		return;
 	}
-	if (!counts[SIDE_BACK])
-		return; // inout stays the same
+	if (!counts[SIDE_BACK]) {
+		return;    // inout stays the same
+	}
 
 	maxpts = in->num_points + 4;
 
@@ -452,30 +464,34 @@ void ChopWindingInPlace(winding_t **inout, const vec3_t normal, const vec_t dist
 			f->num_points++;
 		}
 
-		if (sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i])
+		if (sides[i + 1] == SIDE_BOTH || sides[i + 1] == sides[i]) {
 			continue;
+		}
 
 		// generate a split point
 		VectorCopy(in->points[(i + 1) % in->num_points], p2);
 
 		dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (j = 0; j < 3; j++) { // avoid round off error when possible
-			if (normal[j] == 1)
+			if (normal[j] == 1) {
 				mid[j] = dist;
-			else if (normal[j] == -1)
+			} else if (normal[j] == -1) {
 				mid[j] = -dist;
-			else
+			} else {
 				mid[j] = p1[j] + dot * (p2[j] - p1[j]);
+			}
 		}
 
 		VectorCopy(mid, f->points[f->num_points]);
 		f->num_points++;
 	}
 
-	if (f->num_points > maxpts)
+	if (f->num_points > maxpts) {
 		Com_Error(ERR_FATAL, "Points exceeded estimate\n");
-	if (f->num_points > MAX_POINTS_ON_WINDING)
+	}
+	if (f->num_points > MAX_POINTS_ON_WINDING) {
 		Com_Error(ERR_FATAL, "MAX_POINTS_ON_WINDING\n");
+	}
 
 	FreeWinding(in);
 	*inout = f;

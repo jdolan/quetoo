@@ -150,12 +150,12 @@ extern const vec3_t PM_MAXS;
  * @brief The mask of pm_state_t.flags affecting pm_state_t.time.
  */
 #define PMF_TIME_MASK ( \
-	PMF_TIME_PUSHED | \
-	PMF_TIME_TRICK_JUMP | \
-	PMF_TIME_WATER_JUMP | \
-	PMF_TIME_LAND | \
-	PMF_TIME_TELEPORT \
-)
+                        PMF_TIME_PUSHED | \
+                        PMF_TIME_TRICK_JUMP | \
+                        PMF_TIME_WATER_JUMP | \
+                        PMF_TIME_LAND | \
+                        PMF_TIME_TELEPORT \
+                      )
 
 /**
  * @brief The maximum number of entities any single player movement can impact.

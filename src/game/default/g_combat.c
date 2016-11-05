@@ -27,14 +27,17 @@
  */
 _Bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2) {
 
-	if (!ent1->client || !ent2->client)
+	if (!ent1->client || !ent2->client) {
 		return false;
+	}
 
-	if (ent1->client->locals.persistent.spectator && ent2->client->locals.persistent.spectator)
+	if (ent1->client->locals.persistent.spectator && ent2->client->locals.persistent.spectator) {
 		return true;
+	}
 
-	if (!g_level.teams && !g_level.ctf)
+	if (!g_level.teams && !g_level.ctf) {
 		return false;
+	}
 
 	return ent1->client->locals.persistent.team == ent2->client->locals.persistent.team;
 }
@@ -52,44 +55,51 @@ _Bool G_CanDamage(g_entity_t *targ, g_entity_t *inflictor) {
 		VectorAdd(targ->abs_mins, targ->abs_maxs, dest);
 		VectorScale(dest, 0.5, dest);
 		tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
-		if (tr.fraction == 1.0)
+		if (tr.fraction == 1.0) {
 			return true;
-		if (tr.ent == targ)
+		}
+		if (tr.ent == targ) {
 			return true;
+		}
 		return false;
 	}
 
 	tr = gi.Trace(inflictor->s.origin, targ->s.origin, NULL, NULL, inflictor, MASK_SOLID);
-	if (tr.fraction == 1.0)
+	if (tr.fraction == 1.0) {
 		return true;
+	}
 
 	VectorCopy(targ->s.origin, dest);
 	dest[0] += 15.0;
 	dest[1] += 15.0;
 	tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
-	if (tr.fraction == 1.0)
+	if (tr.fraction == 1.0) {
 		return true;
+	}
 
 	VectorCopy(targ->s.origin, dest);
 	dest[0] += 15.0;
 	dest[1] -= 15.0;
 	tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
-	if (tr.fraction == 1.0)
+	if (tr.fraction == 1.0) {
 		return true;
+	}
 
 	VectorCopy(targ->s.origin, dest);
 	dest[0] -= 15.0;
 	dest[1] += 15.0;
 	tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
-	if (tr.fraction == 1.0)
+	if (tr.fraction == 1.0) {
 		return true;
+	}
 
 	VectorCopy(targ->s.origin, dest);
 	dest[0] -= 15.0;
 	dest[1] -= 15.0;
 	tr = gi.Trace(inflictor->s.origin, dest, NULL, NULL, inflictor, MASK_SOLID);
-	if (tr.fraction == 1.0)
+	if (tr.fraction == 1.0) {
 		return true;
+	}
 
 	return false;
 }
@@ -98,10 +108,11 @@ _Bool G_CanDamage(g_entity_t *targ, g_entity_t *inflictor) {
  * @brief
  */
 static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t normal,
-		int16_t damage) {
+                          int16_t damage) {
 
-	if (damage < 1)
+	if (damage < 1) {
 		return;
+	}
 
 	int16_t count = Clamp(damage / 50, 1, 4);
 
@@ -121,28 +132,32 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
  * of armor consumed.
  */
 static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t normal, int16_t damage,
-		uint32_t dflags) {
+                            uint32_t dflags) {
 
-	if (dflags & DMG_NO_ARMOR)
+	if (dflags & DMG_NO_ARMOR) {
 		return 0;
+	}
 
-	if (!ent->client)
+	if (!ent->client) {
 		return 0;
+	}
 
 	const g_item_t *armor = G_ClientArmor(ent);
-	const g_armor_info_t *armor_info = G_ArmorInfo(armor); 
+	const g_armor_info_t *armor_info = G_ArmorInfo(armor);
 
-	if (!armor)
+	if (!armor) {
 		return 0;
+	}
 
 	const int16_t quantity = ent->client->locals.inventory[ITEM_INDEX(armor)];
 	int16_t saved;
 
-	
-	if (dflags & DMG_ENERGY)
+
+	if (dflags & DMG_ENERGY) {
 		saved = Clamp(damage * armor_info->energy_protection, 0, quantity);
-	else
-		saved = Clamp(damage * armor_info->normal_protection, 0, quantity);	
+	} else {
+		saved = Clamp(damage * armor_info->normal_protection, 0, quantity);
+	}
 
 	ent->client->locals.inventory[ITEM_INDEX(armor)] -= saved;
 
@@ -177,15 +192,17 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
  * @param mod The means of death, used by the obituaries routine.
  */
 void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, const vec3_t dir,
-		const vec3_t pos, const vec3_t normal, int16_t damage, int16_t knockback, uint32_t dflags,
-		uint32_t mod) {
+              const vec3_t pos, const vec3_t normal, int16_t damage, int16_t knockback, uint32_t dflags,
+              uint32_t mod) {
 
-	if (!target || !target->locals.take_damage)
+	if (!target || !target->locals.take_damage) {
 		return;
+	}
 
 	if (target->client) { // respawn protection
-		if (target->client->locals.respawn_protection_time > g_level.time)
+		if (target->client->locals.respawn_protection_time > g_level.time) {
 			return;
+		}
 	}
 
 	inflictor = inflictor ? inflictor : g_game.entities;
@@ -211,10 +228,11 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 			if (mod == MOD_TELEFRAG) { // telefrags can not be avoided
 				mod |= MOD_FRIENDLY_FIRE;
 			} else { // while everything else can
-				if (g_friendly_fire->value)
+				if (g_friendly_fire->value) {
 					mod |= MOD_FRIENDLY_FIRE;
-				else
+				} else {
 					damage = 0;
+				}
 			}
 		}
 	}
@@ -286,10 +304,11 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 	// do the damage
 	if (damage_health && (target->locals.health || target->locals.dead)) {
 		if (G_IsStructural(target, NULL)) { // impact things we can hurt but don't bleed
-			if (dflags & DMG_BULLET)
+			if (dflags & DMG_BULLET) {
 				G_SpawnDamage(TE_BULLET, pos, normal, damage_health);
-			else
+			} else {
 				G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
+			}
 		} else if (G_IsMeat(target)) { // bleed for everything else
 			G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
 		}
@@ -309,12 +328,14 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 	}
 
 	// if the target was already dead, we're done
-	if (was_dead)
+	if (was_dead) {
 		return;
+	}
 
 	// invoke the pain callback
-	if ((damage_health || knockback) && target->locals.Pain)
+	if ((damage_health || knockback) && target->locals.Pain) {
 		target->locals.Pain(target, attacker, damage_health, knockback);
+	}
 
 	// add to the damage inflicted on a player this frame
 	if (client) {
@@ -339,18 +360,20 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
  * @brief
  */
 void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ignore, int16_t damage,
-		int16_t knockback, vec_t radius, uint32_t mod) {
+                    int16_t knockback, vec_t radius, uint32_t mod) {
 
 	g_entity_t *ent = NULL;
 
 	while ((ent = G_FindRadius(ent, inflictor->s.origin, radius)) != NULL) {
 		vec3_t dir;
 
-		if (ent == ignore)
+		if (ent == ignore) {
 			continue;
+		}
 
-		if (!ent->locals.take_damage)
+		if (!ent->locals.take_damage) {
 			continue;
+		}
 
 		VectorSubtract(ent->s.origin, inflictor->s.origin, dir);
 		const vec_t dist = VectorNormalize(dir);
@@ -358,18 +381,21 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
 		vec_t d = damage - 0.5 * dist;
 		const vec_t k = knockback - 0.5 * dist;
 
-		if (d <= 0 && k <= 0) // too far away to be damaged
+		if (d <= 0 && k <= 0) { // too far away to be damaged
 			continue;
-
-		if (ent == attacker) { // reduce self damage
-			if (mod == MOD_BFG_BLAST)
-				d = d * 0.25;
-			else
-				d = d * 0.5;
 		}
 
-		if (!G_CanDamage(ent, inflictor))
+		if (ent == attacker) { // reduce self damage
+			if (mod == MOD_BFG_BLAST) {
+				d = d * 0.25;
+			} else {
+				d = d * 0.5;
+			}
+		}
+
+		if (!G_CanDamage(ent, inflictor)) {
 			continue;
+		}
 
 		G_Damage(ent, inflictor, attacker, dir, NULL, NULL, d, k, DMG_RADIUS, mod);
 	}

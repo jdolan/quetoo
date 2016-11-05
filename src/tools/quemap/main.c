@@ -75,8 +75,9 @@ static void Print(const char *msg);
  */
 static void Debug(const char *msg) {
 
-	if (!debug)
+	if (!debug) {
 		return;
+	}
 
 	Print(msg);
 }
@@ -87,7 +88,7 @@ static void Shutdown(const char *msg);
  * @brief
  */
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
-static void Error(err_t err __attribute__((unused)), const char *msg) {
+static void Error(err_t err, const char *msg) {
 
 	fprintf(stderr, "************ ERROR ************\n");
 	fprintf(stderr, "%s", msg);
@@ -122,8 +123,9 @@ static void Print(const char *msg) {
  */
 static void Verbose(const char *msg) {
 
-	if (!verbose)
+	if (!verbose) {
 		return;
+	}
 
 	Print(msg);
 }
@@ -272,8 +274,9 @@ static void Check_BSP_Options(int32_t argc) {
 			i += 4;
 		} else if (!g_strcmp0(Com_Argv(i), "-tmpout")) {
 			strcpy(outbase, "/tmp");
-		} else
+		} else {
 			break;
+		}
 	}
 }
 
@@ -289,8 +292,9 @@ static void Check_VIS_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "-nosort")) {
 			Com_Verbose("nosort = true\n");
 			nosort = true;
-		} else
+		} else {
 			break;
+		}
 	}
 }
 
@@ -323,27 +327,28 @@ static void Check_LIGHT_Options(int32_t argc) {
 			entity_scale *= atof(Com_Argv(i + 1));
 			Com_Verbose("entity light scale at %f\n", entity_scale);
 			i++;
-		} else
+		} else {
 			break;
+		}
 	}
 }
 
 /**
  * @brief
  */
-static void Check_AAS_Options(int32_t argc __attribute__((unused))) {
+static void Check_AAS_Options(int32_t argc) {
 }
 
 /**
  * @brief
  */
-static void Check_ZIP_Options(int32_t argc __attribute__((unused))) {
+static void Check_ZIP_Options(int32_t argc) {
 }
 
 /**
  * @brief
  */
-static void Check_MAT_Options(int32_t argc __attribute__((unused))) {
+static void Check_MAT_Options(int32_t argc) {
 }
 
 /**
@@ -403,7 +408,7 @@ static void PrintHelpMessage(void) {
 	Com_Print("Examples:\n");
 	Com_Print("Standard full compile:\n quemap -bsp -vis -light maps/my.map\n");
 	Com_Print("Fast vis, extra light, two threads:\n"
-		" quemap -t 2 -bsp -vis -fast -light -extra maps/my.map\n");
+	          " quemap -t 2 -bsp -vis -fast -light -extra maps/my.map\n");
 	Com_Print("Area awareness compile (for bots):\n quemap -aas maps/my.bsp\n");
 	Com_Print("Materials file generation:\n quemap -mat maps/my.map\n");
 	Com_Print("Zip file generation:\n quemap -zip maps/my.bsp\n");
@@ -535,25 +540,32 @@ int32_t main(int32_t argc, char **argv) {
 	// start timer
 	const time_t start = time(NULL);
 
-	if (do_bsp)
+	if (do_bsp) {
 		BSP_Main();
-	if (do_vis)
+	}
+	if (do_vis) {
 		VIS_Main();
-	if (do_light)
+	}
+	if (do_light) {
 		LIGHT_Main();
-	if (do_aas)
+	}
+	if (do_aas) {
 		AAS_Main();
-	if (do_mat)
+	}
+	if (do_mat) {
 		MAT_Main();
-	if (do_zip)
+	}
+	if (do_zip) {
 		ZIP_Main();
+	}
 
 	// emit time
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
 	Com_Print("\nTotal Time: ");
-	if (duration > 59)
+	if (duration > 59) {
 		Com_Print("%d Minutes ", (int32_t) (duration / 60));
+	}
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	Com_Shutdown(NULL);

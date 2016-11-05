@@ -30,8 +30,9 @@ static vec3_t r_bsp_model_org; // relative to r_view.origin
 _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 	int32_t i;
 
-	if (!r_cull->value)
+	if (!r_cull->value) {
 		return false;
+	}
 
 	for (i = 0; i < 4; i++) {
 		if (Cm_BoxOnPlaneSide(mins, maxs, &r_locals.frustum[i]) != SIDE_BACK) {
@@ -39,7 +40,7 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
 			return false;
 		}
 	}
-	
+
 	r_view.cull_passes++;
 	return true;
 }
@@ -50,8 +51,9 @@ _Bool R_CullBox(const vec3_t mins, const vec3_t maxs) {
  */
 _Bool R_CullSphere(const vec3_t point, const vec_t radius) {
 
-	if (!r_cull->value)
+	if (!r_cull->value) {
 		return false;
+	}
 
 	for (int32_t i = 0 ; i < 4 ; i++)  {
 		const cm_bsp_plane_t *p = &r_locals.frustum[i];
@@ -62,7 +64,7 @@ _Bool R_CullSphere(const vec3_t point, const vec_t radius) {
 			return true;
 		}
 	}
-	
+
 	r_view.cull_fails++;
 	return false;
 }
@@ -75,8 +77,9 @@ _Bool R_CullBspInlineModel(const r_entity_t *e) {
 	vec3_t mins, maxs;
 	int32_t i;
 
-	if (!e->model->bsp_inline->num_surfaces) // no surfaces
+	if (!e->model->bsp_inline->num_surfaces) { // no surfaces
 		return true;
+	}
 
 	if (e->angles[0] || e->angles[1] || e->angles[2]) {
 		for (i = 0; i < 3; i++) {
@@ -110,8 +113,9 @@ void R_RotateLightsForBspInlineModel(const r_entity_t *e) {
 	}
 
 	// for malformed inline models, simply return
-	if (e && e->model->bsp_inline->head_node == -1)
+	if (e && e->model->bsp_inline->head_node == -1) {
 		return;
+	}
 
 	// for well-formed models, iterate the lights, transforming them into model
 	// space and marking surfaces, or restoring them if the model is NULL
@@ -156,13 +160,15 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 		vec_t dot;
 
 		// find which side of the surf we are on
-		if (AXIAL(plane))
+		if (AXIAL(plane)) {
 			dot = r_bsp_model_org[plane->type] - plane->dist;
-		else
+		} else {
 			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
+		}
 
-		if (surf->flags & R_SURF_PLANE_BACK)
+		if (surf->flags & R_SURF_PLANE_BACK) {
 			dot = -dot;
+		}
 
 		if (dot > SIDE_EPSILON) { // visible, flag for rendering
 			surf->frame = r_locals.frame;
@@ -241,8 +247,9 @@ void R_DrawBspInlineModels(const r_entities_t *ents) {
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
 
-		if (e->effects & EF_NO_DRAW)
+		if (e->effects & EF_NO_DRAW) {
 			continue;
+		}
 
 		r_view.current_entity = e;
 
@@ -259,8 +266,9 @@ void R_DrawBspInlineModels(const r_entities_t *ents) {
 void R_DrawBspNormals(void) {
 	const vec4_t red = { 1.0, 0.0, 0.0, 1.0 };
 
-	if (!r_draw_bsp_normals->value)
+	if (!r_draw_bsp_normals->value) {
 		return;
+	}
 
 	R_EnableTexture(&texunit_diffuse, false);
 
@@ -272,14 +280,17 @@ void R_DrawBspNormals(void) {
 	const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces;
 	for (uint16_t i = 0; i < r_model_state.world->bsp->num_surfaces; i++, surf++) {
 
-		if (surf->vis_frame != r_locals.vis_frame)
-			continue; // not visible
+		if (surf->vis_frame != r_locals.vis_frame) {
+			continue;    // not visible
+		}
 
-		if (surf->texinfo->flags & (SURF_SKY | SURF_WARP))
-			continue; // don't care
+		if (surf->texinfo->flags & (SURF_SKY | SURF_WARP)) {
+			continue;    // don't care
+		}
 
-		if ((r_draw_bsp_normals->integer & 2) && !(surf->texinfo->flags & SURF_PHONG))
-			continue; // don't care
+		if ((r_draw_bsp_normals->integer & 2) && !(surf->texinfo->flags & SURF_PHONG)) {
+			continue;    // don't care
+		}
 
 		if (k > MAX_GL_ARRAY_LENGTH - 512) { // avoid overflows, draw in batches
 			R_UploadToBuffer(&r_state.buffer_vertex_array, 0, k * sizeof(vec_t), r_state.vertex_array);
@@ -326,8 +337,9 @@ void R_DrawBspLeafs(void) {
 		{ 0.8, 0.8, 0.8, 0.4 }
 	};
 
-	if (!r_draw_bsp_leafs->value)
+	if (!r_draw_bsp_leafs->value) {
 		return;
+	}
 
 	R_SetArrayState(r_model_state.world);
 
@@ -339,20 +351,23 @@ void R_DrawBspLeafs(void) {
 
 	for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, l++) {
 
-		if (l->vis_frame != r_locals.vis_frame)
+		if (l->vis_frame != r_locals.vis_frame) {
 			continue;
+		}
 
-		if (r_draw_bsp_leafs->integer == 2)
+		if (r_draw_bsp_leafs->integer == 2) {
 			R_Color(leaf_colors[l->cluster % lengthof(leaf_colors)]);
-		else
+		} else {
 			R_Color(leaf_colors[i % lengthof(leaf_colors)]);
+		}
 
 		r_bsp_surface_t **s = l->first_leaf_surface;
 
 		for (uint16_t j = 0; j < l->num_leaf_surfaces; j++, s++) {
 
-			if ((*s)->vis_frame != r_locals.vis_frame)
+			if ((*s)->vis_frame != r_locals.vis_frame) {
 				continue;
+			}
 
 			R_DrawArrays(GL_TRIANGLE_FAN, (*s)->index, (*s)->num_edges);
 		}
@@ -378,22 +393,26 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 	int32_t side, side_bit;
 	vec_t dot;
 
-	if (node->contents == CONTENTS_SOLID)
-		return; // solid
+	if (node->contents == CONTENTS_SOLID) {
+		return;    // solid
+	}
 
-	if (node->vis_frame != r_locals.vis_frame)
-		return; // not in view
+	if (node->vis_frame != r_locals.vis_frame) {
+		return;    // not in view
+	}
 
-	if (R_CullBox(node->mins, node->maxs))
-		return; // culled out
+	if (R_CullBox(node->mins, node->maxs)) {
+		return;    // culled out
+	}
 
 	// if leaf node, flag surfaces to draw this frame
 	if (node->contents != CONTENTS_NODE) {
 		r_bsp_leaf_t *leaf = (r_bsp_leaf_t *) node;
 
 		if (r_view.area_bits) { // check for door connected areas
-			if (!(r_view.area_bits[leaf->area >> 3] & (1 << (leaf->area & 7))))
-				return; // not visible
+			if (!(r_view.area_bits[leaf->area >> 3] & (1 << (leaf->area & 7)))) {
+				return;    // not visible
+			}
 		}
 
 		r_bsp_surface_t **s = leaf->first_leaf_surface;
@@ -407,10 +426,11 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 
 	// otherwise, traverse down the appropriate sides of the node
 
-	if (AXIAL(node->plane))
+	if (AXIAL(node->plane)) {
 		dot = r_view.origin[node->plane->type] - node->plane->dist;
-	else
+	} else {
 		dot = DotProduct(r_view.origin, node->plane->normal) - node->plane->dist;
+	}
 
 	if (dot > SIDE_EPSILON) {
 		side = 0;
@@ -449,8 +469,9 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
  */
 void R_MarkBspSurfaces(void) {
 
-	if (++r_locals.frame == INT16_MAX) // avoid overflows, negatives are reserved
+	if (++r_locals.frame == INT16_MAX) { // avoid overflows, negatives are reserved
 		r_locals.frame = 0;
+	}
 
 	// clear the bounds of the sky box
 	R_ClearSkyBox();
@@ -464,8 +485,9 @@ void R_MarkBspSurfaces(void) {
  */
 const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp) {
 
-	if (!bsp)
+	if (!bsp) {
 		bsp = r_model_state.world->bsp;
+	}
 
 	return &bsp->leafs[Cm_PointLeafnum(p, 0)];
 }
@@ -476,8 +498,9 @@ const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p, const r_bsp_model_t *bsp) {
 _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
 	int32_t c;
 
-	if ((c = leaf->cluster) == -1)
+	if ((c = leaf->cluster) == -1) {
 		return false;
+	}
 
 	return r_locals.vis_data_pvs[c >> 3] & (1 << (c & 7));
 }
@@ -488,8 +511,9 @@ _Bool R_LeafVisible(const r_bsp_leaf_t *leaf) {
 _Bool R_LeafHearable(const r_bsp_leaf_t *leaf) {
 	int32_t c;
 
-	if ((c = leaf->cluster) == -1)
+	if ((c = leaf->cluster) == -1) {
 		return false;
+	}
 
 	return r_locals.vis_data_phs[c >> 3] & (1 << (c & 7));
 }
@@ -514,8 +538,9 @@ static int16_t R_CrossingContents(int32_t contents) {
 
 	const r_bsp_leaf_t *leaf = R_LeafForPoint(org, NULL);
 
-	if (!(leaf->contents & CONTENTS_SOLID) && leaf->contents != contents)
+	if (!(leaf->contents & CONTENTS_SOLID) && leaf->contents != contents) {
 		return leaf->cluster;
+	}
 
 	return -1;
 }
@@ -529,8 +554,9 @@ static int16_t R_CrossingContents(int32_t contents) {
 void R_UpdateVis(void) {
 	int16_t clusters[2];
 
-	if (r_lock_vis->value)
+	if (r_lock_vis->value) {
 		return;
+	}
 
 	clusters[0] = clusters[1] = -1;
 
@@ -544,8 +570,9 @@ void R_UpdateVis(void) {
 			clusters[1] = R_CrossingContents(leaf->contents);
 
 			// if we have the same, valid PVS as the last frame, we're done
-			if (memcmp(clusters, r_locals.clusters, sizeof(clusters)) == 0)
+			if (memcmp(clusters, r_locals.clusters, sizeof(clusters)) == 0) {
 				return;
+			}
 		}
 	}
 
@@ -553,8 +580,9 @@ void R_UpdateVis(void) {
 
 	r_locals.vis_frame++;
 
-	if (r_locals.vis_frame == INT16_MAX) // avoid overflows, negatives are reserved
+	if (r_locals.vis_frame == INT16_MAX) { // avoid overflows, negatives are reserved
 		r_locals.vis_frame = 0;
+	}
 
 	// if we have no vis, mark everything and return
 	if (clusters[0] == -1) {
@@ -562,11 +590,13 @@ void R_UpdateVis(void) {
 		memset(r_locals.vis_data_pvs, 0xff, sizeof(r_locals.vis_data_pvs));
 		memset(r_locals.vis_data_phs, 0xff, sizeof(r_locals.vis_data_phs));
 
-		for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++)
+		for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++) {
 			r_model_state.world->bsp->leafs[i].vis_frame = r_locals.vis_frame;
+		}
 
-		for (uint16_t i = 0; i < r_model_state.world->bsp->num_nodes; i++)
+		for (uint16_t i = 0; i < r_model_state.world->bsp->num_nodes; i++) {
 			r_model_state.world->bsp->nodes[i].vis_frame = r_locals.vis_frame;
+		}
 
 		r_view.num_bsp_clusters = r_model_state.world->bsp->num_clusters;
 		r_view.num_bsp_leafs = r_model_state.world->bsp->num_leafs;
@@ -601,8 +631,9 @@ void R_UpdateVis(void) {
 
 	for (uint16_t i = 0; i < r_model_state.world->bsp->num_leafs; i++, leaf++) {
 
-		if (!R_LeafVisible(leaf))
+		if (!R_LeafVisible(leaf)) {
 			continue;
+		}
 
 		r_view.num_bsp_leafs++;
 
@@ -617,8 +648,9 @@ void R_UpdateVis(void) {
 		r_bsp_node_t *node = (r_bsp_node_t *) leaf;
 		while (node) {
 
-			if (node->vis_frame == r_locals.vis_frame)
+			if (node->vis_frame == r_locals.vis_frame) {
 				break;
+			}
 
 			node->vis_frame = r_locals.vis_frame;
 			node = node->parent;

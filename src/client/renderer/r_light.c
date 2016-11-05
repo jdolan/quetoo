@@ -26,8 +26,9 @@
  */
 void R_AddLight(const r_light_t *l) {
 
-	if (!r_lighting->value)
+	if (!r_lighting->value) {
 		return;
+	}
 
 	if (r_view.num_lights == MAX_LIGHTS) {
 		Com_Debug("MAX_LIGHTS reached\n");
@@ -46,12 +47,14 @@ void R_AddLight(const r_light_t *l) {
 void R_AddSustainedLight(const r_sustained_light_t *s) {
 	int32_t i;
 
-	if (!r_lighting->value)
+	if (!r_lighting->value) {
 		return;
+	}
 
 	for (i = 0; i < MAX_LIGHTS; i++)
-		if (!r_view.sustained_lights[i].sustain)
+		if (!r_view.sustained_lights[i].sustain) {
 			break;
+		}
 
 	if (i == MAX_LIGHTS) {
 		Com_Debug("MAX_LIGHTS reached\n");
@@ -105,12 +108,14 @@ void R_ResetLights(void) {
 void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 	uint16_t i;
 
-	if (node->contents != CONTENTS_NODE) // leaf
+	if (node->contents != CONTENTS_NODE) { // leaf
 		return;
+	}
 
 	if (node->vis_frame != r_locals.vis_frame) { // not visible
-		if (!node->model) // and not a bsp submodel
+		if (!node->model) { // and not a bsp submodel
 			return;
+		}
 	}
 
 	const vec_t dist = DotProduct(l->origin, node->plane->normal) - node->plane->dist;
@@ -157,8 +162,9 @@ void R_MarkLights(void) {
 
 	r_locals.light_frame++;
 
-	if (r_locals.light_frame == INT16_MAX) // avoid overflows
+	if (r_locals.light_frame == INT16_MAX) { // avoid overflows
 		r_locals.light_frame = 0;
+	}
 
 	// mark each light against the world
 
@@ -173,11 +179,13 @@ void R_MarkLights(void) {
  */
 void R_EnableLights(uint64_t mask) {
 
-	if (r_state.active_program != r_state.default_program)
+	if (r_state.active_program != r_state.default_program) {
 		return;
+	}
 
-	if (mask == r_locals.light_mask) // no change
+	if (mask == r_locals.light_mask) { // no change
 		return;
+	}
 
 	r_locals.light_mask = mask;
 	uint16_t j = 0;
@@ -187,8 +195,9 @@ void R_EnableLights(uint64_t mask) {
 
 		for (uint16_t i = 0; i < r_view.num_lights; i++, l++) {
 
-			if (j == r_state.max_active_lights)
+			if (j == r_state.max_active_lights) {
 				break;
+			}
 
 			const uint64_t bit = ((uint64_t ) 1 << i);
 			if (mask & bit) {
@@ -198,6 +207,7 @@ void R_EnableLights(uint64_t mask) {
 		}
 	}
 
-	if (j < r_state.max_active_lights) // disable the next light as a stop
+	if (j < r_state.max_active_lights) { // disable the next light as a stop
 		r_state.active_program->UseLight(j, NULL);
+	}
 }

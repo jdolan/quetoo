@@ -37,7 +37,7 @@ static void Cl_ClearView(void) {
 	r_view.num_bsp_surfaces = 0;
 
 	r_view.num_mesh_models = r_view.num_mesh_tris = 0;
-	
+
 	r_view.cull_passes = r_view.cull_fails = 0;
 }
 
@@ -46,8 +46,9 @@ static void Cl_ClearView(void) {
  */
 static void Cl_UpdateViewSize(void) {
 
-	if (!cl_view_size->modified && !r_view.update)
+	if (!cl_view_size->modified && !r_view.update) {
 		return;
+	}
 
 	Cvar_SetValue(cl_view_size->name, Clamp(cl_view_size->value, 40.0, 100.0));
 
@@ -164,8 +165,9 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
  */
 void Cl_UpdateView(void) {
 
-	if (!cl.frame.valid && !r_view.update)
-		return; // not a valid frame, and no forced update
+	if (!cl.frame.valid && !r_view.update) {
+		return;    // not a valid frame, and no forced update
+	}
 
 	Cl_ClearView();
 

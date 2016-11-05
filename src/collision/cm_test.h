@@ -30,10 +30,11 @@ int32_t Cm_SetBoxHull(const vec3_t mins, const vec3_t maxs, const int32_t conten
 int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node);
 int32_t Cm_PointContents(const vec3_t p, int32_t head_node);
 int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const matrix4x4_t *inverse_matrix);
-size_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len, int32_t *top_node, int32_t head_node);
+size_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_t len, int32_t *top_node,
+                      int32_t head_node);
 
 #ifdef __CM_LOCAL_H__
-void Cm_InitBoxHull(void);
+	void Cm_InitBoxHull(void);
 #endif
 
 #endif /* __CM_TEST_H__ */

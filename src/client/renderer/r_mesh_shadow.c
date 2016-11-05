@@ -31,11 +31,12 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *
 
 	vec_t alpha = MESH_SHADOW_ALPHA * s->shadow / s->illumination->diffuse;
 
-	if (e->effects & EF_BLEND)
+	if (e->effects & EF_BLEND) {
 		alpha *= e->color[3];
+	}
 
 	R_Color((const vec4_t) {
-		0.0, 0.0, 0.0, alpha * r_shadows->value
+		0.0, 0.0, 0.0, alpha *r_shadows->value
 	});
 }
 
@@ -124,7 +125,7 @@ static void R_CalculateShadowMatrix_default(const r_entity_t *e, const r_shadow_
  * @brief Sets renderer state for the given entity and shadow.
  */
 static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *s) {
-	
+
 	// setup VBO states
 	R_SetArrayState(e->model);
 
@@ -133,10 +134,11 @@ static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *
 	R_RotateForMeshShadow_default(e, s);
 
 	R_CalculateShadowMatrix_default(e, s);
-	
+
 	// setup lerp for animating models
-	if (e->old_frame != e->frame)
+	if (e->old_frame != e->frame) {
 		R_UseInterpolation(e->lerp);
+	}
 
 	R_StencilFunc(GL_EQUAL, (s->plane.num % 0xff) + 1, ~0);
 }
@@ -144,8 +146,8 @@ static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *
 /**
  * @brief Restores renderer state for the given entity and shadow.
  */
-static void R_ResetMeshShadowState_default(const r_entity_t *e __attribute__((unused)),
-		const r_shadow_t *s __attribute__((unused))) {
+static void R_ResetMeshShadowState_default(const r_entity_t *e,
+        const r_shadow_t *s) {
 
 	R_RotateForMeshShadow_default(NULL, NULL);
 
@@ -174,8 +176,9 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
 	r_shadow_t *s = e->lighting->shadows;
 	for (size_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {
 
-		if (s->shadow == 0.0)
+		if (s->shadow == 0.0) {
 			break;
+		}
 
 		r_view.current_shadow = s;
 
@@ -190,11 +193,13 @@ void R_DrawMeshShadow_default(const r_entity_t *e) {
  */
 void R_DrawMeshShadows_default(const r_entities_t *ents) {
 
-	if (!r_shadows->value)
+	if (!r_shadows->value) {
 		return;
+	}
 
-	if (r_draw_wireframe->value)
+	if (r_draw_wireframe->value) {
 		return;
+	}
 
 	R_EnableTexture(&texunit_diffuse, false);
 
@@ -207,8 +212,9 @@ void R_DrawMeshShadows_default(const r_entities_t *ents) {
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
 
-		if (e->effects & (EF_NO_LIGHTING | EF_NO_SHADOW))
+		if (e->effects & (EF_NO_LIGHTING | EF_NO_SHADOW)) {
 			continue;
+		}
 
 		r_view.current_entity = e;
 

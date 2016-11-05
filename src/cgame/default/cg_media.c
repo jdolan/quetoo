@@ -119,7 +119,7 @@ void Cg_UpdateMedia(void) {
 		g_snprintf(name, sizeof(name), "#players/common/step_%zd", i + 1);
 		cg_sample_footsteps[i] = cgi.LoadSample(name);
 	}
-	
+
 	Cg_InitParticles();
 
 	cg_particles_normal = Cg_AllocParticles(cgi.LoadImage("particles/particle.tga", IT_EFFECT), true);

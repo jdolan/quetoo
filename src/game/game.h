@@ -156,8 +156,8 @@ typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
 typedef struct {
 
 	/**
- 	 * @brief The game's write directory
- 	 */
+	 * @brief The game's write directory
+	 */
 	char write_dir[MAX_OS_PATH];
 
 	void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
@@ -233,7 +233,7 @@ typedef struct {
 	 * @param atten The sound attenuation constant (e.g. ATTEN_IDLE).
 	 */
 	void (*PositionedSound)(const vec3_t origin, const g_entity_t *ent, const uint16_t index,
-			const uint16_t atten);
+	                        const uint16_t atten);
 
 	/**
 	 * @return The contents mask at the specific point. The point is tested
@@ -256,7 +256,7 @@ typedef struct {
 	 * the trace intersected a plane.
 	 */
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs,
-			const g_entity_t *skip, const int32_t contents);
+	                    const g_entity_t *skip, const int32_t contents);
 
 	/**
 	 * @brief PVS and PHS query facilities, returning true if the two points
@@ -297,7 +297,7 @@ typedef struct {
 	 * @return The number of entities found.
 	 */
 	size_t (*BoxEntities)(const vec3_t mins, const vec3_t maxs, g_entity_t **list, const size_t len,
-			const uint32_t type);
+	                      const uint32_t type);
 
 	/**
 	 * @brief Network messaging facilities.
@@ -320,7 +320,8 @@ typedef struct {
 	 * @brief Network console IO.
 	 */
 	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-	void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+	void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3,
+	        4)));
 
 } g_import_t;
 

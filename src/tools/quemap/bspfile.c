@@ -39,15 +39,17 @@ int32_t CompressVis(const byte *vis, byte *dest) {
 
 	for (j = 0; j < visrow; j++) {
 		*dest_p++ = vis[j];
-		if (vis[j])
+		if (vis[j]) {
 			continue;
+		}
 
 		rep = 1;
 		for (j++; j < visrow; j++)
-			if (vis[j] || rep == 0xff)
+			if (vis[j] || rep == 0xff) {
 				break;
-			else
+			} else {
 				rep++;
+			}
 		*dest_p++ = rep;
 		j--;
 	}
@@ -73,8 +75,9 @@ void DecompressVis(const byte *in, byte *decompressed) {
 		}
 
 		c = in[1];
-		if (!c)
+		if (!c) {
 			Com_Error(ERR_FATAL, "0 repeat\n");
+		}
 		in += 2;
 		while (c) {
 			*out++ = 0;
@@ -106,14 +109,16 @@ static void SwapBSPFile(_Bool todisk) {
 
 	// vertexes
 	for (i = 0; i < d_bsp.num_vertexes; i++) {
-		for (j = 0; j < 3; j++)
+		for (j = 0; j < 3; j++) {
 			d_bsp.vertexes[i].point[j] = LittleFloat(d_bsp.vertexes[i].point[j]);
+		}
 	}
 
 	// planes
 	for (i = 0; i < d_bsp.num_planes; i++) {
-		for (j = 0; j < 3; j++)
+		for (j = 0; j < 3; j++) {
 			d_bsp.planes[i].normal[j] = LittleFloat(d_bsp.planes[i].normal[j]);
+		}
 		d_bsp.planes[i].dist = LittleFloat(d_bsp.planes[i].dist);
 		d_bsp.planes[i].type = LittleLong(d_bsp.planes[i].type);
 	}
@@ -169,16 +174,19 @@ static void SwapBSPFile(_Bool todisk) {
 	}
 
 	// leaf faces
-	for (i = 0; i < d_bsp.num_leaf_faces; i++)
+	for (i = 0; i < d_bsp.num_leaf_faces; i++) {
 		d_bsp.leaf_faces[i] = LittleShort(d_bsp.leaf_faces[i]);
+	}
 
 	// leaf brushes
-	for (i = 0; i < d_bsp.num_leaf_brushes; i++)
+	for (i = 0; i < d_bsp.num_leaf_brushes; i++) {
 		d_bsp.leaf_brushes[i] = LittleShort(d_bsp.leaf_brushes[i]);
+	}
 
 	// surf edges
-	for (i = 0; i < d_bsp.num_face_edges; i++)
+	for (i = 0; i < d_bsp.num_face_edges; i++) {
 		d_bsp.face_edges[i] = LittleLong(d_bsp.face_edges[i]);
+	}
 
 	// edges
 	for (i = 0; i < d_bsp.num_edges; i++) {
@@ -212,10 +220,11 @@ static void SwapBSPFile(_Bool todisk) {
 	}
 
 	// visibility
-	if (todisk)
+	if (todisk) {
 		j = d_vis->num_clusters;
-	else
+	} else {
 		j = LittleLong(d_vis->num_clusters);
+	}
 	d_vis->num_clusters = LittleLong(d_vis->num_clusters);
 	for (i = 0; i < j; i++) {
 		d_vis->bit_offsets[i][0] = LittleLong(d_vis->bit_offsets[i][0]);
@@ -231,8 +240,9 @@ static int32_t CopyLump(int32_t lump, void *dest, int32_t size) {
 	length = header->lumps[lump].file_len;
 	ofs = header->lumps[lump].file_ofs;
 
-	if (length % size)
+	if (length % size) {
 		Com_Error(ERR_FATAL, "Funny lump size\n");
+	}
 
 	memcpy(dest, (byte *)header + ofs, length);
 
@@ -246,27 +256,31 @@ void LoadBSPFile(char *file_name) {
 	uint32_t i;
 
 	// load the file header
-	if (Fs_Load(file_name, (void **) (char *) &header) == -1)
+	if (Fs_Load(file_name, (void **) (char *) &header) == -1) {
 		Com_Error(ERR_FATAL, "Failed to open %s\n", file_name);
+	}
 
 	// swap the header
-	for (i = 0; i < sizeof(d_bsp_header_t) / 4; i++)
+	for (i = 0; i < sizeof(d_bsp_header_t) / 4; i++) {
 		((int32_t *) header)[i] = LittleLong(((int32_t *) header)[i]);
+	}
 
-	if (header->ident != BSP_IDENT)
+	if (header->ident != BSP_IDENT) {
 		Com_Error(ERR_FATAL, "%s is not a IBSP file\n", file_name);
+	}
 
 	if (header->version != BSP_VERSION && header->version != BSP_VERSION_QUETOO)
 		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", file_name,
-				header->version);
+		          header->version);
 
 	d_bsp.num_models = CopyLump(BSP_LUMP_MODELS, d_bsp.models, sizeof(d_bsp_model_t));
 	d_bsp.num_vertexes = CopyLump(BSP_LUMP_VERTEXES, d_bsp.vertexes, sizeof(d_bsp_vertex_t));
 
 	d_bsp.num_normals = d_bsp.num_vertexes;
 
-	if (header->version == BSP_VERSION_QUETOO) // enhanced format
+	if (header->version == BSP_VERSION_QUETOO) { // enhanced format
 		d_bsp.num_normals = CopyLump(BSP_LUMP_NORMALS, d_bsp.normals, sizeof(d_bsp_normal_t));
+	}
 
 	d_bsp.num_planes = CopyLump(BSP_LUMP_PLANES, d_bsp.planes, sizeof(d_bsp_plane_t));
 	d_bsp.num_leafs = CopyLump(BSP_LUMP_LEAFS, d_bsp.leafs, sizeof(d_bsp_leaf_t));
@@ -274,18 +288,18 @@ void LoadBSPFile(char *file_name) {
 	d_bsp.num_texinfo = CopyLump(BSP_LUMP_TEXINFO, d_bsp.texinfo, sizeof(d_bsp_texinfo_t));
 	d_bsp.num_faces = CopyLump(BSP_LUMP_FACES, d_bsp.faces, sizeof(d_bsp_face_t));
 	d_bsp.num_leaf_faces = CopyLump(BSP_LUMP_LEAF_FACES, d_bsp.leaf_faces,
-			sizeof(d_bsp.leaf_faces[0]));
+	                                sizeof(d_bsp.leaf_faces[0]));
 	d_bsp.num_leaf_brushes = CopyLump(BSP_LUMP_LEAF_BRUSHES, d_bsp.leaf_brushes,
-			sizeof(d_bsp.leaf_brushes[0]));
+	                                  sizeof(d_bsp.leaf_brushes[0]));
 	d_bsp.num_face_edges = CopyLump(BSP_LUMP_FACE_EDGES, d_bsp.face_edges,
-			sizeof(d_bsp.face_edges[0]));
+	                                sizeof(d_bsp.face_edges[0]));
 	d_bsp.num_edges = CopyLump(BSP_LUMP_EDGES, d_bsp.edges, sizeof(d_bsp_edge_t));
 	d_bsp.num_brushes = CopyLump(BSP_LUMP_BRUSHES, d_bsp.brushes, sizeof(d_bsp_brush_t));
 	d_bsp.num_brush_sides = CopyLump(BSP_LUMP_BRUSH_SIDES, d_bsp.brush_sides,
-			sizeof(d_bsp_brush_side_t));
+	                                 sizeof(d_bsp_brush_side_t));
 	d_bsp.num_areas = CopyLump(BSP_LUMP_AREAS, d_bsp.areas, sizeof(d_bsp_area_t));
 	d_bsp.num_area_portals = CopyLump(BSP_LUMP_AREA_PORTALS, d_bsp.area_portals,
-			sizeof(d_bsp_area_portal_t));
+	                                  sizeof(d_bsp_area_portal_t));
 
 	d_bsp.vis_data_size = CopyLump(BSP_LUMP_VISIBILITY, d_bsp.vis_data, 1);
 	d_bsp.lightmap_data_size = CopyLump(BSP_LUMP_LIGHTMAPS, d_bsp.lightmap_data, 1);
@@ -298,8 +312,9 @@ void LoadBSPFile(char *file_name) {
 	// swap everything
 	SwapBSPFile(false);
 
-	if (verbose)
+	if (verbose) {
 		PrintBSPFileSizes();
+	}
 }
 
 /**
@@ -312,21 +327,24 @@ void LoadBSPFileTexinfo(char *file_name) {
 
 	header = Mem_Malloc(sizeof(*header));
 
-	if (!(f = Fs_OpenRead(file_name)))
+	if (!(f = Fs_OpenRead(file_name))) {
 		Com_Error(ERR_FATAL, "Could not open %s\n", file_name);
+	}
 
 	Fs_Read(f, header, sizeof(*header), 1);
 
 	// swap the header
-	for (i = 0; i < sizeof(*header) / 4; i++)
+	for (i = 0; i < sizeof(*header) / 4; i++) {
 		((int32_t *) header)[i] = LittleLong(((int32_t *) header)[i]);
+	}
 
-	if (header->ident != BSP_IDENT)
+	if (header->ident != BSP_IDENT) {
 		Com_Error(ERR_FATAL, "%s is not a bsp file\n", file_name);
+	}
 
 	if (header->version != BSP_VERSION && header->version != BSP_VERSION_QUETOO)
 		Com_Error(ERR_FATAL, "%s is unsupported version %i\n", file_name,
-				header->version);
+		          header->version);
 
 	length = header->lumps[BSP_LUMP_TEXINFO].file_len;
 	ofs = header->lumps[BSP_LUMP_TEXINFO].file_ofs;
@@ -365,21 +383,25 @@ void WriteBSPFile(char *file_name) {
 	static d_bsp_header_t h;
 	header = &h;
 
-	if (verbose)
+	if (verbose) {
 		PrintBSPFileSizes();
+	}
 
 	SwapBSPFile(true);
 
 	header->ident = LittleLong(BSP_IDENT);
 
-	if (legacy) // quake2 .bsp format
+	if (legacy) { // quake2 .bsp format
 		header->version = LittleLong(BSP_VERSION);
-	else
+	} else
 		// enhanced format
+	{
 		header->version = LittleLong(BSP_VERSION_QUETOO);
+	}
 
-	if (!(fp = Fs_OpenWrite(file_name)))
+	if (!(fp = Fs_OpenWrite(file_name))) {
 		Com_Error(ERR_FATAL, "Could not open %s\n", file_name);
+	}
 
 	Fs_Write(fp, header, 1, sizeof(d_bsp_header_t));
 
@@ -387,26 +409,27 @@ void WriteBSPFile(char *file_name) {
 	AddLump(BSP_LUMP_LEAFS, d_bsp.leafs, d_bsp.num_leafs * sizeof(d_bsp_leaf_t));
 	AddLump(BSP_LUMP_VERTEXES, d_bsp.vertexes, d_bsp.num_vertexes * sizeof(d_bsp_vertex_t));
 
-	if (!legacy) // write vertex normals
+	if (!legacy) { // write vertex normals
 		AddLump(BSP_LUMP_NORMALS, d_bsp.normals, d_bsp.num_normals * sizeof(d_bsp_normal_t));
+	}
 
 	AddLump(BSP_LUMP_NODES, d_bsp.nodes, d_bsp.num_nodes * sizeof(d_bsp_node_t));
 	AddLump(BSP_LUMP_TEXINFO, d_bsp.texinfo, d_bsp.num_texinfo * sizeof(d_bsp_texinfo_t));
 	AddLump(BSP_LUMP_FACES, d_bsp.faces, d_bsp.num_faces * sizeof(d_bsp_face_t));
 	AddLump(BSP_LUMP_BRUSHES, d_bsp.brushes, d_bsp.num_brushes * sizeof(d_bsp_brush_t));
 	AddLump(BSP_LUMP_BRUSH_SIDES, d_bsp.brush_sides,
-			d_bsp.num_brush_sides * sizeof(d_bsp_brush_side_t));
+	        d_bsp.num_brush_sides * sizeof(d_bsp_brush_side_t));
 	AddLump(BSP_LUMP_LEAF_FACES, d_bsp.leaf_faces,
-			d_bsp.num_leaf_faces * sizeof(d_bsp.leaf_faces[0]));
+	        d_bsp.num_leaf_faces * sizeof(d_bsp.leaf_faces[0]));
 	AddLump(BSP_LUMP_LEAF_BRUSHES, d_bsp.leaf_brushes,
-			d_bsp.num_leaf_brushes * sizeof(d_bsp.leaf_brushes[0]));
+	        d_bsp.num_leaf_brushes * sizeof(d_bsp.leaf_brushes[0]));
 	AddLump(BSP_LUMP_FACE_EDGES, d_bsp.face_edges,
-			d_bsp.num_face_edges * sizeof(d_bsp.face_edges[0]));
+	        d_bsp.num_face_edges * sizeof(d_bsp.face_edges[0]));
 	AddLump(BSP_LUMP_EDGES, d_bsp.edges, d_bsp.num_edges * sizeof(d_bsp_edge_t));
 	AddLump(BSP_LUMP_MODELS, d_bsp.models, d_bsp.num_models * sizeof(d_bsp_model_t));
 	AddLump(BSP_LUMP_AREAS, d_bsp.areas, d_bsp.num_areas * sizeof(d_bsp_area_t));
 	AddLump(BSP_LUMP_AREA_PORTALS, d_bsp.area_portals,
-			d_bsp.num_area_portals * sizeof(d_bsp_area_portal_t));
+	        d_bsp.num_area_portals * sizeof(d_bsp_area_portal_t));
 
 	AddLump(BSP_LUMP_LIGHTMAPS, d_bsp.lightmap_data, d_bsp.lightmap_data_size);
 	AddLump(BSP_LUMP_VISIBILITY, d_bsp.vis_data, d_bsp.vis_data_size);
@@ -426,54 +449,55 @@ void WriteBSPFile(char *file_name) {
  */
 void PrintBSPFileSizes(void) {
 
-	if (!num_entities)
+	if (!num_entities) {
 		ParseEntities();
+	}
 
 	Com_Verbose("%5i models       %7i\n", d_bsp.num_models,
-			(int32_t) (d_bsp.num_models * sizeof(d_bsp_model_t)));
+	            (int32_t) (d_bsp.num_models * sizeof(d_bsp_model_t)));
 
 	Com_Verbose("%5i brushes      %7i\n", d_bsp.num_brushes,
-			(int32_t) (d_bsp.num_brushes * sizeof(d_bsp_brush_t)));
+	            (int32_t) (d_bsp.num_brushes * sizeof(d_bsp_brush_t)));
 
 	Com_Verbose("%5i brush_sides  %7i\n", d_bsp.num_brush_sides,
-			(int32_t) (d_bsp.num_brush_sides * sizeof(d_bsp_brush_side_t)));
+	            (int32_t) (d_bsp.num_brush_sides * sizeof(d_bsp_brush_side_t)));
 
 	Com_Verbose("%5i planes       %7i\n", d_bsp.num_planes,
-			(int32_t) (d_bsp.num_planes * sizeof(d_bsp_plane_t)));
+	            (int32_t) (d_bsp.num_planes * sizeof(d_bsp_plane_t)));
 
 	Com_Verbose("%5i texinfo      %7i\n", d_bsp.num_texinfo,
-			(int32_t) (d_bsp.num_texinfo * sizeof(d_bsp_texinfo_t)));
+	            (int32_t) (d_bsp.num_texinfo * sizeof(d_bsp_texinfo_t)));
 
 	Com_Verbose("%5i entdata      %7i\n", num_entities, d_bsp.entity_string_len);
 
 	Com_Verbose("\n");
 
 	Com_Verbose("%5i vertexes     %7i\n", d_bsp.num_vertexes,
-			(int32_t) (d_bsp.num_vertexes * sizeof(d_bsp_vertex_t)));
+	            (int32_t) (d_bsp.num_vertexes * sizeof(d_bsp_vertex_t)));
 
 	Com_Verbose("%5i normals      %7i\n", d_bsp.num_normals,
-			(int32_t) (d_bsp.num_normals * sizeof(d_bsp_normal_t)));
+	            (int32_t) (d_bsp.num_normals * sizeof(d_bsp_normal_t)));
 
 	Com_Verbose("%5i nodes        %7i\n", d_bsp.num_nodes,
-			(int32_t) (d_bsp.num_nodes * sizeof(d_bsp_node_t)));
+	            (int32_t) (d_bsp.num_nodes * sizeof(d_bsp_node_t)));
 
 	Com_Verbose("%5i faces        %7i\n", d_bsp.num_faces,
-			(int32_t) (d_bsp.num_faces * sizeof(d_bsp_face_t)));
+	            (int32_t) (d_bsp.num_faces * sizeof(d_bsp_face_t)));
 
 	Com_Verbose("%5i leafs        %7i\n", d_bsp.num_leafs,
-			(int32_t) (d_bsp.num_leafs * sizeof(d_bsp_leaf_t)));
+	            (int32_t) (d_bsp.num_leafs * sizeof(d_bsp_leaf_t)));
 
 	Com_Verbose("%5i leaf_faces   %7i\n", d_bsp.num_leaf_faces,
-			(int32_t) (d_bsp.num_leaf_faces * sizeof(d_bsp.leaf_faces[0])));
+	            (int32_t) (d_bsp.num_leaf_faces * sizeof(d_bsp.leaf_faces[0])));
 
 	Com_Verbose("%5i leaf_brushes %7i\n", d_bsp.num_leaf_brushes,
-			(int32_t) (d_bsp.num_leaf_brushes * sizeof(d_bsp.leaf_brushes[0])));
+	            (int32_t) (d_bsp.num_leaf_brushes * sizeof(d_bsp.leaf_brushes[0])));
 
 	Com_Verbose("%5i surf_edges   %7i\n", d_bsp.num_face_edges,
-			(int32_t) (d_bsp.num_face_edges * sizeof(d_bsp.face_edges[0])));
+	            (int32_t) (d_bsp.num_face_edges * sizeof(d_bsp.face_edges[0])));
 
 	Com_Verbose("%5i edges        %7i\n", d_bsp.num_edges,
-			(int32_t) (d_bsp.num_edges * sizeof(d_bsp_edge_t)));
+	            (int32_t) (d_bsp.num_edges * sizeof(d_bsp_edge_t)));
 
 	Com_Verbose("      lightmap     %7i\n", d_bsp.lightmap_data_size);
 
@@ -504,12 +528,14 @@ epair_t *ParseEpair(void) {
 
 	e = Mem_Malloc(sizeof(*e));
 
-	if (strlen(token) >= MAX_BSP_ENTITY_KEY - 1)
+	if (strlen(token) >= MAX_BSP_ENTITY_KEY - 1) {
 		Com_Error(ERR_FATAL, "Token too long\n");
+	}
 	e->key = Mem_CopyString(token);
 	GetToken(false);
-	if (strlen(token) >= MAX_BSP_ENTITY_VALUE - 1)
+	if (strlen(token) >= MAX_BSP_ENTITY_VALUE - 1) {
 		Com_Error(ERR_FATAL, "Token too long\n");
+	}
 	e->value = Mem_CopyString(token);
 
 	// strip trailing spaces
@@ -526,23 +552,28 @@ static _Bool ParseEntity(void) {
 	epair_t *e;
 	entity_t *mapent;
 
-	if (!GetToken(true))
+	if (!GetToken(true)) {
 		return false;
+	}
 
-	if (g_strcmp0(token, "{"))
+	if (g_strcmp0(token, "{")) {
 		Com_Error(ERR_FATAL, "\"{\" not found\n");
+	}
 
-	if (num_entities == MAX_BSP_ENTITIES)
+	if (num_entities == MAX_BSP_ENTITIES) {
 		Com_Error(ERR_FATAL, "MAX_BSP_ENTITIES\n");
+	}
 
 	mapent = &entities[num_entities];
 	num_entities++;
 
 	do {
-		if (!GetToken(true))
+		if (!GetToken(true)) {
 			Com_Error(ERR_FATAL, "EOF without closing brace\n");
-		if (!g_strcmp0(token, "}"))
+		}
+		if (!g_strcmp0(token, "}")) {
 			break;
+		}
 		e = ParseEpair();
 		e->next = mapent->epairs;
 		mapent->epairs = e;
@@ -587,10 +618,11 @@ void UnparseEntities(void) {
 
 	for (i = 0; i < num_entities; i++) {
 		ep = entities[i].epairs;
-		if (!ep)
-			continue; // ent got removed
+		if (!ep) {
+			continue;    // ent got removed
+		}
 
-		strcat(end,"{\n");
+		strcat(end, "{\n");
 		end += 2;
 
 		for (ep = entities[i].epairs; ep; ep = ep->next) {
@@ -603,11 +635,12 @@ void UnparseEntities(void) {
 			strcat(end, line);
 			end += strlen(line);
 		}
-		strcat(end,"}\n");
+		strcat(end, "}\n");
 		end += 2;
 
-		if (end > buf + MAX_BSP_ENT_STRING)
+		if (end > buf + MAX_BSP_ENT_STRING) {
 			Com_Error(ERR_FATAL, "MAX_BSP_ENT_STRING\n");
+		}
 	}
 
 	d_bsp.entity_string_len = (int32_t) (ptrdiff_t) (end - buf + 1);
@@ -635,8 +668,9 @@ const char *ValueForKey(const entity_t *ent, const char *key) {
 	const epair_t *ep;
 
 	for (ep = ent->epairs; ep; ep = ep->next)
-		if (!g_strcmp0(ep->key, key))
+		if (!g_strcmp0(ep->key, key)) {
 			return ep->value;
+		}
 	return "";
 }
 
@@ -652,7 +686,8 @@ void VectorForKey(const entity_t *ent, const char *key, vec3_t vec) {
 
 	k = ValueForKey(ent, key);
 
-	if (sscanf(k, "%f %f %f", &vec[0], &vec[1], &vec[2]) != 3)
+	if (sscanf(k, "%f %f %f", &vec[0], &vec[1], &vec[2]) != 3) {
 		VectorClear(vec);
+	}
 }
 

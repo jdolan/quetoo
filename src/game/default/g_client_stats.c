@@ -56,7 +56,7 @@ void G_ClientToIntermission(g_entity_t *ent) {
 	ent->client->locals.pickup_msg_time = 0;
 
 	// take a screenshot if we're supposed to
-	if (g_force_screenshot->integer == 1){
+	if (g_force_screenshot->integer == 1) {
 		G_ClientStuff(ent, "r_screenshot\n");
 	}
 }
@@ -76,12 +76,14 @@ static void G_UpdateScore(const g_entity_t *ent, g_score_t *s) {
 		s->flags |= SCORE_SPECTATOR;
 	} else {
 		if (g_level.match) {
-			if (!ent->client->locals.persistent.ready)
+			if (!ent->client->locals.persistent.ready) {
 				s->flags |= SCORE_NOT_READY;
+			}
 		}
 		if (g_level.ctf) {
-			if (ent->s.effects & (EF_CTF_BLUE | EF_CTF_RED))
+			if (ent->s.effects & (EF_CTF_BLUE | EF_CTF_RED)) {
 				s->flags |= SCORE_CTF_FLAG;
+			}
 		}
 		if (ent->client->locals.persistent.team) {
 			if (ent->client->locals.persistent.team == &g_team_good) {
@@ -112,8 +114,9 @@ static size_t G_UpdateScores(g_score_t *scores) {
 	for (i = 0; i < sv_max_clients->integer; i++) {
 		const g_entity_t *e = &g_game.entities[i + 1];
 
-		if (!e->in_use)
+		if (!e->in_use) {
 			continue;
+		}
 
 		G_UpdateScore(e, s++);
 	}
@@ -146,8 +149,9 @@ void G_ClientScores(g_entity_t *ent) {
 	static g_score_t scores[MAX_CLIENTS + 2];
 	static size_t count;
 
-	if (!ent->client->locals.show_scores || (ent->client->locals.scores_time > g_level.time))
+	if (!ent->client->locals.show_scores || (ent->client->locals.scores_time > g_level.time)) {
 		return;
+	}
 
 	ent->client->locals.scores_time = g_level.time + 500;
 
@@ -206,12 +210,13 @@ void G_ClientStats(g_entity_t *ent) {
 	// armor
 	const g_item_t *armor = G_ClientArmor(ent);
 	if (armor) {
-		if (armor->tag == ARMOR_BODY)
+		if (armor->tag == ARMOR_BODY) {
 			client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_bodyarmor");
-		else if (armor->tag == ARMOR_COMBAT)
+		} else if (armor->tag == ARMOR_COMBAT) {
 			client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_combatarmor");
-		else
+		} else {
 			client->ps.stats[STAT_ARMOR_ICON] = gi.ImageIndex("pics/i_jacketarmor");
+		}
 
 		client->ps.stats[STAT_ARMOR] = client->locals.inventory[ITEM_INDEX(armor)];
 	} else {
@@ -269,37 +274,44 @@ void G_ClientStats(g_entity_t *ent) {
 
 	// ready
 	client->ps.stats[STAT_READY] = 0;
-	if (g_level.match && g_level.match_time)
+	if (g_level.match && g_level.match_time) {
 		client->ps.stats[STAT_READY] = client->locals.persistent.ready;
+	}
 
 	// rounds
-	if (g_level.rounds)
+	if (g_level.rounds) {
 		client->ps.stats[STAT_ROUND] = g_level.round_num + 1;
+	}
 
 	// scores
 	client->ps.stats[STAT_SCORES] = 0;
-	if (g_level.intermission_time || client->locals.show_scores)
+	if (g_level.intermission_time || client->locals.show_scores) {
 		client->ps.stats[STAT_SCORES] |= 1;
+	}
 
 	if ((g_level.teams || g_level.ctf) && client->locals.persistent.team) { // send team_name
-		if (client->locals.persistent.team == &g_team_good)
+		if (client->locals.persistent.team == &g_team_good) {
 			client->ps.stats[STAT_TEAM] = CS_TEAM_GOOD;
-		else
+		} else {
 			client->ps.stats[STAT_TEAM] = CS_TEAM_EVIL;
-	} else
+		}
+	} else {
 		client->ps.stats[STAT_TEAM] = 0;
+	}
 
 	// time
-	if (g_level.intermission_time)
+	if (g_level.intermission_time) {
 		client->ps.stats[STAT_TIME] = 0;
-	else
+	} else {
 		client->ps.stats[STAT_TIME] = CS_TIME;
+	}
 
 	// vote
-	if (g_level.vote_time)
+	if (g_level.vote_time) {
 		client->ps.stats[STAT_VOTE] = CS_VOTE;
-	else
+	} else {
 		client->ps.stats[STAT_VOTE] = 0;
+	}
 
 	// weapon
 	const g_item_t *weapon = client->locals.weapon;
@@ -315,10 +327,11 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_WEAPON] = 0;
 	}
 
-	if (g_level.time <= client->locals.quad_damage_time)
-	  client->ps.stats[STAT_QUAD_TIME] = ceil((client->locals.quad_damage_time - g_level.time) / 1000.0);
-	else
+	if (g_level.time <= client->locals.quad_damage_time) {
+		client->ps.stats[STAT_QUAD_TIME] = ceil((client->locals.quad_damage_time - g_level.time) / 1000.0);
+	} else {
 		client->ps.stats[STAT_QUAD_TIME] = 0;
+	}
 }
 
 /**
@@ -332,12 +345,12 @@ void G_ClientSpectatorStats(g_entity_t *ent) {
 	// chase camera inherits stats from their chase target
 	if (client->locals.chase_target && client->locals.chase_target->in_use) {
 		client->ps.stats[STAT_CHASE] = CS_CLIENTS + (client->locals.chase_target - g_game.entities)
-				- 1;
+		                               - 1;
 
 		// scores are independent of chase camera target
-		if (g_level.intermission_time || client->locals.show_scores)
+		if (g_level.intermission_time || client->locals.show_scores) {
 			client->ps.stats[STAT_SCORES] = 1;
-		else {
+		} else {
 			client->ps.stats[STAT_SCORES] = 0;
 		}
 	} else {

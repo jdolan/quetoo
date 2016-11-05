@@ -35,14 +35,18 @@ _Bool cvar_user_info_modified;
  * @return True if the specified string appears to be a valid "info" string.
  */
 static _Bool Cvar_InfoValidate(const char *s) {
-	if (!s)
+	if (!s) {
 		return false;
-	if (strstr(s, "\\"))
+	}
+	if (strstr(s, "\\")) {
 		return false;
-	if (strstr(s, "\""))
+	}
+	if (strstr(s, "\"")) {
 		return false;
-	if (strstr(s, ";"))
+	}
+	if (strstr(s, ";")) {
 		return false;
+	}
 	return true;
 }
 
@@ -66,8 +70,9 @@ vec_t Cvar_GetValue(const char *name) {
 
 	var = Cvar_Get(name);
 
-	if (!var)
+	if (!var) {
 		return 0.0f;
+	}
 
 	return atof(var->string);
 }
@@ -80,8 +85,9 @@ const char *Cvar_GetString(const char *name) {
 
 	var = Cvar_Get(name);
 
-	if (!var)
+	if (!var) {
 		return "";
+	}
 
 	return var->string;
 }
@@ -114,8 +120,9 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
 	if (GlobMatch(cvar_complete_pattern, var->name)) {
 		Com_Print("^2%s^7 is \"^3%s^7\" (default is \"^3%s^7\")\n", var->name, var->string, var->default_value);
 
-		if (var->description)
+		if (var->description) {
 			Com_Print("\t^2%s^7\n", var->description);
+		}
 
 		*matches = g_list_prepend(*matches, Mem_CopyString(var->name));
 	}
@@ -167,8 +174,9 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 		return var;
 	}
 
-	if (!value) // don't create variables if a value isn't provided
+	if (!value) { // don't create variables if a value isn't provided
 		return NULL;
+	}
 
 	// create a new variable
 	var = Mem_Malloc(sizeof(*var));
@@ -240,20 +248,23 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 		// while latched variables can only be changed on map load
 		if (var->flags & CVAR_LATCH) {
 			if (var->latched_string) {
-				if (!g_strcmp0(value, var->latched_string))
+				if (!g_strcmp0(value, var->latched_string)) {
 					return var;
+				}
 				Mem_Free(var->latched_string);
 			} else {
-				if (!g_strcmp0(value, var->string))
+				if (!g_strcmp0(value, var->string)) {
 					return var;
+				}
 			}
 
 			if (Com_WasInit(QUETOO_SERVER)) {
 				Com_Print("%s will be changed for next game.\n", name);
 				var->latched_string = Mem_Link(Mem_CopyString(value), var);
 			} else {
-				if (var->string)
+				if (var->string) {
 					Mem_Free(var->string);
+				}
 				var->string = Mem_Link(Mem_CopyString(value), var);
 				var->value = strtof(var->string, NULL);
 				var->integer = (int32_t) strtol(var->string, NULL, 0);
@@ -268,17 +279,21 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 		}
 	}
 
-	if (!g_strcmp0(value, var->string))
-		return var; // not changed
+	if (!g_strcmp0(value, var->string)) {
+		return var;    // not changed
+	}
 
-	if (var->flags & CVAR_R_MASK)
+	if (var->flags & CVAR_R_MASK) {
 		Com_Print("%s will be changed on ^3r_restart^7.\n", name);
+	}
 
-	if (var->flags & CVAR_S_MASK)
+	if (var->flags & CVAR_S_MASK) {
 		Com_Print("%s will be changed on ^3s_restart^7.\n", name);
+	}
 
-	if (var->flags & CVAR_USER_INFO)
-		cvar_user_info_modified = true; // transmit at next opportunity
+	if (var->flags & CVAR_USER_INFO) {
+		cvar_user_info_modified = true;    // transmit at next opportunity
+	}
 
 	Mem_Free(var->string);
 
@@ -316,8 +331,9 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 		return Cvar_Add(name, value, flags, NULL);
 	}
 
-	if (var->flags & CVAR_USER_INFO)
-		cvar_user_info_modified = true; // transmit at next opportunity
+	if (var->flags & CVAR_USER_INFO) {
+		cvar_user_info_modified = true;    // transmit at next opportunity
+	}
 
 	Mem_Free(var->string);
 
@@ -336,10 +352,11 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 cvar_t *Cvar_SetValue(const char *name, vec_t value) {
 	char val[32];
 
-	if (value == (int32_t) value)
+	if (value == (int32_t) value) {
 		g_snprintf(val, sizeof(val), "%i", (int32_t) value);
-	else
+	} else {
 		g_snprintf(val, sizeof(val), "%f", value);
+	}
 
 	return Cvar_Set(name, val);
 }
@@ -349,18 +366,19 @@ cvar_t *Cvar_SetValue(const char *name, vec_t value) {
  */
 cvar_t *Cvar_Toggle(const char *name) {
 
-	cvar_t *var = Cvar_Get(name) ?: Cvar_Add(name, "0", 0, NULL);
+	cvar_t *var = Cvar_Get(name) ? : Cvar_Add(name, "0", 0, NULL);
 
-	if (var->value)
+	if (var->value) {
 		return Cvar_SetValue(name, 0.0);
-	else
+	} else {
 		return Cvar_SetValue(name, 1.0);
+	}
 }
 
 /**
  * @brief Enumeration helper for Cvar_ResetLocal.
  */
-void Cvar_ResetLocal_enumerate(cvar_t *var, void *data __attribute__((unused))) {
+void Cvar_ResetLocal_enumerate(cvar_t *var, void *data) {
 
 	if (var->flags & CVAR_LO_ONLY) {
 		if (var->default_value) {
@@ -405,7 +423,7 @@ _Bool Cvar_PendingLatched(void) {
 /**
  * @brief Enumeration helper for Cvar_UpdateLatched.
  */
-void Cvar_UpdateLatched_enumerate(cvar_t *var, void *data __attribute__((unused))) {
+void Cvar_UpdateLatched_enumerate(cvar_t *var, void *data) {
 
 	if (var->latched_string) {
 		Mem_Free(var->string);
@@ -475,8 +493,9 @@ _Bool Cvar_Command(void) {
 
 	// check variables
 	var = Cvar_Get(Cmd_Argv(0));
-	if (!var)
+	if (!var) {
 		return false;
+	}
 
 	// perform a variable print or set
 	if (Cmd_Argc() == 1) {
@@ -531,34 +550,39 @@ static void Cvar_Toggle_f(void) {
 /**
  * @brief Enumeration helper for Cvar_List_f.
  */
-static void Cvar_List_f_enumerate(cvar_t *var, void *data __attribute__((unused))) {
+static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
 	GList *modifiers = NULL;
-	
-	if (var->flags & CVAR_ARCHIVE)
+
+	if (var->flags & CVAR_ARCHIVE) {
 		modifiers = g_list_append(modifiers, "^2archived^7");
+	}
 
-	if (var->flags & CVAR_USER_INFO)
+	if (var->flags & CVAR_USER_INFO) {
 		modifiers = g_list_append(modifiers, "^4userinfo^7");
+	}
 
-	if (var->flags & CVAR_SERVER_INFO)
+	if (var->flags & CVAR_SERVER_INFO) {
 		modifiers = g_list_append(modifiers, "^5serverinfo");
+	}
 
-	if (var->flags & CVAR_LO_ONLY)
+	if (var->flags & CVAR_LO_ONLY) {
 		modifiers = g_list_append(modifiers, "^1developer^7");
-	
-	if (var->flags & CVAR_NO_SET)
+	}
+
+	if (var->flags & CVAR_NO_SET) {
 		modifiers = g_list_append(modifiers, "^3readonly^7");
-	
+	}
+
 	if (var->flags & CVAR_LATCH) {
 		modifiers = g_list_append(modifiers, "^6latched^7");
 	}
-	
+
 	char str[MAX_STRING_CHARS];
 	g_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
-	
+
 	if (modifiers) {
 		g_strlcat(str, " (", sizeof(str));
-		
+
 		const guint len = g_list_length(modifiers);
 		for (guint i = 0; i < len; i++) {
 			if (i) {
@@ -566,15 +590,16 @@ static void Cvar_List_f_enumerate(cvar_t *var, void *data __attribute__((unused)
 			}
 			g_strlcat(str, (char *) g_list_nth_data(modifiers, i), sizeof(str));
 		}
-		
+
 		g_strlcat(str, ")", sizeof(str));
 		g_list_free(modifiers);
 	}
 
 	Com_Print("%s\n", str);
 
-	if (var->description)
+	if (var->description) {
 		Com_Print("\t^2%s^7\n", var->description);
+	}
 }
 
 /**
@@ -652,7 +677,7 @@ static GRegex *cvar_emplace_regex = NULL;
 /**
  * @brief
  */
-static gboolean Cvar_ExpandString_EvalCallback(const GMatchInfo *match_info, GString *result, gpointer data __attribute__((unused))) {
+static gboolean Cvar_ExpandString_EvalCallback(const GMatchInfo *match_info, GString *result, gpointer data) {
 	const gchar *name = g_match_info_fetch(match_info, 1);
 	const char *value = Cvar_GetString(name);
 	g_string_append(result, value);
@@ -664,17 +689,19 @@ static gboolean Cvar_ExpandString_EvalCallback(const GMatchInfo *match_info, GSt
  * @returns false if no emplacement was performed (or could be performed), otherwise the *output is set
  * to a valid GString.
  */
-_Bool Cvar_ExpandString(const char *input, const size_t in_size, GString **output)
-{
+_Bool Cvar_ExpandString(const char *input, const size_t in_size, GString **output) {
 	// sanity checks
-	if (!input || !in_size)
+	if (!input || !in_size) {
 		return false;
+	}
 
 	GError *error = NULL;
-	gchar *replaced = g_regex_replace_eval(cvar_emplace_regex, input, in_size, 0, 0, Cvar_ExpandString_EvalCallback, NULL, &error);
+	gchar *replaced = g_regex_replace_eval(cvar_emplace_regex, input, in_size, 0, 0, Cvar_ExpandString_EvalCallback, NULL,
+	                                       &error);
 
-	if (error)
+	if (error) {
 		Com_Warn("Error preprocessing shader: %s", error->message);
+	}
 
 	*output = g_string_new(replaced);
 	return true;
@@ -726,13 +753,13 @@ void Cvar_Init(void) {
 	}
 
 	// this only needs to be done once
-	if (!cvar_emplace_regex)
-	{
+	if (!cvar_emplace_regex) {
 		GError *error = NULL;
 		cvar_emplace_regex = g_regex_new("\\$([a-z0-9_]+)", G_REGEX_CASELESS | G_REGEX_MULTILINE | G_REGEX_DOTALL, 0, &error);
 
-		if (error)
+		if (error) {
 			Com_Warn("Error compiling regex: %s", error->message);
+		}
 	}
 }
 

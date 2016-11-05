@@ -36,41 +36,41 @@ void teardown(void) {
 	Mem_Shutdown();
 }
 
-START_TEST(check_Mem_LinkMalloc)
-	{
-		byte *parent = Mem_Malloc(1);
+START_TEST(check_Mem_LinkMalloc) {
+	byte *parent = Mem_Malloc(1);
 
-		byte *child1 = Mem_LinkMalloc(1, parent);
-		byte *child2 = Mem_LinkMalloc(1, parent);
+	byte *child1 = Mem_LinkMalloc(1, parent);
+	byte *child2 = Mem_LinkMalloc(1, parent);
 
-		ck_assert(Mem_Size() == 3);
+	ck_assert(Mem_Size() == 3);
 
-		Mem_Free(child2);
+	Mem_Free(child2);
 
-		ck_assert(Mem_Size() == 2);
+	ck_assert(Mem_Size() == 2);
 
-		byte *grandchild1 = Mem_Malloc(1);
+	byte *grandchild1 = Mem_Malloc(1);
 
-		ck_assert(Mem_Size() == 3);
+	ck_assert(Mem_Size() == 3);
 
-		Mem_Link(grandchild1, child1);
+	Mem_Link(grandchild1, child1);
 
-		Mem_Free(parent);
+	Mem_Free(parent);
 
-		ck_assert(Mem_Size() == 0);
+	ck_assert(Mem_Size() == 0);
 
-	}END_TEST
+}
+END_TEST
 
-START_TEST(check_Mem_CopyString)
-	{
-		char *test = Mem_CopyString("test");
+START_TEST(check_Mem_CopyString) {
+	char *test = Mem_CopyString("test");
 
-		ck_assert(Mem_Size() == strlen(test) + 1);
+	ck_assert(Mem_Size() == strlen(test) + 1);
 
-		Mem_Free(test);
+	Mem_Free(test);
 
-		ck_assert(Mem_Size() == 0);
-	}END_TEST
+	ck_assert(Mem_Size() == 0);
+}
+END_TEST
 
 /**
  * @brief Test entry point.

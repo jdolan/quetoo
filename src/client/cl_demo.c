@@ -61,8 +61,9 @@ static void Cl_WriteDemoHeader(void) {
 	// and baselines
 	for (size_t i = 0; i < lengthof(cl.entities); i++) {
 		entity_state_t *ent = &cl.entities[i].baseline;
-		if (!ent->number)
+		if (!ent->number) {
 			continue;
+		}
 
 		if (msg.size + 64 > msg.max_size) { // write it out
 			const int32_t len = LittleLong((int32_t) msg.size);
@@ -94,8 +95,9 @@ static void Cl_WriteDemoHeader(void) {
  */
 void Cl_WriteDemoMessage(void) {
 
-	if (!cls.demo_file)
+	if (!cls.demo_file) {
 		return;
+	}
 
 	if (!Fs_Tell(cls.demo_file)) {
 		if (cl.frame.delta_frame_num < 0) {

@@ -54,10 +54,11 @@ int32_t Light_PointLeafnum(const vec3_t point) {
 		d_bsp_node_t *node = &d_bsp.nodes[nodenum];
 		d_bsp_plane_t *plane = &d_bsp.planes[node->plane_num];
 		vec_t dist = DotProduct(point, plane->normal) - plane->dist;
-		if (dist > 0)
+		if (dist > 0) {
 			nodenum = node->children[0];
-		else
+		} else {
 			nodenum = node->children[1];
+		}
 	}
 
 	return -nodenum - 1;
@@ -75,8 +76,9 @@ _Bool Light_PointPVS(const vec3_t org, byte *pvs) {
 	}
 
 	leaf = &d_bsp.leafs[Light_PointLeafnum(org)];
-	if (leaf->cluster == -1)
-		return false; // in solid leaf
+	if (leaf->cluster == -1) {
+		return false;    // in solid leaf
+	}
 
 	DecompressVis(d_bsp.vis_data + d_vis->bit_offsets[leaf->cluster][DVIS_PVS], pvs);
 	return true;
@@ -98,7 +100,7 @@ void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_
 	// and any BSP submodels, too
 	for (i = 0; i < num_cmodels; i++) {
 		const cm_trace_t tr = Cm_BoxTrace(start, end, vec3_origin, vec3_origin,
-				cmodels[i]->head_node, mask);
+		                                  cmodels[i]->head_node, mask);
 
 		if (tr.fraction < frac) {
 			frac = tr.fraction;
@@ -112,8 +114,9 @@ void Light_Trace(cm_trace_t *trace, const vec3_t start, const vec3_t end, int32_
  */
 static void LightWorld(void) {
 
-	if (d_bsp.num_nodes == 0 || d_bsp.num_faces == 0)
+	if (d_bsp.num_nodes == 0 || d_bsp.num_faces == 0) {
 		Com_Error(ERR_FATAL, "Empty map\n");
+	}
 
 	// load the map for tracing
 	cmodels[0] = Cm_LoadBspModel(bsp_name, NULL);
@@ -157,8 +160,9 @@ int32_t LIGHT_Main(void) {
 
 	LoadBSPFile(bsp_name);
 
-	if (!d_bsp.vis_data_size)
+	if (!d_bsp.vis_data_size) {
 		Com_Error(ERR_FATAL, "No VIS information\n");
+	}
 
 	ParseEntities();
 
@@ -171,8 +175,9 @@ int32_t LIGHT_Main(void) {
 	const time_t end = time(NULL);
 	const time_t duration = end - start;
 	Com_Print("\nLIGHT Time: ");
-	if (duration > 59)
+	if (duration > 59) {
 		Com_Print("%d Minutes ", (int32_t) (duration / 60));
+	}
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	return 0;

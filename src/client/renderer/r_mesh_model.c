@@ -63,8 +63,9 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 
 		c = ParseToken(&buffer);
 
-		if (*c == '\0')
+		if (*c == '\0') {
 			break;
+		}
 
 		if (!g_strcmp0(c, "footsteps")) {
 			ParseToken(&buffer);
@@ -94,20 +95,24 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 			c = ParseToken(&buffer);
 			a->hz = (uint16_t) strtoul(c, NULL, 0);
 
-			if (md3->num_animations == ANIM_LEGS_WALKCR)
+			if (md3->num_animations == ANIM_LEGS_WALKCR) {
 				skip = a->first_frame - md3->animations[ANIM_TORSO_GESTURE].first_frame;
+			}
 
-			if (md3->num_animations >= ANIM_LEGS_WALKCR)
+			if (md3->num_animations >= ANIM_LEGS_WALKCR) {
 				a->first_frame -= skip;
+			}
 
-			if (!a->num_frames)
+			if (!a->num_frames) {
 				Com_Warn("%s: No frames for %d\n", mod->media.name, md3->num_animations);
+			}
 
-			if (!a->hz)
+			if (!a->hz) {
 				Com_Warn("%s: No hz for %d\n", mod->media.name, md3->num_animations);
+			}
 
 			Com_Debug("Parsed %d: %d %d %d %d\n", md3->num_animations,
-					a->first_frame, a->num_frames, a->looped_frames, a->hz);
+			          a->first_frame, a->num_frames, a->looped_frames, a->hz);
 
 			md3->num_animations++;
 			if (md3->num_animations == MD3_MAX_ANIMATIONS) {
@@ -129,8 +134,9 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 	const char *buffer, *c;
 	void *buf;
 
-	if (Fs_Load(path, &buf) == -1)
+	if (Fs_Load(path, &buf) == -1) {
 		return;
+	}
 
 	buffer = (char *) buf;
 
@@ -138,12 +144,13 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 
 		c = ParseToken(&buffer);
 
-		if (*c == '\0')
+		if (*c == '\0') {
 			break;
+		}
 
 		if (!g_strcmp0(c, "translate")) {
 			sscanf(ParseToken(&buffer), "%f %f %f", &config->translate[0], &config->translate[1],
-					&config->translate[2]);
+			       &config->translate[2]);
 			continue;
 		}
 
@@ -239,18 +246,18 @@ static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 		vec_t r = 1.0 / (s1 * t2 - s2 * t1);
 
 		VectorSet(sdir,
-				(t2 * x1 - t1 * x2),
-				(t2 * y1 - t1 * y2),
-				(t2 * z1 - t1 * z2)
-		);
+		          (t2 * x1 - t1 * x2),
+		          (t2 * y1 - t1 * y2),
+		          (t2 * z1 - t1 * z2)
+		         );
 
 		VectorScale(sdir, r, sdir);
 
 		VectorSet(tdir,
-				(s1 * x2 - s2 * x1),
-				(s1 * y2 - s2 * y1),
-				(s1 * z2 - s2 * z1)
-		);
+		          (s1 * x2 - s2 * x1),
+		          (s1 * y2 - s2 * y1),
+		          (s1 * z2 - s2 * z1)
+		         );
 
 		VectorScale(tdir, r, tdir);
 
@@ -341,8 +348,9 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 				const uint32_t *tri = mesh->tris;
 
 				for (uint16_t j = 0; j < mesh->num_tris; ++j) {
-					for (uint16_t k = 0; k < 3; ++k)
+					for (uint16_t k = 0; k < 3; ++k) {
 						*out_tri++ = *tri++ + vert_offset;
+					}
 				}
 			}
 
@@ -351,9 +359,9 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 		// upload each frame
 		R_CreateBuffer(&mod->vertex_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, v, r_mesh_state.vertexes);
-	
+
 		R_CreateBuffer(&mod->normal_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, v, r_mesh_state.normals);
-	
+
 		R_CreateBuffer(&mod->tangent_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, t, r_mesh_state.tangents);
 	}
 
@@ -362,7 +370,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 	// upload elements
 	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_ELEMENT, e, tris);
-	
+
 	// get rid of these, we don't need them any more
 	Mem_Free(texcoords);
 	Mem_Free(tris);
@@ -395,7 +403,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	const int32_t version = LittleLong(in_md3->version);
 	if (version != MD3_VERSION) {
 		Com_Error(ERR_DROP, "%s has wrong version number "
-				"(%i should be %i)\n", mod->media.name, version, MD3_VERSION);
+		          "(%i should be %i)\n", mod->media.name, version, MD3_VERSION);
 	}
 
 	mod->mesh = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
@@ -465,7 +473,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 				}
 
 				Matrix4x4_FromVectors(&out_tag->matrix, orient.axis[0], orient.axis[1],
-						orient.axis[2], orient.origin);
+				                      orient.axis[2], orient.origin);
 			}
 		}
 	}
@@ -546,21 +554,24 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		}
 
 		R_LoadMd3Tangents(out_mesh);
-		
+
 		mod->num_tris += out_mesh->num_tris;
 		out_mesh->num_elements = out_mesh->num_tris * 3;
 
-		Com_Debug("%s: %s: %d triangles (%d elements)\n", mod->media.name, out_mesh->name, out_mesh->num_tris, out_mesh->num_elements);
+		Com_Debug("%s: %s: %d triangles (%d elements)\n", mod->media.name, out_mesh->name, out_mesh->num_tris,
+		          out_mesh->num_elements);
 
 		in_mesh = (d_md3_mesh_t *) ((byte *) in_mesh + in_mesh->size);
 	}
 
 	// load the skin for objects, and the animations for players
-	if (!strstr(mod->media.name, "players/"))
+	if (!strstr(mod->media.name, "players/")) {
 		R_LoadMeshMaterial(mod);
+	}
 
-	else if (strstr(mod->media.name, "/upper"))
+	else if (strstr(mod->media.name, "/upper")) {
 		R_LoadMd3Animations(mod);
+	}
 
 	// and the configs
 	R_LoadMeshConfigs(mod);
@@ -569,7 +580,7 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	R_LoadMd3VertexArrays(mod);
 
 	Com_Debug("%s\n  %d meshes\n  %d frames\n  %d tags\n  %d vertexes\n", mod->media.name,
-			out_md3->num_meshes, out_md3->num_frames, out_md3->num_tags, mod->num_verts);
+	          out_md3->num_meshes, out_md3->num_frames, out_md3->num_tags, mod->num_verts);
 }
 
 /**
@@ -600,7 +611,7 @@ static r_obj_vertex_t *R_ObjVertexForIndices(r_model_t *mod, r_obj_t *obj, const
 
 	if (!v->point || !v->texcoords || !v->normal) {
 		Com_Error(ERR_DROP, "Invalid face indices for %s: %hu/%hu/%hu\n", mod->media.name,
-				indices[0], indices[1], indices[2]);
+		          indices[0], indices[1], indices[2]);
 	}
 
 	v->position = g_list_length(obj->verts);
@@ -617,8 +628,9 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 
 		vec_t *v = g_new(vec_t, 3);
 
-		if (sscanf(line + 2, "%f %f %f", &v[0], &v[2], &v[1]) != 3)
+		if (sscanf(line + 2, "%f %f %f", &v[0], &v[2], &v[1]) != 3) {
 			Com_Error(ERR_DROP, "Malformed vertex for %s: %s\n", mod->media.name, line);
+		}
 
 		AddPointToBounds(v, mod->mins, mod->maxs);
 
@@ -628,8 +640,9 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 
 		vec_t *vt = g_new(vec_t, 2);
 
-		if (sscanf(line + 3, "%f %f", &vt[0], &vt[1]) != 2)
+		if (sscanf(line + 3, "%f %f", &vt[0], &vt[1]) != 2) {
 			Com_Error(ERR_DROP, "Malformed texcoord for %s: %s\n", mod->media.name, line);
+		}
 
 		vt[1] = -vt[1];
 
@@ -639,8 +652,9 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 
 		vec_t *vn = g_new(vec_t, 3);
 
-		if (sscanf(line + 3, "%f %f %f", &vn[0], &vn[2], &vn[1]) != 3)
+		if (sscanf(line + 3, "%f %f %f", &vn[0], &vn[2], &vn[1]) != 3) {
 			Com_Error(ERR_DROP, "Malformed normal for %s: %s\n", mod->media.name, line);
+		}
 
 		VectorNormalize(vn);
 
@@ -655,8 +669,9 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 			uint16_t indices[3];
 			int32_t n;
 
-			if (sscanf(c, "%hu/%hu/%hu%n", &indices[0], &indices[1], &indices[2], &n) != 3)
+			if (sscanf(c, "%hu/%hu/%hu%n", &indices[0], &indices[1], &indices[2], &n) != 3) {
 				Com_Error(ERR_DROP, "Malformed face for %s: %s\n", mod->media.name, line);
+			}
 
 			verts = g_list_append(verts, R_ObjVertexForIndices(mod, obj, indices));
 			c += n;
@@ -666,8 +681,9 @@ static void R_LoadObjPrimitive(r_model_t *mod, r_obj_t *obj, const char *line) {
 
 		const size_t len = g_list_length(verts);
 
-		if (len < 3)
+		if (len < 3) {
 			Com_Error(ERR_DROP, "Malformed face for %s: %s\n", mod->media.name, line);
+		}
 
 		for (size_t i = 1; i < len - 1; i++) {
 
@@ -706,8 +722,9 @@ static void R_LoadObjPrimitives(r_model_t *mod, r_obj_t *obj, const void *buffer
 				l = g_strstrip(line);
 				R_LoadObjPrimitive(mod, obj, l);
 
-				if (*c == '\0')
+				if (*c == '\0') {
 					goto done;
+				}
 
 				memset(line, 0, sizeof(line));
 				l = line;
@@ -768,19 +785,19 @@ static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
 
 		vec3_t sdir;
 		VectorSet(sdir,
-			(t2 * x1 - t1 * x2),
-			(t2 * y1 - t1 * y2),
-			(t2 * z1 - t1 * z2)
-		);
+		          (t2 * x1 - t1 * x2),
+		          (t2 * y1 - t1 * y2),
+		          (t2 * z1 - t1 * z2)
+		         );
 
 		VectorScale(sdir, r, sdir);
 
 		vec3_t tdir;
 		VectorSet(tdir,
-			(s1 * x2 - s2 * x1),
-			(s1 * y2 - s2 * y1),
-			(s1 * z2 - s2 * z1)
-		);
+		          (s1 * x2 - s2 * x1),
+		          (s1 * y2 - s2 * y1),
+		          (s1 * z2 - s2 * z1)
+		         );
 
 		VectorScale(tdir, r, tdir);
 
@@ -842,7 +859,7 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	vec_t *normals = Mem_LinkMalloc(v, mod);
 	vec_t *tangents = Mem_LinkMalloc(t, mod);
 	GLuint *elements = Mem_LinkMalloc(e, mod);
-	
+
 	vec_t *vout = verts;
 	vec_t *sout = texcoords;
 	vec_t *nout = normals;
@@ -874,9 +891,10 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	while (el) {
 
 		const r_obj_triangle_t *te = el->data;
-	
-		for (int32_t i = 0; i < 3; ++i)
+
+		for (int32_t i = 0; i < 3; ++i) {
 			*eout++ = te->verts[i]->position;
+		}
 
 		el = el->next;
 	}
@@ -887,9 +905,9 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	mod->tangent_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
 
 	R_CreateBuffer(&mod->vertex_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, v, verts);
-	
+
 	R_CreateBuffer(&mod->normal_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, v, normals);
-	
+
 	R_CreateBuffer(&mod->tangent_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, t, tangents);
 
 	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, texcoords);

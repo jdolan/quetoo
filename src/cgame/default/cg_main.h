@@ -26,46 +26,46 @@
 
 #ifdef __CG_LOCAL_H__
 
-extern cvar_t *cg_add_emits;
-extern cvar_t *cg_add_entities;
-extern cvar_t *cg_add_particles;
-extern cvar_t *cg_add_weather;
-extern cvar_t *cg_bob;
-extern cvar_t *cg_color;
-extern cvar_t *cg_draw_blend;
-extern cvar_t *cg_draw_captures;
-extern cvar_t *cg_draw_crosshair_color;
-extern cvar_t *cg_draw_crosshair_pulse;
-extern cvar_t *cg_draw_crosshair_scale;
-extern cvar_t *cg_draw_crosshair;
-extern cvar_t *cg_draw_heldflag;
-extern cvar_t *cg_draw_frags;
-extern cvar_t *cg_draw_deaths;
-extern cvar_t *cg_draw_hud;
-extern cvar_t *cg_draw_pickup;
-extern cvar_t *cg_draw_powerups;
-extern cvar_t *cg_draw_time;
-extern cvar_t *cg_draw_teambar;
-extern cvar_t *cg_draw_weapon;
-extern cvar_t *cg_draw_weapon_alpha;
-extern cvar_t *cg_draw_weapon_x;
-extern cvar_t *cg_draw_weapon_y;
-extern cvar_t *cg_draw_weapon_z;
-extern cvar_t *cg_draw_vitals;
-extern cvar_t *cg_draw_vitals_pulse;
-extern cvar_t *cg_draw_vote;
-extern cvar_t *cg_fov;
-extern cvar_t *cg_fov_zoom;
-extern cvar_t *cg_fov_interpolate;
-extern cvar_t *cg_hand;
-extern cvar_t *cg_handicap;
-extern cvar_t *cg_skin;
-extern cvar_t *cg_third_person;
-extern cvar_t *cg_third_person_yaw;
+	extern cvar_t *cg_add_emits;
+	extern cvar_t *cg_add_entities;
+	extern cvar_t *cg_add_particles;
+	extern cvar_t *cg_add_weather;
+	extern cvar_t *cg_bob;
+	extern cvar_t *cg_color;
+	extern cvar_t *cg_draw_blend;
+	extern cvar_t *cg_draw_captures;
+	extern cvar_t *cg_draw_crosshair_color;
+	extern cvar_t *cg_draw_crosshair_pulse;
+	extern cvar_t *cg_draw_crosshair_scale;
+	extern cvar_t *cg_draw_crosshair;
+	extern cvar_t *cg_draw_heldflag;
+	extern cvar_t *cg_draw_frags;
+	extern cvar_t *cg_draw_deaths;
+	extern cvar_t *cg_draw_hud;
+	extern cvar_t *cg_draw_pickup;
+	extern cvar_t *cg_draw_powerups;
+	extern cvar_t *cg_draw_time;
+	extern cvar_t *cg_draw_teambar;
+	extern cvar_t *cg_draw_weapon;
+	extern cvar_t *cg_draw_weapon_alpha;
+	extern cvar_t *cg_draw_weapon_x;
+	extern cvar_t *cg_draw_weapon_y;
+	extern cvar_t *cg_draw_weapon_z;
+	extern cvar_t *cg_draw_vitals;
+	extern cvar_t *cg_draw_vitals_pulse;
+	extern cvar_t *cg_draw_vote;
+	extern cvar_t *cg_fov;
+	extern cvar_t *cg_fov_zoom;
+	extern cvar_t *cg_fov_interpolate;
+	extern cvar_t *cg_hand;
+	extern cvar_t *cg_handicap;
+	extern cvar_t *cg_skin;
+	extern cvar_t *cg_third_person;
+	extern cvar_t *cg_third_person_yaw;
 
-extern cg_import_t cgi;
+	extern cg_import_t cgi;
 
-cg_export_t *Cg_LoadCgame(cg_import_t *import);
+	cg_export_t *Cg_LoadCgame(cg_import_t *import);
 
 #endif /* __CG_LOCAL_H__ */
 

@@ -95,13 +95,14 @@ static ThreadWorkFunc WorkFunction;
  * @brief Shared work entry point by all threads. Retrieve and perform
  * chunks of work iteratively until work is finished.
  */
-static void ThreadWork(void *p __attribute__((unused))) {
+static void ThreadWork(void *p) {
 	int32_t work;
 
 	while (true) {
 		work = GetThreadWork();
-		if (work == -1)
+		if (work == -1) {
 			break;
+		}
 		WorkFunction(work);
 	}
 }
@@ -113,8 +114,9 @@ SDL_mutex *lock = NULL;
  */
 void ThreadLock(void) {
 
-	if (!lock)
+	if (!lock) {
 		return;
+	}
 
 	SDL_mutexP(lock);
 }
@@ -124,8 +126,9 @@ void ThreadLock(void) {
  */
 void ThreadUnlock(void) {
 
-	if (!lock)
+	if (!lock) {
 		return;
+	}
 
 	SDL_mutexV(lock);
 }
@@ -144,11 +147,13 @@ static void RunThreads(void) {
 
 	lock = SDL_CreateMutex();
 
-	for (i = 0; i < Thread_Count(); i++)
+	for (i = 0; i < Thread_Count(); i++) {
 		t[i] = Thread_Create(ThreadWork, NULL);
+	}
 
-	for (i = 0; i < Thread_Count(); i++)
+	for (i = 0; i < Thread_Count(); i++) {
 		Thread_Wait(t[i]);
+	}
 
 	SDL_DestroyMutex(lock);
 	lock = NULL;
@@ -173,7 +178,8 @@ void RunThreadsOn(int32_t work_count, _Bool progress, ThreadWorkFunc func) {
 
 	end = time(NULL);
 
-	if (thread_work.progress)
+	if (thread_work.progress) {
 		Com_Print(" (%i seconds)\n", (int32_t) (end - start));
+	}
 }
 
