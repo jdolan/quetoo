@@ -25,7 +25,6 @@
 
 /**
  * @file
- *
  * @brief System ViewController.
  */
 
@@ -34,23 +33,19 @@ typedef struct SystemViewControllerInterface SystemViewControllerInterface;
 
 /**
  * @brief The SystemViewController type.
- *
  * @extends MenuViewController
- *
  * @ingroup
  */
 struct SystemViewController {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	MenuViewController menuViewController;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	SystemViewControllerInterface *interface;
@@ -60,7 +55,7 @@ struct SystemViewController {
  * @brief The SystemViewController interface.
  */
 struct SystemViewControllerInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */

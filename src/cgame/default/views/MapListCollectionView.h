@@ -27,7 +27,6 @@
 
 /**
  * @file
- *
  * @brief The MapListCollectionView type.
  */
 
@@ -36,21 +35,18 @@ typedef struct MapListCollectionViewInterface MapListCollectionViewInterface;
 
 /**
  * @brief The MapListCollectionView type.
- *
  * @extends CollectionView
  */
 struct MapListCollectionView {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	CollectionView collectionView;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	MapListCollectionViewInterface *interface;
@@ -70,12 +66,12 @@ struct MapListCollectionView {
  * @brief The MapListCollectionView interface.
  */
 struct MapListCollectionViewInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
 	CollectionViewInterface collectionViewInterface;
-	
+
 	/**
 	 * @fn MapListCollectionView *MapListCollectionView::initWithFrame(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style)
 	 * @brief Initializes this MapListCollectionView with the specified frame and style.
@@ -84,7 +80,8 @@ struct MapListCollectionViewInterface {
 	 * @return The initialized MapListCollectionView, or `NULL` on error.
 	 * @memberof MapListCollectionView
 	 */
-	MapListCollectionView *(*initWithFrame)(MapListCollectionView *self, const SDL_Rect *frame, ControlStyle style);
+	MapListCollectionView *(*initWithFrame)(MapListCollectionView *self, const SDL_Rect *frame,
+	                                        ControlStyle style);
 
 	/**
 	 * @fn GList *MapListCollectionView::selectedMaps(const MapListCollectionView *self)

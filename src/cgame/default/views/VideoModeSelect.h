@@ -25,7 +25,6 @@
 
 /**
  * @file
- *
  * @brief Video mode selection.
  */
 
@@ -34,28 +33,24 @@ typedef struct VideoModeSelectInterface VideoModeSelectInterface;
 
 /**
  * @brief The VideoModeSelect type.
- *
  * @extends Select
  */
 struct VideoModeSelect {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	Select select;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	VideoModeSelectInterface *interface;
 
 	/**
 	 * @brief The known display modes.
-	 *
 	 * @private
 	 */
 	SDL_DisplayMode *modes;
@@ -65,22 +60,18 @@ struct VideoModeSelect {
  * @brief The VideoModeSelect interface.
  */
 struct VideoModeSelectInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
 	SelectInterface selectInterface;
-	
+
 	/**
 	 * @fn VideoModeSelect *VideoModeSelect::initWithFrame(VideoModeSelect *self, const SDL_Rect *frame, ControlStyle style)
-	 *
 	 * @brief Initializes this VideoModeSelect with the specified frame and style.
-	 *
 	 * @param frame The frame.
 	 * @param style The ControlStyle.
-	 *
 	 * @return The initialized VideoModeSelect, or `NULL` on error.
-	 *
 	 * @memberof VideoModeSelect
 	 */
 	VideoModeSelect *(*initWithFrame)(VideoModeSelect *self, const SDL_Rect *frame, ControlStyle style);

@@ -25,7 +25,6 @@
 
 /**
  * @file
- *
  * @brief Player skin Select.
  */
 
@@ -34,46 +33,39 @@ typedef struct SkinSelectInterface SkinSelectInterface;
 
 /**
  * @brief The SkinSelect type.
- *
  * @extends Select
  */
 struct SkinSelect {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	Select select;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
-	SkinSelectInterface *interface;	
+	SkinSelectInterface *interface;
 };
 
 /**
  * @brief The SkinSelect interface.
  */
 struct SkinSelectInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
 	SelectInterface selectInterface;
-	
+
 	/**
 	 * @fn SkinSelect *SkinSelect::initWithFrame(SkinSelect *self, const SDL_Rect *frame, ControlStyle style)
-	 *
 	 * @brief Initializes this SkinSelect with the specified frame and style.
-	 *
 	 * @param frame The frame.
 	 * @param style The ControlStyle.
-	 *
 	 * @return The initialized SkinSelect, or `NULL` on error.
-	 *
 	 * @memberof SkinSelect
 	 */
 	SkinSelect *(*initWithFrame)(SkinSelect *self, const SDL_Rect *frame, ControlStyle style);

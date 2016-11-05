@@ -27,7 +27,6 @@
 
 /**
  * @file
- *
  * @brief The MapListCollectionItemView type.
  */
 
@@ -42,21 +41,18 @@ typedef struct MapListCollectionItemViewInterface MapListCollectionItemViewInter
 
 /**
  * @brief The MapListCollectionItemView type.
- *
  * @extends CollectionItemView
  */
 struct MapListCollectionItemView {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	CollectionItemView collectionItemView;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	MapListCollectionItemViewInterface *interface;
@@ -66,32 +62,25 @@ struct MapListCollectionItemView {
  * @brief The MapListCollectionItemView interface.
  */
 struct MapListCollectionItemViewInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
 	CollectionItemViewInterface collectionItemViewInterface;
-	
+
 	/**
 	 * @fn MapListCollectionItemView *MapListCollectionItemView::initWithFrame(MapListCollectionItemView *self, const SDL_Rect *frame)
-	 *
 	 * @brief Initializes this MapListCollectionItemView with the specified frame.
-	 *
 	 * @param frame The frame.
-	 *
 	 * @return The initialized MapListCollectionItemView, or `NULL` on error.
-	 *
 	 * @memberof MapListCollectionItemView
 	 */
 	MapListCollectionItemView *(*initWithFrame)(MapListCollectionItemView *self, const SDL_Rect *frame);
 
 	/**
 	 * @fn void MapListCollectionItemView::setMapListItemInfo(MapListCollectionItemView *self, MapListItemInfo *info);
-	 *
 	 * @brief Sets the information for this item.
-	 *
 	 * @param info The MapListItemInfo.
-	 *
 	 * @memberof MapListCollectionItemView
 	 */
 	void (*setMapListItemInfo)(MapListCollectionItemView *self, MapListItemInfo *info);

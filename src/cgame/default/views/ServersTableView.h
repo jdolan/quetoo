@@ -25,7 +25,6 @@
 
 /**
  * @file
- *
  * @brief The multiplayer servers table.
  */
 
@@ -34,21 +33,18 @@ typedef struct ServersTableViewInterface ServersTableViewInterface;
 
 /**
  * @brief The ServersTableView type.
- *
  * @extends TableView
  */
 struct ServersTableView {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	TableView tableView;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	ServersTableViewInterface *interface;
@@ -58,25 +54,22 @@ struct ServersTableView {
  * @brief The ServersTableView interface.
  */
 struct ServersTableViewInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
 	TableViewInterface tableViewInterface;
-	
+
 	/**
 	 * @fn ServersTableView *ServersTableView::initWithFrame(ServersTableView *self, const SDL_Rect *frame, ControlStyle style)
-	 *
 	 * @brief Initializes this ServersTableView with the specified frame and style.
-	 *
 	 * @param frame The frame.
 	 * @param style The ControlStyle.
-	 *
 	 * @return The initialized ServersTableView, or `NULL` on error.
-	 *
 	 * @memberof ServersTableView
 	 */
-	ServersTableView *(*initWithFrame)(ServersTableView *self, const SDL_Rect *frame, ControlStyle style);
+	ServersTableView *(*initWithFrame)(ServersTableView *self, const SDL_Rect *frame,
+	                                   ControlStyle style);
 };
 
 /**

@@ -25,7 +25,6 @@
 
 /**
  * @file
- *
  * @brief Multiplayer ViewController.
  */
 
@@ -34,23 +33,19 @@ typedef struct MultiplayerViewControllerInterface MultiplayerViewControllerInter
 
 /**
  * @brief The MultiplayerViewController type.
- *
  * @extends MenuViewController
- *
  * @ingroup
  */
 struct MultiplayerViewController {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	MenuViewController menuViewController;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	MultiplayerViewControllerInterface *interface;
@@ -60,7 +55,7 @@ struct MultiplayerViewController {
  * @brief The MultiplayerViewController interface.
  */
 struct MultiplayerViewControllerInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */

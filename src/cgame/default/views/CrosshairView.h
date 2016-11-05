@@ -26,7 +26,6 @@
 
 /**
  * @file
- *
  * @brief The CrosshairView type.
  */
 
@@ -35,21 +34,18 @@ typedef struct CrosshairViewInterface CrosshairViewInterface;
 
 /**
  * @brief The CrosshairView type.
- *
  * @extends View
  */
 struct CrosshairView {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	View view;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	CrosshairViewInterface *interface;
@@ -64,24 +60,20 @@ struct CrosshairView {
  * @brief The CrosshairView interface.
  */
 struct CrosshairViewInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
 	ImageViewInterface imageViewInterface;
-	
+
 	/**
 	 * @fn CrosshairView *CrosshairView::initWithFrame(CrosshairView *self, const SDL_Rect *frame)
-	 *
 	 * @brief Initializes this CrosshairView with the specified frame.
-	 *
 	 * @param frame The frame.
-	 *
 	 * @return The initialized CrosshairView, or `NULL` on error.
-	 *
 	 * @memberof CrosshairView
 	 */
-	CrosshairView *(*initWithFrame)(CrosshairView *self, const SDL_Rect *frame);	
+	CrosshairView *(*initWithFrame)(CrosshairView *self, const SDL_Rect *frame);
 };
 
 /**
