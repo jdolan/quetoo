@@ -23,7 +23,7 @@ HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh)
 	HRESULT error = S_OK;
 
 	// get the time
-	SYSTEMTIME sysTime = { 0 };
+	SYSTEMTIME sysTime;
 	GetSystemTime(&sysTime);
 
 	// build the filename: APPNAME_COMPUTERNAME_DATE_TIME.DMP
@@ -66,7 +66,7 @@ HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh)
 	DWORD procID = GetProcessId(hProc);
 
 	// if we have SEH info, package it up
-	MINIDUMP_EXCEPTION_INFORMATION sehInfo = { 0 };
+	MINIDUMP_EXCEPTION_INFORMATION sehInfo;
 	MINIDUMP_EXCEPTION_INFORMATION *sehPtr = NULL;
 
 	if (seh) {

@@ -82,7 +82,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 	vec3_t mins, maxs;
 	vec_t dist;
 	cm_trace_t tr;
-
+	
 	cgi.client->third_person = cg_third_person->integer;
 
 	if (!cg_third_person->value) {
