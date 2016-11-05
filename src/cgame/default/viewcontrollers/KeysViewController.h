@@ -34,23 +34,19 @@ typedef struct KeysViewControllerInterface KeysViewControllerInterface;
 
 /**
  * @brief The KeysViewController type.
- *
  * @extends MenuViewController
- *
  * @ingroup ViewControllers
  */
 struct KeysViewController {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	MenuViewController menuViewController;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	KeysViewControllerInterface *interface;
@@ -60,7 +56,7 @@ struct KeysViewController {
  * @brief The KeysViewController interface.
  */
 struct KeysViewControllerInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */

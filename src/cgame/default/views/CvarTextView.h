@@ -36,21 +36,18 @@ typedef struct CvarTextViewInterface CvarTextViewInterface;
 
 /**
  * @brief The CvarTextView type.
- *
  * @extends TextView
  */
 struct CvarTextView {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	TextView textView;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	CvarTextViewInterface *interface;
@@ -65,21 +62,17 @@ struct CvarTextView {
  * @brief The CvarTextView interface.
  */
 struct CvarTextViewInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
 	TextViewInterface textViewInterface;
-	
+
 	/**
 	 * @fn CvarTextView *CvarTextView::initWithVariable(CvarTextView *self, cvar_t *var)
-	 *
 	 * @brief Initializes this TextView with the given variable.
-	 *
 	 * @param var The variable.
-	 *
 	 * @return The initialized CvarTextView, or `NULL` on error.
-	 *
 	 * @memberof CvarTextView
 	 */
 	CvarTextView *(*initWithVariable)(CvarTextView *self, cvar_t *var);

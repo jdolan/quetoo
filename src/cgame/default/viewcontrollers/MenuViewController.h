@@ -36,23 +36,19 @@ typedef struct MenuViewControllerInterface MenuViewControllerInterface;
 
 /**
  * @brief The MenuViewController type.
- *
  * @extends ViewController
- *
  * @ingroup ViewControllers
  */
 struct MenuViewController {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	ViewController viewController;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	MenuViewControllerInterface *interface;
@@ -67,7 +63,7 @@ struct MenuViewController {
  * @brief The MenuViewController interface.
  */
 struct MenuViewControllerInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
@@ -75,9 +71,7 @@ struct MenuViewControllerInterface {
 
 	/**
 	 * @fn MainViewController *MenuViewController::mainViewController(const MenuViewController *self)
-	 *
 	 * @return The MainViewController.
-	 *
 	 * @memberof MenuViewController
 	 */
 	MainViewController *(*mainViewController)(const MenuViewController *self);

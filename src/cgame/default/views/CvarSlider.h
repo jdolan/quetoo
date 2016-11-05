@@ -27,7 +27,6 @@
 
 /**
  * @file
- *
  * @brief A Slider bound to a cvar_t.
  */
 
@@ -36,21 +35,18 @@ typedef struct CvarSliderInterface CvarSliderInterface;
 
 /**
  * @brief The CvarSlider type.
- *
  * @extends Slider
  */
 struct CvarSlider {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	Slider slider;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	CvarSliderInterface *interface;
@@ -65,7 +61,7 @@ struct CvarSlider {
  * @brief The CvarSlider interface.
  */
 struct CvarSliderInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
@@ -73,16 +69,12 @@ struct CvarSliderInterface {
 
 	/**
 	 * @fn CvarSlider *CvarSlider::initWithVariable(CvarSlider *self, cvar_t *var, double min, double max, double step)
-	 *
 	 * @brief Initializes this Slider with the given variable.
-	 *
 	 * @param var The variable.
 	 * @param min The minimum value.
 	 * @param max The maximum value.
 	 * @param step The step.
-	 *
 	 * @return The initialized CvarSlider, or `NULL` on error.
-	 *
 	 * @memberof CvarSlider
 	 */
 	CvarSlider *(*initWithVariable)(CvarSlider *self, cvar_t *var, double min, double max, double step);

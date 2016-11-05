@@ -26,7 +26,6 @@
 
 /**
  * @file
- *
  * @brief PlayerSetup ViewController.
  */
 
@@ -35,23 +34,19 @@ typedef struct PlayerViewControllerInterface PlayerViewControllerInterface;
 
 /**
  * @brief The PlayerViewController type.
- *
  * @extends MenuViewController
- *
  * @ingroup
  */
 struct PlayerViewController {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	MenuViewController menuViewController;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	PlayerViewControllerInterface *interface;
@@ -66,7 +61,7 @@ struct PlayerViewController {
  * @brief The PlayerViewController interface.
  */
 struct PlayerViewControllerInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */

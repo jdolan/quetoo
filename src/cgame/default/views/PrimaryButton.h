@@ -25,7 +25,6 @@
 
 /**
  * @file
- *
  * @brief Primary Button.
  */
 
@@ -36,21 +35,18 @@ typedef struct PrimaryButtonInterface PrimaryButtonInterface;
 
 /**
  * @brief The PrimaryButton type.
- *
  * @extends Button
  */
 struct PrimaryButton {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	Button button;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	PrimaryButtonInterface *interface;
@@ -60,22 +56,18 @@ struct PrimaryButton {
  * @brief The PrimaryButton interface.
  */
 struct PrimaryButtonInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
 	ButtonInterface buttonInterface;
-	
+
 	/**
 	 * @fn PrimaryButton *PrimaryButton::initWithFrame(PrimaryButton *self, const SDL_Rect *frame, ControlStyle style)
-	 *
 	 * @brief Initializes this PrimaryButton with the specified frame and style.
-	 *
 	 * @param frame The frame.
 	 * @param style The ControlStyle.
-	 *
 	 * @return The initialized PrimaryButton, or `NULL` on error.
-	 *
 	 * @memberof PrimaryButton
 	 */
 	PrimaryButton *(*initWithFrame)(PrimaryButton *self, const SDL_Rect *frame, ControlStyle style);

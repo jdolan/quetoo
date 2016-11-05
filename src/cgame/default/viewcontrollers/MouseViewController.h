@@ -26,7 +26,6 @@
 
 /**
  * @file
- *
  * @brief Controls ViewController.
  */
 
@@ -35,23 +34,19 @@ typedef struct MouseViewControllerInterface MouseViewControllerInterface;
 
 /**
  * @brief The MouseViewController type.
- *
  * @extends MenuViewController
- *
  * @ingroup ViewControllers
  */
 struct MouseViewController {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	MenuViewController menuViewController;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	MouseViewControllerInterface *interface;
@@ -66,7 +61,7 @@ struct MouseViewController {
  * @brief The MouseViewController interface.
  */
 struct MouseViewControllerInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */

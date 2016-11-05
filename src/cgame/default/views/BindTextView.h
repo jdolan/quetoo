@@ -25,7 +25,6 @@
 
 /**
  * @file
- *
  * @brief A TextView bound to a key binding.
  */
 
@@ -35,22 +34,19 @@ typedef struct BindTextView BindTextView;
 typedef struct BindTextViewInterface BindTextViewInterface;
 
 /**
- * @brief The BindTextView type.
- *
+ * @brief A TextView bound to a key binding.
  * @extends TextView
  */
 struct BindTextView {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	TextView textView;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	BindTextViewInterface *interface;
@@ -65,21 +61,17 @@ struct BindTextView {
  * @brief The BindTextView interface.
  */
 struct BindTextViewInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
 	TextViewInterface textViewInterface;
-	
+
 	/**
 	 * @fn BindTextView *BindTextView::initWithBind(BindTextView *self, const char *bind)
-	 *
 	 * @brief Initializes this TextView with the given bind.
-	 *
 	 * @param bind The bind (e.g. `+forward).
-	 *
 	 * @return The initialized BindTextView, or `NULL` on error.
-	 *
 	 * @memberof BindTextView
 	 */
 	BindTextView *(*initWithBind)(BindTextView *self, const char *bind);

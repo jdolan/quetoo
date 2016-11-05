@@ -39,17 +39,15 @@ typedef struct CreateServerViewControllerInterface CreateServerViewControllerInt
  * @extends MenuViewController
  */
 struct CreateServerViewController {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	MenuViewController menuViewController;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	CreateServerViewControllerInterface *interface;
@@ -79,7 +77,7 @@ struct CreateServerViewController {
  * @brief The CreateServerViewController interface.
  */
 struct CreateServerViewControllerInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */

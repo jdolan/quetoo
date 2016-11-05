@@ -27,7 +27,6 @@
 
 /**
  * @file
- *
  * @brief A Checkbox bound to a cvar_t.
  */
 
@@ -36,21 +35,18 @@ typedef struct CvarCheckboxInterface CvarCheckboxInterface;
 
 /**
  * @brief The CvarCheckbox type.
- *
  * @extends Checkbox
  */
 struct CvarCheckbox {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	Checkbox checkbox;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	CvarCheckboxInterface *interface;
@@ -65,21 +61,17 @@ struct CvarCheckbox {
  * @brief The CvarCheckbox interface.
  */
 struct CvarCheckboxInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
 	CheckboxInterface checkboxInterface;
-	
+
 	/**
 	 * @fn CvarCheckbox *CvarCheckbox::initWithVariable(CvarCheckbox *self, cvar_t *var)
-	 *
 	 * @brief Initializes this Checkbox with the given variable.
-	 *
 	 * @param var The variable.
-	 *
 	 * @return The initialized CvarCheckbox, or `NULL` on error.
-	 *
 	 * @memberof CvarCheckbox
 	 */
 	CvarCheckbox *(*initWithVariable)(CvarCheckbox *self, cvar_t *var);

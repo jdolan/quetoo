@@ -28,7 +28,6 @@
 
 /**
  * @file
- *
  * @brief A View capable of rendering an r_mesh_model_t.
  */
 
@@ -37,21 +36,18 @@ typedef struct PlayerModelViewInterface PlayerModelViewInterface;
 
 /**
  * @brief The PlayerModelView type.
- *
  * @extends View
  */
 struct PlayerModelView {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	View view;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	PlayerModelViewInterface *interface;
@@ -78,7 +74,7 @@ struct PlayerModelView {
  * @brief The PlayerModelView interface.
  */
 struct PlayerModelViewInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
@@ -86,22 +82,16 @@ struct PlayerModelViewInterface {
 
 	/**
 	 * @fn void PlayerModelView::animate(PlayerModelView *self)
-	 *
 	 * @brief Animates the model.
-	 *
 	 * @memberof PlayerModelView
 	 */
 	void (*animate)(PlayerModelView *self);
-	
+
 	/**
 	 * @fn PlayerModelView *PlayerModelView::initWithFrame(PlayerModelView *self)
-	 *
 	 * @brief Initializes this PlayerModelView.
-	 *
 	 * @param frame The frame.
-	 *
 	 * @return The initialized PlayerModelView, or `NULL` on error.
-	 *
 	 * @memberof PlayerModelView
 	 */
 	PlayerModelView *(*initWithFrame)(PlayerModelView *self, const SDL_Rect *frame);

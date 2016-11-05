@@ -34,23 +34,19 @@ typedef struct MainViewControllerInterface MainViewControllerInterface;
 
 /**
  * @brief The MainViewController type.
- *
  * @extends MenuViewController
- *
  * @ingroup ViewControllers
  */
 struct MainViewController {
-	
+
 	/**
 	 * @brief The parent.
-	 *
 	 * @private
 	 */
 	NavigationViewController navigationViewController;
-	
+
 	/**
 	 * @brief The typed interface.
-	 *
 	 * @private
 	 */
 	MainViewControllerInterface *interface;
@@ -60,7 +56,7 @@ struct MainViewController {
  * @brief The MainViewController interface.
  */
 struct MainViewControllerInterface {
-	
+
 	/**
 	 * @brief The parent interface.
 	 */
@@ -68,11 +64,8 @@ struct MainViewControllerInterface {
 
 	/**
 	 * @fn MainViewController *MainViewController::init(MainViewController *self)
-	 *
 	 * @brief Initializes this ViewController.
-	 *
 	 * @return The initialized MainViewController, or `NULL` on error.
-	 *
 	 * @memberof MainViewController
 	 */
 	MainViewController *(*init)(MainViewController *self);
