@@ -36,8 +36,6 @@ libviews_la_CFLAGS = \
 	-I$(top_srcdir)/src/cgame \
 	-I$(top_srcdir)/src/cgame/default \
 	@BASE_CFLAGS@ \
-	-Wno-unknown-pragmas \
-	-Wno-unused-parameter \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
 	@OPENGL_CFLAGS@
