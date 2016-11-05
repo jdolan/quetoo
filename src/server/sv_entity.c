@@ -157,6 +157,9 @@ static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
 		Com_Error(ERR_DROP, "Bad leaf count @ %s\n", vtos(org));
 	}
 
+	memset(pvs, 0, MAX_BSP_LEAFS >> 3);
+	memset(phs, 0, MAX_BSP_LEAFS >> 3);
+
 	// convert leafs to clusters and combine their visibility data
 	for (size_t i = 0; i < len; i++) {
 
