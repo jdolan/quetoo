@@ -319,7 +319,7 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	}
 }
 
-static size_t r_material_vertex_count, r_material_index_count;
+static uint32_t r_material_vertex_count, r_material_index_count;
 
 /**
  * @brief Render the specified stage for the surface. Resolve vertex attributes via
