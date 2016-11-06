@@ -642,11 +642,11 @@ typedef struct r_model_s {
 	GLsizei num_tris; // cached num_tris amount
 
 	// vertex buffer objects
-	r_buffer_t *vertex_buffers;
+	r_buffer_t vertex_buffer;
 	r_buffer_t texcoord_buffer;
 	r_buffer_t lightmap_texcoord_buffer;
-	r_buffer_t *normal_buffers;
-	r_buffer_t *tangent_buffers;
+	r_buffer_t normal_buffer;
+	r_buffer_t tangent_buffer;
 	r_buffer_t element_buffer;
 } r_model_t;
 
@@ -885,6 +885,10 @@ typedef enum {
 	R_STATE_DEPTH_RANGE,
 	R_STATE_ENABLE_SCISSOR,
 	R_STATE_SCISSOR,
+	R_STATE_PROGRAM_PARAMETER,
+	R_STATE_PROGRAM_ATTRIB_POINTER,
+	R_STATE_PROGRAM_ATTRIB_CONSTANT,
+	R_STATE_PROGRAM_ATTRIB_TOGGLE,
 
 	R_STATE_TOTAL
 } r_state_id_t;
@@ -955,7 +959,10 @@ typedef struct {
 	uint32_t cull_fails;
 
 	uint32_t num_state_changes[R_STATE_TOTAL];
-	uint32_t num_buffer_uploads;
+	uint32_t num_buffer_uploads, size_buffer_uploads;
+	
+	uint32_t num_draw_elements, num_draw_element_count;
+	uint32_t num_draw_arrays, num_draw_array_count;
 
 	_Bool update; // inform the client of state changes
 } r_view_t;

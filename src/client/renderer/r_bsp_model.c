@@ -893,21 +893,37 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 	Mem_Free(elements);
 
 	// load the vertex buffer objects
-	mod->vertex_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
-	mod->normal_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
-	mod->tangent_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
+	R_CreateBuffer(&mod->vertex_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, v, mod->bsp->verts);
 
-	R_CreateBuffer(&mod->vertex_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, v, mod->bsp->verts);
+	R_CreateBuffer(&mod->normal_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, v, mod->bsp->normals);
 
-	R_CreateBuffer(&mod->normal_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, v, mod->bsp->normals);
-
-	R_CreateBuffer(&mod->tangent_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, t, mod->bsp->tangents);
+	R_CreateBuffer(&mod->tangent_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, t, mod->bsp->tangents);
 
 	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, mod->bsp->texcoords);
 
 	R_CreateBuffer(&mod->lightmap_texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, mod->bsp->lightmap_texcoords);
 
-	R_UnbindBuffer(R_BUFFER_DATA);
+	/*
+	// make interleave buffer
+	r_interleave_vertex_t *interleaved = Mem_LinkMalloc(sizeof(r_interleave_vertex_t) * mod->num_verts, mod);
+
+	for (GLsizei i = 0; i < mod->num_verts; ++i) {
+		VectorCopy(mod->bsp->verts[i], interleaved[i].vertex);
+		VectorCopy(mod->bsp->normals[i], interleaved[i].normal);
+		VectorCopy(mod->bsp->tangents[i], interleaved[i].tangent);
+		VectorCopy(mod->bsp->texcoords[i], interleaved[i].diffuse);
+		VectorCopy(mod->bsp->lightmap_texcoords[i], interleaved[i].lightmap);
+	}
+
+	R_CreateBuffer(&mod->vertex_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, mod->num_verts * sizeof(r_interleave_vertex_t), interleaved);
+	
+	mod->normal_buffers[0] = mod->vertex_buffers[0];
+	mod->tangent_buffers[0] = mod->vertex_buffers[0];
+	mod->texcoord_buffer = mod->vertex_buffers[0];
+	mod->lightmap_texcoord_buffer = mod->vertex_buffers[0];
+
+	Mem_Free(interleaved);
+	*/
 
 	R_GetError(mod->media.name);
 }

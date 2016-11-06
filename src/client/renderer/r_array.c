@@ -127,11 +127,11 @@ void R_SetArrayState(const r_model_t *mod) {
 	// vertex array
 	if (mask & R_ARRAY_MASK_VERTEX) {
 
-		R_BindArray(R_ARRAY_VERTEX, &mod->vertex_buffers[old_frame]);
+		R_BindArrayOffset(R_ARRAY_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(vec3_t)) * old_frame);
 
 		// bind interpolation if we need it
 		if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && do_interpolation) {
-			R_BindArray(R_ARRAY_NEXT_VERTEX, &mod->vertex_buffers[frame]);
+			R_BindArrayOffset(R_ARRAY_NEXT_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(vec3_t)) * frame);
 		}
 	}
 
@@ -140,23 +140,23 @@ void R_SetArrayState(const r_model_t *mod) {
 
 		if (mask & R_ARRAY_MASK_NORMAL) {
 
-			R_BindArray(R_ARRAY_NORMAL, &mod->normal_buffers[old_frame]);
+			R_BindArrayOffset(R_ARRAY_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(vec3_t)) * old_frame);
 
 			// bind interpolation if we need it
 			if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && do_interpolation) {
-				R_BindArray(R_ARRAY_NEXT_NORMAL, &mod->normal_buffers[frame]);
+				R_BindArrayOffset(R_ARRAY_NEXT_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(vec3_t)) * frame);
 			}
 		}
 
 		if (r_bumpmap->value) {
 
-			if ((mask & R_ARRAY_MASK_TANGENT) && R_ValidBuffer(&mod->tangent_buffers[old_frame])) {
+			if ((mask & R_ARRAY_MASK_TANGENT) && R_ValidBuffer(&mod->tangent_buffer)) {
 
-				R_BindArray(R_ARRAY_TANGENT, &mod->tangent_buffers[old_frame]);
+				R_BindArrayOffset(R_ARRAY_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(vec4_t)) * old_frame);
 
 				// bind interpolation if we need it
 				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && do_interpolation) {
-					R_BindArray(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffers[frame]);
+					R_BindArrayOffset(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(vec4_t)) * frame);
 				}
 			}
 		}
@@ -208,10 +208,6 @@ void R_ResetArrayState(void) {
 		// resolve what's left to turn on
 		mask = arrays & xor;
 	}
-
-	// unbind any buffers we got going
-	R_UnbindBuffer(R_BUFFER_DATA);
-	R_UnbindBuffer(R_BUFFER_ELEMENT);
 
 	// vertex array
 	if (mask & R_ARRAY_MASK_VERTEX) {
@@ -308,9 +304,14 @@ void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 
 		R_BindBuffer(r_state.element_buffer);
 		glDrawElements(type, count, GL_UNSIGNED_INT, (const void *)(ptrdiff_t)(start * sizeof(GLuint)));
+		r_view.num_draw_elements++;
+		r_view.num_draw_element_count += count;
 	} else {
 		glDrawArrays(type, start, count);
+		r_view.num_draw_arrays++;
+		r_view.num_draw_array_count += count;
 	}
+
 
 	R_GetError(NULL);
 }

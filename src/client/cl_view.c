@@ -35,7 +35,12 @@ static void Cl_ClearView(void) {
 	r_view.num_bind_normalmap = r_view.num_bind_specularmap = 0;
 
 	memset(r_view.num_state_changes, 0, sizeof(r_view.num_state_changes));
-	r_view.num_buffer_uploads = 0;
+	r_view.num_buffer_uploads = r_view.size_buffer_uploads = 0;
+	
+	r_view.num_draw_elements = 0;
+	r_view.num_draw_element_count = 0;
+	r_view.num_draw_arrays = 0;
+	r_view.num_draw_array_count = 0;
 
 	r_view.num_bsp_surfaces = 0;
 

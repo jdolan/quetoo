@@ -313,13 +313,16 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	vec_t *texcoords = Mem_LinkMalloc(st, mod);
 	GLuint *tris = Mem_LinkMalloc(e, mod);
 
-	mod->vertex_buffers = Mem_LinkMalloc(sizeof(r_buffer_t) * md3->num_frames, mod);
-	mod->normal_buffers = Mem_LinkMalloc(sizeof(r_buffer_t) * md3->num_frames, mod);
-	mod->tangent_buffers = Mem_LinkMalloc(sizeof(r_buffer_t) * md3->num_frames, mod);
-
 	const d_md3_frame_t *frame = md3->frames;
 	GLuint *out_tri = tris;
 	vec_t *out_texcoord = texcoords;
+
+	// upload initial data
+	R_CreateBuffer(&mod->vertex_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, v * md3->num_frames, r_mesh_state.vertexes);
+
+	R_CreateBuffer(&mod->normal_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, v * md3->num_frames, r_mesh_state.normals);
+
+	R_CreateBuffer(&mod->tangent_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, t * md3->num_frames, r_mesh_state.tangents);
 
 	for (uint16_t f = 0; f < md3->num_frames; ++f, frame++) {
 
@@ -358,11 +361,11 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 		}
 
 		// upload each frame
-		R_CreateBuffer(&mod->vertex_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, v, r_mesh_state.vertexes);
+		R_UploadToSubBuffer(&mod->vertex_buffer, v * f, v, r_mesh_state.vertexes, false);
 
-		R_CreateBuffer(&mod->normal_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, v, r_mesh_state.normals);
+		R_UploadToSubBuffer(&mod->normal_buffer, v * f, v, r_mesh_state.normals, false);
 
-		R_CreateBuffer(&mod->tangent_buffers[f], GL_STATIC_DRAW, R_BUFFER_DATA, t, r_mesh_state.tangents);
+		R_UploadToSubBuffer(&mod->tangent_buffer, t * f, t, r_mesh_state.tangents, false);
 	}
 
 	// upload texcoords
@@ -900,15 +903,11 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	}
 
 	// load the vertex buffer objects
-	mod->vertex_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
-	mod->normal_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
-	mod->tangent_buffers = Mem_LinkMalloc(sizeof(r_buffer_t), mod);
+	R_CreateBuffer(&mod->vertex_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, v, verts);
 
-	R_CreateBuffer(&mod->vertex_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, v, verts);
+	R_CreateBuffer(&mod->normal_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, v, normals);
 
-	R_CreateBuffer(&mod->normal_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, v, normals);
-
-	R_CreateBuffer(&mod->tangent_buffers[0], GL_STATIC_DRAW, R_BUFFER_DATA, t, tangents);
+	R_CreateBuffer(&mod->tangent_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, t, tangents);
 
 	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, texcoords);
 

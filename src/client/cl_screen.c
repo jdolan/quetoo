@@ -118,23 +118,27 @@ static void Cl_DrawNetGraph(void) {
 }
 
 static const char *r_state_names[] = {
-	"R_STATE_PROGRAM",
-	"R_STATE_ACTIVE_TEXTURE",
-	"R_STATE_BIND_TEXTURE",
-	"R_STATE_BIND_BUFFER",
-	"R_STATE_BLEND_FUNC",
-	"R_STATE_ENABLE_BLEND",
-	"R_STATE_DEPTHMASK",
-	"R_STATE_ENABLE_STENCIL",
-	"R_STATE_STENCIL_OP",
-	"R_STATE_STENCIL_FUNC",
-	"R_STATE_POLYGON_OFFSET",
-	"R_STATE_ENABLE_POLYGON_OFFSET",
-	"R_STATE_VIEWPORT",
-	"R_STATE_ENABLE_DEPTH_TEST",
-	"R_STATE_DEPTH_RANGE",
-	"R_STATE_ENABLE_SCISSOR",
-	"R_STATE_SCISSOR"
+	"program binds",
+	"activeTexture changes",
+	"texture binds",
+	"buffer binds",
+	"blendFunc changes",
+	"GL_BLEND toggles",
+	"depthMask changes",
+	"GL_STENCIL toggles",
+	"stencilOp changes",
+	"stencilFunc changes",
+	"polygonOffset changes",
+	"GL_POLYGON_OFFSET toggles",
+	"viewport changes",
+	"GL_DEPTH_TEST toggles",
+	"depthRange changes",
+	"GL_SCISSOR toggles",
+	"scissor changes",
+	"program uniform changes",
+	"program attrib pointer changes",
+	"program attrib constant changes",
+	"program attrib toggles",
 };
 
 /**
@@ -186,7 +190,7 @@ static void Cl_DrawRendererStats(void) {
 
 	R_DrawString(0, y, va("%d surfaces", r_view.num_bsp_surfaces), CON_COLOR_YELLOW);
 	y += ch;
-
+	
 	y += ch;
 	R_DrawString(0, y, "Mesh:", CON_COLOR_CYAN);
 	y += ch;
@@ -195,6 +199,19 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	R_DrawString(0, y, va("%d tris", r_view.num_mesh_tris), CON_COLOR_CYAN);
+	y += ch;
+
+	y += ch;
+	R_DrawString(0, y, "Draws:", CON_COLOR_CYAN);
+	y += ch;
+
+	R_DrawString(0, y, va("%d elements over %d batches total", r_view.num_draw_array_count + r_view.num_draw_element_count, r_view.num_draw_arrays + r_view.num_draw_elements), CON_COLOR_CYAN);
+	y += ch;
+
+	R_DrawString(0, y, va("%d elements over %d array batches", r_view.num_draw_array_count, r_view.num_draw_arrays), CON_COLOR_CYAN);
+	y += ch;
+
+	R_DrawString(0, y, va("%d elements over %d element batches", r_view.num_draw_element_count, r_view.num_draw_elements), CON_COLOR_CYAN);
 	y += ch;
 
 	y += ch;
@@ -221,7 +238,7 @@ static void Cl_DrawRendererStats(void) {
 		y += ch;
 	}
 
-	R_DrawString(0, y, va("%d buffer uploads", r_view.num_buffer_uploads), CON_COLOR_WHITE);
+	R_DrawString(0, y, va("%d buffer uploads (%d bytes)", r_view.num_buffer_uploads, r_view.size_buffer_uploads), CON_COLOR_WHITE);
 	y += ch;
 
 	R_DrawString(0, y, va("cull: %d pass, %d fail", r_view.cull_passes, r_view.cull_fails), CON_COLOR_WHITE);

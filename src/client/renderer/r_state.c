@@ -188,6 +188,22 @@ void R_BindArray(const r_attribute_id_t target, const r_buffer_t *buffer) {
 		r_state.element_buffer = buffer;
 	} else {
 		r_state.array_buffers[target] = buffer;
+		r_state.array_buffer_offsets[target] = 0;
+	}
+}
+
+/**
+ * @brief Binds the specified buffer for the given target.
+ */
+void R_BindArrayOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset) {
+
+	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
+
+	if (target == R_ARRAY_ELEMENTS) {
+		r_state.element_buffer = buffer;
+	} else {
+		r_state.array_buffers[target] = buffer;
+		r_state.array_buffer_offsets[target] = offset;
 	}
 }
 
@@ -339,6 +355,7 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data) {
 	}
 
 	r_view.num_buffer_uploads++;
+	r_view.size_buffer_uploads += size;
 }
 
 /**
@@ -392,6 +409,7 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 	}
 
 	r_view.num_buffer_uploads++;
+	r_view.size_buffer_uploads += size;
 }
 
 /**
@@ -1091,9 +1109,6 @@ void R_InitState(void) {
 	R_CreateBuffer(&r_state.buffer_element_array, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT, sizeof(r_state.indice_array), NULL);
 
 	R_CreateBuffer(&r_state.buffer_interleave_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, sizeof(r_state.interleave_array), NULL);
-
-	R_UnbindBuffer(R_BUFFER_DATA);
-	R_UnbindBuffer(R_BUFFER_ELEMENT);
 
 	R_BindDefaultArray(R_ARRAY_VERTEX);
 	R_BindDefaultArray(R_ARRAY_COLOR);

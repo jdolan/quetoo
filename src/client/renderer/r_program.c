@@ -96,6 +96,7 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
 
 	variable->value.i = value;
 	glUniform1i(variable->location, variable->value.i);
+	r_view.num_state_changes[R_STATE_PROGRAM_PARAMETER]++;
 
 	R_GetError(variable->name);
 }
@@ -116,6 +117,7 @@ void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
 
 	variable->value.f = value;
 	glUniform1f(variable->location, variable->value.f);
+	r_view.num_state_changes[R_STATE_PROGRAM_PARAMETER]++;
 
 	R_GetError(variable->name);
 }
@@ -136,6 +138,7 @@ void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
 
 	VectorCopy(value, variable->value.vec3);
 	glUniform3fv(variable->location, 1, variable->value.vec3);
+	r_view.num_state_changes[R_STATE_PROGRAM_PARAMETER]++;
 
 	R_GetError(variable->name);
 }
@@ -156,6 +159,7 @@ void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
 
 	Vector4Copy(value, variable->value.vec4);
 	glUniform4fv(variable->location, 1, variable->value.vec4);
+	r_view.num_state_changes[R_STATE_PROGRAM_PARAMETER]++;
 
 	R_GetError(variable->name);
 }
@@ -176,6 +180,7 @@ _Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat
 
 	memcpy(&variable->value.mat4, value, sizeof(variable->value.mat4));
 	glUniformMatrix4fv(variable->location, 1, false, (GLfloat *) variable->value.mat4.m);
+	r_view.num_state_changes[R_STATE_PROGRAM_PARAMETER]++;
 
 	R_GetError(variable->name);
 	return true;
@@ -211,6 +216,7 @@ static void R_AttributePointer(const r_attribute_id_t attribute, GLuint size, co
 		R_BindBuffer(buffer);
 
 		glVertexAttribPointer(attribute, size, GL_FLOAT, GL_FALSE, stride, (const GLvoid *) offset);
+		r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_POINTER]++;
 
 		attrib->value.buffer = buffer;
 		attrib->size = size;
@@ -235,6 +241,7 @@ void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *val
 
 	Vector4Copy(value, r_state.attributes[attribute].value.vec4);
 	glVertexAttrib4fv(attribute, r_state.attributes[attribute].value.vec4);
+	r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_CONSTANT]++;
 
 	r_state.attributes[attribute].constant = true;
 
@@ -256,6 +263,8 @@ void R_EnableAttribute(const r_attribute_id_t attribute) {
 		glEnableVertexAttribArray(attribute);
 		r_state.attributes[attribute].enabled = true;
 
+		r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_TOGGLE]++;
+
 		R_GetError(r_state.active_program->attributes[attribute].name);
 	}
 }
@@ -274,6 +283,8 @@ void R_DisableAttribute(const r_attribute_id_t attribute) {
 	if (r_state.attributes[attribute].enabled != false) {
 		glDisableVertexAttribArray(attribute);
 		r_state.attributes[attribute].enabled = false;
+
+		r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_TOGGLE]++;
 
 		R_GetError(r_state.active_program->attributes[attribute].name);
 	}
@@ -530,12 +541,12 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ARRAY_MASK_VERTEX) {
 
-			R_AttributePointer(R_ARRAY_VERTEX, 3, r_state.array_buffers[R_ARRAY_VERTEX], r_state.array_buffers[R_ARRAY_VERTEX]->interleave ? R_ATTRIBUTE_VERTEX_OFFSET : 0);
+			R_AttributePointer(R_ARRAY_VERTEX, 3, r_state.array_buffers[R_ARRAY_VERTEX], r_state.array_buffer_offsets[R_ARRAY_VERTEX] + (r_state.array_buffers[R_ARRAY_VERTEX]->interleave ? R_ATTRIBUTE_VERTEX_OFFSET : 0));
 
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_VERTEX) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_VERTEX])) {
-					R_AttributePointer(R_ARRAY_NEXT_VERTEX, 3, r_state.array_buffers[R_ARRAY_NEXT_VERTEX], 0);
+					R_AttributePointer(R_ARRAY_NEXT_VERTEX, 3, r_state.array_buffers[R_ARRAY_NEXT_VERTEX], r_state.array_buffer_offsets[R_ARRAY_NEXT_VERTEX] + (r_state.array_buffers[R_ARRAY_NEXT_VERTEX]->interleave ? R_ATTRIBUTE_VERTEX_OFFSET : 0));
 				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_VERTEX);
 				}
@@ -550,7 +561,7 @@ void R_SetupAttributes(void) {
 	if (p->arrays_mask & R_ARRAY_MASK_COLOR) {
 
 		if (mask & R_ARRAY_MASK_COLOR) {
-			R_AttributePointer(R_ARRAY_COLOR, 4, r_state.array_buffers[R_ARRAY_COLOR], r_state.array_buffers[R_ARRAY_COLOR]->interleave ? R_ATTRIBUTE_COLOR_OFFSET : 0);
+			R_AttributePointer(R_ARRAY_COLOR, 4, r_state.array_buffers[R_ARRAY_COLOR], r_state.array_buffer_offsets[R_ARRAY_COLOR] + (r_state.array_buffers[R_ARRAY_COLOR]->interleave ? R_ATTRIBUTE_COLOR_OFFSET : 0));
 		} else {
 			R_AttributeConstant4fv(R_ARRAY_COLOR, r_state.current_color);
 		}
@@ -559,7 +570,7 @@ void R_SetupAttributes(void) {
 	if (p->arrays_mask & R_ARRAY_MASK_TEX_DIFFUSE) {
 
 		if (mask & R_ARRAY_MASK_TEX_DIFFUSE) {
-			R_AttributePointer(R_ARRAY_TEX_DIFFUSE, 2, r_state.array_buffers[R_ARRAY_TEX_DIFFUSE], r_state.array_buffers[R_ARRAY_TEX_DIFFUSE]->interleave ? R_ATTRIBUTE_DIFFUSE_OFFSET : 0);
+			R_AttributePointer(R_ARRAY_TEX_DIFFUSE, 2, r_state.array_buffers[R_ARRAY_TEX_DIFFUSE], r_state.array_buffer_offsets[R_ARRAY_TEX_DIFFUSE] + (r_state.array_buffers[R_ARRAY_TEX_DIFFUSE]->interleave ? R_ATTRIBUTE_DIFFUSE_OFFSET : 0));
 		} else {
 			R_DisableAttribute(R_ARRAY_TEX_DIFFUSE);
 		}
@@ -568,7 +579,7 @@ void R_SetupAttributes(void) {
 	if (p->arrays_mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
 
 		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
-			R_AttributePointer(R_ARRAY_TEX_LIGHTMAP, 2, r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP], r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP]->interleave ? R_ATTRIBUTE_LIGHTMAP_OFFSET : 0);
+			R_AttributePointer(R_ARRAY_TEX_LIGHTMAP, 2, r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP], r_state.array_buffer_offsets[R_ARRAY_TEX_LIGHTMAP] + (r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP]->interleave ? R_ATTRIBUTE_LIGHTMAP_OFFSET : 0));
 		} else {
 			R_DisableAttribute(R_ARRAY_TEX_LIGHTMAP);
 		}
@@ -578,12 +589,12 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ARRAY_MASK_NORMAL) {
 
-			R_AttributePointer(R_ARRAY_NORMAL, 3, r_state.array_buffers[R_ARRAY_NORMAL], r_state.array_buffers[R_ARRAY_NORMAL]->interleave ? R_ATTRIBUTE_NORMAL_OFFSET : 0);
+			R_AttributePointer(R_ARRAY_NORMAL, 3, r_state.array_buffers[R_ARRAY_NORMAL], r_state.array_buffer_offsets[R_ARRAY_NORMAL] + (r_state.array_buffers[R_ARRAY_NORMAL]->interleave ? R_ATTRIBUTE_NORMAL_OFFSET : 0));
 
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_NORMAL) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_NORMAL])) {
-					R_AttributePointer(R_ARRAY_NEXT_NORMAL, 3, r_state.array_buffers[R_ARRAY_NEXT_NORMAL], 0);
+					R_AttributePointer(R_ARRAY_NEXT_NORMAL, 3, r_state.array_buffers[R_ARRAY_NEXT_NORMAL], r_state.array_buffer_offsets[R_ARRAY_NEXT_NORMAL] + (r_state.array_buffers[R_ARRAY_NEXT_NORMAL]->interleave ? R_ATTRIBUTE_NORMAL_OFFSET : 0));
 				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_NORMAL);
 				}
@@ -599,12 +610,12 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ARRAY_MASK_TANGENT) {
 
-			R_AttributePointer(R_ARRAY_TANGENT, 4, r_state.array_buffers[R_ARRAY_TANGENT], r_state.array_buffers[R_ARRAY_TANGENT]->interleave ? R_ATTRIBUTE_TANGENT_OFFSET : 0);
+			R_AttributePointer(R_ARRAY_TANGENT, 4, r_state.array_buffers[R_ARRAY_TANGENT], r_state.array_buffer_offsets[R_ARRAY_TANGENT] + (r_state.array_buffers[R_ARRAY_TANGENT]->interleave ? R_ATTRIBUTE_TANGENT_OFFSET : 0));
 
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_TANGENT) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_TANGENT])) {
-					R_AttributePointer(R_ARRAY_NEXT_TANGENT, 4, r_state.array_buffers[R_ARRAY_NEXT_TANGENT], 0);
+					R_AttributePointer(R_ARRAY_NEXT_TANGENT, 4, r_state.array_buffers[R_ARRAY_NEXT_TANGENT], r_state.array_buffer_offsets[R_ARRAY_NEXT_TANGENT] + (r_state.array_buffers[R_ARRAY_NEXT_TANGENT]->interleave ? R_ATTRIBUTE_TANGENT_OFFSET : 0));
 				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_TANGENT);
 				}

@@ -71,24 +71,16 @@ static void R_RegisterModel(r_media_t *self) {
 static void R_FreeModel(r_media_t *self) {
 	r_model_t *mod = (r_model_t *) self;
 
-	uint16_t frames = IS_MESH_MODEL(mod) ? mod->mesh->num_frames : 1;
-
-	if (mod->type == MOD_BSP) {
-		printf("whee\n");
+	if (R_ValidBuffer(&mod->vertex_buffer)) {
+		R_DestroyBuffer(&mod->vertex_buffer);
 	}
 
-	for (uint16_t i = 0; i < frames; i++) {
-		if (R_ValidBuffer(&mod->vertex_buffers[i])) {
-			R_DestroyBuffer(&mod->vertex_buffers[i]);
-		}
+	if (R_ValidBuffer(&mod->normal_buffer)) {
+		R_DestroyBuffer(&mod->normal_buffer);
+	}
 
-		if (R_ValidBuffer(&mod->normal_buffers[i])) {
-			R_DestroyBuffer(&mod->normal_buffers[i]);
-		}
-
-		if (R_ValidBuffer(&mod->tangent_buffers[i])) {
-			R_DestroyBuffer(&mod->tangent_buffers[i]);
-		}
+	if (R_ValidBuffer(&mod->tangent_buffer)) {
+		R_DestroyBuffer(&mod->tangent_buffer);
 	}
 
 	if (R_ValidBuffer(&mod->texcoord_buffer)) {

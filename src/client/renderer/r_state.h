@@ -95,6 +95,7 @@ typedef struct r_state_s {
 	// the buffers that will be passed to the
 	// programs to be used in attributes.
 	const r_buffer_t *array_buffers[R_ARRAY_MAX_ATTRIBS];
+	GLsizei array_buffer_offsets[R_ARRAY_MAX_ATTRIBS];
 
 	GLenum blend_src, blend_dest; // blend function
 	_Bool blend_enabled;
@@ -187,6 +188,7 @@ void R_DestroyBuffer(r_buffer_t *buffer);
 _Bool R_ValidBuffer(const r_buffer_t *buffer);
 
 void R_BindArray(const r_attribute_id_t target, const r_buffer_t *buffer);
+void R_BindArrayOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset);
 
 #define ALPHA_TEST_DISABLED_THRESHOLD 0.0
 #define ALPHA_TEST_ENABLED_THRESHOLD 0.25
