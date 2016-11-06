@@ -70,7 +70,7 @@ void Cg_PredictMovement(const GList *cmds) {
 			// for each movement, check for stair interaction and interpolate
 			if (pm.s.flags & PMF_ON_STAIRS) {
 				cgi.client->predicted_state.step_time = cmd->time;
-				cgi.client->predicted_state.step_interval = 128.0 * (fabs(pm.step) / 16.0);
+				cgi.client->predicted_state.step_interval = 120.0 * (fabs(pm.step) / PM_STEP_HEIGHT);
 				cgi.client->predicted_state.step = pm.step;
 			}
 

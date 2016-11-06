@@ -68,7 +68,7 @@
 /**
  * @brief If set, use Quake3 step-slide movement.
  */
-#define PM_QUAKE3 1
+#define PM_QUAKE3 0
 
 /**
  * @brief Speed constants; intended velocities are clipped to these.
