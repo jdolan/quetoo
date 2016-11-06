@@ -203,7 +203,7 @@ void R_DrawMeshShadows_default(const r_entities_t *ents) {
 
 	R_EnableTexture(&texunit_diffuse, false);
 
-	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
+	R_EnablePolygonOffset(true);
 
 	R_EnableShadow(r_state.shadow_program, true);
 
@@ -227,7 +227,7 @@ void R_DrawMeshShadows_default(const r_entities_t *ents) {
 
 	R_EnableStencilTest(GL_KEEP, false);
 
-	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
+	R_EnablePolygonOffset(false);
 
 	R_EnableTexture(&texunit_diffuse, true);
 

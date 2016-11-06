@@ -157,7 +157,7 @@ void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) 
 	r_state.vertex_array[10] = y + image->height * scale;
 	r_state.vertex_array[11] = 0;
 
-	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, 4 * sizeof(vec3_t), r_state.vertex_array);
+	R_UploadToBuffer(&r_state.buffer_vertex_array, 4 * sizeof(vec3_t), r_state.vertex_array);
 
 	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -187,7 +187,7 @@ void R_DrawImageResized(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, cons
 	r_state.vertex_array[10] = y + h;
 	r_state.vertex_array[11] = 0;
 
-	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, 4 * sizeof(vec3_t), r_state.vertex_array);
+	R_UploadToBuffer(&r_state.buffer_vertex_array, 4 * sizeof(vec3_t), r_state.vertex_array);
 
 	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -379,14 +379,14 @@ static void R_DrawChars(void) {
 			continue;
 		}
 
-		R_UploadToBuffer(&r_draw.char_arrays[i].vert_buffer, 0, r_draw.char_arrays[i].vert_index * sizeof(GLfloat),
+		R_UploadToBuffer(&r_draw.char_arrays[i].vert_buffer, r_draw.char_arrays[i].vert_index * sizeof(GLfloat),
 		                 r_draw.char_arrays[i].verts);
-		R_UploadToBuffer(&r_draw.char_arrays[i].texcoord_buffer, 0, r_draw.char_arrays[i].texcoord_index * sizeof(GLfloat),
+		R_UploadToBuffer(&r_draw.char_arrays[i].texcoord_buffer, r_draw.char_arrays[i].texcoord_index * sizeof(GLfloat),
 		                 r_draw.char_arrays[i].texcoords);
-		R_UploadToBuffer(&r_draw.char_arrays[i].color_buffer, 0, r_draw.char_arrays[i].color_index * sizeof(GLfloat),
+		R_UploadToBuffer(&r_draw.char_arrays[i].color_buffer, r_draw.char_arrays[i].color_index * sizeof(GLfloat),
 		                 r_draw.char_arrays[i].colors);
 
-		R_UploadToBuffer(&r_draw.char_arrays[i].element_buffer, 0, r_draw.char_arrays[i].element_index * sizeof(GLuint),
+		R_UploadToBuffer(&r_draw.char_arrays[i].element_buffer, r_draw.char_arrays[i].element_index * sizeof(GLuint),
 		                 r_draw.char_arrays[i].elements);
 
 		R_BindTexture(r_draw.fonts[i].image->texnum);
@@ -498,12 +498,12 @@ static void R_DrawFills(void) {
 	}
 
 	// upload the changed data
-	R_UploadToBuffer(&r_draw.fill_arrays.vert_buffer, 0, r_draw.fill_arrays.vert_index * sizeof(vec_t),
+	R_UploadToBuffer(&r_draw.fill_arrays.vert_buffer, r_draw.fill_arrays.vert_index * sizeof(vec_t),
 	                 r_draw.fill_arrays.verts);
-	R_UploadToBuffer(&r_draw.fill_arrays.color_buffer, 0, r_draw.fill_arrays.color_index * sizeof(vec_t),
+	R_UploadToBuffer(&r_draw.fill_arrays.color_buffer, r_draw.fill_arrays.color_index * sizeof(vec_t),
 	                 r_draw.fill_arrays.colors);
 
-	R_UploadToBuffer(&r_draw.fill_arrays.element_buffer, 0, r_draw.fill_arrays.element_index * sizeof(GLuint),
+	R_UploadToBuffer(&r_draw.fill_arrays.element_buffer, r_draw.fill_arrays.element_index * sizeof(GLuint),
 	                 r_draw.fill_arrays.elements);
 
 	R_EnableTexture(&texunit_diffuse, false);
@@ -581,9 +581,9 @@ static void R_DrawLines(void) {
 	}
 
 	// upload the changed data
-	R_UploadToBuffer(&r_draw.line_arrays.vert_buffer, 0, r_draw.line_arrays.vert_index * sizeof(vec_t),
+	R_UploadToBuffer(&r_draw.line_arrays.vert_buffer, r_draw.line_arrays.vert_index * sizeof(vec_t),
 	                 r_draw.line_arrays.verts);
-	R_UploadToBuffer(&r_draw.line_arrays.color_buffer, 0, r_draw.line_arrays.color_index * sizeof(vec_t),
+	R_UploadToBuffer(&r_draw.line_arrays.color_buffer, r_draw.line_arrays.color_index * sizeof(vec_t),
 	                 r_draw.line_arrays.colors);
 
 	R_EnableTexture(&texunit_diffuse, false);
@@ -624,7 +624,7 @@ void R_DrawFillUI(const SDL_Rect *rect) {
 	R_EnableTexture(&texunit_diffuse, false);
 
 	// upload the changed data
-	R_UploadToBuffer(&r_draw.fill_arrays.ui_vert_buffer, 0, sizeof(verts), verts);
+	R_UploadToBuffer(&r_draw.fill_arrays.ui_vert_buffer, sizeof(verts), verts);
 
 	// alter the array pointers
 	R_BindArray(R_ARRAY_VERTEX, &r_draw.fill_arrays.ui_vert_buffer);
@@ -655,7 +655,7 @@ void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop
 	R_EnableTexture(&texunit_diffuse, false);
 
 	// upload the changed data
-	R_UploadToBuffer(&r_draw.line_arrays.ui_vert_buffer, 0, sizeof(point_buffer), point_buffer);
+	R_UploadToBuffer(&r_draw.line_arrays.ui_vert_buffer, sizeof(point_buffer), point_buffer);
 
 	// alter the array pointers
 	R_BindArray(R_ARRAY_VERTEX, &r_draw.line_arrays.ui_vert_buffer);

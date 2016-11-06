@@ -64,6 +64,38 @@ typedef enum {
 
 #define R_ARRAY_MASK_ALL			(1 << R_ARRAY_MAX_ATTRIBS) - 1
 
+// interleave constants
+typedef struct {
+	vec3_t	vertex;
+	vec4_t	color;
+	vec3_t	normal;
+	vec4_t	tangent;
+	vec2_t	diffuse;
+	vec2_t	lightmap;
+} r_interleave_vertex_t;
+
+#define R_ATTRIBUTE_VERTEX_SIZE		sizeof(vec3_t)
+#define R_ATTRIBUTE_COLOR_SIZE		sizeof(vec4_t)
+#define R_ATTRIBUTE_NORMAL_SIZE		sizeof(vec3_t)
+#define R_ATTRIBUTE_TANGENT_SIZE	sizeof(vec4_t)
+#define R_ATTRIBUTE_DIFFUSE_SIZE	sizeof(vec2_t)
+#define R_ATTRIBUTE_LIGHTMAP_SIZE	sizeof(vec2_t)
+
+#define R_ATTRIBUTE_SIZE			(R_ATTRIBUTE_VERTEX_SIZE + \
+									R_ATTRIBUTE_COLOR_SIZE + \
+									R_ATTRIBUTE_NORMAL_SIZE + \
+									R_ATTRIBUTE_TANGENT_SIZE + \
+									R_ATTRIBUTE_DIFFUSE_SIZE + \
+									R_ATTRIBUTE_LIGHTMAP_SIZE)
+
+#define R_ATTRIBUTE_VERTEX_OFFSET	0
+#define R_ATTRIBUTE_COLOR_OFFSET	(R_ATTRIBUTE_VERTEX_OFFSET + R_ATTRIBUTE_VERTEX_SIZE)
+#define R_ATTRIBUTE_NORMAL_OFFSET	(R_ATTRIBUTE_COLOR_OFFSET + R_ATTRIBUTE_COLOR_SIZE)
+#define R_ATTRIBUTE_TANGENT_OFFSET	(R_ATTRIBUTE_NORMAL_OFFSET + R_ATTRIBUTE_NORMAL_SIZE)
+#define R_ATTRIBUTE_DIFFUSE_OFFSET	(R_ATTRIBUTE_TANGENT_OFFSET + R_ATTRIBUTE_TANGENT_SIZE)
+#define R_ATTRIBUTE_LIGHTMAP_OFFSET	(R_ATTRIBUTE_DIFFUSE_OFFSET + R_ATTRIBUTE_DIFFUSE_SIZE)
+#define R_ATTRIBUTE_STRIDE			(R_ATTRIBUTE_LIGHTMAP_OFFSET + R_ATTRIBUTE_LIGHTMAP_SIZE)
+
 #ifdef __R_LOCAL_H__
 	void R_SetArrayState(const r_model_t *mod);
 	void R_ResetArrayState(void);

@@ -293,11 +293,11 @@ void R_UploadParticles(void) {
 		return;
 	}
 
-	R_UploadToBuffer(&p->verts_buffer, 0, p->num_particles * sizeof(vec3_t) * 4, p->verts);
-	R_UploadToBuffer(&p->texcoords_buffer, 0, p->num_particles * sizeof(vec2_t) * 4, p->texcoords);
-	R_UploadToBuffer(&p->colors_buffer, 0, p->num_particles * sizeof(vec4_t) * 4, p->colors);
+	R_UploadToBuffer(&p->verts_buffer, p->num_particles * sizeof(vec3_t) * 4, p->verts);
+	R_UploadToBuffer(&p->texcoords_buffer, p->num_particles * sizeof(vec2_t) * 4, p->texcoords);
+	R_UploadToBuffer(&p->colors_buffer, p->num_particles * sizeof(vec4_t) * 4, p->colors);
 
-	R_UploadToBuffer(&p->element_buffer, 0, p->num_particles * sizeof(GLuint) * 6, p->elements);
+	R_UploadToBuffer(&p->element_buffer, p->num_particles * sizeof(GLuint) * 6, p->elements);
 
 	p->num_particles = 0;
 }

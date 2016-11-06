@@ -117,6 +117,26 @@ static void Cl_DrawNetGraph(void) {
 	}
 }
 
+static const char *r_state_names[] = {
+	"R_STATE_PROGRAM",
+	"R_STATE_ACTIVE_TEXTURE",
+	"R_STATE_BIND_TEXTURE",
+	"R_STATE_BIND_BUFFER",
+	"R_STATE_BLEND_FUNC",
+	"R_STATE_ENABLE_BLEND",
+	"R_STATE_DEPTHMASK",
+	"R_STATE_ENABLE_STENCIL",
+	"R_STATE_STENCIL_OP",
+	"R_STATE_STENCIL_FUNC",
+	"R_STATE_POLYGON_OFFSET",
+	"R_STATE_ENABLE_POLYGON_OFFSET",
+	"R_STATE_VIEWPORT",
+	"R_STATE_ENABLE_DEPTH_TEST",
+	"R_STATE_DEPTH_RANGE",
+	"R_STATE_ENABLE_SCISSOR",
+	"R_STATE_SCISSOR"
+};
+
 /**
  * @brief Draws counters and performance information about the renderer.
  */
@@ -185,6 +205,23 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	R_DrawString(0, y, va("%d particles", r_view.num_particles), CON_COLOR_WHITE);
+	y += ch;
+	
+	uint32_t total_state_changes = 0;
+
+	for (uint32_t i = 0; i < R_STATE_TOTAL; i++) {
+		total_state_changes += r_view.num_state_changes[i];
+	}
+
+	R_DrawString(0, y, va("%d state changes", total_state_changes), CON_COLOR_WHITE);
+	y += ch;
+
+	for (uint32_t i = 0; i < R_STATE_TOTAL; i++) {
+		R_DrawString(0, y, va("- %d %s", r_view.num_state_changes[i], r_state_names[i]), CON_COLOR_WHITE);
+		y += ch;
+	}
+
+	R_DrawString(0, y, va("%d buffer uploads", r_view.num_buffer_uploads), CON_COLOR_WHITE);
 	y += ch;
 
 	R_DrawString(0, y, va("cull: %d pass, %d fail", r_view.cull_passes, r_view.cull_fails), CON_COLOR_WHITE);

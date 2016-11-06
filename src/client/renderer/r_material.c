@@ -317,11 +317,13 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	}
 }
 
+static size_t r_material_vertex_count, r_material_index_count;
+
 /**
  * @brief Render the specified stage for the surface. Resolve vertex attributes via
  * helper functions, outputting to the default vertex arrays.
  */
-static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_stage_t *stage) {
+static void R_DrawBspSurfaceMaterialStage(r_bsp_surface_t *surf, const r_stage_t *stage) {
 	int32_t i;
 
 	for (i = 0; i < surf->num_edges; i++) {
@@ -329,50 +331,32 @@ static void R_DrawBspSurfaceMaterialStage(const r_bsp_surface_t *surf, const r_s
 		const vec_t *v = &r_model_state.world->bsp->verts[surf->elements[i]][0];
 		const vec_t *st = &r_model_state.world->bsp->texcoords[surf->elements[i]][0];
 
-		R_StageVertex(surf, stage, v, &r_state.vertex_array[i * 3]);
+		R_StageVertex(surf, stage, v, &r_state.interleave_array[r_material_vertex_count + i].vertex[0]);
 
-		R_StageTexCoord(stage, v, st, &texunit_diffuse.texcoord_array[i * 2]);
+		R_StageTexCoord(stage, v, st, &r_state.interleave_array[r_material_vertex_count + i].diffuse[0]);
 
 		if (texunit_lightmap.enabled) { // lightmap texcoords
 			st = &r_model_state.world->bsp->lightmap_texcoords[surf->elements[i]][0];
-			texunit_lightmap.texcoord_array[i * 2 + 0] = st[0];
-			texunit_lightmap.texcoord_array[i * 2 + 1] = st[1];
+			Vector2Copy(st, r_state.interleave_array[r_material_vertex_count + i].lightmap);
 		}
 
 		if (r_state.color_array_enabled) { // colors
-			R_StageColor(stage, v, &r_state.color_array[i * 4]);
+			R_StageColor(stage, v, &r_state.interleave_array[r_material_vertex_count + i].color[0]);
 		}
 
 		if (r_state.lighting_enabled) { // normals and tangents
 
 			const vec_t *n = &r_model_state.world->bsp->normals[surf->elements[i]][0];
-			VectorCopy(n, (&r_state.normal_array[i * 3]));
+			VectorCopy(n, r_state.interleave_array[r_material_vertex_count + i].normal);
 
 			const vec_t *t = &r_model_state.world->bsp->tangents[surf->elements[i]][0];
-			VectorCopy(t, (&r_state.tangent_array[i * 4]));
+			VectorCopy(t, r_state.interleave_array[r_material_vertex_count + i].tangent);
 		}
 	}
+	
+	surf->start_index = r_material_vertex_count;
 
-	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, i * sizeof(vec3_t), r_state.vertex_array);
-	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, i * sizeof(vec2_t), texunit_diffuse.texcoord_array);
-
-	if (texunit_lightmap.enabled) {
-
-		R_UploadToBuffer(&texunit_lightmap.buffer_texcoord_array, 0, i * sizeof(vec2_t), texunit_lightmap.texcoord_array);
-	}
-
-	if (r_state.color_array_enabled) {
-
-		R_UploadToBuffer(&r_state.buffer_color_array, 0, i * sizeof(vec4_t), r_state.color_array);
-	}
-
-	if (r_state.lighting_enabled) {
-
-		R_UploadToBuffer(&r_state.buffer_normal_array, 0, i * sizeof(vec3_t), r_state.normal_array);
-		R_UploadToBuffer(&r_state.buffer_tangent_array, 0, i * sizeof(vec4_t), r_state.tangent_array);
-	}
-
-	R_DrawArrays(GL_TRIANGLE_FAN, 0, i);
+	r_material_vertex_count += surf->num_edges;
 }
 
 /**
@@ -391,23 +375,8 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		return;
 	}
 
-	R_EnableTexture(&texunit_lightmap, true);
-
-	R_EnableLighting(r_state.default_program, true);
-
-	R_EnableColorArray(true);
-
-	R_ResetArrayState();
-
-	R_EnableColorArray(false);
-
-	R_EnableLighting(NULL, false);
-
-	R_EnableTexture(&texunit_lightmap, false);
-
-	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
-
-	// some stages will manipulate texcoords
+	// first pass compiles vertices
+	r_material_vertex_count = r_material_index_count = 0;
 
 	for (uint32_t i = 0; i < surfs->count; i++) {
 
@@ -428,15 +397,73 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 				continue;
 			}
 
-			R_PolygonOffset(-0.125, j); // increase depth offset for each stage
-
-			R_SetStageState(surf, s);
-
 			R_DrawBspSurfaceMaterialStage(surf, s);
 		}
 	}
 
-	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
+	if (!r_material_vertex_count) {
+		return;
+	}
+
+	R_EnableTexture(&texunit_lightmap, true);
+
+	R_EnableLighting(r_state.default_program, true);
+
+	R_EnableColorArray(true);
+
+	R_ResetArrayState();
+	
+	R_BindArray(R_ARRAY_VERTEX, &r_state.buffer_interleave_array);
+	R_BindArray(R_ARRAY_COLOR, &r_state.buffer_interleave_array);
+	R_BindArray(R_ARRAY_NORMAL, &r_state.buffer_interleave_array);
+	R_BindArray(R_ARRAY_TANGENT, &r_state.buffer_interleave_array);
+	R_BindArray(R_ARRAY_TEX_DIFFUSE, &r_state.buffer_interleave_array);
+	R_BindArray(R_ARRAY_TEX_LIGHTMAP, &r_state.buffer_interleave_array);
+
+	R_EnableColorArray(false);
+
+	R_EnableLighting(NULL, false);
+
+	R_EnableTexture(&texunit_lightmap, false);
+
+	R_EnablePolygonOffset(true);
+	
+	R_UploadToSubBuffer(&r_state.buffer_interleave_array, 0, r_material_vertex_count * sizeof(r_interleave_vertex_t), r_state.interleave_array, false);
+
+	// second pass draws
+	for (uint32_t i = 0; i < surfs->count; i++) {
+
+		r_bsp_surface_t *surf = surfs->surfaces[i];
+
+		if (surf->frame != r_locals.frame) {
+			continue;
+		}
+
+		r_material_t *m = surf->texinfo->material;
+
+		vec_t j = -10.0;
+		for (const r_stage_t *s = m->stages; s; s = s->next, j -= 10.0) {
+
+			if (!(s->flags & STAGE_DIFFUSE)) {
+				continue;
+			}
+
+			R_PolygonOffset(-0.125, j); // increase depth offset for each stage
+
+			R_SetStageState(surf, s);
+			
+			R_DrawArrays(GL_TRIANGLE_FAN, surf->start_index, surf->num_edges);
+		}
+	}
+	
+	R_BindDefaultArray(R_ARRAY_VERTEX);
+	R_BindDefaultArray(R_ARRAY_COLOR);
+	R_BindDefaultArray(R_ARRAY_NORMAL);
+	R_BindDefaultArray(R_ARRAY_TANGENT);
+	R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
+	R_BindDefaultArray(R_ARRAY_TEX_LIGHTMAP);
+
+	R_EnablePolygonOffset(false);
 
 	Matrix4x4_CreateIdentity(&texture_matrix);
 
@@ -479,7 +506,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 		R_EnableDepthMask(false);
 	}
 
-	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
+	R_EnablePolygonOffset(true);
 
 	// some stages will manipulate texcoords
 
@@ -497,7 +524,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 		R_DrawArrays(GL_TRIANGLES, offset, count);
 	}
 
-	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
+	R_EnablePolygonOffset(false);
 
 	if (!blend) {
 		R_EnableBlend(false);

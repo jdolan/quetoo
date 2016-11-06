@@ -275,7 +275,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
 
-	R_UploadToBuffer(&r_state.buffer_element_array, 0, sizeof(bound_elements), bound_elements);
+	R_UploadToBuffer(&r_state.buffer_element_array, sizeof(bound_elements), bound_elements);
 
 	R_BindDefaultArray(R_ARRAY_VERTEX);
 
@@ -302,7 +302,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		{ 0.0, 0.0, 1.0, 1.0 },
 	};
 
-	R_UploadToBuffer(&r_state.buffer_color_array, 0, sizeof(colors), colors);
+	R_UploadToBuffer(&r_state.buffer_color_array, sizeof(colors), colors);
 
 	static matrix4x4_t mat;
 
@@ -337,7 +337,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 			{ 0, 0, 8 }
 		};
 
-		R_UploadToBuffer(&r_state.buffer_vertex_array, 0, sizeof(verts), verts);
+		R_UploadToBuffer(&r_state.buffer_vertex_array, sizeof(verts), verts);
 
 		// draw box
 		Matrix4x4_CreateFromEntity(&mat, e->origin, vec3_origin, e->scale);

@@ -98,6 +98,8 @@ void R_SelectTexture(r_texunit_t *texunit) {
 	r_state.active_texunit = texunit;
 
 	glActiveTexture(texunit->texture);
+
+	r_view.num_state_changes[R_STATE_ACTIVE_TEXTURE]++;
 }
 
 /**
@@ -114,6 +116,8 @@ _Bool R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
 
 	// bind the texture
 	glBindTexture(GL_TEXTURE_2D, texnum);
+
+	r_view.num_state_changes[R_STATE_BIND_TEXTURE]++;
 
 	texunit->texnum = texnum;
 
@@ -205,12 +209,6 @@ void R_BindDefaultArray(const r_attribute_id_t target) {
 		case R_ARRAY_VERTEX:
 			R_BindArray(target, &r_state.buffer_vertex_array);
 			break;
-		case R_ARRAY_TEX_DIFFUSE:
-			R_BindArray(target, &texunit_diffuse.buffer_texcoord_array);
-			break;
-		case R_ARRAY_TEX_LIGHTMAP:
-			R_BindArray(target, &texunit_lightmap.buffer_texcoord_array);
-			break;
 		case R_ARRAY_COLOR:
 			R_BindArray(target, &r_state.buffer_color_array);
 			break;
@@ -220,9 +218,45 @@ void R_BindDefaultArray(const r_attribute_id_t target) {
 		case R_ARRAY_TANGENT:
 			R_BindArray(target, &r_state.buffer_tangent_array);
 			break;
+		case R_ARRAY_TEX_DIFFUSE:
+			R_BindArray(target, &texunit_diffuse.buffer_texcoord_array);
+			break;
+		case R_ARRAY_TEX_LIGHTMAP:
+			R_BindArray(target, &texunit_lightmap.buffer_texcoord_array);
+			break;
 		default:
 			R_BindArray(target, NULL);
 			break;
+	}
+}
+
+/**
+ * @brief 
+ */
+void R_BindInterleaveArray(const r_buffer_t *buffer, const uint32_t target_mask) {
+
+	if (target_mask & R_ARRAY_MASK_VERTEX) {
+		R_BindArray(R_ARRAY_VERTEX, buffer);
+	}
+
+	if (target_mask & R_ARRAY_MASK_COLOR) {
+		R_BindArray(R_ARRAY_COLOR, buffer);
+	}
+
+	if (target_mask & R_ARRAY_MASK_NORMAL) {
+		R_BindArray(R_ARRAY_NORMAL, buffer);
+	}
+
+	if (target_mask & R_ARRAY_MASK_TANGENT) {
+		R_BindArray(R_ARRAY_TANGENT, buffer);
+	}
+
+	if (target_mask & R_ARRAY_MASK_TEX_DIFFUSE) {
+		R_BindArray(R_ARRAY_TEX_DIFFUSE, buffer);
+	}
+
+	if (target_mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
+		R_BindArray(R_ARRAY_TEX_LIGHTMAP, buffer);
 	}
 }
 
@@ -249,6 +283,8 @@ void R_BindBuffer(const r_buffer_t *buffer) {
 
 	glBindBuffer(buffer->target, buffer->bufnum);
 
+	r_view.num_state_changes[R_STATE_BIND_BUFFER]++;
+
 	R_GetError(NULL);
 }
 
@@ -264,18 +300,18 @@ void R_UnbindBuffer(const r_buffer_type_t type) {
 	r_state.active_buffers[type] = 0;
 
 	glBindBuffer(R_BufferTypeToTarget(type), 0);
+	
+	r_view.num_state_changes[R_STATE_BIND_BUFFER]++;
 
 	R_GetError(NULL);
 }
 
 /**
- * @brief Upload data to an already-created buffer.
- * Note that this function assumes "data" is already offset to
- * where you want to start reading from. You could also use this function to
- * resize an existing buffer without uploading data, although it can't make the
+ * @brief Upload data to an already-created buffer. You could also use this function to
+ * resize an existing buffer without uploading data, although it won't make the
  * buffer smaller.
  */
-void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data) {
+void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data) {
 
 	assert(buffer->bufnum != 0);
 
@@ -283,6 +319,47 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size,
 	if (!size) {
 		Com_Warn("Attempted to upload 0 bytes to GPU");
 		return;
+	}
+
+	R_BindBuffer(buffer);
+
+	// if the buffer isn't big enough to hold what we had already,
+	// we have to resize the buffer
+
+	if (size > buffer->size) {
+		glBufferData(buffer->target, size, data, buffer->hint);
+		R_GetError("Full resize");
+
+		buffer->size = size;
+	} else {
+		// just update the range we specified
+		glBufferSubData(buffer->target, 0, size, data);
+
+		R_GetError("Updating existing buffer");
+	}
+
+	r_view.num_buffer_uploads++;
+}
+
+/**
+ * @brief Upload data to a sub-position in already-created buffer. You could also use this function to
+ * resize an existing buffer without uploading data, although it won't make the
+ * buffer smaller.
+ * @param data_offset Whether the data pointer should be offset by start or not.
+ */
+void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data, const _Bool data_offset) {
+
+	assert(buffer->bufnum != 0);
+
+	// Check size. This is benign really, but it's usually a bug.
+	if (!size) {
+		Com_Warn("Attempted to upload 0 bytes to GPU\n");
+		return;
+	}
+
+	// offset ptr if requested
+	if (start && data && data_offset) {
+		data = data + start;
 	}
 
 	R_BindBuffer(buffer);
@@ -313,6 +390,8 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size,
 
 		R_GetError("Updating existing buffer");
 	}
+
+	r_view.num_buffer_uploads++;
 }
 
 /**
@@ -326,11 +405,17 @@ void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t
 
 	glGenBuffers(1, &buffer->bufnum);
 
-	buffer->type = type;
+	buffer->type = type & R_BUFFER_TYPE_MASK;
 	buffer->target = R_BufferTypeToTarget(buffer->type);
 	buffer->hint = hint;
 
-	R_UploadToBuffer(buffer, 0, size, data);
+	if (type & R_BUFFER_INTERLEAVE) {
+		buffer->interleave = true;
+	}
+
+	if (size) {
+		R_UploadToBuffer(buffer, size, data);
+	}
 }
 
 /**
@@ -373,6 +458,8 @@ void R_BlendFunc(GLenum src, GLenum dest) {
 	r_state.blend_dest = dest;
 
 	glBlendFunc(src, dest);
+
+	r_view.num_state_changes[R_STATE_BLEND_FUNC]++;
 }
 
 /**
@@ -391,6 +478,8 @@ void R_EnableDepthMask(_Bool enable) {
 	} else {
 		glDepthMask(GL_FALSE);
 	}
+
+	r_view.num_state_changes[R_STATE_DEPTHMASK]++;
 }
 
 /**
@@ -409,6 +498,8 @@ void R_EnableBlend(_Bool enable) {
 	} else {
 		glDisable(GL_BLEND);
 	}
+
+	r_view.num_state_changes[R_STATE_ENABLE_BLEND]++;
 }
 
 /**
@@ -440,10 +531,14 @@ void R_EnableStencilTest(GLenum pass, _Bool enable) {
 		glDisable(GL_STENCIL_TEST);
 	}
 
+	r_view.num_state_changes[R_STATE_ENABLE_STENCIL]++;
+
 	if (r_state.stencil_op_pass != pass) {
 
 		glStencilOp(GL_KEEP, GL_KEEP, pass);
 		r_state.stencil_op_pass = pass;
+
+		r_view.num_state_changes[R_STATE_STENCIL_OP]++;
 	}
 }
 
@@ -463,6 +558,8 @@ void R_StencilFunc(GLenum func, GLint ref, GLuint mask) {
 	r_state.stencil_func_mask = mask;
 
 	glStencilFunc(func, ref, mask);
+
+	r_view.num_state_changes[R_STATE_STENCIL_FUNC]++;
 }
 
 /**
@@ -479,12 +576,14 @@ void R_PolygonOffset(GLfloat factor, GLfloat units) {
 
 	r_state.polygon_offset_factor = factor;
 	r_state.polygon_offset_units = units;
+
+	r_view.num_state_changes[R_STATE_POLYGON_OFFSET]++;
 }
 
 /**
  * @brief Enables polygon offset fill for decals, etc.
  */
-void R_EnablePolygonOffset(GLenum mode, _Bool enable) {
+void R_EnablePolygonOffset(_Bool enable) {
 
 	if (r_state.polygon_offset_enabled == enable) {
 		return;
@@ -493,10 +592,12 @@ void R_EnablePolygonOffset(GLenum mode, _Bool enable) {
 	r_state.polygon_offset_enabled = enable;
 
 	if (enable) {
-		glEnable(mode);
+		glEnable(GL_POLYGON_OFFSET_FILL);
 	} else {
-		glDisable(mode);
+		glDisable(GL_POLYGON_OFFSET_FILL);
 	}
+
+	r_view.num_state_changes[R_STATE_ENABLE_POLYGON_OFFSET]++;
 
 	R_PolygonOffset(-1.0, 1.0);
 }
@@ -815,6 +916,8 @@ void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
 	r_state.current_viewport.h = height;
 
 	glViewport(x, y, width, height);
+
+	r_view.num_state_changes[R_STATE_VIEWPORT]++;
 }
 
 #define NEAR_Z 4.0
@@ -883,6 +986,8 @@ void R_EnableDepthTest(_Bool enable) {
 	} else {
 		glDisable(GL_DEPTH_TEST);
 	}
+
+	r_view.num_state_changes[R_STATE_ENABLE_DEPTH_TEST]++;
 }
 
 /**
@@ -898,6 +1003,8 @@ void R_DepthRange(GLdouble znear, GLdouble zfar) {
 	glDepthRange(znear, zfar);
 	r_state.depth_near = znear;
 	r_state.depth_far = zfar;
+
+	r_view.num_state_changes[R_STATE_DEPTH_RANGE]++;
 }
 
 /**
@@ -920,6 +1027,7 @@ void R_EnableScissor(const SDL_Rect *bounds) {
 
 		glDisable(GL_SCISSOR_TEST);
 		r_state.scissor_enabled = false;
+		r_view.num_state_changes[R_STATE_ENABLE_SCISSOR]++;
 
 		return;
 	}
@@ -927,9 +1035,11 @@ void R_EnableScissor(const SDL_Rect *bounds) {
 	if (!r_state.scissor_enabled) {
 		glEnable(GL_SCISSOR_TEST);
 		r_state.scissor_enabled = true;
+		r_view.num_state_changes[R_STATE_ENABLE_SCISSOR]++;
 	}
 
 	glScissor(bounds->x, bounds->y, bounds->w, bounds->h);
+	r_view.num_state_changes[R_STATE_SCISSOR]++;
 }
 
 /**
@@ -950,7 +1060,7 @@ void R_Setup2D(void) {
 	// and set default texcoords for all 2d pics
 	memcpy(texunit_diffuse.texcoord_array, default_texcoords, sizeof(vec2_t) * 4);
 
-	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, 0, sizeof(vec2_t) * 4, default_texcoords);
+	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, sizeof(vec2_t) * 4, default_texcoords);
 
 	R_EnableBlend(true);
 
@@ -979,6 +1089,8 @@ void R_InitState(void) {
 	R_CreateBuffer(&r_state.buffer_normal_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.normal_array), NULL);
 	R_CreateBuffer(&r_state.buffer_tangent_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.tangent_array), NULL);
 	R_CreateBuffer(&r_state.buffer_element_array, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT, sizeof(r_state.indice_array), NULL);
+
+	R_CreateBuffer(&r_state.buffer_interleave_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, sizeof(r_state.interleave_array), NULL);
 
 	R_UnbindBuffer(R_BUFFER_DATA);
 	R_UnbindBuffer(R_BUFFER_ELEMENT);
@@ -1058,6 +1170,8 @@ void R_ShutdownState(void) {
 	R_DestroyBuffer(&r_state.buffer_normal_array);
 	R_DestroyBuffer(&r_state.buffer_tangent_array);
 	R_DestroyBuffer(&r_state.buffer_element_array);
+
+	R_DestroyBuffer(&r_state.buffer_interleave_array);
 
 	memset(&r_state, 0, sizeof(r_state));
 }

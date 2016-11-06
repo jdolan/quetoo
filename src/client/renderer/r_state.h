@@ -72,6 +72,8 @@ typedef struct r_state_s {
 	GLfloat normal_array[MAX_GL_ARRAY_LENGTH * 3];
 	GLfloat tangent_array[MAX_GL_ARRAY_LENGTH * 4];
 	GLuint indice_array[MAX_GL_ARRAY_LENGTH * 4];
+	
+	r_interleave_vertex_t interleave_array[(MAX_GL_ARRAY_LENGTH / 16) * sizeof(r_interleave_vertex_t)];
 
 	// built-in buffers for the above vertex arrays
 	r_buffer_t buffer_vertex_array;
@@ -79,6 +81,8 @@ typedef struct r_state_s {
 	r_buffer_t buffer_normal_array;
 	r_buffer_t buffer_tangent_array;
 	r_buffer_t buffer_element_array;
+
+	r_buffer_t buffer_interleave_array;
 
 	// the current buffers bound to the global
 	// renderer state. This just prevents
@@ -175,7 +179,8 @@ void R_EnableDepthMask(_Bool enable);
 
 void R_BindBuffer(const r_buffer_t *buffer);
 void R_UnbindBuffer(const r_buffer_type_t type);
-void R_UploadToBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data);
+void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data);
+void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data, const _Bool data_offset);
 void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t type, const size_t size,
                     const void *data);
 void R_DestroyBuffer(r_buffer_t *buffer);
@@ -189,7 +194,7 @@ void R_BindArray(const r_attribute_id_t target, const r_buffer_t *buffer);
 void R_EnableAlphaTest(vec_t threshold);
 void R_EnableStencilTest(GLenum pass, _Bool enable);
 void R_StencilFunc(GLenum func, GLint ref, GLuint mask);
-void R_EnablePolygonOffset(GLenum mode, _Bool enable);
+void R_EnablePolygonOffset(_Bool enable);
 void R_PolygonOffset(GLfloat factor, GLfloat units);
 void R_EnableTexture(r_texunit_t *texunit, _Bool enable);
 void R_EnableLighting(const r_program_t *program, _Bool enable);

@@ -34,6 +34,9 @@ static void Cl_ClearView(void) {
 	r_view.num_bind_texture = r_view.num_bind_lightmap = r_view.num_bind_deluxemap = 0;
 	r_view.num_bind_normalmap = r_view.num_bind_specularmap = 0;
 
+	memset(r_view.num_state_changes, 0, sizeof(r_view.num_state_changes));
+	r_view.num_buffer_uploads = 0;
+
 	r_view.num_bsp_surfaces = 0;
 
 	r_view.num_mesh_models = r_view.num_mesh_tris = 0;

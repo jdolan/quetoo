@@ -86,7 +86,12 @@ typedef enum {
 	R_BUFFER_ELEMENT,
 
 	R_NUM_BUFFERS,
+
+	// buffer flags, not stored in type
+	R_BUFFER_INTERLEAVE = 4
 } r_buffer_type_t;
+
+#define R_BUFFER_TYPE_MASK 0x03
 
 /**
  * @brief Buffers are used to hold data for the renderer.
@@ -97,6 +102,7 @@ typedef struct r_buffer_s {
 	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
 	GLuint bufnum; // e.g. 123
 	size_t size; // last size of buffer, for resize operations
+	_Bool interleave; // whether this buffer is an interleave buffer. Only valid for R_BUFFER_DATA.
 } r_buffer_t;
 
 /**
@@ -293,6 +299,7 @@ typedef struct {
 
 	int32_t first_edge; // look up in model->surf_edges, negative numbers
 	uint16_t num_edges; // are backwards edges
+	uint32_t start_index, index_count;
 
 	vec3_t mins;
 	vec3_t maxs;
@@ -860,6 +867,28 @@ typedef enum {
 	R_TEXUNIT_TOTAL
 } r_texunit_id_t;
 
+typedef enum {
+	R_STATE_PROGRAM,
+	R_STATE_ACTIVE_TEXTURE,
+	R_STATE_BIND_TEXTURE,
+	R_STATE_BIND_BUFFER,
+	R_STATE_BLEND_FUNC,
+	R_STATE_ENABLE_BLEND,
+	R_STATE_DEPTHMASK,
+	R_STATE_ENABLE_STENCIL,
+	R_STATE_STENCIL_OP,
+	R_STATE_STENCIL_FUNC,
+	R_STATE_POLYGON_OFFSET,
+	R_STATE_ENABLE_POLYGON_OFFSET,
+	R_STATE_VIEWPORT,
+	R_STATE_ENABLE_DEPTH_TEST,
+	R_STATE_DEPTH_RANGE,
+	R_STATE_ENABLE_SCISSOR,
+	R_STATE_SCISSOR,
+
+	R_STATE_TOTAL
+} r_state_id_t;
+
 /**
  * @brief Provides read-write visibility and scene management to the client.
  */
@@ -924,6 +953,9 @@ typedef struct {
 
 	uint32_t cull_passes;
 	uint32_t cull_fails;
+
+	uint32_t num_state_changes[R_STATE_TOTAL];
+	uint32_t num_buffer_uploads;
 
 	_Bool update; // inform the client of state changes
 } r_view_t;

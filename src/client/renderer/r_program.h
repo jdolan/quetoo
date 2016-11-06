@@ -118,7 +118,8 @@ typedef struct {
 // attribute state
 typedef struct r_attrib_state_s {
 	r_variable_value_t value;
-	const GLvoid *offset;
+	GLsizeiptr offset;
+	GLsizei stride;
 	GLuint size;
 	_Bool enabled;
 	_Bool constant;
@@ -134,7 +135,6 @@ void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value);
 void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value);
 _Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value);
 void R_BindAttributeLocation(const r_program_t *prog, const char *name, const GLuint location);
-void R_AttributePointer(const r_attribute_id_t attribute, GLuint size, const r_buffer_t *buffer, const GLvoid *offset);
 void R_EnableAttribute(const r_attribute_id_t attribute);
 void R_DisableAttribute(const r_attribute_id_t attribute);
 void R_SetupAttributes(void);

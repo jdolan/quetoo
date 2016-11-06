@@ -293,7 +293,7 @@ void R_DrawBspNormals(void) {
 		}
 
 		if (k > MAX_GL_ARRAY_LENGTH - 512) { // avoid overflows, draw in batches
-			R_UploadToBuffer(&r_state.buffer_vertex_array, 0, k * sizeof(vec_t), r_state.vertex_array);
+			R_UploadToBuffer(&r_state.buffer_vertex_array, k * sizeof(vec_t), r_state.vertex_array);
 
 			R_DrawArrays(GL_LINES, 0, k / 3);
 			k = 0;
@@ -313,7 +313,7 @@ void R_DrawBspNormals(void) {
 		}
 	}
 
-	R_UploadToBuffer(&r_state.buffer_vertex_array, 0, k * sizeof(vec_t), r_state.vertex_array);
+	R_UploadToBuffer(&r_state.buffer_vertex_array, k * sizeof(vec_t), r_state.vertex_array);
 
 	R_DrawArrays(GL_LINES, 0, k / 3);
 
@@ -345,7 +345,7 @@ void R_DrawBspLeafs(void) {
 
 	R_EnableTexture(&texunit_diffuse, false);
 
-	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, true);
+	R_EnablePolygonOffset(true);
 
 	const r_bsp_leaf_t *l = r_model_state.world->bsp->leafs;
 
@@ -373,7 +373,7 @@ void R_DrawBspLeafs(void) {
 		}
 	}
 
-	R_EnablePolygonOffset(GL_POLYGON_OFFSET_FILL, false);
+	R_EnablePolygonOffset(false);
 
 	R_EnableTexture(&texunit_diffuse, true);
 
