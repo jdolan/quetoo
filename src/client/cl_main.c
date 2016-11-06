@@ -458,24 +458,24 @@ static void Cl_ReadPackets(void) {
 
 		// dump it if not connected
 		if (cls.state <= CL_CONNECTING) {
-			Com_Warn("%s: Unsolicited packet\n", Net_NetaddrToString(&net_from));
+			Com_Debug("%s: Unsolicited packet\n", Net_NetaddrToString(&net_from));
 			continue;
 		}
 
 		// check for runt packets
 		if (net_message.size < 8) {
-			Com_Warn("%s: Runt packet\n", Net_NetaddrToString(&net_from));
+			Com_Debug("%s: Runt packet\n", Net_NetaddrToString(&net_from));
 			continue;
 		}
 
 		// packet from server
 		if (!Net_CompareNetaddr(&net_from, &cls.net_chan.remote_address)) {
-			Com_Warn("%s: Sequenced packet without connection\n", Net_NetaddrToString(&net_from));
+			Com_Debug("%s: Sequenced packet without connection\n", Net_NetaddrToString(&net_from));
 			continue;
 		}
 
 		if (!Netchan_Process(&cls.net_chan, &net_message)) {
-			continue;    // wasn't accepted for some reason
+			continue; // wasn't accepted for some reason
 		}
 
 		Cl_ParseServerMessage();
