@@ -381,7 +381,7 @@ static void Pm_StepSlideMove(void) {
 	// set the step for interpolation
 
 	pm->step = pm->s.origin[2] - org[2];
-	if (fabs(pm->step) >= 4.0) {
+	if (fabs(pm->step) >= PM_STEP_HEIGHT_MIN) {
 		pm->s.flags |= PMF_ON_STAIRS;
 	} else {
 		pm->step = 0.0;

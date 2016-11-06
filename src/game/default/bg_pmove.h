@@ -68,7 +68,7 @@
 /**
  * @brief If set, use Quake3 step-slide movement.
  */
-#define PM_QUAKE3 0
+#define PM_QUAKE3 1
 
 /**
  * @brief Speed constants; intended velocities are clipped to these.
@@ -105,6 +105,11 @@
  * @brief The vertical distance afforded in step climbing.
  */
 #define PM_STEP_HEIGHT			16.0
+
+/**
+ * @brief The smallest step that will be interpolated by the client.
+ */
+#define PM_STEP_HEIGHT_MIN		4.0
 
 /**
  * @brief The minimum Z plane normal component required for standing.
