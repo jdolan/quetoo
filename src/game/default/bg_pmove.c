@@ -312,11 +312,13 @@ static void Pm_StepDown(const cm_trace_t *trace) {
 	VectorCopy(trace->end, pm->s.origin);
 	pm->s.origin[2] += PM_STOP_EPSILON;
 
-	Pm_ClipVelocity(pm->s.velocity, trace->plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
-
 	pm->step = pm->s.origin[2] - pml.previous_origin[2];
-	if (fabs(pm->step) >= 4.0) {
-		Pm_Debug("step %3.2f\n", pm->step);
+
+	if (pm->step >= PM_STEP_HEIGHT_MIN) {
+		Pm_Debug("step up %3.2f\n", pm->step);
+		pm->s.flags |= PMF_ON_STAIRS;
+	} else if (pm->step <= -PM_STEP_HEIGHT_MIN && (pm->s.flags & PMF_ON_GROUND)) {
+		Pm_Debug("step down %3.2f\n", pm->step);
 		pm->s.flags |= PMF_ON_STAIRS;
 	} else {
 		pm->step = 0.0;
@@ -381,7 +383,7 @@ static void Pm_StepSlideMove(void) {
 	// set the step for interpolation
 
 	pm->step = pm->s.origin[2] - org[2];
-	if (fabs(pm->step) >= 4.0) {
+	if (fabs(pm->step) >= PM_STEP_HEIGHT_MIN) {
 		pm->s.flags |= PMF_ON_STAIRS;
 	} else {
 		pm->step = 0.0;
@@ -722,7 +724,10 @@ static void Pm_CheckGround(void) {
 
 		// and sink down to it if not trick jumping
 		if (!(pm->s.flags & PMF_TIME_TRICK_JUMP)) {
-			Pm_StepDown(&trace);
+			VectorCopy(trace.end, pm->s.origin);
+			pm->s.origin[2] += PM_STOP_EPSILON;
+
+			Pm_ClipVelocity(pm->s.velocity, trace.plane.normal, pm->s.velocity, PM_CLIP_BOUNCE);
 		}
 	} else {
 		pm->s.flags &= ~PMF_ON_GROUND;

@@ -107,6 +107,11 @@
 #define PM_STEP_HEIGHT			16.0
 
 /**
+ * @brief The smallest step that will be interpolated by the client.
+ */
+#define PM_STEP_HEIGHT_MIN		4.0
+
+/**
  * @brief The minimum Z plane normal component required for standing.
  */
 #define PM_STEP_NORMAL			0.7
