@@ -87,14 +87,15 @@ static void Con_Clear_f(void) {
  */
 static void Con_Dump_f(void) {
 
-	if (Cmd_Argc() != 2) {
-		Com_Print("Usage: %s <file_name>\n", Cmd_Argv(0));
-		return;
+	const char *path = "console.log";
+
+	if (Cmd_Argc() > 1) {
+		path = Cmd_Argv(1);
 	}
 
 	file_t *file;
-	if (!(file = Fs_OpenWrite(Cmd_Argv(1)))) {
-		Com_Warn("Couldn't open %s\n", Cmd_Argv(1));
+	if (!(file = Fs_OpenWrite(path))) {
+		Com_Warn("Couldn't open %s\n", path);
 	} else {
 		SDL_LockMutex(console_state.lock);
 
@@ -106,18 +107,19 @@ static void Con_Dump_f(void) {
 					c++;
 				} else if (!IS_LEGACY_COLOR(c)) {
 					if (Fs_Write(file, c, 1, 1) != 1) {
-						Com_Warn("Failed to dump console\n");
+						fputs("Failed to dump console\n", stderr);
 						break;
 					}
 				}
 				c++;
 			}
+			list = list->next;
 		}
 
 		SDL_UnlockMutex(console_state.lock);
 
 		Fs_Close(file);
-		Com_Print("Dumped console to %s.\n", Cmd_Argv(1));
+		Com_Print("Dumped console to %s.\n", path);
 	}
 }
 
