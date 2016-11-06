@@ -48,7 +48,6 @@ typedef struct {
 	r_uniform_matrix4fv_t projection_mat;
 	r_uniform_matrix4fv_t modelview_mat;
 	r_uniform_matrix4fv_t normal_mat;
-	r_uniform_matrix4fv_t texture_mat;
 
 	r_uniform1f_t alpha_threshold;
 } r_default_program_t;
@@ -130,7 +129,6 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
 	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
 	R_ProgramVariable(&p->normal_mat, R_UNIFORM_MAT4, "NORMAL_MAT");
-	R_ProgramVariable(&p->texture_mat, R_UNIFORM_MAT4, "TEXTURE_MAT");
 
 	R_ProgramVariable(&p->alpha_threshold, R_UNIFORM_FLOAT, "ALPHA_THRESHOLD");
 	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION");
@@ -264,8 +262,6 @@ void R_UseMatrices_default(const matrix4x4_t *matrices) {
 		Matrix4x4_Transpose(&normalMatrix, &normalMatrix);
 		R_ProgramParameterMatrix4fv(&p->normal_mat, (const GLfloat *) normalMatrix.m);
 	}
-
-	R_ProgramParameterMatrix4fv(&p->texture_mat, (const GLfloat *) matrices[R_MATRIX_TEXTURE].m);
 }
 
 /**

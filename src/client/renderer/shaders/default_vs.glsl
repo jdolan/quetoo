@@ -67,11 +67,11 @@ void main(void) {
 	gl_Position = PROJECTION_MAT * vec4(point, 1.0);
 
 	if (DIFFUSE) { // pass texcoords through
-		texcoords[0] = vec2(TEXTURE_MAT * vec4(TEXCOORD0, 0, 1));
+		texcoords[0] = TEXCOORD0;
 	}
 
 	if (LIGHTMAP) {
-		texcoords[1] = vec2(TEXTURE_MAT * vec4(TEXCOORD1, 0, 1));
+		texcoords[1] = TEXCOORD1;
 	}
 
 	// pass the color through as well

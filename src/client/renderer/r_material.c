@@ -199,6 +199,8 @@ static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const
 		out[0] = in[0];
 		out[1] = in[1];
 	}
+
+	Matrix4x4_Transform2(&texture_matrix, out, out);
 }
 
 #define NUM_DIRTMAP_ENTRIES 16

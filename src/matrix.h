@@ -149,6 +149,9 @@ void Matrix4x4_ToBonePose6s(const matrix4x4_t *m, vec_t origininvscale, int16_t 
 // blends two matrices together, at a given percentage (blend controls percentage of in2)
 void Matrix4x4_Blend (matrix4x4_t *out, const matrix4x4_t *in1, const matrix4x4_t *in2, double blend);
 
+// transforms a 2D vector through a matrix4x4
+void Matrix4x4_Transform2 (const matrix4x4_t *in, const vec_t v[2], vec_t out[2]);
+
 // transforms a 3D vector through a matrix4x4
 void Matrix4x4_Transform (const matrix4x4_t *in, const vec_t v[3], vec_t out[3]);
 // transforms a 4D vector through a matrix4x4
