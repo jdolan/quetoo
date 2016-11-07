@@ -127,11 +127,19 @@ void R_SetArrayState(const r_model_t *mod) {
 	// vertex array
 	if (mask & R_ARRAY_MASK_VERTEX) {
 
-		R_BindArrayOffset(R_ARRAY_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(vec3_t)) * old_frame);
+		if (mod->vertex_buffer.interleave) {
+			R_BindArrayOffset(R_ARRAY_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * old_frame);
+		} else {
+			R_BindArrayOffset(R_ARRAY_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(vec3_t)) * old_frame);
+		}
 
 		// bind interpolation if we need it
 		if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && do_interpolation) {
-			R_BindArrayOffset(R_ARRAY_NEXT_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(vec3_t)) * frame);
+			if (mod->vertex_buffer.interleave) {
+				R_BindArrayOffset(R_ARRAY_NEXT_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * frame);
+			} else {
+				R_BindArrayOffset(R_ARRAY_NEXT_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(vec3_t)) * frame);
+			}
 		}
 	}
 
@@ -139,12 +147,20 @@ void R_SetArrayState(const r_model_t *mod) {
 	if (r_state.lighting_enabled) {
 
 		if (mask & R_ARRAY_MASK_NORMAL) {
-
-			R_BindArrayOffset(R_ARRAY_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(vec3_t)) * old_frame);
+			
+			if (mod->vertex_buffer.interleave) {
+				R_BindArrayOffset(R_ARRAY_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * old_frame);
+			} else {
+				R_BindArrayOffset(R_ARRAY_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(vec3_t)) * old_frame);
+			}
 
 			// bind interpolation if we need it
 			if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && do_interpolation) {
-				R_BindArrayOffset(R_ARRAY_NEXT_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(vec3_t)) * frame);
+				if (mod->vertex_buffer.interleave) {
+					R_BindArrayOffset(R_ARRAY_NEXT_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * frame);
+				} else {
+					R_BindArrayOffset(R_ARRAY_NEXT_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(vec3_t)) * frame);
+				}
 			}
 		}
 
@@ -152,11 +168,19 @@ void R_SetArrayState(const r_model_t *mod) {
 
 			if ((mask & R_ARRAY_MASK_TANGENT) && R_ValidBuffer(&mod->tangent_buffer)) {
 
-				R_BindArrayOffset(R_ARRAY_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(vec4_t)) * old_frame);
+				if (mod->vertex_buffer.interleave) {
+					R_BindArrayOffset(R_ARRAY_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * old_frame);
+				} else {
+					R_BindArrayOffset(R_ARRAY_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(vec4_t)) * old_frame);
+				}
 
 				// bind interpolation if we need it
 				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && do_interpolation) {
-					R_BindArrayOffset(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(vec4_t)) * frame);
+					if (mod->vertex_buffer.interleave) {
+						R_BindArrayOffset(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * frame);
+					} else {
+						R_BindArrayOffset(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(vec4_t)) * frame);
+					}
 				}
 			}
 		}

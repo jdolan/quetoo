@@ -26,8 +26,44 @@
 /**
  * @brief Materials "think" every few milliseconds to advance animations.
  */
+static void R_UpdateMaterialStage(r_material_t *m, r_stage_t *s) {
+	if (s->flags & STAGE_PULSE) {
+		s->pulse.dhz = (sin(r_view.time * s->pulse.hz * 0.00628) + 1.0) / 2.0;
+	}
+
+	if (s->flags & STAGE_STRETCH) {
+		s->stretch.dhz = (sin(r_view.time * s->stretch.hz * 0.00628) + 1.0) / 2.0;
+		s->stretch.damp = 1.5 - s->stretch.dhz * s->stretch.amp;
+	}
+
+	if (s->flags & STAGE_ROTATE) {
+		s->rotate.deg = r_view.time * s->rotate.hz * 0.360;
+	}
+
+	if (s->flags & STAGE_SCROLL_S) {
+		s->scroll.ds = s->scroll.s * r_view.time / 1000.0;
+	}
+
+	if (s->flags & STAGE_SCROLL_T) {
+		s->scroll.dt = s->scroll.t * r_view.time / 1000.0;
+	}
+
+	if (s->flags & STAGE_ANIM) {
+		if (s->anim.fps) {
+			if (r_view.time >= s->anim.dtime) { // change frames
+				s->anim.dtime = r_view.time + (1000 / s->anim.fps);
+				s->image = s->anim.frames[++s->anim.dframe % s->anim.num_frames];
+			}
+		} else if (r_view.current_entity) {
+			s->image = s->anim.frames[r_view.current_entity->frame % s->anim.num_frames];
+		}
+	}
+}
+
+/**
+ * @brief Materials "think" every few milliseconds to advance animations.
+ */
 static void R_UpdateMaterial(r_material_t *m) {
-	r_stage_t *s;
 
 	if (!r_view.current_entity) {
 		if (r_view.time - m->time < UPDATE_THRESHOLD) {
@@ -36,41 +72,6 @@ static void R_UpdateMaterial(r_material_t *m) {
 	}
 
 	m->time = r_view.time;
-
-	for (s = m->stages; s; s = s->next) {
-
-		if (s->flags & STAGE_PULSE) {
-			s->pulse.dhz = (sin(r_view.time * s->pulse.hz * 0.00628) + 1.0) / 2.0;
-		}
-
-		if (s->flags & STAGE_STRETCH) {
-			s->stretch.dhz = (sin(r_view.time * s->stretch.hz * 0.00628) + 1.0) / 2.0;
-			s->stretch.damp = 1.5 - s->stretch.dhz * s->stretch.amp;
-		}
-
-		if (s->flags & STAGE_ROTATE) {
-			s->rotate.deg = r_view.time * s->rotate.hz * 0.360;
-		}
-
-		if (s->flags & STAGE_SCROLL_S) {
-			s->scroll.ds = s->scroll.s * r_view.time / 1000.0;
-		}
-
-		if (s->flags & STAGE_SCROLL_T) {
-			s->scroll.dt = s->scroll.t * r_view.time / 1000.0;
-		}
-
-		if (s->flags & STAGE_ANIM) {
-			if (s->anim.fps) {
-				if (r_view.time >= s->anim.dtime) { // change frames
-					s->anim.dtime = r_view.time + (1000 / s->anim.fps);
-					s->image = s->anim.frames[++s->anim.dframe % s->anim.num_frames];
-				}
-			} else if (r_view.current_entity) {
-				s->image = s->anim.frames[r_view.current_entity->frame % s->anim.num_frames];
-			}
-		}
-	}
 }
 
 /**
@@ -281,9 +282,6 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	// resolve all static, dynamic, and per-pixel lighting
 	R_StageLighting(surf, stage);
 
-	// load the texture matrix for rotations, stretches, etc..
-	R_StageTextureMatrix(surf, stage);
-
 	// set the blend function, ensuring a sane default
 	if (stage->flags & STAGE_BLEND) {
 		R_BlendFunc(stage->blend.src, stage->blend.dest);
@@ -356,9 +354,11 @@ static void R_DrawBspSurfaceMaterialStage(r_bsp_surface_t *surf, const r_stage_t
 		}
 	}
 	
-	surf->start_index = r_material_vertex_count;
+	// hijack index array to act as first # to render
+	r_state.indice_array[r_material_index_count] = r_material_vertex_count;
 
 	r_material_vertex_count += surf->num_edges;
+	r_material_index_count++;
 }
 
 /**
@@ -393,11 +393,16 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		R_UpdateMaterial(m);
 
 		vec_t j = -10.0;
-		for (const r_stage_t *s = m->stages; s; s = s->next, j -= 10.0) {
+		for (r_stage_t *s = m->stages; s; s = s->next, j -= 10.0) {
 
 			if (!(s->flags & STAGE_DIFFUSE)) {
 				continue;
 			}
+
+			R_UpdateMaterialStage(m, s);
+			
+			// load the texture matrix for rotations, stretches, etc..
+			R_StageTextureMatrix(surf, s);
 
 			R_DrawBspSurfaceMaterialStage(surf, s);
 		}
@@ -433,7 +438,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_UploadToSubBuffer(&r_state.buffer_interleave_array, 0, r_material_vertex_count * sizeof(r_interleave_vertex_t), r_state.interleave_array, false);
 
 	// second pass draws
-	for (uint32_t i = 0; i < surfs->count; i++) {
+	for (uint32_t i = 0, si = 0; i < surfs->count; i++) {
 
 		r_bsp_surface_t *surf = surfs->surfaces[i];
 
@@ -454,7 +459,9 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 			R_SetStageState(surf, s);
 			
-			R_DrawArrays(GL_TRIANGLE_FAN, surf->start_index, surf->num_edges);
+			R_DrawArrays(GL_TRIANGLE_FAN, (GLint) r_state.indice_array[si], surf->num_edges);
+
+			++si;
 		}
 	}
 	

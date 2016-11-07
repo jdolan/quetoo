@@ -305,9 +305,8 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	}
 
 	// make the scratch space
-	const GLsizei v = mod->num_verts * sizeof(vec3_t);
+	const GLsizei v = mod->num_verts * sizeof(r_interleave_vertex_t);
 	const GLsizei st = mod->num_verts * sizeof(vec2_t);
-	const GLsizei t = mod->num_verts * sizeof(vec4_t);
 	const GLsizei e = mod->num_elements * sizeof(GLuint);
 
 	vec_t *texcoords = Mem_LinkMalloc(st, mod);
@@ -318,11 +317,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	vec_t *out_texcoord = texcoords;
 
 	// upload initial data
-	R_CreateBuffer(&mod->vertex_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, v * md3->num_frames, r_mesh_state.vertexes);
-
-	R_CreateBuffer(&mod->normal_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, v * md3->num_frames, r_mesh_state.normals);
-
-	R_CreateBuffer(&mod->tangent_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, t * md3->num_frames, r_mesh_state.tangents);
+	R_CreateBuffer(&mod->vertex_buffer, GL_STATIC_DRAW, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, v * md3->num_frames, NULL);
 
 	for (uint16_t f = 0; f < md3->num_frames; ++f, frame++) {
 
@@ -335,9 +330,9 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 			const d_md3_texcoord_t *t = mesh->coords;
 
 			for (uint16_t j = 0; j < mesh->num_verts; j++, v++, ++t) {
-				VectorAdd(frame->translate, v->point, r_mesh_state.vertexes[j + vert_offset]);
-				VectorCopy(v->normal, r_mesh_state.normals[j + vert_offset]);
-				Vector4Copy(v->tangent, r_mesh_state.tangents[j + vert_offset]);
+				VectorAdd(frame->translate, v->point, r_mesh_state.vertexes[j + vert_offset].vertex);
+				VectorCopy(v->normal, r_mesh_state.vertexes[j + vert_offset].normal);
+				Vector4Copy(v->tangent, r_mesh_state.vertexes[j + vert_offset	].tangent);
 
 				// only copy st coords once
 				if (f == 0) {
@@ -362,11 +357,10 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 		// upload each frame
 		R_UploadToSubBuffer(&mod->vertex_buffer, v * f, v, r_mesh_state.vertexes, false);
-
-		R_UploadToSubBuffer(&mod->normal_buffer, v * f, v, r_mesh_state.normals, false);
-
-		R_UploadToSubBuffer(&mod->tangent_buffer, t * f, t, r_mesh_state.tangents, false);
 	}
+
+	mod->normal_buffer = mod->vertex_buffer;
+	mod->tangent_buffer = mod->vertex_buffer;
 
 	// upload texcoords
 	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, texcoords);
@@ -852,21 +846,13 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	mod->num_tris = g_list_length(obj->tris);
 	mod->num_elements = mod->num_tris * 3;
 
-	const GLsizei v = mod->num_verts * sizeof(vec3_t);
-	const GLsizei st = mod->num_verts * sizeof(vec2_t);
-	const GLsizei t = mod->num_verts * sizeof(vec4_t);
+	const GLsizei v = mod->num_verts * sizeof(r_interleave_vertex_t);
 	const GLsizei e = mod->num_elements * sizeof(GLuint);
 
-	vec_t *verts = Mem_LinkMalloc(v, mod);
-	vec_t *texcoords = Mem_LinkMalloc(st, mod);
-	vec_t *normals = Mem_LinkMalloc(v, mod);
-	vec_t *tangents = Mem_LinkMalloc(t, mod);
+	r_interleave_vertex_t *verts = Mem_LinkMalloc(v, mod);
 	GLuint *elements = Mem_LinkMalloc(e, mod);
 
-	vec_t *vout = verts;
-	vec_t *sout = texcoords;
-	vec_t *nout = normals;
-	vec_t *tout = tangents;
+	r_interleave_vertex_t *vout = verts;
 	GLuint *eout = elements;
 
 	const GList *vl = obj->verts;
@@ -874,18 +860,15 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 		const r_obj_vertex_t *ve = vl->data;
 
-		VectorCopy(ve->point, vout);
+		VectorCopy(ve->point, vout->vertex);
 
-		Vector2Copy(ve->texcoords, sout);
+		Vector2Copy(ve->texcoords, vout->diffuse);
 
-		VectorCopy(ve->normal, nout);
+		VectorCopy(ve->normal, vout->normal);
 
-		Vector4Copy(ve->tangent, tout);
+		Vector4Copy(ve->tangent, vout->tangent);
 
-		vout += 3;
-		sout += 2;
-		nout += 3;
-		tout += 4;
+		vout++;
 
 		vl = vl->next;
 	}
@@ -903,21 +886,16 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	}
 
 	// load the vertex buffer objects
-	R_CreateBuffer(&mod->vertex_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, v, verts);
-
-	R_CreateBuffer(&mod->normal_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, v, normals);
-
-	R_CreateBuffer(&mod->tangent_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, t, tangents);
-
-	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, texcoords);
+	R_CreateBuffer(&mod->vertex_buffer, GL_STATIC_DRAW, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, v, verts);
+	
+	mod->normal_buffer = mod->vertex_buffer;
+	mod->tangent_buffer = mod->vertex_buffer;
+	mod->texcoord_buffer = mod->vertex_buffer;
 
 	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_ELEMENT, e, elements);
 
 	// free our temporary buffers
 	Mem_Free(verts);
-	Mem_Free(texcoords);
-	Mem_Free(normals);
-	Mem_Free(tangents);
 	Mem_Free(elements);
 
 	R_GetError(mod->media.name);
