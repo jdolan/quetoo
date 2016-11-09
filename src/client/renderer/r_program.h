@@ -49,6 +49,7 @@ typedef union {
 	GLfloat f;
 	vec3_t vec3;
 	vec4_t vec4;
+	u8vec4_t u8vec4;
 	matrix4x4_t mat4;
 	const r_buffer_t *buffer;
 } r_variable_value_t;
@@ -110,7 +111,7 @@ typedef struct {
 	void (*UseLight)(const uint16_t light_index, const r_light_t *light);
 	void (*UseMatrices)(const matrix4x4_t *matrices);
 	void (*UseAlphaTest)(const vec_t threshold);
-	void (*UseCurrentColor)(const vec4_t threshold);
+	void (*UseCurrentColor)(const vec4_t color);
 	void (*UseAttributes)(void);
 	void (*UseInterpolation)(const vec_t time_fraction);
 } r_program_t;
@@ -133,6 +134,7 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value);
 void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value);
 void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value);
 void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value);
+void R_ProgramParameter4ubv(r_uniform4fv_t *variable, const GLubyte *value);
 _Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value);
 void R_BindAttributeLocation(const r_program_t *prog, const char *name, const GLuint location);
 void R_EnableAttribute(const r_attribute_id_t attribute);

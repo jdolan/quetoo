@@ -66,16 +66,16 @@ typedef enum {
 
 // interleave constants
 typedef struct {
-	vec3_t	vertex;
-	vec4_t	color;
-	vec3_t	normal;
-	vec4_t	tangent;
-	vec2_t	diffuse;
-	vec2_t	lightmap;
+	vec3_t		vertex;
+	u8vec4_t	color;
+	vec3_t		normal;
+	vec4_t		tangent;
+	vec2_t		diffuse;
+	vec2_t		lightmap;
 } r_interleave_vertex_t;
 
 #define R_ATTRIBUTE_VERTEX_SIZE		sizeof(vec3_t)
-#define R_ATTRIBUTE_COLOR_SIZE		sizeof(vec4_t)
+#define R_ATTRIBUTE_COLOR_SIZE		sizeof(u8vec4_t)
 #define R_ATTRIBUTE_NORMAL_SIZE		sizeof(vec3_t)
 #define R_ATTRIBUTE_TANGENT_SIZE	sizeof(vec4_t)
 #define R_ATTRIBUTE_DIFFUSE_SIZE	sizeof(vec2_t)

@@ -539,6 +539,24 @@ void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation
 }
 
 /**
+ * @brief Decomposes float color into byte color.
+ */
+void ColorDecompose(const vec4_t in, u8vec4_t out) {
+	for (int32_t i = 0; i < 4; ++i) {
+		out[i] = (u8vec_t) (MIN(1.0, MAX(0.0, in[i])) * 255.0);
+	}
+}
+
+/**
+ * @brief Decomposes RGB float color into byte color.
+ */
+void ColorDecompose3(const vec3_t in, u8vec3_t out) {
+	for (int32_t i = 0; i < 3; ++i) {
+		out[i] = (u8vec_t) (MIN(1.0, MAX(0.0, in[i])) * 255.0);
+	}
+}
+
+/**
  * @brief Returns the longest common prefix the specified words share.
  */
 char *CommonPrefix(GList *words) {

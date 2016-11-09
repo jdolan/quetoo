@@ -68,12 +68,12 @@ typedef struct r_matrix_stack_s {
 // opengl state management
 typedef struct r_state_s {
 	GLfloat vertex_array[MAX_GL_ARRAY_LENGTH * 3]; // default vertex arrays
-	GLfloat color_array[MAX_GL_ARRAY_LENGTH * 4];
+	u8vec_t color_array[MAX_GL_ARRAY_LENGTH * 4];
 	GLfloat normal_array[MAX_GL_ARRAY_LENGTH * 3];
 	GLfloat tangent_array[MAX_GL_ARRAY_LENGTH * 4];
-	GLuint indice_array[MAX_GL_ARRAY_LENGTH * 4];
+	GLuint indice_array[MAX_GL_ARRAY_LENGTH * 6];
 	
-	r_interleave_vertex_t interleave_array[(MAX_GL_ARRAY_LENGTH / 16) * sizeof(r_interleave_vertex_t)];
+	r_interleave_vertex_t interleave_array[MAX_GL_ARRAY_LENGTH];
 
 	// built-in buffers for the above vertex arrays
 	r_buffer_t buffer_vertex_array;

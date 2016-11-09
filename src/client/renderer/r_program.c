@@ -167,6 +167,30 @@ void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
 /**
  * @brief
  */
+void R_ProgramParameter4ubv(r_uniform4fv_t *variable, const GLubyte *value) {
+
+	if (!variable || variable->location == -1) {
+		Com_Warn("NULL or invalid variable\n");
+		return;
+	}
+
+	if (Vector4Compare(variable->value.u8vec4, value)) {
+		return;
+	}
+
+	Vector4Copy(value, variable->value.u8vec4);
+
+	const vec4_t floats = { value[0] / 255.0, value[1] / 255.0, value[2] / 255.0, value[3] / 255.0 };
+
+	glUniform4fv(variable->location, 1, floats);
+	r_view.num_state_changes[R_STATE_PROGRAM_PARAMETER]++;
+
+	R_GetError(variable->name);
+}
+
+/**
+ * @brief
+ */
 _Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value) {
 
 	if (!variable || variable->location == -1) {
@@ -231,6 +255,38 @@ static void R_AttributePointer(const r_attribute_id_t attribute, GLuint size, co
 /**
  * @brief
  */
+static void R_AttributeIPointer(const r_attribute_id_t attribute, GLenum type, GLuint size, const r_buffer_t *buffer, const GLsizeiptr offset) {
+
+	R_EnableAttribute(attribute);
+
+	const GLsizei stride = (buffer->interleave) ? R_ATTRIBUTE_STRIDE : 0;
+	r_attrib_state_t *attrib = &r_state.attributes[attribute];
+
+	// only set the ptr if it hasn't changed.
+	if (attrib->constant == true ||
+			attrib->value.buffer != buffer ||
+			attrib->size != size ||
+			attrib->offset != offset ||
+			attrib->stride != stride) {
+
+		R_BindBuffer(buffer);
+
+		glVertexAttribPointer(attribute, size, type, GL_TRUE, stride, (const GLvoid *) offset);
+		r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_POINTER]++;
+
+		attrib->value.buffer = buffer;
+		attrib->size = size;
+		attrib->offset = offset;
+		attrib->constant = false;
+		attrib->stride = stride;
+
+		R_GetError(r_state.active_program->attributes[attribute].name);
+	}
+}
+
+/**
+ * @brief
+ */
 void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *value) {
 
 	R_DisableAttribute(attribute);
@@ -241,6 +297,26 @@ void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *val
 
 	Vector4Copy(value, r_state.attributes[attribute].value.vec4);
 	glVertexAttrib4fv(attribute, r_state.attributes[attribute].value.vec4);
+	r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_CONSTANT]++;
+
+	r_state.attributes[attribute].constant = true;
+
+	R_GetError(r_state.active_program->attributes[attribute].name);
+}
+
+/**
+ * @brief
+ */
+void R_AttributeConstant4ubv(const r_attribute_id_t attribute, const GLubyte *value) {
+
+	R_DisableAttribute(attribute);
+
+	if (r_state.attributes[attribute].constant == true && Vector4Compare(r_state.attributes[attribute].value.u8vec4, value)) {
+		return;
+	}
+
+	Vector4Copy(value, r_state.attributes[attribute].value.u8vec4);
+	glVertexAttrib4ubv(attribute, r_state.attributes[attribute].value.u8vec4);
 	r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_CONSTANT]++;
 
 	r_state.attributes[attribute].constant = true;
@@ -345,7 +421,7 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length);
  * @brief
  */
 static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *result,
-                                        gpointer data __attribute((unused))) {
+                                        gpointer data __attribute__((unused))) {
 	const gchar *name = g_match_info_fetch(match_info, 1);
 	gchar path[MAX_OS_PATH];
 	int64_t len;
@@ -561,7 +637,7 @@ void R_SetupAttributes(void) {
 	if (p->arrays_mask & R_ARRAY_MASK_COLOR) {
 
 		if (mask & R_ARRAY_MASK_COLOR) {
-			R_AttributePointer(R_ARRAY_COLOR, 4, r_state.array_buffers[R_ARRAY_COLOR], r_state.array_buffer_offsets[R_ARRAY_COLOR] + (r_state.array_buffers[R_ARRAY_COLOR]->interleave ? R_ATTRIBUTE_COLOR_OFFSET : 0));
+			R_AttributeIPointer(R_ARRAY_COLOR, GL_UNSIGNED_BYTE, 4, r_state.array_buffers[R_ARRAY_COLOR], r_state.array_buffer_offsets[R_ARRAY_COLOR] + (r_state.array_buffers[R_ARRAY_COLOR]->interleave ? R_ATTRIBUTE_COLOR_OFFSET : 0));
 		} else {
 			R_AttributeConstant4fv(R_ARRAY_COLOR, r_state.current_color);
 		}

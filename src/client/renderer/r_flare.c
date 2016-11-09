@@ -119,7 +119,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		if (f->image != image) {
 
 			if (l) {
-				R_UploadToBuffer(&r_state.buffer_color_array, j * sizeof(vec_t), r_state.color_array);
+				R_UploadToBuffer(&r_state.buffer_color_array, j * sizeof(u8vec_t), r_state.color_array);
 				R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, k * sizeof(vec_t), texunit_diffuse.texcoord_array);
 				R_UploadToBuffer(&r_state.buffer_vertex_array, l * sizeof(vec_t), r_state.vertex_array);
 				R_UploadToBuffer(&r_state.buffer_element_array, m * sizeof(GLuint), r_state.indice_array);
@@ -180,8 +180,8 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		VectorSubtract(f->origin, up_right, verts[3]);
 
 		for (n = 0; n < 4; n++) { // duplicate color data to all 4 verts
-			memcpy(&r_state.color_array[j], f->color, sizeof(vec3_t));
-			r_state.color_array[j + 3] = alpha;
+			ColorDecompose3(f->color, &r_state.color_array[j]);
+			r_state.color_array[j + 3] = (u8vec_t) (alpha * 255.0);
 			j += 4;
 		}
 
@@ -206,7 +206,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	}
 
 	if (l) {
-		R_UploadToBuffer(&r_state.buffer_color_array, j * sizeof(vec_t), r_state.color_array);
+		R_UploadToBuffer(&r_state.buffer_color_array, j * sizeof(u8vec_t), r_state.color_array);
 		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, k * sizeof(vec_t), texunit_diffuse.texcoord_array);
 		R_UploadToBuffer(&r_state.buffer_vertex_array, l * sizeof(vec_t), r_state.vertex_array);
 		R_UploadToBuffer(&r_state.buffer_element_array, m * sizeof(GLuint), r_state.indice_array);

@@ -52,9 +52,9 @@ typedef struct {
 	vec3_t splash_right[2];
 	vec3_t splash_up[2];
 
-	GLfloat verts[MAX_PARTICLES * 3 * 4];
-	GLfloat texcoords[MAX_PARTICLES * 2 * 4];
-	GLfloat colors[MAX_PARTICLES * 4 * 4];
+	vec3_t verts[MAX_PARTICLES * 4];
+	vec2_t texcoords[MAX_PARTICLES * 2];
+	u8vec4_t colors[MAX_PARTICLES * 4];
 	GLuint elements[MAX_PARTICLES * 6];
 	uint32_t num_particles;
 
@@ -95,11 +95,8 @@ void R_ShutdownParticles(void) {
 /**
  * @brief Generates the vertex coordinates for the specified particle.
  */
-static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
+static void R_ParticleVerts(const r_particle_t *p, vec3_t *verts) {
 	vec3_t v, up, right, up_right, down_right;
-	vec3_t *verts;
-
-	verts = (vec3_t *) out;
 
 	if (p->type == PARTICLE_BEAM || p->type == PARTICLE_SPARK) { // beams are lines with starts and ends
 		VectorSubtract(p->org, p->end, v);
@@ -174,7 +171,7 @@ static void R_ParticleVerts(const r_particle_t *p, GLfloat *out) {
 /**
  * @brief Generates texture coordinates for the specified particle.
  */
-static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
+static void R_ParticleTexcoords(const r_particle_t *p, vec2_t *out) {
 	vec_t s, t;
 
 	_Bool is_atlas = p->image && p->image->type == IT_ATLAS_IMAGE;
@@ -190,43 +187,28 @@ static void R_ParticleTexcoords(const r_particle_t *p, GLfloat *out) {
 	if (is_atlas) {
 		const r_atlas_image_t *atlas_image = (const r_atlas_image_t *) p->image;
 
-		out[0] = atlas_image->texcoords[0];
-		out[1] = atlas_image->texcoords[1];
-
-		out[2] = atlas_image->texcoords[2];
-		out[3] = atlas_image->texcoords[1];
-
-		out[4] = atlas_image->texcoords[2];
-		out[5] = atlas_image->texcoords[3];
-
-		out[6] = atlas_image->texcoords[0];
-		out[7] = atlas_image->texcoords[3];
+		Vector2Set(out[0], atlas_image->texcoords[0], atlas_image->texcoords[1]);
+		Vector2Set(out[1], atlas_image->texcoords[2], atlas_image->texcoords[1]);
+		Vector2Set(out[2], atlas_image->texcoords[2], atlas_image->texcoords[3]);
+		Vector2Set(out[3], atlas_image->texcoords[0], atlas_image->texcoords[3]);
 	} else {
 		s = p->scroll_s * r_view.time / 1000.0;
 		t = p->scroll_t *r_view.time / 1000.0;
 
-		out[0] = 0.0 + s;
-		out[1] = 0.0 + t;
-
-		out[2] = 1.0 + s;
-		out[3] = 0.0 + t;
-
-		out[4] = 1.0 + s;
-		out[5] = 1.0 + t;
-
-		out[6] = 0.0 + s;
-		out[7] = 1.0 + t;
+		Vector2Set(out[0], s, t);
+		Vector2Set(out[1], 1.0 + s, t);
+		Vector2Set(out[2], 1.0 + s, 1.0 + t);
+		Vector2Set(out[3], s, 1.0 + t);
 	}
 }
 
 /**
  * @brief Generates vertex colors for the specified particle.
  */
-static void R_ParticleColor(const r_particle_t *p, GLfloat *out) {
+static void R_ParticleColor(const r_particle_t *p, u8vec4_t *out) {
 
 	for (int32_t i = 0; i < 4; i++) {
-		Vector4Copy(p->color, out);
-		out += 4;
+		ColorDecompose(p->color, out[i]);
 	}
 }
 
@@ -264,9 +246,9 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 
 			const uint32_t vertex_start = r_particle_state.num_particles * 4;
 
-			R_ParticleVerts(p, &r_particle_state.verts[vertex_start * 3]);
-			R_ParticleTexcoords(p, &r_particle_state.texcoords[vertex_start * 2]);
-			R_ParticleColor(p, &r_particle_state.colors[vertex_start * 4]);
+			R_ParticleVerts(p, &r_particle_state.verts[vertex_start]);
+			R_ParticleTexcoords(p, &r_particle_state.texcoords[vertex_start]);
+			R_ParticleColor(p, &r_particle_state.colors[vertex_start]);
 
 			const uint32_t index_start = r_particle_state.num_particles * 6;
 
@@ -295,7 +277,7 @@ void R_UploadParticles(void) {
 
 	R_UploadToBuffer(&p->verts_buffer, p->num_particles * sizeof(vec3_t) * 4, p->verts);
 	R_UploadToBuffer(&p->texcoords_buffer, p->num_particles * sizeof(vec2_t) * 4, p->texcoords);
-	R_UploadToBuffer(&p->colors_buffer, p->num_particles * sizeof(vec4_t) * 4, p->colors);
+	R_UploadToBuffer(&p->colors_buffer, p->num_particles * sizeof(u8vec4_t) * 4, p->colors);
 
 	R_UploadToBuffer(&p->element_buffer, p->num_particles * sizeof(GLuint) * 6, p->elements);
 

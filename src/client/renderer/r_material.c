@@ -227,18 +227,18 @@ static const vec_t dirtmap[NUM_DIRTMAP_ENTRIES] = {
 /**
  * @brief Generates a single color for the specified stage and vertex.
  */
-static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t color) {
+static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, u8vec4_t color) {
 
 	vec_t a;
 
 	if (stage->flags & STAGE_TERRAIN) {
 
 		if (stage->flags & STAGE_COLOR) { // honor stage color
-			VectorCopy(stage->color, color);
+			ColorDecompose3(stage->color, color);
 		} else
 			// or use white
 		{
-			VectorSet(color, 1.0, 1.0, 1.0);
+			VectorSet(color, 255, 255, 255);
 		}
 
 		// resolve alpha for vert based on z axis height
@@ -250,22 +250,22 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t c
 			a = (v[2] - stage->terrain.floor) / stage->terrain.height;
 		}
 
-		color[3] = a;
+		color[3] = (u8vec_t) (a * 255.0);
 	} else if (stage->flags & STAGE_DIRTMAP) {
 
 		// resolve dirtmap based on vertex position
 		const uint16_t index = (uint16_t) (v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
 		if (stage->flags & STAGE_COLOR) { // honor stage color
-			VectorCopy(stage->color, color);
+			ColorDecompose3(stage->color, color);
 		} else
 			// or use white
 		{
-			VectorSet(color, 1.0, 1.0, 1.0);
+			VectorSet(color, 255, 255, 255);
 		}
 
-		color[3] = dirtmap[index] * stage->dirt.intensity;
+		color[3] = (u8vec_t) (dirtmap[index] * stage->dirt.intensity);
 	} else { // simply use white
-		color[0] = color[1] = color[2] = color[3] = 1.0;
+		color[0] = color[1] = color[2] = color[3] = 255;
 	}
 }
 

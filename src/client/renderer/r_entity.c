@@ -281,25 +281,28 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 	R_BindDefaultArray(R_ARRAY_COLOR);
 
-	const vec4_t colors[] = {
-		{ color[0], color[1], color[2], color[3] },
-		{ color[0], color[1], color[2], color[3] },
-		{ color[0], color[1], color[2], color[3] },
-		{ color[0], color[1], color[2], color[3] },
+	u8vec4_t bc;
+	ColorDecompose(color, bc);
 
-		{ color[0], color[1], color[2], color[3] },
-		{ color[0], color[1], color[2], color[3] },
-		{ color[0], color[1], color[2], color[3] },
-		{ color[0], color[1], color[2], color[3] },
+	const u8vec4_t colors[] = {
+		{ bc[0], bc[1], bc[2], bc[3] },
+		{ bc[0], bc[1], bc[2], bc[3] },
+		{ bc[0], bc[1], bc[2], bc[3] },
+		{ bc[0], bc[1], bc[2], bc[3] },
 
-		{ 1.0, 0.0, 0.0, 1.0 },
-		{ 1.0, 0.0, 0.0, 1.0 },
+		{ bc[0], bc[1], bc[2], bc[3] },
+		{ bc[0], bc[1], bc[2], bc[3] },
+		{ bc[0], bc[1], bc[2], bc[3] },
+		{ bc[0], bc[1], bc[2], bc[3] },
 
-		{ 0.0, 1.0, 0.0, 1.0 },
-		{ 0.0, 1.0, 0.0, 1.0 },
+		{ 255, 0, 0, 255 },
+		{ 255, 0, 0, 255 },
 
-		{ 0.0, 0.0, 1.0, 1.0 },
-		{ 0.0, 0.0, 1.0, 1.0 },
+		{ 0, 255, 0, 255 },
+		{ 0, 255, 0, 255 },
+
+		{ 0, 0, 255, 255 },
+		{ 0, 0, 255, 255 },
 	};
 
 	R_UploadToBuffer(&r_state.buffer_color_array, sizeof(colors), colors);

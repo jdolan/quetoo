@@ -286,6 +286,8 @@ static _Bool G_FireWeapon(g_entity_t *ent) {
  */
 static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
 
+	gi.Debug("Weapon interval: %f ms (%f ms old) (%u ms)\n", (float)(interval / 16.6666666666666666), (float)(interval / 32.0), interval);
+
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
@@ -400,7 +402,7 @@ void G_FireBlaster(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 0.08);
 
-		G_WeaponFired(ent, 400);
+		G_WeaponFired(ent, 450);
 	}
 }
 
@@ -470,7 +472,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 0.125);
 
-		G_WeaponFired(ent, 50);
+		G_WeaponFired(ent, 66);
 	}
 }
 
@@ -681,7 +683,7 @@ void G_FireHyperblaster(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 0.15);
 
-		G_WeaponFired(ent, 100);
+		G_WeaponFired(ent, 90);
 	}
 }
 
