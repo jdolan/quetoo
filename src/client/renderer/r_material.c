@@ -350,7 +350,7 @@ static void R_DrawBspSurfaceMaterialStage(r_bsp_surface_t *surf, const r_stage_t
 			VectorCopy(n, r_state.interleave_array[r_material_vertex_count + i].normal);
 
 			const vec_t *t = &r_model_state.world->bsp->tangents[surf->elements[i]][0];
-			VectorCopy(t, r_state.interleave_array[r_material_vertex_count + i].tangent);
+			TangentToGLTangent(t, &r_state.interleave_array[r_material_vertex_count + i].tangent);
 		}
 	}
 	

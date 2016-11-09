@@ -332,7 +332,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 			for (uint16_t j = 0; j < mesh->num_verts; j++, v++, ++t) {
 				VectorAdd(frame->translate, v->point, r_mesh_state.vertexes[j + vert_offset].vertex);
 				VectorCopy(v->normal, r_mesh_state.vertexes[j + vert_offset].normal);
-				Vector4Copy(v->tangent, r_mesh_state.vertexes[j + vert_offset	].tangent);
+				TangentToGLTangent(v->tangent, &r_mesh_state.vertexes[j + vert_offset].tangent);
 
 				// only copy st coords once
 				if (f == 0) {
@@ -866,7 +866,7 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 		VectorCopy(ve->normal, vout->normal);
 
-		Vector4Copy(ve->tangent, vout->tangent);
+		TangentToGLTangent(ve->tangent, &vout->tangent);
 
 		vout++;
 

@@ -686,12 +686,12 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ARRAY_MASK_TANGENT) {
 
-			R_AttributePointer(R_ARRAY_TANGENT, 4, r_state.array_buffers[R_ARRAY_TANGENT], r_state.array_buffer_offsets[R_ARRAY_TANGENT] + (r_state.array_buffers[R_ARRAY_TANGENT]->interleave ? R_ATTRIBUTE_TANGENT_OFFSET : 0));
+			R_AttributeIPointer(R_ARRAY_TANGENT, GL_INT_2_10_10_10_REV, 4, r_state.array_buffers[R_ARRAY_TANGENT], r_state.array_buffer_offsets[R_ARRAY_TANGENT] + (r_state.array_buffers[R_ARRAY_TANGENT]->interleave ? R_ATTRIBUTE_TANGENT_OFFSET : 0));
 
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_TANGENT) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_TANGENT])) {
-					R_AttributePointer(R_ARRAY_NEXT_TANGENT, 4, r_state.array_buffers[R_ARRAY_NEXT_TANGENT], r_state.array_buffer_offsets[R_ARRAY_NEXT_TANGENT] + (r_state.array_buffers[R_ARRAY_NEXT_TANGENT]->interleave ? R_ATTRIBUTE_TANGENT_OFFSET : 0));
+					R_AttributeIPointer(R_ARRAY_NEXT_TANGENT, GL_INT_2_10_10_10_REV, 4, r_state.array_buffers[R_ARRAY_NEXT_TANGENT], r_state.array_buffer_offsets[R_ARRAY_NEXT_TANGENT] + (r_state.array_buffers[R_ARRAY_NEXT_TANGENT]->interleave ? R_ATTRIBUTE_TANGENT_OFFSET : 0));
 				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_TANGENT);
 				}

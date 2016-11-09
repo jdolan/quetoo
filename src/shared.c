@@ -180,6 +180,8 @@ void PerpendicularVector(const vec3_t in, vec3_t out) {
 	VectorNormalize(out);
 }
 
+void TangentToGLTangent(const vec4_t tangent, int32_t *integer);
+
 /**
  * @brief Projects the normalized directional vectors on to the normal's plane.
  * The fourth component of the resulting tangent vector represents sidedness.
@@ -210,6 +212,42 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 	}
 
 	VectorScale(bitangent, tangent[3], bitangent);
+}
+
+/**
+ * @brief Transform a vec4 tangent onto an integral representation for GL.
+ *
+ * 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
+ *  -----------------------------------------------------------------------------------------------
+ * |  w  |              z              |              y              |              x              |
+ *  -----------------------------------------------------------------------------------------------
+ */
+void TangentToGLTangent(const vec4_t tangent, int32_t *integer) {
+	// clear all dem bits
+	*integer = 0;
+
+	// handle x/y/z
+	for (int32_t i = 0, b = 0; i < 3; i++, b += 10) {
+		if (tangent[i] == 0.0) {
+			continue;
+		}
+		else if (tangent[i] > 0.0) {
+			uint32_t value = (uint32_t) (tangent[i] * 511);
+			*integer |= (value << b);
+		} else {
+			uint32_t value = (uint32_t) (-tangent[i] * 512);
+			*integer |= ((~value & 0x3FF) << b);
+		}
+	}
+
+	// sidedness is a bit simpler
+	if (tangent[3] != 0) {
+		*integer |= (1 << 30); // set the 30th bit to 1
+
+		if (tangent[3] < 0) {
+			*integer |= (1 << 31); // set the 31st bit to 1 for invert
+		}
+	}
 }
 
 /**
