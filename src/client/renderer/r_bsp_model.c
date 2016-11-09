@@ -897,7 +897,7 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 
 	for (GLsizei i = 0; i < mod->num_verts; ++i) {
 		VectorCopy(mod->bsp->verts[i], interleaved[i].vertex);
-		VectorCopy(mod->bsp->normals[i], interleaved[i].normal);
+		NormalToGLNormal(mod->bsp->normals[i], &interleaved[i].normal);
 		TangentToGLTangent(mod->bsp->tangents[i], &interleaved[i].tangent);
 		Vector2Copy(mod->bsp->texcoords[i], interleaved[i].diffuse);
 		Vector2Copy(mod->bsp->lightmap_texcoords[i], interleaved[i].lightmap);

@@ -347,7 +347,7 @@ static void R_DrawBspSurfaceMaterialStage(r_bsp_surface_t *surf, const r_stage_t
 		if (r_state.lighting_enabled) { // normals and tangents
 
 			const vec_t *n = &r_model_state.world->bsp->normals[surf->elements[i]][0];
-			VectorCopy(n, r_state.interleave_array[r_material_vertex_count + i].normal);
+			NormalToGLNormal(n, &r_state.interleave_array[r_material_vertex_count + i].normal);
 
 			const vec_t *t = &r_model_state.world->bsp->tangents[surf->elements[i]][0];
 			TangentToGLTangent(t, &r_state.interleave_array[r_material_vertex_count + i].tangent);

@@ -665,12 +665,12 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ARRAY_MASK_NORMAL) {
 
-			R_AttributePointer(R_ARRAY_NORMAL, 3, r_state.array_buffers[R_ARRAY_NORMAL], r_state.array_buffer_offsets[R_ARRAY_NORMAL] + (r_state.array_buffers[R_ARRAY_NORMAL]->interleave ? R_ATTRIBUTE_NORMAL_OFFSET : 0));
+			R_AttributeIPointer(R_ARRAY_NORMAL, GL_INT_2_10_10_10_REV, 4, r_state.array_buffers[R_ARRAY_NORMAL], r_state.array_buffer_offsets[R_ARRAY_NORMAL] + (r_state.array_buffers[R_ARRAY_NORMAL]->interleave ? R_ATTRIBUTE_NORMAL_OFFSET : 0));
 
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_NORMAL) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_NORMAL])) {
-					R_AttributePointer(R_ARRAY_NEXT_NORMAL, 3, r_state.array_buffers[R_ARRAY_NEXT_NORMAL], r_state.array_buffer_offsets[R_ARRAY_NEXT_NORMAL] + (r_state.array_buffers[R_ARRAY_NEXT_NORMAL]->interleave ? R_ATTRIBUTE_NORMAL_OFFSET : 0));
+					R_AttributeIPointer(R_ARRAY_NEXT_NORMAL, GL_INT_2_10_10_10_REV, 4, r_state.array_buffers[R_ARRAY_NEXT_NORMAL], r_state.array_buffer_offsets[R_ARRAY_NEXT_NORMAL] + (r_state.array_buffers[R_ARRAY_NEXT_NORMAL]->interleave ? R_ATTRIBUTE_NORMAL_OFFSET : 0));
 				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_NORMAL);
 				}
