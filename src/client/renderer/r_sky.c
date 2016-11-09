@@ -64,7 +64,6 @@ typedef struct {
 	vec_t st_maxs[2][6];
 	vec_t st_min;
 	vec_t st_max;
-	GLuint texcoord_index;
 	GLuint vert_index;
 } r_sky_t;
 
@@ -297,8 +296,7 @@ static void R_MakeSkyVec(vec_t s, vec_t t, int32_t axis) {
 		}
 	}
 
-	memcpy(&r_state.vertex_array[r_sky.vert_index], v, sizeof(vec3_t));
-	r_sky.vert_index += 3;
+	VectorCopy(v, r_state.vertex_array[r_sky.vert_index]);
 
 	// avoid bilerp seam
 	s = (s + 1.0) * 0.5;
@@ -307,8 +305,9 @@ static void R_MakeSkyVec(vec_t s, vec_t t, int32_t axis) {
 	s = Clamp(s, r_sky.st_min, r_sky.st_max);
 	t = 1.0 - Clamp(t, r_sky.st_min, r_sky.st_max);
 
-	texunit_diffuse.texcoord_array[r_sky.texcoord_index++] = s;
-	texunit_diffuse.texcoord_array[r_sky.texcoord_index++] = t;
+	Vector2Set(texunit_diffuse.texcoord_array[r_sky.vert_index], s, t);
+
+	r_sky.vert_index++;
 }
 
 /**
@@ -343,7 +342,7 @@ void R_DrawSkyBox(void) {
 	r_state.active_fog_parameters.end = FOG_END * 8.0;
 	r_state.active_program->UseFog(&r_state.active_fog_parameters);
 
-	r_sky.texcoord_index = r_sky.vert_index = 0;
+	r_sky.vert_index = 0;
 
 	for (i = 0; i < 6; i++) {
 
@@ -359,12 +358,12 @@ void R_DrawSkyBox(void) {
 		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_maxs[1][i], i);
 		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_mins[1][i], i);
 
-		R_UploadToBuffer(&r_state.buffer_vertex_array, r_sky.vert_index * sizeof(vec_t), r_state.vertex_array);
-		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, r_sky.texcoord_index * sizeof(vec_t),
+		R_UploadToBuffer(&r_state.buffer_vertex_array, r_sky.vert_index * sizeof(vec3_t), r_state.vertex_array);
+		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, r_sky.vert_index * sizeof(vec2_t),
 		                 texunit_diffuse.texcoord_array);
 
-		R_DrawArrays(GL_TRIANGLE_FAN, 0, r_sky.vert_index / 3);
-		r_sky.texcoord_index = r_sky.vert_index = 0;
+		R_DrawArrays(GL_TRIANGLE_FAN, 0, r_sky.vert_index);
+		r_sky.vert_index = 0;
 	}
 
 	r_state.active_fog_parameters.end = FOG_END;

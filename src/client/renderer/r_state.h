@@ -46,14 +46,14 @@ void R_EnableTextureID(const r_texunit_id_t texunit_id, _Bool enable);
 
 // vertex arrays are used for many things
 #define MAX_GL_ARRAY_LENGTH 0x10000
-extern const vec_t default_texcoords[];
+extern const vec2_t default_texcoords[4];
 
 // texunits maintain multitexture state
 typedef struct r_texunit_s {
 	_Bool enabled; // on / off (off uses null texture)
 	GLenum texture; // e.g. GL_TEXTURE0 + x
 	GLuint texnum; // e.g 123
-	GLfloat *texcoord_array;
+	vec2_t *texcoord_array;
 	r_buffer_t buffer_texcoord_array;
 } r_texunit_t;
 
@@ -67,19 +67,15 @@ typedef struct r_matrix_stack_s {
 
 // opengl state management
 typedef struct r_state_s {
-	GLfloat vertex_array[MAX_GL_ARRAY_LENGTH * 3]; // default vertex arrays
-	u8vec_t color_array[MAX_GL_ARRAY_LENGTH * 4];
-	GLfloat normal_array[MAX_GL_ARRAY_LENGTH * 3];
-	GLfloat tangent_array[MAX_GL_ARRAY_LENGTH * 4];
-	GLuint indice_array[MAX_GL_ARRAY_LENGTH * 6];
+	vec3_t vertex_array[MAX_GL_ARRAY_LENGTH]; // default vertex arrays
+	u8vec4_t color_array[MAX_GL_ARRAY_LENGTH];
+	GLuint indice_array[(uint32_t)(MAX_GL_ARRAY_LENGTH * 1.5)];
 	
 	r_interleave_vertex_t interleave_array[MAX_GL_ARRAY_LENGTH];
 
 	// built-in buffers for the above vertex arrays
 	r_buffer_t buffer_vertex_array;
 	r_buffer_t buffer_color_array;
-	r_buffer_t buffer_normal_array;
-	r_buffer_t buffer_tangent_array;
 	r_buffer_t buffer_element_array;
 
 	r_buffer_t buffer_interleave_array;

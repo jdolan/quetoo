@@ -25,11 +25,11 @@ static cvar_t *r_get_error;
 
 r_state_t r_state;
 
-const vec_t default_texcoords[] = { // useful for particles, pics, etc..
-	0.0, 0.0,
-	1.0, 0.0,
-	1.0, 1.0,
-	0.0, 1.0
+const vec2_t default_texcoords[4] = { // useful for particles, pics, etc..
+	{ 0.0, 0.0 },
+	{ 1.0, 0.0 },
+	{ 1.0, 1.0 },
+	{ 0.0, 1.0 }
 };
 
 /**
@@ -227,12 +227,6 @@ void R_BindDefaultArray(const r_attribute_id_t target) {
 			break;
 		case R_ARRAY_COLOR:
 			R_BindArray(target, &r_state.buffer_color_array);
-			break;
-		case R_ARRAY_NORMAL:
-			R_BindArray(target, &r_state.buffer_normal_array);
-			break;
-		case R_ARRAY_TANGENT:
-			R_BindArray(target, &r_state.buffer_tangent_array);
 			break;
 		case R_ARRAY_TEX_DIFFUSE:
 			R_BindArray(target, &texunit_diffuse.buffer_texcoord_array);
@@ -1076,9 +1070,9 @@ void R_Setup2D(void) {
 	R_BindDefaultArray(R_ARRAY_VERTEX);
 
 	// and set default texcoords for all 2d pics
-	memcpy(texunit_diffuse.texcoord_array, default_texcoords, sizeof(vec2_t) * 4);
+	memcpy(texunit_diffuse.texcoord_array, default_texcoords, sizeof(default_texcoords));
 
-	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, sizeof(vec2_t) * 4, default_texcoords);
+	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, sizeof(default_texcoords), default_texcoords);
 
 	R_EnableBlend(true);
 
@@ -1104,8 +1098,6 @@ void R_InitState(void) {
 	// setup vertex array pointers
 	R_CreateBuffer(&r_state.buffer_vertex_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.vertex_array), NULL);
 	R_CreateBuffer(&r_state.buffer_color_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.color_array), NULL);
-	R_CreateBuffer(&r_state.buffer_normal_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.normal_array), NULL);
-	R_CreateBuffer(&r_state.buffer_tangent_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.tangent_array), NULL);
 	R_CreateBuffer(&r_state.buffer_element_array, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT, sizeof(r_state.indice_array), NULL);
 
 	R_CreateBuffer(&r_state.buffer_interleave_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, sizeof(r_state.interleave_array), NULL);
@@ -1182,8 +1174,6 @@ void R_ShutdownState(void) {
 
 	R_DestroyBuffer(&r_state.buffer_vertex_array);
 	R_DestroyBuffer(&r_state.buffer_color_array);
-	R_DestroyBuffer(&r_state.buffer_normal_array);
-	R_DestroyBuffer(&r_state.buffer_tangent_array);
 	R_DestroyBuffer(&r_state.buffer_element_array);
 
 	R_DestroyBuffer(&r_state.buffer_interleave_array);

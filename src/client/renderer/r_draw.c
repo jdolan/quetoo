@@ -135,6 +135,19 @@ r_color_t R_MakeColor(byte r, byte g, byte b, byte a) {
 }
 
 /**
+ * @brief Make a quad by passing index to first vertex and last element ID.
+ */
+void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {
+	*(indices)++ = vertex_id + 0;
+	*(indices)++ = vertex_id + 1;
+	*(indices)++ = vertex_id + 2;
+
+	*(indices)++ = vertex_id + 0;
+	*(indices)++ = vertex_id + 2;
+	*(indices)++ = vertex_id + 3;
+}
+
+/**
  * @brief
  */
 void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) {
@@ -143,21 +156,10 @@ void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) 
 
 	// our texcoords are already setup, just set verts and draw
 
-	r_state.vertex_array[0] = x;
-	r_state.vertex_array[1] = y;
-	r_state.vertex_array[2] = 0;
-
-	r_state.vertex_array[3] = x + image->width * scale;
-	r_state.vertex_array[4] = y;
-	r_state.vertex_array[5] = 0;
-
-	r_state.vertex_array[6] = x + image->width * scale;
-	r_state.vertex_array[7] = y + image->height * scale;
-	r_state.vertex_array[8] = 0;
-
-	r_state.vertex_array[9] = x;
-	r_state.vertex_array[10] = y + image->height * scale;
-	r_state.vertex_array[11] = 0;
+	VectorSet(r_state.vertex_array[0], x, y, 0);
+	VectorSet(r_state.vertex_array[1], x + image->width * scale, y, 0);
+	VectorSet(r_state.vertex_array[2], x + image->width * scale, y + image->height * scale, 0);
+	VectorSet(r_state.vertex_array[3], x, y + image->height * scale, 0);
 
 	R_UploadToBuffer(&r_state.buffer_vertex_array, 4 * sizeof(vec3_t), r_state.vertex_array);
 
@@ -173,21 +175,10 @@ void R_DrawImageResized(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, cons
 
 	// our texcoords are already setup, just set verts and draw
 
-	r_state.vertex_array[0] = x;
-	r_state.vertex_array[1] = y;
-	r_state.vertex_array[2] = 0;
-
-	r_state.vertex_array[3] = x + w;
-	r_state.vertex_array[4] = y;
-	r_state.vertex_array[5] = 0;
-
-	r_state.vertex_array[6] = x + w;
-	r_state.vertex_array[7] = y + h;
-	r_state.vertex_array[8] = 0;
-
-	r_state.vertex_array[9] = x;
-	r_state.vertex_array[10] = y + h;
-	r_state.vertex_array[11] = 0;
+	VectorSet(r_state.vertex_array[0], x, y, 0);
+	VectorSet(r_state.vertex_array[1], x + w, y, 0);
+	VectorSet(r_state.vertex_array[2], x + w, y + h, 0);
+	VectorSet(r_state.vertex_array[3], x, y + h, 0);
 
 	R_UploadToBuffer(&r_state.buffer_vertex_array, 4 * sizeof(vec3_t), r_state.vertex_array);
 
@@ -310,51 +301,26 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 	// resolve ABGR color
 	const uint32_t *abgr = &r_draw.colors[color & (MAX_COLORS - 1)];
 
-	memcpy(&chars->colors[chars->vert_index + 0], abgr, sizeof(u8vec4_t));
-	memcpy(&chars->colors[chars->vert_index + 1], abgr, sizeof(u8vec4_t));
-	memcpy(&chars->colors[chars->vert_index + 2], abgr, sizeof(u8vec4_t));
-	memcpy(&chars->colors[chars->vert_index + 3], abgr, sizeof(u8vec4_t));
+	// copy to all 4 verts
+	for (uint32_t i = 0; i < 4; ++i) {
+		memcpy(&chars->colors[chars->vert_index + i], abgr, sizeof(u8vec4_t));
+	}
 
-	chars->texcoords[chars->vert_index + 0][0] = fcol;
-	chars->texcoords[chars->vert_index + 0][1] = frow;
+	Vector2Set(chars->texcoords[chars->vert_index], fcol, frow);
+	Vector2Set(chars->texcoords[chars->vert_index + 1], fcol + 0.0625, frow);
+	Vector2Set(chars->texcoords[chars->vert_index + 2], fcol + 0.0625, frow + 0.1250);
+	Vector2Set(chars->texcoords[chars->vert_index + 3], fcol, frow + 0.1250);
 
-	chars->texcoords[chars->vert_index + 1][0] = fcol + 0.0625;
-	chars->texcoords[chars->vert_index + 1][1] = frow;
-
-	chars->texcoords[chars->vert_index + 2][0] = fcol + 0.0625;
-	chars->texcoords[chars->vert_index + 2][1] = frow + 0.1250;
-
-	chars->texcoords[chars->vert_index + 3][0] = fcol;
-	chars->texcoords[chars->vert_index + 3][1] = frow + 0.1250;
-
-	chars->verts[chars->vert_index + 0][0] = x;
-	chars->verts[chars->vert_index + 0][1] = y;
-	chars->verts[chars->vert_index + 0][2] = 0;
-
-	chars->verts[chars->vert_index + 1][0] = x + r_draw.font->char_width;
-	chars->verts[chars->vert_index + 1][1] = y;
-	chars->verts[chars->vert_index + 1][2] = 0;
-
-	chars->verts[chars->vert_index + 2][0] = x + r_draw.font->char_width;
-	chars->verts[chars->vert_index + 2][1] = y + r_draw.font->char_height;
-	chars->verts[chars->vert_index + 2][2] = 0;
-
-	chars->verts[chars->vert_index + 3][0] = x;
-	chars->verts[chars->vert_index + 3][1] = y + r_draw.font->char_height;
-	chars->verts[chars->vert_index + 3][2] = 0;
+	VectorSet(chars->verts[chars->vert_index], x, y, 0);
+	VectorSet(chars->verts[chars->vert_index + 1], x + r_draw.font->char_width, y, 0);
+	VectorSet(chars->verts[chars->vert_index + 2], x + r_draw.font->char_width, y + r_draw.font->char_height, 0);
+	VectorSet(chars->verts[chars->vert_index + 3], x, y + r_draw.font->char_height, 0);
 
 	chars->vert_index += 4;
 
 	const GLuint char_index = chars->num_chars * 4;
 
-	chars->elements[chars->element_index + 0] = char_index;
-	chars->elements[chars->element_index + 1] = char_index + 1;
-	chars->elements[chars->element_index + 2] = char_index + 2;
-
-	chars->elements[chars->element_index + 3] = char_index + 0;
-	chars->elements[chars->element_index + 4] = char_index + 2;
-	chars->elements[chars->element_index + 5] = char_index + 3;
-
+	R_MakeQuadU32(&chars->elements[chars->element_index], char_index);
 	chars->element_index += 6;
 
 	chars->num_chars++;
@@ -430,40 +396,21 @@ void R_DrawFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, int32_t c, v
 	}
 
 	// duplicate color data to all 4 verts
-	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.vert_index + 0], &c, sizeof(u8vec4_t));
-	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.vert_index + 1], &c, sizeof(u8vec4_t));
-	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.vert_index + 2], &c, sizeof(u8vec4_t));
-	memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.vert_index + 3], &c, sizeof(u8vec4_t));
+	for (uint32_t i = 0; i < 4; ++i) {
+		memcpy(&r_draw.fill_arrays.colors[r_draw.fill_arrays.vert_index + i], &c, sizeof(u8vec4_t));
+	}
 
 	// populate verts
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 0][0] = x + 0.5;
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 0][1] = y + 0.5;
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 0][2] = 0;
-
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 1][0] = (x + w) + 0.5;
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 1][1] = y + 0.5;
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 1][2] = 0;
-
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 2][0] = (x + w) + 0.5;
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 2][1] = (y + h) + 0.5;
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 2][2] = 0;
-
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 3][0] = x + 0.5;
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 3][1] = (y + h) + 0.5;
-	r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 3][2] = 0;
+	VectorSet(r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index], x + 0.5, y + 0.5, 0);
+	VectorSet(r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 1], (x + w) + 0.5, y + 0.5, 0);
+	VectorSet(r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 2], (x + w) + 0.5, (y + h) + 0.5, 0);
+	VectorSet(r_draw.fill_arrays.verts[r_draw.fill_arrays.vert_index + 3], x + 0.5, (y + h) + 0.5, 0);
 
 	r_draw.fill_arrays.vert_index += 4;
 
 	const GLuint fill_index = r_draw.fill_arrays.num_fills * 4;
 
-	r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index + 0] = fill_index;
-	r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index + 1] = fill_index + 1;
-	r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index + 2] = fill_index + 2;
-
-	r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index + 3] = fill_index + 0;
-	r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index + 4] = fill_index + 2;
-	r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index + 5] = fill_index + 3;
-
+	R_MakeQuadU32(&r_draw.fill_arrays.elements[r_draw.fill_arrays.element_index], fill_index);
 	r_draw.fill_arrays.element_index += 6;
 
 	r_draw.fill_arrays.num_fills++;
@@ -525,18 +472,14 @@ void R_DrawLine(r_pixel_t x1, r_pixel_t y1, r_pixel_t x2, r_pixel_t y2, int32_t 
 		c |= (((u8vec_t) (a * 255.0)) & 0xFF) << 24;
 	}
 
-	// duplicate color data to all 4 verts
-	memcpy(&r_draw.line_arrays.colors[r_draw.line_arrays.vert_index + 0], &c, sizeof(u8vec4_t));
-	memcpy(&r_draw.line_arrays.colors[r_draw.line_arrays.vert_index + 1], &c, sizeof(u8vec4_t));
+	// duplicate color data to 2 verts
+	for (uint32_t i = 0; i < 4; ++i) {
+		memcpy(&r_draw.line_arrays.colors[r_draw.line_arrays.vert_index + i], &c, sizeof(u8vec4_t));
+	}
 
 	// populate verts
-	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 0][0] = x1 + 0.5;
-	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 0][1] = y1 + 0.5;
-	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 0][2] = 0;
-
-	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 1][0] = x2 + 0.5;
-	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 1][1] = y2 + 0.5;
-	r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 1][2] = 0;
+	VectorSet(r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 0], x1 + 0.5, y1 + 0.5, 0.0);
+	VectorSet(r_draw.line_arrays.verts[r_draw.line_arrays.vert_index + 1], x2 + 0.5, y2 + 0.5, 0.0);
 
 	r_draw.line_arrays.vert_index += 2;
 }
@@ -564,7 +507,7 @@ static void R_DrawLines(void) {
 	R_BindArray(R_ARRAY_VERTEX, &r_draw.line_arrays.vert_buffer);
 	R_BindArray(R_ARRAY_COLOR, &r_draw.line_arrays.color_buffer);
 
-	R_DrawArrays(GL_LINES, 0, r_draw.line_arrays.vert_index / 3);
+	R_DrawArrays(GL_LINES, 0, r_draw.line_arrays.vert_index);
 
 	// and restore them
 	R_BindDefaultArray(R_ARRAY_VERTEX);
@@ -731,7 +674,7 @@ void R_InitDraw(void) {
 
 	// fill buffer only needs 4 verts
 	R_CreateBuffer(&r_draw.fill_arrays.ui_vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(vec3_t) * 4, NULL);
-	R_CreateBuffer(&r_draw.line_arrays.ui_vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(vec3_t) * MAX_LINES * 4,
+	R_CreateBuffer(&r_draw.line_arrays.ui_vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(vec3_t) * MAX_LINE_VERTS,
 	               NULL);
 }
 

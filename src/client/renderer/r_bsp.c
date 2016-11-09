@@ -292,10 +292,10 @@ void R_DrawBspNormals(void) {
 			continue;    // don't care
 		}
 
-		if (k > MAX_GL_ARRAY_LENGTH - 512) { // avoid overflows, draw in batches
-			R_UploadToBuffer(&r_state.buffer_vertex_array, k * sizeof(vec_t), r_state.vertex_array);
+		if (k > MAX_GL_ARRAY_LENGTH - (surf->num_edges * 2)) { // avoid overflows, draw in batches
+			R_UploadToBuffer(&r_state.buffer_vertex_array, sizeof(vec3_t), r_state.vertex_array);
 
-			R_DrawArrays(GL_LINES, 0, k / 3);
+			R_DrawArrays(GL_LINES, 0, k);
 			k = 0;
 		}
 
@@ -306,16 +306,16 @@ void R_DrawBspNormals(void) {
 			const vec_t *normal = &r_model_state.world->bsp->normals[surf->elements[j]][0];
 
 			VectorMA(vertex, 12.0, normal, end);
-
-			memcpy(&r_state.vertex_array[k], vertex, sizeof(vec3_t));
-			memcpy(&r_state.vertex_array[k + 3], end, sizeof(vec3_t));
-			k += sizeof(vec3_t) / sizeof(vec_t) * 2;
+			
+			VectorCopy(vertex, r_state.vertex_array[k]);
+			VectorCopy(end, r_state.vertex_array[k + 1]);
+			k += 2;
 		}
 	}
 
-	R_UploadToBuffer(&r_state.buffer_vertex_array, k * sizeof(vec_t), r_state.vertex_array);
+	R_UploadToBuffer(&r_state.buffer_vertex_array, k * sizeof(vec3_t), r_state.vertex_array);
 
-	R_DrawArrays(GL_LINES, 0, k / 3);
+	R_DrawArrays(GL_LINES, 0, k);
 
 	R_EnableTexture(&texunit_diffuse, true);
 
