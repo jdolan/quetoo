@@ -553,14 +553,10 @@ void R_DrawFillUI(const SDL_Rect *rect) {
 
 void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop) {
 
-	vec_t point_buffer[count * 3];
+	vec3_t point_buffer[count];
 
 	for (size_t i = 0; i < count; ++i) {
-		const size_t px = i * 3;
-
-		point_buffer[px + 0] = points[i].x + 0.5;
-		point_buffer[px + 1] = points[i].y + 0.5;
-		point_buffer[px + 2] = 0.0;
+		VectorSet(point_buffer[i], points[i].x + 0.5, points[i].y + 0.5, 0.0);
 	}
 
 	R_EnableColorArray(false);
