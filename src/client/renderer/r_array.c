@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-r_buffer_layout_t default_buffer_layout[] = {
+r_buffer_layout_t r_default_buffer_layout[] = {
 	{ .attribute = R_ARRAY_VERTEX, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 0 },
 	{ .attribute = R_ARRAY_COLOR, .type = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 12 },
 	{ .attribute = R_ARRAY_NORMAL, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16 },
@@ -68,13 +68,15 @@ int32_t R_ArraysMask(void) {
 		mask |= R_ARRAY_MASK_COLOR;
 	}
 
-	if (r_state.lighting_enabled) {
+	if (r_state.lighting_enabled || r_state.shell_enabled) {
 		mask |= R_ARRAY_MASK_NORMAL;
 
 		if (do_interpolation) {
 			mask |= R_ARRAY_MASK_NEXT_NORMAL;
 		}
+	}
 
+	if (r_state.lighting_enabled) {
 		if (r_bumpmap->value) {
 			mask |= R_ARRAY_MASK_TANGENT;
 
@@ -146,7 +148,7 @@ void R_SetArrayState(const r_model_t *mod) {
 	}
 
 	// normals and tangents
-	if (r_state.lighting_enabled) {
+	if (r_state.lighting_enabled || r_state.shell_enabled) {
 
 		if (mask & R_ARRAY_MASK_NORMAL) {
 			
@@ -157,6 +159,9 @@ void R_SetArrayState(const r_model_t *mod) {
 				R_BindArrayOffset(R_ARRAY_NEXT_NORMAL, &mod->normal_buffer, (mod->num_verts * mod->normal_buffer.element_size) * frame);
 			}
 		}
+	}
+
+	if (r_state.lighting_enabled) {
 
 		if (r_bumpmap->value) {
 

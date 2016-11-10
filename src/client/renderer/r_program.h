@@ -99,7 +99,7 @@ typedef struct {
 	char name[MAX_QPATH];
 	r_shader_t *v;
 	r_shader_t *f;
-	int32_t arrays_mask;
+	r_attribute_mask_t arrays_mask;
 	r_attribute_t attributes[R_ARRAY_MAX_ATTRIBS];
 	void (*Init)(void);
 	void (*Shutdown)(void);
@@ -114,14 +114,16 @@ typedef struct {
 	void (*UseCurrentColor)(const vec4_t color);
 	void (*UseAttributes)(void);
 	void (*UseInterpolation)(const vec_t time_fraction);
+	void (*UseShellOffset)(const vec_t offset);
 } r_program_t;
 
 // attribute state
 typedef struct r_attrib_state_s {
 	r_variable_value_t value;
+	GLenum type;
 	GLsizeiptr offset;
-	GLsizei stride;
-	GLuint size;
+	GLubyte stride;
+	GLubyte count;
 	_Bool enabled;
 	_Bool constant;
 } r_attrib_state_t;

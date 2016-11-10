@@ -40,6 +40,9 @@ void R_PopMatrix(const r_matrix_id_t id);
 
 void R_EnableTextureID(const r_texunit_id_t texunit_id, _Bool enable);
 
+uint32_t R_GetNumAllocatedBuffers(void);
+uint32_t R_GetNumAllocatedBufferBytes(void);
+
 #ifdef __R_LOCAL_H__
 
 #include "r_program.h"
@@ -84,6 +87,9 @@ typedef struct r_state_s {
 	// renderer state. This just prevents
 	// them being bound multiple times in a row.
 	GLuint active_buffers[R_NUM_BUFFERS];
+	
+	uint32_t buffers_total_bytes;
+	uint32_t buffers_total;
 
 	// the active element buffer.
 	const r_buffer_t *element_buffer;
@@ -178,10 +184,10 @@ void R_BindBuffer(const r_buffer_t *buffer);
 void R_UnbindBuffer(const r_buffer_type_t type);
 void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data);
 void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data, const _Bool data_offset);
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLsizei element_count, const GLenum hint, const r_buffer_type_t type, const size_t size,
+void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte element_count, const GLenum hint, const r_buffer_type_t type, const size_t size,
                     const void *data);
 #define R_CreateDataBuffer(buffer, element_type, element_count, hint, size, data) R_CreateBuffer(buffer, element_type, element_count, hint, R_BUFFER_DATA, size, data)
-void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLsizei struct_size, const r_buffer_layout_t *layout,
+void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, const r_buffer_layout_t *layout,
                               const GLenum hint, const size_t size, const void *data);
 #define R_CreateElementBuffer(buffer, element_type, hint, size, data) R_CreateBuffer(buffer, element_type, 1, hint, R_BUFFER_ELEMENT, size, data)
 void R_DestroyBuffer(r_buffer_t *buffer);
@@ -207,6 +213,7 @@ void R_EnableFog(_Bool enable);
 void R_UseMaterial(const r_material_t *material);
 void R_UseMatrices(void);
 void R_UseInterpolation(const vec_t lerp);
+void R_UseShellOffset(const vec_t offset);
 void R_UseAlphaTest(void);
 void R_UseCurrentColor(void);
 void R_UseFog(void);

@@ -77,7 +77,7 @@ void R_PreLink_default(const r_program_t *program) {
 void R_InitProgram_default(r_program_t *program) {
 
 	r_default_program_t *p = &r_default_program;
-
+	
 	p->program = program;
 
 	R_ProgramVariable(&program->attributes[R_ARRAY_VERTEX], R_ATTRIBUTE, "POSITION");

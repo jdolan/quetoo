@@ -144,9 +144,9 @@ typedef enum {
 typedef struct {
 	r_attribute_id_t attribute;
 	GLenum type;
-	GLsizei count;
-	GLsizei size;
-	GLsizei offset;
+	GLubyte count;
+	GLubyte size;
+	GLubyte offset;
 } r_buffer_layout_t;
 
 /**
@@ -160,9 +160,9 @@ typedef struct r_buffer_s {
 	size_t size; // last size of buffer, for resize operations
 
 	GLenum element_type;
-	GLsizei element_count;
-	GLsizei element_size;
-	GLsizei element_stride;
+	GLubyte element_count;
+	GLubyte element_size;
+	GLubyte element_stride;
 
 	const r_buffer_layout_t *interleave_attribs[R_ARRAY_MAX_INTERLEAVE_ATTRIBS];
 	_Bool interleave; // whether this buffer is an interleave buffer. Only valid for R_BUFFER_DATA.
@@ -1021,7 +1021,7 @@ typedef struct {
 	uint32_t cull_fails;
 
 	uint32_t num_state_changes[R_STATE_TOTAL];
-	uint32_t num_buffer_uploads, size_buffer_uploads;
+	uint32_t num_buffer_full_uploads, num_buffer_partial_uploads, size_buffer_uploads;
 	
 	uint32_t num_draw_elements, num_draw_element_count;
 	uint32_t num_draw_arrays, num_draw_array_count;

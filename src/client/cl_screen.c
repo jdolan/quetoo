@@ -237,8 +237,11 @@ static void Cl_DrawRendererStats(void) {
 		R_DrawString(0, y, va("- %d %s", r_view.num_state_changes[i], r_state_names[i]), CON_COLOR_WHITE);
 		y += ch;
 	}
+	
+	R_DrawString(0, y, va("%d buffer uploads (%d partial, %d full; %d bytes)", r_view.num_buffer_full_uploads + r_view.num_buffer_partial_uploads, r_view.num_buffer_full_uploads, r_view.num_buffer_partial_uploads, r_view.size_buffer_uploads), CON_COLOR_WHITE);
+	y += ch;
 
-	R_DrawString(0, y, va("%d buffer uploads (%d bytes)", r_view.num_buffer_uploads, r_view.size_buffer_uploads), CON_COLOR_WHITE);
+	R_DrawString(0, y, va("%d total buffers created (%d bytes)", R_GetNumAllocatedBuffers(), R_GetNumAllocatedBufferBytes()), CON_COLOR_WHITE);
 	y += ch;
 
 	R_DrawString(0, y, va("cull: %d pass, %d fail", r_view.cull_passes, r_view.cull_fails), CON_COLOR_WHITE);

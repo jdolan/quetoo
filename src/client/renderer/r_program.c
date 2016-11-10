@@ -230,9 +230,9 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 	//, GLenum type, GLuint size, const r_buffer_t *buffer, const GLsizeiptr offset
 	const r_buffer_t *buffer = r_state.array_buffers[attribute];
 	GLenum type;
-	GLuint count;
 	GLsizeiptr offset = r_state.array_buffer_offsets[attribute];
-	const GLsizei stride = buffer->element_stride;
+	GLubyte count;
+	const GLubyte stride = buffer->element_stride;
 
 	if (buffer->interleave) {
 		r_attribute_id_t real_attrib;
@@ -268,11 +268,12 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 	r_attrib_state_t *attrib = &r_state.attributes[attribute];
 
 	// only set the ptr if it hasn't changed.
-	/*if (attrib->constant == true ||
+	if (attrib->constant == true ||
 			attrib->value.buffer != buffer ||
-			attrib->size != size ||
+			attrib->type != type ||
+			attrib->count != count ||
 			attrib->offset != offset ||
-			attrib->stride != stride)*/ {
+			attrib->stride != stride) {
 
 		R_BindBuffer(buffer);
 
@@ -280,7 +281,8 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 		r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_POINTER]++;
 
 		attrib->value.buffer = buffer;
-		attrib->size = count;
+		attrib->type = count;
+		attrib->count = count;
 		attrib->offset = offset;
 		attrib->constant = false;
 		attrib->stride = stride;
@@ -622,12 +624,12 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ARRAY_MASK_VERTEX) {
 
-			R_AttributePointer(R_ARRAY_VERTEX);//, GL_FLOAT, 3, r_state.array_buffers[R_ARRAY_VERTEX], r_state.array_buffer_offsets[R_ARRAY_VERTEX] + (r_state.array_buffers[R_ARRAY_VERTEX]->interleave ? R_ATTRIBUTE_VERTEX_OFFSET : 0));
+			R_AttributePointer(R_ARRAY_VERTEX);
 
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_VERTEX) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_VERTEX])) {
-					R_AttributePointer(R_ARRAY_NEXT_VERTEX);//, GL_FLOAT, 3, r_state.array_buffers[R_ARRAY_NEXT_VERTEX], r_state.array_buffer_offsets[R_ARRAY_NEXT_VERTEX] + (r_state.array_buffers[R_ARRAY_NEXT_VERTEX]->interleave ? R_ATTRIBUTE_VERTEX_OFFSET : 0));
+					R_AttributePointer(R_ARRAY_NEXT_VERTEX);
 				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_VERTEX);
 				}
@@ -642,7 +644,7 @@ void R_SetupAttributes(void) {
 	if (p->arrays_mask & R_ARRAY_MASK_COLOR) {
 
 		if (mask & R_ARRAY_MASK_COLOR) {
-			R_AttributePointer(R_ARRAY_COLOR);//, GL_UNSIGNED_BYTE, 4, r_state.array_buffers[R_ARRAY_COLOR], r_state.array_buffer_offsets[R_ARRAY_COLOR] + (r_state.array_buffers[R_ARRAY_COLOR]->interleave ? R_ATTRIBUTE_COLOR_OFFSET : 0));
+			R_AttributePointer(R_ARRAY_COLOR);
 		} else {
 			R_AttributeConstant4fv(R_ARRAY_COLOR, r_state.current_color);
 		}
@@ -651,7 +653,7 @@ void R_SetupAttributes(void) {
 	if (p->arrays_mask & R_ARRAY_MASK_TEX_DIFFUSE) {
 
 		if (mask & R_ARRAY_MASK_TEX_DIFFUSE) {
-			R_AttributePointer(R_ARRAY_TEX_DIFFUSE);//, GL_FLOAT, 2, r_state.array_buffers[R_ARRAY_TEX_DIFFUSE], r_state.array_buffer_offsets[R_ARRAY_TEX_DIFFUSE] + (r_state.array_buffers[R_ARRAY_TEX_DIFFUSE]->interleave ? R_ATTRIBUTE_DIFFUSE_OFFSET : 0));
+			R_AttributePointer(R_ARRAY_TEX_DIFFUSE);
 		} else {
 			R_DisableAttribute(R_ARRAY_TEX_DIFFUSE);
 		}
@@ -660,7 +662,7 @@ void R_SetupAttributes(void) {
 	if (p->arrays_mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
 
 		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
-			R_AttributePointer(R_ARRAY_TEX_LIGHTMAP);//, GL_FLOAT, 2, r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP], r_state.array_buffer_offsets[R_ARRAY_TEX_LIGHTMAP] + (r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP]->interleave ? R_ATTRIBUTE_LIGHTMAP_OFFSET : 0));
+			R_AttributePointer(R_ARRAY_TEX_LIGHTMAP);
 		} else {
 			R_DisableAttribute(R_ARRAY_TEX_LIGHTMAP);
 		}
@@ -670,12 +672,12 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ARRAY_MASK_NORMAL) {
 
-			R_AttributePointer(R_ARRAY_NORMAL);//, GL_INT_2_10_10_10_REV, 4, r_state.array_buffers[R_ARRAY_NORMAL], r_state.array_buffer_offsets[R_ARRAY_NORMAL] + (r_state.array_buffers[R_ARRAY_NORMAL]->interleave ? R_ATTRIBUTE_NORMAL_OFFSET : 0));
+			R_AttributePointer(R_ARRAY_NORMAL);
 
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_NORMAL) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_NORMAL])) {
-					R_AttributePointer(R_ARRAY_NEXT_NORMAL);//, GL_INT_2_10_10_10_REV, 4, r_state.array_buffers[R_ARRAY_NEXT_NORMAL], r_state.array_buffer_offsets[R_ARRAY_NEXT_NORMAL] + (r_state.array_buffers[R_ARRAY_NEXT_NORMAL]->interleave ? R_ATTRIBUTE_NORMAL_OFFSET : 0));
+					R_AttributePointer(R_ARRAY_NEXT_NORMAL);
 				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_NORMAL);
 				}
@@ -691,12 +693,12 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ARRAY_MASK_TANGENT) {
 
-			R_AttributePointer(R_ARRAY_TANGENT);//, GL_INT_2_10_10_10_REV, 4, r_state.array_buffers[R_ARRAY_TANGENT], r_state.array_buffer_offsets[R_ARRAY_TANGENT] + (r_state.array_buffers[R_ARRAY_TANGENT]->interleave ? R_ATTRIBUTE_TANGENT_OFFSET : 0));
+			R_AttributePointer(R_ARRAY_TANGENT);
 
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_TANGENT) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_TANGENT])) {
-					R_AttributePointer(R_ARRAY_NEXT_TANGENT);//, GL_INT_2_10_10_10_REV, 4, r_state.array_buffers[R_ARRAY_NEXT_TANGENT], r_state.array_buffer_offsets[R_ARRAY_NEXT_TANGENT] + (r_state.array_buffers[R_ARRAY_NEXT_TANGENT]->interleave ? R_ATTRIBUTE_TANGENT_OFFSET : 0));
+					R_AttributePointer(R_ARRAY_NEXT_TANGENT);
 				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_TANGENT);
 				}
@@ -753,7 +755,8 @@ void R_InitPrograms(void) {
 		r_state.shell_program->UseMatrices = R_UseMatrices_shell;
 		r_state.shell_program->UseCurrentColor = R_UseCurrentColor_shell;
 		r_state.shell_program->UseInterpolation = R_UseInterpolation_shell;
-		r_state.shell_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_NEXT_VERTEX;
+		r_state.shell_program->UseShellOffset = R_UseShellOffset_shell;
+		r_state.shell_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_NEXT_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_NORMAL | R_ARRAY_MASK_NEXT_NORMAL;
 	}
 
 	if ((r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp, R_PreLink_warp))) {

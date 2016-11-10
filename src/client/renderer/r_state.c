@@ -337,18 +337,22 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data) {
 	// we have to resize the buffer
 
 	if (size > buffer->size) {
+		r_state.buffers_total_bytes -= buffer->size;
+		r_state.buffers_total_bytes += size;
+
 		glBufferData(buffer->target, size, data, buffer->hint);
 		R_GetError("Full resize");
+		r_view.num_buffer_full_uploads++;
 
 		buffer->size = size;
 	} else {
 		// just update the range we specified
 		glBufferSubData(buffer->target, 0, size, data);
+		r_view.num_buffer_partial_uploads++;
 
 		R_GetError("Updating existing buffer");
 	}
 
-	r_view.num_buffer_uploads++;
 	r_view.size_buffer_uploads += size;
 }
 
@@ -385,31 +389,36 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 		// it's fairly rare you'll be editing at the end first,
 		// but who knows.
 		if (start) {
+			r_state.buffers_total_bytes -= buffer->size;
+			r_state.buffers_total_bytes += total_size;
+
 			glBufferData(buffer->target, total_size, NULL, buffer->hint);
 			R_GetError("Partial resize");
+			r_view.num_buffer_full_uploads++;
 			glBufferSubData(buffer->target, start, size, data);
 			R_GetError("Partial update");
+			r_view.num_buffer_partial_uploads++;
 		} else {
 			glBufferData(buffer->target, total_size, data, buffer->hint);
 			R_GetError("Full resize");
+			r_view.num_buffer_full_uploads++;
 		}
 
 		buffer->size = total_size;
 	} else {
 		// just update the range we specified
 		glBufferSubData(buffer->target, start, size, data);
-
 		R_GetError("Updating existing buffer");
+		r_view.num_buffer_partial_uploads++;
 	}
 
-	r_view.num_buffer_uploads++;
 	r_view.size_buffer_uploads += size;
 }
 
 /**
  * @brief
  */
-static GLsizei R_GetGLElementSize(const GLenum type) {
+static GLubyte R_GetGLElementSize(const GLenum type) {
 
 	switch (type) {
 	case GL_BYTE:
@@ -431,10 +440,24 @@ static GLsizei R_GetGLElementSize(const GLenum type) {
 }
 
 /**
+ * @brief
+ */
+uint32_t R_GetNumAllocatedBuffers(void) {
+	return r_state.buffers_total;
+}
+
+/**
+ * @brief
+ */
+uint32_t R_GetNumAllocatedBufferBytes(void) {
+	return r_state.buffers_total_bytes;
+}
+
+/**
  * @brief Allocate a GPU buffer of the specified size.
  * Optionally upload the data immediately too.
  */
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLsizei element_count, const GLenum hint, const r_buffer_type_t type, const size_t size,
+void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte element_count, const GLenum hint, const r_buffer_type_t type, const size_t size,
                     const void *data) {
 
 	assert(buffer->bufnum == 0);
@@ -444,6 +467,7 @@ void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLsizei
 	buffer->type = type & R_BUFFER_TYPE_MASK;
 	buffer->target = R_BufferTypeToTarget(buffer->type);
 	buffer->hint = hint;
+	buffer->size = 0;
 
 	buffer->element_type = element_type;
 
@@ -461,13 +485,15 @@ void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLsizei
 	if (size) {
 		R_UploadToBuffer(buffer, size, data);
 	}
+
+	r_state.buffers_total++;
 }
 
 /**
  * @brief Allocate an interleaved GPU buffer of the specified size.
  * Optionally upload the data immediately too.
  */
-void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLsizei struct_size, const r_buffer_layout_t *layout,
+void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, const r_buffer_layout_t *layout,
                               const GLenum hint, const size_t size, const void *data) {
 
 	R_CreateBuffer(buffer, 0, struct_size, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data);
@@ -507,6 +533,9 @@ void R_DestroyBuffer(r_buffer_t *buffer) {
 	}
 
 	glDeleteBuffers(1, &buffer->bufnum);
+
+	r_state.buffers_total_bytes -= buffer->size;
+	r_state.buffers_total--;
 
 	memset(buffer, 0, sizeof(r_buffer_t));
 
@@ -967,6 +996,16 @@ void R_UseInterpolation(const vec_t lerp) {
 }
 
 /**
+ * @brief Uploads shell offset value to the currently loaded program.
+ */
+void R_UseShellOffset(const vec_t offset) {
+
+	if (r_state.active_program->UseShellOffset) {
+		r_state.active_program->UseShellOffset(offset);
+	}
+}
+
+/**
  * @brief Change the rendering viewport.
  */
 void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
@@ -1156,7 +1195,7 @@ void R_InitState(void) {
 	R_CreateDataBuffer(&r_state.buffer_color_array, GL_UNSIGNED_BYTE, 4, GL_DYNAMIC_DRAW, sizeof(r_state.color_array), NULL);
 	R_CreateElementBuffer(&r_state.buffer_element_array, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW, sizeof(r_state.indice_array), NULL);
 
-	R_CreateInterleaveBuffer(&r_state.buffer_interleave_array, sizeof(*r_state.interleave_array), default_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_state.interleave_array), NULL);
+	R_CreateInterleaveBuffer(&r_state.buffer_interleave_array, sizeof(*r_state.interleave_array), r_default_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_state.interleave_array), NULL);
 
 	R_BindDefaultArray(R_ARRAY_VERTEX);
 	R_BindDefaultArray(R_ARRAY_COLOR);
