@@ -93,6 +93,62 @@ typedef enum {
 
 #define R_BUFFER_TYPE_MASK 0x03
 
+// Attribute indices - these should be assigned to
+// every program that uses them, and are also used for buffer storage.
+typedef enum {
+	R_ARRAY_VERTEX,
+	R_ARRAY_COLOR,
+	R_ARRAY_NORMAL,
+	R_ARRAY_TANGENT,
+	R_ARRAY_TEX_DIFFUSE,
+	R_ARRAY_TEX_LIGHTMAP,
+
+	// These three are only used for shader-based lerp.
+	// They are only enabled if the ones that match up
+	// to it are enabled as well.
+	R_ARRAY_NEXT_VERTEX,
+	R_ARRAY_NEXT_NORMAL,
+	R_ARRAY_NEXT_TANGENT,
+	
+	R_ARRAY_MAX_ATTRIBS,
+	R_ARRAY_MAX_INTERLEAVE_ATTRIBS = R_ARRAY_MAX_ATTRIBS - 3,
+
+	// This is a special entry so that R_BindArray can be
+	// used for binding element buffers as well.
+	R_ARRAY_ELEMENTS = -1
+} r_attribute_id_t;
+
+// These are the masks used to tell which data
+// should be actually bound. They should match
+// up with the ones above to make things simple.
+typedef enum {
+	R_ARRAY_MASK_VERTEX			= (1 << R_ARRAY_VERTEX),
+	R_ARRAY_MASK_COLOR			= (1 << R_ARRAY_COLOR),
+	R_ARRAY_MASK_NORMAL			= (1 << R_ARRAY_NORMAL),
+	R_ARRAY_MASK_TANGENT		= (1 << R_ARRAY_TANGENT),
+	R_ARRAY_MASK_TEX_DIFFUSE	= (1 << R_ARRAY_TEX_DIFFUSE),
+	R_ARRAY_MASK_TEX_LIGHTMAP	= (1 << R_ARRAY_TEX_LIGHTMAP),
+
+	R_ARRAY_MASK_NEXT_VERTEX	= (1 << R_ARRAY_NEXT_VERTEX),
+	R_ARRAY_MASK_NEXT_NORMAL	= (1 << R_ARRAY_NEXT_NORMAL),
+	R_ARRAY_MASK_NEXT_TANGENT	= (1 << R_ARRAY_NEXT_TANGENT),
+
+	R_ARRAY_MASK_ALL			= (1 << R_ARRAY_MAX_ATTRIBS) - 1
+} r_attribute_mask_t;
+
+/**
+ * @brief Represents a single attribute layout for a buffer.
+ * An interleaved buffer will supply a chain of these.
+ * The last entry should have an 'attribute' of -1.
+ */
+typedef struct {
+	r_attribute_id_t attribute;
+	GLenum type;
+	GLsizei count;
+	GLsizei size;
+	GLsizei offset;
+} r_buffer_layout_t;
+
 /**
  * @brief Buffers are used to hold data for the renderer.
  */
@@ -102,6 +158,13 @@ typedef struct r_buffer_s {
 	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
 	GLuint bufnum; // e.g. 123
 	size_t size; // last size of buffer, for resize operations
+
+	GLenum element_type;
+	GLsizei element_count;
+	GLsizei element_size;
+	GLsizei element_stride;
+
+	const r_buffer_layout_t *interleave_attribs[R_ARRAY_MAX_INTERLEAVE_ATTRIBS];
 	_Bool interleave; // whether this buffer is an interleave buffer. Only valid for R_BUFFER_DATA.
 } r_buffer_t;
 

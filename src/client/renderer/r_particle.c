@@ -71,12 +71,12 @@ static r_particle_state_t r_particle_state;
  */
 void R_InitParticles(void) {
 
-	R_CreateBuffer(&r_particle_state.verts_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.verts), NULL);
-	R_CreateBuffer(&r_particle_state.texcoords_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.texcoords),
+	R_CreateDataBuffer(&r_particle_state.verts_buffer, GL_FLOAT, 3, GL_DYNAMIC_DRAW, sizeof(r_particle_state.verts), NULL);
+	R_CreateDataBuffer(&r_particle_state.texcoords_buffer, GL_FLOAT, 2, GL_DYNAMIC_DRAW, sizeof(r_particle_state.texcoords),
 	               NULL);
-	R_CreateBuffer(&r_particle_state.colors_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_particle_state.colors), NULL);
+	R_CreateDataBuffer(&r_particle_state.colors_buffer, GL_UNSIGNED_BYTE, 4, GL_DYNAMIC_DRAW, sizeof(r_particle_state.colors), NULL);
 
-	R_CreateBuffer(&r_particle_state.element_buffer, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT,
+	R_CreateElementBuffer(&r_particle_state.element_buffer, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW,
 	               sizeof(r_particle_state.element_buffer), NULL);
 }
 

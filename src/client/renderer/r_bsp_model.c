@@ -888,7 +888,7 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		}
 	}
 
-	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_ELEMENT, e, elements);
+	R_CreateElementBuffer(&mod->element_buffer, GL_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
 
 	Mem_Free(elements);
 
@@ -903,7 +903,7 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		Vector2Copy(mod->bsp->lightmap_texcoords[i], interleaved[i].lightmap);
 	}
 
-	R_CreateBuffer(&mod->vertex_buffer, GL_STATIC_DRAW, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, mod->num_verts * sizeof(r_interleave_vertex_t), interleaved);
+	R_CreateInterleaveBuffer(&mod->vertex_buffer, sizeof(r_interleave_vertex_t), default_buffer_layout, GL_STATIC_DRAW, mod->num_verts * sizeof(r_interleave_vertex_t), interleaved);
 	
 	mod->normal_buffer = mod->vertex_buffer;
 	mod->tangent_buffer = mod->vertex_buffer;

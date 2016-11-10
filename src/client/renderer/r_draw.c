@@ -646,31 +646,31 @@ void R_InitDraw(void) {
 
 	for (int32_t i = 0; i < MAX_FONTS; ++i) {
 
-		R_CreateBuffer(&r_draw.char_arrays[i].vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.char_arrays[i].verts),
+		R_CreateDataBuffer(&r_draw.char_arrays[i].vert_buffer, GL_FLOAT, 3, GL_DYNAMIC_DRAW, sizeof(r_draw.char_arrays[i].verts),
 		               NULL);
-		R_CreateBuffer(&r_draw.char_arrays[i].texcoord_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA,
+		R_CreateDataBuffer(&r_draw.char_arrays[i].texcoord_buffer, GL_FLOAT, 2, GL_DYNAMIC_DRAW,
 		               sizeof(r_draw.char_arrays[i].texcoords), NULL);
-		R_CreateBuffer(&r_draw.char_arrays[i].color_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA,
+		R_CreateDataBuffer(&r_draw.char_arrays[i].color_buffer, GL_UNSIGNED_BYTE, 4, GL_DYNAMIC_DRAW,
 		               sizeof(r_draw.char_arrays[i].colors), NULL);
 
-		R_CreateBuffer(&r_draw.char_arrays[i].element_buffer, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT,
+		R_CreateElementBuffer(&r_draw.char_arrays[i].element_buffer, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW,
 		               sizeof(r_draw.char_arrays[i].elements), NULL);
 	}
 
-	R_CreateBuffer(&r_draw.fill_arrays.vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.fill_arrays.verts), NULL);
-	R_CreateBuffer(&r_draw.fill_arrays.color_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.fill_arrays.colors),
+	R_CreateDataBuffer(&r_draw.fill_arrays.vert_buffer, GL_FLOAT, 3, GL_DYNAMIC_DRAW, sizeof(r_draw.fill_arrays.verts), NULL);
+	R_CreateDataBuffer(&r_draw.fill_arrays.color_buffer, GL_UNSIGNED_BYTE, 4, GL_DYNAMIC_DRAW, sizeof(r_draw.fill_arrays.colors),
 	               NULL);
 
-	R_CreateBuffer(&r_draw.fill_arrays.element_buffer, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT,
+	R_CreateElementBuffer(&r_draw.fill_arrays.element_buffer, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW,
 	               sizeof(r_draw.fill_arrays.elements), NULL);
 
-	R_CreateBuffer(&r_draw.line_arrays.vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.line_arrays.verts), NULL);
-	R_CreateBuffer(&r_draw.line_arrays.color_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_draw.line_arrays.colors),
+	R_CreateDataBuffer(&r_draw.line_arrays.vert_buffer, GL_FLOAT, 3, GL_DYNAMIC_DRAW, sizeof(r_draw.line_arrays.verts), NULL);
+	R_CreateDataBuffer(&r_draw.line_arrays.color_buffer, GL_UNSIGNED_BYTE, 4, GL_DYNAMIC_DRAW, sizeof(r_draw.line_arrays.colors),
 	               NULL);
 
 	// fill buffer only needs 4 verts
-	R_CreateBuffer(&r_draw.fill_arrays.ui_vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(vec3_t) * 4, NULL);
-	R_CreateBuffer(&r_draw.line_arrays.ui_vert_buffer, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(vec3_t) * MAX_LINE_VERTS,
+	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, GL_FLOAT, 3, GL_DYNAMIC_DRAW, sizeof(vec3_t) * 4, NULL);
+	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, GL_FLOAT, 3, GL_DYNAMIC_DRAW, sizeof(vec3_t) * MAX_LINE_VERTS,
 	               NULL);
 }
 

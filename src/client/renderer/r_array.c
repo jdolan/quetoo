@@ -21,6 +21,16 @@
 
 #include "r_local.h"
 
+r_buffer_layout_t default_buffer_layout[] = {
+	{ .attribute = R_ARRAY_VERTEX, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 0 },
+	{ .attribute = R_ARRAY_COLOR, .type = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 12 },
+	{ .attribute = R_ARRAY_NORMAL, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16 },
+	{ .attribute = R_ARRAY_TANGENT, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 20 },
+	{ .attribute = R_ARRAY_TEX_DIFFUSE, .type = GL_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 24 },
+	{ .attribute = R_ARRAY_TEX_LIGHTMAP, .type = GL_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 32 },
+	{ .attribute = -1 }
+};
+
 /*
  * Arrays are "lazily" managed to reduce glArrayPointer calls. Drawing routines
  * should call R_SetArrayState or R_ResetArrayState somewhat early-on.
@@ -127,19 +137,11 @@ void R_SetArrayState(const r_model_t *mod) {
 	// vertex array
 	if (mask & R_ARRAY_MASK_VERTEX) {
 
-		if (mod->vertex_buffer.interleave) {
-			R_BindArrayOffset(R_ARRAY_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * old_frame);
-		} else {
-			R_BindArrayOffset(R_ARRAY_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(vec3_t)) * old_frame);
-		}
+		R_BindArrayOffset(R_ARRAY_VERTEX, &mod->vertex_buffer, (mod->num_verts * mod->vertex_buffer.element_size) * old_frame);
 
 		// bind interpolation if we need it
 		if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && do_interpolation) {
-			if (mod->vertex_buffer.interleave) {
-				R_BindArrayOffset(R_ARRAY_NEXT_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * frame);
-			} else {
-				R_BindArrayOffset(R_ARRAY_NEXT_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(vec3_t)) * frame);
-			}
+			R_BindArrayOffset(R_ARRAY_NEXT_VERTEX, &mod->vertex_buffer, (mod->num_verts * mod->vertex_buffer.element_size) * frame);
 		}
 	}
 
@@ -148,19 +150,11 @@ void R_SetArrayState(const r_model_t *mod) {
 
 		if (mask & R_ARRAY_MASK_NORMAL) {
 			
-			if (mod->vertex_buffer.interleave) {
-				R_BindArrayOffset(R_ARRAY_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * old_frame);
-			} else {
-				R_BindArrayOffset(R_ARRAY_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(vec3_t)) * old_frame);
-			}
+			R_BindArrayOffset(R_ARRAY_NORMAL, &mod->normal_buffer, (mod->num_verts * mod->normal_buffer.element_size) * old_frame);
 
 			// bind interpolation if we need it
 			if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && do_interpolation) {
-				if (mod->vertex_buffer.interleave) {
-					R_BindArrayOffset(R_ARRAY_NEXT_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * frame);
-				} else {
-					R_BindArrayOffset(R_ARRAY_NEXT_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(vec3_t)) * frame);
-				}
+				R_BindArrayOffset(R_ARRAY_NEXT_NORMAL, &mod->normal_buffer, (mod->num_verts * mod->normal_buffer.element_size) * frame);
 			}
 		}
 
@@ -168,19 +162,11 @@ void R_SetArrayState(const r_model_t *mod) {
 
 			if ((mask & R_ARRAY_MASK_TANGENT) && R_ValidBuffer(&mod->tangent_buffer)) {
 
-				if (mod->vertex_buffer.interleave) {
-					R_BindArrayOffset(R_ARRAY_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * old_frame);
-				} else {
-					R_BindArrayOffset(R_ARRAY_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(vec4_t)) * old_frame);
-				}
+				R_BindArrayOffset(R_ARRAY_TANGENT, &mod->tangent_buffer, (mod->num_verts * mod->tangent_buffer.element_size) * old_frame);
 
 				// bind interpolation if we need it
 				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && do_interpolation) {
-					if (mod->vertex_buffer.interleave) {
-						R_BindArrayOffset(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * frame);
-					} else {
-						R_BindArrayOffset(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(vec4_t)) * frame);
-					}
+					R_BindArrayOffset(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffer, (mod->num_verts * mod->tangent_buffer.element_size) * frame);
 				}
 			}
 		}
@@ -327,7 +313,7 @@ void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 	if (r_state.element_buffer) {
 
 		R_BindBuffer(r_state.element_buffer);
-		glDrawElements(type, count, GL_UNSIGNED_INT, (const void *)(ptrdiff_t)(start * sizeof(GLuint)));
+		glDrawElements(type, count, r_state.element_buffer->element_type, (const void *) (ptrdiff_t) (start * r_state.element_buffer->element_size));
 		r_view.num_draw_elements++;
 		r_view.num_draw_element_count += count;
 	} else {

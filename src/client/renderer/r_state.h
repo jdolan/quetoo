@@ -178,8 +178,12 @@ void R_BindBuffer(const r_buffer_t *buffer);
 void R_UnbindBuffer(const r_buffer_type_t type);
 void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data);
 void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data, const _Bool data_offset);
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t type, const size_t size,
+void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLsizei element_count, const GLenum hint, const r_buffer_type_t type, const size_t size,
                     const void *data);
+#define R_CreateDataBuffer(buffer, element_type, element_count, hint, size, data) R_CreateBuffer(buffer, element_type, element_count, hint, R_BUFFER_DATA, size, data)
+void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLsizei struct_size, const r_buffer_layout_t *layout,
+                              const GLenum hint, const size_t size, const void *data);
+#define R_CreateElementBuffer(buffer, element_type, hint, size, data) R_CreateBuffer(buffer, element_type, 1, hint, R_BUFFER_ELEMENT, size, data)
 void R_DestroyBuffer(r_buffer_t *buffer);
 _Bool R_ValidBuffer(const r_buffer_t *buffer);
 

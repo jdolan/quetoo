@@ -24,46 +24,6 @@
 
 #include "r_types.h"
 
-// Attribute indices - these should be assigned to
-// every program that uses them, and are also used for buffer storage.
-typedef enum {
-	R_ARRAY_VERTEX,
-	R_ARRAY_COLOR,
-	R_ARRAY_NORMAL,
-	R_ARRAY_TANGENT,
-	R_ARRAY_TEX_DIFFUSE,
-	R_ARRAY_TEX_LIGHTMAP,
-
-	// These three are only used for shader-based lerp.
-	// They are only enabled if the ones that match up
-	// to it are enabled as well.
-	R_ARRAY_NEXT_VERTEX,
-	R_ARRAY_NEXT_NORMAL,
-	R_ARRAY_NEXT_TANGENT,
-
-	R_ARRAY_MAX_ATTRIBS,
-
-	// This is a special entry so that R_BindArray can be
-	// used for binding element buffers as well.
-	R_ARRAY_ELEMENTS = -1
-} r_attribute_id_t;
-
-// These are the masks used to tell which data
-// should be actually bound. They should match
-// up with the ones above to make things simple.
-#define R_ARRAY_MASK_VERTEX			(1 << R_ARRAY_VERTEX)
-#define R_ARRAY_MASK_COLOR			(1 << R_ARRAY_COLOR)
-#define R_ARRAY_MASK_NORMAL			(1 << R_ARRAY_NORMAL)
-#define R_ARRAY_MASK_TANGENT		(1 << R_ARRAY_TANGENT)
-#define R_ARRAY_MASK_TEX_DIFFUSE	(1 << R_ARRAY_TEX_DIFFUSE)
-#define R_ARRAY_MASK_TEX_LIGHTMAP	(1 << R_ARRAY_TEX_LIGHTMAP)
-
-#define R_ARRAY_MASK_NEXT_VERTEX	(1 << R_ARRAY_NEXT_VERTEX)
-#define R_ARRAY_MASK_NEXT_NORMAL	(1 << R_ARRAY_NEXT_NORMAL)
-#define R_ARRAY_MASK_NEXT_TANGENT	(1 << R_ARRAY_NEXT_TANGENT)
-
-#define R_ARRAY_MASK_ALL			(1 << R_ARRAY_MAX_ATTRIBS) - 1
-
 // interleave constants
 typedef struct {
 	vec3_t		vertex;
@@ -73,6 +33,8 @@ typedef struct {
 	vec2_t		diffuse;
 	vec2_t		lightmap;
 } r_interleave_vertex_t;
+
+extern r_buffer_layout_t default_buffer_layout[];
 
 #define R_ATTRIBUTE_VERTEX_SIZE		sizeof(vec3_t)
 #define R_ATTRIBUTE_COLOR_SIZE		sizeof(u8vec4_t)

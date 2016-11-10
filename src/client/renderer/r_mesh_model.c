@@ -317,7 +317,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	vec_t *out_texcoord = texcoords;
 
 	// upload initial data
-	R_CreateBuffer(&mod->vertex_buffer, GL_STATIC_DRAW, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, v * md3->num_frames, NULL);
+	R_CreateInterleaveBuffer(&mod->vertex_buffer, sizeof(r_interleave_vertex_t), default_buffer_layout, GL_STATIC_DRAW, v * md3->num_frames, NULL);
 
 	for (uint16_t f = 0; f < md3->num_frames; ++f, frame++) {
 
@@ -363,10 +363,10 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	mod->tangent_buffer = mod->vertex_buffer;
 
 	// upload texcoords
-	R_CreateBuffer(&mod->texcoord_buffer, GL_STATIC_DRAW, R_BUFFER_DATA, st, texcoords);
+	R_CreateDataBuffer(&mod->texcoord_buffer, GL_FLOAT, 2, GL_STATIC_DRAW, st, texcoords);
 
 	// upload elements
-	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_ELEMENT, e, tris);
+	R_CreateElementBuffer(&mod->element_buffer, GL_UNSIGNED_INT, GL_STATIC_DRAW, e, tris);
 
 	// get rid of these, we don't need them any more
 	Mem_Free(texcoords);
@@ -886,13 +886,13 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	}
 
 	// load the vertex buffer objects
-	R_CreateBuffer(&mod->vertex_buffer, GL_STATIC_DRAW, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, v, verts);
+	R_CreateInterleaveBuffer(&mod->vertex_buffer, sizeof(*verts), default_buffer_layout, GL_STATIC_DRAW, v, verts);
 	
 	mod->normal_buffer = mod->vertex_buffer;
 	mod->tangent_buffer = mod->vertex_buffer;
 	mod->texcoord_buffer = mod->vertex_buffer;
 
-	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_ELEMENT, e, elements);
+	R_CreateElementBuffer(&mod->element_buffer, GL_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
 
 	// free our temporary buffers
 	Mem_Free(verts);
