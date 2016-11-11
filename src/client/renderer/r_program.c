@@ -234,7 +234,7 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 	const GLubyte stride = buffer->element_stride;
 
 	if (buffer->interleave) {
-		r_attribute_id_t real_attrib;
+		r_attribute_id_t real_attrib = attribute;
 
 		// check to see if we need to point to the right attrib
 		// for NEXT_*
@@ -251,7 +251,6 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 					real_attrib = R_ARRAY_TANGENT;
 					break;
 				default:
-					real_attrib = attribute;
 					break;
 			}
 		}

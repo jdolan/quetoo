@@ -85,7 +85,7 @@ void R_InitParticles(void) {
 	                         r_particle_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_particle_state.verts), NULL);
 
 	R_CreateElementBuffer(&r_particle_state.element_buffer, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW,
-	                      sizeof(r_particle_state.element_buffer), NULL);
+	                      sizeof(r_particle_state.elements), NULL);
 }
 
 /**
