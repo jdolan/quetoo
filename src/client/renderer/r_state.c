@@ -1162,11 +1162,6 @@ void R_Setup2D(void) {
 	// bind default vertex array
 	R_BindDefaultArray(R_ARRAY_POSITION);
 
-	// and set default texcoords for all 2d pics
-	memcpy(texunit_diffuse.texcoord_array, default_texcoords, sizeof(default_texcoords));
-
-	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, sizeof(default_texcoords), default_texcoords);
-
 	R_EnableBlend(true);
 
 	R_EnableDepthTest(false);

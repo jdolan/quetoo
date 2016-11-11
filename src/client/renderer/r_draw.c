@@ -32,7 +32,7 @@ typedef struct {
 	u8vec4_t color;
 } r_char_interleave_vertex_t;
 
-r_buffer_layout_t r_char_buffer_layout[] = {
+static r_buffer_layout_t r_char_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = GL_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
 	{ .attribute = R_ARRAY_DIFFUSE, .type = GL_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 4, .normalized = true },
 	{ .attribute = R_ARRAY_COLOR, .type = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 8, .normalized = true },
@@ -62,7 +62,7 @@ typedef struct {
 	u8vec4_t color;
 } r_fill_interleave_vertex_t;
 
-r_buffer_layout_t r_fill_buffer_layout[] = {
+static r_buffer_layout_t r_fill_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = GL_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
 	{ .attribute = R_ARRAY_COLOR, .type = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 4, .normalized = true },
 	{ .attribute = -1 }
@@ -109,6 +109,17 @@ typedef struct r_font_s {
 
 #define MAX_FONTS 3
 
+typedef struct {
+	s16vec2_t position;
+	u16vec2_t texcoord;
+} r_image_interleave_vertex_t;
+
+static r_buffer_layout_t r_image_buffer_layout[] = {
+	{ .attribute = R_ARRAY_POSITION, .type = GL_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = GL_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 4 },
+	{ .attribute = -1 }
+};
+
 // pull it all together in one structure
 typedef struct r_draw_s {
 
@@ -125,6 +136,9 @@ typedef struct r_draw_s {
 	r_char_arrays_t char_arrays[MAX_FONTS];
 	r_fill_arrays_t fill_arrays;
 	r_line_arrays_t line_arrays;
+
+	r_buffer_t image_buffer;
+	r_image_interleave_vertex_t image_vertices[4];
 } r_draw_t;
 
 r_draw_t r_draw;
@@ -164,18 +178,7 @@ void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {
  */
 void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) {
 
-	R_BindTexture(image->texnum);
-
-	// our texcoords are already setup, just set verts and draw
-
-	VectorSet(r_state.vertex_array[0], x, y, 0);
-	VectorSet(r_state.vertex_array[1], x + image->width * scale, y, 0);
-	VectorSet(r_state.vertex_array[2], x + image->width * scale, y + image->height * scale, 0);
-	VectorSet(r_state.vertex_array[3], x, y + image->height * scale, 0);
-
-	R_UploadToBuffer(&r_state.buffer_vertex_array, 4 * sizeof(vec3_t), r_state.vertex_array);
-
-	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	R_DrawImageResized(x, y, image->width * scale, image->height * scale, image);
 }
 
 /**
@@ -187,12 +190,14 @@ void R_DrawImageResized(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, cons
 
 	// our texcoords are already setup, just set verts and draw
 
-	VectorSet(r_state.vertex_array[0], x, y, 0);
-	VectorSet(r_state.vertex_array[1], x + w, y, 0);
-	VectorSet(r_state.vertex_array[2], x + w, y + h, 0);
-	VectorSet(r_state.vertex_array[3], x, y + h, 0);
+	Vector2Set(r_draw.image_vertices[0].position, x, y);
+	Vector2Set(r_draw.image_vertices[1].position, x + w, y);
+	Vector2Set(r_draw.image_vertices[2].position, x + w, y + h);
+	Vector2Set(r_draw.image_vertices[3].position, x, y + h);
+	
+	R_UploadToBuffer(&r_draw.image_buffer, sizeof(r_draw.image_vertices), r_draw.image_vertices);
 
-	R_UploadToBuffer(&r_state.buffer_vertex_array, 4 * sizeof(vec3_t), r_state.vertex_array);
+	R_BindAttributeInterleaveBuffer(&r_draw.image_buffer);
 
 	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -664,6 +669,14 @@ void R_InitDraw(void) {
 	// fill buffer only needs 4 verts
 	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, GL_SHORT, 2, false, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * 4, NULL);
 	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, GL_SHORT, 2, false, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * MAX_LINE_VERTS,
+	                   NULL);
+	
+	Vector2Set(r_draw.image_vertices[0].texcoord, 0, 0);
+	Vector2Set(r_draw.image_vertices[1].texcoord, 1, 0);
+	Vector2Set(r_draw.image_vertices[2].texcoord, 1, 1);
+	Vector2Set(r_draw.image_vertices[3].texcoord, 0, 1);
+
+	R_CreateInterleaveBuffer(&r_draw.image_buffer, sizeof(r_image_interleave_vertex_t), r_image_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_draw.image_vertices),
 	                   NULL);
 }
 

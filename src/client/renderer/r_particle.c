@@ -68,8 +68,8 @@ typedef struct {
 	r_particle_interleave_vertex_t verts[MAX_PARTICLES * 4];
 	r_buffer_t verts_buffer;
 
-	GLuint elements[MAX_PARTICLES * 6];
-	uint32_t num_particles;
+	uint16_t elements[MAX_PARTICLES * 6];
+	uint16_t num_particles;
 
 	r_buffer_t element_buffer;
 } r_particle_state_t;
@@ -84,7 +84,7 @@ void R_InitParticles(void) {
 	R_CreateInterleaveBuffer(&r_particle_state.verts_buffer, sizeof(r_particle_interleave_vertex_t),
 	                         r_particle_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_particle_state.verts), NULL);
 
-	R_CreateElementBuffer(&r_particle_state.element_buffer, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW,
+	R_CreateElementBuffer(&r_particle_state.element_buffer, GL_UNSIGNED_SHORT, GL_DYNAMIC_DRAW,
 	                      sizeof(r_particle_state.elements), NULL);
 }
 
@@ -254,13 +254,13 @@ void R_UpdateParticles(r_element_t *e, const size_t count) {
 		if (e->type == ELEMENT_PARTICLE) {
 			r_particle_t *p = (r_particle_t *) e->element;
 
-			const uint32_t vertex_start = r_particle_state.num_particles * 4;
+			const uint16_t vertex_start = r_particle_state.num_particles * 4;
 
 			R_ParticleVerts(p, &r_particle_state.verts[vertex_start]);
 			R_ParticleTexcoords(p, &r_particle_state.verts[vertex_start]);
 			R_ParticleColor(p, &r_particle_state.verts[vertex_start]);
 
-			const uint32_t index_start = r_particle_state.num_particles * 6;
+			const uint16_t index_start = r_particle_state.num_particles * 6;
 
 			r_particle_state.elements[index_start + 0] = vertex_start + 0;
 			r_particle_state.elements[index_start + 1] = vertex_start + 1;
@@ -287,7 +287,7 @@ void R_UploadParticles(void) {
 
 	R_UploadToBuffer(&p->verts_buffer, p->num_particles * sizeof(r_particle_interleave_vertex_t) * 4, p->verts);
 
-	R_UploadToBuffer(&p->element_buffer, p->num_particles * sizeof(GLuint) * 6, p->elements);
+	R_UploadToBuffer(&p->element_buffer, p->num_particles * sizeof(uint16_t) * 6, p->elements);
 
 	p->num_particles = 0;
 }

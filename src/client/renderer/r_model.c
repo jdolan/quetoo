@@ -187,7 +187,7 @@ void R_InitModels(void) {
 		{ 0.0, 0.0, 16.0 }
 	};
 
-	const GLuint null_elements[] = {
+	const GLubyte null_elements[] = {
 		0, 1, 2,
 		0, 2, 3,
 		0, 3, 4,
@@ -203,7 +203,7 @@ void R_InitModels(void) {
 
 	R_CreateDataBuffer(&r_model_state.null_vertices, GL_FLOAT, 3, false, GL_STATIC_DRAW, sizeof(null_vertices), null_vertices);
 
-	R_CreateElementBuffer(&r_model_state.null_elements, GL_UNSIGNED_INT, GL_STATIC_DRAW, sizeof(null_elements),
+	R_CreateElementBuffer(&r_model_state.null_elements, GL_UNSIGNED_BYTE, GL_STATIC_DRAW, sizeof(null_elements),
 	                      null_elements);
 }
 

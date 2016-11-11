@@ -57,6 +57,19 @@ static const int32_t vec_to_st[6][3] = {
 	{ -2,  1, -3}
 };
 
+#define MAX_CLIP_VERTS	64
+
+typedef struct {
+	s16vec3_t position;
+	u16vec2_t texcoord;
+} r_sky_interleave_vertex_t;
+
+static r_buffer_layout_t r_sky_layout_buffer[] = {
+	{ .attribute = R_ARRAY_POSITION, .type = GL_SHORT, .count = 3, .size = sizeof(s16vec3_t) },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = GL_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 6, .normalized = true },
+	{ .attribute = -1 }
+};
+
 // sky structure
 typedef struct {
 	r_image_t *images[6];
@@ -65,6 +78,8 @@ typedef struct {
 	vec_t st_min;
 	vec_t st_max;
 	GLuint vert_index;
+	r_sky_interleave_vertex_t vertices[MAX_CLIP_VERTS];
+	r_buffer_t vert_buffer;
 } r_sky_t;
 
 static r_sky_t r_sky;
@@ -157,7 +172,6 @@ static void R_DrawSkySurface(int32_t nump, vec3_t vecs) {
 }
 
 #define ON_EPSILON		0.1 // point on plane side epsilon
-#define MAX_CLIP_VERTS	64
 
 /**
  * @brief
@@ -296,7 +310,7 @@ static void R_MakeSkyVec(vec_t s, vec_t t, int32_t axis) {
 		}
 	}
 
-	VectorCopy(v, r_state.vertex_array[r_sky.vert_index]);
+	VectorCopy(v, r_sky.vertices[r_sky.vert_index].position);
 
 	// avoid bilerp seam
 	s = (s + 1.0) * 0.5;
@@ -305,7 +319,7 @@ static void R_MakeSkyVec(vec_t s, vec_t t, int32_t axis) {
 	s = Clamp(s, r_sky.st_min, r_sky.st_max);
 	t = 1.0 - Clamp(t, r_sky.st_min, r_sky.st_max);
 
-	Vector2Set(texunit_diffuse.texcoord_array[r_sky.vert_index], s, t);
+	Vector2Set(r_sky.vertices[r_sky.vert_index].texcoord, (u16vec_t) (s * USHRT_MAX), (u16vec_t) (t * USHRT_MAX));
 
 	r_sky.vert_index++;
 }
@@ -332,7 +346,7 @@ void R_DrawSkyBox(void) {
 		return;
 	}
 
-	R_ResetArrayState();
+	R_BindAttributeInterleaveBuffer(&r_sky.vert_buffer);
 
 	R_PushMatrix(R_MATRIX_MODELVIEW);
 	Matrix4x4_ConcatTranslate(&modelview_matrix, r_view.origin[0], r_view.origin[1], r_view.origin[2]);
@@ -358,9 +372,7 @@ void R_DrawSkyBox(void) {
 		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_maxs[1][i], i);
 		R_MakeSkyVec(r_sky.st_maxs[0][i], r_sky.st_mins[1][i], i);
 
-		R_UploadToBuffer(&r_state.buffer_vertex_array, r_sky.vert_index * sizeof(vec3_t), r_state.vertex_array);
-		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, r_sky.vert_index * sizeof(vec2_t),
-		                 texunit_diffuse.texcoord_array);
+		R_UploadToBuffer(&r_sky.vert_buffer, r_sky.vert_index * sizeof(r_sky_interleave_vertex_t), r_sky.vertices);
 
 		R_DrawArrays(GL_TRIANGLE_FAN, 0, r_sky.vert_index);
 		r_sky.vert_index = 0;
@@ -372,6 +384,22 @@ void R_DrawSkyBox(void) {
 	R_EnableFog(false);
 
 	R_PopMatrix(R_MATRIX_MODELVIEW);
+}
+
+/**
+ * @brief
+ */
+void R_InitSky(void) {
+	
+	R_CreateInterleaveBuffer(&r_sky.vert_buffer, sizeof(r_sky_interleave_vertex_t), r_sky_layout_buffer, GL_DYNAMIC_DRAW, sizeof(r_sky_interleave_vertex_t) * MAX_CLIP_VERTS, NULL);
+}
+
+/**
+ * @brief
+ */
+void R_ShutdownSky(void) {
+
+	R_DestroyBuffer(&r_sky.vert_buffer);
 }
 
 /**
