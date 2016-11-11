@@ -662,8 +662,8 @@ void R_InitDraw(void) {
 	                   NULL);
 
 	// fill buffer only needs 4 verts
-	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, GL_SHORT, 2, GL_FALSE, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * 4, NULL);
-	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, GL_SHORT, 2, GL_FALSE, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * MAX_LINE_VERTS,
+	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, GL_SHORT, 2, false, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * 4, NULL);
+	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, GL_SHORT, 2, false, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * MAX_LINE_VERTS,
 	                   NULL);
 }
 

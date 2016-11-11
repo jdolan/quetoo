@@ -124,6 +124,7 @@ typedef struct r_attrib_state_s {
 	GLsizeiptr offset;
 	GLubyte stride;
 	GLubyte count;
+	GLboolean normalized;
 	_Bool enabled;
 	_Bool constant;
 } r_attrib_state_t;
