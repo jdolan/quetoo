@@ -370,7 +370,7 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 			R_GetError("Full resize");
 			r_view.num_buffer_full_uploads++;
 		}
-		
+
 		r_state.buffers_total_bytes -= buffer->size;
 		r_state.buffers_total_bytes += total_size;
 
@@ -425,7 +425,8 @@ uint32_t R_GetNumAllocatedBufferBytes(void) {
  * @brief Allocate a GPU buffer of the specified size.
  * Optionally upload the data immediately too.
  */
-void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, const GLubyte element_count, const _Bool element_normalized, const GLenum hint,
+void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, const GLubyte element_count,
+                    const _Bool element_normalized, const GLenum hint,
                     const r_buffer_type_t type, const size_t size,
                     const void *data) {
 
@@ -481,7 +482,7 @@ void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, con
 		// init type pack state once
 		if (!layout->_type_state.packed) {
 			r_buffer_layout_t *temp = (r_buffer_layout_t *) layout;
-			
+
 			temp->_type_state.type = layout->type;
 			temp->_type_state.stride = buffer->element_type.stride;
 			temp->_type_state.offset = layout->offset;

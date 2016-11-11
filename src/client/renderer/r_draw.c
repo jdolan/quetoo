@@ -194,7 +194,7 @@ void R_DrawImageResized(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, cons
 	Vector2Set(r_draw.image_vertices[1].position, x + w, y);
 	Vector2Set(r_draw.image_vertices[2].position, x + w, y + h);
 	Vector2Set(r_draw.image_vertices[3].position, x, y + h);
-	
+
 	R_UploadToBuffer(&r_draw.image_buffer, sizeof(r_draw.image_vertices), r_draw.image_vertices);
 
 	R_BindAttributeInterleaveBuffer(&r_draw.image_buffer);
@@ -311,7 +311,7 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 
 	const uint32_t row = (uint32_t) c >> 4;
 	const uint32_t col = (uint32_t) c & 15;
-	
+
 	const u16vec_t frow = (row * 0.1250) * USHRT_MAX;
 	const u16vec_t fcol = (col * 0.0625) * USHRT_MAX;
 	const u16vec_t frowe = ((row + 1) * 0.1250) * USHRT_MAX;
@@ -354,7 +354,8 @@ static void R_DrawChars(void) {
 			continue;
 		}
 
-		R_UploadToBuffer(&r_draw.char_arrays[i].vert_buffer, r_draw.char_arrays[i].vert_index * sizeof(r_char_interleave_vertex_t),
+		R_UploadToBuffer(&r_draw.char_arrays[i].vert_buffer,
+		                 r_draw.char_arrays[i].vert_index * sizeof(r_char_interleave_vertex_t),
 		                 r_draw.char_arrays[i].verts);
 
 		R_UploadToBuffer(&r_draw.char_arrays[i].element_buffer, r_draw.char_arrays[i].element_index * sizeof(GLuint),
@@ -651,33 +652,38 @@ void R_InitDraw(void) {
 	for (int32_t i = 0; i < MAX_FONTS; ++i) {
 
 		R_CreateInterleaveBuffer(&r_draw.char_arrays[i].vert_buffer, sizeof(r_char_interleave_vertex_t), r_char_buffer_layout,
-                        GL_DYNAMIC_DRAW, sizeof(r_draw.char_arrays[i].verts), NULL);
+		                         GL_DYNAMIC_DRAW, sizeof(r_draw.char_arrays[i].verts), NULL);
 
 		R_CreateElementBuffer(&r_draw.char_arrays[i].element_buffer, R_ATTRIB_UNSIGNED_INT, GL_DYNAMIC_DRAW,
 		                      sizeof(r_draw.char_arrays[i].elements), NULL);
 	}
 
-	R_CreateInterleaveBuffer(&r_draw.fill_arrays.vert_buffer, sizeof(r_fill_interleave_vertex_t), r_fill_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_draw.fill_arrays.verts),
-	                   NULL);
+	R_CreateInterleaveBuffer(&r_draw.fill_arrays.vert_buffer, sizeof(r_fill_interleave_vertex_t), r_fill_buffer_layout,
+	                         GL_DYNAMIC_DRAW, sizeof(r_draw.fill_arrays.verts),
+	                         NULL);
 
 	R_CreateElementBuffer(&r_draw.fill_arrays.element_buffer, R_ATTRIB_UNSIGNED_INT, GL_DYNAMIC_DRAW,
 	                      sizeof(r_draw.fill_arrays.elements), NULL);
 
-	R_CreateInterleaveBuffer(&r_draw.line_arrays.vert_buffer, sizeof(r_fill_interleave_vertex_t), r_fill_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_draw.line_arrays.verts),
-	                   NULL);
+	R_CreateInterleaveBuffer(&r_draw.line_arrays.vert_buffer, sizeof(r_fill_interleave_vertex_t), r_fill_buffer_layout,
+	                         GL_DYNAMIC_DRAW, sizeof(r_draw.line_arrays.verts),
+	                         NULL);
 
 	// fill buffer only needs 4 verts
-	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, R_ATTRIB_SHORT, 2, false, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * 4, NULL);
-	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, R_ATTRIB_SHORT, 2, false, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * MAX_LINE_VERTS,
+	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, R_ATTRIB_SHORT, 2, false, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * 4,
 	                   NULL);
-	
+	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, R_ATTRIB_SHORT, 2, false, GL_DYNAMIC_DRAW,
+	                   sizeof(s16vec2_t) * MAX_LINE_VERTS,
+	                   NULL);
+
 	Vector2Set(r_draw.image_vertices[0].texcoord, 0, 0);
 	Vector2Set(r_draw.image_vertices[1].texcoord, 1, 0);
 	Vector2Set(r_draw.image_vertices[2].texcoord, 1, 1);
 	Vector2Set(r_draw.image_vertices[3].texcoord, 0, 1);
 
-	R_CreateInterleaveBuffer(&r_draw.image_buffer, sizeof(r_image_interleave_vertex_t), r_image_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_draw.image_vertices),
-	                   NULL);
+	R_CreateInterleaveBuffer(&r_draw.image_buffer, sizeof(r_image_interleave_vertex_t), r_image_buffer_layout,
+	                         GL_DYNAMIC_DRAW, sizeof(r_draw.image_vertices),
+	                         NULL);
 }
 
 /**

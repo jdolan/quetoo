@@ -259,12 +259,13 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 
 	// only set the ptr if it hasn't changed.
 	if (attrib->type != type ||
-			attrib->value.buffer != buffer ||
+	        attrib->value.buffer != buffer ||
 	        attrib->offset != offset) {
 
 		R_BindBuffer(buffer);
 
-		glVertexAttribPointer(attribute, type->count, r_attrib_type_to_gl_type[type->type], type->normalized, stride, (const GLvoid *) offset);
+		glVertexAttribPointer(attribute, type->count, r_attrib_type_to_gl_type[type->type], type->normalized, stride,
+		                      (const GLvoid *) offset);
 		r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_POINTER]++;
 
 		attrib->value.buffer = buffer;
@@ -310,7 +311,7 @@ void R_AttributeConstant4ubv(const r_attribute_id_t attribute, const GLubyte *va
 	Vector4Copy(value, r_state.attributes[attribute].value.u8vec4);
 	glVertexAttrib4ubv(attribute, r_state.attributes[attribute].value.u8vec4);
 	r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_CONSTANT]++;
-	
+
 	r_state.attributes[attribute].type = NULL;
 
 	R_GetError(r_state.active_program->attributes[attribute].name);

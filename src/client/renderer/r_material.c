@@ -485,7 +485,8 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnablePolygonOffset(true);
 
-	R_UploadToSubBuffer(&r_material_state.vertex_buffer, 0, r_material_vertex_count * sizeof(r_material_interleave_vertex_t),
+	R_UploadToSubBuffer(&r_material_state.vertex_buffer, 0,
+	                    r_material_vertex_count * sizeof(r_material_interleave_vertex_t),
 	                    r_material_state.vertex_array->data, false);
 
 	// second pass draws
@@ -1384,8 +1385,10 @@ void R_InitMaterials(void) {
 	r_material_state.vertex_len = INITIAL_VERTEX_COUNT;
 	r_material_state.element_len = INITIAL_VERTEX_COUNT;
 
-	r_material_state.vertex_array = g_array_sized_new(false, true, sizeof(r_material_interleave_vertex_t), r_material_state.vertex_len);
-	R_CreateInterleaveBuffer(&r_material_state.vertex_buffer, sizeof(r_material_interleave_vertex_t), r_material_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_material_interleave_vertex_t) * r_material_state.vertex_len, NULL);
+	r_material_state.vertex_array = g_array_sized_new(false, true, sizeof(r_material_interleave_vertex_t),
+	                                r_material_state.vertex_len);
+	R_CreateInterleaveBuffer(&r_material_state.vertex_buffer, sizeof(r_material_interleave_vertex_t),
+	                         r_material_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_material_interleave_vertex_t) * r_material_state.vertex_len, NULL);
 
 	r_material_state.element_array = g_array_sized_new(false, false, sizeof(u16vec_t), r_material_state.element_len);
 }

@@ -390,8 +390,9 @@ void R_DrawSkyBox(void) {
  * @brief
  */
 void R_InitSky(void) {
-	
-	R_CreateInterleaveBuffer(&r_sky.vert_buffer, sizeof(r_sky_interleave_vertex_t), r_sky_layout_buffer, GL_DYNAMIC_DRAW, sizeof(r_sky_interleave_vertex_t) * MAX_CLIP_VERTS, NULL);
+
+	R_CreateInterleaveBuffer(&r_sky.vert_buffer, sizeof(r_sky_interleave_vertex_t), r_sky_layout_buffer, GL_DYNAMIC_DRAW,
+	                         sizeof(r_sky_interleave_vertex_t) * MAX_CLIP_VERTS, NULL);
 }
 
 /**

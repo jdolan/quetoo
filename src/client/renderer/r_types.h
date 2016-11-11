@@ -149,7 +149,7 @@ typedef enum {
 	R_ATTRIB_INT,
 	R_ATTRIB_UNSIGNED_INT,
 	R_ATTRIB_INT_2_10_10_10_REV,
-	
+
 	R_ATTRIB_TOTAL_TYPES
 } r_attrib_type_t;
 

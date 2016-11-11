@@ -275,7 +275,8 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		VectorSet(r_model_state.bound_vertices[6].position, e->maxs[0], e->maxs[1], e->maxs[2]);
 		VectorSet(r_model_state.bound_vertices[7].position, e->mins[0], e->maxs[1], e->maxs[2]);
 
-		R_UploadToBuffer(&r_model_state.bound_vertice_buffer, sizeof(r_bound_interleave_vertex_t) * 8, r_model_state.bound_vertices);
+		R_UploadToBuffer(&r_model_state.bound_vertice_buffer, sizeof(r_bound_interleave_vertex_t) * 8,
+		                 r_model_state.bound_vertices);
 
 		// draw box
 		Matrix4x4_CreateFromEntity(&mat, e->origin, vec3_origin, e->scale);

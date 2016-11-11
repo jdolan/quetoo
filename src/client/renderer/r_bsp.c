@@ -347,7 +347,7 @@ void R_DrawBspNormals(void) {
 	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.bound_element_buffer);
 
 	const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces;
-	
+
 	for (uint16_t i = 0; i < r_model_state.world->bsp->num_surfaces; i++, surf++) {
 
 		if (surf->vis_frame != r_locals.vis_frame) {
@@ -365,7 +365,7 @@ void R_DrawBspNormals(void) {
 		for (uint16_t j = 0; j < surf->num_edges; j++) {
 			const vec_t *vertex = &r_model_state.world->bsp->verts[surf->elements[j]][0];
 			const vec_t *normal = &r_model_state.world->bsp->normals[surf->elements[j]][0];
-			
+
 			// draw origin
 			vec3_t angles;
 			matrix4x4_t mat;

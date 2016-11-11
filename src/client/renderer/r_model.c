@@ -207,7 +207,8 @@ void R_InitModels(void) {
 
 	r_model_state.null_elements_count = lengthof(null_elements);
 
-	R_CreateDataBuffer(&r_model_state.null_vertices, R_ATTRIB_FLOAT, 3, false, GL_STATIC_DRAW, sizeof(null_vertices), null_vertices);
+	R_CreateDataBuffer(&r_model_state.null_vertices, R_ATTRIB_FLOAT, 3, false, GL_STATIC_DRAW, sizeof(null_vertices),
+	                   null_vertices);
 
 	R_CreateElementBuffer(&r_model_state.null_elements, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, sizeof(null_elements),
 	                      null_elements);
@@ -239,9 +240,10 @@ void R_InitModels(void) {
 
 	r_model_state.bound_element_count = lengthof(bound_elements);
 
-	R_CreateElementBuffer(&r_model_state.bound_element_buffer, R_ATTRIB_UNSIGNED_BYTE, GL_STATIC_DRAW, sizeof(bound_elements),
+	R_CreateElementBuffer(&r_model_state.bound_element_buffer, R_ATTRIB_UNSIGNED_BYTE, GL_STATIC_DRAW,
+	                      sizeof(bound_elements),
 	                      bound_elements);
-	
+
 	Vector4Set(r_model_state.bound_vertices[8].color, 255, 0, 0, 255);
 	Vector4Set(r_model_state.bound_vertices[9].color, 255, 0, 0, 255);
 	Vector4Set(r_model_state.bound_vertices[10].color, 0, 255, 0, 255);
@@ -256,7 +258,8 @@ void R_InitModels(void) {
 	VectorSet(r_model_state.bound_vertices[12].position, 0, 0, 0);
 	VectorSet(r_model_state.bound_vertices[13].position, 0, 0, 8);
 
-	R_CreateInterleaveBuffer(&r_model_state.bound_vertice_buffer, sizeof(r_bound_interleave_vertex_t), r_bound_buffer_layout, GL_STATIC_DRAW, sizeof(r_model_state.bound_vertices), r_model_state.bound_vertices);
+	R_CreateInterleaveBuffer(&r_model_state.bound_vertice_buffer, sizeof(r_bound_interleave_vertex_t),
+	                         r_bound_buffer_layout, GL_STATIC_DRAW, sizeof(r_model_state.bound_vertices), r_model_state.bound_vertices);
 }
 
 /**

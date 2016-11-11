@@ -313,7 +313,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_particle_state.element_buffer);
 
 	const GLint base = (GLint) (intptr_t) e->data;
-	
+
 	// these are set to -1 to immediately trigger a change.
 	r_particle_type_t last_type = -1;
 	GLenum last_blend = -1;
