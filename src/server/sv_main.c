@@ -758,6 +758,9 @@ void Sv_Frame(const uint32_t msec) {
 		}
 	}
 
+	// clamp the frame interval to 1 second of simulation
+	frame_delta = MIN(frame_delta, QUETOO_TICK_MILLIS * QUETOO_TICK_RATE);
+
 	// read any pending packets from clients
 	Sv_ReadPackets();
 
@@ -770,26 +773,27 @@ void Sv_Frame(const uint32_t msec) {
 	// update ping based on the last known frame from all clients
 	Sv_UpdatePings();
 
-	// let everything in the world think and move
-	const uint32_t frames = Clamp(frame_delta / QUETOO_TICK_MILLIS, 1, QUETOO_TICK_RATE);
-
-	for (uint32_t i = 0; i < frames; i++) {
-		Sv_RunGameFrame();
-	}
-
-	// send messages back to the clients that had packets read this frame
-	Sv_SendClientPackets();
-
 	// send a heartbeat to the master if needed
 	Sv_HeartbeatMasters();
+
+	// let everything in the world think and move
+	for (uint32_t i = 0; i < frame_delta / QUETOO_TICK_MILLIS; i++) {
+
+		// run the simulation
+		Sv_RunGameFrame();
+
+		// send the resulting frame to connected clients
+		Sv_SendClientPackets();
+
+		// decrement the frame interval delta accordingly
+		frame_delta -= QUETOO_TICK_MILLIS;
+	}
 
 	// clear entity flags, etc for next frame
 	Sv_ResetEntities();
 
 	// redraw the console
 	Sv_DrawConsole();
-
-	frame_delta = 0;
 }
 
 /**
