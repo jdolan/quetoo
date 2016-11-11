@@ -40,7 +40,7 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	surf->flare = Mem_LinkMalloc(sizeof(*surf->flare), bsp);
 
 	// move the flare away from the surface, into the level
-	VectorMA(surf->center, 2, surf->normal, surf->flare->origin);
+	VectorMA(surf->center, 2, surf->normal, surf->flare->particle.org);
 
 	// calculate the flare radius based on surface size
 	VectorSubtract(surf->maxs, surf->mins, span);
@@ -60,9 +60,9 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	// resolve flare color
 	if (s->flags & STAGE_COLOR) {
-		VectorCopy(s->color, surf->flare->color);
+		VectorCopy(s->color, surf->flare->particle.color);
 	} else {
-		VectorCopy(surf->texinfo->material->diffuse->color, surf->flare->color);
+		VectorCopy(surf->texinfo->material->diffuse->color, surf->flare->particle.color);
 	}
 
 	// and scaled radius
@@ -71,7 +71,9 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	}
 
 	// and image
-	surf->flare->image = s->image;
+	surf->flare->particle.type = PARTICLE_FLARE;
+	surf->flare->particle.image = s->image;
+	surf->flare->particle.blend = GL_ONE;
 }
 
 /**
@@ -106,7 +108,7 @@ void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 				f->alpha = 0;
 			}
 
-			cm_trace_t tr = Cl_Trace(r_view.origin, f->origin, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
+			cm_trace_t tr = Cl_Trace(r_view.origin, f->particle.org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
 
 			f->alpha += (tr.fraction == 1.0) ? 0.03 : -0.15; // ramp
 			f->alpha = Clamp(f->alpha, 0.0, 1.0); // clamp
@@ -115,7 +117,7 @@ void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		}
 
 		vec3_t view;
-		VectorSubtract(f->origin, r_view.origin, view);
+		VectorSubtract(f->particle.org, r_view.origin, view);
 		const vec_t dist = VectorNormalize(view);
 
 		// fade according to angle
@@ -134,12 +136,7 @@ void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 		// scale according to distance
 		f->particle.scale = f->radius + (f->radius * dist * .0005);
-
-		f->particle.type = PARTICLE_FLARE;
-		f->particle.image = f->image;
-		VectorCopy(f->origin, f->particle.org);
-		f->particle.blend = GL_ONE;
-		Vector4Set(f->particle.color, f->color[0], f->color[1], f->color[2], alpha);
+		f->particle.color[3] = alpha;
 
 		R_AddParticle(&f->particle);
 	}

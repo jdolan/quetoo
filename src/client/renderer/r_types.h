@@ -345,10 +345,7 @@ typedef struct {
 } r_bsp_texinfo_t;
 
 typedef struct {
-	vec3_t origin;
 	vec_t radius;
-	const r_image_t *image;
-	vec3_t color;
 	uint32_t time;
 	vec_t alpha;
 
