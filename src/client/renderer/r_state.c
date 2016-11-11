@@ -239,9 +239,6 @@ void R_BindDefaultArray(const r_attribute_id_t target) {
 		case R_ARRAY_POSITION:
 			R_BindAttributeBuffer(target, &r_state.buffer_vertex_array);
 			break;
-		case R_ARRAY_COLOR:
-			R_BindAttributeBuffer(target, &r_state.buffer_color_array);
-			break;
 		default:
 			R_BindAttributeBuffer(target, NULL);
 			break;
@@ -1186,8 +1183,6 @@ void R_InitState(void) {
 
 	// setup vertex array pointers
 	R_CreateDataBuffer(&r_state.buffer_vertex_array, GL_FLOAT, 3, false, GL_DYNAMIC_DRAW, sizeof(r_state.vertex_array), NULL);
-	R_CreateDataBuffer(&r_state.buffer_color_array, GL_UNSIGNED_BYTE, 4, true, GL_DYNAMIC_DRAW, sizeof(r_state.color_array),
-	                   NULL);
 	R_CreateElementBuffer(&r_state.buffer_element_array, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW, sizeof(r_state.indice_array),
 	                      NULL);
 
@@ -1243,7 +1238,6 @@ void R_InitState(void) {
 void R_ShutdownState(void) {
 
 	R_DestroyBuffer(&r_state.buffer_vertex_array);
-	R_DestroyBuffer(&r_state.buffer_color_array);
 	R_DestroyBuffer(&r_state.buffer_element_array);
 
 	R_DestroyBuffer(&r_state.buffer_interleave_array);

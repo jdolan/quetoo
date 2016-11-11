@@ -331,20 +331,23 @@ void R_DrawBspInlineModels(const r_entities_t *ents) {
  * surfaces show their normals when r_draw_bsp_normals is 2.
  */
 void R_DrawBspNormals(void) {
-	const vec4_t red = { 1.0, 0.0, 0.0, 1.0 };
 
 	if (!r_draw_bsp_normals->value) {
 		return;
 	}
 
+	R_EnableColorArray(true);
+
 	R_EnableTexture(&texunit_diffuse, false);
 
 	R_ResetArrayState(); // default arrays
 
-	R_Color(red);
+	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer);
 
-	int32_t k = 0;
+	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.bound_element_buffer);
+
 	const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces;
+	
 	for (uint16_t i = 0; i < r_model_state.world->bsp->num_surfaces; i++, surf++) {
 
 		if (surf->vis_frame != r_locals.vis_frame) {
@@ -359,34 +362,30 @@ void R_DrawBspNormals(void) {
 			continue;    // don't care
 		}
 
-		if (k > MAX_GL_ARRAY_LENGTH - (surf->num_edges * 2)) { // avoid overflows, draw in batches
-			R_UploadToBuffer(&r_state.buffer_vertex_array, sizeof(vec3_t), r_state.vertex_array);
-
-			R_DrawArrays(GL_LINES, 0, k);
-			k = 0;
-		}
-
 		for (uint16_t j = 0; j < surf->num_edges; j++) {
-			vec3_t end;
-
 			const vec_t *vertex = &r_model_state.world->bsp->verts[surf->elements[j]][0];
 			const vec_t *normal = &r_model_state.world->bsp->normals[surf->elements[j]][0];
+			
+			// draw origin
+			vec3_t angles;
+			matrix4x4_t mat;
 
-			VectorMA(vertex, 12.0, normal, end);
+			VectorAngles(normal, angles);
+			Matrix4x4_CreateFromQuakeEntity(&mat, vertex[0], vertex[1], vertex[2], angles[0], angles[1], angles[2], 1.0);
 
-			VectorCopy(vertex, r_state.vertex_array[k]);
-			VectorCopy(end, r_state.vertex_array[k + 1]);
-			k += 2;
+			R_PushMatrix(R_MATRIX_MODELVIEW);
+
+			Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
+
+			R_DrawArrays(GL_LINES, r_model_state.bound_element_count - 6, 2);
+
+			R_PopMatrix(R_MATRIX_MODELVIEW);
 		}
 	}
 
-	R_UploadToBuffer(&r_state.buffer_vertex_array, k * sizeof(vec3_t), r_state.vertex_array);
-
-	R_DrawArrays(GL_LINES, 0, k);
-
 	R_EnableTexture(&texunit_diffuse, true);
 
-	R_Color(NULL);
+	R_EnableColorArray(false);
 }
 
 /**
