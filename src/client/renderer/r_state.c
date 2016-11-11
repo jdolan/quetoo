@@ -358,8 +358,6 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 		// it's fairly rare you'll be editing at the end first,
 		// but who knows.
 		if (start) {
-			r_state.buffers_total_bytes -= buffer->size;
-			r_state.buffers_total_bytes += total_size;
 
 			glBufferData(buffer->target, total_size, NULL, buffer->hint);
 			R_GetError("Partial resize");
@@ -372,6 +370,9 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 			R_GetError("Full resize");
 			r_view.num_buffer_full_uploads++;
 		}
+		
+		r_state.buffers_total_bytes -= buffer->size;
+		r_state.buffers_total_bytes += total_size;
 
 		buffer->size = total_size;
 	} else {
@@ -1165,13 +1166,6 @@ void R_InitState(void) {
 	r_state.depth_mask_enabled = true;
 	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
-	// setup vertex array pointers
-	R_CreateElementBuffer(&r_state.buffer_element_array, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW, sizeof(r_state.indice_array),
-	                      NULL);
-
-	R_CreateInterleaveBuffer(&r_state.buffer_interleave_array, sizeof(*r_state.interleave_array), r_default_buffer_layout,
-	                         GL_DYNAMIC_DRAW, sizeof(r_state.interleave_array), NULL);
-
 	// setup texture units
 	for (int32_t i = 0; i < R_TEXUNIT_TOTAL; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
@@ -1219,10 +1213,6 @@ void R_InitState(void) {
  * @brief
  */
 void R_ShutdownState(void) {
-
-	R_DestroyBuffer(&r_state.buffer_element_array);
-
-	R_DestroyBuffer(&r_state.buffer_interleave_array);
 
 	memset(&r_state, 0, sizeof(r_state));
 }

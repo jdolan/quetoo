@@ -48,7 +48,6 @@ uint32_t R_GetNumAllocatedBufferBytes(void);
 #include "r_program.h"
 
 // vertex arrays are used for many things
-#define MAX_GL_ARRAY_LENGTH 0x10000
 extern const vec2_t default_texcoords[4];
 
 // texunits maintain multitexture state
@@ -68,12 +67,6 @@ typedef struct r_matrix_stack_s {
 
 // opengl state management
 typedef struct r_state_s {
-	GLuint indice_array[(uint32_t)(MAX_GL_ARRAY_LENGTH * 1.5)];
-	r_buffer_t buffer_element_array;
-
-	r_interleave_vertex_t interleave_array[MAX_GL_ARRAY_LENGTH];
-	r_buffer_t buffer_interleave_array;
-
 	// the current buffers bound to the global
 	// renderer state. This just prevents
 	// them being bound multiple times in a row.

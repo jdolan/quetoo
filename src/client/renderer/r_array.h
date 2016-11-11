@@ -24,18 +24,6 @@
 
 #include "r_types.h"
 
-// interleave constants
-typedef struct {
-	vec3_t		vertex;
-	u8vec4_t	color;
-	int32_t		normal;
-	int32_t		tangent;
-	vec2_t		diffuse;
-	vec2_t		lightmap;
-} r_interleave_vertex_t;
-
-extern r_buffer_layout_t r_default_buffer_layout[];
-
 #ifdef __R_LOCAL_H__
 	void R_SetArrayState(const r_model_t *mod);
 	void R_ResetArrayState(void);

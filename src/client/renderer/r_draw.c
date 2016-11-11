@@ -22,7 +22,7 @@
 #include "r_local.h"
 #include "client.h"
 
-#define MAX_CHARS MAX_GL_ARRAY_LENGTH  // per font
+#define MAX_CHARS 0x10000  // per font
 #define MAX_CHAR_VERTS MAX_CHARS * 4
 #define MAX_CHAR_ELEMENTS MAX_CHARS * 6
 

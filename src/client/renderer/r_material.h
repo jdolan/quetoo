@@ -62,6 +62,8 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs);
 void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count);
 void R_LoadMaterials(const r_model_t *mod);
 void R_SaveMaterials_f(void);
+void R_InitMaterials(void);
+void R_ShutdownMaterials(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /*__R_MATERIAL_H__*/
