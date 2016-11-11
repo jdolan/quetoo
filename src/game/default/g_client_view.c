@@ -238,20 +238,6 @@ static void G_ClientEventKick(g_entity_t *ent) {
 }
 
 /**
- * @brief Adds view angle kick based on player velocity.
- */
-//static void G_ClientMovementKick(g_entity_t *ent) {
-//
-//	const vec_t forward = DotProduct(ent->locals.velocity, ent->client->locals.forward);
-//	const vec_t pitch = Clamp(forward / PM_SPEED_AIR, -1.0, 1.0);
-//
-//	const vec_t right = DotProduct(ent->locals.velocity, ent->client->locals.right);
-//	const vec_t roll = Clamp(right / PM_SPEED_AIR, -1.0, 1.0);
-//
-//	G_ClientAddKick(ent, pitch, roll);
-//}
-
-/**
  * @brief Erodes
  */
 static void G_ClientDecayKick(g_entity_t *ent) {
@@ -287,8 +273,6 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 	}
 
 	G_ClientEventKick(ent);
-
-//	G_ClientMovementKick(ent);
 
 	vec3_t kick;
 	UnpackAngles(kick_angles, kick);
