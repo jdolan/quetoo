@@ -56,8 +56,6 @@ typedef struct r_texunit_s {
 	_Bool enabled; // on / off (off uses null texture)
 	GLenum texture; // e.g. GL_TEXTURE0 + x
 	GLuint texnum; // e.g 123
-	vec2_t *texcoord_array;
-	r_buffer_t buffer_texcoord_array;
 } r_texunit_t;
 
 // matrix stack

@@ -242,12 +242,6 @@ void R_BindDefaultArray(const r_attribute_id_t target) {
 		case R_ARRAY_COLOR:
 			R_BindAttributeBuffer(target, &r_state.buffer_color_array);
 			break;
-		case R_ARRAY_DIFFUSE:
-			R_BindAttributeBuffer(target, &texunit_diffuse.buffer_texcoord_array);
-			break;
-		case R_ARRAY_LIGHTMAP:
-			R_BindAttributeBuffer(target, &texunit_lightmap.buffer_texcoord_array);
-			break;
 		default:
 			R_BindAttributeBuffer(target, NULL);
 			break;
@@ -1201,16 +1195,11 @@ void R_InitState(void) {
 	                         GL_DYNAMIC_DRAW, sizeof(r_state.interleave_array), NULL);
 
 	// setup texture units
-	const size_t len = MAX_GL_ARRAY_LENGTH * sizeof(vec2_t);
-
 	for (int32_t i = 0; i < R_TEXUNIT_TOTAL; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
 		if (i < r_config.max_texunits) {
 			texunit->texture = GL_TEXTURE0 + i;
-
-			texunit->texcoord_array = Mem_TagMalloc(len, MEM_TAG_RENDERER);
-			R_CreateDataBuffer(&texunit->buffer_texcoord_array, GL_FLOAT, 2, false, GL_DYNAMIC_DRAW, len, NULL);
 		}
 	}
 
@@ -1252,15 +1241,6 @@ void R_InitState(void) {
  * @brief
  */
 void R_ShutdownState(void) {
-
-	for (int32_t i = 0; i < MIN(r_config.max_texunits, R_TEXUNIT_TOTAL); i++) {
-		r_texunit_t *texunit = &r_state.texunits[i];
-
-		if (texunit->texcoord_array) {
-			Mem_Free(texunit->texcoord_array);
-			R_DestroyBuffer(&texunit->buffer_texcoord_array);
-		}
-	}
 
 	R_DestroyBuffer(&r_state.buffer_vertex_array);
 	R_DestroyBuffer(&r_state.buffer_color_array);
