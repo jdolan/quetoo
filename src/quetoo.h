@@ -62,15 +62,15 @@
 #ifndef lengthof
 	#define lengthof(x) (sizeof(x) / sizeof(x[0]))
 #endif
-	
+
 #define VECTOR_TYPENAME(name) name ## _t
 #define VECTOR_TYPENAME_N(name, n) name ## n ## _t[n]
 #define VECTOR_TYPE(type, typename) \
 	typedef type VECTOR_TYPENAME(typename); \
 	typedef VECTOR_TYPENAME(typename) VECTOR_TYPENAME_N(typename, 2); \
 	typedef VECTOR_TYPENAME(typename) VECTOR_TYPENAME_N(typename, 3); \
-	typedef VECTOR_TYPENAME(typename) VECTOR_TYPENAME_N(typename, 4); 
-	
+	typedef VECTOR_TYPENAME(typename) VECTOR_TYPENAME_N(typename, 4);
+
 VECTOR_TYPE(float, vec);
 VECTOR_TYPE(double, dvec);
 VECTOR_TYPE(_Bool, bvec);

@@ -203,7 +203,8 @@ void R_InitModels(void) {
 
 	R_CreateDataBuffer(&r_model_state.null_vertices, GL_FLOAT, 3, GL_STATIC_DRAW, sizeof(null_vertices), null_vertices);
 
-	R_CreateElementBuffer(&r_model_state.null_elements, GL_UNSIGNED_INT, GL_STATIC_DRAW, sizeof(null_elements), null_elements);
+	R_CreateElementBuffer(&r_model_state.null_elements, GL_UNSIGNED_INT, GL_STATIC_DRAW, sizeof(null_elements),
+	                      null_elements);
 }
 
 /**

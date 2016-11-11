@@ -178,9 +178,9 @@ void R_BindSpecularmapTexture(GLuint texnum) {
 }
 
 /**
- * @brief Binds the specified buffer for the given target.
+ * @brief Binds the specified buffer for the given attribute target.
  */
-void R_BindArray(const r_attribute_id_t target, const r_buffer_t *buffer) {
+void R_BindAttributeBuffer(const r_attribute_id_t target, const r_buffer_t *buffer) {
 
 	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
 
@@ -193,9 +193,9 @@ void R_BindArray(const r_attribute_id_t target, const r_buffer_t *buffer) {
 }
 
 /**
- * @brief Binds the specified buffer for the given target.
+ * @brief Binds the specified buffer for the given attribute target with an offset.
  */
-void R_BindArrayOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset) {
+void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset) {
 
 	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
 
@@ -204,6 +204,20 @@ void R_BindArrayOffset(const r_attribute_id_t target, const r_buffer_t *buffer, 
 	} else {
 		r_state.array_buffers[target] = buffer;
 		r_state.array_buffer_offsets[target] = offset;
+	}
+}
+
+
+/**
+ * @brief Binds an interleave array to all of its appropriate endpoints.
+ */
+void R_BindAttributeInterleaveBuffer(const r_buffer_t *buffer) {
+
+	for (r_attribute_id_t attrib = R_ARRAY_POSITION; attrib < R_ARRAY_MAX_ATTRIBS; attrib++) {
+
+		if (buffer->attrib_mask & (1 << attrib)) {
+			R_BindAttributeBuffer(attrib, buffer);
+		}
 	}
 }
 
@@ -222,51 +236,30 @@ _Bool R_ValidBuffer(const r_buffer_t *buffer) {
 void R_BindDefaultArray(const r_attribute_id_t target) {
 
 	switch (target) {
-		case R_ARRAY_VERTEX:
-			R_BindArray(target, &r_state.buffer_vertex_array);
+		case R_ARRAY_POSITION:
+			R_BindAttributeBuffer(target, &r_state.buffer_vertex_array);
 			break;
 		case R_ARRAY_COLOR:
-			R_BindArray(target, &r_state.buffer_color_array);
+			R_BindAttributeBuffer(target, &r_state.buffer_color_array);
 			break;
-		case R_ARRAY_TEX_DIFFUSE:
-			R_BindArray(target, &texunit_diffuse.buffer_texcoord_array);
+		case R_ARRAY_DIFFUSE:
+			R_BindAttributeBuffer(target, &texunit_diffuse.buffer_texcoord_array);
 			break;
-		case R_ARRAY_TEX_LIGHTMAP:
-			R_BindArray(target, &texunit_lightmap.buffer_texcoord_array);
+		case R_ARRAY_LIGHTMAP:
+			R_BindAttributeBuffer(target, &texunit_lightmap.buffer_texcoord_array);
 			break;
 		default:
-			R_BindArray(target, NULL);
+			R_BindAttributeBuffer(target, NULL);
 			break;
 	}
 }
 
 /**
- * @brief 
+ * @brief Binds all default shared arrays.
  */
-void R_BindInterleaveArray(const r_buffer_t *buffer, const uint32_t target_mask) {
-
-	if (target_mask & R_ARRAY_MASK_VERTEX) {
-		R_BindArray(R_ARRAY_VERTEX, buffer);
-	}
-
-	if (target_mask & R_ARRAY_MASK_COLOR) {
-		R_BindArray(R_ARRAY_COLOR, buffer);
-	}
-
-	if (target_mask & R_ARRAY_MASK_NORMAL) {
-		R_BindArray(R_ARRAY_NORMAL, buffer);
-	}
-
-	if (target_mask & R_ARRAY_MASK_TANGENT) {
-		R_BindArray(R_ARRAY_TANGENT, buffer);
-	}
-
-	if (target_mask & R_ARRAY_MASK_TEX_DIFFUSE) {
-		R_BindArray(R_ARRAY_TEX_DIFFUSE, buffer);
-	}
-
-	if (target_mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
-		R_BindArray(R_ARRAY_TEX_LIGHTMAP, buffer);
+void R_BindDefaultArrays(void) {
+	for (int32_t i = R_ARRAY_POSITION; i < R_ARRAY_MAX_ATTRIBS; ++i) {
+		R_BindDefaultArray(i);
 	}
 }
 
@@ -310,7 +303,7 @@ void R_UnbindBuffer(const r_buffer_type_t type) {
 	r_state.active_buffers[type] = 0;
 
 	glBindBuffer(R_BufferTypeToTarget(type), 0);
-	
+
 	r_view.num_state_changes[R_STATE_BIND_BUFFER]++;
 
 	R_GetError(NULL);
@@ -362,7 +355,8 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data) {
  * buffer smaller.
  * @param data_offset Whether the data pointer should be offset by start or not.
  */
-void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data, const _Bool data_offset) {
+void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data,
+                         const _Bool data_offset) {
 
 	assert(buffer->bufnum != 0);
 
@@ -421,21 +415,21 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 static GLubyte R_GetGLElementSize(const GLenum type) {
 
 	switch (type) {
-	case GL_BYTE:
-	case GL_UNSIGNED_BYTE:
-	case GL_INT_2_10_10_10_REV:
-		return 1;
-	case GL_SHORT:
-	case GL_UNSIGNED_SHORT:
-		return 2;
-	case GL_INT:
-	case GL_UNSIGNED_INT:
-	case GL_FLOAT:
-		return 4;
-	case GL_DOUBLE:
-		return 8;
-	default:
-		Com_Error(ERR_DROP, "Bad GL type");
+		case GL_BYTE:
+		case GL_UNSIGNED_BYTE:
+		case GL_INT_2_10_10_10_REV:
+			return 1;
+		case GL_SHORT:
+		case GL_UNSIGNED_SHORT:
+			return 2;
+		case GL_INT:
+		case GL_UNSIGNED_INT:
+		case GL_FLOAT:
+			return 4;
+		case GL_DOUBLE:
+			return 8;
+		default:
+			Com_Error(ERR_DROP, "Bad GL type");
 	}
 }
 
@@ -457,7 +451,8 @@ uint32_t R_GetNumAllocatedBufferBytes(void) {
  * @brief Allocate a GPU buffer of the specified size.
  * Optionally upload the data immediately too.
  */
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte element_count, const GLenum hint, const r_buffer_type_t type, const size_t size,
+void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte element_count, const GLenum hint,
+                    const r_buffer_type_t type, const size_t size,
                     const void *data) {
 
 	assert(buffer->bufnum == 0);
@@ -468,6 +463,7 @@ void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte
 	buffer->target = R_BufferTypeToTarget(buffer->type);
 	buffer->hint = hint;
 	buffer->size = 0;
+	buffer->attrib_mask = 0;
 
 	buffer->element_type = element_type;
 
@@ -505,6 +501,7 @@ void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, con
 	for (; layout->attribute != -1; layout++) {
 		stride += layout->size;
 		buffer->interleave_attribs[layout->attribute] = layout;
+		buffer->attrib_mask |= 1 << layout->attribute;
 	}
 
 	if (stride != struct_size) {
@@ -1070,7 +1067,7 @@ void R_Setup3D(void) {
 	Matrix4x4_Invert_Simple(&r_view.inverse_matrix, &r_view.matrix);
 
 	// bind default vertex array
-	R_BindDefaultArray(R_ARRAY_VERTEX);
+	R_BindDefaultArray(R_ARRAY_POSITION);
 
 	R_EnableBlend(false);
 
@@ -1162,7 +1159,7 @@ void R_Setup2D(void) {
 	Matrix4x4_CreateIdentity(&modelview_matrix);
 
 	// bind default vertex array
-	R_BindDefaultArray(R_ARRAY_VERTEX);
+	R_BindDefaultArray(R_ARRAY_POSITION);
 
 	// and set default texcoords for all 2d pics
 	memcpy(texunit_diffuse.texcoord_array, default_texcoords, sizeof(default_texcoords));
@@ -1192,14 +1189,13 @@ void R_InitState(void) {
 
 	// setup vertex array pointers
 	R_CreateDataBuffer(&r_state.buffer_vertex_array, GL_FLOAT, 3, GL_DYNAMIC_DRAW, sizeof(r_state.vertex_array), NULL);
-	R_CreateDataBuffer(&r_state.buffer_color_array, GL_UNSIGNED_BYTE, 4, GL_DYNAMIC_DRAW, sizeof(r_state.color_array), NULL);
-	R_CreateElementBuffer(&r_state.buffer_element_array, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW, sizeof(r_state.indice_array), NULL);
+	R_CreateDataBuffer(&r_state.buffer_color_array, GL_UNSIGNED_BYTE, 4, GL_DYNAMIC_DRAW, sizeof(r_state.color_array),
+	                   NULL);
+	R_CreateElementBuffer(&r_state.buffer_element_array, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW, sizeof(r_state.indice_array),
+	                      NULL);
 
-	R_CreateInterleaveBuffer(&r_state.buffer_interleave_array, sizeof(*r_state.interleave_array), r_default_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_state.interleave_array), NULL);
-
-	R_BindDefaultArray(R_ARRAY_VERTEX);
-	R_BindDefaultArray(R_ARRAY_COLOR);
-	R_BindDefaultArray(R_ARRAY_NORMAL);
+	R_CreateInterleaveBuffer(&r_state.buffer_interleave_array, sizeof(*r_state.interleave_array), r_default_buffer_layout,
+	                         GL_DYNAMIC_DRAW, sizeof(r_state.interleave_array), NULL);
 
 	// setup texture units
 	const size_t len = MAX_GL_ARRAY_LENGTH * sizeof(vec2_t);
@@ -1212,14 +1208,10 @@ void R_InitState(void) {
 
 			texunit->texcoord_array = Mem_TagMalloc(len, MEM_TAG_RENDERER);
 			R_CreateDataBuffer(&texunit->buffer_texcoord_array,  GL_FLOAT, 2, GL_DYNAMIC_DRAW, len, NULL);
-
-			R_EnableTexture(texunit, true);
-
-			R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
-
-			R_EnableTexture(texunit, false);
 		}
 	}
+
+	R_BindDefaultArrays();
 
 	// default texture unit
 	R_SelectTexture(&texunit_diffuse);

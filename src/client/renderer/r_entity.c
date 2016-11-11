@@ -208,9 +208,9 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 		return;
 	}
 
-	R_BindArray(R_ARRAY_VERTEX, &r_model_state.null_vertices);
+	R_BindAttributeBuffer(R_ARRAY_POSITION, &r_model_state.null_vertices);
 
-	R_BindArray(R_ARRAY_ELEMENTS, &r_model_state.null_elements);
+	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.null_elements);
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
@@ -224,7 +224,7 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 		R_DrawNullModel(e);
 	}
 
-	R_BindDefaultArray(R_ARRAY_VERTEX);
+	R_BindDefaultArray(R_ARRAY_POSITION);
 
 	R_BindDefaultArray(R_ARRAY_ELEMENTS);
 
@@ -273,11 +273,11 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		12, 13
 	};
 
-	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
+	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
 
 	R_UploadToBuffer(&r_state.buffer_element_array, sizeof(bound_elements), bound_elements);
 
-	R_BindDefaultArray(R_ARRAY_VERTEX);
+	R_BindDefaultArray(R_ARRAY_POSITION);
 
 	R_BindDefaultArray(R_ARRAY_COLOR);
 

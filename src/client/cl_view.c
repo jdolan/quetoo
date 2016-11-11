@@ -36,7 +36,7 @@ static void Cl_ClearView(void) {
 
 	memset(r_view.num_state_changes, 0, sizeof(r_view.num_state_changes));
 	r_view.num_buffer_full_uploads = r_view.num_buffer_partial_uploads = r_view.size_buffer_uploads = 0;
-	
+
 	r_view.num_draw_elements = 0;
 	r_view.num_draw_element_count = 0;
 	r_view.num_draw_arrays = 0;

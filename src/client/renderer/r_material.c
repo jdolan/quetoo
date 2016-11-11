@@ -353,7 +353,7 @@ static void R_DrawBspSurfaceMaterialStage(r_bsp_surface_t *surf, const r_stage_t
 			TangentToGLTangent(t, &r_state.interleave_array[r_material_vertex_count + i].tangent);
 		}
 	}
-	
+
 	// hijack index array to act as first # to render
 	r_state.indice_array[r_material_index_count] = r_material_vertex_count;
 
@@ -400,7 +400,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 			}
 
 			R_UpdateMaterialStage(m, s);
-			
+
 			// load the texture matrix for rotations, stretches, etc..
 			R_StageTextureMatrix(surf, s);
 
@@ -419,13 +419,8 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_EnableColorArray(true);
 
 	R_ResetArrayState();
-	
-	R_BindArray(R_ARRAY_VERTEX, &r_state.buffer_interleave_array);
-	R_BindArray(R_ARRAY_COLOR, &r_state.buffer_interleave_array);
-	R_BindArray(R_ARRAY_NORMAL, &r_state.buffer_interleave_array);
-	R_BindArray(R_ARRAY_TANGENT, &r_state.buffer_interleave_array);
-	R_BindArray(R_ARRAY_TEX_DIFFUSE, &r_state.buffer_interleave_array);
-	R_BindArray(R_ARRAY_TEX_LIGHTMAP, &r_state.buffer_interleave_array);
+
+	R_BindAttributeInterleaveBuffer(&r_state.buffer_interleave_array);
 
 	R_EnableColorArray(false);
 
@@ -434,8 +429,9 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_EnableTexture(&texunit_lightmap, false);
 
 	R_EnablePolygonOffset(true);
-	
-	R_UploadToSubBuffer(&r_state.buffer_interleave_array, 0, r_material_vertex_count * sizeof(r_interleave_vertex_t), r_state.interleave_array, false);
+
+	R_UploadToSubBuffer(&r_state.buffer_interleave_array, 0, r_material_vertex_count * sizeof(r_interleave_vertex_t),
+	                    r_state.interleave_array, false);
 
 	// second pass draws
 	for (uint32_t i = 0, si = 0; i < surfs->count; i++) {
@@ -458,19 +454,14 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 			R_PolygonOffset(-0.125, j); // increase depth offset for each stage
 
 			R_SetStageState(surf, s);
-			
+
 			R_DrawArrays(GL_TRIANGLE_FAN, (GLint) r_state.indice_array[si], surf->num_edges);
 
 			++si;
 		}
 	}
-	
-	R_BindDefaultArray(R_ARRAY_VERTEX);
-	R_BindDefaultArray(R_ARRAY_COLOR);
-	R_BindDefaultArray(R_ARRAY_NORMAL);
-	R_BindDefaultArray(R_ARRAY_TANGENT);
-	R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
-	R_BindDefaultArray(R_ARRAY_TEX_LIGHTMAP);
+
+	R_BindDefaultArrays();
 
 	R_EnablePolygonOffset(false);
 

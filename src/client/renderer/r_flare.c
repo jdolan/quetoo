@@ -100,7 +100,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableDepthTest(false);
 
-	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
+	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
 
 	// set to NULL, so it binds the first image that we run into
 	const r_image_t *image = NULL;

@@ -286,7 +286,8 @@ static _Bool G_FireWeapon(g_entity_t *ent) {
  */
 static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
 
-	gi.Debug("Weapon interval: %f ms (%f ms old) (%u ms)\n", (float)(interval / 16.6666666666666666), (float)(interval / 32.0), interval);
+	gi.Debug("Weapon interval: %f ms (%f ms old) (%u ms)\n", (float)(interval / 16.6666666666666666),
+	         (float)(interval / 32.0), interval);
 
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);

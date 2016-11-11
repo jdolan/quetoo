@@ -223,13 +223,13 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
  *  -----------------------------------------------------------------------------------------------
  */
 typedef union {
-    int32_t i32;
-    struct {
-        int32_t x:10;
-        int32_t y:10;
-        int32_t z:10;
-        int32_t w:2;
-    } i32f3;
+	int32_t i32;
+	struct {
+		int32_t x: 10;
+		int32_t y: 10;
+		int32_t z: 10;
+		int32_t w: 2;
+	} i32f3;
 } Vec3IntPacked;
 
 void NormalToGLNormal(const vec3_t tangent, int32_t *integer) {
@@ -252,7 +252,7 @@ void NormalToGLNormal(const vec3_t tangent, int32_t *integer) {
  * |  w  |              z              |              y              |              x              |
  *  -----------------------------------------------------------------------------------------------
  */
-void TangentToGLTangent(const vec4_t tangent, int32_t *integer) {	
+void TangentToGLTangent(const vec4_t tangent, int32_t *integer) {
 	NormalToGLNormal(tangent, integer);
 
 	Vec3IntPacked *packed = (Vec3IntPacked *) integer;

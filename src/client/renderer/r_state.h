@@ -73,7 +73,7 @@ typedef struct r_state_s {
 	vec3_t vertex_array[MAX_GL_ARRAY_LENGTH]; // default vertex arrays
 	u8vec4_t color_array[MAX_GL_ARRAY_LENGTH];
 	GLuint indice_array[(uint32_t)(MAX_GL_ARRAY_LENGTH * 1.5)];
-	
+
 	r_interleave_vertex_t interleave_array[MAX_GL_ARRAY_LENGTH];
 
 	// built-in buffers for the above vertex arrays
@@ -87,7 +87,7 @@ typedef struct r_state_s {
 	// renderer state. This just prevents
 	// them being bound multiple times in a row.
 	GLuint active_buffers[R_NUM_BUFFERS];
-	
+
 	uint32_t buffers_total_bytes;
 	uint32_t buffers_total;
 
@@ -178,13 +178,16 @@ void R_BindDeluxemapTexture(GLuint texnum);
 void R_BindNormalmapTexture(GLuint texnum);
 void R_BindSpecularmapTexture(GLuint texnum);
 void R_BindDefaultArray(const r_attribute_id_t target);
+void R_BindDefaultArrays(void);
 void R_EnableDepthMask(_Bool enable);
 
 void R_BindBuffer(const r_buffer_t *buffer);
 void R_UnbindBuffer(const r_buffer_type_t type);
 void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data);
-void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data, const _Bool data_offset);
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte element_count, const GLenum hint, const r_buffer_type_t type, const size_t size,
+void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data,
+                         const _Bool data_offset);
+void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte element_count, const GLenum hint,
+                    const r_buffer_type_t type, const size_t size,
                     const void *data);
 #define R_CreateDataBuffer(buffer, element_type, element_count, hint, size, data) R_CreateBuffer(buffer, element_type, element_count, hint, R_BUFFER_DATA, size, data)
 void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, const r_buffer_layout_t *layout,
@@ -193,8 +196,9 @@ void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, con
 void R_DestroyBuffer(r_buffer_t *buffer);
 _Bool R_ValidBuffer(const r_buffer_t *buffer);
 
-void R_BindArray(const r_attribute_id_t target, const r_buffer_t *buffer);
-void R_BindArrayOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset);
+void R_BindAttributeBuffer(const r_attribute_id_t target, const r_buffer_t *buffer);
+void R_BindAttributeInterleaveBuffer(const r_buffer_t *buffer);
+void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset);
 
 #define ALPHA_TEST_DISABLED_THRESHOLD 0.0
 #define ALPHA_TEST_ENABLED_THRESHOLD 0.25

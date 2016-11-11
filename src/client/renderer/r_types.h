@@ -93,43 +93,46 @@ typedef enum {
 
 #define R_BUFFER_TYPE_MASK 0x03
 
-// Attribute indices - these should be assigned to
-// every program that uses them, and are also used for buffer storage.
+/**
+ * @brief Attribute indices - these should be assigned to
+ * every program that uses them, and are also used for buffer storage.
+ */
 typedef enum {
-	R_ARRAY_VERTEX,
+	R_ARRAY_POSITION,
 	R_ARRAY_COLOR,
 	R_ARRAY_NORMAL,
 	R_ARRAY_TANGENT,
-	R_ARRAY_TEX_DIFFUSE,
-	R_ARRAY_TEX_LIGHTMAP,
+	R_ARRAY_DIFFUSE,
+	R_ARRAY_LIGHTMAP,
 
 	// These three are only used for shader-based lerp.
 	// They are only enabled if the ones that match up
 	// to it are enabled as well.
-	R_ARRAY_NEXT_VERTEX,
+	R_ARRAY_NEXT_POSITION,
 	R_ARRAY_NEXT_NORMAL,
 	R_ARRAY_NEXT_TANGENT,
-	
-	R_ARRAY_MAX_ATTRIBS,
-	R_ARRAY_MAX_INTERLEAVE_ATTRIBS = R_ARRAY_MAX_ATTRIBS - 3,
 
-	// This is a special entry so that R_BindArray can be
+	R_ARRAY_MAX_ATTRIBS,
+
+	// This is a special entry so that R_BindAttributeBuffer can be
 	// used for binding element buffers as well.
 	R_ARRAY_ELEMENTS = -1
 } r_attribute_id_t;
 
-// These are the masks used to tell which data
-// should be actually bound. They should match
-// up with the ones above to make things simple.
+/**
+ * @brief These are the masks used to tell which data
+ * should be actually bound. They should match
+ * up with the ones above to make things simple.
+ */
 typedef enum {
-	R_ARRAY_MASK_VERTEX			= (1 << R_ARRAY_VERTEX),
+	R_ARRAY_MASK_POSITION		= (1 << R_ARRAY_POSITION),
 	R_ARRAY_MASK_COLOR			= (1 << R_ARRAY_COLOR),
 	R_ARRAY_MASK_NORMAL			= (1 << R_ARRAY_NORMAL),
 	R_ARRAY_MASK_TANGENT		= (1 << R_ARRAY_TANGENT),
-	R_ARRAY_MASK_TEX_DIFFUSE	= (1 << R_ARRAY_TEX_DIFFUSE),
-	R_ARRAY_MASK_TEX_LIGHTMAP	= (1 << R_ARRAY_TEX_LIGHTMAP),
+	R_ARRAY_MASK_DIFFUSE		= (1 << R_ARRAY_DIFFUSE),
+	R_ARRAY_MASK_LIGHTMAP		= (1 << R_ARRAY_LIGHTMAP),
 
-	R_ARRAY_MASK_NEXT_VERTEX	= (1 << R_ARRAY_NEXT_VERTEX),
+	R_ARRAY_MASK_NEXT_POSITION	= (1 << R_ARRAY_NEXT_POSITION),
 	R_ARRAY_MASK_NEXT_NORMAL	= (1 << R_ARRAY_NEXT_NORMAL),
 	R_ARRAY_MASK_NEXT_TANGENT	= (1 << R_ARRAY_NEXT_TANGENT),
 
@@ -163,9 +166,10 @@ typedef struct r_buffer_s {
 	GLubyte element_count;
 	GLubyte element_size;
 	GLubyte element_stride;
-
-	const r_buffer_layout_t *interleave_attribs[R_ARRAY_MAX_INTERLEAVE_ATTRIBS];
 	_Bool interleave; // whether this buffer is an interleave buffer. Only valid for R_BUFFER_DATA.
+
+	r_attribute_mask_t attrib_mask;
+	const r_buffer_layout_t *interleave_attribs[R_ARRAY_MAX_ATTRIBS];
 } r_buffer_t;
 
 /**
@@ -1022,7 +1026,7 @@ typedef struct {
 
 	uint32_t num_state_changes[R_STATE_TOTAL];
 	uint32_t num_buffer_full_uploads, num_buffer_partial_uploads, size_buffer_uploads;
-	
+
 	uint32_t num_draw_elements, num_draw_element_count;
 	uint32_t num_draw_arrays, num_draw_array_count;
 

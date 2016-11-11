@@ -292,7 +292,7 @@ typedef struct {
 } r_md3_interleave_vertex_t;
 
 r_buffer_layout_t r_md3_buffer_layout[] = {
-	{ .attribute = R_ARRAY_VERTEX, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 0 },
+	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 0 },
 	{ .attribute = R_ARRAY_NORMAL, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 12 },
 	{ .attribute = R_ARRAY_TANGENT, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16 },
 	{ .attribute = -1 }
@@ -332,7 +332,8 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	r_md3_interleave_vertex_t *vertexes = Mem_LinkMalloc(v, mod);
 
 	// upload initial data
-	R_CreateInterleaveBuffer(&mod->vertex_buffer, sizeof(r_md3_interleave_vertex_t), r_md3_buffer_layout, GL_STATIC_DRAW, v * md3->num_frames, NULL);
+	R_CreateInterleaveBuffer(&mod->vertex_buffer, sizeof(r_md3_interleave_vertex_t), r_md3_buffer_layout, GL_STATIC_DRAW,
+	                         v * md3->num_frames, NULL);
 
 	for (uint16_t f = 0; f < md3->num_frames; ++f, frame++) {
 
@@ -861,7 +862,7 @@ typedef struct {
 } r_obj_interleave_vertex_t;
 
 r_buffer_layout_t r_obj_buffer_layout[] = {
-	{ .attribute = R_ARRAY_VERTEX, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 0 },
+	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 0 },
 	{ .attribute = R_ARRAY_NORMAL, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 12 },
 	{ .attribute = R_ARRAY_TANGENT, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16 },
 	{ .attribute = R_ARRAY_TEX_DIFFUSE, .type = GL_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 20 },
@@ -918,7 +919,7 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 	// load the vertex buffer objects
 	R_CreateInterleaveBuffer(&mod->vertex_buffer, sizeof(*verts), r_obj_buffer_layout, GL_STATIC_DRAW, v, verts);
-	
+
 	mod->normal_buffer = mod->vertex_buffer;
 	mod->tangent_buffer = mod->vertex_buffer;
 	mod->texcoord_buffer = mod->vertex_buffer;

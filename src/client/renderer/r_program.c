@@ -227,7 +227,6 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 
 	R_EnableAttribute(attribute);
 
-	//, GLenum type, GLuint size, const r_buffer_t *buffer, const GLsizeiptr offset
 	const r_buffer_t *buffer = r_state.array_buffers[attribute];
 	GLenum type;
 	GLsizeiptr offset = r_state.array_buffer_offsets[attribute];
@@ -237,19 +236,24 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 	if (buffer->interleave) {
 		r_attribute_id_t real_attrib;
 
-		switch (attribute) {
-		case R_ARRAY_NEXT_VERTEX:
-			real_attrib = R_ARRAY_VERTEX;
-			break;
-		case R_ARRAY_NEXT_NORMAL:
-			real_attrib = R_ARRAY_NORMAL;
-			break;
-		case R_ARRAY_NEXT_TANGENT:
-			real_attrib = R_ARRAY_TANGENT;
-			break;
-		default:
-			real_attrib = attribute;
-			break;
+		// check to see if we need to point to the right attrib
+		// for NEXT_*
+		if (buffer->interleave_attribs[attribute] == NULL) {
+
+			switch (attribute) {
+				case R_ARRAY_NEXT_POSITION:
+					real_attrib = R_ARRAY_POSITION;
+					break;
+				case R_ARRAY_NEXT_NORMAL:
+					real_attrib = R_ARRAY_NORMAL;
+					break;
+				case R_ARRAY_NEXT_TANGENT:
+					real_attrib = R_ARRAY_TANGENT;
+					break;
+				default:
+					real_attrib = attribute;
+					break;
+			}
 		}
 
 		if (buffer->interleave_attribs[real_attrib] == NULL) {
@@ -269,11 +273,11 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 
 	// only set the ptr if it hasn't changed.
 	if (attrib->constant == true ||
-			attrib->value.buffer != buffer ||
-			attrib->type != type ||
-			attrib->count != count ||
-			attrib->offset != offset ||
-			attrib->stride != stride) {
+	        attrib->value.buffer != buffer ||
+	        attrib->type != type ||
+	        attrib->count != count ||
+	        attrib->offset != offset ||
+	        attrib->stride != stride) {
 
 		R_BindBuffer(buffer);
 
@@ -318,7 +322,8 @@ void R_AttributeConstant4ubv(const r_attribute_id_t attribute, const GLubyte *va
 
 	R_DisableAttribute(attribute);
 
-	if (r_state.attributes[attribute].constant == true && Vector4Compare(r_state.attributes[attribute].value.u8vec4, value)) {
+	if (r_state.attributes[attribute].constant == true &&
+	        Vector4Compare(r_state.attributes[attribute].value.u8vec4, value)) {
 		return;
 	}
 
@@ -620,24 +625,24 @@ void R_SetupAttributes(void) {
 	const r_program_t *p = (r_program_t *) r_state.active_program;
 	int32_t mask = R_ArraysMask();
 
-	if (p->arrays_mask & R_ARRAY_MASK_VERTEX) {
+	if (p->arrays_mask & R_ARRAY_MASK_POSITION) {
 
-		if (mask & R_ARRAY_MASK_VERTEX) {
+		if (mask & R_ARRAY_MASK_POSITION) {
 
-			R_AttributePointer(R_ARRAY_VERTEX);
+			R_AttributePointer(R_ARRAY_POSITION);
 
-			if (p->arrays_mask & R_ARRAY_MASK_NEXT_VERTEX) {
+			if (p->arrays_mask & R_ARRAY_MASK_NEXT_POSITION) {
 
-				if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_VERTEX])) {
-					R_AttributePointer(R_ARRAY_NEXT_VERTEX);
+				if ((mask & R_ARRAY_MASK_NEXT_POSITION) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_POSITION])) {
+					R_AttributePointer(R_ARRAY_NEXT_POSITION);
 				} else {
-					R_DisableAttribute(R_ARRAY_NEXT_VERTEX);
+					R_DisableAttribute(R_ARRAY_NEXT_POSITION);
 				}
 			}
 		} else {
 
-			R_DisableAttribute(R_ARRAY_VERTEX);
-			R_DisableAttribute(R_ARRAY_NEXT_VERTEX);
+			R_DisableAttribute(R_ARRAY_POSITION);
+			R_DisableAttribute(R_ARRAY_NEXT_POSITION);
 		}
 	}
 
@@ -650,21 +655,21 @@ void R_SetupAttributes(void) {
 		}
 	}
 
-	if (p->arrays_mask & R_ARRAY_MASK_TEX_DIFFUSE) {
+	if (p->arrays_mask & R_ARRAY_MASK_DIFFUSE) {
 
-		if (mask & R_ARRAY_MASK_TEX_DIFFUSE) {
-			R_AttributePointer(R_ARRAY_TEX_DIFFUSE);
+		if (mask & R_ARRAY_MASK_DIFFUSE) {
+			R_AttributePointer(R_ARRAY_DIFFUSE);
 		} else {
-			R_DisableAttribute(R_ARRAY_TEX_DIFFUSE);
+			R_DisableAttribute(R_ARRAY_DIFFUSE);
 		}
 	}
 
-	if (p->arrays_mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
+	if (p->arrays_mask & R_ARRAY_MASK_LIGHTMAP) {
 
-		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
-			R_AttributePointer(R_ARRAY_TEX_LIGHTMAP);
+		if (mask & R_ARRAY_MASK_LIGHTMAP) {
+			R_AttributePointer(R_ARRAY_LIGHTMAP);
 		} else {
-			R_DisableAttribute(R_ARRAY_TEX_LIGHTMAP);
+			R_DisableAttribute(R_ARRAY_LIGHTMAP);
 		}
 	}
 
@@ -747,7 +752,7 @@ void R_InitPrograms(void) {
 		r_state.shadow_program->UseMatrices = R_UseMatrices_shadow;
 		r_state.shadow_program->UseCurrentColor = R_UseCurrentColor_shadow;
 		r_state.shadow_program->UseInterpolation = R_UseInterpolation_shadow;
-		r_state.shadow_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_NEXT_VERTEX;
+		r_state.shadow_program->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_NEXT_POSITION;
 	}
 
 	if ((r_state.shell_program = R_LoadProgram("shell", R_InitProgram_shell, R_PreLink_shell))) {
@@ -756,7 +761,8 @@ void R_InitPrograms(void) {
 		r_state.shell_program->UseCurrentColor = R_UseCurrentColor_shell;
 		r_state.shell_program->UseInterpolation = R_UseInterpolation_shell;
 		r_state.shell_program->UseShellOffset = R_UseShellOffset_shell;
-		r_state.shell_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_NEXT_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_NORMAL | R_ARRAY_MASK_NEXT_NORMAL;
+		r_state.shell_program->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_DIFFUSE |
+		                                     R_ARRAY_MASK_NORMAL | R_ARRAY_MASK_NEXT_NORMAL;
 	}
 
 	if ((r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp, R_PreLink_warp))) {
@@ -764,7 +770,7 @@ void R_InitPrograms(void) {
 		r_state.warp_program->UseFog = R_UseFog_warp;
 		r_state.warp_program->UseMatrices = R_UseMatrices_warp;
 		r_state.warp_program->UseCurrentColor = R_UseCurrentColor_warp;
-		r_state.warp_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE;
+		r_state.warp_program->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE;
 	}
 
 	if ((r_state.null_program = R_LoadProgram("null", R_InitProgram_null, R_PreLink_null))) {
@@ -772,14 +778,14 @@ void R_InitPrograms(void) {
 		r_state.null_program->UseMatrices = R_UseMatrices_null;
 		r_state.null_program->UseCurrentColor = R_UseCurrentColor_null;
 		r_state.null_program->UseInterpolation = R_UseInterpolation_null;
-		r_state.null_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_NEXT_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE |
+		r_state.null_program->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_DIFFUSE |
 		                                    R_ARRAY_MASK_COLOR;
 	}
 
 	if ((r_state.corona_program = R_LoadProgram("corona", R_InitProgram_corona, R_PreLink_corona))) {
 		r_state.corona_program->UseFog = R_UseFog_corona;
 		r_state.corona_program->UseMatrices = R_UseMatrices_corona;
-		r_state.corona_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_COLOR;
+		r_state.corona_program->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE | R_ARRAY_MASK_COLOR;
 	}
 
 	R_UseProgram(r_state.null_program);

@@ -59,14 +59,14 @@ static r_default_program_t r_default_program;
  */
 void R_PreLink_default(const r_program_t *program) {
 
-	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
+	R_BindAttributeLocation(program, "POSITION", R_ARRAY_POSITION);
 	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
-	R_BindAttributeLocation(program, "TEXCOORD0", R_ARRAY_TEX_DIFFUSE);
-	R_BindAttributeLocation(program, "TEXCOORD1", R_ARRAY_TEX_LIGHTMAP);
+	R_BindAttributeLocation(program, "TEXCOORD0", R_ARRAY_DIFFUSE);
+	R_BindAttributeLocation(program, "TEXCOORD1", R_ARRAY_LIGHTMAP);
 	R_BindAttributeLocation(program, "NORMAL", R_ARRAY_NORMAL);
 	R_BindAttributeLocation(program, "TANGENT", R_ARRAY_TANGENT);
 
-	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_VERTEX);
+	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_POSITION);
 	R_BindAttributeLocation(program, "NEXT_NORMAL", R_ARRAY_NEXT_NORMAL);
 	R_BindAttributeLocation(program, "NEXT_TANGENT", R_ARRAY_NEXT_TANGENT);
 }
@@ -77,17 +77,17 @@ void R_PreLink_default(const r_program_t *program) {
 void R_InitProgram_default(r_program_t *program) {
 
 	r_default_program_t *p = &r_default_program;
-	
+
 	p->program = program;
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_VERTEX], R_ATTRIBUTE, "POSITION");
+	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION");
 	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR");
-	R_ProgramVariable(&program->attributes[R_ARRAY_TEX_DIFFUSE], R_ATTRIBUTE, "TEXCOORD0");
-	R_ProgramVariable(&program->attributes[R_ARRAY_TEX_LIGHTMAP], R_ATTRIBUTE, "TEXCOORD1");
+	R_ProgramVariable(&program->attributes[R_ARRAY_DIFFUSE], R_ATTRIBUTE, "TEXCOORD0");
+	R_ProgramVariable(&program->attributes[R_ARRAY_LIGHTMAP], R_ATTRIBUTE, "TEXCOORD1");
 	R_ProgramVariable(&program->attributes[R_ARRAY_NORMAL], R_ATTRIBUTE, "NORMAL");
 	R_ProgramVariable(&program->attributes[R_ARRAY_TANGENT], R_ATTRIBUTE, "TANGENT");
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_VERTEX], R_ATTRIBUTE, "NEXT_POSITION");
+	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION");
 	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_NORMAL], R_ATTRIBUTE, "NEXT_NORMAL");
 	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_TANGENT], R_ATTRIBUTE, "NEXT_TANGENT");
 

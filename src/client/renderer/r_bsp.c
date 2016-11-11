@@ -306,7 +306,7 @@ void R_DrawBspNormals(void) {
 			const vec_t *normal = &r_model_state.world->bsp->normals[surf->elements[j]][0];
 
 			VectorMA(vertex, 12.0, normal, end);
-			
+
 			VectorCopy(vertex, r_state.vertex_array[k]);
 			VectorCopy(end, r_state.vertex_array[k + 1]);
 			k += 2;
