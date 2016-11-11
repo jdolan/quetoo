@@ -93,9 +93,13 @@ void R_InitParticles(void) {
  */
 void R_ShutdownParticles(void) {
 
-	R_DestroyBuffer(&r_particle_state.verts_buffer);
+	if (R_ValidBuffer(&r_particle_state.verts_buffer)) {
+		R_DestroyBuffer(&r_particle_state.verts_buffer);
+	}
 
-	R_DestroyBuffer(&r_particle_state.element_buffer);
+	if (R_ValidBuffer(&r_particle_state.verts_buffer)) {
+		R_DestroyBuffer(&r_particle_state.verts_buffer);
+	}
 }
 
 /**
@@ -309,9 +313,12 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_particle_state.element_buffer);
 
 	const GLint base = (GLint) (intptr_t) e->data;
+	
+	// these are set to -1 to immediately trigger a change.
 	r_particle_type_t last_type = -1;
-	GLuint last_texnum = texunit_diffuse.texnum;
 	GLenum last_blend = -1;
+
+	GLuint last_texnum = texunit_diffuse.texnum;
 
 	for (i = j = 0; i < (GLsizei) count; i++, e++) {
 		const r_particle_t *p = (const r_particle_t *) e->element;

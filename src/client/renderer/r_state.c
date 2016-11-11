@@ -455,7 +455,10 @@ void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte
                     const r_buffer_type_t type, const size_t size,
                     const void *data) {
 
-	assert(buffer->bufnum == 0);
+	if (buffer->bufnum != 0) {
+		Com_Warn("Attempting to reclaim non-empty buffer");
+		R_DestroyBuffer(buffer);
+	}
 
 	glGenBuffers(1, &buffer->bufnum);
 
@@ -514,7 +517,11 @@ void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, con
  * @brief Destroy a GPU-allocated buffer.
  */
 void R_DestroyBuffer(r_buffer_t *buffer) {
-	assert(buffer->bufnum != 0);
+
+	if (buffer->bufnum == 0) {
+		Com_Warn("Attempting to free empty buffer");
+		return;
+	}
 
 	// if this buffer is currently bound, unbind it.
 	if (r_state.active_buffers[buffer->type] == buffer->bufnum) {

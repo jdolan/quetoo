@@ -399,7 +399,9 @@ void R_InitSky(void) {
  */
 void R_ShutdownSky(void) {
 
-	R_DestroyBuffer(&r_sky.vert_buffer);
+	if (R_ValidBuffer(&r_sky.vert_buffer)) {
+		R_DestroyBuffer(&r_sky.vert_buffer);
+	}
 }
 
 /**
