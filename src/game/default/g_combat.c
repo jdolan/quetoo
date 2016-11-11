@@ -348,7 +348,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 			kick = 1.0;
 		}
 
-		G_ClientDamageKick(target, dir, kick);
+		G_ClientDamageKick(target, dir, kick * 10.0);
 
 		if (attacker->client && attacker->client != client) {
 			attacker->client->locals.damage_inflicted += damage_health + damage_armor;
