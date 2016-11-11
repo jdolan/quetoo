@@ -173,8 +173,8 @@ r_model_t *R_WorldModel(void) {
 }
 
 static r_buffer_layout_t r_bound_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_COLOR, .type = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 12, .normalized = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 12, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -207,9 +207,9 @@ void R_InitModels(void) {
 
 	r_model_state.null_elements_count = lengthof(null_elements);
 
-	R_CreateDataBuffer(&r_model_state.null_vertices, GL_FLOAT, 3, false, GL_STATIC_DRAW, sizeof(null_vertices), null_vertices);
+	R_CreateDataBuffer(&r_model_state.null_vertices, R_ATTRIB_FLOAT, 3, false, GL_STATIC_DRAW, sizeof(null_vertices), null_vertices);
 
-	R_CreateElementBuffer(&r_model_state.null_elements, GL_UNSIGNED_BYTE, GL_STATIC_DRAW, sizeof(null_elements),
+	R_CreateElementBuffer(&r_model_state.null_elements, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, sizeof(null_elements),
 	                      null_elements);
 
 	const GLubyte bound_elements[] = {
@@ -239,7 +239,7 @@ void R_InitModels(void) {
 
 	r_model_state.bound_element_count = lengthof(bound_elements);
 
-	R_CreateElementBuffer(&r_model_state.bound_element_buffer, GL_UNSIGNED_BYTE, GL_STATIC_DRAW, sizeof(bound_elements),
+	R_CreateElementBuffer(&r_model_state.bound_element_buffer, R_ATTRIB_UNSIGNED_BYTE, GL_STATIC_DRAW, sizeof(bound_elements),
 	                      bound_elements);
 	
 	Vector4Set(r_model_state.bound_vertices[8].color, 255, 0, 0, 255);

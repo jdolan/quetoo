@@ -140,6 +140,34 @@ typedef enum {
 	R_ARRAY_MASK_ALL			= (1 << R_ARRAY_MAX_ATTRIBS) - 1
 } r_attribute_mask_t;
 
+typedef enum {
+	R_ATTRIB_FLOAT,
+	R_ATTRIB_BYTE,
+	R_ATTRIB_UNSIGNED_BYTE,
+	R_ATTRIB_SHORT,
+	R_ATTRIB_UNSIGNED_SHORT,
+	R_ATTRIB_INT,
+	R_ATTRIB_UNSIGNED_INT,
+	R_ATTRIB_INT_2_10_10_10_REV,
+	
+	R_ATTRIB_TOTAL_TYPES
+} r_attrib_type_t;
+
+// NOTE: if any of the enums or data types
+// used here change, be sure to modify the bit field too.
+// This struct is 20 bytes
+typedef union {
+	uint32_t packed;
+
+	struct {
+		uint32_t type : 3;
+		uint32_t count : 3;
+		uint32_t offset : 6;
+		uint32_t normalized : 2;
+		uint32_t stride : 6;
+	};
+} r_attrib_type_state_t;
+
 /**
  * @brief Represents a single attribute layout for a buffer.
  * An interleaved buffer will supply a chain of these.
@@ -147,11 +175,15 @@ typedef enum {
  */
 typedef struct {
 	r_attribute_id_t attribute;
-	GLenum type;
-	GLubyte count;
-	GLubyte size;
-	GLubyte offset;
+
+	r_attrib_type_t type;
+	uint8_t count;
+	uint8_t offset;
+	uint8_t size;
 	_Bool normalized;
+
+	// internal, no touch
+	r_attrib_type_state_t _type_state;
 } r_buffer_layout_t;
 
 /**
@@ -164,13 +196,9 @@ typedef struct r_buffer_s {
 	GLuint bufnum; // e.g. 123
 	size_t size; // last size of buffer, for resize operations
 
-	GLenum element_type;
-	GLubyte element_count;
-	GLubyte element_size;
-	GLubyte element_stride;
-	_Bool element_normalized;
+	// attribute crap
+	r_attrib_type_state_t element_type;
 	_Bool interleave; // whether this buffer is an interleave buffer. Only valid for R_BUFFER_DATA.
-
 	r_attribute_mask_t attrib_mask;
 	const r_buffer_layout_t *interleave_attribs[R_ARRAY_MAX_ATTRIBS];
 } r_buffer_t;

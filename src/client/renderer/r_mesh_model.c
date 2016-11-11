@@ -292,9 +292,9 @@ typedef struct {
 } r_md3_interleave_vertex_t;
 
 r_buffer_layout_t r_md3_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_NORMAL, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 12, .normalized = true },
-	{ .attribute = R_ARRAY_TANGENT, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16, .normalized = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
+	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 12, .normalized = true },
+	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -379,10 +379,10 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	mod->tangent_buffer = mod->vertex_buffer;
 
 	// upload texcoords
-	R_CreateDataBuffer(&mod->texcoord_buffer, GL_UNSIGNED_SHORT, 2, true, GL_STATIC_DRAW, st, texcoords);
+	R_CreateDataBuffer(&mod->texcoord_buffer, R_ATTRIB_UNSIGNED_SHORT, 2, true, GL_STATIC_DRAW, st, texcoords);
 
 	// upload elements
-	R_CreateElementBuffer(&mod->element_buffer, GL_UNSIGNED_INT, GL_STATIC_DRAW, e, tris);
+	R_CreateElementBuffer(&mod->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, tris);
 
 	// get rid of these, we don't need them any more
 	Mem_Free(texcoords);
@@ -862,10 +862,10 @@ typedef struct {
 } r_obj_interleave_vertex_t;
 
 r_buffer_layout_t r_obj_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_NORMAL, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 12, .normalized = true },
-	{ .attribute = R_ARRAY_TANGENT, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16, .normalized = true },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = GL_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 20, .normalized = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
+	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 12, .normalized = true },
+	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16, .normalized = true },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 20, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -924,7 +924,7 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	mod->tangent_buffer = mod->vertex_buffer;
 	mod->texcoord_buffer = mod->vertex_buffer;
 
-	R_CreateElementBuffer(&mod->element_buffer, GL_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
+	R_CreateElementBuffer(&mod->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
 
 	// free our temporary buffers
 	Mem_Free(verts);

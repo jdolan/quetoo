@@ -388,22 +388,20 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 /**
  * @brief
  */
-static GLubyte R_GetGLElementSize(const GLenum type) {
+static GLubyte R_GetElementSize(const GLenum type) {
 
 	switch (type) {
-		case GL_BYTE:
-		case GL_UNSIGNED_BYTE:
-		case GL_INT_2_10_10_10_REV:
+		case R_ATTRIB_BYTE:
+		case R_ATTRIB_UNSIGNED_BYTE:
+		case R_ATTRIB_INT_2_10_10_10_REV:
 			return 1;
-		case GL_SHORT:
-		case GL_UNSIGNED_SHORT:
+		case R_ATTRIB_SHORT:
+		case R_ATTRIB_UNSIGNED_SHORT:
 			return 2;
-		case GL_INT:
-		case GL_UNSIGNED_INT:
-		case GL_FLOAT:
+		case R_ATTRIB_INT:
+		case R_ATTRIB_UNSIGNED_INT:
+		case R_ATTRIB_FLOAT:
 			return 4;
-		case GL_DOUBLE:
-			return 8;
 		default:
 			Com_Error(ERR_DROP, "Bad GL type");
 	}
@@ -427,7 +425,7 @@ uint32_t R_GetNumAllocatedBufferBytes(void) {
  * @brief Allocate a GPU buffer of the specified size.
  * Optionally upload the data immediately too.
  */
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte element_count, const _Bool element_normalized, const GLenum hint,
+void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, const GLubyte element_count, const _Bool element_normalized, const GLenum hint,
                     const r_buffer_type_t type, const size_t size,
                     const void *data) {
 
@@ -436,22 +434,21 @@ void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte
 		R_DestroyBuffer(buffer);
 	}
 
+	memset(buffer, 0, sizeof(*buffer));
+
 	glGenBuffers(1, &buffer->bufnum);
 
 	buffer->type = type & R_BUFFER_TYPE_MASK;
 	buffer->target = R_BufferTypeToTarget(buffer->type);
 	buffer->hint = hint;
-	buffer->size = 0;
-	buffer->attrib_mask = 0;
-	buffer->element_stride = 0;
-	buffer->element_type = element_type;
+	buffer->element_type.type = element_type;
 
-	if (element_type) {
-		buffer->element_count = element_count;
-		buffer->element_size = R_GetGLElementSize(buffer->element_type);
-		buffer->element_normalized = element_normalized;
+	if (element_type != R_ATTRIB_TOTAL_TYPES) {
+		buffer->element_type.count = element_count;
+		buffer->element_type.stride = R_GetElementSize(buffer->element_type.type);
+		buffer->element_type.normalized = element_normalized;
 	} else {
-		buffer->element_size = buffer->element_stride = element_count;
+		buffer->element_type.stride = element_count;
 	}
 
 	if (type & R_BUFFER_INTERLEAVE) {
@@ -472,9 +469,7 @@ void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte
 void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, const r_buffer_layout_t *layout,
                               const GLenum hint, const size_t size, const void *data) {
 
-	R_CreateBuffer(buffer, 0, struct_size, false, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data);
-
-	memset(buffer->interleave_attribs, 0, sizeof(buffer->interleave_attribs));
+	R_CreateBuffer(buffer, R_ATTRIB_TOTAL_TYPES, struct_size, false, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data);
 
 	GLsizei stride = 0;
 
@@ -482,6 +477,17 @@ void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, con
 		stride += layout->size;
 		buffer->interleave_attribs[layout->attribute] = layout;
 		buffer->attrib_mask |= 1 << layout->attribute;
+
+		// init type pack state once
+		if (!layout->_type_state.packed) {
+			r_buffer_layout_t *temp = (r_buffer_layout_t *) layout;
+			
+			temp->_type_state.type = layout->type;
+			temp->_type_state.stride = buffer->element_type.stride;
+			temp->_type_state.offset = layout->offset;
+			temp->_type_state.count = layout->count;
+			temp->_type_state.normalized = layout->normalized;
+		}
 	}
 
 	if (stride != struct_size) {
@@ -507,8 +513,9 @@ void R_DestroyBuffer(r_buffer_t *buffer) {
 	// if the buffer is attached to any active attribs, remove that ptr too
 	for (r_attribute_id_t i = 0; i < R_ARRAY_MAX_ATTRIBS; ++i) {
 
-		if (r_state.attributes[i].constant == false &&
+		if (r_state.attributes[i].type != NULL &&
 		        r_state.attributes[i].value.buffer == buffer) {
+			r_state.attributes[i].type = NULL;
 			r_state.attributes[i].value.buffer = NULL;
 		}
 	}

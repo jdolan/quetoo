@@ -49,9 +49,9 @@ typedef struct {
 } r_particle_interleave_vertex_t;
 
 r_buffer_layout_t r_particle_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = GL_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 12 },
-	{ .attribute = R_ARRAY_COLOR, .type = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 20, .normalized = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 12 },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 20, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -84,7 +84,7 @@ void R_InitParticles(void) {
 	R_CreateInterleaveBuffer(&r_particle_state.verts_buffer, sizeof(r_particle_interleave_vertex_t),
 	                         r_particle_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_particle_state.verts), NULL);
 
-	R_CreateElementBuffer(&r_particle_state.element_buffer, GL_UNSIGNED_SHORT, GL_DYNAMIC_DRAW,
+	R_CreateElementBuffer(&r_particle_state.element_buffer, R_ATTRIB_UNSIGNED_SHORT, GL_DYNAMIC_DRAW,
 	                      sizeof(r_particle_state.elements), NULL);
 }
 

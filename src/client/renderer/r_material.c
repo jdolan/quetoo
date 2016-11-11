@@ -36,12 +36,12 @@ typedef struct {
 } r_material_interleave_vertex_t;
 
 static r_buffer_layout_t r_material_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_COLOR, .type = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 12, .normalized = true },
-	{ .attribute = R_ARRAY_NORMAL, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16, .normalized = true },
-	{ .attribute = R_ARRAY_TANGENT, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 20, .normalized = true },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = GL_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 24 },
-	{ .attribute = R_ARRAY_LIGHTMAP, .type = GL_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 32, .normalized = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 12, .normalized = true },
+	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16, .normalized = true },
+	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 20, .normalized = true },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 24 },
+	{ .attribute = R_ARRAY_LIGHTMAP, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 32, .normalized = true },
 	{ .attribute = -1 }
 };
 

@@ -85,10 +85,7 @@ void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *na
  */
 void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
 
-	if (!variable || variable->location == -1) {
-		Com_Warn("NULL or invalid variable\n");
-		return;
-	}
+	assert(variable && variable->location != -1);
 
 	if (variable->value.i == value) {
 		return;
@@ -106,10 +103,7 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
  */
 void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
 
-	if (!variable || variable->location == -1) {
-		Com_Warn("NULL or invalid variable\n");
-		return;
-	}
+	assert(variable && variable->location != -1);
 
 	if (variable->value.f == value) {
 		return;
@@ -127,10 +121,7 @@ void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
  */
 void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
 
-	if (!variable || variable->location == -1) {
-		Com_Warn("NULL or invalid variable\n");
-		return;
-	}
+	assert(variable && variable->location != -1);
 
 	if (VectorCompare(variable->value.vec3, value)) {
 		return;
@@ -148,10 +139,7 @@ void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
  */
 void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
 
-	if (!variable || variable->location == -1) {
-		Com_Warn("NULL or invalid variable\n");
-		return;
-	}
+	assert(variable && variable->location != -1);
 
 	if (Vector4Compare(variable->value.vec4, value)) {
 		return;
@@ -169,10 +157,7 @@ void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
  */
 void R_ProgramParameter4ubv(r_uniform4fv_t *variable, const GLubyte *value) {
 
-	if (!variable || variable->location == -1) {
-		Com_Warn("NULL or invalid variable\n");
-		return;
-	}
+	assert(variable && variable->location != -1);
 
 	if (Vector4Compare(variable->value.u8vec4, value)) {
 		return;
@@ -193,10 +178,7 @@ void R_ProgramParameter4ubv(r_uniform4fv_t *variable, const GLubyte *value) {
  */
 _Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value) {
 
-	if (!variable || variable->location == -1) {
-		Com_Warn("NULL or invalid variable\n");
-		return false;
-	}
+	assert(variable && variable->location != -1);
 
 	if (memcmp(&variable->value.mat4, value, sizeof(variable->value.mat4)) == 0) {
 		return false;
@@ -220,6 +202,17 @@ void R_BindAttributeLocation(const r_program_t *prog, const char *name, const GL
 	R_GetError(name);
 }
 
+GLenum r_attrib_type_to_gl_type[R_ATTRIB_TOTAL_TYPES] = {
+	GL_FLOAT,
+	GL_BYTE,
+	GL_UNSIGNED_BYTE,
+	GL_SHORT,
+	GL_UNSIGNED_SHORT,
+	GL_INT,
+	GL_UNSIGNED_INT,
+	GL_INT_2_10_10_10_REV
+};
+
 /**
  * @brief
  */
@@ -228,11 +221,10 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 	R_EnableAttribute(attribute);
 
 	const r_buffer_t *buffer = r_state.array_buffers[attribute];
-	GLenum type;
+
+	GLsizei stride = 0;
 	GLsizeiptr offset = r_state.array_buffer_offsets[attribute];
-	GLubyte count;
-	const GLubyte stride = buffer->element_stride;
-	_Bool normalized;
+	const r_attrib_type_state_t *type = &buffer->element_type;
 
 	if (buffer->interleave) {
 		r_attribute_id_t real_attrib = attribute;
@@ -256,45 +248,28 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 			}
 		}
 
-		if (buffer->interleave_attribs[real_attrib] == NULL) {
-			Com_Warn("Bad attribute\n");
-			return;
-		}
+		assert(buffer->interleave_attribs[real_attrib]);
 
-		type = buffer->interleave_attribs[real_attrib]->type;
-		count = buffer->interleave_attribs[real_attrib]->count;
-		offset += buffer->interleave_attribs[real_attrib]->offset;
-		normalized = buffer->interleave_attribs[real_attrib]->normalized;
-	} else {
-		type = buffer->element_type;
-		count = buffer->element_count;
-		normalized = buffer->element_normalized;
+		type = &buffer->interleave_attribs[real_attrib]->_type_state;
+		offset += type->offset;
+		stride = buffer->element_type.stride;
 	}
 
 	r_attrib_state_t *attrib = &r_state.attributes[attribute];
 
 	// only set the ptr if it hasn't changed.
-	if (attrib->constant == true ||
-	        attrib->value.buffer != buffer ||
-	        attrib->count != count ||
-	        attrib->type != type ||
-	        attrib->normalized != normalized ||
-	        attrib->stride != stride ||
+	if (attrib->type != type ||
+			attrib->value.buffer != buffer ||
 	        attrib->offset != offset) {
 
 		R_BindBuffer(buffer);
 
-		glVertexAttribPointer(attribute, count, type, (GLboolean) normalized, stride, (const GLvoid *) offset);
+		glVertexAttribPointer(attribute, type->count, r_attrib_type_to_gl_type[type->type], type->normalized, stride, (const GLvoid *) offset);
 		r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_POINTER]++;
 
-		attrib->constant = false;
 		attrib->value.buffer = buffer;
-
-		attrib->count = count;
 		attrib->type = type;
-		attrib->normalized = normalized;
 		attrib->offset = offset;
-		attrib->stride = stride;
 
 		R_GetError(r_state.active_program->attributes[attribute].name);
 	}
@@ -307,7 +282,7 @@ void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *val
 
 	R_DisableAttribute(attribute);
 
-	if (r_state.attributes[attribute].constant == true && Vector4Compare(r_state.attributes[attribute].value.vec4, value)) {
+	if (r_state.attributes[attribute].type == NULL && Vector4Compare(r_state.attributes[attribute].value.vec4, value)) {
 		return;
 	}
 
@@ -315,7 +290,7 @@ void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *val
 	glVertexAttrib4fv(attribute, r_state.attributes[attribute].value.vec4);
 	r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_CONSTANT]++;
 
-	r_state.attributes[attribute].constant = true;
+	r_state.attributes[attribute].type = NULL;
 
 	R_GetError(r_state.active_program->attributes[attribute].name);
 }
@@ -327,7 +302,7 @@ void R_AttributeConstant4ubv(const r_attribute_id_t attribute, const GLubyte *va
 
 	R_DisableAttribute(attribute);
 
-	if (r_state.attributes[attribute].constant == true &&
+	if (r_state.attributes[attribute].type == NULL &&
 	        Vector4Compare(r_state.attributes[attribute].value.u8vec4, value)) {
 		return;
 	}
@@ -335,8 +310,8 @@ void R_AttributeConstant4ubv(const r_attribute_id_t attribute, const GLubyte *va
 	Vector4Copy(value, r_state.attributes[attribute].value.u8vec4);
 	glVertexAttrib4ubv(attribute, r_state.attributes[attribute].value.u8vec4);
 	r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_CONSTANT]++;
-
-	r_state.attributes[attribute].constant = true;
+	
+	r_state.attributes[attribute].type = NULL;
 
 	R_GetError(r_state.active_program->attributes[attribute].name);
 }
@@ -346,13 +321,10 @@ void R_AttributeConstant4ubv(const r_attribute_id_t attribute, const GLubyte *va
  */
 void R_EnableAttribute(const r_attribute_id_t attribute) {
 
-	if (attribute >= R_ARRAY_MAX_ATTRIBS ||
-	        r_state.active_program->attributes[attribute].location == -1) {
-		Com_Warn("Invalid attribute\n");
-		return;
-	}
+	assert(attribute < R_ARRAY_MAX_ATTRIBS && r_state.active_program->attributes[attribute].location != -1);
 
 	if (r_state.attributes[attribute].enabled != true) {
+
 		glEnableVertexAttribArray(attribute);
 		r_state.attributes[attribute].enabled = true;
 
@@ -367,13 +339,10 @@ void R_EnableAttribute(const r_attribute_id_t attribute) {
  */
 void R_DisableAttribute(const r_attribute_id_t attribute) {
 
-	if (attribute >= R_ARRAY_MAX_ATTRIBS ||
-	        r_state.active_program->attributes[attribute].location == -1) {
-		Com_Warn("Invalid attribute\n");
-		return;
-	}
+	assert(attribute < R_ARRAY_MAX_ATTRIBS && r_state.active_program->attributes[attribute].location != -1);
 
 	if (r_state.attributes[attribute].enabled != false) {
+
 		glDisableVertexAttribArray(attribute);
 		r_state.attributes[attribute].enabled = false;
 

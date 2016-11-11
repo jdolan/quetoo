@@ -33,9 +33,9 @@ typedef struct {
 } r_char_interleave_vertex_t;
 
 static r_buffer_layout_t r_char_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = GL_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = GL_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 4, .normalized = true },
-	{ .attribute = R_ARRAY_COLOR, .type = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 8, .normalized = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 4, .normalized = true },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 8, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -63,8 +63,8 @@ typedef struct {
 } r_fill_interleave_vertex_t;
 
 static r_buffer_layout_t r_fill_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = GL_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
-	{ .attribute = R_ARRAY_COLOR, .type = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 4, .normalized = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 4, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -115,8 +115,8 @@ typedef struct {
 } r_image_interleave_vertex_t;
 
 static r_buffer_layout_t r_image_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = GL_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = GL_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 4 },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 4 },
 	{ .attribute = -1 }
 };
 
@@ -653,22 +653,22 @@ void R_InitDraw(void) {
 		R_CreateInterleaveBuffer(&r_draw.char_arrays[i].vert_buffer, sizeof(r_char_interleave_vertex_t), r_char_buffer_layout,
                         GL_DYNAMIC_DRAW, sizeof(r_draw.char_arrays[i].verts), NULL);
 
-		R_CreateElementBuffer(&r_draw.char_arrays[i].element_buffer, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW,
+		R_CreateElementBuffer(&r_draw.char_arrays[i].element_buffer, R_ATTRIB_UNSIGNED_INT, GL_DYNAMIC_DRAW,
 		                      sizeof(r_draw.char_arrays[i].elements), NULL);
 	}
 
 	R_CreateInterleaveBuffer(&r_draw.fill_arrays.vert_buffer, sizeof(r_fill_interleave_vertex_t), r_fill_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_draw.fill_arrays.verts),
 	                   NULL);
 
-	R_CreateElementBuffer(&r_draw.fill_arrays.element_buffer, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW,
+	R_CreateElementBuffer(&r_draw.fill_arrays.element_buffer, R_ATTRIB_UNSIGNED_INT, GL_DYNAMIC_DRAW,
 	                      sizeof(r_draw.fill_arrays.elements), NULL);
 
 	R_CreateInterleaveBuffer(&r_draw.line_arrays.vert_buffer, sizeof(r_fill_interleave_vertex_t), r_fill_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_draw.line_arrays.verts),
 	                   NULL);
 
 	// fill buffer only needs 4 verts
-	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, GL_SHORT, 2, false, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * 4, NULL);
-	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, GL_SHORT, 2, false, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * MAX_LINE_VERTS,
+	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, R_ATTRIB_SHORT, 2, false, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * 4, NULL);
+	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, R_ATTRIB_SHORT, 2, false, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * MAX_LINE_VERTS,
 	                   NULL);
 	
 	Vector2Set(r_draw.image_vertices[0].texcoord, 0, 0);

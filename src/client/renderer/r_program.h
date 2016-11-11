@@ -118,15 +118,11 @@ typedef struct {
 } r_program_t;
 
 // attribute state
-typedef struct r_attrib_state_s {
+typedef struct {
 	r_variable_value_t value;
-	GLenum type;
+	const r_attrib_type_state_t *type;
 	GLsizeiptr offset;
-	GLubyte stride;
-	GLubyte count;
-	GLboolean normalized;
 	_Bool enabled;
-	_Bool constant;
 } r_attrib_state_t;
 
 #define MAX_PROGRAMS 8
