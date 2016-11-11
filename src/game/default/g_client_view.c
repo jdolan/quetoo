@@ -213,7 +213,6 @@ void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick) {
  * @brief A convenience function for adding view kick from firing weapons.
  */
 void G_ClientWeaponKick(g_entity_t *ent, const vec_t kick) {
-
 	G_ClientAddKick(ent, -kick, 0.0);
 }
 
@@ -238,7 +237,7 @@ static void G_ClientEventKick(g_entity_t *ent) {
 }
 
 /**
- * @brief Erodes
+ * @brief Reduces client view kick angles over time, using exponential decay.
  */
 static void G_ClientDecayKick(g_entity_t *ent) {
 
@@ -259,8 +258,8 @@ static void G_ClientDecayKick(g_entity_t *ent) {
 }
 
 /**
- * @brief Sets the kick value based on recent events such as falling. Firing of
- * weapons may also set the kick value, and we factor that in here as well.
+ * @brief Calculates the final view kick angles for the current frame. This factors in damage, 
+ * weapon and event kicks, and uses interpolation and exponential decay to produce a smooth effect.
  */
 static void G_ClientKickAngles(g_entity_t *ent) {
 	uint16_t *kick_angles = ent->client->ps.pm_state.kick_angles;
@@ -277,12 +276,14 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 	vec3_t kick;
 	UnpackAngles(kick_angles, kick);
 
+	// if a kick has recently occurred, interpolate it over a few frames
+
 	const vec_t frac = (g_level.time - ent->client->locals.kick_angles_time) / 64.0;
 	if (frac < 1.0) {
 		AngleLerp(kick, ent->client->locals.kick_angles, Clamp(frac, 0.0, 1.0), kick);
 	} else {
+		// otherwise, decay the kick, and use the resulting value directly
 		G_ClientDecayKick(ent);
-
 		VectorCopy(ent->client->locals.kick_angles, kick);
 	}
 
