@@ -150,6 +150,7 @@ typedef struct {
 	GLubyte count;
 	GLubyte size;
 	GLubyte offset;
+	GLboolean normalized;
 } r_buffer_layout_t;
 
 /**
@@ -166,6 +167,7 @@ typedef struct r_buffer_s {
 	GLubyte element_count;
 	GLubyte element_size;
 	GLubyte element_stride;
+	GLboolean element_normalized;
 	_Bool interleave; // whether this buffer is an interleave buffer. Only valid for R_BUFFER_DATA.
 
 	r_attribute_mask_t attrib_mask;

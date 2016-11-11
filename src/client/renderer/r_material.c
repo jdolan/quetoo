@@ -510,12 +510,14 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 
 	// some stages will manipulate texcoords
 
-	const r_stage_t *s = m->stages;
+	r_stage_t *s = m->stages;
 	for (vec_t j = -1.0; s; s = s->next, j--) {
 
 		if (!(s->flags & STAGE_DIFFUSE)) {
 			continue;
 		}
+
+		R_UpdateMaterialStage(m, s);
 
 		R_PolygonOffset(j, 1.0); // increase depth offset for each stage
 

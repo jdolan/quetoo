@@ -451,7 +451,7 @@ uint32_t R_GetNumAllocatedBufferBytes(void) {
  * @brief Allocate a GPU buffer of the specified size.
  * Optionally upload the data immediately too.
  */
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte element_count, const GLenum hint,
+void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte element_count, const GLboolean element_normalized, const GLenum hint,
                     const r_buffer_type_t type, const size_t size,
                     const void *data) {
 
@@ -464,12 +464,13 @@ void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte
 	buffer->hint = hint;
 	buffer->size = 0;
 	buffer->attrib_mask = 0;
-
+	buffer->element_stride = 0;
 	buffer->element_type = element_type;
 
 	if (element_type) {
 		buffer->element_count = element_count;
 		buffer->element_size = R_GetGLElementSize(buffer->element_type);
+		buffer->element_normalized = element_normalized;
 	} else {
 		buffer->element_size = buffer->element_stride = element_count;
 	}
@@ -492,7 +493,7 @@ void R_CreateBuffer(r_buffer_t *buffer, const GLenum element_type, const GLubyte
 void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, const r_buffer_layout_t *layout,
                               const GLenum hint, const size_t size, const void *data) {
 
-	R_CreateBuffer(buffer, 0, struct_size, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data);
+	R_CreateBuffer(buffer, 0, struct_size, GL_FALSE, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data);
 
 	memset(buffer->interleave_attribs, 0, sizeof(buffer->interleave_attribs));
 
@@ -1188,8 +1189,8 @@ void R_InitState(void) {
 	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
 	// setup vertex array pointers
-	R_CreateDataBuffer(&r_state.buffer_vertex_array, GL_FLOAT, 3, GL_DYNAMIC_DRAW, sizeof(r_state.vertex_array), NULL);
-	R_CreateDataBuffer(&r_state.buffer_color_array, GL_UNSIGNED_BYTE, 4, GL_DYNAMIC_DRAW, sizeof(r_state.color_array),
+	R_CreateDataBuffer(&r_state.buffer_vertex_array, GL_FLOAT, 3, GL_FALSE, GL_DYNAMIC_DRAW, sizeof(r_state.vertex_array), NULL);
+	R_CreateDataBuffer(&r_state.buffer_color_array, GL_UNSIGNED_BYTE, 4, GL_TRUE, GL_DYNAMIC_DRAW, sizeof(r_state.color_array),
 	                   NULL);
 	R_CreateElementBuffer(&r_state.buffer_element_array, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW, sizeof(r_state.indice_array),
 	                      NULL);
@@ -1207,7 +1208,7 @@ void R_InitState(void) {
 			texunit->texture = GL_TEXTURE0 + i;
 
 			texunit->texcoord_array = Mem_TagMalloc(len, MEM_TAG_RENDERER);
-			R_CreateDataBuffer(&texunit->buffer_texcoord_array,  GL_FLOAT, 2, GL_DYNAMIC_DRAW, len, NULL);
+			R_CreateDataBuffer(&texunit->buffer_texcoord_array, GL_FLOAT, 2, GL_FALSE, GL_DYNAMIC_DRAW, len, NULL);
 		}
 	}
 

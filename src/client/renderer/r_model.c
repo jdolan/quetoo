@@ -201,7 +201,7 @@ void R_InitModels(void) {
 
 	r_model_state.null_elements_count = lengthof(null_elements);
 
-	R_CreateDataBuffer(&r_model_state.null_vertices, GL_FLOAT, 3, GL_STATIC_DRAW, sizeof(null_vertices), null_vertices);
+	R_CreateDataBuffer(&r_model_state.null_vertices, GL_FLOAT, 3, GL_FALSE, GL_STATIC_DRAW, sizeof(null_vertices), null_vertices);
 
 	R_CreateElementBuffer(&r_model_state.null_elements, GL_UNSIGNED_INT, GL_STATIC_DRAW, sizeof(null_elements),
 	                      null_elements);

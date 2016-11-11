@@ -232,6 +232,7 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 	GLsizeiptr offset = r_state.array_buffer_offsets[attribute];
 	GLubyte count;
 	const GLubyte stride = buffer->element_stride;
+	GLboolean normalized;
 
 	if (buffer->interleave) {
 		r_attribute_id_t real_attrib = attribute;
@@ -263,9 +264,11 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 		type = buffer->interleave_attribs[real_attrib]->type;
 		count = buffer->interleave_attribs[real_attrib]->count;
 		offset += buffer->interleave_attribs[real_attrib]->offset;
+		normalized = buffer->interleave_attribs[real_attrib]->normalized;
 	} else {
 		type = buffer->element_type;
 		count = buffer->element_count;
+		normalized = buffer->element_normalized;
 	}
 
 	r_attrib_state_t *attrib = &r_state.attributes[attribute];
@@ -280,7 +283,7 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 
 		R_BindBuffer(buffer);
 
-		glVertexAttribPointer(attribute, count, type, type == GL_FLOAT ? GL_FALSE : GL_TRUE, stride, (const GLvoid *) offset);
+		glVertexAttribPointer(attribute, count, type, normalized, stride, (const GLvoid *) offset);
 		r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_POINTER]++;
 
 		attrib->value.buffer = buffer;

@@ -26,18 +26,26 @@
 #define MAX_CHAR_VERTS MAX_CHARS * 4
 #define MAX_CHAR_ELEMENTS MAX_CHARS * 6
 
+typedef struct {
+	s16vec2_t position;
+	u16vec2_t texcoord;
+	u8vec4_t color;
+} r_char_interleave_vertex_t;
+
+r_buffer_layout_t r_char_buffer_layout[] = {
+	{ .attribute = R_ARRAY_POSITION, .type = GL_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = GL_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 4, .normalized = true },
+	{ .attribute = R_ARRAY_COLOR, .type = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 8, .normalized = true },
+	{ .attribute = -1 }
+};
+
+
 // characters are batched per frame and drawn in one shot
 // accumulate coordinates and colors as vertex arrays
 typedef struct r_char_arrays_s {
-	vec3_t verts[MAX_CHAR_VERTS];
+	r_char_interleave_vertex_t verts[MAX_CHAR_VERTS];
 	uint32_t vert_index;
 	r_buffer_t vert_buffer;
-
-	vec2_t texcoords[MAX_CHAR_VERTS];
-	r_buffer_t texcoord_buffer;
-
-	u8vec4_t colors[MAX_CHAR_VERTS];
-	r_buffer_t color_buffer;
 
 	GLuint elements[MAX_CHAR_ELEMENTS];
 	uint32_t element_index;
@@ -294,35 +302,34 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 
 	const uint32_t row = (uint32_t) c >> 4;
 	const uint32_t col = (uint32_t) c & 15;
-
-	const vec_t frow = row * 0.1250;
-	const vec_t fcol = col * 0.0625;
+	
+	const u16vec_t frow = (row * 0.1250) * USHRT_MAX;
+	const u16vec_t fcol = (col * 0.0625) * USHRT_MAX;
+	const u16vec_t frowe = ((row + 1) * 0.1250) * USHRT_MAX;
+	const u16vec_t fcole = ((col + 1) * 0.0625) * USHRT_MAX;
 
 	// resolve ABGR color
 	const uint32_t *abgr = &r_draw.colors[color & (MAX_COLORS - 1)];
 
 	// copy to all 4 verts
 	for (uint32_t i = 0; i < 4; ++i) {
-		memcpy(&chars->colors[chars->vert_index + i], abgr, sizeof(u8vec4_t));
+		memcpy(&chars->verts[chars->vert_index + i].color, abgr, sizeof(u8vec4_t));
 	}
 
-	Vector2Set(chars->texcoords[chars->vert_index], fcol, frow);
-	Vector2Set(chars->texcoords[chars->vert_index + 1], fcol + 0.0625, frow);
-	Vector2Set(chars->texcoords[chars->vert_index + 2], fcol + 0.0625, frow + 0.1250);
-	Vector2Set(chars->texcoords[chars->vert_index + 3], fcol, frow + 0.1250);
+	Vector2Set(chars->verts[chars->vert_index].texcoord, fcol, frow);
+	Vector2Set(chars->verts[chars->vert_index + 1].texcoord, fcole, frow);
+	Vector2Set(chars->verts[chars->vert_index + 2].texcoord, fcole, frowe);
+	Vector2Set(chars->verts[chars->vert_index + 3].texcoord, fcol, frowe);
 
-	VectorSet(chars->verts[chars->vert_index], x, y, 0);
-	VectorSet(chars->verts[chars->vert_index + 1], x + r_draw.font->char_width, y, 0);
-	VectorSet(chars->verts[chars->vert_index + 2], x + r_draw.font->char_width, y + r_draw.font->char_height, 0);
-	VectorSet(chars->verts[chars->vert_index + 3], x, y + r_draw.font->char_height, 0);
+	Vector2Set(chars->verts[chars->vert_index].position, x, y);
+	Vector2Set(chars->verts[chars->vert_index + 1].position, x + r_draw.font->char_width, y);
+	Vector2Set(chars->verts[chars->vert_index + 2].position, x + r_draw.font->char_width, y + r_draw.font->char_height);
+	Vector2Set(chars->verts[chars->vert_index + 3].position, x, y + r_draw.font->char_height);
+
+	R_MakeQuadU32(&chars->elements[chars->element_index], chars->vert_index);
 
 	chars->vert_index += 4;
-
-	const GLuint char_index = chars->num_chars * 4;
-
-	R_MakeQuadU32(&chars->elements[chars->element_index], char_index);
 	chars->element_index += 6;
-
 	chars->num_chars++;
 }
 
@@ -338,12 +345,8 @@ static void R_DrawChars(void) {
 			continue;
 		}
 
-		R_UploadToBuffer(&r_draw.char_arrays[i].vert_buffer, r_draw.char_arrays[i].vert_index * sizeof(vec3_t),
+		R_UploadToBuffer(&r_draw.char_arrays[i].vert_buffer, r_draw.char_arrays[i].vert_index * sizeof(r_char_interleave_vertex_t),
 		                 r_draw.char_arrays[i].verts);
-		R_UploadToBuffer(&r_draw.char_arrays[i].texcoord_buffer, r_draw.char_arrays[i].vert_index * sizeof(vec2_t),
-		                 r_draw.char_arrays[i].texcoords);
-		R_UploadToBuffer(&r_draw.char_arrays[i].color_buffer, r_draw.char_arrays[i].vert_index * sizeof(u8vec4_t),
-		                 r_draw.char_arrays[i].colors);
 
 		R_UploadToBuffer(&r_draw.char_arrays[i].element_buffer, r_draw.char_arrays[i].element_index * sizeof(GLuint),
 		                 r_draw.char_arrays[i].elements);
@@ -353,9 +356,7 @@ static void R_DrawChars(void) {
 		R_EnableColorArray(true);
 
 		// alter the array pointers
-		R_BindAttributeBuffer(R_ARRAY_COLOR, &chars->color_buffer);
-		R_BindAttributeBuffer(R_ARRAY_DIFFUSE, &chars->texcoord_buffer);
-		R_BindAttributeBuffer(R_ARRAY_POSITION, &chars->vert_buffer);
+		R_BindAttributeInterleaveBuffer(&chars->vert_buffer);
 
 		R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &chars->element_buffer);
 
@@ -646,36 +647,31 @@ void R_InitDraw(void) {
 
 	for (int32_t i = 0; i < MAX_FONTS; ++i) {
 
-		R_CreateDataBuffer(&r_draw.char_arrays[i].vert_buffer, GL_FLOAT, 3, GL_DYNAMIC_DRAW,
-		                   sizeof(r_draw.char_arrays[i].verts),
-		                   NULL);
-		R_CreateDataBuffer(&r_draw.char_arrays[i].texcoord_buffer, GL_FLOAT, 2, GL_DYNAMIC_DRAW,
-		                   sizeof(r_draw.char_arrays[i].texcoords), NULL);
-		R_CreateDataBuffer(&r_draw.char_arrays[i].color_buffer, GL_UNSIGNED_BYTE, 4, GL_DYNAMIC_DRAW,
-		                   sizeof(r_draw.char_arrays[i].colors), NULL);
+		R_CreateInterleaveBuffer(&r_draw.char_arrays[i].vert_buffer, sizeof(r_char_interleave_vertex_t), r_char_buffer_layout,
+                        GL_DYNAMIC_DRAW, sizeof(r_draw.char_arrays[i].verts), NULL);
 
 		R_CreateElementBuffer(&r_draw.char_arrays[i].element_buffer, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW,
 		                      sizeof(r_draw.char_arrays[i].elements), NULL);
 	}
 
-	R_CreateDataBuffer(&r_draw.fill_arrays.vert_buffer, GL_FLOAT, 3, GL_DYNAMIC_DRAW, sizeof(r_draw.fill_arrays.verts),
+	R_CreateDataBuffer(&r_draw.fill_arrays.vert_buffer, GL_FLOAT, 3, GL_FALSE, GL_DYNAMIC_DRAW, sizeof(r_draw.fill_arrays.verts),
 	                   NULL);
-	R_CreateDataBuffer(&r_draw.fill_arrays.color_buffer, GL_UNSIGNED_BYTE, 4, GL_DYNAMIC_DRAW,
+	R_CreateDataBuffer(&r_draw.fill_arrays.color_buffer, GL_UNSIGNED_BYTE, 4, GL_TRUE, GL_DYNAMIC_DRAW,
 	                   sizeof(r_draw.fill_arrays.colors),
 	                   NULL);
 
 	R_CreateElementBuffer(&r_draw.fill_arrays.element_buffer, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW,
 	                      sizeof(r_draw.fill_arrays.elements), NULL);
 
-	R_CreateDataBuffer(&r_draw.line_arrays.vert_buffer, GL_FLOAT, 3, GL_DYNAMIC_DRAW, sizeof(r_draw.line_arrays.verts),
+	R_CreateDataBuffer(&r_draw.line_arrays.vert_buffer, GL_FLOAT, 3, GL_FALSE, GL_DYNAMIC_DRAW, sizeof(r_draw.line_arrays.verts),
 	                   NULL);
-	R_CreateDataBuffer(&r_draw.line_arrays.color_buffer, GL_UNSIGNED_BYTE, 4, GL_DYNAMIC_DRAW,
+	R_CreateDataBuffer(&r_draw.line_arrays.color_buffer, GL_UNSIGNED_BYTE, 4, GL_TRUE, GL_DYNAMIC_DRAW,
 	                   sizeof(r_draw.line_arrays.colors),
 	                   NULL);
 
 	// fill buffer only needs 4 verts
-	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, GL_FLOAT, 3, GL_DYNAMIC_DRAW, sizeof(vec3_t) * 4, NULL);
-	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, GL_FLOAT, 3, GL_DYNAMIC_DRAW, sizeof(vec3_t) * MAX_LINE_VERTS,
+	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, GL_FLOAT, 3, GL_FALSE, GL_DYNAMIC_DRAW, sizeof(vec3_t) * 4, NULL);
+	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, GL_FLOAT, 3, GL_FALSE, GL_DYNAMIC_DRAW, sizeof(vec3_t) * MAX_LINE_VERTS,
 	                   NULL);
 }
 
@@ -687,8 +683,6 @@ void R_ShutdownDraw(void) {
 	for (int32_t i = 0; i < MAX_FONTS; ++i) {
 
 		R_DestroyBuffer(&r_draw.char_arrays[i].vert_buffer);
-		R_DestroyBuffer(&r_draw.char_arrays[i].texcoord_buffer);
-		R_DestroyBuffer(&r_draw.char_arrays[i].color_buffer);
 	}
 
 	R_DestroyBuffer(&r_draw.fill_arrays.vert_buffer);

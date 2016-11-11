@@ -49,9 +49,9 @@ typedef struct {
 } r_particle_interleave_vertex_t;
 
 r_buffer_layout_t r_particle_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 0 },
+	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t) },
 	{ .attribute = R_ARRAY_DIFFUSE, .type = GL_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 12 },
-	{ .attribute = R_ARRAY_COLOR, .type = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 20 },
+	{ .attribute = R_ARRAY_COLOR, .type = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 20, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -305,9 +305,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_ResetArrayState();
 
 	// alter the array pointers
-	R_BindAttributeBuffer(R_ARRAY_POSITION, &r_particle_state.verts_buffer);
-	R_BindAttributeBuffer(R_ARRAY_DIFFUSE, &r_particle_state.verts_buffer);
-	R_BindAttributeBuffer(R_ARRAY_COLOR, &r_particle_state.verts_buffer);
+	R_BindAttributeInterleaveBuffer(&r_particle_state.verts_buffer);
 	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_particle_state.element_buffer);
 
 	const GLint base = (GLint) (intptr_t) e->data;

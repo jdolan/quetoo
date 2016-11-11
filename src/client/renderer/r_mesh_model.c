@@ -292,7 +292,7 @@ typedef struct {
 } r_md3_interleave_vertex_t;
 
 r_buffer_layout_t r_md3_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 0 },
+	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t) },
 	{ .attribute = R_ARRAY_NORMAL, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 12 },
 	{ .attribute = R_ARRAY_TANGENT, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16 },
 	{ .attribute = -1 }
@@ -379,7 +379,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	mod->tangent_buffer = mod->vertex_buffer;
 
 	// upload texcoords
-	R_CreateDataBuffer(&mod->texcoord_buffer, GL_FLOAT, 2, GL_STATIC_DRAW, st, texcoords);
+	R_CreateDataBuffer(&mod->texcoord_buffer, GL_FLOAT, 2, GL_FALSE, GL_STATIC_DRAW, st, texcoords);
 
 	// upload elements
 	R_CreateElementBuffer(&mod->element_buffer, GL_UNSIGNED_INT, GL_STATIC_DRAW, e, tris);
@@ -862,7 +862,7 @@ typedef struct {
 } r_obj_interleave_vertex_t;
 
 r_buffer_layout_t r_obj_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 0 },
+	{ .attribute = R_ARRAY_POSITION, .type = GL_FLOAT, .count = 3, .size = sizeof(vec3_t) },
 	{ .attribute = R_ARRAY_NORMAL, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 12 },
 	{ .attribute = R_ARRAY_TANGENT, .type = GL_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16 },
 	{ .attribute = R_ARRAY_DIFFUSE, .type = GL_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 20 },
