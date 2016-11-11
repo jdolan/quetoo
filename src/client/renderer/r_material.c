@@ -461,7 +461,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		}
 	}
 
-	R_BindDefaultArrays();
+	R_UnbindAttributeBuffers();
 
 	R_EnablePolygonOffset(false);
 

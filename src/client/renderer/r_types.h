@@ -113,6 +113,7 @@ typedef enum {
 	R_ARRAY_NEXT_TANGENT,
 
 	R_ARRAY_MAX_ATTRIBS,
+	R_ARRAY_ALL = R_ARRAY_MAX_ATTRIBS,
 
 	// This is a special entry so that R_BindAttributeBuffer can be
 	// used for binding element buffers as well.

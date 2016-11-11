@@ -68,15 +68,10 @@ typedef struct r_matrix_stack_s {
 
 // opengl state management
 typedef struct r_state_s {
-	vec3_t vertex_array[MAX_GL_ARRAY_LENGTH]; // default vertex arrays
 	GLuint indice_array[(uint32_t)(MAX_GL_ARRAY_LENGTH * 1.5)];
-
-	r_interleave_vertex_t interleave_array[MAX_GL_ARRAY_LENGTH];
-
-	// built-in buffers for the above vertex arrays
-	r_buffer_t buffer_vertex_array;
 	r_buffer_t buffer_element_array;
 
+	r_interleave_vertex_t interleave_array[MAX_GL_ARRAY_LENGTH];
 	r_buffer_t buffer_interleave_array;
 
 	// the current buffers bound to the global
@@ -173,8 +168,6 @@ void R_BindLightmapTexture(GLuint texnum);
 void R_BindDeluxemapTexture(GLuint texnum);
 void R_BindNormalmapTexture(GLuint texnum);
 void R_BindSpecularmapTexture(GLuint texnum);
-void R_BindDefaultArray(const r_attribute_id_t target);
-void R_BindDefaultArrays(void);
 void R_EnableDepthMask(_Bool enable);
 
 void R_BindBuffer(const r_buffer_t *buffer);
@@ -194,6 +187,8 @@ _Bool R_ValidBuffer(const r_buffer_t *buffer);
 void R_BindAttributeBuffer(const r_attribute_id_t target, const r_buffer_t *buffer);
 void R_BindAttributeInterleaveBuffer(const r_buffer_t *buffer);
 void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset);
+#define R_UnbindAttributeBuffer(target) R_BindAttributeBuffer(target, NULL)
+#define R_UnbindAttributeBuffers() R_UnbindAttributeBuffer(R_ARRAY_ALL)
 
 #define ALPHA_TEST_DISABLED_THRESHOLD 0.0
 #define ALPHA_TEST_ENABLED_THRESHOLD 0.25

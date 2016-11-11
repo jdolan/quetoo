@@ -232,17 +232,17 @@ void R_ResetArrayState(void) {
 
 	// vertex array
 	if (mask & R_ARRAY_MASK_POSITION) {
-		R_BindDefaultArray(R_ARRAY_POSITION);
+		R_UnbindAttributeBuffer(R_ARRAY_POSITION);
 
 		if (mask & R_ARRAY_MASK_NEXT_POSITION) {
-			R_BindDefaultArray(R_ARRAY_NEXT_POSITION);
+			R_UnbindAttributeBuffer(R_ARRAY_NEXT_POSITION);
 		}
 	}
 
 	// color array
 	if (r_state.color_array_enabled) {
 		if (mask & R_ARRAY_MASK_COLOR) {
-			R_BindDefaultArray(R_ARRAY_COLOR);
+			R_UnbindAttributeBuffer(R_ARRAY_COLOR);
 		}
 	}
 
@@ -250,20 +250,20 @@ void R_ResetArrayState(void) {
 	if (r_state.lighting_enabled) {
 
 		if (mask & R_ARRAY_MASK_NORMAL) {
-			R_BindDefaultArray(R_ARRAY_NORMAL);
+			R_UnbindAttributeBuffer(R_ARRAY_NORMAL);
 
 			if (mask & R_ARRAY_MASK_NEXT_NORMAL) {
-				R_BindDefaultArray(R_ARRAY_NEXT_NORMAL);
+				R_UnbindAttributeBuffer(R_ARRAY_NEXT_NORMAL);
 			}
 		}
 
 		if (r_bumpmap->value) {
 
 			if (mask & R_ARRAY_MASK_TANGENT) {
-				R_BindDefaultArray(R_ARRAY_TANGENT);
+				R_UnbindAttributeBuffer(R_ARRAY_TANGENT);
 
 				if (mask & R_ARRAY_MASK_NEXT_TANGENT) {
-					R_BindDefaultArray(R_ARRAY_NEXT_TANGENT);
+					R_UnbindAttributeBuffer(R_ARRAY_NEXT_TANGENT);
 				}
 			}
 		}
@@ -272,7 +272,7 @@ void R_ResetArrayState(void) {
 	// diffuse texcoords
 	if (texunit_diffuse.enabled) {
 		if (mask & R_ARRAY_MASK_DIFFUSE) {
-			R_BindDefaultArray(R_ARRAY_DIFFUSE);
+			R_UnbindAttributeBuffer(R_ARRAY_DIFFUSE);
 		}
 	}
 
@@ -280,16 +280,12 @@ void R_ResetArrayState(void) {
 	if (texunit_lightmap.enabled) {
 
 		if (mask & R_ARRAY_MASK_LIGHTMAP) {
-			R_SelectTexture(&texunit_lightmap);
-
-			R_BindDefaultArray(R_ARRAY_LIGHTMAP);
-
-			R_SelectTexture(&texunit_diffuse);
+			R_UnbindAttributeBuffer(R_ARRAY_LIGHTMAP);
 		}
 	}
 
 	// elements
-	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, NULL);
+	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 
 	r_array_state.model = NULL;
 	r_array_state.arrays = arrays;

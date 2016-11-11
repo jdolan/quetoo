@@ -182,6 +182,14 @@ void R_BindSpecularmapTexture(GLuint texnum) {
  */
 void R_BindAttributeBuffer(const r_attribute_id_t target, const r_buffer_t *buffer) {
 
+	if (target == R_ARRAY_ALL) {
+		for (r_attribute_id_t id = R_ARRAY_POSITION; id < R_ARRAY_MAX_ATTRIBS; id++) {
+			R_BindAttributeBuffer(id, buffer);
+		}
+
+		return;
+	}
+
 	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
 
 	if (target == R_ARRAY_ELEMENTS) {
@@ -228,30 +236,6 @@ void R_BindAttributeInterleaveBuffer(const r_buffer_t *buffer) {
 _Bool R_ValidBuffer(const r_buffer_t *buffer) {
 
 	return buffer && buffer->bufnum && buffer->size;
-}
-
-/**
- * @brief Binds the appropriate shared vertex array to the specified target.
- */
-void R_BindDefaultArray(const r_attribute_id_t target) {
-
-	switch (target) {
-		case R_ARRAY_POSITION:
-			R_BindAttributeBuffer(target, &r_state.buffer_vertex_array);
-			break;
-		default:
-			R_BindAttributeBuffer(target, NULL);
-			break;
-	}
-}
-
-/**
- * @brief Binds all default shared arrays.
- */
-void R_BindDefaultArrays(void) {
-	for (int32_t i = R_ARRAY_POSITION; i < R_ARRAY_MAX_ATTRIBS; ++i) {
-		R_BindDefaultArray(i);
-	}
 }
 
 /**
@@ -1066,7 +1050,7 @@ void R_Setup3D(void) {
 	Matrix4x4_Invert_Simple(&r_view.inverse_matrix, &r_view.matrix);
 
 	// bind default vertex array
-	R_BindDefaultArray(R_ARRAY_POSITION);
+	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
 
 	R_EnableBlend(false);
 
@@ -1158,7 +1142,7 @@ void R_Setup2D(void) {
 	Matrix4x4_CreateIdentity(&modelview_matrix);
 
 	// bind default vertex array
-	R_BindDefaultArray(R_ARRAY_POSITION);
+	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
 
 	R_EnableBlend(true);
 
@@ -1182,7 +1166,6 @@ void R_InitState(void) {
 	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
 	// setup vertex array pointers
-	R_CreateDataBuffer(&r_state.buffer_vertex_array, GL_FLOAT, 3, false, GL_DYNAMIC_DRAW, sizeof(r_state.vertex_array), NULL);
 	R_CreateElementBuffer(&r_state.buffer_element_array, GL_UNSIGNED_INT, GL_DYNAMIC_DRAW, sizeof(r_state.indice_array),
 	                      NULL);
 
@@ -1198,7 +1181,7 @@ void R_InitState(void) {
 		}
 	}
 
-	R_BindDefaultArrays();
+	R_UnbindAttributeBuffers();
 
 	// default texture unit
 	R_SelectTexture(&texunit_diffuse);
@@ -1237,7 +1220,6 @@ void R_InitState(void) {
  */
 void R_ShutdownState(void) {
 
-	R_DestroyBuffer(&r_state.buffer_vertex_array);
 	R_DestroyBuffer(&r_state.buffer_element_array);
 
 	R_DestroyBuffer(&r_state.buffer_interleave_array);

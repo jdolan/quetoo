@@ -382,11 +382,11 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_DepthRange(0.0, 1.0);
 
 	// restore array pointers
-	R_BindDefaultArray(R_ARRAY_POSITION);
-	R_BindDefaultArray(R_ARRAY_DIFFUSE);
-	R_BindDefaultArray(R_ARRAY_COLOR);
+	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
+	R_UnbindAttributeBuffer(R_ARRAY_DIFFUSE);
+	R_UnbindAttributeBuffer(R_ARRAY_COLOR);
 
-	R_BindDefaultArray(R_ARRAY_ELEMENTS);
+	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

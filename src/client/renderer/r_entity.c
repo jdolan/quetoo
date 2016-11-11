@@ -209,7 +209,6 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 	}
 
 	R_BindAttributeBuffer(R_ARRAY_POSITION, &r_model_state.null_vertices);
-
 	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.null_elements);
 
 	for (size_t i = 0; i < ents->count; i++) {
@@ -224,9 +223,8 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 		R_DrawNullModel(e);
 	}
 
-	R_BindDefaultArray(R_ARRAY_POSITION);
-
-	R_BindDefaultArray(R_ARRAY_ELEMENTS);
+	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
+	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 
 	r_view.current_entity = NULL;
 }
@@ -302,7 +300,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		R_PopMatrix(R_MATRIX_MODELVIEW);
 	}
 
-	R_BindDefaultArray(R_ARRAY_ELEMENTS);
+	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 
 	R_EnableColorArray(false);
 

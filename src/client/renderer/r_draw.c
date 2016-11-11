@@ -377,11 +377,11 @@ static void R_DrawChars(void) {
 	}
 
 	// restore array pointers
-	R_BindDefaultArray(R_ARRAY_COLOR);
-	R_BindDefaultArray(R_ARRAY_DIFFUSE);
-	R_BindDefaultArray(R_ARRAY_POSITION);
+	R_UnbindAttributeBuffer(R_ARRAY_COLOR);
+	R_UnbindAttributeBuffer(R_ARRAY_DIFFUSE);
+	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
 
-	R_BindDefaultArray(R_ARRAY_ELEMENTS);
+	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 
 	R_EnableColorArray(false);
 
@@ -453,9 +453,9 @@ static void R_DrawFills(void) {
 	R_DrawArrays(GL_TRIANGLES, 0, r_draw.fill_arrays.element_index);
 
 	// and restore them
-	R_BindDefaultArray(R_ARRAY_POSITION);
-	R_BindDefaultArray(R_ARRAY_COLOR);
-	R_BindDefaultArray(R_ARRAY_ELEMENTS);
+	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
+	R_UnbindAttributeBuffer(R_ARRAY_COLOR);
+	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 
 	R_EnableColorArray(false);
 
@@ -514,8 +514,8 @@ static void R_DrawLines(void) {
 	R_DrawArrays(GL_LINES, 0, r_draw.line_arrays.vert_index);
 
 	// and restore them
-	R_BindDefaultArray(R_ARRAY_POSITION);
-	R_BindDefaultArray(R_ARRAY_COLOR);
+	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
+	R_UnbindAttributeBuffer(R_ARRAY_COLOR);
 
 	R_EnableColorArray(false);
 
@@ -550,7 +550,7 @@ void R_DrawFillUI(const SDL_Rect *rect) {
 	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 	// and restore them
-	R_BindDefaultArray(R_ARRAY_POSITION);
+	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
 
 	R_EnableTexture(&texunit_diffuse, true);
 }
@@ -577,7 +577,7 @@ void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop
 	R_DrawArrays(loop ? GL_LINE_LOOP : GL_LINE_STRIP, 0, (GLsizei) count);
 
 	// and restore them
-	R_BindDefaultArray(R_ARRAY_POSITION);
+	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
 
 	R_EnableTexture(&texunit_diffuse, true);
 }
