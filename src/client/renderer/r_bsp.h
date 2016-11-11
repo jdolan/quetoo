@@ -31,6 +31,7 @@ _Bool R_CullSphere(const vec3_t point, const vec_t radius);
 #ifdef __R_LOCAL_H__
 	_Bool R_CullBspInlineModel(const r_entity_t *e);
 	void R_DrawBspInlineModels(const r_entities_t *ents);
+	void R_AddBspInlineModelFlares(const r_entities_t *ents);
 	void R_DrawBspLeafs(void);
 	void R_DrawBspNormals(void);
 	void R_MarkBspSurfaces(void);

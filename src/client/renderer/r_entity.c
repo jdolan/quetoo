@@ -375,6 +375,16 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 }
 
 /**
+ * @brief
+ */
+void R_AddFlares(void) {
+	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
+
+	R_AddFlareBspSurfaces(&surfs->flare);
+	R_AddBspInlineModelFlares(&r_sorted_entities.bsp_inline_entities);
+}
+
+/**
  * @brief Primary entry point for drawing all entities.
  */
 void R_DrawEntities(void) {

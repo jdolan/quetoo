@@ -162,6 +162,9 @@ void R_DrawView(void) {
 
 	// dispatch threads to cull entities and sort elements while we draw the world
 	thread_t *cull_entities = Thread_Create(R_CullEntities, NULL);
+
+	R_AddFlares();
+
 	thread_t *sort_elements = Thread_Create(R_SortElements, NULL);
 
 	R_MarkLights();
@@ -181,8 +184,6 @@ void R_DrawView(void) {
 	R_DrawBackBspSurfaces(&surfs->back);
 
 	R_DrawMaterialBspSurfaces(&surfs->material);
-
-	R_DrawFlareBspSurfaces(&surfs->flare);
 
 	R_EnableBlend(false);
 

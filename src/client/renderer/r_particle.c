@@ -341,6 +341,12 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 				R_DepthRange(0.0, 1.0);
 			}
 
+			if (p->type == PARTICLE_FLARE) {
+				R_EnableDepthTest(false);
+			} else {
+				R_EnableDepthTest(true);
+			}
+
 			if (p->type == PARTICLE_CORONA) {
 				R_UseProgram(r_state.corona_program);
 			} else {
@@ -378,6 +384,8 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_EnableColorArray(false);
+
+	R_EnableDepthTest(true);
 
 	R_UseProgram(r_state.null_program);
 }

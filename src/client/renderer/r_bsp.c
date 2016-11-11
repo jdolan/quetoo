@@ -195,8 +195,6 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 
 	R_DrawMaterialBspSurfaces(&surfs->material);
 
-	R_DrawFlareBspSurfaces(&surfs->flare);
-
 	R_DrawBlendBspSurfaces(&surfs->blend);
 
 	R_DrawBlendWarpBspSurfaces(&surfs->blend_warp);
@@ -237,6 +235,75 @@ static void R_DrawBspInlineModel(const r_entity_t *e) {
 	R_RotateForEntity(NULL);
 
 	R_RotateLightsForBspInlineModel(NULL);
+}
+
+/**
+ * @brief
+ */
+static void R_AddBspInlineModelFlares_(const r_entity_t *e) {
+	static int16_t frame = -2;
+
+	// temporarily swap the view frame so that the surface drawing
+	// routines pickup only the inline model's surfaces
+
+	const int16_t f = r_locals.frame;
+	r_locals.frame = frame--;
+
+	if (frame == INT16_MIN) {
+		frame = -2;
+	}
+
+	r_bsp_surface_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
+
+	for (uint32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
+		const cm_bsp_plane_t *plane = surf->plane;
+		vec_t dot;
+
+		// find which side of the surf we are on
+		if (AXIAL(plane)) {
+			dot = r_bsp_model_org[plane->type] - plane->dist;
+		} else {
+			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
+		}
+
+		if (surf->flags & R_SURF_PLANE_BACK) {
+			dot = -dot;
+		}
+
+		if (dot > SIDE_EPSILON) { // visible, flag for rendering
+			surf->frame = r_locals.frame;
+			surf->back_frame = -1;
+		} else { // back-facing
+			surf->frame = -1;
+			surf->back_frame = r_locals.frame;
+		}
+	}
+
+	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
+
+	R_AddFlareBspSurfaces(&surfs->flare);
+
+	r_locals.frame = f; // undo the swap
+}
+
+/**
+ * @brief
+ */
+void R_AddBspInlineModelFlares(const r_entities_t *ents) {
+
+	for (size_t i = 0; i < ents->count; i++) {
+		const r_entity_t *e = ents->entities[i];
+
+		if (e->effects & EF_NO_DRAW) {
+			continue;
+		}
+
+		r_view.current_entity = e;
+
+		R_AddBspInlineModelFlares_(e);
+	}
+
+	r_view.current_entity = NULL;
 }
 
 /**

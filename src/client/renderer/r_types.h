@@ -217,7 +217,8 @@ typedef enum {
 	PARTICLE_BEAM,
 	PARTICLE_WEATHER,
 	PARTICLE_SPLASH,
-	PARTICLE_CORONA
+	PARTICLE_CORONA,
+	PARTICLE_FLARE
 } r_particle_type_t;
 
 /**
@@ -350,6 +351,8 @@ typedef struct {
 	vec3_t color;
 	uint32_t time;
 	vec_t alpha;
+
+	r_particle_t particle;
 } r_bsp_flare_t;
 
 // r_bsp_surface_t flags
