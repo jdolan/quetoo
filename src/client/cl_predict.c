@@ -242,7 +242,7 @@ void Cl_CheckPredictionError(void) {
 		return;
 	}
 
-	// calculate the last user_cmd_t we sent that the server has processed
+	// calculate the last cl_cmd_t we sent that the server has processed
 	const uint32_t frame = (cls.net_chan.incoming_acknowledged & CMD_MASK);
 
 	// compare what the server returned with what we had predicted it to be
