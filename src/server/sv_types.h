@@ -263,8 +263,6 @@ typedef struct {
 /**
  * @brief Yields a pointer to the edict by the given number by negotiating the
  * edicts array based on the reported size of g_entity_t.
- *
- * FIXME: Can these be made prettier with ptrdiff_t / intptr_t?
  */
 #define ENTITY_FOR_NUM(n) ( (g_entity_t *) ((byte *) svs.game->entities + svs.game->entity_size * (n)) )
 
