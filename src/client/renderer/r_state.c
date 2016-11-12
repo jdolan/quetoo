@@ -393,6 +393,9 @@ static GLubyte R_GetElementSize(const GLenum type) {
 	switch (type) {
 		case R_ATTRIB_BYTE:
 		case R_ATTRIB_UNSIGNED_BYTE:
+		// Don't ask me why, but GL requires that this type of element
+		// be defined as count 4, so I "hack" this as being 1 byte so that
+		// (1 * 4) = 4, which is the correct size GL expects.
 		case R_ATTRIB_INT_2_10_10_10_REV:
 			return 1;
 		case R_ATTRIB_SHORT:
@@ -431,7 +434,7 @@ void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, cons
                     const void *data) {
 
 	if (buffer->bufnum != 0) {
-		Com_Warn("Attempting to reclaim non-empty buffer");
+		Com_Debug("Attempting to reclaim non-empty buffer");
 		R_DestroyBuffer(buffer);
 	}
 
@@ -502,7 +505,7 @@ void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, con
 void R_DestroyBuffer(r_buffer_t *buffer) {
 
 	if (buffer->bufnum == 0) {
-		Com_Warn("Attempting to free empty buffer");
+		Com_Debug("Attempting to free empty buffer");
 		return;
 	}
 

@@ -73,17 +73,9 @@
 
 VECTOR_TYPE(float, vec);
 VECTOR_TYPE(double, dvec);
-VECTOR_TYPE(_Bool, bvec);
-VECTOR_TYPE(char, cvec);
-VECTOR_TYPE(unsigned char, ucvec);
 VECTOR_TYPE(uint8_t, u8vec);
-VECTOR_TYPE(int8_t, s8vec);
 VECTOR_TYPE(uint16_t, u16vec);
 VECTOR_TYPE(int16_t, s16vec);
-VECTOR_TYPE(uint32_t, u32vec);
-VECTOR_TYPE(int32_t, s32vec);
-VECTOR_TYPE(uint64_t, u64vec);
-VECTOR_TYPE(int64_t, s64vec);
 
 #undef VECTOR_TYPE
 #undef VECTOR_TYPENAME_N

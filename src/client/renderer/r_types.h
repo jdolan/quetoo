@@ -88,10 +88,9 @@ typedef enum {
 	R_NUM_BUFFERS,
 
 	// buffer flags, not stored in type
-	R_BUFFER_INTERLEAVE = 4
+	R_BUFFER_INTERLEAVE = 4,
+	R_BUFFER_TYPE_MASK = 0x03
 } r_buffer_type_t;
-
-#define R_BUFFER_TYPE_MASK 0x03
 
 /**
  * @brief Attribute indices - these should be assigned to
@@ -105,9 +104,10 @@ typedef enum {
 	R_ARRAY_DIFFUSE,
 	R_ARRAY_LIGHTMAP,
 
-	// These three are only used for shader-based lerp.
-	// They are only enabled if the ones that match up
-	// to it are enabled as well.
+	/**
+	 * @brief These three are only used for shader-based lerp.
+	 * They are only enabled if the ones that match up to it are enabled as well.
+	 */
 	R_ARRAY_NEXT_POSITION,
 	R_ARRAY_NEXT_NORMAL,
 	R_ARRAY_NEXT_TANGENT,
@@ -115,8 +115,10 @@ typedef enum {
 	R_ARRAY_MAX_ATTRIBS,
 	R_ARRAY_ALL = R_ARRAY_MAX_ATTRIBS,
 
-	// This is a special entry so that R_BindAttributeBuffer can be
-	// used for binding element buffers as well.
+	/**
+	 * @brief This is a special entry so that R_BindAttributeBuffer can be
+	 * used for binding element buffers as well.
+	 */
 	R_ARRAY_ELEMENTS = -1
 } r_attribute_id_t;
 
@@ -140,6 +142,9 @@ typedef enum {
 	R_ARRAY_MASK_ALL			= (1 << R_ARRAY_MAX_ATTRIBS) - 1
 } r_attribute_mask_t;
 
+/**
+ * @brief Types that can be used in buffers for attributes.
+ */
 typedef enum {
 	R_ATTRIB_FLOAT,
 	R_ATTRIB_BYTE,
@@ -148,14 +153,24 @@ typedef enum {
 	R_ATTRIB_UNSIGNED_SHORT,
 	R_ATTRIB_INT,
 	R_ATTRIB_UNSIGNED_INT,
+
+	/**
+	 * @brief This is a 4 byte value
+	 * but requires 4 count by OpenGL.
+	 * As such, Quetoo considers it 1 byte wide.
+	 */
 	R_ATTRIB_INT_2_10_10_10_REV,
 
 	R_ATTRIB_TOTAL_TYPES
 } r_attrib_type_t;
 
-// NOTE: if any of the enums or data types
-// used here change, be sure to modify the bit field too.
-// This struct is 20 bytes
+/**
+ * @brief A structure packing a bunch of attribute state together
+ * for quick comparison of a single variable.
+ *
+ * @note if any of the enums or data types used here change,
+ * be sure to modify the bit field too.
+ */
 typedef union {
 	uint32_t packed;
 
