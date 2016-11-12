@@ -332,9 +332,14 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 		const r_pixel_t mip_height = params->height / mip_scale;
 
 		R_BindTexture(atlas->image.texnum);
+		
+		// set the default to all black transparent
+		GLubyte *pixels = Mem_Malloc(mip_width * mip_height * 4);
+
+		memset(pixels, 0, mip_width * mip_height * 4);
 
 		// make initial space
-		glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA, mip_width, mip_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA, mip_width, mip_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
 		// pop in all of the textures
 		for (uint16_t j = 0; j < atlas->images->len; j++) {
@@ -380,8 +385,6 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 
 			g_snprintf(path, MAX_OS_PATH, "atlas_%s_%u_%u.raw", atlas->image.media.name, i, mip_width);
 
-			GLubyte *pixels = Mem_Malloc(mip_width * mip_height * 4);
-
 			R_BindTexture(atlas->image.texnum);
 
 			glGetTexImage(GL_TEXTURE_2D, i, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
@@ -389,9 +392,9 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 			file_t *file = Fs_OpenWrite(path);
 			Fs_Write(file, pixels, 1, mip_width * mip_height * 4);
 			Fs_Close(file);
-
-			Mem_Free(pixels);
 		}
+
+		Mem_Free(pixels);
 	}
 }
 
