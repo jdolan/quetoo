@@ -1002,7 +1002,7 @@ typedef enum {
  * @brief Provides read-write visibility and scene management to the client.
  */
 typedef struct {
-	SDL_Rect viewport;
+	SDL_Rect viewport, viewport_3d;
 	vec2_t fov;
 
 	vec3_t origin; // client's view origin, angles, and vectors
@@ -1090,6 +1090,11 @@ typedef struct {
 	 * @brief OpenGL context size in drawable pixels, as reported by SDL_GL_GetDrawableSize.
 	 */
 	r_pixel_t width, height;
+
+	/**
+	 * @brief Actual OpenGL size being rendered after supersampling
+	 */
+	r_pixel_t render_width, render_height;
 
 	/**
 	 * @brief Window size as reported by SDL_GetWindowSize (High-DPI compatibility).

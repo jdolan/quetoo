@@ -986,9 +986,10 @@ void R_UseInterpolation(const vec_t lerp) {
 /**
  * @brief Change the rendering viewport.
  */
-void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
+void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height, _Bool force) {
 
-	if (r_state.current_viewport.x == x &&
+	if (!force &&
+			r_state.current_viewport.x == x &&
 	        r_state.current_viewport.y == y &&
 	        r_state.current_viewport.w == width &&
 	        r_state.current_viewport.h == height) {
@@ -1018,8 +1019,8 @@ void R_Setup3D(void) {
 		return;
 	}
 
-	const SDL_Rect *viewport = &r_view.viewport;
-	R_SetViewport(viewport->x, viewport->y, viewport->w, viewport->h);
+	const SDL_Rect *viewport = &r_view.viewport_3d;
+	R_SetViewport(viewport->x, viewport->y, viewport->w, viewport->h, !!r_state.supersample_fbo);
 
 	// set up projection matrix
 	const vec_t aspect = (vec_t) viewport->w / (vec_t) viewport->h;
@@ -1133,7 +1134,11 @@ void R_EnableScissor(const SDL_Rect *bounds) {
  */
 void R_Setup2D(void) {
 
-	R_SetViewport(0, 0, r_context.width, r_context.height);
+	if (r_state.supersample_fbo) {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	R_SetViewport(0, 0, r_context.width, r_context.height, !!r_state.supersample_fbo);
 
 	Matrix4x4_FromOrtho(&projection_matrix, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
 
@@ -1145,6 +1150,130 @@ void R_Setup2D(void) {
 	R_EnableBlend(true);
 
 	R_EnableDepthTest(false);
+}
+
+/**
+ * @brief
+ */
+static void R_ShutdownSupersample(void) {
+	
+	if (r_state.supersample_texture) {
+		glDeleteTextures(1, &r_state.supersample_texture);
+		r_state.supersample_texture = 0;
+	}
+
+	if (r_state.supersample_depth) {
+		glDeleteRenderbuffers(1, &r_state.supersample_depth);
+		r_state.supersample_depth = 0;
+	}
+
+	if (r_state.supersample_fbo) {
+		glDeleteFramebuffers(1, &r_state.supersample_fbo);
+		r_state.supersample_fbo = 0;
+	}
+}
+
+/**
+ * @brief Initialize supersample-related stuff
+ */
+static void R_InitSupersample(void) {
+
+	// set supersample size if available
+	if (!r_supersample->value) {
+		return;
+	}
+
+	if (!GLAD_GL_ARB_framebuffer_object) {
+
+		Com_Warn("r_supersample set but GL_ARB_framebuffer_object is unavailable.\n");
+		Cvar_Set("r_supersample", "0");
+		return;
+	}
+
+	if (!GLAD_GL_EXT_packed_depth_stencil) {
+
+		Com_Warn("r_supersample set but GL_EXT_packed_depth_stencil is unavailable.\n");
+		Cvar_Set("r_supersample", "0");
+		return;
+	}
+
+	r_context.render_width = (r_pixel_t) (r_context.width * r_supersample->value);
+	r_context.render_height = (r_pixel_t) (r_context.height * r_supersample->value);
+
+	if (r_context.render_width == r_context.width ||
+		r_context.render_height == r_context.height) {
+
+		Com_Warn("r_supersample set but won't change anything.\n");
+		Cvar_ForceSet("r_supersample", "0");
+		return;
+	}
+
+	// sanity checks
+	if (r_context.render_width == 0 ||
+		r_context.render_height == 0 ||
+		r_context.render_width > r_config.max_texture_size ||
+		r_context.render_height > r_config.max_texture_size) {
+
+		Com_Warn("r_supersample is too low or too high.\n");
+		Cvar_Set("r_supersample", "0");
+			
+		r_context.render_width = r_context.width;
+		r_context.render_height = r_context.height;
+
+		return;
+	}
+
+	// try to create the FBO backing textures
+	glGenTextures(1, &r_state.supersample_texture);
+	glBindTexture(GL_TEXTURE_2D, r_state.supersample_texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, r_context.render_width, r_context.render_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glGenRenderbuffers(1, &r_state.supersample_depth);
+	glBindRenderbuffer(GL_RENDERBUFFER, r_state.supersample_depth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_EXT, r_context.render_width, r_context.render_height);
+
+	// attempt to gracefully recover from errors
+	if (glGetError() != GL_NO_ERROR) {
+			
+		Com_Warn("Couldn't create supersample textures.\n");
+		Cvar_Set("r_supersample", "0");
+			
+		r_context.render_width = r_context.width;
+		r_context.render_height = r_context.height;
+
+		R_ShutdownSupersample();
+		return;
+	}
+
+	glGenFramebuffers(1, &r_state.supersample_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, r_state.supersample_fbo);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_state.supersample_texture, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, r_state.supersample_depth);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, r_state.supersample_depth);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// attempt to gracefully recover from errors
+	if (glGetError() != GL_NO_ERROR ||
+		glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			
+		Com_Warn("Couldn't create supersample framebuffer.\n");
+		Cvar_Set("r_supersample", "0");
+			
+		r_context.render_width = r_context.width;
+		r_context.render_height = r_context.height;
+
+		R_ShutdownSupersample();
+		return;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	Com_Print("  Supersampling @ %dx%d..\n", r_context.render_width, r_context.render_height);
 }
 
 /**
@@ -1203,6 +1332,8 @@ void R_InitState(void) {
 	r_state.depth_near = 0.0;
 	r_state.depth_far = 1.0;
 
+	R_InitSupersample();
+
 	R_GetError("Post-init");
 }
 
@@ -1210,6 +1341,8 @@ void R_InitState(void) {
  * @brief
  */
 void R_ShutdownState(void) {
+
+	R_ShutdownSupersample();
 
 	memset(&r_state, 0, sizeof(r_state));
 }

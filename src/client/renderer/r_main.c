@@ -73,6 +73,7 @@ cvar_t *r_saturation;
 cvar_t *r_shadows;
 cvar_t *r_shell;
 cvar_t *r_specular;
+cvar_t *r_supersample;
 cvar_t *r_swap_interval;
 cvar_t *r_texture_mode;
 cvar_t *r_warp;
@@ -303,6 +304,10 @@ void R_BeginFrame(void) {
 		r_render_plugin->modified = false;
 	}
 
+	if (r_state.supersample_fbo) {
+		glBindFramebuffer(GL_FRAMEBUFFER, r_state.supersample_fbo);
+	}
+
 	R_Clear();
 }
 
@@ -509,6 +514,7 @@ static void R_InitLocal(void) {
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_windowed_height = Cvar_Add("r_windowed_height", "1024", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_windowed_width = Cvar_Add("r_windowed_width", "768", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the level of super-sampling on rendered 3D graphics. Requires framebuffer extension.");
 
 	Cvar_ClearAll(CVAR_R_MASK);
 
@@ -538,6 +544,7 @@ static void R_InitConfig(void) {
 	r_config.extensions = (const char *) glGetString(GL_EXTENSIONS);
 
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &r_config.max_texture_size);
 
 	Com_Print("  Renderer:   ^2%s^7\n", r_config.renderer);
 	Com_Print("  Vendor:     ^2%s^7\n", r_config.vendor);

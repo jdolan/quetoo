@@ -139,6 +139,8 @@ typedef struct r_draw_s {
 
 	r_buffer_t image_buffer;
 	r_image_interleave_vertex_t image_vertices[4];
+
+	r_buffer_t supersample_buffer;
 } r_draw_t;
 
 r_draw_t r_draw;
@@ -176,19 +178,19 @@ void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {
 /**
  * @brief
  */
-void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) {
+static void R_DrawImage_(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const GLuint texnum, const r_buffer_t *buffer) {
 
-	R_DrawImageResized(x, y, image->width * scale, image->height * scale, image);
+	R_BindTexture(texnum);
+
+	R_BindAttributeInterleaveBuffer(buffer);
+
+	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 /**
  * @brief
  */
 void R_DrawImageResized(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image) {
-
-	R_BindTexture(image->texnum);
-
-	// our texcoords are already setup, just set verts and draw
 
 	Vector2Set(r_draw.image_vertices[0].position, x, y);
 	Vector2Set(r_draw.image_vertices[1].position, x + w, y);
@@ -197,9 +199,27 @@ void R_DrawImageResized(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, cons
 
 	R_UploadToBuffer(&r_draw.image_buffer, sizeof(r_draw.image_vertices), r_draw.image_vertices);
 
-	R_BindAttributeInterleaveBuffer(&r_draw.image_buffer);
+	R_DrawImage_(x, y, w, h, image->texnum, &r_draw.image_buffer);
+}
 
-	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
+/**
+ * @brief
+ */
+void R_DrawImage(r_pixel_t x, r_pixel_t y, vec_t scale, const r_image_t *image) {
+
+	R_DrawImageResized(x, y, image->width * scale, image->height * scale, image);
+}
+
+/**
+ * @brief
+ */
+void R_DrawSupersample(void) {
+
+	if (!r_state.supersample_fbo) {
+		return;
+	}
+
+	R_DrawImage_(0, 0, r_context.width, r_context.height, r_state.supersample_texture, &r_draw.supersample_buffer);
 }
 
 /**
@@ -684,6 +704,17 @@ void R_InitDraw(void) {
 	R_CreateInterleaveBuffer(&r_draw.image_buffer, sizeof(r_image_interleave_vertex_t), r_image_buffer_layout,
 	                         GL_DYNAMIC_DRAW, sizeof(r_draw.image_vertices),
 	                         NULL);
+
+	const r_image_interleave_vertex_t supersample_vertices[4] = {
+		{ .position = { 0, 0 }, .texcoord = { 0, 1 } },
+		{ .position = { r_context.width, 0 }, .texcoord = { 1, 1 } },
+		{ .position = { r_context.width, r_context.height }, .texcoord = { 1, 0 } },
+		{ .position = { 0, r_context.height }, .texcoord = { 0, 0 } },
+	};
+
+	R_CreateInterleaveBuffer(&r_draw.supersample_buffer, sizeof(r_image_interleave_vertex_t), r_image_buffer_layout,
+	                         GL_DYNAMIC_DRAW, sizeof(supersample_vertices),
+	                         supersample_vertices);
 }
 
 /**
@@ -694,12 +725,16 @@ void R_ShutdownDraw(void) {
 	for (int32_t i = 0; i < MAX_FONTS; ++i) {
 
 		R_DestroyBuffer(&r_draw.char_arrays[i].vert_buffer);
+		R_DestroyBuffer(&r_draw.char_arrays[i].element_buffer);
 	}
 
 	R_DestroyBuffer(&r_draw.fill_arrays.vert_buffer);
-
+	R_DestroyBuffer(&r_draw.fill_arrays.element_buffer);
 	R_DestroyBuffer(&r_draw.line_arrays.vert_buffer);
-
+	
 	R_DestroyBuffer(&r_draw.fill_arrays.ui_vert_buffer);
 	R_DestroyBuffer(&r_draw.line_arrays.ui_vert_buffer);
+
+	R_DestroyBuffer(&r_draw.image_buffer);
+	R_DestroyBuffer(&r_draw.supersample_buffer);
 }

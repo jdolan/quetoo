@@ -644,7 +644,7 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Change the rendering viewport.
 	 */
-	void (*SetViewport)(GLint x, GLint y, GLsizei width, GLsizei height);
+	void (*SetViewport)(GLint x, GLint y, GLsizei width, GLsizei height, _Bool force);
 
 	/**
 	 * @brief Adds an instantaneous light to the scene for the current frame.

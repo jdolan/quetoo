@@ -348,11 +348,14 @@ void Cl_UpdateScreen(void) {
 
 		R_Setup2D();
 
+		R_DrawSupersample();
+
 		switch (cls.key_state.dest) {
 			case KEY_CONSOLE:
 				Cl_DrawConsole();
 				break;
 			default:
+
 				Cl_DrawChat();
 				Cl_DrawNotify();
 				Cl_DrawNetGraph();

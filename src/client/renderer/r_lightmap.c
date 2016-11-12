@@ -284,17 +284,14 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
  * @brief
  */
 void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp) {
-	int32_t max;
 
 	// users can tune lightmap size for their card
 	r_lightmap_state.block_size = r_lightmap_block_size->integer;
 
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-
 	// but clamp it to the card's capability to avoid errors
-	r_lightmap_state.block_size = Clamp(r_lightmap_state.block_size, 256, (r_pixel_t) max);
+	r_lightmap_state.block_size = Clamp(r_lightmap_state.block_size, 256, (r_pixel_t) r_config.max_texture_size);
 
-	Com_Debug("Block size: %d (max: %d)\n", r_lightmap_state.block_size, max);
+	Com_Debug("Block size: %d (max: %d)\n", r_lightmap_state.block_size, r_config.max_texture_size);
 
 	const r_pixel_t bs = r_lightmap_state.block_size;
 
