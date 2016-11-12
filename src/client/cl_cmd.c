@@ -22,6 +22,16 @@
 #include "cl_local.h"
 
 /**
+ * @brief
+ */
+static void Cl_InitMovementCommand(void) {
+
+	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+
+	memset(cmd, 0, sizeof(*cmd));
+}
+
+/**
  * @brief Gather movement that is eligible for client-side prediction (i.e. view offset, angles).
  */
 void Cl_UpdateMovementCommand(uint32_t msec) {
@@ -129,7 +139,8 @@ void Cl_SendCommands(void) {
 			Netchan_Transmit(&cls.net_chan, buf.data, buf.size);
 			cl.packet_counter++;
 
-			memset(&cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK], 0, sizeof(cmd_t));
+			Cl_InitMovementCommand();
+
 			break;
 
 		default:
