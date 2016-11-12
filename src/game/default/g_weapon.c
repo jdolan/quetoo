@@ -286,9 +286,6 @@ static _Bool G_FireWeapon(g_entity_t *ent) {
  */
 static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
 
-	gi.Debug("Weapon interval: %f ms (%f ms old) (%u ms)\n", (float)(interval / 16.6666666666666666),
-	         (float)(interval / 32.0), interval);
-
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);
 
@@ -401,9 +398,9 @@ void G_FireBlaster(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_BLASTER);
 
-		G_ClientWeaponKick(ent, 0.08);
+		G_ClientWeaponKick(ent, 1.0);
 
-		G_WeaponFired(ent, 450);
+		G_WeaponFired(ent, 400);
 	}
 }
 
@@ -421,7 +418,7 @@ void G_FireShotgun(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_SHOTGUN);
 
-		G_ClientWeaponKick(ent, 0.12);
+		G_ClientWeaponKick(ent, 1.5);
 
 		G_WeaponFired(ent, 500);
 	}
@@ -451,7 +448,7 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_SSHOTGUN);
 
-		G_ClientWeaponKick(ent, 0.16);
+		G_ClientWeaponKick(ent, 2.0);
 
 		G_WeaponFired(ent, 800);
 	}
@@ -471,9 +468,9 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_MACHINEGUN);
 
-		G_ClientWeaponKick(ent, 0.125);
+		G_ClientWeaponKick(ent, 0.375);
 
-		G_WeaponFired(ent, 66);
+		G_WeaponFired(ent, 80);
 	}
 }
 
@@ -642,7 +639,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_GRENADE);
 
-		G_ClientWeaponKick(ent, 0.2);
+		G_ClientWeaponKick(ent, 4.0);
 
 		G_WeaponFired(ent, 1000);
 	}
@@ -662,7 +659,7 @@ void G_FireRocketLauncher(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_ROCKET);
 
-		G_ClientWeaponKick(ent, 0.25);
+		G_ClientWeaponKick(ent, 2.0);
 
 		G_WeaponFired(ent, 1000);
 	}
@@ -682,9 +679,9 @@ void G_FireHyperblaster(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_HYPERBLASTER);
 
-		G_ClientWeaponKick(ent, 0.15);
+		G_ClientWeaponKick(ent, 1.0);
 
-		G_WeaponFired(ent, 90);
+		G_WeaponFired(ent, 84);
 	}
 }
 
@@ -712,9 +709,9 @@ void G_FireLightning(g_entity_t *ent) {
 
 		G_LightningProjectile(ent, org, forward, 8, 12);
 
-		G_ClientWeaponKick(ent, 0.15);
+		G_ClientWeaponKick(ent, 1.0);
 
-		G_WeaponFired(ent, 100);
+		G_WeaponFired(ent, 96);
 	}
 }
 
@@ -734,7 +731,7 @@ void G_FireRailgun(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_RAILGUN);
 
-		G_ClientWeaponKick(ent, 0.3);
+		G_ClientWeaponKick(ent, 5.0);
 
 		G_WeaponFired(ent, 1800);
 	}
@@ -755,7 +752,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 
 			G_MuzzleFlash(ent->owner, MZ_BFG);
 
-			G_ClientWeaponKick(ent->owner, 1.0);
+			G_ClientWeaponKick(ent->owner, 16.0);
 
 			G_WeaponFired(ent->owner, 2000);
 		}

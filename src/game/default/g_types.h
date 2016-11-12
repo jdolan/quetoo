@@ -783,6 +783,9 @@ typedef struct {
 	int16_t damage_health; // damage taken out of health
 	int16_t damage_inflicted; // damage done to other clients
 
+	uint32_t kick_angles_time; // time when view angle kick was last applied
+	vec3_t kick_angles; // the intended kick angles, which decay over time
+
 	int16_t max_boost_health; // max health can be boosted to
 
 	vec_t speed; // x/y speed after moving

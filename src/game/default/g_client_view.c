@@ -185,41 +185,81 @@ static void G_ClientWorldAngles(g_entity_t *ent) {
 	}
 }
 
-#define KICK_SCALE 15.0
+/**
+ * @brief
+ */
+static void G_ClientAddKick(g_entity_t *ent, const vec_t pitch, const vec_t roll) {
+
+	if (pitch || roll) {
+		ent->client->locals.kick_angles[PITCH] += pitch;
+		ent->client->locals.kick_angles[ROLL] += roll;
+
+		ent->client->locals.kick_angles_time = g_level.time;
+	}
+}
 
 /**
  * @brief Adds view kick in the specified direction to the specified client.
  */
 void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick) {
-	vec3_t old_kick_angles, kick_angles;
 
-	UnpackAngles(ent->client->ps.pm_state.kick_angles, old_kick_angles);
+	const vec_t pitch = DotProduct(dir, ent->client->locals.forward) * kick;
+	const vec_t roll = DotProduct(dir, ent->client->locals.right) * kick;
 
-	VectorClear(kick_angles);
-	kick_angles[PITCH] = DotProduct(dir, ent->client->locals.forward) * kick * KICK_SCALE;
-	kick_angles[ROLL] = DotProduct(dir, ent->client->locals.right) * kick * KICK_SCALE;
-
-	//gi.Print("kicked %s from %s at %1.2f\n", vtos(kick_angles), vtos(dir), kick);
-	VectorAdd(old_kick_angles, kick_angles, kick_angles);
-	PackAngles(kick_angles, ent->client->ps.pm_state.kick_angles);
+	G_ClientAddKick(ent, pitch, roll);
 }
-
-#define WEAPON_KICK_SCALE 0.0
 
 /**
  * @brief A convenience function for adding view kick from firing weapons.
  */
 void G_ClientWeaponKick(g_entity_t *ent, const vec_t kick) {
-	vec3_t dir;
-
-	VectorScale(ent->client->locals.forward, WEAPON_KICK_SCALE, dir);
-
-	G_ClientDamageKick(ent, dir, kick);
+	G_ClientAddKick(ent, -kick, 0.0);
 }
 
 /**
- * @brief Sets the kick value based on recent events such as falling. Firing of
- * weapons may also set the kick value, and we factor that in here as well.
+ * @brief Adds view angle kick based on entity events (falling, landing, etc).
+ */
+static void G_ClientEventKick(g_entity_t *ent) {
+
+	switch (ent->s.event) {
+		case EV_CLIENT_LAND:
+			G_ClientAddKick(ent, 2.5, 0.0);
+			break;
+		case EV_CLIENT_FALL:
+			G_ClientAddKick(ent, 5.0, 0.0);
+			break;
+		case EV_CLIENT_FALL_FAR:
+			G_ClientAddKick(ent, 10.0, 0.0);
+			break;
+		default:
+			break;
+	}
+}
+
+/**
+ * @brief Reduces client view kick angles over time, using exponential decay.
+ */
+static void G_ClientDecayKick(g_entity_t *ent) {
+
+	vec_t delta = VectorLength(ent->client->locals.kick_angles);
+	delta = 0.250 + delta * delta * QUETOO_TICK_SECONDS;
+
+	for (int32_t i = 0; i < 3; i++) {
+
+		// clear angles smaller than our delta to avoid oscillations
+		if (fabs(ent->client->locals.kick_angles[i]) <= delta) {
+			ent->client->locals.kick_angles[i] = 0.0;
+		} else if (ent->client->locals.kick_angles[i] > 0.0) {
+			ent->client->locals.kick_angles[i] -= delta;
+		} else {
+			ent->client->locals.kick_angles[i] += delta;
+		}
+	}
+}
+
+/**
+ * @brief Calculates the final view kick angles for the current frame. This factors in damage, 
+ * weapon and event kicks, and uses interpolation and exponential decay to produce a smooth effect.
  */
 static void G_ClientKickAngles(g_entity_t *ent) {
 	uint16_t *kick_angles = ent->client->ps.pm_state.kick_angles;
@@ -231,63 +271,20 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 		return;
 	}
 
+	G_ClientEventKick(ent);
+
 	vec3_t kick;
 	UnpackAngles(kick_angles, kick);
 
-	// un-clamp them so that we can work with small signed values near zero
+	// if a kick has recently occurred, interpolate it over a few frames
 
-	for (int32_t i = 0; i < 3; i++) {
-		if (kick[i] > 180.0) {
-			kick[i] -= 360.0;
-		}
-	}
-
-	// add in any event-based feedback
-
-	switch (ent->s.event) {
-		case EV_CLIENT_LAND:
-			kick[PITCH] += 2.5;
-			break;
-		case EV_CLIENT_FALL:
-			kick[PITCH] += 5.0;
-			break;
-		case EV_CLIENT_FALL_FAR:
-			kick[PITCH] += 10.0;
-			break;
-		default:
-			break;
-	}
-
-	// and any velocity-based feedback
-
-	vec_t forward = DotProduct(ent->locals.velocity, ent->client->locals.forward);
-	kick[PITCH] += forward / 600.0;
-
-	vec_t right = DotProduct(ent->locals.velocity, ent->client->locals.right);
-	kick[ROLL] += right / 600.0;
-
-	// now interpolate the kick angles towards neutral over time
-
-	vec_t delta = VectorLength(kick);
-
-	if (!delta) { // no kick, we're done
-		return;
-	}
-
-	// we recover from kick at a rate based on the kick itself
-
-	delta = 0.5 + delta * delta * QUETOO_TICK_SECONDS;
-
-	for (int32_t i = 0; i < 3; i++) {
-
-		// clear angles smaller than our delta to avoid oscillations
-		if (fabs(kick[i]) <= delta) {
-			kick[i] = 0.0;
-		} else if (kick[i] > 0.0) {
-			kick[i] -= delta;
-		} else {
-			kick[i] += delta;
-		}
+	const vec_t frac = (g_level.time - ent->client->locals.kick_angles_time) / 64.0;
+	if (frac < 1.0) {
+		AngleLerp(kick, ent->client->locals.kick_angles, Clamp(frac, 0.0, 1.0), kick);
+	} else {
+		// otherwise, decay the kick, and use the resulting value directly
+		G_ClientDecayKick(ent);
+		VectorCopy(ent->client->locals.kick_angles, kick);
 	}
 
 	PackAngles(kick, kick_angles);
