@@ -127,7 +127,7 @@ typedef struct r_state_s {
 
 	SDL_Rect current_viewport;
 
-	uint8_t max_active_lights;
+	uint16_t max_active_lights;
 
 	_Bool color_array_enabled;
 	_Bool alpha_test_enabled;
