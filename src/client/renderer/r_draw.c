@@ -58,13 +58,13 @@ typedef struct r_char_arrays_s {
 #define MAX_FILL_ELEMENTS MAX_FILLS * 6
 
 typedef struct {
-	s16vec2_t position;
+	vec2_t position;
 	u8vec4_t color;
 } r_fill_interleave_vertex_t;
 
 static r_buffer_layout_t r_fill_buffer_layout[] = {
-	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_SHORT, .count = 2, .size = sizeof(s16vec2_t) },
-	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 4, .normalized = true },
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t) },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 8, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -530,7 +530,7 @@ static void R_DrawLines(void) {
  */
 void R_DrawFillUI(const SDL_Rect *rect) {
 
-	const s16vec2_t verts[] = {
+	const vec2_t verts[] = {
 		{ rect->x - 1, rect->y - 1 },
 		{ rect->x + rect->w + 1, rect->y - 1 },
 		{ rect->x + rect->w + 1, rect->y + rect->h + 1 },
@@ -558,10 +558,10 @@ void R_DrawFillUI(const SDL_Rect *rect) {
 
 void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop) {
 
-	s16vec2_t point_buffer[count];
+	vec2_t point_buffer[count];
 
 	for (size_t i = 0; i < count; ++i) {
-		Vector2Set(point_buffer[i], points[i].x, points[i].y);
+		Vector2Set(point_buffer[i], points[i].x + 0.5, points[i].y + 0.5);
 	}
 
 	R_EnableColorArray(false);
@@ -670,10 +670,10 @@ void R_InitDraw(void) {
 	                         NULL);
 
 	// fill buffer only needs 4 verts
-	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, R_ATTRIB_SHORT, 2, false, GL_DYNAMIC_DRAW, sizeof(s16vec2_t) * 4,
+	R_CreateDataBuffer(&r_draw.fill_arrays.ui_vert_buffer, R_ATTRIB_FLOAT, 2, false, GL_DYNAMIC_DRAW, sizeof(vec2_t) * 4,
 	                   NULL);
-	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, R_ATTRIB_SHORT, 2, false, GL_DYNAMIC_DRAW,
-	                   sizeof(s16vec2_t) * MAX_LINE_VERTS,
+	R_CreateDataBuffer(&r_draw.line_arrays.ui_vert_buffer, R_ATTRIB_FLOAT, 2, false, GL_DYNAMIC_DRAW,
+	                   sizeof(vec2_t) * MAX_LINE_VERTS,
 	                   NULL);
 
 	Vector2Set(r_draw.image_vertices[0].texcoord, 0, 0);
