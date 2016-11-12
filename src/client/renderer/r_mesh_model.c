@@ -287,14 +287,14 @@ static void R_LoadMd3Tangents(r_md3_mesh_t *mesh) {
 
 typedef struct {
 	vec3_t vertex;
-	int32_t normal;
-	int32_t tangent;
+	vec3_t normal;
+	vec4_t tangent;
 } r_md3_interleave_vertex_t;
 
 r_buffer_layout_t r_md3_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 12, .normalized = true },
-	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16, .normalized = true },
+	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 12 },
+	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_FLOAT, .count = 4, .size = sizeof(vec4_t), .offset = 24 },
 	{ .attribute = -1 }
 };
 
@@ -347,8 +347,8 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 			for (uint16_t j = 0; j < mesh->num_verts; j++, v++, ++t) {
 				VectorAdd(frame->translate, v->point, vertexes[j + vert_offset].vertex);
-				NormalToGLNormal(v->normal, &vertexes[j + vert_offset].normal);
-				TangentToGLTangent(v->tangent, &vertexes[j + vert_offset].tangent);
+				VectorCopy(v->normal, vertexes[j + vert_offset].normal);
+				Vector4Copy(v->tangent, vertexes[j + vert_offset].tangent);
 
 				// only copy st coords once
 				if (f == 0) {
@@ -856,16 +856,16 @@ static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
 
 typedef struct {
 	vec3_t vertex;
-	int32_t normal;
-	int32_t tangent;
+	vec3_t normal;
+	vec4_t tangent;
 	u16vec2_t diffuse;
 } r_obj_interleave_vertex_t;
 
 r_buffer_layout_t r_obj_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
-	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 12, .normalized = true },
-	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16, .normalized = true },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 20, .normalized = true },
+	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 12 },
+	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_FLOAT, .count = 4, .size = sizeof(vec4_t), .offset = 24 },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 40, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -896,9 +896,9 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 		Vector2Set(vout->diffuse, (u16vec_t) (ve->texcoords[0] * USHRT_MAX), (u16vec_t) (ve->texcoords[1] * USHRT_MAX));
 
-		NormalToGLNormal(ve->normal, &vout->normal);
+		VectorCopy(ve->normal, vout->normal);
 
-		TangentToGLTangent(ve->tangent, &vout->tangent);
+		Vector4Copy(ve->tangent, vout->tangent);
 
 		vout++;
 

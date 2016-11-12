@@ -209,8 +209,7 @@ GLenum r_attrib_type_to_gl_type[R_ATTRIB_TOTAL_TYPES] = {
 	GL_SHORT,
 	GL_UNSIGNED_SHORT,
 	GL_INT,
-	GL_UNSIGNED_INT,
-	GL_INT_2_10_10_10_REV
+	GL_UNSIGNED_INT
 };
 
 /**

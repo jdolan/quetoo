@@ -400,7 +400,7 @@ void G_FireBlaster(g_entity_t *ent) {
 
 		G_ClientWeaponKick(ent, 1.0);
 
-		G_WeaponFired(ent, 400);
+		G_WeaponFired(ent, 450);
 	}
 }
 

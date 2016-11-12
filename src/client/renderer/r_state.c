@@ -393,10 +393,6 @@ static GLubyte R_GetElementSize(const GLenum type) {
 	switch (type) {
 		case R_ATTRIB_BYTE:
 		case R_ATTRIB_UNSIGNED_BYTE:
-		// Don't ask me why, but GL requires that this type of element
-		// be defined as count 4, so I "hack" this as being 1 byte so that
-		// (1 * 4) = 4, which is the correct size GL expects.
-		case R_ATTRIB_INT_2_10_10_10_REV:
 			return 1;
 		case R_ATTRIB_SHORT:
 		case R_ATTRIB_UNSIGNED_SHORT:

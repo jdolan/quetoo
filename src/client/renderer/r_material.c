@@ -29,8 +29,8 @@
 typedef struct {
 	vec3_t		vertex;
 	u8vec4_t	color;
-	int32_t		normal;
-	int32_t		tangent;
+	vec3_t		normal;
+	vec4_t		tangent;
 	vec2_t		diffuse;
 	u16vec2_t	lightmap;
 } r_material_interleave_vertex_t;
@@ -38,10 +38,10 @@ typedef struct {
 static r_buffer_layout_t r_material_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
 	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 12, .normalized = true },
-	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16, .normalized = true },
-	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 20, .normalized = true },
-	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 24 },
-	{ .attribute = R_ARRAY_LIGHTMAP, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 32, .normalized = true },
+	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 16 },
+	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_FLOAT, .count = 4, .size = sizeof(vec4_t), .offset = 28 },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 44 },
+	{ .attribute = R_ARRAY_LIGHTMAP, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 52, .normalized = true },
 	{ .attribute = -1 }
 };
 
@@ -393,10 +393,10 @@ static void R_DrawBspSurfaceMaterialStage(r_bsp_surface_t *surf, const r_stage_t
 		if (r_state.lighting_enabled) { // normals and tangents
 
 			const vec_t *n = &r_model_state.world->bsp->normals[surf->elements[i]][0];
-			NormalToGLNormal(n, &vertex->normal);
+			VectorCopy(n, vertex->normal);
 
 			const vec_t *t = &r_model_state.world->bsp->tangents[surf->elements[i]][0];
-			TangentToGLTangent(t, &vertex->tangent);
+			Vector4Copy(t, vertex->tangent);
 		}
 	}
 
