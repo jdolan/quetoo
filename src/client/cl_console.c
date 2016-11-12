@@ -53,7 +53,7 @@ static void Cl_DrawConsole_Background(void) {
 				1.0, 1.0, 1.0, cl_console_background_alpha->value
 			});
 
-			R_DrawImage(0, -r_context.window_height * 0.333, scale, image);
+			R_DrawImage(0, -r_context.window_height * 0.3333333, scale, image);
 
 			R_Color(NULL);
 		} else {
