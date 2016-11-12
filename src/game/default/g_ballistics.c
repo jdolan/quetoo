@@ -520,6 +520,7 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 	projectile->locals.damage_radius = damage_radius;
 	projectile->locals.knockback = knockback;
 	projectile->locals.next_think = g_level.time + timer;
+	projectile->solid = SOLID_BOX;
 	projectile->locals.Think = G_HandGrenadeProjectile_Explode;
 }
 /**
