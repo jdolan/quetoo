@@ -988,16 +988,6 @@ void R_UseInterpolation(const vec_t lerp) {
 }
 
 /**
- * @brief Uploads shell offset value to the currently loaded program.
- */
-void R_UseShellOffset(const vec_t offset) {
-
-	if (r_state.active_program->UseShellOffset) {
-		r_state.active_program->UseShellOffset(offset);
-	}
-}
-
-/**
  * @brief Change the rendering viewport.
  */
 void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height) {

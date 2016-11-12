@@ -45,9 +45,9 @@ static void R_SetMeshShellState_default(const r_entity_t *e) {
 
 	if (e->effects & EF_WEAPON) {
 		R_DepthRange(0.0, 0.3);
-		R_UseShellOffset(1.03);
+		R_UseShellOffset_shell(1.03);
 	} else {
-		R_UseShellOffset(1.125);
+		R_UseShellOffset_shell(1.125);
 	}
 
 	// setup lerp for animating models

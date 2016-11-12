@@ -735,7 +735,6 @@ void R_InitPrograms(void) {
 		r_state.shell_program->UseMatrices = R_UseMatrices_shell;
 		r_state.shell_program->UseCurrentColor = R_UseCurrentColor_shell;
 		r_state.shell_program->UseInterpolation = R_UseInterpolation_shell;
-		r_state.shell_program->UseShellOffset = R_UseShellOffset_shell;
 		r_state.shell_program->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_DIFFUSE |
 		                                     R_ARRAY_MASK_NORMAL | R_ARRAY_MASK_NEXT_NORMAL;
 	}

@@ -201,7 +201,6 @@ void R_EnableFog(_Bool enable);
 void R_UseMaterial(const r_material_t *material);
 void R_UseMatrices(void);
 void R_UseInterpolation(const vec_t lerp);
-void R_UseShellOffset(const vec_t offset);
 void R_UseAlphaTest(void);
 void R_UseCurrentColor(void);
 void R_UseFog(void);
