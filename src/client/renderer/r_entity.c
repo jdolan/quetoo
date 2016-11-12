@@ -285,7 +285,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 		Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
 
-		R_DrawArrays(GL_LINES, 0, r_model_state.bound_element_count - 6);
+		R_DrawArrays(GL_LINES, 0, (GLint) r_model_state.bound_element_count - 6);
 
 		R_PopMatrix(R_MATRIX_MODELVIEW);
 
@@ -296,7 +296,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 		Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
 
-		R_DrawArrays(GL_LINES, r_model_state.bound_element_count - 6, 6);
+		R_DrawArrays(GL_LINES, (GLint) r_model_state.bound_element_count - 6, 6);
 
 		R_PopMatrix(R_MATRIX_MODELVIEW);
 	}

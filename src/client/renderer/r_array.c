@@ -322,6 +322,5 @@ void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 		r_view.num_draw_array_count += count;
 	}
 
-
 	R_GetError(NULL);
 }

@@ -377,7 +377,7 @@ void R_DrawBspNormals(void) {
 
 			Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
 
-			R_DrawArrays(GL_LINES, r_model_state.bound_element_count - 6, 2);
+			R_DrawArrays(GL_LINES, (GLint) r_model_state.bound_element_count - 6, 2);
 
 			R_PopMatrix(R_MATRIX_MODELVIEW);
 		}
