@@ -56,6 +56,8 @@ void Cg_PredictMovement(const GList *cmds) {
 
 	pm.Debug = Cg_PredictMovement_Debug;
 
+	cl_predicted_state_t *pr = &cgi.client->predicted_state;
+
 	const GList *e = cmds;
 
 	// run the commands
@@ -69,24 +71,34 @@ void Cg_PredictMovement(const GList *cmds) {
 
 			// for each movement, check for stair interaction and interpolate
 			if (pm.s.flags & PMF_ON_STAIRS) {
-				cgi.client->predicted_state.step_time = cmd->time;
-				cgi.client->predicted_state.step_interval = 120.0 * (fabs(pm.step) / PM_STEP_HEIGHT);
-				cgi.client->predicted_state.step = pm.step;
+
+				const uint32_t delta = cgi.client->time - pr->step_time;
+				const uint32_t interval = pr->step_interval;
+
+				if (delta < interval) {
+					const vec_t lerp = (interval - delta) / (vec_t) interval;
+					pr->step = pr->step * (1.0 - lerp) + pm.step;
+				} else {
+					pr->step = pm.step;
+					pr->step_time = cmd->time;
+				}
+
+				pr->step_interval = 120.0 * (fabs(pr->step) / PM_STEP_HEIGHT);
 			}
 
 			// save for debug checking
 			const uint32_t frame = (uint32_t) (intptr_t) (cmd - cgi.client->cmds);
-			VectorCopy(pm.s.origin, cgi.client->predicted_state.origins[frame]);
+			VectorCopy(pm.s.origin, pr->origins[frame]);
 		}
 
 		e = e->next;
 	}
 
 	// copy results out for rendering
-	VectorCopy(pm.s.origin, cgi.client->predicted_state.origin);
+	VectorCopy(pm.s.origin, pr->origin);
 
-	UnpackVector(pm.s.view_offset, cgi.client->predicted_state.view_offset);
-	UnpackAngles(pm.cmd.angles, cgi.client->predicted_state.view_angles);
+	UnpackVector(pm.s.view_offset, pr->view_offset);
+	UnpackAngles(pm.cmd.angles, pr->view_angles);
 
-	cgi.client->predicted_state.ground_entity = pm.ground_entity;
+	pr->ground_entity = pm.ground_entity;
 }
