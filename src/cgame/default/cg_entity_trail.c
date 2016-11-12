@@ -53,8 +53,9 @@ static _Bool Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	VectorSubtract(end, start, vec);
 	const vec_t len = VectorNormalize(vec);
 
-	if (len < SMOKE_DENSITY)
+	if (len < SMOKE_DENSITY) {
 		return false;
+	}
 
 	VectorScale(vec, SMOKE_DENSITY, vec);
 	VectorSubtract(move, vec, move);
@@ -113,8 +114,9 @@ _Bool Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	VectorSubtract(end, start, vec);
 	const vec_t len = VectorNormalize(vec);
 
-	if (len < 1.0)
+	if (len < 1.0) {
 		return false;
+	}
 
 	VectorScale(vec, 1.0, vec);
 	VectorSubtract(move, vec, move);
@@ -202,12 +204,13 @@ _Bool Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 
 	VectorCopy(start, move);
 	VectorSubtract(end, start, vec);
-	
+
 	const vec_t len = VectorNormalize(vec);
 	const vec_t delta = 16.0 / density;
 
-	if (len < delta)
+	if (len < delta) {
 		return false;
+	}
 
 	VectorScale(vec, delta, vec);
 	VectorSubtract(move, vec, move);

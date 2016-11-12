@@ -45,26 +45,28 @@ static r_array_state_t r_array_state;
  * bindings are up to date.
  */
 int32_t R_ArraysMask(void) {
-	uint32_t mask = R_ARRAY_MASK_VERTEX;
+	uint32_t mask = R_ARRAY_MASK_POSITION;
 
 	_Bool do_interpolation = r_view.current_entity != NULL &&
 	                         IS_ENTITY_INTERPOLATABLE(r_view.current_entity, r_view.current_entity->model);
 
 	if (do_interpolation) {
-		mask |= R_ARRAY_MASK_NEXT_VERTEX;
+		mask |= R_ARRAY_MASK_NEXT_POSITION;
 	}
 
 	if (r_state.color_array_enabled) {
 		mask |= R_ARRAY_MASK_COLOR;
 	}
 
-	if (r_state.lighting_enabled) {
+	if (r_state.lighting_enabled || r_state.shell_enabled) {
 		mask |= R_ARRAY_MASK_NORMAL;
 
 		if (do_interpolation) {
 			mask |= R_ARRAY_MASK_NEXT_NORMAL;
 		}
+	}
 
+	if (r_state.lighting_enabled) {
 		if (r_bumpmap->value) {
 			mask |= R_ARRAY_MASK_TANGENT;
 
@@ -75,11 +77,11 @@ int32_t R_ArraysMask(void) {
 	}
 
 	if (texunit_diffuse.enabled) {
-		mask |= R_ARRAY_MASK_TEX_DIFFUSE;
+		mask |= R_ARRAY_MASK_DIFFUSE;
 	}
 
 	if (texunit_lightmap.enabled) {
-		mask |= R_ARRAY_MASK_TEX_LIGHTMAP;
+		mask |= R_ARRAY_MASK_LIGHTMAP;
 	}
 
 	return mask;
@@ -108,7 +110,7 @@ void R_SetArrayState(const r_model_t *mod) {
 		mask &= r_state.active_program->arrays_mask;
 	}
 
-	R_BindArray(R_ARRAY_COLOR, NULL);
+	R_BindAttributeBuffer(R_ARRAY_COLOR, NULL);
 
 	_Bool do_interpolation = false;
 	uint16_t old_frame = 0;
@@ -125,62 +127,47 @@ void R_SetArrayState(const r_model_t *mod) {
 	}
 
 	// vertex array
-	if (mask & R_ARRAY_MASK_VERTEX) {
+	if (mask & R_ARRAY_MASK_POSITION) {
 
-		if (mod->vertex_buffer.interleave) {
-			R_BindArrayOffset(R_ARRAY_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * old_frame);
-		} else {
-			R_BindArrayOffset(R_ARRAY_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(vec3_t)) * old_frame);
-		}
+		R_BindAttributeBufferOffset(R_ARRAY_POSITION, &mod->vertex_buffer,
+		                            (mod->num_verts * mod->vertex_buffer.element_type.stride) * old_frame);
 
 		// bind interpolation if we need it
-		if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && do_interpolation) {
-			if (mod->vertex_buffer.interleave) {
-				R_BindArrayOffset(R_ARRAY_NEXT_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * frame);
-			} else {
-				R_BindArrayOffset(R_ARRAY_NEXT_VERTEX, &mod->vertex_buffer, (mod->num_verts * sizeof(vec3_t)) * frame);
-			}
+		if ((mask & R_ARRAY_MASK_NEXT_POSITION) && do_interpolation) {
+			R_BindAttributeBufferOffset(R_ARRAY_NEXT_POSITION, &mod->vertex_buffer,
+			                            (mod->num_verts * mod->vertex_buffer.element_type.stride) * frame);
 		}
 	}
 
 	// normals and tangents
-	if (r_state.lighting_enabled) {
+	if (r_state.lighting_enabled || r_state.shell_enabled) {
 
 		if (mask & R_ARRAY_MASK_NORMAL) {
-			
-			if (mod->vertex_buffer.interleave) {
-				R_BindArrayOffset(R_ARRAY_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * old_frame);
-			} else {
-				R_BindArrayOffset(R_ARRAY_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(vec3_t)) * old_frame);
-			}
+
+			R_BindAttributeBufferOffset(R_ARRAY_NORMAL, &mod->normal_buffer,
+			                            (mod->num_verts * mod->normal_buffer.element_type.stride) * old_frame);
 
 			// bind interpolation if we need it
 			if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && do_interpolation) {
-				if (mod->vertex_buffer.interleave) {
-					R_BindArrayOffset(R_ARRAY_NEXT_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * frame);
-				} else {
-					R_BindArrayOffset(R_ARRAY_NEXT_NORMAL, &mod->normal_buffer, (mod->num_verts * sizeof(vec3_t)) * frame);
-				}
+				R_BindAttributeBufferOffset(R_ARRAY_NEXT_NORMAL, &mod->normal_buffer,
+				                            (mod->num_verts * mod->normal_buffer.element_type.stride) * frame);
 			}
 		}
+	}
+
+	if (r_state.lighting_enabled) {
 
 		if (r_bumpmap->value) {
 
 			if ((mask & R_ARRAY_MASK_TANGENT) && R_ValidBuffer(&mod->tangent_buffer)) {
 
-				if (mod->vertex_buffer.interleave) {
-					R_BindArrayOffset(R_ARRAY_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * old_frame);
-				} else {
-					R_BindArrayOffset(R_ARRAY_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(vec4_t)) * old_frame);
-				}
+				R_BindAttributeBufferOffset(R_ARRAY_TANGENT, &mod->tangent_buffer,
+				                            (mod->num_verts * mod->tangent_buffer.element_type.stride) * old_frame);
 
 				// bind interpolation if we need it
 				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && do_interpolation) {
-					if (mod->vertex_buffer.interleave) {
-						R_BindArrayOffset(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(r_interleave_vertex_t)) * frame);
-					} else {
-						R_BindArrayOffset(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffer, (mod->num_verts * sizeof(vec4_t)) * frame);
-					}
+					R_BindAttributeBufferOffset(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffer,
+					                            (mod->num_verts * mod->tangent_buffer.element_type.stride) * frame);
 				}
 			}
 		}
@@ -189,18 +176,18 @@ void R_SetArrayState(const r_model_t *mod) {
 	// diffuse texcoords
 	if (texunit_diffuse.enabled) {
 
-		if (mask & R_ARRAY_MASK_TEX_DIFFUSE) {
-			R_BindArray(R_ARRAY_TEX_DIFFUSE, &mod->texcoord_buffer);
+		if (mask & R_ARRAY_MASK_DIFFUSE) {
+			R_BindAttributeBuffer(R_ARRAY_DIFFUSE, &mod->texcoord_buffer);
 		}
 	}
 
 	// lightmap texcoords
 	if (texunit_lightmap.enabled) {
 
-		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
+		if (mask & R_ARRAY_MASK_LIGHTMAP) {
 			R_SelectTexture(&texunit_lightmap);
 
-			R_BindArray(R_ARRAY_TEX_LIGHTMAP, &mod->lightmap_texcoord_buffer);
+			R_BindAttributeBuffer(R_ARRAY_LIGHTMAP, &mod->lightmap_texcoord_buffer);
 
 			R_SelectTexture(&texunit_diffuse);
 		}
@@ -208,7 +195,7 @@ void R_SetArrayState(const r_model_t *mod) {
 
 	// elements
 	if (R_ValidBuffer(&mod->element_buffer)) {
-		R_BindArray(R_ARRAY_ELEMENTS, &mod->element_buffer);
+		R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &mod->element_buffer);
 	}
 
 	r_array_state.model = mod;
@@ -234,18 +221,18 @@ void R_ResetArrayState(void) {
 	}
 
 	// vertex array
-	if (mask & R_ARRAY_MASK_VERTEX) {
-		R_BindDefaultArray(R_ARRAY_VERTEX);
+	if (mask & R_ARRAY_MASK_POSITION) {
+		R_UnbindAttributeBuffer(R_ARRAY_POSITION);
 
-		if (mask & R_ARRAY_MASK_NEXT_VERTEX) {
-			R_BindDefaultArray(R_ARRAY_NEXT_VERTEX);
+		if (mask & R_ARRAY_MASK_NEXT_POSITION) {
+			R_UnbindAttributeBuffer(R_ARRAY_NEXT_POSITION);
 		}
 	}
 
 	// color array
 	if (r_state.color_array_enabled) {
 		if (mask & R_ARRAY_MASK_COLOR) {
-			R_BindDefaultArray(R_ARRAY_COLOR);
+			R_UnbindAttributeBuffer(R_ARRAY_COLOR);
 		}
 	}
 
@@ -253,20 +240,20 @@ void R_ResetArrayState(void) {
 	if (r_state.lighting_enabled) {
 
 		if (mask & R_ARRAY_MASK_NORMAL) {
-			R_BindDefaultArray(R_ARRAY_NORMAL);
+			R_UnbindAttributeBuffer(R_ARRAY_NORMAL);
 
 			if (mask & R_ARRAY_MASK_NEXT_NORMAL) {
-				R_BindDefaultArray(R_ARRAY_NEXT_NORMAL);
+				R_UnbindAttributeBuffer(R_ARRAY_NEXT_NORMAL);
 			}
 		}
 
 		if (r_bumpmap->value) {
 
 			if (mask & R_ARRAY_MASK_TANGENT) {
-				R_BindDefaultArray(R_ARRAY_TANGENT);
+				R_UnbindAttributeBuffer(R_ARRAY_TANGENT);
 
 				if (mask & R_ARRAY_MASK_NEXT_TANGENT) {
-					R_BindDefaultArray(R_ARRAY_NEXT_TANGENT);
+					R_UnbindAttributeBuffer(R_ARRAY_NEXT_TANGENT);
 				}
 			}
 		}
@@ -274,25 +261,21 @@ void R_ResetArrayState(void) {
 
 	// diffuse texcoords
 	if (texunit_diffuse.enabled) {
-		if (mask & R_ARRAY_MASK_TEX_DIFFUSE) {
-			R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
+		if (mask & R_ARRAY_MASK_DIFFUSE) {
+			R_UnbindAttributeBuffer(R_ARRAY_DIFFUSE);
 		}
 	}
 
 	// lightmap texcoords
 	if (texunit_lightmap.enabled) {
 
-		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
-			R_SelectTexture(&texunit_lightmap);
-
-			R_BindDefaultArray(R_ARRAY_TEX_LIGHTMAP);
-
-			R_SelectTexture(&texunit_diffuse);
+		if (mask & R_ARRAY_MASK_LIGHTMAP) {
+			R_UnbindAttributeBuffer(R_ARRAY_LIGHTMAP);
 		}
 	}
 
 	// elements
-	R_BindArray(R_ARRAY_ELEMENTS, NULL);
+	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 
 	r_array_state.model = NULL;
 	r_array_state.arrays = arrays;
@@ -315,19 +298,22 @@ static void R_PrepareProgram() {
 	R_UseFog();
 }
 
+extern GLenum r_attrib_type_to_gl_type[R_ATTRIB_TOTAL_TYPES];
+
 /**
  * @brief
  */
 void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 
-	assert(r_state.array_buffers[R_ARRAY_VERTEX] != NULL);
+	assert(r_state.array_buffers[R_ARRAY_POSITION] != NULL);
 
 	R_PrepareProgram();
 
 	if (r_state.element_buffer) {
 
 		R_BindBuffer(r_state.element_buffer);
-		glDrawElements(type, count, GL_UNSIGNED_INT, (const void *)(ptrdiff_t)(start * sizeof(GLuint)));
+		glDrawElements(type, count, r_attrib_type_to_gl_type[r_state.element_buffer->element_type.type],
+		               (const void *) (ptrdiff_t) (start * r_state.element_buffer->element_type.stride));
 		r_view.num_draw_elements++;
 		r_view.num_draw_element_count += count;
 	} else {

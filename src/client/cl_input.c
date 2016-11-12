@@ -498,7 +498,7 @@ static void Cl_ClampPitch(void) {
 
 /**
  * @brief Accumulate view offset and angle modifications for the specified command.
- * @details In the event that the client is running at greater than 60hz, this is called multiple 
+ * @details In the event that the client is running at greater than 60hz, this is called multiple
  * times per tick. This view offset and angles to be used as early as possible for prediction.
  */
 void Cl_Look(pm_cmd_t *cmd) {

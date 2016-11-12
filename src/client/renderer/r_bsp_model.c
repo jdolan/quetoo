@@ -807,6 +807,23 @@ static void R_LoadBspVertexArrays_Surface(r_model_t *mod, r_bsp_surface_t *surf,
 	}
 }
 
+typedef struct {
+	vec3_t vertex;
+	int32_t normal;
+	int32_t tangent;
+	vec2_t diffuse;
+	vec2_t lightmap;
+} r_bsp_interleave_vertex_t;
+
+r_buffer_layout_t r_bsp_buffer_layout[] = {
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
+	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 12, .normalized = true },
+	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16, .normalized = true },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 20 },
+	{ .attribute = R_ARRAY_LIGHTMAP, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 28 },
+	{ .attribute = -1 }
+};
+
 /**
  * @brief Generates vertex primitives for the world model by iterating leafs.
  */
@@ -888,23 +905,24 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		}
 	}
 
-	R_CreateBuffer(&mod->element_buffer, GL_STATIC_DRAW, R_BUFFER_ELEMENT, e, elements);
+	R_CreateElementBuffer(&mod->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
 
 	Mem_Free(elements);
 
 	// make interleave buffer
-	r_interleave_vertex_t *interleaved = Mem_LinkMalloc(sizeof(r_interleave_vertex_t) * mod->num_verts, mod);
+	r_bsp_interleave_vertex_t *interleaved = Mem_LinkMalloc(sizeof(r_bsp_interleave_vertex_t) * mod->num_verts, mod);
 
 	for (GLsizei i = 0; i < mod->num_verts; ++i) {
 		VectorCopy(mod->bsp->verts[i], interleaved[i].vertex);
-		VectorCopy(mod->bsp->normals[i], interleaved[i].normal);
-		Vector4Copy(mod->bsp->tangents[i], interleaved[i].tangent);
+		NormalToGLNormal(mod->bsp->normals[i], &interleaved[i].normal);
+		TangentToGLTangent(mod->bsp->tangents[i], &interleaved[i].tangent);
 		Vector2Copy(mod->bsp->texcoords[i], interleaved[i].diffuse);
 		Vector2Copy(mod->bsp->lightmap_texcoords[i], interleaved[i].lightmap);
 	}
 
-	R_CreateBuffer(&mod->vertex_buffer, GL_STATIC_DRAW, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, mod->num_verts * sizeof(r_interleave_vertex_t), interleaved);
-	
+	R_CreateInterleaveBuffer(&mod->vertex_buffer, sizeof(r_bsp_interleave_vertex_t), r_bsp_buffer_layout, GL_STATIC_DRAW,
+	                         mod->num_verts * sizeof(r_bsp_interleave_vertex_t), interleaved);
+
 	mod->normal_buffer = mod->vertex_buffer;
 	mod->tangent_buffer = mod->vertex_buffer;
 	mod->texcoord_buffer = mod->vertex_buffer;

@@ -224,9 +224,11 @@ static r_packer_node_t *R_AtlasPacker_GrowNode(r_packer_t *packer, r_atlas_image
 	const _Bool canGrowRight = (image->input_image->height <= root->height);
 
 	const _Bool shouldGrowRight = canGrowRight &&
-	                              (root->height >= (root->width + image->input_image->width)); // attempt to keep square-ish by growing right when height is much greater than width
+	                              (root->height >= (root->width +
+	                                      image->input_image->width)); // attempt to keep square-ish by growing right when height is much greater than width
 	const _Bool shouldGrowDown = canGrowDown &&
-	                             (root->width >= (root->height + image->input_image->height));  // attempt to keep square-ish by growing down  when width  is much greater than height
+	                             (root->width >= (root->height +
+	                                     image->input_image->height));  // attempt to keep square-ish by growing down  when width  is much greater than height
 
 	if (shouldGrowRight) {
 		return R_AtlasPacker_Grow(packer, image, GROW_RIGHT);

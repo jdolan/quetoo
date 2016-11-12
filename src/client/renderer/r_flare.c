@@ -40,7 +40,7 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	surf->flare = Mem_LinkMalloc(sizeof(*surf->flare), bsp);
 
 	// move the flare away from the surface, into the level
-	VectorMA(surf->center, 2, surf->normal, surf->flare->origin);
+	VectorMA(surf->center, 2, surf->normal, surf->flare->particle.org);
 
 	// calculate the flare radius based on surface size
 	VectorSubtract(surf->maxs, surf->mins, span);
@@ -60,9 +60,9 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 
 	// resolve flare color
 	if (s->flags & STAGE_COLOR) {
-		VectorCopy(s->color, surf->flare->color);
+		VectorCopy(s->color, surf->flare->particle.color);
 	} else {
-		VectorCopy(surf->texinfo->material->diffuse->color, surf->flare->color);
+		VectorCopy(surf->texinfo->material->diffuse->color, surf->flare->particle.color);
 	}
 
 	// and scaled radius
@@ -71,7 +71,9 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 	}
 
 	// and image
-	surf->flare->image = s->image;
+	surf->flare->particle.type = PARTICLE_FLARE;
+	surf->flare->particle.image = s->image;
+	surf->flare->particle.blend = GL_ONE;
 }
 
 /**
@@ -81,11 +83,7 @@ void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
  * trace. Flares are also faded according to the angle of their surface to the
  * view origin.
  */
-void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
-	uint32_t i, j, k, l, m, n;
-	vec3_t view, verts[4];
-	vec3_t right, up, up_right, down_right;
-
+void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	if (!r_flares->value || r_draw_wireframe->value) {
 		return;
 	}
@@ -94,19 +92,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		return;
 	}
 
-	R_EnableColorArray(true);
-
-	R_ResetArrayState();
-
-	R_EnableDepthTest(false);
-
-	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
-
-	// set to NULL, so it binds the first image that we run into
-	const r_image_t *image = NULL;
-
-	j = k = l = m = 0;
-	for (i = 0; i < surfs->count; i++) {
+	for (uint32_t i = 0; i < surfs->count; i++) {
 		const r_bsp_surface_t *surf = surfs->surfaces[i];
 
 		if (surf->frame != r_locals.frame) {
@@ -115,24 +101,6 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 		r_bsp_flare_t *f = surf->flare;
 
-		// bind the flare's texture
-		if (f->image != image) {
-
-			if (l) {
-				R_UploadToBuffer(&r_state.buffer_color_array, j * sizeof(vec_t), r_state.color_array);
-				R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, k * sizeof(vec_t), texunit_diffuse.texcoord_array);
-				R_UploadToBuffer(&r_state.buffer_vertex_array, l * sizeof(vec_t), r_state.vertex_array);
-				R_UploadToBuffer(&r_state.buffer_element_array, m * sizeof(GLuint), r_state.indice_array);
-
-				R_DrawArrays(GL_TRIANGLES, 0, m);
-			}
-
-			j = k = l = m = 0;
-
-			image = f->image;
-			R_BindTexture(image->texnum);
-		}
-
 		// periodically test visibility to ramp alpha
 		if (r_view.time - f->time > 15) {
 
@@ -140,7 +108,7 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 				f->alpha = 0;
 			}
 
-			cm_trace_t tr = Cl_Trace(r_view.origin, f->origin, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
+			cm_trace_t tr = Cl_Trace(r_view.origin, f->particle.org, NULL, NULL, 0, MASK_CLIP_PROJECTILE);
 
 			f->alpha += (tr.fraction == 1.0) ? 0.03 : -0.15; // ramp
 			f->alpha = Clamp(f->alpha, 0.0, 1.0); // clamp
@@ -148,7 +116,8 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 			f->time = r_view.time;
 		}
 
-		VectorSubtract(f->origin, r_view.origin, view);
+		vec3_t view;
+		VectorSubtract(f->particle.org, r_view.origin, view);
 		const vec_t dist = VectorNormalize(view);
 
 		// fade according to angle
@@ -166,59 +135,9 @@ void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		alpha = f->alpha * alpha;
 
 		// scale according to distance
-		const vec_t scale = f->radius + (f->radius * dist * .0005);
+		f->particle.scale = f->radius + (f->radius * dist * .0005);
+		f->particle.color[3] = alpha;
 
-		VectorScale(r_view.right, scale, right);
-		VectorScale(r_view.up, scale, up);
-
-		VectorAdd(up, right, up_right);
-		VectorSubtract(right, up, down_right);
-
-		VectorSubtract(f->origin, down_right, verts[0]);
-		VectorAdd(f->origin, up_right, verts[1]);
-		VectorAdd(f->origin, down_right, verts[2]);
-		VectorSubtract(f->origin, up_right, verts[3]);
-
-		for (n = 0; n < 4; n++) { // duplicate color data to all 4 verts
-			memcpy(&r_state.color_array[j], f->color, sizeof(vec3_t));
-			r_state.color_array[j + 3] = alpha;
-			j += 4;
-		}
-
-		// copy texcoord info
-		memcpy(&texunit_diffuse.texcoord_array[k], default_texcoords, sizeof(vec2_t) * 4);
-
-		// copy the 4 verts
-		memcpy(&r_state.vertex_array[l], verts, sizeof(vec3_t) * 4);
-
-		// lastly, make indexes
-		r_state.indice_array[m + 0] = (l / 3) + 0;
-		r_state.indice_array[m + 1] = (l / 3) + 1;
-		r_state.indice_array[m + 2] = (l / 3) + 2;
-
-		r_state.indice_array[m + 3] = (l / 3) + 0;
-		r_state.indice_array[m + 4] = (l / 3) + 2;
-		r_state.indice_array[m + 5] = (l / 3) + 3;
-
-		k += sizeof(vec2_t) / sizeof(vec_t) * 4;
-		l += sizeof(vec3_t) / sizeof(vec_t) * 4;
-		m += 6;
+		R_AddParticle(&f->particle);
 	}
-
-	if (l) {
-		R_UploadToBuffer(&r_state.buffer_color_array, j * sizeof(vec_t), r_state.color_array);
-		R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, k * sizeof(vec_t), texunit_diffuse.texcoord_array);
-		R_UploadToBuffer(&r_state.buffer_vertex_array, l * sizeof(vec_t), r_state.vertex_array);
-		R_UploadToBuffer(&r_state.buffer_element_array, m * sizeof(GLuint), r_state.indice_array);
-
-		R_DrawArrays(GL_TRIANGLES, 0, m);
-	}
-
-	R_BindDefaultArray(R_ARRAY_ELEMENTS);
-
-	R_EnableDepthTest(true);
-
-	R_EnableColorArray(false);
-
-	R_Color(NULL);
 }

@@ -195,8 +195,6 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 
 	R_DrawMaterialBspSurfaces(&surfs->material);
 
-	R_DrawFlareBspSurfaces(&surfs->flare);
-
 	R_DrawBlendBspSurfaces(&surfs->blend);
 
 	R_DrawBlendWarpBspSurfaces(&surfs->blend_warp);
@@ -242,6 +240,75 @@ static void R_DrawBspInlineModel(const r_entity_t *e) {
 /**
  * @brief
  */
+static void R_AddBspInlineModelFlares_(const r_entity_t *e) {
+	static int16_t frame = -2;
+
+	// temporarily swap the view frame so that the surface drawing
+	// routines pickup only the inline model's surfaces
+
+	const int16_t f = r_locals.frame;
+	r_locals.frame = frame--;
+
+	if (frame == INT16_MIN) {
+		frame = -2;
+	}
+
+	r_bsp_surface_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
+
+	for (uint32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
+		const cm_bsp_plane_t *plane = surf->plane;
+		vec_t dot;
+
+		// find which side of the surf we are on
+		if (AXIAL(plane)) {
+			dot = r_bsp_model_org[plane->type] - plane->dist;
+		} else {
+			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
+		}
+
+		if (surf->flags & R_SURF_PLANE_BACK) {
+			dot = -dot;
+		}
+
+		if (dot > SIDE_EPSILON) { // visible, flag for rendering
+			surf->frame = r_locals.frame;
+			surf->back_frame = -1;
+		} else { // back-facing
+			surf->frame = -1;
+			surf->back_frame = r_locals.frame;
+		}
+	}
+
+	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
+
+	R_AddFlareBspSurfaces(&surfs->flare);
+
+	r_locals.frame = f; // undo the swap
+}
+
+/**
+ * @brief
+ */
+void R_AddBspInlineModelFlares(const r_entities_t *ents) {
+
+	for (size_t i = 0; i < ents->count; i++) {
+		const r_entity_t *e = ents->entities[i];
+
+		if (e->effects & EF_NO_DRAW) {
+			continue;
+		}
+
+		r_view.current_entity = e;
+
+		R_AddBspInlineModelFlares_(e);
+	}
+
+	r_view.current_entity = NULL;
+}
+
+/**
+ * @brief
+ */
 void R_DrawBspInlineModels(const r_entities_t *ents) {
 
 	for (size_t i = 0; i < ents->count; i++) {
@@ -264,20 +331,23 @@ void R_DrawBspInlineModels(const r_entities_t *ents) {
  * surfaces show their normals when r_draw_bsp_normals is 2.
  */
 void R_DrawBspNormals(void) {
-	const vec4_t red = { 1.0, 0.0, 0.0, 1.0 };
 
 	if (!r_draw_bsp_normals->value) {
 		return;
 	}
 
+	R_EnableColorArray(true);
+
 	R_EnableTexture(&texunit_diffuse, false);
 
 	R_ResetArrayState(); // default arrays
 
-	R_Color(red);
+	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer);
 
-	int32_t k = 0;
+	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.bound_element_buffer);
+
 	const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces;
+
 	for (uint16_t i = 0; i < r_model_state.world->bsp->num_surfaces; i++, surf++) {
 
 		if (surf->vis_frame != r_locals.vis_frame) {
@@ -292,34 +362,30 @@ void R_DrawBspNormals(void) {
 			continue;    // don't care
 		}
 
-		if (k > MAX_GL_ARRAY_LENGTH - 512) { // avoid overflows, draw in batches
-			R_UploadToBuffer(&r_state.buffer_vertex_array, k * sizeof(vec_t), r_state.vertex_array);
-
-			R_DrawArrays(GL_LINES, 0, k / 3);
-			k = 0;
-		}
-
 		for (uint16_t j = 0; j < surf->num_edges; j++) {
-			vec3_t end;
-
 			const vec_t *vertex = &r_model_state.world->bsp->verts[surf->elements[j]][0];
 			const vec_t *normal = &r_model_state.world->bsp->normals[surf->elements[j]][0];
 
-			VectorMA(vertex, 12.0, normal, end);
+			// draw origin
+			vec3_t angles;
+			matrix4x4_t mat;
 
-			memcpy(&r_state.vertex_array[k], vertex, sizeof(vec3_t));
-			memcpy(&r_state.vertex_array[k + 3], end, sizeof(vec3_t));
-			k += sizeof(vec3_t) / sizeof(vec_t) * 2;
+			VectorAngles(normal, angles);
+			Matrix4x4_CreateFromQuakeEntity(&mat, vertex[0], vertex[1], vertex[2], angles[0], angles[1], angles[2], 1.0);
+
+			R_PushMatrix(R_MATRIX_MODELVIEW);
+
+			Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
+
+			R_DrawArrays(GL_LINES, r_model_state.bound_element_count - 6, 2);
+
+			R_PopMatrix(R_MATRIX_MODELVIEW);
 		}
 	}
 
-	R_UploadToBuffer(&r_state.buffer_vertex_array, k * sizeof(vec_t), r_state.vertex_array);
-
-	R_DrawArrays(GL_LINES, 0, k / 3);
-
 	R_EnableTexture(&texunit_diffuse, true);
 
-	R_Color(NULL);
+	R_EnableColorArray(false);
 }
 
 /**

@@ -24,6 +24,7 @@
 // these are the variables defined in the GLSL shader
 typedef struct r_shell_program_s {
 	r_uniform1f_t offset;
+	r_uniform1f_t shell_offset;
 	r_uniform1f_t time_fraction;
 
 	r_sampler2d_t sampler0;
@@ -42,9 +43,12 @@ static r_shell_program_t r_shell_program;
  */
 void R_PreLink_shell(const r_program_t *program) {
 
-	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
-	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_TEX_DIFFUSE);
-	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_VERTEX);
+	R_BindAttributeLocation(program, "POSITION", R_ARRAY_POSITION);
+	R_BindAttributeLocation(program, "NORMAL", R_ARRAY_NORMAL);
+	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_DIFFUSE);
+
+	R_BindAttributeLocation(program, "NEXT_POSITION", R_ARRAY_NEXT_POSITION);
+	R_BindAttributeLocation(program, "NEXT_NORMAL", R_ARRAY_NEXT_NORMAL);
 }
 
 /**
@@ -53,12 +57,18 @@ void R_PreLink_shell(const r_program_t *program) {
 void R_InitProgram_shell(r_program_t *program) {
 	r_shell_program_t *p = &r_shell_program;
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_VERTEX], R_ATTRIBUTE, "POSITION");
-	R_ProgramVariable(&program->attributes[R_ARRAY_TEX_DIFFUSE], R_ATTRIBUTE, "TEXCOORD");
-	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_VERTEX], R_ATTRIBUTE, "NEXT_POSITION");
+	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION");
+	R_ProgramVariable(&program->attributes[R_ARRAY_NORMAL], R_ATTRIBUTE, "NORMAL");
+	R_ProgramVariable(&program->attributes[R_ARRAY_DIFFUSE], R_ATTRIBUTE, "TEXCOORD");
+
+	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION");
+	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_NORMAL], R_ATTRIBUTE, "NEXT_NORMAL");
 
 	R_ProgramVariable(&p->offset, R_UNIFORM_FLOAT, "OFFSET");
 	R_ProgramParameter1f(&p->offset, 0.0);
+
+	R_ProgramVariable(&p->shell_offset, R_UNIFORM_FLOAT, "SHELL_OFFSET");
+	R_ProgramParameter1f(&p->shell_offset, 0.0);
 
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0");
 	R_ProgramParameter1i(&p->sampler0, 0);
@@ -82,6 +92,14 @@ void R_InitProgram_shell(r_program_t *program) {
 void R_UseProgram_shell(void) {
 
 	R_ProgramParameter1f(&r_shell_program.offset, r_view.time * 0.00025);
+}
+
+/**
+ * @brief
+ */
+void R_UseShellOffset_shell(const vec_t offset) {
+
+	R_ProgramParameter1f(&r_shell_program.shell_offset, offset);
 }
 
 /**

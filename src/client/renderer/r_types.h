@@ -88,10 +88,118 @@ typedef enum {
 	R_NUM_BUFFERS,
 
 	// buffer flags, not stored in type
-	R_BUFFER_INTERLEAVE = 4
+	R_BUFFER_INTERLEAVE = 4,
+	R_BUFFER_TYPE_MASK = 0x03
 } r_buffer_type_t;
 
-#define R_BUFFER_TYPE_MASK 0x03
+/**
+ * @brief Attribute indices - these should be assigned to
+ * every program that uses them, and are also used for buffer storage.
+ */
+typedef enum {
+	R_ARRAY_POSITION,
+	R_ARRAY_COLOR,
+	R_ARRAY_NORMAL,
+	R_ARRAY_TANGENT,
+	R_ARRAY_DIFFUSE,
+	R_ARRAY_LIGHTMAP,
+
+	/**
+	 * @brief These three are only used for shader-based lerp.
+	 * They are only enabled if the ones that match up to it are enabled as well.
+	 */
+	R_ARRAY_NEXT_POSITION,
+	R_ARRAY_NEXT_NORMAL,
+	R_ARRAY_NEXT_TANGENT,
+
+	R_ARRAY_MAX_ATTRIBS,
+	R_ARRAY_ALL = R_ARRAY_MAX_ATTRIBS,
+
+	/**
+	 * @brief This is a special entry so that R_BindAttributeBuffer can be
+	 * used for binding element buffers as well.
+	 */
+	R_ARRAY_ELEMENTS = -1
+} r_attribute_id_t;
+
+/**
+ * @brief These are the masks used to tell which data
+ * should be actually bound. They should match
+ * up with the ones above to make things simple.
+ */
+typedef enum {
+	R_ARRAY_MASK_POSITION		= (1 << R_ARRAY_POSITION),
+	R_ARRAY_MASK_COLOR			= (1 << R_ARRAY_COLOR),
+	R_ARRAY_MASK_NORMAL			= (1 << R_ARRAY_NORMAL),
+	R_ARRAY_MASK_TANGENT		= (1 << R_ARRAY_TANGENT),
+	R_ARRAY_MASK_DIFFUSE		= (1 << R_ARRAY_DIFFUSE),
+	R_ARRAY_MASK_LIGHTMAP		= (1 << R_ARRAY_LIGHTMAP),
+
+	R_ARRAY_MASK_NEXT_POSITION	= (1 << R_ARRAY_NEXT_POSITION),
+	R_ARRAY_MASK_NEXT_NORMAL	= (1 << R_ARRAY_NEXT_NORMAL),
+	R_ARRAY_MASK_NEXT_TANGENT	= (1 << R_ARRAY_NEXT_TANGENT),
+
+	R_ARRAY_MASK_ALL			= (1 << R_ARRAY_MAX_ATTRIBS) - 1
+} r_attribute_mask_t;
+
+/**
+ * @brief Types that can be used in buffers for attributes.
+ */
+typedef enum {
+	R_ATTRIB_FLOAT,
+	R_ATTRIB_BYTE,
+	R_ATTRIB_UNSIGNED_BYTE,
+	R_ATTRIB_SHORT,
+	R_ATTRIB_UNSIGNED_SHORT,
+	R_ATTRIB_INT,
+	R_ATTRIB_UNSIGNED_INT,
+
+	/**
+	 * @brief This is a 4 byte value
+	 * but requires 4 count by OpenGL.
+	 * As such, Quetoo considers it 1 byte wide.
+	 */
+	R_ATTRIB_INT_2_10_10_10_REV,
+
+	R_ATTRIB_TOTAL_TYPES
+} r_attrib_type_t;
+
+/**
+ * @brief A structure packing a bunch of attribute state together
+ * for quick comparison of a single variable.
+ *
+ * @note if any of the enums or data types used here change,
+ * be sure to modify the bit field too.
+ */
+typedef union {
+	uint32_t packed;
+
+	struct {
+		uint32_t type : 3;
+		uint32_t count : 3;
+		uint32_t offset : 6;
+		uint32_t normalized : 2;
+		uint32_t stride : 6;
+	};
+} r_attrib_type_state_t;
+
+/**
+ * @brief Represents a single attribute layout for a buffer.
+ * An interleaved buffer will supply a chain of these.
+ * The last entry should have an 'attribute' of -1.
+ */
+typedef struct {
+	r_attribute_id_t attribute;
+
+	r_attrib_type_t type;
+	uint8_t count;
+	uint8_t offset;
+	uint8_t size;
+	_Bool normalized;
+
+	// internal, no touch
+	r_attrib_type_state_t _type_state;
+} r_buffer_layout_t;
 
 /**
  * @brief Buffers are used to hold data for the renderer.
@@ -102,7 +210,12 @@ typedef struct r_buffer_s {
 	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
 	GLuint bufnum; // e.g. 123
 	size_t size; // last size of buffer, for resize operations
+
+	// attribute crap
+	r_attrib_type_state_t element_type;
 	_Bool interleave; // whether this buffer is an interleave buffer. Only valid for R_BUFFER_DATA.
+	r_attribute_mask_t attrib_mask;
+	const r_buffer_layout_t *interleave_attribs[R_ARRAY_MAX_ATTRIBS];
 } r_buffer_t;
 
 /**
@@ -148,7 +261,8 @@ typedef enum {
 	PARTICLE_BEAM,
 	PARTICLE_WEATHER,
 	PARTICLE_SPLASH,
-	PARTICLE_CORONA
+	PARTICLE_CORONA,
+	PARTICLE_FLARE
 } r_particle_type_t;
 
 /**
@@ -275,12 +389,11 @@ typedef struct {
 } r_bsp_texinfo_t;
 
 typedef struct {
-	vec3_t origin;
 	vec_t radius;
-	const r_image_t *image;
-	vec3_t color;
 	uint32_t time;
 	vec_t alpha;
+
+	r_particle_t particle;
 } r_bsp_flare_t;
 
 // r_bsp_surface_t flags
@@ -958,8 +1071,8 @@ typedef struct {
 	uint32_t cull_fails;
 
 	uint32_t num_state_changes[R_STATE_TOTAL];
-	uint32_t num_buffer_uploads, size_buffer_uploads;
-	
+	uint32_t num_buffer_full_uploads, num_buffer_partial_uploads, size_buffer_uploads;
+
 	uint32_t num_draw_elements, num_draw_element_count;
 	uint32_t num_draw_arrays, num_draw_array_count;
 

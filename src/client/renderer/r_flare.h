@@ -26,7 +26,7 @@
 
 #ifdef __R_LOCAL_H__
 	void R_CreateBspSurfaceFlare(r_bsp_model_t *bsp, r_bsp_surface_t *surf);
-	void R_DrawFlareBspSurfaces(const r_bsp_surfaces_t *surfs);
+	void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_FLARE_H__ */

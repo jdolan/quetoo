@@ -63,20 +63,32 @@
 	#define lengthof(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
-typedef float vec_t;
-typedef vec_t vec2_t[2];
-typedef vec_t vec3_t[3];
-typedef vec_t vec4_t[4];
+#define VECTOR_TYPENAME(name) name ## _t
+#define VECTOR_TYPENAME_N(name, n) name ## n ## _t[n]
+#define VECTOR_TYPE(type, typename) \
+	typedef type VECTOR_TYPENAME(typename); \
+	typedef VECTOR_TYPENAME(typename) VECTOR_TYPENAME_N(typename, 2); \
+	typedef VECTOR_TYPENAME(typename) VECTOR_TYPENAME_N(typename, 3); \
+	typedef VECTOR_TYPENAME(typename) VECTOR_TYPENAME_N(typename, 4);
 
-typedef double dvec_t;
-typedef dvec_t dvec2_t[2];
-typedef dvec_t dvec3_t[3];
-typedef dvec_t dvec4_t[4];
+VECTOR_TYPE(float, vec);
+VECTOR_TYPE(double, dvec);
+VECTOR_TYPE(uint8_t, u8vec);
+VECTOR_TYPE(uint16_t, u16vec);
+VECTOR_TYPE(int16_t, s16vec);
 
-typedef uint16_t u16vec_t;
-typedef u16vec_t u16vec2_t[2];
-typedef u16vec_t u16vec3_t[3];
-typedef u16vec_t u16vec4_t[4];
+#undef VECTOR_TYPE
+#undef VECTOR_TYPENAME_N
+#undef VECTOR_TYPENAME
+
+// 32 bit RGBA colors
+typedef union {
+	struct {
+		uint8_t r, g, b, a;
+	};
+	u8vec4_t bytes;
+	uint32_t c;
+} color_t;
 
 /**
  * @brief Indices for angle vectors.

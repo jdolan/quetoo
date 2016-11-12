@@ -62,6 +62,8 @@ static void Debug(const char *msg) {
 	}
 }
 
+static _Bool jmp_set = false;
+
 /**
  * @brief Callback for subsystem failures. Depending on the severity, we may try to
  * recover, or we may shut the entire engine down and exit.
@@ -73,6 +75,10 @@ static void Error(err_t err, const char *msg) {
 	}
 
 	Print(va("^1%s\n", msg));
+
+	if (err == ERR_DROP && !jmp_set) {
+		err = ERR_FATAL;
+	}
 
 	switch (err) {
 		case ERR_DROP:
@@ -286,6 +292,8 @@ int32_t main(int32_t argc, char *argv[]) {
 #endif
 
 	Com_Init(argc, argv); // let's get it started in here
+
+	jmp_set = true;
 
 	while (true) { // this is our main loop
 

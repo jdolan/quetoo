@@ -40,21 +40,21 @@ void R_PopMatrix(const r_matrix_id_t id);
 
 void R_EnableTextureID(const r_texunit_id_t texunit_id, _Bool enable);
 
+uint32_t R_GetNumAllocatedBuffers(void);
+uint32_t R_GetNumAllocatedBufferBytes(void);
+
 #ifdef __R_LOCAL_H__
 
 #include "r_program.h"
 
 // vertex arrays are used for many things
-#define MAX_GL_ARRAY_LENGTH 0x10000
-extern const vec_t default_texcoords[];
+extern const vec2_t default_texcoords[4];
 
 // texunits maintain multitexture state
 typedef struct r_texunit_s {
 	_Bool enabled; // on / off (off uses null texture)
 	GLenum texture; // e.g. GL_TEXTURE0 + x
 	GLuint texnum; // e.g 123
-	GLfloat *texcoord_array;
-	r_buffer_t buffer_texcoord_array;
 } r_texunit_t;
 
 // matrix stack
@@ -67,27 +67,13 @@ typedef struct r_matrix_stack_s {
 
 // opengl state management
 typedef struct r_state_s {
-	GLfloat vertex_array[MAX_GL_ARRAY_LENGTH * 3]; // default vertex arrays
-	GLfloat color_array[MAX_GL_ARRAY_LENGTH * 4];
-	GLfloat normal_array[MAX_GL_ARRAY_LENGTH * 3];
-	GLfloat tangent_array[MAX_GL_ARRAY_LENGTH * 4];
-	GLuint indice_array[MAX_GL_ARRAY_LENGTH * 4];
-	
-	r_interleave_vertex_t interleave_array[(MAX_GL_ARRAY_LENGTH / 16) * sizeof(r_interleave_vertex_t)];
-
-	// built-in buffers for the above vertex arrays
-	r_buffer_t buffer_vertex_array;
-	r_buffer_t buffer_color_array;
-	r_buffer_t buffer_normal_array;
-	r_buffer_t buffer_tangent_array;
-	r_buffer_t buffer_element_array;
-
-	r_buffer_t buffer_interleave_array;
-
 	// the current buffers bound to the global
 	// renderer state. This just prevents
 	// them being bound multiple times in a row.
 	GLuint active_buffers[R_NUM_BUFFERS];
+
+	uint32_t buffers_total_bytes;
+	uint32_t buffers_total;
 
 	// the active element buffer.
 	const r_buffer_t *element_buffer;
@@ -175,20 +161,28 @@ void R_BindLightmapTexture(GLuint texnum);
 void R_BindDeluxemapTexture(GLuint texnum);
 void R_BindNormalmapTexture(GLuint texnum);
 void R_BindSpecularmapTexture(GLuint texnum);
-void R_BindDefaultArray(const r_attribute_id_t target);
 void R_EnableDepthMask(_Bool enable);
 
 void R_BindBuffer(const r_buffer_t *buffer);
 void R_UnbindBuffer(const r_buffer_type_t type);
 void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data);
-void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data, const _Bool data_offset);
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t type, const size_t size,
-                    const void *data);
+void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data,
+                         const _Bool data_offset);
+void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, const GLubyte element_count,
+                    const _Bool element_normalized,
+                    const GLenum hint, const r_buffer_type_t type, const size_t size, const void *data);
+#define R_CreateDataBuffer(buffer, element_type, element_count, element_normalized, hint, size, data) R_CreateBuffer(buffer, element_type, element_count, element_normalized, hint, R_BUFFER_DATA, size, data)
+void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, const r_buffer_layout_t *layout,
+                              const GLenum hint, const size_t size, const void *data);
+#define R_CreateElementBuffer(buffer, element_type, hint, size, data) R_CreateBuffer(buffer, element_type, 1, false, hint, R_BUFFER_ELEMENT, size, data)
 void R_DestroyBuffer(r_buffer_t *buffer);
 _Bool R_ValidBuffer(const r_buffer_t *buffer);
 
-void R_BindArray(const r_attribute_id_t target, const r_buffer_t *buffer);
-void R_BindArrayOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset);
+void R_BindAttributeBuffer(const r_attribute_id_t target, const r_buffer_t *buffer);
+void R_BindAttributeInterleaveBuffer(const r_buffer_t *buffer);
+void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset);
+#define R_UnbindAttributeBuffer(target) R_BindAttributeBuffer(target, NULL)
+#define R_UnbindAttributeBuffers() R_UnbindAttributeBuffer(R_ARRAY_ALL)
 
 #define ALPHA_TEST_DISABLED_THRESHOLD 0.0
 #define ALPHA_TEST_ENABLED_THRESHOLD 0.25

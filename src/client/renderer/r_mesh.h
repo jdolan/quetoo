@@ -30,8 +30,6 @@ void R_DrawMeshModel_default(const r_entity_t *e);
 
 typedef struct {
 	r_material_t *material;
-
-	r_interleave_vertex_t vertexes[MD3_MAX_TRIANGLES * 3];
 } r_mesh_state_t;
 
 extern r_mesh_state_t r_mesh_state;

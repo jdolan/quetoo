@@ -190,7 +190,7 @@ static void Cl_DrawRendererStats(void) {
 
 	R_DrawString(0, y, va("%d surfaces", r_view.num_bsp_surfaces), CON_COLOR_YELLOW);
 	y += ch;
-	
+
 	y += ch;
 	R_DrawString(0, y, "Mesh:", CON_COLOR_CYAN);
 	y += ch;
@@ -205,13 +205,16 @@ static void Cl_DrawRendererStats(void) {
 	R_DrawString(0, y, "Draws:", CON_COLOR_CYAN);
 	y += ch;
 
-	R_DrawString(0, y, va("%d elements over %d batches total", r_view.num_draw_array_count + r_view.num_draw_element_count, r_view.num_draw_arrays + r_view.num_draw_elements), CON_COLOR_CYAN);
+	R_DrawString(0, y, va("%d elements over %d batches total", r_view.num_draw_array_count + r_view.num_draw_element_count,
+	                      r_view.num_draw_arrays + r_view.num_draw_elements), CON_COLOR_CYAN);
 	y += ch;
 
-	R_DrawString(0, y, va("%d elements over %d array batches", r_view.num_draw_array_count, r_view.num_draw_arrays), CON_COLOR_CYAN);
+	R_DrawString(0, y, va("%d elements over %d array batches", r_view.num_draw_array_count, r_view.num_draw_arrays),
+	             CON_COLOR_CYAN);
 	y += ch;
 
-	R_DrawString(0, y, va("%d elements over %d element batches", r_view.num_draw_element_count, r_view.num_draw_elements), CON_COLOR_CYAN);
+	R_DrawString(0, y, va("%d elements over %d element batches", r_view.num_draw_element_count, r_view.num_draw_elements),
+	             CON_COLOR_CYAN);
 	y += ch;
 
 	y += ch;
@@ -223,7 +226,7 @@ static void Cl_DrawRendererStats(void) {
 
 	R_DrawString(0, y, va("%d particles", r_view.num_particles), CON_COLOR_WHITE);
 	y += ch;
-	
+
 	uint32_t total_state_changes = 0;
 
 	for (uint32_t i = 0; i < R_STATE_TOTAL; i++) {
@@ -238,7 +241,13 @@ static void Cl_DrawRendererStats(void) {
 		y += ch;
 	}
 
-	R_DrawString(0, y, va("%d buffer uploads (%d bytes)", r_view.num_buffer_uploads, r_view.size_buffer_uploads), CON_COLOR_WHITE);
+	R_DrawString(0, y, va("%d buffer uploads (%d partial, %d full; %d bytes)",
+	                      r_view.num_buffer_full_uploads + r_view.num_buffer_partial_uploads, r_view.num_buffer_full_uploads,
+	                      r_view.num_buffer_partial_uploads, r_view.size_buffer_uploads), CON_COLOR_WHITE);
+	y += ch;
+
+	R_DrawString(0, y, va("%d total buffers created (%d bytes)", R_GetNumAllocatedBuffers(),
+	                      R_GetNumAllocatedBufferBytes()), CON_COLOR_WHITE);
 	y += ch;
 
 	R_DrawString(0, y, va("cull: %d pass, %d fail", r_view.cull_passes, r_view.cull_fails), CON_COLOR_WHITE);

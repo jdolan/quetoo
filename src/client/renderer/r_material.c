@@ -21,6 +21,44 @@
 
 #include "r_local.h"
 
+// Just a number used for the initial buffer size.
+// It should fit most maps.
+#define INITIAL_VERTEX_COUNT 512
+
+// interleave constants
+typedef struct {
+	vec3_t		vertex;
+	u8vec4_t	color;
+	int32_t		normal;
+	int32_t		tangent;
+	vec2_t		diffuse;
+	u16vec2_t	lightmap;
+} r_material_interleave_vertex_t;
+
+static r_buffer_layout_t r_material_buffer_layout[] = {
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
+	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 12, .normalized = true },
+	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 16, .normalized = true },
+	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_INT_2_10_10_10_REV, .count = 4, .size = sizeof(int32_t), .offset = 20, .normalized = true },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 24 },
+	{ .attribute = R_ARRAY_LIGHTMAP, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 32, .normalized = true },
+	{ .attribute = -1 }
+};
+
+typedef struct {
+	GArray *vertex_array;
+	r_buffer_t vertex_buffer;
+	uint32_t vertex_len;
+
+	GArray *element_array;
+	uint32_t element_len;
+} r_material_state_t;
+
+#define VERTEX_ARRAY_INDEX(i) (g_array_index(r_material_state.vertex_array, r_material_interleave_vertex_t, i))
+#define ELEMENT_ARRAY_INDEX(i) (g_array_index(r_material_state.element_array, u16vec_t, i))
+
+static r_material_state_t r_material_state;
+
 #define UPDATE_THRESHOLD 16
 
 /**
@@ -227,18 +265,18 @@ static const vec_t dirtmap[NUM_DIRTMAP_ENTRIES] = {
 /**
  * @brief Generates a single color for the specified stage and vertex.
  */
-static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t color) {
+static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, u8vec4_t color) {
 
 	vec_t a;
 
 	if (stage->flags & STAGE_TERRAIN) {
 
 		if (stage->flags & STAGE_COLOR) { // honor stage color
-			VectorCopy(stage->color, color);
+			ColorDecompose3(stage->color, color);
 		} else
 			// or use white
 		{
-			VectorSet(color, 1.0, 1.0, 1.0);
+			VectorSet(color, 255, 255, 255);
 		}
 
 		// resolve alpha for vert based on z axis height
@@ -250,22 +288,22 @@ static inline void R_StageColor(const r_stage_t *stage, const vec3_t v, vec4_t c
 			a = (v[2] - stage->terrain.floor) / stage->terrain.height;
 		}
 
-		color[3] = a;
+		color[3] = (u8vec_t) (a * 255.0);
 	} else if (stage->flags & STAGE_DIRTMAP) {
 
 		// resolve dirtmap based on vertex position
 		const uint16_t index = (uint16_t) (v[0] + v[1]) % NUM_DIRTMAP_ENTRIES;
 		if (stage->flags & STAGE_COLOR) { // honor stage color
-			VectorCopy(stage->color, color);
+			ColorDecompose3(stage->color, color);
 		} else
 			// or use white
 		{
-			VectorSet(color, 1.0, 1.0, 1.0);
+			VectorSet(color, 255, 255, 255);
 		}
 
-		color[3] = dirtmap[index] * stage->dirt.intensity;
+		color[3] = (u8vec_t) (dirtmap[index] * stage->dirt.intensity);
 	} else { // simply use white
-		color[0] = color[1] = color[2] = color[3] = 1.0;
+		color[0] = color[1] = color[2] = color[3] = 255;
 	}
 }
 
@@ -320,42 +358,57 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 static uint32_t r_material_vertex_count, r_material_index_count;
 
 /**
- * @brief Render the specified stage for the surface. Resolve vertex attributes via
- * helper functions, outputting to the default vertex arrays.
+ * @brief Render the specified stage for the surface.
  */
 static void R_DrawBspSurfaceMaterialStage(r_bsp_surface_t *surf, const r_stage_t *stage) {
 	int32_t i;
+
+	// expand array if we're gonna eat it
+	if (r_material_state.vertex_len <= (r_material_vertex_count + surf->num_edges)) {
+		r_material_state.vertex_len *= 2;
+		r_material_state.vertex_array = g_array_set_size(r_material_state.vertex_array, r_material_state.vertex_len);
+		Com_Debug("Expanded material vertex array to %u\n", r_material_state.vertex_len);
+	}
 
 	for (i = 0; i < surf->num_edges; i++) {
 
 		const vec_t *v = &r_model_state.world->bsp->verts[surf->elements[i]][0];
 		const vec_t *st = &r_model_state.world->bsp->texcoords[surf->elements[i]][0];
 
-		R_StageVertex(surf, stage, v, &r_state.interleave_array[r_material_vertex_count + i].vertex[0]);
+		r_material_interleave_vertex_t *vertex = &VERTEX_ARRAY_INDEX(r_material_vertex_count + i);
 
-		R_StageTexCoord(stage, v, st, &r_state.interleave_array[r_material_vertex_count + i].diffuse[0]);
+		R_StageVertex(surf, stage, v, &vertex->vertex[0]);
+
+		R_StageTexCoord(stage, v, st, &vertex->diffuse[0]);
 
 		if (texunit_lightmap.enabled) { // lightmap texcoords
 			st = &r_model_state.world->bsp->lightmap_texcoords[surf->elements[i]][0];
-			Vector2Copy(st, r_state.interleave_array[r_material_vertex_count + i].lightmap);
+			Vector2Set(vertex->lightmap, (u16vec_t) (st[0] * USHRT_MAX), (u16vec_t) (st[1] * USHRT_MAX));
 		}
 
 		if (r_state.color_array_enabled) { // colors
-			R_StageColor(stage, v, &r_state.interleave_array[r_material_vertex_count + i].color[0]);
+			R_StageColor(stage, v, &vertex->color[0]);
 		}
 
 		if (r_state.lighting_enabled) { // normals and tangents
 
 			const vec_t *n = &r_model_state.world->bsp->normals[surf->elements[i]][0];
-			VectorCopy(n, r_state.interleave_array[r_material_vertex_count + i].normal);
+			NormalToGLNormal(n, &vertex->normal);
 
 			const vec_t *t = &r_model_state.world->bsp->tangents[surf->elements[i]][0];
-			VectorCopy(t, r_state.interleave_array[r_material_vertex_count + i].tangent);
+			TangentToGLTangent(t, &vertex->tangent);
 		}
 	}
-	
-	// hijack index array to act as first # to render
-	r_state.indice_array[r_material_index_count] = r_material_vertex_count;
+
+	// expand array if we're gonna eat it
+	if (r_material_state.element_len <= r_material_index_count) {
+		r_material_state.element_len *= 2;
+		r_material_state.element_array = g_array_set_size(r_material_state.element_array, r_material_state.element_len);
+		Com_Debug("Expanded material index array to %u\n", r_material_state.element_len);
+	}
+
+	// first # to render
+	ELEMENT_ARRAY_INDEX(r_material_index_count) = r_material_vertex_count;
 
 	r_material_vertex_count += surf->num_edges;
 	r_material_index_count++;
@@ -400,9 +453,11 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 			}
 
 			R_UpdateMaterialStage(m, s);
-			
+
 			// load the texture matrix for rotations, stretches, etc..
 			R_StageTextureMatrix(surf, s);
+
+			R_SetStageState(surf, s);
 
 			R_DrawBspSurfaceMaterialStage(surf, s);
 		}
@@ -419,13 +474,8 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_EnableColorArray(true);
 
 	R_ResetArrayState();
-	
-	R_BindArray(R_ARRAY_VERTEX, &r_state.buffer_interleave_array);
-	R_BindArray(R_ARRAY_COLOR, &r_state.buffer_interleave_array);
-	R_BindArray(R_ARRAY_NORMAL, &r_state.buffer_interleave_array);
-	R_BindArray(R_ARRAY_TANGENT, &r_state.buffer_interleave_array);
-	R_BindArray(R_ARRAY_TEX_DIFFUSE, &r_state.buffer_interleave_array);
-	R_BindArray(R_ARRAY_TEX_LIGHTMAP, &r_state.buffer_interleave_array);
+
+	R_BindAttributeInterleaveBuffer(&r_material_state.vertex_buffer);
 
 	R_EnableColorArray(false);
 
@@ -434,8 +484,10 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 	R_EnableTexture(&texunit_lightmap, false);
 
 	R_EnablePolygonOffset(true);
-	
-	R_UploadToSubBuffer(&r_state.buffer_interleave_array, 0, r_material_vertex_count * sizeof(r_interleave_vertex_t), r_state.interleave_array, false);
+
+	R_UploadToSubBuffer(&r_material_state.vertex_buffer, 0,
+	                    r_material_vertex_count * sizeof(r_material_interleave_vertex_t),
+	                    r_material_state.vertex_array->data, false);
 
 	// second pass draws
 	for (uint32_t i = 0, si = 0; i < surfs->count; i++) {
@@ -458,19 +510,14 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 			R_PolygonOffset(-0.125, j); // increase depth offset for each stage
 
 			R_SetStageState(surf, s);
-			
-			R_DrawArrays(GL_TRIANGLE_FAN, (GLint) r_state.indice_array[si], surf->num_edges);
+
+			R_DrawArrays(GL_TRIANGLE_FAN, (GLint) ELEMENT_ARRAY_INDEX(si), surf->num_edges);
 
 			++si;
 		}
 	}
-	
-	R_BindDefaultArray(R_ARRAY_VERTEX);
-	R_BindDefaultArray(R_ARRAY_COLOR);
-	R_BindDefaultArray(R_ARRAY_NORMAL);
-	R_BindDefaultArray(R_ARRAY_TANGENT);
-	R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
-	R_BindDefaultArray(R_ARRAY_TEX_LIGHTMAP);
+
+	R_UnbindAttributeBuffers();
 
 	R_EnablePolygonOffset(false);
 
@@ -519,12 +566,14 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 
 	// some stages will manipulate texcoords
 
-	const r_stage_t *s = m->stages;
+	r_stage_t *s = m->stages;
 	for (vec_t j = -1.0; s; s = s->next, j--) {
 
 		if (!(s->flags & STAGE_DIFFUSE)) {
 			continue;
 		}
+
+		R_UpdateMaterialStage(m, s);
 
 		R_PolygonOffset(j, 1.0); // increase depth offset for each stage
 
@@ -1326,4 +1375,31 @@ void R_SaveMaterials_f(void) {
 	Fs_Close(file);
 
 	Com_Print("Saved %s\n", Basename(filename));
+}
+
+/**
+ * @brief
+ */
+void R_InitMaterials(void) {
+
+	r_material_state.vertex_len = INITIAL_VERTEX_COUNT;
+	r_material_state.element_len = INITIAL_VERTEX_COUNT;
+
+	r_material_state.vertex_array = g_array_sized_new(false, true, sizeof(r_material_interleave_vertex_t),
+	                                r_material_state.vertex_len);
+	R_CreateInterleaveBuffer(&r_material_state.vertex_buffer, sizeof(r_material_interleave_vertex_t),
+	                         r_material_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_material_interleave_vertex_t) * r_material_state.vertex_len, NULL);
+
+	r_material_state.element_array = g_array_sized_new(false, false, sizeof(u16vec_t), r_material_state.element_len);
+}
+
+/**
+ * @brief
+ */
+void R_ShutdownMaterials(void) {
+
+	g_array_free(r_material_state.vertex_array, true);
+	R_DestroyBuffer(&r_material_state.vertex_buffer);
+
+	g_array_free(r_material_state.element_array, true);
 }

@@ -25,11 +25,11 @@ static cvar_t *r_get_error;
 
 r_state_t r_state;
 
-const vec_t default_texcoords[] = { // useful for particles, pics, etc..
-	0.0, 0.0,
-	1.0, 0.0,
-	1.0, 1.0,
-	0.0, 1.0
+const vec2_t default_texcoords[4] = { // useful for particles, pics, etc..
+	{ 0.0, 0.0 },
+	{ 1.0, 0.0 },
+	{ 1.0, 1.0 },
+	{ 0.0, 1.0 }
 };
 
 /**
@@ -178,9 +178,17 @@ void R_BindSpecularmapTexture(GLuint texnum) {
 }
 
 /**
- * @brief Binds the specified buffer for the given target.
+ * @brief Binds the specified buffer for the given attribute target.
  */
-void R_BindArray(const r_attribute_id_t target, const r_buffer_t *buffer) {
+void R_BindAttributeBuffer(const r_attribute_id_t target, const r_buffer_t *buffer) {
+
+	if (target == R_ARRAY_ALL) {
+		for (r_attribute_id_t id = R_ARRAY_POSITION; id < R_ARRAY_MAX_ATTRIBS; id++) {
+			R_BindAttributeBuffer(id, buffer);
+		}
+
+		return;
+	}
 
 	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
 
@@ -193,9 +201,9 @@ void R_BindArray(const r_attribute_id_t target, const r_buffer_t *buffer) {
 }
 
 /**
- * @brief Binds the specified buffer for the given target.
+ * @brief Binds the specified buffer for the given attribute target with an offset.
  */
-void R_BindArrayOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset) {
+void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset) {
 
 	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
 
@@ -207,6 +215,20 @@ void R_BindArrayOffset(const r_attribute_id_t target, const r_buffer_t *buffer, 
 	}
 }
 
+
+/**
+ * @brief Binds an interleave array to all of its appropriate endpoints.
+ */
+void R_BindAttributeInterleaveBuffer(const r_buffer_t *buffer) {
+
+	for (r_attribute_id_t attrib = R_ARRAY_POSITION; attrib < R_ARRAY_MAX_ATTRIBS; attrib++) {
+
+		if (buffer->attrib_mask & (1 << attrib)) {
+			R_BindAttributeBuffer(attrib, buffer);
+		}
+	}
+}
+
 /**
  * @brief Returns whether or not a buffer is "finished".
  * Doesn't care if data is actually in the buffer.
@@ -214,66 +236,6 @@ void R_BindArrayOffset(const r_attribute_id_t target, const r_buffer_t *buffer, 
 _Bool R_ValidBuffer(const r_buffer_t *buffer) {
 
 	return buffer && buffer->bufnum && buffer->size;
-}
-
-/**
- * @brief Binds the appropriate shared vertex array to the specified target.
- */
-void R_BindDefaultArray(const r_attribute_id_t target) {
-
-	switch (target) {
-		case R_ARRAY_VERTEX:
-			R_BindArray(target, &r_state.buffer_vertex_array);
-			break;
-		case R_ARRAY_COLOR:
-			R_BindArray(target, &r_state.buffer_color_array);
-			break;
-		case R_ARRAY_NORMAL:
-			R_BindArray(target, &r_state.buffer_normal_array);
-			break;
-		case R_ARRAY_TANGENT:
-			R_BindArray(target, &r_state.buffer_tangent_array);
-			break;
-		case R_ARRAY_TEX_DIFFUSE:
-			R_BindArray(target, &texunit_diffuse.buffer_texcoord_array);
-			break;
-		case R_ARRAY_TEX_LIGHTMAP:
-			R_BindArray(target, &texunit_lightmap.buffer_texcoord_array);
-			break;
-		default:
-			R_BindArray(target, NULL);
-			break;
-	}
-}
-
-/**
- * @brief 
- */
-void R_BindInterleaveArray(const r_buffer_t *buffer, const uint32_t target_mask) {
-
-	if (target_mask & R_ARRAY_MASK_VERTEX) {
-		R_BindArray(R_ARRAY_VERTEX, buffer);
-	}
-
-	if (target_mask & R_ARRAY_MASK_COLOR) {
-		R_BindArray(R_ARRAY_COLOR, buffer);
-	}
-
-	if (target_mask & R_ARRAY_MASK_NORMAL) {
-		R_BindArray(R_ARRAY_NORMAL, buffer);
-	}
-
-	if (target_mask & R_ARRAY_MASK_TANGENT) {
-		R_BindArray(R_ARRAY_TANGENT, buffer);
-	}
-
-	if (target_mask & R_ARRAY_MASK_TEX_DIFFUSE) {
-		R_BindArray(R_ARRAY_TEX_DIFFUSE, buffer);
-	}
-
-	if (target_mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
-		R_BindArray(R_ARRAY_TEX_LIGHTMAP, buffer);
-	}
 }
 
 /**
@@ -316,7 +278,7 @@ void R_UnbindBuffer(const r_buffer_type_t type) {
 	r_state.active_buffers[type] = 0;
 
 	glBindBuffer(R_BufferTypeToTarget(type), 0);
-	
+
 	r_view.num_state_changes[R_STATE_BIND_BUFFER]++;
 
 	R_GetError(NULL);
@@ -343,18 +305,22 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data) {
 	// we have to resize the buffer
 
 	if (size > buffer->size) {
+		r_state.buffers_total_bytes -= buffer->size;
+		r_state.buffers_total_bytes += size;
+
 		glBufferData(buffer->target, size, data, buffer->hint);
 		R_GetError("Full resize");
+		r_view.num_buffer_full_uploads++;
 
 		buffer->size = size;
 	} else {
 		// just update the range we specified
 		glBufferSubData(buffer->target, 0, size, data);
+		r_view.num_buffer_partial_uploads++;
 
 		R_GetError("Updating existing buffer");
 	}
 
-	r_view.num_buffer_uploads++;
 	r_view.size_buffer_uploads += size;
 }
 
@@ -364,7 +330,8 @@ void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data) {
  * buffer smaller.
  * @param data_offset Whether the data pointer should be offset by start or not.
  */
-void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data, const _Bool data_offset) {
+void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data,
+                         const _Bool data_offset) {
 
 	assert(buffer->bufnum != 0);
 
@@ -391,41 +358,102 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 		// it's fairly rare you'll be editing at the end first,
 		// but who knows.
 		if (start) {
+
 			glBufferData(buffer->target, total_size, NULL, buffer->hint);
 			R_GetError("Partial resize");
+			r_view.num_buffer_full_uploads++;
 			glBufferSubData(buffer->target, start, size, data);
 			R_GetError("Partial update");
+			r_view.num_buffer_partial_uploads++;
 		} else {
 			glBufferData(buffer->target, total_size, data, buffer->hint);
 			R_GetError("Full resize");
+			r_view.num_buffer_full_uploads++;
 		}
+
+		r_state.buffers_total_bytes -= buffer->size;
+		r_state.buffers_total_bytes += total_size;
 
 		buffer->size = total_size;
 	} else {
 		// just update the range we specified
 		glBufferSubData(buffer->target, start, size, data);
-
 		R_GetError("Updating existing buffer");
+		r_view.num_buffer_partial_uploads++;
 	}
 
-	r_view.num_buffer_uploads++;
 	r_view.size_buffer_uploads += size;
+}
+
+/**
+ * @brief
+ */
+static GLubyte R_GetElementSize(const GLenum type) {
+
+	switch (type) {
+		case R_ATTRIB_BYTE:
+		case R_ATTRIB_UNSIGNED_BYTE:
+		// Don't ask me why, but GL requires that this type of element
+		// be defined as count 4, so I "hack" this as being 1 byte so that
+		// (1 * 4) = 4, which is the correct size GL expects.
+		case R_ATTRIB_INT_2_10_10_10_REV:
+			return 1;
+		case R_ATTRIB_SHORT:
+		case R_ATTRIB_UNSIGNED_SHORT:
+			return 2;
+		case R_ATTRIB_INT:
+		case R_ATTRIB_UNSIGNED_INT:
+		case R_ATTRIB_FLOAT:
+			return 4;
+		default:
+			Com_Error(ERR_DROP, "Bad GL type");
+	}
+}
+
+/**
+ * @brief
+ */
+uint32_t R_GetNumAllocatedBuffers(void) {
+	return r_state.buffers_total;
+}
+
+/**
+ * @brief
+ */
+uint32_t R_GetNumAllocatedBufferBytes(void) {
+	return r_state.buffers_total_bytes;
 }
 
 /**
  * @brief Allocate a GPU buffer of the specified size.
  * Optionally upload the data immediately too.
  */
-void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t type, const size_t size,
+void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, const GLubyte element_count,
+                    const _Bool element_normalized, const GLenum hint,
+                    const r_buffer_type_t type, const size_t size,
                     const void *data) {
 
-	assert(buffer->bufnum == 0);
+	if (buffer->bufnum != 0) {
+		Com_Debug("Attempting to reclaim non-empty buffer");
+		R_DestroyBuffer(buffer);
+	}
+
+	memset(buffer, 0, sizeof(*buffer));
 
 	glGenBuffers(1, &buffer->bufnum);
 
 	buffer->type = type & R_BUFFER_TYPE_MASK;
 	buffer->target = R_BufferTypeToTarget(buffer->type);
 	buffer->hint = hint;
+	buffer->element_type.type = element_type;
+
+	if (element_type != R_ATTRIB_TOTAL_TYPES) {
+		buffer->element_type.count = element_count;
+		buffer->element_type.stride = R_GetElementSize(buffer->element_type.type);
+		buffer->element_type.normalized = element_normalized;
+	} else {
+		buffer->element_type.stride = element_count;
+	}
 
 	if (type & R_BUFFER_INTERLEAVE) {
 		buffer->interleave = true;
@@ -434,13 +462,52 @@ void R_CreateBuffer(r_buffer_t *buffer, const GLenum hint, const r_buffer_type_t
 	if (size) {
 		R_UploadToBuffer(buffer, size, data);
 	}
+
+	r_state.buffers_total++;
+}
+
+/**
+ * @brief Allocate an interleaved GPU buffer of the specified size.
+ * Optionally upload the data immediately too.
+ */
+void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, const r_buffer_layout_t *layout,
+                              const GLenum hint, const size_t size, const void *data) {
+
+	R_CreateBuffer(buffer, R_ATTRIB_TOTAL_TYPES, struct_size, false, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data);
+
+	GLsizei stride = 0;
+
+	for (; layout->attribute != -1; layout++) {
+		stride += layout->size;
+		buffer->interleave_attribs[layout->attribute] = layout;
+		buffer->attrib_mask |= 1 << layout->attribute;
+
+		// init type pack state once
+		if (!layout->_type_state.packed) {
+			r_buffer_layout_t *temp = (r_buffer_layout_t *) layout;
+
+			temp->_type_state.type = layout->type;
+			temp->_type_state.stride = buffer->element_type.stride;
+			temp->_type_state.offset = layout->offset;
+			temp->_type_state.count = layout->count;
+			temp->_type_state.normalized = layout->normalized;
+		}
+	}
+
+	if (stride != struct_size) {
+		Com_Error(ERR_DROP, "Buffer interleave size doesn't match layout size\n");
+	}
 }
 
 /**
  * @brief Destroy a GPU-allocated buffer.
  */
 void R_DestroyBuffer(r_buffer_t *buffer) {
-	assert(buffer->bufnum != 0);
+
+	if (buffer->bufnum == 0) {
+		Com_Debug("Attempting to free empty buffer");
+		return;
+	}
 
 	// if this buffer is currently bound, unbind it.
 	if (r_state.active_buffers[buffer->type] == buffer->bufnum) {
@@ -450,13 +517,17 @@ void R_DestroyBuffer(r_buffer_t *buffer) {
 	// if the buffer is attached to any active attribs, remove that ptr too
 	for (r_attribute_id_t i = 0; i < R_ARRAY_MAX_ATTRIBS; ++i) {
 
-		if (r_state.attributes[i].constant == false &&
+		if (r_state.attributes[i].type != NULL &&
 		        r_state.attributes[i].value.buffer == buffer) {
+			r_state.attributes[i].type = NULL;
 			r_state.attributes[i].value.buffer = NULL;
 		}
 	}
 
 	glDeleteBuffers(1, &buffer->bufnum);
+
+	r_state.buffers_total_bytes -= buffer->size;
+	r_state.buffers_total--;
 
 	memset(buffer, 0, sizeof(r_buffer_t));
 
@@ -981,7 +1052,7 @@ void R_Setup3D(void) {
 	Matrix4x4_Invert_Simple(&r_view.inverse_matrix, &r_view.matrix);
 
 	// bind default vertex array
-	R_BindDefaultArray(R_ARRAY_VERTEX);
+	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
 
 	R_EnableBlend(false);
 
@@ -1073,12 +1144,7 @@ void R_Setup2D(void) {
 	Matrix4x4_CreateIdentity(&modelview_matrix);
 
 	// bind default vertex array
-	R_BindDefaultArray(R_ARRAY_VERTEX);
-
-	// and set default texcoords for all 2d pics
-	memcpy(texunit_diffuse.texcoord_array, default_texcoords, sizeof(vec2_t) * 4);
-
-	R_UploadToBuffer(&texunit_diffuse.buffer_texcoord_array, sizeof(vec2_t) * 4, default_texcoords);
+	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
 
 	R_EnableBlend(true);
 
@@ -1101,38 +1167,16 @@ void R_InitState(void) {
 	r_state.depth_mask_enabled = true;
 	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
-	// setup vertex array pointers
-	R_CreateBuffer(&r_state.buffer_vertex_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.vertex_array), NULL);
-	R_CreateBuffer(&r_state.buffer_color_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.color_array), NULL);
-	R_CreateBuffer(&r_state.buffer_normal_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.normal_array), NULL);
-	R_CreateBuffer(&r_state.buffer_tangent_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, sizeof(r_state.tangent_array), NULL);
-	R_CreateBuffer(&r_state.buffer_element_array, GL_DYNAMIC_DRAW, R_BUFFER_ELEMENT, sizeof(r_state.indice_array), NULL);
-
-	R_CreateBuffer(&r_state.buffer_interleave_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, sizeof(r_state.interleave_array), NULL);
-
-	R_BindDefaultArray(R_ARRAY_VERTEX);
-	R_BindDefaultArray(R_ARRAY_COLOR);
-	R_BindDefaultArray(R_ARRAY_NORMAL);
-
 	// setup texture units
-	const size_t len = MAX_GL_ARRAY_LENGTH * sizeof(vec2_t);
-
 	for (int32_t i = 0; i < R_TEXUNIT_TOTAL; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
 		if (i < r_config.max_texunits) {
 			texunit->texture = GL_TEXTURE0 + i;
-
-			texunit->texcoord_array = Mem_TagMalloc(len, MEM_TAG_RENDERER);
-			R_CreateBuffer(&texunit->buffer_texcoord_array, GL_DYNAMIC_DRAW, R_BUFFER_DATA, len, NULL);
-
-			R_EnableTexture(texunit, true);
-
-			R_BindDefaultArray(R_ARRAY_TEX_DIFFUSE);
-
-			R_EnableTexture(texunit, false);
 		}
 	}
+
+	R_UnbindAttributeBuffers();
 
 	// default texture unit
 	R_SelectTexture(&texunit_diffuse);
@@ -1170,23 +1214,6 @@ void R_InitState(void) {
  * @brief
  */
 void R_ShutdownState(void) {
-
-	for (int32_t i = 0; i < MIN(r_config.max_texunits, R_TEXUNIT_TOTAL); i++) {
-		r_texunit_t *texunit = &r_state.texunits[i];
-
-		if (texunit->texcoord_array) {
-			Mem_Free(texunit->texcoord_array);
-			R_DestroyBuffer(&texunit->buffer_texcoord_array);
-		}
-	}
-
-	R_DestroyBuffer(&r_state.buffer_vertex_array);
-	R_DestroyBuffer(&r_state.buffer_color_array);
-	R_DestroyBuffer(&r_state.buffer_normal_array);
-	R_DestroyBuffer(&r_state.buffer_tangent_array);
-	R_DestroyBuffer(&r_state.buffer_element_array);
-
-	R_DestroyBuffer(&r_state.buffer_interleave_array);
 
 	memset(&r_state, 0, sizeof(r_state));
 }

@@ -36,9 +36,9 @@ static r_corona_program_t r_corona_program;
  */
 void R_PreLink_corona(const r_program_t *program) {
 
-	R_BindAttributeLocation(program, "POSITION", R_ARRAY_VERTEX);
+	R_BindAttributeLocation(program, "POSITION", R_ARRAY_POSITION);
 	R_BindAttributeLocation(program, "COLOR", R_ARRAY_COLOR);
-	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_TEX_DIFFUSE);
+	R_BindAttributeLocation(program, "TEXCOORD", R_ARRAY_DIFFUSE);
 }
 
 /**
@@ -48,9 +48,9 @@ void R_InitProgram_corona(r_program_t *program) {
 
 	r_corona_program_t *p = &r_corona_program;
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_VERTEX], R_ATTRIBUTE, "POSITION");
+	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION");
 	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR");
-	R_ProgramVariable(&program->attributes[R_ARRAY_TEX_DIFFUSE], R_ATTRIBUTE, "TEXCOORD");
+	R_ProgramVariable(&program->attributes[R_ARRAY_DIFFUSE], R_ATTRIBUTE, "TEXCOORD");
 
 	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
 	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");

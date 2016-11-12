@@ -1,42 +1,51 @@
 #if !defined(__clang__)
-#ifndef __attribute__
-#define __attribute__(...)
-#endif
+	#ifndef __attribute__
+		#define __attribute__(...)
 
-#ifndef __thread
-#define __thread __declspec(thread)
-#endif
+		typedef __int8 int8_t;
+		typedef unsigned __int8 uint8_t;
+		typedef __int16 int16_t;
+		typedef unsigned __int16 uint16_t;
+		typedef __int32 int32_t;
+		typedef unsigned __int32 uint32_t;
+		typedef __int32 int64_t;
+		typedef unsigned __int32 uint64_t;
+	#endif
+
+	#ifndef __thread
+		#define __thread __declspec(thread)
+	#endif
 #endif
 
 #if defined(__clang__)
-#define stat _stat64
-#define unlink _unlink
-#define S_IFDIR _S_IFDIR
+	#define stat _stat64
+	#define unlink _unlink
+	#define S_IFDIR _S_IFDIR
 
-#define isascii __isascii
-#define itoa _itoa
-#define getpid _getpid
-#define strdup _strdup
+	#define isascii __isascii
+	#define itoa _itoa
+	#define getpid _getpid
+	#define strdup _strdup
 #endif
 
 #ifdef _WIN64
-    typedef signed __int64 ssize_t;
+	typedef signed __int64 ssize_t;
 #else
-    typedef signed int     ssize_t;
+	typedef signed int     ssize_t;
 #endif
 
 #ifndef S_ISDIR
-#define S_ISDIR(m) (((m) & S_IFDIR) == S_IFDIR)
+	#define S_ISDIR(m) (((m) & S_IFDIR) == S_IFDIR)
 #endif
 
 #ifndef usleep
-#define usleep(t) Sleep(t / 1000)
+	#define usleep(t) Sleep(t / 1000)
 #endif
 
 #ifdef _WIN64
-    typedef signed __int64 ssize_t;
+	typedef signed __int64 ssize_t;
 #else
-    typedef signed int     ssize_t;
+	typedef signed int     ssize_t;
 #endif
 
 #define _WINSOCKAPI_
@@ -47,17 +56,17 @@
 #define _strngfx(s) _strngf(s)
 
 #if defined(__clang__)
-#define BUILD_MACHINE "Clang " __clang_version__
+	#define BUILD_MACHINE "Clang " __clang_version__
 #elif defined(_MSC_VER)
-#define BUILD_MACHINE "MSC " _strngfx(_MSC_VER)
+	#define BUILD_MACHINE "MSC " _strngfx(_MSC_VER)
 #endif
 
 #if defined(_WIN64)
-#define BUILD_HOST "Win64 " BUILD_MACHINE
+	#define BUILD_HOST "Win64 " BUILD_MACHINE
 #elif defined(_WIN32)
-#define BUILD_HOST "Win32 " BUILD_MACHINE
+	#define BUILD_HOST "Win32 " BUILD_MACHINE
 #else
-#define BUILD_HOST "Windows " BUILD_MACHINE
+	#define BUILD_HOST "Windows " BUILD_MACHINE
 #endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */

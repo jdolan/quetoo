@@ -162,6 +162,9 @@ void R_DrawView(void) {
 
 	// dispatch threads to cull entities and sort elements while we draw the world
 	thread_t *cull_entities = Thread_Create(R_CullEntities, NULL);
+
+	R_AddFlares();
+
 	thread_t *sort_elements = Thread_Create(R_SortElements, NULL);
 
 	R_MarkLights();
@@ -181,8 +184,6 @@ void R_DrawView(void) {
 	R_DrawBackBspSurfaces(&surfs->back);
 
 	R_DrawMaterialBspSurfaces(&surfs->material);
-
-	R_DrawFlareBspSurfaces(&surfs->flare);
 
 	R_EnableBlend(false);
 
@@ -349,37 +350,37 @@ void R_LoadMedia(void) {
 
 	R_InitView();
 
+	Cl_LoadingProgress(0, cl.config_strings[CS_MODELS]);
+
 	R_BeginLoading();
 
-	Cl_LoadingProgress(0, cl.config_strings[CS_MODELS]);
+	Cl_LoadingProgress(0, "world");
 
 	R_LoadModel(cl.config_strings[CS_MODELS]); // load the world
 
-	Cl_LoadingProgress(60, "world");
+	Cl_LoadingProgress(60, "models");
 
 	// load all other models
 	for (uint32_t i = 1; i < MAX_MODELS && cl.config_strings[CS_MODELS + i][0]; i++) {
 
-		cl.model_precache[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
-
 		if (i <= 30) { // bump loading progress
 			Cl_LoadingProgress(60 + (i / 3), cl.config_strings[CS_MODELS + i]);
 		}
+
+		cl.model_precache[i] = R_LoadModel(cl.config_strings[CS_MODELS + i]);
 	}
 
-	Cl_LoadingProgress(70, "models");
+	Cl_LoadingProgress(75, "images");
 
 	// load all known images
 	for (uint32_t i = 0; i < MAX_IMAGES && cl.config_strings[CS_IMAGES + i][0]; i++) {
 		cl.image_precache[i] = R_LoadImage(cl.config_strings[CS_IMAGES + i], IT_PIC);
 	}
 
-	Cl_LoadingProgress(75, "images");
+	Cl_LoadingProgress(77, "sky");
 
 	// sky environment map
 	R_SetSky(cl.config_strings[CS_SKY]);
-
-	Cl_LoadingProgress(77, "sky");
 
 	r_render_plugin->modified = true;
 
@@ -589,6 +590,10 @@ void R_Init(void) {
 
 	R_InitParticles();
 
+	R_InitSky();
+
+	R_InitMaterials();
+
 	Com_Print("Video initialized %dx%d %s\n", r_context.width, r_context.height,
 	          (r_context.fullscreen ? "fullscreen" : "windowed"));
 }
@@ -612,6 +617,10 @@ void R_Shutdown(void) {
 	R_ShutdownState();
 
 	R_ShutdownParticles();
+
+	R_ShutdownSky();
+
+	R_ShutdownMaterials();
 
 	R_ShutdownContext();
 

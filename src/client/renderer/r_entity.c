@@ -208,9 +208,8 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 		return;
 	}
 
-	R_BindArray(R_ARRAY_VERTEX, &r_model_state.null_vertices);
-
-	R_BindArray(R_ARRAY_ELEMENTS, &r_model_state.null_elements);
+	R_BindAttributeBuffer(R_ARRAY_POSITION, &r_model_state.null_vertices);
+	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.null_elements);
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
@@ -224,9 +223,8 @@ static void R_DrawNullModels(const r_entities_t *ents) {
 		R_DrawNullModel(e);
 	}
 
-	R_BindDefaultArray(R_ARRAY_VERTEX);
-
-	R_BindDefaultArray(R_ARRAY_ELEMENTS);
+	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
+	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 
 	r_view.current_entity = NULL;
 }
@@ -248,61 +246,15 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 	R_EnableColorArray(true);
 
-	const GLuint bound_elements[] = {
-		// bottom
-		0, 1,
-		1, 2,
-		2, 3,
-		3, 0,
+	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer);
+	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.bound_element_buffer);
 
-		// top
-		4, 5,
-		5, 6,
-		6, 7,
-		7, 4,
+	u8vec4_t bc;
+	ColorDecompose(color, bc);
 
-		// connections
-		0, 4,
-		1, 5,
-		2, 6,
-		3, 7,
-
-		// origin
-		8, 9,
-		10, 11,
-		12, 13
-	};
-
-	R_BindArray(R_ARRAY_ELEMENTS, &r_state.buffer_element_array);
-
-	R_UploadToBuffer(&r_state.buffer_element_array, sizeof(bound_elements), bound_elements);
-
-	R_BindDefaultArray(R_ARRAY_VERTEX);
-
-	R_BindDefaultArray(R_ARRAY_COLOR);
-
-	const vec4_t colors[] = {
-		{ color[0], color[1], color[2], color[3] },
-		{ color[0], color[1], color[2], color[3] },
-		{ color[0], color[1], color[2], color[3] },
-		{ color[0], color[1], color[2], color[3] },
-
-		{ color[0], color[1], color[2], color[3] },
-		{ color[0], color[1], color[2], color[3] },
-		{ color[0], color[1], color[2], color[3] },
-		{ color[0], color[1], color[2], color[3] },
-
-		{ 1.0, 0.0, 0.0, 1.0 },
-		{ 1.0, 0.0, 0.0, 1.0 },
-
-		{ 0.0, 1.0, 0.0, 1.0 },
-		{ 0.0, 1.0, 0.0, 1.0 },
-
-		{ 0.0, 0.0, 1.0, 1.0 },
-		{ 0.0, 0.0, 1.0, 1.0 },
-	};
-
-	R_UploadToBuffer(&r_state.buffer_color_array, sizeof(colors), colors);
+	for (int32_t i = 0; i < 8; ++i) {
+		Vector4Set(r_model_state.bound_vertices[i].color, bc[0], bc[1], bc[2], bc[3]);
+	}
 
 	static matrix4x4_t mat;
 
@@ -313,31 +265,18 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 			continue;
 		}
 
-		const vec3_t verts[] = {
-			{ e->mins[0], e->mins[1], e->mins[2] },
-			{ e->maxs[0], e->mins[1], e->mins[2] },
-			{ e->maxs[0], e->maxs[1], e->mins[2] },
-			{ e->mins[0], e->maxs[1], e->mins[2] },
+		VectorSet(r_model_state.bound_vertices[0].position, e->mins[0], e->mins[1], e->mins[2]);
+		VectorSet(r_model_state.bound_vertices[1].position, e->maxs[0], e->mins[1], e->mins[2]);
+		VectorSet(r_model_state.bound_vertices[2].position, e->maxs[0], e->maxs[1], e->mins[2]);
+		VectorSet(r_model_state.bound_vertices[3].position, e->mins[0], e->maxs[1], e->mins[2]);
 
-			{ e->mins[0], e->mins[1], e->maxs[2] },
-			{ e->maxs[0], e->mins[1], e->maxs[2] },
-			{ e->maxs[0], e->maxs[1], e->maxs[2] },
-			{ e->mins[0], e->maxs[1], e->maxs[2] },
+		VectorSet(r_model_state.bound_vertices[4].position, e->mins[0], e->mins[1], e->maxs[2]);
+		VectorSet(r_model_state.bound_vertices[5].position, e->maxs[0], e->mins[1], e->maxs[2]);
+		VectorSet(r_model_state.bound_vertices[6].position, e->maxs[0], e->maxs[1], e->maxs[2]);
+		VectorSet(r_model_state.bound_vertices[7].position, e->mins[0], e->maxs[1], e->maxs[2]);
 
-			// red
-			{ 0, 0, 0 },
-			{ 8, 0, 0 },
-
-			// green
-			{ 0, 0, 0 },
-			{ 0, 8, 0 },
-
-			// blue
-			{ 0, 0, 0 },
-			{ 0, 0, 8 }
-		};
-
-		R_UploadToBuffer(&r_state.buffer_vertex_array, sizeof(verts), verts);
+		R_UploadToBuffer(&r_model_state.bound_vertice_buffer, sizeof(r_bound_interleave_vertex_t) * 8,
+		                 r_model_state.bound_vertices);
 
 		// draw box
 		Matrix4x4_CreateFromEntity(&mat, e->origin, vec3_origin, e->scale);
@@ -346,7 +285,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 		Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
 
-		R_DrawArrays(GL_LINES, 0, 24);
+		R_DrawArrays(GL_LINES, 0, r_model_state.bound_element_count - 6);
 
 		R_PopMatrix(R_MATRIX_MODELVIEW);
 
@@ -357,18 +296,28 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 		Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
 
-		R_DrawArrays(GL_LINES, 24, 6);
+		R_DrawArrays(GL_LINES, r_model_state.bound_element_count - 6, 6);
 
 		R_PopMatrix(R_MATRIX_MODELVIEW);
 	}
 
-	R_BindDefaultArray(R_ARRAY_ELEMENTS);
+	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 
 	R_EnableColorArray(false);
 
 	R_EnableTexture(&texunit_diffuse, true);
 
 	R_Color(NULL);
+}
+
+/**
+ * @brief
+ */
+void R_AddFlares(void) {
+	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
+
+	R_AddFlareBspSurfaces(&surfs->flare);
+	R_AddBspInlineModelFlares(&r_sorted_entities.bsp_inline_entities);
 }
 
 /**

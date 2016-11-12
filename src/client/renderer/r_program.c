@@ -85,10 +85,7 @@ void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *na
  */
 void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
 
-	if (!variable || variable->location == -1) {
-		Com_Warn("NULL or invalid variable\n");
-		return;
-	}
+	assert(variable && variable->location != -1);
 
 	if (variable->value.i == value) {
 		return;
@@ -106,10 +103,7 @@ void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value) {
  */
 void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
 
-	if (!variable || variable->location == -1) {
-		Com_Warn("NULL or invalid variable\n");
-		return;
-	}
+	assert(variable && variable->location != -1);
 
 	if (variable->value.f == value) {
 		return;
@@ -127,10 +121,7 @@ void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value) {
  */
 void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
 
-	if (!variable || variable->location == -1) {
-		Com_Warn("NULL or invalid variable\n");
-		return;
-	}
+	assert(variable && variable->location != -1);
 
 	if (VectorCompare(variable->value.vec3, value)) {
 		return;
@@ -148,10 +139,7 @@ void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value) {
  */
 void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
 
-	if (!variable || variable->location == -1) {
-		Com_Warn("NULL or invalid variable\n");
-		return;
-	}
+	assert(variable && variable->location != -1);
 
 	if (Vector4Compare(variable->value.vec4, value)) {
 		return;
@@ -167,12 +155,30 @@ void R_ProgramParameter4fv(r_uniform4fv_t *variable, const GLfloat *value) {
 /**
  * @brief
  */
+void R_ProgramParameter4ubv(r_uniform4fv_t *variable, const GLubyte *value) {
+
+	assert(variable && variable->location != -1);
+
+	if (Vector4Compare(variable->value.u8vec4, value)) {
+		return;
+	}
+
+	Vector4Copy(value, variable->value.u8vec4);
+
+	const vec4_t floats = { value[0] / 255.0, value[1] / 255.0, value[2] / 255.0, value[3] / 255.0 };
+
+	glUniform4fv(variable->location, 1, floats);
+	r_view.num_state_changes[R_STATE_PROGRAM_PARAMETER]++;
+
+	R_GetError(variable->name);
+}
+
+/**
+ * @brief
+ */
 _Bool R_ProgramParameterMatrix4fv(r_uniform_matrix4fv_t *variable, const GLfloat *value) {
 
-	if (!variable || variable->location == -1) {
-		Com_Warn("NULL or invalid variable\n");
-		return false;
-	}
+	assert(variable && variable->location != -1);
 
 	if (memcmp(&variable->value.mat4, value, sizeof(variable->value.mat4)) == 0) {
 		return false;
@@ -196,33 +202,75 @@ void R_BindAttributeLocation(const r_program_t *prog, const char *name, const GL
 	R_GetError(name);
 }
 
+GLenum r_attrib_type_to_gl_type[R_ATTRIB_TOTAL_TYPES] = {
+	GL_FLOAT,
+	GL_BYTE,
+	GL_UNSIGNED_BYTE,
+	GL_SHORT,
+	GL_UNSIGNED_SHORT,
+	GL_INT,
+	GL_UNSIGNED_INT,
+	GL_INT_2_10_10_10_REV
+};
+
 /**
  * @brief
  */
-static void R_AttributePointer(const r_attribute_id_t attribute, GLuint size, const r_buffer_t *buffer, const GLsizeiptr offset) {
+static void R_AttributePointer(const r_attribute_id_t attribute) {
 
 	R_EnableAttribute(attribute);
 
-	const GLsizei stride = (buffer->interleave) ? R_ATTRIBUTE_STRIDE : 0;
+	const r_buffer_t *buffer = r_state.array_buffers[attribute];
+
+	GLsizei stride = 0;
+	GLsizeiptr offset = r_state.array_buffer_offsets[attribute];
+	const r_attrib_type_state_t *type = &buffer->element_type;
+
+	if (buffer->interleave) {
+		r_attribute_id_t real_attrib = attribute;
+
+		// check to see if we need to point to the right attrib
+		// for NEXT_*
+		if (buffer->interleave_attribs[attribute] == NULL) {
+
+			switch (attribute) {
+				case R_ARRAY_NEXT_POSITION:
+					real_attrib = R_ARRAY_POSITION;
+					break;
+				case R_ARRAY_NEXT_NORMAL:
+					real_attrib = R_ARRAY_NORMAL;
+					break;
+				case R_ARRAY_NEXT_TANGENT:
+					real_attrib = R_ARRAY_TANGENT;
+					break;
+				default:
+					break;
+			}
+		}
+
+		assert(buffer->interleave_attribs[real_attrib]);
+
+		type = &buffer->interleave_attribs[real_attrib]->_type_state;
+		offset += type->offset;
+		stride = buffer->element_type.stride;
+	}
+
 	r_attrib_state_t *attrib = &r_state.attributes[attribute];
 
 	// only set the ptr if it hasn't changed.
-	if (attrib->constant == true ||
-			attrib->value.buffer != buffer ||
-			attrib->size != size ||
-			attrib->offset != offset ||
-			attrib->stride != stride) {
+	if (attrib->type != type ||
+	        attrib->value.buffer != buffer ||
+	        attrib->offset != offset) {
 
 		R_BindBuffer(buffer);
 
-		glVertexAttribPointer(attribute, size, GL_FLOAT, GL_FALSE, stride, (const GLvoid *) offset);
+		glVertexAttribPointer(attribute, type->count, r_attrib_type_to_gl_type[type->type], type->normalized, stride,
+		                      (const GLvoid *) offset);
 		r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_POINTER]++;
 
 		attrib->value.buffer = buffer;
-		attrib->size = size;
+		attrib->type = type;
 		attrib->offset = offset;
-		attrib->constant = false;
-		attrib->stride = stride;
 
 		R_GetError(r_state.active_program->attributes[attribute].name);
 	}
@@ -235,7 +283,7 @@ void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *val
 
 	R_DisableAttribute(attribute);
 
-	if (r_state.attributes[attribute].constant == true && Vector4Compare(r_state.attributes[attribute].value.vec4, value)) {
+	if (r_state.attributes[attribute].type == NULL && Vector4Compare(r_state.attributes[attribute].value.vec4, value)) {
 		return;
 	}
 
@@ -243,7 +291,28 @@ void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *val
 	glVertexAttrib4fv(attribute, r_state.attributes[attribute].value.vec4);
 	r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_CONSTANT]++;
 
-	r_state.attributes[attribute].constant = true;
+	r_state.attributes[attribute].type = NULL;
+
+	R_GetError(r_state.active_program->attributes[attribute].name);
+}
+
+/**
+ * @brief
+ */
+void R_AttributeConstant4ubv(const r_attribute_id_t attribute, const GLubyte *value) {
+
+	R_DisableAttribute(attribute);
+
+	if (r_state.attributes[attribute].type == NULL &&
+	        Vector4Compare(r_state.attributes[attribute].value.u8vec4, value)) {
+		return;
+	}
+
+	Vector4Copy(value, r_state.attributes[attribute].value.u8vec4);
+	glVertexAttrib4ubv(attribute, r_state.attributes[attribute].value.u8vec4);
+	r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_CONSTANT]++;
+
+	r_state.attributes[attribute].type = NULL;
 
 	R_GetError(r_state.active_program->attributes[attribute].name);
 }
@@ -253,13 +322,10 @@ void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *val
  */
 void R_EnableAttribute(const r_attribute_id_t attribute) {
 
-	if (attribute >= R_ARRAY_MAX_ATTRIBS ||
-	        r_state.active_program->attributes[attribute].location == -1) {
-		Com_Warn("Invalid attribute\n");
-		return;
-	}
+	assert(attribute < R_ARRAY_MAX_ATTRIBS && r_state.active_program->attributes[attribute].location != -1);
 
 	if (r_state.attributes[attribute].enabled != true) {
+
 		glEnableVertexAttribArray(attribute);
 		r_state.attributes[attribute].enabled = true;
 
@@ -274,13 +340,10 @@ void R_EnableAttribute(const r_attribute_id_t attribute) {
  */
 void R_DisableAttribute(const r_attribute_id_t attribute) {
 
-	if (attribute >= R_ARRAY_MAX_ATTRIBS ||
-	        r_state.active_program->attributes[attribute].location == -1) {
-		Com_Warn("Invalid attribute\n");
-		return;
-	}
+	assert(attribute < R_ARRAY_MAX_ATTRIBS && r_state.active_program->attributes[attribute].location != -1);
 
 	if (r_state.attributes[attribute].enabled != false) {
+
 		glDisableVertexAttribArray(attribute);
 		r_state.attributes[attribute].enabled = false;
 
@@ -345,7 +408,7 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length);
  * @brief
  */
 static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *result,
-                                        gpointer data __attribute((unused))) {
+                                        gpointer data __attribute__((unused))) {
 	const gchar *name = g_match_info_fetch(match_info, 1);
 	gchar path[MAX_OS_PATH];
 	int64_t len;
@@ -537,51 +600,51 @@ void R_SetupAttributes(void) {
 	const r_program_t *p = (r_program_t *) r_state.active_program;
 	int32_t mask = R_ArraysMask();
 
-	if (p->arrays_mask & R_ARRAY_MASK_VERTEX) {
+	if (p->arrays_mask & R_ARRAY_MASK_POSITION) {
 
-		if (mask & R_ARRAY_MASK_VERTEX) {
+		if (mask & R_ARRAY_MASK_POSITION) {
 
-			R_AttributePointer(R_ARRAY_VERTEX, 3, r_state.array_buffers[R_ARRAY_VERTEX], r_state.array_buffer_offsets[R_ARRAY_VERTEX] + (r_state.array_buffers[R_ARRAY_VERTEX]->interleave ? R_ATTRIBUTE_VERTEX_OFFSET : 0));
+			R_AttributePointer(R_ARRAY_POSITION);
 
-			if (p->arrays_mask & R_ARRAY_MASK_NEXT_VERTEX) {
+			if (p->arrays_mask & R_ARRAY_MASK_NEXT_POSITION) {
 
-				if ((mask & R_ARRAY_MASK_NEXT_VERTEX) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_VERTEX])) {
-					R_AttributePointer(R_ARRAY_NEXT_VERTEX, 3, r_state.array_buffers[R_ARRAY_NEXT_VERTEX], r_state.array_buffer_offsets[R_ARRAY_NEXT_VERTEX] + (r_state.array_buffers[R_ARRAY_NEXT_VERTEX]->interleave ? R_ATTRIBUTE_VERTEX_OFFSET : 0));
+				if ((mask & R_ARRAY_MASK_NEXT_POSITION) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_POSITION])) {
+					R_AttributePointer(R_ARRAY_NEXT_POSITION);
 				} else {
-					R_DisableAttribute(R_ARRAY_NEXT_VERTEX);
+					R_DisableAttribute(R_ARRAY_NEXT_POSITION);
 				}
 			}
 		} else {
 
-			R_DisableAttribute(R_ARRAY_VERTEX);
-			R_DisableAttribute(R_ARRAY_NEXT_VERTEX);
+			R_DisableAttribute(R_ARRAY_POSITION);
+			R_DisableAttribute(R_ARRAY_NEXT_POSITION);
 		}
 	}
 
 	if (p->arrays_mask & R_ARRAY_MASK_COLOR) {
 
 		if (mask & R_ARRAY_MASK_COLOR) {
-			R_AttributePointer(R_ARRAY_COLOR, 4, r_state.array_buffers[R_ARRAY_COLOR], r_state.array_buffer_offsets[R_ARRAY_COLOR] + (r_state.array_buffers[R_ARRAY_COLOR]->interleave ? R_ATTRIBUTE_COLOR_OFFSET : 0));
+			R_AttributePointer(R_ARRAY_COLOR);
 		} else {
 			R_AttributeConstant4fv(R_ARRAY_COLOR, r_state.current_color);
 		}
 	}
 
-	if (p->arrays_mask & R_ARRAY_MASK_TEX_DIFFUSE) {
+	if (p->arrays_mask & R_ARRAY_MASK_DIFFUSE) {
 
-		if (mask & R_ARRAY_MASK_TEX_DIFFUSE) {
-			R_AttributePointer(R_ARRAY_TEX_DIFFUSE, 2, r_state.array_buffers[R_ARRAY_TEX_DIFFUSE], r_state.array_buffer_offsets[R_ARRAY_TEX_DIFFUSE] + (r_state.array_buffers[R_ARRAY_TEX_DIFFUSE]->interleave ? R_ATTRIBUTE_DIFFUSE_OFFSET : 0));
+		if (mask & R_ARRAY_MASK_DIFFUSE) {
+			R_AttributePointer(R_ARRAY_DIFFUSE);
 		} else {
-			R_DisableAttribute(R_ARRAY_TEX_DIFFUSE);
+			R_DisableAttribute(R_ARRAY_DIFFUSE);
 		}
 	}
 
-	if (p->arrays_mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
+	if (p->arrays_mask & R_ARRAY_MASK_LIGHTMAP) {
 
-		if (mask & R_ARRAY_MASK_TEX_LIGHTMAP) {
-			R_AttributePointer(R_ARRAY_TEX_LIGHTMAP, 2, r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP], r_state.array_buffer_offsets[R_ARRAY_TEX_LIGHTMAP] + (r_state.array_buffers[R_ARRAY_TEX_LIGHTMAP]->interleave ? R_ATTRIBUTE_LIGHTMAP_OFFSET : 0));
+		if (mask & R_ARRAY_MASK_LIGHTMAP) {
+			R_AttributePointer(R_ARRAY_LIGHTMAP);
 		} else {
-			R_DisableAttribute(R_ARRAY_TEX_LIGHTMAP);
+			R_DisableAttribute(R_ARRAY_LIGHTMAP);
 		}
 	}
 
@@ -589,12 +652,12 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ARRAY_MASK_NORMAL) {
 
-			R_AttributePointer(R_ARRAY_NORMAL, 3, r_state.array_buffers[R_ARRAY_NORMAL], r_state.array_buffer_offsets[R_ARRAY_NORMAL] + (r_state.array_buffers[R_ARRAY_NORMAL]->interleave ? R_ATTRIBUTE_NORMAL_OFFSET : 0));
+			R_AttributePointer(R_ARRAY_NORMAL);
 
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_NORMAL) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_NORMAL])) {
-					R_AttributePointer(R_ARRAY_NEXT_NORMAL, 3, r_state.array_buffers[R_ARRAY_NEXT_NORMAL], r_state.array_buffer_offsets[R_ARRAY_NEXT_NORMAL] + (r_state.array_buffers[R_ARRAY_NEXT_NORMAL]->interleave ? R_ATTRIBUTE_NORMAL_OFFSET : 0));
+					R_AttributePointer(R_ARRAY_NEXT_NORMAL);
 				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_NORMAL);
 				}
@@ -610,12 +673,12 @@ void R_SetupAttributes(void) {
 
 		if (mask & R_ARRAY_MASK_TANGENT) {
 
-			R_AttributePointer(R_ARRAY_TANGENT, 4, r_state.array_buffers[R_ARRAY_TANGENT], r_state.array_buffer_offsets[R_ARRAY_TANGENT] + (r_state.array_buffers[R_ARRAY_TANGENT]->interleave ? R_ATTRIBUTE_TANGENT_OFFSET : 0));
+			R_AttributePointer(R_ARRAY_TANGENT);
 
 			if (p->arrays_mask & R_ARRAY_MASK_NEXT_TANGENT) {
 
 				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && R_ValidBuffer(r_state.array_buffers[R_ARRAY_NEXT_TANGENT])) {
-					R_AttributePointer(R_ARRAY_NEXT_TANGENT, 4, r_state.array_buffers[R_ARRAY_NEXT_TANGENT], r_state.array_buffer_offsets[R_ARRAY_NEXT_TANGENT] + (r_state.array_buffers[R_ARRAY_NEXT_TANGENT]->interleave ? R_ATTRIBUTE_TANGENT_OFFSET : 0));
+					R_AttributePointer(R_ARRAY_NEXT_TANGENT);
 				} else {
 					R_DisableAttribute(R_ARRAY_NEXT_TANGENT);
 				}
@@ -664,7 +727,7 @@ void R_InitPrograms(void) {
 		r_state.shadow_program->UseMatrices = R_UseMatrices_shadow;
 		r_state.shadow_program->UseCurrentColor = R_UseCurrentColor_shadow;
 		r_state.shadow_program->UseInterpolation = R_UseInterpolation_shadow;
-		r_state.shadow_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_NEXT_VERTEX;
+		r_state.shadow_program->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_NEXT_POSITION;
 	}
 
 	if ((r_state.shell_program = R_LoadProgram("shell", R_InitProgram_shell, R_PreLink_shell))) {
@@ -672,7 +735,8 @@ void R_InitPrograms(void) {
 		r_state.shell_program->UseMatrices = R_UseMatrices_shell;
 		r_state.shell_program->UseCurrentColor = R_UseCurrentColor_shell;
 		r_state.shell_program->UseInterpolation = R_UseInterpolation_shell;
-		r_state.shell_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_NEXT_VERTEX;
+		r_state.shell_program->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_DIFFUSE |
+		                                     R_ARRAY_MASK_NORMAL | R_ARRAY_MASK_NEXT_NORMAL;
 	}
 
 	if ((r_state.warp_program = R_LoadProgram("warp", R_InitProgram_warp, R_PreLink_warp))) {
@@ -680,7 +744,7 @@ void R_InitPrograms(void) {
 		r_state.warp_program->UseFog = R_UseFog_warp;
 		r_state.warp_program->UseMatrices = R_UseMatrices_warp;
 		r_state.warp_program->UseCurrentColor = R_UseCurrentColor_warp;
-		r_state.warp_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE;
+		r_state.warp_program->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE;
 	}
 
 	if ((r_state.null_program = R_LoadProgram("null", R_InitProgram_null, R_PreLink_null))) {
@@ -688,14 +752,14 @@ void R_InitPrograms(void) {
 		r_state.null_program->UseMatrices = R_UseMatrices_null;
 		r_state.null_program->UseCurrentColor = R_UseCurrentColor_null;
 		r_state.null_program->UseInterpolation = R_UseInterpolation_null;
-		r_state.null_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_NEXT_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE |
+		r_state.null_program->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_DIFFUSE |
 		                                    R_ARRAY_MASK_COLOR;
 	}
 
 	if ((r_state.corona_program = R_LoadProgram("corona", R_InitProgram_corona, R_PreLink_corona))) {
 		r_state.corona_program->UseFog = R_UseFog_corona;
 		r_state.corona_program->UseMatrices = R_UseMatrices_corona;
-		r_state.corona_program->arrays_mask = R_ARRAY_MASK_VERTEX | R_ARRAY_MASK_TEX_DIFFUSE | R_ARRAY_MASK_COLOR;
+		r_state.corona_program->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_DIFFUSE | R_ARRAY_MASK_COLOR;
 	}
 
 	R_UseProgram(r_state.null_program);

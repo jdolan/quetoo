@@ -180,6 +180,8 @@ void PerpendicularVector(const vec3_t in, vec3_t out) {
 	VectorNormalize(out);
 }
 
+void TangentToGLTangent(const vec4_t tangent, int32_t *integer);
+
 /**
  * @brief Projects the normalized directional vectors on to the normal's plane.
  * The fourth component of the resulting tangent vector represents sidedness.
@@ -210,6 +212,55 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 	}
 
 	VectorScale(bitangent, tangent[3], bitangent);
+}
+
+/**
+ * @brief Transform a vec3 normal onto an integral representation for GL.
+ *
+ * 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
+ *  -----------------------------------------------------------------------------------------------
+ * |     |              z              |              y              |              x              |
+ *  -----------------------------------------------------------------------------------------------
+ */
+typedef union {
+	int32_t i32;
+	struct {
+		int32_t x : 10;
+		int32_t y : 10;
+		int32_t z : 10;
+		int32_t w : 2;
+	} i32f3;
+} i32_normal_packed;
+
+void NormalToGLNormal(const vec3_t tangent, int32_t *integer) {
+	// clear all dem bits
+	*integer = 0;
+
+	i32_normal_packed *packed = (i32_normal_packed *) integer;
+
+	packed->i32f3.x = (int32_t) (tangent[0] * 511.0);
+	packed->i32f3.y = (int32_t) (tangent[1] * 511.0);
+	packed->i32f3.z = (int32_t) (tangent[2] * 511.0);
+	packed->i32f3.w = 1;
+}
+
+/**
+ * @brief Transform a vec4 tangent onto an integral representation for GL.
+ *
+ * 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
+ *  -----------------------------------------------------------------------------------------------
+ * |  w  |              z              |              y              |              x              |
+ *  -----------------------------------------------------------------------------------------------
+ */
+void TangentToGLTangent(const vec4_t tangent, int32_t *integer) {
+	NormalToGLNormal(tangent, integer);
+
+	i32_normal_packed *packed = (i32_normal_packed *) integer;
+
+	// sidedness is a bit simpler
+	if (tangent[3] < 0.0) {
+		packed->i32f3.w = -1;
+	}
 }
 
 /**
@@ -535,6 +586,24 @@ void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation
 		VectorMix(intensity, out, saturation, out);
 
 		ColorNormalize(out, out);
+	}
+}
+
+/**
+ * @brief Decomposes float color into byte color.
+ */
+void ColorDecompose(const vec4_t in, u8vec4_t out) {
+	for (int32_t i = 0; i < 4; ++i) {
+		out[i] = (u8vec_t) (MIN(1.0, MAX(0.0, in[i])) * 255.0);
+	}
+}
+
+/**
+ * @brief Decomposes RGB float color into byte color.
+ */
+void ColorDecompose3(const vec3_t in, u8vec3_t out) {
+	for (int32_t i = 0; i < 3; ++i) {
+		out[i] = (u8vec_t) (MIN(1.0, MAX(0.0, in[i])) * 255.0);
 	}
 }
 

@@ -55,6 +55,7 @@ extern vec3_t vec3_forward;
 #define VectorSubtract(a, b, c)		(c[0] = a[0] - b[0], c[1] = a[1] - b[1], c[2] = a[2] - b[2])
 #define VectorScale(a, s, b)		(b[0] = a[0] * (s), b[1] = a[1] * (s), b[2] = a[2] * (s))
 #define Vector2Copy(a, b)			((b)[0] = (a)[0], (b)[1] = (a)[1])
+#define Vector2Set(v, x, y)         (v[0] = (x), v[1] = (y))
 #define VectorCopy(a, b)			((b)[0] = (a)[0], (b)[1] = (a)[1], (b)[2] = (a)[2])
 #define Vector4Copy(a, b)			((b)[0] = (a)[0], (b)[1] = (a)[1], (b)[2] = (a)[2], (b)[3] = (a)[3])
 #define VectorClear(a)				(a[0] = a[1] = a[2] = 0.0)
@@ -96,6 +97,8 @@ void ProjectPointOnPlane(const vec3_t p, const vec3_t normal, vec3_t out);
 void PerpendicularVector(const vec3_t in, vec3_t out);
 void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, vec4_t tangent,
                     vec3_t bitangent);
+void NormalToGLNormal(const vec3_t tangent, int32_t *integer);
+void TangentToGLTangent(const vec4_t tangent, int32_t *integer);
 void RotatePointAroundVector(const vec3_t p, const vec3_t dir, const vec_t degrees, vec3_t out);
 
 /**
@@ -124,6 +127,8 @@ void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs);
  */
 vec_t ColorNormalize(const vec3_t in, vec3_t out);
 void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation, vec_t contrast);
+void ColorDecompose(const vec4_t in, u8vec4_t out);
+void ColorDecompose3(const vec3_t in, u8vec3_t out);
 
 /**
  * @brief String manipulation functions.
