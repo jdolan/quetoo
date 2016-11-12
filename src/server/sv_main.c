@@ -453,20 +453,17 @@ static void Sv_ConnectionlessPacket(void) {
  * @brief Updates the "ping" times for all spawned clients.
  */
 static void Sv_UpdatePings(void) {
-	int32_t i, j;
-	sv_client_t *cl;
-	int32_t total, count;
 
-	for (i = 0; i < sv_max_clients->integer; i++) {
+	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
-		cl = &svs.clients[i];
+		const sv_client_t *cl = &svs.clients[i];
 
 		if (cl->state != SV_CLIENT_ACTIVE) {
 			continue;
 		}
 
-		total = count = 0;
-		for (j = 0; j < SV_CLIENT_LATENCY_COUNT; j++) {
+		int32_t total = 0, count = 0;
+		for (int32_t j = 0; j < SV_CLIENT_LATENCY_COUNT; j++) {
 			if (cl->frame_latency[j] > 0) {
 				total += cl->frame_latency[j];
 				count++;
@@ -476,7 +473,7 @@ static void Sv_UpdatePings(void) {
 		if (!count) {
 			cl->entity->client->ping = 0;
 		} else {
-			cl->entity->client->ping = total / count;
+			cl->entity->client->ping = total / (vec_t) count;
 		}
 	}
 }
