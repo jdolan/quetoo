@@ -79,10 +79,10 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 	if (Cl_UsePrediction()) {
 
 		// use client sided prediction
-		for (int32_t i = 0; i < 3; i++) {
-			r_view.origin[i] = cl.predicted_state.origin[i] + cl.predicted_state.view_offset[i];
-			r_view.origin[i] -= (1.0 - cl.lerp) * cl.predicted_state.error[i];
-		}
+		VectorAdd(cl.predicted_state.origin, cl.predicted_state.view_offset, r_view.origin);
+
+		// interpolate prediction error
+		VectorMA(r_view.origin, -(1.0 - cl.lerp), cl.predicted_state.error, r_view.origin);
 
 		const uint32_t delta = cl.time - cl.predicted_state.step_time;
 		const uint32_t interval = cl.predicted_state.step_interval;
