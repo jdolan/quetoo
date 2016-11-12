@@ -127,7 +127,7 @@ static r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, r_packer_node
  * @brief Split a packer node into two, assigning the first to the image.
  */
 static r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *node, r_atlas_image_t *image) {
-	const intptr_t index = (intptr_t) (node - (r_packer_node_t *) packer->nodes->data);
+	const uintptr_t index = (uintptr_t) (node - (r_packer_node_t *) packer->nodes->data);
 
 	node->used = true;
 	node->down = packer->nodes->len;
