@@ -422,5 +422,7 @@ void R_InitImages(void) {
 
 	R_InitShellImage();
 
+	R_InitAtlas();
+
 	Fs_Mkdir("screenshots");
 }
