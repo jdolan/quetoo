@@ -53,6 +53,7 @@ extern cvar_t *r_saturation;
 extern cvar_t *r_shadows;
 extern cvar_t *r_shell;
 extern cvar_t *r_specular;
+extern cvar_t *r_supersample;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_texture_mode;
 extern cvar_t *r_warp;
@@ -84,6 +85,7 @@ typedef struct {
 	const char *extensions;
 
 	int32_t max_texunits;
+	int32_t max_texture_size;
 } r_config_t;
 
 extern r_config_t r_config;

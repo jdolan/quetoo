@@ -21,6 +21,9 @@
 
 #include "r_local.h"
 
+static cvar_t *r_atlas;
+static cvar_t *r_atlas_debug;
+
 /**
  * @brief Free event listener for atlases.
  */
@@ -46,9 +49,10 @@ r_atlas_t *R_CreateAtlas(const char *name) {
 	atlas->image.type = IT_ATLAS_MAP;
 	g_strlcpy(atlas->image.media.name, name, sizeof(atlas->image.media.name));
 
-	atlas->images = g_array_new(false, true, sizeof(r_atlas_image_t));
-
-	atlas->hash = g_hash_table_new(g_direct_hash, g_direct_equal);
+	if (r_atlas->value) {
+		atlas->images = g_array_new(false, true, sizeof(r_atlas_image_t));
+		atlas->hash = g_hash_table_new(g_direct_hash, g_direct_equal);
+	}
 
 	return atlas;
 }
@@ -57,6 +61,10 @@ r_atlas_t *R_CreateAtlas(const char *name) {
  * @brief Add an image to the list of images for this atlas.
  */
 void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image) {
+	
+	if (!r_atlas->value) {
+		return;
+	}
 
 	// ignore duplicates
 	if (g_hash_table_contains(atlas->hash, image)) {
@@ -81,6 +89,10 @@ void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image) {
  * @brief Resolve an atlas image from an atlas and image.
  */
 const r_atlas_image_t *R_GetAtlasImageFromAtlas(const r_atlas_t *atlas, const r_image_t *image) {
+	
+	if (!r_atlas->value) {
+		return (r_atlas_image_t *) image;
+	}
 
 	return (const r_atlas_image_t *) g_hash_table_lookup(atlas->hash, image);
 }
@@ -311,7 +323,7 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 /**
  * @brief Generate mipmap levels for the specified atlas.
  */
-void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
+static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 
 	for (uint16_t i = 0; i < params->num_mips; i++) {
 		const uint16_t mip_scale = 1 << i;
@@ -320,9 +332,14 @@ void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 		const r_pixel_t mip_height = params->height / mip_scale;
 
 		R_BindTexture(atlas->image.texnum);
+		
+		// set the default to all black transparent
+		GLubyte *pixels = Mem_Malloc(mip_width * mip_height * 4);
+
+		memset(pixels, 0, mip_width * mip_height * 4);
 
 		// make initial space
-		glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA, mip_width, mip_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA, mip_width, mip_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
 		// pop in all of the textures
 		for (uint16_t j = 0; j < atlas->images->len; j++) {
@@ -362,6 +379,22 @@ void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 				           (image->position[1] + image->input_image->height) / (vec_t) params->height);
 			}
 		}
+
+		if (r_atlas_debug->value) {
+			static char path[MAX_OS_PATH];
+
+			g_snprintf(path, MAX_OS_PATH, "atlas_%s_%u_%u.raw", atlas->image.media.name, i, mip_width);
+
+			R_BindTexture(atlas->image.texnum);
+
+			glGetTexImage(GL_TEXTURE_2D, i, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+			file_t *file = Fs_OpenWrite(path);
+			Fs_Write(file, pixels, 1, mip_width * mip_height * 4);
+			Fs_Close(file);
+		}
+
+		Mem_Free(pixels);
 	}
 }
 
@@ -388,6 +421,10 @@ static int R_AtlasImage_Compare(gconstpointer a, gconstpointer b) {
  * @brief Compiles the specified atlas.
  */
 void R_CompileAtlas(r_atlas_t *atlas) {
+
+	if (!r_atlas->value) {
+		return;
+	}
 
 	// sort images, to ensure best stitching
 	g_array_sort(atlas->images, R_AtlasImage_Compare);
@@ -426,4 +463,13 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 	uint32_t time = SDL_GetTicks() - time_start;
 	Com_Debug("Atlas %s compiled in %u ms", atlas->image.media.name, time);
+}
+
+/**
+ * @brief Initialize atlas subsystem.
+ */
+void R_InitAtlas(void) {
+
+	r_atlas = Cvar_Add("r_atlas", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls whether to enable atlasing of common images or not.");
+	r_atlas_debug = Cvar_Add("r_atlas_debug", "0", CVAR_R_MEDIA, "Debug atlas generation");
 }

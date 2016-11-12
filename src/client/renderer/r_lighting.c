@@ -120,7 +120,11 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 	VectorScale(r_bsp_light_state.ambient, 1.0 / max, il.light.color);
 
 	il.type = ILLUM_AMBIENT;
-	il.light.radius = LIGHTING_AMBIENT_RADIUS * r_lighting->value;
+	il.light.radius = LIGHTING_AMBIENT_RADIUS;
+
+	if (r_lighting->value)
+		il.light.radius *= r_lighting->value;
+
 	il.diffuse = il.light.radius - LIGHTING_AMBIENT_DIST;
 
 	R_AddIllumination(&il);
@@ -164,7 +168,12 @@ static void R_SunIllumination(const r_lighting_t *l) {
 	VectorScale(r_bsp_light_state.sun.color, exposure, il.light.color);
 
 	il.type = ILLUM_SUN;
-	il.light.radius = LIGHTING_SUN_RADIUS * r_lighting->value;
+	il.light.radius = LIGHTING_SUN_RADIUS;
+
+	if (r_lighting->value) {
+		il.light.radius *= r_lighting->value;
+	}
+
 	il.diffuse = il.light.radius - LIGHTING_SUN_DIST;
 
 	R_AddIllumination(&il);
@@ -346,13 +355,6 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		// check if the trace impacted a valid plane
 		if (tr.start_solid || tr.fraction == 1.0) {
 			continue;
-		}
-
-		// if lighting is disabled, skip non-floor shadows
-		if (!r_lighting->value) {
-			if (tr.plane.normal[2] < 0.7) {
-				continue;
-			}
 		}
 
 		// calculate the distance from the light source to the plane

@@ -26,17 +26,16 @@
  */
 void R_AddLight(const r_light_t *l) {
 
-	if (!r_lighting->value) {
-		return;
-	}
-
 	if (r_view.num_lights == MAX_LIGHTS) {
 		Com_Debug("MAX_LIGHTS reached\n");
 		return;
 	}
 
 	r_view.lights[r_view.num_lights] = *l;
-	r_view.lights[r_view.num_lights].radius *= r_lighting->value;
+
+	if (r_lighting->value) {
+		r_view.lights[r_view.num_lights].radius *= r_lighting->value;
+	}
 
 	r_view.num_lights++;
 }
@@ -46,10 +45,6 @@ void R_AddLight(const r_light_t *l) {
  */
 void R_AddSustainedLight(const r_sustained_light_t *s) {
 	int32_t i;
-
-	if (!r_lighting->value) {
-		return;
-	}
 
 	for (i = 0; i < MAX_LIGHTS; i++)
 		if (!r_view.sustained_lights[i].sustain) {

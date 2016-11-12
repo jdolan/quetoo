@@ -283,12 +283,15 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 		return var;    // not changed
 	}
 
-	if (var->flags & CVAR_R_MASK) {
-		Com_Print("%s will be changed on ^3r_restart^7.\n", name);
-	}
+	if (!force) {
 
-	if (var->flags & CVAR_S_MASK) {
-		Com_Print("%s will be changed on ^3s_restart^7.\n", name);
+		if (var->flags & CVAR_R_MASK) {
+			Com_Print("%s will be changed on ^3r_restart^7.\n", name);
+		}
+
+		if (var->flags & CVAR_S_MASK) {
+			Com_Print("%s will be changed on ^3s_restart^7.\n", name);
+		}
 	}
 
 	if (var->flags & CVAR_USER_INFO) {

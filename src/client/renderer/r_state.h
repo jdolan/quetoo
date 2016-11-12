@@ -33,7 +33,7 @@ void R_BlendFunc(GLenum src, GLenum dest);
 void R_EnableBlend(_Bool enable);
 void R_EnableDepthTest(_Bool enable);
 void R_DepthRange(GLdouble znear, GLdouble zfar);
-void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height);
+void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height, _Bool force);
 
 void R_PushMatrix(const r_matrix_id_t id);
 void R_PopMatrix(const r_matrix_id_t id);
@@ -127,7 +127,18 @@ typedef struct r_state_s {
 
 	SDL_Rect current_viewport;
 
-	uint8_t max_active_lights;
+	/**
+	 * @brief Supersample texture buffer
+	 */
+	GLuint supersample_texture;
+	GLuint supersample_depth;
+
+	/**
+	 * @brief Supersample FBO
+	 */
+	GLuint supersample_fbo;
+
+	uint16_t max_active_lights;
 
 	_Bool color_array_enabled;
 	_Bool alpha_test_enabled;
