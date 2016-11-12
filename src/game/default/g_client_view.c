@@ -258,7 +258,7 @@ static void G_ClientDecayKick(g_entity_t *ent) {
 }
 
 /**
- * @brief Calculates the final view kick angles for the current frame. This factors in damage, 
+ * @brief Calculates the final view kick angles for the current frame. This factors in damage,
  * weapon and event kicks, and uses interpolation and exponential decay to produce a smooth effect.
  */
 static void G_ClientKickAngles(g_entity_t *ent) {
