@@ -83,11 +83,11 @@ void Cg_PredictMovement(const GList *cmds) {
 					pr->step_time = cmd->time;
 				}
 
-				pr->step_interval = 120.0 * (fabs(pr->step) / PM_STEP_HEIGHT);
+				pr->step_interval = 128.0 * (fabs(pr->step) / PM_STEP_HEIGHT);
 			}
 
 			// save for debug checking
-			const uint32_t frame = (uint32_t) (intptr_t) (cmd - cgi.client->cmds);
+			const uint32_t frame = (uint32_t) (uintptr_t) (cmd - cgi.client->cmds);
 			VectorCopy(pm.s.origin, pr->origins[frame]);
 		}
 
