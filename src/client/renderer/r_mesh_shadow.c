@@ -35,9 +35,7 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *
 		alpha *= e->color[3];
 	}
 
-	R_Color((const vec4_t) {
-		0.0, 0.0, 0.0, alpha *r_shadows->value
-	});
+	R_Color((const vec4_t) { 0.0, 0.0, 0.0, alpha });
 }
 
 /**

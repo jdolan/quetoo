@@ -84,6 +84,7 @@ void Cg_PredictMovement(const GList *cmds) {
 				}
 
 				pr->step_interval = 128.0 * (fabs(pr->step) / PM_STEP_HEIGHT);
+				pr->step_interval *= cgi.CvarValue("time_scale");
 			}
 
 			// save for debug checking

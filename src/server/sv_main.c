@@ -781,9 +781,6 @@ void Sv_Frame(const uint32_t msec) {
 
 		// send the resulting frame to connected clients
 		Sv_SendClientPackets();
-
-		// decrement the frame interval delta accordingly
-		frame_delta -= QUETOO_TICK_MILLIS;
 	}
 
 	// clear entity flags, etc for next frame
@@ -791,6 +788,9 @@ void Sv_Frame(const uint32_t msec) {
 
 	// redraw the console
 	Sv_DrawConsole();
+
+	// reset frame delta counter
+	frame_delta = 0;
 }
 
 /**

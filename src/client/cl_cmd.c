@@ -99,15 +99,25 @@ static void Cl_WriteUserInfoCommand(void) {
 }
 
 /**
- * @brief Pumps the command cycle, sending the most recently gathered movement
- * to the server.
+ * @brief Pumps the command cycle, sending the most recently gathered movement to the server.
+ * @details Commands must meet a certain duration, in milliseconds, in order to be sent. This
+ * prevents saturating the network channel with very small movement commands, which are also
+ * problematic for the physics and prediction code. However, if vertical sync is enabled, a
+ * command will always be issued, and a delay will be attempted in order to synchronized the
+ * command clock with the display refresh interval.
  */
 void Cl_SendCommands(void) {
 	static uint32_t command_time;
 
-	const uint32_t msec = quetoo.time - command_time;
-	if (msec < QUETOO_TICK_MILLIS) {
-		return;
+	uint32_t msec = (quetoo.time - command_time) * time_scale->value;
+
+	if (msec < (QUETOO_TICK_MILLIS >> 1)) {
+		if (r_swap_interval->value) {
+			SDL_Delay((QUETOO_TICK_MILLIS >> 1) - msec);
+			msec = QUETOO_TICK_MILLIS >> 1;
+		} else {
+			return;
+		}
 	}
 
 	switch (cls.state) {
@@ -132,7 +142,7 @@ void Cl_SendCommands(void) {
 
 			Mem_InitBuffer(&buf, data, sizeof(data));
 
-			Cl_FinalizeMovementCommand(msec * time_scale->value);
+			Cl_FinalizeMovementCommand(msec);
 
 			Cl_WriteMovementCommand(&buf);
 
