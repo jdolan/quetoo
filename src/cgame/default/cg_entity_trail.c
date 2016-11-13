@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-#define SMOKE_DENSITY 2.0
+#define SMOKE_DENSITY 4.0
 
 /**
  * @brief
@@ -68,12 +68,12 @@ static _Bool Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		}
 
 		const vec_t c = 0.3 - Randomf() * 0.2;
-		Vector4Set(p->part.color, c, c, c, 0.5);
-		Vector4Set(p->color_vel, 0.2, 0.2, 0.2, -0.8 + Randomf() * 0.3);
+		Vector4Set(p->part.color, c, c, c, 0.2);
+		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -0.3 + Randomf() * 0.2);
 
 		p->part.scale = 1.0 + Randomf();
-		p->scale_vel = 10.0 + (Randomf() * 5.0);
-		p->part.roll = Randomc() * 350.0;
+		p->scale_vel = 10.0 + (Randomf() * 10.0);
+		p->part.roll = Randomc() * 240.0;
 
 		VectorScale(vec, len, p->vel);
 
@@ -82,7 +82,8 @@ static _Bool Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			p->vel[j] += Randomc();
 		}
 
-		p->accel[2] = 10.0;
+		VectorScale(vec, -len, p->accel);
+		p->accel[2] += 10.0 + (Randomc() * 2.0);
 	}
 
 	return true;
@@ -338,10 +339,8 @@ static _Bool Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 static _Bool Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	cg_particle_t *p;
-	_Bool trail_rendered;
 
-	trail_rendered = Cg_SmokeTrail(ent, start, end);
-
+	const _Bool trail_rendered = Cg_SmokeTrail(ent, start, end);
 	if (trail_rendered) { // time to add new particles
 		vec3_t delta;
 
@@ -655,7 +654,6 @@ static _Bool Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
  */
 static _Bool Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	const vec3_t color = { 0.9, 0.3, 0.1 };
-	_Bool trail_rendered = false;
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
 		return false;
@@ -666,6 +664,8 @@ static _Bool Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	VectorCopy(color, l.color);
 	l.radius = 85.0;
 
+	_Bool trail_rendered = false;
+
 	if (ent->current.effects & EF_DESPAWN) {
 		const vec_t decay = Clamp((cgi.client->systime - ent->time) / 1000.0, 0.0, 1.0);
 		l.radius *= (1.0 - decay);
@@ -673,7 +673,7 @@ static _Bool Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	} else {
 		trail_rendered = Cg_SmokeTrail(ent, start, end);
 		ent->time = cgi.client->systime;
-		trail_rendered = Cg_FlameTrail(ent, start, end) || trail_rendered;
+		trail_rendered |= Cg_FlameTrail(ent, start, end);
 	}
 
 	cgi.AddLight(&l);

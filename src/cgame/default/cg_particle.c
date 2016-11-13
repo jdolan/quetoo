@@ -272,8 +272,7 @@ void Cg_AddParticles(void) {
 			}
 
 			// add the particle if it's visible on our screen
-			if (p->part.type == PARTICLE_BEAM ||
-			        p->part.type == PARTICLE_SPARK) {
+			if (p->part.type == PARTICLE_BEAM || p->part.type == PARTICLE_SPARK) {
 				vec3_t distance, center;
 				VectorSubtract(p->part.end, p->part.org, distance);
 				VectorMA(p->part.org, 0.5, distance, center);
