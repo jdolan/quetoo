@@ -246,7 +246,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 	R_EnableColorArray(true);
 
-	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer);
+	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ARRAY_MASK_ALL);
 	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.bound_element_buffer);
 
 	u8vec4_t bc;

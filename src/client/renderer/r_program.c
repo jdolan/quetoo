@@ -597,7 +597,7 @@ static r_program_t *R_LoadProgram(const char *name, void (*Init)(r_program_t *pr
 void R_SetupAttributes(void) {
 
 	const r_program_t *p = (r_program_t *) r_state.active_program;
-	int32_t mask = R_ArraysMask();
+	r_attribute_mask_t mask = R_ArraysMask();
 
 	if (p->arrays_mask & R_ARRAY_MASK_POSITION) {
 

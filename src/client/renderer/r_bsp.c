@@ -342,7 +342,7 @@ void R_DrawBspNormals(void) {
 
 	R_ResetArrayState(); // default arrays
 
-	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer);
+	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ARRAY_MASK_ALL);
 
 	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.bound_element_buffer);
 

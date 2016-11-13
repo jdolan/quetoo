@@ -21,34 +21,426 @@
 
 #include "r_local.h"
 
-/*
- * Arrays are "lazily" managed to reduce glArrayPointer calls. Drawing routines
- * should call R_SetArrayState or R_ResetArrayState somewhat early-on.
+/**
+ * @brief Binds the specified buffer for the given attribute target.
  */
+void R_BindAttributeBuffer(const r_attribute_id_t target, const r_buffer_t *buffer) {
+
+	if (target == R_ARRAY_ALL) {
+		for (r_attribute_id_t id = R_ARRAY_POSITION; id < R_ARRAY_MAX_ATTRIBS; id++) {
+			R_BindAttributeBuffer(id, buffer);
+		}
+
+		return;
+	}
+
+	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
+
+	if (target == R_ARRAY_ELEMENTS) {
+		r_state.element_buffer = buffer;
+	} else {
+		r_state.array_buffers[target] = buffer;
+		r_state.array_buffer_offsets[target] = 0;
+	}
+}
+
+/**
+ * @brief Binds the specified buffer for the given attribute target with an offset.
+ */
+void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset) {
+
+	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
+
+	if (target == R_ARRAY_ELEMENTS) {
+		r_state.element_buffer = buffer;
+	} else {
+		r_state.array_buffers[target] = buffer;
+		r_state.array_buffer_offsets[target] = offset;
+	}
+}
+
+/**
+ * @brief Binds an interleave array to all of its appropriate endpoints.
+ */
+void R_BindAttributeInterleaveBuffer(const r_buffer_t *buffer, const r_attribute_mask_t mask) {
+
+	for (r_attribute_id_t attrib = R_ARRAY_POSITION; attrib < R_ARRAY_MAX_ATTRIBS; attrib++) {
+
+		r_attribute_mask_t this_mask = (1 << attrib);
+
+		if (!(mask & this_mask) ||
+			!(buffer->attrib_mask & this_mask)) {
+			continue;
+		}
+
+		assert(buffer->interleave_attribs[attrib]);
+
+		R_BindAttributeBuffer(attrib, buffer);
+	}
+}
+
+/**
+ * @brief Binds an interleave array to all of its appropriate endpoints with an offset.
+ */
+void R_BindAttributeInterleaveBufferOffset(const r_buffer_t *buffer, const GLsizei offset, const r_attribute_mask_t mask) {
+
+	if (!mask) {
+		return;
+	}
+
+	for (r_attribute_id_t attrib = R_ARRAY_POSITION; attrib < R_ARRAY_MAX_ATTRIBS; attrib++) {
+
+		r_attribute_mask_t this_mask = (1 << attrib);
+
+		if (!(mask & this_mask) ||
+			!(buffer->attrib_mask & this_mask)) {
+			continue;
+		}
+
+		assert(buffer->interleave_attribs[attrib]);
+
+		R_BindAttributeBufferOffset(attrib, buffer, offset);
+	}
+}
+
+/**
+ * @brief Returns whether or not a buffer is "finished".
+ * Doesn't care if data is actually in the buffer.
+ */
+_Bool R_ValidBuffer(const r_buffer_t *buffer) {
+
+	return buffer && buffer->bufnum && buffer->size;
+}
+
+/**
+ * @brief Binds the appropriate shared vertex array to the specified target.
+ */
+static GLenum R_BufferTypeToTarget(int type) {
+
+	return (type == R_BUFFER_ELEMENT) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+}
+
+/**
+ * @brief
+ */
+void R_BindBuffer(const r_buffer_t *buffer) {
+
+	assert(buffer->bufnum != 0);
+
+	if (r_state.active_buffers[buffer->type] == buffer->bufnum) {
+		return;
+	}
+
+	r_state.active_buffers[buffer->type] = buffer->bufnum;
+
+	glBindBuffer(buffer->target, buffer->bufnum);
+
+	r_view.num_state_changes[R_STATE_BIND_BUFFER]++;
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief
+ */
+void R_UnbindBuffer(const r_buffer_type_t type) {
+
+	if (!r_state.active_buffers[type]) {
+		return;
+	}
+
+	r_state.active_buffers[type] = 0;
+
+	glBindBuffer(R_BufferTypeToTarget(type), 0);
+
+	r_view.num_state_changes[R_STATE_BIND_BUFFER]++;
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief Upload data to an already-created buffer. You could also use this function to
+ * resize an existing buffer without uploading data, although it won't make the
+ * buffer smaller.
+ */
+void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data) {
+
+	assert(buffer->bufnum != 0);
+
+	// Check size. This is benign really, but it's usually a bug.
+	if (!size) {
+		Com_Warn("Attempted to upload 0 bytes to GPU");
+		return;
+	}
+
+	R_BindBuffer(buffer);
+
+	// if the buffer isn't big enough to hold what we had already,
+	// we have to resize the buffer
+
+	if (size > buffer->size) {
+		r_state.buffers_total_bytes -= buffer->size;
+		r_state.buffers_total_bytes += size;
+
+		glBufferData(buffer->target, size, data, buffer->hint);
+		R_GetError("Full resize");
+		r_view.num_buffer_full_uploads++;
+
+		buffer->size = size;
+	} else {
+		// just update the range we specified
+		glBufferSubData(buffer->target, 0, size, data);
+		r_view.num_buffer_partial_uploads++;
+
+		R_GetError("Updating existing buffer");
+	}
+
+	r_view.size_buffer_uploads += size;
+}
+
+/**
+ * @brief Upload data to a sub-position in already-created buffer. You could also use this function to
+ * resize an existing buffer without uploading data, although it won't make the
+ * buffer smaller.
+ * @param data_offset Whether the data pointer should be offset by start or not.
+ */
+void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data,
+                         const _Bool data_offset) {
+
+	assert(buffer->bufnum != 0);
+
+	// Check size. This is benign really, but it's usually a bug.
+	if (!size) {
+		Com_Warn("Attempted to upload 0 bytes to GPU\n");
+		return;
+	}
+
+	// offset ptr if requested
+	if (start && data && data_offset) {
+		data = data + start;
+	}
+
+	R_BindBuffer(buffer);
+
+	// if the buffer isn't big enough to hold what we had already,
+	// we have to resize the buffer
+	const size_t total_size = start + size;
+
+	if (total_size > buffer->size) {
+		// if we passed a "start", the data is offset, so
+		// just reset to null. This is an odd edge case and
+		// it's fairly rare you'll be editing at the end first,
+		// but who knows.
+		if (start) {
+
+			glBufferData(buffer->target, total_size, NULL, buffer->hint);
+			R_GetError("Partial resize");
+			r_view.num_buffer_full_uploads++;
+			glBufferSubData(buffer->target, start, size, data);
+			R_GetError("Partial update");
+			r_view.num_buffer_partial_uploads++;
+		} else {
+			glBufferData(buffer->target, total_size, data, buffer->hint);
+			R_GetError("Full resize");
+			r_view.num_buffer_full_uploads++;
+		}
+
+		r_state.buffers_total_bytes -= buffer->size;
+		r_state.buffers_total_bytes += total_size;
+
+		buffer->size = total_size;
+	} else {
+		// just update the range we specified
+		glBufferSubData(buffer->target, start, size, data);
+		R_GetError("Updating existing buffer");
+		r_view.num_buffer_partial_uploads++;
+	}
+
+	r_view.size_buffer_uploads += size;
+}
+
+/**
+ * @brief
+ */
+static GLubyte R_GetElementSize(const GLenum type) {
+
+	switch (type) {
+		case R_ATTRIB_BYTE:
+		case R_ATTRIB_UNSIGNED_BYTE:
+			return 1;
+		case R_ATTRIB_SHORT:
+		case R_ATTRIB_UNSIGNED_SHORT:
+			return 2;
+		case R_ATTRIB_INT:
+		case R_ATTRIB_UNSIGNED_INT:
+		case R_ATTRIB_FLOAT:
+			return 4;
+		default:
+			Com_Error(ERR_DROP, "Bad GL type");
+	}
+}
+
+/**
+ * @brief
+ */
+uint32_t R_GetNumAllocatedBuffers(void) {
+	return r_state.buffers_total;
+}
+
+/**
+ * @brief
+ */
+uint32_t R_GetNumAllocatedBufferBytes(void) {
+	return r_state.buffers_total_bytes;
+}
+
+/**
+ * @brief Allocate a GPU buffer of the specified size.
+ * Optionally upload the data immediately too.
+ */
+void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, const GLubyte element_count,
+                    const _Bool element_normalized, const GLenum hint,
+                    const r_buffer_type_t type, const size_t size,
+                    const void *data, const char *func) {
+
+	if (buffer->bufnum != 0) {
+
+		// this one is actually warning since this is a memory leak!!
+		Com_Warn("Attempting to reclaim non-empty buffer: %s", buffer->func);
+		R_DestroyBuffer(buffer);
+	}
+
+	memset(buffer, 0, sizeof(*buffer));
+
+	glGenBuffers(1, &buffer->bufnum);
+
+	buffer->type = type & R_BUFFER_TYPE_MASK;
+	buffer->target = R_BufferTypeToTarget(buffer->type);
+	buffer->hint = hint;
+	buffer->element_type.type = element_type;
+	buffer->func = func;
+
+	if (element_type != R_ATTRIB_TOTAL_TYPES) {
+		buffer->element_type.count = element_count;
+		buffer->element_type.stride = R_GetElementSize(buffer->element_type.type);
+		buffer->element_type.normalized = element_normalized;
+	} else {
+		buffer->element_type.stride = element_count;
+	}
+
+	if (type & R_BUFFER_INTERLEAVE) {
+		buffer->interleave = true;
+	}
+
+	if (size) {
+		R_UploadToBuffer(buffer, size, data);
+	}
+
+	r_state.buffers_total++;
+}
+
+/**
+ * @brief Allocate an interleaved GPU buffer of the specified size.
+ * Optionally upload the data immediately too.
+ */
+void R_CreateInterleaveBuffer_(r_buffer_t *buffer, const GLubyte struct_size, const r_buffer_layout_t *layout,
+                              const GLenum hint, const size_t size, const void *data, const char *func) {
+
+	R_CreateBuffer(buffer, R_ATTRIB_TOTAL_TYPES, struct_size, false, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data, func);
+
+	GLsizei stride = 0;
+
+	for (; layout->attribute != -1; layout++) {
+		stride += layout->size;
+		buffer->interleave_attribs[layout->attribute] = layout;
+		buffer->attrib_mask |= 1 << layout->attribute;
+
+		// init type pack state once
+		if (!layout->_type_state.packed) {
+			r_buffer_layout_t *temp = (r_buffer_layout_t *) layout;
+
+			temp->_type_state.type = layout->type;
+			temp->_type_state.stride = buffer->element_type.stride;
+			temp->_type_state.offset = layout->offset;
+			temp->_type_state.count = layout->count;
+			temp->_type_state.normalized = layout->normalized;
+		}
+	}
+
+	if (stride != struct_size) {
+		Com_Error(ERR_DROP, "Buffer interleave size doesn't match layout size\n");
+	}
+}
+
+/**
+ * @brief Destroy a GPU-allocated buffer.
+ */
+void R_DestroyBuffer(r_buffer_t *buffer) {
+
+	if (buffer->bufnum == 0) {
+		Com_Debug("Attempting to free empty buffer");
+		return;
+	}
+
+	// if this buffer is currently bound, unbind it.
+	if (r_state.active_buffers[buffer->type] == buffer->bufnum) {
+		R_UnbindBuffer(buffer->type);
+	}
+
+	// if the buffer is attached to any active attribs, remove that ptr too
+	for (r_attribute_id_t i = 0; i < R_ARRAY_MAX_ATTRIBS; ++i) {
+
+		if (r_state.attributes[i].type != NULL &&
+		        r_state.attributes[i].value.buffer == buffer) {
+			r_state.attributes[i].type = NULL;
+			r_state.attributes[i].value.buffer = NULL;
+		}
+	}
+
+	glDeleteBuffers(1, &buffer->bufnum);
+
+	r_state.buffers_total_bytes -= buffer->size;
+	r_state.buffers_total--;
+
+	memset(buffer, 0, sizeof(r_buffer_t));
+
+	R_GetError(NULL);
+}
 
 typedef struct r_array_state_s {
 	const r_model_t *model;
 	uint32_t arrays;
+	_Bool shell;
 } r_array_state_t;
 
 static r_array_state_t r_array_state;
 
-// macro for determining interpolation ability
-#define IS_ENTITY_INTERPOLATABLE(e, mod) \
-	(IS_MESH_MODEL(mod) && \
-	 mod->mesh->num_frames > 1 && \
-	 e->old_frame != e->frame)
+/**
+ * @brief Determines whether or not this entity with this specific model
+ * should be interpolated.
+ */
+static _Bool R_IsEntityInterpolatable(const r_entity_t *e, const r_model_t *mod) {
+
+	if (e == NULL) {
+		return NULL;
+	} else if (mod == NULL) {
+		mod = e->model;
+	}
+
+	return  IS_MESH_MODEL(mod) &&
+			mod->mesh->num_frames > 1 &&
+			e->old_frame != e->frame;
+}
 
 /**
  * @brief Returns a bitmask representing the arrays which should be enabled according
  * to r_state. This function is consulted to determine whether or not array
  * bindings are up to date.
  */
-int32_t R_ArraysMask(void) {
-	uint32_t mask = R_ARRAY_MASK_POSITION;
+r_attribute_mask_t R_ArraysMask(void) {
 
-	_Bool do_interpolation = r_view.current_entity != NULL &&
-	                         IS_ENTITY_INTERPOLATABLE(r_view.current_entity, r_view.current_entity->model);
+	r_attribute_mask_t mask = R_ARRAY_MASK_POSITION;
+	_Bool do_interpolation = R_IsEntityInterpolatable(r_view.current_entity, NULL);
 
 	if (do_interpolation) {
 		mask |= R_ARRAY_MASK_NEXT_POSITION;
@@ -90,112 +482,122 @@ int32_t R_ArraysMask(void) {
 /**
  * @brief
  */
-void R_SetArrayState(const r_model_t *mod) {
-
-	uint32_t mask = 0xffff, arrays = R_ArraysMask(); // resolve the desired arrays mask
-
+static void R_SetArrayStateBSP(const r_model_t *mod, r_attribute_mask_t mask, r_attribute_mask_t attribs) {
+	
 	if (r_array_state.model == mod) { // try to save some binds
 
-		const uint32_t xor = r_array_state.arrays ^ arrays;
+		const r_attribute_mask_t xor = r_array_state.arrays ^ attribs;
 
 		if (!xor) { // no changes, we're done
 			return;
 		}
 
 		// resolve what's left to turn on
-		mask = arrays & xor;
+		mask = attribs & xor;
 	}
 
-	if (r_state.active_program) { // cull anything the program doesn't use
-		mask &= r_state.active_program->arrays_mask;
+	R_BindAttributeInterleaveBuffer(&mod->bsp->vertex_buffer, mask);
+
+	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &mod->bsp->element_buffer);
+}
+
+/**
+ * @brief
+ */
+static void R_SetArrayStateMesh(const r_model_t *mod, r_attribute_mask_t mask, r_attribute_mask_t attribs) {
+
+	_Bool use_shell_model = r_state.shell_enabled && R_ValidBuffer(&mod->mesh->shell_vertex_buffer);
+
+	if (r_array_state.model == mod) { // try to save some binds
+
+		r_attribute_mask_t xor = r_array_state.arrays ^ attribs;
+
+		if (r_array_state.shell != use_shell_model) {
+			xor |= R_ARRAY_MASK_POSITION |
+				   R_ARRAY_MASK_NEXT_POSITION |
+	   			   R_ARRAY_MASK_NORMAL |
+   				   R_ARRAY_MASK_NEXT_NORMAL;
+
+			r_array_state.shell = use_shell_model;
+		} else if (!xor) { // no changes, we're done
+			return;
+		}
+
+		// resolve what's left to turn on
+		mask = attribs & xor;
+	} else {
+		r_array_state.shell = false;
 	}
 
-	R_BindAttributeBuffer(R_ARRAY_COLOR, NULL);
+	if (use_shell_model) {
 
-	_Bool do_interpolation = false;
-	uint16_t old_frame = 0;
-	uint16_t frame = 0;
+		R_BindAttributeInterleaveBufferOffset(&mod->mesh->shell_vertex_buffer, 0, mask);
 
-	// see if we can do interpolation
-	if (r_view.current_entity) {
-		old_frame = r_view.current_entity->old_frame;
-		do_interpolation = IS_ENTITY_INTERPOLATABLE(r_view.current_entity, mod);
+		// elements
+		R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &mod->mesh->shell_element_buffer);
+	} else {
 
+		// see if we can do interpolation
+		_Bool do_interpolation = false;
+		uint16_t old_frame = 0;
+		uint16_t frame = 0;
+
+		if (r_view.current_entity) {
+
+			old_frame = r_view.current_entity->old_frame;
+			do_interpolation = R_IsEntityInterpolatable(r_view.current_entity, mod);
+
+			if (do_interpolation) {
+				frame = r_view.current_entity->frame;
+			}
+		}
+
+		const uint32_t stride = (mod->num_verts * mod->mesh->vertex_buffer.element_type.stride);
+
+		R_BindAttributeInterleaveBufferOffset(&mod->mesh->vertex_buffer, stride * old_frame,
+											  mask & ~(R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_NEXT_NORMAL | R_ARRAY_MASK_NEXT_TANGENT));
 		if (do_interpolation) {
-			frame = r_view.current_entity->frame;
-		}
-	}
 
-	// vertex array
-	if (mask & R_ARRAY_MASK_POSITION) {
+			const uint32_t offset = stride * frame;
 
-		R_BindAttributeBufferOffset(R_ARRAY_POSITION, &mod->vertex_buffer,
-		                            (mod->num_verts * mod->vertex_buffer.element_type.stride) * old_frame);
-
-		// bind interpolation if we need it
-		if ((mask & R_ARRAY_MASK_NEXT_POSITION) && do_interpolation) {
-			R_BindAttributeBufferOffset(R_ARRAY_NEXT_POSITION, &mod->vertex_buffer,
-			                            (mod->num_verts * mod->vertex_buffer.element_type.stride) * frame);
-		}
-	}
-
-	// normals and tangents
-	if (r_state.lighting_enabled || r_state.shell_enabled) {
-
-		if (mask & R_ARRAY_MASK_NORMAL) {
-
-			R_BindAttributeBufferOffset(R_ARRAY_NORMAL, &mod->normal_buffer,
-			                            (mod->num_verts * mod->normal_buffer.element_type.stride) * old_frame);
-
-			// bind interpolation if we need it
-			if ((mask & R_ARRAY_MASK_NEXT_NORMAL) && do_interpolation) {
-				R_BindAttributeBufferOffset(R_ARRAY_NEXT_NORMAL, &mod->normal_buffer,
-				                            (mod->num_verts * mod->normal_buffer.element_type.stride) * frame);
+			if (mask & R_ARRAY_MASK_NEXT_POSITION) {
+				R_BindAttributeBufferOffset(R_ARRAY_NEXT_POSITION, &mod->mesh->vertex_buffer, offset);
+			}
+			if (mask & R_ARRAY_MASK_NEXT_NORMAL) {
+				R_BindAttributeBufferOffset(R_ARRAY_NEXT_NORMAL, &mod->mesh->vertex_buffer, offset);
+			}
+			if (mask & R_ARRAY_MASK_NEXT_TANGENT) {
+				R_BindAttributeBufferOffset(R_ARRAY_NEXT_TANGENT, &mod->mesh->vertex_buffer, offset);
 			}
 		}
-	}
 
-	if (r_state.lighting_enabled) {
-
-		if (r_bumpmap->value) {
-
-			if ((mask & R_ARRAY_MASK_TANGENT) && R_ValidBuffer(&mod->tangent_buffer)) {
-
-				R_BindAttributeBufferOffset(R_ARRAY_TANGENT, &mod->tangent_buffer,
-				                            (mod->num_verts * mod->tangent_buffer.element_type.stride) * old_frame);
-
-				// bind interpolation if we need it
-				if ((mask & R_ARRAY_MASK_NEXT_TANGENT) && do_interpolation) {
-					R_BindAttributeBufferOffset(R_ARRAY_NEXT_TANGENT, &mod->tangent_buffer,
-					                            (mod->num_verts * mod->tangent_buffer.element_type.stride) * frame);
-				}
-			}
-		}
-	}
-
-	// diffuse texcoords
-	if (texunit_diffuse.enabled) {
-
+		// diffuse texcoords
 		if (mask & R_ARRAY_MASK_DIFFUSE) {
-			R_BindAttributeBuffer(R_ARRAY_DIFFUSE, &mod->texcoord_buffer);
+
+			if (R_ValidBuffer(&mod->mesh->texcoord_buffer)) {
+				R_BindAttributeBuffer(R_ARRAY_DIFFUSE, &mod->mesh->texcoord_buffer);
+			} else {
+				R_BindAttributeBuffer(R_ARRAY_DIFFUSE, &mod->mesh->vertex_buffer);
+			}
 		}
+
+		// elements
+		R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &mod->mesh->element_buffer);
 	}
+}
 
-	// lightmap texcoords
-	if (texunit_lightmap.enabled) {
+/**
+ * @brief
+ */
+void R_SetArrayState(const r_model_t *mod) {
 
-		if (mask & R_ARRAY_MASK_LIGHTMAP) {
-			R_SelectTexture(&texunit_lightmap);
+	r_attribute_mask_t mask = r_state.active_program->arrays_mask; // start with what the program has
+	r_attribute_mask_t arrays = R_ArraysMask(); // resolve the desired arrays mask
 
-			R_BindAttributeBuffer(R_ARRAY_LIGHTMAP, &mod->lightmap_texcoord_buffer);
-
-			R_SelectTexture(&texunit_diffuse);
-		}
-	}
-
-	// elements
-	if (R_ValidBuffer(&mod->element_buffer)) {
-		R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &mod->element_buffer);
+	if (IS_BSP_MODEL(mod)) {
+		R_SetArrayStateBSP(mod, mask, arrays);
+	} else if (IS_MESH_MODEL(mod)) {
+		R_SetArrayStateMesh(mod, mask, arrays);
 	}
 
 	r_array_state.model = mod;
@@ -207,7 +609,7 @@ void R_SetArrayState(const r_model_t *mod) {
  */
 void R_ResetArrayState(void) {
 
-	uint32_t mask = 0xffff, arrays = R_ArraysMask(); // resolve the desired arrays mask
+	r_attribute_mask_t mask = R_ARRAY_MASK_ALL, arrays = R_ArraysMask(); // resolve the desired arrays mask
 
 	if (r_array_state.model == NULL) {
 		const uint32_t xor = r_array_state.arrays ^ arrays;
@@ -231,6 +633,7 @@ void R_ResetArrayState(void) {
 
 	// color array
 	if (r_state.color_array_enabled) {
+
 		if (mask & R_ARRAY_MASK_COLOR) {
 			R_UnbindAttributeBuffer(R_ARRAY_COLOR);
 		}
@@ -279,6 +682,7 @@ void R_ResetArrayState(void) {
 
 	r_array_state.model = NULL;
 	r_array_state.arrays = arrays;
+	r_array_state.shell = false;
 }
 
 /**

@@ -182,7 +182,7 @@ static void R_DrawImage_(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, con
 
 	R_BindTexture(texnum);
 
-	R_BindAttributeInterleaveBuffer(buffer);
+	R_BindAttributeInterleaveBuffer(buffer, R_ARRAY_MASK_ALL);
 
 	R_DrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -386,7 +386,7 @@ static void R_DrawChars(void) {
 		R_EnableColorArray(true);
 
 		// alter the array pointers
-		R_BindAttributeInterleaveBuffer(&chars->vert_buffer);
+		R_BindAttributeInterleaveBuffer(&chars->vert_buffer, R_ARRAY_MASK_ALL);
 
 		R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &chars->element_buffer);
 
@@ -468,7 +468,7 @@ static void R_DrawFills(void) {
 	R_EnableColorArray(true);
 
 	// alter the array pointers
-	R_BindAttributeInterleaveBuffer(&r_draw.fill_arrays.vert_buffer);
+	R_BindAttributeInterleaveBuffer(&r_draw.fill_arrays.vert_buffer, R_ARRAY_MASK_ALL);
 	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_draw.fill_arrays.element_buffer);
 
 	R_DrawArrays(GL_TRIANGLES, 0, r_draw.fill_arrays.element_index);
@@ -530,7 +530,7 @@ static void R_DrawLines(void) {
 	R_EnableColorArray(true);
 
 	// alter the array pointers
-	R_BindAttributeInterleaveBuffer(&r_draw.line_arrays.vert_buffer);
+	R_BindAttributeInterleaveBuffer(&r_draw.line_arrays.vert_buffer, R_ARRAY_MASK_ALL);
 
 	R_DrawArrays(GL_LINES, 0, r_draw.line_arrays.vert_index);
 

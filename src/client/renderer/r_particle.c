@@ -93,13 +93,8 @@ void R_InitParticles(void) {
  */
 void R_ShutdownParticles(void) {
 
-	if (R_ValidBuffer(&r_particle_state.verts_buffer)) {
-		R_DestroyBuffer(&r_particle_state.verts_buffer);
-	}
-
-	if (R_ValidBuffer(&r_particle_state.verts_buffer)) {
-		R_DestroyBuffer(&r_particle_state.verts_buffer);
-	}
+	R_DestroyBuffer(&r_particle_state.verts_buffer);
+	R_DestroyBuffer(&r_particle_state.element_buffer);
 }
 
 /**
@@ -309,7 +304,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	R_ResetArrayState();
 
 	// alter the array pointers
-	R_BindAttributeInterleaveBuffer(&r_particle_state.verts_buffer);
+	R_BindAttributeInterleaveBuffer(&r_particle_state.verts_buffer, R_ARRAY_MASK_ALL);
 	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_particle_state.element_buffer);
 
 	const GLint base = (GLint) (intptr_t) e->data;

@@ -21,7 +21,11 @@
 
 #include "r_local.h"
 
-r_mesh_state_t r_mesh_state;
+typedef struct {
+	r_material_t *material;
+} r_mesh_state_t;
+
+static r_mesh_state_t r_mesh_state;
 
 /**
  * @brief Applies any client-side transformations specified by the model's world or

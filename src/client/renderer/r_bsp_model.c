@@ -697,6 +697,11 @@ static gboolean R_UniqueVerts_EqualFunc(gconstpointer a, gconstpointer b) {
 	const GLuint va = BSP_VERTEX_INDEX_FOR_KEY(a);
 	const GLuint vb = BSP_VERTEX_INDEX_FOR_KEY(b);
 
+	if (va != vb) {
+
+		return false;
+	}
+
 	const r_bsp_model_t *bsp = r_unique_vertices.mod->bsp;
 
 	return	memcmp(bsp->verts[va], bsp->verts[vb], sizeof(vec3_t)) == 0 &&
@@ -905,7 +910,7 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		}
 	}
 
-	R_CreateElementBuffer(&mod->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
+	R_CreateElementBuffer(&mod->bsp->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
 
 	Mem_Free(elements);
 
@@ -920,13 +925,8 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		Vector2Copy(mod->bsp->lightmap_texcoords[i], interleaved[i].lightmap);
 	}
 
-	R_CreateInterleaveBuffer(&mod->vertex_buffer, sizeof(r_bsp_interleave_vertex_t), r_bsp_buffer_layout, GL_STATIC_DRAW,
+	R_CreateInterleaveBuffer(&mod->bsp->vertex_buffer, sizeof(r_bsp_interleave_vertex_t), r_bsp_buffer_layout, GL_STATIC_DRAW,
 	                         mod->num_verts * sizeof(r_bsp_interleave_vertex_t), interleaved);
-
-	mod->normal_buffer = mod->vertex_buffer;
-	mod->tangent_buffer = mod->vertex_buffer;
-	mod->texcoord_buffer = mod->vertex_buffer;
-	mod->lightmap_texcoord_buffer = mod->vertex_buffer;
 
 	Mem_Free(interleaved);
 

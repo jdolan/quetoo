@@ -475,7 +475,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_ResetArrayState();
 
-	R_BindAttributeInterleaveBuffer(&r_material_state.vertex_buffer);
+	R_BindAttributeInterleaveBuffer(&r_material_state.vertex_buffer, R_ARRAY_MASK_ALL);
 
 	R_EnableColorArray(false);
 
@@ -1399,6 +1399,7 @@ void R_InitMaterials(void) {
 void R_ShutdownMaterials(void) {
 
 	g_array_free(r_material_state.vertex_array, true);
+
 	R_DestroyBuffer(&r_material_state.vertex_buffer);
 
 	g_array_free(r_material_state.element_array, true);

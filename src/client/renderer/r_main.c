@@ -502,7 +502,7 @@ static void R_InitLocal(void) {
 	                        "Controls texture saturation");
 	r_shadows = Cvar_Add("r_shadows", "7", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                     "Controls the rendering of mesh model shadows");
-	r_shell = Cvar_Add("r_shell", "1", CVAR_ARCHIVE,
+	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                   "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specular = Cvar_Add("r_specular", "1.0", CVAR_ARCHIVE,
 	                      "Controls the specularity of bump-mapping effects");
