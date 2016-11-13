@@ -500,7 +500,7 @@ static void R_InitLocal(void) {
 	                           "Specifies the active renderer plugin (default or pro)");
 	r_saturation = Cvar_Add("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                        "Controls texture saturation");
-	r_shadows = Cvar_Add("r_shadows", "7", CVAR_ARCHIVE | CVAR_R_MEDIA,
+	r_shadows = Cvar_Add("r_shadows", "3", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                     "Controls the rendering of mesh model shadows");
 	r_shell = Cvar_Add("r_shell", "1", CVAR_ARCHIVE,
 	                   "Controls mesh shell effect (e.g. Quad Damage shell)");
