@@ -74,6 +74,7 @@ typedef struct r_state_s {
 
 	uint32_t buffers_total_bytes;
 	uint32_t buffers_total;
+	GHashTable *buffers_list;
 
 	// the active element buffer.
 	const r_buffer_t *element_buffer;

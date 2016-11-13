@@ -621,13 +621,13 @@ void R_Shutdown(void) {
 
 	R_ShutdownPrograms();
 
-	R_ShutdownState();
-
 	R_ShutdownParticles();
 
 	R_ShutdownSky();
 
 	R_ShutdownMaterials();
+
+	R_ShutdownState();
 
 	R_ShutdownContext();
 

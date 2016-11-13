@@ -936,6 +936,8 @@ void R_InitState(void) {
 
 	memset(&r_state, 0, sizeof(r_state));
 
+	r_state.buffers_list = g_hash_table_new(g_direct_hash, g_direct_equal);
+
 	r_state.depth_mask_enabled = true;
 	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
@@ -984,12 +986,28 @@ void R_InitState(void) {
 	R_GetError("Post-init");
 }
 
+static void R_ShutdownState_PrintBuffers(gpointer       key,
+                                         gpointer       value,
+                                         gpointer       user_data) {
+
+	const r_buffer_t *buffer = (r_buffer_t *) value;
+
+	Com_Warn("Buffer not freed (%u type, %" PRIu64 " bytes), allocated from %s\n", buffer->type, buffer->size, buffer->func);
+}
+
 /**
  * @brief
  */
 void R_ShutdownState(void) {
 
 	R_ShutdownSupersample();
+
+	if (r_state.buffers_total) {
+		g_hash_table_foreach(r_state.buffers_list, R_ShutdownState_PrintBuffers, NULL);
+	}
+
+	g_hash_table_destroy(r_state.buffers_list);
+	r_state.buffers_list = NULL;
 
 	memset(&r_state, 0, sizeof(r_state));
 }

@@ -337,6 +337,7 @@ void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, cons
 	}
 
 	r_state.buffers_total++;
+	g_hash_table_add(r_state.buffers_list, buffer);
 }
 
 /**
@@ -403,6 +404,7 @@ void R_DestroyBuffer(r_buffer_t *buffer) {
 	r_state.buffers_total--;
 
 	memset(buffer, 0, sizeof(r_buffer_t));
+	g_hash_table_remove(r_state.buffers_list, buffer);
 
 	R_GetError(NULL);
 }
