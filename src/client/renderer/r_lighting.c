@@ -367,7 +367,7 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		r_shadow_t *s = l->shadows;
 		while (s->illumination) {
 
-			if (s->illumination == il && s->plane.num == tr.plane.num) {
+			if (s->illumination == il && s->plane->num == tr.plane.num) {
 				s->shadow = MAX(s->shadow, shadow);
 				break;
 			}
@@ -385,7 +385,8 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		}
 
 		s->illumination = il;
-		s->plane = tr.plane;
+		s->plane = &r_model_state.world->bsp->planes[tr.plane.index];
+		s->plane->flags |= R_PLANE_SHADOW;
 		s->shadow = shadow;
 	}
 }
