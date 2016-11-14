@@ -53,6 +53,7 @@
 	extern cvar_t *g_gravity;
 	extern cvar_t *g_handicap;
 	extern cvar_t *g_inhibit;
+	extern cvar_t *g_map_rotation;
 	extern cvar_t *g_match;
 	extern cvar_t *g_max_entities;
 	extern cvar_t *g_motd;
