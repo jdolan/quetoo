@@ -22,29 +22,6 @@
 #include "r_local.h"
 
 /**
- * @brief Binds the specified buffer for the given attribute target.
- */
-void R_BindAttributeBuffer(const r_attribute_id_t target, const r_buffer_t *buffer) {
-
-	if (target == R_ARRAY_ALL) {
-		for (r_attribute_id_t id = R_ARRAY_POSITION; id < R_ARRAY_MAX_ATTRIBS; id++) {
-			R_BindAttributeBuffer(id, buffer);
-		}
-
-		return;
-	}
-
-	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
-
-	if (target == R_ARRAY_ELEMENTS) {
-		r_state.element_buffer = buffer;
-	} else {
-		r_state.array_buffers[target] = buffer;
-		r_state.array_buffer_offsets[target] = 0;
-	}
-}
-
-/**
  * @brief Binds the specified buffer for the given attribute target with an offset.
  */
 void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset) {
@@ -56,33 +33,14 @@ void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t
 	} else {
 		r_state.array_buffers[target] = buffer;
 		r_state.array_buffer_offsets[target] = offset;
-	}
-}
-
-/**
- * @brief Binds an interleave array to all of its appropriate endpoints.
- */
-void R_BindAttributeInterleaveBuffer(const r_buffer_t *buffer, const r_attribute_mask_t mask) {
-
-	for (r_attribute_id_t attrib = R_ARRAY_POSITION; attrib < R_ARRAY_MAX_ATTRIBS; attrib++) {
-
-		r_attribute_mask_t this_mask = (1 << attrib);
-
-		if (!(mask & this_mask) ||
-			!(buffer->attrib_mask & this_mask)) {
-			continue;
-		}
-
-		assert(buffer->interleave_attribs[attrib]);
-
-		R_BindAttributeBuffer(attrib, buffer);
+		r_state.array_buffers_dirty |= 1 << target;
 	}
 }
 
 /**
  * @brief Binds an interleave array to all of its appropriate endpoints with an offset.
  */
-void R_BindAttributeInterleaveBufferOffset(const r_buffer_t *buffer, const GLsizei offset, const r_attribute_mask_t mask) {
+void R_BindAttributeInterleaveBufferOffset(const r_buffer_t *buffer, const r_attribute_mask_t mask, const GLsizei offset) {
 
 	if (!mask) {
 		return;
@@ -533,7 +491,7 @@ static void R_SetArrayStateMesh(const r_model_t *mod, r_attribute_mask_t mask, r
 
 	if (use_shell_model) {
 
-		R_BindAttributeInterleaveBufferOffset(&mod->mesh->shell_vertex_buffer, 0, mask);
+		R_BindAttributeInterleaveBuffer(&mod->mesh->shell_vertex_buffer, mask);
 
 		// elements
 		R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &mod->mesh->shell_element_buffer);
@@ -556,8 +514,10 @@ static void R_SetArrayStateMesh(const r_model_t *mod, r_attribute_mask_t mask, r
 
 		const uint32_t stride = (mod->num_verts * mod->mesh->vertex_buffer.element_type.stride);
 
-		R_BindAttributeInterleaveBufferOffset(&mod->mesh->vertex_buffer, stride * old_frame,
-											  mask & ~(R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_NEXT_NORMAL | R_ARRAY_MASK_NEXT_TANGENT));
+		R_BindAttributeInterleaveBufferOffset(&mod->mesh->vertex_buffer,
+											  mask & ~(R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_NEXT_NORMAL | R_ARRAY_MASK_NEXT_TANGENT),
+			                                  stride * old_frame);
+
 		if (do_interpolation) {
 
 			const uint32_t offset = stride * frame;

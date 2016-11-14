@@ -51,10 +51,12 @@
 	void R_DestroyBuffer(r_buffer_t *buffer);
 	_Bool R_ValidBuffer(const r_buffer_t *buffer);
 
-	void R_BindAttributeBuffer(const r_attribute_id_t target, const r_buffer_t *buffer);
 	void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset);
-	void R_BindAttributeInterleaveBuffer(const r_buffer_t *buffer, const r_attribute_mask_t mask);
-	void R_BindAttributeInterleaveBufferOffset(const r_buffer_t *buffer, const GLsizei offset, const r_attribute_mask_t mask);
+	void R_BindAttributeInterleaveBufferOffset(const r_buffer_t *buffer, const r_attribute_mask_t mask, const GLsizei offset);
+
+	#define R_BindAttributeBuffer(target, buffer) R_BindAttributeBufferOffset(target, buffer, 0)
+	#define R_BindAttributeInterleaveBuffer(buffer, mask) R_BindAttributeInterleaveBufferOffset(buffer, mask, 0)
+
 	#define R_UnbindAttributeBuffer(target) R_BindAttributeBuffer(target, NULL)
 	#define R_UnbindAttributeBuffers() R_UnbindAttributeBuffer(R_ARRAY_ALL)
 

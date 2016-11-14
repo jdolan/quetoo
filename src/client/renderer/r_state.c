@@ -981,6 +981,8 @@ void R_InitState(void) {
 	r_state.depth_near = 0.0;
 	r_state.depth_far = 1.0;
 
+	r_state.array_buffers_dirty = R_ARRAY_MASK_ALL;
+
 	R_InitSupersample();
 
 	R_GetError("Post-init");
