@@ -389,19 +389,21 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 	_Bool taken = false;
 
-	if (new_armor->tag == ARMOR_SHARD) { // take it, ignoring cap
+	if (new_armor->tag == ARMOR_SHARD) { // always take it, ignoring cap
 		if (current_armor) {
-			other->client->locals.inventory[ITEM_INDEX(current_armor)] += new_armor->quantity;
 			other->client->locals.inventory[ITEM_INDEX(current_armor)] =
-			    Clamp(other->client->locals.inventory[ITEM_INDEX(current_armor)], 0, 200);
+				Clamp(other->client->locals.inventory[ITEM_INDEX(current_armor)] + new_armor->quantity,
+					0, other->locals.max_armor);
 		} else {
-			other->client->locals.inventory[g_media.items.jacket_armor] = new_armor->quantity;
 			other->client->locals.inventory[g_media.items.jacket_armor] =
-			    Clamp(other->client->locals.inventory[g_media.items.jacket_armor], 0, 200);
+				Clamp((int16_t) new_armor->quantity, 0, other->locals.max_armor);
 		}
+
 		taken = true;
 	} else if (!current_armor) { // no current armor, take it
-		other->client->locals.inventory[ITEM_INDEX(new_armor)] = new_armor->quantity;
+		other->client->locals.inventory[ITEM_INDEX(new_armor)] =
+			Clamp((int16_t) new_armor->quantity, 0, other->locals.max_armor);
+
 		taken = true;
 	} else {
 		// we picked up stronger armor than we currently had
@@ -414,9 +416,11 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 			const int16_t new_count = Clamp(salvage_count + new_armor->quantity, 0, new_info->max_count);
 
-			if (new_count < 200) {
-				other->client->locals.inventory[ITEM_INDEX(new_armor)] = new_count;
+			if (new_count < other->locals.max_armor) {
 				other->client->locals.inventory[ITEM_INDEX(current_armor)] = 0;
+
+				other->client->locals.inventory[ITEM_INDEX(new_armor)] = 
+					Clamp(new_count, 0, other->locals.max_armor);
 			}
 
 			taken = true;
@@ -430,8 +434,9 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 			// take it
 			if (other->client->locals.inventory[ITEM_INDEX(current_armor)] < new_count &&
-			        other->client->locals.inventory[ITEM_INDEX(current_armor)] < 200) {
-				other->client->locals.inventory[ITEM_INDEX(current_armor)] = new_count;
+			        other->client->locals.inventory[ITEM_INDEX(current_armor)] < other->locals.max_armor) {
+				other->client->locals.inventory[ITEM_INDEX(current_armor)] =
+					Clamp(new_count, 0, other->locals.max_armor);
 
 				taken = true;
 			}
