@@ -25,8 +25,6 @@
 
 #include "CreateServerViewController.h"
 
-#include "CvarSelect.h"
-
 #define _Class _CreateServerViewController
 
 #pragma mark - Actions and delegate callbacks
