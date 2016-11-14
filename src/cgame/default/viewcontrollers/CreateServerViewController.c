@@ -69,12 +69,14 @@ static void createAction(Control *control, const SDL_Event *event, ident sender,
 
 	CreateServerViewController *this = (CreateServerViewController *) sender;
 
-	char maplist[2048] = "";
-	char firstmap[32] = "";
+	char maplist[MAX_STRING_CHARS] = "";
+	char firstmap[MAX_QPATH] = "";
 
-	for (const GList *list = $(this->mapList, selectedMaps); list; list = list->next) {
 
-		char name[32];
+	GList *selectedMaps = $(this->mapList, selectedMaps);
+	for (const GList *list = selectedMaps; list; list = list->next) {
+
+		char name[MAX_QPATH];
 		g_strlcpy(name, (const char *) Basename(list->data), sizeof(name));
 		StripExtension(name, name);
 
@@ -84,6 +86,8 @@ static void createAction(Control *control, const SDL_Event *event, ident sender,
 
 		g_strlcpy(maplist, va("%s%s ", maplist, name), sizeof(maplist));
 	}
+
+	g_list_free(selectedMaps);
 
 	if (firstmap[0] == '\0') {
 		cgi.Warn("No map selected\n");
