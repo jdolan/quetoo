@@ -368,21 +368,12 @@ typedef struct {
 } r_bsp_inline_model_t;
 
 /**
- * @brief BSP plane flag indicating that a shadow impacted this plane.
- */
-#define R_PLANE_SHADOW (1 << 0)
-
-/**
- * @brief BSP planes are an extended `cm_bsp_plane_t`, with an additional flags bitmask.
+ * @brief BSP planes are extended `cm_bsp_plane_t`, with an additional renderer members.
  */
 typedef struct {
-	vec3_t normal;
-	vec_t dist;
-	uint16_t type;
-	uint16_t sign_bits;
-	uint16_t index;
-	uint16_t num;
-	uint32_t flags;
+	cm_bsp_plane_t plane;
+	uint16_t num_shadows;
+	uint16_t shadow_ref;
 } r_bsp_plane_t;
 
 typedef struct {

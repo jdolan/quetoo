@@ -443,9 +443,9 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		const int16_t side = LittleShort(in->side);
 		if (side) {
 			out->flags |= R_SURF_PLANE_BACK;
-			VectorNegate(out->plane->normal, out->normal);
+			VectorNegate(out->plane->plane.normal, out->normal);
 		} else {
-			VectorCopy(out->plane->normal, out->normal);
+			VectorCopy(out->plane->plane.normal, out->normal);
 		}
 
 		// then texinfo
@@ -653,13 +653,14 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	for (int32_t i = 0; i < count; i++, in++, out++) {
 
 		for (int32_t j = 0; j < 3; j++) {
-			out->normal[j] = LittleFloat(in->normal[j]);
+			out->plane.normal[j] = LittleFloat(in->normal[j]);
 		}
 
-		out->dist = LittleFloat(in->dist);
-		out->type = LittleLong(in->type);
-		out->sign_bits = Cm_SignBitsForPlane((cm_bsp_plane_t *) out);
-		out->index = i, out->num = (i >> 1) + 1;
+		out->plane.dist = LittleFloat(in->dist);
+		out->plane.type = LittleLong(in->type);
+		out->plane.sign_bits = Cm_SignBitsForPlane((cm_bsp_plane_t *) out);
+		out->plane.index = i, out->plane.num = (i >> 1) + 1;
+		out->shadow_ref = (out->plane.num % 0xff) + 1;
 	}
 }
 

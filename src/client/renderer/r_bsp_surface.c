@@ -65,8 +65,8 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 	}
 
 	if (r_state.stencil_test_enabled) { // write to stencil buffer to clip shadows
-		if (surf->plane->flags & R_PLANE_SHADOW) {
-			R_StencilFunc(GL_ALWAYS, (surf->plane->num % 0xff) + 1, ~0);
+		if (surf->plane->num_shadows) {
+			R_StencilFunc(GL_ALWAYS, surf->plane->shadow_ref, ~0);
 		} else {
 			R_StencilFunc(GL_ALWAYS, 0, 0);
 		}

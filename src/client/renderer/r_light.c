@@ -113,7 +113,9 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 		}
 	}
 
-	const vec_t dist = DotProduct(l->origin, node->plane->normal) - node->plane->dist;
+	const cm_bsp_plane_t *plane = (cm_bsp_plane_t *) node->plane;
+	
+	const vec_t dist = DotProduct(l->origin, plane->normal) - plane->dist;
 
 	if (dist > l->radius) { // front only
 		R_MarkLight(l, node->children[0]);

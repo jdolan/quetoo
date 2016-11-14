@@ -367,7 +367,7 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		r_shadow_t *s = l->shadows;
 		while (s->illumination) {
 
-			if (s->illumination == il && s->plane->num == tr.plane.num) {
+			if (s->illumination == il && s->plane->plane.num == tr.plane.num) {
 				s->shadow = MAX(s->shadow, shadow);
 				break;
 			}
@@ -386,9 +386,23 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 
 		s->illumination = il;
 		s->plane = &r_model_state.world->bsp->planes[tr.plane.index];
-		s->plane->flags |= R_PLANE_SHADOW;
+		s->plane->num_shadows++;
 		s->shadow = shadow;
 	}
+}
+
+/**
+ * @brief Frees the specified shadow, decrementing its plane's shadow count.
+ */
+static void R_FreeShadow(r_shadow_t *s) {
+
+	if (s->plane) {
+		if (s->plane->num_shadows) {
+			s->plane->num_shadows--;
+		}
+	}
+
+	memset(s, 0, sizeof(*s));
 }
 
 /**
@@ -409,7 +423,9 @@ static void R_UpdateShadows(r_lighting_t *l) {
 	}
 
 	// otherwise, refresh all shadow information based on the new illuminations
-	memset(l->shadows, 0, sizeof(l->shadows));
+	for (size_t i = 0; i < lengthof(l->shadows); i++) {
+		R_FreeShadow(&l->shadows[i]);
+	}
 
 	const r_illumination_t *il = l->illuminations;
 	for (size_t i = 0; i < r_state.max_active_lights; i++, il++) {

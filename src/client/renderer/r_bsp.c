@@ -156,7 +156,7 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 	surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
 	for (i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
-		const r_bsp_plane_t *plane = surf->plane;
+		const cm_bsp_plane_t *plane = (cm_bsp_plane_t *) surf->plane;
 		vec_t dot;
 
 		// find which side of the surf we are on
@@ -256,7 +256,7 @@ static void R_AddBspInlineModelFlares_(const r_entity_t *e) {
 	r_bsp_surface_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
 	for (uint32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
-		const r_bsp_plane_t *plane = surf->plane;
+		const cm_bsp_plane_t *plane = (cm_bsp_plane_t *) surf->plane;
 		vec_t dot;
 
 		// find which side of the surf we are on
@@ -492,10 +492,11 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 
 	// otherwise, traverse down the appropriate sides of the node
 
-	if (AXIAL(node->plane)) {
-		dot = r_view.origin[node->plane->type] - node->plane->dist;
+	const cm_bsp_plane_t *plane = (cm_bsp_plane_t *) node->plane;
+	if (AXIAL(plane)) {
+		dot = r_view.origin[plane->type] - plane->dist;
 	} else {
-		dot = DotProduct(r_view.origin, node->plane->normal) - node->plane->dist;
+		dot = DotProduct(r_view.origin, plane->normal) - plane->dist;
 	}
 
 	if (dot > SIDE_EPSILON) {
@@ -505,9 +506,6 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 		side = 1;
 		side_bit = R_SURF_PLANE_BACK;
 	}
-
-	// reset the per-frame flags on the node's plane
-	node->plane->flags = 0;
 
 	// recurse down the children, front side first
 	R_MarkBspSurfaces_(node->children[side]);
