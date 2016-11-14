@@ -888,6 +888,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 		ent->locals.Die = G_ClientDie;
 		ent->locals.ground_entity = NULL;
 		ent->locals.health = ent->locals.max_health = handicap;
+		ent->locals.max_armor = 200;
 		ent->client->locals.max_boost_health = handicap + 100;
 		ent->locals.move_type = MOVE_TYPE_WALK;
 		ent->locals.mass = 200.0;

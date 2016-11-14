@@ -105,10 +105,6 @@ _Bool S_SpatializeChannel(s_channel_t *ch) {
  */
 void S_MixChannels(void) {
 
-	if (!s_volume->value) {
-		return;
-	}
-
 	Mix_Volume(-1, Clamp(s_volume->value, 0.0, 1.0) * MIX_MAX_VOLUME);
 
 	s_channel_t *ch = s_env.channels;
@@ -166,6 +162,10 @@ void S_MixChannels(void) {
 void S_AddSample(const s_play_sample_t *play) {
 
 	if (!s_env.initialized) {
+		return;
+	}
+
+	if (!s_volume->value) {
 		return;
 	}
 
