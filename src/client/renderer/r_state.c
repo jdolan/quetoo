@@ -178,359 +178,6 @@ void R_BindSpecularmapTexture(GLuint texnum) {
 }
 
 /**
- * @brief Binds the specified buffer for the given attribute target.
- */
-void R_BindAttributeBuffer(const r_attribute_id_t target, const r_buffer_t *buffer) {
-
-	if (target == R_ARRAY_ALL) {
-		for (r_attribute_id_t id = R_ARRAY_POSITION; id < R_ARRAY_MAX_ATTRIBS; id++) {
-			R_BindAttributeBuffer(id, buffer);
-		}
-
-		return;
-	}
-
-	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
-
-	if (target == R_ARRAY_ELEMENTS) {
-		r_state.element_buffer = buffer;
-	} else {
-		r_state.array_buffers[target] = buffer;
-		r_state.array_buffer_offsets[target] = 0;
-	}
-}
-
-/**
- * @brief Binds the specified buffer for the given attribute target with an offset.
- */
-void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset) {
-
-	assert(!buffer || ((buffer->type == R_BUFFER_DATA) == (target != R_ARRAY_ELEMENTS)));
-
-	if (target == R_ARRAY_ELEMENTS) {
-		r_state.element_buffer = buffer;
-	} else {
-		r_state.array_buffers[target] = buffer;
-		r_state.array_buffer_offsets[target] = offset;
-	}
-}
-
-
-/**
- * @brief Binds an interleave array to all of its appropriate endpoints.
- */
-void R_BindAttributeInterleaveBuffer(const r_buffer_t *buffer) {
-
-	for (r_attribute_id_t attrib = R_ARRAY_POSITION; attrib < R_ARRAY_MAX_ATTRIBS; attrib++) {
-
-		if (buffer->attrib_mask & (1 << attrib)) {
-			R_BindAttributeBuffer(attrib, buffer);
-		}
-	}
-}
-
-/**
- * @brief Returns whether or not a buffer is "finished".
- * Doesn't care if data is actually in the buffer.
- */
-_Bool R_ValidBuffer(const r_buffer_t *buffer) {
-
-	return buffer && buffer->bufnum && buffer->size;
-}
-
-/**
- * @brief Binds the appropriate shared vertex array to the specified target.
- */
-static GLenum R_BufferTypeToTarget(int type) {
-
-	return (type == R_BUFFER_ELEMENT) ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
-}
-
-/**
- * @brief
- */
-void R_BindBuffer(const r_buffer_t *buffer) {
-
-	assert(buffer->bufnum != 0);
-
-	if (r_state.active_buffers[buffer->type] == buffer->bufnum) {
-		return;
-	}
-
-	r_state.active_buffers[buffer->type] = buffer->bufnum;
-
-	glBindBuffer(buffer->target, buffer->bufnum);
-
-	r_view.num_state_changes[R_STATE_BIND_BUFFER]++;
-
-	R_GetError(NULL);
-}
-
-/**
- * @brief
- */
-void R_UnbindBuffer(const r_buffer_type_t type) {
-
-	if (!r_state.active_buffers[type]) {
-		return;
-	}
-
-	r_state.active_buffers[type] = 0;
-
-	glBindBuffer(R_BufferTypeToTarget(type), 0);
-
-	r_view.num_state_changes[R_STATE_BIND_BUFFER]++;
-
-	R_GetError(NULL);
-}
-
-/**
- * @brief Upload data to an already-created buffer. You could also use this function to
- * resize an existing buffer without uploading data, although it won't make the
- * buffer smaller.
- */
-void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data) {
-
-	assert(buffer->bufnum != 0);
-
-	// Check size. This is benign really, but it's usually a bug.
-	if (!size) {
-		Com_Warn("Attempted to upload 0 bytes to GPU");
-		return;
-	}
-
-	R_BindBuffer(buffer);
-
-	// if the buffer isn't big enough to hold what we had already,
-	// we have to resize the buffer
-
-	if (size > buffer->size) {
-		r_state.buffers_total_bytes -= buffer->size;
-		r_state.buffers_total_bytes += size;
-
-		glBufferData(buffer->target, size, data, buffer->hint);
-		R_GetError("Full resize");
-		r_view.num_buffer_full_uploads++;
-
-		buffer->size = size;
-	} else {
-		// just update the range we specified
-		glBufferSubData(buffer->target, 0, size, data);
-		r_view.num_buffer_partial_uploads++;
-
-		R_GetError("Updating existing buffer");
-	}
-
-	r_view.size_buffer_uploads += size;
-}
-
-/**
- * @brief Upload data to a sub-position in already-created buffer. You could also use this function to
- * resize an existing buffer without uploading data, although it won't make the
- * buffer smaller.
- * @param data_offset Whether the data pointer should be offset by start or not.
- */
-void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data,
-                         const _Bool data_offset) {
-
-	assert(buffer->bufnum != 0);
-
-	// Check size. This is benign really, but it's usually a bug.
-	if (!size) {
-		Com_Warn("Attempted to upload 0 bytes to GPU\n");
-		return;
-	}
-
-	// offset ptr if requested
-	if (start && data && data_offset) {
-		data = data + start;
-	}
-
-	R_BindBuffer(buffer);
-
-	// if the buffer isn't big enough to hold what we had already,
-	// we have to resize the buffer
-	const size_t total_size = start + size;
-
-	if (total_size > buffer->size) {
-		// if we passed a "start", the data is offset, so
-		// just reset to null. This is an odd edge case and
-		// it's fairly rare you'll be editing at the end first,
-		// but who knows.
-		if (start) {
-
-			glBufferData(buffer->target, total_size, NULL, buffer->hint);
-			R_GetError("Partial resize");
-			r_view.num_buffer_full_uploads++;
-			glBufferSubData(buffer->target, start, size, data);
-			R_GetError("Partial update");
-			r_view.num_buffer_partial_uploads++;
-		} else {
-			glBufferData(buffer->target, total_size, data, buffer->hint);
-			R_GetError("Full resize");
-			r_view.num_buffer_full_uploads++;
-		}
-
-		r_state.buffers_total_bytes -= buffer->size;
-		r_state.buffers_total_bytes += total_size;
-
-		buffer->size = total_size;
-	} else {
-		// just update the range we specified
-		glBufferSubData(buffer->target, start, size, data);
-		R_GetError("Updating existing buffer");
-		r_view.num_buffer_partial_uploads++;
-	}
-
-	r_view.size_buffer_uploads += size;
-}
-
-/**
- * @brief
- */
-static GLubyte R_GetElementSize(const GLenum type) {
-
-	switch (type) {
-		case R_ATTRIB_BYTE:
-		case R_ATTRIB_UNSIGNED_BYTE:
-			return 1;
-		case R_ATTRIB_SHORT:
-		case R_ATTRIB_UNSIGNED_SHORT:
-			return 2;
-		case R_ATTRIB_INT:
-		case R_ATTRIB_UNSIGNED_INT:
-		case R_ATTRIB_FLOAT:
-			return 4;
-		default:
-			Com_Error(ERR_DROP, "Bad GL type");
-	}
-}
-
-/**
- * @brief
- */
-uint32_t R_GetNumAllocatedBuffers(void) {
-	return r_state.buffers_total;
-}
-
-/**
- * @brief
- */
-uint32_t R_GetNumAllocatedBufferBytes(void) {
-	return r_state.buffers_total_bytes;
-}
-
-/**
- * @brief Allocate a GPU buffer of the specified size.
- * Optionally upload the data immediately too.
- */
-void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, const GLubyte element_count,
-                    const _Bool element_normalized, const GLenum hint,
-                    const r_buffer_type_t type, const size_t size,
-                    const void *data) {
-
-	if (buffer->bufnum != 0) {
-		Com_Debug("Attempting to reclaim non-empty buffer");
-		R_DestroyBuffer(buffer);
-	}
-
-	memset(buffer, 0, sizeof(*buffer));
-
-	glGenBuffers(1, &buffer->bufnum);
-
-	buffer->type = type & R_BUFFER_TYPE_MASK;
-	buffer->target = R_BufferTypeToTarget(buffer->type);
-	buffer->hint = hint;
-	buffer->element_type.type = element_type;
-
-	if (element_type != R_ATTRIB_TOTAL_TYPES) {
-		buffer->element_type.count = element_count;
-		buffer->element_type.stride = R_GetElementSize(buffer->element_type.type);
-		buffer->element_type.normalized = element_normalized;
-	} else {
-		buffer->element_type.stride = element_count;
-	}
-
-	if (type & R_BUFFER_INTERLEAVE) {
-		buffer->interleave = true;
-	}
-
-	if (size) {
-		R_UploadToBuffer(buffer, size, data);
-	}
-
-	r_state.buffers_total++;
-}
-
-/**
- * @brief Allocate an interleaved GPU buffer of the specified size.
- * Optionally upload the data immediately too.
- */
-void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, const r_buffer_layout_t *layout,
-                              const GLenum hint, const size_t size, const void *data) {
-
-	R_CreateBuffer(buffer, R_ATTRIB_TOTAL_TYPES, struct_size, false, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data);
-
-	GLsizei stride = 0;
-
-	for (; layout->attribute != -1; layout++) {
-		stride += layout->size;
-		buffer->interleave_attribs[layout->attribute] = layout;
-		buffer->attrib_mask |= 1 << layout->attribute;
-
-		// init type pack state once
-		if (!layout->_type_state.packed) {
-			r_buffer_layout_t *temp = (r_buffer_layout_t *) layout;
-
-			temp->_type_state.type = layout->type;
-			temp->_type_state.stride = buffer->element_type.stride;
-			temp->_type_state.offset = layout->offset;
-			temp->_type_state.count = layout->count;
-			temp->_type_state.normalized = layout->normalized;
-		}
-	}
-
-	if (stride != struct_size) {
-		Com_Error(ERR_DROP, "Buffer interleave size doesn't match layout size\n");
-	}
-}
-
-/**
- * @brief Destroy a GPU-allocated buffer.
- */
-void R_DestroyBuffer(r_buffer_t *buffer) {
-
-	if (buffer->bufnum == 0) {
-		Com_Debug("Attempting to free empty buffer");
-		return;
-	}
-
-	// if this buffer is currently bound, unbind it.
-	if (r_state.active_buffers[buffer->type] == buffer->bufnum) {
-		R_UnbindBuffer(buffer->type);
-	}
-
-	// if the buffer is attached to any active attribs, remove that ptr too
-	for (r_attribute_id_t i = 0; i < R_ARRAY_MAX_ATTRIBS; ++i) {
-
-		if (r_state.attributes[i].type != NULL &&
-		        r_state.attributes[i].value.buffer == buffer) {
-			r_state.attributes[i].type = NULL;
-			r_state.attributes[i].value.buffer = NULL;
-		}
-	}
-
-	glDeleteBuffers(1, &buffer->bufnum);
-
-	r_state.buffers_total_bytes -= buffer->size;
-	r_state.buffers_total--;
-
-	memset(buffer, 0, sizeof(r_buffer_t));
-
-	R_GetError(NULL);
-}
-
-/**
  * @brief
  */
 void R_BlendFunc(GLenum src, GLenum dest) {
@@ -1289,6 +936,8 @@ void R_InitState(void) {
 
 	memset(&r_state, 0, sizeof(r_state));
 
+	r_state.buffers_list = g_hash_table_new(g_direct_hash, g_direct_equal);
+
 	r_state.depth_mask_enabled = true;
 	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
@@ -1332,9 +981,21 @@ void R_InitState(void) {
 	r_state.depth_near = 0.0;
 	r_state.depth_far = 1.0;
 
+	r_state.array_buffers_dirty = R_ARRAY_MASK_ALL;
+
 	R_InitSupersample();
 
 	R_GetError("Post-init");
+}
+
+static void R_ShutdownState_PrintBuffers(gpointer       key,
+                                         gpointer       value,
+                                         gpointer       user_data) {
+
+	const r_buffer_t *buffer = (r_buffer_t *) value;
+
+	Com_Warn("Buffer not freed (%u type, %zd bytes), allocated from %s\n",
+			 buffer->type, buffer->size, buffer->func);
 }
 
 /**
@@ -1343,6 +1004,13 @@ void R_InitState(void) {
 void R_ShutdownState(void) {
 
 	R_ShutdownSupersample();
+
+	if (r_state.buffers_total) {
+		g_hash_table_foreach(r_state.buffers_list, R_ShutdownState_PrintBuffers, NULL);
+	}
+
+	g_hash_table_destroy(r_state.buffers_list);
+	r_state.buffers_list = NULL;
 
 	memset(&r_state, 0, sizeof(r_state));
 }

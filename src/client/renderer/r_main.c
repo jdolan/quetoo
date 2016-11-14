@@ -304,11 +304,12 @@ void R_BeginFrame(void) {
 		r_render_plugin->modified = false;
 	}
 
+	R_Clear();
+
 	if (r_state.supersample_fbo) {
 		glBindFramebuffer(GL_FRAMEBUFFER, r_state.supersample_fbo);
+		R_Clear();
 	}
-
-	R_Clear();
 }
 
 /**
@@ -502,7 +503,7 @@ static void R_InitLocal(void) {
 	                        "Controls texture saturation");
 	r_shadows = Cvar_Add("r_shadows", "3", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                     "Controls the rendering of mesh model shadows");
-	r_shell = Cvar_Add("r_shell", "1", CVAR_ARCHIVE,
+	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                   "Controls mesh shell effect (e.g. Quad Damage shell)");
 	r_specular = Cvar_Add("r_specular", "1.0", CVAR_ARCHIVE,
 	                      "Controls the specularity of bump-mapping effects");
@@ -621,13 +622,13 @@ void R_Shutdown(void) {
 
 	R_ShutdownPrograms();
 
-	R_ShutdownState();
-
 	R_ShutdownParticles();
 
 	R_ShutdownSky();
 
 	R_ShutdownMaterials();
+
+	R_ShutdownState();
 
 	R_ShutdownContext();
 

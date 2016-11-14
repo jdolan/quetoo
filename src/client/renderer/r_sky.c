@@ -346,7 +346,7 @@ void R_DrawSkyBox(void) {
 		return;
 	}
 
-	R_BindAttributeInterleaveBuffer(&r_sky.vert_buffer);
+	R_BindAttributeInterleaveBuffer(&r_sky.vert_buffer, R_ARRAY_MASK_ALL);
 
 	R_PushMatrix(R_MATRIX_MODELVIEW);
 	Matrix4x4_ConcatTranslate(&modelview_matrix, r_view.origin[0], r_view.origin[1], r_view.origin[2]);
@@ -400,9 +400,7 @@ void R_InitSky(void) {
  */
 void R_ShutdownSky(void) {
 
-	if (R_ValidBuffer(&r_sky.vert_buffer)) {
-		R_DestroyBuffer(&r_sky.vert_buffer);
-	}
+	R_DestroyBuffer(&r_sky.vert_buffer);
 }
 
 /**

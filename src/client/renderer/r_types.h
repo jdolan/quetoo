@@ -203,6 +203,7 @@ typedef struct r_buffer_s {
 	GLenum target; // GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER; mapped from above var
 	GLuint bufnum; // e.g. 123
 	size_t size; // last size of buffer, for resize operations
+	const char *func; // location of allocation
 
 	// attribute crap
 	r_attrib_type_state_t element_type;
@@ -713,6 +714,10 @@ typedef struct {
 	vec2_t *lightmap_texcoords;
 	vec3_t *normals;
 	vec4_t *tangents;
+
+	// buffers
+	r_buffer_t vertex_buffer;
+	r_buffer_t element_buffer;
 } r_bsp_model_t;
 
 /**
@@ -734,6 +739,16 @@ typedef struct {
 	r_mesh_config_t *view_config;
 	r_mesh_config_t *link_config;
 
+	// buffer data
+	r_buffer_t vertex_buffer;
+	r_buffer_t element_buffer;
+
+	// animated models use a separate texcoord buffer
+	r_buffer_t texcoord_buffer;
+	
+	r_buffer_t shell_vertex_buffer;
+	r_buffer_t shell_element_buffer;
+
 	void *data; // raw model data (r_md3_t, r_obj_t, ..)
 } r_mesh_model_t;
 
@@ -754,16 +769,9 @@ typedef struct r_model_s {
 	GLsizei num_verts; // raw vertex primitive count, used to build arrays
 	GLsizei num_elements; // number of vertex elements, if element_buffer is to be used
 	GLsizei num_tris; // cached num_tris amount
-
-	// vertex buffer objects
-	r_buffer_t vertex_buffer;
-	r_buffer_t texcoord_buffer;
-	r_buffer_t lightmap_texcoord_buffer;
-	r_buffer_t normal_buffer;
-	r_buffer_t tangent_buffer;
-	r_buffer_t element_buffer;
 } r_model_t;
 
+#define IS_BSP_MODEL(m) (m && m->bsp)
 #define IS_MESH_MODEL(m) (m && m->mesh)
 #define IS_BSP_INLINE_MODEL(m) (m && m->bsp_inline)
 

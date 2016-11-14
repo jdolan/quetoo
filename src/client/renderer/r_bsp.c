@@ -157,6 +157,7 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 
 	for (i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
 		const cm_bsp_plane_t *plane = (cm_bsp_plane_t *) surf->plane;
+
 		vec_t dot;
 
 		// find which side of the surf we are on
@@ -257,6 +258,7 @@ static void R_AddBspInlineModelFlares_(const r_entity_t *e) {
 
 	for (uint32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
 		const cm_bsp_plane_t *plane = (cm_bsp_plane_t *) surf->plane;
+
 		vec_t dot;
 
 		// find which side of the surf we are on
@@ -342,7 +344,7 @@ void R_DrawBspNormals(void) {
 
 	R_ResetArrayState(); // default arrays
 
-	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer);
+	R_BindAttributeInterleaveBuffer(&r_model_state.bound_vertice_buffer, R_ARRAY_MASK_ALL);
 
 	R_BindAttributeBuffer(R_ARRAY_ELEMENTS, &r_model_state.bound_element_buffer);
 

@@ -38,6 +38,9 @@ void R_UseProgram(const r_program_t *prog) {
 		if (prog->Use) { // invoke use function
 			prog->Use();
 		}
+
+		// FIXME: required?
+		r_state.array_buffers_dirty |= prog->arrays_mask;
 	} else {
 		glUseProgram(0);
 	}
@@ -216,6 +219,14 @@ GLenum r_attrib_type_to_gl_type[R_ATTRIB_TOTAL_TYPES] = {
  * @brief
  */
 static void R_AttributePointer(const r_attribute_id_t attribute) {
+
+	const r_attribute_mask_t mask = 1 << attribute;
+
+	if (!(r_state.array_buffers_dirty & mask)) {
+		return;
+	}
+
+	r_state.array_buffers_dirty &= ~mask;
 
 	R_EnableAttribute(attribute);
 
@@ -597,7 +608,7 @@ static r_program_t *R_LoadProgram(const char *name, void (*Init)(r_program_t *pr
 void R_SetupAttributes(void) {
 
 	const r_program_t *p = (r_program_t *) r_state.active_program;
-	int32_t mask = R_ArraysMask();
+	r_attribute_mask_t mask = R_ArraysMask();
 
 	if (p->arrays_mask & R_ARRAY_MASK_POSITION) {
 

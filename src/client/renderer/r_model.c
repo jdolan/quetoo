@@ -71,24 +71,26 @@ static void R_RegisterModel(r_media_t *self) {
 static void R_FreeModel(r_media_t *self) {
 	r_model_t *mod = (r_model_t *) self;
 
-	if (R_ValidBuffer(&mod->vertex_buffer)) {
-		R_DestroyBuffer(&mod->vertex_buffer);
-	}
+	if (IS_BSP_MODEL(mod)) {
+		
+		R_DestroyBuffer(&mod->bsp->vertex_buffer);
+		R_DestroyBuffer(&mod->bsp->element_buffer);
 
-	if (R_ValidBuffer(&mod->normal_buffer)) {
-		R_DestroyBuffer(&mod->normal_buffer);
-	}
+	} else if (IS_MESH_MODEL(mod)) {
+		
+		R_DestroyBuffer(&mod->mesh->vertex_buffer);
 
-	if (R_ValidBuffer(&mod->tangent_buffer)) {
-		R_DestroyBuffer(&mod->tangent_buffer);
-	}
+		if (R_ValidBuffer(&mod->mesh->texcoord_buffer)) {
+			R_DestroyBuffer(&mod->mesh->texcoord_buffer);
+		}
 
-	if (R_ValidBuffer(&mod->texcoord_buffer)) {
-		R_DestroyBuffer(&mod->texcoord_buffer);
-	}
+		R_DestroyBuffer(&mod->mesh->element_buffer);
 
-	if (R_ValidBuffer(&mod->lightmap_texcoord_buffer)) {
-		R_DestroyBuffer(&mod->lightmap_texcoord_buffer);
+		if (R_ValidBuffer(&mod->mesh->shell_vertex_buffer)) {
+
+			R_DestroyBuffer(&mod->mesh->shell_vertex_buffer);
+			R_DestroyBuffer(&mod->mesh->shell_element_buffer);
+		}
 	}
 
 	R_GetError(mod->media.name);

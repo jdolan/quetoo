@@ -291,7 +291,7 @@ typedef struct {
 	vec4_t tangent;
 } r_md3_interleave_vertex_t;
 
-r_buffer_layout_t r_md3_buffer_layout[] = {
+static r_buffer_layout_t r_md3_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
 	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 12 },
 	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_FLOAT, .count = 4, .size = sizeof(vec4_t), .offset = 24 },
@@ -332,7 +332,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	r_md3_interleave_vertex_t *vertexes = Mem_LinkMalloc(v, mod);
 
 	// upload initial data
-	R_CreateInterleaveBuffer(&mod->vertex_buffer, sizeof(r_md3_interleave_vertex_t), r_md3_buffer_layout, GL_STATIC_DRAW,
+	R_CreateInterleaveBuffer(&mod->mesh->vertex_buffer, sizeof(r_md3_interleave_vertex_t), r_md3_buffer_layout, GL_STATIC_DRAW,
 	                         v * md3->num_frames, NULL);
 
 	for (uint16_t f = 0; f < md3->num_frames; ++f, frame++) {
@@ -372,17 +372,14 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 		}
 
 		// upload each frame
-		R_UploadToSubBuffer(&mod->vertex_buffer, v * f, v, vertexes, false);
+		R_UploadToSubBuffer(&mod->mesh->vertex_buffer, v * f, v, vertexes, false);
 	}
 
-	mod->normal_buffer = mod->vertex_buffer;
-	mod->tangent_buffer = mod->vertex_buffer;
-
 	// upload texcoords
-	R_CreateDataBuffer(&mod->texcoord_buffer, R_ATTRIB_UNSIGNED_SHORT, 2, true, GL_STATIC_DRAW, st, texcoords);
+	R_CreateDataBuffer(&mod->mesh->texcoord_buffer, R_ATTRIB_UNSIGNED_SHORT, 2, true, GL_STATIC_DRAW, st, texcoords);
 
 	// upload elements
-	R_CreateElementBuffer(&mod->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, tris);
+	R_CreateElementBuffer(&mod->mesh->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, tris);
 
 	// get rid of these, we don't need them any more
 	Mem_Free(texcoords);
@@ -857,11 +854,105 @@ static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
 typedef struct {
 	vec3_t vertex;
 	vec3_t normal;
+	u16vec2_t diffuse;
+} r_obj_shell_interleave_vertex_t;
+
+static r_buffer_layout_t r_obj_shell_buffer_layout[] = {
+	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
+	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 12 },
+	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_UNSIGNED_SHORT, .count = 2, .size = sizeof(u16vec2_t), .offset = 24, .normalized = true },
+	{ .attribute = -1 }
+};
+
+/**
+ * @brief Populates the shell array of `mod` with data from `obj`. This is only used
+ * if r_shell is 2.
+ */
+static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *elements, const GLsizei e) {
+
+	if (r_shell->value < 2) {
+		return;
+	}
+	
+	GHashTable *index_remap_table = g_hash_table_new(g_direct_hash, g_direct_equal);
+	GArray *unique_vertex_list = g_array_new(true, false, sizeof(r_obj_shell_interleave_vertex_t));
+
+	// compile list of unique vertices in the model
+	const GList *vl = obj->verts;
+	uint32_t vi = 0;
+
+	while (vl) {
+
+		const r_obj_vertex_t *ve = vl->data;
+		uint32_t i;
+
+		for (i = 0; i < unique_vertex_list->len; i++) {
+
+			r_obj_shell_interleave_vertex_t *v = &g_array_index(unique_vertex_list, r_obj_shell_interleave_vertex_t, i);
+
+			if (VectorCompare(ve->point, v->vertex)) {
+
+				for (int32_t n = 0; n < 3; ++n) {
+					v->normal[n] += ve->normal[n];
+				}
+				break;
+			}
+		}
+
+		if (i == unique_vertex_list->len) {
+
+			unique_vertex_list = g_array_append_vals(unique_vertex_list, &(const r_obj_shell_interleave_vertex_t) {
+				.vertex = { ve->point[0], ve->point[1], ve->point[2] },
+				.normal = { ve->normal[0], ve->normal[1], ve->normal[2] },
+				.diffuse = { (u16vec_t) (ve->texcoords[0] * USHRT_MAX), (u16vec_t) (ve->texcoords[1] * USHRT_MAX) }
+			}, 1);
+		}
+
+		if (vi != i) {
+			g_hash_table_insert(index_remap_table, (gpointer) (ptrdiff_t) vi, (gpointer) (ptrdiff_t) i);
+		}
+
+		vl = vl->next;
+		vi++;
+	}
+
+	for (uint32_t i = 0; i < unique_vertex_list->len; i++) {
+
+		r_obj_shell_interleave_vertex_t *v = &g_array_index(unique_vertex_list, r_obj_shell_interleave_vertex_t, i);
+
+		VectorNormalize(v->normal);
+	}
+
+	// upload data
+	R_CreateInterleaveBuffer(&mod->mesh->shell_vertex_buffer, sizeof(r_obj_shell_interleave_vertex_t), r_obj_shell_buffer_layout, GL_STATIC_DRAW, sizeof(r_obj_shell_interleave_vertex_t) * unique_vertex_list->len, unique_vertex_list->data);
+
+	g_array_free(unique_vertex_list, true);
+
+	// remap indices
+	for (GLsizei i = 0; i < mod->num_elements; ++i) {
+
+		GLuint *element = &elements[i];
+		gpointer new_element;
+
+		if (g_hash_table_lookup_extended(index_remap_table, (gconstpointer) (ptrdiff_t) *element, NULL, &new_element)) {
+
+			*element = (GLuint) new_element;
+		}
+	}
+
+	R_CreateElementBuffer(&mod->mesh->shell_element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
+	
+	g_hash_table_destroy(index_remap_table);
+}
+
+typedef struct {
+	vec3_t vertex;
+	vec3_t normal;
 	vec4_t tangent;
 	u16vec2_t diffuse;
 } r_obj_interleave_vertex_t;
 
-r_buffer_layout_t r_obj_buffer_layout[] = {
+static r_buffer_layout_t r_obj_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
 	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 12 },
 	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_FLOAT, .count = 4, .size = sizeof(vec4_t), .offset = 24 },
@@ -918,13 +1009,11 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 	}
 
 	// load the vertex buffer objects
-	R_CreateInterleaveBuffer(&mod->vertex_buffer, sizeof(*verts), r_obj_buffer_layout, GL_STATIC_DRAW, v, verts);
+	R_CreateInterleaveBuffer(&mod->mesh->vertex_buffer, sizeof(*verts), r_obj_buffer_layout, GL_STATIC_DRAW, v, verts);
 
-	mod->normal_buffer = mod->vertex_buffer;
-	mod->tangent_buffer = mod->vertex_buffer;
-	mod->texcoord_buffer = mod->vertex_buffer;
+	R_CreateElementBuffer(&mod->mesh->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
 
-	R_CreateElementBuffer(&mod->element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
+	R_LoadObjShellVertexArrays(mod, obj, elements, e);
 
 	// free our temporary buffers
 	Mem_Free(verts);

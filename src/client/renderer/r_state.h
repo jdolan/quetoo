@@ -74,6 +74,7 @@ typedef struct r_state_s {
 
 	uint32_t buffers_total_bytes;
 	uint32_t buffers_total;
+	GHashTable *buffers_list;
 
 	// the active element buffer.
 	const r_buffer_t *element_buffer;
@@ -82,6 +83,7 @@ typedef struct r_state_s {
 	// programs to be used in attributes.
 	const r_buffer_t *array_buffers[R_ARRAY_MAX_ATTRIBS];
 	GLsizei array_buffer_offsets[R_ARRAY_MAX_ATTRIBS];
+	r_attribute_mask_t array_buffers_dirty;
 
 	GLenum blend_src, blend_dest; // blend function
 	_Bool blend_enabled;
@@ -173,27 +175,6 @@ void R_BindDeluxemapTexture(GLuint texnum);
 void R_BindNormalmapTexture(GLuint texnum);
 void R_BindSpecularmapTexture(GLuint texnum);
 void R_EnableDepthMask(_Bool enable);
-
-void R_BindBuffer(const r_buffer_t *buffer);
-void R_UnbindBuffer(const r_buffer_type_t type);
-void R_UploadToBuffer(r_buffer_t *buffer, const size_t size, const void *data);
-void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t size, const void *data,
-                         const _Bool data_offset);
-void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, const GLubyte element_count,
-                    const _Bool element_normalized,
-                    const GLenum hint, const r_buffer_type_t type, const size_t size, const void *data);
-#define R_CreateDataBuffer(buffer, element_type, element_count, element_normalized, hint, size, data) R_CreateBuffer(buffer, element_type, element_count, element_normalized, hint, R_BUFFER_DATA, size, data)
-void R_CreateInterleaveBuffer(r_buffer_t *buffer, const GLubyte struct_size, const r_buffer_layout_t *layout,
-                              const GLenum hint, const size_t size, const void *data);
-#define R_CreateElementBuffer(buffer, element_type, hint, size, data) R_CreateBuffer(buffer, element_type, 1, false, hint, R_BUFFER_ELEMENT, size, data)
-void R_DestroyBuffer(r_buffer_t *buffer);
-_Bool R_ValidBuffer(const r_buffer_t *buffer);
-
-void R_BindAttributeBuffer(const r_attribute_id_t target, const r_buffer_t *buffer);
-void R_BindAttributeInterleaveBuffer(const r_buffer_t *buffer);
-void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t *buffer, const GLsizei offset);
-#define R_UnbindAttributeBuffer(target) R_BindAttributeBuffer(target, NULL)
-#define R_UnbindAttributeBuffers() R_UnbindAttributeBuffer(R_ARRAY_ALL)
 
 #define ALPHA_TEST_DISABLED_THRESHOLD 0.0
 #define ALPHA_TEST_ENABLED_THRESHOLD 0.25
