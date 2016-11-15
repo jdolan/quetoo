@@ -985,6 +985,10 @@ void R_InitState(void) {
 
 	R_InitSupersample();
 
+	glEnable(GL_CULL_FACE);
+
+	glFrontFace(GL_CW);
+
 	R_GetError("Post-init");
 }
 
