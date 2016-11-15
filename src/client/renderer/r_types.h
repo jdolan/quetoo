@@ -452,7 +452,7 @@ typedef struct {
 	vec2_t st_mins;
 	vec2_t st_maxs;
 	vec2_t st_center;
-	vec2_t st_extents;
+	s16vec2_t st_extents;
 
 	GLuint index; // index into element buffer
 	GLuint *elements; // elements unique to this surf

@@ -48,6 +48,8 @@ void R_CompileAtlas(r_atlas_t *atlas);
 
 		GArray *nodes;
 		uint32_t root;
+
+		_Bool keep_square;
 	} r_packer_t;
 
 	void R_AtlasPacker_InitPacker(r_packer_t *packer, const r_pixel_t max_width, const r_pixel_t max_height, const r_pixel_t root_width, const r_pixel_t root_height, const uint32_t initial_size);
