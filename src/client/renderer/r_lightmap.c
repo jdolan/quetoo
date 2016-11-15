@@ -622,7 +622,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 	r_packer_t packer;
 	memset(&packer, 0, sizeof(packer));
 
-	R_AtlasPacker_InitPacker(&packer, 4096, 4096, w, h, bsp->num_surfaces / 2);
+	R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, w, h, bsp->num_surfaces / 2);
 
 	GSList *start = r_lightmap_state.blocks;
 
@@ -657,7 +657,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 				R_UploadPackedLightmaps(current_width, current_height, bsp, start, list);
 
 				// reinitialize packer
-				R_AtlasPacker_InitPacker(&packer, 4096, 4096, w, h, 0);
+				R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, w, h, 0);
 
 				// new start position
 				start = list;
