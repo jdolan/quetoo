@@ -645,7 +645,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
-	r_bsp_plane_t *out = Mem_LinkMalloc(count * sizeof(*out), bsp);
+	cm_bsp_plane_t *out = Mem_LinkMalloc(count * sizeof(*out), bsp);
 
 	bsp->planes = out;
 	bsp->num_planes = count;
@@ -658,7 +658,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 		out->dist = LittleFloat(in->dist);
 		out->type = LittleLong(in->type);
-		out->sign_bits = Cm_SignBitsForPlane((cm_bsp_plane_t *) out);
+		out->sign_bits = Cm_SignBitsForPlane(out);
 		out->num = (i >> 1) + 1;
 	}
 

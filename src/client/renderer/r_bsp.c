@@ -156,15 +156,14 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 	surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
 	for (i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
-		const cm_bsp_plane_t *plane = (cm_bsp_plane_t *) surf->plane;
 
 		vec_t dot;
 
 		// find which side of the surf we are on
-		if (AXIAL(plane)) {
-			dot = r_bsp_model_org[plane->type] - plane->dist;
+		if (AXIAL(surf->plane)) {
+			dot = r_bsp_model_org[surf->plane->type] - surf->plane->dist;
 		} else {
-			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
+			dot = DotProduct(r_bsp_model_org, surf->plane->normal) - surf->plane->dist;
 		}
 
 		if (surf->flags & R_SURF_PLANE_BACK) {
@@ -257,15 +256,14 @@ static void R_AddBspInlineModelFlares_(const r_entity_t *e) {
 	r_bsp_surface_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
 	for (uint32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
-		const cm_bsp_plane_t *plane = (cm_bsp_plane_t *) surf->plane;
 
 		vec_t dot;
 
 		// find which side of the surf we are on
-		if (AXIAL(plane)) {
-			dot = r_bsp_model_org[plane->type] - plane->dist;
+		if (AXIAL(surf->plane)) {
+			dot = r_bsp_model_org[surf->plane->type] - surf->plane->dist;
 		} else {
-			dot = DotProduct(r_bsp_model_org, plane->normal) - plane->dist;
+			dot = DotProduct(r_bsp_model_org, surf->plane->normal) - surf->plane->dist;
 		}
 
 		if (surf->flags & R_SURF_PLANE_BACK) {
@@ -494,11 +492,10 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 
 	// otherwise, traverse down the appropriate sides of the node
 
-	const cm_bsp_plane_t *plane = (cm_bsp_plane_t *) node->plane;
-	if (AXIAL(plane)) {
-		dot = r_view.origin[plane->type] - plane->dist;
+	if (AXIAL(node->plane)) {
+		dot = r_view.origin[node->plane->type] - node->plane->dist;
 	} else {
-		dot = DotProduct(r_view.origin, plane->normal) - plane->dist;
+		dot = DotProduct(r_view.origin, node->plane->normal) - node->plane->dist;
 	}
 
 	if (dot > SIDE_EPSILON) {
