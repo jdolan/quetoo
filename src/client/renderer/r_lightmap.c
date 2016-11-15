@@ -249,10 +249,6 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 		start = start->next;
 	} while (start != end);
 
-	file_t *file = Fs_OpenWrite(va("temp_%u_%u.data", width, height));
-	Fs_Write(file, sample_buffer, 1, width * height * 3);
-	Fs_Close(file);
-
 	// upload!
 	R_UploadImage(lightmap, GL_RGB, sample_buffer);
 	R_UploadImage(deluxemap, GL_RGB, direction_buffer);
