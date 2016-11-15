@@ -30,24 +30,73 @@
 #pragma mark - Actions and delegate callbacks
 
 /**
+ * @brief Select gameplay mode
+ */
+static void selectGameplay(Select *select, Option *option) {
+	if (option->value == (ident) 0) {
+		cgi.CvarSet(g_gameplay->name, "default");
+	} else if (option->value == (ident) 1) {
+		cgi.CvarSet(g_gameplay->name, "deathmatch");
+	} else if (option->value == (ident) 2) {
+		cgi.CvarSet(g_gameplay->name, "instagib");
+	} else if (option->value == (ident) 3) {
+		cgi.CvarSet(g_gameplay->name, "arena");
+	} else if (option->value == (ident) 4) {
+		cgi.CvarSet(g_gameplay->name, "duel");
+	}
+}
+
+/**
+ * @brief Select teamplay mode
+ */
+static void selectTeamsplay(Select *select, Option *option) {
+	if (option->value == (ident) 0) {
+		cgi.CvarSet(g_teams->name, "0");
+		cgi.CvarSet(g_ctf->name, "0");
+	} else if (option->value == (ident) 1) {
+		cgi.CvarSet(g_teams->name, "1");
+		cgi.CvarSet(g_ctf->name, "0");
+	} else if (option->value == (ident) 2) {
+		cgi.CvarSet(g_teams->name, "0");
+		cgi.CvarSet(g_ctf->name, "1");
+	}
+}
+
+/**
  * @brief ActionFunction for the Create button.
  */
 static void createAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
 	CreateServerViewController *this = (CreateServerViewController *) sender;
 
+	char maplist[MAX_STRING_CHARS] = "";
+	char firstmap[MAX_QPATH] = "";
+
+
 	GList *selectedMaps = $(this->mapList, selectedMaps);
 	for (const GList *list = selectedMaps; list; list = list->next) {
 
-		g_map_list_map_t *map = cgi.Malloc(sizeof(g_map_list_map_t), MEM_TAG_CGAME);
+		char name[MAX_QPATH];
+		g_strlcpy(name, (const char *) Basename(list->data), sizeof(name));
+		StripExtension(name, name);
 
-		g_strlcpy(map->name, (const char *) list->data, sizeof(map->name));
-		printf("selected %s\n", map->name);
+		if (maplist[0] == '\0') {
+			g_strlcpy(firstmap, name, sizeof(firstmap));
+		}
 
-		//mapList = g_list_append(mapList, map);
+		g_strlcpy(maplist, va("%s%s ", maplist, name), sizeof(maplist));
 	}
 
 	g_list_free(selectedMaps);
+
+	if (firstmap[0] == '\0') {
+		cgi.Warn("No map selected\n");
+
+		return;
+	}
+
+	cgi.CvarSet("g_map_rotation", maplist);
+	cgi.Cbuf(va("map %s\n", firstmap));
 }
 
 #pragma mark - Object
@@ -113,29 +162,47 @@ static void loadView(ViewController *self) {
 
 			this->gameplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
-			$(this->gameplay, addOption, "Default", "default");
-			$(this->gameplay, addOption, "Deathmatch", "deathmatch");
-			$(this->gameplay, addOption, "Instagib", "instagib");
-			$(this->gameplay, addOption, "Arena", "arena");
-			$(this->gameplay, addOption, "Duel", "duel");
+			$(this->gameplay, addOption, "Default", (ident) 0);
+			$(this->gameplay, addOption, "Deathmatch", (ident) 1);
+			$(this->gameplay, addOption, "Instagib", (ident) 2);
+			$(this->gameplay, addOption, "Arena", (ident) 3);
+			$(this->gameplay, addOption, "Duel", (ident) 4);
 
 			this->gameplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
+			this->gameplay->delegate.didSelectOption = selectGameplay;
+
+			if (!g_strcmp0(g_gameplay->string, "default")) {
+				$(this->gameplay, selectOptionWithValue, (ident) 0);
+			} else if (!g_strcmp0(g_gameplay->string, "deathmatch")) {
+				$(this->gameplay, selectOptionWithValue, (ident) 1);
+			} else if (!g_strcmp0(g_gameplay->string, "instagib")) {
+				$(this->gameplay, selectOptionWithValue, (ident) 2);
+			} else if (!g_strcmp0(g_gameplay->string, "arena")) {
+				$(this->gameplay, selectOptionWithValue, (ident) 3);
+			} else if (!g_strcmp0(g_gameplay->string, "duel")) {
+				$(this->gameplay, selectOptionWithValue, (ident) 4);
+			}
 
 			Cg_Input((View *) stackView, "Gameplay", (Control *) this->gameplay);
 
 			this->teamsplay = $(alloc(Select), initWithFrame, NULL, ControlStyleDefault);
 
-			$(this->teamsplay, addOption, "Free for All", "free-for-all");
-			$(this->teamsplay, addOption, "Team Deathmatch", "team-deathmatch");
-			$(this->teamsplay, addOption, "Capture the Flag", "capture-the-flag");
+			$(this->teamsplay, addOption, "Free for All", (ident) 0);
+			$(this->teamsplay, addOption, "Team Deathmatch", (ident) 1);
+			$(this->teamsplay, addOption, "Capture the Flag", (ident) 2);
 
 			this->teamsplay->control.view.frame.w = DEFAULT_TEXTVIEW_WIDTH;
+			this->teamsplay->delegate.didSelectOption = selectTeamsplay;
+
+			if (g_ctf->integer != 0) {
+				$(this->teamsplay, selectOptionWithValue, (ident) 2);
+			} else {
+				$(this->teamsplay, selectOptionWithValue, (ident) g_teams->integer);
+			}
 
 			Cg_Input((View *) stackView, "Teams play", (Control *) this->teamsplay);
 
-			this->matchMode = $(alloc(Checkbox), initWithFrame, NULL, ControlStyleDefault);
-
-			Cg_Input((View *) stackView, "Match mode", (Control *) this->matchMode);
+			Cg_CvarCheckboxInput((View *) stackView, "Match mode", "g_match");
 
 			$((View *) box, addSubview, (View *) stackView);
 			release(stackView);
