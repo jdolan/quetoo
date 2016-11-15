@@ -321,7 +321,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 		SDL_Surface *surf;
 		if (Img_LoadImage(key, &surf)) { // attempt to load the image
-			image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t));
+			image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), MEDIA_IMAGE);
 
 			image->media.Retain = R_RetainImage;
 			image->media.Free = R_FreeImage;
@@ -356,7 +356,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
  */
 static void R_InitNullImage(void) {
 
-	r_image_state.null = (r_image_t *) R_AllocMedia("r_image_state.null", sizeof(r_image_t));
+	r_image_state.null = (r_image_t *) R_AllocMedia("r_image_state.null", sizeof(r_image_t), MEDIA_IMAGE);
 	r_image_state.null->media.Retain = R_RetainImage;
 	r_image_state.null->media.Free = R_FreeImage;
 
@@ -376,7 +376,7 @@ static void R_InitNullImage(void) {
  */
 static void R_InitWarpImage(void) {
 
-	r_image_state.warp = (r_image_t *) R_AllocMedia("r_image_state.warp", sizeof(r_image_t));
+	r_image_state.warp = (r_image_t *) R_AllocMedia("r_image_state.warp", sizeof(r_image_t), MEDIA_IMAGE);
 	r_image_state.warp->media.Retain = R_RetainImage;
 	r_image_state.warp->media.Free = R_FreeImage;
 
@@ -401,7 +401,7 @@ static void R_InitWarpImage(void) {
 /**
  * @brief Initializes the mesh shell image.
  */
-static void R_InitShellImage() {
+static void R_InitShellImage(void) {
 	r_image_state.shell = R_LoadImage("envmaps/envmap_3", IT_PROGRAM);
 }
 

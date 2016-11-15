@@ -520,6 +520,7 @@ static void R_InitLocal(void) {
 	Cvar_ClearAll(CVAR_R_MASK);
 
 	Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media");
+	Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images. Careful!");
 	Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER,
 	        "Save the current materials properties to disk");
 	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");

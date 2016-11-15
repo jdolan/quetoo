@@ -57,7 +57,7 @@ static r_image_t *R_AllocLightmap_(r_image_type_t type) {
 	const char *base = (type == IT_LIGHTMAP ? "lightmap" : "deluxemap");
 	g_snprintf(name, sizeof(name), "%s %u", base, count++);
 
-	r_image_t *image = (r_image_t *) R_AllocMedia(name, sizeof(r_image_t));
+	r_image_t *image = (r_image_t *) R_AllocMedia(name, sizeof(r_image_t), MEDIA_IMAGE);
 
 	image->media.Free = R_FreeLightmap;
 
@@ -285,7 +285,7 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
  */
 void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 
-	// users can tune lightmap size for their card
+	// users can tune max lightmap size for their card
 	r_lightmap_state.block_size = r_lightmap_block_size->integer;
 
 	// but clamp it to the card's capability to avoid errors
