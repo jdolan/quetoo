@@ -425,6 +425,8 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
+	uint32_t start = SDL_GetTicks();
+
 	bsp->num_surfaces = l->file_len / sizeof(*in);
 	bsp->surfaces = out = Mem_LinkMalloc(bsp->num_surfaces * sizeof(*out), bsp);
 
@@ -483,6 +485,9 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		Mem_Free(bsp->lightmaps->data);
 		bsp->lightmaps->size = 0;
 	}
+
+	uint32_t end = SDL_GetTicks();
+	Com_Print("Generated lightmaps in %u ms\n", end - start);
 }
 
 /**

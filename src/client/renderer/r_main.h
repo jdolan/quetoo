@@ -38,7 +38,6 @@ extern cvar_t *r_gamma;
 extern cvar_t *r_hardness;
 extern cvar_t *r_height;
 extern cvar_t *r_invert;
-extern cvar_t *r_lightmap_block_size;
 extern cvar_t *r_lighting;
 extern cvar_t *r_line_alpha;
 extern cvar_t *r_line_width;

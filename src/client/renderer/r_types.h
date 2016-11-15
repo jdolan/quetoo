@@ -462,7 +462,11 @@ typedef struct {
 	r_bsp_flare_t *flare;
 
 	r_pixel_t lightmap_s, lightmap_t; // lightmap texture coords
-	r_image_t *lightmap;
+
+	union {
+		r_image_t *lightmap;
+		const byte *lightmap_input; // this is only used by r_lightmap
+	};
 	r_image_t *deluxemap;
 
 } r_bsp_surface_t;

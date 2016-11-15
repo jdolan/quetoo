@@ -875,7 +875,7 @@ static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *ele
 	}
 	
 	GHashTable *index_remap_table = g_hash_table_new(g_direct_hash, g_direct_equal);
-	GArray *unique_vertex_list = g_array_new(true, false, sizeof(r_obj_shell_interleave_vertex_t));
+	GArray *unique_vertex_list = g_array_new(false, false, sizeof(r_obj_shell_interleave_vertex_t));
 
 	// compile list of unique vertices in the model
 	const GList *vl = obj->verts;

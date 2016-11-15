@@ -67,6 +67,8 @@ extern vec3_t vec3_forward;
 #define Radians(d) 					((d) * 0.01745329251) // * M_PI / 180.0
 #define Degrees(r)					((r) * 57.2957795131) // * 180.0 / M_PI
 
+#define NearestMultiple(n, align)	((n) - 1 - ((n) - 1) % (align) + (align))
+
 /**
  * @brief Math and trigonometry functions.
  */
