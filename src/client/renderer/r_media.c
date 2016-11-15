@@ -47,6 +47,46 @@ void R_ListMedia_f(void) {
 }
 
 /**
+ * @brief
+ */
+void R_DumpImages_f(void) {
+
+	Com_Print("Dumping media... ");
+	
+	char path[MAX_OS_PATH];
+
+	Fs_Mkdir("imgdmp");
+
+	GList *key = r_media_state.keys;
+	while (key) {
+		const r_media_t *media = g_hash_table_lookup(r_media_state.media, key->data);
+
+		if (media->type == MEDIA_IMAGE ||
+			media->type == MEDIA_ATLAS) {
+
+			const r_image_t *image = (const r_image_t *) media;
+			GLubyte *pixels = Mem_Malloc(image->width * image->height * 4);
+
+			g_snprintf(path, sizeof(path), "imgdmp/%s.%u.%u.data", image->media.name, image->width, image->height);
+
+			R_BindTexture(image->texnum);
+
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+			file_t *file = Fs_OpenWrite(path);
+			Fs_Write(file, pixels, 4, image->width * image->height);
+			Fs_Close(file);
+
+			Mem_Free(pixels);
+		}
+
+		key = key->next;
+	}
+
+	Com_Print("done! Enjoy your wasted disk space.\n");
+}
+
+/**
  * @brief Establishes a dependency from the specified dependent to the given
  * dependency. Dependencies in use by registered media are never freed.
  */
@@ -143,7 +183,7 @@ r_media_t *R_FindMedia(const char *name) {
  *
  * @return The newly initialized media.
  */
-r_media_t *R_AllocMedia(const char *name, size_t size) {
+r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
 
 	if (!name || !*name) {
 		Com_Error(ERR_DROP, "NULL name\n");
@@ -152,6 +192,7 @@ r_media_t *R_AllocMedia(const char *name, size_t size) {
 	r_media_t *media = Mem_TagMalloc(size, MEM_TAG_RENDERER);
 
 	g_strlcpy(media->name, name, sizeof(media->name));
+	media->type = type;
 
 	return media;
 }

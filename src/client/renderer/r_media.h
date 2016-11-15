@@ -27,10 +27,11 @@
 #ifdef __R_LOCAL_H__
 
 	void R_ListMedia_f(void);
+	void R_DumpImages_f(void);
 	void R_RegisterDependency(r_media_t *dependent, r_media_t *dependency);
 	void R_RegisterMedia(r_media_t *media);
 	r_media_t *R_FindMedia(const char *name);
-	r_media_t *R_AllocMedia(const char *name, size_t size);
+	r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type);
 	void R_FreeMedia(void);
 	void R_BeginLoading(void);
 	void R_InitMedia(void);

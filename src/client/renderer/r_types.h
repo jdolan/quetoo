@@ -31,9 +31,27 @@
 #include "matrix.h"
 #include "thread.h"
 
+/**
+ * @brief Media identifier type
+ */
+typedef enum {
+	MEDIA_GENERIC, // unknown/generic type
+	MEDIA_IMAGE, // r_image_t
+	MEDIA_ATLAS, // r_atlas_t
+
+	MEDIA_MD3, //
+	MEDIA_OBJ, // r_model_t
+	MEDIA_BSP, //
+
+	MEDIA_MATERIAL, // r_material_t
+
+	MEDIA_TOTAL
+} r_media_type_t;
+
 // media handles
 typedef struct r_media_s {
 	char name[MAX_QPATH];
+	r_media_type_t type;
 	GList *dependencies;
 	void (*Register)(struct r_media_s *self);
 	_Bool (*Retain)(struct r_media_s *self);

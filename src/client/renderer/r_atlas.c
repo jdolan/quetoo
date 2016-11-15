@@ -22,7 +22,6 @@
 #include "r_local.h"
 
 static cvar_t *r_atlas;
-static cvar_t *r_atlas_debug;
 
 /**
  * @brief Free event listener for atlases.
@@ -43,7 +42,7 @@ static void R_FreeAtlas(r_media_t *media) {
  * @brief Creates a blank state for an atlas and returns it.
  */
 r_atlas_t *R_CreateAtlas(const char *name) {
-	r_atlas_t *atlas = (r_atlas_t *) R_AllocMedia(name, sizeof(r_atlas_t));
+	r_atlas_t *atlas = (r_atlas_t *) R_AllocMedia(name, sizeof(r_atlas_t), MEDIA_ATLAS);
 
 	atlas->image.media.Free = R_FreeAtlas;
 	atlas->image.type = IT_ATLAS_MAP;
@@ -380,20 +379,6 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 			}
 		}
 
-		if (r_atlas_debug->value) {
-			static char path[MAX_OS_PATH];
-
-			g_snprintf(path, MAX_OS_PATH, "atlas_%s_%u_%u.raw", atlas->image.media.name, i, mip_width);
-
-			R_BindTexture(atlas->image.texnum);
-
-			glGetTexImage(GL_TEXTURE_2D, i, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-			file_t *file = Fs_OpenWrite(path);
-			Fs_Write(file, pixels, 1, mip_width * mip_height * 4);
-			Fs_Close(file);
-		}
-
 		Mem_Free(pixels);
 	}
 }
@@ -471,5 +456,4 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 void R_InitAtlas(void) {
 
 	r_atlas = Cvar_Add("r_atlas", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls whether to enable atlasing of common images or not.");
-	r_atlas_debug = Cvar_Add("r_atlas_debug", "0", CVAR_R_MEDIA, "Debug atlas generation");
 }

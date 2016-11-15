@@ -27,12 +27,13 @@ typedef struct {
 	const char *extension;
 	r_model_type_t type;
 	void (*Load)(r_model_t *mod, void *buffer);
+	r_media_type_t media_type;
 } r_model_format_t;
 
 static const r_model_format_t r_model_formats[] = { // supported model formats
-	{ ".obj", MOD_OBJ, R_LoadObjModel },
-	{ ".md3", MOD_MD3, R_LoadMd3Model },
-	{ ".bsp", MOD_BSP, R_LoadBspModel }
+	{ ".obj", MOD_OBJ, R_LoadObjModel, MEDIA_OBJ },
+	{ ".md3", MOD_MD3, R_LoadMd3Model, MEDIA_MD3 },
+	{ ".bsp", MOD_BSP, R_LoadBspModel, MEDIA_BSP }
 };
 
 /**
@@ -139,7 +140,7 @@ r_model_t *R_LoadModel(const char *name) {
 
 		StripExtension(name, key);
 
-		mod = (r_model_t *) R_AllocMedia(key, sizeof(r_model_t));
+		mod = (r_model_t *) R_AllocMedia(key, sizeof(r_model_t), format->media_type);
 
 		mod->media.Register = R_RegisterModel;
 		mod->media.Free = R_FreeModel;
