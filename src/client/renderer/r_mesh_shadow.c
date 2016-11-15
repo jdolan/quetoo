@@ -51,7 +51,7 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 		return;
 	}
 
-	const cm_bsp_plane_t *p = (cm_bsp_plane_t *) s->plane;
+	const r_bsp_plane_t *p = &s->plane;
 
 	// project the entity onto the shadow plane
 	vec3_t vx, vy, vz, t;
@@ -88,7 +88,7 @@ static void R_CalculateShadowMatrix_default(const r_entity_t *e, const r_shadow_
 	Matrix4x4_Transform(&e->inverse_matrix, s->illumination->light.origin, light);
 	light[3] = 1.0;
 
-	const cm_bsp_plane_t *p = (cm_bsp_plane_t *) s->plane;
+	const r_bsp_plane_t *p = &s->plane;
 
 	Matrix4x4_TransformQuakePlane(&e->inverse_matrix, p->normal, p->dist, plane);
 	plane[3] = -plane[3];
@@ -140,7 +140,7 @@ static void R_SetMeshShadowState_default(const r_entity_t *e, const r_shadow_t *
 		R_UseInterpolation(e->lerp);
 	}
 
-	R_StencilFunc(GL_EQUAL, s->plane->shadow_ref, ~0);
+	R_StencilFunc(GL_EQUAL, R_STENCIL_REF(&s->plane), ~0);
 }
 
 /**

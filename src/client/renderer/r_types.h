@@ -369,13 +369,11 @@ typedef struct {
 } r_bsp_inline_model_t;
 
 /**
- * @brief BSP planes are extended `cm_bsp_plane_t`, with an additional renderer members.
+ * @brief Resolves a unique(ish) stencil reference value for the given plane.
  */
-typedef struct {
-	cm_bsp_plane_t plane;
-	uint16_t num_shadows;
-	uint16_t shadow_ref;
-} r_bsp_plane_t;
+#define R_STENCIL_REF(p) (((p)->num % 0xff) + 1)
+
+typedef cm_bsp_plane_t r_bsp_plane_t;
 
 typedef struct {
 	uint16_t v[2];
@@ -718,6 +716,9 @@ typedef struct {
 	// buffers
 	r_buffer_t vertex_buffer;
 	r_buffer_t element_buffer;
+
+	// active shadow counts, indexed by plane number
+	uint16_t *plane_shadows;
 } r_bsp_model_t;
 
 /**
@@ -818,7 +819,7 @@ typedef struct {
  */
 typedef struct {
 	const r_illumination_t *illumination;
-	r_bsp_plane_t *plane;
+	r_bsp_plane_t plane;
 	vec_t shadow;
 } r_shadow_t;
 
