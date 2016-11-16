@@ -161,6 +161,8 @@ void R_DrawView(void) {
 	// wait for the client to fully populate the scene
 	Thread_Wait(r_view.thread);
 
+	R_AddSustainedLights();
+
 	// dispatch threads to cull entities and sort elements while we draw the world
 	thread_t *cull_entities = Thread_Create(R_CullEntities, NULL);
 

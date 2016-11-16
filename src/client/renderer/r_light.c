@@ -65,7 +65,7 @@ void R_AddSustainedLight(const r_sustained_light_t *s) {
 /**
  * @brief
  */
-static void R_AddSustainedLights(void) {
+void R_AddSustainedLights(void) {
 	r_sustained_light_t *s;
 	int32_t i;
 
@@ -152,8 +152,6 @@ void R_MarkLight(const r_light_t *l, const r_bsp_node_t *node) {
 void R_MarkLights(void) {
 	const r_bsp_model_t *bsp = r_model_state.world->bsp;
 	const r_light_t *l = r_view.lights;
-
-	R_AddSustainedLights();
 
 	r_locals.light_frame++;
 
