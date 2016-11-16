@@ -463,12 +463,11 @@ typedef struct {
 
 	r_pixel_t lightmap_s, lightmap_t; // lightmap texture coords
 
-	union {
-		r_image_t *lightmap;
-		const byte *lightmap_input; // this is only used by r_lightmap
-	};
+	r_image_t *lightmap;
 	r_image_t *deluxemap;
 
+	// pointer to lightmap data on bsp.
+	const byte *lightmap_input;
 } r_bsp_surface_t;
 
 /**

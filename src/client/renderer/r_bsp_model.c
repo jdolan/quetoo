@@ -430,8 +430,6 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	bsp->num_surfaces = l->file_len / sizeof(*in);
 	bsp->surfaces = out = Mem_LinkMalloc(bsp->num_surfaces * sizeof(*out), bsp);
 
-	R_BeginBspSurfaceLightmaps(bsp);
-
 	for (uint16_t i = 0; i < bsp->num_surfaces; i++, in++, out++) {
 
 		out->first_edge = LittleLong(in->first_edge);
@@ -484,6 +482,12 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	if (bsp->lightmaps->size) {
 		Mem_Free(bsp->lightmaps->data);
 		bsp->lightmaps->size = 0;
+
+		out = bsp->surfaces;
+
+		for (uint16_t i = 0; i < bsp->num_surfaces; i++, out++) {
+			out->lightmap_input = NULL;
+		}
 	}
 
 	uint32_t end = SDL_GetTicks();

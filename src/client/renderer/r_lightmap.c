@@ -199,13 +199,6 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 }
 
 /**
- * @brief
- */
-void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp) {
-
-}
-
-/**
  * @brief Uploads sorted lightmaps from start to (end - 1) and 
  * puts them in the new maps sized to width/height
  */
