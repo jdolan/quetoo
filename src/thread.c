@@ -27,7 +27,7 @@ typedef struct thread_pool_s {
 	SDL_mutex *mutex;
 
 	thread_t *threads;
-	uint16_t num_threads;
+	size_t num_threads;
 } thread_pool_t;
 
 static thread_pool_t thread_pool;
@@ -64,10 +64,12 @@ static int32_t Thread_Run(void *data) {
 /**
  * @brief Initializes the threads backing the thread pool.
  */
-static void Thread_Init_(uint16_t num_threads) {
+static void Thread_Init_(ssize_t num_threads) {
 
 	if (num_threads == 0) {
 		num_threads = SDL_GetCPUCount();
+	} else if (num_threads == -1) {
+		num_threads = 0;
 	}
 
 	thread_pool.num_threads = MIN(num_threads, MAX_THREADS);
@@ -189,7 +191,7 @@ uint16_t Thread_Count(void) {
 /**
  * @brief Initializes the thread pool.
  */
-void Thread_Init(uint16_t num_threads) {
+void Thread_Init(ssize_t num_threads) {
 
 	memset(&thread_pool, 0, sizeof(thread_pool));
 

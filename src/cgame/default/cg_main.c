@@ -58,6 +58,11 @@ cvar_t *cg_skin;
 cvar_t *cg_third_person;
 cvar_t *cg_third_person_yaw;
 
+cvar_t *g_gameplay;
+cvar_t *g_teams;
+cvar_t *g_ctf;
+cvar_t *g_match;
+
 cg_import_t cgi;
 
 /**
@@ -135,6 +140,15 @@ static void Cg_Init(void) {
 	                           "Activate third person perspective.");
 	cg_third_person_yaw = cgi.Cvar("cg_third_person_yaw", "0.0", CVAR_ARCHIVE,
 	                               "Yaw offset for third person perspective.");
+
+	g_gameplay = cgi.Cvar("g_gameplay", "default", CVAR_SERVER_INFO,
+		"Selects deathmatch, duel, arena, or instagib combat");
+	g_teams = cgi.Cvar("g_teams", "0", CVAR_SERVER_INFO,
+		"Enables teams-based play");
+	g_ctf = cgi.Cvar("g_ctf", "0", CVAR_SERVER_INFO,
+		"Enables capture the flag gameplay");
+	g_match = cgi.Cvar("g_match", "0", CVAR_SERVER_INFO,
+		"Enables match play requiring players to ready");
 
 	// add forward to server commands for tab completion
 

@@ -63,6 +63,11 @@
 	extern cvar_t *cg_third_person;
 	extern cvar_t *cg_third_person_yaw;
 
+	extern cvar_t *g_gameplay;
+	extern cvar_t *g_teams;
+	extern cvar_t *g_ctf;
+	extern cvar_t *g_match;
+
 	extern cg_import_t cgi;
 
 	cg_export_t *Cg_LoadCgame(cg_import_t *import);

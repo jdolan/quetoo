@@ -22,7 +22,8 @@
 #include "r_local.h"
 #include "client.h"
 
-// Max illuminations for the whole scene
+r_shadow_state_t r_shadow_state;
+
 #define LIGHTING_MAX_ILLUMINATIONS (MAX_ILLUMINATIONS * 16)
 
 /**
@@ -367,7 +368,7 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		r_shadow_t *s = l->shadows;
 		while (s->illumination) {
 
-			if (s->illumination == il && s->plane->num == tr.plane.num) {
+			if (s->illumination == il && s->plane.num == tr.plane.num) {
 				s->shadow = MAX(s->shadow, shadow);
 				break;
 			}
@@ -385,9 +386,10 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		}
 
 		s->illumination = il;
-		s->plane = &r_model_state.world->bsp->planes[tr.plane.index];
-		s->plane->flags |= R_PLANE_SHADOW;
+		s->plane = tr.plane;
 		s->shadow = shadow;
+
+		r_shadow_state.plane_shadow_counts[s->plane.num]++;
 	}
 }
 
@@ -409,6 +411,15 @@ static void R_UpdateShadows(r_lighting_t *l) {
 	}
 
 	// otherwise, refresh all shadow information based on the new illuminations
+	r_shadow_t *s = l->shadows;
+	for (size_t i = 0; i < lengthof(l->shadows); i++, s++) {
+		if (s->plane.num) {
+			if (r_shadow_state.plane_shadow_counts[s->plane.num]) {
+				r_shadow_state.plane_shadow_counts[s->plane.num]--;
+			}
+		}
+	}
+
 	memset(l->shadows, 0, sizeof(l->shadows));
 
 	const r_illumination_t *il = l->illuminations;

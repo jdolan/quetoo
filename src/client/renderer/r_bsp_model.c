@@ -408,7 +408,7 @@ static void R_SetupBspSurface(r_bsp_model_t *bsp, r_bsp_surface_t *surf) {
 		surf->st_maxs[i] = bmaxs * bsp->lightmaps->scale;
 
 		surf->st_center[i] = (surf->st_maxs[i] + surf->st_mins[i]) / 2.0;
-		surf->st_extents[i] = surf->st_maxs[i] - surf->st_mins[i];
+		surf->st_extents[i] = (u16vec_t) (((surf->st_maxs[i] - surf->st_mins[i]) / bsp->lightmaps->scale) + 1.0);
 	}
 }
 
@@ -425,10 +425,10 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		Com_Error(ERR_DROP, "Funny lump size\n");
 	}
 
+	uint32_t start = SDL_GetTicks();
+
 	bsp->num_surfaces = l->file_len / sizeof(*in);
 	bsp->surfaces = out = Mem_LinkMalloc(bsp->num_surfaces * sizeof(*out), bsp);
-
-	R_BeginBspSurfaceLightmaps(bsp);
 
 	for (uint16_t i = 0; i < bsp->num_surfaces; i++, in++, out++) {
 
@@ -482,7 +482,16 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	if (bsp->lightmaps->size) {
 		Mem_Free(bsp->lightmaps->data);
 		bsp->lightmaps->size = 0;
+
+		out = bsp->surfaces;
+
+		for (uint16_t i = 0; i < bsp->num_surfaces; i++, out++) {
+			out->lightmap_input = NULL;
+		}
 	}
+
+	uint32_t end = SDL_GetTicks();
+	Com_Print("Generated lightmaps in %u ms\n", end - start);
 }
 
 /**
@@ -645,7 +654,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
-	r_bsp_plane_t *out = Mem_LinkMalloc(count * sizeof(*out), bsp);
+	cm_bsp_plane_t *out = Mem_LinkMalloc(count * sizeof(*out), bsp);
 
 	bsp->planes = out;
 	bsp->num_planes = count;
@@ -658,9 +667,11 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 		out->dist = LittleFloat(in->dist);
 		out->type = LittleLong(in->type);
-		out->sign_bits = Cm_SignBitsForPlane((cm_bsp_plane_t *) out);
-		out->index = i, out->num = (i >> 1) + 1;
+		out->sign_bits = Cm_SignBitsForPlane(out);
+		out->num = (i >> 1) + 1;
 	}
+
+	r_shadow_state.plane_shadow_counts = Mem_LinkMalloc(((count >> 1) + 1) * sizeof(int16_t), bsp);
 }
 
 #define BSP_VERTEX_INDEX_FOR_KEY(ptr) ((GLuint) (ptr))
