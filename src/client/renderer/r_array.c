@@ -669,48 +669,6 @@ extern GLenum r_attrib_type_to_gl_type[R_ATTRIB_TOTAL_TYPES];
 /**
  * @brief
  */
-static void R_VerifyElements(GLint start, GLsizei count) {
-
-	const r_buffer_t *elements = r_state.element_buffer;
-
-	if (!elements) {
-		return;
-	}
-	
-	if (r_state.blend_src != 0) {
-		return;
-	}
-
-	R_BindBuffer(elements);
-
-	byte *buffer = (byte *) glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_READ_ONLY);
-	uint32_t index;
-
-	for (GLint i = start; i < count; ++i) {
-		switch (elements->element_type.type) {
-			case R_ATTRIB_UNSIGNED_BYTE:
-				index = *(uint8_t *)buffer;
-				break;
-			case R_ATTRIB_UNSIGNED_SHORT:
-				index = *(uint16_t *)buffer;
-				break;
-			case R_ATTRIB_UNSIGNED_INT:
-				index = *(uint32_t *)buffer;
-				break;
-			default:
-				Com_Error(ERR_DROP, "what\n");
-				break;
-		}
-
-		buffer += elements->element_type.stride;
-	}
-
-	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-}
-
-/**
- * @brief
- */
 void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 
 	assert(r_state.array_buffers[R_ARRAY_POSITION] != NULL);
@@ -720,7 +678,6 @@ void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 	if (r_state.element_buffer) {
 
 		R_BindBuffer(r_state.element_buffer);
-		R_VerifyElements(start, count);
 		glDrawElements(type, count, r_attrib_type_to_gl_type[r_state.element_buffer->element_type.type],
 		               (const void *) (ptrdiff_t) (start * r_state.element_buffer->element_type.stride));
 		r_view.num_draw_elements++;
