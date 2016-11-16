@@ -122,6 +122,7 @@ _Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr) {
 	struct addrinfo *info;
 	if (getaddrinfo(node, service, &hints, &info) == 0) {
 		*saddr = *(struct sockaddr_in *) info->ai_addr;
+		freeaddrinfo(info);
 	}
 
 	g_free(node);
