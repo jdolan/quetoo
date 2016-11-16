@@ -50,7 +50,7 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data);
 #define Thread_Create(f, d) Thread_Create_(#f, f, d)
 void Thread_Wait(thread_t *t);
 uint16_t Thread_Count(void);
-void Thread_Init(uint16_t num_threads);
+void Thread_Init(ssize_t num_threads);
 void Thread_Shutdown(void);
 
 #endif /*__THREAD_H__ */

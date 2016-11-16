@@ -998,7 +998,8 @@ static void R_ShutdownState_PrintBuffers(gpointer       key,
 
 	const r_buffer_t *buffer = (r_buffer_t *) value;
 
-	Com_Warn("Buffer not freed (%u type, %" PRIu64 " bytes), allocated from %s\n", buffer->type, buffer->size, buffer->func);
+	Com_Warn("Buffer not freed (%u type, %zd bytes), allocated from %s\n",
+			 buffer->type, buffer->size, buffer->func);
 }
 
 /**

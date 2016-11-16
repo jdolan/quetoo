@@ -156,7 +156,7 @@ static void R_DrawBspInlineModel_(const r_entity_t *e) {
 	surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
 	for (i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
-		const r_bsp_plane_t *plane = surf->plane;
+		const cm_bsp_plane_t *plane = surf->plane;
 		vec_t dot;
 
 		// find which side of the surf we are on
@@ -256,7 +256,7 @@ static void R_AddBspInlineModelFlares_(const r_entity_t *e) {
 	r_bsp_surface_t *surf = &r_model_state.world->bsp->surfaces[e->model->bsp_inline->first_surface];
 
 	for (uint32_t i = 0; i < e->model->bsp_inline->num_surfaces; i++, surf++) {
-		const r_bsp_plane_t *plane = surf->plane;
+		const cm_bsp_plane_t *plane = surf->plane;
 		vec_t dot;
 
 		// find which side of the surf we are on
@@ -506,9 +506,6 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 		side_bit = R_SURF_PLANE_BACK;
 	}
 
-	// reset the per-frame flags on the node's plane
-	node->plane->flags = 0;
-
 	// recurse down the children, front side first
 	R_MarkBspSurfaces_(node->children[side]);
 
@@ -548,7 +545,6 @@ void R_MarkBspSurfaces(void) {
 	// flag all visible world surfaces
 	R_MarkBspSurfaces_(r_model_state.world->bsp->nodes);
 }
-
 
 /**
  * @brief Returns the leaf for the specified point.
