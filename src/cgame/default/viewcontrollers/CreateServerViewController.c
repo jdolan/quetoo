@@ -24,6 +24,7 @@
 #include "cg_local.h"
 
 #include "CreateServerViewController.h"
+#include "MapListCollectionItemView.h"
 
 #define _Class _CreateServerViewController
 
@@ -69,34 +70,29 @@ static void createAction(Control *control, const SDL_Event *event, ident sender,
 
 	CreateServerViewController *this = (CreateServerViewController *) sender;
 
-	char maplist[MAX_STRING_CHARS] = "";
-	char firstmap[MAX_QPATH] = "";
+	Array *selectedMaps = $(this->mapList, selectedMaps);
+	if (selectedMaps->count) {
 
+		MutableArray *mapList = $$(MutableArray, array);
 
-	GList *selectedMaps = $(this->mapList, selectedMaps);
-	for (const GList *list = selectedMaps; list; list = list->next) {
+		for (size_t i = 0; i < selectedMaps->count; i++) {
 
-		char name[MAX_QPATH];
-		g_strlcpy(name, (const char *) Basename(list->data), sizeof(name));
-		StripExtension(name, name);
+			const Value *value = $(selectedMaps, objectAtIndex, i);
+			const MapListItemInfo *info = value->value;
 
-		if (maplist[0] == '\0') {
-			g_strlcpy(firstmap, name, sizeof(firstmap));
+//			MutableString *map = mstr(info->mapname + strlen("maps/"));
+//			$(map, replace)
+//
+//			$(mapList, addObject, str(map));
 		}
 
-		g_strlcpy(maplist, va("%s%s ", maplist, name), sizeof(maplist));
+//		cgi.CvarSet("g_map_rotation", maplist);
+//		cgi.Cbuf(va("map %s\n", firstmap));
+
+
 	}
 
-	g_list_free(selectedMaps);
-
-	if (firstmap[0] == '\0') {
-		cgi.Warn("No map selected\n");
-
-		return;
-	}
-
-	cgi.CvarSet("g_map_rotation", maplist);
-	cgi.Cbuf(va("map %s\n", firstmap));
+	release(selectedMaps);
 }
 
 #pragma mark - Object
@@ -197,7 +193,7 @@ static void loadView(ViewController *self) {
 			if (g_ctf->integer != 0) {
 				$(this->teamsplay, selectOptionWithValue, (ident) 2);
 			} else {
-				$(this->teamsplay, selectOptionWithValue, (ident) g_teams->integer);
+				$(this->teamsplay, selectOptionWithValue, (ident) (intptr_t) g_teams->integer);
 			}
 
 			Cg_Input((View *) stackView, "Teams play", (Control *) this->teamsplay);

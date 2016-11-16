@@ -104,7 +104,7 @@ void R_UpdateFrustum(void) {
 		return;
 	}
 
-	cm_bsp_plane_t *p = r_locals.frustum;
+	r_bsp_plane_t *p = r_locals.frustum;
 
 	vec_t ang = Radians(r_view.fov[0]);
 	vec_t xs = sin(ang);
@@ -163,14 +163,13 @@ void R_DrawView(void) {
 
 	R_AddSustainedLights();
 
-	// dispatch threads to cull entities and sort elements while we draw the world
-	thread_t *cull_entities = Thread_Create(R_CullEntities, NULL);
-
 	R_AddFlares();
 
-	thread_t *sort_elements = Thread_Create(R_SortElements, NULL);
+	R_CullEntities();
 
 	R_MarkLights();
+
+	thread_t *sort_elements = Thread_Create(R_SortElements, NULL);
 
 	const r_sorted_bsp_surfaces_t *surfs = r_model_state.world->bsp->sorted_surfaces;
 
@@ -191,9 +190,6 @@ void R_DrawView(void) {
 	R_EnableBlend(false);
 
 	R_EnableDepthMask(true);
-
-	// wait for entity culling to complete
-	Thread_Wait(cull_entities);
 
 	R_DrawEntities();
 
