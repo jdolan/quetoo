@@ -58,7 +58,6 @@ cvar_t *r_gamma;
 cvar_t *r_hardness;
 cvar_t *r_height;
 cvar_t *r_invert;
-cvar_t *r_lightmap_block_size;
 cvar_t *r_lighting;
 cvar_t *r_line_alpha;
 cvar_t *r_line_width;
@@ -481,8 +480,6 @@ static void R_InitLocal(void) {
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_invert = Cvar_Add("r_invert", "0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                    "Inverts the RGB values of all world textures");
-	r_lightmap_block_size = Cvar_Add("r_lightmap_block_size", "4096", CVAR_ARCHIVE | CVAR_R_MEDIA,
-	                                 NULL);
 	r_lighting = Cvar_Add("r_lighting", "1.0", CVAR_ARCHIVE,
 	                      "Controls intensity of lighting effects");
 	r_line_alpha = Cvar_Add("r_line_alpha", "0.5", CVAR_ARCHIVE, NULL);
