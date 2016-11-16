@@ -168,8 +168,7 @@ extern r_state_t r_state;
 #define R_GetError(msg) R_GetError_(__func__, msg)
 void R_GetError_(const char *function, const char *msg);
 void R_SelectTexture(r_texunit_t *texunit);
-_Bool R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum);
-void R_BindTexture(GLuint texnum);
+void R_BindDiffuseTexture(GLuint texnum);
 void R_BindLightmapTexture(GLuint texnum);
 void R_BindDeluxemapTexture(GLuint texnum);
 void R_BindNormalmapTexture(GLuint texnum);

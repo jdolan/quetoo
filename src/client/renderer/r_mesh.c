@@ -238,7 +238,7 @@ static void R_SetMeshState_default(const r_entity_t *e) {
 
 		r_mesh_state.material = e->skins[0] ? e->skins[0] : e->model->mesh->material;
 
-		R_BindTexture(r_mesh_state.material->diffuse->texnum);
+		R_BindDiffuseTexture(r_mesh_state.material->diffuse->texnum);
 
 		R_SetMeshColor_default(e);
 
@@ -312,7 +312,7 @@ static void R_DrawMeshParts_default(const r_entity_t *e, const r_md3_t *md3) {
 			if (i > 0) { // update the diffuse state for the current mesh
 				r_mesh_state.material = e->skins[i] ? e->skins[i] : e->model->mesh->material;
 
-				R_BindTexture(r_mesh_state.material->diffuse->texnum);
+				R_BindDiffuseTexture(r_mesh_state.material->diffuse->texnum);
 
 				R_UseMaterial(r_mesh_state.material);
 			}
@@ -356,7 +356,7 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 	R_EnableLighting(r_state.default_program, true);
 
 	if (r_draw_wireframe->value) {
-		R_EnableTexture(&texunit_diffuse, false);
+		R_BindDiffuseTexture(r_image_state.null->texnum);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
@@ -376,7 +376,6 @@ void R_DrawMeshModels_default(const r_entities_t *ents) {
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		R_EnableTexture(&texunit_diffuse, true);
 	}
 
 	R_EnableLighting(NULL, false);

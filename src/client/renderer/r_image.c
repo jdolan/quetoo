@@ -224,7 +224,7 @@ void R_UploadImage(r_image_t *image, GLenum format, byte *data) {
 		glGenTextures(1, &(image->texnum));
 	}
 
-	R_BindTexture(image->texnum);
+	R_BindDiffuseTexture(image->texnum);
 
 	if (image->type & IT_MASK_MIPMAP) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);

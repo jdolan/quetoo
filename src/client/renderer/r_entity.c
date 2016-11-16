@@ -188,15 +188,13 @@ void R_CullEntities(void *data) {
  */
 static void R_DrawNullModel(const r_entity_t *e) {
 
-	R_EnableTexture(&texunit_diffuse, false);
+	R_BindDiffuseTexture(r_image_state.null->texnum);
 
 	R_RotateForEntity(e);
 
 	R_DrawArrays(GL_TRIANGLES, 0, (GLsizei) r_model_state.null_elements_count);
 
 	R_RotateForEntity(NULL);
-
-	R_EnableTexture(&texunit_diffuse, true);
 }
 
 /**
@@ -242,7 +240,7 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		return;
 	}
 
-	R_EnableTexture(&texunit_diffuse, false);
+	R_BindDiffuseTexture(r_image_state.null->texnum);
 
 	R_EnableColorArray(true);
 
@@ -304,8 +302,6 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 
 	R_EnableColorArray(false);
-
-	R_EnableTexture(&texunit_diffuse, true);
 
 	R_Color(NULL);
 }

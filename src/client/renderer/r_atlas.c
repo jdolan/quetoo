@@ -330,7 +330,7 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 		const r_pixel_t mip_width = params->width / mip_scale;
 		const r_pixel_t mip_height = params->height / mip_scale;
 
-		R_BindTexture(atlas->image.texnum);
+		R_BindDiffuseTexture(atlas->image.texnum);
 		
 		// set the default to all black transparent
 		GLubyte *pixels = Mem_Malloc(mip_width * mip_height * 4);
@@ -348,7 +348,7 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 			GLint image_mip_width;
 			GLint image_mip_height;
 
-			R_BindTexture(image->input_image->texnum);
+			R_BindDiffuseTexture(image->input_image->texnum);
 
 			glGetTexLevelParameteriv(GL_TEXTURE_2D, i, GL_TEXTURE_WIDTH, &image_mip_width);
 			glGetTexLevelParameteriv(GL_TEXTURE_2D, i, GL_TEXTURE_HEIGHT, &image_mip_height);
@@ -358,7 +358,7 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 			glGetTexImage(GL_TEXTURE_2D, i, GL_RGBA, GL_UNSIGNED_BYTE, subimage_pixels);
 
 			// push them into the atlas
-			R_BindTexture(atlas->image.texnum);
+			R_BindDiffuseTexture(atlas->image.texnum);
 
 			const r_pixel_t subimage_x = image->position[0] / mip_scale;
 			const r_pixel_t subimage_y = image->position[1] / mip_scale;
@@ -421,13 +421,13 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 	if (!atlas->image.texnum) {
 
 		glGenTextures(1, &(atlas->image.texnum));
-		R_BindTexture(atlas->image.texnum);
+		R_BindDiffuseTexture(atlas->image.texnum);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, r_image_state.filter_min);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, r_image_state.filter_mag);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_image_state.anisotropy);
 	} else {
-		R_BindTexture(atlas->image.texnum);
+		R_BindDiffuseTexture(atlas->image.texnum);
 	}
 
 	// stitch

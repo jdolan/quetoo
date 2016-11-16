@@ -69,7 +69,7 @@ void R_DumpImages_f(void) {
 
 			g_snprintf(path, sizeof(path), "imgdmp/%s.%u.%u.data", image->media.name, image->width, image->height);
 
-			R_BindTexture(image->texnum);
+			R_BindDiffuseTexture(image->texnum);
 
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 

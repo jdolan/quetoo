@@ -180,7 +180,7 @@ void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {
  */
 static void R_DrawImage_(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const GLuint texnum, const r_buffer_t *buffer) {
 
-	R_BindTexture(texnum);
+	R_BindDiffuseTexture(texnum);
 
 	R_BindAttributeInterleaveBuffer(buffer, R_ARRAY_MASK_ALL);
 
@@ -381,7 +381,7 @@ static void R_DrawChars(void) {
 		R_UploadToBuffer(&r_draw.char_arrays[i].element_buffer, r_draw.char_arrays[i].element_index * sizeof(GLuint),
 		                 r_draw.char_arrays[i].elements);
 
-		R_BindTexture(r_draw.fonts[i].image->texnum);
+		R_BindDiffuseTexture(r_draw.fonts[i].image->texnum);
 
 		R_EnableColorArray(true);
 
@@ -463,8 +463,6 @@ static void R_DrawFills(void) {
 	R_UploadToBuffer(&r_draw.fill_arrays.element_buffer, r_draw.fill_arrays.element_index * sizeof(GLuint),
 	                 r_draw.fill_arrays.elements);
 
-	R_EnableTexture(&texunit_diffuse, false);
-
 	R_EnableColorArray(true);
 
 	// alter the array pointers
@@ -479,8 +477,6 @@ static void R_DrawFills(void) {
 	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 
 	R_EnableColorArray(false);
-
-	R_EnableTexture(&texunit_diffuse, true);
 
 	r_draw.fill_arrays.vert_index = r_draw.fill_arrays.element_index = r_draw.fill_arrays.num_fills = 0;
 }
@@ -525,8 +521,6 @@ static void R_DrawLines(void) {
 	R_UploadToBuffer(&r_draw.line_arrays.vert_buffer, r_draw.line_arrays.vert_index * sizeof(r_fill_interleave_vertex_t),
 	                 r_draw.line_arrays.verts);
 
-	R_EnableTexture(&texunit_diffuse, false);
-
 	R_EnableColorArray(true);
 
 	// alter the array pointers
@@ -539,8 +533,6 @@ static void R_DrawLines(void) {
 	R_UnbindAttributeBuffer(R_ARRAY_COLOR);
 
 	R_EnableColorArray(false);
-
-	R_EnableTexture(&texunit_diffuse, true);
 
 	r_draw.line_arrays.vert_index = 0;
 }
@@ -559,7 +551,7 @@ void R_DrawFillUI(const SDL_Rect *rect) {
 
 	R_EnableColorArray(false);
 
-	R_EnableTexture(&texunit_diffuse, false);
+	R_BindDiffuseTexture(r_image_state.null->texnum);
 
 	// upload the changed data
 	R_UploadToBuffer(&r_draw.fill_arrays.ui_vert_buffer, sizeof(verts), verts);
@@ -572,8 +564,6 @@ void R_DrawFillUI(const SDL_Rect *rect) {
 
 	// and restore them
 	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
-
-	R_EnableTexture(&texunit_diffuse, true);
 }
 
 void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop) {
@@ -586,7 +576,7 @@ void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop
 
 	R_EnableColorArray(false);
 
-	R_EnableTexture(&texunit_diffuse, false);
+	R_BindDiffuseTexture(r_image_state.null->texnum);
 
 	// upload the changed data
 	R_UploadToBuffer(&r_draw.line_arrays.ui_vert_buffer, sizeof(point_buffer), point_buffer);
@@ -599,14 +589,14 @@ void R_DrawLinesUI(const SDL_Point *points, const size_t count, const _Bool loop
 
 	// and restore them
 	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
-
-	R_EnableTexture(&texunit_diffuse, true);
 }
 
 /**
  * @brief Draw all 2D geometry accumulated for the current frame.
  */
 void R_Draw2D(void) {
+
+	R_BindDiffuseTexture(r_image_state.null->texnum);
 
 	R_DrawLines();
 

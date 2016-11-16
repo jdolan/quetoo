@@ -365,7 +365,7 @@ void R_DrawSkyBox(void) {
 			continue;    // nothing on this plane
 		}
 
-		R_BindTexture(r_sky.images[sky_order[i]]->texnum);
+		R_BindDiffuseTexture(r_sky.images[sky_order[i]]->texnum);
 
 		R_MakeSkyVec(r_sky.st_mins[0][i], r_sky.st_mins[1][i], i);
 		R_MakeSkyVec(r_sky.st_mins[0][i], r_sky.st_maxs[1][i], i);

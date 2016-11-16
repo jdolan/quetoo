@@ -228,9 +228,14 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 
 	r_state.array_buffers_dirty &= ~mask;
 
-	R_EnableAttribute(attribute);
-
 	const r_buffer_t *buffer = r_state.array_buffers[attribute];
+
+	if (!buffer) {
+		R_DisableAttribute(attribute);
+		return;
+	}
+
+	R_EnableAttribute(attribute);
 
 	GLsizei stride = 0;
 	GLsizeiptr offset = r_state.array_buffer_offsets[attribute];

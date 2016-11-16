@@ -106,7 +106,7 @@ void R_SelectTexture(r_texunit_t *texunit) {
  * @brief Request that a texnum be bound to the specified texture unit.
  * returns true if it was indeed bound (for statistical analysis)
  */
-_Bool R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
+static _Bool R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
 
 	if (texnum == texunit->texnum) {
 		return false;
@@ -123,18 +123,15 @@ _Bool R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
 
 	r_view.num_bind_texture++;
 
-	// return to diffuse
-	R_SelectTexture(&texunit_diffuse);
-
 	return true;
 }
 
 /**
  * @brief Request that a texnum be bound to the active texture unit.
  */
-void R_BindTexture(GLuint texnum) {
+void R_BindDiffuseTexture(GLuint texnum) {
 
-	R_BindUnitTexture(r_state.active_texunit, texnum);
+	R_BindUnitTexture(&texunit_diffuse, texnum);
 }
 
 /**
@@ -345,18 +342,6 @@ void R_EnableTexture(r_texunit_t *texunit, _Bool enable) {
 	}
 
 	texunit->enabled = enable;
-
-	GLuint texnum;
-
-	if (enable) { // activate texture unit
-
-		texnum = texunit->texnum;
-	} else { // or deactivate it
-
-		texnum = r_image_state.null ? r_image_state.null->texnum : 0;
-	}
-
-	R_BindUnitTexture(texunit, texnum);
 }
 
 /**
@@ -454,10 +439,8 @@ void R_EnableWarp(const r_program_t *program, _Bool enable) {
 
 	r_state.warp_enabled = enable;
 
-	R_SelectTexture(&texunit_lightmap);
-
 	if (enable) {
-		R_BindTexture(r_image_state.warp->texnum);
+		R_BindLightmapTexture(r_image_state.warp->texnum);
 
 		R_UseProgram(program);
 	} else {
@@ -465,8 +448,6 @@ void R_EnableWarp(const r_program_t *program, _Bool enable) {
 	}
 
 	R_EnableFog(enable);
-
-	R_SelectTexture(&texunit_diffuse);
 
 	R_GetError(NULL);
 }
@@ -489,7 +470,7 @@ void R_EnableShell(const r_program_t *program, _Bool enable) {
 	if (enable) {
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-		R_BindTexture(r_image_state.shell->texnum);
+		R_BindDiffuseTexture(r_image_state.shell->texnum);
 
 		R_UseProgram(program);
 	} else {
