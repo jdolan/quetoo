@@ -106,10 +106,10 @@ void R_SelectTexture(r_texunit_t *texunit) {
  * @brief Request that a texnum be bound to the specified texture unit.
  * returns true if it was indeed bound (for statistical analysis)
  */
-static _Bool R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
+void R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
 
 	if (texnum == texunit->texnum) {
-		return false;
+		return;
 	}
 
 	R_SelectTexture(texunit);
@@ -121,57 +121,7 @@ static _Bool R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum) {
 
 	texunit->texnum = texnum;
 
-	r_view.num_bind_texture++;
-
-	return true;
-}
-
-/**
- * @brief Request that a texnum be bound to the active texture unit.
- */
-void R_BindDiffuseTexture(GLuint texnum) {
-
-	R_BindUnitTexture(&texunit_diffuse, texnum);
-}
-
-/**
- * @brief Binds the specified texture for the lightmap texture unit.
- */
-void R_BindLightmapTexture(GLuint texnum) {
-
-	if (R_BindUnitTexture(&texunit_lightmap, texnum)) {
-		r_view.num_bind_lightmap++;
-	}
-}
-
-/**
- * @brief Binds the specified texture for the deluxemap texture unit.
- */
-void R_BindDeluxemapTexture(GLuint texnum) {
-
-	if (R_BindUnitTexture(&texunit_deluxemap, texnum)) {
-		r_view.num_bind_deluxemap++;
-	}
-}
-
-/**
- * @brief Binds the specified texture for the normalmap texture unit.
- */
-void R_BindNormalmapTexture(GLuint texnum) {
-
-	if (R_BindUnitTexture(&texunit_normalmap, texnum)) {
-		r_view.num_bind_normalmap++;
-	}
-}
-
-/**
- * @brief Binds the specified texture for the glossmap texture unit.
- */
-void R_BindSpecularmapTexture(GLuint texnum) {
-
-	if (R_BindUnitTexture(&texunit_specularmap, texnum)) {
-		r_view.num_bind_specularmap++;
-	}
+	r_view.num_binds[texunit - r_state.texunits]++;
 }
 
 /**
@@ -440,8 +390,6 @@ void R_EnableWarp(const r_program_t *program, _Bool enable) {
 	r_state.warp_enabled = enable;
 
 	if (enable) {
-		R_BindLightmapTexture(r_image_state.warp->texnum);
-
 		R_UseProgram(program);
 	} else {
 		R_UseProgram(r_state.null_program);

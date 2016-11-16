@@ -396,6 +396,8 @@ static void R_InitWarpImage(void) {
 	}
 
 	R_UploadImage(r_image_state.warp, GL_RGBA, (byte *) data);
+
+	R_BindWarpTexture(r_image_state.warp->texnum);
 }
 
 /**

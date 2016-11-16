@@ -31,10 +31,9 @@ static void Cl_ClearView(void) {
 	r_view.num_particles = 0;
 
 	// reset counters
-	r_view.num_bind_texture = r_view.num_bind_lightmap = r_view.num_bind_deluxemap = 0;
-	r_view.num_bind_normalmap = r_view.num_bind_specularmap = 0;
-
+	memset(r_view.num_binds, 0, sizeof(r_view.num_binds));
 	memset(r_view.num_state_changes, 0, sizeof(r_view.num_state_changes));
+
 	r_view.num_buffer_full_uploads = r_view.num_buffer_partial_uploads = r_view.size_buffer_uploads = 0;
 
 	r_view.num_draw_elements = 0;

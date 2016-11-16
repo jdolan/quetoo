@@ -76,7 +76,7 @@ void R_InitProgram_null(r_program_t *program) {
 
 	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION");
 
-	R_ProgramParameter1i(&p->sampler0, 0);
+	R_ProgramParameter1i(&p->sampler0, R_TEXUNIT_DIFFUSE);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
 

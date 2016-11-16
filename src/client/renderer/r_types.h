@@ -1003,6 +1003,7 @@ typedef enum {
 	R_TEXUNIT_DELUXEMAP,
 	R_TEXUNIT_NORMALMAP,
 	R_TEXUNIT_SPECULARMAP,
+	R_TEXUNIT_WARP,
 
 	R_TEXUNIT_TOTAL
 } r_texunit_id_t;
@@ -1082,12 +1083,6 @@ typedef struct {
 
 	// counters, reset each frame
 
-	uint32_t num_bind_texture;
-	uint32_t num_bind_lightmap;
-	uint32_t num_bind_deluxemap;
-	uint32_t num_bind_normalmap;
-	uint32_t num_bind_specularmap;
-
 	uint32_t num_bsp_clusters;
 	uint32_t num_bsp_leafs;
 	uint32_t num_bsp_surfaces;
@@ -1099,6 +1094,7 @@ typedef struct {
 	uint32_t cull_fails;
 
 	uint32_t num_state_changes[R_STATE_TOTAL];
+	uint32_t num_binds[R_TEXUNIT_TOTAL];
 	uint32_t num_buffer_full_uploads, num_buffer_partial_uploads, size_buffer_uploads;
 
 	uint32_t num_draw_elements, num_draw_element_count;

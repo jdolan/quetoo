@@ -26,7 +26,7 @@ typedef struct r_warp_program_s {
 	r_uniform1f_t offset;
 
 	r_sampler2d_t sampler0;
-	r_sampler2d_t sampler1;
+	r_sampler2d_t sampler5;
 
 	r_uniform_fog_t fog;
 
@@ -59,7 +59,7 @@ void R_InitProgram_warp(r_program_t *program) {
 	R_ProgramVariable(&p->offset, R_UNIFORM_FLOAT, "OFFSET");
 
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0");
-	R_ProgramVariable(&p->sampler1, R_SAMPLER_2D, "SAMPLER1");
+	R_ProgramVariable(&p->sampler5, R_SAMPLER_2D, "SAMPLER5");
 
 	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
 
@@ -70,8 +70,8 @@ void R_InitProgram_warp(r_program_t *program) {
 
 	R_ProgramParameter1f(&p->offset, 0.0);
 
-	R_ProgramParameter1i(&p->sampler0, 0);
-	R_ProgramParameter1i(&p->sampler1, 1);
+	R_ProgramParameter1i(&p->sampler0, R_TEXUNIT_DIFFUSE);
+	R_ProgramParameter1i(&p->sampler5, R_TEXUNIT_WARP);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
 

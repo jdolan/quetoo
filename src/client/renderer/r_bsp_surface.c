@@ -88,6 +88,8 @@ static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
  */
 static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
+	R_EnableTexture(&texunit_diffuse, true);
+
 	R_SetArrayState(r_model_state.world);
 
 	// draw the surfaces

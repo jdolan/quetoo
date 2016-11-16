@@ -141,6 +141,15 @@ static const char *r_state_names[] = {
 	"program attrib toggles",
 };
 
+static const char *r_texnum_names[] = {
+	"diffuse",
+	"lightmap",
+	"deluxemap",
+	"normalmap",
+	"specularmap",
+	"warp"
+};
+
 /**
  * @brief Draws counters and performance information about the renderer.
  */
@@ -156,29 +165,6 @@ static void Cl_DrawRendererStats(void) {
 	}
 
 	R_BindFont("small", NULL, &ch);
-
-	R_DrawString(0, y, "Materials:", CON_COLOR_GREEN);
-	y += ch;
-
-	const uint32_t num_bind_diffuse = r_view.num_bind_texture - r_view.num_bind_lightmap
-	                                  - r_view.num_bind_deluxemap - r_view.num_bind_normalmap - r_view.num_bind_specularmap;
-
-	R_DrawString(0, y, va("%d diffuse", num_bind_diffuse), CON_COLOR_GREEN);
-	y += ch;
-
-	R_DrawString(0, y, va("%d lightmap", r_view.num_bind_lightmap), CON_COLOR_GREEN);
-	y += ch;
-
-	R_DrawString(0, y, va("%d deluxemap", r_view.num_bind_deluxemap), CON_COLOR_GREEN);
-	y += ch;
-
-	R_DrawString(0, y, va("%d normalmap", r_view.num_bind_normalmap), CON_COLOR_GREEN);
-	y += ch;
-
-	R_DrawString(0, y, va("%d specularmap", r_view.num_bind_specularmap), CON_COLOR_GREEN);
-	y += ch;
-
-	y += ch;
 	R_DrawString(0, y, "BSP:", CON_COLOR_YELLOW);
 	y += ch;
 
@@ -241,6 +227,21 @@ static void Cl_DrawRendererStats(void) {
 		y += ch;
 	}
 
+	uint32_t total_texunit_changes = 0;
+
+	for (uint32_t i = 0; i < R_TEXUNIT_TOTAL; ++i) {
+		total_texunit_changes += r_view.num_binds[i];
+	}
+
+	R_DrawString(0, y, va("%d texunit changes", total_texunit_changes), CON_COLOR_GREEN);
+	y += ch;
+
+	for (uint32_t i = 0; i < R_TEXUNIT_TOTAL; ++i) {
+		R_DrawString(0, y, va("- %d %s", r_view.num_binds[i], r_texnum_names[i]), CON_COLOR_GREEN);
+		y += ch;
+	}
+
+	y += ch;
 	R_DrawString(0, y, va("%d buffer uploads (%d partial, %d full; %d bytes)",
 	                      r_view.num_buffer_full_uploads + r_view.num_buffer_partial_uploads, r_view.num_buffer_full_uploads,
 	                      r_view.num_buffer_partial_uploads, r_view.size_buffer_uploads), CON_COLOR_WHITE);
