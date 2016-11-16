@@ -209,10 +209,6 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 		return;
 	}
 
-	// align width/height to 4 byte boundary to keep OpenGL happy
-	width = NearestMultiple(width, 4);
-	height = NearestMultiple(height, 4);
-
 	// allocate the image
 	r_image_t *lightmap = R_AllocLightmap(width, height);
 	r_image_t *deluxemap = R_AllocDeluxemap(width, height);
@@ -307,9 +303,15 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 				// reset accumulators
 				current_width = current_height = 0;
 			} else {
+				r_pixel_t w = node->x + surf->st_extents[0],
+					      h = node->y + surf->st_extents[1];
+				
+				w = NearestMultiple(w, 4);
+				h = NearestMultiple(h, 4);
+
 				// fit good, update current sizes
-				current_width = MAX(current_width, node->x + surf->st_extents[0]);
-				current_height = MAX(current_height, node->y + surf->st_extents[1]);
+				current_width = MAX(current_width, w);
+				current_height = MAX(current_height, h);
 				
 				// update surface parameters
 				surf->lightmap_s = node->x;
