@@ -681,9 +681,10 @@ static GRegex *cvar_emplace_regex = NULL;
  * @brief
  */
 static gboolean Cvar_ExpandString_EvalCallback(const GMatchInfo *match_info, GString *result, gpointer data) {
-	const gchar *name = g_match_info_fetch(match_info, 1);
+	gchar *name = g_match_info_fetch(match_info, 1);
 	const char *value = Cvar_GetString(name);
 	g_string_append(result, value);
+	g_free(name);
 	return false;
 }
 

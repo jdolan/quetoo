@@ -424,7 +424,7 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length);
  */
 static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *result,
                                         gpointer data __attribute__((unused))) {
-	const gchar *name = g_match_info_fetch(match_info, 1);
+	gchar *name = g_match_info_fetch(match_info, 1);
 	gchar path[MAX_OS_PATH];
 	int64_t len;
 	void *buf;
@@ -433,6 +433,7 @@ static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *r
 
 	if ((len = Fs_Load(path, &buf)) == -1) {
 		Com_Warn("Failed to load %s\n", name);
+		g_free(name);
 		return true;
 	}
 
@@ -441,6 +442,7 @@ static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *r
 	g_free(processed);
 
 	Fs_Free(buf);
+	g_free(name);
 
 	return false;
 }
