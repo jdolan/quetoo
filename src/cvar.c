@@ -708,6 +708,7 @@ _Bool Cvar_ExpandString(const char *input, const size_t in_size, GString **outpu
 	}
 
 	*output = g_string_new(replaced);
+	g_free(replaced);
 	return true;
 }
 
