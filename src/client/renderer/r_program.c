@@ -468,6 +468,8 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length) {
 		Com_Warn("Error preprocessing shader: %s", error->message);
 	}
 
+	g_string_free(emplaced, true);
+
 	return output;
 }
 

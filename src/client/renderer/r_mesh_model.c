@@ -1054,6 +1054,9 @@ void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	// and finally the arrays
 	R_LoadObjVertexArrays(mod, obj);
 
+	g_list_free_full(obj->verts, g_free);
+	obj->verts = NULL;
+
 	g_list_free_full(obj->points, g_free);
 	obj->points = NULL;
 
