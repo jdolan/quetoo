@@ -22,7 +22,8 @@
 #include "r_local.h"
 #include "client.h"
 
-// Max illuminations for the whole scene
+r_shadow_state_t r_shadow_state;
+
 #define LIGHTING_MAX_ILLUMINATIONS (MAX_ILLUMINATIONS * 16)
 
 /**
@@ -388,7 +389,7 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		s->plane = tr.plane;
 		s->shadow = shadow;
 
-		r_model_state.world->bsp->plane_shadows[s->plane.num]++;
+		r_shadow_state.plane_shadow_counts[s->plane.num]++;
 	}
 }
 
@@ -413,7 +414,9 @@ static void R_UpdateShadows(r_lighting_t *l) {
 	r_shadow_t *s = l->shadows;
 	for (size_t i = 0; i < lengthof(l->shadows); i++, s++) {
 		if (s->plane.num) {
-			r_model_state.world->bsp->plane_shadows[s->plane.num]--;
+			if (r_shadow_state.plane_shadow_counts[s->plane.num]) {
+				r_shadow_state.plane_shadow_counts[s->plane.num]--;
+			}
 		}
 	}
 

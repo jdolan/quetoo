@@ -662,7 +662,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		out->num = (i >> 1) + 1;
 	}
 
-	bsp->plane_shadows = Mem_LinkMalloc(((count >> 1) + 1) * sizeof(int16_t), bsp);
+	r_shadow_state.plane_shadow_counts = Mem_LinkMalloc(((count >> 1) + 1) * sizeof(int16_t), bsp);
 }
 
 #define BSP_VERTEX_INDEX_FOR_KEY(ptr) ((GLuint) (ptr))

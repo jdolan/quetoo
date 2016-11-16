@@ -733,8 +733,6 @@ typedef struct {
 	r_buffer_t vertex_buffer;
 	r_buffer_t element_buffer;
 
-	// active shadow counts, indexed by plane number
-	uint16_t *plane_shadows;
 } r_bsp_model_t;
 
 /**
