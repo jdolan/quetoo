@@ -197,7 +197,7 @@ static void loadView(ViewController *self) {
 			if (g_ctf->integer != 0) {
 				$(this->teamsplay, selectOptionWithValue, (ident) 2);
 			} else {
-				$(this->teamsplay, selectOptionWithValue, (ident) g_teams->integer);
+				$(this->teamsplay, selectOptionWithValue, (ident) (ptrdiff_t) g_teams->integer);
 			}
 
 			Cg_Input((View *) stackView, "Teams play", (Control *) this->teamsplay);
