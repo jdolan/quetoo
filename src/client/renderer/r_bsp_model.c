@@ -677,6 +677,9 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 #define BSP_VERTEX_INDEX_FOR_KEY(ptr) ((GLuint) (ptr))
 #define BSP_VERTEX_INDEX_AS_KEY(i) ((gpointer) (ptrdiff_t) *(i))
 
+#define vec2_hash(v) ((uint32_t)((v)[0] * 73856093) ^ (uint32_t)((v)[1] * 83492791))
+#define vec3_hash(v) ((uint32_t)((v)[0] * 73856093) ^ (uint32_t)((v)[1] * 19349663) ^ (uint32_t)((v)[2] * 83492791))
+
 /**
  * @brief The hash function for unique vertices.
  * @see R_LoadBspVertexArrays_VertexElement
@@ -684,14 +687,9 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 static guint R_UniqueVerts_HashFunc(gconstpointer key) {
 	const GLuint vi = BSP_VERTEX_INDEX_FOR_KEY(key);
 
-	return	g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][0]) ^
-	        g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][1]) ^
-	        g_double_hash(&r_unique_vertices.mod->bsp->verts[vi][2]) ^
-	        g_double_hash(&r_unique_vertices.mod->bsp->normals[vi][0]) ^
-	        g_double_hash(&r_unique_vertices.mod->bsp->normals[vi][1]) ^
-	        g_double_hash(&r_unique_vertices.mod->bsp->normals[vi][2]) ^
-	        g_double_hash(&r_unique_vertices.mod->bsp->texcoords[vi][0]) ^
-	        g_double_hash(&r_unique_vertices.mod->bsp->texcoords[vi][1]);
+	return	vec3_hash(r_unique_vertices.mod->bsp->verts[vi]) ^
+	        vec3_hash(r_unique_vertices.mod->bsp->normals[vi]) ^
+	        vec2_hash(r_unique_vertices.mod->bsp->texcoords[vi]);
 }
 
 /**
@@ -737,9 +735,9 @@ static gboolean R_UniqueVerts_EqualFunc(gconstpointer a, gconstpointer b) {
  */
 static GLuint R_LoadBspVertexArrays_VertexElement(GLuint *vertex_index) {
 
-	gpointer value;
+	gpointer value = g_hash_table_lookup(r_unique_vertices.hash_table, BSP_VERTEX_INDEX_AS_KEY(vertex_index));
 
-	if ((value = g_hash_table_lookup(r_unique_vertices.hash_table, BSP_VERTEX_INDEX_AS_KEY(vertex_index)))) {
+	if (value) {
 		return BSP_VERTEX_INDEX_FOR_KEY(value);
 	}
 
