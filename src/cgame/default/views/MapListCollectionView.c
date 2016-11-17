@@ -294,7 +294,9 @@ static Array *selectedMaps(const MapListCollectionView *self) {
 	Array *selection = $(this, selectionIndexPaths);
 	for (size_t i = 0; i < selection->count; i++) {
 		const IndexPath *indexPath = $(selection, objectAtIndex, i);
-		$(selectedMaps, addObject, this->dataSource.objectForItemAtIndexPath(this, indexPath));
+
+		Value *value = this->dataSource.objectForItemAtIndexPath(this, indexPath);
+		$(selectedMaps, addObject, value);
 	}
 
 	release(selection);

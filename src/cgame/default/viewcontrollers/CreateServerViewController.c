@@ -67,36 +67,36 @@ static void selectTeamsplay(Select *select, Option *option) {
  */
 static void createAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	CreateServerViewController *this = (CreateServerViewController *) sender;
-
-	char maplist[MAX_STRING_CHARS] = "";
-	char firstmap[MAX_QPATH] = "";
-
-
-	GList *selectedMaps = $(this->mapList, selectedMaps);
-	for (const GList *list = selectedMaps; list; list = list->next) {
-
-		char name[MAX_QPATH];
-		g_strlcpy(name, (const char *) Basename(list->data), sizeof(name));
-		StripExtension(name, name);
-
-		if (maplist[0] == '\0') {
-			g_strlcpy(firstmap, name, sizeof(firstmap));
-		}
-
-		g_strlcpy(maplist, va("%s%s ", maplist, name), sizeof(maplist));
-	}
-
-	g_list_free(selectedMaps);
-
-	if (firstmap[0] == '\0') {
-		cgi.Warn("No map selected\n");
-
-		return;
-	}
-
-	cgi.CvarSet("g_map_rotation", maplist);
-	cgi.Cbuf(va("map %s\n", firstmap));
+//	CreateServerViewController *this = (CreateServerViewController *) sender;
+//
+//	char maplist[MAX_STRING_CHARS] = "";
+//	char firstmap[MAX_QPATH] = "";
+//
+//
+//	GList *selectedMaps = $(this->mapList, selectedMaps);
+//	for (const GList *list = selectedMaps; list; list = list->next) {
+//
+//		char name[MAX_QPATH];
+//		g_strlcpy(name, (const char *) Basename(list->data), sizeof(name));
+//		StripExtension(name, name);
+//
+//		if (maplist[0] == '\0') {
+//			g_strlcpy(firstmap, name, sizeof(firstmap));
+//		}
+//
+//		g_strlcpy(maplist, va("%s%s ", maplist, name), sizeof(maplist));
+//	}
+//
+//	g_list_free(selectedMaps);
+//
+//	if (firstmap[0] == '\0') {
+//		cgi.Warn("No map selected\n");
+//
+//		return;
+//	}
+//
+//	cgi.CvarSet("g_map_rotation", maplist);
+//	cgi.Cbuf(va("map %s\n", firstmap));
 }
 
 #pragma mark - Object
