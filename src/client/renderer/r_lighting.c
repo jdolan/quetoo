@@ -311,7 +311,7 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 	qsort(il, r_illuminations.num_illuminations, sizeof(r_illumination_t), R_CompareIllumination);
 
 	// take the strongest illuminations
-	uint16_t n = MIN(r_illuminations.num_illuminations, r_state.max_active_lights);
+	uint16_t n = MIN(r_illuminations.num_illuminations, lengthof(l->illuminations));
 
 	// and copy them in
 	memcpy(l->illuminations, il, n * sizeof(r_illumination_t));
@@ -420,7 +420,7 @@ static void R_UpdateShadows(r_lighting_t *l) {
 	memset(l->shadows, 0, sizeof(l->shadows));
 
 	const r_illumination_t *il = l->illuminations;
-	for (size_t i = 0; i < r_state.max_active_lights; i++, il++) {
+	for (size_t i = 0; i < lengthof(l->illuminations); i++, il++) {
 
 		if (il->diffuse == 0.0) {
 			break;
