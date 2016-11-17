@@ -228,9 +228,14 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 
 	r_state.array_buffers_dirty &= ~mask;
 
-	R_EnableAttribute(attribute);
-
 	const r_buffer_t *buffer = r_state.array_buffers[attribute];
+
+	if (!buffer) {
+		R_DisableAttribute(attribute);
+		return;
+	}
+
+	R_EnableAttribute(attribute);
 
 	GLsizei stride = 0;
 	GLsizeiptr offset = r_state.array_buffer_offsets[attribute];
@@ -419,7 +424,7 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length);
  */
 static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *result,
                                         gpointer data __attribute__((unused))) {
-	const gchar *name = g_match_info_fetch(match_info, 1);
+	gchar *name = g_match_info_fetch(match_info, 1);
 	gchar path[MAX_OS_PATH];
 	int64_t len;
 	void *buf;
@@ -428,6 +433,7 @@ static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *r
 
 	if ((len = Fs_Load(path, &buf)) == -1) {
 		Com_Warn("Failed to load %s\n", name);
+		g_free(name);
 		return true;
 	}
 
@@ -436,6 +442,7 @@ static gboolean R_PreprocessShader_eval(const GMatchInfo *match_info, GString *r
 	g_free(processed);
 
 	Fs_Free(buf);
+	g_free(name);
 
 	return false;
 }
@@ -460,6 +467,8 @@ static gchar *R_PreprocessShader(const char *input, const uint32_t length) {
 	if (error) {
 		Com_Warn("Error preprocessing shader: %s", error->message);
 	}
+
+	g_string_free(emplaced, true);
 
 	return output;
 }

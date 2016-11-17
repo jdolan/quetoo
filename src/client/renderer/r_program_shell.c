@@ -71,7 +71,7 @@ void R_InitProgram_shell(r_program_t *program) {
 	R_ProgramParameter1f(&p->shell_offset, 0.0);
 
 	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0");
-	R_ProgramParameter1i(&p->sampler0, 0);
+	R_ProgramParameter1i(&p->sampler0, R_TEXUNIT_DIFFUSE);
 
 	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
 	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");

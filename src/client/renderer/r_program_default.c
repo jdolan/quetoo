@@ -142,11 +142,11 @@ void R_InitProgram_default(r_program_t *program) {
 	R_ProgramParameter1f(&p->hardness, 1.0);
 	R_ProgramParameter1f(&p->specular, 1.0);
 
-	R_ProgramParameter1i(&p->sampler0, 0);
-	R_ProgramParameter1i(&p->sampler1, 1);
-	R_ProgramParameter1i(&p->sampler2, 2);
-	R_ProgramParameter1i(&p->sampler3, 3);
-	R_ProgramParameter1i(&p->sampler4, 4);
+	R_ProgramParameter1i(&p->sampler0, R_TEXUNIT_DIFFUSE);
+	R_ProgramParameter1i(&p->sampler1, R_TEXUNIT_LIGHTMAP);
+	R_ProgramParameter1i(&p->sampler2, R_TEXUNIT_DELUXEMAP);
+	R_ProgramParameter1i(&p->sampler3, R_TEXUNIT_NORMALMAP);
+	R_ProgramParameter1i(&p->sampler4, R_TEXUNIT_SPECULARMAP);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
 	R_ProgramParameter1f(&p->alpha_threshold, ALPHA_TEST_DISABLED_THRESHOLD);

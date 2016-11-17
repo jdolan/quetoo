@@ -45,7 +45,7 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 	}
 
 	if (texunit_diffuse.enabled) { // diffuse texture
-		R_BindTexture(surf->texinfo->material->diffuse->texnum);
+		R_BindDiffuseTexture(surf->texinfo->material->diffuse->texnum);
 	}
 
 	if (texunit_lightmap.enabled) { // lightmap texture
@@ -88,6 +88,8 @@ static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
  * @brief
  */
 static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
+
+	R_EnableTexture(&texunit_diffuse, true);
 
 	R_SetArrayState(r_model_state.world);
 

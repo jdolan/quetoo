@@ -40,13 +40,13 @@ typedef struct CvarSliderInterface CvarSliderInterface;
 struct CvarSlider {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	Slider slider;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	CvarSliderInterface *interface;
@@ -63,7 +63,7 @@ struct CvarSlider {
 struct CvarSliderInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	SliderInterface sliderInterface;
 

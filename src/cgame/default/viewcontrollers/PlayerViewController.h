@@ -40,13 +40,13 @@ typedef struct PlayerViewControllerInterface PlayerViewControllerInterface;
 struct PlayerViewController {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	MenuViewController menuViewController;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	PlayerViewControllerInterface *interface;
@@ -63,7 +63,7 @@ struct PlayerViewController {
 struct PlayerViewControllerInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	MenuViewControllerInterface menuViewControllerInterface;
 };

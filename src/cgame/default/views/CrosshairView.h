@@ -39,13 +39,13 @@ typedef struct CrosshairViewInterface CrosshairViewInterface;
 struct CrosshairView {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	View view;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	CrosshairViewInterface *interface;
@@ -62,7 +62,7 @@ struct CrosshairView {
 struct CrosshairViewInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	ImageViewInterface imageViewInterface;
 

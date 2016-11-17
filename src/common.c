@@ -42,6 +42,10 @@ void Com_Debug_(const char *func, const char *fmt, ...) {
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
+#if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
+	OutputDebugString(msg);
+#endif
+
 	if (quetoo.Debug) {
 		quetoo.Debug((const char *) msg);
 	} else {

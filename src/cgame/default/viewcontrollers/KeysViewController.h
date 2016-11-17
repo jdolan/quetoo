@@ -40,13 +40,13 @@ typedef struct KeysViewControllerInterface KeysViewControllerInterface;
 struct KeysViewController {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	MenuViewController menuViewController;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	KeysViewControllerInterface *interface;
@@ -58,7 +58,7 @@ struct KeysViewController {
 struct KeysViewControllerInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	MenuViewControllerInterface menuViewControllerInterface;
 };

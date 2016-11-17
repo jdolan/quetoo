@@ -28,14 +28,8 @@
  */
 
 typedef struct {
-	r_image_t *lightmap;
-	r_image_t *deluxemap;
-
-	r_pixel_t block_size; // lightmap block size (NxN)
-	r_pixel_t *allocated; // block availability
-
-	byte *sample_buffer; // RGB buffers for uploading
-	byte *direction_buffer;
+	r_bsp_model_t *bsp;
+	GSList *blocks;
 } r_lightmap_state_t;
 
 static r_lightmap_state_t r_lightmap_state;
@@ -50,7 +44,7 @@ static void R_FreeLightmap(r_media_t *media) {
 /**
  * @brief Allocates a new lightmap (or deluxemap) image handle.
  */
-static r_image_t *R_AllocLightmap_(r_image_type_t type) {
+static r_image_t *R_AllocLightmap_(r_image_type_t type, const r_pixel_t width, const r_pixel_t height) {
 	static uint32_t count;
 	char name[MAX_QPATH];
 
@@ -62,65 +56,14 @@ static r_image_t *R_AllocLightmap_(r_image_type_t type) {
 	image->media.Free = R_FreeLightmap;
 
 	image->type = type;
-	image->width = image->height = r_lightmap_state.block_size;
+	image->width = width;
+	image->height = height;
 
 	return image;
 }
 
-#define R_AllocLightmap() R_AllocLightmap_(IT_LIGHTMAP)
-#define R_AllocDeluxemap() R_AllocLightmap_(IT_DELUXEMAP)
-
-/**
- * @brief
- */
-static void R_UploadLightmapBlock(r_bsp_model_t *bsp) {
-
-	R_UploadImage(r_lightmap_state.lightmap, GL_RGB, r_lightmap_state.sample_buffer);
-	R_UploadImage(r_lightmap_state.deluxemap, GL_RGB, r_lightmap_state.direction_buffer);
-
-	// clear the allocation block and buffers
-	memset(r_lightmap_state.allocated, 0, r_lightmap_state.block_size * sizeof(r_pixel_t));
-	memset(r_lightmap_state.sample_buffer, 0, r_lightmap_state.block_size * r_lightmap_state.block_size * 3);
-	memset(r_lightmap_state.direction_buffer, 0, r_lightmap_state.block_size * r_lightmap_state.block_size * 3);
-}
-
-/**
- * @brief
- */
-static _Bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixel_t *y) {
-	r_pixel_t i, j;
-	r_pixel_t best;
-
-	best = r_lightmap_state.block_size;
-
-	for (i = 0; i < r_lightmap_state.block_size - w; i++) {
-		r_pixel_t best2 = 0;
-
-		for (j = 0; j < w; j++) {
-			if (r_lightmap_state.allocated[i + j] >= best) {
-				break;
-			}
-
-			if (r_lightmap_state.allocated[i + j] > best2) {
-				best2 = r_lightmap_state.allocated[i + j];
-			}
-		}
-		if (j == w) { // this is a valid spot
-			*x = i;
-			*y = best = best2;
-		}
-	}
-
-	if (best + h > r_lightmap_state.block_size) {
-		return false;
-	}
-
-	for (i = 0; i < w; i++) {
-		r_lightmap_state.allocated[*x + i] = best + h;
-	}
-
-	return true;
-}
+#define R_AllocLightmap(w, h) R_AllocLightmap_(IT_LIGHTMAP, w, h)
+#define R_AllocDeluxemap(w, h) R_AllocLightmap_(IT_DELUXEMAP, w, h)
 
 /**
  * @brief
@@ -128,8 +71,8 @@ static _Bool R_AllocLightmapBlock(r_pixel_t w, r_pixel_t h, r_pixel_t *x, r_pixe
 static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, byte *sout,
                                    byte *dout, size_t stride) {
 
-	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmaps->scale) + 1;
-	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmaps->scale) + 1;
+	const r_pixel_t smax = surf->st_extents[0];
+	const r_pixel_t tmax = surf->st_extents[1];
 
 	stride -= (smax * 3);
 
@@ -155,11 +98,7 @@ static void R_BuildDefaultLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, by
  * @brief Apply brightness, saturation and contrast to the lightmap.
  */
 static void R_FilterLightmap(r_pixel_t width, r_pixel_t height, byte *lightmap) {
-	r_image_t image;
-
-	memset(&image, 0, sizeof(image));
-
-	image.type = IT_LIGHTMAP;
+	static r_image_t image = { .type = IT_LIGHTMAP };
 
 	image.width = width;
 	image.height = height;
@@ -178,8 +117,8 @@ static void R_FilterLightmap(r_pixel_t width, r_pixel_t height, byte *lightmap) 
 static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *surf, const byte *in,
                             byte *lout, byte *dout, size_t stride) {
 
-	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmaps->scale) + 1;
-	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmaps->scale) + 1;
+	const r_pixel_t smax = surf->st_extents[0];
+	const r_pixel_t tmax = surf->st_extents[1];
 
 	const size_t size = smax * tmax;
 	stride -= (smax * 3);
@@ -235,11 +174,19 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 }
 
 /**
- * @brief Creates the lightmap and deluxemap for the specified surface. The GL
- * textures to which the lightmap and deluxemap are written is stored on the
- * surface.
- *
- * @param data If NULL, a default lightmap and deluxemap will be generated.
+ * @brief
+ */
+gint R_InsertBlock_CompareFunc(gconstpointer  a,
+                                   gconstpointer  b) {
+
+	const r_bsp_surface_t *ai = (const r_bsp_surface_t *) a;
+	const r_bsp_surface_t *bi = (const r_bsp_surface_t *) b;
+
+	return bi->st_extents[1] - ai->st_extents[1];
+}
+
+/**
+ * @brief Pushes lightmap to list of blocks to be processed
  */
 void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const byte *data) {
 
@@ -247,62 +194,57 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 		return;
 	}
 
-	const r_pixel_t smax = (surf->st_extents[0] / bsp->lightmaps->scale) + 1;
-	const r_pixel_t tmax = (surf->st_extents[1] / bsp->lightmaps->scale) + 1;
-
-	if (!R_AllocLightmapBlock(smax, tmax, &surf->lightmap_s, &surf->lightmap_t)) {
-
-		R_UploadLightmapBlock(bsp); // upload the last block
-
-		r_lightmap_state.lightmap = R_AllocLightmap();
-		r_lightmap_state.deluxemap = R_AllocDeluxemap();
-
-		if (!R_AllocLightmapBlock(smax, tmax, &surf->lightmap_s, &surf->lightmap_t)) {
-			Com_Error(ERR_DROP, "Consecutive calls to R_AllocLightmapBlock failed");
-		}
-	}
-
-	surf->lightmap = r_lightmap_state.lightmap;
-	surf->deluxemap = r_lightmap_state.deluxemap;
-
-	byte *sout = r_lightmap_state.sample_buffer;
-	sout += (surf->lightmap_t *r_lightmap_state.block_size + surf->lightmap_s) * 3;
-
-	byte *dout = r_lightmap_state.direction_buffer;
-	dout += (surf->lightmap_t *r_lightmap_state.block_size + surf->lightmap_s) * 3;
-
-	const size_t stride = r_lightmap_state.block_size * 3;
-
-	if (data) {
-		R_BuildLightmap(bsp, surf, data, sout, dout, stride);
-	} else {
-		R_BuildDefaultLightmap(bsp, surf, sout, dout, stride);
-	}
+	surf->lightmap_input = data;
+	r_lightmap_state.blocks = g_slist_prepend(r_lightmap_state.blocks, surf);
 }
 
 /**
- * @brief
+ * @brief Uploads sorted lightmaps from start to (end - 1) and 
+ * puts them in the new maps sized to width/height
  */
-void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp) {
+static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model_t *bsp, GSList *start, GSList *end) {
 
-	// users can tune max lightmap size for their card
-	r_lightmap_state.block_size = r_lightmap_block_size->integer;
+	// edge case, no blocks left
+	if (!width || !height || !start) {
+		return;
+	}
 
-	// but clamp it to the card's capability to avoid errors
-	r_lightmap_state.block_size = Clamp(r_lightmap_state.block_size, 256, (r_pixel_t) r_config.max_texture_size);
+	// allocate the image
+	r_image_t *lightmap = R_AllocLightmap(width, height);
+	r_image_t *deluxemap = R_AllocDeluxemap(width, height);
 
-	Com_Debug("Block size: %d (max: %d)\n", r_lightmap_state.block_size, r_config.max_texture_size);
+	// temp buffers
+	byte *sample_buffer = Mem_TagMalloc(width * height * 3, MEM_TAG_RENDERER);
+	byte *direction_buffer = Mem_TagMalloc(width * height * 3, MEM_TAG_RENDERER);
 
-	const r_pixel_t bs = r_lightmap_state.block_size;
+	do {
+		r_bsp_surface_t *surf = (r_bsp_surface_t *) start->data;
 
-	r_lightmap_state.allocated = Mem_TagMalloc(bs * sizeof(r_pixel_t), MEM_TAG_RENDERER);
+		const size_t stride = width * 3;
+		const size_t lightmap_offset = (surf->lightmap_t * width + surf->lightmap_s) * 3;
 
-	r_lightmap_state.sample_buffer = Mem_TagMalloc(bs * bs * sizeof(uint32_t), MEM_TAG_RENDERER);
-	r_lightmap_state.direction_buffer = Mem_TagMalloc(bs * bs * sizeof(uint32_t), MEM_TAG_RENDERER);
+		byte *sout = sample_buffer + lightmap_offset;
+		byte *dout = direction_buffer + lightmap_offset;
 
-	// generate the initial textures for lightmap data
-	r_lightmap_state.lightmap = R_AllocLightmap();
-	r_lightmap_state.deluxemap = R_AllocDeluxemap();
+		if (surf->lightmap_input) {
+			R_BuildLightmap(bsp, surf, surf->lightmap_input, sout, dout, stride);
+		} else {
+			R_BuildDefaultLightmap(bsp, surf, sout, dout, stride);
+		}
+		
+		surf->lightmap = lightmap;
+		surf->deluxemap = deluxemap;
+
+		start = start->next;
+	} while (start != end);
+
+	// upload!
+	R_UploadImage(lightmap, GL_RGB, sample_buffer);
+	R_UploadImage(deluxemap, GL_RGB, direction_buffer);
+
+	// free
+	Mem_Free(sample_buffer);
+	Mem_Free(direction_buffer);
 }
 
 /**
@@ -310,11 +252,77 @@ void R_BeginBspSurfaceLightmaps(r_bsp_model_t *bsp) {
  */
 void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 
-	// upload the pending lightmap block
-	R_UploadLightmapBlock(bsp);
+	// sort all the lightmap blocks
+	r_lightmap_state.blocks = g_slist_sort(r_lightmap_state.blocks, R_InsertBlock_CompareFunc);
 
-	Mem_Free(r_lightmap_state.allocated);
+	// make packers and start packin!
+	r_bsp_surface_t *surf = (r_bsp_surface_t *) r_lightmap_state.blocks->data;
 
-	Mem_Free(r_lightmap_state.sample_buffer);
-	Mem_Free(r_lightmap_state.direction_buffer);
+	r_packer_t packer;
+	memset(&packer, 0, sizeof(packer));
+
+	R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, surf->st_extents[0], surf->st_extents[1], bsp->num_surfaces / 2);
+
+	GSList *start = r_lightmap_state.blocks;
+
+	r_pixel_t current_width = 0, current_height = 0;
+
+	for (GSList *list = r_lightmap_state.blocks; ; list = list->next) {
+
+		if (list == NULL) {
+			// Upload
+			R_UploadPackedLightmaps(current_width, current_height, bsp, start, list);
+			break;
+		}
+
+		surf = (r_bsp_surface_t *) list->data;
+
+		r_packer_node_t *node;
+		
+		do {
+			node = R_AtlasPacker_FindNode(&packer, &g_array_index(packer.nodes, r_packer_node_t, packer.root), surf->st_extents[0], surf->st_extents[1]);
+
+			if (node != NULL) {
+				node = R_AtlasPacker_SplitNode(&packer, node, surf->st_extents[0], surf->st_extents[1]);
+			} else {
+				node = R_AtlasPacker_GrowNode(&packer, surf->st_extents[0], surf->st_extents[1]);
+			}
+
+			// can't fit any more, so upload and initialize a new packer
+			if (node == NULL) {
+
+				// Upload
+				R_UploadPackedLightmaps(current_width, current_height, bsp, start, list);
+
+				// reinitialize packer
+				R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, surf->st_extents[0], surf->st_extents[1], 0);
+
+				// new start position
+				start = list;
+
+				// reset accumulators
+				current_width = current_height = 0;
+			} else {
+				r_pixel_t w = node->x + surf->st_extents[0],
+					      h = node->y + surf->st_extents[1];
+				
+				w = NearestMultiple(w, 4);
+				h = NearestMultiple(h, 4);
+
+				// fit good, update current sizes
+				current_width = MAX(current_width, w);
+				current_height = MAX(current_height, h);
+				
+				// update surface parameters
+				surf->lightmap_s = node->x;
+				surf->lightmap_t = node->y;
+			}
+		} while (node == NULL);
+	}
+
+	// free stuff
+	R_AtlasPacker_FreePacker(&packer);
+
+	g_slist_free(r_lightmap_state.blocks);
+	r_lightmap_state.blocks = NULL;
 }

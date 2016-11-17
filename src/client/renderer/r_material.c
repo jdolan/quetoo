@@ -315,7 +315,7 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	vec4_t color;
 
 	// bind the texture
-	R_BindTexture(stage->image->texnum);
+	R_BindDiffuseTexture(stage->image->texnum);
 
 	// resolve all static, dynamic, and per-pixel lighting
 	R_StageLighting(surf, stage);

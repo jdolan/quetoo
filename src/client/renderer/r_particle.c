@@ -364,7 +364,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 		}
 
 		if (texnum != last_texnum) {
-			R_BindTexture(texnum);
+			R_BindDiffuseTexture(texnum);
 			last_texnum = texnum;
 		}
 	}

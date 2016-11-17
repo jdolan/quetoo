@@ -40,13 +40,13 @@ typedef struct CvarCheckboxInterface CvarCheckboxInterface;
 struct CvarCheckbox {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	Checkbox checkbox;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	CvarCheckboxInterface *interface;
@@ -63,7 +63,7 @@ struct CvarCheckbox {
 struct CvarCheckboxInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	CheckboxInterface checkboxInterface;
 

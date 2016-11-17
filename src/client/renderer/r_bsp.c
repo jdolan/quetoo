@@ -338,7 +338,7 @@ void R_DrawBspNormals(void) {
 
 	R_EnableColorArray(true);
 
-	R_EnableTexture(&texunit_diffuse, false);
+	R_BindDiffuseTexture(r_image_state.null->texnum);
 
 	R_ResetArrayState(); // default arrays
 
