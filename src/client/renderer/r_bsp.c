@@ -375,7 +375,9 @@ void R_DrawBspNormals(void) {
 
 			R_PushMatrix(R_MATRIX_MODELVIEW);
 
-			Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
+			Matrix4x4_Concat(matrix_modelview, matrix_modelview, &mat);
+
+			R_DirtyMatrix(R_MATRIX_MODELVIEW);
 
 			R_DrawArrays(GL_LINES, (GLint) r_model_state.bound_element_count - 6, 2);
 
@@ -383,7 +385,7 @@ void R_DrawBspNormals(void) {
 		}
 	}
 
-	R_EnableTexture(&texunit_diffuse, true);
+	R_EnableTexture(texunit_diffuse, true);
 
 	R_EnableColorArray(false);
 }
@@ -409,7 +411,7 @@ void R_DrawBspLeafs(void) {
 
 	R_SetArrayState(r_model_state.world);
 
-	R_EnableTexture(&texunit_diffuse, false);
+	R_EnableTexture(texunit_diffuse, false);
 
 	R_EnablePolygonOffset(true);
 
@@ -441,7 +443,7 @@ void R_DrawBspLeafs(void) {
 
 	R_EnablePolygonOffset(false);
 
-	R_EnableTexture(&texunit_diffuse, true);
+	R_EnableTexture(texunit_diffuse, true);
 
 	R_Color(NULL);
 }

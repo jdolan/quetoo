@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 3
+#define CGAME_API_VERSION 4
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -620,6 +620,11 @@ typedef struct cg_import_s {
 	 * @brief Pop a saved matrix from the stack
 	 */
 	void (*PopMatrix)(const r_matrix_id_t id);
+
+	/**
+	 * @brief Mark a matrix as being dirty
+	 */
+	void (*DirtyMatrix)(const r_matrix_id_t id);
 
 	/**
 	 * @brief Draws the mesh model for the given entity.

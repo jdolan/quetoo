@@ -353,7 +353,7 @@ void R_DrawMeshModel_default(const r_entity_t *e) {
  */
 void R_DrawMeshModels_default(const r_entities_t *ents) {
 
-	R_EnableLighting(r_state.default_program, true);
+	R_EnableLighting(program_default, true);
 
 	if (r_draw_wireframe->value) {
 		R_BindDiffuseTexture(r_image_state.null->texnum);

@@ -24,9 +24,6 @@
 // these are the variables defined in the GLSL shader
 typedef struct {
 	r_uniform_fog_t fog;
-
-	r_uniform_matrix4fv_t projection_mat;
-	r_uniform_matrix4fv_t modelview_mat;
 } r_corona_program_t;
 
 static r_corona_program_t r_corona_program;
@@ -48,17 +45,14 @@ void R_InitProgram_corona(r_program_t *program) {
 
 	r_corona_program_t *p = &r_corona_program;
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION");
-	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR");
-	R_ProgramVariable(&program->attributes[R_ARRAY_DIFFUSE], R_ATTRIBUTE, "TEXCOORD");
+	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION", true);
+	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR", true);
+	R_ProgramVariable(&program->attributes[R_ARRAY_DIFFUSE], R_ATTRIBUTE, "TEXCOORD", true);
 
-	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
-	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
-	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR");
-	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
-
-	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
-	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
+	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START", true);
+	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END", true);
+	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR", true);
+	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY", true);
 
 	R_ProgramParameter1f(&p->fog.density, 0.0);
 }
@@ -78,15 +72,4 @@ void R_UseFog_corona(const r_fog_parameters_t *fog) {
 	} else {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
 	}
-}
-
-/**
- * @brief
- */
-void R_UseMatrices_corona(const matrix4x4_t *matrices) {
-
-	r_corona_program_t *p = &r_corona_program;
-
-	R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) matrices[R_MATRIX_PROJECTION].m);
-	R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) matrices[R_MATRIX_MODELVIEW].m);
 }

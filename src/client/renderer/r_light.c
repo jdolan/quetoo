@@ -172,7 +172,7 @@ void R_MarkLights(void) {
  */
 void R_EnableLights(uint64_t mask) {
 
-	if (r_state.active_program != r_state.default_program) {
+	if (r_state.active_program != program_default) {
 		return;
 	}
 

@@ -80,7 +80,9 @@ void Ui_Draw(void) {
 		R_PushMatrix(matrix);
 	}
 
-	Matrix4x4_FromOrtho(&projection_matrix, 0.0, r_context.window_width, r_context.window_height, 0.0, -1.0, 1.0);
+	Matrix4x4_FromOrtho(matrix_projection, 0.0, r_context.window_width, r_context.window_height, 0.0, -1.0, 1.0);
+
+	R_DirtyMatrix(R_MATRIX_PROJECTION);
 
 	$(windowController, render);
 

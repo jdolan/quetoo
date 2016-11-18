@@ -104,6 +104,9 @@ static void render(View *self, Renderer *renderer) {
 
 		Matrix4x4_Copy(&cgi.view->active_matrices[R_MATRIX_MODELVIEW], &mat);
 
+		cgi.DirtyMatrix(R_MATRIX_PROJECTION);
+		cgi.DirtyMatrix(R_MATRIX_MODELVIEW);
+
 		cgi.EnableDepthTest(true);
 		cgi.DepthRange(0.0, 0.1);
 

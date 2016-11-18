@@ -125,12 +125,12 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 
 	if ((surf->flags & R_SURF_LIGHTMAP) && (stage->flags & (STAGE_LIGHTMAP | STAGE_LIGHTING))) {
 
-		R_EnableTexture(&texunit_lightmap, true);
+		R_EnableTexture(texunit_lightmap, true);
 		R_BindLightmapTexture(surf->lightmap->texnum);
 
 		if (stage->flags & STAGE_LIGHTING) { // hardware lighting
 
-			R_EnableLighting(r_state.default_program, true);
+			R_EnableLighting(program_default, true);
 
 			if (r_state.lighting_enabled) {
 				R_BindDeluxemapTexture(surf->deluxemap->texnum);
@@ -149,7 +149,7 @@ static void R_StageLighting(const r_bsp_surface_t *surf, const r_stage_t *stage)
 	} else {
 		R_EnableLighting(NULL, false);
 
-		R_EnableTexture(&texunit_lightmap, false);
+		R_EnableTexture(texunit_lightmap, false);
 	}
 }
 
@@ -173,14 +173,14 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 	if (!(stage->flags & STAGE_TEXTURE_MATRIX)) {
 
 		if (!identity) {
-			Matrix4x4_CreateIdentity(&texture_matrix);
+			Matrix4x4_CreateIdentity(matrix_texture);
 		}
 
 		identity = true;
 		return;
 	}
 
-	Matrix4x4_CreateIdentity(&texture_matrix);
+	Matrix4x4_CreateIdentity(matrix_texture);
 
 	if (surf) { // for BSP surfaces, add stretch and rotate
 
@@ -188,32 +188,32 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 		t = surf->st_center[1] / surf->texinfo->material->diffuse->height;
 
 		if (stage->flags & STAGE_STRETCH) {
-			Matrix4x4_ConcatTranslate(&texture_matrix, -s, -t, 0.0);
-			Matrix4x4_ConcatScale3(&texture_matrix, stage->stretch.damp, stage->stretch.damp, 1.0);
-			Matrix4x4_ConcatTranslate(&texture_matrix, -s, -t, 0.0);
+			Matrix4x4_ConcatTranslate(matrix_texture, -s, -t, 0.0);
+			Matrix4x4_ConcatScale3(matrix_texture, stage->stretch.damp, stage->stretch.damp, 1.0);
+			Matrix4x4_ConcatTranslate(matrix_texture, -s, -t, 0.0);
 		}
 
 		if (stage->flags & STAGE_ROTATE) {
-			Matrix4x4_ConcatTranslate(&texture_matrix, -s, -t, 0.0);
-			Matrix4x4_ConcatRotate(&texture_matrix, stage->rotate.deg, 0.0, 0.0, 1.0);
-			Matrix4x4_ConcatTranslate(&texture_matrix, -s, -t, 0.0);
+			Matrix4x4_ConcatTranslate(matrix_texture, -s, -t, 0.0);
+			Matrix4x4_ConcatRotate(matrix_texture, stage->rotate.deg, 0.0, 0.0, 1.0);
+			Matrix4x4_ConcatTranslate(matrix_texture, -s, -t, 0.0);
 		}
 	}
 
 	if (stage->flags & STAGE_SCALE_S) {
-		Matrix4x4_ConcatScale3(&texture_matrix, stage->scale.s, 1.0, 1.0);
+		Matrix4x4_ConcatScale3(matrix_texture, stage->scale.s, 1.0, 1.0);
 	}
 
 	if (stage->flags & STAGE_SCALE_T) {
-		Matrix4x4_ConcatScale3(&texture_matrix, 1.0, stage->scale.t, 1.0);
+		Matrix4x4_ConcatScale3(matrix_texture, 1.0, stage->scale.t, 1.0);
 	}
 
 	if (stage->flags & STAGE_SCROLL_S) {
-		Matrix4x4_ConcatTranslate(&texture_matrix, stage->scroll.ds, 0.0, 0.0);
+		Matrix4x4_ConcatTranslate(matrix_texture, stage->scroll.ds, 0.0, 0.0);
 	}
 
 	if (stage->flags & STAGE_SCROLL_T) {
-		Matrix4x4_ConcatTranslate(&texture_matrix, 0.0, stage->scroll.dt, 0.0);
+		Matrix4x4_ConcatTranslate(matrix_texture, 0.0, stage->scroll.dt, 0.0);
 	}
 
 	identity = false;
@@ -239,7 +239,7 @@ static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const
 		out[1] = in[1];
 	}
 
-	Matrix4x4_Transform2(&texture_matrix, out, out);
+	Matrix4x4_Transform2(matrix_texture, out, out);
 }
 
 #define NUM_DIRTMAP_ENTRIES 16
@@ -381,7 +381,7 @@ static void R_DrawBspSurfaceMaterialStage(r_bsp_surface_t *surf, const r_stage_t
 
 		R_StageTexCoord(stage, v, st, &vertex->diffuse[0]);
 
-		if (texunit_lightmap.enabled) { // lightmap texcoords
+		if (texunit_lightmap->enabled) { // lightmap texcoords
 			st = &r_model_state.world->bsp->lightmap_texcoords[surf->elements[i]][0];
 			Vector2Set(vertex->lightmap, (u16vec_t) (st[0] * USHRT_MAX), (u16vec_t) (st[1] * USHRT_MAX));
 		}
@@ -467,9 +467,9 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		return;
 	}
 
-	R_EnableTexture(&texunit_lightmap, true);
+	R_EnableTexture(texunit_lightmap, true);
 
-	R_EnableLighting(r_state.default_program, true);
+	R_EnableLighting(program_default, true);
 
 	R_EnableColorArray(true);
 
@@ -481,7 +481,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(NULL, false);
 
-	R_EnableTexture(&texunit_lightmap, false);
+	R_EnableTexture(texunit_lightmap, false);
 
 	R_EnablePolygonOffset(true);
 
@@ -521,15 +521,15 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnablePolygonOffset(false);
 
-	Matrix4x4_CreateIdentity(&texture_matrix);
+	Matrix4x4_CreateIdentity(matrix_texture);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_EnableColorArray(false);
 
-	R_EnableTexture(&texunit_lightmap, false);
+	R_EnableTexture(texunit_lightmap, false);
 
-	R_EnableLighting(r_state.default_program, true);
+	R_EnableLighting(program_default, true);
 
 	R_EnableLights(0);
 
@@ -589,7 +589,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 		R_EnableDepthMask(true);
 	}
 
-	Matrix4x4_CreateIdentity(&texture_matrix);
+	Matrix4x4_CreateIdentity(matrix_texture);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

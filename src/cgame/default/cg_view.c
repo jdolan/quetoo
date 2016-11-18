@@ -22,6 +22,9 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
+#define NEAR_Z 4.0
+#define FAR_Z  (MAX_WORLD_COORD * 4.0)
+
 /**
  * @brief Update the field of view, which affects the view port as well as the culling
  * frustum.
@@ -71,6 +74,17 @@ static void Cg_UpdateFov(void) {
 	const vec_t a = cgi.context->height / (vec_t ) cgi.context->width;
 
 	cgi.view->fov[1] = Degrees(y) * a / 2.0;
+
+	// set up projection matrix
+	const vec_t aspect = (vec_t) cgi.view->viewport_3d.w / (vec_t) cgi.view->viewport_3d.h;
+
+	const vec_t ymax = NEAR_Z * tan(Radians(cgi.view->fov[1]));
+	const vec_t ymin = -ymax;
+
+	const vec_t xmin = ymin * aspect;
+	const vec_t xmax = ymax * aspect;
+
+	Matrix4x4_FromFrustum(&cgi.view->matrix_base_3d, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
 }
 
 /**

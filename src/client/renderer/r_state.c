@@ -314,7 +314,7 @@ void R_EnableColorArray(_Bool enable) {
 void R_EnableLighting(const r_program_t *program, _Bool enable) {
 
 	if (program == NULL) {
-		program = r_state.null_program;
+		program = program_null;
 	}
 
 	// if the program can't use lights, lighting can't really
@@ -366,7 +366,7 @@ void R_EnableShadow(const r_program_t *program, _Bool enable) {
 	if (enable) {
 		R_UseProgram(program);
 	} else {
-		R_UseProgram(r_state.null_program);
+		R_UseProgram(program_null);
 	}
 
 	R_EnableFog(enable);
@@ -392,7 +392,7 @@ void R_EnableWarp(const r_program_t *program, _Bool enable) {
 	if (enable) {
 		R_UseProgram(program);
 	} else {
-		R_UseProgram(r_state.null_program);
+		R_UseProgram(program_null);
 	}
 
 	R_EnableFog(enable);
@@ -424,7 +424,7 @@ void R_EnableShell(const r_program_t *program, _Bool enable) {
 	} else {
 		R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		R_UseProgram(r_state.null_program);
+		R_UseProgram(program_null);
 	}
 
 	R_GetError(NULL);
@@ -507,15 +507,20 @@ void R_PopMatrix(const r_matrix_id_t id) {
 	}
 
 	Matrix4x4_Copy(&r_view.active_matrices[id], &r_state.matrix_stacks[id].matrices[--r_state.matrix_stacks[id].depth]);
+
+	R_DirtyMatrix(id);
 }
 
 /**
- * @brief Uploads matrices to the currently loaded program.
+ * @brief Mark a matrix as being dirty. Important that you do this if you
+ * actually modify any of the matrix_* components!
  */
-void R_UseMatrices(void) {
+void R_DirtyMatrix(const r_matrix_id_t id) {
 
-	if (r_state.active_program->UseMatrices) {
-		r_state.active_program->UseMatrices((const matrix4x4_t *) r_view.active_matrices);
+	for (r_program_id_t i = 0; i < R_PROGRAM_TOTAL; i++) {
+		if (r_state.programs[i].matrix_uniforms[id].location != -1) {
+			r_state.programs[i].matrix_dirty[id] = true;
+		}
 	}
 }
 
@@ -582,9 +587,6 @@ void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height, _Bool force)
 	r_view.num_state_changes[R_STATE_VIEWPORT]++;
 }
 
-#define NEAR_Z 4.0
-#define FAR_Z  (MAX_WORLD_COORD * 4.0)
-
 /**
  * @brief Prepare OpenGL for drawing the 3D scene. Update the view-port definition
  * and load our projection and model-view matrices.
@@ -598,16 +600,10 @@ void R_Setup3D(void) {
 	const SDL_Rect *viewport = &r_view.viewport_3d;
 	R_SetViewport(viewport->x, viewport->y, viewport->w, viewport->h, !!r_state.supersample_fbo);
 
-	// set up projection matrix
-	const vec_t aspect = (vec_t) viewport->w / (vec_t) viewport->h;
+	// copy projection matrix
+	Matrix4x4_Copy(matrix_projection, &r_view.matrix_base_3d);
 
-	const vec_t ymax = NEAR_Z * tan(Radians(r_view.fov[1]));
-	const vec_t ymin = -ymax;
-
-	const vec_t xmin = ymin * aspect;
-	const vec_t xmax = ymax * aspect;
-
-	Matrix4x4_FromFrustum(&projection_matrix, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
+	R_DirtyMatrix(R_MATRIX_PROJECTION);
 
 	// setup the model-view matrix
 	Matrix4x4_CreateIdentity(&r_view.matrix);
@@ -621,7 +617,10 @@ void R_Setup3D(void) {
 
 	Matrix4x4_ConcatTranslate(&r_view.matrix, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
 
-	Matrix4x4_Copy(&modelview_matrix, &r_view.matrix);
+	Matrix4x4_Copy(matrix_modelview, &r_view.matrix);
+
+	R_DirtyMatrix(R_MATRIX_MODELVIEW);
+
 	Matrix4x4_Invert_Simple(&r_view.inverse_matrix, &r_view.matrix);
 
 	// bind default vertex array
@@ -716,9 +715,13 @@ void R_Setup2D(void) {
 
 	R_SetViewport(0, 0, r_context.width, r_context.height, !!r_state.supersample_fbo);
 
-	Matrix4x4_FromOrtho(&projection_matrix, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+	Matrix4x4_Copy(matrix_projection, &r_view.matrix_base_2d);
 
-	Matrix4x4_CreateIdentity(&modelview_matrix);
+	R_DirtyMatrix(R_MATRIX_PROJECTION);
+
+	Matrix4x4_CreateIdentity(matrix_modelview);
+
+	R_DirtyMatrix(R_MATRIX_MODELVIEW);
 
 	// bind default vertex array
 	R_UnbindAttributeBuffer(R_ARRAY_POSITION);
@@ -871,7 +874,7 @@ void R_InitState(void) {
 	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
 	// setup texture units
-	for (int32_t i = 0; i < R_TEXUNIT_TOTAL; i++) {
+	for (r_texunit_id_t i = 0; i < R_TEXUNIT_TOTAL; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
 		if (i < r_config.max_texunits) {
@@ -882,9 +885,9 @@ void R_InitState(void) {
 	R_UnbindAttributeBuffers();
 
 	// default texture unit
-	R_SelectTexture(&texunit_diffuse);
+	R_SelectTexture(texunit_diffuse);
 
-	R_EnableTexture(&texunit_diffuse, true);
+	R_EnableTexture(texunit_diffuse, true);
 
 	// polygon offset parameters
 	R_PolygonOffset(-1.0, 1.0);

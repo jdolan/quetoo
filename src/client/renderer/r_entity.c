@@ -80,7 +80,9 @@ void R_RotateForEntity(const r_entity_t *e) {
 
 	R_PushMatrix(R_MATRIX_MODELVIEW);
 
-	Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &e->matrix);
+	Matrix4x4_Concat(matrix_modelview, matrix_modelview, &e->matrix);
+
+	R_DirtyMatrix(R_MATRIX_MODELVIEW);
 }
 
 /**
@@ -281,7 +283,9 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 		R_PushMatrix(R_MATRIX_MODELVIEW);
 
-		Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
+		Matrix4x4_Concat(matrix_modelview, matrix_modelview, &mat);
+
+		R_DirtyMatrix(R_MATRIX_MODELVIEW);
 
 		R_DrawArrays(GL_LINES, 0, (GLint) r_model_state.bound_element_count - 6);
 
@@ -292,7 +296,9 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 
 		R_PushMatrix(R_MATRIX_MODELVIEW);
 
-		Matrix4x4_Concat(&modelview_matrix, &modelview_matrix, &mat);
+		Matrix4x4_Concat(matrix_modelview, matrix_modelview, &mat);
+
+		R_DirtyMatrix(R_MATRIX_MODELVIEW);
 
 		R_DrawArrays(GL_LINES, (GLint) r_model_state.bound_element_count - 6, 6);
 

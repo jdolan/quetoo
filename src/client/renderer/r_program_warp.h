@@ -29,7 +29,6 @@
 	void R_PreLink_warp(const r_program_t *program);
 	void R_UseProgram_warp(void);
 	void R_UseFog_warp(const r_fog_parameters_t *fog);
-	void R_UseMatrices_warp(const matrix4x4_t *matrices);
 	void R_UseCurrentColor_warp(const vec4_t color);
 #endif /* __R_LOCAL_H__ */
 

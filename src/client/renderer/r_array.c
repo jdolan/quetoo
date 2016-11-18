@@ -347,7 +347,7 @@ void R_DestroyBuffer(r_buffer_t *buffer) {
 	}
 
 	// if the buffer is attached to any active attribs, remove that ptr too
-	for (r_attribute_id_t i = 0; i < R_ARRAY_MAX_ATTRIBS; ++i) {
+	for (r_attribute_id_t i = R_ARRAY_POSITION; i < R_ARRAY_MAX_ATTRIBS; ++i) {
 
 		if (r_state.attributes[i].type != NULL &&
 		        r_state.attributes[i].value.buffer == buffer) {
@@ -428,11 +428,11 @@ r_attribute_mask_t R_ArraysMask(void) {
 		}
 	}
 
-	if (texunit_diffuse.enabled) {
+	if (texunit_diffuse->enabled) {
 		mask |= R_ARRAY_MASK_DIFFUSE;
 	}
 
-	if (texunit_lightmap.enabled) {
+	if (texunit_lightmap->enabled) {
 		mask |= R_ARRAY_MASK_LIGHTMAP;
 	}
 
@@ -625,14 +625,14 @@ void R_ResetArrayState(void) {
 	}
 
 	// diffuse texcoords
-	if (texunit_diffuse.enabled) {
+	if (texunit_diffuse->enabled) {
 		if (mask & R_ARRAY_MASK_DIFFUSE) {
 			R_UnbindAttributeBuffer(R_ARRAY_DIFFUSE);
 		}
 	}
 
 	// lightmap texcoords
-	if (texunit_lightmap.enabled) {
+	if (texunit_lightmap->enabled) {
 
 		if (mask & R_ARRAY_MASK_LIGHTMAP) {
 			R_UnbindAttributeBuffer(R_ARRAY_LIGHTMAP);

@@ -44,11 +44,11 @@ static void R_SetBspSurfaceState_default(const r_bsp_surface_t *surf) {
 		R_Color(color);
 	}
 
-	if (texunit_diffuse.enabled) { // diffuse texture
+	if (texunit_diffuse->enabled) { // diffuse texture
 		R_BindDiffuseTexture(surf->texinfo->material->diffuse->texnum);
 	}
 
-	if (texunit_lightmap.enabled) { // lightmap texture
+	if (texunit_lightmap->enabled) { // lightmap texture
 		R_BindLightmapTexture(surf->lightmap->texnum);
 	}
 
@@ -88,7 +88,7 @@ static void R_DrawBspSurface_default(const r_bsp_surface_t *surf) {
  */
 static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
-	R_EnableTexture(&texunit_diffuse, true);
+	R_EnableTexture(texunit_diffuse, true);
 
 	R_SetArrayState(r_model_state.world);
 
@@ -124,7 +124,7 @@ static void R_DrawBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
  */
 static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 
-	R_EnableTexture(&texunit_diffuse, false);
+	R_EnableTexture(texunit_diffuse, false);
 
 	R_SetArrayState(r_model_state.world);
 
@@ -141,7 +141,7 @@ static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	R_EnableTexture(&texunit_diffuse, true);
+	R_EnableTexture(texunit_diffuse, true);
 }
 
 /**
@@ -159,12 +159,12 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	}
 
 	if (r_draw_bsp_lightmaps->value) {
-		R_EnableTexture(&texunit_diffuse, false);
+		R_EnableTexture(texunit_diffuse, false);
 	}
 
-	R_EnableTexture(&texunit_lightmap, true);
+	R_EnableTexture(texunit_lightmap, true);
 
-	R_EnableLighting(r_state.default_program, true);
+	R_EnableLighting(program_default, true);
 
 	if (r_shadows->value) {
 		R_EnableStencilTest(GL_REPLACE, true);
@@ -178,10 +178,10 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableLighting(NULL, false);
 
-	R_EnableTexture(&texunit_lightmap, false);
+	R_EnableTexture(texunit_lightmap, false);
 
 	if (r_draw_bsp_lightmaps->value) {
-		R_EnableTexture(&texunit_diffuse, true);
+		R_EnableTexture(texunit_diffuse, true);
 	}
 
 #if 0
@@ -217,7 +217,7 @@ void R_DrawOpaqueWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		return;
 	}
 
-	R_EnableWarp(r_state.warp_program, true);
+	R_EnableWarp(program_warp, true);
 
 	R_DrawBspSurfaces_default(surfs);
 
@@ -240,15 +240,15 @@ void R_DrawAlphaTestBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableAlphaTest(ALPHA_TEST_ENABLED_THRESHOLD);
 
-	R_EnableTexture(&texunit_lightmap, true);
+	R_EnableTexture(texunit_lightmap, true);
 
-	R_EnableLighting(r_state.default_program, true);
+	R_EnableLighting(program_default, true);
 
 	R_DrawBspSurfaces_default(surfs);
 
 	R_EnableLighting(NULL, false);
 
-	R_EnableTexture(&texunit_lightmap, false);
+	R_EnableTexture(texunit_lightmap, false);
 
 	R_EnableAlphaTest(ALPHA_TEST_DISABLED_THRESHOLD);
 }
@@ -268,23 +268,23 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 	}
 
 	if (r_draw_bsp_lightmaps->value) {
-		R_EnableTexture(&texunit_diffuse, false);
+		R_EnableTexture(texunit_diffuse, false);
 	}
 
 	// blend is already enabled when this is called
 
-	R_EnableTexture(&texunit_lightmap, true);
+	R_EnableTexture(texunit_lightmap, true);
 
-	R_EnableLighting(r_state.default_program, true);
+	R_EnableLighting(program_default, true);
 
 	R_DrawBspSurfaces_default(surfs);
 
 	R_EnableLighting(NULL, false);
 
-	R_EnableTexture(&texunit_lightmap, false);
+	R_EnableTexture(texunit_lightmap, false);
 
 	if (r_draw_bsp_lightmaps->value) {
-		R_EnableTexture(&texunit_diffuse, true);
+		R_EnableTexture(texunit_diffuse, true);
 	}
 }
 
@@ -302,7 +302,7 @@ void R_DrawBlendWarpBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 		return;
 	}
 
-	R_EnableWarp(r_state.warp_program, true);
+	R_EnableWarp(program_warp, true);
 
 	R_DrawBspSurfaces_default(surfs);
 

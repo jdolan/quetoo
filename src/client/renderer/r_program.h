@@ -26,15 +26,6 @@
 
 #ifdef __R_LOCAL_H__
 
-// glsl vertex and fragment shaders
-typedef struct {
-	GLenum type;
-	GLuint id;
-	char name[MAX_QPATH];
-} r_shader_t;
-
-#define MAX_SHADERS 16
-
 // program variables
 #define R_ATTRIBUTE 		0x1
 #define R_UNIFORM_INT 		0x2
@@ -95,12 +86,16 @@ typedef struct {
 
 // and glsl programs
 typedef struct {
-	GLuint id;
+	GLuint id; // the actual GL ID handle
+	r_program_id_t program_id; // the program ID, for easy access
 	char name[MAX_QPATH];
-	r_shader_t *v;
-	r_shader_t *f;
+	
 	r_attribute_mask_t arrays_mask;
 	r_attribute_t attributes[R_ARRAY_MAX_ATTRIBS];
+
+	r_uniform_matrix4fv_t matrix_uniforms[R_MATRIX_TOTAL];
+	_Bool matrix_dirty[R_MATRIX_TOTAL];
+
 	void (*Init)(void);
 	void (*Shutdown)(void);
 	void (*Use)(void);
@@ -109,7 +104,7 @@ typedef struct {
 	void (*UseShadow)(const r_shadow_t *s);
 	void (*UseFog)(const r_fog_parameters_t *fog);
 	void (*UseLight)(const uint16_t light_index, const r_light_t *light);
-	void (*UseMatrices)(const matrix4x4_t *matrices);
+	void (*MatricesChanged)();
 	void (*UseAlphaTest)(const vec_t threshold);
 	void (*UseCurrentColor)(const vec4_t color);
 	void (*UseAttributes)(void);
@@ -124,10 +119,8 @@ typedef struct {
 	_Bool enabled;
 } r_attrib_state_t;
 
-#define MAX_PROGRAMS 8
-
 void R_UseProgram(const r_program_t *prog);
-void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *name);
+void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *name, const _Bool required);
 void R_ProgramParameter1i(r_uniform1i_t *variable, const GLint value);
 void R_ProgramParameter1f(r_uniform1f_t *variable, const GLfloat value);
 void R_ProgramParameter3fv(r_uniform3fv_t *variable, const GLfloat *value);

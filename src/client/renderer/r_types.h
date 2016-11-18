@@ -986,12 +986,24 @@ typedef enum {
 #define FOG_START			128.0
 #define FOG_END				2048.0
 
-// matrix indexes
+// program index
+typedef enum {
+	R_PROGRAM_DEFAULT,
+	R_PROGRAM_SHADOW,
+	R_PROGRAM_SHELL,
+	R_PROGRAM_WARP,
+	R_PROGRAM_NULL,
+	R_PROGRAM_CORONA,
+
+	R_PROGRAM_TOTAL
+} r_program_id_t;
+
+// matrix index
 typedef enum {
 	R_MATRIX_PROJECTION,
 	R_MATRIX_MODELVIEW,
-	R_MATRIX_TEXTURE,
 	R_MATRIX_SHADOW,
+	R_MATRIX_TEXTURE,
 
 	R_MATRIX_TOTAL
 } r_matrix_id_t;
@@ -1046,6 +1058,9 @@ typedef struct {
 	vec3_t forward;
 	vec3_t right;
 	vec3_t up;
+	
+	matrix4x4_t matrix_base_3d; // base projection matrices
+	matrix4x4_t matrix_base_2d; // base projection matrices
 
 	matrix4x4_t matrix; // the base modelview matrix
 	matrix4x4_t inverse_matrix;
@@ -1079,7 +1094,6 @@ typedef struct {
 
 	const r_entity_t *current_entity; // entity being rendered
 	const r_shadow_t *current_shadow; // shadow being rendered
-	vec4_t current_shadow_light, current_shadow_plane;
 
 	// counters, reset each frame
 

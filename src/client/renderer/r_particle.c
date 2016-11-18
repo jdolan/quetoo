@@ -313,7 +313,7 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 	r_particle_type_t last_type = -1;
 	GLenum last_blend = -1;
 
-	GLuint last_texnum = texunit_diffuse.texnum;
+	GLuint last_texnum = texunit_diffuse->texnum;
 
 	for (i = j = 0; i < (GLsizei) count; i++, e++) {
 		const r_particle_t *p = (const r_particle_t *) e->element;
@@ -350,9 +350,9 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 			}
 
 			if (p->type == PARTICLE_CORONA) {
-				R_UseProgram(r_state.corona_program);
+				R_UseProgram(program_corona);
 			} else {
-				R_UseProgram(r_state.null_program);
+				R_UseProgram(program_null);
 			}
 
 			last_type = p->type;
@@ -389,6 +389,6 @@ void R_DrawParticles(const r_element_t *e, const size_t count) {
 
 	R_EnableDepthTest(true);
 
-	R_UseProgram(r_state.null_program);
+	R_UseProgram(program_null);
 }
 

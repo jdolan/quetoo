@@ -97,7 +97,7 @@ void R_DrawMeshShells_default(const r_entities_t *ents) {
 		return;
 	}
 
-	R_EnableShell(r_state.shell_program, true);
+	R_EnableShell(program_shell, true);
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];

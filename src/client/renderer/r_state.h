@@ -37,6 +37,7 @@ void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height, _Bool force)
 
 void R_PushMatrix(const r_matrix_id_t id);
 void R_PopMatrix(const r_matrix_id_t id);
+void R_DirtyMatrix(const r_matrix_id_t id);
 
 void R_EnableTextureID(const r_texunit_id_t texunit_id, _Bool enable);
 
@@ -96,14 +97,7 @@ typedef struct r_state_s {
 
 	r_matrix_stack_t matrix_stacks[R_MATRIX_TOTAL];
 
-	r_shader_t shaders[MAX_SHADERS];
-	r_program_t programs[MAX_PROGRAMS];
-	r_program_t *default_program;
-	r_program_t *shadow_program;
-	r_program_t *shell_program;
-	r_program_t *warp_program;
-	r_program_t *null_program;
-	r_program_t *corona_program;
+	r_program_t programs[R_PROGRAM_TOTAL];
 
 	r_attrib_state_t attributes[R_ARRAY_MAX_ATTRIBS];
 
@@ -159,12 +153,19 @@ typedef struct r_state_s {
 extern r_state_t r_state;
 
 // these are defined for convenience
-#define texunit_diffuse			r_state.texunits[R_TEXUNIT_DIFFUSE]
-#define texunit_lightmap		r_state.texunits[R_TEXUNIT_LIGHTMAP]
-#define texunit_deluxemap		r_state.texunits[R_TEXUNIT_DELUXEMAP]
-#define texunit_normalmap		r_state.texunits[R_TEXUNIT_NORMALMAP]
-#define texunit_specularmap		r_state.texunits[R_TEXUNIT_SPECULARMAP]
-#define texunit_warp			r_state.texunits[R_TEXUNIT_WARP]
+#define texunit_diffuse			(&r_state.texunits[R_TEXUNIT_DIFFUSE])
+#define texunit_lightmap		(&r_state.texunits[R_TEXUNIT_LIGHTMAP])
+#define texunit_deluxemap		(&r_state.texunits[R_TEXUNIT_DELUXEMAP])
+#define texunit_normalmap		(&r_state.texunits[R_TEXUNIT_NORMALMAP])
+#define texunit_specularmap		(&r_state.texunits[R_TEXUNIT_SPECULARMAP])
+#define texunit_warp			(&r_state.texunits[R_TEXUNIT_WARP])
+
+#define program_default			(&r_state.programs[R_PROGRAM_DEFAULT])
+#define program_shadow			(&r_state.programs[R_PROGRAM_SHADOW])
+#define program_shell			(&r_state.programs[R_PROGRAM_SHELL])
+#define program_warp			(&r_state.programs[R_PROGRAM_WARP])
+#define program_null			(&r_state.programs[R_PROGRAM_NULL])
+#define program_corona			(&r_state.programs[R_PROGRAM_CORONA])
 
 #define R_GetError(msg) R_GetError_(__func__, msg)
 void R_GetError_(const char *function, const char *msg);
@@ -172,12 +173,12 @@ void R_SelectTexture(r_texunit_t *texunit);
 
 void R_BindUnitTexture(r_texunit_t *texunit, GLuint texnum);
 
-#define R_BindDiffuseTexture(texnum)		R_BindUnitTexture(&texunit_diffuse, texnum)
-#define R_BindLightmapTexture(texnum)		R_BindUnitTexture(&texunit_lightmap, texnum)
-#define R_BindDeluxemapTexture(texnum)		R_BindUnitTexture(&texunit_deluxemap, texnum)
-#define R_BindNormalmapTexture(texnum)		R_BindUnitTexture(&texunit_normalmap, texnum)
-#define R_BindSpecularmapTexture(texnum)	R_BindUnitTexture(&texunit_specularmap, texnum)
-#define R_BindWarpTexture(texnum)			R_BindUnitTexture(&texunit_warp, texnum)
+#define R_BindDiffuseTexture(texnum)		R_BindUnitTexture(texunit_diffuse, texnum)
+#define R_BindLightmapTexture(texnum)		R_BindUnitTexture(texunit_lightmap, texnum)
+#define R_BindDeluxemapTexture(texnum)		R_BindUnitTexture(texunit_deluxemap, texnum)
+#define R_BindNormalmapTexture(texnum)		R_BindUnitTexture(texunit_normalmap, texnum)
+#define R_BindSpecularmapTexture(texnum)	R_BindUnitTexture(texunit_specularmap, texnum)
+#define R_BindWarpTexture(texnum)			R_BindUnitTexture(texunit_warp, texnum)
 
 void R_EnableDepthMask(_Bool enable);
 

@@ -29,8 +29,6 @@ typedef struct r_shadow_program_s {
 
 	r_uniform_fog_t fog;
 
-	r_uniform_matrix4fv_t projection_mat;
-	r_uniform_matrix4fv_t modelview_mat;
 	r_uniform_matrix4fv_t shadow_mat;
 
 	r_uniform4fv_t current_color;
@@ -53,26 +51,23 @@ void R_PreLink_shadow(const r_program_t *program) {
 void R_InitProgram_shadow(r_program_t *program) {
 	r_shadow_program_t *p = &r_shadow_program;
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION");
-	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION");
+	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION", true);
+	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION", true);
 
 	const vec4_t light = { 0.0, 0.0, 0.0, 1.0 };
 	const vec4_t plane = { 0.0, 0.0, 1.0, 0.0 };
 
-	R_ProgramVariable(&p->shadow_mat, R_UNIFORM_MAT4, "SHADOW_MAT");
-	R_ProgramVariable(&p->light, R_UNIFORM_VEC4, "LIGHT");
-	R_ProgramVariable(&p->plane, R_UNIFORM_VEC4, "PLANE");
+	R_ProgramVariable(&p->shadow_mat, R_UNIFORM_MAT4, "SHADOW_MAT", true);
+	R_ProgramVariable(&p->light, R_UNIFORM_VEC4, "LIGHT", true);
+	R_ProgramVariable(&p->plane, R_UNIFORM_VEC4, "PLANE", true);
 
-	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
-	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
-	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
+	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START", true);
+	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END", true);
+	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY", true);
 
-	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
-	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
+	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR", true);
 
-	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
-
-	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION");
+	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION", true);
 
 	R_ProgramParameterMatrix4fv(&p->shadow_mat, (GLfloat *) matrix4x4_identity.m);
 	R_ProgramParameter4fv(&p->light, light);
@@ -106,16 +101,12 @@ void R_UseFog_shadow(const r_fog_parameters_t *fog) {
 /**
  * @brief
  */
-void R_UseMatrices_shadow(const matrix4x4_t *matrices) {
+void R_UpdateShadowLightPlane_shadow(const vec4_t light, const vec4_t plane) {
 
 	r_shadow_program_t *p = &r_shadow_program;
 
-	R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) matrices[R_MATRIX_PROJECTION].m);
-	R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) matrices[R_MATRIX_MODELVIEW].m);
-
-	R_ProgramParameterMatrix4fv(&p->shadow_mat, (const GLfloat *) matrices[R_MATRIX_SHADOW].m);
-	R_ProgramParameter4fv(&p->light, r_view.current_shadow_light);
-	R_ProgramParameter4fv(&p->plane, r_view.current_shadow_plane);
+	R_ProgramParameter4fv(&p->light, light);
+	R_ProgramParameter4fv(&p->plane, plane);
 }
 
 /**

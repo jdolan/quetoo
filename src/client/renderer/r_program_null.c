@@ -27,9 +27,6 @@ typedef struct {
 
 	r_uniform_fog_t fog;
 
-	r_uniform_matrix4fv_t projection_mat;
-	r_uniform_matrix4fv_t modelview_mat;
-
 	r_uniform4fv_t current_color;
 
 	r_uniform1f_t time_fraction;
@@ -56,25 +53,22 @@ void R_InitProgram_null(r_program_t *program) {
 
 	r_null_program_t *p = &r_null_program;
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION");
-	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR");
-	R_ProgramVariable(&program->attributes[R_ARRAY_DIFFUSE], R_ATTRIBUTE, "TEXCOORD");
+	R_ProgramVariable(&program->attributes[R_ARRAY_POSITION], R_ATTRIBUTE, "POSITION", true);
+	R_ProgramVariable(&program->attributes[R_ARRAY_COLOR], R_ATTRIBUTE, "COLOR", true);
+	R_ProgramVariable(&program->attributes[R_ARRAY_DIFFUSE], R_ATTRIBUTE, "TEXCOORD", true);
 
-	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION");
+	R_ProgramVariable(&program->attributes[R_ARRAY_NEXT_POSITION], R_ATTRIBUTE, "NEXT_POSITION", true);
 
-	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0");
+	R_ProgramVariable(&p->sampler0, R_SAMPLER_2D, "SAMPLER0", true);
 
-	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START");
-	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END");
-	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR");
-	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY");
+	R_ProgramVariable(&p->fog.start, R_UNIFORM_FLOAT, "FOG.START", true);
+	R_ProgramVariable(&p->fog.end, R_UNIFORM_FLOAT, "FOG.END", true);
+	R_ProgramVariable(&p->fog.color, R_UNIFORM_VEC3, "FOG.COLOR", true);
+	R_ProgramVariable(&p->fog.density, R_UNIFORM_FLOAT, "FOG.DENSITY", true);
 
-	R_ProgramVariable(&p->projection_mat, R_UNIFORM_MAT4, "PROJECTION_MAT");
-	R_ProgramVariable(&p->modelview_mat, R_UNIFORM_MAT4, "MODELVIEW_MAT");
+	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR", true);
 
-	R_ProgramVariable(&p->current_color, R_UNIFORM_VEC4, "GLOBAL_COLOR");
-
-	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION");
+	R_ProgramVariable(&p->time_fraction, R_UNIFORM_FLOAT, "TIME_FRACTION", true);
 
 	R_ProgramParameter1i(&p->sampler0, R_TEXUNIT_DIFFUSE);
 
@@ -101,17 +95,6 @@ void R_UseFog_null(const r_fog_parameters_t *fog) {
 	} else {
 		R_ProgramParameter1f(&p->fog.density, 0.0);
 	}
-}
-
-/**
- * @brief
- */
-void R_UseMatrices_null(const matrix4x4_t *matrices) {
-
-	r_null_program_t *p = &r_null_program;
-
-	R_ProgramParameterMatrix4fv(&p->projection_mat, (const GLfloat *) matrices[R_MATRIX_PROJECTION].m);
-	R_ProgramParameterMatrix4fv(&p->modelview_mat, (const GLfloat *) matrices[R_MATRIX_MODELVIEW].m);
 }
 
 /**
