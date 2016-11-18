@@ -335,7 +335,7 @@ cvar_t *Cvar_FullSet(const char *name, const char *value, uint32_t flags) {
 	}
 
 	if (var->flags & CVAR_USER_INFO) {
-		cvar_user_info_modified = true;    // transmit at next opportunity
+		cvar_user_info_modified = true; // transmit at next opportunity
 	}
 
 	Mem_Free(var->string);
