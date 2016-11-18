@@ -38,13 +38,13 @@ typedef struct SkinSelectInterface SkinSelectInterface;
 struct SkinSelect {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	Select select;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	SkinSelectInterface *interface;
@@ -56,7 +56,7 @@ struct SkinSelect {
 struct SkinSelectInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	SelectInterface selectInterface;
 

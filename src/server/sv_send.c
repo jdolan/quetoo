@@ -531,10 +531,10 @@ void Sv_SendClientPackets(void) {
 
 			cl->datagram.messages = NULL;
 
-		} else { // just update reliable if needed
-			if (cl->net_chan.message.size || quetoo.time - cl->net_chan.last_sent > 1000) {
-				Netchan_Transmit(&cl->net_chan, NULL, 0);
-			}
+		} else if (cl->net_chan.message.size) { // update reliable
+			Netchan_Transmit(&cl->net_chan, NULL, 0);
+		} else if (quetoo.time - cl->net_chan.last_sent > 1000) { // or just don't timeout
+			Netchan_Transmit(&cl->net_chan, NULL, 0);
 		}
 	}
 }

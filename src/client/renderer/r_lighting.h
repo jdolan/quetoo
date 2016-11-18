@@ -23,15 +23,7 @@
 #define __R_LIGHTING_H__
 
 #ifdef __R_LOCAL_H__
-
-typedef struct {
-	uint16_t *plane_shadow_counts;
-} r_shadow_state_t;
-
-extern r_shadow_state_t r_shadow_state;
-
-void R_UpdateLighting(r_lighting_t *lighting);
-
+	void R_UpdateLighting(r_lighting_t *lighting);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* __R_LIGHTING_H__ */

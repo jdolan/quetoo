@@ -46,13 +46,13 @@ typedef struct MapListCollectionItemViewInterface MapListCollectionItemViewInter
 struct MapListCollectionItemView {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	CollectionItemView collectionItemView;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	MapListCollectionItemViewInterface *interface;
@@ -64,7 +64,7 @@ struct MapListCollectionItemView {
 struct MapListCollectionItemViewInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	CollectionItemViewInterface collectionItemViewInterface;
 

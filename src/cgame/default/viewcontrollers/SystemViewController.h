@@ -39,13 +39,13 @@ typedef struct SystemViewControllerInterface SystemViewControllerInterface;
 struct SystemViewController {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	MenuViewController menuViewController;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	SystemViewControllerInterface *interface;
@@ -57,7 +57,7 @@ struct SystemViewController {
 struct SystemViewControllerInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	MenuViewControllerInterface menuViewControllerInterface;
 };

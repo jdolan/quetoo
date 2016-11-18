@@ -40,13 +40,13 @@ typedef struct MainViewControllerInterface MainViewControllerInterface;
 struct MainViewController {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	NavigationViewController navigationViewController;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	MainViewControllerInterface *interface;
@@ -58,7 +58,7 @@ struct MainViewController {
 struct MainViewControllerInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	NavigationViewControllerInterface navigationViewControllerInterface;
 

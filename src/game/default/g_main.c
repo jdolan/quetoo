@@ -762,7 +762,7 @@ static void G_CheckRules(void) {
 		g_match->modified = false;
 
 		if (g_level.gameplay == GAME_DUEL && g_match->integer == 0) {
-			gi.Print("Matchs can't be disabled in DUEL mode, enabling...\n");
+			gi.Print("Matches can't be disabled in DUEL mode, enabling...\n");
 			gi.AddCommandString("set g_match 1\n");
 		} else {
 			g_level.match = g_match->integer;
@@ -771,7 +771,8 @@ static void G_CheckRules(void) {
 			g_level.warmup = g_level.match; // toggle warmup
 			g_level.match_status = MSTAT_WARMUP;
 
-			gi.BroadcastPrint(PRINT_HIGH, "Match has been %s\n", g_level.match ? "enabled" : "disabled");
+			gi.BroadcastPrint(PRINT_HIGH, "Matches have been %s\n",
+							  g_level.match ? "enabled" : "disabled");
 
 			restart = true;
 		}

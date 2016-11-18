@@ -494,10 +494,12 @@ static void R_MarkBspSurfaces_(r_bsp_node_t *node) {
 
 	// otherwise, traverse down the appropriate sides of the node
 
-	if (AXIAL(node->plane)) {
-		dot = r_view.origin[node->plane->type] - node->plane->dist;
+	const cm_bsp_plane_t *plane = node->plane;
+
+	if (AXIAL(plane)) {
+		dot = r_view.origin[plane->type] - plane->dist;
 	} else {
-		dot = DotProduct(r_view.origin, node->plane->normal) - node->plane->dist;
+		dot = DotProduct(r_view.origin, plane->normal) - plane->dist;
 	}
 
 	if (dot > SIDE_EPSILON) {

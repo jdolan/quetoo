@@ -39,13 +39,13 @@ typedef struct MultiplayerViewControllerInterface MultiplayerViewControllerInter
 struct MultiplayerViewController {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	MenuViewController menuViewController;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	MultiplayerViewControllerInterface *interface;
@@ -57,7 +57,7 @@ struct MultiplayerViewController {
 struct MultiplayerViewControllerInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	MenuViewControllerInterface menuViewControllerInterface;
 };

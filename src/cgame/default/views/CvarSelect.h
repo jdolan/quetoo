@@ -42,14 +42,14 @@ typedef struct CvarSelectInterface CvarSelectInterface;
 struct CvarSelect {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 *
 	 * @private
 	 */
 	Select select;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 *
 	 * @private
 	 */
@@ -72,7 +72,7 @@ struct CvarSelect {
 struct CvarSelectInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	SelectInterface selectInterface;
 

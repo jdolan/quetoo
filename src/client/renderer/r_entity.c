@@ -149,7 +149,7 @@ static int32_t R_CullEntities_compare(const void *a, const void *b) {
  * thread while the renderer draws the world. Mesh entities which pass a frustum
  * cull will also have their lighting information updated.
  */
-void R_CullEntities(void *data) {
+void R_CullEntities(void) {
 
 	r_entity_t *e = r_view.entities;
 	for (uint16_t i = 0; i < r_view.num_entities; i++, e++) {

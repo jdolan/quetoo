@@ -40,13 +40,13 @@ typedef struct PrimaryButtonInterface PrimaryButtonInterface;
 struct PrimaryButton {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	Button button;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	PrimaryButtonInterface *interface;
@@ -58,7 +58,7 @@ struct PrimaryButton {
 struct PrimaryButtonInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	ButtonInterface buttonInterface;
 

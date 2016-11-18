@@ -41,13 +41,13 @@ typedef struct CreateServerViewControllerInterface CreateServerViewControllerInt
 struct CreateServerViewController {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	MenuViewController menuViewController;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	CreateServerViewControllerInterface *interface;
@@ -79,7 +79,7 @@ struct CreateServerViewController {
 struct CreateServerViewControllerInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	MenuViewControllerInterface menuViewControllerInterface;
 };

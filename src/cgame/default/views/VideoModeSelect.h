@@ -38,13 +38,13 @@ typedef struct VideoModeSelectInterface VideoModeSelectInterface;
 struct VideoModeSelect {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	Select select;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	VideoModeSelectInterface *interface;
@@ -62,7 +62,7 @@ struct VideoModeSelect {
 struct VideoModeSelectInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	SelectInterface selectInterface;
 

@@ -654,7 +654,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	const int32_t count = l->file_len / sizeof(*in);
-	cm_bsp_plane_t *out = Mem_LinkMalloc(count * sizeof(*out), bsp);
+	r_bsp_plane_t *out = Mem_LinkMalloc(count * sizeof(*out), bsp);
 
 	bsp->planes = out;
 	bsp->num_planes = count;
@@ -667,11 +667,11 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 
 		out->dist = LittleFloat(in->dist);
 		out->type = LittleLong(in->type);
-		out->sign_bits = Cm_SignBitsForPlane(out);
+		out->sign_bits = Cm_SignBitsForPlane((cm_bsp_plane_t *) out);
 		out->num = (i >> 1) + 1;
 	}
 
-	r_shadow_state.plane_shadow_counts = Mem_LinkMalloc(((count >> 1) + 1) * sizeof(int16_t), bsp);
+	bsp->plane_shadows = Mem_LinkMalloc(((count >> 1) + 1) * sizeof(uint16_t), bsp);
 }
 
 #define BSP_VERTEX_INDEX_FOR_KEY(ptr) ((GLuint) (ptr))

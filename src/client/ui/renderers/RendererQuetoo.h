@@ -40,12 +40,12 @@ typedef struct RendererQuetooInterface RendererQuetooInterface;
 struct RendererQuetoo {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 */
 	Renderer renderer;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @protected
 	 */
 	RendererQuetooInterface *interface;
@@ -57,7 +57,7 @@ struct RendererQuetoo {
 struct RendererQuetooInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	RendererInterface rendererInterface;
 

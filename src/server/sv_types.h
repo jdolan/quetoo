@@ -121,7 +121,7 @@ typedef struct {
  * server's clock, we take notice and eventually kick them.
  */
 #define CMD_MSEC_CHECK_INTERVAL 1000
-#define CMD_MSEC_ALLOWABLE_DRIFT (CMD_MSEC_CHECK_INTERVAL + 150)
+#define CMD_MSEC_ALLOWABLE_DRIFT (CMD_MSEC_CHECK_INTERVAL * 1.5)
 #define CMD_MSEC_MAX_DRIFT_ERRORS 10
 
 /**

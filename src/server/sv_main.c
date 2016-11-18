@@ -798,21 +798,20 @@ void Sv_Frame(const uint32_t msec) {
  */
 static void Sv_InitLocal(void) {
 
-	sv_rcon_password = Cvar_Add("rcon_password", "", 0, NULL);
-
 	sv_download_url = Cvar_Add("sv_download_url", "", CVAR_SERVER_INFO, NULL);
 	sv_enforce_time = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, NULL);
-
 	sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, NULL);
-
 	sv_no_areas = Cvar_Add("sv_no_areas", "0", CVAR_LATCH, "Disable server-side area management\n");
-
 	sv_public = Cvar_Add("sv_public", "0", 0, "Set to 1 to to advertise to the master server\n");
-
 	sv_max_clients = Cvar_Add("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
-
+	sv_rcon_password = Cvar_Add("rcon_password", "", 0, NULL);
 	sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, NULL);
 	sv_udp_download = Cvar_Add("sv_udp_download", "1", CVAR_ARCHIVE, NULL);
+
+	if (dedicated->value) {
+		Cvar_SetValue("sv_max_clients", 8);
+		Cvar_SetValue("sv_public", 1);
+	}
 
 	// set this so clients and server browsers can see it
 	Cvar_Add("sv_protocol", va("%i", PROTOCOL_MAJOR), CVAR_SERVER_INFO | CVAR_NO_SET, NULL);

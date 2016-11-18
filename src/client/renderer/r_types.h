@@ -387,9 +387,11 @@ typedef struct {
 } r_bsp_inline_model_t;
 
 /**
- * @brief Resolves a unique(ish) stencil reference value for the given plane.
+ * @brief Resolves a unique(ish) stencil reference value for the given plane number.
  */
-#define R_STENCIL_REF(p) (((p)->num % 0xff) + 1)
+#define R_STENCIL_REF(pnum) (((pnum) % 0xff) + 1)
+
+typedef cm_bsp_plane_t r_bsp_plane_t;
 
 typedef struct {
 	uint16_t v[2];
@@ -424,7 +426,7 @@ typedef struct {
 	int16_t light_frame; // dynamic lighting frame
 	uint64_t light_mask; // bit mask of dynamic light sources
 
-	cm_bsp_plane_t *plane;
+	r_bsp_plane_t *plane;
 	uint16_t flags; // R_SURF flags
 
 	int32_t first_edge; // look up in model->surf_edges, negative numbers
@@ -518,7 +520,7 @@ typedef struct r_bsp_node_s {
 	struct r_model_s *model;
 
 	// node specific
-	cm_bsp_plane_t *plane;
+	r_bsp_plane_t *plane;
 	struct r_bsp_node_s *children[2];
 
 	uint16_t first_surface;
@@ -691,7 +693,7 @@ typedef struct {
 	r_bsp_inline_model_t *inline_models;
 
 	uint16_t num_planes;
-	cm_bsp_plane_t *planes;
+	r_bsp_plane_t *planes;
 
 	uint16_t num_leafs;
 	r_bsp_leaf_t *leafs;
@@ -735,6 +737,9 @@ typedef struct {
 	// buffers
 	r_buffer_t vertex_buffer;
 	r_buffer_t element_buffer;
+
+	// an array of shadow counts, indexed by plane number
+	uint16_t *plane_shadows;
 
 } r_bsp_model_t;
 
