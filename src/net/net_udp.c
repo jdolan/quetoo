@@ -26,11 +26,12 @@
 #include "cvar.h"
 #include "net_udp.h"
 
-#define MAX_NET_UDP_LOOPS 4
+#define MAX_NET_UDP_LOOPS 64
 
 typedef struct {
 	byte data[MAX_MSG_SIZE];
 	size_t size;
+	uint32_t timestamp;
 } net_udp_loop_message_t;
 
 typedef struct {
@@ -44,6 +45,9 @@ typedef struct {
 } net_udp_state_t;
 
 static net_udp_state_t net_udp_state;
+
+static cvar_t *net_loop_latency;
+static cvar_t *net_loop_jitter;
 
 /**
  * @brief
@@ -60,10 +64,20 @@ static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_bu
 	}
 
 	const uint32_t i = loop->recv & (MAX_NET_UDP_LOOPS - 1);
+	const net_udp_loop_message_t *msg = &loop->messages[i];
+
+	// simulate network latency and jitter for debugging net protocol locally
+	const uint32_t delta = (quetoo.time - msg->timestamp) + net_loop_jitter->value * Randomc();
+	const uint32_t threshold = net_loop_latency->value * 0.5;
+
+	if (delta < threshold) {
+		return false;
+	}
+
 	loop->recv++;
 
-	memcpy(buf->data, loop->messages[i].data, loop->messages[i].size);
-	buf->size = loop->messages[i].size;
+	memcpy(buf->data, msg->data, msg->size);
+	buf->size = msg->size;
 
 	from->type = NA_LOOP;
 	from->addr = net_lo;
@@ -137,6 +151,7 @@ static _Bool Net_SendDatagram_Loop(net_src_t source, const void *data, size_t le
 
 	memcpy(loop->messages[i].data, data, len);
 	loop->messages[i].size = len;
+	loop->messages[i].timestamp = quetoo.time;
 
 	return true;
 }
@@ -216,5 +231,11 @@ void Net_Config(net_src_t source, _Bool up) {
 			*sock = 0;
 		}
 	}
+
+	net_loop_latency = Cvar_Add("net_loop_latency", "0", CVAR_LO_ONLY,
+			"Simulate network latency, in milliseconds, on localhost (developer tool)");
+
+	net_loop_jitter = Cvar_Add("net_loop_jitter", "0", CVAR_LO_ONLY,
+			"Simulate network jitter, in milliseconds, on localhost (developer tool)");
 }
 
