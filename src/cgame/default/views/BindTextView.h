@@ -40,13 +40,13 @@ typedef struct BindTextViewInterface BindTextViewInterface;
 struct BindTextView {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	TextView textView;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	BindTextViewInterface *interface;
@@ -63,7 +63,7 @@ struct BindTextView {
 struct BindTextViewInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	TextViewInterface textViewInterface;
 

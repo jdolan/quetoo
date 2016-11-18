@@ -41,13 +41,13 @@ typedef struct CvarTextViewInterface CvarTextViewInterface;
 struct CvarTextView {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	TextView textView;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	CvarTextViewInterface *interface;
@@ -64,7 +64,7 @@ struct CvarTextView {
 struct CvarTextViewInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	TextViewInterface textViewInterface;
 

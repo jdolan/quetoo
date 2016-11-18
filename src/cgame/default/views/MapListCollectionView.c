@@ -282,29 +282,26 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 }
 
 /**
- * @fn GList *MapListCollectionView::selectedMaps(const MapListCollectionView *self)
+ * @fn Array *MapListCollectionView::selectedMaps(const MapListCollectionView *self)
  * @memberof MapListCollectionView
  */
-static GList *selectedMaps(const MapListCollectionView *self) {
+static Array *selectedMaps(const MapListCollectionView *self) {
 
 	CollectionView *this = (CollectionView *) self;
 
-	GList *list = NULL;
+	MutableArray *selectedMaps = $$(MutableArray, array);
 
 	Array *selection = $(this, selectionIndexPaths);
 	for (size_t i = 0; i < selection->count; i++) {
-
 		const IndexPath *indexPath = $(selection, objectAtIndex, i);
-		const Value *value = this->dataSource.objectForItemAtIndexPath(this, indexPath);
 
-		const MapListItemInfo *info = value->value;
-
-		list = g_list_append(list, (gpointer) info->mapname);
+		Value *value = this->dataSource.objectForItemAtIndexPath(this, indexPath);
+		$(selectedMaps, addObject, value);
 	}
 
 	release(selection);
 
-	return list;
+	return (Array *) selectedMaps;
 }
 
 #pragma mark - Class lifecycle

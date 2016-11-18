@@ -40,13 +40,13 @@ typedef struct MouseViewControllerInterface MouseViewControllerInterface;
 struct MouseViewController {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	MenuViewController menuViewController;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	MouseViewControllerInterface *interface;
@@ -63,7 +63,7 @@ struct MouseViewController {
 struct MouseViewControllerInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	MenuViewControllerInterface menuViewControllerInterface;
 };

@@ -38,13 +38,13 @@ typedef struct ServersTableViewInterface ServersTableViewInterface;
 struct ServersTableView {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	TableView tableView;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	ServersTableViewInterface *interface;
@@ -56,7 +56,7 @@ struct ServersTableView {
 struct ServersTableViewInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	TableViewInterface tableViewInterface;
 

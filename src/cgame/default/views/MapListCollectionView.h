@@ -40,13 +40,13 @@ typedef struct MapListCollectionViewInterface MapListCollectionViewInterface;
 struct MapListCollectionView {
 
 	/**
-	 * @brief The parent.
+	 * @brief The superclass.
 	 * @private
 	 */
 	CollectionView collectionView;
 
 	/**
-	 * @brief The typed interface.
+	 * @brief The interface.
 	 * @private
 	 */
 	MapListCollectionViewInterface *interface;
@@ -68,7 +68,7 @@ struct MapListCollectionView {
 struct MapListCollectionViewInterface {
 
 	/**
-	 * @brief The parent interface.
+	 * @brief The superclass interface.
 	 */
 	CollectionViewInterface collectionViewInterface;
 
@@ -84,11 +84,11 @@ struct MapListCollectionViewInterface {
 	                                        ControlStyle style);
 
 	/**
-	 * @fn GList *MapListCollectionView::selectedMaps(const MapListCollectionView *self)
-	 * @return A list of selected map names.
+	 * @fn Array *MapListCollectionView::selectedMaps(const MapListCollectionView *self)
+	 * @return An Array of selected MapListItemInfo Values.
 	 * @memberof MapListCollectionView
 	 */
-	GList *(*selectedMaps)(const MapListCollectionView *self);
+	Array *(*selectedMaps)(const MapListCollectionView *self);
 };
 
 /**
