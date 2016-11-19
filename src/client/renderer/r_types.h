@@ -1008,7 +1008,6 @@ typedef enum {
 	R_MATRIX_PROJECTION,
 	R_MATRIX_MODELVIEW,
 	R_MATRIX_SHADOW,
-	R_MATRIX_TEXTURE,
 
 	R_MATRIX_TOTAL
 } r_matrix_id_t;
@@ -1065,12 +1064,11 @@ typedef struct {
 	vec3_t up;
 	
 	matrix4x4_t matrix_base_3d; // base projection matrices
-	matrix4x4_t matrix_base_2d; // base projection matrices
+	matrix4x4_t matrix_base_2d;
+	matrix4x4_t matrix_base_ui;
 
 	matrix4x4_t matrix; // the base modelview matrix
 	matrix4x4_t inverse_matrix;
-
-	matrix4x4_t active_matrices[R_MATRIX_TOTAL];
 
 	uint32_t contents; // view origin contents mask
 	vec_t bob;

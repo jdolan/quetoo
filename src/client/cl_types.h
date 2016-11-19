@@ -61,7 +61,6 @@ typedef struct {
 	int32_t frame_num; // if not current, this entity isn't in the frame
 
 	uint32_t time; // for intermittent effects
-	vec3_t trail_start;
 
 	uint32_t breath_puff_time; // time breath puffs should be drawn next
 
@@ -160,7 +159,7 @@ typedef struct {
 
 	uint32_t surpress_count; // number of messages rate suppressed
 
-	uint32_t time; // simulation time that the client is rendering at
+	uint32_t time; // server time that the client is rendering at
 	uint32_t systime; // system time, not clamped to the server
 
 	vec_t lerp; // linear interpolation between frames

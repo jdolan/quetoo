@@ -612,6 +612,22 @@ typedef struct cg_import_s {
 	void (*SetMatrixForEntity)(r_entity_t *e);
 
 	/**
+	 * @brief Change the matrix identified by "id" with the values from "matrix".
+	 *
+	 * @param id The matrix ID.
+	 * @param matrix The new matrix.
+	 */
+	void (*SetMatrix)(const r_matrix_id_t id, const matrix4x4_t *matrix);
+	
+	/**
+	 * @brief Fetch the matrix identified by "id" and stick it in "matrix".
+	 *
+	 * @param id The matrix ID.
+	 * @param matrix The matrix to store the active matrix in.
+	 */
+	void (*GetMatrix)(const r_matrix_id_t id, matrix4x4_t *matrix);
+
+	/**
 	 * @brief Push the active matrix into the stack
 	 */
 	void (*PushMatrix)(const r_matrix_id_t id);
@@ -620,11 +636,6 @@ typedef struct cg_import_s {
 	 * @brief Pop a saved matrix from the stack
 	 */
 	void (*PopMatrix)(const r_matrix_id_t id);
-
-	/**
-	 * @brief Mark a matrix as being dirty
-	 */
-	void (*DirtyMatrix)(const r_matrix_id_t id);
 
 	/**
 	 * @brief Draws the mesh model for the given entity.

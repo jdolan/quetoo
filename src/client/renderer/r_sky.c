@@ -346,12 +346,17 @@ void R_DrawSkyBox(void) {
 		return;
 	}
 
+	matrix4x4_t modelview;
+
+	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
+
 	R_BindAttributeInterleaveBuffer(&r_sky.vert_buffer, R_ARRAY_MASK_ALL);
 
 	R_PushMatrix(R_MATRIX_MODELVIEW);
-	Matrix4x4_ConcatTranslate(matrix_modelview, r_view.origin[0], r_view.origin[1], r_view.origin[2]);
+
+	Matrix4x4_ConcatTranslate(&modelview, r_view.origin[0], r_view.origin[1], r_view.origin[2]);
 	
-	R_DirtyMatrix(R_MATRIX_MODELVIEW);
+	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
 	R_EnableFog(true);
 

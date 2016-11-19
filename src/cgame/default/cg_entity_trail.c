@@ -27,24 +27,25 @@
 /**
  * @brief
  */
-static _Bool Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 
 	if (ent) { // trails should be framerate independent
 		if (ent->time > cgi.client->systime) {
-			return false;
+			return;
 		}
 
 		// don't emit smoke trails for static entities (grenades on the floor)
-		if (VectorCompare(start, end)) {
-			return false;
+		if (VectorCompare(ent->current.origin, ent->prev.origin)) {
+			return;
 		}
 
 		ent->time = cgi.client->systime + 16;
 	}
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
-		return Cg_BubbleTrail(start, end, 24.0);
+		Cg_BubbleTrail(start, end, 24.0);
+		return;
 	}
 
 	vec3_t vec, move;
@@ -53,10 +54,6 @@ static _Bool Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 	VectorSubtract(end, start, vec);
 	const vec_t len = VectorNormalize(vec);
 
-	if (len < SMOKE_DENSITY) {
-		return false;
-	}
-
 	VectorScale(vec, SMOKE_DENSITY, vec);
 	VectorSubtract(move, vec, move);
 
@@ -64,7 +61,7 @@ static _Bool Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		VectorAdd(move, vec, move);
 
 		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
-			return true;
+			return;
 		}
 
 		const vec_t c = 0.3 - Randomf() * 0.2;
@@ -85,72 +82,52 @@ static _Bool Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		VectorScale(vec, -len, p->accel);
 		p->accel[2] += 10.0 + (Randomc() * 2.0);
 	}
-
-	return true;
 }
 
 /**
  * @brief
  */
-_Bool Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 	int32_t j;
-	_Bool static_flame = false;
 
 	if (ent) { // trails should be framerate independent
 		if (ent->time > cgi.client->systime) {
-			return false;
+			return;
 		}
 		ent->time = cgi.client->systime + 16;
-		static_flame = VectorCompare(ent->current.origin, ent->prev.origin);
 	}
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
-		return Cg_BubbleTrail(start, end, 10.0);
+		Cg_BubbleTrail(start, end, 10.0);
+		return;
 	}
 
-	vec3_t vec, move;
-
-	VectorCopy(start, move);
-	VectorSubtract(end, start, vec);
-	const vec_t len = VectorNormalize(vec);
-
-	if (len < 1.0) {
-		return false;
+	if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_flame))) {
+		return;
 	}
 
-	VectorScale(vec, 1.0, vec);
-	VectorSubtract(move, vec, move);
+	cgi.ColorFromPalette(220 + (Random() & 7), p->part.color);
+	p->part.color[3] = 0.75;
 
-	for (vec_t i = 0.0; i < len; i += SMOKE_DENSITY) {
-		VectorAdd(move, vec, move);
+	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (2 + Randomf() * 0.3));
 
-		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_flame))) {
-			return true;
-		}
+	p->part.scale = 10.0 + Randomc();
 
-		cgi.ColorFromPalette(220 + (Random() & 7), p->part.color);
-		p->part.color[3] = 0.75;
+	for (j = 0; j < 3; j++) {
+		p->part.org[j] = end[j];
+		p->vel[j] = Randomc() * 1.5;
+	}
 
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (2 + Randomf() * 0.3));
+	p->accel[2] = 15.0;
 
-		p->part.scale = 10.0 + Randomc();
-
-		for (j = 0; j < 3; j++) {
-			p->part.org[j] = move[j];
-			p->vel[j] = Randomc() * 1.5;
-		}
-
-		p->accel[2] = 15.0;
-
-		// make static flames rise
-		if (ent && static_flame) {
+	// make static flames rise
+	if (ent) {
+		if (VectorCompare(ent->current.origin, ent->prev.origin)) {
 			p->color_vel[3] *= 0.65;
 			p->accel[2] = 20.0;
 		}
 	}
-
-	return true;
 }
 
 /**
@@ -200,19 +177,14 @@ void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 /**
  * @brief
  */
-_Bool Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
+void Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 	vec3_t vec, move;
 
 	VectorCopy(start, move);
 	VectorSubtract(end, start, vec);
-
 	const vec_t len = VectorNormalize(vec);
+
 	const vec_t delta = 16.0 / density;
-
-	if (len < delta) {
-		return false;
-	}
-
 	VectorScale(vec, delta, vec);
 	VectorSubtract(move, vec, move);
 
@@ -226,7 +198,7 @@ _Bool Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 		cg_particle_t *p;
 
 		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble))) {
-			return true;
+			return;
 		}
 
 		cgi.ColorFromPalette(6 + (Random() & 3), p->part.color);
@@ -243,24 +215,23 @@ _Bool Cg_BubbleTrail(const vec3_t start, const vec3_t end, vec_t density) {
 		p->vel[2] += 6.0;
 		p->accel[2] = 10.0;
 	}
-
-	return true;
 }
 
 /**
  * @brief
  */
-static _Bool Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	const uint8_t col = ent->current.client ? ent->current.client : EFFECT_COLOR_ORANGE;
 	cg_particle_t *p;
-	_Bool trail_rendered = false;
 
 	if (ent->time < cgi.client->systime) {
 		vec3_t delta;
+
 		vec_t step = 1.5;
 
 		if (cgi.PointContents(end) & MASK_LIQUID) {
+			Cg_BubbleTrail(start, end, 12.0);
 			step = 2.0;
 		}
 
@@ -269,28 +240,22 @@ static _Bool Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 		VectorSubtract(end, start, delta);
 		const vec_t dist = VectorNormalize(delta);
 
-		if (dist >= step) {
-			Cg_BubbleTrail(start, end, 12.0);
-
-			while (d < dist) {
-				if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
-					break;
-				}
-
-				cgi.ColorFromPalette(col + (Random() & 5), p->part.color);
-				Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -3.0 + Randomc());
-
-				p->part.scale = 2.0;
-				p->scale_vel = -4.0;
-
-				VectorMA(start, d, delta, p->part.org);
-				VectorScale(delta, 600.0, p->vel);
-				VectorScale(delta, -800.0, p->accel);
-
-				d += step;
+		while (d < dist) {
+			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
+				break;
 			}
 
-			trail_rendered = true;
+			cgi.ColorFromPalette(col + (Random() & 5), p->part.color);
+			Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -3.0 + Randomc());
+
+			p->part.scale = 2.0;
+			p->scale_vel = -4.0;
+
+			VectorMA(start, d, delta, p->part.org);
+			VectorScale(delta, 600.0, p->vel);
+			VectorScale(delta, -800.0, p->accel);
+
+			d += step;
 		}
 
 		ent->time = cgi.client->systime + 16;
@@ -321,27 +286,27 @@ static _Bool Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 	VectorCopy(color, l.color);
 
 	cgi.AddLight(&l);
-
-	return trail_rendered;
 }
 
 /**
  * @brief
  */
-static _Bool Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	return Cg_SmokeTrail(ent, start, end);
+	Cg_SmokeTrail(ent, start, end);
 }
 
 /**
  * @brief
  */
-static _Bool Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
+	const uint32_t time = ent->time;
 	cg_particle_t *p;
 
-	const _Bool trail_rendered = Cg_SmokeTrail(ent, start, end);
-	if (trail_rendered) { // time to add new particles
+	Cg_SmokeTrail(ent, start, end);
+
+	if (time < ent->time) { // time to add new particles
 		vec3_t delta;
 
 		VectorSubtract(end, start, delta);
@@ -382,7 +347,6 @@ static _Bool Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	VectorSet(l.color, 0.8, 0.4, 0.2);
 
 	cgi.AddLight(&l);
-	return trail_rendered;
 }
 
 /**
@@ -602,28 +566,24 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
 /**
  * @brief
  */
-static _Bool Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
 	if (ent) {
 		if (ent->time > cgi.client->systime) {
-			return false;
+			return;
 		}
 		ent->time = cgi.client->systime + 16;
 	}
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
-		return Cg_BubbleTrail(start, end, 8.0);
+		Cg_BubbleTrail(start, end, 8.0);
+		return;
 	}
 
 	vec3_t move;
 	VectorSubtract(end, start, move);
 
 	vec_t dist = VectorNormalize(move);
-
-	if (dist < 1.5) {
-		return false;
-	}
-
 	while (dist > 0.0) {
 		cg_particle_t *p;
 
@@ -645,18 +605,16 @@ static _Bool Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 
 		dist -= 1.5;
 	}
-
-	return true;
 }
 
 /**
  * @brief
  */
-static _Bool Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	const vec3_t color = { 0.9, 0.3, 0.1 };
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
-		return false;
+		return;
 	}
 
 	r_light_t l;
@@ -664,20 +622,16 @@ static _Bool Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	VectorCopy(color, l.color);
 	l.radius = 85.0;
 
-	_Bool trail_rendered = false;
-
 	if (ent->current.effects & EF_DESPAWN) {
 		const vec_t decay = Clamp((cgi.client->systime - ent->time) / 1000.0, 0.0, 1.0);
 		l.radius *= (1.0 - decay);
-		trail_rendered = true;
 	} else {
-		trail_rendered = Cg_SmokeTrail(ent, start, end);
+		Cg_SmokeTrail(ent, start, end);
 		ent->time = cgi.client->systime;
-		trail_rendered |= Cg_FlameTrail(ent, start, end);
+		Cg_FlameTrail(ent, start, end);
 	}
 
 	cgi.AddLight(&l);
-	return trail_rendered;
 }
 
 /**
@@ -689,6 +643,7 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 	const entity_state_t *s = &ent->current;
 
 	vec3_t start, end;
+	VectorCopy(ent->prev.origin, start);
 
 	// beams have two origins, most entities have just one
 	if (s->effects & EF_BEAM) {
@@ -712,28 +667,24 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 			}
 
 			VectorMA(start, -8.0, cgi.view->up, start);
-		} else {
-			VectorCopy(ent->prev.origin, start);
 		}
 
 		VectorCopy(ent->termination, end);
 	} else {
-		VectorCopy(ent->trail_start, start);
 		VectorCopy(e->origin, end);
 	}
 
 	// add the trail
-	_Bool trail_rendered = false;
 
 	switch (s->trail) {
 		case TRAIL_BLASTER:
-			trail_rendered = Cg_BlasterTrail(ent, start, end);
+			Cg_BlasterTrail(ent, start, end);
 			break;
 		case TRAIL_GRENADE:
-			trail_rendered = Cg_GrenadeTrail(ent, start, end);
+			Cg_GrenadeTrail(ent, start, end);
 			break;
 		case TRAIL_ROCKET:
-			trail_rendered = Cg_RocketTrail(ent, start, end);
+			Cg_RocketTrail(ent, start, end);
 			break;
 		case TRAIL_HYPERBLASTER:
 			Cg_HyperblasterTrail(ent, e->origin);
@@ -748,16 +699,12 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 			Cg_TeleporterTrail(ent, e->origin);
 			break;
 		case TRAIL_GIB:
-			trail_rendered = Cg_GibTrail(ent, start, end);
+			Cg_GibTrail(ent, start, end);
 			break;
 		case TRAIL_FIREBALL:
-			trail_rendered = Cg_FireballTrail(ent, start, end);
+			Cg_FireballTrail(ent, start, end);
 			break;
 		default:
 			break;
-	}
-
-	if (trail_rendered) {
-		VectorCopy(end, ent->trail_start);
 	}
 }

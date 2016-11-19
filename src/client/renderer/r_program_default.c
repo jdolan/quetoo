@@ -232,7 +232,8 @@ void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
 
 	if (light && light->radius) {
 		vec3_t origin;
-		Matrix4x4_Transform(matrix_modelview, light->origin, origin);
+		const matrix4x4_t *modelview = R_GetMatrixPtr(R_MATRIX_MODELVIEW);
+		Matrix4x4_Transform(modelview, light->origin, origin);
 
 		R_ProgramParameter3fv(&p->lights[light_index].origin, origin);
 		R_ProgramParameter3fv(&p->lights[light_index].color, light->color);
@@ -252,7 +253,9 @@ void R_MatricesChanged_default() {
 	if (r_state.active_program->matrix_dirty[R_MATRIX_MODELVIEW]) {
 		// recalculate normal matrix if the modelview has changed.
 		static matrix4x4_t normalMatrix;
-		Matrix4x4_Invert_Full(&normalMatrix, matrix_modelview);
+
+		R_GetMatrix(R_MATRIX_MODELVIEW, &normalMatrix);
+		Matrix4x4_Invert_Full(&normalMatrix, &normalMatrix);
 		Matrix4x4_Transpose(&normalMatrix, &normalMatrix);
 		R_ProgramParameterMatrix4fv(&p->normal_mat, (const GLfloat *) normalMatrix.m);
 	}

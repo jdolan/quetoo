@@ -348,6 +348,10 @@ void R_DrawBspNormals(void) {
 
 	const r_bsp_surface_t *surf = r_model_state.world->bsp->surfaces;
 
+	static matrix4x4_t mat, modelview;
+
+	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
+
 	for (uint16_t i = 0; i < r_model_state.world->bsp->num_surfaces; i++, surf++) {
 
 		if (surf->vis_frame != r_locals.vis_frame) {
@@ -368,22 +372,19 @@ void R_DrawBspNormals(void) {
 
 			// draw origin
 			vec3_t angles;
-			matrix4x4_t mat;
 
 			VectorAngles(normal, angles);
 			Matrix4x4_CreateFromQuakeEntity(&mat, vertex[0], vertex[1], vertex[2], angles[0], angles[1], angles[2], 1.0);
 
-			R_PushMatrix(R_MATRIX_MODELVIEW);
+			Matrix4x4_Concat(&mat, &modelview, &mat);
 
-			Matrix4x4_Concat(matrix_modelview, matrix_modelview, &mat);
-
-			R_DirtyMatrix(R_MATRIX_MODELVIEW);
+			R_SetMatrix(R_MATRIX_MODELVIEW, &mat);
 
 			R_DrawArrays(GL_LINES, (GLint) r_model_state.bound_element_count - 6, 2);
-
-			R_PopMatrix(R_MATRIX_MODELVIEW);
 		}
 	}
+
+	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
 	R_EnableTexture(texunit_diffuse, true);
 

@@ -43,7 +43,7 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *
  * and concatenates it to the current model view matrix.
  */
 static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t *s) {
-	matrix4x4_t proj;
+	matrix4x4_t proj, modelview;
 	vec_t dot;
 
 	if (!e) {
@@ -73,9 +73,11 @@ static void R_RotateForMeshShadow_default(const r_entity_t *e, const r_shadow_t 
 
 	R_PushMatrix(R_MATRIX_MODELVIEW);
 
-	Matrix4x4_Concat(matrix_modelview, matrix_modelview, &proj);
+	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
-	R_DirtyMatrix(R_MATRIX_MODELVIEW);
+	Matrix4x4_Concat(&proj, &modelview, &proj);
+
+	R_SetMatrix(R_MATRIX_MODELVIEW, &proj);
 }
 
 /**
@@ -98,22 +100,24 @@ static void R_CalculateShadowMatrix_default(const r_entity_t *e, const r_shadow_
 	// calculate the perspective-shearing matrix
 	const vec_t dot = DotProduct(light, plane) + light[3] * plane[3];
 
-	matrix_shadow->m[0][0] = dot - light[0] * plane[0];
-	matrix_shadow->m[1][0] = 0.0 - light[0] * plane[1];
-	matrix_shadow->m[2][0] = 0.0 - light[0] * plane[2];
-	matrix_shadow->m[3][0] = 0.0 - light[0] * plane[3];
-	matrix_shadow->m[0][1] = 0.0 - light[1] * plane[0];
-	matrix_shadow->m[1][1] = dot - light[1] * plane[1];
-	matrix_shadow->m[2][1] = 0.0 - light[1] * plane[2];
-	matrix_shadow->m[3][1] = 0.0 - light[1] * plane[3];
-	matrix_shadow->m[0][2] = 0.0 - light[2] * plane[0];
-	matrix_shadow->m[1][2] = 0.0 - light[2] * plane[1];
-	matrix_shadow->m[2][2] = dot - light[2] * plane[2];
-	matrix_shadow->m[3][2] = 0.0 - light[2] * plane[3];
-	matrix_shadow->m[0][3] = 0.0 - light[3] * plane[0];
-	matrix_shadow->m[1][3] = 0.0 - light[3] * plane[1];
-	matrix_shadow->m[2][3] = 0.0 - light[3] * plane[2];
-	matrix_shadow->m[3][3] = dot - light[3] * plane[3];
+	matrix4x4_t matrix;
+
+	matrix.m[0][0] = dot - light[0] * plane[0];
+	matrix.m[1][0] = 0.0 - light[0] * plane[1];
+	matrix.m[2][0] = 0.0 - light[0] * plane[2];
+	matrix.m[3][0] = 0.0 - light[0] * plane[3];
+	matrix.m[0][1] = 0.0 - light[1] * plane[0];
+	matrix.m[1][1] = dot - light[1] * plane[1];
+	matrix.m[2][1] = 0.0 - light[1] * plane[2];
+	matrix.m[3][1] = 0.0 - light[1] * plane[3];
+	matrix.m[0][2] = 0.0 - light[2] * plane[0];
+	matrix.m[1][2] = 0.0 - light[2] * plane[1];
+	matrix.m[2][2] = dot - light[2] * plane[2];
+	matrix.m[3][2] = 0.0 - light[2] * plane[3];
+	matrix.m[0][3] = 0.0 - light[3] * plane[0];
+	matrix.m[1][3] = 0.0 - light[3] * plane[1];
+	matrix.m[2][3] = 0.0 - light[3] * plane[2];
+	matrix.m[3][3] = dot - light[3] * plane[3];
 
 	Matrix4x4_Transform(&r_view.matrix, s->illumination->light.origin, light);
 	light[3] = s->illumination->light.radius;
@@ -121,7 +125,7 @@ static void R_CalculateShadowMatrix_default(const r_entity_t *e, const r_shadow_
 	Matrix4x4_TransformQuakePlane(&r_view.matrix, p->normal, p->dist, plane);
 	plane[3] = -plane[3];
 
-	R_DirtyMatrix(R_MATRIX_SHADOW);
+	R_SetMatrix(R_MATRIX_SHADOW, &matrix);
 
 	R_UpdateShadowLightPlane_shadow(light, plane);
 }

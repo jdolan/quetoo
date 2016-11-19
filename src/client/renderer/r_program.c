@@ -613,34 +613,6 @@ static _Bool R_LoadProgram(const char *name, void (*Init)(r_program_t *program),
 }
 
 /**
- * @brief Uploads matrices to the currently loaded program.
- */
-void R_UseMatrices(void) {
-
-	_Bool any_changed = false;
-
-	for (r_matrix_id_t i = 0; i < R_MATRIX_TOTAL; i++) {
-
-		if (!r_state.active_program->matrix_dirty[i]) {
-			continue;
-		}
-
-		if (R_ProgramParameterMatrix4fv(&((r_program_t *) r_state.active_program)->matrix_uniforms[i], (const GLfloat *) r_view.active_matrices[i].m)) {
-			any_changed = true;
-		}
-	}
-
-	if (any_changed) {
-	
-		if (r_state.active_program->MatricesChanged) {
-			r_state.active_program->MatricesChanged();
-		}
-
-		memset(((r_program_t *) r_state.active_program)->matrix_dirty, 0, sizeof(r_state.active_program->matrix_dirty));
-	}
-}
-
-/**
  * @brief Sets up attributes for the currently bound program based on the active
  * array mask.
  */

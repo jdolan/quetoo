@@ -80,9 +80,13 @@ void R_RotateForEntity(const r_entity_t *e) {
 
 	R_PushMatrix(R_MATRIX_MODELVIEW);
 
-	Matrix4x4_Concat(matrix_modelview, matrix_modelview, &e->matrix);
+	matrix4x4_t modelview;
 
-	R_DirtyMatrix(R_MATRIX_MODELVIEW);
+	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
+
+	Matrix4x4_Concat(&modelview, &modelview, &e->matrix);
+
+	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
 }
 
 /**
@@ -256,7 +260,9 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		Vector4Set(r_model_state.bound_vertices[i].color, bc[0], bc[1], bc[2], bc[3]);
 	}
 
-	static matrix4x4_t mat;
+	static matrix4x4_t mat, modelview;
+
+	R_GetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
@@ -281,29 +287,23 @@ static void R_DrawEntityBounds(const r_entities_t *ents, const vec4_t color) {
 		// draw box
 		Matrix4x4_CreateFromEntity(&mat, e->origin, vec3_origin, e->scale);
 
-		R_PushMatrix(R_MATRIX_MODELVIEW);
+		Matrix4x4_Concat(&mat, &modelview, &mat);
 
-		Matrix4x4_Concat(matrix_modelview, matrix_modelview, &mat);
-
-		R_DirtyMatrix(R_MATRIX_MODELVIEW);
+		R_SetMatrix(R_MATRIX_MODELVIEW, &mat);
 
 		R_DrawArrays(GL_LINES, 0, (GLint) r_model_state.bound_element_count - 6);
-
-		R_PopMatrix(R_MATRIX_MODELVIEW);
 
 		// draw origin
 		Matrix4x4_CreateFromEntity(&mat, e->origin, e->angles, e->scale);
 
-		R_PushMatrix(R_MATRIX_MODELVIEW);
+		Matrix4x4_Concat(&mat, &modelview, &mat);
 
-		Matrix4x4_Concat(matrix_modelview, matrix_modelview, &mat);
-
-		R_DirtyMatrix(R_MATRIX_MODELVIEW);
+		R_SetMatrix(R_MATRIX_MODELVIEW, &mat);
 
 		R_DrawArrays(GL_LINES, (GLint) r_model_state.bound_element_count - 6, 6);
-
-		R_PopMatrix(R_MATRIX_MODELVIEW);
 	}
+
+	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
 	R_UnbindAttributeBuffer(R_ARRAY_ELEMENTS);
 

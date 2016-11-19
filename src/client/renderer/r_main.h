@@ -62,12 +62,6 @@ extern cvar_t *r_windowed_width;
 
 extern r_view_t r_view;
 
-// convenience shortcuts for matrices
-#define matrix_projection	(&r_view.active_matrices[R_MATRIX_PROJECTION])
-#define matrix_modelview	(&r_view.active_matrices[R_MATRIX_MODELVIEW])
-#define matrix_shadow		(&r_view.active_matrices[R_MATRIX_SHADOW])
-#define matrix_texture		(&r_view.active_matrices[R_MATRIX_TEXTURE])
-
 void R_Init(void);
 void R_Shutdown(void);
 void R_LoadMedia(void);

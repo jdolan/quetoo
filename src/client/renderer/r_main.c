@@ -333,8 +333,6 @@ void R_InitView(void) {
 
 	memset(&r_view, 0, sizeof(r_view));
 
-	Matrix4x4_CreateIdentity(matrix_texture);
-
 	R_RenderPlugin(r_render_plugin->string);
 
 	memset(&r_locals, 0, sizeof(r_locals));
@@ -342,6 +340,8 @@ void R_InitView(void) {
 	r_locals.clusters[0] = r_locals.clusters[1] = -1;
 
 	Matrix4x4_FromOrtho(&r_view.matrix_base_2d, 0.0, r_context.width, r_context.height, 0.0, -1.0, 1.0);
+
+	Matrix4x4_FromOrtho(&r_view.matrix_base_ui, 0.0, r_context.window_width, r_context.window_height, 0.0, -1.0, 1.0);
 }
 
 /**

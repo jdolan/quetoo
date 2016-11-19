@@ -35,9 +35,12 @@ void R_EnableDepthTest(_Bool enable);
 void R_DepthRange(GLdouble znear, GLdouble zfar);
 void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height, _Bool force);
 
+void R_GetMatrix(const r_matrix_id_t id, matrix4x4_t *matrix);
+void R_SetMatrix(const r_matrix_id_t id, const matrix4x4_t *matrix);
+const matrix4x4_t *R_GetMatrixPtr(const r_matrix_id_t id);
+
 void R_PushMatrix(const r_matrix_id_t id);
 void R_PopMatrix(const r_matrix_id_t id);
-void R_DirtyMatrix(const r_matrix_id_t id);
 
 void R_EnableTextureID(const r_texunit_id_t texunit_id, _Bool enable);
 

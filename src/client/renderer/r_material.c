@@ -21,6 +21,8 @@
 
 #include "r_local.h"
 
+static matrix4x4_t r_texture_matrix;
+
 // Just a number used for the initial buffer size.
 // It should fit most maps.
 #define INITIAL_VERTEX_COUNT 512
@@ -173,14 +175,14 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 	if (!(stage->flags & STAGE_TEXTURE_MATRIX)) {
 
 		if (!identity) {
-			Matrix4x4_CreateIdentity(matrix_texture);
+			Matrix4x4_CreateIdentity(&r_texture_matrix);
 		}
 
 		identity = true;
 		return;
 	}
 
-	Matrix4x4_CreateIdentity(matrix_texture);
+	Matrix4x4_CreateIdentity(&r_texture_matrix);
 
 	if (surf) { // for BSP surfaces, add stretch and rotate
 
@@ -188,32 +190,32 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 		t = surf->st_center[1] / surf->texinfo->material->diffuse->height;
 
 		if (stage->flags & STAGE_STRETCH) {
-			Matrix4x4_ConcatTranslate(matrix_texture, -s, -t, 0.0);
-			Matrix4x4_ConcatScale3(matrix_texture, stage->stretch.damp, stage->stretch.damp, 1.0);
-			Matrix4x4_ConcatTranslate(matrix_texture, -s, -t, 0.0);
+			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
+			Matrix4x4_ConcatScale3(&r_texture_matrix, stage->stretch.damp, stage->stretch.damp, 1.0);
+			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
 		}
 
 		if (stage->flags & STAGE_ROTATE) {
-			Matrix4x4_ConcatTranslate(matrix_texture, -s, -t, 0.0);
-			Matrix4x4_ConcatRotate(matrix_texture, stage->rotate.deg, 0.0, 0.0, 1.0);
-			Matrix4x4_ConcatTranslate(matrix_texture, -s, -t, 0.0);
+			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
+			Matrix4x4_ConcatRotate(&r_texture_matrix, stage->rotate.deg, 0.0, 0.0, 1.0);
+			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
 		}
 	}
 
 	if (stage->flags & STAGE_SCALE_S) {
-		Matrix4x4_ConcatScale3(matrix_texture, stage->scale.s, 1.0, 1.0);
+		Matrix4x4_ConcatScale3(&r_texture_matrix, stage->scale.s, 1.0, 1.0);
 	}
 
 	if (stage->flags & STAGE_SCALE_T) {
-		Matrix4x4_ConcatScale3(matrix_texture, 1.0, stage->scale.t, 1.0);
+		Matrix4x4_ConcatScale3(&r_texture_matrix, 1.0, stage->scale.t, 1.0);
 	}
 
 	if (stage->flags & STAGE_SCROLL_S) {
-		Matrix4x4_ConcatTranslate(matrix_texture, stage->scroll.ds, 0.0, 0.0);
+		Matrix4x4_ConcatTranslate(&r_texture_matrix, stage->scroll.ds, 0.0, 0.0);
 	}
 
 	if (stage->flags & STAGE_SCROLL_T) {
-		Matrix4x4_ConcatTranslate(matrix_texture, 0.0, stage->scroll.dt, 0.0);
+		Matrix4x4_ConcatTranslate(&r_texture_matrix, 0.0, stage->scroll.dt, 0.0);
 	}
 
 	identity = false;
@@ -239,7 +241,7 @@ static inline void R_StageTexCoord(const r_stage_t *stage, const vec3_t v, const
 		out[1] = in[1];
 	}
 
-	Matrix4x4_Transform2(matrix_texture, out, out);
+	Matrix4x4_Transform2(&r_texture_matrix, out, out);
 }
 
 #define NUM_DIRTMAP_ENTRIES 16
@@ -521,7 +523,7 @@ void R_DrawMaterialBspSurfaces(const r_bsp_surfaces_t *surfs) {
 
 	R_EnablePolygonOffset(false);
 
-	Matrix4x4_CreateIdentity(matrix_texture);
+	Matrix4x4_CreateIdentity(&r_texture_matrix);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -589,7 +591,7 @@ void R_DrawMeshMaterial(r_material_t *m, const GLuint offset, const GLuint count
 		R_EnableDepthMask(true);
 	}
 
-	Matrix4x4_CreateIdentity(matrix_texture);
+	Matrix4x4_CreateIdentity(&r_texture_matrix);
 
 	R_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1391,6 +1393,8 @@ void R_InitMaterials(void) {
 	                         r_material_buffer_layout, GL_DYNAMIC_DRAW, sizeof(r_material_interleave_vertex_t) * r_material_state.vertex_len, NULL);
 
 	r_material_state.element_array = g_array_sized_new(false, false, sizeof(u16vec_t), r_material_state.element_len);
+
+	Matrix4x4_CreateIdentity(&r_texture_matrix);
 }
 
 /**

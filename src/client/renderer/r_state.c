@@ -33,6 +33,12 @@ const vec2_t default_texcoords[4] = { // useful for particles, pics, etc..
 };
 
 /**
+ * @brief The active matrices are private, to prevent being overwritten
+ * without dirtyage.
+ */
+static matrix4x4_t active_matrices[R_MATRIX_TOTAL];
+
+/**
  * @brief Queries OpenGL for any errors and prints them as warnings.
  */
 void R_GetError_(const char *function, const char *msg) {
@@ -494,7 +500,7 @@ void R_PushMatrix(const r_matrix_id_t id) {
 		Com_Error(ERR_DROP, "Matrix stack overflow");
 	}
 
-	Matrix4x4_Copy(&r_state.matrix_stacks[id].matrices[r_state.matrix_stacks[id].depth++], &r_view.active_matrices[id]);
+	Matrix4x4_Copy(&r_state.matrix_stacks[id].matrices[r_state.matrix_stacks[id].depth++], &active_matrices[id]);
 }
 
 /**
@@ -506,21 +512,67 @@ void R_PopMatrix(const r_matrix_id_t id) {
 		Com_Error(ERR_DROP, "Matrix stack underflow");
 	}
 
-	Matrix4x4_Copy(&r_view.active_matrices[id], &r_state.matrix_stacks[id].matrices[--r_state.matrix_stacks[id].depth]);
-
-	R_DirtyMatrix(id);
+	R_SetMatrix(id, &r_state.matrix_stacks[id].matrices[--r_state.matrix_stacks[id].depth]);
 }
 
 /**
- * @brief Mark a matrix as being dirty. Important that you do this if you
- * actually modify any of the matrix_* components!
+ * @brief Change the matrix and mark it as being dirty.
  */
-void R_DirtyMatrix(const r_matrix_id_t id) {
+void R_SetMatrix(const r_matrix_id_t id, const matrix4x4_t *matrix) {
+
+	Matrix4x4_Copy(&active_matrices[id], matrix);
 
 	for (r_program_id_t i = 0; i < R_PROGRAM_TOTAL; i++) {
+
 		if (r_state.programs[i].matrix_uniforms[id].location != -1) {
 			r_state.programs[i].matrix_dirty[id] = true;
 		}
+	}
+}
+
+/**
+ * @brief Fetch a matrix from the current view state.
+ */
+void R_GetMatrix(const r_matrix_id_t id, matrix4x4_t *matrix) {
+
+	Matrix4x4_Copy(matrix, &active_matrices[id]);
+}
+
+/**
+ * @brief Fetch a const pointer to the active matrix. This should
+ * only be used if you only need to read from the matrix and not write.
+ * If you need to both read and write, use R_GetMatrix.
+ */
+const matrix4x4_t *R_GetMatrixPtr(const r_matrix_id_t id) {
+
+	return &active_matrices[id];
+}
+
+/**
+ * @brief Uploads matrices to the currently loaded program.
+ */
+void R_UseMatrices(void) {
+
+	_Bool any_changed = false;
+
+	for (r_matrix_id_t i = 0; i < R_MATRIX_TOTAL; i++) {
+
+		if (!r_state.active_program->matrix_dirty[i]) {
+			continue;
+		}
+
+		if (R_ProgramParameterMatrix4fv(&((r_program_t *) r_state.active_program)->matrix_uniforms[i], (const GLfloat *) active_matrices[i].m)) {
+			any_changed = true;
+		}
+	}
+
+	if (any_changed) {
+	
+		if (r_state.active_program->MatricesChanged) {
+			r_state.active_program->MatricesChanged();
+		}
+
+		memset(((r_program_t *) r_state.active_program)->matrix_dirty, 0, sizeof(r_state.active_program->matrix_dirty));
 	}
 }
 
@@ -601,9 +653,7 @@ void R_Setup3D(void) {
 	R_SetViewport(viewport->x, viewport->y, viewport->w, viewport->h, !!r_state.supersample_fbo);
 
 	// copy projection matrix
-	Matrix4x4_Copy(matrix_projection, &r_view.matrix_base_3d);
-
-	R_DirtyMatrix(R_MATRIX_PROJECTION);
+	R_SetMatrix(R_MATRIX_PROJECTION, &r_view.matrix_base_3d);
 
 	// setup the model-view matrix
 	Matrix4x4_CreateIdentity(&r_view.matrix);
@@ -617,9 +667,7 @@ void R_Setup3D(void) {
 
 	Matrix4x4_ConcatTranslate(&r_view.matrix, -r_view.origin[0], -r_view.origin[1], -r_view.origin[2]);
 
-	Matrix4x4_Copy(matrix_modelview, &r_view.matrix);
-
-	R_DirtyMatrix(R_MATRIX_MODELVIEW);
+	R_SetMatrix(R_MATRIX_MODELVIEW, &r_view.matrix);
 
 	Matrix4x4_Invert_Simple(&r_view.inverse_matrix, &r_view.matrix);
 
@@ -715,13 +763,9 @@ void R_Setup2D(void) {
 
 	R_SetViewport(0, 0, r_context.width, r_context.height, !!r_state.supersample_fbo);
 
-	Matrix4x4_Copy(matrix_projection, &r_view.matrix_base_2d);
+	R_SetMatrix(R_MATRIX_PROJECTION, &r_view.matrix_base_2d);
 
-	R_DirtyMatrix(R_MATRIX_PROJECTION);
-
-	Matrix4x4_CreateIdentity(matrix_modelview);
-
-	R_DirtyMatrix(R_MATRIX_MODELVIEW);
+	R_SetMatrix(R_MATRIX_MODELVIEW, &matrix4x4_identity);
 
 	// bind default vertex array
 	R_UnbindAttributeBuffer(R_ARRAY_POSITION);

@@ -223,9 +223,10 @@ void Cl_InitCgame(void) {
 	import.AddEntity = R_AddEntity;
 	import.AddLinkedEntity = R_AddLinkedEntity;
 	import.SetMatrixForEntity = R_SetMatrixForEntity;
+	import.SetMatrix = R_SetMatrix;
+	import.GetMatrix = R_GetMatrix;
 	import.PushMatrix = R_PushMatrix;
 	import.PopMatrix = R_PopMatrix;
-	import.DirtyMatrix = R_DirtyMatrix;
 	import.DrawMeshModel = R_DrawMeshModel_default;
 	import.EnableDepthTest = R_EnableDepthTest;
 	import.DepthRange = R_DepthRange;

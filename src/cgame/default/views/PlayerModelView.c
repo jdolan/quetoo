@@ -90,7 +90,7 @@ static void render(View *self, Renderer *renderer) {
 
 		Matrix4x4_FromFrustum(&mat, xmin, xmax, ymin, ymax, NEAR_Z, FAR_Z);
 
-		Matrix4x4_Copy(&cgi.view->active_matrices[R_MATRIX_PROJECTION], &mat);
+		cgi.SetMatrix(R_MATRIX_PROJECTION, &mat);
 
 		// create base modelview matrix
 		Matrix4x4_CreateIdentity(&mat);
@@ -102,10 +102,7 @@ static void render(View *self, Renderer *renderer) {
 
 		Matrix4x4_ConcatRotate(&mat, cgi.client->systime * 0.08, 0.0, 0.0, 1.0);
 
-		Matrix4x4_Copy(&cgi.view->active_matrices[R_MATRIX_MODELVIEW], &mat);
-
-		cgi.DirtyMatrix(R_MATRIX_PROJECTION);
-		cgi.DirtyMatrix(R_MATRIX_MODELVIEW);
+		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
 
 		cgi.EnableDepthTest(true);
 		cgi.DepthRange(0.0, 0.1);
