@@ -521,6 +521,8 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 	projectile->locals.knockback = knockback;
 	projectile->locals.next_think = g_level.time + timer;
 	projectile->solid = SOLID_BOX;
+	projectile->sv_flags &= ~SVF_NO_CLIENT;
+	projectile->locals.move_type = MOVE_TYPE_BOUNCE;
 	projectile->locals.Think = G_HandGrenadeProjectile_Explode;
 }
 /**
