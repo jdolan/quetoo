@@ -54,17 +54,24 @@ void Com_Debug_(const char *func, const char *fmt, ...) {
 	}
 }
 
+_Bool com_recursive = false;
+
 /**
  * @brief An error condition has occurred. This function does not return.
  */
 void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
-	static _Bool recursive;
 
-	if (recursive) {
-		fprintf(stderr, "Recursive error\n");
-		exit(err);
+	if (com_recursive) {
+
+		if (quetoo.Error) {
+			quetoo.Error(err, (const char *) "Recursive error\n");
+		} else {
+			fputs("Recursive error\n", stderr);
+			fflush(stderr);
+			exit(err);
+		}
 	} else {
-		recursive = true;
+		com_recursive = true;
 	}
 
 	char msg[MAX_PRINT_MSG];
@@ -91,7 +98,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 		exit(err);
 	}
 
-	recursive = false;
+	com_recursive = false;
 }
 
 /**

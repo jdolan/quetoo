@@ -84,6 +84,7 @@ static void Error(err_t err, const char *msg) {
 		case ERR_DROP:
 			Sv_ShutdownServer(msg);
 			Cl_Disconnect();
+			com_recursive = false;
 			longjmp(env, err);
 			break;
 

@@ -102,7 +102,6 @@ typedef enum {
 
 int32_t Com_Argc(void);
 char *Com_Argv(int32_t arg); // range and null checked
-void Com_InitArgv(int32_t argc, char **argv);
 
 void Com_PrintInfo(const char *s);
 
@@ -111,6 +110,12 @@ void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Com_Warn_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Com_Error_(const char *func, err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
+
+/*
+ * If your Error function doesn't return, make sure to set this to false.
+ */
+extern _Bool com_recursive;
+
 
 #define Com_Debug(...) Com_Debug_(__func__, __VA_ARGS__)
 #define Com_Error(err, ...) Com_Error_(__func__, err, __VA_ARGS__)
