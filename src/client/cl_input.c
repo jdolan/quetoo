@@ -34,7 +34,7 @@ cvar_t *m_sensitivity;
 cvar_t *m_sensitivity_zoom;
 cvar_t *m_pitch;
 cvar_t *m_yaw;
-static cvar_t *m_grab;
+cvar_t *m_grab;
 
 /*
  * KEY BUTTONS
