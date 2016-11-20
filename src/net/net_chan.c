@@ -186,8 +186,8 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 	// write the packet header
 	Mem_InitBuffer(&send, send_buffer, sizeof(send_buffer));
 
-	const uint32_t w1 = (chan->outgoing_sequence & ~(1u << 31u)) | (send_reliable << 31u);
-	const uint32_t w2 = (chan->incoming_sequence & ~(1u << 31u)) | (chan->reliable_incoming << 31u);
+	const uint32_t w1 = (chan->outgoing_sequence & ~(1u << 31)) | (send_reliable << 31);
+	const uint32_t w2 = (chan->incoming_sequence & ~(1u << 31)) | (chan->reliable_incoming << 31);
 
 	chan->outgoing_sequence++;
 	chan->last_sent = quetoo.time;
@@ -249,8 +249,8 @@ _Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
 	reliable_message = sequence >> 31u;
 	reliable_ack = sequence_ack >> 31u;
 
-	sequence &= ~(1u << 31u);
-	sequence_ack &= ~(1u << 31u);
+	sequence &= ~(1u << 31);
+	sequence_ack &= ~(1u << 31);
 
 	if (net_show_packets->value) {
 		if (reliable_message)
