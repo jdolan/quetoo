@@ -411,11 +411,7 @@ static void Sv_DemoCompleted(void) {
 
 		if (!next_demo) {
 
-			const char *space = strchr(sv_demo_list->string, ' ') ?: (sv_demo_list->string + strlen(sv_demo_list->string));
-			size_t len = space - sv_demo_list->string;
-
-			strncpy(demo_token, sv_demo_list->string, len);
-			demo_token[len] = 0;
+			next_demo = sv_demo_list->string;
 		} else {
 
 			next_demo += strlen(current_demo);
@@ -425,13 +421,13 @@ static void Sv_DemoCompleted(void) {
 			} else if (!next_demo[0]) {
 				next_demo = sv_demo_list->string;
 			}
-
-			const char *space = strchr(next_demo, ' ') ?: (next_demo + strlen(next_demo));
-			size_t len = space - next_demo;
-
-			strncpy(demo_token, next_demo, len);
-			demo_token[len] = 0;
 		}
+
+		const char *space = strchr(next_demo, ' ') ?: (next_demo + strlen(next_demo));
+		size_t len = space - next_demo;
+
+		strncpy(demo_token, next_demo, len);
+		demo_token[len] = 0;
 
 		if (demo_token[0]) {
 			Sv_InitServer(demo_token, SV_ACTIVE_DEMO);
