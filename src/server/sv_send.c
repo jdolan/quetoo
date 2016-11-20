@@ -407,17 +407,30 @@ static void Sv_DemoCompleted(void) {
 
 		const char *current_demo = sv.name;
 		const char *next_demo = g_strrstr(sv_demo_list->string, current_demo);
-		const char *demo_token;
+		char demo_token[MAX_QPATH];
 
 		if (!next_demo) {
-			demo_token = sv_demo_list->string;
-		} else {
-			next_demo += strlen(current_demo);
-			demo_token = ParseToken(&next_demo);
 
-			if (!demo_token[0]) {
-				demo_token = ParseToken((const char **) &sv_demo_list->string);
+			const char *space = strchr(sv_demo_list->string, ' ') ?: (sv_demo_list->string + strlen(sv_demo_list->string));
+			size_t len = space - sv_demo_list->string;
+
+			strncpy(demo_token, sv_demo_list->string, len);
+			demo_token[len] = 0;
+		} else {
+
+			next_demo += strlen(current_demo);
+
+			if (next_demo[0] == ' ') {
+				next_demo++;
+			} else if (!next_demo[0]) {
+				next_demo = sv_demo_list->string;
 			}
+
+			const char *space = strchr(next_demo, ' ') ?: (next_demo + strlen(next_demo));
+			size_t len = space - next_demo;
+
+			strncpy(demo_token, next_demo, len);
+			demo_token[len] = 0;
 		}
 
 		if (demo_token[0]) {
