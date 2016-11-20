@@ -455,6 +455,7 @@ static void R_LoadShader(GLenum type, const char *name, r_shader_t *out_shader) 
 
 	if (out_shader->id != 0) {
 		Com_Error(ERR_FATAL, "Memory corruption\n");
+		return;
 	}
 
 	g_snprintf(path, sizeof(path), "shaders/%s", name);

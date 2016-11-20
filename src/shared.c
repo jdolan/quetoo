@@ -1035,10 +1035,12 @@ char *GetUserInfo(const char *s, const char *key) {
 		}
 
 		if (!*s) {
-			return "";
+			break;
 		}
 		s++;
 	}
+
+	return "";
 }
 
 /**

@@ -481,6 +481,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	if (!do_bsp && !do_vis && !do_light && !do_aas && !do_mat && !do_zip) {
 		Com_Error(ERR_FATAL, "No action specified. Try %s --help\n", Com_Argv(0));
+		return 0;
 	}
 
 	Thread_Init(num_threads);
@@ -527,4 +528,6 @@ int32_t main(int32_t argc, char **argv) {
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	Com_Shutdown(NULL);
+
+	return 0;
 }

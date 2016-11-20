@@ -121,6 +121,7 @@ static void Mon_Stdio(err_t err, const char *msg) {
 			break;
 		case ERR_FATAL:
 			Com_Error(err, "!@%s\n", msg);
+			break;
 		default:
 			break;
 	}

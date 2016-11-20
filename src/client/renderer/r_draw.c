@@ -622,6 +622,7 @@ static void R_InitFont(char *name) {
 
 	if (r_draw.num_fonts == MAX_FONTS) {
 		Com_Error(ERR_DROP, "MAX_FONTS reached\n");
+		return;
 	}
 
 	r_font_t *font = &r_draw.fonts[r_draw.num_fonts++];

@@ -85,12 +85,14 @@ static void Error(err_t err, const char *msg) {
 			Cl_Disconnect();
 			com_recursive = false;
 			longjmp(env, err);
+			break;
 
 		case ERR_FATAL:
 		default:
 			Sys_Backtrace();
 			Shutdown(msg);
 			exit(err);
+			break;
 	}
 }
 
@@ -314,4 +316,6 @@ int32_t main(int32_t argc, char *argv[]) {
 
 		old_time = quetoo.time;
 	}
+
+	return 0;
 }
