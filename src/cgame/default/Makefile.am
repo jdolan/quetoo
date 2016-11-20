@@ -54,7 +54,6 @@ cgame_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
-	@OPENGL_CFLAGS@ \
 	@SDL2_CFLAGS@
 
 cgame_la_LDFLAGS = \
