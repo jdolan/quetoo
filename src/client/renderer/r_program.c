@@ -601,7 +601,7 @@ static _Bool R_LoadProgram(const char *name, void (*Init)(r_program_t *program),
 		glDeleteShader(f.id);
 	}
 
-	out_program->program_id = out_program - r_state.programs;
+	out_program->program_id = (r_program_id_t) (ptrdiff_t) (out_program - r_state.programs);
 
 	R_UseProgram(out_program);
 
