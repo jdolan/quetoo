@@ -12,8 +12,6 @@ librenderers_la_CFLAGS = \
 	-I$(top_srcdir)/src/client \
 	-I$(top_srcdir)/src/client/ui \
 	@BASE_CFLAGS@ \
-	-Wno-unknown-pragmas \
-	-Wno-unused-parameter \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@
 
