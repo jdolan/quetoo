@@ -89,7 +89,7 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 		// interpolate prediction error
 		VectorMA(r_view.origin, -(1.0 - cl.lerp), cl.predicted_state.error, r_view.origin);
 
-		const uint32_t delta = cl.time - cl.predicted_state.step_time;
+		const uint32_t delta = cl.systime - cl.predicted_state.step_time;
 		const uint32_t interval = cl.predicted_state.step_interval;
 
 		if (delta < interval) { // interpolate stair traversal
