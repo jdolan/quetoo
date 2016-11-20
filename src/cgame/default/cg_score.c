@@ -118,12 +118,12 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 
 	y = cgi.view->viewport.y + 64 - ch - 4;
 
-	const char *s = cgi.ConfigString(CS_NAME);
-	const r_pixel_t sw = cgi.StringWidth(s);
+	const char *map_name = cgi.ConfigString(CS_NAME);
+	const r_pixel_t sw = cgi.StringWidth(map_name);
 
 	// map title
 	x = cgi.context->width / 2 - sw / 2;
-	cgi.DrawString(x, y, s, CON_COLOR_DEFAULT);
+	cgi.DrawString(x, y, map_name, CON_COLOR_DEFAULT);
 
 	y += ch;
 
@@ -132,23 +132,23 @@ static r_pixel_t Cg_DrawScoresHeader(void) {
 		char string[MAX_QPATH];
 
 		g_score_t *score = &cg_score_state.scores[cg_score_state.num_scores];
-		int16_t s = cg_score_state.teams ? score->score : score->captures;
+		int16_t score_num = cg_score_state.teams ? score->score : score->captures;
 
 		cgi.BindFont("small", &cw, &ch);
 
 		x = cgi.context->width / 2 - SCORES_COL_WIDTH + SCORES_ICON_WIDTH;
 
-		g_snprintf(string, sizeof(string), "%s^7 %d %s", cgi.ConfigString(CS_TEAM_GOOD), s,
+		g_snprintf(string, sizeof(string), "%s^7 %d %s", cgi.ConfigString(CS_TEAM_GOOD), score_num,
 		           cg_score_state.ctf ? "caps" : "frags");
 
 		cgi.DrawString(x, y, string, CON_COLOR_BLUE);
 
 		score++;
-		s = cg_score_state.teams ? score->score : score->captures;
+		score_num = cg_score_state.teams ? score->score : score->captures;
 
 		x += SCORES_COL_WIDTH;
 
-		g_snprintf(string, sizeof(string), "%s^7 %d %s", cgi.ConfigString(CS_TEAM_EVIL), s,
+		g_snprintf(string, sizeof(string), "%s^7 %d %s", cgi.ConfigString(CS_TEAM_EVIL), score_num,
 		           cg_score_state.ctf ? "caps" : "frags");
 
 		cgi.DrawString(x, y, string, CON_COLOR_RED);

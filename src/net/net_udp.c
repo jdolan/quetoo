@@ -233,9 +233,9 @@ void Net_Config(net_src_t source, _Bool up) {
 	}
 
 	net_loop_latency = Cvar_Add("net_loop_latency", "0", CVAR_LO_ONLY,
-			"Simulate network latency, in milliseconds, on localhost (developer tool)");
+	                            "Simulate network latency, in milliseconds, on localhost (developer tool)");
 
 	net_loop_jitter = Cvar_Add("net_loop_jitter", "0", CVAR_LO_ONLY,
-			"Simulate network jitter, in milliseconds, on localhost (developer tool)");
+	                           "Simulate network jitter, in milliseconds, on localhost (developer tool)");
 }
 

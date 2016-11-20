@@ -121,8 +121,9 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 	il.type = ILLUM_AMBIENT;
 	il.light.radius = LIGHTING_AMBIENT_RADIUS;
 
-	if (r_lighting->value)
+	if (r_lighting->value) {
 		il.light.radius *= r_lighting->value;
+	}
 
 	il.diffuse = il.light.radius - LIGHTING_AMBIENT_DIST;
 

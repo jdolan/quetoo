@@ -397,7 +397,7 @@ void R_LoadMedia(void) {
  * recreated. All media is reloaded. Other subsystems can elect to refresh
  * their media references by inspecting r_view.update.
  */
-void R_Restart_f(void) {
+static void R_Restart_f(void) {
 
 	if (cls.state == CL_LOADING) {
 		return;
@@ -512,7 +512,8 @@ static void R_InitLocal(void) {
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_windowed_height = Cvar_Add("r_windowed_height", "1024", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_windowed_width = Cvar_Add("r_windowed_width", "768", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the level of super-sampling on rendered 3D graphics. Requires framebuffer extension.");
+	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT,
+	                         "Controls the level of super-sampling on rendered 3D graphics. Requires framebuffer extension.");
 
 	Cvar_ClearAll(CVAR_R_MASK);
 

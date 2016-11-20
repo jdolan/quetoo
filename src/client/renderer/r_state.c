@@ -561,13 +561,14 @@ void R_UseMatrices(void) {
 			continue;
 		}
 
-		if (R_ProgramParameterMatrix4fv(&((r_program_t *) r_state.active_program)->matrix_uniforms[i], (const GLfloat *) active_matrices[i].m)) {
+		if (R_ProgramParameterMatrix4fv(&((r_program_t *) r_state.active_program)->matrix_uniforms[i],
+		                                (const GLfloat *) active_matrices[i].m)) {
 			any_changed = true;
 		}
 	}
 
 	if (any_changed) {
-	
+
 		if (r_state.active_program->MatricesChanged) {
 			r_state.active_program->MatricesChanged();
 		}
@@ -622,7 +623,7 @@ void R_UseInterpolation(const vec_t lerp) {
 void R_SetViewport(GLint x, GLint y, GLsizei width, GLsizei height, _Bool force) {
 
 	if (!force &&
-			r_state.current_viewport.x == x &&
+	        r_state.current_viewport.x == x &&
 	        r_state.current_viewport.y == y &&
 	        r_state.current_viewport.w == width &&
 	        r_state.current_viewport.h == height) {
@@ -779,7 +780,7 @@ void R_Setup2D(void) {
  * @brief
  */
 static void R_ShutdownSupersample(void) {
-	
+
 	if (r_state.supersample_texture) {
 		glDeleteTextures(1, &r_state.supersample_texture);
 		r_state.supersample_texture = 0;
@@ -824,7 +825,7 @@ static void R_InitSupersample(void) {
 	r_context.render_height = (r_pixel_t) (r_context.height * r_supersample->value);
 
 	if (r_context.render_width == r_context.width ||
-		r_context.render_height == r_context.height) {
+	        r_context.render_height == r_context.height) {
 
 		Com_Warn("r_supersample set but won't change anything.\n");
 		Cvar_ForceSet("r_supersample", "0");
@@ -833,13 +834,13 @@ static void R_InitSupersample(void) {
 
 	// sanity checks
 	if (r_context.render_width == 0 ||
-		r_context.render_height == 0 ||
-		r_context.render_width > r_config.max_texture_size ||
-		r_context.render_height > r_config.max_texture_size) {
+	        r_context.render_height == 0 ||
+	        r_context.render_width > r_config.max_texture_size ||
+	        r_context.render_height > r_config.max_texture_size) {
 
 		Com_Warn("r_supersample is too low or too high.\n");
 		Cvar_Set("r_supersample", "0");
-			
+
 		r_context.render_width = r_context.width;
 		r_context.render_height = r_context.height;
 
@@ -849,7 +850,8 @@ static void R_InitSupersample(void) {
 	// try to create the FBO backing textures
 	glGenTextures(1, &r_state.supersample_texture);
 	glBindTexture(GL_TEXTURE_2D, r_state.supersample_texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, r_context.render_width, r_context.render_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, r_context.render_width, r_context.render_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+	             NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
@@ -859,10 +861,10 @@ static void R_InitSupersample(void) {
 
 	// attempt to gracefully recover from errors
 	if (glGetError() != GL_NO_ERROR) {
-			
+
 		Com_Warn("Couldn't create supersample textures.\n");
 		Cvar_Set("r_supersample", "0");
-			
+
 		r_context.render_width = r_context.width;
 		r_context.render_height = r_context.height;
 
@@ -875,18 +877,18 @@ static void R_InitSupersample(void) {
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_state.supersample_texture, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	
+
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, r_state.supersample_depth);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, r_state.supersample_depth);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// attempt to gracefully recover from errors
 	if (glGetError() != GL_NO_ERROR ||
-		glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-			
+	        glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+
 		Com_Warn("Couldn't create supersample framebuffer.\n");
 		Cvar_Set("r_supersample", "0");
-			
+
 		r_context.render_width = r_context.width;
 		r_context.render_height = r_context.height;
 
@@ -969,13 +971,13 @@ void R_InitState(void) {
 }
 
 static void R_ShutdownState_PrintBuffers(gpointer       key,
-                                         gpointer       value,
-                                         gpointer       user_data) {
+        gpointer       value,
+        gpointer       user_data) {
 
 	const r_buffer_t *buffer = (r_buffer_t *) value;
 
 	Com_Warn("Buffer not freed (%u type, %zd bytes), allocated from %s\n",
-			 buffer->type, buffer->size, buffer->func);
+	         buffer->type, buffer->size, buffer->func);
 }
 
 /**

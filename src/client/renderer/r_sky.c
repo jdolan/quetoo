@@ -355,7 +355,7 @@ void R_DrawSkyBox(void) {
 	R_PushMatrix(R_MATRIX_MODELVIEW);
 
 	Matrix4x4_ConcatTranslate(&modelview, r_view.origin[0], r_view.origin[1], r_view.origin[2]);
-	
+
 	R_SetMatrix(R_MATRIX_MODELVIEW, &modelview);
 
 	R_EnableFog(true);

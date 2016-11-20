@@ -684,7 +684,6 @@ static void ParseBrush(entity_t *mapent) {
 			Com_Error(ERR_FATAL,
 			          "Entity %i, Brush %i: origin brushes not allowed in world\n",
 			          b->entity_num, b->brush_num);
-			return;
 		}
 
 		VectorAdd(b->mins, b->maxs, origin);

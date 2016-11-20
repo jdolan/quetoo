@@ -57,7 +57,7 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
 /**
  * @see CollectionViewDelegate::itemForObjectAtIndex(const CollectionView *, const IndexPath *)
  */
-CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
+static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
 	const MapListCollectionView *this = (MapListCollectionView *) collectionView;
 	const size_t index = $(indexPath, indexAtPosition, 0);

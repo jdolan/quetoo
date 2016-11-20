@@ -332,7 +332,8 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 	r_md3_interleave_vertex_t *vertexes = Mem_LinkMalloc(v, mod);
 
 	// upload initial data
-	R_CreateInterleaveBuffer(&mod->mesh->vertex_buffer, sizeof(r_md3_interleave_vertex_t), r_md3_buffer_layout, GL_STATIC_DRAW,
+	R_CreateInterleaveBuffer(&mod->mesh->vertex_buffer, sizeof(r_md3_interleave_vertex_t), r_md3_buffer_layout,
+	                         GL_STATIC_DRAW,
 	                         v * md3->num_frames, NULL);
 
 	for (uint16_t f = 0; f < md3->num_frames; ++f, frame++) {
@@ -342,13 +343,13 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 		for (uint16_t i = 0; i < md3->num_meshes; i++, mesh++) { // iterate the meshes
 
-			const r_md3_vertex_t *v = mesh->verts + f * mesh->num_verts;
+			const r_md3_vertex_t *vert = mesh->verts + f * mesh->num_verts;
 			const d_md3_texcoord_t *t = mesh->coords;
 
-			for (uint16_t j = 0; j < mesh->num_verts; j++, v++, ++t) {
-				VectorAdd(frame->translate, v->point, vertexes[j + vert_offset].vertex);
-				VectorCopy(v->normal, vertexes[j + vert_offset].normal);
-				Vector4Copy(v->tangent, vertexes[j + vert_offset].tangent);
+			for (uint16_t j = 0; j < mesh->num_verts; j++, vert++, ++t) {
+				VectorAdd(frame->translate, vert->point, vertexes[j + vert_offset].vertex);
+				VectorCopy(vert->normal, vertexes[j + vert_offset].normal);
+				Vector4Copy(vert->tangent, vertexes[j + vert_offset].tangent);
 
 				// only copy st coords once
 				if (f == 0) {
@@ -873,7 +874,7 @@ static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *ele
 	if (r_shell->value < 2) {
 		return;
 	}
-	
+
 	GHashTable *index_remap_table = g_hash_table_new(g_direct_hash, g_direct_equal);
 	GArray *unique_vertex_list = g_array_new(false, false, sizeof(r_obj_shell_interleave_vertex_t));
 
@@ -903,8 +904,8 @@ static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *ele
 
 			unique_vertex_list = g_array_append_vals(unique_vertex_list, &(const r_obj_shell_interleave_vertex_t) {
 				.vertex = { ve->point[0], ve->point[1], ve->point[2] },
-				.normal = { ve->normal[0], ve->normal[1], ve->normal[2] },
-				.diffuse = { (u16vec_t) (ve->texcoords[0] * USHRT_MAX), (u16vec_t) (ve->texcoords[1] * USHRT_MAX) }
+				 .normal = { ve->normal[0], ve->normal[1], ve->normal[2] },
+				  .diffuse = { (u16vec_t) (ve->texcoords[0] * USHRT_MAX), (u16vec_t) (ve->texcoords[1] * USHRT_MAX) }
 			}, 1);
 		}
 
@@ -924,7 +925,9 @@ static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *ele
 	}
 
 	// upload data
-	R_CreateInterleaveBuffer(&mod->mesh->shell_vertex_buffer, sizeof(r_obj_shell_interleave_vertex_t), r_obj_shell_buffer_layout, GL_STATIC_DRAW, sizeof(r_obj_shell_interleave_vertex_t) * unique_vertex_list->len, unique_vertex_list->data);
+	R_CreateInterleaveBuffer(&mod->mesh->shell_vertex_buffer, sizeof(r_obj_shell_interleave_vertex_t),
+	                         r_obj_shell_buffer_layout, GL_STATIC_DRAW, sizeof(r_obj_shell_interleave_vertex_t) * unique_vertex_list->len,
+	                         unique_vertex_list->data);
 
 	g_array_free(unique_vertex_list, true);
 
@@ -941,7 +944,7 @@ static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *ele
 	}
 
 	R_CreateElementBuffer(&mod->mesh->shell_element_buffer, R_ATTRIB_UNSIGNED_INT, GL_STATIC_DRAW, e, elements);
-	
+
 	g_hash_table_destroy(index_remap_table);
 }
 

@@ -155,7 +155,6 @@ static void Sv_ClearState() {
  * @brief Applies any pending variable changes and clamps ones we really care about.
  */
 static void Sv_UpdateLatchedVars(void) {
-	extern _Bool cm_no_areas;
 
 	Cvar_UpdateLatched();
 

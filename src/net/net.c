@@ -89,7 +89,7 @@ _Bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b) {
 const char *Net_NetaddrToString(const net_addr_t *a) {
 	static char s[64];
 
-	g_snprintf(s, sizeof(s), "%s:%i", inet_ntoa(*(struct in_addr *) &a->addr), ntohs(a->port));
+	g_snprintf(s, sizeof(s), "%s:%i", inet_ntoa(*(const struct in_addr *) &a->addr), ntohs(a->port));
 
 	return s;
 }
@@ -121,7 +121,7 @@ _Bool Net_StringToSockaddr(const char *s, struct sockaddr_in *saddr) {
 
 	struct addrinfo *info;
 	if (getaddrinfo(node, service, &hints, &info) == 0) {
-		*saddr = *(struct sockaddr_in *) info->ai_addr;
+		memcpy(saddr, info->ai_addr, sizeof(*saddr));
 		freeaddrinfo(info);
 	}
 

@@ -130,7 +130,7 @@ static void Cg_LoadWeather_(const r_bsp_model_t *bsp, const r_bsp_surface_t *s) 
  * @brief Iterates the world surfaces, generating weather emitters from sky brushes.
  * Valid weather origins and z-depths are resolved and cached.
  */
-void Cg_LoadWeather(void) {
+static void Cg_LoadWeather(void) {
 	uint16_t i, j;
 
 	cg_weather_state.emits = NULL;

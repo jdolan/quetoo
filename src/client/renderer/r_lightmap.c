@@ -176,8 +176,8 @@ static void R_BuildLightmap(const r_bsp_model_t *bsp, const r_bsp_surface_t *sur
 /**
  * @brief
  */
-gint R_InsertBlock_CompareFunc(gconstpointer  a,
-                                   gconstpointer  b) {
+static gint R_InsertBlock_CompareFunc(gconstpointer  a,
+                                      gconstpointer  b) {
 
 	const r_bsp_surface_t *ai = (const r_bsp_surface_t *) a;
 	const r_bsp_surface_t *bi = (const r_bsp_surface_t *) b;
@@ -199,7 +199,7 @@ void R_CreateBspSurfaceLightmap(r_bsp_model_t *bsp, r_bsp_surface_t *surf, const
 }
 
 /**
- * @brief Uploads sorted lightmaps from start to (end - 1) and 
+ * @brief Uploads sorted lightmaps from start to (end - 1) and
  * puts them in the new maps sized to width/height
  */
 static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model_t *bsp, GSList *start, GSList *end) {
@@ -221,7 +221,7 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 		r_bsp_surface_t *surf = (r_bsp_surface_t *) start->data;
 
 		const size_t stride = width * 3;
-		const size_t lightmap_offset = (surf->lightmap_t * width + surf->lightmap_s) * 3;
+		const size_t lightmap_offset = (surf->lightmap_t *width + surf->lightmap_s) * 3;
 
 		byte *sout = sample_buffer + lightmap_offset;
 		byte *dout = direction_buffer + lightmap_offset;
@@ -231,7 +231,7 @@ static void R_UploadPackedLightmaps(uint32_t width, uint32_t height, r_bsp_model
 		} else {
 			R_BuildDefaultLightmap(bsp, surf, sout, dout, stride);
 		}
-		
+
 		surf->lightmap = lightmap;
 		surf->deluxemap = deluxemap;
 
@@ -261,7 +261,8 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 	r_packer_t packer;
 	memset(&packer, 0, sizeof(packer));
 
-	R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, surf->st_extents[0], surf->st_extents[1], bsp->num_surfaces / 2);
+	R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, surf->st_extents[0],
+	                         surf->st_extents[1], bsp->num_surfaces / 2);
 
 	GSList *start = r_lightmap_state.blocks;
 
@@ -278,9 +279,10 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 		surf = (r_bsp_surface_t *) list->data;
 
 		r_packer_node_t *node;
-		
+
 		do {
-			node = R_AtlasPacker_FindNode(&packer, &g_array_index(packer.nodes, r_packer_node_t, packer.root), surf->st_extents[0], surf->st_extents[1]);
+			node = R_AtlasPacker_FindNode(&packer, &g_array_index(packer.nodes, r_packer_node_t, packer.root), surf->st_extents[0],
+			                              surf->st_extents[1]);
 
 			if (node != NULL) {
 				node = R_AtlasPacker_SplitNode(&packer, node, surf->st_extents[0], surf->st_extents[1]);
@@ -295,7 +297,8 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 				R_UploadPackedLightmaps(current_width, current_height, bsp, start, list);
 
 				// reinitialize packer
-				R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, surf->st_extents[0], surf->st_extents[1], 0);
+				R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, surf->st_extents[0],
+				                         surf->st_extents[1], 0);
 
 				// new start position
 				start = list;
@@ -304,15 +307,15 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 				current_width = current_height = 0;
 			} else {
 				r_pixel_t w = node->x + surf->st_extents[0],
-					      h = node->y + surf->st_extents[1];
-				
+				          h = node->y + surf->st_extents[1];
+
 				w = NearestMultiple(w, 4);
 				h = NearestMultiple(h, 4);
 
 				// fit good, update current sizes
 				current_width = MAX(current_width, w);
 				current_height = MAX(current_height, h);
-				
+
 				// update surface parameters
 				surf->lightmap_s = node->x;
 				surf->lightmap_t = node->y;

@@ -31,8 +31,8 @@
 #define	PORTALFILE	"PRT1"
 
 static file_t *prtfile;
-int32_t num_visclusters; /* clusters the player can be in */
-int32_t num_visportals;
+static int32_t num_visclusters; /* clusters the player can be in */
+static int32_t num_visportals;
 
 /**
  * @brief

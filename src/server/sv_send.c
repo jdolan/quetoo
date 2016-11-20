@@ -402,7 +402,32 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
  * @brief
  */
 static void Sv_DemoCompleted(void) {
-	Sv_ShutdownServer("Demo complete\n");
+
+	if (sv_demo_list->string[0]) {
+
+		const char *current_demo = sv.name;
+		const char *next_demo = g_strrstr(sv_demo_list->string, current_demo);
+		const char *demo_token;
+
+		if (!next_demo) {
+			demo_token = sv_demo_list->string;
+		} else {
+			next_demo += strlen(current_demo);
+			demo_token = ParseToken(&next_demo);
+
+			if (!demo_token[0]) {
+				demo_token = ParseToken((const char **) &sv_demo_list->string);
+			}
+		}
+
+		if (demo_token[0]) {
+			Sv_InitServer(demo_token, SV_ACTIVE_DEMO);
+		} else {
+			Sv_ShutdownServer("Demo complete\n");
+		}
+	} else {
+		Sv_ShutdownServer("Demo complete\n");
+	}
 }
 
 /**

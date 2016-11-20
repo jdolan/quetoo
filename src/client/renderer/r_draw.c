@@ -143,7 +143,7 @@ typedef struct r_draw_s {
 	r_buffer_t supersample_buffer;
 } r_draw_t;
 
-r_draw_t r_draw;
+static r_draw_t r_draw;
 
 /**
  * @return An `r_color_t` from the given parameters.
@@ -165,7 +165,7 @@ r_color_t R_MakeColor(byte r, byte g, byte b, byte a) {
 /**
  * @brief Make a quad by passing index to first vertex and last element ID.
  */
-void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {
+static void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {
 	*(indices)++ = vertex_id + 0;
 	*(indices)++ = vertex_id + 1;
 	*(indices)++ = vertex_id + 2;
@@ -178,7 +178,8 @@ void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {
 /**
  * @brief
  */
-static void R_DrawImage_(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const GLuint texnum, const r_buffer_t *buffer) {
+static void R_DrawImage_(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const GLuint texnum,
+                         const r_buffer_t *buffer) {
 
 	R_BindDiffuseTexture(texnum);
 
@@ -621,7 +622,6 @@ static void R_InitFont(char *name) {
 
 	if (r_draw.num_fonts == MAX_FONTS) {
 		Com_Error(ERR_DROP, "MAX_FONTS reached\n");
-		return;
 	}
 
 	r_font_t *font = &r_draw.fonts[r_draw.num_fonts++];
@@ -721,7 +721,7 @@ void R_ShutdownDraw(void) {
 	R_DestroyBuffer(&r_draw.fill_arrays.vert_buffer);
 	R_DestroyBuffer(&r_draw.fill_arrays.element_buffer);
 	R_DestroyBuffer(&r_draw.line_arrays.vert_buffer);
-	
+
 	R_DestroyBuffer(&r_draw.fill_arrays.ui_vert_buffer);
 	R_DestroyBuffer(&r_draw.line_arrays.ui_vert_buffer);
 

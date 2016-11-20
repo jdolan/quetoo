@@ -65,17 +65,17 @@
 
 #define VECTOR_TYPENAME(name) name ## _t
 #define VECTOR_TYPENAME_N(name, n) name ## n ## _t[n]
-#define VECTOR_TYPE(type, typename) \
+#define DECLARE_VECTOR_TYPE(type, typename) \
 	typedef type VECTOR_TYPENAME(typename); \
 	typedef VECTOR_TYPENAME(typename) VECTOR_TYPENAME_N(typename, 2); \
 	typedef VECTOR_TYPENAME(typename) VECTOR_TYPENAME_N(typename, 3); \
-	typedef VECTOR_TYPENAME(typename) VECTOR_TYPENAME_N(typename, 4);
+	typedef VECTOR_TYPENAME(typename) VECTOR_TYPENAME_N(typename, 4)
 
-VECTOR_TYPE(float, vec);
-VECTOR_TYPE(double, dvec);
-VECTOR_TYPE(uint8_t, u8vec);
-VECTOR_TYPE(uint16_t, u16vec);
-VECTOR_TYPE(int16_t, s16vec);
+DECLARE_VECTOR_TYPE(float, vec);
+DECLARE_VECTOR_TYPE(double, dvec);
+DECLARE_VECTOR_TYPE(uint8_t, u8vec);
+DECLARE_VECTOR_TYPE(uint16_t, u16vec);
+DECLARE_VECTOR_TYPE(int16_t, s16vec);
 
 #undef VECTOR_TYPE
 #undef VECTOR_TYPENAME_N
@@ -487,24 +487,24 @@ typedef enum {
  * effects, up to 16 bits.
  */
 #define EF_NONE				(0)
-#define EF_ROTATE			(1 << 0) // rotate on z
-#define EF_BOB				(1 << 1) // bob on z
-#define EF_PULSE			(1 << 2) // pulsing light effect
-#define EF_INACTIVE			(1 << 3) // inactive icon for when input is not going to game
-#define EF_GAME				(1 << 4) // the game may extend from here
+#define EF_ROTATE			(1u << 0) // rotate on z
+#define EF_BOB				(1u << 1) // bob on z
+#define EF_PULSE			(1u << 2) // pulsing light effect
+#define EF_INACTIVE			(1u << 3) // inactive icon for when input is not going to game
+#define EF_GAME				(1u << 4) // the game may extend from here
 
 /**
  * @brief The 16 high bits of the effects mask are not transmitted by the
  * protocol. Rather, they are reserved for the renderer.
  */
-#define EF_CLIENT			(1 << 24) // player model
-#define EF_WEAPON			(1 << 25) // view weapon
-#define EF_SHELL			(1 << 26) // environment map shell
-#define EF_ALPHATEST		(1 << 27) // alpha test
-#define EF_BLEND			(1 << 28) // alpha blend
-#define EF_NO_LIGHTING		(1 << 29) // no lighting (full bright)
-#define EF_NO_SHADOW		(1 << 30) // no shadow
-#define EF_NO_DRAW			(1 << 31) // no draw (but perhaps shadow)
+#define EF_CLIENT			(1u << 24) // player model
+#define EF_WEAPON			(1u << 25) // view weapon
+#define EF_SHELL			(1u << 26) // environment map shell
+#define EF_ALPHATEST		(1u << 27) // alpha test
+#define EF_BLEND			(1u << 28) // alpha blend
+#define EF_NO_LIGHTING		(1u << 29) // no lighting (full bright)
+#define EF_NO_SHADOW		(1u << 30) // no shadow
+#define EF_NO_DRAW			(1u << 31) // no draw (but perhaps shadow)
 
 /**
  * @brief Entity trails are used to apply unique trail effects to entities

@@ -152,7 +152,7 @@ static void WriteLump(file_t *f, d_bsp_lump_t *lump, void *data, size_t len) {
 /**
  * @brief
  */
-void WriteAASFile(void) {
+static void WriteAASFile(void) {
 	char path[MAX_QPATH];
 	file_t *f;
 

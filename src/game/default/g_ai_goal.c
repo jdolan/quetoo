@@ -25,26 +25,25 @@
 /**
  * @brief Allocs a g_ai_node_t for the specified item entity.
  */
-static ai_goal_t *G_Ai_AllocGoal_Item(g_entity_t *ent) {
-	/*ai_goal_t *goal = Ai_AllocGoal(AI_GOAL_ITEM, ent);
+/*static ai_goal_t *G_Ai_AllocGoal_Item(g_entity_t *ent) {
+	ai_goal_t *goal = Ai_AllocGoal(AI_GOAL_ITEM, ent);
 
 	goal->priority = ent->locals.item->priority;
 
-	return goal;*/return NULL;
-}
+	return goal;
+}*/
 
 /**
  * @brief Allocs a g_ai_node_t for the specified player spawn entity.
  */
-static ai_goal_t *G_Ai_AllocGoal_Spawn(g_entity_t *ent) {
-	//return Ai_AllocGoal(AI_GOAL_NAV, ent);
-	return NULL;
-}
+/*static ai_goal_t *G_Ai_AllocGoal_Spawn(g_entity_t *ent) {
+	return Ai_AllocGoal(AI_GOAL_NAV, ent);
+}*/
 
 /**
  * @brief Allocs the node list and path table for the current level.
  */
-void G_Ai_AllocGoals(void) {
+/*void G_Ai_AllocGoals(void) {
 	g_entity_t *ent;
 
 	int32_t i = sv_max_clients->integer + 1;
@@ -62,4 +61,4 @@ void G_Ai_AllocGoals(void) {
 			G_Ai_AllocGoal_Spawn(ent);
 		}
 	}
-}
+}*/

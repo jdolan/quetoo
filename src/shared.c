@@ -1039,8 +1039,6 @@ char *GetUserInfo(const char *s, const char *key) {
 		}
 		s++;
 	}
-
-	return "";
 }
 
 /**

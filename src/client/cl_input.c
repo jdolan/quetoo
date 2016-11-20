@@ -21,7 +21,7 @@
 
 #include "cl_local.h"
 
-cvar_t *cl_run;
+static cvar_t *cl_run;
 static cvar_t *cl_forward_speed;
 static cvar_t *cl_pitch_speed;
 static cvar_t *cl_right_speed;
@@ -309,7 +309,6 @@ static _Bool Cl_HandleSystemEvent(const SDL_Event *event) {
 			case CL_CONNECTING:
 			case CL_CONNECTED:
 				Com_Error(ERR_DROP, "Connection aborted by user\n");
-				break;
 			case CL_LOADING:
 				return false;
 			default:

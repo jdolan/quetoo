@@ -48,7 +48,7 @@ typedef struct {
 	u8vec4_t color;
 } r_particle_interleave_vertex_t;
 
-r_buffer_layout_t r_particle_buffer_layout[] = {
+static r_buffer_layout_t r_particle_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
 	{ .attribute = R_ARRAY_DIFFUSE, .type = R_ATTRIB_FLOAT, .count = 2, .size = sizeof(vec2_t), .offset = 12 },
 	{ .attribute = R_ARRAY_COLOR, .type = R_ATTRIB_UNSIGNED_BYTE, .count = 4, .size = sizeof(u8vec4_t), .offset = 20, .normalized = true },

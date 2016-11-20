@@ -75,7 +75,7 @@ static void R_ResetMeshShellState_default(const r_entity_t *e) {
 /**
  * @brief Draws an animated, colored shell for the specified entity.
  */
-void R_DrawMeshShell_default(const r_entity_t *e) {
+static void R_DrawMeshShell_default(const r_entity_t *e) {
 
 	R_SetMeshShellState_default(e);
 

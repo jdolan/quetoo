@@ -29,11 +29,11 @@
 const vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
 const vec3_t PM_MAXS = { 16.0, 16.0, 32.0 };
 
-const vec3_t PM_DEAD_MINS = { -24.0, -24.0, -24.0 };
-const vec3_t PM_DEAD_MAXS = { 24.0, 24.0, -4.0 };
+static const vec3_t PM_DEAD_MINS = { -24.0, -24.0, -24.0 };
+static const vec3_t PM_DEAD_MAXS = { 24.0, 24.0, -4.0 };
 
-const vec3_t PM_GIBLET_MINS = { -8.0, -8.0, -8.0 };
-const vec3_t PM_GIBLET_MAXS = { 8.0, 8.0, 8.0 };
+static const vec3_t PM_GIBLET_MINS = { -8.0, -8.0, -8.0 };
+static const vec3_t PM_GIBLET_MAXS = { 8.0, 8.0, 8.0 };
 
 static pm_move_t *pm;
 
@@ -628,7 +628,7 @@ static _Bool Pm_CheckTrickJump(void) {
  */
 static void Pm_CorrectPosition(void) {
 
-	const cm_trace_t tr = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
+	cm_trace_t tr = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
 	if (tr.all_solid) {
 
 		Pm_Debug("all solid %s\n", vtos(pm->s.origin));
@@ -643,7 +643,7 @@ static void Pm_CorrectPosition(void) {
 					pos[1] += j * PM_NUDGE_DIST;
 					pos[2] += k * PM_NUDGE_DIST;
 
-					const cm_trace_t tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
+					tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
 					if (!tr.all_solid) {
 						VectorCopy(pos, pm->s.origin);
 						return;

@@ -275,13 +275,13 @@ static void Cl_KeyChat(const SDL_Event *event) {
 
 		case SDLK_RETURN:
 		case SDLK_KP_ENTER: {
-				const char *in;
+				const char *out;
 				if (cls.chat_state.team_chat) {
-					in = va("say_team %s^7", cl_chat_console.input.buffer);
+					out = va("say_team %s^7", in->buffer);
 				} else {
-					in = va("say %s^7", cl_chat_console.input.buffer);
+					out = va("say %s^7", in->buffer);
 				}
-				strncpy(cl_chat_console.input.buffer, in, sizeof(cl_chat_console.input.buffer));
+				strncpy(in->buffer, out, sizeof(in->buffer));
 				Con_SubmitInput(&cl_chat_console);
 
 				Cl_SetKeyDest(KEY_GAME);

@@ -29,28 +29,28 @@ r_material_t *R_LoadMaterial(const char *diffuse);
 #ifdef __R_LOCAL_H__
 // stage flags will persist on the stage structures but may also bubble
 // up to the material flags to determine render eligibility
-#define STAGE_TEXTURE			(1 << 0)
-#define STAGE_ENVMAP			(1 << 1)
-#define STAGE_BLEND				(1 << 2)
-#define STAGE_COLOR				(1 << 3)
-#define STAGE_PULSE				(1 << 4)
-#define STAGE_STRETCH			(1 << 5)
-#define STAGE_ROTATE			(1 << 6)
-#define STAGE_SCROLL_S			(1 << 7)
-#define STAGE_SCROLL_T			(1 << 8)
-#define STAGE_SCALE_S			(1 << 9)
-#define STAGE_SCALE_T			(1 << 10)
-#define STAGE_TERRAIN			(1 << 11)
-#define STAGE_ANIM				(1 << 12)
-#define STAGE_LIGHTMAP			(1 << 13)
-#define STAGE_DIRTMAP			(1 << 14)
-#define STAGE_FLARE				(1 << 15)
+#define STAGE_TEXTURE			(1u << 0)
+#define STAGE_ENVMAP			(1u << 1)
+#define STAGE_BLEND				(1u << 2)
+#define STAGE_COLOR				(1u << 3)
+#define STAGE_PULSE				(1u << 4)
+#define STAGE_STRETCH			(1u << 5)
+#define STAGE_ROTATE			(1u << 6)
+#define STAGE_SCROLL_S			(1u << 7)
+#define STAGE_SCROLL_T			(1u << 8)
+#define STAGE_SCALE_S			(1u << 9)
+#define STAGE_SCALE_T			(1u << 10)
+#define STAGE_TERRAIN			(1u << 11)
+#define STAGE_ANIM				(1u << 12)
+#define STAGE_LIGHTMAP			(1u << 13)
+#define STAGE_DIRTMAP			(1u << 14)
+#define STAGE_FLARE				(1u << 15)
 
 // set on stages eligible for static, dynamic, and per-pixel lighting
-#define STAGE_LIGHTING			(1 << 30)
+#define STAGE_LIGHTING			(1u << 30)
 
 // set on stages with valid render passes
-#define STAGE_DIFFUSE 			(1 << 31)
+#define STAGE_DIFFUSE 			(1u << 31)
 
 // composite mask for simplifying state management
 #define STAGE_TEXTURE_MATRIX (\

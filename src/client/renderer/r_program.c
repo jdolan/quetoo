@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
- // glsl vertex and fragment shaders
+// glsl vertex and fragment shaders
 typedef struct {
 	GLenum type;
 	GLuint id;
@@ -302,7 +302,7 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 /**
  * @brief
  */
-void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *value) {
+static void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *value) {
 
 	R_DisableAttribute(attribute);
 
@@ -312,27 +312,6 @@ void R_AttributeConstant4fv(const r_attribute_id_t attribute, const GLfloat *val
 
 	Vector4Copy(value, r_state.attributes[attribute].value.vec4);
 	glVertexAttrib4fv(attribute, r_state.attributes[attribute].value.vec4);
-	r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_CONSTANT]++;
-
-	r_state.attributes[attribute].type = NULL;
-
-	R_GetError(r_state.active_program->attributes[attribute].name);
-}
-
-/**
- * @brief
- */
-void R_AttributeConstant4ubv(const r_attribute_id_t attribute, const GLubyte *value) {
-
-	R_DisableAttribute(attribute);
-
-	if (r_state.attributes[attribute].type == NULL &&
-	        Vector4Compare(r_state.attributes[attribute].value.u8vec4, value)) {
-		return;
-	}
-
-	Vector4Copy(value, r_state.attributes[attribute].value.u8vec4);
-	glVertexAttrib4ubv(attribute, r_state.attributes[attribute].value.u8vec4);
 	r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_CONSTANT]++;
 
 	r_state.attributes[attribute].type = NULL;
@@ -474,8 +453,9 @@ static void R_LoadShader(GLenum type, const char *name, r_shader_t *out_shader) 
 	int32_t e;
 	int64_t len;
 
-	if (out_shader->id != 0)
+	if (out_shader->id != 0) {
 		Com_Error(ERR_FATAL, "Memory corruption\n");
+	}
 
 	g_snprintf(path, sizeof(path), "shaders/%s", name);
 
@@ -526,7 +506,7 @@ static void R_LoadShader(GLenum type, const char *name, r_shader_t *out_shader) 
  * @brief
  */
 static void R_InitProgramMatrixUniforms(r_program_t *program) {
-	
+
 	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_PROJECTION], R_UNIFORM_MAT4, "PROJECTION_MAT", false);
 	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_MODELVIEW], R_UNIFORM_MAT4, "MODELVIEW_MAT", false);
 	R_ProgramVariable(&program->matrix_uniforms[R_MATRIX_SHADOW], R_UNIFORM_MAT4, "SHADOW_MAT", false);
@@ -546,7 +526,7 @@ static void R_InitProgramMatrixUniforms(r_program_t *program) {
  */
 static _Bool R_LoadProgram(const char *name, void (*Init)(r_program_t *program),
                            void (*PreLink)(const r_program_t *program),
-						   r_program_t *out_program) {
+                           r_program_t *out_program) {
 
 	char log[MAX_STRING_CHARS];
 	int32_t e;
@@ -560,7 +540,7 @@ static _Bool R_LoadProgram(const char *name, void (*Init)(r_program_t *program),
 	static r_shader_t v, f;
 
 	v.id = f.id = 0;
-	
+
 	R_LoadShader(GL_VERTEX_SHADER, va("%s_vs.glsl", name), &v);
 	R_LoadShader(GL_FRAGMENT_SHADER, va("%s_fs.glsl", name), &f);
 
@@ -754,7 +734,7 @@ void R_InitPrograms(void) {
 		program_shell->UseCurrentColor = R_UseCurrentColor_shell;
 		program_shell->UseInterpolation = R_UseInterpolation_shell;
 		program_shell->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_DIFFUSE |
-		                                     R_ARRAY_MASK_NORMAL | R_ARRAY_MASK_NEXT_NORMAL;
+		                             R_ARRAY_MASK_NORMAL | R_ARRAY_MASK_NEXT_NORMAL;
 	}
 
 	if (R_LoadProgram("warp", R_InitProgram_warp, R_PreLink_warp, program_warp)) {
@@ -769,7 +749,7 @@ void R_InitPrograms(void) {
 		program_null->UseCurrentColor = R_UseCurrentColor_null;
 		program_null->UseInterpolation = R_UseInterpolation_null;
 		program_null->arrays_mask = R_ARRAY_MASK_POSITION | R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_DIFFUSE |
-		                                    R_ARRAY_MASK_COLOR;
+		                            R_ARRAY_MASK_COLOR;
 	}
 
 	if (R_LoadProgram("corona", R_InitProgram_corona, R_PreLink_corona, program_corona)) {

@@ -125,8 +125,7 @@ _Bool Cl_HttpDownload(void) {
 	cl_http_state.ready = false;
 	cl_http_state.status = 0;
 
-	const char *game = Cvar_GetString("game");
-	g_snprintf(cl_http_state.url, MAX_OS_PATH, "%s/%s/%s", cls.download_url, game, cls.download.name);
+	g_snprintf(cl_http_state.url, MAX_OS_PATH, "%s/%s/%s", cls.download_url, game->string, cls.download.name);
 
 	// set handle to default state
 	curl_easy_reset(cl_http_state.curl);

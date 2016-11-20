@@ -32,41 +32,7 @@ char outbase[MAX_OS_PATH];
 _Bool verbose = false;
 _Bool debug = false;
 _Bool legacy = false;
-_Bool is_monitor = false;
-
-
-/* BSP */
-extern _Bool noprune;
-extern _Bool nodetail;
-extern _Bool fulldetail;
-extern _Bool onlyents;
-extern _Bool nomerge;
-extern _Bool nowater;
-extern _Bool nofill;
-extern _Bool nocsg;
-extern _Bool noweld;
-extern _Bool noshare;
-extern _Bool nosubdivide;
-extern _Bool notjunc;
-extern _Bool noopt;
-extern _Bool leaktest;
-extern _Bool verboseentities;
-
-extern int32_t block_xl, block_xh, block_yl, block_yh;
-extern vec_t microvolume;
-extern int32_t subdivide_size;
-
-/* VIS */
-extern _Bool fastvis;
-extern _Bool nosort;
-
-/* LIGHT */
-extern _Bool extra_samples;
-extern vec_t brightness;
-extern vec_t saturation;
-extern vec_t contrast;
-extern vec_t surface_scale;
-extern vec_t entity_scale;
+static _Bool is_monitor = false;
 
 static void Print(const char *msg);
 
@@ -228,9 +194,6 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "-noprune")) {
 			Com_Verbose("noprune = true\n");
 			noprune = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-nofill")) {
-			Com_Verbose("nofill = true\n");
-			nofill = true;
 		} else if (!g_strcmp0(Com_Argv(i), "-nomerge")) {
 			Com_Verbose("nomerge = true\n");
 			nomerge = true;
@@ -253,9 +216,6 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "-leaktest")) {
 			Com_Verbose("leaktest = true\n");
 			leaktest = true;
-		} else if (!g_strcmp0(Com_Argv(i), "-verboseentities")) {
-			Com_Verbose("verboseentities = true\n");
-			verboseentities = true;
 		} else if (!g_strcmp0(Com_Argv(i), "-subdivide")) {
 			subdivide_size = atoi(Com_Argv(i + 1));
 			Com_Verbose("subdivide_size = %d\n", subdivide_size);
@@ -373,7 +333,6 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -micro <float>\n");
 	Com_Print(" -nocsg\n");
 	Com_Print(" -nodetail - skip detail brushes\n");
-	Com_Print(" -nofill\n");
 	Com_Print(" -nomerge - skip node face merging\n");
 	Com_Print(" -noopt\n");
 	Com_Print(" -noprune - don't prune (or cut) nodes\n");
@@ -385,7 +344,6 @@ static void PrintHelpMessage(void) {
 	Com_Print(" -onlyents - modify existing bsp file with entities from map file\n");
 	Com_Print(" -subdivide <int> - subdivide brushes for better light effects\n");
 	Com_Print(" -tmpout\n");
-	Com_Print(" -verboseentities - also be verbose about submodels (entities)\n");
 	Com_Print("\n");
 	Com_Print("-vis               VIS stage options:\n");
 	Com_Print(" -fast\n");
@@ -419,7 +377,7 @@ static void PrintHelpMessage(void) {
  * @brief
  */
 int32_t main(int32_t argc, char **argv) {
-	int32_t threads = 0;
+	int32_t num_threads = 0;
 	_Bool do_bsp = false;
 	_Bool do_vis = false;
 	_Bool do_light = false;
@@ -477,7 +435,7 @@ int32_t main(int32_t argc, char **argv) {
 		}
 
 		if (!g_strcmp0(Com_Argv(i), "-t") || !g_strcmp0(Com_Argv(i), "-threads")) {
-			threads = atoi(Com_Argv(i + 1));
+			num_threads = atoi(Com_Argv(i + 1));
 			continue;
 		}
 
@@ -525,7 +483,7 @@ int32_t main(int32_t argc, char **argv) {
 		Com_Error(ERR_FATAL, "No action specified. Try %s --help\n", Com_Argv(0));
 	}
 
-	Thread_Init(threads);
+	Thread_Init(num_threads);
 	Com_Print("Using %u threads\n", Thread_Count());
 
 	// ugly little hack to localize global paths to game paths for e.g. GtkRadiant
@@ -569,6 +527,4 @@ int32_t main(int32_t argc, char **argv) {
 	Com_Print("%d Seconds\n", (int32_t) (duration % 60));
 
 	Com_Shutdown(NULL);
-
-	return 0;
 }

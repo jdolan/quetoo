@@ -37,7 +37,6 @@ static cvar_t *verbose;
 
 cvar_t *dedicated;
 cvar_t *game;
-static cvar_t *threads;
 cvar_t *time_demo;
 cvar_t *time_scale;
 
@@ -86,14 +85,12 @@ static void Error(err_t err, const char *msg) {
 			Cl_Disconnect();
 			com_recursive = false;
 			longjmp(env, err);
-			break;
 
 		case ERR_FATAL:
 		default:
 			Sys_Backtrace();
 			Shutdown(msg);
 			exit(err);
-			break;
 	}
 }
 
@@ -134,7 +131,7 @@ static void Warn(const char *msg) {
 /**
  * @brief
  */
-static void Quit_f(void) {
+static void Quit_f(void) __attribute__((noreturn)) {
 
 	Com_Shutdown("Server quit\n");
 }
@@ -317,6 +314,4 @@ int32_t main(int32_t argc, char *argv[]) {
 
 		old_time = quetoo.time;
 	}
-
-	return 0;
 }

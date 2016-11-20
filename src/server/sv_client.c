@@ -340,7 +340,7 @@ typedef struct sv_user_string_cmd_s {
 	void (*func)(void);
 } sv_user_string_cmd_t;
 
-sv_user_string_cmd_t sv_user_string_cmds[] = { // mapping command names to their functions
+static sv_user_string_cmd_t sv_user_string_cmds[] = { // mapping command names to their functions
 	{ "new", Sv_New_f },
 	{ "config_strings", Sv_ConfigStrings_f },
 	{ "baselines", Sv_Baselines_f },

@@ -93,7 +93,7 @@ static void didSelectOption(Select *select, Option *option) {
  *
  * @memberof SkinSelect
  */
-SkinSelect *initWithFrame(SkinSelect *self, const SDL_Rect *frame, ControlStyle style) {
+static SkinSelect *initWithFrame(SkinSelect *self, const SDL_Rect *frame, ControlStyle style) {
 
 	self = (SkinSelect *) super(Select, self, initWithFrame, frame, style);
 	if (self) {

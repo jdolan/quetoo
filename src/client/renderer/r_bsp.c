@@ -100,7 +100,7 @@ _Bool R_CullBspInlineModel(const r_entity_t *e) {
  * the draw routines will enable the lights. This must be called with NULL to
  * restore light origins after the model has been drawn.
  */
-void R_RotateLightsForBspInlineModel(const r_entity_t *e) {
+static void R_RotateLightsForBspInlineModel(const r_entity_t *e) {
 	static vec3_t light_origins[MAX_LIGHTS];
 	static int16_t frame;
 

@@ -453,7 +453,6 @@ void Cl_ParseServerMessage(void) {
 
 			case SV_CMD_DISCONNECT:
 				Com_Error(ERR_DROP, "Server disconnected\n");
-				break;
 
 			case SV_CMD_DOWNLOAD:
 				Cl_ParseDownload();

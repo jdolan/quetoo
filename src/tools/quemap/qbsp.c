@@ -29,7 +29,6 @@ _Bool fulldetail = false;
 _Bool onlyents = false;
 _Bool nomerge = false;
 _Bool nowater = false;
-_Bool nofill = false;
 _Bool nocsg = false;
 _Bool noweld = false;
 _Bool noshare = false;
@@ -37,7 +36,6 @@ _Bool nosubdivide = false;
 _Bool notjunc = false;
 _Bool noopt = false;
 _Bool leaktest = false;
-_Bool verboseentities = false;
 
 int32_t block_xl = -8, block_xh = 7, block_yl = -8, block_yh = 7;
 
@@ -141,7 +139,7 @@ static void ProcessBlock_Thread(int32_t blocknum) {
  */
 static void ProcessWorldModel(void) {
 	entity_t *e;
-	tree_t *tree;
+	tree_t *tree = NULL;
 	_Bool leaked;
 	int32_t optimize;
 

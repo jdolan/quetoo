@@ -28,7 +28,6 @@
  */
 
 patch_t *face_patches[MAX_BSP_FACES];
-int32_t num_patches;
 
 vec3_t face_offset[MAX_BSP_FACES]; // for rotating bmodels
 

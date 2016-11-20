@@ -73,12 +73,12 @@ static void R_FreeModel(r_media_t *self) {
 	r_model_t *mod = (r_model_t *) self;
 
 	if (IS_BSP_MODEL(mod)) {
-		
+
 		R_DestroyBuffer(&mod->bsp->vertex_buffer);
 		R_DestroyBuffer(&mod->bsp->element_buffer);
 
 	} else if (IS_MESH_MODEL(mod)) {
-		
+
 		R_DestroyBuffer(&mod->mesh->vertex_buffer);
 
 		if (R_ValidBuffer(&mod->mesh->texcoord_buffer)) {
@@ -117,7 +117,7 @@ r_model_t *R_LoadModel(const char *name) {
 
 	if (!(mod = (r_model_t *) R_FindMedia(key))) {
 
-		void *buf;
+		void *buf = NULL;
 		const r_model_format_t *format = r_model_formats;
 		for (i = 0; i < lengthof(r_model_formats); i++, format++) {
 

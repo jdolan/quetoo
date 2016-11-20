@@ -895,7 +895,6 @@ void G_RunEntity(g_entity_t *ent) {
 			break;
 		default:
 			gi.Error("Bad move type %i\n", ent->locals.move_type);
-			break;
 	}
 
 	// move all team members to the new origin

@@ -246,7 +246,7 @@ void R_UseLight_default(const uint16_t light_index, const r_light_t *light) {
 /**
  * @brief
  */
-void R_MatricesChanged_default() {
+void R_MatricesChanged_default(void) {
 
 	r_default_program_t *p = &r_default_program;
 

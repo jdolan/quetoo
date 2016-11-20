@@ -319,6 +319,8 @@ void Cl_Disconnect(void) {
 
 	memset(cls.server_name, 0, sizeof(cls.server_name));
 
+	memset(cl.entities, 0, sizeof(cl.entities));
+
 	Cl_SetKeyDest(KEY_CONSOLE);
 }
 
