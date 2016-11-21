@@ -119,7 +119,7 @@ typedef struct {
 	_Bool enabled;
 } r_attrib_state_t;
 
-extern GLenum r_attrib_type_to_gl_type[R_ATTRIB_TOTAL_TYPES];
+GLenum R_GetGLTypeFromAttribType(const r_attrib_type_t type);
 
 void R_UseProgram(const r_program_t *prog);
 void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *name, const _Bool required);

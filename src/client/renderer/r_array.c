@@ -678,8 +678,11 @@ void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 	if (r_state.element_buffer) {
 
 		R_BindBuffer(r_state.element_buffer);
-		glDrawElements(type, count, r_attrib_type_to_gl_type[r_state.element_buffer->element_type.type],
-		               (const void *) (ptrdiff_t) (start * r_state.element_buffer->element_type.stride));
+
+		GLenum element_type = R_GetGLTypeFromAttribType(r_state.element_buffer->element_type.type);
+		const void *offset = (const void *) (ptrdiff_t) (start * r_state.element_buffer->element_type.stride);
+
+		glDrawElements(type, count, element_type, offset);
 		r_view.num_draw_elements++;
 		r_view.num_draw_element_count += count;
 	} else {
