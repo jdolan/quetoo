@@ -46,7 +46,7 @@ static void Cl_DrawConsole_Background(void) {
 		const vec_t x_scale = r_context.width / (vec_t) image->width;
 		const vec_t y_scale = r_context.height / (vec_t) image->height;
 
-		const vec_t scale = MAX(x_scale, y_scale);
+		const vec_t scale = Max(x_scale, y_scale);
 
 		if (cls.state == CL_ACTIVE) {
 			R_Color((const vec4_t) {

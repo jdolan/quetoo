@@ -260,7 +260,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 
 		// knock the target upwards at least a bit; it's fun
 		if (ndir[2] >= -0.25) {
-			ndir[2] = MAX(0.25, ndir[2]);
+			ndir[2] = Max(0.25, ndir[2]);
 			VectorNormalize(ndir);
 		}
 

@@ -313,8 +313,8 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 				h = NearestMultiple(h, 4);
 
 				// fit good, update current sizes
-				current_width = MAX(current_width, w);
-				current_height = MAX(current_height, h);
+				current_width = Max(current_width, w);
+				current_height = Max(current_height, h);
 
 				// update surface parameters
 				surf->lightmap_s = node->x;

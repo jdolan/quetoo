@@ -473,7 +473,7 @@ static void Pm_Friction(void) {
 		return;
 	}
 
-	const vec_t control = MAX(PM_SPEED_STOP, speed);
+	const vec_t control = Max(PM_SPEED_STOP, speed);
 
 	vec_t friction = 0.0;
 
@@ -500,7 +500,7 @@ static void Pm_Friction(void) {
 	}
 
 	// scale the velocity, taking care to not reverse direction
-	vec_t scale = MAX(0.0, speed - (friction * control * pml.time)) / speed;
+	vec_t scale = Max(0.0, speed - (friction * control * pml.time)) / speed;
 
 	VectorScale(pm->s.velocity, scale, pm->s.velocity);
 }
@@ -1103,8 +1103,8 @@ static void Pm_WaterMove(void) {
 		view[2] -= 4.0;
 
 		if (!(pm->PointContents(view) & MASK_LIQUID)) {
-			pm->s.velocity[2] = MIN(pm->s.velocity[2], 0.0);
-			vel[2] = MIN(vel[2], 0.0);
+			pm->s.velocity[2] = Min(pm->s.velocity[2], 0.0);
+			vel[2] = Min(vel[2], 0.0);
 		}
 
 	}

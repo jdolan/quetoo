@@ -233,10 +233,10 @@ GLenum R_GetGLTypeFromAttribType(const r_attrib_type_t type) {
 		return GL_INT;
 	case R_ATTRIB_UNSIGNED_INT:
 		return GL_UNSIGNED_INT;
+	default:
+		Com_Error(ERR_FATAL, "Invalid R_ATTRIB_* type\n");
+		return GL_INVALID_ENUM;
 	}
-
-	Com_Error(ERR_FATAL, "Invalid R_ATTRIB_* type\n");
-	return GL_INVALID_ENUM;
 }
 
 /**

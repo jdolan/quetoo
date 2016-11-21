@@ -295,7 +295,7 @@ void R_ClearSkyBox(void) {
 /**
  * @brief
  */
-static void R_MakeSkyVec(vec_t s, vec_t t, int32_t axis) {
+static void R_MakeSkyVec(const vec_t s, const vec_t t, const int32_t axis) {
 	vec3_t v, b;
 	int32_t j;
 
@@ -313,13 +313,12 @@ static void R_MakeSkyVec(vec_t s, vec_t t, int32_t axis) {
 	VectorCopy(v, r_sky.vertices[r_sky.vert_index].position);
 
 	// avoid bilerp seam
-	s = (s + 1.0) * 0.5;
-	t = (t + 1.0) * 0.5;
+	vec2_t st = { (s + 1.0) * 0.5, (t + 1.0) * 0.5 };
 
-	s = Clamp(s, r_sky.st_min, r_sky.st_max);
-	t = 1.0 - Clamp(t, r_sky.st_min, r_sky.st_max);
+	st[0] = Clamp(st[0], r_sky.st_min, r_sky.st_max);
+	st[1] = 1.0 - Clamp(st[1], r_sky.st_min, r_sky.st_max);
 
-	Vector2Set(r_sky.vertices[r_sky.vert_index].texcoord, (u16vec_t) (s * USHRT_MAX), (u16vec_t) (t * USHRT_MAX));
+	PackTexcoords(st, r_sky.vertices[r_sky.vert_index].texcoord);
 
 	r_sky.vert_index++;
 }

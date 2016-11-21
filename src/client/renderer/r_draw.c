@@ -333,10 +333,10 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 	const uint32_t row = (uint32_t) c >> 4;
 	const uint32_t col = (uint32_t) c & 15;
 
-	const u16vec_t frow = (row * 0.1250) * USHRT_MAX;
-	const u16vec_t fcol = (col * 0.0625) * USHRT_MAX;
-	const u16vec_t frowe = ((row + 1) * 0.1250) * USHRT_MAX;
-	const u16vec_t fcole = ((col + 1) * 0.0625) * USHRT_MAX;
+	const u16vec_t frow = PackTexcoord(row * 0.1250);
+	const u16vec_t fcol = PackTexcoord(col * 0.0625);
+	const u16vec_t frowe = PackTexcoord((row + 1) * 0.1250);
+	const u16vec_t fcole = PackTexcoord((col + 1) * 0.0625);
 
 	// resolve ABGR color
 	const uint32_t *abgr = &r_draw.colors[color & (MAX_COLORS - 1)];

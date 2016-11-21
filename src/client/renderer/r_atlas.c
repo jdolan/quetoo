@@ -311,10 +311,10 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 			node = R_AtlasPacker_GrowNode(&packer, image->input_image->width, image->input_image->height);
 		}
 
-		params->width = MAX(node->x + image->input_image->width, params->width);
-		params->height = MAX(node->y + image->input_image->height, params->height);
+		params->width = Max(node->x + image->input_image->width, params->width);
+		params->height = Max(node->y + image->input_image->height, params->height);
 
-		min_size = MIN(min_size, MIN(image->input_image->width, image->input_image->height));
+		min_size = Min(min_size, Min(image->input_image->width, image->input_image->height));
 
 		image->position[0] = node->x;
 		image->position[1] = node->y;
@@ -411,9 +411,9 @@ static int R_AtlasImage_Compare(gconstpointer a, gconstpointer b) {
 	const r_atlas_image_t *bi = (const r_atlas_image_t *) b;
 	int cmp;
 
-	if ((cmp = MAX(bi->input_image->width, bi->input_image->height) - MAX(ai->input_image->width,
+	if ((cmp = Max(bi->input_image->width, bi->input_image->height) - Max(ai->input_image->width,
 	           ai->input_image->height)) ||
-	        (cmp = MIN(bi->input_image->width, bi->input_image->height) - MIN(ai->input_image->width, ai->input_image->height)) ||
+	        (cmp = Min(bi->input_image->width, bi->input_image->height) - Min(ai->input_image->width, ai->input_image->height)) ||
 	        (cmp = bi->input_image->height - ai->input_image->height) ||
 	        (cmp = bi->input_image->width - ai->input_image->width)) {
 		return cmp;

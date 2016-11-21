@@ -757,7 +757,7 @@ void Sv_Frame(const uint32_t msec) {
 	}
 
 	// clamp the frame interval to 1 second of simulation
-	frame_delta = MIN(frame_delta, QUETOO_TICK_MILLIS * QUETOO_TICK_RATE);
+	frame_delta = Min(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE));
 
 	// read any pending packets from clients
 	Sv_ReadPackets();

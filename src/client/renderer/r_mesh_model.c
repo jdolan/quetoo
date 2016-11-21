@@ -353,7 +353,7 @@ static void R_LoadMd3VertexArrays(r_model_t *mod) {
 
 				// only copy st coords once
 				if (f == 0) {
-					Vector2Set(out_texcoord, (u16vec_t) (t->st[0] * USHRT_MAX), (u16vec_t) (t->st[1] * USHRT_MAX));
+					PackTexcoords(t->st, out_texcoord);
 					out_texcoord += 2;
 				}
 			}
@@ -905,7 +905,7 @@ static void R_LoadObjShellVertexArrays(r_model_t *mod, r_obj_t *obj, GLuint *ele
 			unique_vertex_list = g_array_append_vals(unique_vertex_list, &(const r_obj_shell_interleave_vertex_t) {
 				.vertex = { ve->point[0], ve->point[1], ve->point[2] },
 				 .normal = { ve->normal[0], ve->normal[1], ve->normal[2] },
-				  .diffuse = { (u16vec_t) (ve->texcoords[0] * USHRT_MAX), (u16vec_t) (ve->texcoords[1] * USHRT_MAX) }
+				  .diffuse = { PackTexcoord(ve->texcoords[0]), PackTexcoord(ve->texcoords[1]) }
 			}, 1);
 		}
 
@@ -988,7 +988,7 @@ static void R_LoadObjVertexArrays(r_model_t *mod, r_obj_t *obj) {
 
 		VectorCopy(ve->point, vout->vertex);
 
-		Vector2Set(vout->diffuse, (u16vec_t) (ve->texcoords[0] * USHRT_MAX), (u16vec_t) (ve->texcoords[1] * USHRT_MAX));
+		PackTexcoords(ve->texcoords, vout->diffuse);
 
 		VectorCopy(ve->normal, vout->normal);
 

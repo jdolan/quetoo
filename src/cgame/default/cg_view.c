@@ -169,7 +169,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	vec_t speed = VectorLength(velocity) / (max_speed * 2.0);
 	speed = Clamp(speed, 0.0, 1.0);
 
-	vec_t ftime = Clamp(cgi.view->time - vtime, 1, 1000);
+	vec_t ftime = Clamp(cgi.view->time - vtime, 1u, 1000u);
 	ftime *= (1.0 + speed * 1.0 + speed);
 
 	if (!(ps->pm_state.flags & PMF_ON_GROUND)) {

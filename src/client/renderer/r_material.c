@@ -385,7 +385,7 @@ static void R_DrawBspSurfaceMaterialStage(r_bsp_surface_t *surf, const r_stage_t
 
 		if (texunit_lightmap->enabled) { // lightmap texcoords
 			st = &r_model_state.world->bsp->lightmap_texcoords[surf->elements[i]][0];
-			Vector2Set(vertex->lightmap, (u16vec_t) (st[0] * USHRT_MAX), (u16vec_t) (st[1] * USHRT_MAX));
+			PackTexcoords(st, vertex->lightmap);
 		}
 
 		if (r_state.color_array_enabled) { // colors
