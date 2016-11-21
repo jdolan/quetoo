@@ -491,7 +491,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	uint32_t end = SDL_GetTicks();
-	Com_Print("Generated lightmaps in %u ms\n", end - start);
+	Com_Verbose("Generated lightmaps in %u ms\n", end - start);
 }
 
 /**
