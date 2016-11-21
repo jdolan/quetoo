@@ -195,7 +195,7 @@ void G_target_speaker(g_entity_t *ent) {
 		ent->s.sound = ent->locals.noise_index;
 	}
 
-	ent->locals.Use = (void *) &G_target_speaker_Use;
+	ent->locals.Use = G_target_speaker_Use;
 
 	// must link the entity so we get areas and clusters so
 	// the server can determine who to send updates to

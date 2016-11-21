@@ -156,7 +156,7 @@ void Img_InitPalette(void) {
 		const byte g = surf->format->palette->colors[i].g;
 		const byte b = surf->format->palette->colors[i].b;
 
-		const uint32_t v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
+		const uint32_t v = (255u << 24) + (r << 0) + (g << 8) + (b << 16);
 		img_palette[i] = LittleLong(v);
 	}
 

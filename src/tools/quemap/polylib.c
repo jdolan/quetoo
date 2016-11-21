@@ -22,7 +22,7 @@
 #include "bspfile.h"
 #include "polylib.h"
 
-uint32_t c_peak_windings;
+static uint32_t c_peak_windings;
 
 #define	BOGUS_RANGE	MAX_WORLD_DIST
 

@@ -121,8 +121,9 @@ static void R_AmbientIllumination(const r_lighting_t *l) {
 	il.type = ILLUM_AMBIENT;
 	il.light.radius = LIGHTING_AMBIENT_RADIUS;
 
-	if (r_lighting->value)
+	if (r_lighting->value) {
 		il.light.radius *= r_lighting->value;
+	}
 
 	il.diffuse = il.light.radius - LIGHTING_AMBIENT_DIST;
 
@@ -311,7 +312,7 @@ static void R_UpdateIlluminations(r_lighting_t *l) {
 	qsort(il, r_illuminations.num_illuminations, sizeof(r_illumination_t), R_CompareIllumination);
 
 	// take the strongest illuminations
-	uint16_t n = MIN(r_illuminations.num_illuminations, lengthof(l->illuminations));
+	uint16_t n = Min(r_illuminations.num_illuminations, lengthof(l->illuminations));
 
 	// and copy them in
 	memcpy(l->illuminations, il, n * sizeof(r_illumination_t));
@@ -360,14 +361,14 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 		const vec_t dist = DotProduct(il->light.origin, tr.plane.normal) - tr.plane.dist;
 
 		// and resolve the shadow intensity
-		const vec_t shadow = MAX(il->light.radius - dist, il->diffuse);
+		const vec_t shadow = Max(il->light.radius - dist, il->diffuse);
 
 		// search for the plane in previous shadows
 		r_shadow_t *s = l->shadows;
 		while (s->illumination) {
 
 			if (s->illumination == il && s->plane.num == tr.plane.num) {
-				s->shadow = MAX(s->shadow, shadow);
+				s->shadow = Max(s->shadow, shadow);
 				break;
 			}
 

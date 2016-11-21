@@ -21,8 +21,8 @@
 
 #include "qbsp.h"
 
-int32_t c_nofaces;
-int32_t c_facenodes;
+static int32_t c_nofaces;
+static int32_t c_facenodes;
 
 /**
  * @brief There is no opportunity to discard planes, because all of the original
@@ -411,7 +411,6 @@ void EndBSPFile(void) {
 /**
  * @brief
  */
-extern int32_t first_bsp_model_edge;
 void BeginModel(void) {
 	d_bsp_model_t *mod;
 	int32_t start, end;

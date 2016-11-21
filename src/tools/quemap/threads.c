@@ -22,7 +22,6 @@
 #include "quemap.h"
 #include "thread.h"
 
-uint16_t num_threads;
 semaphores_t semaphores;
 thread_work_t thread_work;
 
@@ -107,7 +106,7 @@ static void ThreadWork(void *p) {
 	}
 }
 
-SDL_mutex *lock = NULL;
+static SDL_mutex *lock = NULL;
 
 /**
  * @brief

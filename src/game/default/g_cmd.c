@@ -725,7 +725,7 @@ static GList *vote_cvars; // temp number so it doesn't have to be dynamically al
 /**
  * @brief Create g_vote_allow_<vote> CVars
  */
-void G_InitVote() {
+void G_InitVote(void) {
 	size_t i = 0;
 
 	while (vote_cmds[i]) {
@@ -741,7 +741,7 @@ void G_InitVote() {
 /**
  * @brief Deinitialize the vote CVar GList
  */
-void G_ShutdownVote() {
+void G_ShutdownVote(void) {
 	g_list_free(vote_cvars);
 }
 
@@ -1319,14 +1319,14 @@ static void G_Spectate_f(g_entity_t *ent) {
 /**
  * @brief
  */
-void G_Score_f(g_entity_t *ent) {
+static void G_Score_f(g_entity_t *ent) {
 	ent->client->locals.show_scores = !ent->client->locals.show_scores;
 }
 
 /**
  * @brief resumes the current match
  */
-void G_Timein_f(g_entity_t *ent) {
+static void G_Timein_f(g_entity_t *ent) {
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s resumed the game, get ready\n",
 	                  ent->client->locals.persistent.net_name);
@@ -1340,7 +1340,7 @@ void G_Timein_f(g_entity_t *ent) {
 /**
  * @brief pause the current match, allow for limited commands during
  */
-void G_Timeout_f(g_entity_t *ent) {
+static void G_Timeout_f(g_entity_t *ent) {
 
 	if (!G_MatchIsPlaying()) {
 		gi.ClientPrint(ent, PRINT_HIGH, "No match in progress...\n");

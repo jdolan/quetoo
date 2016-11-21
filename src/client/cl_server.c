@@ -105,7 +105,7 @@ void Cl_ParseServerInfo(void) {
 	server->name[sizeof(server->name) - 1] = '\0';
 	server->gameplay[sizeof(server->name) - 1] = '\0';
 
-	server->ping = Clamp(quetoo.time - server->ping_time, 1, 999);
+	server->ping = Clamp(quetoo.time - server->ping_time, 1u, 999u);
 
 	Ui_UpdateBindings();
 }

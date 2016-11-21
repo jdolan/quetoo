@@ -381,7 +381,7 @@ cvar_t *Cvar_Toggle(const char *name) {
 /**
  * @brief Enumeration helper for Cvar_ResetLocal.
  */
-void Cvar_ResetLocal_enumerate(cvar_t *var, void *data) {
+static void Cvar_ResetLocal_enumerate(cvar_t *var, void *data) {
 
 	if (var->flags & CVAR_LO_ONLY) {
 		if (var->default_value) {
@@ -426,7 +426,7 @@ _Bool Cvar_PendingLatched(void) {
 /**
  * @brief Enumeration helper for Cvar_UpdateLatched.
  */
-void Cvar_UpdateLatched_enumerate(cvar_t *var, void *data) {
+static void Cvar_UpdateLatched_enumerate(cvar_t *var, void *data) {
 
 	if (var->latched_string) {
 		Mem_Free(var->string);

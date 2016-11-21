@@ -32,10 +32,9 @@
 
 #if defined(_WIN32)
 #include <shlobj.h>
-#define RTLD_NOW 0
 #define dlopen(file_name, mode) LoadLibrary(file_name)
 
-const char *dlerror() {
+static const char *dlerror() {
 	char num_buffer[32];
 	const DWORD err = GetLastError();
 

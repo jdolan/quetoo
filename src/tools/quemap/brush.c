@@ -21,8 +21,6 @@
 
 #include "qbsp.h"
 
-int32_t c_active_brushes;
-
 /**
  * @brief Sets the mins/maxs based on the windings
  */
@@ -820,7 +818,6 @@ void SplitBrush(bsp_brush_t *brush, int32_t plane_num, bsp_brush_t **front, bsp_
 
 	{
 		vec_t v1;
-		int32_t i;
 
 		for (i = 0; i < 2; i++) {
 			v1 = BrushVolume(b[i]);

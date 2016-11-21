@@ -89,7 +89,7 @@ typedef struct {
 	GLuint id; // the actual GL ID handle
 	r_program_id_t program_id; // the program ID, for easy access
 	char name[MAX_QPATH];
-	
+
 	r_attribute_mask_t arrays_mask;
 	r_attribute_t attributes[R_ARRAY_MAX_ATTRIBS];
 
@@ -118,6 +118,8 @@ typedef struct {
 	GLsizeiptr offset;
 	_Bool enabled;
 } r_attrib_state_t;
+
+GLenum R_GetGLTypeFromAttribType(const r_attrib_type_t type);
 
 void R_UseProgram(const r_program_t *prog);
 void R_ProgramVariable(r_variable_t *variable, const GLenum type, const char *name, const _Bool required);

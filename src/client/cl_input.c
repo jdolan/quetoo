@@ -21,7 +21,7 @@
 
 #include "cl_local.h"
 
-cvar_t *cl_run;
+static cvar_t *cl_run;
 static cvar_t *cl_forward_speed;
 static cvar_t *cl_pitch_speed;
 static cvar_t *cl_right_speed;
@@ -34,7 +34,7 @@ cvar_t *m_sensitivity;
 cvar_t *m_sensitivity_zoom;
 cvar_t *m_pitch;
 cvar_t *m_yaw;
-static cvar_t *m_grab;
+cvar_t *m_grab;
 
 /*
  * KEY BUTTONS
@@ -309,7 +309,6 @@ static _Bool Cl_HandleSystemEvent(const SDL_Event *event) {
 			case CL_CONNECTING:
 			case CL_CONNECTED:
 				Com_Error(ERR_DROP, "Connection aborted by user\n");
-				break;
 			case CL_LOADING:
 				return false;
 			default:

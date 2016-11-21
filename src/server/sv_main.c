@@ -29,6 +29,7 @@ sv_server_t sv; // per-level server info
 
 sv_client_t *sv_client; // current client
 
+cvar_t *sv_demo_list;
 cvar_t *sv_download_url;
 cvar_t *sv_enforce_time;
 cvar_t *sv_hostname;
@@ -756,7 +757,7 @@ void Sv_Frame(const uint32_t msec) {
 	}
 
 	// clamp the frame interval to 1 second of simulation
-	frame_delta = MIN(frame_delta, QUETOO_TICK_MILLIS * QUETOO_TICK_RATE);
+	frame_delta = Min(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE));
 
 	// read any pending packets from clients
 	Sv_ReadPackets();
@@ -798,6 +799,8 @@ void Sv_Frame(const uint32_t msec) {
  */
 static void Sv_InitLocal(void) {
 
+	sv_demo_list = Cvar_Add("sv_demo_list", "", CVAR_SERVER_INFO,
+	                        "Demo list. Must have only unique entries. It rotates automatically.");
 	sv_download_url = Cvar_Add("sv_download_url", "", CVAR_SERVER_INFO, NULL);
 	sv_enforce_time = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, NULL);
 	sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, NULL);

@@ -768,7 +768,7 @@ typedef struct {
 
 	// animated models use a separate texcoord buffer
 	r_buffer_t texcoord_buffer;
-	
+
 	r_buffer_t shell_vertex_buffer;
 	r_buffer_t shell_element_buffer;
 
@@ -1062,7 +1062,7 @@ typedef struct {
 	vec3_t forward;
 	vec3_t right;
 	vec3_t up;
-	
+
 	matrix4x4_t matrix_base_3d; // base projection matrices
 	matrix4x4_t matrix_base_2d;
 	matrix4x4_t matrix_base_ui;

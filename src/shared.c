@@ -478,6 +478,23 @@ void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs) {
 }
 
 /**
+ * @brief Packs a float texcoord [0,1) to [0,USHRT_MAX]
+ */
+u16vec_t PackTexcoord(const vec_t in) {
+
+	return (u16vec_t) (in * USHRT_MAX);
+}
+
+/**
+ * @brief Packs float texcoords [0,1) to [0,USHRT_MAX]
+ */
+void PackTexcoords(const vec2_t in, u16vec2_t out) {
+	
+	out[0] = PackTexcoord(in[0]);
+	out[1] = PackTexcoord(in[1]);
+}
+
+/**
  * @brief Clamps the components of the specified vector to 1.0, scaling the vector
  * down if necessary.
  */
@@ -545,7 +562,7 @@ void ColorFilter(const vec3_t in, vec3_t out, vec_t brightness, vec_t saturation
  */
 void ColorDecompose(const vec4_t in, u8vec4_t out) {
 	for (int32_t i = 0; i < 4; ++i) {
-		out[i] = (u8vec_t) (MIN(1.0, MAX(0.0, in[i])) * 255.0);
+		out[i] = (u8vec_t) (Min(1.0, Max(0.0, in[i])) * 255.0);
 	}
 }
 
@@ -554,7 +571,7 @@ void ColorDecompose(const vec4_t in, u8vec4_t out) {
  */
 void ColorDecompose3(const vec3_t in, u8vec3_t out) {
 	for (int32_t i = 0; i < 3; ++i) {
-		out[i] = (u8vec_t) (MIN(1.0, MAX(0.0, in[i])) * 255.0);
+		out[i] = (u8vec_t) (Min(1.0, Max(0.0, in[i])) * 255.0);
 	}
 }
 
@@ -1035,7 +1052,7 @@ char *GetUserInfo(const char *s, const char *key) {
 		}
 
 		if (!*s) {
-			return "";
+			break;
 		}
 		s++;
 	}

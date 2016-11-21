@@ -402,7 +402,41 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
  * @brief
  */
 static void Sv_DemoCompleted(void) {
-	Sv_ShutdownServer("Demo complete\n");
+
+	if (sv_demo_list->string[0]) {
+
+		const char *current_demo = sv.name;
+		const char *next_demo = g_strrstr(sv_demo_list->string, current_demo);
+		char demo_token[MAX_QPATH];
+
+		if (!next_demo) {
+
+			next_demo = sv_demo_list->string;
+		} else {
+
+			next_demo += strlen(current_demo);
+
+			if (next_demo[0] == ' ') {
+				next_demo++;
+			} else if (!next_demo[0]) {
+				next_demo = sv_demo_list->string;
+			}
+		}
+
+		const char *space = strchr(next_demo, ' ') ?: (next_demo + strlen(next_demo));
+		size_t len = space - next_demo;
+
+		strncpy(demo_token, next_demo, len);
+		demo_token[len] = 0;
+
+		if (demo_token[0]) {
+			Sv_InitServer(demo_token, SV_ACTIVE_DEMO);
+		} else {
+			Sv_ShutdownServer("Demo complete\n");
+		}
+	} else {
+		Sv_ShutdownServer("Demo complete\n");
+	}
 }
 
 /**

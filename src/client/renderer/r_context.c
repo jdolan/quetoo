@@ -61,8 +61,8 @@ void R_InitContext(void) {
 	}
 
 	if (r_fullscreen->integer) {
-		w = MAX(0, r_width->integer);
-		h = MAX(0, r_height->integer);
+		w = Max(0, r_width->integer);
+		h = Max(0, r_height->integer);
 
 		if (r_width->integer == 0 && r_height->integer == 0) {
 			SDL_DisplayMode best;
@@ -73,8 +73,8 @@ void R_InitContext(void) {
 		}
 		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 	} else {
-		w = MAX(0, r_windowed_width->integer);
-		h = MAX(0, r_windowed_height->integer);
+		w = Max(0, r_windowed_width->integer);
+		h = Max(0, r_windowed_height->integer);
 
 		flags |= SDL_WINDOW_RESIZABLE;
 	}

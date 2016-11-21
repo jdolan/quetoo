@@ -49,7 +49,6 @@ static void G_MapList_Parse(const char *filename) {
 		if (*c == '{') {
 			if (map) {
 				gi.Error("Malformed maps.lst at \"%s\"\n", c);
-				return;
 			}
 			map = gi.Malloc(sizeof(g_map_list_map_t), MEM_TAG_GAME);
 		}

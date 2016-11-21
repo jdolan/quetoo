@@ -47,7 +47,29 @@ extern vec3_t vec3_forward;
 /**
  * @brief Math library.
  */
-#define Clamp(x, y, z)				(x < y ? y : x > z ? z : x)
+/**
+ * @return The value, clamped to the bounds.
+ */
+#define Clamp(val, min, max) \
+	({ \
+		typeof(val) _val = (val); typeof(min) _min = (min); typeof(max) _max = (max); \
+		_val < _min ? _min : _val > _max ? _max : _val; \
+	})
+
+/**
+ * @return The maximum of the two values.
+ */
+#ifndef Max
+ #define Max(a, b) ({ typeof (a) _a = (a); typeof (b) _b = (b); _a > _b ? _a : _b; })
+#endif
+
+/**
+ * @return The minimum of the two values.
+ */
+#ifndef Min
+ #define Min(a, b) ({ typeof (a) _a = (a); typeof (b) _b = (b); _a < _b ? _a : _b; })
+#endif
+
 #define DotProduct(x, y)			(x[0] * y[0] + x[1] * y[1] + x[2] * y[2])
 #define VectorCompare(a, b)			(a[0] == b[0] && a[1] == b[1] && a[2] == b[2])
 #define Vector4Compare(a, b)		(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
@@ -121,6 +143,8 @@ vec_t ClampAngle(vec_t angle);
 void ClampAngles(vec3_t angles);
 void PackBounds(const vec3_t mins, const vec3_t maxs, uint16_t *out);
 void UnpackBounds(const uint16_t in, vec3_t mins, vec3_t maxs);
+u16vec_t PackTexcoord(const vec_t in);
+void PackTexcoords(const vec2_t in, u16vec2_t out);
 
 /**
  * @brief Color manipulating.

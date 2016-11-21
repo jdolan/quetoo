@@ -491,7 +491,7 @@ static void R_LoadBspSurfaces(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	}
 
 	uint32_t end = SDL_GetTicks();
-	Com_Print("Generated lightmaps in %u ms\n", end - start);
+	Com_Verbose("Generated lightmaps in %u ms\n", end - start);
 }
 
 /**
@@ -829,7 +829,7 @@ typedef struct {
 	vec2_t lightmap;
 } r_bsp_interleave_vertex_t;
 
-r_buffer_layout_t r_bsp_buffer_layout[] = {
+static r_buffer_layout_t r_bsp_buffer_layout[] = {
 	{ .attribute = R_ARRAY_POSITION, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t) },
 	{ .attribute = R_ARRAY_NORMAL, .type = R_ATTRIB_FLOAT, .count = 3, .size = sizeof(vec3_t), .offset = 12 },
 	{ .attribute = R_ARRAY_TANGENT, .type = R_ATTRIB_FLOAT, .count = 4, .size = sizeof(vec4_t), .offset = 24 },
@@ -934,7 +934,8 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 		Vector2Copy(mod->bsp->lightmap_texcoords[i], interleaved[i].lightmap);
 	}
 
-	R_CreateInterleaveBuffer(&mod->bsp->vertex_buffer, sizeof(r_bsp_interleave_vertex_t), r_bsp_buffer_layout, GL_STATIC_DRAW,
+	R_CreateInterleaveBuffer(&mod->bsp->vertex_buffer, sizeof(r_bsp_interleave_vertex_t), r_bsp_buffer_layout,
+	                         GL_STATIC_DRAW,
 	                         mod->num_verts * sizeof(r_bsp_interleave_vertex_t), interleaved);
 
 	Mem_Free(interleaved);

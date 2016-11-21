@@ -7,7 +7,7 @@ extern int32_t main(int32_t argc, char **argv);
 #if defined(_MSC_VER)
 #include <DbgHelp.h>
 
-HMODULE GetCurrentModule() {
+static HMODULE GetCurrentModule() {
 	HMODULE hModule = NULL;
 	GetModuleHandleEx(
 	    GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
@@ -17,7 +17,7 @@ HMODULE GetCurrentModule() {
 	return hModule;
 }
 
-HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh) {
+static HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh) {
 	HRESULT error = S_OK;
 
 	// get the time
@@ -93,6 +93,8 @@ HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh) {
 }
 #endif
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunreachable-code"
 int CALLBACK WinMain(
     _In_ HINSTANCE hInstance,
     _In_ HINSTANCE hPrevInstance,
@@ -110,3 +112,4 @@ int CALLBACK WinMain(
 	}
 #endif
 }
+#pragma clang diagnostic pop

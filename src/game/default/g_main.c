@@ -772,7 +772,7 @@ static void G_CheckRules(void) {
 			g_level.match_status = MSTAT_WARMUP;
 
 			gi.BroadcastPrint(PRINT_HIGH, "Matches have been %s\n",
-							  g_level.match ? "enabled" : "disabled");
+			                  g_level.match ? "enabled" : "disabled");
 
 			restart = true;
 		}
@@ -906,7 +906,7 @@ static void G_Frame(void) {
 /**
  * @brief Returns the game name advertised by the server in info strings.
  */
-const char *G_GameName(void) {
+static const char *G_GameName(void) {
 	static char name[64];
 	const size_t size = sizeof(name);
 
@@ -957,7 +957,8 @@ void G_Init(void) {
 	                     "Allows usage of player handicap. 0 disallows handicap, 1 allows handicap, 2 allows handicap but disables damage reduction. (default 1)");
 	g_inhibit = gi.Cvar("g_inhibit", "", CVAR_SERVER_INFO,
 	                    "Prevents entities from spawning using a class name filter (e.g.: \"weapon_bfg ammo_nukes item_quad\")");
-	g_map_rotation = gi.Cvar("g_map_rotation", "", CVAR_SERVER_INFO, "Map rotation; if not set maps.lst will be used instead");
+	g_map_rotation = gi.Cvar("g_map_rotation", "", CVAR_SERVER_INFO,
+	                         "Map rotation; if not set maps.lst will be used instead");
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
 	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");

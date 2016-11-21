@@ -60,7 +60,7 @@ r_atlas_t *R_CreateAtlas(const char *name) {
  * @brief Add an image to the list of images for this atlas.
  */
 void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image) {
-	
+
 	if (!r_atlas->value) {
 		return;
 	}
@@ -88,7 +88,7 @@ void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image) {
  * @brief Resolve an atlas image from an atlas and image.
  */
 const r_atlas_image_t *R_GetAtlasImageFromAtlas(const r_atlas_t *atlas, const r_image_t *image) {
-	
+
 	if (!r_atlas->value) {
 		return (r_atlas_image_t *) image;
 	}
@@ -100,7 +100,8 @@ const r_atlas_image_t *R_GetAtlasImageFromAtlas(const r_atlas_t *atlas, const r_
  * @brief Initialize an r_packer_t structure. If the packer is already
  * created, clears the packer back to an initial state.
  */
-void R_AtlasPacker_InitPacker(r_packer_t *packer, const r_pixel_t max_width, const r_pixel_t max_height, const r_pixel_t root_width, const r_pixel_t root_height, const uint32_t initial_size) {
+void R_AtlasPacker_InitPacker(r_packer_t *packer, const r_pixel_t max_width, const r_pixel_t max_height,
+                              const r_pixel_t root_width, const r_pixel_t root_height, const uint32_t initial_size) {
 
 	packer->max_width = max_width;
 	packer->max_height = max_height;
@@ -133,7 +134,8 @@ void R_AtlasPacker_FreePacker(r_packer_t *packer) {
 /**
  * @brief Finds a free node that is big enough to hold us.
  */
-r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, r_packer_node_t *root, const r_pixel_t width, const r_pixel_t height) {
+r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, r_packer_node_t *root, const r_pixel_t width,
+                                        const r_pixel_t height) {
 
 	if (root->used) {
 		r_packer_node_t *node = R_AtlasPacker_FindNode(packer, &g_array_index(packer->nodes, r_packer_node_t, root->right),
@@ -149,7 +151,7 @@ r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, r_packer_node_t *roo
 			return node;
 		}
 	} else if (width <= root->width && height <= root->height &&
-		(root->x + width) <= packer->max_width && (root->y + height) <= packer->max_height) {
+	           (root->x + width) <= packer->max_width && (root->y + height) <= packer->max_height) {
 		return root;
 	}
 
@@ -159,7 +161,8 @@ r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, r_packer_node_t *roo
 /**
  * @brief Split a packer node into two, assigning the first to the image.
  */
-r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *node, const r_pixel_t width, const r_pixel_t height) {
+r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *node, const r_pixel_t width,
+        const r_pixel_t height) {
 	const uintptr_t index = (uintptr_t) (node - (r_packer_node_t *) packer->nodes->data);
 
 	node->used = true;
@@ -193,7 +196,8 @@ r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *no
 /**
  * @brief Grow the packer in the specified direction.
  */
-static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const r_pixel_t width, const r_pixel_t height, const _Bool grow_direction) {
+static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const r_pixel_t width, const r_pixel_t height,
+        const _Bool grow_direction) {
 	const uint32_t new_root_id = packer->nodes->len;
 	const uint32_t new_connect_id = packer->nodes->len + 1;
 	const r_packer_node_t *old_root = &g_array_index(packer->nodes, r_packer_node_t, packer->root);
@@ -293,7 +297,8 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 	memset(&packer, 0, sizeof(packer));
 
 	r_atlas_image_t *image = (r_atlas_image_t *) atlas->images->data;
-	R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, image->input_image->width, image->input_image->height, atlas->images->len);
+	R_AtlasPacker_InitPacker(&packer, r_config.max_texture_size, r_config.max_texture_size, image->input_image->width,
+	                         image->input_image->height, atlas->images->len);
 
 	// stitch!
 	for (uint16_t i = 0; i < atlas->images->len; i++, image++) {
@@ -306,10 +311,10 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 			node = R_AtlasPacker_GrowNode(&packer, image->input_image->width, image->input_image->height);
 		}
 
-		params->width = MAX(node->x + image->input_image->width, params->width);
-		params->height = MAX(node->y + image->input_image->height, params->height);
+		params->width = Max(node->x + image->input_image->width, params->width);
+		params->height = Max(node->y + image->input_image->height, params->height);
 
-		min_size = MIN(min_size, MIN(image->input_image->width, image->input_image->height));
+		min_size = Min(min_size, Min(image->input_image->width, image->input_image->height));
 
 		image->position[0] = node->x;
 		image->position[1] = node->y;
@@ -346,7 +351,7 @@ static void R_GenerateAtlasMips(r_atlas_t *atlas, r_atlas_params_t *params) {
 		const r_pixel_t mip_height = params->height / mip_scale;
 
 		R_BindDiffuseTexture(atlas->image.texnum);
-		
+
 		// set the default to all black transparent
 		GLubyte *pixels = Mem_Malloc(mip_width * mip_height * 4);
 
@@ -406,9 +411,9 @@ static int R_AtlasImage_Compare(gconstpointer a, gconstpointer b) {
 	const r_atlas_image_t *bi = (const r_atlas_image_t *) b;
 	int cmp;
 
-	if ((cmp = MAX(bi->input_image->width, bi->input_image->height) - MAX(ai->input_image->width,
+	if ((cmp = Max(bi->input_image->width, bi->input_image->height) - Max(ai->input_image->width,
 	           ai->input_image->height)) ||
-	        (cmp = MIN(bi->input_image->width, bi->input_image->height) - MIN(ai->input_image->width, ai->input_image->height)) ||
+	        (cmp = Min(bi->input_image->width, bi->input_image->height) - Min(ai->input_image->width, ai->input_image->height)) ||
 	        (cmp = bi->input_image->height - ai->input_image->height) ||
 	        (cmp = bi->input_image->width - ai->input_image->width)) {
 		return cmp;
@@ -470,5 +475,6 @@ void R_CompileAtlas(r_atlas_t *atlas) {
  */
 void R_InitAtlas(void) {
 
-	r_atlas = Cvar_Add("r_atlas", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls whether to enable atlasing of common images or not.");
+	r_atlas = Cvar_Add("r_atlas", "1", CVAR_ARCHIVE | CVAR_R_MEDIA,
+	                   "Controls whether to enable atlasing of common images or not.");
 }

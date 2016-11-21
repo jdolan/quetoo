@@ -184,9 +184,9 @@ static void Sv_ClientVisibility(const vec3_t org, byte *pvs, byte *phs) {
 		Cm_ClusterPVS(cluster, cluster_pvs);
 		Cm_ClusterPHS(cluster, cluster_phs);
 
-		for (size_t i = 0; i < sizeof(cluster_pvs); i++) {
-			pvs[i] |= cluster_pvs[i];
-			phs[i] |= cluster_phs[i];
+		for (size_t n = 0; n < sizeof(cluster_pvs); n++) {
+			pvs[n] |= cluster_pvs[n];
+			phs[n] |= cluster_phs[n];
 		}
 
 		if (num_clusters == lengthof(clusters)) {

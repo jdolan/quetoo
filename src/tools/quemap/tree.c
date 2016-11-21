@@ -90,7 +90,7 @@ void FreeTree(tree_t *tree) {
  *
  */
 
-int32_t c_pruned;
+static int32_t c_pruned;
 
 /**
  * @brief

@@ -53,4 +53,6 @@ uint16_t Thread_Count(void);
 void Thread_Init(ssize_t num_threads);
 void Thread_Shutdown(void);
 
+extern cvar_t *threads;
+
 #endif /*__THREAD_H__ */

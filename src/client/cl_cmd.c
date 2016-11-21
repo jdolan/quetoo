@@ -38,7 +38,7 @@ void Cl_UpdateMovementCommand(uint32_t msec) {
 
 	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
-	cmd->cmd.msec = MIN(msec, 255);
+	cmd->cmd.msec = Min(msec, 255u);
 
 	Cl_Look(&cmd->cmd);
 
@@ -53,7 +53,7 @@ static void Cl_FinalizeMovementCommand(uint32_t msec) {
 
 	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
-	cmd->cmd.msec = MIN(msec, 255);
+	cmd->cmd.msec = Min(msec, 255u);
 
 	Cl_Move(&cmd->cmd);
 

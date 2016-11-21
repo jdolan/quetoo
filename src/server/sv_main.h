@@ -30,6 +30,7 @@ void Sv_Frame(const uint32_t msec);
 
 #ifdef __SV_LOCAL_H__
 	// cvars
+	extern cvar_t *sv_demo_list;
 	extern cvar_t *sv_download_url;
 	extern cvar_t *sv_enforce_time;
 	extern cvar_t *sv_hostname;

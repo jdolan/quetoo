@@ -52,7 +52,7 @@ void R_ListMedia_f(void) {
 void R_DumpImages_f(void) {
 
 	Com_Print("Dumping media... ");
-	
+
 	char path[MAX_OS_PATH];
 
 	Fs_Mkdir("imgdmp");
@@ -62,7 +62,7 @@ void R_DumpImages_f(void) {
 		const r_media_t *media = g_hash_table_lookup(r_media_state.media, key->data);
 
 		if (media->type == MEDIA_IMAGE ||
-			media->type == MEDIA_ATLAS) {
+		        media->type == MEDIA_ATLAS) {
 
 			const r_image_t *image = (const r_image_t *) media;
 			GLubyte *pixels = Mem_Malloc(image->width * image->height * 4);

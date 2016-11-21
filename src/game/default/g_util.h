@@ -58,7 +58,7 @@
 	void G_InitEntity(g_entity_t *ent, const char *class_name);
 	void G_FreeEntity(g_entity_t *ent);
 	void G_ClientStuff(g_entity_t *ent, const char *s);
-	void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...);
+	void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
 #endif /* __GAME_LOCAL_H__ */
 

@@ -42,6 +42,48 @@ extern _Bool verbose;
 extern _Bool debug;
 extern _Bool legacy;
 
+// VIS
+extern _Bool fastvis;
+extern _Bool nosort;
+
+// BSP
+extern int32_t entity_num;
+
+extern vec3_t map_mins, map_maxs;
+
+extern _Bool noprune;
+extern _Bool nodetail;
+extern _Bool fulldetail;
+extern _Bool onlyents;
+extern _Bool nomerge;
+extern _Bool nowater;
+extern _Bool nocsg;
+extern _Bool noweld;
+extern _Bool noshare;
+extern _Bool nosubdivide;
+extern _Bool notjunc;
+extern _Bool noopt;
+extern _Bool leaktest;
+
+extern int32_t block_xl, block_xh, block_yl, block_yh;
+extern int32_t subdivide_size;
+
+extern vec_t microvolume;
+
+// LIGHT
+extern vec3_t face_offset[MAX_BSP_FACES];  // for rotating bmodels
+
+extern vec_t brightness;
+extern vec_t saturation;
+extern vec_t contrast;
+
+extern vec_t surface_scale;
+extern vec_t entity_scale;
+
+extern vec3_t ambient;
+
+extern _Bool extra_samples;
+
 // threads.c
 typedef struct semaphores_s {
 	SDL_sem *active_portals;

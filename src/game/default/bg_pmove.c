@@ -29,11 +29,11 @@
 const vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
 const vec3_t PM_MAXS = { 16.0, 16.0, 32.0 };
 
-const vec3_t PM_DEAD_MINS = { -24.0, -24.0, -24.0 };
-const vec3_t PM_DEAD_MAXS = { 24.0, 24.0, -4.0 };
+static const vec3_t PM_DEAD_MINS = { -24.0, -24.0, -24.0 };
+static const vec3_t PM_DEAD_MAXS = { 24.0, 24.0, -4.0 };
 
-const vec3_t PM_GIBLET_MINS = { -8.0, -8.0, -8.0 };
-const vec3_t PM_GIBLET_MAXS = { 8.0, 8.0, 8.0 };
+static const vec3_t PM_GIBLET_MINS = { -8.0, -8.0, -8.0 };
+static const vec3_t PM_GIBLET_MAXS = { 8.0, 8.0, 8.0 };
 
 static pm_move_t *pm;
 
@@ -473,7 +473,7 @@ static void Pm_Friction(void) {
 		return;
 	}
 
-	const vec_t control = MAX(PM_SPEED_STOP, speed);
+	const vec_t control = Max(PM_SPEED_STOP, speed);
 
 	vec_t friction = 0.0;
 
@@ -500,7 +500,7 @@ static void Pm_Friction(void) {
 	}
 
 	// scale the velocity, taking care to not reverse direction
-	vec_t scale = MAX(0.0, speed - (friction * control * pml.time)) / speed;
+	vec_t scale = Max(0.0, speed - (friction * control * pml.time)) / speed;
 
 	VectorScale(pm->s.velocity, scale, pm->s.velocity);
 }
@@ -628,7 +628,7 @@ static _Bool Pm_CheckTrickJump(void) {
  */
 static void Pm_CorrectPosition(void) {
 
-	const cm_trace_t tr = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
+	cm_trace_t tr = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
 	if (tr.all_solid) {
 
 		Pm_Debug("all solid %s\n", vtos(pm->s.origin));
@@ -643,7 +643,7 @@ static void Pm_CorrectPosition(void) {
 					pos[1] += j * PM_NUDGE_DIST;
 					pos[2] += k * PM_NUDGE_DIST;
 
-					const cm_trace_t tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
+					tr = pm->Trace(pos, pos, pm->mins, pm->maxs);
 					if (!tr.all_solid) {
 						VectorCopy(pos, pm->s.origin);
 						return;
@@ -1103,8 +1103,8 @@ static void Pm_WaterMove(void) {
 		view[2] -= 4.0;
 
 		if (!(pm->PointContents(view) & MASK_LIQUID)) {
-			pm->s.velocity[2] = MIN(pm->s.velocity[2], 0.0);
-			vel[2] = MIN(vel[2], 0.0);
+			pm->s.velocity[2] = Min(pm->s.velocity[2], 0.0);
+			vel[2] = Min(vel[2], 0.0);
 		}
 
 	}

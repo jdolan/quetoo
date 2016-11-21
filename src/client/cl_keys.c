@@ -48,12 +48,15 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 			}
 		}
 
-		SDL_SetRelativeMouseMode(false);
+		if (m_grab->integer) {
 
-		const r_pixel_t cx = r_context.window_width * 0.5;
-		const r_pixel_t cy = r_context.window_height * 0.5;
+			SDL_SetRelativeMouseMode(false);
 
-		SDL_WarpMouseInWindow(r_context.window, cx, cy);
+			const r_pixel_t cx = r_context.window_width * 0.5;
+			const r_pixel_t cy = r_context.window_height * 0.5;
+
+			SDL_WarpMouseInWindow(r_context.window, cx, cy);
+		}
 	}
 
 	switch (dest) {
@@ -67,7 +70,11 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 			break;
 		case KEY_GAME:
 			SDL_StopTextInput();
-			SDL_SetRelativeMouseMode(true);
+
+			if (m_grab->integer) {
+				SDL_SetRelativeMouseMode(true);
+			}
+
 			break;
 	}
 
@@ -215,7 +222,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 				g_strlcat(in->buffer, tail, sizeof(in->buffer));
 				g_free(tail);
 
-				in->pos = MIN(in->pos + strlen(text), sizeof(in->buffer) - 1);
+				in->pos = Min(in->pos + strlen(text), sizeof(in->buffer) - 1);
 			}
 			break;
 
@@ -275,13 +282,13 @@ static void Cl_KeyChat(const SDL_Event *event) {
 
 		case SDLK_RETURN:
 		case SDLK_KP_ENTER: {
-				const char *in;
+				const char *out;
 				if (cls.chat_state.team_chat) {
-					in = va("say_team %s^7", cl_chat_console.input.buffer);
+					out = va("say_team %s^7", in->buffer);
 				} else {
-					in = va("say %s^7", cl_chat_console.input.buffer);
+					out = va("say %s^7", in->buffer);
 				}
-				strncpy(cl_chat_console.input.buffer, in, sizeof(cl_chat_console.input.buffer));
+				strncpy(in->buffer, out, sizeof(in->buffer));
 				Con_SubmitInput(&cl_chat_console);
 
 				Cl_SetKeyDest(KEY_GAME);

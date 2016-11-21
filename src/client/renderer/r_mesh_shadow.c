@@ -35,7 +35,9 @@ static void R_SetMeshShadowColor_default(const r_entity_t *e, const r_shadow_t *
 		alpha *= e->color[3];
 	}
 
-	R_Color((const vec4_t) { 0.0, 0.0, 0.0, alpha });
+	R_Color((const vec4_t) {
+		0.0, 0.0, 0.0, alpha
+	});
 }
 
 /**
@@ -180,7 +182,7 @@ static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) 
 /**
  * @brief Draws all shadows for the specified entity.
  */
-void R_DrawMeshShadow_default(const r_entity_t *e) {
+static void R_DrawMeshShadow_default(const r_entity_t *e) {
 
 	r_shadow_t *s = e->lighting->shadows;
 	for (size_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {

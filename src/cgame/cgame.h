@@ -618,7 +618,7 @@ typedef struct cg_import_s {
 	 * @param matrix The new matrix.
 	 */
 	void (*SetMatrix)(const r_matrix_id_t id, const matrix4x4_t *matrix);
-	
+
 	/**
 	 * @brief Fetch the matrix identified by "id" and stick it in "matrix".
 	 *

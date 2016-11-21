@@ -341,7 +341,7 @@ static r_light_t *Cg_EmitLight(cg_emit_t *e) {
  * @brief Perform PVS and PHS filtering, returning a copy of the specified emit with
  * the correct flags stripped away for this frame.
  */
-cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
+static cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
 	static cg_emit_t em;
 
 	em = *e;

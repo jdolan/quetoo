@@ -223,7 +223,7 @@ static void G_Friction(g_entity_t *ent) {
 		return;
 	}
 
-	const vec_t control = MAX(SPEED_STOP, speed);
+	const vec_t control = Max(SPEED_STOP, speed);
 
 	vec_t friction = 0.0;
 
@@ -240,7 +240,7 @@ static void G_Friction(g_entity_t *ent) {
 
 	friction += PM_FRICT_WATER * ent->locals.water_level;
 
-	vec_t scale = MAX(0.0, speed - (friction * control * QUETOO_TICK_SECONDS)) / speed;
+	vec_t scale = Max(0.0, speed - (friction * control * QUETOO_TICK_SECONDS)) / speed;
 
 	VectorScale(ent->locals.velocity, scale, ent->locals.velocity);
 	VectorScale(ent->locals.avelocity, scale, ent->locals.avelocity);
@@ -895,7 +895,6 @@ void G_RunEntity(g_entity_t *ent) {
 			break;
 		default:
 			gi.Error("Bad move type %i\n", ent->locals.move_type);
-			break;
 	}
 
 	// move all team members to the new origin

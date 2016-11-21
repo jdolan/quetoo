@@ -40,7 +40,8 @@ void R_BindAttributeBufferOffset(const r_attribute_id_t target, const r_buffer_t
 /**
  * @brief Binds an interleave array to all of its appropriate endpoints with an offset.
  */
-void R_BindAttributeInterleaveBufferOffset(const r_buffer_t *buffer, const r_attribute_mask_t mask, const GLsizei offset) {
+void R_BindAttributeInterleaveBufferOffset(const r_buffer_t *buffer, const r_attribute_mask_t mask,
+        const GLsizei offset) {
 
 	if (!mask) {
 		return;
@@ -51,7 +52,7 @@ void R_BindAttributeInterleaveBufferOffset(const r_buffer_t *buffer, const r_att
 		r_attribute_mask_t this_mask = (1 << attrib);
 
 		if (!(mask & this_mask) ||
-			!(buffer->attrib_mask & this_mask)) {
+		        !(buffer->attrib_mask & this_mask)) {
 			continue;
 		}
 
@@ -175,7 +176,7 @@ void R_UploadToSubBuffer(r_buffer_t *buffer, const size_t start, const size_t si
 
 	// offset ptr if requested
 	if (start && data && data_offset) {
-		data = data + start;
+		data += start;
 	}
 
 	R_BindBuffer(buffer);
@@ -303,9 +304,10 @@ void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, cons
  * Optionally upload the data immediately too.
  */
 void R_CreateInterleaveBuffer_(r_buffer_t *buffer, const GLubyte struct_size, const r_buffer_layout_t *layout,
-                              const GLenum hint, const size_t size, const void *data, const char *func) {
+                               const GLenum hint, const size_t size, const void *data, const char *func) {
 
-	R_CreateBuffer(buffer, R_ATTRIB_TOTAL_TYPES, struct_size, false, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data, func);
+	R_CreateBuffer(buffer, R_ATTRIB_TOTAL_TYPES, struct_size, false, hint, R_BUFFER_DATA | R_BUFFER_INTERLEAVE, size, data,
+	               func);
 
 	GLsizei stride = 0;
 
@@ -388,8 +390,8 @@ static _Bool R_IsEntityInterpolatable(const r_entity_t *e, const r_model_t *mod)
 	}
 
 	return  IS_MESH_MODEL(mod) &&
-			mod->mesh->num_frames > 1 &&
-			e->old_frame != e->frame;
+	        mod->mesh->num_frames > 1 &&
+	        e->old_frame != e->frame;
 }
 
 /**
@@ -443,7 +445,7 @@ r_attribute_mask_t R_ArraysMask(void) {
  * @brief
  */
 static void R_SetArrayStateBSP(const r_model_t *mod, r_attribute_mask_t mask, r_attribute_mask_t attribs) {
-	
+
 	if (r_array_state.model == mod) { // try to save some binds
 
 		const r_attribute_mask_t xor = r_array_state.arrays ^ attribs;
@@ -474,9 +476,9 @@ static void R_SetArrayStateMesh(const r_model_t *mod, r_attribute_mask_t mask, r
 
 		if (r_array_state.shell != use_shell_model) {
 			xor |= R_ARRAY_MASK_POSITION |
-				   R_ARRAY_MASK_NEXT_POSITION |
-	   			   R_ARRAY_MASK_NORMAL |
-   				   R_ARRAY_MASK_NEXT_NORMAL;
+			       R_ARRAY_MASK_NEXT_POSITION |
+			       R_ARRAY_MASK_NORMAL |
+			       R_ARRAY_MASK_NEXT_NORMAL;
 
 			r_array_state.shell = use_shell_model;
 		} else if (!xor) { // no changes, we're done
@@ -515,8 +517,8 @@ static void R_SetArrayStateMesh(const r_model_t *mod, r_attribute_mask_t mask, r
 		const uint32_t stride = (mod->num_verts * mod->mesh->vertex_buffer.element_type.stride);
 
 		R_BindAttributeInterleaveBufferOffset(&mod->mesh->vertex_buffer,
-											  mask & ~(R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_NEXT_NORMAL | R_ARRAY_MASK_NEXT_TANGENT),
-			                                  stride * old_frame);
+		                                      mask & ~(R_ARRAY_MASK_NEXT_POSITION | R_ARRAY_MASK_NEXT_NORMAL | R_ARRAY_MASK_NEXT_TANGENT),
+		                                      stride * old_frame);
 
 		if (do_interpolation) {
 
@@ -664,8 +666,6 @@ static void R_PrepareProgram() {
 	R_UseFog();
 }
 
-extern GLenum r_attrib_type_to_gl_type[R_ATTRIB_TOTAL_TYPES];
-
 /**
  * @brief
  */
@@ -678,8 +678,11 @@ void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 	if (r_state.element_buffer) {
 
 		R_BindBuffer(r_state.element_buffer);
-		glDrawElements(type, count, r_attrib_type_to_gl_type[r_state.element_buffer->element_type.type],
-		               (const void *) (ptrdiff_t) (start * r_state.element_buffer->element_type.stride));
+
+		GLenum element_type = R_GetGLTypeFromAttribType(r_state.element_buffer->element_type.type);
+		const void *offset = (const void *) (ptrdiff_t) (start * r_state.element_buffer->element_type.stride);
+
+		glDrawElements(type, count, element_type, offset);
 		r_view.num_draw_elements++;
 		r_view.num_draw_element_count += count;
 	} else {

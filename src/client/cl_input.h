@@ -32,6 +32,7 @@
 	extern cvar_t *m_invert;
 	extern cvar_t *m_pitch;
 	extern cvar_t *m_yaw;
+	extern cvar_t *m_grab;
 
 	void Cl_ClearInput(void);
 	void Cl_InitInput(void);

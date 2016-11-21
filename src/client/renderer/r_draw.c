@@ -143,7 +143,7 @@ typedef struct r_draw_s {
 	r_buffer_t supersample_buffer;
 } r_draw_t;
 
-r_draw_t r_draw;
+static r_draw_t r_draw;
 
 /**
  * @return An `r_color_t` from the given parameters.
@@ -165,7 +165,7 @@ r_color_t R_MakeColor(byte r, byte g, byte b, byte a) {
 /**
  * @brief Make a quad by passing index to first vertex and last element ID.
  */
-void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {
+static void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {
 	*(indices)++ = vertex_id + 0;
 	*(indices)++ = vertex_id + 1;
 	*(indices)++ = vertex_id + 2;
@@ -178,7 +178,8 @@ void R_MakeQuadU32(uint32_t *indices, const uint32_t vertex_id) {
 /**
  * @brief
  */
-static void R_DrawImage_(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const GLuint texnum, const r_buffer_t *buffer) {
+static void R_DrawImage_(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const GLuint texnum,
+                         const r_buffer_t *buffer) {
 
 	R_BindDiffuseTexture(texnum);
 
@@ -332,10 +333,10 @@ void R_DrawChar(r_pixel_t x, r_pixel_t y, char c, int32_t color) {
 	const uint32_t row = (uint32_t) c >> 4;
 	const uint32_t col = (uint32_t) c & 15;
 
-	const u16vec_t frow = (row * 0.1250) * USHRT_MAX;
-	const u16vec_t fcol = (col * 0.0625) * USHRT_MAX;
-	const u16vec_t frowe = ((row + 1) * 0.1250) * USHRT_MAX;
-	const u16vec_t fcole = ((col + 1) * 0.0625) * USHRT_MAX;
+	const u16vec_t frow = PackTexcoord(row * 0.1250);
+	const u16vec_t fcol = PackTexcoord(col * 0.0625);
+	const u16vec_t frowe = PackTexcoord((row + 1) * 0.1250);
+	const u16vec_t fcole = PackTexcoord((col + 1) * 0.0625);
 
 	// resolve ABGR color
 	const uint32_t *abgr = &r_draw.colors[color & (MAX_COLORS - 1)];
@@ -721,7 +722,7 @@ void R_ShutdownDraw(void) {
 	R_DestroyBuffer(&r_draw.fill_arrays.vert_buffer);
 	R_DestroyBuffer(&r_draw.fill_arrays.element_buffer);
 	R_DestroyBuffer(&r_draw.line_arrays.vert_buffer);
-	
+
 	R_DestroyBuffer(&r_draw.fill_arrays.ui_vert_buffer);
 	R_DestroyBuffer(&r_draw.line_arrays.ui_vert_buffer);
 

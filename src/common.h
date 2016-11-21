@@ -122,7 +122,7 @@ extern _Bool com_recursive;
 #define Com_Warn(...) Com_Warn_(__func__, __VA_ARGS__)
 
 void Com_Init(int32_t argc, char *argv[]);
-void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn));
+void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 
 
 // subsystems

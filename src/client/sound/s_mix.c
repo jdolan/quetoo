@@ -51,7 +51,7 @@ void S_FreeChannel(int32_t c) {
 /**
  * @brief Set distance and stereo panning for the specified channel.
  */
-_Bool S_SpatializeChannel(s_channel_t *ch) {
+static _Bool S_SpatializeChannel(s_channel_t *ch) {
 	vec3_t org, delta, center;
 
 	VectorCopy(r_view.origin, org);
