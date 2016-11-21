@@ -248,12 +248,18 @@ void Cl_CheckPredictionError(void) {
 	// compare what the server returned with what we had predicted it to be
 	VectorSubtract(cl.frame.ps.pm_state.origin, cl.predicted_state.origins[frame], delta);
 
+	// add it to the running prediction error
+	VectorAdd(cl.predicted_state.error, delta, cl.predicted_state.error);
+
 	const vec_t error = VectorLength(delta);
-	if (error > 1.0) {
+	if (error > 0.0) {
 		Com_Debug("%s\n", vtos(delta));
 
-		if (error > 256.0) { // do not interpolate
+		if (error > 32.0) { // do not interpolate
 			VectorClear(delta);
+		} else {
+			cl.predicted_state.error_time = cl.frame.time;
+			cl.predicted_state.error_interval = error * (16.0 / 1000) * time_scale->value;
 		}
 	}
 

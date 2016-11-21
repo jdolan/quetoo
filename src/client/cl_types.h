@@ -114,12 +114,15 @@ typedef struct {
 	vec3_t view_angles; // and applying these angles
 
 	vec3_t error; // delta from prediction result to server result
+	uint32_t error_time; // system time when error was last modified
+	uint32_t error_interval; // interpolation interval for error
 
 	struct g_entity_s *ground_entity;
 
-	uint32_t step_time; // simulation time when step was traversed
-	uint32_t step_interval; // interpolation interval for step
 	vec_t step; // step height (up or down)
+	uint32_t step_time; // simulation time when step was traversed
+	uint32_t step_timestamp; // system time when step was traversed
+	uint32_t step_interval; // interpolation interval for step
 
 	vec3_t origins[CMD_BACKUP]; // for debugging against the server
 } cl_predicted_state_t;

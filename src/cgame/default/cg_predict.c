@@ -70,17 +70,20 @@ void Cg_PredictMovement(const GList *cmds) {
 			Pm_Move(&pm);
 
 			// for each movement, check for stair interaction and interpolate
-			if (pm.s.flags & PMF_ON_STAIRS) {
+			if ((pm.s.flags & PMF_ON_STAIRS) && (cmd->time > pr->step_time)) {
 
-				const uint32_t delta = cgi.client->time - pr->step_time;
-				const uint32_t interval = pr->step_interval;
+				// ensure we only count each step once
+				pr->step_time = cmd->time;
 
-				if (delta < interval) {
-					const vec_t lerp = (interval - delta) / (vec_t) interval;
+				// determine if we're still interpolating the previous step
+				const uint32_t step_delta = cgi.client->systime - pr->step_timestamp;
+
+				if (step_delta < pr->step_interval) {
+					const vec_t lerp = (pr->step_interval - step_delta) / (vec_t) pr->step_interval;
 					pr->step = pr->step * (1.0 - lerp) + pm.step;
 				} else {
 					pr->step = pm.step;
-					pr->step_time = cmd->timestamp;
+					pr->step_timestamp = cmd->timestamp;
 				}
 
 				pr->step_interval = 128.0 * (fabs(pr->step) / PM_STEP_HEIGHT);

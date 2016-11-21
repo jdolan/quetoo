@@ -82,19 +82,23 @@ static void Cl_UpdateViewSize(void) {
 static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to) {
 
 	if (Cl_UsePrediction()) {
+		const cl_predicted_state_t *pr = &cl.predicted_state;
 
 		// use client sided prediction
-		VectorAdd(cl.predicted_state.origin, cl.predicted_state.view_offset, r_view.origin);
+		VectorAdd(pr->origin, pr->view_offset, r_view.origin);
 
 		// interpolate prediction error
-		VectorMA(r_view.origin, -(1.0 - cl.lerp), cl.predicted_state.error, r_view.origin);
+		const uint32_t error_delta = cl.time - pr->error_time;
+		if (error_delta < pr->error_interval) {
+			const vec_t lerp = (pr->error_interval - error_delta) / (vec_t) pr->error_interval;
+			VectorMA(r_view.origin, -lerp, pr->error, r_view.origin);
+		}
 
-		const uint32_t delta = cl.systime - cl.predicted_state.step_time;
-		const uint32_t interval = cl.predicted_state.step_interval;
-
-		if (delta < interval) { // interpolate stair traversal
-			const vec_t lerp = (interval - delta) / (vec_t) interval;
-			r_view.origin[2] -= cl.predicted_state.step * lerp;
+		// interpolate stair traversal
+		const uint32_t step_delta = cl.systime - pr->step_timestamp;
+		if (step_delta < pr->step_interval) {
+			const vec_t lerp = (pr->step_interval - step_delta) / (vec_t) pr->step_interval;
+			VectorMA(r_view.origin, -lerp, (vec3_t) { 0.0, 0.0, pr->step}, r_view.origin);
 		}
 
 	} else { // just use interpolated values from frame
