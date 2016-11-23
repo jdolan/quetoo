@@ -39,14 +39,15 @@ typedef struct {
 
 	uint32_t right;
 	uint32_t down; // nodes to the right/below this one
-	_Bool used; // whether this node is used by an image or not yet
 } r_packer_node_t;
 
 typedef struct {
 	r_pixel_t max_width;
 	r_pixel_t max_height;
 
-	GArray *nodes;
+	r_packer_node_t *nodes;
+	uint32_t num_nodes, num_alloc_nodes;
+
 	uint32_t root;
 
 	_Bool keep_square;
@@ -58,7 +59,7 @@ void R_AtlasPacker_FreePacker(r_packer_t *packer);
 r_packer_node_t *R_AtlasPacker_GrowNode(r_packer_t *packer, const r_pixel_t width, const r_pixel_t height);
 r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *node, const r_pixel_t width,
         const r_pixel_t height);
-r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, r_packer_node_t *root, const r_pixel_t width,
+r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root, const r_pixel_t width,
                                         const r_pixel_t height);
 
 void R_InitAtlas(void);

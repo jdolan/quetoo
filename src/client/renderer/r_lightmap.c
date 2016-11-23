@@ -281,7 +281,7 @@ void R_EndBspSurfaceLightmaps(r_bsp_model_t *bsp) {
 		r_packer_node_t *node;
 
 		do {
-			node = R_AtlasPacker_FindNode(&packer, &g_array_index(packer.nodes, r_packer_node_t, packer.root), surf->st_extents[0],
+			node = R_AtlasPacker_FindNode(&packer, packer.root, surf->st_extents[0],
 			                              surf->st_extents[1]);
 
 			if (node != NULL) {

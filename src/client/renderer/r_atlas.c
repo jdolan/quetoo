@@ -107,18 +107,27 @@ void R_AtlasPacker_InitPacker(r_packer_t *packer, const r_pixel_t max_width, con
 	packer->max_height = max_height;
 
 	if (packer->nodes == NULL) {
-		packer->nodes = g_array_sized_new(false, false, sizeof(r_packer_node_t), initial_size + 1);
+
+		if (!initial_size) {
+			packer->num_alloc_nodes = 1;
+		} else {
+			packer->num_alloc_nodes = initial_size;
+		}
+
+		packer->nodes = Mem_Malloc(sizeof(r_packer_node_t) * packer->num_alloc_nodes);
 	} else {
-		packer->nodes->len = 0;
+
+		packer->num_nodes = 0;
 	}
 
-	g_array_append_vals(packer->nodes, &(const r_packer_node_t) {
+	packer->nodes[0] = (const r_packer_node_t) {
 		.width = root_width,
-		 .height = root_height,
-		  .right = -1,
-		   .down = -1
-	}, 1);
+		.height = root_height,
+		.right = -1,
+		.down = -1
+	};
 
+	packer->num_nodes++;
 	packer->root = 0;
 }
 
@@ -127,33 +136,39 @@ void R_AtlasPacker_InitPacker(r_packer_t *packer, const r_pixel_t max_width, con
  */
 void R_AtlasPacker_FreePacker(r_packer_t *packer) {
 
-	g_array_free(packer->nodes, true);
+	Mem_Free(packer->nodes);
 	packer->nodes = NULL;
 }
 
 /**
  * @brief Finds a free node that is big enough to hold us.
  */
-r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, r_packer_node_t *root, const r_pixel_t width,
+r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, const uint32_t root, const r_pixel_t width,
                                         const r_pixel_t height) {
 
-	if (root->used) {
-		r_packer_node_t *node = R_AtlasPacker_FindNode(packer, &g_array_index(packer->nodes, r_packer_node_t, root->right),
-		                        width, height);
+	uint32_t node_queue[packer->num_nodes];
+	uint32_t node_index = 1;
 
-		if (node) {
+	node_queue[0] = root;
+
+	do {
+
+		uint32_t node_id = node_queue[--node_index];
+		r_packer_node_t *node = &packer->nodes[node_id];
+
+		// TODO: this line is still hot. It's better without the boolean,
+		// but it's weird that this line causes the worst.
+		if (node->down != -1u) {
+
+			node_queue[node_index + 0] = node->down;
+			node_queue[node_index + 1] = node->right;
+			node_index += 2;
+		} else if (width <= node->width && height <= node->height &&
+	           (node->x + width) <= packer->max_width && (node->y + height) <= packer->max_height) {
+
 			return node;
 		}
-
-		node = R_AtlasPacker_FindNode(packer, &g_array_index(packer->nodes, r_packer_node_t, root->down), width, height);
-
-		if (node) {
-			return node;
-		}
-	} else if (width <= root->width && height <= root->height &&
-	           (root->x + width) <= packer->max_width && (root->y + height) <= packer->max_height) {
-		return root;
-	}
+	} while (node_index != 0);
 
 	return NULL;
 }
@@ -163,31 +178,43 @@ r_packer_node_t *R_AtlasPacker_FindNode(r_packer_t *packer, r_packer_node_t *roo
  */
 r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *node, const r_pixel_t width,
         const r_pixel_t height) {
-	const uintptr_t index = (uintptr_t) (node - (r_packer_node_t *) packer->nodes->data);
+	const uintptr_t index = (uintptr_t) (node - packer->nodes);
 
-	node->used = true;
-	node->down = packer->nodes->len;
-	node->right = packer->nodes->len + 1;
+	node->down = packer->num_nodes;
+	node->right = packer->num_nodes + 1;
 
-	g_array_append_vals(packer->nodes, &(const r_packer_node_t[]) {
-		{
-			.width = node->width,
-			 .height = node->height - height,
-			  .x = node->x,
-			   .y = node->y + height,
-			    .right = -1,
-			     .down = -1
-		}, {
-			.width = node->width - width,
-			.height = height,
-			.x = node->x + width,
-			.y = node->y,
-			.right = -1,
-			.down = -1
-		}
-	}, 2);
+	const r_packer_node_t down_node = (const r_packer_node_t) {
+		.width = node->width,
+		.height = node->height - height,
+		.x = node->x,
+		.y = node->y + height,
+		.right = -1,
+		.down = -1
+	};
 
-	return &g_array_index(packer->nodes, r_packer_node_t, index);
+	const r_packer_node_t right_node = (const r_packer_node_t) {
+		.width = node->width - width,
+		.height = height,
+		.x = node->x + width,
+		.y = node->y,
+		.right = -1,
+		.down = -1
+	};
+
+	if (packer->num_alloc_nodes <= packer->num_nodes + 2) {
+
+		packer->num_alloc_nodes *= 2.0;
+		packer->nodes = Mem_Realloc(packer->nodes, sizeof(r_packer_node_t) * packer->num_alloc_nodes);
+	}
+
+	// do not use "node" after this point! it may be changed
+
+	packer->nodes[packer->num_nodes] = down_node;
+	packer->nodes[packer->num_nodes + 1] = right_node;
+
+	packer->num_nodes += 2;
+
+	return &packer->nodes[index];
 }
 
 #define GROW_RIGHT true
@@ -198,51 +225,50 @@ r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *no
  */
 static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const r_pixel_t width, const r_pixel_t height,
         const _Bool grow_direction) {
-	const uint32_t new_root_id = packer->nodes->len;
-	const uint32_t new_connect_id = packer->nodes->len + 1;
-	const r_packer_node_t *old_root = &g_array_index(packer->nodes, r_packer_node_t, packer->root);
+	const uint32_t new_root_id = packer->num_nodes;
+	const uint32_t new_connect_id = packer->num_nodes + 1;
+	const r_packer_node_t *old_root = &packer->nodes[packer->root];
 
 	if (grow_direction == GROW_RIGHT) {
-		g_array_append_vals(packer->nodes, &(const r_packer_node_t[]) {
-			{
-				.width = old_root->width + width,
-				 .height = old_root->height,
-				  .used = true,
-				   .down = packer->root,
-				    .right = new_connect_id
-			}, {
-				.width = width,
-				.height = old_root->height,
-				.x = old_root->width,
-				.y = 0,
-				.right = -1,
-				.down = -1
-			}
-		}, 2);
 
+		packer->nodes[new_root_id] = (const r_packer_node_t) {
+			.width = old_root->width + width,
+			.height = old_root->height,
+			.down = packer->root,
+			.right = new_connect_id
+		};
+
+		packer->nodes[new_connect_id] = (const r_packer_node_t) {
+			.width = width,
+			.height = old_root->height,
+			.x = old_root->width,
+			.y = 0,
+			.right = -1,
+			.down = -1
+		};
 	} else {
-		g_array_append_vals(packer->nodes, &(const r_packer_node_t[]) {
-			{
-				.width = old_root->width,
-				 .height = old_root->height + height,
-				  .used = true,
-				   .right = packer->root,
-				    .down = new_connect_id
-			}, {
-				.width = old_root->width,
-				.height = height,
-				.x = 0,
-				.y = old_root->height,
-				.right = -1,
-				.down = -1
-			}
-		}, 2);
+
+		packer->nodes[new_root_id] = (const r_packer_node_t) {
+			.width = old_root->width,
+			.height = old_root->height + height,
+			.right = packer->root,
+			.down = new_connect_id
+		};
+
+		packer->nodes[new_connect_id] = (const r_packer_node_t) {
+			.width = old_root->width,
+			.height = height,
+			.x = 0,
+			.y = old_root->height,
+			.right = -1,
+			.down = -1
+		};
 	}
 
+	packer->num_nodes += 2;
 	packer->root = new_root_id;
 
-	r_packer_node_t *node = R_AtlasPacker_FindNode(packer, &g_array_index(packer->nodes, r_packer_node_t, packer->root),
-	                        width, height);
+	r_packer_node_t *node = R_AtlasPacker_FindNode(packer, packer->root, width, height);
 
 	if (node != NULL) {
 		return R_AtlasPacker_SplitNode(packer, node, width, height);
@@ -255,7 +281,7 @@ static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const r_pixel_t w
  * @brief Checks to see where the packer should grow into next. This keeps the atlas square.
  */
 r_packer_node_t *R_AtlasPacker_GrowNode(r_packer_t *packer, const r_pixel_t width, const r_pixel_t height) {
-	const r_packer_node_t *root = &g_array_index(packer->nodes, r_packer_node_t, packer->root);
+	const r_packer_node_t *root = &packer->nodes[packer->root];
 
 	const _Bool canGrowDown = (width <= root->width);
 	const _Bool canGrowRight = (height <= root->height);
@@ -302,8 +328,7 @@ static void R_StitchAtlas(r_atlas_t *atlas, r_atlas_params_t *params) {
 
 	// stitch!
 	for (uint16_t i = 0; i < atlas->images->len; i++, image++) {
-		r_packer_node_t *node = R_AtlasPacker_FindNode(&packer, &g_array_index(packer.nodes, r_packer_node_t, packer.root),
-		                        image->input_image->width, image->input_image->height);
+		r_packer_node_t *node = R_AtlasPacker_FindNode(&packer, packer.root, image->input_image->width, image->input_image->height);
 
 		if (node != NULL) {
 			node = R_AtlasPacker_SplitNode(&packer, node, image->input_image->width, image->input_image->height);
