@@ -133,7 +133,8 @@ static void Warn(const char *msg) {
 /**
  * @brief
  */
-static void Quit_f(void) __attribute__((noreturn)) {
+__attribute__((noreturn))
+static void Quit_f(void) {
 
 	Com_Shutdown("Server quit\n");
 }
