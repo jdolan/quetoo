@@ -203,6 +203,7 @@ typedef struct {
 	r_attribute_id_t attribute;
 
 	r_attrib_type_t type;
+	GLenum gl_type;
 	uint8_t count;
 	uint8_t offset;
 	uint8_t size;
@@ -225,9 +226,10 @@ typedef struct r_buffer_s {
 
 	// attribute crap
 	r_attrib_type_state_t element_type;
-	_Bool interleave; // whether this buffer is an interleave buffer. Only valid for R_BUFFER_DATA.
+	GLenum element_gl_type;
 	r_attribute_mask_t attrib_mask;
 	const r_buffer_layout_t *interleave_attribs[R_ARRAY_MAX_ATTRIBS];
+	_Bool interleave; // whether this buffer is an interleave buffer. Only valid for R_BUFFER_DATA.
 } r_buffer_t;
 
 /**

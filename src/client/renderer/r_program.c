@@ -214,32 +214,6 @@ void R_BindAttributeLocation(const r_program_t *prog, const char *name, const GL
 }
 
 /**
- * @brief Get the GL_ type from an R_ATTRIB_ type.
- */
-GLenum R_GetGLTypeFromAttribType(const r_attrib_type_t type) {
-
-	switch (type) {
-	case R_ATTRIB_FLOAT:
-		return GL_FLOAT;
-	case R_ATTRIB_BYTE:
-		return GL_BYTE;
-	case R_ATTRIB_UNSIGNED_BYTE:
-		return GL_UNSIGNED_BYTE;
-	case R_ATTRIB_SHORT:
-		return GL_SHORT;
-	case R_ATTRIB_UNSIGNED_SHORT:
-		return GL_UNSIGNED_SHORT;
-	case R_ATTRIB_INT:
-		return GL_INT;
-	case R_ATTRIB_UNSIGNED_INT:
-		return GL_UNSIGNED_INT;
-	default:
-		Com_Error(ERR_FATAL, "Invalid R_ATTRIB_* type\n");
-		return GL_INVALID_ENUM;
-	}
-}
-
-/**
  * @brief
  */
 static void R_AttributePointer(const r_attribute_id_t attribute) {
@@ -264,6 +238,7 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 	GLsizei stride = 0;
 	GLsizeiptr offset = r_state.array_buffer_offsets[attribute];
 	const r_attrib_type_state_t *type = &buffer->element_type;
+	GLenum gl_type = buffer->element_gl_type;
 
 	if (buffer->interleave) {
 		r_attribute_id_t real_attrib = attribute;
@@ -292,6 +267,7 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 		type = &buffer->interleave_attribs[real_attrib]->_type_state;
 		offset += type->offset;
 		stride = buffer->element_type.stride;
+		gl_type = buffer->interleave_attribs[real_attrib]->gl_type;
 	}
 
 	r_attrib_state_t *attrib = &r_state.attributes[attribute];
@@ -303,7 +279,7 @@ static void R_AttributePointer(const r_attribute_id_t attribute) {
 
 		R_BindBuffer(buffer);
 
-		glVertexAttribPointer(attribute, type->count, R_GetGLTypeFromAttribType(type->type), type->normalized, stride,
+		glVertexAttribPointer(attribute, type->count, gl_type, type->normalized, stride,
 		                      (const GLvoid *) offset);
 		r_view.num_state_changes[R_STATE_PROGRAM_ATTRIB_POINTER]++;
 

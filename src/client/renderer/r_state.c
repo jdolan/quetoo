@@ -45,7 +45,7 @@ void R_GetError_(const char *function, const char *msg) {
 	GLenum err;
 	char *s;
 
-	if (!r_get_error->value) {
+	if (!r_get_error->integer) {
 		return;
 	}
 

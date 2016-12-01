@@ -240,6 +240,32 @@ static GLubyte R_GetElementSize(const GLenum type) {
 }
 
 /**
+ * @brief Get the GL_ type from an R_ATTRIB_ type.
+ */
+static GLenum R_GetGLTypeFromAttribType(const r_attrib_type_t type) {
+
+	switch (type) {
+	case R_ATTRIB_FLOAT:
+		return GL_FLOAT;
+	case R_ATTRIB_BYTE:
+		return GL_BYTE;
+	case R_ATTRIB_UNSIGNED_BYTE:
+		return GL_UNSIGNED_BYTE;
+	case R_ATTRIB_SHORT:
+		return GL_SHORT;
+	case R_ATTRIB_UNSIGNED_SHORT:
+		return GL_UNSIGNED_SHORT;
+	case R_ATTRIB_INT:
+		return GL_INT;
+	case R_ATTRIB_UNSIGNED_INT:
+		return GL_UNSIGNED_INT;
+	default:
+		Com_Error(ERR_FATAL, "Invalid R_ATTRIB_* type\n");
+		return GL_INVALID_ENUM;
+	}
+}
+
+/**
  * @brief
  */
 uint32_t R_GetNumAllocatedBuffers(void) {
@@ -282,6 +308,7 @@ void R_CreateBuffer(r_buffer_t *buffer, const r_attrib_type_t element_type, cons
 	if (element_type != R_ATTRIB_TOTAL_TYPES) {
 		buffer->element_type.count = element_count;
 		buffer->element_type.stride = R_GetElementSize(buffer->element_type.type);
+		buffer->element_gl_type = R_GetGLTypeFromAttribType(buffer->element_type.type);
 		buffer->element_type.normalized = element_normalized;
 	} else {
 		buffer->element_type.stride = element_count;
@@ -325,6 +352,7 @@ void R_CreateInterleaveBuffer_(r_buffer_t *buffer, const GLubyte struct_size, co
 			temp->_type_state.offset = layout->offset;
 			temp->_type_state.count = layout->count;
 			temp->_type_state.normalized = layout->normalized;
+			temp->gl_type = R_GetGLTypeFromAttribType(layout->type);
 		}
 	}
 
@@ -679,10 +707,9 @@ void R_DrawArrays(GLenum type, GLint start, GLsizei count) {
 
 		R_BindBuffer(r_state.element_buffer);
 
-		GLenum element_type = R_GetGLTypeFromAttribType(r_state.element_buffer->element_type.type);
 		const void *offset = (const void *) (ptrdiff_t) (start * r_state.element_buffer->element_type.stride);
 
-		glDrawElements(type, count, element_type, offset);
+		glDrawElements(type, count, r_state.element_buffer->element_gl_type, offset);
 		r_view.num_draw_elements++;
 		r_view.num_draw_element_count += count;
 	} else {
