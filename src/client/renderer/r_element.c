@@ -57,28 +57,21 @@ void R_AddElement(const r_element_t *e) {
 /**
  * @brief Adds elements for the specified blended surfaces lists.
  */
-static void R_AddBspSurfaceElements(void) {
+static void R_AddBspSurfaceElements(const r_bsp_surfaces_t *surfs, const r_element_type_t type) {
 	static r_element_t e;
 
-	r_bsp_surface_t *s = r_model_state.world->bsp->surfaces;
-
 	uint16_t i;
-	for (i = 0; i < r_model_state.world->bsp->num_surfaces; i++, s++) {
+	for (i = 0; i < surfs->count; i++) {
 
-		if (s->texinfo->flags & (SURF_BLEND_33 | SURF_BLEND_66)) {
-			if (s->frame == r_locals.frame) {
+		const r_bsp_surface_t *s = surfs->surfaces[i];
 
-				if (s->texinfo->flags & SURF_WARP) {
-					e.type = ELEMENT_BSP_SURFACE_BLEND_WARP;
-				} else {
-					e.type = ELEMENT_BSP_SURFACE_BLEND;
-				}
+		if (s->frame == r_locals.frame) {
 
-				e.element = (const void *) s;
-				e.origin = (const vec_t *) s->center;
+			e.type = type;
+			e.element = (const void *) s;
+			e.origin = (const vec_t *) s->center;
 
-				R_AddElement(&e);
-			}
+			R_AddElement(&e);
 		}
 	}
 }
@@ -171,7 +164,8 @@ static void R_SortParticles_(r_element_t *e, const size_t count) {
  */
 void R_SortElements(void *data) {
 
-	R_AddBspSurfaceElements();
+	R_AddBspSurfaceElements(&r_model_state.world->bsp->sorted_surfaces->blend, ELEMENT_BSP_SURFACE_BLEND);
+	R_AddBspSurfaceElements(&r_model_state.world->bsp->sorted_surfaces->blend_warp, ELEMENT_BSP_SURFACE_BLEND_WARP);
 
 	if (!r_element_state.count) {
 		return;
