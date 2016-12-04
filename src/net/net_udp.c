@@ -50,7 +50,8 @@ static cvar_t *net_loop_latency;
 static cvar_t *net_loop_jitter;
 
 /**
- * @brief
+ * @brief Reads a pending message, if available, from the loop buffer.
+ * @return True if a message was read, false otherwise.
  */
 static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
 	net_udp_loop_t *loop = &net_udp_state.loops[source];
