@@ -775,13 +775,16 @@ void Sv_Frame(const uint32_t msec) {
 	Sv_HeartbeatMasters();
 
 	// let everything in the world think and move
-	for (uint32_t i = 0; i < frame_delta / QUETOO_TICK_MILLIS; i++) {
+	while (frame_delta >= QUETOO_TICK_MILLIS) {
 
 		// run the simulation
 		Sv_RunGameFrame();
 
 		// send the resulting frame to connected clients
 		Sv_SendClientPackets();
+
+		// decrement the simulation time
+		frame_delta -= QUETOO_TICK_MILLIS;
 	}
 
 	// clear entity flags, etc for next frame
@@ -789,9 +792,6 @@ void Sv_Frame(const uint32_t msec) {
 
 	// redraw the console
 	Sv_DrawConsole();
-
-	// reset frame delta counter
-	frame_delta = 0;
 }
 
 /**
