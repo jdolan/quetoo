@@ -920,7 +920,7 @@ void R_InitState(void) {
 	Vector4Set(r_state.current_color, 1.0, 1.0, 1.0, 1.0);
 
 	// setup texture units
-	for (r_texunit_id_t i = 0; i < R_TEXUNIT_TOTAL; i++) {
+	for (int32_t i = 0; i < R_TEXUNIT_TOTAL; i++) {
 		r_texunit_t *texunit = &r_state.texunits[i];
 
 		if (i < r_config.max_texunits) {
