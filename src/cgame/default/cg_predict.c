@@ -90,7 +90,7 @@ void Cg_PredictMovement(const GList *cmds) {
 				pr->step_interval *= cgi.CvarValue("time_scale");
 			}
 
-			// save for debug checking
+			// save for error detection
 			const uint32_t frame = (uint32_t) (uintptr_t) (cmd - cgi.client->cmds);
 			VectorCopy(pm.s.origin, pr->origins[frame]);
 		}
