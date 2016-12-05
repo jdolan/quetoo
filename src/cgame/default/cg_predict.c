@@ -70,24 +70,24 @@ void Cg_PredictMovement(const GList *cmds) {
 			Pm_Move(&pm);
 
 			// for each movement, check for stair interaction and interpolate
-			if ((pm.s.flags & PMF_ON_STAIRS) && (cmd->time > pr->step_time)) {
+			if ((pm.s.flags & PMF_ON_STAIRS) && (cmd->time > pr->step.time)) {
 
 				// ensure we only count each step once
-				pr->step_time = cmd->time;
+				pr->step.time = cmd->time;
 
 				// determine if we're still interpolating the previous step
-				const uint32_t step_delta = cgi.client->systime - pr->step_timestamp;
+				const uint32_t step_delta = cgi.client->systime - pr->step.timestamp;
 
-				if (step_delta < pr->step_interval) {
-					const vec_t lerp = (pr->step_interval - step_delta) / (vec_t) pr->step_interval;
-					pr->step = pr->step * (1.0 - lerp) + pm.step;
+				if (step_delta < pr->step.interval) {
+					const vec_t lerp = (pr->step.interval - step_delta) / (vec_t) pr->step.interval;
+					pr->step.step = pr->step.step * (1.0 - lerp) + pm.step;
 				} else {
-					pr->step = pm.step;
-					pr->step_timestamp = cmd->timestamp;
+					pr->step.step = pm.step;
+					pr->step.timestamp = cmd->timestamp;
 				}
 
-				pr->step_interval = 128.0 * (fabs(pr->step) / PM_STEP_HEIGHT);
-				pr->step_interval /= cgi.CvarValue("time_scale");
+				pr->step.interval = 128.0 * (fabs(pr->step.step) / PM_STEP_HEIGHT);
+				pr->step.interval /= cgi.CvarValue("time_scale");
 			}
 
 			// save for error detection
@@ -99,10 +99,10 @@ void Cg_PredictMovement(const GList *cmds) {
 	}
 
 	// copy results out for rendering
-	VectorCopy(pm.s.origin, pr->origin);
+	VectorCopy(pm.s.origin, pr->view.origin);
 
-	UnpackVector(pm.s.view_offset, pr->view_offset);
-	UnpackAngles(pm.cmd.angles, pr->view_angles);
+	UnpackVector(pm.s.view_offset, pr->view.offset);
+	UnpackAngles(pm.cmd.angles, pr->view.angles);
 
 	pr->ground_entity = pm.ground_entity;
 }

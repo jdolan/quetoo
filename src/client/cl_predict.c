@@ -234,36 +234,40 @@ void Cl_PredictMovement(void) {
  * that Pm_Move or the protocol are not functioning correctly.
  */
 void Cl_CheckPredictionError(void) {
-	vec3_t delta;
-
-	VectorClear(cl.predicted_state.error);
 
 	if (!Cl_UsePrediction()) {
 		return;
 	}
 
+	const cl_predicted_state_t *pr = &cl.predicted_state;
+
 	// calculate the last cl_cmd_t we sent that the server has processed
-	const uint32_t frame = (cls.net_chan.incoming_acknowledged & CMD_MASK);
+	const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
 
-	// compare what the server returned with what we had predicted it to be
-	VectorSubtract(cl.frame.ps.pm_state.origin, cl.predicted_state.origins[frame], delta);
+	// subtract what the server returned with what we had predicted it to be
+	VectorSubtract(cl.frame.ps.pm_state.origin, pr->origins[frame], cl.frame.prediction_error);
 
-	// add it to the running prediction error
-	VectorAdd(cl.predicted_state.error, delta, cl.predicted_state.error);
+	if (VectorLength(cl.frame.prediction_error) > 0.1) {
+		Com_Debug("%s\n", vtos(cl.frame.prediction_error));
+	}
+}
 
-	const vec_t error = VectorLength(delta);
-	if (error > 0.0) {
-		Com_Debug("%s\n", vtos(delta));
+/**
+ * @return The interpolated prediction error for the current render frame.
+ */
+void Cl_PredictionError(vec3_t error) {
 
-		if (error > 32.0) { // do not interpolate
-			VectorClear(delta);
-		} else {
-			cl.predicted_state.error_time = cl.frame.time;
-			cl.predicted_state.error_interval = error * (16.0 / 1000) * time_scale->value;
-		}
+	VectorClear(error);
+
+	if (!Cl_UsePrediction()) {
+		return;
 	}
 
-	VectorCopy(delta, cl.predicted_state.error);
+	VectorCopy(cl.frame.prediction_error, error);
+
+	if (cl.delta_frame && cl.frame.delta_frame_num == cl.delta_frame->frame_num) {
+		VectorLerp(cl.delta_frame->prediction_error, cl.frame.prediction_error, cl.lerp, error);
+	}
 }
 
 /**

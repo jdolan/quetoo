@@ -83,22 +83,20 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 
 	if (Cl_UsePrediction()) {
 		const cl_predicted_state_t *pr = &cl.predicted_state;
+		vec3_t error;
 
 		// use client sided prediction
-		VectorAdd(pr->origin, pr->view_offset, r_view.origin);
+		VectorAdd(pr->view.origin, pr->view.offset, r_view.origin);
 
-		// interpolate prediction error
-		const uint32_t error_delta = cl.time - pr->error_time;
-		if (error_delta < pr->error_interval) {
-			const vec_t lerp = (pr->error_interval - error_delta) / (vec_t) pr->error_interval;
-			VectorMA(r_view.origin, -lerp, pr->error, r_view.origin);
-		}
+		// add the interpolated prediction error
+		Cl_PredictionError(error);
+		VectorAdd(r_view.origin, error, r_view.origin);
 
 		// interpolate stair traversal
-		const uint32_t step_delta = cl.systime - pr->step_timestamp;
-		if (step_delta < pr->step_interval) {
-			const vec_t lerp = (pr->step_interval - step_delta) / (vec_t) pr->step_interval;
-			VectorMA(r_view.origin, -lerp, (vec3_t) { 0.0, 0.0, pr->step}, r_view.origin);
+		const uint32_t step_delta = quetoo.time - pr->step.timestamp;
+		if (step_delta < pr->step.interval) {
+			const vec_t lerp = (pr->step.interval - step_delta) / (vec_t) pr->step.interval;
+			r_view.origin[2] = r_view.origin[2] - lerp * pr->step.step;
 		}
 
 	} else { // just use interpolated values from frame
@@ -128,7 +126,7 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 
 	// start with the predicted angles, or interpolate the server states
 	if (Cl_UsePrediction()) {
-		VectorCopy(cl.predicted_state.view_angles, r_view.angles);
+		VectorCopy(cl.predicted_state.view.angles, r_view.angles);
 	} else {
 		UnpackAngles(from->pm_state.view_angles, old_angles);
 		UnpackAngles(to->pm_state.view_angles, new_angles);

@@ -304,10 +304,10 @@ void Cl_ParseFrame(void) {
 		if (cls.state == CL_LOADING) {
 			cls.state = CL_ACTIVE;
 
-			VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_state.origin);
+			VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_state.view.origin);
 
-			UnpackVector(cl.frame.ps.pm_state.view_offset, cl.predicted_state.view_offset);
-			UnpackAngles(cl.frame.ps.pm_state.view_angles, cl.predicted_state.view_angles);
+			UnpackVector(cl.frame.ps.pm_state.view_offset, cl.predicted_state.view.offset);
+			UnpackAngles(cl.frame.ps.pm_state.view_angles, cl.predicted_state.view.angles);
 		}
 
 		Cl_CheckPredictionError();

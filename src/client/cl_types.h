@@ -42,6 +42,7 @@ typedef struct {
 	uint16_t num_entities;
 	uint32_t entity_state; // non-masked index into cl.entity_states array
 	_Bool valid; // false if delta parsing failed
+	vec3_t prediction_error;
 } cl_frame_t;
 
 typedef struct {
@@ -108,23 +109,23 @@ typedef struct {
  * unacknowledged user_cmd_t's through the player movement code locally.
  */
 typedef struct {
-	vec3_t origin; // this essentially becomes the view orientation
 
-	vec3_t view_offset; // by adding in this offset
-	vec3_t view_angles; // and applying these angles
+	struct {
+		vec3_t origin; // the predicted view origin
+		vec3_t offset; // and offset (ducking)
+		vec3_t angles; // and angles (local movement + delta angles)
+	} view;
 
-	vec3_t error; // delta from prediction result to server result
-	uint32_t error_time; // system time when error was last modified
-	uint32_t error_interval; // interpolation interval for error
+	struct {
+		vec_t step; // step height (up or down)
+		uint32_t time; // simulation time when step was traversed
+		uint32_t timestamp; // system time when step was traversed
+		uint32_t interval; // interpolation interval
+	} step;
 
 	struct g_entity_s *ground_entity;
 
-	vec_t step; // step height (up or down)
-	uint32_t step_time; // simulation time when step was traversed
-	uint32_t step_timestamp; // system time when step was traversed
-	uint32_t step_interval; // interpolation interval for step
-
-	vec3_t origins[CMD_BACKUP]; // for debugging against the server
+	vec3_t origins[CMD_BACKUP]; // for reconciling with the server
 } cl_predicted_state_t;
 
 /**
