@@ -266,7 +266,7 @@ void Cl_PredictionError(vec3_t error) {
 	VectorCopy(cl.frame.prediction_error, error);
 
 	if (cl.delta_frame && cl.frame.delta_frame_num == cl.delta_frame->frame_num) {
-		VectorLerp(cl.delta_frame->prediction_error, cl.frame.prediction_error, cl.lerp, error);
+		VectorLerp(cl.delta_frame->prediction_error, cl.frame.prediction_error, -(1.0 - cl.lerp), error);
 	}
 }
 
