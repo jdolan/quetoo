@@ -42,11 +42,11 @@ void Sv_HeartbeatMasters(void) {
 		return;
 	}
 
-	if (svs.next_heartbeat > quetoo.time) {
+	if (svs.next_heartbeat > quetoo.ticks) {
 		return;    // not time to send yet
 	}
 
-	svs.next_heartbeat = quetoo.time + HEARTBEAT_SECONDS * 1000;
+	svs.next_heartbeat = quetoo.ticks + HEARTBEAT_SECONDS * 1000;
 
 	// send the same string that we would give for a status command
 	string = Sv_StatusString();

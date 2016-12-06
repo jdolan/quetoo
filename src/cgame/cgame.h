@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 4
+#define CGAME_API_VERSION 5
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -45,6 +45,11 @@ typedef struct cg_import_s {
 	 * @brief The renderer view scene.
 	 */
 	r_view_t *view;
+
+	/**
+	 * @return System time, in milliseconds, since Quetoo started.
+	 */
+	uint32_t (*Time)(void);
 
 	/**
 	 * @defgroup console-appending Console appending

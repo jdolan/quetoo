@@ -46,7 +46,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 	str->size = strlen(str->chars);
 	str->length = StrColorLen(str->chars);
 
-	str->timestamp = quetoo.time;
+	str->timestamp = quetoo.ticks;
 
 	return str;
 }

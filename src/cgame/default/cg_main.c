@@ -21,6 +21,8 @@
 
 #include "cg_local.h"
 
+cvar_t *time_scale;
+
 cvar_t *cg_add_emits;
 cvar_t *cg_add_entities;
 cvar_t *cg_add_particles;
@@ -72,6 +74,8 @@ cg_import_t cgi;
 static void Cg_Init(void) {
 
 	cgi.Print("  Client game initialization...\n");
+
+	time_scale = cgi.Cvar("time_scale", "1.0", 0, NULL);
 
 	cg_add_emits = cgi.Cvar("cg_add_emits", "1", 0,
 	                        "Toggles adding client-side entities to the scene.");

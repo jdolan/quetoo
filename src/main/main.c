@@ -309,13 +309,13 @@ int32_t main(int32_t argc, char *argv[]) {
 		}
 
 		do {
-			quetoo.time = SDL_GetTicks();
-			msec = (quetoo.time - old_time) * time_scale->value;
+			quetoo.ticks = SDL_GetTicks();
+			msec = (quetoo.ticks - old_time) * time_scale->value;
 		} while (msec < 1);
 
 		Frame(msec);
 
-		old_time = quetoo.time;
+		old_time = quetoo.ticks;
 	}
 
 	return 0;

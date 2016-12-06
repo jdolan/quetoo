@@ -239,7 +239,7 @@ static void Sv_InitClients(void) {
 
 		// invalidate last frame to force a baseline
 		svs.clients[i].last_frame = -1;
-		svs.clients[i].last_message = quetoo.time;
+		svs.clients[i].last_message = quetoo.ticks;
 	}
 }
 

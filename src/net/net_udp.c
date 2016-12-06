@@ -68,7 +68,7 @@ static _Bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_bu
 	const net_udp_loop_message_t *msg = &loop->messages[i];
 
 	// simulate network latency and jitter for debugging net protocol locally
-	const uint32_t delta = quetoo.time - msg->timestamp;
+	const uint32_t delta = quetoo.ticks - msg->timestamp;
 	const uint32_t threshold = net_loop_latency->value * 0.5 + net_loop_jitter->value * Randomf();
 
 	if (delta < threshold) {
@@ -152,7 +152,7 @@ static _Bool Net_SendDatagram_Loop(net_src_t source, const void *data, size_t le
 
 	memcpy(loop->messages[i].data, data, len);
 	loop->messages[i].size = len;
-	loop->messages[i].timestamp = quetoo.time;
+	loop->messages[i].timestamp = quetoo.ticks;
 
 	return true;
 }

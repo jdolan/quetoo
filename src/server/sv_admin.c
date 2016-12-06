@@ -216,7 +216,7 @@ static void Sv_Status_f(void) {
 		           i,
 		           ping,
 		           cl->name,
-		           quetoo.time - cl->last_message,
+		           quetoo.ticks - cl->last_message,
 		           Net_NetaddrToString(&(cl->net_chan.remote_address)),
 		           cl->net_chan.qport);
 

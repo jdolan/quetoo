@@ -155,8 +155,8 @@ void Cl_DrawNotify(void) {
 		.level = (PRINT_MEDIUM | PRINT_HIGH),
 	};
 
-	if (quetoo.time > cl_notify_time->value * 1000) {
-		con.whence = quetoo.time - cl_notify_time->value * 1000;
+	if (quetoo.ticks > cl_notify_time->value * 1000) {
+		con.whence = quetoo.ticks - cl_notify_time->value * 1000;
 	}
 
 	char *lines[con.height];
@@ -190,8 +190,8 @@ void Cl_DrawChat(void) {
 
 	if (cl_draw_chat->value && cl_chat_console.height) {
 
-		if (quetoo.time > cl_chat_time->value * 1000) {
-			cl_chat_console.whence = quetoo.time - cl_chat_time->value * 1000;
+		if (quetoo.ticks > cl_chat_time->value * 1000) {
+			cl_chat_console.whence = quetoo.ticks - cl_chat_time->value * 1000;
 		}
 
 		char *lines[cl_chat_console.height];

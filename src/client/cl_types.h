@@ -163,9 +163,7 @@ typedef struct {
 
 	uint32_t surpress_count; // number of messages rate suppressed
 
-	uint32_t time; // server time that the client is rendering at
-	uint32_t systime; // system time, not clamped to the server
-
+	uint32_t time; // simulation time that the client is rendering at
 	vec_t lerp; // linear interpolation between frames
 
 	// the client maintains its own idea of view angles, which are

@@ -43,7 +43,7 @@ void Cl_UpdateMovementCommand(uint32_t msec) {
 	Cl_Look(&cmd->cmd);
 
 	cmd->time = cl.time;
-	cmd->timestamp = quetoo.time;
+	cmd->timestamp = quetoo.ticks;
 }
 
 /**
@@ -58,7 +58,7 @@ static void Cl_FinalizeMovementCommand(uint32_t msec) {
 	Cl_Move(&cmd->cmd);
 
 	cmd->time = cl.time;
-	cmd->timestamp = quetoo.time;
+	cmd->timestamp = quetoo.ticks;
 }
 
 /**
@@ -109,7 +109,7 @@ static void Cl_WriteUserInfoCommand(void) {
 void Cl_SendCommands(void) {
 	static uint32_t command_time;
 
-	uint32_t msec = (quetoo.time - command_time) * time_scale->value;
+	uint32_t msec = (quetoo.ticks - command_time) * time_scale->value;
 
 	if (msec < (QUETOO_TICK_MILLIS >> 1)) {
 		if (r_swap_interval->value) {
@@ -127,7 +127,7 @@ void Cl_SendCommands(void) {
 			if (cls.net_chan.message.size) {
 				Netchan_Transmit(&cls.net_chan, NULL, 0);
 				cl.packet_counter++;
-			} else if (quetoo.time - cls.net_chan.last_sent >= 1000) {
+			} else if (quetoo.ticks - cls.net_chan.last_sent >= 1000) {
 				Netchan_Transmit(&cls.net_chan, NULL, 0);
 				cl.packet_counter++;
 			}
@@ -157,6 +157,6 @@ void Cl_SendCommands(void) {
 			break;
 	}
 
-	command_time = quetoo.time;
+	command_time = quetoo.ticks;
 }
 

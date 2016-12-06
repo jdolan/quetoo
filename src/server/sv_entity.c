@@ -210,7 +210,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
 	// this is the frame we are creating
 	sv_frame_t *frame = &client->frames[sv.frame_num & PACKET_MASK];
-	frame->sent_time = quetoo.time; // timestamp for ping calculation
+	frame->sent_time = quetoo.ticks; // timestamp for ping calculation
 
 	// grab the current player_state_t
 	frame->ps = cent->client->ps;

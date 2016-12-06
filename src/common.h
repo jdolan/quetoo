@@ -139,7 +139,7 @@ typedef struct {
 	int32_t argc;
 	char **argv;
 
-	uint32_t time;
+	uint32_t ticks;
 	uint32_t subsystems;
 
 	void (*Debug)(const char *msg);

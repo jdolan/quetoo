@@ -75,7 +75,7 @@ void Cl_AddNetGraph(void) {
 
 	// see what the latency was on this packet
 	const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
-	const uint32_t ping = quetoo.time - cl.cmds[frame].timestamp;
+	const uint32_t ping = quetoo.ticks - cl.cmds[frame].timestamp;
 
 	Cl_NetGraph(ping / 300.0, 0xd0); // 300ms is lagged out
 }
@@ -300,7 +300,7 @@ static void Cl_DrawCounters(void) {
 
 	cl.frame_counter++;
 
-	if (quetoo.time % 16 == 0) {
+	if (quetoo.ticks % 16 == 0) {
 
 		VectorCopy(cl.frame.ps.pm_state.velocity, velocity);
 		velocity[2] = 0.0;
@@ -308,12 +308,12 @@ static void Cl_DrawCounters(void) {
 		g_snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));
 	}
 
-	if (quetoo.time - last_draw_time >= 1000) {
+	if (quetoo.ticks - last_draw_time >= 1000) {
 
 		g_snprintf(fps, sizeof(fps), "%4ufps", cl.frame_counter);
 		g_snprintf(pps, sizeof(pps), "%4upps", cl.packet_counter);
 
-		last_draw_time = quetoo.time;
+		last_draw_time = quetoo.ticks;
 
 		cl.frame_counter = 0;
 		cl.packet_counter = 0;

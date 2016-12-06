@@ -192,7 +192,7 @@ static void Sv_GetChallenge_f(void) {
 	if (i == MAX_CHALLENGES) { // overwrite the oldest
 		svs.challenges[oldest].challenge = Random();
 		svs.challenges[oldest].addr = net_from;
-		svs.challenges[oldest].time = quetoo.time;
+		svs.challenges[oldest].time = quetoo.ticks;
 		i = oldest;
 	}
 
@@ -336,7 +336,7 @@ static void Sv_Connect_f(void) {
 	Mem_InitBuffer(&client->datagram.buffer, client->datagram.data, sizeof(client->datagram.data));
 	client->datagram.buffer.allow_overflow = true;
 
-	client->last_message = quetoo.time;
+	client->last_message = quetoo.ticks;
 
 	client->state = SV_CLIENT_CONNECTED;
 }
@@ -489,11 +489,11 @@ static void Sv_CheckCommandTimes(void) {
 	static uint32_t last_check_time;
 
 	// see if its time to check the movements
-	if (quetoo.time - last_check_time < CMD_MSEC_CHECK_INTERVAL) {
+	if (quetoo.ticks - last_check_time < CMD_MSEC_CHECK_INTERVAL) {
 		return;
 	}
 
-	last_check_time = quetoo.time;
+	last_check_time = quetoo.ticks;
 
 	// inspect each client, ensuring they are reasonably in sync with us
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
@@ -572,7 +572,7 @@ static void Sv_ReadPackets(void) {
 
 			// this is a valid, sequenced packet, so process it
 			if (Netchan_Process(&cl->net_chan, &net_message)) {
-				cl->last_message = quetoo.time; // nudge timeout
+				cl->last_message = quetoo.ticks; // nudge timeout
 				Sv_ParseClientMessage(cl);
 			}
 
@@ -589,11 +589,11 @@ static void Sv_CheckTimeouts(void) {
 
 	const uint32_t timeout = 1000 * sv_timeout->value;
 
-	if (timeout > quetoo.time) {
+	if (timeout > quetoo.ticks) {
 		return;
 	}
 
-	const uint32_t whence = quetoo.time - timeout;
+	const uint32_t whence = quetoo.ticks - timeout;
 
 	sv_client_t *cl = svs.clients;
 	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {

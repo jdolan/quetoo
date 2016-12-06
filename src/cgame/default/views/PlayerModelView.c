@@ -100,7 +100,7 @@ static void render(View *self, Renderer *renderer) {
 		Matrix4x4_ConcatRotate(&mat,  90.0, 0.0, 0.0, 1.0);
 		Matrix4x4_ConcatTranslate(&mat, 64.0, 0.0, -8.0);
 
-		Matrix4x4_ConcatRotate(&mat, cgi.client->systime * 0.08, 0.0, 0.0, 1.0);
+		Matrix4x4_ConcatRotate(&mat, cgi.Time() * 0.08, 0.0, 0.0, 1.0);
 
 		cgi.SetMatrix(R_MATRIX_MODELVIEW, &mat);
 
@@ -191,9 +191,9 @@ static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e
 
 	const r_md3_animation_t *anim = &md3->animations[a->animation];
 
-	const uint32_t frameTime = (1500 / cgi.CvarValue("time_scale") ? : 1.0) / anim->hz;
+	const uint32_t frameTime = 1500 / time_scale->value / anim->hz;
 	const uint32_t animationTime = anim->num_frames * frameTime;
-	const uint32_t elapsedTime = cgi.client->systime - a->time;
+	const uint32_t elapsedTime = cgi.Time() - a->time;
 	uint16_t frame = elapsedTime / frameTime;
 
 	if (elapsedTime >= animationTime) {
@@ -206,7 +206,7 @@ static void animate_(const r_md3_t *md3, cl_entity_animation_t *a, r_entity_t *e
 			a->animation++;
 		}
 
-		a->time = cgi.client->systime;
+		a->time = cgi.Time();
 
 		animate_(md3, a, e);
 		return;

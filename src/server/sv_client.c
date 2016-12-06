@@ -438,7 +438,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 					cl->last_frame = last_frame;
 					if (cl->last_frame > -1) {
 						cl->frame_latency[cl->last_frame & (SV_CLIENT_LATENCY_COUNT - 1)] =
-						    quetoo.time - cl->frames[cl->last_frame & PACKET_MASK].sent_time;
+						    quetoo.ticks - cl->frames[cl->last_frame & PACKET_MASK].sent_time;
 					}
 				}
 

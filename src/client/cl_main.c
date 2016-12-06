@@ -99,7 +99,7 @@ static void Cl_AttemptConnect(void) {
 	}
 
 	// don't flood connection packets
-	if (cls.connect_time && (quetoo.time - cls.connect_time < 1000)) {
+	if (cls.connect_time && (quetoo.ticks - cls.connect_time < 1000)) {
 		return;
 	}
 
@@ -115,7 +115,7 @@ static void Cl_AttemptConnect(void) {
 		addr.port = htons(PORT_SERVER);
 	}
 
-	cls.connect_time = quetoo.time;
+	cls.connect_time = quetoo.ticks;
 
 	const char *s = Net_NetaddrToString(&addr);
 	if (g_strcmp0(cls.server_name, s)) {
@@ -290,7 +290,7 @@ void Cl_Disconnect(void) {
 
 	if (time_demo->value) { // summarize time_demo results
 
-		const vec_t s = (quetoo.time - cl.time_demo_start) / 1000.0;
+		const vec_t s = (quetoo.ticks - cl.time_demo_start) / 1000.0;
 
 		Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
 		          cl.time_demo_frames / s);
@@ -484,7 +484,7 @@ static void Cl_ReadPackets(void) {
 	// check timeout
 	if (cls.state >= CL_CONNECTED) {
 
-		const uint32_t delta = quetoo.time - cls.net_chan.last_received;
+		const uint32_t delta = quetoo.ticks - cls.net_chan.last_received;
 		if (delta > cl_timeout->value * 1000) {
 			Com_Warn("%s: Timed out.\n", Net_NetaddrToString(&net_from));
 			Cl_Disconnect();
@@ -591,16 +591,13 @@ void Cl_Frame(const uint32_t msec) {
 	// update the simulation time
 	cl.time += msec;
 
-	// and copy the system time for the client game module
-	cl.systime = quetoo.time;
-
 	if (time_demo->value) { // accumulate timed demo statistics
 		if (!cl.time_demo_start) {
-			cl.time_demo_start = quetoo.time;
+			cl.time_demo_start = quetoo.ticks;
 		}
 		cl.time_demo_frames++;
 	} else if (cl_max_fps->value > 0.0) { // cap render frame rate
-		if (quetoo.time - frame_time < 1000.0 / cl_max_fps->value) {
+		if (quetoo.ticks - frame_time < 1000.0 / cl_max_fps->value) {
 			return;
 		}
 	}
@@ -638,7 +635,7 @@ void Cl_Frame(const uint32_t msec) {
 	// update audio
 	S_Frame();
 
-	frame_time = quetoo.time;
+	frame_time = quetoo.ticks;
 }
 
 /**

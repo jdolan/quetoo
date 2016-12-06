@@ -203,7 +203,7 @@ typedef struct {
 
 	sv_client_download_t download; // UDP file downloads
 
-	uint32_t last_message; // quetoo.time when packet was last received
+	uint32_t last_message; // quetoo.ticks when packet was last received
 	net_chan_t net_chan;
 } sv_client_t;
 

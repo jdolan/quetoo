@@ -133,7 +133,7 @@ void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t
 		}
 	}
 
-	chan->last_received = quetoo.time;
+	chan->last_received = quetoo.ticks;
 	chan->incoming_sequence = 0;
 	chan->outgoing_sequence = 1;
 
@@ -190,7 +190,7 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 	const uint32_t w2 = (chan->incoming_sequence & ~(1u << 31)) | (chan->reliable_incoming << 31);
 
 	chan->outgoing_sequence++;
-	chan->last_sent = quetoo.time;
+	chan->last_sent = quetoo.ticks;
 
 	Net_WriteLong(&send, w1);
 	Net_WriteLong(&send, w2);
@@ -292,7 +292,7 @@ _Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
 	}
 
 	// the message can now be read from the current message pointer
-	chan->last_received = quetoo.time;
+	chan->last_received = quetoo.ticks;
 
 	return true;
 }
