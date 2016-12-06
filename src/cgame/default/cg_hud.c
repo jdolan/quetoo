@@ -239,7 +239,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 	cgi.BindFont(NULL, &cw, &ch);
 
 	if (ps->stats[STAT_PICKUP_ICON] > 0) {
-		const int16_t icon = ps->stats[(STAT_PICKUP_ICON & ~STAT_TOGGLE_BIT)];
+		const int16_t icon = ps->stats[STAT_PICKUP_ICON] & ~STAT_TOGGLE_BIT;
 		const int16_t pickup = ps->stats[STAT_PICKUP_STRING];
 
 		const char *string = cgi.ConfigString(pickup);

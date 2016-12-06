@@ -130,7 +130,7 @@ typedef enum {
 /**
  * @brief Forces a statistic field to be re-sent, even if the value has not changed.
  */
-#define STAT_TOGGLE_BIT		0x8000
+#define STAT_TOGGLE_BIT		0x4000
 
 /**
  * @brief Muzzle flashes are bound to the entity that created them. This allows
