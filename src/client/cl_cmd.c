@@ -43,7 +43,7 @@ void Cl_UpdateMovementCommand(uint32_t msec) {
 	Cl_Look(&cmd->cmd);
 
 	cmd->time = cl.time;
-	cmd->timestamp = quetoo.ticks;
+	cmd->timestamp = cl.ticks;
 }
 
 /**
@@ -58,7 +58,7 @@ static void Cl_FinalizeMovementCommand(uint32_t msec) {
 	Cl_Move(&cmd->cmd);
 
 	cmd->time = cl.time;
-	cmd->timestamp = quetoo.ticks;
+	cmd->timestamp = cl.ticks;
 }
 
 /**

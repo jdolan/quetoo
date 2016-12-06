@@ -87,7 +87,6 @@ void Cg_PredictMovement(const GList *cmds) {
 				}
 
 				pr->step.interval = 128.0 * (fabs(pr->step.step) / PM_STEP_HEIGHT);
-				pr->step.interval /= time_scale->value;
 			}
 
 			// save for error detection

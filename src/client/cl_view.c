@@ -93,7 +93,7 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 		VectorAdd(r_view.origin, error, r_view.origin);
 
 		// interpolate stair traversal
-		const uint32_t step_delta = quetoo.ticks - pr->step.timestamp;
+		const uint32_t step_delta = cl.ticks - pr->step.timestamp;
 		if (step_delta < pr->step.interval) {
 			const vec_t lerp = (pr->step.interval - step_delta) / (vec_t) pr->step.interval;
 			r_view.origin[2] = r_view.origin[2] - lerp * pr->step.step;
