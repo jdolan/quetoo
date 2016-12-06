@@ -249,11 +249,11 @@ static void Cl_KeyGame(const SDL_Event *event) {
 	if (bind[0] == '+') { // button commands add key and time as a param
 		if (event->type == SDL_KEYDOWN) {
 			if (cls.key_state.down[key] == false) {
-				g_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cl.time);
+				g_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cl.ticks);
 			}
 		} else {
 			if (cls.key_state.down[key] == true) {
-				g_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.time);
+				g_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.ticks);
 			}
 		}
 	} else {

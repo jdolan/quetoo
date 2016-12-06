@@ -84,11 +84,11 @@ static void Cl_KeyDown(cl_button_t *b) {
 	if (c[0]) {
 		k = atoi(c);
 	} else {
-		k = SDL_NUM_SCANCODES;    // typed manually at the console for continuous down
+		k = SDL_NUM_SCANCODES; // typed manually at the console for continuous down
 	}
 
 	if (k == b->keys[0] || k == b->keys[1]) {
-		return;    // repeating key
+		return; // repeating key
 	}
 
 	if (b->keys[0] == SDL_SCANCODE_UNKNOWN) {
@@ -101,16 +101,13 @@ static void Cl_KeyDown(cl_button_t *b) {
 	}
 
 	if (b->state & 1) {
-		return;    // still down
+		return; // still down
 	}
 
 	// save the down time so that we can calculate fractional time later
-	const char *t = Cmd_Argv(2);
-	b->down_time = atoi(t);
-	if (!b->down_time) {
-		b->down_time = quetoo.ticks;
-	}
+	b->down_time = atoi(Cmd_Argv(2)) ?: cl.ticks;
 
+	// and indicate that the key is down
 	b->state |= 1;
 }
 
@@ -131,15 +128,15 @@ static void Cl_KeyUp(cl_button_t *b) {
 	} else if (b->keys[1] == k) {
 		b->keys[1] = SDL_SCANCODE_UNKNOWN;
 	} else {
-		return;    // key up without corresponding down
+		return; // key up without corresponding down
 	}
 
 	if (b->keys[0] || b->keys[1]) {
-		return;    // some other key is still holding it down
+		return; // some other key is still holding it down
 	}
 
 	if (!(b->state & 1)) {
-		return;    // still up (this should not happen)
+		return; // still up (this should not happen)
 	}
 
 	// save timestamp
@@ -239,8 +236,8 @@ static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 	key->msec = 0;
 
 	if (key->state) { // still down, reset downtime for next frame
-		msec += quetoo.ticks - key->down_time;
-		key->down_time = quetoo.ticks;
+		msec += cl.ticks - key->down_time;
+		key->down_time = cl.ticks;
 	}
 
 	const vec_t frac = (msec * 1000.0) / (cmd_msec * 1000.0);
@@ -481,10 +478,10 @@ static void Cl_ClampPitch(void) {
 	}
 
 	if (cl.angles[PITCH] + pitch < -360.0) {
-		cl.angles[PITCH] += 360.0;    // wrapped
+		cl.angles[PITCH] += 360.0; // wrapped
 	}
 	if (cl.angles[PITCH] + pitch > 360.0) {
-		cl.angles[PITCH] -= 360.0;    // wrapped
+		cl.angles[PITCH] -= 360.0; // wrapped
 	}
 
 	if (cl.angles[PITCH] + pitch > 89.0) {
