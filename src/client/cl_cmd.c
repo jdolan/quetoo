@@ -107,9 +107,10 @@ static void Cl_WriteUserInfoCommand(void) {
  * command clock with the display refresh interval.
  */
 void Cl_SendCommands(void) {
-	static uint32_t command_time;
 
-	uint32_t msec = cl.ticks - command_time;
+	const cl_cmd_t *prev = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
+
+	uint32_t msec = cl.ticks - prev->timestamp;
 
 	if (msec < (QUETOO_TICK_MILLIS >> 1)) {
 		if (r_swap_interval->value) {
@@ -156,7 +157,5 @@ void Cl_SendCommands(void) {
 		default:
 			break;
 	}
-
-	command_time = cl.ticks;
 }
 
