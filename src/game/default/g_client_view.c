@@ -277,8 +277,9 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 	UnpackAngles(kick_angles, kick);
 
 	// if a kick has recently occurred, interpolate it over a few frames
+	const vec_t uplerp = VectorLength(ent->client->locals.kick_angles) < 4.0 ? 42.0 : 64.0;
 
-	const vec_t frac = (g_level.time - ent->client->locals.kick_angles_time) / QUETOO_TICK_RATE;
+	const vec_t frac = (g_level.time - ent->client->locals.kick_angles_time) / uplerp;
 	if (frac < 1.0) {
 		AngleLerp(kick, ent->client->locals.kick_angles, Clamp(frac, 0.0, 1.0), kick);
 	} else {
