@@ -75,7 +75,7 @@ void Cl_AddNetGraph(void) {
 
 	// see what the latency was on this packet
 	const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
-	const uint32_t ping = quetoo.ticks - cl.cmds[frame].timestamp;
+	const uint32_t ping = cl.ticks - cl.cmds[frame].timestamp;
 
 	Cl_NetGraph(ping / 300.0, 0xd0); // 300ms is lagged out
 }
