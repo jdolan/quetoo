@@ -979,7 +979,7 @@ void G_Init(void) {
 	g_warmup_time = gi.Cvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds, up to 30");
 	g_weapon_respawn_time = gi.Cvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds");
 
-	sv_max_clients = gi.Cvar("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
+	sv_max_clients = gi.Cvar("sv_max_clients", "1", CVAR_SERVER_INFO | CVAR_LATCH, NULL);
 	sv_hostname = gi.Cvar("sv_hostname", "Quetoo", CVAR_SERVER_INFO, NULL);
 
 	dedicated = gi.Cvar("dedicated", "0", CVAR_NO_SET, NULL);
