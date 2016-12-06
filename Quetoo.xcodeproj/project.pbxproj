@@ -943,11 +943,11 @@
 		CE12D5631C5C58C300CD0B13 /* cg_emit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_emit.h; sourceTree = "<group>"; };
 		CE12D5641C5C58C300CD0B13 /* cg_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_entity.c; sourceTree = "<group>"; };
 		CE12D5651C5C58C300CD0B13 /* cg_entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_entity.h; sourceTree = "<group>"; };
-		CE12D5661C5C58C300CD0B13 /* cg_entity_effect.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_entity_effect.c; sourceTree = "<group>"; };
+		CE12D5661C5C58C300CD0B13 /* cg_entity_effect.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cg_entity_effect.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D5671C5C58C300CD0B13 /* cg_entity_effect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_entity_effect.h; sourceTree = "<group>"; };
 		CE12D5681C5C58C300CD0B13 /* cg_entity_event.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_entity_event.c; sourceTree = "<group>"; };
 		CE12D5691C5C58C300CD0B13 /* cg_entity_event.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_entity_event.h; sourceTree = "<group>"; };
-		CE12D56A1C5C58C300CD0B13 /* cg_entity_trail.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_entity_trail.c; sourceTree = "<group>"; };
+		CE12D56A1C5C58C300CD0B13 /* cg_entity_trail.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cg_entity_trail.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D56B1C5C58C300CD0B13 /* cg_entity_trail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_entity_trail.h; sourceTree = "<group>"; };
 		CE12D56C1C5C58C300CD0B13 /* cg_hud.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud.c; sourceTree = "<group>"; };
 		CE12D56D1C5C58C300CD0B13 /* cg_hud.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud.h; sourceTree = "<group>"; };
@@ -960,7 +960,7 @@
 		CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_muzzle_flash.h; sourceTree = "<group>"; };
 		CE12D5751C5C58C300CD0B13 /* cg_particle.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_particle.c; sourceTree = "<group>"; };
 		CE12D5761C5C58C300CD0B13 /* cg_particle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_particle.h; sourceTree = "<group>"; };
-		CE12D5771C5C58C300CD0B13 /* cg_predict.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_predict.c; sourceTree = "<group>"; };
+		CE12D5771C5C58C300CD0B13 /* cg_predict.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cg_predict.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D5781C5C58C300CD0B13 /* cg_predict.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_predict.h; sourceTree = "<group>"; };
 		CE12D5791C5C58C300CD0B13 /* cg_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_score.c; sourceTree = "<group>"; };
 		CE12D57A1C5C58C300CD0B13 /* cg_score.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_score.h; sourceTree = "<group>"; };

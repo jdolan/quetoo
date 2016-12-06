@@ -89,7 +89,7 @@ cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *pa
 
 	Cg_PushParticle(p, &particles->particles);
 
-	p->time = cgi.Time();
+	p->time = cgi.client->ticks;
 
 	return p;
 }
@@ -215,15 +215,15 @@ void Cg_AddParticles(void) {
 		return;
 	}
 
-	if (last_particle_time > cgi.Time()) {
+	if (last_particle_time > cgi.client->ticks) {
 		last_particle_time = 0;
 	}
 
-	const vec_t delta = (cgi.Time() - last_particle_time) * 0.001;
+	const vec_t delta = (cgi.client->ticks - last_particle_time) * 0.001;
 	const vec_t delta_squared = delta * delta;
 	_Bool cull;
 
-	last_particle_time = cgi.Time();
+	last_particle_time = cgi.client->ticks;
 
 	cg_particles_t *ps = cg_active_particles;
 	while (ps) {
@@ -231,7 +231,7 @@ void Cg_AddParticles(void) {
 		cg_particle_t *p = ps->particles;
 		while (p) {
 			// update any particles allocated in previous frames
-			if (p->time != cgi.Time()) {
+			if (p->time != cgi.client->ticks) {
 
 				// apply color velocity
 				for (int32_t i = 0; i < 4; i++) {

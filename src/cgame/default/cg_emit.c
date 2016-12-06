@@ -352,9 +352,9 @@ static cg_emit_t *Cg_UpdateEmit(cg_emit_t *e) {
 		em.flags &= ~EMIT_VISIBLE;
 	}
 
-	if (em.flags && em.hz && em.time < cgi.Time()) { // update the time stamp
+	if (em.flags && em.hz && em.time < cgi.client->ticks) { // update the time stamp
 		const vec_t drift = e->drift * Randomf() * 1000.0;
-		e->time = cgi.Time() + (1000.0 / e->hz) + drift;
+		e->time = cgi.client->ticks + (1000.0 / e->hz) + drift;
 	}
 
 	return &em;
@@ -421,7 +421,7 @@ void Cg_AddEmits(void) {
 
 		// then add emits with timed events if they are due to run
 
-		if (e->time > cgi.Time()) {
+		if (e->time > cgi.client->ticks) {
 			continue;
 		}
 

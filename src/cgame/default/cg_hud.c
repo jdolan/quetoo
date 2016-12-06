@@ -84,7 +84,7 @@ static void Cg_DrawVital(r_pixel_t x, const int16_t value, const int16_t icon, i
 
 	if (value < low) {
 		if (cg_draw_vitals_pulse->integer) {
-			pulse[3] = sin(cgi.Time() / 250.0) + 0.75;
+			pulse[3] = sin(cgi.client->ticks / 250.0) + 0.75;
 		}
 		color = HUD_COLOR_STAT_LOW;
 	} else if (value < med) {
@@ -210,7 +210,7 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 		return;
 	}
 
-	vec4_t pulse = { 1.0, 1.0, 1.0, sin(cgi.Time() / 150.0) + 0.75 };
+	vec4_t pulse = { 1.0, 1.0, 1.0, sin(cgi.client->ticks / 150.0) + 0.75 };
 
 	x = cgi.view->viewport.x + (HUD_PIC_HEIGHT / 2);
 	y = cgi.view->viewport.y + ((cgi.view->viewport.h / 2) - (HUD_PIC_HEIGHT * 2));
@@ -533,7 +533,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		return;    // spectating
 	}
 
-	if (center_print.time > cgi.Time()) {
+	if (center_print.time > cgi.client->ticks) {
 		return;
 	}
 
@@ -593,12 +593,12 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		const int16_t p = ps->stats[STAT_PICKUP_ICON];
 
 		if (p && (p != pickup)) {
-			last_pulse_time = cgi.Time();
+			last_pulse_time = cgi.client->ticks;
 		}
 
 		pickup = p;
 
-		const vec_t delta = 1.0 - ((cgi.Time() - last_pulse_time) / 500.0);
+		const vec_t delta = 1.0 - ((cgi.client->ticks - last_pulse_time) / 500.0);
 
 		if (delta > 0.0) {
 			scale += cg_draw_crosshair_pulse->value * 0.5 * delta;
@@ -644,7 +644,7 @@ void Cg_ParseCenterPrint(void) {
 	}
 
 	center_print.num_lines++;
-	center_print.time = cgi.Time() + 3000;
+	center_print.time = cgi.client->ticks + 3000;
 }
 
 /**
@@ -658,7 +658,7 @@ static void Cg_DrawCenterPrint(const player_state_t *ps) {
 		return;
 	}
 
-	if (center_print.time < cgi.Time()) {
+	if (center_print.time < cgi.client->ticks) {
 		return;
 	}
 
@@ -690,7 +690,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 		return;
 	}
 
-	if (last_blend_time > cgi.Time()) {
+	if (last_blend_time > cgi.client->ticks) {
 		last_blend_time = 0;
 	}
 
@@ -698,7 +698,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	const int16_t p = ps->stats[STAT_PICKUP_ICON];
 
 	if (p && (p != pickup)) {
-		last_blend_time = cgi.Time();
+		last_blend_time = cgi.client->ticks;
 		color = 215;
 		alpha = 0.3;
 	}
@@ -708,13 +708,13 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	const int16_t d = ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH];
 
 	if (d) {
-		last_blend_time = cgi.Time();
+		last_blend_time = cgi.client->ticks;
 		color = 240;
 		alpha = 0.3;
 	}
 
 	// determine the current blend color based on the above events
-	vec_t t = (vec_t) (cgi.Time() - last_blend_time) / 500.0;
+	vec_t t = (vec_t) (cgi.client->ticks - last_blend_time) / 500.0;
 	vec_t al = cg_draw_blend->value * (alpha - (t * alpha));
 
 	if (al < 0.0 || al > 1.0) {
@@ -754,13 +754,13 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 		static uint32_t last_damage_time;
 
 		// wrap timer around level changes
-		if (last_damage_time > cgi.Time()) {
+		if (last_damage_time > cgi.client->ticks) {
 			last_damage_time = 0;
 		}
 
 		// play the hit sound
-		if (cgi.Time() - last_damage_time > 50) {
-			last_damage_time = cgi.Time();
+		if (cgi.client->ticks - last_damage_time > 50) {
+			last_damage_time = cgi.client->ticks;
 
 			cgi.AddSample(&(const s_play_sample_t) {
 				.sample = dmg >= 25 ? cg_sample_hits[1] : cg_sample_hits[0]

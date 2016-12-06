@@ -24,13 +24,6 @@
 static void *cgame_handle;
 
 /**
- * @brief
- */
-static uint32_t Cl_Time(void) {
-	return quetoo.ticks;
-}
-
-/**
  * @brief Abort the server with a game error. This wraps Com_Error, always emitting ERR_DROP.
  */
 static void Cl_CgameError(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
@@ -140,8 +133,6 @@ void Cl_InitCgame(void) {
 	import.context = &r_context;
 
 	import.view = &r_view;
-
-	import.Time = Cl_Time;
 
 	import.Print = Com_Print;
 	import.Debug_ = Com_Debug_;

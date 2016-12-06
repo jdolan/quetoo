@@ -50,10 +50,10 @@ static void Cg_UpdateFov(void) {
 
 		if (time == 0) {
 			prev = cgi.view->fov[0] * 2.0, next = cg_fov->value;
-			time = cgi.Time();
+			time = cgi.client->ticks;
 		}
 
-		const vec_t frac = (cgi.Time() - time) / (cg_fov_interpolate->value * 100.0);
+		const vec_t frac = (cgi.client->ticks - time) / (cg_fov_interpolate->value * 100.0);
 		if (frac >= 1.0) {
 			time = 0;
 			fov = next;

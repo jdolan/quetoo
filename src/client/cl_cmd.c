@@ -109,7 +109,7 @@ static void Cl_WriteUserInfoCommand(void) {
 void Cl_SendCommands(void) {
 	static uint32_t command_time;
 
-	uint32_t msec = (quetoo.ticks - command_time) * time_scale->value;
+	uint32_t msec = cl.ticks - command_time;
 
 	if (msec < (QUETOO_TICK_MILLIS >> 1)) {
 		if (r_swap_interval->value) {
@@ -157,6 +157,6 @@ void Cl_SendCommands(void) {
 			break;
 	}
 
-	command_time = quetoo.ticks;
+	command_time = cl.ticks;
 }
 

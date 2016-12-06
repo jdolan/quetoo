@@ -76,7 +76,7 @@ void Cg_PredictMovement(const GList *cmds) {
 				pr->step.time = cmd->time;
 
 				// determine if we're still interpolating the previous step
-				const uint32_t step_delta = cgi.Time() - pr->step.timestamp;
+				const uint32_t step_delta = cgi.client->ticks - pr->step.timestamp;
 
 				if (step_delta < pr->step.interval) {
 					const vec_t lerp = (pr->step.interval - step_delta) / (vec_t) pr->step.interval;

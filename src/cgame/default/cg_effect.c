@@ -253,11 +253,11 @@ static void Cg_AddWeather(void) {
 		 .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME
 	});
 
-	if (cgi.Time() - cg_weather_state.time < 100) {
+	if (cgi.client->ticks - cg_weather_state.time < 100) {
 		return;
 	}
 
-	cg_weather_state.time = cgi.Time();
+	cg_weather_state.time = cgi.client->ticks;
 
 	const cg_weather_emit_t *e = cg_weather_state.emits;
 

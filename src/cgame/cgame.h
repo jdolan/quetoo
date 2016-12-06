@@ -47,11 +47,6 @@ typedef struct cg_import_s {
 	r_view_t *view;
 
 	/**
-	 * @return System time, in milliseconds, since Quetoo started.
-	 */
-	uint32_t (*Time)(void);
-
-	/**
 	 * @defgroup console-appending Console appending
 	 * @{
 	 */
