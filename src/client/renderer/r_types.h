@@ -1082,7 +1082,7 @@ typedef struct {
 	r_plugin_t plugin; // active renderer plugin
 
 	byte weather; // weather effects
-	vec3_t fog_color;
+	vec4_t fog_color;
 
 	uint16_t num_entities;
 	r_entity_t entities[MAX_ENTITIES];

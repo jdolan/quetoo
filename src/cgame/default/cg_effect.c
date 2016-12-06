@@ -38,7 +38,7 @@ typedef struct {
 static cg_weather_state_t cg_weather_state;
 
 /**
- * @brief Parses CS_WEATHER for weather and fog parameters, e.g. "rain fog 0.8 0.75 0.65".
+ * @brief Parses CS_WEATHER for weather and fog parameters, e.g. "rain fog 0.8 0.75 0.65 [1.0]".
  */
 void Cg_ResolveWeather(const char *weather) {
 	char *c;
@@ -48,7 +48,7 @@ void Cg_ResolveWeather(const char *weather) {
 
 	cgi.view->weather = WEATHER_NONE;
 
-	VectorSet(cgi.view->fog_color, 0.75, 0.75, 0.75);
+	Vector4Set(cgi.view->fog_color, 0.75, 0.75, 0.75, 1.0);
 
 	if (!weather || *weather == '\0') {
 		return;
@@ -69,11 +69,12 @@ void Cg_ResolveWeather(const char *weather) {
 
 		if (strlen(c) > 3) { // try to parse fog color
 			vec_t *f = cgi.view->fog_color;
-			err = sscanf(c + 4, "%f %f %f", f, f + 1, f + 2);
+			
+			err = sscanf(c + 4, "%f %f %f %f", f, f + 1, f + 2, f + 3);
 		}
 
-		if (err != 3) { // default to gray
-			VectorSet(cgi.view->fog_color, 0.75, 0.75, 0.75);
+		if (err != 3 && err != 4) { // default to gray
+			Vector4Set(cgi.view->fog_color, 0.75, 0.75, 0.75, 1.0);
 		}
 	}
 }
