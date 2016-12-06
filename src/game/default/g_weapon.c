@@ -472,8 +472,6 @@ void G_FireMachinegun(g_entity_t *ent) {
 			G_ClientWeaponKick(ent, 0.375);
 		}
 
-		gi.Print("%f\n", VectorLength(ent->client->locals.kick_angles));
-
 		G_WeaponFired(ent, 80);
 	}
 }
