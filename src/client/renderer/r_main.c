@@ -359,7 +359,7 @@ void R_LoadMedia(void) {
 
 	R_BeginLoading();
 
-	Cl_LoadingProgress(0, "world");
+	Cl_LoadingProgress(5, "world");
 
 	R_LoadModel(cl.config_strings[CS_MODELS]); // load the world
 
