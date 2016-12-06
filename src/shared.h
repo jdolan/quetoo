@@ -184,4 +184,15 @@ void DeleteUserInfo(char *s, const char *key);
 void SetUserInfo(char *s, const char *key, const char *value);
 _Bool ValidateUserInfo(const char *s);
 
+/**
+ * @brief Game modes. These are selected via g_gameplay and
+ * sent to client via configstring.
+ */
+typedef enum {
+	GAME_DEATHMATCH,
+	GAME_INSTAGIB,
+	GAME_ARENA,
+	GAME_DUEL
+} g_gameplay_t;
+
 #endif /* __SHARED_H__ */

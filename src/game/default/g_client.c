@@ -604,8 +604,8 @@ static void G_InitClientInventory(g_entity_t *ent) {
 
 	// instagib gets railgun and slugs, both in normal mode and warmup
 	if (g_level.gameplay == GAME_INSTAGIB) {
-		G_Give(ent, "Railgun", 1000);
-		G_Give(ent, "Grenades", 50);
+		G_Give(ent, "Railgun", 1);
+		G_Give(ent, "Grenades", 1);
 		item = G_FindItem("Railgun");
 	}
 	// arena or dm warmup yields all weapons, health, etc..

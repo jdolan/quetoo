@@ -293,9 +293,11 @@ static void G_WeaponFired(g_entity_t *ent, uint32_t interval) {
 	ent->client->locals.weapon_fire_time = g_level.time + interval;
 
 	// and decrease their inventory
-	if (ent->client->locals.ammo_index) {
-		ent->client->locals.inventory[ent->client->locals.ammo_index] -=
-		    ent->client->locals.weapon->quantity;
+	if (g_level.gameplay != GAME_INSTAGIB) {
+		if (ent->client->locals.ammo_index) {
+			ent->client->locals.inventory[ent->client->locals.ammo_index] -=
+				ent->client->locals.weapon->quantity;
+		}
 	}
 
 	// play a quad damage sound if applicable

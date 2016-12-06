@@ -127,23 +127,26 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 		Cg_DrawVital(x, health, health_icon, HUD_HEALTH_MED, HUD_HEALTH_LOW);
 	}
 
-	if (ps->stats[STAT_AMMO] > 0) {
-		const int16_t ammo = ps->stats[STAT_AMMO];
-		const int16_t ammo_low = ps->stats[STAT_AMMO_LOW];
-		const int16_t ammo_icon = ps->stats[STAT_AMMO_ICON];
+	if (atoi(cgi.ConfigString(CS_GAMEPLAY)) != GAME_INSTAGIB) {
+	
+		if (ps->stats[STAT_AMMO] > 0) {
+			const int16_t ammo = ps->stats[STAT_AMMO];
+			const int16_t ammo_low = ps->stats[STAT_AMMO_LOW];
+			const int16_t ammo_icon = ps->stats[STAT_AMMO_ICON];
 
-		x = cgi.view->viewport.w * 0.5 - x_offset;
+			x = cgi.view->viewport.w * 0.5 - x_offset;
 
-		Cg_DrawVital(x, ammo, ammo_icon, -1, ammo_low);
-	}
+			Cg_DrawVital(x, ammo, ammo_icon, -1, ammo_low);
+		}
 
-	if (ps->stats[STAT_ARMOR] > 0) {
-		const int16_t armor = ps->stats[STAT_ARMOR];
-		const int16_t armor_icon = ps->stats[STAT_ARMOR_ICON];
+		if (ps->stats[STAT_ARMOR] > 0) {
+			const int16_t armor = ps->stats[STAT_ARMOR];
+			const int16_t armor_icon = ps->stats[STAT_ARMOR_ICON];
 
-		x = cgi.view->viewport.w * 0.75 - x_offset;
+			x = cgi.view->viewport.w * 0.75 - x_offset;
 
-		Cg_DrawVital(x, armor, armor_icon, HUD_ARMOR_MED, HUD_ARMOR_LOW);
+			Cg_DrawVital(x, armor, armor_icon, HUD_ARMOR_MED, HUD_ARMOR_LOW);
+		}
 	}
 
 	cgi.BindFont(NULL, NULL, NULL);

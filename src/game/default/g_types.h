@@ -50,16 +50,6 @@ typedef enum {
 } g_cl_packet_cmd_t;
 
 /**
- * @brief Game modes. These are selected via g_gameplay.
- */
-typedef enum {
-	GAME_DEATHMATCH,
-	GAME_INSTAGIB,
-	GAME_ARENA,
-	GAME_DUEL
-} g_gameplay_t;
-
-/**
  * @brief Map list entries describe available gameplay parameters for a given map.
  */
 typedef struct {
