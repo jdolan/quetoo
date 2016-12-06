@@ -25,8 +25,6 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-	extern cvar_t *time_scale;
-
 	extern cvar_t *cg_add_emits;
 	extern cvar_t *cg_add_entities;
 	extern cvar_t *cg_add_particles;
