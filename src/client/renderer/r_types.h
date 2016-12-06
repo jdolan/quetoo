@@ -1075,7 +1075,7 @@ typedef struct {
 	uint32_t contents; // view origin contents mask
 	vec_t bob;
 
-	uint32_t time;
+	uint32_t ticks; // unclamped simulation time
 
 	byte *area_bits; // if not NULL, only areas with set bits will be drawn
 

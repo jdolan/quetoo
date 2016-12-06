@@ -102,9 +102,9 @@ void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 		r_bsp_flare_t *f = surf->flare;
 
 		// periodically test visibility to ramp alpha
-		if (r_view.time - f->time > 15) {
+		if (r_view.ticks - f->time > 15) {
 
-			if (r_view.time - f->time > 500) { // reset old flares
+			if (r_view.ticks - f->time > 500) { // reset old flares
 				f->alpha = 0;
 			}
 
@@ -113,7 +113,7 @@ void R_AddFlareBspSurfaces(const r_bsp_surfaces_t *surfs) {
 			f->alpha += (tr.fraction == 1.0) ? 0.03 : -0.15; // ramp
 			f->alpha = Clamp(f->alpha, 0.0, 1.0); // clamp
 
-			f->time = r_view.time;
+			f->time = r_view.ticks;
 		}
 
 		vec3_t view;

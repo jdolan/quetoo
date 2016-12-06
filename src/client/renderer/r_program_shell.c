@@ -85,7 +85,7 @@ void R_InitProgram_shell(r_program_t *program) {
  */
 void R_UseProgram_shell(void) {
 
-	R_ProgramParameter1f(&r_shell_program.offset, r_view.time * 0.00025);
+	R_ProgramParameter1f(&r_shell_program.offset, r_view.ticks * 0.00025);
 }
 
 /**

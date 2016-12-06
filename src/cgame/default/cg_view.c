@@ -169,7 +169,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	vec_t speed = VectorLength(velocity) / (max_speed * 2.0);
 	speed = Clamp(speed, 0.0, 1.0);
 
-	vec_t ftime = Clamp(cgi.view->time - vtime, 1u, 1000u);
+	vec_t ftime = Clamp(cgi.client->ticks - vtime, 1u, 1000u);
 	ftime *= (1.0 + speed * 1.0 + speed);
 
 	if (!(ps->pm_state.flags & PMF_ON_GROUND)) {
@@ -177,7 +177,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	}
 
 	time += ftime;
-	vtime = cgi.view->time;
+	vtime = cgi.client->ticks;
 
 	cgi.view->bob = sin(0.0045 * time) * (0.5 + speed) * (0.5 + speed);
 	cgi.view->bob *= cg_bob->value; // scale via cvar too

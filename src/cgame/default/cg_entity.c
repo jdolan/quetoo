@@ -69,7 +69,7 @@ _Bool Cg_IsDucking(const entity_state_t *ent) {
  */
 static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 
-	if (cgi.view->time < ent->breath_puff_time) {
+	if (cgi.client->ticks < ent->breath_puff_time) {
 		return;
 	}
 
@@ -111,7 +111,7 @@ static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 		p->vel[2] += 6.0;
 		p->accel[2] = 10.0;
 
-		ent->breath_puff_time = cgi.view->time + 3000;
+		ent->breath_puff_time = cgi.client->ticks + 3000;
 	} else if (cgi.view->weather & WEATHER_RAIN || cgi.view->weather & WEATHER_SNOW) {
 
 		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam))) {
@@ -136,7 +136,7 @@ static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 			p->vel[i] += 2.0 * Randomc();
 		}
 
-		ent->breath_puff_time = cgi.view->time + 3000;
+		ent->breath_puff_time = cgi.client->ticks + 3000;
 	}
 }
 

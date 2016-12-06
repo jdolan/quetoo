@@ -83,7 +83,7 @@ void R_UseProgram_warp(void) {
 
 	r_warp_program_t *p = &r_warp_program;
 
-	R_ProgramParameter1f(&p->offset, r_view.time * 0.000125);
+	R_ProgramParameter1f(&p->offset, r_view.ticks * 0.000125);
 }
 
 /**

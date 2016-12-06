@@ -68,30 +68,30 @@ static r_material_state_t r_material_state;
  */
 static void R_UpdateMaterialStage(r_material_t *m, r_stage_t *s) {
 	if (s->flags & STAGE_PULSE) {
-		s->pulse.dhz = (sin(r_view.time * s->pulse.hz * 0.00628) + 1.0) / 2.0;
+		s->pulse.dhz = (sin(r_view.ticks * s->pulse.hz * 0.00628) + 1.0) / 2.0;
 	}
 
 	if (s->flags & STAGE_STRETCH) {
-		s->stretch.dhz = (sin(r_view.time * s->stretch.hz * 0.00628) + 1.0) / 2.0;
+		s->stretch.dhz = (sin(r_view.ticks * s->stretch.hz * 0.00628) + 1.0) / 2.0;
 		s->stretch.damp = 1.5 - s->stretch.dhz * s->stretch.amp;
 	}
 
 	if (s->flags & STAGE_ROTATE) {
-		s->rotate.deg = r_view.time * s->rotate.hz * 0.360;
+		s->rotate.deg = r_view.ticks * s->rotate.hz * 0.360;
 	}
 
 	if (s->flags & STAGE_SCROLL_S) {
-		s->scroll.ds = s->scroll.s * r_view.time / 1000.0;
+		s->scroll.ds = s->scroll.s * r_view.ticks / 1000.0;
 	}
 
 	if (s->flags & STAGE_SCROLL_T) {
-		s->scroll.dt = s->scroll.t * r_view.time / 1000.0;
+		s->scroll.dt = s->scroll.t * r_view.ticks / 1000.0;
 	}
 
 	if (s->flags & STAGE_ANIM) {
 		if (s->anim.fps) {
-			if (r_view.time >= s->anim.dtime) { // change frames
-				s->anim.dtime = r_view.time + (1000 / s->anim.fps);
+			if (r_view.ticks >= s->anim.dtime) { // change frames
+				s->anim.dtime = r_view.ticks + (1000 / s->anim.fps);
 				s->image = s->anim.frames[++s->anim.dframe % s->anim.num_frames];
 			}
 		} else if (r_view.current_entity) {
@@ -106,12 +106,12 @@ static void R_UpdateMaterialStage(r_material_t *m, r_stage_t *s) {
 static void R_UpdateMaterial(r_material_t *m) {
 
 	if (!r_view.current_entity) {
-		if (r_view.time - m->time < UPDATE_THRESHOLD) {
+		if (r_view.ticks - m->time < UPDATE_THRESHOLD) {
 			return;
 		}
 	}
 
-	m->time = r_view.time;
+	m->time = r_view.ticks;
 }
 
 /**

@@ -181,10 +181,16 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 void Cl_UpdateView(void) {
 
 	if (!cl.frame.valid && !r_view.update) {
-		return;    // not a valid frame, and no forced update
+		return; // not a valid frame, and no forced update
 	}
 
 	Cl_ClearView();
+
+	// set ticks
+	r_view.ticks = cl.ticks;
+
+	// set area bits to mark visible leafs
+	r_view.area_bits = cl.frame.area_bits;
 
 	const cl_frame_t *frame = &cl.frames[(cl.frame.frame_num - 1) & PACKET_MASK];
 	const player_state_t *from = frame->frame_num == cl.frame.frame_num - 1 ? &frame->ps : &cl.frame.ps;
@@ -195,13 +201,8 @@ void Cl_UpdateView(void) {
 
 	Cl_UpdateViewSize();
 
+	// allow client game to modify view (bob, third person, etc)
 	cls.cgame->UpdateView(&cl.frame);
-
-	// set time
-	r_view.time = cl.ticks;
-
-	// set area bits to mark visible leafs
-	r_view.area_bits = cl.frame.area_bits;
 
 	// create the thread which populates the view
 	r_view.thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateView, &cl.frame);

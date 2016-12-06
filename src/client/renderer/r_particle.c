@@ -153,7 +153,7 @@ static void R_ParticleVerts(const r_particle_t *p, r_particle_interleave_vertex_
 		vec3_t dir;
 
 		VectorCopy(r_view.angles, dir);
-		dir[2] = p->roll * r_view.time / 1000.0;
+		dir[2] = p->roll * r_view.ticks / 1000.0;
 
 		AngleVectors(dir, NULL, right, up);
 
@@ -201,8 +201,8 @@ static void R_ParticleTexcoords(const r_particle_t *p, r_particle_interleave_ver
 		Vector2Set(verts[2].texcoord, atlas_image->texcoords[2], atlas_image->texcoords[3]);
 		Vector2Set(verts[3].texcoord, atlas_image->texcoords[0], atlas_image->texcoords[3]);
 	} else {
-		s = p->scroll_s * r_view.time / 1000.0;
-		t = p->scroll_t *r_view.time / 1000.0;
+		s = p->scroll_s * r_view.ticks / 1000.0;
+		t = p->scroll_t *r_view.ticks / 1000.0;
 
 		Vector2Set(verts[0].texcoord, s, t);
 		Vector2Set(verts[1].texcoord, 1.0 + s, t);

@@ -58,8 +58,8 @@ void R_AddSustainedLight(const r_sustained_light_t *s) {
 
 	r_view.sustained_lights[i] = *s;
 
-	r_view.sustained_lights[i].time = r_view.time;
-	r_view.sustained_lights[i].sustain = r_view.time + s->sustain;
+	r_view.sustained_lights[i].time = r_view.ticks;
+	r_view.sustained_lights[i].sustain = r_view.ticks + s->sustain;
 }
 
 /**
@@ -72,14 +72,14 @@ void R_AddSustainedLights(void) {
 	// sustains must be recalculated every frame
 	for (i = 0, s = r_view.sustained_lights; i < MAX_LIGHTS; i++, s++) {
 
-		if (s->sustain <= r_view.time) { // clear it
+		if (s->sustain <= r_view.ticks) { // clear it
 			s->sustain = 0.0;
 			continue;
 		}
 
 		r_light_t l = s->light;
 
-		const vec_t intensity = (s->sustain - r_view.time) / (vec_t) (s->sustain - s->time);
+		const vec_t intensity = (s->sustain - r_view.ticks) / (vec_t) (s->sustain - s->time);
 
 		l.radius *= intensity;
 		VectorScale(l.color, intensity, l.color);

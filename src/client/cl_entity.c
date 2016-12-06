@@ -324,7 +324,7 @@ void Cl_ParseFrame(void) {
  * millisecond delta. Here, we clamp the simulation time to be within the
  * range of the current frame. Even under ideal conditions, it's likely that
  * clamping will occur. This is due, in part, to the game using fixed integer
- * frame durations (e.g. 60hz * 16ms < 1000ms).
+ * frame durations (e.g. 48hz * 20ms < 1000ms).
  */
 static void Cl_UpdateLerp(void) {
 
