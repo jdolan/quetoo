@@ -286,7 +286,7 @@ static void Cl_DrawSoundStats(void) {
 static void Cl_DrawCounters(void) {
 	static vec3_t velocity;
 	static char pps[8], fps[8], spd[8];
-	static int32_t last_draw_time;
+	static int32_t last_draw_time, last_speed_time;
 	r_pixel_t cw, ch;
 
 	if (!cl_draw_counters->value) {
@@ -300,12 +300,14 @@ static void Cl_DrawCounters(void) {
 
 	cl.frame_counter++;
 
-	if (quetoo.ticks % 16 == 0) {
+	if (quetoo.ticks - last_speed_time >= 100) {
 
 		VectorCopy(cl.frame.ps.pm_state.velocity, velocity);
 		velocity[2] = 0.0;
 
 		g_snprintf(spd, sizeof(spd), "%4.0fspd", VectorLength(velocity));
+
+		last_speed_time = quetoo.ticks;
 	}
 
 	if (quetoo.ticks - last_draw_time >= 1000) {
