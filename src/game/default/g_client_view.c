@@ -251,8 +251,7 @@ static void G_ClientEventKick(g_entity_t *ent) {
  */
 static void G_ClientDecayKick(g_entity_t *ent) {
 
-	vec_t delta = VectorLength(ent->client->locals.kick_angles);
-	delta = 0.250 + delta * delta * QUETOO_TICK_SECONDS;
+	vec_t delta = 0.25 + VectorLengthSquared(ent->client->locals.kick_angles) * QUETOO_TICK_SECONDS;
 
 	for (int32_t i = 0; i < 3; i++) {
 
