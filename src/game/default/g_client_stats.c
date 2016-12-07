@@ -268,7 +268,7 @@ void G_ClientStats(g_entity_t *ent) {
 
 	// pickup message
 	if (g_level.time > client->locals.pickup_msg_time) {
-		client->ps.stats[STAT_PICKUP_ICON] = 0;
+		client->ps.stats[STAT_PICKUP_ICON] = -1;
 		client->ps.stats[STAT_PICKUP_STRING] = 0;
 	}
 

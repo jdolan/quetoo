@@ -241,7 +241,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 
 	cgi.BindFont(NULL, &cw, &ch);
 
-	if (ps->stats[STAT_PICKUP_ICON] > 0) {
+	if (ps->stats[STAT_PICKUP_ICON] != -1) {
 		const int16_t icon = ps->stats[STAT_PICKUP_ICON] & ~STAT_TOGGLE_BIT;
 		const int16_t pickup = ps->stats[STAT_PICKUP_STRING];
 
@@ -698,9 +698,9 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 	}
 
 	// determine if we've picked up an item
-	const int16_t p = ps->stats[STAT_PICKUP_ICON];
+	const int16_t p = ps->stats[STAT_PICKUP_ICON] & ~STAT_TOGGLE_BIT;
 
-	if (p && (p != pickup)) {
+	if (p > -1 && (p != pickup)) {
 		last_blend_time = cgi.client->ticks;
 		color = 215;
 		alpha = 0.3;
