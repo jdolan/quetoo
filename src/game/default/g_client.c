@@ -434,6 +434,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 		if ((g_level.gameplay == GAME_DEATHMATCH || g_level.gameplay == GAME_DUEL) && mod != MOD_TRIGGER_HURT) {
 			G_TossWeapon(self);
 			G_TossQuadDamage(self);
+			G_ClientHookDetach(self);
 		}
 
 		if (g_level.ctf) {
@@ -1173,6 +1174,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 
 	G_TossQuadDamage(ent);
 	G_TossFlag(ent);
+	G_ClientHookDetach(ent);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.persistent.net_name);
 
@@ -1491,6 +1493,17 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 		}
 	}
 
+	if (cl->locals.latched_buttons & BUTTON_HOOK) {
+
+		if (cl->locals.persistent.spectator) {
+
+			// TODO: hook this into spectator maybe?
+		} else if (cl->locals.hook_think_time < g_level.time) {
+
+			G_ClientHookThink(ent);
+		}
+	}
+
 	G_ClientInventoryThink(ent);
 
 	// update chase camera if being followed
@@ -1519,6 +1532,10 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 	// run weapon think if it hasn't been done by a command
 	if (cl->locals.weapon_think_time < g_level.time) {
 		G_ClientWeaponThink(ent);
+	}
+
+	if (cl->locals.hook_think_time < g_level.time) {
+		G_ClientHookThink(ent);
 	}
 
 	if (ent->locals.dead) {

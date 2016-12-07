@@ -435,16 +435,17 @@ static void Cl_Bind_Autocomplete_f(const uint32_t argi, GList **matches) {
 
 	const char *pattern = va("%s*", Cmd_Argv(argi));
 
-	for (uint32_t i = 0; i < SDL_NUM_SCANCODES; ++i) {
-		const char *keyName = cl_key_names[i];
+	for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_NUM_SCANCODES; k++) {
+		if (cl_key_names[k]) {
 
-		if (!keyName || !keyName[i]) {
-			continue;
-		}
+			const char *keyName = cl_key_names[k];
 
-		if (GlobMatch(pattern, keyName)) {
-			*matches = g_list_prepend(*matches, Mem_CopyString(keyName));
-			Com_Print("%s\n", keyName);
+			//Com_Print("dbg: %s vs %s: %s\n", keyName, pattern, GlobMatch(pattern, keyName) ? "yes" : "no");
+
+			if (GlobMatch(pattern, keyName)) {
+				*matches = g_list_prepend(*matches, Mem_CopyString(keyName));
+				Com_Print("%s\n", keyName);
+			}
 		}
 	}
 }
@@ -535,10 +536,14 @@ void Cl_InitKeys(void) {
 		}
 	}
 
-	for (SDL_Buttoncode b = SDL_SCANCODE_MOUSE1; b <= SDL_SCANCODE_MOUSE8; b++) {
+	for (SDL_Buttoncode b = SDL_SCANCODE_MOUSE1; b <= SDL_SCANCODE_MOUSE15; b++) {
+
 		const char *name = va("Mouse %d", b - SDL_SCANCODE_MOUSE1 + 1);
 		cl_key_names[b] = Mem_Link(Mem_CopyString(name), cl_key_names);
 	}
+	
+	cl_key_names[SDL_SCANCODE_MWHEELUP] = Mem_Link(Mem_CopyString("Mouse Wheel Up"), cl_key_names);
+	cl_key_names[SDL_SCANCODE_MWHEELDOWN] = Mem_Link(Mem_CopyString("Mouse Wheel Down"), cl_key_names);
 
 	memset(&cls.key_state, 0, sizeof(cl_key_state_t));
 

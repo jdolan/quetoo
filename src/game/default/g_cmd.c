@@ -977,6 +977,7 @@ _Bool G_AddClientToTeam(g_entity_t *ent, const char *team_name) {
 	if (!ent->client->locals.persistent.spectator) { // changing teams
 		G_TossQuadDamage(ent);
 		G_TossFlag(ent);
+		G_ClientHookDetach(ent);
 	}
 
 	ent->client->locals.persistent.team = team;
@@ -1310,6 +1311,7 @@ static void G_Spectate_f(g_entity_t *ent) {
 	} else { // they wish to spectate
 		G_TossQuadDamage(ent);
 		G_TossFlag(ent);
+		G_ClientHookDetach(ent);
 	}
 
 	ent->client->locals.persistent.spectator = !spectator;

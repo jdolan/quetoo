@@ -572,6 +572,7 @@ typedef struct {
 	g_gameplay_t gameplay; // DEATHMATCH, INSTAGIB, ARENA, DUEL
 	_Bool teams;
 	_Bool ctf;
+	_Bool hook_allowed;
 	_Bool match;
 	_Bool rounds;
 	int32_t frag_limit;
@@ -768,6 +769,10 @@ typedef struct {
 	uint32_t weapon_think_time; // time when the weapon think was called
 	uint32_t weapon_fire_time; // can fire when time > this
 	uint32_t weapon_change_time; // time when weapon was changed
+
+	uint32_t hook_think_time; // time when the hook think was called
+	uint32_t hook_fire_time; // can fire hook when time > this
+	g_entity_t *hook_entity; // the hook that we're attached to
 
 	int16_t damage_armor; // damage absorbed by armor
 	int16_t damage_health; // damage taken out of health

@@ -699,6 +699,12 @@ static void G_worldspawn(g_entity_t *ent) {
 		}
 	}
 
+	if (!g_strcmp0(g_enable_hook->string, "default")) {
+		g_level.hook_allowed = g_level.ctf;
+	} else {
+		g_level.hook_allowed = !!g_enable_hook->integer;
+	}
+
 	if (g_level.teams && g_level.ctf) { // ctf overrides teams
 		g_level.teams = 0;
 	}

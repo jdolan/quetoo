@@ -234,15 +234,13 @@ g_entity_t *G_TossWeapon(g_entity_t *ent) {
 	return dropped;
 }
 
-typedef void (*G_FireWeaponFunc)(g_entity_t *ent);
-
 /**
  * @brief Returns true if the specified client can fire their weapon, false
  * otherwise.
  */
 static _Bool G_FireWeapon(g_entity_t *ent) {
 
-	uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
+	const uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
 
 	if (!(buttons & BUTTON_ATTACK)) {
 		return false;
@@ -384,6 +382,84 @@ static void G_MuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
 	}
 
 	gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);
+}
+
+/**
+ * @brief Detach the player's hook if it's still attached.
+ */
+void G_ClientHookDetach(g_entity_t *ent) {
+	
+	if (!g_level.hook_allowed) {
+		return;
+	}
+
+	if (!ent->client->locals.hook_entity) {
+		return;
+	}
+
+	// detach
+	G_MuzzleFlash(ent, MZ_HYPERBLASTER);
+
+	// free entity
+	ent->client->locals.hook_entity = NULL;
+}
+
+/**
+ * @brief Handles the firing of the hook.
+ */
+static void G_ClientHookCheckFire(g_entity_t *ent) {
+
+	// hook can fire, see if we should
+	const uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
+
+	if (!(buttons & BUTTON_HOOK)) {
+		return;
+	}
+
+	ent->client->locals.latched_buttons &= ~BUTTON_HOOK;
+
+	// use small epsilon for low server frame rates
+	if (ent->client->locals.hook_fire_time > g_level.time + 1) {
+		return;
+	}
+
+	ent->client->locals.hook_entity = (g_entity_t *) 1;
+
+	G_MuzzleFlash(ent, MZ_BLASTER);
+}
+
+/**
+ * @brief Handles management of the hook for a given player.
+ */
+void G_ClientHookThink(g_entity_t *ent) {
+
+	// sanity checks
+	if (!g_level.hook_allowed) {
+		return;
+	}
+
+	if (ent->locals.dead) {
+		return;
+	}
+
+	if (ent->client->locals.persistent.spectator) {
+		return;
+	}
+
+	ent->client->locals.hook_think_time = g_level.time;
+
+	// send off to the proper sub-function
+	if (ent->client->locals.hook_entity) {
+
+		if (!(ent->client->locals.buttons & BUTTON_HOOK)) {
+			G_ClientHookDetach(ent);
+	
+			// prevent hook spam
+			ent->client->locals.hook_fire_time = g_level.time + 250;
+		}
+	} else {
+		G_ClientHookCheckFire(ent);
+	}
 }
 
 /**

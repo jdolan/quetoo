@@ -60,7 +60,7 @@ typedef struct {
 	byte state;
 } cl_button_t;
 
-static cl_button_t cl_buttons[12];
+static cl_button_t cl_buttons[13];
 #define in_left cl_buttons[0]
 #define in_right cl_buttons[1]
 #define in_forward cl_buttons[2]
@@ -73,6 +73,7 @@ static cl_button_t cl_buttons[12];
 #define in_attack cl_buttons[9]
 #define in_up cl_buttons[10]
 #define in_down cl_buttons[11]
+#define in_hook cl_buttons[12]
 
 /**
  * @brief
@@ -222,6 +223,12 @@ static void Cl_Attack_down_f(void) {
 }
 static void Cl_Attack_up_f(void) {
 	Cl_KeyUp(&in_attack);
+}
+static void Cl_Hook_down_f(void) {
+	Cl_KeyDown(&in_hook);
+}
+static void Cl_Hook_up_f(void) {
+	Cl_KeyUp(&in_hook);
 }
 static void Cl_CenterView_f(void) {
 	cl.angles[PITCH] = 0;
@@ -530,7 +537,12 @@ void Cl_Move(pm_cmd_t *cmd) {
 		cmd->buttons |= BUTTON_ATTACK;
 	}
 
+	if (in_hook.state & 3) {
+		cmd->buttons |= BUTTON_HOOK;
+	}
+	
 	in_attack.state &= ~2;
+	in_hook.state &= ~2;
 
 	if (cl_run->value) {
 		if (in_speed.state & 1) {
@@ -583,6 +595,8 @@ void Cl_InitInput(void) {
 	Cmd_Add("-speed", Cl_Speed_up_f, CMD_CLIENT, NULL);
 	Cmd_Add("+attack", Cl_Attack_down_f, CMD_CLIENT, NULL);
 	Cmd_Add("-attack", Cl_Attack_up_f, CMD_CLIENT, NULL);
+	Cmd_Add("+hook", Cl_Hook_down_f, CMD_CLIENT, NULL);
+	Cmd_Add("-hook", Cl_Hook_up_f, CMD_CLIENT, NULL);
 
 	cl_run = Cvar_Add("cl_run", "1", CVAR_ARCHIVE, NULL);
 	cl_forward_speed = Cvar_Add("cl_forward_speed", "300.0", 0, NULL);

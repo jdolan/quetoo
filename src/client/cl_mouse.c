@@ -59,7 +59,7 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
 				memset(&e, 0, sizeof(e));
 
 				e.type = SDL_KEYDOWN;
-				e.key.keysym.scancode = (SDL_Scancode) (event->wheel.y > 0 ? SDL_SCANCODE_MOUSE5 : SDL_SCANCODE_MOUSE4);
+				e.key.keysym.scancode = (SDL_Scancode) (event->wheel.y > 0 ? SDL_SCANCODE_MWHEELUP : SDL_SCANCODE_MWHEELDOWN);
 				e.key.keysym.sym = SDL_SCANCODE_TO_KEYCODE(e.key.keysym.scancode);
 
 				Cl_KeyEvent(&e);

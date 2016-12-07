@@ -373,6 +373,7 @@ typedef struct {
  */
 #define BUTTON_ATTACK		1
 #define BUTTON_WALK			2
+#define BUTTON_HOOK			4
 
 /**
  * @brief Player movement commands, sent to the server at each client frame.
