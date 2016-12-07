@@ -637,7 +637,7 @@ static void G_Physics_Push(g_entity_t *ent) {
 			VectorScale(part->locals.avelocity, QUETOO_TICK_SECONDS, amove);
 
 			if ((obstacle = G_Physics_Push_Move(part, move, amove))) {
-				break;    // move was blocked
+				break; // move was blocked
 			}
 		}
 	}

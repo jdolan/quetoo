@@ -444,7 +444,7 @@ static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other,
                             g_entity_t *activator) {
 
 	if (ent->locals.Think) {
-		return;    // already down
+		return; // already down
 	}
 
 	G_func_plat_GoingDown(ent);
@@ -470,7 +470,7 @@ static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other,
 	if (ent->locals.move_info.state == MOVE_STATE_BOTTOM) {
 		G_func_plat_GoingUp(ent);
 	} else if (ent->locals.move_info.state == MOVE_STATE_TOP) {
-		ent->locals.next_think = g_level.time + 1000;    // the player is still on the plat, so delay going down
+		ent->locals.next_think = g_level.time + 1000; // the player is still on the plat, so delay going down
 	}
 }
 
@@ -972,7 +972,7 @@ static void G_func_door_GoingDown(g_entity_t *self) {
 static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
 
 	if (self->locals.move_info.state == MOVE_STATE_GOING_UP) {
-		return;    // already going up
+		return; // already going up
 	}
 
 	if (self->locals.move_info.state == MOVE_STATE_TOP) { // reset top wait time
@@ -1061,7 +1061,7 @@ static void G_func_door_CalculateMove(g_entity_t *self) {
 	g_entity_t *ent;
 
 	if (self->locals.flags & FL_TEAM_SLAVE) {
-		return;    // only the team master does this
+		return; // only the team master does this
 	}
 
 	// find the smallest distance any member of the team will be moving
@@ -1101,7 +1101,7 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
 	vec3_t mins, maxs;
 
 	if (ent->locals.flags & FL_TEAM_SLAVE) {
-		return;    // only the team leader spawns a trigger
+		return; // only the team leader spawns a trigger
 	}
 
 	VectorCopy(ent->abs_mins, mins);

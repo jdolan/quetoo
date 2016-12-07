@@ -260,7 +260,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 
 		// knock the target upwards at least a bit; it's fun
 		if (ndir[2] >= -0.25) {
-			ndir[2] = Max(0.25, ndir[2]);
+			ndir[2] = Max(0.33, ndir[2]);
 			VectorNormalize(ndir);
 		}
 
@@ -342,7 +342,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, c
 		client->locals.damage_armor += damage_armor;
 		client->locals.damage_health += damage_health;
 
-		vec_t kick = (damage_armor + damage_health) / 30.0;
+		vec_t kick = (damage_armor + damage_health) / 50.0;
 
 		if (kick > 1.0) {
 			kick = 1.0;

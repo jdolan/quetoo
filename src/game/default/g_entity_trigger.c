@@ -53,7 +53,7 @@ static void G_trigger_multiple_Wait(g_entity_t *ent) {
 static void G_trigger_multiple_Think(g_entity_t *ent) {
 
 	if (ent->locals.next_think) {
-		return;    // already been triggered
+		return; // already been triggered
 	}
 
 	G_UseTargets(ent, ent->locals.activator);

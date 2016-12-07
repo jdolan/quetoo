@@ -788,16 +788,14 @@ static void Pm_CheckDuck(void) {
 		pml.view_offset[2] = 0.0;
 	} else {
 
-		_Bool currently_ducking = pm->s.flags & PMF_DUCKED;
+		_Bool is_ducking = pm->s.flags & PMF_DUCKED;
 		_Bool wants_ducking = pm->cmd.up < 0;
 
 		// see if we can unduck
-		if (!currently_ducking && wants_ducking) {
-			
+		if (!is_ducking && wants_ducking) {
 			pm->s.flags |= PMF_DUCKED;
-		} else if (currently_ducking && !wants_ducking) {
-
-			cm_trace_t trace = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
+		} else if (is_ducking && !wants_ducking) {
+			const cm_trace_t trace = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
 
 			if (!trace.all_solid && !trace.start_solid) {
 				pm->s.flags &= ~PMF_DUCKED;
