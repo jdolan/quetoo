@@ -788,8 +788,23 @@ static void Pm_CheckDuck(void) {
 		pml.view_offset[2] = 0.0;
 	} else {
 
-		if (pm->cmd.up < 0) {
+		_Bool currently_ducking = pm->s.flags & PMF_DUCKED;
+		_Bool wants_ducking = pm->cmd.up < 0;
+
+		// see if we can unduck
+		if (!currently_ducking && wants_ducking) {
+			
 			pm->s.flags |= PMF_DUCKED;
+		} else if (currently_ducking) {
+
+			if (!wants_ducking) {
+
+				cm_trace_t trace = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
+
+				if (!trace.all_solid && !trace.start_solid) {
+					pm->s.flags &= ~PMF_DUCKED;
+				}
+			}
 		}
 
 		const vec_t height = pm->maxs[2] - pm->mins[2];
@@ -1336,7 +1351,7 @@ static void Pm_Init(void) {
 	// reset flags that we test each move
 	pm->s.flags &= ~(PMF_NO_PREDICTION);
 	pm->s.flags &= ~(PMF_ON_GROUND | PMF_ON_STAIRS | PMF_ON_LADDER);
-	pm->s.flags &= ~(PMF_DUCKED | PMF_JUMPED | PMF_UNDER_WATER);
+	pm->s.flags &= ~(PMF_JUMPED | PMF_UNDER_WATER);
 
 	if (pm->cmd.up < 1) { // jump key released
 		pm->s.flags &= ~PMF_JUMP_HELD;

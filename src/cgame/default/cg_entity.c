@@ -69,6 +69,12 @@ _Bool Cg_IsDucking(const entity_state_t *ent) {
  */
 static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 
+	const player_state_t *ps = &cgi.client->frame.ps;
+	
+	if (ps->stats[STAT_HEALTH] <= 0) {
+		return;    // dead
+	}
+
 	if (cgi.client->ticks < ent->breath_puff_time) {
 		return;
 	}
