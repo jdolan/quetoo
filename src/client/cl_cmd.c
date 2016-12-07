@@ -108,15 +108,13 @@ static void Cl_WriteUserInfoCommand(void) {
  */
 void Cl_SendCommands(void) {
 
+	const cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 	const cl_cmd_t *prev = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
 
-	uint32_t msec = cl.ticks - prev->timestamp;
+	const uint32_t msec = cl.ticks - prev->timestamp;
 
-	if (msec < (QUETOO_TICK_MILLIS >> 1)) {
-		if (r_swap_interval->value) {
-			SDL_Delay((QUETOO_TICK_MILLIS >> 1) - msec);
-			msec = QUETOO_TICK_MILLIS >> 1;
-		} else {
+	if (cmd->cmd.buttons == 0) {
+		if (msec < (QUETOO_TICK_MILLIS >> 1)) {
 			return;
 		}
 	}
@@ -151,7 +149,6 @@ void Cl_SendCommands(void) {
 			cl.packet_counter++;
 
 			Cl_InitMovementCommand();
-
 			break;
 
 		default:
