@@ -202,9 +202,12 @@ static void G_ClientAddKick(g_entity_t *ent, const vec_t pitch, const vec_t roll
  * @brief Adds view kick in the specified direction to the specified client.
  */
 void G_ClientDamageKick(g_entity_t *ent, const vec3_t dir, const vec_t kick) {
+	vec3_t ndir;
 
-	const vec_t pitch = DotProduct(dir, ent->client->locals.forward) * kick;
-	const vec_t roll = DotProduct(dir, ent->client->locals.right) * kick;
+	VectorNormalize2(dir, ndir);
+
+	const vec_t pitch = DotProduct(ndir, ent->client->locals.forward) * kick;
+	const vec_t roll = DotProduct(ndir, ent->client->locals.right) * kick;
 
 	G_ClientAddKick(ent, pitch, roll);
 }
