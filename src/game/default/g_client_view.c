@@ -191,8 +191,15 @@ static void G_ClientWorldAngles(g_entity_t *ent) {
 static void G_ClientAddKick(g_entity_t *ent, const vec_t pitch, const vec_t roll) {
 
 	if (pitch || roll) {
-		ent->client->locals.kick_angles[PITCH] += pitch;
-		ent->client->locals.kick_angles[ROLL] += roll;
+		vec_t *kick = ent->client->locals.kick_angles;
+
+		kick[PITCH] += pitch;
+		kick[ROLL] += roll;
+
+		const vec_t len = VectorLength(kick);
+		if (len > 15.0) {
+			VectorScale(kick, 15.0 / len, kick);
+		}
 
 		ent->client->locals.kick_angles_time = g_level.time;
 	}
