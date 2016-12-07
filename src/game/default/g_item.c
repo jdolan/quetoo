@@ -168,7 +168,7 @@ static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
 static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 
 	if (other->client->locals.inventory[g_media.items.quad_damage]) {
-		return false;    // already have it
+		return false; // already have it
 	}
 
 	other->client->locals.inventory[g_media.items.quad_damage] = 1;
@@ -647,15 +647,15 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other,
 	}
 
 	if (other->locals.dead) {
-		return;    // dead people can't pickup
+		return; // dead people can't pickup
 	}
 
 	if (!ent->locals.item->Pickup) {
-		return;    // item can't be picked up
+		return; // item can't be picked up
 	}
 
 	if (g_level.warmup) {
-		return;    // warmup mode
+		return; // warmup mode
 	}
 
 	const _Bool pickup = ent->locals.item->Pickup(ent, other);

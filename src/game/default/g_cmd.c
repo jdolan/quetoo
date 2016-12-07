@@ -338,7 +338,7 @@ static void G_WeaponPrevious_f(g_entity_t *ent) {
 		it->Use(ent, it);
 
 		if (cl->locals.next_weapon == it) {
-			return;    // successful
+			return; // successful
 		}
 	}
 }
@@ -386,7 +386,7 @@ static void G_WeaponNext_f(g_entity_t *ent) {
 		it->Use(ent, it);
 
 		if (cl->locals.next_weapon == it) {
-			return;    // successful
+			return; // successful
 		}
 	}
 }
@@ -823,7 +823,7 @@ static _Bool G_VoteHelp(g_entity_t *ent) {
 	}
 
 	if (!g_strcmp0(gi.Argv(1), "restart") || !g_strcmp0(gi.Argv(1), "next_map")) {
-		return false;    // takes no args, this is okay
+		return false; // takes no args, this is okay
 	}
 
 	// command-specific help for some commands
@@ -1066,7 +1066,7 @@ static void G_Teamname_f(g_entity_t *ent) {
 	t = ent->client->locals.persistent.team;
 
 	if (g_level.time - t->name_time < TEAM_CHANGE_TIME) {
-		return;    // prevent change spamming
+		return; // prevent change spamming
 	}
 
 	const char *s = gi.Argv(1);
@@ -1107,7 +1107,7 @@ static void G_Teamskin_f(g_entity_t *ent) {
 	t = ent->client->locals.persistent.team;
 
 	if (g_level.time - t->skin_time < TEAM_CHANGE_TIME) {
-		return;    // prevent change spamming
+		return; // prevent change spamming
 	}
 
 	const char *s = gi.Argv(1);
@@ -1404,7 +1404,7 @@ static void G_Admin_f(g_entity_t *ent) {
 void G_ClientCommand(g_entity_t *ent) {
 
 	if (!ent->client) {
-		return;    // not fully in game yet
+		return; // not fully in game yet
 	}
 
 	const char *cmd = gi.Argv(0);

@@ -230,7 +230,7 @@ void G_MuteClient(char *name, _Bool mute) {
 static void G_BeginIntermission(const char *map) {
 
 	if (g_level.intermission_time) {
-		return;    // already activated
+		return; // already activated
 	}
 
 	g_level.intermission_time = g_level.time;
@@ -430,7 +430,7 @@ static void G_CheckRoundLimit() {
 		cl = ent->client;
 
 		if (cl->locals.persistent.round_num != g_level.round_num) {
-			continue;    // they were intentionally spectating, skip them
+			continue; // they were intentionally spectating, skip them
 		}
 
 		if (g_level.teams || g_level.ctf) { // rejoin a team
@@ -463,7 +463,7 @@ static void G_CheckRoundEnd(void) {
 	}
 
 	if (!g_level.round_time || g_level.round_time > g_level.time) {
-		return;    // no round currently running
+		return; // no round currently running
 	}
 
 	winner = NULL;
@@ -550,7 +550,7 @@ static void G_CheckMatchEnd(void) {
 	}
 
 	if (!g_level.match_time || g_level.match_time > g_level.time) {
-		return;    // no match currently running
+		return; // no match currently running
 	}
 
 	g = e = clients = 0;
@@ -1077,7 +1077,7 @@ void G_RunTimers(void) {
 		if (g_level.round_time > g_level.time) { // round about to start, show pre-game countdown
 			time = g_level.round_time - g_level.time;
 		} else if (g_level.round_time) {
-			time = g_level.time - g_level.round_time;    // round started, count up
+			time = g_level.time - g_level.round_time; // round started, count up
 		} else {
 			time = 0;
 		}
@@ -1088,7 +1088,7 @@ void G_RunTimers(void) {
 			if (g_level.time_limit) { // count down to time_limit
 				time = g_level.time_limit - g_level.time;
 			} else {
-				time = g_level.time - g_level.match_time;    // count up
+				time = g_level.time - g_level.match_time; // count up
 			}
 		} else {
 			time = 0;
