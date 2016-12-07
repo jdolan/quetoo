@@ -795,15 +795,12 @@ static void Pm_CheckDuck(void) {
 		if (!currently_ducking && wants_ducking) {
 			
 			pm->s.flags |= PMF_DUCKED;
-		} else if (currently_ducking) {
+		} else if (currently_ducking && !wants_ducking) {
 
-			if (!wants_ducking) {
+			cm_trace_t trace = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
 
-				cm_trace_t trace = pm->Trace(pm->s.origin, pm->s.origin, pm->mins, pm->maxs);
-
-				if (!trace.all_solid && !trace.start_solid) {
-					pm->s.flags &= ~PMF_DUCKED;
-				}
+			if (!trace.all_solid && !trace.start_solid) {
+				pm->s.flags &= ~PMF_DUCKED;
 			}
 		}
 
