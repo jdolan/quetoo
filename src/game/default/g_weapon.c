@@ -470,9 +470,7 @@ void G_FireMachinegun(g_entity_t *ent) {
 
 		G_MuzzleFlash(ent, MZ_MACHINEGUN);
 
-		if (VectorLength(ent->client->locals.kick_angles) < 0.375) {
-			G_ClientWeaponKick(ent, 0.375);
-		}
+		G_ClientWeaponKick(ent, 0.375);
 
 		G_WeaponFired(ent, 80);
 	}
