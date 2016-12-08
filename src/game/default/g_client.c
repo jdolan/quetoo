@@ -1255,11 +1255,14 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	VectorCopy(ent->s.origin, pm.s.origin);
 
 	if (cl->ps.pm_state.type == PM_HOOK) {
+
+		cmd->forward = cmd->right = 0;
+
 		VectorSubtract(ent->client->locals.hook_entity->s.origin, ent->s.origin, pm.s.velocity);
 		vec_t dist_to_hook = VectorNormalize(pm.s.velocity);
 
-		if (dist_to_hook > 1.0) {
-			VectorScale(pm.s.velocity, Max(dist_to_hook, 650.0), pm.s.velocity);
+		if (dist_to_hook > 24.0) {
+			VectorScale(pm.s.velocity, Max(dist_to_hook, g_hook_pullspeed->value), pm.s.velocity);
 		}
 	} else {
 		VectorCopy(ent->locals.velocity, pm.s.velocity);
@@ -1461,6 +1464,10 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	g_level.current_entity = ent;
 	g_client_t *cl = ent->client;
+
+	if (cl->locals.hook_pull) {
+		cl->ps.pm_state.flags |= PMF_NO_PREDICTION;
+	}
 
 	if (cl->locals.chase_target) { // ensure chase is valid
 

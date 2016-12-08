@@ -87,6 +87,17 @@ static void G_MapList_Parse(const char *filename) {
 			continue;
 		}
 
+		if (!g_strcmp0(c, "hook")) {
+			const char *token = ParseToken(&buffer);
+
+			if (!g_strcmp0(token, "default")) {
+				map->hook = -1;
+			} else {
+				map->hook = (int32_t) strtol(token, NULL, 0);
+			}
+			continue;
+		}
+
 		if (!g_strcmp0(c, "teams")) {
 			map->teams = (int32_t) strtol(ParseToken(&buffer), NULL, 0);
 			continue;

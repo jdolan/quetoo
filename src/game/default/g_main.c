@@ -36,7 +36,9 @@ cvar_t *g_inhibit;
 cvar_t *g_capture_limit;
 cvar_t *g_cheats;
 cvar_t *g_ctf;
-cvar_t *g_enable_hook;
+cvar_t *g_hook;
+cvar_t *g_hook_speed;
+cvar_t *g_hook_pullspeed;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
 cvar_t *g_force_demo;
@@ -724,6 +726,33 @@ static void G_CheckRules(void) {
 		}
 	}
 
+	if (g_hook->modified) {
+		g_hook->modified = false;
+
+		if (!g_strcmp0(g_hook->string, "default")) {
+			g_level.hook_allowed = g_level.ctf;
+		} else {
+			g_level.hook_allowed = !!g_hook->integer;
+		}
+
+		gi.BroadcastPrint(PRINT_HIGH, "Hook has been %s\n",
+		                  g_level.hook_allowed ? "enabled" : "disabled");
+	}
+
+	if (g_hook_speed->modified) {
+		g_hook_speed->modified = false;
+
+		gi.BroadcastPrint(PRINT_HIGH, "Hook speed has been changed to %f\n",
+		                  g_hook_speed->value);
+	}
+
+	if (g_hook_pullspeed->modified) {
+		g_hook_pullspeed->modified = false;
+
+		gi.BroadcastPrint(PRINT_HIGH, "Hook pull speed has been changed to %f\n",
+		                  g_hook_pullspeed->value);
+	}
+
 	if (g_gravity->modified) { // set gravity, G_ClientMove will read it
 		g_gravity->modified = false;
 
@@ -948,7 +977,9 @@ void G_Init(void) {
 	g_capture_limit = gi.Cvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level");
 	g_cheats = gi.Cvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.Cvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
-	g_enable_hook = gi.Cvar("g_enable_hook", "default", CVAR_SERVER_INFO | CVAR_LATCH, "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
+	g_hook = gi.Cvar("g_hook", "default", CVAR_SERVER_INFO, "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
+	g_hook_speed = gi.Cvar("g_hook_speed", "900", CVAR_SERVER_INFO, "The speed that the hook will fly at");
+	g_hook_pullspeed = gi.Cvar("g_hook_pullspeed", "700", CVAR_SERVER_INFO, "The speed that you get pulled towards the hook");
 	g_frag_limit = gi.Cvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level");
 	g_friendly_fire = gi.Cvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Enables friendly fire");
 	g_force_demo = gi.Cvar("g_force_demo", "0", CVAR_SERVER_INFO, "Force all players to record a demo");

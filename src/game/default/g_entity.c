@@ -211,6 +211,7 @@ static const g_field_t fields[] = {
 	{ "weather", SOFS(weather), F_STRING, FFL_SPAWN_TEMP },
 	{ "gravity", SOFS(gravity), F_STRING, FFL_SPAWN_TEMP },
 	{ "gameplay", SOFS(gameplay), F_STRING, FFL_SPAWN_TEMP },
+	{ "hook", SOFS(hook), F_STRING, FFL_SPAWN_TEMP },
 	{ "teams", SOFS(teams), F_STRING, FFL_SPAWN_TEMP },
 	{ "ctf", SOFS(ctf), F_STRING, FFL_SPAWN_TEMP },
 	{ "match", SOFS(match), F_STRING, FFL_SPAWN_TEMP },
@@ -598,6 +599,7 @@ static void G_WorldspawnMusic(void) {
  weather : Weather effects, one of "none, rain, snow" followed optionally by "fog r g b."
  gravity : Gravity for the level (default 800).
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
+ hook : The hook mode, one of "default, 1, 0."
  teams : Enables and enforces teams play (enabled = 1, auto-balance = 2).
  ctf : Enables CTF play (enabled = 1, auto-balance = 2).
  match : Enables match play (round-based elimination with warmup) (enabled = 1).
@@ -700,10 +702,21 @@ static void G_worldspawn(g_entity_t *ent) {
 		}
 	}
 
-	if (!g_strcmp0(g_enable_hook->string, "default")) {
-		g_level.hook_allowed = g_level.ctf;
-	} else {
-		g_level.hook_allowed = !!g_enable_hook->integer;
+	if (g_strcmp0(g_hook->string, "default")) { // check cvar first
+		g_level.hook_allowed = !!g_hook->integer;
+	} else if (map && map->hook != -1) { // check maps.lst
+		g_level.hook_allowed = (map->hook == -1) ? g_level.ctf : !!map->hook;
+	} else { // check worldspawn
+		if (g_game.spawn.hook && *g_game.spawn.hook) {
+			if (g_strcmp0(g_game.spawn.hook, "default")) {
+				g_level.hook_allowed = !!atoi(g_game.spawn.hook);
+			} else {
+				g_level.hook_allowed = g_level.ctf;
+			}
+		}
+		else {
+			g_level.hook_allowed = g_level.ctf;
+		}
 	}
 
 	if (g_level.teams && g_level.ctf) { // ctf overrides teams

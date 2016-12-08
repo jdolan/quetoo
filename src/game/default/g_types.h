@@ -59,6 +59,7 @@ typedef struct {
 	char weather[64];
 	int32_t gravity;
 	int32_t gameplay;
+	int32_t hook;
 	int32_t teams;
 	int32_t ctf;
 	int32_t match;
@@ -227,7 +228,8 @@ typedef enum {
 	TRAIL_BFG,
 	TRAIL_TELEPORTER,
 	TRAIL_GIB,
-	TRAIL_FIREBALL
+	TRAIL_FIREBALL,
+	TRAIL_HOOK
 } g_entity_trail_t;
 
 /**
@@ -427,6 +429,7 @@ typedef struct {
 	char *weather;
 	char *gravity;
 	char *gameplay;
+	char *hook;
 	char *teams;
 	char *ctf;
 	char *match;

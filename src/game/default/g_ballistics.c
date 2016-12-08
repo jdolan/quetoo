@@ -1128,6 +1128,24 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 /**
  * @brief
  */
+static void G_HookTrail_Think(g_entity_t *ent) {
+	
+	const g_entity_t *hook = ent->locals.target_ent;
+	const g_entity_t *player = ent->owner;
+
+	vec3_t forward, right, up, org;
+
+	G_InitProjectile(player, forward, right, up, org);
+
+	VectorCopy(org, ent->s.origin);
+	VectorCopy(hook->s.origin, ent->s.termination);
+
+	ent->locals.next_think = g_level.time + 1;
+}
+
+/**
+ * @brief
+ */
 g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed) {
 
 	g_entity_t *projectile = G_AllocEntity();
@@ -1135,7 +1153,7 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 
 	VectorCopy(start, projectile->s.origin);
 	VectorAngles(dir, projectile->s.angles);
-	VectorScale(dir, 1000, projectile->locals.velocity);
+	VectorScale(dir, g_hook_speed->value, projectile->locals.velocity);
 	VectorSet(projectile->locals.avelocity, 0, 0, 500);
 
 	if (G_ImmediateWall(ent, projectile)) {
@@ -1148,13 +1166,26 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 	projectile->locals.Touch = G_HookProjectile_Touch;
 	projectile->s.model1 = g_media.models.hook;
 
-	// set the color, overloading the client byte
-	if (ent->client) {
-		projectile->s.client = ent->client->locals.persistent.color;
-	} else {
-		projectile->s.client = 0;
-	}
-
 	gi.LinkEntity(projectile);
+
+	g_entity_t *trail = G_AllocEntity();
+
+	projectile->locals.target_ent = trail;
+	trail->locals.target_ent = projectile;
+	
+	trail->owner = ent;
+	trail->solid = SOLID_NOT;
+	trail->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	trail->locals.move_type = MOVE_TYPE_THINK;
+	trail->s.client = ent - g_game.entities - 1; // player number, for client prediction fix
+	trail->s.effects = EF_BEAM;
+	trail->s.trail = TRAIL_LIGHTNING;
+	trail->locals.Think = G_HookTrail_Think;
+	trail->locals.next_think = g_level.time + 1;
+
+	G_HookTrail_Think(trail);
+
+	gi.LinkEntity(trail);
+
 	return projectile;
 }

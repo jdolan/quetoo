@@ -53,7 +53,7 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 /**
  * @brief Determines the initial position and directional vectors of a projectile.
  */
-void G_InitProjectile(g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org) {
+void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org) {
 	vec3_t view, pos;
 
 	// resolve the projectile destination

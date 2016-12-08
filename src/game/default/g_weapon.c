@@ -401,6 +401,7 @@ void G_ClientHookDetach(g_entity_t *ent) {
 	G_MuzzleFlash(ent, MZ_HYPERBLASTER);
 
 	// free entity
+	G_FreeEntity(ent->client->locals.hook_entity->locals.target_ent);
 	G_FreeEntity(ent->client->locals.hook_entity);
 
 	ent->client->locals.hook_entity = NULL;
