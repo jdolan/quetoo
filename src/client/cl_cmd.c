@@ -49,9 +49,13 @@ void Cl_UpdateMovementCommand(uint32_t msec) {
 /**
  * @brief Gather remaining movement (i.e. forward, back, etc.) so that it may be sent off.
  */
-static void Cl_FinalizeMovementCommand(uint32_t msec) {
+static void Cl_FinalizeMovementCommand(void) {
 
 	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+
+	cl_cmd_t *prev = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
+
+	const uint32_t msec = cl.ticks - prev->timestamp;
 
 	cmd->cmd.msec = Min(msec, 255u);
 
@@ -102,17 +106,13 @@ static void Cl_WriteUserInfoCommand(void) {
  * @brief Pumps the command cycle, sending the most recently gathered movement to the server.
  * @details Commands must meet a certain duration, in milliseconds, in order to be sent. This
  * prevents saturating the network channel with very small movement commands, which are also
- * problematic for the physics and prediction code. However, if vertical sync is enabled, a
- * command will always be issued, and a delay will be attempted in order to synchronized the
- * command clock with the display refresh interval.
+ * problematic for the physics and prediction code.
  */
 void Cl_SendCommands(void) {
 
-	const cl_cmd_t *prev = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
+	const uint32_t delta = quetoo.ticks - cls.net_chan.last_sent;
 
-	const uint32_t msec = cl.ticks - prev->timestamp;
-
-	if (msec < (QUETOO_TICK_MILLIS >> 1)) {
+	if (delta < 8) {
 		return;
 	}
 
@@ -120,25 +120,23 @@ void Cl_SendCommands(void) {
 		case CL_CONNECTED:
 		case CL_LOADING:
 
-			if (cls.net_chan.message.size) {
-				Netchan_Transmit(&cls.net_chan, NULL, 0);
-				cl.packet_counter++;
-			} else if (quetoo.ticks - cls.net_chan.last_sent >= 1000) {
+			if (cls.net_chan.message.size || delta > 1000) {
 				Netchan_Transmit(&cls.net_chan, NULL, 0);
 				cl.packet_counter++;
 			}
+
 			break;
 
 		case CL_ACTIVE:
 
 			Cl_WriteUserInfoCommand();
 
+			Cl_FinalizeMovementCommand();
+
 			mem_buf_t buf;
 			byte data[sizeof(cl_cmd_t) * 3];
 
 			Mem_InitBuffer(&buf, data, sizeof(data));
-
-			Cl_FinalizeMovementCommand(msec);
 
 			Cl_WriteMovementCommand(&buf);
 
@@ -146,6 +144,7 @@ void Cl_SendCommands(void) {
 			cl.packet_counter++;
 
 			Cl_InitMovementCommand();
+
 			break;
 
 		default:
