@@ -27,7 +27,8 @@
 /**
  * @brief Acceleration constants.
  */
-#define PM_ACCEL_AIR			1.66
+#define PM_ACCEL_AIR			2.125
+#define PM_ACCEL_AIR_MOD_DUCKED	0.125
 #define PM_ACCEL_GROUND			10.0
 #define PM_ACCEL_GROUND_SLICK	4.375
 #define PM_ACCEL_LADDER			16.0

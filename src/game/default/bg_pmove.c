@@ -53,8 +53,13 @@ typedef struct {
 	// float point precision view offset
 	vec3_t view_offset;
 
+	// directional vectors based on command angles
 	vec3_t forward, right, up;
-	vec_t time; // the command milliseconds in seconds
+
+	// directional vectors without Z component
+	vec3_t forward_xy, right_xy;
+
+	vec_t time; // the command duration in seconds
 
 	// ground interactions
 	cm_bsp_surface_t *ground_surface;
@@ -911,7 +916,7 @@ static _Bool Pm_CheckJump(void) {
  * @return True if the player is on a ladder, false otherwise.
  */
 static void Pm_CheckLadder(void) {
-	vec3_t forward, pos;
+	vec3_t pos;
 
 	if (pm->s.flags & PMF_TIME_MASK) {
 		return;
@@ -921,12 +926,7 @@ static void Pm_CheckLadder(void) {
 		return;
 	}
 
-	VectorCopy(pml.forward, forward);
-	forward[2] = 0.0;
-
-	VectorNormalize(forward);
-
-	VectorMA(pm->s.origin, 1.0, forward, pos);
+	VectorMA(pm->s.origin, 1.0, pml.forward_xy, pos);
 
 	const cm_trace_t trace = pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs);
 
@@ -1007,7 +1007,7 @@ static void Pm_LadderMove(void) {
 
 	// user intentions in X/Y
 	for (int32_t i = 0; i < 2; i++) {
-		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
+		vel[i] = pml.forward_xy[i] * pm->cmd.forward + pml.right_xy[i] * pm->cmd.right;
 	}
 
 	const vec_t s = PM_SPEED_LADDER * 0.125;
@@ -1057,7 +1057,7 @@ static void Pm_LadderMove(void) {
  * @brief
  */
 static void Pm_WaterJumpMove(void) {
-	vec3_t forward;
+	vec3_t pos;
 
 	Pm_Debug("%s\n", vtos(pm->s.origin));
 
@@ -1066,14 +1066,10 @@ static void Pm_WaterJumpMove(void) {
 	Pm_Gravity();
 
 	// check for a usable spot directly in front of us
-	VectorCopy(pml.forward, forward);
-	forward[2] = 0.0;
-
-	VectorNormalize(forward);
-	VectorMA(pm->s.origin, 30.0, forward, forward);
+	VectorMA(pm->s.origin, 30.0, pml.forward_xy, pos);
 
 	// if we've reached a usable spot, clamp the jump to avoid launching
-	if (pm->Trace(pm->s.origin, forward, pm->mins, pm->maxs).fraction == 1.0) {
+	if (pm->Trace(pm->s.origin, pos, pm->mins, pm->maxs).fraction == 1.0) {
 		pm->s.velocity[2] = Clamp(pm->s.velocity[2], 0.0, PM_SPEED_JUMP);
 	}
 
@@ -1158,7 +1154,7 @@ static void Pm_WaterMove(void) {
  */
 static void Pm_AirMove(void) {
 	vec3_t vel, dir;
-	vec_t speed;
+	vec_t max_speed, speed, accel;
 
 //	Pm_Debug("%s\n", vtos(pm->s.velocity));
 
@@ -1166,14 +1162,8 @@ static void Pm_AirMove(void) {
 
 	Pm_Gravity();
 
-	pml.forward[2] = 0.0;
-	pml.right[2] = 0.0;
-
-	VectorNormalize(pml.forward);
-	VectorNormalize(pml.right);
-
 	for (int32_t i = 0; i < 2; i++) {
-		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
+		vel[i] = pml.forward_xy[i] * pm->cmd.forward + pml.right_xy[i] * pm->cmd.right;
 	}
 
 	vel[2] = 0.0;
@@ -1181,13 +1171,26 @@ static void Pm_AirMove(void) {
 	VectorCopy(vel, dir);
 	speed = VectorNormalize(dir);
 
-	speed = Clamp(speed, 0.0, PM_SPEED_AIR);
+	max_speed = PM_SPEED_AIR;
+
+	// accounting for walk modulus
+	if (pm->cmd.buttons & BUTTON_WALK) {
+		max_speed *= PM_SPEED_MOD_WALK;
+	}
+
+	speed = Clamp(speed, 0.0, max_speed);
 
 	if (speed < PM_STOP_EPSILON) {
 		speed = 0.0;
 	}
 
-	Pm_Accelerate(dir, speed, PM_ACCEL_AIR);
+	accel = PM_ACCEL_AIR;
+
+	if (pm->s.flags & PMF_DUCKED) {
+		accel *= PM_ACCEL_AIR_MOD_DUCKED;
+	}
+
+	Pm_Accelerate(dir, speed, accel);
 
 	Pm_StepSlideMove();
 }
@@ -1197,7 +1200,7 @@ static void Pm_AirMove(void) {
  */
 static void Pm_WalkMove(void) {
 	vec_t speed, max_speed, accel;
-	vec3_t angles, vel, dir;
+	vec3_t forward, right, vel, dir;
 
 	if (Pm_CheckJump()) { // jumped away
 		if (pm->water_level > 1) {
@@ -1213,19 +1216,15 @@ static void Pm_WalkMove(void) {
 	Pm_Friction();
 
 	// project the desired movement into the X/Y plane
-	VectorCopy(pm->angles, angles);
-	angles[PITCH] = 0.0;
 
-	AngleVectors(angles, pml.forward, pml.right, NULL);
+	Pm_ClipVelocity(pml.forward_xy, pml.ground_plane.normal, forward, PM_CLIP_BOUNCE);
+	Pm_ClipVelocity(pml.right_xy, pml.ground_plane.normal, right, PM_CLIP_BOUNCE);
 
-	Pm_ClipVelocity(pml.forward, pml.ground_plane.normal, pml.forward, PM_CLIP_BOUNCE);
-	Pm_ClipVelocity(pml.right, pml.ground_plane.normal, pml.right, PM_CLIP_BOUNCE);
-
-	VectorNormalize(pml.forward);
-	VectorNormalize(pml.right);
+	VectorNormalize(forward);
+	VectorNormalize(right);
 
 	for (int32_t i = 0; i < 3; i++) {
-		vel[i] = pml.forward[i] * pm->cmd.forward + pml.right[i] * pm->cmd.right;
+		vel[i] = forward[i] * pm->cmd.forward + right[i] * pm->cmd.right;
 	}
 
 	Pm_Currents(vel);
@@ -1273,35 +1272,6 @@ static void Pm_WalkMove(void) {
 	if (pm->s.velocity[0] || pm->s.velocity[1]) {
 		Pm_StepSlideMove();
 	}
-}
-
-/**
- * @brief
- */
-static void Pm_ClampAngles(void) {
-
-	// copy the command angles into the outgoing state
-	VectorCopy(pm->cmd.angles, pm->s.view_angles);
-
-	// circularly clamp the angles with kick and deltas
-	for (int32_t i = 0; i < 3; i++) {
-
-		const int16_t c = pm->cmd.angles[i];
-		const int16_t k = pm->s.kick_angles[i];
-		const int16_t d = pm->s.delta_angles[i];
-
-		pm->angles[i] = UnpackAngle(c + k + d);
-	}
-
-	// clamp pitch to prevent the player from looking up or down more than 90
-	if (pm->angles[PITCH] > 90.0 && pm->angles[PITCH] < 270.0) {
-		pm->angles[PITCH] = 90.0;
-	} else if (pm->angles[PITCH] <= 360.0 && pm->angles[PITCH] >= 270.0) {
-		pm->angles[PITCH] -= 360.0;
-	}
-
-	// calculate the directional vectors for this move
-	AngleVectors(pm->angles, pml.forward, pml.right, pml.up);
 }
 
 /**
@@ -1384,6 +1354,32 @@ static void Pm_Init(void) {
 /**
  * @brief
  */
+static void Pm_ClampAngles(void) {
+
+	// copy the command angles into the outgoing state
+	VectorCopy(pm->cmd.angles, pm->s.view_angles);
+
+	// circularly clamp the angles with kick and deltas
+	for (int32_t i = 0; i < 3; i++) {
+
+		const int16_t c = pm->cmd.angles[i];
+		const int16_t k = pm->s.kick_angles[i];
+		const int16_t d = pm->s.delta_angles[i];
+
+		pm->angles[i] = UnpackAngle(c + k + d);
+	}
+
+	// clamp pitch to prevent the player from looking up or down more than 90º
+	if (pm->angles[PITCH] > 90.0 && pm->angles[PITCH] < 270.0) {
+		pm->angles[PITCH] = 90.0;
+	} else if (pm->angles[PITCH] <= 360.0 && pm->angles[PITCH] >= 270.0) {
+		pm->angles[PITCH] -= 360.0;
+	}
+}
+
+/**
+ * @brief
+ */
 static void Pm_InitLocal(void) {
 
 	memset(&pml, 0, sizeof(pml));
@@ -1397,6 +1393,12 @@ static void Pm_InitLocal(void) {
 
 	// convert from milliseconds to seconds
 	pml.time = pm->cmd.msec * 0.001;
+
+	// calculate the directional vectors for this move
+	AngleVectors(pm->angles, pml.forward, pml.right, pml.up);
+
+	// and calculate the directional vectors in the XY plane
+	AngleVectors((vec3_t) { 0.0, pm->angles[1], pm->angles[2] }, pml.forward_xy, pml.right_xy, NULL);
 }
 
 /**
@@ -1408,9 +1410,9 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	Pm_Init();
 
-	Pm_InitLocal();
-
 	Pm_ClampAngles();
+
+	Pm_InitLocal();
 
 	if (pm->s.type == PM_FREEZE) { // no movement
 		return;
