@@ -307,7 +307,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 	uint16_t i, count = 3 + Random() % 3;
 
 	for (i = 0; i < count; i++) {
-		g_entity_t *ent = G_AllocEntity(__func__);
+		g_entity_t *ent = G_AllocEntity();
 
 		VectorCopy(self->s.origin, ent->s.origin);
 
@@ -386,7 +386,7 @@ static void G_ClientCorpse(g_entity_t *self) {
 		return;
 	}
 
-	g_entity_t *ent = G_AllocEntity(__func__);
+	g_entity_t *ent = G_AllocEntity();
 
 	ent->solid = SOLID_DEAD;
 
@@ -1240,6 +1240,8 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 		cl->ps.pm_state.type = PM_SPECTATOR;
 	} else if (ent->locals.dead) {
 		cl->ps.pm_state.type = PM_DEAD;
+	} else if (ent->client->locals.hook_entity && ent->client->locals.hook_pull) {
+		cl->ps.pm_state.type = PM_HOOK;
 	} else {
 		cl->ps.pm_state.type = PM_NORMAL;
 	}
@@ -1251,7 +1253,17 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	pm.s = cl->ps.pm_state;
 
 	VectorCopy(ent->s.origin, pm.s.origin);
-	VectorCopy(ent->locals.velocity, pm.s.velocity);
+
+	if (cl->ps.pm_state.type == PM_HOOK) {
+		VectorSubtract(ent->client->locals.hook_entity->s.origin, ent->s.origin, pm.s.velocity);
+		vec_t dist_to_hook = VectorNormalize(pm.s.velocity);
+
+		if (dist_to_hook > 1.0) {
+			VectorScale(pm.s.velocity, Max(dist_to_hook, 650.0), pm.s.velocity);
+		}
+	} else {
+		VectorCopy(ent->locals.velocity, pm.s.velocity);
+	}
 
 	pm.cmd = *cmd;
 	pm.ground_entity = ent->locals.ground_entity;

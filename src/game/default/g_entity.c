@@ -407,6 +407,7 @@ static void G_InitMedia(void) {
 
 	g_media.models.grenade = gi.ModelIndex("models/objects/grenade/tris");
 	g_media.models.rocket = gi.ModelIndex("models/objects/rocket/tris");
+	g_media.models.hook = gi.ModelIndex("models/objects/grapplehook/tris");
 
 	g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
 	g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");
@@ -499,7 +500,7 @@ void G_SpawnEntities(const char *name, const char *entities) {
 		if (ent == NULL) {
 			ent = g_game.entities;
 		} else {
-			ent = G_AllocEntity(__func__);
+			ent = G_AllocEntity();
 		}
 
 		entities = G_ParseEntity(entities, ent);

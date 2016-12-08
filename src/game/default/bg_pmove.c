@@ -530,6 +530,11 @@ static void Pm_Accelerate(vec3_t dir, vec_t speed, vec_t accel) {
  * @brief Applies gravity to the current movement.
  */
 static void Pm_Gravity(void) {
+
+	if (pm->s.type == PM_HOOK) {
+		return;
+	}
+
 	vec_t gravity = pm->s.gravity;
 
 	if (pm->water_level > 2) {
@@ -666,6 +671,15 @@ static void Pm_CheckGround(void) {
 
 	// if we jumped, or been pushed, do not attempt to seek ground
 	if (pm->s.flags & (PMF_JUMPED | PMF_TIME_PUSHED)) {
+		return;
+	}
+
+	// hookers need no ground
+	if (pm->s.type == PM_HOOK) {
+
+		pm->s.flags &= ~PMF_ON_GROUND;
+		pm->ground_entity = NULL;
+
 		return;
 	}
 
@@ -900,6 +914,10 @@ static void Pm_CheckLadder(void) {
 	vec3_t forward, pos;
 
 	if (pm->s.flags & PMF_TIME_MASK) {
+		return;
+	}
+
+	if (pm->s.type == PM_HOOK) {
 		return;
 	}
 

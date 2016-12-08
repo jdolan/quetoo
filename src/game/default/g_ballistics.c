@@ -191,7 +191,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	const vec3_t mins = { -1.0, -1.0, -1.0 };
 	const vec3_t maxs = { 1.0, 1.0, 1.0 };
 
-	g_entity_t *projectile = G_AllocEntity(__func__);
+	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -432,7 +432,7 @@ void G_GrenadeProjectile(g_entity_t *ent, vec3_t const start, const vec3_t dir, 
 
 	vec3_t forward, right, up;
 
-	g_entity_t *projectile = G_AllocEntity(__func__);
+	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -577,7 +577,7 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                         int16_t damage, int16_t knockback, vec_t damage_radius) {
 
-	g_entity_t *projectile = G_AllocEntity(__func__);
+	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -667,7 +667,7 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other,
 void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                               int16_t damage, int16_t knockback) {
 
-	g_entity_t *projectile = G_AllocEntity(__func__);
+	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -834,7 +834,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 	}
 
 	if (!projectile) { // ensure a valid lightning entity exists
-		projectile = G_AllocEntity(__func__);
+		projectile = G_AllocEntity();
 
 		VectorCopy(start, projectile->s.origin);
 
@@ -1067,7 +1067,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
                      int16_t damage, int16_t knockback, vec_t damage_radius) {
 
-	g_entity_t *projectile = G_AllocEntity(__func__);
+	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
 
 	VectorCopy(start, projectile->s.origin);
@@ -1089,4 +1089,72 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 	projectile->s.trail = TRAIL_BFG;
 
 	gi.LinkEntity(projectile);
+}
+
+/**
+ * @brief
+ */
+static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_bsp_plane_t *plane,
+                                  const cm_bsp_surface_t *surf) {
+
+	if (other == self->owner) {
+		return;
+	}
+
+	if (other->solid < SOLID_DEAD) {
+		return;
+	}
+
+	if (!G_IsSky(surf)) {
+
+		if (G_IsStructural(other, surf)) {
+			
+			VectorClear(self->locals.velocity);
+			VectorClear(self->locals.avelocity);
+
+			self->owner->client->locals.hook_pull = true;
+			
+		} else {
+
+			G_ClientHookDetach(self->owner);
+		}
+
+	} else {
+
+		G_ClientHookDetach(self->owner);
+	}
+}
+
+/**
+ * @brief
+ */
+g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed) {
+
+	g_entity_t *projectile = G_AllocEntity();
+	projectile->owner = ent;
+
+	VectorCopy(start, projectile->s.origin);
+	VectorAngles(dir, projectile->s.angles);
+	VectorScale(dir, 1000, projectile->locals.velocity);
+	VectorSet(projectile->locals.avelocity, 0, 0, 500);
+
+	if (G_ImmediateWall(ent, projectile)) {
+		VectorCopy(ent->s.origin, projectile->s.origin);
+	}
+
+	projectile->solid = SOLID_PROJECTILE;
+	projectile->locals.clip_mask = MASK_CLIP_PROJECTILE;
+	projectile->locals.move_type = MOVE_TYPE_FLY;
+	projectile->locals.Touch = G_HookProjectile_Touch;
+	projectile->s.model1 = g_media.models.hook;
+
+	// set the color, overloading the client byte
+	if (ent->client) {
+		projectile->s.client = ent->client->locals.persistent.color;
+	} else {
+		projectile->s.client = 0;
+	}
+
+	gi.LinkEntity(projectile);
+	return projectile;
 }

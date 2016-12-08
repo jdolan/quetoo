@@ -257,7 +257,7 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
  */
 static void G_trigger_push_Effect(g_entity_t *self) {
 
-	g_entity_t *ent = G_AllocEntity(__func__);
+	g_entity_t *ent = G_AllocEntity();
 
 	VectorAdd(self->mins, self->maxs, ent->s.origin);
 	VectorScale(ent->s.origin, 0.5, ent->s.origin);

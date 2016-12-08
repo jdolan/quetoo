@@ -182,7 +182,7 @@ static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other,
 static void G_misc_fireball_Fly(g_entity_t *self) {
 	static uint32_t count;
 
-	g_entity_t *ent = G_AllocEntity(__func__);
+	g_entity_t *ent = G_AllocEntity();
 
 	VectorCopy(self->s.origin, ent->s.origin);
 

@@ -43,8 +43,11 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 	} else {
 		c = e->model->mesh->world_config;
 	}
-
+	
 	Matrix4x4_ConcatTranslate(&e->matrix, c->translate[0], c->translate[1], c->translate[2]);
+	Matrix4x4_ConcatRotate(&e->matrix, c->rotate[0], 1.0, 0.0, 0.0);
+	Matrix4x4_ConcatRotate(&e->matrix, c->rotate[1], 0.0, 1.0, 0.0);
+	Matrix4x4_ConcatRotate(&e->matrix, c->rotate[2], 0.0, 0.0, 1.0);
 	Matrix4x4_ConcatScale(&e->matrix, c->scale);
 
 	if (e->effects & EF_WEAPON) {

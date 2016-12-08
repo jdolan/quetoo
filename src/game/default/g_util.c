@@ -238,7 +238,7 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 	// check for a delay
 	if (ent->locals.delay) {
 		// create a temp object to fire at a later time
-		t = G_AllocEntity(__func__);
+		t = G_AllocEntity();
 		t->locals.next_think = g_level.time + ent->locals.delay * 1000;
 		t->locals.Think = G_UseTargets_Delay;
 		t->locals.activator = activator;
@@ -342,7 +342,7 @@ void G_InitEntity(g_entity_t *ent, const char *class_name) {
 /**
  * @brief Allocates an entity for use.
  */
-g_entity_t *G_AllocEntity(const char *class_name) {
+g_entity_t *G_AllocEntity_(const char *class_name) {
 	uint16_t i;
 
 	g_entity_t *e = &g_game.entities[sv_max_clients->integer + 1];

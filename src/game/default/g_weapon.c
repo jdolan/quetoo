@@ -401,7 +401,14 @@ void G_ClientHookDetach(g_entity_t *ent) {
 	G_MuzzleFlash(ent, MZ_HYPERBLASTER);
 
 	// free entity
+	G_FreeEntity(ent->client->locals.hook_entity);
+
 	ent->client->locals.hook_entity = NULL;
+
+	// prevent hook spam
+	if (!ent->client->locals.hook_pull) {
+		ent->client->locals.hook_fire_time = g_level.time + 250;
+	}
 }
 
 /**
@@ -423,7 +430,12 @@ static void G_ClientHookCheckFire(g_entity_t *ent) {
 		return;
 	}
 
-	ent->client->locals.hook_entity = (g_entity_t *) 1;
+	// fire away!
+	vec3_t forward, right, up, org;
+	G_InitProjectile(ent, forward, right, up, org);
+	
+	ent->client->locals.hook_pull = false;
+	ent->client->locals.hook_entity = G_HookProjectile(ent, org, forward, 1000);
 
 	G_MuzzleFlash(ent, MZ_BLASTER);
 }
@@ -452,12 +464,11 @@ void G_ClientHookThink(g_entity_t *ent) {
 	if (ent->client->locals.hook_entity) {
 
 		if (!(ent->client->locals.buttons & BUTTON_HOOK)) {
+
 			G_ClientHookDetach(ent);
-	
-			// prevent hook spam
-			ent->client->locals.hook_fire_time = g_level.time + 250;
 		}
 	} else {
+
 		G_ClientHookCheckFire(ent);
 	}
 }
@@ -557,7 +568,7 @@ void G_FireMachinegun(g_entity_t *ent) {
  *  while playing the ticking sound
  */
 static void G_PullGrenadePin(g_entity_t *ent) {
-	g_entity_t *nade = G_AllocEntity(__func__);
+	g_entity_t *nade = G_AllocEntity();
 	ent->client->locals.held_grenade = nade;
 	nade->owner = ent;
 	nade->solid = SOLID_NOT;
@@ -849,7 +860,7 @@ void G_FireBfg(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		ent->client->locals.weapon_fire_time = g_level.time + 3000;
 
-		g_entity_t *timer = G_AllocEntity(__func__);
+		g_entity_t *timer = G_AllocEntity();
 		timer->owner = ent;
 
 		timer->locals.Think = G_FireBfg_;

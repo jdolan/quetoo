@@ -750,6 +750,7 @@ typedef struct {
  */
 typedef struct {
 	vec3_t translate;
+	vec3_t rotate;
 	vec_t scale;
 	uint32_t flags; // EF_ALPHA_TEST, etc..
 } r_mesh_config_t;

@@ -528,9 +528,10 @@ typedef struct {
 
 	struct {
 		uint16_t gibs[NUM_GIB_MODELS];
-
+		
 		uint16_t grenade;
 		uint16_t rocket;
+		uint16_t hook;
 	} models;
 
 	struct {
@@ -773,6 +774,7 @@ typedef struct {
 	uint32_t hook_think_time; // time when the hook think was called
 	uint32_t hook_fire_time; // can fire hook when time > this
 	g_entity_t *hook_entity; // the hook that we're attached to
+	_Bool hook_pull; // whether we're pulling towards the hook now
 
 	int16_t damage_armor; // damage absorbed by armor
 	int16_t damage_health; // damage taken out of health

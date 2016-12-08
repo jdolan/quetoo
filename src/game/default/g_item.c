@@ -735,7 +735,7 @@ g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item) {
 	vec3_t forward;
 	cm_trace_t tr;
 
-	g_entity_t *it = G_AllocEntity(item->class_name);
+	g_entity_t *it = G_AllocEntity_(item->class_name);
 	it->owner = ent;
 
 	VectorScale(ITEM_MINS, ITEM_SCALE, it->mins);
