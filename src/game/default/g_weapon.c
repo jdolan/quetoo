@@ -408,6 +408,9 @@ void G_ClientHookDetach(g_entity_t *ent) {
 	// prevent hook spam
 	if (!ent->client->locals.hook_pull) {
 		ent->client->locals.hook_fire_time = g_level.time + 250;
+	} else {
+		// don't get hurt from sweet-ass hooking
+		ent->client->locals.land_time = g_level.time;
 	}
 }
 
