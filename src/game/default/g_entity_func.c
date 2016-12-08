@@ -482,7 +482,7 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent) {
 	vec3_t tmin, tmax;
 
 	// middle trigger
-	trigger = G_AllocEntity(__func__);
+	trigger = G_AllocEntity();
 	trigger->locals.Touch = G_func_plat_Touch;
 	trigger->locals.move_type = MOVE_TYPE_NONE;
 	trigger->solid = SOLID_TRIGGER;
@@ -1118,7 +1118,7 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
 	maxs[0] += 60;
 	maxs[1] += 60;
 
-	trigger = G_AllocEntity(__func__);
+	trigger = G_AllocEntity();
 	VectorCopy(mins, trigger->mins);
 	VectorCopy(maxs, trigger->maxs);
 	trigger->owner = ent;

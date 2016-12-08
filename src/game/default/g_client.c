@@ -307,7 +307,7 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
 	uint16_t i, count = 3 + Random() % 3;
 
 	for (i = 0; i < count; i++) {
-		g_entity_t *ent = G_AllocEntity(__func__);
+		g_entity_t *ent = G_AllocEntity();
 
 		VectorCopy(self->s.origin, ent->s.origin);
 
@@ -386,7 +386,7 @@ static void G_ClientCorpse(g_entity_t *self) {
 		return;
 	}
 
-	g_entity_t *ent = G_AllocEntity(__func__);
+	g_entity_t *ent = G_AllocEntity();
 
 	ent->solid = SOLID_DEAD;
 
@@ -434,6 +434,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 		if ((g_level.gameplay == GAME_DEATHMATCH || g_level.gameplay == GAME_DUEL) && mod != MOD_TRIGGER_HURT) {
 			G_TossWeapon(self);
 			G_TossQuadDamage(self);
+			G_ClientHookDetach(self);
 		}
 
 		if (g_level.ctf) {
@@ -1173,6 +1174,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 
 	G_TossQuadDamage(ent);
 	G_TossFlag(ent);
+	G_ClientHookDetach(ent);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s bitched out\n", ent->client->locals.persistent.net_name);
 
@@ -1238,6 +1240,8 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 		cl->ps.pm_state.type = PM_SPECTATOR;
 	} else if (ent->locals.dead) {
 		cl->ps.pm_state.type = PM_DEAD;
+	} else if (ent->client->locals.hook_entity && ent->client->locals.hook_pull) {
+		cl->ps.pm_state.type = PM_HOOK;
 	} else {
 		cl->ps.pm_state.type = PM_NORMAL;
 	}
@@ -1249,7 +1253,17 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 	pm.s = cl->ps.pm_state;
 
 	VectorCopy(ent->s.origin, pm.s.origin);
-	VectorCopy(ent->locals.velocity, pm.s.velocity);
+
+	if (cl->ps.pm_state.type == PM_HOOK) {
+		VectorSubtract(ent->client->locals.hook_entity->s.origin, ent->s.origin, pm.s.velocity);
+		vec_t dist_to_hook = VectorNormalize(pm.s.velocity);
+
+		if (dist_to_hook > 1.0) {
+			VectorScale(pm.s.velocity, Max(dist_to_hook, 650.0), pm.s.velocity);
+		}
+	} else {
+		VectorCopy(ent->locals.velocity, pm.s.velocity);
+	}
 
 	pm.cmd = *cmd;
 	pm.ground_entity = ent->locals.ground_entity;
@@ -1491,6 +1505,17 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 		}
 	}
 
+	if (cl->locals.latched_buttons & BUTTON_HOOK) {
+
+		if (cl->locals.persistent.spectator) {
+
+			// TODO: hook this into spectator maybe?
+		} else if (cl->locals.hook_think_time < g_level.time) {
+
+			G_ClientHookThink(ent);
+		}
+	}
+
 	G_ClientInventoryThink(ent);
 
 	// update chase camera if being followed
@@ -1519,6 +1544,10 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 	// run weapon think if it hasn't been done by a command
 	if (cl->locals.weapon_think_time < g_level.time) {
 		G_ClientWeaponThink(ent);
+	}
+
+	if (cl->locals.hook_think_time < g_level.time) {
+		G_ClientHookThink(ent);
 	}
 
 	if (ent->locals.dead) {

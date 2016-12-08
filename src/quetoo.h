@@ -340,6 +340,7 @@ typedef enum {
  */
 typedef enum {
 	PM_NORMAL, // walking, jumping, falling, swimming, etc.
+	PM_HOOK, // hook movement - no gravity and no ground checks
 	PM_SPECTATOR, // free-flying movement with acceleration and friction
 	PM_DEAD, // no movement, but the ability to rotate in place
 	PM_FREEZE // no movement at all
@@ -373,6 +374,7 @@ typedef struct {
  */
 #define BUTTON_ATTACK		1
 #define BUTTON_WALK			2
+#define BUTTON_HOOK			4
 
 /**
  * @brief Player movement commands, sent to the server at each client frame.

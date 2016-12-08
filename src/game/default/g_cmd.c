@@ -141,7 +141,7 @@ static void G_Give_f(g_entity_t *ent) {
 			ent->client->locals.inventory[index] += it->quantity;
 		}
 	} else { // or spawn and touch whatever they asked for
-		it_ent = G_AllocEntity(it->class_name);
+		it_ent = G_AllocEntity_(it->class_name);
 
 		G_SpawnItem(it_ent, it);
 		G_TouchItem(it_ent, ent, NULL, NULL);
@@ -977,6 +977,7 @@ _Bool G_AddClientToTeam(g_entity_t *ent, const char *team_name) {
 	if (!ent->client->locals.persistent.spectator) { // changing teams
 		G_TossQuadDamage(ent);
 		G_TossFlag(ent);
+		G_ClientHookDetach(ent);
 	}
 
 	ent->client->locals.persistent.team = team;
@@ -1310,6 +1311,7 @@ static void G_Spectate_f(g_entity_t *ent) {
 	} else { // they wish to spectate
 		G_TossQuadDamage(ent);
 		G_TossFlag(ent);
+		G_ClientHookDetach(ent);
 	}
 
 	ent->client->locals.persistent.spectator = !spectator;

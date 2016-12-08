@@ -154,6 +154,12 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 			continue;
 		}
 
+		if (!g_strcmp0(c, "rotate")) {
+			sscanf(ParseToken(&buffer), "%f %f %f", &config->rotate[0], &config->rotate[1],
+			       &config->rotate[2]);
+			continue;
+		}
+
 		if (!g_strcmp0(c, "scale")) {
 			sscanf(ParseToken(&buffer), "%f", &config->scale);
 			continue;
