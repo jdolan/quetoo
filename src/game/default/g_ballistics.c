@@ -1179,11 +1179,18 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 	trail->locals.move_type = MOVE_TYPE_THINK;
 	trail->s.client = ent - g_game.entities - 1; // player number, for client prediction fix
 	trail->s.effects = EF_BEAM;
-	trail->s.trail = TRAIL_LIGHTNING;
+	trail->s.trail = TRAIL_HOOK;
 	trail->locals.Think = G_HookTrail_Think;
 	trail->locals.next_think = g_level.time + 1;
 
 	G_HookTrail_Think(trail);
+
+	// set the color, overloading the client byte
+	if (ent->client) {
+		trail->s.animation1 = ent->client->locals.persistent.color;
+	} else {
+		trail->s.animation1 = 0;
+	}
 
 	gi.LinkEntity(trail);
 

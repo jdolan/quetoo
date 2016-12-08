@@ -499,6 +499,27 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 /**
  * @brief
  */
+static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+
+	cg_particle_t *p;
+
+	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_lightning))) {
+		return;
+	}
+
+	cgi.ColorFromPalette(ent->current.animation1 ?: EFFECT_COLOR_GREEN, p->part.color);
+	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -100.0);
+
+	p->part.scale = 4.0;
+	p->part.scroll_s = -8.0;
+
+	VectorCopy(start, p->part.org);
+	VectorCopy(end, p->part.end);
+}
+
+/**
+ * @brief
+ */
 static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t org) {
 
 	Cg_EnergyTrail(ent, org, 48.0, 206);
@@ -691,6 +712,9 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 			break;
 		case TRAIL_LIGHTNING:
 			Cg_LightningTrail(ent, start, end);
+			break;
+		case TRAIL_HOOK:
+			Cg_HookTrail(ent, start, end);
 			break;
 		case TRAIL_BFG:
 			Cg_BfgTrail(ent, e->origin);
