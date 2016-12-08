@@ -722,6 +722,18 @@ int32_t G_ColorByName(const char *s, int32_t def) {
 }
 
 /**
+ * @return Get the g_hook_style_t this string describes.
+ */
+g_hook_style_t G_HookStyleByName(const char *s) {
+
+	if (!g_strcmp0(s, "swing")) {
+		return HOOK_SWING;
+	}
+
+	return HOOK_PULL;
+}
+
+/**
  * @return True if the specified entity should bleed when damaged.
  */
 _Bool G_IsMeat(const g_entity_t *ent) {

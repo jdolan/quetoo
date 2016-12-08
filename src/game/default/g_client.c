@@ -1018,6 +1018,27 @@ void G_ClientBegin(g_entity_t *ent) {
 }
 
 /**
+ * @brief Set the hook style of the player, respecting server properties.
+ */
+void G_SetClientHookStyle(g_entity_t *ent) {
+
+	if (!ent->in_use) {
+		return;
+	}
+
+	g_hook_style_t hook_style;
+	
+	// respect user_info on default
+	if (!g_strcmp0(g_hook_style->string, "default")) {
+		hook_style = G_HookStyleByName(GetUserInfo(ent->client->locals.persistent.user_info, "hook_style"));
+	} else {
+		hook_style = G_HookStyleByName(g_hook_style->string);
+	}
+
+	ent->client->locals.persistent.hook_style = hook_style;
+}
+
+/**
  * @brief
  */
 void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
@@ -1027,6 +1048,10 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	if (!ValidateUserInfo(user_info)) {
 		user_info = DEFAULT_USER_INFO;
 	}
+
+	// save off the user_info in case we want to check something later
+	g_strlcpy(ent->client->locals.persistent.user_info, user_info,
+	          sizeof(ent->client->locals.persistent.user_info));
 
 	gi.Debug("%s\n", user_info);
 
@@ -1119,9 +1144,8 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	cl->locals.persistent.handicap_next = handicap;
 
-	// save off the user_info in case we want to check something later
-	g_strlcpy(ent->client->locals.persistent.user_info, user_info,
-	          sizeof(ent->client->locals.persistent.user_info));
+	// hook style
+	G_SetClientHookStyle(ent);
 }
 
 /**
@@ -1240,8 +1264,6 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 		cl->ps.pm_state.type = PM_SPECTATOR;
 	} else if (ent->locals.dead) {
 		cl->ps.pm_state.type = PM_DEAD;
-	} else if (ent->client->locals.hook_entity && ent->client->locals.hook_pull) {
-		cl->ps.pm_state.type = PM_HOOK;
 	} else {
 		cl->ps.pm_state.type = PM_NORMAL;
 	}
@@ -1254,16 +1276,65 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	VectorCopy(ent->s.origin, pm.s.origin);
 
-	if (cl->ps.pm_state.type == PM_HOOK) {
+	if (ent->client->locals.hook_pull) {
 
-		VectorSubtract(ent->client->locals.hook_entity->s.origin, ent->s.origin, pm.s.velocity);
-		vec_t dist_to_hook = VectorNormalize(pm.s.velocity);
+		g_entity_t *hook = ent->client->locals.hook_entity;
 
-		if (dist_to_hook > 8.0) {
-			VectorScale(pm.s.velocity, Max(dist_to_hook, g_hook_pull_speed->value), pm.s.velocity);
+		if (ent->client->locals.persistent.hook_style == HOOK_PULL) {
+
+			// pull hook code
+			VectorSubtract(ent->client->locals.hook_entity->s.origin, ent->s.origin, pm.s.velocity);
+			vec_t dist_to_hook = VectorNormalize(pm.s.velocity);
+
+			if (dist_to_hook > 8.0) {
+				VectorScale(pm.s.velocity, Max(dist_to_hook, g_hook_pull_speed->value), pm.s.velocity);
+			} else {
+				VectorClear(pm.s.velocity);
+			}
+
+			cl->ps.pm_state.type = pm.s.type = PM_HOOK;
 		} else {
-			VectorClear(pm.s.velocity);
+			// swing hook code
+			vec3_t chain_vec;
+			vec_t chain_len, force = 0.0;
+
+			VectorSubtract(hook->s.origin, ent->s.origin, chain_vec);
+			chain_len = VectorLength(chain_vec);
+
+			// if player's location is beyond the chain's reach
+			if (chain_len > hook->locals.mass) {	 
+				vec3_t vel_part;
+
+				// determine player's velocity component of chain vector
+				VectorScale(chain_vec, DotProduct(ent->locals.velocity, chain_vec) / DotProduct(chain_vec, chain_vec), vel_part);
+		
+				// restrainment default force 
+				force = (chain_len - hook->locals.mass) * 5.0;
+
+				// if player's velocity heading is away from the hook
+				if (DotProduct(ent->locals.velocity, chain_vec) < 0.0) {
+
+					// if chain has streched for 25 units
+					if (chain_len > hook->locals.mass + 25.0) {
+
+						// remove player's velocity component moving away from hook
+						VectorSubtract(ent->locals.velocity, vel_part, ent->locals.velocity);
+					}
+				} else { // if player's velocity heading is towards the hook
+
+					if (VectorLength(vel_part) < force) {
+						force -= VectorLength(vel_part);
+					} else {
+						force = 0.0;
+					}
+				}
+			}
+			
+			// applys chain restrainment 
+			VectorNormalize(chain_vec);
+			VectorMA(ent->locals.velocity, force, chain_vec, pm.s.velocity);
 		}
+
 	} else {
 		VectorCopy(ent->locals.velocity, pm.s.velocity);
 	}

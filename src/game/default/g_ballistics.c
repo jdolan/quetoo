@@ -1090,6 +1090,10 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 
 	gi.LinkEntity(projectile);
 }
+		
+static const int32_t HOOK_MIN_LENGTH = 40;
+static const int32_t HOOK_MAX_LENGTH = 1000;
+static const vec_t HOOK_RATE = 10.0;
 
 /**
  * @brief
@@ -1114,8 +1118,19 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 
 			self->owner->client->locals.hook_pull = true;
 			
+			self->locals.move_type = MOVE_TYPE_THINK;
+			self->solid = SOLID_NOT;
+			self->locals.enemy = other;
+
+			if (self->owner->client->locals.persistent.hook_style == HOOK_SWING) {
+
+				VectorSubtract(self->owner->s.origin, self->s.origin, self->locals.pos1);
+				self->locals.mass = Clamp(VectorLength(self->locals.pos1), HOOK_MIN_LENGTH, HOOK_MAX_LENGTH);
+			}
+			
 		} else {
 
+			// FIXME: attach to non-brush models maybe?
 			G_ClientHookDetach(self->owner);
 		}
 
@@ -1146,7 +1161,58 @@ static void G_HookTrail_Think(g_entity_t *ent) {
 /**
  * @brief
  */
-g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed) {
+static void G_HookProjectile_Think(g_entity_t *ent) {
+	
+	// if we're attached to something, copy velocities
+	if (ent->locals.enemy) {
+		g_entity_t *mover = ent->locals.enemy;
+		vec3_t move, amove, inverse_amove, forward, right, up, rotate, translate, delta;
+
+		VectorScale(mover->locals.velocity, QUETOO_TICK_SECONDS, move);
+		VectorScale(mover->locals.avelocity, QUETOO_TICK_SECONDS, amove);
+
+		VectorNegate(amove, inverse_amove);
+		AngleVectors(inverse_amove, forward, right, up);
+
+		// translate the pushed entity
+		VectorAdd(ent->s.origin, move, ent->s.origin);
+
+		// then rotate the movement to comply with the pusher's rotation
+		VectorSubtract(ent->s.origin, mover->s.origin, translate);
+
+		rotate[0] = DotProduct(translate, forward);
+		rotate[1] = -DotProduct(translate, right);
+		rotate[2] = DotProduct(translate, up);
+
+		VectorSubtract(rotate, translate, delta);
+
+		VectorAdd(ent->s.origin, delta, ent->s.origin);
+		
+		// FIXME: any way we can have the hook move on all axis?
+		ent->s.angles[YAW] += amove[YAW];
+
+		gi.LinkEntity(ent);
+	}
+
+	// swing hook - grow/shrink chain based on input
+	if (ent->owner->client->locals.persistent.hook_style == HOOK_SWING) {
+
+		if ((ent->owner->client->locals.cmd.up < 0) && (ent->locals.mass < HOOK_MAX_LENGTH)) {
+
+			ent->locals.mass = Min(ent->locals.mass + HOOK_RATE, HOOK_MAX_LENGTH);
+		}  else if ((ent->owner->client->locals.cmd.up > 0 || (ent->owner->client->locals.buttons & BUTTON_HOOK)) && (ent->locals.mass > HOOK_MIN_LENGTH)) { 
+
+			ent->locals.mass = Max(ent->locals.mass - HOOK_RATE, HOOK_MIN_LENGTH);
+		}
+	}
+
+	ent->locals.next_think = g_level.time + 1;
+}
+
+/**
+ * @brief
+ */
+g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir) {
 
 	g_entity_t *projectile = G_AllocEntity();
 	projectile->owner = ent;
@@ -1165,6 +1231,8 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 	projectile->locals.move_type = MOVE_TYPE_FLY;
 	projectile->locals.Touch = G_HookProjectile_Touch;
 	projectile->s.model1 = g_media.models.hook;
+	projectile->locals.Think = G_HookProjectile_Think;
+	projectile->locals.next_think = g_level.time + 1;
 
 	gi.LinkEntity(projectile);
 

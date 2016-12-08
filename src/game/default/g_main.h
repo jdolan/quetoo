@@ -46,6 +46,7 @@
 	extern cvar_t *g_cheats;
 	extern cvar_t *g_ctf;
 	extern cvar_t *g_hook;
+	extern cvar_t *g_hook_style;
 	extern cvar_t *g_hook_speed;
 	extern cvar_t *g_hook_pull_speed;
 	extern cvar_t *g_frag_limit;

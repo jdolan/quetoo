@@ -712,6 +712,7 @@ static const char *vote_cmds[] = {
 	"g_teams",
 	"g_time_limit",
 	"g_hook",
+	"g_hook_style",
 	"g_hook_speed",
 	"g_hook_pull_speed",
 	"kick",
@@ -857,6 +858,12 @@ static _Bool G_VoteHelp(g_entity_t *ent) {
 	if (gi.Argc() == 2 && !g_strcmp0(gi.Argv(1), "g_hook")) { // list hook modes
 		gi.ClientPrint(ent, PRINT_HIGH, "\nAvailable hook modes:\n\n"
 		               "  default\n  1\n  0\n");
+		return true;
+	}
+
+	if (gi.Argc() == 2 && !g_strcmp0(gi.Argv(1), "g_hook_style")) { // list hook modes
+		gi.ClientPrint(ent, PRINT_HIGH, "\nAvailable force hook styles:\n\n"
+		               "  default\n  pull\n  swing\n");
 		return true;
 	}
 

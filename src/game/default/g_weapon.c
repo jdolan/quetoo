@@ -404,6 +404,7 @@ void G_ClientHookDetach(g_entity_t *ent) {
 	G_FreeEntity(ent->client->locals.hook_entity->locals.target_ent);
 	G_FreeEntity(ent->client->locals.hook_entity);
 
+	ent->client->locals.hook_pull = false;
 	ent->client->locals.hook_entity = NULL;
 
 	// prevent hook spam
@@ -421,7 +422,7 @@ void G_ClientHookDetach(g_entity_t *ent) {
 static void G_ClientHookCheckFire(g_entity_t *ent) {
 
 	// hook can fire, see if we should
-	const uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
+	const uint32_t buttons = ent->client->locals.latched_buttons;
 
 	if (!(buttons & BUTTON_HOOK)) {
 		return;
@@ -439,7 +440,7 @@ static void G_ClientHookCheckFire(g_entity_t *ent) {
 	G_InitProjectile(ent, forward, right, up, org);
 	
 	ent->client->locals.hook_pull = false;
-	ent->client->locals.hook_entity = G_HookProjectile(ent, org, forward, 1000);
+	ent->client->locals.hook_entity = G_HookProjectile(ent, org, forward);
 
 	G_MuzzleFlash(ent, MZ_BLASTER);
 }
@@ -467,7 +468,8 @@ void G_ClientHookThink(g_entity_t *ent) {
 	// send off to the proper sub-function
 	if (ent->client->locals.hook_entity) {
 
-		if (!(ent->client->locals.buttons & BUTTON_HOOK)) {
+		if ((ent->client->locals.persistent.hook_style == HOOK_PULL && !(ent->client->locals.buttons & BUTTON_HOOK)) ||
+			(ent->client->locals.persistent.hook_style == HOOK_SWING && (ent->client->locals.latched_buttons & BUTTON_HOOK))) {
 
 			G_ClientHookDetach(ent);
 		}

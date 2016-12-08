@@ -195,4 +195,12 @@ typedef enum {
 	GAME_DUEL
 } g_gameplay_t;
 
+/**
+ * @brief Hook style.
+ */
+typedef enum {
+	HOOK_PULL, // lithium-style pull hook
+	HOOK_SWING // hookmod-style swing hook
+} g_hook_style_t;
+
 #endif /* __SHARED_H__ */

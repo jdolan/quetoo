@@ -719,6 +719,8 @@ typedef struct {
 	uint16_t handicap; // current handicap inverse percentage from 0 to 100
 	uint16_t handicap_next; // handicap to use next respawn
 
+	g_hook_style_t hook_style; // the player's current hook style
+
 	g_team_t *team; // current team (good/evil)
 	int32_t color; // weapon effect colors
 

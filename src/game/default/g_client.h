@@ -32,6 +32,7 @@
 	void G_ClientRespawn(g_entity_t *ent, _Bool voluntary);
 	void G_ClientThink(g_entity_t *ent, pm_cmd_t *ucmd);
 	void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info);
+	void G_SetClientHookStyle(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */
 
 #endif /* __GAME_CLIENT_H__ */

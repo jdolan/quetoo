@@ -92,6 +92,23 @@ static void loadView(ViewController *self) {
 			Cg_Input((View *) stackView, "Effect color", (Control *) colorSelect);
 			release(colorSelect);
 
+			CvarSelect *hookSelect = (CvarSelect *) $(alloc(CvarSelect), initWithVariable, cg_hook_style);
+			hookSelect->expectsStringValue = true;
+
+			$((Select *) hookSelect, addOption, "pull", (ident) HOOK_PULL);
+			$((Select *)hookSelect, addOption, "swing", (ident) HOOK_SWING);
+
+			g_hook_style_t hook_style = HOOK_PULL;
+
+			if (!g_strcmp0(cg_hook_style->string, "swing")) {
+				hook_style = HOOK_SWING;
+			}
+
+			$((Select *) hookSelect, selectOptionWithValue, (ident) (intptr_t) hook_style);
+
+			Cg_Input((View *) stackView, "Hook style", (Control *) hookSelect);
+			release(hookSelect);
+
 			Cg_CvarSliderInput((View *) stackView, "Handicap", cg_handicap->name, 50.0, 100.0, 5.0);
 
 			$((View *) box, addSubview, (View *) stackView);

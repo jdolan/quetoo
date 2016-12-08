@@ -48,6 +48,7 @@
 	g_entity_t *G_EntityByName(char *name);
 	g_client_t *G_ClientByName(char *name);
 	int32_t G_ColorByName(const char *s, int32_t def);
+	g_hook_style_t G_HookStyleByName(const char *s);
 	_Bool G_IsMeat(const g_entity_t *ent);
 	_Bool G_IsStationary(const g_entity_t *ent);
 	_Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_surface_t *surface);
