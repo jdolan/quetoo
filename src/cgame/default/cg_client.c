@@ -317,6 +317,8 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 			a->old_frame = a->frame;
 			a->frame = frame;
 		}
+	} else if (anim->num_frames == 1) {
+		a->old_frame = a->frame;
 	}
 
 	a->lerp = (elapsed_time % frame_time) / (vec_t) frame_time;
