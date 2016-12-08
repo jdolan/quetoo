@@ -1465,10 +1465,6 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 	g_level.current_entity = ent;
 	g_client_t *cl = ent->client;
 
-	if (cl->locals.hook_pull) {
-		cl->ps.pm_state.flags |= PMF_NO_PREDICTION;
-	}
-
 	if (cl->locals.chase_target) { // ensure chase is valid
 
 		cl->ps.pm_state.flags |= PMF_NO_PREDICTION;

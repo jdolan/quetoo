@@ -1427,6 +1427,7 @@ void Pm_Move(pm_move_t *pm_move) {
 		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
 	} else if (pm->s.type == PM_HOOK) { // no control on x/y
 		pm->cmd.forward = pm->cmd.right = 0;
+		//pm->s.flags |= PMF_NO_PREDICTION;
 	}
 
 	// check for ducking
