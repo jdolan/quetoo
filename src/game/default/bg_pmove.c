@@ -1425,6 +1425,8 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	if (pm->s.type == PM_DEAD) { // no control
 		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
+	} else if (pm->s.type == PM_HOOK) { // no control on x/y
+		pm->cmd.forward = pm->cmd.right = 0;
 	}
 
 	// check for ducking

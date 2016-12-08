@@ -1256,8 +1256,6 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	if (cl->ps.pm_state.type == PM_HOOK) {
 
-		cmd->forward = cmd->right = 0;
-
 		VectorSubtract(ent->client->locals.hook_entity->s.origin, ent->s.origin, pm.s.velocity);
 		vec_t dist_to_hook = VectorNormalize(pm.s.velocity);
 
