@@ -27,13 +27,13 @@
  * at a certain body position on the player model.
  */
 const vec3_t PM_MINS = { -16.0, -16.0, -24.0 };
-const vec3_t PM_MAXS = { 16.0, 16.0, 32.0 };
+const vec3_t PM_MAXS = {  16.0,  16.0,  32.0 };
 
-static const vec3_t PM_DEAD_MINS = { -24.0, -24.0, -24.0 };
-static const vec3_t PM_DEAD_MAXS = { 24.0, 24.0, -4.0 };
+static const vec3_t PM_DEAD_MINS = { -16.0, -16.0, -24.0 };
+static const vec3_t PM_DEAD_MAXS = {  16.0,  16.0,  -4.0 };
 
 static const vec3_t PM_GIBLET_MINS = { -8.0, -8.0, -8.0 };
-static const vec3_t PM_GIBLET_MAXS = { 8.0, 8.0, 8.0 };
+static const vec3_t PM_GIBLET_MAXS = {  8.0,  8.0,  8.0 };
 
 static pm_move_t *pm;
 
@@ -799,7 +799,7 @@ static void Pm_CheckWater(void) {
 static void Pm_CheckDuck(void) {
 
 	if (pm->s.type == PM_DEAD) {
-		pml.view_offset[2] = 0.0;
+		pml.view_offset[2] = -16.0;
 	} else {
 
 		_Bool is_ducking = pm->s.flags & PMF_DUCKED;

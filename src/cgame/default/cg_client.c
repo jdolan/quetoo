@@ -280,12 +280,12 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 		return;
 	}
 
-	const uint32_t frame_time = 1000 / anim->hz;
-	const uint32_t animation_time = anim->num_frames * frame_time;
+	const uint32_t frame_duration = 1000 / anim->hz;
+	const uint32_t animation_duration = anim->num_frames * frame_duration;
 	const uint32_t elapsed_time = cgi.client->ticks - a->time;
-	int32_t frame = elapsed_time / frame_time;
+	int32_t frame = elapsed_time / frame_duration;
 
-	if (elapsed_time >= animation_time) { // to loop, or not to loop
+	if (elapsed_time >= animation_duration) { // to loop, or not to loop
 
 		if (!anim->looped_frames) {
 			const entity_animation_t next = Cg_NextAnimation(a->animation);
@@ -317,10 +317,12 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
 			a->old_frame = a->frame;
 			a->frame = frame;
 		}
+	} else if (anim->num_frames == 1) {
+		a->old_frame = a->frame;
 	}
 
-	a->lerp = (elapsed_time % frame_time) / (vec_t) frame_time;
-	a->fraction = elapsed_time / (vec_t) animation_time;
+	a->lerp = (elapsed_time % frame_duration) / (vec_t) frame_duration;
+	a->fraction = elapsed_time / (vec_t) animation_duration;
 
 	e->frame = a->frame;
 	e->old_frame = a->old_frame;
