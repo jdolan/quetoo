@@ -70,9 +70,11 @@ static void Thread_Init_(ssize_t num_threads) {
 		num_threads = SDL_GetCPUCount();
 	} else if (num_threads == -1) {
 		num_threads = 0;
+	} else if (num_threads > MAX_THREADS) {
+		num_threads = MAX_THREADS;
 	}
 
-	thread_pool.num_threads = MIN(num_threads, MAX_THREADS);
+	thread_pool.num_threads = num_threads;
 
 	if (thread_pool.num_threads) {
 		thread_pool.threads = Mem_Malloc(sizeof(thread_t) * thread_pool.num_threads);
