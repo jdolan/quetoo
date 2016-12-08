@@ -713,7 +713,7 @@ static const char *vote_cmds[] = {
 	"g_time_limit",
 	"g_hook",
 	"g_hook_speed",
-	"g_hook_pullspeed",
+	"g_hook_pull_speed",
 	"kick",
 	"map",
 	"mute",

@@ -1262,7 +1262,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 		vec_t dist_to_hook = VectorNormalize(pm.s.velocity);
 
 		if (dist_to_hook > 24.0) {
-			VectorScale(pm.s.velocity, Max(dist_to_hook, g_hook_pullspeed->value), pm.s.velocity);
+			VectorScale(pm.s.velocity, Max(dist_to_hook, g_hook_pull_speed->value), pm.s.velocity);
 		}
 	} else {
 		VectorCopy(ent->locals.velocity, pm.s.velocity);

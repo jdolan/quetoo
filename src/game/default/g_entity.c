@@ -599,7 +599,7 @@ static void G_WorldspawnMusic(void) {
  weather : Weather effects, one of "none, rain, snow" followed optionally by "fog r g b."
  gravity : Gravity for the level (default 800).
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
- hook : The hook mode, one of "default, 1, 0."
+ hook : Enables the grappling hook (unset for gameplay default, 0 = disabled, 1 = enabled)."
  teams : Enables and enforces teams play (enabled = 1, auto-balance = 2).
  ctf : Enables CTF play (enabled = 1, auto-balance = 2).
  match : Enables match play (round-based elimination with warmup) (enabled = 1).

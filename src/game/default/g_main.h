@@ -47,7 +47,7 @@
 	extern cvar_t *g_ctf;
 	extern cvar_t *g_hook;
 	extern cvar_t *g_hook_speed;
-	extern cvar_t *g_hook_pullspeed;
+	extern cvar_t *g_hook_pull_speed;
 	extern cvar_t *g_frag_limit;
 	extern cvar_t *g_friendly_fire;
 	extern cvar_t *g_force_demo;
