@@ -108,15 +108,12 @@ static void Cl_WriteUserInfoCommand(void) {
  */
 void Cl_SendCommands(void) {
 
-	const cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 	const cl_cmd_t *prev = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
 
 	const uint32_t msec = cl.ticks - prev->timestamp;
 
-	if (cmd->cmd.buttons == 0) {
-		if (msec < (QUETOO_TICK_MILLIS >> 1)) {
-			return;
-		}
+	if (msec < (QUETOO_TICK_MILLIS >> 1)) {
+		return;
 	}
 
 	switch (cls.state) {
