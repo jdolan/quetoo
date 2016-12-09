@@ -30,7 +30,7 @@
 	void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, vec_t radius, uint32_t mod);
 	void G_Gib(g_entity_t *ent);
 	void G_InitPlayerSpawn(g_entity_t *ent);
-	void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org);
+	void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org, const float hand_scale);
 	g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match);
 	g_entity_t *G_FindRadius(g_entity_t *from, vec3_t org, vec_t rad);
 	g_entity_t *G_PickTarget(char *target_name);

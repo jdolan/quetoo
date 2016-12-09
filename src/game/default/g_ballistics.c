@@ -761,7 +761,7 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
 	}
 
 	// re-calculate end points based on owner's movement
-	G_InitProjectile(self->owner, forward, right, up, start);
+	G_InitProjectile(self->owner, forward, right, up, start, 1.0);
 	VectorCopy(start, self->s.origin);
 
 	if (G_ImmediateWall(self->owner, self)) { // resolve start
@@ -1091,8 +1091,8 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 	gi.LinkEntity(projectile);
 }
 		
-static const int32_t HOOK_MIN_LENGTH = 40;
-static const int32_t HOOK_MAX_LENGTH = 1000;
+static const int32_t HOOK_MIN_LENGTH = 32;
+static const int32_t HOOK_MAX_LENGTH = 2048;
 static const vec_t HOOK_RATE = 10.0;
 
 /**
@@ -1149,14 +1149,23 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 static void G_HookTrail_Think(g_entity_t *ent) {
 	
 	const g_entity_t *hook = ent->locals.target_ent;
-	const g_entity_t *player = ent->owner;
+	g_entity_t *player = ent->owner;
 
 	vec3_t forward, right, up, org;
 
-	G_InitProjectile(player, forward, right, up, org);
+	G_InitProjectile(player, forward, right, up, org, -1.0);
 
 	VectorCopy(org, ent->s.origin);
 	VectorCopy(hook->s.origin, ent->s.termination);
+
+	vec3_t distance;
+	VectorSubtract(org, hook->s.origin, distance);
+
+	if (VectorLength(distance) > HOOK_MAX_LENGTH) {
+
+		G_ClientHookDetach(player);
+		return;
+	}
 
 	ent->locals.next_think = g_level.time + 1;
 }
@@ -1196,10 +1205,10 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 
 		gi.LinkEntity(ent);
 
+		ent->s.sound = 0;
+
 		// swing hook - grow/shrink chain based on input
 		if (ent->owner->client->locals.persistent.hook_style == HOOK_SWING) {
-
-			ent->s.sound = 0;
 		
 			if ((ent->owner->client->locals.cmd.up > 0 || (ent->owner->client->locals.buttons & BUTTON_HOOK)) && (ent->locals.mass > HOOK_MIN_LENGTH)) { 
 
@@ -1211,7 +1220,10 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 				ent->s.sound = g_media.sounds.hook_pull;
 			}
 		} else {
-			ent->s.sound = g_media.sounds.hook_pull;
+
+			if (VectorLengthSquared(ent->owner->locals.velocity) > 128.0) {
+				ent->s.sound = g_media.sounds.hook_pull;
+			}
 		}
 	}
 

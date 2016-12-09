@@ -53,7 +53,7 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 /**
  * @brief Determines the initial position and directional vectors of a projectile.
  */
-void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org) {
+void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t org, const float hand_scale) {
 	vec3_t view, pos;
 
 	// resolve the projectile destination
@@ -73,10 +73,10 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t forward, vec3_t right, vec3_
 
 	switch (ent->client->locals.persistent.hand) {
 		case HAND_RIGHT:
-			VectorMA(org, 6.0, ent_right, org);
+			VectorMA(org, 6.0 * hand_scale, ent_right, org);
 			break;
 		case HAND_LEFT:
-			VectorMA(org, -6.0, ent_right, org);
+			VectorMA(org, -6.0 * hand_scale, ent_right, org);
 			break;
 		default:
 			break;

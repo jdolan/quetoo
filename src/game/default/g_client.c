@@ -465,7 +465,8 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	uint32_t nade_hold_time = self->client->locals.grenade_hold_time;
 
 	if (nade_hold_time != 0) {
-		G_InitProjectile(self, vec3_forward, vec3_forward, vec3_up, self->s.origin);
+
+		G_InitProjectile(self, vec3_forward, vec3_forward, vec3_up, self->s.origin, 1.0);
 		G_HandGrenadeProjectile(
 		    self,					// player
 		    self->client->locals.held_grenade,	// the grenade
@@ -1280,12 +1281,12 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 		g_entity_t *hook = ent->client->locals.hook_entity;
 
+		VectorSubtract(ent->client->locals.hook_entity->s.origin, ent->s.origin, pm.s.velocity);
+		vec_t dist_to_hook = VectorNormalize(pm.s.velocity);
+
 		if (ent->client->locals.persistent.hook_style == HOOK_PULL) {
 
 			// pull hook code
-			VectorSubtract(ent->client->locals.hook_entity->s.origin, ent->s.origin, pm.s.velocity);
-			vec_t dist_to_hook = VectorNormalize(pm.s.velocity);
-
 			if (dist_to_hook > 8.0) {
 				VectorScale(pm.s.velocity, Max(dist_to_hook, g_hook_pull_speed->value), pm.s.velocity);
 			} else {
@@ -1330,11 +1331,22 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				}
 			}
 			
-			// applys chain restrainment 
+			// applies chain restrainment 
 			VectorNormalize(chain_vec);
 			VectorMA(ent->locals.velocity, force, chain_vec, pm.s.velocity);
 
 			pm.s.type = PM_FLOAT;
+		}
+
+		if (dist_to_hook < 32.0) {
+			// a small hack to fix endless pulling into the ground if we're
+			// pressed right up against the hook
+			const vec3_t down = { ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] - 8.0 };
+			cm_trace_t tr = gi.Trace(ent->s.origin, down, ent->mins, ent->maxs, ent, MASK_CLIP_PLAYER);
+
+			if (tr.fraction < 1.0) {
+				pm.s.velocity[2] = 0.0;
+			}
 		}
 
 	} else {

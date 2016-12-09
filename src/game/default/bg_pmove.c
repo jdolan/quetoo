@@ -675,7 +675,7 @@ static bool Pm_CheckHookJump(void) {
 
 	if ((pm->s.type == PM_HOOK ||
 		pm->s.type == PM_FLOAT) &&
-		pm->s.velocity[2] > 0.0) {
+		pm->s.velocity[2] > PM_STEP_HEIGHT_MIN) {
 
 		// clear the ground indicators
 		pm->s.flags &= ~PMF_ON_GROUND;

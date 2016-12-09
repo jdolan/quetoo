@@ -401,7 +401,6 @@ void G_ClientHookDetach(g_entity_t *ent) {
 	G_FreeEntity(ent->client->locals.hook_entity->locals.target_ent);
 	G_FreeEntity(ent->client->locals.hook_entity);
 
-	ent->client->locals.hook_pull = false;
 	ent->client->locals.hook_entity = NULL;
 
 	// prevent hook spam
@@ -411,6 +410,8 @@ void G_ClientHookDetach(g_entity_t *ent) {
 		// don't get hurt from sweet-ass hooking
 		ent->client->locals.land_time = g_level.time;
 	}
+
+	ent->client->locals.hook_pull = false;
 
 	gi.Sound(ent, g_media.sounds.hook_detach, ATTEN_NORM);
 }
@@ -436,7 +437,7 @@ static void G_ClientHookCheckFire(g_entity_t *ent) {
 
 	// fire away!
 	vec3_t forward, right, up, org;
-	G_InitProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent, forward, right, up, org, -1.0);
 	
 	ent->client->locals.hook_pull = false;
 	ent->client->locals.hook_entity = G_HookProjectile(ent, org, forward);
@@ -486,7 +487,7 @@ void G_FireBlaster(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org);
+		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
 		G_BlasterProjectile(ent, org, forward, 1000, 15, 2);
 
@@ -506,7 +507,7 @@ void G_FireShotgun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org);
+		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
 		G_ShotgunProjectiles(ent, org, forward, 6, 4, 700, 300, 12, MOD_SHOTGUN);
 
@@ -528,13 +529,13 @@ void G_FireSuperShotgun(g_entity_t *ent) {
 
 		ent->client->locals.angles[YAW] -= 4.0;
 
-		G_InitProjectile(ent, forward, right, up, org);
+		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
 		G_ShotgunProjectiles(ent, org, forward, 6, 4, 1400, 600, 12, MOD_SUPER_SHOTGUN);
 
 		ent->client->locals.angles[YAW] += 8.0;
 
-		G_InitProjectile(ent, forward, right, up, org);
+		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
 		G_ShotgunProjectiles(ent, org, forward, 6, 4, 1400, 600, 12, MOD_SUPER_SHOTGUN);
 
@@ -556,15 +557,15 @@ void G_FireMachinegun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org);
+		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
-		G_BulletProjectile(ent, org, forward, 6, 6, 100, 200, MOD_MACHINEGUN);
+		G_BulletProjectile(ent, org, forward, 4, 6, 100, 200, MOD_MACHINEGUN);
 
 		G_MuzzleFlash(ent, MZ_MACHINEGUN);
 
-		G_ClientWeaponKick(ent, 0.375);
+		G_ClientWeaponKick(ent, 0.055);
 
-		G_WeaponFired(ent, 80);
+		G_WeaponFired(ent, 76);
 	}
 }
 
@@ -680,7 +681,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 
 	vec3_t forward, right, up, org;
 
-	G_InitProjectile(ent, forward, right, up, org);
+	G_InitProjectile(ent, forward, right, up, org, 1.0);
 	G_HandGrenadeProjectile(
 	    ent,					// player
 	    ent->client->locals.held_grenade,	// the grenade
@@ -728,7 +729,7 @@ void G_FireGrenadeLauncher(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org);
+		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
 		G_GrenadeProjectile(ent, org, forward, 700, 100, 100, 185.0, 2500.0);
 
@@ -748,7 +749,7 @@ void G_FireRocketLauncher(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org);
+		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
 		G_RocketProjectile(ent, org, forward, 1000, 100, 100, 150.0);
 
@@ -768,7 +769,7 @@ void G_FireHyperblaster(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org);
+		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
 		G_HyperblasterProjectile(ent, org, forward, 1800, 12, 6);
 
@@ -800,7 +801,7 @@ void G_FireLightning(g_entity_t *ent) {
 			G_MuzzleFlash(ent, MZ_LIGHTNING);
 		}
 
-		G_InitProjectile(ent, forward, right, up, org);
+		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
 		G_LightningProjectile(ent, org, forward, 8, 12);
 
@@ -818,7 +819,7 @@ void G_FireRailgun(g_entity_t *ent) {
 	if (G_FireWeapon(ent)) {
 		vec3_t forward, right, up, org;
 
-		G_InitProjectile(ent, forward, right, up, org);
+		G_InitProjectile(ent, forward, right, up, org, 1.0);
 
 		const int16_t damage = (g_level.gameplay == GAME_INSTAGIB) ? 999 : 120;
 
@@ -841,7 +842,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 		if (ent->owner->client->locals.weapon == G_FindItemByClassName("weapon_bfg")) {
 			vec3_t forward, right, up, org;
 
-			G_InitProjectile(ent->owner, forward, right, up, org);
+			G_InitProjectile(ent->owner, forward, right, up, org, 1.0);
 
 			G_BfgProjectile(ent->owner, org, forward, 720, 180, 140, 512.0);
 
