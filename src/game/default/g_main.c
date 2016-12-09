@@ -90,6 +90,9 @@ void G_ResetTeams(void) {
 
 	g_strlcpy(g_team_good.skin, "qforcer/blue", sizeof(g_team_good.skin));
 	g_strlcpy(g_team_evil.skin, "qforcer/red", sizeof(g_team_evil.skin));
+	
+	g_team_good.color = EFFECT_COLOR_BLUE;
+	g_team_evil.color = EFFECT_COLOR_RED;
 }
 
 /**

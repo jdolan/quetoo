@@ -690,6 +690,7 @@ typedef enum {
 typedef struct {
 	char name[16]; // kept short for HUD consideration
 	char skin[32];
+	int8_t color;
 	int16_t score;
 	int16_t captures;
 	uint32_t name_time;

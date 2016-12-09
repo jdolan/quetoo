@@ -1117,8 +1117,12 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 	}
 
 	// set color
-	s = GetUserInfo(user_info, "color");
-	cl->locals.persistent.color = G_ColorByName(s, EFFECT_COLOR_DEFAULT);
+	if ((g_level.teams || g_level.ctf) && cl->locals.persistent.team) { // players must use team_skin to change
+		cl->locals.persistent.color = cl->locals.persistent.team->color;
+	} else {
+		s = GetUserInfo(user_info, "color");
+		cl->locals.persistent.color = G_ColorByName(s, EFFECT_COLOR_DEFAULT);
+	}
 
 	// combine name and skin into a config_string
 	gi.ConfigString(CS_CLIENTS + (cl - g_game.clients),
