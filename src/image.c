@@ -207,6 +207,6 @@ _Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height
 
 	SDL_FreeSurface(ss);
 	Mem_Free(buffer);
-	SDL_FreeRW(f);
+	SDL_RWclose(f);
 	return true;
 }

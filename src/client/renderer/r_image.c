@@ -113,8 +113,8 @@ void R_Screenshot_f(void) {
 
 	r_screenshot_t *s = Mem_Malloc(sizeof(r_screenshot_t));
 
-	s->width = r_context.width;
-	s->height = r_context.height;
+	s->width = r_context.render_width;
+	s->height = r_context.render_height;
 
 	s->buffer = Mem_LinkMalloc(s->width * s->height * 3, s);
 
@@ -124,7 +124,14 @@ void R_Screenshot_f(void) {
 	// packing specification here before reading
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-	glReadPixels(0, 0, s->width, s->height, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
+	if (r_state.supersample_fbo) {
+
+		R_BindDiffuseTexture(r_state.supersample_texture);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
+	} else {
+
+		glReadPixels(0, 0, s->width, s->height, GL_BGR, GL_UNSIGNED_BYTE, s->buffer);
+	}
 
 	Thread_Create(R_Screenshot_f_encode, s);
 }
