@@ -126,6 +126,8 @@ static void R_DrawBspSurfacesLines_default(const r_bsp_surfaces_t *surfs) {
 
 	R_EnableTexture(texunit_diffuse, false);
 
+	R_BindDiffuseTexture(r_image_state.null->texnum);
+
 	R_SetArrayState(r_model_state.world);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -160,6 +162,8 @@ void R_DrawOpaqueBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	if (r_draw_bsp_lightmaps->value) {
 		R_EnableTexture(texunit_diffuse, false);
+
+		R_BindDiffuseTexture(r_image_state.null->texnum);
 	}
 
 	R_EnableTexture(texunit_lightmap, true);
@@ -269,6 +273,8 @@ void R_DrawBlendBspSurfaces_default(const r_bsp_surfaces_t *surfs) {
 
 	if (r_draw_bsp_lightmaps->value) {
 		R_EnableTexture(texunit_diffuse, false);
+
+		R_BindDiffuseTexture(r_image_state.null->texnum);
 	}
 
 	// blend is already enabled when this is called

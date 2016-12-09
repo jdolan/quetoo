@@ -414,6 +414,8 @@ void R_DrawBspLeafs(void) {
 
 	R_EnableTexture(texunit_diffuse, false);
 
+	R_BindDiffuseTexture(r_image_state.null->texnum);
+
 	R_EnablePolygonOffset(true);
 
 	const r_bsp_leaf_t *l = r_model_state.world->bsp->leafs;
