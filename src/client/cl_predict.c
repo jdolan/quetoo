@@ -239,16 +239,24 @@ void Cl_CheckPredictionError(void) {
 		return;
 	}
 
-	const cl_predicted_state_t *pr = &cl.predicted_state;
+	if (cl.delta_frame) {
 
-	// calculate the last cl_cmd_t we sent that the server has processed
-	const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
+		const pm_state_t *ps = &cl.frame.ps.pm_state;
+		const cl_predicted_state_t *pr = &cl.predicted_state;
 
-	// subtract what the server returned with what we had predicted it to be
-	VectorSubtract(cl.frame.ps.pm_state.origin, pr->origins[frame], cl.frame.prediction_error);
+		// calculate the last cl_cmd_t we sent that the server has processed
+		const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
 
-	if (VectorLength(cl.frame.prediction_error) > 0.1) {
-		Com_Debug("%s\n", vtos(cl.frame.prediction_error));
+		// subtract what the server returned with what we had predicted it to be
+		VectorSubtract(ps->origin, pr->origins[frame], cl.frame.prediction_error);
+
+		// if the error is too large, it was likely a teleport or respawn, so ignore it
+		const vec_t len = VectorLength(cl.frame.prediction_error);
+		if (len > 64.0) {
+			VectorClear(cl.frame.prediction_error);
+		} else if (len > 0.1) {
+			Com_Debug("%s\n", vtos(cl.frame.prediction_error));
+		}
 	}
 }
 
@@ -263,10 +271,10 @@ void Cl_PredictionError(vec3_t error) {
 		return;
 	}
 
-	VectorCopy(cl.frame.prediction_error, error);
-
 	if (cl.delta_frame) {
 		VectorLerp(cl.delta_frame->prediction_error, cl.frame.prediction_error, -(1.0 - cl.lerp), error);
+	} else {
+		VectorCopy(cl.frame.prediction_error, error);
 	}
 }
 
