@@ -69,7 +69,7 @@ _Bool Cg_IsDucking(const entity_state_t *ent) {
  */
 static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 
-	if (ent->animation1.animation >= ANIM_BOTH_DEATH1 && ent->animation1.animation <= ANIM_BOTH_DEAD3) {
+	if (ent->animation1.animation < ANIM_TORSO_GESTURE) { // death animations
 		return;
 	}
 
