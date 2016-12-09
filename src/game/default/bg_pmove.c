@@ -669,23 +669,36 @@ static void Pm_CorrectPosition(void) {
 }
 
 /**
+ * @brief Checks if we're a hook and moving upwards; if so, we release from ground immediately.
+ */
+static bool Pm_CheckHookJump(void) {
+
+	if ((pm->s.type == PM_HOOK ||
+		pm->s.type == PM_FLOAT) &&
+		pm->s.velocity[2] > 0.0) {
+
+		// clear the ground indicators
+		pm->s.flags &= ~PMF_ON_GROUND;
+		pm->ground_entity = NULL;
+
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * @brief Checks for ground interaction, enabling trick jumping and dealing with landings.
  */
 static void Pm_CheckGround(void) {
 	vec3_t pos;
 
-	// if we jumped, or been pushed, do not attempt to seek ground
-	if (pm->s.flags & (PMF_JUMPED | PMF_TIME_PUSHED)) {
+	if (Pm_CheckHookJump()) {
 		return;
 	}
 
-	// hookers need no ground
-	if (pm->s.type == PM_HOOK ||
-		pm->s.type == PM_FLOAT) {
-
-		pm->s.flags &= ~PMF_ON_GROUND;
-		pm->ground_entity = NULL;
-
+	// if we jumped, or been pushed, do not attempt to seek ground
+	if (pm->s.flags & (PMF_JUMPED | PMF_TIME_PUSHED)) {
 		return;
 	}
 
@@ -860,6 +873,10 @@ static void Pm_CheckDuck(void) {
  */
 static _Bool Pm_CheckJump(void) {
 
+	if (Pm_CheckHookJump()) {
+		return true;
+	}
+
 	// must wait for landing damage to subside
 	if (pm->s.flags & PMF_TIME_LAND) {
 		return false;
@@ -950,7 +967,7 @@ static _Bool Pm_CheckWaterJump(void) {
 
 	if (pm->s.type == PM_HOOK ||
 		pm->s.type == PM_FLOAT) {
-		return true;
+		return false;
 	}
 
 	if (pm->s.flags & PMF_TIME_WATER_JUMP) {
@@ -1111,7 +1128,8 @@ static void Pm_WaterMove(void) {
 	}
 
 	// and sink if idle
-	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up) {
+	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up && pm->s.type != PM_HOOK &&
+		pm->s.type != PM_FLOAT) {
 		if (pm->s.velocity[2] > PM_SPEED_WATER_SINK) {
 			Pm_Gravity();
 		}
@@ -1126,17 +1144,18 @@ static void Pm_WaterMove(void) {
 	vel[2] += pm->cmd.up;
 
 	// disable water skiing
-	if (pm->water_level == 2) {
-		vec3_t view;
+	if (pm->s.type != PM_HOOK && pm->s.type != PM_FLOAT) {
+		if (pm->water_level == 2) {
+			vec3_t view;
 
-		VectorAdd(pm->s.origin, pml.view_offset, view);
-		view[2] -= 4.0;
+			VectorAdd(pm->s.origin, pml.view_offset, view);
+			view[2] -= 4.0;
 
-		if (!(pm->PointContents(view) & MASK_LIQUID)) {
-			pm->s.velocity[2] = Min(pm->s.velocity[2], 0.0);
-			vel[2] = Min(vel[2], 0.0);
+			if (!(pm->PointContents(view) & MASK_LIQUID)) {
+				pm->s.velocity[2] = Min(pm->s.velocity[2], 0.0);
+				vel[2] = Min(vel[2], 0.0);
+			}
 		}
-
 	}
 
 	Pm_Currents(vel);
