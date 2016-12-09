@@ -93,29 +93,33 @@ static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 
 	VectorMA(pos, 8.0, forward, pos);
 
-	if (cgi.PointContents(pos) & MASK_LIQUID) {
+	const int32_t contents = cgi.PointContents(pos);
 
-		if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble))) {
-			return;
+	if (contents & MASK_LIQUID) {
+		if ((contents & MASK_LIQUID) == CONTENTS_WATER) {
+
+			if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble))) {
+				return;
+			}
+
+			cgi.ColorFromPalette(6 + (Random() & 3), p->part.color);
+			Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -0.2 - Randomf() * 0.2);
+
+			p->part.scale = 3.0;
+			p->scale_vel = -0.4 - Randomf() * 0.2;
+
+			VectorScale(forward, 2.0, p->vel);
+
+			for (int32_t j = 0; j < 3; j++) {
+				p->part.org[j] = pos[j] + Randomc() * 2.0;
+				p->vel[j] += Randomc() * 5.0;
+			}
+
+			p->vel[2] += 6.0;
+			p->accel[2] = 10.0;
+
+			ent->breath_puff_time = cgi.client->ticks + 3000;
 		}
-
-		cgi.ColorFromPalette(6 + (Random() & 3), p->part.color);
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -0.2 - Randomf() * 0.2);
-
-		p->part.scale = 3.0;
-		p->scale_vel = -0.4 - Randomf() * 0.2;
-
-		VectorScale(forward, 2.0, p->vel);
-
-		for (int32_t j = 0; j < 3; j++) {
-			p->part.org[j] = pos[j] + Randomc() * 2.0;
-			p->vel[j] += Randomc() * 5.0;
-		}
-
-		p->vel[2] += 6.0;
-		p->accel[2] = 10.0;
-
-		ent->breath_puff_time = cgi.client->ticks + 3000;
 	} else if (cgi.view->weather & WEATHER_RAIN || cgi.view->weather & WEATHER_SNOW) {
 
 		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam))) {
