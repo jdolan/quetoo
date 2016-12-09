@@ -71,8 +71,8 @@ static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 
 	const player_state_t *ps = &cgi.client->frame.ps;
 	
-	if (ps->stats[STAT_HEALTH] <= 0) {
-		return;    // dead
+	if (ent->animation1.animation >= ANIM_BOTH_DEATH1 && ent->animation1.animation <= ANIM_BOTH_DEAD3) {
+		return;
 	}
 
 	if (cgi.client->ticks < ent->breath_puff_time) {
