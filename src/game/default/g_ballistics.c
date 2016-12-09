@@ -1109,6 +1109,8 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 		return;
 	}
 
+	self->s.sound = 0;
+
 	if (!G_IsSky(surf)) {
 
 		if (G_IsStructural(other, surf)) {
@@ -1127,7 +1129,8 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 				VectorSubtract(self->owner->s.origin, self->s.origin, self->locals.pos1);
 				self->locals.mass = Clamp(VectorLength(self->locals.pos1), HOOK_MIN_LENGTH, HOOK_MAX_LENGTH);
 			}
-			
+
+			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM);
 		} else {
 
 			// FIXME: attach to non-brush models maybe?
@@ -1192,17 +1195,23 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 		ent->s.angles[YAW] += amove[YAW];
 
 		gi.LinkEntity(ent);
-	}
 
-	// swing hook - grow/shrink chain based on input
-	if (ent->owner->client->locals.persistent.hook_style == HOOK_SWING) {
+		// swing hook - grow/shrink chain based on input
+		if (ent->owner->client->locals.persistent.hook_style == HOOK_SWING) {
+
+			ent->s.sound = 0;
 		
-		if ((ent->owner->client->locals.cmd.up > 0 || (ent->owner->client->locals.buttons & BUTTON_HOOK)) && (ent->locals.mass > HOOK_MIN_LENGTH)) { 
+			if ((ent->owner->client->locals.cmd.up > 0 || (ent->owner->client->locals.buttons & BUTTON_HOOK)) && (ent->locals.mass > HOOK_MIN_LENGTH)) { 
 
-			ent->locals.mass = Max(ent->locals.mass - HOOK_RATE, HOOK_MIN_LENGTH);
-		} else if ((ent->owner->client->locals.cmd.up < 0) && (ent->locals.mass < HOOK_MAX_LENGTH)) {
+				ent->locals.mass = Max(ent->locals.mass - HOOK_RATE, HOOK_MIN_LENGTH);
+				ent->s.sound = g_media.sounds.hook_pull;
+			} else if ((ent->owner->client->locals.cmd.up < 0) && (ent->locals.mass < HOOK_MAX_LENGTH)) {
 
-			ent->locals.mass = Min(ent->locals.mass + HOOK_RATE, HOOK_MAX_LENGTH);
+				ent->locals.mass = Min(ent->locals.mass + HOOK_RATE, HOOK_MAX_LENGTH);
+				ent->s.sound = g_media.sounds.hook_pull;
+			}
+		} else {
+			ent->s.sound = g_media.sounds.hook_pull;
 		}
 	}
 
@@ -1233,6 +1242,7 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 	projectile->s.model1 = g_media.models.hook;
 	projectile->locals.Think = G_HookProjectile_Think;
 	projectile->locals.next_think = g_level.time + 1;
+	projectile->s.sound = g_media.sounds.hook_fly;
 
 	gi.LinkEntity(projectile);
 
@@ -1261,6 +1271,5 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 	}
 
 	gi.LinkEntity(trail);
-
 	return projectile;
 }

@@ -413,9 +413,17 @@ static void G_InitMedia(void) {
 	g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
 	g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");
 	g_media.sounds.grenade_hit = gi.SoundIndex("objects/grenade/hit");
+	g_media.sounds.grenade_throw = gi.SoundIndex("weapons/handgrenades/hg_throw");
 	g_media.sounds.rocket_fly = gi.SoundIndex("objects/rocket/fly");
 	g_media.sounds.lightning_fly = gi.SoundIndex("weapons/lightning/fly");
 	g_media.sounds.quad_attack = gi.SoundIndex("quad/attack");
+	g_media.sounds.quad_expire = gi.SoundIndex("quad/expire");
+	
+	g_media.sounds.hook_fire = gi.SoundIndex("objects/hook/fire");
+	g_media.sounds.hook_fly = gi.SoundIndex("objects/hook/fly");
+	g_media.sounds.hook_hit = gi.SoundIndex("objects/hook/hit");
+	g_media.sounds.hook_pull = gi.SoundIndex("objects/hook/pull");
+	g_media.sounds.hook_detach = gi.SoundIndex("objects/hook/detach");
 
 	g_media.sounds.teleport = gi.SoundIndex("world/teleport");
 
@@ -435,7 +443,6 @@ static void G_InitMedia(void) {
 	}
 
 	g_media.sounds.roar = gi.SoundIndex("world/ominous_bwah");
-
 
 	// precache all weapons, even if the map doesn't contain them
 	G_PrecacheItem(G_FindItem("Blaster"));

@@ -397,9 +397,6 @@ void G_ClientHookDetach(g_entity_t *ent) {
 		return;
 	}
 
-	// detach
-	G_MuzzleFlash(ent, MZ_HYPERBLASTER);
-
 	// free entity
 	G_FreeEntity(ent->client->locals.hook_entity->locals.target_ent);
 	G_FreeEntity(ent->client->locals.hook_entity);
@@ -414,6 +411,8 @@ void G_ClientHookDetach(g_entity_t *ent) {
 		// don't get hurt from sweet-ass hooking
 		ent->client->locals.land_time = g_level.time;
 	}
+
+	gi.Sound(ent, g_media.sounds.hook_detach, ATTEN_NORM);
 }
 
 /**
@@ -442,7 +441,7 @@ static void G_ClientHookCheckFire(g_entity_t *ent) {
 	ent->client->locals.hook_pull = false;
 	ent->client->locals.hook_entity = G_HookProjectile(ent, org, forward);
 
-	G_MuzzleFlash(ent, MZ_BLASTER);
+	gi.Sound(ent, g_media.sounds.hook_fire, ATTEN_NORM);
 }
 
 /**
@@ -695,7 +694,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	);
 
 	// play the sound if we throw it
-	gi.Sound(ent, gi.SoundIndex("weapons/handgrenades/hg_throw.wav"), ATTEN_NORM);
+	gi.Sound(ent, g_media.sounds.grenade_throw, ATTEN_NORM);
 
 	// set the attack animation
 	G_SetAnimation(ent, ANIM_TORSO_ATTACK1, true);

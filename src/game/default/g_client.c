@@ -1499,7 +1499,7 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 			ent->client->locals.quad_damage_time = 0.0;
 			ent->client->locals.inventory[g_media.items.quad_damage] = 0;
 
-			gi.Sound(ent, gi.SoundIndex("quad/expire"), ATTEN_NORM);
+			gi.Sound(ent, g_media.sounds.quad_expire, ATTEN_NORM);
 
 			ent->s.effects &= ~EF_QUAD;
 		}

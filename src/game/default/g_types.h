@@ -543,9 +543,17 @@ typedef struct {
 		uint16_t bfg_hit;
 		uint16_t bfg_prime;
 		uint16_t grenade_hit;
+		uint16_t grenade_throw;
 		uint16_t rocket_fly;
 		uint16_t lightning_fly;
 		uint16_t quad_attack;
+		uint16_t quad_expire;
+		
+		uint16_t hook_fire;
+		uint16_t hook_hit;
+		uint16_t hook_pull;
+		uint16_t hook_fly;
+		uint16_t hook_detach;
 
 		uint16_t teleport;
 
