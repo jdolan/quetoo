@@ -301,12 +301,12 @@ void R_BeginFrame(void) {
 		r_render_plugin->modified = false;
 	}
 
-	R_Clear();
-
 	if (r_state.supersample_fbo) {
+
 		glBindFramebuffer(GL_FRAMEBUFFER, r_state.supersample_fbo);
-		R_Clear();
 	}
+
+	R_Clear();
 }
 
 /**

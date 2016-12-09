@@ -351,7 +351,11 @@ void Cl_UpdateScreen(void) {
 
 		R_Setup2D();
 
+		R_EnableBlend(false);
+
 		R_DrawSupersample();
+		
+		R_EnableBlend(true);
 
 		switch (cls.key_state.dest) {
 			case KEY_CONSOLE:
