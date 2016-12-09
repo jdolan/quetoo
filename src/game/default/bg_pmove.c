@@ -680,7 +680,8 @@ static void Pm_CheckGround(void) {
 	}
 
 	// hookers need no ground
-	if (pm->s.type == PM_HOOK) {
+	if (pm->s.type == PM_HOOK ||
+		pm->s.type == PM_FLOAT) {
 
 		pm->s.flags &= ~PMF_ON_GROUND;
 		pm->ground_entity = NULL;
@@ -946,6 +947,11 @@ static void Pm_CheckLadder(void) {
  */
 static _Bool Pm_CheckWaterJump(void) {
 	vec3_t pos, pos2;
+
+	if (pm->s.type == PM_HOOK ||
+		pm->s.type == PM_FLOAT) {
+		return true;
+	}
 
 	if (pm->s.flags & PMF_TIME_WATER_JUMP) {
 		return false;

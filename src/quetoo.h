@@ -341,6 +341,7 @@ typedef enum {
 typedef enum {
 	PM_NORMAL, // walking, jumping, falling, swimming, etc.
 	PM_HOOK, // hook movement - no gravity and no ground checks
+	PM_FLOAT, // floating - no ground checks
 	PM_SPECTATOR, // free-flying movement with acceleration and friction
 	PM_DEAD, // no movement, but the ability to rotate in place
 	PM_FREEZE // no movement at all

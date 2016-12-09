@@ -1292,7 +1292,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 				VectorClear(pm.s.velocity);
 			}
 
-			cl->ps.pm_state.type = pm.s.type = PM_HOOK;
+			pm.s.type = PM_HOOK;
 		} else {
 			// swing hook code
 			vec3_t chain_vec;
@@ -1333,6 +1333,8 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 			// applys chain restrainment 
 			VectorNormalize(chain_vec);
 			VectorMA(ent->locals.velocity, force, chain_vec, pm.s.velocity);
+
+			pm.s.type = PM_FLOAT;
 		}
 
 	} else {

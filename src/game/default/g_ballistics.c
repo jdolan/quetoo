@@ -1196,13 +1196,13 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 
 	// swing hook - grow/shrink chain based on input
 	if (ent->owner->client->locals.persistent.hook_style == HOOK_SWING) {
-
-		if ((ent->owner->client->locals.cmd.up < 0) && (ent->locals.mass < HOOK_MAX_LENGTH)) {
-
-			ent->locals.mass = Min(ent->locals.mass + HOOK_RATE, HOOK_MAX_LENGTH);
-		}  else if ((ent->owner->client->locals.cmd.up > 0 || (ent->owner->client->locals.buttons & BUTTON_HOOK)) && (ent->locals.mass > HOOK_MIN_LENGTH)) { 
+		
+		if ((ent->owner->client->locals.cmd.up > 0 || (ent->owner->client->locals.buttons & BUTTON_HOOK)) && (ent->locals.mass > HOOK_MIN_LENGTH)) { 
 
 			ent->locals.mass = Max(ent->locals.mass - HOOK_RATE, HOOK_MIN_LENGTH);
+		} else if ((ent->owner->client->locals.cmd.up < 0) && (ent->locals.mass < HOOK_MAX_LENGTH)) {
+
+			ent->locals.mass = Min(ent->locals.mass + HOOK_RATE, HOOK_MAX_LENGTH);
 		}
 	}
 
