@@ -69,6 +69,7 @@ cvar_t *r_multisample;
 cvar_t *r_parallax;
 cvar_t *r_render_plugin;
 cvar_t *r_saturation;
+cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
 cvar_t *r_shell;
 cvar_t *r_specular;
@@ -498,6 +499,8 @@ static void R_InitLocal(void) {
 	                           "Specifies the active renderer plugin (default or pro)");
 	r_saturation = Cvar_Add("r_saturation", "1.0", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                        "Controls texture saturation");
+	r_screenshot_format = Cvar_Add("r_screenshot_format", "png", CVAR_ARCHIVE,
+		                    "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
 	r_shadows = Cvar_Add("r_shadows", "3", CVAR_ARCHIVE | CVAR_R_MEDIA,
 	                     "Controls the rendering of mesh model shadows");
 	r_shell = Cvar_Add("r_shell", "2", CVAR_ARCHIVE | CVAR_R_MEDIA,

@@ -55,4 +55,9 @@ void Img_ColorFromPalette(uint8_t c, vec_t *res);
 */
 _Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height);
 
+/**
+* @brief Write pixel data to a TGA file.
+*/
+_Bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height);
+
 #endif /*__IMAGE_H__*/

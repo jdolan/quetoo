@@ -81,7 +81,7 @@ static void R_Screenshot_f_encode(void *data) {
 	int32_t i;
 
 	for (i = last_screenshot; i < MAX_SCREENSHOTS; i++) {
-		g_snprintf(filename, sizeof(filename), "screenshots/quetoo%03u.png", i);
+		g_snprintf(filename, sizeof(filename), "screenshots/quetoo%03u.%s", i, r_screenshot_format->string);
 
 		if (!Fs_Exists(filename)) {
 			break;
@@ -96,8 +96,15 @@ static void R_Screenshot_f_encode(void *data) {
 	last_screenshot = i;
 
 	r_screenshot_t *s = (r_screenshot_t *) data;
+	_Bool screenshot_saved;
 
-	if (Img_WritePNG(filename, s->buffer, s->width, s->height)) {
+	if (!g_strcmp0(r_screenshot_format->string, "tga")) {
+		screenshot_saved = Img_WriteTGA(filename, s->buffer, s->width, s->height);
+	} else {
+		screenshot_saved = Img_WritePNG(filename, s->buffer, s->width, s->height);
+	}
+
+	if (screenshot_saved) {
 		Com_Print("Saved %s\n", Basename(filename));
 	} else {
 		Com_Warn("Failed to write %s\n", filename);

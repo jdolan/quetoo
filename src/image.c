@@ -210,3 +210,58 @@ _Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height
 	SDL_RWclose(f);
 	return true;
 }
+
+// there are _0 and _1 in here just to prevent padding
+// and so I can control the bytes explicitly. Dumb C.
+typedef struct
+{
+	uint8_t IDLength;        /* 00h  Size of Image ID field */
+	uint8_t ColorMapType;    /* 01h  Color map type */
+	uint8_t ImageType;       /* 02h  Image type code */
+	uint8_t CMapStart_0, CMapStart_1;      /* 03h  Color map origin */
+	uint8_t CMapLength_0, CMapLength_1;     /* 05h  Color map length */
+	uint8_t CMapDepth;       /* 07h  Depth of color map entries */
+	uint8_t XOffset_0, XOffset_1;        /* 08h  X origin of image */
+	uint8_t YOffset_0, YOffset_1;        /* 0Ah  Y origin of image */
+	uint16_t Width;          /* 0Ch  Width of image */
+	uint16_t Height;         /* 0Eh  Height of image */
+	uint8_t PixelDepth;      /* 10h  Image pixel size */
+	uint8_t ImageDescriptor; /* 11h  Image descriptor byte */
+} r_tga_header_t;
+
+/**
+* @brief Write pixel data to a TGA file.
+*/
+_Bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height) {
+	SDL_RWops *f;
+	const char *real_path = Fs_RealPath(path);
+
+	if (!(f = SDL_RWFromFile(real_path, "wb"))) {
+		Com_Warn("Failed to open to %s\n", real_path);
+		return false;
+	}
+
+	const r_tga_header_t header = {
+		0, // no image data
+		0, // no colormap
+		2, // truecolor, no colormap, no encoding
+		0, 0, // colormap
+		0, 0, // colormap
+		0, // colormap
+		0, 0, // X origin
+		0, 0, // Y origin
+		width, // width
+		height, // height
+		24, // depth
+		0 //descriptor
+	};
+
+	// write TGA header
+	SDL_RWwrite(f, &header, 18, 1);
+	
+	// write TGA data
+	SDL_RWwrite(f, data, width * height, 3);
+
+	SDL_RWclose(f);
+	return true;
+}
