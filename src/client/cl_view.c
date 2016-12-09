@@ -135,11 +135,13 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 	}
 
 	// add in the kick angles
-	UnpackAngles(from->pm_state.kick_angles, old_angles);
-	UnpackAngles(to->pm_state.kick_angles, new_angles);
+	if (!cl.third_person) {
+		UnpackAngles(from->pm_state.kick_angles, old_angles);
+		UnpackAngles(to->pm_state.kick_angles, new_angles);
 
-	AngleLerp(old_angles, new_angles, cl.lerp, angles);
-	VectorAdd(r_view.angles, angles, r_view.angles);
+		AngleLerp(old_angles, new_angles, cl.lerp, angles);
+		VectorAdd(r_view.angles, angles, r_view.angles);
+	}
 
 	// and lastly the delta angles
 	UnpackAngles(from->pm_state.delta_angles, old_angles);
