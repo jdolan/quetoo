@@ -51,7 +51,7 @@ void R_ApplyMeshModelConfig(r_entity_t *e) {
 	Matrix4x4_ConcatScale(&e->matrix, c->scale);
 
 	if (e->effects & EF_WEAPON) {
-		vec3_t bob = { 0.2, 0.6, 0.3 };
+		vec3_t bob = { 0.2, 0.4, 0.2 };
 		VectorScale(bob, r_view.bob, bob);
 
 		Matrix4x4_ConcatTranslate(&e->matrix, bob[0], bob[1], bob[2]);

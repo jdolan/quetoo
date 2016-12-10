@@ -818,7 +818,11 @@ static void Pm_CheckWater(void) {
 static void Pm_CheckDuck(void) {
 
 	if (pm->s.type == PM_DEAD) {
-		pml.view_offset[2] = -16.0;
+		if (pm->s.flags & PMF_GIBLET) {
+			pml.view_offset[2] = 0.0;
+		} else {
+			pml.view_offset[2] = -16.0;
+		}
 	} else {
 
 		_Bool is_ducking = pm->s.flags & PMF_DUCKED;
