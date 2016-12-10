@@ -430,11 +430,12 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
 	G_ClientObituary(self, attacker, mod);
 
+	G_ClientHookDetach(self);
+
 	if (g_level.warmup == false) {
 		if ((g_level.gameplay == GAME_DEATHMATCH || g_level.gameplay == GAME_DUEL) && mod != MOD_TRIGGER_HURT) {
 			G_TossWeapon(self);
 			G_TossQuadDamage(self);
-			G_ClientHookDetach(self);
 		}
 
 		if (g_level.ctf) {
@@ -809,6 +810,8 @@ static g_entity_t *G_SelectSpawnPoint(g_entity_t *ent) {
  */
 static void G_ClientRespawn_(g_entity_t *ent) {
 	vec3_t cmd_angles, delta_angles;
+
+	G_ClientHookDetach(ent);
 
 	gi.UnlinkEntity(ent);
 

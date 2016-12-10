@@ -97,6 +97,19 @@ const r_atlas_image_t *R_GetAtlasImageFromAtlas(const r_atlas_t *atlas, const r_
 }
 
 /**
+ * @brief See if we have enough space for n number of nodes.
+ */
+static void R_AtlasPacker_Reserve(r_packer_t *packer, const uint32_t new_nodes) {
+	
+	// make sure we have at least n new entries
+	if (packer->num_alloc_nodes <= packer->num_nodes + new_nodes) {
+
+		packer->num_alloc_nodes = (packer->num_nodes + new_nodes) * 2;
+		packer->nodes = Mem_Realloc(packer->nodes, sizeof(r_packer_node_t) * packer->num_alloc_nodes);
+	}
+}
+
+/**
  * @brief Initialize an r_packer_t structure. If the packer is already
  * created, clears the packer back to an initial state.
  */
@@ -108,13 +121,8 @@ void R_AtlasPacker_InitPacker(r_packer_t *packer, const r_pixel_t max_width, con
 
 	if (packer->nodes == NULL) {
 
-		if (!initial_size) {
-			packer->num_alloc_nodes = 1;
-		} else {
-			packer->num_alloc_nodes = initial_size;
-		}
+		R_AtlasPacker_Reserve(packer, initial_size ?: 1);
 
-		packer->nodes = Mem_Malloc(sizeof(r_packer_node_t) * packer->num_alloc_nodes);
 	} else {
 
 		packer->num_nodes = 0;
@@ -201,11 +209,7 @@ r_packer_node_t *R_AtlasPacker_SplitNode(r_packer_t *packer, r_packer_node_t *no
 		.down = -1
 	};
 
-	if (packer->num_alloc_nodes <= packer->num_nodes + 2) {
-
-		packer->num_alloc_nodes *= 2.0;
-		packer->nodes = Mem_Realloc(packer->nodes, sizeof(r_packer_node_t) * packer->num_alloc_nodes);
-	}
+	R_AtlasPacker_Reserve(packer, 2);
 
 	// do not use "node" after this point! it may be changed
 
@@ -228,6 +232,8 @@ static r_packer_node_t *R_AtlasPacker_Grow(r_packer_t *packer, const r_pixel_t w
 	const uint32_t new_root_id = packer->num_nodes;
 	const uint32_t new_connect_id = packer->num_nodes + 1;
 	const r_packer_node_t *old_root = &packer->nodes[packer->root];
+	
+	R_AtlasPacker_Reserve(packer, 2);
 
 	if (grow_direction == GROW_RIGHT) {
 
@@ -477,6 +483,10 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 	// stitch
 	R_StitchAtlas(atlas, &params);
+	
+	// set width/height
+	atlas->image.width = params.width;
+	atlas->image.height = params.height;
 
 	// set up num mipmaps
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);

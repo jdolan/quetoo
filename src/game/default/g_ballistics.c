@@ -1093,7 +1093,7 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 		
 static const int32_t HOOK_MIN_LENGTH = 32;
 static const int32_t HOOK_MAX_LENGTH = 2048;
-static const vec_t HOOK_RATE = 10.0;
+static const vec_t HOOK_RATE = 15.0;
 
 /**
  * @brief

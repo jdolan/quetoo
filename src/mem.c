@@ -213,6 +213,10 @@ void *Mem_Malloc(size_t size) {
  */
 void *Mem_Realloc(void *p, size_t size) {
 
+	if (!p) {
+		return Mem_Malloc(size);
+	}
+
 	mem_block_t *b = Mem_CheckMagic(p), *new_b;
 
 	// allocate the block plus the desired size

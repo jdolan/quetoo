@@ -113,10 +113,6 @@ static void Print(const char *msg) {
  */
 static void Verbose(const char *msg) {
 
-	if (debug->integer > 1) {
-		SDL_TriggerBreakpoint();
-	}
-
 	if (verbose->integer) {
 		Print(msg);
 	}
