@@ -1113,7 +1113,7 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 
 	if (!G_IsSky(surf)) {
 
-		if (G_IsStructural(other, surf)) {
+		if (G_IsStructural(other, surf) || G_IsMeat(other)) {
 			
 			VectorClear(self->locals.velocity);
 			VectorClear(self->locals.avelocity);

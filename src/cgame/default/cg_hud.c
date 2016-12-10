@@ -599,7 +599,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		// determine if we've picked up an item
 		const int16_t p = ps->stats[STAT_PICKUP_ICON];
 
-		if (p && (p != pickup)) {
+		if (p != -1 && (p != pickup)) {
 			last_pulse_time = cgi.client->ticks;
 		}
 
