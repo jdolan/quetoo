@@ -209,21 +209,25 @@ static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const 
  * Particles that fade or shrink beyond visibility are freed.
  */
 void Cg_AddParticles(void) {
-	static uint32_t last_particle_time;
+	static uint32_t ticks;
 
 	if (!cg_add_particles->value) {
 		return;
 	}
 
-	if (last_particle_time > cgi.client->ticks) {
-		last_particle_time = 0;
+	if (ticks == cgi.client->ticks) {
+		return;
 	}
 
-	const vec_t delta = (cgi.client->ticks - last_particle_time) * 0.001;
+	if (ticks > cgi.client->ticks) {
+		ticks = 0;
+	}
+
+	const vec_t delta = (cgi.client->ticks - ticks) * 0.001;
 	const vec_t delta_squared = delta * delta;
 	_Bool cull;
 
-	last_particle_time = cgi.client->ticks;
+	ticks = cgi.client->ticks;
 
 	cg_particles_t *ps = cg_active_particles;
 	while (ps) {
