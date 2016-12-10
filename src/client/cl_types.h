@@ -149,7 +149,7 @@ typedef struct {
 	cl_cmd_t cmds[CMD_BACKUP]; // each message will send several old cmds
 	cl_predicted_state_t predicted_state; // client side prediction output
 
-	cl_frame_t frame; // received from server
+	cl_frame_t frame; // the most recent frame received from server
 	cl_frame_t frames[PACKET_BACKUP]; // for calculating delta compression
 
 	cl_frame_t *delta_frame; // the delta frame for the current frame
