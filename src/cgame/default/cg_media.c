@@ -61,6 +61,7 @@ cg_particles_t *cg_particles_beam;
 cg_particles_t *cg_particles_burn;
 cg_particles_t *cg_particles_blood;
 cg_particles_t *cg_particles_lightning;
+cg_particles_t *cg_particles_rope;
 cg_particles_t *cg_particles_flame;
 cg_particles_t *cg_particles_spark;
 cg_particles_t *cg_particles_inactive;
@@ -140,6 +141,7 @@ void Cg_UpdateMedia(void) {
 	cg_particles_burn = Cg_AllocParticles(cgi.LoadImage("particles/burn.tga", IT_EFFECT), true);
 	cg_particles_blood = Cg_AllocParticles(cgi.LoadImage("particles/blood.tga", IT_EFFECT), true);
 	cg_particles_lightning = Cg_AllocParticles(cgi.LoadImage("particles/lightning.tga", IT_EFFECT), false);
+	cg_particles_rope = Cg_AllocParticles(cgi.LoadImage("particles/rope.tga", IT_EFFECT), false);
 	cg_particles_flame = Cg_AllocParticles(cgi.LoadImage("particles/flame.tga", IT_EFFECT), true);
 	cg_particles_spark = Cg_AllocParticles(cgi.LoadImage("particles/spark.tga", IT_EFFECT), true);
 	cg_particles_inactive = Cg_AllocParticles(cgi.LoadImage("particles/inactive.tga", IT_EFFECT), true);

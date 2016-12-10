@@ -1275,6 +1275,9 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 
 	G_HookTrail_Think(trail);
 
+	// angle is used for rendering on client side
+	VectorCopy(projectile->s.angles, trail->s.angles);
+
 	// set the color, overloading the client byte
 	if (ent->client) {
 		trail->s.animation1 = ent->client->locals.persistent.color;

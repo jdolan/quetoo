@@ -279,6 +279,16 @@ typedef enum {
 	PARTICLE_FLARE
 } r_particle_type_t;
 
+typedef enum {
+	PARTICLE_FLAG_NONE,
+
+	/**
+	 * @brief Only for PARTICLE_BEAM - causes the beam to
+	 * repeat instead of stretch
+	 */
+	PARTICLE_FLAG_REPEAT = 1 << 0
+} r_particle_flags_t;
+
 /**
  * @brief Particles are alpha-blended quads.
  */
@@ -294,6 +304,8 @@ typedef struct r_particle_s {
 	vec3_t org;
 	vec3_t end;
 	vec3_t dir;
+	r_particle_flags_t flags;
+	vec_t repeat_scale;
 } r_particle_t;
 
 #define MAX_PARTICLES		16384
