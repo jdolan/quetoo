@@ -253,6 +253,7 @@ void Cl_CheckPredictionError(void) {
 		// if the error is too large, it was likely a teleport or respawn, so ignore it
 		const vec_t len = VectorLength(cl.frame.prediction_error);
 		if (len > 64.0) {
+			Com_Debug("Clear %s\n", vtos(cl.frame.prediction_error));
 			VectorClear(cl.frame.prediction_error);
 		} else if (len > 0.1) {
 			Com_Debug("%s\n", vtos(cl.frame.prediction_error));

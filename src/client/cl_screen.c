@@ -69,7 +69,7 @@ void Cl_AddNetGraph(void) {
 		Cl_NetGraph(1.0, 0x40);
 	}
 
-	for (i = 0; i < cl.surpress_count; i++) {
+	for (i = 0; i < cl.suppress_count; i++) {
 		Cl_NetGraph(1.0, 0xdf);
 	}
 

@@ -121,8 +121,8 @@ void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
 	Net_WriteByte(msg, SV_CMD_FRAME);
 	Net_WriteLong(msg, sv.frame_num);
 	Net_WriteLong(msg, delta_frame_num); // what we are delta'ing from
-	Net_WriteByte(msg, client->surpress_count); // rate dropped packets
-	client->surpress_count = 0;
+	Net_WriteByte(msg, client->suppress_count); // rate dropped packets
+	client->suppress_count = 0;
 
 	// send over the area bits
 	Net_WriteByte(msg, frame->area_bytes);

@@ -462,7 +462,7 @@ static _Bool Sv_RateDrop(sv_client_t *cl) {
 	for (size_t i = 0; i < lengthof(cl->frame_size); i++) {
 		total += cl->frame_size[(sv.frame_num - i) % lengthof(cl->frame_size)];
 		if (total > cl->rate) {
-			cl->surpress_count++;
+			cl->suppress_count++;
 			return true;
 		}
 	}

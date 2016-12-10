@@ -161,7 +161,7 @@ typedef struct {
 
 	uint16_t client_num; // our client number, which is our entity number - 1
 
-	uint32_t surpress_count; // number of messages rate suppressed
+	uint32_t suppress_count; // number of messages rate suppressed
 
 	uint32_t time; // clamped simulation time that the client is rendering at
 	uint32_t ticks; // unclamped simulation time, useful for absolute durations

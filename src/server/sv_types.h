@@ -188,7 +188,7 @@ typedef struct {
 
 	size_t frame_size[QUETOO_TICK_RATE]; // used to rate drop packets
 	uint32_t rate;
-	uint32_t surpress_count; // number of messages rate suppressed
+	uint32_t suppress_count; // number of messages rate suppressed
 
 	g_entity_t *entity; // the g_entity_t for this client
 	char name[32]; // extracted from user_info, high bits masked
