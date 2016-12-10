@@ -136,13 +136,51 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 }
 
 /**
+ * @brief Periodically calculates the player's horizontal speed, and interpolates it
+ * over a small interval to smooth out rapid changes in velocity.
+ */
+static vec_t Cg_BobSpeedModulus(const player_state_t *ps) {
+	static vec_t old_speed, new_speed;
+	static uint32_t ticks;
+
+	if (cgi.client->ticks < ticks) {
+		ticks = 0;
+		old_speed = new_speed = 0.0;
+	}
+
+	vec_t speed;
+
+	const uint32_t delta = cgi.client->ticks - ticks;
+	if (delta < 200) {
+		const vec_t lerp = delta / (vec_t) 200;
+		speed = old_speed + lerp * (new_speed - old_speed);
+	} else {
+
+		const _Bool ducked = ps->pm_state.flags & PMF_DUCKED;
+		const vec_t max_speed = ducked ? PM_SPEED_DUCKED : PM_SPEED_AIR;
+
+		vec3_t velocity;
+		VectorCopy(ps->pm_state.velocity, velocity);
+		velocity[2] = 0.0;
+
+		old_speed = new_speed;
+		new_speed = VectorLength(velocity) / max_speed;
+		new_speed = Clamp(new_speed, 0.0, 1.0);
+		speed = old_speed;
+
+		ticks = cgi.client->ticks;
+	}
+
+	return 1.0 + speed;
+}
+
+/**
  * @brief Calculate the view bob. This is done using a running time counter and a
  * simple sin function. The player's speed, as well as whether or not they
  * are on the ground, determine the bob frequency and amplitude.
  */
 static void Cg_UpdateBob(const player_state_t *ps) {
-	static uint32_t time, vtime;
-	vec3_t velocity;
+	static uint32_t bob, ticks;
 
 	if (!cg_bob->value) {
 		return;
@@ -160,26 +198,23 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 		}
 	}
 
-	const _Bool ducked = ps->pm_state.flags & PMF_DUCKED;
-	const vec_t max_speed = ducked ? PM_SPEED_DUCKED : PM_SPEED_AIR;
-
-	VectorCopy(ps->pm_state.velocity, velocity);
-	velocity[2] = 0.0;
-
-	vec_t speed = VectorLength(velocity) / (max_speed * 2.0);
-	speed = Clamp(speed, 0.0, 1.0);
-
-	vec_t ftime = Clamp(cgi.client->ticks - vtime, 1u, 1000u);
-	ftime *= (1.0 + speed * 1.0 + speed);
-
-	if (!(ps->pm_state.flags & PMF_ON_GROUND)) {
-		ftime *= 0.25;
+	if (cgi.client->ticks < ticks) {
+		bob = ticks = 0;
 	}
 
-	time += ftime;
-	vtime = cgi.client->ticks;
+	const vec_t mod = Cg_BobSpeedModulus(ps);
 
-	cgi.view->bob = sin(0.0045 * time) * (0.5 + speed) * (0.5 + speed);
+	// then calculate how much bob to add this frame
+	vec_t frame_bob = Clamp(cgi.client->ticks - ticks, 1u, 1000u) * mod;
+
+	if (!(ps->pm_state.flags & PMF_ON_GROUND)) {
+		frame_bob *= 0.25;
+	}
+
+	bob += frame_bob;
+	ticks = cgi.client->ticks;
+
+	cgi.view->bob = sin(0.0045 * bob) * mod;
 	cgi.view->bob *= cg_bob->value; // scale via cvar too
 
 	VectorMA(cgi.view->origin, -cgi.view->bob, cgi.view->forward, cgi.view->origin);
