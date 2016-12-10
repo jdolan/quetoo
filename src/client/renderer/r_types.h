@@ -1108,8 +1108,6 @@ typedef struct {
 
 	r_sustained_light_t sustained_lights[MAX_LIGHTS];
 
-	thread_t *thread; // client thread which populates view
-
 	const r_entity_t *current_entity; // entity being rendered
 	const r_shadow_t *current_shadow; // shadow being rendered
 

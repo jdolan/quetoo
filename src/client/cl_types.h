@@ -152,6 +152,7 @@ typedef struct {
 	cl_frame_t frame; // the most recent frame received from server
 	cl_frame_t frames[PACKET_BACKUP]; // for calculating delta compression
 
+	cl_frame_t *render_frame; // the most recently rendered frame
 	cl_frame_t *delta_frame; // the delta frame for the current frame
 
 	cl_entity_t entities[MAX_ENTITIES]; // client entities

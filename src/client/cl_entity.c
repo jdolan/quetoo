@@ -348,38 +348,61 @@ static void Cl_UpdateLerp(void) {
 }
 
 /**
- * @brief Interpolates all entities in the current frame.
+ * @brief Interpolates the simulation over all new client frames.
+ * @remarks This ensures that each server frame is interpolated at least once, so that its effects
+ * are carried through to the view. Thus, the view is updated at each iteration below, but only 
+ * the output of the last iteration will be rendererd.
  */
 void Cl_Interpolate(void) {
 
-	Cl_UpdateLerp();
-
-	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
-
-		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
-
-		if (!VectorCompare(ent->prev.origin, ent->current.origin)) {
-			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
-			ent->lighting.state = LIGHTING_DIRTY;
-		} else {
-			VectorCopy(ent->current.origin, ent->origin);
-		}
-
-		if (!VectorCompare(ent->prev.termination, ent->current.termination)) {
-			VectorLerp(ent->prev.termination, ent->current.termination, cl.lerp, ent->termination);
-			ent->lighting.state = LIGHTING_DIRTY;
-		} else {
-			VectorCopy(ent->current.termination, ent->termination);
-		}
-
-		if (!VectorCompare(ent->prev.angles, ent->current.angles)) {
-			AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
-			ent->lighting.state = LIGHTING_DIRTY;
-		} else {
-			VectorCopy(ent->current.angles, ent->angles);
-		}
+	if (cl.render_frame == NULL) {
+		cl.render_frame = &cl.frames[cl.frame.frame_num & PACKET_MASK];
 	}
+
+	const int32_t last_frame_num = cl.frame.frame_num;
+	const int32_t frames = last_frame_num - cl.render_frame->frame_num;
+	if (frames > 1) {
+		Com_Debug("Running %d frames\n", frames);
+	}
+
+	for (int32_t i = cl.render_frame->frame_num; i <= last_frame_num; i++) {
+
+		cl.frame = cl.frames[i & PACKET_MASK];
+		cl.delta_frame = cl.frame.delta_frame_num <= 0 ? NULL : &cl.frames[cl.frame.delta_frame_num & PACKET_MASK];
+
+		Cl_UpdateLerp();
+
+		for (uint16_t j = 0; j < cl.frame.num_entities; j++) {
+
+			const uint32_t snum = (cl.frame.entity_state + j) & ENTITY_STATE_MASK;
+			cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
+
+			if (!VectorCompare(ent->prev.origin, ent->current.origin)) {
+				VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
+				ent->lighting.state = LIGHTING_DIRTY;
+			} else {
+				VectorCopy(ent->current.origin, ent->origin);
+			}
+
+			if (!VectorCompare(ent->prev.termination, ent->current.termination)) {
+				VectorLerp(ent->prev.termination, ent->current.termination, cl.lerp, ent->termination);
+				ent->lighting.state = LIGHTING_DIRTY;
+			} else {
+				VectorCopy(ent->current.termination, ent->termination);
+			}
+
+			if (!VectorCompare(ent->prev.angles, ent->current.angles)) {
+				AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
+				ent->lighting.state = LIGHTING_DIRTY;
+			} else {
+				VectorCopy(ent->current.angles, ent->angles);
+			}
+		}
+
+		Cl_UpdateView();
+	}
+
+	cl.render_frame = &cl.frames[cl.frame.frame_num & PACKET_MASK];
 }
 
 /**

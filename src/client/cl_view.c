@@ -177,14 +177,9 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 }
 
 /**
- * @brief Updates the r_view_t for the renderer. Origin, angles, etc are calculated.
- * Scene population is then delegated (asynchronously) to the client game.
+ * @brief Updates the view definition for the renderer. Origin, angles, etc are calculated.
  */
 void Cl_UpdateView(void) {
-
-	if (!cl.frame.valid && !r_view.update) {
-		return; // not a valid frame, and no forced update
-	}
 
 	Cl_ClearView();
 
@@ -194,20 +189,15 @@ void Cl_UpdateView(void) {
 	// set area bits to mark visible leafs
 	r_view.area_bits = cl.frame.area_bits;
 
-	const cl_frame_t *frame = &cl.frames[(cl.frame.frame_num - 1) & PACKET_MASK];
-	const player_state_t *from = frame->frame_num == cl.frame.frame_num - 1 ? &frame->ps : &cl.frame.ps;
+	const player_state_t *ps = cl.delta_frame ? &cl.delta_frame->ps : &cl.frame.ps;
 
-	Cl_UpdateOrigin(from, &cl.frame.ps);
+	Cl_UpdateOrigin(ps, &cl.frame.ps);
 
-	Cl_UpdateAngles(from, &cl.frame.ps);
+	Cl_UpdateAngles(ps, &cl.frame.ps);
 
 	Cl_UpdateViewSize();
 
-	// allow client game to modify view (bob, third person, etc)
 	cls.cgame->UpdateView(&cl.frame);
-
-	// create the thread which populates the view
-	r_view.thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateView, &cl.frame);
 }
 
 /**

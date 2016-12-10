@@ -158,9 +158,6 @@ void R_DrawView(void) {
 
 	R_DrawSkyBox();
 
-	// wait for the client to fully populate the scene
-	Thread_Wait(r_view.thread);
-
 	R_AddSustainedLights();
 
 	R_AddFlares();
