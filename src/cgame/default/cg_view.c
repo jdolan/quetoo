@@ -171,7 +171,7 @@ static vec_t Cg_BobSpeedModulus(const player_state_t *ps) {
 		ticks = cgi.client->ticks;
 	}
 
-	return 1.0 + speed;
+	return 0.66 + speed;
 }
 
 /**
@@ -214,7 +214,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
 	bob += frame_bob;
 	ticks = cgi.client->ticks;
 
-	cgi.view->bob = sin(0.0045 * bob) * mod;
+	cgi.view->bob = sin(0.0045 * bob) * mod * mod;
 	cgi.view->bob *= cg_bob->value; // scale via cvar too
 
 	VectorMA(cgi.view->origin, -cgi.view->bob, cgi.view->forward, cgi.view->origin);
