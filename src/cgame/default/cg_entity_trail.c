@@ -503,18 +503,26 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 
 	cg_particle_t *p;
 
-	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_lightning))) {
+	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_rope))) {
 		return;
 	}
 
 	cgi.ColorFromPalette(ent->current.animation1 ?: EFFECT_COLOR_GREEN, p->part.color);
 	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -100.0);
 
-	p->part.scale = 4.0;
-	p->part.scroll_s = -8.0;
+	p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
+	p->part.scale = 2.0;
+	//p->part.scroll_s = -1.0;
+	p->part.flags |= PARTICLE_FLAG_REPEAT;
+	p->part.repeat_scale = 0.20;
 
 	VectorCopy(start, p->part.org);
-	VectorCopy(end, p->part.end);
+
+	// push the hook tip back a little bit so it connects to the model
+	vec3_t forward;
+	AngleVectors(ent->angles, forward, NULL, NULL);
+
+	VectorMA(end, -3.0, forward, p->part.end);
 }
 
 /**

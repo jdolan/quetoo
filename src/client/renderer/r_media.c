@@ -61,23 +61,25 @@ void R_DumpImages_f(void) {
 	while (key) {
 		const r_media_t *media = g_hash_table_lookup(r_media_state.media, key->data);
 
-		if (media->type == MEDIA_IMAGE ||
-		        media->type == MEDIA_ATLAS) {
+		if (media) {
+			if (media->type == MEDIA_IMAGE ||
+					media->type == MEDIA_ATLAS) {
 
-			const r_image_t *image = (const r_image_t *) media;
-			GLubyte *pixels = Mem_Malloc(image->width * image->height * 4);
+				const r_image_t *image = (const r_image_t *) media;
+				GLubyte *pixels = Mem_Malloc(image->width * image->height * 4);
 
-			g_snprintf(path, sizeof(path), "imgdmp/%s.%u.%u.data", image->media.name, image->width, image->height);
+				g_snprintf(path, sizeof(path), "imgdmp/%s.%u.%u.data", image->media.name, image->width, image->height);
 
-			R_BindDiffuseTexture(image->texnum);
+				R_BindDiffuseTexture(image->texnum);
 
-			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+				glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-			file_t *file = Fs_OpenWrite(path);
-			Fs_Write(file, pixels, 4, image->width * image->height);
-			Fs_Close(file);
+				file_t *file = Fs_OpenWrite(path);
+				Fs_Write(file, pixels, 4, image->width * image->height);
+				Fs_Close(file);
 
-			Mem_Free(pixels);
+				Mem_Free(pixels);
+			}
 		}
 
 		key = key->next;

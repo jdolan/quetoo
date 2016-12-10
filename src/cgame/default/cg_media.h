@@ -65,6 +65,7 @@
 	extern cg_particles_t *cg_particles_burn;
 	extern cg_particles_t *cg_particles_blood;
 	extern cg_particles_t *cg_particles_lightning;
+	extern cg_particles_t *cg_particles_rope;
 	extern cg_particles_t *cg_particles_flame;
 	extern cg_particles_t *cg_particles_spark;
 	extern cg_particles_t *cg_particles_inactive;

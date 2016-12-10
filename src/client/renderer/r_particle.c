@@ -182,7 +182,7 @@ static void R_ParticleTexcoords(const r_particle_t *p, r_particle_interleave_ver
 	_Bool is_atlas = p->image && p->image->type == IT_ATLAS_IMAGE;
 
 	if (!p->image ||
-	        (!p->scroll_s && !p->scroll_t &&!is_atlas) ||
+	        (!p->scroll_s && !p->scroll_t &&!is_atlas && !(p->flags & PARTICLE_FLAG_REPEAT)) ||
 	        p->type == PARTICLE_CORONA) {
 
 		for (int32_t i = 0; i < 4; ++i) {
@@ -202,11 +202,23 @@ static void R_ParticleTexcoords(const r_particle_t *p, r_particle_interleave_ver
 		Vector2Set(verts[3].texcoord, atlas_image->texcoords[0], atlas_image->texcoords[3]);
 	} else {
 		s = p->scroll_s * r_view.ticks / 1000.0;
-		t = p->scroll_t *r_view.ticks / 1000.0;
+		t = p->scroll_t * r_view.ticks / 1000.0;
+
+		vec_t x_offset = 1.0;
+
+		// scale the texcoords to repeat if we asked for it
+		if (p->flags & PARTICLE_FLAG_REPEAT) {
+
+			vec3_t distance;
+			VectorSubtract(p->org, p->end, distance);
+			const vec_t length = VectorLength(distance);
+		
+			x_offset = (length / p->scale) * p->repeat_scale;
+		}
 
 		Vector2Set(verts[0].texcoord, s, t);
-		Vector2Set(verts[1].texcoord, 1.0 + s, t);
-		Vector2Set(verts[2].texcoord, 1.0 + s, 1.0 + t);
+		Vector2Set(verts[1].texcoord, x_offset + s, t);
+		Vector2Set(verts[2].texcoord, x_offset + s, 1.0 + t);
 		Vector2Set(verts[3].texcoord, s, 1.0 + t);
 	}
 }
