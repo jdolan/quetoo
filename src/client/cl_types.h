@@ -42,7 +42,6 @@ typedef struct {
 	uint32_t entity_state; // non-masked index into cl.entity_states array
 	_Bool valid; // false if delta parsing failed
 	uint32_t time; // simulation time for which the frame is valid
-	vec3_t prediction_error;
 } cl_frame_t;
 
 typedef struct {
@@ -127,6 +126,8 @@ typedef struct {
 	struct g_entity_s *ground_entity;
 
 	vec3_t origins[CMD_BACKUP]; // for reconciling with the server
+
+	vec3_t error; // the prediction error, interpolated over the current server frame
 } cl_predicted_state_t;
 
 /**

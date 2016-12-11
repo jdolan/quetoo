@@ -305,11 +305,6 @@ void Cl_ParseFrame(void) {
 		// getting a valid frame message ends the connection process
 		if (cls.state == CL_LOADING) {
 			cls.state = CL_ACTIVE;
-
-			VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_state.view.origin);
-
-			UnpackVector(cl.frame.ps.pm_state.view_offset, cl.predicted_state.view.offset);
-			UnpackAngles(cl.frame.ps.pm_state.view_angles, cl.predicted_state.view.angles);
 		}
 
 		Cl_CheckPredictionError();
@@ -350,25 +345,18 @@ static void Cl_UpdateLerp(void) {
 }
 
 /**
- * @brief Interpolates the simulation over all new client frames.
- * @remarks This can be called multiple times per client frame, in the event that the client has
- * received multiple server updates at once. This happens somewhat frequently, especially at higher
- * server tick rates.
+ * @brief Interpolates the simulation for the most recently parsed server frame.
+ * @remarks This can be called multiple times per frame, in the event that the client has received 
+ * multiple server updates at once. This happens somewhat frequently, especially at higher server 
+ * tick rates, or with significant network jitter.
  */
 void Cl_Interpolate(void) {
-	static uint32_t last_time;
 
 	if (!cl.frame.valid && !r_view.update) {
 		return;
 	}
 
 	Cl_UpdateLerp();
-
-	if (cl.time == last_time) {
-		return;
-	}
-
-	last_time = cl.time;
 
 	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
 

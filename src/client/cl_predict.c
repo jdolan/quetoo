@@ -230,8 +230,8 @@ void Cl_PredictMovement(void) {
 }
 
 /**
- * @brief Checks for client side prediction errors. Problems here can indicate
- * that Pm_Move or the protocol are not functioning correctly.
+ * @brief Checks for client side prediction errors. These will occur under normal gameplay
+ * conditions if the client is pushed by another entity on the server (projectile, platform, etc.).
  */
 void Cl_CheckPredictionError(void) {
 
@@ -239,43 +239,34 @@ void Cl_CheckPredictionError(void) {
 		return;
 	}
 
-	if (cl.delta_frame) {
+	cl_predicted_state_t *pr = &cl.predicted_state;
 
-		const pm_state_t *ps = &cl.frame.ps.pm_state;
-		const cl_predicted_state_t *pr = &cl.predicted_state;
+	if (cl.delta_frame) {
 
 		// calculate the last cl_cmd_t we sent that the server has processed
-		const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
+		const uint32_t cmd = cls.net_chan.incoming_acknowledged & CMD_MASK;
 
 		// subtract what the server returned with what we had predicted it to be
-		VectorSubtract(ps->origin, pr->origins[frame], cl.frame.prediction_error);
+		VectorSubtract(cl.frame.ps.pm_state.origin, pr->origins[cmd], pr->error);
 
 		// if the error is too large, it was likely a teleport or respawn, so ignore it
-		const vec_t len = VectorLength(cl.frame.prediction_error);
+		const vec_t len = VectorLength(pr->error);
 		if (len > 64.0) {
-			Com_Debug("Clear %s\n", vtos(cl.frame.prediction_error));
-			VectorClear(cl.frame.prediction_error);
+			Com_Debug("Clear %s\n", vtos(pr->error));
+			VectorClear(pr->error);
 		} else if (len > 0.1) {
-			Com_Debug("%s\n", vtos(cl.frame.prediction_error));
+			Com_Debug("Error %s\n", vtos(pr->error));
 		}
-	}
-}
 
-/**
- * @return The interpolated prediction error for the current render frame.
- */
-void Cl_PredictionError(vec3_t error) {
-
-	VectorClear(error);
-
-	if (!Cl_UsePrediction()) {
-		return;
-	}
-
-	if (cl.delta_frame) {
-		VectorLerp(cl.delta_frame->prediction_error, cl.frame.prediction_error, -(1.0 - cl.lerp), error);
 	} else {
-		VectorCopy(cl.frame.prediction_error, error);
+		Com_Debug("No delta\n");
+
+		VectorCopy(cl.frame.ps.pm_state.origin, pr->view.origin);
+
+		UnpackVector(cl.frame.ps.pm_state.view_offset, pr->view.offset);
+		UnpackAngles(cl.frame.ps.pm_state.view_angles, pr->view.angles);
+
+		VectorClear(pr->error);
 	}
 }
 

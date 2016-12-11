@@ -89,8 +89,8 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 		VectorAdd(pr->view.origin, pr->view.offset, r_view.origin);
 
 		// add the interpolated prediction error
-		Cl_PredictionError(error);
-		VectorAdd(r_view.origin, error, r_view.origin);
+		VectorMA(r_view.origin, -(1.0 - cl.lerp), pr->error, r_view.origin);
+
 
 		// interpolate stair traversal
 		const uint32_t step_delta = cl.ticks - pr->step.timestamp;
@@ -177,17 +177,10 @@ static void Cl_UpdateAngles(const player_state_t *from, const player_state_t *to
 }
 
 /**
- * @brief Updates the view definition for the renderer. Origin, angles, etc are calculated.
+ * @brief Updates the view definition for the renderer. If the view is out of date, it is populated
+ * by the client game module.
  */
 void Cl_UpdateView(void) {
-
-	Cl_ClearView();
-
-	// set ticks
-	r_view.ticks = cl.ticks;
-
-	// set area bits to mark visible leafs
-	r_view.area_bits = cl.frame.area_bits;
 
 	const player_state_t *ps = cl.delta_frame ? &cl.delta_frame->ps : &cl.frame.ps;
 
@@ -197,6 +190,15 @@ void Cl_UpdateView(void) {
 
 	Cl_UpdateViewSize();
 
+	Cl_ClearView();
+
+	// set ticks
+	r_view.ticks = cl.ticks;
+
+	// set area bits to mark visible leafs
+	r_view.area_bits = cl.frame.area_bits;
+
+	// and ask the cgame to populate the view
 	cls.cgame->UpdateView(&cl.frame);
 }
 
