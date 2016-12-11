@@ -30,17 +30,13 @@
 void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 
-	if (ent) { // trails should be framerate independent
-		if (ent->timestamp > cgi.client->ticks) {
-			return;
-		}
+	if (ent) {
 
 		// don't emit smoke trails for static entities (grenades on the floor)
 		if (VectorCompare(ent->current.origin, ent->prev.origin)) {
 			return;
 		}
 
-		ent->timestamp = cgi.client->ticks + 16;
 	}
 
 	if (cgi.PointContents(end) & MASK_LIQUID) {
@@ -96,13 +92,6 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 	cg_particle_t *p;
 	int32_t j;
 
-	if (ent) { // trails should be framerate independent
-		if (ent->timestamp > cgi.client->ticks) {
-			return;
-		}
-		ent->timestamp = cgi.client->ticks + 16;
-	}
-
 	if (cgi.PointContents(end) & MASK_LIQUID) {
 		Cg_BubbleTrail(start, end, 10.0);
 		return;
@@ -145,13 +134,6 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 void Cg_SteamTrail(cl_entity_t *ent, const vec3_t org, const vec3_t vel) {
 	cg_particle_t *p;
 	int32_t i;
-
-	if (ent) { // trails should be framerate independent
-		if (ent->timestamp > cgi.client->ticks) {
-			return;
-		}
-		ent->timestamp = cgi.client->ticks + 16;
-	}
 
 	vec3_t end;
 	VectorAdd(org, vel, end);
@@ -243,44 +225,40 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 	const uint8_t col = ent->current.client ? ent->current.client : EFFECT_COLOR_ORANGE;
 	cg_particle_t *p;
 
-	if (ent->timestamp < cgi.client->ticks) {
-		vec3_t delta;
+	vec3_t delta;
 
-		vec_t step = 1.5;
+	vec_t step = 1.5;
 
-		if (cgi.PointContents(end) & MASK_LIQUID) {
-			Cg_BubbleTrail(start, end, 12.0);
-			step = 2.0;
+	if (cgi.PointContents(end) & MASK_LIQUID) {
+		Cg_BubbleTrail(start, end, 12.0);
+		step = 2.0;
+	}
+
+	vec_t d = 0.0;
+
+	VectorSubtract(end, start, delta);
+	const vec_t dist = VectorNormalize(delta);
+
+	while (d < dist) {
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
+			break;
 		}
-
-		vec_t d = 0.0;
-
-		VectorSubtract(end, start, delta);
-		const vec_t dist = VectorNormalize(delta);
-
-		while (d < dist) {
-			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, NULL))) {
-				break;
-			}
 			
-			p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-			p->lifetime = 250 + Randomf() * 100;
+		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+		p->lifetime = 250 + Randomf() * 100;
 
-			cgi.ColorFromPalette(col + (Random() & 5), p->color_start);
-			VectorCopy(p->color_start, p->color_end);
-			p->color_end[3] = 0.0;
+		cgi.ColorFromPalette(col + (Random() & 5), p->color_start);
+		VectorCopy(p->color_start, p->color_end);
+		p->color_end[3] = 0.0;
 
-			p->scale_start = 2.0;
-			p->scale_end = 1.0;
+		p->scale_start = 2.0;
+		p->scale_end = 1.0;
 
-			VectorMA(start, d, delta, p->part.org);
-			VectorScale(delta, -24.0, p->vel);
-			VectorScale(delta, 24.0, p->accel);
+		VectorMA(start, d, delta, p->part.org);
+		VectorScale(delta, -24.0, p->vel);
+		VectorScale(delta, 24.0, p->accel);
 
-			d += step;
-		}
-
-		ent->timestamp = cgi.client->ticks + 16;
+		d += step;
 	}
 
 	vec3_t color;
@@ -324,41 +302,38 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
  */
 static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	const uint32_t time = ent->timestamp;
 	cg_particle_t *p;
 
 	Cg_SmokeTrail(ent, start, end);
 
-	if (time < ent->timestamp) { // time to add new particles
-		vec3_t delta;
+	vec3_t delta;
 
-		VectorSubtract(end, start, delta);
-		const vec_t dist = VectorNormalize(delta);
+	VectorSubtract(end, start, delta);
+	const vec_t dist = VectorNormalize(delta);
 
-		vec_t d = 0.0;
-		while (d < dist) {
+	vec_t d = 0.0;
+	while (d < dist) {
 
-			if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_flame))) {
-				break;
-			}
-
-			p->lifetime = 250 + Randomf() * 200;
-			p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
-
-			cgi.ColorFromPalette(EFFECT_COLOR_ORANGE + (Random() & 5), p->color_start);
-			VectorCopy(p->color_start, p->color_end);
-			p->color_end[3] = 0.0;
-
-			p->scale_start = 4.0;
-			p->scale_end = 1.0;
-
-			const vec_t vel_scale = 50 - Randomf() * 200;
-
-			VectorMA(start, d, delta, p->part.org);
-			VectorScale(delta, vel_scale, p->vel);
-
-			d += 1.0;
+		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_flame))) {
+			break;
 		}
+
+		p->lifetime = 250 + Randomf() * 200;
+		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+
+		cgi.ColorFromPalette(EFFECT_COLOR_ORANGE + (Random() & 5), p->color_start);
+		VectorCopy(p->color_start, p->color_end);
+		p->color_end[3] = 0.0;
+
+		p->scale_start = 4.0;
+		p->scale_end = 1.0;
+
+		const vec_t vel_scale = 50 - Randomf() * 200;
+
+		VectorMA(start, d, delta, p->part.org);
+		VectorScale(delta, vel_scale, p->vel);
+
+		d += 1.0;
 	}
 
 	if ((p = Cg_AllocParticle(PARTICLE_CORONA, NULL))) {
@@ -422,13 +397,6 @@ static void Cg_EnergyTrail(cl_entity_t *ent, const vec3_t org, vec_t radius, int
 
 		VectorScale(delta, 100.0, p->accel);
 	}
-
-	// add a bubble trail if appropriate
-	if (ent->timestamp > cgi.client->ticks) {
-		return;
-	}
-
-	ent->timestamp = cgi.client->ticks + 16;
 
 	if (cgi.PointContents(org) & MASK_LIQUID) {
 		Cg_BubbleTrail(ent->prev.origin, ent->current.origin, radius / 4.0);
@@ -636,13 +604,6 @@ static void Cg_TeleporterTrail(cl_entity_t *ent, const vec3_t org) {
  */
 static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-	if (ent) {
-		if (ent->timestamp > cgi.client->ticks) {
-			return;
-		}
-		ent->timestamp = cgi.client->ticks + 16;
-	}
-
 	if (cgi.PointContents(end) & MASK_LIQUID) {
 		Cg_BubbleTrail(start, end, 8.0);
 		return;
@@ -717,7 +678,7 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 	const entity_state_t *s = &ent->current;
 
 	vec3_t start, end;
-	VectorCopy(ent->prev.origin, start);
+	VectorCopy(ent->trail_origin, start);
 
 	// beams have two origins, most entities have just one
 	if (s->effects & EF_BEAM) {
@@ -729,14 +690,14 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 
 			VectorMA(cgi.view->origin, 8.0, cgi.view->forward, start);
 
-			const float hand_scape = (ent->current.trail == TRAIL_HOOK ? -1.0 : 1.0);
+			const float hand_scale = (ent->current.trail == TRAIL_HOOK ? -1.0 : 1.0);
 
 			switch (cg_hand->integer) {
 				case HAND_LEFT:
-					VectorMA(start, -5.5 * hand_scape, cgi.view->right, start);
+					VectorMA(start, -5.5 * hand_scale, cgi.view->right, start);
 					break;
 				case HAND_RIGHT:
-					VectorMA(start, 5.5 * hand_scape, cgi.view->right, start);
+					VectorMA(start, 5.5 * hand_scale, cgi.view->right, start);
 					break;
 				default:
 					break;
@@ -747,7 +708,7 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 
 		VectorCopy(ent->termination, end);
 	} else {
-		VectorCopy(e->origin, end);
+		VectorCopy(ent->origin, end);
 	}
 
 	// add the trail
@@ -785,5 +746,9 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 			break;
 		default:
 			break;
+	}
+
+	if (!(s->effects & EF_BEAM)) {
+		VectorCopy(ent->origin, ent->trail_origin);
 	}
 }

@@ -346,8 +346,6 @@ void Cl_UpdateScreen(void) {
 		R_Setup3D();
 
 		R_DrawView();
-		
-		Cl_ClearView();
 
 		R_Setup2D();
 
@@ -387,4 +385,6 @@ void Cl_UpdateScreen(void) {
 	Ui_Draw();
 
 	R_EndFrame();
+		
+	Cl_ClearView();
 }
