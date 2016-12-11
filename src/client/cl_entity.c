@@ -152,7 +152,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 			break;
 		}
 
-		// before dealing with the new entity, copy unchanged entities into the frame
+		// before dealing with new entities, copy unchanged entities into the frame
 		while (delta_number < number) {
 
 			if (cl_show_net_messages->integer == 3) {
