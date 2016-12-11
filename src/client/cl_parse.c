@@ -417,7 +417,9 @@ void Cl_ParseServerMessage(void) {
 		Com_Print("------------------\n");
 	}
 
-	cmd = 0;
+	cl.suppress_count = 0;
+
+	cmd = SV_CMD_BAD;
 
 	// parse the message
 	while (true) {
@@ -453,6 +455,7 @@ void Cl_ParseServerMessage(void) {
 
 			case SV_CMD_DISCONNECT:
 				Com_Error(ERR_DROP, "Server disconnected\n");
+				break;
 
 			case SV_CMD_DOWNLOAD:
 				Cl_ParseDownload();
@@ -472,9 +475,7 @@ void Cl_ParseServerMessage(void) {
 				if (cls.download.file) {
 					if (cls.download.http) { // clean up http downloads
 						Cl_HttpDownload_Complete();
-					} else
-						// or just stop legacy ones
-					{
+					} else { // or just stop legacy ones
 						Fs_Close(cls.download.file);
 					}
 					cls.download.name[0] = '\0';
