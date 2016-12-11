@@ -205,7 +205,6 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 		if (cgi.view->weather & WEATHER_RAIN) {
 			VectorCopy(color, p->part.color);
 			p->part.color[3] = 0.4;
-			p->color_vel[3] = 0.0;
 			p->part.scale = 6.0;
 			// randomize the velocity and acceleration
 			for (j = 0; j < 2; j++) {
@@ -214,10 +213,19 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 			}
 			p->vel[2] = -600.0;
 		} else {
-			VectorCopy(color, p->part.color);
-			p->part.color[3] = 0.6;
-			p->color_vel[3] = Randomf() * -1.0;
+			p->effects |= PARTICLE_EFFECT_COLOR;
+
+			VectorCopy(color, p->color_start);
+			p->color_start[3] = 0.6;
+
+			VectorCopy(color, p->color_end);
+			p->color_end[3] = 0.0;
+
+			// TODO: this may not work for extremely long snow tubes
+			p->lifetime = 500 + Randomf() * 2000;
+
 			p->part.scale = 1.5;
+
 			// randomize the velocity and acceleration
 			for (j = 0; j < 2; j++) {
 				p->vel[j] = Randomc() * 12.0;

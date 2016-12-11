@@ -36,11 +36,15 @@ static void Cg_ItemRespawnEffect(const vec3_t org) {
 			break;
 		}
 
-		VectorCopy(color, p->part.color);
-		Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -1.5 + Randomf() * 0.5);
+		p->lifetime = 500 + Randomf() * 100;
+		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		p->part.scale = 1.0;
-		p->scale_vel = 3.0;
+		VectorCopy(color, p->color_start);
+		VectorCopy(color, p->color_end);
+		p->color_end[3] = 0.0;
+
+		p->scale_start = 1.0;
+		p->scale_end = 0.8;
 
 		p->part.org[0] = org[0] + Randomc() * 8.0;
 		p->part.org[1] = org[1] + Randomc() * 8.0;
@@ -78,11 +82,15 @@ static void Cg_ItemPickupEffect(const vec3_t org) {
 			break;
 		}
 
-		VectorCopy(color, p->part.color);
-		Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -1.5 + Randomf() * 0.5);
+		p->lifetime = 500 + Randomf() * 100;
+		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		p->part.scale = 1.0;
-		p->scale_vel = 3.0;
+		VectorCopy(color, p->color_start);
+		VectorCopy(color, p->color_end);
+		p->color_end[3] = 0.0;
+
+		p->scale_start = 1.0;
+		p->scale_end = 0.8;
 
 		p->part.org[0] = org[0] + Randomc() * 8.0;
 		p->part.org[1] = org[1] + Randomc() * 8.0;
@@ -120,11 +128,15 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 			break;
 		}
 
-		VectorCopy(color, p->part.color);
-		Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -1.5 + Randomf() * 0.5);
+		p->lifetime = 500;
+		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		p->part.scale = 1.0;
-		p->scale_vel = 3.0;
+		VectorCopy(color, p->color_start);
+		VectorCopy(color, p->color_end);
+		p->color_end[3] = 0.0;
+
+		p->scale_start = 1.0;
+		p->scale_end = 0.8;
 
 		p->part.org[0] = org[0] + Randomc() * 16.0;
 		p->part.org[1] = org[1] + Randomc() * 16.0;

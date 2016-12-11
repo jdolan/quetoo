@@ -35,8 +35,9 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 		return;
 	}
 
+	p->lifetime = PARTICLE_IMMEDIATE;
+
 	cgi.ColorFromPalette(11, p->part.color);
-	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -9999.0);
 
 	p->part.scale = 10.0;
 

@@ -100,14 +100,17 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 		return;
 	}
 
-	p->part.blend = GL_ONE;
-	cgi.ColorFromPalette(Random() & 7, p->part.color);
-	p->part.color[3] = 0.8;
+	p->lifetime = 500;
+	p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0);
+	cgi.ColorFromPalette(Random() & 7, p->color_start);
+	p->color_start[3] = 0.8;
 
-	p->part.scale = 4.0;
-	p->scale_vel = 24.0;
+	VectorCopy(p->color_start, p->color_end);
+	p->color_end[3] = 0.0;
+
+	p->scale_start = 4.0;
+	p->scale_end = 24.0;
 
 	p->part.roll = Randomc() * 100.0;
 

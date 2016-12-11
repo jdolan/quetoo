@@ -30,17 +30,26 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 	r_sustained_light_t s;
 	int32_t i, j;
 
+	if (!color) {
+		color = EFFECT_COLOR_ORANGE;
+	}
+
 	for (i = 0; i < 24; i++) {
 
 		if (!(p = Cg_AllocParticle(PARTICLE_NORMAL, cg_particles_spark))) {
 			break;
 		}
 
-		cgi.ColorFromPalette(color + (Random() & 7), p->part.color);
-		Vector4Set(p->color_vel, 2.0, 2.0, 2.0, -1.0 / (0.7 + Randomc() * 0.1));
+		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+		p->lifetime = 450 + Randomf() * 450;
 
-		p->part.scale = 3.5;
-		p->scale_vel = -4.0;
+		cgi.ColorFromPalette(color + (Random() & 5), p->color_start);
+		p->color_start[3] = 2.0;
+		VectorCopy(p->color_start, p->color_end);
+		p->color_end[3] = 0.0;
+
+		p->scale_start = 3.5;
+		p->scale_end = Randomf() * 1.0;
 
 		VectorCopy(org, p->part.org);
 
@@ -50,15 +59,21 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, int32_t color) 
 			p->vel[j] += Randomc() * 50.0;
 		}
 
-		//if (p->vel[2] < 100.0) // deflect up a bit
-		//	p->vel[2] = 100.0;
-
 		p->accel[2] -= 2.0 * PARTICLE_GRAVITY;
 	}
 
+	cgi.ColorFromPalette(color, s.light.color);
+
+	VectorScale(s.light.color, 3.0, s.light.color);
+
+	for (i = 0; i < 3; i++) {
+		if (s.light.color[i] > 1.0) {
+			s.light.color[i] = 1.0;
+		}
+	}
+
 	VectorAdd(org, dir, s.light.origin);
-	s.light.radius = 80.0;
-	VectorSet(s.light.color, 0.5, 0.3, 0.2);
+	s.light.radius = 150.0;
 	s.sustain = 250;
 
 	cgi.AddSustainedLight(&s);
@@ -81,10 +96,13 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 		return;
 	}
 
-	cgi.ColorFromPalette(14, p->part.color);
-	p->part.color[3] = 0.2;
+	p->lifetime = 250;
+	p->effects |= PARTICLE_EFFECT_COLOR;
 
-	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -0.4);
+	cgi.ColorFromPalette(14, p->color_start);
+	VectorCopy(p->color_start, p->color_end);
+	p->color_start[3] = 0.2;
+	p->color_end[3] = 0.0;
 
 	p->part.scale = 1.0;
 
@@ -99,55 +117,69 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {
 }
 
 /**
+ * @brief Make a decal!
+ */
+static void Cg_DecalEffect(const vec3_t org, const vec3_t dir, const vec_t scale, cg_particles_t *ps) {
+
+	cg_particle_t *p = Cg_AllocParticle(PARTICLE_DECAL, ps);
+	vec3_t v;
+
+	if (!p) {
+		return;
+	}
+
+	p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
+
+	p->effects = PARTICLE_EFFECT_COLOR;
+	p->lifetime = 5000;
+
+	cgi.ColorFromPalette(Random() & 1, p->color_start);
+	VectorCopy(p->color_start, p->color_end);
+	p->color_start[3] = 2.0;
+	p->color_end[3] = 0.0;
+
+	p->part.scale = scale;
+
+	VectorScale(dir, -1.0, v);
+	VectorAngles(v, p->part.dir);
+	p->part.dir[ROLL] = Random() % 360;
+
+	VectorAdd(org, dir, p->part.org);
+}
+
+/**
  * @brief
  */
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 	static uint32_t last_ric_time;
 	cg_particle_t *p;
 	r_sustained_light_t s;
-	vec3_t v;
 	int32_t j, k;
 
-	cg_particles_t *ps = cg_particles_bullet[Random() % 3];
-
-	if ((p = Cg_AllocParticle(PARTICLE_DECAL, ps))) {
-
-		p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
-
-		cgi.ColorFromPalette(Random() & 1, p->part.color);
-		p->part.color[3] = 2.0;
-
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (2.0 + Randomf() * 0.3));
-
-		p->part.scale = 1.5;
-
-		VectorScale(dir, -1.0, v);
-		VectorAngles(v, p->part.dir);
-		p->part.dir[ROLL] = Random() % 360;
-
-		VectorAdd(org, dir, p->part.org);
-	}
+	Cg_DecalEffect(org, dir, 1.5, cg_particles_bullet[Random() % 3]);
 
 	k = 1 + (Random() % 5);
 
 	while (k--) {
 		if ((p = Cg_AllocParticle(PARTICLE_SPARK, cg_particles_beam))) {
 
-			cgi.ColorFromPalette(221 + (Random() & 7), p->part.color);
-			Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (0.1 + Randomc() * 0.1));
+			p->lifetime = 50 + Randomf() * 150;
 
-			p->part.scale = 0.8;
+			cgi.ColorFromPalette(221 + (Random() & 7), p->part.color);
+			p->part.color[3] = 0.7 + Randomf() * 0.3;
+
+			p->part.scale = 0.6 + Randomf() * 0.2;
 
 			VectorCopy(org, p->part.org);
 
-			VectorScale(dir, 315.0, p->vel);
+			VectorScale(dir, 290.0 + Randomf() * 50.0, p->vel);
 
 			for (j = 0; j < 3; j++) {
 				p->vel[j] += Randomc() * 40.0;
 			}
 
 			p->accel[2] = -0.75 * PARTICLE_GRAVITY;
-			p->spark.length = 0.03;
+			p->spark.length = 0.025 + Randomf() * 0.01;
 
 			VectorMA(p->part.org, p->spark.length, p->vel, p->part.end);
 		}
@@ -157,15 +189,21 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 
 		if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
 
-			cgi.ColorFromPalette(7 + (Random() & 7), p->part.color);
-			Vector4Set(p->color_vel, -1.0, -1.0, -1.0, -1.0 / (1.0 + Randomf()));
+			p->part.roll = Randomc() * 50.0;
+			p->lifetime = 750;
+			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-			p->scale_vel = 10.0 + 25.0 * Randomf();
+			cgi.ColorFromPalette(7 + (Random() & 7), p->color_start);
+			VectorCopy(p->color_start, p->color_end);
+			p->color_end[3] = 0.0;
+
+			p->scale_start = 2.0;
+			p->scale_end = 5.0 + Randomf() * 3.0;
 
 			VectorCopy(org, p->part.org);
-			VectorScale(vec3_up, 10.0, p->vel);
-
-			p->accel[2] = 5.0;
+			VectorScale(dir, 50.0, p->vel);
+			VectorScale(dir, -75.0, p->accel);
+			VectorMA(p->accel, 15.5, vec3_up, p->accel);
 		}
 	}
 
@@ -196,26 +234,8 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
  * @brief
  */
 static void Cg_BurnEffect(const vec3_t org, const vec3_t dir, int32_t scale) {
-	cg_particle_t *p;
-	vec3_t v;
-
-	if (!(p = Cg_AllocParticle(PARTICLE_DECAL, cg_particles_burn))) {
-		return;
-	}
-
-	p->part.blend = GL_ONE_MINUS_SRC_ALPHA;
-
-	cgi.ColorFromPalette(Random() & 1, p->part.color);
-	p->part.color[3] = 2.0;
-
-	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (2.0 + Randomf() * 0.3));
-
-	p->part.scale = scale;
-
-	VectorScale(dir, -1.0, v);
-	VectorAngles(v, p->part.dir);
-	p->part.dir[ROLL] = Random() % 360;
-	VectorAdd(org, dir, p->part.org);
+	
+	Cg_DecalEffect(org, dir, scale, cg_particles_burn);
 }
 
 /**
@@ -231,9 +251,12 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 			break;
 		}
 
-		cgi.ColorFromPalette(232 + (Random() & 7), p->part.color);
+		p->lifetime = 800 + Randomf() * 200;
+		p->effects = PARTICLE_EFFECT_COLOR;
 
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (0.5 + Randomf() * 0.3));
+		cgi.ColorFromPalette(232 + (Random() & 7), p->color_start);
+		VectorCopy(p->color_start, p->color_end);
+		p->color_end[3] = 0.0;
 
 		p->part.scale = 6.0;
 
@@ -290,12 +313,15 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 				break;
 			}
 
-			cgi.ColorFromPalette(232 + (Random() & 7), p->part.color);
+			p->lifetime = 350;
+			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-			Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (2.0 + Randomf() * 0.3));
+			cgi.ColorFromPalette(232 + (Random() & 7), p->color_start);
+			VectorCopy(p->color_start, p->color_end);
+			p->color_end[0] = 0.0;
 
-			p->part.scale = 6.0 + Randomf();
-			p->scale_vel = -6.0 + Randomc();
+			p->scale_start = 6.0 + Randomf();
+			p->scale_end = 0.5 + (Randomc() * 0.5);
 
 			VectorCopy(o, p->part.org);
 
@@ -331,14 +357,15 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 			break;
 		}
 
-		cgi.ColorFromPalette(0xd7 + (i % 14), p->part.color);
-		p->part.color[3] = 1.5;
+		p->lifetime = 50 + Randomf() * 150;
 
-		Vector4Set(p->color_vel, 2.0, 2.0, 1.0, -1.0 / (0.05 + Randomf() * 0.1));
+		cgi.ColorFromPalette(221 + (Random() & 7), p->part.color);
+		p->part.color[3] = 0.7 + Randomf() * 0.3;
 
-		p->part.scale = 0.7;
+		p->part.scale = 0.6 + Randomf() * 0.2;
 
 		VectorCopy(org, p->part.org);
+
 		VectorScale(dir, 4, p->vel);
 
 		for (j = 0; j < 3; j++) {
@@ -378,11 +405,15 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 	if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_explosion))) {
 
-		cgi.ColorFromPalette(224, p->part.color);
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -4.0);
+		p->lifetime = 250;
+		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		p->part.scale = 6.0;
-		p->scale_vel = 600.0;
+		cgi.ColorFromPalette(224, p->color_start);
+		VectorCopy(p->color_start, p->color_end);
+		p->color_end[3] = 0.0;
+
+		p->scale_start = 6.0;
+		p->scale_end = 128.0;
 
 		p->part.roll = Randomc() * 100.0;
 
@@ -393,13 +424,16 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 
 		if ((p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
 
-			p->part.blend = GL_ONE;
+			p->lifetime = 800;
+			p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-			cgi.ColorFromPalette(Random() & 7, p->part.color);
-			Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (1 + Randomf() * 0.6));
+			const vec_t smoke_color = 0.7 + Randomf() * 0.1;
 
-			p->part.scale = 12.0;
-			p->scale_vel = 40.0;
+			VectorSet(p->color_start, smoke_color, smoke_color, smoke_color);
+			VectorClear(p->color_end);
+
+			p->scale_start = 12.0;
+			p->scale_end = 58.0;
 
 			p->part.roll = Randomc() * 100.0;
 
@@ -418,10 +452,12 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			break;
 		}
 
-		cgi.ColorFromPalette(0xe0 + (Random() & 7), p->part.color);
-		p->part.color[3] = 0.66 + Randomc() * 0.125;
+		p->lifetime = 250 + Randomf() * 250;
+		p->effects = PARTICLE_EFFECT_COLOR;
 
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.5 + 0.25 * Randomc());
+		cgi.ColorFromPalette(0xe0 + (Random() & 7), p->color_start);
+		VectorCopy(p->color_start, p->color_end);
+		p->color_end[3] = 0.0;
 
 		p->part.scale = 2.0;
 
@@ -442,7 +478,12 @@ static void Cg_ExplosionEffect(const vec3_t org) {
 			break;
 		}
 
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.5 + 0.25 * Randomc());
+		p->lifetime = 700;
+		p->effects = PARTICLE_EFFECT_COLOR;
+
+		VectorSet(p->color_start, 1.0, 1.0, 1.0);
+		VectorCopy(p->color_start, p->color_end);
+		p->color_end[3] = 0.0;
 
 		p->part.scale = 4.0;
 
@@ -490,11 +531,15 @@ static void Cg_HyperblasterEffect(const vec3_t org) {
 			break;
 		}
 
-		cgi.ColorFromPalette(113 + Random() % 3, p->part.color);
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -8.0);
+		p->lifetime = 150;
+		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		p->part.scale = 1.5;
-		p->scale_vel = 225.0 * (i + 1);
+		cgi.ColorFromPalette(113 + Random() % 3, p->color_start);
+		VectorCopy(p->color_start, p->color_end);
+		p->color_end[3] = 0.0;
+
+		p->scale_start = 1.5;
+		p->scale_end = 25.0 * (i + 1);
 
 		p->part.roll = 100.0 * Randomc();
 
@@ -576,19 +621,22 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 	// white cores for some colors, shifted for others
 	switch (color) {
 		case EFFECT_COLOR_RED:
-			cgi.ColorFromPalette(229, p->part.color);
+			cgi.ColorFromPalette(229, p->color_start);
 			break;
 		case EFFECT_COLOR_BLUE:
 		case EFFECT_COLOR_GREEN:
 		case EFFECT_COLOR_PURPLE:
-			cgi.ColorFromPalette(216, p->part.color);
+			cgi.ColorFromPalette(216, p->color_start);
 			break;
 		default:
-			cgi.ColorFromPalette(color + 6, p->part.color);
+			cgi.ColorFromPalette(color + 6, p->color_start);
 			break;
 	}
 
-	Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -1.33);
+	p->lifetime = 1000;
+	p->effects = PARTICLE_EFFECT_COLOR;
+
+	Vector4Set(p->color_end, 1.0, 1.0, 1.0, 0.0);
 
 	p->part.scale = 3.0;
 
@@ -610,11 +658,15 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 			return;
 		}
 
-		cgi.ColorFromPalette(color, p->part.color);
-		Vector4Set(p->color_vel, 1.0, 1.0, 1.0, -2.0 + i / len);
+		p->lifetime = 500 + ((i / len) * 500.0);
+		p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		p->part.scale = 1.5 + Randomc() * 0.2;
-		p->scale_vel = 2.0 + Randomc() * 0.2;
+		cgi.ColorFromPalette(color, p->color_start);
+		VectorCopy(p->color_start, p->color_end);
+		p->color_end[3] = 0.0;
+
+		p->scale_start = 1.5 + Randomc() * 0.2;
+		p->scale_end = p->scale_start + 1.0 + Randomc() * 0.2;
 
 		VectorAdd(point, vec, point);
 		VectorCopy(point, p->part.org);
@@ -652,13 +704,16 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
 		return;
 	}
 
-	cgi.ColorFromPalette(color, p->part.color);
-	p->part.color[3] = 1.25;
+	p->lifetime = 250;
+	p->effects = PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-	Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -10.0);
+	cgi.ColorFromPalette(color, p->color_start);
+	VectorCopy(p->color_start, p->color_end);
+	p->color_start[3] = 1.25;
+	p->color_end[3] = 0.0;
 
-	p->part.scale = 1.0;
-	p->scale_vel = 800.0;
+	p->scale_start = 1.0;
+	p->scale_end = 40.0;
 
 	VectorCopy(end, p->part.org);
 
@@ -683,8 +738,9 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 	VectorCopy(org, p->part.org);
 	VectorCopy(end, p->part.end);
 
+	p->lifetime = 50;
+
 	cgi.ColorFromPalette(200 + Random() % 3, p->part.color);
-	Vector4Set(p->color_vel, 2.0, 2.0, 2.0, -3.0);
 
 	p->part.scale = 6.0;
 
@@ -711,11 +767,15 @@ static void Cg_BfgEffect(const vec3_t org) {
 			break;
 		}
 
-		cgi.ColorFromPalette(200 + Random() % 3, p->part.color);
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -3.0);
+		p->lifetime = 500;
+		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		p->part.scale = 6.0;
-		p->scale_vel = 200.0 * (i + 1);
+		cgi.ColorFromPalette(200 + Random() % 3, p->color_start);
+		VectorCopy(p->color_start, p->color_end);
+		p->color_end[3] = 0.0;
+
+		p->scale_start = 6.0;
+		p->scale_end = 48.0 * (i + 1);
 
 		p->part.roll = 100.0 * Randomc();
 
@@ -728,8 +788,11 @@ static void Cg_BfgEffect(const vec3_t org) {
 			break;
 		}
 
-		cgi.ColorFromPalette(206, p->part.color);
-		Vector4Set(p->color_vel, 1.0, 2.0, 0.0, -1.0 + 0.25 * Randomc());
+		p->lifetime = 750;
+		p->effects |= PARTICLE_EFFECT_COLOR;
+
+		cgi.ColorFromPalette(206, p->color_start);
+		Vector4Set(p->color_end, 1.0, 2.0, 0.0, 0.0);
 
 		p->part.scale = 2.0;
 

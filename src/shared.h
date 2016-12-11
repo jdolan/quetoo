@@ -113,7 +113,10 @@ void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross);
 void VectorAngles(const vec3_t vector, vec3_t angles);
 void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 
+#define Lerp(from, to, frac) ((from) + (frac) * ((to) - (from)))
+
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out);
+void Vector4Lerp(const vec4_t from, const vec4_t to, const vec_t frac, vec4_t out);
 void AngleLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out);
 
 _Bool BoxIntersect(const vec3_t mins0, const vec3_t maxs0, const vec3_t mins1, const vec3_t maxs1);
