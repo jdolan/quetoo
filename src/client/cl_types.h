@@ -34,15 +34,15 @@ typedef struct {
 } cl_cmd_t;
 
 typedef struct {
-	uint32_t time; // simulation time for which the frame is valid
 	int32_t frame_num; // sequential identifier, used for delta
 	int32_t delta_frame_num; // negatives indicate no delta
 	byte area_bits[MAX_BSP_AREAS >> 3]; // portal area visibility bits
-	player_state_t ps;
-	uint16_t num_entities;
+	player_state_t ps; // the player state
+	uint16_t num_entities; // the number of entities in the frame
 	uint32_t entity_state; // non-masked index into cl.entity_states array
 	_Bool valid; // false if delta parsing failed
-	vec3_t prediction_error;
+	_Bool interpolated; // true if this frame has been interpolated one or more times
+	uint32_t time; // simulation time for which the frame is valid
 } cl_frame_t;
 
 typedef struct {
@@ -59,17 +59,15 @@ typedef struct {
 	entity_state_t current;
 	entity_state_t prev; // will always be valid, but might just be a copy of current
 
-	int32_t frame_num; // if not current, this entity isn't in the frame
+	int32_t frame_num; // the last frame in which this entity was seen
 
 	uint32_t timestamp; // for intermittent effects
-	vec3_t trail_origin; // for trails
-
-	uint32_t breath_puff_time; // time breath puffs should be drawn next
 
 	cl_entity_animation_t animation1; // torso animation
 	cl_entity_animation_t animation2; // legs animation
 
 	vec3_t origin; // interpolated origin
+	vec3_t previous_origin; // the previous interpolated origin
 	vec3_t termination; // and termination
 	vec3_t angles; // and angles
 
@@ -127,6 +125,8 @@ typedef struct {
 	struct g_entity_s *ground_entity;
 
 	vec3_t origins[CMD_BACKUP]; // for reconciling with the server
+
+	vec3_t error; // the prediction error, interpolated over the current server frame
 } cl_predicted_state_t;
 
 /**
@@ -167,7 +167,7 @@ typedef struct {
 	uint32_t time; // clamped simulation time that the client is rendering at
 	uint32_t ticks; // unclamped simulation time, useful for absolute durations
 
-	vec_t lerp; // linear interpolation between frames
+	vec_t lerp; // linear interpolation fraction between frames
 
 	// the client maintains its own idea of view angles, which are
 	// sent to the server each frame. It is cleared to 0 upon entering each level.

@@ -343,8 +343,6 @@ void Cl_UpdateScreen(void) {
 
 	if (cls.state == CL_ACTIVE) {
 
-		Cl_UpdateView();
-
 		R_Setup3D();
 
 		R_DrawView();

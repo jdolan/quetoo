@@ -78,8 +78,7 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 		ent->prev = *to; // copy the current state to the previous
 		ent->animation1.time = ent->animation2.time = 0;
 		ent->animation1.frame = ent->animation2.frame = -1;
-	
-		VectorCopy(ent->prev.origin, ent->trail_origin);
+		VectorCopy(to->origin, ent->previous_origin);
 	} else { // shuffle the last state to previous
 		ent->prev = ent->current;
 	}
@@ -154,7 +153,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 			break;
 		}
 
-		// before dealing with the new entity, copy unchanged entities into the frame
+		// before dealing with new entities, copy unchanged entities into the frame
 		while (delta_number < number) {
 
 			if (cl_show_net_messages->integer == 3) {
@@ -251,17 +250,22 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 }
 
 /**
- * @brief
+ * @brief Parses a new server frame, ensuring that the previously received frame is interpolated
+ * before proceeding. This ensure that all server frames are processed, even if their simulation
+ * result doesn't make it to the screen.
  */
 void Cl_ParseFrame(void) {
+
+	if (cl.frame.valid && !cl.frame.interpolated) {
+		Cl_Interpolate();
+	}
 
 	memset(&cl.frame, 0, sizeof(cl.frame));
 
 	cl.frame.frame_num = Net_ReadLong(&net_message);
-
 	cl.frame.delta_frame_num = Net_ReadLong(&net_message);
 
-	cl.suppress_count = Net_ReadByte(&net_message);
+	cl.suppress_count += Net_ReadByte(&net_message);
 
 	if (cl_show_net_messages->integer == 3) {
 		Com_Print("   frame:%i  delta:%i\n", cl.frame.frame_num, cl.frame.delta_frame_num);
@@ -302,14 +306,10 @@ void Cl_ParseFrame(void) {
 	cl.frames[cl.frame.frame_num & PACKET_MASK] = cl.frame;
 
 	if (cl.frame.valid) {
+
 		// getting a valid frame message ends the connection process
 		if (cls.state == CL_LOADING) {
 			cls.state = CL_ACTIVE;
-
-			VectorCopy(cl.frame.ps.pm_state.origin, cl.predicted_state.view.origin);
-
-			UnpackVector(cl.frame.ps.pm_state.view_offset, cl.predicted_state.view.offset);
-			UnpackAngles(cl.frame.ps.pm_state.view_angles, cl.predicted_state.view.angles);
 		}
 
 		Cl_CheckPredictionError();
@@ -325,34 +325,39 @@ void Cl_ParseFrame(void) {
  * @remarks The client advances its simulation time each frame, by the elapsed
  * millisecond delta. Here, we clamp the simulation time to be within the
  * range of the current frame. Even under ideal conditions, it's likely that
- * clamping will occur. This is due, in part, to the game using fixed integer
- * frame durations (e.g. 48hz * 20ms < 1000ms).
+ * clamping will occur due to e.g. network jitter.
  */
 static void Cl_UpdateLerp(void) {
 
 	if (cl.delta_frame == NULL || time_demo->value) {
 		cl.time = cl.frame.time;
 		cl.lerp = 1.0;
-		return;
-	}
-
-	if (cl.time > cl.frame.time) {
-//		Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
-		cl.time = cl.frame.time;
-		cl.lerp = 1.0;
-	} else if (cl.time < cl.frame.time - QUETOO_TICK_MILLIS) {
-//		Com_Debug("Low clamp: %dms\n", (cl.frame.time - QUETOO_TICK_MILLIS) - cl.time);
-		cl.time = cl.frame.time - QUETOO_TICK_MILLIS;
-		cl.lerp = 0.0;
 	} else {
-		cl.lerp = 1.0 - (cl.frame.time - cl.time) / (vec_t) QUETOO_TICK_MILLIS;
+		if (cl.time > cl.frame.time) {
+			Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
+			cl.time = cl.frame.time;
+			cl.lerp = 1.0;
+		} else if (cl.time < cl.frame.time - QUETOO_TICK_MILLIS) {
+			Com_Debug("Low clamp: %dms\n", (cl.frame.time - QUETOO_TICK_MILLIS) - cl.time);
+			cl.time = cl.frame.time - QUETOO_TICK_MILLIS;
+			cl.lerp = 0.0;
+		} else {
+			cl.lerp = 1.0 - (cl.frame.time - cl.time) / (vec_t) QUETOO_TICK_MILLIS;
+		}
 	}
 }
 
 /**
- * @brief Interpolates all entities in the current frame.
+ * @brief Interpolates the simulation for the most recently parsed server frame.
+ * @remarks This can be called multiple times per frame, in the event that the client has received 
+ * multiple server updates at once. This happens somewhat frequently, especially at higher server 
+ * tick rates, or with significant network jitter.
  */
 void Cl_Interpolate(void) {
+
+	if (!cl.frame.valid && !r_view.update) {
+		return;
+	}
 
 	Cl_UpdateLerp();
 
@@ -362,6 +367,7 @@ void Cl_Interpolate(void) {
 		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
 
 		if (!VectorCompare(ent->prev.origin, ent->current.origin)) {
+			VectorCopy(ent->origin, ent->previous_origin);
 			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
 			ent->lighting.state = LIGHTING_DIRTY;
 		} else {
@@ -381,7 +387,21 @@ void Cl_Interpolate(void) {
 		} else {
 			VectorCopy(ent->current.angles, ent->angles);
 		}
+
+		if (ent->current.animation1 != ent->prev.animation1 || !ent->animation1.time) {
+			ent->animation1.animation = ent->current.animation1 & ~ANIM_TOGGLE_BIT;
+			ent->animation1.time = cl.ticks;
+		}
+
+		if (ent->current.animation2 != ent->prev.animation2 || !ent->animation2.time) {
+			ent->animation2.animation = ent->current.animation2 & ~ANIM_TOGGLE_BIT;
+			ent->animation2.time = cl.ticks;
+		}
 	}
+
+	Cl_UpdateView();
+
+	cl.frame.interpolated = true;
 }
 
 /**

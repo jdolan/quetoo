@@ -335,23 +335,9 @@ static void Cg_AnimateClientEntity_(const r_md3_t *md3, cl_entity_animation_t *a
  * indexes and interpolation fractions for the specified renderer entities.
  */
 void Cg_AnimateClientEntity(cl_entity_t *e, r_entity_t *torso, r_entity_t *legs) {
+
 	const r_md3_t *md3 = (r_md3_t *) torso->model->mesh->data;
 
-	// do the torso animation
-	if (e->current.animation1 != e->prev.animation1 || !e->animation1.time) {
-		//cgi.Debug("Torso: %d -> %d\n", e->current.animation1, e->prev.animation1);
-		e->animation1.animation = e->current.animation1 & ~ANIM_TOGGLE_BIT;
-		e->animation1.time = cgi.client->ticks;
-	}
-
 	Cg_AnimateClientEntity_(md3, &e->animation1, torso);
-
-	// and then the legs
-	if (e->current.animation2 != e->prev.animation2 || !e->animation2.time) {
-		//cgi.Debug("Legs: %d -> %d\n", e->current.animation2, e->prev.animation2);
-		e->animation2.animation = e->current.animation2 & ~ANIM_TOGGLE_BIT;
-		e->animation2.time = cgi.client->ticks;
-	}
-
 	Cg_AnimateClientEntity_(md3, &e->animation2, legs);
 }

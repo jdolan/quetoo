@@ -180,7 +180,7 @@ typedef enum {
 /**
  * @brief The server, game and player movement frame rate.
  */
-#define QUETOO_TICK_RATE	40
+#define QUETOO_TICK_RATE	60
 #define QUETOO_TICK_SECONDS	(1.0 / QUETOO_TICK_RATE)
 #define QUETOO_TICK_MILLIS	(1000 / QUETOO_TICK_RATE)
 
@@ -532,13 +532,13 @@ typedef enum {
 	SOLID_BSP, // inline models interact just like the static world
 } solid_t;
 
-/*
- * Entity states are transmitted by the server to the client using delta
+/**
+ * @brief Entity states are transmitted by the server to the client using delta
  * compression. The client parses these states and adds or removes entities
  * from the scene as needed.
  */
 typedef struct {
-	uint16_t number; // edict index
+	uint16_t number; // entity index
 
 	vec3_t origin;
 	vec3_t termination; // beams (lightning, grapple, lasers, ..)

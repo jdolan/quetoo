@@ -64,7 +64,7 @@ void Cg_PredictMovement(const GList *cmds) {
 	while (e) {
 		const cl_cmd_t *cmd = (cl_cmd_t *) e->data;
 
-		if (cmd->cmd.msec) {
+		if (cmd->cmd.msec) { // if the command has time, simulate the movement
 
 			pm.cmd = cmd->cmd;
 			Pm_Move(&pm);
@@ -88,11 +88,11 @@ void Cg_PredictMovement(const GList *cmds) {
 
 				pr->step.interval = 128.0 * (fabs(pr->step.step) / PM_STEP_HEIGHT);
 			}
-
-			// save for error detection
-			const uint32_t frame = (uint32_t) (uintptr_t) (cmd - cgi.client->cmds);
-			VectorCopy(pm.s.origin, pr->origins[frame]);
 		}
+
+		// save for error detection
+		const uint32_t frame = (uint32_t) (uintptr_t) (cmd - cgi.client->cmds);
+		VectorCopy(pm.s.origin, pr->origins[frame]);
 
 		e = e->next;
 	}

@@ -754,7 +754,6 @@ typedef struct cg_export_s {
 	_Bool (*ParseMessage)(int32_t cmd);
 	void (*PredictMovement)(const GList *cmds);
 	void (*UpdateView)(const cl_frame_t *frame);
-	void (*PopulateView)(const cl_frame_t *frame);
 	void (*DrawFrame)(const cl_frame_t *frame);
 
 } cg_export_t;

@@ -235,24 +235,12 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 	Cg_UpdateThirdPerson(&frame->ps);
 
 	Cg_UpdateBob(&frame->ps);
-}
 
-/**
- * @brief Processes all entities, particles, emits, etc.. adding them to the view.
- * This is called once per frame by the engine, after Cg_UpdateView, and is run
- * in a separate thread while the renderer begins drawing the world.
- */
-void Cg_PopulateView(const cl_frame_t *frame) {
-
-	// add entities
 	Cg_AddEntities(frame);
 
-	// and client side emits
 	Cg_AddEmits();
 
-	// and client side effects
 	Cg_AddEffects();
 
-	// and finally particles
 	Cg_AddParticles();
 }
