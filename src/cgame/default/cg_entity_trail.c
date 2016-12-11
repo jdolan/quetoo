@@ -690,14 +690,14 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 
 			VectorMA(cgi.view->origin, 8.0, cgi.view->forward, start);
 
-			const float hand_scape = (ent->current.trail == TRAIL_HOOK ? -1.0 : 1.0);
+			const float hand_scale = (ent->current.trail == TRAIL_HOOK ? -1.0 : 1.0);
 
 			switch (cg_hand->integer) {
 				case HAND_LEFT:
-					VectorMA(start, -5.5 * hand_scape, cgi.view->right, start);
+					VectorMA(start, -5.5 * hand_scale, cgi.view->right, start);
 					break;
 				case HAND_RIGHT:
-					VectorMA(start, 5.5 * hand_scape, cgi.view->right, start);
+					VectorMA(start, 5.5 * hand_scale, cgi.view->right, start);
 					break;
 				default:
 					break;
