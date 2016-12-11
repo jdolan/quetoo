@@ -62,6 +62,7 @@ typedef struct {
 	int32_t frame_num; // if not current, this entity isn't in the frame
 
 	uint32_t timestamp; // for intermittent effects
+	vec3_t trail_origin; // for trails
 
 	uint32_t breath_puff_time; // time breath puffs should be drawn next
 
