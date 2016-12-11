@@ -24,7 +24,7 @@
 /**
  * @brief Clears all volatile view members so that a new scene may be populated.
  */
-static void Cl_ClearView(void) {
+void Cl_ClearView(void) {
 
 	// reset entity, light, particle and corona counts
 	r_view.num_entities = r_view.num_lights = 0;
@@ -185,8 +185,6 @@ void Cl_UpdateView(void) {
 	if (!cl.frame.valid && !r_view.update) {
 		return; // not a valid frame, and no forced update
 	}
-
-	Cl_ClearView();
 
 	// set ticks
 	r_view.ticks = cl.ticks;

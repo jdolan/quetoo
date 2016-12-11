@@ -304,7 +304,8 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 	r_light_t l;
 	VectorCopy(end, l.origin);
-	l.radius = 75.0;
+	l.origin[2] += 4.0;
+	l.radius = 100.0;
 	VectorCopy(color, l.color);
 
 	cgi.AddLight(&l);

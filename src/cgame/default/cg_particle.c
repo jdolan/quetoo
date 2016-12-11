@@ -238,6 +238,13 @@ void Cg_AddParticles(void) {
 
 				// calculate where we are in time
 				if (p->lifetime) {
+
+					// get rid of expired particles
+					if (cgi.client->ticks >= p->start + (p->lifetime - 1)) {
+						p = Cg_FreeParticle(p, &ps->particles);
+						continue;
+					}
+
 					const vec_t frac = (cgi.client->ticks - p->start) / (p->lifetime - 1.0);
 				
 					if (p->effects & PARTICLE_EFFECT_COLOR) {
@@ -310,11 +317,6 @@ void Cg_AddParticles(void) {
 
 			if (!cull) {
 				cgi.AddParticle(&p->part);
-			}
-
-			if (p->lifetime && (cgi.client->ticks >= p->start + (p->lifetime - 1))) {
-				p = Cg_FreeParticle(p, &ps->particles);
-				continue;
 			}
 
 			p = p->next;
