@@ -414,6 +414,18 @@ void G_ClientHookDetach(g_entity_t *ent) {
 	ent->client->locals.hook_pull = false;
 
 	gi.Sound(ent, g_media.sounds.hook_detach, ATTEN_NORM);
+
+	// see if we can backflip for style
+	if (ent->in_use && ent->locals.health > 0) {
+
+		const vec3_t velocity = { ent->locals.velocity[0], ent->locals.velocity[1], 0.0 };
+		const vec_t fwd_speed = VectorLength(velocity) / 1.75;
+
+		if (ent->locals.velocity[2] > 50 &&
+			ent->locals.velocity[2] > fwd_speed) {
+			G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
+		}
+	}
 }
 
 /**
