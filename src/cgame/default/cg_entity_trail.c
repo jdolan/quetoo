@@ -772,7 +772,7 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 	const entity_state_t *s = &ent->current;
 
 	vec3_t start, end;
-	VectorCopy(ent->trail_origin, start);
+	VectorCopy(ent->previous_origin, start);
 
 	// beams have two origins, most entities have just one
 	if (s->effects & EF_BEAM) {
@@ -840,9 +840,5 @@ void Cg_EntityTrail(cl_entity_t *ent, r_entity_t *e) {
 			break;
 		default:
 			break;
-	}
-
-	if (!(s->effects & EF_BEAM)) {
-		VectorCopy(ent->origin, ent->trail_origin);
 	}
 }

@@ -78,8 +78,7 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, entity_state_t *from, uint16_t
 		ent->prev = *to; // copy the current state to the previous
 		ent->animation1.time = ent->animation2.time = 0;
 		ent->animation1.frame = ent->animation2.frame = -1;
-	
-		VectorCopy(ent->prev.origin, ent->trail_origin);
+		VectorCopy(to->origin, ent->previous_origin);
 	} else { // shuffle the last state to previous
 		ent->prev = ent->current;
 	}
@@ -368,6 +367,7 @@ void Cl_Interpolate(void) {
 		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
 
 		if (!VectorCompare(ent->prev.origin, ent->current.origin)) {
+			VectorCopy(ent->origin, ent->previous_origin);
 			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
 			ent->lighting.state = LIGHTING_DIRTY;
 		} else {

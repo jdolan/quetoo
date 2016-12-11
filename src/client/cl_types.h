@@ -62,12 +62,12 @@ typedef struct {
 	int32_t frame_num; // the last frame in which this entity was seen
 
 	uint32_t timestamp; // for intermittent effects
-	vec3_t trail_origin; // for trails
 
 	cl_entity_animation_t animation1; // torso animation
 	cl_entity_animation_t animation2; // legs animation
 
 	vec3_t origin; // interpolated origin
+	vec3_t previous_origin; // the previous interpolated origin
 	vec3_t termination; // and termination
 	vec3_t angles; // and angles
 
