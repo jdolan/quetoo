@@ -22,6 +22,100 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
+/**
+ * @brief
+ */
+void Cg_BreathTrail(cl_entity_t *ent) {
+
+	if (ent->animation1.animation < ANIM_TORSO_GESTURE) { // death animations
+		return;
+	}
+
+	if (cgi.client->ticks < ent->timestamp) {
+		return;
+	}
+
+	cg_particle_t *p;
+
+	vec3_t pos;
+	VectorCopy(ent->origin, pos);
+
+	if (Cg_IsDucking(ent)) {
+		pos[2] += 18.0;
+	} else {
+		pos[2] += 30.0;
+	}
+
+	vec3_t forward;
+	AngleVectors(ent->angles, forward, NULL, NULL);
+
+	VectorMA(pos, 8.0, forward, pos);
+
+	const int32_t contents = cgi.PointContents(pos);
+
+	if (contents & MASK_LIQUID) {
+		if ((contents & MASK_LIQUID) == CONTENTS_WATER) {
+
+			if (!(p = Cg_AllocParticle(PARTICLE_BUBBLE, cg_particles_bubble))) {
+				return;
+			}
+
+			p->lifetime = 1000 - (Randomf() * 100);
+			p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+
+			cgi.ColorFromPalette(6 + (Random() & 3), p->color_start);
+			p->color_start[3] = 1.0;
+
+			Vector4Copy(p->color_start, p->color_end);
+			p->color_end[3] = 0;
+
+			p->scale_start = 3.0;
+			p->scale_end = p->scale_start - (0.4 + Randomf() * 0.2);
+
+			VectorScale(forward, 2.0, p->vel);
+
+			for (int32_t j = 0; j < 3; j++) {
+				p->part.org[j] = pos[j] + Randomc() * 2.0;
+				p->vel[j] += Randomc() * 5.0;
+			}
+
+			p->vel[2] += 6.0;
+			p->accel[2] = 10.0;
+
+			ent->timestamp = cgi.client->ticks + 3000;
+		}
+	} else if (cgi.view->weather & WEATHER_RAIN || cgi.view->weather & WEATHER_SNOW) {
+
+		if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_steam))) {
+			return;
+		}
+
+		p->lifetime = 4000 - (Randomf() * 100);
+		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
+
+		cgi.ColorFromPalette(6 + (Random() & 7), p->color_start);
+		p->color_start[3] = 0.7;
+
+		Vector4Copy(p->color_start, p->color_end);
+		p->color_end[3] = 0;
+
+		p->scale_start = 1.5;
+		p->scale_end = 8.0;
+
+		p->part.roll = Randomc() * 20.0;
+
+		VectorCopy(pos, p->part.org);
+
+		VectorScale(forward, 5.0, p->vel);
+
+		for (int32_t i = 0; i < 3; i++) {
+			p->vel[i] += 2.0 * Randomc();
+		}
+
+		ent->timestamp = cgi.client->ticks + 3000;
+	}
+}
+
 #define SMOKE_DENSITY 4.0
 
 /**

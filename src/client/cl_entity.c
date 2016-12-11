@@ -383,6 +383,16 @@ void Cl_Interpolate(void) {
 		} else {
 			VectorCopy(ent->current.angles, ent->angles);
 		}
+
+		if (ent->current.animation1 != ent->prev.animation1 || !ent->animation1.time) {
+			ent->animation1.animation = ent->current.animation1 & ~ANIM_TOGGLE_BIT;
+			ent->animation1.time = cl.ticks;
+		}
+
+		if (ent->current.animation2 != ent->prev.animation2 || !ent->animation2.time) {
+			ent->animation2.animation = ent->current.animation2 & ~ANIM_TOGGLE_BIT;
+			ent->animation2.time = cl.ticks;
+		}
 	}
 
 	Cl_UpdateView();

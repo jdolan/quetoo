@@ -63,8 +63,6 @@ typedef struct {
 	uint32_t timestamp; // for intermittent effects
 	vec3_t trail_origin; // for trails
 
-	uint32_t breath_puff_time; // time breath puffs should be drawn next
-
 	cl_entity_animation_t animation1; // torso animation
 	cl_entity_animation_t animation2; // legs animation
 

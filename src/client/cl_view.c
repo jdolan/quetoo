@@ -83,14 +83,12 @@ static void Cl_UpdateOrigin(const player_state_t *from, const player_state_t *to
 
 	if (Cl_UsePrediction()) {
 		const cl_predicted_state_t *pr = &cl.predicted_state;
-		vec3_t error;
 
 		// use client sided prediction
 		VectorAdd(pr->view.origin, pr->view.offset, r_view.origin);
 
 		// add the interpolated prediction error
 		VectorMA(r_view.origin, -(1.0 - cl.lerp), pr->error, r_view.origin);
-
 
 		// interpolate stair traversal
 		const uint32_t step_delta = cl.ticks - pr->step.timestamp;

@@ -24,7 +24,7 @@
 /**
  * @brief
  */
-static void Cg_EnergyFlash(const entity_state_t *ent, uint8_t color) {
+static void Cg_EnergyFlash(const cl_entity_t *ent, uint8_t color) {
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
 
@@ -61,7 +61,7 @@ static void Cg_EnergyFlash(const entity_state_t *ent, uint8_t color) {
 /**
  * @brief
  */
-static void Cg_SmokeFlash(const entity_state_t *ent) {
+static void Cg_SmokeFlash(const cl_entity_t *ent) {
 	cg_particle_t *p;
 	r_sustained_light_t s;
 	vec3_t forward, right, org, org2;
@@ -127,8 +127,8 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 /**
  * @brief FIXME: This should be a tentity instead; would make more sense.
  */
-static void Cg_LogoutFlash(const vec3_t org) {
-	Cg_GibEffect(org, 12);
+static void Cg_LogoutFlash(const cl_entity_t *ent) {
+	Cg_GibEffect(ent->origin, 12);
 }
 
 /**
@@ -145,7 +145,7 @@ void Cg_ParseMuzzleFlash(void) {
 		return;
 	}
 
-	const cl_entity_t *cent = &cgi.client->entities[ent_num];
+	const cl_entity_t *ent = &cgi.client->entities[ent_num];
 	const uint8_t flash = cgi.ReadByte();
 
 	const s_sample_t *sample;
@@ -154,33 +154,33 @@ void Cg_ParseMuzzleFlash(void) {
 		case MZ_BLASTER:
 			c = cgi.ReadByte();
 			sample = cg_sample_blaster_fire;
-			Cg_EnergyFlash(&cent->current, c ? c : EFFECT_COLOR_ORANGE);
+			Cg_EnergyFlash(ent, c ? c : EFFECT_COLOR_ORANGE);
 			break;
 		case MZ_SHOTGUN:
 			sample = cg_sample_shotgun_fire;
-			Cg_SmokeFlash(&cent->current);
+			Cg_SmokeFlash(ent);
 			break;
 		case MZ_SSHOTGUN:
 			sample = cg_sample_supershotgun_fire;
-			Cg_SmokeFlash(&cent->current);
+			Cg_SmokeFlash(ent);
 			break;
 		case MZ_MACHINEGUN:
 			sample = cg_sample_machinegun_fire[Random() % 4];
 			if (Random() & 1) {
-				Cg_SmokeFlash(&cent->current);
+				Cg_SmokeFlash(ent);
 			}
 			break;
 		case MZ_ROCKET:
 			sample = cg_sample_rocketlauncher_fire;
-			Cg_SmokeFlash(&cent->current);
+			Cg_SmokeFlash(ent);
 			break;
 		case MZ_GRENADE:
 			sample = cg_sample_grenadelauncher_fire;
-			Cg_SmokeFlash(&cent->current);
+			Cg_SmokeFlash(ent);
 			break;
 		case MZ_HYPERBLASTER:
 			sample = cg_sample_hyperblaster_fire;
-			Cg_EnergyFlash(&cent->current, 105);
+			Cg_EnergyFlash(ent, 105);
 			break;
 		case MZ_LIGHTNING:
 			sample = cg_sample_lightning_fire;
@@ -190,11 +190,11 @@ void Cg_ParseMuzzleFlash(void) {
 			break;
 		case MZ_BFG:
 			sample = cg_sample_bfg_fire;
-			Cg_EnergyFlash(&cent->current, 200);
+			Cg_EnergyFlash(ent, 200);
 			break;
 		case MZ_LOGOUT:
 			sample = cg_sample_teleport;
-			Cg_LogoutFlash(cent->current.origin);
+			Cg_LogoutFlash(ent);
 			break;
 		default:
 			sample = NULL;
