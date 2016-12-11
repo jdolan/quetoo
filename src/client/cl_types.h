@@ -34,14 +34,14 @@ typedef struct {
 } cl_cmd_t;
 
 typedef struct {
-	uint32_t time; // simulation time for which the frame is valid
 	int32_t frame_num; // sequential identifier, used for delta
 	int32_t delta_frame_num; // negatives indicate no delta
 	byte area_bits[MAX_BSP_AREAS >> 3]; // portal area visibility bits
-	player_state_t ps;
-	uint16_t num_entities;
+	player_state_t ps; // the player state
+	uint16_t num_entities; // the number of entities in the frame
 	uint32_t entity_state; // non-masked index into cl.entity_states array
 	_Bool valid; // false if delta parsing failed
+	uint32_t time; // simulation time for which the frame is valid
 	vec3_t prediction_error;
 } cl_frame_t;
 
@@ -59,7 +59,7 @@ typedef struct {
 	entity_state_t current;
 	entity_state_t prev; // will always be valid, but might just be a copy of current
 
-	int32_t frame_num; // if not current, this entity isn't in the frame
+	int32_t frame_num; // the last frame in which this entity was seen
 
 	uint32_t timestamp; // for intermittent effects
 
@@ -152,7 +152,6 @@ typedef struct {
 	cl_frame_t frame; // the most recent frame received from server
 	cl_frame_t frames[PACKET_BACKUP]; // for calculating delta compression
 
-	cl_frame_t *render_frame; // the most recently rendered frame
 	cl_frame_t *delta_frame; // the delta frame for the current frame
 
 	cl_entity_t entities[MAX_ENTITIES]; // client entities
@@ -167,7 +166,7 @@ typedef struct {
 	uint32_t time; // clamped simulation time that the client is rendering at
 	uint32_t ticks; // unclamped simulation time, useful for absolute durations
 
-	vec_t lerp; // linear interpolation between frames
+	vec_t lerp; // linear interpolation fraction between frames
 
 	// the client maintains its own idea of view angles, which are
 	// sent to the server each frame. It is cleared to 0 upon entering each level.

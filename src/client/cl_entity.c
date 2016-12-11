@@ -311,6 +311,8 @@ void Cl_ParseFrame(void) {
 		}
 
 		Cl_CheckPredictionError();
+
+		Cl_Interpolate();
 	}
 }
 
@@ -323,86 +325,77 @@ void Cl_ParseFrame(void) {
  * @remarks The client advances its simulation time each frame, by the elapsed
  * millisecond delta. Here, we clamp the simulation time to be within the
  * range of the current frame. Even under ideal conditions, it's likely that
- * clamping will occur. This is due, in part, to the game using fixed integer
- * frame durations (e.g. 48hz * 20ms < 1000ms).
+ * clamping will occur due to e.g. network jitter.
  */
 static void Cl_UpdateLerp(void) {
 
 	if (cl.delta_frame == NULL || time_demo->value) {
 		cl.time = cl.frame.time;
 		cl.lerp = 1.0;
-		return;
-	}
-
-	if (cl.time > cl.frame.time) {
-//		Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
-		cl.time = cl.frame.time;
-		cl.lerp = 1.0;
-	} else if (cl.time < cl.frame.time - QUETOO_TICK_MILLIS) {
-//		Com_Debug("Low clamp: %dms\n", (cl.frame.time - QUETOO_TICK_MILLIS) - cl.time);
-		cl.time = cl.frame.time - QUETOO_TICK_MILLIS;
-		cl.lerp = 0.0;
 	} else {
-		cl.lerp = 1.0 - (cl.frame.time - cl.time) / (vec_t) QUETOO_TICK_MILLIS;
+		if (cl.time > cl.frame.time) {
+			Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
+			cl.time = cl.frame.time;
+			cl.lerp = 1.0;
+		} else if (cl.time < cl.frame.time - QUETOO_TICK_MILLIS) {
+			Com_Debug("Low clamp: %dms\n", (cl.frame.time - QUETOO_TICK_MILLIS) - cl.time);
+			cl.time = cl.frame.time - QUETOO_TICK_MILLIS;
+			cl.lerp = 0.0;
+		} else {
+			cl.lerp = 1.0 - (cl.frame.time - cl.time) / (vec_t) QUETOO_TICK_MILLIS;
+		}
 	}
 }
 
 /**
  * @brief Interpolates the simulation over all new client frames.
- * @remarks This ensures that each server frame is interpolated at least once, so that its effects
- * are carried through to the view. Thus, the view is updated at each iteration below, but only 
- * the output of the last iteration will be rendererd.
+ * @remarks This can be called multiple times per client frame, in the event that the client has
+ * received multiple server updates at once. This happens somewhat frequently, especially at higher
+ * server tick rates.
  */
 void Cl_Interpolate(void) {
+	static uint32_t last_time;
 
-	if (cl.render_frame == NULL) {
-		cl.render_frame = &cl.frames[cl.frame.frame_num & PACKET_MASK];
+	if (!cl.frame.valid && !r_view.update) {
+		return;
 	}
 
-	const int32_t last_frame_num = cl.frame.frame_num;
-	const int32_t frames = last_frame_num - cl.render_frame->frame_num;
-	if (frames > 1) {
-		Com_Debug("Running %d frames\n", frames);
+	Cl_UpdateLerp();
+
+	if (cl.time == last_time) {
+		return;
 	}
 
-	for (int32_t i = cl.render_frame->frame_num; i <= last_frame_num; i++) {
+	last_time = cl.time;
 
-		cl.frame = cl.frames[i & PACKET_MASK];
-		cl.delta_frame = cl.frame.delta_frame_num <= 0 ? NULL : &cl.frames[cl.frame.delta_frame_num & PACKET_MASK];
+	for (uint16_t i = 0; i < cl.frame.num_entities; i++) {
 
-		Cl_UpdateLerp();
+		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
 
-		for (uint16_t j = 0; j < cl.frame.num_entities; j++) {
-
-			const uint32_t snum = (cl.frame.entity_state + j) & ENTITY_STATE_MASK;
-			cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
-
-			if (!VectorCompare(ent->prev.origin, ent->current.origin)) {
-				VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
-				ent->lighting.state = LIGHTING_DIRTY;
-			} else {
-				VectorCopy(ent->current.origin, ent->origin);
-			}
-
-			if (!VectorCompare(ent->prev.termination, ent->current.termination)) {
-				VectorLerp(ent->prev.termination, ent->current.termination, cl.lerp, ent->termination);
-				ent->lighting.state = LIGHTING_DIRTY;
-			} else {
-				VectorCopy(ent->current.termination, ent->termination);
-			}
-
-			if (!VectorCompare(ent->prev.angles, ent->current.angles)) {
-				AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
-				ent->lighting.state = LIGHTING_DIRTY;
-			} else {
-				VectorCopy(ent->current.angles, ent->angles);
-			}
+		if (!VectorCompare(ent->prev.origin, ent->current.origin)) {
+			VectorLerp(ent->prev.origin, ent->current.origin, cl.lerp, ent->origin);
+			ent->lighting.state = LIGHTING_DIRTY;
+		} else {
+			VectorCopy(ent->current.origin, ent->origin);
 		}
 
-		Cl_UpdateView();
+		if (!VectorCompare(ent->prev.termination, ent->current.termination)) {
+			VectorLerp(ent->prev.termination, ent->current.termination, cl.lerp, ent->termination);
+			ent->lighting.state = LIGHTING_DIRTY;
+		} else {
+			VectorCopy(ent->current.termination, ent->termination);
+		}
+
+		if (!VectorCompare(ent->prev.angles, ent->current.angles)) {
+			AngleLerp(ent->prev.angles, ent->current.angles, cl.lerp, ent->angles);
+			ent->lighting.state = LIGHTING_DIRTY;
+		} else {
+			VectorCopy(ent->current.angles, ent->angles);
+		}
 	}
 
-	cl.render_frame = &cl.frames[cl.frame.frame_num & PACKET_MASK];
+	Cl_UpdateView();
 }
 
 /**
