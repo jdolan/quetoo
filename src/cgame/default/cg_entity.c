@@ -102,11 +102,17 @@ static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 				return;
 			}
 
-			cgi.ColorFromPalette(6 + (Random() & 3), p->part.color);
-			Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -0.2 - Randomf() * 0.2);
+			p->lifetime = 1000 - (Randomf() * 100);
+			p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-			p->part.scale = 3.0;
-			p->scale_vel = -0.4 - Randomf() * 0.2;
+			cgi.ColorFromPalette(6 + (Random() & 3), p->color_start);
+			p->color_start[3] = 1.0;
+
+			Vector4Copy(p->color_start, p->color_end);
+			p->color_end[3] = 0;
+
+			p->scale_start = 3.0;
+			p->scale_end = p->scale_start - (0.4 + Randomf() * 0.2);
 
 			VectorScale(forward, 2.0, p->vel);
 
@@ -126,13 +132,17 @@ static void Cg_AddBreathPuffs(cl_entity_t *ent) {
 			return;
 		}
 
-		cgi.ColorFromPalette(6 + (Random() & 7), p->part.color);
-		p->part.color[3] = 0.7;
+		p->lifetime = 4000 - (Randomf() * 100);
+		p->effects |= PARTICLE_EFFECT_COLOR | PARTICLE_EFFECT_SCALE;
 
-		Vector4Set(p->color_vel, 0.0, 0.0, 0.0, -1.0 / (5.0 + Randomf() * 0.5));
+		cgi.ColorFromPalette(6 + (Random() & 7), p->color_start);
+		p->color_start[3] = 0.7;
 
-		p->part.scale = 0.1;
-		p->scale_vel = 3.0;
+		Vector4Copy(p->color_start, p->color_end);
+		p->color_end[3] = 0;
+
+		p->scale_start = 1.5;
+		p->scale_end = 8.0;
 
 		p->part.roll = Randomc() * 20.0;
 

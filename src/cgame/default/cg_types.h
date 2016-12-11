@@ -27,15 +27,33 @@
 
 #ifdef __CG_LOCAL_H__
 
+// an infinitely-timed particle
+#define PARTICLE_INFINITE		0
+
+// particle that immediately dies
+#define PARTICLE_IMMEDIATE		1
+
+typedef enum {
+
+	PARTICLE_EFFECT_NONE,
+
+	PARTICLE_EFFECT_COLOR = 1 << 0, // use color lerp
+	PARTICLE_EFFECT_SCALE = 1 << 1, // use scale lerp
+} cg_particle_effects_t;
+
 typedef struct cg_particle_s {
 	r_particle_t part; // the r_particle_t to add to the view
 
 	// common particle components
-	uint32_t time; // client time when allocated
+	cg_particle_effects_t effects;
+	uint32_t start; // client time when allocated
+	uint32_t lifetime; // client time particle should remain active for. a lifetime of 0 = infinite (make sure they get freed sometime though!), 1 = immediate
 	vec3_t vel;
 	vec3_t accel;
-	vec4_t color_vel;
-	vec_t scale_vel;
+
+	// effect flag specifics
+	vec4_t color_start, color_end;
+	vec_t scale_start, scale_end;
 
 	// particle type specific
 	union {

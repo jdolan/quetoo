@@ -414,7 +414,7 @@ void Cg_AddEmits(void) {
 				VectorCopy(e->color, p->part.color);
 				VectorCopy(e->org, p->part.org);
 
-				p->color_vel[3] = -FLT_MAX;
+				p->lifetime = PARTICLE_IMMEDIATE;
 				p->part.scale = CORONA_SCALE(e->radius, e->flicker);
 			}
 		}

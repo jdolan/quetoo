@@ -220,7 +220,18 @@ void TangentVectors(const vec3_t normal, const vec3_t sdir, const vec3_t tdir, v
 void VectorLerp(const vec3_t from, const vec3_t to, const vec_t frac, vec3_t out) {
 
 	for (int32_t i = 0; i < 3; i++) {
-		out[i] = from[i] + frac * (to[i] - from[i]);
+		out[i] = Lerp(from[i], to[i], frac);
+	}
+}
+
+
+/**
+ * @brief Produces the linear interpolation of the two 4d vectors for the given fraction.
+ */
+void Vector4Lerp(const vec4_t from, const vec4_t to, const vec_t frac, vec4_t out) {
+
+	for (int32_t i = 0; i < 4; i++) {
+		out[i] = Lerp(from[i], to[i], frac);
 	}
 }
 

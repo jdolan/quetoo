@@ -87,9 +87,12 @@ cg_particle_t *Cg_AllocParticle(const r_particle_type_t type, cg_particles_t *pa
 	p->part.type = type;
 	p->part.image = particles->image;
 
+	p->color_end[3] = p->color_start[3] = p->part.color[3] = 1.0;
+
 	Cg_PushParticle(p, &particles->particles);
 
-	p->time = cgi.client->ticks;
+	p->start = cgi.client->ticks;
+	p->lifetime = PARTICLE_INFINITE;
 
 	return p;
 }
@@ -195,7 +198,7 @@ static _Bool Cg_UpdateParticle_Weather(cg_particle_t *p, const vec_t delta, cons
 }
 
 /**
- *
+ * @brief
  */
 static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const vec_t delta_squared) {
 
@@ -231,15 +234,23 @@ void Cg_AddParticles(void) {
 		cg_particle_t *p = ps->particles;
 		while (p) {
 			// update any particles allocated in previous frames
-			if (p->time != cgi.client->ticks) {
+			if (p->start != cgi.client->ticks) {
 
-				// apply color velocity
-				for (int32_t i = 0; i < 4; i++) {
-					p->part.color[i] += delta * p->color_vel[i];
+				// calculate where we are in time
+				if (p->lifetime) {
+					const vec_t frac = (cgi.client->ticks - p->start) / (p->lifetime - 1.0);
+				
+					if (p->effects & PARTICLE_EFFECT_COLOR) {
+						Vector4Lerp(p->color_start, p->color_end, frac, p->part.color);
+
+						if (p->part.color[3] > 1.0)
+							p->part.color[3] = 1.0;
+					}
+
+					if (p->effects & PARTICLE_EFFECT_SCALE) {
+						p->part.scale = Lerp(p->scale_start, p->scale_end, frac);
+					}
 				}
-
-				// and scale velocity
-				p->part.scale += delta * p->scale_vel;
 
 				// free up particles that have disappeared
 				if (p->part.color[3] <= 0.0 || p->part.scale <= 0.0) {
@@ -269,22 +280,41 @@ void Cg_AddParticles(void) {
 					p = Cg_FreeParticle(p, &ps->particles);
 					continue;
 				}
+			} else {
+				
+				if (p->effects & PARTICLE_EFFECT_COLOR) {
+					Vector4Copy(p->color_start, p->part.color);
+
+					if (p->part.color[3] > 1.0)
+						p->part.color[3] = 1.0;
+				}
+
+				if (p->effects & PARTICLE_EFFECT_SCALE) {
+					p->part.scale = p->scale_start;
+				}
 			}
 
 			// add the particle if it's visible on our screen
 			if (p->part.type == PARTICLE_BEAM || p->part.type == PARTICLE_SPARK) {
 				vec3_t distance, center;
+
 				VectorSubtract(p->part.end, p->part.org, distance);
 				VectorMA(p->part.org, 0.5, distance, center);
 				const vec_t radius = VectorLength(distance);
 				cull = cgi.CullSphere(center, radius);
 			} else {
 				const vec_t radius = p->part.scale * 0.5;
+				
 				cull = cgi.CullSphere(p->part.org, radius);
 			}
 
 			if (!cull) {
 				cgi.AddParticle(&p->part);
+			}
+
+			if (p->lifetime && (cgi.client->ticks >= p->start + (p->lifetime - 1))) {
+				p = Cg_FreeParticle(p, &ps->particles);
+				continue;
 			}
 
 			p = p->next;

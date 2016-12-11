@@ -96,7 +96,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 		return;
 	}
 
-	if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
+	/*if (!(p = Cg_AllocParticle(PARTICLE_ROLL, cg_particles_smoke))) {
 		return;
 	}
 
@@ -118,7 +118,7 @@ static void Cg_SmokeFlash(const entity_state_t *ent) {
 	}
 	p->vel[2] = 10.0;
 
-	p->accel[2] = 5.0;
+	p->accel[2] = 5.0;*/
 }
 
 /**
