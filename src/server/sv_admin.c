@@ -167,6 +167,20 @@ static void Sv_Map_f(void) {
 }
 
 /**
+ * @brief Creates a server for the specified map list.
+ */
+static void Sv_MapList_f(void) {
+
+	if (Cmd_Argc() < 2) {
+		Com_Print("Usage: %s map1 <map2> ..\n", Cmd_Argv(0));
+		return;
+	}
+
+	Cvar_Set("sv_map_list", Cmd_Args());
+	Cbuf_AddText(va("map %s\n", Cmd_Argv(1)));
+}
+
+/**
  * @brief Kick a user off of the server
  */
 static void Sv_Kick_f(void) {
@@ -403,6 +417,8 @@ void Sv_InitAdmin(void) {
 
 	cmd_t *map_cmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map");
 	Cmd_SetAutocomplete(map_cmd, Sv_Map_Autocomplete_f);
+
+	Cmd_Add("map_list", Sv_MapList_f, CMD_SERVER, "Start a server for the specified map list");
 
 	Cmd_Add("set_master", Sv_SetMaster_f, CMD_SERVER,
 	        "Set the master server(s) for the dedicated server");
