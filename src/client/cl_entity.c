@@ -251,14 +251,19 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 }
 
 /**
- * @brief
+ * @brief Parses a new server frame, ensuring that the previously received frame is interpolated
+ * before proceeding. This ensure that all server frames are processed, even if their simulation
+ * result doesn't make it to the screen.
  */
 void Cl_ParseFrame(void) {
+
+	if (cl.frame.valid && !cl.frame.interpolated) {
+		Cl_Interpolate();
+	}
 
 	memset(&cl.frame, 0, sizeof(cl.frame));
 
 	cl.frame.frame_num = Net_ReadLong(&net_message);
-
 	cl.frame.delta_frame_num = Net_ReadLong(&net_message);
 
 	cl.suppress_count += Net_ReadByte(&net_message);
@@ -302,14 +307,13 @@ void Cl_ParseFrame(void) {
 	cl.frames[cl.frame.frame_num & PACKET_MASK] = cl.frame;
 
 	if (cl.frame.valid) {
+
 		// getting a valid frame message ends the connection process
 		if (cls.state == CL_LOADING) {
 			cls.state = CL_ACTIVE;
 		}
 
 		Cl_CheckPredictionError();
-
-		Cl_Interpolate();
 	}
 }
 
@@ -396,6 +400,8 @@ void Cl_Interpolate(void) {
 	}
 
 	Cl_UpdateView();
+
+	cl.frame.interpolated = true;
 }
 
 /**

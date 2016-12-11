@@ -41,6 +41,7 @@ typedef struct {
 	uint16_t num_entities; // the number of entities in the frame
 	uint32_t entity_state; // non-masked index into cl.entity_states array
 	_Bool valid; // false if delta parsing failed
+	_Bool interpolated; // true if this frame has been interpolated one or more times
 	uint32_t time; // simulation time for which the frame is valid
 } cl_frame_t;
 
