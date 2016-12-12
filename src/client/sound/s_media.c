@@ -30,6 +30,37 @@ typedef struct {
 static s_media_state_t s_media_state;
 
 /**
+ * @brief Precaches all of the sexed sounds for a given player model.
+ */
+void S_LoadClientSounds(const char *model) {
+
+	// FIXME: why does this crash the game after a map restart on a memcpy?
+	// media shouldn't be corrupted :/
+	return;
+
+	GSList *sounds = NULL;
+
+	const GList *key = s_media_state.keys;
+	while (key) {
+		s_media_t *media = g_hash_table_lookup(s_media_state.media, key->data);
+
+		key = key->next;
+
+		if (media && media->name[0] == '*') {
+			sounds = g_slist_prepend(sounds, media);
+		}
+	}
+
+	for (GSList *sound = sounds; sound; sound = sound->next) {
+		const s_media_t *media = (const s_media_t *) sound->data;
+
+		S_LoadModelSample(model, media->name);
+	}
+
+	g_slist_free(sounds);
+}
+
+/**
  * @brief Prints information about all currently loaded media to the console.
  */
 void S_ListMedia_f(void) {
@@ -40,7 +71,9 @@ void S_ListMedia_f(void) {
 	while (key) {
 		s_media_t *media = g_hash_table_lookup(s_media_state.media, key->data);
 
-		Com_Print("%s\n", media->name);
+		if (media) {
+			Com_Print("%s\n", media->name);
+		}
 
 		key = key->next;
 	}

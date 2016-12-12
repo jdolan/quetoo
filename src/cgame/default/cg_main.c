@@ -260,6 +260,7 @@ static void Cg_UpdateConfigString(uint16_t i) {
 	if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
 		cl_client_info_t *ci = &cgi.client->client_info[i - CS_CLIENTS];
 		Cg_LoadClient(ci, s);
+		cgi.LoadClientSounds(ci->model);
 	}
 }
 

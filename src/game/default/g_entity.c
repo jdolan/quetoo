@@ -401,6 +401,26 @@ static void G_InitMedia(void) {
 
 	memset(&g_media, 0, sizeof(g_media));
 
+	// precache sexed sounds; clients will load these when a new player model
+	// gets loaded.
+	gi.SoundIndex("*gurp_1");
+	gi.SoundIndex("*drown_1");
+	gi.SoundIndex("*fall_1");
+	gi.SoundIndex("*fall_2");
+	gi.SoundIndex("*land_1");
+	gi.SoundIndex("*jump_1");
+	gi.SoundIndex("*jump_2");
+	gi.SoundIndex("*jump_3");
+	gi.SoundIndex("*jump_4");
+	gi.SoundIndex("*jump_5");
+	gi.SoundIndex("*sizzle_1");
+	gi.SoundIndex("*death_1");
+	gi.SoundIndex("*gasp_1");
+	gi.SoundIndex("*pain25_1");
+	gi.SoundIndex("*pain50_1");
+	gi.SoundIndex("*pain75_1");
+	gi.SoundIndex("*pain100_1");
+
 	g_media.items.jacket_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_jacket"));
 	g_media.items.combat_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_combat"));
 	g_media.items.body_armor = ITEM_INDEX(G_FindItemByClassName("item_armor_body"));

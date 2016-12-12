@@ -171,11 +171,53 @@ static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
 /**
  * @brief
  */
-s_sample_t *S_LoadModelSample(const entity_state_t *ent, const char *name) {
-	char model[MAX_QPATH];
+s_sample_t *S_LoadModelSample(const char *model, const char *name) {
 	char path[MAX_QPATH];
 	char alias[MAX_QPATH];
 	s_sample_t *sample;
+
+	if (!s_env.initialized) {
+		return NULL;
+	}
+
+	// if we can't figure it out, use common
+	if (!model || *model == '\0') {
+		model = "common";
+	}
+
+	// see if we already know of the model-specific sound
+	g_snprintf(alias, sizeof(path), "#players/%s/%s", model, name + 1);
+	sample = (s_sample_t *) S_FindMedia(alias);
+
+	if (sample) {
+		return sample;
+	}
+
+	// we don't, try it
+	sample = S_LoadSample(alias);
+
+	if (sample->chunk) {
+		return sample;
+	}
+
+	// that didn't work, so load the common one and alias it
+	// the media subsystem will free the previous sample for us
+	g_snprintf(path, sizeof(path), "#players/common/%s", name + 1);
+	sample = S_LoadSample(path);
+
+	if (sample->chunk) {
+		return S_AliasSample(sample, alias);
+	}
+
+	Com_Warn("Failed to load %s\n", alias);
+	return NULL;
+}
+
+/**
+ * @brief
+ */
+s_sample_t *S_LoadEntitySample(const entity_state_t *ent, const char *name) {
+	char model[MAX_QPATH];
 
 	if (!s_env.initialized) {
 		return NULL;
@@ -207,31 +249,6 @@ s_sample_t *S_LoadModelSample(const entity_state_t *ent, const char *name) {
 		strcpy(model, "common");
 	}
 
-	// see if we already know of the model-specific sound
-	g_snprintf(alias, sizeof(path), "#players/%s/%s", model, name + 1);
-	sample = (s_sample_t *) S_FindMedia(alias);
-
-	if (sample) {
-		return sample;
-	}
-
-	// we don't, try it
-	sample = S_LoadSample(alias);
-
-	if (sample->chunk) {
-		return sample;
-	}
-
-	// that didn't work, so load the common one and alias it
-	// the media subsystem will free the previous sample for us
-	g_snprintf(path, sizeof(path), "#players/common/%s", name + 1);
-	sample = S_LoadSample(path);
-
-	if (sample->chunk) {
-		return S_AliasSample(sample, alias);
-	}
-
-	Com_Warn("Failed to load %s\n", alias);
-	return NULL;
+	return S_LoadModelSample(model, name);
 }
 

@@ -226,6 +226,7 @@ void Cg_LoadClients(void) {
 		}
 
 		Cg_LoadClient(ci, s);
+		cgi.LoadClientSounds(ci->model);
 	}
 }
 

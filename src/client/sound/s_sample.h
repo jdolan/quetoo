@@ -25,7 +25,8 @@
 s_sample_t *S_LoadSample(const char *name);
 
 #ifdef __S_LOCAL_H__
-	s_sample_t *S_LoadModelSample(const entity_state_t *ent, const char *name);
+	s_sample_t *S_LoadModelSample(const char *model, const char *name);
+	s_sample_t *S_LoadEntitySample(const entity_state_t *ent, const char *name);
 #endif /* __S_LOCAL_H__ */
 
 #endif /* __S_SAMPLE_H__ */

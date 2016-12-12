@@ -24,6 +24,8 @@
 
 #include "s_types.h"
 
+void S_LoadClientSounds(const char *model);
+
 #ifdef __S_LOCAL_H__
 
 	void S_ListMedia_f(void);
