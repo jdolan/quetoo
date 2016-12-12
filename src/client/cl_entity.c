@@ -256,7 +256,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
  */
 void Cl_ParseFrame(void) {
 
-	if (cl.frame.valid && !cl.frame.interpolated) {
+	if (!cl.frame.interpolated) {
 		Cl_Interpolate();
 	}
 
@@ -355,7 +355,11 @@ static void Cl_UpdateLerp(void) {
  */
 void Cl_Interpolate(void) {
 
-	if (!cl.frame.valid && !r_view.update) {
+	if (cls.state != CL_ACTIVE) {
+		return;
+	}
+
+	if (!cl.frame.valid) {
 		return;
 	}
 
