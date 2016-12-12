@@ -1377,12 +1377,6 @@ static void Pm_Init(void) {
 			pm->s.time -= pm->cmd.msec;
 		}
 	}
-
-	// reset this local flag if we're not swinging yet
-	if (pm->s.type != PM_HOOK_SWING) {
-
-		pm->s.hook_held = true;
-	}
 }
 
 /**
@@ -1443,6 +1437,8 @@ static void Pm_CheckHook(void) {
 	// hookers only
 	if (pm->s.type != PM_HOOK_PULL &&
 		pm->s.type != PM_HOOK_SWING) {
+
+		pm->s.flags &= ~PMF_HOOK_RELEASED;
 		return;
 	}
 
@@ -1469,16 +1465,17 @@ static void Pm_CheckHook(void) {
 	} else {
 	
 		// check for disable
-		if (pm->s.hook_held) {
+		if (!(pm->s.flags & PMF_HOOK_RELEASED)) {
 
 			if (!(pm->cmd.buttons & BUTTON_HOOK)) {
-				pm->s.hook_held = false;
+				pm->s.flags |= PMF_HOOK_RELEASED;
 			}
 		} else {
 			
 			// if we let go of hook, just go back to normal. This helps with prediction.
 			if (pm->cmd.buttons & BUTTON_HOOK) {
 				pm->s.type = PM_NORMAL;
+				pm->s.flags &= ~PMF_HOOK_RELEASED;
 				return;
 			}
 		}
@@ -1487,7 +1484,7 @@ static void Pm_CheckHook(void) {
 
 		// chain physics
 		// grow/shrink chain based on input
-		if ((pm->cmd.up > 0 || pm->s.hook_held) && (pm->s.hook_length > PM_HOOK_MIN_LENGTH)) { 
+		if ((pm->cmd.up > 0 || !(pm->s.flags & PMF_HOOK_RELEASED)) && (pm->s.hook_length > PM_HOOK_MIN_LENGTH)) { 
 
 			pm->s.hook_length = Max(pm->s.hook_length - hook_rate, PM_HOOK_MIN_LENGTH);
 		} else if ((pm->cmd.up < 0) && (pm->s.hook_length < PM_HOOK_MAX_LENGTH)) {
