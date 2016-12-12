@@ -1342,6 +1342,17 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 			VectorNormalize(chain_vec);
 			VectorMA(ent->locals.velocity, force, chain_vec, pm.s.velocity);
 
+			// restrict to max speed
+			vec_t length = VectorLength(pm.s.velocity);
+
+			if (length > g_hook_pull_speed->value) {
+
+				gi.Print("Going too fast on hook; %f\n", length);
+
+				VectorNormalize(pm.s.velocity);
+				VectorScale(pm.s.velocity, g_hook_pull_speed->value, pm.s.velocity);
+			}
+
 			pm.s.type = PM_FLOAT;
 		}
 
