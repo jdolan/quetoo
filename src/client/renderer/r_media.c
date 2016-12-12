@@ -140,10 +140,10 @@ void R_RegisterMedia(r_media_t *media) {
 		} else {
 			Com_Debug("Inserting %s\n", media->name);
 			g_hash_table_insert(r_media_state.media, media->name, media);
-		}
 
-		r_media_state.keys = g_list_insert_sorted(r_media_state.keys, media->name,
-		                     R_RegisterMedia_Compare);
+			r_media_state.keys = g_list_insert_sorted(r_media_state.keys, media->name,
+								 R_RegisterMedia_Compare);
+		}
 
 		// re-seed the media to retain it
 		media->seed = r_media_state.seed;
