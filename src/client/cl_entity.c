@@ -256,7 +256,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
  */
 void Cl_ParseFrame(void) {
 
-	if (!cl.frame.interpolated) {
+	if (cl.frame.valid && !cl.frame.interpolated) {
 		Cl_Interpolate();
 	}
 

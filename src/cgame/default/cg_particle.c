@@ -217,10 +217,6 @@ void Cg_AddParticles(void) {
 		return;
 	}
 
-	if (ticks == cgi.client->ticks) { // FIXME: This should not be necessary. Make it so.
-		return;
-	}
-
 	if (ticks > cgi.client->ticks) {
 		ticks = 0;
 	}
@@ -248,7 +244,7 @@ void Cg_AddParticles(void) {
 						continue;
 					}
 
-					const vec_t frac = (cgi.client->ticks - p->start) / (p->lifetime - 1.0);
+					const vec_t frac = (cgi.client->ticks - p->start) / (vec_t) (p->lifetime - 1);
 				
 					if (p->effects & PARTICLE_EFFECT_COLOR) {
 						Vector4Lerp(p->color_start, p->color_end, frac, p->part.color);
