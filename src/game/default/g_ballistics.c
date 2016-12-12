@@ -1090,10 +1090,6 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 
 	gi.LinkEntity(projectile);
 }
-		
-static const int32_t HOOK_MIN_LENGTH = 32;
-static const int32_t HOOK_MAX_LENGTH = 2048;
-static const vec_t HOOK_RATE = 450.0 / QUETOO_TICK_RATE;
 
 /**
  * @brief
@@ -1124,10 +1120,12 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
 			self->solid = SOLID_NOT;
 			self->locals.enemy = other;
 
+			VectorCopy(self->s.origin, self->owner->client->ps.pm_state.hook_position);
+
 			if (self->owner->client->locals.persistent.hook_style == HOOK_SWING) {
 
-				VectorSubtract(self->owner->s.origin, self->s.origin, self->locals.pos1);
-				self->locals.mass = Clamp(VectorLength(self->locals.pos1), HOOK_MIN_LENGTH, HOOK_MAX_LENGTH);
+				const vec_t distance = VectorDistance(self->owner->s.origin, self->s.origin);
+				self->owner->client->ps.pm_state.hook_length = Clamp(distance, PM_HOOK_MIN_LENGTH, PM_HOOK_MAX_LENGTH);
 			}
 
 			gi.Sound(self, g_media.sounds.hook_hit, ATTEN_NORM);
@@ -1161,7 +1159,7 @@ static void G_HookTrail_Think(g_entity_t *ent) {
 	vec3_t distance;
 	VectorSubtract(org, hook->s.origin, distance);
 
-	if (VectorLength(distance) > HOOK_MAX_LENGTH) {
+	if (VectorLength(distance) > PM_HOOK_MAX_LENGTH) {
 
 		G_ClientHookDetach(player);
 		return;
@@ -1205,25 +1203,10 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 
 		gi.LinkEntity(ent);
 
-		ent->s.sound = 0;
-
-		// swing hook - grow/shrink chain based on input
-		if (ent->owner->client->locals.persistent.hook_style == HOOK_SWING) {
-		
-			if ((ent->owner->client->locals.cmd.up > 0 || (ent->owner->client->locals.buttons & BUTTON_HOOK)) && (ent->locals.mass > HOOK_MIN_LENGTH)) { 
-
-				ent->locals.mass = Max(ent->locals.mass - HOOK_RATE, HOOK_MIN_LENGTH);
-				ent->s.sound = g_media.sounds.hook_pull;
-			} else if ((ent->owner->client->locals.cmd.up < 0) && (ent->locals.mass < HOOK_MAX_LENGTH)) {
-
-				ent->locals.mass = Min(ent->locals.mass + HOOK_RATE, HOOK_MAX_LENGTH);
-				ent->s.sound = g_media.sounds.hook_pull;
-			}
+		if (VectorLengthSquared(ent->owner->locals.velocity) > 128.0) {
+			ent->s.sound = g_media.sounds.hook_pull;
 		} else {
-
-			if (VectorLengthSquared(ent->owner->locals.velocity) > 128.0) {
-				ent->s.sound = g_media.sounds.hook_pull;
-			}
+			ent->s.sound = 0;
 		}
 	}
 

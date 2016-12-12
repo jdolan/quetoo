@@ -193,6 +193,7 @@ typedef struct {
 	// collision with the world and solid entities
 	int32_t (*PointContents)(const vec3_t point);
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs);
+	vec_t (*GetHookPullSpeed)(void);
 
 	// print debug messages for development
 	void (*Debug)(const char *msg);

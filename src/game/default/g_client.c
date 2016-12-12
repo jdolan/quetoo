@@ -1249,6 +1249,14 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
 }
 
 /**
+ * @brief Get the hook pull speed of this server.
+ */
+static vec_t G_GetHookPullSpeed(void) {
+
+	return g_hook_pull_speed->value;
+}
+
+/**
  * @brief Debug messages for Pm_Move.
  */
 static void G_ClientMove_Debug(const char *msg) {
@@ -1286,85 +1294,11 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	if (ent->client->locals.hook_pull) {
 
-		g_entity_t *hook = ent->client->locals.hook_entity;
-
-		VectorSubtract(ent->client->locals.hook_entity->s.origin, ent->s.origin, pm.s.velocity);
-		vec_t dist_to_hook = VectorNormalize(pm.s.velocity);
-
-		if (ent->client->locals.persistent.hook_style == HOOK_PULL) {
-
-			// pull hook code
-			if (dist_to_hook > 8.0) {
-				VectorScale(pm.s.velocity, Max(dist_to_hook, g_hook_pull_speed->value), pm.s.velocity);
-			} else {
-				VectorClear(pm.s.velocity);
-			}
-
-			pm.s.type = PM_HOOK;
+		if (ent->client->locals.persistent.hook_style == HOOK_SWING) {
+			pm.s.type = PM_HOOK_SWING;
 		} else {
-			// swing hook code
-			vec3_t chain_vec;
-			vec_t chain_len, force = 0.0;
-
-			VectorSubtract(hook->s.origin, ent->s.origin, chain_vec);
-			chain_len = VectorLength(chain_vec);
-
-			// if player's location is beyond the chain's reach
-			if (chain_len > hook->locals.mass) {	 
-				vec3_t vel_part;
-
-				// determine player's velocity component of chain vector
-				VectorScale(chain_vec, DotProduct(ent->locals.velocity, chain_vec) / DotProduct(chain_vec, chain_vec), vel_part);
-		
-				// restrainment default force 
-				force = (chain_len - hook->locals.mass) * 5.0;
-
-				// if player's velocity heading is away from the hook
-				if (DotProduct(ent->locals.velocity, chain_vec) < 0.0) {
-
-					// if chain has streched for 25 units
-					if (chain_len > hook->locals.mass + 25.0) {
-
-						// remove player's velocity component moving away from hook
-						VectorSubtract(ent->locals.velocity, vel_part, ent->locals.velocity);
-					}
-				} else { // if player's velocity heading is towards the hook
-
-					if (VectorLength(vel_part) < force) {
-						force -= VectorLength(vel_part);
-					} else {
-						force = 0.0;
-					}
-				}
-			}
-			
-			// applies chain restrainment 
-			VectorNormalize(chain_vec);
-			VectorMA(ent->locals.velocity, force, chain_vec, pm.s.velocity);
-
-			// restrict to max speed
-			vec_t length = VectorLength(pm.s.velocity);
-
-			if (length > g_hook_pull_speed->value) {
-
-				VectorNormalize(pm.s.velocity);
-				VectorScale(pm.s.velocity, g_hook_pull_speed->value, pm.s.velocity);
-			}
-
-			pm.s.type = PM_FLOAT;
+			pm.s.type = PM_HOOK_PULL;
 		}
-
-		if (dist_to_hook < 32.0) {
-			// a small hack to fix endless pulling into the ground if we're
-			// pressed right up against the hook
-			const vec3_t down = { ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] - 8.0 };
-			cm_trace_t tr = gi.Trace(ent->s.origin, down, ent->mins, ent->maxs, ent, MASK_CLIP_PLAYER);
-
-			if (tr.fraction < 1.0) {
-				pm.s.velocity[2] = 0.0;
-			}
-		}
-
 	} else {
 		VectorCopy(ent->locals.velocity, pm.s.velocity);
 	}
@@ -1374,6 +1308,7 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	pm.PointContents = gi.PointContents;
 	pm.Trace = G_ClientMove_Trace;
+	pm.GetHookPullSpeed = G_GetHookPullSpeed;
 
 	pm.Debug = G_ClientMove_Debug;
 
@@ -1581,6 +1516,18 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 		}
 	}
 
+	// process hook, do it before PMove
+	if (cl->locals.latched_buttons & BUTTON_HOOK) {
+
+		if (cl->locals.persistent.spectator) {
+
+			// TODO: hook this into spectator maybe?
+		} else if (cl->locals.hook_think_time < g_level.time) {
+
+			G_ClientHookThink(ent);
+		}
+	}
+
 	if (!cl->locals.chase_target) { // move through the world
 		G_ClientMove(ent, cmd);
 	}
@@ -1603,17 +1550,6 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 			}
 		} else if (cl->locals.weapon_think_time < g_level.time) {
 			G_ClientWeaponThink(ent);
-		}
-	}
-
-	if (cl->locals.latched_buttons & BUTTON_HOOK) {
-
-		if (cl->locals.persistent.spectator) {
-
-			// TODO: hook this into spectator maybe?
-		} else if (cl->locals.hook_think_time < g_level.time) {
-
-			G_ClientHookThink(ent);
 		}
 	}
 

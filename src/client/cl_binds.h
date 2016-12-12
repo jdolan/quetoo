@@ -71,7 +71,7 @@ static const char *DEFAULT_BINDS =
     "bind tab +SCORE\n"
 
     // zoom alias for nubs
-    "alias +ZOOM \""
+    /*"alias +ZOOM \""
     "set f $cg_fov;"
     "set cg_fov $cg_fov_zoom;"
     "set s $m_sensitivity;"
@@ -83,7 +83,7 @@ static const char *DEFAULT_BINDS =
     "set m_sensitivity $s;"
     "\"\n"
 
-    "bind \"left alt\" +ZOOM\n"
+    "bind \"left alt\" +ZOOM\n"*/
 
     // spam alias for pros
     "alias SPAM \""

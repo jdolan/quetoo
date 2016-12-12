@@ -75,16 +75,18 @@ typedef struct {
 /**
  * @brief ConfigStrings that are local to the game module.
  */
-#define CS_GAMEPLAY			(CS_GENERAL + 0) // gameplay string
-#define CS_TEAMS			(CS_GENERAL + 1) // are teams enabled?
-#define CS_CTF				(CS_GENERAL + 2) // is capture enabled?
-#define CS_MATCH			(CS_GENERAL + 3) // is match mode enabled?
-#define CS_ROUNDS			(CS_GENERAL + 4) // are rounds enabled?
-#define CS_TEAM_GOOD		(CS_GENERAL + 5) // good team name
-#define CS_TEAM_EVIL		(CS_GENERAL + 6) // evil team name
-#define CS_TIME				(CS_GENERAL + 7) // level or match timer
-#define CS_ROUND			(CS_GENERAL + 8) // round number
-#define CS_VOTE				(CS_GENERAL + 9) // vote string\yes count\no count
+#define CS_GAMEPLAY			(CS_GENERAL + 0)  // gameplay string
+#define CS_TEAMS			(CS_GENERAL + 1)  // are teams enabled?
+#define CS_CTF				(CS_GENERAL + 2)  // is capture enabled?
+#define CS_MATCH			(CS_GENERAL + 3)  // is match mode enabled?
+#define CS_ROUNDS			(CS_GENERAL + 4)  // are rounds enabled?
+#define CS_TEAM_GOOD		(CS_GENERAL + 5)  // good team name
+#define CS_TEAM_EVIL		(CS_GENERAL + 6)  // evil team name
+#define CS_TIME				(CS_GENERAL + 7)  // level or match timer
+#define CS_ROUND			(CS_GENERAL + 8)  // round number
+#define CS_VOTE				(CS_GENERAL + 9)  // vote string\yes count\no count
+#define CS_HOOK_PULL_SPEED	(CS_GENERAL + 10) // hook speed
+
 /**
  * @brief Player state statistics (inventory, score, etc).
  */

@@ -250,6 +250,14 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 		bits |= PS_PM_DELTA_ANGLES;
 	}
 
+	if (!VectorCompare(to->pm_state.hook_position, from->pm_state.hook_position)) {
+		bits |= PS_PM_HOOK_POSITION;
+	}
+
+	if (to->pm_state.hook_length != from->pm_state.hook_length) {
+		bits |= PS_PM_HOOK_LENGTH;
+	}
+
 	Net_WriteShort(msg, bits);
 
 	if (bits & PS_PM_TYPE) {
@@ -298,6 +306,14 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 		Net_WriteShort(msg, to->pm_state.delta_angles[0]);
 		Net_WriteShort(msg, to->pm_state.delta_angles[1]);
 		Net_WriteShort(msg, to->pm_state.delta_angles[2]);
+	}
+
+	if (bits & PS_PM_HOOK_POSITION) {
+		Net_WritePosition(msg, to->pm_state.hook_position);
+	}
+
+	if (bits & PS_PM_HOOK_LENGTH) {
+		Net_WriteShort(msg, to->pm_state.hook_length);
 	}
 
 	uint32_t stat_bits = 0;
@@ -713,6 +729,14 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 		to->pm_state.delta_angles[0] = Net_ReadShort(msg);
 		to->pm_state.delta_angles[1] = Net_ReadShort(msg);
 		to->pm_state.delta_angles[2] = Net_ReadShort(msg);
+	}
+
+	if (bits & PS_PM_HOOK_POSITION) {
+		Net_ReadPosition(msg, to->pm_state.hook_position);
+	}
+
+	if (bits & PS_PM_HOOK_LENGTH) {
+		to->pm_state.hook_length = Net_ReadShort(msg);
 	}
 
 	const int32_t stat_bits = Net_ReadLong(msg);

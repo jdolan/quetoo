@@ -53,6 +53,7 @@ void Cg_PredictMovement(const GList *cmds) {
 
 	pm.PointContents = cgi.PointContents;
 	pm.Trace = Cg_PredictMovement_Trace;
+	pm.GetHookPullSpeed = Cg_GetHookPullSpeed;
 
 	pm.Debug = Cg_PredictMovement_Debug;
 

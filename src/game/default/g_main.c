@@ -755,6 +755,8 @@ static void G_CheckRules(void) {
 
 		gi.BroadcastPrint(PRINT_HIGH, "Hook pull speed has been changed to %f\n",
 		                  g_hook_pull_speed->value);
+
+		gi.ConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
 	}
 
 	if (g_hook_style->modified) {

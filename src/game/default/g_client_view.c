@@ -275,7 +275,7 @@ static void G_ClientKickAngles(g_entity_t *ent) {
 
 	// spectators and dead clients receive no kick angles
 
-	if (ent->client->ps.pm_state.type != PM_NORMAL) {
+	if (ent->client->ps.pm_state.type > PM_HOOK_SWING) {
 		VectorClear(kick_angles);
 		return;
 	}

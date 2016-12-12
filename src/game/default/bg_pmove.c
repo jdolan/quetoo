@@ -536,7 +536,7 @@ static void Pm_Accelerate(vec3_t dir, vec_t speed, vec_t accel) {
  */
 static void Pm_Gravity(void) {
 
-	if (pm->s.type == PM_HOOK) {
+	if (pm->s.type == PM_HOOK_PULL) {
 		return;
 	}
 
@@ -673,13 +673,12 @@ static void Pm_CorrectPosition(void) {
  */
 static bool Pm_CheckHookJump(void) {
 
-	if ((pm->s.type == PM_HOOK ||
-		pm->s.type == PM_FLOAT) &&
+	if ((pm->s.type == PM_HOOK_PULL ||
+		pm->s.type == PM_HOOK_SWING) &&
 		pm->s.velocity[2] > PM_STEP_HEIGHT_MIN) {
 
 		// clear the ground indicators
 		pm->s.flags &= ~PMF_ON_GROUND;
-		pm->s.flags |= PMF_NO_MOVEMENT_PREDICTION;
 		pm->ground_entity = NULL;
 
 		return true;
@@ -945,7 +944,7 @@ static void Pm_CheckLadder(void) {
 		return;
 	}
 
-	if (pm->s.type == PM_HOOK) {
+	if (pm->s.type == PM_HOOK_PULL) {
 		return;
 	}
 
@@ -970,8 +969,8 @@ static void Pm_CheckLadder(void) {
 static _Bool Pm_CheckWaterJump(void) {
 	vec3_t pos, pos2;
 
-	if (pm->s.type == PM_HOOK ||
-		pm->s.type == PM_FLOAT) {
+	if (pm->s.type == PM_HOOK_PULL ||
+		pm->s.type == PM_HOOK_SWING) {
 		return false;
 	}
 
@@ -1133,8 +1132,7 @@ static void Pm_WaterMove(void) {
 	}
 
 	// and sink if idle
-	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up && pm->s.type != PM_HOOK &&
-		pm->s.type != PM_FLOAT) {
+	if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up && pm->s.type != PM_HOOK_PULL && pm->s.type != PM_HOOK_SWING) {
 		if (pm->s.velocity[2] > PM_SPEED_WATER_SINK) {
 			Pm_Gravity();
 		}
@@ -1149,7 +1147,7 @@ static void Pm_WaterMove(void) {
 	vel[2] += pm->cmd.up;
 
 	// disable water skiing
-	if (pm->s.type != PM_HOOK && pm->s.type != PM_FLOAT) {
+	if (pm->s.type != PM_HOOK_PULL && pm->s.type != PM_HOOK_SWING) {
 		if (pm->water_level == 2) {
 			vec3_t view;
 
@@ -1432,6 +1430,86 @@ static void Pm_InitLocal(void) {
 }
 
 /**
+ * @brief
+ */
+static void Pm_CheckHook(void) {
+
+	// hookers only
+	if (pm->s.type != PM_HOOK_PULL &&
+		pm->s.type != PM_HOOK_SWING) {
+		return;
+	}
+
+	// get chain length
+	const vec_t hook_pull_speed = pm->GetHookPullSpeed();
+
+	if (pm->s.type == PM_HOOK_PULL) {
+		
+		// pull physics
+		VectorSubtract(pm->s.hook_position, pm->s.origin, pm->s.velocity);
+		vec_t chain_len = VectorNormalize(pm->s.velocity);
+
+		if (chain_len > 8.0 && !Pm_CheckHookJump()) {
+			VectorScale(pm->s.velocity, Max(chain_len, hook_pull_speed), pm->s.velocity);
+		} else {
+			VectorClear(pm->s.velocity);
+		}
+	} else {
+		
+		const vec_t hook_rate = (hook_pull_speed / 2.0) * pml.time;
+
+		// chain physics
+		// grow/shrink chain based on input
+		if ((pm->cmd.up > 0 || (pm->cmd.buttons & BUTTON_HOOK)) && (pm->s.hook_length > PM_HOOK_MIN_LENGTH)) { 
+
+			pm->s.hook_length = Max(pm->s.hook_length - hook_rate, PM_HOOK_MIN_LENGTH);
+		} else if ((pm->cmd.up < 0) && (pm->s.hook_length < PM_HOOK_MAX_LENGTH)) {
+
+			pm->s.hook_length = Min(pm->s.hook_length + hook_rate, PM_HOOK_MAX_LENGTH);
+		}
+
+		vec3_t chain_vec;
+		vec_t chain_len, force = 0.0;
+
+		VectorSubtract(pm->s.hook_position, pm->s.origin, chain_vec);
+		chain_len = VectorLength(chain_vec);
+
+		// if player's location is beyond the chain's reach
+		if (chain_len > pm->s.hook_length) {	 
+			vec3_t vel_part;
+
+			// determine player's velocity component of chain vector
+			VectorScale(chain_vec, DotProduct(pm->s.velocity, chain_vec) / DotProduct(chain_vec, chain_vec), vel_part);
+		
+			// restrainment default force 
+			force = (chain_len - pm->s.hook_length) * 5.0;
+
+			// if player's velocity heading is away from the hook
+			if (DotProduct(pm->s.velocity, chain_vec) < 0.0) {
+
+				// if chain has streched for 24 units
+				if (chain_len > pm->s.hook_length + 24.0) {
+
+					// remove player's velocity component moving away from hook
+					VectorSubtract(pm->s.velocity, vel_part, pm->s.velocity);
+				}
+			} else { // if player's velocity heading is towards the hook
+
+				if (VectorLength(vel_part) < force) {
+					force -= VectorLength(vel_part);
+				} else {
+					force = 0.0;
+				}
+			}
+		}
+			
+		// applies chain restrainment 
+		VectorNormalize(chain_vec);
+		VectorMA(pm->s.velocity, force, chain_vec, pm->s.velocity);
+	}
+}
+
+/**
  * @brief Called by the game and the client game to update the player's
  * authoritative or predicted movement state, respectively.
  */
@@ -1455,9 +1533,8 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	if (pm->s.type == PM_DEAD) { // no control
 		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
-	} else if (pm->s.type == PM_HOOK) { // no control on x/y
+	} else if (pm->s.type == PM_HOOK_PULL) { // no control on x/y
 		pm->cmd.forward = pm->cmd.right = 0;
-		pm->s.flags |= PMF_NO_MOVEMENT_PREDICTION;
 	}
 
 	// disable predictions if appropriate
@@ -1477,6 +1554,9 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	// check for ladders
 	Pm_CheckLadder();
+
+	// run hook code before anything else
+	Pm_CheckHook();
 
 	if (pm->s.flags & PMF_TIME_TELEPORT) {
 		// pause in place briefly

@@ -21,6 +21,16 @@
 
 #include "cg_local.h"
 
+/**
+ * @brief Local state to the cgame per server.
+ */
+typedef struct {
+
+	vec_t		hook_pull_speed;
+} cg_state_t;
+
+static cg_state_t cg_state;
+
 cvar_t *cg_add_emits;
 cvar_t *cg_add_entities;
 cvar_t *cg_add_particles;
@@ -239,10 +249,19 @@ static void Cg_DrawFrame(const cl_frame_t *frame) {
 }
 
 /**
+ * @brief Fetch the server's reported hook pull speed.
+ */
+vec_t Cg_GetHookPullSpeed(void) {
+
+	return cg_state.hook_pull_speed;
+}
+
+/**
  * @brief Clear any state that should not persist over multiple server connections.
  */
 static void Cg_ClearState(void) {
 
+	memset(&cg_state, 0, sizeof(cg_state));
 }
 
 /**
@@ -253,14 +272,20 @@ static void Cg_UpdateConfigString(uint16_t i) {
 
 	const char *s = cgi.ConfigString(i);
 
-	if (i == CS_WEATHER) {
+	switch (i) {
+	case CS_WEATHER:
 		Cg_ResolveWeather(s);
-	}
-
-	if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
-		cl_client_info_t *ci = &cgi.client->client_info[i - CS_CLIENTS];
-		Cg_LoadClient(ci, s);
-		cgi.LoadClientSounds(ci->model);
+		break;
+	case CS_HOOK_PULL_SPEED:
+		cg_state.hook_pull_speed = strtof(s, NULL);
+		break;
+	default:
+		if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
+			cl_client_info_t *ci = &cgi.client->client_info[i - CS_CLIENTS];
+			Cg_LoadClient(ci, s);
+			cgi.LoadClientSounds(ci->model);
+		}
+		break;
 	}
 }
 

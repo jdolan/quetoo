@@ -752,6 +752,7 @@ static void G_worldspawn(g_entity_t *ent) {
 
 	gi.ConfigString(CS_TEAMS, va("%d", g_level.teams));
 	gi.ConfigString(CS_CTF, va("%d", g_level.ctf));
+	gi.ConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
 
 	if (map && map->match > -1) { // prefer maps.lst match
 		g_level.match = map->match;

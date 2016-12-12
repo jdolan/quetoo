@@ -26,4 +26,9 @@
       <Filter>src\main</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\QUETOO.H">
+      <Filter>src\main</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

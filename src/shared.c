@@ -371,6 +371,28 @@ vec_t VectorLength(const vec3_t v) {
 }
 
 /**
+ * @brief Returns the squared distance between the two specified vectors
+ */
+vec_t VectorDistanceSquared(const vec3_t a, const vec3_t b) {
+	return VectorLengthSquared((const vec3_t) {
+		(a[0] - b[0]),
+		(a[1] - b[1]),
+		(a[2] - b[2])
+	});
+}
+
+/**
+ * @brief Returns the distance between the two specified vectors
+ */
+vec_t VectorDistance(const vec3_t a, const vec3_t b) {
+	return VectorLength((const vec3_t) {
+		(a[0] - b[0]),
+		(a[1] - b[1]),
+		(a[2] - b[2])
+	});
+}
+
+/**
  * @brief Combines a fraction of the second vector with the first.
  */
 void VectorMix(const vec3_t v1, const vec3_t v2, const vec_t mix, vec3_t out) {

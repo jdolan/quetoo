@@ -336,12 +336,18 @@ typedef enum {
 #define MASK_CLIP_PROJECTILE	(MASK_SOLID | MASK_MEAT)
 
 /**
+ * @brief Some constants for the hook movement
+ */
+#define PM_HOOK_MIN_LENGTH	(32)
+#define PM_HOOK_MAX_LENGTH	(2048)
+
+/**
  * @brief General player movement and capabilities classification.
  */
 typedef enum {
 	PM_NORMAL, // walking, jumping, falling, swimming, etc.
-	PM_HOOK, // hook movement - no gravity and no ground checks
-	PM_FLOAT, // floating - no ground checks
+	PM_HOOK_PULL, // pull hook
+	PM_HOOK_SWING, // swing hook
 	PM_SPECTATOR, // free-flying movement with acceleration and friction
 	PM_DEAD, // no movement, but the ability to rotate in place
 	PM_FREEZE // no movement at all
@@ -375,6 +381,9 @@ typedef struct {
 	uint16_t view_angles[3]; // base view angles
 	uint16_t kick_angles[3]; // offset for kick
 	uint16_t delta_angles[3]; // offset for spawns, pushers, etc.
+
+	vec3_t hook_position; // position we're hooking to
+	uint16_t hook_length; // length of the hook, for swing hook
 } pm_state_t;
 
 /**
