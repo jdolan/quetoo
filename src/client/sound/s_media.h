@@ -30,6 +30,7 @@ void S_LoadClientSounds(const char *model);
 
 	void S_ListMedia_f(void);
 	void S_RegisterMedia(s_media_t *media);
+	void S_RegisterDependency(s_media_t *dependent, s_media_t *dependency);
 	s_media_t *S_FindMedia(const char *name);
 	s_media_t *S_AllocMedia(const char *name, size_t size);
 	void S_FreeMedia(void);

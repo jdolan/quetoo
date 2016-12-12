@@ -27,9 +27,18 @@
 #include "common.h"
 #include "sys.h"
 
+typedef enum {
+	S_MEDIA_GENERIC, // generic/unknown sound media
+
+	S_MEDIA_SAMPLE, // a sample, which may be aliasing another piece of media
+	S_MEDIA_MUSIC // a piece of music
+} s_media_type_t;
+
 // media handles
 typedef struct s_media_s {
 	char name[MAX_QPATH];
+	s_media_type_t type;
+	GList *dependencies;
 	_Bool (*Retain)(struct s_media_s *self);
 	void (*Free)(struct s_media_s *self);
 	int32_t seed;

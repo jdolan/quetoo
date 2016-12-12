@@ -143,6 +143,8 @@ s_sample_t *S_LoadSample(const char *name) {
 	if (!(sample = (s_sample_t *) S_FindMedia(key))) {
 		sample = (s_sample_t *) S_AllocMedia(key, sizeof(s_sample_t));
 
+		sample->media.type = S_MEDIA_SAMPLE;
+
 		sample->media.Free = S_FreeSample;
 
 		S_LoadSampleChunk(sample);
@@ -161,9 +163,14 @@ static s_sample_t *S_AliasSample(s_sample_t *sample, const char *alias) {
 
 	s_sample_t *s = (s_sample_t *) S_AllocMedia(alias, sizeof(s_sample_t));
 
+	sample->media.type = S_MEDIA_SAMPLE;
+
 	s->chunk = sample->chunk;
 
 	S_RegisterMedia((s_media_t *) s);
+
+	// dependency back to the main sample
+	S_RegisterDependency((s_media_t *) s, (s_media_t *) sample);
 
 	return s;
 }
@@ -193,15 +200,20 @@ s_sample_t *S_LoadModelSample(const char *model, const char *name) {
 		return sample;
 	}
 
-	// we don't, try it
-	sample = S_LoadSample(alias);
+	// we don't, see if we already have this alias loaded
+	if (S_FindMedia(alias)) {
 
-	if (sample->chunk) {
-		return sample;
+		sample = S_LoadSample(alias);
+
+		if (sample->chunk) {
+			return sample;
+		}
+
+		Com_Warn("%s: media found but not loaded?\n", alias);
+		return NULL;
 	}
 
-	// that didn't work, so load the common one and alias it
-	// the media subsystem will free the previous sample for us
+	// that didn't work, so load the common one and alias it.
 	g_snprintf(path, sizeof(path), "#players/common/%s", name + 1);
 	sample = S_LoadSample(path);
 

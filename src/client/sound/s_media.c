@@ -34,10 +34,6 @@ static s_media_state_t s_media_state;
  */
 void S_LoadClientSounds(const char *model) {
 
-	// FIXME: why does this crash the game after a map restart on a memcpy?
-	// media shouldn't be corrupted :/
-	return;
-
 	GSList *sounds = NULL;
 
 	const GList *key = s_media_state.keys;
@@ -80,6 +76,28 @@ void S_ListMedia_f(void) {
 }
 
 /**
+ * @brief Establishes a dependency from the specified dependent to the given
+ * dependency. Dependencies in use by registered media are never freed.
+ */
+void S_RegisterDependency(s_media_t *dependent, s_media_t *dependency) {
+
+	if (dependent) {
+		if (dependency) {
+			if (!g_list_find(dependent->dependencies, dependency)) {
+				Com_Debug("%s -> %s\n", dependent->name, dependency->name);
+				dependent->dependencies = g_list_prepend(dependent->dependencies, dependency);
+
+				S_RegisterMedia(dependency);
+			}
+		} else {
+			// Com_Debug("Invalid dependency for %s\n", dependent->name);
+		}
+	} else {
+		Com_Warn("Invalid dependent\n");
+	}
+}
+
+/**
  * @brief GCompareFunc for S_RegisterMedia. Sorts media by name.
  */
 static int32_t S_RegisterMedia_Compare(gconstpointer name1, gconstpointer name2) {
@@ -115,6 +133,13 @@ void S_RegisterMedia(s_media_t *media) {
 
 		// re-seed the media to retain it
 		media->seed = s_media_state.seed;
+	}
+
+	// finally re-register all dependencies
+	GList *d = media->dependencies;
+	while (d) {
+		S_RegisterMedia((s_media_t *) d->data);
+		d = d->next;
 	}
 }
 
@@ -174,7 +199,8 @@ static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data) {
 	if (media->Free) {
 		media->Free(media);
 	}
-
+	
+	g_list_free(media->dependencies);
 	s_media_state.keys = g_list_remove(s_media_state.keys, key);
 
 	return true;

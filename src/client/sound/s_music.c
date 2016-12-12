@@ -117,6 +117,8 @@ s_music_t *S_LoadMusic(const char *name) {
 
 			music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t));
 
+			music->media.type = S_MEDIA_MUSIC;
+
 			music->media.Retain = S_RetainMusic;
 			music->media.Free = S_FreeMusic;
 
