@@ -209,12 +209,15 @@ static _Bool Cg_UpdateParticle_Spark(cg_particle_t *p, const vec_t delta, const 
 
 /**
  * @brief Adds all particles that are active for this frame to the view.
- * Particles that fade or shrink beyond visibility are freed.
  */
 void Cg_AddParticles(void) {
 	static uint32_t ticks;
 
 	if (!cg_add_particles->value) {
+		return;
+	}
+
+	if (ticks == cgi.client->ticks) { // FIXME: This should not be necessary. Make it so.
 		return;
 	}
 
