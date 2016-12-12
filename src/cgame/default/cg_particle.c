@@ -218,10 +218,6 @@ void Cg_AddParticles(void) {
 		return;
 	}
 
-	if (ticks == cgi.client->ticks) {
-		return;
-	}
-
 	if (ticks > cgi.client->ticks) {
 		ticks = 0;
 	}
