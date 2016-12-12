@@ -43,11 +43,13 @@ static void Cg_PredictMovement_Debug(const char *msg) {
  * interpolated to by Cl_UpdateView.
  */
 void Cg_PredictMovement(const GList *cmds) {
-	pm_move_t pm;
+	static pm_move_t pm;
+	const _Bool last_hook = pm.s.hook_held;
 
 	// copy current state to into the move
 	memset(&pm, 0, sizeof(pm));
 	pm.s = cgi.client->frame.ps.pm_state;
+	pm.s.hook_held = last_hook;
 
 	pm.ground_entity = cgi.client->predicted_state.ground_entity;
 	pm.hook_pull_speed = Cg_GetHookPullSpeed();

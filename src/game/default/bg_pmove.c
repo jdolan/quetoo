@@ -1377,6 +1377,12 @@ static void Pm_Init(void) {
 			pm->s.time -= pm->cmd.msec;
 		}
 	}
+
+	// reset this local flag if we're not swinging yet
+	if (pm->s.type != PM_HOOK_SWING) {
+
+		pm->s.hook_held = true;
+	}
 }
 
 /**
@@ -1442,6 +1448,14 @@ static void Pm_CheckHook(void) {
 
 	// get chain length
 	if (pm->s.type == PM_HOOK_PULL) {
+
+		// if we let go of hook, just go back to normal. This helps with prediction.
+		if (!(pm->cmd.buttons & BUTTON_HOOK)) {
+			pm->s.type = PM_NORMAL;
+			return;
+		}
+
+		pm->cmd.forward = pm->cmd.right = 0;
 		
 		// pull physics
 		VectorSubtract(pm->s.hook_position, pm->s.origin, pm->s.velocity);
@@ -1453,12 +1467,27 @@ static void Pm_CheckHook(void) {
 			VectorClear(pm->s.velocity);
 		}
 	} else {
-		
+	
+		// check for disable
+		if (pm->s.hook_held) {
+
+			if (!(pm->cmd.buttons & BUTTON_HOOK)) {
+				pm->s.hook_held = false;
+			}
+		} else {
+			
+			// if we let go of hook, just go back to normal. This helps with prediction.
+			if (pm->cmd.buttons & BUTTON_HOOK) {
+				pm->s.type = PM_NORMAL;
+				return;
+			}
+		}
+
 		const vec_t hook_rate = (pm->hook_pull_speed / 1.5) * pml.time;
 
 		// chain physics
 		// grow/shrink chain based on input
-		if ((pm->cmd.up > 0 || (pm->cmd.buttons & BUTTON_HOOK)) && (pm->s.hook_length > PM_HOOK_MIN_LENGTH)) { 
+		if ((pm->cmd.up > 0 || pm->s.hook_held) && (pm->s.hook_length > PM_HOOK_MIN_LENGTH)) { 
 
 			pm->s.hook_length = Max(pm->s.hook_length - hook_rate, PM_HOOK_MIN_LENGTH);
 		} else if ((pm->cmd.up < 0) && (pm->s.hook_length < PM_HOOK_MAX_LENGTH)) {
@@ -1473,7 +1502,7 @@ static void Pm_CheckHook(void) {
 		chain_len = VectorLength(chain_vec);
 
 		// if player's location is beyond the chain's reach
-		if (chain_len > pm->s.hook_length) {	 
+		if (chain_len > pm->s.hook_length) {
 			vec3_t vel_part;
 
 			// determine player's velocity component of chain vector
@@ -1531,8 +1560,6 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	if (pm->s.type == PM_DEAD) { // no control
 		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
-	} else if (pm->s.type == PM_HOOK_PULL) { // no control on x/y
-		pm->cmd.forward = pm->cmd.right = 0;
 	}
 
 	// disable predictions if appropriate
@@ -1540,6 +1567,9 @@ void Pm_Move(pm_move_t *pm_move) {
 
 		pm->s.flags |= PMF_NO_PREDICTION;
 	}
+
+	// run hook code before anything else
+	Pm_CheckHook();
 
 	// check for ducking
 	Pm_CheckDuck();
@@ -1552,9 +1582,6 @@ void Pm_Move(pm_move_t *pm_move) {
 
 	// check for ladders
 	Pm_CheckLadder();
-
-	// run hook code before anything else
-	Pm_CheckHook();
 
 	if (pm->s.flags & PMF_TIME_TELEPORT) {
 		// pause in place briefly

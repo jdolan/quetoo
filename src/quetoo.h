@@ -384,6 +384,8 @@ typedef struct {
 
 	vec3_t hook_position; // position we're hooking to
 	uint16_t hook_length; // length of the hook, for swing hook
+
+	_Bool hook_held; // whether the button is let go or not. This is local-only.
 } pm_state_t;
 
 /**
