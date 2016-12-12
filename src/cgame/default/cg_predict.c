@@ -50,10 +50,10 @@ void Cg_PredictMovement(const GList *cmds) {
 	pm.s = cgi.client->frame.ps.pm_state;
 
 	pm.ground_entity = cgi.client->predicted_state.ground_entity;
+	pm.hook_pull_speed = Cg_GetHookPullSpeed();
 
 	pm.PointContents = cgi.PointContents;
 	pm.Trace = Cg_PredictMovement_Trace;
-	pm.GetHookPullSpeed = Cg_GetHookPullSpeed;
 
 	pm.Debug = Cg_PredictMovement_Debug;
 

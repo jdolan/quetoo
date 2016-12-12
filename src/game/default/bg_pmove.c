@@ -1441,8 +1441,6 @@ static void Pm_CheckHook(void) {
 	}
 
 	// get chain length
-	const vec_t hook_pull_speed = pm->GetHookPullSpeed();
-
 	if (pm->s.type == PM_HOOK_PULL) {
 		
 		// pull physics
@@ -1450,13 +1448,13 @@ static void Pm_CheckHook(void) {
 		vec_t chain_len = VectorNormalize(pm->s.velocity);
 
 		if (chain_len > 8.0 && !Pm_CheckHookJump()) {
-			VectorScale(pm->s.velocity, Max(chain_len, hook_pull_speed), pm->s.velocity);
+			VectorScale(pm->s.velocity, Max(chain_len, pm->hook_pull_speed), pm->s.velocity);
 		} else {
 			VectorClear(pm->s.velocity);
 		}
 	} else {
 		
-		const vec_t hook_rate = (hook_pull_speed / 2.0) * pml.time;
+		const vec_t hook_rate = (pm->hook_pull_speed / 1.5) * pml.time;
 
 		// chain physics
 		// grow/shrink chain based on input

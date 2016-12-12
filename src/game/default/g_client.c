@@ -1249,14 +1249,6 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
 }
 
 /**
- * @brief Get the hook pull speed of this server.
- */
-static vec_t G_GetHookPullSpeed(void) {
-
-	return g_hook_pull_speed->value;
-}
-
-/**
  * @brief Debug messages for Pm_Move.
  */
 static void G_ClientMove_Debug(const char *msg) {
@@ -1305,10 +1297,10 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	pm.cmd = *cmd;
 	pm.ground_entity = ent->locals.ground_entity;
+	pm.hook_pull_speed = g_hook_pull_speed->value;
 
 	pm.PointContents = gi.PointContents;
 	pm.Trace = G_ClientMove_Trace;
-	pm.GetHookPullSpeed = G_GetHookPullSpeed;
 
 	pm.Debug = G_ClientMove_Debug;
 

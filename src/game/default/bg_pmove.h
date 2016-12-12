@@ -177,6 +177,8 @@ typedef struct {
 
 	pm_state_t s; // movement state (in / out)
 
+	vec_t hook_pull_speed; // hook pull speed (in)
+
 	struct g_entity_s *touch_ents[PM_MAX_TOUCH_ENTS]; // entities touched (out)
 	uint16_t num_touch_ents;
 
@@ -193,7 +195,6 @@ typedef struct {
 	// collision with the world and solid entities
 	int32_t (*PointContents)(const vec3_t point);
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs);
-	vec_t (*GetHookPullSpeed)(void);
 
 	// print debug messages for development
 	void (*Debug)(const char *msg);
