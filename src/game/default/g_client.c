@@ -1347,8 +1347,6 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
 			if (length > g_hook_pull_speed->value) {
 
-				gi.Print("Going too fast on hook; %f\n", length);
-
 				VectorNormalize(pm.s.velocity);
 				VectorScale(pm.s.velocity, g_hook_pull_speed->value, pm.s.velocity);
 			}
@@ -1570,8 +1568,6 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 	if (cl->locals.chase_target) { // ensure chase is valid
 
-		cl->ps.pm_state.flags |= PMF_NO_PREDICTION;
-
 		if (!cl->locals.chase_target->in_use
 		        || cl->locals.chase_target->client->locals.persistent.spectator) {
 
@@ -1602,7 +1598,6 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
 			if (cl->locals.chase_target) { // toggle chase camera
 				cl->locals.chase_target = cl->locals.old_chase_target = NULL;
-				cl->ps.pm_state.flags &= ~PMF_NO_PREDICTION;
 			} else {
 				G_ClientChaseTarget(ent);
 			}

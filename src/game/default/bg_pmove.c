@@ -679,6 +679,7 @@ static bool Pm_CheckHookJump(void) {
 
 		// clear the ground indicators
 		pm->s.flags &= ~PMF_ON_GROUND;
+		pm->s.flags |= PMF_NO_MOVEMENT_PREDICTION;
 		pm->ground_entity = NULL;
 
 		return true;
@@ -1361,7 +1362,7 @@ static void Pm_Init(void) {
 	pm->step = 0.0;
 
 	// reset flags that we test each move
-	pm->s.flags &= ~(PMF_NO_PREDICTION);
+	pm->s.flags &= ~(PMF_NO_MOVEMENT_PREDICTION | PMF_NO_VIEW_PREDICTION);
 	pm->s.flags &= ~(PMF_ON_GROUND | PMF_ON_STAIRS | PMF_ON_LADDER);
 	pm->s.flags &= ~(PMF_JUMPED | PMF_UNDER_WATER);
 
@@ -1456,7 +1457,13 @@ void Pm_Move(pm_move_t *pm_move) {
 		pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
 	} else if (pm->s.type == PM_HOOK) { // no control on x/y
 		pm->cmd.forward = pm->cmd.right = 0;
-		//pm->s.flags |= PMF_NO_PREDICTION;
+		pm->s.flags |= PMF_NO_MOVEMENT_PREDICTION;
+	}
+
+	// disable predictions if appropriate
+	if (pm->s.type == PM_FREEZE) {
+
+		pm->s.flags |= PMF_NO_PREDICTION;
 	}
 
 	// check for ducking

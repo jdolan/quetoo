@@ -350,7 +350,14 @@ typedef enum {
 /**
  * @brief Player movement flags. The game is free to define more, to 16 bits.
  */
-#define PMF_NO_PREDICTION	0x1
+#define PMF_NO_MOVEMENT_PREDICTION	(1 << 0)
+#define PMF_NO_VIEW_PREDICTION		(1 << 1)
+#define PMF_GAME					(1 << 2)
+
+/**
+ * @brief Mask for no prediction whatsoever
+ */
+#define PMF_NO_PREDICTION			(PMF_NO_MOVEMENT_PREDICTION | PMF_NO_VIEW_PREDICTION)
 
 /**
  * @brief The player movement state contains quantized snapshots of player
@@ -490,23 +497,23 @@ typedef enum {
  * effects, up to 16 bits.
  */
 #define EF_NONE				(0)
-#define EF_ROTATE			(1u << 0) // rotate on z
-#define EF_BOB				(1u << 1) // bob on z
-#define EF_PULSE			(1u << 2) // pulsing light effect
-#define EF_INACTIVE			(1u << 3) // inactive icon for when input is not going to game
-#define EF_GAME				(1u << 4) // the game may extend from here
+#define EF_ROTATE			(1 << 0) // rotate on z
+#define EF_BOB				(1 << 1) // bob on z
+#define EF_PULSE			(1 << 2) // pulsing light effect
+#define EF_INACTIVE			(1 << 3) // inactive icon for when input is not going to game
+#define EF_GAME				(1 << 4) // the game may extend from here
 
 /**
  * @brief The 16 high bits of the effects mask are not transmitted by the
  * protocol. Rather, they are reserved for the renderer.
  */
-#define EF_CLIENT			(1u << 24) // player model
-#define EF_WEAPON			(1u << 25) // view weapon
-#define EF_SHELL			(1u << 26) // environment map shell
-#define EF_ALPHATEST		(1u << 27) // alpha test
-#define EF_BLEND			(1u << 28) // alpha blend
-#define EF_NO_LIGHTING		(1u << 29) // no lighting (full bright)
-#define EF_NO_SHADOW		(1u << 30) // no shadow
+#define EF_CLIENT			(1 << 24) // player model
+#define EF_WEAPON			(1 << 25) // view weapon
+#define EF_SHELL			(1 << 26) // environment map shell
+#define EF_ALPHATEST		(1 << 27) // alpha test
+#define EF_BLEND			(1 << 28) // alpha blend
+#define EF_NO_LIGHTING		(1 << 29) // no lighting (full bright)
+#define EF_NO_SHADOW		(1 << 30) // no shadow
 #define EF_NO_DRAW			(1u << 31) // no draw (but perhaps shadow)
 
 /**
