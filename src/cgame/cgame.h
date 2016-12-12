@@ -155,6 +155,22 @@ typedef struct cg_import_s {
 	int64_t (*ReadFile)(file_t *file, void *buffer, size_t size, size_t count);
 
 	/**
+	 * @brief Opens the specified file for writing.
+	 * @param path The file path (e.g. `"maps.ui.list"`).
+	 */
+	file_t *(*OpenFileWrite)(const char *path);
+
+	/**
+	 * @brief Writes `count` objects of size `size` from `buffer` to `file`.
+	 * @param file The file.
+	 * @param buffer The buffer to write from.
+	 * @param size The size of the objects to write.
+	 * @param count The count of the objecst to write.
+	 * @return The number of objects written, or `-1` on error.
+	 */
+	int64_t (*WriteFile)(file_t *file, const void *buffer, size_t size, size_t count);
+
+	/**
 	 * @brief Closes the specified file.
 	 *
 	 * @param file The file.
@@ -730,7 +746,6 @@ typedef struct cg_import_s {
 	 * @param y The y coordinate, in pixels.
 	 * @param s The string.
 	 * @param color The color palette index.
-	 *
 	 * @return The number of visible characters drawn.
 	 */
 	size_t (*DrawString)(r_pixel_t x, r_pixel_t y, const char *s, int32_t color);

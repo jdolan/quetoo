@@ -184,6 +184,11 @@ typedef struct {
 	 * @brief Console variable and console command management.
 	 */
 	cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
+	const char *(*CvarString)(const char *name);
+	vec_t (*CvarValue)(const char *name);
+	cvar_t *(*CvarGet)(const char *name);
+	cvar_t *(*CvarSet)(const char *name, const char *string);
+	cvar_t *(*CvarSetValue)(const char *name, vec_t value);
 	cmd_t *(*Cmd)(const char *name, CmdExecuteFunc Execute, uint32_t flags, const char *desc);
 	int32_t (*Argc)(void);
 	const char *(*Argv)(int32_t arg);
@@ -192,7 +197,7 @@ typedef struct {
 	/**
 	 * @brief Console command buffer interaction.
 	 */
-	void (*AddCommandString)(const char *text);
+	void (*Cbuf)(const char *text);
 
 	/**
 	 * @brief Configuration strings are used to transmit arbitrary tokens such
@@ -342,6 +347,28 @@ typedef struct {
 	uint16_t protocol;
 
 	/**
+	 * @brief The g_entity_t array, which must be allocated by the game due to
+	 * the opaque nature of g_entity_t.
+	 */
+	struct g_entity_s *entities;
+
+	/**
+	 * @brief To be set to the size of g_entity_t so that the server can safely
+	 * iterate the entities array.
+	 */
+	size_t entity_size;
+
+	/**
+	 * @brief The current number of allocated (in use) g_entity_t.
+	 */
+	uint16_t num_entities;
+
+	/**
+	 * @brief The total number of allocated g_entity_t (MAX_ENTITIES).
+	 */
+	uint16_t max_entities;
+
+	/**
 	 * @brief Called only when the game module is first loaded. Persistent
 	 * structures for clients and game sate should be allocated here.
 	 */
@@ -391,27 +418,6 @@ typedef struct {
 	 */
 	const char *(*GameName)(void);
 
-	/**
-	 * @brief The g_entity_t array, which must be allocated by the game due to
-	 * the opaque nature of g_entity_t.
-	 */
-	struct g_entity_s *entities;
-
-	/**
-	 * @brief To be set to the size of g_entity_t so that the server can safely
-	 * iterate the entities array.
-	 */
-	size_t entity_size;
-
-	/**
-	 * @brief The current number of allocated (in use) g_entity_t.
-	 */
-	uint16_t num_entities;
-
-	/**
-	 * @brief The total number of allocated g_entity_t (MAX_ENTITIES).
-	 */
-	uint16_t max_entities;
 } g_export_t;
 
 #endif /* __GAME_H__ */

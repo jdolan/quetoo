@@ -28,7 +28,7 @@
 
 	extern GList *g_map_list;
 
-	const g_map_list_map_t *G_MapList_Find(const char *name);
+	const g_map_list_map_t *G_MapList_Find(GList *list, const char *name);
 	const g_map_list_map_t *G_MapList_Next(void);
 
 	void G_MapList_Init(void);

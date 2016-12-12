@@ -48,7 +48,6 @@ cvar_t *g_gameplay;
 cvar_t *g_gravity;
 cvar_t *g_handicap;
 cvar_t *g_inhibit;
-cvar_t *g_map_rotation;
 cvar_t *g_match;
 cvar_t *g_max_entities;
 cvar_t *g_motd;
@@ -284,7 +283,7 @@ static void G_BeginIntermission(const char *map) {
 	gi.PositionedSound(g_level.intermission_origin, NULL, g_media.sounds.roar, ATTEN_NORM);
 
 	// stay on same level if not provided
-	g_level.changemap = map ? map : g_level.name;
+	g_level.next_map = map ?: g_level.name;
 }
 
 /**
@@ -346,7 +345,7 @@ static void G_CheckVote(void) {
 		} else if (!strncmp(g_level.vote_cmd, "unmute ", 7)) {
 			G_MuteClient(g_level.vote_cmd + 7, false);
 		} else { // general case, just execute the command
-			gi.AddCommandString(g_level.vote_cmd);
+			gi.Cbuf(g_level.vote_cmd);
 		}
 		G_ResetVote();
 	} else if (g_level.votes[VOTE_NO] >= count * VOTE_MAJORITY) { // vote failed
@@ -783,7 +782,7 @@ static void G_CheckRules(void) {
 		// teams are required for duel
 		if (g_level.gameplay == GAME_DUEL && g_teams->integer == 0) {
 			gi.Print("Teams can't be disabled in DUEL mode, enabling...\n");
-			gi.AddCommandString("set g_teams 1\n");
+			gi.CvarSetValue(g_teams->name, 1.0);
 		} else {
 			g_level.teams = g_teams->integer;
 			gi.ConfigString(CS_TEAMS, va("%d", g_level.teams));
@@ -811,7 +810,7 @@ static void G_CheckRules(void) {
 
 		if (g_level.gameplay == GAME_DUEL && g_match->integer == 0) {
 			gi.Print("Matches can't be disabled in DUEL mode, enabling...\n");
-			gi.AddCommandString("set g_match 1\n");
+			gi.CvarSetValue(g_match->name, 1.0);
 		} else {
 			g_level.match = g_match->integer;
 			gi.ConfigString(CS_MATCH, va("%d", g_level.match));
@@ -886,9 +885,9 @@ static void G_CheckRules(void) {
  */
 static void G_ExitLevel(void) {
 
-	gi.AddCommandString(va("map %s\n", g_level.changemap));
+	gi.Cbuf(va("map %s\n", g_level.next_map));
 
-	g_level.changemap = NULL;
+	g_level.next_map = NULL;
 	g_level.intermission_time = 0;
 
 	G_EndClientFrames();
@@ -1009,8 +1008,6 @@ void G_Init(void) {
 	                     "Allows usage of player handicap. 0 disallows handicap, 1 allows handicap, 2 allows handicap but disables damage reduction. (default 1)");
 	g_inhibit = gi.Cvar("g_inhibit", "", CVAR_SERVER_INFO,
 	                    "Prevents entities from spawning using a class name filter (e.g.: \"weapon_bfg ammo_nukes item_quad\")");
-	g_map_rotation = gi.Cvar("g_map_rotation", "", CVAR_SERVER_INFO,
-	                         "Map rotation; if not set maps.lst will be used instead");
 	g_match = gi.Cvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_max_entities = gi.Cvar("g_max_entities", "1024", CVAR_LATCH, NULL);
 	g_motd = gi.Cvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect");
@@ -1047,7 +1044,9 @@ void G_Init(void) {
 	ge.num_entities = sv_max_clients->integer + 1;
 
 	G_Ai_Init(); // initialize the AI
+
 	G_MapList_Init();
+
 	G_MySQL_Init();
 
 	// set these to false to avoid spurious game restarts and alerts on init
@@ -1059,7 +1058,7 @@ void G_Init(void) {
 	gi.Cmd("mute", G_Mute_Sv_f, CMD_GAME, "Prevent a client from talking");
 	gi.Cmd("unmute", G_Mute_Sv_f, CMD_GAME, "Allow a muted client to talk again");
 	gi.Cmd("stuff", G_Stuff_Sv_f, CMD_GAME, "Force a client to execute a command");
-	gi.Cmd("stuffall", G_Stuffall_Sv_f, CMD_GAME, "Force all players to execute a command");
+	gi.Cmd("stuff_all", G_StuffAll_Sv_f, CMD_GAME, "Force all players to execute a command");
 
 	gi.Print("  Game initialized\n");
 }

@@ -458,7 +458,7 @@ void G_Stuff_Sv_f(void) {
 		return;
 	}
 
-	g_entity_t *ent = G_EntityByName(va("%s", gi.Argv(2)));
+	const g_entity_t *ent = G_EntityByName(va("%s", gi.Argv(2)));
 
 	if (!ent) {
 		return;
@@ -477,18 +477,18 @@ void G_Stuff_Sv_f(void) {
 /**
  * @brief Server console command - force a command on all connected clients
  */
-void G_Stuffall_Sv_f(void) {
+void G_StuffAll_Sv_f(void) {
 
 	if (gi.Argc() < 2) {
-		gi.Print(" Usage: stuffall <command>\n");
+		gi.Print(" Usage: stuff_all <command>\n");
 		return;
 	}
 
 	const char *cmd = gi.Args();
 
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-		g_entity_t *ent = &g_game.entities[i + 1];
-		if (!g_game.entities[i + 1].in_use) {
+		const g_entity_t *ent = &g_game.entities[i + 1];
+		if (!ent->in_use) {
 			continue;
 		}
 
@@ -842,7 +842,7 @@ static _Bool G_VoteHelp(g_entity_t *ent) {
 
 		for (GList *list = g_map_list; list; list = list->next) {
 			const g_map_list_map_t *elt = list->data;
-			g_strlcat(msg, va("  ^2%s^7 %s\n", elt->name, elt->title), sizeof(msg));
+			g_strlcat(msg, va("  ^2%s^7 %s\n", elt->name, elt->message), sizeof(msg));
 		}
 
 		gi.ClientPrint(ent, PRINT_HIGH, "%s", msg);
@@ -942,7 +942,7 @@ static void G_Vote_f(g_entity_t *ent) {
 
 	if (!g_strcmp0(gi.Argv(1), "map")) { // ensure map is in map list
 
-		if (G_MapList_Find(gi.Argv(2)) == NULL) { // inform client if it is not
+		if (G_MapList_Find(NULL, gi.Argv(2)) == NULL) { // inform client if it is not
 			gi.ClientPrint(ent, PRINT_HIGH, "Map \"%s\" is not available\n", gi.Argv(2));
 			return;
 		}

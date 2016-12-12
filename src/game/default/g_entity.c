@@ -643,7 +643,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	ent->in_use = true; // since the world doesn't use G_Spawn()
 	ent->s.model1 = 0; // world model is always index 1
 
-	const g_map_list_map_t *map = G_MapList_Find(g_level.name);
+	const g_map_list_map_t *map = G_MapList_Find(NULL, g_level.name);
 
 	if (ent->locals.message && *ent->locals.message) {
 		g_strlcpy(g_level.title, ent->locals.message, sizeof(g_level.title));
@@ -683,10 +683,8 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.gravity && *g_game.spawn.gravity) {
 			g_level.gravity = atoi(g_game.spawn.gravity);
-		} else
-			// or default to 800
-		{
-			g_level.gravity = 800;
+		} else {
+			g_level.gravity = DEFAULT_GRAVITY;
 		}
 	}
 
@@ -697,9 +695,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.gameplay && *g_game.spawn.gameplay) {
 			g_level.gameplay = G_GameplayByName(g_game.spawn.gameplay);
-		} else
-			// or default to deathmatch
-		{
+		} else {
 			g_level.gameplay = GAME_DEATHMATCH;
 		}
 	}
@@ -710,9 +706,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.teams && *g_game.spawn.teams) {
 			g_level.teams = atoi(g_game.spawn.teams);
-		} else
-			// or default to cvar
-		{
+		} else {
 			g_level.teams = g_teams->integer;
 		}
 	}
@@ -722,9 +716,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.ctf && *g_game.spawn.ctf) {
 			g_level.ctf = atoi(g_game.spawn.ctf);
-		} else
-			// or default to cvar
-		{
+		} else {
 			g_level.ctf = g_ctf->integer;
 		}
 	}
@@ -759,9 +751,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.match && *g_game.spawn.match) {
 			g_level.match = atoi(g_game.spawn.match);
-		} else
-			// or default to cvar
-		{
+		} else {
 			g_level.match = g_match->integer;
 		}
 	}
@@ -771,9 +761,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.rounds && *g_game.spawn.rounds) {
 			g_level.rounds = atoi(g_game.spawn.rounds);
-		} else
-			// or default to cvar
-		{
+		} else {
 			g_level.rounds = g_rounds->integer;
 		}
 	}
@@ -790,9 +778,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.frag_limit && *g_game.spawn.frag_limit) {
 			g_level.frag_limit = atoi(g_game.spawn.frag_limit);
-		} else
-			// or default to cvar
-		{
+		} else {
 			g_level.frag_limit = g_frag_limit->integer;
 		}
 	}
@@ -802,9 +788,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.round_limit && *g_game.spawn.round_limit) {
 			g_level.round_limit = atoi(g_game.spawn.round_limit);
-		} else
-			// or default to cvar
-		{
+		} else {
 			g_level.round_limit = g_round_limit->integer;
 		}
 	}
@@ -814,9 +798,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.capture_limit && *g_game.spawn.capture_limit) {
 			g_level.capture_limit = atoi(g_game.spawn.capture_limit);
-		} else
-			// or default to cvar
-		{
+		} else {
 			g_level.capture_limit = g_capture_limit->integer;
 		}
 	}
@@ -827,9 +809,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.time_limit && *g_game.spawn.time_limit) {
 			time_limit = atof(g_game.spawn.time_limit);
-		} else
-			// or default to cvar
-		{
+		} else {
 			time_limit = g_time_limit->value;
 		}
 	}
@@ -840,9 +820,7 @@ static void G_worldspawn(g_entity_t *ent) {
 	} else { // or fall back on worldspawn
 		if (g_game.spawn.give && *g_game.spawn.give) {
 			g_strlcpy(g_level.give, g_game.spawn.give, sizeof(g_level.give));
-		} else
-			// or clean it
-		{
+		} else {
 			g_level.give[0] = '\0';
 		}
 	}

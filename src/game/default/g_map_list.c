@@ -21,17 +21,21 @@
 
 #include "g_local.h"
 
+GList *g_map_list_default;
 GList *g_map_list;
+
+static cvar_t *g_map_list_var;
 
 /**
  * @brief Populates g_map_list from a text file. See default/maps.lst
  */
-static void G_MapList_Parse(const char *filename) {
+static GList *G_MapList_Parse(const char *filename) {
+	GList *list = NULL;
 	void *buf;
 
 	if (gi.LoadFile(filename, &buf) == -1) {
 		gi.Warn("Couldn't open %s\n", filename);
-		return;
+		return list;
 	}
 
 	const char *buffer = (char *) buf;
@@ -59,11 +63,15 @@ static void G_MapList_Parse(const char *filename) {
 
 		if (!g_strcmp0(c, "name")) {
 			g_strlcpy(map->name, ParseToken(&buffer), sizeof(map->name));
+			const g_map_list_map_t *defaults = G_MapList_Find(g_map_list_default, map->name);
+			if (defaults) {
+				memcpy(map, defaults, sizeof(*map));
+			}
 			continue;
 		}
 
-		if (!g_strcmp0(c, "title")) {
-			g_strlcpy(map->title, ParseToken(&buffer), sizeof(map->title));
+		if (!g_strcmp0(c, "message")) {
+			g_strlcpy(map->message, ParseToken(&buffer), sizeof(map->message));
 			continue;
 		}
 
@@ -151,7 +159,7 @@ static void G_MapList_Parse(const char *filename) {
 		if (*c == '}') { // wrap it up, B
 
 			gi.Debug("Loaded map %s:\n"
-			         "title: %s\n"
+			         "message: %s\n"
 			         "sky: %s\n"
 			         "weather: %s\n"
 			         "gravity: %d\n"
@@ -166,26 +174,28 @@ static void G_MapList_Parse(const char *filename) {
 			         "time_limit: %f\n"
 			         "give: %s\n"
 			         "music: %s\n",
-			         map->name, map->title, map->sky, map->weather, map->gravity,
+			         map->name, map->message, map->sky, map->weather, map->gravity,
 			         map->gameplay, map->teams, map->ctf, map->match, map->rounds,
 			         map->frag_limit, map->round_limit, map->capture_limit,
 			         map->time_limit, map->give, map->music);
 
-			g_map_list = g_list_append(g_map_list, map);
+			list = g_list_append(list, map);
 
 			map = NULL;
 		}
 	}
 
 	gi.FreeFile(buf);
+
+	return list;
 }
 
 /**
  * @brief
  */
-const g_map_list_map_t *G_MapList_Find(const char *name) {
+const g_map_list_map_t *G_MapList_Find(GList *list, const char *name) {
 
-	for (GList *list = g_map_list; list; list = list->next) {
+	for (list = list ?: g_map_list; list; list = list->next) {
 		const g_map_list_map_t *map = list->data;
 		if (!g_strcmp0(name, map->name)) {
 			return map;
@@ -207,7 +217,7 @@ const g_map_list_map_t *G_MapList_Next(void) {
 		if (g_random_map->value) {
 			list = g_list_nth(g_map_list, Random() % len);
 		} else {
-			const g_map_list_map_t *map = G_MapList_Find(g_level.name);
+			const g_map_list_map_t *map = G_MapList_Find(NULL, g_level.name);
 			if (map) {
 				list = g_list_find(g_map_list, map)->next;
 
@@ -223,13 +233,21 @@ const g_map_list_map_t *G_MapList_Next(void) {
 	return list ? list->data : NULL;
 }
 
+/**
+ * @brief
+ */
 static void G_NextMap_f(void) {
+
+	if (g_map_list_var->modified) {
+		G_MapList_Shutdown();
+		G_MapList_Init();
+	}
 
 	const g_map_list_map_t *map = G_MapList_Next();
 	if (map) {
-		gi.AddCommandString(va("map %s\n", map->name));
+		gi.Cbuf(va("map %s\n", map->name));
 	} else {
-		gi.AddCommandString("map edge\n");
+		gi.Cbuf("map edge\n");
 	}
 }
 
@@ -238,9 +256,21 @@ static void G_NextMap_f(void) {
  */
 void G_MapList_Init(void) {
 
-	g_map_list = NULL;
+	g_map_list_default = NULL;
+	g_map_list_default = G_MapList_Parse("maps.lst");
+	g_map_list = g_map_list_default;
 
-	G_MapList_Parse("maps.lst");
+	g_map_list_var = gi.CvarGet("g_map_list");
+	g_map_list_var->modified = false;
+
+	if (strlen(g_map_list_var->string)) {
+
+		g_map_list = G_MapList_Parse(g_map_list_var->string);
+
+		if (g_map_list == NULL) {
+			g_map_list = g_map_list_default;
+		}
+	}
 
 	gi.Cmd("g_next_map", G_NextMap_f, CMD_GAME, "Advances the server to the next map");
 }

@@ -150,6 +150,8 @@ void Cl_InitCgame(void) {
 	import.OpenFile = Fs_OpenRead;
 	import.SeekFile = Fs_Seek;
 	import.ReadFile = Fs_Read;
+	import.OpenFileWrite = Fs_OpenWrite;
+	import.WriteFile = Fs_Write;
 	import.CloseFile = Fs_Close;
 	import.LoadFile = Fs_Load;
 	import.FreeFile = Fs_Free;

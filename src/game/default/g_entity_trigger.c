@@ -407,11 +407,11 @@ static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other,
 	self->locals.timestamp = g_level.time + self->locals.delay * 1000;
 
 	if (self->locals.command) {
-		gi.AddCommandString(va("%s\n", self->locals.command));
+		gi.Cbuf(va("%s\n", self->locals.command));
 	}
 
 	else if (self->locals.script) {
-		gi.AddCommandString(va("exec %s\n", self->locals.script));
+		gi.Cbuf(va("exec %s\n", self->locals.script));
 	}
 }
 

@@ -253,12 +253,17 @@ void Sv_InitGame(void) {
 	import.FreeFile = Fs_Free;
 
 	import.Cvar = Cvar_Add;
+	import.CvarString = Cvar_GetString;
+	import.CvarValue = Cvar_GetValue;
+	import.CvarGet = Cvar_Get;
+	import.CvarSet = Cvar_Set;
+	import.CvarSetValue = Cvar_SetValue;
 	import.Cmd = Cmd_Add;
 	import.Argc = Cmd_Argc;
 	import.Argv = Cmd_Argv;
 	import.Args = Cmd_Args;
 
-	import.AddCommandString = Cbuf_AddText;
+	import.Cbuf = Cbuf_AddText;
 
 	import.ConfigString = Sv_ConfigString;
 

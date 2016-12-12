@@ -70,24 +70,44 @@ static void createAction(Control *control, const SDL_Event *event, ident sender,
 
 	CreateServerViewController *this = (CreateServerViewController *) sender;
 
-	char mapList[MAX_STRING_CHARS] = "";
-
 	Array *selectedMaps = $(this->mapList, selectedMaps);
 	if (selectedMaps->count) {
+		char map[MAX_QPATH];
 
-		for (size_t i = 0; i < selectedMaps->count; i++) {
-			char name[MAX_QPATH];
+		file_t *file = cgi.OpenFileWrite(MAP_LIST_UI);
+		if (file) {
 
-			const Value *value = $(selectedMaps, objectAtIndex, i);
-			const MapListItemInfo *info = (MapListItemInfo *) value->value;
+			MutableString *string = mstr("");
 
-			g_strlcpy(name, (const char *) Basename(info->mapname), sizeof(name));
-			StripExtension(name, name);
+			for (size_t i = 0; i < selectedMaps->count; i++) {
 
-			g_strlcat(mapList, va("%s ", name), sizeof(mapList));
+				const Value *value = $(selectedMaps, objectAtIndex, i);
+				const MapListItemInfo *info = (MapListItemInfo *) value->value;
+
+				char name[MAX_QPATH];
+				StripExtension(Basename(info->mapname), name);
+
+				if (i == 0) {
+					g_strlcpy(map, name, sizeof(map));
+				}
+
+				$(string, appendFormat, "{\n\tname %s\n}\n", name);
+			}
+
+			const int64_t len = cgi.WriteFile(file, string->string.chars, string->string.length, 1);
+			if (len == -1) {
+				cgi.Warn("Failed to write %s\n", MAP_LIST_UI);
+			} else {
+				cgi.Debug("Wrote %s %lld bytes\n", MAP_LIST_UI, len);
+			}
+
+			release(string);
 		}
 
-		cgi.Cbuf(va("map_list %s\n", mapList));
+		cgi.CloseFile(file);
+
+		cgi.CvarSet("g_map_list", MAP_LIST_UI);
+		cgi.Cbuf(va("map %s", map));
 
 	} else {
 		cgi.Print("No maps selected\n");
