@@ -575,6 +575,8 @@ void Cl_ShutdownKeys(void) {
 void Cl_KeyEvent(const SDL_Event *event) {
 
 	switch (cls.key_state.dest) {
+		case KEY_UI:
+			break;
 		case KEY_GAME:
 			Cl_KeyGame(event);
 			break;
