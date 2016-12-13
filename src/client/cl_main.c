@@ -633,6 +633,9 @@ void Cl_Frame(const uint32_t msec) {
 	// advance the simulation
 	Cl_Interpolate();
 
+	// and ask the cgame to populate the view
+	cls.cgame->UpdateView(&cl.frame);
+
 	// update the screen
 	Cl_UpdateScreen();
 

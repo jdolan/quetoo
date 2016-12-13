@@ -237,6 +237,12 @@ void Cg_UpdateView(const cl_frame_t *frame) {
 	Cg_UpdateBob(&frame->ps);
 
 	Cg_AddEntities(frame);
+}
+
+/**
+* @brief Updates any renderer-based screen components. This is done once per renderer frame.
+*/
+void Cg_UpdateScreen(void) {
 
 	Cg_AddEmits();
 
