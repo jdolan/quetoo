@@ -21,7 +21,6 @@
 
 #include "cl_local.h"
 
-static cvar_t *cl_run;
 static cvar_t *cl_forward_speed;
 static cvar_t *cl_pitch_speed;
 static cvar_t *cl_right_speed;
@@ -36,31 +35,7 @@ cvar_t *m_pitch;
 cvar_t *m_yaw;
 cvar_t *m_grab;
 
-/*
- * KEY BUTTONS
- *
- * Continuous button event tracking is complicated by the fact that two different
- * input sources (say, mouse button 1 and the control key) can both press the
- * same button, but the button should only be released when both of the
- * pressing key have been released.
- *
- * When a key event issues a button command (+forward, +attack, etc), it appends
- * its key number as a parameter to the command so it can be matched up with
- * the release.
- *
- * state bit 0 is the current state of the key
- * state bit 1 is edge triggered on the up to down transition
- * state bit 2 is edge triggered on the down to up transition
- */
-
-typedef struct {
-	SDL_Scancode keys[2]; // keys holding it down
-	uint32_t down_time; // msec timestamp
-	uint32_t msec; // msec down this frame
-	byte state;
-} cl_button_t;
-
-static cl_button_t cl_buttons[13];
+static button_t cl_buttons[10];
 #define in_left cl_buttons[0]
 #define in_right cl_buttons[1]
 #define in_forward cl_buttons[2]
@@ -69,16 +44,13 @@ static cl_button_t cl_buttons[13];
 #define in_look_down cl_buttons[5]
 #define in_move_left cl_buttons[6]
 #define in_move_right cl_buttons[7]
-#define in_speed cl_buttons[8]
-#define in_attack cl_buttons[9]
-#define in_up cl_buttons[10]
-#define in_down cl_buttons[11]
-#define in_hook cl_buttons[12]
+#define in_up cl_buttons[8]
+#define in_down cl_buttons[9]
 
 /**
  * @brief
  */
-static void Cl_KeyDown(cl_button_t *b) {
+void Cl_KeyDown(button_t *b) {
 	SDL_Scancode k;
 
 	const char *c = Cmd_Argv(1);
@@ -115,7 +87,7 @@ static void Cl_KeyDown(cl_button_t *b) {
 /**
  * @brief
  */
-static void Cl_KeyUp(cl_button_t *b) {
+void Cl_KeyUp(button_t *b) {
 
 	if (Cmd_Argc() < 2) { // typed manually at the console, assume for un-sticking, so clear all
 		b->keys[0] = b->keys[1] = 0;
@@ -212,24 +184,6 @@ static void Cl_MoveRight_down_f(void) {
 static void Cl_MoveRight_up_f(void) {
 	Cl_KeyUp(&in_move_right);
 }
-static void Cl_Speed_down_f(void) {
-	Cl_KeyDown(&in_speed);
-}
-static void Cl_Speed_up_f(void) {
-	Cl_KeyUp(&in_speed);
-}
-static void Cl_Attack_down_f(void) {
-	Cl_KeyDown(&in_attack);
-}
-static void Cl_Attack_up_f(void) {
-	Cl_KeyUp(&in_attack);
-}
-static void Cl_Hook_down_f(void) {
-	Cl_KeyDown(&in_hook);
-}
-static void Cl_Hook_up_f(void) {
-	Cl_KeyUp(&in_hook);
-}
 static void Cl_CenterView_f(void) {
 	cl.angles[PITCH] = 0;
 }
@@ -237,7 +191,7 @@ static void Cl_CenterView_f(void) {
 /**
  * @brief Returns the fraction of the command interval for which the key was down.
  */
-static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
+vec_t Cl_KeyState(button_t *key, uint32_t cmd_msec) {
 
 	uint32_t msec = key->msec;
 	key->msec = 0;
@@ -251,7 +205,6 @@ static vec_t Cl_KeyState(cl_button_t *key, uint32_t cmd_msec) {
 
 	return Clamp(frac, 0.0, 1.0);
 }
-
 
 /**
  * @brief Inserts source into destination at the specified offset, without
@@ -533,26 +486,8 @@ void Cl_Move(pm_cmd_t *cmd) {
 	cmd->right += cl_right_speed->value * cmd->msec * Cl_KeyState(&in_move_right, cmd->msec);
 	cmd->right -= cl_right_speed->value * cmd->msec * Cl_KeyState(&in_move_left, cmd->msec);
 
-	if (in_attack.state & 3) {
-		cmd->buttons |= BUTTON_ATTACK;
-	}
-
-	if (in_hook.state & 3) {
-		cmd->buttons |= BUTTON_HOOK;
-	}
-	
-	in_attack.state &= ~2;
-	in_hook.state &= ~2;
-
-	if (cl_run->value) {
-		if (in_speed.state & 1) {
-			cmd->buttons |= BUTTON_WALK;
-		}
-	} else {
-		if (!(in_speed.state & 1)) {
-			cmd->buttons |= BUTTON_WALK;
-		}
-	}
+	// pass to cgame
+	cls.cgame->Move(cmd);
 
 	//Com_Debug("%3dms: %4d forward %4d right %4d up\n", cmd->msec, cmd->forward, cmd->right, cmd->up);
 }
@@ -591,14 +526,7 @@ void Cl_InitInput(void) {
 	Cmd_Add("-move_left", Cl_MoveLeft_up_f, CMD_CLIENT, NULL);
 	Cmd_Add("+move_right", Cl_MoveRight_down_f, CMD_CLIENT, NULL);
 	Cmd_Add("-move_right", Cl_MoveRight_up_f, CMD_CLIENT, NULL);
-	Cmd_Add("+speed", Cl_Speed_down_f, CMD_CLIENT, NULL);
-	Cmd_Add("-speed", Cl_Speed_up_f, CMD_CLIENT, NULL);
-	Cmd_Add("+attack", Cl_Attack_down_f, CMD_CLIENT, NULL);
-	Cmd_Add("-attack", Cl_Attack_up_f, CMD_CLIENT, NULL);
-	Cmd_Add("+hook", Cl_Hook_down_f, CMD_CLIENT, NULL);
-	Cmd_Add("-hook", Cl_Hook_up_f, CMD_CLIENT, NULL);
 
-	cl_run = Cvar_Add("cl_run", "1", CVAR_ARCHIVE, NULL);
 	cl_forward_speed = Cvar_Add("cl_forward_speed", "300.0", 0, NULL);
 	cl_pitch_speed = Cvar_Add("cl_pitch_speed", "0.15", 0, NULL);
 	cl_right_speed = Cvar_Add("cl_right_speed", "300.0", 0, NULL);

@@ -430,6 +430,21 @@ typedef struct cg_import_s {
 	 */
 
 	/**
+	 * @brief Register a button as being held down.
+	 */
+	void (*KeyDown)(button_t *b);
+
+	/**
+	 * @brief Register a button as being released.
+	 */
+	void (*KeyUp)(button_t *b);
+
+	/**
+	 * @brief Returns the fraction of the command interval for which the key was down.
+	 */
+	vec_t (*KeyState)(button_t *key, uint32_t cmd_msec);
+
+	/**
 	 * @brief Loads a sound sample by the given name.
 	 * @param name The sample name or alias (e.g. `"weapons/bfg/fire"`, `"*players/common/gurp"`).
 	 * @return The loaded sample.
@@ -704,6 +719,8 @@ typedef struct cg_export_s {
 	void (*PredictMovement)(const GList *cmds);
 	void (*UpdateView)(const cl_frame_t *frame);
 	void (*DrawFrame)(const cl_frame_t *frame);
+
+	void (*Move)(pm_cmd_t *cmd);
 
 } cg_export_t;
 

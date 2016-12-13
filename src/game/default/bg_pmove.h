@@ -136,6 +136,13 @@ extern const vec3_t PM_MINS;
 extern const vec3_t PM_MAXS;
 
 /**
+ * @brief Game-specific button hits.
+ */
+#define BUTTON_ATTACK		(1 << 0)
+#define BUTTON_WALK			(1 << 1)
+#define BUTTON_HOOK			(1 << 2)
+
+/**
  * @brief Game-specific flags for pm_state_t.flags.
  */
 #define PMF_DUCKED				(PMF_GAME << 0) // player is ducked

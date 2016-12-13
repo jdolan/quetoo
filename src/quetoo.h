@@ -387,12 +387,29 @@ typedef struct {
 	uint16_t hook_length; // length of the hook, for swing hook
 } pm_state_t;
 
-/**
- * @brief Button hits communicated via user_cmd_t.
+/*
+ * KEY BUTTONS
+ *
+ * Continuous button event tracking is complicated by the fact that two different
+ * input sources (say, mouse button 1 and the control key) can both press the
+ * same button, but the button should only be released when both of the
+ * pressing key have been released.
+ *
+ * When a key event issues a button command (+forward, +attack, etc), it appends
+ * its key number as a parameter to the command so it can be matched up with
+ * the release.
+ *
+ * state bit 0 is the current state of the key
+ * state bit 1 is edge triggered on the up to down transition
+ * state bit 2 is edge triggered on the down to up transition
  */
-#define BUTTON_ATTACK		1
-#define BUTTON_WALK			2
-#define BUTTON_HOOK			4
+
+typedef struct {
+	uint32_t keys[2]; // keys holding it down
+	uint32_t down_time; // msec timestamp
+	uint32_t msec; // msec down this frame
+	byte state;
+} button_t;
 
 /**
  * @brief Player movement commands, sent to the server at each client frame.

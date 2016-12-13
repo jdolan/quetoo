@@ -141,6 +141,9 @@
     <ClInclude Include="..\src\cgame\default\viewcontrollers\KeysViewController.h">
       <Filter>src\default\viewcontrollers</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\default\cg_input.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cgame\default\cg_client.c">
@@ -259,6 +262,9 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\viewcontrollers\KeysViewController.c">
       <Filter>src\default\viewcontrollers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\cg_input.c">
+      <Filter>src\default</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

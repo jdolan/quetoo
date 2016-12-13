@@ -39,6 +39,9 @@
 	void Cl_HandleEvents(void);
 	void Cl_Look(pm_cmd_t *cmd);
 	void Cl_Move(pm_cmd_t *cmd);
+	void Cl_KeyDown(button_t *b);
+	void Cl_KeyUp(button_t *b);
+	vec_t Cl_KeyState(button_t *key, uint32_t cmd_msec);
 #endif /* __CL_LOCAL_H__ */
 
 #endif /* __CL_INPUT_H__ */
