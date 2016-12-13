@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-GList *g_map_list_default;
+static GList *g_map_list_default;
 GList *g_map_list;
 
 static cvar_t *g_map_list_var;
@@ -260,7 +260,7 @@ void G_MapList_Init(void) {
 	g_map_list_default = G_MapList_Parse("maps.lst");
 	g_map_list = g_map_list_default;
 
-	g_map_list_var = gi.CvarGet("g_map_list");
+	g_map_list_var = gi.Cvar("g_map_list", "", 0, NULL);
 	g_map_list_var->modified = false;
 
 	if (strlen(g_map_list_var->string)) {
