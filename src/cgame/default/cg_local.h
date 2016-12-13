@@ -22,7 +22,7 @@
 #ifndef __CG_LOCAL_H__
 #define __CG_LOCAL_H__
 
-#define Debug(...) Debug_(__func__, __VA_ARGS__)
+#define Debug(...) Debug_(DEBUG_CGAME, __func__, __VA_ARGS__)
 #define Warn(...) Warn_(__func__, __VA_ARGS__)
 #define Error(...) Error_(__func__, __VA_ARGS__)
 
@@ -34,6 +34,7 @@
 #include "cg_entity_event.h"
 #include "cg_entity_trail.h"
 #include "cg_hud.h"
+#include "cg_input.h"
 #include "cg_main.h"
 #include "cg_media.h"
 #include "cg_muzzle_flash.h"

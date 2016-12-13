@@ -60,7 +60,7 @@ static void R_ResolveBspLightParameters(void) {
 
 		VectorScale(f, r_modulate->value, f);
 
-		Com_Debug("Resolved ambient: %s\n", vtos(f));
+		Com_Debug(DEBUG_RENDERER, "Resolved ambient: %s\n", vtos(f));
 	} else {
 		VectorSet(r_bsp_light_state.ambient, 0.15, 0.15, 0.15);
 	}
@@ -69,7 +69,7 @@ static void R_ResolveBspLightParameters(void) {
 	if ((c = Cm_WorldspawnValue("sun_light"))) {
 		r_bsp_light_state.sun.diffuse = atof(c) * BSP_LIGHT_SUN_SCALE;
 
-		Com_Debug("Resolved sun_light: %1.2f\n", r_bsp_light_state.sun.diffuse);
+		Com_Debug(DEBUG_RENDERER, "Resolved sun_light: %1.2f\n", r_bsp_light_state.sun.diffuse);
 	} else {
 		r_bsp_light_state.sun.diffuse = 0.0;
 	}
@@ -79,7 +79,7 @@ static void R_ResolveBspLightParameters(void) {
 		VectorClear(tmp);
 		sscanf(c, "%f %f", &tmp[0], &tmp[1]);
 
-		Com_Debug("Resolved sun_angles: %s\n", vtos(tmp));
+		Com_Debug(DEBUG_RENDERER, "Resolved sun_angles: %s\n", vtos(tmp));
 		AngleVectors(tmp, r_bsp_light_state.sun.dir, NULL, NULL);
 	} else {
 		VectorCopy(vec3_down, r_bsp_light_state.sun.dir);
@@ -90,7 +90,7 @@ static void R_ResolveBspLightParameters(void) {
 		vec_t *f = r_bsp_light_state.sun.color;
 		sscanf(c, "%f %f %f", &f[0], &f[1], &f[2]);
 
-		Com_Debug("Resolved sun_color: %s\n", vtos(f));
+		Com_Debug(DEBUG_RENDERER, "Resolved sun_color: %s\n", vtos(f));
 	} else {
 		VectorSet(r_bsp_light_state.sun.color, 1.0, 1.0, 1.0);
 	}
@@ -116,9 +116,9 @@ static void R_ResolveBspLightParameters(void) {
 		r_bsp_light_state.contrast = 1.0;
 	}
 
-	Com_Debug("Resolved brightness: %1.2f\n", r_bsp_light_state.brightness);
-	Com_Debug("Resolved saturation: %1.2f\n", r_bsp_light_state.saturation);
-	Com_Debug("Resolved contrast: %1.2f\n", r_bsp_light_state.contrast);
+	Com_Debug(DEBUG_RENDERER, "Resolved brightness: %1.2f\n", r_bsp_light_state.brightness);
+	Com_Debug(DEBUG_RENDERER, "Resolved saturation: %1.2f\n", r_bsp_light_state.saturation);
+	Com_Debug(DEBUG_RENDERER, "Resolved contrast: %1.2f\n", r_bsp_light_state.contrast);
 
 	const vec_t brt = r_bsp_light_state.brightness;
 	const vec_t sat = r_bsp_light_state.saturation;
@@ -126,10 +126,10 @@ static void R_ResolveBspLightParameters(void) {
 
 	// apply brightness, saturation and contrast to the colors
 	ColorFilter(r_bsp_light_state.ambient, r_bsp_light_state.ambient, brt, sat, con);
-	Com_Debug("Scaled ambient: %s\n", vtos(r_bsp_light_state.ambient));
+	Com_Debug(DEBUG_RENDERER, "Scaled ambient: %s\n", vtos(r_bsp_light_state.ambient));
 
 	ColorFilter(r_bsp_light_state.sun.color, r_bsp_light_state.sun.color, brt, sat, con);
-	Com_Debug("Scaled sun color: %s\n", vtos(r_bsp_light_state.sun.color));
+	Com_Debug(DEBUG_RENDERER, "Scaled sun color: %s\n", vtos(r_bsp_light_state.sun.color));
 }
 
 /**
@@ -139,7 +139,7 @@ static void R_ResolveBspLightParameters(void) {
 static void R_AddBspLight(r_bsp_model_t *bsp, vec3_t origin, vec3_t color, vec_t radius) {
 
 	if (radius <= 0.0) {
-		Com_Debug("Bad radius: %f\n", radius);
+		Com_Debug(DEBUG_RENDERER, "Bad radius: %f\n", radius);
 		return;
 	}
 
@@ -295,7 +295,7 @@ void R_LoadBspLights(r_bsp_model_t *bsp) {
 	g_list_free_full(r_bsp_light_state.lights, Mem_Free);
 	r_bsp_light_state.lights = NULL;
 
-	Com_Debug("Loaded %d bsp lights\n", bsp->num_bsp_lights);
+	Com_Debug(DEBUG_RENDERER, "Loaded %d bsp lights\n", bsp->num_bsp_lights);
 }
 
 /**

@@ -209,7 +209,7 @@ void Cl_PredictMovement(void) {
 
 		// if we are too far out of date, just freeze in place
 		if (last - ack >= CMD_BACKUP) {
-			Com_Debug("Exceeded CMD_BACKUP\n");
+			Com_Debug(DEBUG_CLIENT, "Exceeded CMD_BACKUP\n");
 			return;
 		}
 
@@ -258,14 +258,14 @@ void Cl_CheckPredictionError(void) {
 		// if the error is too large, it was likely a teleport or respawn, so ignore it
 		const vec_t len = VectorLength(pr->error);
 		if (len > 64.0) {
-			Com_Debug("Clear %s\n", vtos(pr->error));
+			Com_Debug(DEBUG_CLIENT, "Clear %s\n", vtos(pr->error));
 			VectorClear(pr->error);
 		} else if (len > 0.1) {
-			Com_Debug("Error %s\n", vtos(pr->error));
+			Com_Debug(DEBUG_CLIENT, "Error %s\n", vtos(pr->error));
 		}
 
 	} else {
-		Com_Debug("No delta\n");
+		Com_Debug(DEBUG_CLIENT, "No delta\n");
 		
 		VectorCopy(cl.frame.ps.pm_state.origin, pr->view.origin);
 

@@ -155,7 +155,7 @@ static void ClusterMerge(uint32_t leaf_num) {
 	memcpy(map_vis.uncompressed + leaf_num * map_vis.leaf_bytes, uncompressed, map_vis.leaf_bytes);
 
 	// compress the bit string
-	Com_Debug("Cluster %4i : %4zi visible\n", leaf_num, numvis);
+	Com_Debug(DEBUG_GENERIC, "Cluster %4i : %4zi visible\n", leaf_num, numvis);
 	visibility_count += numvis;
 
 	i = CompressVis(uncompressed, compressed);

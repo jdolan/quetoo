@@ -72,7 +72,7 @@ static void R_LoadBspLightmaps(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 	// resolve lightmap scale
 	if ((c = Cm_WorldspawnValue("lightmap_scale"))) {
 		bsp->lightmaps->scale = strtoul(c, NULL, 0);
-		Com_Debug("Resolved lightmap_scale: %d\n", bsp->lightmaps->scale);
+		Com_Debug(DEBUG_RENDERER, "Resolved lightmap_scale: %d\n", bsp->lightmaps->scale);
 	}
 }
 
@@ -1149,20 +1149,20 @@ void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
 	R_InitElements(mod->bsp);
 
-	Com_Debug("!================================\n");
-	Com_Debug("!R_LoadBspModel: %s\n", mod->media.name);
-	Com_Debug("!  Verts:          %d (%d unique, %d elements)\n", r_unique_vertices.num_vertexes, mod->num_verts,
+	Com_Debug(DEBUG_RENDERER, "!================================\n");
+	Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel: %s\n", mod->media.name);
+	Com_Debug(DEBUG_RENDERER, "!  Verts:          %d (%d unique, %d elements)\n", r_unique_vertices.num_vertexes, mod->num_verts,
 	          mod->num_elements);
-	Com_Debug("!  Edges:          %d\n", mod->bsp->num_edges);
-	Com_Debug("!  Surface edges:  %d\n", mod->bsp->num_surface_edges);
-	Com_Debug("!  Faces:          %d\n", mod->bsp->num_surfaces);
-	Com_Debug("!  Nodes:          %d\n", mod->bsp->num_nodes);
-	Com_Debug("!  Leafs:          %d\n", mod->bsp->num_leafs);
-	Com_Debug("!  Leaf surfaces:  %d\n", mod->bsp->num_leaf_surfaces);
-	Com_Debug("!  Clusters:       %d\n", mod->bsp->num_clusters);
-	Com_Debug("!  Inline models   %d\n", mod->bsp->num_inline_models);
-	Com_Debug("!  Lights:         %d\n", mod->bsp->num_bsp_lights);
-	Com_Debug("!================================\n");
+	Com_Debug(DEBUG_RENDERER, "!  Edges:          %d\n", mod->bsp->num_edges);
+	Com_Debug(DEBUG_RENDERER, "!  Surface edges:  %d\n", mod->bsp->num_surface_edges);
+	Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->bsp->num_surfaces);
+	Com_Debug(DEBUG_RENDERER, "!  Nodes:          %d\n", mod->bsp->num_nodes);
+	Com_Debug(DEBUG_RENDERER, "!  Leafs:          %d\n", mod->bsp->num_leafs);
+	Com_Debug(DEBUG_RENDERER, "!  Leaf surfaces:  %d\n", mod->bsp->num_leaf_surfaces);
+	Com_Debug(DEBUG_RENDERER, "!  Clusters:       %d\n", mod->bsp->num_clusters);
+	Com_Debug(DEBUG_RENDERER, "!  Inline models   %d\n", mod->bsp->num_inline_models);
+	Com_Debug(DEBUG_RENDERER, "!  Lights:         %d\n", mod->bsp->num_bsp_lights);
+	Com_Debug(DEBUG_RENDERER, "!================================\n");
 
 	// unload r_unique_vertices.vertexes, as they are no longer required
 	Mem_Free(r_unique_vertices.vertexes);

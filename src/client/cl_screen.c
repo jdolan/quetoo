@@ -339,6 +339,8 @@ static void Cl_DrawCounters(void) {
  */
 void Cl_UpdateScreen(void) {
 
+	cls.cgame->UpdateScreen();
+
 	R_BeginFrame();
 
 	if (cls.state == CL_ACTIVE) {

@@ -202,6 +202,10 @@ void Cl_InitCgame(void) {
 	import.LeafHearable = R_LeafHearable;
 	import.LeafVisible = R_LeafVisible;
 
+	import.KeyDown = Cl_KeyDown;
+	import.KeyUp = Cl_KeyUp;
+	import.KeyState = Cl_KeyState;
+
 	import.LoadSample = S_LoadSample;
 	import.AddSample = S_AddSample;
 	import.LoadClientSounds = S_LoadClientSounds;

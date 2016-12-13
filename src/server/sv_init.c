@@ -317,7 +317,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 void Sv_InitServer(const char *server, sv_state_t state) {
 	extern void Cl_Disconnect(void);
 
-	Com_Debug("Sv_InitServer: %s (%d)\n", server, state);
+	Com_Debug(DEBUG_SERVER, "Sv_InitServer: %s (%d)\n", server, state);
 
 	Cbuf_CopyToDefer();
 
@@ -370,7 +370,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
  */
 void Sv_ShutdownServer(const char *msg) {
 
-	Com_Debug("Sv_ShutdownServer: %s\n", msg);
+	Com_Debug(DEBUG_SERVER, "Sv_ShutdownServer: %s\n", msg);
 
 	Com_Print("Server shutdown...\n");
 

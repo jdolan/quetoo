@@ -588,7 +588,7 @@ void Cl_KeyEvent(const SDL_Event *event) {
 			break;
 
 		default:
-			Com_Debug("Bad cl_key_dest: %d\n", cls.key_state.dest);
+			Com_Debug(DEBUG_CLIENT, "Bad cl_key_dest: %d\n", cls.key_state.dest);
 			break;
 	}
 

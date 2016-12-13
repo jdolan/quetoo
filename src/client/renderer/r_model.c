@@ -131,7 +131,7 @@ r_model_t *R_LoadModel(const char *name) {
 
 		if (i == lengthof(r_model_formats)) { // not found
 			if (strstr(name, "players/")) {
-				Com_Debug("Failed to load player %s\n", name);
+				Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);
 			} else {
 				Com_Warn("Failed to load %s\n", name);
 			}

@@ -111,8 +111,8 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 				Com_Warn("%s: No hz for %d\n", mod->media.name, md3->num_animations);
 			}
 
-			Com_Debug("Parsed %d: %d %d %d %d\n", md3->num_animations,
-			          a->first_frame, a->num_frames, a->looped_frames, a->hz);
+			Com_Debug(DEBUG_RENDERER, "Parsed %d: %d %d %d %d\n", md3->num_animations,
+									  a->first_frame, a->num_frames, a->looped_frames, a->hz);
 
 			md3->num_animations++;
 			if (md3->num_animations == MD3_MAX_ANIMATIONS) {
@@ -124,7 +124,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 
 	Fs_Free(buf);
 
-	Com_Debug("Loaded %d animations: %s\n", md3->num_animations, mod->media.name);
+	Com_Debug(DEBUG_RENDERER, "Loaded %d animations: %s\n", md3->num_animations, mod->media.name);
 }
 
 /**
@@ -576,8 +576,8 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 		mod->num_tris += out_mesh->num_tris;
 		out_mesh->num_elements = out_mesh->num_tris * 3;
 
-		Com_Debug("%s: %s: %d triangles (%d elements)\n", mod->media.name, out_mesh->name, out_mesh->num_tris,
-		          out_mesh->num_elements);
+		Com_Debug(DEBUG_RENDERER, "%s: %s: %d triangles (%d elements)\n", mod->media.name, out_mesh->name, out_mesh->num_tris,
+								  out_mesh->num_elements);
 
 		in_mesh = (d_md3_mesh_t *) ((byte *) in_mesh + in_mesh->size);
 	}
@@ -597,8 +597,8 @@ void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 	// and finally load the arrays
 	R_LoadMd3VertexArrays(mod);
 
-	Com_Debug("%s\n  %d meshes\n  %d frames\n  %d tags\n  %d vertexes\n", mod->media.name,
-	          out_md3->num_meshes, out_md3->num_frames, out_md3->num_tags, mod->num_verts);
+	Com_Debug(DEBUG_RENDERER, "%s\n  %d meshes\n  %d frames\n  %d tags\n  %d vertexes\n", mod->media.name,
+							  out_md3->num_meshes, out_md3->num_frames, out_md3->num_tags, mod->num_verts);
 }
 
 /**
@@ -757,7 +757,7 @@ static void R_LoadObjPrimitives(r_model_t *mod, r_obj_t *obj, const void *buffer
 	}
 
 done:
-	Com_Debug("%s: %u tris\n", mod->media.name, g_list_length(obj->tris));
+	Com_Debug(DEBUG_RENDERER, "%s: %u tris\n", mod->media.name, g_list_length(obj->tris));
 }
 
 /**
@@ -855,7 +855,7 @@ static void R_LoadObjTangents(r_model_t *mod, r_obj_t *obj) {
 	Mem_Free(sdirs);
 	Mem_Free(tdirs);
 
-	Com_Debug("%s: %u tangents\n", mod->media.name, g_list_length(obj->tangents));
+	Com_Debug(DEBUG_RENDERER, "%s: %u tangents\n", mod->media.name, g_list_length(obj->tangents));
 }
 
 typedef struct {

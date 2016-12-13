@@ -1041,8 +1041,12 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 		if (!G_CanDamage(ent, self)) {
 			continue;
 		}
+		
+		vec3_t end;
 
-		VectorSubtract(ent->s.origin, self->s.origin, dir);
+		G_GetOrigin(ent, end);
+
+		VectorSubtract(end, self->s.origin, dir);
 		const vec_t dist = VectorNormalize(dir);
 		VectorNegate(dir, normal);
 
@@ -1054,7 +1058,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(TE_BFG_LASER);
 		gi.WritePosition(self->s.origin);
-		gi.WritePosition(ent->s.origin);
+		gi.WritePosition(end);
 		gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
 	}
 
@@ -1181,29 +1185,34 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 		VectorScale(mover->locals.velocity, QUETOO_TICK_SECONDS, move);
 		VectorScale(mover->locals.avelocity, QUETOO_TICK_SECONDS, amove);
 
-		VectorNegate(amove, inverse_amove);
-		AngleVectors(inverse_amove, forward, right, up);
+		if (!VectorCompare(move, vec3_origin) || !VectorCompare(amove, vec3_origin)) {
+			VectorNegate(amove, inverse_amove);
+			AngleVectors(inverse_amove, forward, right, up);
 
-		// translate the pushed entity
-		VectorAdd(ent->s.origin, move, ent->s.origin);
+			// translate the pushed entity
+			VectorAdd(ent->s.origin, move, ent->s.origin);
 
-		// then rotate the movement to comply with the pusher's rotation
-		VectorSubtract(ent->s.origin, mover->s.origin, translate);
+			// then rotate the movement to comply with the pusher's rotation
+			VectorSubtract(ent->s.origin, mover->s.origin, translate);
 
-		rotate[0] = DotProduct(translate, forward);
-		rotate[1] = -DotProduct(translate, right);
-		rotate[2] = DotProduct(translate, up);
+			rotate[0] = DotProduct(translate, forward);
+			rotate[1] = -DotProduct(translate, right);
+			rotate[2] = DotProduct(translate, up);
 
-		VectorSubtract(rotate, translate, delta);
+			VectorSubtract(rotate, translate, delta);
 
-		VectorAdd(ent->s.origin, delta, ent->s.origin);
+			VectorAdd(ent->s.origin, delta, ent->s.origin);
 		
-		// FIXME: any way we can have the hook move on all axis?
-		ent->s.angles[YAW] += amove[YAW];
+			// FIXME: any way we can have the hook move on all axis?
+			ent->s.angles[YAW] += amove[YAW];
+			ent->locals.target_ent->s.angles[YAW] += amove[YAW];
 
-		gi.LinkEntity(ent);
+			gi.LinkEntity(ent);
+	
+			VectorCopy(ent->s.origin, ent->owner->client->ps.pm_state.hook_position);
+		}
 
-		if (VectorLengthSquared(ent->owner->locals.velocity) > 128.0) {
+		if (VectorLengthSquared(ent->owner->locals.velocity) > 200.0) {
 			ent->s.sound = g_media.sounds.hook_pull;
 		} else {
 			ent->s.sound = 0;

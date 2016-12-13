@@ -131,7 +131,7 @@ static void Sv_Info_f(void) {
 	char string[MAX_MSG_SIZE];
 
 	if (sv.demo_file) {
-		Com_Debug("Demo server ignoring server info request\n");
+		Com_Debug(DEBUG_SERVER, "Demo server ignoring server info request\n");
 		return;
 	}
 
@@ -208,7 +208,7 @@ static void Sv_Connect_f(void) {
 	sv_client_t *cl, *client;
 	int32_t i;
 
-	Com_Debug("Svc_Connect()\n");
+	Com_Debug(DEBUG_SERVER, "Svc_Connect()\n");
 
 	net_addr_t *addr = &net_from;
 
@@ -306,7 +306,7 @@ static void Sv_Connect_f(void) {
 	// no soup for you, next!!
 	if (!client) {
 		Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is full\n");
-		Com_Debug("Rejected a connection\n");
+		Com_Debug(DEBUG_SERVER, "Rejected a connection\n");
 		return;
 	}
 
@@ -320,7 +320,7 @@ static void Sv_Connect_f(void) {
 			Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
 		}
 
-		Com_Debug("Game rejected a connection\n");
+		Com_Debug(DEBUG_SERVER, "Game rejected a connection\n");
 		return;
 	}
 
@@ -429,7 +429,7 @@ static void Sv_ConnectionlessPacket(void) {
 	const char *c = Cmd_Argv(0);
 	const char *a = Net_NetaddrToString(&net_from);
 
-	Com_Debug("Packet from %s: %s\n", a, c);
+	Com_Debug(DEBUG_SERVER, "Packet from %s: %s\n", a, c);
 
 	if (!g_strcmp0(c, "ping")) {
 		Sv_Ping_f();
@@ -508,7 +508,7 @@ static void Sv_CheckCommandTimes(void) {
 			if (cl->cmd_msec > CMD_MSEC_ALLOWABLE_DRIFT) { // irregular movement
 				cl->cmd_msec_errors++;
 
-				Com_Debug("%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmd_msec);
+				Com_Debug(DEBUG_SERVER, "%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmd_msec);
 
 				if (cl->cmd_msec_errors >= sv_enforce_time->value) {
 					Com_Warn("Too many errors from %s\n", Sv_NetaddrToString(cl));
@@ -757,7 +757,13 @@ void Sv_Frame(const uint32_t msec) {
 	}
 
 	// clamp the frame interval to 1 second of simulation
-	frame_delta = Min(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE));
+	// FIXME: this is required for Windows apparently because the sim loop in main
+	// doesn't run while loading occurs, which causes msec to be huge
+	if (frame_delta > (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE)) {
+		frame_delta = QUETOO_TICK_MILLIS;
+	} else {
+		frame_delta = Min(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE));
+	}
 
 	// read any pending packets from clients
 	Sv_ReadPackets();

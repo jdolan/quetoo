@@ -25,7 +25,7 @@
 // this is the game name that we advertise to clients
 #define GAME_NAME "default"
 
-#define Debug(...) Debug_(__func__, __VA_ARGS__)
+#define Debug(...) Debug_(DEBUG_GAME, __func__, __VA_ARGS__)
 #define Warn(...) Warn_(__func__, __VA_ARGS__)
 #define Error(...) Error_(__func__, __VA_ARGS__)
 

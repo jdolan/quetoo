@@ -195,9 +195,6 @@ void Cl_UpdateView(void) {
 
 	// set area bits to mark visible leafs
 	r_view.area_bits = cl.frame.area_bits;
-
-	// and ask the cgame to populate the view
-	cls.cgame->UpdateView(&cl.frame);
 }
 
 /**

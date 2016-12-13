@@ -114,7 +114,7 @@ static r_image_t *Cl_LoadingBackground() {
 			Com_Warn("Invalid loading background: %s\n", path);
 			image = NULL;
 		} else {
-			Com_Debug("Loading background %s (%s)\n", image->media.name, path);
+			Com_Debug(DEBUG_CLIENT, "Loading background %s (%s)\n", image->media.name, path);
 		}
 	}
 
@@ -250,7 +250,7 @@ void Cl_UpdateMedia(void) {
 
 	if ((r_view.update || s_env.update) && cls.state == CL_ACTIVE) {
 
-		Com_Debug("%s %s\n", r_view.update ? "view" : "", s_env.update ? "sound" : "");
+		Com_Debug(DEBUG_CLIENT, "%s %s\n", r_view.update ? "view" : "", s_env.update ? "sound" : "");
 
 		Cl_UpdateEntities();
 

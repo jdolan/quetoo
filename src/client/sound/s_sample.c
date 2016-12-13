@@ -102,10 +102,10 @@ static void S_LoadSampleChunk(s_sample_t *sample) {
 	}
 
 	if (found) {
-		Com_Debug("Loaded %s\n", path);
+		Com_Debug(DEBUG_SOUND, "Loaded %s\n", path);
 	} else {
 		if (g_str_has_prefix(sample->media.name, "#players")) {
-			Com_Debug("Failed to load player sample %s\n", sample->media.name);
+			Com_Debug(DEBUG_SOUND, "Failed to load player sample %s\n", sample->media.name);
 		} else {
 			Com_Warn("Failed to load %s\n", sample->media.name);
 		}

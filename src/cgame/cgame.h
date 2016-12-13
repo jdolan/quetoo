@@ -24,7 +24,7 @@
 
 #include "client/cl_types.h"
 
-#define CGAME_API_VERSION 5
+#define CGAME_API_VERSION 6
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -60,7 +60,7 @@ typedef struct cg_import_s {
 	 * @brief Prints a formatted debug message the the configured consoles.
 	 * @remarks If the `debug` cvar is unset, this function will simply return.
 	 */
-	void (*Debug_)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+	void (*Debug_)(const debug_mask_t mask, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	/**
 	 * @brief Prints a formatted warning message to the configured consoles.
@@ -430,6 +430,21 @@ typedef struct cg_import_s {
 	 */
 
 	/**
+	 * @brief Register a button as being held down.
+	 */
+	void (*KeyDown)(button_t *b);
+
+	/**
+	 * @brief Register a button as being released.
+	 */
+	void (*KeyUp)(button_t *b);
+
+	/**
+	 * @brief Returns the fraction of the command interval for which the key was down.
+	 */
+	vec_t (*KeyState)(button_t *key, uint32_t cmd_msec);
+
+	/**
 	 * @brief Loads a sound sample by the given name.
 	 * @param name The sample name or alias (e.g. `"weapons/bfg/fire"`, `"*players/common/gurp"`).
 	 * @return The loaded sample.
@@ -703,7 +718,10 @@ typedef struct cg_export_s {
 	_Bool (*ParseMessage)(int32_t cmd);
 	void (*PredictMovement)(const GList *cmds);
 	void (*UpdateView)(const cl_frame_t *frame);
+	void (*UpdateScreen)(void);
 	void (*DrawFrame)(const cl_frame_t *frame);
+
+	void (*Move)(pm_cmd_t *cmd);
 
 } cg_export_t;
 

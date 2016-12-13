@@ -326,7 +326,7 @@ void R_EnableLighting(const r_program_t *program, _Bool enable) {
 	// if the program can't use lights, lighting can't really
 	// be enabled on it.
 	if (enable && !program->UseLight) {
-		Com_Debug("Attempted to use lights on a non-lightable program\n");
+		Com_Debug(DEBUG_RENDERER, "Attempted to use lights on a non-lightable program\n");
 		return;
 	}
 

@@ -25,7 +25,8 @@
  * @brief Print a debug statement. If the format begins with '!', the function
  * name is omitted.
  */
-void Com_Debug_(const char *func, const char *fmt, ...) {
+void Com_Debug_(const debug_mask_t mask, const char *func, const char *fmt, ...) {
+
 	char msg[MAX_PRINT_MSG];
 
 	if (fmt[0] != '!') {
@@ -47,7 +48,7 @@ void Com_Debug_(const char *func, const char *fmt, ...) {
 #endif
 
 	if (quetoo.Debug) {
-		quetoo.Debug((const char *) msg);
+		quetoo.Debug(mask, (const char *) msg);
 	} else {
 		fputs(msg, stdout);
 		fflush(stdout);
@@ -90,6 +91,10 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
+#if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
+	OutputDebugString(msg);
+#endif
+
 	if (quetoo.Error) {
 		quetoo.Error(err, (const char *) msg);
 	} else {
@@ -111,6 +116,10 @@ void Com_Print(const char *fmt, ...) {
 	va_start(args, fmt);
 	vsnprintf(msg, sizeof(msg), fmt, args);
 	va_end(args);
+
+#if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
+	OutputDebugString(msg);
+#endif
 
 	if (quetoo.Print) {
 		quetoo.Print((const char *) msg);
@@ -141,6 +150,10 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
 	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
 	va_end(args);
 
+#if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
+	OutputDebugString(msg);
+#endif
+
 	if (quetoo.Warn) {
 		quetoo.Warn((const char *) msg);
 	} else {
@@ -159,6 +172,10 @@ void Com_Verbose(const char *fmt, ...) {
 	va_start(args, fmt);
 	vsnprintf(msg, sizeof(msg), fmt, args);
 	va_end(args);
+
+#if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
+	OutputDebugString(msg);
+#endif
 
 	if (quetoo.Verbose) {
 		quetoo.Verbose((const char *) msg);

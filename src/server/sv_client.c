@@ -27,7 +27,7 @@
  */
 static void Sv_New_f(void) {
 
-	Com_Debug("%s\n", Sv_NetaddrToString(sv_client));
+	Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(sv_client));
 
 	if (sv_client->state != SV_CLIENT_CONNECTED) {
 		Com_Warn("%s issued new from %d\n", Sv_NetaddrToString(sv_client), sv_client->state);
@@ -63,7 +63,7 @@ static void Sv_New_f(void) {
 static void Sv_ConfigStrings_f(void) {
 	uint32_t start;
 
-	Com_Debug("%s\n", Sv_NetaddrToString(sv_client));
+	Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(sv_client));
 
 	if (sv_client->state != SV_CLIENT_CONNECTED) {
 		Com_Warn("%s already spawned\n", Sv_NetaddrToString(sv_client));
@@ -72,7 +72,7 @@ static void Sv_ConfigStrings_f(void) {
 
 	// handle the case of a level changing while a client was connecting
 	if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawn_count) {
-		Com_Debug("Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Debug(DEBUG_SERVER, "Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_New_f();
 		return;
 	}
@@ -121,7 +121,7 @@ static void Sv_Baselines_f(void) {
 	entity_state_t null_state;
 	entity_state_t *base;
 
-	Com_Debug("%s\n", Sv_NetaddrToString(sv_client));
+	Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(sv_client));
 
 	if (sv_client->state != SV_CLIENT_CONNECTED) {
 		Com_Warn("%s already spawned\n", Sv_NetaddrToString(sv_client));
@@ -130,7 +130,7 @@ static void Sv_Baselines_f(void) {
 
 	// handle the case of a level changing while a client was connecting
 	if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawn_count) {
-		Com_Debug("Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Debug(DEBUG_SERVER, "Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_New_f();
 		return;
 	}
@@ -165,7 +165,7 @@ static void Sv_Baselines_f(void) {
  */
 static void Sv_Begin_f(void) {
 
-	Com_Debug("%s\n", Sv_NetaddrToString(sv_client));
+	Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(sv_client));
 
 	if (sv_client->state != SV_CLIENT_CONNECTED) { // catch duplicate spawns
 		Com_Warn("Invalid begin from %s\n", Sv_NetaddrToString(sv_client));
@@ -179,7 +179,7 @@ static void Sv_Begin_f(void) {
 
 	// handle the case of a level changing while a client was connecting
 	if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawn_count) {
-		Com_Debug("Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
+		Com_Debug(DEBUG_SERVER, "Stale spawn count from %s\n", Sv_NetaddrToString(sv_client));
 		Sv_New_f();
 		return;
 	}
@@ -221,7 +221,7 @@ static void Sv_NextDownload_f(void) {
 	download->count += len;
 
 	if (download->count == download->size) {
-		Com_Debug("Finished download to %s\n", Sv_NetaddrToString(sv_client));
+		Com_Debug(DEBUG_SERVER, "Finished download to %s\n", Sv_NetaddrToString(sv_client));
 
 		Fs_Free(download->buffer);
 		download->buffer = NULL;
@@ -301,7 +301,7 @@ static void Sv_Download_f(void) {
 	}
 
 	Sv_NextDownload_f();
-	Com_Debug("Downloading %s to %s\n", filename, sv_client->name);
+	Com_Debug(DEBUG_SERVER, "Downloading %s to %s\n", filename, sv_client->name);
 }
 
 /**

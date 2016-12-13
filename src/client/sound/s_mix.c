@@ -35,7 +35,7 @@ static int32_t S_AllocChannel(void) {
 		}
 	}
 
-	Com_Debug("Failed\n");
+	Com_Debug(DEBUG_SOUND, "Failed\n");
 	return -1;
 }
 
@@ -205,7 +205,7 @@ void S_AddSample(const s_play_sample_t *play) {
 			const entity_state_t *ent = &cl.entities[play->entity].current;
 			sample = S_LoadEntitySample(ent, sample->media.name);
 			if (sample == NULL) {
-				Com_Debug("Failed to load player model sound %s\n", name);
+				Com_Debug(DEBUG_SOUND, "Failed to load player model sound %s\n", name);
 				return;
 			}
 		} else {

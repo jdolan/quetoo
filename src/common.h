@@ -107,7 +107,7 @@ void Com_PrintInfo(const char *s);
 
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Debug_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void Com_Debug_(const debug_mask_t mask, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 void Com_Warn_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Com_Error_(const char *func, err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
 
@@ -116,14 +116,12 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) __attribute__
  */
 extern _Bool com_recursive;
 
-
-#define Com_Debug(...) Com_Debug_(__func__, __VA_ARGS__)
+#define Com_Debug(mask, ...) Com_Debug_(mask, __func__, __VA_ARGS__)
 #define Com_Error(err, ...) Com_Error_(__func__, err, __VA_ARGS__)
 #define Com_Warn(...) Com_Warn_(__func__, __VA_ARGS__)
 
 void Com_Init(int32_t argc, char *argv[]);
 void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
-
 
 // subsystems
 #define QUETOO_SERVER		0x1
@@ -142,7 +140,9 @@ typedef struct {
 	uint32_t ticks;
 	uint32_t subsystems;
 
-	void (*Debug)(const char *msg);
+	debug_mask_t debug_mask;
+
+	void (*Debug)(const debug_mask_t mask, const char *msg);
 	void (*Error)(err_t err, const char *msg) __attribute__((noreturn));
 	void (*Print)(const char *msg);
 	void (*Verbose)(const char *msg);

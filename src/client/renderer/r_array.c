@@ -367,7 +367,7 @@ void R_CreateInterleaveBuffer_(r_buffer_t *buffer, const GLubyte struct_size, co
 void R_DestroyBuffer(r_buffer_t *buffer) {
 
 	if (buffer->bufnum == 0) {
-		Com_Debug("Attempting to free empty buffer");
+		Com_Debug(DEBUG_RENDERER, "Attempting to free empty buffer");
 		return;
 	}
 

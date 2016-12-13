@@ -86,7 +86,7 @@ static void Cl_WriteDemoHeader(void) {
 	Fs_Write(cls.demo_file, &len, sizeof(len), 1);
 	Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 
-	Com_Debug("Demo started\n");
+	Com_Debug(DEBUG_CLIENT, "Demo started\n");
 	// the rest of the demo file will be individual frames
 }
 
@@ -101,7 +101,7 @@ void Cl_WriteDemoMessage(void) {
 
 	if (!Fs_Tell(cls.demo_file)) {
 		if (cl.frame.delta_frame_num < 0) {
-			Com_Debug("Received uncompressed frame, writing demo header..\n");
+			Com_Debug(DEBUG_CLIENT, "Received uncompressed frame, writing demo header..\n");
 			Cl_WriteDemoHeader();
 		} else {
 			return; // wait for an uncompressed packet

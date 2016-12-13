@@ -84,6 +84,8 @@ static void Cg_Init(void) {
 
 	cgi.Print("  Client game initialization...\n");
 
+	Cg_InitInput();
+
 	cg_add_emits = cgi.Cvar("cg_add_emits", "1", 0,
 	                        "Toggles adding client-side entities to the scene.");
 	cg_add_entities = cgi.Cvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
@@ -262,6 +264,8 @@ vec_t Cg_GetHookPullSpeed(void) {
 static void Cg_ClearState(void) {
 
 	memset(&cg_state, 0, sizeof(cg_state));
+
+	Cg_ClearInput();
 }
 
 /**
@@ -303,12 +307,14 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.Init = Cg_Init;
 	cge.Shutdown = Cg_Shutdown;
 	cge.ClearState = Cg_ClearState;
+	cge.Move = Cg_Move;
 	cge.UpdateMedia = Cg_UpdateMedia;
 	cge.UpdateConfigString = Cg_UpdateConfigString;
 	cge.LoadClient = Cg_LoadClient;
 	cge.ParseMessage = Cg_ParseMessage;
 	cge.PredictMovement = Cg_PredictMovement;
 	cge.UpdateView = Cg_UpdateView;
+	cge.UpdateScreen = Cg_UpdateScreen;
 	cge.DrawFrame = Cg_DrawFrame;
 
 	return &cge;
