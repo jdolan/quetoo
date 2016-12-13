@@ -729,7 +729,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, int32_t flags, i
  */
 static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 	cg_particle_t *p;
-	r_light_t l;
+	r_sustained_light_t s;
 
 	if (!(p = Cg_AllocParticle(PARTICLE_BEAM, cg_particles_beam))) {
 		return;
@@ -746,11 +746,12 @@ static void Cg_BfgLaserEffect(const vec3_t org, const vec3_t end) {
 
 	p->part.scroll_s = -4.0;
 
-	VectorCopy(end, l.origin);
-	l.radius = 80.0;
-	VectorSet(l.color, 0.8, 1.0, 0.5);
+	VectorCopy(end, s.light.origin);
+	s.light.radius = 80.0;
+	VectorSet(s.light.color, 0.8, 1.0, 0.5);
+	s.sustain = 50;
 
-	cgi.AddLight(&l);
+	cgi.AddSustainedLight(&s);
 }
 
 /**

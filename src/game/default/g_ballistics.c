@@ -1041,8 +1041,12 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 		if (!G_CanDamage(ent, self)) {
 			continue;
 		}
+		
+		vec3_t end;
 
-		VectorSubtract(ent->s.origin, self->s.origin, dir);
+		G_GetOrigin(ent, end);
+
+		VectorSubtract(end, self->s.origin, dir);
 		const vec_t dist = VectorNormalize(dir);
 		VectorNegate(dir, normal);
 
@@ -1054,7 +1058,7 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 		gi.WriteByte(SV_CMD_TEMP_ENTITY);
 		gi.WriteByte(TE_BFG_LASER);
 		gi.WritePosition(self->s.origin);
-		gi.WritePosition(ent->s.origin);
+		gi.WritePosition(end);
 		gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
 	}
 

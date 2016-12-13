@@ -27,6 +27,7 @@
 #ifdef __GAME_LOCAL_H__
 _Bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2);
 _Bool G_CanDamage(g_entity_t *targ, g_entity_t *inflictor);
+void G_GetOrigin(g_entity_t *ent, vec3_t out);
 
 void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, const vec3_t dir,
               const vec3_t point, const vec3_t normal, int16_t damage, int16_t knockback, uint32_t dflags,

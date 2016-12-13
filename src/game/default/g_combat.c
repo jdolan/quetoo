@@ -105,6 +105,18 @@ _Bool G_CanDamage(g_entity_t *targ, g_entity_t *inflictor) {
 }
 
 /**
+ * @brief Get the origin of an entity, whether brush or not
+ */
+void G_GetOrigin(g_entity_t *ent, vec3_t out) {
+
+	if (ent->solid == SOLID_BSP) {
+		VectorLerp(ent->abs_mins, ent->abs_maxs, 0.5, out);
+	} else {
+		VectorCopy(ent->s.origin, out);
+	}
+}
+
+/**
  * @brief
  */
 static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t normal,
