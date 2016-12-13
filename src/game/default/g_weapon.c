@@ -44,7 +44,6 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 		}
 
 		ent->client->locals.weapon_change_time = 0;
-		ent->client->locals.weapon_fire_time = 0;
 
 		return;
 	}
@@ -354,7 +353,6 @@ void G_ClientWeaponThink(g_entity_t *ent) {
 			} else if (delta <= QUETOO_TICK_MILLIS) {
 
 				ent->client->locals.next_weapon = NULL;
-				ent->client->locals.weapon_fire_time = 0;
 
 				G_SetAnimation(ent, ANIM_TORSO_STAND1, false);
 			}
