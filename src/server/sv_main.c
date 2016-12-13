@@ -757,7 +757,13 @@ void Sv_Frame(const uint32_t msec) {
 	}
 
 	// clamp the frame interval to 1 second of simulation
-	frame_delta = Min(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE));
+	// FIXME: this is required for Windows apparently because the sim loop in main
+	// doesn't run while loading occurs, which causes msec to be huge
+	if (frame_delta > (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE)) {
+		frame_delta = QUETOO_TICK_MILLIS;
+	} else {
+		frame_delta = Min(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE));
+	}
 
 	// read any pending packets from clients
 	Sv_ReadPackets();
