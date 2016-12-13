@@ -84,7 +84,7 @@ void S_RegisterDependency(s_media_t *dependent, s_media_t *dependency) {
 	if (dependent) {
 		if (dependency) {
 			if (!g_list_find(dependent->dependencies, dependency)) {
-				Com_Debug("%s -> %s\n", dependent->name, dependency->name);
+				Com_Debug(DEBUG_SOUND, "%s -> %s\n", dependent->name, dependency->name);
 				dependent->dependencies = g_list_prepend(dependent->dependencies, dependency);
 
 				S_RegisterMedia(dependency);
@@ -117,14 +117,14 @@ void S_RegisterMedia(s_media_t *media) {
 
 		if ((m = g_hash_table_lookup(s_media_state.media, media->name))) {
 			if (m != media) {
-				Com_Debug("Replacing %s\n", media->name);
+				Com_Debug(DEBUG_SOUND, "Replacing %s\n", media->name);
 				S_FreeMedia_(NULL, m, m);
 				g_hash_table_replace(s_media_state.media, media->name, media);
 			} else {
-				Com_Debug("Retaining %s\n", media->name);
+				Com_Debug(DEBUG_SOUND, "Retaining %s\n", media->name);
 			}
 		} else {
-			Com_Debug("Inserting %s\n", media->name);
+			Com_Debug(DEBUG_SOUND, "Inserting %s\n", media->name);
 			g_hash_table_insert(s_media_state.media, media->name, media);
 
 			s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media->name,
@@ -193,7 +193,7 @@ static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data) {
 		}
 	}
 
-	Com_Debug("Freeing %s\n", media->name);
+	Com_Debug(DEBUG_SOUND, "Freeing %s\n", media->name);
 
 	// ask the implementation to clean up
 	if (media->Free) {

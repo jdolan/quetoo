@@ -69,7 +69,7 @@ void Cl_KeyDown(button_t *b) {
 	} else if (b->keys[1] == SDL_SCANCODE_UNKNOWN) {
 		b->keys[1] = k;
 	} else {
-		Com_Debug("3 keys down for button\n");
+		Com_Debug(DEBUG_CLIENT, "3 keys down for button\n");
 		return;
 	}
 

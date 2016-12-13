@@ -369,7 +369,7 @@ static void R_DrawBspSurfaceMaterialStage(r_bsp_surface_t *surf, const r_stage_t
 	if (r_material_state.vertex_len <= (r_material_vertex_count + surf->num_edges)) {
 		r_material_state.vertex_len *= 2;
 		r_material_state.vertex_array = g_array_set_size(r_material_state.vertex_array, r_material_state.vertex_len);
-		Com_Debug("Expanded material vertex array to %u\n", r_material_state.vertex_len);
+		Com_Debug(DEBUG_RENDERER, "Expanded material vertex array to %u\n", r_material_state.vertex_len);
 	}
 
 	for (i = 0; i < surf->num_edges; i++) {
@@ -406,7 +406,7 @@ static void R_DrawBspSurfaceMaterialStage(r_bsp_surface_t *surf, const r_stage_t
 	if (r_material_state.element_len <= r_material_index_count) {
 		r_material_state.element_len *= 2;
 		r_material_state.element_array = g_array_set_size(r_material_state.element_array, r_material_state.element_len);
-		Com_Debug("Expanded material index array to %u\n", r_material_state.element_len);
+		Com_Debug(DEBUG_RENDERER, "Expanded material index array to %u\n", r_material_state.element_len);
 	}
 
 	// first # to render
@@ -1079,7 +1079,8 @@ static int32_t R_ParseStage(r_stage_t *s, const char **buffer) {
 				}
 			}
 
-			Com_Debug("Parsed stage\n"
+			Com_Debug(DEBUG_RENDERER, 
+					  "Parsed stage\n"
 			          "  flags: %d\n"
 			          "  texture: %s\n"
 			          "   -> material: %s\n"
@@ -1131,7 +1132,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 	strcat(path, ".mat");
 
 	if (Fs_Load(path, &buf) == -1) {
-		Com_Debug("Couldn't load %s\n", path);
+		Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", path);
 		return;
 	}
 
@@ -1274,7 +1275,7 @@ void R_LoadMaterials(const r_model_t *mod) {
 		}
 
 		if (*c == '}' && in_material) {
-			Com_Debug("Parsed material %s with %d stages\n", m->diffuse->media.name, m->num_stages);
+			Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", m->diffuse->media.name, m->num_stages);
 			in_material = false;
 			m = NULL;
 		}

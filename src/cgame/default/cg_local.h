@@ -22,7 +22,7 @@
 #ifndef __CG_LOCAL_H__
 #define __CG_LOCAL_H__
 
-#define Debug(...) Debug_(__func__, __VA_ARGS__)
+#define Debug(...) Debug_(DEBUG_CGAME, __func__, __VA_ARGS__)
 #define Warn(...) Warn_(__func__, __VA_ARGS__)
 #define Error(...) Error_(__func__, __VA_ARGS__)
 

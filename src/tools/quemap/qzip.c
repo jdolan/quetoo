@@ -110,7 +110,7 @@ static void AddSky(char *sky) {
 	const char *suffix[] = { "rt", "bk", "lf", "ft", "up", "dn", NULL };
 	const char **suf = suffix;
 
-	Com_Debug("Adding sky %s\n", sky);
+	Com_Debug(DEBUG_GENERIC, "Adding sky %s\n", sky);
 
 	while (*suf) {
 		AddImage(va("env/%s%s", sky, *suf), true);
@@ -124,7 +124,7 @@ static void AddSky(char *sky) {
 static void AddAnimation(char *name, int32_t count) {
 	int32_t i, k;
 
-	Com_Debug("Adding %d frames for %s\n", count, name);
+	Com_Debug(DEBUG_GENERIC, "Adding %d frames for %s\n", count, name);
 
 	const size_t len = strlen(name);
 

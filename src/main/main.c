@@ -40,25 +40,42 @@ cvar_t *game;
 cvar_t *time_demo;
 cvar_t *time_scale;
 
-static void Debug(const char *msg);
+static void Debug(const debug_mask_t mask, const char *msg);
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Print(const char *msg);
 static void Shutdown(const char *msg);
 static void Verbose(const char *msg);
 static void Warn(const char *msg);
 
+static const debug_mask_t DEBUG_BREAKPOINT = (debug_mask_t) (1u << 31);
+
 /**
- * @brief Filters debugging output to when the `debug` cvar is set.
+ * @brief A mapping of built-in DEBUG_xxx masks to strings.
  */
-static void Debug(const char *msg) {
+static const char *debug_mask_strings[] = {
+	"generic",
+	"client",
+	"server",
+	"game",
+	"cgame",
+	"renderer",
+	"pmove",
+	"fs",
+	"sound"
+};
 
-	if (debug->integer) {
-		if (debug->integer > 2) {
-			SDL_TriggerBreakpoint();
-		}
+static const size_t debug_mask_strings_len = lengthof(debug_mask_strings);
 
-		Print(msg);
+/**
+ * @brief Filters debugging output to the debug mask we have.
+ */
+static void Debug(const debug_mask_t mask, const char *msg) {
+
+	if (!(quetoo.debug_mask & mask)) {
+		return;
 	}
+
+	Print(msg);
 }
 
 static _Bool jmp_set = false;
@@ -69,7 +86,7 @@ static _Bool jmp_set = false;
  */
 static void Error(err_t err, const char *msg) {
 
-	if (debug->integer) {
+	if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
 		SDL_TriggerBreakpoint();
 	}
 
@@ -123,6 +140,10 @@ static void Verbose(const char *msg) {
  */
 static void Warn(const char *msg) {
 
+	if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
+		SDL_TriggerBreakpoint();
+	}
+
 	Print(va("^3%s", msg));
 }
 
@@ -133,6 +154,89 @@ __attribute__((noreturn))
 static void Quit_f(void) {
 
 	Com_Shutdown("Server quit\n");
+}
+
+/**
+ * @brief Parses a debug string and sets up the quetoo.debug value
+ */
+static void ParseDebugFlags(void) {
+	
+	// support old "debug 1/2" format
+	if (debug->integer == 1) {
+		quetoo.debug_mask = DEBUG_ANY;
+	} else if (debug->integer == 2) {
+		quetoo.debug_mask = DEBUG_ANY | DEBUG_BREAKPOINT;
+	} else {
+		const char *buf = debug->string, *c;
+		_Bool first_token = true;
+
+		while (true) {
+
+			c = ParseToken(&buf);
+
+			if (*c == '\0') {
+				break;
+			}
+
+			char operation = '\0';
+
+			// support adding/removing flags
+			if (*c == '-' || *c == '+') {
+				operation = *c;
+				c++;
+			}
+
+			if (!operation) {
+
+				// special case: if our first token isn't an explicit add/remove then
+				// just reset the mask to 0 before setting the initial value.
+				if (first_token) {
+					quetoo.debug_mask = 0; // reset debug mask
+				}
+
+				operation = '+';
+			}
+
+			first_token = false;
+
+			// figure out what the wanted flag is
+			if (!g_ascii_strcasecmp(c, "none") ||
+				c[0] == '0') {
+
+				quetoo.debug_mask = 0;
+				continue;
+			}
+
+			debug_mask_t wanted_flag = 0;
+
+			// figure out what it is. Try special values first, then integral, then string.
+			if (!g_ascii_strcasecmp(c, "breakpoint") || !g_ascii_strcasecmp(c, "bp")) {
+				wanted_flag = DEBUG_BREAKPOINT;
+			} else if (!g_ascii_strcasecmp(c, "any") || !g_ascii_strcasecmp(c, "all")) {
+				wanted_flag = DEBUG_ANY;
+			} else if (!(wanted_flag = strtol(c, NULL, 10))) {
+
+				for (uint32_t i = 0; i < debug_mask_strings_len; i++) {
+
+					if (!g_ascii_strcasecmp(c, debug_mask_strings[i])) {
+						wanted_flag = 1 << (i + 3);
+						break;
+					}
+				}
+			}
+
+			// ignore invalid flag, who cares
+			if (!wanted_flag) {
+				continue;
+			}
+
+			if (operation == '+') {
+				quetoo.debug_mask |= wanted_flag;
+			} else {
+				quetoo.debug_mask &= ~wanted_flag;
+			}
+		}
+	}
 }
 
 /**
@@ -295,13 +399,18 @@ int32_t main(int32_t argc, char *argv[]) {
 	while (true) { // this is our main loop
 
 		if (setjmp(env)) { // an ERR_DROP was thrown
-			Com_Debug("Error detected, recovering..\n");
+			Com_Debug(DEBUG_GENERIC, "Error detected, recovering..\n");
 			continue;
 		}
 
 		if (time_scale->modified) {
 			time_scale->modified = false;
 			time_scale->value = Clamp(time_scale->value, 0.1, 3.0);
+		}
+
+		if (debug->modified) {
+			debug->modified = false;
+			ParseDebugFlags();
 		}
 
 		do {

@@ -301,7 +301,7 @@ static void R_LoadHeightmap(const char *name, const SDL_Surface *surf) {
 	if (Img_LoadImage(va("%s_h", heightmap), &hsurf)) {
 
 		if (hsurf->w == surf->w && hsurf->h == surf->h) {
-			Com_Debug("Merging heightmap %s\n", heightmap);
+			Com_Debug(DEBUG_RENDERER, "Merging heightmap %s\n", heightmap);
 
 			byte *in = hsurf->pixels;
 			byte *out = surf->pixels;
@@ -356,7 +356,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 			SDL_FreeSurface(surf);
 		} else {
-			Com_Debug("Couldn't load %s\n", key);
+			Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
 			image = r_image_state.null;
 		}
 	}

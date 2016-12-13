@@ -376,7 +376,7 @@ static void Cl_ConnectionlessPacket(void) {
 
 	const char *c = Cmd_Argv(0);
 
-	Com_Debug("%s: %s\n", Net_NetaddrToString(&net_from), c);
+	Com_Debug(DEBUG_CLIENT, "%s: %s\n", Net_NetaddrToString(&net_from), c);
 
 	// server connection
 	if (!g_strcmp0(c, "client_connect")) {
@@ -458,19 +458,19 @@ static void Cl_ReadPackets(void) {
 
 		// dump it if not connected
 		if (cls.state <= CL_CONNECTING) {
-			Com_Debug("%s: Unsolicited packet\n", Net_NetaddrToString(&net_from));
+			Com_Debug(DEBUG_CLIENT, "%s: Unsolicited packet\n", Net_NetaddrToString(&net_from));
 			continue;
 		}
 
 		// check for runt packets
 		if (net_message.size < 8) {
-			Com_Debug("%s: Runt packet\n", Net_NetaddrToString(&net_from));
+			Com_Debug(DEBUG_CLIENT, "%s: Runt packet\n", Net_NetaddrToString(&net_from));
 			continue;
 		}
 
 		// packet from server
 		if (!Net_CompareNetaddr(&net_from, &cls.net_chan.remote_address)) {
-			Com_Debug("%s: Sequenced packet without connection\n", Net_NetaddrToString(&net_from));
+			Com_Debug(DEBUG_CLIENT, "%s: Sequenced packet without connection\n", Net_NetaddrToString(&net_from));
 			continue;
 		}
 

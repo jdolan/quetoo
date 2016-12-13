@@ -388,7 +388,7 @@ size_t Cm_BoxLeafnums(const vec3_t mins, const vec3_t maxs, int32_t *list, size_
 	}
 
 	if (data.len == data.max_len) {
-		Com_Debug("max_len (%zd) reached\n", data.max_len);
+		Com_Debug(DEBUG_GENERIC, "max_len (%zd) reached\n", data.max_len);
 	}
 
 	return data.len;

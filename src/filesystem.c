@@ -439,7 +439,7 @@ void Fs_AddToSearchPath(const char *dir) {
 			Fs_Enumerate("*.pk3", Fs_AddToSearchPath_enumerate, (void *) dir);
 		}
 	} else {
-		Com_Debug("Failed to stat %s\n", dir);
+		Com_Debug(DEBUG_FILESYSTEM, "Failed to stat %s\n", dir);
 	}
 }
 
@@ -489,7 +489,7 @@ void Fs_SetGame(const char *dir) {
 		return;
 	}
 
-	Com_Debug("Setting game: %s\n", dir);
+	Com_Debug(DEBUG_FILESYSTEM, "Setting game: %s\n", dir);
 
 	// iterate the current search path, removing those which are not base paths
 	char **paths = PHYSFS_getSearchPath();
@@ -503,7 +503,7 @@ void Fs_SetGame(const char *dir) {
 			p++;
 		}
 		if (!*p) {
-			Com_Debug("Removing %s\n", *path);
+			Com_Debug(DEBUG_FILESYSTEM, "Removing %s\n", *path);
 			PHYSFS_removeFromSearchPath(*path);
 		}
 		path++;
@@ -599,7 +599,7 @@ void Fs_Init(_Bool auto_load_archives) {
 	if (path) {
 		char *c;
 
-		Com_Debug("Resolved executable path: %s\n", path);
+		Com_Debug(DEBUG_FILESYSTEM, "Resolved executable path: %s\n", path);
 
 #if defined(__APPLE__)
 		if ((c = strstr(path, "Quetoo.app"))) {
@@ -639,7 +639,7 @@ void Fs_Init(_Bool auto_load_archives) {
 
 	// if the base directory was not resolved, add the default search paths
 	if (strlen(fs_state.base_dir)) {
-		Com_Debug("Resolved base dir: %s\n", fs_state.base_dir);
+		Com_Debug(DEBUG_FILESYSTEM, "Resolved base dir: %s\n", fs_state.base_dir);
 	} else {
 		Fs_AddToSearchPath(PKGLIBDIR G_DIR_SEPARATOR_S DEFAULT_GAME);
 		Fs_AddToSearchPath(PKGDATADIR G_DIR_SEPARATOR_S DEFAULT_GAME);

@@ -81,7 +81,7 @@ void R_AddImageToAtlas(r_atlas_t *atlas, const r_image_t *image) {
 	// might as well register it as a dependent
 	R_RegisterDependency((r_media_t *) atlas, (r_media_t *) image);
 
-	Com_Debug("Atlas %s -> %s\n", atlas->image.media.name, image->media.name);
+	Com_Debug(DEBUG_RENDERER, "Atlas %s -> %s\n", atlas->image.media.name, image->media.name);
 }
 
 /**
@@ -502,7 +502,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 	R_RegisterMedia((r_media_t *) atlas);
 
 	uint32_t time = SDL_GetTicks() - time_start;
-	Com_Debug("Atlas %s compiled in %u ms", atlas->image.media.name, time);
+	Com_Debug(DEBUG_RENDERER, "Atlas %s compiled in %u ms", atlas->image.media.name, time);
 }
 
 /**

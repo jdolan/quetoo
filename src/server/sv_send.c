@@ -39,12 +39,12 @@ void Sv_ClientPrint(const g_entity_t *ent, const int32_t level, const char *fmt,
 	cl = &svs.clients[n - 1];
 
 	if (cl->state != SV_CLIENT_ACTIVE) {
-		Com_Debug("Issued to unspawned client\n");
+		Com_Debug(DEBUG_SERVER, "Issued to unspawned client\n");
 		return;
 	}
 
 	if (level < cl->message_level) {
-		Com_Debug("Filtered by message level\n");
+		Com_Debug(DEBUG_SERVER, "Filtered by message level\n");
 		return;
 	}
 
@@ -378,7 +378,7 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 
 		// if we would overflow the packet, flush it first
 		if (buf.size + msg->len > (MAX_MSG_SIZE - 16)) {
-			Com_Debug("Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
+			Com_Debug(DEBUG_SERVER, "Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
 
 			Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
 			frame_size += buf.size;

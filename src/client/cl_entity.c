@@ -334,11 +334,11 @@ static void Cl_UpdateLerp(void) {
 		cl.lerp = 1.0;
 	} else {
 		if (cl.time > cl.frame.time) {
-			Com_Debug("High clamp: %dms\n", cl.time - cl.frame.time);
+			Com_Debug(DEBUG_CLIENT, "High clamp: %dms\n", cl.time - cl.frame.time);
 			cl.time = cl.frame.time;
 			cl.lerp = 1.0;
 		} else if (cl.time < cl.frame.time - QUETOO_TICK_MILLIS) {
-			Com_Debug("Low clamp: %dms\n", (cl.frame.time - QUETOO_TICK_MILLIS) - cl.time);
+			Com_Debug(DEBUG_CLIENT, "Low clamp: %dms\n", (cl.frame.time - QUETOO_TICK_MILLIS) - cl.time);
 			cl.time = cl.frame.time - QUETOO_TICK_MILLIS;
 			cl.lerp = 0.0;
 		} else {

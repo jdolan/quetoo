@@ -73,7 +73,7 @@ static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mi
 		if ((*rw = SDL_RWFromMem(*buffer, (int32_t) len))) {
 
 			if ((*music = Mix_LoadMUS_RW(*rw, false))) {
-				Com_Debug("Loaded %s\n", name);
+				Com_Debug(DEBUG_SOUND, "Loaded %s\n", name);
 			} else {
 				Com_Warn("Failed to load %s: %s\n", name, Mix_GetError());
 				SDL_FreeRW(*rw);
@@ -83,7 +83,7 @@ static _Bool S_LoadMusicFile(const char *name, void **buffer, SDL_RWops **rw, Mi
 			Fs_Free(*buffer);
 		}
 	} else {
-		Com_Debug("Failed to load %s\n", name);
+		Com_Debug(DEBUG_SOUND, "Failed to load %s\n", name);
 	}
 
 	return *music != NULL;
@@ -128,7 +128,7 @@ s_music_t *S_LoadMusic(const char *name) {
 
 			S_RegisterMedia((s_media_t *) music);
 		} else {
-			Com_Debug("S_LoadMusic: Couldn't load %s\n", key);
+			Com_Debug(DEBUG_SOUND, "S_LoadMusic: Couldn't load %s\n", key);
 			music = NULL;
 		}
 	}
@@ -224,10 +224,10 @@ void S_NextTrack_f(void) {
 		if (music) {
 			S_PlayMusic(music);
 		} else {
-			Com_Debug("No music available\n");
+			Com_Debug(DEBUG_SOUND, "No music available\n");
 		}
 	} else {
-		Com_Debug("Music is muted\n");
+		Com_Debug(DEBUG_SOUND, "Music is muted\n");
 	}
 }
 

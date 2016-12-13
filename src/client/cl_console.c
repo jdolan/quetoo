@@ -316,7 +316,7 @@ void Cl_InitConsole(void) {
 		Con_ReadHistory(&cl_console, file);
 		Fs_Close(file);
 	} else {
-		Com_Debug("Couldn't read history");
+		Com_Debug(DEBUG_CLIENT, "Couldn't read history");
 	}
 
 	memset(&cl_chat_console, 0, sizeof(cl_chat_console));

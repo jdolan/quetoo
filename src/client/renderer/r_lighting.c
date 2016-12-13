@@ -89,7 +89,7 @@ static void R_LightingPoints(const r_lighting_t *l) {
 static void R_AddIllumination(const r_illumination_t *il) {
 
 	if (r_illuminations.num_illuminations == LIGHTING_MAX_ILLUMINATIONS) {
-		Com_Debug("LIGHTING_MAX_ILLUMINATIONS\n");
+		Com_Debug(DEBUG_RENDERER, "LIGHTING_MAX_ILLUMINATIONS\n");
 		return;
 	}
 
@@ -373,7 +373,7 @@ static void R_CastShadows(r_lighting_t *l, const r_illumination_t *il) {
 			}
 
 			if (s - l->shadows == lengthof(l->shadows)) {
-				Com_Debug("Entity %u @ %s: MAX_SHADOWS\n", l->number, vtos(l->origin));
+				Com_Debug(DEBUG_RENDERER, "Entity %u @ %s: MAX_SHADOWS\n", l->number, vtos(l->origin));
 				return;
 			}
 

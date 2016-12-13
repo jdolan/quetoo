@@ -333,7 +333,7 @@ void Sv_InitConsole(void) {
 			Con_ReadHistory(&sv_console, file);
 			Fs_Close(file);
 		} else {
-			Com_Debug("Couldn't read history");
+			Com_Debug(DEBUG_SERVER, "Couldn't read history");
 		}
 	}
 

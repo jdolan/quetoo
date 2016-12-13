@@ -86,7 +86,7 @@ void Cl_ParseServerInfo(void) {
 	if (sscanf(info, "%63c\\%31c\\%31c\\%hu\\%hu", server->hostname, server->name,
 	           server->gameplay, &server->clients, &server->max_clients) != 5) {
 
-		Com_Debug("Failed to parse info \"%s\" for %s\n", info, Net_NetaddrToString(&server->addr));
+		Com_Debug(DEBUG_CLIENT, "Failed to parse info \"%s\" for %s\n", info, Net_NetaddrToString(&server->addr));
 
 		server->hostname[0] = '\0';
 		server->name[0] = '\0';
@@ -223,7 +223,7 @@ void Cl_ParseServers(void) {
 		char s[32];
 		g_snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
 
-		Com_Debug("Parsed %s\n", s);
+		Com_Debug(DEBUG_CLIENT, "Parsed %s\n", s);
 
 		if (!Net_StringToNetaddr(s, &addr)) { // make sure it's valid
 			Com_Warn("Invalid address: %s\n", s);

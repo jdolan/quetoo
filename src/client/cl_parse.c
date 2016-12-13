@@ -52,13 +52,13 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 		return true;
 	}
 
-	Com_Debug("Checking for %s\n", filename);
+	Com_Debug(DEBUG_CLIENT, "Checking for %s\n", filename);
 
 	if (Fs_Exists(filename)) { // it exists, no need to download
 		return true;
 	}
 
-	Com_Debug("Attempting to download %s\n", filename);
+	Com_Debug(DEBUG_CLIENT, "Attempting to download %s\n", filename);
 
 	strncpy(cls.download.name, filename, sizeof(cls.download.name));
 
@@ -81,7 +81,7 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 
 			if (Fs_Seek(cls.download.file, len - 1)) {
 				// give the server the offset to start the download
-				Com_Debug("Resuming %s...\n", cls.download.name);
+				Com_Debug(DEBUG_CLIENT, "Resuming %s...\n", cls.download.name);
 
 				g_snprintf(cmd, sizeof(cmd), "download %s %u", cls.download.name, (uint32_t) len);
 				Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
@@ -93,7 +93,7 @@ _Bool Cl_CheckOrDownloadFile(const char *filename) {
 	}
 
 	// or start if from the beginning
-	Com_Debug("Downloading %s...\n", cls.download.name);
+	Com_Debug(DEBUG_CLIENT, "Downloading %s...\n", cls.download.name);
 
 	g_snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
 	Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
@@ -213,7 +213,7 @@ static void Cl_ParseDownload(void) {
 	size = Net_ReadShort(&net_message);
 	percent = Net_ReadByte(&net_message);
 	if (size < 0) {
-		Com_Debug("Server does not have this file\n");
+		Com_Debug(DEBUG_CLIENT, "Server does not have this file\n");
 		if (cls.download.file) {
 			// if here, we tried to resume a file but the server said no
 			Fs_Close(cls.download.file);

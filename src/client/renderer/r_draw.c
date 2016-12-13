@@ -634,7 +634,7 @@ static void R_InitFont(char *name) {
 	font->char_width = font->image->width / 16;
 	font->char_height = font->image->height / 8;
 
-	Com_Debug("%s (%dx%d)\n", font->name, font->char_width, font->char_height);
+	Com_Debug(DEBUG_RENDERER, "%s (%dx%d)\n", font->name, font->char_width, font->char_height);
 }
 
 /**
