@@ -284,6 +284,7 @@
 		CEA082381DC6EC59001207AA /* r_atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA082341DC6EBB7001207AA /* r_atlas.h */; };
 		CEA936661DBCD88D00A12B79 /* r_program_corona.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA936621DBCD87400A12B79 /* r_program_corona.c */; };
 		CEA936671DBCD89000A12B79 /* r_program_corona.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA936631DBCD87400A12B79 /* r_program_corona.h */; };
+		CEB8D6271E00B73200043814 /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
 		CEC986941D3835420002B714 /* libmysqlclient.18.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC986931D3835420002B714 /* libmysqlclient.18.dylib */; };
 		CED4381E1D9D33AF0052BAFA /* libpmove.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libpmove.dylib */; };
 		CED4381F1D9D33E80052BAFA /* PrimaryButton.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFC79421D9BE432000FA6B2 /* PrimaryButton.c */; };
@@ -1372,6 +1373,8 @@
 		CEA936611DBCD85400A12B79 /* corona_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = corona_vs.glsl; sourceTree = "<group>"; };
 		CEA936621DBCD87400A12B79 /* r_program_corona.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_program_corona.c; sourceTree = "<group>"; };
 		CEA936631DBCD87400A12B79 /* r_program_corona.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_program_corona.h; sourceTree = "<group>"; };
+		CEB8D6231E00B72100043814 /* cg_input.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_input.c; sourceTree = "<group>"; };
+		CEB8D6241E00B72100043814 /* cg_input.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_input.h; sourceTree = "<group>"; };
 		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = ../../../../opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<group>"; };
 		CED438AD1D9D34450052BAFA /* librenderer.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = librenderer.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CED4393B1D9D344E0052BAFA /* libsound.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libsound.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2121,6 +2124,8 @@
 				CE12D56B1C5C58C300CD0B13 /* cg_entity_trail.h */,
 				CE12D56C1C5C58C300CD0B13 /* cg_hud.c */,
 				CE12D56D1C5C58C300CD0B13 /* cg_hud.h */,
+				CEB8D6231E00B72100043814 /* cg_input.c */,
+				CEB8D6241E00B72100043814 /* cg_input.h */,
 				CE12D56E1C5C58C300CD0B13 /* cg_local.h */,
 				CE12D56F1C5C58C300CD0B13 /* cg_main.c */,
 				CE12D5701C5C58C300CD0B13 /* cg_main.h */,
@@ -3873,6 +3878,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE12D7EF1C5C5E0200CD0B13 /* cg_client.c in Sources */,
+				CEB8D6271E00B73200043814 /* cg_input.c in Sources */,
 				CE12D7F01C5C5E0200CD0B13 /* cg_effect.c in Sources */,
 				CE12D7F11C5C5E0200CD0B13 /* cg_emit.c in Sources */,
 				CE12D7F21C5C5E0200CD0B13 /* cg_entity.c in Sources */,

@@ -12,6 +12,7 @@ noinst_HEADERS = \
 	cg_entity_effect.h \
 	cg_entity_event.h \
 	cg_hud.h \
+	cg_input.h \
 	cg_local.h \
 	cg_main.h \
 	cg_media.h \
@@ -37,6 +38,7 @@ cgame_la_SOURCES = \
 	cg_entity_event.c \
 	cg_entity_trail.c \
 	cg_hud.c \
+	cg_input.c \
 	cg_main.c \
 	cg_media.c \
 	cg_muzzle_flash.c \
