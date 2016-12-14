@@ -94,7 +94,7 @@
 )
 
 /**
- * @brief Debug printing masks.
+ * @brief Debug cateogories.
  */
 typedef enum {
 	DEBUG_AI			= 1 << 0,
@@ -111,9 +111,12 @@ typedef enum {
 	DEBUG_SOUND			= 1 << 11,
 
 	DEBUG_BREAKPOINT	= 1 << 30,
-	DEBUG_ALL			= 0xFFFF,
+	DEBUG_ALL			= 0xFFFFFFFF & ~DEBUG_BREAKPOINT,
 } debug_t;
 
+/**
+ * @brief Error categories.
+ */
 typedef enum {
 	ERR_PRINT = 1,
 	ERR_WARN,
@@ -126,6 +129,7 @@ char *Com_Argv(int32_t arg); // range and null checked
 
 void Com_PrintInfo(const char *s);
 
+const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
 
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));

@@ -21,88 +21,71 @@
 
 #include "common.h"
 
+static const char *DEBUG_CATEGORIES[] = {
+	"ai",
+	"cgame",
+	"client",
+	"collision",
+	"console",
+	"filesystem",
+	"game",
+	"net",
+	"pmove",
+	"renderer",
+	"server",
+	"sound"
+};
+
+/**
+ * @return A string containing all enabled debug categories.
+ */
+const char *Com_GetDebug(void) {
+	static char debug[MAX_STRING_CHARS];
+
+	debug[0] = '\0';
+
+	for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
+		if (quetoo.debug_mask & (1 << i)) {
+			if (i > 0) {
+				g_strlcat(debug, " ", sizeof(debug));
+			}
+			g_strlcat(debug, DEBUG_CATEGORIES[i], sizeof(debug));
+		}
+	}
+
+	if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
+		g_strlcat(debug, " breakpoint", sizeof(debug));
+	}
+
+	return debug;
+}
+
 /**
  * @brief Parses a debug string and sets up the quetoo.debug value
  */
 void Com_SetDebug(const char *debug) {
-	const char *debug_names[] = {
-		"ai",
-		"cgame",
-		"client",
-		"collision",
-		"console",
-		"filesystem",
-		"game",
-		"net",
-		"pmove",
-		"renderer",
-		"server",
-		"sound",
-	};
 
-	const char *buf = debug, *c;
-	_Bool first_token = true;
-
+	const char *buf = debug;
 	while (true) {
 
-		c = ParseToken(&buf);
+		const char *c = ParseToken(&buf);
 
 		if (*c == '\0') {
 			break;
 		}
 
-		char operation = '\0';
-
-		// support adding/removing flags
-		if (*c == '-' || *c == '+') {
-			operation = *c;
-			c++;
-		}
-
-		if (!operation) {
-
-			// special case: if our first token isn't an explicit add/remove then
-			// just reset the mask to 0 before setting the initial value.
-			if (first_token) {
-				quetoo.debug_mask = 0; // reset debug mask
-			}
-
-			operation = '+';
-		}
-
-		first_token = false;
-
-		// figure out what the wanted flag is
-		if (!g_ascii_strcasecmp(c, "none") || c[0] == '0') {
+		if (!g_strcmp0(c, "none") || !g_strcmp0(c, "0")) {
 			quetoo.debug_mask = 0;
-			continue;
-		}
-
-		debug_t wanted = 0;
-
-		// figure out what it is. Try special values first, then integral, then string.
-		if (!g_ascii_strcasecmp(c, "breakpoint") || !g_ascii_strcasecmp(c, "bp")) {
-			wanted = DEBUG_BREAKPOINT;
-		} else if (!g_ascii_strcasecmp(c, "any") || !g_ascii_strcasecmp(c, "all")) {
-			wanted = DEBUG_ALL;
-		} else if (!(wanted = (debug_t) strtol(c, NULL, 10))) {
-			for (uint32_t i = 0; i < lengthof(debug_names); i++) {
-				if (!g_ascii_strcasecmp(c, debug_names[i])) {
-					wanted = 1 << i;
-					break;
+		} else if (!g_strcmp0(c, "breakpoint") || !g_strcmp0(c, "bp")) {
+			quetoo.debug_mask ^= DEBUG_BREAKPOINT;
+		} else if (!g_strcmp0(c, "any") || !g_strcmp0(c, "all")) {
+			quetoo.debug_mask ^= DEBUG_ALL;
+		} else {
+			for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
+				if (!g_strcmp0(c, DEBUG_CATEGORIES[i])) {
+					quetoo.debug_mask ^= (1 << i);
 				}
 			}
-		}
-
-		// ignore invalid flag, who cares
-		if (!wanted) {
-			continue;
-		}
-
-		if (operation == '+') {
-			quetoo.debug_mask |= wanted;
-		} else {
-			quetoo.debug_mask &= ~wanted;
 		}
 	}
 }

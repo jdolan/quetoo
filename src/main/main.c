@@ -32,7 +32,6 @@ static jmp_buf env;
 
 quetoo_t quetoo;
 
-static cvar_t *debug;
 static cvar_t *verbose;
 
 cvar_t *dedicated;
@@ -48,10 +47,64 @@ static void Verbose(const char *msg);
 static void Warn(const char *msg);
 
 /**
- * @brief Filters debugging output to the debug mask we have.
+ * @brief
+ */
+static void Debug_f(void) {
+
+	if (Cmd_Argc() == 1) {
+		Com_Print("Usage: debug [+category] [-category] [category] ..\n");
+		Com_Print("Categories:\n");
+		const char *categories[] = {
+			"ai",
+			"cgame",
+			"client",
+			"collision",
+			"console",
+			"filesystem",
+			"game",
+			"net",
+			"pmove",
+			"renderer",
+			"server",
+			"sound",
+			"all",
+			"breakpoint"
+		};
+		for (size_t i = 0; i < lengthof(categories); i++) {
+			Com_Print("  %s\n", categories[i]);
+		}
+		return;
+	}
+
+	Com_SetDebug(Cmd_Args());
+
+	Com_Print("Debug mask: %s\n", Com_GetDebug());
+}
+
+/**
+ * @brief Prints debug output using colored escapes based on the debug category.
  */
 static void Debug(const debug_t debug, const char *msg) {
-	Print(msg);
+
+	int32_t color = CON_COLOR_WHITE;
+	switch (debug) {
+		case DEBUG_AI:
+		case DEBUG_GAME:
+		case DEBUG_SERVER:
+		case DEBUG_PMOVE:
+			color = CON_COLOR_CYAN;
+			break;
+		case DEBUG_CGAME:
+		case DEBUG_CLIENT:
+		case DEBUG_RENDERER:
+		case DEBUG_SOUND:
+			color = CON_COLOR_MAGENTA;
+			break;
+		default:
+			break;
+	}
+
+	Print(va("^%d%s", color, msg));
 }
 
 static _Bool jmp_set = false;
@@ -126,9 +179,8 @@ static void Warn(const char *msg) {
 /**
  * @brief
  */
-__attribute__((noreturn))
+static void Quit_f(void) __attribute__((noreturn));
 static void Quit_f(void) {
-
 	Com_Shutdown("Server quit\n");
 }
 
@@ -146,7 +198,6 @@ static void Init(void) {
 
 	Cvar_Init();
 
-	debug = Cvar_Add("debug", "0", 0, "Print debugging information");
 	verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 
 	dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
@@ -182,6 +233,7 @@ static void Init(void) {
 
 	Con_Init();
 
+	Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
 	Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
 
 	Netchan_Init();
@@ -300,11 +352,6 @@ int32_t main(int32_t argc, char *argv[]) {
 		if (time_scale->modified) {
 			time_scale->modified = false;
 			time_scale->value = Clamp(time_scale->value, 0.1, 3.0);
-		}
-
-		if (debug->modified) {
-			debug->modified = false;
-			Com_SetDebug(debug->string);
 		}
 
 		do {
