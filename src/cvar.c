@@ -225,7 +225,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, _Bool force) {
 		// command line variables retain their value through initialization
 		if (var->flags & CVAR_CLI) {
 			if (!Com_WasInit(QUETOO_CLIENT) && !Com_WasInit(QUETOO_SERVER)) {
-				Com_Debug(DEBUG_GENERIC, "%s: retaining value \"%s\" from command line\n", name, var->string);
+				Com_Debug(DEBUG_CONSOLE, "%s: retaining value \"%s\" from command line\n", name, var->string);
 				return var;
 			}
 		}

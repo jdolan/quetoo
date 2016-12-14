@@ -22,10 +22,100 @@
 #include "common.h"
 
 /**
+ * @brief Parses a debug string and sets up the quetoo.debug value
+ */
+void Com_SetDebug(const char *debug) {
+	const char *debug_names[] = {
+		"ai",
+		"cgame",
+		"client",
+		"collision",
+		"console",
+		"filesystem",
+		"game",
+		"net",
+		"pmove",
+		"renderer",
+		"server",
+		"sound",
+	};
+
+	const char *buf = debug, *c;
+	_Bool first_token = true;
+
+	while (true) {
+
+		c = ParseToken(&buf);
+
+		if (*c == '\0') {
+			break;
+		}
+
+		char operation = '\0';
+
+		// support adding/removing flags
+		if (*c == '-' || *c == '+') {
+			operation = *c;
+			c++;
+		}
+
+		if (!operation) {
+
+			// special case: if our first token isn't an explicit add/remove then
+			// just reset the mask to 0 before setting the initial value.
+			if (first_token) {
+				quetoo.debug_mask = 0; // reset debug mask
+			}
+
+			operation = '+';
+		}
+
+		first_token = false;
+
+		// figure out what the wanted flag is
+		if (!g_ascii_strcasecmp(c, "none") || c[0] == '0') {
+			quetoo.debug_mask = 0;
+			continue;
+		}
+
+		debug_t wanted = 0;
+
+		// figure out what it is. Try special values first, then integral, then string.
+		if (!g_ascii_strcasecmp(c, "breakpoint") || !g_ascii_strcasecmp(c, "bp")) {
+			wanted = DEBUG_BREAKPOINT;
+		} else if (!g_ascii_strcasecmp(c, "any") || !g_ascii_strcasecmp(c, "all")) {
+			wanted = DEBUG_ALL;
+		} else if (!(wanted = (debug_t) strtol(c, NULL, 10))) {
+			for (uint32_t i = 0; i < lengthof(debug_names); i++) {
+				if (!g_ascii_strcasecmp(c, debug_names[i])) {
+					wanted = 1 << i;
+					break;
+				}
+			}
+		}
+
+		// ignore invalid flag, who cares
+		if (!wanted) {
+			continue;
+		}
+
+		if (operation == '+') {
+			quetoo.debug_mask |= wanted;
+		} else {
+			quetoo.debug_mask &= ~wanted;
+		}
+	}
+}
+
+/**
  * @brief Print a debug statement. If the format begins with '!', the function
  * name is omitted.
  */
-void Com_Debug_(const debug_mask_t mask, const char *func, const char *fmt, ...) {
+void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) {
+
+	if ((quetoo.debug_mask & debug) == 0) {
+		return;
+	}
 
 	char msg[MAX_PRINT_MSG];
 
@@ -48,21 +138,19 @@ void Com_Debug_(const debug_mask_t mask, const char *func, const char *fmt, ...)
 #endif
 
 	if (quetoo.Debug) {
-		quetoo.Debug(mask, (const char *) msg);
+		quetoo.Debug(debug, (const char *) msg);
 	} else {
 		fputs(msg, stdout);
 		fflush(stdout);
 	}
 }
 
-_Bool com_recursive = false;
-
 /**
  * @brief An error condition has occurred. This function does not return.
  */
 void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 
-	if (com_recursive) {
+	if (quetoo.recursive_error) {
 
 		if (quetoo.Error) {
 			quetoo.Error(err, (const char *) "Recursive error\n");
@@ -72,7 +160,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 			exit(err);
 		}
 	} else {
-		com_recursive = true;
+		quetoo.recursive_error = true;
 	}
 
 	char msg[MAX_PRINT_MSG];
@@ -103,7 +191,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 		exit(err);
 	}
 
-	com_recursive = false;
+	quetoo.recursive_error = false;
 }
 
 /**

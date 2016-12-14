@@ -772,7 +772,7 @@ void SplitBrush(bsp_brush_t *brush, int32_t plane_num, bsp_brush_t **front, bsp_
 		BoundBrush(b[i]);
 		for (j = 0; j < 3; j++) {
 			if (b[i]->mins[j] < MIN_WORLD_COORD || b[i]->maxs[j] > MAX_WORLD_COORD) {
-				Com_Debug(DEBUG_GENERIC, "bogus brush after clip\n");
+				Com_Debug(DEBUG_ALL, "bogus brush after clip\n");
 				break;
 			}
 		}
@@ -785,9 +785,9 @@ void SplitBrush(bsp_brush_t *brush, int32_t plane_num, bsp_brush_t **front, bsp_
 
 	if (!(b[0] && b[1])) {
 		if (!b[0] && !b[1]) {
-			Com_Debug(DEBUG_GENERIC, "split removed brush\n");
+			Com_Debug(DEBUG_ALL, "split removed brush\n");
 		} else {
-			Com_Debug(DEBUG_GENERIC, "split not on both sides\n");
+			Com_Debug(DEBUG_ALL, "split not on both sides\n");
 		}
 		if (b[0]) {
 			FreeBrush(b[0]);
@@ -824,7 +824,7 @@ void SplitBrush(bsp_brush_t *brush, int32_t plane_num, bsp_brush_t **front, bsp_
 			if (v1 < 1.0) {
 				FreeBrush(b[i]);
 				b[i] = NULL;
-				Com_Debug(DEBUG_GENERIC, "tiny volume after clip\n");
+				Com_Debug(DEBUG_ALL, "tiny volume after clip\n");
 			}
 		}
 	}
@@ -955,7 +955,7 @@ tree_t *BrushBSP(bsp_brush_t *brushlist, vec3_t mins, vec3_t maxs) {
 	int32_t i;
 	vec_t volume;
 
-	Com_Debug(DEBUG_GENERIC, "--- BrushBSP ---\n");
+	Com_Debug(DEBUG_ALL, "--- BrushBSP ---\n");
 
 	tree = AllocTree();
 
@@ -991,9 +991,9 @@ tree_t *BrushBSP(bsp_brush_t *brushlist, vec3_t mins, vec3_t maxs) {
 		AddPointToBounds(b->maxs, tree->mins, tree->maxs);
 	}
 
-	Com_Debug(DEBUG_GENERIC, "%5i brushes\n", c_brushes);
-	Com_Debug(DEBUG_GENERIC, "%5i visible faces\n", c_faces);
-	Com_Debug(DEBUG_GENERIC, "%5i nonvisible faces\n", c_nonvisfaces);
+	Com_Debug(DEBUG_ALL, "%5i brushes\n", c_brushes);
+	Com_Debug(DEBUG_ALL, "%5i visible faces\n", c_faces);
+	Com_Debug(DEBUG_ALL, "%5i nonvisible faces\n", c_nonvisfaces);
 
 	SDL_DestroySemaphore(semaphores.vis_nodes);
 	semaphores.vis_nodes = SDL_CreateSemaphore(0);
@@ -1012,9 +1012,9 @@ tree_t *BrushBSP(bsp_brush_t *brushlist, vec3_t mins, vec3_t maxs) {
 	const uint32_t vis_nodes = SDL_SemValue(semaphores.vis_nodes);
 	const uint32_t nonvis_nodes = SDL_SemValue(semaphores.nonvis_nodes);
 
-	Com_Debug(DEBUG_GENERIC, "%5i visible nodes\n", vis_nodes / 2 - nonvis_nodes);
-	Com_Debug(DEBUG_GENERIC, "%5i nonvis nodes\n", nonvis_nodes);
-	Com_Debug(DEBUG_GENERIC, "%5i leafs\n", (vis_nodes + 1) / 2);
+	Com_Debug(DEBUG_ALL, "%5i visible nodes\n", vis_nodes / 2 - nonvis_nodes);
+	Com_Debug(DEBUG_ALL, "%5i nonvis nodes\n", nonvis_nodes);
+	Com_Debug(DEBUG_ALL, "%5i leafs\n", (vis_nodes + 1) / 2);
 
 	return tree;
 }
