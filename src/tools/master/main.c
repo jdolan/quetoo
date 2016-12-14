@@ -300,7 +300,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 /**
  * @brief Com_Debug implementation.
  */
-static void Debug(const char *msg) {
+static void Debug(const debug_mask_t mask, const char *msg) {
 
 	if (debug) {
 		fputs(msg, stdout);

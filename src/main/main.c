@@ -214,7 +214,7 @@ static void ParseDebugFlags(void) {
 				wanted_flag = DEBUG_BREAKPOINT;
 			} else if (!g_ascii_strcasecmp(c, "any") || !g_ascii_strcasecmp(c, "all")) {
 				wanted_flag = DEBUG_ANY;
-			} else if (!(wanted_flag = strtol(c, NULL, 10))) {
+			} else if (!(wanted_flag = (debug_mask_t) strtol(c, NULL, 10))) {
 
 				for (uint32_t i = 0; i < debug_mask_strings_len; i++) {
 

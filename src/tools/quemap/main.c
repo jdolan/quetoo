@@ -39,7 +39,7 @@ static void Print(const char *msg);
 /**
  * @brief
  */
-static void Debug(const char *msg) {
+static void Debug(const debug_mask_t mask, const char *msg) {
 
 	if (!debug) {
 		return;
