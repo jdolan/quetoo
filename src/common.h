@@ -110,8 +110,8 @@ typedef enum {
 	DEBUG_SERVER		= 1 << 10,
 	DEBUG_SOUND			= 1 << 11,
 
-	DEBUG_BREAKPOINT	= 1 << 30,
-	DEBUG_ALL			= 0xFFFFFFFF & ~DEBUG_BREAKPOINT,
+	DEBUG_BREAKPOINT	= (int32_t) (1u << 31),
+	DEBUG_ALL			= (int32_t) (0xFFFFFFFF & ~DEBUG_BREAKPOINT),
 } debug_t;
 
 /**
