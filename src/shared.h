@@ -190,25 +190,6 @@ void SetUserInfo(char *s, const char *key, const char *value);
 _Bool ValidateUserInfo(const char *s);
 
 /**
- * @brief Game modes. These are selected via g_gameplay and
- * sent to client via configstring.
- */
-typedef enum {
-	GAME_DEATHMATCH,
-	GAME_INSTAGIB,
-	GAME_ARENA,
-	GAME_DUEL
-} g_gameplay_t;
-
-/**
- * @brief Hook style.
- */
-typedef enum {
-	HOOK_PULL, // lithium-style pull hook
-	HOOK_SWING // hookmod-style swing hook
-} g_hook_style_t;
-
-/**
  * @brief Debug printing masks
  */
 typedef enum {

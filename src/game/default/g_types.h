@@ -274,6 +274,25 @@ typedef enum {
 	HAND_LEFT
 } g_hand_t;
 
+/**
+ * @brief Game modes. These are selected via g_gameplay and
+ * sent to client via configstring.
+ */
+typedef enum {
+	GAME_DEATHMATCH,
+	GAME_INSTAGIB,
+	GAME_ARENA,
+	GAME_DUEL
+} g_gameplay_t;
+
+/**
+ * @brief Hook style.
+ */
+typedef enum {
+	HOOK_PULL, // lithium-style pull hook
+	HOOK_SWING // hookmod-style swing hook
+} g_hook_style_t;
+
 #ifdef __GAME_LOCAL_H__
 
 /**
@@ -588,8 +607,8 @@ typedef struct {
 
 	char title[MAX_STRING_CHARS]; // the descriptive name (Stress Fractures, etc)
 	char name[MAX_QPATH]; // the server name (fractures, etc)
-	int16_t gravity; // defaults to 800
-	g_gameplay_t gameplay; // DEATHMATCH, INSTAGIB, ARENA, DUEL
+	int16_t gravity;
+	g_gameplay_t gameplay;
 	_Bool teams;
 	_Bool ctf;
 	_Bool hook_allowed;
