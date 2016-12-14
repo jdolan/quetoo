@@ -45,6 +45,16 @@ static void S_Stop(void) {
 }
 
 /**
+ * @brief Stop sounds that are playing, if any.
+ */
+void S_StopAllSounds(void) {
+
+	if (Mix_Playing(-1) > 0) {
+		S_Stop();
+	}
+}
+
+/**
  * @brief Adds a single frame of audio. Also, if a loading cycle has completed,
  * media is freed here.
  */
@@ -57,9 +67,7 @@ void S_Frame(void) {
 	S_FrameMusic();
 
 	if (cls.state != CL_ACTIVE) {
-		if (Mix_Playing(-1) > 0) {
-			S_Stop();
-		}
+		S_StopAllSounds();
 		return;
 	}
 

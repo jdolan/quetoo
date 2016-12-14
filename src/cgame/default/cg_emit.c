@@ -75,9 +75,6 @@ void Cg_LoadEmits(void) {
 	cg_emit_t *e;
 	_Bool entity, emit;
 
-	memset(&cg_emits, 0, sizeof(cg_emits));
-	cg_num_emits = 0;
-
 	ents = cgi.EntityString();
 
 	memset(class_name, 0, sizeof(class_name));
@@ -322,6 +319,15 @@ void Cg_LoadEmits(void) {
 			continue;
 		}
 	}
+}
+
+/**
+ * @brief
+ */
+void Cg_FreeEmits(void) {
+
+	memset(&cg_emits, 0, sizeof(cg_emits));
+	cg_num_emits = 0;
 }
 
 /**
