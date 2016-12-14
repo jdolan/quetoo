@@ -32,7 +32,7 @@ void Cg_InitUi(void) {
 
 	mainViewController = $(alloc(MainViewController), init);
 
-	cgi.AddViewControler((ViewController *) mainViewController);
+	cgi.AddViewController((ViewController *) mainViewController);
 }
 
 /**

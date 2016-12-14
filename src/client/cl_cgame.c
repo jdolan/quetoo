@@ -166,7 +166,7 @@ void Cl_InitCgame(void) {
 	import.Cmd = Cmd_Add;
 	import.Cbuf = Cbuf_AddText;
 
-	import.AddViewControler = Ui_AddViewController;
+	import.AddViewController = Ui_AddViewController;
 	import.RemoveViewController = Ui_RemoveViewController;
 
 	import.BindKey = Cl_Bind;

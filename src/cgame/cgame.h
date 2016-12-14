@@ -255,7 +255,7 @@ typedef struct cg_import_s {
 	/**
 	 * @brief Adds the specified ViewController to the user interface.
 	 */
-	void (*AddViewControler)(ViewController *viewController);
+	void (*AddViewController)(ViewController *viewController);
 
 	/**
 	 * @brief Removes the specified ViewController from the user interface.
