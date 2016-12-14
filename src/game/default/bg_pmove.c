@@ -1121,7 +1121,7 @@ static void Pm_WaterMove(void) {
 		return;
 	}
 
-	Pm_Debug("%s\n", vtos(pm->s.origin));
+//	Pm_Debug("%s\n", vtos(pm->s.origin));
 
 	// apply friction, slowing rapidly when first entering the water
 	VectorCopy(pm->s.velocity, vel);

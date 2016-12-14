@@ -21,11 +21,84 @@
 
 #include "common.h"
 
+static const char *DEBUG_CATEGORIES[] = {
+	"ai",
+	"cgame",
+	"client",
+	"collision",
+	"console",
+	"filesystem",
+	"game",
+	"net",
+	"pmove",
+	"renderer",
+	"server",
+	"sound"
+};
+
+/**
+ * @return A string containing all enabled debug categories.
+ */
+const char *Com_GetDebug(void) {
+	static char debug[MAX_STRING_CHARS];
+
+	debug[0] = '\0';
+
+	for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
+		if (quetoo.debug_mask & (1 << i)) {
+			if (i > 0) {
+				g_strlcat(debug, " ", sizeof(debug));
+			}
+			g_strlcat(debug, DEBUG_CATEGORIES[i], sizeof(debug));
+		}
+	}
+
+	if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
+		g_strlcat(debug, " breakpoint", sizeof(debug));
+	}
+
+	return debug;
+}
+
+/**
+ * @brief Parses a debug string and sets up the quetoo.debug value
+ */
+void Com_SetDebug(const char *debug) {
+
+	const char *buf = debug;
+	while (true) {
+
+		const char *c = ParseToken(&buf);
+
+		if (*c == '\0') {
+			break;
+		}
+
+		if (!g_strcmp0(c, "none") || !g_strcmp0(c, "0")) {
+			quetoo.debug_mask = 0;
+		} else if (!g_strcmp0(c, "breakpoint") || !g_strcmp0(c, "bp")) {
+			quetoo.debug_mask ^= DEBUG_BREAKPOINT;
+		} else if (!g_strcmp0(c, "any") || !g_strcmp0(c, "all")) {
+			quetoo.debug_mask ^= DEBUG_ALL;
+		} else {
+			for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
+				if (!g_strcmp0(c, DEBUG_CATEGORIES[i])) {
+					quetoo.debug_mask ^= (1 << i);
+				}
+			}
+		}
+	}
+}
+
 /**
  * @brief Print a debug statement. If the format begins with '!', the function
  * name is omitted.
  */
-void Com_Debug_(const debug_mask_t mask, const char *func, const char *fmt, ...) {
+void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) {
+
+	if ((quetoo.debug_mask & debug) == 0) {
+		return;
+	}
 
 	char msg[MAX_PRINT_MSG];
 
@@ -48,21 +121,19 @@ void Com_Debug_(const debug_mask_t mask, const char *func, const char *fmt, ...)
 #endif
 
 	if (quetoo.Debug) {
-		quetoo.Debug(mask, (const char *) msg);
+		quetoo.Debug(debug, (const char *) msg);
 	} else {
 		fputs(msg, stdout);
 		fflush(stdout);
 	}
 }
 
-_Bool com_recursive = false;
-
 /**
  * @brief An error condition has occurred. This function does not return.
  */
 void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 
-	if (com_recursive) {
+	if (quetoo.recursive_error) {
 
 		if (quetoo.Error) {
 			quetoo.Error(err, (const char *) "Recursive error\n");
@@ -72,7 +143,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 			exit(err);
 		}
 	} else {
-		com_recursive = true;
+		quetoo.recursive_error = true;
 	}
 
 	char msg[MAX_PRINT_MSG];
@@ -103,7 +174,7 @@ void Com_Error_(const char *func, err_t err, const char *fmt, ...) {
 		exit(err);
 	}
 
-	com_recursive = false;
+	quetoo.recursive_error = false;
 }
 
 /**

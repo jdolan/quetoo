@@ -90,9 +90,33 @@
  * Disallow dangerous downloads for both the client and server.
  */
 #define IS_INVALID_DOWNLOAD(f) (\
-                                !*f || *f == '/' || strstr(f, "..") || strchr(f, ' ') \
-                               )
+	!*f || *f == '/' || strstr(f, "..") || strchr(f, ' ') \
+)
 
+/**
+ * @brief Debug cateogories.
+ */
+typedef enum {
+	DEBUG_AI			= 1 << 0,
+	DEBUG_CGAME			= 1 << 1,
+	DEBUG_CLIENT		= 1 << 2,
+	DEBUG_COLLISION		= 1 << 3,
+	DEBUG_CONSOLE		= 1 << 4,
+	DEBUG_FILESYSTEM	= 1 << 5,
+	DEBUG_GAME			= 1 << 6,
+	DEBUG_NET			= 1 << 7,
+	DEBUG_PMOVE			= 1 << 8,
+	DEBUG_RENDERER		= 1 << 9,
+	DEBUG_SERVER		= 1 << 10,
+	DEBUG_SOUND			= 1 << 11,
+
+	DEBUG_BREAKPOINT	= 1 << 30,
+	DEBUG_ALL			= 0xFFFFFFFF & ~DEBUG_BREAKPOINT,
+} debug_t;
+
+/**
+ * @brief Error categories.
+ */
 typedef enum {
 	ERR_PRINT = 1,
 	ERR_WARN,
@@ -105,16 +129,14 @@ char *Com_Argv(int32_t arg); // range and null checked
 
 void Com_PrintInfo(const char *s);
 
+const char *Com_GetDebug(void);
+void Com_SetDebug(const char *debug);
+
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Verbose(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void Com_Debug_(const debug_mask_t mask, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 void Com_Warn_(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Com_Error_(const char *func, err_t err, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
-
-/*
- * If your Error function doesn't return, make sure to set this to false.
- */
-extern _Bool com_recursive;
 
 #define Com_Debug(mask, ...) Com_Debug_(mask, __func__, __VA_ARGS__)
 #define Com_Error(err, ...) Com_Error_(__func__, err, __VA_ARGS__)
@@ -140,9 +162,14 @@ typedef struct {
 	uint32_t ticks;
 	uint32_t subsystems;
 
-	debug_mask_t debug_mask;
+	debug_t debug_mask;
 
-	void (*Debug)(const debug_mask_t mask, const char *msg);
+	/**
+	 * @brief If your Error function doesn't exit, make sure to set this to false.
+	 */
+	_Bool recursive_error;
+
+	void (*Debug)(const debug_t debug, const char *msg);
 	void (*Error)(err_t err, const char *msg) __attribute__((noreturn));
 	void (*Print)(const char *msg);
 	void (*Verbose)(const char *msg);

@@ -586,7 +586,7 @@ _Bool FloodEntities(tree_t *tree) {
 	node_t *head_node;
 
 	head_node = tree->head_node;
-	Com_Debug(DEBUG_GENERIC, "--- FloodEntities ---\n");
+	Com_Debug(DEBUG_ALL, "--- FloodEntities ---\n");
 	inside = false;
 	tree->outside_node.occupied = 0;
 	cl = "";
@@ -627,9 +627,9 @@ gotit:
 	}
 
 	if (!inside) {
-		Com_Debug(DEBUG_GENERIC, "no entities in open -- no filling\n");
+		Com_Debug(DEBUG_ALL, "no entities in open -- no filling\n");
 	} else if (tree->outside_node.occupied) {
-		Com_Debug(DEBUG_GENERIC, "entity %s reached from outside -- no filling\n", cl);
+		Com_Debug(DEBUG_ALL, "entity %s reached from outside -- no filling\n", cl);
 	}
 
 	return inside && !tree->outside_node.occupied;

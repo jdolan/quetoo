@@ -189,25 +189,4 @@ void DeleteUserInfo(char *s, const char *key);
 void SetUserInfo(char *s, const char *key, const char *value);
 _Bool ValidateUserInfo(const char *s);
 
-/**
- * @brief Debug printing masks
- */
-typedef enum {
-	// bits 0, 1 and 2 are not used so that "debug 0/1/2" can be
-	// parsed as different operations than, say, "debug 2" as flag 2
-
-	DEBUG_GENERIC		= 1 << 3,
-	DEBUG_CLIENT		= 1 << 4,
-	DEBUG_SERVER		= 1 << 5,
-	DEBUG_GAME			= 1 << 6,
-	DEBUG_CGAME			= 1 << 7,
-	DEBUG_RENDERER		= 1 << 8,
-	DEBUG_PMOVE			= 1 << 9,
-	DEBUG_FILESYSTEM	= 1 << 10,
-	DEBUG_SOUND			= 1 << 11,
-
-	DEBUG_ANY			= (1 << 30) - 1
-	// entry 31 is reserved
-} debug_mask_t;
-
 #endif /* __SHARED_H__ */

@@ -21,6 +21,27 @@
 
 #include "sv_local.h"
 
+
+static void Sv_GameDebug(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+static void Sv_GameDebug(const char *func, const char *fmt, ...) {
+	char msg[MAX_STRING_CHARS];
+
+	if (fmt[0] != '!') {
+		g_snprintf(msg, sizeof(msg), "%s: ", func);
+	} else {
+		msg[0] = '\0';
+	}
+
+	const size_t len = strlen(msg);
+	va_list args;
+
+	va_start(args, fmt);
+	vsnprintf(msg + len, sizeof(msg) - len, fmt, args);
+	va_end(args);
+
+	Com_Debug(DEBUG_GAME, "!%s", msg);
+}
+
 /**
  * @brief Abort the server with a game error, always emitting ERR_DROP.
  */
@@ -240,7 +261,7 @@ void Sv_InitGame(void) {
 	g_strlcpy(import.write_dir, Fs_WriteDir(), MAX_OS_PATH);
 
 	import.Print = Com_Print;
-	import.Debug_ = Com_Debug_;
+	import.Debug_ = Sv_GameDebug;
 	import.Warn_ = Com_Warn_;
 	import.Error_ = Sv_GameError;
 
