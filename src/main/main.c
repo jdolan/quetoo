@@ -52,9 +52,10 @@ static void Warn(const char *msg);
 static void Debug_f(void) {
 
 	if (Cmd_Argc() == 1) {
-		Com_Print("Usage: debug [+category] [-category] [category] ..\n");
+		Com_Print("Set or toggle debug categories.\nUsage: debug [category] ..\n");
 		Com_Print("Categories:\n");
 		const char *categories[] = {
+			"none",
 			"ai",
 			"cgame",
 			"client",
