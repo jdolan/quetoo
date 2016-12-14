@@ -180,23 +180,24 @@ static void R_DrawMeshShadow_default_(const r_entity_t *e, const r_shadow_t *s) 
 }
 
 /**
- * @brief Draws all shadows for the specified entity.
+* @brief Stores list for global shadow intensities
+*/
+typedef struct {
+	const r_entity_t *entity;
+	const r_shadow_t *shadow;
+} r_sorted_entity_shadow_t;
+
+static r_sorted_entity_shadow_t r_sorted_shadows[MAX_SHADOWS * MAX_ENTITIES];
+
+/**
+ * @brief
  */
-static void R_DrawMeshShadow_default(const r_entity_t *e) {
+static int R_SortEntityShadows(const void *a, const void *b) {
+	const r_sorted_entity_shadow_t *sa = (const r_sorted_entity_shadow_t *) a;
+	const r_sorted_entity_shadow_t *sb = (const r_sorted_entity_shadow_t *) b;
+	const vec_t cmp = sb->shadow->shadow - sa->shadow->shadow;
 
-	r_shadow_t *s = e->lighting->shadows;
-	for (size_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {
-
-		if (s->shadow == 0.0) {
-			break;
-		}
-
-		r_view.current_shadow = s;
-
-		R_DrawMeshShadow_default_(e, s);
-	}
-
-	r_view.current_shadow = NULL;
+	return (cmp == 0) ? 0 : (cmp < 0) ? -1 : 1;
 }
 
 /**
@@ -212,12 +213,8 @@ void R_DrawMeshShadows_default(const r_entities_t *ents) {
 		return;
 	}
 
-	R_EnablePolygonOffset(true);
-
-	R_EnableShadow(program_shadow, true);
-
-	R_EnableStencilTest(GL_ZERO, true);
-
+	// calculate shadows
+	r_sorted_entity_shadow_t *sorted = r_sorted_shadows;
 	for (size_t i = 0; i < ents->count; i++) {
 		const r_entity_t *e = ents->entities[i];
 
@@ -225,9 +222,43 @@ void R_DrawMeshShadows_default(const r_entities_t *ents) {
 			continue;
 		}
 
-		r_view.current_entity = e;
+		r_shadow_t *s = e->lighting->shadows;
+		for (size_t i = 0; i < lengthof(e->lighting->shadows); i++, s++) {
 
-		R_DrawMeshShadow_default(e);
+			if (s->shadow == 0.0) {
+				break;
+			}
+
+			sorted->entity = e;
+			sorted->shadow = s;
+
+			sorted++;
+		}
+	}
+
+	if (sorted == r_sorted_shadows) {
+		return;
+	}
+
+	const size_t num_sorted = (uint32_t) (ptrdiff_t) (sorted - r_sorted_shadows);
+
+	qsort(r_sorted_shadows, num_sorted, sizeof(r_sorted_entity_shadow_t), R_SortEntityShadows);
+
+	R_EnablePolygonOffset(true);
+
+	R_EnableShadow(program_shadow, true);
+
+	R_EnableStencilTest(GL_ZERO, true);
+
+	for (size_t i = 0; i < num_sorted; ++i) {
+		const r_sorted_entity_shadow_t *shadow = &r_sorted_shadows[i];
+		const r_entity_t *e = shadow->entity;
+		const r_shadow_t *s = shadow->shadow;
+
+		r_view.current_entity = e;
+		r_view.current_shadow = s;
+
+		R_DrawMeshShadow_default_(e, s);
 	}
 
 	r_view.current_entity = NULL;
