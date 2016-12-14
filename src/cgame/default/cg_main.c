@@ -266,6 +266,8 @@ static void Cg_ClearState(void) {
 	memset(&cg_state, 0, sizeof(cg_state));
 
 	Cg_ClearInput();
+
+	Cg_FreeEmits();
 }
 
 /**

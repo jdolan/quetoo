@@ -245,6 +245,8 @@ void Cl_ClearState(void) {
 
 	Cl_ClearInput();
 
+	S_StopAllSounds();
+
 	// wipe the entire cl_client_t structure
 	memset(&cl, 0, sizeof(cl));
 
