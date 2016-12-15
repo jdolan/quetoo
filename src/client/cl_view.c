@@ -190,11 +190,11 @@ void Cl_UpdateView(void) {
 
 	Cl_ClearView();
 
-	// set ticks
 	r_view.ticks = cl.ticks;
 
-	// set area bits to mark visible leafs
 	r_view.area_bits = cl.frame.area_bits;
+
+	cls.cgame->UpdateView(&cl.frame);
 }
 
 /**
