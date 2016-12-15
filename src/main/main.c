@@ -199,6 +199,8 @@ static void Init(void) {
 
 	Cvar_Init();
 
+	Cm_Init();
+
 	verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 
 	dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
@@ -276,6 +278,8 @@ static void Shutdown(const char *msg) {
 	Cvar_Shutdown();
 
 	Cmd_Shutdown();
+
+	Cm_Shutdown();
 
 	Fs_Shutdown();
 

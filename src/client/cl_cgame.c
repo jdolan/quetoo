@@ -115,6 +115,20 @@ static char *Cl_ConfigString(uint16_t index) {
 }
 
 /**
+ * @brief Cgame-specific load material function
+ */
+static r_material_t *Cl_CgameLoadMaterial(const char *diffuse) {
+
+	cm_material_t *cm = Cm_LoadMaterial(diffuse);
+	
+	r_material_t *r = R_LoadMaterial(cm);
+	
+	Cm_UnrefMaterial(cm);
+	
+	return r;
+}
+
+/**
  * @brief Initializes the client game subsystem
  */
 void Cl_InitCgame(void) {
@@ -222,7 +236,7 @@ void Cl_InitCgame(void) {
 	import.AddImageToAtlas = R_AddImageToAtlas;
 	import.GetAtlasImageFromAtlas = R_GetAtlasImageFromAtlas;
 	import.CompileAtlas = R_CompileAtlas;
-	import.LoadMaterial = R_LoadMaterial;
+	import.LoadMaterial = Cl_CgameLoadMaterial;
 	import.LoadModel = R_LoadModel;
 	import.WorldModel = R_WorldModel;
 

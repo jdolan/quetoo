@@ -19,19 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CMODEL_H__
-#define __CMODEL_H__
+#pragma once
 
-#include "files.h"
-#include "filesystem.h"
-#include "matrix.h"
-
-#include "cm_main.h"
-#include "cm_material.h"
-#include "cm_model.h"
-#include "cm_test.h"
-#include "cm_trace.h"
-#include "cm_types.h"
-#include "cm_vis.h"
-
-#endif /* __CMODEL_H__ */
+void Cm_Init(void);
+void Cm_Shutdown(void);
