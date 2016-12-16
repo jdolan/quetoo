@@ -181,12 +181,6 @@ static int32_t Cm_LoadStageFrames(cm_stage_t *s) {
 		g_snprintf(frame, sizeof(frame), "%s%d", name, i);
 		s->anim.frames[j] = Mem_LinkMalloc(strlen(frame) + 1, s);
 		g_strlcpy(s->anim.frames[j], frame, strlen(frame));
-
-		// IT_DIFFUSE
-		/*if (s->anim.frames[j]->type == IT_NULL) {
-			Com_Warn("Failed to resolve frame: %d: %s\n", j, frame);
-			return -1;
-		}*/
 	}
 
 	return 0;
@@ -214,12 +208,6 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 			} else {
 				g_strlcpy(s->image, va("textures/%s", c), sizeof(s->image));
 			}
-			
-			// IT_DIFFUSE
-			/*if (s->image->type == IT_NULL) {
-				Com_Warn("Failed to resolve texture: %s\n", c);
-				return -1;
-			}*/
 
 			s->flags |= STAGE_TEXTURE;
 			continue;
@@ -237,12 +225,6 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 			} else {
 				g_strlcpy(s->image, va("envmaps/%s", c), sizeof(s->image));
 			}
-
-			// IT_ENVMAP
-			/*if (s->image->type == IT_NULL) {
-				Com_Warn("Failed to resolve envmap: %s\n", c);
-				return -1;
-			}*/
 
 			s->flags |= STAGE_ENVMAP;
 			continue;
@@ -471,12 +453,6 @@ static int32_t Cm_ParseStage(cm_stage_t *s, const char **buffer) {
 				g_strlcpy(s->image, va("flares/%s", c), sizeof(s->image));
 			}
 
-			// IT_FLARE
-			/*if (s->image->type == IT_NULL) {
-				Com_Warn("Failed to resolve flare: %s\n", c);
-				return -1;
-			}*/
-
 			s->flags |= STAGE_FLARE;
 			continue;
 		}
@@ -577,10 +553,9 @@ cm_material_t *Cm_LoadMaterial_(const char *where, const char *diffuse) {
 // REMOVEME: this is just to ensure that all materials are indeed gone after
 // an r_restart.
 static void Cm_Materials_ForEach(gpointer key, gpointer value, gpointer ud) {
-	const char *keyName = (const char *) key;
 	const cm_material_t *material = (const cm_material_t *) value;
 
-	Com_Print("%s -> %s\n", key, material->where);
+	Com_Print("%s -> %s (%u)\n", key, material->where, material->ref_count);
 }
 
 void Cm_DumpMaterialAllocations(void) {
@@ -645,34 +620,22 @@ GArray *Cm_LoadMaterials(const char *path) {
 			continue;
 		}
 
-		if (!g_strcmp0(c, "normalmap")/* && r_bumpmap->value*/) {
+		if (!g_strcmp0(c, "normalmap")) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
 				g_strlcpy(m->normalmap, ++c, sizeof(m->normalmap));
 			} else {
 				g_strlcpy(m->normalmap, va("textures/%s", c), sizeof(m->normalmap));
 			}
-
-			// IT_NORMALMAP
-			/*if (m->normalmap->type == IT_NULL) {
-				Com_Warn("Failed to resolve normalmap: %s\n", c);
-				m->normalmap = NULL;
-			}*/
 		}
 
-		if (!g_strcmp0(c, "specularmap")/* && r_bumpmap->value*/) {
+		if (!g_strcmp0(c, "specularmap")) {
 			c = ParseToken(&buffer);
 			if (*c == '#') {
 				g_strlcpy(m->specularmap, ++c, sizeof(m->specularmap));
 			} else {
 				g_strlcpy(m->specularmap, va("textures/%s", c), sizeof(m->specularmap));
 			}
-
-			// IT_SPECULARMAP
-			/*if (m->specularmap->type == IT_NULL) {
-				Com_Warn("Failed to resolve specularmap: %s\n", c);
-				m->specularmap = NULL;
-			}*/
 		}
 
 		if (!g_strcmp0(c, "bump")) {

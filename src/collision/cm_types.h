@@ -72,6 +72,7 @@ typedef struct {
 	char name[32];
 	int32_t flags;
 	int32_t value;
+	struct cm_material_s *material;
 } cm_bsp_surface_t;
 
 /**

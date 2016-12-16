@@ -888,6 +888,8 @@ void R_LoadMaterials(r_model_t *mod) {
 
 		Com_Debug(DEBUG_RENDERER, "Parsed material %s with %d stages\n", r_mat->diffuse->media.name, cm_mat->num_stages);
 	}
+
+	g_array_free(materials, true);
 }
 
 #define MAX_SAVE_MATERIALS 1000
