@@ -68,31 +68,31 @@ static r_material_state_t r_material_state;
  */
 static void R_UpdateMaterialStage(r_material_t *m, r_stage_t *s) {
 	if (s->cm->flags & STAGE_PULSE) {
-		s->cm->pulse.dhz = (sin(r_view.ticks * s->cm->pulse.hz * 0.00628) + 1.0) / 2.0;
+		s->pulse.dhz = (sin(r_view.ticks * s->cm->pulse.hz * 0.00628) + 1.0) / 2.0;
 	}
 
 	if (s->cm->flags & STAGE_STRETCH) {
-		s->cm->stretch.dhz = (sin(r_view.ticks * s->cm->stretch.hz * 0.00628) + 1.0) / 2.0;
-		s->cm->stretch.damp = 1.5 - s->cm->stretch.dhz * s->cm->stretch.amp;
+		s->stretch.dhz = (sin(r_view.ticks * s->cm->stretch.hz * 0.00628) + 1.0) / 2.0;
+		s->stretch.damp = 1.5 - s->stretch.dhz * s->cm->stretch.amp;
 	}
 
 	if (s->cm->flags & STAGE_ROTATE) {
-		s->cm->rotate.deg = r_view.ticks * s->cm->rotate.hz * 0.360;
+		s->rotate.deg = r_view.ticks * s->cm->rotate.hz * 0.360;
 	}
 
 	if (s->cm->flags & STAGE_SCROLL_S) {
-		s->cm->scroll.ds = s->cm->scroll.s * r_view.ticks / 1000.0;
+		s->scroll.ds = s->cm->scroll.s * r_view.ticks / 1000.0;
 	}
 
 	if (s->cm->flags & STAGE_SCROLL_T) {
-		s->cm->scroll.dt = s->cm->scroll.t * r_view.ticks / 1000.0;
+		s->scroll.dt = s->cm->scroll.t * r_view.ticks / 1000.0;
 	}
 
 	if (s->cm->flags & STAGE_ANIM) {
 		if (s->cm->anim.fps) {
-			if (r_view.ticks >= s->cm->anim.dtime) { // change frames
-				s->cm->anim.dtime = r_view.ticks + (1000 / s->cm->anim.fps);
-				s->image = s->anim.frames[++s->cm->anim.dframe % s->cm->anim.num_frames];
+			if (r_view.ticks >= s->anim.dtime) { // change frames
+				s->anim.dtime = r_view.ticks + (1000 / s->cm->anim.fps);
+				s->image = s->anim.frames[++s->anim.dframe % s->cm->anim.num_frames];
 			}
 		} else if (r_view.current_entity) {
 			s->image = s->anim.frames[r_view.current_entity->frame % s->cm->anim.num_frames];
@@ -191,13 +191,13 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 
 		if (stage->cm->flags & STAGE_STRETCH) {
 			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
-			Matrix4x4_ConcatScale3(&r_texture_matrix, stage->cm->stretch.damp, stage->cm->stretch.damp, 1.0);
+			Matrix4x4_ConcatScale3(&r_texture_matrix, stage->stretch.damp, stage->stretch.damp, 1.0);
 			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
 		}
 
 		if (stage->cm->flags & STAGE_ROTATE) {
 			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
-			Matrix4x4_ConcatRotate(&r_texture_matrix, stage->cm->rotate.deg, 0.0, 0.0, 1.0);
+			Matrix4x4_ConcatRotate(&r_texture_matrix, stage->rotate.deg, 0.0, 0.0, 1.0);
 			Matrix4x4_ConcatTranslate(&r_texture_matrix, -s, -t, 0.0);
 		}
 	}
@@ -211,11 +211,11 @@ static void R_StageTextureMatrix(const r_bsp_surface_t *surf, const r_stage_t *s
 	}
 
 	if (stage->cm->flags & STAGE_SCROLL_S) {
-		Matrix4x4_ConcatTranslate(&r_texture_matrix, stage->cm->scroll.ds, 0.0, 0.0);
+		Matrix4x4_ConcatTranslate(&r_texture_matrix, stage->scroll.ds, 0.0, 0.0);
 	}
 
 	if (stage->cm->flags & STAGE_SCROLL_T) {
-		Matrix4x4_ConcatTranslate(&r_texture_matrix, 0.0, stage->cm->scroll.dt, 0.0);
+		Matrix4x4_ConcatTranslate(&r_texture_matrix, 0.0, stage->scroll.dt, 0.0);
 	}
 
 	identity = false;
@@ -347,7 +347,7 @@ static void R_SetStageState(const r_bsp_surface_t *surf, const r_stage_t *stage)
 		// modulate the alpha value for pulses
 		if (stage->cm->flags & STAGE_PULSE) {
 			R_EnableFog(false); // disable fog, since it also sets alpha
-			color[3] = stage->cm->pulse.dhz;
+			color[3] = stage->pulse.dhz;
 		} else {
 			R_EnableFog(true); // ensure fog is available
 			color[3] = 1.0;
@@ -630,7 +630,7 @@ static void R_RegisterMaterial(r_media_t *self) {
 static void R_FreeMaterial(r_media_t *self) {
 	r_material_t *mat = (r_material_t *) self;
 
-	Cm_UnrefMaterial(mat->cm);
+	Cm_UnrefMaterial((cm_material_t *) mat->cm);
 }
 
 /**
@@ -670,9 +670,10 @@ static void R_LoadSpecularmap(r_material_t *mat, const char *base) {
 }
 
 /**
- * @brief Loads the r_material_t from the specified cm_material_t.
+ * @brief Loads the r_material_t from the specified cm_material_t. Optionally unreferences
+ * the cm reference we passed into it if you don't intend on using it again.
  */
-r_material_t *R_LoadMaterial(cm_material_t *cm) {
+r_material_t *R_ConvertMaterial(cm_material_t *cm, const _Bool unref) {
 	r_material_t *mat;
 
 	if (!cm || !cm->diffuse[0]) {
@@ -699,7 +700,19 @@ r_material_t *R_LoadMaterial(cm_material_t *cm) {
 		Cm_RefMaterial(cm);
 	}
 
+	if (unref) {
+		Cm_UnrefMaterial(cm);
+	}
+
 	return mat;
+}
+
+/**
+ * @brief Loads the r_material_t from the specified texture and unreferences the cm_ it loads once.
+ */
+r_material_t *R_LoadMaterial(const char *name) {
+
+	return R_ConvertMaterial(Cm_LoadMaterial(name), true);
 }
 
 /**
@@ -780,7 +793,7 @@ static int32_t R_ParseStage(r_stage_t *s, cm_stage_t *cm) {
 
 	// load material if lighting
 	if (cm->flags & STAGE_LIGHTING) {
-		s->material = R_LoadMaterial(cm->material);
+		s->material = R_ConvertMaterial(cm->material, false);
 	}
 
 	return 0;
@@ -813,10 +826,7 @@ void R_LoadMaterials(r_model_t *mod) {
 
 	for (size_t i = 0; i < materials->len; i++) {
 		cm_material_t *cm_mat = g_array_index(materials, cm_material_t *, i);
-		r_material_t *r_mat = R_LoadMaterial(cm_mat);
-		
-		// unref the cm one now that the r_ one will keep its reference
-		Cm_UnrefMaterial(cm_mat);
+		r_material_t *r_mat = R_ConvertMaterial(cm_mat, true);
 
 		if (!r_mat) {
 			continue;

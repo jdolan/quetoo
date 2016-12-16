@@ -311,17 +311,40 @@ typedef struct r_particle_s {
 #define MAX_PARTICLES		16384
 
 // renderer-specific material stuff
+typedef struct {
+	vec_t dhz;
+} r_stage_pulse_t;
+
+typedef struct {
+	vec_t dhz;
+	vec_t damp;
+} r_stage_stretch_t;
+
+typedef struct {
+	vec_t deg;
+} r_stage_rotate_t;
+
+typedef struct {
+	vec_t ds, dt;
+} r_stage_scroll_t;
+
 // frame based material animation, lerp between consecutive images
 typedef struct {
 	r_image_t **frames;
+	uint32_t dtime;
+	uint16_t dframe;
 } r_stage_anim_t;
 
 typedef struct r_stage_s {
-	struct cm_stage_s *cm; // link to cm stage
+	const struct cm_stage_s *cm; // link to cm stage
 
 	// renderer-local stuff parsed from cm
 	struct r_material_s *material;
 	r_image_t *image;
+	r_stage_pulse_t pulse;
+	r_stage_stretch_t stretch;
+	r_stage_rotate_t rotate;
+	r_stage_scroll_t scroll;
 	r_stage_anim_t anim;
 
 	// next stage
@@ -332,7 +355,7 @@ typedef struct r_material_s {
 	// from media
 	r_media_t media;
 
-	struct cm_material_s *cm; // link to cm material
+	const struct cm_material_s *cm; // link to cm material
 
 	// renderer-local stuff parsed from cm
 	uint32_t time;

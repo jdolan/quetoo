@@ -275,9 +275,7 @@ static void R_LoadBspTexinfo(r_bsp_model_t *bsp, const d_bsp_lump_t *l) {
 		out->flags = LittleLong(in->flags);
 		out->value = LittleLong(in->value);
 
-		cm_material_t *cm = Cm_LoadMaterial(va("textures/%s", out->name));
-		out->material = R_LoadMaterial(cm);
-		Cm_UnrefMaterial(cm);
+		out->material = R_LoadMaterial(va("textures/%s", out->name));
 
 		// hack to down-scale high-res textures for legacy levels
 		if (bsp->version == BSP_VERSION) {

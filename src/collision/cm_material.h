@@ -28,21 +28,20 @@ typedef struct {
 } cm_stage_blend_t;
 
 typedef struct {
-	vec_t hz, dhz;
+	vec_t hz;
 } cm_stage_pulse_t;
 
 typedef struct {
-	vec_t hz, dhz;
-	vec_t amp, damp;
+	vec_t hz;
+	vec_t amp;
 } cm_stage_stretch_t;
 
 typedef struct {
-	vec_t hz, deg;
+	vec_t hz;
 } cm_stage_rotate_t;
 
 typedef struct {
 	vec_t s, t;
-	vec_t ds, dt;
 } cm_stage_scroll_t;
 
 typedef struct {
@@ -63,8 +62,6 @@ typedef struct {
 	uint16_t num_frames;
 	char **frames;
 	vec_t fps;
-	uint32_t dtime;
-	uint16_t dframe;
 } cm_stage_anim_t;
 
 typedef struct cm_stage_s {

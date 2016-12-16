@@ -31,11 +31,7 @@ static void R_LoadMeshMaterial(r_model_t *mod) {
 	Dirname(mod->media.name, skin);
 	strcat(skin, "skin");
 
-	cm_material_t *cm = Cm_LoadMaterial(skin);
-
-	mod->mesh->material = R_LoadMaterial(cm);
-
-	Cm_UnrefMaterial(cm);
+	mod->mesh->material = R_LoadMaterial(skin);
 }
 
 /**
